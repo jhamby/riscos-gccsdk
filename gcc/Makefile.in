@@ -250,7 +250,7 @@ gcc-libs-stg2:
 	$(MAKE) -C gcc libgcc "TRG=$(trg30)" $(cfl30) "STAGE=stage2"
 	$(MAKE) -C gcc zlib "TRG=$(trg20)" $(cfl20) "STAGE=stage2"
 	$(MAKE) -C gcc fastjar "TRG=$(trg20)" "STAGE=stage2"
-	#$(MAKE) -C gcc libjava "TRG=$(trg30)" $(cfl30) "STAGE=stage2" "lib_incl_dir=$(libscl_incl_dir)"
+	#$(MAKE) -C gcc libjava "TRG=$(trg20)" $(cfl20) "STAGE=stage2" "lib_incl_dir=$(libscl_incl_dir)"
 	$(MAKE) -C gcc libf2c "TRG=$(trg20)" $(cfl20) "STAGE=stage2"
 	$(MAKE) -C gcc libf2c "TRG=$(trg30)" $(cfl30) "STAGE=stage2"
 	$(MAKE) -C gcc libstdc "TRG=$(trg20)" $(cfl20) "STAGE=stage2" "lib_incl_dir=$(unixlib_incl_dir)"
