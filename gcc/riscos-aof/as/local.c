@@ -49,7 +49,7 @@ static routPos
 
 const char localFormat[] = "|Local$$%08x$$%02i$$%i$$%s|";
 
-int localCurrent;		/* initial value doesn't matter */
+int localCurrent = 0;
 static localPos
 * localList = 0, *localListEnd = 0;
 

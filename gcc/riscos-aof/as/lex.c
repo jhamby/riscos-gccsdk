@@ -180,7 +180,7 @@ lexReadLocal (int *len, int *label)
   if (len)
     if (strncmp (rout_id, name, *len))
       {
-	error (ErrorError, TRUE, "Local label name does not match routine name");
+	error (ErrorError, TRUE, "Local label name (%s) does not match routine name (%s)", rout_id, name );
 	return 0;
       }
   return name;

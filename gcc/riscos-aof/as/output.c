@@ -26,10 +26,13 @@
 #include "symbol.h"
 #include "version.h"
 
-#if defined(UNIXLIB) || defined(CROSS_COMPILE)
+#ifdef __TARGET_SCL__
+#include <swis.h>
+#else
 #include <ctype.h>
 #include <errno.h>
 #endif
+
 #ifdef __riscos__
 #include "depend.h"
 #endif
@@ -125,7 +128,21 @@ void
 outputFinish (void)
 {
   if (objfile != NULL && objfile != stdout)
-    fclose (objfile);
+    {
+      fclose (objfile);
+#ifdef __TARGET_SCL__
+      /* Set filetype to text */
+      {
+        _kernel_swi_regs regs;
+
+        regs.r[0] = 18;
+        regs.r[1] = (int)__riscosify_scl(outname, 0);
+        regs.r[2] = 0xfff;
+
+        _kernel_swi(OS_File, &regs, &regs);
+      }
+#endif
+    }
 }
 
 void
