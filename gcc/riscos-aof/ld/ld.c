@@ -729,8 +729,7 @@ tlink_execute (const char *prog, char **argv, char *redir, char *viafile)
 #ifdef CROSS_COMPILE
       s = stpcpy (command, argv[0]);
 #else
-      temp = __riscosify (argv[0], 0, __RISCOSIFY_DONT_TRUNCATE,
-			  filename, sizeof (filename), NULL);
+      temp = __riscosify (argv[0], 0, 0, filename, sizeof (filename), NULL);
       s = stpcpy (command, filename);
 #endif
       if (tlink_verbose >= 5)
@@ -756,8 +755,7 @@ tlink_execute (const char *prog, char **argv, char *redir, char *viafile)
 	  if (s != NULL)
 	    s = stpcpy (s, str);
 #else
-	  temp = __riscosify (str, 0, __RISCOSIFY_DONT_TRUNCATE,
-			      filename, sizeof (filename), NULL);
+	  temp = __riscosify (str, 0, 0, filename, sizeof (filename), NULL);
 	  if (s != NULL)
 	    s = stpcpy (s, filename);
 #endif
@@ -783,7 +781,7 @@ tlink_execute (const char *prog, char **argv, char *redir, char *viafile)
       temp = strcpy (filename, str);
 #else
       /* Convert all the objects to a RISC OS format for the linker.  */
-      temp = __riscosify (str, 0, __RISCOSIFY_DONT_TRUNCATE, filename,
+      temp = __riscosify (str, 0, 0, filename,
 			  sizeof (filename), NULL);
 #endif
       if (temp != NULL)
@@ -819,8 +817,7 @@ tlink_execute (const char *prog, char **argv, char *redir, char *viafile)
 #ifdef CROSS_COMPILE
       temp = strcpy (filename, viafile);
 #else
-      temp = __riscosify (viafile, 0, __RISCOSIFY_DONT_TRUNCATE,
-			  filename, sizeof (filename), NULL);
+      temp = __riscosify (viafile, 0, 0, filename, sizeof (filename), NULL);
 #endif
       if (temp != NULL)
 	{
@@ -836,8 +833,7 @@ tlink_execute (const char *prog, char **argv, char *redir, char *viafile)
 #ifdef CROSS_COMPILE
   temp = strcpy (filename, redir);
 #else
-  temp = __riscosify (redir, 0, __RISCOSIFY_DONT_TRUNCATE,
-		      filename, sizeof (filename), NULL);
+  temp = __riscosify (redir, 0, 0, filename, sizeof (filename), NULL);
 #endif
   if (temp != NULL)
     {
@@ -1586,8 +1582,7 @@ static int check_and_add_library (const char *file_name)
 #ifdef CROSS_COMPILE
   temp = strcpy (converted, file_name);
 #else
-  temp = __riscosify (file_name, 0, __RISCOSIFY_DONT_TRUNCATE,
-		      converted, sizeof (converted), NULL);
+  temp = __riscosify (file_name, 0, 0, converted, sizeof (converted), NULL);
 #endif
   if (temp == NULL)
     return 0;
