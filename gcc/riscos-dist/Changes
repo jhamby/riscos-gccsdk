@@ -1,6 +1,6 @@
 Noteworthy changes to the RISC OS GCCSDK
 
-RISC OS GCC release 3.3.3 pre-release 1 (released XX XXXXXX 2004)
+RISC OS GCC release 3.3.3 pre-release 1 (released 20 March 2004)
 =======================================
 
 * unixlib: Path <Unix$Path> has been replaced by <UnixLib$Path>.  All
