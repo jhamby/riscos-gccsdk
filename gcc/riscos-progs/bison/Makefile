@@ -70,13 +70,13 @@ $(bin_dir)/bison$(exesfx):	$(OBJS) $(LIB)
 	$(CROSS_CC) -o $@ $(OBJS) $(LIB) -L$(objdir)/libiberty/$(STAGE) -liberty
 
 $(info_dir)/bison:	doc/bison.texinfo doc/fdl.texi doc/gpl.texi doc/version.texi
-	makeinfo --no-split --number-sections doc/bison.texinfo -o $@ -I doc
+	$(MAKEINFO) --no-split --number-sections doc/bison.texinfo -o $@ -I doc
 
 scan-gram.c: scan-gram.l
-	flex -t -o$@ scan-gram.l > $@
+	$(FLEX) -t -o$@ scan-gram.l > $@
 
 scan-skel.c: scan-skel.l
-	flex -t -o$@ scan-skel.l > $@
+	$(FLEX) -t -o$@ scan-skel.l > $@
 
 $(bobj)/scan-gram.o: scan-gram.c scan-gram.l
 $(bobj)/scan-skel.o: scan-skel.c scan-skel.l

@@ -74,4 +74,4 @@ $(bin_dir)/cmp$(exesfx):	$(CMPOBJS) $(LIB)
 	$(CROSS_CC) -o $@ $(CMPOBJS) $(LIB)
 
 $(info_dir)/diff:	doc/diff.texi doc/fdl.texi doc/version.texi
-	makeinfo --no-split --number-sections doc/diff.texi -o $@ -I doc
+	$(MAKEINFO) --no-split --number-sections doc/diff.texi -o $@ -I doc

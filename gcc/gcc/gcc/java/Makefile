@@ -103,13 +103,13 @@ $(bin_dir)/gcj$(gexesfx): $(GCJ_OBJS)
 ##############################################################################
 
 parse.c: parse.y
-	bison -t --name-prefix=java_ -o $@ parse.y
+	$(BISON) -t --name-prefix=java_ -o $@ parse.y
 
 parse-scan.c: parse-scan.y
-	bison -o $@ parse-scan.y
+	$(BISON) -o $@ parse-scan.y
 
 keyword.h: keyword.gperf
-	gperf -L C -C -F ', 0' -p -t -j1 -i 1 -g -o -N java_keyword -k1,4,$$ keyword.gperf > $@
+	$(GPERF) -L C -C -F ', 0' -p -t -j1 -i 1 -g -o -N java_keyword -k1,4,$$ keyword.gperf > $@
 
 $(gccobjdir)/java/jcf-path.o: jcf-path.c
 	$(CC) $(CFLAGS) $(INCLUDES) -O2 -o $@ -c jcf-path.c \

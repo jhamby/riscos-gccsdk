@@ -13,10 +13,10 @@ Prerequisites
 In order to successfully build GCCSDK, you will need to have the following
 packages installed on your system, with at *least* these software revisions.
 
-	autoconf 	version 2.13
+	autoconf 	version 2.50
 	bison		version 1.27
 	flex		version 2.5.4
-	gcc		version 2.91
+	gcc		version 2.95
 	gperf		version 2.7.2
 	sed		version 2.05
 	makeinfo	version 4.2
@@ -29,8 +29,7 @@ hours.  It is recommended that you install GCCSDK has a non-root user.
 The makefiles are still under development.  If something does go wrong
 then at least your system directory structure will still be preserved. 
 
-Generate the configure script. The 'WARNING:' messages can be safely
-ignored.
+Generate the configure script.
   $ autoconf ; autoheader
 
 Configure it.  The package creates two main installations.  The first,

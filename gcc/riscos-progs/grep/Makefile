@@ -38,7 +38,7 @@ $(bin_dir)/grep$(exesfx):	$(OBJS) $(LIB)
 	$(CROSS_CC) -o $@ $(OBJS) $(LIB) -L$(objdir)/libiberty/$(STAGE) -liberty
 
 $(info_dir)/grep:	doc/grep.texi
-	makeinfo --no-split --number-sections doc/grep.texi -o $@ -I doc
+	$(MAKEINFO) --no-split --number-sections doc/grep.texi -o $@ -I doc
 
 $(gobj)/grep.o:	grep.c
 $(gobj)/grepmat.o: grepmat.c

@@ -27,7 +27,7 @@ $(bin_dir)/gperf$(exesfx):	$(OBJS)
 	$(CROSS_CXX) -o $@ $(OBJS) -L$(objdir)/libiberty/stage2 -liberty
 
 $(info_dir)/gperf:	doc/gperf.texi
-	makeinfo --no-split --number-sections doc/gperf.texi -o $@ -I doc
+	$(MAKEINFO) --no-split --number-sections doc/gperf.texi -o $@ -I doc
 
 $(objdir)/riscos-progs/gperf/bool-array.o: bool-array.cc bool-array.icc options.icc
 $(objdir)/riscos-progs/gperf/getline.o: getline.cc getline.h

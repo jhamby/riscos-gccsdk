@@ -22,7 +22,7 @@ $(bin_dir)/sed$(exesfx):	$(OBJS)
 	$(CROSS_CC) -o $@ $(OBJS) -L$(objdir)/libiberty/$(STAGE) -liberty
 
 $(info_dir)/sed:	doc/config.texi doc/sed.texi doc/version.texi
-	makeinfo --no-split --number-sections doc/sed.texi -o $@ -I doc
+	$(MAKEINFO) --no-split --number-sections doc/sed.texi -o $@ -I doc
 
 $(objdir)/riscos-progs/sed/compile.o: compile.c
 $(objdir)/riscos-progs/sed/execute.o: execute.c

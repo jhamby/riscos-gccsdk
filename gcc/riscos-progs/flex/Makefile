@@ -44,13 +44,13 @@ $(gcc_bin_dir)/$(TRG)/o/libfl:	$(LIBFL_OBJS)
 	$(CROSS_AR) $(CROSS_AR_FLAGS) $@ $(LIBFL_OBJS)
 
 $(info_dir)/flex:	doc/flex.texi doc/version.texi
-	makeinfo --no-split --number-sections doc/flex -o $@ -I doc
+	$(MAKEINFO) --no-split --number-sections doc/flex -o $@ -I doc
 
 parse.h parse.c: parse.y
-	bison -d parse.y -o parse.c
+	$(BISON) -d parse.y -o parse.c
 
 scan.c: scan.l
-	flex -t -o$@ scan.l > $@
+	$(FLEX) -t -o$@ scan.l > $@
 
 $(fobj)/parse.o: parse.c parse.y parse.h
 $(fobj)/buf.o: buf.c

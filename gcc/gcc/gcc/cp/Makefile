@@ -1,5 +1,5 @@
 # Makefile for the GNU C++ compiler for ARM/RISC OS
-# Copyright (c) 1997, 1998, 1999, 2000 Nick Burrett
+# Copyright (c) 1997, 1998, 1999, 2000, 2004 Nick Burrett
 # Written by Nick Burrett <nick@dsvr.net>
 
 # Defs for GCC
@@ -78,11 +78,11 @@ $(bin_dir)/g++$(gexesfx): $(gccobjdir)/cp/g++.o $(gccobjdir)/cp/g++spec.o \
 # they're all built differently.
 
 parse.c parse.h: parse.y
-	bison -d parse.y -o parse.c
-	grep "^#define[ 	]*YYEMPTY" parse.c >>parse.h
+	$(BISON) -d parse.y -o parse.c
+	$(GREP) "^#define[ 	]*YYEMPTY" parse.c >>parse.h
 
 cfns.h: cfns.gperf
-	gperf -o -C -E -k 1-6,$ -j1 -D -N libc_name_p < cfns.gperf >$@
+	$(GPERF) -o -C -E -k 1-6,$ -j1 -D -N libc_name_p < cfns.gperf >$@
 
 $(gccobjdir)/cp/parse.o:	parse.c parse.y
 

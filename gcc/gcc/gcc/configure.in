@@ -2,6 +2,7 @@
 # Copyright (c) 2000, 2001, 2003, 2004 Nick Burrett
 # Written by Nick Burrett <nick@dsvr.net>
 
+AC_PREREQ(2.50)
 AC_INIT(tree.c)
 AC_CONFIG_HEADER(auto-host.h)
 AC_CANONICAL_SYSTEM
@@ -12,8 +13,8 @@ PACKAGE=gcc
 VERSION="3.3.3"
 AC_SUBST(PACKAGE)
 AC_SUBST(VERSION)
-AC_DEFINE_UNQUOTED(PACKAGE, "$PACKAGE")
-AC_DEFINE_UNQUOTED(VERSION, "$VERSION")
+AC_DEFINE_UNQUOTED(PACKAGE, "$PACKAGE", [Program name])
+AC_DEFINE_UNQUOTED(VERSION, "$VERSION", [Program version])
 
 dnl Checks for programs
 AC_PROG_CC
@@ -41,7 +42,7 @@ char *test = S(foo);],
 gcc_cv_c_have_stringify=yes, gcc_cv_c_have_stringify=no)])
 AC_MSG_RESULT($gcc_cv_c_have_stringify)
 if test $gcc_cv_c_have_stringify = yes; then
-  AC_DEFINE(HAVE_CPP_STRINGIFY)
+  AC_DEFINE(HAVE_CPP_STRINGIFY, 1, [Define if the system preprocesses understands the stringification operator])
 fi
 
 # See if the stage1 system preprocessor understands the ANSI C

@@ -37,7 +37,7 @@ $(bin_dir)/make$(exesfx):	$(OBJS)
 	$(CROSS_CC) -o $@ $(OBJS) -L$(objdir)/libiberty/$(STAGE) -liberty
 
 $(info_dir)/make:	doc/fdl.texi doc/make-stds.texi doc/make.texi
-	makeinfo --no-split --number-sections doc/make.texi -o $@ -I doc
+	$(MAKEINFO) --no-split --number-sections doc/make.texi -o $@ -I doc
 
 $(objdir)/riscos-progs/make/ar.o: ar.c
 $(objdir)/riscos-progs/make/arscan.o: arscan.c

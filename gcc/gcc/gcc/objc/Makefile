@@ -1,5 +1,5 @@
 # Makefile for the GNU Objective-C compiler for ARM/RISC OS
-# Copyright (c) 1997, 1998, 1999, 2000 Nick Burrett
+# Copyright (c) 1997, 1998, 1999, 2000, 2004 Nick Burrett
 # Written by Nick Burrett <nick@dsvr.net>
 
 # Defs for GCC
@@ -31,7 +31,7 @@ $(gcc_bin_dir)/cc1obj$(gexesfx): $(BACKEND) $(OBJC_OBJS) $(RISCOS_OBJS) $(LIBDEP
 ##############################################################################
 
 objc-parse.c: objc-parse.y
-	bison objc-parse.y -o objc-parse.c
+	$(BISON) objc-parse.y -o objc-parse.c
 
 ##############################################################################
 

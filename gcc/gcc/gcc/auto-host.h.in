@@ -1,39 +1,4 @@
 /* auto-host.h.in.  Generated from configure.in by autoheader.  */
-/* Define to 1 if NLS is requested.  */
-#undef ENABLE_NLS
-
-/* Define as 1 if you have catgets and don't want to use GNU gettext.  */
-#undef HAVE_CATGETS
-
-/* Define as 1 if you have gettext and don't want to use GNU gettext.  */
-#undef HAVE_GETTEXT
-
-/* Define if your locale.h file contains LC_MESSAGES.  */
-#undef HAVE_LC_MESSAGES
-
-/* Define as 1 if you have the stpcpy function.  */
-#undef HAVE_STPCPY
-
-/* Define if your assembler supports specifying the maximum number
-   of bytes to skip when using the GAS .p2align command.  */
-#undef HAVE_GAS_MAX_SKIP_P2ALIGN
-
-/* Define if your assembler supports .balign and .p2align.  */
-#undef HAVE_GAS_BALIGN_AND_P2ALIGN
-
-/* Define if your assembler uses the old HImode fild and fist notation.  */
-#undef HAVE_GAS_FILDS_FISTS
-
-/* Define to `int' if <sys/types.h> doesn't define.  */
-#undef ssize_t
-
-/* Define if cpp should also search $prefix/include.  */
-#undef PREFIX_INCLUDE_DIR
-
-#undef HAVE_CPP_STRINGIFY
-#undef PACKAGE
-#undef VERSION
-
 
 /* Define if you want more run-time sanity checks. This one gets a grab bag of
    miscellaneous but relatively cheap checks. */
@@ -100,6 +65,10 @@
 
 /* Define if <time.h> defines clock_t. */
 #undef HAVE_CLOCK_T
+
+/* Define if the system preprocesses understands the stringification operator
+   */
+#undef HAVE_CPP_STRINGIFY
 
 /* Define to 1 if we found this declaration otherwise define to 0. */
 #undef HAVE_DECL_GETRLIMIT
@@ -320,6 +289,9 @@
 /* Define if your compiler supports the `__int64' type. */
 #undef HAVE___INT64
 
+/* Program name */
+#undef PACKAGE
+
 /* Define to the address where bug reports for this package should be sent. */
 #undef PACKAGE_BUGREPORT
 
@@ -362,6 +334,9 @@
 /* Define to 1 if you can safely include both <sys/time.h> and <time.h>. */
 #undef TIME_WITH_SYS_TIME
 
+/* Program version */
+#undef VERSION
+
 /* Define to 1 if your processor stores words with the most significant byte
    first (like Motorola and SPARC, unlike Intel and VAX). */
 #undef WORDS_BIGENDIAN
@@ -378,15 +353,3 @@
 
 /* Define as `fork' if `vfork' does not work. */
 #undef vfork
-
-/* Bison unconditionally undefines `const' if neither `__STDC__' nor
-   __cplusplus are defined.  That's a problem since we use `const' in
-   the GCC headers, and the resulting bison code is therefore type
-   unsafe.  Thus, we must match the bison behavior here.  */
-
-#ifndef __STDC__
-#ifndef __cplusplus
-#undef const
-#define const
-#endif
-#endif

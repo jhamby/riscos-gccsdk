@@ -87,7 +87,7 @@ ifeq (${STAGE},stage2)
 $(info_dir)/g77:	bugs.texi bugs0.texi ffe.texi g77.texi \
 	g77install.texi install0.texi intdoc.texi news.texi news0.texi \
 	root.texi
-	-makeinfo --no-split --number-sections --force g77.texi -o $@
+	-$(MAKEINFO) --no-split --number-sections --force g77.texi -o $@
 endif
 
 ##############################################################################

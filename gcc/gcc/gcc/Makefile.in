@@ -306,10 +306,10 @@ ifeq (${STAGE},stage2)
 $(info_dir)/gcc:	doc/extend.texi doc/gcc.texi doc/gcov.texi \
 	doc/install.texi doc/invoke.texi doc/md.texi \
 	doc/rtl.texi doc/tm.texi
-	makeinfo --no-split --number-sections --force gcc.texi -o $@ -I doc -I doc/include
+	$(MAKEINFO) --no-split --number-sections --force gcc.texi -o $@ -I doc -I doc/include
 
 $(info_dir)/cpp:	doc/cpp.texi
-	makeinfo --no-split --number-sections --force cpp.texi -o $@ -I doc -I doc/include
+	$(MAKEINFO) --no-split --number-sections --force cpp.texi -o $@ -I doc -I doc/include
 endif
 
 install_headers:
@@ -321,25 +321,25 @@ install_headers:
 # Make Bison sources
 
 c-parse.y:	c-parse.in
-	sed -e "/^ifobjc$$/,/^end ifobjc$$/d" -e "/^ifc$$/d" -e "/^end ifc$$/d" $? > c-parse.y
+	$(SED) -e "/^ifobjc$$/,/^end ifobjc$$/d" -e "/^ifc$$/d" -e "/^end ifc$$/d" $? > c-parse.y
 
 # Bison sources
 # There's no point having a suffix thing for these becuase
 # they're all built differently.
 
 cexp.c: cexp.y
-	bison -o cexp.c cexp.y
+	$(BISON) -o cexp.c cexp.y
 
 c-parse.c: c-parse.y
-	bison -d c-parse.y -o c-parse.c
+	$(BISON) -d c-parse.y -o c-parse.c
 
 gengtype-yacc.c: gengtype-yacc.y
-	bison -d -o $@ gengtype-yacc.y
+	$(BISON) -d -o $@ gengtype-yacc.y
 
 gengtype-yacc.h: gengtype-yacc.c
 
 gengtype-lex.c: gengtype-lex.l gengtype-yacc.h
-	flex -t -o$@ gengtype-lex.l | sed 's/^\(char msg\[\];\)/yyconst \1/' > $@
+	$(FLEX) -t -o$@ gengtype-lex.l | sed 's/^\(char msg\[\];\)/yyconst \1/' > $@
 
 # Perfect hash function generation stuff
 
@@ -504,32 +504,32 @@ gtyp-gen.h: Makefile
 # of config.h.
 
 $(gccobjdir)/bitmap.c:	bitmap.c
-	sed -e "s/config[.]h/hconfig.h/" bitmap.c >$@
+	$(SED) -e "s/config[.]h/hconfig.h/" bitmap.c >$@
 $(gccobjdir)/_bitmap.o:  $(gccobjdir)/bitmap.c
 	$(HOST_CC) -c $(gccobjdir)/bitmap.c -o $@ $(HOST_INCLUDES) $(HOST_PREDEFS)
 
 $(gccobjdir)/errors.c:	errors.c
-	sed -e "s/config[.]h/hconfig.h/" errors.c >$@
+	$(SED) -e "s/config[.]h/hconfig.h/" errors.c >$@
 $(gccobjdir)/_errors.o:  $(gccobjdir)/errors.c
 	$(HOST_CC) -c $(gccobjdir)/errors.c -o $@ $(HOST_INCLUDES) $(HOST_PREDEFS)
 
 $(gccobjdir)/ggc-none.c:	ggc-none.c
-	sed -e "s/config[.]h/hconfig.h/" ggc-none.c >$@
+	$(SED) -e "s/config[.]h/hconfig.h/" ggc-none.c >$@
 $(gccobjdir)/_ggc-none.o:  $(gccobjdir)/ggc-none.c
 	$(HOST_CC) -c $(gccobjdir)/ggc-none.c -o $@ $(HOST_INCLUDES) $(HOST_PREDEFS)
 
 $(gccobjdir)/obstack.c:	../../libiberty/obstack.c
-	sed -e "s/config[.]h/hconfig.h/" ../../libiberty/obstack.c >$@
+	$(SED) -e "s/config[.]h/hconfig.h/" ../../libiberty/obstack.c >$@
 $(gccobjdir)/_obstack.o:  $(gccobjdir)/obstack.c
 	$(HOST_CC) -c $(gccobjdir)/obstack.c -o $@ $(HOST_INCLUDES) $(HOST_PREDEFS)
 
 $(gccobjdir)/rtl.c:	rtl.c
-	sed -e "s/config[.]h/hconfig.h/" rtl.c >$@
+	$(SED) -e "s/config[.]h/hconfig.h/" rtl.c >$@
 $(gccobjdir)/_rtl.o:	$(gccobjdir)/rtl.c  gtype-desc.h
 	$(HOST_CC) -c $(gccobjdir)/rtl.c -o $@ $(HOST_INCLUDES) $(HOST_PREDEFS)
 
 $(gccobjdir)/print-rtl.c:	print-rtl.c
-	sed -e "s/config[.]h/hconfig.h/" print-rtl.c >$@
+	$(SED) -e "s/config[.]h/hconfig.h/" print-rtl.c >$@
 $(gccobjdir)/_print-rtl.o:	$(gccobjdir)/print-rtl.c tree-check.h
 	$(HOST_CC) -c $(gccobjdir)/print-rtl.c -o $@ $(HOST_INCLUDES) $(HOST_PREDEFS)
 
@@ -543,7 +543,7 @@ $(gccobjdir)/_safe-ctype.o:	../../libiberty/safe-ctype.c
 	$(HOST_CC) -c ../../libiberty/safe-ctype.c -o $@ $(HOST_INCLUDES) $(HOST_PREDEFS)
 
 $(gccobjdir)/varray.c:	varray.c
-	sed -e "s/config[.]h/hconfig.h/" varray.c >$@
+	$(SED) -e "s/config[.]h/hconfig.h/" varray.c >$@
 $(gccobjdir)/_varray.o:	$(gccobjdir)/varray.c
 	$(HOST_CC) -c $(gccobjdir)/varray.c -o $@ $(HOST_INCLUDES) $(HOST_PREDEFS)
 
