@@ -1,3 +1,9 @@
+Tue Apr 22 11:57:14 2003  Peter Naulls <peter@chocky.org>
+	* clib/stddef.h: Remove ptr_t.  Not defined in glibc, and
+	  sometimes clashes in programs.
+	* clib/unixlib/local.h: Fix typo.  Move stddef.h include -
+	  size_t required by non UnixLib internal functions.
+
 Mon Apr 21 16:48:12 2003  Peter Naulls <peter@chocky.org>
 	* source/Makefile: Added _longlong.s to SYS_ASM.
 	* objs/Makefile,fe1: Add missing setsid, and _longlong.

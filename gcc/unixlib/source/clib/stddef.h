@@ -1,10 +1,10 @@
 /****************************************************************************
  *
- * $Source$
- * $Date$
- * $Revision$
- * $State$
- * $Author$
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/stddef.h,v $
+ * $Date: 2002/09/24 21:02:36 $
+ * $Revision: 1.4 $
+ * $State: Exp $
+ * $Author: admin $
  *
  ***************************************************************************/
 
@@ -88,8 +88,6 @@ typedef __WINT_TYPE__ wint_t;
 #undef __need_NULL
 
 #ifdef __STDDEF_H
-
-typedef void *ptr_t;
 
 /* Offset of member 'member' in a struct of type 'type'.  */
 #define offsetof(type, member) ((size_t) &((type *)0)->member)

@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/unixlib/local.h,v $
- * $Date: 2002/09/24 21:02:37 $
- * $Revision: 1.4 $
+ * $Date: 2003/04/12 11:31:39 $
+ * $Revision: 1.5 $
  * $State: Exp $
- * $Author: admin $
+ * $Author: alex $
  *
  * This file should eventually contain most / all of the unixlib specific
  * functions.
@@ -20,9 +20,6 @@
 #include <unixlib/types.h>
 #endif
 
-#define __need_size_t
-#include <stddef.h>
-
 #define __need_FILE
 #include <stdio.h>
 
@@ -31,6 +28,10 @@
 #ifndef __UNIXLIB_FEATURES_H
 #include <unixlib/features.h>
 #endif
+
+#define __need_size_t
+#include <stddef.h>
+
 
 __BEGIN_DECLS
 
@@ -251,7 +252,7 @@ extern int *__uname_dont_pack_ptr;
 
 
 
-/* Get an objects filetype, object type, etc and do some common checks.
+/* Get an object's filetype, object type, etc and do some common checks.
    Returns nonzero and sets errno on error. Returns riscosified filename
    in __buffer. __objtype, __ftype and __attr may be NULL if not needed. */
 int
