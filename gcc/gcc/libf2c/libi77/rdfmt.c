@@ -123,7 +123,7 @@ rd_I(Uint *n, int w, ftnlen len, register int base)
 	  case '+':
 		break;
 	  default:
-		if (ch >= '0' && ch <= '9') {
+		if (ch >= '0' && ch <= '0' + (base - 1)) {
 			x = ch - '0';
 			break;
 			}
@@ -131,7 +131,7 @@ rd_I(Uint *n, int w, ftnlen len, register int base)
 		}
 	while(--w) {
 		GET(ch);
-		if (ch >= '0' && ch <= '9') {
+		if (ch >= '0' && ch <= '0' + (base - 1)) {
 			x = x*base + ch - '0';
 			continue;
 			}
