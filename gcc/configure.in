@@ -91,8 +91,8 @@ AC_CHECK_HEADERS(sys/stat.h sys/time.h sys/times.h time.h unistd.h)
 AC_CHECK_FUNCS(atoll atoq)
 AC_CHECK_FUNCS(bcmp bcopy bsearch bzero getrlimit gettimeofday index)
 AC_CHECK_FUNCS(isascii kill popen putenv setrlimit strchr strerror)
-AC_CHECK_FUNCS(strrchr strsignal strtoul sysconf stpcpy strdup strndup)
-AC_CHECK_FUNCS(putc_unlocked fputc_unlocked fputs_unlocked)
+AC_CHECK_FUNCS(strrchr strsignal strtoul sysconf stpcpy strdup strncasecmp)
+AC_CHECK_FUNCS(strndup putc_unlocked fputc_unlocked fputs_unlocked)
 
 AC_DECL_SYS_SIGLIST
 AC_FUNC_VFORK
