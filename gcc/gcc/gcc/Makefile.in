@@ -14,13 +14,14 @@ prefix = $(unix_prefix)
 CFLAGS += -DCROSS_COMPILE -D$(hostsystem)
 bin_dir = $(ux_bin_dir)
 gcc_bin_dir = $(ux_gcc_bin_dir)
-GNATBIND = gnatbind -C
-GNATCC = gnatgcc
+GNATBIND = @GNATBIND@ -C
+GNATCC = @ADAC@
 else
 prefix = $(riscos_prefix)
 CC = $(CROSS_CC)
 CXX = $(CROSS_CXX)
 GNATCC = $(CROSS_CC)
+GNATBIND = $(CROSS_GNATBIND)
 CFLAGS = $(CROSS_CFLAGS) -D$(targetsystem)
 bin_dir = $(ro_bin_dir)
 gcc_bin_dir = $(ro_gcc_bin_dir)
