@@ -17,8 +17,7 @@
 
 /* GNU fmt was written by Ross Paterson <rap@doc.ic.ac.uk>.  */
 
-#include "config.h"
-#include "basicdefs.h"
+#include "sed.h"
 
 #include <stdio.h>
 #include <ctype.h>
@@ -121,10 +120,10 @@ struct Word
     const char *text;		/* the text of the word */
     short length;		/* length of this word */
     short space;		/* the size of the following space */
-    flagT paren:1;		/* starts with open paren */
-    flagT period:1;		/* ends in [.?!])* */
-    flagT punct:1;		/* ends in punctuation */
-    flagT final:1;		/* end of sentence */
+    unsigned paren:1;		/* starts with open paren */
+    unsigned period:1;		/* ends in [.?!])* */
+    unsigned punct:1;		/* ends in punctuation */
+    unsigned final:1;		/* end of sentence */
 
     /* The remaining fields are computed during the optimization.  */
 

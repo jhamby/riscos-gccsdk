@@ -18,6 +18,8 @@
 
 #include <stdio.h>
 
+#include "basicdefs.h"
+
 void panic P_((const char *str, ...));
 
 FILE *ck_fopen P_((const char *name, const char *mode, flagT fail));

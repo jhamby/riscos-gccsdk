@@ -11,7 +11,7 @@
 
 /* Define to 1 if translation of program messages to the user's native
    language is requested. */
-/* #define ENABLE_NLS 1 */
+#define ENABLE_NLS 0
 
 /* Define to 1 if you have `alloca', as a function or macro. */
 #define HAVE_ALLOCA 1
@@ -20,17 +20,11 @@
    */
 #define HAVE_ALLOCA_H 1
 
-/* Define to 1 if you have the <argz.h> header file. */
-/* #define HAVE_ARGZ_H 1 */
-
 /* Define to 1 if you have the `bcopy' function. */
 #define HAVE_BCOPY 1
 
 /* Define to 1 if you have the `bzero' function. */
 #define HAVE_BZERO 1
-
-/* Define to 1 if you have the `dcgettext' function. */
-/* #define HAVE_DCGETTEXT 1 */
 
 /* Define to 1 if you don't have `vprintf' but do have `_doprnt.' */
 /* #undef HAVE_DOPRNT */
@@ -62,15 +56,9 @@
 /* Define to 1 if you have the `getpagesize' function. */
 #define HAVE_GETPAGESIZE 1
 
-/* Define if the GNU gettext() function is already present or preinstalled. */
-/* #define HAVE_GETTEXT 1 */
-
 /* Define to 1 if you have the `getuid' function. */
 #define HAVE_GETUID 1
 
-/* Define if you have the iconv() function. */
-/* #define HAVE_ICONV 1 */
- 
 /* Define to 1 if you have the <inttypes.h> header file. */
 #define HAVE_INTTYPES_H 1
 
@@ -82,12 +70,6 @@
 
 /* Define to 1 if you have the `isatty' function. */
 #define HAVE_ISATTY 1
-
-/* Define to 1 if you have the `isblank' function. */
-/* #define HAVE_ISBLANK 1 */
-
-/* Define if you have <langinfo.h> and nl_langinfo(CODESET). */
-/* #define HAVE_LANGINFO_CODESET 1 */
 
 /* Define if your <locale.h> file defines LC_MESSAGES. */
 #define HAVE_LC_MESSAGES 1
@@ -104,9 +86,6 @@
 /* Define to 1 if you have the <malloc.h> header file. */
 #define HAVE_MALLOC_H 1
 
-/* Define to 1 if you have the `mbrtowc' function. */
-/* #define HAVE_MBRTOWC 1 */
-
 /* Define to 1 if you have the `memchr' function. */
 #define HAVE_MEMCHR 1
 
@@ -122,9 +101,6 @@
 /* Define to 1 if you have the <memory.h> header file. */
 #define HAVE_MEMORY_H 1
 
-/* Define to 1 if you have the `mempcpy' function. */
-#define HAVE_MEMPCPY 1
-
 /* Define to 1 if you have the `memset' function. */
 #define HAVE_MEMSET 1
 
@@ -132,13 +108,10 @@
 #define HAVE_MKSTEMP 1
 
 /* Define to 1 if you have a working `mmap' system call. */
-/* #define HAVE_MMAP 1 */
+#define HAVE_MMAP 1
 
 /* Define to 1 if you have the `munmap' function. */
-/* #define HAVE_MUNMAP 1 */
-
-/* Define to 1 if you have the <nl_types.h> header file. */
-#define HAVE_NL_TYPES_H 1
+#define HAVE_MUNMAP 1
 
 /* Define to 1 if libc includes obstacks. */
 #define HAVE_OBSTACK 1
@@ -209,38 +182,11 @@
 /* Define to 1 if you have the <sys/types.h> header file. */
 #define HAVE_SYS_TYPES_H 1
 
-/* Define to 1 if you have the `tsearch' function. */
-/* #define HAVE_TSEARCH 1 */
-
 /* Define to 1 if you have the <unistd.h> header file. */
 #define HAVE_UNISTD_H 1
 
 /* Define to 1 if you have the `vprintf' function. */
 #define HAVE_VPRINTF 1
-
-/* Define to 1 if you have the <wchar.h> header file. */
-/* #define HAVE_WCHAR_H 1 */
-
-/* Define to 1 if you have the `wcrtomb' function. */
-/* #define HAVE_WCRTOMB 1 */
-
-/* Define to 1 if you have the `wcscoll' function. */
-/* #define HAVE_WCSCOLL 1 */
-
-/* Define to 1 if you have the <wctype.h> header file. */
-/* #define HAVE_WCTYPE_H 1 */
-
-/* Define to 1 if you have the `__argz_count' function. */
-/* #define HAVE___ARGZ_COUNT 1 */
-
-/* Define to 1 if you have the `__argz_next' function. */
-/* #define HAVE___ARGZ_NEXT 1 */
-
-/* Define to 1 if you have the `__argz_stringify' function. */
-/* #define HAVE___ARGZ_STRINGIFY 1 */
-
-/* Define as const if the declaration of iconv() needs const. */
-/* #define ICONV_CONST */
 
 /* Name of package */
 #define PACKAGE "sed"
@@ -252,13 +198,13 @@
 #define PACKAGE_NAME "sed"
 
 /* Define to the full name and version of this package. */
-#define PACKAGE_STRING "sed 4.0.7"
+#define PACKAGE_STRING "sed 4.0.9"
 
 /* Define to the one symbol short name of this package. */
 #define PACKAGE_TARNAME "sed"
 
 /* Define to the version of this package. */
-#define PACKAGE_VERSION "4.0.7"
+#define PACKAGE_VERSION "4.0.9"
 
 /* Define to the version of GNU sed whose features are supported by this sed.
    */
@@ -267,16 +213,16 @@
 /* If using the C implementation of alloca, define if you know the
    direction of stack growth for your system; otherwise it will be
    automatically deduced at run-time.
-        STACK_DIRECTION > 0 => grows toward higher addresses
-        STACK_DIRECTION < 0 => grows toward lower addresses
-        STACK_DIRECTION = 0 => direction of growth unknown */
+	STACK_DIRECTION > 0 => grows toward higher addresses
+	STACK_DIRECTION < 0 => grows toward lower addresses
+	STACK_DIRECTION = 0 => direction of growth unknown */
 /* #undef STACK_DIRECTION */
 
 /* Define to 1 if you have the ANSI C header files. */
 #define STDC_HEADERS 1
 
 /* Version number of package */
-#define VERSION "4.0.7"
+#define VERSION "4.0.9"
 
 /* Define to 1 if on AIX 3.
    System headers sometimes define this.
@@ -309,9 +255,14 @@
 /* Define to empty if `const' does not conform to ANSI C. */
 /* #undef const */
 
-/* Define as `__inline' if that's what the C compiler calls it, or to nothing
-   if it is not supported. */
+/* Define to `__inline__' or `__inline' if that's what the C compiler
+   calls it, or to nothing if 'inline' is not supported under any name.  */
+#ifndef __cplusplus
 /* #undef inline */
+#endif
+
+/* Define to a type if <wchar.h> does not define. */
+/* #undef mbstate_t */
 
 /* Define to `long' if <sys/types.h> does not define. */
 /* #undef off_t */

@@ -18,7 +18,7 @@
 
 /* compile.c: translate sed source into internal form */
 
-#include "config.h"
+#include "sed.h"
 #include "strverscmp.h"
 #include <stdio.h>
 #include <ctype.h>
@@ -39,20 +39,11 @@
 # define EXIT_FAILURE 1
 #endif
 
-#if defined HAVE_WCTYPE_H && defined HAVE_WCHAR_H && defined HAVE_MBRTOWC
-/* We can handle multibyte string.  */
-# include <wchar.h>
-# include <wctype.h>
-# define MBS_SUPPORT
-#endif
-
 #ifdef HAVE_SYS_TYPES_H
 # include <sys/types.h>
 #endif
+
 #include <obstack.h>
-#include "basicdefs.h"
-#include "utils.h"
-#include "sed.h"
 
 extern flagT no_default_output;
 extern flagT POSIXLY_CORRECT;
@@ -1221,7 +1212,7 @@ compile_program(vector)
 	    size_t len;
 	    int slash;
 
-#if defined MBS_SUPPORT && !defined (REG_PERL)
+#if defined HAVE_MBRTOWC && !defined (REG_PERL)
 	    if (MB_CUR_MAX == 1)
 #endif
 	      {
@@ -1235,7 +1226,7 @@ compile_program(vector)
 	    if ( !(b = match_slash(slash, FALSE, FALSE)) )
 	      bad_prog(_(UNTERM_Y_CMD));
 
-#if defined MBS_SUPPORT && !defined (REG_PERL)
+#if defined HAVE_MBRTOWC && !defined (REG_PERL)
             if (MB_CUR_MAX > 1)
 	      {
                 int i, j, idx, src_char_num, len = size_buffer(b);

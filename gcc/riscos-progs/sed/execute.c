@@ -1,6 +1,6 @@
 
 /*  GNU SED, a batch stream editor.
-    Copyright (C) 1989,90,91,92,93,94,95,98,99,2002,2003
+    Copyright (C) 1989,90,91,92,93,94,95,98,99,2002,2003,2004
     Free Software Foundation, Inc.
 
     This program is free software; you can redistribute it and/or modify
@@ -21,7 +21,7 @@
 #define INITIAL_BUFFER_SIZE	50
 #define FREAD_BUFFER_SIZE	8192
 
-#include "config.h"
+#include "sed.h"
 
 #include <stdio.h>
 #include <ctype.h>
@@ -54,14 +54,6 @@ extern int errno;
 # include <memory.h>
 #endif
 
-
-#if defined HAVE_WCTYPE_H && defined HAVE_WCHAR_H && defined HAVE_MBRTOWC
-/* We can handle multibyte string.  */
-# include <wchar.h>
-# include <wctype.h>
-# define MBS_SUPPORT
-#endif
-
 #ifndef HAVE_STRCHR
 # define strchr index
 # define strrchr rindex
@@ -79,10 +71,6 @@ extern int errno;
 #endif
 
 #include <sys/stat.h>
-
-#include "basicdefs.h"
-#include "utils.h"
-#include "sed.h"
 
 
 /* Sed operates a line at a time. */
@@ -538,6 +526,9 @@ open_next_file(name, input)
       output_fd = mkstemp (input->out_file_name);
       free (tmpdir);
 
+      if (output_fd == -1)
+        panic(_("Couldn't open temporary file %s: %s"), input->out_file_name, strerror(errno));
+
 #ifdef HAVE_FCHMOD
       {
 	struct stat st;
@@ -547,6 +538,8 @@ open_next_file(name, input)
 #endif
 
       output_file = fdopen (output_fd, "w");
+      if (!output_file)
+        panic(_("Couldn't open temporary file %s: %s"), input->out_file_name, strerror(errno));
     }
   else
     output_file = stdout;
@@ -565,19 +558,21 @@ closedown(input)
   if (input->fp != stdin) /* stdin can be reused on tty and tape devices */
     ck_fclose(input->fp);
 
-      if (in_place_extension && output_file != NULL)
-	{
-	  if (strcmp(in_place_extension, "*") != 0)
-	    {
-	      char *backup_file_name = get_backup_file_name(input->in_file_name);
-	      rename (input->in_file_name, backup_file_name);
-	      free (backup_file_name);
-	    }
+  if (in_place_extension && output_file != NULL)
+    {
+      int fd = fileno (output_file);
+      if (strcmp(in_place_extension, "*") != 0)
+        {
+          char *backup_file_name = get_backup_file_name(input->in_file_name);
+          rename (input->in_file_name, backup_file_name);
+          free (backup_file_name);
+        }
 
-	  ck_fclose (output_file);
-	  rename (input->out_file_name, input->in_file_name);
-	  free (input->out_file_name);
-	}
+      ck_fclose (output_file);
+      close (fd);
+      rename (input->out_file_name, input->in_file_name);
+      free (input->out_file_name);
+    }
 
   input->fp = NULL;
 
@@ -595,7 +590,14 @@ reset_addresses(vec)
   int n;
 
   for (cur_cmd = vec->v, n = vec->v_length; n--; cur_cmd++)
-    cur_cmd->a1_matched = FALSE;
+    if (cur_cmd->a1)
+      {
+	enum addr_types type = cur_cmd->a1->addr_type;
+        cur_cmd->a1_matched = (type == addr_is_num || type == addr_is_num_mod)
+                              && cur_cmd->a1->addr_number == 0;
+      }
+    else
+      cur_cmd->a1_matched = FALSE;
 }
 
 /* Read in the next line of input, and store it in the pattern space.
@@ -1127,8 +1129,6 @@ execute_program(vec, input)
 		 but it seems to be expected (and make sense). */
 	      /* Fall Through */
 	    case 'd':
-	      line.length = 0;
-	      line.chomped = FALSE;
 	      return -1;
 
 	    case 'D':
@@ -1248,8 +1248,15 @@ execute_program(vec, input)
 
 	    case 'N':
 	      str_append(&line, "\n", 1);
+
 	      if (test_eof(input) || !read_pattern_space(input, vec, TRUE))
-		return -1;
+		{
+		  line.length--;
+                  if (!POSIXLY_CORRECT && !no_default_output)
+                    output_line(line.active, line.length, line.chomped,
+				output_file);
+		  return -1;
+		}
 	      break;
 
 	    case 'p':
@@ -1264,13 +1271,12 @@ execute_program(vec, input)
 	      }
 	      break;
 
-	    case 'Q':
-	      line.length = 0;
-	      line.chomped = FALSE;
-	      /* Fall through */
+            case 'q':
+              if (!no_default_output)
+                output_line(line.active, line.length, line.chomped, output_file);
 
-	    case 'q':
-	      return cur_cmd->x.int_arg == -1 ? 0 : cur_cmd->x.int_arg;
+            case 'Q':
+              return cur_cmd->x.int_arg == -1 ? 0 : cur_cmd->x.int_arg;
 
 	    case 'r':
 	      if (cur_cmd->x.fname)
@@ -1344,7 +1350,7 @@ execute_program(vec, input)
 
 	    case 'y':
 	      {
-#if defined MBS_SUPPORT && !defined REG_PERL
+#if defined HAVE_MBRTOWC && !defined REG_PERL
 	       if (MB_CUR_MAX > 1)
 		 {
 		   int idx, prev_idx; /* index in the input line.  */
@@ -1413,7 +1419,7 @@ execute_program(vec, input)
 		     }
 		 }
 	       else
-#endif /* MBS_SUPPORT */
+#endif /* HAVE_MBRTOWC */
 		 {
 		   unsigned char *p, *e;
 		   p = CAST(unsigned char *)line.active;
@@ -1481,6 +1487,9 @@ execute_program(vec, input)
       /* this is buried down here so that a "continue" statement can skip it */
       ++cur_cmd;
     }
+
+    if (!no_default_output)
+      output_line(line.active, line.length, line.chomped, output_file);
     return -1;
 }
 
@@ -1516,8 +1525,6 @@ process_files(the_program, argv)
   while (read_pattern_space(&input, the_program, FALSE))
     {
       status = execute_program(the_program, &input);
-      if (!no_default_output)
-	output_line(line.active, line.length, line.chomped, output_file);
       if (status == -1)
 	status = EXIT_SUCCESS;
       else

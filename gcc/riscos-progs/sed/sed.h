@@ -16,10 +16,49 @@
     along with this program; if not, write to the Free Software
     Foundation, 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. */
 
+
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
+#if defined(_AIX)
+#pragma alloca
+#else
+# if !defined(alloca)           /* predefined by HP cc +Olibcalls */
+#  ifdef __GNUC__
+#   define alloca(size) __builtin_alloca(size)
+#  else
+#   if HAVE_ALLOCA_H
+#    include <alloca.h>
+#   else
+#    if defined(__hpux)
+        void *alloca ();
+#    else
+#     if !defined(__OS2__) && !defined(WIN32)
+	char *alloca ();
+#     else
+#      include <malloc.h>       /* OS/2 defines alloca in here */
+#     endif
+#    endif
+#   endif
+#  endif
+# endif
+#endif
+
 #ifndef BOOTSTRAP
 #include <stdio.h>
 #endif
+#include "basicdefs.h"
 #include "regex.h"
+#include "utils.h"
+
+#ifdef HAVE_WCHAR_H
+# include <wchar.h>
+#endif
+#ifdef HAVE_WCTYPE_H
+# include <wctype.h>
+#endif
+
 
 /* Struct vector is used to describe a compiled sed program. */
 struct vector {
@@ -46,7 +85,7 @@ enum replacement_types {
   repl_uppercase_uppercase = repl_uppercase_first | repl_uppercase,
   repl_uppercase_lowercase = repl_uppercase_first | repl_lowercase,
   repl_lowercase_uppercase = repl_lowercase_first | repl_uppercase,
-  repl_lowercase_lowercase = repl_lowercase_first | repl_lowercase,
+  repl_lowercase_lowercase = repl_lowercase_first | repl_lowercase
 };
 
 enum addr_types {

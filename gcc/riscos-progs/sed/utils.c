@@ -35,7 +35,6 @@
 # include <stdlib.h>
 #endif /* HAVE_STDLIB_H */
 
-#include "basicdefs.h"
 #include "utils.h"
 
 const char *myname;

@@ -20,7 +20,7 @@
     Foundation, 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. */
 
 
-#include "config.h"
+#include "sed.h"
 
 #include <stdio.h>
 #ifdef HAVE_STRINGS_H
@@ -48,9 +48,6 @@
 # include <locale.h>
 #endif
 #include "getopt.h"
-#include "basicdefs.h"
-#include "utils.h"
-#include "sed.h"
 
 #ifndef BOOTSTRAP
 #ifndef HAVE_STDLIB_H
