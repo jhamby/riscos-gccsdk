@@ -23,18 +23,28 @@ $(asobjdir)/%.o: %.s
 
 OBJS =	$(asobjdir)/area.o \
 	$(asobjdir)/asm.o \
+	$(asobjdir)/code.o \
 	$(asobjdir)/commands.o \
-	$(asobjdir)/depend.o \
 	$(asobjdir)/decode.o \
+	$(asobjdir)/depend.o \
 	$(asobjdir)/error.o \
 	$(asobjdir)/eval.o \
 	$(asobjdir)/expr.o \
+	$(asobjdir)/filestack.o \
+	$(asobjdir)/fix.o \
 	$(asobjdir)/get.o \
 	$(asobjdir)/hash.o \
 	$(asobjdir)/help_cop.o \
 	$(asobjdir)/help_cpu.o \
+	$(asobjdir)/help_eval.o \
+	$(asobjdir)/help_lex.o \
+	$(asobjdir)/include.o \
 	$(asobjdir)/input.o \
 	$(asobjdir)/lex.o \
+	$(asobjdir)/lexAcorn.o \
+	$(asobjdir)/lit.o \
+	$(asobjdir)/local.o \
+	$(asobjdir)/macros.o \
 	$(asobjdir)/main.o \
 	$(asobjdir)/m_cop.o \
 	$(asobjdir)/m_copmem.o \
@@ -46,25 +56,15 @@ OBJS =	$(asobjdir)/area.o \
 	$(asobjdir)/option.o \
 	$(asobjdir)/output.o \
 	$(asobjdir)/put.o \
-	$(asobjdir)/symbol.o \
-	$(asobjdir)/code.o \
-	$(asobjdir)/help_eval.o \
-	$(asobjdir)/fix.o \
 	$(asobjdir)/reloc.o \
-	$(asobjdir)/value.o \
-	$(asobjdir)/help_lex.o \
-	$(asobjdir)/storage.o \
 	$(asobjdir)/riscos_c.o \
-	$(asobjdir)/filestack.o \
-	$(asobjdir)/include.o \
-	$(asobjdir)/lexAcorn.o \
-	$(asobjdir)/lit.o \
-	$(asobjdir)/macros.o \
-	$(asobjdir)/variables.o \
-	$(asobjdir)/whileif.o \
-	$(asobjdir)/local.o \
+	$(asobjdir)/storage.o \
 	$(asobjdir)/strdup.o \
-	$(asobjdir)/targetcpu.o
+	$(asobjdir)/symbol.o \
+	$(asobjdir)/targetcpu.o \
+	$(asobjdir)/value.o \
+	$(asobjdir)/variables.o \
+	$(asobjdir)/whileif.o
 
 ifeq (${STAGE},stage1)
 	OBJS +=	$(asobjdir)/rname.o $(asobjdir)/rname2.o

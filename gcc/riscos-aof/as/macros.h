@@ -20,7 +20,7 @@ typedef struct Macro
 {
   struct Macro *next;
   char *name;
-  char *file;
+  const char *file;
   char *buf;
   unsigned int labelarg:8,	/* 0 or 1 of these */
     numargs:8;			/* and up to 16 in total */

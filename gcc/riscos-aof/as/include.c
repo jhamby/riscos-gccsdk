@@ -79,8 +79,27 @@ addInclude (const char *path)
   return -1;
 }
 
+
+static FILE *
+openInclude (const char *filename, const char *mode, const char **strdupFilename)
+{
+  FILE *fp;
+
+  if ((fp = fopen (filename, mode)) == NULL)
+    *strdupFilename = NULL;
+  else
+#ifdef CROSS_COMPILE
+    *strdupFilename = strdup (filename);
+#else
+    *strdupFilename = CanonicalisePath (filename);
+#endif
+
+  return fp;
+}
+
+
 FILE *
-getInclude (const char *filename, const char *mode)
+getInclude (const char *filename, const char *mode, const char **strdupFilename)
 {
   int i;
 #ifndef CROSS_COMPILE
@@ -88,21 +107,22 @@ getInclude (const char *filename, const char *mode)
 #endif
   char incpath[MAXPATHLEN];
 #if defined (CROSS_COMPILE)
-  char *file = rname (filename);
+  const char *file = rname (filename);
 #else
-  char *file = (char *) filename;
+  const char *file = filename;
 #endif
 
+  *strdupFilename = NULL;
 #ifdef CROSS_COMPILE
   if (access (file, F_OK) == 0)
-    return fopen (file, mode);
+    return openInclude (file, mode, strdupFilename);
   else
     {
       if (file[0] == '.' && file[1] == '/')
 	file += 2;		/* Skip ./ */
     }
 #else
-  if ((fp = fopen (file, mode)) != 0)
+  if ((fp = openInclude (file, mode, strdupFilename)) != NULL)
     return fp;
   else
     {
@@ -112,21 +132,23 @@ getInclude (const char *filename, const char *mode)
 #endif
 
   for (i = 0; i < INCDIRMAX; i++)
-
+    {
 #if (defined DEBUG) && (DEBUG > 0)
-	fprintf( stderr, "getInclude: Searching for %s\n", incpath );
+      fprintf( stderr, "getInclude: Searching for %s\n", incpath );
 #endif
 
-    if (incdir[i])
-      {
-	sprintf (incpath, "%s%c%s", incdir[i], DIR, file);
+      if (incdir[i] != NULL)
+        {
+	  sprintf (incpath, "%s%c%s", incdir[i], DIR, file);
 #ifdef CROSS_COMPILE
-	if (access (incpath, F_OK) == 0)
-	  return fopen (incpath, mode);
+	  if (access (incpath, F_OK) == 0)
+	    return openInclude (incpath, mode, strdupFilename);
 #else
-	if ((fp = fopen (incpath, mode)) != 0)
-	  return fp;
+	  if ((fp = openInclude (incpath, mode, strdupFilename)) != NULL)
+	    return fp;
+	}
 #endif
-      }
+    }
+
   return NULL;
 }

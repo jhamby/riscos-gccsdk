@@ -28,7 +28,7 @@
 *
 ******************************************************************/
 void
-asm_ (void)
+assemble (void)
 {
   /* read each line from the input into input.c:workBuff,
   ** if inputExpand is true, then expand the input line into where necessary

@@ -1,3 +1,18 @@
+Sun Jan 30 00:50:54 2005  John Tytgat  <John.Tytgat@aaug.net>
+
+	* Changed #define tests on __riscos__ into CROSS_COMPILE tests.
+	* Makefile: OBJS in alphabetic order.
+	* asm.{c,h}: asm_() -> assemble()
+	* commands.c, include.{c,h}: No longer using FILE ptr to
+	  canonicalise to full path via OSArgs 7.  This fixes bug #132.
+	* depend.c: Made it more robust; Added dependInit() and
+	  dependFinish().
+	* error.c: Output Throwback errors when verbose is set.
+	* filestack.{c,h}, whileif.h: Removed fileNo, fileCurrentNo (wasn't
+	  really used).
+	* os.{h,s}: Removed unused bits; Made APCS-32 compliant.
+	* version.h: Bumped version to 1.42.
+
 Sun Oct 17 17:45:00 2004  John Tytgat  <John.Tytgat@aaug.net>
 
 	* Removed leading underscores of the preprocessor defines preventing

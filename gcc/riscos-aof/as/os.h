@@ -13,9 +13,6 @@
 #ifdef CROSS_COMPILE
 /* UNIX specific information.  */
 #define OSCanonicalisePath(a,b,c,d,e) strdup(a)
-#define CanonicalisePath(x) (x)
-#define toriscos(f,a,b)     (f)
-
 #else
 
 /* Acorn/RISC OS specific information.  */
@@ -29,13 +26,11 @@ os_error;
 extern char *ErrorFile;
 
 int switonum (const char *swi);
-os_error *cdir (const char *name);
 
 
 int (OSCanonicalisePath) (char *path,
 			  char *buffer, int bufferSize,
 			  char *systemVar, char *defaultPath);
-int OSArgs7 (const FILE * fh, char *buffer, int bufferSize);
 
 os_error *ThrowbackStart (void);
 os_error *ThrowbackSendStart (const char *filename);
@@ -52,12 +47,9 @@ os_error *ThrowbackEnd (void);
 #define ThrowbackError			1
 #define ThrowbackSeriousError		2
 
-char *(toriscos) (char *name, char *oldsuffixes, char newsuffix);
 char *(CanonicalisePath) (const char *path);
 
 #endif /* !CROSS_COMPILE */
-
-char *CanonicaliseFile (const FILE * path);
 
 #if defined CROSS_COMPILE && !defined (HAVE_STRNDUP)
 char *strndup (const char *str, size_t len);

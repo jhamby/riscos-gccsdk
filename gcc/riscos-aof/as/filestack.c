@@ -4,6 +4,7 @@
  * (c) Andy Duplain, August 1992.
  *     Added line numbers  Niklas Röjemo
  *     Added filenames     Darren Salt
+ * Copyright © 2005 GCCSDK Developers
  */
 
 #include "sdk-config.h"
@@ -34,12 +35,9 @@ FileStack;
 static FileStack stack[STACKSIZE];
 static int top = 0;
 
-long int fileCurrentNo;
-
 int
 push_file (FILE * fp)
 {
-  static long int fileNo = 0;
   if (top == STACKSIZE)
     {
       error (ErrorSerious, TRUE, "Maximum file nesting level reached (%d)", STACKSIZE);
@@ -47,13 +45,11 @@ push_file (FILE * fp)
     }
   stack[top].line = inputLineNo;
   stack[top].name = inputName;
-  stack[top].no = fileCurrentNo;
   stack[top].if_depth = if_depth;
   stack[top].whilestack = whileCurrent;
   stack[top++].file = fp;
   whileCurrent = 0;
   if_depth = 0;
-  fileCurrentNo = fileNo++;
   return 0;
 }
 
@@ -64,8 +60,7 @@ pop_file (void)
   if (top)
     {
       inputLineNo = stack[--top].line;
-      inputName = (char *) stack[top].name;
-      fileCurrentNo = stack[top].no;
+      inputName = stack[top].name;
       whileCurrent = stack[top].whilestack;
       if_depth = stack[top].if_depth;
       return stack[top].file;

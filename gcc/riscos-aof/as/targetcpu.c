@@ -10,117 +10,100 @@
 
 #include "error.h"
 #include "main.h"
-#include "os.h"
 #include "targetcpu.h"
 
 TargetCPU_t targetCPU = UNKNOWN;
 
 
-void
+int
 as_target (const char *target)	/* only called from main() */
 {
   static const struct
     {
       const char *name;
       TargetCPU_t type;
+      size_t name_len;
     }
   cpu[] =
   {
     {
-      "ARM2", ARM2
+      "ARM2", ARM2, sizeof("ARM2")
     }
     ,
     {
-      "ARM250", ARM250
+      "ARM250", ARM250, sizeof("ARM250")
     }
     ,
     {
-      "ARM3", ARM3
+      "ARM3", ARM3, sizeof("ARM3")
     }
     ,
     {
-      "ARM6", ARM6
+      "ARM6", ARM6, sizeof("ARM6")
     }
     ,
     {
-      "ARM7", ARM7
+      "ARM7", ARM7, sizeof("ARM7")
     }
     ,
     {
-      "ARM7M", ARM7M
+      "ARM7M", ARM7M, sizeof("ARM7M")
     }
     ,
     {
-      "ARM8", ARM8
+      "ARM8", ARM8, sizeof("ARM8")
     }
     ,
     {
-      "ARM9", ARM9
+      "ARM9", ARM9, sizeof("ARM9")
     }
     ,
     {
-      "SA1", SA1
+      "SA1", SA1, sizeof("SA1")
     }
     ,
     {
-      "SA110", SA1
+      "SA110", SA1, sizeof("SA110")
     }
     ,
     {
-      "STRONGARM", SA1
+      "STRONGARM", SA1, sizeof("STRONGARM")
     }
     ,
     {
-      "ARM10", ARM10
+      "ARM10", ARM10, sizeof("ARM10")
     }
     ,
     {
-      "XSCALE", XSCALE
+      "XSCALE", XSCALE, sizeof("XSCALE")
     }
     ,
     {
-      0, UNKNOWN
+      NULL, UNKNOWN, 0
     }
   };
 
   int n;
-  char *c;
-
   if (targetCPU != UNKNOWN)
     {
       fprintf (stderr, "%s: Cannot redeclare target CPU\n", ProgName);
-      return;
+      return -1;
     }
-  targetCPU = ARM2;
-  if (target == 0)
+  if (target == NULL)
     {
       fprintf (stderr, "%s: Missing target CPU\n", ProgName);
-      exit (1);
+      return -1;
     }
-  if ((c = strdup (target)) == NULL)
+  for (n = 0; cpu[n].name != NULL && strncasecmp (target, cpu[n].name, cpu[n].name_len); ++n)
+    /* */;
+  if (cpu[n].name != NULL)
+    targetCPU = cpu[n].type;
+  else
     {
-      errorOutOfMem("as_target");
-      return;
+    targetCPU = ARM2;
+    fprintf (stderr, "%s: Unrecognised target CPU <%s>, assuming ARM2\n", ProgName, target);
     }
-  n = 0;
-  while (c[n])
-    {
-      c[n] = toupper (c[n]);
-      n++;
-    }
-  n = 0;
-  do
-    {
-      if (!strcmp (c, cpu[n].name))
-	{
-	  free (c);
-	  targetCPU = cpu[n].type;
-	  return;
-	}
-    }
-  while (cpu[++n].name);
-  free (c);
-  fprintf (stderr, "%s: Unrecognised target CPU, assuming ARM2\n", ProgName);
+  return 0;
 }
 
 

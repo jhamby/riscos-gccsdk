@@ -362,6 +362,7 @@ c_get (void)
 {
   char *filename, *cptr;
   FILE *getfp;
+  const char *newInputName;
 
   if (macroSP)
     {
@@ -383,26 +384,22 @@ c_get (void)
 	  error (ErrorError, FALSE, "Skipping extra characters '%s' after filename", cptr);
 	}
     }
-  getfp = getInclude (filename, "r");
-  if (!getfp)
+  if ((getfp = getInclude (filename, "r", &newInputName)) == NULL)
     {
       error (ErrorError, TRUE, "Cannot open file \"%s\"", filename);
       free (filename);
+      free ((void *)newInputName);
       return;
     }
   push_file (asmfile);
   inputLineNo = 0;
-#ifdef __riscos__
-  dependPut (" ", filename, "");
-#endif
-#ifdef CROSS_COMPILE
-  inputName = filename;
-#else
-  inputName = CanonicaliseFile (getfp);
+  inputName = newInputName;
+#ifndef CROSS_COMPILE
+  dependWrite (filename);
 #endif
   asmfile = getfp;
   if (verbose)
-    fprintf (stderr, "Including file %s\n", filename);
+    fprintf (stderr, "Including file \"%s\" as \"%s\"\n", filename, inputName);
 }
 
 
@@ -411,6 +408,7 @@ c_lnk (void)
 {
   char *filename, *cptr;
   FILE *lnkfp;
+  const char *newInputName;
 
   if (macroSP)
     {
@@ -424,30 +422,28 @@ c_lnk (void)
   testUnmatched ();
   if ((filename = strdup (inputRest ())) == NULL)
     errorOutOfMem ("c_lnk");
-#ifdef __riscos__
-  dependPut (" ", filename, "");
+#ifndef CROSS_COMPILE
+  dependWrite (filename);
 #endif
   for (cptr = filename; *cptr && !isspace (*cptr); cptr++);
   *cptr = '\0';
   inputNextLine ();
-  lnkfp = getInclude (filename, "r");
+  lnkfp = getInclude (filename, "r", &newInputName);
   if (!lnkfp)
     {
       error (ErrorError, TRUE, "Cannot open file \"%s\"", filename);
+      free (filename);
+      free ((void *)newInputName);
       return;
     }
   skiprest ();
   inputFinish ();
   inputLineNo = 0;
-#ifdef CROSS_COMPILE
-  inputName = filename;
-#else
-  inputName = CanonicaliseFile (lnkfp);
-#endif
+  inputName = newInputName;
   if_depth = 0;
   asmfile = lnkfp;
   if (verbose)
-    fprintf (stderr, "Linking to file %s\n", filename);
+    fprintf (stderr, "Linking to file \"%s\" as \"%s\"\n", filename, inputName);
 }
 
 
@@ -465,6 +461,7 @@ c_bin (void)
 {
   char *filename, *cptr;
   FILE *binfp;
+  const char *newFilename;
 
   inputExpand = FALSE;
   if ((filename = strdup (inputRest ())) == NULL)
@@ -472,14 +469,17 @@ c_bin (void)
   for (cptr = filename; *cptr && !isspace (*cptr); cptr++);
   *cptr = '\0';
 
-  binfp = getInclude (filename, "r");
+  binfp = getInclude (filename, "r", &newFilename);
   if (!binfp)
     {
       error (ErrorError, TRUE, "Cannot open file \"%s\"", filename);
+      free (filename);
+      free ((void *)newFilename);
       return;
     }
   if (verbose)
-    fprintf (stderr, "Including binary file %s\n", filename);
+    fprintf (stderr, "Including binary file \"%s\" as \"%s\"\n", filename, newFilename);
+  free ((void *)newFilename);
   while (!feof (binfp))
     putData (1, getc (binfp));
   fclose (binfp);

@@ -30,7 +30,7 @@ FILE *asmfile;
 long int inputLineNo;
 BOOL inputExpand = TRUE;
 BOOL inputRewind = FALSE;
-char *inputName = NULL;
+const char *inputName = NULL;
 
 static char *input_buff = NULL;
 static char *input_pos, *input_mark;
@@ -217,18 +217,18 @@ inputRollback (void)
 }
 
 void
-inputInit (char *infile)
+inputInit (const char *infile)
 {
   /* 256 bytes of overflow */
   if (input_buff == NULL
       && (input_buff = (char *) malloc (MAX_LINE + 256)) == NULL)
     errorOutOfMem("inputInit");
 
-  if (infile && strcmp (infile, "-"))
+  if (infile != NULL && strcmp (infile, "-"))
     {
       if ((asmfile = fopen (infile, "r")) == NULL)
-	errorLine (0, 0, ErrorAbort, FALSE, "AS can't read %s: %s", infile,
-		   strerror (errno));
+	errorLine (0, NULL, ErrorAbort, FALSE, "AS can't read %s: %s",
+	           infile, strerror (errno));
       else
 	{
 	  char *buffer;
@@ -244,12 +244,7 @@ inputInit (char *infile)
     }
   else
     asmfile = stdin;
-/*  macroCurrent=malloc(sizeof(Macro));  sets up a dummy macro
-   if (!macroCurrent)
-   errorLine(0,0,ErrorAbort,FALSE,"Not enough memory",infile);
-   macroCurrent->name="";
-   macroCurrent->file=(char*)inputName;
- */
+
   inputLineNo = 0;
   skiprest ();
 }

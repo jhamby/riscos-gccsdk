@@ -6,7 +6,9 @@
 #ifndef output_header_included
 #define output_header_included
 
-void outputInit (char *outfile);
+#include "global.h"
+
+void outputInit (const char *outfile);
 void outputFinish (void);
 void outputRemove (void);
 
@@ -16,8 +18,8 @@ void outputElf (void);
 extern const char *idfn_text;
 
 #if defined(WORDS_BIGENDIAN)
-unsigned armword (unsigned val);
-unsigned ourword (unsigned val);
+WORD armword (WORD val);
+WORD ourword (WORD val);
 #else
 #define armword(x) (x)
 #define ourword(x) (x)

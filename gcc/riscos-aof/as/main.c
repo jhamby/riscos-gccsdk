@@ -1,6 +1,7 @@
 /*
  *  main.c
  * Copyright © 1992 Niklas Röjemo
+ * Copyright © 2005 GCCSDK Developers
  */
 
 #include "sdk-config.h"
@@ -32,8 +33,12 @@
 #include "variables.h"
 
 jmp_buf asmContinue;
+BOOL asmContinueValid = FALSE;
 jmp_buf asmAbort;
+BOOL asmAbortValid = FALSE;
 
+/* AS options :
+ */
 int verbose = 0;
 int pedantic = 0;
 int fussy = 0;
@@ -50,12 +55,12 @@ int apcs_32bit = 1;
 int apcs_fpv3 = 1;
 int elf = 0;
 
-char *ProgName;
-char *ObjFileName;
-char *SourceFileName;
+const char *ProgName = NULL;
+const char *ObjFileName = NULL;
+const char *SourceFileName = NULL;
 
 static void
-as_help (char *progname)
+as_help (void)
 {
   fprintf (stderr,
 	   "AS AOF"
@@ -98,11 +103,11 @@ as_help (char *progname)
 	   "-elf                       Output ELF file\n"
 #endif
 	   "\n",
-	   AS_VERSION, __DATE__, progname);
+	   AS_VERSION, __DATE__, ProgName);
 }
 
 
-#ifdef __riscos__
+#ifndef CROSS_COMPILE
 extern int _kernel_setenv (const char *, const char *);
 static char *prefix;
 #endif
@@ -113,9 +118,9 @@ static int finished = 0;
 static void
 restore_prefix (void)
 {
-  if (!finished || noerrors () != EXIT_SUCCESS)
+  if (!finished || returnExitStatus () != EXIT_SUCCESS)
     outputRemove ();
-#ifdef __riscos__
+#ifndef CROSS_COMPILE
   if (prefix)
     _kernel_setenv ("Prefix$Dir", prefix);
 #endif
@@ -126,7 +131,7 @@ restore_prefix (void)
 int
 main (int argc, char **argv)
 {
-#ifdef __riscos__
+#ifndef CROSS_COMPILE
   ProgName = getenv ("Prefix$Dir");
   /* There's a strange problem with Prefix$Dir becoming unset if
    * throwback is used...
@@ -137,14 +142,13 @@ main (int argc, char **argv)
   setlocale (LC_ALL, "");
   initInclude ();
   ProgName = *argv++;
-  ObjFileName = NULL;
 
 #define IS_ARG(ln,sn) !strcmp(*argv,ln) || !strcmp(*argv,sn)
 
   if (argc == 1)
     {
       /* No command line arguments supplied. Print help and exit.  */
-      as_help (ProgName);
+      as_help ();
       return EXIT_SUCCESS;
     }
   /* Analyse the command line */
@@ -168,7 +172,7 @@ main (int argc, char **argv)
 	}
       else if (IS_ARG ("-o", "-To"))
 	{
-	  if (ObjFileName)
+	  if (ObjFileName != NULL)
 	    {
 	      fprintf (stderr, "%s: Only one output file allowed\n", ProgName);
 	      return EXIT_FAILURE;
@@ -203,7 +207,10 @@ main (int argc, char **argv)
       else if (IS_ARG ("-pedantic", "-p"))
 	pedantic++;
       else if (IS_ARG ("-target", "-t"))
-	as_target (--argc ? *++argv : NULL);
+        {
+	  if (as_target (--argc ? *++argv : NULL) < 0)
+	    return EXIT_FAILURE;
+	}
       else if (IS_ARG ("-verbose", "-v"))
 	verbose++;
       else if (IS_ARG ("-fussy", "-f"))
@@ -244,7 +251,7 @@ main (int argc, char **argv)
 		   " Assembler  Version %s %s  [GCCSDK build]\n",
 		   AS_VERSION, __DATE__);
 
-	  fprintf (stderr, "Copyright (c) 1992-2004 Niklas Rojemo, Darren Salt and GCCSDK Development Team\n");
+	  fprintf (stderr, "Copyright (c) 1992-2005 Niklas Rojemo, Darren Salt and GCCSDK Development Team\n");
 	  return EXIT_SUCCESS;
 	}
       else if (IS_ARG ("-H", "-h")
@@ -252,14 +259,14 @@ main (int argc, char **argv)
 	       || !strcmp (*argv, "--help"))
 	{
 	  /* We need the `--help' option for gcc's --help -v  */
-	  as_help (ProgName);
+	  as_help ();
 	  return EXIT_SUCCESS;
 	}
       else if (!strcmp (*argv, "-From"))
 	{
 	  if (--argc)
 	    {
-	      if (SourceFileName)
+	      if (SourceFileName != NULL)
 	        {
 	          fprintf (stderr, "%s: Only one input file allowed (%s & %s specified)\n", ProgName, SourceFileName, *++argv);
 	          return EXIT_FAILURE;
@@ -277,7 +284,7 @@ main (int argc, char **argv)
 	{
 	  if (--argc)
 	    {
-	      if (DependFileName)
+	      if (DependFileName != NULL)
 	        {
 	          fprintf (stderr, "%s: Only one dependency file allowed (%s & %s specified)\n", ProgName, DependFileName, *++argv);
 	          return EXIT_FAILURE;
@@ -299,7 +306,7 @@ main (int argc, char **argv)
 #endif
       else if (**argv != '-')
 	{
-	  if (SourceFileName)
+	  if (SourceFileName != NULL)
 	    {
 	      fprintf (stderr, "%s: Only one input file allowed (%s & %s specified)\n", ProgName, SourceFileName, *argv);
 	      return EXIT_FAILURE;
@@ -311,44 +318,52 @@ main (int argc, char **argv)
     }
 
   /* When the command line has been sorted, get on with the job in hand */
-  if (!ObjFileName)
+  if (ObjFileName == NULL)
     ObjFileName = SourceFileName;
 
   if (setjmp (asmAbort))
     {
+      asmAbortValid = FALSE;
       fprintf (stderr, "%s: Aborted\n", ProgName);
       inputFinish ();
-      outputFinish ();
-      /* set up the environment ... */
     }
   else
     {
+      asmAbortValid = TRUE;
       inputInit (SourceFileName);
       errorInit (SourceFileName);
+#ifndef CROSS_COMPILE
+      dependInit (SourceFileName);
+#endif
 
       /* ... do the assembly ... */
       outputInit (ObjFileName);
 
       /* ... tidy up and write the AOF */
       areaInit ();
-      setjmp (asmContinue);
-      asm_ ();
+      setjmp (asmContinue); asmContinueValid = TRUE;
+      assemble ();
       areaFinish ();
       inputFinish ();
       if (setjmp (asmContinue))
 	fprintf (stdout, "%s: Error when writing object file '%s'.\n", ProgName, ObjFileName);
       else
+        {
 #ifndef NO_ELF_SUPPORT
-	elf==0?outputAof ():outputElf();
-#else
-	outputAof();
+	  if (elf != 0)
+	    outputElf();
 #endif
+	    outputAof();
+	}
 #ifndef CROSS_COMPILE
       dependPut ("\n", "", "");
 #endif
-      outputFinish ();
-      errorFinish ();
     }
+  outputFinish ();
+#ifndef CROSS_COMPILE
+  dependFinish ();
+#endif
+  errorFinish ();
   finished = 1;
-  return noerrors ();
+  return returnExitStatus ();
 }

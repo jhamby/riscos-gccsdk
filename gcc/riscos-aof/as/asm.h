@@ -9,7 +9,7 @@
 #include "lex.h"
 #include "symbol.h"
 
-extern void asm_ (void);
+extern void assemble (void);
 extern Symbol *asm_label (Lex * label);
 
 #endif

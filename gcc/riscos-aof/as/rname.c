@@ -354,7 +354,7 @@ riscos_to_unix (const char *filename, char *output)
 }
 
 #ifdef TEST
-#ifdef __riscos__
+#ifndef CROSS_COMPILE
 #include <unixlib/local.h>
 
 static void test (const char *input)

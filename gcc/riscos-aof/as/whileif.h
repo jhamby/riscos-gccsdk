@@ -25,7 +25,6 @@ typedef struct WhileBlock
   {
     struct
     {
-      long int fileno;
       long int offset;
     }
     file;		/* Valid when tag == WhileInFile */

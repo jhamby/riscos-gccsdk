@@ -19,9 +19,9 @@ extern FILE *asmfile;
 extern long int inputLineNo;	/* Do not change, only read! */
 extern BOOL inputExpand;
 extern BOOL inputRewind;
-extern char *inputName;
+extern const char *inputName;
 
-void inputInit (char *infile);
+void inputInit (const char *infile);
 void inputFinish (void);
 
 /* Debug only:

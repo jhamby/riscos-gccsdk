@@ -90,7 +90,7 @@ m_swi (WORD cc)
       relocSwi (im);
       break;
     case ValueString:
-#ifdef __riscos__
+#ifndef CROSS_COMPILE
       {
       const char *s;
       if ((s = strndup(im.ValueString.s, im.ValueString.len)) == NULL)

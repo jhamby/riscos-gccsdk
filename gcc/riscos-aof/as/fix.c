@@ -20,7 +20,7 @@ fixShiftImm (long int lineno, WORD shiftop, int shift)
     case LSL:
       if (shift < 0 || shift > 31)
 	{
-	  errorLine (lineno, 0, ErrorError, TRUE, "Illegal immediate shift %d", shift);
+	  errorLine (lineno, NULL, ErrorError, TRUE, "Illegal immediate shift %d", shift);
 	  shift = 1;
 	}
       break;
@@ -29,7 +29,7 @@ fixShiftImm (long int lineno, WORD shiftop, int shift)
 	shiftop = LSL;
       else if (shift < 1 || shift > 32)
 	{
-	  errorLine (lineno, 0, ErrorError, TRUE, "Illegal immediate shift %d", shift);
+	  errorLine (lineno, NULL, ErrorError, TRUE, "Illegal immediate shift %d", shift);
 	  shift = 1;
 	}
       break;
@@ -38,7 +38,7 @@ fixShiftImm (long int lineno, WORD shiftop, int shift)
 	shiftop = LSL;
       else if (shift < 1 || shift > 32)
 	{
-	  errorLine (lineno, 0, ErrorError, TRUE, "Illegal immediate shift %d", shift);
+	  errorLine (lineno, NULL, ErrorError, TRUE, "Illegal immediate shift %d", shift);
 	  shift = 1;
 	}
       break;
@@ -47,12 +47,12 @@ fixShiftImm (long int lineno, WORD shiftop, int shift)
 	shiftop = LSL;
       else if (shift < 1 || shift > 31)
 	{
-	  errorLine (lineno, 0, ErrorError, TRUE, "Illegal immediate shift %d", shift);
+	  errorLine (lineno, NULL, ErrorError, TRUE, "Illegal immediate shift %d", shift);
 	  shift = 1;
 	}
       break;
     default:
-      errorLine (lineno, 0, ErrorSerious, FALSE, "Internal fixShiftImm: unknown shift type");
+      errorLine (lineno, NULL, ErrorSerious, FALSE, "Internal fixShiftImm: unknown shift type");
       break;
     }
   return SHIFT_IMM (shift) | SHIFT_OP (shiftop);
@@ -71,7 +71,7 @@ fixImm8s4 (long int lineno, WORD ir, int im)
 	    {
 	      ir = (ir & ~M_MNEM) | M_SUB;
 	      if (fussy > 1)
-		errorLine (lineno, 0, ErrorInfo, TRUE, "Changing %s r_,r_,#%d to %s r_,r_,#%d", "add", im, "sub", -im);
+		errorLine (lineno, NULL, ErrorInfo, TRUE, "Changing %s r_,r_,#%d to %s r_,r_,#%d", "add", im, "sub", -im);
 	    }
 	  break;
 	case M_SUB:
@@ -79,7 +79,7 @@ fixImm8s4 (long int lineno, WORD ir, int im)
 	    {
 	      ir = (ir & ~M_MNEM) | M_ADD;
 	      if (fussy > 1)
-		errorLine (lineno, 0, ErrorInfo, TRUE, "Changing %s r_,r_,#%d to %s r_,r_,#%d", "sub", im, "add", -im);
+		errorLine (lineno, NULL, ErrorInfo, TRUE, "Changing %s r_,r_,#%d to %s r_,r_,#%d", "sub", im, "add", -im);
 	    }
 	  break;
 	case M_ADC:
@@ -87,7 +87,7 @@ fixImm8s4 (long int lineno, WORD ir, int im)
 	    {
 	      ir = (ir & ~M_MNEM) | M_SBC;
 	      if (fussy > 1)
-		errorLine (lineno, 0, ErrorInfo, TRUE, "Changing %s r_,r_,#%d to %s r_,r_,#%d", "adc", im, "sbc", -im);
+		errorLine (lineno, NULL, ErrorInfo, TRUE, "Changing %s r_,r_,#%d to %s r_,r_,#%d", "adc", im, "sbc", -im);
 	    }
 	  break;
 	case M_SBC:
@@ -95,7 +95,7 @@ fixImm8s4 (long int lineno, WORD ir, int im)
 	    {
 	      ir = (ir & ~M_MNEM) | M_ADC;
 	      if (fussy > 1)
-		errorLine (lineno, 0, ErrorInfo, TRUE, "Changing %s r_,r_,#%d to %s r_,r_,#%d", "sbc", im, "adc", -im);
+		errorLine (lineno, NULL, ErrorInfo, TRUE, "Changing %s r_,r_,#%d to %s r_,r_,#%d", "sbc", im, "adc", -im);
 	    }
 	  break;
 	case M_CMP:
@@ -103,7 +103,7 @@ fixImm8s4 (long int lineno, WORD ir, int im)
 	    {
 	      ir = (ir & ~M_MNEM) | M_CMN;
 	      if (fussy > 1)
-		errorLine (lineno, 0, ErrorInfo, TRUE, "Changing %s r_,#%d to %s r_,#%d", "cmp", im, "cmn", -im);
+		errorLine (lineno, NULL, ErrorInfo, TRUE, "Changing %s r_,#%d to %s r_,#%d", "cmp", im, "cmn", -im);
 	    }
 	  break;
 	case M_CMN:
@@ -111,7 +111,7 @@ fixImm8s4 (long int lineno, WORD ir, int im)
 	    {
 	      ir = (ir & ~M_MNEM) | M_CMP;
 	      if (fussy > 1)
-		errorLine (lineno, 0, ErrorInfo, TRUE, "Changing %s r_,#%d to %s r_,#%d", "cmn", im, "cmp", -im);
+		errorLine (lineno, NULL, ErrorInfo, TRUE, "Changing %s r_,#%d to %s r_,#%d", "cmn", im, "cmp", -im);
 	    }
 	  break;
 	case M_MOV:
@@ -119,7 +119,7 @@ fixImm8s4 (long int lineno, WORD ir, int im)
 	    {
 	      ir = (ir & ~M_MNEM) | M_MVN;
 	      if (fussy > 1)
-		errorLine (lineno, 0, ErrorInfo, TRUE, "Changing %s r_,#%d to %s r_,#%d", "mov", im, "mvn", ~im);
+		errorLine (lineno, NULL, ErrorInfo, TRUE, "Changing %s r_,#%d to %s r_,#%d", "mov", im, "mvn", ~im);
 	    }
 	  break;
 	case M_MVN:
@@ -127,7 +127,7 @@ fixImm8s4 (long int lineno, WORD ir, int im)
 	    {
 	      ir = (ir & ~M_MNEM) | M_MOV;
 	      if (fussy > 1)
-		errorLine (lineno, 0, ErrorInfo, TRUE, "Changing %s r_,#%d to %s r_,#%d", "mvn", im, "mov", ~im);
+		errorLine (lineno, NULL, ErrorInfo, TRUE, "Changing %s r_,#%d to %s r_,#%d", "mvn", im, "mov", ~im);
 	    }
 	  break;
 	case M_AND:
@@ -135,7 +135,7 @@ fixImm8s4 (long int lineno, WORD ir, int im)
 	    {
 	      ir = (ir & ~M_MNEM) | M_BIC;
 	      if (fussy > 1)
-		errorLine (lineno, 0, ErrorInfo, TRUE, "Changing %s r_,r_,#0x%x to %s r_,r_,#0x%x", "and", im, "bic", ~im);
+		errorLine (lineno, NULL, ErrorInfo, TRUE, "Changing %s r_,r_,#0x%x to %s r_,r_,#0x%x", "and", im, "bic", ~im);
 	    }
 	  break;
 	case M_BIC:
@@ -143,14 +143,14 @@ fixImm8s4 (long int lineno, WORD ir, int im)
 	    {
 	      ir = (ir & ~M_MNEM) | M_AND;
 	      if (fussy > 1)
-		errorLine (lineno, 0, ErrorInfo, TRUE, "Changing %s r_,r_,#0x%x to %s r_,r_,#0x%x", "bic", im, "and", ~im);
+		errorLine (lineno, NULL, ErrorInfo, TRUE, "Changing %s r_,r_,#0x%x to %s r_,r_,#0x%x", "bic", im, "and", ~im);
 	    }
 	  break;
 	}
     }
   if (i8s4 == -1)
     {
-      errorLine (lineno, 0, ErrorError, TRUE, "Illegal immediate constant %d (0x%08x)", im, im);
+      errorLine (lineno, NULL, ErrorError, TRUE, "Illegal immediate constant %d (0x%08x)", im, im);
       i8s4 = 0;
     }
   return ir | i8s4;
@@ -169,7 +169,7 @@ fixImmFloat (long int lineno, WORD ir, FLOAT im)
 	    {
 	      ir = (ir & ~M_FMNEM) | M_SUF;
 	      if (fussy > 1)
-		errorLine (lineno, 0, ErrorInfo, TRUE, "Changing %s f_,f_,#%.1f to %s f_,f_,#%.1f", "adf", im, "suf", -im);
+		errorLine (lineno, NULL, ErrorInfo, TRUE, "Changing %s f_,f_,#%.1f to %s f_,f_,#%.1f", "adf", im, "suf", -im);
 	    }
 	  break;
 	case M_SUF:
@@ -177,7 +177,7 @@ fixImmFloat (long int lineno, WORD ir, FLOAT im)
 	    {
 	      ir = (ir & ~M_FMNEM) | M_ADF;
 	      if (fussy > 1)
-		errorLine (lineno, 0, ErrorInfo, TRUE, "Changing %s f_,f_,#%.1f to %s f_,f_,#%.1f", "suf", im, "adf", -im);
+		errorLine (lineno, NULL, ErrorInfo, TRUE, "Changing %s f_,f_,#%.1f to %s f_,f_,#%.1f", "suf", im, "adf", -im);
 	    }
 	  break;
 	case M_MVF:
@@ -185,7 +185,7 @@ fixImmFloat (long int lineno, WORD ir, FLOAT im)
 	    {
 	      ir = (ir & ~M_FMNEM) | M_MNF;
 	      if (fussy > 1)
-		errorLine (lineno, 0, ErrorInfo, TRUE, "Changing %s f_,#%.1f to %s f_,#%.1f", "mvf", im, "mnf", -im);
+		errorLine (lineno, NULL, ErrorInfo, TRUE, "Changing %s f_,#%.1f to %s f_,#%.1f", "mvf", im, "mnf", -im);
 	    }
 	  break;
 	case M_MNF:
@@ -193,7 +193,7 @@ fixImmFloat (long int lineno, WORD ir, FLOAT im)
 	    {
 	      ir = (ir & ~M_FMNEM) | M_MVF;
 	      if (fussy > 1)
-		errorLine (lineno, 0, ErrorInfo, TRUE, "Changing %s f_,#%.1f to %s f_,#%.1f", "mnf", im, "mvf", -im);
+		errorLine (lineno, NULL, ErrorInfo, TRUE, "Changing %s f_,#%.1f to %s f_,#%.1f", "mnf", im, "mvf", -im);
 	    }
 	  break;
 	case M_CMF & M_FMNEM:
@@ -201,7 +201,7 @@ fixImmFloat (long int lineno, WORD ir, FLOAT im)
 	    {
 	      ir = (ir & ~M_FMNEM) | M_CNF;
 	      if (fussy > 1)
-		errorLine (lineno, 0, ErrorInfo, TRUE, "Changing %s f_,#%.1f to %s f_,#%.1f", "cmf", im, "cnf", -im);
+		errorLine (lineno, NULL, ErrorInfo, TRUE, "Changing %s f_,#%.1f to %s f_,#%.1f", "cmf", im, "cnf", -im);
 	    }
 	  break;
 	case M_CNF & M_FMNEM:
@@ -209,7 +209,7 @@ fixImmFloat (long int lineno, WORD ir, FLOAT im)
 	    {
 	      ir = (ir & ~M_FMNEM) | M_CMF;
 	      if (fussy > 1)
-		errorLine (lineno, 0, ErrorInfo, TRUE, "Changing %s f_,#%.1f to %s f_,#%.1f", "cnf", im, "cmf", -im);
+		errorLine (lineno, NULL, ErrorInfo, TRUE, "Changing %s f_,#%.1f to %s f_,#%.1f", "cnf", im, "cmf", -im);
 	    }
 	  break;
 	case (M_CMF | EXEPTION_BIT) & M_FMNEM:
@@ -217,7 +217,7 @@ fixImmFloat (long int lineno, WORD ir, FLOAT im)
 	    {
 	      ir = (ir & ~M_FMNEM) | M_CNF | EXEPTION_BIT;
 	      if (fussy > 1)
-		errorLine (lineno, 0, ErrorInfo, TRUE, "Changing %s f_,#%.1f to %s f_,#%.1f", "cmfe", im, "cnfe", -im);
+		errorLine (lineno, NULL, ErrorInfo, TRUE, "Changing %s f_,#%.1f to %s f_,#%.1f", "cmfe", im, "cnfe", -im);
 	    }
 	  break;
 	case (M_CNF | EXEPTION_BIT) & M_FMNEM:
@@ -225,14 +225,14 @@ fixImmFloat (long int lineno, WORD ir, FLOAT im)
 	    {
 	      ir = (ir & ~M_FMNEM) | M_CMF | EXEPTION_BIT;
 	      if (fussy > 1)
-		errorLine (lineno, 0, ErrorInfo, TRUE, "Changing %s f_,#%.1f to %s f_,#%.1f", "cnfe", im, "cmfe", -im);
+		errorLine (lineno, NULL, ErrorInfo, TRUE, "Changing %s f_,#%.1f to %s f_,#%.1f", "cnfe", im, "cmfe", -im);
 	    }
 	  break;
 	}
     }
   if (f == -1)
     {
-      errorLine (lineno, 0, ErrorError, TRUE, "Illegal immediate constant %g", im);
+      errorLine (lineno, NULL, ErrorError, TRUE, "Illegal immediate constant %g", im);
       f = 0;
     }
   return ir | f;
@@ -251,7 +251,7 @@ fixAdr (long int lineno, WORD ir, int im)	/* !!! mov and mvn should be possible 
     ir |= 0x00800000;		/* add */
   i8s4 = help_cpuImm8s4 (im);
   if (i8s4 == -1)
-    errorLine (lineno, 0, ErrorError, TRUE, "Offset %d (0x%08x) is illegal for adr", im, im);
+    errorLine (lineno, NULL, ErrorError, TRUE, "Offset %d (0x%08x) is illegal for adr", im, im);
   else
     ir |= i8s4;
   return ir;
@@ -273,7 +273,7 @@ fixAdrl (long int lineno, WORD * ir, WORD * ir2, int im, int warn)
   if (i8s4 != -1)
     {
       if (warn && fussy && (im == 0 || (*ir & 0x00400000) || help_cpuImm8s4 (im - 4) != -1))
-	errorLine (lineno, 0, ErrorInfo, TRUE, "ADRL not required for offset %d (0x%08x)", im, im);
+	errorLine (lineno, NULL, ErrorInfo, TRUE, "ADRL not required for offset %d (0x%08x)", im, im);
       *ir |= i8s4;
     }
   else
@@ -284,7 +284,7 @@ fixAdrl (long int lineno, WORD * ir, WORD * ir2, int im, int warn)
       *ir |= (32 - (shift & 30)) << 7 | (im >> (shift & 0xFF));
       i8s4 = help_cpuImm8s4 (im & ~(0xFF << shift));
       if (i8s4 == -1)
-	errorLine (lineno, 0, ErrorError, TRUE, "Offset %d (0x%08x) is illegal for adrl", im, im);
+	errorLine (lineno, NULL, ErrorError, TRUE, "Offset %d (0x%08x) is illegal for adrl", im, im);
       else
 	*ir2 |= i8s4;
     }
@@ -294,7 +294,7 @@ WORD
 fixSwi (long int lineno, int im)
 {
   if ((im & 0xffffff) != im)
-    errorLine (lineno, 0, ErrorError, TRUE, "Illegal swi number %d(0x%08x)", im, im);
+    errorLine (lineno, NULL, ErrorError, TRUE, "Illegal swi number %d(0x%08x)", im, im);
   return im & 0xffffff;
 }
 
@@ -302,7 +302,7 @@ WORD
 fixBranch (long int lineno, int im)
 {
   if (im & 3)
-    errorLine (lineno, 0, ErrorError, TRUE, "Branch value is not a multiple of four");
+    errorLine (lineno, NULL, ErrorError, TRUE, "Branch value is not a multiple of four");
   return (im >> 2) & 0xffffff;
 }
 
@@ -316,9 +316,9 @@ fixCopOffset (long int lineno, WORD ir, int offset)
       up = FALSE;
     }
   if (offset & 3)
-    errorLine (lineno, 0, ErrorError, TRUE, "Offset %d is not a word offset", offset);
+    errorLine (lineno, NULL, ErrorError, TRUE, "Offset %d is not a word offset", offset);
   if (offset > 1020)
-    errorLine (lineno, 0, ErrorError, TRUE, "Offset %d is too large", offset);
+    errorLine (lineno, NULL, ErrorError, TRUE, "Offset %d is too large", offset);
   ir |= (offset >> 2) & 0xff;
   if (up)
     ir |= UP_FLAG;
@@ -337,13 +337,13 @@ fixCpuOffset (long int lineno, WORD ir, int offset)
   if ((ir & 0x90) == 0x90)
     {
       if (offset > 255)
-	errorLine (lineno, 0, ErrorError, TRUE, "Offset %d is too large", offset);
+	errorLine (lineno, NULL, ErrorError, TRUE, "Offset %d is too large", offset);
       ir |= (offset & 0xF) | (offset & 0xF0) << 4;
     }
   else
     {
       if (offset > 4095)
-	errorLine (lineno, 0, ErrorError, TRUE, "Offset %d is too large", offset);
+	errorLine (lineno, NULL, ErrorError, TRUE, "Offset %d is too large", offset);
       ir |= offset & 0xfff;
     }
   if (up)
@@ -355,7 +355,7 @@ WORD
 fixMask (long int lineno, int mask)
 {
   if (mask < 0 || mask > 0xffff)
-    errorLine (lineno, 0, ErrorError, TRUE, "Illegal value for register mask 0x%x", mask);
+    errorLine (lineno, NULL, ErrorError, TRUE, "Illegal value for register mask 0x%x", mask);
   return mask & 0xffff;
 }
 
@@ -367,21 +367,21 @@ fixInt (long int lineno, int size, int value)
     case 1:
       if (value < -128 || value > 256)
 	{
-	  errorLine (lineno, 0, ErrorError, TRUE, "Expression %d too big for %i bits", value, 8);
+	  errorLine (lineno, NULL, ErrorError, TRUE, "Expression %d too big for %i bits", value, 8);
 	  value &= 0xff;
 	}
       break;
     case 2:
       if (value < -32768 || value > 65536)
 	{
-	  errorLine (lineno, 0, ErrorError, TRUE, "Expression %d too big for %i bits", value, 16);
+	  errorLine (lineno, NULL, ErrorError, TRUE, "Expression %d too big for %i bits", value, 16);
 	  value &= 0xffff;
 	}
       break;
     case 4:
       break;
     default:
-      errorLine (lineno, 0, ErrorSerious, TRUE, "Internal fixInt: size %d is not legal", size);
+      errorLine (lineno, NULL, ErrorSerious, TRUE, "Internal fixInt: size %d is not legal", size);
       break;
     }
   return value;

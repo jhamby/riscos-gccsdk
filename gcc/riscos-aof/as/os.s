@@ -19,7 +19,6 @@ pc	RN	15
 
 	AREA	|C$$code|, CODE, READONLY
 
-XOS_File			* &20008
 XOS_FSControl			* &20029
 XOS_SWINumberFromString		* &20039
 XDDEUtils_ThrowbackRegister	* &62585
@@ -51,23 +50,8 @@ FSControl_CanonicalisePath	* 37
 	MOV	a2,a1
 	SWI	XOS_SWINumberFromString
 	MVNVS	a1,#0
-	LDMDB	fp,{fp,sp,pc}^
+	LDMDB	fp,{fp,sp,pc}
 
-
-	= "cdir",0
-	ALIGN
-	& &FF000008
-|cdir|
-	EXPORT	cdir
-	MOV	ip,sp
-	STMDB	sp!,{v1-v2,fp,ip,lr,pc}
-	SUB	fp,ip,#4
-	MOV	a2,a1
-	MOV	a1,#8
-	MOV	a3,#77
-	SWI	XOS_File
-	MOVVC	a1,#0
-	LDMDB	fp,{v1-v2,fp,sp,pc}^
 
 	= "ThrowbackStart",0
 	ALIGN
@@ -84,7 +68,7 @@ FSControl_CanonicalisePath	* 37
 	MOV	v1,#0
 	SWI	XDDEUtils_ThrowbackStart
 	MOVVC	a1,#0
-	LDMDB	fp,{v1,fp,sp,pc}^
+	LDMDB	fp,{v1,fp,sp,pc}
 
 	= "ThrowbackSendStart",0
 	ALIGN
@@ -102,7 +86,7 @@ FSControl_CanonicalisePath	* 37
 	MOV	v1,#0
 	SWI	XDDEUtils_ThrowbackSend
 	MOVVC	a1,#0
-	LDMDB	fp,{v1,fp,sp,pc}^
+	LDMDB	fp,{v1,fp,sp,pc}
 
 ErrorFilePtr
 	&	ErrorFile
@@ -128,7 +112,7 @@ ErrorFilePtr
 	MOVNE	a1,#Throwback_ReasonErrorDetails
 	SWI	XDDEUtils_ThrowbackSend
 	MOVVC	a1,#0
-	LDMDB	fp,{v1,v2,fp,sp,pc}^
+	LDMDB	fp,{v1,v2,fp,sp,pc}
 fatal	= "Invalid pointer passed to ThrowbackSendError",0
 	ALIGN
 
@@ -147,7 +131,7 @@ fatal	= "Invalid pointer passed to ThrowbackSendError",0
 	MOV	v1,#0
 	SWI	XDDEUtils_ThrowbackEnd
 	MOVVC	a1,#0
-	LDMDB	fp,{v1,fp,sp,pc}^
+	LDMDB	fp,{v1,fp,sp,pc}
 
 	= "OSCanonicalisePath",0
 	ALIGN
@@ -169,30 +153,7 @@ fatal	= "Invalid pointer passed to ThrowbackSendError",0
 	MOV	a1,#FSControl_CanonicalisePath
 	SWI	XOS_FSControl
 	MOV	a1,v2
-	LDMDB	fp,{v1,v2,fp,sp,pc}^
-
-	= "OSArgs7",0
-	ALIGN
-	& &FF00008
-|OSArgs7|
-	EXPORT	OSArgs7
-	MOV	ip,sp
-	STMDB	sp!,{v1,v2,fp,ip,lr,pc}
-	SUB	fp,ip,#4
-; a2 <- a1   = char *path
-; a3 <- a2   = char *buffer
-; v2 <- a3   = int bufferSize
-	MOV	v2,a3
-	MOV	v1,#0
-	MOV	a4,#0
-	MOV	a3,a2
-	MOV	a2,a1
-	MOV	a1,#7
-	SWI	&20009 ; XOS_Args
-	MOVVC	a1,v2
-	MOVVS	a1,#0
-	LDMDB	fp,{v1,v2,fp,sp,pc}^
-
+	LDMDB	fp,{v1,v2,fp,sp,pc}
 
 	AREA	|C$$data|, DATA
 

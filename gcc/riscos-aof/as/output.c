@@ -33,7 +33,7 @@
 #include <errno.h>
 #endif
 
-#ifdef __riscos__
+#ifndef CROSS_COMPILE
 #include "depend.h"
 #endif
 
@@ -53,7 +53,7 @@ static char outname[MAXNAME + 1];
 
 #if defined(WORDS_BIGENDIAN)
 /* Convert to ARM byte-sex.  */
-unsigned armword (unsigned val)
+WORD armword (WORD val)
 {
   return (val >> 24) |
          ((val >> 8) & 0xff00)   |
@@ -62,7 +62,7 @@ unsigned armword (unsigned val)
 }
 
 /* Convert from ARM byte-sex.  */
-unsigned ourword (unsigned val)
+WORD ourword (WORD val)
 {
   return  (val >> 24) |
          ((val >> 8) & 0xff00)   |
@@ -72,10 +72,10 @@ unsigned ourword (unsigned val)
 #endif
 
 void
-outputInit (char *outfile)
+outputInit (const char *outfile)
 {
   objfile = NULL;
-  if (outfile && ! (outfile[0] == '-' && outfile[1] == '\0'))
+  if (outfile && !(outfile[0] == '-' && outfile[1] == '\0'))
     {
       char *temp;
 #ifdef CROSS_COMPILE
@@ -113,8 +113,7 @@ outputInit (char *outfile)
 	}
       /* setvbuf (objfile, NULL, _IOFBF, 16 * 1024); */
 #ifndef CROSS_COMPILE
-      if (DependFileName)
-	dependOpen (outname);
+      dependOpen (outname);
 #endif
     }
   else
@@ -235,9 +234,9 @@ outputAof (void)
 
   if (written != (sizeof (chunk_header) + 5 * sizeof (chunk_entry)))
     {
-      errorLine (0, 0, ErrorSerious, FALSE,
+      errorLine (0, NULL, ErrorSerious, FALSE,
 		 "Internal outputAof: error when writing chunk file header");
-      exit (-1);
+      return;
     }
 
 /******** Chunk 0 Header ********/
@@ -251,7 +250,7 @@ outputAof (void)
       aof_entry.Size = armword (FIX (ap->value.ValueInt.i));
       aof_entry.noRelocations = armword(ap->area.info->norelocs);
       if (aof_entry.noRelocations != 0 && aof_entry.Type & AREA_UDATA)
-	errorLine (0, 0, ErrorSerious, FALSE,
+	errorLine (0, NULL, ErrorSerious, FALSE,
 		   "Internal outputAof: relocations in uninitialised area");
       aof_entry.Unused = 0;
       fwrite ((void *) &aof_entry, sizeof (char), sizeof (aof_entry), objfile);
@@ -262,17 +261,17 @@ outputAof (void)
   if (idfn_size !=
       fwrite ((void *) idfn_text, 1, idfn_size, objfile))
     {
-      errorLine (0, 0, ErrorSerious, FALSE,
+      errorLine (0, NULL, ErrorSerious, FALSE,
 		 "Internal outputAof: error when writing identification");
-      exit (-1);
+      return;
     }
 /******** Chunk 2 String Table ***********/
   strt_size = armword(strt_size);
   if (fwrite ((void *) &strt_size, 1, 4, objfile) != sizeof (strt_size))
     {
-      errorLine (0, 0, ErrorSerious, FALSE,
+      errorLine (0, NULL, ErrorSerious, FALSE,
 		 "Internal outputAof: error when writing string table size");
-      exit (-1);
+      return;
     }
   symbolStringOutput (objfile);
   for (pad = EXTRA (symbolStringSize ()); pad; pad--)
@@ -291,9 +290,9 @@ outputAof (void)
 	      fwrite ((void *) ap->area.info->image, sizeof (char),
 		      FIX (ap->value.ValueInt.i), objfile))
 	    {
-	      errorLine (0, 0, ErrorSerious, FALSE,
+	      errorLine (0, NULL, ErrorSerious, FALSE,
 		"Internal outputAof: error when writing %s image", ap->str);
-	      exit (-1);
+	      return;
 	    }
 	  relocOutput (objfile, ap);
 	}
@@ -461,9 +460,9 @@ outputElf (void)
               fwrite ((void *) ap->area.info->image, sizeof (char),
                       FIX (ap->value.ValueInt.i), objfile))
             {
-              errorLine (0, 0, ErrorSerious, FALSE,
+              errorLine (0, NULL, ErrorSerious, FALSE,
                 "Internal outputElf: error when writing %s image", ap->str);
-              exit (-1);
+              return;
             }
           if(ap->area.info->norelocs) relocElfOutput (objfile, ap);
         }

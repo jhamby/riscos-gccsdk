@@ -232,7 +232,8 @@ m_str (WORD cc)
 void
 m_pld (void)
 {
-  int op, ir = 0xf450f000 | PRE_FLAG | UP_FLAG;
+  int op;
+  WORD ir = 0xf450f000 | PRE_FLAG | UP_FLAG;
 
   cpuWarn (XSCALE);
 

@@ -21,10 +21,11 @@ extern int apcs_32bit;
 extern int apcs_fpv3;
 extern int elf;
 
-extern char *SourceFileName;
-extern char *ProgName;
+extern const char *ProgName;
 
 extern jmp_buf asmContinue;
+extern BOOL asmContinueValid;
 extern jmp_buf asmAbort;
+extern BOOL asmAbortValid;
 
 #endif

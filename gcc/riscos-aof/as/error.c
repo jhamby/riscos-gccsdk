@@ -1,6 +1,7 @@
 /*
  * error.c
  * Copyright © 1992 Niklas Röjemo
+ * Copyright © 2005 GCCSDK Developers
  */
 
 #include "sdk-config.h"
@@ -22,7 +23,6 @@
 #include "macros.h"
 #include "main.h"
 #include "os.h"
-#include "output.h"
 
 #define MAXERR (100)
 
@@ -30,33 +30,35 @@ const char *const InsertCommaAfter = "Inserting missing comma after ";
 
 static int no_errors = 0;
 static int no_warnings = 0;
-static char *source = NULL;
+static const char *source = NULL; /* Can remain NULL when reading from stdin */
 
-#ifdef __riscos__
+#ifndef CROSS_COMPILE
 static int ThrowbackStarted;
 #endif
 
 static char errbuf[2048];
-char er[1024];
 
 void
-errorInit (char *filename)
+errorInit (const char *filename)
 {
-  source = filename;
+  source = (filename == NULL || !strcmp(filename, "-")) ? NULL : filename;
 }
 
 
-#ifdef __riscos__
 void
 errorFinish (void)
 {
+#ifndef CROSS_COMPILE
   if (ThrowbackStarted > 0)
-    ThrowbackEnd ();
-}
+    {
+      os_error *err;
+      if ((err = ThrowbackEnd ()) != NULL && verbose > 1)
+        fprintf (stderr, "ThrowbackEnd error: %s\n", err->errmess);
+    }
 #endif
+}
 
-
-#ifdef __riscos__
+#ifndef CROSS_COMPILE
 char *
 LF (char *buf)
 {
@@ -73,28 +75,22 @@ LF (char *buf)
 }
 
 static void
-TB (int level, long int lineno, char *error, const char *file)
+TB (int level, long int lineno, const char *error, const char *file)
 {
-  os_error *err;
-
-  if (!throwback || !source)
+  if (!throwback || source == NULL)
     return;
 
   if (!ThrowbackStarted)
     ThrowbackStarted = ThrowbackStart ()? -1 : 1;
   if (ThrowbackStarted == 1)
     {
-      err = ThrowbackSendStart (file);
-      if (err)
-	{
-	  if (verbose > 1)
-	    fprintf (stderr, "ThrowbackSendStart %s", err->errmess);
-	  ThrowbackStarted = -1;
-	}
-      ThrowbackStarted = 1;
+      os_error *err;
+
+      if ((err = ThrowbackSendStart (file)) != NULL && verbose > 1)
+	fprintf (stderr, "ThrowbackSendStart error: %s\n", err->errmess);
+      if ((err = ThrowbackSendError (level, lineno, error)) != NULL && verbose > 1)
+        fprintf (stderr, "ThrowbackSendError error: %s\n", err->errmess);
     }
-  if (ThrowbackStarted > 0)
-    ThrowbackSendError (level, lineno, error);
 }
 #else
 #define TB(x,y,z,f)
@@ -102,16 +98,9 @@ TB (int level, long int lineno, char *error, const char *file)
 
 
 int
-noerrors (void)
+returnExitStatus (void)
 {
   return no_errors ? EXIT_FAILURE : EXIT_SUCCESS;
-}
-
-
-int
-nowarnings (void)
-{
-  return no_warnings;
 }
 
 
@@ -119,8 +108,11 @@ static void
 fixup (ErrorTag t)
 {
   skiprest ();
-  if (t == ErrorAbort || no_errors > MAXERR)
-    longjmp (asmAbort, 1);
+  if (t == ErrorAbort || no_errors > MAXERR || !asmContinueValid)
+    {
+      if (asmAbortValid)
+        longjmp (asmAbort, 1);
+    }
   else
     longjmp (asmContinue, 1);
 }
@@ -128,9 +120,6 @@ fixup (ErrorTag t)
 static void
 doline (int t, long int line, int sameline)
 {
-#ifndef __riscos__
-  t = t;
-#endif
   if (line > 0)
     {
       TB (t, line, errbuf, inputName);
@@ -177,7 +166,7 @@ error (ErrorTag e, BOOL c, const char *format,...)
   int sameline = 1;
   int t = 0;
 
-#ifdef __riscos__
+#ifndef CROSS_COMPILE
   switch (e)
     {
     case ErrorInfo:
@@ -269,7 +258,7 @@ errorLine (long int lineno, const char *file,
   const char *str;
   va_list ap;
 
-#ifdef __riscos__
+#ifndef CROSS_COMPILE
   int t;
   switch (e)
     {
@@ -322,7 +311,7 @@ errorLine (long int lineno, const char *file,
     fprintf (stderr, " at line %li", lineno);
   if (!file)
     file = inputName;
-  if (file != inputName)
+  if (file != inputName && source != NULL)
     fprintf (stderr, " in file '%s'\n", source);
   else
     fputc ('\n', stderr);

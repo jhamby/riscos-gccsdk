@@ -79,19 +79,13 @@ symbolAdd (Lex l)
       if (EqSymLex (*isearch, &l))
 	{
 	  if ((*isearch)->type & SYMBOL_DEFINED)
-	    {
-	      strncpy (er, l.LexId.str, l.LexId.len);
-	      er[l.LexId.len] = 0;
-	      error (ErrorError, TRUE, "Redefinition of %s", er);
-	    }
+	    error (ErrorError, TRUE, "Redefinition of %*s",
+	           l.LexId.len, l.LexId.str);
 	  else
 	    {
 	      if ((*isearch)->type & SYMBOL_AREA)
-		{
-		  strncpy (er, l.LexId.str, l.LexId.len);
-		  er[l.LexId.len] = 0;
-		  error (ErrorError, TRUE, "Area %s is already defined", er);
-		}
+		error (ErrorError, TRUE, "Area %*s is already defined",
+		       l.LexId.len, l.LexId.str);
 	      else
 		{
 		  (*isearch)->type |= SYMBOL_DEFINED;
@@ -241,7 +235,7 @@ symbolStringOutput (FILE * outfile)	/* Count already output */
 /*puts("  (written)"); */
 	    if (pedantic && sym->declared == 0)
 	      if ((sym->type & SYMBOL_DEFINED) > 0 || sym->used > -1)
-		errorLine (0, 0, ErrorWarning, TRUE, "Symbol %s is implicitly imported", sym->str);
+		errorLine (0, NULL, ErrorWarning, TRUE, "Symbol %s is implicitly imported", sym->str);
 	    fwrite ((void *) sym->str, 1, sym->len + 1, outfile);
 	  }
       }
@@ -276,7 +270,7 @@ symbolSymbolOutput (FILE * outfile)
 	      switch (value.Tag.t)
 		{
 		case ValueIllegal:
-		  errorLine (0, 0, ErrorError, TRUE, "Symbol %s cannot be evaluated", sym->str);
+		  errorLine (0, NULL, ErrorError, TRUE, "Symbol %s cannot be evaluated", sym->str);
 		  v = 0;
 		  break;
 		case ValueInt:
@@ -284,7 +278,7 @@ symbolSymbolOutput (FILE * outfile)
 		  v = value.ValueInt.i;
 		  break;
 		case ValueFloat:
-		  errorLine (0, 0, ErrorError, TRUE, "Linker does not understand float constants (%s)", sym->str);
+		  errorLine (0, NULL, ErrorError, TRUE, "Linker does not understand float constants (%s)", sym->str);
 		  v = (int) value.ValueFloat.f;
 		  break;
 		case ValueString:
@@ -294,7 +288,7 @@ symbolSymbolOutput (FILE * outfile)
 		  v = value.ValueBool.b;
 		  break;
 		case ValueCode:
-		  errorLine (0, 0, ErrorError, TRUE, "Linker does not understand code constants (%s)", sym->str);
+		  errorLine (0, NULL, ErrorError, TRUE, "Linker does not understand code constants (%s)", sym->str);
 		  v = 0;
 		  break;
 		case ValueLateLabel:
@@ -309,15 +303,15 @@ symbolSymbolOutput (FILE * outfile)
 			  sym->area.ptr = value.ValueLate.late->symbol;
 			}
 		      else if (sym->area.ptr != value.ValueLate.late->symbol)
-			errorLine (0, 0, ErrorError, TRUE, "Linker cannot have 2 areas for the same symbol (%s)", sym->str);
+			errorLine (0, NULL, ErrorError, TRUE, "Linker cannot have 2 areas for the same symbol (%s)", sym->str);
 		    }
 		  else
 		    {
-		      errorLine (0, 0, ErrorError, TRUE, "Linker cannot have many late labels for the same symbol (%s)", sym->str);
+		      errorLine (0, NULL, ErrorError, TRUE, "Linker cannot have many late labels for the same symbol (%s)", sym->str);
 		    }
 		  break;
 		default:
-		  errorLine (0, 0, ErrorSerious, FALSE, "Internal symbolSymbolOutput: not possible (%s) (0x%x)", sym->str, value.Tag.t);
+		  errorLine (0, NULL, ErrorSerious, FALSE, "Internal symbolSymbolOutput: not possible (%s) (0x%x)", sym->str, value.Tag.t);
 		  break;
 		}
 	      asym.Value = v;
@@ -411,7 +405,7 @@ symbolSymbolElfOutput (FILE * outfile)
               switch (value.Tag.t)
                 {
                 case ValueIllegal:
-                  errorLine (0, 0, ErrorError, TRUE, "Symbol %s cannot be evaluated", sym->str);
+                  errorLine (0, NULL, ErrorError, TRUE, "Symbol %s cannot be evaluated", sym->str);
                   v = 0;
                   break;
                 case ValueInt:
@@ -419,7 +413,7 @@ symbolSymbolElfOutput (FILE * outfile)
                   v = value.ValueInt.i;
                   break;
                 case ValueFloat:
-                  errorLine (0, 0, ErrorError, TRUE, "Linker does not understand float constants (%s)", sym->str);
+                  errorLine (0, NULL, ErrorError, TRUE, "Linker does not understand float constants (%s)", sym->str);
                   v = (int) value.ValueFloat.f;
                   break;
                 case ValueString:
@@ -429,7 +423,7 @@ symbolSymbolElfOutput (FILE * outfile)
                   v = value.ValueBool.b;
                   break;
                 case ValueCode:
-                  errorLine (0, 0, ErrorError, TRUE, "Linker does not understand code constants (%s)", sym->str);
+                  errorLine (0, NULL, ErrorError, TRUE, "Linker does not understand code constants (%s)", sym->str);
                   v = 0;
                   break;
                 case ValueLateLabel:
@@ -445,15 +439,15 @@ one time */
                           sym->area.ptr = value.ValueLate.late->symbol;
                         }
                       else if (sym->area.ptr != value.ValueLate.late->symbol)
-                        errorLine (0, 0, ErrorError, TRUE, "Linker cannot have 2 areas for the same symbol (%s)", sym->str);
+                        errorLine (0, NULL, ErrorError, TRUE, "Linker cannot have 2 areas for the same symbol (%s)", sym->str);
                     }
                   else
                     {
-                      errorLine (0, 0, ErrorError, TRUE, "Linker cannot have many late labels for the same symbol (%s)", sym->str);
+                      errorLine (0, NULL, ErrorError, TRUE, "Linker cannot have many late labels for the same symbol (%s)", sym->str);
                     }
                   break;
                 default:
-                  errorLine (0, 0, ErrorSerious, FALSE, "Internal symbolSymbolOutput: not possible (%s) (0x%x)", sym->str, value.Tag.t);
+                  errorLine (0, NULL, ErrorSerious, FALSE, "Internal symbolSymbolOutput: not possible (%s) (0x%x)", sym->str, value.Tag.t);
                   break;
                 }
               asym.st_value = v;

@@ -36,7 +36,7 @@ typedef struct RELOC
   struct RELOC *more;
   RelocTag Tag;
   long int lineno;		/* For error messages */
-  char *file;			/* ditto */
+  const char *file;		/* ditto */
   int offset;			/* Offset in area */
   WORD extra;			/* e.g. shiftop in ShiftImm, size in RelocImmN, e.t.c. */
   Value value;

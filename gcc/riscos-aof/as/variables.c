@@ -108,16 +108,17 @@ declare_var (const char *ptr, int len, const ValueTag type, BOOL local)
   /* *Will* occur for locals redeclared as globals, hence just a warning */
   if (sym)
     {
-      const char *c = 0;
+      const char *c;
       if (sym->value.Tag.v == ValueConst)
 	c = "symbol";
       else if (local == FALSE && sym->value.Tag.t)
 	c = "variable";
+      else
+        c = NULL;
       if (c)
 	{
-	  strncpy (er, ptr, len);
-	  er[len] = 0;
-	  error (ErrorError, TRUE, "'%s' is already declared as a %s", er, c);
+	  error (ErrorError, TRUE, "'%*s' is already declared as a %s",
+	         len, ptr, c);
 	  inputRest ();
 	  return;
 	}
@@ -229,17 +230,18 @@ void
 c_set (ValueTag type, Lex * label)
 {
   Value value;
-  const char *c = NULL;
+  const char *c;
   Symbol *sym = symbolFind (label);
   if (sym == NULL || sym->value.Tag.t == ValueIllegal)
     c = "undefined";
   else if (sym->value.Tag.v == ValueConst)
     c = "not a variable";
+  else
+    c = NULL;
   if (c)
     {
-      strncpy (er, label->LexId.str, label->LexId.len);
-      er[label->LexId.len] = 0;
-      error (ErrorError, TRUE, "'%s' is %s", er, c);
+      error (ErrorError, TRUE, "'%*s' is %s",
+             label->LexId.len, label->LexId.str, c);
       inputRest ();
       return;
     }

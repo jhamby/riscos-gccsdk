@@ -1,27 +1,44 @@
 /*
  * depend.c
  * Copyright © 1997 Darren Salt
+ * Copyright © 2005 GCCSDK Developers
  */
 
-#include <stdlib.h>
 #include <stdio.h>
-#include <ctype.h>
-#include <string.h>
 
 #include "error.h"
 #include "depend.h"
 #include "main.h"
 
-FILE *dependfile;
-const char *DependFileName;
+static FILE *dependFile;
+static const char *sourceFileName;
+
+const char *DependFileName = NULL;
+
+void
+dependInit (const char *srcFileName)
+{
+  sourceFileName = srcFileName;
+}
+
+
+void
+dependFinish (void)
+{
+  if (dependFile != NULL)
+    {
+      fclose(dependFile);
+      dependFile = NULL;
+    }
+}
 
 
 void
 dependPut (const char *pre, const char *name, const char *post)
 {
-  if (!dependfile)
+  if (dependFile == NULL)
     return;
-  fprintf (dependfile, "%s%s%s", pre, name, post);
+  fprintf (dependFile, "%s%s%s", pre, name, post);
   /* may need further processing */
 }
 
@@ -29,18 +46,20 @@ dependPut (const char *pre, const char *name, const char *post)
 void
 dependOpen (const char *objname)
 {
-  if (dependfile || DependFileName == 0)
+  if (dependFile != NULL || DependFileName == NULL)
     return;
-  if ((dependfile = fopen (DependFileName, "w")) == NULL)
+
+  if ((dependFile = fopen (DependFileName, "w")) == NULL)
     {
+      error (ErrorSerious, FALSE, "Failed to open dependencies file \"%s\"",
+             DependFileName);
       DependFileName = NULL;
-      error (ErrorSerious, FALSE, "Failed to open dependencies file");
     }
   else
     {
       if (objname[0] == '@' && objname[1] == '.')
 	objname += 2;
       dependPut ("", objname, ":");
-      dependPut (" ", SourceFileName, "");
+      dependPut (" ", sourceFileName, "");
     }
 }

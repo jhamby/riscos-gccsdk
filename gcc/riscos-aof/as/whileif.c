@@ -223,7 +223,6 @@ c_while (Lex * label)
   else
     {
       whileNew->tag = WhileInFile;
-      whileNew->ptr.file.fileno = fileCurrentNo;
       whileNew->ptr.file.offset = ftell (asmfile);
     }
   whileCurrent = whileNew;
