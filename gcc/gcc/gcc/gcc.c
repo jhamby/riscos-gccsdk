@@ -5912,10 +5912,10 @@ main (argc, argv)
     regs[0] = -1;
     regs[1] = -1;
     __os_swi (Wimp_SlotSize, regs);
-    if (regs[0] < (3000 * 1024))
+    if (regs[0] < (4000 * 1024))
       {
         fprintf (stderr,
-                "%s requires a minimum of 3000K to run.  Please increase the wimpslot.\n",
+                "%s requires a minimum of 4000K to run.  Please increase the wimpslot.\n",
                 programname);
         return 1;
       }
