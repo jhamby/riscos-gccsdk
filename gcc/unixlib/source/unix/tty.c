@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/tty.c,v $
- * $Date: 2004/10/17 16:24:45 $
- * $Revision: 1.15 $
+ * $Date: 2004/10/23 17:23:36 $
+ * $Revision: 1.16 $
  * $State: Exp $
  * $Author: joty $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: tty.c,v 1.15 2004/10/17 16:24:45 joty Exp $";
+static const char rcs_id[] = "$Id: tty.c,v 1.16 2004/10/23 17:23:36 joty Exp $";
 #endif
 
 /* System V tty device driver for RISC OS.  */
@@ -776,11 +776,13 @@ __ttyinput (int c, tcflag_t iflag)
     c = tolower (c);
 #endif
   if (iflag & INLCR)
-    if (c == '\n')
-      c = '\r';
-  if (iflag & ICRNL)
-    if (c == '\r')
-      c = '\n';
+    {
+      if (c == '\n') c = '\r';
+    }
+  else if (iflag & ICRNL)
+    {
+      if (c == '\r') c = '\n';
+    }
   return c;
 }
 
@@ -1055,10 +1057,7 @@ __ttyioctl (struct __unixlib_fd *file_desc, unsigned long request, void *arg)
 	term->c_lflag = ISIG | ICANON;
 
 	if (flags & CBREAK)
-	  {
-	    term->c_iflag = 0;
-            term->c_lflag &= ~ICANON;
-          }
+          term->c_lflag &= ~ICANON;
 
 	if (flags & ECHO)
 	  term->c_lflag |= ECHO | ECHOE | ECHOK | ECHOCTL | ECHOKE | IEXTEN;

@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/termios/tcsetattr.c,v $
- * $Date: 2004/01/02 23:33:59 $
- * $Revision: 1.4 $
+ * $Date: 2004/09/09 15:34:52 $
+ * $Revision: 1.5 $
  * $State: Exp $
- * $Author: joty $
+ * $Author: peter $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: tcsetattr.c,v 1.4 2004/01/02 23:33:59 joty Exp $";
+static const char rcs_id[] = "$Id: tcsetattr.c,v 1.5 2004/09/09 15:34:52 peter Exp $";
 #endif
 
 #include <errno.h>
@@ -66,7 +66,7 @@ tcsetattr (int fd, int optional_actions, const struct termios *termios_p)
 
   buf.sg_flags &= ~(CBREAK|RAW);
   if (!(termios_p->c_lflag & ICANON))
-    buf.sg_flags |= (termios_p->c_cflag & ISIG) ? CBREAK : RAW;
+    buf.sg_flags |= (termios_p->c_lflag & ISIG) ? CBREAK : RAW;
 #ifdef	LPASS8
   if (termios_p->c_oflag & CS8)
     local |= LPASS8;

@@ -1,3 +1,11 @@
+Thu Dec 16 11:32:48 2004  Peter Naulls  <peter@chocky.org>
+
+	* source/termios/tcsetattr.c: Compare the correct flags before
+	  setting CBREAK/RAW.
+	* source/unix/tty.c: Do ICRNL only when INLCR is not set.
+	  Don't clear all the flags when CBREAK is set (corrects
+	  returning CR instead of LF in non-canonical mode).   
+
 Wed Dec 15 17:54:07 2004  Peter Naulls  <peter@chocky.org>
 
 	* source/common/unixify.c: Pull in functionality from rname.c,
