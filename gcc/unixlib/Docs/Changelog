@@ -1,3 +1,12 @@
+Sun Sep 12 09:20:31 2004  Peter Naulls  <peter@chocky.org>
+
+	* source/signal/post.c: Remove warnings
+	* source/sound/dsp.c: Be more careful about opening and closing
+	  the DRender: filesystem.
+	* source/clib/swis.h, source/clib/iconv.h, source/clib/iconv.c:
+	  Interface to John-Mark Bell's iconv support module, instead
+	  of requiring the large external iconv library.
+
 Thu Sep  9 13:54:55 2004  Peter Naulls  <peter@chocky.org>
 
 	* source/clib/unixlib/dev.h, source/unix/dev.c: Add __dsplseek

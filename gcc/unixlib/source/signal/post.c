@@ -1,20 +1,18 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/signal/post.c,v $
- * $Date: 2004/05/18 20:49:23 $
- * $Revision: 1.12 $
+ * $Date: 2004/09/07 14:05:11 $
+ * $Revision: 1.13 $
  * $State: Exp $
  * $Author: joty $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: post.c,v 1.12 2004/05/18 20:49:23 joty Exp $";
+static const char rcs_id[] = "$Id: post.c,v 1.13 2004/09/07 14:05:11 joty Exp $";
 #endif
 
 /* signal.c.post: Written by Nick Burrett, 27 August 1996.  */
-
-#define _GNU_SOURCE
 
 #include <errno.h>
 #include <stdlib.h>

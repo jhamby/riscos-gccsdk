@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sound/dsp.c,v $
- * $Date: 2004/09/08 16:12:41 $
- * $Revision: 1.3 $
+ * $Date: 2004/09/09 15:34:52 $
+ * $Revision: 1.4 $
  * $State: Exp $
- * $Author: joty $
+ * $Author: peter $
  *
  ***************************************************************************/
 
@@ -53,7 +53,10 @@ static _kernel_oserror *set_defaults(struct __unixlib_fd *fd, int channels, int 
 
   if ((err = _kernel_swi(DigitalRenderer_SetDefaults, &regs, &regs)) ||
       (err = __os_fopen (OSFILE_OPENOUT, "DRender:", (void *)&fd->handle)))
-    return err;
+    {
+      fd->handle = NULL;
+      return err;
+    }
 
   return NULL;
 }
@@ -67,8 +70,10 @@ void *__dspopen (struct __unixlib_fd *fd, const char *file, int mode)
   IGNORE(file);
   IGNORE(mode);
 
+  fd->handle = NULL;
+
   __os_cli("RMEnsure DigitalRenderer 0.51 RMload System:Modules.DRenderer");
-  if ((err = __os_cli("RMEnsure DigitalRenderer 0.51 Error XYZ")) != NULL
+  if ((err = __os_cli("RMEnsure DigitalRenderer 0.51 Error Sound support requires DigitalRenderer 0.51 or newer")) != NULL
       || (err = set_defaults(fd, 2, 2, BUFFER_SIZE, 44100)) != NULL)
     {
       __seterr (err);
@@ -81,7 +86,10 @@ void *__dspopen (struct __unixlib_fd *fd, const char *file, int mode)
 
 int __dspclose (struct __unixlib_fd *fd)
 {
-  _kernel_oserror *err = __os_fclose ((int) fd->handle);
+  _kernel_oserror *err = NULL;
+
+  if (fd->handle)
+    err = __os_fclose ((int) fd->handle);
 
   return (! err) ? 0 : (__seterr (err), -1);
 }
