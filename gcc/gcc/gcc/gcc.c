@@ -3118,6 +3118,9 @@ process_command (argc, argv)
   /* Set up the default search paths.  If there is no GCC_EXEC_PREFIX,
      see if we can create it from the pathname specified in argv[0].  */
 
+  /* NAB++ */
+#if 0
+  /* NAB-- */
 #ifndef VMS
   /* FIXME: make_relative_prefix doesn't yet work for VMS.  */
   if (!gcc_exec_prefix)
@@ -3128,6 +3131,9 @@ process_command (argc, argv)
 	putenv (concat ("GCC_EXEC_PREFIX=", gcc_exec_prefix, NULL));
     }
 #endif
+  /* NAB++ */
+#endif
+  /* NAB-- */
 
   if (gcc_exec_prefix)
     {
