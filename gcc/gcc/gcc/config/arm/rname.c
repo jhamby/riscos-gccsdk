@@ -23,7 +23,7 @@ static char *prefixes[] =
 {
   "java", "class", "jar", "f", "for", "fpp", "p", "pas", "ph", "gpi",
   "cc", "cxx", "cpp", "c++", "c", "m", "rpo",
-  "i", "ii", "h", "i", "s", "l", "o", "y",
+  "i", "ii", "h", "hpp", "i", "s", "l", "o", "y",
   "ads", "adb", "ada", "ali", "adc", "xrb", "xrs", 0
 };
 
@@ -141,12 +141,16 @@ static int
 is_prefix (const char *name)
 {
   char *t1;
-  int x;
+  int x = 0;
   /* If there is more than one dot left in the filename, then this
      cannot be the prefix.  */
   if ((t1 = strchr (name, '.')) != strrchr (name, '.'))
     return 0;
-  x = 0;
+
+  if (t1 == NULL)
+    t1 = name + strlen(name);
+
+#ifdef CROSS_COMPILE
   while (prefixes[x] != 0)
     {
       /* Prefixes must be compared in a case-insensitive manner.  */
@@ -155,6 +159,9 @@ is_prefix (const char *name)
       x++;
     }
   return 0;
+#else
+  return __sfixfind(name, t1 - name) == NULL ? 0 : 1;
+#endif
 }
 
 static int
