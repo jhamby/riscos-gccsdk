@@ -16,6 +16,7 @@
 #include "error.h"
 #include "chunkfile.h"
 #include "aoffile.h"
+#include "elf.h"
 #include "symbol.h"
 #include "output.h"
 #include "area.h"
@@ -285,3 +286,193 @@ outputAof (void)
     }
 }
 
+static int
+countRels (Symbol * ap)
+{
+  int i = 0;
+  while (ap)
+    {
+      if (ap->area.info->norelocs) i++;
+      ap = ap->area.info->next;
+    }
+  return i;
+}
+
+static int
+writeElfSH (int nmoffset, int type, int flags, int size,
+            int link, int info, int addralign, int entsize, int *offset)
+{
+  Elf32_Shdr sect_hdr;
+
+  sect_hdr.sh_name = nmoffset;
+  sect_hdr.sh_type = type;
+  sect_hdr.sh_flags = flags;
+  sect_hdr.sh_addr = 0;
+  sect_hdr.sh_offset = type==SHT_NULL?0:*offset;
+  sect_hdr.sh_size = size;
+  sect_hdr.sh_link = link;
+  sect_hdr.sh_info = info;
+  sect_hdr.sh_addralign = addralign;
+  sect_hdr.sh_entsize = entsize;
+  if (type!=SHT_NOBITS) *offset += size;
+  return fwrite ((void *) &sect_hdr, sizeof (char),
+                 sizeof (sect_hdr), objfile);
+}
+
+void
+outputElf (void)  
+{
+  int noareas = countAreas (areaHead);
+  int norels;
+  int written, offset, obj_area_size, pad, strsize;
+  int elfIndex, nsyms, shstrsize=0;
+  int i, sectionSize, sectionType;
+  Elf32_Ehdr elf_head;
+  Symbol *ap;
+
+  /* We must call relocFix() before anything else.  */
+  obj_area_size = 0;
+  ap = areaHead;                /* avoid problems with no areas.  */
+  while (ap)
+    {
+      ap->area.info->norelocs = relocFix (ap);
+      ap = ap->area.info->next;
+    }
+  norels = countRels(areaHead);
+
+  elf_head.e_ident[EI_MAG0] = ELFMAG0;
+  elf_head.e_ident[EI_MAG1] = ELFMAG1;
+  elf_head.e_ident[EI_MAG2] = ELFMAG2;
+  elf_head.e_ident[EI_MAG3] = ELFMAG3;
+  elf_head.e_ident[EI_CLASS] = ELFCLASS32;
+  elf_head.e_ident[EI_DATA] = ELFDATA2LSB;
+  elf_head.e_ident[EI_VERSION] = EV_CURRENT;
+  elf_head.e_ident[EI_OSABI] = ELFOSABI_ARM;
+  elf_head.e_ident[EI_ABIVERSION] = 0;
+  for (i = EI_PAD; i< EI_NIDENT; i++)
+    elf_head.e_ident[i]=0;
+  elf_head.e_type = ET_REL;
+  elf_head.e_machine = EM_ARM;
+  elf_head.e_version = EV_CURRENT;
+  elf_head.e_entry = areaEntry?areaEntryOffset:0;
+  elf_head.e_phoff = 0;
+  elf_head.e_shoff = sizeof(elf_head);
+  elf_head.e_flags = EF_ARM_CURRENT;
+  if (areaEntry) elf_head.e_flags |= EF_ARM_HASENTRY;
+  elf_head.e_ehsize = sizeof(elf_head);
+  elf_head.e_phentsize = 0;
+  elf_head.e_phnum = 0;
+  elf_head.e_shentsize = sizeof(Elf32_Shdr);
+  elf_head.e_shnum = (noareas+norels)+4;
+  elf_head.e_shstrndx = (noareas+norels)+3;
+
+  written = fwrite ((void *) &elf_head, sizeof (char),
+                    sizeof (elf_head), objfile);
+
+  offset = sizeof (elf_head) + elf_head.e_shnum * sizeof (Elf32_Shdr);
+
+  /* Section headers - index 0 */
+  written += writeElfSH(shstrsize, SHT_NULL, 0, 0, SHN_UNDEF, 0, 0, 0, &offset);  shstrsize += 1; /* Null */
+
+  /* Symbol table - index 1 */
+  nsyms = symbolFix();
+  written += writeElfSH(shstrsize, SHT_SYMTAB, 0,
+                        (nsyms + 1 + noareas) * sizeof (Elf32_Sym),
+                        2, 0, 4, sizeof (Elf32_Sym), &offset);
+  shstrsize += 8; /* .symtab */
+
+  strsize = symbolStringSize() - 3; /* not outputting size, but null */
+
+  /* String table - index 2 */
+  written += writeElfSH(shstrsize, SHT_STRTAB, 0, FIX (strsize),
+                        0, 0, 1, 0, &offset);
+  shstrsize += 8; /* .strtab */
+
+  /* Area headers - index 3 */
+  ap=areaHead;
+  elfIndex = 3;
+  while (ap) {
+    int areaFlags = 0;
+    if ((ap->area.info->type & AREA_CODE) > 0)
+      areaFlags |= SHF_EXECINSTR;
+    if ((ap->area.info->type & AREA_READONLY) == 0)
+      areaFlags |= SHF_WRITE;
+    if ((ap->area.info->type & AREA_COMMONDEF) > 0)
+      areaFlags |= SHF_COMDEF;
+    if (ap == areaEntry)
+      areaFlags |= SHF_ENTRYSECT;
+    areaFlags |= SHF_ALLOC;
+    sectionSize = FIX(ap->value.ValueInt.i);
+    sectionType = (ap->area.info->type & AREA_UDATA)?SHT_NOBITS:SHT_PROGBITS;
+    writeElfSH(shstrsize, sectionType, areaFlags, sectionSize,
+               0, 0, 4, 0, &offset);
+    shstrsize += ap->len + 1;
+    elfIndex++;
+    if (ap->area.info->norelocs) {
+      /* relocations */
+      writeElfSH(shstrsize, SHT_REL, 0,
+        (ap->area.info->norelocs)*sizeof(Elf32_Rel),
+        1, elfIndex, 4, sizeof(Elf32_Rel), &offset);
+      shstrsize += ap->len + 5;
+      elfIndex++;
+    }
+
+    ap = ap->area.info->next;
+  }
+
+  /* Section head string table */
+  shstrsize += 10; /* .shstrtab */
+  written += writeElfSH(shstrsize-10, SHT_STRTAB, 0, shstrsize, 0,
+                        0, 1, 0, &offset);
+
+  /* Write out the sections */
+  /* Symbol table */
+  symbolSymbolElfOutput(objfile, noareas);
+
+  /* String table */
+  fputc (0, objfile);
+  symbolStringOutput (objfile);
+  for (pad = EXTRA (strsize); pad; pad--)
+    fputc (0, objfile);
+
+  /* Areas */
+  ap=areaHead;
+  while (ap)
+    {
+      if (!(ap->area.info->type & AREA_UDATA))
+        {
+          if ((size_t)(FIX (ap->value.ValueInt.i)) !=
+              fwrite ((void *) ap->area.info->image, sizeof (char),
+                      FIX (ap->value.ValueInt.i), objfile))
+            {
+              errorLine (0, 0, ErrorSerious, FALSE,
+                "Internal outputElf: error when writing %s image", ap->str);
+              exit (-1);
+            }
+          if(ap->area.info->norelocs) relocElfOutput (objfile, ap);
+        }
+      ap = ap->area.info->next;
+    }
+
+  /* Section head string table */
+  fputc (0, objfile);
+  fwrite ((void *) ".symtab", sizeof(char), 7, objfile);
+  fputc (0, objfile);
+  fwrite ((void *) ".strtab", sizeof(char), 7, objfile);
+  fputc (0, objfile);
+  ap=areaHead;
+  while (ap)
+    {
+      fwrite ((void *) ap->str, 1, ap->len + 1, objfile);
+      if (ap->area.info->norelocs) {
+        fwrite ((void *) ".rel", 1, 4, objfile);
+        fwrite ((void *) ap->str, 1, ap->len + 1, objfile);
+      }
+      ap = ap->area.info->next;
+    }
+
+  fwrite ((void *) ".shstrtab", sizeof(char), 9, objfile);
+  fputc (0, objfile);
+  for (pad = EXTRA (shstrsize); pad; pad--)
+    fputc (0, objfile);
+}

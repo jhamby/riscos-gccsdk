@@ -12,6 +12,9 @@ void outputFinish (void);
 void outputRemove (void);
 
 void outputAof (void);
+void outputElf (void);
+
+static int countAreas(Symbol *ap);
 
 extern const char *idfn_text;
 

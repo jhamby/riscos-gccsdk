@@ -49,6 +49,7 @@ int uc = 0;
 int apcs_32bit = 1;
 int apcs_softfloat = 0;
 int apcs_fpv3 = 1;
+int elf = 0;
 
 char *ProgName;
 char *ObjFileName;
@@ -85,6 +86,7 @@ as_help (char *progname)
 	   "-apcs32           32-bit APCS AREAs (default)\n"
 	   "-apcsfpv2         Use floating point v2 AREAs\n"
 	   "-apcsfpv3         Use floating point v3 AREAs (SFM, LFM) (default)\n"
+	   "-elf              Output ELF file\n"
 	   "\n",
 	   AS_VERSION, __DATE__, progname);
 }
@@ -254,6 +256,10 @@ main (int argc, char **argv)
 	      return -1;
 	    }
 	}
+      else if (IS_ARG ("-elf", "-e"))
+        {
+          elf++;
+        }
       else if (**argv != '-')
 	{
 	  if (SourceFileName)
@@ -295,7 +301,7 @@ main (int argc, char **argv)
       if (setjmp (asmContinue))
 	fprintf (stdout, "%s: Error when writing object file '%s'.\n", ProgName, ObjFileName);
       else
-	outputAof ();
+	elf==0?outputAof ():outputElf();
 #ifdef __riscos__
       dependPut ("\n", "", "");
 #endif

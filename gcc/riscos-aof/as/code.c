@@ -67,6 +67,8 @@ codeOperator (Operator op)
 void 
 codeSymbol (Symbol * symbol)
 {
+   error (ErrorWarning, TRUE, "codeSymbol");
+
   if (FirstFreeIns < CODE_SIZECODE)
     {
       if (symbol->type & SYMBOL_DEFINED && !(symbol->type & SYMBOL_AREA))

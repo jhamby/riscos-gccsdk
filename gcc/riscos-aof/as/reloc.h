@@ -51,6 +51,7 @@ Reloc;
 const char *reloc2String (RelocTag tag);
 int relocFix (Symbol * area);
 void relocOutput (FILE * outfile, Symbol * area);
+void relocElfOutput (FILE * outfile, Symbol * area);
 
 void relocShiftImm (WORD shiftop, Value shift);
 void relocImm8s4 (WORD ir, Value im8s4);

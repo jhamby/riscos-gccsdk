@@ -23,6 +23,7 @@
 #include "option.h"
 #include "input.h"
 #include "aoffile.h"
+#include "elf.h"
 #include "fix.h"
 #include "output.h" 
 
@@ -584,5 +585,95 @@ relocOutput (FILE * outfile, Symbol * area)
 	  while (loop--)
 	    fwrite ((void *) &areloc, 1, 8, outfile);
 	}
+    }
+}
+
+void
+relocElfOutput (FILE * outfile, Symbol * area)
+{
+  Reloc *relocs;
+  Elf32_Rel areloc;
+  int How, loop = 0, ip;
+  int symbol, type;
+  for (relocs = area->area.info->relocs; relocs; relocs = relocs->more)
+    {
+      switch (relocs->Tag)
+        {
+        case RelocImmN:
+          switch (relocs->extra)
+            {
+            case 4:
+              How = HOW2_INIT | HOW2_WORD;
+              break;
+            case 2:
+              How = HOW2_INIT | HOW2_HALF;
+              break;
+            case 1:
+              How = HOW2_INIT | HOW2_BYTE;
+              break;
+            default:
+              errorLine (relocs->lineno, relocs->file, ErrorSerious, TRUE, "Linker cannot handle RelocImmN with size %d", relocs->extra);
+              continue;
+            }
+          break;
+        case RelocCpuOffset:
+          if ((relocs->extra & 0x0F000000) < 0x04000000)
+            errorLine (relocs->lineno, relocs->file, ErrorSerious, TRUE,
+                       "Linker cannot handle ARMv4 extended LDR/STR");
+        case RelocCopOffset:
+          if (relocs->value.Tag.t == ValueCode
+              && (relocs->value.ValueCode.c->CodeSymbol.symbol->type & SYMBOL_AREA)
+              && (relocs->value.ValueCode.c->CodeSymbol.symbol->area.info->type
+& AREA_BASED))
+            {
+              How = HOW3_INIT | HOW3_INSTR | HOW3_BASED ;
+            }
+          else
+            How = HOW2_INIT | HOW2_SIZE | HOW2_SYMBOL;
+          break;
+        case RelocImm8s4:
+          How = HOW2_INIT | HOW2_SIZE | HOW2_SYMBOL;
+          break;
+        case RelocBranch:
+        case RelocAdr:
+        case RelocAdrl:
+          How = HOW2_INIT | HOW2_SIZE | HOW2_RELATIVE;
+          break;
+        case RelocNone:
+          continue;
+        default:
+          errorLine (relocs->lineno, relocs->file, ErrorSerious, TRUE, "Linker cannot handle this");
+          continue;
+        }
+      areloc.r_offset = armword(relocs->offset);
+      for (ip = 0; ip < relocs->value.ValueCode.len; ip++)
+        {
+          if (relocs->value.ValueCode.c[ip].Tag == CodeValue)
+            {
+              if (relocs->value.ValueCode.c[ip].CodeValue.value.Tag.t != ValueInt)
+                errorLine (relocs->lineno, relocs->file, ErrorSerious, TRUE, "Internal relocsOutput: not an int");
+              else
+                loop = relocs->value.ValueCode.c[ip++].CodeValue.value.ValueInt.i;
+            }
+          else
+            loop = 1;
+          if (relocs->value.ValueCode.c[ip].Tag != CodeSymbol)
+            errorLine (relocs->lineno, relocs->file, ErrorSerious, TRUE, "Internal error in relocsOutput");
+
+          How = How | relocs->value.ValueCode.c[ip].CodeSymbol.symbol->used;
+          if (relocs->value.ValueCode.c[ip].CodeSymbol.symbol->type != SYMBOL_AREA)
+            How |= HOW2_SYMBOL;
+
+        symbol = (How & HOW3_SIDMASK) + 1;
+
+        if (How & HOW3_RELATIVE)
+                type = R_ARM_PC24;
+        else
+                type = R_ARM_ABS32;
+
+        areloc.r_info = ELF32_R_INFO(symbol, type);
+          while (loop--)
+            fwrite ((void *) &areloc, 1, sizeof(Elf32_Rel), outfile);
+        }
     }
 }
