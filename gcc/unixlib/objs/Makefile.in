@@ -1,0 +1,91 @@
+# Project:   GCCSDK UnixLib
+
+# $Source: /usr/local/cvsroot/gccsdk/unixlib/objs/Makefile,fe1,v $
+# $Date: 2003/05/18 17:05:16 $
+# $Revision: 1.17 $
+# $State: Exp $
+# $Author: alex $
+
+CCfeatures =
+Predefs = -D__UNIXLIB_INTERNALS
+
+# Misc macros
+# XX = commamd
+# XXflags = general flags
+# XXdflags = debugging flags
+# XXrflags = release flags
+# XXapcsflags = APCS selection flags
+
+# Norcroft C (Acorn) compiler. Comment out if you are using GCC compiler.
+CC = cc
+CCdflags = -g
+CCrflags =
+# APCS selection :
+#   - APCS-R build : -APCS 3/26bit/fpe2
+#   - APCS-32 build : -APCS 3/32bit/fpe3
+CCapcsflags = -APCS 3/32bit/fpe3
+CCflags = -depend !Depend -throwback -fcah -JUnixHdr: -Wdap -ccversion 553 $(CCrflags) $(CCapcsflags)
+
+# GCC compiler. Comment out if you are using Norcroft C (Acorn) compiler.
+#CC = gcc
+#CCdflags = -pedantic -Wall -Wno-long-long
+#CCrflags =
+#CCflags = -O2 -mpoke-function-name -mthrowback $(CCdflags) $(CCfeatures)
+
+# Acorn Objasm Assembler. Comment out if you are using 'as'.
+AS = objasm
+ASflags = -Stamp -quit -CloseExec
+ASdflags =
+ASrflags =
+# APCS selection :
+#   - APCS-R build : -APCS 3/26bit
+#   - APCS-32 build : -APCS 3/32bit
+ASapcsflags = -APCS 3/32bit
+ASflags = -throwback -depend !Depend -I UnixHdr:^ $(ASdflags) $(ASapcsflags)
+
+# as Assembler. Comment out if you are using Acorn Objasm.
+#AS = gcc
+#ASflags = -c
+#ASdflags =
+#ASrflags = -I UnixHdr:
+
+# Libfile, etc
+AR = libfile
+ARflags = -c
+#AR = makealf
+#ARflags =
+
+# Linker
+LD = drlink
+LDflags =  -debi -d -v
+
+#VPATH = <UnixSrc$Dir>
+VPATH = ^.source
+.SUFFIXES: .o .c .s
+
+.c.o:;	$(CC) $(CCflags) $(Predefs) -c -o $@ "$<"
+.c.s:;	$(CC) $(CCflags) $(Predefs) -S -o $@ "$<"
+.s.o:;	$(AS) $(ASflags) -o $@ $<
+#.s.o:;	$(AS) $(ASflags) -To $@ -From $<
+
+OBJS = \
+
+# Final targets:
+UnixLib: $(OBJS)
+	$(AR) $(ARflags) -o $@ \
+	o.* \
+
+install:	<UnixHdr$Dir>.o.UnixLib
+
+<UnixHdr$Dir>.o.UnixLib:	UnixLib
+	copy @.UnixLib <UnixHdr$Dir>.o.UnixLib fv~c
+
+clean:
+	-wipe o.* fv~r~c
+	-wipe module.o.* fv~r~c
+	-remove UnixLib
+
+
+# Static dependencies:
+
+# Dynamic dependencies:

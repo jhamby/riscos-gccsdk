@@ -1,0 +1,21 @@
+# Second-level Makefile for UnixLib for RISC OS GCC
+# Written by Nick Burrett <nick@dsvr.net>
+
+export TRG CFL1
+
+all:	unixlib
+
+.PHONY: unixlib
+
+upath=$(objdir)/unixlib/$(TRG)
+
+DIRS = \
+
+unixlib: $(DIRS)
+	$(MAKE) -C source
+
+
+$(DIRS):
+	mkdir -p $@
+
+

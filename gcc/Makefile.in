@@ -102,9 +102,12 @@ CROSS_CXXFLAGS=-O2 $(TARGET_DEFS) -mpoke-function-name
 AR = ar
 AR_FLAGS = -rc
 
+
 # Name of the RISC OS archiver.  Used to build all RISC OS libraries.
 CROSS_AR = $(ux_gccpkg)/$(gn_standard_exec_prefix)/libfile
 CROSS_AR_FLAGS = -c
+
+CROSS_LINK = $(ux_gccpkg)/$(gn_standard_exec_prefix)/drlink
 
 insthdr = @topdir@/scripts/install-headers.pl
 instsrc = @topdir@/scripts/install-source.pl
@@ -121,16 +124,16 @@ export ux_bin_dir ux_gcc_bin_dir ro_bin_dir ro_gcc_bin_dir
 export unixlib_incl_dir libscl_incl_dir
 export CC CXX GNATCC
 export CROSS_CC CROSS_CXX CROSS_GNATBIND CROSS_CFLAGS CROSS_CXXFLAGS
-export CROSS_AR CROSS_AR_FLAGS
+export CROSS_AR CROSS_AR_FLAGS CROSS_LINK
 export VERSION TARGET_NAME CFLAGS CXXFLAGS AR AR_FLAGS
 export insthdr instsrc
 
 all:	build-stg1 build-stg2 build-stg3 build-stg4 build-stg5 build-stg6 \
-	build-stg7
+	build-stg7 build-stg8
 
 # Setup build and installation directories.  Install run-time library
 # headers
-setup:	directories install_headers install_source
+setup:	directories install_headers
 
 # Tools that will run natively in any environment
 # i.e. under Linux this will build the GCC cross-compiler, cross-assembler
@@ -144,10 +147,11 @@ build-stg3:	build-stg2 gcc-stg1 cross-progs
 
 # These targets build the libraries and binaries suitable for execution
 # on RISC OS machines only.
-build-stg4:	build-stg3 libiberty-stg2 gcc-libs-stg2 c-libs
-build-stg5:	build-stg4 gcc-stg2
-build-stg6:	build-stg5 riscos-aof-stg2
-build-stg7:	build-stg6 riscos-libs riscos-progs riscos-dist
+build-stg4:	build-stg3 c-libs
+build-stg5:	build-stg4 libiberty-stg2 gcc-libs-stg2
+build-stg6:	build-stg5 gcc-stg2
+build-stg7:	build-stg6 riscos-aof-stg2
+build-stg8:	build-stg7 riscos-libs riscos-progs riscos-dist
 
 .PHONY: directories
 .PHONY: c-libs
@@ -176,7 +180,6 @@ build-stg7:	build-stg6 riscos-libs riscos-progs riscos-dist
 .PHONY: build-stg7
 
 .PHONY: install_headers
-.PHONY: install_source
 
 # Target (trgXX) and compiler flags (cflXX) definitions.  The XX must
 # match for both trg and cfl in all calls to sub-make processes.  We
@@ -229,7 +232,7 @@ riscos-elf:
 
 # The ballache of having to keep support with Objasm forces us
 # to do this (CFL1) brain damage.
-c-libs:
+c-libs: unixlib/Makefile unixlib/source/Makefile unixlib/source/object-list unixlib/objs/Makefile,fe1
 	$(MAKE) -C unixlib "TRG=$(trg20)" $(cfl20)
 	$(MAKE) -C libscl "TRG=$(trg30)" $(cfl30)
 
@@ -297,14 +300,17 @@ directories:
 # Install header files for our standard C run-time libraries.
 install_headers:
 	$(MAKE) -C libscl install_headers
-	$(MAKE) -C unixlib install_headers
 	$(MAKE) -C gcc/gcc install_headers
 	$(MAKE) -C gcc/libio install_headers
 	$(MAKE) -C gcc/libstdc install_headers
 	$(MAKE) -C gcc/libsupc++ install_headers
 
-install_source:
-	$(MAKE) -C unixlib install_source
+# Generate unixlib makefiles
+# Regenerate whenever Changelog is updated, so that any new files added will get added to the makefiles
+unixlib/source/Makefile unixlib/source/object-list unixlib/objs/Makefile,fe1: unixlib/Makefile
+
+unixlib/Makefile: unixlib/Makefile.in unixlib/source/Makefile.in unixlib/Docs/Changelog
+	(cd unixlib; ./gen-makefiles.pl --dynamicdeps --stubs --objdir $(objdir)/unixlib/$(trg20))
 
 clean:
 	find arm-riscos-aof -type f | xargs rm

@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source: $
- * $Date: $
- * $Revision: $
- * $State: $
- * $Author: $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/regex.c,v $
+ * $Date: 2003/04/28 21:04:35 $
+ * $Revision: 1.2 $
+ * $State: Exp $
+ * $Author: alex $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: $";
+static const char rcs_id[] = "$Id: regex.c,v 1.2 2003/04/28 21:04:35 alex Exp $";
 #endif
 
 /* Extended regular expression matching and search library,
@@ -134,6 +134,7 @@ init_syntax_once (void)
 
 /* isalpha etc. are used for the character classes.  */
 #include <ctype.h>
+#include <string.h>
 
 /* Jim Meyering writes:
 
@@ -218,7 +219,7 @@ init_syntax_once (void)
 #include <alloca.h>
 #else /* not __GNUC__ or HAVE_ALLOCA_H */
 #ifndef _AIX /* Already did AIX, up at the top.  */
-char *alloca ();
+void *alloca (size_t size);
 #endif /* not _AIX */
 #endif /* not HAVE_ALLOCA_H */
 #endif /* not __GNUC__ */

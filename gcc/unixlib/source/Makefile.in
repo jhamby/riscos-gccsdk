@@ -1,0 +1,64 @@
+# Makefile for UnixLib for the ARM/RISC OS GCC port
+# Copyright (c) 2000, 2001 Nick Burrett
+# Written by Nick Burrett <nick@dsvr.net>
+#
+# This file is part of the GNU Compiler Collection
+#
+
+# Defs for GCC
+WARNINGS = -pedantic -Wall -Wundef -Wpointer-arith \
+          -Wcast-align -Wwrite-strings -Wstrict-prototypes \
+          -Wmissing-prototypes -Wmissing-declarations -Wnested-externs \
+          -Winline -Wno-unused -Wno-long-long -W -Wcast-qual -Wshadow
+
+CROSS_CFLAGS += -D__UNIXLIB_INTERNALS $(WARNINGS)
+
+#CROSS_CFLAGS += -D__UNIXLIB_INTERNALS -pedantic -Wall -Wno-long-long
+INCLUDES = -isystem clib
+
+libunixobj=$(objdir)/unixlib/$(TRG)
+
+all: unixlib
+
+$(libunixobj)/%.o: %.c
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c $< $(INCLUDES) $(CFL)
+
+$(libunixobj)/%.o: %.s
+	$(CROSS_CC) $(CROSS_CFLAGS) -Wa,-pedantic -o $@ -c $< $(CFL) $(CFL1)
+
+
+OBJS = \
+
+HDRS = \
+
+SRCS = \
+
+
+SUL = $(ro_syspkg)/310/Modules/SharedULib,ffa
+
+MODULE = module/sul.s
+
+unixlib:	$(ux_gcc_bin_dir)/$(TRG)/unixlib.o $(ro_gcc_bin_dir)/$(TRG)/o/unixlib \
+	$(ro_unixlibpkg)/source/clib/o/unixlib $(SUL) $(HDRS) $(SRCS)
+
+$(libunixobj)/sys/stackalloc.o: sys/stackalloc.c
+	$(CROSS_CC) $(CROSS_CFLAGS) -mno-apcs-stack-check -o $@ -c $< $(INCLUDES) $(CFL)
+
+$(libunixobj)/sys/brk.o: sys/brk.c
+	$(CROSS_CC) $(CROSS_CFLAGS) -mno-apcs-stack-check -o $@ -c $< $(INCLUDES) $(CFL)
+
+$(ro_gcc_bin_dir)/$(TRG)/o/unixlib $(ro_unixlibpkg)/source/clib/o/unixlib: $(ux_gcc_bin_dir)/$(TRG)/unixlib.o
+	cp $< $@
+
+
+# Use -via to work around Cygwin 16Kbyte command line limit.
+$(ux_gcc_bin_dir)/$(TRG)/unixlib.o: $(OBJS) object-list
+	$(CROSS_AR) -c $@ -v object-list
+
+# We need to link with drlink not gcc because libgcc may not exist at this point
+$(SUL):	$(MODULE)
+	$(CROSS_CC) $(CROSS_CFLAGS) -c -o $(libunixobj)/sul.o $(MODULE)
+	$(CROSS_LINK) $(libunixobj)/sul.o -quiet -module -o $@
+
+
+# Dependencies:

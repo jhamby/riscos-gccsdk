@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/signal/sigvec.c,v $
- * $Date: 2001/01/29 15:10:21 $
- * $Revision: 1.2 $
+ * $Date: 2003/04/28 21:04:36 $
+ * $Revision: 1.3 $
  * $State: Exp $
- * $Author: admin $
+ * $Author: alex $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: sigvec.c,v 1.2 2001/01/29 15:10:21 admin Exp $";
+static const char rcs_id[] = "$Id: sigvec.c,v 1.3 2003/04/28 21:04:36 alex Exp $";
 #endif
 
 /* c.sigvec: Written by Nick Burrett, 30 August 1996.  */
@@ -58,6 +58,7 @@ convert_mask (sigset_t * set, const int mask)
   return 0;
 }
 
+#if 0
 /* If VEC is non-NULL, set the handler for SIG to the `sv_handler' member
    of VEC.  The signals in `sv_mask' will be blocked while the handler runs.
    If the SV_RESETHAND bit is set in `sv_flags', the handler for SIG will be
@@ -135,3 +136,4 @@ sigvec (int sig, const struct *vec, struct sigvec *ovec)
 
   return 0;
 }
+#endif

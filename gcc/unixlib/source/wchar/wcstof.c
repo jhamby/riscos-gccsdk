@@ -1,8 +1,8 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/wchar/c/wcstof,v $
- * $Date: 2000/06/03 16:53:10 $
- * $Revision: 1.1 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/wchar/wcstof.c,v $
+ * $Date: 2001/01/29 15:10:22 $
+ * $Revision: 1.2 $
  * $State: Exp $
  * $Author: admin $
  *
@@ -39,3 +39,8 @@
 #define	USE_WIDE_CHAR	1
 
 /* #include "../stdlib/strtod.c" */
+
+void
+__dummy_wcstof (void)
+{
+}
