@@ -106,6 +106,7 @@ export gn_gcc_include_dir gn_gplusplus_include_dir
 export gn_local_include_dir gn_system_include_dir gn_cross_include_dir
 export gn_gcc_bin_dir info_dir exesfx
 export ux_bin_dir ux_gcc_bin_dir ro_bin_dir ro_gcc_bin_dir
+export CC CXX
 export CROSS_CC CROSS_CXX CROSS_CFLAGS CROSS_CXXFLAGS
 export CROSS_AR CROSS_AR_FLAGS
 export VERSION TARGET_NAME CFLAGS CXXFLAGS AR AR_FLAGS
