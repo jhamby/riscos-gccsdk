@@ -4,4 +4,4 @@ AB_INSTALL=yes
 
 mkdir -p $D/include/glib-2.0/glib/
 mkdir -p $D/include/glib-2.0/gobject/
-
+mkdir -p $D/lib/glib-2.0/include/
