@@ -702,20 +702,11 @@ endif
 $(gccobjdir)/cplus-dem.o: cplus-dem.c
 	$(CC) $(CFLAGS) $(INCLUDES) -o $@ -c cplus-dem.c -DMAIN
 
-$(gccobjdir)/except.o: except.c
-	$(CC) $(CFLAGS) $(INCLUDES) -o $@ -c except.c -DJMP_BUF_SIZE=25
-
-$(gccobjdir)/optabs.o: optabs.c
-	$(CC) $(CFLAGS) $(INCLUDES) -o $@ -c optabs.c -DJMP_BUF_SIZE=25
-
 $(gccobjdir)/prefix.o: prefix.c
 	$(CC) $(CFLAGS) $(INCLUDES) -o $@ -c prefix.c -DPREFIX=\"rubbish\"
 
 $(gccobjdir)/toplev.o: toplev.c
 	$(CC) $(CFLAGS) $(INCLUDES) -o $@ -c toplev.c -DTARGET_NAME=\"$(TARGET_NAME)\"
-
-$(gccobjdir)/insn-extract.o: insn-extract.c
-	$(CC) $(CFLAGS) $(INCLUDES) -o $@ -c insn-extract.c -O0
 
 $(gccobjdir)/gcc.o: gcc.c
 	$(CC) $(CFLAGS) $(INCLUDES) -o $@ -c gcc.c \

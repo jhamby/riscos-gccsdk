@@ -1542,7 +1542,11 @@ all_allocations_freed	RN	6
 
 	ALIGN
 	EXPORT	|___arm_alloca_block_free|
+	EXPORT	|__arm_restore_stack_block|
+	EXPORT	|__arm_restore_stack_function|
 |___arm_alloca_block_free|
+|__arm_restore_stack_block|
+|__arm_restore_stack_function|
 	STMFD	sp!, {r0-r12, lr}
 	MOV	lev, a1
 	MOV	return_addr, #0
@@ -1616,16 +1620,15 @@ all_allocations_freed	RN	6
 	STRNE	return_addr, [fp, #-4]
 	LDMFD	sp!, {r0-r12, pc}RETCOND
 
-	/* -----------------------------------------------------------------
-	   ___arm_alloca_block_init
-
-	   register usage  */
-/* ;arm_alloca_a		RN	a2 */
-
 	ALIGN	4
+
+	/* int __arm_save_stack_block (void) */
 	EXPORT	|___arm_alloca_block_init|
+	EXPORT	|__arm_save_stack_block|
+	EXPORT	|__arm_save_stack_function|
 |___arm_alloca_block_init|
-	STMFD	sp!, {a2, lr}
+|__arm_save_stack_block|
+|__arm_save_stack_function|
 	[ __FEATURE_PTHREADS = 1
 	LDR	a2, =|__pthread_running_thread|
 	LDR	a2, [a2, #0]
@@ -1633,16 +1636,23 @@ all_allocations_freed	RN	6
 	|
 	LDR	a2, [pc, #|arm_alloca_ptr| - . - 8]
 	]
+	/* Internally, we store a level number which is incremented on
+	   every call to this function.  We return the level number as a
+	   result to the calling function, which GCC will store into
+	   the 'save area'.  When GCC generates a 'restore_stack_block' insn,
+	   it will specify a 'save area' from which we will obtain the
+	   level number stored previously.  Hence we know memory allocations
+	   to free.  */
 	LDR	a1, [a2, #level_off]
 	ADD	a1, a1, #1
 	STR	a1, [a2, #level_off]
-	LDMFD	sp!, {a2, pc}RETCOND
+	RETURN(pc, lr)
 
 	/* __arm_save_stack_nonlocal (void *save_area, void *stack_pointer) */
 	EXPORT	|__arm_save_stack_nonlocal|
 |__arm_save_stack_nonlocal|
 	/* Store stack pointer into designated save area.  */
-	STR	a2, [a1, #0]
+	/* STR	a2, [a1, #0] */
         [ __FEATURE_PTHREADS = 1
         LDR     a2, =|__pthread_running_thread|
         LDR     a2, [a2, #0]
@@ -1656,26 +1666,11 @@ all_allocations_freed	RN	6
 	RETURN(pc, lr)
 
 	/* __arm_restore_stack_nonlocal (void *stack_ptr, void *save_area) */
+	/* __arm_restore_stack_nonlocal (void *save_area) */
 	EXPORT	|__arm_restore_stack_nonlocal|
 |__arm_restore_stack_nonlocal|
-	LDR	a1, [a2, #0]
-	RETURN(pc, lr)
-
-	/* __arm_restore_stack_nonlocal (void *stack_ptr, void *save_area) */
-	EXPORT	|__arm_restore_stack_block|
-|__arm_restore_stack_block|
-        [ __FEATURE_PTHREADS = 1
-        LDR     a2, =|__pthread_running_thread|
-        LDR     a2, [a2, #0]
-        ADD     a2, a2, #__PTHREAD_ALLOCA_OFFSET
-        |
-        LDR     a2, [pc, #|arm_alloca_ptr| - . - 8]
-        ]
-        LDR     a1, [a2, #level_off]
-        SUBS	a1, a1, #1
-	MOVLT	a1, #0
-        STRGE	a1, [a2, #level_off]
-	BGT	|___arm_alloca_block_free|
+	/* LDR	a1, [a2, #0] */
+	MOV	sp, a1
 	RETURN(pc, lr)
 
 
@@ -1956,8 +1951,29 @@ temp_lr	RN	2
 /* ;sc	RN	1
 ;next_fp	RN	12 */
 
+	/* On entry, a1 is the stack pointer value that we are aiming to
+	   unwind to.  */
 	EXPORT	|__unwind_function|
+	IMPORT	|__os_prhex|
 |__unwind_function|
+	LDR	a1, [a1, #-4]
+	LDR	a1, [a1, #4]
+
+	LDR	a2, |__unwind_buf|
+	STR	a1, [a2, #0]
+	STR	lr, [a2, #4]
+	MOV	a4, lr
+|__unwind_function_many.00|
+	LDR	a2, |__unwind_buf|
+	LDR	a1, [a2, #0]
+	CMP	a1, sp
+	LDREQ	a4, [a2, #4]
+	RETURNc(eq, pc, a4)
+	BL	|__unwind_function_one|
+	B	|__unwind_function_many.00|
+
+	EXPORT	|__unwind_function_one|
+|__unwind_function_one|
 	MOV	temp_lr, lr
 	LDR	a1, [fp, #-12]
 	CMP	a1, #0
@@ -2004,6 +2020,14 @@ temp_lr	RN	2
 	LDMEA	next_fp, {fp, sp, lr}
 	ADD	sl, sc, #560
 	RETURN(pc, temp_lr)
+
+|__unwind_buf|
+	DCD	unwind_buf
+
+	AREA	|C$$data|, DATA
+unwind_buf
+	% 8
+
 #endif
 
         END

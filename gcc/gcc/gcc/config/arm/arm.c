@@ -8427,7 +8427,6 @@ void
 arm_expand_prologue ()
 {
   int reg;
-  rtx amount;
   rtx insn;
   rtx ip_rtx;
   unsigned long live_regs_mask;
@@ -8435,6 +8434,7 @@ arm_expand_prologue ()
   int fp_offset = 0;
   int saved_pretend_args = 0;
   unsigned int args_to_push;
+  int frame_size;
 
   func_type = arm_current_func_type ();
 
@@ -8669,16 +8669,41 @@ arm_expand_prologue ()
 	}
     }
 
-  amount = GEN_INT (-(arm_get_frame_size ()
-		      + current_function_outgoing_args_size));
+  frame_size = -(arm_get_frame_size ()
+		 + current_function_outgoing_args_size);
 
-  if (amount != const0_rtx)
+#ifdef TARGET_RISCOSAOF
+  /* Explicit stack checks.  */
+  if (TARGET_APCS_STACK)
+    {
+      rtx sl_reg = gen_rtx_REG (GET_MODE (stack_pointer_rtx), 10);
+      
+      if (frame_size >= 256)
+	{
+	  rtx stkovf = gen_rtx_SYMBOL_REF (Pmode, ARM_STKOVF_SPLIT_BIG);
+	  insn = emit_insn (gen_addsi3 (ip_rtx, stack_pointer_rtx,
+					GEN_INT (frame_size)));
+	  RTX_FRAME_RELATED_P (insn) = 1;
+	  insn = emit_insn (gen_rt_stkovf (ip_rtx, sl_reg, stkovf));
+	}
+      else
+	{
+	  rtx stkovf = gen_rtx_SYMBOL_REF (Pmode, ARM_STKOVF_SPLIT_SMALL);
+	  
+	  insn = emit_insn (gen_rt_stkovf (stack_pointer_rtx,
+					   sl_reg, stkovf));
+	}
+      RTX_FRAME_RELATED_P (insn) = 1;
+    }
+#endif
+
+  if (frame_size != 0)
     {
       /* This add can produce multiple insns for a large constant, so we
 	 need to get tricky.  */
       rtx last = get_last_insn ();
       insn = emit_insn (gen_addsi3 (stack_pointer_rtx, stack_pointer_rtx,
-				    amount));
+				    GEN_INT (frame_size)));
       do
 	{
 	  last = last ? NEXT_INSN (last) : get_insns ();

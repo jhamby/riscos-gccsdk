@@ -930,15 +930,10 @@ extern const char * structure_size_string;
 /* The register that holds the return address in exception handlers.  */
 #define EXCEPTION_LR_REGNUM	2
 
-#ifdef TARGET_RISCOSAOF
-#define STATIC_CHAIN_REGNUM 12
-#define STATIC_CHAIN_INCOMING_REGNUM 8
-#else
 /* The native (Norcroft) Pascal compiler for the ARM passes the static chain
    as an invisible last argument (possible since varargs don't exist in
    Pascal), so the following is not true.  */
 #define STATIC_CHAIN_REGNUM	(TARGET_ARM ? 12 : 9)
-#endif
 
 /* Define this to be where the real frame pointer is if it is not possible to
    work out the offset between the frame pointer and the automatic variables

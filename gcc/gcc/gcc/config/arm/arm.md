@@ -33,7 +33,8 @@
 
 ;; Register numbers
 (define_constants
-  [(IP_REGNUM	    12)		; Scratch register
+  [(SL_REGNUM	    10)		; Stack limit register
+   (IP_REGNUM	    12)		; Scratch register
    (SP_REGNUM	    13)		; Stack pointer
    (LR_REGNUM       14)		; Return address register
    (PC_REGNUM	    15)		; Program counter
@@ -69,9 +70,11 @@
    			; instructions setting registers for EH handling
    			; and stack frame generation.  Operand 0 is the
    			; register to "use".
-   (UNSPEC_CHECK_ARCH 7); Set CCs to indicate 26-bit or 32-bit mode.
+   (UNSPEC_CHECK_ARCH 7); Set CCs to indicate 26-bit or 32-bit mode. 
    (UNSPEC_CALL_ALLOCA 8)
-  ]
+   (UNSPEC_STK 9)
+   (UNSPEC_STK_BIG 10)
+ ]
 )
 
 ;; UNSPEC_VOLATILE Usage:
@@ -9153,43 +9156,65 @@
 ;; function exit will tidy up all unalloced chunks.
 
 (define_expand "save_stack_function"
-  [(use (const_int 0))]
-  "TARGET_APCS_STACK"
-  "")
+  [(use (match_operand:SI 0 "memory_operand" ""))
+   (use (match_operand:SI 1 "s_register_operand" ""))]
+  "TARGET_ARM && TARGET_APCS_STACK"
+{
+  /* Calls to __arm_save_stack_block increase the internal counter of a
+     nesting level number.  It is this level number that we choose to store
+     in the 'save area' that GCC is giving us in operands[0].  */
+  emit_library_call_value (gen_rtx_SYMBOL_REF (Pmode,
+                         	               \"__arm_save_stack_function\"),
+			   operands[0], LCT_NORMAL, GET_MODE (operands[0]), 0);
+  DONE;
+})
+
 
 (define_expand "restore_stack_function"
-  [(use (const_int 0))]
-  "TARGET_APCS_STACK"
-  "")
+  [(set (match_dup 2) (mem:SI (match_operand:SI 0 "s_register_operand" "")))
+   (set (match_dup 0) (match_operand:SI 1 "s_register_operand" ""))
+   (set (mem:SI (match_dup 0)) (match_dup 2))]
+  "TARGET_ARM && TARGET_APCS_STACK"
+{
+  /* Here we pass the value in the 'save area'.  This is the level number
+     that we can use to work out which dynamic allocations to free.  */
+  emit_library_call (gen_rtx_SYMBOL_REF (Pmode,
+                                         \"__arm_restore_stack_function\"),
+                     LCT_NORMAL, VOIDmode, 1,
+		     operands[1], Pmode);
+  DONE;
+})
 
 ;; On entrance to a block, with __builtin_alloca, create a unique key
 ;; suitable for the free code.
 
 (define_expand "save_stack_block"
-  [(match_operand:SI 0 "memory_operand" "")
-   (match_operand:SI 1 "s_register_operand" "")]
-  "TARGET_APCS_STACK"
-  "
+  [(use (match_operand:SI 0 "memory_operand" ""))
+   (use (match_operand:SI 1 "s_register_operand" ""))]
+  "TARGET_ARM && TARGET_APCS_STACK"
 {
-  emit_library_call (gen_rtx_SYMBOL_REF (Pmode,
-                                         \"__arm_save_stack_block\"),
-                    0, VOIDmode, 2,
-		    copy_to_reg (XEXP (operands[0], 0)), Pmode,
-                    operands[1], Pmode);
+  /* Calls to __arm_save_stack_block increase the internal counter of a
+     nesting level number.  It is this level number that we choose to store
+     in the 'save area' that GCC is giving us in operands[0].  */
+  emit_library_call_value (gen_rtx_SYMBOL_REF (Pmode,
+                         	               \"__arm_save_stack_block\"),
+			   operands[0], LCT_NORMAL, GET_MODE (operands[0]), 0);
   DONE;
-}")
+})
 
 (define_expand "save_stack_nonlocal"
   [(use (match_operand:SI 0 "memory_operand" ""))
    (use (match_operand:SI 1 "s_register_operand" ""))]
-  ""
+  "TARGET_ARM && TARGET_APCS_STACK"
 {
+  emit_move_insn (operands[0], operands[1]);
+#if 0
   emit_library_call (gen_rtx_SYMBOL_REF (Pmode,
                                          \"__arm_save_stack_nonlocal\"),
-                    0, VOIDmode, 2,
+                     LCT_NORMAL, VOIDmode, 0);
 		    copy_to_reg (XEXP (operands[0], 0)), Pmode,
                     operands[1], Pmode);
-
+#endif
   DONE;
 })
 
@@ -9201,27 +9226,26 @@
   [(set (match_dup 2) (mem:SI (match_operand:SI 0 "s_register_operand" "")))
    (set (match_dup 0) (match_operand:SI 1 "s_register_operand" ""))
    (set (mem:SI (match_dup 0)) (match_dup 2))]
-  "TARGET_APCS_STACK"
-  "
+  "TARGET_ARM && TARGET_APCS_STACK"
 {
+  /* Here we pass the value in the 'save area'.  This is the level number
+     that we can use to work out which dynamic allocations to free.  */
   emit_library_call (gen_rtx_SYMBOL_REF (Pmode,
                                          \"__arm_restore_stack_block\"),
-                     0, VOIDmode, 2,
-		     operands[0], Pmode,
-                     operands[1], Pmode);
+                     LCT_NORMAL, VOIDmode, 1,
+		     operands[1], Pmode);
   DONE;
-}")
+})
 
 (define_expand "restore_stack_nonlocal"
   [(use (match_operand:SI 0 "s_register_operand" ""))
    (use (match_operand:SI 1 "memory_operand" ""))]
-  ""
+  "TARGET_ARM && TARGET_APCS_STACK"
 {
   emit_library_call (gen_rtx_SYMBOL_REF (Pmode,
-                                         \"__arm_restore_stack_nonlocal\"),
-                     0, VOIDmode, 2,
-		     operands[0], Pmode,
-                     operands[1], Pmode);
+                                         \"__unwind_function\"),
+                     LCT_NORMAL, VOIDmode, 1,
+		     copy_to_reg (XEXP (operands[1], 0)), Pmode);
   DONE;
 })
 
@@ -9234,8 +9258,7 @@
         (minus:SI (reg:SI 13) (match_dup 1)))
    (clobber (reg:SI 0))
    (clobber (reg:SI 14))]
-  "TARGET_APCS_STACK"
-  "
+  "TARGET_ARM && TARGET_APCS_STACK"
 {
   rtx r0_rtx = gen_rtx (REG, SImode, 0);
 
@@ -9243,14 +9266,14 @@
   emit_insn (gen_alloca (r0_rtx));
   emit_move_insn (operands[0], r0_rtx);
   DONE;
-}")
+})
 
 (define_expand "nonlocal_goto"
  [(use (match_operand 0 "general_operand" ""))
   (use (match_operand 1 "general_operand" ""))
   (use (match_operand 2 "general_operand" ""))
   (use (match_operand 3 "general_operand" ""))]
-  ""
+  "TARGET_ARM && TARGET_APCS_STACK"
 {
   rtx chain = operands[0];
   rtx handler = operands[1];
@@ -9272,9 +9295,21 @@
   [(set (match_operand:SI 0 "s_register_operand" "=r")
         (unspec:SI [(match_dup 0)] UNSPEC_CALL_ALLOCA))
    (use (reg:SI 0))
-   (clobber (reg:SI 14))]
+   (clobber (reg:SI LR_REGNUM))]
   ""
   "bl%?\\t___arm_alloca_alloc"
 [(set_attr "conds" "clob")
  (set_attr "length" "4")])
 
+(define_insn "rt_stkovf"
+  [(unspec:SI [(match_operand:SI 0 "s_register_operand" "r")
+	       (match_operand:SI 1 "s_register_operand" "r")
+	       (match_operand 2 "" "")] UNSPEC_STK)
+   (clobber (reg:SI SL_REGNUM))
+   (clobber (reg:SI IP_REGNUM))
+   (clobber (reg:SI LR_REGNUM))
+   (clobber (reg:CC CC_REGNUM))]
+  ""
+  "cmp\\t%0, %1\;bllt\\t%a2"
+[(set_attr "conds" "clob")
+ (set_attr "length" "8")])
