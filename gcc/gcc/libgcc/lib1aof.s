@@ -78,7 +78,7 @@ r14 RN 14
 #endif
 
 /* Keep these in sync with unixlib/asm_dec.s and features.h */
-__FEATURE_PTHREADS	EQU	0
+__FEATURE_PTHREADS	EQU	1
 __PTHREAD_ALLOCA_OFFSET	EQU	8
 
 	AREA	|C$$code|, CODE, READONLY
