@@ -1,3 +1,8 @@
+Sun Jan 16 18:25:33 2005  Alex Waugh  <alex@alexwaugh.com>
+
+	* source/unix/unix.c (find_redirection_type): Don't treat <
+	  and > inside quoted arguments as redirection characters.
+
 Sun Jan  9 23:26:02 2005  Alex Waugh  <alex@alexwaugh.com>
 
 	* source/locale/nl_langinfo.c (nl_langinfo): Change CODESET value to

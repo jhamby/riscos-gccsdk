@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/unix.c,v $
- * $Date: 2004/12/11 14:18:57 $
- * $Revision: 1.32 $
+ * $Date: 2004/12/23 21:10:08 $
+ * $Revision: 1.33 $
  * $State: Exp $
- * $Author: joty $
+ * $Author: peter $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: unix.c,v 1.32 2004/12/11 14:18:57 joty Exp $";
+static const char rcs_id[] = "$Id: unix.c,v 1.33 2004/12/23 21:10:08 peter Exp $";
 #endif
 
 #include <stdio.h>
@@ -816,7 +816,29 @@ find_redirection_type (const char *cmdline, char redirection_type)
     {
       /* Look for redirection operator `redirection_type'.  */
       while (*cmdline && *cmdline != redirection_type)
-	cmdline++;
+        {
+          while (*cmdline && *cmdline != redirection_type && *cmdline != '"' && *cmdline != '\'')
+            cmdline++;
+
+          if (*cmdline == '"')
+            {
+              /* Skip over anything in double quotes */
+              cmdline++;
+              while (*cmdline && *cmdline != '"')
+                cmdline++;
+            }
+          else if (*cmdline == '\'')
+            {
+              /* Skip over anything in single quotes, unless it is an
+                 apostrophe in a filename */
+              cmdline++;
+              if (cmdline[-2] == ' ')
+                {
+                  while (*cmdline && *cmdline != '\'')
+                    cmdline++;
+                }
+            }
+        }
 
       if (*cmdline == '\0')
 	/* Operator `redirection_type' doesn't exist.  */
