@@ -140,8 +140,7 @@ riscos_canonicalise_filename (char *sname)
 
   /* It's possible that the filename will be in Unix format.
      Convert it into RISC OS format.  */
-  s = __riscosify (sname, 0, __RISCOSIFY_DONT_TRUNCATE,
-		   filename, sizeof (filename), NULL);
+  s = __riscosify (sname, 0, 0, filename, sizeof (filename), NULL);
   /* Filename translation failed, so return NULL.  */
   if (s == NULL)
     return NULL;
