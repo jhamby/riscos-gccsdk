@@ -1791,7 +1791,10 @@ jmpbuf		RN	8
 |__builtin_return_address|
 	STMFD	sp!, {lr}
 	BL	|__builtin_frame_address|
-	LDR	a1, [a1, #-4]
+	LDR	a1, [a1, #-4] /* Load return address from the stack frame */
+	TEQ	a1, a1 /* 32bit mode check */
+	TEQ	pc, pc
+	BICNE	a1, a1, #&fc000003 /* If 26bit, clear PSR bits from the return address */
 	LDMFD	sp!, {pc}RETCOND
 
 	/* -----------------------------------------------------------------
