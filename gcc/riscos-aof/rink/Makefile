@@ -27,7 +27,8 @@ ifeq (${STAGE},stage2)
 endif
 
 all:	$(bin_dir)/rink$(exesfx) $(bin_dir)/extractsym$(exesfx) \
-	$(bin_dir)/rinkptr$(exesfx) $(OBJS) $(DEPS)
+	$(bin_dir)/rinkptr$(exesfx) $(OBJS) $(DEPS) \
+	$(info_dir)/rink
 
 $(bin_dir)/extractsym$(exesfx):	$(rinkobjdir)/extractsym.o
 	$(CC) -o $@ $(rinkobjdir)/extractsym.o
@@ -42,6 +43,9 @@ $(bin_dir)/rink$(exesfx):	$(rinkobjdir)/rink.o
 
 $(bin_dir)/rinkptr$(exesfx):	$(rinkobjdir)/rinkptr.o
 	$(CC) -o $@ $(rinkobjdir)/rinkptr.o
+
+$(info_dir)/rink: doc/overview
+	cp -a $< $@
 
 $(rinkobjdir)/extractsym.o: extractsym.c
 $(rinkobjdir)/pointerblk.o: pointerblk.c
