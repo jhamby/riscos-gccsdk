@@ -1,20 +1,21 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/exec.c,v $
- * $Date: 2002/12/13 15:01:59 $
- * $Revision: 1.5 $
- * $State: Exp $
- * $Author: admin $
+ * $Source$
+ * $Date$
+ * $Revision$
+ * $State$
+ * $Author$
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: exec.c,v 1.5 2002/12/13 15:01:59 admin Exp $";
+static const char rcs_id[] = "$Id$";
 #endif
 
 #include <ctype.h>
 #include <errno.h>
 #include <stdarg.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -292,7 +293,8 @@ execve (const char *execname, char *const argv[], char *const envp[])
       int space = 0;
       /* We must add extra characters if the argument contains spaces (wrap
          argument in quotes) and quotes (must add backslash) and
-         inverted commas (must add backslash).  */
+         inverted commas (must add backslash) and control chars
+         (change to \xXX).  */
       p = argv[x];
       if (nasty_hack && x == 1)
 	p += nasty_hack;
@@ -300,8 +302,10 @@ execve (const char *execname, char *const argv[], char *const envp[])
         {
           if (isspace (*p))
             space = 1;
-          if (*p == '\"' || *p == '\'')
+          if ((!nasty_hack || x != 1) && (*p == '\"' || *p == '\''))
             cli_length ++;
+          if (*p == 127 || *p < 32)
+            cli_length +=3;
           cli_length ++;
 	  p++;
         }
@@ -362,9 +366,17 @@ execve (const char *execname, char *const argv[], char *const envp[])
 	while (*p)
 	  {
             /* If character is a " or a ' then preceed with a backslash.  */
-            if (*p == '\"' || *p == '\'')
+            if ((!nasty_hack || x != 1) && (*p == '\"' || *p == '\''))
               *command_line ++ = '\\';
-            *command_line ++ = *p;
+
+            if (*p == 127 || *p < 32)
+              {
+                sprintf (command_line, "\\x%.2X", *p);
+                command_line += 4;
+              }
+            else
+              *command_line ++ = *p;
+
 	    p++;
 	  }
         if (contains_space)

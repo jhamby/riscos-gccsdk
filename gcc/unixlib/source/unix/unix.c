@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/unix.c,v $
- * $Date: 2002/12/13 15:01:59 $
- * $Revision: 1.6 $
- * $State: Exp $
- * $Author: admin $
+ * $Source$
+ * $Date$
+ * $Revision$
+ * $State$
+ * $Author$
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: unix.c,v 1.6 2002/12/13 15:01:59 admin Exp $";
+static const char rcs_id[] = "$Id$";
 #endif
 
 #include <stdio.h>
@@ -104,6 +104,28 @@ __decstrtoui (const char *nptr, char **end)
   while (isdigit (*nptr));
   if (end)
     *end = (char *) nptr;
+
+  return result;
+}
+
+/* strtoul to avoid pulling in global verion for small executables.
+   This version is limited to exactly 2 hexadecimal characters.  */
+static char
+__hexstrtochar (const char *nptr)
+{
+  char result;
+
+  if (*nptr >= 'A')
+    result = (*nptr - 'A' + 10) << 4;
+  else
+    result = (*nptr - '0') << 4;
+
+  nptr++;
+
+  if (*nptr >= 'A')
+    result += (*nptr - 'A' + 10);
+  else
+    result += (*nptr - '0');
 
   return result;
 }
@@ -856,8 +878,21 @@ convert_command_line (struct proc *process, const char *cli, int cli_size)
 	  else if (*cli == '\\')
 	    {
 	      /* Escape character.  */
-	      if (*++cli != '\0')
-		*p++ = *cli++;
+	      switch (*++cli)
+	        {
+	        case '\0':
+	          break;
+
+	        case 'x':
+	          if (cli[1] == '\0' || cli[2] == '\0')
+	            break;
+
+	          *p++ = __hexstrtochar (cli + 1);
+	          cli += 3;
+	          break;
+	        default:
+	          *p++ = *cli++;
+	        }
 	    }
 	  else if (*cli == '\"')
 	    {
@@ -872,11 +907,21 @@ convert_command_line (struct proc *process, const char *cli, int cli_size)
 		  /* Look out for escape characters.  */
 		  if (*cli == '\\')
 		    {
-		      cli++;
-		      if (*cli != '\0')
-			*p++ = *cli++;
-		      else
-			break;
+		      switch (*++cli)
+		        {
+		        case '\0':
+		          break;
+
+		        case 'x':
+		          if (cli[1] == '\0' || cli[2] == '\0')
+		            break;
+
+		          *p++ = __hexstrtochar (cli + 1);
+		          cli += 3;
+		          break;
+		        default:
+		          *p++ = *cli++;
+		        }
 		    }
 		  else
 		    *p++ = *cli++;
@@ -890,7 +935,16 @@ convert_command_line (struct proc *process, const char *cli, int cli_size)
 	      /* The argument is contained within single quotes.  */
 	      cli++;
 	      while (*cli != '\0' && *cli != '\'')
-		*p++ = *cli++;
+	        {
+	          if (cli[0] == '\\' && cli[1] == 'x' && cli[2] && cli[3])
+	            {
+	              /* Sort out escape sequences that are added by UnixLib */
+	              *p++ = __hexstrtochar (cli + 2);
+	              cli += 4;
+	            }
+	          else
+	            *p++ = *cli++;
+	        }
 	      /* If we've finished on the single quote mark, then skip it.  */
 	      if (*cli == '\'')
 		cli++;

@@ -1,3 +1,9 @@
+Sun Jan  5 12:29:13 2002  Alex Waugh  <alex@alexwaugh.com>
+
+	* sys/exec.c (execve): Change control characters to \xXX.
+	Don't backslash already quoted characters.
+	* unix/unix.c (__hexstrtochar): New function.
+
 Sat Jan  4 15:27:54 2003  Nick Burrett  <nick@dsvr.net>
 
 	* sys/_syslib.s: Revert last change.  The SCL doesn't preserve ip
