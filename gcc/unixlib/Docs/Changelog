@@ -1,3 +1,12 @@
+Sat Apr 17 11:50:11 2004  Nick Burrett  <nick@dsvr.net>
+
+	* sys/byteorder.h: Add __THROW attribute.
+	* sys/file.h, sys/ioctl.h, sys/mman.h, sys/netdb.h: Likewise.
+	* sys/poll.h, sys/resource.h, sys/select.h: Likewise.
+	* sys/stat.h, sys/statfs.h, sys/syslog.h, sys/time.h: Likewise.
+	* sys/timeb.h, sys/times.h, sys/uio.h: Likewise.
+	* sys/utsname.h, sys/wait.h: Likewise.
+
 Thu Apr 15 23:09:30 2004  Alex Waugh  <alex@alexwaugh.com>
 
 	* assert.h: __THROW should appear before any __attribute__.

@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/sys/ioctl.h,v $
- * $Date: 2002/09/24 21:02:37 $
- * $Revision: 1.4 $
+ * $Date: 2003/10/26 13:34:33 $
+ * $Revision: 1.5 $
  * $State: Exp $
- * $Author: admin $
+ * $Author: joty $
  *
  ***************************************************************************/
 
@@ -476,7 +476,7 @@ union ioctl_arg
 
 /* Perform the I/O control operation specified by 'request' on 'fd'.
    -1 usually indicates an error.  */
-extern int ioctl (int __fd, unsigned long __request, void *arg);
+extern int ioctl (int __fd, unsigned long __request, void *arg) __THROW;
 
 __END_DECLS
 

@@ -1,10 +1,10 @@
 /****************************************************************************
  *
- * $Source$
- * $Date$
- * $Revision$
- * $State$
- * $Author$
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/sys/timeb.h,v $
+ * $Date: 2002/09/24 21:02:37 $
+ * $Revision: 1.4 $
+ * $State: Exp $
+ * $Author: admin $
  *
  ***************************************************************************/
 
@@ -31,7 +31,7 @@ struct timeb
   };
 
 /* Fill in TIMEBUF with information about the current time.  */
-extern int ftime (struct timeb *__timebuf);
+extern int ftime (struct timeb *__timebuf) __THROW;
 
 __END_DECLS
 

@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/sys/stat.h,v $
- * $Date: 2002/11/27 19:07:01 $
- * $Revision: 1.5 $
+ * $Date: 2003/04/12 11:31:39 $
+ * $Revision: 1.6 $
  * $State: Exp $
- * $Author: admin $
+ * $Author: alex $
  *
  ***************************************************************************/
 
@@ -171,9 +171,9 @@ struct stat
 /* Return nonzero if the file is a socket.  */
 #define S_ISSOCK(x) (((x) & S_IFSOCK) == S_IFSOCK)
 
-extern int stat (const char *__filename, struct stat *__buf);
-extern int lstat (const char *__filename, struct stat *__buf);
-extern int fstat (int __fd, struct stat *__buf);
+extern int stat (const char *__filename, struct stat *__buf) __THROW;
+extern int lstat (const char *__filename, struct stat *__buf) __THROW;
+extern int fstat (int __fd, struct stat *__buf) __THROW;
 
 #ifdef __UNIXLIB_INTERNALS
 /* We declare __stat here to prevent the inclusion if <sys/stat.h> in
@@ -183,24 +183,24 @@ extern void __stat (int __objtype, int __loadaddr, int __execaddr,
 #endif
 
 /* Set file access permissions for file to mode.  */
-extern int chmod (const char *__file, __mode_t __mode);
+extern int chmod (const char *__file, __mode_t __mode) __THROW;
 
 /* Set file access permissions of the file fd is open on to mode.  */
-extern int fchmod (int __fd, __mode_t __mode);
+extern int fchmod (int __fd, __mode_t __mode) __THROW;
 
 /* Set the file creation mask of the current process to mask,
    return the old creation mask.  */
-extern __mode_t umask (__mode_t __mask);
+extern __mode_t umask (__mode_t __mask) __THROW;
 
 /* Create a new directory named path, with permission bits mode.  */
-extern int mkdir (const char *__path, __mode_t __mode);
+extern int mkdir (const char *__path, __mode_t __mode) __THROW;
 
 /* Create a device file named path, with permission and special bits mode
    and device number dev.  */
-extern int mknod (const char *__path, __mode_t __mode, __dev_t __dev);
+extern int mknod (const char *__path, __mode_t __mode, __dev_t __dev) __THROW;
 
 /* Create a new FIFO named path, with permission bits mode.  */
-extern int mkfifo (const char *__path, __mode_t __mode);
+extern int mkfifo (const char *__path, __mode_t __mode) __THROW;
 
 #define stat64 stat
 

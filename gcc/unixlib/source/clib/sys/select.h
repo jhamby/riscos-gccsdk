@@ -1,10 +1,10 @@
 /****************************************************************************
  *
- * $Source$
- * $Date$
- * $Revision$
- * $State$
- * $Author$
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/sys/select.h,v $
+ * $Date: 2002/12/22 18:22:28 $
+ * $Revision: 1.5 $
+ * $State: Exp $
+ * $Author: admin $
  *
  ***************************************************************************/
 
@@ -64,17 +64,17 @@ typedef __fd_set fd_set;
    descriptors, or -1 for errors.  */
 
 int select (int __nfds, __fd_set *__readfds, __fd_set *__writefds,
-	    __fd_set *__exceptfds, struct timeval *__timeout);
+	    __fd_set *__exceptfds, struct timeval *__timeout) __THROW;
 
 /* Same as pselect but with higher resolution for the timeout.  */
 int pselect (int __nfds, __fd_set *__readfds, __fd_set *__writefds,
-	    __fd_set *__exceptfds, const struct timespec *__timeout,
-            const __sigset_t *__sigmask);
+	     __fd_set *__exceptfds, const struct timespec *__timeout,
+	     const __sigset_t *__sigmask) __THROW;
 
 #ifdef __UNIXLIB_INTERNALS
 /* SWI veneer. Do not use directly.  */
 int _select (int __nfds, __fd_set *__readfds, __fd_set *__writefds,
-	     __fd_set *__exceptfds, const struct timeval *__timeout);
+	     __fd_set *__exceptfds, const struct timeval *__timeout) __THROW;
 #endif  /* __UNIXLIB_INTERNALS */
 
 __END_DECLS

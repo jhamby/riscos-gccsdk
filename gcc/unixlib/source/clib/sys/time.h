@@ -1,10 +1,10 @@
 /****************************************************************************
  *
- * $Source$
- * $Date$
- * $Revision$
- * $State$
- * $Author$
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/sys/time.h,v $
+ * $Date: 2002/09/24 21:02:37 $
+ * $Revision: 1.4 $
+ * $State: Exp $
+ * $Author: admin $
  *
  ***************************************************************************/
 
@@ -70,17 +70,18 @@ struct timezone
    Returns 0 on success, -1 on errors.
    NOTE: This form of timezone information is obsolete.
    Use the functions and variables declared in <time.h> instead.  */
-extern int gettimeofday (struct timeval *, struct timezone *);
+extern int gettimeofday (struct timeval *, struct timezone *) __THROW;
 
 /* Set the current time of day and timezone information.
    This call is restricted to the super-user.  */
-extern int settimeofday (const struct timeval *, const struct timezone *);
+extern int settimeofday (const struct timeval *,
+			 const struct timezone *) __THROW;
 
 /* Adjust the current time of day by the amount in DELTA.
    If OLDDELTA is not NULL, it is filled in with the amount
    of time adjustment remaining to be done from the last `adjtime' call.
    This call is restricted to the super-user.  */
-extern int adjtime (const struct timeval *, struct timeval *);
+extern int adjtime (const struct timeval *, struct timeval *) __THROW;
 
 
 /* Values for the first argument to `getitimer' and `setitimer'.  */
@@ -109,17 +110,17 @@ struct itimerval
 
 /* Set *VALUE to the current setting of timer WHICH.
    Return 0 on success, -1 on errors.  */
-extern int getitimer (enum __itimer_which, struct itimerval *);
+extern int getitimer (enum __itimer_which, struct itimerval *) __THROW;
 
 /* Set the timer WHICH to *NEW.  If OLD is not NULL,
    set *OLD to the old value of timer WHICH.
    Returns 0 on success, -1 on errors.  */
 extern int setitimer (enum __itimer_which, const struct itimerval *__new_timer,
-		      struct itimerval *__old_timer);
+		      struct itimerval *__old_timer) __THROW;
 
 /* Change the access time of FILE to TVP[0] and
    the modification time of FILE to TVP[1].  */
-extern int utimes (const char *, const struct timeval __tvp[2]);
+extern int utimes (const char *, const struct timeval __tvp[2]) __THROW;
 
 
 /* Convenience macros for operations on timevals.

@@ -1,10 +1,10 @@
 /****************************************************************************
  *
- * $Source$
- * $Date$
- * $Revision$
- * $State$
- * $Author$
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/sys/times.h,v $
+ * $Date: 2002/09/24 21:02:37 $
+ * $Revision: 1.4 $
+ * $State: Exp $
+ * $Author: admin $
  *
  ***************************************************************************/
 
@@ -34,7 +34,7 @@ struct tms
 
 /* Store the CPU time used by this process and all its dead children
    in buffer.  */
-extern clock_t times (struct tms *__tmsp);
+extern clock_t times (struct tms *__tmsp) __THROW;
 
 __END_DECLS
 

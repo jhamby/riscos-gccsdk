@@ -1,17 +1,17 @@
 /****************************************************************************
  *
- * $Source$
- * $Date$
- * $Revision$
- * $State$
- * $Author$
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/sys/poll.h,v $
+ * $Date: 2002/09/24 21:02:37 $
+ * $Revision: 1.4 $
+ * $State: Exp $
+ * $Author: admin $
  *
  ***************************************************************************/
 
 /* System V poll interface.  */
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id$";
+static const char rcs_id[] = "$Id: poll.h,v 1.4 2002/09/24 21:02:37 admin Exp $";
 #endif
 
 #ifndef __SYS_POLL_H
@@ -62,8 +62,7 @@ struct pollfd
    an event to occur; if TIMEOUT is -1, block until an event occurs.
    Returns the number of file descriptors with events, zero if timed out,
    or -1 for errors.  */
-
-extern int poll (struct pollfd *__fds, nfds_t __nfds, int __timeout);
+extern int poll (struct pollfd *__fds, nfds_t __nfds, int __timeout) __THROW;
 
 __END_DECLS
 

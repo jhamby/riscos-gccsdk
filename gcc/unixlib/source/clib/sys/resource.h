@@ -1,10 +1,10 @@
 /****************************************************************************
  *
- * $Source$
- * $Date$
- * $Revision$
- * $State$
- * $Author$
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/sys/resource.h,v $
+ * $Date: 2002/09/24 21:02:37 $
+ * $Revision: 1.4 $
+ * $State: Exp $
+ * $Author: admin $
  *
  ***************************************************************************/
 
@@ -106,13 +106,12 @@ struct rlimit
 
 /* Put the soft and hard limits for RESOURCE in *RLIMITS.
    Returns 0 if successful, -1 if not (and sets errno).  */
-extern int getrlimit (enum __rlimit_resource, struct rlimit *);
+extern int getrlimit (enum __rlimit_resource, struct rlimit *) __THROW;
 
 /* Set the soft and hard limits for RESOURCE to *RLIMITS.
    Only the super-user can increase hard limits.
    Return 0 if successful, -1 if not (and sets errno).  */
-
-extern int setrlimit (enum __rlimit_resource, const struct rlimit *);
+extern int setrlimit (enum __rlimit_resource, const struct rlimit *) __THROW;
 
 /* Whose usage statistics do you want?  */
 enum __rusage_who
@@ -129,7 +128,7 @@ enum __rusage_who
   };
 
 /* Return resource usage information on a process.  */
-extern int getrusage (enum __rusage_who, struct rusage *);
+extern int getrusage (enum __rusage_who, struct rusage *) __THROW;
 
 /* Function depends on first parameter.
    1 = Return the limit on the size of a file, in units of 512 bytes.
@@ -137,7 +136,7 @@ extern int getrusage (enum __rusage_who, struct rusage *);
        super-user can increase the limit.
    3 = Return the maximum possible address of the data segment.
    4 = Return the maximum number of files that the calling process can open.  */
-extern long int ulimit (int, int);
+extern long int ulimit (int, int) __THROW;
 
 
 /* Priority limits.  */
@@ -154,13 +153,13 @@ enum __priority_which
   };
 
 /* Return the highest priority of any process.  */
-extern int getpriority (enum __priority_which, int);
+extern int getpriority (enum __priority_which, int) __THROW;
 
 /* Set the priority of all processes.  */
-extern int setpriority (enum __priority_which, int, int);
+extern int setpriority (enum __priority_which, int, int) __THROW;
 
 /* Alter the priority of the current process by 'increment'.  */
-extern int nice (int __increment);
+extern int nice (int __increment) __THROW;
 
 __END_DECLS
 

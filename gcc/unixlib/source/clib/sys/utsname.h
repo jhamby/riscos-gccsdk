@@ -1,10 +1,10 @@
 /****************************************************************************
  *
- * $Source$
- * $Date$
- * $Revision$
- * $State$
- * $Author$
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/sys/utsname.h,v $
+ * $Date: 2002/09/24 21:02:37 $
+ * $Revision: 1.4 $
+ * $State: Exp $
+ * $Author: admin $
  *
  ***************************************************************************/
 
@@ -43,7 +43,7 @@ struct utsname
   };
 
 /* Put information about the system in NAME.  */
-extern int uname (struct utsname *__name);
+extern int uname (struct utsname *__name) __THROW;
 
 __END_DECLS
 

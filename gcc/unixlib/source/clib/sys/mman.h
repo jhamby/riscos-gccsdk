@@ -1,8 +1,8 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/sys/mman.h,v $
- * $Date: 2001/01/29 15:10:19 $
- * $Revision: 1.2 $
+ * $Date: 2002/09/24 21:02:37 $
+ * $Revision: 1.3 $
  * $State: Exp $
  * $Author: admin $
  *
@@ -77,34 +77,36 @@ __BEGIN_DECLS
    deallocates any previous mapping for the affected region.  */
 
 extern __caddr_t mmap (__caddr_t __addr, size_t __len,
-		int __prot, int __flags, int __fd, off_t __offset);
+		       int __prot, int __flags, int __fd,
+		       off_t __offset) __THROW;
 
 /* Deallocate any mapping for the region starting at ADDR and extending LEN
    bytes.  Returns 0 if successful, -1 for errors (and sets errno).  */
-extern int munmap (__caddr_t __addr, size_t __len);
+extern int munmap (__caddr_t __addr, size_t __len) __THROW;
 
 /* Change the memory protection of the region starting at ADDR and
    extending LEN bytes to PROT.  Returns 0 if successful, -1 for errors
    (and sets errno).  */
 /* Not supported.  */
-extern int mprotect (__caddr_t __addr, size_t __len, int __prot);
+extern int mprotect (__caddr_t __addr, size_t __len, int __prot) __THROW;
 
 /* Synchronize the region starting at ADDR and extending LEN bytes with the
    file it maps.  Filesystem operations on a file being mapped are
    unpredictable before this is done.  */
 /* Not supported.  */
-extern int msync (__caddr_t __addr, size_t __len);
+extern int msync (__caddr_t __addr, size_t __len) __THROW;
 
 /* Advise the system about particular usage patterns the program follows
    for the region starting at ADDR and extending LEN bytes.  */
 /* Not supported.  */
-extern int madvise (__caddr_t __addr, size_t __len, int __advice);
+extern int madvise (__caddr_t __addr, size_t __len, int __advice) __THROW;
 
 /* Remap addresses mapped by the range [ADDR,ADDR+OLD_LEN) to new length
    NEW_LEN.  If MAY_MOVE is MREMAP_MAYMOVE the returned address may differ
    from ADDR.  The return value is the actual mapping address chosen or
    (caddr_t) -1 for errors (in which case `errno' is set).  */
-extern __caddr_t mremap (__caddr_t __addr, size_t __old_len, size_t __new_len, int __may_move);
+extern __caddr_t mremap (__caddr_t __addr, size_t __old_len,
+			 size_t __new_len, int __may_move) __THROW;
 
 __END_DECLS
 

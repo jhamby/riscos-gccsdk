@@ -1,8 +1,8 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/sys/statfs.h,v $
- * $Date: 2001/01/29 15:10:19 $
- * $Revision: 1.2 $
+ * $Date: 2002/09/24 21:02:37 $
+ * $Revision: 1.3 $
  * $State: Exp $
  * $Author: admin $
  *
@@ -34,11 +34,11 @@ struct statfs
 };
 
 /* Return information about the filesystem on which FILE resides.  */
-extern int statfs (const char *file, struct statfs *buf);
+extern int statfs (const char *file, struct statfs *buf) __THROW;
 
 /* Return information about the filesystem containing the file fd
    refers to.  */
-extern int fstatfs (int fd, struct statfs *buf);
+extern int fstatfs (int fd, struct statfs *buf) __THROW;
 
 __END_DECLS
 

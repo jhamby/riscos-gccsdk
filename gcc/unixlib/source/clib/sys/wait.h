@@ -1,10 +1,10 @@
 /****************************************************************************
  *
- * $Source$
- * $Date$
- * $Revision$
- * $State$
- * $Author$
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/sys/wait.h,v $
+ * $Date: 2002/09/24 21:02:37 $
+ * $Revision: 1.4 $
+ * $State: Exp $
+ * $Author: admin $
  *
  ***************************************************************************/
 
@@ -80,17 +80,17 @@ extern __pid_t wait (int *);
 #define	WAIT_MYPGRP 0
 
 /* Wait for a child matching PID to die.  */
-extern __pid_t waitpid (__pid_t, int *, int);
+extern __pid_t waitpid (__pid_t, int *, int) __THROW;
 
 #ifndef __SYS_RESOURCE_H
 struct rusage;
 #endif
 
 /* Wait for a child to exit.  */
-extern __pid_t wait3 (int *, int, struct rusage *);
+extern __pid_t wait3 (int *, int, struct rusage *) __THROW;
 
 /* Wait for a child matching pid_t to die and return its usage statistics. */
-extern __pid_t wait4 (__pid_t, int *, int, struct rusage *);
+extern __pid_t wait4 (__pid_t, int *, int, struct rusage *) __THROW;
 
 __END_DECLS
 

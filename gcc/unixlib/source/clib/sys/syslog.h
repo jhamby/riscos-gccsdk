@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/sys/syslog.h,v $
- * $Date: 2003/07/29 23:04:27 $
- * $Revision: 1.5 $
+ * $Date: 2004/01/06 00:17:36 $
+ * $Revision: 1.6 $
  * $State: Exp $
- * $Author: admin $
+ * $Author: joty $
  *
  ***************************************************************************/
 
@@ -184,14 +184,14 @@ CODE facilitynames[] = {
 
 __BEGIN_DECLS
 
-extern void closelog (void);
-extern void openlog (const char *, int, int);
-extern int setlogmask (int);
+extern void closelog (void) __THROW;
+extern void openlog (const char *, int, int) __THROW;
+extern int setlogmask (int) __THROW;
 extern void syslog (int, const char *, ...)
-     __attribute__ ((__format__ (__printf__, 2, 3)));
+      __THROW __attribute__ ((__format__ (__printf__, 2, 3)));
 
 extern void vsyslog (int, const char *, __gnuc_va_list)
-     __attribute__ ((__format__ (__printf__, 2, 0)));
+      __THROW __attribute__ ((__format__ (__printf__, 2, 0)));
 
 __END_DECLS
 

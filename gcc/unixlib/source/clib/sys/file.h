@@ -1,8 +1,8 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/sys/file.h,v $
- * $Date: 2001/01/29 15:10:19 $
- * $Revision: 1.2 $
+ * $Date: 2002/09/24 21:02:37 $
+ * $Revision: 1.3 $
  * $State: Exp $
  * $Author: admin $
  *
@@ -41,7 +41,7 @@ __BEGIN_DECLS
 
 /* Apply or remove an advisory lock, according to operation on the
    file fd refers to.  */
-extern int flock (int fd, int operation);
+extern int flock (int fd, int operation) __THROW;
 
 __END_DECLS
 
