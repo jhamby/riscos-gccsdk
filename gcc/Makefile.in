@@ -89,6 +89,7 @@ libscl_incl_dir = @topdir@/libscl
 # to build the cross-libraries and cross-tools
 CROSS_CC=$(ux_gccpkg)/$(gn_standard_exec_prefix)/gcc
 CROSS_CXX=$(ux_gccpkg)/$(gn_standard_exec_prefix)/g++
+CROSS_GNATBIND=$(ux_gccpkg)/$(gn_standard_exec_prefix)/gnatbind
 CROSS_CFLAGS=-O2 $(TARGET_DEFS) -mpoke-function-name
 CROSS_CXXFLAGS=-O2 $(TARGET_DEFS) -mpoke-function-name
 
@@ -115,7 +116,7 @@ export gn_gcc_bin_dir info_dir exesfx ro_unixlibpkg ro_libsclpkg
 export ux_bin_dir ux_gcc_bin_dir ro_bin_dir ro_gcc_bin_dir
 export unixlib_incl_dir libscl_incl_dir
 export CC CXX GNATCC
-export CROSS_CC CROSS_CXX CROSS_CFLAGS CROSS_CXXFLAGS
+export CROSS_CC CROSS_CXX CROSS_GNATBIND CROSS_CFLAGS CROSS_CXXFLAGS
 export CROSS_AR CROSS_AR_FLAGS
 export VERSION TARGET_NAME CFLAGS CXXFLAGS AR AR_FLAGS
 export insthdr instsrc
