@@ -1,11 +1,38 @@
 Noteworthy changes to the RISC OS GCCSDK
 
-RISC OS GCC release 3.3.0 pre-release 1 (released XX XXXXXX 2003)
+RISC OS GCC release 3.3.3 pre-release 1 (released XX XXXXXX 2004)
 =======================================
 
-* gcc: updated to snapshot 3.3 20021201
+* gcc: updated to snapshot 3.3.3 20031030
 
-RISC OS GCC release 2.95.4 release 2 (released XX XXXXXX 2002)
+* unixlib: POSIX thread (pthread) support
+
+* gcc, unixlib, libscl: Default build is now APCS-32.
+
+* unixlib: Stack model changed from UNIX-style linear stacks
+  to RISC OS SharedCLibrary style chunked stacks.  This allows
+  for automatic WimpSlot extension.
+
+* unixlib: Emulation of /dev/random and /dev/zero.
+
+* unixlib: New resolver libraries, taken from glibc 2.2.5.
+
+* unixlib: Improve compatibility with the C99 standard.
+
+* unixlib: New crypt implementation, taken from glibc 2.2.5.
+
+RISC OS GCC release 2.95.4 release 3 (released 05 January 2003)
+====================================
+
+* as: Fix pre/post indexed addressing assembler error.
+
+* gccsdk: Support NetBSD.
+
+* unixlib: Fix #include typo in inttypes.h.
+
+* libscl: Preserve flags on 26-bit systems.
+
+RISC OS GCC release 2.95.4 release 2 (released 13 November 2002)
 ====================================
 
 * ar: This is an ALF implementation of the Unix archiver.  This is
@@ -26,6 +53,15 @@ RISC OS GCC release 2.95.4 release 2 (released XX XXXXXX 2002)
 * unixlib: usleep gets 1/100th sec resolution.
 
 * gcc: Support hh and icc filename extensions.
+
+* gcc: [BUG48] Tail call optimisation and chunked stacks.
+
+* gcc: [BUG88] Prevent STR code generation where the source and base
+  register are the same.
+
+* bison: [BUG26] Pack bison files in the distribution.
+
+* libscl: Support APCS-32.
 
 RISC OS GCC release 2.95.4 release 1 (released 20 December 2001)
 ====================================
