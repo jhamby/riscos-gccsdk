@@ -1,3 +1,8 @@
+Sun Mar 13 10:05:00 2005  Alex Waugh  <alex@alexwaugh.com>
+
+	* source/locale/localeconv.c (localconv): Ensure everything we free
+	  was malloced in the first place.
+
 Sat Mar 12 13:32:27 2005  Alex Waugh  <alex@alexwaugh.com>
 
 	* source/unix/unix.c: stdin/stdout should only be opened if we
