@@ -24,7 +24,6 @@
 #include "os.h"
 #include "main.h"
 #include "symbol.h"
-#include "uname.h"
 #include "version.h"
 
 #if defined(UNIXLIB) || defined(CROSS_COMPILE)
@@ -82,7 +81,6 @@ outputInit (char *outfile)
       if (temp && temp[2] == '\0')
 	temp[1] = 'o';
 #else
-#ifdef UNIXLIB
       strncpy (outname, outfile, MAXNAME);
       /* Look for either a '.s' sequence or a 's.' sequence which would
          be used for either Unix or RISC OS respectively.  Then change it
@@ -99,12 +97,6 @@ outputInit (char *outfile)
       temp = strstr (outname, ".s");
       if (temp && temp[2] == '\0')
         temp[1] = 'o';
-#else
-      strncpy (outname, uname (outfile, dde), MAXNAME);
-      temp = strrchr (outname, '.');
-      if (temp > (outname + 2) && temp[-2] == '.' && temp[-1] == 's')
-	temp[-1] = 'o';
-#endif /* UNIXLIB */
 #endif /* CROSS_COMPILE */
 
       if ((objfile = fopen (outname, "wb")) == NULL)

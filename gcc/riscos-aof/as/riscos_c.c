@@ -23,8 +23,6 @@
 #ifndef CROSS_COMPILE
 # ifdef UNIXLIB
 #  include <unixlib/local.h>
-# else
-#  include "uname.h"
 # endif /* UNIXLIB */
 
 char *toriscos (char *name, char *oldsuffixes, char newsuffix)
@@ -61,12 +59,8 @@ char *CanonicalisePath (const char *path1)
 {
   int size;
   char *buffer;
-#ifdef UNIXLIB
   char path[1024];
   __riscosify (path1, 0, 0, path, sizeof (path), NULL);
-#else
-  char *path = uname (path1, dde);
-#endif
   if (dde && *path == '@')
     {				/* Replace @ with <Prefix$Dir> if dde flags */
       strcpy (filename, "<Prefix$Dir>");

@@ -6,7 +6,8 @@ CFLAGS += -DCROSS_COMPILE
 exesfx =
 else
 CC = $(CROSS_CC)
-CFLAGS = $(CROSS_CFLAGS) -DUNIXLIB
+CFLAGS = $(CROSS_CFLAGS) -mlibscl -D__RISCOSIFY
+
 endif
 
 INCLUDES = -I. -I../../
@@ -58,7 +59,6 @@ OBJS =	$(asobjdir)/area.o \
 	$(asobjdir)/include.o \
 	$(asobjdir)/lexAcorn.o \
 	$(asobjdir)/lit.o \
-	$(asobjdir)/uname.o \
 	$(asobjdir)/macros.o \
 	$(asobjdir)/variables.o \
 	$(asobjdir)/whileif.o \
@@ -77,7 +77,7 @@ endif
 all:	$(gcc_bin_dir)/as$(exesfx)
 
 $(gcc_bin_dir)/as$(exesfx):	$(OBJS) $(DEPS)
-	$(CC) -o $@ $(OBJS) -lm -L$(objdir)/libiberty/$(STAGE) -liberty 
+	$(CC) $(CFLAGS) -o $@ $(OBJS) -lm -L$(objdir)/libiberty/$(STAGE) -liberty 
 
 $(asobjdir)/area.o: area.c
 $(asobjdir)/asm.o: asm.c
@@ -117,7 +117,6 @@ $(asobjdir)/filestack.o: filestack.c
 $(asobjdir)/include.o: include.c
 $(asobjdir)/lexAcorn.o: lexAcorn.c
 $(asobjdir)/lit.o: lit.c
-$(asobjdir)/uname.o: uname.c
 $(asobjdir)/rname2.o: rname.c
 $(asobjdir)/rname.o: rname.c
 $(asobjdir)/os.o: os.s
@@ -179,11 +178,9 @@ $(asobjdir)/help_eval.o:  \
   error.h symbol.h
 $(asobjdir)/help_lex.o:  \
  help_lex.c global.h error.h help_lex.h
-$(asobjdir)/include.o:  \
- include.c uname.h
 $(asobjdir)/input.o:  \
  input.c ../../sdk-config.h error.h global.h input.h macros.h lex.h \
-  whileif.h symbol.h value.h os.h filestack.h uname.h
+  whileif.h symbol.h value.h os.h filestack.h
 $(asobjdir)/lex.o:  \
  lex.c ../../sdk-config.h error.h global.h lex.h local.h help_lex.h \
   input.h macros.h whileif.h symbol.h value.h hash.h area.h \
@@ -237,8 +234,7 @@ $(asobjdir)/option.o:  \
   lex.h whileif.h symbol.h value.h
 $(asobjdir)/output.o:  \
  output.c ../../sdk-config.h error.h global.h chunkfile.h aoffile.h \
-  symbol.h lex.h value.h output.h area.h reloc.h lit.h os.h version.h \
-  uname.h
+  symbol.h lex.h value.h output.h area.h reloc.h lit.h os.h version.h 
 $(asobjdir)/put.o:  \
  put.c ../../sdk-config.h put.h global.h error.h area.h symbol.h lex.h \
   value.h reloc.h lit.h
@@ -256,8 +252,6 @@ $(asobjdir)/symbol.o:  \
   aoffile.h code.h reloc.h help_lex.h local.h area.h lit.h
 $(asobjdir)/targetcpu.o:  \
  targetcpu.c targetcpu.h global.h error.h
-$(asobjdir)/uname.o:  \
- uname.c
 $(asobjdir)/rname.o:  \
  rname.c
 $(asobjdir)/rname2.o:  \

@@ -23,7 +23,6 @@
 #include "macros.h"
 #include "main.h"
 #include "os.h"
-#include "uname.h"
 
 #define MAX_LINE (4096)
 
@@ -227,14 +226,9 @@ inputInit (char *infile)
 
   if (infile && strcmp (infile, "-"))
     {
-#if defined(UNIXLIB) || defined(CROSS_COMPILE)
       if ((asmfile = fopen (infile, "r")) == NULL)
 	errorLine (0, 0, ErrorAbort, FALSE, "AS can't read %s: %s", infile,
 		   strerror (errno));
-#else
-      if ((asmfile = fopen (uname (infile, dde), "r")) == NULL)
-	errorLine (0, 0, ErrorAbort, FALSE, "AS can't read %s", infile);
-#endif
       else
 	{
 	  char *buffer;

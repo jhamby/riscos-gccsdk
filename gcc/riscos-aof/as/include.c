@@ -8,19 +8,27 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
 #if defined(CROSS_COMPILE) || defined(UNIXLIB)
-#include <fcntl.h>
-#include <unistd.h>
+# include <sys/param.h>		/* for MAXPATHLEN */
+# include <fcntl.h>
+# include <unistd.h>
+#else
+# define MAXPATHLEN 256
+#endif
+
+#ifdef UNIXLIB
+#include <unixlib/local.h>
 #endif
 
 #include "error.h"
 #include "include.h"
 #include "os.h"
-#include "uname.h"
 #include "rname.h"
 #include "main.h"
 
 #define INCDIRMAX  (10)
+#define DIR '/'
 
 static char *incdir[INCDIRMAX];
 
@@ -35,14 +43,9 @@ initInclude (void)
 }
 
 int
-addInclude (const char *incpath)
+addInclude (const char *path)
 {
   int i;
-#if defined (UNIXLIB) || defined (CROSS_COMPILE)
-  const char *path = incpath;
-#else
-  char *path = uname (incpath, dde);
-#endif
 
   for (i = 0; i < INCDIRMAX; i++)
     if (incdir[i])
@@ -84,12 +87,10 @@ getInclude (const char *filename, const char *mode)
   FILE *fp;
 #endif
   char incpath[MAXPATHLEN];
-#if defined (UNIXLIB)
-  char *file = (char *) filename;
-#elif defined (CROSS_COMPILE)
+#if defined (CROSS_COMPILE)
   char *file = rname (filename);
 #else
-  char *file = uname (filename, dde);
+  char *file = (char *) filename;
 #endif
 
 #ifdef CROSS_COMPILE
