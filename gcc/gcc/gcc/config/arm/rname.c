@@ -9,14 +9,15 @@
    from the function.  The user must have previously declared
    a suitably sized buffer for the Unix format filename.
 
-   Last modified: 31-May-2000 <nick@dsvr.net>*/
+   Last modified: 23 December 2000 <nick@dsvr.net>  */
 
-
+#define _GNU_SOURCE
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 #include <ctype.h>
 
-/* A list of prefixes we will try and swap round.  */
+/* A list of prefixes we will try to swap round.  */
 
 static char *prefixes[] =
 {
@@ -69,7 +70,6 @@ add_directory_name (char *o, const char *i)
 
   /* Root directory ($) can be ignored since output is only a '/'.
      The backslash is automatically output at the end of the string.  */
-
   if (i[1] == '\0')
     {
       switch (i[0])
@@ -224,7 +224,7 @@ riscos_to_unix (const char *filename, char *output)
      /IDEFS::HD.$/Work/gcc/gcc-272/config/arm/rname.c
 
      Firstly try and locate a '.$'. Anything before this just specifies
-     a filing system.  */
+     a file system.  */
   temp = strstr (filename, ".$");
   if (temp != NULL)
     {
@@ -238,6 +238,41 @@ riscos_to_unix (const char *filename, char *output)
       *output++ = '/';
       i++;
     }
+#ifdef CROSS_COMPILE
+  else
+    {
+      /* In a cross-compiling environment we need to find a way of supporting
+	 RISC OS filenames such as DeskLib:foobar.h.  I think the best solution
+	 is to look for a environment variable of similar name (i.e.
+	 DESKLIB_PATH) which (if found) we will substitute into the resulting
+	 file name in place of the `DeskLib:'.  */
+      temp = strchr (filename, ':');
+      if (temp)
+	{
+	  char env[256], *e;
+	  int x;
+
+	  for (x = 0, e = (char *) filename; e != temp; e++)
+	    env[x++] = toupper (*e);
+	  env[x] = '\0';
+	  /*strncpy (env, filename, temp - filename); */
+	  strcpy (env + (temp - filename), "_PATH");
+	  e = getenv (env);
+#ifdef DEBUG
+	  printf ("looking for `%s' (%s)\n", env,
+		  (e) ? "found" : "not found");
+#endif
+	  if (e)
+	    {
+	      /* Found a matching environment variable.  */
+	      output = stpcpy (output, e);
+	      *output++ = '/';
+	      i += temp - filename + 1;
+	    }
+	}
+    }
+#endif
+
   while ((skip = get_directory_name (i, tempbuf)))
     {
 #ifdef DEBUG
@@ -305,128 +340,68 @@ riscos_to_unix (const char *filename, char *output)
 }
 
 #ifdef TEST
+#ifdef __riscos__
 #include <unixlib/local.h>
+
+static void test (const char *input)
+{
+  char out[256], name[256];
+  int flags = __RISCOSIFY_DONT_TRUNCATE;
+
+  riscos_to_unix (input, out);
+  __riscosify (out, 0, flags, name, sizeof (name));
+  printf ("uname = %s\n", name);
+}
+#else
+static void test (const char *input)
+{
+  char out[256];
+  riscos_to_unix (input, out);
+}
+#endif
 
 int
 main (void)
 {
   char out[256], name[256];
-  int flags = __RISCOSIFY_DONT_TRUNCATE;
-
-  riscos_to_unix ("IDEFS::HD.$.Work.gcc.gcc-272.config.arm.c.rname", out);
-  __riscosify (out, 0, flags, name, sizeof (name));
-  printf ("uname = %s\n", name);
-  riscos_to_unix ("IDEFS::HD.$.Work.gcc.gcc-272.config.arm.for.rname", out);
-  __riscosify (out, 0, flags, name, sizeof (name));
-  printf ("uname = %s\n", name);
-  riscos_to_unix ("gcc.gcc-272.config.arm.cpp.rname", out);
-  __riscosify (out, 0, flags, name, sizeof (name));
-  printf ("uname = %s\n", name);
-  riscos_to_unix ("ali.rname", out);
-  __riscosify (out, 0, flags, name, sizeof (name));
-  printf ("uname = %s\n", name);
-  riscos_to_unix ("rname.xrb", out);
-  __riscosify (out, 0, flags, name, sizeof (name));
-  printf ("uname = %s\n", name);
-  riscos_to_unix ("config/arm/rname.c", out);
-  __riscosify (out, 0, flags, name, sizeof (name));
-  printf ("uname = %s\n", name);
-  riscos_to_unix ("/arm/rname.c", out);
-  __riscosify (out, 0, flags, name, sizeof (name));
-  printf ("uname = %s\n", name);
-  riscos_to_unix ("$.fred.jim.harry.c.smart", out);
-  __riscosify (out, 0, flags, name, sizeof (name));
-  printf ("uname = %s\n", name);
-  riscos_to_unix ("^.harry.c.smart", out);
-  __riscosify (out, 0, flags, name, sizeof (name));
-  printf ("uname = %s\n", name);
-  riscos_to_unix ("@.ohyeah.c.smart", out);
-  __riscosify (out, 0, flags, name, sizeof (name));
-  printf ("uname = %s\n", name);
-  riscos_to_unix ("<GCC$Dir>.funky.monky.cc.smart", out);
-  __riscosify (out, 0, flags, name, sizeof (name));
-  printf ("uname = %s\n", name);
-  riscos_to_unix ("^.^.^.^.cc.up.we.go.cc.cool", out);
-  __riscosify (out, 0, flags, name, sizeof (name));
-  printf ("uname = %s\n", name);
-  riscos_to_unix ("cc.c++.c.for.lots.of.prefixes.cc.cool", out);
-  __riscosify (out, 0, flags, name, sizeof (name));
-  printf ("uname = %s\n", name);
-  riscos_to_unix ("../cc.cool", out);
-  __riscosify (out, 0, flags, name, sizeof (name));
-  printf ("uname = %s\n", name);
-  riscos_to_unix ("./././c.cool", out);
-  __riscosify (out, 0, flags, name, sizeof (name));
-  printf ("uname = %s\n", name);
-  riscos_to_unix ("../../../c.smart", out);
-  __riscosify (out, 0, flags, name, sizeof (name));
-  printf ("uname = %s\n", name);
-  riscos_to_unix ("funky.cold.medina.c", out);
-  __riscosify (out, 0, flags, name, sizeof (name));
-  printf ("uname = %s\n", name);
-  riscos_to_unix ("a.c", out);
-  __riscosify (out, 0, flags, name, sizeof (name));
-  printf ("uname = %s\n", name);
-  riscos_to_unix ("c.a", out);
-  __riscosify (out, 0, flags, name, sizeof (name));
-  printf ("uname = %s\n", name);
-  riscos_to_unix ("%.make", out);
-  __riscosify (out, 0, flags, name, sizeof (name));
-  printf ("uname = %s\n", name);
-  riscos_to_unix ("%.something.in.the.library", out);
-  __riscosify (out, 0, flags, name, sizeof (name));
-  printf ("uname = %s\n", name);
-  riscos_to_unix ("aa.c", out);
-  __riscosify (out, 0, flags, name, sizeof (name));
-  printf ("uname = %s\n", name);
-  riscos_to_unix ("c.aa", out);
-  __riscosify (out, 0, flags, name, sizeof (name));
-  printf ("uname = %s\n", name);
-  riscos_to_unix ("hello.world", out);
-  __riscosify (out, 0, flags, name, sizeof (name));
-  printf ("uname = %s\n", name);
-  riscos_to_unix ("objects/EltNode-h", out);
-  __riscosify (out, 0, flags, name, sizeof (name));
-  printf ("uname = %s\n", name);
-  riscos_to_unix ("objects.EltNode-m", out);
-  __riscosify (out, 0, flags, name, sizeof (name));
-  printf ("uname = %s\n", name);
-  riscos_to_unix ("GCC:objc/list.h", out);
-  __riscosify (out, 0, flags, name, sizeof (name));
-  printf ("uname = %s\n", name);
-  riscos_to_unix ("gcc:^.getopt.c", out);
-  __riscosify (out, 0, flags, name, sizeof (name));
-  printf ("uname = %s\n", name);
-  riscos_to_unix ("/gcc:/../getopt.c", out);
-  __riscosify (out, 0, flags, name, sizeof (name));
-  printf ("uname = %s\n", name);
-  riscos_to_unix ("gcc:/../getopt.c", out);
-  __riscosify (out, 0, flags, name, sizeof (name));
-  printf ("uname = %s\n", name);
-  riscos_to_unix ("gcc:/getopt.c", out);
-  __riscosify (out, 0, flags, name, sizeof (name));
-  printf ("uname = %s\n", name);
-  riscos_to_unix ("/idefs::hd.$.fred.preset.s", out);
-  __riscosify (out, 0, flags, name, sizeof (name));
-  printf ("uname = %s\n", name);
-  riscos_to_unix ("/idefs::hd.$/fred/preset.s", out);
-  __riscosify (out, 0, flags, name, sizeof (name));
-  printf ("uname = %s\n", name);
-  riscos_to_unix ("c/jimmyhill", out);
-  __riscosify (out, 0, flags, name, sizeof (name));
-  printf ("uname = %s\n", name);
-
-  riscos_to_unix (".", out);
-  __riscosify (out, 0, flags, name, sizeof (name));
-  printf ("uname = %s\n", name);
-
-  riscos_to_unix ("../../arm-riscos-aof/libiberty/libiberty", out);
-  __riscosify (out, 0, flags, name, sizeof (name));
-  printf ("uname = %s\n", name);
-
-  riscos_to_unix ("../../bin/arm-riscos-aof/2_95_2/apcs26/hard/arch2/unixlib/libio", out);
-  __riscosify (out, 0, flags, name, sizeof (name));
-  printf ("uname = %s\n", name);
+  test ("DeskLib:foobar.h");
+  test ("IDEFS::HD.$.Work.gcc.gcc-272.config.arm.c.rname");
+  test ("IDEFS::HD.$.Work.gcc.gcc-272.config.arm.for.rname");
+  test ("gcc.gcc-272.config.arm.cpp.rname");
+  test ("ali.rname");
+  test ("rname.xrb");
+  test ("config/arm/rname.c");
+  test ("/arm/rname.c");
+  test ("$.fred.jim.harry.c.smart");
+  test ("^.harry.c.smart");
+  test ("@.ohyeah.c.smart");
+  test ("<GCC$Dir>.funky.monky.cc.smart");
+  test ("^.^.^.^.cc.up.we.go.cc.cool");
+  test ("cc.c++.c.for.lots.of.prefixes.cc.cool");
+  test ("../cc.cool");
+  test ("./././c.cool");
+  test ("../../../c.smart");
+  test ("funky.cold.medina.c");
+  test ("a.c");
+  test ("c.a");
+  test ("%.make");
+  test ("%.something.in.the.library");
+  test ("aa.c");
+  test ("c.aa");
+  test ("hello.world");
+  test ("objects/EltNode-h");
+  test ("objects.EltNode-m");
+  test ("GCC:objc/list.h");
+  test ("gcc:^.getopt.c");
+  test ("/gcc:/../getopt.c");
+  test ("gcc:/../getopt.c");
+  test ("gcc:/getopt.c");
+  test ("/idefs::hd.$.fred.preset.s");
+  test ("/idefs::hd.$/fred/preset.s");
+  test ("c/jimmyhill");
+  test (".");
+  test ("../../arm-riscos-aof/libiberty/libiberty");
+  test ("../../bin/arm-riscos-aof/2_95_2/apcs26/hard/arch2/unixlib/libio");
   return 0;
 }
 #endif
