@@ -3,7 +3,7 @@
 
 INCLUDES = -I.
 CROSS_CFLAGS += -DHAVE_CONFIG_H -DLOCALEDIR=\".\" -DINCLUDEDIR=\".\" \
-                -DLIBDIR=\".\"
+                -DLIBDIR=\".\" -DGCC_IS_NATIVE
 
 $(objdir)/riscos-progs/make/%.o: %.c
 	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c $< $(INCLUDES)
