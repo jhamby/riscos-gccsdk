@@ -23,6 +23,8 @@ cdir <obey$dir>.objs.pthread
 cdir <obey$dir>.objs.pthread.o
 cdir <obey$dir>.objs.pwd
 cdir <obey$dir>.objs.pwd.o
+cdir <obey$dir>.objs.resolv
+cdir <obey$dir>.objs.resolv.o
 cdir <obey$dir>.objs.resource
 cdir <obey$dir>.objs.resource.o
 cdir <obey$dir>.objs.scl

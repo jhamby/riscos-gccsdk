@@ -1,10 +1,10 @@
 /****************************************************************************
  *
- * $Source: $
- * $Date: $
- * $Revision: $
- * $State: $
- * $Author: $
+ * $Source$
+ * $Date$
+ * $Revision$
+ * $State$
+ * $Author$
  *
  ***************************************************************************/
   
@@ -428,7 +428,7 @@ typedef enum __ns_cert_types {
 #define NS_PUT16(s, cp) do { \
 	register u_int16_t t_s = (u_int16_t)(s); \
 	register u_char *t_cp = (u_char *)(cp); \
-  	*t_cp+= t_s >> 8; \
+  	*t_cp++ = t_s >> 8; \
   	*t_cp   = t_s; \
 	(cp) += NS_INT16SZ; \
 } while (0)

@@ -1,10 +1,10 @@
 ;----------------------------------------------------------------------------
 ;
-; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/math-asm/_atan.s,v $
-; $Date: 2002/09/24 21:02:37 $
-; $Revision: 1.3 $
-; $State: Exp $
-; $Author: admin $
+; $Source$
+; $Date$
+; $Revision$
+; $State$
+; $Author$
 ;
 ;----------------------------------------------------------------------------
 
@@ -13,7 +13,7 @@
 	AREA	|C$$code|,CODE,READONLY
 
 	EXPORT	atan
-	EXPORT	atanl
+	EXPORT	atan1
 	NAME	atan
 atan
 atan1

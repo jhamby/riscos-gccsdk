@@ -956,7 +956,7 @@ __randomread (struct __unixlib_fd *file_desc, void *data, int nbyte)
 
   IGNORE (file_desc);
 
-  regs[0] = data;
+  regs[0] = (int)data;
   regs[1] = nbyte;
   err = __os_swi(CryptRandom_Block, regs);
   if (err)

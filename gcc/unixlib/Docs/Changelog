@@ -1,3 +1,21 @@
+Wed Jan 29 18:51:20 2003  John Tytgat <John.Tytgat@aaug.net>
+
+	* objs/Makefile: crypt rules had a spurious column chars at the end
+	  of their lines
+	* unix/dev.c (_randomread): cast 'data' ptr to int is necessary
+	  for Norcroft.
+	* math-asm/_atan.s: atan1 should be exported, not atanl.
+	* stdint.h: Added #include <unixlib/features.h> for the
+	  __extension__ definition
+	* objs/Makefile: crypt rules did have a spurious column chars;
+	  Removed netlib.o.htonl, netlib.o.htons, netlib.o.ntohl,
+	  and netlib.o.ntohs from NETLIB_ASM list; Removed
+	  netlib.o.inet_addr and netlib.o.inet_aton from NETLIB list;
+	  Add Resolv src code; Added pthread.o.newnode to the PTHREAD
+	  list; Add pthread.o._exit to the PTHREAD_ASM list
+	* MKDir: Added cdir of objs.resolv and objs.resolv.o.
+	* arpa/nameser.h: typo in the NS_PUT16() macro
+
 Wed Jan 29 18:48:24 2003  Alex Waugh  <alex@alexwaugh.com>
 
 	* unistd.h (__unlinksuffix): Add decl.

@@ -11,6 +11,10 @@
 #ifndef __STDINT_H
 #define __STDINT_H 1
 
+#ifndef __UNIXLIB_FEATURES_H
+#include <unixlib/features.h>
+#endif
+
 /* Exact integral types.  */
 
 /* Signed.  */
