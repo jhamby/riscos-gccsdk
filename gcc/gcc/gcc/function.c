@@ -5544,6 +5544,10 @@ uninitialized_vars_warning (block)
 	  && regno_uninitialized (REGNO (DECL_RTL (decl))))
 	warning_with_decl (decl,
 			   "`%s' might be used uninitialized in this function");
+      /* NAB++ Disable this warning because it gives splurious messages when
+	 compiling C++ applications due to our use of setjmp/longjmp
+	 exception handling.  */
+#ifndef TARGET_RISCOSAOF
       if (extra_warnings
 	  && TREE_CODE (decl) == VAR_DECL
 	  && DECL_RTL (decl) != 0
@@ -5551,6 +5555,7 @@ uninitialized_vars_warning (block)
 	  && regno_clobbered_at_setjmp (REGNO (DECL_RTL (decl))))
 	warning_with_decl (decl,
 			   "variable `%s' might be clobbered by `longjmp' or `vfork'");
+#endif
     }
   for (sub = BLOCK_SUBBLOCKS (block); sub; sub = TREE_CHAIN (sub))
     uninitialized_vars_warning (sub);
@@ -5562,6 +5567,8 @@ uninitialized_vars_warning (block)
 void
 setjmp_args_warning ()
 {
+  /* NAB++ Similarily here.  */
+#ifndef TARGET_RISCOSAOF
   tree decl;
   for (decl = DECL_ARGUMENTS (current_function_decl);
        decl; decl = TREE_CHAIN (decl))
@@ -5570,6 +5577,7 @@ setjmp_args_warning ()
 	&& regno_clobbered_at_setjmp (REGNO (DECL_RTL (decl))))
       warning_with_decl (decl,
 			 "argument `%s' might be clobbered by `longjmp' or `vfork'");
+#endif
 }
 
 /* If this function call setjmp, put all vars into the stack
