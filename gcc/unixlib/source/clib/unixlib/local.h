@@ -1,8 +1,8 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/unixlib/local.h,v $
- * $Date: 2003/10/06 19:00:00 $
- * $Revision: 1.10 $
+ * $Date: 2004/01/14 23:16:59 $
+ * $Revision: 1.11 $
  * $State: Exp $
  * $Author: joty $
  *
@@ -103,10 +103,10 @@ extern void __riscosify_init (void);
 extern void __sfixinit (const char *list);
 extern void __sdirinit (void);
 
-/* Search special suffix list for __sfix (zero char terminated).  Returns
+/* Search special suffix list for __sfix of length __len.  Returns
    NULL if suffix isn't to be used for suffix swapping, ptr to suffix
    otherwise.  */
-extern const char *__sfixfind (const char *__sfix);
+extern const char *__sfixfind (const char *__sfix, size_t __len);
 
 extern const char __filename_char_map[256];
 

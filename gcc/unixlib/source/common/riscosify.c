@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/common/riscosify.c,v $
- * $Date: 2003/10/06 19:00:00 $
- * $Revision: 1.11 $
+ * $Date: 2003/12/15 16:54:54 $
+ * $Revision: 1.12 $
  * $State: Exp $
- * $Author: joty $
+ * $Author: peter $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: riscosify.c,v 1.11 2003/10/06 19:00:00 joty Exp $";
+static const char rcs_id[] = "$Id: riscosify.c,v 1.12 2003/12/15 16:54:54 peter Exp $";
 #endif
 
 /* #define DEBUG */ 
@@ -257,14 +257,14 @@ sdirseg (const char **in_p, char **out_p, const char *buf_end)
 }
 
 const char *
-__sfixfind (const char *sfix)
+__sfixfind (const char *sfix, size_t len)
 {
   int where = sfix_hash (sfix);
   struct sfix *entry = __sfix[where];
 
   while (entry)
     {
-      if (strcmp (entry->suffix, sfix) == 0)
+      if (strncmp (entry->suffix, sfix, len) == 0 && entry->suffix[len] == '\0')
         return entry->suffix;
 
       /* Modifiying this struct would allow, e.g., mapping .C to cc.  */
@@ -506,7 +506,7 @@ translate_or_null (int create_dir, int flags,
 
   /* See if the leafname suffix matches a known suffix */
   if (last_out_dot && !(flags & __RISCOSIFY_NO_SUFFIX))
-    suffix = __sfixfind (last_out_dot + 1);
+    suffix = __sfixfind (last_out_dot + 1, strlen (last_out_dot + 1));
   else
     suffix = NULL;
 
@@ -647,14 +647,14 @@ guess_or_null (int create_dir, int flags, char *buffer, const char *buf_end,
     {
       *last = '\0';
 
-      if (slash == NULL && __sfixfind (penultimate + 1))
+      if (slash == NULL && __sfixfind (penultimate + 1, strlen (penultimate + 1)))
         {
           /* foo.c.getopt so it's probably RISC OS, unless there was
              a slash earlier in the input */
           return copy_or_null (orig_out, orig_in, buf_end);
         }
 
-      if (__sfixfind (last + 1))
+      if (__sfixfind (last + 1, strlen (last + 1)))
         {
           /* foo/getopt.c so it's probably unix */
           return translate_or_null (create_dir, flags, buffer, buf_end,
@@ -665,14 +665,14 @@ guess_or_null (int create_dir, int flags, char *buffer, const char *buf_end,
     {
       *last = '\0';
 
-      if (__sfixfind (penultimate + 1))
+      if (__sfixfind (penultimate + 1, strlen (penultimate + 1)))
         {
           /* foo/c/getopt so it's probably unix */
           return translate_or_null (create_dir, flags, buffer,
                                     buf_end, filetype, orig_out, orig_in, path);
         }
 
-      if (__sfixfind (last + 1))
+      if (__sfixfind (last + 1, strlen (last + 1)))
         {
           /* foo.getopt/c so it's probably RISC OS */
           return copy_or_null (orig_out, orig_in, buf_end);

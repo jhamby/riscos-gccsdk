@@ -1,8 +1,8 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/common/unixify.c,v $
- * $Date: 2003/08/03 16:32:13 $
- * $Revision: 1.5 $
+ * $Date: 2003/08/18 22:35:36 $
+ * $Revision: 1.6 $
  * $State: Exp $
  * $Author: joty $
  *
@@ -240,7 +240,7 @@ __unixify (const char *ro_path, int unixify_flags, char *buffer,
                   /* before_suffix is "c/file"
                      after_suffix is "/file"  */
                   *after_suffix = '\0'; /* temporary.  */
-                  if (__sfixfind (before_suffix))
+                  if (__sfixfind (before_suffix, after_suffix - before_suffix))
                     {
                       /* We need to do reverse suffix swapping.  */
                       char suffix[32];

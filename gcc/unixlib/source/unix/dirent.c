@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/dirent.c,v $
- * $Date: 2003/08/18 22:35:36 $
- * $Revision: 1.7 $
+ * $Date: 2003/10/06 19:00:01 $
+ * $Revision: 1.8 $
  * $State: Exp $
  * $Author: joty $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: dirent.c,v 1.7 2003/08/18 22:35:36 joty Exp $";
+static const char rcs_id[] = "$Id: dirent.c,v 1.8 2003/10/06 19:00:01 joty Exp $";
 #endif
 
 /* #define DEBUG */
@@ -234,7 +234,7 @@ opendir (const char *ux_name)
       fprintf (stderr, "name 0x%p, leafname 0x%p\n", name, leafname);
       fprintf (stderr, "name '%s', leafname '%s'\n", name, leafname);
 #endif
-      if (__sfixfind(leafname))
+      if (__sfixfind (leafname, strlen (leafname)))
         {
           (void) __set_errno (ENOENT);
           return NULL;
@@ -551,7 +551,7 @@ readdir_r (DIR *stream, struct dirent *entry, struct dirent **result)
       /* Check for reverse suffix dir swapping */
       if (!(riscosify_ctl & __RISCOSIFY_NO_REVERSE_SUFFIX)
           && entry->d_type == DT_DIR
-          && __sfixfind (entry->d_name))
+          && __sfixfind (entry->d_name, entry->d_namlen))
         {
           char name[_POSIX_PATH_MAX];
           char *str;

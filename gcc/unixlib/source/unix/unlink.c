@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/unlink.c,v $
- * $Date: 2003/05/13 22:59:47 $
- * $Revision: 1.6 $
+ * $Date: 2003/08/15 13:56:31 $
+ * $Revision: 1.7 $
  * $State: Exp $
  * $Author: joty $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: unlink.c,v 1.6 2003/05/13 22:59:47 joty Exp $";
+static const char rcs_id[] = "$Id: unlink.c,v 1.7 2003/08/15 13:56:31 joty Exp $";
 #endif
 
 #include <errno.h>
@@ -38,8 +38,11 @@ __unlinksuffix (char *file)
       while (dot > file && *dot != '.')
         dot--;
 
+      if (*dot == '.')
+        dot++;
+
       if (!(__get_riscosify_control () & __RISCOSIFY_NO_SUFFIX)
-          && __sfixfind (*dot == '.' ? dot + 1 : dot))
+          && __sfixfind (dot, strlen (dot)))
         __os_file (6, file, regs); /* This will only delete empty directories */
     }
 }

@@ -1,3 +1,12 @@
+Sun Feb 07 18:07:37 2004  Alex Waugh  <alex@alexwaugh.com>
+
+	* source/common/riscosify.c (__sfixfind): Add length parameter to ease
+	  calling from rname.c
+	* source/clib/unixlib/local.h: Likewise.
+	* source/common/unixify.c: Likewise.
+	* source/unix/dirent.c: Likewise.
+	* source/unix/unlink.c: Likewise.
+
 Sun Jan 18 16:08:06 2004  Alex Waugh  <alex@alexwaugh.com>
 
 	* source/netlib/socketpair.c: Fix syntax error.
