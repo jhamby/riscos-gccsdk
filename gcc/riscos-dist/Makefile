@@ -35,20 +35,20 @@ GCCDOCPKG = $(pkg)/docs/COPYING \
 	$(pkg)/docs/COPYINGLIB \
 	$(pkg)/docs/Intro \
 	$(pkg)/docs/bugs \
-	$(pkg)/docs/gcc-faq \
 	$(pkg)/docs/cpp \
 	$(pkg)/docs/gcc \
 	$(pkg)/examples
 
 CC1PKG = $(pkg)/bin/g++$(exesfx) \
 	$(bindir)/cc1$(exesfx) \
-	$(libdir)/include/h \
-	$(bindir)/apcs32/arch3/unixlib/o/libiostream \
-	$(bindir)/apcs32/arch3/unixlib/o/libio \
-	$(bindir)/apcs32/arch3/unixlib/o/libstdc++
+	$(libdir)/include/h
 
 CC1PLUSPKG = $(bindir)/cc1plus$(exesfx) \
 	$(libdir)/include/g++-3 \
+	$(bindir)/apcs32/arch3/unixlib/o/libstdc++ \
+	$(bindir)/apcs32/arch3/unixlib/o/libsupc++ \
+	$(bindir)/apcs32/arch3/libscl/o/libstdc++ \
+	$(bindir)/apcs32/arch3/libscl/o/libsupc++
 
 G77PKG = $(pkg)/bin/g77$(exesfx) \
 	$(bindir)/f771$(exesfx) \
@@ -98,7 +98,6 @@ UNIXLIBBINPKG = $(upkg)/\!Boot,feb \
 	$(upkg)/\!Sprites22,ff9 \
 	$(upkg)/\!Help \
 	$(upkg)/\!MKDir,feb \
-	$(upkg)/CallASWI \
 	$(upkg)/Docs \
 	$(upkg)/source/clib
 
@@ -108,7 +107,6 @@ UNIXLIBSRCPKG = $(upkg)/\!Boot,feb \
 	$(upkg)/\!Sprites22,ff9 \
 	$(upkg)/\!Help \
 	$(upkg)/\!MKDir,feb \
-	$(upkg)/CallASWI \
 	$(upkg)/Docs \
 	$(upkg)/objs \
 	$(upkg)/source
@@ -124,12 +122,12 @@ install:
 	cp Sprites,ff9 $(ro_gccpkg)/\!Sprites,ff9
 	cp Sprites22,ff9 $(ro_gccpkg)/\!Sprites22,ff9
 	cp Changes $(ro_gccpkg)/Changes
-	cp Help $(ro_gccpkg)/Help
+	cp Help $(ro_gccpkg)/\!Help
 	find $(ro_gccpkg) -name "CVS" -type d | xargs rm -rf
 	find $(ro_gccpkg) -name "*~*" -or -name "*.orig*" -or -name "*.reg*" -type f | xargs rm -rf
 
-	for dir in CallASWI Docs objs; do \
-		cp -pR ../unixlib/$$dir $(ro_unixlibpkg) ; done
+	cp -pR ../unixlib/Docs $(ro_unixlibpkg)
+	cp -pR ../unixlib/objs $(ro_unixlibpkg)
 	cp ../unixlib/Boot,feb $(ro_unixlibpkg)/\!Boot,feb
 	cp ../unixlib/\!Help $(ro_unixlibpkg)/\!Help
 	cp ../unixlib/MKDir,feb $(ro_unixlibpkg)/\!MKDir,feb
@@ -165,11 +163,9 @@ package:
 	$(ux_bin_dir)/zip -, -9r $(ro_zippkg)/cc1.zip $(CC1PKG) ; \
 	$(ux_bin_dir)/zip -, -9r $(ro_zippkg)/cc1plus.zip $(CC1PLUSPKG) ; \
 	$(ux_bin_dir)/zip -, -9r $(ro_zippkg)/g77.zip $(G77PKG) ; \
-	$(ux_bin_dir)/zip -, -9r $(ro_zippkg)/gpc.zip $(GPCPKG) ; \
 	$(ux_bin_dir)/zip -, -9r $(ro_zippkg)/java.zip $(JAVAPKG) ; \
 	$(ux_bin_dir)/zip -, -9r $(ro_zippkg)/utils.zip $(UTILSPKG) ; \
 	$(ux_bin_dir)/zip -, -9r $(ro_zippkg)/system.zip $(SYSTEMPKG) ; \
 	$(ux_bin_dir)/zip -, -9r $(ro_zippkg)/unixlibbin.zip $(UNIXLIBBINPKG) ; \
 	$(ux_bin_dir)/zip -, -9r $(ro_zippkg)/unixlibsrc.zip $(UNIXLIBSRCPKG) ; \
 	$(ux_bin_dir)/zip -, -9r $(ro_zippkg)/libscl.zip $(LIBSCLPKG) ; )
-
