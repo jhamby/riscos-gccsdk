@@ -145,6 +145,7 @@ static void reloc_aofarlist(arealist *ap) {
   arealist *firstarea;
   newhead *hp;
 
+
   firstarea = NIL;
   while (ap!=NIL) {
     unsigned int areabase;
@@ -157,21 +158,21 @@ static void reloc_aofarlist(arealist *ap) {
       hp->headname = firstarea->arname;
       hp->headattr = firstarea->aratattr;
       hp->headflink = NIL;
+
       if (headlast==NIL) {
         headlist = hp;
-      }
-      else {
+      } else {
         headlast->headflink = hp;
       }
       headlast = hp;
-
-      ap->arplace = areabase;
-      if (ap==entryarea) {	/* Note new entry area if necessary */
-	newentryarea = newareacount;
-	entryoffset+=areabase;
-      }
-      areabase+=ap->arobjsize;
     }
+
+    ap->arplace = areabase;
+    if (ap == entryarea) {	/* Note new entry area if necessary */
+      newentryarea = newareacount;
+      entryoffset += areabase;
+    }
+    areabase += ap->arobjsize;
     ap = ap->arflink;
   }
 }
@@ -430,7 +431,7 @@ static void create_objhead(void) {
 ** 'create_objidfn' is called to create the OBJ_IDFN chunk.
 ** Note that hack where the string is copied to a buffer
 ** to ensure that it is word aligned for 'write_image' to
-** play with under RISCOS
+** play with under RISC OS
 */
 static void create_objidfn(void) {
   int n;

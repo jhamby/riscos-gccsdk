@@ -1539,6 +1539,7 @@ static void relocate_item(relocation *rp) {
   unsigned int offset, relts;
   unsigned int *relplace;
   offset = rp->reloffset;
+
   if (offset>current_objsize) {
     error("Error: Bad relocation offset (0x%x) found in area '%s' in '%s'",
      offset, current_area->arname, current_file->chfilename);
