@@ -1,8 +1,8 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/_syslib.s,v $
-; $Date: 2003/04/28 12:07:02 $
-; $Revision: 1.15 $
+; $Date: 2003/04/28 22:44:03 $
+; $Revision: 1.16 $
 ; $State: Exp $
 ; $Author: alex $
 ;
@@ -14,6 +14,7 @@
 NO_MEMORY   * 0
 NO_CALLASWI * 1
 NO_SUL      * 2
+NO_FPE      * 3
 
 ; Constants for field offsets within a stack chunk
 ; The stack is allocated in chunks, each chunk is a multiple of 4KB, and
@@ -355,8 +356,10 @@ no_dynamic_area
 	; If it does, then there is a floating point ability.
 	SWI	XFPEmulator_Version
 	MOVVS	a1, #0
-	MOVVC	a1, #1
 	STR	a1, [ip, #52]	; __fpflag
+	CMP	a1, #400	; We want 4.00 or above so we can use SFM/LFM
+	MOVLT	a1, #NO_FPE
+	BLT	exit_with_error
 
 	; Now we'll initialise the C library, then call the user program.
 
@@ -411,6 +414,7 @@ error_table
 	DCD	error_no_memory
 	DCD	error_no_callaswi
 	DCD	error_no_sharedunixlib
+	DCD	error_no_fpe
 
 error_no_callaswi
 	DCB	"Module CallASWI is not present.", 13, 10, 0
@@ -418,6 +422,8 @@ error_no_memory
 	DCB	"Insufficient memory for application", 13, 10, 0
 error_no_sharedunixlib
 	DCB	"This application requires version 1.00 of the SharedUnixLibrary module", 13, 10, 0
+error_no_fpe
+	DCB	"This application requires version 4.00 or later of the FPEmulator module", 13, 10, 0
 	ALIGN
 
 check_for_callaswi

@@ -1,8 +1,8 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/pthread/_context.s,v $
-; $Date: 2003/04/06 10:58:40 $
-; $Revision: 1.4 $
+; $Date: 2003/04/28 12:07:02 $
+; $Revision: 1.5 $
 ; $State: Exp $
 ; $Author: alex $
 ;
@@ -46,7 +46,6 @@
 	IMPORT	|__pthread_running_thread|
 	IMPORT	|__pthread_num_running_threads|
 	IMPORT	|__cbreg|
-	IMPORT	|__fpflag|
 
 	EXPORT	|__pthread_start_ticker|
 	EXPORT	|__pthread_stop_ticker|
@@ -182,26 +181,10 @@
 	CHGMODE	a3, USR_Mode
 
 	; Save floating point regs
-	LDR	a4, =|__fpflag|
-	LDR	a4, [a4]
-	CMP	a4, #0
-	BEQ	no_fp1
-	[ {CONFIG} = 26
-	STFE	f0, [a1], #12
-	STFE	f1, [a1], #12
-	STFE	f2, [a1], #12
-	STFE	f3, [a1], #12
-	STFE	f4, [a1], #12
-	STFE	f5, [a1], #12
-	STFE	f6, [a1], #12
-	STFE	f7, [a1], #12
-	|
 	SFM	f0, 4, [a1], #48
 	SFM	f4, 4, [a1], #48
-	]
 	RFS	a2	; Read floating status
 	STR	a2, [a1]
-no_fp1
 
 	BL	|__pthread_context_switch|	; Call the scheduler to switch to another thread
 
@@ -210,27 +193,11 @@ no_fp1
 	LDR	a1, [a1]
 	LDR	a2, [a1, #__PTHREAD_CONTEXT_OFFSET]	; __pthread_running_thread->saved_context
 
-	LDR	a4, =|__fpflag|
-	LDR	a4, [a4]
-	CMP	a4, #0
-	BEQ	no_fp2
 	ADD	a2, a2, #17*4
-	[ {CONFIG} = 26
-	LDFE	f0, [a2], #12
-	LDFE	f1, [a2], #12
-	LDFE	f2, [a2], #12
-	LDFE	f3, [a2], #12
-	LDFE	f4, [a2], #12
-	LDFE	f5, [a2], #12
-	LDFE	f6, [a2], #12
-	LDFE	f7, [a2], #12
-	|
 	LFM	f0, 4, [a2], #48
 	LFM	f4, 4, [a2], #48
-	]
 	LDR	a1, [a2]
 	WFS	a1	; Write floating status
-no_fp2
 
 	SWI	XOS_EnterOS	; Back to supervisor mode
 
@@ -276,24 +243,9 @@ no_fp2
 ; entry:
 ;   R0 = save area
 |__pthread_init_save_area|
-	LDR	a4, =|__fpflag|
-	LDR	a4, [a4]
-	CMP	a4, #0
-	return	EQ, pc, lr
 	ADD	a2, a1, #17*4
-	[ {CONFIG} = 26
-	STFE	f0, [a2], #12
-	STFE	f1, [a2], #12
-	STFE	f2, [a2], #12
-	STFE	f3, [a2], #12
-	STFE	f4, [a2], #12
-	STFE	f5, [a2], #12
-	STFE	f6, [a2], #12
-	STFE	f7, [a2], #12
-	|
 	SFM	f0, 4, [a2], #48
 	SFM	f4, 4, [a2], #48
-	]
 	RFS	a1	; Read floating status
 	STR	a1, [a2], #12
 	return	AL, pc, lr

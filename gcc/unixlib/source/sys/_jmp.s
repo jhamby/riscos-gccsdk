@@ -1,8 +1,8 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/_jmp.s,v $
-; $Date: 2002/09/24 21:02:38 $
-; $Revision: 1.4 $
+; $Date: 2002/12/15 13:16:55 $
+; $Revision: 1.5 $
 ; $State: Exp $
 ; $Author: admin $
 ;
@@ -12,7 +12,6 @@
 
 	AREA	|C$$code|, CODE, READONLY
 
-	IMPORT	|__fpflag|
 	IMPORT	|__alloca_list|,WEAK
 	IMPORT	free
 	IMPORT	|_exit|
@@ -35,20 +34,7 @@ setjmp
 	]
 	STR	a4, [a1], #4
 
-	LDR	a4, =|__fpflag|
-	LDR	a4, [a4]
-	CMP	a4, #0
-	ADDEQ	a1, a1, #48
-	[ {CONFIG} = 26
-	BEQ	|__setjmp_l1|
-	STFE	f4, [a1], #12
-	STFE	f5, [a1], #12
-	STFE	f6, [a1], #12
-	STFE	f7, [a1], #12
-	|
-	SFMNE	f4, 4, [a1], #48
-	]
-|__setjmp_l1|
+	SFM	f4, 4, [a1], #48
 	; warning!!!!
 	; even though a1 does not need to be saved, this position in
 	; the jmp_buf is used when a child process returns via vret
@@ -101,20 +87,7 @@ longjmp
 	LDR	sp, [v1, #84]
 	BL	|__trim_stack|
 
-	LDR	a4, =|__fpflag|
-	LDR	a4, [a4]
-	CMP	a4, #0
-	ADDEQ	v1, v1, #48
-	[ {CONFIG} = 26
-	BEQ	|__longjmp_l1|
-	LDFE	f4, [v1], #12
-	LDFE	f5, [v1], #12
-	LDFE	f6, [v1], #12
-	LDFE	f7, [v1], #12
-	|
-	LFMNE	f4, 4, [v1], #48
-	]
-|__longjmp_l1|
+	LFM	f4, 4, [v1], #48
 	MOVS	a1, v2
 	MOVEQ	a1, #1			; longjmp can't return 0
 	; technically there is a problem here if we should be
