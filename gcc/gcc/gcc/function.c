@@ -4594,6 +4594,7 @@ assign_parms (tree fndecl)
 
       {
 	rtx offset_rtx;
+	unsigned int align, boundary;
 
 	/* If we're passing this arg using a reg, make its stack home
 	   the aligned stack slot.  */
@@ -4611,8 +4612,24 @@ assign_parms (tree fndecl)
 						  offset_rtx));
 
 	set_mem_attributes (stack_parm, parm, 1);
-	set_mem_align (stack_parm, 
-		       FUNCTION_ARG_BOUNDARY (promoted_mode, passed_type));
+
+	boundary = FUNCTION_ARG_BOUNDARY (promoted_mode, passed_type);
+	align = 0;
+
+	/* If we're padding upward, we know that the alignment of the slot
+	   is FUNCTION_ARG_BOUNDARY.  If we're using slot_offset, we're
+	   intentionally forcing upward padding.  Otherwise we have to come
+	   up with a guess at the alignment based on OFFSET_RTX.  */
+	if (locate.where_pad == upward || entry_parm)
+	  align = boundary;
+	else if (GET_CODE (offset_rtx) == CONST_INT)
+	  {
+	    align = INTVAL (offset_rtx) * BITS_PER_UNIT | boundary;
+	    align = align & -align;
+	  }
+	if (align > 0)
+	  set_mem_align (stack_parm, align);
+
 	if (entry_parm)
 	  set_reg_attrs_for_parm (entry_parm, stack_parm);
       }
@@ -4797,8 +4814,7 @@ assign_parms (tree fndecl)
 		  PUT_MODE (stack_parm, GET_MODE (entry_parm));
 		  set_mem_attributes (stack_parm, parm, 1);
 		}
-	      else if (GET_CODE (entry_parm) == PARALLEL 
-		       && GET_MODE(entry_parm) == BLKmode)
+	      else if (GET_CODE (entry_parm) == PARALLEL)
 		;
 	      else if (PARM_BOUNDARY % BITS_PER_WORD != 0)
 		abort ();
@@ -5716,11 +5732,6 @@ uninitialized_vars_warning (tree block)
 	  && regno_uninitialized (REGNO (DECL_RTL (decl))))
 	warning ("%J'%D' might be used uninitialized in this function",
 		 decl, decl);
-
-#ifndef TARGET_RISCOSAOF
-      /* NAB++ Disable this warning because it gives splurious messages when
-         compiling C++ applications due to our use of setjmp/longjmp
-         exception handling.  */
       if (extra_warnings
 	  && TREE_CODE (decl) == VAR_DECL
 	  && DECL_RTL_SET_P (decl)
@@ -5728,7 +5739,6 @@ uninitialized_vars_warning (tree block)
 	  && regno_clobbered_at_setjmp (REGNO (DECL_RTL (decl))))
 	warning ("%Jvariable '%D' might be clobbered by `longjmp' or `vfork'",
 		 decl, decl);
-#endif
     }
   for (sub = BLOCK_SUBBLOCKS (block); sub; sub = TREE_CHAIN (sub))
     uninitialized_vars_warning (sub);
@@ -5740,8 +5750,6 @@ uninitialized_vars_warning (tree block)
 void
 setjmp_args_warning (void)
 {
-  /* NAB++ Similarily here.  */
-#ifndef TARGET_RISCOSAOF
   tree decl;
   for (decl = DECL_ARGUMENTS (current_function_decl);
        decl; decl = TREE_CHAIN (decl))
@@ -5750,7 +5758,6 @@ setjmp_args_warning (void)
 	&& regno_clobbered_at_setjmp (REGNO (DECL_RTL (decl))))
       warning ("%Jargument '%D' might be clobbered by `longjmp' or `vfork'",
 	       decl, decl);
-#endif
 }
 
 /* If this function call setjmp, put all vars into the stack
