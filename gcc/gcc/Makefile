@@ -7,28 +7,21 @@ export TRG
 libpath=$(objdir)/gcc-$(VERSION)/$@
 gccpath=$(objdir)/gcc-$(VERSION)/$@/$(STAGE)
 
-all:	zlib gcc
-# libstdc++-v3
+all:	gcc
 
 .PHONY: zlib
 .PHONY: gcc
-.PHONY: libgcc
+x.PHONY: libgcc
 .PHONY: libf2c
-.PHONY: libstdc++-v3
+.PHONY: libstdc
+.PHONY: libio
+.PHONY: libsupc++
 
 gcc:
 	mkdir -p $(gccpath) $(gccpath)/ada $(gccpath)/cp $(gccpath)/f77 \
 	$(gccpath)/gpc $(gccpath)/objc $(gccpath)/java $(gccpath)/config/arm
 	$(MAKE) -C gcc "STAGE=$(STAGE)"
 
-zlib:
-	mkdir -p $(gccpath)/zlib
-	$(MAKE) -C $@
-
-libgcc:
-	mkdir -p $(libpath)/$(TRG)
-	$(MAKE) -C libgcc "STAGE=$(STAGE)"
-
-libgpc libf2c libstdc++-v3:
+libgcc libgpc libf2c libstdc libio libsupc++ zlib:
 	mkdir -p $(libpath)/$(TRG)
 	$(MAKE) -C $@

@@ -11,6 +11,10 @@ FPBIT_FLAGS=-DFINE_GRAINED_LIBRARIES -I. -I../../include -I../gcc -I../gcc/confi
 
 libobjdir=$(objdir)/gcc-$(VERSION)/libgcc/$(TRG)
 
+LIB2ADDEH = $(libobjdir)/unwind-dw2.o \
+	$(libobjdir)/unwind-dw2-fde.o \
+	$(libobjdir)/unwind-sjlj.o
+
 # All the file that go into the gcc library
 GCC_LIB_COMMON = $(libobjdir)/dummy.o \
 	$(libobjdir)/getopt.o \
@@ -47,6 +51,7 @@ GCC_LIB_COMMON = $(libobjdir)/dummy.o \
 	$(libobjdir)/pure.o \
 	$(libobjdir)/bb.o \
 	$(libobjdir)/div0.o
+
 
 FP_BIT_DOUBLE = $(libobjdir)/pack_df.o \
 	$(libobjdir)/unpack_df.o \
@@ -95,14 +100,14 @@ install_headers:
 	$(insthdr) ginclude "*.h" . $(ux_gccpkg)/$(gn_gcc_include_dir) $(ro_gccpkg)/$(gn_gcc_include_dir)
 
 $(ux_gcc_bin_dir)/$(TRG)/libgcc.o: $(GCC_LIB_ULIB) \
-	$(GCC_LIB_COMMON) $(FP_BIT_DOUBLE) $(FP_BIT_SINGLE)
+	$(GCC_LIB_COMMON) $(FP_BIT_DOUBLE) $(FP_BIT_SINGLE) $(LIB2ADDEH)
 	$(CROSS_AR) $(CROSS_AR_FLAGS) -c $@ $(GCC_LIB_ULIB) \
-	$(GCC_LIB_COMMON) $(FP_BIT_DOUBLE) $(FP_BIT_SINGLE)
+	$(GCC_LIB_COMMON) $(FP_BIT_DOUBLE) $(FP_BIT_SINGLE) $(LIB2ADDEH)
 
 $(ro_gcc_bin_dir)/$(TRG)/o/libgcc: $(GCC_LIB_ULIB) \
-	$(GCC_LIB_COMMON) $(FP_BIT_DOUBLE) $(FP_BIT_SINGLE)
+	$(GCC_LIB_COMMON) $(FP_BIT_DOUBLE) $(FP_BIT_SINGLE) $(LIB2ADDEH)
 	$(CROSS_AR) $(CROSS_AR_FLAGS) -c $@ $(GCC_LIB_ULIB) \
-	$(GCC_LIB_COMMON) $(FP_BIT_DOUBLE) $(FP_BIT_SINGLE)
+	$(GCC_LIB_COMMON) $(FP_BIT_DOUBLE) $(FP_BIT_SINGLE) $(LIB2ADDEH)
 
 ############################################################################
 
@@ -133,6 +138,17 @@ $(libobjdir)/main.o:	libgcc2.c
 
 $(libobjdir)/bb.o:	libgcc2.c
 	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c libgcc2.c $(INCLUDES) -DL_bb
+
+
+# Exception handling
+$(libobjdir)/unwind-dw2.o: ../gcc/unwind-dw2.c
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c ../gcc/unwind-dw2.c $(INCLUDES)
+
+$(libobjdir)/unwind-dw2-fde.o: ../gcc/unwind-dw2-fde.c
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c ../gcc/unwind-dw2-fde.c $(INCLUDES)
+
+$(libobjdir)/unwind-sjlj.o: ../gcc/unwind-sjlj.c
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c ../gcc/unwind-sjlj.c $(INCLUDES) -I../gcc
 
 
 

@@ -9,7 +9,7 @@ else
 CC = $(CROSS_CC)
 CXX = $(CROSS_CXX)
 CXXFLAGS = $(CROSS_CXXFLAGS)
-linklibs = -liostream -lstdc++
+linklibs = -lstdc++ -lsupc++
 endif
 
 INCLUDES = -I. -I../../
