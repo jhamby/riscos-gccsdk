@@ -389,7 +389,7 @@ decode (const char *aof_file)
     }
   if (hdr->chunkfileid != 0xc3cbc6c5)
     {
-      fprintf (stderr, "File '%s' is not an AOF file\n", aof_file);
+      fprintf (stderr, "File '%s' is not a chunk file\n", aof_file);
       return -1;
     }
 
@@ -411,6 +411,9 @@ decode (const char *aof_file)
 	  fprintf (stderr, "Failed reading string table\n");
 	  return -1;
 	}
+    } else {
+      fprintf (stderr, "File '%s' is not an AOF file\n", aof_file);
+      return -1;
     }
 
   /* Find file offset for OBJ_AREA.  */
