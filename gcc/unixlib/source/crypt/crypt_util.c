@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/crypt/crypt_util.c,v $
- * $Date: 2002/11/18 15:38:13 $
- * $Revision: 1.2 $
+ * $Date: 2003/04/28 21:04:35 $
+ * $Revision: 1.3 $
  * $State: Exp $
- * $Author: admin $
+ * $Author: alex $
  *
  ***************************************************************************/
 
@@ -920,7 +920,7 @@ setkey_r(__key, __data)
       c = c << 1 | *__key++;
     ktab[i] = c >> 1;
   }
-  _ufc_mk_keytab_r(ktab, __data);
+  _ufc_mk_keytab_r((const char *) ktab, __data);
 }
 /* weak_alias (__setkey_r, setkey_r)
  */
