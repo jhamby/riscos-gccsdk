@@ -9,6 +9,7 @@
 
 #define __need_size_t
 #include <stddef.h>
+#include <errno.h>
 
 __BEGIN_DECLS
 

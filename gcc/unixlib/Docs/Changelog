@@ -10,7 +10,8 @@ Fri Oct  8 12:56:32 2004  Peter Naulls  <peter@chocky.org>
 	  functionality.
 	* source/common/riscosify.c: Modify to work with libscl too.
 	* source/unix/fnmatch.c: Update functionality.
-	* source/locale/iconv.c: Work with Norcroft properly.
+	* source/locale/iconv.c, source/clib/iconv.h: Work with Norcroft
+	  properly.
 
 Tue Oct  5 16:24:01 2004  Peter Naulls  <peter@chocky.org>
 
