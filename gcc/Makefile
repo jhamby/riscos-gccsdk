@@ -35,9 +35,18 @@ setup:	directories install_headers
 # and linker natively
 crosshost:	libiberty riscos-aof gcc
 
+ifeq ($(crosscompile),yes)
+riscoshost:
+else
+# We don't build these for on the cross compiler because the host probably
+# has the tools anyway.  They get built as RISC OS binaries, so it would
+# be pointless.
+riscoshost:	riscos-progs
+endif
+
 # These targets build the libraries and binaries suitable for execution
 # on RISC OS machines only.
-crosstarget:	libgcc unixlib libscl libio libstdc libf2c libgpc riscos-progs riscos-libs
+crosstarget:	libgcc unixlib libscl libio libstdc libf2c libgpc riscos-libs riscoshost
 
 .PHONY: directories
 .PHONY: libgcc
