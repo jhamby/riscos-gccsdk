@@ -1032,7 +1032,6 @@ bool read_libchunkhdr(libheader *lp) {
 void open_image(void) {
 #ifdef TARGET_RISCOS
   unsigned int filetype;
-  int __riscosify_control;
   _kernel_swi_regs regs;
   _kernel_oserror *swierror;
   switch(imagetype) {
@@ -1055,7 +1054,7 @@ void open_image(void) {
     error("Fatal: Cannot create image file '%s'", imagename);
   }
   /* We're dealing with a RISC OS format output name, passed from ld */
-  __riscosify_control = __RISCOSIFY_NO_PROCESS;
+  __set_riscosify_control(__RISCOSIFY_NO_PROCESS);
   imagefile = fopen(imagename, "rb+");
 #else
   imagefile = fopen(imagename, "wb");
