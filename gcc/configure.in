@@ -1,5 +1,5 @@
 # Top-level configure.in for the RISC OS GCCSDK
-# Copyright (c) 2000 Nick Burrett
+# Copyright (c) 2000, 2001 Nick Burrett
 # Written by Nick Burrett <nick@dsvr.net>
 
 AC_INIT(Makefile.in)
@@ -141,6 +141,9 @@ test "$with_riscos_pkg" = yes && with_riscos_pkg = $prefix/riscos-pkg
 test "$with_riscos_pkg" = default && with_riscos_pkg = $prefix/riscos-pkg
 test "$with_riscos_pkg" = "" && with_riscos_pkg = $prefix/riscos-pkg
 
+AC_ARG_ENABLE(filetype-ff8,
+	[  --enable-filetype-ff8    add ,ff8 to RISC OS executables])
+test "$enable_filetype_ff8" = yes && AC_DEFINE(ENABLE_FILETYPE_FF8)
 
 dnl Checks for library functions
 echo Targeting for host $host
