@@ -1,6 +1,12 @@
 Summary of Changes
 ==================
 
+29 Jan 2001
+-----------
+
+* Update UnixLib tree to the 2 Jan 2001 snapshot. The biggest change is
+  the inclusion of support for command lines limited only by memory size.
+
 02 Jan 2001
 -----------
 
