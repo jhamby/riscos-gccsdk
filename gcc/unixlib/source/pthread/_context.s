@@ -1,10 +1,10 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/pthread/_context.s,v $
-; $Date: 2004/03/24 22:30:35 $
-; $Revision: 1.9 $
+; $Date: 2004/10/17 16:24:44 $
+; $Revision: 1.10 $
 ; $State: Exp $
-; $Author: alex $
+; $Author: joty $
 ;
 ;----------------------------------------------------------------------------
 
@@ -158,12 +158,12 @@ filter_name
 ;
 	NAME	__pthread_stop_ticker
 |__pthread_stop_ticker|
-	STMFD	sp!, {v1, lr}
+	STMFD	sp!, {v1, v2, lr}
 	; Don't bother if thread system is not running
 	LDR	a1, =|__pthread_system_running|
 	LDR	a1, [a1]
 	TEQ	a1, #0
-	LDMEQFD	sp!, {v1, pc}
+	LDMEQFD	sp!, {v1, v2, pc}
 
 	; Need to remove the filters ?
 	LDR	a1, =|__taskhandle|
@@ -190,7 +190,7 @@ filter_name
 
 stop_ticker_core
 	BL	|stop_call_every|
-	LDMFD	sp!, {v1, pc}
+	LDMFD	sp!, {v1, v2, pc}
 
 
 ; The ticker calls this every clock tick

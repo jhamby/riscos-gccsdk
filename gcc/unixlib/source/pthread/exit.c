@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/pthread/exit.c,v $
- * $Date: 2003/04/06 10:58:41 $
- * $Revision: 1.3 $
+ * $Date: 2004/12/11 14:18:57 $
+ * $Revision: 1.4 $
  * $State: Exp $
- * $Author: alex $
+ * $Author: joty $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: exit.c,v 1.3 2003/04/06 10:58:41 alex Exp $";
+static const char rcs_id[] = "$Id: exit.c,v 1.4 2004/12/11 14:18:57 joty Exp $";
 #endif
 
 /* Written by Martin Piper and Alex Waugh */
@@ -87,6 +87,7 @@ pthread_exit (void *status)
   if (__pthread_num_running_threads > 0)
     {
       /* Not the last thread */
+      thread->state = STATE_IDLE;
       __pthread_enable_ints ();
 
       while (1)

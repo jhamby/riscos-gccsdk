@@ -1,3 +1,9 @@
+Mon Jan  3 16:28:34 2005  Alex Waugh  <alex@alexwaugh.com>
+
+	* source/pthread/_context.s (__pthread_stop_ticker): Stack register
+	  that gets corrupted.
+	* source/pthread/exit.c (pthread_exit): Fix potential race condition.
+
 Mon Dec 27 19:38:27 2004  John-Mark Bell <jmb202@ecs.soton.ac.uk>
 
 	* source/sys/_swi.s: Simplify _BLOCK and _RETURN handling. 
