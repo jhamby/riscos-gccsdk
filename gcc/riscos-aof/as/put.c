@@ -38,6 +38,9 @@ putData (int size, WORD data)
     }
   if (align)
     {
+      if (AREA_NOSPACE (areaCurrent->area.info,
+			areaCurrent->value.ValueInt.i + size))
+	areaGrow (areaCurrent->area.info, size);
       switch (size)
 	{
 	case 1:
