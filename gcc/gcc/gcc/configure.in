@@ -56,6 +56,7 @@ AC_CHECK_FUNCS(bcmp bcopy bsearch bzero getrlimit gettimeofday index)
 AC_CHECK_FUNCS(isascii kill popen putenv setrlimit strchr strerror)
 AC_CHECK_FUNCS(strrchr strsignal strtoul sysconf stpcpy)
 AC_CHECK_FUNCS(putc_unlocked fputc_unlocked fputs_unlocked)
+AC_CHECK_FUNCS(vprintf)
 
 AC_DECL_SYS_SIGLIST
 
