@@ -1,10 +1,10 @@
 /****************************************************************************
  *
- * $Source$
- * $Date$
- * $Revision$
- * $State$
- * $Author$
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/errno.h,v $
+ * $Date: 2002/09/24 21:02:36 $
+ * $Revision: 1.4 $
+ * $State: Exp $
+ * $Author: admin $
  *
  ***************************************************************************/
 
@@ -125,12 +125,14 @@ extern int sys_nerr;
 
 #define __SYS_NERR	89
 
+#ifdef __UNIXLIB_INTERNALS
 /* This macro should be used whenever errno is to be set. This permits
    us to easily make setting the errno call a function if necessary if
    threads ever appear.  We also give a return value so we can use
    return __set_errno () which can allow function tail calling.  */
 #ifndef __set_errno
 #define __set_errno(val) (errno = (val), -1)
+#endif
 #endif
 
 __END_DECLS

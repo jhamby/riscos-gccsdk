@@ -1,10 +1,10 @@
 # Project:   UnixLib 4.0
 
-# $Source$
-# $Date$
-# $Revision$
-# $State$
-# $Author$
+# $Source: /usr/local/cvsroot/gccsdk/unixlib/objs/Makefile,fe1,v $
+# $Date: 2002/09/24 21:02:36 $
+# $Revision: 1.4 $
+# $State: Exp $
+# $Author: admin $
 
 CCfeatures =
 Predefs = -D__UNIXLIB_INTERNALS
@@ -212,7 +212,8 @@ SYS_ASM =	sys.o._alloca sys.o._divsi3 sys.o._divtest \
 
 TIME =	time.o.adjtime time.o.asctime time.o.broken time.o.calendconv \
 	time.o.ctime time.o.difftime time.o.ftime time.o.getitmr \
-	time.o.gettod time.o.gmtime time.o.localtime time.o.mktime \
+	time.o.gettod time.o.gmtime time.o.gmtime_r time.o.localtime \
+	time.o.localtime_r time.o.mktime \
 	time.o.setitmr time.o.settod time.o.stdtime time.o.strftime \
 	time.o.time time.o.times time.o.tzset time.o.utimes
 
@@ -878,7 +879,9 @@ time.o.ftime:		time.c.ftime
 time.o.getitmr:		time.c.getitmr
 time.o.gettod:		time.c.gettod
 time.o.gmtime:		time.c.gmtime
+time.o.gmtime:		time.c.gmtime_r
 time.o.localtime:	time.c.localtime
+time.o.localtime_r:	time.c.localtime_r
 time.o.mktime:		time.c.mktime
 time.o.setitmr:		time.c.setitmr
 time.o.settod:		time.c.settod

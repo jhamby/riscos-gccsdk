@@ -1,3 +1,18 @@
+Fri Dec 13 11:07:21 2002  Nick Burrett  <nick@dsvr.net>
+
+	* time.h (localtime_r): Declare.
+	(gmtime_r): Declare.
+	(__calendar_convert): Fixup prototype.
+	* calendconv.c (__calendar_convert): Make re-entrant.
+	* gmtime.c (gmtime): Fixup call to support new re-entrant version
+	of `__calendar_convert'.
+	* localtime.c (localtime): Likewise.
+	* localtime_r.c: New file.
+	* gmtime_r.c: New file.
+
+	* errno.h (__set_errno): Add __UNIXLIB_INTERNALS guard.  This macro
+	shouldn't be exposed outside of UnixLib.
+
 Wed Nov 27 19:00:00 2002  Nick Burrett  <nick@dsvr.net>
 
 	64-bit placeholders

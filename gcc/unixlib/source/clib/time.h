@@ -1,10 +1,10 @@
 /****************************************************************************
  *
- * $Source$
- * $Date$
- * $Revision$
- * $State$
- * $Author$
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/time.h,v $
+ * $Date: 2002/09/24 21:02:37 $
+ * $Revision: 1.5 $
+ * $State: Exp $
+ * $Author: admin $
  *
  ***************************************************************************/
 
@@ -126,12 +126,20 @@ extern char *ctime (const time_t *__time);
 extern double difftime (time_t __time1, time_t __time0);
 
 /* Convert the calendar time 'time' to broken-down time,
-   esxpressed relative to the user's specified time zone. */
+   expressed relative to the user's specified time zone. */
 extern struct tm *localtime (const time_t *__time);
+
+/* Convert the calendar time 'time' to broken-down time,
+   expressed relative to the user's specified time zone (re-entrant). */
+extern struct tm *localtime_p (const time_t *__time, struct tm *resultp);
 
 /* Similar to localtime() but the broken-down time is expressed
    as UTC (GMT) rather than the local time zone.  */
 extern struct tm *gmtime (const time_t *__time);
+
+/* Similar to localtime() but the broken-down time is expressed
+   as UTC (GMT) rather than the local time zone (re-entrant).  */
+extern struct tm *gmtime_r (const time_t *__time, struct tm *resultp);
 
 /* Convert a broken-down time structure to a calendar time
    representation.  */
@@ -173,7 +181,8 @@ extern void __cvt_broken_time (const struct tm *__brokentime,
 			       char *__riscos_time);
 
 /* Common function for localtime() and gmtime().  */
-extern struct tm *__calendar_convert (int __swinum, const time_t *__tp);
+extern struct tm *__calendar_convert (int __swinum, const time_t *__tp,
+				      struct tm *resultp);
 
 /* Common function for ctime() and asctime().  */
 extern char *__standard_time (const char *__riscos_time);

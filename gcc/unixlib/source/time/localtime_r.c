@@ -19,10 +19,9 @@ static const char rcs_id[] = "$Id: localtime.c,v 1.4 2002/02/14 15:56:38 admin E
 #include <swis.h>
 
 struct tm *
-localtime (const time_t *tp)
+localtime_r (const time_t *tp, struct tm *t)
 {
-  struct tm *t = __calendar_convert (Territory_ConvertTimeToOrdinals, tp,
-				     &__tz[0]);
+  t = __calendar_convert (Territory_ConvertTimeToOrdinals, tp, t);
   t->tm_gmtoff = 3600 * daylight - timezone;
   t->tm_isdst = daylight;
   t->tm_zone = (daylight == 0) ? tzname[0] : tzname[1];

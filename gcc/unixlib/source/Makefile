@@ -494,7 +494,9 @@ TIME =	$(libunixobj)/time/adjtime.o \
 	$(libunixobj)/time/getitmr.o \
 	$(libunixobj)/time/gettod.o \
 	$(libunixobj)/time/gmtime.o \
+	$(libunixobj)/time/gmtime_r.o \
 	$(libunixobj)/time/localtime.o \
+	$(libunixobj)/time/localtime_r.o \
 	$(libunixobj)/time/mktime.o \
 	$(libunixobj)/time/setitmr.o \
 	$(libunixobj)/time/settod.o \
@@ -1202,7 +1204,9 @@ $(libunixobj)/time/ftime.o: time/ftime.c
 $(libunixobj)/time/getitmr.o: time/getitmr.c
 $(libunixobj)/time/gettod.o: time/gettod.c
 $(libunixobj)/time/gmtime.o: time/gmtime.c
+$(libunixobj)/time/gmtime_r.o: time/gmtime_r.c
 $(libunixobj)/time/localtime.o: time/localtime.c
+$(libunixobj)/time/localtime_r.o: time/localtime_r.c
 $(libunixobj)/time/mktime.o: time/mktime.c
 $(libunixobj)/time/setitmr.o: time/setitmr.c
 $(libunixobj)/time/settod.o: time/settod.c

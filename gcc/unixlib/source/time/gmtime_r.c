@@ -1,16 +1,12 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/time/gmtime.c,v $
- * $Date: 2002/02/14 15:56:38 $
- * $Revision: 1.4 $
- * $State: Exp $
- * $Author: admin $
+ * $Source$
+ * $Date$
+ * $Revision$
+ * $State$
+ * $Author$
  *
  ***************************************************************************/
-
-#ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: gmtime.c,v 1.4 2002/02/14 15:56:38 admin Exp $";
-#endif
 
 /* Territory time support, written by Nick Burrett on 12 July 1997.  */
 
@@ -19,10 +15,10 @@ static const char rcs_id[] = "$Id: gmtime.c,v 1.4 2002/02/14 15:56:38 admin Exp 
 #include <swis.h>
 
 struct tm *
-gmtime (const time_t *tp)
+gmtime_r (const time_t *tp, struct tm *resultp)
 {
   struct tm *t = __calendar_convert (Territory_ConvertTimeToUTCOrdinals, tp,
-				     &__tz[0]);
+				     resultp);
 
    /* GMT conversion rather than localtime - whether local time is on daylight
       saving is irrelevalant */
