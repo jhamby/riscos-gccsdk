@@ -20,7 +20,7 @@ AB_COMPILEFAIL=no
 AB_INSTALL=no
 AB_CATEGORY=
 AB_ZIPNAME=
-AB_README=ReadMe,fff
+AB_README=ReadMe
 AB_ARFLAGS=
 
 
@@ -238,17 +238,17 @@ if [ "$AB_NOPACKAGE" == "" ] ; then
    done
  fi
  
- if [ -e $B/ReadMe ] ; then
+ if [ -e $H/ReadMe ] ; then
    AB_UNDER=$(echo $AB_PACKAGE | tr [:alnum:] =)
  
    sed "s/PACKAGE/$AB_PACKAGE/; s/XXXXXXX/$AB_UNDER/; s/VERSION/$AB_PVERSION/; s/RELEASE/$AB_ROVERSION/" \
      < $AB_HOME/header \
-     > $AB_DIR/ReadMe,fff
+     > $D/ReadMe
  
-   cat $B/ReadMe >> $AB_DIR/ReadMe,fff
+   cat $H/ReadMe >> $D/ReadMe
  
-  if [ "$AB_README" != "ReadMe,fff" ] ; then
-    mv $AB_DIR/ReadMe,fff $AB_README
+  if [ "$AB_README" != "ReadMe" ] ; then
+    mv $AB_DIR/ReadMe $AB_README
   else
     :
   fi
