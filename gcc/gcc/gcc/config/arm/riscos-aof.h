@@ -116,7 +116,7 @@ Boston, MA 02111-1307, USA.  */
   if (TARGET_USE_AP)							\
     {									\
       fixed_regs[11] = 0;						\
-      call_used_regs[11] = 0;						\
+      call_used_regs[11] = 1;						\
     }									\
 }
 
