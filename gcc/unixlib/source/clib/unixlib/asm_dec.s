@@ -1,10 +1,10 @@
 ;----------------------------------------------------------------------------
 ;
-; $Source$
-; $Date$
-; $Revision$
-; $State$
-; $Author$
+; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/unixlib/asm_dec.s,v $
+; $Date: 2002/12/22 18:22:28 $
+; $Revision: 1.5 $
+; $State: Exp $
+; $Author: admin $
 ;
 ; Declare registers and SWIs we will be calling.
 ;
@@ -139,32 +139,18 @@ FFlag	EQU	&04000000	; FIRQ disable
 	MACRO
 	__set_errno	$val,$Rerrno
 	ASSERT	$val <> $Rerrno
-	[ __FEATURE_PTHREADS = 1
-	IMPORT	|__pthread_running_thread|
-	LDR	$Rerrno, =|__pthread_running_thread|
-	LDR	$Rerrno, [$Rerrno]
-	STR	$val, [$Rerrno, #__PTHREAD_ERRNO_OFFSET]
-	|
 	IMPORT	|errno|
 	LDR	$Rerrno,=|errno|
 	STR	$val,[$Rerrno]
-	]
 	MOV	$val,#-1
 	MEND
 
 	MACRO
 	__get_errno	$val,$Rerrno
 	ASSERT	$val <> $Rerrno
-	[ __FEATURE_PTHREADS = 1
-	IMPORT	|__pthread_running_thread|
-	LDR	$Rerrno, =|__pthread_running_thread|
-	LDR	$Rerrno, [$Rerrno]
-	LDR	$val, [$Rerrno, #__PTHREAD_ERRNO_OFFSET]
-	|
 	IMPORT	|errno|
 	LDR	$Rerrno,=|errno|
 	LDR	$val,[$Rerrno]
-	]
 	MEND
 
 	; NetSWI macro to call a networking (tcp/ip) swi.

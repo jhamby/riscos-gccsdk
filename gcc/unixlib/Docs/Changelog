@@ -1,3 +1,8 @@
+Fri Apr  4 22:51:24 2003  Alex Waugh  <alex@alexwaugh.com>
+
+	* asm_dec.s (__set_errno, __get_errno): Revert back to using
+	  global errno
+
 Wed Jan 29 18:51:20 2003  John Tytgat <John.Tytgat@aaug.net>
 
 	* objs/Makefile: crypt rules had a spurious column chars at the end
