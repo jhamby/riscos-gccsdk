@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/time/c/tzset,v $
- * $Date: 1997/10/09 20:00:47 $
- * $Revision: 1.4 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/time/tzset.c,v $
+ * $Date: 2001/01/29 15:10:22 $
+ * $Revision: 1.2 $
  * $State: Exp $
- * $Author: unixlib $
+ * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: tzset,v 1.4 1997/10/09 20:00:47 unixlib Exp $";
+static const char rcs_id[] = "$Id: tzset.c,v 1.2 2001/01/29 15:10:22 admin Exp $";
 #endif
 
 /* Territory time support, written by Nick Burrett on 12 July 1997.  */
@@ -24,16 +24,18 @@ static const char rcs_id[] = "$Id: tzset,v 1.4 1997/10/09 20:00:47 unixlib Exp $
 #include <sys/swis.h>
 
 /* The default timezones.  */
-char *tzname[2] = { (char *)"GMT", (char *)"BST" };
+static char __tzname[2][8] = { "GMT", "BST" };
+char *tzname[2] = { __tzname[0], __tzname[1] };
 struct tm __tz[1];
 
 /* System V compatibility variables.  */
-int timezone, daylight;
+int timezone = 0, daylight = 0;
 
 void
 tzset (void)
 {
   int regs[10];
+  int nondstoffset;
 
   /* Use current territory.  */
   regs[0] = __locale_territory[LC_TIME];
@@ -41,21 +43,23 @@ tzset (void)
   os_swi (Territory_ReadTimeZones, regs);
   /* regs[0] contains a pointer to the name of the standard time zone.
      regs[1] contains a pointer to the name of the daylight saving time.
-     We just store a copy of these pointers because their contents are
-     unlikely to be overwritten.  */
-  tzname[0] = (char *)regs[0];
-  tzname[1] = (char *)regs[1];
+      We copy these strings to be safe if their location should change. */
+  strncpy (__tzname[0], (char *) regs[0], 8);
+  __tzname[0][7] = '\0';
+  tzname[0] = __tzname[0];
+  strncpy (__tzname[1], (char *) regs[1], 8);
+  __tzname[1][7] = '\0';
+  tzname[1] = __tzname[1];
+  nondstoffset = regs[2];
 
-  /* To determine if we are in DST, we need to read the current time
-     zone and compare against the non DST version.  */
+
+  /* To determine if we are in DST, we need to read the offset of the
+     current time zone and compare against the non-DST version.  */
   os_swi (Territory_ReadCurrentTimeZone, regs);
-  if (strcmp (tzname[0], (const char *)regs[0]) == 0)
-    daylight = 0;
-  else
-    daylight = 1;
+  daylight = (nondstoffset == regs[1]) ? 0 : 1;
 
   timezone = -(regs[1] / 100);
   /* Add 1 hour if we're in daylight saving time.  */
   if (daylight)
-    timezone += 1*60*60;
+    timezone += 3600 * daylight;
 }

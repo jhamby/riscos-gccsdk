@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/time/c/gmtime,v $
- * $Date: 1997/10/09 20:00:46 $
- * $Revision: 1.3 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/time/gmtime.c,v $
+ * $Date: 2001/01/29 15:10:22 $
+ * $Revision: 1.2 $
  * $State: Exp $
- * $Author: unixlib $
+ * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: gmtime,v 1.3 1997/10/09 20:00:46 unixlib Exp $";
+static const char rcs_id[] = "$Id: gmtime.c,v 1.2 2001/01/29 15:10:22 admin Exp $";
 #endif
 
 /* Territory time support, written by Nick Burrett on 12 July 1997.  */
@@ -21,8 +21,11 @@ struct tm *
 gmtime (const time_t *tp)
 {
   struct tm *t = __calendar_convert (Territory_ConvertTimeToUTCOrdinals, tp);
-   t->tm_gmtoff = 0;
+
    /* GMT conversion rather than localtime - whether local time is on daylight
-    * saving is irrelevalant */
+      saving is irrelevalant */
+   t->tm_gmtoff = 0;
+   t->tm_isdst = 0;
+   t->tm_zone = "GMT";
    return t;
 }

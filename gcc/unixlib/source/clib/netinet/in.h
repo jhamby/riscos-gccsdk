@@ -1,10 +1,10 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/clib/netinet/h/in,v $
- * $Date: 1997/12/17 22:27:06 $
- * $Revision: 1.5 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/netinet/in.h,v $
+ * $Date: 2001/01/29 15:10:19 $
+ * $Revision: 1.2 $
  * $State: Exp $
- * $Author: unixlib $
+ * $Author: admin $
  *
  ***************************************************************************/
 
@@ -164,9 +164,8 @@ struct in6_addr
 #define	IN_EXPERIMENTAL(i)	(((long)(i) & 0xf0000000) == 0xf0000000)
 #define	IN_BADCLASS(i)		(((long)(i) & 0xf0000000) == 0xf0000000)
 
-/*
- * Some useful addresses
- */
+/* Some useful addresses.  */
+
 /* Address to accept any incoming messages.  */
 #define INADDR_ANY	    ((__u_long)0x00000000)
 /* Address to loopback in software to local host.  */

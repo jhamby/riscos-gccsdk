@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/time/c/calendconv,v $
- * $Date: 2000/11/08 10:22:57 $
- * $Revision: 1.6 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/time/calendconv.c,v $
+ * $Date: 2001/01/29 15:10:22 $
+ * $Revision: 1.2 $
  * $State: Exp $
  * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: calendconv,v 1.6 2000/11/08 10:22:57 admin Exp $";
+static const char rcs_id[] = "$Id: calendconv.c,v 1.2 2001/01/29 15:10:22 admin Exp $";
 #endif
 
 /* Territory time support, written by Nick Burrett on 13 July 1997.  */
@@ -56,23 +56,12 @@ __calendar_convert (int swinum, const time_t *tp)
   __tz->tm_year = ordinals_buffer[6] - 1900;
   __tz->tm_wday = ordinals_buffer[7] - 1;
   __tz->tm_yday = ordinals_buffer[8] - 1;
-  /* Read the current time zone and compare it with the
-     non DST name. If equivalent, then we're not in DST mode.  */
-  os_swi (Territory_ReadCurrentTimeZone, regs);
-  __tz->tm_gmtoff = regs[1] / 100;
-  strcpy (__tz->tm_zone, (const char *)regs[0]);
-  if (strcmp (tzname[0], __tz->tm_zone) == 0)
-    __tz->tm_isdst = 0;
-  else
-    __tz->tm_isdst = 1;
 
 #ifdef DEBUG
   printf ("    sec = %d, min = %d, hour = %d\n", __tz->tm_sec,
 	  __tz->tm_min, __tz->tm_hour);
   printf ("    mday = %d, mon = %d, year = %d, wday = %d, yday = %d\n", __tz->tm_mday,
 	  __tz->tm_mon, __tz->tm_year, __tz->tm_wday, __tz->tm_yday);
-  printf ("    gmtoff = %d, zone = %s, isdst = %d\n", __tz->tm_gmtoff,
-	  __tz->tm_zone, __tz->tm_isdst);
 #endif
 
   return __tz;

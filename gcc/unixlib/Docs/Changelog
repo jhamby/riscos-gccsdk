@@ -1,3 +1,18 @@
+Mon Jul 23 16:30:46 2001  Peter Teichmann <teich-p@Rcs1.urz.tu-dresden.de>
+
+	* time.h (struct tm): Change tm_zone to char*.
+	* time/calendconv.c (__calendar_convert): Don't fixup tm_gmtoff,
+	tm_isdst or tm_zone here.
+	* time/ctime.c (ctime): Call tzset.
+	* time/gmtime.c (gmtime): Set tm_gmtoff, tm_isdst and tm_zone.
+	* time/localtime.c (localtime): Likewise.
+	* time/mktime.c (mktime): Call tzset. Base tm_gmtoff, tm_zone
+	and tm_isdst on values of tzname.
+	* time/tzset.c (__tzname): Renamed from tzname.
+	(tzname): New pointer version.
+	(timezone, daylight): Zero-initialise.
+	(tzset): Cope with 7 character time zone names.
+
 Thu May 24 14:46:43 2001  Nick Burrett  <nick@dsvr.net>
 
 	* sys/_alloca.s (__alloca): Use unconditional stackreturn

@@ -1,8 +1,8 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/clib/h/kernel,v $
- * $Date: 1999/11/18 12:17:55 $
- * $Revision: 1.8 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/kernel.h,v $
+ * $Date: 2001/01/29 15:10:19 $
+ * $Revision: 1.2 $
  * $State: Exp $
  * $Author: admin $
  *
@@ -53,7 +53,7 @@ typedef struct stack_chunk
 extern int _kernel_fpavailable (void);
 
 /* Passes argument string to SWI "OS_CLI". */
-extern int _kernel_oscli (const char *s);
+extern int _kernel_oscli (const char *__s);
 
 #define _kernel_NONX 0x80000000
 /* Call the SWI specified by 'no'. 'in' points to a register block
@@ -75,7 +75,7 @@ extern _kernel_oserror *_kernel_last_oserror (void);
 /* Perform an OS_Byte operation.
    R1 is returned in the bottom byte, R2 in the second byte,
    if carry set, then third byte = 1.  */
-extern int _kernel_osbyte (int __op, int __x, int __y);
+extern int _kernel_osbyte (int __operation, int __x, int __y);
 
 /* Read a character from the OS input stream.  */
 extern int _kernel_osrdch (void);
@@ -92,7 +92,7 @@ extern int _kernel_osbput (int __ch, unsigned __handle);
 
 /* Perform an OS_File operation. The _kernel_osfile_block provides
    values for registers R2-R5.  */
-extern int _kernel_osfile (int __op, const char *__name,
+extern int _kernel_osfile (int __operation, const char *__name,
 			   _kernel_osfile_block *__inout);
 
 typedef struct
@@ -104,29 +104,29 @@ typedef struct
 } _kernel_osgbpb_block;
 
 /* Read/write a number of bytes on file 'handle'. */
-extern int _kernel_osgbpb (int op, unsigned handle,
-       	   		   _kernel_osgbpb_block *inout);
+extern int _kernel_osgbpb (int __operation, unsigned __handle,
+       	   		   _kernel_osgbpb_block *__inout);
 
 /* Perform an OS_Word operation.  */
-extern int _kernel_osword (int op, int *data);
+extern int _kernel_osword (int __operation, int *__data);
 
 /* Open or close a file. Open returns a file handle, close just
    indicates success/failure.  */
-extern int _kernel_osfind (int op, char *name);
+extern int _kernel_osfind (int __operation, char *__name);
 
 /* Perform an OS_Args operation. Generally returns the value in R2,
    unless op = 0.  */
-extern int _kernel_osargs (int op, unsigned handle, int arg);
+extern int _kernel_osargs (int __operation, unsigned __handle, int __arg);
 
 /* Read the value of system variable 'name', placing the
    result in 'buffer'.  */
 extern _kernel_oserror *
-_kernel_getenv (const char *name, char *buffer, unsigned size);
+_kernel_getenv (const char *__name, char *__buffer, unsigned __size);
 
 /* Set the system variable 'name' with 'value'. If 'value == 0' then
    'name' is deleted.  */
 extern _kernel_oserror *
-_kernel_setenv (const char *name, const char *value);
+_kernel_setenv (const char *__name, const char *__value);
 
 /* Unsigned divide and remainder function. Returns the remainder in R1. */
 extern unsigned int
