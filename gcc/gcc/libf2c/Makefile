@@ -14,11 +14,11 @@ i77objdir=$(objdir)/gcc-$(VERSION)/libf2c/libi77/$(TRG)
 u77objdir=$(objdir)/gcc-$(VERSION)/libf2c/libu77/$(TRG)
 
 $(f77objdir)/%.o: libf77/%.c
-	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c $< $(INCLUDES) $(Predefs)
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c $< $(INCLUDES) $(Predefs) $(CFL)
 $(i77objdir)/%.o: libi77/%.c
-	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c $< $(INCLUDES) $(Predefs)
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c $< $(INCLUDES) $(Predefs) $(CFL)
 $(u77objdir)/%.o: libu77/%.c
-	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c $< $(INCLUDES) $(Predefs)
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c $< $(INCLUDES) $(Predefs) $(CFL)
 
 MISC =	$(f77objdir)/F77_aloc.o \
 	$(f77objdir)/Version.o \

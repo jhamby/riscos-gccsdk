@@ -27,9 +27,6 @@
 #define STDC_HEADERS 1
 #endif
 
-/* Define if you can safely include both <sys/time.h> and <time.h>.  */
-#define TIME_WITH_SYS_TIME 1
-
 /* Define if your <sys/time.h> declares struct tm.  */
 /* #undef TM_IN_SYS_TIME */
 
@@ -57,11 +54,6 @@
 /* Define if you have the getlogin function.  */
 #define HAVE_GETLOGIN 1
 
-/* Define if you have the getrusage function.  */
-#define HAVE_GETRUSAGE 1
-
-/* Define if you have the gettimeofday function.  */
-#define HAVE_GETTIMEOFDAY 1
 
 /* Define if you have the getuid function.  */
 #define HAVE_GETUID 1
@@ -99,11 +91,19 @@
 /* Define if you have the <string.h> header file.  */
 #define HAVE_STRING_H 1
 
-/* Define if you have the <sys/param.h> header file.  */
-#define HAVE_SYS_PARAM_H 1
-
-/* Define if you have the <sys/time.h> header file.  */
+#ifdef __TARGET_SCL__
+#define HAVE_SYS_TIME_H 0
+#define HAVE_SYS_PARAM_H 0
+#define TIME_WITH_SYS_TIME 0
+#undef HAVE_GETRUSAGE
+#undef HAVE_GETTIMEOFDAY
+#else
 #define HAVE_SYS_TIME_H 1
+#define HAVE_SYS_PARAM_H 1
+#define TIME_WITH_SYS_TIME 1
+#define HAVE_GETRUSAGE 1
+#define HAVE_GETTIMEOFDAY 1
+#endif
 
 /* Define if you have the <sys/times.h> header file.  */
 #define HAVE_SYS_TIMES_H 1
