@@ -1293,7 +1293,7 @@ diagnostic_report_diagnostic (context, diagnostic)
       output_format (&context->buffer, &diagnostic->message);
       (*diagnostic_finalizer (context)) (context, diagnostic);
 
-#ifdef ERROR_THROWBACK
+#if 0 && defined(ERROR_THROWBACK)
       {
 	const char *text = output_finalize_message (&context->buffer);
 	ERROR_THROWBACK (diagnostic->location.file,
