@@ -1,10 +1,10 @@
 /****************************************************************************
  *
- * $Source$
- * $Date$
- * $Revision$
- * $State$
- * $Author$
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/stdlib.h,v $
+ * $Date: 2002/09/24 21:02:36 $
+ * $Revision: 1.4 $
+ * $State: Exp $
+ * $Author: admin $
  *
  ***************************************************************************/
 
@@ -69,6 +69,10 @@ extern int atexit (void (*__atexit_function) (void));
 /* Terminate the program with status. Call all functions registerd
    by atexit.  */
 extern void exit (int __status) __attribute__ ((__noreturn__));
+
+/* Terminate the program with status.  Don't call any functions
+   registerd by atexit.  */
+extern void _Exit (int __status) __attribute__ ((__noreturn__));
 
 /* Return the value of environment variable 'name'.  */
 extern char *getenv (const char *__name);
@@ -169,14 +173,21 @@ extern double atof (const char *__string);
 
 /* Convert a string to an integer.  */
 extern int atoi (const char *__string);
-#define atoi(s) ((int)strtol(s, (char **)NULL, 10))
+#define atoi(s) ((int)strtol(s, (char **) NULL, 10))
 
 /* Convert a string to a long integer.  */
 extern long atol (const char *__string);
-#define atol(s) strtol(s, (char **)NULL, 10)
+#define atol(s) strtol(s, (char **) NULL, 10)
+
+/* Convert a string to a 64-bit long integer.  */
+extern long long atoll (const char *__string);
+#define atoll(s) strtoll(s, (char **) NULL, 10)
+
 
 /* Convert a string to a floating point number.  */
 extern double strtod (const char *__string, char **__end);
+extern float strtof (const char *__string, char **__end);
+extern long double strtold (const char *__string, char **__end);
 
 /* Convert a string to a long integer.  */
 extern long strtol (const char *__nptr, char **__endptr, int __base);

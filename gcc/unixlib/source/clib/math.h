@@ -1,10 +1,10 @@
 /****************************************************************************
  *
- * $Source$
- * $Date$
- * $Revision$
- * $State$
- * $Author$
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/math.h,v $
+ * $Date: 2002/09/24 21:02:36 $
+ * $Revision: 1.4 $
+ * $State: Exp $
+ * $Author: admin $
  *
  ***************************************************************************/
 
@@ -36,35 +36,56 @@ __BEGIN_DECLS
 
 /* Arc cosine of x.  */
 extern double acos (double __x) __attribute__ ((__const__));
+extern float acosf (float __x) __attribute__ ((__const__));
+extern long double acosl (long double __x) __attribute__ ((__const__));
 
 /* Arc sine of x.  */
 extern double asin (double __x) __attribute__ ((__const__));
+extern float asinf (float __x) __attribute__ ((__const__));
+extern long double asinl (long double __x) __attribute__ ((__const__));
 
 /* Arc tangent of x.  */
 extern double atan (double __x) __attribute__ ((__const__));
+extern float atanf (float __x) __attribute__ ((__const__));
+extern long double atanl (long double __x) __attribute__ ((__const__));
 
 /* Arc tangent of y/x.  */
-extern double atan2 (double __y,double __x) __attribute__ ((__const__));
+extern double atan2 (double __y, double __x) __attribute__ ((__const__));
+extern float atan2f (float __y, float __x) __attribute__ ((__const__));
+extern long double atan2l (long double __y,
+			   long double __x) __attribute__ ((__const__));
 
 /* Cosine of x.  */
 extern double cos (double __x) __attribute__ ((__const__));
+extern float cosf (float __x) __attribute__ ((__const__));
+extern long double cosl (long double __x) __attribute__ ((__const__));
 
 /* Sine of x.  */
 extern double sin (double __x) __attribute__ ((__const__));
+extern float sinf (float __x) __attribute__ ((__const__));
+extern long double sinl (long double __x) __attribute__ ((__const__));
 
 /* Tangent of x.  */
 extern double tan (double __x) __attribute__ ((__const__));
+extern float tanf (float __x) __attribute__ ((__const__));
+extern long double tanl (long double __x) __attribute__ ((__const__));
 
 /* Hyperbolic functions.  */
 
 /* Hyperbolic cosine of x.  */
 extern double cosh (double __x) __attribute__ ((__const__));
+extern float coshf (float __x) __attribute__ ((__const__));
+extern long double coshl (long double __x) __attribute__ ((__const__));
 
 /* Hyperbolic sine of x.  */
 extern double sinh (double __x) __attribute__ ((__const__));
+extern float sinhf (float __x) __attribute__ ((__const__));
+extern long double sinhl (long double __x) __attribute__ ((__const__));
 
 /* Hyperbolic tangent of x.  */
 extern double tanh (double __x) __attribute__ ((__const__));
+extern float tanhf (float __x) __attribute__ ((__const__));
+extern long double tanhl (long double __x) __attribute__ ((__const__));
 
 /* Hyperbolic arc cosine of x.  */
 extern double acosh (double __x) __attribute__ ((__const__));
@@ -79,6 +100,8 @@ extern double atanh (double __x) __attribute__ ((__const__));
 
 /* Exponentional function of x (2 ^ e).  */
 extern double exp (double __x) __attribute__ ((__const__));
+extern float expf (float __x) __attribute__ ((__const__));
+extern long double expl (long double __x) __attribute__ ((__const__));
 
 /* Exponentional function of x (2 ^ x).  */
 extern double exp2 (double __x) __attribute__ ((__const__));
@@ -88,25 +111,39 @@ extern double exp10 (double __x) __attribute__ ((__const__));
 
 /* Break value into a normalized fracton and an integral power of 2.  */
 extern double frexp (double value, int *__exp);
+extern float frexpf (float value, int *__exp);
+extern long double frexpl (long double value, int *__exp);
 
 /* x times (two to the exp power).  */
 extern double ldexp (double __x, int __exp) __attribute__ ((__const__));
+extern float ldexpf (float __x, int __exp) __attribute__ ((__const__));
+extern long double ldexpl (long __x, int __exp) __attribute__ ((__const__));
+
 /* scalb is the BSD name for ldexp.  */
 extern double scalb (double __x, int __exp) __attribute__ ((__const__));
 
 /* Natural logarithm of x.  */
 extern double log (double __x) __attribute__ ((__const__));
+extern float logf (float __x) __attribute__ ((__const__));
+extern long double logl (long double __x) __attribute__ ((__const__));
 
 /* Base-ten logarithm of x.  */
 extern double log10 (double __x) __attribute__ ((__const__));
+extern float log10f (float __x) __attribute__ ((__const__));
+extern long double log10l (long double __x) __attribute__ ((__const__));
 
 /* Break value into integral and fractional parts.  */
 extern double modf (double __value, double *__iprt);
+extern float modff (float __value, float *__iprt);
+extern long double modfl (long double __value, long double *__iprt);
 
 /* Power functions.  */
 
 /* Return x to the y power.  */
 extern double pow (double __x, double __y) __attribute__ ((__const__));
+extern float powf (float __x, float __y) __attribute__ ((__const__));
+extern long double powl (long double __x,
+			 long double __y) __attribute__ ((__const__));
 
 /* Return the square root of x.  */
 extern double sqrt (double __x) __attribute__ ((__const__));
@@ -115,12 +152,16 @@ extern double sqrt (double __x) __attribute__ ((__const__));
 
 /* Smallest integral value not less than X.  */
 extern double ceil (double __x) __attribute__ ((__const__));
+extern float ceilf (float __x) __attribute__ ((__const__));
+extern long double ceill (long double __x) __attribute__ ((__const__));
 
 /* Absolute value of X.  */
 extern double fabs (double __x) __attribute__ ((__const__));
 
 /* Largest integer not greater than X.  */
 extern double floor (double __x) __attribute__ ((__const__));
+extern float floorf (float __x) __attribute__ ((__const__));
+extern long double floorl (long double __x) __attribute__ ((__const__));
 
 /* Nearest integer to X, away from 0 as a double.  */
 extern double round (double __x) __attribute__ ((__const__));
@@ -135,6 +176,9 @@ extern long long llround (double __x) __attribute__ ((__const__));
 
 /* Floating-point modulo remainder of X/Y.  */
 extern double fmod (double __x, double __y) __attribute__ ((__const__));
+extern float fmodf (float __x, float __y) __attribute__ ((__const__));
+extern long double fmodl (long double __x,
+			  long double __y) __attribute__ ((__const__));
 
 /* Hypotenuese of x and y.  */
 extern double hypot (double __x, double __y) __attribute__ ((__const__));

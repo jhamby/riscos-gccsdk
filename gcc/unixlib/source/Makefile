@@ -54,6 +54,8 @@ CRYPT =	$(libunixobj)/crypt/crypt.o \
 	$(libunixobj)/crypt/md5.o \
 	$(libunixobj)/crypt/md5-crypt.o \
 
+ICONV =	$(libunixobj)/iconv/iconv.o
+
 MATH =	$(libunixobj)/math/acosh.o \
 	$(libunixobj)/math/asinh.o \
 	$(libunixobj)/math/atanh.o \
@@ -67,7 +69,9 @@ MATH =	$(libunixobj)/math/acosh.o \
 	$(libunixobj)/math/fmin.o \
 	$(libunixobj)/math/fdim.o \
 	$(libunixobj)/math/fmod.o \
+	$(libunixobj)/math/fmodf.o \
 	$(libunixobj)/math/frexp.o \
+	$(libunixobj)/math/frexpf.o \
 	$(libunixobj)/math/huge_val.o \
 	$(libunixobj)/math/ilogb.o \
 	$(libunixobj)/math/j0.o \
@@ -84,6 +88,7 @@ MATH =	$(libunixobj)/math/acosh.o \
 	$(libunixobj)/math/log1p.o \
 	$(libunixobj)/math/logb.o \
 	$(libunixobj)/math/modf.o \
+	$(libunixobj)/math/modff.o \
 	$(libunixobj)/math/nextafter.o \
 	$(libunixobj)/math/nearbyint.o \
 	$(libunixobj)/math/remainder.o \
@@ -102,17 +107,26 @@ MATH =	$(libunixobj)/math/acosh.o \
 	$(libunixobj)/math/llround.o
 
 MATH_ASM = $(libunixobj)/math-asm/_acos.o \
+	$(libunixobj)/math-asm/_acosf.o \
 	$(libunixobj)/math-asm/_asin.o \
+	$(libunixobj)/math-asm/_asinf.o \
 	$(libunixobj)/math-asm/_atan.o \
+	$(libunixobj)/math-asm/_atanf.o \
 	$(libunixobj)/math-asm/_atan2.o \
+	$(libunixobj)/math-asm/_atan2f.o \
 	$(libunixobj)/math-asm/_ceil.o \
+	$(libunixobj)/math-asm/_ceilf.o \
 	$(libunixobj)/math-asm/_copysign.o \
 	$(libunixobj)/math-asm/_cos.o \
+	$(libunixobj)/math-asm/_cosf.o \
 	$(libunixobj)/math-asm/_cosh.o \
+	$(libunixobj)/math-asm/_coshf.o \
 	$(libunixobj)/math-asm/_exp.o \
+	$(libunixobj)/math-asm/_expf.o \
 	$(libunixobj)/math-asm/_fabs.o \
 	$(libunixobj)/math-asm/_finite.o \
 	$(libunixobj)/math-asm/_floor.o \
+	$(libunixobj)/math-asm/_floorf.o \
 	$(libunixobj)/math-asm/_fclrexcpt.o \
 	$(libunixobj)/math-asm/_fegetenv.o \
 	$(libunixobj)/math-asm/_fegetrnd.o \
@@ -126,15 +140,23 @@ MATH_ASM = $(libunixobj)/math-asm/_acos.o \
 	$(libunixobj)/math-asm/_isinf.o \
 	$(libunixobj)/math-asm/_isnan.o \
 	$(libunixobj)/math-asm/_ldexp.o \
+	$(libunixobj)/math-asm/_ldexpf.o \
 	$(libunixobj)/math-asm/_log.o \
+	$(libunixobj)/math-asm/_logf.o \
 	$(libunixobj)/math-asm/_log10.o \
+	$(libunixobj)/math-asm/_log10f.o \
 	$(libunixobj)/math-asm/_pow.o \
+	$(libunixobj)/math-asm/_powf.o \
 	$(libunixobj)/math-asm/_signbit.o \
 	$(libunixobj)/math-asm/_sin.o \
+	$(libunixobj)/math-asm/_sinf.o \
 	$(libunixobj)/math-asm/_sinh.o \
+	$(libunixobj)/math-asm/_sinhf.o \
 	$(libunixobj)/math-asm/_sqrt.o \
 	$(libunixobj)/math-asm/_tan.o \
+	$(libunixobj)/math-asm/_tanf.o \
 	$(libunixobj)/math-asm/_tanh.o \
+	$(libunixobj)/math-asm/_tanhf.o \
 	$(libunixobj)/math-asm/_sincos.o
 
 OBJS =	$(libunixobj)/abort.o \
@@ -399,7 +421,9 @@ STDLIB = $(libunixobj)/stdlib/drand48.o \
 	$(libunixobj)/stdlib/random.o \
 	$(libunixobj)/stdlib/realpath.o \
 	$(libunixobj)/stdlib/seed48.o \
-	$(libunixobj)/stdlib/srand48.o
+	$(libunixobj)/stdlib/srand48.o \
+	$(libunixobj)/stdlib/strtof.o \
+	$(libunixobj)/stdlib/strtold.o
 
 STRING	= $(libunixobj)/string/swab.o
 
@@ -639,7 +663,7 @@ install_headers:
 
 install_source:
 	$(instsrc) . "*.[chs]" source $(ro_unixlibpkg)
-	for dir in common complex crypt gcccompat grp locale math math-asm \
+	for dir in common complex crypt gcccompat grp iconv locale math math-asm \
 		module netlib pwd resource scl signal stat stdio stdlib sys \
 		 string termios time unistd unix wchar clib clib/arpa \
 		 clib/machine clib/net clib/netinet clib/sys clib/unixlib; do \
@@ -652,6 +676,7 @@ $(ux_gcc_bin_dir)/$(TRG)/unixlib.o $(ro_gcc_bin_dir)/$(TRG)/o/unixlib $(ro_unixl
 	$(CROSS_AR) -i $@ $(MATH)
 	$(CROSS_AR) -i $@ $(OBJS)
 	$(CROSS_AR) -i $@ $(COMMON)
+	#$(CROSS_AR) -i $@ $(ICONV)
 	$(CROSS_AR) -i $@ $(LOCALE)
 	$(CROSS_AR) -i $@ $(NETLIB)
 	$(CROSS_AR) -i $@ $(PWD)
@@ -784,6 +809,8 @@ $(libunixobj)/gcccompat/_umoddi3.o: gcccompat/_umoddi3.s clib/unixlib/asm_dec.s
 $(libunixobj)/gcccompat/_divdi3.o: gcccompat/_divdi3.s clib/unixlib/asm_dec.s
 $(libunixobj)/gcccompat/_moddi3.o: gcccompat/_moddi3.s clib/unixlib/asm_dec.s
 
+$(libunixobj)/iconv/iconv.o: iconv/iconv.c
+
 $(libunixobj)/locale/ctypetable.o: locale/ctypetable.c
 $(libunixobj)/locale/localeconv.o: locale/localeconv.c
 $(libunixobj)/locale/setlocale.o: locale/setlocale.c
@@ -804,10 +831,12 @@ $(libunixobj)/math/expm1.o: math/expm1.c
 $(libunixobj)/math/fpclassify.o: math/fpclassify.c
 $(libunixobj)/math/fdim.o: math/fdim.c
 $(libunixobj)/math/fmod.o: math/fmod.c
+$(libunixobj)/math/fmodf.o: math/fmodf.c
 $(libunixobj)/math/fma.o: math/fma.c
 $(libunixobj)/math/fmax.o: math/fmax.c
 $(libunixobj)/math/fmin.o: math/fmin.c
 $(libunixobj)/math/frexp.o: math/frexp.c
+$(libunixobj)/math/frexpf.o: math/frexpf.c
 $(libunixobj)/math/huge_val.o: math/huge_val.c
 $(libunixobj)/math/ilogb.o: math/ilogb.c
 $(libunixobj)/math/j0.o: math/j0.c
@@ -826,6 +855,7 @@ $(libunixobj)/math/log1p.o: math/log1p.c
 $(libunixobj)/math/log2.o: math/log2.c
 $(libunixobj)/math/logb.o: math/logb.c
 $(libunixobj)/math/modf.o: math/modf.c
+$(libunixobj)/math/modff.o: math/modff.c
 $(libunixobj)/math/nearbyint.o: math/nearbyint.c
 $(libunixobj)/math/nextafter.o: math/nextafter.c
 $(libunixobj)/math/remainder.o: math/remainder.c
@@ -837,18 +867,28 @@ $(libunixobj)/math/scalbn.o: math/scalbn.c
 $(libunixobj)/math/significan.o: math/significan.c
 $(libunixobj)/math/trunc.o: math/trunc.c
 $(libunixobj)/math/t_exp.o: math/t_exp.c
+
 $(libunixobj)/math-asm/_acos.o: math-asm/_acos.s clib/unixlib/asm_dec.s
+$(libunixobj)/math-asm/_acosf.o: math-asm/_acos.s clib/unixlib/asm_dec.s
 $(libunixobj)/math-asm/_asin.o: math-asm/_asin.s clib/unixlib/asm_dec.s
+$(libunixobj)/math-asm/_asinf.o: math-asm/_asin.s clib/unixlib/asm_dec.s
 $(libunixobj)/math-asm/_atan.o: math-asm/_atan.s clib/unixlib/asm_dec.s
+$(libunixobj)/math-asm/_atanf.o: math-asm/_atan.s clib/unixlib/asm_dec.s
 $(libunixobj)/math-asm/_atan2.o: math-asm/_atan2.s clib/unixlib/asm_dec.s
+$(libunixobj)/math-asm/_atan2f.o: math-asm/_atan2.s clib/unixlib/asm_dec.s
 $(libunixobj)/math-asm/_ceil.o: math-asm/_ceil.s clib/unixlib/asm_dec.s
+$(libunixobj)/math-asm/_ceilf.o: math-asm/_ceil.s clib/unixlib/asm_dec.s
 $(libunixobj)/math-asm/_copysign.o: math-asm/_copysign.s clib/unixlib/asm_dec.s
 $(libunixobj)/math-asm/_cos.o: math-asm/_cos.s clib/unixlib/asm_dec.s
+$(libunixobj)/math-asm/_cosf.o: math-asm/_cos.s clib/unixlib/asm_dec.s
 $(libunixobj)/math-asm/_cosh.o: math-asm/_cosh.s clib/unixlib/asm_dec.s
+$(libunixobj)/math-asm/_coshf.o: math-asm/_cosh.s clib/unixlib/asm_dec.s
 $(libunixobj)/math-asm/_exp.o: math-asm/_exp.s clib/unixlib/asm_dec.s
+$(libunixobj)/math-asm/_expf.o: math-asm/_exp.s clib/unixlib/asm_dec.s
 $(libunixobj)/math-asm/_fabs.o: math-asm/_fabs.s clib/unixlib/asm_dec.s
 $(libunixobj)/math-asm/_finite.o: math-asm/_finite.s clib/unixlib/asm_dec.s
 $(libunixobj)/math-asm/_floor.o: math-asm/_floor.s clib/unixlib/asm_dec.s
+$(libunixobj)/math-asm/_floorf.o: math-asm/_floor.s clib/unixlib/asm_dec.s
 $(libunixobj)/math-asm/_fclrexcpt.o: math-asm/_fclrexcpt.s clib/unixlib/asm_dec.s
 $(libunixobj)/math-asm/_fegetenv.o: math-asm/_fegetenv.s clib/unixlib/asm_dec.s
 $(libunixobj)/math-asm/_fegetrnd.o: math-asm/_fegetrnd.s clib/unixlib/asm_dec.s
@@ -862,17 +902,26 @@ $(libunixobj)/math-asm/_hypot.o: math-asm/_hypot.s clib/unixlib/asm_dec.s
 $(libunixobj)/math-asm/_isinf.o: math-asm/_isinf.s clib/unixlib/asm_dec.s
 $(libunixobj)/math-asm/_isnan.o: math-asm/_isnan.s clib/unixlib/asm_dec.s
 $(libunixobj)/math-asm/_ldexp.o: math-asm/_ldexp.s clib/unixlib/asm_dec.s
+$(libunixobj)/math-asm/_ldexpf.o: math-asm/_ldexp.s clib/unixlib/asm_dec.s
 $(libunixobj)/math-asm/_log.o: math-asm/_log.s clib/unixlib/asm_dec.s
+$(libunixobj)/math-asm/_logf.o: math-asm/_log.s clib/unixlib/asm_dec.s
 $(libunixobj)/math-asm/_log10.o: math-asm/_log10.s clib/unixlib/asm_dec.s
+$(libunixobj)/math-asm/_log10f.o: math-asm/_log10.s clib/unixlib/asm_dec.s
 $(libunixobj)/math-asm/_modf1.o: math-asm/_modf1.s clib/unixlib/asm_dec.s
+$(libunixobj)/math-asm/_modf1f.o: math-asm/_modf1.s clib/unixlib/asm_dec.s
 $(libunixobj)/math-asm/_pow.o: math-asm/_pow.s clib/unixlib/asm_dec.s
+$(libunixobj)/math-asm/_powf.o: math-asm/_pow.s clib/unixlib/asm_dec.s
 $(libunixobj)/math-asm/_signbit.o: math-asm/_signbit.s clib/unixlib/asm_dec.s
 $(libunixobj)/math-asm/_sin.o: math-asm/_sin.s clib/unixlib/asm_dec.s
+$(libunixobj)/math-asm/_sinf.o: math-asm/_sin.s clib/unixlib/asm_dec.s
 $(libunixobj)/math-asm/_sincos.o: math-asm/_sincos.s clib/unixlib/asm_dec.s
 $(libunixobj)/math-asm/_sinh.o: math-asm/_sinh.s clib/unixlib/asm_dec.s
+$(libunixobj)/math-asm/_sinhf.o: math-asm/_sinh.s clib/unixlib/asm_dec.s
 $(libunixobj)/math-asm/_sqrt.o: math-asm/_sqrt.s clib/unixlib/asm_dec.s
 $(libunixobj)/math-asm/_tan.o: math-asm/_tan.s clib/unixlib/asm_dec.s
+$(libunixobj)/math-asm/_tanf.o: math-asm/_tan.s clib/unixlib/asm_dec.s
 $(libunixobj)/math-asm/_tanh.o: math-asm/_tanh.s clib/unixlib/asm_dec.s
+$(libunixobj)/math-asm/_tanhf.o: math-asm/_tanh.s clib/unixlib/asm_dec.s
 
 $(libunixobj)/module/sul.o: module/sul.s
 
@@ -1070,19 +1119,21 @@ $(libunixobj)/stdio/tmpfile.o: stdio/tmpfile.c
 $(libunixobj)/stdio/ungetc.o: stdio/ungetc.c
 $(libunixobj)/stdio/_printf.o: stdio/_printf.s clib/unixlib/asm_dec.s
 
-$(libunixojb)/stdlib/drand48.o: stdlib/drand48.c
-$(libunixojb)/stdlib/erand48.o: stdlib/erand48.c
-$(libunixojb)/stdlib/jrand48.o: stdlib/jrand48.c
-$(libunixojb)/stdlib/lcong48.o: stdlib/lcong48.c
-$(libunixojb)/stdlib/lrand48.o: stdlib/lrand48.c
-$(libunixojb)/stdlib/mrand48.o: stdlib/mrand48.c
-$(libunixojb)/stdlib/nrand48.o: stdlib/nrand48.c
-$(libunixojb)/stdlib/_rand48.o: stdlib/_rand48.c
-$(libunixojb)/stdlib/rand.o: stdlib/rand.c
-$(libunixojb)/stdlib/random.o: stdlib/random.c
+$(libunixobj)/stdlib/drand48.o: stdlib/drand48.c
+$(libunixobj)/stdlib/erand48.o: stdlib/erand48.c
+$(libunixobj)/stdlib/jrand48.o: stdlib/jrand48.c
+$(libunixobj)/stdlib/lcong48.o: stdlib/lcong48.c
+$(libunixobj)/stdlib/lrand48.o: stdlib/lrand48.c
+$(libunixobj)/stdlib/mrand48.o: stdlib/mrand48.c
+$(libunixobj)/stdlib/nrand48.o: stdlib/nrand48.c
+$(libunixobj)/stdlib/_rand48.o: stdlib/_rand48.c
+$(libunixobj)/stdlib/rand.o: stdlib/rand.c
+$(libunixobj)/stdlib/random.o: stdlib/random.c
 $(libunixobj)/stdlib/realpath.o: stdlib/realpath.c
-$(libunixojb)/stdlib/seed48.o: stdlib/seed48.c
-$(libunixojb)/stdlib/srand48.o: stdlib/srand48.c
+$(libunixobj)/stdlib/seed48.o: stdlib/seed48.c
+$(libunixobj)/stdlib/srand48.o: stdlib/srand48.c
+$(libunixobj)/stdlib/strtof.o: stdlib/strtof.c
+$(libunixobj)/stdlib/strtold.o: stdlib/strtold.c
 
 $(libunixobj)/string/swab.o: string/swab.c
 

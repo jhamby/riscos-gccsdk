@@ -1,10 +1,10 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/math/c/fmod,v $
- * $Date: 1997/10/09 20:00:04 $
- * $Revision: 1.3 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/math/fmod.c,v $
+ * $Date: 2001/01/29 15:10:19 $
+ * $Revision: 1.2 $
  * $State: Exp $
- * $Author: unixlib $
+ * $Author: admin $
  *
  ***************************************************************************/
 
@@ -197,3 +197,10 @@ fmod (double x, double y)
     }
   return x;			/* exact output */
 }
+
+long double fmodl (long double x, long double y)
+{
+  return (long double) fmod ((double) x, (double) y);
+}
+
+

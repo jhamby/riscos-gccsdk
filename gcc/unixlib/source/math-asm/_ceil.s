@@ -1,8 +1,8 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/math-asm/_ceil.s,v $
-; $Date: 2001/01/29 15:10:20 $
-; $Revision: 1.2 $
+; $Date: 2002/09/24 21:02:37 $
+; $Revision: 1.3 $
 ; $State: Exp $
 ; $Author: admin $
 ;
@@ -13,11 +13,13 @@
 	AREA	|C$$code|,CODE,READONLY
 
 	EXPORT	ceil
+	EXPORT	ceill
 	NAME	ceil
 ceil
+ceill
 	STMFD	sp!, {a1, a2}
 	LDFD	f0, [sp], #8
-	RNDDP	f0, f0	; new
+	RNDDP	f0, f0
 	return	AL, pc, lr
 
 	END

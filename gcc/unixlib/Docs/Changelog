@@ -1,3 +1,68 @@
+Tue Nov 26 21:46:52 2002  Nick Burrett  <nick@dsvr.net>
+
+	C99 dialect functions.
+	* stdlib/strtof.c: New file.
+	* stdlib/strtold.c: New file.
+	
+	32-bit float type C99 dialect math functions.
+	* math/fmodf.c: New file.
+	* math/frexpf.c: New file.
+	* math/modff.c: New file.
+	* math/_asinf.s: New file.
+	* math/_acosf.s: New file.
+	* math/_atan2f.s: New file.
+	* math/_atanf.s: New file.
+	* math/_ceilf.s: New file.
+	* math/_cosf.s: New file.
+	* math/_coshf.s: New file.
+	* math/_expf.s: New file.
+	* math/_floorf.s: New file.
+	* math/_ldexpf.s: New file.
+	* math/_log10f.s: New file.
+	* math/_logf.s: New file.
+	* math/_modf1f.s: New file.
+	* math/_powf.s: New file.
+	* math/_sinf.s: New file.
+	* math/_sinhf.s: New file.
+	* math/_tanf.s: New file.
+	* math/_tanhf.s: New file.
+	
+	* math/fmod.c: Suport long double float type C99 math functions.
+	* math/frexp.c: Likewise.
+	* math/modf.c: Likewise.
+	* math/_asin.s: Likewise.
+	* math/_acos.s: Likewise.
+	* math/_atan2.s: Likewise.
+	* math/_atan.s: Likewise.
+	* math/_ceil.s: Likewise.
+	* math/_cos.s: Likewise.
+	* math/_cosh.s: Likewise.
+	* math/_exp.s: Likewise.
+	* math/_floor.s: Likewise.
+	* math/_ldexp.s: Likewise.
+	* math/_log10.s: Likewise.
+	* math/_log.s: Likewise.
+	* math/_modf1.s: Likewise.
+	* math/_pow.s: Likewise.
+	* math/_sin.s: Likewise.
+	* math/_sinh.s: Likewise.
+	* math/_tan.s: Likewise.
+	* math/_tanh.s: Likewise.
+
+	* math.h: Create prototypes for `float' and `long double' functions.
+
+	* strtol.c (atol): Remove explicit casts.
+	* strtoll.c (atoll): New function.
+
+	* unix/unix.c (_Exit): New function.
+	(exit): Split into _Exit.  Call atexit functions here, then
+	call _Exit to perform the final termination code.
+	
+	* stdlib.h (_Exit): New prototype.
+	(atoll): New prototype.
+	(strtof): New prototype.
+	(strtold): New prototype.
+
 Tue Sep 24 14:32:56 2002  Nick Burrett  <nick@dsvr.net>
 
 	* sys/exec.c (execve): Make 2nd and 3rd param char *const [].

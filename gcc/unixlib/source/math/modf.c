@@ -1,10 +1,10 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/math/c/modf,v $
- * $Date: 1997/10/09 20:00:06 $
- * $Revision: 1.3 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/math/modf.c,v $
+ * $Date: 2001/01/29 15:10:19 $
+ * $Revision: 1.2 $
  * $State: Exp $
- * $Author: unixlib $
+ * $Author: admin $
  *
  ***************************************************************************/
 
@@ -40,46 +40,67 @@ static char rcsid[] = "$NetBSD: s_modf.c,v 1.8 1995/05/10 20:47:55 jtc Exp $";
 
 static const double one = 1.0;
 
-	double modf(double x, double *iptr)
+double
+modf (double x, double *iptr)
 {
-	__int32_t i0,i1,j0;
-	__u_int32_t i;
-	EXTRACT_WORDS(i0,i1,x);
-	j0 = ((i0>>20)&0x7ff)-0x3ff;	/* exponent of x */
-	if(j0<20) {			/* integer part in high x */
-	    if(j0<0) {			/* |x|<1 */
-	        INSERT_WORDS(*iptr,i0&0x80000000,0);	/* *iptr = +-0 */
-		return x;
-	    } else {
-		i = (0x000fffff)>>j0;
-		if(((i0&i)|i1)==0) {		/* x is integral */
-		    __u_int32_t high;
-		    *iptr = x;
-		    GET_HIGH_WORD(high,x);
-		    INSERT_WORDS(x,high&0x80000000,0);	/* return +-0 */
-		    return x;
-		} else {
-		    INSERT_WORDS(*iptr,i0&(~i),0);
-		    return x - *iptr;
-		}
+  __int32_t i0, i1, j0;
+  __u_int32_t i;
+  EXTRACT_WORDS (i0, i1, x);
+  j0 = ((i0 >> 20) & 0x7ff) - 0x3ff;	/* exponent of x */
+  if (j0 < 20)
+    {				/* integer part in high x */
+      if (j0 < 0)
+	{			/* |x|<1 */
+	  INSERT_WORDS (*iptr, i0 & 0x80000000, 0);	/* *iptr = +-0 */
+	  return x;
+	}
+      else
+	{
+	  i = (0x000fffff) >> j0;
+	  if (((i0 & i) | i1) == 0)
+	    {			/* x is integral */
+	      __u_int32_t high;
+	      *iptr = x;
+	      GET_HIGH_WORD (high, x);
+	      INSERT_WORDS (x, high & 0x80000000, 0);	/* return +-0 */
+	      return x;
 	    }
-	} else if (j0>51) {		/* no fraction part */
-	    __u_int32_t high;
-	    *iptr = x*one;
-	    GET_HIGH_WORD(high,x);
-	    INSERT_WORDS(x,high&0x80000000,0);	/* return +-0 */
-	    return x;
-	} else {			/* fraction part in low x */
-	    i = ((__u_int32_t)(0xffffffff))>>(j0-20);
-	    if((i1&i)==0) { 		/* x is integral */
-	        __u_int32_t high;
-		*iptr = x;
-		GET_HIGH_WORD(high,x);
-		INSERT_WORDS(x,high&0x80000000,0);	/* return +-0 */
-		return x;
-	    } else {
-	        INSERT_WORDS(*iptr,i0,i1&(~i));
-		return x - *iptr;
+	  else
+	    {
+	      INSERT_WORDS (*iptr, i0 & (~i), 0);
+	      return x - *iptr;
 	    }
 	}
+    }
+  else if (j0 > 51)
+    {				/* no fraction part */
+      __u_int32_t high;
+      *iptr = x * one;
+      GET_HIGH_WORD (high, x);
+      INSERT_WORDS (x, high & 0x80000000, 0);	/* return +-0 */
+      return x;
+    }
+  else
+    {				/* fraction part in low x */
+      i = ((__u_int32_t) (0xffffffff)) >> (j0 - 20);
+      if ((i1 & i) == 0)
+	{			/* x is integral */
+	  __u_int32_t high;
+	  *iptr = x;
+	  GET_HIGH_WORD (high, x);
+	  INSERT_WORDS (x, high & 0x80000000, 0);	/* return +-0 */
+	  return x;
+	}
+      else
+	{
+	  INSERT_WORDS (*iptr, i0, i1 & (~i));
+	  return x - *iptr;
+	}
+    }
 }
+
+long double modfl (long double x, long double *iptr)
+{
+  return (long double) modf ((double) x, (double *) iptr);
+}
+

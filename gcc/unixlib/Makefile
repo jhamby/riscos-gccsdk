@@ -20,7 +20,7 @@ unixlib:
 	mkdir -p $(upath)/math $(upath)/math-asm $(upath)/signal
 	mkdir -p $(upath)/common $(upath)/gcccompat $(upath)/locale
 	mkdir -p $(upath)/netlib $(upath)/pwd $(upath)/resource
-	mkdir -p $(upath)/stat $(upath)/stdio
+	mkdir -p $(upath)/stat $(upath)/stdio $(upath)/iconv
 	mkdir -p $(upath)/stdlib $(upath)/scl
 	mkdir -p $(upath)/string $(upath)/sys $(upath)/time
 	mkdir -p $(upath)/termios $(upath)/unistd $(upath)/unix

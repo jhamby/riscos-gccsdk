@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source$
- * $Date$
- * $Revision$
- * $State$
- * $Author$
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/unix.c,v $
+ * $Date: 2002/09/24 21:02:38 $
+ * $Revision: 1.4 $
+ * $State: Exp $
+ * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id$";
+static const char rcs_id[] = "$Id: unix.c,v 1.4 2002/09/24 21:02:38 admin Exp $";
 #endif
 
 #include <stdio.h>
@@ -266,6 +266,13 @@ exit (int status)
       __funcall ((*__atexit_function_array[i]), ());
     }
 
+  _Exit (status);
+}
+
+/* ISOC99: Terminate the program with `status' without calling any of
+   the functions registered with `atexit'.  */
+void _Exit (int status)
+{
   /* Close all open streams, write out buffered output data and
      delete tmpfile() temporary files.  */
   __stdioexit ();
