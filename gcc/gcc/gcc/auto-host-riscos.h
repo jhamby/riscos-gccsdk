@@ -324,3 +324,17 @@
 
 /* Define if the host execution character set is EBCDIC. */
 /* #undef HOST_EBCDIC */
+
+/* Define to the name of a file containing a list of extra machine modes
+   for this architecture. */
+#define EXTRA_MODES_FILE "config/arm/arm-modes.def"
+
+/* Define if the target architecture needs extra machine modes to represent
+   the results of comparisons. */
+#define EXTRA_CC_MODES 1
+
+/* Define if you have the iconv() function. */
+/* #undef HAVE_ICONV /*
+
+/* Define as const if the declaration of iconv() needs const. */
+/* #undef ICONV_CONST */

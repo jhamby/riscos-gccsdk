@@ -1,6 +1,6 @@
 /* XCOFF definitions.  These are needed in dbxout.c, final.c,
-   and xcoffout.h. 
-   Copyright (C) 1998, 2000 Free Software Foundation, Inc.
+   and xcoffout.h.
+   Copyright (C) 1998, 2000, 2002 Free Software Foundation, Inc.
 
 This file is part of GCC.
 
@@ -107,7 +107,7 @@ Software Foundation, 59 Temple Place - Suite 330, Boston, MA
       if (*_p == '*')						\
 	fprintf (asmfile, "%s", _p+1);				\
       else							\
-        for (; *_p != '[' && *_p; _p++)				\
+	for (; *_p != '[' && *_p; _p++)				\
 	  fprintf (asmfile, "%c", *_p);				\
     }								\
   else if (current_sym_addr)					\
@@ -202,7 +202,8 @@ extern int stab_to_sclass			PARAMS ((int));
 extern void xcoffout_begin_prologue		PARAMS ((unsigned int,
 							 const char *));
 extern void xcoffout_begin_block		PARAMS ((unsigned, unsigned));
-extern void xcoffout_end_epilogue		PARAMS ((void));
+extern void xcoffout_end_epilogue		PARAMS ((unsigned int,
+							 const char *));
 extern void xcoffout_end_function		PARAMS ((unsigned int));
 extern void xcoffout_end_block			PARAMS ((unsigned, unsigned));
 #endif /* BUFSIZ */

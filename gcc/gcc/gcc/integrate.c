@@ -43,12 +43,7 @@ Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 #include "params.h"
 #include "ggc.h"
 #include "target.h"
-
-#include "obstack.h"
-#define	obstack_chunk_alloc	xmalloc
-#define	obstack_chunk_free	free
-
-extern struct obstack *function_maybepermanent_obstack;
+#include "langhooks.h"
 
 /* Similar, but round to the next highest integer that meets the
    alignment.  */
@@ -67,14 +62,14 @@ extern struct obstack *function_maybepermanent_obstack;
 
 
 /* Private type used by {get/has}_func_hard_reg_initial_val.  */
-typedef struct initial_value_pair {
+typedef struct initial_value_pair GTY(()) {
   rtx hard_reg;
   rtx pseudo;
 } initial_value_pair;
-typedef struct initial_value_struct {
+typedef struct initial_value_struct GTY(()) {
   int num_entries;
   int max_entries;
-  initial_value_pair *entries;
+  initial_value_pair * GTY ((length ("%h.num_entries"))) entries;
 } initial_value_struct;
 
 static void setup_initial_hard_reg_value_integration PARAMS ((struct function *, struct inline_remap *));
@@ -131,30 +126,22 @@ bool
 function_attribute_inlinable_p (fndecl)
      tree fndecl;
 {
-  bool has_machine_attr = false;
-  tree a;
-
-  for (a = DECL_ATTRIBUTES (fndecl); a; a = TREE_CHAIN (a))
+  if (targetm.attribute_table)
     {
-      tree name = TREE_PURPOSE (a);
-      int i;
+      tree a;
 
-      for (i = 0; targetm.attribute_table[i].name != NULL; i++)
+      for (a = DECL_ATTRIBUTES (fndecl); a; a = TREE_CHAIN (a))
 	{
-	  if (is_attribute_p (targetm.attribute_table[i].name, name))
-	    {
-	      has_machine_attr = true;
-	      break;
-	    }
+	  tree name = TREE_PURPOSE (a);
+	  int i;
+
+	  for (i = 0; targetm.attribute_table[i].name != NULL; i++)
+	    if (is_attribute_p (targetm.attribute_table[i].name, name))
+	      return (*targetm.function_attribute_inlinable_p) (fndecl);
 	}
-      if (has_machine_attr)
-	break;
     }
 
-  if (has_machine_attr)
-    return (*targetm.function_attribute_inlinable_p) (fndecl);
-  else
-    return true;
+  return true;
 }
 
 /* Zero if the current function (whose FUNCTION_DECL is FNDECL)
@@ -185,8 +172,7 @@ function_cannot_inline_p (fndecl)
     return N_("function cannot be inline");
 
   /* No inlines with varargs.  */
-  if ((last && TREE_VALUE (last) != void_type_node)
-      || current_function_varargs)
+  if (last && TREE_VALUE (last) != void_type_node)
     return N_("varargs function cannot be inline");
 
   if (current_function_calls_alloca)
@@ -368,8 +354,7 @@ copy_decl_for_inlining (decl, from_fn, to_fn)
   else
     {
       copy = copy_node (decl);
-      if (DECL_LANG_SPECIFIC (copy))
-	copy_lang_decl (copy);
+      (*lang_hooks.dup_lang_specific_decl) (copy);
 
       /* TREE_ADDRESSABLE isn't used to indicate that a label's
 	 address has been taken; it's for internal bookkeeping in
@@ -595,7 +580,8 @@ process_reg_param (map, loc, copy)
 }
 
 /* Compare two BLOCKs for qsort.  The key we sort on is the
-   BLOCK_ABSTRACT_ORIGIN of the blocks.  */
+   BLOCK_ABSTRACT_ORIGIN of the blocks.  We cannot just subtract the
+   two pointers, because it may overflow sizeof(int).  */
 
 static int
 compare_blocks (v1, v2)
@@ -604,9 +590,12 @@ compare_blocks (v1, v2)
 {
   tree b1 = *((const tree *) v1);
   tree b2 = *((const tree *) v2);
+  char *p1 = (char *) BLOCK_ABSTRACT_ORIGIN (b1);
+  char *p2 = (char *) BLOCK_ABSTRACT_ORIGIN (b2);
 
-  return ((char *) BLOCK_ABSTRACT_ORIGIN (b1)
-	  - (char *) BLOCK_ABSTRACT_ORIGIN (b2));
+  if (p1 == p2)
+    return 0;
+  return p1 < p2 ? -1 : 1;
 }
 
 /* Compare two BLOCKs for bsearch.  The first pointer corresponds to
@@ -619,8 +608,12 @@ find_block (v1, v2)
 {
   const union tree_node *b1 = (const union tree_node *) v1;
   tree b2 = *((const tree *) v2);
+  char *p1 = (char *) b1;
+  char *p2 = (char *) BLOCK_ABSTRACT_ORIGIN (b2);
 
-  return ((const char *) b1 - (char *) BLOCK_ABSTRACT_ORIGIN (b2));
+  if (p1 == p2)
+    return 0;
+  return p1 < p2 ? -1 : 1;
 }
 
 /* Integrate the procedure defined by FNDECL.  Note that this function
@@ -663,7 +656,7 @@ expand_inline_function (fndecl, parms, target, ignore, type,
   rtx stack_save = 0;
   rtx temp;
   struct inline_remap *map = 0;
-  rtvec arg_vector = (rtvec) inl_f->original_arg_vector;
+  rtvec arg_vector = inl_f->original_arg_vector;
   rtx static_chain_value = 0;
   int inl_max_uid;
   int eh_region_offset;
@@ -1240,7 +1233,7 @@ expand_inline_function (fndecl, parms, target, ignore, type,
        this block to the list of blocks at this binding level.  We
        can't do it the way it's done for function-at-a-time mode the
        superblocks have not been created yet.  */
-    insert_block (block);
+    (*lang_hooks.decls.insert_block) (block);
   else
     {
       BLOCK_CHAIN (block)
@@ -1286,7 +1279,6 @@ expand_inline_function (fndecl, parms, target, ignore, type,
     free (real_label_map);
   VARRAY_FREE (map->const_equiv_varray);
   free (map->reg_map);
-  VARRAY_FREE (map->block_map);
   free (map->insn_map);
   free (map);
   free (arg_vals);
@@ -1396,7 +1388,7 @@ copy_insn_list (insns, map, static_chain_value)
              memory references via that register can then be
              identified as static chain references.  We assume that
              the register is only assigned once, and that the static
-             chain address is only live in one register at a time. */
+             chain address is only live in one register at a time.  */
 
 	  else if (static_chain_value != 0
 		   && set != 0
@@ -1504,6 +1496,7 @@ copy_insn_list (insns, map, static_chain_value)
 #else
 	  try_constants (copy, map);
 #endif
+	  INSN_SCOPE (copy) = INSN_SCOPE (insn);
 	  break;
 
 	case JUMP_INSN:
@@ -1524,6 +1517,7 @@ copy_insn_list (insns, map, static_chain_value)
 	  cc0_insn = 0;
 #endif
 	  try_constants (copy, map);
+	  INSN_SCOPE (copy) = INSN_SCOPE (insn);
 
 	  /* If this used to be a conditional jump insn but whose branch
 	     direction is now know, we must do something special.  */
@@ -1591,6 +1585,7 @@ copy_insn_list (insns, map, static_chain_value)
 
 	  SIBLING_CALL_P (copy) = SIBLING_CALL_P (insn);
 	  CONST_OR_PURE_CALL_P (copy) = CONST_OR_PURE_CALL_P (insn);
+	  INSN_SCOPE (copy) = INSN_SCOPE (insn);
 
 	  /* Because the USAGE information potentially contains objects other
 	     than hard registers, we need to copy it.  */
@@ -1940,7 +1935,7 @@ copy_rtx_and_substitute (orig, map, for_lhs)
 
 	      SET_CONST_EQUIV_DATA (map, temp, loc, CONST_AGE_PARM);
 
-	      seq = gen_sequence ();
+	      seq = get_insns ();
 	      end_sequence ();
 	      emit_insn_after (seq, map->insns_at_start);
 	      return temp;
@@ -1973,7 +1968,7 @@ copy_rtx_and_substitute (orig, map, for_lhs)
 
 	      SET_CONST_EQUIV_DATA (map, temp, loc, CONST_AGE_PARM);
 
-	      seq = gen_sequence ();
+	      seq = get_insns ();
 	      end_sequence ();
 	      emit_insn_after (seq, map->insns_at_start);
 	      return temp;
@@ -2060,7 +2055,17 @@ copy_rtx_and_substitute (orig, map, for_lhs)
 	  RTX_UNCHANGING_P (map->reg_map[regno]) = RTX_UNCHANGING_P (temp);
 	  /* A reg with REG_FUNCTION_VALUE_P true will never reach here.  */
 
-	  if (REG_POINTER (map->x_regno_reg_rtx[regno]))
+	  /* Objects may initially be represented as registers, but
+	     but turned into a MEM if their address is taken by
+	     put_var_into_stack.  Therefore, the register table may have
+	     entries which are MEMs.
+
+	     We briefly tried to clear such entries, but that ended up
+	     cascading into many changes due to the optimizers not being
+	     prepared for empty entries in the register table.  So we've
+	     decided to allow the MEMs in the register table for now.  */
+	  if (REG_P (map->x_regno_reg_rtx[regno])
+	      && REG_POINTER (map->x_regno_reg_rtx[regno]))
 	    mark_reg_pointer (map->reg_map[regno],
 			      map->regno_pointer_align[regno]);
 	  regno = REGNO (map->reg_map[regno]);
@@ -2120,6 +2125,7 @@ copy_rtx_and_substitute (orig, map, for_lhs)
     case PC:
     case CC0:
     case CONST_INT:
+    case CONST_VECTOR:
       return orig;
 
     case SYMBOL_REF:
@@ -2200,7 +2206,7 @@ copy_rtx_and_substitute (orig, map, for_lhs)
       if (map->orig_asm_operands_vector == ASM_OPERANDS_INPUT_VEC (orig))
 	{
 	  copy = rtx_alloc (ASM_OPERANDS);
-	  copy->volatil = orig->volatil;
+	  RTX_FLAG (copy, volatil) = RTX_FLAG (orig, volatil);
 	  PUT_MODE (copy, GET_MODE (orig));
 	  ASM_OPERANDS_TEMPLATE (copy) = ASM_OPERANDS_TEMPLATE (orig);
 	  ASM_OPERANDS_OUTPUT_CONSTRAINT (copy)
@@ -2311,6 +2317,13 @@ copy_rtx_and_substitute (orig, map, for_lhs)
       if (inlining && !for_lhs)
 	RTX_UNCHANGING_P (copy) = 0;
 
+      /* If inlining, squish aliasing data that references the subroutine's
+	 parameter list, since that's no longer applicable.  */
+      if (inlining && MEM_EXPR (copy)
+	  && TREE_CODE (MEM_EXPR (copy)) == INDIRECT_REF
+	  && TREE_CODE (TREE_OPERAND (MEM_EXPR (copy), 0)) == PARM_DECL)
+	set_mem_expr (copy, NULL_TREE);
+
       return copy;
 
     default:
@@ -2319,9 +2332,9 @@ copy_rtx_and_substitute (orig, map, for_lhs)
 
   copy = rtx_alloc (code);
   PUT_MODE (copy, mode);
-  copy->in_struct = orig->in_struct;
-  copy->volatil = orig->volatil;
-  copy->unchanging = orig->unchanging;
+  RTX_FLAG (copy, in_struct) = RTX_FLAG (orig, in_struct);
+  RTX_FLAG (copy, volatil) = RTX_FLAG (orig, volatil);
+  RTX_FLAG (copy, unchanging) = RTX_FLAG (orig, unchanging);
 
   format_ptr = GET_RTX_FORMAT (GET_CODE (copy));
 
@@ -2479,6 +2492,7 @@ subst_constants (loc, insn, map, memonly)
     case PC:
     case CONST_INT:
     case CONST_DOUBLE:
+    case CONST_VECTOR:
     case SYMBOL_REF:
     case CONST:
     case LABEL_REF:
@@ -2686,6 +2700,7 @@ subst_constants (loc, insn, map, memonly)
 	case 'w':
 	case 'n':
 	case 't':
+	case 'B':
 	  break;
 
 	case 'E':
@@ -2969,12 +2984,11 @@ output_inline_function (fndecl)
 {
   struct function *old_cfun = cfun;
   enum debug_info_type old_write_symbols = write_symbols;
-  struct gcc_debug_hooks *old_debug_hooks = debug_hooks;
+  const struct gcc_debug_hooks *const old_debug_hooks = debug_hooks;
   struct function *f = DECL_SAVED_INSNS (fndecl);
 
   cfun = f;
   current_function_decl = fndecl;
-  clear_emit_caches ();
 
   set_new_last_label_num (f->inl_max_label_num);
 
@@ -3053,20 +3067,20 @@ get_func_hard_reg_initial_val (fun, reg)
 
   if (ivs == 0)
     {
-      fun->hard_reg_initial_vals = (void *) xmalloc (sizeof (initial_value_struct));
+      fun->hard_reg_initial_vals = (void *) ggc_alloc (sizeof (initial_value_struct));
       ivs = fun->hard_reg_initial_vals;
       ivs->num_entries = 0;
       ivs->max_entries = 5;
-      ivs->entries = (initial_value_pair *) xmalloc (5 * sizeof (initial_value_pair));
+      ivs->entries = (initial_value_pair *) ggc_alloc (5 * sizeof (initial_value_pair));
     }
 
   if (ivs->num_entries >= ivs->max_entries)
     {
       ivs->max_entries += 5;
       ivs->entries = 
-	(initial_value_pair *) xrealloc (ivs->entries,
-					 ivs->max_entries
-					 * sizeof (initial_value_pair));
+	(initial_value_pair *) ggc_realloc (ivs->entries,
+					    ivs->max_entries
+					    * sizeof (initial_value_pair));
     }
 
   ivs->entries[ivs->num_entries].hard_reg = reg;
@@ -3089,23 +3103,6 @@ has_hard_reg_initial_val (mode, regno)
      int regno;
 {
   return has_func_hard_reg_initial_val (cfun, gen_rtx_REG (mode, regno));
-}
-
-void
-mark_hard_reg_initial_vals (fun)
-     struct function *fun;
-{
-  struct initial_value_struct *ivs = fun->hard_reg_initial_vals;
-  int i;
-
-  if (ivs == 0)
-    return;
-
-  for (i = 0; i < ivs->num_entries; i ++)
-    {
-      ggc_mark_rtx (ivs->entries[i].hard_reg);
-      ggc_mark_rtx (ivs->entries[i].pseudo);
-    }
 }
 
 static void
@@ -3141,7 +3138,7 @@ emit_initial_value_sets ()
   seq = get_insns ();
   end_sequence ();
 
-  emit_insns_after (seq, get_insns ());
+  emit_insn_after (seq, get_insns ());
 }
 
 /* If the backend knows where to allocate pseudos for hard
@@ -3177,3 +3174,5 @@ allocate_initial_values (reg_equiv_memory_loc)
     }
 #endif
 }
+
+#include "gt-integrate.h"

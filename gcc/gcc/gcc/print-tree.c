@@ -23,6 +23,7 @@ Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 #include "config.h"
 #include "system.h"
 #include "tree.h"
+#include "real.h"
 #include "ggc.h"
 #include "langhooks.h"
 
@@ -47,8 +48,7 @@ void
 debug_tree (node)
      tree node;
 {
-  table = (struct bucket **) permalloc (HASH_SIZE * sizeof (struct bucket *));
-  memset ((char *) table, 0, HASH_SIZE * sizeof (struct bucket *));
+  table = (struct bucket **) xcalloc (HASH_SIZE, sizeof (struct bucket *));
   print_node (stderr, "", node, 0);
   table = 0;
   fprintf (stderr, "\n");
@@ -124,7 +124,6 @@ print_node_brief (file, prefix, node, indent)
       if (TREE_OVERFLOW (node))
 	fprintf (file, " overflow");
 
-#if !defined(REAL_IS_NOT_DOUBLE) || defined(REAL_ARITHMETIC)
       d = TREE_REAL_CST (node);
       if (REAL_VALUE_ISINF (d))
 	fprintf (file, " Inf");
@@ -137,16 +136,6 @@ print_node_brief (file, prefix, node, indent)
 	  REAL_VALUE_TO_DECIMAL (d, "%e", string);
 	  fprintf (file, " %s", string);
 	}
-#else
-      {
-	int i;
-	unsigned char *p = (unsigned char *) &TREE_REAL_CST (node);
-	fprintf (file, " 0x");
-	for (i = 0; i < sizeof TREE_REAL_CST (node); i++)
-	  fprintf (file, "%02x", *p++);
-	fprintf (file, "");
-      }
-#endif
     }
 
   fprintf (file, ">");
@@ -223,7 +212,7 @@ print_node (file, prefix, node, indent)
       }
 
   /* Add this node to the table.  */
-  b = (struct bucket *) permalloc (sizeof (struct bucket));
+  b = (struct bucket *) xmalloc (sizeof (struct bucket));
   b->node = node;
   b->next = table[hash];
   table[hash] = b;
@@ -328,6 +317,8 @@ print_node (file, prefix, node, indent)
 	fputs (" common", file);
       if (DECL_EXTERNAL (node))
 	fputs (" external", file);
+      if (DECL_WEAK (node))
+	fputs (" weak", file);
       if (DECL_REGISTER (node) && TREE_CODE (node) != FIELD_DECL
 	  && TREE_CODE (node) != FUNCTION_DECL
 	  && TREE_CODE (node) != LABEL_DECL)
@@ -361,6 +352,8 @@ print_node (file, prefix, node, indent)
 
       if (TREE_CODE (node) == VAR_DECL && DECL_IN_TEXT_SECTION (node))
 	fputs (" in-text-section", file);
+      if (TREE_CODE (node) == VAR_DECL && DECL_THREAD_LOCAL (node))
+	fputs (" thread-local", file);
 
       if (TREE_CODE (node) == PARM_DECL && DECL_TRANSPARENT_UNION (node))
 	fputs (" transparent-union", file);
@@ -393,7 +386,7 @@ print_node (file, prefix, node, indent)
 
       print_node (file, "size", DECL_SIZE (node), indent + 4);
       print_node (file, "unit size", DECL_SIZE_UNIT (node), indent + 4);
-      
+
       if (TREE_CODE (node) != FUNCTION_DECL
 	  || DECL_INLINE (node) || DECL_BUILT_IN (node))
 	indent_to (file, indent + 3);
@@ -424,7 +417,7 @@ print_node (file, prefix, node, indent)
       if (DECL_POINTER_ALIAS_SET_KNOWN_P (node))
 	{
 	  fprintf (file, " alias set ");
-	  fprintf (file, HOST_WIDE_INT_PRINT_DEC, 
+	  fprintf (file, HOST_WIDE_INT_PRINT_DEC,
 		   DECL_POINTER_ALIAS_SET (node));
 	}
 
@@ -642,7 +635,7 @@ print_node (file, prefix, node, indent)
       if (TREE_CODE (node) == EXPR_WITH_FILE_LOCATION)
 	{
 	  indent_to (file, indent+4);
-          fprintf (file, "%s:%d:%d", 
+	  fprintf (file, "%s:%d:%d",
 		   (EXPR_WFL_FILENAME_NODE (node ) ?
 		    EXPR_WFL_FILENAME (node) : "(no file info)"),
 		   EXPR_WFL_LINENO (node), EXPR_WFL_COLNO (node));
@@ -681,7 +674,6 @@ print_node (file, prefix, node, indent)
 	    if (TREE_OVERFLOW (node))
 	      fprintf (file, " overflow");
 
-#if !defined(REAL_IS_NOT_DOUBLE) || defined(REAL_ARITHMETIC)
 	    d = TREE_REAL_CST (node);
 	    if (REAL_VALUE_ISINF (d))
 	      fprintf (file, " Inf");
@@ -694,16 +686,22 @@ print_node (file, prefix, node, indent)
 		REAL_VALUE_TO_DECIMAL (d, "%e", string);
 		fprintf (file, " %s", string);
 	      }
-#else
-	    {
-	      int i;
-	      unsigned char *p = (unsigned char *) &TREE_REAL_CST (node);
-	      fprintf (file, " 0x");
-	      for (i = 0; i < sizeof TREE_REAL_CST (node); i++)
-		fprintf (file, "%02x", *p++);
-	      fprintf (file, "");
-	    }
-#endif
+	  }
+	  break;
+
+	case VECTOR_CST:
+	  {
+	    tree vals = TREE_VECTOR_CST_ELTS (node);
+	    char buf[10];
+	    tree link;
+	    int i;
+
+	    i = 0;
+	    for (link = vals; link; link = TREE_CHAIN (link), ++i)
+	      {
+		sprintf (buf, "elt%d: ", i);
+		print_node (file, buf, TREE_VALUE (link), indent + 4);
+	      }
 	  }
 	  break;
 

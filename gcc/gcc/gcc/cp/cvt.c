@@ -1,6 +1,6 @@
 /* Language-level data type conversion for GNU C++.
    Copyright (C) 1987, 1988, 1992, 1993, 1994, 1995, 1996, 1997, 1998,
-   1999, 2000 Free Software Foundation, Inc.
+   1999, 2000, 2001, 2002 Free Software Foundation, Inc.
    Hacked by Michael Tiemann (tiemann@cygnus.com)
 
 This file is part of GNU CC.
@@ -52,7 +52,7 @@ static void warn_ref_binding PARAMS ((tree, tree, tree));
    narrowing is always done with a NOP_EXPR:
      In convert.c, convert_to_integer.
      In c-typeck.c, build_binary_op_nodefault (boolean ops),
-        and truthvalue_conversion.
+        and c_common_truthvalue_conversion.
      In expr.c: expand_expr, for operands of a MULT_EXPR.
      In fold-const.c: fold.
      In tree.c: get_narrower and get_unwidened.
@@ -129,6 +129,9 @@ cp_convert_to_pointer (type, expr, force)
 	}
       intype = TREE_TYPE (expr);
     }
+
+  if (expr == error_mark_node)
+    return error_mark_node;
 
   form = TREE_CODE (intype);
 
@@ -249,14 +252,22 @@ cp_convert_to_pointer (type, expr, force)
       else
 	expr = build_int_2 (0, 0);
       TREE_TYPE (expr) = type;
+      /* Fix up the representation of -1 if appropriate.  */
+      force_fit_type (expr, 0);
       return expr;
+    }
+  else if ((TYPE_PTRMEM_P (type) || TYPE_PTRMEMFUNC_P (type))
+	   && INTEGRAL_CODE_P (form))
+    {
+      error ("invalid conversion from '%T' to '%T'", intype, type);
+      return error_mark_node;
     }
 
   if (INTEGRAL_CODE_P (form))
     {
       if (TYPE_PRECISION (intype) == POINTER_SIZE)
 	return build1 (CONVERT_EXPR, type, expr);
-      expr = cp_convert (type_for_size (POINTER_SIZE, 0), expr);
+      expr = cp_convert (c_common_type_for_size (POINTER_SIZE, 0), expr);
       /* Modes may be different but sizes should be the same.  */
       if (GET_MODE_SIZE (TYPE_MODE (TREE_TYPE (expr)))
 	  != GET_MODE_SIZE (TYPE_MODE (type)))
@@ -285,13 +296,6 @@ convert_to_pointer_force (type, expr)
   register tree intype = TREE_TYPE (expr);
   register enum tree_code form = TREE_CODE (intype);
   
-  if (integer_zerop (expr))
-    {
-      expr = build_int_2 (0, 0);
-      TREE_TYPE (expr) = type;
-      return expr;
-    }
-
   if (form == POINTER_TYPE)
     {
       intype = TYPE_MAIN_VARIANT (intype);
@@ -773,21 +777,13 @@ ocp_convert (type, expr, convtype, flags)
 	   the target with the temp (see [dcl.init]).  */
 	ctor = build_user_type_conversion (type, ctor, flags);
       else
-	ctor = build_method_call (NULL_TREE, 
-				  complete_ctor_identifier,
-				  build_tree_list (NULL_TREE, ctor),
-				  TYPE_BINFO (type), flags);
+	ctor = build_special_member_call (NULL_TREE, 
+					  complete_ctor_identifier,
+					  build_tree_list (NULL_TREE, ctor),
+					  TYPE_BINFO (type), flags);
       if (ctor)
 	return build_cplus_new (type, ctor);
     }
-
-  /* If TYPE or TREE_TYPE (E) is not on the permanent_obstack,
-     then it won't be hashed and hence compare as not equal,
-     even when it is.  */
-  if (code == ARRAY_TYPE
-      && TREE_TYPE (TREE_TYPE (e)) == TREE_TYPE (type)
-      && index_type_equal (TYPE_DOMAIN (TREE_TYPE (e)), TYPE_DOMAIN (type)))
-    return e;
 
   if (flags & LOOKUP_COMPLAIN)
     error ("conversion from `%T' to non-scalar type `%T' requested",
@@ -836,7 +832,7 @@ convert_to_void (expr, implicit)
         tree new_op1 = convert_to_void (op1, implicit);
         tree new_op2 = convert_to_void (op2, implicit);
         
-	expr = build (COND_EXPR, void_type_node,
+	expr = build (COND_EXPR, TREE_TYPE (new_op1),
 		      TREE_OPERAND (expr, 0), new_op1, new_op2);
         break;
       }
@@ -852,6 +848,7 @@ convert_to_void (expr, implicit)
 	    tree t = build (COMPOUND_EXPR, TREE_TYPE (new_op1),
 			    TREE_OPERAND (expr, 0), new_op1);
 	    TREE_SIDE_EFFECTS (t) = TREE_SIDE_EFFECTS (expr);
+	    TREE_NO_UNUSED_WARNING (t) = TREE_NO_UNUSED_WARNING (expr);
 	    expr = t;
 	  }
 
@@ -1182,10 +1179,10 @@ type_promotes_to (type)
     {
       int precision = MAX (TYPE_PRECISION (type),
 			   TYPE_PRECISION (integer_type_node));
-      tree totype = type_for_size (precision, 0);
+      tree totype = c_common_type_for_size (precision, 0);
       if (TREE_UNSIGNED (type)
 	  && ! int_fits_type_p (TYPE_MAX_VALUE (type), totype))
-	type = type_for_size (precision, 1);
+	type = c_common_type_for_size (precision, 1);
       else
 	type = totype;
     }

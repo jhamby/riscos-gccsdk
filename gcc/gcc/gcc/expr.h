@@ -75,29 +75,37 @@ struct args_size
 
 /* Add the value of the tree INC to the `struct args_size' TO.  */
 
-#define ADD_PARM_SIZE(TO, INC)	\
-{ tree inc = (INC);				\
-  if (host_integerp (inc, 0))			\
-    (TO).constant += tree_low_cst (inc, 0);	\
-  else if ((TO).var == 0)			\
-    (TO).var = inc;				\
-  else						\
-    (TO).var = size_binop (PLUS_EXPR, (TO).var, inc); }
+#define ADD_PARM_SIZE(TO, INC)				\
+do {							\
+  tree inc = (INC);					\
+  if (host_integerp (inc, 0))				\
+    (TO).constant += tree_low_cst (inc, 0);		\
+  else if ((TO).var == 0)				\
+    (TO).var = convert (ssizetype, inc);		\
+  else							\
+    (TO).var = size_binop (PLUS_EXPR, (TO).var,		\
+			   convert (ssizetype, inc));	\
+} while (0)
 
-#define SUB_PARM_SIZE(TO, DEC)	\
-{ tree dec = (DEC);				\
-  if (host_integerp (dec, 0))			\
-    (TO).constant -= tree_low_cst (dec, 0);	\
-  else if ((TO).var == 0)			\
-    (TO).var = size_binop (MINUS_EXPR, ssize_int (0), dec); \
-  else						\
-    (TO).var = size_binop (MINUS_EXPR, (TO).var, dec); }
+#define SUB_PARM_SIZE(TO, DEC)				\
+do {							\
+  tree dec = (DEC);					\
+  if (host_integerp (dec, 0))				\
+    (TO).constant -= tree_low_cst (dec, 0);		\
+  else if ((TO).var == 0)				\
+    (TO).var = size_binop (MINUS_EXPR, ssize_int (0),	\
+			   convert (ssizetype, dec));	\
+  else							\
+    (TO).var = size_binop (MINUS_EXPR, (TO).var,	\
+			   convert (ssizetype, dec));	\
+} while (0)
 
 /* Convert the implicit sum in a `struct args_size' into a tree
    of type ssizetype.  */
 #define ARGS_SIZE_TREE(SIZE)					\
 ((SIZE).var == 0 ? ssize_int ((SIZE).constant)			\
- : size_binop (PLUS_EXPR, (SIZE).var, ssize_int ((SIZE).constant)))
+ : size_binop (PLUS_EXPR, convert (ssizetype, (SIZE).var),	\
+	       ssize_int ((SIZE).constant)))
 
 /* Convert the implicit sum in a `struct args_size' into an rtx.  */
 #define ARGS_SIZE_RTX(SIZE)					\
@@ -124,7 +132,7 @@ enum direction {none, upward, downward};  /* Value has this type.  */
 /* Supply a default definition for FUNCTION_ARG_BOUNDARY.  Normally, we let
    FUNCTION_ARG_PADDING, which also pads the length, handle any needed
    alignment.  */
-  
+
 #ifndef FUNCTION_ARG_BOUNDARY
 #define FUNCTION_ARG_BOUNDARY(MODE, TYPE)	PARM_BOUNDARY
 #endif
@@ -281,7 +289,7 @@ extern rtx gen_move_insn PARAMS ((rtx, rtx));
 extern int have_add2_insn PARAMS ((rtx, rtx));
 extern int have_sub2_insn PARAMS ((rtx, rtx));
 
-/* Emit a pair of rtl insns to compare two rtx's and to jump 
+/* Emit a pair of rtl insns to compare two rtx's and to jump
    to a label if the comparison is true.  */
 extern void emit_cmp_and_jump_insns PARAMS ((rtx, rtx, enum rtx_code, rtx,
 					     enum machine_mode, int, rtx));
@@ -308,7 +316,7 @@ int can_conditionally_move_p PARAMS ((enum machine_mode mode));
 extern rtx negate_rtx PARAMS ((enum machine_mode, rtx));
 
 /* Expand a logical AND operation.  */
-extern rtx expand_and PARAMS ((rtx, rtx, rtx));
+extern rtx expand_and PARAMS ((enum machine_mode, rtx, rtx, rtx));
 
 /* Emit a store-flag operation.  */
 extern rtx emit_store_flag PARAMS ((rtx, enum rtx_code, rtx, rtx,
@@ -332,20 +340,18 @@ extern rtx get_condition PARAMS ((rtx, rtx *));
 extern rtx gen_cond_trap PARAMS ((enum rtx_code, rtx, rtx, rtx));
 
 /* Functions from builtins.c:  */
-#ifdef TREE_CODE
 extern rtx expand_builtin PARAMS ((tree, rtx, rtx, enum machine_mode, int));
-extern void std_expand_builtin_va_start PARAMS ((int, tree, rtx));
+extern void std_expand_builtin_va_start PARAMS ((tree, rtx));
 extern rtx std_expand_builtin_va_arg PARAMS ((tree, tree));
 extern rtx expand_builtin_va_arg PARAMS ((tree, tree));
 extern void default_init_builtins PARAMS ((void));
 extern rtx default_expand_builtin PARAMS ((tree, rtx, rtx,
 					   enum machine_mode, int));
-#endif
-
 extern void expand_builtin_setjmp_setup PARAMS ((rtx, rtx));
 extern void expand_builtin_setjmp_receiver PARAMS ((rtx));
 extern void expand_builtin_longjmp PARAMS ((rtx, rtx));
 extern rtx expand_builtin_saveregs PARAMS ((void));
+extern void expand_builtin_trap PARAMS ((void));
 extern HOST_WIDE_INT get_varargs_alias_set PARAMS ((void));
 extern HOST_WIDE_INT get_frame_alias_set PARAMS ((void));
 extern void record_base_value		PARAMS ((unsigned int, rtx, int));
@@ -362,10 +368,6 @@ extern void init_expr_once PARAMS ((void));
 
 /* This is run at the start of compiling a function.  */
 extern void init_expr PARAMS ((void));
-
-/* This function is run once to initialize stor-layout.c.  */
-
-extern void init_stor_layout_once PARAMS ((void));
 
 /* This is run at the end of compiling a function.  */
 extern void finish_expr_for_function PARAMS ((void));
@@ -542,6 +544,10 @@ extern unsigned int case_values_threshold PARAMS ((void));
 /* Return an rtx for the size in bytes of the value of an expr.  */
 extern rtx expr_size PARAMS ((tree));
 
+/* Return a wide integer for the size in bytes of the value of EXP, or -1
+   if the size can vary or is larger than an integer.  */
+extern HOST_WIDE_INT int_expr_size PARAMS ((tree));
+
 extern rtx lookup_static_chain PARAMS ((tree));
 
 /* Convert a stack slot address ADDR valid in function FNDECL
@@ -664,6 +670,12 @@ extern void maybe_set_unchanging PARAMS ((rtx, tree));
    corresponding to REF, set the memory attributes.  OBJECTP is nonzero
    if we are making a new object of this type.  */
 extern void set_mem_attributes PARAMS ((rtx, tree, int));
+
+/* Similar, except that BITPOS has not yet been applied to REF, so if
+   we alter MEM_OFFSET according to T then we should subtract BITPOS
+   expecting that it'll be added back in later.  */
+extern void set_mem_attributes_minus_bitpos PARAMS ((rtx, tree, int,
+						     HOST_WIDE_INT));
 #endif
 
 /* Assemble the static constant template for function entry trampolines.  */
@@ -721,7 +733,7 @@ extern void emit_stack_restore PARAMS ((enum save_level, rtx, rtx));
    says how many bytes.  */
 extern rtx allocate_dynamic_stack_space PARAMS ((rtx, rtx, int));
 
-/* Probe a range of stack addresses from FIRST to FIRST+SIZE, inclusive. 
+/* Probe a range of stack addresses from FIRST to FIRST+SIZE, inclusive.
    FIRST is a constant and size is a Pmode RTX.  These are offsets from the
    current stack pointer.  STACK_GROWS_DOWNWARD says whether to add or
    subtract from the stack.  If SIZE is constant, this is done
@@ -752,6 +764,7 @@ extern rtx extract_bit_field PARAMS ((rtx, unsigned HOST_WIDE_INT,
 				      enum machine_mode, enum machine_mode,
 				      HOST_WIDE_INT));
 extern rtx expand_mult PARAMS ((enum machine_mode, rtx, rtx, rtx, int));
+extern bool const_mult_add_overflow_p PARAMS ((rtx, rtx, rtx, enum machine_mode, int));
 extern rtx expand_mult_add PARAMS ((rtx, rtx, rtx, rtx,enum machine_mode, int));
 extern rtx expand_mult_highpart_adjust PARAMS ((enum machine_mode, rtx, rtx, rtx, rtx, int));
 
@@ -783,3 +796,5 @@ extern void do_jump_by_parts_greater_rtx	PARAMS ((enum machine_mode,
 extern void mark_seen_cases			PARAMS ((tree, unsigned char *,
 							 HOST_WIDE_INT, int));
 #endif
+
+extern int vector_mode_valid_p		PARAMS ((enum machine_mode));

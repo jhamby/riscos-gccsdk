@@ -1,6 +1,6 @@
 /* YACC parser for C syntax and for Objective C.  -*-c-*-
    Copyright (C) 1987, 1988, 1989, 1992, 1993, 1994, 1995, 1996,
-   1997, 1998, 1999, 2000, 2001 Free Software Foundation, Inc.
+   1997, 1998, 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
 
 This file is part of GCC.
 
@@ -38,14 +38,13 @@ Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 #include "cpplib.h"
 #include "intl.h"
 #include "timevar.h"
-#include "c-lex.h"
+#include "c-pragma.h"		/* For YYDEBUG definition, and parse_in.  */
 #include "c-tree.h"
-#include "c-pragma.h"
 #include "flags.h"
 #include "output.h"
 #include "toplev.h"
 #include "ggc.h"
-  
+
 #ifdef MULTIBYTE_CHARS
 #include <locale.h>
 #endif
@@ -54,11 +53,48 @@ Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 /* Like YYERROR but do call yyerror.  */
 #define YYERROR1 { yyerror ("syntax error"); YYERROR; }
 
-/* Cause the "yydebug" variable to be defined.  */
-#define YYDEBUG 1
+/* Like the default stack expander, except (1) use realloc when possible,
+   (2) impose no hard maxiumum on stack size, (3) REALLY do not use alloca.
 
-/* Rename the "yyparse" function so that we can override it elsewhere.  */
-#define yyparse yyparse_1
+   Irritatingly, YYSTYPE is defined after this %{ %} block, so we cannot
+   give malloced_yyvs its proper type.  This is ok since all we need from
+   it is to be able to free it.  */
+
+static short *malloced_yyss;
+static void *malloced_yyvs;
+
+#define yyoverflow(MSG, SS, SSSIZE, VS, VSSIZE, YYSSZ)			\
+do {									\
+  size_t newsize;							\
+  short *newss;								\
+  YYSTYPE *newvs;							\
+  newsize = *(YYSSZ) *= 2;						\
+  if (malloced_yyss)							\
+    {									\
+      newss = (short *)							\
+	really_call_realloc (*(SS), newsize * sizeof (short));		\
+      newvs = (YYSTYPE *)						\
+	really_call_realloc (*(VS), newsize * sizeof (YYSTYPE));	\
+    }									\
+  else									\
+    {									\
+      newss = (short *) really_call_malloc (newsize * sizeof (short));	\
+      newvs = (YYSTYPE *) really_call_malloc (newsize * sizeof (YYSTYPE)); \
+      if (newss)							\
+        memcpy (newss, *(SS), (SSSIZE));				\
+      if (newvs)							\
+        memcpy (newvs, *(VS), (VSSIZE));				\
+    }									\
+  if (!newss || !newvs)							\
+    {									\
+      yyerror (MSG);							\
+      return 2;								\
+    }									\
+  *(SS) = newss;							\
+  *(VS) = newvs;							\
+  malloced_yyss = newss;						\
+  malloced_yyvs = (void *) newvs;					\
+} while (0)
 %}
 
 %start program
@@ -77,7 +113,8 @@ Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 
 /* Reserved words that specify storage class.
    yylval contains an IDENTIFIER_NODE which indicates which one.  */
-%token SCSPEC
+%token SCSPEC			/* Storage class other than static.  */
+%token STATIC			/* Static storage class.  */
 
 /* Reserved words that specify type.
    yylval contains an IDENTIFIER_NODE which indicates which one.  */
@@ -103,7 +140,7 @@ Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 %token SIZEOF ENUM STRUCT UNION IF ELSE WHILE DO FOR SWITCH CASE DEFAULT
 %token BREAK CONTINUE RETURN GOTO ASM_KEYWORD TYPEOF ALIGNOF
 %token ATTRIBUTE EXTENSION LABEL
-%token REALPART IMAGPART VA_ARG
+%token REALPART IMAGPART VA_ARG CHOOSE_EXPR TYPES_COMPATIBLE_P
 %token PTR_VALUE PTR_BASE PTR_EXTENT
 
 /* function name can be a string const or a var decl. */
@@ -143,7 +180,7 @@ Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 %type <ttype> BREAK CONTINUE RETURN GOTO ASM_KEYWORD SIZEOF TYPEOF ALIGNOF
 
 %type <ttype> identifier IDENTIFIER TYPENAME CONSTANT expr nonnull_exprlist exprlist
-%type <ttype> expr_no_commas cast_expr unary_expr primary string STRING
+%type <ttype> expr_no_commas cast_expr unary_expr primary STRING
 %type <ttype> declspecs_nosc_nots_nosa_noea declspecs_nosc_nots_nosa_ea
 %type <ttype> declspecs_nosc_nots_sa_noea declspecs_nosc_nots_sa_ea
 %type <ttype> declspecs_nosc_ts_nosa_noea declspecs_nosc_ts_nosa_ea
@@ -159,7 +196,7 @@ Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 %type <ttype> typespec_reserved_nonattr typespec_reserved_attr
 %type <ttype> typespec_nonreserved_nonattr
 
-%type <ttype> SCSPEC TYPESPEC TYPE_QUAL maybe_type_qual
+%type <ttype> scspec SCSPEC STATIC TYPESPEC TYPE_QUAL maybe_type_qual
 %type <ttype> initdecls notype_initdecls initdcl notype_initdcl
 %type <ttype> init maybeasm
 %type <ttype> asm_operands nonnull_asm_operands asm_operand asm_clobbers
@@ -197,28 +234,28 @@ Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 
 
 %{
-/* Number of statements (loosely speaking) and compound statements 
+/* Number of statements (loosely speaking) and compound statements
    seen so far.  */
 static int stmt_count;
 static int compstmt_count;
-  
+
 /* Input file and line number of the end of the body of last simple_if;
    used by the stmt-rule immediately after simple_if returns.  */
 static const char *if_stmt_file;
 static int if_stmt_line;
 
 /* List of types and structure classes of the current declaration.  */
-static tree current_declspecs = NULL_TREE;
-static tree prefix_attributes = NULL_TREE;
+static GTY(()) tree current_declspecs;
+static GTY(()) tree prefix_attributes;
 
 /* List of all the attributes applying to the identifier currently being
    declared; includes prefix_attributes and possibly some more attributes
    just after a comma.  */
-static tree all_prefix_attributes = NULL_TREE;
+static GTY(()) tree all_prefix_attributes;
 
 /* Stack of saved values of current_declspecs, prefix_attributes and
    all_prefix_attributes.  */
-static tree declspec_stack;
+static GTY(()) tree declspec_stack;
 
 /* PUSH_DECLSPEC_STACK is called from setspecs; POP_DECLSPEC_STACK
    should be called from the productions making use of setspecs.  */
@@ -240,17 +277,25 @@ static tree declspec_stack;
 
 /* For __extension__, save/restore the warning flags which are
    controlled by __extension__.  */
-#define SAVE_WARN_FLAGS()	\
-	size_int (pedantic | (warn_pointer_arith << 1))
-#define RESTORE_WARN_FLAGS(tval) \
-  do {                                     \
-    int val = tree_low_cst (tval, 0);      \
-    pedantic = val & 1;                    \
-    warn_pointer_arith = (val >> 1) & 1;   \
+#define SAVE_EXT_FLAGS()			\
+	size_int (pedantic			\
+		  | (warn_pointer_arith << 1)	\
+		  | (warn_traditional << 2)	\
+		  | (flag_iso << 3))
+
+#define RESTORE_EXT_FLAGS(tval)			\
+  do {						\
+    int val = tree_low_cst (tval, 0);		\
+    pedantic = val & 1;				\
+    warn_pointer_arith = (val >> 1) & 1;	\
+    warn_traditional = (val >> 2) & 1;		\
+    flag_iso = (val >> 3) & 1;			\
   } while (0)
 
 
 #define OBJC_NEED_RAW_IDENTIFIER(VAL)	/* nothing */
+
+static bool parsing_iso_function_signature;
 
 /* Tell yyparse how to print a token's value, if yydebug is set.  */
 
@@ -259,20 +304,16 @@ static tree declspec_stack;
 static void yyprint	  PARAMS ((FILE *, int, YYSTYPE));
 static void yyerror	  PARAMS ((const char *));
 static int yylexname	  PARAMS ((void));
+static int yylexstring	  PARAMS ((void));
 static inline int _yylex  PARAMS ((void));
 static int  yylex	  PARAMS ((void));
 static void init_reswords PARAMS ((void));
 
-/* Add GC roots for variables local to this file.  */
+  /* Initialisation routine for this file.  */
 void
 c_parse_init ()
 {
   init_reswords ();
-
-  ggc_add_tree_root (&declspec_stack, 1);
-  ggc_add_tree_root (&current_declspecs, 1);
-  ggc_add_tree_root (&prefix_attributes, 1);
-  ggc_add_tree_root (&all_prefix_attributes, 1);
 }
 
 %}
@@ -289,6 +330,9 @@ program: /* empty */
 		     get us back to the global binding level.  */
 		  while (! global_bindings_p ())
 		    poplevel (0, 0, 0);
+		  /* __FUNCTION__ is defined at file scope ("").  This
+		     call may not be necessary as my tests indicate it
+		     still works without it.  */
 		  finish_fname_decls ();
                   finish_file ();
 		}
@@ -304,6 +348,11 @@ extdefs:
 	;
 
 extdef:
+	extdef_1
+	{ parsing_iso_function_signature = false; } /* Reset after any external definition.  */
+	;
+
+extdef_1:
 	fndef
 	| datadef
 	| ASM_KEYWORD '(' expr ')' ';'
@@ -315,15 +364,15 @@ extdef:
 		  else
 		    error ("argument of `asm' is not a constant string"); }
 	| extension extdef
-		{ RESTORE_WARN_FLAGS ($1); }
+		{ RESTORE_EXT_FLAGS ($1); }
 	;
 
 datadef:
 	  setspecs notype_initdecls ';'
 		{ if (pedantic)
 		    error ("ISO C forbids data definition with no type or storage class");
-		  else if (!flag_traditional)
-		    warning ("data definition has no type or storage class"); 
+		  else
+		    warning ("data definition has no type or storage class");
 
 		  POP_DECLSPEC_STACK; }
         | declspecs_nots setspecs notype_initdecls ';'
@@ -350,7 +399,7 @@ fndef:
 	  save_filename save_lineno compstmt_or_error
 		{ DECL_SOURCE_FILE (current_function_decl) = $7;
 		  DECL_SOURCE_LINE (current_function_decl) = $8;
-		  finish_function (0); 
+		  finish_function (0, 1);
 		  POP_DECLSPEC_STACK; }
 	| declspecs_ts setspecs declarator error
 		{ POP_DECLSPEC_STACK; }
@@ -364,7 +413,7 @@ fndef:
 	  save_filename save_lineno compstmt_or_error
 		{ DECL_SOURCE_FILE (current_function_decl) = $7;
 		  DECL_SOURCE_LINE (current_function_decl) = $8;
-		  finish_function (0); 
+		  finish_function (0, 1);
 		  POP_DECLSPEC_STACK; }
 	| declspecs_nots setspecs notype_declarator error
 		{ POP_DECLSPEC_STACK; }
@@ -378,7 +427,7 @@ fndef:
 	  save_filename save_lineno compstmt_or_error
 		{ DECL_SOURCE_FILE (current_function_decl) = $6;
 		  DECL_SOURCE_LINE (current_function_decl) = $7;
-		  finish_function (0); 
+		  finish_function (0, 1);
 		  POP_DECLSPEC_STACK; }
 	| setspecs notype_declarator error
 		{ POP_DECLSPEC_STACK; }
@@ -432,28 +481,13 @@ unary_expr:
 	/* __extension__ turns off -pedantic for following primary.  */
 	| extension cast_expr	  %prec UNARY
 		{ $$ = $2;
-		  RESTORE_WARN_FLAGS ($1); }
+		  RESTORE_EXT_FLAGS ($1); }
 	| unop cast_expr  %prec UNARY
 		{ $$ = build_unary_op ($1, $2, 0);
 		  overflow_warning ($$); }
 	/* Refer to the address of a label as a pointer.  */
 	| ANDAND identifier
 		{ $$ = finish_label_address_expr ($2); }
-/* This seems to be impossible on some machines, so let's turn it off.
-   You can use __builtin_next_arg to find the anonymous stack args.
-	| '&' ELLIPSIS
-		{ tree types = TYPE_ARG_TYPES (TREE_TYPE (current_function_decl));
-		  $$ = error_mark_node;
-		  if (TREE_VALUE (tree_last (types)) == void_type_node)
-		    error ("`&...' used in function with fixed number of arguments");
-		  else
-		    {
-		      if (pedantic)
-			pedwarn ("ISO C forbids `&...'");
-		      $$ = tree_last (DECL_ARGUMENTS (current_function_decl));
-		      $$ = build_unary_op (ADDR_EXPR, $$, 0);
-		    } }
-*/
 	| sizeof unary_expr  %prec UNARY
 		{ skip_evaluation--;
 		  if (TREE_CODE ($2) == COMPONENT_REF
@@ -481,6 +515,10 @@ sizeof:
 
 alignof:
 	ALIGNOF { skip_evaluation++; }
+	;
+
+typeof:
+	TYPEOF { skip_evaluation++; }
 	;
 
 cast_expr:
@@ -516,19 +554,22 @@ expr_no_commas:
 	| expr_no_commas '^' expr_no_commas
 		{ $$ = parser_build_binary_op ($2, $1, $3); }
 	| expr_no_commas ANDAND
-		{ $1 = truthvalue_conversion (default_conversion ($1));
+		{ $1 = c_common_truthvalue_conversion
+		    (default_conversion ($1));
 		  skip_evaluation += $1 == boolean_false_node; }
 	  expr_no_commas
 		{ skip_evaluation -= $1 == boolean_false_node;
 		  $$ = parser_build_binary_op (TRUTH_ANDIF_EXPR, $1, $4); }
 	| expr_no_commas OROR
-		{ $1 = truthvalue_conversion (default_conversion ($1));
+		{ $1 = c_common_truthvalue_conversion
+		    (default_conversion ($1));
 		  skip_evaluation += $1 == boolean_true_node; }
 	  expr_no_commas
 		{ skip_evaluation -= $1 == boolean_true_node;
 		  $$ = parser_build_binary_op (TRUTH_ORIF_EXPR, $1, $4); }
 	| expr_no_commas '?'
-		{ $1 = truthvalue_conversion (default_conversion ($1));
+		{ $1 = c_common_truthvalue_conversion
+		    (default_conversion ($1));
 		  skip_evaluation += $1 == boolean_false_node; }
           expr ':'
 		{ skip_evaluation += (($1 == boolean_true_node)
@@ -541,7 +582,8 @@ expr_no_commas:
 		    pedwarn ("ISO C forbids omitting the middle term of a ?: expression");
 		  /* Make sure first operand is calculated only once.  */
 		  $<ttype>2 = save_expr ($1);
-		  $1 = truthvalue_conversion (default_conversion ($<ttype>2));
+		  $1 = c_common_truthvalue_conversion
+		    (default_conversion ($<ttype>2));
 		  skip_evaluation += $1 == boolean_true_node; }
 	  ':' expr_no_commas
 		{ skip_evaluation -= $1 == boolean_true_node;
@@ -556,7 +598,8 @@ expr_no_commas:
 	| expr_no_commas ASSIGN expr_no_commas
 		{ char class;
 		  $$ = build_modify_expr ($1, $2, $3);
-		  /* This inhibits warnings in truthvalue_conversion.  */
+		  /* This inhibits warnings in
+		     c_common_truthvalue_conversion.  */
 		  class = TREE_CODE_CLASS (TREE_CODE ($$));
 		  if (IS_EXPR_CODE_CLASS (class))
 		    C_SET_EXP_ORIGINAL_CODE ($$, ERROR_MARK);
@@ -571,38 +614,22 @@ primary:
 		  $$ = build_external_ref ($1, yychar == '(');
 		}
 	| CONSTANT
-	| string
-		{ $$ = combine_strings ($1); }
+	| STRING
+		{ $$ = fix_string_type ($$); }
 	| VAR_FUNC_NAME
 		{ $$ = fname_decl (C_RID_CODE ($$), $$); }
-	| '(' typename ')' '{' 
+	| '(' typename ')' '{'
 		{ start_init (NULL_TREE, NULL, 0);
 		  $2 = groktypename ($2);
 		  really_start_incremental_init ($2); }
 	  initlist_maybe_comma '}'  %prec UNARY
-		{ const char *name;
-		  tree result = pop_init_level (0);
+		{ tree constructor = pop_init_level (0);
 		  tree type = $2;
 		  finish_init ();
 
 		  if (pedantic && ! flag_isoc99)
 		    pedwarn ("ISO C89 forbids compound literals");
-		  if (TYPE_NAME (type) != 0)
-		    {
-		      if (TREE_CODE (TYPE_NAME (type)) == IDENTIFIER_NODE)
-			name = IDENTIFIER_POINTER (TYPE_NAME (type));
-		      else
-			name = IDENTIFIER_POINTER (DECL_NAME (TYPE_NAME (type)));
-		    }
-		  else
-		    name = "";
-		  $$ = result;
-		  if (TREE_CODE (type) == ARRAY_TYPE && !COMPLETE_TYPE_P (type))
-		    {
-		      int failure = complete_array_type (type, $$, 1);
-		      if (failure)
-			abort ();
-		    }
+		  $$ = build_compound_literal (type, constructor);
 		}
 	| '(' expr ')'
 		{ char class = TREE_CODE_CLASS (TREE_CODE ($2));
@@ -638,6 +665,27 @@ primary:
 		{ $$ = build_function_call ($1, $3); }
 	| VA_ARG '(' expr_no_commas ',' typename ')'
 		{ $$ = build_va_arg ($3, groktypename ($5)); }
+
+      | CHOOSE_EXPR '(' expr_no_commas ',' expr_no_commas ',' expr_no_commas ')'
+		{
+                  tree c;
+
+                  c = fold ($3);
+                  STRIP_NOPS (c);
+                  if (TREE_CODE (c) != INTEGER_CST)
+                    error ("first argument to __builtin_choose_expr not a constant");
+                  $$ = integer_zerop (c) ? $7 : $5;
+		}
+      | TYPES_COMPATIBLE_P '(' typename ',' typename ')'
+		{
+		  tree e1, e2;
+
+		  e1 = TYPE_MAIN_VARIANT (groktypename ($3));
+		  e2 = TYPE_MAIN_VARIANT (groktypename ($5));
+
+		  $$ = comptypes (e1, e2)
+		    ? build_int_2 (1, 0) : build_int_2 (0, 0);
+		}
 	| primary '[' expr ']'   %prec '.'
 		{ $$ = build_array_ref ($1, $3); }
 	| primary '.' identifier
@@ -656,34 +704,23 @@ primary:
 		{ $$ = build_unary_op (POSTDECREMENT_EXPR, $1, 0); }
 	;
 
-/* Produces a STRING_CST with perhaps more STRING_CSTs chained onto it.  */
-string:
-	  STRING
-	| string STRING
-		{
-                  static int last_lineno = 0;
-                  static const char *last_input_filename = 0;
-                  $$ = chainon ($1, $2);
-		  if (warn_traditional && !in_system_header
-		      && (lineno != last_lineno || !last_input_filename ||
-			  strcmp (last_input_filename, input_filename)))
-		    {
-		      warning ("traditional C rejects string concatenation");
-		      last_lineno = lineno;
-		      last_input_filename = input_filename;
-		    }
-		}
-	;
-
 
 old_style_parm_decls:
+	old_style_parm_decls_1
+	{
+	  parsing_iso_function_signature = false; /* Reset after decls.  */
+	}
+	;
+
+old_style_parm_decls_1:
 	/* empty */
+	{
+	  if (warn_traditional && !in_system_header
+	      && parsing_iso_function_signature)
+	    warning ("traditional C rejects ISO C style function definitions");
+	  parsing_iso_function_signature = false; /* Reset after warning.  */
+	}
 	| datadecls
-	| datadecls ELLIPSIS
-		/* ... is used here to indicate a varargs function.  */
-		{ c_mark_varargs ();
-		  if (pedantic)
-		    pedwarn ("ISO C does not permit use of `varargs.h'"); }
 	;
 
 /* The following are analogous to lineno_decl, decls and decl
@@ -757,12 +794,12 @@ decl:
 	| declspecs ';'
 		{ shadow_tag ($1); }
 	| extension decl
-		{ RESTORE_WARN_FLAGS ($1); }
+		{ RESTORE_EXT_FLAGS ($1); }
 	;
 
 /* A list of declaration specifiers.  These are:
 
-   - Storage class specifiers (SCSPEC), which for GCC currently include
+   - Storage class specifiers (scspec), which for GCC currently includes
    function specifiers ("inline").
 
    - Type specifiers (typespec_*).
@@ -933,7 +970,7 @@ declspecs_nosc_ts_sa_ea:
 	;
 
 declspecs_sc_nots_nosa_noea:
-	  SCSPEC
+	  scspec
 		{ $$ = tree_cons (NULL_TREE, $1, NULL_TREE);
 		  TREE_STATIC ($$) = 0; }
 	| declspecs_sc_nots_nosa_noea TYPE_QUAL
@@ -942,25 +979,25 @@ declspecs_sc_nots_nosa_noea:
 	| declspecs_sc_nots_nosa_ea TYPE_QUAL
 		{ $$ = tree_cons (NULL_TREE, $2, $1);
 		  TREE_STATIC ($$) = 1; }
-	| declspecs_nosc_nots_nosa_noea SCSPEC
+	| declspecs_nosc_nots_nosa_noea scspec
 		{ if (extra_warnings && TREE_STATIC ($1))
 		    warning ("`%s' is not at beginning of declaration",
 			     IDENTIFIER_POINTER ($2));
 		  $$ = tree_cons (NULL_TREE, $2, $1);
 		  TREE_STATIC ($$) = TREE_STATIC ($1); }
-	| declspecs_nosc_nots_nosa_ea SCSPEC
+	| declspecs_nosc_nots_nosa_ea scspec
 		{ if (extra_warnings && TREE_STATIC ($1))
 		    warning ("`%s' is not at beginning of declaration",
 			     IDENTIFIER_POINTER ($2));
 		  $$ = tree_cons (NULL_TREE, $2, $1);
 		  TREE_STATIC ($$) = TREE_STATIC ($1); }
-	| declspecs_sc_nots_nosa_noea SCSPEC
+	| declspecs_sc_nots_nosa_noea scspec
 		{ if (extra_warnings && TREE_STATIC ($1))
 		    warning ("`%s' is not at beginning of declaration",
 			     IDENTIFIER_POINTER ($2));
 		  $$ = tree_cons (NULL_TREE, $2, $1);
 		  TREE_STATIC ($$) = TREE_STATIC ($1); }
-	| declspecs_sc_nots_nosa_ea SCSPEC
+	| declspecs_sc_nots_nosa_ea scspec
 		{ if (extra_warnings && TREE_STATIC ($1))
 		    warning ("`%s' is not at beginning of declaration",
 			     IDENTIFIER_POINTER ($2));
@@ -981,25 +1018,25 @@ declspecs_sc_nots_sa_noea:
 	| declspecs_sc_nots_sa_ea TYPE_QUAL
 		{ $$ = tree_cons (NULL_TREE, $2, $1);
 		  TREE_STATIC ($$) = 1; }
-	| declspecs_nosc_nots_sa_noea SCSPEC
+	| declspecs_nosc_nots_sa_noea scspec
 		{ if (extra_warnings && TREE_STATIC ($1))
 		    warning ("`%s' is not at beginning of declaration",
 			     IDENTIFIER_POINTER ($2));
 		  $$ = tree_cons (NULL_TREE, $2, $1);
 		  TREE_STATIC ($$) = TREE_STATIC ($1); }
-	| declspecs_nosc_nots_sa_ea SCSPEC
+	| declspecs_nosc_nots_sa_ea scspec
 		{ if (extra_warnings && TREE_STATIC ($1))
 		    warning ("`%s' is not at beginning of declaration",
 			     IDENTIFIER_POINTER ($2));
 		  $$ = tree_cons (NULL_TREE, $2, $1);
 		  TREE_STATIC ($$) = TREE_STATIC ($1); }
-	| declspecs_sc_nots_sa_noea SCSPEC
+	| declspecs_sc_nots_sa_noea scspec
 		{ if (extra_warnings && TREE_STATIC ($1))
 		    warning ("`%s' is not at beginning of declaration",
 			     IDENTIFIER_POINTER ($2));
 		  $$ = tree_cons (NULL_TREE, $2, $1);
 		  TREE_STATIC ($$) = TREE_STATIC ($1); }
-	| declspecs_sc_nots_sa_ea SCSPEC
+	| declspecs_sc_nots_sa_ea scspec
 		{ if (extra_warnings && TREE_STATIC ($1))
 		    warning ("`%s' is not at beginning of declaration",
 			     IDENTIFIER_POINTER ($2));
@@ -1032,25 +1069,25 @@ declspecs_sc_ts_nosa_noea:
 	| declspecs_sc_nots_nosa_ea typespec_nonattr
 		{ $$ = tree_cons (NULL_TREE, $2, $1);
 		  TREE_STATIC ($$) = 1; }
-	| declspecs_nosc_ts_nosa_noea SCSPEC
+	| declspecs_nosc_ts_nosa_noea scspec
 		{ if (extra_warnings && TREE_STATIC ($1))
 		    warning ("`%s' is not at beginning of declaration",
 			     IDENTIFIER_POINTER ($2));
 		  $$ = tree_cons (NULL_TREE, $2, $1);
 		  TREE_STATIC ($$) = TREE_STATIC ($1); }
-	| declspecs_nosc_ts_nosa_ea SCSPEC
+	| declspecs_nosc_ts_nosa_ea scspec
 		{ if (extra_warnings && TREE_STATIC ($1))
 		    warning ("`%s' is not at beginning of declaration",
 			     IDENTIFIER_POINTER ($2));
 		  $$ = tree_cons (NULL_TREE, $2, $1);
 		  TREE_STATIC ($$) = TREE_STATIC ($1); }
-	| declspecs_sc_ts_nosa_noea SCSPEC
+	| declspecs_sc_ts_nosa_noea scspec
 		{ if (extra_warnings && TREE_STATIC ($1))
 		    warning ("`%s' is not at beginning of declaration",
 			     IDENTIFIER_POINTER ($2));
 		  $$ = tree_cons (NULL_TREE, $2, $1);
 		  TREE_STATIC ($$) = TREE_STATIC ($1); }
-	| declspecs_sc_ts_nosa_ea SCSPEC
+	| declspecs_sc_ts_nosa_ea scspec
 		{ if (extra_warnings && TREE_STATIC ($1))
 		    warning ("`%s' is not at beginning of declaration",
 			     IDENTIFIER_POINTER ($2));
@@ -1095,25 +1132,25 @@ declspecs_sc_ts_sa_noea:
 	| declspecs_sc_nots_sa_ea typespec_nonattr
 		{ $$ = tree_cons (NULL_TREE, $2, $1);
 		  TREE_STATIC ($$) = 1; }
-	| declspecs_nosc_ts_sa_noea SCSPEC
+	| declspecs_nosc_ts_sa_noea scspec
 		{ if (extra_warnings && TREE_STATIC ($1))
 		    warning ("`%s' is not at beginning of declaration",
 			     IDENTIFIER_POINTER ($2));
 		  $$ = tree_cons (NULL_TREE, $2, $1);
 		  TREE_STATIC ($$) = TREE_STATIC ($1); }
-	| declspecs_nosc_ts_sa_ea SCSPEC
+	| declspecs_nosc_ts_sa_ea scspec
 		{ if (extra_warnings && TREE_STATIC ($1))
 		    warning ("`%s' is not at beginning of declaration",
 			     IDENTIFIER_POINTER ($2));
 		  $$ = tree_cons (NULL_TREE, $2, $1);
 		  TREE_STATIC ($$) = TREE_STATIC ($1); }
-	| declspecs_sc_ts_sa_noea SCSPEC
+	| declspecs_sc_ts_sa_noea scspec
 		{ if (extra_warnings && TREE_STATIC ($1))
 		    warning ("`%s' is not at beginning of declaration",
 			     IDENTIFIER_POINTER ($2));
 		  $$ = tree_cons (NULL_TREE, $2, $1);
 		  TREE_STATIC ($$) = TREE_STATIC ($1); }
-	| declspecs_sc_ts_sa_ea SCSPEC
+	| declspecs_sc_ts_sa_ea scspec
 		{ if (extra_warnings && TREE_STATIC ($1))
 		    warning ("`%s' is not at beginning of declaration",
 			     IDENTIFIER_POINTER ($2));
@@ -1273,10 +1310,10 @@ typespec_nonreserved_nonattr:
 		{ /* For a typedef name, record the meaning, not the name.
 		     In case of `foo foo, bar;'.  */
 		  $$ = lookup_name ($1); }
-	| TYPEOF '(' expr ')'
-		{ $$ = TREE_TYPE ($3); }
-	| TYPEOF '(' typename ')'
-		{ $$ = groktypename ($3); }
+	| typeof '(' expr ')'
+		{ skip_evaluation--; $$ = TREE_TYPE ($3); }
+	| typeof '(' typename ')'
+		{ skip_evaluation--; $$ = groktypename ($3); }
 	;
 
 /* typespec_nonreserved_attr does not exist.  */
@@ -1294,10 +1331,8 @@ notype_initdecls:
 maybeasm:
 	  /* empty */
 		{ $$ = NULL_TREE; }
-	| ASM_KEYWORD '(' string ')'
-		{ if (TREE_CHAIN ($3)) $3 = combine_strings ($3);
-		  $$ = $3;
-		}
+	| ASM_KEYWORD '(' STRING ')'
+		{ $$ = $3; }
 	;
 
 initdcl:
@@ -1312,7 +1347,7 @@ initdcl:
 	| declarator maybeasm maybe_attribute
 		{ tree d = start_decl ($1, current_declspecs, 0,
 				       chainon ($3, all_prefix_attributes));
-		  finish_decl (d, NULL_TREE, $2); 
+		  finish_decl (d, NULL_TREE, $2);
                 }
 	;
 
@@ -1338,7 +1373,7 @@ maybe_attribute:
 	| attributes
 		{ $$ = $1; }
 	;
- 
+
 attributes:
       attribute
 		{ $$ = $1; }
@@ -1357,7 +1392,7 @@ attribute_list:
 	| attribute_list ',' attrib
 		{ $$ = chainon ($1, $3); }
 	;
- 
+
 attrib:
     /* empty */
 		{ $$ = NULL_TREE; }
@@ -1376,9 +1411,14 @@ attrib:
 
 any_word:
 	  identifier
-	| SCSPEC
+	| scspec
 	| TYPESPEC
 	| TYPE_QUAL
+	;
+
+scspec:
+	  STATIC
+	| SCSPEC
 	;
 
 /* Initializers.  `init' is the entry point.  */
@@ -1420,6 +1460,7 @@ initelt:
 		  if (pedantic)
 		    pedwarn ("obsolete use of designated initializer with `:'"); }
 	  initval
+		{}
 	| initval
 	;
 
@@ -1441,9 +1482,6 @@ designator_list:
 designator:
 	  '.' identifier
 		{ set_init_label ($2); }
-	/* These are for labeled elements.  The syntax for an array element
-	   initializer conflicts with the syntax for an Objective-C message,
-	   so don't include these productions in the Objective-C grammar.  */
 	| '[' expr_no_commas ELLIPSIS expr_no_commas ']'
 		{ set_init_index ($2, $4);
 		  if (pedantic)
@@ -1464,6 +1502,7 @@ nested_function:
 		      pop_function_context ();
 		      YYERROR1;
 		    }
+		  parsing_iso_function_signature = false; /* Don't warn about nested functions.  */
 		}
 	   old_style_parm_decls
 		{ store_parm_decls (); }
@@ -1477,8 +1516,8 @@ nested_function:
 		{ tree decl = current_function_decl;
 		  DECL_SOURCE_FILE (decl) = $5;
 		  DECL_SOURCE_LINE (decl) = $6;
-		  finish_function (1);
-		  pop_function_context (); 
+		  finish_function (1, 1);
+		  pop_function_context ();
 		  add_decl_stmt (decl); }
 	;
 
@@ -1494,6 +1533,7 @@ notype_nested_function:
 		      pop_function_context ();
 		      YYERROR1;
 		    }
+		  parsing_iso_function_signature = false; /* Don't warn about nested functions.  */
 		}
 	  old_style_parm_decls
 		{ store_parm_decls (); }
@@ -1507,8 +1547,8 @@ notype_nested_function:
 		{ tree decl = current_function_decl;
 		  DECL_SOURCE_FILE (decl) = $5;
 		  DECL_SOURCE_LINE (decl) = $6;
-		  finish_function (1);
-		  pop_function_context (); 
+		  finish_function (1, 1);
+		  pop_function_context ();
 		  add_decl_stmt (decl); }
 	;
 
@@ -1623,7 +1663,7 @@ structsp_attr:
 		{ $$ = start_struct (RECORD_TYPE, $2);
 		  /* Start scope of tag before parsing components.  */
 		}
-	  component_decl_list '}' maybe_attribute 
+	  component_decl_list '}' maybe_attribute
 		{ $$ = finish_struct ($<ttype>4, $5, chainon ($1, $7)); }
 	| struct_head '{' component_decl_list '}' maybe_attribute
 		{ $$ = finish_struct (start_struct (RECORD_TYPE, NULL_TREE),
@@ -1697,8 +1737,8 @@ component_decl:
 		  POP_DECLSPEC_STACK; }
 	| declspecs_nosc_ts setspecs save_filename save_lineno
 		{
-		  /* Support for unnamed structs or unions as members of 
-		     structs or unions (which is [a] useful and [b] supports 
+		  /* Support for unnamed structs or unions as members of
+		     structs or unions (which is [a] useful and [b] supports
 		     MS P-SDK).  */
 		  if (pedantic)
 		    pedwarn ("ISO C doesn't support unnamed structs/unions");
@@ -1717,7 +1757,7 @@ component_decl:
 		{ $$ = NULL_TREE; }
 	| extension component_decl
 		{ $$ = $2;
-		  RESTORE_WARN_FLAGS ($1); }
+		  RESTORE_EXT_FLAGS ($1); }
 	;
 
 components:
@@ -1784,13 +1824,8 @@ enumerator:
 
 typename:
 	  declspecs_nosc
-		{ tree specs, attrs;
-		  pending_xref_error ();
-		  split_specs_attrs ($1, &specs, &attrs);
-		  /* We don't yet support attributes here.  */
-		  if (attrs != NULL_TREE)
-		    warning ("attributes on type name ignored");
-		  $<ttype>$ = specs; }
+		{ pending_xref_error ();
+		  $<ttype>$ = $1; }
 	  absdcl
 		{ $$ = build_tree_list ($<ttype>2, $3); }
 	;
@@ -1850,30 +1885,17 @@ direct_absdcl1:
 /* The [...] part of a declarator for an array type.  */
 
 array_declarator:
-	  '[' expr ']'
-		{ $$ = build_array_declarator ($2, NULL_TREE, 0, 0); }
-	| '[' declspecs_nosc expr ']'
+	'[' maybe_type_quals_attrs expr ']'
 		{ $$ = build_array_declarator ($3, $2, 0, 0); }
-	| '[' ']'
-		{ $$ = build_array_declarator (NULL_TREE, NULL_TREE, 0, 0); }
-	| '[' declspecs_nosc ']'
+	| '[' maybe_type_quals_attrs ']'
 		{ $$ = build_array_declarator (NULL_TREE, $2, 0, 0); }
-	| '[' '*' ']'
-		{ $$ = build_array_declarator (NULL_TREE, NULL_TREE, 0, 1); }
-	| '[' declspecs_nosc '*' ']'
+	| '[' maybe_type_quals_attrs '*' ']'
 		{ $$ = build_array_declarator (NULL_TREE, $2, 0, 1); }
-	| '[' SCSPEC expr ']'
-		{ if (C_RID_CODE ($2) != RID_STATIC)
-		    error ("storage class specifier in array declarator");
-		  $$ = build_array_declarator ($3, NULL_TREE, 1, 0); }
-	| '[' SCSPEC declspecs_nosc expr ']'
-		{ if (C_RID_CODE ($2) != RID_STATIC)
-		    error ("storage class specifier in array declarator");
-		  $$ = build_array_declarator ($4, $3, 1, 0); }
-	| '[' declspecs_nosc SCSPEC expr ']'
-		{ if (C_RID_CODE ($3) != RID_STATIC)
-		    error ("storage class specifier in array declarator");
-		  $$ = build_array_declarator ($4, $2, 1, 0); }
+	| '[' STATIC maybe_type_quals_attrs expr ']'
+		{ $$ = build_array_declarator ($4, $3, 1, 0); }
+	/* declspecs_nosc_nots is a synonym for type_quals_attrs.  */
+	| '[' declspecs_nosc_nots STATIC expr ']'
+		{ $$ = build_array_declarator ($4, $2, 1, 0); }
 	;
 
 /* A nonempty series of declarations and statements (possibly followed by
@@ -1941,6 +1963,7 @@ pushlevel:  /* empty */
 
 poplevel:  /* empty */
                 { $$ = add_scope_stmt (/*begin_p=*/0, /*partial_p=*/0); }
+        ;
 
 /* Start and end blocks created for the new scopes of C99.  */
 c99_block_start: /* empty */
@@ -1963,8 +1986,8 @@ c99_block_end: /* empty */
                 { if (flag_isoc99)
 		    {
 		      tree scope_stmt = add_scope_stmt (/*begin_p=*/0, /*partial_p=*/0);
-		      $$ = poplevel (kept_level_p (), 0, 0); 
-		      SCOPE_STMT_BLOCK (TREE_PURPOSE (scope_stmt)) 
+		      $$ = poplevel (kept_level_p (), 0, 0);
+		      SCOPE_STMT_BLOCK (TREE_PURPOSE (scope_stmt))
 			= SCOPE_STMT_BLOCK (TREE_VALUE (scope_stmt))
 			= $$;
 		    }
@@ -2007,13 +2030,14 @@ compstmt_or_error:
 	;
 
 compstmt_start: '{' { compstmt_count++;
-                      $$ = c_begin_compound_stmt (); } 
+                      $$ = c_begin_compound_stmt (); }
+        ;
 
 compstmt_nostart: '}'
 		{ $$ = convert (void_type_node, integer_zero_node); }
 	| pushlevel maybe_label_decls compstmt_contents_nonempty '}' poplevel
-		{ $$ = poplevel (kept_level_p (), 1, 0); 
-		  SCOPE_STMT_BLOCK (TREE_PURPOSE ($5)) 
+		{ $$ = poplevel (kept_level_p (), 1, 0);
+		  SCOPE_STMT_BLOCK (TREE_PURPOSE ($5))
 		    = SCOPE_STMT_BLOCK (TREE_VALUE ($5))
 		    = $$; }
 	;
@@ -2039,9 +2063,11 @@ compstmt_primary_start:
 		  compstmt_count++;
 		  $$ = add_stmt (build_stmt (COMPOUND_STMT, last_tree));
 		}
+        ;
 
 compstmt: compstmt_start compstmt_nostart
-		{ RECHAIN_STMTS ($1, COMPOUND_BODY ($1)); 
+		{ RECHAIN_STMTS ($1, COMPOUND_BODY ($1));
+		  last_expr_type = NULL_TREE;
                   $$ = $1; }
 	;
 
@@ -2056,13 +2082,23 @@ simple_if:
 	;
 
 if_prefix:
-	  IF '(' expr ')'
-		{ c_expand_start_cond (truthvalue_conversion ($3), 
-				       compstmt_count);
+	  /* We must build the IF_STMT node before parsing its
+	     condition so that STMT_LINENO refers to the line
+	     containing the "if", and not the line containing
+	     the close-parenthesis.
+
+	     c_begin_if_stmt returns the IF_STMT node, which
+	     we later pass to c_expand_start_cond to fill
+	     in the condition and other tidbits.  */
+          IF
+                { $<ttype>$ = c_begin_if_stmt (); }
+            '(' expr ')'
+		{ c_expand_start_cond (c_common_truthvalue_conversion ($4),
+				       compstmt_count,$<ttype>2);
 		  $<itype>$ = stmt_count;
 		  if_stmt_file = $<filename>-2;
 		  if_stmt_line = $<lineno>-1; }
-	;
+        ;
 
 /* This is a subroutine of stmt.
    It is used twice, once for valid DO statements
@@ -2071,7 +2107,7 @@ do_stmt_start:
 	  DO
 		{ stmt_count++;
 		  compstmt_count++;
-		  $<ttype>$ 
+		  $<ttype>$
 		    = add_stmt (build_stmt (DO_STMT, NULL_TREE,
 					    NULL_TREE));
 		  /* In the event that a parse error prevents
@@ -2157,29 +2193,40 @@ select_or_iter_stmt:
    Otherwise a crash is likely.  */
 	| simple_if ELSE error
 		{ c_expand_end_cond (); }
+       /* We must build the WHILE_STMT node before parsing its
+	  condition so that STMT_LINENO refers to the line
+	  containing the "while", and not the line containing
+	  the close-parenthesis.
+
+	  c_begin_while_stmt returns the WHILE_STMT node, which
+	  we later pass to c_finish_while_stmt_cond to fill
+	  in the condition and other tidbits.  */
 	| WHILE
-                { stmt_count++; }
+                { stmt_count++;
+		  $<ttype>$ = c_begin_while_stmt (); }
 	  '(' expr ')'
-                { $4 = truthvalue_conversion ($4);
-		  $<ttype>$ 
-		    = add_stmt (build_stmt (WHILE_STMT, $4, NULL_TREE)); }
+                { $4 = c_common_truthvalue_conversion ($4);
+		  c_finish_while_stmt_cond
+		    (c_common_truthvalue_conversion ($4), $<ttype>2);
+		  $<ttype>$ = add_stmt ($<ttype>2); }
 	  c99_block_lineno_labeled_stmt
 		{ RECHAIN_STMTS ($<ttype>6, WHILE_BODY ($<ttype>6)); }
 	| do_stmt_start
 	  '(' expr ')' ';'
-                { DO_COND ($1) = truthvalue_conversion ($3); }
+                { DO_COND ($1) = c_common_truthvalue_conversion ($3); }
 	| do_stmt_start error
  		{ }
 	| FOR
 		{ $<ttype>$ = build_stmt (FOR_STMT, NULL_TREE, NULL_TREE,
 					  NULL_TREE, NULL_TREE);
-		  add_stmt ($<ttype>$); } 
+		  add_stmt ($<ttype>$); }
 	  '(' for_init_stmt
 		{ stmt_count++;
 		  RECHAIN_STMTS ($<ttype>2, FOR_INIT_STMT ($<ttype>2)); }
 	  xexpr ';'
-                { if ($6) 
-		    FOR_COND ($<ttype>2) = truthvalue_conversion ($6); }
+                { if ($6)
+		    FOR_COND ($<ttype>2)
+		      = c_common_truthvalue_conversion ($6); }
 	  xexpr ')'
 		{ FOR_EXPR ($<ttype>2) = $9; }
 	  c99_block_lineno_labeled_stmt
@@ -2193,7 +2240,7 @@ select_or_iter_stmt:
 
 for_init_stmt:
 	  xexpr ';'
-		{ add_stmt (build_stmt (EXPR_STMT, $1)); } 
+		{ add_stmt (build_stmt (EXPR_STMT, $1)); }
 	| decl
 		{ check_for_loop_decls (); }
 	;
@@ -2319,14 +2366,16 @@ asm_operand:
 	  STRING '(' expr ')'
 		{ $$ = build_tree_list (build_tree_list (NULL_TREE, $1), $3); }
 	| '[' identifier ']' STRING '(' expr ')'
-		{ $$ = build_tree_list (build_tree_list ($2, $4), $6); }
+		{ $2 = build_string (IDENTIFIER_LENGTH ($2),
+				     IDENTIFIER_POINTER ($2));
+		  $$ = build_tree_list (build_tree_list ($2, $4), $6); }
 	;
 
 asm_clobbers:
-	  string
-		{ $$ = tree_cons (NULL_TREE, combine_strings ($1), NULL_TREE); }
-	| asm_clobbers ',' string
-		{ $$ = tree_cons (NULL_TREE, combine_strings ($3), $1); }
+	  STRING
+		{ $$ = tree_cons (NULL_TREE, $1, NULL_TREE); }
+	| asm_clobbers ',' STRING
+		{ $$ = tree_cons (NULL_TREE, $3, $1); }
 	;
 
 /* This is what appears inside the parens in a function declarator.
@@ -2379,7 +2428,9 @@ parmlist_2:  /* empty */
 		  error ("ISO C requires a named argument before `...'");
 		}
 	| parms
-		{ $$ = get_parm_info (1); }
+		{ $$ = get_parm_info (1);
+		  parsing_iso_function_signature = true;
+		}
 	| parms ',' ELLIPSIS
 		{ $$ = get_parm_info (0); }
 	;
@@ -2402,7 +2453,7 @@ parm:
 	| declspecs_ts setspecs notype_declarator maybe_attribute
 		{ $$ = build_tree_list (build_tree_list (current_declspecs,
 							 $3),
-					chainon ($4, all_prefix_attributes)); 
+					chainon ($4, all_prefix_attributes));
 		  POP_DECLSPEC_STACK; }
 	| declspecs_ts setspecs absdcl_maybe_attribute
 		{ $$ = $3;
@@ -2429,7 +2480,7 @@ firstparm:
 	| declspecs_ts_nosa setspecs_fp notype_declarator maybe_attribute
 		{ $$ = build_tree_list (build_tree_list (current_declspecs,
 							 $3),
-					chainon ($4, all_prefix_attributes)); 
+					chainon ($4, all_prefix_attributes));
 		  POP_DECLSPEC_STACK; }
 	| declspecs_ts_nosa setspecs_fp absdcl_maybe_attribute
 		{ $$ = $3;
@@ -2455,11 +2506,12 @@ setspecs_fp:
    where either a parmlist or an identifier list is ok.
    Its value is a list of ..._TYPE nodes or a list of identifiers.  */
 parmlist_or_identifiers:
+	  maybe_attribute
 		{ pushlevel (0);
 		  clear_parm_order ();
 		  declare_parm_level (1); }
 	  parmlist_or_identifiers_1
-		{ $$ = $2;
+		{ $$ = $3;
 		  parmlist_tags_warning ();
 		  poplevel (0, 0, 0); }
 	;
@@ -2471,7 +2523,15 @@ parmlist_or_identifiers_1:
 		  for (t = $1; t; t = TREE_CHAIN (t))
 		    if (TREE_VALUE (t) == NULL_TREE)
 		      error ("`...' in old-style identifier list");
-		  $$ = tree_cons (NULL_TREE, NULL_TREE, $1); }
+		  $$ = tree_cons (NULL_TREE, NULL_TREE, $1);
+
+		  /* Make sure we have a parmlist after attributes.  */
+		  if ($<ttype>-1 != 0
+		      && (TREE_CODE ($$) != TREE_LIST
+			  || TREE_PURPOSE ($$) == 0
+			  || TREE_CODE (TREE_PURPOSE ($$)) != PARM_DECL))
+		    YYERROR1;
+		}
 	;
 
 /* A nonempty list of identifiers.  */
@@ -2492,9 +2552,11 @@ identifiers_or_typenames:
 
 extension:
 	EXTENSION
-		{ $$ = SAVE_WARN_FLAGS();
+		{ $$ = SAVE_EXT_FLAGS();
 		  pedantic = 0;
-		  warn_pointer_arith = 0; }
+		  warn_pointer_arith = 0;
+		  warn_traditional = 0;
+		  flag_iso = 0; }
 	;
 
 %%
@@ -2514,11 +2576,10 @@ struct resword
 
 /* Disable mask.  Keywords are disabled if (reswords[i].disable & mask) is
    _true_.  */
-#define D_TRAD	0x01	/* not in traditional C */
-#define D_C89	0x02	/* not in C89 */
-#define D_EXT	0x04	/* GCC extension */
-#define D_EXT89	0x08	/* GCC extension incorporated in C99 */
-#define D_OBJC	0x10	/* Objective C only */
+#define D_C89	0x01	/* not in C89 */
+#define D_EXT	0x02	/* GCC extension */
+#define D_EXT89	0x04	/* GCC extension incorporated in C99 */
+#define D_OBJC	0x08	/* Objective C only */
 
 static const struct resword reswords[] =
 {
@@ -2534,6 +2595,8 @@ static const struct resword reswords[] =
   { "__attribute__",	RID_ATTRIBUTE,	0 },
   { "__bounded",	RID_BOUNDED,	0 },
   { "__bounded__",	RID_BOUNDED,	0 },
+  { "__builtin_choose_expr", RID_CHOOSE_EXPR, 0 },
+  { "__builtin_types_compatible_p", RID_TYPES_COMPATIBLE_P, 0 },
   { "__builtin_va_arg",	RID_VA_ARG,	0 },
   { "__complex",	RID_COMPLEX,	0 },
   { "__complex__",	RID_COMPLEX,	0 },
@@ -2558,6 +2621,7 @@ static const struct resword reswords[] =
   { "__restrict__",	RID_RESTRICT,	0 },
   { "__signed",		RID_SIGNED,	0 },
   { "__signed__",	RID_SIGNED,	0 },
+  { "__thread",		RID_THREAD,	0 },
   { "__typeof",		RID_TYPEOF,	0 },
   { "__typeof__",	RID_TYPEOF,	0 },
   { "__unbounded",	RID_UNBOUNDED,	0 },
@@ -2569,7 +2633,7 @@ static const struct resword reswords[] =
   { "break",		RID_BREAK,	0 },
   { "case",		RID_CASE,	0 },
   { "char",		RID_CHAR,	0 },
-  { "const",		RID_CONST,	D_TRAD },
+  { "const",		RID_CONST,	0 },
   { "continue",		RID_CONTINUE,	0 },
   { "default",		RID_DEFAULT,	0 },
   { "do",		RID_DO,		0 },
@@ -2581,24 +2645,24 @@ static const struct resword reswords[] =
   { "for",		RID_FOR,	0 },
   { "goto",		RID_GOTO,	0 },
   { "if",		RID_IF,		0 },
-  { "inline",		RID_INLINE,	D_TRAD|D_EXT89 },
+  { "inline",		RID_INLINE,	D_EXT89 },
   { "int",		RID_INT,	0 },
   { "long",		RID_LONG,	0 },
   { "register",		RID_REGISTER,	0 },
-  { "restrict",		RID_RESTRICT,	D_TRAD|D_C89 },
+  { "restrict",		RID_RESTRICT,	D_C89 },
   { "return",		RID_RETURN,	0 },
   { "short",		RID_SHORT,	0 },
-  { "signed",		RID_SIGNED,	D_TRAD },
+  { "signed",		RID_SIGNED,	0 },
   { "sizeof",		RID_SIZEOF,	0 },
   { "static",		RID_STATIC,	0 },
   { "struct",		RID_STRUCT,	0 },
   { "switch",		RID_SWITCH,	0 },
   { "typedef",		RID_TYPEDEF,	0 },
-  { "typeof",		RID_TYPEOF,	D_TRAD|D_EXT },
+  { "typeof",		RID_TYPEOF,	D_EXT },
   { "union",		RID_UNION,	0 },
   { "unsigned",		RID_UNSIGNED,	0 },
   { "void",		RID_VOID,	0 },
-  { "volatile",		RID_VOLATILE,	D_TRAD },
+  { "volatile",		RID_VOLATILE,	0 },
   { "while",		RID_WHILE,	0 },
 };
 #define N_reswords (sizeof reswords / sizeof (struct resword))
@@ -2608,7 +2672,7 @@ static const struct resword reswords[] =
    three languages.  */
 static const short rid_to_yy[RID_MAX] =
 {
-  /* RID_STATIC */	SCSPEC,
+  /* RID_STATIC */	STATIC,
   /* RID_UNSIGNED */	TYPESPEC,
   /* RID_LONG */	TYPESPEC,
   /* RID_CONST */	TYPE_QUAL,
@@ -2626,6 +2690,7 @@ static const short rid_to_yy[RID_MAX] =
   /* RID_BOUNDED */	TYPE_QUAL,
   /* RID_UNBOUNDED */	TYPE_QUAL,
   /* RID_COMPLEX */	TYPESPEC,
+  /* RID_THREAD */	SCSPEC,
 
   /* C++ */
   /* RID_FRIEND */	0,
@@ -2641,7 +2706,7 @@ static const short rid_to_yy[RID_MAX] =
   /* RID_BYCOPY */	TYPE_QUAL,
   /* RID_BYREF */	TYPE_QUAL,
   /* RID_ONEWAY */	TYPE_QUAL,
-  
+
   /* C */
   /* RID_INT */		TYPESPEC,
   /* RID_CHAR */	TYPESPEC,
@@ -2679,6 +2744,9 @@ static const short rid_to_yy[RID_MAX] =
   /* RID_PTREXTENT */	PTR_EXTENT,
   /* RID_PTRVALUE */	PTR_VALUE,
 
+  /* RID_CHOOSE_EXPR */			CHOOSE_EXPR,
+  /* RID_TYPES_COMPATIBLE_P */		TYPES_COMPATIBLE_P,
+
   /* RID_FUNCTION_NAME */		STRING_FUNC_NAME,
   /* RID_PRETTY_FUNCTION_NAME */	STRING_FUNC_NAME,
   /* RID_C99_FUNCTION_NAME */		VAR_FUNC_NAME,
@@ -2712,19 +2780,6 @@ static const short rid_to_yy[RID_MAX] =
   /* RID_REINTCAST */	0,
   /* RID_STATCAST */	0,
 
-  /* alternate spellings */
-  /* RID_AND */		0,
-  /* RID_AND_EQ */	0,
-  /* RID_NOT */		0,
-  /* RID_NOT_EQ */	0,
-  /* RID_OR */		0,
-  /* RID_OR_EQ */	0,
-  /* RID_XOR */		0,
-  /* RID_XOR_EQ */	0,
-  /* RID_BITAND */	0,
-  /* RID_BITOR */	0,
-  /* RID_COMPL */	0,
-  
   /* Objective C */
   /* RID_ID */			OBJECTNAME,
   /* RID_AT_ENCODE */		ENCODE,
@@ -2747,10 +2802,9 @@ init_reswords ()
   unsigned int i;
   tree id;
   int mask = (flag_isoc99 ? 0 : D_C89)
-	      | (flag_traditional ? D_TRAD : 0)
 	      | (flag_no_asm ? (flag_isoc99 ? D_EXT : D_EXT|D_EXT89) : 0);
 
-  if (c_language != clk_objective_c)
+  if (!flag_objc)
      mask |= D_OBJC;
 
   /* It is not necessary to register ridpointers as a GC root, because
@@ -2805,8 +2859,8 @@ static int
 yylexname ()
 {
   tree decl;
-  
-  
+
+
   if (C_IS_RESERVED_WORD (yylval.ttype))
     {
       enum rid rid_code = C_RID_CODE (yylval.ttype);
@@ -2818,12 +2872,13 @@ yylexname ()
 	    /* __FUNCTION__ and __PRETTY_FUNCTION__ get converted
 	       to string constants.  */
 	    const char *name = fname_string (rid_code);
-	  
+
 	    yylval.ttype = build_string (strlen (name) + 1, name);
+	    C_ARTIFICIAL_STRING_P (yylval.ttype) = 1;
 	    last_token = CPP_STRING;  /* so yyerror won't choke */
 	    return STRING;
 	  }
-      
+
 	/* Return the canonical spelling for this keyword.  */
 	yylval.ttype = ridpointers[(int) rid_code];
 	return yycode;
@@ -2840,6 +2895,55 @@ yylexname ()
   return IDENTIFIER;
 }
 
+/* Concatenate strings before returning them to the parser.  This isn't quite
+   as good as having it done in the lexer, but it's better than nothing.  */
+
+static int
+yylexstring ()
+{
+  enum cpp_ttype next_type;
+  tree orig = yylval.ttype;
+
+  next_type = c_lex (&yylval.ttype);
+  if (next_type == CPP_STRING
+      || next_type == CPP_WSTRING
+      || (next_type == CPP_NAME && yylexname () == STRING))
+    {
+      varray_type strings;
+
+      static int last_lineno = 0;
+      static const char *last_input_filename = 0;
+      if (warn_traditional && !in_system_header
+	  && (lineno != last_lineno || !last_input_filename ||
+	      strcmp (last_input_filename, input_filename)))
+	{
+	  warning ("traditional C rejects string concatenation");
+	  last_lineno = lineno;
+	  last_input_filename = input_filename;
+	}
+
+      VARRAY_TREE_INIT (strings, 32, "strings");
+      VARRAY_PUSH_TREE (strings, orig);
+
+      do
+	{
+	  VARRAY_PUSH_TREE (strings, yylval.ttype);
+	  next_type = c_lex (&yylval.ttype);
+	}
+      while (next_type == CPP_STRING
+	     || next_type == CPP_WSTRING
+	     || (next_type == CPP_NAME && yylexname () == STRING));
+
+      yylval.ttype = combine_strings (strings);
+    }
+  else
+    yylval.ttype = orig;
+
+  /* We will have always read one token too many.  */
+  _cpp_backup_tokens (parse_in, 1);
+
+  return STRING;
+}
 
 static inline int
 _yylex ()
@@ -2906,7 +3010,13 @@ _yylex ()
       return 0;
 
     case CPP_NAME:
-      return yylexname ();
+      {
+	int ret = yylexname ();
+	if (ret == STRING)
+	  return yylexstring ();
+	else
+	  return ret;
+      }
 
     case CPP_NUMBER:
     case CPP_CHAR:
@@ -2915,8 +3025,8 @@ _yylex ()
 
     case CPP_STRING:
     case CPP_WSTRING:
-      return STRING;
-      
+      return yylexstring ();
+
       /* This token is Objective-C specific.  It gives the next token
 	 special significance.  */
     case CPP_ATSIGN:
@@ -2952,21 +3062,6 @@ yylex()
   return r;
 }
 
-/* Sets the value of the 'yydebug' variable to VALUE.
-   This is a function so we don't have to have YYDEBUG defined
-   in order to build the compiler.  */
-
-void
-c_set_yydebug (value)
-     int value;
-{
-#if YYDEBUG != 0
-  yydebug = value;
-#else
-  warning ("YYDEBUG not defined.");
-#endif
-}
-
 /* Function used when yydebug is set, to print a token in more detail.  */
 
 static void
@@ -2978,7 +3073,7 @@ yyprint (file, yychar, yyl)
   tree t = yyl.ttype;
 
   fprintf (file, " [%s]", NAME(last_token));
-  
+
   switch (yychar)
     {
     case IDENTIFIER:
@@ -2987,6 +3082,7 @@ yyprint (file, yychar, yyl)
     case TYPESPEC:
     case TYPE_QUAL:
     case SCSPEC:
+    case STATIC:
       if (IDENTIFIER_POINTER (t))
 	fprintf (file, " `%s'", IDENTIFIER_POINTER (t));
       break;
@@ -3020,23 +3116,16 @@ yyprint (file, yychar, yyl)
 /* This is not the ideal place to put these, but we have to get them out
    of c-lex.c because cp/lex.c has its own versions.  */
 
-/* Return something to represent absolute declarators containing a *.
-   TARGET is the absolute declarator that the * contains.
-   TYPE_QUALS_ATTRS is a list of modifiers such as const or volatile
-   to apply to the pointer type, represented as identifiers, possible mixed
-   with attributes.
+/* Free malloced parser stacks if necessary.  */
 
-   We return an INDIRECT_REF whose "contents" are TARGET (inside a TREE_LIST,
-   if attributes are present) and whose type is the modifier list.  */
-
-tree
-make_pointer_declarator (type_quals_attrs, target)
-     tree type_quals_attrs, target;
+void
+free_parser_stacks ()
 {
-  tree quals, attrs;
-  tree itarget = target;
-  split_specs_attrs (type_quals_attrs, &quals, &attrs);
-  if (attrs != NULL_TREE)
-    itarget = tree_cons (attrs, target, NULL_TREE);
-  return build1 (INDIRECT_REF, quals, itarget);
+  if (malloced_yyss)
+    {
+      free (malloced_yyss);
+      free (malloced_yyvs);
+    }
 }
+
+#include "gt-c-parse.h"

@@ -1,6 +1,6 @@
 /* Optimize jump instructions, for GNU compiler.
    Copyright (C) 1987, 1988, 1989, 1991, 1992, 1993, 1994, 1995, 1996, 1997
-   1998, 1999, 2000, 2001 Free Software Foundation, Inc.
+   1998, 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
 
 This file is part of GCC.
 
@@ -89,13 +89,6 @@ rebuild_jump_labels (f)
      count doesn't drop to zero.  */
 
   for (insn = forced_labels; insn; insn = XEXP (insn, 1))
-    if (GET_CODE (XEXP (insn, 0)) == CODE_LABEL)
-      LABEL_NUSES (XEXP (insn, 0))++;
-
-  /* Keep track of labels used for marking handlers for exception
-     regions; they cannot usually be deleted.  */
-
-  for (insn = exception_handler_labels; insn; insn = XEXP (insn, 1))
     if (GET_CODE (XEXP (insn, 0)) == CODE_LABEL)
       LABEL_NUSES (XEXP (insn, 0))++;
 }
@@ -312,8 +305,6 @@ duplicate_loop_exit_test (loop_start)
 	 is a CODE_LABEL
 	 has a REG_RETVAL or REG_LIBCALL note (hard to adjust)
 	 is a NOTE_INSN_LOOP_BEG because this means we have a nested loop
-	 is a NOTE_INSN_BLOCK_{BEG,END} because duplicating these notes
-	      is not valid.
 
      We also do not do this if we find an insn with ASM_OPERANDS.  While
      this restriction should not be necessary, copying an insn with
@@ -333,18 +324,6 @@ duplicate_loop_exit_test (loop_start)
 	case CALL_INSN:
 	  return 0;
 	case NOTE:
-	  /* We could be in front of the wrong NOTE_INSN_LOOP_END if there is
-	     a jump immediately after the loop start that branches outside
-	     the loop but within an outer loop, near the exit test.
-	     If we copied this exit test and created a phony
-	     NOTE_INSN_LOOP_VTOP, this could make instructions immediately
-	     before the exit test look like these could be safely moved
-	     out of the loop even if they actually may be never executed.
-	     This can be avoided by checking here for NOTE_INSN_LOOP_CONT.  */
-
-	  if (NOTE_LINE_NUMBER (insn) == NOTE_INSN_LOOP_BEG
-	      || NOTE_LINE_NUMBER (insn) == NOTE_INSN_LOOP_CONT)
-	    return 0;
 
 	  if (optimize < 2
 	      && (NOTE_LINE_NUMBER (insn) == NOTE_INSN_BLOCK_BEG
@@ -430,6 +409,7 @@ duplicate_loop_exit_test (loop_start)
 	    replace_regs (PATTERN (copy), reg_map, max_reg, 1);
 
 	  mark_jump_label (PATTERN (copy), copy, 0);
+	  INSN_SCOPE (copy) = INSN_SCOPE (insn);
 
 	  /* Copy all REG_NOTES except REG_LABEL since mark_jump_label will
 	     make them.  */
@@ -455,6 +435,7 @@ duplicate_loop_exit_test (loop_start)
 	case JUMP_INSN:
 	  copy = emit_jump_insn_before (copy_insn (PATTERN (insn)),
 					loop_start);
+	  INSN_SCOPE (copy) = INSN_SCOPE (insn);
 	  if (reg_map)
 	    replace_regs (PATTERN (copy), reg_map, max_reg, 1);
 	  mark_jump_label (PATTERN (copy), copy, 0);
@@ -704,11 +685,6 @@ reversed_comparison_code_parts (code, arg0, arg1, insn)
       break;
     }
 
-  /* In case we give up IEEE compatibility, all comparisons are reversible.  */
-  if (TARGET_FLOAT_FORMAT != IEEE_FLOAT_FORMAT
-      || flag_unsafe_math_optimizations)
-    return reverse_condition (code);
-
   if (GET_MODE_CLASS (mode) == MODE_CC
 #ifdef HAVE_cc0
       || arg0 == cc0_rtx
@@ -757,11 +733,12 @@ reversed_comparison_code_parts (code, arg0, arg1, insn)
 	}
     }
 
-  /* An integer condition.  */
+  /* Test for an integer condition, or a floating-point comparison
+     in which NaNs can be ignored.  */
   if (GET_CODE (arg0) == CONST_INT
       || (GET_MODE (arg0) != VOIDmode
 	  && GET_MODE_CLASS (mode) != MODE_CC
-	  && ! FLOAT_MODE_P (mode)))
+	  && !HONOR_NANS (mode)))
     return reverse_condition (code);
 
   return UNKNOWN;
@@ -840,10 +817,6 @@ enum rtx_code
 reverse_condition_maybe_unordered (code)
      enum rtx_code code;
 {
-  /* Non-IEEE formats don't have unordered conditions.  */
-  if (TARGET_FLOAT_FORMAT != IEEE_FLOAT_FORMAT)
-    return reverse_condition (code);
-
   switch (code)
     {
     case EQ:
@@ -1567,7 +1540,9 @@ delete_prior_computation (note, insn)
 	break;
 
       /* If we reach a SEQUENCE, it is too complex to try to
-	 do anything with it, so give up.  */
+	 do anything with it, so give up.  We can be run during
+	 and after reorg, so SEQUENCE rtl can legitimately show
+	 up here.  */
       if (GET_CODE (pat) == SEQUENCE)
 	break;
 
@@ -1913,13 +1888,12 @@ delete_for_peephole (from, to)
    so it's possible to get spurious warnings from this.  */
 
 void
-never_reached_warning (avoided_insn)
-     rtx avoided_insn;
+never_reached_warning (avoided_insn, finish)
+     rtx avoided_insn, finish;
 {
   rtx insn;
   rtx a_line_note = NULL;
-  int two_avoided_lines = 0;
-  int contains_insn = 0;
+  int two_avoided_lines = 0, contains_insn = 0, reached_end = 0;
 
   if (! warn_notreached)
     return;
@@ -1929,10 +1903,11 @@ never_reached_warning (avoided_insn)
 
   for (insn = avoided_insn; insn != NULL; insn = NEXT_INSN (insn))
     {
-      if (GET_CODE (insn) == CODE_LABEL)
+      if (finish == NULL && GET_CODE (insn) == CODE_LABEL)
 	break;
-      else if (GET_CODE (insn) == NOTE		/* A line number note?  */
-	       && NOTE_LINE_NUMBER (insn) >= 0)
+
+      if (GET_CODE (insn) == NOTE		/* A line number note?  */
+	  && NOTE_LINE_NUMBER (insn) >= 0)
 	{
 	  if (a_line_note == NULL)
 	    a_line_note = insn;
@@ -1941,7 +1916,14 @@ never_reached_warning (avoided_insn)
 				  != NOTE_LINE_NUMBER (insn));
 	}
       else if (INSN_P (insn))
-	contains_insn = 1;
+	{
+	  if (reached_end)
+	    break;
+	  contains_insn = 1;
+	}
+
+      if (insn == finish)
+	reached_end = 1;
     }
   if (two_avoided_lines && contains_insn)
     warning_with_file_and_line (NOTE_SOURCE_FILE (a_line_note),
@@ -2084,7 +2066,9 @@ redirect_jump (jump, nlabel, delete_unused)
       && NOTE_LINE_NUMBER (NEXT_INSN (olabel)) == NOTE_INSN_FUNCTION_END)
     emit_note_after (NOTE_INSN_FUNCTION_END, nlabel);
 
-  if (olabel && --LABEL_NUSES (olabel) == 0 && delete_unused)
+  if (olabel && --LABEL_NUSES (olabel) == 0 && delete_unused
+      /* Undefined labels will remain outside the insn stream.  */
+      && INSN_UID (olabel))
     delete_related_insns (olabel);
 
   return 1;

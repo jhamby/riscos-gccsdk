@@ -32,7 +32,7 @@ $(objtarget)/%.o: %.c
 
 OBJS = $(objtarget)/choose-temp.o $(objtarget)/cp-demangle.o \
 	$(objtarget)/concat.o $(objtarget)/cplus-dem.o $(objtarget)/dyn-string.o \
-	$(objtarget)/fibheap.o \
+	$(objtarget)/fibheap.o $(objtarget)/getruntime.o \
 	$(objtarget)/getopt.o $(objtarget)/getopt1.o $(objtarget)/getpwd.o \
 	$(objtarget)/hashtab.o $(objtarget)/hex.o $(objtarget)/lbasename.o \
 	$(objtarget)/obstack.o $(objtarget)/make-temp-file.o \
@@ -77,6 +77,7 @@ $(objtarget)/cp-demangle.o: cp-demangle.c
 $(objtarget)/cplus-dem.o: cplus-dem.c
 $(objtarget)/dyn-string.o: dyn-string.c
 $(objtarget)/fibheap.o: fibheap.c
+$(objtarget)/getruntime.o: getruntime.c
 $(objtarget)/getopt.o: getopt.c
 $(objtarget)/getopt1.o: getopt1.c
 $(objtarget)/getpwd.o: getpwd.c

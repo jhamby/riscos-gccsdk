@@ -49,7 +49,7 @@ DEFTREECODE (ERROR_MARK, "error_mark", 'x', 0)
    Internally it looks like a STRING_CST node.
    There is only one IDENTIFIER_NODE ever made for any particular name.
    Use `get_identifier' to get it (or create it, the first time).  */
-DEFTREECODE (IDENTIFIER_NODE, "identifier_node", 'x', -1)
+DEFTREECODE (IDENTIFIER_NODE, "identifier_node", 'x', ((LANG_HOOKS_IDENTIFIER_SIZE - sizeof (struct tree_common) + sizeof (tree) - 1) / sizeof (tree)))
 
 /* Has the TREE_VALUE and TREE_PURPOSE fields.  */
 /* These nodes are made into lists by chaining through the
@@ -268,6 +268,9 @@ DEFTREECODE (REAL_CST, "real_cst", 'c', 3)
    whose contents are other constant nodes.
    Also there is TREE_CST_RTL.  */
 DEFTREECODE (COMPLEX_CST, "complex_cst", 'c', 3)
+
+/* Contents are in TREE_VECTOR_CST_ELTS field.  */
+DEFTREECODE (VECTOR_CST, "vector_cst", 'c', 3)     
 
 /* Contents are TREE_STRING_LENGTH and TREE_STRING_POINTER fields.
    Also there is TREE_CST_RTL.  */
@@ -640,7 +643,7 @@ DEFTREECODE (BIT_NOT_EXPR, "bit_not_expr", '1', 1)
    needed or not (for side effects).  The operand may have
    BOOLEAN_TYPE or INTEGER_TYPE.  In either case, the argument will be
    either zero or one.  For example, a TRUTH_NOT_EXPR will never have
-   a INTEGER_TYPE VAR_DECL as its argument; instead, a NE_EXPR will be
+   an INTEGER_TYPE VAR_DECL as its argument; instead, a NE_EXPR will be
    used to compare the VAR_DECL to zero, thereby obtaining a node with
    value zero or one.  */
 DEFTREECODE (TRUTH_ANDIF_EXPR, "truth_andif_expr", 'e', 2)
@@ -773,7 +776,7 @@ DEFTREECODE (VA_ARG_EXPR, "va_arg_expr", 'e', 1)
 DEFTREECODE (TRY_CATCH_EXPR, "try_catch_expr", 'e', 2)
 
 /* Evaluate the first operand.
-   The second operand is a a cleanup expression which is evaluated
+   The second operand is a cleanup expression which is evaluated
    before an exit (normal, exception, or jump out) from this expression.
 
    Like a CLEANUP_POINT_EXPR/WITH_CLEANUP_EXPR combination, but those

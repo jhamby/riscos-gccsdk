@@ -1,5 +1,5 @@
 # Top-level Makefile for the GNU Compiler Collection for ARM/RISC OS
-# Copyright (c) 2000, 2001 Nick Burrett
+# Copyright (c) 2000, 2001, 2002 Nick Burrett
 # Written by Nick Burrett <nick@dsvr.net>
 
 # Set by the configure script
@@ -49,7 +49,7 @@ hostsystem=@host_system@
 targetsystem=HOST_ARM_RISCOS
 
 # GCC compiler version that we are going to build.
-VERSION = 3_1_0
+VERSION = 3_3_0
 
 # Define the installation base directory.  These don't determine the actual
 # stored location of files, rather they are the hard-coded values that

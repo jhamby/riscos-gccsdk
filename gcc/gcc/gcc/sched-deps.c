@@ -222,8 +222,7 @@ add_dependence (insn, elem, dep_type)
      setters of the condition codes, so we must skip past notes here.
      Otherwise, NOTEs are impossible here.  */
   next = next_nonnote_insn (elem);
-  if (next && SCHED_GROUP_P (next)
-      && GET_CODE (next) != CODE_LABEL)
+  if (next && INSN_P (next) && SCHED_GROUP_P (next))
     {
       /* Notes will never intervene here though, so don't bother checking
          for them.  */
@@ -235,8 +234,8 @@ add_dependence (insn, elem, dep_type)
 
       rtx nnext;
       while ((nnext = next_nonnote_insn (next)) != NULL
-	     && SCHED_GROUP_P (nnext)
-	     && GET_CODE (nnext) != CODE_LABEL)
+	     && INSN_P (nnext)
+	     && SCHED_GROUP_P (nnext))
 	next = nnext;
 
       /* Again, don't depend an insn on itself.  */
@@ -280,7 +279,7 @@ add_dependence (insn, elem, dep_type)
       else if (TEST_BIT (output_dependency_cache[INSN_LUID (insn)],
 			 INSN_LUID (elem)))
 	present_dep_type = REG_DEP_OUTPUT;
-      else 
+      else
 	present_p = 0;
       if (present_p && (int) dep_type >= (int) present_dep_type)
 	return;
@@ -313,7 +312,7 @@ add_dependence (insn, elem, dep_type)
 	     one, then change the existing dependence to this type.  */
 	  if ((int) dep_type < (int) REG_NOTE_KIND (link))
 	    PUT_REG_NOTE_KIND (link, dep_type);
-	  
+
 #ifdef INSN_SCHEDULING
 	  /* If we are adding a dependency to INSN's LOG_LINKs, then
 	     note that in the bitmap caches of dependency information.  */
@@ -448,7 +447,7 @@ group_leader (insn)
       prev = insn;
       insn = next_nonnote_insn (insn);
     }
-  while (insn && SCHED_GROUP_P (insn) && (GET_CODE (insn) != CODE_LABEL));
+  while (insn && INSN_P (insn) && SCHED_GROUP_P (insn));
 
   return prev;
 }
@@ -723,6 +722,7 @@ sched_analyze_2 (deps, x, insn)
     {
     case CONST_INT:
     case CONST_DOUBLE:
+    case CONST_VECTOR:
     case SYMBOL_REF:
     case CONST:
     case LABEL_REF:
@@ -1031,7 +1031,7 @@ sched_analyze_insn (deps, x, insn, loop_notes)
     }
 
   /* If this instruction can throw an exception, then moving it changes
-     where block boundaries fall.  This is mighty confusing elsewhere. 
+     where block boundaries fall.  This is mighty confusing elsewhere.
      Therefore, prevent such an instruction from being moved.  */
   if (can_throw_internal (insn))
     reg_pending_barrier = true;
@@ -1162,6 +1162,16 @@ sched_analyze_insn (deps, x, insn, loop_notes)
   CLEAR_REG_SET (reg_pending_clobbers);
   CLEAR_REG_SET (reg_pending_sets);
 
+  /* If we are currently in a libcall scheduling group, then mark the
+     current insn as being in a scheduling group and that it can not
+     be moved into a different basic block.  */
+
+  if (deps->libcall_block_tail_insn)
+    {
+      set_sched_group_p (insn);
+      CANT_MOVE (insn) = 1;
+    }
+
   /* If a post-call group is still open, see if it should remain so.
      This insn must be a simple move of a hard reg to a pseudo or
      vice-versa.
@@ -1225,13 +1235,12 @@ sched_analyze (deps, head, tail)
 
   for (insn = head;; insn = NEXT_INSN (insn))
     {
+      rtx link, end_seq, r0, set;
+
       if (GET_CODE (insn) == INSN || GET_CODE (insn) == JUMP_INSN)
 	{
 	  /* Clear out the stale LOG_LINKS from flow.  */
 	  free_INSN_LIST_list (&LOG_LINKS (insn));
-
-	  /* Clear out stale SCHED_GROUP_P.  */
-	  SCHED_GROUP_P (insn) = 0;
 
 	  /* Make each JUMP_INSN a scheduling barrier for memory
              references.  */
@@ -1250,9 +1259,6 @@ sched_analyze (deps, head, tail)
       else if (GET_CODE (insn) == CALL_INSN)
 	{
 	  int i;
-
-	  /* Clear out stale SCHED_GROUP_P.  */
-	  SCHED_GROUP_P (insn) = 0;
 
 	  CANT_MOVE (insn) = 1;
 
@@ -1320,17 +1326,7 @@ sched_analyze (deps, head, tail)
       /* See comments on reemit_notes as to why we do this.
 	 ??? Actually, the reemit_notes just say what is done, not why.  */
 
-      else if (GET_CODE (insn) == NOTE
-	       && (NOTE_LINE_NUMBER (insn) == NOTE_INSN_RANGE_BEG
-		   || NOTE_LINE_NUMBER (insn) == NOTE_INSN_RANGE_END))
-	{
-	  loop_notes = alloc_EXPR_LIST (REG_SAVE_NOTE, NOTE_RANGE_INFO (insn),
-					loop_notes);
-	  loop_notes = alloc_EXPR_LIST (REG_SAVE_NOTE,
-					GEN_INT (NOTE_LINE_NUMBER (insn)),
-					loop_notes);
-	}
-      else if (GET_CODE (insn) == NOTE
+      if (GET_CODE (insn) == NOTE
 	       && (NOTE_LINE_NUMBER (insn) == NOTE_INSN_LOOP_BEG
 		   || NOTE_LINE_NUMBER (insn) == NOTE_INSN_LOOP_END
 		   || NOTE_LINE_NUMBER (insn) == NOTE_INSN_EH_REGION_BEG
@@ -1355,6 +1351,46 @@ sched_analyze (deps, head, tail)
 
       if (current_sched_info->use_cselib)
 	cselib_process_insn (insn);
+
+      /* Now that we have completed handling INSN, check and see if it is
+	 a CLOBBER beginning a libcall block.   If it is, record the
+	 end of the libcall sequence. 
+
+	 We want to schedule libcall blocks as a unit before reload.  While
+	 this restricts scheduling, it preserves the meaning of a libcall
+	 block.
+
+	 As a side effect, we may get better code due to decreased register
+	 pressure as well as less chance of a foreign insn appearing in
+	 a libcall block.  */
+      if (!reload_completed
+	  /* Note we may have nested libcall sequences.  We only care about
+	     the outermost libcall sequence.  */ 
+	  && deps->libcall_block_tail_insn == 0
+	  /* The sequence must start with a clobber of a register.  */
+	  && GET_CODE (insn) == INSN
+	  && GET_CODE (PATTERN (insn)) == CLOBBER
+          && (r0 = XEXP (PATTERN (insn), 0), GET_CODE (r0) == REG)
+	  && GET_CODE (XEXP (PATTERN (insn), 0)) == REG
+	  /* The CLOBBER must also have a REG_LIBCALL note attached.  */
+	  && (link = find_reg_note (insn, REG_LIBCALL, NULL_RTX)) != 0
+	  && (end_seq = XEXP (link, 0)) != 0
+	  /* The insn referenced by the REG_LIBCALL note must be a
+	     simple nop copy with the same destination as the register
+	     mentioned in the clobber.  */
+	  && (set = single_set (end_seq)) != 0
+	  && SET_DEST (set) == r0 && SET_SRC (set) == r0
+	  /* And finally the insn referenced by the REG_LIBCALL must
+	     also contain a REG_EQUAL note and a REG_RETVAL note.  */
+	  && find_reg_note (end_seq, REG_EQUAL, NULL_RTX) != 0
+	  && find_reg_note (end_seq, REG_RETVAL, NULL_RTX) != 0)
+	deps->libcall_block_tail_insn = XEXP (link, 0);
+
+      /* If we have reached the end of a libcall block, then close the
+	 block.  */
+      if (deps->libcall_block_tail_insn == insn)
+	deps->libcall_block_tail_insn = 0;
+
       if (insn == tail)
 	{
 	  if (current_sched_info->use_cselib)
@@ -1448,6 +1484,7 @@ init_deps (deps)
   deps->last_function_call = 0;
   deps->sched_before_next_call = 0;
   deps->in_post_call_group_p = false;
+  deps->libcall_block_tail_insn = 0;
 }
 
 /* Free insn lists found in DEPS.  */
@@ -1470,9 +1507,12 @@ free_deps (deps)
   EXECUTE_IF_SET_IN_REG_SET (&deps->reg_last_in_use, 0, i,
     {
       struct deps_reg *reg_last = &deps->reg_last[i];
-      free_INSN_LIST_list (&reg_last->uses);
-      free_INSN_LIST_list (&reg_last->sets);
-      free_INSN_LIST_list (&reg_last->clobbers);
+      if (reg_last->uses)
+	free_INSN_LIST_list (&reg_last->uses);
+      if (reg_last->sets)
+	free_INSN_LIST_list (&reg_last->sets);
+      if (reg_last->clobbers)
+	free_INSN_LIST_list (&reg_last->clobbers);
     });
   CLEAR_REG_SET (&deps->reg_last_in_use);
 

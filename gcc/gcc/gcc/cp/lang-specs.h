@@ -33,30 +33,14 @@ Boston, MA 02111-1307, USA.  */
   {".c++", "@c++", 0},
   {".C",   "@c++", 0},
   {"@c++",
-   /* cc1plus has an integrated ISO C preprocessor.  We should invoke
-      the external preprocessor if -save-temps is given.  */
-    "%{E|M|MM:cpp0 -lang-c++ %{!no-gcc:-D__GNUG__=%v1}\
-       %{!Wno-deprecated:-D__DEPRECATED}\
-       %{!fno-exceptions:-D__EXCEPTIONS}\
-       -D__GXX_ABI_VERSION=100\
-       %{ansi:-D__STRICT_ANSI__ -trigraphs -$} %(cpp_options)}\
+    "%{E|M|MM:cc1plus -E %{!no-gcc:-D__GNUG__=%v1}\
+       %(cpp_options) %2 %(cpp_debug_options)}\
      %{!E:%{!M:%{!MM:\
-       %{save-temps:cpp0 -lang-c++ \
-		    %{!no-gcc:-D__GNUG__=%v1}\
-       		    %{!Wno-deprecated:-D__DEPRECATED}\
-		    %{!fno-exceptions:-D__EXCEPTIONS}\
-		    -D__GXX_ABI_VERSION=100\
-		    %{ansi:-D__STRICT_ANSI__ -trigraphs -$}\
-		    %(cpp_options) %b.ii \n}\
+       %{save-temps:cc1plus -E %{!no-gcc:-D__GNUG__=%v1}\
+		%(cpp_options) %2 %b.ii \n}\
       cc1plus %{save-temps:-fpreprocessed %b.ii}\
-              %{!save-temps:%(cpp_unique_options)\
-			    %{!no-gcc:-D__GNUG__=%v1} \
-       			    %{!Wno-deprecated:-D__DEPRECATED}\
-			    %{!fno-exceptions:-D__EXCEPTIONS}\
-			    -D__GXX_ABI_VERSION=100\
-			    %{ansi:-D__STRICT_ANSI__}}\
-       %{ansi:-trigraphs -$}\
-       %(cc1_options) %2 %{+e1*}\
+	      %{!save-temps:%(cpp_unique_options) %{!no-gcc:-D__GNUG__=%v1}}\
+	%(cc1_options) %2 %{+e1*}\
        %{!fsyntax-only:%(invoke_as)}}}}",
      CPLUSPLUS_CPP_SPEC},
   {".ii", "@c++-cpp-output", 0},

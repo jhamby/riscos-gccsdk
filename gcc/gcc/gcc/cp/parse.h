@@ -1,13 +1,13 @@
-typedef union {
-  long itype; 
-  tree ttype; 
-  char *strtype; 
-  enum tree_code code; 
+typedef union { GTY(())
+  long itype;
+  tree ttype;
+  char *strtype;
+  enum tree_code code;
   flagged_type_tree ftype;
   struct unparsed_text *pi;
 } YYSTYPE;
 #define	IDENTIFIER	257
-#define	TYPENAME	258
+#define	tTYPENAME	258
 #define	SELFNAME	259
 #define	PFUNCNAME	260
 #define	SCSPEC	261

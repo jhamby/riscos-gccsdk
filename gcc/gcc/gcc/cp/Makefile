@@ -19,11 +19,14 @@ cpp: $(gcc_bin_dir)/cc1plus$(gexesfx) $(bin_dir)/g++$(gexesfx)
 # Shared with C front end
 CXX_C_OBJS = \
 	$(gccobjdir)/attribs.o \
-	$(gccobjdir)/c-lex.o \
-	$(gccobjdir)/c-pragma.o \
 	$(gccobjdir)/c-common.o \
 	$(gccobjdir)/c-format.o \
-	$(gccobjdir)/c-semantics.o
+	$(gccobjdir)/c-pragma.o \
+	$(gccobjdir)/c-semantics.o \
+	$(gccobjdir)/c-lex.o \
+	$(gccobjdir)/c-dump.o \
+	$(gccobjdir)/c-pretty-print.o \
+	$(gccobjdir)/c-opts.o \
 
 # C++ specific files
 C++OBJS = $(gccobjdir)/cp/call.o \

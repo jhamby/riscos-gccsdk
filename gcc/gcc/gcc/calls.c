@@ -33,6 +33,8 @@ Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 #include "tm_p.h"
 #include "timevar.h"
 #include "sbitmap.h"
+#include "langhooks.h"
+#include "target.h"
 
 #if !defined FUNCTION_OK_FOR_SIBCALL
 #define FUNCTION_OK_FOR_SIBCALL(DECL) 1
@@ -181,7 +183,8 @@ static int calls_function_1	PARAMS ((tree, int));
 
 static void emit_call_1		PARAMS ((rtx, tree, tree, HOST_WIDE_INT,
 					 HOST_WIDE_INT, HOST_WIDE_INT, rtx,
-					 rtx, int, rtx, int));
+					 rtx, int, rtx, int,
+					 CUMULATIVE_ARGS *));
 static void precompute_register_parameters	PARAMS ((int,
 							 struct arg_data *,
 							 int *));
@@ -444,7 +447,7 @@ prepare_call_address (funexp, fndecl, call_fusage, reg_parm_seen, sibcallp)
 static void
 emit_call_1 (funexp, fndecl, funtype, stack_size, rounded_stack_size,
 	     struct_value_size, next_arg_reg, valreg, old_inhibit_defer_pop,
-	     call_fusage, ecf_flags)
+	     call_fusage, ecf_flags, args_so_far)
      rtx funexp;
      tree fndecl ATTRIBUTE_UNUSED;
      tree funtype ATTRIBUTE_UNUSED;
@@ -456,6 +459,7 @@ emit_call_1 (funexp, fndecl, funtype, stack_size, rounded_stack_size,
      int old_inhibit_defer_pop;
      rtx call_fusage;
      int ecf_flags;
+     CUMULATIVE_ARGS *args_so_far ATTRIBUTE_UNUSED;
 {
   rtx rounded_stack_size_rtx = GEN_INT (rounded_stack_size);
   rtx call_insn;
@@ -466,6 +470,10 @@ emit_call_1 (funexp, fndecl, funtype, stack_size, rounded_stack_size,
   struct_value_size_rtx = GEN_INT (struct_value_size);
 #endif
 
+#ifdef CALL_POPS_ARGS
+  n_popped += CALL_POPS_ARGS (* args_so_far);
+#endif
+  
   /* Ensure address is valid.  SYMBOL_REF is already valid, so no need,
      and we don't want to load it into a register as an optimization,
      because prepare_call_address already did it if it should be done.  */
@@ -1505,13 +1513,8 @@ precompute_arguments (flags, num_actuals, args)
 	if (TREE_ADDRESSABLE (TREE_TYPE (args[i].tree_value)))
 	  abort ();
 
-	push_temp_slots ();
-
 	args[i].value
 	  = expand_expr (args[i].tree_value, NULL_RTX, VOIDmode, 0);
-
-	preserve_temp_slots (args[i].value);
-	pop_temp_slots ();
 
 	/* ANSI doesn't require a sequence point here,
 	   but PCC has one, so this will avoid some problems.  */
@@ -1536,8 +1539,8 @@ precompute_arguments (flags, num_actuals, args)
 		args[i].initial_value
 		  = gen_lowpart_SUBREG (mode, args[i].value);
 		SUBREG_PROMOTED_VAR_P (args[i].initial_value) = 1;
-		SUBREG_PROMOTED_UNSIGNED_P (args[i].initial_value)
-		  = args[i].unsignedp;
+		SUBREG_PROMOTED_UNSIGNED_SET (args[i].initial_value,
+		  args[i].unsignedp);
 	      }
 #endif
 	  }
@@ -1878,7 +1881,7 @@ try_to_integrate (fndecl, actparms, target, ignore, type, structure_value_addr)
 						NULL_RTX, BITS_PER_UNIT);
 		  seq = get_insns ();
 		  end_sequence ();
-		  emit_insns_before (seq, first_insn);
+		  emit_insn_before (seq, first_insn);
 		  emit_stack_restore (SAVE_BLOCK, old_stack_level, NULL_RTX);
 		}
 	    }
@@ -1901,7 +1904,7 @@ try_to_integrate (fndecl, actparms, target, ignore, type, structure_value_addr)
       warning_with_decl (fndecl, "inlining failed in call to `%s'");
       warning ("called from here");
     }
-  mark_addressable (fndecl);
+  (*lang_hooks.mark_addressable) (fndecl);
   return (rtx) (size_t) - 1;
 }
 
@@ -2207,7 +2210,7 @@ expand_call (exp, target, ignore)
 	      warning_with_decl (fndecl, "can't inline call to `%s'");
 	      warning ("called from here");
 	    }
-	  mark_addressable (fndecl);
+	  (*lang_hooks.mark_addressable) (fndecl);
 	}
 
       flags |= flags_from_decl_or_type (fndecl);
@@ -2253,7 +2256,7 @@ expand_call (exp, target, ignore)
 	    /* In case this is a static function, note that it has been
 	       used.  */
 	    if (! TREE_ADDRESSABLE (fndecl))
-	      mark_addressable (fndecl);
+	      (*lang_hooks.mark_addressable) (fndecl);
 	    is_integrable = 0;
 	  }
       }
@@ -2467,7 +2470,7 @@ expand_call (exp, target, ignore)
 	 != RETURN_POPS_ARGS (current_function_decl,
 			      TREE_TYPE (current_function_decl),
 			      current_function_args_size))
-  try_tail_call = 0;
+    try_tail_call = 0;
 
   if (try_tail_call || try_tail_recursion)
     {
@@ -2675,10 +2678,6 @@ expand_call (exp, target, ignore)
       if (pass && (flags & ECF_LIBCALL_BLOCK))
 	NO_DEFER_POP;
 
-      /* Push the temporary stack slot level so that we can free any
-	 temporaries we make.  */
-      push_temp_slots ();
-
 #ifdef FINAL_REG_PARM_STACK_SPACE
       reg_parm_stack_space = FINAL_REG_PARM_STACK_SPACE (args_size.constant,
 							 args_size.var);
@@ -2711,6 +2710,12 @@ expand_call (exp, target, ignore)
       if (pass == 0)
 	{
 	  argblock = virtual_incoming_args_rtx;
+	  argblock
+#ifdef STACK_GROWS_DOWNWARD
+	    = plus_constant (argblock, current_function_pretend_args_size);
+#else
+	    = plus_constant (argblock, -current_function_pretend_args_size);
+#endif
 	  stored_args_map = sbitmap_alloc (args_size.constant);
 	  sbitmap_zero (stored_args_map);
 	}
@@ -3055,7 +3060,7 @@ expand_call (exp, target, ignore)
       emit_call_1 (funexp, fndecl, funtype, unadjusted_args_size,
 		   adjusted_args_size.constant, struct_value_size,
 		   next_arg_reg, valreg, old_inhibit_defer_pop, call_fusage,
-		   flags);
+		   flags, & args_so_far);
 
       /* Verify that we've deallocated all the stack we used.  */
       if (pass
@@ -3074,7 +3079,7 @@ expand_call (exp, target, ignore)
 	    {
 	      insns = get_insns ();
 	      end_sequence ();
-	      emit_insns (insns);
+	      emit_insn (insns);
 	    }
 	  else
 	    {
@@ -3128,7 +3133,7 @@ expand_call (exp, target, ignore)
 	  /* Write out the sequence.  */
 	  insns = get_insns ();
 	  end_sequence ();
-	  emit_insns (insns);
+	  emit_insn (insns);
 	  valreg = temp;
 	}
 
@@ -3273,7 +3278,7 @@ expand_call (exp, target, ignore)
 	  }
 	  target = gen_rtx_SUBREG (TYPE_MODE (type), target, offset);
 	  SUBREG_PROMOTED_VAR_P (target) = 1;
-	  SUBREG_PROMOTED_UNSIGNED_P (target) = unsignedp;
+	  SUBREG_PROMOTED_UNSIGNED_SET (target, unsignedp);
 	}
 #endif
 
@@ -3327,8 +3332,6 @@ expand_call (exp, target, ignore)
 
       if ((flags & ECF_MAY_BE_ALLOCA) && nonlocal_goto_handler_slots != 0)
 	emit_stack_save (SAVE_NONLOCAL, &nonlocal_goto_stack_level, NULL_RTX);
-
-      pop_temp_slots ();
 
       /* Free up storage we no longer need.  */
       for (i = 0; i < num_actuals; ++i)
@@ -3417,7 +3420,7 @@ expand_call (exp, target, ignore)
 						tail_recursion_label));
     }
   else
-    emit_insns (normal_call_insns);
+    emit_insn (normal_call_insns);
 
   currently_expanding_call--;
 
@@ -3481,6 +3484,7 @@ emit_library_call_value_1 (retval, orgfun, value, fn_type, outmode, nargs, p)
   int reg_parm_stack_space = 0;
   int needed;
   rtx before_call;
+  tree tfom;			/* type_for_mode (outmode, 0) */
 
 #ifdef REG_PARM_STACK_SPACE
   /* Define the boundary of the register parm stack space that needs to be
@@ -3542,27 +3546,31 @@ emit_library_call_value_1 (retval, orgfun, value, fn_type, outmode, nargs, p)
 
   /* If this kind of value comes back in memory,
      decide where in memory it should come back.  */
-  if (outmode != VOIDmode && aggregate_value_p (type_for_mode (outmode, 0)))
+  if (outmode != VOIDmode)
     {
+      tfom = (*lang_hooks.types.type_for_mode) (outmode, 0);
+      if (aggregate_value_p (tfom))
+	{
 #ifdef PCC_STATIC_STRUCT_RETURN
-      rtx pointer_reg
-	= hard_function_value (build_pointer_type (type_for_mode (outmode, 0)),
-			       0, 0);
-      mem_value = gen_rtx_MEM (outmode, pointer_reg);
-      pcc_struct_value = 1;
-      if (value == 0)
-	value = gen_reg_rtx (outmode);
+	  rtx pointer_reg
+	    = hard_function_value (build_pointer_type (tfom), 0, 0);
+	  mem_value = gen_rtx_MEM (outmode, pointer_reg);
+	  pcc_struct_value = 1;
+	  if (value == 0)
+	    value = gen_reg_rtx (outmode);
 #else /* not PCC_STATIC_STRUCT_RETURN */
-      struct_value_size = GET_MODE_SIZE (outmode);
-      if (value != 0 && GET_CODE (value) == MEM)
-	mem_value = value;
-      else
-	mem_value = assign_temp (type_for_mode (outmode, 0), 0, 1, 1);
+	  struct_value_size = GET_MODE_SIZE (outmode);
+	  if (value != 0 && GET_CODE (value) == MEM)
+	    mem_value = value;
+	  else
+	    mem_value = assign_temp (tfom, 0, 1, 1);
 #endif
-
-      /* This call returns a big structure.  */
-      flags &= ~(ECF_CONST | ECF_PURE | ECF_LIBCALL_BLOCK);
+	  /* This call returns a big structure.  */
+	  flags &= ~(ECF_CONST | ECF_PURE | ECF_LIBCALL_BLOCK);
+	}
     }
+  else
+    tfom = void_type_node;
 
   /* ??? Unfinished: must pass the memory address as an argument.  */
 
@@ -3671,16 +3679,27 @@ emit_library_call_value_1 (retval, orgfun, value, fn_type, outmode, nargs, p)
 #endif
 	    ;
 
+	  /* loop.c won't look at CALL_INSN_FUNCTION_USAGE of const/pure
+	     functions, so we have to pretend this isn't such a function.  */
+	  if (flags & ECF_LIBCALL_BLOCK)
+	    {
+	      rtx insns = get_insns ();
+	      end_sequence ();
+	      emit_insn (insns);
+	    }
+	  flags &= ~(ECF_CONST | ECF_PURE | ECF_LIBCALL_BLOCK);
+
 	  if (GET_MODE (val) == MEM && ! must_copy)
 	    slot = val;
 	  else if (must_copy)
 	    {
-	      slot = assign_temp (type_for_mode (mode, 0), 0, 1, 1);
+	      slot = assign_temp ((*lang_hooks.types.type_for_mode) (mode, 0),
+				  0, 1, 1);
 	      emit_move_insn (slot, val);
 	    }
 	  else
 	    {
-	      tree type = type_for_mode (mode, 0);
+	      tree type = (*lang_hooks.types.type_for_mode) (mode, 0);
 
 	      slot = gen_rtx_MEM (mode,
 				  expand_expr (build1 (ADDR_EXPR,
@@ -4047,13 +4066,12 @@ emit_library_call_value_1 (retval, orgfun, value, fn_type, outmode, nargs, p)
 
   emit_call_1 (fun,
 	       get_identifier (XSTR (orgfun, 0)),
-	       build_function_type (outmode == VOIDmode ? void_type_node
-				    : type_for_mode (outmode, 0), NULL_TREE),
+	       build_function_type (tfom, NULL_TREE),
 	       original_args_size.constant, args_size.constant,
 	       struct_value_size,
 	       FUNCTION_ARG (args_so_far, VOIDmode, void_type_node, 1),
 	       valreg,
-	       old_inhibit_defer_pop + 1, call_fusage, flags);
+	       old_inhibit_defer_pop + 1, call_fusage, flags, & args_so_far);
 
   /* For calls to `setjmp', etc., inform flow.c it should complain
      if nonvolatile values are live.  For functions that cannot return,
@@ -4092,7 +4110,7 @@ emit_library_call_value_1 (retval, orgfun, value, fn_type, outmode, nargs, p)
 	{
 	  insns = get_insns ();
 	  end_sequence ();
-	  emit_insns (insns);
+	  emit_insn (insns);
 	}
       else
 	{
@@ -4361,7 +4379,13 @@ store_one_arg (arg, argblock, flags, variable_size, reg_parm_stack_space)
   /* If this isn't going to be placed on both the stack and in registers,
      set up the register and number of words.  */
   if (! arg->pass_on_stack)
-    reg = arg->reg, partial = arg->partial;
+    {
+      if (flags & ECF_SIBCALL)
+	reg = arg->tail_call_reg;
+      else
+	reg = arg->reg;
+      partial = arg->partial;
+    }
 
   if (reg != 0 && partial == 0)
     /* Being passed entirely in a register.  We shouldn't be called in
@@ -4459,6 +4483,11 @@ store_one_arg (arg, argblock, flags, variable_size, reg_parm_stack_space)
 		      partial, reg, used - size, argblock,
 		      ARGS_SIZE_RTX (arg->offset), reg_parm_stack_space,
 		      ARGS_SIZE_RTX (arg->alignment_pad));
+
+      /* Unless this is a partially-in-register argument, the argument is now
+	 in the stack.  */
+      if (partial == 0)
+	arg->value = arg->stack;
     }
   else
     {
@@ -4558,16 +4587,18 @@ store_one_arg (arg, argblock, flags, variable_size, reg_parm_stack_space)
 		      argblock, ARGS_SIZE_RTX (arg->offset),
 		      reg_parm_stack_space,
 		      ARGS_SIZE_RTX (arg->alignment_pad));
+
+      /* Unless this is a partially-in-register argument, the argument is now
+	 in the stack.
+
+	 ??? Unlike the case above, in which we want the actual
+	 address of the data, so that we can load it directly into a
+	 register, here we want the address of the stack slot, so that
+	 it's properly aligned for word-by-word copying or something
+	 like that.  It's not clear that this is always correct.  */
+      if (partial == 0)
+	arg->value = arg->stack_slot;
     }
-
-  /* Unless this is a partially-in-register argument, the argument is now
-     in the stack.
-
-     ??? Note that this can change arg->value from arg->stack to
-     arg->stack_slot and it matters when they are not the same.
-     It isn't totally clear that this is correct in all cases.  */
-  if (partial == 0)
-    arg->value = arg->stack_slot;
 
   /* Once we have pushed something, pops can't safely
      be deferred during the rest of the arguments.  */

@@ -1,7 +1,7 @@
 /* Report error messages, build initializers, and perform
    some front-end optimizations for C++ compiler.
    Copyright (C) 1987, 1988, 1989, 1992, 1993, 1994, 1995, 1996, 1997, 1998,
-   1999, 2000 Free Software Foundation, Inc.
+   1999, 2000, 2001, 2002 Free Software Foundation, Inc.
    Hacked by Michael Tiemann (tiemann@cygnus.com)
 
 This file is part of GNU CC.
@@ -182,23 +182,39 @@ abstract_virtuals_error (decl, type)
 
 /* Print an error message for invalid use of an incomplete type.
    VALUE is the expression that was used (or 0 if that isn't known)
-   and TYPE is the type that was invalid.  */
+   and TYPE is the type that was invalid.  If WARN_ONLY is nonzero, a
+   warning is printed, otherwise an error is printed.  */
 
 void
-incomplete_type_error (value, type)
+cxx_incomplete_type_diagnostic (value, type, warn_only)
      tree value;
      tree type;
+     int warn_only;
 {
   int decl = 0;
+  void (*p_msg) PARAMS ((const char *, ...));
+  void (*p_msg_at) PARAMS ((const char *, ...));
+
+  if (warn_only)
+    {
+      p_msg = warning;
+      p_msg_at = cp_warning_at;
+    }
+  else
+    {
+      p_msg = error;
+      p_msg_at = cp_error_at;
+    }
   
   /* Avoid duplicate error message.  */
   if (TREE_CODE (type) == ERROR_MARK)
     return;
 
   if (value != 0 && (TREE_CODE (value) == VAR_DECL
-		     || TREE_CODE (value) == PARM_DECL))
+		     || TREE_CODE (value) == PARM_DECL
+		     || TREE_CODE (value) == FIELD_DECL))
     {
-      cp_error_at ("`%D' has incomplete type", value);
+      (*p_msg_at) ("`%D' has incomplete type", value);
       decl = 1;
     }
 retry:
@@ -210,12 +226,15 @@ retry:
     case UNION_TYPE:
     case ENUMERAL_TYPE:
       if (!decl)
-        error ("invalid use of undefined type `%#T'", type);
-      cp_error_at ("forward declaration of `%#T'", type);
+        (*p_msg) ("invalid use of undefined type `%#T'", type);
+      if (!TYPE_TEMPLATE_INFO (type))
+	(*p_msg_at) ("forward declaration of `%#T'", type);
+      else
+	(*p_msg_at) ("declaration of `%#T'", type);
       break;
 
     case VOID_TYPE:
-      error ("invalid use of `%T'", type);
+      (*p_msg) ("invalid use of `%T'", type);
       break;
 
     case ARRAY_TYPE:
@@ -224,32 +243,43 @@ retry:
           type = TREE_TYPE (type);
           goto retry;
         }
-      error ("invalid use of array with unspecified bounds");
+      (*p_msg) ("invalid use of array with unspecified bounds");
       break;
 
     case OFFSET_TYPE:
     bad_member:
-      error ("invalid use of member (did you forget the `&' ?)");
+      (*p_msg) ("invalid use of member (did you forget the `&' ?)");
       break;
 
     case TEMPLATE_TYPE_PARM:
-      error ("invalid use of template type parameter");
+      (*p_msg) ("invalid use of template type parameter");
       break;
 
     case UNKNOWN_TYPE:
       if (value && TREE_CODE (value) == COMPONENT_REF)
         goto bad_member;
       else if (value && TREE_CODE (value) == ADDR_EXPR)
-        error ("address of overloaded function with no contextual type information");
+        (*p_msg) ("address of overloaded function with no contextual type information");
       else if (value && TREE_CODE (value) == OVERLOAD)
-        error ("overloaded function with no contextual type information");
+        (*p_msg) ("overloaded function with no contextual type information");
       else
-        error ("insufficient contextual information to determine type");
+        (*p_msg) ("insufficient contextual information to determine type");
       break;
     
     default:
       abort ();
     }
+}
+
+/* Backward-compatibility interface to incomplete_type_diagnostic;
+   required by ../tree.c.  */
+#undef cxx_incomplete_type_error
+void
+cxx_incomplete_type_error (value, type)
+     tree value;
+     tree type;
+{
+  cxx_incomplete_type_diagnostic (value, type, 0);
 }
 
 
@@ -420,6 +450,28 @@ store_init_value (decl, init)
   DECL_INITIAL (decl) = value;
   return NULL_TREE;
 }
+
+/* Same as store_init_value, but used for known-to-be-valid static
+   initializers.  Used to introduce a static initializer even in data
+   structures that may require dynamic initialization.  */
+
+tree
+force_store_init_value (decl, init)
+     tree decl, init;
+{
+  tree type = TREE_TYPE (decl);
+  int needs_constructing = TYPE_NEEDS_CONSTRUCTING (type);
+
+  TYPE_NEEDS_CONSTRUCTING (type) = 0;
+
+  init = store_init_value (decl, init);
+  if (init)
+    abort ();
+
+  TYPE_NEEDS_CONSTRUCTING (type) = needs_constructing;
+
+  return init;
+}  
 
 /* Digest the parser output INIT as an initializer for type TYPE.
    Return a C expression of type TYPE to represent the initial value.
@@ -544,7 +596,7 @@ digest_init (type, init, tail)
 
   if (code == INTEGER_TYPE || code == REAL_TYPE || code == POINTER_TYPE
       || code == ENUMERAL_TYPE || code == REFERENCE_TYPE
-      || code == BOOLEAN_TYPE || code == COMPLEX_TYPE || code == VECTOR_TYPE
+      || code == BOOLEAN_TYPE || code == COMPLEX_TYPE
       || TYPE_PTRMEMFUNC_P (type))
     {
       if (raw_constructor)
@@ -578,7 +630,7 @@ digest_init (type, init, tail)
       return error_mark_node;
     }
 
-  if (code == ARRAY_TYPE || IS_AGGR_TYPE_CODE (code))
+  if (code == ARRAY_TYPE || code == VECTOR_TYPE || IS_AGGR_TYPE_CODE (code))
     {
       if (raw_constructor && TYPE_NON_AGGREGATE_CLASS (type)
 	  && TREE_HAS_CONSTRUCTOR (init))
@@ -659,18 +711,26 @@ process_init_constructor (type, init, elts)
      for each element of this aggregate.  Chain them together in result.
      If there are too few, use 0 for each scalar ultimate component.  */
 
-  if (TREE_CODE (type) == ARRAY_TYPE)
+  if (TREE_CODE (type) == ARRAY_TYPE || TREE_CODE (type) == VECTOR_TYPE)
     {
-      tree domain = TYPE_DOMAIN (type);
       register long len;
       register int i;
 
-      if (domain)
-	len = (TREE_INT_CST_LOW (TYPE_MAX_VALUE (domain))
-	       - TREE_INT_CST_LOW (TYPE_MIN_VALUE (domain))
-	       + 1);
+      if (TREE_CODE (type) == ARRAY_TYPE)
+	{
+	  tree domain = TYPE_DOMAIN (type);
+	  if (domain)
+	    len = (TREE_INT_CST_LOW (TYPE_MAX_VALUE (domain))
+		   - TREE_INT_CST_LOW (TYPE_MIN_VALUE (domain))
+		   + 1);
+	  else
+	    len = -1;  /* Take as many as there are */
+	}
       else
-	len = -1;  /* Take as many as there are */
+	{
+	  /* Vectors are like simple fixed-size arrays.  */
+	  len = TYPE_VECTOR_SUBPARTS (type);
+	}
 
       for (i = 0; len < 0 || i < len; i++)
 	{
@@ -724,6 +784,8 @@ process_init_constructor (type, init, elts)
 		next1 = build (CONSTRUCTOR, NULL_TREE, NULL_TREE, NULL_TREE);
 	      next1 = digest_init (TREE_TYPE (type), next1, 0);
 	    }
+	  else if (! zero_init_p (TREE_TYPE (type)))
+	    next1 = build_forced_zero_init (TREE_TYPE (type));
 	  else
 	    /* The default zero-initialization is fine for us; don't
 	       add anything to the CONSTRUCTOR.  */
@@ -840,9 +902,12 @@ process_init_constructor (type, init, elts)
 	          && (!init || TREE_HAS_CONSTRUCTOR (init)))
 		warning ("missing initializer for member `%D'", field);
 
-	      /* The default zero-initialization is fine for us; don't
-		 add anything to the CONSTRUCTOR.  */
-	      continue;
+	      if (! zero_init_p (TREE_TYPE (field)))
+		next1 = build_forced_zero_init (TREE_TYPE (field));
+	      else
+		/* The default zero-initialization is fine for us; don't
+		   add anything to the CONSTRUCTOR.  */
+		continue;
 	    }
 
 	  if (next1 == error_mark_node)
@@ -946,7 +1011,7 @@ process_init_constructor (type, init, elts)
 
 /* Given a structure or union value DATUM, construct and return
    the structure or union component which results from narrowing
-   that value by the type specified in BASETYPE.  For example, given the
+   that value to the base specified in BASETYPE.  For example, given the
    hierarchy
 
    class L { int ii; };
@@ -967,29 +1032,36 @@ process_init_constructor (type, init, elts)
    I used to think that this was nonconformant, that the standard specified
    that first we look up ii in A, then convert x to an L& and pull out the
    ii part.  But in fact, it does say that we convert x to an A&; A here
-   is known as the "naming class".  (jason 2000-12-19) */
+   is known as the "naming class".  (jason 2000-12-19)
+
+   BINFO_P points to a variable initialized either to NULL_TREE or to the
+   binfo for the specific base subobject we want to convert to.  */
 
 tree
-build_scoped_ref (datum, basetype)
+build_scoped_ref (datum, basetype, binfo_p)
      tree datum;
      tree basetype;
+     tree *binfo_p;
 {
-  tree ref;
   tree binfo;
 
   if (datum == error_mark_node)
     return error_mark_node;
-  binfo = lookup_base (TREE_TYPE (datum), basetype, ba_check, NULL);
+  if (*binfo_p)
+    binfo = *binfo_p;
+  else
+    binfo = lookup_base (TREE_TYPE (datum), basetype, ba_check, NULL);
 
-  if (binfo == error_mark_node)
-    return error_mark_node;
-  if (!binfo)
-    return error_not_base_type (TREE_TYPE (datum), basetype);
-  
-  ref = build_unary_op (ADDR_EXPR, datum, 0);
-  ref = build_base_path (PLUS_EXPR, ref, binfo, 1);
+  if (!binfo || binfo == error_mark_node)
+    {
+      *binfo_p = NULL_TREE;
+      if (!binfo)
+	error_not_base_type (basetype, TREE_TYPE (datum));
+      return error_mark_node;
+    }
 
-  return build_indirect_ref (ref, "(compiler error in build_scoped_ref)");
+  *binfo_p = binfo;
+  return build_base_path (PLUS_EXPR, datum, binfo, 1);
 }
 
 /* Build a reference to an object specified by the C++ `->' operator.
@@ -1124,8 +1196,8 @@ build_m_component_ref (datum, component)
 			| cp_type_quals (TREE_TYPE (datum)));
 
 	  /* There's no such thing as a mutable pointer-to-member, so
-	     we don't need to deal with that here like we do in
-	     build_component_ref.  */
+	     things are not as complex as they are for references to
+	     non-static data members.  */
 	  field_type = cp_build_qualified_type (field_type, type_quals);
 	}
     }
@@ -1237,8 +1309,8 @@ build_functional_cast (exp, parms)
       return get_target_expr (exp);
     }
 
-  exp = build_method_call (NULL_TREE, complete_ctor_identifier, parms,
-			   TYPE_BINFO (type), LOOKUP_NORMAL);
+  exp = build_special_member_call (NULL_TREE, complete_ctor_identifier, parms,
+				   TYPE_BINFO (type), LOOKUP_NORMAL);
 
   if (exp == error_mark_node)
     return error_mark_node;
@@ -1304,14 +1376,10 @@ add_exception_specifier (list, spec, complain)
         if (same_type_p (TREE_VALUE (probe), spec))
           break;
       if (!probe)
-        {
-          spec = build_tree_list (NULL_TREE, spec);
-          TREE_CHAIN (spec) = list;
-          list = spec;
-        }
+	list = tree_cons (NULL_TREE, spec, list);
     }
   else if (complain)
-    incomplete_type_error (NULL_TREE, core);
+    cxx_incomplete_type_error (NULL_TREE, core);
   return list;
 }
 

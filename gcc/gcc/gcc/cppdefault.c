@@ -81,12 +81,3 @@ const size_t cpp_GCC_INCLUDE_DIR_len = sizeof GCC_INCLUDE_DIR - 8;
 const char cpp_GCC_INCLUDE_DIR[] = "";
 const size_t cpp_GCC_INCLUDE_DIR_len = 0;
 #endif
-
-#ifdef CROSS_INCLUDE_DIR
-const char cpp_CROSS_INCLUDE_DIR[] = CROSS_INCLUDE_DIR;
-const size_t cpp_CROSS_INCLUDE_DIR_len = sizeof CROSS_INCLUDE_DIR;
-#else
-const char cpp_CROSS_INCLUDE_DIR[] = "";
-const size_t cpp_CROSS_INCLUDE_DIR_len = 0;
-#endif
-

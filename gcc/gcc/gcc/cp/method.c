@@ -27,7 +27,6 @@ Boston, MA 02111-1307, USA.  */
 #include "system.h"
 #include "tree.h"
 #include "cp-tree.h"
-#include "obstack.h"
 #include "rtl.h"
 #include "expr.h"
 #include "output.h"
@@ -53,9 +52,6 @@ enum mangling_flags
 };
 
 typedef enum mangling_flags mangling_flags;
-
-#define obstack_chunk_alloc xmalloc
-#define obstack_chunk_free free
 
 static void do_build_assign_ref PARAMS ((tree));
 static void do_build_copy_constructor PARAMS ((tree));
@@ -165,12 +161,26 @@ hack_identifier (value, name)
 	  return error_mark_node;
 	}
       TREE_USED (current_class_ptr) = 1;
+      if (processing_template_decl)
+	value = build_min_nt (COMPONENT_REF, current_class_ref, name);
+      else
+	{
+	  tree access_type = current_class_type;
+	  
+	  while (!DERIVED_FROM_P (context_for_name_lookup (value), 
+				  access_type))
+	    {
+	      access_type = TYPE_CONTEXT (access_type);
+	      while (DECL_P (access_type))
+		access_type = DECL_CONTEXT (access_type);
+	    }
 
-      /* Mark so that if we are in a constructor, and then find that
-	 this field was initialized by a base initializer,
-	 we can emit an error message.  */
-      TREE_USED (value) = 1;
-      value = build_component_ref (current_class_ref, name, NULL_TREE, 1);
+	  enforce_access (access_type, value);
+	  value 
+	    = build_class_member_access_expr (current_class_ref, value,
+					      /*access_path=*/NULL_TREE,
+					      /*preserve_reference=*/false);
+	}
     }
   else if ((TREE_CODE (value) == FUNCTION_DECL
 	    && DECL_FUNCTION_MEMBER_P (value))
@@ -183,7 +193,7 @@ hack_identifier (value, name)
 	value = OVL_CURRENT (value);
 
       decl = maybe_dummy_object (DECL_CONTEXT (value), 0);
-      value = build_component_ref (decl, name, NULL_TREE, 1);
+      value = finish_class_member_access_expr (decl, name);
     }
   else if (really_overloaded_fn (value))
     ;
@@ -302,7 +312,7 @@ make_thunk (function, delta, vcall_index)
     {
       thunk = build_decl (FUNCTION_DECL, thunk_id, TREE_TYPE (func_decl));
       DECL_LANG_SPECIFIC (thunk) = DECL_LANG_SPECIFIC (func_decl);
-      copy_lang_decl (func_decl);
+      cxx_dup_lang_specific_decl (func_decl);
       SET_DECL_ASSEMBLER_NAME (thunk, thunk_id);
       DECL_CONTEXT (thunk) = DECL_CONTEXT (func_decl);
       TREE_READONLY (thunk) = TREE_READONLY (func_decl);
@@ -562,6 +572,7 @@ do_build_copy_constructor (fndecl)
 	{
 	  tree init;
 	  tree field = fields;
+	  tree expr_type;
 
 	  if (TREE_CODE (field) != FIELD_DECL)
 	    continue;
@@ -584,9 +595,15 @@ do_build_copy_constructor (fndecl)
 	  else
 	    continue;
 
-	  init = build (COMPONENT_REF,
-	                build_qualified_type (TREE_TYPE (field), cvquals),
-	                init, field);
+	  /* Compute the type of "init->field".  If the copy-constructor
+	     parameter is, for example, "const S&", and the type of
+	     the field is "T", then the type will usually be "const
+	     T".  (There are no cv-qualified variants of reference
+	     types.)  */
+	  expr_type = TREE_TYPE (field);
+	  if (TREE_CODE (expr_type) != REFERENCE_TYPE)
+	    expr_type = cp_build_qualified_type (expr_type, cvquals);
+	  init = build (COMPONENT_REF, expr_type, init, field);
 	  init = build_tree_list (NULL_TREE, init);
 
 	  member_init_list
@@ -619,28 +636,34 @@ do_build_assign_ref (fndecl)
     }
   else
     {
-      tree fields = TYPE_FIELDS (current_class_type);
-      int n_bases = CLASSTYPE_N_BASECLASSES (current_class_type);
-      tree binfos = TYPE_BINFO_BASETYPES (current_class_type);
+      tree fields;
       int cvquals = cp_type_quals (TREE_TYPE (parm));
       int i;
 
-      for (i = 0; i < n_bases; ++i)
+      /* Assign to each of thedirect base classes.  */
+      for (i = 0; i < CLASSTYPE_N_BASECLASSES (current_class_type); ++i)
 	{
-	  /* We must deal with the binfo's directly as a direct base
-	     might be inaccessible due to ambiguity.  */
-	  tree binfo = TREE_VEC_ELT (binfos, i);
-	  tree src = build_base_path (PLUS_EXPR, parm, binfo, 1);
-	  tree dst = build_base_path (PLUS_EXPR, current_class_ref, binfo, 1);
+	  tree binfo;
+	  tree converted_parm;
 
-	  tree expr = build_method_call (dst,
-					 ansi_assopname (NOP_EXPR),
-					 build_tree_list (NULL_TREE, src),
-					 NULL,
-					 LOOKUP_NORMAL | LOOKUP_NONVIRTUAL);
-	  finish_expr_stmt (expr);
+	  binfo = BINFO_BASETYPE (TYPE_BINFO (current_class_type), i);
+	  /* We must convert PARM directly to the base class
+	     explicitly since the base class may be ambiguous.  */
+	  converted_parm = build_base_path (PLUS_EXPR, parm, binfo, 1);
+	  /* Call the base class assignment operator.  */
+	  finish_expr_stmt 
+	    (build_special_member_call (current_class_ref, 
+					ansi_assopname (NOP_EXPR),
+					build_tree_list (NULL_TREE, 
+							 converted_parm),
+					binfo,
+					LOOKUP_NORMAL | LOOKUP_NONVIRTUAL));
 	}
-      for (; fields; fields = TREE_CHAIN (fields))
+
+      /* Assign to each of the non-static data members.  */
+      for (fields = TYPE_FIELDS (current_class_type); 
+	   fields; 
+	   fields = TREE_CHAIN (fields))
 	{
 	  tree comp, init, t;
 	  tree field = fields;
@@ -770,8 +793,9 @@ synthesize_method (fndecl)
 
 /* Use EXTRACTOR to locate the relevant function called for each base &
    class field of TYPE. CLIENT allows additional information to be passed
-   to EXTRACTOR.  Generates the union of all exceptions generated by
-   those functions.  */
+   to EXTRACTOR.  Generates the union of all exceptions generated by those
+   functions.  Note that we haven't updated TYPE_FIELDS and such of any
+   variants yet, so we need to look at the main one.  */
 
 static tree
 synthesize_exception_spec (type, extractor, client)
@@ -783,7 +807,7 @@ synthesize_exception_spec (type, extractor, client)
   tree fields = TYPE_FIELDS (type);
   int i, n_bases = CLASSTYPE_N_BASECLASSES (type);
   tree binfos = TYPE_BINFO_BASETYPES (type);
-  
+
   for (i = 0; i != n_bases; i++)
     {
       tree base = BINFO_TYPE (TREE_VEC_ELT (binfos, i));
@@ -962,7 +986,7 @@ implicitly_declare_fn (kind, type, const_p)
     case sfk_assignment_operator:
     {
       struct copy_data data;
-      tree argtype;
+      tree argtype = type;
       
       has_parm = 1;
       data.name = NULL;
@@ -978,10 +1002,10 @@ implicitly_declare_fn (kind, type, const_p)
       if (const_p)
         {
           data.quals = TYPE_QUAL_CONST;
-          type = build_qualified_type (type, TYPE_QUAL_CONST);
+          argtype = build_qualified_type (argtype, TYPE_QUAL_CONST);
         }
     
-      argtype = build_reference_type (type);
+      argtype = build_reference_type (argtype);
       args = build_tree_list (hash_tree_chain (argtype, NULL_TREE),
 			      get_identifier ("_ctor_arg"));
       args = tree_cons (NULL_TREE, args, void_list_node);

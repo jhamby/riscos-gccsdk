@@ -19,7 +19,7 @@ union tree_node;
 typedef union tree_node *tree;
 #endif
 
-
+#define GTY(x)
 #ifdef IN_GCC
 #include "ansidecl.h"
 #include "config/arm/xm-riscos.h"
@@ -43,6 +43,7 @@ typedef union tree_node *tree;
 
 #endif /* 0 */
 
+#include "defaults.h"
 #endif /* IN_GCC */
 
 

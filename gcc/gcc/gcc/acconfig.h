@@ -1,10 +1,3 @@
-/* Support for additional configure directives.  */
-
-#undef PACKAGE
-#undef VERSION
-#undef HAVE_CPP_STRINGIFY
-#undef STRING_WITH_STRINGS
-
 /* Define to 1 if NLS is requested.  */
 #undef ENABLE_NLS
 
@@ -35,6 +28,18 @@
 
 /* Define if cpp should also search $prefix/include.  */
 #undef PREFIX_INCLUDE_DIR
+
+/* Define to the name of a file containing a list of extra machine modes
+   for this architecture.  */
+#undef EXTRA_MODES_FILE
+
+/* Define if the target architecture needs extra machine modes to represent
+   the results of comparisons.  */
+#undef EXTRA_CC_MODES
+
+#undef PACKAGE
+#undef VERSION
+#undef HAVE_CPP_STRINGIFY
 
 @BOTTOM@
 

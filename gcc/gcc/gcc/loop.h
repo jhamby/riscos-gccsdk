@@ -28,6 +28,7 @@ Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 #define LOOP_UNROLL 1
 #define LOOP_BCT 2
 #define LOOP_PREFETCH 4
+#define LOOP_AUTO_UNROLL 8
 
 /* Get the loop info pointer of a loop.  */
 #define LOOP_INFO(LOOP) ((struct loop_info *) (LOOP)->aux)
@@ -204,7 +205,7 @@ enum iv_mode
 struct iv
 {
   enum iv_mode type;
-  union 
+  union
   {
     struct iv_class *class;
     struct induction *info;
@@ -303,6 +304,8 @@ struct loop_info
   int has_libcall;
   /* Nonzero if there is a non constant call in the current loop.  */
   int has_nonconst_call;
+  /* Nonzero if there is a prefetch instruction in the current loop.  */
+  int has_prefetch;
   /* Nonzero if there is a volatile memory reference in the current
      loop.  */
   int has_volatile;
@@ -313,6 +316,9 @@ struct loop_info
   int has_multiple_exit_targets;
   /* Nonzero if there is an indirect jump in the current function.  */
   int has_indirect_jump;
+  /* Whether loop unrolling has emitted copies of the loop body so
+     that the main loop needs no exit tests.  */
+  int preconditioned;
   /* Register or constant initial loop value.  */
   rtx initial_value;
   /* Register or constant value used for comparison test.  */
@@ -391,7 +397,7 @@ int loop_invariant_p PARAMS ((const struct loop *, rtx));
 rtx get_condition_for_loop PARAMS ((const struct loop *, rtx));
 void loop_iv_add_mult_hoist PARAMS ((const struct loop *, rtx, rtx, rtx, rtx));
 void loop_iv_add_mult_sink PARAMS ((const struct loop *, rtx, rtx, rtx, rtx));
-void loop_iv_add_mult_emit_before PARAMS ((const struct loop *, rtx, 
+void loop_iv_add_mult_emit_before PARAMS ((const struct loop *, rtx,
 					   rtx, rtx, rtx,
 					   basic_block, rtx));
 rtx express_from PARAMS ((struct induction *, struct induction *));
@@ -411,7 +417,7 @@ int back_branch_in_range_p PARAMS ((const struct loop *, rtx));
 int loop_insn_first_p PARAMS ((rtx, rtx));
 typedef rtx (*loop_insn_callback) PARAMS ((struct loop *, rtx, int, int));
 void for_each_insn_in_loop PARAMS ((struct loop *, loop_insn_callback));
-rtx loop_insn_emit_before PARAMS((const struct loop *, basic_block, 
+rtx loop_insn_emit_before PARAMS((const struct loop *, basic_block,
 				  rtx, rtx));
 rtx loop_insn_sink PARAMS((const struct loop *, rtx));
 rtx loop_insn_hoist PARAMS((const struct loop *, rtx));

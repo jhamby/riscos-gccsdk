@@ -8,6 +8,8 @@ INCLUDES = -I./ -I../ -I../../../include -I../config
 LIBS = -L$(objdir)/libiberty/$(STAGE) -liberty
 
 GNATBIND = gnatbind -C
+MKDIR = mkdir
+CP = cp
 
 ADA_CFLAGS =
 ADAFLAGS = -W -Wall -gnatpg -gnata
@@ -898,79 +900,80 @@ GNATRTL_NONTASKING_OBJS= \
 
 GNATRTL_OBJS = $(GNATRTL_NONTASKING_OBJS) $(GNATRTL_TASKING_OBJS)
 
-tools: $(gcc_bin_dir)/gnatbl$(exeext) \
-	$(gcc_bin_dir)/gnatbind$(exeext) \
-	$(gcc_bin_dir)/gnatchop$(exeext) \
-	$(gcc_bin_dir)/gnatcmd$(exeext)\
-	$(gcc_bin_dir)/gnatkr$(exeext) \
-	$(gcc_bin_dir)/gnatlink$(exeext) \
-	$(gcc_bin_dir)/gnatls$(exeext) \
-	$(gcc_bin_dir)/gnatmake$(exeext) \
-	$(gcc_bin_dir)/gnatprep$(exeext) \
-	$(gcc_bin_dir)/gnatpsta$(exeext) \
-	$(gcc_bin_dir)/gnatpsys$(exeext) \
-	$(gcc_bin_dir)/gnatxref$(exeext) \
-	$(gcc_bin_dir)/gnatfind$(exeext)
+tools: $(bin_dir)/gnatbl$(gexesfx) \
+	$(bin_dir)/gnatbind$(gexesfx) \
+	$(bin_dir)/gnatchop$(gexesfx) \
+	$(bin_dir)/gnatcmd$(gexesfx)\
+	$(bin_dir)/gnatkr$(gexesfx) \
+	$(bin_dir)/gnatlink$(gexesfx) \
+	$(bin_dir)/gnatls$(gexesfx) \
+	$(bin_dir)/gnatmake$(gexesfx) \
+	$(bin_dir)/gnatprep$(gexesfx) \
+	$(bin_dir)/gnatpsta$(gexesfx) \
+	$(bin_dir)/gnatpsys$(gexesfx) \
+	$(bin_dir)/gnatxref$(gexesfx) \
+	$(bin_dir)/gnatfind$(gexesfx) \
+	$(gcc_bin_dir)/gnat1$(gexesfx)
 
 # Needs to be built with CC=gcc
 # Since the RTL should be built with the latest compiler, remove the
 #  stamp target in the parent directory whenever gnat1 is rebuilt
-$(gcc_bin_dir)/gnat1$(exeext): $(P) $(GNAT1_OBJS) $(BACKEND) $(LIBDEPS) $(TARGET_ADA_SRCS)
+$(gcc_bin_dir)/gnat1$(gexesfx): $(P) $(GNAT1_OBJS) $(BACKEND) $(LIBDEPS) $(TARGET_ADA_SRCS)
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(GNAT1_OBJS) $(BACKEND) $(LIBDEPS) $(LIBS)
 
-$(gcc_bin_dir)/gnatbind$(exeext): $(P) $(adaobj)/b_gnatb.o $(GNATBIND_OBJS)
+$(bin_dir)/gnatbind$(gexesfx): $(P) $(adaobj)/b_gnatb.o $(GNATBIND_OBJS)
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(adaobj)/b_gnatb.o $(GNATBIND_OBJS) \
 	      $(LIBIBERTY) $(LIBDEPS) $(LIBS)
 
-$(gcc_bin_dir)/gnatchop$(exeext): $(P) $(adaobj)/b_gnatch.o $(GNATCHOP_OBJS)
+$(bin_dir)/gnatchop$(gexesfx): $(P) $(adaobj)/b_gnatch.o $(GNATCHOP_OBJS)
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(adaobj)/b_gnatch.o $(GNATCHOP_OBJS) \
 	      $(LIBDEPS) $(LIBS)
 
-$(gcc_bin_dir)/gnatmake$(exeext): $(P) $(adaobj)/b_gnatm.o $(GNATMAKE_OBJS)
+$(bin_dir)/gnatmake$(gexesfx): $(P) $(adaobj)/b_gnatm.o $(GNATMAKE_OBJS)
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(adaobj)/b_gnatm.o $(GNATMAKE_OBJS) $(LIBDEPS) $(LIBS)
 
 $(adaobj)/gnatbl.o: gnatbl.c adaint.h
 	$(CC) $(CFLAGS) $(INCLUDES) -o $@ -c $<
 
-$(gcc_bin_dir)/gnatbl$(exeext): $(adaobj)/gnatbl.o $(adaobj)/adaint.o
+$(bin_dir)/gnatbl$(gexesfx): $(adaobj)/gnatbl.o $(adaobj)/adaint.o
 	$(CC) -o $@ $(CFLAGS) $(LDFLAGS) $(adaobj)/gnatbl.o $(adaobj)/adaint.o $(LIBDEPS) $(LIBS)
 
-$(gcc_bin_dir)/gnatcmd$(exeext): $(P) $(adaobj)/b_gnatc.o $(GNATCMD_OBJS)
+$(bin_dir)/gnatcmd$(gexesfx): $(P) $(adaobj)/b_gnatc.o $(GNATCMD_OBJS)
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(adaobj)/b_gnatc.o $(GNATCMD_OBJS) $(LIBDEPS) $(LIBS)
 
-$(gcc_bin_dir)/gnatkr$(exeext): $(P) $(adaobj)/b_gnatkr.o $(GNATKR_OBJS)
+$(bin_dir)/gnatkr$(gexesfx): $(P) $(adaobj)/b_gnatkr.o $(GNATKR_OBJS)
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(adaobj)/b_gnatkr.o $(GNATKR_OBJS) $(LIBDEPS) $(LIBS)
 
-$(gcc_bin_dir)/gnatlink$(exeext): $(P) $(adaobj)/b_gnatl.o $(GNATLINK_OBJS)
+$(bin_dir)/gnatlink$(gexesfx): $(P) $(adaobj)/b_gnatl.o $(GNATLINK_OBJS)
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(adaobj)/b_gnatl.o $(GNATLINK_OBJS) $(LIBDEPS) $(LIBS)
 
-$(gcc_bin_dir)/gnatls$(exeext): $(P) $(adaobj)/b_gnatls.o $(GNATLS_OBJS)
+$(bin_dir)/gnatls$(gexesfx): $(P) $(adaobj)/b_gnatls.o $(GNATLS_OBJS)
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(adaobj)/b_gnatls.o $(GNATLS_OBJS) $(LIBDEPS) $(LIBS)
 
-$(gcc_bin_dir)/gnatmem$(exeext): $(P) $(adaobj)/b_gnatmem.o $(GNATMEM_OBJS)
+$(bin_dir)/gnatmem$(gexesfx): $(P) $(adaobj)/b_gnatmem.o $(GNATMEM_OBJS)
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(adaobj)/b_gnatmem.o $(GNATMEM_OBJS) \
 		$(MISCLIB) $(LIBDEPS) $(LIBS)
 
-$(gcc_bin_dir)/gnatprep$(exeext): $(P) $(adaobj)/b_gnatp.o $(GNATPREP_OBJS)
+$(bin_dir)/gnatprep$(gexesfx): $(P) $(adaobj)/b_gnatp.o $(GNATPREP_OBJS)
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(adaobj)/b_gnatp.o $(GNATPREP_OBJS) $(LIBDEPS) $(LIBS)
 
-$(gcc_bin_dir)/gnatpsta$(exeext): $(P) $(adaobj)/b_gnatpa.o $(GNATPSTA_OBJS)
+$(bin_dir)/gnatpsta$(gexesfx): $(P) $(adaobj)/b_gnatpa.o $(GNATPSTA_OBJS)
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(adaobj)/b_gnatpa.o $(GNATPSTA_OBJS) \
 		$(LIBDEPS) $(LIBS)
 
-$(gcc_bin_dir)/gnatpsys$(exeext): $(P) $(adaobj)/b_gnatps.o $(GNATPSYS_OBJS)
+$(bin_dir)/gnatpsys$(gexesfx): $(P) $(adaobj)/b_gnatps.o $(GNATPSYS_OBJS)
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(adaobj)/b_gnatps.o $(GNATPSYS_OBJS) \
 		$(LIBDEPS) $(LIBS)
 
-$(gcc_bin_dir)/gnatxref$(exeext): $(P) $(adaobj)/b_gnatxref.o $(GNATXREF_OBJS)
+$(bin_dir)/gnatxref$(gexesfx): $(P) $(adaobj)/b_gnatxref.o $(GNATXREF_OBJS)
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(adaobj)/b_gnatxref.o $(GNATXREF_OBJS) \
 		$(LIBDEPS) $(LIBS)
 
-$(gcc_bin_dir)/gnatfind$(exeext): $(P) $(adaobj)/b_gnatfind.o $(GNATFIND_OBJS)
+$(bin_dir)/gnatfind$(gexesfx): $(P) $(adaobj)/b_gnatfind.o $(GNATFIND_OBJS)
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(adaobj)/b_gnatfind.o $(GNATFIND_OBJS) \
 		$(LIBDEPS) $(LIBS)
 
-$(gcc_bin_dir)/gnatdll$(exeext): $(P) $(adaobj)/b_gnatdll.o $(GNATDLL_OBJS)
+$(bin_dir)/gnatdll$(gexesfx): $(P) $(adaobj)/b_gnatdll.o $(GNATDLL_OBJS)
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(adaobj)/b_gnatdll.o $(GNATDLL_OBJS) \
 		$(LIBDEPS) $(LIBS)
 

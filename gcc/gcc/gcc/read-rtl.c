@@ -25,15 +25,6 @@ Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 #include "obstack.h"
 #include "hashtab.h"
 
-#ifndef ISDIGIT
-#include <ctype.h>
-#define ISDIGIT isdigit
-#define ISSPACE isspace
-#endif
-
-#define	obstack_chunk_alloc	xmalloc
-#define	obstack_chunk_free	free
-
 static htab_t md_constants;
 
 static void fatal_with_file_and_line PARAMS ((FILE *, const char *, ...))
@@ -265,7 +256,7 @@ read_escape (ob, infile)
 
   obstack_1grow (ob, c);
 }
-      
+
 
 /* Read a double-quoted string onto the obstack.  Caller has scanned
    the leading quote.  */
@@ -325,7 +316,7 @@ read_braced_string (ob, infile)
 
       obstack_1grow (ob, c);
     }
-      
+
   obstack_1grow (ob, 0);
   return obstack_finish (ob);
 }
@@ -361,7 +352,7 @@ read_string (ob, infile, star_if_braced)
     }
   else
     fatal_with_file_and_line (infile, "expected `\"' or `{', found `%c'", c);
-       
+
   if (saw_paren)
     {
       c = read_skip_spaces (infile);
@@ -639,7 +630,7 @@ again:
 	  {
 	    XVEC (return_rtx, i) = 0;
 	    break;
- 	  }
+	  }
 	/* Now process the vector.  */
 
       case 'E':
@@ -694,7 +685,7 @@ again:
 	     gets a star inserted as its first character, if it is
 	     written with a brace block instead of a string constant.  */
 	  int star_if_braced = (format_ptr[-1] == 'T');
-	    
+
 	  stringbuf = read_string (&rtl_obstack, infile, star_if_braced);
 
 	  /* For insn patterns, we want to provide a default name

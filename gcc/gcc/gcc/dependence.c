@@ -31,6 +31,7 @@ Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 #include "tree.h"
 #include "c-common.h"
 #include "flags.h"
+#include "ggc.h"
 #include "varray.h"
 
 #define MAX_SUBSCRIPTS 13
@@ -81,7 +82,7 @@ enum complexity_type {ziv, strong_siv, weak_siv, weak_zero_siv,
    for that variable.  Alternately one can sequentially follow each
    element of def_use_chain.  */
 
-typedef struct def_use
+typedef struct def_use GTY(())
 {
   /* outermost loop */
   tree outer_loop;
@@ -106,7 +107,7 @@ typedef struct def_use
    element of loop_chain and check outer_loop to get all loops
    contained within a certain loop.  */
 
-typedef struct loop
+typedef struct loop GTY(())
 {
   /* outermost loop containing this loop */
   tree outer_loop;
@@ -124,7 +125,7 @@ typedef struct loop
 
 /* Pointed to by loop. One per induction variable.  */
 
-typedef struct induction
+typedef struct induction GTY(())
 {
   /* our name */
   const char *variable;
@@ -140,7 +141,7 @@ typedef struct induction
 
 /* Pointed to by def/use.  One per dependence.  */
 
-typedef struct dependence
+typedef struct dependence GTY(())
 {
   tree source;
   tree destination;
@@ -149,7 +150,7 @@ typedef struct dependence
   int distance[MAX_SUBSCRIPTS];
   struct dependence *next;
 } dependence;
-  
+
 /* subscripts are represented by an array of these.  Each reflects one
    X * i + Y term, where X and Y are constants.  */
 
@@ -172,16 +173,16 @@ typedef struct subscript
 static tree dest_to_remember;
 
 /* Chain for def_use */
-static varray_type def_use_chain;
+static GTY ((param_is (def_use))) varray_type def_use_chain;
 
 /* Chain for dependence */
-static varray_type dep_chain;
+static GTY ((param_is (dependence))) varray_type dep_chain;
 
 /* Chain for loop */
-static varray_type loop_chain;
+static GTY ((param_is (loop))) varray_type loop_chain;
 
 /* Chain for induction */
-static varray_type induction_chain;
+static GTY ((param_is (induction))) varray_type induction_chain;
 
 void init_dependence_analysis PARAMS ((tree));
 static void build_def_use PARAMS ((tree, enum def_use_type));
@@ -227,8 +228,6 @@ void
 init_dependence_analysis (exp)
      tree exp;
 {
-  def_use *du_ptr;
-
   VARRAY_GENERIC_PTR_INIT (def_use_chain, 50, "def_use_chain");
   VARRAY_GENERIC_PTR_INIT (dep_chain, 50, "dep_chain");
   VARRAY_GENERIC_PTR_INIT (loop_chain, 50, "loop_chain");
@@ -242,20 +241,13 @@ init_dependence_analysis (exp)
 
   /* dump_node_dependence (&def_use_chain);*/
 
-  for (du_ptr = VARRAY_TOP (def_use_chain, generic);
-       VARRAY_POP (def_use_chain);
-       du_ptr = VARRAY_TOP (def_use_chain, generic))
-    {
-      free (du_ptr);
-    }
-
-  VARRAY_FREE (def_use_chain);
-  VARRAY_FREE (loop_chain);
-  VARRAY_FREE (induction_chain);
+  def_use_chain = 0;
+  loop_chain = 0;
+  induction_chain = 0;
 }
 
 /* Build ARRAY_REF def/use info 'def_use_chain' starting at EXP which is a def
-   or use DU_TYPE */ 
+   or use DU_TYPE */
 
 static void
 build_def_use (exp, du_type)
@@ -277,7 +269,7 @@ build_def_use (exp, du_type)
       nloop = 0;
       du_idx = 0;
     }
-  
+
   while (node)
     switch (TREE_CODE (node))
       {
@@ -301,7 +293,7 @@ build_def_use (exp, du_type)
 				     TREE_OPERAND (node, 2), loop_def)
 	    == 0)
 	  loop_def->status = unnormal;
-	  
+
 	build_def_use (TREE_OPERAND (node, 3), 0);
 	nloop--;
 	current_loop = 0;
@@ -309,7 +301,7 @@ build_def_use (exp, du_type)
 	break;
       case MODIFY_EXPR:
 	/* Is an induction variable modified? */
-	if (loop_def 
+	if (loop_def
 	    && TREE_CODE (TREE_OPERAND (node, 0)) == VAR_DECL
 	    && have_induction_variable
 	       (loop_def->outer_loop,
@@ -337,7 +329,8 @@ build_def_use (exp, du_type)
 	    int i;
 	    char null_string = '\0';
 
-	    VARRAY_PUSH_GENERIC_PTR (def_use_chain, xmalloc (sizeof (def_use)));
+	    VARRAY_PUSH_GENERIC_PTR (def_use_chain, 
+				     ggc_alloc (sizeof (def_use)));
 	    du_ptr = VARRAY_GENERIC_PTR (def_use_chain, du_idx++);
 	    du_ptr->type = du_type;
 	    du_ptr->status = unseen;
@@ -362,7 +355,7 @@ build_def_use (exp, du_type)
 		    break;
 		  }
 	      }
-	    
+
 	    for (i = 0;
 		 i < du_idx
 		   && strcmp (IDENTIFIER_POINTER (DECL_NAME (array_ref)),
@@ -388,7 +381,7 @@ build_def_use (exp, du_type)
       case DECL_STMT:
 	node = TREE_CHAIN (node);
 	break;
-	
+
       case EXPR_STMT:
 	if (TREE_CODE (TREE_OPERAND (node, 0)) == MODIFY_EXPR)
 	  build_def_use (TREE_OPERAND (node, 0), def);
@@ -418,7 +411,7 @@ add_loop (loop_node, outer_loop, nloop)
 {
   loop *loop_ptr;
 
-  VARRAY_PUSH_GENERIC_PTR (loop_chain, xmalloc (sizeof (loop)));
+  VARRAY_PUSH_GENERIC_PTR (loop_chain, ggc_alloc (sizeof (loop)));
   loop_ptr = VARRAY_TOP (loop_chain, generic);
   loop_ptr->outer_loop = outer_loop;
   loop_ptr->containing_loop = loop_node;
@@ -502,7 +495,8 @@ find_induction_variable (init_node, cond_node, incr_node, loop_def)
       if (!INDEX_LIMIT_CHECK (cond_node))
 	return 0;
 
-      VARRAY_PUSH_GENERIC_PTR (induction_chain, xmalloc (sizeof (induction)));
+      VARRAY_PUSH_GENERIC_PTR (induction_chain, 
+			       ggc_alloc (sizeof (induction)));
       ind_ptr = VARRAY_TOP (induction_chain, generic);
       loop_def->ind = ind_ptr;
       ind_ptr->variable = IDENTIFIER_POINTER (DECL_NAME (TREE_OPERAND
@@ -514,7 +508,7 @@ find_induction_variable (init_node, cond_node, incr_node, loop_def)
 
       ind_ptr->low_bound = get_low_bound (init_node, ind_ptr->variable);
       if (TREE_CODE (TREE_OPERAND (cond_node, 0)) == VAR_DECL
-	  && IDENTIFIER_POINTER (DECL_NAME (TREE_OPERAND (cond_node, 0))) 
+	  && IDENTIFIER_POINTER (DECL_NAME (TREE_OPERAND (cond_node, 0)))
 	     == ind_ptr->variable)
 	{
 	  if (TREE_CODE (TREE_OPERAND (cond_node, 1)) == INTEGER_CST)
@@ -732,7 +726,7 @@ check_node_dependence (du)
 			      ck_loop_ptr, j);
 		  /* ?? Add other tests: single variable exact test, banerjee */
 		}
-	    
+
 	      ck_loop_ptr = ck_loop_ptr->next_nest;
 	    }
 
@@ -747,13 +741,13 @@ check_node_dependence (du)
 	  if (! have_dependence)
 	    continue;
 
-	  VARRAY_PUSH_GENERIC_PTR (dep_chain, xmalloc (sizeof (dependence)));
+	  VARRAY_PUSH_GENERIC_PTR (dep_chain, ggc_alloc (sizeof (dependence)));
 	  dep_ptr = VARRAY_TOP (dep_chain, generic);
 	  dep_ptr->source = use_ptr->expression;
 	  dep_ptr->destination = def_ptr->expression;
 	  dep_ptr->next = 0;
-	  
-	  if (def_ptr < use_ptr && use_ptr->type == use) 
+
+	  if (def_ptr < use_ptr && use_ptr->type == use)
 	    dep_ptr->dependence = dt_flow;
 	  else if (def_ptr > use_ptr && use_ptr->type == use)
 	    dep_ptr->dependence = dt_anti;
@@ -790,7 +784,8 @@ check_node_dependence (du)
 	      /* Dummy for rtl interface */
 	      dependence *dep_root_ptr;
 
-	      VARRAY_PUSH_GENERIC_PTR (dep_chain, xmalloc (sizeof (dependence)));
+	      VARRAY_PUSH_GENERIC_PTR (dep_chain, 
+				       ggc_alloc (sizeof (dependence)));
 	      dep_root_ptr = VARRAY_TOP (dep_chain, generic);
 	      dep_root_ptr->source = 0;
 	      dep_root_ptr->destination = def_ptr->expression;
@@ -832,7 +827,7 @@ get_coefficients (du, coefficients)
       coefficients[i].variable = 0;
       coefficients[i].next = 0;
     }
-  
+
   for (array_ref = du->expression;
        TREE_CODE (array_ref) == ARRAY_REF;
        array_ref = TREE_OPERAND (array_ref, 0))
@@ -951,7 +946,7 @@ normalize_coefficients (coefficients, loop_ptr, count)
 
   for (i = 1; i <= count; i++)
     {
-      for (ck_loop_ptr = loop_ptr; ck_loop_ptr; 
+      for (ck_loop_ptr = loop_ptr; ck_loop_ptr;
 	   ck_loop_ptr = ck_loop_ptr->next_nest)
 	for (ind_ptr = ck_loop_ptr->ind; ind_ptr; ind_ptr = ind_ptr->next)
 	  {
@@ -1014,7 +1009,7 @@ classify_dependence (icoefficients, ocoefficients, complexity, separability,
 	    }
 	}
     }
-  
+
   for (idx = 1; idx <= count; idx++)
     {
       if (iiv_used[idx] == 0 && oiv_used[idx] == 0)
@@ -1178,7 +1173,7 @@ gcd_test (icoefficients, ocoefficients, direction, distance, loop_ptr, sub)
     }
   /* ?? gcd does not yield direction and distance.  Wolfe's direction
      vector hierarchy can be used to give this.  */
-}     
+}
 
 /* Find the gcd of X and Y using Euclid's algorithm */
 
@@ -1213,7 +1208,7 @@ find_gcd (x, y)
 }
 
 /* Merge SUBSCRIPT_COUNT DIRECTIONs and DISTANCEs for LOOP_COUNT loops.
-   We use a predefined array to handle the direction merge.  
+   We use a predefined array to handle the direction merge.
    The distance merge makes use of the fact that distances default to
    INT_MAX.  Distances are '&' together.  Watch out for a negative distance.
 */
@@ -1228,7 +1223,7 @@ merge_dependencies (direction, distance, loop_count, subscript_count)
   int i, j;
   int sign;
 
-  static const enum direction_type direction_merge [8][8] = 
+  static const enum direction_type direction_merge [8][8] =
   {{lt, le, le, star, star, lt, independent, lt},
    {le, le, le, star, star, le, independent, le},
    {le, le, eq, ge, ge, eq, independent, eq},
@@ -1238,7 +1233,7 @@ merge_dependencies (direction, distance, loop_count, subscript_count)
    {independent, independent, independent, independent, independent},
    {independent, independent, independent}
   };
-  
+
   for (i = 1; i <= loop_count; i++)
     {
       distance[i][0] = INT_MAX;
@@ -1314,7 +1309,7 @@ dump_one_node (du, seen)
       for (array_ref = du_ptr->expression;
 	   TREE_CODE (array_ref) == ARRAY_REF;
 	   array_ref = TREE_OPERAND (array_ref, 0))
-	{	
+	{
 	  printf ("[");
 	  dump_array_ref (TREE_OPERAND (array_ref, 1));
 	  printf ("]");
@@ -1364,7 +1359,6 @@ dump_node_dependence (void)
       if (i >= VARRAY_SIZE (seen))
 	dump_one_node (du_ptr, &seen);
     }
-  VARRAY_FREE (seen);
 }
 #endif
 
@@ -1395,7 +1389,7 @@ search_dependence (node)
 	    return dep_idx + 1;
 	}
     }
-  
+
   return 0;
 }
 
@@ -1418,7 +1412,7 @@ remember_dest_for_dependence (node)
 #define MEM_DEPENDENCY(RTX) XCWINT (RTX, 2, MEM)
 #endif
 
-/* Return 1 along with the dependence DIRECTION and DISTANCE if there is a 
+/* Return 1 along with the dependence DIRECTION and DISTANCE if there is a
    dependence from dest_rtx to src_rtx.  */
 
 int
@@ -1463,5 +1457,7 @@ have_dependence_p (dest_rtx, src_rtx, direction, distance)
 void
 end_dependence_analysis ()
 {
-  VARRAY_FREE (dep_chain);
+  dep_chain = 0;
 }
+
+#include "gt-dependence.h"

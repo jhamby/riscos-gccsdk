@@ -55,15 +55,11 @@ static tree get_dispatch_table PARAMS ((tree, tree));
 static void add_interface_do PARAMS ((tree, tree, int));
 static tree maybe_layout_super_class PARAMS ((tree, tree));
 static int assume_compiled PARAMS ((const char *));
-static struct hash_entry *init_test_hash_newfunc PARAMS ((struct hash_entry *,
-							  struct hash_table *,
-							  hash_table_key));
 static tree build_method_symbols_entry PARAMS ((tree));
 
-static rtx registerClass_libfunc;
-static rtx registerResource_libfunc;
+static GTY(()) rtx registerClass_libfunc;
+static GTY(()) rtx registerResource_libfunc;
 
-extern struct obstack permanent_obstack;
 struct obstack temporary_obstack;
 
 /* The compiler generates different code depending on whether or not
@@ -95,8 +91,7 @@ static assume_compiled_node *find_assume_compiled_node
 
 static assume_compiled_node *assume_compiled_tree;
 
-static tree class_roots[5]
-= { NULL_TREE, NULL_TREE, NULL_TREE, NULL_TREE, NULL_TREE };
+static GTY(()) tree class_roots[5];
 #define registered_class class_roots[0]
 #define fields_ident class_roots[1]  /* get_identifier ("fields") */
 #define info_ident class_roots[2]  /* get_identifier ("info") */
@@ -286,21 +281,7 @@ make_class ()
 {
   tree type;
   type = make_node (RECORD_TYPE);
-#ifdef JAVA_USE_HANDLES
-  tree field1 = build_decl (FIELD_DECL, get_identifier ("obj"),
-			    build_pointer_type (type));
-  tree field2 = build_decl (FIELD_DECL, get_identifier ("methods"),
-			    methodtable_ptr_type);
-  tree handle_type = make_node (RECORD_TYPE);
-  TREE_CHAIN (field1) = field2;
-  TYPE_FIELDS (handle_type) = field1;
-  TYPE_BINFO (type) = make_tree_vec (7);
-  TYPE_BINFO (handle_type) = make_tree_vec (7);
-  BINFO_HANDLE (TYPE_BINFO (handle_type)) = type;
-  BINFO_HANDLE (TYPE_BINFO (type)) = handle_type;
-#else
   TYPE_BINFO (type) = make_tree_vec (6);
-#endif
   MAYBE_CREATE_TYPE_TYPE_LANG_SPECIFIC (type);
 
   return type;
@@ -357,15 +338,6 @@ push_class (class_type, class_name)
   DECL_ARTIFICIAL (decl) = 1;
 
   pushdecl_top_level (decl);
-#ifdef JAVA_USE_HANDLES
-  {
-    tree handle_name = identifier_subst (class_name,
-					 "Handle$", '.', '.', "");
-    tree handle_decl = build_decl (TYPE_DECL, handle_name,
-				   CLASS_TO_HANDLE_TYPE (class_type));
-    pushdecl (handle_decl);
-  }
-#endif
 
   return decl;
 }
@@ -425,6 +397,7 @@ set_class_decl_access_flags (access_flags, class_decl)
   if (access_flags & ACC_STATIC)    CLASS_STATIC (class_decl) = 1;
   if (access_flags & ACC_PRIVATE)   CLASS_PRIVATE (class_decl) = 1;
   if (access_flags & ACC_PROTECTED) CLASS_PROTECTED (class_decl) = 1;
+  if (access_flags & ACC_STRICT)    CLASS_STRICTFP (class_decl) = 1;
 }
 
 /* Return length of inheritance chain of CLAS, where java.lang.Object is 0,
@@ -621,49 +594,12 @@ build_java_method_type (fntype, this_class, access_flags)
 {
   if (access_flags & ACC_STATIC)
     return fntype;
-  return build_method_type (CLASS_TO_HANDLE_TYPE (this_class), fntype);
-}
-
-static struct hash_entry *
-init_test_hash_newfunc (entry, table, string)
-     struct hash_entry *entry;
-     struct hash_table *table;
-     hash_table_key string ATTRIBUTE_UNUSED;
-{
-  struct init_test_hash_entry *ret = (struct init_test_hash_entry *) entry;
-  if (ret == NULL)
-    {
-      ret = ((struct init_test_hash_entry *)
-	     hash_allocate (table, sizeof (struct init_test_hash_entry)));
-      if (ret == NULL)
-	return NULL;
-    }
-  ret->init_test_decl = 0;
-  return (struct hash_entry *) ret;
-}
-
-/* Hash table helpers. Also reused in find_applicable_accessible_methods_list 
-   (parse.y). The hash of a tree node is its pointer value, comparison
-   is direct. */
-
-unsigned long
-java_hash_hash_tree_node (k)
-     hash_table_key k;
-{
-  return (long) k;
-}
-
-bool
-java_hash_compare_tree_node (k1, k2)
-     hash_table_key k1;
-     hash_table_key k2;
-{
-  return ((tree) k1 == (tree) k2);
+  return build_method_type (this_class, fntype);
 }
 
 tree
-add_method_1 (handle_class, access_flags, name, function_type)
-     tree handle_class;
+add_method_1 (this_class, access_flags, name, function_type)
+     tree this_class;
      int access_flags;
      tree name;
      tree function_type;
@@ -671,37 +607,37 @@ add_method_1 (handle_class, access_flags, name, function_type)
   tree method_type, fndecl;
 
   method_type = build_java_method_type (function_type,
-					handle_class, access_flags);
+					this_class, access_flags);
 
   fndecl = build_decl (FUNCTION_DECL, name, method_type);
-  DECL_CONTEXT (fndecl) = handle_class;
+  DECL_CONTEXT (fndecl) = this_class;
 
   DECL_LANG_SPECIFIC (fndecl)
     = (struct lang_decl *) ggc_alloc_cleared (sizeof (struct lang_decl));
+  DECL_LANG_SPECIFIC (fndecl)->desc = LANG_DECL_FUNC;
 
   /* Initialize the static initializer test table.  */
-  hash_table_init (&DECL_FUNCTION_INIT_TEST_TABLE (fndecl),
-		   init_test_hash_newfunc, java_hash_hash_tree_node, 
-		   java_hash_compare_tree_node);
+  
+  DECL_FUNCTION_INIT_TEST_TABLE (fndecl) = 
+    java_treetreehash_create (10, 1);
 
   /* Initialize the initialized (static) class table. */
   if (access_flags & ACC_STATIC)
-    hash_table_init (&DECL_FUNCTION_INITIALIZED_CLASS_TABLE (fndecl),
-		     init_test_hash_newfunc, java_hash_hash_tree_node,
-		     java_hash_compare_tree_node);
+    DECL_FUNCTION_INITIALIZED_CLASS_TABLE (fndecl) =
+      htab_create_ggc (50, htab_hash_pointer, htab_eq_pointer, NULL);
 
   /* Initialize the static method invocation compound list */
   DECL_FUNCTION_STATIC_METHOD_INVOCATION_COMPOUND (fndecl) = NULL_TREE;
 
-  TREE_CHAIN (fndecl) = TYPE_METHODS (handle_class);
-  TYPE_METHODS (handle_class) = fndecl;
+  TREE_CHAIN (fndecl) = TYPE_METHODS (this_class);
+  TYPE_METHODS (this_class) = fndecl;
 
   /* Notice that this is a finalizer and update the class type
      accordingly. This is used to optimize instance allocation. */
   if (name == finalize_identifier_node
       && TREE_TYPE (function_type) == void_type_node
       && TREE_VALUE (TYPE_ARG_TYPES (function_type)) == void_type_node)
-    HAS_FINALIZER_P (handle_class) = 1;
+    HAS_FINALIZER_P (this_class) = 1;
 
   if (access_flags & ACC_PUBLIC) METHOD_PUBLIC (fndecl) = 1;
   if (access_flags & ACC_PROTECTED) METHOD_PROTECTED (fndecl) = 1;
@@ -719,6 +655,7 @@ add_method_1 (handle_class, access_flags, name, function_type)
   if (access_flags & ACC_SYNCHRONIZED) METHOD_SYNCHRONIZED (fndecl) = 1;
   if (access_flags & ACC_ABSTRACT) METHOD_ABSTRACT (fndecl) = 1;
   if (access_flags & ACC_TRANSIENT) METHOD_TRANSIENT (fndecl) = 1;
+  if (access_flags & ACC_STRICT) METHOD_STRICTFP (fndecl) = 1;
   return fndecl;
 }
 
@@ -733,7 +670,6 @@ add_method (this_class, access_flags, name, method_sig)
      tree name;
      tree method_sig;
 {
-  tree handle_class = CLASS_TO_HANDLE_TYPE (this_class);
   tree function_type, fndecl;
   const unsigned char *sig
     = (const unsigned char *) IDENTIFIER_POINTER (method_sig);
@@ -742,7 +678,7 @@ add_method (this_class, access_flags, name, method_sig)
     fatal_error ("bad method signature");
 
   function_type = get_type_from_signature (method_sig);
-  fndecl = add_method_1 (handle_class, access_flags, name, function_type);
+  fndecl = add_method_1 (this_class, access_flags, name, function_type);
   set_java_signature (TREE_TYPE (fndecl), method_sig);
   return fndecl;
 }
@@ -967,7 +903,7 @@ build_utf8_ref (name)
   char buf[60];
   tree ctype, field = NULL_TREE, str_type, cinit, string;
   static int utf8_count = 0;
-  int name_hash, decl_size;
+  int name_hash;
   tree ref = IDENTIFIER_UTF8_REF (name);
   tree decl;
   if (ref != NULL_TREE)
@@ -1001,18 +937,21 @@ build_utf8_ref (name)
   TREE_THIS_VOLATILE (decl) = 0;
   DECL_INITIAL (decl) = cinit;
 #ifdef HAVE_GAS_SHF_MERGE
-  /* Ensure decl_size is a multiple of utf8const_type's alignment. */
-  decl_size = (name_len + 5 + TYPE_ALIGN_UNIT (utf8const_type) - 1)
-	       & ~(TYPE_ALIGN_UNIT (utf8const_type) - 1);
-  if (flag_merge_constants && decl_size < 256)
-    {
-      char buf[32];
-      int flags = (SECTION_OVERRIDE
-		   | SECTION_MERGE | (SECTION_ENTSIZE & decl_size));
-      sprintf (buf, ".rodata.jutf8.%d", decl_size);
-      named_section_flags (buf, flags);
-      DECL_SECTION_NAME (decl) = build_string (strlen (buf), buf);
-    }
+  {
+    int decl_size;
+    /* Ensure decl_size is a multiple of utf8const_type's alignment. */
+    decl_size = (name_len + 5 + TYPE_ALIGN_UNIT (utf8const_type) - 1)
+	         & ~(TYPE_ALIGN_UNIT (utf8const_type) - 1);
+    if (flag_merge_constants && decl_size < 256)
+      {
+        char buf[32];
+        int flags = (SECTION_OVERRIDE
+        	   | SECTION_MERGE | (SECTION_ENTSIZE & decl_size));
+        sprintf (buf, ".rodata.jutf8.%d", decl_size);
+        named_section_flags (buf, flags);
+        DECL_SECTION_NAME (decl) = build_string (strlen (buf), buf);
+      }
+  }
 #endif
   TREE_CHAIN (decl) = utf8_decl_list;
   layout_decl (decl, 0);
@@ -1220,6 +1159,8 @@ get_access_flags_from_decl (decl)
 	access_flags |= ACC_PRIVATE;
       if (CLASS_PROTECTED (decl))
 	access_flags |= ACC_PROTECTED;
+      if (CLASS_STRICTFP (decl))
+	access_flags |= ACC_STRICT;
       return access_flags;
     }
   if (TREE_CODE (decl) == FUNCTION_DECL)
@@ -1242,6 +1183,8 @@ get_access_flags_from_decl (decl)
 	access_flags |= ACC_ABSTRACT;
       if (METHOD_TRANSIENT (decl))
 	access_flags |= ACC_TRANSIENT;
+      if (METHOD_STRICTFP (decl))
+	access_flags |= ACC_STRICT;
       return access_flags;
     }
   abort ();
@@ -1461,11 +1404,17 @@ get_dispatch_table (type, this_class_addr)
   list = tree_cons (NULL_TREE, gc_descr, list);
   for (j = 1; j < TARGET_VTABLE_USES_DESCRIPTORS-1; ++j)
     list = tree_cons (NULL_TREE, gc_descr, list);
-  list = tree_cons (integer_zero_node, this_class_addr, list);
+  list = tree_cons (NULL_TREE, this_class_addr, list);
+
+  /** Pointer to type_info object (to be implemented), according to g++ ABI. */
+  list = tree_cons (NULL_TREE, null_pointer_node, list);
+  /** Offset to start of whole object.  Always (ptrdiff_t)0 for Java. */
+  list = tree_cons (integer_zero_node, null_pointer_node, list);
 
   arraysize = (TARGET_VTABLE_USES_DESCRIPTORS? nvirtuals + 1 : nvirtuals + 2);
   if (TARGET_VTABLE_USES_DESCRIPTORS)
     arraysize *= TARGET_VTABLE_USES_DESCRIPTORS;
+  arraysize += 2;
   return build (CONSTRUCTOR,
 		build_prim_array_type (nativecode_ptr_type_node, arraysize),
 		NULL_TREE, list);
@@ -1495,6 +1444,9 @@ make_class_data (type)
   tree interfaces = null_pointer_node;
   int interface_len = 0;
   tree type_decl = TYPE_NAME (type);
+  /** Offset from start of virtual function table declaration
+      to where objects actually point at, following new g++ ABI. */
+  tree dtable_start_offset = build_int_2 (2 * POINTER_SIZE / BITS_PER_UNIT, 0);
 
   this_class_addr = build_class_ref (type);
   decl = TREE_OPERAND (this_class_addr, 0);
@@ -1548,7 +1500,7 @@ make_class_data (type)
     fields_decl = NULL_TREE;
 
   /* Build Method array. */
-  for (method = TYPE_METHODS (CLASS_TO_HANDLE_TYPE (type));
+  for (method = TYPE_METHODS (type);
        method != NULL_TREE; method = TREE_CHAIN (method))
     {
       tree init;
@@ -1648,7 +1600,9 @@ make_class_data (type)
 
   START_RECORD_CONSTRUCTOR (temp, object_type_node);
   PUSH_FIELD_VALUE (temp, "vtable",
-		    build1 (ADDR_EXPR, dtable_ptr_type, class_dtable_decl));
+		    build (PLUS_EXPR, dtable_ptr_type,
+			   build1 (ADDR_EXPR, dtable_ptr_type, class_dtable_decl),
+			   dtable_start_offset));
   if (! flag_hash_synchronization)
     PUSH_FIELD_VALUE (temp, "sync_info", null_pointer_node);
   FINISH_RECORD_CONSTRUCTOR (temp);
@@ -1684,7 +1638,9 @@ make_class_data (type)
   else
     PUSH_FIELD_VALUE (cons, "vtable",
 		      dtable_decl == NULL_TREE ? null_pointer_node
-		      : build1 (ADDR_EXPR, dtable_ptr_type, dtable_decl));
+		      : build (PLUS_EXPR, dtable_ptr_type,
+			       build1 (ADDR_EXPR, dtable_ptr_type, dtable_decl),
+			       dtable_start_offset));
   
   if (otable_methods == NULL_TREE)
     {
@@ -1714,6 +1670,11 @@ make_class_data (type)
   FINISH_RECORD_CONSTRUCTOR (cons);
 
   DECL_INITIAL (decl) = cons;
+  
+  /* Hash synchronization requires at least 64-bit alignment. */
+  if (flag_hash_synchronization && POINTER_SIZE < 64)
+    DECL_ALIGN (decl) = 64; 
+  
   rest_of_decl_compilation (decl, (char*) 0, 1, 0);
 }
 
@@ -1721,7 +1682,7 @@ void
 finish_class ()
 {
   tree method;
-  tree type_methods = TYPE_METHODS (CLASS_TO_HANDLE_TYPE (current_class));
+  tree type_methods = TYPE_METHODS (current_class);
   int saw_native_method = 0;
 
   /* Find out if we have any native methods.  We use this information
@@ -1817,7 +1778,7 @@ build_dtable_decl (type)
   /* We need to build a new dtable type so that its size is uniquely
      computed when we're dealing with the class for real and not just
      faking it (like java.lang.Class during the initialization of the
-     compiler.) We now we're not faking a class when CURRENT_CLASS is
+     compiler.) We know we're not faking a class when CURRENT_CLASS is
      TYPE. */
   if (current_class == type)
     {
@@ -1825,6 +1786,9 @@ build_dtable_decl (type)
       int n;
 
       dtype = make_node (RECORD_TYPE);
+
+      PUSH_FIELD (dtype, dummy, "top_offset", ptr_type_node);
+      PUSH_FIELD (dtype, dummy, "type_info", ptr_type_node);
 
       PUSH_FIELD (dtype, dummy, "class", class_ptr_type);
       for (n = 1; n < TARGET_VTABLE_USES_DESCRIPTORS; ++n)
@@ -2024,13 +1988,12 @@ layout_class_methods (this_class)
      tree this_class;
 {
   tree method_decl, dtable_count;
-  tree super_class, handle_type;
+  tree super_class;
 
   if (TYPE_NVIRTUALS (this_class))
     return;
 
   super_class = CLASSTYPE_SUPER (this_class);
-  handle_type = CLASS_TO_HANDLE_TYPE (this_class);
 
   if (super_class)
     {
@@ -2042,18 +2005,14 @@ layout_class_methods (this_class)
   else
     dtable_count = integer_zero_node;
 
-  TYPE_METHODS (handle_type) = nreverse (TYPE_METHODS (handle_type));
+  TYPE_METHODS (this_class) = nreverse (TYPE_METHODS (this_class));
 
-  for (method_decl = TYPE_METHODS (handle_type);
+  for (method_decl = TYPE_METHODS (this_class);
        method_decl; method_decl = TREE_CHAIN (method_decl))
     dtable_count = layout_class_method (this_class, super_class, 
 					method_decl, dtable_count);
 
   TYPE_NVIRTUALS (this_class) = dtable_count;
-
-#ifdef JAVA_USE_HANDLES
-  layout_type (handle_type);
-#endif
 }
 
 /* Return 0 if NAME is equal to STR, -1 if STR is "less" than NAME,
@@ -2297,12 +2256,85 @@ emit_offset_symbol_table ()
 void
 init_class_processing ()
 {
-  registerClass_libfunc = gen_rtx (SYMBOL_REF, Pmode, "_Jv_RegisterClass");
+  registerClass_libfunc = gen_rtx_SYMBOL_REF (Pmode, "_Jv_RegisterClass");
   registerResource_libfunc = 
-    gen_rtx (SYMBOL_REF, Pmode, "_Jv_RegisterResource");
-  ggc_add_tree_root (class_roots, sizeof (class_roots) / sizeof (tree));
+    gen_rtx_SYMBOL_REF (Pmode, "_Jv_RegisterResource");
   fields_ident = get_identifier ("fields");
   info_ident = get_identifier ("info");
-  ggc_add_rtx_root (&registerClass_libfunc, 1);
   gcc_obstack_init (&temporary_obstack);
 }
+
+static hashval_t java_treetreehash_hash PARAMS ((const void *));
+static int java_treetreehash_compare PARAMS ((const void *, const void *));
+
+/* A hash table mapping trees to trees.  Used generally.  */
+
+#define JAVA_TREEHASHHASH_H(t) ((hashval_t) (t))
+
+static hashval_t
+java_treetreehash_hash (k_p)
+     const void *k_p;
+{
+  struct treetreehash_entry *k = (struct treetreehash_entry *) k_p;
+  return JAVA_TREEHASHHASH_H (k->key);
+}
+
+static int
+java_treetreehash_compare (k1_p, k2_p)
+     const void * k1_p;
+     const void * k2_p;
+{
+  struct treetreehash_entry * k1 = (struct treetreehash_entry *) k1_p;
+  tree k2 = (tree) k2_p;
+  return (k1->key == k2);
+}
+
+tree 
+java_treetreehash_find (ht, t)
+     htab_t ht;
+     tree t;
+{
+  struct treetreehash_entry *e;
+  hashval_t hv = JAVA_TREEHASHHASH_H (t);
+  e = (struct treetreehash_entry *) htab_find_with_hash (ht, t, hv);
+  if (e == NULL)
+    return NULL;
+  else
+    return e->value;
+}
+
+tree *
+java_treetreehash_new (ht, t)
+     htab_t ht;
+     tree t;
+{
+  PTR *e;
+  struct treetreehash_entry *tthe;
+  hashval_t hv = JAVA_TREEHASHHASH_H (t);
+
+  e = htab_find_slot_with_hash (ht, t, hv, INSERT);
+  if (*e == NULL)
+    {
+      tthe = (*ht->alloc_f) (1, sizeof (*tthe));
+      tthe->key = t;
+      *e = (PTR) tthe;
+    }
+  else
+    tthe = (struct treetreehash_entry *) *e;
+  return &tthe->value;
+}
+
+htab_t
+java_treetreehash_create (size, gc)
+     size_t size;
+     int gc;
+{
+  if (gc)
+    return htab_create_ggc (size, java_treetreehash_hash,
+			    java_treetreehash_compare, NULL);
+  else
+    return htab_create_alloc (size, java_treetreehash_hash,
+			      java_treetreehash_compare, free, xcalloc, free);
+}
+
+#include "gt-java-class.h"

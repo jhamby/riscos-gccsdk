@@ -52,7 +52,7 @@ Software Foundation, 59 Temple Place - Suite 330, Boston, MA
    1. Assign allocation-numbers (allocnos) to the pseudo-registers
    still needing allocations and to the pseudo-registers currently
    allocated by local-alloc which may be spilled by reload.
-   Set up tables reg_allocno and allocno_reg to map 
+   Set up tables reg_allocno and allocno_reg to map
    reg numbers to allocnos and vice versa.
    max_allocno gets the number of allocnos in use.
 
@@ -171,10 +171,6 @@ static int allocno_row_words;
  (conflicts[(I) * allocno_row_words + (unsigned) (J) / INT_BITS]	\
   & ((INT_TYPE) 1 << ((unsigned) (J) % INT_BITS)))
 
-#define SET_CONFLICT(I, J) \
- (conflicts[(I) * allocno_row_words + (unsigned) (J) / INT_BITS]	\
-  |= ((INT_TYPE) 1 << ((unsigned) (J) % INT_BITS)))
-
 /* For any allocno set in ALLOCNO_SET, set ALLOCNO to that allocno,
    and execute CODE.  */
 #define EXECUTE_IF_SET_IN_ALLOCNO_SET(ALLOCNO_SET, ALLOCNO, CODE)	\
@@ -231,12 +227,8 @@ static int local_reg_freq[FIRST_PSEUDO_REGISTER];
 
 static int local_reg_live_length[FIRST_PSEUDO_REGISTER];
 
-/* Test a bit in TABLE, a vector of HARD_REG_SETs,
-   for vector element I, and hard register number J.  */
-
-#define REGBITP(TABLE, I, J)     TEST_HARD_REG_BIT (allocno[I].TABLE, J)
-
-/* Set to 1 a bit in a vector of HARD_REG_SETs.  Works like REGBITP.  */
+/* Set to 1 a bit in a vector TABLE of HARD_REG_SETs, for vector
+   element I, and hard register number J.  */
 
 #define SET_REGBIT(TABLE, I, J)  SET_HARD_REG_BIT (allocno[I].TABLE, J)
 
@@ -246,10 +238,6 @@ static INT_TYPE *allocnos_live;
 
 /* Test, set or clear bit number I in allocnos_live,
    a bit vector indexed by allocno.  */
-
-#define ALLOCNO_LIVE_P(I)				\
-  (allocnos_live[(unsigned) (I) / INT_BITS]		\
-   & ((INT_TYPE) 1 << ((unsigned) (I) % INT_BITS)))
 
 #define SET_ALLOCNO_LIVE(I)				\
   (allocnos_live[(unsigned) (I) / INT_BITS]		\
@@ -379,8 +367,8 @@ global_alloc (file)
      that need a register window.  So prefer the ones that can be used in
      a leaf function.  */
   {
-    char *cheap_regs;
-    char *leaf_regs = LEAF_REGISTERS;
+    const char *cheap_regs;
+    const char *const leaf_regs = LEAF_REGISTERS;
 
     if (only_leaf_regs_used () && leaf_function_p ())
       cheap_regs = leaf_regs;
@@ -483,7 +471,7 @@ global_alloc (file)
   for (i = 0; i < FIRST_PSEUDO_REGISTER; i++)
     if (regs_ever_live[i])
       local_reg_n_refs[i] = 0, local_reg_freq[i] = 0;
-	
+
   allocno_row_words = (max_allocno + INT_BITS - 1) / INT_BITS;
 
   /* We used to use alloca here, but the size of what it would try to
@@ -549,7 +537,7 @@ global_alloc (file)
 	}
 
       qsort (allocno_order, max_allocno, sizeof (int), allocno_compare);
-      
+
       prune_preferences ();
 
       if (file)
@@ -636,7 +624,8 @@ allocno_compare (v1p, v2p)
 static void
 global_conflicts ()
 {
-  int b, i;
+  int i;
+  basic_block b;
   rtx insn;
   int *block_start_allocnos;
 
@@ -645,7 +634,7 @@ global_conflicts ()
 
   block_start_allocnos = (int *) xmalloc (max_allocno * sizeof (int));
 
-  for (b = 0; b < n_basic_blocks; b++)
+  FOR_EACH_BB (b)
     {
       memset ((char *) allocnos_live, 0, allocno_row_words * sizeof (INT_TYPE));
 
@@ -664,7 +653,7 @@ global_conflicts ()
 	 are explicitly marked in basic_block_live_at_start.  */
 
       {
-	regset old = BASIC_BLOCK (b)->global_live_at_start;
+	regset old = b->global_live_at_start;
 	int ax = 0;
 
 	REG_SET_TO_HARD_REG_SET (hard_regs_live, old);
@@ -713,7 +702,7 @@ global_conflicts ()
 	     that is reached by an abnormal edge.  */
 
 	  edge e;
-	  for (e = BASIC_BLOCK (b)->pred; e ; e = e->pred_next)
+	  for (e = b->pred; e ; e = e->pred_next)
 	    if (e->flags & EDGE_ABNORMAL)
 	      break;
 	  if (e != NULL)
@@ -723,7 +712,7 @@ global_conflicts ()
 #endif
       }
 
-      insn = BLOCK_HEAD (b);
+      insn = b->head;
 
       /* Scan the code of this basic block, noting which allocnos
 	 and hard regs are born or die.  When one is born,
@@ -823,7 +812,7 @@ global_conflicts ()
 		}
 	    }
 
-	  if (insn == BLOCK_END (b))
+	  if (insn == b->end)
 	    break;
 	  insn = NEXT_INSN (insn);
 	}
@@ -883,18 +872,18 @@ expand_preferences ()
 
 /* Prune the preferences for global registers to exclude registers that cannot
    be used.
-   
+
    Compute `regs_someone_prefers', which is a bitmask of the hard registers
    that are preferred by conflicting registers of lower priority.  If possible,
    we will avoid using these registers.  */
-   
+
 static void
 prune_preferences ()
 {
   int i;
   int num;
   int *allocno_to_order = (int *) xmalloc (max_allocno * sizeof (int));
-  
+
   /* Scan least most important to most important.
      For each allocno, remove from preferences registers that cannot be used,
      either because of conflicts or register type.  Then compute all registers
@@ -1027,7 +1016,7 @@ find_reg (num, losers, alt_regs_p, accept_call_clobbered, retrying)
   COPY_HARD_REG_SET (used, used1);
   IOR_COMPL_HARD_REG_SET (used, regs_used_so_far);
   IOR_HARD_REG_SET (used, allocno[num].regs_someone_prefers);
-  
+
   best_reg = -1;
   for (i = FIRST_PSEUDO_REGISTER, pass = 0;
        pass <= 1 && i >= FIRST_PSEUDO_REGISTER;
@@ -1072,7 +1061,7 @@ find_reg (num, losers, alt_regs_p, accept_call_clobbered, retrying)
 
      Remove from the preferred registers and conflicting registers.  Note that
      additional conflicts may have been added after `prune_preferences' was
-     called. 
+     called.
 
      First do this for those register with copy preferences, then all
      preferred registers.  */
@@ -1155,7 +1144,7 @@ find_reg (num, losers, alt_regs_p, accept_call_clobbered, retrying)
     }
  no_prefs:
 
-  /* If we haven't succeeded yet, try with caller-saves. 
+  /* If we haven't succeeded yet, try with caller-saves.
      We need not check to see if the current function has nonlocal
      labels because we don't put any pseudos that are live over calls in
      registers in that case.  */
@@ -1175,7 +1164,7 @@ find_reg (num, losers, alt_regs_p, accept_call_clobbered, retrying)
 	    CLEAR_HARD_REG_SET (new_losers);
 	  else
 	    COPY_HARD_REG_SET (new_losers, losers);
-	    
+
 	  IOR_HARD_REG_SET(new_losers, losing_caller_save_reg_set);
 	  find_reg (num, new_losers, alt_regs_p, 1, retrying);
 	  if (reg_renumber[allocno[num].reg] >= 0)
@@ -1222,7 +1211,7 @@ find_reg (num, losers, alt_regs_p, accept_call_clobbered, retrying)
 	      /* We explicitly evaluate the divide results into temporary
 		 variables so as to avoid excess precision problems that occur
 		 on an i386-unknown-sysv4.2 (unixware) host.  */
-		 
+
 	      double tmp1 = ((double) local_reg_freq[regno]
 			    / local_reg_live_length[regno]);
 	      double tmp2 = ((double) allocno[num].freq
@@ -1592,7 +1581,7 @@ mark_reg_live_nc (regno, mode)
    that SRC is a register.  If SRC or the first operand of SRC is a register,
    try to set a preference.  If one of the two is a hard register and the other
    is a pseudo-register, mark the preference.
-   
+
    Note that we are not as aggressive as local-alloc in trying to tie a
    pseudo-register to a hard register.  */
 
@@ -1708,11 +1697,11 @@ void
 mark_elimination (from, to)
      int from, to;
 {
-  int i;
+  basic_block bb;
 
-  for (i = 0; i < n_basic_blocks; i++)
+  FOR_EACH_BB (bb)
     {
-      regset r = BASIC_BLOCK (i)->global_live_at_start; 
+      regset r = bb->global_live_at_start;
       if (REGNO_REG_SET_P (r, from))
 	{
 	  CLEAR_REGNO_REG_SET (r, from);
@@ -1740,7 +1729,7 @@ reg_becomes_live (reg, setter, regs_set)
 
   if (GET_CODE (reg) != REG)
     return;
-  
+
   regno = REGNO (reg);
   if (regno < FIRST_PSEUDO_REGISTER)
     {
@@ -1794,7 +1783,7 @@ build_insn_chain (first)
 {
   struct insn_chain **p = &reload_insn_chain;
   struct insn_chain *prev = 0;
-  int b = 0;
+  basic_block b = ENTRY_BLOCK_PTR->next_bb;
   regset_head live_relevant_regs_head;
 
   live_relevant_regs = INITIALIZE_REG_SET (live_relevant_regs_head);
@@ -1803,21 +1792,21 @@ build_insn_chain (first)
     {
       struct insn_chain *c;
 
-      if (first == BLOCK_HEAD (b))
+      if (first == b->head)
 	{
 	  int i;
 
 	  CLEAR_REG_SET (live_relevant_regs);
 
 	  EXECUTE_IF_SET_IN_BITMAP
-	    (BASIC_BLOCK (b)->global_live_at_start, 0, i,
+	    (b->global_live_at_start, 0, i,
 	     {
 	       if (i < FIRST_PSEUDO_REGISTER
 		   ? ! TEST_HARD_REG_BIT (eliminable_regset, i)
 		   : reg_renumber[i] >= 0)
 		 SET_REGNO_REG_SET (live_relevant_regs, i);
 	     });
- 	}
+	}
 
       if (GET_CODE (first) != NOTE && GET_CODE (first) != BARRIER)
 	{
@@ -1827,7 +1816,7 @@ build_insn_chain (first)
 	  *p = c;
 	  p = &c->next;
 	  c->insn = first;
-	  c->block = b;
+	  c->block = b->index;
 
 	  if (INSN_P (first))
 	    {
@@ -1865,8 +1854,8 @@ build_insn_chain (first)
 	    }
 	}
 
-      if (first == BLOCK_END (b))
-	b++;
+      if (first == b->end)
+	b = b->next_bb;
 
       /* Stop after we pass the end of the last basic block.  Verify that
 	 no real insns are after the end of the last basic block.
@@ -1874,7 +1863,7 @@ build_insn_chain (first)
 	 We may want to reorganize the loop somewhat since this test should
 	 always be the right exit test.  Allow an ADDR_VEC or ADDR_DIF_VEC if
 	 the previous real insn is a JUMP_INSN.  */
-      if (b == n_basic_blocks)
+      if (b == EXIT_BLOCK_PTR)
 	{
 	  for (first = NEXT_INSN (first) ; first; first = NEXT_INSN (first))
 	    if (INSN_P (first)
@@ -1905,7 +1894,7 @@ dump_conflicts (file)
   for (i = 0; i < max_allocno; i++)
     {
       if (reg_renumber[allocno[allocno_order[i]].reg] >= 0)
-        continue;
+	continue;
       nregs++;
     }
   fprintf (file, ";; %d regs to allocate:", nregs);
@@ -1957,13 +1946,13 @@ dump_global_regs (file)
      FILE *file;
 {
   int i, j;
-  
+
   fprintf (file, ";; Register dispositions:\n");
   for (i = FIRST_PSEUDO_REGISTER, j = 0; i < max_regno; i++)
     if (reg_renumber[i] >= 0)
       {
 	fprintf (file, "%d in %d  ", i, reg_renumber[i]);
-        if (++j % 6 == 0)
+	if (++j % 6 == 0)
 	  fprintf (file, "\n");
       }
 

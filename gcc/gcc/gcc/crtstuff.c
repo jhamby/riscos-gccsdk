@@ -187,13 +187,13 @@ STATIC func_ptr __DTOR_LIST__[1]
   = { (func_ptr) (-1) };
 #endif /* __DTOR_LIST__ alternatives */
 
-#ifdef EH_FRAME_SECTION_NAME
+#ifdef USE_EH_FRAME_REGISTRY
 /* Stick a label at the beginning of the frame unwind info so we can register
    and deregister it with the exception handling library code.  */
 STATIC char __EH_FRAME_BEGIN__[]
      __attribute__((section(EH_FRAME_SECTION_NAME), aligned(4)))
      = { };
-#endif /* EH_FRAME_SECTION_NAME */
+#endif /* USE_EH_FRAME_REGISTRY */
 
 #ifdef JCR_SECTION_NAME
 /* Stick a label at the beginning of the java class registration info
@@ -213,13 +213,9 @@ STATIC void *__JCR_LIST__[]
    in one DSO or the main program is not used in another object.  The
    dynamic linker takes care of this.  */
 
-/* XXX Ideally the following should be implemented using
-       __attribute__ ((__visibility__ ("hidden")))
-   but the __attribute__ support is not yet there.  */
 #ifdef HAVE_GAS_HIDDEN
-asm (".hidden\t__dso_handle");
+extern void *__dso_handle __attribute__ ((__visibility__ ("hidden")));
 #endif
-
 #ifdef CRTSTUFFS_O
 void *__dso_handle = &__dso_handle;
 #else

@@ -59,6 +59,18 @@ Foundation, 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 #define TARGET_ASM_FUNCTION_END_PROLOGUE no_asm_to_stream
 #define TARGET_ASM_FUNCTION_BEGIN_EPILOGUE no_asm_to_stream
 
+#ifndef TARGET_ASM_SELECT_SECTION
+#define TARGET_ASM_SELECT_SECTION default_select_section
+#endif
+
+#ifndef TARGET_ASM_UNIQUE_SECTION
+#define TARGET_ASM_UNIQUE_SECTION default_unique_section
+#endif
+
+#ifndef TARGET_ASM_SELECT_RTX_SECTION
+#define TARGET_ASM_SELECT_RTX_SECTION default_select_rtx_section
+#endif
+
 #if !defined(TARGET_ASM_CONSTRUCTOR) && !defined(USE_COLLECT2)
 # ifdef CTORS_SECTION_ASM_OP
 #  define TARGET_ASM_CONSTRUCTOR default_ctor_section_asm_out_constructor
@@ -98,6 +110,10 @@ Foundation, 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 #define TARGET_HAVE_NAMED_SECTIONS false
 #endif
 
+#ifndef TARGET_HAVE_TLS
+#define TARGET_HAVE_TLS false
+#endif
+
 #ifndef TARGET_ASM_EXCEPTION_SECTION
 #define TARGET_ASM_EXCEPTION_SECTION default_exception_section
 #endif
@@ -131,6 +147,9 @@ Foundation, 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 			TARGET_ASM_NAMED_SECTION,		\
 			TARGET_ASM_EXCEPTION_SECTION,		\
 			TARGET_ASM_EH_FRAME_SECTION,		\
+			TARGET_ASM_SELECT_SECTION,		\
+			TARGET_ASM_SELECT_RTX_SECTION,		\
+			TARGET_ASM_UNIQUE_SECTION,		\
 			TARGET_ASM_CONSTRUCTOR,			\
 			TARGET_ASM_DESTRUCTOR}
 
@@ -144,22 +163,37 @@ Foundation, 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 #define TARGET_SCHED_FINISH 0
 #define TARGET_SCHED_REORDER 0
 #define TARGET_SCHED_REORDER2 0
-#define TARGET_SCHED_CYCLE_DISPLAY 0
+#define TARGET_SCHED_USE_DFA_PIPELINE_INTERFACE 0
+#define TARGET_SCHED_INIT_DFA_PRE_CYCLE_INSN 0
+#define TARGET_SCHED_DFA_PRE_CYCLE_INSN 0
+#define TARGET_SCHED_INIT_DFA_POST_CYCLE_INSN 0
+#define TARGET_SCHED_DFA_POST_CYCLE_INSN 0
+#define TARGET_SCHED_FIRST_CYCLE_MULTIPASS_DFA_LOOKAHEAD 0
+#define TARGET_SCHED_INIT_DFA_BUBBLES 0
+#define TARGET_SCHED_DFA_BUBBLE 0
 
-#define TARGET_SCHED	{TARGET_SCHED_ADJUST_COST,	\
-			 TARGET_SCHED_ADJUST_PRIORITY,	\
-			 TARGET_SCHED_ISSUE_RATE,	\
-			 TARGET_SCHED_VARIABLE_ISSUE,	\
-			 TARGET_SCHED_INIT,		\
-			 TARGET_SCHED_FINISH,		\
-			 TARGET_SCHED_REORDER,		\
-			 TARGET_SCHED_REORDER2,		\
-			 TARGET_SCHED_CYCLE_DISPLAY}
+#define TARGET_SCHED						\
+  {TARGET_SCHED_ADJUST_COST,					\
+   TARGET_SCHED_ADJUST_PRIORITY,				\
+   TARGET_SCHED_ISSUE_RATE,					\
+   TARGET_SCHED_VARIABLE_ISSUE,					\
+   TARGET_SCHED_INIT,						\
+   TARGET_SCHED_FINISH,						\
+   TARGET_SCHED_REORDER,					\
+   TARGET_SCHED_REORDER2,					\
+   TARGET_SCHED_USE_DFA_PIPELINE_INTERFACE,			\
+   TARGET_SCHED_INIT_DFA_PRE_CYCLE_INSN,			\
+   TARGET_SCHED_DFA_PRE_CYCLE_INSN,				\
+   TARGET_SCHED_INIT_DFA_POST_CYCLE_INSN,			\
+   TARGET_SCHED_DFA_POST_CYCLE_INSN,				\
+   TARGET_SCHED_FIRST_CYCLE_MULTIPASS_DFA_LOOKAHEAD,		\
+   TARGET_SCHED_INIT_DFA_BUBBLES,				\
+   TARGET_SCHED_DFA_BUBBLE}
 
 /* All in tree.c.  */
 #define TARGET_MERGE_DECL_ATTRIBUTES merge_decl_attributes
 #define TARGET_MERGE_TYPE_ATTRIBUTES merge_type_attributes
-#define TARGET_ATTRIBUTE_TABLE default_target_attribute_table
+#define TARGET_ATTRIBUTE_TABLE NULL
 #define TARGET_COMP_TYPE_ATTRIBUTES default_comp_type_attributes
 #define TARGET_SET_DEFAULT_TYPE_ATTRIBUTES default_set_default_type_attributes
 #define TARGET_INSERT_ATTRIBUTES default_insert_attributes
@@ -173,6 +207,22 @@ Foundation, 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 /* In varasm.c.  */
 #ifndef TARGET_SECTION_TYPE_FLAGS
 #define TARGET_SECTION_TYPE_FLAGS default_section_type_flags
+#endif
+
+#ifndef TARGET_STRIP_NAME_ENCODING
+#define TARGET_STRIP_NAME_ENCODING default_strip_name_encoding
+#endif
+
+#ifndef TARGET_BINDS_LOCAL_P
+#define TARGET_BINDS_LOCAL_P default_binds_local_p
+#endif
+
+/* In hook.c.  */
+#define TARGET_CANNOT_MODIFY_JUMPS_P hook_void_bool_false
+#define TARGET_IN_SMALL_DATA_P hook_tree_bool_false
+
+#ifndef TARGET_ENCODE_SECTION_INFO
+#define TARGET_ENCODE_SECTION_INFO hook_tree_int_void
 #endif
 
 /* The whole shebang.  */
@@ -191,6 +241,14 @@ Foundation, 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
   TARGET_INIT_BUILTINS,				\
   TARGET_EXPAND_BUILTIN,			\
   TARGET_SECTION_TYPE_FLAGS,			\
+  TARGET_CANNOT_MODIFY_JUMPS_P,			\
+  TARGET_IN_SMALL_DATA_P,			\
+  TARGET_BINDS_LOCAL_P,				\
+  TARGET_ENCODE_SECTION_INFO,			\
+  TARGET_STRIP_NAME_ENCODING,			\
   TARGET_HAVE_NAMED_SECTIONS,			\
-  TARGET_HAVE_CTORS_DTORS			\
+  TARGET_HAVE_CTORS_DTORS,			\
+  TARGET_HAVE_TLS				\
 }
+
+#include "hooks.h"

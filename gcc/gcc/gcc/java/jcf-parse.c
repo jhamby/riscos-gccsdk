@@ -28,6 +28,7 @@ The Free Software Foundation is independent of Sun Microsystems, Inc.  */
 #include "config.h"
 #include "system.h"
 #include "tree.h"
+#include "real.h"
 #include "obstack.h"
 #include "flags.h"
 #include "java-except.h"
@@ -65,15 +66,13 @@ The Free Software Foundation is independent of Sun Microsystems, Inc.  */
 
 #include "jcf.h"
 
-extern struct obstack *saveable_obstack;
 extern struct obstack temporary_obstack;
-extern struct obstack permanent_obstack;
 
 /* Set to non-zero value in order to emit class initilization code
    before static field references.  */
 extern int always_initialize_class_p;
 
-static tree parse_roots[3] = { NULL_TREE, NULL_TREE, NULL_TREE };
+static GTY(()) tree parse_roots[3];
 
 /* The FIELD_DECL for the current field.  */
 #define current_field parse_roots[0]
@@ -96,6 +95,7 @@ static void parse_zip_file_entries PARAMS ((void));
 static void process_zip_dir PARAMS ((FILE *));
 static void parse_source_file_1 PARAMS ((tree, FILE *));
 static void parse_source_file_2 PARAMS ((void));
+static void parse_source_file_3 PARAMS ((void));
 static void parse_class_file PARAMS ((void));
 static void set_source_filename PARAMS ((JCF *, int));
 static void ggc_mark_jcf PARAMS ((void**));
@@ -191,9 +191,7 @@ set_source_filename (jcf, index)
   DECL_LINENUMBERS_OFFSET (current_method) = 0)
 
 #define HANDLE_END_METHODS() \
-{ tree handle_type = CLASS_TO_HANDLE_TYPE (current_class); \
-  if (handle_type != current_class) layout_type (handle_type); \
-  current_method = NULL_TREE; }
+{ current_method = NULL_TREE; }
 
 #define HANDLE_CODE_ATTRIBUTE(MAX_STACK, MAX_LOCALS, CODE_LENGTH) \
 { DECL_MAX_STACK (current_method) = (MAX_STACK); \
@@ -246,8 +244,6 @@ set_source_filename (jcf, index)
 
 #include "jcf-reader.c"
 
-static int yydebug;
-
 tree
 parse_signature (jcf, sig_index)
      JCF *jcf;
@@ -259,13 +255,6 @@ parse_signature (jcf, sig_index)
   else
     return parse_signature_string (JPOOL_UTF_DATA (jcf, sig_index),
 				   JPOOL_UTF_LENGTH (jcf, sig_index));
-}
-
-void
-java_set_yydebug (value)
-     int value;
-{
-  yydebug = value;
 }
 
 tree
@@ -291,10 +280,10 @@ get_constant (jcf, index)
       }
     case CONSTANT_Long:
       {
-	jint num = JPOOL_INT (jcf, index);
+	unsigned HOST_WIDE_INT num = JPOOL_UINT (jcf, index);
 	HOST_WIDE_INT lo, hi;
 	lshift_double (num, 0, 32, 64, &lo, &hi, 0);
-	num = JPOOL_INT (jcf, index+1) & 0xffffffff;
+	num = JPOOL_UINT (jcf, index+1);
 	add_double (lo, hi, num, 0, &lo, &hi);
 	value = build_int_2 (lo, hi);
 	TREE_TYPE (value) = long_type_node;
@@ -306,13 +295,7 @@ get_constant (jcf, index)
       {
 	jint num = JPOOL_INT(jcf, index);
 	REAL_VALUE_TYPE d;
-#ifdef REAL_ARITHMETIC
 	d = REAL_VALUE_FROM_TARGET_SINGLE (num);
-#else
-	union { float f;  jint i; } u;
-	u.i = num;
-	d = u.f;
-#endif
 	value = build_real (float_type_node, d);
 	break;
       }
@@ -321,9 +304,9 @@ get_constant (jcf, index)
 	HOST_WIDE_INT num[2];
 	REAL_VALUE_TYPE d;
 	HOST_WIDE_INT lo, hi;
-	num[0] = JPOOL_INT (jcf, index);
+	num[0] = JPOOL_UINT (jcf, index);
 	lshift_double (num[0], 0, 32, 64, &lo, &hi, 0);
-	num[0] = JPOOL_INT (jcf, index+1);
+	num[0] = JPOOL_UINT (jcf, index+1);
 	add_double (lo, hi, num[0], 0, &lo, &hi);
 
 	/* Since ereal_from_double expects an array of HOST_WIDE_INT
@@ -343,16 +326,7 @@ get_constant (jcf, index)
 	    num[0] = lo;
 	    num[1] = hi;
 	  }
-#ifdef REAL_ARITHMETIC
 	d = REAL_VALUE_FROM_TARGET_DOUBLE (num);
-#else
-	{
-	  union { double d;  jint i[2]; } u;
-	  u.i[0] = (jint) num[0];
-	  u.i[1] = (jint) num[1];
-	  d = u.d;
-	}
-#endif
 	value = build_real (double_type_node, d);
 	break;
       }
@@ -362,16 +336,12 @@ get_constant (jcf, index)
 	tree name = get_name_constant (jcf, JPOOL_USHORT1 (jcf, index));
 	const char *utf8_ptr = IDENTIFIER_POINTER (name);
 	int utf8_len = IDENTIFIER_LENGTH (name);
-	unsigned char *str_ptr;
-	unsigned char *str;
 	const unsigned char *utf8;
-	int i, str_len;
+	int i;
 
-	/* Count the number of Unicode characters in the string,
-	   while checking for a malformed Utf8 string. */
+	/* Check for a malformed Utf8 string.  */
 	utf8 = (const unsigned char *) utf8_ptr;
 	i = utf8_len;
-	str_len = 0;
 	while (i > 0)
 	  {
 	    int char_len = UT8_CHAR_LENGTH (*utf8);
@@ -380,48 +350,10 @@ get_constant (jcf, index)
 
 	    utf8 += char_len;
 	    i -= char_len;
-	    str_len++;
 	  }
 
-	/* Allocate a scratch buffer, convert the string to UCS2, and copy it
-	   into the new space.  */
-	str_ptr = (unsigned char *) alloca (2 * str_len);
-	str = str_ptr;
-	utf8 = (const unsigned char *)utf8_ptr;
-
-	for (i = 0; i < str_len; i++)
-	  {
-	    int char_value;
-	    int char_len = UT8_CHAR_LENGTH (*utf8);
-	    switch (char_len)
-	      {
-	      case 1:
-		char_value = *utf8++;
-		break;
-	      case 2:
-		char_value = *utf8++ & 0x1F;
-		char_value = (char_value << 6) | (*utf8++ & 0x3F);
-		break;
-	      case 3:
-		char_value = *utf8++ & 0x0F;
-		char_value = (char_value << 6) | (*utf8++ & 0x3F);
-		char_value = (char_value << 6) | (*utf8++ & 0x3F);
-		break;
-	      default:
-		goto bad;
-	      }
-	    if (BYTES_BIG_ENDIAN)
-	      {
-		*str++ = char_value >> 8;
-		*str++ = char_value & 0xFF;
-	      }
-	    else
-	      {
-		*str++ = char_value & 0xFF;
-		*str++ = char_value >> 8;
-	      }
-	  }
-	value = build_string (str - str_ptr, str_ptr);
+	/* Allocate a new string value.  */
+	value = build_string (utf8_len, utf8_ptr);
 	TREE_TYPE (value) = build_pointer_type (string_type_node);
       }
       break;
@@ -607,6 +539,7 @@ read_class (name)
 	    fatal_io_error ("can't reopen %s", input_filename);
 	  parse_source_file_1 (file, finput);
 	  parse_source_file_2 ();
+	  parse_source_file_3 ();
 	  if (fclose (finput))
 	    fatal_io_error ("can't close %s", input_filename);
 	}
@@ -669,20 +602,20 @@ load_class (class_or_name, verbose)
   saved = name;
   while (1)
     {
-      char *dollar;
+      char *separator;
 
       if ((class_loaded = read_class (name)))
 	break;
 
       /* We failed loading name. Now consider that we might be looking
-	 for a inner class but it's only available in source for in
-	 its enclosing context. */
-      if ((dollar = strrchr (IDENTIFIER_POINTER (name), '$')))
+	 for a inner class. */
+      if ((separator = strrchr (IDENTIFIER_POINTER (name), '$'))
+	  || (separator = strrchr (IDENTIFIER_POINTER (name), '.')))
 	{
-	  int c = *dollar;
-	  *dollar = '\0';
+	  int c = *separator;
+	  *separator = '\0';
 	  name = get_identifier (IDENTIFIER_POINTER (name));
-	  *dollar = c;
+	  *separator = c;
 	}
       /* Otherwise, we failed, we bail. */
       else
@@ -808,12 +741,12 @@ parse_class_file ()
      compiling from class files.  */
   always_initialize_class_p = 1;
 
-  for (field = TYPE_FIELDS (CLASS_TO_HANDLE_TYPE (current_class));
+  for (field = TYPE_FIELDS (current_class);
        field != NULL_TREE; field = TREE_CHAIN (field))
     if (FIELD_STATIC (field))
       DECL_EXTERNAL (field) = 0;
 
-  for (method = TYPE_METHODS (CLASS_TO_HANDLE_TYPE (current_class));
+  for (method = TYPE_METHODS (current_class);
        method != NULL_TREE; method = TREE_CHAIN (method))
     {
       JCF *jcf = current_jcf;
@@ -940,6 +873,12 @@ parse_source_file_2 ()
   int save_error_count = java_error_count;
   java_complete_class ();	    /* Parse unsatisfied class decl. */
   java_parse_abort_on_error ();
+}
+
+static void
+parse_source_file_3 ()
+{
+  int save_error_count = java_error_count;
   java_check_circular_reference (); /* Check on circular references */
   java_parse_abort_on_error ();
   java_fix_constructors ();	    /* Fix the constructors */
@@ -968,8 +907,9 @@ predefined_filename_p (node)
   return 0;
 }
 
-int
-yyparse ()
+void
+java_parse_file (set_yydebug)
+     int set_yydebug ATTRIBUTE_UNUSED;
 {
   int filename_count = 0;
   char *list, *next;
@@ -1049,9 +989,6 @@ yyparse ()
 
 	  int len = strlen (list);
 
-	  if (*list != '/' && filename_count > 0)
-	    obstack_grow (&temporary_obstack, "./", 2);
-
 	  obstack_grow0 (&temporary_obstack, list, len);
 	  value = obstack_finish (&temporary_obstack);
 
@@ -1108,11 +1045,8 @@ yyparse ()
 
       resource_filename = IDENTIFIER_POINTER (TREE_VALUE (current_file_list));
       compile_resource_file (resource_name, resource_filename);
-      
-      java_expand_classes ();
-      if (!java_report_errors ())
-	emit_register_classes ();
-      return 0;
+
+      return;
     }
 
   current_jcf = main_jcf;
@@ -1192,6 +1126,13 @@ yyparse ()
       input_filename = ctxp->filename;
       parse_source_file_2 ();
     }
+
+  for (ctxp = ctxp_for_generation; ctxp; ctxp = ctxp->next)
+    {
+      input_filename = ctxp->filename;
+      parse_source_file_3 ();
+    }
+
   for (node = current_file_list; node; node = TREE_CHAIN (node))
     {
       input_filename = IDENTIFIER_POINTER (TREE_VALUE (node));
@@ -1214,7 +1155,6 @@ yyparse ()
       if (flag_indirect_dispatch)
 	emit_offset_symbol_table ();
     }
-  return 0;
 }
 
 /* Process all class entries found in the zip file.  */
@@ -1326,9 +1266,9 @@ void
 init_jcf_parse ()
 {
   /* Register roots with the garbage collector.  */
-  ggc_add_tree_root (parse_roots, sizeof (parse_roots) / sizeof(tree));
-
   ggc_add_root (&current_jcf, 1, sizeof (JCF), (void (*)(void *))ggc_mark_jcf);
 
   init_src_parse ();
 }
+
+#include "gt-java-jcf-parse.h"

@@ -1,5 +1,5 @@
 /* Language parser definitions for the GNU compiler for the Java(TM) language.
-   Copyright (C) 1997, 1998, 1999, 2000, 2001 Free Software Foundation, Inc.
+   Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
    Contributed by Alexandre Petit-Bianco (apbianco@cygnus.com)
 
 This file is part of GNU CC.
@@ -31,7 +31,6 @@ The Free Software Foundation is independent of Sun Microsystems, Inc.  */
 /* Extern global variable declarations */
 extern int java_error_count;
 extern struct obstack temporary_obstack;
-extern struct obstack permanent_obstack;
 extern int quiet_flag;
 
 #ifndef JC1_LITE
@@ -73,13 +72,15 @@ extern tree stabilize_reference PARAMS ((tree));
 #define YYNOT_TWICE if (ctxp->prevent_ese != lineno)
 
 /* Accepted modifiers */
-#define CLASS_MODIFIERS ACC_PUBLIC|ACC_ABSTRACT|ACC_FINAL
+#define CLASS_MODIFIERS ACC_PUBLIC|ACC_ABSTRACT|ACC_FINAL|ACC_STRICT
 #define FIELD_MODIFIERS ACC_PUBLIC|ACC_PROTECTED|ACC_PRIVATE|ACC_FINAL| \
                         ACC_STATIC|ACC_TRANSIENT|ACC_VOLATILE
 #define METHOD_MODIFIERS ACC_PUBLIC|ACC_PROTECTED|ACC_PRIVATE|ACC_ABSTRACT| \
-			 ACC_STATIC|ACC_FINAL|ACC_SYNCHRONIZED|ACC_NATIVE
-#define INTERFACE_MODIFIERS ACC_PUBLIC|ACC_ABSTRACT
-#define INTERFACE_INNER_MODIFIERS ACC_PUBLIC|ACC_PROTECTED|ACC_ABSTRACT|ACC_STATIC
+			 ACC_STATIC|ACC_FINAL|ACC_SYNCHRONIZED|ACC_NATIVE| \
+			 ACC_STRICT
+#define INTERFACE_MODIFIERS ACC_PUBLIC|ACC_ABSTRACT|ACC_STRICT
+#define INTERFACE_INNER_MODIFIERS ACC_PUBLIC|ACC_PROTECTED|ACC_ABSTRACT| \
+				  ACC_STATIC|ACC_PRIVATE
 #define INTERFACE_METHOD_MODIFIERS ACC_PUBLIC|ACC_ABSTRACT
 #define INTERFACE_FIELD_MODIFIERS ACC_PUBLIC|ACC_STATIC|ACC_FINAL
 
@@ -761,7 +762,7 @@ struct parser_ctxt {
 
   /* This section is defined only if we compile jc1 */
 #ifndef JC1_LITE
-  tree modifier_ctx [11];	    /* WFL of modifiers */
+  tree modifier_ctx [12];	    /* WFL of modifiers */
   tree class_type;		    /* Current class */
   tree function_decl;	            /* Current function decl, save/restore */
 

@@ -48,7 +48,7 @@ static tree pop_value PARAMS ((tree));
 static void java_stack_swap PARAMS ((void));
 static void java_stack_dup PARAMS ((int, int));
 static void build_java_athrow PARAMS ((tree));
-static void build_java_jsr PARAMS ((tree, tree));
+static void build_java_jsr PARAMS ((int, int));
 static void build_java_ret PARAMS ((tree));
 static void expand_java_multianewarray PARAMS ((tree, int));
 static void expand_java_arraystore PARAMS ((tree));
@@ -79,18 +79,16 @@ static void java_push_constant_from_pool PARAMS ((struct JCF *, int));
 static void java_stack_pop PARAMS ((int)); 
 static tree build_java_throw_out_of_bounds_exception PARAMS ((tree)); 
 static tree build_java_check_indexed_type PARAMS ((tree, tree)); 
-static tree java_array_data_offset PARAMS ((tree)); 
 static tree case_identity PARAMS ((tree, tree)); 
 static unsigned char peek_opcode_at_pc PARAMS ((struct JCF *, int, int));
-static bool emit_init_test_initialization PARAMS ((struct hash_entry *,
-						   PTR ptr));
+static int emit_init_test_initialization PARAMS ((void **entry,
+						  void * ptr));
 static int get_offset_table_index PARAMS ((tree));
 
-static tree operand_type[59];
-extern struct obstack permanent_obstack;
+static GTY(()) tree operand_type[59];
 
-static tree methods_ident = NULL_TREE;
-static tree ncode_ident = NULL_TREE;
+static GTY(()) tree methods_ident;
+static GTY(()) tree ncode_ident;
 tree dtable_ident = NULL_TREE;
 
 /* Set to non-zero value in order to emit class initilization code
@@ -124,10 +122,10 @@ int always_initialize_class_p;
    So dup cannot just add an extra element to the quick_stack, but iadd can.
 */
 
-static tree quick_stack = NULL_TREE;
+static GTY(()) tree quick_stack;
 
 /* A free-list of unused permamnet TREE_LIST nodes. */
-static tree tree_list_free_list = NULL_TREE;
+static GTY((deletable (""))) tree tree_list_free_list;
 
 /* The stack pointer of the Java virtual machine.
    This does include the size of the quick_stack. */
@@ -145,15 +143,10 @@ init_expr_processing()
   operand_type[23] = operand_type[56] = float_type_node;
   operand_type[24] = operand_type[57] = double_type_node;
   operand_type[25] = operand_type[58] = ptr_type_node;
-  ggc_add_tree_root (operand_type, 59);
-  ggc_add_tree_root (&methods_ident, 1);
-  ggc_add_tree_root (&ncode_ident, 1);
-  ggc_add_tree_root (&quick_stack, 1);
-  ggc_add_tree_root (&tree_list_free_list, 1);
 }
 
 tree
-truthvalue_conversion (expr)
+java_truthvalue_conversion (expr)
      tree expr;
 {
   /* It is simpler and generates better code to have only TRUTH_*_EXPR
@@ -184,41 +177,25 @@ truthvalue_conversion (expr)
     case FLOAT_EXPR:
     case FFS_EXPR:
       /* These don't change whether an object is non-zero or zero.  */
-      return truthvalue_conversion (TREE_OPERAND (expr, 0));
+      return java_truthvalue_conversion (TREE_OPERAND (expr, 0));
 
     case COND_EXPR:
       /* Distribute the conversion into the arms of a COND_EXPR.  */
       return fold (build (COND_EXPR, boolean_type_node, TREE_OPERAND (expr, 0),
-                          truthvalue_conversion (TREE_OPERAND (expr, 1)),
-                          truthvalue_conversion (TREE_OPERAND (expr, 2))));
+                          java_truthvalue_conversion (TREE_OPERAND (expr, 1)),
+                          java_truthvalue_conversion (TREE_OPERAND (expr, 2))));
 
     case NOP_EXPR:
       /* If this is widening the argument, we can ignore it.  */
       if (TYPE_PRECISION (TREE_TYPE (expr))
           >= TYPE_PRECISION (TREE_TYPE (TREE_OPERAND (expr, 0))))
-        return truthvalue_conversion (TREE_OPERAND (expr, 0));
+        return java_truthvalue_conversion (TREE_OPERAND (expr, 0));
       /* fall through to default */
 
     default:
       return fold (build (NE_EXPR, boolean_type_node, expr, boolean_false_node));
     }
 }
-
-#ifdef JAVA_USE_HANDLES
-/* Given a pointer to a handle, get a pointer to an object. */
-
-tree
-unhand_expr (expr)
-     tree expr;
-{
-  tree field, handle_type;
-  expr = build1 (INDIRECT_REF, TREE_TYPE (TREE_TYPE (expr)), expr);
-  handle_type = TREE_TYPE (expr);
-  field = TYPE_FIELDS (handle_type);
-  expr = build (COMPONENT_REF, TREE_TYPE (field), expr, field);
-  return expr;
-}
-#endif
 
 /* Save any stack slots that happen to be in the quick_stack into their
    home virtual register slots.
@@ -410,8 +387,6 @@ can_widen_reference_to (source_type, target_type)
     return 1;
   else
     {
-      source_type = HANDLE_TO_CLASS_TYPE (source_type);
-      target_type = HANDLE_TO_CLASS_TYPE (target_type);
       if (TYPE_ARRAY_P (source_type) || TYPE_ARRAY_P (target_type))
 	{
 	  HOST_WIDE_INT source_length, target_length;
@@ -608,15 +583,18 @@ build_java_athrow (node)
 /* Implementation for jsr/ret */
 
 static void
-build_java_jsr (where, ret)
-    tree where;
-    tree ret;
+build_java_jsr (target_pc, return_pc)
+     int target_pc, return_pc;
 {
+  tree where =  lookup_label (target_pc);
+  tree ret = lookup_label (return_pc);
   tree ret_label = fold (build1 (ADDR_EXPR, return_address_type_node, ret));
   push_value (ret_label);
   flush_quick_stack ();
   emit_jump (label_rtx (where));
   expand_label (ret);
+  if (instruction_bits [return_pc] & BCODE_VERIFIED)
+    load_type_state (ret);
 }
 
 static void
@@ -627,11 +605,6 @@ build_java_ret (location)
 }
  
 /* Implementation of operations on array: new, load, store, length */
-
-/* Array core info access macros */
-
-#define JAVA_ARRAY_LENGTH_OFFSET(A) \
-  byte_position (TREE_CHAIN (TYPE_FIELDS (TREE_TYPE (TREE_TYPE (A)))))
 
 tree
 decode_newarray_type (atype)
@@ -699,6 +672,7 @@ build_java_array_length_access (node)
     tree node;
 {
   tree type = TREE_TYPE (node);
+  tree array_type = TREE_TYPE (type);
   HOST_WIDE_INT length;
 
   if (!is_array_type_p (type))
@@ -707,13 +681,13 @@ build_java_array_length_access (node)
   length = java_array_type_length (type);
   if (length >= 0)
     return build_int_2 (length, 0);
-  node = build1 (INDIRECT_REF, int_type_node,
-		 fold (build (PLUS_EXPR, ptr_type_node,
-			      java_check_reference (node, 
-						    flag_check_references), 
-			      JAVA_ARRAY_LENGTH_OFFSET(node))));
+
+  node = build (COMPONENT_REF, int_type_node,
+		build_java_indirect_ref (array_type, node,
+					 flag_check_references),
+		lookup_field (&array_type, get_identifier ("length")));
   IS_ARRAY_LENGTH_ACCESS (node) = 1;
-  return fold (node);
+  return node;
 }
 
 /* Optionally checks a reference against the NULL pointer.  ARG1: the
@@ -752,19 +726,6 @@ build_java_indirect_ref (type, expr, check)
   return build1 (INDIRECT_REF, type, java_check_reference (expr, check));
 }
 
-static tree
-java_array_data_offset (array)
-     tree array;
-{
-  tree array_type = TREE_TYPE (TREE_TYPE (array));
-  tree data_fld = TREE_CHAIN (TREE_CHAIN (TYPE_FIELDS (array_type)));
-
-  if (data_fld == NULL_TREE)
-    return size_in_bytes (array_type);
-  else
-    return byte_position (data_fld);
-}
-
 /* Implement array indexing (either as l-value or r-value).
    Returns a tree for ARRAY[INDEX], assume TYPE is the element type.
    Optionally performs bounds checking and/or test to NULL.
@@ -774,12 +735,10 @@ tree
 build_java_arrayaccess (array, type, index)
     tree array, type, index;
 {
-  tree arith, node, throw = NULL_TREE;
-
-  arith = fold (build (PLUS_EXPR, int_type_node,
-		       java_array_data_offset (array),
-		       fold (build (MULT_EXPR, int_type_node,
-				    index, size_in_bytes(type)))));
+  tree node, throw = NULL_TREE;
+  tree data_field;
+  tree ref;
+  tree array_type = TREE_TYPE (TREE_TYPE (array));
 
   if (flag_bounds_check)
     {
@@ -803,21 +762,90 @@ build_java_arrayaccess (array, type, index)
 	}
     }
 
-  /* The SAVE_EXPR is for correct evaluation order.  It would be
-     cleaner to use force_evaluation_order (see comment there), but
-     that is difficult when we also have to deal with bounds
-     checking. The SAVE_EXPR is not necessary to do that when we're
-     not checking for array bounds. */
-  if (TREE_SIDE_EFFECTS (index) && throw)
-    throw = build (COMPOUND_EXPR, int_type_node, save_expr (array), throw);
+  /* If checking bounds, wrap the index expr with a COMPOUND_EXPR in order
+     to have the bounds check evaluated first. */
+  if (throw != NULL_TREE)
+    index = build (COMPOUND_EXPR, int_type_node, throw, index);
+ 
+  data_field = lookup_field (&array_type, get_identifier ("data"));
 
-  node = build1 (INDIRECT_REF, type, 
-		 fold (build (PLUS_EXPR, ptr_type_node, 
-			      java_check_reference (array,
-						    flag_check_references), 
-			      (throw ? build (COMPOUND_EXPR, int_type_node, 
-					      throw, arith ) : arith))));
+  ref = build (COMPONENT_REF, TREE_TYPE (data_field),    
+	       build_java_indirect_ref (array_type, array, 
+					flag_check_references),
+	       data_field);
+  
+  node = build (ARRAY_REF, type, ref, index);
   return node;
+}
+
+/* Generate code to throw an ArrayStoreException if OBJECT is not assignable
+   (at runtime) to an element of ARRAY.  A NOP_EXPR is returned if it can
+   determine that no check is required. */
+
+tree
+build_java_arraystore_check (array, object)
+   tree array; 
+   tree object;
+{
+  tree check, element_type, source;
+  tree array_type_p = TREE_TYPE (array);
+  tree object_type = TYPE_NAME (TREE_TYPE (TREE_TYPE (object)));
+
+  if (! is_array_type_p (array_type_p))
+    abort ();
+
+  /* Get the TYPE_DECL for ARRAY's element type. */
+  element_type = TYPE_NAME (TREE_TYPE (TREE_TYPE (TREE_TYPE (array_type_p))));
+
+  if (TREE_CODE (element_type) != TYPE_DECL   
+      || TREE_CODE (object_type) != TYPE_DECL)
+    abort ();
+
+  if (!flag_store_check)
+    return build1 (NOP_EXPR, array_type_p, array);
+
+  /* No check is needed if the element type is final or is itself an array.  
+     Also check that element_type matches object_type, since in the bytecode 
+     compilation case element_type may be the actual element type of the arra
+     rather than its declared type. */
+  if (element_type == object_type
+      && (TYPE_ARRAY_P (TREE_TYPE (element_type))
+	  || CLASS_FINAL (element_type)))
+    return build1 (NOP_EXPR, array_type_p, array);
+  
+  /* OBJECT might be wrapped by a SAVE_EXPR. */
+  if (TREE_CODE (object) == SAVE_EXPR)
+    source = TREE_OPERAND (object, 0);
+  else
+    source = object;
+  
+  /* Avoid the check if OBJECT was just loaded from the same array. */
+  if (TREE_CODE (source) == ARRAY_REF)
+    {
+      tree target;
+      source = TREE_OPERAND (source, 0); /* COMPONENT_REF. */
+      source = TREE_OPERAND (source, 0); /* INDIRECT_REF. */
+      source = TREE_OPERAND (source, 0); /* Source array's DECL or SAVE_EXPR. */
+      if (TREE_CODE (source) == SAVE_EXPR)
+	source = TREE_OPERAND (source, 0);
+      
+      target = array;
+      if (TREE_CODE (target) == SAVE_EXPR)
+	target = TREE_OPERAND (target, 0);
+      
+      if (source == target)
+        return build1 (NOP_EXPR, array_type_p, array);
+    }
+
+  /* Build an invocation of _Jv_CheckArrayStore */
+  check = build (CALL_EXPR, void_type_node,
+		 build_address_of (soft_checkarraystore_node),
+		 tree_cons (NULL_TREE, array,
+		 	    build_tree_list (NULL_TREE, object)),
+		 NULL_TREE);
+  TREE_SIDE_EFFECTS (check) = 1;
+
+  return check;
 }
 
 /* Makes sure that INDEXED_TYPE is appropriate. If not, make it from
@@ -973,12 +1001,7 @@ expand_java_arraystore (rhs_type_node)
 
   if (TREE_CODE (rhs_type_node) == POINTER_TYPE)
     {
-      tree check = build (CALL_EXPR, void_type_node,
-			  build_address_of (soft_checkarraystore_node),
-			  tree_cons (NULL_TREE, array,
-				     build_tree_list (NULL_TREE, rhs_node)),
-			  NULL_TREE);
-      TREE_SIDE_EFFECTS (check) = 1;
+      tree check = build_java_arraystore_check (array, rhs_node);
       expand_expr_stmt (check);
     }
   
@@ -1061,11 +1084,7 @@ expand_java_pushc (ival, type)
   else if (type == float_type_node || type == double_type_node)
     {
       REAL_VALUE_TYPE x;
-#ifdef REAL_ARITHMETIC
       REAL_VALUE_FROM_INT (x, ival, 0, TYPE_MODE (type));
-#else
-      x = ival;
-#endif
       value = build_real (type, x);
     }
   else
@@ -1352,7 +1371,7 @@ build_java_binop (op, type, arg1, arg2)
     {
     case URSHIFT_EXPR:
       {
-	tree u_type = unsigned_type (type);
+	tree u_type = java_unsigned_type (type);
 	arg1 = convert (u_type, arg1);
 	arg1 = build_java_binop (RSHIFT_EXPR, u_type, arg1, arg2);
 	return convert (type, arg1);
@@ -1474,16 +1493,6 @@ lookup_field (typep, name)
 	if (DECL_NAME (field) == name)
 	  return field;
 
-      /* If *typep is an innerclass, lookup the field in its enclosing
-         contexts */
-      if (INNER_CLASS_TYPE_P (*typep))
-	{
-	  tree outer_type = TREE_TYPE (DECL_CONTEXT (TYPE_NAME (*typep)));
-
-	  if ((field = lookup_field (&outer_type, name)))
-	    return field;
-	}
-
       /* Process implemented interfaces. */
       basetype_vec = TYPE_BINFO_BASETYPES (*typep);
       n = TREE_VEC_LENGTH (basetype_vec);
@@ -1539,14 +1548,15 @@ build_field_ref (self_value, self_class, name)
     }
   else
     {
-      tree base_handle_type = promote_type (base_class);
-      if (base_handle_type != TREE_TYPE (self_value))
-	self_value = fold (build1 (NOP_EXPR, base_handle_type, self_value));
-#ifdef JAVA_USE_HANDLES
-      self_value = unhand_expr (self_value);
-#endif
+      int check = (flag_check_references
+		   && ! (DECL_P (self_value)
+			 && DECL_NAME (self_value) == this_identifier_node));
+
+      tree base_type = promote_type (base_class);
+      if (base_type != TREE_TYPE (self_value))
+	self_value = fold (build1 (NOP_EXPR, base_type, self_value));
       self_value = build_java_indirect_ref (TREE_TYPE (TREE_TYPE (self_value)),
-					    self_value, flag_check_references);
+					    self_value, check);
       return fold (build (COMPONENT_REF, TREE_TYPE (field_decl),
 			  self_value, field_decl));
     }
@@ -1619,7 +1629,7 @@ expand_compare (condition, value1, value2, target_pc)
 {
   tree target = lookup_label (target_pc);
   tree cond = fold (build (condition, boolean_type_node, value1, value2));
-  expand_start_cond (truthvalue_conversion (cond), 0);
+  expand_start_cond (java_truthvalue_conversion (cond), 0);
   expand_goto (target);
   expand_end_cond ();
 }
@@ -1719,7 +1729,6 @@ build_class_init (clas, expr)
      tree clas, expr;
 {
   tree init;
-  struct init_test_hash_entry *ite;
   if (inherits_from_p (current_class, clas))
     return expr;
 
@@ -1733,25 +1742,24 @@ build_class_init (clas, expr)
     }
   else
     {
-      ite = (struct init_test_hash_entry *)
-	hash_lookup (&DECL_FUNCTION_INIT_TEST_TABLE (current_function_decl),
-		     (const hash_table_key) clas,
-		     TRUE, NULL);
-      
-      if (ite->init_test_decl == 0)
+      tree *init_test_decl;
+      init_test_decl = java_treetreehash_new
+	(DECL_FUNCTION_INIT_TEST_TABLE (current_function_decl), clas);
+
+      if (*init_test_decl == NULL)
 	{
 	  /* Build a declaration and mark it as a flag used to track
 	     static class initializations. */
-	  ite->init_test_decl = build_decl (VAR_DECL, NULL_TREE,
-					    boolean_type_node);
-	  MAYBE_CREATE_VAR_LANG_DECL_SPECIFIC (ite->init_test_decl);
-	  LOCAL_CLASS_INITIALIZATION_FLAG (ite->init_test_decl) = 1;
-	  DECL_CONTEXT (ite->init_test_decl) = current_function_decl;
-	  DECL_FUNCTION_INIT_TEST_CLASS (ite->init_test_decl) = clas;
+	  *init_test_decl = build_decl (VAR_DECL, NULL_TREE,
+				       boolean_type_node);
+	  MAYBE_CREATE_VAR_LANG_DECL_SPECIFIC (*init_test_decl);
+	  LOCAL_CLASS_INITIALIZATION_FLAG (*init_test_decl) = 1;
+	  DECL_CONTEXT (*init_test_decl) = current_function_decl;
+	  DECL_FUNCTION_INIT_TEST_CLASS (*init_test_decl) = clas;
 	  /* Tell the check-init code to ignore this decl when not
              optimizing class initialization. */
 	  if (!STATIC_CLASS_INIT_OPT_P ())
-	    DECL_BIT_INDEX(ite->init_test_decl) = -1;
+	    DECL_BIT_INDEX(*init_test_decl) = -1;
 	}
 
       init = build (CALL_EXPR, void_type_node,
@@ -1761,12 +1769,12 @@ build_class_init (clas, expr)
       TREE_SIDE_EFFECTS (init) = 1;
       init = build (COND_EXPR, void_type_node,
 		    build (EQ_EXPR, boolean_type_node, 
-			   ite->init_test_decl, boolean_false_node),
+			   *init_test_decl, boolean_false_node),
 		    init, integer_zero_node);
       TREE_SIDE_EFFECTS (init) = 1;
       init = build (COMPOUND_EXPR, TREE_TYPE (expr), init, 
 		    build (MODIFY_EXPR, boolean_type_node,
-			   ite->init_test_decl, boolean_true_node));
+			   *init_test_decl, boolean_true_node));
       TREE_SIDE_EFFECTS (init) = 1;
     }
 
@@ -1812,7 +1820,7 @@ build_known_method_ref (method, method_type, self_type,
 	methods_ident = get_identifier ("methods");
       ref = build (COMPONENT_REF, method_ptr_type_node, ref,
 		   lookup_field (&class_type_node, methods_ident));
-      for (meth = TYPE_METHODS (CLASS_TO_HANDLE_TYPE (self_type));
+      for (meth = TYPE_METHODS (self_type);
 	   ; meth = TREE_CHAIN (meth))
 	{
 	  if (method == meth)
@@ -1939,11 +1947,11 @@ build_invokevirtual (dtable, method)
   return func;
 }
 
+static GTY(()) tree class_ident;
 tree
 build_invokeinterface (dtable, method)
      tree dtable, method;
 {
-  static tree class_ident = NULL_TREE;
   tree lookup_arg;
   tree interface;
   tree idx;
@@ -1958,7 +1966,6 @@ build_invokeinterface (dtable, method)
   if (class_ident == NULL_TREE)
     {
       class_ident = get_identifier ("class");
-      ggc_add_tree_root (&class_ident, 1);
     }
 
   dtable = build_java_indirect_ref (dtable_type, dtable, flag_check_references);
@@ -2027,11 +2034,9 @@ expand_invoke (opcode, method_ref_index, nargs)
   layout_class_methods (self_type);
 
   if (ID_INIT_P (method_name))
-    method = lookup_java_constructor (CLASS_TO_HANDLE_TYPE (self_type),
-				      method_signature);
+    method = lookup_java_constructor (self_type, method_signature);
   else
-    method = lookup_java_method (CLASS_TO_HANDLE_TYPE (self_type),
-				 method_name, method_signature);
+    method = lookup_java_method (self_type, method_name, method_signature);
   if (method == NULL_TREE)
     {
       error ("class '%s' has no method named '%s' matching signature '%s'",
@@ -2092,12 +2097,13 @@ expand_invoke (opcode, method_ref_index, nargs)
 	 method's `this'.  In other cases we just rely on an
 	 optimization pass to eliminate redundant checks.  FIXME:
 	 Unfortunately there doesn't seem to be a way to determine
-	 what the current method is right now.  */
+	 what the current method is right now.
+	 We do omit the check if we're calling <init>.  */
       /* We use a SAVE_EXPR here to make sure we only evaluate
 	 the new `self' expression once.  */
       tree save_arg = save_expr (TREE_VALUE (arg_list));
       TREE_VALUE (arg_list) = save_arg;
-      check = java_check_reference (save_arg, 1);
+      check = java_check_reference (save_arg, ! DECL_INIT_P (method));
       func = build_known_method_ref (method, method_type, self_type,
 				     method_signature, arg_list);
     }
@@ -2112,7 +2118,9 @@ expand_invoke (opcode, method_ref_index, nargs)
     }
   func = build1 (NOP_EXPR, build_pointer_type (method_type), func);
 
-  call = build_call_or_builtin (method, func, arg_list);
+  call = build (CALL_EXPR, TREE_TYPE (method_type), func, arg_list, NULL_TREE);
+  TREE_SIDE_EFFECTS (call) = 1;
+  call = check_for_builtin (method, call);
 
   if (check != NULL_TREE)
     {
@@ -2441,11 +2449,11 @@ get_primitive_array_vtable (tree elt)
 }
 
 struct rtx_def *
-java_lang_expand_expr (exp, target, tmode, modifier)
+java_expand_expr (exp, target, tmode, modifier)
      register tree exp;
      rtx target;
      enum machine_mode tmode;
-     enum expand_modifier modifier;
+     int modifier; /* Actually an enum expand_modifier.  */
 {
   tree current;
 
@@ -2486,6 +2494,9 @@ java_lang_expand_expr (exp, target, tmode, modifier)
 	    DECL_INITIAL (init_decl) = value;
 	    DECL_IGNORED_P (init_decl) = 1;
 	    TREE_READONLY (init_decl) = 1;
+	    /* Hash synchronization requires at least 64-bit alignment. */
+	    if (flag_hash_synchronization && POINTER_SIZE < 64)
+	      DECL_ALIGN (init_decl) = 64;
 	    rest_of_decl_compilation (init_decl, NULL, 1, 0);
 	    TREE_SYMBOL_REFERENCED (DECL_ASSEMBLER_NAME (init_decl)) = 1;
 	    init = build1 (ADDR_EXPR, TREE_TYPE (exp), init_decl);
@@ -2523,6 +2534,7 @@ java_lang_expand_expr (exp, target, tmode, modifier)
       if (BLOCK_EXPR_BODY (exp))
 	{
 	  tree local;
+	  rtx last;
 	  tree body = BLOCK_EXPR_BODY (exp);
 	  /* Set to 1 or more when we found a static class
              initialization flag. */
@@ -2545,8 +2557,8 @@ java_lang_expand_expr (exp, target, tmode, modifier)
 	  if (! always_initialize_class_p 
 	      && current_function_decl
 	      && found_class_initialization_flag)
-	    hash_traverse 
-	      (&DECL_FUNCTION_INIT_TEST_TABLE (current_function_decl),
+	    htab_traverse 
+	      (DECL_FUNCTION_INIT_TEST_TABLE (current_function_decl),
 	       emit_init_test_initialization, NULL);
 
 	  /* Avoid deep recursion for long block.  */
@@ -2556,11 +2568,11 @@ java_lang_expand_expr (exp, target, tmode, modifier)
 	      emit_queue ();
 	      body = TREE_OPERAND (body, 1);
 	    }
-	  expand_expr (body, const0_rtx, VOIDmode, 0);
+  	  last = expand_expr (body, NULL_RTX, VOIDmode, 0);
 	  emit_queue ();
 	  expand_end_bindings (getdecls (), 1, 0);
 	  poplevel (1, 1, 0);
-	  return const0_rtx;
+	  return last;
 	}
       return const0_rtx;
 
@@ -2616,6 +2628,11 @@ java_lang_expand_expr (exp, target, tmode, modifier)
     case JAVA_EXC_OBJ_EXPR:
       return expand_expr (build_exception_object_ref (TREE_TYPE (exp)),
 			  target, tmode, modifier);
+
+    case LABEL_EXPR:
+      /* Used only by expanded inline functions.  */
+      expand_label (TREE_OPERAND (exp, 0));
+      return const0_rtx;
 
     default:
       internal_error ("can't expand %s", tree_code_name [TREE_CODE (exp)]);
@@ -2731,6 +2748,7 @@ note_instructions (jcf, method)
   if (!saw_index)  NOTE_LABEL(oldpc + INT_temp);
 #define PRE_JSR(OPERAND_TYPE, OPERAND_VALUE) \
   saw_index = 0;  INT_temp = (OPERAND_VALUE); \
+  NOTE_LABEL (PC); \
   if (!saw_index)  NOTE_LABEL(oldpc + INT_temp);
 
 #define PRE_RET(OPERAND_TYPE, OPERAND_VALUE)  (void)(OPERAND_VALUE)
@@ -2932,12 +2950,11 @@ process_jvm_instruction (PC, byte_ops, length)
     build_java_ret (find_local_variable (index, ptr_type_node, oldpc));	\
   }
 
-#define JSR(OPERAND_TYPE, OPERAND_VALUE)		\
-  {							\
-    tree where = lookup_label (oldpc+OPERAND_VALUE);	\
-    tree ret   = lookup_label (PC);			\
-    build_java_jsr (where, ret);			\
-    load_type_state (ret);				\
+#define JSR(OPERAND_TYPE, OPERAND_VALUE) \
+  {						    \
+    /* OPERAND_VALUE may have side-effects on PC */ \
+    int opvalue = OPERAND_VALUE;		    \
+    build_java_jsr (oldpc + opvalue, PC);	    \
   }
 
 /* Push a constant onto the stack. */
@@ -3419,19 +3436,19 @@ force_evaluation_order (node)
 /* Called for every element in DECL_FUNCTION_INIT_TEST_TABLE of a
    method in order to emit initialization code for each test flag.  */
 
-static bool
-emit_init_test_initialization (entry, key)
-  struct hash_entry *entry;
-  hash_table_key key ATTRIBUTE_UNUSED;
+static int
+emit_init_test_initialization (entry, x)
+     void * * entry;
+     void * x ATTRIBUTE_UNUSED;
 {
-  struct init_test_hash_entry *ite = (struct init_test_hash_entry *) entry;
-  tree klass = build_class_ref ((tree) entry->key);
+  struct treetreehash_entry *ite = (struct treetreehash_entry *) *entry;
+  tree klass = build_class_ref (ite->key);
   tree rhs;
 
   /* If the DECL_INITIAL of the test flag is set to true, it
      means that the class is already initialized the time it
      is in use. */
-  if (DECL_INITIAL (ite->init_test_decl) == boolean_true_node)
+  if (DECL_INITIAL (ite->value) == boolean_true_node)
     rhs = boolean_true_node;
   /* Otherwise, we initialize the class init check variable by looking
      at the `state' field of the class to see if it is already
@@ -3446,6 +3463,9 @@ emit_init_test_initialization (entry, key)
 		 build_int_2 (JV_STATE_DONE, 0));
 
   expand_expr_stmt (build (MODIFY_EXPR, boolean_type_node, 
-			   ite->init_test_decl, rhs));
+			   ite->value, rhs));
   return true;
 }
+
+#include "gt-java-expr.h"
+

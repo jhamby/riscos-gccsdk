@@ -29,8 +29,6 @@ The Free Software Foundation is independent of Sun Microsystems, Inc.  */
 #include "toplev.h"
 #include "ggc.h"
 
-extern struct obstack permanent_obstack;
-
 static void set_constant_entry PARAMS ((CPool *, int, int, jword));
 static int find_class_or_string_constant PARAMS ((CPool *, int, tree));
 static int find_name_and_type_constant PARAMS ((CPool *, tree, tree));
@@ -326,20 +324,12 @@ write_constant_pool (cpool, buffer, length)
 
 CPool *outgoing_cpool;
 
+static GTY(()) tree tag_nodes[13];
 static tree
 get_tag_node (tag)
      int tag;
 {
   /* A Cache for build_int_2 (CONSTANT_XXX, 0). */
-  static tree tag_nodes[13];
-  static int initialized_p;
-
-  /* Register the TAG_NODES with the garbage collector.  */
-  if (!initialized_p)
-    {
-      ggc_add_tree_root (tag_nodes, 13);
-      initialized_p = 1;
-    }
 
   if (tag_nodes[tag] == NULL_TREE)
     tag_nodes[tag] = build_int_2 (tag, 0);
@@ -492,3 +482,5 @@ build_constants_constructor ()
   FINISH_RECORD_CONSTRUCTOR (cons);
   return cons;
 }
+
+#include "gt-java-constants.h"

@@ -11,6 +11,9 @@ LIBS = -L$(objdir)/libiberty/$(STAGE) -liberty -L$(objdir)/gcc-$(VERSION)/zlib/$
 $(gccobjdir)/java/%.o: %.c
 	$(CC) $(CFLAGS) -o $@ -c $< $(INCLUDES)
 
+$(gccobjdir)/%.o: ../%.c
+	$(CC) $(CFLAGS) -o $@ -c $< $(INCLUDES)
+
 all: java
 
 .PHONY: java
@@ -52,6 +55,7 @@ JAVA_OBJS = $(gccobjdir)/java/parse.o \
 	$(gccobjdir)/java/jcf-path.o \
 	$(gccobjdir)/java/xref.o \
 	$(gccobjdir)/java/boehm.o \
+	$(gccobjdir)/java/java-tree-inline.o \
 	$(gccobjdir)/mkdeps.o
 
 JVSCAN_OBJS = $(gccobjdir)/java/parse-scan.o \
@@ -109,10 +113,17 @@ keyword.h: keyword.gperf
 	gperf -L C -C -F ', 0' -p -t -j1 -i 1 -g -o -N java_keyword -k1,4,$$ keyword.gperf > $@
 
 $(gccobjdir)/java/jcf-path.o: jcf-path.c
-	$(CC) $(CFLAGS) $(INCLUDES) -O2 -o $@ -c jcf-path.c -DLIBGCJ_ZIP_FILE=\"libgcj.zip\"
+	$(CC) $(CFLAGS) $(INCLUDES) -O2 -o $@ -c jcf-path.c \
+	-DLIBGCJ_ZIP_FILE=\"libgcj.zip\" \
+	-DDEFAULT_TARGET_VERSION=\"$(VERSION)\"
 
+$(gccobjdir)/java/java-tree-inline.o: ../tree-inline.c ../tree-inline.h
+	$(CC) $(CFLAGS) $(INCLUDES) -O2 -o $@ -c ../tree-inline.c \
+	-DINLINER_FOR_JAVA=1
 
 # Dependencies
+$(gccobjdir)/errors.o: ../errors.c
+
 $(gccobjdir)/java/boehm.o: boehm.c
 $(gccobjdir)/java/buffer.o: buffer.c
 $(gccobjdir)/java/builtins.o: builtins.c

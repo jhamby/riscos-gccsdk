@@ -59,7 +59,7 @@ Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 #define USING_MALLOC_PAGE_GROUPS
 #endif
 
-/* Stategy: 
+/* Stategy:
 
    This garbage-collecting allocator allocates objects on one of a set
    of pages.  Each page can allocate objects of a single size only;
@@ -74,7 +74,7 @@ Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 
    Each page-entry also has a context depth, which is used to track
    pushing and popping of allocation contexts.  Only objects allocated
-   in the current (highest-numbered) context may be collected.  
+   in the current (highest-numbered) context may be collected.
 
    Page entries are arranged in an array of singly-linked lists.  The
    array is indexed by the allocation size, in bits, of the pages on
@@ -133,7 +133,7 @@ Software Foundation, 59 Temple Place - Suite 330, Boston, MA
    The bottommost HOST_PAGE_SIZE_BITS are ignored, since page-entry
    pages are aligned on system page boundaries.  The next most
    significant PAGE_L2_BITS and PAGE_L1_BITS are the second and first
-   index values in the lookup table, respectively.  
+   index values in the lookup table, respectively.
 
    For 32-bit architectures and the settings below, there are no
    leftover bits.  For architectures with wider pointers, the lookup
@@ -161,8 +161,10 @@ Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 /* The number of extra orders, not corresponding to power-of-two sized
    objects.  */
 
-#define NUM_EXTRA_ORDERS \
-  (sizeof (extra_order_size_table) / sizeof (extra_order_size_table[0]))
+#define NUM_EXTRA_ORDERS ARRAY_SIZE (extra_order_size_table)
+
+#define RTL_SIZE(NSLOTS) \
+  (sizeof (struct rtx_def) + ((NSLOTS) - 1) * sizeof (rtunion))
 
 /* The Ith entry is the maximum size of an object to be stored in the
    Ith extra order.  Adding a new entry to this array is the *only*
@@ -170,7 +172,9 @@ Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 
 static const size_t extra_order_size_table[] = {
   sizeof (struct tree_decl),
-  sizeof (struct tree_list)
+  sizeof (struct tree_list),
+  RTL_SIZE (2),			/* REG, MEM, PLUS, etc.  */
+  RTL_SIZE (10),		/* INSN, CALL_INSN, JUMP_INSN */
 };
 
 /* The total number of orders.  */
@@ -207,7 +211,7 @@ static size_t object_size_table[NUM_ORDERS];
 
 /* A page_entry records the status of an allocation page.  This
    structure is dynamically sized to fit the bitmap in_use_p.  */
-typedef struct page_entry 
+typedef struct page_entry
 {
   /* The next page-entry with objects of the same size, or NULL if
      this is the last page-entry.  */
@@ -412,7 +416,7 @@ ggc_allocated_p (p)
   return base[L1] && base[L1][L2];
 }
 
-/* Traverse the page table and find the entry for a page. 
+/* Traverse the page table and find the entry for a page.
    Die (probably) if the object wasn't allocated via GC.  */
 
 static inline page_entry *
@@ -732,9 +736,9 @@ alloc_page (order)
   set_page_table_entry (page, entry);
 
   if (GGC_DEBUG_LEVEL >= 2)
-    fprintf (G.debug_file, 
-	     "Allocating page at %p, object size=%ld, data %p-%p\n",
-	     (PTR) entry, (long) OBJECT_SIZE (order), page,
+    fprintf (G.debug_file,
+	     "Allocating page at %p, object size=%lu, data %p-%p\n",
+	     (PTR) entry, (unsigned long) OBJECT_SIZE (order), page,
 	     page + entry_size - 1);
 
   return entry;
@@ -747,7 +751,7 @@ free_page (entry)
      page_entry *entry;
 {
   if (GGC_DEBUG_LEVEL >= 2)
-    fprintf (G.debug_file, 
+    fprintf (G.debug_file,
 	     "Deallocating page at %p, data %p-%p\n", (PTR) entry,
 	     entry->page, entry->page + entry->bytes - 1);
 
@@ -817,7 +821,7 @@ release_pages ()
     if (g->in_use == 0)
       {
 	*gp = g->next;
-        G.bytes_mapped -= g->alloc_size;
+	G.bytes_mapped -= g->alloc_size;
 	free (g->allocation);
       }
     else
@@ -828,16 +832,16 @@ release_pages ()
 /* This table provides a fast way to determine ceil(log_2(size)) for
    allocation requests.  The minimum allocation size is eight bytes.  */
 
-static unsigned char size_lookup[257] = 
+static unsigned char size_lookup[257] =
 {
-  3, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 
-  4, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 
-  5, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 
-  6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 
-  6, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 
-  7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 
+  3, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4,
+  4, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5,
+  5, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6,
+  6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6,
+  6, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7,
   7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7,
-  7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 
+  7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7,
+  7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7,
   7, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
   8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
   8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
@@ -879,11 +883,11 @@ ggc_alloc (size)
     {
       struct page_entry *new_entry;
       new_entry = alloc_page (order);
-      
+
       /* If this is the only entry, it's also the tail.  */
       if (entry == NULL)
 	G.page_tails[order] = new_entry;
-     
+
       /* Put new pages at the head of the page list.  */
       new_entry->next = entry;
       entry = new_entry;
@@ -905,7 +909,7 @@ ggc_alloc (size)
       unsigned hint = entry->next_bit_hint;
       word = hint / HOST_BITS_PER_LONG;
       bit = hint % HOST_BITS_PER_LONG;
-      
+
       /* If the hint didn't work, scan the bitmap from the beginning.  */
       if ((entry->in_use_p[word] >> bit) & 1)
 	{
@@ -954,9 +958,10 @@ ggc_alloc (size)
   G.allocated += OBJECT_SIZE (order);
 
   if (GGC_DEBUG_LEVEL >= 3)
-    fprintf (G.debug_file, 
-	     "Allocating object, requested size=%ld, actual=%ld at %p on %p\n",
-	     (long) size, (long) OBJECT_SIZE (order), result, (PTR) entry);
+    fprintf (G.debug_file,
+	     "Allocating object, requested size=%lu, actual=%lu at %p on %p\n",
+	     (unsigned long) size, (unsigned long) OBJECT_SIZE (order), result,
+	     (PTR) entry);
 
   return result;
 }
@@ -986,7 +991,7 @@ ggc_set_mark (p)
   bit = (((const char *) p) - entry->page) / OBJECT_SIZE (entry->order);
   word = bit / HOST_BITS_PER_LONG;
   mask = (unsigned long) 1 << (bit % HOST_BITS_PER_LONG);
-  
+
   /* If the bit was previously set, skip it.  */
   if (entry->in_use_p[word] & mask)
     return 1;
@@ -1001,7 +1006,7 @@ ggc_set_mark (p)
   return 0;
 }
 
-/* Return 1 if P has been marked, zero otherwise. 
+/* Return 1 if P has been marked, zero otherwise.
    P must have been allocated by the GC allocator; it mustn't point to
    static objects, stack variables, or memory allocated with malloc.  */
 
@@ -1026,7 +1031,7 @@ ggc_marked_p (p)
   bit = (((const char *) p) - entry->page) / OBJECT_SIZE (entry->order);
   word = bit / HOST_BITS_PER_LONG;
   mask = (unsigned long) 1 << (bit % HOST_BITS_PER_LONG);
-  
+
   return (entry->in_use_p[word] & mask) != 0;
 }
 
@@ -1150,7 +1155,7 @@ ggc_recalculate_in_use_p (p)
   unsigned int i;
   size_t num_objects;
 
-  /* Because the past-the-end bit in in_use_p is always set, we 
+  /* Because the past-the-end bit in in_use_p is always set, we
      pretend there is one additional object.  */
   num_objects = OBJECTS_PER_PAGE (p->order) + 1;
 
@@ -1158,7 +1163,7 @@ ggc_recalculate_in_use_p (p)
   p->num_free_objects = num_objects;
 
   /* Combine the IN_USE_P and SAVE_IN_USE_P arrays.  */
-  for (i = 0; 
+  for (i = 0;
        i < CEIL (BITMAP_SIZE (num_objects),
 		 sizeof (*p->in_use_p));
        ++i)
@@ -1178,7 +1183,7 @@ ggc_recalculate_in_use_p (p)
     abort ();
 }
 
-/* Decrement the `GC context'.  All objects allocated since the 
+/* Decrement the `GC context'.  All objects allocated since the
    previous ggc_push_context are migrated to the outer context.  */
 
 void
@@ -1249,7 +1254,7 @@ clear_marks ()
 	  memset (p->in_use_p, 0, bitmap_size);
 
 	  /* Make sure the one-past-the-end bit is always set.  */
-	  p->in_use_p[num_objects / HOST_BITS_PER_LONG] 
+	  p->in_use_p[num_objects / HOST_BITS_PER_LONG]
 	    = ((unsigned long) 1 << (num_objects % HOST_BITS_PER_LONG));
 	}
     }
@@ -1273,7 +1278,7 @@ sweep_pages ()
       size_t live_objects;
       page_entry *p, *previous;
       int done;
-	
+
       p = G.pages[order];
       if (p == NULL)
 	continue;
@@ -1351,7 +1356,7 @@ sweep_pages ()
 
 	  previous = p;
 	  p = next;
-	} 
+	}
       while (! done);
 
       /* Now, restore the in_use_p vectors for any pages from contexts
@@ -1421,13 +1426,13 @@ ggc_collect ()
      sweep phase.  */
   G.allocated = 0;
 
-  /* Release the pages we freed the last time we collected, but didn't 
+  /* Release the pages we freed the last time we collected, but didn't
      reuse in the interim.  */
   release_pages ();
 
   clear_marks ();
   ggc_mark_roots ();
-  
+
 #ifdef GGC_POISON
   poison_pages ();
 #endif
@@ -1461,7 +1466,7 @@ ggc_print_statistics ()
 
   /* Clear the statistics.  */
   memset (&stats, 0, sizeof (stats));
-  
+
   /* Make sure collection will really occur.  */
   G.allocated_last_gc = 0;
 
@@ -1472,7 +1477,7 @@ ggc_print_statistics ()
      there as part of the total allocated memory.  */
   release_pages ();
 
-  /* Collect some information about the various sizes of 
+  /* Collect some information about the various sizes of
      allocation.  */
   fprintf (stderr, "\n%-5s %10s  %10s  %10s\n",
 	   "Size", "Allocated", "Used", "Overhead");
@@ -1495,19 +1500,20 @@ ggc_print_statistics ()
       for (p = G.pages[i]; p; p = p->next)
 	{
 	  allocated += p->bytes;
-	  in_use += 
+	  in_use +=
 	    (OBJECTS_PER_PAGE (i) - p->num_free_objects) * OBJECT_SIZE (i);
 
 	  overhead += (sizeof (page_entry) - sizeof (long)
 		       + BITMAP_SIZE (OBJECTS_PER_PAGE (i) + 1));
 	}
-      fprintf (stderr, "%-5d %10ld%c %10ld%c %10ld%c\n", OBJECT_SIZE (i),
+      fprintf (stderr, "%-5lu %10lu%c %10lu%c %10lu%c\n",
+	       (unsigned long) OBJECT_SIZE (i),
 	       SCALE (allocated), LABEL (allocated),
 	       SCALE (in_use), LABEL (in_use),
 	       SCALE (overhead), LABEL (overhead));
       total_overhead += overhead;
     }
-  fprintf (stderr, "%-5s %10ld%c %10ld%c %10ld%c\n", "Total",
+  fprintf (stderr, "%-5s %10lu%c %10lu%c %10lu%c\n", "Total",
 	   SCALE (G.bytes_mapped), LABEL (G.bytes_mapped),
 	   SCALE (G.allocated), LABEL(G.allocated),
 	   SCALE (total_overhead), LABEL (total_overhead));

@@ -38,7 +38,6 @@ Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 #include "system.h"
 #include "rtl.h"
 #include "tm_p.h"
-#include "obstack.h"
 #include "function.h"
 #include "expr.h"
 #include "hard-reg-set.h"
@@ -79,9 +78,6 @@ Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 /* For very tiny loops it is not worthwhile to prefetch even before the loop,
    since it is likely that the data are already in the cache.  */
 #define PREFETCH_BLOCKS_BEFORE_LOOP_MIN  2
-/* The minimal number of prefetch blocks that a loop must consume to make
-   the emitting of prefetch instruction in the body of loop worthwhile.  */
-#define PREFETCH_BLOCKS_IN_LOOP_MIN  6
 
 /* Parameterize some prefetch heuristics so they can be turned on and off
    easily for performance testing on new architecures.  These can be
@@ -124,20 +120,26 @@ Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 #define PREFETCH_EXTREME_STRIDE 4096
 #endif
 
+/* Define a limit to how far apart indices can be and still be merged
+   into a single prefetch.  */
+#ifndef PREFETCH_EXTREME_DIFFERENCE
+#define PREFETCH_EXTREME_DIFFERENCE 4096
+#endif
+
+/* Issue prefetch instructions before the loop to fetch data to be used
+   in the first few loop iterations.  */
+#ifndef PREFETCH_BEFORE_LOOP
+#define PREFETCH_BEFORE_LOOP 1
+#endif
+
 /* Do not handle reversed order prefetches (negative stride).  */
 #ifndef PREFETCH_NO_REVERSE_ORDER
 #define PREFETCH_NO_REVERSE_ORDER 1
 #endif
 
-/* Prefetch even if the GIV is not always executed.  */
-#ifndef PREFETCH_NOT_ALWAYS
-#define PREFETCH_NOT_ALWAYS 0
-#endif
-
-/* If the loop requires more prefetches than the target can process in
-   parallel then don't prefetch anything in that loop.  */
-#ifndef PREFETCH_LIMIT_TO_SIMULTANEOUS
-#define PREFETCH_LIMIT_TO_SIMULTANEOUS 1
+/* Prefetch even if the GIV is in conditional code.  */
+#ifndef PREFETCH_CONDITIONAL
+#define PREFETCH_CONDITIONAL 1
 #endif
 
 #define LOOP_REG_LIFETIME(LOOP, REGNO) \
@@ -182,9 +184,6 @@ unsigned int max_reg_before_loop;
 
 /* The value to pass to the next call of reg_scan_update.  */
 static int loop_max_reg;
-
-#define obstack_chunk_alloc xmalloc
-#define obstack_chunk_free free
 
 /* During the analysis of a loop, a chain of `struct movable's
    is made to record all the movable insns found.
@@ -235,6 +234,7 @@ FILE *loop_dump_stream;
 
 /* Forward declarations.  */
 
+static void invalidate_loops_containing_label PARAMS ((rtx));
 static void find_and_verify_loops PARAMS ((rtx, struct loops *));
 static void mark_loop_jump PARAMS ((rtx, struct loop *));
 static void prescan_loop PARAMS ((struct loop *));
@@ -353,6 +353,7 @@ static rtx loop_insn_sink_or_swim PARAMS((const struct loop *, rtx));
 static void loop_dump_aux PARAMS ((const struct loop *, FILE *, int));
 static void loop_delete_insns PARAMS ((rtx, rtx));
 static HOST_WIDE_INT remove_constant_addition PARAMS ((rtx *));
+static rtx gen_load_of_final_value PARAMS ((rtx, rtx));
 void debug_ivs PARAMS ((const struct loop *));
 void debug_iv_class PARAMS ((const struct iv_class *));
 void debug_biv PARAMS ((const struct induction *));
@@ -551,13 +552,6 @@ loop_optimize (f, dumpfile, flags)
       if (! loop->invalid && loop->end)
 	scan_loop (loop, flags);
     }
-
-  /* If there were lexical blocks inside the loop, they have been
-     replicated.  We will now have more than one NOTE_INSN_BLOCK_BEG
-     and NOTE_INSN_BLOCK_END for each such block.  We must duplicate
-     the BLOCKs as well.  */
-  if (write_symbols != NO_DEBUG)
-    reorder_blocks ();
 
   end_alias_analysis ();
 
@@ -902,7 +896,7 @@ scan_loop (loop, flags)
 				   SET_DEST (set), copy_rtx (SET_SRC (set)));
 
 		  delete_insn (p);
-		  for (i = 0; i < LOOP_REGNO_NREGS (regno, SET_DEST (set)); i++)
+		  for (i = 0; i < (int) LOOP_REGNO_NREGS (regno, SET_DEST (set)); i++)
 		    regs->array[regno+i].set_in_loop = 0;
 		  continue;
 		}
@@ -933,7 +927,7 @@ scan_loop (loop, flags)
 	      m->savings = regs->array[regno].n_times_set;
 	      if (find_reg_note (p, REG_RETVAL, NULL_RTX))
 		m->savings += libcall_benefit (p);
-	      for (i = 0; i < LOOP_REGNO_NREGS (regno, SET_DEST (set)); i++)
+	      for (i = 0; i < (int) LOOP_REGNO_NREGS (regno, SET_DEST (set)); i++)
 		regs->array[regno+i].set_in_loop = move_insn ? -2 : -1;
 	      /* Add M to the end of the chain MOVABLES.  */
 	      loop_movables_add (movables, m);
@@ -1035,7 +1029,7 @@ scan_loop (loop, flags)
 		  m->match = 0;
 		  m->lifetime = LOOP_REG_LIFETIME (loop, regno);
 		  m->savings = 1;
-		  for (i = 0; i < LOOP_REGNO_NREGS (regno, SET_DEST (set)); i++)
+		  for (i = 0; i < (int) LOOP_REGNO_NREGS (regno, SET_DEST (set)); i++)
 		    regs->array[regno+i].set_in_loop = -1;
 		  /* Add M to the end of the chain MOVABLES.  */
 		  loop_movables_add (movables, m);
@@ -1059,7 +1053,7 @@ scan_loop (loop, flags)
 		  unconditional jump, otherwise the code at the top of the
 		  loop might never be executed.  Unconditional jumps are
 		  followed by a barrier then the loop_end.  */
-               && ! (GET_CODE (p) == JUMP_INSN && JUMP_LABEL (p) == loop->top
+	       && ! (GET_CODE (p) == JUMP_INSN && JUMP_LABEL (p) == loop->top
 		     && NEXT_INSN (NEXT_INSN (p)) == loop_end
 		     && any_uncondjump_p (p)))
 	maybe_never = 1;
@@ -1102,7 +1096,25 @@ scan_loop (loop, flags)
      optimizing for code size.  */
 
   if (! optimize_size)
-    move_movables (loop, movables, threshold, insn_count);
+    {
+      move_movables (loop, movables, threshold, insn_count);
+
+      /* Recalculate regs->array if move_movables has created new
+	 registers.  */
+      if (max_reg_num () > regs->num)
+	{
+	  loop_regs_scan (loop, 0);
+	  for (update_start = loop_start;
+	       PREV_INSN (update_start)
+	       && GET_CODE (PREV_INSN (update_start)) != CODE_LABEL;
+	       update_start = PREV_INSN (update_start))
+	    ;
+	  update_end = NEXT_INSN (loop_end);
+
+	  reg_scan_update (update_start, update_end, loop_max_reg);
+	  loop_max_reg = max_reg_num ();
+	}
+    }
 
   /* Now candidates that still are negative are those not moved.
      Change regs->array[I].set_in_loop to indicate that those are not actually
@@ -1428,10 +1440,13 @@ combine_movables (movables, regs)
 
   /* Regs that are set more than once are not allowed to match
      or be matched.  I'm no longer sure why not.  */
+  /* Only pseudo registers are allowed to match or be matched,
+     since move_movables does not validate the change.  */
   /* Perhaps testing m->consec_sets would be more appropriate here?  */
 
   for (m = movables->head; m; m = m->next)
     if (m->match == 0 && regs->array[m->regno].n_times_set == 1
+	&& m->regno >= FIRST_PSEUDO_REGISTER
 	&& !m->partial)
       {
 	struct movable *m1;
@@ -1443,11 +1458,9 @@ combine_movables (movables, regs)
 	/* We want later insns to match the first one.  Don't make the first
 	   one match any later ones.  So start this loop at m->next.  */
 	for (m1 = m->next; m1; m1 = m1->next)
-	  /* ??? HACK!  move_movables does not verify that the replacement
-	     is valid, which can have disasterous effects with hard regs
-	     and match_dup.  Turn combination off for now.  */
-	  if (0 && m != m1 && m1->match == 0
+	  if (m != m1 && m1->match == 0
 	      && regs->array[m1->regno].n_times_set == 1
+	      && m1->regno >= FIRST_PSEUDO_REGISTER
 	      /* A reg used outside the loop mustn't be eliminated.  */
 	      && !m1->global
 	      /* A reg used for zero-extending mustn't be eliminated.  */
@@ -1923,11 +1936,10 @@ move_movables (loop, movables, threshold, insn_count)
 
 		  start_sequence ();
 		  emit_move_insn (m->set_dest, m->set_src);
-		  temp = get_insns ();
-		  seq = gen_sequence ();
+		  seq = get_insns ();
 		  end_sequence ();
 
-		  add_label_notes (m->set_src, temp);
+		  add_label_notes (m->set_src, seq);
 
 		  i1 = loop_insn_hoist (loop, seq);
 		  if (! find_reg_note (i1, REG_EQUAL, NULL_RTX))
@@ -2062,7 +2074,7 @@ move_movables (loop, movables, threshold, insn_count)
 			    abort ();
 			  if (tem != reg)
 			    emit_move_insn (reg, tem);
-			  sequence = gen_sequence ();
+			  sequence = get_insns ();
 			  end_sequence ();
 			  i1 = loop_insn_hoist (loop, sequence);
 			}
@@ -2083,11 +2095,10 @@ move_movables (loop, movables, threshold, insn_count)
 			     use the REG_EQUAL note.  */
 			  start_sequence ();
 			  emit_move_insn (m->set_dest, m->set_src);
-			  temp = get_insns ();
-			  seq = gen_sequence ();
+			  seq = get_insns ();
 			  end_sequence ();
 
-			  add_label_notes (m->set_src, temp);
+			  add_label_notes (m->set_src, seq);
 
 			  i1 = loop_insn_hoist (loop, seq);
 			  if (! find_reg_note (i1, REG_EQUAL, NULL_RTX))
@@ -2159,7 +2170,7 @@ move_movables (loop, movables, threshold, insn_count)
 	      if (! m->partial)
 		{
 		  int i;
-		  for (i = 0; i < LOOP_REGNO_NREGS (regno, m->set_dest); i++)
+		  for (i = 0; i < (int) LOOP_REGNO_NREGS (regno, m->set_dest); i++)
 		    regs->array[regno+i].set_in_loop = 0;
 		}
 
@@ -2224,7 +2235,7 @@ move_movables (loop, movables, threshold, insn_count)
 			{
 			  int i;
 			  for (i = 0;
-			       i < LOOP_REGNO_NREGS (regno, m1->set_dest);
+			       i < (int) LOOP_REGNO_NREGS (regno, m1->set_dest);
 			       i++)
 			    regs->array[m1->regno+i].set_in_loop = 0;
 			}
@@ -2429,6 +2440,7 @@ prescan_loop (loop)
   loop_info->pre_header_has_call = 0;
   loop_info->has_call = 0;
   loop_info->has_nonconst_call = 0;
+  loop_info->has_prefetch = 0;
   loop_info->has_volatile = 0;
   loop_info->has_tablejump = 0;
   loop_info->has_multiple_exit_targets = 0;
@@ -2474,6 +2486,8 @@ prescan_loop (loop)
 	      loop_info->unknown_address_altered = 1;
 	      loop_info->has_nonconst_call = 1;
 	    }
+	  else if (pure_call_p (insn))
+	    loop_info->has_nonconst_call = 1;
 	  loop_info->has_call = 1;
 	  if (can_throw_internal (insn))
 	    loop_info->has_multiple_exit_targets = 1;
@@ -2486,16 +2500,17 @@ prescan_loop (loop)
 
 	      if (set)
 		{
+		  rtx src = SET_SRC (set);
 		  rtx label1, label2;
 
-		  if (GET_CODE (SET_SRC (set)) == IF_THEN_ELSE)
+		  if (GET_CODE (src) == IF_THEN_ELSE)
 		    {
-		      label1 = XEXP (SET_SRC (set), 1);
-		      label2 = XEXP (SET_SRC (set), 2);
+		      label1 = XEXP (src, 1);
+		      label2 = XEXP (src, 2);
 		    }
 		  else
 		    {
-		      label1 = SET_SRC (PATTERN (insn));
+		      label1 = src;
 		      label2 = NULL_RTX;
 		    }
 
@@ -2589,6 +2604,17 @@ prescan_loop (loop)
     }
 }
 
+/* Invalidate all loops containing LABEL.  */
+
+static void
+invalidate_loops_containing_label (label)
+     rtx label;
+{
+  struct loop *loop;
+  for (loop = uid_loop[INSN_UID (label)]; loop; loop = loop->outer)
+    loop->invalid = 1;
+}
+
 /* Scan the function looking for loops.  Record the start and end of each loop.
    Also mark as invalid loops any loops that contain a setjmp or are branched
    to from outside the loop.  */
@@ -2675,23 +2701,12 @@ find_and_verify_loops (f, loops)
 
   /* Any loop containing a label used in an initializer must be invalidated,
      because it can be jumped into from anywhere.  */
-
   for (label = forced_labels; label; label = XEXP (label, 1))
-    {
-      for (loop = uid_loop[INSN_UID (XEXP (label, 0))];
-	   loop; loop = loop->outer)
-	loop->invalid = 1;
-    }
+    invalidate_loops_containing_label (XEXP (label, 0));
 
   /* Any loop containing a label used for an exception handler must be
      invalidated, because it can be jumped into from anywhere.  */
-
-  for (label = exception_handler_labels; label; label = XEXP (label, 1))
-    {
-      for (loop = uid_loop[INSN_UID (XEXP (label, 0))];
-	   loop; loop = loop->outer)
-	loop->invalid = 1;
-    }
+  for_each_eh_label (invalidate_loops_containing_label);
 
   /* Now scan all insn's in the function.  If any JUMP_INSN branches into a
      loop that it is not contained within, that loop is marked invalid.
@@ -2715,11 +2730,7 @@ find_and_verify_loops (f, loops)
 	  {
 	    rtx note = find_reg_note (insn, REG_LABEL, NULL_RTX);
 	    if (note)
-	      {
-		for (loop = uid_loop[INSN_UID (XEXP (note, 0))];
-		     loop; loop = loop->outer)
-		  loop->invalid = 1;
-	      }
+	      invalidate_loops_containing_label (XEXP (note, 0));
 	  }
 
 	if (GET_CODE (insn) != JUMP_INSN)
@@ -3484,7 +3495,7 @@ count_one_set (regs, insn, x, last_set)
 	{
 	  int i;
 	  int regno = REGNO (dest);
-	  for (i = 0; i < LOOP_REGNO_NREGS (regno, dest); i++)
+	  for (i = 0; i < (int) LOOP_REGNO_NREGS (regno, dest); i++)
 	    {
 	      /* If this is the first setting of this reg
 		 in current basic block, and it was set before,
@@ -3549,17 +3560,15 @@ struct prefetch_info
   HOST_WIDE_INT index;
   HOST_WIDE_INT stride;		/* Prefetch stride in bytes in each
 				   iteration.  */
-  unsigned int bytes_accesed;	/* Sum of sizes of all acceses to this
+  unsigned int bytes_accessed;	/* Sum of sizes of all acceses to this
 				   prefetch area in one iteration.  */
   unsigned int total_bytes;	/* Total bytes loop will access in this block.
 				   This is set only for loops with known
 				   iteration counts and is 0xffffffff
 				   otherwise.  */
+  int prefetch_in_loop;		/* Number of prefetch insns in loop.  */
+  int prefetch_before_loop;	/* Number of prefetch insns before loop.  */
   unsigned int write : 1;	/* 1 for read/write prefetches.  */
-  unsigned int prefetch_in_loop : 1;
-  				/* 1 for those chosen for prefetching.  */
-  unsigned int prefetch_before_loop : 1;
-  				/* 1 for those chosen for prefetching.  */
 };
 
 /* Data used by check_store function.  */
@@ -3711,9 +3720,9 @@ remove_constant_addition (x)
       /* In case our parameter was constant, remove extra zero from the
 	 expression.  */
       if (XEXP (exp, 0) == const0_rtx)
-        *x = XEXP (exp, 1);
+	*x = XEXP (exp, 1);
       else if (XEXP (exp, 1) == const0_rtx)
-        *x = XEXP (exp, 0);
+	*x = XEXP (exp, 0);
     }
 
   return addval;
@@ -3746,7 +3755,9 @@ emit_prefetch_instructions (loop)
   int num_prefetches = 0;
   int num_real_prefetches = 0;
   int num_real_write_prefetches = 0;
-  int ahead;
+  int num_prefetches_before = 0;
+  int num_write_prefetches_before = 0;
+  int ahead = 0;
   int i;
   struct iv_class *bl;
   struct induction *iv;
@@ -3761,18 +3772,19 @@ emit_prefetch_instructions (loop)
   if (PREFETCH_NO_CALL && LOOP_INFO (loop)->has_call)
     {
       if (loop_dump_stream)
-	fprintf (loop_dump_stream, "Prefetch: ignoring loop - has call.\n");
+	fprintf (loop_dump_stream, "Prefetch: ignoring loop: has call.\n");
 
       return;
     }
 
+  /* Don't prefetch in loops known to have few iterations.  */
   if (PREFETCH_NO_LOW_LOOPCNT
       && LOOP_INFO (loop)->n_iterations
       && LOOP_INFO (loop)->n_iterations <= PREFETCH_LOW_LOOPCNT)
     {
       if (loop_dump_stream)
 	fprintf (loop_dump_stream,
-		 "Prefetch: ignoring loop - not enought iterations.\n");
+		 "Prefetch: ignoring loop: not enough iterations.\n");
       return;
     }
 
@@ -3793,14 +3805,13 @@ emit_prefetch_instructions (loop)
 	     BIVs that are executed multiple times; such BIVs ought to be
 	     handled in the nested loop.  We accept not_every_iteration BIVs,
 	     since these only result in larger strides and make our
-	     heuristics more conservative.
-	     ??? What does the last sentence mean?  */
+	     heuristics more conservative.  */
 	  if (GET_CODE (biv->add_val) != CONST_INT)
 	    {
 	      if (loop_dump_stream)
 		{
 		  fprintf (loop_dump_stream,
-			   "Prefetch: biv %i ignored: non-constant addition at insn %i:",
+		    "Prefetch: ignoring biv %d: non-constant addition at insn %d:",
 			   REGNO (biv->src_reg), INSN_UID (biv->insn));
 		  print_rtl (loop_dump_stream, biv->add_val);
 		  fprintf (loop_dump_stream, "\n");
@@ -3813,7 +3824,7 @@ emit_prefetch_instructions (loop)
 	      if (loop_dump_stream)
 		{
 		  fprintf (loop_dump_stream,
-			   "Prefetch: biv %i ignored: maybe_multiple at insn %i:",
+			   "Prefetch: ignoring biv %d: maybe_multiple at insn %i:",
 			   REGNO (biv->src_reg), INSN_UID (biv->insn));
 		  print_rtl (loop_dump_stream, biv->add_val);
 		  fprintf (loop_dump_stream, "\n");
@@ -3834,55 +3845,84 @@ emit_prefetch_instructions (loop)
 	  rtx temp;
 	  HOST_WIDE_INT index = 0;
 	  int add = 1;
-	  HOST_WIDE_INT stride;
+	  HOST_WIDE_INT stride = 0;
+	  int stride_sign = 1;
 	  struct check_store_data d;
+	  const char *ignore_reason = NULL;
 	  int size = GET_MODE_SIZE (GET_MODE (iv));
 
-	  /* There are several reasons why an induction variable is not
-	     interesting to us.  */
-	  if (iv->giv_type != DEST_ADDR
-	      /* We are interested only in constant stride memory references
-		 in order to be able to compute density easily.  */
-	      || GET_CODE (iv->mult_val) != CONST_INT
-	      /* Don't handle reversed order prefetches, since they are usually
-		 ineffective.  Later we may be able to reverse such BIVs.  */
-	      || (PREFETCH_NO_REVERSE_ORDER
-		  && (stride = INTVAL (iv->mult_val) * basestride) < 0)
-	      /* Prefetching of accesses with such an extreme stride is probably
-		 not worthwhile, either.  */
-	      || (PREFETCH_NO_EXTREME_STRIDE
-		  && stride > PREFETCH_EXTREME_STRIDE)
+	  /* See whether an induction variable is interesting to us and if
+	     not, report the reason.  */
+	  if (iv->giv_type != DEST_ADDR)
+	    ignore_reason = "giv is not a destination address";
+
+	  /* We are interested only in constant stride memory references
+	     in order to be able to compute density easily.  */
+	  else if (GET_CODE (iv->mult_val) != CONST_INT)
+	    ignore_reason = "stride is not constant";
+
+	  else
+	    {
+	      stride = INTVAL (iv->mult_val) * basestride;
+	      if (stride < 0)
+		{
+		  stride = -stride;
+		  stride_sign = -1;
+		}
+
+	      /* On some targets, reversed order prefetches are not
+		 worthwhile.  */
+	      if (PREFETCH_NO_REVERSE_ORDER && stride_sign < 0)
+		ignore_reason = "reversed order stride";
+
+	      /* Prefetch of accesses with an extreme stride might not be
+		 worthwhile, either.  */
+	      else if (PREFETCH_NO_EXTREME_STRIDE
+		       && stride > PREFETCH_EXTREME_STRIDE)
+		ignore_reason = "extreme stride";
+
 	      /* Ignore GIVs with varying add values; we can't predict the
 		 value for the next iteration.  */
-	      || !loop_invariant_p (loop, iv->add_val)
+	      else if (!loop_invariant_p (loop, iv->add_val))
+		ignore_reason = "giv has varying add value";
+
 	      /* Ignore GIVs in the nested loops; they ought to have been
 		 handled already.  */
-	      || iv->maybe_multiple)
+	      else if (iv->maybe_multiple)
+		ignore_reason = "giv is in nested loop";
+	    }
+
+	  if (ignore_reason != NULL)
 	    {
 	      if (loop_dump_stream)
-		fprintf (loop_dump_stream, "Prefetch: Ignoring giv at %i\n",
-			 INSN_UID (iv->insn));
+		fprintf (loop_dump_stream,
+			 "Prefetch: ignoring giv at %d: %s.\n",
+			 INSN_UID (iv->insn), ignore_reason);
 	      continue;
 	    }
 
 	  /* Determine the pointer to the basic array we are examining.  It is
 	     the sum of the BIV's initial value and the GIV's add_val.  */
-	  index = 0;
-
 	  address = copy_rtx (iv->add_val);
 	  temp = copy_rtx (bl->initial_value);
 
 	  address = simplify_gen_binary (PLUS, Pmode, temp, address);
 	  index = remove_constant_addition (&address);
 
-	  index += size;
 	  d.mem_write = 0;
 	  d.mem_address = *iv->location;
 
 	  /* When the GIV is not always executed, we might be better off by
 	     not dirtying the cache pages.  */
-	  if (PREFETCH_NOT_ALWAYS || iv->always_executed)
+	  if (PREFETCH_CONDITIONAL || iv->always_executed)
 	    note_stores (PATTERN (iv->insn), check_store, &d);
+	  else
+	    {
+	      if (loop_dump_stream)
+		fprintf (loop_dump_stream, "Prefetch: Ignoring giv at %d: %s\n",
+			 INSN_UID (iv->insn), "in conditional code.");
+	      continue;
+	    }
 
 	  /* Attempt to find another prefetch to the same array and see if we
 	     can merge this one.  */
@@ -3894,13 +3934,14 @@ emit_prefetch_instructions (loop)
 		   just with small difference in constant indexes), merge
 		   the prefetches.  Just do the later and the earlier will
 		   get prefetched from previous iteration.
-		   4096 is artificial threshold.  It should not be too small,
+		   The artificial threshold should not be too small,
 		   but also not bigger than small portion of memory usually
 		   traversed by single loop.  */
-		if (index >= info[i].index && index - info[i].index < 4096)
+		if (index >= info[i].index
+		    && index - info[i].index < PREFETCH_EXTREME_DIFFERENCE)
 		  {
 		    info[i].write |= d.mem_write;
-		    info[i].bytes_accesed += size;
+		    info[i].bytes_accessed += size;
 		    info[i].index = index;
 		    info[i].giv = iv;
 		    info[i].class = bl;
@@ -3909,10 +3950,11 @@ emit_prefetch_instructions (loop)
 		    break;
 		  }
 
-		if (index < info[i].index && info[i].index - index < 4096)
+		if (index < info[i].index
+		    && info[i].index - index < PREFETCH_EXTREME_DIFFERENCE)
 		  {
 		    info[i].write |= d.mem_write;
-		    info[i].bytes_accesed += size;
+		    info[i].bytes_accessed += size;
 		    add = 0;
 		    break;
 		  }
@@ -3927,7 +3969,7 @@ emit_prefetch_instructions (loop)
 	      info[num_prefetches].stride = stride;
 	      info[num_prefetches].base_address = address;
 	      info[num_prefetches].write = d.mem_write;
-	      info[num_prefetches].bytes_accesed = size;
+	      info[num_prefetches].bytes_accessed = size;
 	      num_prefetches++;
 	      if (num_prefetches >= MAX_PREFETCHES)
 		{
@@ -3942,139 +3984,199 @@ emit_prefetch_instructions (loop)
 
   for (i = 0; i < num_prefetches; i++)
     {
-      /* Attempt to calculate the number of bytes fetched by the loop.
-	 Avoid overflow.  */
+      int density;
+
+      /* Attempt to calculate the total number of bytes fetched by all
+	 iterations of the loop.  Avoid overflow.  */
       if (LOOP_INFO (loop)->n_iterations
-          && ((unsigned HOST_WIDE_INT) (0xffffffff / info[i].stride)
+	  && ((unsigned HOST_WIDE_INT) (0xffffffff / info[i].stride)
 	      >= LOOP_INFO (loop)->n_iterations))
 	info[i].total_bytes = info[i].stride * LOOP_INFO (loop)->n_iterations;
       else
 	info[i].total_bytes = 0xffffffff;
 
-      /* Prefetch is worthwhile only when the loads/stores are dense.  */
-      if (PREFETCH_ONLY_DENSE_MEM
-	  && info[i].bytes_accesed * 256 / info[i].stride > PREFETCH_DENSE_MEM
-	  && (info[i].total_bytes / PREFETCH_BLOCK
-	      >= PREFETCH_BLOCKS_BEFORE_LOOP_MIN))
-	{
-	  info[i].prefetch_before_loop = 1;
-	  info[i].prefetch_in_loop
-	    = (info[i].total_bytes / PREFETCH_BLOCK
-	       > PREFETCH_BLOCKS_BEFORE_LOOP_MAX);
-	}
+      density = info[i].bytes_accessed * 100 / info[i].stride;
+
+      /* Prefetch might be worthwhile only when the loads/stores are dense.  */
+      if (PREFETCH_ONLY_DENSE_MEM)
+	if (density * 256 > PREFETCH_DENSE_MEM * 100
+	    && (info[i].total_bytes / PREFETCH_BLOCK
+		>= PREFETCH_BLOCKS_BEFORE_LOOP_MIN))
+	  {
+	    info[i].prefetch_before_loop = 1;
+	    info[i].prefetch_in_loop
+	      = (info[i].total_bytes / PREFETCH_BLOCK
+		 > PREFETCH_BLOCKS_BEFORE_LOOP_MAX);
+	  }
+	else
+	  {
+	    info[i].prefetch_in_loop = 0, info[i].prefetch_before_loop = 0;
+	    if (loop_dump_stream)
+	      fprintf (loop_dump_stream,
+		  "Prefetch: ignoring giv at %d: %d%% density is too low.\n",
+		       INSN_UID (info[i].giv->insn), density);
+	  }
       else
-        info[i].prefetch_in_loop = 0, info[i].prefetch_before_loop = 0;
+	info[i].prefetch_in_loop = 1, info[i].prefetch_before_loop = 1;
 
-      if (info[i].prefetch_in_loop)
+      /* Find how many prefetch instructions we'll use within the loop.  */
+      if (info[i].prefetch_in_loop != 0)
 	{
-	  num_real_prefetches += ((info[i].stride + PREFETCH_BLOCK - 1)
+	  info[i].prefetch_in_loop = ((info[i].stride + PREFETCH_BLOCK - 1)
 				  / PREFETCH_BLOCK);
+	  num_real_prefetches += info[i].prefetch_in_loop;
 	  if (info[i].write)
-	    num_real_write_prefetches
-	      += (info[i].stride + PREFETCH_BLOCK - 1) / PREFETCH_BLOCK;
+	    num_real_write_prefetches += info[i].prefetch_in_loop;
 	}
     }
 
-  if (loop_dump_stream)
+  /* Determine how many iterations ahead to prefetch within the loop, based
+     on how many prefetches we currently expect to do within the loop.  */
+  if (num_real_prefetches != 0)
     {
-      for (i = 0; i < num_prefetches; i++)
+      if ((ahead = SIMULTANEOUS_PREFETCHES / num_real_prefetches) == 0)
 	{
-	  fprintf (loop_dump_stream, "Prefetch insn %i address: ",
-		   INSN_UID (info[i].giv->insn));
-	  print_rtl (loop_dump_stream, info[i].base_address);
-	  fprintf (loop_dump_stream, " Index: ");
-	  fprintf (loop_dump_stream, HOST_WIDE_INT_PRINT_DEC, info[i].index);
-	  fprintf (loop_dump_stream, " stride: ");
-	  fprintf (loop_dump_stream, HOST_WIDE_INT_PRINT_DEC, info[i].stride);
-	  fprintf (loop_dump_stream,
-		   " density: %i%% total_bytes: %u%sin loop: %s before: %s\n",
-		   (int) (info[i].bytes_accesed * 100 / info[i].stride),
-		   info[i].total_bytes,
-		   info[i].write ? " read/write " : " read only ",
-		   info[i].prefetch_in_loop ? "yes" : "no",
-		   info[i].prefetch_before_loop ? "yes" : "no");
+	  if (loop_dump_stream)
+	    fprintf (loop_dump_stream,
+		     "Prefetch: ignoring prefetches within loop: ahead is zero; %d < %d\n",
+		     SIMULTANEOUS_PREFETCHES, num_real_prefetches);
+	  num_real_prefetches = 0, num_real_write_prefetches = 0;
 	}
-
-      fprintf (loop_dump_stream, "Real prefetches needed: %i (write: %i)\n",
-	       num_real_prefetches, num_real_write_prefetches);
     }
-
-  if (!num_real_prefetches)
-    return;
-
-  ahead = SIMULTANEOUS_PREFETCHES / num_real_prefetches;
-
-  if (!ahead)
-    return;
+  /* We'll also use AHEAD to determine how many prefetch instructions to
+     emit before a loop, so don't leave it zero.  */
+  if (ahead == 0)
+    ahead = PREFETCH_BLOCKS_BEFORE_LOOP_MAX;
 
   for (i = 0; i < num_prefetches; i++)
     {
-      if (info[i].prefetch_in_loop)
+      /* Update if we've decided not to prefetch anything within the loop.  */
+      if (num_real_prefetches == 0)
+	info[i].prefetch_in_loop = 0;
+
+      /* Find how many prefetch instructions we'll use before the loop.  */
+      if (info[i].prefetch_before_loop != 0)
 	{
-	  int y;
+	  int n = info[i].total_bytes / PREFETCH_BLOCK;
+	  if (n > ahead)
+	    n = ahead;
+	  info[i].prefetch_before_loop = n;
+	  num_prefetches_before += n;
+	  if (info[i].write)
+	    num_write_prefetches_before += n;
+	}
 
-	  for (y = 0; y < ((info[i].stride + PREFETCH_BLOCK - 1)
-			   / PREFETCH_BLOCK); y++)
+      if (loop_dump_stream)
+	{
+	  if (info[i].prefetch_in_loop == 0
+	      && info[i].prefetch_before_loop == 0)
+	    continue;
+	  fprintf (loop_dump_stream, "Prefetch insn: %d",
+		   INSN_UID (info[i].giv->insn));
+	  fprintf (loop_dump_stream,
+		   "; in loop: %d; before: %d; %s\n",
+		   info[i].prefetch_in_loop,
+		   info[i].prefetch_before_loop,
+		   info[i].write ? "read/write" : "read only");
+	  fprintf (loop_dump_stream,
+		   " density: %d%%; bytes_accessed: %u; total_bytes: %u\n",
+		   (int) (info[i].bytes_accessed * 100 / info[i].stride),
+		   info[i].bytes_accessed, info[i].total_bytes);
+	  fprintf (loop_dump_stream, " index: ");
+	  fprintf (loop_dump_stream, HOST_WIDE_INT_PRINT_DEC, info[i].index);
+	  fprintf (loop_dump_stream, "; stride: ");
+	  fprintf (loop_dump_stream, HOST_WIDE_INT_PRINT_DEC, info[i].stride);
+	  fprintf (loop_dump_stream, "; address: ");
+	  print_rtl (loop_dump_stream, info[i].base_address);
+	  fprintf (loop_dump_stream, "\n");
+	}
+    }
+
+  if (num_real_prefetches + num_prefetches_before > 0)
+    {
+      /* Record that this loop uses prefetch instructions.  */
+      LOOP_INFO (loop)->has_prefetch = 1;
+
+      if (loop_dump_stream)
+	{
+	  fprintf (loop_dump_stream, "Real prefetches needed within loop: %d (write: %d)\n",
+		   num_real_prefetches, num_real_write_prefetches);
+	  fprintf (loop_dump_stream, "Real prefetches needed before loop: %d (write: %d)\n",
+		   num_prefetches_before, num_write_prefetches_before);
+	}
+    }
+
+  for (i = 0; i < num_prefetches; i++)
+    {
+      int y;
+
+      for (y = 0; y < info[i].prefetch_in_loop; y++)
+	{
+	  rtx loc = copy_rtx (*info[i].giv->location);
+	  rtx insn;
+	  int bytes_ahead = PREFETCH_BLOCK * (ahead + y);
+	  rtx before_insn = info[i].giv->insn;
+	  rtx prev_insn = PREV_INSN (info[i].giv->insn);
+	  rtx seq;
+
+	  /* We can save some effort by offsetting the address on
+	     architectures with offsettable memory references.  */
+	  if (offsettable_address_p (0, VOIDmode, loc))
+	    loc = plus_constant (loc, bytes_ahead);
+	  else
 	    {
-	      rtx loc = copy_rtx (*info[i].giv->location);
-	      rtx insn;
-	      int bytes_ahead = PREFETCH_BLOCK * (ahead + y);
-	      rtx before_insn = info[i].giv->insn;
-	      rtx prev_insn = PREV_INSN (info[i].giv->insn);
+	      rtx reg = gen_reg_rtx (Pmode);
+	      loop_iv_add_mult_emit_before (loop, loc, const1_rtx,
+		      			    GEN_INT (bytes_ahead), reg,
+				  	    0, before_insn);
+	      loc = reg;
+	    }
 
-	      /* We can save some effort by offsetting the address on
-		 architectures with offsettable memory references.  */
-	      if (offsettable_address_p (0, VOIDmode, loc))
-		loc = plus_constant (loc, bytes_ahead);
-	      else
-		{
-		  rtx reg = gen_reg_rtx (Pmode);
-		  loop_iv_add_mult_emit_before (loop, loc, const1_rtx,
-		      				GEN_INT (bytes_ahead), reg,
-				  		0, before_insn);
-		  loc = reg;
-		}
+	  start_sequence ();
+	  /* Make sure the address operand is valid for prefetch.  */
+	  if (! (*insn_data[(int)CODE_FOR_prefetch].operand[0].predicate)
+		  (loc, insn_data[(int)CODE_FOR_prefetch].operand[0].mode))
+	    loc = force_reg (Pmode, loc);
+	  emit_insn (gen_prefetch (loc, GEN_INT (info[i].write),
+				   GEN_INT (3)));
+	  seq = get_insns ();
+	  end_sequence ();
+	  emit_insn_before (seq, before_insn);
 
-	      /* Make sure the address operand is valid for prefetch.  */
-	      if (! (*insn_data[(int)CODE_FOR_prefetch].operand[0].predicate)
-		    (loc,
-		     insn_data[(int)CODE_FOR_prefetch].operand[0].mode))
-		loc = force_reg (Pmode, loc);
-	      emit_insn_before (gen_prefetch (loc, GEN_INT (info[i].write),
-		                              GEN_INT (3)),
-				before_insn);
-
-	      /* Check all insns emitted and record the new GIV
-		 information.  */
-	      insn = NEXT_INSN (prev_insn);
-	      while (insn != before_insn)
-		{
-		  insn = check_insn_for_givs (loop, insn,
-					      info[i].giv->always_executed,
-					      info[i].giv->maybe_multiple);
-		  insn = NEXT_INSN (insn);
-		}
+	  /* Check all insns emitted and record the new GIV
+	     information.  */
+	  insn = NEXT_INSN (prev_insn);
+	  while (insn != before_insn)
+	    {
+	      insn = check_insn_for_givs (loop, insn,
+					  info[i].giv->always_executed,
+					  info[i].giv->maybe_multiple);
+	      insn = NEXT_INSN (insn);
 	    }
 	}
 
-      if (info[i].prefetch_before_loop)
+      if (PREFETCH_BEFORE_LOOP)
 	{
-	  int y;
-
-	  /* Emit INSNs before the loop to fetch the first cache lines.  */
-	  for (y = 0;
-	       (!info[i].prefetch_in_loop || y < ahead)
-	       && y * PREFETCH_BLOCK < (int) info[i].total_bytes; y ++)
+	  /* Emit insns before the loop to fetch the first cache lines or,
+	     if we're not prefetching within the loop, everything we expect
+	     to need.  */
+	  for (y = 0; y < info[i].prefetch_before_loop; y++)
 	    {
 	      rtx reg = gen_reg_rtx (Pmode);
 	      rtx loop_start = loop->start;
+	      rtx init_val = info[i].class->initial_value;
 	      rtx add_val = simplify_gen_binary (PLUS, Pmode,
 						 info[i].giv->add_val,
 						 GEN_INT (y * PREFETCH_BLOCK));
 
-	      loop_iv_add_mult_emit_before (loop, info[i].class->initial_value,
+	      /* Functions called by LOOP_IV_ADD_EMIT_BEFORE expect a
+		 non-constant INIT_VAL to have the same mode as REG, which
+		 in this case we know to be Pmode.  */
+	      if (GET_MODE (init_val) != Pmode && !CONSTANT_P (init_val))
+		init_val = convert_to_mode (Pmode, init_val, 0);
+	      loop_iv_add_mult_emit_before (loop, init_val,
 					    info[i].giv->mult_val,
-				            add_val, reg, 0, loop_start);
+					    add_val, reg, 0, loop_start);
 	      emit_insn_before (gen_prefetch (reg, GEN_INT (info[i].write),
 					      GEN_INT (3)),
 				loop_start);
@@ -4132,8 +4234,8 @@ static rtx addr_placeholder;
    LOOP and INSN parameters pass MAYBE_MULTIPLE and NOT_EVERY_ITERATION to the
    callback.
 
-   NOT_EVERY_ITERATION if current insn is not executed at least once for every
-   loop iteration except for the last one.
+   NOT_EVERY_ITERATION is 1 if current insn is not known to be executed at
+   least once for every loop iteration except for the last one.
 
    MAYBE_MULTIPLE is 1 if current insn may be executed more than once for every
    loop iteration.
@@ -4143,8 +4245,6 @@ for_each_insn_in_loop (loop, fncall)
      struct loop *loop;
      loop_insn_callback fncall;
 {
-  /* This is 1 if current insn is not executed at least once for every loop
-     iteration.  */
   int not_every_iteration = 0;
   int maybe_multiple = 0;
   int past_loop_latch = 0;
@@ -4156,8 +4256,7 @@ for_each_insn_in_loop (loop, fncall)
   if (prev_nonnote_insn (loop->scan_start) != prev_nonnote_insn (loop->start))
     maybe_multiple = back_branch_in_range_p (loop, loop->scan_start);
 
-  /* Scan through loop to find all possible bivs.  */
-
+  /* Scan through loop and update NOT_EVERY_ITERATION and MAYBE_MULTIPLE. */
   for (p = next_insn_in_loop (loop, loop->scan_start);
        p != NULL_RTX;
        p = next_insn_in_loop (loop, p))
@@ -4214,9 +4313,9 @@ for_each_insn_in_loop (loop, fncall)
          This can be any kind of jump, since we want to know if insns
          will be executed if the loop is executed.  */
 	  && !(JUMP_LABEL (p) == loop->top
-	     && ((NEXT_INSN (NEXT_INSN (p)) == loop->end
-		  && any_uncondjump_p (p))
-		 || (NEXT_INSN (p) == loop->end && any_condjump_p (p)))))
+	       && ((NEXT_INSN (NEXT_INSN (p)) == loop->end
+		    && any_uncondjump_p (p))
+		   || (NEXT_INSN (p) == loop->end && any_condjump_p (p)))))
 	{
 	  rtx label = 0;
 
@@ -4762,10 +4861,22 @@ loop_givs_rescan (loop, bl, reg_map)
 	}
       else
 	{
+	  rtx original_insn = v->insn;
+	  rtx note;
+
 	  /* Not replaceable; emit an insn to set the original giv reg from
 	     the reduced giv, same as above.  */
-	  loop_insn_emit_after (loop, 0, v->insn,
-				gen_move_insn (v->dest_reg, v->new_reg));
+	  v->insn = loop_insn_emit_after (loop, 0, original_insn,
+					  gen_move_insn (v->dest_reg,
+							 v->new_reg));
+
+ 	  /* The original insn may have a REG_EQUAL note.  This note is
+ 	     now incorrect and may result in invalid substitutions later.
+ 	     The original insn is dead, but may be part of a libcall
+ 	     sequence, which doesn't seem worth the bother of handling.  */
+ 	  note = find_reg_note (original_insn, REG_EQUAL, NULL_RTX);
+ 	  if (note)
+ 	    remove_note (original_insn, note);
 	}
 
       /* When a loop is reversed, givs which depend on the reversed
@@ -4779,7 +4890,8 @@ loop_givs_rescan (loop, bl, reg_map)
 			       v->mult_val, v->add_val, v->dest_reg);
       else if (v->final_value)
 	loop_insn_sink_or_swim (loop,
-				gen_move_insn (v->dest_reg, v->final_value));
+				gen_load_of_final_value (v->dest_reg,
+							 v->final_value));
 
       if (loop_dump_stream)
 	{
@@ -5136,8 +5248,9 @@ strength_reduce (loop, flags)
 	     value, so we don't need another one.  We can't calculate the
 	     proper final value for such a biv here anyways.  */
 	  if (bl->final_value && ! bl->reversed)
-	      loop_insn_sink_or_swim (loop, gen_move_insn
-				      (bl->biv->dest_reg, bl->final_value));
+	      loop_insn_sink_or_swim (loop,
+				      gen_load_of_final_value (bl->biv->dest_reg,
+							       bl->final_value));
 
 	  if (loop_dump_stream)
 	    fprintf (loop_dump_stream, "Reg %d: biv eliminated\n",
@@ -5146,8 +5259,8 @@ strength_reduce (loop, flags)
       /* See above note wrt final_value.  But since we couldn't eliminate
 	 the biv, we must set the value after the loop instead of before.  */
       else if (bl->final_value && ! bl->reversed)
-	loop_insn_sink (loop, gen_move_insn (bl->biv->dest_reg,
-					     bl->final_value));
+	loop_insn_sink (loop, gen_load_of_final_value (bl->biv->dest_reg,
+						       bl->final_value));
     }
 
   /* Go through all the instructions in the loop, making all the
@@ -5194,7 +5307,8 @@ strength_reduce (loop, flags)
      collected.  Always unroll loops that would be as small or smaller
      unrolled than when rolled.  */
   if ((flags & LOOP_UNROLL)
-      || (loop_info->n_iterations > 0
+      || ((flags & LOOP_AUTO_UNROLL)
+	  && loop_info->n_iterations > 0
 	  && unrolled_insn_copies <= insn_count))
     unroll_loop (loop, insn_count, 1);
 
@@ -5206,13 +5320,13 @@ strength_reduce (loop, flags)
   /* In case number of iterations is known, drop branch prediction note
      in the branch.  Do that only in second loop pass, as loop unrolling
      may change the number of iterations performed.  */
-  if ((flags & LOOP_BCT)
-      && loop_info->n_iterations / loop_info->unroll_number > 1)
+  if (flags & LOOP_BCT)
     {
-      int n = loop_info->n_iterations / loop_info->unroll_number;
-      predict_insn (PREV_INSN (loop->end),
-		    PRED_LOOP_ITERATIONS,
-		    REG_BR_PROB_BASE - REG_BR_PROB_BASE / n);
+      unsigned HOST_WIDE_INT n
+	= loop_info->n_iterations / loop_info->unroll_number;
+      if (n > 1)
+	predict_insn (PREV_INSN (loop->end), PRED_LOOP_ITERATIONS,
+		      REG_BR_PROB_BASE - REG_BR_PROB_BASE / n);
     }
 
   if (loop_dump_stream)
@@ -5828,7 +5942,8 @@ check_final_value (loop, v)
 #endif
 
   if ((final_value = final_giv_value (loop, v))
-      && (v->always_computable || last_use_this_basic_block (v->dest_reg, v->insn)))
+      && (v->always_executed
+	  || last_use_this_basic_block (v->dest_reg, v->insn)))
     {
       int biv_increment_seen = 0, before_giv_insn = 0;
       rtx p = v->insn;
@@ -6127,13 +6242,13 @@ basic_induction_var (loop, x, mode, dest_reg, p, inc_val, mult_val, location)
       return 1;
 
     case SUBREG:
-      /* If this is a SUBREG for a promoted variable, check the inner
-	 value.  */
-      if (SUBREG_PROMOTED_VAR_P (x))
-	return basic_induction_var (loop, SUBREG_REG (x),
-				    GET_MODE (SUBREG_REG (x)),
-				    dest_reg, p, inc_val, mult_val, location);
-      return 0;
+      /* If what's inside the SUBREG is a BIV, then the SUBREG.  This will
+	 handle addition of promoted variables.
+	 ??? The comment at the start of this function is wrong: promoted
+	 variable increments don't look like it says they do.  */
+      return basic_induction_var (loop, SUBREG_REG (x),
+				  GET_MODE (SUBREG_REG (x)),
+				  dest_reg, p, inc_val, mult_val, location);
 
     case REG:
       /* If this register is assigned in a previous insn, look at its
@@ -6195,10 +6310,11 @@ basic_induction_var (loop, x, mode, dest_reg, p, inc_val, mult_val, location)
     case CONST:
       /* convert_modes aborts if we try to convert to or from CCmode, so just
          exclude that case.  It is very unlikely that a condition code value
-	 would be a useful iterator anyways.  */
+	 would be a useful iterator anyways.  convert_modes aborts if we try to
+	 convert a float mode to non-float or vice versa too.  */
       if (loop->level == 1
-	  && GET_MODE_CLASS (mode) != MODE_CC
-	  && GET_MODE_CLASS (GET_MODE (dest_reg)) != MODE_CC)
+	  && GET_MODE_CLASS (mode) == GET_MODE_CLASS (GET_MODE (dest_reg))
+	  && GET_MODE_CLASS (mode) != MODE_CC)
 	{
 	  /* Possible bug here?  Perhaps we don't know the mode of X.  */
 	  *inc_val = convert_modes (GET_MODE (dest_reg), mode, x, 0);
@@ -7614,7 +7730,7 @@ gen_add_mult (b, m, a, reg)
   result = expand_mult_add (b, reg, m, a, GET_MODE (reg), 1);
   if (reg != result)
     emit_move_insn (reg, result);
-  seq = gen_sequence ();
+  seq = get_insns ();
   end_sequence ();
 
   return seq;
@@ -7628,24 +7744,29 @@ loop_regs_update (loop, seq)
      const struct loop *loop ATTRIBUTE_UNUSED;
      rtx seq;
 {
+  rtx insn;
+
   /* Update register info for alias analysis.  */
 
-  if (GET_CODE (seq) == SEQUENCE)
+  if (seq == NULL_RTX)
+    return;
+
+  if (INSN_P (seq))
     {
-      int i;
-      for (i = 0; i < XVECLEN (seq, 0); ++i)
+      insn = seq;
+      while (insn != NULL_RTX)
 	{
-	  rtx set = single_set (XVECEXP (seq, 0, i));
+	  rtx set = single_set (insn);
+
 	  if (set && GET_CODE (SET_DEST (set)) == REG)
 	    record_base_value (REGNO (SET_DEST (set)), SET_SRC (set), 0);
+
+	  insn = NEXT_INSN (insn);
 	}
     }
-  else
-    {
-      if (GET_CODE (seq) == SET
-	  && GET_CODE (SET_DEST (seq)) == REG)
-	record_base_value (REGNO (SET_DEST (seq)), SET_SRC (seq), 0);
-    }
+  else if (GET_CODE (seq) == SET
+	   && GET_CODE (SET_DEST (seq)) == REG)
+    record_base_value (REGNO (SET_DEST (seq)), SET_SRC (seq), 0);
 }
 
 
@@ -7768,16 +7889,20 @@ iv_add_mult_cost (b, m, a, reg)
 }
 
 /* Test whether A * B can be computed without
-   an actual multiply insn.  Value is 1 if so.  */
+   an actual multiply insn.  Value is 1 if so.
+
+  ??? This function stinks because it generates a ton of wasted RTL
+  ??? and as a result fragments GC memory to no end.  There are other
+  ??? places in the compiler which are invoked a lot and do the same
+  ??? thing, generate wasted RTL just to see if something is possible.  */
 
 static int
 product_cheap_p (a, b)
      rtx a;
      rtx b;
 {
-  int i;
   rtx tmp;
-  int win = 1;
+  int win, n_insns;
 
   /* If only one is constant, make it B.  */
   if (GET_CODE (a) == CONST_INT)
@@ -7797,31 +7922,31 @@ product_cheap_p (a, b)
 
   start_sequence ();
   expand_mult (GET_MODE (a), a, b, NULL_RTX, 1);
-  tmp = gen_sequence ();
+  tmp = get_insns ();
   end_sequence ();
 
-  if (GET_CODE (tmp) == SEQUENCE)
+  win = 1;
+  if (INSN_P (tmp))
     {
-      if (XVEC (tmp, 0) == 0)
-	win = 1;
-      else if (XVECLEN (tmp, 0) > 3)
-	win = 0;
-      else
-	for (i = 0; i < XVECLEN (tmp, 0); i++)
-	  {
-	    rtx insn = XVECEXP (tmp, 0, i);
+      n_insns = 0;
+      while (tmp != NULL_RTX)
+	{
+	  rtx next = NEXT_INSN (tmp);
 
-	    if (GET_CODE (insn) != INSN
-		|| (GET_CODE (PATTERN (insn)) == SET
-		    && GET_CODE (SET_SRC (PATTERN (insn))) == MULT)
-		|| (GET_CODE (PATTERN (insn)) == PARALLEL
-		    && GET_CODE (XVECEXP (PATTERN (insn), 0, 0)) == SET
-		    && GET_CODE (SET_SRC (XVECEXP (PATTERN (insn), 0, 0))) == MULT))
-	      {
-		win = 0;
-		break;
-	      }
-	  }
+	  if (++n_insns > 3
+	      || GET_CODE (tmp) != INSN
+	      || (GET_CODE (PATTERN (tmp)) == SET
+		  && GET_CODE (SET_SRC (PATTERN (tmp))) == MULT)
+	      || (GET_CODE (PATTERN (tmp)) == PARALLEL
+		  && GET_CODE (XVECEXP (PATTERN (tmp), 0, 0)) == SET
+		  && GET_CODE (SET_SRC (XVECEXP (PATTERN (tmp), 0, 0))) == MULT))
+	    {
+	      win = 0;
+	      break;
+	    }
+
+	  tmp = next;
+	}
     }
   else if (GET_CODE (tmp) == SET
 	   && GET_CODE (SET_SRC (tmp)) == MULT)
@@ -8109,12 +8234,13 @@ check_dbra_loop (loop, insn_count)
 
       if ((num_nonfixed_reads <= 1
 	   && ! loop_info->has_nonconst_call
+	   && ! loop_info->has_prefetch
 	   && ! loop_info->has_volatile
 	   && reversible_mem_store
 	   && (bl->giv_count + bl->biv_count + loop_info->num_mem_sets
 	       + num_unmoved_movables (loop) + compare_and_branch == insn_count)
 	   && (bl == ivs->list && bl->next == 0))
-	  || no_use_except_counting)
+	  || (no_use_except_counting && ! loop_info->has_prefetch))
 	{
 	  rtx tem;
 
@@ -8311,7 +8437,7 @@ check_dbra_loop (loop, insn_count)
 		 create a sequence to hold all the insns from expand_inc.  */
 	      start_sequence ();
 	      expand_inc (reg, new_add_val);
-	      tem = gen_sequence ();
+	      tem = get_insns ();
 	      end_sequence ();
 
 	      p = loop_insn_emit_before (loop, 0, bl->biv->insn, tem);
@@ -8340,7 +8466,7 @@ check_dbra_loop (loop, insn_count)
 	      if ((REGNO_LAST_UID (bl->regno) != INSN_UID (first_compare))
 		  || ! bl->init_insn
 		  || REGNO_FIRST_UID (bl->regno) != INSN_UID (bl->init_insn))
-		loop_insn_sink (loop, gen_move_insn (reg, final_value));
+		loop_insn_sink (loop, gen_load_of_final_value (reg, final_value));
 
 	      /* Delete compare/branch at end of loop.  */
 	      delete_related_insns (PREV_INSN (loop_end));
@@ -8352,7 +8478,7 @@ check_dbra_loop (loop, insn_count)
 	      emit_cmp_and_jump_insns (reg, const0_rtx, cmp_code, NULL_RTX,
 				       GET_MODE (reg), 0,
 				       XEXP (jump_label, 0));
-	      tem = gen_sequence ();
+	      tem = get_insns ();
 	      end_sequence ();
 	      emit_jump_insn_before (tem, loop_end);
 
@@ -8522,9 +8648,9 @@ loop_insn_first_p (insn, reference)
       /* Start with test for not first so that INSN == REFERENCE yields not
          first.  */
       if (q == insn || ! p)
-        return 0;
+	return 0;
       if (p == reference || ! q)
-        return 1;
+	return 1;
 
       /* Either of P or Q might be a NOTE.  Notes have the same LUID as the
          previous insn, hence the <= comparison below does not work if
@@ -8738,6 +8864,22 @@ maybe_eliminate_biv_1 (loop, x, insn, bl, eliminate_p, where_bb, where_insn)
 		if (! biv_elimination_giv_has_0_offset (bl->biv, v, insn))
 		  continue;
 
+		/* Don't eliminate if the linear combination that makes up
+		   the giv overflows when it is applied to ARG.  */
+		if (GET_CODE (arg) == CONST_INT)
+		  {
+		    rtx add_val;
+
+		    if (GET_CODE (v->add_val) == CONST_INT)
+		      add_val = v->add_val;
+		    else
+		      add_val = const0_rtx;
+
+		    if (const_mult_add_overflow_p (arg, v->mult_val,
+						   add_val, mode, 1))
+		      continue;
+		  }
+
 		if (! eliminate_p)
 		  return 1;
 
@@ -8748,13 +8890,10 @@ maybe_eliminate_biv_1 (loop, x, insn, bl, eliminate_p, where_bb, where_insn)
 		   the derived constant can be directly placed in the COMPARE,
 		   do so.  */
 		if (GET_CODE (arg) == CONST_INT
-		    && GET_CODE (v->mult_val) == CONST_INT
 		    && GET_CODE (v->add_val) == CONST_INT)
 		  {
-		    validate_change (insn, &XEXP (x, arg_operand),
-				     GEN_INT (INTVAL (arg)
-					      * INTVAL (v->mult_val)
-					      + INTVAL (v->add_val)), 1);
+		    tem = expand_mult_add (arg, NULL_RTX, v->mult_val,
+					   v->add_val, mode, 1);
 		  }
 		else
 		  {
@@ -8763,8 +8902,10 @@ maybe_eliminate_biv_1 (loop, x, insn, bl, eliminate_p, where_bb, where_insn)
 		    loop_iv_add_mult_emit_before (loop, arg,
 						  v->mult_val, v->add_val,
 						  tem, where_bb, where_insn);
-		    validate_change (insn, &XEXP (x, arg_operand), tem, 1);
 		  }
+
+		validate_change (insn, &XEXP (x, arg_operand), tem, 1);
+
 		if (apply_change_group ())
 		  return 1;
 	      }
@@ -9240,7 +9381,7 @@ canonicalize_condition (insn, cond, reverse, earliest, want_reg)
 	{
 	case LE:
 	  if ((unsigned HOST_WIDE_INT) const_val != max_val >> 1)
-	    code = LT, op1 = GEN_INT (const_val + 1);
+	    code = LT, op1 = gen_int_mode (const_val + 1, GET_MODE (op0));
 	  break;
 
 	/* When cross-compiling, const_val might be sign-extended from
@@ -9249,17 +9390,17 @@ canonicalize_condition (insn, cond, reverse, earliest, want_reg)
 	  if ((HOST_WIDE_INT) (const_val & max_val)
 	      != (((HOST_WIDE_INT) 1
 		   << (GET_MODE_BITSIZE (GET_MODE (op0)) - 1))))
-	    code = GT, op1 = GEN_INT (const_val - 1);
+	    code = GT, op1 = gen_int_mode (const_val - 1, GET_MODE (op0));
 	  break;
 
 	case LEU:
 	  if (uconst_val < max_val)
-	    code = LTU, op1 = GEN_INT (uconst_val + 1);
+	    code = LTU, op1 = gen_int_mode (uconst_val + 1, GET_MODE (op0));
 	  break;
 
 	case GEU:
 	  if (uconst_val != 0)
-	    code = GTU, op1 = GEN_INT (uconst_val - 1);
+	    code = GTU, op1 = gen_int_mode (uconst_val - 1, GET_MODE (op0));
 	  break;
 
 	default:
@@ -9517,11 +9658,11 @@ loop_regs_scan (loop, extra_size)
   if (LOOP_INFO (loop)->has_call)
     for (i = 0; i < FIRST_PSEUDO_REGISTER; i++)
       if (TEST_HARD_REG_BIT (regs_invalidated_by_call, i)
-          && rtx_varies_p (gen_rtx_REG (Pmode, i), /*for_alias=*/1))
-        {
-          regs->array[i].may_not_optimize = 1;
-          regs->array[i].set_in_loop = 1;
-        }
+	  && rtx_varies_p (regno_reg_rtx[i], 1))
+	{
+	  regs->array[i].may_not_optimize = 1;
+	  regs->array[i].set_in_loop = 1;
+	}
 
 #ifdef AVOID_CCMODE_COPIES
   /* Don't try to move insns which set CC registers if we should not
@@ -9760,9 +9901,20 @@ load_mems (loop)
 		  && rtx_equal_p (SET_DEST (set), mem))
 		SET_REGNO_REG_SET (&store_copies, REGNO (SET_SRC (set)));
 
-	      /* Replace the memory reference with the shadow register.  */
-	      replace_loop_mems (p, loop_info->mems[i].mem,
-				 loop_info->mems[i].reg);
+	      /* If this is a call which uses / clobbers this memory
+		 location, we must not change the interface here.  */
+	      if (GET_CODE (p) == CALL_INSN
+		  && reg_mentioned_p (loop_info->mems[i].mem,
+				      CALL_INSN_FUNCTION_USAGE (p)))
+		{
+		  cancel_changes (0);
+		  loop_info->mems[i].optimize = 0;
+		  break;
+		}
+	      else
+	        /* Replace the memory reference with the shadow register.  */
+		replace_loop_mems (p, loop_info->mems[i].mem,
+				   loop_info->mems[i].reg);
 	    }
 
 	  if (GET_CODE (p) == CODE_LABEL
@@ -9770,7 +9922,9 @@ load_mems (loop)
 	    maybe_never = 1;
 	}
 
-      if (! apply_change_group ())
+      if (! loop_info->mems[i].optimize)
+	; /* We found we couldn't do the replacement, so do nothing.  */
+      else if (! apply_change_group ())
 	/* We couldn't replace all occurrences of the MEM.  */
 	loop_info->mems[i].optimize = 0;
       else
@@ -10331,6 +10485,21 @@ loop_insn_sink (loop, pattern)
   return loop_insn_emit_before (loop, 0, loop->sink, pattern);
 }
 
+/* bl->final_value can be eighter general_operand or PLUS of general_operand
+   and constant.  Emit sequence of intructions to load it into REG  */
+static rtx
+gen_load_of_final_value (reg, final_value)
+     rtx reg, final_value;
+{
+  rtx seq;
+  start_sequence ();
+  final_value = force_operand (final_value, reg);
+  if (final_value != reg)
+    emit_move_insn (reg, final_value);
+  seq = get_insns ();
+  end_sequence ();
+  return seq;
+}
 
 /* If the loop has multiple exits, emit insn for PATTERN before the
    loop to ensure that it will always be executed no matter how the
@@ -10430,9 +10599,9 @@ loop_iv_class_dump (bl, file, verbose)
       fprintf (file, " Giv%d: insn %d, benefit %d, ",
 	       i, INSN_UID (v->insn), v->benefit);
       if (v->giv_type == DEST_ADDR)
-	  print_simple_rtl (file, v->mem);
+	print_simple_rtl (file, v->mem);
       else
-	  print_simple_rtl (file, single_set (v->insn));
+	print_simple_rtl (file, single_set (v->insn));
       fputc ('\n', file);
     }
 }
@@ -10475,7 +10644,7 @@ loop_giv_dump (v, file, verbose)
 
   if (v->giv_type == DEST_REG)
     fprintf (file, "Giv %d: insn %d",
-	     REGNO (v->dest_reg),  INSN_UID (v->insn));
+	     REGNO (v->dest_reg), INSN_UID (v->insn));
   else
     fprintf (file, "Dest address: insn %d",
 	     INSN_UID (v->insn));

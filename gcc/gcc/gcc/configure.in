@@ -184,4 +184,12 @@ if test $ac_cv_c___int64 = yes; then
   gcc_AC_COMPILE_CHECK_SIZEOF(__int64)
 fi
 
+# Look for a file containing extra machine modes.
+AC_DEFINE_UNQUOTED(EXTRA_MODES_FILE, "config/arm/arm-modes.def",
+  [Define to the name of a file containing a list of extra machine modes
+   for this architecture.])
+AC_DEFINE(EXTRA_CC_MODES, 1,
+  [Define if the target architecture needs extra machine modes to represent
+   the results of comparisons.])
+
 AC_OUTPUT([Makefile])

@@ -27,70 +27,6 @@ Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 #include "errors.h"
 
 
-/* Calculate the format for CONST_DOUBLE.  This depends on the relative
-   widths of HOST_WIDE_INT and REAL_VALUE_TYPE.
-
-   We need to go out to 0wwwww, since REAL_ARITHMETIC assumes 16-bits
-   per element in REAL_VALUE_TYPE.
-
-   This is duplicated in gengenrtl.c.
-
-   A number of places assume that there are always at least two 'w'
-   slots in a CONST_DOUBLE, so we provide them even if one would suffice.  */
-
-#ifdef REAL_ARITHMETIC
-# if MAX_LONG_DOUBLE_TYPE_SIZE == 96
-#  define REAL_WIDTH	\
-     (11*8 + HOST_BITS_PER_WIDE_INT)/HOST_BITS_PER_WIDE_INT
-# else
-#  if MAX_LONG_DOUBLE_TYPE_SIZE == 128
-#   define REAL_WIDTH	\
-      (19*8 + HOST_BITS_PER_WIDE_INT)/HOST_BITS_PER_WIDE_INT
-#  else
-#   if HOST_FLOAT_FORMAT != TARGET_FLOAT_FORMAT
-#    define REAL_WIDTH	\
-       (7*8 + HOST_BITS_PER_WIDE_INT)/HOST_BITS_PER_WIDE_INT
-#   endif
-#  endif
-# endif
-#endif /* REAL_ARITHMETIC */
-
-#ifndef REAL_WIDTH
-# if HOST_BITS_PER_WIDE_INT*2 >= MAX_LONG_DOUBLE_TYPE_SIZE
-#  define REAL_WIDTH	2
-# else
-#  if HOST_BITS_PER_WIDE_INT*3 >= MAX_LONG_DOUBLE_TYPE_SIZE
-#   define REAL_WIDTH	3
-#  else
-#   if HOST_BITS_PER_WIDE_INT*4 >= MAX_LONG_DOUBLE_TYPE_SIZE
-#    define REAL_WIDTH	4
-#   endif
-#  endif
-# endif
-#endif /* REAL_WIDTH */
-
-#if REAL_WIDTH == 1
-# define CONST_DOUBLE_FORMAT	"0ww"
-#else
-# if REAL_WIDTH == 2
-#  define CONST_DOUBLE_FORMAT	"0ww"
-# else
-#  if REAL_WIDTH == 3
-#   define CONST_DOUBLE_FORMAT	"0www"
-#  else
-#   if REAL_WIDTH == 4
-#    define CONST_DOUBLE_FORMAT	"0wwww"
-#   else
-#    if REAL_WIDTH == 5
-#     define CONST_DOUBLE_FORMAT	"0wwwww"
-#    else
-#     define CONST_DOUBLE_FORMAT	/* nothing - will cause syntax error */
-#    endif
-#   endif
-#  endif
-# endif
-#endif
-
 /* Indexed by rtx code, gives number of operands for an rtx with that code.
    Does NOT include rtx header data (code and links).  */
 
@@ -115,7 +51,7 @@ const char * const rtx_name[NUM_RTX_CODE] = {
 /* Indexed by machine mode, gives the name of that machine mode.
    This name does not include the letters "mode".  */
 
-#define DEF_MACHMODE(SYM, NAME, CLASS, BITSIZE, SIZE, UNIT, WIDER)  NAME,
+#define DEF_MACHMODE(SYM, NAME, CLASS, BITSIZE, SIZE, UNIT, WIDER, INNER)  NAME,
 
 const char * const mode_name[NUM_MACHINE_MODES] = {
 #include "machmode.def"
@@ -125,7 +61,7 @@ const char * const mode_name[NUM_MACHINE_MODES] = {
 
 /* Indexed by machine mode, gives the class mode for GET_MODE_CLASS.  */
 
-#define DEF_MACHMODE(SYM, NAME, CLASS, BITSIZE, SIZE, UNIT, WIDER)  CLASS,
+#define DEF_MACHMODE(SYM, NAME, CLASS, BITSIZE, SIZE, UNIT, WIDER, INNER)  CLASS,
 
 const enum mode_class mode_class[NUM_MACHINE_MODES] = {
 #include "machmode.def"
@@ -136,7 +72,7 @@ const enum mode_class mode_class[NUM_MACHINE_MODES] = {
 /* Indexed by machine mode, gives the length of the mode, in bits.
    GET_MODE_BITSIZE uses this.  */
 
-#define DEF_MACHMODE(SYM, NAME, CLASS, BITSIZE, SIZE, UNIT, WIDER)  BITSIZE,
+#define DEF_MACHMODE(SYM, NAME, CLASS, BITSIZE, SIZE, UNIT, WIDER, INNER)  BITSIZE,
 
 const unsigned short mode_bitsize[NUM_MACHINE_MODES] = {
 #include "machmode.def"
@@ -147,7 +83,7 @@ const unsigned short mode_bitsize[NUM_MACHINE_MODES] = {
 /* Indexed by machine mode, gives the length of the mode, in bytes.
    GET_MODE_SIZE uses this.  */
 
-#define DEF_MACHMODE(SYM, NAME, CLASS, BITSIZE, SIZE, UNIT, WIDER)  SIZE,
+#define DEF_MACHMODE(SYM, NAME, CLASS, BITSIZE, SIZE, UNIT, WIDER, INNER)  SIZE,
 
 const unsigned char mode_size[NUM_MACHINE_MODES] = {
 #include "machmode.def"
@@ -158,7 +94,7 @@ const unsigned char mode_size[NUM_MACHINE_MODES] = {
 /* Indexed by machine mode, gives the length of the mode's subunit.
    GET_MODE_UNIT_SIZE uses this.  */
 
-#define DEF_MACHMODE(SYM, NAME, CLASS, BITSIZE, SIZE, UNIT, WIDER)  UNIT,
+#define DEF_MACHMODE(SYM, NAME, CLASS, BITSIZE, SIZE, UNIT, WIDER, INNER)  UNIT,
 
 const unsigned char mode_unit_size[NUM_MACHINE_MODES] = {
 #include "machmode.def"		/* machine modes are documented here */
@@ -170,7 +106,7 @@ const unsigned char mode_unit_size[NUM_MACHINE_MODES] = {
    (QI -> HI -> SI -> DI, etc.)  Widening multiply instructions
    use this.  */
 
-#define DEF_MACHMODE(SYM, NAME, CLASS, BITSIZE, SIZE, UNIT, WIDER)  \
+#define DEF_MACHMODE(SYM, NAME, CLASS, BITSIZE, SIZE, UNIT, WIDER, INNER)  \
   (unsigned char) WIDER,
 
 const unsigned char mode_wider_mode[NUM_MACHINE_MODES] = {
@@ -179,12 +115,23 @@ const unsigned char mode_wider_mode[NUM_MACHINE_MODES] = {
 
 #undef DEF_MACHMODE
 
-#define DEF_MACHMODE(SYM, NAME, CLASS, BITSIZE, SIZE, UNIT, WIDER)  \
+#define DEF_MACHMODE(SYM, NAME, CLASS, BITSIZE, SIZE, UNIT, WIDER, INNER)  \
   ((BITSIZE) >= HOST_BITS_PER_WIDE_INT) ? ~(unsigned HOST_WIDE_INT) 0 : ((unsigned HOST_WIDE_INT) 1 << (BITSIZE)) - 1,
 
 /* Indexed by machine mode, gives mask of significant bits in mode.  */
 
 const unsigned HOST_WIDE_INT mode_mask_array[NUM_MACHINE_MODES] = {
+#include "machmode.def"
+};
+
+#undef DEF_MACHMODE
+
+#define DEF_MACHMODE(SYM, NAME, CLASS, BITSIZE, SIZE, UNIT, WIDER, INNER) INNER,
+
+/* Indexed by machine mode, gives the mode of the inner elements in a
+   vector type.  */
+
+const enum machine_mode inner_mode_array[NUM_MACHINE_MODES] = {
 #include "machmode.def"
 };
 
@@ -267,9 +214,9 @@ const char * const note_insn_name[NOTE_INSN_MAX - NOTE_INSN_BIAS] =
   "NOTE_INSN_PROLOGUE_END", "NOTE_INSN_EPILOGUE_BEG",
   "NOTE_INSN_DELETED_LABEL", "NOTE_INSN_FUNCTION_BEG",
   "NOTE_INSN_EH_REGION_BEG", "NOTE_INSN_EH_REGION_END",
-  "NOTE_INSN_REPEATED_LINE_NUMBER", "NOTE_INSN_RANGE_BEG",
-  "NOTE_INSN_RANGE_END", "NOTE_INSN_LIVE",
-  "NOTE_INSN_BASIC_BLOCK", "NOTE_INSN_EXPECTED_VALUE"
+  "NOTE_INSN_REPEATED_LINE_NUMBER",
+  "NOTE_INSN_BASIC_BLOCK", "NOTE_INSN_EXPECTED_VALUE",
+  "NOTE_INSN_PREDICTION"
 };
 
 const char * const reg_note_name[] =
@@ -346,6 +293,7 @@ copy_rtx (orig)
     case QUEUED:
     case CONST_INT:
     case CONST_DOUBLE:
+    case CONST_VECTOR:
     case SYMBOL_REF:
     case CODE_LABEL:
     case PC:
@@ -383,13 +331,13 @@ copy_rtx (orig)
 
   /* We do not copy the USED flag, which is used as a mark bit during
      walks over the RTL.  */
-  copy->used = 0;
+  RTX_FLAG (copy, used) = 0;
 
   /* We do not copy FRAME_RELATED for INSNs.  */
   if (GET_RTX_CLASS (code) == 'i')
-    copy->frame_related = 0;
-  copy->jump = orig->jump;
-  copy->call = orig->call;
+    RTX_FLAG (copy, frame_related) = 0;
+  RTX_FLAG (copy, jump) = RTX_FLAG (orig, jump);
+  RTX_FLAG (copy, call) = RTX_FLAG (orig, call);
 
   format_ptr = GET_RTX_FORMAT (GET_CODE (copy));
 
@@ -420,107 +368,9 @@ copy_rtx (orig)
 	case 'S':
 	case 'T':
 	case 'u':
+	case 'B':
 	case '0':
 	  /* These are left unchanged.  */
-	  break;
-
-	default:
-	  abort ();
-	}
-    }
-  return copy;
-}
-
-/* Similar to `copy_rtx' except that if MAY_SHARE is present, it is
-   placed in the result directly, rather than being copied.  */
-
-rtx
-copy_most_rtx (orig, may_share)
-     rtx orig;
-     rtx may_share;
-{
-  rtx copy;
-  int i, j;
-  RTX_CODE code;
-  const char *format_ptr;
-
-  if (orig == may_share)
-    return orig;
-
-  code = GET_CODE (orig);
-
-  switch (code)
-    {
-    case REG:
-    case QUEUED:
-    case CONST_INT:
-    case CONST_DOUBLE:
-    case SYMBOL_REF:
-    case CODE_LABEL:
-    case PC:
-    case CC0:
-      return orig;
-    default:
-      break;
-    }
-
-  copy = rtx_alloc (code);
-  PUT_MODE (copy, GET_MODE (orig));
-  copy->in_struct = orig->in_struct;
-  copy->volatil = orig->volatil;
-  copy->unchanging = orig->unchanging;
-  copy->integrated = orig->integrated;
-  copy->frame_related = orig->frame_related;
-
-  format_ptr = GET_RTX_FORMAT (GET_CODE (copy));
-
-  for (i = 0; i < GET_RTX_LENGTH (GET_CODE (copy)); i++)
-    {
-      switch (*format_ptr++)
-	{
-	case 'e':
-	  XEXP (copy, i) = XEXP (orig, i);
-	  if (XEXP (orig, i) != NULL && XEXP (orig, i) != may_share)
-	    XEXP (copy, i) = copy_most_rtx (XEXP (orig, i), may_share);
-	  break;
-
-	case 'u':
-	  XEXP (copy, i) = XEXP (orig, i);
-	  break;
-
-	case 'E':
-	case 'V':
-	  XVEC (copy, i) = XVEC (orig, i);
-	  if (XVEC (orig, i) != NULL)
-	    {
-	      XVEC (copy, i) = rtvec_alloc (XVECLEN (orig, i));
-	      for (j = 0; j < XVECLEN (copy, i); j++)
-		XVECEXP (copy, i, j)
-		  = copy_most_rtx (XVECEXP (orig, i, j), may_share);
-	    }
-	  break;
-
-	case 'w':
-	  XWINT (copy, i) = XWINT (orig, i);
-	  break;
-
-	case 'n':
-	case 'i':
-	  XINT (copy, i) = XINT (orig, i);
-	  break;
-
-	case 't':
-	  XTREE (copy, i) = XTREE (orig, i);
-	  break;
-
-	case 's':
-	case 'S':
-	  XSTR (copy, i) = XSTR (orig, i);
-	  break;
-
-	case '0':
-	  /* Copy this through the wide int field; that's safest.  */
-	  X0WINT (copy, i) = X0WINT (orig, i);
 	  break;
 
 	default:
@@ -541,11 +391,11 @@ shallow_copy_rtx (orig)
   rtx copy = rtx_alloc (code);
 
   PUT_MODE (copy, GET_MODE (orig));
-  copy->in_struct = orig->in_struct;
-  copy->volatil = orig->volatil;
-  copy->unchanging = orig->unchanging;
-  copy->integrated = orig->integrated;
-  copy->frame_related = orig->frame_related;
+  RTX_FLAG (copy, in_struct) = RTX_FLAG (orig, in_struct);
+  RTX_FLAG (copy, volatil) = RTX_FLAG (orig, volatil);
+  RTX_FLAG (copy, unchanging) = RTX_FLAG (orig, unchanging);
+  RTX_FLAG (copy, integrated) = RTX_FLAG (orig, integrated);
+  RTX_FLAG (copy, frame_related) = RTX_FLAG (orig, frame_related);
 
   for (i = 0; i < GET_RTX_LENGTH (code); i++)
     copy->fld[i] = orig->fld[i];
@@ -560,8 +410,14 @@ unsigned int
 get_mode_alignment (mode)
      enum machine_mode mode;
 {
-  unsigned int alignment = GET_MODE_UNIT_SIZE (mode);
-  
+  unsigned int alignment;
+
+  if (GET_MODE_CLASS (mode) == MODE_COMPLEX_FLOAT
+      || GET_MODE_CLASS (mode) == MODE_COMPLEX_INT)
+    alignment = GET_MODE_UNIT_SIZE (mode);
+  else
+    alignment = GET_MODE_SIZE (mode);
+
   /* Extract the LSB of the size.  */
   alignment = alignment & -alignment;
   alignment *= BITS_PER_UNIT;
@@ -626,6 +482,7 @@ rtx_equal_p (x, y)
     case SCRATCH:
     case CONST_DOUBLE:
     case CONST_INT:
+    case CONST_VECTOR:
       return 0;
 
     default:
@@ -781,3 +638,18 @@ rtvec_check_failed_bounds (r, n, file, line, func)
      n, GET_NUM_ELEM (r) - 1, func, trim_filename (file), line);
 }
 #endif /* ENABLE_RTL_CHECKING */
+
+#if defined ENABLE_RTL_FLAG_CHECKING
+void
+rtl_check_failed_flag (name, r, file, line, func)
+    const char *name;
+    rtx r;
+    const char *file;
+    int line;
+    const char *func;
+{
+  internal_error
+    ("RTL flag check: %s used with unexpected rtx code `%s' in %s, at %s:%d",
+     name, GET_RTX_NAME (GET_CODE (r)), func, trim_filename (file), line);
+}
+#endif /* ENABLE_RTL_FLAG_CHECKING */

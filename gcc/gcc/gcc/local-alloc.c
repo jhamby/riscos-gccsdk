@@ -245,7 +245,7 @@ static rtx this_insn;
 struct equivalence
 {
   /* Set when an attempt should be made to replace a register
-     with the associated src entry.  */
+     with the associated src_p entry.  */
 
   char replace;
 
@@ -255,7 +255,7 @@ struct equivalence
 
   rtx replacement;
 
-  rtx src;
+  rtx *src_p;
 
   /* Loop depth is used to recognize equivalences which appear
      to be present within the same loop (or in an inner loop).  */
@@ -336,8 +336,9 @@ alloc_qty (regno, mode, size, birth)
 int
 local_alloc ()
 {
-  int b, i;
+  int i;
   int max_qty;
+  basic_block b;
 
   /* We need to keep track of whether or not we recorded a LABEL_REF so
      that we know if the jump optimizer needs to be rerun.  */
@@ -352,7 +353,8 @@ local_alloc ()
 
   /* Promote REG_EQUAL notes to REG_EQUIV notes and adjust status of affected
      registers.  */
-  update_equiv_regs ();
+  if (optimize)
+    update_equiv_regs ();
 
   /* This sets the maximum number of quantities we can have.  Quantity
      numbers start at zero and we can have one for each pseudo.  */
@@ -393,7 +395,7 @@ local_alloc ()
 
   /* Allocate each block's local registers, block by block.  */
 
-  for (b = 0; b < n_basic_blocks; b++)
+  FOR_EACH_BB (b)
     {
       /* NEXT_QTY indicates which elements of the `qty_...'
 	 vectors might need to be initialized because they were used
@@ -425,7 +427,7 @@ local_alloc ()
 
       next_qty = 0;
 
-      block_alloc (b);
+      block_alloc (b->index);
     }
 
   free (qty);
@@ -539,6 +541,7 @@ equiv_init_varies_p (x)
     case CONST:
     case CONST_INT:
     case CONST_DOUBLE:
+    case CONST_VECTOR:
     case SYMBOL_REF:
     case LABEL_REF:
       return 0;
@@ -658,10 +661,10 @@ contains_replace_regs (x)
     case LABEL_REF:
     case SYMBOL_REF:
     case CONST_DOUBLE:
+    case CONST_VECTOR:
     case PC:
     case CC0:
     case HIGH:
-    case LO_SUM:
       return 0;
 
     case REG:
@@ -708,6 +711,7 @@ memref_referenced_p (memref, x)
     case LABEL_REF:
     case SYMBOL_REF:
     case CONST_DOUBLE:
+    case CONST_VECTOR:
     case PC:
     case CC0:
     case HIGH:
@@ -812,7 +816,7 @@ static void
 update_equiv_regs ()
 {
   rtx insn;
-  int block;
+  basic_block bb;
   int loop_depth;
   regset_head cleared_regs;
   int clear_regnos = 0;
@@ -825,9 +829,8 @@ update_equiv_regs ()
   /* Scan the insns and find which registers have equivalences.  Do this
      in a separate scan of the insns because (due to -fcse-follow-jumps)
      a register can be set below its use.  */
-  for (block = 0; block < n_basic_blocks; block++)
+  FOR_EACH_BB (bb)
     {
-      basic_block bb = BASIC_BLOCK (block);
       loop_depth = bb->loop_depth;
 
       for (insn = bb->head; insn != NEXT_INSN (bb->end); insn = NEXT_INSN (insn))
@@ -1002,7 +1005,7 @@ update_equiv_regs ()
 		recorded_label_ref = 1;
 
 	      reg_equiv[regno].replacement = XEXP (note, 0);
-	      reg_equiv[regno].src = src;
+	      reg_equiv[regno].src_p = &SET_SRC (set);
 	      reg_equiv[regno].loop_depth = loop_depth;
 
 	      /* Don't mess with things live during setjmp.  */
@@ -1041,10 +1044,8 @@ update_equiv_regs ()
      within the same loop (or in an inner loop), then move the register
      initialization just before the use, so that they are in the same
      basic block.  */
-  for (block = n_basic_blocks - 1; block >= 0; block--)
+  FOR_EACH_BB_REVERSE (bb)
     {
-      basic_block bb = BASIC_BLOCK (block);
-
       loop_depth = bb->loop_depth;
       for (insn = bb->end; insn != PREV_INSN (bb->head); insn = PREV_INSN (insn))
 	{
@@ -1084,7 +1085,7 @@ update_equiv_regs ()
 
 		  if (asm_noperands (PATTERN (equiv_insn)) < 0
 		      && validate_replace_rtx (regno_reg_rtx[regno],
-					       reg_equiv[regno].src, insn))
+					       *(reg_equiv[regno].src_p), insn))
 		    {
 		      rtx equiv_link;
 		      rtx last_link;
@@ -1114,7 +1115,7 @@ update_equiv_regs ()
 		      REG_N_REFS (regno) = 0;
 		      REG_FREQ (regno) = 0;
 		      delete_insn (equiv_insn);
-		      
+
 		      reg_equiv[regno].init_insns
 			= XEXP (reg_equiv[regno].init_insns, 1);
 		    }
@@ -1136,12 +1137,12 @@ update_equiv_regs ()
 
 		      XEXP (reg_equiv[regno].init_insns, 0) = new_insn;
 
-		      REG_BASIC_BLOCK (regno) = block >= 0 ? block : 0;
+		      REG_BASIC_BLOCK (regno) = bb->index;
 		      REG_N_CALLS_CROSSED (regno) = 0;
 		      REG_LIVE_LENGTH (regno) = 2;
 
-		      if (block >= 0 && insn == BLOCK_HEAD (block))
-			BLOCK_HEAD (block) = PREV_INSN (insn);
+		      if (insn == bb->head)
+			bb->head = PREV_INSN (insn);
 
 		      /* Remember to clear REGNO from all basic block's live
 			 info.  */
@@ -1156,24 +1157,22 @@ update_equiv_regs ()
   /* Clear all dead REGNOs from all basic block's live info.  */
   if (clear_regnos)
     {
-      int j, l;
+      int j;
       if (clear_regnos > 8)
-        {
-	  for (l = 0; l < n_basic_blocks; l++)
+	{
+	  FOR_EACH_BB (bb)
 	    {
-	      AND_COMPL_REG_SET (BASIC_BLOCK (l)->global_live_at_start,
-	                         &cleared_regs);
-	      AND_COMPL_REG_SET (BASIC_BLOCK (l)->global_live_at_end,
-	                         &cleared_regs);
+	      AND_COMPL_REG_SET (bb->global_live_at_start, &cleared_regs);
+	      AND_COMPL_REG_SET (bb->global_live_at_end, &cleared_regs);
 	    }
 	}
       else
-        EXECUTE_IF_SET_IN_REG_SET (&cleared_regs, 0, j,
-          {
-	    for (l = 0; l < n_basic_blocks; l++)
+	EXECUTE_IF_SET_IN_REG_SET (&cleared_regs, 0, j,
+	  {
+	    FOR_EACH_BB (bb)
 	      {
-	        CLEAR_REGNO_REG_SET (BASIC_BLOCK (l)->global_live_at_start, j);
-	        CLEAR_REGNO_REG_SET (BASIC_BLOCK (l)->global_live_at_end, j);
+	        CLEAR_REGNO_REG_SET (bb->global_live_at_start, j);
+	        CLEAR_REGNO_REG_SET (bb->global_live_at_end, j);
 	      }
 	  });
     }
@@ -1343,7 +1342,8 @@ block_alloc (b)
 		  /* If the operand is an address, find a register in it.
 		     There may be more than one register, but we only try one
 		     of them.  */
-		  if (recog_data.constraints[i][0] == 'p')
+		  if (recog_data.constraints[i][0] == 'p'
+		      || EXTRA_ADDRESS_CONSTRAINT (recog_data.constraints[i][0]))
 		    while (GET_CODE (r1) == PLUS || GET_CODE (r1) == MULT)
 		      r1 = XEXP (r1, 0);
 
@@ -2473,7 +2473,8 @@ requires_inout (p)
 	break;
 
       default:
-	if (REG_CLASS_FROM_LETTER (c) == NO_REGS)
+	if (REG_CLASS_FROM_LETTER (c) == NO_REGS
+	    && !EXTRA_ADDRESS_CONSTRAINT (c))
 	  break;
 	/* FALLTHRU */
       case 'p':

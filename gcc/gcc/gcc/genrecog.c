@@ -43,11 +43,11 @@
 
    This program also generates the function `split_insns', which
    returns 0 if the rtl could not be split, or it returns the split
-   rtl in a SEQUENCE.
+   rtl as an INSN list.
 
    This program also generates the function `peephole2_insns', which
    returns 0 if the rtl could not be matched.  If there was a match,
-   the new rtl is returned in a SEQUENCE, and LAST_INSN will point
+   the new rtl is returned in an INSN list, and LAST_INSN will point
    to the last recognized insn in the old sequence.  */
 
 #include "hconfig.h"
@@ -238,8 +238,6 @@ static void validate_pattern
 static struct decision *add_to_sequence
   PARAMS ((rtx, struct decision_head *, const char *, enum routine_type, int));
 
-static int maybe_both_true_mode
-  PARAMS ((enum machine_mode, enum machine_mode));
 static int maybe_both_true_2
   PARAMS ((struct decision_test *, struct decision_test *));
 static int maybe_both_true_1
@@ -1056,29 +1054,6 @@ add_to_sequence (pattern, last, position, insn_type, top)
   return sub;
 }
 
-/* A subroutine of maybe_both_true; compares two modes.
-   Returns > 0 for "definitely both true" and < 0 for "maybe both true".  */
-
-static int
-maybe_both_true_mode (m1, m2)
-     enum machine_mode m1, m2;
-{
-  enum mode_class other_mode_class;
-
-  /* Pmode is not a distinct mode.  We do know that it is
-     either MODE_INT or MODE_PARTIAL_INT though.  */
-  if (m1 == Pmode)
-    other_mode_class = GET_MODE_CLASS (m2);
-  else if (m2 == Pmode)
-    other_mode_class = GET_MODE_CLASS (m1);
-  else
-    return m1 == m2;
-
-  return (other_mode_class == MODE_INT
-	  || other_mode_class == MODE_PARTIAL_INT
-	  ? -1 : 0);
-}
-
 /* A subroutine of maybe_both_true; examines only one test.
    Returns > 0 for "definitely both true" and < 0 for "maybe both true".  */
 
@@ -1091,7 +1066,7 @@ maybe_both_true_2 (d1, d2)
       switch (d1->type)
 	{
 	case DT_mode:
-	  return maybe_both_true_mode (d1->u.mode, d2->u.mode);
+	  return d1->u.mode == d2->u.mode;
 
 	case DT_code:
 	  return d1->u.code == d2->u.code;
@@ -1127,7 +1102,7 @@ maybe_both_true_2 (d1, d2)
 	{
 	  if (d2->type == DT_mode)
 	    {
-	      if (maybe_both_true_mode (d1->u.pred.mode, d2->u.mode) == 0
+	      if (d1->u.pred.mode != d2->u.mode
 		  /* The mode of an address_operand predicate is the
 		     mode of the memory, not the operand.  It can only
 		     be used for testing the predicate, so we must
@@ -1910,9 +1885,6 @@ write_switch (start, depth)
 	   || type == DT_elt_zero_wide_safe)
     {
       const char *indent = "";
-      /* Pmode may not be a compile-time constant.  */
-      if (type == DT_mode && p->tests->u.mode == Pmode)
-	return p;
 
       /* We cast switch parameter to integer, so we must ensure that the value
 	 fits.  */
@@ -1956,10 +1928,6 @@ write_switch (start, depth)
 	    if (nodes_identical_1 (p->tests, q->tests))
 	      goto case_done;
 
-	  /* Pmode may not be a compile-time constant.  */
-	  if (type == DT_mode && p->tests->u.mode == Pmode)
-	    goto case_done;
-
 	  if (p != start && p->need_label && needs_label == NULL)
 	    needs_label = p;
 
@@ -1976,7 +1944,7 @@ write_switch (start, depth)
 	    case DT_elt_one_int:
 	    case DT_elt_zero_wide:
 	    case DT_elt_zero_wide_safe:
-	      printf (HOST_WIDE_INT_PRINT_DEC, p->tests->u.intval);
+	      printf (HOST_WIDE_INT_PRINT_DEC_C, p->tests->u.intval);
 	      break;
 	    default:
 	      abort ();
@@ -2035,7 +2003,7 @@ write_cond (p, depth, subroutine_type)
     case DT_elt_zero_wide:
     case DT_elt_zero_wide_safe:
       printf ("XWINT (x%d, 0) == ", depth);
-      printf (HOST_WIDE_INT_PRINT_DEC, p->u.intval);
+      printf (HOST_WIDE_INT_PRINT_DEC_C, p->u.intval);
       break;
 
     case DT_veclen_ge:
@@ -2463,10 +2431,10 @@ write_header ()
 
   puts ("\n\
    The function split_insns returns 0 if the rtl could not\n\
-   be split or the split rtl in a SEQUENCE if it can be.\n\
+   be split or the split rtl as an INSN list if it can be.\n\
 \n\
    The function peephole2_insns returns 0 if the rtl could not\n\
-   be matched. If there was a match, the new rtl is returned in a SEQUENCE,\n\
+   be matched. If there was a match, the new rtl is returned in an INSN list,\n\
    and LAST_INSN will point to the last recognized insn in the old sequence.\n\
 */\n\n");
 }
@@ -2484,10 +2452,15 @@ make_insn_sequence (insn, type)
 {
   rtx x;
   const char *c_test = XSTR (insn, type == RECOG ? 2 : 1);
+  int truth = maybe_eval_c_test (c_test);
   struct decision *last;
   struct decision_test *test, **place;
   struct decision_head head;
   char c_test_pos[2];
+
+  /* We should never see an insn whose C test is false at compile time.  */
+  if (truth == 0)
+    abort ();
 
   record_insn_name (next_insn_code, (type == RECOG ? XSTR (insn, 0) : NULL));
 
@@ -2536,7 +2509,8 @@ make_insn_sequence (insn, type)
     continue;
   place = &test->next;
 
-  if (c_test[0])
+  /* Skip the C test if it's known to be true at compile time.  */
+  if (truth == -1)
     {
       /* Need a new node if we have another test to add.  */
       if (test->type == DT_accept_op)
@@ -2609,7 +2583,9 @@ make_insn_sequence (insn, type)
 		  place = &last->tests;
 		}
 
-	      if (c_test[0])
+	      /* Skip the C test if it's known to be true at compile
+                 time.  */
+	      if (truth == -1)
 		{
 		  test = new_decision_test (DT_c_test, &place);
 		  test->u.c_test = c_test;

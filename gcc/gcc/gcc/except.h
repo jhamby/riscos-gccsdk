@@ -1,5 +1,5 @@
 /* Exception Handling interface routines.
-   Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001
+   Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002
    Free Software Foundation, Inc.
    Contributed by Mike Stump <mrs@cygnus.com>.
 
@@ -83,22 +83,9 @@ extern void expand_eh_region_end_throw		PARAMS ((tree));
    destroying an object twice.  */
 extern void expand_eh_region_end_fixup		PARAMS ((tree));
 
-/* Begin a region that will contain entries created with
-   add_partial_entry.  */
-extern void begin_protect_partials              PARAMS ((void));
-
-/* Create a new exception region and add the handler for the region
-   onto a list. These regions will be ended (and their handlers emitted)
-   when end_protect_partials is invoked.  */
-extern void add_partial_entry			PARAMS ((tree));
-
-/* End all of the pending exception regions that have handlers added with
-   add_partial_entry.  */
-extern void end_protect_partials		PARAMS ((void));
-
-
-/* A list of labels used for exception handlers.  */
-extern rtx exception_handler_labels;
+/* Invokes CALLBACK for every exception handler label.  Only used by old
+   loop hackery; should not be used by new code.  */
+extern void for_each_eh_label			PARAMS ((void (*) (rtx)));
 
 /* Determine if the given INSN can throw an exception.  */
 extern bool can_throw_internal			PARAMS ((rtx));
@@ -120,6 +107,7 @@ extern void maybe_remove_eh_handler		PARAMS ((rtx));
 extern void convert_from_eh_region_ranges	PARAMS ((void));
 extern void convert_to_eh_region_ranges		PARAMS ((void));
 extern void find_exception_handler_labels	PARAMS ((void));
+extern bool current_function_has_exception_handlers PARAMS ((void));
 extern void output_function_exception_table	PARAMS ((void));
 
 extern void expand_builtin_unwind_init		PARAMS ((void));

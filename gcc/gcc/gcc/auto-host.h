@@ -29,7 +29,6 @@
 #define PACKAGE "gcc"
 #define VERSION "3.1.0"
 #define HAVE_CPP_STRINGIFY 1
-#define STRING_WITH_STRINGS 1
 
 /* Define if you have the atoll function.  */
 #define HAVE_ATOLL 1
@@ -231,6 +230,14 @@
 
 /* The number of bytes in type __int64 */
 /* #undef SIZEOF___INT64 */
+
+/* Define to the name of a file containing a list of extra machine modes
+   for this architecture. */
+#define EXTRA_MODES_FILE "config/arm/arm-modes.def"
+
+/* Define if the target architecture needs extra machine modes to represent
+   the results of comparisons. */
+#define EXTRA_CC_MODES 1
 
 
 /* Bison unconditionally undefines `const' if neither `__STDC__' nor

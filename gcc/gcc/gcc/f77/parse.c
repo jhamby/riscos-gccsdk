@@ -26,12 +26,11 @@ the Free Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 #include "version.h"
 #include "flags.h"
 
-#define NAME_OF_STDIN "<stdin>"
-
 extern FILE *finput;
 
-int
-yyparse ()
+void
+ffe_parse_file (set_yydebug)
+     int set_yydebug ATTRIBUTE_UNUSED;
 {
   ffewhereFile wf;
 
@@ -46,6 +45,4 @@ yyparse ()
   ffe_file (wf, finput);
 
   ffecom_finish_compile ();
-
-  return 0;
 }

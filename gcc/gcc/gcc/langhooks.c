@@ -1,5 +1,5 @@
 /* Default language-specific hooks.
-   Copyright 2001 Free Software Foundation, Inc.
+   Copyright 2001, 2002 Free Software Foundation, Inc.
    Contributed by Alexandre Oliva  <aoliva@redhat.com>
 
 This file is part of GNU CC.
@@ -28,6 +28,7 @@ Boston, MA 02111-1307, USA.  */
 #include "rtl.h"
 #include "insn-config.h"
 #include "integrate.h"
+#include "flags.h"
 #include "langhooks.h"
 #include "langhooks-def.h"
 
@@ -38,6 +39,30 @@ lhd_do_nothing ()
 {
 }
 
+/* Do nothing (tree).  */
+
+void
+lhd_do_nothing_t (t)
+     tree t ATTRIBUTE_UNUSED;
+{
+}
+
+/* Do nothing (int).  */
+
+void
+lhd_do_nothing_i (i)
+     int i ATTRIBUTE_UNUSED;
+{
+}
+
+/* Do nothing (function).  */
+
+void
+lhd_do_nothing_f (f)
+     struct function *f ATTRIBUTE_UNUSED;
+{
+}
+
 /* Do nothing (return the tree node passed).  */
 
 tree
@@ -45,6 +70,15 @@ lhd_return_tree (t)
      tree t;
 {
   return t;
+}
+
+/* Do nothing (return NULL_TREE).  */
+
+tree
+lhd_return_null_tree (t)
+     tree t ATTRIBUTE_UNUSED;
+{
+  return NULL_TREE;
 }
 
 /* Do nothing; the default hook to decode an option.  */
@@ -77,6 +111,15 @@ lhd_safe_from_p (x, exp)
   return 1;
 }
 
+/* Called from unsafe_for_reeval.  */
+
+int
+lhd_unsafe_for_reeval (t)
+     tree t ATTRIBUTE_UNUSED;
+{
+  return -1;
+}
+
 /* Called from staticp.  */
 
 int
@@ -86,14 +129,50 @@ lhd_staticp (exp)
   return 0;
 }
 
-/* Called when -dy is given on the command line.  */
+/* Called from check_global_declarations.  */
 
-void
-lhd_set_yydebug (value)
-     int value;
+bool
+lhd_warn_unused_global_decl (decl)
+     tree decl;
 {
-  if (value)
-    fprintf (stderr, "warning: no yacc/bison-generated output to debug!\n");
+  /* This is what used to exist in check_global_declarations.  Probably
+     not many of these actually apply to non-C languages.  */
+
+  if (TREE_CODE (decl) == FUNCTION_DECL && DECL_INLINE (decl))
+    return false;
+  if (TREE_CODE (decl) == VAR_DECL && TREE_READONLY (decl))
+    return false;
+  if (DECL_IN_SYSTEM_HEADER (decl))
+    return false;
+
+  return true;
+}
+
+/* Set the DECL_ASSEMBLER_NAME for DECL.  */
+void
+lhd_set_decl_assembler_name (decl)
+     tree decl;
+{
+  /* The language-independent code should never use the
+     DECL_ASSEMBLER_NAME for lots of DECLs.  Only FUNCTION_DECLs and
+     VAR_DECLs for variables with static storage duration need a real
+     DECL_ASSEMBLER_NAME.  */
+  if (TREE_CODE (decl) == FUNCTION_DECL
+      || (TREE_CODE (decl) == VAR_DECL
+	  && (TREE_STATIC (decl)
+	      || DECL_EXTERNAL (decl)
+	      || TREE_PUBLIC (decl))))
+    /* By default, assume the name to use in assembly code is the
+       same as that used in the source language.  (That's correct
+       for C, and GCC used to set DECL_ASSEMBLER_NAME to the same
+       value as DECL_NAME in build_decl, so this choice provides
+       backwards compatibility with existing front-ends.  */
+    SET_DECL_ASSEMBLER_NAME (decl, DECL_NAME (decl));
+  else
+    /* Nobody should ever be asking for the DECL_ASSEMBLER_NAME of
+       these DECLs -- unless they're in language-dependent code, in
+       which case set_decl_assembler_name hook should handle things.  */
+    abort ();
 }
 
 /* Provide a default routine to clear the binding stack.  This is used
@@ -101,8 +180,27 @@ lhd_set_yydebug (value)
 void
 lhd_clear_binding_stack ()
 {
-  while (! global_bindings_p ())
+  while (! (*lang_hooks.decls.global_bindings_p) ())
     poplevel (0, 0, 0);
+}
+
+/* Type promotion for variable arguments.  */
+tree
+lhd_type_promotes_to (type)
+     tree type ATTRIBUTE_UNUSED;
+{
+  abort ();
+}
+
+/* Invalid use of an incomplete type.  */
+void
+lhd_incomplete_type_error (value, type)
+     tree value ATTRIBUTE_UNUSED, type;
+{
+  if (TREE_CODE (type) == ERROR_MARK)
+    return;
+
+  abort ();
 }
 
 /* Provide a default routine for alias sets that always returns -1.  This
@@ -123,6 +221,28 @@ hook_get_alias_set_0 (t)
      tree t ATTRIBUTE_UNUSED;
 {
   return 0;
+}
+
+/* This is the default expand_expr function.  */
+
+rtx
+lhd_expand_expr (t, r, mm, em)
+     tree t ATTRIBUTE_UNUSED;
+     rtx r ATTRIBUTE_UNUSED;
+     enum machine_mode mm ATTRIBUTE_UNUSED;
+     int em ATTRIBUTE_UNUSED;
+{
+  abort ();
+}
+
+/* This is the default decl_printable_name function.  */
+
+const char *
+lhd_decl_printable_name (decl, verbosity)
+     tree decl;
+     int verbosity ATTRIBUTE_UNUSED;
+{
+  return IDENTIFIER_POINTER (DECL_NAME (decl));
 }
 
 /* lang_hooks.tree_inlining.walk_subtrees is called by walk_tree()
@@ -153,8 +273,12 @@ lhd_tree_inlining_walk_subtrees (tp,subtrees,func,data,htab)
 
 int
 lhd_tree_inlining_cannot_inline_tree_fn (fnp)
-     tree *fnp ATTRIBUTE_UNUSED;
+     tree *fnp;
 {
+  if (flag_really_no_inline
+      && lookup_attribute ("always_inline", DECL_ATTRIBUTES (*fnp)) == NULL)
+    return 1;
+
   return 0;
 }
 
@@ -164,8 +288,11 @@ lhd_tree_inlining_cannot_inline_tree_fn (fnp)
 
 int
 lhd_tree_inlining_disregard_inline_limits (fn)
-     tree fn ATTRIBUTE_UNUSED;
+     tree fn;
 {
+  if (lookup_attribute ("always_inline", DECL_ATTRIBUTES (fn)) != NULL)
+    return 1;
+
   return 0;
 }
 
@@ -261,8 +388,20 @@ lhd_tree_inlining_end_inlining (fn)
 {
 }
 
-/* lang_hooks.tree_dump.dump_tree:  Dump language-specific parts of tree 
-   nodes.  Returns non-zero if it does not want the usual dumping of the 
+/* lang_hooks.tree_inlining.convert_parm_for_inlining performs any
+   language-specific conversion before assigning VALUE to PARM.  */
+
+tree
+lhd_tree_inlining_convert_parm_for_inlining (parm, value, fndecl)
+     tree parm ATTRIBUTE_UNUSED;
+     tree value;
+     tree fndecl ATTRIBUTE_UNUSED;
+{
+  return value;
+}
+
+/* lang_hooks.tree_dump.dump_tree:  Dump language-specific parts of tree
+   nodes.  Returns non-zero if it does not want the usual dumping of the
    second argument.  */
 
 int
@@ -273,7 +412,7 @@ lhd_tree_dump_dump_tree (di, t)
   return 0;
 }
 
-/* lang_hooks.tree_dump.type_qual:  Determine type qualifiers in a 
+/* lang_hooks.tree_dump.type_qual:  Determine type qualifiers in a
    language-specific way.  */
 
 int
@@ -283,3 +422,16 @@ lhd_tree_dump_type_quals (t)
   return TYPE_QUALS (t);
 }
 
+/* lang_hooks.expr_size: Determine the size of the value of an expression T
+   in a language-specific way.  Returns a tree for the size in bytes.  */
+
+tree
+lhd_expr_size (exp)
+     tree exp;
+{
+  if (TREE_CODE_CLASS (TREE_CODE (exp)) == 'd'
+      && DECL_SIZE_UNIT (exp) != 0)
+    return DECL_SIZE_UNIT (exp);
+  else
+    return size_in_bytes (TREE_TYPE (exp));
+}

@@ -34,6 +34,7 @@ Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 #include "insn-config.h"
 #include "ggc.h"
 #include "recog.h"
+#include "langhooks.h"
 
 static rtx break_out_memory_refs	PARAMS ((rtx));
 static void emit_stack_probe		PARAMS ((rtx));
@@ -142,7 +143,7 @@ plus_constant_wide (x, c)
 	 Look for constant term in the sum and combine
 	 with C.  For an integer constant term, we make a combined
 	 integer.  For a constant term that is not an explicit integer,
-	 we cannot really combine, but group them together anyway.  
+	 we cannot really combine, but group them together anyway.
 
 	 Restart or use a recursive call in case the remaining operand is
 	 something that we handle specially, such as a SYMBOL_REF.
@@ -285,20 +286,33 @@ rtx
 expr_size (exp)
      tree exp;
 {
-  tree size;
-
-  if (TREE_CODE_CLASS (TREE_CODE (exp)) == 'd'
-      && DECL_SIZE_UNIT (exp) != 0)
-    size = DECL_SIZE_UNIT (exp);
-  else
-    size = size_in_bytes (TREE_TYPE (exp));
+  tree size = (*lang_hooks.expr_size) (exp);
 
   if (TREE_CODE (size) != INTEGER_CST
       && contains_placeholder_p (size))
     size = build (WITH_RECORD_EXPR, sizetype, size, exp);
 
   return expand_expr (size, NULL_RTX, TYPE_MODE (sizetype), 0);
+}
 
+/* Return a wide integer for the size in bytes of the value of EXP, or -1
+   if the size can vary or is larger than an integer.  */
+
+HOST_WIDE_INT
+int_expr_size (exp)
+     tree exp;
+{
+  tree t = (*lang_hooks.expr_size) (exp);
+
+  if (t == 0
+      || TREE_CODE (t) != INTEGER_CST
+      || TREE_OVERFLOW (t)
+      || TREE_INT_CST_HIGH (t) != 0
+      /* If the result would appear negative, it's too big to represent.  */
+      || (HOST_WIDE_INT) TREE_INT_CST_LOW (t) < 0)
+    return -1;
+
+  return TREE_INT_CST_LOW (t);
 }
 
 /* Return a copy of X in which all memory references
@@ -353,6 +367,7 @@ convert_memory_address (to_mode, x)
 {
   enum machine_mode from_mode = to_mode == ptr_mode ? Pmode : ptr_mode;
   rtx temp;
+  enum rtx_code code;
 
   /* Here we handle some special cases.  If none of them apply, fall through
      to the default case.  */
@@ -360,57 +375,59 @@ convert_memory_address (to_mode, x)
     {
     case CONST_INT:
     case CONST_DOUBLE:
-      return x;
+      if (GET_MODE_SIZE (to_mode) < GET_MODE_SIZE (from_mode))
+	code = TRUNCATE;
+      else if (POINTERS_EXTEND_UNSIGNED < 0)
+	break;
+      else if (POINTERS_EXTEND_UNSIGNED > 0)
+	code = ZERO_EXTEND;
+      else
+	code = SIGN_EXTEND;
+      temp = simplify_unary_operation (code, to_mode, x, from_mode);
+      if (temp)
+	return temp;
+      break;
 
     case SUBREG:
-      if (POINTERS_EXTEND_UNSIGNED >= 0
-	  && (SUBREG_PROMOTED_VAR_P (x) || REG_POINTER (SUBREG_REG (x)))
+      if ((SUBREG_PROMOTED_VAR_P (x) || REG_POINTER (SUBREG_REG (x)))
 	  && GET_MODE (SUBREG_REG (x)) == to_mode)
 	return SUBREG_REG (x);
       break;
 
     case LABEL_REF:
-      if (POINTERS_EXTEND_UNSIGNED >= 0)
-	{
-	  temp = gen_rtx_LABEL_REF (to_mode, XEXP (x, 0));
-	  LABEL_REF_NONLOCAL_P (temp) = LABEL_REF_NONLOCAL_P (x);
-	  return temp;
-	}
+      temp = gen_rtx_LABEL_REF (to_mode, XEXP (x, 0));
+      LABEL_REF_NONLOCAL_P (temp) = LABEL_REF_NONLOCAL_P (x);
+      return temp;
       break;
 
     case SYMBOL_REF:
-      if (POINTERS_EXTEND_UNSIGNED >= 0)
-	{
-	  temp = gen_rtx_SYMBOL_REF (to_mode, XSTR (x, 0));
-	  SYMBOL_REF_FLAG (temp) = SYMBOL_REF_FLAG (x);
-	  CONSTANT_POOL_ADDRESS_P (temp) = CONSTANT_POOL_ADDRESS_P (x);
-	  STRING_POOL_ADDRESS_P (temp) = STRING_POOL_ADDRESS_P (x);
-	  return temp;
-	}
+      temp = gen_rtx_SYMBOL_REF (to_mode, XSTR (x, 0));
+      SYMBOL_REF_FLAG (temp) = SYMBOL_REF_FLAG (x);
+      CONSTANT_POOL_ADDRESS_P (temp) = CONSTANT_POOL_ADDRESS_P (x);
+      STRING_POOL_ADDRESS_P (temp) = STRING_POOL_ADDRESS_P (x);
+      return temp;
       break;
 
     case CONST:
-      if (POINTERS_EXTEND_UNSIGNED >= 0)
-        return gen_rtx_CONST (to_mode, 
-			      convert_memory_address (to_mode, XEXP (x, 0)));
+      return gen_rtx_CONST (to_mode,
+			    convert_memory_address (to_mode, XEXP (x, 0)));
       break;
 
     case PLUS:
     case MULT:
-      /* For addition the second operand is a small constant, we can safely
-	 permute the conversion and addition operation.  We can always safely
-	 permute them if we are making the address narrower.  In addition,
-	 always permute the operations if this is a constant.  */
-      if (POINTERS_EXTEND_UNSIGNED >= 0
-	  && (GET_MODE_SIZE (to_mode) < GET_MODE_SIZE (from_mode)
-	      || (GET_CODE (x) == PLUS && GET_CODE (XEXP (x, 1)) == CONST_INT
-		  && (INTVAL (XEXP (x, 1)) + 20000 < 40000
-		      || CONSTANT_P (XEXP (x, 0))))))
-	return gen_rtx_fmt_ee (GET_CODE (x), to_mode, 
+      /* For addition we can safely permute the conversion and addition
+	 operation if one operand is a constant and converting the constant
+	 does not change it.  We can always safely permute them if we are
+	 making the address narrower.  */
+      if (GET_MODE_SIZE (to_mode) < GET_MODE_SIZE (from_mode)
+	  || (GET_CODE (x) == PLUS
+	      && GET_CODE (XEXP (x, 1)) == CONST_INT
+	      && XEXP (x, 1) == convert_memory_address (to_mode, XEXP (x, 1))))
+	return gen_rtx_fmt_ee (GET_CODE (x), to_mode,
 			       convert_memory_address (to_mode, XEXP (x, 0)),
-			       convert_memory_address (to_mode, XEXP (x, 1)));
+			       XEXP (x, 1));
       break;
-      
+
     default:
       break;
     }
@@ -670,12 +687,12 @@ copy_to_reg (x)
      rtx x;
 {
   rtx temp = gen_reg_rtx (GET_MODE (x));
- 
+
   /* If not an operand, must be an address with PLUS and MULT so
-     do the computation.  */ 
+     do the computation.  */
   if (! general_operand (x, VOIDmode))
     x = force_operand (x, temp);
-  
+
   if (x != temp)
     emit_move_insn (temp, x);
 
@@ -701,9 +718,9 @@ copy_to_mode_reg (mode, x)
      rtx x;
 {
   rtx temp = gen_reg_rtx (mode);
-  
+
   /* If not an operand, must be an address with PLUS and MULT so
-     do the computation.  */ 
+     do the computation.  */
   if (! general_operand (x, VOIDmode))
     x = force_operand (x, temp);
 
@@ -731,13 +748,24 @@ force_reg (mode, x)
 
   if (GET_CODE (x) == REG)
     return x;
-  
-  temp = gen_reg_rtx (mode);
-  
-  if (! general_operand (x, mode))
-    x = force_operand (x, NULL_RTX);
-  
-  insn = emit_move_insn (temp, x);
+
+  if (general_operand (x, mode))
+    {
+      temp = gen_reg_rtx (mode);
+      insn = emit_move_insn (temp, x);
+    }
+  else
+    {
+      temp = force_operand (x, NULL_RTX);
+      if (GET_CODE (temp) == REG)
+	insn = get_last_insn ();
+      else
+	{
+	  rtx temp2 = gen_reg_rtx (mode);
+	  insn = emit_move_insn (temp2, temp);
+	  temp = temp2;
+	}
+    }
 
   /* Let optimizers know that TEMP's value never changes
      and that X can be substituted for it.  Don't get confused
@@ -746,6 +774,7 @@ force_reg (mode, x)
       && (set = single_set (insn)) != 0
       && SET_DEST (set) == temp)
     set_unique_reg_note (insn, REG_EQUAL, x);
+
   return temp;
 }
 
@@ -823,7 +852,7 @@ promote_mode (type, mode, punsignedp, for_call)
       unsignedp = POINTERS_EXTEND_UNSIGNED;
       break;
 #endif
-      
+
     default:
       break;
     }
@@ -997,7 +1026,7 @@ emit_stack_save (save_level, psave, after)
       if (sa != 0)
 	sa = validize_mem (sa);
       emit_insn (fcn (sa, stack_pointer_rtx));
-      seq = gen_sequence ();
+      seq = get_insns ();
       end_sequence ();
       emit_insn_after (seq, after);
     }
@@ -1010,9 +1039,9 @@ emit_stack_save (save_level, psave, after)
 }
 
 /* Restore the stack pointer for the purpose in SAVE_LEVEL.  SA is the save
-   area made by emit_stack_save.  If it is zero, we have nothing to do. 
+   area made by emit_stack_save.  If it is zero, we have nothing to do.
 
-   Put any emitted insns after insn AFTER, if nonzero, otherwise at 
+   Put any emitted insns after insn AFTER, if nonzero, otherwise at
    current position.  */
 
 void
@@ -1050,7 +1079,17 @@ emit_stack_restore (save_level, sa, after)
     }
 
   if (sa != 0)
-    sa = validize_mem (sa);
+    {
+      sa = validize_mem (sa);
+      /* These clobbers prevent the scheduler from moving
+	 references to variable arrays below the code
+	 that deletes (pops) the arrays. */
+      emit_insn (gen_rtx_CLOBBER (VOIDmode,
+		    gen_rtx_MEM (BLKmode, 
+			gen_rtx_SCRATCH (VOIDmode))));
+      emit_insn (gen_rtx_CLOBBER (VOIDmode,
+		    gen_rtx_MEM (BLKmode, stack_pointer_rtx)));
+    }
 
   if (after)
     {
@@ -1058,7 +1097,7 @@ emit_stack_restore (save_level, sa, after)
 
       start_sequence ();
       emit_insn (fcn (stack_pointer_rtx, sa));
-      seq = gen_sequence ();
+      seq = get_insns ();
       end_sequence ();
       emit_insn_after (seq, after);
     }
@@ -1096,7 +1135,7 @@ optimize_save_area_alloca (insns)
 
 	      /* If we do not see the note in a pattern matching
 		 these precise characteristics, we did something
-		 entirely wrong in allocate_dynamic_stack_space. 
+		 entirely wrong in allocate_dynamic_stack_space.
 
 		 Note, one way this could happen is if SETJMP_VIA_SAVE_AREA
 		 was defined on a machine where stacks grow towards higher
@@ -1187,7 +1226,7 @@ allocate_dynamic_stack_space (size, target, known_align)
 
   /* We will need to ensure that the address we return is aligned to
      BIGGEST_ALIGNMENT.  If STACK_DYNAMIC_OFFSET is defined, we don't
-     always know its final value at this point in the compilation (it 
+     always know its final value at this point in the compilation (it
      might depend on the size of the outgoing parameter lists, for
      example), so we must align the value to be returned in that case.
      (Note that STACK_DYNAMIC_OFFSET will have a default non-zero value if
@@ -1206,7 +1245,7 @@ allocate_dynamic_stack_space (size, target, known_align)
 
   if (MUST_ALIGN)
     size
-      = force_operand (plus_constant (size, 
+      = force_operand (plus_constant (size,
 				      BIGGEST_ALIGNMENT / BITS_PER_UNIT - 1),
 		       NULL_RTX);
 
@@ -1339,11 +1378,11 @@ allocate_dynamic_stack_space (size, target, known_align)
 	  rtx available;
 	  rtx space_available = gen_label_rtx ();
 #ifdef STACK_GROWS_DOWNWARD
-	  available = expand_binop (Pmode, sub_optab, 
+	  available = expand_binop (Pmode, sub_optab,
 				    stack_pointer_rtx, stack_limit_rtx,
 				    NULL_RTX, 1, OPTAB_WIDEN);
 #else
-	  available = expand_binop (Pmode, sub_optab, 
+	  available = expand_binop (Pmode, sub_optab,
 				    stack_limit_rtx, stack_pointer_rtx,
 				    NULL_RTX, 1, OPTAB_WIDEN);
 #endif
@@ -1363,7 +1402,7 @@ allocate_dynamic_stack_space (size, target, known_align)
 #ifdef SETJMP_VIA_SAVE_AREA
       if (setjmpless_size != NULL_RTX)
 	{
- 	  rtx note_target = get_last_insn ();
+	  rtx note_target = get_last_insn ();
 
 	  REG_NOTES (note_target)
 	    = gen_rtx_EXPR_LIST (REG_SAVE_AREA, setjmpless_size,
@@ -1391,7 +1430,7 @@ allocate_dynamic_stack_space (size, target, known_align)
 			    GEN_INT (BIGGEST_ALIGNMENT / BITS_PER_UNIT),
 			    NULL_RTX, 1);
     }
-  
+
   /* Some systems require a particular insn to refer to the stack
      to make the pages exist.  */
 #ifdef HAVE_probe
@@ -1406,18 +1445,17 @@ allocate_dynamic_stack_space (size, target, known_align)
   return target;
 }
 
-/* A front end may want to override GCC's stack checking by providing a 
+/* A front end may want to override GCC's stack checking by providing a
    run-time routine to call to check the stack, so provide a mechanism for
    calling that routine.  */
 
-static rtx stack_check_libfunc;
+static GTY(()) rtx stack_check_libfunc;
 
 void
 set_stack_check_libfunc (libfunc)
      rtx libfunc;
 {
   stack_check_libfunc = libfunc;
-  ggc_add_rtx_root (&stack_check_libfunc, 1);
 }
 
 /* Emit one stack probe at ADDRESS, an address within the stack.  */
@@ -1436,7 +1474,7 @@ emit_stack_probe (address)
     emit_move_insn (memref, const0_rtx);
 }
 
-/* Probe a range of stack addresses from FIRST to FIRST+SIZE, inclusive. 
+/* Probe a range of stack addresses from FIRST to FIRST+SIZE, inclusive.
    FIRST is a constant and size is a Pmode RTX.  These are offsets from the
    current stack pointer.  STACK_GROWS_DOWNWARD says whether to add or
    subtract from the stack.  If SIZE is constant, this is done
@@ -1462,9 +1500,9 @@ probe_stack_range (first, size)
   if (stack_check_libfunc != 0)
     {
       rtx addr = memory_address (QImode,
-				 gen_rtx (STACK_GROW_OP, Pmode,
-					  stack_pointer_rtx,
-					  plus_constant (size, first)));
+				 gen_rtx_fmt_ee (STACK_GROW_OP, Pmode,
+					         stack_pointer_rtx,
+					         plus_constant (size, first)));
 
 #ifdef POINTERS_EXTEND_UNSIGNED
       if (GET_MODE (addr) != ptr_mode)
@@ -1481,9 +1519,9 @@ probe_stack_range (first, size)
     {
       insn_operand_predicate_fn pred;
       rtx last_addr
-	= force_operand (gen_rtx_STACK_GROW_OP (Pmode,
-						stack_pointer_rtx,
-						plus_constant (size, first)),
+	= force_operand (gen_rtx_fmt_ee (STACK_GROW_OP, Pmode,
+					 stack_pointer_rtx,
+					 plus_constant (size, first)),
 			 NULL_RTX);
 
       pred = insn_data[(int) CODE_FOR_check_stack].operand[0].predicate;
@@ -1603,21 +1641,25 @@ hard_function_value (valtype, func, outgoing)
       unsigned HOST_WIDE_INT bytes = int_size_in_bytes (valtype);
       enum machine_mode tmpmode;
 
+      /* int_size_in_bytes can return -1.  We don't need a check here
+	 since the value of bytes will be large enough that no mode
+	 will match and we will abort later in this function.  */
+
       for (tmpmode = GET_CLASS_NARROWEST_MODE (MODE_INT);
-           tmpmode != VOIDmode;
-           tmpmode = GET_MODE_WIDER_MODE (tmpmode))
-        {
-          /* Have we found a large enough mode?  */
-          if (GET_MODE_SIZE (tmpmode) >= bytes)
-            break;
-        }
+	   tmpmode != VOIDmode;
+	   tmpmode = GET_MODE_WIDER_MODE (tmpmode))
+	{
+	  /* Have we found a large enough mode?  */
+	  if (GET_MODE_SIZE (tmpmode) >= bytes)
+	    break;
+	}
 
       /* No suitable mode found.  */
       if (tmpmode == VOIDmode)
-        abort ();
+	abort ();
 
       PUT_MODE (val, tmpmode);
-    }      
+    }
   return val;
 }
 
@@ -1668,3 +1710,6 @@ rtx_to_tree_code (code)
     }
   return ((int) tcode);
 }
+
+#include "gt-explow.h"
+

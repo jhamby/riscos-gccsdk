@@ -85,11 +85,18 @@ print_mem_expr (outfile, expr)
   if (TREE_CODE (expr) == COMPONENT_REF)
     {
       if (TREE_OPERAND (expr, 0))
-        print_mem_expr (outfile, TREE_OPERAND (expr, 0));
+	print_mem_expr (outfile, TREE_OPERAND (expr, 0));
       else
 	fputs (" <variable>", outfile);
-      fprintf (outfile, ".%s",
-	       IDENTIFIER_POINTER (DECL_NAME (TREE_OPERAND (expr, 1))));
+      if (DECL_NAME (TREE_OPERAND (expr, 1)))
+	fprintf (outfile, ".%s",
+		 IDENTIFIER_POINTER (DECL_NAME (TREE_OPERAND (expr, 1))));
+    }
+  else if (TREE_CODE (expr) == INDIRECT_REF)
+    {
+      fputs (" (*", outfile);
+      print_mem_expr (outfile, TREE_OPERAND (expr, 0));
+      fputs (")", outfile);
     }
   else if (DECL_NAME (expr))
     fprintf (outfile, " %s", IDENTIFIER_POINTER (DECL_NAME (expr)));
@@ -151,34 +158,34 @@ print_rtx (in_rtx)
 	fputc ('(', outfile);
       else
 	fprintf (outfile, "(%s", GET_RTX_NAME (GET_CODE (in_rtx)));
-      
+
       if (! flag_simple)
 	{
-	  if (in_rtx->in_struct)
+	  if (RTX_FLAG (in_rtx, in_struct))
 	    fputs ("/s", outfile);
 
-	  if (in_rtx->volatil)
+	  if (RTX_FLAG (in_rtx, volatil))
 	    fputs ("/v", outfile);
-	  
-	  if (in_rtx->unchanging)
+
+	  if (RTX_FLAG (in_rtx, unchanging))
 	    fputs ("/u", outfile);
-	  
-	  if (in_rtx->integrated)
+
+	  if (RTX_FLAG (in_rtx, integrated))
 	    fputs ("/i", outfile);
-	  
-	  if (in_rtx->frame_related)
+
+	  if (RTX_FLAG (in_rtx, frame_related))
 	    fputs ("/f", outfile);
-	  
-	  if (in_rtx->jump)
+
+	  if (RTX_FLAG (in_rtx, jump))
 	    fputs ("/j", outfile);
-	  
-	  if (in_rtx->call)
+
+	  if (RTX_FLAG (in_rtx, call))
 	    fputs ("/c", outfile);
 
 	  if (GET_MODE (in_rtx) != VOIDmode)
 	    {
 	      /* Print REG_NOTE names for EXPR_LIST and INSN_LIST.  */
-	      if (GET_CODE (in_rtx) == EXPR_LIST 
+	      if (GET_CODE (in_rtx) == EXPR_LIST
 		  || GET_CODE (in_rtx) == INSN_LIST)
 		fprintf (outfile, ":%s",
 			 GET_REG_NOTE_NAME (GET_MODE (in_rtx)));
@@ -227,7 +234,7 @@ print_rtx (in_rtx)
 	      fprintf (outfile, " [%d]", ORIGINAL_REGNO (in_rtx));
 	    break;
 	  }
-	if (i == 3 && GET_CODE (in_rtx) == NOTE)
+	if (i == 4 && GET_CODE (in_rtx) == NOTE)
 	  {
 	    switch (NOTE_LINE_NUMBER (in_rtx))
 	      {
@@ -246,19 +253,9 @@ print_rtx (in_rtx)
 		if (flag_dump_unnumbered)
 		  fprintf (outfile, "#");
 		else
-		  fprintf (outfile, HOST_PTR_PRINTF, 
+		  fprintf (outfile, HOST_PTR_PRINTF,
 			   (char *) NOTE_BLOCK (in_rtx));
 		sawclose = 1;
-		break;
-
-	      case NOTE_INSN_RANGE_BEG:
-	      case NOTE_INSN_RANGE_END:
-	      case NOTE_INSN_LIVE:
-		indent += 2;
-		if (!sawclose)
-		  fprintf (outfile, " ");
-		print_rtx (NOTE_RANGE_INFO (in_rtx));
-		indent -= 2;
 		break;
 
 	      case NOTE_INSN_BASIC_BLOCK:
@@ -282,6 +279,15 @@ print_rtx (in_rtx)
 		  fprintf (outfile, " (\"%s\")", NOTE_SOURCE_FILE (in_rtx));
 		else
 		  fprintf (outfile, " \"\"");
+		break;
+
+	      case NOTE_INSN_PREDICTION:
+		if (NOTE_PREDICTION (in_rtx))
+		  fprintf (outfile, " [ %d %d ] ",
+			   (int)NOTE_PREDICTION_ALG (in_rtx),
+			   (int) NOTE_PREDICTION_FLAGS (in_rtx));
+		else
+		  fprintf (outfile, " [ ERROR ]");
 		break;
 
 	      default:
@@ -320,10 +326,10 @@ print_rtx (in_rtx)
 	if (sawclose)
 	  {
 	    fprintf (outfile, "\n%s%*s",
-                     print_rtx_head, indent * 2, "");
+		     print_rtx_head, indent * 2, "");
 	    sawclose = 0;
 	  }
-	fputs ("[ ", outfile);
+	fputs (" [", outfile);
 	if (NULL != XVEC (in_rtx, i))
 	  {
 	    indent += 2;
@@ -338,7 +344,7 @@ print_rtx (in_rtx)
 	if (sawclose)
 	  fprintf (outfile, "\n%s%*s", print_rtx_head, indent * 2, "");
 
-	fputs ("] ", outfile);
+	fputs ("]", outfile);
 	sawclose = 1;
 	indent -= 2;
 	break;
@@ -356,7 +362,7 @@ print_rtx (in_rtx)
 	break;
 
       case 'i':
-	if (i == 5 && GET_CODE (in_rtx) == NOTE)
+	if (i == 6 && GET_CODE (in_rtx) == NOTE)
 	  {
 	    /* This field is only used for NOTE_INSN_DELETED_LABEL, and
 	       other times often contains garbage from INSN->NOTE death.  */
@@ -466,6 +472,11 @@ print_rtx (in_rtx)
 	sawclose = 0;
 	break;
 
+      case 'B':
+	if (XBBDEF (in_rtx, i))
+	  fprintf (outfile, " %i", XBBDEF (in_rtx, i)->index);
+	break;
+
       default:
 	fprintf (stderr,
 		 "switch format wrong in rtl.print_rtx(). format was: %c.\n",
@@ -502,22 +513,33 @@ print_rtx (in_rtx)
       fputc (']', outfile);
       break;
 
-#if HOST_FLOAT_FORMAT == TARGET_FLOAT_FORMAT && MAX_LONG_DOUBLE_TYPE_SIZE == 64
+#if 0
+    /* It would be nice to do this, but it would require real.o to
+       be linked into the MD-generator programs.  Maybe we should
+       do that.  -zw 2002-03-03  */
     case CONST_DOUBLE:
       if (FLOAT_MODE_P (GET_MODE (in_rtx)))
 	{
-	  double val;
+	  REAL_VALUE_TYPE val;
+	  char s[30];
+
 	  REAL_VALUE_FROM_CONST_DOUBLE (val, in_rtx);
-	  fprintf (outfile, " [%.16g]", val);
+	  REAL_VALUE_TO_DECIMAL (val, "%.16g", s);
+	  fprintf (outfile, " [%s]", s);
 	}
       break;
 #endif
 
     case CODE_LABEL:
       fprintf (outfile, " [%d uses]", LABEL_NUSES (in_rtx));
-      if (LABEL_ALTERNATE_NAME (in_rtx))
-        fprintf (outfile, " [alternate name: %s]",
-		 LABEL_ALTERNATE_NAME (in_rtx));
+      switch (LABEL_KIND (in_rtx))
+	{
+	  case LABEL_NORMAL: break;
+	  case LABEL_STATIC_ENTRY: fputs (" [entry]", outfile); break;
+	  case LABEL_GLOBAL_ENTRY: fputs (" [global entry]", outfile); break;
+	  case LABEL_WEAK_ENTRY: fputs (" [weak entry]", outfile); break;
+	  default: abort();
+	}
       break;
 
     case CALL_PLACEHOLDER:
@@ -605,6 +627,7 @@ debug_rtx (x)
      rtx x;
 {
   outfile = stderr;
+  sawclose = 0;
   print_rtx (x);
   fprintf (stderr, "\n");
 }
@@ -641,7 +664,10 @@ debug_rtx_list (x, n)
       }
 
   for (i = count, insn = x; i > 0 && insn != 0; i--, insn = NEXT_INSN (insn))
-    debug_rtx (insn);
+    {
+      debug_rtx (insn);
+      fprintf (stderr, "\n");
+    }
 }
 
 /* Call this function to print an rtx list from START to END inclusive.  */
@@ -653,6 +679,7 @@ debug_rtx_range (start, end)
   while (1)
     {
       debug_rtx (start);
+      fprintf (stderr, "\n");
       if (!start || start == end)
 	break;
       start = NEXT_INSN (start);
@@ -716,14 +743,14 @@ print_rtl (outf, rtx_first)
 	  if (! flag_dump_unnumbered
 	      || GET_CODE (tmp_rtx) != NOTE || NOTE_LINE_NUMBER (tmp_rtx) < 0)
 	    {
-              fputs (print_rtx_head, outfile);
+	      fputs (print_rtx_head, outfile);
 	      print_rtx (tmp_rtx);
 	      fprintf (outfile, "\n");
 	    }
 	break;
 
       default:
-        fputs (print_rtx_head, outfile);
+	fputs (print_rtx_head, outfile);
 	print_rtx (rtx_first);
       }
 }

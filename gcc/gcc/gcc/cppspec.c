@@ -53,7 +53,6 @@ Software Foundation, 59 Temple Place - Suite 330, Boston, MA
   || !strcmp (STR, "idirafter") || !strcmp (STR, "iprefix") \
   || !strcmp (STR, "iwithprefix") || !strcmp (STR, "iwithprefixbefore") \
   || !strcmp (STR, "isystem") || !strcmp (STR, "specs") \
-  || !strcmp (STR, "icrossdirafter") /* NAB */ \
   || !strcmp (STR, "MF") || !strcmp (STR, "MT") || !strcmp (STR, "MQ"))
 
 #ifndef WORD_SWITCH_TAKES_ARG
@@ -91,7 +90,7 @@ lang_specific_driver (in_argc, in_argv, in_added_libraries)
 
   /* Have we seen an input file? */
   int seen_input = 0;
-  
+
   /* Positions to insert -xc, -xassembler-with-cpp, and -o, if necessary.
      0 means unnecessary.  */
   int lang_c_here = 0;
@@ -100,7 +99,7 @@ lang_specific_driver (in_argc, in_argv, in_added_libraries)
 
   /* Do we need to fix up an input file with an unrecognized suffix? */
   int need_fixups = 1;
-  
+
   int i, j, quote = 0;
   const char **new_argv;
   int new_argc;
@@ -118,7 +117,7 @@ lang_specific_driver (in_argc, in_argv, in_added_libraries)
 	  quote = 0;
 	  continue;
 	}
-      
+
       if (argv[i][0] == '-')
 	{
 	  if (argv[i][1] == '\0')
@@ -229,7 +228,7 @@ lang_specific_driver (in_argc, in_argv, in_added_libraries)
   new_argv[j] = NULL;
   *in_argc = new_argc;
   *in_argv = new_argv;
-} 
+}
 
 /* Called before linking.  Returns 0 on success and -1 on failure.  */
 int lang_specific_pre_link ()

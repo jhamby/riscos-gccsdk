@@ -22,10 +22,16 @@ Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 #ifndef GCC_C_PRAGMA_H
 #define GCC_C_PRAGMA_H
 
+/* Cause the `yydebug' variable to be defined.  */
+#define YYDEBUG 1
+extern int yydebug;
+
+struct cpp_reader;
+extern struct cpp_reader* parse_in;
+
 #ifdef HANDLE_SYSV_PRAGMA
-/* Support #pragma weak iff ASM_WEAKEN_LABEL and ASM_OUTPUT_WEAK_ALIAS are
-   defined.  */
-#if defined (ASM_WEAKEN_LABEL) && defined (ASM_OUTPUT_WEAK_ALIAS)
+#if ((defined (ASM_WEAKEN_LABEL) && defined (ASM_OUTPUT_WEAK_ALIAS)) \
+     || defined (ASM_WEAKEN_DECL))
 #define HANDLE_PRAGMA_WEAK SUPPORTS_WEAK
 #endif
 
@@ -53,5 +59,11 @@ extern void cpp_register_pragma PARAMS ((cpp_reader *,
 					 const char *, const char *,
 					 void (*) PARAMS ((cpp_reader *))));
 #endif
+
+extern void maybe_apply_pragma_weak PARAMS ((tree));
+extern tree maybe_apply_renaming_pragma PARAMS ((tree, tree));
+extern void add_to_renaming_pragma_list PARAMS ((tree, tree));
+
+extern int c_lex PARAMS ((tree *));
 
 #endif /* GCC_C_PRAGMA_H */

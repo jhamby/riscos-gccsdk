@@ -1,7 +1,7 @@
 /* Declarations for insn-output.c.  These functions are defined in recog.c,
    final.c, and varasm.c.
    Copyright (C) 1987, 1991, 1994, 1997, 1998,
-   1999, 2000, 2001 Free Software Foundation, Inc.
+   1999, 2000, 2001, 2002 Free Software Foundation, Inc.
 
 This file is part of GCC.
 
@@ -81,7 +81,7 @@ extern rtx alter_subreg PARAMS ((rtx *));
 
 /* Report inconsistency between the assembler template and the operands.
    In an `asm', it's the user's fault; otherwise, the compiler's fault.  */
-extern void output_operand_lossage  PARAMS ((const char *));
+extern void output_operand_lossage  PARAMS ((const char *, ...)) ATTRIBUTE_PRINTF_1;
 
 /* Output a string of assembler code, substituting insn operands.
    Defined in final.c.  */
@@ -137,7 +137,7 @@ extern const char *get_insn_template PARAMS ((int, rtx));
 
 /* Add function NAME to the weak symbols list.  VALUE is a weak alias
    associated with NAME.  */
-extern int add_weak PARAMS ((const char *, const char *));
+extern int add_weak PARAMS ((tree, const char *, const char *));
 
 /* Functions in flow.c */
 extern void allocate_for_life_analysis	PARAMS ((void));
@@ -145,6 +145,7 @@ extern int regno_uninitialized		PARAMS ((unsigned int));
 extern int regno_clobbered_at_setjmp	PARAMS ((int));
 extern void find_basic_blocks		PARAMS ((rtx, int, FILE *));
 extern bool cleanup_cfg			PARAMS ((int));
+extern bool delete_unreachable_blocks	PARAMS ((void));
 extern void check_function_return_warnings PARAMS ((void));
 #endif
 
@@ -231,6 +232,8 @@ extern void mergeable_constant_section	PARAMS ((enum machine_mode,
 
 /* Declare DECL to be a weak symbol.  */
 extern void declare_weak		PARAMS ((tree));
+/* Merge weak status.  */
+extern void merge_weak			PARAMS ((tree, tree));
 #endif /* TREE_CODE */
 
 /* Emit any pending weak declarations.  */
@@ -254,6 +257,8 @@ extern void make_var_volatile		PARAMS ((tree));
 extern void assemble_constant_align	PARAMS ((tree));
 
 extern void assemble_alias		PARAMS ((tree, tree));
+
+extern void assemble_visibility		PARAMS ((tree, const char *));
 
 /* Output a string of literal assembler code
    for an `asm' keyword used between functions.  */
@@ -344,18 +349,13 @@ extern bool assemble_integer		PARAMS ((rtx, unsigned, unsigned, int));
 #define assemble_aligned_integer(SIZE, VALUE) \
   assemble_integer (VALUE, SIZE, (SIZE) * BITS_PER_UNIT, 1)
 
-#ifdef REAL_VALUE_TYPE
+#ifdef REAL_VALUE_TYPE_SIZE
 /* Assemble the floating-point constant D into an object of size MODE.  */
 extern void assemble_real		PARAMS ((REAL_VALUE_TYPE,
 					         enum machine_mode,
 						 unsigned));
 #endif
 #endif
-
-/* At the end of a function, forget the memory-constants
-   previously made for CONST_DOUBLEs.  Mark them as not on real_constant_chain.
-   Also clear out real_constant_chain and clear out all the chain-pointers.  */
-extern void clear_const_double_mem	PARAMS ((void));
 
 /* Start deferring output of subconstants.  */
 extern void defer_addressed_constants	PARAMS ((void));
@@ -463,30 +463,17 @@ extern struct rtx_def *current_insn_predicate;
 /* Last insn processed by final_scan_insn.  */
 extern struct rtx_def *current_output_insn;
 
-/* Decide whether DECL needs to be in a writable section.  RELOC is the same
-   as for SELECT_SECTION.  */
+/* Nonzero while outputting an `asm' with operands.
+   This means that inconsistencies are the user's fault, so don't abort.
+   The precise value is the insn being output, to pass to error_for_asm.  */
+extern rtx this_is_asm_operands;
 
-#define DECL_READONLY_SECTION(DECL,RELOC)		\
-  (TREE_READONLY (DECL)					\
-   && ! TREE_THIS_VOLATILE (DECL)			\
-   && DECL_INITIAL (DECL)				\
-   && (DECL_INITIAL (DECL) == error_mark_node		\
-       || TREE_CONSTANT (DECL_INITIAL (DECL)))		\
-   && ! (RELOC && (flag_pic || DECL_ONE_ONLY (DECL))))
+/* Decide whether DECL needs to be in a writable section.
+   RELOC is the same as for SELECT_SECTION.  */
+extern bool decl_readonly_section PARAMS ((tree, int));
 
 /* User label prefix in effect for this compilation.  */
 extern const char *user_label_prefix;
-
-/* This macro gets just the user-specified name
-   out of the string in a SYMBOL_REF.  On most machines,
-   we discard the * if any and that's all.  */
-#ifndef STRIP_NAME_ENCODING
-#define STRIP_NAME_ENCODING(VAR,SYMBOL_NAME) \
-  (VAR) = ((SYMBOL_NAME) + ((SYMBOL_NAME)[0] == '*'))
-#endif
-/* Assign unique numbers to labels generated for profiling.  */
-
-extern int profile_label_no;
 
 /* Default target function prologue and epilogue assembler output.  */
 extern void default_function_pro_epilogue PARAMS ((FILE *, HOST_WIDE_INT));
@@ -513,7 +500,8 @@ extern void no_asm_to_stream PARAMS ((FILE *));
 #define SECTION_STRINGS  0x10000	/* contains zero terminated strings without
 					   embedded zeros */
 #define SECTION_OVERRIDE 0x20000	/* allow override of default flags */
-#define SECTION_MACH_DEP 0x40000	/* subsequent bits reserved for target */
+#define SECTION_TLS	 0x40000	/* contains thread-local storage */
+#define SECTION_MACH_DEP 0x80000	/* subsequent bits reserved for target */
 
 extern unsigned int get_named_section_flags PARAMS ((const char *));
 extern bool set_named_section_flags	PARAMS ((const char *, unsigned int));
@@ -540,6 +528,18 @@ extern void default_named_section_asm_out_constructor PARAMS ((struct rtx_def *,
 							       int));
 extern void default_ctor_section_asm_out_constructor PARAMS ((struct rtx_def *,
 							      int));
+
+extern void default_select_section PARAMS ((tree, int,
+					    unsigned HOST_WIDE_INT));
+extern void default_elf_select_section PARAMS ((tree, int,
+						unsigned HOST_WIDE_INT));
+extern void default_unique_section PARAMS ((tree, int));
+extern void default_select_rtx_section PARAMS ((enum machine_mode, rtx,
+						unsigned HOST_WIDE_INT));
+extern void default_elf_select_rtx_section PARAMS ((enum machine_mode, rtx,
+						    unsigned HOST_WIDE_INT));
+extern const char *default_strip_name_encoding PARAMS ((const char *));
+extern bool default_binds_local_p PARAMS ((tree));
 
 /* Emit data for vtable gc for GNU binutils.  */
 extern void assemble_vtable_entry PARAMS ((struct rtx_def *, HOST_WIDE_INT));

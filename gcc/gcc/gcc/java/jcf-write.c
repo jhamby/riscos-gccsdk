@@ -1,5 +1,5 @@
 /* Write out a Java(TM) class file.
-   Copyright (C) 1998, 1999, 2000, 2001 Free Software Foundation, Inc.
+   Copyright (C) 1998, 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
 
 This file is part of GNU CC.
 
@@ -25,6 +25,7 @@ The Free Software Foundation is independent of Sun Microsystems, Inc.  */
 #include "system.h"
 #include "jcf.h"
 #include "tree.h"
+#include "real.h"
 #include "java-tree.h"
 #include "obstack.h"
 #undef AND
@@ -682,9 +683,15 @@ get_access_flags (decl)
 	flags |= ACC_INTERFACE;
       if (CLASS_STATIC (decl))
 	flags |= ACC_STATIC;
+      if (CLASS_PRIVATE (decl))
+	flags |= ACC_PRIVATE;
+      if (CLASS_PROTECTED (decl))
+	flags |= ACC_PROTECTED;
       if (ANONYMOUS_CLASS_P (TREE_TYPE (decl))
 	  || LOCAL_CLASS_P (TREE_TYPE (decl)))
 	flags |= ACC_PRIVATE;
+      if (CLASS_STRICTFP (decl))
+	flags |= ACC_STRICT;
     }
   else
     abort ();
@@ -699,6 +706,8 @@ get_access_flags (decl)
 	flags |= ACC_SYNCHRONIZED;
       if (METHOD_ABSTRACT (decl))
 	flags |= ACC_ABSTRACT;
+      if (METHOD_STRICTFP (decl))
+	flags |= ACC_STRICT;
     }
   if (isfield)
     {
@@ -848,15 +857,20 @@ push_long_const (lo, hi, state)
      HOST_WIDE_INT lo, hi;
      struct jcf_partial *state;
 {
-  if (hi == 0 && lo >= 0 && lo <= 1)
+  HOST_WIDE_INT highpart, dummy;
+  jint lowpart = WORD_TO_INT (lo);
+
+  rshift_double (lo, hi, 32, 64, &highpart, &dummy, 1);
+
+  if (highpart == 0 && (lowpart == 0 || lowpart == 1))
     {
       RESERVE(1);
-      OP1(OPCODE_lconst_0 + lo);
+      OP1(OPCODE_lconst_0 + lowpart);
     }
-  else if ((hi == 0 && (jword)(lo  & 0xFFFFFFFF) < 32768) 
-          || (hi == -1 && (lo & 0xFFFFFFFF) >= (jword)-32768))
+  else if ((highpart == 0 && lowpart > 0 && lowpart < 32768) 
+	   || (highpart == -1 && lowpart < 0 && lowpart >= -32768))
       {
-        push_int_const (lo, state);
+        push_int_const (lowpart, state);
         RESERVE (1);
         OP1 (OPCODE_i2l);
       }
@@ -1532,7 +1546,7 @@ generate_bytecode_insns (exp, target, state)
       {
 	int prec = TYPE_PRECISION (type) >> 5;
 	RESERVE(1);
-	if (real_zerop (exp))
+	if (real_zerop (exp) && ! REAL_VALUE_MINUS_ZERO (TREE_REAL_CST (exp)))
 	  OP1 (prec == 1 ? OPCODE_fconst_0 : OPCODE_dconst_0);
 	else if (real_onep (exp))
 	  OP1 (prec == 1 ? OPCODE_fconst_1 : OPCODE_dconst_1);
@@ -2667,6 +2681,37 @@ perform_relocations (state)
 	  shrink += 3;
 	}
 
+      /* Optimize GOTO L; ... L: GOTO X by changing the first goto to
+	 jump directly to X.  We're careful here to avoid an infinite
+	 loop if the `goto's themselves form one.  We do this
+	 optimization because we can generate a goto-to-goto for some
+	 try/finally blocks.  */
+      while (reloc != NULL
+	     && reloc->kind == OPCODE_goto_w
+	     && reloc->label != block
+	     && reloc->label->v.chunk->data != NULL
+	     && reloc->label->v.chunk->data[0] == OPCODE_goto)
+	{
+	  /* Find the reloc for the first instruction of the
+	     destination block.  */
+	  struct jcf_relocation *first_reloc;
+	  for (first_reloc = reloc->label->u.relocations;
+	       first_reloc;
+	       first_reloc = first_reloc->next)
+	    {
+	      if (first_reloc->offset == 1
+		  && first_reloc->kind == OPCODE_goto_w)
+		{
+		  reloc->label = first_reloc->label;
+		  break;
+		}
+	    }
+
+	  /* If we didn't do anything, exit the loop.  */
+	  if (first_reloc == NULL)
+	    break;
+	}
+
       for (reloc = block->u.relocations;  reloc != NULL;  reloc = reloc->next)
 	{
 	  if (reloc->kind == SWITCH_ALIGN_RELOC)
@@ -2843,6 +2888,7 @@ release_jcf_state (state)
    in the .class file representation.  The list can be written to a
    .class file using write_chunks.  Allocate chunks from obstack WORK. */
 
+static GTY(()) tree SourceFile_node;
 static struct chunk *
 generate_classfile (clas, state)
      tree clas;
@@ -2856,7 +2902,6 @@ generate_classfile (clas, state)
   int fields_count = 0;
   char *methods_count_ptr;
   int methods_count = 0;
-  static tree SourceFile_node = NULL_TREE;
   tree part;
   int total_supers
     = clas == object_type_node ? 0
@@ -2921,7 +2966,7 @@ generate_classfile (clas, state)
       if (have_value)
 	attr_count++;
 
-      if (FIELD_THISN (part) || FIELD_LOCAL_ALIAS (part))
+      if (FIELD_THISN (part) || FIELD_LOCAL_ALIAS (part) || FIELD_SYNTHETIC (part))
 	attr_count++;
 
       PUT2 (attr_count);  /* attributes_count */
@@ -2939,8 +2984,10 @@ generate_classfile (clas, state)
 	  PUT4 (2); /* attribute_length */
 	  i = find_constant_index (init, state);  PUT2 (i);
 	}
-      /* Emit the "Synthetic" attribute for val$<x> and this$<n> fields. */
-      if (FIELD_THISN (part) || FIELD_LOCAL_ALIAS (part))
+      /* Emit the "Synthetic" attribute for val$<x> and this$<n>
+	 fields and other fields which need it.  */
+      if (FIELD_THISN (part) || FIELD_LOCAL_ALIAS (part)
+	  || FIELD_SYNTHETIC (part))
 	ptr = append_synthetic_attribute (state);
       fields_count++;
     }
@@ -3144,7 +3191,6 @@ generate_classfile (clas, state)
   if (SourceFile_node == NULL_TREE) 
     {
       SourceFile_node = get_identifier ("SourceFile");
-      ggc_add_tree_root (&SourceFile_node, 1);
     }
 
   i = find_utf8_constant (&state->cpool, SourceFile_node);
@@ -3164,18 +3210,17 @@ generate_classfile (clas, state)
   return state->first;
 }
 
+static GTY(()) tree Synthetic_node;
 static unsigned char *
 append_synthetic_attribute (state)
      struct jcf_partial *state;
 {
-  static tree Synthetic_node = NULL_TREE;
   unsigned char *ptr = append_chunk (NULL, 6, state);
   int i;
 
   if (Synthetic_node == NULL_TREE)
     {
       Synthetic_node = get_identifier ("Synthetic");
-      ggc_add_tree_root (&Synthetic_node, 1);
     }
   i = find_utf8_constant (&state->cpool, Synthetic_node);
   PUT2 (i);		/* Attribute string index */
@@ -3202,12 +3247,12 @@ append_gcj_attribute (state, class)
   PUT4 (0);			/* Attribute length */
 }
 
+static tree InnerClasses_node;
 static void
 append_innerclasses_attribute (state, class)
      struct jcf_partial *state;
      tree class;
 {
-  static tree InnerClasses_node = NULL_TREE;
   tree orig_decl = TYPE_NAME (class);
   tree current, decl;
   int length = 0, i;
@@ -3221,7 +3266,6 @@ append_innerclasses_attribute (state, class)
   if (InnerClasses_node == NULL_TREE) 
     {
       InnerClasses_node = get_identifier ("InnerClasses");
-      ggc_add_tree_root (&InnerClasses_node, 1);
     }
   i = find_utf8_constant (&state->cpool, InnerClasses_node);
   PUT2 (i);
@@ -3364,16 +3408,29 @@ write_classfile (clas)
 
   if (class_file_name != NULL)
     {
-      FILE *stream = fopen (class_file_name, "wb");
+      FILE *stream;
+      char *temporary_file_name;
+
+      /* The .class file is initially written to a ".tmp" file so that
+	 if multiple instances of the compiler are running at once
+	 they do not see partially formed class files. */
+      temporary_file_name = concat (class_file_name, ".tmp", NULL);
+      stream = fopen (temporary_file_name, "wb");
       if (stream == NULL)
-	fatal_io_error ("can't to open %s", class_file_name);
+	fatal_io_error ("can't open %s for writing", temporary_file_name);
 
       jcf_dependency_add_target (class_file_name);
       init_jcf_state (state, work);
       chunks = generate_classfile (clas, state);
       write_chunks (stream, chunks);
       if (fclose (stream))
-	fatal_io_error ("can't close %s", class_file_name);
+	fatal_io_error ("error closing %s", temporary_file_name);
+      if (rename (temporary_file_name, class_file_name) == -1)
+	{
+	  remove (temporary_file_name);
+	  fatal_io_error ("can't create %s", class_file_name);
+	}
+      free (temporary_file_name);
       free (class_file_name);
     }
   release_jcf_state (state);
@@ -3383,3 +3440,5 @@ write_classfile (clas)
    string concatenation
    synchronized statement
    */
+
+#include "gt-java-jcf-write.h"

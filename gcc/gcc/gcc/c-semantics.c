@@ -36,6 +36,7 @@ Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 #include "expr.h"
 #include "output.h"
 #include "timevar.h"
+#include "predict.h"
 
 /* If non-NULL, the address of a language-specific function for
    expanding statements.  */
@@ -672,8 +673,7 @@ genrtl_case_label (case_label)
   if (cleanup)
     {
       static int explained = 0;
-      warning_with_decl (TREE_PURPOSE (cleanup), 
-			 "destructor needed for `%#D'");
+      warning ("destructor needed for `%#D'", (TREE_PURPOSE (cleanup)));
       warning ("where case label appears here");
       if (!explained)
 	{
@@ -737,12 +737,12 @@ genrtl_asm_stmt (cv_qualifier, string, output_operands,
 /* Generate the RTL for a DECL_CLEANUP.  */
 
 void 
-genrtl_decl_cleanup (decl, cleanup)
-     tree decl;
-     tree cleanup;
+genrtl_decl_cleanup (t)
+     tree t;
 {
+  tree decl = CLEANUP_DECL (t);
   if (!decl || (DECL_SIZE (decl) && TREE_TYPE (decl) != error_mark_node))
-    expand_decl_cleanup (decl, cleanup);
+    expand_decl_cleanup_eh (decl, CLEANUP_EXPR (t), CLEANUP_EH_ONLY (t));
 }
 
 /* We're about to expand T, a statement.  Set up appropriate context
@@ -834,6 +834,14 @@ expand_stmt (t)
 	  break;
 
 	case GOTO_STMT:
+	  /* Emit information for branch prediction.  */
+	  if (!GOTO_FAKE_P (t)
+	      && TREE_CODE (GOTO_DESTINATION (t)) == LABEL_DECL)
+	    {
+	      rtx note = emit_note (NULL, NOTE_INSN_PREDICTION);
+
+	      NOTE_PREDICTION (note) = NOTE_PREDICT (PRED_GOTO, NOT_TAKEN);
+	    }
 	  genrtl_goto_stmt (GOTO_DESTINATION (t));
 	  break;
 
@@ -845,6 +853,10 @@ expand_stmt (t)
 
 	case SCOPE_STMT:
 	  genrtl_scope_stmt (t);
+	  break;
+
+	case CLEANUP_STMT:
+	  genrtl_decl_cleanup (t);
 	  break;
 
 	default:

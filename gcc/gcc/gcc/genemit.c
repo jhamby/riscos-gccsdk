@@ -58,8 +58,8 @@ struct clobber_ent
 static void max_operand_1		PARAMS ((rtx));
 static int max_operand_vec		PARAMS ((rtx, int));
 static void print_code			PARAMS ((RTX_CODE));
-static void gen_exp			PARAMS ((rtx, enum rtx_code));
-static void gen_insn			PARAMS ((rtx));
+static void gen_exp			PARAMS ((rtx, enum rtx_code, char *));
+static void gen_insn			PARAMS ((rtx, int));
 static void gen_expand			PARAMS ((rtx));
 static void gen_split			PARAMS ((rtx));
 static void output_add_clobbers		PARAMS ((void));
@@ -155,9 +155,10 @@ gen_rtx_scratch (x, subroutine_type)
    substituting any operand references appearing within.  */
 
 static void
-gen_exp (x, subroutine_type)
+gen_exp (x, subroutine_type, used)
      rtx x;
      enum rtx_code subroutine_type;
+     char *used;
 {
   RTX_CODE code;
   int i;
@@ -176,6 +177,15 @@ gen_exp (x, subroutine_type)
     {
     case MATCH_OPERAND:
     case MATCH_DUP:
+      if (used)
+	{
+	  if (used[XINT (x, 0)])
+	    {
+	      printf ("copy_rtx (operand%d)", XINT (x, 0));
+	      return;
+	    }
+	  used[XINT (x, 0)] = 1;
+	}
       printf ("operand%d", XINT (x, 0));
       return;
 
@@ -188,7 +198,7 @@ gen_exp (x, subroutine_type)
       for (i = 0; i < XVECLEN (x, 1); i++)
 	{
 	  printf (",\n\t\t");
-	  gen_exp (XVECEXP (x, 1, i), subroutine_type);
+	  gen_exp (XVECEXP (x, 1, i), subroutine_type, used);
 	}
       printf (")");
       return;
@@ -199,7 +209,7 @@ gen_exp (x, subroutine_type)
       for (i = 0; i < XVECLEN (x, 2); i++)
 	{
 	  printf (",\n\t\t");
-	  gen_exp (XVECEXP (x, 2, i), subroutine_type);
+	  gen_exp (XVECEXP (x, 2, i), subroutine_type, used);
 	}
       printf (")");
       return;
@@ -236,7 +246,7 @@ gen_exp (x, subroutine_type)
       else
 	{
 	  printf ("GEN_INT (");
-	  printf (HOST_WIDE_INT_PRINT_DEC, INTVAL (x));
+	  printf (HOST_WIDE_INT_PRINT_DEC_C, INTVAL (x));
 	  printf (")");
 	}
       return;
@@ -262,7 +272,7 @@ gen_exp (x, subroutine_type)
 	break;
       printf (",\n\t");
       if (fmt[i] == 'e' || fmt[i] == 'u')
-	gen_exp (XEXP (x, i), subroutine_type);
+	gen_exp (XEXP (x, i), subroutine_type, used);
       else if (fmt[i] == 'i')
 	printf ("%u", XINT (x, i));
       else if (fmt[i] == 's')
@@ -274,7 +284,7 @@ gen_exp (x, subroutine_type)
 	  for (j = 0; j < XVECLEN (x, i); j++)
 	    {
 	      printf (",\n\t\t");
-	      gen_exp (XVECEXP (x, i, j), subroutine_type);
+	      gen_exp (XVECEXP (x, i, j), subroutine_type, used);
 	    }
 	  printf (")");
 	}
@@ -287,8 +297,9 @@ gen_exp (x, subroutine_type)
 /* Generate the `gen_...' function for a DEFINE_INSN.  */
 
 static void
-gen_insn (insn)
+gen_insn (insn, lineno)
      rtx insn;
+     int lineno;
 {
   int operands;
   int i;
@@ -373,6 +384,8 @@ gen_insn (insn)
   if (XSTR (insn, 0)[0] == 0 || XSTR (insn, 0)[0] == '*')
     return;
 
+  printf ("/* %s:%d */\n", read_rtx_filename, lineno);
+
   /* Find out how many operands this function has,
      and also whether any of them have register constraints.  */
   register_constraints = 0;
@@ -397,7 +410,7 @@ gen_insn (insn)
   if (XVECLEN (insn, 1) == 1)
     {
       printf ("  return ");
-      gen_exp (XVECEXP (insn, 1, 0), DEFINE_INSN);
+      gen_exp (XVECEXP (insn, 1, 0), DEFINE_INSN, NULL);
       printf (";\n}\n\n");
     }
   else
@@ -408,7 +421,7 @@ gen_insn (insn)
       for (i = 0; i < XVECLEN (insn, 1); i++)
 	{
 	  printf (",\n\t\t");
-	  gen_exp (XVECEXP (insn, 1, i), DEFINE_INSN);
+	  gen_exp (XVECEXP (insn, 1, i), DEFINE_INSN, NULL);
 	}
       printf ("));\n}\n\n");
     }
@@ -454,7 +467,7 @@ gen_expand (expand)
       && XVECLEN (expand, 1) == 1)
     {
       printf ("  return ");
-      gen_exp (XVECEXP (expand, 1, 0), DEFINE_EXPAND);
+      gen_exp (XVECEXP (expand, 1, 0), DEFINE_EXPAND, NULL);
       printf (";\n}\n\n");
       return;
     }
@@ -511,8 +524,9 @@ gen_expand (expand)
       rtx next = XVECEXP (expand, 1, i);
       if ((GET_CODE (next) == SET && GET_CODE (SET_DEST (next)) == PC)
 	  || (GET_CODE (next) == PARALLEL
-	      && GET_CODE (XVECEXP (next, 0, 0)) == SET
-	      && GET_CODE (SET_DEST (XVECEXP (next, 0, 0))) == PC)
+	      && ((GET_CODE (XVECEXP (next, 0, 0)) == SET
+		   && GET_CODE (SET_DEST (XVECEXP (next, 0, 0))) == PC)
+		  || GET_CODE (XVECEXP (next, 0, 0)) == RETURN))
 	  || GET_CODE (next) == RETURN)
 	printf ("  emit_jump_insn (");
       else if ((GET_CODE (next) == SET && GET_CODE (SET_SRC (next)) == CALL)
@@ -535,22 +549,22 @@ gen_expand (expand)
 	printf ("  emit (");
       else
 	printf ("  emit_insn (");
-      gen_exp (next, DEFINE_EXPAND);
+      gen_exp (next, DEFINE_EXPAND, NULL);
       printf (");\n");
       if (GET_CODE (next) == SET && GET_CODE (SET_DEST (next)) == PC
 	  && GET_CODE (SET_SRC (next)) == LABEL_REF)
 	printf ("  emit_barrier ();");
     }
 
-  /* Call `gen_sequence' to make a SEQUENCE out of all the
+  /* Call `get_insns' to extract the list of all the
      insns emitted within this gen_... function.  */
 
-  printf ("  _val = gen_sequence ();\n");
+  printf ("  _val = get_insns ();\n");
   printf ("  end_sequence ();\n");
   printf ("  return _val;\n}\n\n");
 }
 
-/* Like gen_expand, but generates a SEQUENCE.  */
+/* Like gen_expand, but generates insns resulting from splitting SPLIT.  */
 
 static void
 gen_split (split)
@@ -561,6 +575,7 @@ gen_split (split)
   const char *const name =
     ((GET_CODE (split) == DEFINE_PEEPHOLE2) ? "peephole2" : "split");
   const char *unused;
+  char *used;
 
   if (XVEC (split, 0) == 0)
     fatal ("define_%s (definition %d) lacks a pattern", name,
@@ -574,6 +589,7 @@ gen_split (split)
   max_operand_vec (split, 2);
   operands = MAX (max_opno, MAX (max_dup_opno, max_scratch_opno)) + 1;
   unused = (operands == 0 ? " ATTRIBUTE_UNUSED" : "");
+  used = xcalloc (1, operands);
 
   /* Output the prototype, function name and argument declarations.  */
   if (GET_CODE (split) == DEFINE_PEEPHOLE2)
@@ -645,19 +661,21 @@ gen_split (split)
 	printf ("  emit (");
       else
 	printf ("  emit_insn (");
-      gen_exp (next, GET_CODE (split));
+      gen_exp (next, GET_CODE (split), used);
       printf (");\n");
       if (GET_CODE (next) == SET && GET_CODE (SET_DEST (next)) == PC
 	  && GET_CODE (SET_SRC (next)) == LABEL_REF)
 	printf ("  emit_barrier ();");
     }
 
-  /* Call `gen_sequence' to make a SEQUENCE out of all the
+  /* Call `get_insns' to make a list of all the
      insns emitted within this gen_... function.  */
 
-  printf ("  _val = gen_sequence ();\n");
+  printf ("  _val = get_insns ();\n");
   printf ("  end_sequence ();\n");
   printf ("  return _val;\n}\n\n");
+
+  free (used);
 }
 
 /* Write a function, `add_clobbers', that is given a PARALLEL of sufficient
@@ -686,7 +704,7 @@ output_add_clobbers ()
 	{
 	  printf ("      XVECEXP (pattern, 0, %d) = ", i);
 	  gen_exp (XVECEXP (clobber->pattern, 1, i),
-		   GET_CODE (clobber->pattern));
+		   GET_CODE (clobber->pattern), NULL);
 	  printf (";\n");
 	}
 
@@ -708,7 +726,7 @@ output_added_clobbers_hard_reg_p ()
 {
   struct clobber_pat *clobber;
   struct clobber_ent *ent;
-  int clobber_p;
+  int clobber_p, used;
 
   printf ("\n\nint\nadded_clobbers_hard_reg_p (insn_code_number)\n");
   printf ("     int insn_code_number;\n");
@@ -718,12 +736,17 @@ output_added_clobbers_hard_reg_p ()
 
   for (clobber_p = 0; clobber_p <= 1; clobber_p++)
     {
+      used = 0;
       for (clobber = clobber_list; clobber; clobber = clobber->next)
 	if (clobber->has_hard_reg == clobber_p)
 	  for (ent = clobber->insns; ent; ent = ent->next)
-	    printf ("    case %d:\n", ent->code_number);
+	    {
+	      printf ("    case %d:\n", ent->code_number);
+	      used++;
+	    }
 
-      printf ("      return %d;\n\n", clobber_p);
+      if (used)
+	printf ("      return %d;\n\n", clobber_p);
     }
 
   printf ("    default:\n");
@@ -819,7 +842,7 @@ from the machine description file `md'.  */\n\n");
   printf ("#include \"toplev.h\"\n");
   printf ("#include \"ggc.h\"\n\n");
   printf ("#define FAIL return (end_sequence (), _val)\n");
-  printf ("#define DONE return (_val = gen_sequence (), end_sequence (), _val)\n");
+  printf ("#define DONE return (_val = get_insns (), end_sequence (), _val)\n\n");
 
   /* Read the machine description.  */
 
@@ -833,25 +856,28 @@ from the machine description file `md'.  */\n\n");
 
       switch (GET_CODE (desc))
 	{
-	  case DEFINE_INSN:
-	      gen_insn (desc);
-	      break;
+	case DEFINE_INSN:
+	  gen_insn (desc, line_no);
+	  break;
 
-	  case DEFINE_EXPAND:
-	      gen_expand (desc);
-	      break;
+	case DEFINE_EXPAND:
+	  printf ("/* %s:%d */\n", read_rtx_filename, line_no);
+	  gen_expand (desc);
+	  break;
 
-	  case DEFINE_SPLIT:
-	      gen_split (desc);
-	      break;
+	case DEFINE_SPLIT:
+	  printf ("/* %s:%d */\n", read_rtx_filename, line_no);
+	  gen_split (desc);
+	  break;
 
-	  case DEFINE_PEEPHOLE2:
-	      gen_split (desc);
-	      break;
+	case DEFINE_PEEPHOLE2:
+	  printf ("/* %s:%d */\n", read_rtx_filename, line_no);
+	  gen_split (desc);
+	  break;
 
-	  default:
-	      break;
-	 }
+	default:
+	  break;
+	}
       ++insn_index_number;
     }
 

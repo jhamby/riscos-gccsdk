@@ -20,6 +20,9 @@ along with GCC; see the file COPYING.  If not, write to the Free
 Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 02111-1307, USA.  */
 
+/* Pointer to data describing the current DFA state.  */
+extern state_t curr_state;
+
 /* Forward declaration.  */
 struct ready_list;
 
@@ -82,6 +85,12 @@ struct deps
   /* Used to keep post-call psuedo/hard reg movements together with
      the call.  */
   bool in_post_call_group_p;
+
+  /* Set to the tail insn of the outermost libcall block.
+
+     When nonzero, we will mark each insn processed by sched_analyze_insn
+     with SCHED_GROUP_P to ensure libcalls are scheduled as a unit.  */
+  rtx libcall_block_tail_insn;
 
   /* The maximum register number for the following arrays.  Before reload
      this is max_reg_num; after reload it is FIRST_PSEUDO_REGISTER.  */
@@ -184,7 +193,7 @@ struct haifa_insn_data
   int dep_count;
 
   /* An encoding of the blockage range function.  Both unit and range
-     are coded.  */
+     are coded.  This member is used only for old pipeline interface.  */
   unsigned int blockage;
 
   /* Number of instructions referring to this insn.  */
@@ -196,7 +205,8 @@ struct haifa_insn_data
 
   short cost;
 
-  /* An encoding of the function units used.  */
+  /* An encoding of the function units used.  This member is used only
+     for old pipeline interface.  */
   short units;
 
   /* This weight is an estimation of the insn's contribution to
@@ -294,6 +304,7 @@ extern void rm_other_notes PARAMS ((rtx, rtx));
 extern int insn_issue_delay PARAMS ((rtx));
 extern int set_priorities PARAMS ((rtx, rtx));
 
+extern rtx sched_emit_insn PARAMS ((rtx));
 extern void schedule_block PARAMS ((int, int));
 extern void sched_init PARAMS ((FILE *));
 extern void sched_finish PARAMS ((void));
@@ -306,4 +317,4 @@ extern int insn_unit PARAMS ((rtx));
 extern int insn_cost PARAMS ((rtx, rtx, rtx));
 extern rtx get_unit_last_insn PARAMS ((int));
 extern int actual_hazard_this_instance PARAMS ((int, int, rtx, int, int));
-
+extern void print_insn PARAMS ((char *, rtx, int));

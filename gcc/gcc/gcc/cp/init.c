@@ -1,6 +1,6 @@
 /* Handle initialization things in C++.
    Copyright (C) 1987, 1989, 1992, 1993, 1994, 1995, 1996, 1997, 1998,
-   1999, 2000, 2001 Free Software Foundation, Inc.
+   1999, 2000, 2001, 2002 Free Software Foundation, Inc.
    Contributed by Michael Tiemann (tiemann@cygnus.com)
 
 This file is part of GNU CC.
@@ -56,26 +56,6 @@ static tree build_dtor_call PARAMS ((tree, special_function_kind, int));
 static tree build_field_list PARAMS ((tree, tree, int *));
 static tree build_vtbl_address PARAMS ((tree));
 
-/* Set up local variable for this file.  MUST BE CALLED AFTER
-   INIT_DECL_PROCESSING.  */
-
-static tree BI_header_type;
-
-void init_init_processing ()
-{
-  tree fields[1];
-
-  /* Define the structure that holds header information for
-     arrays allocated via operator new.  */
-  BI_header_type = make_aggr_type (RECORD_TYPE);
-  fields[0] = build_decl (FIELD_DECL, nelts_identifier, sizetype);
-
-  finish_builtin_type (BI_header_type, "__new_cookie", fields,
-		       0, double_type_node);
-
-  ggc_add_tree_root (&BI_header_type, 1);
-}
-
 /* We are about to generate some complex initialization code.
    Conceptually, it is all a single expression.  However, we may want
    to include conditionals, loops, and other such statement-level
@@ -97,10 +77,6 @@ begin_init_stmts (stmt_expr_p, compound_stmt_p)
   
   if (building_stmt_tree ())
     *compound_stmt_p = begin_compound_stmt (/*has_no_scope=*/1);
-  /*
-  else 
-    *compound_stmt_p = genrtl_begin_compound_stmt (has_no_scope=1);
-  */
 }
 
 /* Finish out the statement-expression begun by the previous call to
@@ -116,7 +92,10 @@ finish_init_stmts (stmt_expr, compound_stmt)
     finish_compound_stmt (/*has_no_scope=*/1, compound_stmt);
   
   if (building_stmt_tree ())
-    stmt_expr = finish_stmt_expr (stmt_expr);
+    {
+      stmt_expr = finish_stmt_expr (stmt_expr);
+      STMT_EXPR_NO_SCOPE (stmt_expr) = true;
+    }
   else
     stmt_expr = finish_global_stmt_expr (stmt_expr);
   
@@ -177,33 +156,20 @@ initialize_vtbl_ptrs (addr)
 	    dfs_marked_real_bases_queue_p, type);
 }
 
-/* [dcl.init]:
+/* Types containing pointers to data members cannot be
+   zero-initialized with zeros, because the NULL value for such
+   pointers is -1.
 
-  To default-initialize an object of type T means:
+   TYPE is a type that requires such zero initialization.  The
+   returned value is the initializer.  */
 
-  --if T is a non-POD class type (clause _class_), the default construc-
-    tor  for  T is called (and the initialization is ill-formed if T has
-    no accessible default constructor);
-
-  --if T is an array type, each element is default-initialized;
-
-  --otherwise, the storage for the object is zero-initialized.
-
-  A program that calls for default-initialization of an entity of refer-
-  ence type is ill-formed.  */
-
-static tree
-build_default_init (type)
+tree
+build_forced_zero_init (type)
      tree type;
 {
-  tree init = NULL_TREE;
+  tree init = NULL;
 
-  if (TYPE_NEEDS_CONSTRUCTING (type))
-    /* Other code will handle running the default constructor.  We can't do
-       anything with a CONSTRUCTOR for arrays here, as that would imply
-       copy-initialization.  */
-    return NULL_TREE;
-  else if (AGGREGATE_TYPE_P (type) && !TYPE_PTRMEMFUNC_P (type))
+  if (AGGREGATE_TYPE_P (type) && !TYPE_PTRMEMFUNC_P (type))
     {
       /* This is a default initialization of an aggregate, but not one of
 	 non-POD class type.  We cleverly notice that the initialization
@@ -224,7 +190,36 @@ build_default_init (type)
     }
 
   init = digest_init (type, init, 0);
+
   return init;
+}
+
+/* [dcl.init]:
+
+  To default-initialize an object of type T means:
+
+  --if T is a non-POD class type (clause _class_), the default construc-
+    tor  for  T is called (and the initialization is ill-formed if T has
+    no accessible default constructor);
+
+  --if T is an array type, each element is default-initialized;
+
+  --otherwise, the storage for the object is zero-initialized.
+
+  A program that calls for default-initialization of an entity of refer-
+  ence type is ill-formed.  */
+
+static tree
+build_default_init (type)
+     tree type;
+{
+  if (TYPE_NEEDS_CONSTRUCTING (type))
+    /* Other code will handle running the default constructor.  We can't do
+       anything with a CONSTRUCTOR for arrays here, as that would imply
+       copy-initialization.  */
+    return NULL_TREE;
+
+  return build_forced_zero_init (type);
 }
 
 /* Subroutine of emit_base_init.  */
@@ -237,8 +232,9 @@ perform_member_init (member, init, explicit)
   tree decl;
   tree type = TREE_TYPE (member);
 
-  decl = build_component_ref (current_class_ref, member, NULL_TREE, explicit);
-
+  decl = build_class_member_access_expr (current_class_ref, member,
+					 /*access_path=*/NULL_TREE,
+					 /*preserve_reference=*/true);
   if (decl == error_mark_node)
     return;
 
@@ -310,13 +306,14 @@ perform_member_init (member, init, explicit)
     {
       tree expr;
 
-      expr = build_component_ref (current_class_ref, member, NULL_TREE,
-				  explicit);
+      expr = build_class_member_access_expr (current_class_ref, member,
+					     /*access_path=*/NULL_TREE,
+					     /*preserve_reference=*/false);
       expr = build_delete (type, expr, sfk_complete_destructor,
 			   LOOKUP_NONVIRTUAL|LOOKUP_DESTRUCTOR, 0);
 
       if (expr != error_mark_node)
-	finish_subobject (expr);
+	finish_eh_cleanup (expr);
     }
 }
 
@@ -857,14 +854,17 @@ expand_cleanup_for_base (binfo, flag)
     return;
 
   /* Call the destructor.  */
-  expr = (build_scoped_method_call
-	  (current_class_ref, binfo, base_dtor_identifier, NULL_TREE));
+  expr = build_special_member_call (current_class_ref, 
+				    base_dtor_identifier,
+				    NULL_TREE,
+				    binfo,
+				    LOOKUP_NORMAL | LOOKUP_NONVIRTUAL);
   if (flag)
     expr = fold (build (COND_EXPR, void_type_node,
-			truthvalue_conversion (flag),
+			c_common_truthvalue_conversion (flag),
 			expr, integer_zero_node));
 
-  finish_subobject (expr);
+  finish_eh_cleanup (expr);
 }
 
 /* Subroutine of `expand_aggr_vbase_init'.
@@ -1166,11 +1166,9 @@ build_aggr_init (exp, init, flags)
 	  return error_mark_node;
 	}
       if (cp_type_quals (type) != TYPE_UNQUALIFIED)
-	{
-	  TREE_TYPE (exp) = TYPE_MAIN_VARIANT (type);
-	  if (init)
-	    TREE_TYPE (init) = TYPE_MAIN_VARIANT (itype);
-	}
+	TREE_TYPE (exp) = TYPE_MAIN_VARIANT (type);
+      if (itype && cp_type_quals (itype) != TYPE_UNQUALIFIED)
+	TREE_TYPE (init) = TYPE_MAIN_VARIANT (itype);
       stmt_expr = build_vec_init (exp, init,
 				  init && same_type_p (TREE_TYPE (init),
 						       TREE_TYPE (exp)));
@@ -1199,6 +1197,26 @@ build_aggr_init (exp, init, flags)
   TREE_THIS_VOLATILE (exp) = was_volatile;
 
   return stmt_expr;
+}
+
+/* Like build_aggr_init, but not just for aggregates.  */
+
+tree
+build_init (decl, init, flags)
+     tree decl, init;
+     int flags;
+{
+  tree expr;
+
+  if (IS_AGGR_TYPE (TREE_TYPE (decl))
+      || TREE_CODE (TREE_TYPE (decl)) == ARRAY_TYPE)
+    expr = build_aggr_init (decl, init, flags);
+  else
+    {
+      expr = build (INIT_EXPR, TREE_TYPE (decl), decl, init);
+      TREE_SIDE_EFFECTS (expr) = 1;
+    }
+  return expr;
 }
 
 static void
@@ -1269,7 +1287,7 @@ expand_default_init (binfo, true_exp, exp, init, flags)
   else
     ctor_name = base_ctor_identifier;
 
-  rval = build_method_call (exp, ctor_name, parms, binfo, flags);
+  rval = build_special_member_call (exp, ctor_name, parms, binfo, flags);
   if (TREE_SIDE_EFFECTS (rval))
     {
       if (building_stmt_tree ())
@@ -1418,6 +1436,7 @@ build_member_call (type, name, parmlist)
 {
   tree t;
   tree method_name;
+  tree fns;
   int dtor = 0;
   tree basetype_path, decl;
 
@@ -1438,15 +1457,16 @@ build_member_call (type, name, parmlist)
 	  TREE_OPERAND (name, 0) = method_name;
 	}
       my_friendly_assert (is_overloaded_fn (method_name), 980519);
-      return build_x_function_call (name, parmlist, current_class_ref);
+      return finish_call_expr (name, parmlist, /*disallow_virtual=*/true);
     }
 
   if (DECL_P (name))
     name = DECL_NAME (name);
 
   if (TREE_CODE (type) == NAMESPACE_DECL)
-    return build_x_function_call (lookup_namespace_name (type, name),
-				  parmlist, current_class_ref);
+    return finish_call_expr (lookup_namespace_name (type, name),
+			     parmlist,
+			     /*disallow_virtual=*/true);
 
   if (TREE_CODE (name) == TEMPLATE_ID_EXPR)
     {
@@ -1473,10 +1493,9 @@ build_member_call (type, name, parmlist)
     {
       tree ns = lookup_name (type, 0);
       if (ns && TREE_CODE (ns) == NAMESPACE_DECL)
-	{
-	  return build_x_function_call (build_offset_ref (type, name),
-					parmlist, current_class_ref);
-	}
+	return finish_call_expr (lookup_namespace_name (ns, name),
+				 parmlist,
+				 /*disallow_virtual=*/true);
     }
 
   if (type == NULL_TREE || ! is_aggr_type (type, 1))
@@ -1495,32 +1514,34 @@ build_member_call (type, name, parmlist)
 
   decl = maybe_dummy_object (type, &basetype_path);
 
-  /* Convert 'this' to the specified type to disambiguate conversion
-     to the function's context.  Apparently Standard C++ says that we
-     shouldn't do this.  */
-  if (decl == current_class_ref
-      && ! pedantic
-      && ACCESSIBLY_UNIQUELY_DERIVED_P (type, current_class_type))
+  fns = lookup_fnfields (basetype_path, method_name, 0);
+  if (fns)
     {
-      tree olddecl = current_class_ptr;
-      tree oldtype = TREE_TYPE (TREE_TYPE (olddecl));
-      if (oldtype != type)
-	{
-	  tree newtype = build_qualified_type (type, TYPE_QUALS (oldtype));
-	  decl = convert_force (build_pointer_type (newtype), olddecl, 0);
-	  decl = build_indirect_ref (decl, NULL);
-	}
+      if (TREE_CODE (name) == TEMPLATE_ID_EXPR)
+	BASELINK_FUNCTIONS (fns) = build_nt (TEMPLATE_ID_EXPR,
+					     BASELINK_FUNCTIONS (fns),
+					     TREE_OPERAND (name, 1));
+      return build_new_method_call (decl, fns, parmlist,
+				    /*conversion_path=*/NULL_TREE,
+				    LOOKUP_NORMAL|LOOKUP_NONVIRTUAL);
     }
 
-  if (method_name == constructor_name (type)
-      || method_name == constructor_name_full (type))
+  /* Convert 'this' to the specified type to disambiguate conversion
+     to the function's context.  */
+  if (decl == current_class_ref
+      /* ??? this is wrong, but if this conversion is invalid we need to
+	 defer it until we know whether we are calling a static or
+	 non-static member function.  Be conservative for now.  */
+      && ACCESSIBLY_UNIQUELY_DERIVED_P (type, current_class_type))
+    {
+      basetype_path = NULL_TREE;
+      decl = build_scoped_ref (decl, type, &basetype_path);
+      if (decl == error_mark_node)
+	return error_mark_node;
+    }
+
+  if (constructor_name_p (method_name, type))
     return build_functional_cast (type, parmlist);
-  if (lookup_fnfields (basetype_path, method_name, 0))
-    return build_method_call (decl, 
-			      TREE_CODE (name) == TEMPLATE_ID_EXPR
-			      ? name : method_name,
-			      parmlist, basetype_path,
-			      LOOKUP_NORMAL|LOOKUP_NONVIRTUAL);
   if (TREE_CODE (name) == IDENTIFIER_NODE
       && ((t = lookup_field (TYPE_BINFO (type), name, 1, 0))))
     {
@@ -1649,17 +1670,22 @@ build_offset_ref (type, name)
 
   decl = maybe_dummy_object (type, &basebinfo);
 
-  member = lookup_member (basebinfo, name, 1, 0);
-
-  if (member == error_mark_node)
-    return error_mark_node;
+  if (BASELINK_P (name))
+    member = name;
+  else
+    {
+      member = lookup_member (basebinfo, name, 1, 0);
+      
+      if (member == error_mark_node)
+	return error_mark_node;
+    }
 
   /* A lot of this logic is now handled in lookup_member.  */
   if (member && BASELINK_P (member))
     {
       /* Go from the TREE_BASELINK to the member function info.  */
       tree fnfields = member;
-      t = TREE_VALUE (fnfields);
+      t = BASELINK_FUNCTIONS (fnfields);
 
       if (TREE_CODE (orig_name) == TEMPLATE_ID_EXPR)
 	{
@@ -1684,7 +1710,7 @@ build_offset_ref (type, name)
 	  return t;
 	}
 
-      if (!really_overloaded_fn (t))
+      if (TREE_CODE (t) != TEMPLATE_ID_EXPR && !really_overloaded_fn (t))
 	{
 	  /* Get rid of a potential OVERLOAD around it */
 	  t = OVL_CURRENT (t);
@@ -1730,7 +1756,7 @@ build_offset_ref (type, name)
 
   if (TREE_CODE (t) == FIELD_DECL && DECL_C_BIT_FIELD (t))
     {
-      error ("illegal pointer to bit-field `%D'", t);
+      error ("invalid pointer to bit-field `%D'", t);
       return error_mark_node;
     }
 
@@ -1796,7 +1822,7 @@ resolve_offset_ref (exp)
       || TREE_CODE (TREE_TYPE (member)) == FUNCTION_TYPE)
     {
       /* These were static members.  */
-      if (mark_addressable (member) == 0)
+      if (!cxx_mark_addressable (member))
 	return error_mark_node;
       return member;
     }
@@ -1819,9 +1845,7 @@ resolve_offset_ref (exp)
   if (TREE_CODE (member) == FIELD_DECL
       && (base == current_class_ref || is_dummy_object (base)))
     {
-      tree expr;
-
-      basetype = DECL_CONTEXT (member);
+      tree binfo = NULL_TREE;
 
       /* Try to get to basetype from 'this'; if that doesn't work,
          nothing will.  */
@@ -1829,30 +1853,11 @@ resolve_offset_ref (exp)
 
       /* First convert to the intermediate base specified, if appropriate.  */
       if (TREE_CODE (exp) == OFFSET_REF && TREE_CODE (type) == OFFSET_TYPE)
-	base = build_scoped_ref (base, TYPE_OFFSET_BASETYPE (type));
+	base = build_scoped_ref (base, TYPE_OFFSET_BASETYPE (type), &binfo);
 
-      /* Don't check access on the conversion; we might be after a member
-	 promoted by an access- or using-declaration, and we have already
-	 checked access for the member itself.  */
-      basetype = lookup_base (TREE_TYPE (base), basetype, ba_ignore, NULL);
-      expr = build_base_path (PLUS_EXPR, base, basetype, 1);
-
-      if (expr == error_mark_node)
-	return error_mark_node;
-
-      type = TREE_TYPE (member);
-      if (TREE_CODE (type) != REFERENCE_TYPE)
-	{
-	  int quals = cp_type_quals (type) | cp_type_quals (TREE_TYPE (expr));
-
-	  if (DECL_MUTABLE_P (member))
-	    quals &= ~TYPE_QUAL_CONST;
-	  
-	  type = cp_build_qualified_type (type, quals);
-	}
-      
-      expr = build (COMPONENT_REF, type, expr, member);
-      return convert_from_reference (expr);
+      return build_class_member_access_expr (base, member,
+					     /*access_path=*/NULL_TREE,
+					     /*preserve_reference=*/false);
     }
 
   /* Ensure that we have an object.  */
@@ -2206,6 +2211,7 @@ build_new_1 (exp)
   tree full_type;
   tree nelts = NULL_TREE;
   tree alloc_call, alloc_expr, alloc_node;
+  tree alloc_fn;
   tree cookie_expr, init_expr;
   int has_array = 0;
   enum tree_code code;
@@ -2260,7 +2266,7 @@ build_new_1 (exp)
 
   size = size_in_bytes (true_type);
   if (has_array)
-    size = fold (cp_build_binary_op (MULT_EXPR, size, nelts));
+    size = size_binop (MULT_EXPR, size, convert (sizetype, nelts));
 
   if (TREE_CODE (true_type) == VOID_TYPE)
     {
@@ -2288,7 +2294,7 @@ build_new_1 (exp)
     use_cookie = 0;
   /* When using placement new, users may not realize that they need
      the extra storage.  We require that the operator called be
-     the global placement operator delete[].  */
+     the global placement operator new[].  */
   else if (placement && !TREE_CHAIN (placement) 
 	   && same_type_p (TREE_TYPE (TREE_VALUE (placement)),
 			   ptr_type_node))
@@ -2339,20 +2345,22 @@ build_new_1 (exp)
 		       args));
       else
 	alloc_call = build_method_call (build_dummy_object (true_type),
-					fnname, args, NULL_TREE,
+					fnname, args, 
+					TYPE_BINFO (true_type),
 					LOOKUP_NORMAL);
     }
 
   if (alloc_call == error_mark_node)
     return error_mark_node;
 
-  /* The ALLOC_CALL should be a CALL_EXPR, and the first operand
-     should be the address of a known FUNCTION_DECL.  */
-  my_friendly_assert (TREE_CODE (alloc_call) == CALL_EXPR, 20000521);
-  t = TREE_OPERAND (alloc_call, 0);
-  my_friendly_assert (TREE_CODE (t) == ADDR_EXPR, 20000521);
-  t = TREE_OPERAND (t, 0);
-  my_friendly_assert (TREE_CODE (t) == FUNCTION_DECL, 20000521);
+  /* The ALLOC_CALL should be a CALL_EXPR -- or a COMPOUND_EXPR whose
+     right-hand-side is ultimately a CALL_EXPR -- and the first
+     operand should be the address of a known FUNCTION_DECL.  */
+  t = alloc_call;
+  while (TREE_CODE (t) == COMPOUND_EXPR) 
+    t = TREE_OPERAND (t, 1);
+  alloc_fn = get_callee_fndecl (t);
+  my_friendly_assert (alloc_fn != NULL_TREE, 20020325);
   /* Now, check to see if this function is actually a placement
      allocation function.  This can happen even when PLACEMENT is NULL
      because we might have something like:
@@ -2364,7 +2372,8 @@ build_new_1 (exp)
      one argument, or there are variable arguments, then this is a
      placement allocation function.  */
   placement_allocation_fn_p 
-    = (type_num_arguments (TREE_TYPE (t)) > 1 || varargs_function_p (t));
+    = (type_num_arguments (TREE_TYPE (alloc_fn)) > 1 
+       || varargs_function_p (alloc_fn));
 
   /*        unless an allocation function is declared with an empty  excep-
      tion-specification  (_except.spec_),  throw(), it indicates failure to
@@ -2376,11 +2385,7 @@ build_new_1 (exp)
 
      So check for a null exception spec on the op new we just called.  */
 
-  /* The ADDR_EXPR.  */
-  t = TREE_OPERAND (alloc_call, 0);
-  /* The function.  */
-  t = TREE_OPERAND (t, 0);
-  nothrow = TYPE_NOTHROW_P (TREE_TYPE (t));
+  nothrow = TYPE_NOTHROW_P (TREE_TYPE (alloc_fn));
   check_new = (flag_check_new || nothrow) && ! use_java_new;
 
   alloc_expr = alloc_call;
@@ -2430,10 +2435,10 @@ build_new_1 (exp)
       if (has_array)
 	init_expr = build_vec_init (init_expr, init, 0);
       else if (TYPE_NEEDS_CONSTRUCTING (type))
-	init_expr = build_method_call (init_expr, 
-				       complete_ctor_identifier,
-				       init, TYPE_BINFO (true_type),
-				       LOOKUP_NORMAL);
+	init_expr = build_special_member_call (init_expr, 
+					       complete_ctor_identifier,
+					       init, TYPE_BINFO (true_type),
+					       LOOKUP_NORMAL);
       else
 	{
 	  /* We are processing something like `new int (10)', which
@@ -2473,13 +2478,22 @@ build_new_1 (exp)
 	  tree cleanup;
 	  int flags = (LOOKUP_NORMAL 
 		       | (globally_qualified_p * LOOKUP_GLOBAL));
+	  tree delete_node;
+
+	  if (use_cookie)
+	    /* Subtract the padding back out to get to the pointer returned
+	       from operator new.  */
+	    delete_node = fold (build (MINUS_EXPR, TREE_TYPE (alloc_node),
+				       alloc_node, cookie_size));
+	  else
+	    delete_node = alloc_node;
 
 	  /* The Standard is unclear here, but the right thing to do
              is to use the same method for finding deallocation
              functions that we use for finding allocation functions.  */
 	  flags |= LOOKUP_SPECULATIVELY;
 
-	  cleanup = build_op_delete_call (dcode, alloc_node, size, flags,
+	  cleanup = build_op_delete_call (dcode, delete_node, size, flags,
 					  (placement_allocation_fn_p 
 					   ? alloc_call : NULL_TREE));
 
@@ -2500,16 +2514,20 @@ build_new_1 (exp)
 	     constructor, that would fix the nesting problem and we could
 	     do away with this complexity.  But that would complicate other
 	     things; in particular, it would make it difficult to bail out
-	     if the allocation function returns null.  */
+	     if the allocation function returns null.  Er, no, it wouldn't;
+	     we just don't run the constructor.  The standard says it's
+	     unspecified whether or not the args are evaluated.  */
 
 	  if (cleanup)
 	    {
 	      tree end, sentry, begin;
 
 	      begin = get_target_expr (boolean_true_node);
-	      sentry = TREE_OPERAND (begin, 0);
+	      CLEANUP_EH_ONLY (begin) = 1;
 
-	      TREE_OPERAND (begin, 2)
+	      sentry = TARGET_EXPR_SLOT (begin);
+
+	      TARGET_EXPR_CLEANUP (begin)
 		= build (COND_EXPR, void_type_node, sentry,
 			 cleanup, void_zero_node);
 
@@ -2586,6 +2604,10 @@ build_vec_delete_1 (base, maxindex, type, auto_delete_vec, use_global_delete)
      executing any other code in the loop.
      This is also the containing expression returned by this function.  */
   tree controller = NULL_TREE;
+
+  /* We should only have 1-D arrays here.  */
+  if (TREE_CODE (type) == ARRAY_TYPE)
+    abort ();
 
   if (! IS_AGGR_TYPE (type) || TYPE_HAS_TRIVIAL_DESTRUCTOR (type))
     {
@@ -2775,7 +2797,10 @@ build_vec_init (base, init, from_array)
   if (init && TREE_CODE (init) == CONSTRUCTOR && TREE_TYPE (init) == NULL_TREE)
     init = digest_init (atype, init, 0);
       
-  if (init && !TYPE_NEEDS_CONSTRUCTING (type)
+  if (init
+      && (from_array == 2
+	  ? (!CLASS_TYPE_P (type) || !TYPE_HAS_COMPLEX_ASSIGN_REF (type))
+	  : !TYPE_NEEDS_CONSTRUCTING (type))
       && ((TREE_CODE (init) == CONSTRUCTOR
 	   /* Don't do this if the CONSTRUCTOR might contain something
 	      that might throw and require us to clean up.  */
@@ -3000,12 +3025,20 @@ build_vec_init (base, init, from_array)
       && from_array != 2)
     {
       tree e;
+      tree m = cp_build_binary_op (MINUS_EXPR, maxindex, iterator);
+
+      /* Flatten multi-dimensional array since build_vec_delete only
+	 expects one-dimensional array.  */
+      if (TREE_CODE (type) == ARRAY_TYPE)
+	{
+	  m = cp_build_binary_op (MULT_EXPR, m,
+				  array_type_nelts_total (type));
+	  type = strip_array_types (type);
+	}
 
       finish_compound_stmt (/*has_no_scope=*/1, try_body);
       finish_cleanup_try_block (try_block);
-      e = build_vec_delete_1 (rval,
-			      cp_build_binary_op (MINUS_EXPR, maxindex, 
-						  iterator),
+      e = build_vec_delete_1 (rval, m,
 			      type,
 			      sfk_base_destructor,
 			      /*use_global_delete=*/0);
@@ -3077,7 +3110,8 @@ build_dtor_call (exp, dtor_kind, flags)
     default:
       abort ();
     }
-  return build_method_call (exp, name, NULL_TREE, NULL_TREE, flags);
+  return build_method_call (exp, name, NULL_TREE, 
+			    TYPE_BINFO (TREE_TYPE (exp)), flags);
 }
 
 /* Generate a call to a destructor. TYPE is the type to cast ADDR to.
@@ -3111,11 +3145,18 @@ build_delete (type, addr, auto_delete, flags, use_global_delete)
   if (TREE_CODE (type) == POINTER_TYPE)
     {
       type = TYPE_MAIN_VARIANT (TREE_TYPE (type));
-      if (!VOID_TYPE_P (type) && !complete_type_or_else (type, addr))
-	return error_mark_node;
       if (TREE_CODE (type) == ARRAY_TYPE)
 	goto handle_array;
-      if (! IS_AGGR_TYPE (type))
+
+      if (VOID_TYPE_P (type)
+	  /* We don't want to warn about delete of void*, only other
+	     incomplete types.  Deleting other incomplete types
+	     invokes undefined behavior, but it is not ill-formed, so
+	     compile to something that would even do The Right Thing
+	     (TM) should the type have a trivial dtor and no delete
+	     operator.  */
+	  || !complete_type_or_diagnostic (type, addr, 1)
+	  || !IS_AGGR_TYPE (type))
 	{
 	  /* Call the builtin operator delete.  */
 	  return build_builtin_delete_call (addr);
@@ -3159,7 +3200,7 @@ build_delete (type, addr, auto_delete, flags, use_global_delete)
 	return void_zero_node;
 
       return build_op_delete_call
-	(DELETE_EXPR, addr, c_sizeof_nowarn (type),
+	(DELETE_EXPR, addr, cxx_sizeof_nowarn (type),
 	 LOOKUP_NORMAL | (use_global_delete * LOOKUP_GLOBAL),
 	 NULL_TREE);
     }
@@ -3194,11 +3235,19 @@ build_delete (type, addr, auto_delete, flags, use_global_delete)
 	  /* Build the call.  */
 	  do_delete = build_op_delete_call (DELETE_EXPR,
 					    addr,
-					    c_sizeof_nowarn (type),
+					    cxx_sizeof_nowarn (type),
 					    LOOKUP_NORMAL,
 					    NULL_TREE);
 	  /* Call the complete object destructor.  */
 	  auto_delete = sfk_complete_destructor;
+	}
+      else if (auto_delete == sfk_deleting_destructor
+	       && TYPE_GETS_REG_DELETE (type))
+	{
+	  /* Make sure we have access to the member op delete, even though
+	     we'll actually be calling it from the destructor.  */
+	  build_op_delete_call (DELETE_EXPR, addr, cxx_sizeof_nowarn (type),
+				LOOKUP_NORMAL, NULL_TREE);
 	}
 
       expr = build_dtor_call (build_indirect_ref (addr, NULL),
@@ -3224,7 +3273,7 @@ build_delete (type, addr, auto_delete, flags, use_global_delete)
 /* At the beginning of a destructor, push cleanups that will call the
    destructors for our base classes and members.
 
-   Called from setup_vtbl_ptr.  */
+   Called from begin_destructor_body.  */
 
 void
 push_base_cleanups ()
@@ -3254,21 +3303,12 @@ push_base_cleanups ()
 
 	  if (TYPE_HAS_NONTRIVIAL_DESTRUCTOR (base_type))
 	    {
-	      tree base_ptr_type = build_pointer_type (base_type);
-	      expr = current_class_ptr;
-	          
-	      /* Convert to the basetype here, as we know the layout is
-		 fixed. What is more, if we let build_method_call do it,
-		 it will use the vtable, which may have been clobbered
-		 by the deletion of our primary base.  */
-                  
-	      expr = build1 (NOP_EXPR, base_ptr_type, expr);
-	      expr = build (PLUS_EXPR, base_ptr_type, expr,
-			    BINFO_OFFSET (vbase));
-	      expr = build_indirect_ref (expr, NULL);
-	      expr = build_method_call (expr, base_dtor_identifier,
-					NULL_TREE, vbase,
-					LOOKUP_NORMAL);
+	      expr = build_special_member_call (current_class_ref, 
+						base_dtor_identifier,
+						NULL_TREE,
+						vbase,
+						(LOOKUP_NORMAL 
+						 | LOOKUP_NONVIRTUAL));
 	      expr = build (COND_EXPR, void_type_node, cond,
 			    expr, void_zero_node);
 	      finish_decl_cleanup (NULL_TREE, expr);
@@ -3287,10 +3327,10 @@ push_base_cleanups ()
 	  || TREE_VIA_VIRTUAL (base_binfo))
 	continue;
 
-      expr = build_scoped_method_call (current_class_ref, base_binfo,
-				       base_dtor_identifier,
-				       NULL_TREE);
-
+      expr = build_special_member_call (current_class_ref, 
+					base_dtor_identifier,
+					NULL_TREE, base_binfo, 
+					LOOKUP_NORMAL | LOOKUP_NONVIRTUAL);
       finish_decl_cleanup (NULL_TREE, expr);
     }
 
@@ -3301,9 +3341,10 @@ push_base_cleanups ()
 	continue;
       if (TYPE_HAS_NONTRIVIAL_DESTRUCTOR (TREE_TYPE (member)))
 	{
-	  tree this_member = (build_component_ref
-			      (current_class_ref, DECL_NAME (member),
-			       NULL_TREE, 0));
+	  tree this_member = (build_class_member_access_expr 
+			      (current_class_ref, member, 
+			       /*access_path=*/NULL_TREE,
+			       /*preserve_reference=*/false));
 	  tree this_type = TREE_TYPE (member);
 	  expr = build_delete (this_type, this_member,
 			       sfk_complete_destructor,
