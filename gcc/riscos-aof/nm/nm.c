@@ -3,30 +3,31 @@
 #include <string.h>
 #include <getopt.h>
 #include "libiberty.h"
+#include "demangle.h"
 
 #ifndef LITTLE_ENDIAN
 #define LITTLE_ENDIAN 1
 #endif
-#define NM_VERSION "1.00"
+#define NM_VERSION "1.01"
 
 static void nm_help (void);
 
-int opt_print_file_name = 0;
-int opt_debug_syms = 0;
-int opt_demangle = 0;
-int opt_dynamic = 0;
-int opt_extern_only = 1;
-int opt_numeric_sort = 0;
-int opt_no_sort = 0;
-int opt_portability = 0;
-int opt_print_armap = 0;
-int opt_reverse_sort = 0;
-int opt_size_sort = 0;
-int opt_undefined_only = 0;
-int opt_version = 0;
+static int opt_print_file_name = 0;
+static int opt_debug_syms = 0;
+static int opt_demangle = 0;
+static int opt_dynamic = 0;
+static int opt_extern_only = 1;
+static int opt_numeric_sort = 0;
+static int opt_no_sort = 0;
+static int opt_portability = 0;
+static int opt_print_armap = 0;
+static int opt_reverse_sort = 0;
+static int opt_size_sort = 0;
+static int opt_undefined_only = 0;
+static int opt_version = 0;
 
 /* Non-zero if we are processing a --defsym from the command line.  */
-int parsing_defsym = 0;
+static int parsing_defsym = 0;
 
 typedef enum
 {
@@ -210,45 +211,6 @@ static char *idptr = NULL;	/* identification string */
 static struct aofhdr *aofhdr = NULL;	/* AOF header */
 
 /*
- * free the memory used by a chunk
- */
-static int
-free_chunk_memory (char *ptr)
-{
-  if (!ptr)
-    return (0);
-
-  if (ptr == (char *) ents)
-    {
-      free (ents);
-      ents = NULL;
-    }
-  else if (ptr == strptr)
-    {
-      free (strptr);
-      strptr = NULL;
-    }
-  else if (ptr == (char *) symptr)
-    {
-      free (symptr);
-      symptr = NULL;
-    }
-  else if (ptr == idptr)
-    {
-      free (idptr);
-      idptr = NULL;
-    }
-  else if (ptr == (char *) aofhdr)
-    {
-      free (aofhdr);
-      aofhdr = NULL;
-    }
-  else
-    return (-1);
-  return (0);
-}
-
-/*
  * read in the chunk entries
  */
 static struct chunkent *
@@ -258,8 +220,7 @@ read_chunkents (FILE *ifp, struct chunkhdr *hdr)
 
   if (ents)
     free (ents);
-  ents = (struct chunkent *) xmalloc (
-				 sizeof (struct chunkent) * hdr->maxchunks);
+  ents = xmalloc (sizeof (struct chunkent) * hdr->maxchunks);
 
   fseek (ifp, sizeof (struct chunkhdr), 0);
   for (i = 0; i < hdr->numchunks; i++)
@@ -298,7 +259,7 @@ read_symboltab (FILE *ifp, struct chunkent *syment, int numsyms)
 
   if (symptr)
     free (symptr);
-  symptr = (struct symbol *) xmalloc (numsyms * sizeof (struct symbol));
+  symptr = xmalloc (numsyms * sizeof (struct symbol));
 
   fseek (ifp, syment->offset, 0);
   for (i = 0; i < numsyms; i++)
@@ -338,7 +299,7 @@ read_aofhdr (FILE *ifp, struct chunkent *hdrent)
 
   if (aofhdr)
     free (aofhdr);
-  aofhdr = (struct aofhdr *) xmalloc (hdrent->size);
+  aofhdr = xmalloc (hdrent->size);
 
   /* read-in whole of AOF header */
   fseek (ifp, hdrent->offset, 0);
@@ -348,7 +309,7 @@ read_aofhdr (FILE *ifp, struct chunkent *hdrent)
   aofhdr->numsyms = read_word (ifp);
   aofhdr->entryarea = read_word (ifp);
   aofhdr->entryoffset = read_word (ifp);
-  areahdr = (struct areahdr *) (aofhdr + sizeof (struct aofhdr));
+  areahdr = (struct areahdr *) ((int) aofhdr + sizeof (struct aofhdr));
   for (i = 0; i < aofhdr->numareas; i++)
     {
       areahdr[i].name = read_word (ifp);
@@ -488,7 +449,7 @@ decode (const char *aof_file)
 
 #if 0
       /* decode each of the areas */
-      areahdrs = (struct areahdr *) (aofhdr + sizeof (struct aofhdr));
+      areahdrs = (struct areahdr *) ((int) aofhdr + sizeof (struct aofhdr));
       offset = reloff = 0;
       for (i = 0; i < aofhdr->numareas; i++)
 	{
@@ -512,7 +473,16 @@ decode (const char *aof_file)
 	{
 	  flags = symboltab[i].flags & 0xff;
 	  if (opt_extern_only && (flags & 0x02))
-	    printf ("%s\n", string (stringtab, symboltab[i].name));
+	    {
+               const char *name = string (stringtab, symboltab[i].name);
+               const char *demangle;
+
+               if (opt_demangle &&
+                   (demangle = (cplus_demangle (name, DMGL_PARAMS | DMGL_ANSI))))
+                 puts (demangle);  
+               else
+	         puts (name);
+	    }
 	}
     }
 
@@ -530,7 +500,7 @@ parse_args (int argc, char **argv)
      the ordering of the two.  We describe each non-option ARGV-element
      as if it were the argument of an option with character code 1.  */
 
-  const char *shortopts = "o:a:C:D:g:v:p:P:s:r:u:V";
+  const char *shortopts = "oaCDgvpPsruV";
 
   /* 150 isn't special; it's just an arbitrary non-ASCII char value.  */
 
@@ -642,6 +612,7 @@ static void nm_help (void)
   printf ("Usage: nm [option(s)] [file(s)]\n"
 	  " List symbols in [file(s)]\n"
 	  " The options are:\n"
+	  "  -C, --demangle         Demangle C++ symbols\n"
 	  "  -g, --extern-only      Display only external symbols\n");
 
   printf ("\nnm: supported targets: aof\n");
