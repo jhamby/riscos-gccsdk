@@ -1546,6 +1546,12 @@ cp_tree_equal (tree t1, tree t2)
     case IDENTIFIER_NODE:
       return false;
 
+    case BASELINK:
+      return (BASELINK_BINFO (t1) == BASELINK_BINFO (t2)
+	      && BASELINK_ACCESS_BINFO (t1) == BASELINK_ACCESS_BINFO (t2)
+	      && cp_tree_equal (BASELINK_FUNCTIONS (t1),
+				BASELINK_FUNCTIONS (t2)));
+
     case TEMPLATE_PARM_INDEX:
       return (TEMPLATE_PARM_IDX (t1) == TEMPLATE_PARM_IDX (t2)
 	      && TEMPLATE_PARM_LEVEL (t1) == TEMPLATE_PARM_LEVEL (t2)
@@ -1764,6 +1770,8 @@ pod_type_p (tree t)
     return 1; /* pointer to non-member */
   if (TYPE_PTR_TO_MEMBER_P (t))
     return 1; /* pointer to member */
+  if (TREE_CODE (t) == VECTOR_TYPE)
+    return 1; /* vectors are (small) arrays of scalars */
   
   if (! CLASS_TYPE_P (t))
     return 0; /* other non-class type (reference or function) */
@@ -2494,6 +2502,8 @@ stabilize_init (tree init, tree *initp)
 	t = TREE_OPERAND (t, 1);
       if (TREE_CODE (t) == TARGET_EXPR)
 	t = TARGET_EXPR_INITIAL (t);
+      if (TREE_CODE (t) == COMPOUND_EXPR)
+	t = expr_last (t);
       if (TREE_CODE (t) == CONSTRUCTOR
 	  && CONSTRUCTOR_ELTS (t) == NULL_TREE)
 	{
