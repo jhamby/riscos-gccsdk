@@ -1,5 +1,5 @@
 /*  Functions from hack's utils library.
-    Copyright (C) 1989, 1990, 1991, 1998
+    Copyright (C) 1989, 1990, 1991, 1998, 1999, 2003
     Free Software Foundation, Inc.
 
     This program is free software; you can redistribute it and/or modify
@@ -16,10 +16,6 @@
     along with this program; if not, write to the Free Software
     Foundation, 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. */
 
-/* These routines were written as part of a library (by hack), but since most
-   people don't have the library, here they are.  */
-/* Tweaked by ken */
-
 #include "config.h"
 
 #include <stdio.h>
@@ -29,36 +25,25 @@
   extern int errno;
 #endif
 
-#ifndef HAVE_STRING_H
+#ifdef HAVE_STRINGS_H
 # include <strings.h>
 #else
 # include <string.h>
-#endif /* HAVE_STRING_H */
+#endif /* HAVE_STRINGS_H */
 
-#ifndef HAVE_STDLIB_H
-# ifdef RX_MEMDBUG
-#  include <sys/types.h>
-#  include <malloc.h>
-# endif /* RX_MEMDBUG */
-#else /* HAVE_STDLIB_H */
+#ifdef HAVE_STDLIB_H
 # include <stdlib.h>
 #endif /* HAVE_STDLIB_H */
 
 #include "basicdefs.h"
 #include "utils.h"
 
-#ifndef HAVE_STDLIB_H
-# ifndef RX_MEMDBUG
-   VOID *malloc();
-   VOID *realloc();
-# endif /* RX_MEMDBUG */
-#endif /* HAVE_STDLIB_H */
-
 const char *myname;
 
+void do_ck_fclose P_((FILE *stream));
 
 /* Print an error message and exit */
-#if !defined __STDC__ || !__STDC__
+#if !defined __STDC__ || !(__STDC__-0)
 # include <varargs.h>
 # define VSTART(l,a)	va_start(l)
 void
@@ -103,9 +88,9 @@ struct id
   };
 
 static struct id *utils_id_s = NULL;
-static const char *utils_fp_name P_((FILE *fp));
 
 /* Internal routine to get a filename from utils_id_s */
+static const char *utils_fp_name P_((FILE *fp));
 static const char *
 utils_fp_name(fp)
   FILE *fp;
@@ -116,25 +101,34 @@ utils_fp_name(fp)
     if (p->fp == fp)
       return p->name;
   if (fp == stdin)
-    return "{standard input}";
+    return "stdin";
   else if (fp == stdout)
-    return "{standard output}";
+    return "stdout";
   else if (fp == stderr)
-    return "{standard error}";
-  return "{Unknown file pointer}";
+    return "stderr";
+
+  return "<unknown>";
 }
 
 /* Panic on failing fopen */
 FILE *
-ck_fopen(name, mode)
+ck_fopen(name, mode, fail)
   const char *name;
   const char *mode;
+  flagT fail;
 {
   FILE *fp;
   struct id *p;
 
-  if ( ! (fp = fopen(name, mode)) )
-    panic("Couldn't open file %s", name);
+  fp = fopen (name, mode);
+  if (!fp)
+    {
+      if (fail)
+        panic(_("Couldn't open file %s: %s"), name, strerror(errno));
+
+      return NULL;
+    }
+
   for (p=utils_id_s; p; p=p->link)
     {
       if (fp == p->fp)
@@ -162,9 +156,11 @@ ck_fwrite(ptr, size, nmemb, stream)
   size_t nmemb;
   FILE *stream;
 {
+  clearerr(stream);
   if (size && fwrite(ptr, size, nmemb, stream) != nmemb)
-    panic("couldn't write %d item%s to %s: %s",
-	  nmemb, nmemb==1 ? "" : "s", utils_fp_name(stream), strerror(errno));
+    panic(ngettext("couldn't write %d item to %s: %s",
+		   "couldn't write %d items to %s: %s", nmemb), 
+		nmemb, utils_fp_name(stream), strerror(errno));
 }
 
 /* Panic on failing fread */
@@ -175,8 +171,10 @@ ck_fread(ptr, size, nmemb, stream)
   size_t nmemb;
   FILE *stream;
 {
+  clearerr(stream);
   if (size && (nmemb=fread(ptr, size, nmemb, stream)) <= 0 && ferror(stream))
-    panic("read error on %s: %s", utils_fp_name(stream), strerror(errno));
+    panic(_("read error on %s: %s"), utils_fp_name(stream), strerror(errno));
+
   return nmemb;
 }
 
@@ -185,8 +183,9 @@ void
 ck_fflush(stream)
   FILE *stream;
 {
-  if (fflush(stream) == EOF)
-    panic("Couldn't flush %s", utils_fp_name(stream));
+  clearerr(stream);
+  if (fflush(stream) == EOF && errno != EBADF)
+    panic("Couldn't flush %s: %s", utils_fp_name(stream), strerror(errno));
 }
 
 /* Panic on failing fclose */
@@ -198,29 +197,69 @@ ck_fclose(stream)
   struct id *prev;
   struct id *cur;
 
-  if (!stream)
-    return;
-  if (fclose(stream) == EOF)
-    panic("Couldn't close %s", utils_fp_name(stream));
+  /* a NULL stream means to close all files */
   r.link = utils_id_s;
   prev = &r;
   while ( (cur = prev->link) )
     {
-      if (stream == cur->fp)
+      if (!stream || stream == cur->fp)
 	{
+	  do_ck_fclose (cur->fp);
 	  prev->link = cur->link;
 	  FREE(cur->name);
 	  FREE(cur);
-#ifdef TRUST_THAT_ID_CHAIN_IS_CLEAN
-	  break;
-#endif
 	}
       else
-	{
-	  prev = cur;
-	}
+	prev = cur;
     }
+
   utils_id_s = r.link;
+
+  /* Also care about stdout, because if it is redirected the
+     last output operations might fail and it is important
+     to signal this as an error (perhaps to make). */
+  if (!stream)
+    {
+      do_ck_fclose (stdout);
+      do_ck_fclose (stderr);
+    }
+}
+
+/* Close a single file and update a count of closed files. */
+void
+do_ck_fclose(stream)
+  FILE *stream;
+{
+  ck_fflush(stream);
+  clearerr(stream);
+  if (fclose(stream) == EOF)
+    panic("Couldn't close %s: %s", utils_fp_name(stream), strerror(errno));
+}
+
+
+
+char *
+temp_file_template(tmpdir, program)
+  const char *tmpdir;    
+  char *program;
+{
+  char *template;
+  if (tmpdir == NULL)
+    tmpdir = getenv("TMPDIR");
+  if (tmpdir == NULL)
+    {
+      tmpdir = getenv("TMP");
+      if (tmpdir == NULL)
+#ifdef P_tmpdir
+	tmpdir = P_tmpdir;
+#else
+	tmpdir = "/tmp";
+#endif
+    }
+
+  template = xmalloc (strlen (tmpdir) + strlen (program) + 8);
+  sprintf (template, "%s/%sXXXXXX", tmpdir, program);
+  return (template);
 }
 
 
@@ -229,7 +268,7 @@ VOID *
 ck_malloc(size)
   size_t size;
 {
-  VOID *ret = malloc(size ? size : 1);
+  VOID *ret = calloc(1, size ? size : 1);
   if (!ret)
     panic("Couldn't allocate memory");
   return ret;
@@ -293,7 +332,7 @@ ck_free(ptr)
 }
 
 
-/* Implement a variable sized buffer of 'stuff'.  We don't know what it is,
+/* Implement a variable sized buffer of `stuff'.  We don't know what it is,
 nor do we care, as long as it doesn't mind being aligned by malloc. */
 
 struct buffer
@@ -330,7 +369,6 @@ size_buffer(b)
 }
 
 static void resize_buffer P_((struct buffer *b, size_t newlen));
-
 static void
 resize_buffer(b, newlen)
   struct buffer *b;

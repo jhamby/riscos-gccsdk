@@ -1,5 +1,5 @@
 /*  GNU SED, a batch stream editor.
-    Copyright (C) 1989, 1990, 1991, 1992, 1993, 1994, 1995, 1998
+    Copyright (C) 1989,90,91,92,93,94,95,98,99,2002,2003
     Free Software Foundation, Inc.
 
     This program is free software; you can redistribute it and/or modify
@@ -16,101 +16,93 @@
     along with this program; if not, write to the Free Software
     Foundation, 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. */
 
+#ifndef BOOTSTRAP
 #include <stdio.h>
-
-/* type countT is used to keep track of line numbers, etc. */
-typedef unsigned long countT;
-
-/* type flagT is used for boolean values */
-typedef int flagT;
-
-/* Oftentimes casts are used as an ugly hack to silence warnings
- * from the compiler.  However, sometimes those warnings really
- * do point to something worth avoiding.  I define this
- * dummy marker to make searching for them with a text editor
- * much easier, in case I want to verify that they are all
- * legitimate.  It is defined in the way it is so that it is
- * easy to disable all casts so that the compiler (or lint)
- * can tell me potentially interesting things about what would
- * happen to the code without the explicit casts.
- */
-#ifdef LOUD_LINT
-# define CAST(x)
-#else
-# define CAST(x) (x)
 #endif
+#include "regex.h"
 
-
-/* Struct vector is used to describe a chunk of a compiled sed program.
- * There is one vector for the main program, and one for each { } pair.
- * For {} blocks, RETURN_[VI] tells where to continue execution after
- * this VECTOR.
- */
-
+/* Struct vector is used to describe a compiled sed program. */
 struct vector {
-  struct sed_cmd *v;		/* a dynamically allocated array */
-  size_t v_allocated;		/* ... number slots allocated */
-  size_t v_length;		/* ... number of slots in use */
-  struct error_info *err_info;	/* info for unclosed '{'s */
-  struct vector *return_v;	/* where the matching '}' will return to */
-  countT return_i;		/* ... further info */
+  struct sed_cmd *v;	/* a dynamically allocated array */
+  size_t v_allocated;	/* ... number slots allocated */
+  size_t v_length;	/* ... number of slots in use */
 };
 
-
-/* Goto structure is used to hold both GOTO's and labels.  There are two
- * separate lists, one of goto's, called 'jumps', and one of labels, called
- * 'labels'.
- * The V element points to the descriptor for the program-chunk in which the
- * goto was encountered.
- * The v_index element counts which element of the vector actually IS the
- * goto/label.
- * The NAME element is the null-terminated name of the label.
- * "next" is the next goto/label in the linked list.
- */
-
-struct sed_label {
-  struct vector *v;
-  countT v_index;
-  char *name;
-  struct sed_label *next;
-};
 
 struct text_buf {
   char *text;
-  size_t text_len;
+  size_t text_length;
+};
+
+enum replacement_types {
+  repl_asis = 0,
+  repl_uppercase = 1,
+  repl_lowercase = 2,
+  repl_uppercase_first = 4,
+  repl_lowercase_first = 8,
+  repl_modifiers = repl_uppercase_first | repl_lowercase_first,
+
+  /* These are given to aid in debugging */
+  repl_uppercase_uppercase = repl_uppercase_first | repl_uppercase,
+  repl_uppercase_lowercase = repl_uppercase_first | repl_lowercase,
+  repl_lowercase_uppercase = repl_lowercase_first | repl_uppercase,
+  repl_lowercase_lowercase = repl_lowercase_first | repl_lowercase,
+};
+
+enum addr_types {
+  addr_is_null,		/* null address */
+  addr_is_regex,	/* a.addr_regex is valid */
+  addr_is_num,		/* a.addr_number is valid */
+  addr_is_num_mod,	/* a.addr_number is valid, addr_step is modulo */
+  addr_is_num2,		/* a.addr_number is valid (only valid for addr2) */
+  addr_is_step,		/* address is +N (only valid for addr2) */
+  addr_is_step_mod,	/* address is ~N (only valid for addr2) */
+  addr_is_last		/* address is $ */
+};
+
+struct addr {
+  enum addr_types addr_type;
+  countT addr_number;
+  countT addr_step;
+  regex_t *addr_regex;
 };
 
 
-struct addr {
-  enum {
-    addr_is_null,  /* null address */
-    addr_is_num,   /* a.addr_number is valid */
-    addr_is_mod,   /* doing every n'th line; a.m.* are valid */
-    addr_is_last,  /* address is $ */
-    addr_is_regex  /* a.addr_regex is valid */
-  } addr_type;
-
-  union {
-    regex_t *addr_regex;
-    countT addr_number;
-    struct {countT modulo; countT offset;} m;
-  } a;
+struct replacement {
+  char *prefix;
+  size_t prefix_length;
+  int subst_id;
+  enum replacement_types repl_type;
+  struct replacement *next;
 };
 
 struct subst {
-    regex_t *regx;
-    char *replacement;
-    size_t replace_length;
-    countT numb;	/* if >0, only substitute for match number "numb" */
-    FILE *wfile;	/* 'w' option given */
-    char global;	/* 'g' option given */
-    char print;		/* 'p' option given */
+  regex_t *regx;
+  struct replacement *replacement;
+  countT numb;		/* if >0, only substitute for match number "numb" */
+  FILE *fp;		/* 'w' option given */
+  unsigned global : 1;	/* 'g' option given */
+  unsigned print : 2;	/* 'p' option given (before/after eval) */
+  unsigned eval : 1;	/* 'e' option given */
+  unsigned max_id : 4;  /* maximum backreference on the RHS */
 };
+
+#ifdef REG_PERL
+/* This is the structure we store register match data in.  See
+   regex.texinfo for a full description of what registers match.  */
+struct re_registers
+{
+  unsigned num_regs;
+  regoff_t *start;
+  regoff_t *end;
+};
+#endif
+
 
 
 struct sed_cmd {
-  struct addr a1;
-  struct addr a2;
+  struct addr *a1;	/* save space: usually is NULL */
+  struct addr *a2;
 
   /* non-zero if a1 has been matched; apply command until a2 matches */
   char a1_matched;
@@ -123,43 +115,70 @@ struct sed_cmd {
 
   /* auxiliary data for various commands */
   union {
-      /* This structure is used for a, i, and c commands */
-      struct text_buf cmd_txt;
+    /* This structure is used for a, i, and c commands */
+    struct text_buf cmd_txt;
 
-      /* This is used for b and t commands */
-      struct sed_label *jump;
+    /* This is used for the l, q and Q commands */
+    int int_arg;
 
-      /* This for r command */
-      const char *rfile;
+    /* This is used for {}, b, and t commands */
+    countT jump_index;
 
-      /* This for w command */
-      FILE *wfile;
+    /* This for r command */
+    char *fname;
 
-      /* This for the y command */
-      unsigned char *translate;
+    /* This for the hairy s command */
+    struct subst *cmd_subst;
 
-      /* For {} */
-      struct vector *sub;
+    /* This for R and w command */
+    FILE *fp;
 
-      /* This for the hairy s command */
-      struct subst cmd_regex;
-    } x;
+    /* This for the y command */
+    unsigned char *translate;
+    char **translatemb;
+  } x;
 };
 
 
 
-struct vector *compile_string P_((struct vector *, char *str));
+void bad_prog P_((const char *why));
+size_t normalize_text P_((char *, size_t));
+struct vector *compile_string P_((struct vector *, char *str, size_t len));
 struct vector *compile_file P_((struct vector *, const char *cmdfile));
 void check_final_program P_((struct vector *));
-void close_all_files P_((void));
+void rewind_read_files P_((void));
+void finish_program P_((struct vector *));
 
-countT process_files P_((struct vector *, char **argv));
+regex_t *compile_regex P_((struct buffer *b, int flags, int needed_sub));
+int match_regex P_((regex_t *regex,
+		    char *buf, size_t buflen, size_t buf_start_offset,
+		    struct re_registers *regarray, int regsize));
+#ifdef DEBUG_LEAKS
+void release_regex P_((regex_t *));
+#endif
+
+int process_files P_((struct vector *, char **argv));
 
 int main P_((int, char **));
-flagT map_file P_((FILE *fp, VOID **base, size_t *len));
-void unmap_file P_((VOID *base, size_t len));
 
-extern flagT use_extended_syntax_p;
-extern flagT rx_testing;
+extern void fmt P_ ((char *line, char *line_end, int max_length, FILE *output_file));
+
+extern int extended_regexp_flags;
+
+/* If set, fflush(stdout) on every line output. */
+extern flagT unbuffered_output;
+
+/* If set, don't write out the line unless explicitly told to. */
 extern flagT no_default_output;
+
+/* If set, reset line counts on every new file. */
+extern flagT separate_files;
+
+/* Do we need to be pedantically POSIX compliant? */
 extern flagT POSIXLY_CORRECT;
+
+/* How long should the `l' command's output line be? */
+extern countT lcmd_out_line_len;
+
+/* How do we edit files in-place? (we don't if NULL) */
+extern char *in_place_extension;
