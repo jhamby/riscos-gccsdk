@@ -1,6 +1,6 @@
 /* Reload pseudo regs into hard regs for insns that require hard regs.
    Copyright (C) 1987, 1988, 1989, 1992, 1993, 1994, 1995, 1996, 1997, 1998,
-   1999, 2000, 2001, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
+   1999, 2000, 2001, 2002, 2003, 2004 Free Software Foundation, Inc.
 
 This file is part of GCC.
 
@@ -3324,14 +3324,6 @@ set_initial_elim_offsets (void)
   num_not_at_initial_offset = 0;
 }
 
-/* Subroutine of set_initial_label_offsets called via for_each_eh_label.  */
-
-static void
-set_initial_eh_label_offset (rtx label)
-{
-  set_label_offsets (label, NULL_RTX, 1);
-}
-
 /* Initialize the known label offsets.
    Set a known offset for each forced label to be at the initial offset
    of each elimination.  We do this because we assume that all
@@ -3348,8 +3340,6 @@ set_initial_label_offsets (void)
   for (x = forced_labels; x; x = XEXP (x, 1))
     if (XEXP (x, 0))
       set_label_offsets (XEXP (x, 0), NULL_RTX, 1);
-
-  for_each_eh_label (set_initial_eh_label_offset);
 }
 
 /* Set all elimination offsets to the known values for the code label given
@@ -3468,6 +3458,7 @@ init_elim_table (void)
   /* Does this function require a frame pointer?  */
 
   frame_pointer_needed = (! flag_omit_frame_pointer
+#ifndef TARGET_RISCOSAOF
 			  /* ?? If EXIT_IGNORE_STACK is set, we will not save
 			     and restore sp for alloca.  So we can't eliminate
 			     the frame pointer in that case.  At some point,
@@ -3475,6 +3466,7 @@ init_elim_table (void)
 			     sp-adjusting insns for this case.  */
 			  || (current_function_calls_alloca
 			      && EXIT_IGNORE_STACK)
+#endif
 			  || FRAME_POINTER_REQUIRED);
 
   num_eliminable = 0;
@@ -5412,18 +5404,19 @@ choose_reload_regs (struct insn_chain *chain)
 		    need_mode = mode;
 		  else
 		    need_mode
-		      = smallest_mode_for_size (GET_MODE_BITSIZE (mode)
-						+ byte * BITS_PER_UNIT,
+		      = smallest_mode_for_size (GET_MODE_SIZE (mode) + byte,
 						GET_MODE_CLASS (mode));
 
-		  if ((GET_MODE_SIZE (GET_MODE (last_reg))
+		  if (
+#ifdef CANNOT_CHANGE_MODE_CLASS
+		      (!REG_CANNOT_CHANGE_MODE_P (i, GET_MODE (last_reg),
+						  need_mode)
+		       &&
+#endif
+		      (GET_MODE_SIZE (GET_MODE (last_reg))
 		       >= GET_MODE_SIZE (need_mode))
 #ifdef CANNOT_CHANGE_MODE_CLASS
-		      /* Verify that the register in "i" can be obtained
-			 from LAST_REG.  */
-		      && !REG_CANNOT_CHANGE_MODE_P (REGNO (last_reg),
-						    GET_MODE (last_reg),
-						    mode)
+		      )
 #endif
 		      && reg_reloaded_contents[i] == regno
 		      && TEST_HARD_REG_BIT (reg_reloaded_valid, i)
@@ -6824,10 +6817,6 @@ do_input_reload (struct insn_chain *chain, struct reload *rl, int j)
      actually no need to store the old value in it.  */
 
   if (optimize
-      /* Only attempt this for input reloads; for RELOAD_OTHER we miss
-	 that there may be multiple uses of the previous output reload.
-	 Restricting to RELOAD_FOR_INPUT is mostly paranoia.  */
-      && rl->when_needed == RELOAD_FOR_INPUT
       && (reload_inherited[j] || reload_override_in[j])
       && rl->reg_rtx
       && GET_CODE (rl->reg_rtx) == REG
