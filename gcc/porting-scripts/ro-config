@@ -420,6 +420,7 @@ export ac_cv_sctp=no
 
 export bash_cv_have_mbstate_t=no
 export bash_cv_getenv_redef=no
+export bash_cv_getcwd_malloc=yes
 
 export kde_cv_shortsetgroups=no
 export kde_cv_prog_uic_nounload=yes
