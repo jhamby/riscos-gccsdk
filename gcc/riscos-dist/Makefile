@@ -64,10 +64,11 @@ GPCPKG = $(pkg)/bin/gpc$(exesfx) \
 	$(pkg)/docs/gpc
 
 JAVAPKG = $(bindir)/jc1$(exesfx) \
-	$(bindir)/jcf-dump$(exesfx) \
-	$(bindir)/jv-scan$(exesfx) \
+	$(pkg)/bin/jcf-dump$(exesfx) \
+	$(pkg)/bin/jv-scan$(exesfx) \
 	$(bindir)/jvgenmain$(exesfx) \
-	$(bindir)/gcjh$(exesfx)
+	$(pkg)/bin/gcjh$(exesfx)
+	$(pkg)/bin/gcj$(exesfx)
 
 UTILSPKG = $(pkg)/bin/bison$(exesfx) \
 	$(pkg)/bin/cmp$(exesfx) \

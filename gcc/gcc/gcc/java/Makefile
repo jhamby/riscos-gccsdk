@@ -18,9 +18,9 @@ all: java
 
 .PHONY: java
 
-java: $(gcc_bin_dir)/gcjh$(gexesfx) $(gcc_bin_dir)/jvgenmain$(gexesfx) \
-	$(gcc_bin_dir)/jcf-dump$(gexesfx) \
-        $(gcc_bin_dir)/jv-scan$(gexesfx) $(gcc_bin_dir)/jc1$(gexesfx)
+java: $(bin_dir)/gcjh$(gexesfx) $(gcc_bin_dir)/jvgenmain$(gexesfx) \
+	$(bin_dir)/jcf-dump$(gexesfx) $(bin_dir)/gcj \
+        $(bin_dir)/jv-scan$(gexesfx) $(gcc_bin_dir)/jc1$(gexesfx)
 
 LIBDEPS = $(gccobjdir)/prefix.o
 
@@ -85,21 +85,29 @@ GCJH_OBJS = $(gccobjdir)/java/gjavah.o \
 	$(gccobjdir)/errors.o
 
 
+GCJ_OBJS = $(gccobjdir)/gcc.o \
+	$(gccobjdir)/java/jvspec.o \
+        $(gccobjdir)/version.o \
+        $(gccobjdir)/config/arm/rname.o
+
 # The real targets
 $(gcc_bin_dir)/jc1$(gexesfx): $(JAVA_OBJS) $(BACKEND) $(RISCOS_OBJS)
 	$(LINK) $(JAVA_OBJS) $(BACKEND) $(RISCOS_OBJS) $(LIBDEPS) $(LIBS)
 
-$(gcc_bin_dir)/jv-scan$(gexesfx): $(JVSCAN_OBJS)
+$(bin_dir)/jv-scan$(gexesfx): $(JVSCAN_OBJS)
 	$(LINK) $(JVSCAN_OBJS) $(LIBDEPS) $(LIBS)
 
-$(gcc_bin_dir)/jcf-dump$(gexesfx): $(JCF_DUMP_OBJS)
+$(bin_dir)/jcf-dump$(gexesfx): $(JCF_DUMP_OBJS)
 	$(LINK) $(JCF_DUMP_OBJS) $(LIBDEPS) $(LIBS)
 
 $(gcc_bin_dir)/jvgenmain$(gexesfx): $(JVGENMAIN_OBJS)
 	$(LINK) $(JVGENMAIN_OBJS) $(LIBDEPS) $(LIBS)
 
-$(gcc_bin_dir)/gcjh$(gexesfx): $(GCJH_OBJS)
+$(bin_dir)/gcjh$(gexesfx): $(GCJH_OBJS)
 	$(LINK) $(GCJH_OBJS) $(LIBDEPS) $(LIBS)
+
+$(bin_dir)/gcj$(gexesfx): $(GCJ_OBJS)
+	$(LINK) $(GCJ_OBJS) $(RISCOS_OBJS) $(LIBDEPS) $(LIBS)
 
 ##############################################################################
 
