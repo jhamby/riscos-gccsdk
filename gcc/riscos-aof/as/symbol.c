@@ -171,10 +171,11 @@ symbolFix (void)		/* Returns number of symbols */
     {
       for (sym = symbolTable[i]; sym; sym = sym->next)
 	{
-	  if (sym->type == SYMBOL_AREA)
+	  if (sym->type & SYMBOL_AREA)
 	    {
 	      sym->offset = strsize;
 	      strsize += sym->len + 1;
+	      nosym++;
 	    }
 	  else
 	    {
@@ -236,7 +237,7 @@ symbolStringOutput (FILE * outfile)	/* Count already output */
     for (sym = symbolTable[i]; sym; sym = sym->next)
       {
 /*printf("%-40s  %3i %8X %8X %8X\n",sym->str,sym->used,sym->type,sym->value.Tag.t,sym->value.Tag.v); */
-	if (SYMBOL_OUTPUT (sym) /*(sym)->used >= 0 */  || sym->type == SYMBOL_AREA)
+	if (SYMBOL_OUTPUT (sym) /*(sym)->used >= 0 */  || sym->type & SYMBOL_AREA)
 	  {
 /*puts("  (written)"); */
 	    if (pedantic && sym->declared == 0)
@@ -335,6 +336,14 @@ symbolSymbolOutput (FILE * outfile)
           asym.Type     = armword (asym.Type);
           asym.Value    = armword (asym.Value);
           asym.AreaName = armword(asym.AreaName);
+	  fwrite ((void *) &asym, sizeof (AofSymbol), 1, outfile);
+	}
+      else if (sym->type & SYMBOL_AREA)
+	{
+	  asym.Name = armword (sym->offset);
+	  asym.Type = armword (SYMBOL_KIND(sym->type)|SYMBOL_LOCAL);
+	  asym.Value = armword (0);
+	  asym.AreaName = armword (sym->offset);
 	  fwrite ((void *) &asym, sizeof (AofSymbol), 1, outfile);
 	}
 }

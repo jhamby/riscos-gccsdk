@@ -79,8 +79,8 @@ asm_label (Lex * label)
    error(ErrorWarning,FALSE,"Local labels not yet implemented");
    }
  */
-//  symbol = symbolAdd (*label);
-  symbol = symbolGet(*label);
+  symbol = symbolAdd (*label);
+//  symbol = symbolGet(*label);
   if (areaCurrent)
     {
       symbol->value = valueLateToCode (areaCurrent->value.ValueInt.i,

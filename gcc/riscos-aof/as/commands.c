@@ -315,7 +315,7 @@ symFlag (int flag, int declared, const char *err)
 void 
 c_globl (void)
 {
-  symFlag (SYMBOL_GLOBAL, 1, "exported");
+  symFlag (SYMBOL_REFERENCE, 1, "exported");
 }
 
 
