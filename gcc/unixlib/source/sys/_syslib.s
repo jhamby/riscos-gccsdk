@@ -1,8 +1,8 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/_syslib.s,v $
-; $Date: 2003/11/23 20:26:45 $
-; $Revision: 1.22 $
+; $Date: 2003/12/22 21:35:03 $
+; $Revision: 1.23 $
 ; $State: Exp $
 ; $Author: joty $
 ;
@@ -485,6 +485,34 @@ exit_word
 |___vret|
 	DCD	|__vret|
 
+        EXPORT  |__env_wimpslot|
+	; Restore original wimpslot, appspace and himem limits
+|__env_wimpslot|
+	; As we are reducing the wimpslot, the stack pointer may end up
+	; pointing to invalid memory, so we need to reset it.
+	; This will overwrite some of the original stack, but this is
+	; only called just before exiting so won't be a problem
+	LDR	a1, =|__calling_environment|
+	LDR	sp, [a1]	; Original himem value
+
+|__env_wimpslot_0|
+	STMFD	sp!, {v1, v2, lr}
+	ADD	v2, a1, #14*3*4
+
+	LDR	a1, [v2]	; Original appspace value
+	SUB	a1, a1, #&8000
+	MOV	a2, #-1
+	SWI	XWimp_SlotSize
+
+	MOV	a1, #14
+	LDMIA	v2, {a2, a3, a4}
+	SWI	XOS_ChangeEnvironment
+	MOV	a1, #0
+	SUB	v2, v2, #14*3*4
+	LDMIA	v2, {a2, a3, a4}
+	SWI	XOS_ChangeEnvironment
+        stackreturn     AL, "v1, v2, pc"
+
 	; Restore original wimpslot, appspace and himem limits, and original
 	; RISC OS environment handlers
 |__env_riscos_and_wimpslot|
@@ -495,23 +523,9 @@ exit_word
 	LDR	a1, =|__calling_environment|
 	LDR	sp, [a1]	; Original himem value
 
-	STMFD	sp!, {v1, lr}
-	ADD	v1, a1, #14*3*4
-
-	LDR	a1, [v1]	; Original appspace value
-	SUB	a1, a1, #&8000
-	MOV	a2, #-1
-	SWI	XWimp_SlotSize
-
-	MOV	a1, #14
-	LDMIA	v1, {a2, a3, a4}
-	SWI	XOS_ChangeEnvironment
-	MOV	a1, #0
-	SUB	v1, v1, #14*3*4
-	LDMIA	v1, {a2, a3, a4}
-	SWI	XOS_ChangeEnvironment
-
-	LDMFD	sp!, {v1, lr}
+        STMFD   sp!, {lr}
+        BL      |__env_wimpslot_0|
+        LDMFD   sp!, {lr}
 	; Fall through to __env_riscos
 
 	EXPORT	|__env_riscos|

@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/exec.c,v $
- * $Date: 2003/04/05 12:16:34 $
- * $Revision: 1.8 $
+ * $Date: 2003/06/16 21:00:33 $
+ * $Revision: 1.9 $
  * $State: Exp $
- * $Author: alex $
+ * $Author: joty $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: exec.c,v 1.8 2003/04/05 12:16:34 alex Exp $";
+static const char rcs_id[] = "$Id: exec.c,v 1.9 2003/06/16 21:00:33 joty Exp $";
 #endif
 
 #include <ctype.h>
@@ -405,8 +405,14 @@ execve (const char *execname, char *const argv[], char *const envp[])
 	 of the UnixLib world.  */
       __env_riscos ();
 
+      /* If the cli plus a small (256-byte) stack is larger than the
+       * gap between __lomem and __himem (unlikely) then fail. */
+      cli_length = strlen (cli);
+      if (cli_length + 1 + 256 > (char*)__himem - (char*)__lomem)
+	__exit_no_code ();	/* No return possible (see above).  */
+
       /* If the cli is >= MAXPATHLEN, we will need the aid of DDE utils.  */
-      if (strlen (cli) >= MAXPATHLEN && set_dde_cli (cli) < 0)
+      if (cli_length >= MAXPATHLEN && set_dde_cli (cli) < 0)
 	__exit_no_code ();	/* No return possible (see above).  */
 
       /* If the DAs are being used, then delete the dynamic area first.
@@ -418,19 +424,11 @@ execve (const char *execname, char *const argv[], char *const envp[])
 	  __dynamic_area_exit ();
 	}
 
-      /* Pass the command to os_cli (which never returns).  */
-      __os_cli (cli);
+      /* Restore wimpslot and memory limit, then execute command.
+       * (This function never returns, even for a RISC OS built-in
+       * command.) */
+      __exec_cli (cli);
 
-      /* If we've called a RISC OS builtin then we can return here.
-         If we haven't then something ugly must have happened.  There
-         isn't much be can do, so just exit.  */
-      {
-	 int regs[10];
-
-	 regs[0] = 0;
-	 __os_swi (DDEUtils_SetCLSize, regs);
-      }
-      __exit_no_code ();
       /* NOTREACHED */
     }
 

@@ -1,3 +1,13 @@
+Sat Mar 06 13:05:58 2004  Graham Shaw  <gdshaw@sagitta.demon.co.uk>
+
+	* source/sys/exec.c (execve): Restore wimpslot and himem to
+	  previous values before executing the command. Prevents a program
+	  exec()ed from a vfork()/exec()ed child process from overwriting
+	  the original parent. 
+	* source/sys/_exec.s (__exec_cli): New function.
+	* source/sys/_syslib.s (__env_wimpslot): Separate out from
+	  __env_riscos_and_wimpslot.
+
 Sun Feb 29 16:36:30 2004  Alex Waugh  <alex@alexwaugh.com>
 
 	* source/clib/pthread.h: Make __pthread_start/stop_ticker

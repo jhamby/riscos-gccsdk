@@ -1,10 +1,10 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/_exec.s,v $
-; $Date: 2001/01/29 15:10:21 $
-; $Revision: 1.2 $
+; $Date: 2003/04/05 12:16:34 $
+; $Revision: 1.3 $
 ; $State: Exp $
-; $Author: admin $
+; $Author: alex $
 ;
 ;----------------------------------------------------------------------------
 
@@ -13,8 +13,10 @@
 	AREA	|C$$code|,CODE,READONLY
 
 	IMPORT	|__exret|
+	IMPORT	|__env_wimpslot|
 
 	IMPORT	|__base|
+	IMPORT	|__lomem|
 	IMPORT	|__rwlimit|
 	IMPORT	|__dynamic_num|
 	IMPORT	|__real_break|
@@ -263,5 +265,26 @@
 	EXPORT	|__exlen|
 |__exlen|
 	DCD	|__exec_s7|-|__exec_s0|
+
+        EXPORT  |__exec_cli|
+|__exec_cli|
+        LDR     a2,=|__lomem|
+        LDR     a2,[a2]
+|__exec_cli_0|
+        LDRB    a3,[a1],#1
+        STRB    a3,[a2],#1
+        CMP     a3,#0
+        BNE     |__exec_cli_0|
+        BL      |__env_wimpslot|
+
+        LDR     a1,=|__lomem|
+        LDR     a1,[a1]
+        SWI     XOS_CLI
+        MOV     R0,#0
+        SWI     XDDEUtils_SetCLSize
+        MOV     R0,#0
+        MOV     R1,#0
+        MOV     R2,#0
+        SWI     XOS_Exit
 
 	END
