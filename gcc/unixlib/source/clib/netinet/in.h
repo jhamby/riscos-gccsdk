@@ -1,10 +1,10 @@
 /****************************************************************************
  *
- * $Source: $
- * $Date: $
- * $Revision: $
- * $State: $
- * $Author: $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/netinet/in.h,v $
+ * $Date: 2002/12/22 18:22:28 $
+ * $Revision: 1.5 $
+ * $State: Exp $
+ * $Author: admin $
  *
  ***************************************************************************/
 
@@ -40,6 +40,7 @@
 #include <unixlib/features.h>
 #include <stdint.h>
 #include <unixlib/types.h>
+#include <sys/param.h>
 
 
 __BEGIN_DECLS

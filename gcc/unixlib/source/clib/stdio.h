@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/stdio.h,v $
- * $Date: 2004/04/12 13:03:37 $
- * $Revision: 1.9 $
+ * $Date: 2004/04/15 22:21:02 $
+ * $Revision: 1.10 $
  * $State: Exp $
- * $Author: nick $
+ * $Author: alex $
  *
  ***************************************************************************/
 
@@ -248,6 +248,8 @@ extern int getchar (void) __THROW;
 
 /* Read a character from stream.  */
 extern int fgetc (FILE *__stream) __THROW;
+
+#define putc_unlocked(c, stream) putc(c, stream)
 
 /* Write a character to stream. */
 extern int putc (int __c, FILE *__stream) __THROW;

@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/common/riscosify.c,v $
- * $Date: 2003/12/15 16:54:54 $
- * $Revision: 1.12 $
+ * $Date: 2004/02/07 18:09:18 $
+ * $Revision: 1.13 $
  * $State: Exp $
- * $Author: peter $
+ * $Author: alex $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: riscosify.c,v 1.12 2003/12/15 16:54:54 peter Exp $";
+static const char rcs_id[] = "$Id: riscosify.c,v 1.13 2004/02/07 18:09:18 alex Exp $";
 #endif
 
 /* #define DEBUG */ 
@@ -737,6 +737,10 @@ __riscosify (const char *name, int create_dir,
      the filename to the destination buffer.  */
   if (flags & __RISCOSIFY_NO_PROCESS)
     return copy_or_null (buffer, name, buf_end);
+
+  /* catch ./path:file.h */
+  if (in[0] == '.' && in[1] == '/' && strchr(in, ':'))
+    in++;
 
   /* We can tell quite a lot from the first character of the path */
   switch (*in)

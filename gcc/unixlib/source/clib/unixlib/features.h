@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/unixlib/features.h,v $
- * $Date: 2004/05/31 13:49:38 $
- * $Revision: 1.15 $
+ * $Date: 2004/06/12 08:59:47 $
+ * $Revision: 1.16 $
  * $State: Exp $
- * $Author: alex $
+ * $Author: peter $
  *
  ***************************************************************************/
 
@@ -306,7 +306,7 @@
 #define __STDC_IEC_559_COMPLEX__        1
 
 /* wchar_t uses ISO 10646-1 (2nd ed., published 2000-09-15) / Unicode 3.0.  */
-#define __STDC_ISO_10646__              200009L
+//#define __STDC_ISO_10646__              200009L
 
 
 /* Major and minor version number of the UnixLib C library package.  Use

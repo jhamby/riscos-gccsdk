@@ -1,3 +1,12 @@
+Sun Aug  8 12:28:48 2004  Peter Naulls  <peter@chocky.org>
+	* source/clib/features.h: Stop pretending we have full unicode
+	  support.
+	* source/clib/netinet/in.h: Include sys/param.h for type visibility
+	  as per glibc.
+	* source/clib/stdio.h: define putc_unlocked.
+	* source/common/riscosify.c: Add a case for filenames that
+	  GCC 3.4 sometimes constructs.
+
 Fri Jun 18 22:56:14 2004  Alex Waugh  <alex@alexwaugh.com>
 
 	* unix/lseek.c, unix/fstat.c: Add trailing newline.
