@@ -1,5 +1,12 @@
 Noteworthy changes to the RISC OS GCCSDK
 
+RISC OS GCC release 3.3.3 pre-release 2 (released XX XXXXX 2004)
+=======================================
+
+* make: Upgrade to version 3.80
+
+* grep: Upgrade to version 2.5
+
 RISC OS GCC release 3.3.3 pre-release 1 (released 20 March 2004)
 =======================================
 
