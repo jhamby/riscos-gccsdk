@@ -1,20 +1,22 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/pthread/lock.c,v $
- * $Date: 2003/04/28 12:07:02 $
- * $Revision: 1.3 $
+ * $Date: 2005/01/24 16:48:25 $
+ * $Revision: 1.4 $
  * $State: Exp $
- * $Author: alex $
+ * $Author: peter $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: lock.c,v 1.3 2003/04/28 12:07:02 alex Exp $";
+static const char rcs_id[] = "$Id: lock.c,v 1.4 2005/01/24 16:48:25 peter Exp $";
 #endif
 
 /* Common routines shared by the mutex, rwlock and cond functions */
 
 /* Written by Alex Waugh */
+
+/* #define PTHREAD_DEBUG */
 
 #include <pthread.h>
 #include <errno.h>
@@ -53,8 +55,9 @@ __pthread_lock_block (pthread_mutex_t *mutex, const enum __pthread_locktype type
     }
   else
     {
-      while (list->nextwait != NULL)
+      while (list->nextwait != NULL) {
         list = list->nextwait;
+      }
 
       list->nextwait = __pthread_running_thread;
     }
@@ -136,7 +139,7 @@ __pthread_lock_lock (pthread_mutex_t *mutex, const enum __pthread_locktype type,
       /* Mutex is currently available */
       if (type == LOCK_READ)
         {
-          /* Check there aren't any writers waiting on the lock*/
+          /* Check there aren't any writers waiting on the lock */
           pthread_t list = mutex->waiting;
           int block = 0;
 

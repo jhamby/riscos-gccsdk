@@ -1,10 +1,10 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/_syslib.s,v $
-; $Date: 2005/01/23 20:31:55 $
-; $Revision: 1.38 $
+; $Date: 2005/03/04 20:59:06 $
+; $Revision: 1.39 $
 ; $State: Exp $
-; $Author: joty $
+; $Author: alex $
 ;
 ;----------------------------------------------------------------------------
 
@@ -955,6 +955,17 @@ __unixlib_fatal_got_msg
 	LDR	a1, =struct_base
 	LDR	a1, [a1, #52]	; __fpflag
 	MOV	pc, lr
+
+	EXPORT	|__unixlib_get_fpstatus|
+|__unixlib_get_fpstatus|
+	rfs	r0
+	mov	pc, lr
+
+	EXPORT	|__unixlib_set_fpstatus|
+|__unixlib_set_fpstatus|
+	wfs	r0
+	mov	pc, lr
+
 
 	AREA	|C$$zidata|, DATA, NOINIT
 

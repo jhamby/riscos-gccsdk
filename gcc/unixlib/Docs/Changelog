@@ -1,3 +1,11 @@
+Mon Mar 21 12:03:23 2005  Peter Naulls  <peter@chocky.org>
+
+	* source/clib/pthread.h, source/pthread/lock.c: Tidy comments.
+	* source/pthread/context.c: Fix spelling.
+	* clib/unixlib/unix.h, source/unix/unix.c, source/sys/_syslib.s:
+	  Avoid creating FP exceptions on overflows and other FP operations
+	  more like Unix behaviour.
+
 Sun Mar 20 15:44:23 2005  Alex Waugh  <alex@alexwaugh.com>
 
 	* source/common/riscosify.c, source/common/unixify.c,

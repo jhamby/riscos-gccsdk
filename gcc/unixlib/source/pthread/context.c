@@ -1,21 +1,20 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/pthread/context.c,v $
- * $Date: 2004/12/11 14:18:57 $
- * $Revision: 1.5 $
+ * $Date: 2005/01/29 17:26:51 $
+ * $Revision: 1.6 $
  * $State: Exp $
- * $Author: joty $
+ * $Author: alex $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: context.c,v 1.5 2004/12/11 14:18:57 joty Exp $";
+static const char rcs_id[] = "$Id: context.c,v 1.6 2005/01/29 17:26:51 alex Exp $";
 #endif
 
-/* Context switching/schedulling */
+/* Context switching/scheduling */
 
 /* Written by Martin Piper and Alex Waugh */
-
 
 #include <stdlib.h>
 #include <errno.h>
@@ -23,6 +22,8 @@ static const char rcs_id[] = "$Id: context.c,v 1.5 2004/12/11 14:18:57 joty Exp 
 #include <unixlib/unix.h> /* for __stackalloc */
 #include <time.h>
 #include <pthread.h>
+
+/*#define PTHREAD_DEBUG*/
 
 pthread_t __pthread_thread_list = NULL; /* Linked list of all threads */
 pthread_t __pthread_running_thread = NULL; /* Currently running thread */
@@ -68,7 +69,7 @@ __pthread_cleanup_idle (pthread_t node)
     }
 }
 
-/* Round robin scheduller */
+/* Round robin scheduler */
 /* Occurs under a callback from the call_every interupt */
 void
 __pthread_context_switch (void)

@@ -1,17 +1,17 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/pthread.h,v $
- * $Date: 2004/10/17 16:24:43 $
- * $Revision: 1.13 $
+ * $Date: 2005/02/09 21:13:40 $
+ * $Revision: 1.14 $
  * $State: Exp $
- * $Author: joty $
+ * $Author: alex $
  *
  ***************************************************************************/
 
 /* pthread.h - IEEE Std 1003.1-2001 threads */
 
 #ifndef __PTHREAD_H
-
+                                  
 #if (! defined __need_pthread_t)
 #define __PTHREAD_H
 #endif
@@ -46,11 +46,11 @@ enum __pthread_locktype
 /* Mutex/rwlock object */
 struct __pthread_lock
 {
-  unsigned int count; /* Number of times the current thread has got this lock recursively */
-  enum __pthread_locktype type; /* Type of lock */
-  struct __pthread_thread *owner; /* Thread that currently owns the lock */
-  struct __pthread_thread *waiting; /* Linked list of threads that are blocked on this lock */
-  struct __pthread_lock_attr attr; /* Attributes of the lock */
+  unsigned int count;               /* Number of times the current thread has got this lock recursively */
+  enum __pthread_locktype type;     /* Type of lock                                                     */
+  struct __pthread_thread *owner;   /* Thread that currently owns the lock                              */
+  struct __pthread_thread *waiting; /* Linked list of threads that are blocked on this lock             */
+  struct __pthread_lock_attr attr;  /* Attributes of the lock                                           */
 };
 
 /* Condition var object */

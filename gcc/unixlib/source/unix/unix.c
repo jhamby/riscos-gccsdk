@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/unix.c,v $
- * $Date: 2005/03/12 13:34:20 $
- * $Revision: 1.37 $
+ * $Date: 2005/03/15 22:09:39 $
+ * $Revision: 1.38 $
  * $State: Exp $
  * $Author: alex $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: unix.c,v 1.37 2005/03/12 13:34:20 alex Exp $";
+static const char rcs_id[] = "$Id: unix.c,v 1.38 2005/03/15 22:09:39 alex Exp $";
 #endif
 
 #include <stdio.h>
@@ -330,6 +330,8 @@ void __unixinit (void)
   /* Convert the command line to a argv block.  */
   convert_command_line (__u, cli, cli_size);
   free (cli);
+
+  __unixlib_set_fpstatus(__unixlib_get_fpstatus() & 0xff02ffff);
 
 #ifdef DEBUG
   __debug ("__unixinit: process creation complete");
