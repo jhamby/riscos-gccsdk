@@ -1,10 +1,10 @@
 ;----------------------------------------------------------------------------
 ;
-; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/_mem.s,v $
-; $Date: 2004/10/17 16:24:44 $
-; $Revision: 1.8 $
+; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/_memset.s,v $
+; $Date: 2004/12/20 16:26:25 $
+; $Revision: 1.1 $
 ; $State: Exp $
-; $Author: joty $
+; $Author: peter $
 ;
 ;----------------------------------------------------------------------------
 
@@ -28,10 +28,10 @@
 ;  You should have received a copy of the GNU Lesser General Public
 ;  License along with the GNU C Library; if not, write to the Free
 ;  Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-;  02111-1307 USA.  
+;  02111-1307 USA.
 
 
-; void *memset (dstpp, c, len) 
+; void *memset (dstpp, c, len)
 
 	GET	clib/unixlib/asm_dec.s
 
@@ -85,4 +85,4 @@
         mov     pc, lr
 
         END
-        
+

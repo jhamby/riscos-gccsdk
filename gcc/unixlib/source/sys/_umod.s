@@ -1,10 +1,10 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/_umod.s,v $
-; $Date: 2002/09/24 21:02:38 $
-; $Revision: 1.4 $
+; $Date: 2004/10/17 16:24:44 $
+; $Revision: 1.5 $
 ; $State: Exp $
-; $Author: admin $
+; $Author: joty $
 ;
 ;----------------------------------------------------------------------------
 
@@ -22,9 +22,9 @@ dividend RN 1
 |_kernel_urem|
 |x$uremainder|
 |__rt_urem|
-        MOVS    a3,divisor
-	; just return for divide by zero
-	MOVEQ	pc, lr
+        MOVS    a3, divisor
+	; Raise an abort when there is a division by zero.
+	BEQ	divbyzero
 
         CMP     a3, dividend, LSR #16
         MOVLS   a3, a3, LSL #16
@@ -38,12 +38,16 @@ dividend RN 1
         MOVLS   a3, a3, LSL #1
 
 divloop
-	CMP     dividend,a3
-        SUBCS   dividend,dividend,a3
+	CMP     dividend, a3
+        SUBCS   dividend, dividend, a3
         MOV     a3, a3, LSR #1
         CMP     a3, divisor
         BCS     divloop
 	MOV	a1, dividend
 	MOV	pc, lr
+
+divbyzero
+	MOV	a1, #SIGFPE
+	B	raise
 
 	END

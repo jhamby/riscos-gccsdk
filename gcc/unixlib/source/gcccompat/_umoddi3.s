@@ -1,8 +1,8 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/gcccompat/_umoddi3.s,v $
-; $Date: 2004/08/16 21:40:59 $
-; $Revision: 1.4 $
+; $Date: 2004/10/17 16:24:44 $
+; $Revision: 1.5 $
 ; $State: Exp $
 ; $Author: joty $
 ;
@@ -16,6 +16,8 @@
 
 	AREA	|C$$code|, CODE, READONLY
 
+	IMPORT	raise
+
 	; (a1, a2) % (a3, a4)
 	; result in a1 and a2
 	EXPORT |__umoddi3|
@@ -27,7 +29,7 @@
 
 	TEQ	a3, #0
 	TEQEQ	a4, #0
-	MOVEQ	pc, lr
+	BEQ	divbyzero
 
 	STMFD	sp!, {v2, v3, v4, lr}
 	MOV	v2, #0
@@ -59,5 +61,9 @@
 	MOV	a1, v4
 	MOV	a2, ip
 	LDMFD	sp!, {v2, v3, v4, pc}
+
+divbyzero
+	MOV	a1, #SIGFPE
+	B	raise
 
 	END

@@ -1,19 +1,21 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/_udiv.s,v $
-; $Date: 2002/09/24 21:02:38 $
-; $Revision: 1.3 $
+; $Date: 2004/10/17 16:24:44 $
+; $Revision: 1.4 $
 ; $State: Exp $
-; $Author: admin $
+; $Author: joty $
 ;
 ;----------------------------------------------------------------------------
 
 	GET	clib/unixlib/asm_dec.s
 
-dividend RN 1
 divisor RN 0
+dividend RN 1
 
 	AREA	|C$$code|, CODE, READONLY
+
+	IMPORT	raise
 
 	EXPORT	|_kernel_udiv|
 	EXPORT	|x$udivide|
@@ -22,32 +24,34 @@ divisor RN 0
 |_kernel_udiv|
 |x$udivide|
 |__rt_udiv|
-        MOV     a3,dividend
-        MOVS    ip,divisor
-	; just return for divide by zero
-	MOVEQ	pc, lr
+        MOV     a3, dividend
+        MOVS    ip, divisor
+	BEQ	divbyzero
+        CMP     ip, a3, LSR #16
+        MOVLS   ip, ip, LSL #16
+        CMP     ip, a3, LSR #8
+        MOVLS   ip, ip, LSL #8
+        CMP     ip, a3, LSR #4
+        MOVLS   ip, ip, LSL #4
+        CMP     ip, a3, LSR #2
+        MOVLS   ip, ip, LSL #2
+        CMP     ip, a3, LSR #1
+        MOVLS   ip, ip, LSL #1
 
-        CMP     ip,a3,LSR #16
-        MOVLS   ip,ip,LSL #16
-        CMP     ip,a3,LSR #8
-        MOVLS   ip,ip,LSL #8
-        CMP     ip,a3,LSR #4
-        MOVLS   ip,ip,LSL #4
-        CMP     ip,a3,LSR #2
-        MOVLS   ip,ip,LSL #2
-        CMP     ip,a3,LSR #1
-        MOVLS   ip,ip,LSL #1
-
-        MOV     a2,#0
+        MOV     a2, #0
 divloop
-	CMP     a3,ip
-        SUBCS   a3,a3,ip
-        ADC     a2,a2,a2
-        MOV     ip,ip,LSR #1
-        CMP     ip,a1
+	CMP     a3, ip
+        SUBCS   a3, a3, ip
+        ADC     a2, a2, a2
+        MOV     ip, ip,LSR #1
+        CMP     ip, a1
         BCS     divloop
 	MOV	a1, a2
 	MOV	a2, a3
 	MOV	pc, lr
+
+divbyzero
+	MOV	a1, #SIGFPE
+	B	raise
 
 	END

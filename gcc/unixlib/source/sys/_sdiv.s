@@ -1,10 +1,10 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/_sdiv.s,v $
-; $Date: 2002/09/24 21:02:38 $
-; $Revision: 1.4 $
+; $Date: 2004/10/17 16:24:44 $
+; $Revision: 1.5 $
 ; $State: Exp $
-; $Author: admin $
+; $Author: joty $
 ;
 ;----------------------------------------------------------------------------
 
@@ -15,6 +15,8 @@ dividend RN 1
 
 	AREA	|C$$code|, CODE, READONLY
 
+	IMPORT	raise
+
 	EXPORT	|_kernel_sdiv|
 	EXPORT	|x$divide|
 	EXPORT	|__rt_sdiv|
@@ -22,9 +24,9 @@ dividend RN 1
 |_kernel_sdiv|
 |x$divide|
 |__rt_sdiv|
-	; Just return for divide by zero
+	; Raise an abort when there is a division by zero.
 	MOVS	a4, divisor
-	MOVEQ	pc, lr
+	BEQ	divbyzero
 	AND	a3, dividend, #&80000000
 	EOR	ip, a4, dividend
 	ORR	a3, a3, ip, LSR #1
@@ -57,5 +59,9 @@ divloop
 	TST	a3,  #&80000000
 	RSBNE	a2, a2, #0
 	MOV	pc, lr
+
+divbyzero
+	MOV	a1, #SIGFPE
+	B	raise
 
 	END

@@ -1,8 +1,8 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/gcccompat/_moddi3.s,v $
-; $Date: 2004/08/16 21:40:59 $
-; $Revision: 1.4 $
+; $Date: 2004/10/17 16:24:44 $
+; $Revision: 1.5 $
 ; $State: Exp $
 ; $Author: joty $
 ;
@@ -16,6 +16,8 @@
 	GET	clib/unixlib/asm_dec.s
 
 	AREA	|C$$code|, CODE, READONLY
+
+	IMPORT	raise
 
 	; (a1, a2) % (a3, a4)
 	; result in a1 and a2
@@ -31,7 +33,7 @@
 	; test for a divide by zero
 	TEQ	a3, #0	; low
 	TEQEQ	a4, #0	; high
-	MOVEQ	pc, lr
+	BEQ	divbyzero
 
 	; No stack checking since we are a leaf function.
 	;   We don't need to store ip - procedure calling standard
@@ -103,5 +105,9 @@
 	RSBS	a1, v4, #0 ; low
 	RSC	a2, ip, #0 ; high
 	LDMFD	sp!, {v2, v3, v4, v6, pc}
+
+divbyzero
+	MOV	a1, #SIGFPE
+	B	raise
 
 	END

@@ -1,28 +1,12 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/_longlong.s,v $
-; $Date: 2004/09/23 22:16:39 $
-; $Revision: 1.3 $
+; $Date: 2004/10/17 16:24:44 $
+; $Revision: 1.4 $
 ; $State: Exp $
 ; $Author: joty $
 ;
 ;----------------------------------------------------------------------------
-
-	;  Some routines are based on code from Iyonix's HAL v0.10 (22 Jan 2003)
-	;  with the following license :
-
-	;  This program is free software; you can redistribute it and/or modify it
-	;  under the terms of version 2 of the GNU General Public License as
-	;  published by the Free Software Foundation;
-	;
-	;  This program is distributed in the hope that it will be useful, but WITHOUT
-	;  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-	;  FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
-	;  more details.
-	;
-	;  You should have received a copy of the GNU General Public License along with
-	;  this program; if not, write to the Free Software Foundation, Inc., 59
-	;  Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 	GET	clib/unixlib/asm_dec.s
 
@@ -336,7 +320,7 @@
 
 	; uint64_t _ll_udiv(uint64_t a, uint64_t b)
 	;  { return a / b; }
-	; Result in a1,a2; remainder in a2,a3
+	; Result in a1,a2; remainder in a3,a4.
 	EXPORT	|_ll_udiv|
 	IMPORT	|__udivdi3|
 	NAME	_ll_udiv
@@ -344,13 +328,21 @@
 	B	|__udivdi3|
 
 	; uint64_t _ll_urdv(uint64_t a, uint64_t b)
-	;  { return a % b; }
-	; Result in a1,a2.
+	;  { return b / a; }
+	; Result in a1,a2; remainder in a3,a4.
 	EXPORT	|_ll_urdv|
-	IMPORT	|__umoddi3|
+	IMPORT	|__udivdi3|
 	NAME	_ll_urdv
 |_ll_urdv|
-	B	|__umoddi3|
+	STMFD	sp!, {lr}
+	EOR	a3, a1, a3
+	EOR	a4, a2, a4
+	EOR	a1, a1, a3
+	EOR	a2, a2, a4
+	EOR	a3, a1, a3
+	EOR	a4, a2, a4
+	BL	|__udivdi3|
+	LDMFD	sp!, {pc}
 
 	; uint64_t _ll_udiv10(uint64_t a)
 	;  { return a / 10ULL; }
@@ -408,7 +400,7 @@
 
 	; int64_t _ll_sdiv(int64_t a, int64_t b)
 	;  { return a / b; }
-	; Result in a1,a2; remainder in a2,a3
+	; Result in a1,a2; remainder in a3,a4.
 	EXPORT	|_ll_sdiv|
 	IMPORT	|__divdi3|
 	NAME	_ll_sdiv
@@ -416,13 +408,21 @@
 	B	|__divdi3|
 
 	; int64_t _ll_srdv(int64_t a, int64_t b)
-	;  { return a % b; }
-	; Result in a1,a2.
+	;  { return b / a; }
+	; Result in a1,a2; remainder in a3,a4.
 	EXPORT	|_ll_srdv|
-	IMPORT	|__moddi3|
+	IMPORT	|__divdi3|
 	NAME	_ll_srdv
 |_ll_srdv|
-	B	|__moddi3|
+	STMFD	sp!, {lr}
+	EOR	a3, a1, a3
+	EOR	a4, a2, a4
+	EOR	a1, a1, a3
+	EOR	a2, a2, a4
+	EOR	a3, a1, a3
+	EOR	a4, a2, a4
+	BL	|__divdi3|
+	LDMFD	sp!, {pc}
 
 	; int64_t _ll_sdiv10(int64_t a)
 	;  { return a / 10LL; }
@@ -596,7 +596,7 @@ _ll_sshift_r_more32bits
 |_ll_cmpu|
 	CMP	a2, a4
 	CMPEQ	a1, a3
-	MOV	pc, lr	;Do *not* replace this with 'return' macro !
+	MOV	pc, lr
 
 	; int64_t a, b
 	; CMPGE a, b
@@ -607,7 +607,7 @@ _ll_sshift_r_more32bits
 |_ll_cmpge|
 	SUBS	a1, a1, a3
 	SBCS	a2, a2, a4
-	MOV	pc, lr	;Do *not* replace this with 'return' macro !
+	MOV	pc, lr
 
 	; int64_t a, b
 	; CMPLE a, b
@@ -618,7 +618,7 @@ _ll_sshift_r_more32bits
 |_ll_cmple|
 	SUBS	a1, a3, a1
 	SBCS	a2, a4, a2
-	MOV	pc, lr	;Do *not* replace this with 'return' macro !
+	MOV	pc, lr
 
 	; double _ll_uto_d(uint64_t a)
 	;  { return (double)a; }
@@ -825,7 +825,7 @@ _ll_ufrom_d_left
 	; Else exponent is in range
 	SUBS	r2, r2, #19+32		; Adjust again so that the 1 bit will lie in bit 0 of r0
 	ORR	r0, r0, #&100000	; Add the 1 bit
-	BGE	_ll_sfrom_d_left		; Need to shift left
+	BGE	_ll_sfrom_d_left	; Need to shift left
 
 	; Else shift right
 	RSB	r2, r2, #0
