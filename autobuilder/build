@@ -32,13 +32,19 @@ export AB_NOFETCH
 set -a
 
 # Autobuilder home
-AB_HOME=/usr/src/autobuilder
+pushd `dirname $0` > /dev/null
+AB_HOME=`pwd`
+popd > /dev/null
+
 AB_OUTPUT=/var/www/info/unix/downloads/
 
 # GCCSDK Scripts
-AB_GCCENV=/home/riscos/env
-# GCCSDK Binaries
+if [ -z "$RO_ENV" ] ; then
+  RO_ENV=/home/riscos/env
+fi
+AB_GCCENV=$RO_ENV
 
+# GCCSDK Binaries
 if [ -z "$RO_BIN" ] ; then
   RO_BIN=/home/riscos/cross/bin
 fi
