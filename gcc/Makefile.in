@@ -130,8 +130,7 @@ export CROSS_AR CROSS_AR_FLAGS CROSS_LINK
 export VERSION TARGET_NAME CFLAGS CXXFLAGS AR AR_FLAGS
 export insthdr instsrc
 
-all:	build-stg1 build-stg2 build-stg3 build-stg4 build-stg5 build-stg6 \
-	build-stg7 build-stg8
+all:	build-cross build-native
 
 # Setup build and installation directories.  Install run-time library
 # headers
@@ -143,17 +142,13 @@ setup:	directories install_headers
 # and linker natively
 
 # These dependencies are split to help make get parallel building right.
-build-stg1:	libiberty-stg1
-build-stg2:	build-stg1 gcc-libs-stg1 riscos-aof-stg1
-build-stg3:	build-stg2 gcc-stg1 cross-progs
+build-cross:	libiberty-stg1 gcc-libs-stg1 riscos-aof-stg1 gcc-stg1 \
+	cross-progs
 
 # These targets build the libraries and binaries suitable for execution
 # on RISC OS machines only.
-build-stg4:	build-stg3 c-libs
-build-stg5:	build-stg4 libiberty-stg2 gcc-libs-stg2
-build-stg6:	build-stg5 gcc-stg2
-build-stg7:	build-stg6 riscos-aof-stg2
-build-stg8:	build-stg7 riscos-libs riscos-progs riscos-dist
+build-native:	c-libs libiberty-stg2 gcc-libs-stg2 gcc-stg2 riscos-aof-stg2 \
+	riscos-libs riscos-progs riscos-dist
 
 .PHONY: directories
 .PHONY: c-libs
@@ -173,13 +168,8 @@ build-stg8:	build-stg7 riscos-libs riscos-progs riscos-dist
 .PHONY: riscos-aof-stg1
 .PHONY: riscos-aof-stg2
 
-.PHONY: build-stg1
-.PHONY: build-stg2
-.PHONY: build-stg3
-.PHONY: build-stg4
-.PHONY: build-stg5
-.PHONY: build-stg6
-.PHONY: build-stg7
+.PHONY: build-cross
+.PHONY: build-native
 
 .PHONY: install_headers
 
