@@ -1,0 +1,11 @@
+Summary of Changes
+==================
+
+22 Dec 2000
+-----------
+
+* Remove automatically generated files from CVS tree.
+* Seperate Makefile configuration into operating system dependent files
+* Tweak makefiles to create object and installation directories and also
+  install library header files.
+
