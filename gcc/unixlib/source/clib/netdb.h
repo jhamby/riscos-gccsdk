@@ -1,8 +1,8 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/netdb.h,v $
- * $Date: 2004/05/10 10:58:55 $
- * $Revision: 1.5 $
+ * $Date: 2004/06/12 08:59:47 $
+ * $Revision: 1.6 $
  * $State: Exp $
  * $Author: peter $
  *
@@ -441,6 +441,7 @@ extern int rresvport_af (int *__alport, sa_family_t __af) __THROW;
 
 /* Extension from POSIX.1g.  */
 #ifdef	__USE_POSIX
+#if 0
 /* Structure to contain information about address of a service provider.  */
 struct addrinfo
 {
@@ -453,6 +454,7 @@ struct addrinfo
   char *ai_canonname;		/* Canonical name for service location.  */
   struct addrinfo *ai_next;	/* Pointer to next in list.  */
 };
+#endif
 
 # ifdef __USE_GNU
 /* Structure used as control block for asynchronous lookup.  */
@@ -493,7 +495,7 @@ struct gaicb
 # define EAI_SYSTEM	  -11	/* System error returned in `errno'.  */
 # define EAI_BADHINTS	  -12
 # define EAI_PROTOCOL	  -13
-# define EAI_MAX	  -14 
+# define EAI_MAX	  -14
 
 # ifdef __USE_GNU
 #  define EAI_INPROGRESS  -100	/* Processing request in progress.  */
@@ -512,6 +514,7 @@ struct gaicb
 # define NI_NAMEREQD	8	/* Don't return numeric addresses.  */
 # define NI_DGRAM	16	/* Look up UDP service rather than TCP.  */
 
+#if 0
 /* Translate name of a service location and/or a service name to set of
    socket addresses.  */
 extern int getaddrinfo (__const char *__restrict __name,
@@ -522,16 +525,15 @@ extern int getaddrinfo (__const char *__restrict __name,
 /* Free `addrinfo' structure AI including associated storage.  */
 extern void freeaddrinfo (struct addrinfo *__ai) __THROW;
 
-#if 0
 /* Convert error return from getaddrinfo() to a string.  */
 extern __const char *gai_strerror (int __ecode) __THROW;
+#endif
 
 /* Translate a socket address to a location and service name.  */
 extern int getnameinfo (__const struct sockaddr *__restrict __sa,
 			socklen_t __salen, char *__restrict __host,
 			socklen_t __hostlen, char *__restrict __serv,
 			socklen_t __servlen, unsigned int __flags) __THROW;
-#endif
 
 # if 0
 # ifdef __USE_GNU

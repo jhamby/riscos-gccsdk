@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/sys/resource.h,v $
- * $Date: 2002/09/24 21:02:37 $
- * $Revision: 1.4 $
+ * $Date: 2004/04/17 10:51:15 $
+ * $Revision: 1.5 $
  * $State: Exp $
- * $Author: admin $
+ * $Author: nick $
  *
  ***************************************************************************/
 
@@ -81,16 +81,27 @@ typedef __rlim_t rlim_t;
 enum __rlimit_resource
   {
     RLIMIT_CPU,
+#define RLIMIT_CPU RLIMIT_CPU
     RLIMIT_FSIZE,
+#define RLIMIT_FSIZE RLIMIT_FSIZE
     RLIMIT_CORE,
+#define RLIMIT_CORE RLIMIT_CORE
     RLIMIT_DATA,
+#define RLIMIT_DATA RLIMIT_DATA
     RLIMIT_STACK,
+#define RLIMIT_STACK RLIMIT_STACK
     RLIMIT_RSS,
+#define RLIMIT_RSS RLIMIT_RSS
     RLIMIT_MEMLOCK,
+#define RLIMIT_MEMLOCK RLIMIT_MEMLOCK
     RLIMIT_NPROC,
+#define RLIMIT_NPROC RLIMIT_NPROC
     RLIMIT_NOFILE,
     RLIMIT_OFILE = RLIMIT_NOFILE,
+#define RLIMIT_NOFILE RLIMIT_NOFILE
+#define RLIMIT_OFILE RLIMIT_OFILE
     RLIMIT_NLIMITS
+#define RLIMIT_NLIMITS RLIMIT_NLIMITS
   };
 
 struct rlimit

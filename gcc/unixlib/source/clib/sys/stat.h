@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/sys/stat.h,v $
- * $Date: 2004/04/17 10:51:15 $
- * $Revision: 1.7 $
+ * $Date: 2004/09/07 14:05:10 $
+ * $Revision: 1.8 $
  * $State: Exp $
- * $Author: nick $
+ * $Author: joty $
  *
  ***************************************************************************/
 
@@ -73,7 +73,7 @@ typedef __blksize_t blksize_t;
 
 __BEGIN_DECLS
 
-struct stat
+struct stat64
 {
   __dev_t 	st_dev; /* Device containing the file.  */
   __ino_t 	st_ino; /* File serial number.  */
@@ -94,6 +94,8 @@ struct stat
 /*  unsigned long int st_nblocks; / * Number of 512-byte blocks allocated.  */
   unsigned long int st_blocks; /* Number of 512-byte blocks allocated.  */
 };
+
+#define stat stat64
 
 /* Bit masks.  */
 
@@ -203,8 +205,6 @@ extern int mknod (const char *__path, __mode_t __mode, __dev_t __dev) __THROW;
 
 /* Create a new FIFO named path, with permission bits mode.  */
 extern int mkfifo (const char *__path, __mode_t __mode) __THROW;
-
-#define stat64 stat
 
 __END_DECLS
 

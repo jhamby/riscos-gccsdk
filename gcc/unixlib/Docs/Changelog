@@ -1,3 +1,24 @@
+Fri Sep 17 19:20:35 2004  Peter Naulls  <peter@chocky.org>
+
+	* Docs/ReadMe: Updated documentation.
+	* source/clib/fnmatch.h: Updated fmatch.h from glibc.  Needs matching
+	  C support still.
+	* source/clib/langinfo.h, source/clib/nl_types.h,
+	  source/clib/bits/locale.h, source/clib/locale/nl_langinfo.c:
+	  Very basic langinfo support.
+	* source/clib/netdb.h: Hide getaddrinfo declaration.
+	* source/clib/stat.h, source/unix/stat.c: Make stat/stat64
+	  more like glibc to avoid problems with forward declarations.
+	* source/signal/signal.c: Remove warning.  
+
+Fri Sep 17 19:20:35 2004  John-Mark Bell <jmb202@ecs.soton.ac.uk>
+
+	* source/clib/semaphore.h, source/pthread/sem.c,
+	  source/clib/pthread.h: Semaphore support.
+	* source/clib/netdb.h, source/netlib/getnameinfo.c: getnameinfo
+	  support.
+	* source/clib/resource.h: define values that are implemented.  
+
 Sun Sep 12 09:20:31 2004  Peter Naulls  <peter@chocky.org>
 
 	* source/signal/post.c: Remove warnings

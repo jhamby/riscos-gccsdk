@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/pthread.h,v $
- * $Date: 2004/02/29 16:44:58 $
- * $Revision: 1.10 $
+ * $Date: 2004/09/06 08:40:47 $
+ * $Revision: 1.11 $
  * $State: Exp $
- * $Author: alex $
+ * $Author: peter $
  *
  ***************************************************************************/
 
@@ -96,6 +96,7 @@ enum __pthread_state
   STATE_COND_TIMED_WAIT, /* Waiting for a condition variable with a timeout */
   STATE_JOIN,
   STATE_UNALLOCED,
+  STATE_BLOCKED, /* Waiting on a semaphore */
 
   /* All states below this point are for threads that may be switched in by the scheduler */
   STATE_RUNNING, /* A normally running thread */
