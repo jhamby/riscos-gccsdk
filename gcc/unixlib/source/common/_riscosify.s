@@ -1,10 +1,10 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/common/_riscosify.s,v $
-; $Date: 2003/04/07 20:11:28 $
-; $Revision: 1.3 $
+; $Date: 2003/06/16 23:09:08 $
+; $Revision: 1.4 $
 ; $State: Exp $
-; $Author: alex $
+; $Author: joty $
 ;
 ;----------------------------------------------------------------------------
 
@@ -31,7 +31,7 @@
 	LDR	a2, =|__riscosify_control|
 	TEQ	a2, #0
 	LDREQ	a2, =|__riscosify_control_internal|
-	STR	a1, [a1, #0]
+	STR	a1, [a2, #0]
 	return	AL, pc, lr
 
 	AREA	|C$$data|, DATA
