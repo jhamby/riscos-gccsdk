@@ -1,0 +1,1 @@
+./configure --prefix=/home/riscos/cross --with-riscos-dist=/home/riscos --with-riscos-pkg=/home/riscos/riscos-pkg --enable-filetype-ff8 --enable-checking-no
