@@ -290,12 +290,13 @@ $(bin_dir)/gcov$(gexesfx): $(gccobjdir)/gcov.o $(gccobjdir)/version.o $(LIBDEPS)
 
 
 ifeq (${STAGE},stage2)
-$(info_dir)/gcc:	extend.texi gcc.texi gcov.texi install.texi \
-	install1.texi invoke.texi md.texi rtl.texi tm.texi
-	-makeinfo --no-split --number-sections --force gcc.texi -o $@
+$(info_dir)/gcc:	doc/extend.texi doc/gcc.texi doc/gcov.texi \
+	doc/install.texi doc/invoke.texi doc/md.texi \
+	doc/rtl.texi doc/tm.texi
+	makeinfo --no-split --number-sections --force gcc.texi -o $@ -I doc -I doc/include
 
-$(info_dir)/cpp:	cpp.texi
-	makeinfo --no-split --number-sections --force cpp.texi -o $@
+$(info_dir)/cpp:	doc/cpp.texi
+	makeinfo --no-split --number-sections --force cpp.texi -o $@ -I doc -I doc/include
 endif
 
 install_headers:
