@@ -65,7 +65,7 @@ namespace std
       std::setlocale(LC_ALL, "C");
 
       int __ret;
-#ifdef _GLIBCXX_USE_C99
+#if defined (_GLIBCXX_USE_C99) && ! defined (__TARGET_SCL__) /* NAB++ */
       if (__prec >= 0)
         __ret = std::snprintf(__out, __size, __fmt, __prec, __v);
       else

@@ -238,20 +238,11 @@ namespace std
 // Define if the compiler/host combination has __builtin_sqrtl
 #define _GLIBCXX_HAVE___BUILTIN_SQRTL 1
 
-// Define if poll is available in <poll.h>.
-#define _GLIBCXX_HAVE_POLL 1
-
 // Define if S_ISREG (Posix) is available in <sys/stat.h>.
 #define _GLIBCXX_HAVE_S_ISREG 1
 
 // Define if S_IFREG is available in <sys/stat.h>.
 /* #undef _GLIBCXX_HAVE_S_IFREG */
-
-// Define if writev is available in <sys/uio.h>.
-#define _GLIBCXX_HAVE_WRITEV 1
-
-// Define if int64_t is available in <stdint.h>.
-#define _GLIBCXX_HAVE_INT64_T 1
 
 // Define if LC_MESSAGES is available in <locale.h>.
 #define _GLIBCXX_HAVE_LC_MESSAGES 1
@@ -569,9 +560,6 @@ namespace std
 /* Define to 1 if you have the `sqrtl' function. */
 #define _GLIBCXX_HAVE_SQRTL 1
 
-/* Define to 1 if you have the <stdint.h> header file. */
-#define _GLIBCXX_HAVE_STDINT_H 1
-
 /* Define to 1 if you have the <stdlib.h> header file. */
 #define _GLIBCXX_HAVE_STDLIB_H 1
 
@@ -596,9 +584,6 @@ namespace std
 /* Define to 1 if you have the <sys/filio.h> header file. */
 /* #undef _GLIBCXX_HAVE_SYS_FILIO_H */
 
-/* Define to 1 if you have the <sys/ioctl.h> header file. */
-#define _GLIBCXX_HAVE_SYS_IOCTL_H 1
-
 /* Define to 1 if you have the <sys/isa_defs.h> header file. */
 /* #undef _GLIBCXX_HAVE_SYS_ISA_DEFS_H */
 
@@ -619,9 +604,6 @@ namespace std
 
 /* Define to 1 if you have the <sys/types.h> header file. */
 #define _GLIBCXX_HAVE_SYS_TYPES_H 1
-
-/* Define to 1 if you have the <sys/uio.h> header file. */
-#define _GLIBCXX_HAVE_SYS_UIO_H 1
 
 /* Define to 1 if you have the `tanf' function. */
 #define _GLIBCXX_HAVE_TANF 1
@@ -952,6 +934,12 @@ namespace std
 #undef _GLIBCXX_HAVE___SIGNBIT
 #undef _GLIBCXX_HAVE___SIGNBITF
 #undef _GLIBCXX_HAVE___SIGNBITL
+#undef _GLIBCXX_HAVE_INT64_T
+#undef _GLIBCXX_HAVE_STDINT_H
+#undef _GLIBCXX_HAVE_POLL
+#undef _GLIBCXX_HAVE_SYS_IOCTL_H
+#undef _GLIBCXX_HAVE_WRITEV
+#undef _GLIBCXX_HAVE_SYS_UIO_H
 #else
 
 /* Define to 1 if you have the `__signbit' function. */
@@ -962,6 +950,24 @@ namespace std
 
 /* Define to 1 if you have the `__signbitl' function. */
 #define _GLIBCXX_HAVE___SIGNBITL 1
+
+// Define if int64_t is available in <stdint.h>.
+#define _GLIBCXX_HAVE_INT64_T 1
+
+/* Define to 1 if you have the <stdint.h> header file. */
+#define _GLIBCXX_HAVE_STDINT_H 1
+
+// Define if poll is available in <poll.h>.
+#define _GLIBCXX_HAVE_POLL 1
+
+/* Define to 1 if you have the <sys/ioctl.h> header file. */
+#define _GLIBCXX_HAVE_SYS_IOCTL_H 1
+
+// Define if writev is available in <sys/uio.h>.
+#define _GLIBCXX_HAVE_WRITEV 1
+
+/* Define to 1 if you have the <sys/uio.h> header file. */
+#define _GLIBCXX_HAVE_SYS_UIO_H 1
 #endif
 
 /* Define to the address where bug reports for this package should be sent. */
