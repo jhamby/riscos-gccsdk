@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/pwd/pwdread.c,v $
- * $Date: 2003/01/21 17:54:22 $
- * $Revision: 1.5 $
+ * $Date: 2003/12/29 16:37:00 $
+ * $Revision: 1.6 $
  * $State: Exp $
- * $Author: admin $
+ * $Author: peter $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: pwdread.c,v 1.5 2003/01/21 17:54:22 admin Exp $";
+static const char rcs_id[] = "$Id: pwdread.c,v 1.6 2003/12/29 16:37:00 peter Exp $";
 #endif
 
 /* pwd.c.pwdread. Internal password-file reading functions.
@@ -107,7 +107,8 @@ __pwddefault (void)
       /* If not set, try Select variable, when not set to "Single" */
       if (!user)
         {
-          if (strcmp(user = getenv("Choices$User"), "Single") == 0)
+          user = getenv("Choices$User");
+          if (user && strcmp(user, "Single") == 0)
             user = NULL;
         }
 
@@ -125,7 +126,9 @@ __pwddefault (void)
       home = getenv("HOME");
       /* If not, try RISC OS Choices directory */
       if (!home)
-        home = getenv("Choice$Write");
+        home = getenv("Choices$Write");
+      if (!home)
+        home = "";
       pwd.pw_dir    = strdup(home);
 
       pwd.pw_shell  = strdup("/bin/bash");

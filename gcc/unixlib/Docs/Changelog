@@ -1,3 +1,8 @@
+Sat Dec  4 15:10:37 2004  Alex Waugh  <alex@alexwaugh.com>
+
+	* source/pwd/pwdread.c (__pwddefault): Prevent potential NULL
+	  dereference, and ensure pw_dir is not returned as NULL.
+
 Fri Dec  3 11:34:41 2004  Peter Naulls  <peter@chocky.org>
 
 	 * source/clib/unixlib/dev.h. source/netlib/accept.c,
