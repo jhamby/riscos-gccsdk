@@ -221,7 +221,7 @@ c_area (void)
   sym = symbolGet (lexGetId ());
   if (sym->type & SYMBOL_DEFINED)
     error (ErrorError, TRUE, "Redefinition of label to area %s", sym->str);
-  else if (sym->type == SYMBOL_AREA)
+  else if (sym->type & SYMBOL_AREA)
     oldtype = sym->area.info->type;
   else
     {

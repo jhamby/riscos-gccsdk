@@ -88,7 +88,7 @@ symbolAdd (Lex l)
 	    }
 	  else
 	    {
-	      if ((*isearch)->type == SYMBOL_AREA)
+	      if ((*isearch)->type & SYMBOL_AREA)
 		{
 		  strncpy (er, l.LexId.str, l.LexId.len);
 		  er[l.LexId.len] = 0;
@@ -301,7 +301,7 @@ symbolSymbolOutput (FILE * outfile)
 		case ValueLateLabel:
 		  if (!value.ValueLate.late->next &&	/* Only one late label */
 		      value.ValueLate.late->factor == 1 &&	/* ... occuring one time */
-		      value.ValueLate.late->symbol->type == SYMBOL_AREA)
+		      value.ValueLate.late->symbol->type & SYMBOL_AREA)
 		    {		/* ... and it is an area */
 		      if (sym->type & SYMBOL_ABSOLUTE)
 			{	/* Change absolute to relative */
@@ -435,7 +435,7 @@ symbolSymbolElfOutput (FILE * outfile)
                   if (!value.ValueLate.late->next &&    /* Only one late label */
                       value.ValueLate.late->factor == 1 &&      /* ... occuring
 one time */
-                      value.ValueLate.late->symbol->type == SYMBOL_AREA)
+                      value.ValueLate.late->symbol->type & SYMBOL_AREA)
                     {           /* ... and it is an area */
                       if (sym->type & SYMBOL_ABSOLUTE)
                         {       /* Change absolute to relative */

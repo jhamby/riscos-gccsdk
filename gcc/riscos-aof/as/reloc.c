@@ -260,7 +260,7 @@ relocEval (Reloc * r, Value * value, Symbol * area)
 	  for (late = value->ValueLate.late; late; late = late->next)
 	    if (late->factor > 0)
 	      {
-		if (late->symbol->type != SYMBOL_AREA)
+		if (!(late->symbol->type & SYMBOL_AREA))
 		  late->symbol->used++;
 		this += late->factor;
 	      }
@@ -277,7 +277,7 @@ relocEval (Reloc * r, Value * value, Symbol * area)
 	    {
 	      if (late->factor > 0)
 		{
-		  if (late->symbol->type != SYMBOL_AREA)
+		  if (!(late->symbol->type & SYMBOL_AREA))
 		    {
 		      late->symbol->used++;
 		    }
@@ -299,7 +299,7 @@ relocEval (Reloc * r, Value * value, Symbol * area)
 	case RelocAdrl:
 	  for (late = value->ValueLate.late; late; late = late->next)
 	    if (late->factor > 0)
-	      if (late->symbol->type != SYMBOL_AREA)
+	      if (!(late->symbol->type & SYMBOL_AREA))
 		late->symbol->used++;
 	  break;
 	case ValueInt:
@@ -579,7 +579,7 @@ relocOutput (FILE * outfile, Symbol * area)
 	  if (relocs->value.ValueCode.c[ip].Tag != CodeSymbol)
 	    errorLine (relocs->lineno, relocs->file, ErrorSerious, TRUE, "Internal error in relocsOutput");
 	  areloc.How = How | relocs->value.ValueCode.c[ip].CodeSymbol.symbol->used;
-	  if (relocs->value.ValueCode.c[ip].CodeSymbol.symbol->type != SYMBOL_AREA)
+	  if (!(relocs->value.ValueCode.c[ip].CodeSymbol.symbol->type & SYMBOL_AREA))
 	    areloc.How |= HOW2_SYMBOL;
 	  areloc.How = armword(areloc.How);
 	  while (loop--)
@@ -661,7 +661,7 @@ relocElfOutput (FILE * outfile, Symbol * area)
             errorLine (relocs->lineno, relocs->file, ErrorSerious, TRUE, "Internal error in relocsOutput");
 
           How = How | relocs->value.ValueCode.c[ip].CodeSymbol.symbol->used;
-          if (relocs->value.ValueCode.c[ip].CodeSymbol.symbol->type != SYMBOL_AREA)
+          if (!(relocs->value.ValueCode.c[ip].CodeSymbol.symbol->type & SYMBOL_AREA))
             How |= HOW2_SYMBOL;
 
         symbol = (How & HOW3_SIDMASK) + 1;
