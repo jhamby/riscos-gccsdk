@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/select.c,v $
- * $Date: 2004/09/06 08:40:47 $
- * $Revision: 1.6 $
+ * $Date: 2004/12/03 11:37:51 $
+ * $Revision: 1.8 $
  * $State: Exp $
  * $Author: peter $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: select.c,v 1.6 2004/09/06 08:40:47 peter Exp $";
+static const char rcs_id[] = "$Id: select.c,v 1.8 2004/12/03 11:37:51 peter Exp $";
 #endif
 
 /* netlib/socket.c: Written by Peter Burwood, July 1997  */
@@ -64,14 +64,18 @@ __convert_fd_set (int nfds, const fd_set *iset, fd_set *oset, int *max_fd)
 
   while (words-- > 0)
     {
-      int bothset; 
+      int bothset;
 
       /* Check for bits set in both passed in set to select() and socket fds */
       bothset = ((int *)iset)[words] & ((int *)&__socket_fd_set)[words];
 
       if (bothset)
         {
-          int bits = (nfds % WORD_BITS) ?: WORD_BITS;
+          int bits;
+
+          /* Cast to 'unsigned int' in order to have more efficient code.  */
+          if ((bits = ((unsigned int)nfds % WORD_BITS)) == 0)
+            bits = WORD_BITS;
 
           while (bits-- > 0)
             {
@@ -81,7 +85,7 @@ __convert_fd_set (int nfds, const fd_set *iset, fd_set *oset, int *max_fd)
                   int sock_fd = (int)__u->fd[fd].handle;
 
                   FD_SET (sock_fd, oset);
-                  
+
                   if (sock_fd + 1 > *max_fd)
                     *max_fd = sock_fd + 1;
                 }
@@ -101,14 +105,18 @@ __return_fd_set (int nfds, fd_set *iset, const fd_set *oset)
 
   while (words-- > 0)
     {
-      int bothset; 
+      int bothset;
 
       /* Only check sockets in the original input set.  */
       bothset = ((int *)iset)[words] & ((int *)&__socket_fd_set)[words];
 
       if (bothset)
         {
-          int bits = (nfds % WORD_BITS) ?: WORD_BITS;
+          int bits;
+
+          /* Cast to 'unsigned int' in order to have more efficient code.  */
+          if ((bits = ((unsigned int)nfds % WORD_BITS)) == 0)
+            bits = WORD_BITS;
 
           while (bits-- > 0)
             {
@@ -159,7 +167,7 @@ select (int nfds, fd_set *readfds, fd_set *writefds,
           /* 21474836.48 seconds will fit in 31 bits.  */
           if (timeout->tv_usec > 1000000 || timeout->tv_sec > 21474835)
             return __set_errno (EINVAL);
-    
+
           /* OK, so we can't cope with anything more than roughly 248.55 days!  */
           now = clock ();
           end = now
