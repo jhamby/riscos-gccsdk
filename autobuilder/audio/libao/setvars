@@ -3,5 +3,5 @@ AB_CONFLAGS="--disable-esd"
 
 AB_INSTALL=yes
 
-mkdir -p /tmp/ro-package/lib/ao/plugins-2/
-mkdir -p /tmp/ro-package/include/ao/
+mkdir -p $D/lib/ao/plugins-2/
+mkdir -p $D/include/ao/

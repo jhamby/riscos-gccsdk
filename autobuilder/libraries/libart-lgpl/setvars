@@ -3,4 +3,4 @@ AB_INSTALL=yes
 
 AB_MAKE="gcc gen_art_config.c -o gen_art_config; $AB_MAKE"
 
-mkdir -p /tmp/ro-package/include/libart-2.0/libart_lgpl/
+mkdir -p $D/include/libart-2.0/libart_lgpl/

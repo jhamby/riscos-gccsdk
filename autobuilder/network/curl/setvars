@@ -3,4 +3,4 @@ AB_INSTALL=yes
 
 AB_CONFLAGS="--without-ssl --disable-gopher --disable-ldap --disable-dict --disable-telnet --disable-manual"
 
-mkdir -p /tmp/ro-package/include/curl/
+mkdir -p $D/include/curl

@@ -5,4 +5,4 @@ AB_INSTALL=yes
 
 AB_CONFLAGS="--without-libtiff --disable-xkb"
 
-mkdir -p /tmp/ro-package/include/gtk-2.0/gdk-pixbuf/
+mkdir -p $D/include/gtk-2.0/gdk-pixbuf/

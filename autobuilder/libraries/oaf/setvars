@@ -6,4 +6,4 @@ mv oaf*/* .
 
 find debian/patches/ -type f | xargs cat | patch -p1
 
-mkdir -p /tmp/ro-package/include/liboaf/
+mkdir -p $D/include/liboaf/

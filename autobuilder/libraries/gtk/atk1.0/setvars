@@ -2,4 +2,4 @@
 
 AB_INSTALL=yes
 
-mkdir -p /tmp/ro-package/include/atk-1.0/atk/
+mkdir -p $D/include/atk-1.0/atk/

@@ -2,7 +2,7 @@
 
 AB_INSTALL=yes
 
-mkdir -p /tmp/ro-package/lib/glib/include/
-mkdir -p /tmp/ro-package/include/glib-1.2/
+mkdir -p $D/lib/glib/include/
+mkdir -p $D/include/glib-1.2/
 
 

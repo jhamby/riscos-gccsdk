@@ -3,4 +3,4 @@ AB_INSTALL=yes
 
 AB_CONFLAGS=--enable-ipv6=no
 
-mkdir -p /tmp/ro-package/include/libxml2/libxml
+mkdir -p $D/include/libxml2/libxml

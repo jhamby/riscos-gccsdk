@@ -14,5 +14,5 @@ make clean
 cp /tmp/orbit-idl /home/riscos/env/bin
 mv /tmp/orbit-idl src/orbit-idl-compiler/
 
-mkdir -p /tmp/ro-package/include/libIDL-1.0/libIDL/
+mkdir -p $D/include/libIDL-1.0/libIDL/
 
