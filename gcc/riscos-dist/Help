@@ -38,7 +38,7 @@ Credits:
      release management, AOF tools.
   - John Tytgat - Unixlib (especially process handling, sockets),
      Norcroft compatibility.
-  - Alew Waugh - Unixlib (especially signals, pthreads, file handling)
+  - Alex Waugh - Unixlib (especially signals, pthreads, file handling)
   
   The following people have also made contributions over the last two years
 
