@@ -1,5 +1,7 @@
-/* Generated manually.  */
+/* Generated automatically. */
+static const char configuration_arguments[] = "./configure";
+static const char thread_model[] = "posix";
 
-static const char configuration_arguments[] = "none";
-static const char thread_model[] = "none";
-
+static const struct {
+  const char *name, *value;
+} configure_default_options[] = { { NULL, NULL} };

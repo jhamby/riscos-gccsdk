@@ -66,18 +66,25 @@ C_AND_OBJC_OBJS = \
 	$(gccobjdir)/c-opts.o \
 	$(gccobjdir)/c-format.o \
 	$(gccobjdir)/c-semantics.o \
+	$(gccobjdir)/c-incpath.o \
+	$(gccobjdir)/cppdefault.o \
+	$(gccobjdir)/c-ppoutput.o \
+	$(gccobjdir)/c-cppbuiltin.o \
+	$(gccobjdir)/prefix.o \
 	$(gccobjdir)/c-objc-common.o \
 	$(gccobjdir)/c-dump.o \
+	$(gccobjdir)/c-pch.o \
 	$(gccobjdir)/libcpp.a
 
 # Language-specific object files for C
 C_OBJS = $(gccobjdir)/c-parse.o \
 	$(gccobjdir)/c-lang.o \
 	$(gccobjdir)/c-pretty-print.o \
+	$(gccobjdir)/stub-objc.o \
 	$(C_AND_OBJC_OBJS)
 
 # Language-independent object files
-OBJS =	$(gccobjdir)/alias.o \
+OBJS-common =	$(gccobjdir)/alias.o \
 	$(gccobjdir)/bb-reorder.o \
 	$(gccobjdir)/bitmap.o \
 	$(gccobjdir)/builtins.o \
@@ -89,10 +96,16 @@ OBJS =	$(gccobjdir)/alias.o \
 	$(gccobjdir)/cfgcleanup.o \
 	$(gccobjdir)/cfglayout.o \
 	$(gccobjdir)/cfgloop.o \
+	$(gccobjdir)/cfgloopanal.o \
+	$(gccobjdir)/cfgloopmanip.o \
+	$(gccobjdir)/loop-init.o \
+	$(gccobjdir)/loop-unswitch.o \
+	$(gccobjdir)/loop-unroll.o \
 	$(gccobjdir)/cfgrtl.o \
 	$(gccobjdir)/combine.o \
 	$(gccobjdir)/conflict.o \
 	$(gccobjdir)/convert.o \
+	$(gccobjdir)/coverage.o \
 	$(gccobjdir)/cse.o \
 	$(gccobjdir)/cselib.o \
 	$(gccobjdir)/dbxout.o \
@@ -100,10 +113,10 @@ OBJS =	$(gccobjdir)/alias.o \
 	$(gccobjdir)/df.o \
 	$(gccobjdir)/diagnostic.o \
 	$(gccobjdir)/doloop.o \
+	$(gccobjdir)/dojump.o \
 	$(gccobjdir)/dominance.o \
 	$(gccobjdir)/dwarf2asm.o \
 	$(gccobjdir)/dwarf2out.o \
-	$(gccobjdir)/dwarfout.o \
 	$(gccobjdir)/emit-rtl.o \
 	$(gccobjdir)/except.o \
 	$(gccobjdir)/explow.o \
@@ -120,11 +133,11 @@ OBJS =	$(gccobjdir)/alias.o \
 	$(gccobjdir)/graph.o \
 	$(gccobjdir)/gtype-desc.o \
 	$(gccobjdir)/haifa-sched.o \
-	$(gccobjdir)/hashtable.o \
 	$(gccobjdir)/hooks.o \
 	$(gccobjdir)/ifcvt.o \
 	$(gccobjdir)/insn-attrtab.o \
 	$(gccobjdir)/insn-emit.o \
+	$(gccobjdir)/insn-modes.o \
 	$(gccobjdir)/insn-extract.o \
 	$(gccobjdir)/insn-opinit.o \
 	$(gccobjdir)/insn-output.o \
@@ -137,12 +150,15 @@ OBJS =	$(gccobjdir)/alias.o \
 	$(gccobjdir)/lists.o \
 	$(gccobjdir)/local-alloc.o \
 	$(gccobjdir)/loop.o \
-	$(gccobjdir)/mbchar.o \
 	$(gccobjdir)/optabs.o \
+	$(gccobjdir)/options.o \
+	$(gccobjdir)/opts.o \
 	$(gccobjdir)/params.o \
+	$(gccobjdir)/postreload.o \
 	$(gccobjdir)/predict.o \
 	$(gccobjdir)/print-rtl.o \
 	$(gccobjdir)/print-tree.o \
+	$(gccobjdir)/value-prof.o \
 	$(gccobjdir)/profile.o \
 	$(gccobjdir)/ra.o \
 	$(gccobjdir)/ra-build.o \
@@ -170,32 +186,46 @@ OBJS =	$(gccobjdir)/alias.o \
 	$(gccobjdir)/sdbout.o \
 	$(gccobjdir)/sibcall.o \
 	$(gccobjdir)/simplify-rtx.o \
-	$(gccobjdir)/ssa.o \
-	$(gccobjdir)/ssa-ccp.o \
-	$(gccobjdir)/ssa-dce.o \
+	$(gccobjdir)/sreal.o \
 	$(gccobjdir)/stmt.o \
 	$(gccobjdir)/stor-layout.o \
 	$(gccobjdir)/stringpool.o \
+	$(gccobjdir)/targhooks.o \
 	$(gccobjdir)/timevar.o \
 	$(gccobjdir)/toplev.o \
 	$(gccobjdir)/tracer.o \
 	$(gccobjdir)/tree.o \
 	$(gccobjdir)/tree-dump.o \
-	$(gccobjdir)/tree-inline.o \
 	$(gccobjdir)/unroll.o \
 	$(gccobjdir)/varasm.o \
 	$(gccobjdir)/varray.o \
 	$(gccobjdir)/version.o \
 	$(gccobjdir)/xcoffout.o \
+	$(gccobjdir)/alloc-pool.o \
 	$(gccobjdir)/et-forest.o \
+	$(gccobjdir)/cfghooks.o \
+	$(gccobjdir)/bt-load.o \
+	$(gccobjdir)/pretty-print.o \
 	$(gccobjdir)/ggc-page.o \
+	$(gccobjdir)/web.o \
 	$(gccobjdir)/arm.o
 
-#	$(gccobjdir)/intl.o \
+OBJS-md = $(gccobjdir)/arm.o
+
+OBJS-archive = $(gccobjdir)/hashtable.o \
+	$(gccobjdir)/host-default.o \
+	$(gccobjdir)/tree-inline.o \
+	$(gccobjdir)/tree-optimize.o \
+	$(gccobjdir)/cgraph.o \
+	$(gccobjdir)/cgraphunit.o
+
+OBJS = $(OBJS-common) $(OBJS-archive) $(OBJS-md)
 
 BACKEND = $(gccobjdir)/main.o $(gccobjdir)/libbackend.a
 
-LIBCPP_OBJS = $(gccobjdir)/cppdefault.o \
+LIBCPP_OBJS = \
+	$(gccobjdir)/cppcharset.o \
+	$(gccobjdir)/cppdefault.o \
 	$(gccobjdir)/cpperror.o \
 	$(gccobjdir)/cppexp.o \
 	$(gccobjdir)/cppfiles.o \
@@ -203,22 +233,23 @@ LIBCPP_OBJS = $(gccobjdir)/cppdefault.o \
 	$(gccobjdir)/cppinit.o \
 	$(gccobjdir)/cpplib.o \
 	$(gccobjdir)/cpplex.o \
-	$(gccobjdir)/cppmain.o \
 	$(gccobjdir)/cppmacro.o \
+	$(gccobjdir)/cpppch.o \
 	$(gccobjdir)/cppspec.o \
 	$(gccobjdir)/cpptrad.o \
 	$(gccobjdir)/hashtable.o \
 	$(gccobjdir)/line-map.o \
 	$(gccobjdir)/mkdeps.o \
-	$(gccobjdir)/prefix.o \
-	$(gccobjdir)/mbchar.o
+	$(gccobjdir)/prefix.o
+
+lang_opt_files = ada/lang.opt c.opt common.opt f77/lang.opt java/lang.opt
 
 # GEN files are listed separately, so they can be built before doing parallel
 # makes for cc1 or cc1plus.  Otherwise sequent parallel make attempts to load
 # them before rtl.o is compiled.
 GEN = genautomata genemit gengenrtl genoutput genrecog genextract genflags \
 	gencodes genconfig genpeep gencheck genpreds genconstants \
-	gengtype
+	gengtype genconditions genmodes
 
 export BACKEND RISCOS_OBJS C_AND_OBJC_OBJS LIBS LIBDEPS
 
@@ -302,6 +333,10 @@ $(bin_dir)/gcov$(gexesfx): $(gccobjdir)/gcov.o $(gccobjdir)/version.o $(LIBDEPS)
 #	$(LINK) $(LIBS)
 
 
+$(gccobjdir)/gcov-iov: $(gccobjdir)/gcov-iov.o
+	$(LINK) $(gccobjdir)/gcov-iov.o $(LIBS)
+
+
 ifeq (${STAGE},stage2)
 $(info_dir)/gcc:	doc/extend.texi doc/gcc.texi doc/gcov.texi \
 	doc/install.texi doc/invoke.texi doc/md.texi \
@@ -321,7 +356,7 @@ install_headers:
 # Make Bison sources
 
 c-parse.y:	c-parse.in
-	$(SED) -e "/^ifobjc$$/,/^end ifobjc$$/d" -e "/^ifc$$/d" -e "/^end ifc$$/d" $? > c-parse.y
+	$(SED) -e "/^@@ifobjc.*/,/^@@end_ifobjc.*/d" -e "/^@@ifc.*/d" -e "/^@@end_ifc.*/d" $? > c-parse.y
 
 # Bison sources
 # There's no point having a suffix thing for these becuase
@@ -341,10 +376,12 @@ gengtype-yacc.h: gengtype-yacc.c
 gengtype-lex.c: gengtype-lex.l gengtype-yacc.h
 	$(FLEX) -t -o$@ gengtype-lex.l | sed 's/^\(char msg\[\];\)/yyconst \1/' > $@
 
-# Perfect hash function generation stuff
+options.c: opts.sh options.h $(lang_opt_files)
+options.h: opts.sh $(lang_opt_files)
+	AWK=awk $(SHELL) opts.sh '$(SHELL) move-if-change' options.c options.h $(lang_opt_files)
 
-#h.c-gperf: gperf/c-parse
-#	gperf -p -j1 -i 1 -g -o -t -G -N is_reserved_word -k1,3,$$ <gperf.c-parse >h.c-gperf
+gcov-iov.h: gcov-iov.c version.h
+	$(gccobjdir)/gcov-iov > gcov-iov.h
 
 # Bison object dependencies
 $(gccobjdir)/c-parse.o:	c-parse.c c-parse.c c-parse.in tree-check.h gt-c-parse.h
@@ -365,7 +402,8 @@ HOST_RTL =	$(gccobjdir)/_rtl.o \
 	$(gccobjdir)/_bitmap.o \
 	$(gccobjdir)/_ggc-none.o \
 	$(gccobjdir)/_hashtab.o \
-	$(gccobjdir)/_safe-ctype.o
+	$(gccobjdir)/_safe-ctype.o \
+	$(gccobjdir)/min-insn-modes.o
 
 HOST_SUPPORT = $(gccobjdir)/gensupport.o $(gccobjdir)/insn-conditions.o
 HOST_EARLY_SUPPORT = $(gccobjdir)/gensupport.o $(gccobjdir)/dummy-conditions.o
@@ -389,7 +427,7 @@ xm_defines=
 # CONFIG_H lists the the ones ordinary gcc files depend on, which includes
 # several files generated by those generators.
 GCONFIG_H = config.h $(host_xm_file_list)
-HCONFIG_H = hconfig.h $(build_xm_file_list)
+BCONFIG_H = bconfig.h $(build_xm_file_list)
 CONFIG_H = $(GCONFIG_H) insn-constants.h insn-flags.h
 TCONFIG_H = tconfig.h $(xm_file_list)
 TARGET_H = target.h
@@ -414,40 +452,42 @@ gen-prog:	$(gccobjdir)/genemit $(gccobjdir)/genoutput \
 	$(gccobjdir)/gencheck $(gccobjdir)/genpreds \
 	$(gccobjdir)/gengtype
 
-GTFILES = $(GCONFIG_H) $(srcdir)/location.h \
-  $(HASHTAB_H) \
-  $(srcdir)/bitmap.h $(srcdir)/function.h  $(srcdir)/rtl.h $(srcdir)/optabs.h \
-  $(srcdir)/tree.h $(srcdir)/libfuncs.h $(srcdir)/hashtable.h $(srcdir)/real.h \
-  $(srcdir)/varray.h $(srcdir)/ssa.h $(srcdir)/insn-addr.h $(srcdir)/cselib.h \
+GTFILES = $(srcdir)/input.h $(srcdir)/coretypes.h $(srcdir)/cpplib.h \
+  $(host_xm_file_list) $(tm_file_list) $(HASHTAB_H) $(SPLAY_TREE_H) \
+  $(srcdir)/bitmap.h $(srcdir)/coverage.c $(srcdir)/function.h  $(srcdir)/rtl.h \
+  $(srcdir)/optabs.h $(srcdir)/tree.h $(srcdir)/libfuncs.h $(srcdir)/hashtable.h \
+  $(srcdir)/real.h $(srcdir)/varray.h $(srcdir)/insn-addr.h \
+  $(srcdir)/cselib.h $(srcdir)/basic-block.h  $(srcdir)/cgraph.h \
   $(srcdir)/c-common.h $(srcdir)/c-tree.h \
-  $(srcdir)/basic-block.h \
-  $(srcdir)/alias.c $(srcdir)/bitmap.c $(srcdir)/cselib.c \
-  $(srcdir)/dwarf2out.c $(srcdir)/emit-rtl.c \
-  $(srcdir)/except.c $(srcdir)/explow.c $(srcdir)/expr.c \
+  $(srcdir)/alias.c $(srcdir)/bitmap.c $(srcdir)/cselib.c $(srcdir)/cgraph.c \
+  $(srcdir)/dbxout.c $(srcdir)/dwarf2out.c $(srcdir)/dwarf2asm.c \
+  $(srcdir)/emit-rtl.c $(srcdir)/except.c $(srcdir)/explow.c $(srcdir)/expr.c \
   $(srcdir)/fold-const.c $(srcdir)/function.c \
   $(srcdir)/gcse.c $(srcdir)/integrate.c $(srcdir)/lists.c $(srcdir)/optabs.c \
   $(srcdir)/profile.c $(srcdir)/ra-build.c $(srcdir)/regclass.c \
-  $(srcdir)/reg-stack.c \
+  $(srcdir)/reg-stack.c $(srcdir)/cfglayout.c $(srcdir)/langhooks.c \
   $(srcdir)/sdbout.c $(srcdir)/stmt.c $(srcdir)/stor-layout.c \
-  $(srcdir)/tree.c $(srcdir)/varasm.c \
-  $(srcdir)/config/arm/arm.c \
-   $(srcdir)/ada/ada-tree.h $(srcdir)/ada/gigi.h $(srcdir)/ada/decl.c $(srcdir)/ada/trans.c $(srcdir)/ada/utils.c $(srcdir)/cp/mangle.c $(srcdir)/cp/cp-tree.h $(srcdir)/cp/decl.h $(srcdir)/cp/lex.h $(srcdir)/cp/call.c $(srcdir)/cp/decl.c $(srcdir)/cp/decl2.c $(srcdir)/cp/parse.y $(srcdir)/cp/pt.c $(srcdir)/cp/repo.c $(srcdir)/cp/spew.c $(srcdir)/cp/tree.c $(srcdir)/c-common.c $(srcdir)/c-common.h $(srcdir)/c-pragma.c $(srcdir)/f77/com.c $(srcdir)/f77/com.h $(srcdir)/f77/ste.c $(srcdir)/f77/where.h $(srcdir)/f77/where.c $(srcdir)/f77/lex.c $(srcdir)/java/java-tree.h $(srcdir)/java/builtins.c $(srcdir)/java/class.c $(srcdir)/java/constants.c $(srcdir)/java/decl.c $(srcdir)/java/expr.c $(srcdir)/java/jcf-parse.c $(srcdir)/java/jcf-write.c $(srcdir)/java/lang.c $(srcdir)/java/mangle.c $(srcdir)/java/parse.y $(srcdir)/objc/objc-act.h $(srcdir)/c-parse.in $(srcdir)/c-tree.h $(srcdir)/c-decl.c $(srcdir)/c-objc-common.c $(srcdir)/c-common.c $(srcdir)/c-common.h $(srcdir)/c-pragma.c $(srcdir)/c-parse.in $(srcdir)/c-lang.c $(srcdir)/c-parse.in $(srcdir)/c-tree.h $(srcdir)/c-decl.c $(srcdir)/c-common.c $(srcdir)/c-common.h $(srcdir)/c-pragma.c $(srcdir)/c-objc-common.c
-
-GTFILES_FILES_LANGS =  ada  ada  ada  ada  ada  cp  cp  cp  cp  cp  cp  cp  cp  cp  cp  cp  cp  cp  cp  cp  f77  f77  f77  f77  f77  f77  java  java  java  java  java  java  java  java  java  java  java  objc  objc  objc  objc  objc  objc  objc  objc  objc  c  c  c  c  c  c  c  c
-GTFILES_FILES_FILES =  $(srcdir)/ada/ada-tree.h  $(srcdir)/ada/gigi.h  $(srcdir)/ada/decl.c  $(srcdir)/ada/trans.c  $(srcdir)/ada/utils.c $(srcdir)/cp/mangle.c $(srcdir)/cp/cp-tree.h  $(srcdir)/cp/decl.h  $(srcdir)/cp/lex.h  $(srcdir)/cp/call.c  $(srcdir)/cp/decl.c  $(srcdir)/cp/decl2.c  $(srcdir)/cp/parse.y  $(srcdir)/cp/pt.c  $(srcdir)/cp/repo.c  $(srcdir)/cp/spew.c  $(srcdir)/cp/tree.c  $(srcdir)/c-common.c  $(srcdir)/c-common.h  $(srcdir)/c-pragma.c  $(srcdir)/f77/com.c  $(srcdir)/f77/com.h  $(srcdir)/f77/ste.c  $(srcdir)/f77/where.h  $(srcdir)/f77/where.c  $(srcdir)/f77/lex.c  $(srcdir)/java/java-tree.h  $(srcdir)/java/builtins.c  $(srcdir)/java/class.c  $(srcdir)/java/constants.c  $(srcdir)/java/decl.c  $(srcdir)/java/expr.c  $(srcdir)/java/jcf-parse.c  $(srcdir)/java/jcf-write.c  $(srcdir)/java/lang.c  $(srcdir)/java/mangle.c  $(srcdir)/java/parse.y  $(srcdir)/objc/objc-act.h  $(srcdir)/c-parse.in  $(srcdir)/c-tree.h  $(srcdir)/c-decl.c  $(srcdir)/c-objc-common.c  $(srcdir)/c-common.c  $(srcdir)/c-common.h  $(srcdir)/c-pragma.c  $(srcdir)/c-parse.in  $(srcdir)/c-lang.c  $(srcdir)/c-parse.in  $(srcdir)/c-tree.h  $(srcdir)/c-decl.c  $(srcdir)/c-common.c  $(srcdir)/c-common.h  $(srcdir)/c-pragma.c  $(srcdir)/c-objc-common.c
+  $(srcdir)/stringpool.c $(srcdir)/tree.c $(srcdir)/varasm.c \
+  $(out_file) \
+   $(srcdir)/ada/ada-tree.h $(srcdir)/ada/gigi.h $(srcdir)/ada/decl.c $(srcdir)/ada/trans.c $(srcdir)/ada/utils.c $(srcdir)/cp/mangle.c $(srcdir)/cp/name-lookup.h $(srcdir)/cp/name-lookup.c $(srcdir)/cp/cp-tree.h $(srcdir)/cp/decl.h $(srcdir)/cp/lex.h $(srcdir)/cp/call.c $(srcdir)/cp/decl.c $(srcdir)/cp/decl2.c $(srcdir)/cp/pt.c $(srcdir)/cp/repo.c $(srcdir)/cp/semantics.c $(srcdir)/cp/tree.c $(srcdir)/cp/parser.c $(srcdir)/cp/method.c $(srcdir)/c-common.c $(srcdir)/c-common.h $(srcdir)/c-pragma.c $(srcdir)/f77/com.c $(srcdir)/f77/com.h $(srcdir)/f77/ste.c $(srcdir)/f77/where.h $(srcdir)/f77/where.c $(srcdir)/f77/lex.c $(srcdir)/java/java-tree.h $(srcdir)/java/jcf.h $(srcdir)/java/lex.h $(srcdir)/java/parse.h $(srcdir)/java/builtins.c $(srcdir)/java/class.c $(srcdir)/java/constants.c $(srcdir)/java/decl.c $(srcdir)/java/expr.c $(srcdir)/java/jcf-parse.c $(srcdir)/java/jcf-write.c $(srcdir)/java/lang.c $(srcdir)/java/mangle.c $(srcdir)/java/parse.y $(srcdir)/java/resource.c $(srcdir)/objc/objc-act.h $(srcdir)/c-parse.in $(srcdir)/c-tree.h $(srcdir)/c-decl.c $(srcdir)/c-objc-common.c $(srcdir)/c-common.c $(srcdir)/c-common.h $(srcdir)/c-pragma.c $(srcdir)/objc/objc-act.c $(srcdir)/c-lang.c $(srcdir)/c-parse.in $(srcdir)/c-tree.h $(srcdir)/c-decl.c $(srcdir)/c-common.c $(srcdir)/c-common.h $(srcdir)/c-pragma.c $(srcdir)/c-objc-common.c
 
 
+GTFILES_FILES_LANGS =  ada  ada  ada  ada  ada  cp  cp  cp  cp  cp  cp  cp  cp  cp  cp  cp  cp  cp  cp  cp  cp  cp  cp  f77  f77  f77  f77  f77  f77  java  java  java  java  java  java  java  java  java  java  java  java  java  java  java  objc  objc  objc  objc  objc  objc  objc  objc  objc  c  c  c  c  c  c  c  c
+
+GTFILES_FILES_FILES =  $(srcdir)/ada/ada-tree.h  $(srcdir)/ada/gigi.h  $(srcdir)/ada/decl.c  $(srcdir)/ada/trans.c  $(srcdir)/ada/utils.c  $(srcdir)/cp/mangle.c  $(srcdir)/cp/name-lookup.h  $(srcdir)/cp/name-lookup.c  $(srcdir)/cp/cp-tree.h  $(srcdir)/cp/decl.h  $(srcdir)/cp/lex.h  $(srcdir)/cp/call.c  $(srcdir)/cp/decl.c  $(srcdir)/cp/decl2.c  $(srcdir)/cp/pt.c  $(srcdir)/cp/repo.c  $(srcdir)/cp/semantics.c  $(srcdir)/cp/tree.c  $(srcdir)/cp/parser.c  $(srcdir)/cp/method.c  $(srcdir)/c-common.c  $(srcdir)/c-common.h  $(srcdir)/c-pragma.c  $(srcdir)/f77/com.c  $(srcdir)/f77/com.h  $(srcdir)/f77/ste.c  $(srcdir)/f77/where.h  $(srcdir)/f77/where.c  $(srcdir)/f77/lex.c  $(srcdir)/java/java-tree.h  $(srcdir)/java/jcf.h  $(srcdir)/java/lex.h  $(srcdir)/java/parse.h  $(srcdir)/java/builtins.c  $(srcdir)/java/class.c  $(srcdir)/java/constants.c  $(srcdir)/java/decl.c  $(srcdir)/java/expr.c  $(srcdir)/java/jcf-parse.c  $(srcdir)/java/jcf-write.c  $(srcdir)/java/lang.c  $(srcdir)/java/mangle.c  $(srcdir)/java/parse.y  $(srcdir)/java/resource.c  $(srcdir)/objc/objc-act.h  $(srcdir)/c-parse.in  $(srcdir)/c-tree.h  $(srcdir)/c-decl.c  $(srcdir)/c-objc-common.c  $(srcdir)/c-common.c  $(srcdir)/c-common.h  $(srcdir)/c-pragma.c  $(srcdir)/objc/objc-act.c  $(srcdir)/c-lang.c  $(srcdir)/c-parse.in  $(srcdir)/c-tree.h  $(srcdir)/c-decl.c  $(srcdir)/c-common.c  $(srcdir)/c-common.h  $(srcdir)/c-pragma.c  $(srcdir)/c-objc-common.c
 GTFILES_LANG_DIR_NAMES =  ada cp f77 java objc
 GTFILES_SRCDIR = ../../gcc
 
-gtype-desc.h gtype-desc.c gt-except.h gt-function.h: s-gtype; @true
-gt-integrate.h gt-stmt.h gt-tree.h gt-varasm.h gt-emit-rtl.h: s-gtype; @true
-gt-explow.h gt-stor-layout.h gt-regclass.h gt-lists.h: s-gtype; @true
-gt-alias.h gt-cselib.h gt-fold-const.h gt-gcse.h gt-profile.h: s-gtype; @true
-gt-expr.h gt-sdbout.h gt-optabs.h gt-bitmap.h gt-dwarf2out.h: s-gtype; @true
-gt-ra-build.h gt-reg-stack.h gt-dependence.h: s-gtype; @true
-gt-c-common.h gt-c-decl.h gt-c-parse.h gt-c-pragma.h: s-gtype; @true
-gt-c-objc-common.h gtype-c.h gt-location.h: s-gtype; @true
+
+gt-cgraph.h gt-coverage.h gtype-desc.h gtype-desc.c gt-except.h \
+gt-function.h gt-integrate.h gt-stmt.h gt-tree.h gt-varasm.h \
+gt-emit-rtl.h gt-explow.h gt-stor-layout.h gt-regclass.h \
+gt-lists.h gt-alias.h gt-cselib.h gt-fold-const.h gt-gcse.h \
+gt-expr.h gt-sdbout.h gt-optabs.h gt-bitmap.h \
+gt-dwarf2out.h gt-ra-build.h gt-reg-stack.h gt-dwarf2asm.h \
+gt-dbxout.h gt-c-common.h gt-c-decl.h gt-c-parse.h \
+gt-c-pragma.h gtype-c.h gt-input.h gt-cfglayout.h \
+gt-stringpool.h gt-langhooks.h : s-gtype ; @true
 
 # C++ specific
 gtype-cp.h gt-cp-call.h gt-cp-decl.h gt-cp-decl2.h : s-gtype; @true
@@ -500,36 +540,36 @@ gtyp-gen.h: Makefile
 
 # Stuff to make generate files to generate insn-*.[ch] files.
 
-# Our gen versions are subtly different. We include hconfig.h instead
+# Our gen versions are subtly different. We include bconfig.h instead
 # of config.h.
 
 $(gccobjdir)/bitmap.c:	bitmap.c
-	$(SED) -e "s/config[.]h/hconfig.h/" bitmap.c >$@
+	$(SED) -e "s/config[.]h/bconfig.h/" bitmap.c >$@
 $(gccobjdir)/_bitmap.o:  $(gccobjdir)/bitmap.c
 	$(HOST_CC) -c $(gccobjdir)/bitmap.c -o $@ $(HOST_INCLUDES) $(HOST_PREDEFS)
 
 $(gccobjdir)/errors.c:	errors.c
-	$(SED) -e "s/config[.]h/hconfig.h/" errors.c >$@
+	$(SED) -e "s/config[.]h/bconfig.h/" errors.c >$@
 $(gccobjdir)/_errors.o:  $(gccobjdir)/errors.c
 	$(HOST_CC) -c $(gccobjdir)/errors.c -o $@ $(HOST_INCLUDES) $(HOST_PREDEFS)
 
 $(gccobjdir)/ggc-none.c:	ggc-none.c
-	$(SED) -e "s/config[.]h/hconfig.h/" ggc-none.c >$@
+	$(SED) -e "s/config[.]h/bconfig.h/" ggc-none.c >$@
 $(gccobjdir)/_ggc-none.o:  $(gccobjdir)/ggc-none.c
 	$(HOST_CC) -c $(gccobjdir)/ggc-none.c -o $@ $(HOST_INCLUDES) $(HOST_PREDEFS)
 
 $(gccobjdir)/obstack.c:	../../libiberty/obstack.c
-	$(SED) -e "s/config[.]h/hconfig.h/" ../../libiberty/obstack.c >$@
+	$(SED) -e "s/config[.]h/bconfig.h/" ../../libiberty/obstack.c >$@
 $(gccobjdir)/_obstack.o:  $(gccobjdir)/obstack.c
 	$(HOST_CC) -c $(gccobjdir)/obstack.c -o $@ $(HOST_INCLUDES) $(HOST_PREDEFS)
 
 $(gccobjdir)/rtl.c:	rtl.c
-	$(SED) -e "s/config[.]h/hconfig.h/" rtl.c >$@
+	$(SED) -e "s/config[.]h/bconfig.h/" rtl.c >$@
 $(gccobjdir)/_rtl.o:	$(gccobjdir)/rtl.c  gtype-desc.h
 	$(HOST_CC) -c $(gccobjdir)/rtl.c -o $@ $(HOST_INCLUDES) $(HOST_PREDEFS)
 
 $(gccobjdir)/print-rtl.c:	print-rtl.c
-	$(SED) -e "s/config[.]h/hconfig.h/" print-rtl.c >$@
+	$(SED) -e "s/config[.]h/bconfig.h/" print-rtl.c >$@
 $(gccobjdir)/_print-rtl.o:	$(gccobjdir)/print-rtl.c tree-check.h
 	$(HOST_CC) -c $(gccobjdir)/print-rtl.c -o $@ $(HOST_INCLUDES) $(HOST_PREDEFS)
 
@@ -543,7 +583,7 @@ $(gccobjdir)/_safe-ctype.o:	../../libiberty/safe-ctype.c
 	$(HOST_CC) -c ../../libiberty/safe-ctype.c -o $@ $(HOST_INCLUDES) $(HOST_PREDEFS)
 
 $(gccobjdir)/varray.c:	varray.c
-	$(SED) -e "s/config[.]h/hconfig.h/" varray.c >$@
+	$(SED) -e "s/config[.]h/bconfig.h/" varray.c >$@
 $(gccobjdir)/_varray.o:	$(gccobjdir)/varray.c
 	$(HOST_CC) -c $(gccobjdir)/varray.c -o $@ $(HOST_INCLUDES) $(HOST_PREDEFS)
 
@@ -584,7 +624,7 @@ $(gccobjdir)/genextract.o:	genextract.c
 $(gccobjdir)/genflags.o:	genflags.c
 	$(HOST_CC) -c genflags.c -o $@ $(HOST_INCLUDES) $(HOST_PREDEFS)
 
-$(gccobjdir)/gencodes.o:	gencodes.c rtl.h genrtl.h
+$(gccobjdir)/gencodes.o:	gencodes.c rtl.h genrtl.h insn-modes.h
 	$(HOST_CC) -c gencodes.c -o $@ $(HOST_INCLUDES) $(HOST_PREDEFS)
 
 $(gccobjdir)/genconfig.o:	genconfig.c
@@ -602,7 +642,10 @@ $(gccobjdir)/genpreds.o:	genpreds.c
 $(gccobjdir)/genautomata.o:	genautomata.c
 	$(HOST_CC) -c genautomata.c -o $@ $(HOST_INCLUDES) $(HOST_PREDEFS)
 
-$(gccobjdir)/gengtype.o:	gengtype.c gtyp-gen.h
+$(gccobjdir)/genmodes.o:	genmodes.c
+	$(HOST_CC) -c genmodes.c -o $@ $(HOST_INCLUDES) $(HOST_PREDEFS)
+
+$(gccobjdir)/gengtype.o:	gengtype.c gtyp-gen.h insn-modes.h
 	$(HOST_CC) -c gengtype.c -o $@ $(HOST_INCLUDES) $(HOST_PREDEFS)
 
 $(gccobjdir)/gengtype-lex.o:	gengtype-lex.c
@@ -666,6 +709,9 @@ $(gccobjdir)/genrecog:	  $(gccobjdir)/genrecog.o $(HOST_RTL) $(HOST_SUPPORT) $(H
 $(gccobjdir)/genpeep:	   $(gccobjdir)/genpeep.o $(HOST_RTL) $(HOST_SUPPORT) $(HOST_PRINT) $(HOST_ERRORS)
 	$(LINK) $(gccobjdir)/genpeep.o $(HOST_RTL) $(HOST_SUPPORT) $(HOST_PRINT) $(HOST_ERRORS) $(LIBS)
 
+$(gccobjdir)/genmodes:	   $(gccobjdir)/genmodes.o machmode.def config/arm/arm-modes.def $(HOST_ERRORS)
+	$(LINK) $(gccobjdir)/genmodes.o $(HOST_ERRORS) $(LIBS)
+
 $(gccobjdir)/genpreds:	$(gccobjdir)/genpreds.o
 	$(LINK) $(gccobjdir)/genpreds.o $(LIBS)
 
@@ -681,10 +727,11 @@ insn-attr.h:	$(MD) $(gccobjdir)/genattr
 	$(gccobjdir)/genattr $(MD) >$@
 tree-check.h:	$(gccobjdir)/gencheck tree.def
 	$(gccobjdir)/gencheck >tree-check.h
+insn-modes.h:	$(gccobjdir)/genmodes
+	$(gccobjdir)/genmodes -h >$@
 
 insn-conditions.c:	$(MD) $(gccobjdir)/genconditions
 	$(gccobjdir)/genconditions $(MD) >$@
-
 insn-emit.c:	$(MD) $(gccobjdir)/genemit
 	$(gccobjdir)/genemit $(MD) >$@
 insn-recog.c:	$(MD) $(gccobjdir)/genrecog
@@ -700,6 +747,12 @@ insn-peep.c:	$(MD) $(gccobjdir)/genpeep
 insn-attrtab.c:	$(MD) $(gccobjdir)/genattrtab
 	$(gccobjdir)/genattrtab $(MD) >$@
 
+min-insn-modes.c:	$(gccobjdir)/genmodes
+	$(gccobjdir)/genmodes -m >$@
+
+insn-modes.c:	$(gccobjdir)/genmodes
+	$(gccobjdir)/genmodes > $@
+
 genrtl.c:	$(gccobjdir)/gengenrtl
 	$(gccobjdir)/gengenrtl >$@
 
@@ -708,6 +761,8 @@ genrtl.h:	$(gccobjdir)/gengenrtl
 
 tm-preds.h:	$(gccobjdir)/genpreds
 	$(gccobjdir)/genpreds >$@
+
+min-insn-modes.o:	insn-modes.c
 
 endif
 
@@ -728,12 +783,18 @@ $(gccobjdir)/except.o: except.c
 $(gccobjdir)/optabs.o: optabs.c
 	$(CC) $(CFLAGS) $(INCLUDES) -o $@ -c optabs.c -DDONT_USE_BUILTIN_SETJMP -DJMP_BUF_SIZE=27
 
+DRIVER_DEFINES = \
+  -DSTANDARD_STARTFILE_PREFIX=\"$(prefix)$(gn_standard_startfile_prefix)\" \
+  -DSTANDARD_EXEC_PREFIX=\"$(prefix)$(gn_standard_exec_prefix)\" \
+  -DSTANDARD_LIBEXEC_PREFIX=\"$(libexecdir)/gcc/\" \
+  -DDEFAULT_TARGET_VERSION=\"$(VERSION)\" \
+  -DDEFAULT_TARGET_MACHINE=\"$(TARGET_NAME)\" \
+  -DSTANDARD_BINDIR_PREFIX=\"$(prefix)/$(gn_standard_exec_prefix)\" \
+  -DTOOLDIR_BASE_PREFIX=\"$(prefix)/$(gn_standard_exec_prefix)\"
+
+
 $(gccobjdir)/gcc.o: gcc.c
-	$(CC) $(CFLAGS) $(INCLUDES) -o $@ -c gcc.c \
-	-DDEFAULT_TARGET_VERSION=\"$(VERSION)\" \
-	-DDEFAULT_TARGET_MACHINE=\"$(TARGET_NAME)\" \
-	-DSTANDARD_STARTFILE_PREFIX=\"$(prefix)$(gn_standard_startfile_prefix)\" \
-	-DSTANDARD_EXEC_PREFIX=\"$(prefix)$(gn_standard_exec_prefix)\"
+	$(CC) $(CFLAGS) $(INCLUDES) -o $@ -c gcc.c $(DRIVER_DEFINES)
 
 $(gccobjdir)/cppdefault.o: cppdefault.c
 	$(CC) $(CFLAGS) $(INCLUDES) -o $@ -c cppdefault.c \
@@ -742,6 +803,11 @@ $(gccobjdir)/cppdefault.o: cppdefault.c
 	-DLOCAL_INCLUDE_DIR=\"$(prefix)$(gn_local_include_dir)\" \
 	-DSYSTEM_INCLUDE_DIR=\"$(prefix)$(gn_system_include_dir)\" \
 	-DCROSS_INCLUDE_DIR=\"$(prefix)$(gn_cross_include_dir)\"
+
+$(gccobjdir)/c-pch.o: c-pch.c
+	$(CC) $(CFLAGS) $(INCLUDES) -o $@ -c c-pch.c \
+	-DHOST_MACHINE=\"$(host)\" -DTARGET_MACHINE=\"$(TARGET_NAME)\"
+
 
 # Dependencies
 $(gccobjdir)/alias.o: alias.c
@@ -752,6 +818,7 @@ $(gccobjdir)/arm.o: config/arm/arm.c config.h system.h rtl.h tree.h \
 	$(CC) $(CFLAGS) -o $@ -c $< $(INCLUDES)
 
 $(gccobjdir)/bb-reorder.o: bb-reorder.c insn-config.h
+$(gccobjdir)/bt-load.o: bt-load.c
 $(gccobjdir)/bitmap.o: bitmap.c insn-codes.h insn-flags.h
 $(gccobjdir)/builtins.o: builtins.c insn-config.h
 $(gccobjdir)/caller-save.o: caller-save.c
@@ -759,6 +826,7 @@ $(gccobjdir)/calls.o: calls.c
 $(gccobjdir)/combine.o: combine.c insn-attr.h
 $(gccobjdir)/conflict.o: conflict.c
 $(gccobjdir)/convert.o: convert.c
+$(gccobjdir)/coverage.o: coverage.c gcov-iov.h
 $(gccobjdir)/cse.o: cse.c
 $(gccobjdir)/dbxout.o: dbxout.c
 $(gccobjdir)/debug.o: debug.c debug.h
@@ -780,6 +848,7 @@ $(gccobjdir)/flow.o: flow.c
 $(gccobjdir)/fold-const.o: fold-const.c
 $(gccobjdir)/function.o: function.c
 $(gccobjdir)/gcse.o: gcse.c
+$(gccobjdir)/gcov-iov.o: gcov-iov.c version.c coretypes.h
 $(gccobjdir)/genrtl.o: genrtl.c
 $(gccobjdir)/ggc-common.o: ggc-common.c
 $(gccobjdir)/ggc-page.o: ggc-page.c
@@ -834,6 +903,7 @@ $(gccobjdir)/unroll.o: unroll.c
 $(gccobjdir)/varasm.o: varasm.c gt-varasm.h
 $(gccobjdir)/varray.o: varray.c
 $(gccobjdir)/version.o: version.c
+$(gccobjdir)/web.o: web.c
 
 $(gccobjdir)/c-aux-info.o: c-aux-info.c
 $(gccobjdir)/c-common.o: c-common.c
@@ -843,6 +913,7 @@ $(gccobjdir)/c-iterate.o: c-iterate.c
 $(gccobjdir)/c-lang.o: c-lang.c
 $(gccobjdir)/c-lex.o: c-lex.c rtl.h genrtl.h
 $(gccobjdir)/c-objc-common.o: c-objc-common.c insn-config.h integrate.h
+$(gccobjdir)/c-opts.o: c-opts.c options.h $(lang_opt_files)
 $(gccobjdir)/c-parse.o: c-parse.c gt-c-parse.h
 $(gccobjdir)/c-pragma.o: c-pragma.c
 $(gccobjdir)/c-typeck.o: c-typeck.c

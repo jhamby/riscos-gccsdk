@@ -59,6 +59,8 @@ static int arm_error_file_ref = -1;
  */
 static int arm_throwback_started = 0;
 
+void arm_throwback_finish (void);
+
 /* Initialise the DDEUtils module for throwback.  */
 static void
 arm_throwback_start (void)

@@ -1,11 +1,6 @@
-/* $Id: jartool.h,v 1.1 2000/12/09 03:08:23 apbianco Exp $
+/* $Id: jartool.h,v 1.4 2000/08/24 15:23:35 cory Exp $
 
    $Log: jartool.h,v $
-   Revision 1.1  2000/12/09 03:08:23  apbianco
-   2000-12-08  Alexandre Petit-Bianco  <apbianco@cygnus.com>
-
-           * fastjar: Imported.
-
    Revision 1.4  2000/08/24 15:23:35  cory
    Set version number since I think we can let this one out.
 

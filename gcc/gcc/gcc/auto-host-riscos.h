@@ -6,6 +6,7 @@
    creation of the stage 2 compiler i.e. the one that actually
    runs on RISC OS.  */
 
+#define BYTEORDER 1234
 
 /* Define if you can safely include both <string.h> and <strings.h>.  */
 #define STRING_WITH_STRINGS 1
@@ -14,7 +15,7 @@
 #define HAVE_PRINTF_PTR 1
 
 #define PACKAGE "gcc"
-#define VERSION "3.3.3"
+#define VERSION "3.4.0"
 
 /* Define if you want expensive run-time checks. */
 /* #undef ENABLE_CHECKING */
@@ -38,6 +39,7 @@
    emitting at the beginning of your section */
 /* #undef HAVE_GAS_SUBSECTION_ORDERING */
 
+#define HAVE_GAS_SHF_MERGE 0
 
 /* Define if you want expensive run-time checks. */
 /* #undef ENABLE_CHECKING */
@@ -242,7 +244,7 @@
 #define HAVE_DECL_GETWD 1
 
 /* Define to 1 if we found this declaration otherwise define to 0. */
-#define HAVE_DECL_STRSIGNAL 0
+#define HAVE_DECL_STRSIGNAL 1
 
 /* Define to 1 if we found this declaration otherwise define to 0. */
 #define HAVE_DECL_PUTC_UNLOCKED 1
@@ -315,6 +317,9 @@
 
 /* The number of bytes in type long long */
 #define SIZEOF_LONG_LONG 8
+
+/* The number of bytes in type void * */
+#define SIZEOF_VOID_P 4
 
 /* Define to 1 if you want to enable namespaces (-fhonor-std) by default. */
 #define ENABLE_STD_NAMESPACE 1

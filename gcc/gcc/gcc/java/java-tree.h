@@ -1,22 +1,22 @@
 /* Definitions for parsing and type checking for the GNU compiler for
    the Java(TM) language.
-   Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002
+   Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004
    Free Software Foundation, Inc.
 
-This file is part of GNU CC.
+This file is part of GCC.
 
-GNU CC is free software; you can redistribute it and/or modify
+GCC is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation; either version 2, or (at your option)
 any later version.
 
-GNU CC is distributed in the hope that it will be useful,
+GCC is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU CC; see the file COPYING.  If not, write to
+along with GCC; see the file COPYING.  If not, write to
 the Free Software Foundation, 59 Temple Place - Suite 330,
 Boston, MA 02111-1307, USA.  
 
@@ -25,6 +25,9 @@ of Sun Microsystems, Inc. in the United States and other countries.
 The Free Software Foundation is independent of Sun Microsystems, Inc.  */
 
 /* Hacked by Per Bothner <bothner@cygnus.com> February 1996. */
+
+#ifndef GCC_JAVA_TREE_H
+#define GCC_JAVA_TREE_H
 
 #include "hashtab.h"
 
@@ -41,7 +44,6 @@ struct JCF;
 
 /* Usage of TREE_LANG_FLAG_?:
    0: IS_A_SINGLE_IMPORT_CLASSFILE_NAME_P (in IDENTIFIER_NODE)
-      RESOLVE_EXPRESSION_NAME_P (in EXPR_WITH_FILE_LOCATION)
       FOR_LOOP_P (in LOOP_EXPR)
       SUPPRESS_UNREACHABLE_ERROR (for other _EXPR nodes)
       ANONYMOUS_CLASS_P (in RECORD_TYPE)
@@ -106,8 +108,7 @@ struct JCF;
       LABEL_IS_SUBR_START (in LABEL_DECL)
       CLASS_ABSTRACT (in TYPE_DECL)
       FIELD_TRANSIENT (in FIELD_DECL)
-   6: METHOD_TRANSIENT (in FUNCTION_DECL)
-      LABEL_CHANGED (in LABEL_DECL)
+   6: LABEL_CHANGED (in LABEL_DECL)
       CLASS_SUPER (in TYPE_DECL, ACC_SUPER flag)
       FIELD_LOCAL_ALIAS (in FIELD_DECL)
    7: DECL_CONSTRUCTOR_P (in FUNCTION_DECL).
@@ -133,9 +134,16 @@ extern int compiling_from_source;
 #define main_class \
   java_global_trees[JTI_MAIN_CLASS]
 
-/* The class we are currently processing. */
+/* The class we use as the base for name resolution.  It's usually the
+   class we're generating code for but sometimes it points to an inner
+   class.  If you really want to know the class we're currently
+   generating code for, use output_class instead.  */
 #define current_class \
   java_global_trees[JTI_CURRENT_CLASS]
+
+/* The class we are currently generating.  Really.  */
+#define output_class \
+  java_global_trees[JTI_OUTPUT_CLASS]
 
 /* List of all class DECLs seen so far.  */
 #define all_class_list \
@@ -144,17 +152,15 @@ extern int compiling_from_source;
 /* List of all class filenames seen so far.  */
 #define all_class_filename java_global_trees [JTI_ALL_CLASS_FILENAME]
 
-/* List of virtual method decls called in this translation unit, used to 
-   generate virtual method offset symbol table. */
-#define otable_methods java_global_trees [JTI_OTABLE_METHODS]
+/* List of virtual decls referred to by this translation unit, used to
+   generate virtual method offset symbol table.  */
 
-/* The virtual method offset table. This is emitted as uninitialized data of 
-   the required length, and filled out at run time during class linking. */
-#define otable_decl java_global_trees [JTI_OTABLE_DECL]
+/* The virtual offset table.  This is emitted as uninitialized data of
+   the required length, and filled out at run time during class
+   linking. */
 
-/* The virtual method offset symbol table. Used by the runtime to fill out the
-   otable. */
-#define otable_syms_decl java_global_trees [JTI_OTABLE_SYMS_DECL]
+/* The virtual offset symbol table. Used by the runtime to fill out
+   the otable. */
 
 extern int flag_emit_class_files;
 
@@ -173,6 +179,9 @@ extern int flag_jni;
 
 extern int flag_extraneous_semicolon;
 
+/* When nonzero, report use of deprecated classes, methods, or fields.  */
+extern int flag_deprecated;
+
 /* When nonzero, always check for a non gcj generated classes archive.  */
 
 extern int flag_force_classes_archive_check;
@@ -186,7 +195,7 @@ extern int flag_emit_xref;
 extern int do_not_fold;
 
 /* Resource name.  */
-extern char * resource_name;
+extern const char *resource_name;
 
 /* Turned to 1 if -Wall was encountered. See lang.c for their meanings.  */
 extern int flag_wall;
@@ -226,7 +235,11 @@ extern int flag_store_check;
 extern const char *current_encoding;
 
 /* The Java .class file that provides main_class;  the main input file. */
-extern struct JCF *current_jcf;
+extern GTY(()) struct JCF * current_jcf;
+
+/* Set to nonzero value in order to emit class initialization code
+   before static field references.  */
+extern int always_initialize_class_p;
 
 typedef struct CPool constant_pool;
 
@@ -238,7 +251,7 @@ typedef struct CPool constant_pool;
 /* The cpool->data[i] for a ResolvedClass points to a RECORD_TYPE. */
 #define CONSTANT_ResolvedClass     (CONSTANT_Class+CONSTANT_ResolvedFlag)
 
-#define CPOOL_UTF(CPOOL, INDEX) ((tree) (CPOOL)->data[INDEX])
+#define CPOOL_UTF(CPOOL, INDEX) ((CPOOL)->data[INDEX].t)
 
 /* A NameAndType constant is represented as a TREE_LIST.
    The type is the signature string (as an IDENTIFIER_NODE).  */
@@ -281,8 +294,6 @@ enum java_tree_index
   JTI_DECIMAL_INT_MAX_NODE,
   JTI_DECIMAL_LONG_MAX_NODE,
 
-  JTI_BOOLEAN_TYPE_NODE,
-
   JTI_OBJECT_TYPE_NODE,
   JTI_UNQUALIFIED_OBJECT_ID_NODE,
   JTI_OBJECT_PTR_TYPE_NODE,
@@ -293,8 +304,6 @@ enum java_tree_index
   JTI_RUNTIME_EXCEPTION_TYPE_NODE,
   JTI_ERROR_EXCEPTION_TYPE_NODE,
   JTI_RAWDATA_PTR_TYPE_NODE,
-  JTI_CLASS_NOT_FOUND_TYPE_NODE,
-  JTI_NO_CLASS_DEF_FOUND_TYPE_NODE,
 
   JTI_BYTE_ARRAY_TYPE_NODE,
   JTI_SHORT_ARRAY_TYPE_NODE,
@@ -332,9 +341,6 @@ enum java_tree_index
 
   JTI_RETURN_ADDRESS_TYPE_NODE,
 
-  JTI_BOOLEAN_TRUE_NODE, 
-  JTI_BOOLEAN_FALSE_NODE,
-
   JTI_LONG_ZERO_NODE,
   JTI_FLOAT_ZERO_NODE,
   JTI_DOUBLE_ZERO_NODE,
@@ -364,9 +370,11 @@ enum java_tree_index
   JTI_METHOD_PTR_TYPE_NODE,
   JTI_OTABLE_TYPE,
   JTI_OTABLE_PTR_TYPE,
-  JTI_METHOD_SYMBOL_TYPE,
-  JTI_METHOD_SYMBOLS_ARRAY_TYPE,
-  JTI_METHOD_SYMBOLS_ARRAY_PTR_TYPE,
+  JTI_ATABLE_TYPE,
+  JTI_ATABLE_PTR_TYPE,
+  JTI_SYMBOL_TYPE,
+  JTI_SYMBOLS_ARRAY_TYPE,
+  JTI_SYMBOLS_ARRAY_PTR_TYPE,
 
   JTI_END_PARAMS_NODE,
 
@@ -399,16 +407,12 @@ enum java_tree_index
   JTI_NATIVECODE_PTR_ARRAY_TYPE_NODE,
 
   JTI_WFL_OPERATOR,
-  JTI_CURRENT_CONSTANT_POOL_DATA_REF,
 
   JTI_MAIN_CLASS,
   JTI_CURRENT_CLASS,
+  JTI_OUTPUT_CLASS,
   JTI_ALL_CLASS_LIST,
   JTI_ALL_CLASS_FILENAME,
-
-  JTI_OTABLE_METHODS,
-  JTI_OTABLE_DECL,
-  JTI_OTABLE_SYMS_DECL,
 
   JTI_PREDEF_FILENAMES,
 
@@ -452,9 +456,6 @@ extern GTY(()) tree java_global_trees[JTI_MAX];
 #define decimal_long_max \
   java_global_trees[JTI_DECIMAL_LONG_MAX_NODE]
 
-#define boolean_type_node \
-  java_global_trees[JTI_BOOLEAN_TYPE_NODE]
-
 #define object_type_node \
   java_global_trees[JTI_OBJECT_TYPE_NODE]
 #define unqualified_object_id_node \
@@ -475,10 +476,6 @@ extern GTY(()) tree java_global_trees[JTI_MAX];
   java_global_trees[JTI_ERROR_EXCEPTION_TYPE_NODE]
 #define rawdata_ptr_type_node \
   java_global_trees[JTI_RAWDATA_PTR_TYPE_NODE]
-#define class_not_found_type_node \
-  java_global_trees[JTI_CLASS_NOT_FOUND_TYPE_NODE]
-#define no_class_def_found_type_node \
-  java_global_trees[JTI_NO_CLASS_DEF_FOUND_TYPE_NODE]
 
 #define byte_array_type_node \
   java_global_trees[JTI_BYTE_ARRAY_TYPE_NODE]
@@ -551,12 +548,6 @@ extern GTY(()) tree java_global_trees[JTI_MAX];
 #define return_address_type_node \
   java_global_trees[JTI_RETURN_ADDRESS_TYPE_NODE]
 
-/* Nodes for boolean constants TRUE and FALSE. */
-#define boolean_true_node \
-  java_global_trees[JTI_BOOLEAN_TRUE_NODE]
-#define boolean_false_node \
-  java_global_trees[JTI_BOOLEAN_FALSE_NODE]
-
 /* Integer constants not declared in tree.h. */
 #define long_zero_node \
   java_global_trees[JTI_LONG_ZERO_NODE]
@@ -612,14 +603,20 @@ extern GTY(()) tree java_global_trees[JTI_MAX];
   java_global_trees[JTI_METHOD_PTR_TYPE_NODE]
 #define otable_type \
   java_global_trees[JTI_OTABLE_TYPE]
+#define atable_type \
+  java_global_trees[JTI_ATABLE_TYPE]
 #define otable_ptr_type \
   java_global_trees[JTI_OTABLE_PTR_TYPE]
-#define method_symbol_type \
-  java_global_trees[JTI_METHOD_SYMBOL_TYPE]
-#define method_symbols_array_type \
-  java_global_trees[JTI_METHOD_SYMBOLS_ARRAY_TYPE]
-#define method_symbols_array_ptr_type \
-  java_global_trees[JTI_METHOD_SYMBOLS_ARRAY_PTR_TYPE]
+#define atable_ptr_type \
+  java_global_trees[JTI_ATABLE_PTR_TYPE]
+#define symbol_type \
+  java_global_trees[JTI_SYMBOL_TYPE]
+#define symbols_array_type \
+  java_global_trees[JTI_SYMBOLS_ARRAY_TYPE]
+#define symbols_array_ptr_type \
+  java_global_trees[JTI_SYMBOLS_ARRAY_PTR_TYPE]
+#define class_refs_decl \
+  Jjava_global_trees[TI_CLASS_REFS_DECL]
 
 #define end_params_node \
   java_global_trees[JTI_END_PARAMS_NODE]
@@ -682,13 +679,6 @@ extern GTY(()) tree java_global_trees[JTI_MAX];
   java_global_trees[JTI_PREDEF_FILENAMES]
 
 #define nativecode_ptr_type_node ptr_type_node
-
-/* They need to be reset before processing each class */
-extern struct CPool *outgoing_cpool; 
-/* If non-NULL, an ADDR_EXPR referencing a VAR_DECL containing
-   the constant data array for the current class. */
-#define current_constant_pool_data_ref \
-  java_global_trees[JTI_CURRENT_CONSTANT_POOL_DATA_REF]
 
 #define wfl_operator \
   java_global_trees[JTI_WFL_OPERATOR]
@@ -772,6 +762,8 @@ union lang_tree_node
 /* Number of local variable slots needed for the arguments of this function. */
 #define DECL_ARG_SLOT_COUNT(DECL) \
   (DECL_LANG_SPECIFIC(DECL)->u.f.arg_slot_count)
+/* Line number of end of function. */
+#define DECL_FUNCTION_LAST_LINE(DECL) (DECL_LANG_SPECIFIC(DECL)->u.f.last_line)
 /* Information on declaration location */
 #define DECL_FUNCTION_WFL(DECL)  (DECL_LANG_SPECIFIC(DECL)->u.f.wfl)
 /* List of checked thrown exceptions, as specified with the `throws'
@@ -812,7 +804,7 @@ union lang_tree_node
   (DECL_LANG_SPECIFIC(DECL)->u.f.ict)
 /* A list of all the static method calls in the method DECL (if optimizing).
    Actually each TREE_VALUE points to a COMPONT_EXPR that wraps the
-   invoation so we can later patch it. */
+   invocation so we can later patch it.  */
 #define DECL_FUNCTION_STATIC_METHOD_INVOCATION_COMPOUND(DECL) \
   (DECL_LANG_SPECIFIC(DECL)->u.f.smic)
 /* The Number of Artificial Parameters (NAP) DECL contains. this$<n>
@@ -840,7 +832,7 @@ union lang_tree_node
 #define FIELD_LOCAL_ALIAS_USED(DECL) DECL_LANG_FLAG_7 (DECL)
 
 /* True when DECL is a this$<n> field. Note that
-   FIELD_LOCAL_ALIAS_USED can be differenciated when tested against
+   FIELD_LOCAL_ALIAS_USED can be differentiated when tested against
    FIELD_LOCAL_ALIAS.  */
 #define FIELD_THISN(DECL) DECL_LANG_FLAG_7 (DECL)
 
@@ -918,12 +910,9 @@ union lang_tree_node
 /* The original WFL of a final variable. */
 #define DECL_FIELD_FINAL_WFL(NODE) \
   (DECL_LANG_SPECIFIC(NODE)->u.v.wfl)
-/* In a FUNCTION_DECL for which DECL_BUILT_IN does not hold, this is
-     the approximate number of statements in this function.  There is
-     no need for this number to be exact; it is only used in various
-     heuristics regarding optimization.  */
-#define DECL_NUM_STMTS(NODE) \
-  (FUNCTION_DECL_CHECK (NODE)->decl.u1.i)
+/* The class that's the owner of a dynamic binding table.  */
+#define DECL_OWNER(NODE) \
+  (DECL_LANG_SPECIFIC(NODE)->u.v.owner)
 /* True if NODE is a local variable final. */
 #define LOCAL_FINAL_P(NODE) (DECL_LANG_SPECIFIC (NODE) && DECL_FINAL (NODE))
 /* True if NODE is a final field. */
@@ -938,13 +927,15 @@ union lang_tree_node
 /* True if NODE is a class initialization flag. */
 #define LOCAL_CLASS_INITIALIZATION_FLAG_P(NODE) \
     (DECL_LANG_SPECIFIC (NODE) && LOCAL_CLASS_INITIALIZATION_FLAG(NODE))
+/* True if NODE is a variable that is out of scope.  */
+#define LOCAL_VAR_OUT_OF_SCOPE_P(NODE) \
+    (DECL_LANG_SPECIFIC(NODE)->u.v.freed)
 /* Create a DECL_LANG_SPECIFIC if necessary. */
 #define MAYBE_CREATE_VAR_LANG_DECL_SPECIFIC(T)			\
   if (DECL_LANG_SPECIFIC (T) == NULL)				\
     {								\
       DECL_LANG_SPECIFIC ((T))					\
-	= ((struct lang_decl *)					\
-	   ggc_alloc_cleared (sizeof (struct lang_decl)));	\
+	= ggc_alloc_cleared (sizeof (struct lang_decl));	\
       DECL_LANG_SPECIFIC (T)->desc = LANG_DECL_VAR;		\
     }
 
@@ -973,6 +964,7 @@ struct lang_decl_func GTY(())
   int max_locals;
   int max_stack;
   int arg_slot_count;
+  int last_line; 		/* End line number for a function decl */
   tree wfl;			/* Information on the original location */
   tree throws_list;		/* Exception specified by `throws' */
   tree function_decl_body;	/* Hold all function's statements */
@@ -995,6 +987,9 @@ struct lang_decl_func GTY(())
   unsigned int fixed_ctor : 1;
   unsigned int init_calls_this : 1;
   unsigned int strictfp : 1;
+  unsigned int invisible : 1;	/* Set for methods we generate
+				   internally but which shouldn't be
+				   written to the .class file.  */
 };
 
 struct treetreehash_entry GTY(())
@@ -1003,9 +998,9 @@ struct treetreehash_entry GTY(())
   tree value;
 };
 
-extern tree java_treetreehash_find PARAMS ((htab_t, tree));
-extern tree * java_treetreehash_new PARAMS ((htab_t, tree));
-extern htab_t java_treetreehash_create PARAMS ((size_t size, int ggc));
+extern tree java_treetreehash_find (htab_t, tree);
+extern tree * java_treetreehash_new (htab_t, tree);
+extern htab_t java_treetreehash_create (size_t size, int ggc);
 
 /* DECL_LANG_SPECIFIC for VAR_DECL, PARM_DECL and sometimes FIELD_DECL
    (access methods on outer class fields) and final fields. */
@@ -1017,8 +1012,10 @@ struct lang_decl_var GTY(())
   tree slot_chain;
   tree am;			/* Access method for this field (1.1) */
   tree wfl;			/* Original wfl */
+  tree owner;
   unsigned int final_iud : 1;	/* Final initialized upon declaration */
   unsigned int cif : 1;		/* True: decl is a class initialization flag */
+  unsigned int freed;		/* Decl is no longer in scope.  */
 };
 
 /* This is what 'lang_decl' really points to.  */
@@ -1046,9 +1043,8 @@ struct lang_decl GTY(())
 #define MAYBE_CREATE_TYPE_TYPE_LANG_SPECIFIC(T)				 \
   if (TYPE_LANG_SPECIFIC ((T)) == NULL)					 \
     {									 \
-      TYPE_LANG_SPECIFIC ((T)) = 					 \
-	((struct lang_type *) 						 \
-         ggc_alloc_cleared (sizeof (struct lang_type)));		 \
+      TYPE_LANG_SPECIFIC ((T)) 					 	 \
+        = ggc_alloc_cleared (sizeof (struct lang_type));		 \
     }
 
 #define TYPE_FINIT_STMT_LIST(T)  (TYPE_LANG_SPECIFIC(T)->finit_stmt_list)
@@ -1065,11 +1061,24 @@ struct lang_decl GTY(())
 #define TYPE_STRICTFP(T) (TYPE_LANG_SPECIFIC(T)->strictfp)
 #define TYPE_USES_ASSERTIONS(T) (TYPE_LANG_SPECIFIC(T)->assertions)
 
+#define TYPE_ATABLE_METHODS(T)   (TYPE_LANG_SPECIFIC(T)->atable_methods)
+#define TYPE_ATABLE_SYMS_DECL(T) (TYPE_LANG_SPECIFIC(T)->atable_syms_decl)
+#define TYPE_ATABLE_DECL(T)      (TYPE_LANG_SPECIFIC(T)->atable_decl)
+
+#define TYPE_OTABLE_METHODS(T)   (TYPE_LANG_SPECIFIC(T)->otable_methods)
+#define TYPE_OTABLE_SYMS_DECL(T) (TYPE_LANG_SPECIFIC(T)->otable_syms_decl)
+#define TYPE_OTABLE_DECL(T)      (TYPE_LANG_SPECIFIC(T)->otable_decl)
+
+#define TYPE_CTABLE_DECL(T)      (TYPE_LANG_SPECIFIC(T)->ctable_decl)
+#define TYPE_CATCH_CLASSES(T)    (TYPE_LANG_SPECIFIC(T)->catch_classes)
+
+#define TYPE_TO_RUNTIME_MAP(T)   (TYPE_LANG_SPECIFIC(T)->type_to_runtime_map)
+
 struct lang_type GTY(())
 {
   tree signature;
-  struct JCF * GTY ((skip (""))) jcf;
-  struct CPool * GTY ((skip (""))) cpool;
+  struct JCF * jcf;
+  struct CPool * cpool;
   tree cpool_data_ref;		/* Cached */
   tree finit_stmt_list;		/* List of statements finit$ will use */
   tree clinit_stmt_list;	/* List of statements <clinit> will use  */
@@ -1081,6 +1090,21 @@ struct lang_type GTY(())
   tree package_list;		/* List of package names, progressive */
   tree import_list;		/* Imported types, in the CU of this class */
   tree import_demand_list;	/* Imported types, in the CU of this class */
+
+  tree otable_methods;          /* List of static decls referred to by this class.  */
+  tree otable_decl;		/* The static address table.  */
+  tree otable_syms_decl;
+
+  tree atable_methods;          /* List of static decls referred to by this class.  */
+  tree atable_decl;		/* The static address table.  */
+  tree atable_syms_decl;
+
+  tree ctable_decl;             /* The table of classes for the runtime type matcher.  */
+  tree catch_classes;
+
+  htab_t GTY ((param_is (struct treetreehash_entry))) type_to_runtime_map;   
+                                /* The mapping of classes to exception region markers.  */
+
   unsigned pic:1;		/* Private Inner Class. */
   unsigned poic:1;		/* Protected Inner Class. */
   unsigned strictfp:1;		/* `strictfp' class.  */
@@ -1090,221 +1114,236 @@ struct lang_type GTY(())
 #define JCF_u4 unsigned long
 #define JCF_u2 unsigned short
 
-extern void java_parse_file PARAMS ((int));
-extern bool java_mark_addressable PARAMS ((tree));
-extern tree java_type_for_mode PARAMS ((enum machine_mode, int));
-extern tree java_type_for_size PARAMS ((unsigned int, int));
-extern tree java_unsigned_type PARAMS ((tree));
-extern tree java_signed_type PARAMS ((tree));
-extern tree java_signed_or_unsigned_type PARAMS ((int, tree));
-extern tree java_truthvalue_conversion PARAMS ((tree));
-extern void add_assume_compiled PARAMS ((const char *, int));
-extern tree lookup_class PARAMS ((tree));
-extern tree lookup_java_constructor PARAMS ((tree, tree));
-extern tree lookup_java_method PARAMS ((tree, tree, tree));
-extern tree lookup_argument_method PARAMS ((tree, tree, tree));
-extern tree lookup_argument_method2 PARAMS ((tree, tree, tree));
-extern int has_method PARAMS ((tree, tree));
-extern tree promote_type PARAMS ((tree));
-extern tree get_constant PARAMS ((struct JCF*, int));
-extern tree get_name_constant PARAMS ((struct JCF*, int));
-extern tree get_class_constant PARAMS ((struct JCF*, int));
-extern tree parse_signature PARAMS ((struct JCF *jcf, int sig_index));
-extern tree add_field PARAMS ((tree, tree, tree, int));
-extern tree add_method PARAMS ((tree, int, tree, tree));
-extern tree add_method_1 PARAMS ((tree, int, tree, tree));
-extern tree make_class PARAMS ((void));
-extern tree push_class PARAMS ((tree, tree));
-extern tree unmangle_classname PARAMS ((const char *name, int name_length));
-extern tree parse_signature_string PARAMS ((const unsigned char *, int));
-extern tree get_type_from_signature PARAMS ((tree));
-extern void layout_class PARAMS ((tree));
-extern tree layout_class_method PARAMS ((tree, tree, tree, tree));
-extern void layout_class_methods PARAMS ((tree));
-extern tree build_class_ref PARAMS ((tree));
-extern tree build_dtable_decl PARAMS ((tree));
-extern tree build_internal_class_name PARAMS ((tree));
-extern tree build_constants_constructor PARAMS ((void));
-extern tree build_ref_from_constant_pool PARAMS ((int));
-extern void compile_resource_file PARAMS ((char *, const char *));
-extern tree build_utf8_ref PARAMS ((tree));
-extern tree ident_subst PARAMS ((const char*, int,
-				const char*, int, int, const char*));
-extern tree identifier_subst PARAMS ((const tree,
-				     const char *, int, int, const char *));
-extern int global_bindings_p			PARAMS ((void));
-extern int kept_level_p				PARAMS ((void));
-extern tree getdecls				PARAMS ((void));
-extern void pushlevel				PARAMS ((int));
-extern tree poplevel				PARAMS ((int,int, int));
-extern void insert_block			PARAMS ((tree));
-extern void set_block				PARAMS ((tree));
-extern tree pushdecl				PARAMS ((tree));
-extern void java_init_decl_processing PARAMS ((void));
-extern void java_dup_lang_specific_decl PARAMS ((tree));
-extern tree build_java_signature PARAMS ((tree));
-extern tree build_java_argument_signature PARAMS ((tree));
-extern void set_java_signature PARAMS ((tree, tree));
-extern tree build_static_field_ref PARAMS ((tree));
-extern tree build_address_of PARAMS ((tree));
-extern tree find_local_variable PARAMS ((int index, tree type, int pc));
-extern tree find_stack_slot PARAMS ((int index, tree type));
-extern tree build_prim_array_type PARAMS ((tree, HOST_WIDE_INT));
-extern tree build_java_array_type PARAMS ((tree, HOST_WIDE_INT));
-extern int is_compiled_class PARAMS ((tree));
-extern tree mangled_classname PARAMS ((const char*, tree));
-extern tree lookup_label PARAMS ((int));
-extern tree pop_type_0 PARAMS ((tree, char**));
-extern tree pop_type PARAMS ((tree));
-extern tree decode_newarray_type PARAMS ((int));
-extern tree lookup_field PARAMS ((tree*, tree));
-extern int is_array_type_p PARAMS ((tree));
-extern HOST_WIDE_INT java_array_type_length PARAMS ((tree));
-extern int read_class PARAMS ((tree));
-extern void load_class PARAMS ((tree, int));
+/* Possible values to pass to lookup_argument_method_generic.  */
+#define SEARCH_INTERFACE      1
+#define SEARCH_SUPER          2
+#define SEARCH_VISIBLE        4
 
-extern tree check_for_builtin PARAMS ((tree, tree));
-extern void initialize_builtins PARAMS ((void));
+extern void java_parse_file (int);
+extern bool java_mark_addressable (tree);
+extern tree java_type_for_mode (enum machine_mode, int);
+extern tree java_type_for_size (unsigned int, int);
+extern tree java_unsigned_type (tree);
+extern tree java_signed_type (tree);
+extern tree java_signed_or_unsigned_type (int, tree);
+extern tree java_truthvalue_conversion (tree);
+extern void add_assume_compiled (const char *, int);
+extern tree lookup_class (tree);
+extern tree lookup_java_constructor (tree, tree);
+extern tree lookup_java_method (tree, tree, tree);
+extern tree lookup_argument_method (tree, tree, tree);
+extern tree lookup_argument_method_generic (tree, tree, tree, int);
+extern int has_method (tree, tree);
+extern tree promote_type (tree);
+extern tree get_constant (struct JCF*, int);
+extern tree get_name_constant (struct JCF*, int);
+extern tree get_class_constant (struct JCF*, int);
+extern tree parse_signature (struct JCF *jcf, int sig_index);
+extern tree add_field (tree, tree, tree, int);
+extern tree add_method (tree, int, tree, tree);
+extern tree add_method_1 (tree, int, tree, tree);
+extern tree make_class (void);
+extern tree push_class (tree, tree);
+extern tree unmangle_classname (const char *name, int name_length);
+extern tree parse_signature_string (const unsigned char *, int);
+extern tree get_type_from_signature (tree);
+extern void layout_class (tree);
+extern tree layout_class_method (tree, tree, tree, tree);
+extern void layout_class_methods (tree);
+extern tree build_class_ref (tree);
+extern tree build_dtable_decl (tree);
+extern tree build_internal_class_name (tree);
+extern tree build_constants_constructor (void);
+extern tree build_ref_from_constant_pool (int);
+extern tree build_utf8_ref (tree);
+extern tree ident_subst (const char*, int, const char*, int, int, const char*);
+extern tree identifier_subst (const tree, const char *, int, int, const char *);
+extern int global_bindings_p (void);
+extern int kept_level_p (void);
+extern tree getdecls (void);
+extern void pushlevel (int);
+extern tree poplevel (int,int, int);
+extern void insert_block (tree);
+extern void set_block (tree);
+extern tree pushdecl (tree);
+extern void java_init_decl_processing (void);
+extern void java_dup_lang_specific_decl (tree);
+extern tree build_java_signature (tree);
+extern tree build_java_argument_signature (tree);
+extern void set_java_signature (tree, tree);
+extern tree build_static_field_ref (tree);
+extern tree build_address_of (tree);
+extern tree find_local_variable (int index, tree type, int pc);
+extern tree find_stack_slot (int index, tree type);
+extern tree build_prim_array_type (tree, HOST_WIDE_INT);
+extern tree build_java_array_type (tree, HOST_WIDE_INT);
+extern int is_compiled_class (tree);
+extern tree mangled_classname (const char*, tree);
+extern tree lookup_label (int);
+extern tree pop_type_0 (tree, char**);
+extern tree pop_type (tree);
+extern tree decode_newarray_type (int);
+extern tree lookup_field (tree*, tree);
+extern int is_array_type_p (tree);
+extern HOST_WIDE_INT java_array_type_length (tree);
+extern int read_class (tree);
+extern void load_class (tree, int);
 
-extern tree lookup_name PARAMS ((tree));
-extern tree build_known_method_ref PARAMS ((tree, tree, tree, tree, tree));
-extern tree build_class_init PARAMS ((tree, tree));
-extern tree build_invokevirtual PARAMS ((tree, tree));
-extern tree build_invokeinterface PARAMS ((tree, tree));
-extern tree build_jni_stub PARAMS ((tree));
-extern tree invoke_build_dtable PARAMS ((int, tree));
-extern tree build_field_ref PARAMS ((tree, tree, tree));
-extern void pushdecl_force_head PARAMS ((tree));
-extern tree build_java_binop PARAMS ((enum tree_code, tree, tree, tree));
-extern tree build_java_soft_divmod PARAMS ((enum tree_code, tree, tree, tree));
-extern tree binary_numeric_promotion PARAMS ((tree, tree, tree *, tree *));
-extern tree build_java_arrayaccess PARAMS ((tree, tree, tree));
-extern tree build_java_arraystore_check PARAMS ((tree, tree));
-extern tree build_newarray PARAMS ((int, tree));
-extern tree build_anewarray PARAMS ((tree, tree));
-extern tree build_new_array PARAMS ((tree, tree));
-extern tree build_java_array_length_access PARAMS ((tree));
-extern tree build_java_arraynull_check PARAMS ((tree, tree, tree));
-extern tree build_java_indirect_ref PARAMS ((tree, tree, int));
-extern tree java_check_reference PARAMS ((tree, int));
-extern tree build_get_class PARAMS ((tree));
-extern tree build_instanceof PARAMS ((tree, tree));
-extern tree create_label_decl PARAMS ((tree));
-extern void push_labeled_block PARAMS ((tree));
-extern tree prepare_eh_table_type PARAMS ((tree));
-extern tree build_exception_object_ref PARAMS ((tree));
-extern tree generate_name PARAMS ((void));
-extern void pop_labeled_block PARAMS ((void));
-extern const char *lang_printable_name PARAMS ((tree, int));
-extern tree maybe_add_interface PARAMS ((tree, tree));
-extern void set_super_info PARAMS ((int, tree, tree, int));
-extern void set_class_decl_access_flags PARAMS ((int, tree));
-extern int get_access_flags_from_decl PARAMS ((tree));
-extern int interface_of_p PARAMS ((tree, tree));
-extern int inherits_from_p PARAMS ((tree, tree));
-extern int common_enclosing_context_p PARAMS ((tree, tree));
-extern int enclosing_context_p PARAMS ((tree, tree));
-extern void complete_start_java_method PARAMS ((tree));
-extern tree build_result_decl PARAMS ((tree));
-extern void emit_handlers PARAMS ((void));
-extern void init_outgoing_cpool PARAMS ((void));
-extern void make_class_data PARAMS ((tree));
-extern void register_class PARAMS ((void));
-extern int alloc_name_constant PARAMS ((int, tree));
-extern void emit_register_classes PARAMS ((void));
-extern void emit_offset_symbol_table PARAMS ((void));
-extern void lang_init_source PARAMS ((int));
-extern void write_classfile PARAMS ((tree));
-extern char *print_int_node PARAMS ((tree));
-extern void parse_error_context PARAMS ((tree cl, const char *, ...))
+extern tree check_for_builtin (tree, tree);
+extern void initialize_builtins (void);
+
+extern tree lookup_name (tree);
+extern tree build_known_method_ref (tree, tree, tree, tree, tree);
+extern tree build_class_init (tree, tree);
+extern tree build_invokevirtual (tree, tree);
+extern tree build_invokeinterface (tree, tree);
+extern tree build_jni_stub (tree);
+extern tree invoke_build_dtable (int, tree);
+extern tree build_field_ref (tree, tree, tree);
+extern void pushdecl_force_head (tree);
+extern tree build_java_binop (enum tree_code, tree, tree, tree);
+extern tree build_java_soft_divmod (enum tree_code, tree, tree, tree);
+extern tree binary_numeric_promotion (tree, tree, tree *, tree *);
+extern tree build_java_arrayaccess (tree, tree, tree);
+extern tree build_java_arraystore_check (tree, tree);
+extern tree build_newarray (int, tree);
+extern tree build_anewarray (tree, tree);
+extern tree build_new_array (tree, tree);
+extern tree build_java_array_length_access (tree);
+extern tree build_java_arraynull_check (tree, tree, tree);
+extern tree build_java_indirect_ref (tree, tree, int);
+extern tree java_check_reference (tree, int);
+extern tree build_get_class (tree);
+extern tree build_instanceof (tree, tree);
+extern tree create_label_decl (tree);
+extern void push_labeled_block (tree);
+extern tree prepare_eh_table_type (tree);
+extern void java_expand_catch_classes (tree);
+extern tree build_exception_object_ref (tree);
+extern tree generate_name (void);
+extern void pop_labeled_block (void);
+extern const char *lang_printable_name (tree, int);
+extern tree maybe_add_interface (tree, tree);
+extern void set_super_info (int, tree, tree, int);
+extern void set_class_decl_access_flags (int, tree);
+extern int get_access_flags_from_decl (tree);
+extern int interface_of_p (tree, tree);
+extern int inherits_from_p (tree, tree);
+extern int common_enclosing_context_p (tree, tree);
+extern int enclosing_context_p (tree, tree);
+extern void complete_start_java_method (tree);
+extern tree build_result_decl (tree);
+extern void emit_handlers (void);
+extern void make_class_data (tree);
+extern void register_class (void);
+extern int alloc_name_constant (int, tree);
+extern void emit_register_classes (void);
+extern tree emit_symbol_table (tree, tree, tree, tree, tree);
+extern void lang_init_source (int);
+extern void write_classfile (tree);
+extern char *print_int_node (tree);
+extern void parse_error_context (tree cl, const char *, ...)
   ATTRIBUTE_PRINTF_2;
-extern void finish_class PARAMS ((void));
-extern void java_layout_seen_class_methods PARAMS ((void));
-extern void check_for_initialization PARAMS ((tree, tree));
+extern void finish_class (void);
+extern void java_layout_seen_class_methods (void);
+extern void check_for_initialization (tree, tree);
 
-extern tree pushdecl_top_level PARAMS ((tree));
-extern int alloc_class_constant PARAMS ((tree));
-extern void init_expr_processing PARAMS ((void));
-extern void push_super_field PARAMS ((tree, tree));
-extern void init_class_processing PARAMS ((void));
-extern int can_widen_reference_to PARAMS ((tree, tree));
-extern int class_depth PARAMS ((tree));
-extern int verify_jvm_instructions PARAMS ((struct JCF *, const unsigned char *, long));
-extern void maybe_pushlevels PARAMS ((int));
-extern void maybe_poplevels PARAMS ((int));
-extern void force_poplevels PARAMS ((int));
-extern int process_jvm_instruction PARAMS ((int, const unsigned char *, long));
-extern int maybe_adjust_start_pc PARAMS ((struct JCF *, int, int, int));
-extern void set_local_type PARAMS ((int, tree));
-extern int merge_type_state PARAMS ((tree));
-extern int push_type_0 PARAMS ((tree));
-extern void push_type PARAMS ((tree));
-extern void load_type_state PARAMS ((tree));
-extern void add_interface PARAMS ((tree, tree));
-extern tree force_evaluation_order PARAMS ((tree));
-extern int verify_constant_pool PARAMS ((struct JCF *));
-extern void start_java_method PARAMS ((tree));
-extern void end_java_method PARAMS ((void));
-extern void give_name_to_locals PARAMS ((struct JCF *));
-extern void note_instructions PARAMS ((struct JCF *, tree));
-extern void expand_byte_code PARAMS ((struct JCF *, tree));
-extern int open_in_zip PARAMS ((struct JCF *, const char *, const char *, int));
-extern void set_constant_value PARAMS ((tree, tree));
+extern tree pushdecl_top_level (tree);
+extern int alloc_class_constant (tree);
+extern void init_expr_processing (void);
+extern void push_super_field (tree, tree);
+extern void init_class_processing (void);
+extern int can_widen_reference_to (tree, tree);
+extern int class_depth (tree);
+extern int verify_jvm_instructions (struct JCF *, const unsigned char *, long);
+extern void maybe_pushlevels (int);
+extern void maybe_poplevels (int);
+extern void force_poplevels (int);
+extern int process_jvm_instruction (int, const unsigned char *, long);
+extern int maybe_adjust_start_pc (struct JCF *, int, int, int);
+extern void set_local_type (int, tree);
+extern int merge_type_state (tree);
+extern int push_type_0 (tree);
+extern void push_type (tree);
+extern void load_type_state (tree);
+extern void add_interface (tree, tree);
+extern tree force_evaluation_order (tree);
+extern int verify_constant_pool (struct JCF *);
+extern void start_java_method (tree);
+extern void end_java_method (void);
+extern void give_name_to_locals (struct JCF *);
+extern void note_instructions (struct JCF *, tree);
+extern void expand_byte_code (struct JCF *, tree);
+extern int open_in_zip (struct JCF *, const char *, const char *, int);
+extern void set_constant_value (tree, tree);
 #ifdef jword
-extern int find_constant1 PARAMS ((struct CPool *, int, jword));
-extern int find_constant2 PARAMS ((struct CPool *, int, jword, jword));
+extern int find_constant1 (struct CPool *, int, jword);
+extern int find_constant2 (struct CPool *, int, jword, jword);
 #endif
-extern int find_utf8_constant PARAMS ((struct CPool *, tree));
-extern int find_string_constant PARAMS ((struct CPool *, tree));
-extern int find_class_constant PARAMS ((struct CPool *, tree));
-extern int find_fieldref_index PARAMS ((struct CPool *, tree));
-extern int find_methodref_index PARAMS ((struct CPool *, tree));
-extern int find_methodref_with_class_index PARAMS ((struct CPool *, tree, tree));
-extern void write_constant_pool PARAMS ((struct CPool *, unsigned char *, int));
-extern int count_constant_pool_bytes PARAMS ((struct CPool *));
-extern int encode_newarray_type PARAMS ((tree));
+extern int find_utf8_constant (struct CPool *, tree);
+extern int find_string_constant (struct CPool *, tree);
+extern int find_class_constant (struct CPool *, tree);
+extern int find_fieldref_index (struct CPool *, tree);
+extern int find_methodref_index (struct CPool *, tree);
+extern int find_methodref_with_class_index (struct CPool *, tree, tree);
+extern void write_constant_pool (struct CPool *, unsigned char *, int);
+extern int count_constant_pool_bytes (struct CPool *);
+extern int encode_newarray_type (tree);
 #ifdef uint64
-extern void format_int PARAMS ((char *, jlong, int));
-extern void format_uint PARAMS ((char *, uint64, int));
+extern void format_int (char *, jlong, int);
+extern void format_uint (char *, uint64, int);
 #endif
-extern void jcf_trim_old_input PARAMS ((struct JCF *));
+extern void jcf_trim_old_input (struct JCF *);
 #ifdef BUFSIZ
-extern void jcf_print_utf8 PARAMS ((FILE *, const unsigned char *, int));
-extern void jcf_print_char PARAMS ((FILE *, int));
-extern void jcf_print_utf8_replace PARAMS ((FILE *, const unsigned char *,
-					   int, int, int));
-extern const char* open_class PARAMS ((const char *, struct JCF *,
-				       int, const char *));
+extern void jcf_print_utf8 (FILE *, const unsigned char *, int);
+extern void jcf_print_char (FILE *, int);
+extern void jcf_print_utf8_replace (FILE *, const unsigned char *, int, int, int);
+extern const char* open_class (const char *, struct JCF *, int, const char *);
 #endif
-extern void java_debug_context PARAMS ((void));
-extern void safe_layout_class PARAMS ((tree));
+extern void java_debug_context (void);
+extern void safe_layout_class (tree);
 
-extern tree get_boehm_type_descriptor PARAMS ((tree));
-extern bool class_has_finalize_method PARAMS ((tree));
-extern void java_check_methods PARAMS ((tree));
-extern void init_jcf_parse PARAMS((void));
-extern void init_src_parse PARAMS((void));
+extern tree get_boehm_type_descriptor (tree);
+extern bool class_has_finalize_method (tree);
+extern void java_check_methods (tree);
+extern void init_jcf_parse (void);
+extern void init_src_parse (void);
 
-extern int cxx_keyword_p PARAMS ((const char *, int));
-extern tree java_mangle_decl PARAMS ((struct obstack *, tree));
-extern tree java_mangle_class_field PARAMS ((struct obstack *, tree));
-extern tree java_mangle_class_field_from_string PARAMS ((struct obstack *, char *));
-extern tree java_mangle_vtable PARAMS ((struct obstack *, tree));
-extern const char *lang_printable_name_wls PARAMS ((tree, int));
-extern void append_gpp_mangled_name PARAMS ((const char *, int));
+extern int cxx_keyword_p (const char *, int);
+extern tree java_mangle_decl (struct obstack *, tree);
+extern tree java_mangle_class_field (struct obstack *, tree);
+extern tree java_mangle_class_field_from_string (struct obstack *, char *);
+extern tree java_mangle_vtable (struct obstack *, tree);
+extern const char *lang_printable_name_wls (tree, int);
+extern void append_gpp_mangled_name (const char *, int);
 
-extern void add_predefined_file PARAMS ((tree));
-extern int predefined_filename_p PARAMS ((tree));
+extern void add_predefined_file (tree);
+extern int predefined_filename_p (tree);
 
-extern void java_optimize_inline PARAMS ((tree));
-extern tree decl_constant_value PARAMS ((tree));
+extern tree decl_constant_value (tree);
+
+extern void java_mark_class_local (tree);
 
 #if defined(RTX_CODE) && defined (HAVE_MACHINE_MODES)
-struct rtx_def * java_expand_expr PARAMS ((tree, rtx, enum machine_mode,
-					   int)); 
+struct rtx_def * java_expand_expr (tree, rtx, enum machine_mode, int, rtx *); 
 #endif
-extern void java_inlining_merge_static_initializers PARAMS ((tree, void *));
-extern void java_inlining_map_static_initializers PARAMS ((tree, void *));
+extern void java_inlining_merge_static_initializers (tree, void *);
+extern void java_inlining_map_static_initializers (tree, void *);
+
+extern void compile_resource_data (const char *name, const char *buffer, int);
+extern void compile_resource_file (const char *, const char *);
+extern void write_resource_constructor (void);
+extern void init_resource_processing (void);
+
+extern void start_complete_expand_method (tree);
+extern void java_expand_body (tree);
+
+extern int get_symbol_table_index (tree, tree *);
+
+extern tree make_catch_class_record (tree, tree);
+extern tree emit_catch_table (tree);
+
+extern void gen_indirect_dispatch_tables (tree type);
 
 #define DECL_FINAL(DECL) DECL_LANG_FLAG_3 (DECL)
 
@@ -1318,8 +1357,8 @@ extern void java_inlining_map_static_initializers PARAMS ((tree, void *));
 #define METHOD_SYNCHRONIZED(DECL) DECL_LANG_FLAG_4 (DECL)
 #define METHOD_NATIVE(DECL) (DECL_LANG_SPECIFIC(DECL)->u.f.native)
 #define METHOD_ABSTRACT(DECL) DECL_LANG_FLAG_5 (DECL)
-#define METHOD_TRANSIENT(DECL) DECL_LANG_FLAG_6 (DECL)
 #define METHOD_STRICTFP(DECL) (DECL_LANG_SPECIFIC (DECL)->u.f.strictfp)
+#define METHOD_INVISIBLE(DECL) (DECL_LANG_SPECIFIC (DECL)->u.f.invisible)
 
 #define JAVA_FILE_P(NODE) TREE_LANG_FLAG_2 (NODE)
 #define CLASS_FILE_P(NODE) TREE_LANG_FLAG_3 (NODE)
@@ -1524,15 +1563,12 @@ extern tree *type_map;
 #define MODIFY_EXPR_FROM_INITIALIZATION_P(EXPR) TREE_LANG_FLAG_2 (EXPR)
 
 /* True if EXPR (a TREE_TYPE denoting a class type) has its methods
-   already checked (for redifitions, etc, see java_check_regular_methods.) */
+   already checked (for redefinitions, etc, see java_check_regular_methods.) */
 #define CLASS_METHOD_CHECKED_P(EXPR) TREE_LANG_FLAG_2 (EXPR)
 
 /* True if TYPE (a TREE_TYPE denoting a class type) was found to
    feature a finalizer method. */
 #define HAS_FINALIZER_P(EXPR) TREE_LANG_FLAG_3 (EXPR)
-
-/* True if EXPR (a WFL in that case) resolves into an expression name */
-#define RESOLVE_EXPRESSION_NAME_P(WFL) TREE_LANG_FLAG_0 (WFL)
 
 /* True if EXPR (a LOOP_EXPR in that case) is part of a for statement */
 #define FOR_LOOP_P(EXPR) TREE_LANG_FLAG_0 (EXPR)
@@ -1648,7 +1684,7 @@ extern tree *type_map;
 
 /* Start building a RECORD_TYPE constructor with a given TYPE in CONS. */
 #define START_RECORD_CONSTRUCTOR(CONS, CTYPE) { \
-  CONS = build (CONSTRUCTOR, CTYPE, NULL_TREE, NULL_TREE);\
+  CONS = build_constructor (CTYPE, NULL_TREE);\
   TREE_CHAIN(CONS) = TYPE_FIELDS (CTYPE); }
 
 /* Append a field initializer to CONS for the dummy field for the inherited
@@ -1664,11 +1700,16 @@ extern tree *type_map;
 /* Append a field initializer to CONS for a field with the given VALUE.
    NAME is a char* string used for error checking;
    the initializer must be specified in order. */
-#define PUSH_FIELD_VALUE(CONS, NAME, VALUE) {\
-  tree field = TREE_CHAIN(CONS);\
-  if (strcmp (IDENTIFIER_POINTER (DECL_NAME (field)), NAME) != 0) abort();\
-  CONSTRUCTOR_ELTS(CONS) = tree_cons (field, VALUE, CONSTRUCTOR_ELTS(CONS));\
-  TREE_CHAIN(CONS) = TREE_CHAIN (field); }
+#define PUSH_FIELD_VALUE(CONS, NAME, VALUE) 					\
+do										\
+{										\
+  tree field = TREE_CHAIN(CONS);						\
+  if (strcmp (IDENTIFIER_POINTER (DECL_NAME (field)), NAME) != 0) 		\
+    abort();									\
+  CONSTRUCTOR_ELTS(CONS) = tree_cons (field, VALUE, CONSTRUCTOR_ELTS(CONS));	\
+  TREE_CHAIN(CONS) = TREE_CHAIN (field); 					\
+}										\
+while (0)
 
 /* Finish creating a record CONSTRUCTOR CONS. */
 #define FINISH_RECORD_CONSTRUCTOR(CONS) \
@@ -1697,6 +1738,8 @@ extern tree *type_map;
 #define BLOCK_EXPR_BODY(NODE)   BLOCK_SUBBLOCKS(NODE)
 /* True for an implicit block surrounding declaration not at start of {...}. */
 #define BLOCK_IS_IMPLICIT(NODE) TREE_LANG_FLAG_1 (NODE)
+#define BLOCK_EMPTY_P(NODE) \
+  (TREE_CODE (NODE) == BLOCK && BLOCK_EXPR_BODY (NODE) == empty_stmt_node)
 
 #define BUILD_MONITOR_ENTER(WHERE, ARG)				\
   {								\
@@ -1758,3 +1801,4 @@ enum
 };
 
 #undef DEBUG_JAVA_BINDING_LEVELS
+#endif /* ! GCC_JAVA_TREE_H */

@@ -1,6 +1,7 @@
 # Top-level configure.in for the RISC OS GCCSDK
 # Copyright (c) 2000, 2001, 2003, 2004 Nick Burrett
 # Written by Nick Burrett <nick@dsvr.net>
+sinclude(../config/aclocal.m4)
 
 AC_PREREQ(2.50)
 AC_INIT(tree.c)
@@ -10,7 +11,7 @@ AC_ARG_PROGRAM
 
 dnl Global version variable
 PACKAGE=gcc
-VERSION="3.3.3"
+VERSION="3.4.0"
 AC_SUBST(PACKAGE)
 AC_SUBST(VERSION)
 AC_DEFINE_UNQUOTED(PACKAGE, "$PACKAGE", [Program name])
@@ -28,6 +29,7 @@ AC_PROG_AWK
 dnl Check the GCC version
 AC_PROG_CXX
 AC_C_BIGENDIAN
+AC_C_BIGENDIAN_CROSS
 
 # See if GNAT has been installed
 gcc_AC_PROG_GNAT
@@ -89,12 +91,13 @@ AC_CHECK_FUNCS(fwrite_unlocked fprintf_unlocked getrusage)
 AC_CHECK_FUNCS(vprintf)
 
 AC_CHECK_TYPE(ssize_t, int)
-
+AC_C_BIGENDIAN_CROSS
 AC_DECL_SYS_SIGLIST
 
 AC_FUNC_VFORK
-AC_FUNC_MMAP_ANYWHERE
-AC_FUNC_MMAP_FILE
+gcc_AC_FUNC_PRINTF_PTR
+gcc_AC_FUNC_MMAP_BLACKLIST
+
 
 # Enable expensive internal checks
 AC_ARG_ENABLE(checking,
@@ -310,22 +313,24 @@ fi
 # Restore CFLAGS from before the gcc_AC_NEED_DECLARATIONS tests.
 CFLAGS="$saved_CFLAGS"
 
-gcc_AC_C_VOLATILE
-
-gcc_AC_C_LONG_DOUBLE
 gcc_AC_C_LONG_LONG
 gcc_AC_C__BOOL
 
 # sizeof(char) is 1 by definition.
-gcc_AC_COMPILE_CHECK_SIZEOF(short)
-gcc_AC_COMPILE_CHECK_SIZEOF(int)
-gcc_AC_COMPILE_CHECK_SIZEOF(long)
+AC_COMPILE_CHECK_SIZEOF(void *)
+AC_COMPILE_CHECK_SIZEOF(short)
+AC_COMPILE_CHECK_SIZEOF(int)
+AC_COMPILE_CHECK_SIZEOF(long)
 if test $ac_cv_c_long_long = yes; then
-  gcc_AC_COMPILE_CHECK_SIZEOF(long long)
+  AC_COMPILE_CHECK_SIZEOF(long long)
 fi
 if test $ac_cv_c___int64 = yes; then
-  gcc_AC_COMPILE_CHECK_SIZEOF(__int64)
+  AC_COMPILE_CHECK_SIZEOF(__int64)
 fi
+
+# These tests can't be done till we know if we have limits.h.
+gcc_AC_C_CHAR_BIT
+
 
 # Look for a file containing extra machine modes.
 AC_DEFINE_UNQUOTED(EXTRA_MODES_FILE, "config/arm/arm-modes.def",
@@ -334,6 +339,10 @@ AC_DEFINE_UNQUOTED(EXTRA_MODES_FILE, "config/arm/arm-modes.def",
 AC_DEFINE(EXTRA_CC_MODES, 1,
   [Define if the target architecture needs extra machine modes to represent
    the results of comparisons.])
+
+AC_DEFINE_UNQUOTED(HAVE_GAS_SHF_MERGE, 0, [Define 0/1 if your assembler supports marking sections with SHF_MERGE flag.])
+
+AC_DEFINE_UNQUOTED(CONFIG_SJLJ_EXCEPTIONS, 1, [Define 0/1 to force the choice for exception handling model.])
 
 AC_SUBST(objc_boehm_gc)
 AC_OUTPUT([Makefile])

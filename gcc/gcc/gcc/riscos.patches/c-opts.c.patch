@@ -1,0 +1,37 @@
+--- /home/nick/riscos/masters/gcc-3.4/gcc/c-opts.c	2004-02-18 00:09:03.000000000 +0000
++++ c-opts.c	2004-05-03 15:09:47.000000000 +0100
+@@ -151,6 +151,7 @@ c_common_missing_argument (const char *o
+       break;
+ 
+     case OPT_I:
++    case OPT_icrossdirafter: /* NAB */
+     case OPT_idirafter:
+     case OPT_isysroot:
+     case OPT_isystem:
+@@ -929,6 +930,26 @@ c_common_handle_option (size_t scode, co
+       add_path (xstrdup (arg), AFTER, 0);
+       break;
+ 
++      /* NAB++ */
++    case OPT_icrossdirafter:
++      {
++	char *path;
++	const char *prefix;
++	const char *suffix = arg;
++	size_t prefix_len, suffix_len;
++
++	suffix_len = strlen (suffix);
++	prefix     = cpp_CROSS_INCLUDE_DIR;
++	prefix_len = cpp_CROSS_INCLUDE_DIR_len;
++
++	path = xmalloc (prefix_len + suffix_len + 1);
++	strcpy (path, prefix);
++	strcat (path, suffix);
++	add_path (path, AFTER, 0);
++      }
++      break;
++      /* NAB-- */
++
+     case OPT_imacros:
+     case OPT_include:
+       defer_opt (code, arg);

@@ -15,7 +15,8 @@ endif
 
 export bin_dir gcc_bin_dir
 
-all:	as drlink infozip ld libfile nm rink
+all:	as drlink infozip ld nm rink
+# libfile
 
 .PHONY: as
 .PHONY: drlink

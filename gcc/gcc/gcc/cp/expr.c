@@ -1,28 +1,30 @@
 /* Convert language-specific tree expression to rtl instructions,
    for GNU compiler.
    Copyright (C) 1988, 1992, 1993, 1994, 1995, 1996, 1997, 1998,
-   2000, 2001 Free Software Foundation, Inc.
+   2000, 2001, 2002, 2003, 2004 Free Software Foundation, Inc.
 
-This file is part of GNU CC.
+This file is part of GCC.
 
-GNU CC is free software; you can redistribute it and/or modify
+GCC is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation; either version 2, or (at your option)
 any later version.
 
-GNU CC is distributed in the hope that it will be useful,
+GCC is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU CC; see the file COPYING.  If not, write to
+along with GCC; see the file COPYING.  If not, write to
 the Free Software Foundation, 59 Temple Place - Suite 330,
 Boston, MA 02111-1307, USA.  */
 
 
 #include "config.h"
 #include "system.h"
+#include "coretypes.h"
+#include "tm.h"
 #include "rtl.h"
 #include "tree.h"
 #include "flags.h"
@@ -36,8 +38,7 @@ Boston, MA 02111-1307, USA.  */
    constants.  */
 
 tree
-cplus_expand_constant (cst)
-     tree cst;
+cplus_expand_constant (tree cst)
 {
   switch (TREE_CODE (cst))
     {
@@ -50,11 +51,8 @@ cplus_expand_constant (cst)
 	member = PTRMEM_CST_MEMBER (cst);
 
 	if (TREE_CODE (member) == FIELD_DECL) 
-	  {
-	    /* Find the offset for the field.  */
-	    tree offset = byte_position (member);
-	    cst = fold (build1 (NOP_EXPR, type, offset));
-	  }
+	  /* Find the offset for the field.  */
+	  cst = fold (build_nop (type, byte_position (member)));
 	else
 	  {
 	    tree delta;
@@ -77,15 +75,12 @@ cplus_expand_constant (cst)
 /* Hook used by expand_expr to expand language-specific tree codes.  */
 
 rtx
-cxx_expand_expr (exp, target, tmode, modifier)
-     tree exp;
-     rtx target;
-     enum machine_mode tmode;
-     int modifier;  /* Actually an enum expand_modifier.  */
+cxx_expand_expr (tree exp, rtx target, enum machine_mode tmode, int modifier,
+		 rtx *alt_rtl)
 {
   tree type = TREE_TYPE (exp);
-  register enum machine_mode mode = TYPE_MODE (type);
-  register enum tree_code code = TREE_CODE (exp);
+  enum machine_mode mode = TYPE_MODE (type);
+  enum tree_code code = TREE_CODE (exp);
   rtx ret;
 
   /* No sense saving up arithmetic to be done
@@ -120,8 +115,12 @@ cxx_expand_expr (exp, target, tmode, modifier)
       /* We don't need to generate any code for an empty class.  */
       return const0_rtx;
 
+    case BASELINK:
+      return expand_expr (BASELINK_FUNCTIONS (exp), target, tmode,
+			  modifier);
+
     default:
-      return c_expand_expr (exp, target, tmode, modifier);
+      return c_expand_expr (exp, target, tmode, modifier, alt_rtl);
     }
   abort ();
   /* NOTREACHED */

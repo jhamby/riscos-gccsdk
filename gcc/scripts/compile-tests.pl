@@ -7,9 +7,9 @@ use Getopt::Long;
 GetOptions ("test=s" => \$testtype);
 
 if ($testtype eq "c" or $testtype eq "c++") {
-    $dir = "gcc-tests/$testtype";
-    $dst = "testdir/$testtype";
-    $comp = "./3.3/riscos-cross/bin";
+    $dir = "/home/nick/riscos/gcc-3.4-tests/$testtype";
+    $dst = "/mnt/wine/riscos/gcc34/test/$testtype";
+    $comp = "/rogcc/3.4/riscos-cross/bin";
 
     open OUT, ">$dst/runtest,feb";
     opendir (DIR, "$dir");
@@ -22,10 +22,10 @@ if ($testtype eq "c" or $testtype eq "c++") {
 	$exec =~ s/\.(c|C)//;
 	printf "%s\n", $entry;
 	if ($testtype eq "c") {
-	    $status = system ("./3.3/riscos-cross/bin/gcc", "$dir/$entry",
+	    $status = system ("$comp/gcc", "$dir/$entry",
 			      "-O2", "-o", "$dst/$exec", "-mpoke-function-name");
 	} elsif ($testtype eq "c++") {
-	    $status = system ("./3.3/riscos-cross/bin/g++", "$dir/$entry",
+	    $status = system ("$comp/bin/g++", "$dir/$entry",
 			      "-O2", "-o", "$dst/$exec", "-mpoke-function-name");
 	}
 	if ($status == 0) {

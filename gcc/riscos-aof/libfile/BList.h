@@ -393,6 +393,7 @@ template <class T> class List_of_p : public List<T *>
 
  	void sort(int (*lessThan)(const T* &,const T* &))
  	{
+	  
 		int i,j;
 		for(j=0;j<m_size;j++)
 			for(i=1;i<m_size;i++)

@@ -1,26 +1,29 @@
 /* Main for jv-scan
-   Copyright (C) 1998, 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
+   Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003
+   Free Software Foundation, Inc.
    Contributed by Alexandre Petit-Bianco (apbianco@cygnus.com)
 
-This file is part of GNU CC.
+This file is part of GCC.
 
-GNU CC is free software; you can redistribute it and/or modify
+GCC is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation; either version 2, or (at your option)
 any later version.
 
-GNU CC is distributed in the hope that it will be useful,
+GCC is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU CC; see the file COPYING.  If not, write to
+along with GCC; see the file COPYING.  If not, write to
 the Free Software Foundation, 59 Temple Place - Suite 330,
 Boston, MA 02111-1307, USA.  */
 
 #include "config.h"
 #include "system.h"
+#include "coretypes.h"
+#include "tm.h"
 
 #include "obstack.h"		/* We use obstacks in lex.c */
 
@@ -36,15 +39,14 @@ Boston, MA 02111-1307, USA.  */
 
 #include <getopt.h>
 
-extern void fatal_error PARAMS ((const char *s, ...))
+extern void fatal_error (const char *s, ...)
      ATTRIBUTE_PRINTF_1 ATTRIBUTE_NORETURN;
-void warning PARAMS ((const char *s, ...)) ATTRIBUTE_PRINTF_1;
-void gcc_obstack_init PARAMS ((struct obstack *obstack));
-void report PARAMS ((void));
+void warning (const char *s, ...) ATTRIBUTE_PRINTF_1;
+void report (void);
 
-static void usage PARAMS ((void)) ATTRIBUTE_NORETURN;
-static void help PARAMS ((void)) ATTRIBUTE_NORETURN;
-static void version PARAMS ((void)) ATTRIBUTE_NORETURN;
+static void usage (void) ATTRIBUTE_NORETURN;
+static void help (void) ATTRIBUTE_NORETURN;
+static void version (void) ATTRIBUTE_NORETURN;
 
 #define JC1_LITE
 #include "jcf.h"
@@ -52,9 +54,6 @@ static void version PARAMS ((void)) ATTRIBUTE_NORETURN;
 
 /* Current input file and output file IO streams.  */
 FILE *finput, *out;
-
-/* Current input filename.  */
-char *input_filename;
 
 /* Executable name.  */
 char *exec_name;
@@ -92,14 +91,14 @@ static const struct option options[] =
 };
 
 static void
-usage ()
+usage (void)
 {
   fprintf (stderr, "Try `jv-scan --help' for more information.\n");
   exit (1);
 }
 
 static void
-help ()
+help (void)
 {
   printf ("Usage: jv-scan [OPTION]... FILE...\n\n");
   printf ("Print useful information read from Java source files.\n\n");
@@ -120,7 +119,7 @@ help ()
 }
 
 static void
-version ()
+version (void)
 {
   printf ("jv-scan (GCC) %s\n\n", version_string);
   printf ("Copyright (C) 2002 Free Software Foundation, Inc.\n");
@@ -131,8 +130,7 @@ version ()
 
 /* jc1-lite main entry point */
 int
-DEFUN (main, (argc, argv),
-       int argc AND char **argv)
+main (int argc, char **argv)
 {
   int i = 1;
   const char *output_file = NULL;
@@ -239,46 +237,24 @@ DEFUN (main, (argc, argv),
    functions */
 
 void
-fatal_error VPARAMS ((const char *s, ...))
+fatal_error (const char *s, ...)
 {
-  VA_OPEN (ap, s);
-  VA_FIXEDARG (ap, const char *, s);
-
+  va_list ap;
+  va_start (ap, s);
   fprintf (stderr, "%s: error: ", exec_name);
   vfprintf (stderr, s, ap);
   fputc ('\n', stderr);
-  VA_CLOSE (ap);
+  va_end (ap);
   exit (1);
 }
 
 void
-warning VPARAMS ((const char *s, ...))
+warning (const char *s, ...)
 {
-  VA_OPEN (ap, s);
-  VA_FIXEDARG (ap, const char *, s);
-
+  va_list ap;
+  va_start (ap, s);
   fprintf (stderr, "%s: warning: ", exec_name);
   vfprintf (stderr, s, ap);
   fputc ('\n', stderr);
-  VA_CLOSE (ap);
-}
-
-void
-gcc_obstack_init (obstack)
-     struct obstack *obstack;
-{
-  /* Let particular systems override the size of a chunk.  */
-#ifndef OBSTACK_CHUNK_SIZE
-#define OBSTACK_CHUNK_SIZE 0
-#endif
-  /* Let them override the alloc and free routines too.  */
-#ifndef OBSTACK_CHUNK_ALLOC
-#define OBSTACK_CHUNK_ALLOC xmalloc
-#endif
-#ifndef OBSTACK_CHUNK_FREE
-#define OBSTACK_CHUNK_FREE free
-#endif
-  _obstack_begin (obstack, OBSTACK_CHUNK_SIZE, 0,
-		  (void *(*) (long)) OBSTACK_CHUNK_ALLOC,
-		  (void (*) (void *)) OBSTACK_CHUNK_FREE);
+  va_end (ap);
 }

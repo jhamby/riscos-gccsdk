@@ -247,7 +247,7 @@ int *pdosflag;          /* output: force MSDOS file attributes? */
 /* Convert the external file name to a zip file name, returning the malloc'ed
    string or NULL if not enough memory. */
 {
-  const char *n;        /* internal file name (malloc'ed) */
+  char *n;        /* internal file name (malloc'ed) */
   char *t;              /* shortened name */
   char *tmp;
   int dosflag;

@@ -46,6 +46,7 @@ extern const char *riscos_convert_filename (void *obstack,
 #endif
 
 /* Character constant used in separating components in paths.  */
+#undef PATH_SEPARATOR
 #define PATH_SEPARATOR ','
 
 /* Directory name separator.  */

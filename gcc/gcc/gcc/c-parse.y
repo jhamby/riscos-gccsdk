@@ -1,6 +1,6 @@
 /* YACC parser for C syntax and for Objective C.  -*-c-*-
-   Copyright (C) 1987, 1988, 1989, 1992, 1993, 1994, 1995, 1996,
-   1997, 1998, 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
+   Copyright (C) 1987, 1988, 1989, 1992, 1993, 1994, 1995, 1996, 1997,
+   1998, 1999, 2000, 2001, 2002, 2003, 2004 Free Software Foundation, Inc.
 
 This file is part of GCC.
 
@@ -20,8 +20,8 @@ Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 02111-1307, USA.  */
 
 /* This file defines the grammar of C and that of Objective C.
-   ifobjc ... end ifobjc  conditionals contain code for Objective C only.
-   ifc ... end ifc  conditionals contain code for C only.
+   @@ifobjc ... @@end_ifobjc  conditionals contain code for Objective C only.
+   @@ifc ... @@end_ifc  conditionals contain code for C only.
    Sed commands in Makefile.in are used to convert this file into
    c-parse.y and into objc-parse.y.  */
 
@@ -33,6 +33,8 @@ Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 %{
 #include "config.h"
 #include "system.h"
+#include "coretypes.h"
+#include "tm.h"
 #include "tree.h"
 #include "input.h"
 #include "cpplib.h"
@@ -41,13 +43,10 @@ Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 #include "c-pragma.h"		/* For YYDEBUG definition, and parse_in.  */
 #include "c-tree.h"
 #include "flags.h"
+#include "varray.h"
 #include "output.h"
 #include "toplev.h"
 #include "ggc.h"
-
-#ifdef MULTIBYTE_CHARS
-#include <locale.h>
-#endif
 
 
 /* Like YYERROR but do call yyerror.  */
@@ -71,15 +70,13 @@ do {									\
   newsize = *(YYSSZ) *= 2;						\
   if (malloced_yyss)							\
     {									\
-      newss = (short *)							\
-	really_call_realloc (*(SS), newsize * sizeof (short));		\
-      newvs = (YYSTYPE *)						\
-	really_call_realloc (*(VS), newsize * sizeof (YYSTYPE));	\
+      newss = really_call_realloc (*(SS), newsize * sizeof (short));	\
+      newvs = really_call_realloc (*(VS), newsize * sizeof (YYSTYPE));	\
     }									\
   else									\
     {									\
-      newss = (short *) really_call_malloc (newsize * sizeof (short));	\
-      newvs = (YYSTYPE *) really_call_malloc (newsize * sizeof (YYSTYPE)); \
+      newss = really_call_malloc (newsize * sizeof (short));		\
+      newvs = really_call_malloc (newsize * sizeof (YYSTYPE));		\
       if (newss)							\
         memcpy (newss, *(SS), (SSSIZE));				\
       if (newvs)							\
@@ -100,7 +97,7 @@ do {									\
 %start program
 
 %union {long itype; tree ttype; enum tree_code code;
-	const char *filename; int lineno; }
+	location_t location; }
 
 /* All identifiers that are not reserved words
    and are not declared typedefs in the current block */
@@ -130,6 +127,7 @@ do {									\
 
 /* String constants in raw form.
    yylval is a STRING_CST node.  */
+
 %token STRING
 
 /* "...", used for functions with variable arglists.  */
@@ -142,9 +140,7 @@ do {									\
 %token ATTRIBUTE EXTENSION LABEL
 %token REALPART IMAGPART VA_ARG CHOOSE_EXPR TYPES_COMPATIBLE_P
 %token PTR_VALUE PTR_BASE PTR_EXTENT
-
-/* function name can be a string const or a var decl. */
-%token STRING_FUNC_NAME VAR_FUNC_NAME
+%token FUNC_NAME
 
 /* Add precedence rules to solve dangling else s/r conflict */
 %nonassoc IF
@@ -174,6 +170,8 @@ do {									\
    Objective C, so that the token codes are the same in both.  */
 %token INTERFACE IMPLEMENTATION END SELECTOR DEFS ENCODE
 %token CLASSNAME PUBLIC PRIVATE PROTECTED PROTOCOL OBJECTNAME CLASS ALIAS
+%token AT_THROW AT_TRY AT_CATCH AT_FINALLY AT_SYNCHRONIZED
+%token OBJC_STRING
 
 %type <code> unop
 %type <ttype> ENUM STRUCT UNION IF ELSE WHILE DO FOR SWITCH CASE DEFAULT
@@ -201,7 +199,7 @@ do {									\
 %type <ttype> init maybeasm
 %type <ttype> asm_operands nonnull_asm_operands asm_operand asm_clobbers
 %type <ttype> maybe_attribute attributes attribute attribute_list attrib
-%type <ttype> any_word extension
+%type <ttype> any_word
 
 %type <ttype> compstmt compstmt_start compstmt_nostart compstmt_primary_start
 %type <ttype> do_stmt_start poplevel stmt label
@@ -227,10 +225,9 @@ do {									\
 %type <ttype> parmlist_or_identifiers parmlist_or_identifiers_1
 %type <ttype> identifiers_or_typenames
 
-%type <itype> setspecs setspecs_fp
+%type <itype> setspecs setspecs_fp extension
 
-%type <filename> save_filename
-%type <lineno> save_lineno
+%type <location> save_location
 
 
 %{
@@ -239,10 +236,10 @@ do {									\
 static int stmt_count;
 static int compstmt_count;
 
-/* Input file and line number of the end of the body of last simple_if;
+/* Input location of the end of the body of last simple_if;
    used by the stmt-rule immediately after simple_if returns.  */
-static const char *if_stmt_file;
-static int if_stmt_line;
+static location_t if_stmt_locus;
+
 
 /* List of types and structure classes of the current declaration.  */
 static GTY(()) tree current_declspecs;
@@ -277,15 +274,14 @@ static GTY(()) tree declspec_stack;
 
 /* For __extension__, save/restore the warning flags which are
    controlled by __extension__.  */
-#define SAVE_EXT_FLAGS()			\
-	size_int (pedantic			\
-		  | (warn_pointer_arith << 1)	\
-		  | (warn_traditional << 2)	\
-		  | (flag_iso << 3))
+#define SAVE_EXT_FLAGS()		\
+	(pedantic			\
+	 | (warn_pointer_arith << 1)	\
+	 | (warn_traditional << 2)	\
+	 | (flag_iso << 3))
 
-#define RESTORE_EXT_FLAGS(tval)			\
+#define RESTORE_EXT_FLAGS(val)			\
   do {						\
-    int val = tree_low_cst (tval, 0);		\
     pedantic = val & 1;				\
     warn_pointer_arith = (val >> 1) & 1;	\
     warn_traditional = (val >> 2) & 1;		\
@@ -301,17 +297,16 @@ static bool parsing_iso_function_signature;
 
 #define YYPRINT(FILE,YYCHAR,YYLVAL) yyprint(FILE,YYCHAR,YYLVAL)
 
-static void yyprint	  PARAMS ((FILE *, int, YYSTYPE));
-static void yyerror	  PARAMS ((const char *));
-static int yylexname	  PARAMS ((void));
-static int yylexstring	  PARAMS ((void));
-static inline int _yylex  PARAMS ((void));
-static int  yylex	  PARAMS ((void));
-static void init_reswords PARAMS ((void));
+static void yyprint (FILE *, int, YYSTYPE);
+static void yyerror (const char *);
+static int yylexname (void);
+static inline int _yylex (void);
+static int  yylex (void);
+static void init_reswords (void);
 
   /* Initialisation routine for this file.  */
 void
-c_parse_init ()
+c_parse_init (void)
 {
   init_reswords ();
 }
@@ -322,20 +317,8 @@ c_parse_init ()
 program: /* empty */
 		{ if (pedantic)
 		    pedwarn ("ISO C forbids an empty source file");
-		  finish_file ();
 		}
 	| extdefs
-		{
-		  /* In case there were missing closebraces,
-		     get us back to the global binding level.  */
-		  while (! global_bindings_p ())
-		    poplevel (0, 0, 0);
-		  /* __FUNCTION__ is defined at file scope ("").  This
-		     call may not be necessary as my tests indicate it
-		     still works without it.  */
-		  finish_fname_decls ();
-                  finish_file ();
-		}
 	;
 
 /* the reason for the strange actions in this rule
@@ -394,12 +377,11 @@ fndef:
 					all_prefix_attributes))
 		    YYERROR1;
 		}
-	  old_style_parm_decls
-		{ store_parm_decls (); }
-	  save_filename save_lineno compstmt_or_error
-		{ DECL_SOURCE_FILE (current_function_decl) = $7;
-		  DECL_SOURCE_LINE (current_function_decl) = $8;
-		  finish_function (0, 1);
+	  old_style_parm_decls save_location
+		{ DECL_SOURCE_LOCATION (current_function_decl) = $6;
+		  store_parm_decls (); }
+	  compstmt_or_error
+		{ finish_function ();
 		  POP_DECLSPEC_STACK; }
 	| declspecs_ts setspecs declarator error
 		{ POP_DECLSPEC_STACK; }
@@ -408,12 +390,11 @@ fndef:
 					all_prefix_attributes))
 		    YYERROR1;
 		}
-	  old_style_parm_decls
-		{ store_parm_decls (); }
-	  save_filename save_lineno compstmt_or_error
-		{ DECL_SOURCE_FILE (current_function_decl) = $7;
-		  DECL_SOURCE_LINE (current_function_decl) = $8;
-		  finish_function (0, 1);
+	  old_style_parm_decls save_location
+		{ DECL_SOURCE_LOCATION (current_function_decl) = $6;
+		  store_parm_decls (); }
+	  compstmt_or_error
+		{ finish_function ();
 		  POP_DECLSPEC_STACK; }
 	| declspecs_nots setspecs notype_declarator error
 		{ POP_DECLSPEC_STACK; }
@@ -422,12 +403,11 @@ fndef:
 					all_prefix_attributes))
 		    YYERROR1;
 		}
-	  old_style_parm_decls
-		{ store_parm_decls (); }
-	  save_filename save_lineno compstmt_or_error
-		{ DECL_SOURCE_FILE (current_function_decl) = $6;
-		  DECL_SOURCE_LINE (current_function_decl) = $7;
-		  finish_function (0, 1);
+	  old_style_parm_decls save_location
+		{ DECL_SOURCE_LOCATION (current_function_decl) = $5;
+		  store_parm_decls (); }
+	  compstmt_or_error
+		{ finish_function ();
 		  POP_DECLSPEC_STACK; }
 	| setspecs notype_declarator error
 		{ POP_DECLSPEC_STACK; }
@@ -556,26 +536,26 @@ expr_no_commas:
 	| expr_no_commas ANDAND
 		{ $1 = c_common_truthvalue_conversion
 		    (default_conversion ($1));
-		  skip_evaluation += $1 == boolean_false_node; }
+		  skip_evaluation += $1 == truthvalue_false_node; }
 	  expr_no_commas
-		{ skip_evaluation -= $1 == boolean_false_node;
+		{ skip_evaluation -= $1 == truthvalue_false_node;
 		  $$ = parser_build_binary_op (TRUTH_ANDIF_EXPR, $1, $4); }
 	| expr_no_commas OROR
 		{ $1 = c_common_truthvalue_conversion
 		    (default_conversion ($1));
-		  skip_evaluation += $1 == boolean_true_node; }
+		  skip_evaluation += $1 == truthvalue_true_node; }
 	  expr_no_commas
-		{ skip_evaluation -= $1 == boolean_true_node;
+		{ skip_evaluation -= $1 == truthvalue_true_node;
 		  $$ = parser_build_binary_op (TRUTH_ORIF_EXPR, $1, $4); }
 	| expr_no_commas '?'
 		{ $1 = c_common_truthvalue_conversion
 		    (default_conversion ($1));
-		  skip_evaluation += $1 == boolean_false_node; }
+		  skip_evaluation += $1 == truthvalue_false_node; }
           expr ':'
-		{ skip_evaluation += (($1 == boolean_true_node)
-				      - ($1 == boolean_false_node)); }
+		{ skip_evaluation += (($1 == truthvalue_true_node)
+				      - ($1 == truthvalue_false_node)); }
 	  expr_no_commas
-		{ skip_evaluation -= $1 == boolean_true_node;
+		{ skip_evaluation -= $1 == truthvalue_true_node;
 		  $$ = build_conditional_expr ($1, $4, $7); }
 	| expr_no_commas '?'
 		{ if (pedantic)
@@ -584,9 +564,9 @@ expr_no_commas:
 		  $<ttype>2 = save_expr ($1);
 		  $1 = c_common_truthvalue_conversion
 		    (default_conversion ($<ttype>2));
-		  skip_evaluation += $1 == boolean_true_node; }
+		  skip_evaluation += $1 == truthvalue_true_node; }
 	  ':' expr_no_commas
-		{ skip_evaluation -= $1 == boolean_true_node;
+		{ skip_evaluation -= $1 == truthvalue_true_node;
 		  $$ = build_conditional_expr ($1, $<ttype>2, $5); }
 	| expr_no_commas '=' expr_no_commas
 		{ char class;
@@ -615,8 +595,7 @@ primary:
 		}
 	| CONSTANT
 	| STRING
-		{ $$ = fix_string_type ($$); }
-	| VAR_FUNC_NAME
+	| FUNC_NAME
 		{ $$ = fname_decl (C_RID_CODE ($$), $$); }
 	| '(' typename ')' '{'
 		{ start_init (NULL_TREE, NULL, 0);
@@ -628,7 +607,7 @@ primary:
 		  finish_init ();
 
 		  if (pedantic && ! flag_isoc99)
-		    pedwarn ("ISO C89 forbids compound literals");
+		    pedwarn ("ISO C90 forbids compound literals");
 		  $$ = build_compound_literal (type, constructor);
 		}
 	| '(' expr ')'
@@ -643,8 +622,6 @@ primary:
 
 		   if (pedantic)
 		     pedwarn ("ISO C forbids braced-groups within expressions");
-		  pop_label_level ();
-
 		  saved_last_tree = COMPOUND_BODY ($1);
 		  RECHAIN_STMTS ($1, COMPOUND_BODY ($1));
 		  last_tree = saved_last_tree;
@@ -656,7 +633,6 @@ primary:
 		}
 	| compstmt_primary_start error ')'
 		{
-		  pop_label_level ();
 		  last_tree = COMPOUND_BODY ($1);
 		  TREE_CHAIN (last_tree) = NULL_TREE;
 		  $$ = error_mark_node;
@@ -683,7 +659,7 @@ primary:
 		  e1 = TYPE_MAIN_VARIANT (groktypename ($3));
 		  e2 = TYPE_MAIN_VARIANT (groktypename ($5));
 
-		  $$ = comptypes (e1, e2)
+		  $$ = comptypes (e1, e2, COMPARE_STRICT)
 		    ? build_int_2 (1, 0) : build_int_2 (0, 0);
 		}
 	| primary '[' expr ']'   %prec '.'
@@ -704,7 +680,6 @@ primary:
 		{ $$ = build_unary_op (POSTDECREMENT_EXPR, $1, 0); }
 	;
 
-
 old_style_parm_decls:
 	old_style_parm_decls_1
 	{
@@ -718,16 +693,23 @@ old_style_parm_decls_1:
 	  if (warn_traditional && !in_system_header
 	      && parsing_iso_function_signature)
 	    warning ("traditional C rejects ISO C style function definitions");
+	  if (warn_old_style_definition && !in_system_header
+	      && !parsing_iso_function_signature)
+	    warning ("old-style parameter declaration");
 	  parsing_iso_function_signature = false; /* Reset after warning.  */
 	}
 	| datadecls
+	{
+	  if (warn_old_style_definition && !in_system_header)
+	    warning ("old-style parameter declaration");
+	}
 	;
 
 /* The following are analogous to lineno_decl, decls and decl
    except that they do not allow nested functions.
    They are used for old-style parm decls.  */
 lineno_datadecl:
-	  save_filename save_lineno datadecl
+	  save_location datadecl
 		{ }
 	;
 
@@ -759,7 +741,7 @@ datadecl:
    This is to avoid shift/reduce conflicts in contexts
    where statement labels are allowed.  */
 lineno_decl:
-	  save_filename save_lineno decl
+	  save_location decl
 		{ }
 	;
 
@@ -1311,7 +1293,11 @@ typespec_nonreserved_nonattr:
 		     In case of `foo foo, bar;'.  */
 		  $$ = lookup_name ($1); }
 	| typeof '(' expr ')'
-		{ skip_evaluation--; $$ = TREE_TYPE ($3); }
+		{ skip_evaluation--;
+		  if (TREE_CODE ($3) == COMPONENT_REF
+		      && DECL_C_BIT_FIELD (TREE_OPERAND ($3, 1)))
+		    error ("`typeof' applied to a bit-field");
+		  $$ = TREE_TYPE ($3); }
 	| typeof '(' typename ')'
 		{ skip_evaluation--; $$ = groktypename ($3); }
 	;
@@ -1369,7 +1355,7 @@ notype_initdcl:
    so that the header files compile. */
 maybe_attribute:
       /* empty */
-  		{ $$ = NULL_TREE; }
+		{ $$ = NULL_TREE; }
 	| attributes
 		{ $$ = $1; }
 	;
@@ -1451,7 +1437,7 @@ initlist1:
 initelt:
 	  designator_list '=' initval
 		{ if (pedantic && ! flag_isoc99)
-		    pedwarn ("ISO C89 forbids specifying subobject to initialize"); }
+		    pedwarn ("ISO C90 forbids specifying subobject to initialize"); }
 	| designator initval
 		{ if (pedantic)
 		    pedwarn ("obsolete use of designated initializer without `='"); }
@@ -1504,19 +1490,19 @@ nested_function:
 		    }
 		  parsing_iso_function_signature = false; /* Don't warn about nested functions.  */
 		}
-	   old_style_parm_decls
-		{ store_parm_decls (); }
+	   old_style_parm_decls save_location
+		{ tree decl = current_function_decl;
+		  DECL_SOURCE_LOCATION (decl) = $4;
+		  store_parm_decls (); }
 /* This used to use compstmt_or_error.
    That caused a bug with input `f(g) int g {}',
    where the use of YYERROR1 above caused an error
    which then was handled by compstmt_or_error.
    There followed a repeated execution of that same rule,
    which called YYERROR1 again, and so on.  */
-	  save_filename save_lineno compstmt
+	  compstmt
 		{ tree decl = current_function_decl;
-		  DECL_SOURCE_FILE (decl) = $5;
-		  DECL_SOURCE_LINE (decl) = $6;
-		  finish_function (1, 1);
+		  finish_function ();
 		  pop_function_context ();
 		  add_decl_stmt (decl); }
 	;
@@ -1535,19 +1521,19 @@ notype_nested_function:
 		    }
 		  parsing_iso_function_signature = false; /* Don't warn about nested functions.  */
 		}
-	  old_style_parm_decls
-		{ store_parm_decls (); }
+	  old_style_parm_decls save_location
+		{ tree decl = current_function_decl;
+		  DECL_SOURCE_LOCATION (decl) = $4;
+		  store_parm_decls (); }
 /* This used to use compstmt_or_error.
    That caused a bug with input `f(g) int g {}',
    where the use of YYERROR1 above caused an error
    which then was handled by compstmt_or_error.
    There followed a repeated execution of that same rule,
    which called YYERROR1 again, and so on.  */
-	  save_filename save_lineno compstmt
+	  compstmt
 		{ tree decl = current_function_decl;
-		  DECL_SOURCE_FILE (decl) = $5;
-		  DECL_SOURCE_LINE (decl) = $6;
-		  finish_function (1, 1);
+		  finish_function ();
 		  pop_function_context ();
 		  add_decl_stmt (decl); }
 	;
@@ -1664,18 +1650,20 @@ structsp_attr:
 		  /* Start scope of tag before parsing components.  */
 		}
 	  component_decl_list '}' maybe_attribute
-		{ $$ = finish_struct ($<ttype>4, $5, chainon ($1, $7)); }
+		{ $$ = finish_struct ($<ttype>4, nreverse ($5),
+				      chainon ($1, $7)); }
 	| struct_head '{' component_decl_list '}' maybe_attribute
 		{ $$ = finish_struct (start_struct (RECORD_TYPE, NULL_TREE),
-				      $3, chainon ($1, $5));
+				      nreverse ($3), chainon ($1, $5));
 		}
 	| union_head identifier '{'
 		{ $$ = start_struct (UNION_TYPE, $2); }
 	  component_decl_list '}' maybe_attribute
-		{ $$ = finish_struct ($<ttype>4, $5, chainon ($1, $7)); }
+		{ $$ = finish_struct ($<ttype>4, nreverse ($5),
+				      chainon ($1, $7)); }
 	| union_head '{' component_decl_list '}' maybe_attribute
 		{ $$ = finish_struct (start_struct (UNION_TYPE, NULL_TREE),
-				      $3, chainon ($1, $5));
+				      nreverse ($3), chainon ($1, $5));
 		}
 	| enum_head identifier '{'
 		{ $$ = start_enum ($2); }
@@ -1714,18 +1702,30 @@ maybecomma_warn:
 		    pedwarn ("comma at end of enumerator list"); }
 	;
 
+/* We chain the components in reverse order.  They are put in forward
+   order in structsp_attr.
+
+   Note that component_declarator returns single decls, so components
+   and components_notype can use TREE_CHAIN directly, wheras components
+   and components_notype return lists (of comma separated decls), so
+   component_decl_list and component_decl_list2 must use chainon.
+
+   The theory behind all this is that there will be more semicolon
+   separated fields than comma separated fields, and so we'll be
+   minimizing the number of node traversals required by chainon.  */
+
 component_decl_list:
 	  component_decl_list2
 		{ $$ = $1; }
 	| component_decl_list2 component_decl
-		{ $$ = chainon ($1, $2);
+		{ $$ = chainon ($2, $1);
 		  pedwarn ("no semicolon at end of struct or union"); }
 	;
 
 component_decl_list2:	/* empty */
 		{ $$ = NULL_TREE; }
 	| component_decl_list2 component_decl ';'
-		{ $$ = chainon ($1, $2); }
+		{ $$ = chainon ($2, $1); }
 	| component_decl_list2 ';'
 		{ if (pedantic)
 		    pedwarn ("extra semicolon in struct or union specified"); }
@@ -1735,7 +1735,7 @@ component_decl:
 	  declspecs_nosc_ts setspecs components
 		{ $$ = $3;
 		  POP_DECLSPEC_STACK; }
-	| declspecs_nosc_ts setspecs save_filename save_lineno
+	| declspecs_nosc_ts setspecs
 		{
 		  /* Support for unnamed structs or unions as members of
 		     structs or unions (which is [a] useful and [b] supports
@@ -1743,7 +1743,7 @@ component_decl:
 		  if (pedantic)
 		    pedwarn ("ISO C doesn't support unnamed structs/unions");
 
-		  $$ = grokfield($3, $4, NULL, current_declspecs, NULL_TREE);
+		  $$ = grokfield(NULL, current_declspecs, NULL_TREE);
 		  POP_DECLSPEC_STACK; }
 	| declspecs_nosc_nots setspecs components_notype
 		{ $$ = $3;
@@ -1751,7 +1751,7 @@ component_decl:
 	| declspecs_nosc_nots
 		{ if (pedantic)
 		    pedwarn ("ISO C forbids member declarations with no members");
-		  shadow_tag($1);
+		  shadow_tag_warned ($1, pedantic);
 		  $$ = NULL_TREE; }
 	| error
 		{ $$ = NULL_TREE; }
@@ -1763,45 +1763,47 @@ component_decl:
 components:
 	  component_declarator
 	| components ',' maybe_resetattrs component_declarator
-		{ $$ = chainon ($1, $4); }
+		{ TREE_CHAIN ($4) = $1; $$ = $4; }
 	;
 
 components_notype:
 	  component_notype_declarator
 	| components_notype ',' maybe_resetattrs component_notype_declarator
-		{ $$ = chainon ($1, $4); }
+		{ TREE_CHAIN ($4) = $1; $$ = $4; }
 	;
 
 component_declarator:
-	  save_filename save_lineno declarator maybe_attribute
-		{ $$ = grokfield ($1, $2, $3, current_declspecs, NULL_TREE);
-		  decl_attributes (&$$, chainon ($4, all_prefix_attributes), 0); }
-	| save_filename save_lineno
-	  declarator ':' expr_no_commas maybe_attribute
-		{ $$ = grokfield ($1, $2, $3, current_declspecs, $5);
-		  decl_attributes (&$$, chainon ($6, all_prefix_attributes), 0); }
-	| save_filename save_lineno ':' expr_no_commas maybe_attribute
-		{ $$ = grokfield ($1, $2, NULL_TREE, current_declspecs, $4);
-		  decl_attributes (&$$, chainon ($5, all_prefix_attributes), 0); }
+	  declarator maybe_attribute
+		{ $$ = grokfield ($1, current_declspecs, NULL_TREE);
+		  decl_attributes (&$$,
+				   chainon ($2, all_prefix_attributes), 0); }
+	| declarator ':' expr_no_commas maybe_attribute
+		{ $$ = grokfield ($1, current_declspecs, $3);
+		  decl_attributes (&$$,
+				   chainon ($4, all_prefix_attributes), 0); }
+	| ':' expr_no_commas maybe_attribute
+		{ $$ = grokfield (NULL_TREE, current_declspecs, $2);
+		  decl_attributes (&$$,
+				   chainon ($3, all_prefix_attributes), 0); }
 	;
 
 component_notype_declarator:
-	  save_filename save_lineno notype_declarator maybe_attribute
-		{ $$ = grokfield ($1, $2, $3, current_declspecs, NULL_TREE);
-		  decl_attributes (&$$, chainon ($4, all_prefix_attributes), 0); }
-	| save_filename save_lineno
-	  notype_declarator ':' expr_no_commas maybe_attribute
-		{ $$ = grokfield ($1, $2, $3, current_declspecs, $5);
-		  decl_attributes (&$$, chainon ($6, all_prefix_attributes), 0); }
-	| save_filename save_lineno ':' expr_no_commas maybe_attribute
-		{ $$ = grokfield ($1, $2, NULL_TREE, current_declspecs, $4);
-		  decl_attributes (&$$, chainon ($5, all_prefix_attributes), 0); }
+	  notype_declarator maybe_attribute
+		{ $$ = grokfield ($1, current_declspecs, NULL_TREE);
+		  decl_attributes (&$$,
+				   chainon ($2, all_prefix_attributes), 0); }
+	| notype_declarator ':' expr_no_commas maybe_attribute
+		{ $$ = grokfield ($1, current_declspecs, $3);
+		  decl_attributes (&$$,
+				   chainon ($4, all_prefix_attributes), 0); }
+	| ':' expr_no_commas maybe_attribute
+		{ $$ = grokfield (NULL_TREE, current_declspecs, $2);
+		  decl_attributes (&$$,
+				   chainon ($3, all_prefix_attributes), 0); }
 	;
 
 /* We chain the enumerators in reverse order.
-   They are put in forward order where enumlist is used.
-   (The order used to be significant, but no longer is so.
-   However, we still maintain the order, just to be clean.)  */
+   They are put in forward order in structsp_attr.  */
 
 enumlist:
 	  enumerator
@@ -1809,7 +1811,7 @@ enumlist:
 		{ if ($1 == error_mark_node)
 		    $$ = $1;
 		  else
-		    $$ = chainon ($3, $1); }
+		    TREE_CHAIN ($3) = $1, $$ = $3; }
 	| error
 		{ $$ = error_mark_node; }
 	;
@@ -1885,16 +1887,16 @@ direct_absdcl1:
 /* The [...] part of a declarator for an array type.  */
 
 array_declarator:
-	'[' maybe_type_quals_attrs expr ']'
+	'[' maybe_type_quals_attrs expr_no_commas ']'
 		{ $$ = build_array_declarator ($3, $2, 0, 0); }
 	| '[' maybe_type_quals_attrs ']'
 		{ $$ = build_array_declarator (NULL_TREE, $2, 0, 0); }
 	| '[' maybe_type_quals_attrs '*' ']'
 		{ $$ = build_array_declarator (NULL_TREE, $2, 0, 1); }
-	| '[' STATIC maybe_type_quals_attrs expr ']'
+	| '[' STATIC maybe_type_quals_attrs expr_no_commas ']'
 		{ $$ = build_array_declarator ($4, $3, 1, 0); }
 	/* declspecs_nosc_nots is a synonym for type_quals_attrs.  */
-	| '[' declspecs_nosc_nots STATIC expr ']'
+	| '[' declspecs_nosc_nots STATIC expr_no_commas ']'
 		{ $$ = build_array_declarator ($4, $2, 1, 0); }
 	;
 
@@ -1909,7 +1911,7 @@ stmts_and_decls:
 	| lineno_stmt_decl_or_labels_ending_decl
 	| lineno_stmt_decl_or_labels_ending_label
 		{
-		  pedwarn ("deprecated use of label at end of compound statement");
+		  error ("label at end of compound statement");
 		}
 	| lineno_stmt_decl_or_labels_ending_error
 	;
@@ -1925,8 +1927,11 @@ lineno_stmt_decl_or_labels_ending_stmt:
 lineno_stmt_decl_or_labels_ending_decl:
 	  lineno_decl
 	| lineno_stmt_decl_or_labels_ending_stmt lineno_decl
-		{ if (pedantic && !flag_isoc99)
-		    pedwarn ("ISO C89 forbids mixed declarations and code"); }
+		{
+		  if ((pedantic && !flag_isoc99)
+		      || warn_declaration_after_statement)
+		    pedwarn_c90 ("ISO C90 forbids mixed declarations and code");
+		}
 	| lineno_stmt_decl_or_labels_ending_decl lineno_decl
 	| lineno_stmt_decl_or_labels_ending_error lineno_decl
 	;
@@ -1962,7 +1967,9 @@ pushlevel:  /* empty */
 	;
 
 poplevel:  /* empty */
-                { $$ = add_scope_stmt (/*begin_p=*/0, /*partial_p=*/0); }
+                {
+		  $$ = add_scope_stmt (/*begin_p=*/0, /*partial_p=*/0);
+		}
         ;
 
 /* Start and end blocks created for the new scopes of C99.  */
@@ -1986,7 +1993,7 @@ c99_block_end: /* empty */
                 { if (flag_isoc99)
 		    {
 		      tree scope_stmt = add_scope_stmt (/*begin_p=*/0, /*partial_p=*/0);
-		      $$ = poplevel (kept_level_p (), 0, 0);
+		      $$ = poplevel (KEEP_MAYBE, 0, 0);
 		      SCOPE_STMT_BLOCK (TREE_PURPOSE (scope_stmt))
 			= SCOPE_STMT_BLOCK (TREE_VALUE (scope_stmt))
 			= $$;
@@ -2014,7 +2021,7 @@ label_decl:
 		{ tree link;
 		  for (link = $2; link; link = TREE_CHAIN (link))
 		    {
-		      tree label = shadow_label (TREE_VALUE (link));
+		      tree label = declare_label (TREE_VALUE (link));
 		      C_DECLARED_LABEL_FLAG (label) = 1;
 		      add_decl_stmt (label);
 		    }
@@ -2036,7 +2043,7 @@ compstmt_start: '{' { compstmt_count++;
 compstmt_nostart: '}'
 		{ $$ = convert (void_type_node, integer_zero_node); }
 	| pushlevel maybe_label_decls compstmt_contents_nonempty '}' poplevel
-		{ $$ = poplevel (kept_level_p (), 1, 0);
+		{ $$ = poplevel (KEEP_MAYBE, 0, 0);
 		  SCOPE_STMT_BLOCK (TREE_PURPOSE ($5))
 		    = SCOPE_STMT_BLOCK (TREE_VALUE ($5))
 		    = $$; }
@@ -2059,7 +2066,6 @@ compstmt_primary_start:
 		     there is a way to turn off the entire subtree of blocks
 		     that are contained in it.  */
 		  keep_next_level ();
-		  push_label_level ();
 		  compstmt_count++;
 		  $$ = add_stmt (build_stmt (COMPOUND_STMT, last_tree));
 		}
@@ -2096,8 +2102,7 @@ if_prefix:
 		{ c_expand_start_cond (c_common_truthvalue_conversion ($4),
 				       compstmt_count,$<ttype>2);
 		  $<itype>$ = stmt_count;
-		  if_stmt_file = $<filename>-2;
-		  if_stmt_line = $<lineno>-1; }
+		  if_stmt_locus = $<location>-1; }
         ;
 
 /* This is a subroutine of stmt.
@@ -2107,6 +2112,7 @@ do_stmt_start:
 	  DO
 		{ stmt_count++;
 		  compstmt_count++;
+		  c_in_iteration_stmt++;
 		  $<ttype>$
 		    = add_stmt (build_stmt (DO_STMT, NULL_TREE,
 					    NULL_TREE));
@@ -2117,22 +2123,18 @@ do_stmt_start:
 		  DO_COND ($<ttype>$) = error_mark_node; }
 	  c99_block_lineno_labeled_stmt WHILE
 		{ $$ = $<ttype>2;
-		  RECHAIN_STMTS ($$, DO_BODY ($$)); }
+		  RECHAIN_STMTS ($$, DO_BODY ($$));
+		  c_in_iteration_stmt--; }
 	;
 
 /* The forced readahead in here is because we might be at the end of a
    line, and the line and file won't be bumped until yylex absorbs the
    first token on the next line.  */
-save_filename:
-		{ if (yychar == YYEMPTY)
-		    yychar = YYLEX;
-		  $$ = input_filename; }
-	;
 
-save_lineno:
+save_location:
 		{ if (yychar == YYEMPTY)
 		    yychar = YYLEX;
-		  $$ = lineno; }
+		  $$ = input_location; }
 	;
 
 lineno_labeled_stmt:
@@ -2148,10 +2150,10 @@ c99_block_lineno_labeled_stmt:
 	;
 
 lineno_stmt:
-	  save_filename save_lineno stmt
-		{ if ($3)
+	  save_location stmt
+		{ if ($2)
 		    {
-		      STMT_LINENO ($3) = $2;
+		      STMT_LINENO ($2) = $1.line;
 		      /* ??? We currently have no way of recording
 			 the filename for a statement.  This probably
 			 matters little in practice at the moment,
@@ -2162,10 +2164,10 @@ lineno_stmt:
 	;
 
 lineno_label:
-	  save_filename save_lineno label
-		{ if ($3)
+	  save_location label
+		{ if ($2)
 		    {
-		      STMT_LINENO ($3) = $2;
+		      STMT_LINENO ($2) = $1.line;
 		    }
 		}
 	;
@@ -2186,8 +2188,8 @@ select_or_iter_stmt:
 		     else statement.  Increment stmt_count so we don't
 		     give a second error if this is a nested `if'.  */
 		  if (extra_warnings && stmt_count++ == $<itype>1)
-		    warning_with_file_and_line (if_stmt_file, if_stmt_line,
-						"empty body in an if-statement"); }
+		    warning ("%Hempty body in an if-statement",
+                             &if_stmt_locus); }
 /* Make sure c_expand_end_cond is run once
    for each call to c_expand_start_cond.
    Otherwise a crash is likely.  */
@@ -2205,17 +2207,19 @@ select_or_iter_stmt:
                 { stmt_count++;
 		  $<ttype>$ = c_begin_while_stmt (); }
 	  '(' expr ')'
-                { $4 = c_common_truthvalue_conversion ($4);
+                { c_in_iteration_stmt++;
+		  $4 = c_common_truthvalue_conversion ($4);
 		  c_finish_while_stmt_cond
 		    (c_common_truthvalue_conversion ($4), $<ttype>2);
 		  $<ttype>$ = add_stmt ($<ttype>2); }
 	  c99_block_lineno_labeled_stmt
-		{ RECHAIN_STMTS ($<ttype>6, WHILE_BODY ($<ttype>6)); }
+                { c_in_iteration_stmt--;
+		  RECHAIN_STMTS ($<ttype>6, WHILE_BODY ($<ttype>6)); }
 	| do_stmt_start
 	  '(' expr ')' ';'
                 { DO_COND ($1) = c_common_truthvalue_conversion ($3); }
 	| do_stmt_start error
- 		{ }
+		{ }
 	| FOR
 		{ $<ttype>$ = build_stmt (FOR_STMT, NULL_TREE, NULL_TREE,
 					  NULL_TREE, NULL_TREE);
@@ -2228,14 +2232,18 @@ select_or_iter_stmt:
 		    FOR_COND ($<ttype>2)
 		      = c_common_truthvalue_conversion ($6); }
 	  xexpr ')'
-		{ FOR_EXPR ($<ttype>2) = $9; }
+                { c_in_iteration_stmt++;
+		  FOR_EXPR ($<ttype>2) = $9; }
 	  c99_block_lineno_labeled_stmt
-                { RECHAIN_STMTS ($<ttype>2, FOR_BODY ($<ttype>2)); }
+                { RECHAIN_STMTS ($<ttype>2, FOR_BODY ($<ttype>2));
+		  c_in_iteration_stmt--;}
 	| SWITCH '(' expr ')'
 		{ stmt_count++;
-		  $<ttype>$ = c_start_case ($3); }
+		  $<ttype>$ = c_start_case ($3);
+		  c_in_case_stmt++; }
 	  c99_block_lineno_labeled_stmt
-                { c_finish_case (); }
+                { c_finish_case ();
+		  c_in_case_stmt--; }
 	;
 
 for_init_stmt:
@@ -2258,9 +2266,21 @@ stmt:
 		  $$ = NULL_TREE; }
 	| BREAK ';'
 	        { stmt_count++;
+		if (!(c_in_iteration_stmt || c_in_case_stmt))
+		  {
+		    error ("break statement not within loop or switch");
+		    $$ = NULL_TREE;
+		  }
+		else
 		  $$ = add_stmt (build_break_stmt ()); }
 	| CONTINUE ';'
                 { stmt_count++;
+		if (!c_in_iteration_stmt)
+		  {
+		    error ("continue statement not within a loop");
+		    $$ = NULL_TREE;
+		  }
+		else
 		  $$ = add_stmt (build_continue_stmt ()); }
 	| RETURN ';'
                 { stmt_count++;
@@ -2282,7 +2302,7 @@ stmt:
 		  $$ = build_asm_stmt ($2, $4, $6, $8, NULL_TREE); }
 	/* This is the case with clobbered registers as well.  */
 	| ASM_KEYWORD maybe_type_qual '(' expr ':' asm_operands ':'
-  	  asm_operands ':' asm_clobbers ')' ';'
+	  asm_operands ':' asm_clobbers ')' ';'
 		{ stmt_count++;
 		  $$ = build_asm_stmt ($2, $4, $6, $8, $10); }
 	| GOTO identifier ';'
@@ -2320,12 +2340,12 @@ label:	  CASE expr_no_commas ':'
 	| DEFAULT ':'
                 { stmt_count++;
 		  $$ = do_case (NULL_TREE, NULL_TREE); }
-	| identifier save_filename save_lineno ':' maybe_attribute
-		{ tree label = define_label ($2, $3, $1);
+	| identifier save_location ':' maybe_attribute
+		{ tree label = define_label ($2, $1);
 		  stmt_count++;
 		  if (label)
 		    {
-		      decl_attributes (&label, $5, 0);
+		      decl_attributes (&label, $4, 0);
 		      $$ = add_stmt (build_stmt (LABEL_STMT, label));
 		    }
 		  else
@@ -2337,10 +2357,9 @@ label:	  CASE expr_no_commas ':'
 
 maybe_type_qual:
 	/* empty */
-		{ emit_line_note (input_filename, lineno);
-		  $$ = NULL_TREE; }
+		{ $$ = NULL_TREE; }
 	| TYPE_QUAL
-		{ emit_line_note (input_filename, lineno); }
+		{ }
 	;
 
 xexpr:
@@ -2386,24 +2405,16 @@ asm_clobbers:
 parmlist:
 	  maybe_attribute
 		{ pushlevel (0);
-		  clear_parm_order ();
-		  declare_parm_level (0); }
+		  declare_parm_level (); }
 	  parmlist_1
 		{ $$ = $3;
-		  parmlist_tags_warning ();
 		  poplevel (0, 0, 0); }
 	;
 
 parmlist_1:
 	  parmlist_2 ')'
 	| parms ';'
-		{ tree parm;
-		  if (pedantic)
-		    pedwarn ("ISO C forbids forward parameter declarations");
-		  /* Mark the forward decls as such.  */
-		  for (parm = getdecls (); parm; parm = TREE_CHAIN (parm))
-		    TREE_ASM_WRITTEN (parm) = 1;
-		  clear_parm_order (); }
+		{ mark_forward_parm_decls (); }
 	  maybe_attribute
 		{ /* Dummy action so attributes are in known place
 		     on parser stack.  */ }
@@ -2426,13 +2437,16 @@ parmlist_2:  /* empty */
 		     tries to verify that BUILT_IN_NEXT_ARG is being used
 		     correctly.  */
 		  error ("ISO C requires a named argument before `...'");
+		  parsing_iso_function_signature = true;
 		}
 	| parms
 		{ $$ = get_parm_info (1);
 		  parsing_iso_function_signature = true;
 		}
 	| parms ',' ELLIPSIS
-		{ $$ = get_parm_info (0); }
+		{ $$ = get_parm_info (0);
+		  parsing_iso_function_signature = true;
+		}
 	;
 
 parms:
@@ -2508,11 +2522,9 @@ setspecs_fp:
 parmlist_or_identifiers:
 	  maybe_attribute
 		{ pushlevel (0);
-		  clear_parm_order ();
-		  declare_parm_level (1); }
+		  declare_parm_level (); }
 	  parmlist_or_identifiers_1
 		{ $$ = $3;
-		  parmlist_tags_warning ();
 		  poplevel (0, 0, 0); }
 	;
 
@@ -2593,8 +2605,6 @@ static const struct resword reswords[] =
   { "__asm__",		RID_ASM,	0 },
   { "__attribute",	RID_ATTRIBUTE,	0 },
   { "__attribute__",	RID_ATTRIBUTE,	0 },
-  { "__bounded",	RID_BOUNDED,	0 },
-  { "__bounded__",	RID_BOUNDED,	0 },
   { "__builtin_choose_expr", RID_CHOOSE_EXPR, 0 },
   { "__builtin_types_compatible_p", RID_TYPES_COMPATIBLE_P, 0 },
   { "__builtin_va_arg",	RID_VA_ARG,	0 },
@@ -2624,8 +2634,6 @@ static const struct resword reswords[] =
   { "__thread",		RID_THREAD,	0 },
   { "__typeof",		RID_TYPEOF,	0 },
   { "__typeof__",	RID_TYPEOF,	0 },
-  { "__unbounded",	RID_UNBOUNDED,	0 },
-  { "__unbounded__",	RID_UNBOUNDED,	0 },
   { "__volatile",	RID_VOLATILE,	0 },
   { "__volatile__",	RID_VOLATILE,	0 },
   { "asm",		RID_ASM,	D_EXT },
@@ -2687,8 +2695,6 @@ static const short rid_to_yy[RID_MAX] =
   /* RID_RESTRICT */	TYPE_QUAL,
 
   /* C extensions */
-  /* RID_BOUNDED */	TYPE_QUAL,
-  /* RID_UNBOUNDED */	TYPE_QUAL,
   /* RID_COMPLEX */	TYPESPEC,
   /* RID_THREAD */	SCSPEC,
 
@@ -2747,9 +2753,9 @@ static const short rid_to_yy[RID_MAX] =
   /* RID_CHOOSE_EXPR */			CHOOSE_EXPR,
   /* RID_TYPES_COMPATIBLE_P */		TYPES_COMPATIBLE_P,
 
-  /* RID_FUNCTION_NAME */		STRING_FUNC_NAME,
-  /* RID_PRETTY_FUNCTION_NAME */	STRING_FUNC_NAME,
-  /* RID_C99_FUNCTION_NAME */		VAR_FUNC_NAME,
+  /* RID_FUNCTION_NAME */		FUNC_NAME,
+  /* RID_PRETTY_FUNCTION_NAME */	FUNC_NAME,
+  /* RID_C99_FUNCTION_NAME */		FUNC_NAME,
 
   /* C++ */
   /* RID_BOOL */	TYPESPEC,
@@ -2765,6 +2771,7 @@ static const short rid_to_yy[RID_MAX] =
   /* RID_FALSE */	0,
   /* RID_NAMESPACE */	0,
   /* RID_NEW */		0,
+  /* RID_OFFSETOF */    0,
   /* RID_OPERATOR */	0,
   /* RID_THIS */	0,
   /* RID_THROW */	0,
@@ -2792,25 +2799,27 @@ static const short rid_to_yy[RID_MAX] =
   /* RID_AT_PUBLIC */		PUBLIC,
   /* RID_AT_PROTOCOL */		PROTOCOL,
   /* RID_AT_SELECTOR */		SELECTOR,
+  /* RID_AT_THROW */		AT_THROW,
+  /* RID_AT_TRY */		AT_TRY,
+  /* RID_AT_CATCH */		AT_CATCH,
+  /* RID_AT_FINALLY */		AT_FINALLY,
+  /* RID_AT_SYNCHRONIZED */	AT_SYNCHRONIZED,
   /* RID_AT_INTERFACE */	INTERFACE,
   /* RID_AT_IMPLEMENTATION */	IMPLEMENTATION
 };
 
 static void
-init_reswords ()
+init_reswords (void)
 {
   unsigned int i;
   tree id;
   int mask = (flag_isoc99 ? 0 : D_C89)
 	      | (flag_no_asm ? (flag_isoc99 ? D_EXT : D_EXT|D_EXT89) : 0);
 
-  if (!flag_objc)
+  if (!c_dialect_objc ())
      mask |= D_OBJC;
 
-  /* It is not necessary to register ridpointers as a GC root, because
-     all the trees it points to are permanently interned in the
-     get_identifier hash anyway.  */
-  ridpointers = (tree *) xcalloc ((int) RID_MAX, sizeof (tree));
+  ridpointers = ggc_calloc ((int) RID_MAX, sizeof (tree));
   for (i = 0; i < N_reswords; i++)
     {
       /* If a keyword is disabled, do not enter it into the table
@@ -2828,35 +2837,13 @@ init_reswords ()
 #define NAME(type) cpp_type2name (type)
 
 static void
-yyerror (msgid)
-     const char *msgid;
+yyerror (const char *msgid)
 {
-  const char *string = _(msgid);
-
-  if (last_token == CPP_EOF)
-    error ("%s at end of input", string);
-  else if (last_token == CPP_CHAR || last_token == CPP_WCHAR)
-    {
-      unsigned int val = TREE_INT_CST_LOW (yylval.ttype);
-      const char *const ell = (last_token == CPP_CHAR) ? "" : "L";
-      if (val <= UCHAR_MAX && ISGRAPH (val))
-	error ("%s before %s'%c'", string, ell, val);
-      else
-	error ("%s before %s'\\x%x'", string, ell, val);
-    }
-  else if (last_token == CPP_STRING
-	   || last_token == CPP_WSTRING)
-    error ("%s before string constant", string);
-  else if (last_token == CPP_NUMBER)
-    error ("%s before numeric constant", string);
-  else if (last_token == CPP_NAME)
-    error ("%s before \"%s\"", string, IDENTIFIER_POINTER (yylval.ttype));
-  else
-    error ("%s before '%s' token", string, NAME(last_token));
+  c_parse_error (msgid, last_token, yylval.ttype);
 }
 
 static int
-yylexname ()
+yylexname (void)
 {
   tree decl;
 
@@ -2866,22 +2853,9 @@ yylexname ()
       enum rid rid_code = C_RID_CODE (yylval.ttype);
 
       {
-	int yycode = rid_to_yy[(int) rid_code];
-	if (yycode == STRING_FUNC_NAME)
-	  {
-	    /* __FUNCTION__ and __PRETTY_FUNCTION__ get converted
-	       to string constants.  */
-	    const char *name = fname_string (rid_code);
-
-	    yylval.ttype = build_string (strlen (name) + 1, name);
-	    C_ARTIFICIAL_STRING_P (yylval.ttype) = 1;
-	    last_token = CPP_STRING;  /* so yyerror won't choke */
-	    return STRING;
-	  }
-
 	/* Return the canonical spelling for this keyword.  */
 	yylval.ttype = ridpointers[(int) rid_code];
-	return yycode;
+	return rid_to_yy[(int) rid_code];
       }
     }
 
@@ -2895,58 +2869,8 @@ yylexname ()
   return IDENTIFIER;
 }
 
-/* Concatenate strings before returning them to the parser.  This isn't quite
-   as good as having it done in the lexer, but it's better than nothing.  */
-
-static int
-yylexstring ()
-{
-  enum cpp_ttype next_type;
-  tree orig = yylval.ttype;
-
-  next_type = c_lex (&yylval.ttype);
-  if (next_type == CPP_STRING
-      || next_type == CPP_WSTRING
-      || (next_type == CPP_NAME && yylexname () == STRING))
-    {
-      varray_type strings;
-
-      static int last_lineno = 0;
-      static const char *last_input_filename = 0;
-      if (warn_traditional && !in_system_header
-	  && (lineno != last_lineno || !last_input_filename ||
-	      strcmp (last_input_filename, input_filename)))
-	{
-	  warning ("traditional C rejects string concatenation");
-	  last_lineno = lineno;
-	  last_input_filename = input_filename;
-	}
-
-      VARRAY_TREE_INIT (strings, 32, "strings");
-      VARRAY_PUSH_TREE (strings, orig);
-
-      do
-	{
-	  VARRAY_PUSH_TREE (strings, yylval.ttype);
-	  next_type = c_lex (&yylval.ttype);
-	}
-      while (next_type == CPP_STRING
-	     || next_type == CPP_WSTRING
-	     || (next_type == CPP_NAME && yylexname () == STRING));
-
-      yylval.ttype = combine_strings (strings);
-    }
-  else
-    yylval.ttype = orig;
-
-  /* We will have always read one token too many.  */
-  _cpp_backup_tokens (parse_in, 1);
-
-  return STRING;
-}
-
 static inline int
-_yylex ()
+_yylex (void)
 {
  get_next:
   last_token = c_lex (&yylval.ttype);
@@ -3010,13 +2934,11 @@ _yylex ()
       return 0;
 
     case CPP_NAME:
-      {
-	int ret = yylexname ();
-	if (ret == STRING)
-	  return yylexstring ();
-	else
-	  return ret;
-      }
+      return yylexname ();
+
+    case CPP_AT_NAME:
+      /* This only happens in Objective-C; it must be a keyword.  */
+      return rid_to_yy [(int) C_RID_CODE (yylval.ttype)];
 
     case CPP_NUMBER:
     case CPP_CHAR:
@@ -3025,11 +2947,10 @@ _yylex ()
 
     case CPP_STRING:
     case CPP_WSTRING:
-      return yylexstring ();
+      return STRING;
 
-      /* This token is Objective-C specific.  It gives the next token
-	 special significance.  */
-    case CPP_ATSIGN:
+    case CPP_OBJC_STRING:
+      return OBJC_STRING;
 
       /* These tokens are C++ specific (and will not be generated
          in C mode, but let's be cautious).  */
@@ -3053,7 +2974,7 @@ _yylex ()
 }
 
 static int
-yylex()
+yylex (void)
 {
   int r;
   timevar_push (TV_LEX);
@@ -3065,10 +2986,7 @@ yylex()
 /* Function used when yydebug is set, to print a token in more detail.  */
 
 static void
-yyprint (file, yychar, yyl)
-     FILE *file;
-     int yychar;
-     YYSTYPE yyl;
+yyprint (FILE *file, int yychar, YYSTYPE yyl)
 {
   tree t = yyl.ttype;
 
@@ -3090,25 +3008,11 @@ yyprint (file, yychar, yyl)
     case CONSTANT:
       fprintf (file, " %s", GET_MODE_NAME (TYPE_MODE (TREE_TYPE (t))));
       if (TREE_CODE (t) == INTEGER_CST)
-	fprintf (file,
-#if HOST_BITS_PER_WIDE_INT == 64
-#if HOST_BITS_PER_WIDE_INT == HOST_BITS_PER_INT
-		 " 0x%x%016x",
-#else
-#if HOST_BITS_PER_WIDE_INT == HOST_BITS_PER_LONG
-		 " 0x%lx%016lx",
-#else
-		 " 0x%llx%016llx",
-#endif
-#endif
-#else
-#if HOST_BITS_PER_WIDE_INT != HOST_BITS_PER_INT
-		 " 0x%lx%08lx",
-#else
-		 " 0x%x%08x",
-#endif
-#endif
-		 TREE_INT_CST_HIGH (t), TREE_INT_CST_LOW (t));
+	{
+	  fputs (" ", file);
+	  fprintf (file, HOST_WIDE_INT_PRINT_DOUBLE_HEX,
+		   TREE_INT_CST_HIGH (t), TREE_INT_CST_LOW (t));
+	}
       break;
     }
 }
@@ -3116,15 +3020,25 @@ yyprint (file, yychar, yyl)
 /* This is not the ideal place to put these, but we have to get them out
    of c-lex.c because cp/lex.c has its own versions.  */
 
-/* Free malloced parser stacks if necessary.  */
-
+/* Parse the file.  */
 void
-free_parser_stacks ()
+c_parse_file (void)
 {
+  yyparse ();
+  /* In case there were missing closebraces, get us back to the global
+     binding level.  */
+  while (! global_bindings_p ())
+    poplevel (0, 0, 0);
+  /* __FUNCTION__ is defined at file scope ("").  This
+     call may not be necessary as my tests indicate it
+     still works without it.  */
+  finish_fname_decls ();
+
   if (malloced_yyss)
     {
       free (malloced_yyss);
       free (malloced_yyvs);
+      malloced_yyss = 0;
     }
 }
 

@@ -1,6 +1,6 @@
 // ostream classes -*- C++ -*-
 
-// Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002
+// Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003
 // Free Software Foundation, Inc.
 //
 // This file is part of the GNU ISO C++ Library.  This library is free
@@ -32,11 +32,14 @@
 // ISO C++ 14882: 27.6.2  Output streams
 //
 
+#ifndef _OSTREAM_TCC
+#define _OSTREAM_TCC 1
+
 #pragma GCC system_header
 
 #include <locale>
 
-namespace std 
+namespace std
 {
   template<typename _CharT, typename _Traits>
     basic_ostream<_CharT, _Traits>::sentry::
@@ -55,9 +58,9 @@ namespace std
 	  __os.setstate(ios_base::failbit);
 	}
     }
-  
+
   template<typename _CharT, typename _Traits>
-    basic_ostream<_CharT, _Traits>& 
+    basic_ostream<_CharT, _Traits>&
     basic_ostream<_CharT, _Traits>::
     operator<<(__ostream_type& (*__pf)(__ostream_type&))
     {
@@ -66,9 +69,9 @@ namespace std
       // The inserters for manipulators are *not* formatted output functions.
       return __pf(*this);
     }
-  
+
   template<typename _CharT, typename _Traits>
-    basic_ostream<_CharT, _Traits>& 
+    basic_ostream<_CharT, _Traits>&
     basic_ostream<_CharT, _Traits>::
     operator<<(__ios_type& (*__pf)(__ios_type&))
     {
@@ -80,7 +83,7 @@ namespace std
     }
 
   template<typename _CharT, typename _Traits>
-    basic_ostream<_CharT, _Traits>& 
+    basic_ostream<_CharT, _Traits>&
     basic_ostream<_CharT, _Traits>::
     operator<<(ios_base& (*__pf)(ios_base&))
     {
@@ -92,18 +95,17 @@ namespace std
     }
 
   template<typename _CharT, typename _Traits>
-    basic_ostream<_CharT, _Traits>& 
+    basic_ostream<_CharT, _Traits>&
     basic_ostream<_CharT, _Traits>::
     operator<<(bool __n)
     {
       sentry __cerb(*this);
-      if (__cerb) 
+      if (__cerb)
 	{
 	  ios_base::iostate __err = ios_base::iostate(ios_base::goodbit);
-	  try 
+	  try
 	    {
-	      _M_check_facet(this->_M_fnumput);
-	      const __numput_type& __np = *this->_M_fnumput;
+	      const __num_put_type& __np = __check_facet(this->_M_num_put);
 	      if (__np.put(*this, *this, this->fill(), __n).failed())
 		__err |= ios_base::badbit;
 	    }
@@ -116,21 +118,20 @@ namespace std
     }
 
   template<typename _CharT, typename _Traits>
-    basic_ostream<_CharT, _Traits>& 
+    basic_ostream<_CharT, _Traits>&
     basic_ostream<_CharT, _Traits>::
     operator<<(long __n)
     {
       sentry __cerb(*this);
-      if (__cerb) 
+      if (__cerb)
 	{
 	  ios_base::iostate __err = ios_base::iostate(ios_base::goodbit);
-	  try 
+	  try
 	    {
 	      bool __b = false;
 	      char_type __c = this->fill();
 	      ios_base::fmtflags __fmt = this->flags() & ios_base::basefield;
-	      _M_check_facet(this->_M_fnumput);
-	      const __numput_type& __np = *this->_M_fnumput;
+	      const __num_put_type& __np = __check_facet(this->_M_num_put);
 	      if ((__fmt & ios_base::oct) || (__fmt & ios_base::hex))
 		{
 		  unsigned long __l = static_cast<unsigned long>(__n);
@@ -138,7 +139,7 @@ namespace std
 		}
 	      else
 		__b = __np.put(*this, *this, __c, __n).failed();
-	      if (__b)  
+	      if (__b)
 		__err |= ios_base::badbit;
 	    }
 	  catch(...)
@@ -150,18 +151,17 @@ namespace std
     }
 
   template<typename _CharT, typename _Traits>
-    basic_ostream<_CharT, _Traits>& 
+    basic_ostream<_CharT, _Traits>&
     basic_ostream<_CharT, _Traits>::
     operator<<(unsigned long __n)
     {
       sentry __cerb(*this);
-      if (__cerb) 
+      if (__cerb)
 	{
 	  ios_base::iostate __err = ios_base::iostate(ios_base::goodbit);
-	  try 
+	  try
 	    {
-	      _M_check_facet(this->_M_fnumput);
-	      const __numput_type& __np = *this->_M_fnumput;
+	      const __num_put_type& __np = __check_facet(this->_M_num_put);
 	      if (__np.put(*this, *this, this->fill(), __n).failed())
 		__err |= ios_base::badbit;
 	    }
@@ -173,23 +173,22 @@ namespace std
       return *this;
     }
 
-#ifdef _GLIBCPP_USE_LONG_LONG
+#ifdef _GLIBCXX_USE_LONG_LONG
   template<typename _CharT, typename _Traits>
-    basic_ostream<_CharT, _Traits>& 
+    basic_ostream<_CharT, _Traits>&
     basic_ostream<_CharT, _Traits>::
     operator<<(long long __n)
     {
       sentry __cerb(*this);
-      if (__cerb) 
+      if (__cerb)
 	{
 	  ios_base::iostate __err = ios_base::iostate(ios_base::goodbit);
-	  try 
+	  try
 	    {
 	      bool __b = false;
 	      char_type __c = this->fill();
 	      ios_base::fmtflags __fmt = this->flags() & ios_base::basefield;
-	      _M_check_facet(this->_M_fnumput);
-	      const __numput_type& __np = *this->_M_fnumput;
+	      const __num_put_type& __np = __check_facet(this->_M_num_put);
 	      if ((__fmt & ios_base::oct) || (__fmt & ios_base::hex))
 		{
 		  unsigned long long __l;
@@ -198,7 +197,7 @@ namespace std
 		}
 	      else
 		__b = __np.put(*this, *this, __c, __n).failed();
-	      if (__b)  
+	      if (__b)
 		__err |= ios_base::badbit;
 	    }
 	  catch(...)
@@ -210,18 +209,17 @@ namespace std
     }
 
   template<typename _CharT, typename _Traits>
-    basic_ostream<_CharT, _Traits>& 
+    basic_ostream<_CharT, _Traits>&
     basic_ostream<_CharT, _Traits>::
     operator<<(unsigned long long __n)
     {
       sentry __cerb(*this);
-      if (__cerb) 
+      if (__cerb)
 	{
 	  ios_base::iostate __err = ios_base::iostate(ios_base::goodbit);
-	  try 
+	  try
 	    {
-	      _M_check_facet(this->_M_fnumput);
-	      const __numput_type& __np = *this->_M_fnumput;
+	      const __num_put_type& __np = __check_facet(this->_M_num_put);
 	      if (__np.put(*this, *this, this->fill(), __n).failed())
 		__err |= ios_base::badbit;
 	    }
@@ -233,20 +231,19 @@ namespace std
       return *this;
     }
 #endif
-  
+
   template<typename _CharT, typename _Traits>
-    basic_ostream<_CharT, _Traits>& 
+    basic_ostream<_CharT, _Traits>&
     basic_ostream<_CharT, _Traits>::
     operator<<(double __n)
     {
       sentry __cerb(*this);
-      if (__cerb) 
+      if (__cerb)
 	{
 	  ios_base::iostate __err = ios_base::iostate(ios_base::goodbit);
-	  try 
+	  try
 	    {
-	      _M_check_facet(this->_M_fnumput);
-	      const __numput_type& __np = *this->_M_fnumput;
+	      const __num_put_type& __np = __check_facet(this->_M_num_put);
 	      if (__np.put(*this, *this, this->fill(), __n).failed())
 		__err |= ios_base::badbit;
 	    }
@@ -257,20 +254,19 @@ namespace std
 	}
       return *this;
     }
-  
+
   template<typename _CharT, typename _Traits>
-    basic_ostream<_CharT, _Traits>& 
+    basic_ostream<_CharT, _Traits>&
     basic_ostream<_CharT, _Traits>::
     operator<<(long double __n)
     {
       sentry __cerb(*this);
-      if (__cerb) 
+      if (__cerb)
 	{
 	  ios_base::iostate __err = ios_base::iostate(ios_base::goodbit);
-	  try 
+	  try
 	    {
-	      _M_check_facet(this->_M_fnumput);
-	      const __numput_type& __np = *this->_M_fnumput;
+	      const __num_put_type& __np = __check_facet(this->_M_num_put);
 	      if (__np.put(*this, *this, this->fill(), __n).failed())
 		__err |= ios_base::badbit;
 	    }
@@ -283,18 +279,17 @@ namespace std
     }
 
   template<typename _CharT, typename _Traits>
-    basic_ostream<_CharT, _Traits>& 
+    basic_ostream<_CharT, _Traits>&
     basic_ostream<_CharT, _Traits>::
     operator<<(const void* __n)
     {
       sentry __cerb(*this);
-      if (__cerb) 
+      if (__cerb)
 	{
 	  ios_base::iostate __err = ios_base::iostate(ios_base::goodbit);
-	  try 
+	  try
 	    {
-	      _M_check_facet(this->_M_fnumput);
-	      const __numput_type& __np = *this->_M_fnumput;
+	      const __num_put_type& __np = __check_facet(this->_M_num_put);
 	      if (__np.put(*this, *this, this->fill(), __n).failed())
 		__err |= ios_base::badbit;
 	    }
@@ -307,7 +302,7 @@ namespace std
     }
 
   template<typename _CharT, typename _Traits>
-    basic_ostream<_CharT, _Traits>& 
+    basic_ostream<_CharT, _Traits>&
     basic_ostream<_CharT, _Traits>::
     operator<<(__streambuf_type* __sbin)
     {
@@ -317,7 +312,7 @@ namespace std
 	{
 	  try
 	    {
-	      if (!__copy_streambufs(*this, __sbin, this->rdbuf()))
+	      if (!__copy_streambufs(__sbin, this->rdbuf()))
 		__err |= ios_base::failbit;
 	    }
 	  catch(...)
@@ -332,8 +327,9 @@ namespace std
 
   template<typename _CharT, typename _Traits>
     basic_ostream<_CharT, _Traits>&
-    basic_ostream<_CharT, _Traits>::put(char_type __c)
-    { 
+    basic_ostream<_CharT, _Traits>::
+    put(char_type __c)
+    {
       // _GLIBCXX_RESOLVE_LIB_DEFECTS
       // DR 60. What is a formatted input function?
       // basic_ostream::put(char_type) is an unformatted output function.
@@ -341,12 +337,12 @@ namespace std
       // Unformatted output functions should catch exceptions thrown
       // from streambuf members.
       sentry __cerb(*this);
-      if (__cerb) 
+      if (__cerb)
 	{
 	  ios_base::iostate __err = ios_base::iostate(ios_base::goodbit);
 	  try
 	    {
-	      int_type __put = this->rdbuf()->sputc(__c); 
+	      int_type __put = this->rdbuf()->sputc(__c);
 	      if (traits_type::eq_int_type(__put, traits_type::eof()))
 		__err |= ios_base::badbit;
 	    }
@@ -355,12 +351,13 @@ namespace std
 	  if (__err)
 	    this->setstate(__err);
 	}
-      return *this;     
-    }   
-      
+      return *this;
+    }
+
   template<typename _CharT, typename _Traits>
     basic_ostream<_CharT, _Traits>&
-    basic_ostream<_CharT, _Traits>::write(const _CharT* __s, streamsize __n)
+    basic_ostream<_CharT, _Traits>::
+    write(const _CharT* __s, streamsize __n)
     {
       // _GLIBCXX_RESOLVE_LIB_DEFECTS
       // DR 60. What is a formatted input function?
@@ -372,24 +369,18 @@ namespace std
       sentry __cerb(*this);
       if (__cerb)
 	{
-	  ios_base::iostate __err = ios_base::iostate(ios_base::goodbit);
 	  try
-	    {
-	      streamsize __put = this->rdbuf()->sputn(__s, __n);
-	      if (__put != __n)
-		__err |= ios_base::badbit;
-	    }
- 	  catch (...)
+	    { _M_write(__s, __n); }
+	  catch (...)
 	    { this->_M_setstate(ios_base::badbit); }
-	  if (__err)
-	    this->setstate(__err);
 	}
       return *this;
     }
 
   template<typename _CharT, typename _Traits>
     basic_ostream<_CharT, _Traits>&
-    basic_ostream<_CharT, _Traits>::flush()
+    basic_ostream<_CharT, _Traits>::
+    flush()
     {
       // _GLIBCXX_RESOLVE_LIB_DEFECTS
       // DR 60. What is a formatted input function?
@@ -406,10 +397,11 @@ namespace std
 	this->setstate(__err);
       return *this;
     }
-  
+
   template<typename _CharT, typename _Traits>
     typename basic_ostream<_CharT, _Traits>::pos_type
-    basic_ostream<_CharT, _Traits>::tellp()
+    basic_ostream<_CharT, _Traits>::
+    tellp()
     {
       pos_type __ret = pos_type(-1);
       try
@@ -422,10 +414,10 @@ namespace std
       return __ret;
     }
 
-
   template<typename _CharT, typename _Traits>
     basic_ostream<_CharT, _Traits>&
-    basic_ostream<_CharT, _Traits>::seekp(pos_type __pos)
+    basic_ostream<_CharT, _Traits>::
+    seekp(pos_type __pos)
     {
       ios_base::iostate __err = ios_base::iostate(ios_base::goodbit);
       try
@@ -435,7 +427,7 @@ namespace std
 	      // _GLIBCXX_RESOLVE_LIB_DEFECTS
 	      // 136.  seekp, seekg setting wrong streams?
 	      pos_type __p = this->rdbuf()->pubseekpos(__pos, ios_base::out);
-	      
+
 	      // 129. Need error indication from seekp() and seekg()
 	      if (__p == pos_type(off_type(-1)))
 		__err |= ios_base::failbit;
@@ -460,9 +452,9 @@ namespace std
 	    {
 	      // _GLIBCXX_RESOLVE_LIB_DEFECTS
 	      // 136.  seekp, seekg setting wrong streams?
-	      pos_type __p = this->rdbuf()->pubseekoff(__off, __dir, 
+	      pos_type __p = this->rdbuf()->pubseekoff(__off, __dir,
 						       ios_base::out);
-	      
+
 	      // 129. Need error indication from seekp() and seekg()
 	      if (__p == pos_type(off_type(-1)))
 		__err |= ios_base::failbit;
@@ -484,19 +476,20 @@ namespace std
       typename __ostream_type::sentry __cerb(__out);
       if (__cerb)
 	{
-	  try 
+	  try
 	    {
-	      const streamsize __w = __out.width() > 0 ? __out.width() : 0;
-	      _CharT* __pads = static_cast<_CharT*>(__builtin_alloca(sizeof(_CharT) * (__w + 1)));
-	      __pads[0] = __c;
+	      const streamsize __w = __out.width();
 	      streamsize __len = 1;
+	      _CharT* __cs = &__c;
 	      if (__w > __len)
 		{
-		  __pad<_CharT, _Traits>::_S_pad(__out, __out.fill(), __pads, 
+		  __cs = static_cast<_CharT*>(__builtin_alloca(sizeof(_CharT)
+							       * __w));
+		  __pad<_CharT, _Traits>::_S_pad(__out, __out.fill(), __cs,
 						 &__c, __w, __len, false);
 		  __len = __w;
 		}
-	      __out.write(__pads, __len);
+	      __out._M_write(__cs, __len);
 	      __out.width(0);
 	    }
 	  catch(...)
@@ -504,9 +497,9 @@ namespace std
 	}
       return __out;
     }
-  
+
   // Specializations.
-  template <class _Traits> 
+  template <class _Traits>
     basic_ostream<char, _Traits>&
     operator<<(basic_ostream<char, _Traits>& __out, char __c)
     {
@@ -514,19 +507,19 @@ namespace std
       typename __ostream_type::sentry __cerb(__out);
       if (__cerb)
 	{
-	  try 
+	  try
 	    {
-	      const streamsize __w = __out.width() > 0 ? __out.width() : 0;
-	      char* __pads = static_cast<char*>(__builtin_alloca(__w + 1));
-	      __pads[0] = __c;
+	      const streamsize __w = __out.width();
 	      streamsize __len = 1;
+	      char* __cs = &__c;
 	      if (__w > __len)
 		{
-		  __pad<char, _Traits>::_S_pad(__out, __out.fill(), __pads, 
+		  __cs = static_cast<char*>(__builtin_alloca(__w));
+		  __pad<char, _Traits>::_S_pad(__out, __out.fill(), __cs,
 					       &__c, __w, __len, false);
 		  __len = __w;
 		}
-	      __out.write(__pads, __len);
+	      __out._M_write(__cs, __len);
 	      __out.width(0);
 	    }
 	  catch(...)
@@ -543,19 +536,20 @@ namespace std
       typename __ostream_type::sentry __cerb(__out);
       if (__cerb && __s)
 	{
-	  try 
+	  try
 	    {
-	      const streamsize __w = __out.width() > 0 ? __out.width() : 0;
-	      _CharT* __pads = static_cast<_CharT*>(__builtin_alloca(sizeof(_CharT) * __w));
+	      const streamsize __w = __out.width();
 	      streamsize __len = static_cast<streamsize>(_Traits::length(__s));
 	      if (__w > __len)
 		{
-		  __pad<_CharT, _Traits>::_S_pad(__out, __out.fill(), __pads, 
+		  _CharT* __cs = static_cast<_CharT*>(__builtin_alloca(sizeof(_CharT)
+								       * __w));
+		  __pad<_CharT, _Traits>::_S_pad(__out, __out.fill(), __cs,
 						 __s, __w, __len, false);
-		  __s = __pads;
+		  __s = __cs;
 		  __len = __w;
 		}
-	      __out.write(__s, __len);
+	      __out._M_write(__s, __len);
 	      __out.width(0);
 	    }
 	  catch(...)
@@ -571,34 +565,34 @@ namespace std
     operator<<(basic_ostream<_CharT, _Traits>& __out, const char* __s)
     {
       typedef basic_ostream<_CharT, _Traits> __ostream_type;
-#ifdef _GLIBCPP_RESOLVE_LIB_DEFECTS
-// 167.  Improper use of traits_type::length()
-// Note that this is only in 'Review' status.
+      // _GLIBCXX_RESOLVE_LIB_DEFECTS
+      // 167.  Improper use of traits_type::length()
+      // Note that this is only in 'Review' status.
       typedef char_traits<char>		     __traits_type;
-#endif
       typename __ostream_type::sentry __cerb(__out);
       if (__cerb && __s)
 	{
 	  size_t __clen = __traits_type::length(__s);
-	  _CharT* __ws = static_cast<_CharT*>(__builtin_alloca(sizeof(_CharT) * (__clen + 1)));
+	  _CharT* __ws = static_cast<_CharT*>(__builtin_alloca(sizeof(_CharT)
+							       * __clen));
 	  for (size_t  __i = 0; __i < __clen; ++__i)
 	    __ws[__i] = __out.widen(__s[__i]);
 	  _CharT* __str = __ws;
-	  
-	  try 
+
+	  try
 	    {
+	      const streamsize __w = __out.width();
 	      streamsize __len = static_cast<streamsize>(__clen);
-	      const streamsize __w = __out.width() > 0 ? __out.width() : 0;
-	      _CharT* __pads = static_cast<_CharT*>(__builtin_alloca(sizeof(_CharT) * __w));
-	      
 	      if (__w > __len)
 		{
-		  __pad<_CharT, _Traits>::_S_pad(__out, __out.fill(), __pads, 
+		  _CharT* __cs = static_cast<_CharT*>(__builtin_alloca(sizeof(_CharT)
+								       * __w));
+		  __pad<_CharT, _Traits>::_S_pad(__out, __out.fill(), __cs,
 						 __ws, __w, __len, false);
-		  __str = __pads;
+		  __str = __cs;
 		  __len = __w;
 		}
-	      __out.write(__str, __len);
+	      __out._M_write(__str, __len);
 	      __out.width(0);
 	    }
 	  catch(...)
@@ -618,20 +612,19 @@ namespace std
       typename __ostream_type::sentry __cerb(__out);
       if (__cerb && __s)
 	{
-	  try 
+	  try
 	    {
-	      const streamsize __w = __out.width() > 0 ? __out.width() : 0;
-	      char* __pads = static_cast<char*>(__builtin_alloca(__w));
+	      const streamsize __w = __out.width();
 	      streamsize __len = static_cast<streamsize>(_Traits::length(__s));
-
 	      if (__w > __len)
 		{
-		  __pad<char, _Traits>::_S_pad(__out, __out.fill(), __pads, 
+		  char* __cs = static_cast<char*>(__builtin_alloca(__w));
+		  __pad<char, _Traits>::_S_pad(__out, __out.fill(), __cs,
 						 __s, __w, __len, false);
-		  __s = __pads;
+		  __s = __cs;
 		  __len = __w;
 		}
-	      __out.write(__s, __len);
+	      __out._M_write(__s, __len);
 	      __out.width(0);
 	    }
 	  catch(...)
@@ -647,37 +640,35 @@ namespace std
     basic_ostream<_CharT, _Traits>&
     operator<<(basic_ostream<_CharT, _Traits>& __out,
 	       const basic_string<_CharT, _Traits, _Alloc>& __str)
-    { 
+    {
       typedef basic_ostream<_CharT, _Traits> __ostream_type;
       typename __ostream_type::sentry __cerb(__out);
       if (__cerb)
 	{
-	  const _CharT* __s = __str.data();
-	  const streamsize __w = __out.width() > 0 ? __out.width() : 0;
-	  _CharT* __pads = static_cast<_CharT*>(__builtin_alloca(sizeof(_CharT) * __w));
+	  const streamsize __w = __out.width();
 	  streamsize __len = static_cast<streamsize>(__str.size());
-#ifdef _GLIBCPP_RESOLVE_LIB_DEFECTS
+	  const _CharT* __s = __str.data();
+
+	  // _GLIBCXX_RESOLVE_LIB_DEFECTS
 	  // 25. String operator<< uses width() value wrong
-#endif
 	  if (__w > __len)
 	    {
-	      __pad<_CharT, _Traits>::_S_pad(__out, __out.fill(), __pads, __s, 
+	      _CharT* __cs = static_cast<_CharT*>(__builtin_alloca(sizeof(_CharT) * __w));
+	      __pad<_CharT, _Traits>::_S_pad(__out, __out.fill(), __cs, __s,
 					     __w, __len, false);
-	      __s = __pads;
+	      __s = __cs;
 	      __len = __w;
 	    }
-	  streamsize __res = __out.rdbuf()->sputn(__s, __len);
+	  __out._M_write(__s, __len);
 	  __out.width(0);
-	  if (__res != __len)
-	    __out.setstate(ios_base::failbit);
 	}
       return __out;
     }
 
   // Inhibit implicit instantiations for required instantiations,
-  // which are defined via explicit instantiations elsewhere.  
+  // which are defined via explicit instantiations elsewhere.
   // NB:  This syntax is a GNU extension.
-#if _GLIBCPP_EXTERN_TEMPLATE
+#if _GLIBCXX_EXTERN_TEMPLATE
   extern template class basic_ostream<char>;
   extern template ostream& endl(ostream&);
   extern template ostream& ends(ostream&);
@@ -689,7 +680,7 @@ namespace std
   extern template ostream& operator<<(ostream&, const unsigned char*);
   extern template ostream& operator<<(ostream&, const signed char*);
 
-#ifdef _GLIBCPP_USE_WCHAR_T
+#ifdef _GLIBCXX_USE_WCHAR_T
   extern template class basic_ostream<wchar_t>;
   extern template wostream& endl(wostream&);
   extern template wostream& ends(wostream&);
@@ -701,3 +692,5 @@ namespace std
 #endif
 #endif
 } // namespace std
+
+#endif

@@ -1,25 +1,49 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/stpcpy.c,v $
- * $Date: 2000/11/08 09:38:59 $
- * $Revision: 1.1.1.1 $
- * $State: Exp $
- * $Author: admin $
- *
- ***************************************************************************/
+/* Implement the stpcpy function.
+   Copyright (C) 2003 Free Software Foundation, Inc.
+   Written by Kaveh R. Ghazi <ghazi@caip.rutgers.edu>.
 
-#ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: stpcpy.c,v 1.1.1.1 2000/11/08 09:38:59 admin Exp $";
+This file is part of the libiberty library.
+Libiberty is free software; you can redistribute it and/or
+modify it under the terms of the GNU Library General Public
+License as published by the Free Software Foundation; either
+version 2 of the License, or (at your option) any later version.
+
+Libiberty is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Library General Public License for more details.
+
+You should have received a copy of the GNU Library General Public
+License along with libiberty; see the file COPYING.LIB.  If
+not, write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+Boston, MA 02111-1307, USA.  */
+
+/*
+
+@deftypefn Supplemental char* stpcpy (char *@var{dst}, const char *@var{src})
+
+Copies the string @var{src} into @var{dst}.  Returns a pointer to
+@var{dst} + strlen(@var{src}).
+
+@end deftypefn
+
+*/
+
+#include <ansidecl.h>
+#ifdef ANSI_PROTOTYPES
+#include <stddef.h>
+#else
+#define size_t unsigned long
 #endif
 
-#include <string.h>
+extern size_t strlen PARAMS ((const char *));
+extern PTR memcpy PARAMS ((PTR, const PTR, size_t));
 
 char *
-stpcpy (char *s, const char *s2)
+stpcpy (dst, src)
+     char *dst;
+     const char *src;
 {
-  while ((*s++ = *s2++))
-    ;
-
-  return s - 1;
+  const size_t len = strlen (src);
+  return (char *) memcpy (dst, src, len + 1) + len;
 }
-

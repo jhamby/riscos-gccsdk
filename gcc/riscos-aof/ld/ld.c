@@ -1,7 +1,7 @@
 /* GNU ld implementation as a wrapper to an ARM/RISC OS linker
    for the GNU compiler, with support for the C++ template repository.
 
-   Copyright (C) 1997, 1998, 1999, 2000, 2001 Nick Burrett
+   Copyright (C) 1997, 1998, 1999, 2000, 2001, 2004 Nick Burrett
    Contributed by Nick Burrett (nick.burrett@btinternet.com)
 
 This file is part of GNU CC.
@@ -114,35 +114,13 @@ static void append_arg (args *, int *, const char *);
 static void tlink_init (void);
 static int tlink_execute (const char *prog, char **argv, char *redir, char *viafile);
 static void do_tlink (const char *, char **, args *);
-static int choose_temp_base (void);
+static int choose_temp_base_1 (void);
 static void dump_file (char *);
 static void ldversion (int);
 static void ldhelp (void);
 static void parse_args (int, char **);
 
 extern char *riscos_to_unix (const char *, char *);
-
-/* Same as `malloc' but report error if no memory available.  */
-
-static void *
-xmalloc (unsigned size)
-{
-  void *value = malloc (size);
-  if (value == 0)
-    ld_error ("virtual memory exhausted");
-  return value;
-}
-
-/* Same as `realloc' but report error if no memory available.  */
-
-static void *
-xrealloc (char *ptr, int size)
-{
-  void *result = realloc (ptr, size);
-  if (!result)
-    ld_error ("virtual memory exhausted");
-  return result;
-}
 
 #ifndef HAVE_STPCPY
 static char *stpcpy (char *s, const char *s2)
@@ -177,12 +155,12 @@ linker_initialise (void)
   temporary_firstobj = (char *) obstack_alloc (&temporary_obstack, 0);
 
   /* Create a unique filename. Open and close the file, effectively
-     creating it, so that the next call to choose_temp_base will
+     creating it, so that the next call to choose_temp_base_1 will
      create a different unique filename.  */
   if (tlink_verbose >= 7)
     printf ("creating 1st temporary file\n");
 
-  temp_filedesc = choose_temp_base ();
+  temp_filedesc = choose_temp_base_1 ();
   ldout = temp_filename;
   if (temp_filedesc == -1)
     {
@@ -195,7 +173,7 @@ linker_initialise (void)
   if (tlink_verbose >= 7)
     printf ("creating 2nd temporary file\n");
   /* Create another unique file.  */
-  temp_filedesc = choose_temp_base ();
+  temp_filedesc = choose_temp_base_1 ();
   ld_viafile = temp_filename;
   if (temp_filedesc == -1)
     {
@@ -1334,7 +1312,7 @@ do_tlink (const char *linker, char **ld_argv, args *object_lst)
 }
 
 static int
-choose_temp_base (void)
+choose_temp_base_1 (void)
 {
   const char *base = getenv ("TMPDIR");
   int len;

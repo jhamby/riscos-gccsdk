@@ -121,12 +121,17 @@ endif
 
 ##############################################################################
 
+DRIVER_DEFINES = \
+  -DSTANDARD_STARTFILE_PREFIX=\"$(prefix)$(gn_standard_startfile_prefix)\" \
+  -DSTANDARD_EXEC_PREFIX=\"$(prefix)$(gn_standard_exec_prefix)\" \
+  -DSTANDARD_LIBEXEC_PREFIX=\"$(libexecdir)/gcc/\" \
+  -DDEFAULT_TARGET_VERSION=\"$(VERSION)\" \
+  -DDEFAULT_TARGET_MACHINE=\"$(TARGET_NAME)\" \
+  -DSTANDARD_BINDIR_PREFIX=\"$(prefix)/$(gn_standard_exec_prefix)\" \
+  -DTOOLDIR_BASE_PREFIX=\"$(prefix)/$(gn_standard_exec_prefix)\"
+
 $(gccobjdir)/f77/g77.o: ../gcc.c
-	$(CC) $(CFLAGS) $(INCLUDES) -o $@ -c ../gcc.c \
-	-DDEFAULT_TARGET_VERSION=\"$(VERSION)\" \
-	-DDEFAULT_TARGET_MACHINE=\"$(TARGET_NAME)\" -DLANG_SPECIFIC_DRIVER \
-	-DSTANDARD_STARTFILE_PREFIX=\"$(prefix)$(gn_standard_startfile_prefix)\" \
-	-DSTANDARD_EXEC_PREFIX=\"$(prefix)$(gn_standard_exec_prefix)\"
+	$(CC) $(CFLAGS) $(INCLUDES) -o $@ -c ../gcc.c $(DRIVER_DEFINES) -DLANG_SPECIFIC_DRIVER
 
 # Dependencies
 $(gccobjdir)/f77/ansify.o: ansify.c

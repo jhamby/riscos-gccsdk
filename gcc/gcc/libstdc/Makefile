@@ -4,12 +4,12 @@
 #
 
 INCLUDES = -I ./include -I ./include/bits -I ./include/arm-riscos-aof -I ./include/backward -I ./libsupc
-SUPCINCLUDES = -I . -I ../gcc -I ./include -I ./include/arm-riscos-aof
+SUPCINCLUDES = -I ./libsupc -I ../gcc -I ./include -I ./include/arm-riscos-aof
 
 libobjdir=$(objdir)/gcc-$(VERSION)/libstdc/$(STAGE)/$(TRG)
 supcobjdir=$(objdir)/gcc-$(VERSION)/libstdc/$(STAGE)/$(TRG)
 
-CROSS_CXXFLAGS += -D_GNU_SOURCE -fno-implicit-templates -Wall -Wno-format -W -Wwrite-strings -Winline -fdiagnostics-show-location=once -D_GLIBCPP_SJLJ_EXCEPTIONS -DDONT_USE_BUILTIN_SETJMP
+CROSS_CXXFLAGS += -D_GNU_SOURCE -fno-implicit-templates -Wall -Wno-format -W -Wwrite-strings -Winline -fdiagnostics-show-location=once -D_GLIBCXX_SJLJ_EXCEPTIONS -DDONT_USE_BUILTIN_SETJMP
 
 $(libobjdir)/%.o: %.cc
 	$(CROSS_CXX) -nostdinc++ $(CROSS_CXXFLAGS) -o $@ -c $< $(INCLUDES) $(CFL)
@@ -31,12 +31,14 @@ target_alias = config/io
 
 stdcobjdir=$(objdir)/gcc-$(VERSION)/libstdc++/$(STAGE)
 
-glibcpp_srcdir = /home/nick/riscos/masters/gcc-3.3/libstdc++-v3
+glibcpp_srcdir = /home/nick/riscos/masters/gcc-3.4/libstdc++-v3
 glibcpp_builddir = @glibcpp_builddir@
 
 bits_srcdir = ${glibcpp_srcdir}/include/bits
 bits_builddir = ./bits
 bits_headers = \
+	${bits_srcdir}/allocator.h \
+	${bits_srcdir}/atomicity.h \
 	${bits_srcdir}/basic_ios.h \
 	${bits_srcdir}/basic_ios.tcc \
 	${bits_srcdir}/basic_string.h \
@@ -45,9 +47,9 @@ bits_headers = \
 	${bits_srcdir}/char_traits.h \
 	${bits_srcdir}/codecvt.h \
 	${bits_srcdir}/concept_check.h \
+	${bits_srcdir}/concurrence.h \
 	${bits_srcdir}/cpp_type_traits.h \
 	${bits_srcdir}/deque.tcc \
-	${bits_srcdir}/fpos.h \
 	${bits_srcdir}/fstream.tcc \
 	${bits_srcdir}/functexcept.h \
 	${bits_srcdir}/gslice.h \
@@ -56,20 +58,19 @@ bits_headers = \
 	${bits_srcdir}/ios_base.h \
 	${bits_srcdir}/istream.tcc \
 	${bits_srcdir}/list.tcc \
-	$(bits_srcdir)/locale_classes.h \
+	${bits_srcdir}/locale_classes.h \
 	${bits_srcdir}/locale_facets.h \
 	${bits_srcdir}/locale_facets.tcc \
 	${bits_srcdir}/localefwd.h \
 	${bits_srcdir}/mask_array.h \
 	${bits_srcdir}/ostream.tcc \
-	${bits_srcdir}/pthread_allocimpl.h \
+	${bits_srcdir}/postypes.h \
 	${bits_srcdir}/stream_iterator.h \
 	${bits_srcdir}/streambuf_iterator.h \
 	${bits_srcdir}/slice_array.h \
 	${bits_srcdir}/sstream.tcc \
 	${bits_srcdir}/stl_algo.h \
 	${bits_srcdir}/stl_algobase.h \
-	${bits_srcdir}/stl_alloc.h \
 	${bits_srcdir}/stl_bvector.h \
 	${bits_srcdir}/stl_construct.h \
 	${bits_srcdir}/stl_deque.h \
@@ -84,7 +85,6 @@ bits_headers = \
 	${bits_srcdir}/stl_multiset.h \
 	${bits_srcdir}/stl_numeric.h \
 	${bits_srcdir}/stl_pair.h \
-	${bits_srcdir}/stl_pthread_alloc.h \
 	${bits_srcdir}/stl_queue.h \
 	${bits_srcdir}/stl_raw_storage_iter.h \
 	${bits_srcdir}/stl_relops.h \
@@ -100,9 +100,9 @@ bits_headers = \
 	${bits_srcdir}/type_traits.h \
 	${bits_srcdir}/valarray_array.h \
 	${bits_srcdir}/valarray_array.tcc \
-	${bits_srcdir}/valarray_meta.h \
+	${bits_srcdir}/valarray_before.h \
+	${bits_srcdir}/valarray_after.h \
 	${bits_srcdir}/vector.tcc
-
 
 backward_srcdir = ${glibcpp_srcdir}/include/backward
 backward_builddir = ./backward
@@ -149,21 +149,29 @@ ext_srcdir = ${glibcpp_srcdir}/include/ext
 ext_builddir = ./ext
 ext_headers = \
 	${ext_srcdir}/algorithm \
+	${ext_srcdir}/bitmap_allocator.h \
+	${ext_srcdir}/debug_allocator.h \
+	${ext_srcdir}/demangle.h \
 	${ext_srcdir}/enc_filebuf.h \
 	${ext_srcdir}/stdio_filebuf.h \
+	${ext_srcdir}/stdio_sync_filebuf.h \
 	${ext_srcdir}/functional \
 	${ext_srcdir}/hash_map \
 	${ext_srcdir}/hash_set \
 	${ext_srcdir}/iterator \
+	${ext_srcdir}/malloc_allocator.h \
 	${ext_srcdir}/memory \
+	${ext_srcdir}/mt_allocator.h \
+	${ext_srcdir}/new_allocator.h \
 	${ext_srcdir}/numeric \
+	${ext_srcdir}/pod_char_traits.h \
+	${ext_srcdir}/pool_allocator.h \
 	${ext_srcdir}/rb_tree \
 	${ext_srcdir}/rope \
 	${ext_srcdir}/ropeimpl.h \
 	${ext_srcdir}/slist \
-	${ext_srcdir}/stl_hash_fun.h \
-	${ext_srcdir}/stl_hashtable.h \
-	${ext_srcdir}/stl_rope.h
+	${ext_srcdir}/hash_fun.h \
+	${ext_srcdir}/hashtable.h
 
 
 # This is the common subset of files that all three "C" header models use.
@@ -232,6 +240,35 @@ c_compatibility_headers = \
 	${c_compatibility_srcdir}/time.h \
 	${c_compatibility_srcdir}/wchar.h \
 	${c_compatibility_srcdir}/wctype.h 
+
+# Debug mode headers
+debug_srcdir = ${glibcpp_srcdir}/include/debug
+debug_builddir = ./debug
+debug_headers = \
+	${debug_srcdir}/bitset \
+	${debug_srcdir}/debug.h \
+	${debug_srcdir}/deque \
+	${debug_srcdir}/formatter.h \
+	${debug_srcdir}/hash_map \
+	${debug_srcdir}/hash_map.h \
+	${debug_srcdir}/hash_multimap.h \
+        ${debug_srcdir}/hash_multiset.h \
+        ${debug_srcdir}/hash_set \
+        ${debug_srcdir}/hash_set.h \
+        ${debug_srcdir}/list \
+        ${debug_srcdir}/map \
+        ${debug_srcdir}/map.h \
+        ${debug_srcdir}/multimap.h \
+        ${debug_srcdir}/multiset.h \
+        ${debug_srcdir}/safe_base.h \
+        ${debug_srcdir}/safe_iterator.h \
+        ${debug_srcdir}/safe_iterator.tcc \
+        ${debug_srcdir}/safe_sequence.h \
+        ${debug_srcdir}/set \
+        ${debug_srcdir}/set.h \
+        ${debug_srcdir}/string \
+        ${debug_srcdir}/vector
+
 
 c_base_headers_extra = ${c_base_srcdir}/cmath.tcc 
 
@@ -326,84 +363,123 @@ thread_target_headers = \
 	${target_builddir}/gthr-posix.h \
 	${target_builddir}/gthr-default.h
 
-sources = \
-        basic_file.cc \
-        bitset.cc \
-        c++locale.cc \
-        codecvt.cc \
-        collate.cc \
-        complex_io.cc \
-        concept-inst.cc \
-        ctype.cc \
+
+
+# Source files linked in via configuration/make substitution for a
+# particular host.
+host_sources = \
+	atomicity.cc \
+	codecvt_members.cc \
+	collate_members.cc \
 	ctype_members.cc \
-	ext-inst.cc \
-	fstream.cc \
-        fstream-inst.cc \
-        functexcept.cc \
-        globals.cc \
-        io-inst.cc \
+	messages_members.cc \
+	monetary_members.cc \
+	numeric_members.cc \
+	time_members.cc 
+
+# Source files linked in via configuration/make substitution for a
+# particular host, but with ad hoc naming rules.
+host_sources_extra = \
+	basic_file.cc \
+	c++locale.cc
+
+host_objs = \
+	$(libobjdir)/atomicity.o \
+	$(libobjdir)/codecvt_members.o \
+	$(libobjdir)/collate.o \
+	$(libobjdir)/ctype_members.o \
+	$(libobjdir)/messages.o \
+	$(libobjdir)/monetary.o \
+	$(libobjdir)/numeric.o \
+	$(libobjdir)/time.o 
+
+host_objs_extra = \
+	$(libobjdir)/basic_file.o \
+	$(libobjdir)/c++locale.o
+
+sources = \
+	allocator.cc \
+	codecvt.cc \
+	complex_io.cc \
+	ctype.cc \
+	debug.cc \
+	debug_list.cc \
+	functexcept.cc \
+	globals_locale.cc \
+	globals_io.cc \
 	ios.cc \
-	istream-inst.cc \
+	ios_failure.cc \
+	ios_init.cc \
+	ios_locale.cc \
 	limits.cc \
-	locale-inst.cc \
+	list.cc \
 	locale.cc \
+	locale_init.cc \
+	locale_facets.cc \
 	localename.cc \
-	messages.cc \
+	stdexcept.cc \
+	strstream.cc \
+	tree.cc \
+	allocator-inst.cc \
+	concept-inst.cc \
+	fstream-inst.cc \
+	ext-inst.cc \
+	io-inst.cc \
+	istream-inst.cc \
+	locale-inst.cc \
+	locale-misc-inst.cc \
 	misc-inst.cc \
-        monetary.cc \
-        numeric.cc \
-        ostream-inst.cc \
-        sstream-inst.cc \
-        stdexcept.cc \
-        stl-inst.cc \
-        streambuf-inst.cc \
-        string-inst.cc \
-        strstream.cc \
-        time.cc \
-        valarray-inst.cc \
-        vterminate.cc \
-        wstring-inst.cc
+	ostream-inst.cc \
+	sstream-inst.cc \
+	streambuf-inst.cc \
+	string-inst.cc \
+	valarray-inst.cc \
+	wlocale-inst.cc \
+	wstring-inst.cc \
+	${host_sources} \
+	${host_sources_extra}
 
 OBJS =	 \
-	$(libobjdir)/basic_file.o \
-	$(libobjdir)/bitset.o \
-	$(libobjdir)/cp-demangle.o \
-        $(libobjdir)/c++locale.o \
-        $(libobjdir)/codecvt.o \
-	$(libobjdir)/codecvt_members.o \
-        $(libobjdir)/collate.o \
-        $(libobjdir)/complex_io.o \
-        $(libobjdir)/concept-inst.o \
-        $(libobjdir)/ctype.o \
-	$(libobjdir)/ctype_members.o \
-	$(libobjdir)/dyn-string.o \
-        $(libobjdir)/ext-inst.o \
-        $(libobjdir)/fstream.o \
-        $(libobjdir)/fstream-inst.o \
-        $(libobjdir)/functexcept.o \
-        $(libobjdir)/globals.o \
-        $(libobjdir)/io-inst.o \
-        $(libobjdir)/ios.o \
-        $(libobjdir)/istream-inst.o \
-        $(libobjdir)/limits.o \
-        $(libobjdir)/locale.o \
-        $(libobjdir)/locale-inst.o \
-        $(libobjdir)/localename.o \
-        $(libobjdir)/messages.o \
-        $(libobjdir)/misc-inst.o \
-        $(libobjdir)/monetary.o \
-        $(libobjdir)/numeric.o \
-        $(libobjdir)/ostream-inst.o \
-        $(libobjdir)/sstream-inst.o \
-        $(libobjdir)/stdexcept.o \
-        $(libobjdir)/stl-inst.o \
-        $(libobjdir)/streambuf-inst.o \
-        $(libobjdir)/string-inst.o \
-        $(libobjdir)/strstream.o \
-        $(libobjdir)/time.o \
-        $(libobjdir)/valarray-inst.o \
-        $(libobjdir)/vterminate.o \
-        $(libobjdir)/wstring-inst.o
+	$(libobjdir)/allocator.o \
+	$(libobjdir)/codecvt.o \
+	$(libobjdir)/complex_io.o \
+	$(libobjdir)/ctype.o \
+	$(libobjdir)/debug.o \
+	$(libobjdir)/debug_list.o \
+	$(libobjdir)/functexcept.o \
+	$(libobjdir)/globals_locale.o \
+	$(libobjdir)/globals_io.o \
+	$(libobjdir)/ios.o \
+	$(libobjdir)/ios_failure.o \
+	$(libobjdir)/ios_init.o \
+	$(libobjdir)/ios_locale.o \
+	$(libobjdir)/limits.o \
+	$(libobjdir)/list.o \
+	$(libobjdir)/locale.o \
+	$(libobjdir)/locale_init.o \
+	$(libobjdir)/locale_facets.o \
+	$(libobjdir)/localename.o \
+	$(libobjdir)/stdexcept.o \
+	$(libobjdir)/strstream.o \
+	$(libobjdir)/tree.o \
+	$(libobjdir)/allocator-inst.o \
+	$(libobjdir)/concept-inst.o \
+	$(libobjdir)/fstream-inst.o \
+	$(libobjdir)/ext-inst.o \
+	$(libobjdir)/io-inst.o \
+	$(libobjdir)/istream-inst.o \
+	$(libobjdir)/locale-inst.o \
+	$(libobjdir)/locale-misc-inst.o \
+	$(libobjdir)/misc-inst.o \
+	$(libobjdir)/ostream-inst.o \
+	$(libobjdir)/sstream-inst.o \
+	$(libobjdir)/streambuf-inst.o \
+	$(libobjdir)/string-inst.o \
+	$(libobjdir)/valarray-inst.o \
+	$(libobjdir)/wlocale-inst.o \
+	$(libobjdir)/wstring-inst.o \
+	${host_objs} \
+	${host_objs_extra}
 
 SUPCOBJS =	$(supcobjdir)/del_op.o \
 	$(supcobjdir)/del_opnt.o \
@@ -415,9 +491,11 @@ SUPCOBJS =	$(supcobjdir)/del_op.o \
 	$(supcobjdir)/eh_exception.o \
 	$(supcobjdir)/eh_globals.o \
 	$(supcobjdir)/eh_personality.o \
+	$(supcobjdir)/eh_term_handler.o \
 	$(supcobjdir)/eh_terminate.o \
 	$(supcobjdir)/eh_throw.o \
 	$(supcobjdir)/eh_type.o \
+	$(supcobjdir)/eh_unex_handler.o \
 	$(supcobjdir)/guard.o \
 	$(supcobjdir)/new_handler.o \
 	$(supcobjdir)/new_op.o \
@@ -427,7 +505,9 @@ SUPCOBJS =	$(supcobjdir)/del_op.o \
 	$(supcobjdir)/pure.o \
 	$(supcobjdir)/tinfo2.o \
 	$(supcobjdir)/tinfo.o \
-	$(supcobjdir)/vec.o
+	$(supcobjdir)/vec.o \
+	$(supcobjdir)/vterminate.o \
+	$(supcobjdir)/cp-demangle.o
 
 
 all:    $(ux_gcc_bin_dir)/$(TRG)/libstdc++.o \
@@ -438,6 +518,7 @@ install_headers:
 	$(insthdr) include/arm-riscos-aof/bits "*" bits $(ux_gccpkg)/$(gn_gplusplus_include_dir) $(ro_gccpkg)/$(gn_gplusplus_include_dir)
 	$(insthdr) include/backward "*" backward $(ux_gccpkg)/$(gn_gplusplus_include_dir) $(ro_gccpkg)/$(gn_gplusplus_include_dir)
 	$(insthdr) include/bits "*" bits $(ux_gccpkg)/$(gn_gplusplus_include_dir) $(ro_gccpkg)/$(gn_gplusplus_include_dir)
+	$(insthdr) include/debug "*" debug $(ux_gccpkg)/$(gn_gplusplus_include_dir) $(ro_gccpkg)/$(gn_gplusplus_include_dir)
 	$(insthdr) include/ext "*" ext $(ux_gccpkg)/$(gn_gplusplus_include_dir) $(ro_gccpkg)/$(gn_gplusplus_include_dir)
 	$(insthdr) libsupc "*.h" . $(ux_gccpkg)/$(gn_gplusplus_include_dir) $(ro_gccpkg)/$(gn_gplusplus_include_dir)
 	$(insthdr) libsupc exception . $(ux_gccpkg)/$(gn_gplusplus_include_dir) $(ro_gccpkg)/$(gn_gplusplus_include_dir)
@@ -460,13 +541,16 @@ import:
 	for x in $(bits_headers); do cp -a $$x ./include/bits; done
 	for x in $(backward_headers); do cp -a $$x ./include/backward; done
 	for x in $(ext_headers); do cp -a $$x ./include/ext; done
+	for x in $(debug_headers); do cp -a $$x ./include/debug; done
 	for x in $(c_base_headers); do cp -a $$x ./include; done
 	for x in $(c_base_headers_extra); do cp -a $$x ./include/bits; done
 	cp -a $(glibcpp_srcdir)/config/locale/generic/time_members.h ./include/bits
 	#for x in $(c_compatibility_headers); do cp -a $$x ./include; done
 	for x in $(std_headers); do cp -a $$x ./include; done
 	for x in $(target_headers); do cp -a $$x $(target_builddir); done
+	cp -a $(glibcpp_srcdir)/config/cpu/generic/atomic_word.h $(target_builddir)/atomic_word.h
 	cp -a $(glibcpp_srcdir)/config/io/basic_file_stdio.h $(target_builddir)/basic_file.h
+	cp -a $(glibcpp_srcdir)/config/allocator/new_allocator_base.h $(target_builddir)/c++allocator.h
 	cp -a $(glibcpp_srcdir)/config/io/c_io_stdio.h $(target_builddir)/c++io.h
 	cp -a $(glibcpp_srcdir)/config/locale/generic/c_locale.h $(target_builddir)/c++locale.h
 	cp -a $(glibcpp_srcdir)/config/locale/ieee_1003.1-2001/codecvt_specializations.h $(target_builddir)/codecvt_specializations.h
@@ -476,6 +560,7 @@ import:
 	for x in $(c_base_headers_rename); do mv ./include/std_$$x.h ./include/$$x; done
 	# Merge src directory
 	cp -a $(glibcpp_srcdir)/src/*.cc ./
+	cp -a $(glibcpp_srcdir)/config/cpu/generic/atomicity.h ./atomicity.cc
 	cp -a $(glibcpp_srcdir)/config/io/basic_file_stdio.cc ./basic_file.cc
 	cp -a $(glibcpp_srcdir)/config/locale/generic/c_locale.cc ./c++locale.cc
 	cp -a $(glibcpp_srcdir)/config/locale/generic/codecvt_members.cc ./codecvt_members.cc
@@ -489,11 +574,11 @@ import:
 	#cp -a $(glibcpp_srcdir)/libio/*.c ./
 	#cp -a $(glibcpp_srcdir)/libio/*.h ./
 	# Merge libsupc directory
-	cp -a $(glibcpp_srcdir)/libsupc/*.cc ./libsupc
-	cp -a $(glibcpp_srcdir)/libsupc/*.h ./libsupc
-	cp -a ${glibcpp_srcdir}/libsupc/new ./libsupc
-	cp -a ${glibcpp_srcdir}/libsupc/typeinfo ./libsupc
-	cp -a ${glibcpp_srcdir}/libsupc/exception ./libsupc
+	cp -a $(glibcpp_srcdir)/libsupc++/*.cc ./libsupc
+	cp -a $(glibcpp_srcdir)/libsupc++/*.h ./libsupc
+	cp -a ${glibcpp_srcdir}/libsupc++/new ./libsupc
+	cp -a ${glibcpp_srcdir}/libsupc++/typeinfo ./libsupc
+	cp -a ${glibcpp_srcdir}/libsupc++/exception ./libsupc
 
 $(libobjdir)/cp-demangle.o: ../../libiberty/cp-demangle.c ../../include/demangle.h
 	$(CROSS_CC) $(CROSS_CCFLAGS) -o $@ -c $< -I ../../include $(CFL) -DIN_GLIBCPP_V3
@@ -560,11 +645,15 @@ $(supcobjdir)/eh_globals.o: libsupc/eh_globals.cc
 	$(CROSS_CXX) $(CROSS_CXXFLAGS) -o $@ -c $< $(SUPCINCLUDES) $(CFL)
 $(supcobjdir)/eh_personality.o: libsupc/eh_personality.cc
 	$(CROSS_CXX) $(CROSS_CXXFLAGS) -o $@ -c $< $(SUPCINCLUDES) $(CFL)
+$(supcobjdir)/eh_term_handler.o: libsupc/eh_term_handler.cc
+	$(CROSS_CXX) $(CROSS_CXXFLAGS) -o $@ -c $< $(SUPCINCLUDES) $(CFL)
 $(supcobjdir)/eh_terminate.o: libsupc/eh_terminate.cc
 	$(CROSS_CXX) $(CROSS_CXXFLAGS) -o $@ -c $< $(SUPCINCLUDES) $(CFL)
 $(supcobjdir)/eh_throw.o: libsupc/eh_throw.cc
 	$(CROSS_CXX) $(CROSS_CXXFLAGS) -o $@ -c $< $(SUPCINCLUDES) $(CFL)
 $(supcobjdir)/eh_type.o: libsupc/eh_type.cc
+	$(CROSS_CXX) $(CROSS_CXXFLAGS) -o $@ -c $< $(SUPCINCLUDES) $(CFL)
+$(supcobjdir)/eh_unex_handler.o: libsupc/eh_unex_handler.cc
 	$(CROSS_CXX) $(CROSS_CXXFLAGS) -o $@ -c $< $(SUPCINCLUDES) $(CFL)
 $(supcobjdir)/guard.o: libsupc/guard.cc
 	$(CROSS_CXX) $(CROSS_CXXFLAGS) -o $@ -c $< $(SUPCINCLUDES) $(CFL)
@@ -586,3 +675,8 @@ $(supcobjdir)/tinfo.o: libsupc/tinfo.cc
 	$(CROSS_CXX) $(CROSS_CXXFLAGS) -o $@ -c $< $(SUPCINCLUDES) $(CFL)
 $(supcobjdir)/vec.o: libsupc/vec.cc
 	$(CROSS_CXX) $(CROSS_CXXFLAGS) -o $@ -c $< $(SUPCINCLUDES) $(CFL)
+$(supcobjdir)/vterminate.o: libsupc/vterminate.cc
+	$(CROSS_CXX) $(CROSS_CXXFLAGS) -o $@ -c $< $(SUPCINCLUDES) $(CFL)
+
+$(supcobjdir)/cp-demangle.o: ../../libiberty/cp-demangle.c
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c $< $(SUPCINCLUDES) -I ../../include $(CFL) -DIN_GLIBCPP_V3

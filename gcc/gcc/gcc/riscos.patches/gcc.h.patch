@@ -1,0 +1,11 @@
+--- /home/nick/riscos/masters/gcc-3.4/gcc/gcc.h	2003-07-06 07:15:35.000000000 +0100
++++ gcc.h	2004-04-20 19:56:06.000000000 +0100
+@@ -50,6 +50,8 @@ struct spec_function
+   || !strcmp (STR, "iwithprefix") || !strcmp (STR, "iwithprefixbefore") \
+   || !strcmp (STR, "isystem") || !strcmp (STR, "-param") \
+   || !strcmp (STR, "specs") \
++  || !strcmp (STR, "icrossdirafter") /* NAB++ */ \
++  || !strcmp (STR, "icrossdirsystem") /* NAB++ */ \
+   || !strcmp (STR, "MF") || !strcmp (STR, "MT") || !strcmp (STR, "MQ"))
+ 
+ 

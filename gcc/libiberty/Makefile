@@ -44,13 +44,14 @@ OBJS = $(objtarget)/asprintf.o \
 	$(objtarget)/hashtab.o \
 	$(objtarget)/hex.o \
 	$(objtarget)/lbasename.o \
+	$(objtarget)/lrealpath.o \
 	$(objtarget)/obstack.o \
 	$(objtarget)/make-temp-file.o \
 	$(objtarget)/make-relative-prefix.o \
 	$(objtarget)/md5.o \
 	$(objtarget)/mkstemps.o \
 	$(objtarget)/partition.o \
-	$(objtarget)/pexecute.o \
+	$(objtarget)/pex-unix.o \
 	$(objtarget)/physmem.o \
 	$(objtarget)/safe-ctype.o \
 	$(objtarget)/splay-tree.o \
@@ -102,13 +103,14 @@ $(objtarget)/getpwd.o: getpwd.c
 $(objtarget)/hashtab.o: hashtab.c
 $(objtarget)/hex.o: hex.c
 $(objtarget)/lbasename.o: lbasename.c
+$(objtarget)/lrealpath.o: lrealpath.c
 $(objtarget)/make-temp-file.o: make-temp-file.c
 $(objtarget)/make-relative-prefix.o: make-relative-prefix.c
 $(objtarget)/md5.o: md5.c
 $(objtarget)/mkstemps.o: mkstemps.c
 $(objtarget)/obstack.o: obstack.c
 $(objtarget)/partition.o: partition.c
-$(objtarget)/pexecute.o: pexecute.c
+$(objtarget)/pex-unix.o: pex-unix.c
 $(objtarget)/safe-ctype.o: safe-ctype.c
 $(objtarget)/splay-tree.o: splay-tree.c
 $(objtarget)/stpcpy.o: stpcpy.c

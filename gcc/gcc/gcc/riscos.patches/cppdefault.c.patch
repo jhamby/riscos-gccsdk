@@ -1,0 +1,29 @@
+--- /home/nick/riscos/masters/gcc-3.4/gcc/cppdefault.c	2003-03-01 14:31:12.000000000 +0000
++++ cppdefault.c	2004-04-20 20:50:05.000000000 +0100
+@@ -38,8 +38,12 @@ Foundation, 59 Temple Place - Suite 330,
+ # undef SYSTEM_INCLUDE_DIR
+ # undef STANDARD_INCLUDE_DIR
+ #else
++/* NAB++ */
++#ifndef TARGET_RISCOSAOF
+ # undef CROSS_INCLUDE_DIR
+ #endif
++/* NAB-- */
++#endif
+ 
+ const struct default_include cpp_include_defaults[]
+ #ifdef INCLUDE_DEFAULTS
+@@ -102,3 +106,13 @@ const char *cpp_SYSROOT = TARGET_SYSTEM_
+ #else
+ const char *cpp_SYSROOT = "";
+ #endif
++
++/* NAB++ */
++#ifdef CROSS_INCLUDE_DIR
++const char cpp_CROSS_INCLUDE_DIR[] = CROSS_INCLUDE_DIR;
++const size_t cpp_CROSS_INCLUDE_DIR_len = sizeof CROSS_INCLUDE_DIR;
++#else
++const char cpp_CROSS_INCLUDE_DIR[] = "";
++const size_t cpp_CROSS_INCLUDE_DIR_len = 0;
++#endif
++/* NAB-- */

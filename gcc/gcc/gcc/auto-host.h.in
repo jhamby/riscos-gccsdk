@@ -1,5 +1,14 @@
 /* auto-host.h.in.  Generated from configure.in by autoheader.  */
 
+/* 1234 = LIL_ENDIAN, 4321 = BIGENDIAN */
+#undef BYTEORDER
+
+/* Define as the number of bits in a byte, if `limits.h' doesn't. */
+#undef CHAR_BIT
+
+/* Define 0/1 to force the choice for exception handling model. */
+#undef CONFIG_SJLJ_EXCEPTIONS
+
 /* Define if you want more run-time sanity checks. This one gets a grab bag of
    miscellaneous but relatively cheap checks. */
 #undef ENABLE_CHECKING
@@ -109,8 +118,9 @@
 /* Define to 1 if you have the `fwrite_unlocked' function. */
 #undef HAVE_FWRITE_UNLOCKED
 
-/* Define to 1 if you have the `getpagesize' function. */
-#undef HAVE_GETPAGESIZE
+/* Define 0/1 if your assembler supports marking sections with SHF_MERGE flag.
+   */
+#undef HAVE_GAS_SHF_MERGE
 
 /* Define to 1 if you have the `getrlimit' function. */
 #undef HAVE_GETRLIMIT
@@ -136,9 +146,6 @@
 /* Define to 1 if you have the <limits.h> header file. */
 #undef HAVE_LIMITS_H
 
-/* Define if your compiler supports the `long double' type. */
-#undef HAVE_LONG_DOUBLE
-
 /* Define if your compiler supports the `long long' type. */
 #undef HAVE_LONG_LONG
 
@@ -157,10 +164,10 @@
 /* Define to 1 if you have the `mmap' function. */
 #undef HAVE_MMAP
 
-/* Define if mmap can get us zeroed pages using MAP_ANON(YMOUS). */
+/* Define if mmap with MAP_ANON(YMOUS) works. */
 #undef HAVE_MMAP_ANON
 
-/* Define if mmap can get us zeroed pages from /dev/zero. */
+/* Define if mmap of /dev/zero works. */
 #undef HAVE_MMAP_DEV_ZERO
 
 /* Define if read-only mmap of a plain file works. */
@@ -168,6 +175,9 @@
 
 /* Define to 1 if you have the `popen' function. */
 #undef HAVE_POPEN
+
+/* Define if printf supports "%p". */
+#undef HAVE_PRINTF_PTR
 
 /* Define to 1 if you have the `putc_unlocked' function. */
 #undef HAVE_PUTC_UNLOCKED
@@ -271,9 +281,6 @@
 /* Define to 1 if you have the <vfork.h> header file. */
 #undef HAVE_VFORK_H
 
-/* Define if your compiler understands volatile. */
-#undef HAVE_VOLATILE
-
 /* Define to 1 if you have the `vprintf' function. */
 #undef HAVE_VPRINTF
 
@@ -288,6 +295,10 @@
 
 /* Define if your compiler supports the `__int64' type. */
 #undef HAVE___INT64
+
+/* Define if the host machine stores words of multi-word integers in
+   big-endian order. */
+#undef HOST_WORDS_BIG_ENDIAN
 
 /* Program name */
 #undef PACKAGE
@@ -319,6 +330,9 @@
 /* The number of bytes in type short */
 #undef SIZEOF_SHORT
 
+/* The number of bytes in type void * */
+#undef SIZEOF_VOID_P
+
 /* The number of bytes in type __int64 */
 #undef SIZEOF___INT64
 
@@ -337,8 +351,7 @@
 /* Program version */
 #undef VERSION
 
-/* Define to 1 if your processor stores words with the most significant byte
-   first (like Motorola and SPARC, unlike Intel and VAX). */
+/* whether byteorder is bigendian */
 #undef WORDS_BIGENDIAN
 
 /* Define to 1 if `lex' declares `yytext' as a `char *' by default, not a

@@ -1,19 +1,21 @@
 /* Utility macros to handle Java(TM) byte codes.
 
-   Copyright (C) 1996, 1998, 1999  Free Software Foundation, Inc.
+   Copyright (C) 1996, 1998, 1999, 2003 Free Software Foundation, Inc.
 
-This program is free software; you can redistribute it and/or modify
+This file is part of GCC.
+
+GCC is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation; either version 2, or (at your option)
 any later version.
 
-This program is distributed in the hope that it will be useful,
+GCC is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU CC; see the file COPYING.  If not, write to
+along with GCC; see the file COPYING.  If not, write to
 the Free Software Foundation, 59 Temple Place - Suite 330,
 Boston, MA 02111-1307, USA.  
 
@@ -37,7 +39,7 @@ typedef unsigned int16	uint16;
 #endif
 typedef unsigned int32	uint32;
 
-/* A signed 64-bit (or more) integral type, suiteable for Java's 'long'. */
+/* A signed 64-bit (or more) integral type, suitable for Java's 'long'.  */
 #ifndef int64
 #define int64 long long
 #endif
@@ -47,11 +49,7 @@ typedef unsigned int32	uint32;
 #endif
 
 typedef uint16			jchar;
-#ifdef __STDC__
 typedef	signed char		jbyte;
-#else
-typedef	char			jbyte;
-#endif
 typedef int16                   jshort;
 typedef int32                   jint;
 typedef int64                   jlong;

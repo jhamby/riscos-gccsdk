@@ -1,0 +1,63 @@
+--- /home/nick/riscos/masters/gcc-3.4/gcc/config/arm/arm.md	2004-01-13 13:24:37.000000000 +0000
++++ config/arm/arm.md	2004-05-03 16:42:03.000000000 +0100
+@@ -30,7 +30,8 @@
+ 
+ ;; Register numbers
+ (define_constants
+-  [(IP_REGNUM	    12)		; Scratch register
++  [(SL_REGNUM       10)         ; Stack limit register
++   (IP_REGNUM	    12)		; Scratch register
+    (SP_REGNUM	    13)		; Stack pointer
+    (LR_REGNUM       14)		; Return address register
+    (PC_REGNUM	    15)		; Program counter
+@@ -87,6 +88,8 @@
+    (UNSPEC_CLRDI    17) ; Used by the intrinsic form of the iWMMXt CLRDI instruction.
+    (UNSPEC_WMADDS   18) ; Used by the intrinsic form of the iWMMXt WMADDS instruction.
+    (UNSPEC_WMADDU   19) ; Used by the intrinsic form of the iWMMXt WMADDU instruction.
++   (UNSPEC_STK 20)
++   (UNSPEC_STK_BIG 21)
+   ]
+ )
+ 
+@@ -7343,7 +7346,7 @@
+ 		    (match_operand 1 "general_operand" ""))
+ 	      (return)
+ 	      (use (match_operand 2 "" ""))])]
+-  "TARGET_ARM"
++  "TARGET_ARM && ! TARGET_APCS_STACK"
+   "
+   {
+     if (operands[2] == NULL_RTX)
+@@ -7357,7 +7360,7 @@
+ 			 (match_operand 2 "general_operand" "")))
+ 	      (return)
+ 	      (use (match_operand 3 "" ""))])]
+-  "TARGET_ARM"
++  "TARGET_ARM && ! TARGET_APCS_STACK"
+   "
+   {
+     if (operands[3] == NULL_RTX)
+@@ -7370,7 +7373,7 @@
+ 	(match_operand 1 "" ""))
+   (return)
+   (use (match_operand 2 "" ""))]
+-  "TARGET_ARM && GET_CODE (operands[0]) == SYMBOL_REF"
++  "TARGET_ARM && GET_CODE (operands[0]) == SYMBOL_REF && ! TARGET_APCS_STACK"
+   "*
+   return NEED_PLT_RELOC ? \"b%?\\t%a0(PLT)\" : \"b%?\\t%a0\";
+   "
+@@ -7383,7 +7386,7 @@
+ 	     (match_operand 2 "" "")))
+   (return)
+   (use (match_operand 3 "" ""))]
+-  "TARGET_ARM && GET_CODE (operands[1]) == SYMBOL_REF"
++  "TARGET_ARM && GET_CODE (operands[1]) == SYMBOL_REF && ! TARGET_APCS_STACK"
+   "*
+   return NEED_PLT_RELOC ? \"b%?\\t%a1(PLT)\" : \"b%?\\t%a1\";
+   "
+@@ -10052,3 +10055,5 @@
+ (include "cirrus.md")
+ ;; Load the Intel Wireless Multimedia Extension patterns
+ (include "iwmmxt.md")
++;; Load the RISC OS patterns
++(include "riscos.md")

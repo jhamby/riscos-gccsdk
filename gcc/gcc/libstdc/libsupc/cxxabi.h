@@ -1,21 +1,21 @@
 // new abi support -*- C++ -*-
   
-// Copyright (C) 2000, 2002 Free Software Foundation, Inc.
+// Copyright (C) 2000, 2002, 2003 Free Software Foundation, Inc.
 //
-// This file is part of GNU CC.
+// This file is part of GCC.
 //
-// GNU CC is free software; you can redistribute it and/or modify
+// GCC is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation; either version 2, or (at your option)
 // any later version.
 // 
-// GNU CC is distributed in the hope that it will be useful,
+// GCC is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 // 
 // You should have received a copy of the GNU General Public License
-// along with GNU CC; see the file COPYING.  If not, write to
+// along with GCC; see the file COPYING.  If not, write to
 // the Free Software Foundation, 59 Temple Place - Suite 330,
 // Boston, MA 02111-1307, USA.
 
@@ -39,8 +39,8 @@
    is includable from both C and C++. Though the C++ specific parts are not
    available in C, naturally enough.  */
 
-#ifndef __CXXABI_H
-#define __CXXABI_H 1
+#ifndef _CXXABI_H
+#define _CXXABI_H 1
 
 #ifdef __cplusplus
 
@@ -384,9 +384,6 @@ public:
   enum __flags_masks {
     __non_diamond_repeat_mask = 0x1,   /* distinct instance of repeated base */
     __diamond_shaped_mask = 0x2,       /* diamond shaped multiple inheritance */
-    non_public_base_mask = 0x4,      /* has non-public direct or indirect base */
-    public_base_mask = 0x8,          /* has public base (direct) */
-    
     __flags_unknown_mask = 0x10
   };
 

@@ -1,0 +1,12 @@
+--- /home/nick/riscos/masters/gcc-3.4/gcc/cppdefault.h	2003-03-01 14:31:12.000000000 +0000
++++ cppdefault.h	2004-04-20 19:55:29.000000000 +0100
+@@ -51,4 +51,9 @@ extern const size_t cpp_GCC_INCLUDE_DIR_
+ 
+ extern const char *cpp_SYSROOT;
+ 
++/* NAB++ */
++extern const char cpp_CROSS_INCLUDE_DIR[];
++extern const size_t cpp_CROSS_INCLUDE_DIR_len;
++/* NAB-- */
++
+ #endif /* ! GCC_CPPDEFAULT_H */

@@ -27,12 +27,18 @@ CXX_C_OBJS = \
 	$(gccobjdir)/c-dump.o \
 	$(gccobjdir)/c-pretty-print.o \
 	$(gccobjdir)/c-opts.o \
+	$(gccobjdir)/c-pch.o \
+	$(gccobjdir)/c-incpath.o \
+	$(gccobjdir)/cppdefault.o \
+	$(gccobjdir)/c-ppoutput.o \
+	$(gccobjdir)/c-cppbuiltin.o
 
 # C++ specific files
 C++OBJS = $(gccobjdir)/cp/call.o \
 	$(gccobjdir)/cp/class.o \
 	$(gccobjdir)/cp/cp-lang.o \
 	$(gccobjdir)/cp/cvt.o \
+	$(gccobjdir)/cp/cxx-pretty-print.o \
 	$(gccobjdir)/cp/decl.o \
 	$(gccobjdir)/cp/decl2.o \
 	$(gccobjdir)/cp/dump.o \
@@ -44,15 +50,15 @@ C++OBJS = $(gccobjdir)/cp/call.o \
 	$(gccobjdir)/cp/lex.o \
 	$(gccobjdir)/cp/mangle.o \
 	$(gccobjdir)/cp/method.o \
+	$(gccobjdir)/cp/name-lookup.o \
 	$(gccobjdir)/cp/optimize.o \
-	$(gccobjdir)/cp/parse.o \
+	$(gccobjdir)/cp/parser.o \
 	$(gccobjdir)/cp/pt.o \
 	$(gccobjdir)/cp/ptree.o \
 	$(gccobjdir)/cp/repo.o \
 	$(gccobjdir)/cp/rtti.o \
 	$(gccobjdir)/cp/search.o \
 	$(gccobjdir)/cp/semantics.o \
-	$(gccobjdir)/cp/spew.o \
 	$(gccobjdir)/cp/tree.o \
 	$(gccobjdir)/cp/typeck.o \
 	$(gccobjdir)/cp/typeck2.o
@@ -77,21 +83,21 @@ $(bin_dir)/g++$(gexesfx): $(gccobjdir)/cp/g++.o $(gccobjdir)/cp/g++spec.o \
 # There's no point having a suffix thing for these becuase
 # they're all built differently.
 
-parse.c parse.h: parse.y
-	$(BISON) -d parse.y -o parse.c
-	$(GREP) "^#define[ 	]*YYEMPTY" parse.c >>parse.h
-
 cfns.h: cfns.gperf
 	$(GPERF) -o -C -E -k 1-6,$ -j1 -D -N libc_name_p < cfns.gperf >$@
 
-$(gccobjdir)/cp/parse.o:	parse.c parse.y
+DRIVER_DEFINES = \
+  -DSTANDARD_STARTFILE_PREFIX=\"$(prefix)$(gn_standard_startfile_prefix)\" \
+  -DSTANDARD_EXEC_PREFIX=\"$(prefix)$(gn_standard_exec_prefix)\" \
+  -DSTANDARD_LIBEXEC_PREFIX=\"$(libexecdir)/gcc/\" \
+  -DDEFAULT_TARGET_VERSION=\"$(VERSION)\" \
+  -DDEFAULT_TARGET_MACHINE=\"$(TARGET_NAME)\" \
+  -DSTANDARD_BINDIR_PREFIX=\"$(prefix)/$(gn_standard_exec_prefix)\" \
+  -DTOOLDIR_BASE_PREFIX=\"$(prefix)/$(gn_standard_exec_prefix)\"
+
 
 $(gccobjdir)/cp/g++.o: ../gcc.c
-	$(CC) $(CFLAGS) $(INCLUDES) -o $@ -c ../gcc.c \
-	-DDEFAULT_TARGET_VERSION=\"$(VERSION)\" \
-	-DDEFAULT_TARGET_MACHINE=\"$(TARGET_NAME)\" -DLANG_SPECIFIC_DRIVER \
-	-DSTANDARD_STARTFILE_PREFIX=\"$(prefix)$(gn_standard_startfile_prefix)\" \
-	-DSTANDARD_EXEC_PREFIX=\"$(prefix)$(gn_standard_exec_prefix)\"
+	$(CC) $(CFLAGS) $(INCLUDES) -o $@ -c ../gcc.c $(DRIVER_DEFINES)
 
 
 # Dependencies
@@ -108,18 +114,17 @@ $(gccobjdir)/cp/expr.o: expr.c
 $(gccobjdir)/cp/friend.o: friend.c
 $(gccobjdir)/cp/g++spec.o: g++spec.c
 $(gccobjdir)/cp/init.o: init.c
-$(gccobjdir)/cp/lex.o: lex.c parse.h
+$(gccobjdir)/cp/lex.o: lex.c
 $(gccobjdir)/cp/mangle.o: mangle.c
 $(gccobjdir)/cp/method.o: method.c
 $(gccobjdir)/cp/optimize.o: optimize.c
-$(gccobjdir)/cp/parse.o: parse.c
+$(gccobjdir)/cp/parser.o: parser.c
 $(gccobjdir)/cp/pt.o: pt.c
 $(gccobjdir)/cp/ptree.o: ptree.c
 $(gccobjdir)/cp/repo.o: repo.c
 $(gccobjdir)/cp/rtti.o: rtti.c
 $(gccobjdir)/cp/search.o: search.c
 $(gccobjdir)/cp/semantics.o: semantics.c
-$(gccobjdir)/cp/spew.o: spew.c
 $(gccobjdir)/cp/tree.o: tree.c
 $(gccobjdir)/cp/typeck.o: typeck.c
 $(gccobjdir)/cp/typeck2.o: typeck2.c

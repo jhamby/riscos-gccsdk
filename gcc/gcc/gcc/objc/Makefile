@@ -30,6 +30,10 @@ $(gcc_bin_dir)/cc1obj$(gexesfx): $(BACKEND) $(OBJC_OBJS) $(RISCOS_OBJS) $(LIBDEP
 
 ##############################################################################
 
+objc-parse.y: ../c-parse.in
+	$(SED) -e "/^@@ifc.*/,/^@@end_ifc.*/d" -e "/^@@ifobjc.*/d" -e "/^@@end_ifobjc.*/d" < $< > $@
+
+
 objc-parse.c: objc-parse.y
 	$(BISON) objc-parse.y -o objc-parse.c
 

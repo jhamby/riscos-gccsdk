@@ -1,0 +1,106 @@
+--- /home/nick/riscos/masters/gcc-3.4/gcc/gcc.c	2004-05-03 15:24:05.000000000 +0100
++++ gcc.c	2004-05-05 23:59:12.000000000 +0100
+@@ -349,7 +349,7 @@ static void fatal_error (int);
+ static void init_gcc_specs (struct obstack *, const char *, const char *,
+ 			    const char *);
+ #endif
+-#if defined(HAVE_TARGET_OBJECT_SUFFIX) || defined(HAVE_TARGET_EXECUTABLE_SUFFIX)
++#if defined(HAVE_TARGET_OBJECT_SUFFIX) || defined(HAVE_TARGET_EXECUTABLE_SUFFIX) || defined(TARGET_CONVERT_FILENAME)
+ static const char *convert_filename (const char *, int, int);
+ #endif
+ 
+@@ -1023,6 +1023,10 @@ static const struct option_map option_ma
+    {"--imacros", "-imacros", "a"},
+    {"--include", "-include", "a"},
+    {"--include-barrier", "-I-", 0},
++   /* NAB++ */
++   {"--include-cross-directory-after", "-icrossdirafter", "a"},
++   {"--include-cross-directory-system", "-icrossdirsystem", "a"},
++   /* NAB-- */
+    {"--include-directory", "-I", "aj"},
+    {"--include-directory-after", "-idirafter", "a"},
+    {"--include-prefix", "-iprefix", "a"},
+@@ -2917,7 +2921,7 @@ static int warn_B;
+ /* Gives value to pass as "warn" to add_prefix for standard prefixes.  */
+ static int *warn_std_ptr = 0;
+ 
+-#if defined(HAVE_TARGET_OBJECT_SUFFIX) || defined(HAVE_TARGET_EXECUTABLE_SUFFIX)
++#if defined(HAVE_TARGET_OBJECT_SUFFIX) || defined(HAVE_TARGET_EXECUTABLE_SUFFIX) || defined (TARGET_CONVERT_FILENAME)
+ 
+ /* Convert NAME to a new name if it is the standard suffix.  DO_EXE
+    is true if we should look for an executable suffix.  DO_OBJ
+@@ -2927,6 +2931,9 @@ static const char *
+ convert_filename (const char *name, int do_exe ATTRIBUTE_UNUSED,
+ 		  int do_obj ATTRIBUTE_UNUSED)
+ {
++#ifdef TARGET_CONVERT_FILENAME
++  TARGET_CONVERT_FILENAME(&obstack, name, do_exe, do_obj);
++#else
+ #if defined(HAVE_TARGET_EXECUTABLE_SUFFIX)
+   int i;
+ #endif
+@@ -2970,6 +2977,7 @@ convert_filename (const char *name, int 
+ #endif
+ 
+   return name;
++#endif /* ! TARGET_CONVERT_FILENAME */
+ }
+ #endif
+ 
+@@ -3174,6 +3182,10 @@ process_command (int argc, const char **
+      see if we can create it from the pathname specified in argv[0].  */
+ 
+   gcc_libexec_prefix = standard_libexec_prefix;
++
++  /* NAB++ */
++#if 0
++  /* NAB-- */
+ #ifndef VMS
+   /* FIXME: make_relative_prefix doesn't yet work for VMS.  */
+   if (!gcc_exec_prefix)
+@@ -3192,6 +3204,9 @@ process_command (int argc, const char **
+ 					       standard_libexec_prefix);
+ #else
+ #endif
++  /* NAB++ */
++#endif
++  /* NAB-- */
+ 
+   if (gcc_exec_prefix)
+     {
+@@ -3663,7 +3678,7 @@ warranty; not even for MERCHANTABILITY o
+ 		    }
+ 		}
+ #endif
+-#if defined(HAVE_TARGET_EXECUTABLE_SUFFIX) || defined(HAVE_TARGET_OBJECT_SUFFIX)
++#if defined(HAVE_TARGET_EXECUTABLE_SUFFIX) || defined(HAVE_TARGET_OBJECT_SUFFIX) || defined(TARGET_CONVERT_FILENAME)
+ 	      if (p[1] == 0)
+ 		argv[i + 1] = convert_filename (argv[i + 1], ! have_c, 0);
+ 	      else
+@@ -4019,7 +4034,7 @@ warranty; not even for MERCHANTABILITY o
+ 	}
+       else
+ 	{
+-#ifdef HAVE_TARGET_OBJECT_SUFFIX
++#if defined (HAVE_TARGET_OBJECT_SUFFIX) || defined (TARGET_CONVERT_FILENAME)
+ 	  argv[i] = convert_filename (argv[i], 0, access (argv[i], F_OK));
+ #endif
+ 
+@@ -6423,10 +6438,17 @@ main (int argc, const char **argv)
+ 	  if (s == NULL)
+ 	    linker_name_spec = "ld";
+ 	}
++
++/* NAB++ */
++#ifndef __riscos__
++/* NAB-- */
+       /* Rebuild the COMPILER_PATH and LIBRARY_PATH environment variables
+ 	 for collect.  */
+       putenv_from_prefixes (&exec_prefixes, "COMPILER_PATH");
+       putenv_from_prefixes (&startfile_prefixes, LIBRARY_PATH_ENV);
++/* NAB++ */
++#endif
++/* NAB-- */
+ 
+       value = do_spec (link_command_spec);
+       if (value < 0)

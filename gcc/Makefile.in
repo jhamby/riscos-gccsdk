@@ -39,6 +39,7 @@ GREP=@GREP@
 GPERF=@GPERF@
 MAKEINFO=@MAKEINFO@
 SED=@SED@
+SHELL=@SHELL@
 
 # Installation directory of Unix binaries i.e. the stage 1 compiler.
 ux_gccpkg=@prefix@
@@ -61,9 +62,10 @@ objdir=@topdir@/$(TARGET_NAME)
 # Used in the GCC Makefiles and configuration files use these
 hostsystem=@host_system@
 targetsystem=HOST_ARM_RISCOS
+host=@host@
 
 # GCC compiler version that we are going to build.
-VERSION = 3_3
+VERSION = 3_4
 
 # Define the installation base directory.  These don't determine the actual
 # stored location of files, rather they are the hard-coded values that
@@ -130,12 +132,12 @@ export gn_gcc_include_dir gn_gplusplus_include_dir gn_share_dir
 export gn_local_include_dir gn_system_include_dir gn_cross_include_dir
 export gn_gcc_bin_dir info_dir exesfx ro_unixlibpkg ro_libsclpkg
 export ux_bin_dir ux_gcc_bin_dir ro_bin_dir ro_gcc_bin_dir
-export unixlib_incl_dir libscl_incl_dir
+export unixlib_incl_dir libscl_incl_dir host
 export CC CXX GNATCC CROSS_GCJ CROSS_GCJH
 export CROSS_CC CROSS_CXX CROSS_GNATBIND CROSS_CFLAGS CROSS_CXXFLAGS
 export CROSS_AR CROSS_AR_FLAGS CROSS_LINK
 export VERSION TARGET_NAME CFLAGS CXXFLAGS AR AR_FLAGS
-export BISON FLEX GPERF GREP MAKEINFO SED
+export BISON FLEX GPERF GREP MAKEINFO SED SHELL
 export insthdr instsrc
 
 all:	build-cross build-native
@@ -254,7 +256,7 @@ gcc-libs-stg2:
 	$(MAKE) -C gcc libf2c "TRG=$(trg20)" $(cfl20) "STAGE=stage2"
 	$(MAKE) -C gcc libf2c "TRG=$(trg30)" $(cfl30) "STAGE=stage2"
 	$(MAKE) -C gcc libstdc "TRG=$(trg20)" $(cfl20) "STAGE=stage2" "lib_incl_dir=$(unixlib_incl_dir)"
-	$(MAKE) -C gcc libstdc "TRG=$(trg30)" $(cfl30) "STAGE=stage2" "lib_incl_dir=$(libscl_incl_dir)"
+	#$(MAKE) -C gcc libstdc "TRG=$(trg30)" $(cfl30) "STAGE=stage2" "lib_incl_dir=$(libscl_incl_dir)"
 
 riscos-dist:
 	$(MAKE) -C riscos-dist install
