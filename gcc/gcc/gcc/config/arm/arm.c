@@ -586,7 +586,33 @@ arm_override_options (void)
 	abort ();
 
       insn_flags = sel->flags;
-      
+
+#ifdef TARGET_TUNE_DEFAULT
+      /* If the user didn't specify tuning either, use the target's
+	 preferred flags.  */
+      if (tune_flags == 0)
+	{
+	  struct processors * tunesel;
+	  struct cpu_default * tunedef;
+
+	  for (tunedef = cpu_defaults; tunedef->name; tunedef++)
+	    if (tunedef->cpu == TARGET_TUNE_DEFAULT)
+	      break;
+
+	  if (tunedef->name == NULL)
+	    abort ();
+
+	  for (tunesel = all_cores; tunesel->name != NULL; tunesel++)
+	    if (streq (tunedef->name, tunesel->name))
+	      break;
+
+	  if (tunesel->name == NULL)
+	    abort ();
+
+	  tune_flags = tunesel->flags;
+	}
+#endif
+
       /* Now check to see if the user has specified some command line
 	 switch that require certain abilities from the cpu.  */
       sought = 0;

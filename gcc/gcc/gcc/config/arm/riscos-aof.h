@@ -152,6 +152,9 @@ Boston, MA 02111-1307, USA.  */
 /* Override the normal default CPU.  */
 #define SUBTARGET_CPU_DEFAULT TARGET_CPU_arm6
 
+/* Tune for XScale.  */
+#define TARGET_TUNE_DEFAULT TARGET_CPU_xscale
+
 /* The minimum FPEmulator we now support is 4.00, which has
    full support for architecture 3.  */
 #define FPUTYPE_DEFAULT FPUTYPE_FPA_EMU3
