@@ -123,8 +123,6 @@ static void ldversion (int);
 static void ldhelp (void);
 static void parse_args (int, char **);
 
-extern char *riscos_to_unix (const char *, char *);
-
 #ifndef HAVE_STPCPY
 static char *stpcpy (char *s, const char *s2)
 {
@@ -720,12 +718,7 @@ tlink_execute (const char *prog, char **argv, char *redir, char *viafile)
 
   if (argv[0])
     {
-#ifdef CROSS_COMPILE
       s = stpcpy (command, argv[0]);
-#else
-      temp = __riscosify (argv[0], 0, 0, filename, sizeof (filename), NULL);
-      s = stpcpy (command, filename);
-#endif
       if (tlink_verbose >= 5)
 	fprintf (stderr, "*%s", argv[0]);
     }
@@ -745,14 +738,8 @@ tlink_execute (const char *prog, char **argv, char *redir, char *viafile)
 	}
       else
 	{
-#ifdef CROSS_COMPILE
 	  if (s != NULL)
 	    s = stpcpy (s, str);
-#else
-	  temp = __riscosify (str, 0, 0, filename, sizeof (filename), NULL);
-	  if (s != NULL)
-	    s = stpcpy (s, filename);
-#endif
 	}
 
       /* Increase the command line buffer if we're reaching the limit.  */
@@ -771,13 +758,7 @@ tlink_execute (const char *prog, char **argv, char *redir, char *viafile)
        (str = *p_argv) != (char *)0;
        p_argv++)
     {
-#ifdef CROSS_COMPILE
       temp = strcpy (filename, str);
-#else
-      /* Convert all the objects to a RISC OS format for the linker.  */
-      temp = __riscosify (str, 0, 0, filename,
-			  sizeof (filename), NULL);
-#endif
       if (temp != NULL)
 	{
 	  if (handle)
@@ -808,11 +789,7 @@ tlink_execute (const char *prog, char **argv, char *redir, char *viafile)
 
   if (handle)
     {
-#ifdef CROSS_COMPILE
       temp = strcpy (filename, viafile);
-#else
-      temp = __riscosify (viafile, 0, 0, filename, sizeof (filename), NULL);
-#endif
       if (temp != NULL)
 	{
 	  /* Reference our object file, if we created one.  */
@@ -824,11 +801,7 @@ tlink_execute (const char *prog, char **argv, char *redir, char *viafile)
 	}
     }
 
-#ifdef CROSS_COMPILE
   temp = strcpy (filename, redir);
-#else
-  temp = __riscosify (redir, 0, 0, filename, sizeof (filename), NULL);
-#endif
   if (temp != NULL)
     {
       /* Redirect linker output to another file for further processing.  */
@@ -1573,11 +1546,7 @@ static int check_and_add_library (const char *file_name)
 {
   char converted[256], *temp;
 
-#ifdef CROSS_COMPILE
   temp = strcpy (converted, file_name);
-#else
-  temp = __riscosify (file_name, 0, 0, converted, sizeof (converted), NULL);
-#endif
   if (temp == NULL)
     return 0;
 
@@ -1701,26 +1670,13 @@ add_library_search_path (const char *path)
 
 static void add_input_file (const char *fname)
 {
-#ifndef CROSS_COMPILE
-  char tmp[256];
-#endif
-
   if (tlink_verbose >= 4)
     printf ("adding object file %s\n", fname);
 
   /* Don't add object to the command line, let tlink_execute do that.  */
   /* append_arg (command_line, &command_line_offset, fname); */
 
-#ifdef CROSS_COMPILE
   append_arg (object_list, &object_offset, fname);
-#else
-  /* For tlink, we need to have all names in Unix format for proper
-     processing.  */
-
-  fname = __unixify_std(fname, tmp, sizeof(tmp), 0); 
-
-  append_arg (object_list, &object_offset, fname);
-#endif
 }
 
 static void add_output_file (const char *fname)
