@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/unix.c,v $
- * $Date: 2004/12/02 14:49:24 $
- * $Revision: 1.31 $
+ * $Date: 2004/12/11 14:18:57 $
+ * $Revision: 1.32 $
  * $State: Exp $
- * $Author: peter $
+ * $Author: joty $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: unix.c,v 1.31 2004/12/02 14:49:24 peter Exp $";
+static const char rcs_id[] = "$Id: unix.c,v 1.32 2004/12/11 14:18:57 joty Exp $";
 #endif
 
 #include <stdio.h>
@@ -66,6 +66,8 @@ static void __badr (void) __attribute__ ((__noreturn__));
    declaration here.  */
 extern int main (int argc, char *argv[], char **environ);
 
+/* Only called externally from here - see comment below */
+extern int dsp_exit(void);
 
 static void
 __badr (void)
@@ -363,6 +365,9 @@ _exit (int return_code)
       __pthread_stop_ticker ();
       __pthread_system_running = 0;
     }
+
+  /* De-register with DigitalRenderer in case of an exception */
+  dsp_exit();
 
   /* Convert the 16-bit return code into an 8-bit equivalent
      for compatibility with RISC OS.  See sys.c.vfork for

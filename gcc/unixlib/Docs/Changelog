@@ -1,3 +1,14 @@
+Thu Dec 23 20:51:31 2004  Peter Naulls  <peter@chocky.org>
+
+	* source/sound/dsp.c, source/clib/swis.h, source/clib/unixlib/dev.h,
+	  source/unix/dev.c, source/unix/write.c: Complete rewrite of
+	  DSP support to use streaming interface in DigitalRenderer
+	  and therefore suffer less lag.  Also will yield during write
+	  to prevent blocking, and better support for some ioctls.
+	* source/signal/signal.c, source/sys/_syslib.s: Fix typos.
+	* source/unix/unix.c: Ensure DigitalRenderer deregister on
+	  an abort.  
+
 Mon Dec 20 16:18:55 2004  Peter Naulls  <peter@chocky.org>
 
 	* source/math-asm/_fabsf.s: Added fabsf function.

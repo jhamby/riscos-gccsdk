@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/write.c,v $
- * $Date: 2004/10/17 16:24:45 $
- * $Revision: 1.5 $
+ * $Date: 2004/11/28 21:31:35 $
+ * $Revision: 1.6 $
  * $State: Exp $
  * $Author: joty $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: write.c,v 1.5 2004/10/17 16:24:45 joty Exp $";
+static const char rcs_id[] = "$Id: write.c,v 1.6 2004/11/28 21:31:35 joty Exp $";
 #endif
 
 /* #define DEBUG */
@@ -35,8 +35,6 @@ write (int fd, const void *buf, size_t nbytes)
   struct __unixlib_fd *file_desc;
   ssize_t status;
 
-  PTHREAD_UNSAFE_CANCELLATION
-
 #ifdef DEBUG
   __os_print ("write(fd="); __os_prdec (fd);
   __os_print (", nbytes="); __os_prdec (nbytes); __os_print (")\r\n");
@@ -60,6 +58,9 @@ write (int fd, const void *buf, size_t nbytes)
       return __set_errno (EBADF);
     }
 
+  pthread_testcancel();
+  __pthread_disable_ints();
+
   /* If the file is open for appending then we perform all write
      operations at the end of the file.  */
   if (file_desc->fflag & O_APPEND)
@@ -70,6 +71,8 @@ write (int fd, const void *buf, size_t nbytes)
 
   status = __funcall ((*(__dev[file_desc->device].write)),
 		      (file_desc, buf, nbytes));
+
+  __pthread_enable_ints();
 
 #if __UNIXLIB_FEATURE_PIPEDEV
   /* Raise the SIGPIPE signal if we tried to write to a pipe

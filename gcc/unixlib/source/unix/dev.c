@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/dev.c,v $
- * $Date: 2004/12/08 16:15:42 $
- * $Revision: 1.24 $
+ * $Date: 2004/12/11 14:18:57 $
+ * $Revision: 1.25 $
  * $State: Exp $
- * $Author: peter $
+ * $Author: joty $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: dev.c,v 1.24 2004/12/08 16:15:42 peter Exp $";
+static const char rcs_id[] = "$Id: dev.c,v 1.25 2004/12/11 14:18:57 joty Exp $";
 #endif
 
 /* #define DEBUG */
@@ -76,7 +76,7 @@ const struct dev __dev[NDEV] =
     __nulllseek, __nullioctl, __nullselect, __nullstat, __nullfstat },
 
   /* DEV_DSP */
-  {__dspopen, __dspclose, __nullread, __fswrite,
+  {__dspopen, __dspclose, __nullread, __dspwrite,
     __dsplseek, __dspioctl, __nullselect, __nullstat, __nullfstat }
 };
 

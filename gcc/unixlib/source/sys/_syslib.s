@@ -1,8 +1,8 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/_syslib.s,v $
-; $Date: 2004/11/28 21:31:34 $
-; $Revision: 1.33 $
+; $Date: 2004/12/11 14:18:57 $
+; $Revision: 1.34 $
 ; $State: Exp $
 ; $Author: joty $
 ;
@@ -199,7 +199,7 @@ CHUNK_OVERHEAD	*	24	; Size of chunk header
 	MOVVS	a1, #ERR_NO_SUL
 	BVS	|__exit_with_error_num|
 
-	; Use of da's explicitly overridden if __dynamic_no_da is declared
+	; Use of DAs explicitly overridden if __dynamic_no_da is declared
 	LDR	a1, =|__dynamic_no_da|
 	TEQ	a1, #0
 	BNE	no_dynamic_area
@@ -1143,6 +1143,7 @@ dynamic_area_name_end
 	EXPORT	|__unixlib_real_himem|
 	EXPORT	|__32bit|	; non-zero if executing in 32-bit mode
 	EXPORT	|__panic_mode|		; non-zero if we're panicing.
+	EXPORT  |__os_version|  ; OS Version returned from OS_byte 129
 
 	; Altering this structure will require fixing __main.
 struct_base

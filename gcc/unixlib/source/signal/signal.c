@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/signal/signal.c,v $
- * $Date: 2004/09/17 18:39:56 $
- * $Revision: 1.4 $
+ * $Date: 2004/10/08 11:56:13 $
+ * $Revision: 1.5 $
  * $State: Exp $
  * $Author: peter $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: signal.c,v 1.4 2004/09/17 18:39:56 peter Exp $";
+static const char rcs_id[] = "$Id: signal.c,v 1.5 2004/10/08 11:56:13 peter Exp $";
 #endif
 
 /* Written by Nick Burrett, 27 August 1996.  */
@@ -49,6 +49,6 @@ siginterrupt(int sig, int flag)
 {
   /* This is supposed to alter the behaviour of interrupted system calls.
      There's probably no sensible way to do this on RISC OS, and we're
-     unlikely to losing out on much.  Do nothing. */
+     unlikely to be losing out on much.  Do nothing. */
   return 0;
 }

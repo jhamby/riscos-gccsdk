@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/swis.h,v $
- * $Date: 2004/10/05 15:24:37 $
- * $Revision: 1.10 $
+ * $Date: 2004/10/17 16:24:43 $
+ * $Revision: 1.11 $
  * $State: Exp $
- * $Author: peter $
+ * $Author: joty $
  *
  ***************************************************************************/
 
@@ -706,7 +706,7 @@ __END_DECLS
 #define DigitalRenderer_New16bitSample 0x04f708
 #define DigitalRenderer_NumBuffers     0x04f709
 #define DigitalRenderer_StreamSamples  0x04f70a
-#define DigitalRenderer_Stream16bitSamples 0x04f70b
+#define DigitalRenderer_Stream16BitSamples 0x04f70b
 #define DigitalRenderer_StreamStatistics 0x4f70c
 #define DigitalRenderer_StreamFlags    0x4f70d
 #define DigitalRenderer_SetDefaults    0x4f70e

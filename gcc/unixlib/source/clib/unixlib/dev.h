@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/unixlib/dev.h,v $
- * $Date: 2004/10/23 17:23:36 $
- * $Revision: 1.9 $
+ * $Date: 2004/12/03 11:37:51 $
+ * $Revision: 1.10 $
  * $State: Exp $
- * $Author: joty $
+ * $Author: peter $
  *
  ***************************************************************************/
 
@@ -122,6 +122,7 @@ extern int __randomread (struct __unixlib_fd *__file_desc, void *__data, int __n
 /* /dev/dsp support */
 extern void *__dspopen (struct __unixlib_fd *__file_desc, const char *__file, int __mode);
 extern int __dspclose (struct __unixlib_fd *__fd);
+extern int __dspwrite (struct __unixlib_fd *__fd, const void *__data, int __nbyte);
 extern __off_t __dsplseek (struct __unixlib_fd *__fd, __off_t __lpos, int __whence);
 extern int __dspioctl (struct __unixlib_fd *__fd, unsigned long __request, void *__arg);
 
