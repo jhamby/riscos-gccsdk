@@ -624,6 +624,7 @@ UNIX =	$(libunixobj)/unix/access.o \
 	$(libunixobj)/unix/getenv.o \
 	$(libunixobj)/unix/gethostnam.o \
 	$(libunixobj)/unix/getopt.o \
+	$(libunixobj)/unix/getopt1.o \
 	$(libunixobj)/unix/getsubopt.o \
 	$(libunixobj)/unix/glob.o \
 	$(libunixobj)/unix/ioctl.o \
@@ -1401,6 +1402,7 @@ $(libunixobj)/unix/getdtables.o: unix/getdtables.c
 $(libunixobj)/unix/gethostnam.o: unix/gethostnam.c
 $(libunixobj)/unix/getcwd.o: unix/getcwd.c
 $(libunixobj)/unix/getopt.o: unix/getopt.c
+$(libunixobj)/unix/getopt1.o: unix/getopt1.c
 $(libunixobj)/unix/getsubopt.o: unix/getsubopt.c
 $(libunixobj)/unix/glob.c: unix/glob.c
 $(libunixobj)/unix/ioctl.o: unix/ioctl.c

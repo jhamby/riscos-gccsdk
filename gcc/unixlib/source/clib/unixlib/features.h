@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/unixlib/features.h,v $
- * $Date: 2003/04/29 21:16:11 $
- * $Revision: 1.8 $
+ * $Date: 2003/05/11 18:20:01 $
+ * $Revision: 1.9 $
  * $State: Exp $
- * $Author: alex $
+ * $Author: joty $
  *
  ***************************************************************************/
 
@@ -156,6 +156,10 @@
 # ifndef _FILE_OFFSET_BITS
 #  define _FILE_OFFSET_BITS      32
 # endif
+#endif
+
+#ifdef __UNIXLIB_INTERNALS
+# define __GNU_LIBRARY__
 #endif
 
 /* A lot of GNU glibc code is depending on this. I don't know if it is

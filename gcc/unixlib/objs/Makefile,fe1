@@ -1,10 +1,10 @@
 # Project:   GCCSDK UnixLib
 
 # $Source: /usr/local/cvsroot/gccsdk/unixlib/objs/Makefile,fe1,v $
-# $Date: 2003/05/06 22:31:54 $
-# $Revision: 1.14 $
+# $Date: 2003/05/11 18:20:01 $
+# $Revision: 1.15 $
 # $State: Exp $
-# $Author: alex $
+# $Author: joty $
 
 CCfeatures =
 Predefs = -D__UNIXLIB_INTERNALS
@@ -252,7 +252,7 @@ UNIX =	unix.o.access unix.o.alphasort unix.o.chdir unix.o.chmod \
 	unix.o.dirent unix.o.dup unix.o.dup2 unix.o.fchmod \
 	unix.o.features unix.o.fnmatch unix.o.fcntl unix.o.fstat \
 	unix.o.getcwd unix.o.getdomain unix.o.getenv unix.o.gethostnam \
-	unix.o.getopt unix.o.getsubopt unix.o.glob unix.o.ioctl \
+	unix.o.getopt unix.o.getopt1 unix.o.getsubopt unix.o.glob unix.o.ioctl \
 	unix.o.isatty unix.o.ispipe unix.o.lseek unix.o.lstat \
 	unix.o.mkdir unix.o.nice unix.o.open unix.o.pathconf unix.o.pipe \
 	unix.o.poll unix.o.proc unix.o.pselect unix.o.putenv unix.o.read \
@@ -1012,6 +1012,8 @@ unix.o.getenv:		unix.c.getenv
 unix.o.getdtables:	unix.c.getdtables
 unix.o.gethostnam:	unix.c.gethostnam
 unix.o.getcwd:		unix.c.getcwd
+unix.o.getopt:		unix.c.getopt
+unix.o.getopt1:		unix.c.getopt1
 unix.o.getsubopt:	unix.c.getsubopt
 unix.o.ioctl:		unix.c.ioctl
 unix.o.isatty:		unix.c.isatty

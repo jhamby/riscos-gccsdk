@@ -1,3 +1,12 @@
+Mon May 13 21:51:36 2003  Alex Waugh  <alex@alexwaugh.com>
+
+	* objs/Makefile,fe1: Add getopt1.c
+	* source/Makefile: Likewise.
+	* source/clib/unixlib/features.h: Define __GNU_LIBRARY__
+	* source/clib/getopt.h: Replace with file from glibc 2.3.1
+	* source/unix/getopt.c: Likewise.
+	* source/unix/getopt1.c: New file from glibc 2.3.1
+
 Sun May 11 22:01:15 2003  Alex Waugh  <alex@alexwaugh.com>
 
 	* sys/_os.s (__os_file, __os_fread, __os_fwrite, __os_args): Store a1
