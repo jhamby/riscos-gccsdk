@@ -3,7 +3,7 @@
 # Written by Nick Burrett <nick@dsvr.net>
 
 AC_INIT(Makefile.in)
-AC_CONFIG_HEADER(config.h)
+AC_CONFIG_HEADER(sdk-config.h)
 AC_CANONICAL_SYSTEM
 AC_ARG_PROGRAM
 
