@@ -355,19 +355,24 @@ diagnostic_report_diagnostic (diagnostic_context *context,
     {
       (*diagnostic_starter (context)) (context, diagnostic);
       pp_format_text (context->printer, &diagnostic->message);
-      (*diagnostic_finalizer (context)) (context, diagnostic);
 
 #ifdef ERROR_THROWBACK
       {
-	char *s = build_message_string (diagnostic->message.format_spec,
-					diagnostic->message.args_ptr);
+	const char *s;
+
+	/* pp_base_format_verbatim (context->printer, &diagnostic->message); */
+	s = pp_formatted_text (context->printer);
+	/* printf ("throwback = '%s'\n", s); */
 	ERROR_THROWBACK (diagnostic->location.file,
 			 diagnostic->location.line,
 			 (diagnostic->kind == DK_WARNING) ? "warning" : NULL,
 			 s);
-	free (s);
+	/* free (s); */
       }
 #endif
+
+      (*diagnostic_finalizer (context)) (context, diagnostic);
+
       pp_flush (context->printer);
       diagnostic_action_after_output (context, diagnostic);
     }
