@@ -1,9 +1,20 @@
+Wed Sep  8 18:04:02 2004  John Tytgat  <John.Tytgat@aaug.net>
+
+	* objs/.cvsignore: Added sound directory.
+	* source/sys/_mem.s: Go back to v1.4 (i.e. before the Sep 7 2004 changes)
+	  as there were, yet unidentified, problems with it.
+	* source/sound/dsp.c (__dspopen): Enforce DigitalRenderer version 0.51.
+	* source/sys/vfork.c: Include sys/debug.h instead of stdio.h when DEBUG
+	  is defined.
+
 Wed Sep  8 10:13:16 2004  Peter Naulls  <peter@chocky.org>
+
 	* source/sys/_mem.s: Revert memcpy breakage (shows up on RISC OS 5)
 	* source/sound/dsp.c: Improve stereo support, and add additional
 	  ioctls.
 
 Tue Sep  7 18:47:59 2004  Peter Naulls  <peter@chocky.org>
+
 	* source/clib/swis.h, source/clib/sys/soundcard.h,
 	  source/clib/unixlib/dev.h, source/sound/dsp.h,
 	  source/unix/dev.c: Experimental /dev/dsp support.

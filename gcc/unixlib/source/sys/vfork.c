@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/vfork.c,v $
- * $Date: 2004/03/17 20:00:51 $
- * $Revision: 1.7 $
+ * $Date: 2004/09/07 14:05:11 $
+ * $Revision: 1.8 $
  * $State: Exp $
  * $Author: joty $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: vfork.c,v 1.7 2004/03/17 20:00:51 joty Exp $";
+static const char rcs_id[] = "$Id: vfork.c,v 1.8 2004/09/07 14:05:11 joty Exp $";
 #endif
 
 #include <errno.h>
@@ -36,9 +36,7 @@ static const char rcs_id[] = "$Id: vfork.c,v 1.7 2004/03/17 20:00:51 joty Exp $"
 
 /* #define DEBUG 1 */
 
-#ifdef DEBUG
-#include <stdio.h>
-#endif
+#include <sys/debug.h>
 
 static void free_process (struct proc *p)
 {

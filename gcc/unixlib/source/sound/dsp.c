@@ -1,8 +1,8 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sound/dsp.c,v $
- * $Date: 2004/09/07 17:49:40 $
- * $Revision: 1.1 $
+ * $Date: 2004/09/08 09:15:54 $
+ * $Revision: 1.2 $
  * $State: Exp $
  * $Author: peter $
  *
@@ -55,9 +55,9 @@ void *__dspopen (struct __unixlib_fd *file_desc, const char *file, int mode)
   IGNORE(mode);
 
   __os_cli("RMEnsure DigitalRenderer 0.51 RMload System:Modules.DRenderer");
-
-  if ((err = set_defaults(2, 2, BUFFER_SIZE, 44100)) ||
-      (err = __os_fopen (OSFILE_OPENOUT, "DRender:", &handle)))
+  if ((err = __os_cli("RMEnsure DigitalRenderer 0.51 Error XYZ")) != NULL
+      || (err = set_defaults(2, 2, BUFFER_SIZE, 44100)) != NULL
+      || (err = __os_fopen (OSFILE_OPENOUT, "DRender:", &handle)) != NULL)
     {
       __seterr (err);
       return (void *) -1;
@@ -77,6 +77,8 @@ int __dspclose (struct __unixlib_fd *fd)
 
 int __dspioctl (struct __unixlib_fd *fd, unsigned long request, void *arg)
 {
+  IGNORE(fd);
+
   switch (request & 0xffff)
     {
       case SNDCTL_DSP_RESET & 0xffff:
