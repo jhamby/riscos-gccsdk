@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/dev.c,v $
- * $Date: 2003/08/15 13:56:31 $
- * $Revision: 1.14 $
+ * $Date: 2003/10/06 19:00:01 $
+ * $Revision: 1.15 $
  * $State: Exp $
  * $Author: joty $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: dev.c,v 1.14 2003/08/15 13:56:31 joty Exp $";
+static const char rcs_id[] = "$Id: dev.c,v 1.15 2003/10/06 19:00:01 joty Exp $";
 #endif
 
 /* #define DEBUG */
@@ -53,10 +53,13 @@ static const char rcs_id[] = "$Id: dev.c,v 1.14 2003/08/15 13:56:31 joty Exp $";
 
 struct dev __dev[NDEV] =
 {
+  /* DEV_RISCOS */
   {__fsopen, __fsclose, __fsread, __fswrite,
     __fslseek, __fsioctl, __fsselect, __fsstat, __fsfstat },
+  /* DEV_TTY */
   {__ttyopen, __ttyclose, __ttyread, __ttywrite,
     __ttylseek, __ttyioctl, __ttyselect, __nullstat, __nullfstat },
+  /* DEV_PIPE */
 #if __FEATURE_PIPEDEV
   {__pipeopen, __pipeclose, __piperead, __pipewrite,
     __pipelseek, __pipeioctl, __pipeselect, __nullstat, __nullfstat },
@@ -64,8 +67,10 @@ struct dev __dev[NDEV] =
   {__nullopen, __nullclose, __nullread, __nullwrite,
     __nulllseek, __nullioctl, __nullselect, __nullstat, __nullfstat },
 #endif
+  /* DEV_NULL */
   {__nullopen, __nullclose, __nullread, __nullwrite,
     __nulllseek, __nullioctl, __nullselect, __nullstat, __nullfstat },
+  /* DEV_SOCKET */
 #if __FEATURE_SOCKET
   /* Socket select is a special case.  */
   {__sockopen, __sockclose, __sockread, __sockwrite,
@@ -74,8 +79,10 @@ struct dev __dev[NDEV] =
   {__nullopen, __nullclose, __nullread, __nullwrite,
     __nulllseek, __nullioctl, __nullselect, __nullstat, __nullfstat },
 #endif
+  /* DEV_ZERO */
   {__nullopen, __nullclose, __zeroread, __nullwrite,
     __nulllseek, __nullioctl, __nullselect, __nullstat, __nullfstat },
+  /* DEV_RANDOM */
   {__randomopen, __nullclose, __randomread, __nullwrite,
     __nulllseek, __nullioctl, __nullselect, __nullstat, __nullfstat }
 };
@@ -83,7 +90,14 @@ struct dev __dev[NDEV] =
 /* Map of special device names to device types.  */
 struct sfile
 {
-  const char *name;
+  const char *name; /* The 'xxx' in /dev/xxx (if defined)  */
+  const dev_t dev; /* Allocated device number, see DEV_* definitions  */
+};
+
+/* Map of RISC OS FS to device types.  */
+struct rofs2dev
+{
+  const char *rofsname;
   const dev_t dev;
 };
 
@@ -102,9 +116,31 @@ static const struct sfile __sfile[] =
   {NULL, DEV_RISCOS} /* table terminator */
 };
 
+static const struct rofs2dev __rofs2dev[] =
+{
+  {"null:", DEV_NULL},
+/*   {"pipe:", DEV_PIPE}, makes sense ? What about filename mapping ?  */
+  {NULL, DEV_RISCOS} /* table terminator */
+};
+
 const dev_t
 __getdevtype (const char *filename)
 {
+  const int ro_control = __get_riscosify_control();
+
+  if ((ro_control & __RISCOSIFY_NO_PROCESS)
+      || !(ro_control & __RISCOSIFY_STRICT_UNIX_SPECS))
+    {
+      const struct rofs2dev *rofs2dev;
+
+      for (rofs2dev = __rofs2dev; rofs2dev->rofsname != NULL; ++rofs2dev)
+        {
+          if (strncmp (rofs2dev->rofsname, filename,
+                       strlen(rofs2dev->rofsname)) == 0)
+            return rofs2dev->dev;
+        }
+    }
+
   if (filename[0] == '/' && filename[1] == 'd' && filename[2] == 'e' &&
       filename[3] == 'v' && filename[4] == '/')
     {

@@ -1,3 +1,9 @@
+Sun Oct 12 22:16:01 2003  John Tytgat  <John.Tytgat@aaug.net>
+
+	* source/unix/dev.c (__getdevtype): Introduced rofs2dev mapping table
+	  which maps RISC OS FS to Unix devices where it makes sense.  Solves
+	  null: as stdin redirection problem reported by Stefan Bellon.
+
 Mon Oct 06 20:00:01 2003  John Tytgat  <John.Tytgat@aaug.net>
 
 	* Docs/ReadMe: Added some more info on UnixEnv$<program name>$sfix.
