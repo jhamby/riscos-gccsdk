@@ -1,5 +1,5 @@
 --- /home/nick/riscos/masters/gcc-3.4/gcc/config/arm/arm.md	2004-01-13 13:24:37.000000000 +0000
-+++ config/arm/arm.md	2004-05-03 16:42:03.000000000 +0100
++++ config/arm/arm.md	2004-05-31 16:10:43.000000000 +0100
 @@ -30,7 +30,8 @@
  
  ;; Register numbers

@@ -1,5 +1,5 @@
---- /home/nick/riscos/masters/gcc-3.4/gcc/builtins.c	2004-05-31 11:33:10.923669008 +0100
-+++ builtins.c	2004-05-31 12:49:14.293931280 +0100
+--- /home/nick/riscos/masters/gcc-3.4/gcc/builtins.c	2004-05-31 11:33:10.000000000 +0100
++++ builtins.c	2004-06-18 15:08:38.267211616 +0100
 @@ -437,6 +437,41 @@ expand_builtin_return_addr (enum built_i
      count--;
  #endif
@@ -42,15 +42,34 @@
    /* Scan back COUNT frames to the specified frame.  */
    for (i = 0; i < count; i++)
      {
-@@ -1203,6 +1238,11 @@ expand_builtin_apply (rtx function, rtx 
+@@ -1135,7 +1170,6 @@ expand_builtin_apply_args_1 (void)
+ 		     NULL_RTX);
+ #endif
+   emit_move_insn (adjust_address (registers, Pmode, 0), tem);
+-  
+   size = GET_MODE_SIZE (Pmode);
+ 
+   /* Save the structure value address unless this is passed as an
+@@ -1203,6 +1237,11 @@ expand_builtin_apply (rtx function, rtx 
    rtx call_fusage = 0;
    rtx struct_value = targetm.calls.struct_value_rtx (cfun ? TREE_TYPE (cfun->decl) : 0, 0);
  
 +#ifdef TARGET_RISCOSAOF
 +  /* This is really broken on RISC OS.  */
-+  abort ();
++  cfun->machine->apply_args = 1;
 +#endif
 +
    arguments = convert_memory_address (Pmode, arguments);
  
    /* Create a block where the return registers can be saved.  */
+@@ -1235,8 +1274,8 @@ expand_builtin_apply (rtx function, rtx 
+ 
+   /* Allocate a block of memory onto the stack and copy the memory
+      arguments to the outgoing arguments address.  */
+-  allocate_dynamic_stack_space (argsize, 0, BITS_PER_UNIT);
+-  dest = virtual_outgoing_args_rtx;
++  dest = allocate_dynamic_stack_space (argsize, 0, BITS_PER_UNIT);
++  //dest = virtual_outgoing_args_rtx;
+ #ifndef STACK_GROWS_DOWNWARD
+   if (GET_CODE (argsize) == CONST_INT)
+     dest = plus_constant (dest, -INTVAL (argsize));

@@ -1,5 +1,5 @@
 --- /home/nick/riscos/masters/gcc-3.4/gcc/config/arm/arm.c	2004-05-03 15:24:51.000000000 +0100
-+++ config/arm/arm.c	2004-05-31 10:38:57.071329000 +0100
++++ config/arm/arm.c	2004-06-18 15:09:47.348709632 +0100
 @@ -110,6 +110,7 @@ static unsigned long arm_isr_value (tree
  static unsigned long arm_compute_func_type (void);
  static tree arm_handle_fndecl_attribute (tree *, tree, tree, int, bool *);
@@ -205,7 +205,7 @@
 +  if (from == ARG_POINTER_REGNUM && to == STACK_POINTER_REGNUM
 +      && ! arm_apcs_frame_needed ())
 +    return 1;
-+
++  
 +  /* FRAMEP can be eliminated to STACKP.  */
 +  if (from == FRAME_POINTER_REGNUM && to == STACK_POINTER_REGNUM)
 +    return 1;
@@ -263,10 +263,10 @@
 +      return (local_vars + outgoing_args + call_saved_registers
 +	      + stack_frame - 4);
 +    }
- 
++
 +  if (from == FRAME_POINTER_REGNUM && to == STACK_POINTER_REGNUM)
 +    return 0;
-+
+ 
 +  abort ();
 +#else
    /* OK, now we have enough information to compute the distances.
@@ -281,7 +281,7 @@
  		  && current_function_needs_context
  		  && ! cfun->machine->uses_anonymous_args) ? 4 : 0;
  
-@@ -9207,7 +9292,68 @@ arm_compute_initial_elimination_offset (
+@@ -9207,8 +9292,69 @@ arm_compute_initial_elimination_offset (
  	 hard frame pointer will never be used.  */
        abort ();
      }
@@ -297,8 +297,8 @@
 +    cfun->machine->leaf = leaf_function_p ();
 +
 +  return cfun->machine->leaf;
-+}
-+
+ }
+ 
 +/* Return 1 if the function prologue should contain an explicit
 +   stack check.  */
 +static int
@@ -345,11 +345,12 @@
 +    return 1;
 +
 +  return 0;
- }
++}
 +/* NAB-- */
- 
++
  /* Calculate the size of the stack frame, taking into account any
     padding that is required to ensure stack-alignment.  */
+ HOST_WIDE_INT
 @@ -9242,7 +9388,7 @@ arm_get_frame_size (void)
    if (reload_completed)
      return cfun->machine->frame_size;
@@ -439,7 +440,21 @@
        if (IS_NESTED (func_type))
  	{
  	  /* Recover the static chain register.  */
-@@ -9537,16 +9719,14 @@ arm_expand_prologue (void)
+@@ -9526,8 +9708,13 @@ arm_expand_prologue (void)
+ 	    insn = gen_rtx_REG (SImode, 3);
+ 	  else /* if (current_function_pretend_args_size == 0) */
+ 	    {
++#ifdef TARGET_RISCOSAOF
++	      insn = gen_rtx_PLUS (SImode, fp_rtx,
++				   GEN_INT (4));
++#else
+ 	      insn = gen_rtx_PLUS (SImode, hard_frame_pointer_rtx,
+ 				   GEN_INT (4));
++#endif
+ 	      insn = gen_rtx_MEM (SImode, insn);
+ 	    }
+ 
+@@ -9537,16 +9724,14 @@ arm_expand_prologue (void)
  	}
      }
  
@@ -458,7 +473,7 @@
        do
  	{
  	  last = last ? NEXT_INSN (last) : get_insns ();
-@@ -9557,9 +9737,20 @@ arm_expand_prologue (void)
+@@ -9557,9 +9742,20 @@ arm_expand_prologue (void)
        /* If the frame pointer is needed, emit a special barrier that
  	 will prevent the scheduler from moving stores to the frame
  	 before the stack adjustment.  */
@@ -469,7 +484,7 @@
 +
 +      /* NAB++ */
 +#ifdef TARGET_RISCOSAOF
-+      if (! optimize)
++      if (cfun->machine->apply_args || ! optimize)
 +        {
 +          insn = emit_insn (gen_movsi (frame_pointer_rtx,
 +                                       stack_pointer_rtx));
@@ -480,7 +495,7 @@
      }
  
    /* If we are profiling, make sure no instructions are scheduled before
-@@ -10519,7 +10710,7 @@ arm_debugger_arg_offset (int value, rtx 
+@@ -10519,7 +10715,7 @@ arm_debugger_arg_offset (int value, rtx 
    
    /* If we are using the stack pointer to point at the
       argument, then an offset of 0 is correct.  */
@@ -489,15 +504,16 @@
        && REGNO (addr) == SP_REGNUM)
      return 0;
    
-@@ -12093,6 +12284,7 @@ arm_init_machine_status (void)
+@@ -12093,6 +12289,8 @@ arm_init_machine_status (void)
  #if ARM_FT_UNKNOWN != 0  
    machine->func_type = ARM_FT_UNKNOWN;
  #endif
 +  machine->leaf = -1; /* NAB */
++  machine->apply_args = 0;
    return machine;
  }
  
-@@ -12230,7 +12422,7 @@ thumb_expand_prologue (void)
+@@ -12230,7 +12428,7 @@ thumb_expand_prologue (void)
        return;
      }
  
@@ -506,7 +522,7 @@
      {
        insn = emit_insn (gen_movsi (hard_frame_pointer_rtx, stack_pointer_rtx));
        RTX_FRAME_RELATED_P (insn) = 1;
-@@ -12267,7 +12459,7 @@ thumb_expand_prologue (void)
+@@ -12267,7 +12465,7 @@ thumb_expand_prologue (void)
  	     it now.  */
  	  for (regno = LAST_ARG_REGNUM + 1; regno <= LAST_LO_REGNUM; regno++)
  	    if (THUMB_REG_PUSHED_P (regno)
@@ -515,7 +531,7 @@
  		     && (regno == THUMB_HARD_FRAME_POINTER_REGNUM)))
  	      break;
  
-@@ -12340,7 +12532,7 @@ thumb_expand_epilogue (void)
+@@ -12340,7 +12538,7 @@ thumb_expand_epilogue (void)
    if (IS_NAKED (arm_current_func_type ()))
      return;
  
@@ -524,7 +540,7 @@
      emit_insn (gen_movsi (stack_pointer_rtx, hard_frame_pointer_rtx));
    else if (amount)
      {
-@@ -12937,10 +13129,22 @@ arm_asm_output_labelref (FILE *stream, c
+@@ -12937,10 +13135,22 @@ arm_asm_output_labelref (FILE *stream, c
        name += skip;
      }
  
@@ -547,7 +563,7 @@
  }
  
  rtx aof_pic_label;
-@@ -13022,6 +13226,30 @@ aof_data_section (void)
+@@ -13022,6 +13232,30 @@ aof_data_section (void)
    return buf;
  }
  
@@ -578,7 +594,7 @@
  /* The AOF assembler is religiously strict about declarations of
     imported and exported symbols, so that it is impossible to declare
     a function as imported near the beginning of the file, and then to
-@@ -13081,8 +13309,8 @@ aof_dump_imports (FILE *f)
+@@ -13081,8 +13315,8 @@ aof_dump_imports (FILE *f)
    if (arm_main_function)
      {
        text_section ();
@@ -589,7 +605,7 @@
      }
  
    /* Now dump the remaining imports.  */
-@@ -13106,6 +13334,8 @@ aof_globalize_label (FILE *stream, const
+@@ -13106,6 +13340,8 @@ aof_globalize_label (FILE *stream, const
  static void
  aof_file_start (void)
  {

@@ -1,5 +1,5 @@
 --- /home/nick/riscos/masters/gcc-3.4/gcc/diagnostic.c	2003-09-22 06:09:12.000000000 +0100
-+++ diagnostic.c	2004-06-01 19:31:20.621068432 +0100
++++ diagnostic.c	2004-06-01 19:31:20.000000000 +0100
 @@ -355,7 +355,24 @@ diagnostic_report_diagnostic (diagnostic
      {
        (*diagnostic_starter (context)) (context, diagnostic);

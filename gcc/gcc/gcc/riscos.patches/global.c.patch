@@ -1,5 +1,5 @@
 --- /home/nick/riscos/masters/gcc-3.4/gcc/global.c	2003-12-20 02:39:43.000000000 +0000
-+++ global.c	2004-04-20 19:22:34.000000000 +0100
++++ global.c	2004-05-31 16:10:33.000000000 +0100
 @@ -323,7 +323,9 @@ global_alloc (FILE *file)
  #endif
    int need_fp

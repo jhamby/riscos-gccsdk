@@ -1,5 +1,5 @@
 --- /home/nick/riscos/masters/gcc-3.4/gcc/c.opt	2004-02-18 00:09:03.000000000 +0000
-+++ c.opt	2004-04-20 19:58:26.000000000 +0100
++++ c.opt	2004-05-31 16:10:22.000000000 +0100
 @@ -688,6 +688,10 @@ gen-decls
  ObjC ObjC++
  Dump declarations to a .decl file

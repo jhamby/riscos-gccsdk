@@ -1,5 +1,5 @@
 --- /home/nick/riscos/masters/gcc-3.4/gcc/f/com.c	2003-12-29 16:16:37.000000000 +0000
-+++ f77/com.c	2004-04-20 18:47:56.000000000 +0100
++++ f77/com.c	2004-05-31 16:10:53.000000000 +0100
 @@ -16521,5 +16521,5 @@ typedef doublereal E_f; // real function
  
  */

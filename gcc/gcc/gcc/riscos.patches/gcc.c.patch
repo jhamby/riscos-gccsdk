@@ -1,5 +1,5 @@
 --- /home/nick/riscos/masters/gcc-3.4/gcc/gcc.c	2004-05-03 15:24:05.000000000 +0100
-+++ gcc.c	2004-05-05 23:59:12.000000000 +0100
++++ gcc.c	2004-05-31 16:10:30.000000000 +0100
 @@ -349,7 +349,7 @@ static void fatal_error (int);
  static void init_gcc_specs (struct obstack *, const char *, const char *,
  			    const char *);

@@ -1,5 +1,5 @@
 --- /home/nick/riscos/masters/gcc-3.4/gcc/config/arm/arm.h	2004-03-09 02:59:54.000000000 +0000
-+++ config/arm/arm.h	2004-05-31 10:12:11.120471000 +0100
++++ config/arm/arm.h	2004-06-18 15:11:02.168335320 +0100
 @@ -1100,13 +1100,17 @@ extern const char * structure_size_strin
  #define ARM_HARD_FRAME_POINTER_REGNUM	11
  #define THUMB_HARD_FRAME_POINTER_REGNUM	 7
@@ -88,18 +88,20 @@
  
  /* If we generate an insn to push BYTES bytes,
     this says how many the stack pointer really advances by.  */
-@@ -1685,6 +1710,10 @@ typedef struct machine_function GTY(())
+@@ -1685,6 +1710,12 @@ typedef struct machine_function GTY(())
    /* Records if sibcalls are blocked because an argument
       register is needed to preserve stack alignment.  */
    int sibcall_blocked;
 +  /* NAB++ */
 +  /* Non-zero if this is a leaf function.  */
 +  int leaf;
++  /* Non-zero if this function calls __builtin_apply.  */
++  int apply_args;
 +  /* NAB-- */
  }
  machine_function;
  
-@@ -1882,6 +1911,11 @@ typedef struct
+@@ -1882,6 +1913,11 @@ typedef struct
     pointer.  Note we have to use {ARM|THUMB}_HARD_FRAME_POINTER_REGNUM
     because the definition of HARD_FRAME_POINTER_REGNUM is not a constant.  */
  
@@ -111,7 +113,7 @@
  #define ELIMINABLE_REGS						\
  {{ ARG_POINTER_REGNUM,        STACK_POINTER_REGNUM            },\
   { ARG_POINTER_REGNUM,        FRAME_POINTER_REGNUM            },\
-@@ -1890,21 +1924,11 @@ typedef struct
+@@ -1890,21 +1926,11 @@ typedef struct
   { FRAME_POINTER_REGNUM,      STACK_POINTER_REGNUM            },\
   { FRAME_POINTER_REGNUM,      ARM_HARD_FRAME_POINTER_REGNUM   },\
   { FRAME_POINTER_REGNUM,      THUMB_HARD_FRAME_POINTER_REGNUM }}
@@ -136,7 +138,7 @@
  
  #define THUMB_REG_PUSHED_P(reg)					\
    (regs_ever_live [reg]						\
-@@ -2064,8 +2088,8 @@ typedef struct
+@@ -2064,8 +2090,8 @@ typedef struct
  /*   On the ARM, don't allow the pc to be used.  */
  #define ARM_REGNO_OK_FOR_BASE_P(REGNO)			\
    (TEST_REGNO (REGNO, <, PC_REGNUM)			\
@@ -147,7 +149,7 @@
  
  #define THUMB_REGNO_MODE_OK_FOR_BASE_P(REGNO, MODE)		\
    (TEST_REGNO (REGNO, <=, LAST_LO_REGNUM)			\
-@@ -2168,8 +2192,8 @@ typedef struct
+@@ -2168,8 +2194,8 @@ typedef struct
  #define ARM_REG_OK_FOR_BASE_P(X)		\
    (REGNO (X) <= LAST_ARM_REGNUM			\
     || REGNO (X) >= FIRST_PSEUDO_REGISTER	\
@@ -158,7 +160,7 @@
  
  #define THUMB_REG_MODE_OK_FOR_BASE_P(X, MODE)	\
    (REGNO (X) <= LAST_LO_REGNUM			\
-@@ -2635,6 +2659,17 @@ extern int making_const_table;
+@@ -2635,6 +2661,17 @@ extern int making_const_table;
  	asm_fprintf (STREAM, "%r", 					\
  		     REGNO (XEXP (XEXP (X, 1), 1)));			\
      }									\
