@@ -1,12 +1,12 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/unixlib/local.h,v $
- * $Date: 2004/02/07 18:09:18 $
- * $Revision: 1.12 $
+ * $Date: 2004/02/29 16:44:59 $
+ * $Revision: 1.13 $
  * $State: Exp $
  * $Author: alex $
  *
- * This file should eventually contain most / all of the unixlib specific
+ * This file should eventually contain most / all of the UnixLib specific
  * functions.
  ***************************************************************************/
 
@@ -176,7 +176,7 @@ extern int __riscosify_control; /* Note: this is a weak symbol.  */
 #define __RISCOSIFY_FILETYPE_NOTSPECIFIED -1
 
 /* Convert Unix filenames/pathnames to RISC OS format creating the final
-   directory if necessary and CREATE_DIR is non-zero.
+   directory if necessary and __create_dir is non-zero.
    Pass RISC OS pathnames through unchanged (only when
    __RISCOSIFY_STRICT_UNIX_SPECS is clear).
    Returns pointer to terminating '\0' in buffer,
@@ -205,39 +205,38 @@ extern void __set_riscosify_control (int __riscosify_flags);
 
 #endif  /* __UNIXLIB_INTERNALS */
 
-/* Convert `__name' into a Unix style pathname and store in `buffer'.
-   If buffer is non-null then it is at least buf_len long.  If buffer
-   is null then a buffer is malloc'ed to store the Unix pathname.
-   Return a pointer to the terminating `\0' in the generated Unix pathname
-   or null on failure.  */
+/* Convert __name into a Unix style pathname and store in __buffer.
+   If buffer is non-NULL then it is at least __buf_len long.  If __buffer
+   is NULL then a buffer is malloc'ed to store the Unix pathname.
+   Return a pointer to the result or NULL on failure.  */
 extern char *__unixify (const char *__name, int __unixify_flags,
 			char *__buffer, size_t __buf_len, int __filetype);
 
 extern char *__unixify_std (const char *__name,
-       	       	       	    char *__buffer, size_t __buf_len,
-       	       	       	    int __filetype);
+			    char *__buffer, size_t __buf_len,
+			    int __filetype);
 
 /* Get an object's filetype, object type, etc and do some common checks.
    Returns nonzero and sets errno on error. Returns riscosified filename
    in __buffer. __objtype, __ftype and __attr may be NULL if not needed. */
-int
+extern int
 __object_get_attrs (const char *__ux_file, char *__buffer, size_t __buf_len,
-                    int *__objtype, int *__ftype, int *__loadaddr,
-                    int *__execaddr, int *__length, int *__attr);
+		    int *__objtype, int *__ftype, int *__loadaddr,
+		    int *__execaddr, int *__length, int *__attr);
 
 #define __ATTR_NOTSPECIFIED (-1)
 
 /* Sets an objects filetype and attributes (either can be set to
    __ATTR_NOTSPECIFIED to leave unchanged).
    Returns nonzero and sets errno on error.  */
-int
+extern int
 __object_set_attrs (const char *__ux_file, char *__buffer, size_t __buf_len,
-                    int __ftype, int __attr);
+		    int __ftype, int __attr);
 
 /* Returns malloced block of memory holding DDEUtils_Prefix non zero-length
    string value or NULL when there isn't one set.  Caller needs to free
    memory after use.  */
-const char *__get_dde_prefix (void);
+extern const char *__get_dde_prefix (void);
 
 __END_DECLS
 

@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/common/unixify.c,v $
- * $Date: 2003/08/18 22:35:36 $
- * $Revision: 1.6 $
+ * $Date: 2004/02/07 18:09:18 $
+ * $Revision: 1.7 $
  * $State: Exp $
- * $Author: joty $
+ * $Author: alex $
  *
  ***************************************************************************/
 
@@ -18,29 +18,24 @@
 
 /* Call __unixify with __riscosify_flags as the unixify_flags.  */
 char *__unixify_std (const char *name, char *buffer, size_t buflen,
-     		     int filetype)
+		     int filetype)
 {
   return __unixify (name, __get_riscosify_control (), buffer, buflen,
 		    filetype);
 }
 
 /* Convert RO_PATH into a Unix style pathname and store in BUFFER. If BUFFER
-   is non-null then it is at least BUF_LEN long. If BUFFER is null, then a
+   is non-NULL then it is at least BUF_LEN long. If BUFFER is NULL, then a
    buffer is malloc'ed to store the Unix pathname. Return a pointer to the
-   BUFFER (when not NULL) or the malloc block (when NULL), or null on
-   failure.  */
+   result, or NULL on failure.  */
 char *
 __unixify (const char *ro_path, int unixify_flags, char *buffer,
-  	   size_t buf_len, int filetype)
+	   size_t buf_len, int filetype)
 {
-  char *buf_end, *out;
-  const char *in0;
-  char current, next;
-  int can_be_discname = 1;
-  const char *const in_buf = buffer; /* Null if we malloc the buffer.  */
-
-  if (!buf_len)
-    return NULL;
+  char *out_end, *out;
+  char current;
+  int can_be_discname;
+  const char *const in_buf = buffer; /* = NULL if we malloc the buffer.  */
 
   if (buffer == NULL)
     {
@@ -48,12 +43,14 @@ __unixify (const char *ro_path, int unixify_flags, char *buffer,
 
       /* Allow for the ,xyz filetype extension.  */
       if ((unixify_flags & __RISCOSIFY_FILETYPE_EXT) != 0
-          && filetype != __RISCOSIFY_FILETYPE_NOTSPECIFIED)
-        buf_len += 4;
+	  && filetype != __RISCOSIFY_FILETYPE_NOTSPECIFIED)
+	buf_len += 4;
 
       if ((buffer = malloc (buf_len)) == NULL)
 	return NULL;
     }
+  else if (buf_len == 0)
+    return NULL;
 
   if (unixify_flags & __RISCOSIFY_NO_PROCESS)
     {
@@ -67,7 +64,7 @@ __unixify (const char *ro_path, int unixify_flags, char *buffer,
 
   /* buf_len > 0 and buffer != NULL.  */
   out = buffer;
-  buf_end = buffer + buf_len;
+  out_end = buffer + buf_len;
 
   *out = '/';
 
@@ -78,6 +75,9 @@ __unixify (const char *ro_path, int unixify_flags, char *buffer,
      use of them is virtually deprecated (see PRM 2-11).  */
   if (isalnum (current = *ro_path) || current == '_')
     {
+      const char *in0;
+      char next;
+
       in0 = ro_path;
       while (isalnum (next = *++in0) || next == '_')
 	;
@@ -106,6 +106,8 @@ __unixify (const char *ro_path, int unixify_flags, char *buffer,
       else
 	can_be_discname = 0;
     }
+  else
+    can_be_discname = 1;
 
   /* A comment describing what we are doing here would be nice.
      current == ':' => we've got fsname::something.  */
@@ -122,7 +124,7 @@ __unixify (const char *ro_path, int unixify_flags, char *buffer,
 	  if (current == '/')
 	    current = '.';
 
-	  if (out < buf_end)
+	  if (out < out_end)
 	    *out++ = current;
 
 	  current = *++ro_path;
@@ -130,7 +132,7 @@ __unixify (const char *ro_path, int unixify_flags, char *buffer,
 
       /* out = buf_len means we are exactly full
 	 out > buf_len means a bug!  */
-      if (out >= buf_end)
+      if (out >= out_end)
 	goto buf_overflow;
 
       if (current == '.')
@@ -148,9 +150,10 @@ __unixify (const char *ro_path, int unixify_flags, char *buffer,
      (ie nothing)
      and we are pointing at not-a-'.' (possibly '\0').  */
 
-  while ((current = *ro_path) != '\0' && out < buf_end)
+  while ((current = *ro_path) != '\0' && out < out_end)
     {
-      next = *(ro_path + 1);
+      const char next = ro_path[1];
+
       if (next == '.' || next == '\0')
 	{
 	  switch (current)
@@ -162,31 +165,31 @@ __unixify (const char *ro_path, int unixify_flags, char *buffer,
 	      if (buffer == out)
 		out++; /* Use that '/' already there.  */
 
-	      if (out < buf_end)
+	      if (out < out_end)
 		*out++ = current;
 	      ro_path++;
 
 	      if (next == '.')
 		{
-		  if (out < buf_end)
+		  if (out < out_end)
 		    *out++ = '/';
 		  ro_path++;
 		}
 	      continue;
 
 	    case '^':
-	      if (out < buf_end)
+	      if (out < out_end)
 		*out++ = '.';
 	      /* Drop through...  */
 
 	    case '@':
-	      if (out < buf_end)
+	      if (out < out_end)
 		*out++ = '.';
 	      ro_path++;
 
 	      if (next == '.')
 		{
-		  if (out < buf_end)
+		  if (out < out_end)
 		    *out++ = '/';
 		  ro_path++;
 		}
@@ -198,7 +201,7 @@ __unixify (const char *ro_path, int unixify_flags, char *buffer,
       /* Copy until end of name or end of directory ('.').  */
       while (current != '\0' && current != '.')
 	{
-	  if (out < buf_end)
+	  if (out < out_end)
 	    *out++ = __filename_char_map[(unsigned char) current];
 
 	  current = *++ro_path;
@@ -206,106 +209,106 @@ __unixify (const char *ro_path, int unixify_flags, char *buffer,
 
       if (current == '.')
 	{
-	  if (out < buf_end)
+	  if (out < out_end)
 	    *out++ = '/';
 	  ++ro_path;
 	}
     }
 
-  if (out < buf_end)
+  if (out < out_end)
     {
       *out = '\0';
 
       /* Do suffix swapping, if needed.  */
       if ((unixify_flags & __RISCOSIFY_NO_REVERSE_SUFFIX) == 0)
-        {
-          char *after_suffix;
+	{
+	  char *after_suffix;
 
-          /* Skip leafname.  */
-          for (after_suffix = out - 1;
-               after_suffix != buffer && *after_suffix != '/';
-               after_suffix --)
-            ;
-          if (*after_suffix == '/')
-            {
-              char *before_suffix;
+	  /* Skip leafname.  */
+	  for (after_suffix = out - 1;
+	       after_suffix > buffer && *after_suffix != '/';
+	       --after_suffix)
+	    ;
+	  if (after_suffix > buffer && *after_suffix == '/')
+	    {
+	      char *before_suffix;
 
-              for (before_suffix = after_suffix - 1;
-                   before_suffix != buffer && *before_suffix != '/';
-                   before_suffix --)
-                ;
+	      for (before_suffix = after_suffix - 1;
+		   before_suffix > buffer && *before_suffix != '/';
+		   --before_suffix)
+		;
 
-              if (before_suffix == buffer || *before_suffix++ == '/')
-                {
-                  /* before_suffix is "c/file"
-                     after_suffix is "/file"  */
-                  *after_suffix = '\0'; /* temporary.  */
-                  if (__sfixfind (before_suffix, after_suffix - before_suffix))
-                    {
-                      /* We need to do reverse suffix swapping.  */
-                      char suffix[32];
+	      if (before_suffix == buffer || *before_suffix++ == '/')
+		{
+		  /* before_suffix is "c/file"
+		     after_suffix is "/file"  */
+		  *after_suffix = '\0'; /* temporary.  */
+		  if (__sfixfind (before_suffix, after_suffix - before_suffix))
+		    {
+		      /* We need to do reverse suffix swapping.  */
+		      char suffix[32];
 
-                      memcpy (suffix, before_suffix,
-                      	      after_suffix - before_suffix + 1);
-                      strcpy (before_suffix, after_suffix + 1);
-                      before_suffix[out - after_suffix - 1] = '.';
-                      strcpy (before_suffix + (out - after_suffix - 1) + 1,
-                      	      suffix);
-                    }
-                  else
-                    *after_suffix = '/';
-                }
-            }
-        }
+		      memcpy (suffix, before_suffix,
+			      after_suffix - before_suffix + 1);
+		      strcpy (before_suffix, after_suffix + 1);
+		      before_suffix[out - after_suffix - 1] = '.';
+		      strcpy (before_suffix + (out - after_suffix - 1) + 1,
+			      suffix);
+		    }
+		  else
+		    *after_suffix = '/';
+		}
+	    }
+	}
 
       /* Do filetype extension, if needed.  */
       if ((unixify_flags & __RISCOSIFY_FILETYPE_EXT) != 0
-          && filetype != __RISCOSIFY_FILETYPE_NOTSPECIFIED)
-        {
-          int ft_extension_needed = 1;
+	  && filetype != __RISCOSIFY_FILETYPE_NOTSPECIFIED)
+	{
+	  int ft_extension_needed = 1;
 
-          if (!(unixify_flags & __RISCOSIFY_FILETYPE_NOT_SET))
-            {
-              char *fn_extension;
+	  if (!(unixify_flags & __RISCOSIFY_FILETYPE_NOT_SET))
+	    {
+	      const char *fn_extension;
 
-              /* Check if we don't have a *filename* extension which already maps
-                 via MimeMap to the filetype 'filetype'.  If so, no need to
-                 add the RISC OS filetype again using *filetype* extension.  */
-              for (fn_extension = out - 1;
-                   fn_extension != buffer
-                   && *fn_extension != '/' && *fn_extension != '.';
-                   --fn_extension)
-                ;
-              if (*fn_extension == '.')
-                {
-                  _kernel_swi_regs regs;
+	      /* Check if we don't have a *filename* extension which already maps
+		 via MimeMap to the filetype 'filetype'.  If so, no need to
+		 add the RISC OS filetype again using *filetype* extension.  */
+	      for (fn_extension = out - 1;
+		   fn_extension != buffer
+		   && *fn_extension != '/' && *fn_extension != '.';
+		   --fn_extension)
+		;
+	      if (*fn_extension == '.')
+		{
+		  _kernel_swi_regs regs;
 
-                  /* We have a filename extension at 'fn_extension'.  */
-                  regs.r[0] = MMM_TYPE_DOT_EXTN; /* Input extension */
-                  regs.r[1] = (int)fn_extension;
-                  regs.r[2] = MMM_TYPE_RISCOS; /* Output extension */
+		  /* We have a filename extension at 'fn_extension'.  */
+		  regs.r[0] = MMM_TYPE_DOT_EXTN; /* Input extension */
+		  regs.r[1] = (int)fn_extension;
+		  regs.r[2] = MMM_TYPE_RISCOS; /* Output extension */
 
-                  /* When there is no MimeMap error and the filetype returned
-                     matches 'filetype', we don't want filetype extension.  */
-                  if (! _kernel_swi (MimeMap_Translate, &regs, &regs)
-                      && regs.r[3] == filetype)
-                    ft_extension_needed = 0;
-                }
-            }
+		  /* When there is no MimeMap error and the filetype returned
+		     matches 'filetype', we don't want filetype extension.  */
+		  if (! _kernel_swi (MimeMap_Translate, &regs, &regs)
+		      && regs.r[3] == filetype)
+		    ft_extension_needed = 0;
+		}
+	    }
 
-          if (ft_extension_needed)
-            {
-              /* We need to add filetype ",xyz".  */
-              if ((out + 4) >= buf_end)
-                goto buf_overflow;
+	  if (ft_extension_needed)
+	    {
+	      /* We need to add filetype ",xyz".  */
+	      if ((out + 4) >= out_end)
+		goto buf_overflow;
 
-              *out++ = ',';
-              *out++ = "0123456789abcdef"[(filetype >> 8) & 0xf];
-              *out++ = "0123456789abcdef"[(filetype >> 4) & 0xf];
-              *out++ = "0123456789abcdef"[(filetype >> 0) & 0xf];
-              *out = '\0';
-            }
-        }
+	      *out++ = ',';
+	      *out++ = "0123456789abcdef"[(filetype >> 8) & 0xf];
+	      *out++ = "0123456789abcdef"[(filetype >> 4) & 0xf];
+	      *out++ = "0123456789abcdef"[(filetype >> 0) & 0xf];
+	      *out = '\0';
+	    }
+	}
 
       return buffer;
     }

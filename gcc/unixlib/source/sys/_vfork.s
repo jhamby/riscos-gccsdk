@@ -1,8 +1,8 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/_vfork.s,v $
-; $Date: 2003/12/29 16:37:00 $
-; $Revision: 1.8 $
+; $Date: 2004/06/12 08:59:49 $
+; $Revision: 1.9 $
 ; $State: Exp $
 ; $Author: peter $
 ;
@@ -33,6 +33,7 @@
 vfork
 fork
 	STMFD	sp!, {lr}
+
 	[ __FEATURE_PTHREADS = 1
 	LDR	a1, =|__pthread_system_running|
 	LDR	a1, [a1]
@@ -43,6 +44,7 @@ fork
 	BL	|__pthread_stop_ticker|
 pthread_skip1
 	]
+
 	BL	|__vfork|
 	; If zero was returned, we will return -1
 	CMP	a1, #0
@@ -53,6 +55,7 @@ pthread_skip1
 	; starts running again.
 	LDR	a2, =|__saved_lr|
 	STR	lr, [a2]
+
 	[ __FEATURE_PTHREADS = 1
 	; save __pthread_system_running, as the child process
 	; will always set it to 0 on exit
@@ -61,19 +64,23 @@ pthread_skip1
 	LDR	a3, [a3]
 	STR	a3, [a2]
 	]
+
 	BL	setjmp
+
 	[ __FEATURE_PTHREADS = 1
 	LDR	a2, =|__saved_pthread_system_running|
 	LDR	a3, =|__pthread_system_running|
 	LDR	a2, [a2]
 	STR	a2, [a3]
 	]
+
 	LDR	a2, =|__saved_lr|
 	TEQ	a1, #0
 	LDR	lr, [a2]
 	BNE	return_parent
 	; Return from the vfork in the child process
 	STMFD	sp!, {lr}
+
 	[ __FEATURE_PTHREADS = 1
 	LDR	a1, =|__pthread_system_running|
 	LDR	a1, [a1]
@@ -83,6 +90,7 @@ pthread_skip1
 	BL	|__pthread_atfork_callparentchild|
 pthread_skip2
 	]
+
 	MOV	a1, #0
 	stackreturn	AL, "pc"
 
@@ -106,6 +114,7 @@ return_parent	; Return from the vfork in the parent process
 	SUBVC	a2, a2, a3
 	SWIVC	XOS_ChangeDynamicArea
 return_parent2
+
 	[ __FEATURE_PTHREADS = 1
 	LDR	a1, =|__pthread_system_running|
 	LDR	a1, [a1]
@@ -116,6 +125,7 @@ return_parent2
 	BL	|__pthread_atfork_callparentchild|
 pthread_skip3
 	]
+
 	stackreturn	AL, "a1,a2,a3,a4,v1,v2,v3,v4,v5,pc"
 
 return_fail
@@ -129,6 +139,7 @@ return_fail
 	BL	|__pthread_atfork_callparentchild|
 pthread_skip4
 	]
+
 	MVN	a1, #0
 	stackreturn	AL, "pc"
 
@@ -136,8 +147,7 @@ pthread_skip4
 	EXPORT	|__vret|
 |__vret|
 	BL	|__vexit|
-	; The location of the child pid in jmp_buf
-	LDR	a2, [a1, #60]
+	LDR	a2, [a1, #60]		; a2 = child pid in jmp_buf
 	B	longjmp
 
 	AREA	|C$$zidata|, DATA, NOINIT

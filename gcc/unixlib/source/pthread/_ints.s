@@ -1,10 +1,10 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/pthread/_ints.s,v $
-; $Date: 2003/05/07 22:10:27 $
-; $Revision: 1.3 $
+; $Date: 2003/11/23 20:26:45 $
+; $Revision: 1.4 $
 ; $State: Exp $
-; $Author: alex $
+; $Author: joty $
 ;
 ;----------------------------------------------------------------------------
 
@@ -51,8 +51,8 @@
 	LDR	a1, [a2]
 	[ PARANOID = 1
 	CMP	a1, #0
-	ADRLE	a1, |semazero|
-	BLE	|__pthread_fatal_error|
+	ADRLS	a1, |semazero|
+	BLS	|__pthread_fatal_error|
 	]
 	SUB	a1, a1, #1
 	STR	a1, [a2]
@@ -105,7 +105,7 @@
 
 	[ PARANOID = 1
 |noframe|
-	DCB "__pthread_protect_unsafe called without an apcs stack frame" ,0
+	DCB "__pthread_protect_unsafe called without an APCS stack frame" ,0
 	ALIGN
 |return_notempty|
 	DCB	"Return address is not empty in __pthread_protect_unsafe", 0

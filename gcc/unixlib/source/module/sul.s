@@ -1,43 +1,38 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/module/sul.s,v $
-; $Date: 2003/06/01 17:21:03 $
-; $Revision: 1.4 $
+; $Date: 2003/10/21 19:28:29 $
+; $Revision: 1.5 $
 ; $State: Exp $
-; $Author: alex $
+; $Author: peter $
 ;
 ;----------------------------------------------------------------------------
 
 
-	GET     clib/unixlib/asm_dec.s
+	GET	clib/unixlib/asm_dec.s
 
 	AREA    REL, CODE, READONLY
 
-chunk   EQU     0x55c80    ; SharedUnixLibrary SWI Chunk 
-error   EQU     0x0081a400 ; SharedUnixLibrary Error block
-
-
-ListNext     EQU    0      ; Pointer to next block
-ListHandler  EQU    4      ; UpCall handler function
-ListValue    EQU    8      ; Value at UpCall handler function
-ListHead     EQU   12      ; Pointer to head of list
-
+ListNext	EQU	 0	; Pointer to next block
+ListHandler	EQU	 4	; UpCall handler function
+ListValue	EQU	 8	; Value at UpCall handler function
+ListHead	EQU	12	; Pointer to head of list
 
 
 |module_start|
-	DCD     0                           ; Start code
-	DCD     init_code   - module_start  ; Initialisation code
-	DCD     final_code  - module_start  ; Finalisation code
-	DCD     0                           ; Service handler
-	DCD     title       - module_start  ; Title string
-	DCD     help        - module_start  ; Help string
-	DCD     0                           ; Command table
-	DCD     chunk                       ; SWI Base
-	DCD     swi_handler - module_start  ; SWI Handler
-	DCD     swi_table   - module_start  ; SWI Table
-	DCD     0                           ; SWI Decoder
-	DCD     0                           ;
-	DCD     module_flags - module_start ; Module flags
+	DCD	0				; Start code
+	DCD	init_code - module_start	; Initialisation code
+	DCD	final_code - module_start	; Finalisation code
+	DCD	0				; Service handler
+	DCD	title - module_start		; Title string
+	DCD	help - module_start		; Help string
+	DCD	0				; Command table
+	DCD	SharedUnixLibrary_ErrorChunk	; SWI Base
+	DCD	swi_handler - module_start	; SWI Handler
+	DCD	swi_table - module_start	; SWI Table
+	DCD	0				; SWI Decoder
+	DCD	0				; Messages
+	DCD	module_flags - module_start	; Module flags
 
 |help|
 	DCB	"SharedUnixLibrary", 9
@@ -46,42 +41,42 @@ ListHead     EQU   12      ; Pointer to head of list
 
 |title|
 |swi_table|
-	DCB     "SharedUnixLibrary", 0
-	DCB     "RegisterUpCall", 0
-	DCB     "DeRegisterUpCall", 0
-	DCB     "SetValue", 0
-	DCB     "Count", 0
-	DCB     0
+	DCB	"SharedUnixLibrary", 0
+	DCB	"RegisterUpCall", 0
+	DCB	"DeRegisterUpCall", 0
+	DCB	"SetValue", 0
+	DCB	"Count", 0
+	DCB	0
 	ALIGN
 
 |error_swi|
-	DCD     error + 0
-	DCB     "Unknown SharedUnixLibrary SWI call", 0
+	DCD	SharedUnixLibrary_Error_UnknownSWI
+	DCB	"Unknown SharedUnixLibrary SWI call", 0
 	ALIGN
 
 |error_unknown|
-	DCD     error + 1
-	DCB     "Unknown SharedUnixLibrary Key", 0
+	DCD	SharedUnixLibrary_Error_UnknownKey
+	DCB	"Unknown SharedUnixLibrary Key", 0
 	ALIGN
 
 |error_active|
-	DCD     error + 2
-	DCB     "There are still clients active", 0
+	DCD	SharedUnixLibrary_Error_StillActive
+	DCB	"There are still clients active", 0
 	ALIGN
 
 |module_flags|
 	DCD    1      ; 32-bit compatible
 
 |swi_handler|
-	CMP     r11, #0
-	BEQ     register
-	CMP     r11, #1
-	BEQ     deregister
-	CMP     r11, #2
-	BEQ     value
-	CMP     r11, #3
-	BEQ     count
-	ADR     r0, error_swi - module_start
+	CMP	r11, #0
+	BEQ	register
+	CMP	r11, #1
+	BEQ	deregister
+	CMP	r11, #2
+	BEQ	value
+	CMP	r11, #3
+	BEQ	count
+	ADR	r0, error_swi
 	TEQ	pc, pc
 	ORRNES	pc, lr, #VFlag
 	MSR	CPSR_f, #VFlag
@@ -91,40 +86,41 @@ ListHead     EQU   12      ; Pointer to head of list
 	; Application UpCall handler, PRM 1-291
 	;
 	; The address of this handler is passed back via The RegisterUpCall SWI.
-	; The caller application then provides that address to OS_ChangeEnvironment
+	; The caller application then provides that address to
+	; OS_ChangeEnvironment
 	; Having this handler in a module enables it to be validly called when
 	; the application isn't paged in.  This is despite the fact that most of
 	; the UpCalls we are not interested in at all.
 
 |upcall_handler|
-	TEQ     r0, #256                 ; New Application UpCall
-	MOVNE   pc, lr                   ; Otherwise exit quickly
+	TEQ	r0, #256		; New Application UpCall
+	MOVNE	pc, lr			; Otherwise exit quickly
 
-	STMFD   sp!, {r0-r4, lr}         ; Save SVC_R14 and registers during
-                                         ; environment handler
+	STMFD	sp!, {r0-r4, lr}	; Save SVC_R14 and registers during
+					; environment handler
 
-	MOV     r2, r12                  ; Key passed to handler in R12
-	LDR     r3,  [r2, #ListHandler]  ; Get handler address
+	MOV	r2, r12			; Key passed to handler in R12
+	LDR	r3, [r2, #ListHandler]	; Get handler address
 
-	LDR     r4,  [r2, #ListValue]    ; Get handler value
-	CMP     r4, #0
-	BEQ     upcall_novalue
+	LDR	r4, [r2, #ListValue]	; Get handler value
+	CMP	r4, #0
+	BEQ	upcall_novalue
 
-	LDR     r12, [r4]                ; Get value at handler
-	CMP     r4, r12
-	LDMNEFD sp!, {r0-r4, pc}         ; Exit handler if no match
+	LDR	r12, [r4]		; Get value at handler
+	CMP	r4, r12
+	LDMNEFD sp!, {r0-r4, pc}	; Exit handler if no match
 
 |upcall_novalue|
-	LDR     r12, [r2, #ListHead]     ; Get module's private word
+	LDR	r12, [r2, #ListHead]	; Get module's private word
 
-	BL      |delink|                 ; Delink the handler
-	CMP     r2, #0                   ; Didn't find the key
-	MOV     r12, r3
-	LDMEQFD sp!, {r0-r4, pc}         ; So exit handler
+	BL	|delink|		; Delink the handler
+	CMP	r2, #0			; Didn't find the key
+	MOV	r12, r3
+	LDMEQFD sp!, {r0-r4, pc}	; So exit handler
 
-	LDMFD   sp!, {r0-r4, lr}         ; Restore SVC_R14 and registers
+	LDMFD   sp!, {r0-r4, lr}	; Restore SVC_R14 and registers
 
-	MOV     pc, r12                  ; Jump to application handler
+	MOV	pc, r12			; Jump to application handler
 
 	; Register an application with the module.
 	;
@@ -150,37 +146,37 @@ ListHead     EQU   12      ; Pointer to head of list
 	;    R1 = Address of UpCall handler to pass in R1 to
 	;         OS_ChangeEnvironment
 	;    R2 = SharedUnixLibrary key, required for deregistration, and
-	;         passed in R2 to OS_ChangeEnvironment 
+	;         passed in R2 to OS_ChangeEnvironment
 
 
 |register|
-	STMFD   sp!, {r0, r3, lr}
+	STMFD	sp!, {r0, r3, lr}
 
 	; The memory claimed for now merely provides a way to validate a caller.
 	; Later on, it will be used to store information on a per-client basis.
 
-	MOV     r4, r2
+	MOV	r4, r2
 
-	MOV     r0, #6
-	MOV     r3, #16
-	SWI     XOS_Module         ; Claim memory to use
+	MOV	r0, #6
+	MOV	r3, #16
+	SWI	XOS_Module		; Claim memory to use
 
-	LDMVSFD sp!, {r2, r3, pc}  ; Return to caller if error
+	LDMVSFD sp!, {r2, r3, pc}	; Return to caller if error
 
 	; result in R2, return to caller at end
-	LDR     r0, [r12, #ListNext]  ; Get head of list
-	STR     r0, [r2,  #ListNext]  ; Store in new block
-	STR     r2, [r12, #ListNext]  ; Set to head of list
+	LDR	r0, [r12, #ListNext]	; Get head of list
+	STR	r0, [r2,  #ListNext]	; Store in new block
+	STR	r2, [r12, #ListNext]	; Set to head of list
 
-	STR     r1, [r2, #ListHandler] ; Set handler function address
-	MOV     r1, #0
-	STR     r1, [r2, #ListValue]   ; Set value at handler
-	STR     r12, [r2, #ListHead]    ; Set pointer to head of list
+	STR	r1, [r2, #ListHandler]	; Set handler function address
+	MOV	r1, #0
+	STR	r1, [r2, #ListValue]	; Set value at handler
+	STR	r12, [r2, #ListHead]	; Set pointer to head of list
 
 	; return UpCall handler address in R1
-	ADR     r1, upcall_handler - module_start
+	ADR	r1, upcall_handler - module_start
 
-	LDMFD   sp!, {r0, r3, pc}
+	LDMFD	sp!, {r0, r3, pc}
 
 
 	; Deregister a previously registered handler
@@ -195,18 +191,18 @@ ListHead     EQU   12      ; Pointer to head of list
 	; if the handler has already been deregistered.
 
 |deregister|
-	STMFD   sp!, {lr}
-	BL      |delink|
-	LDMFD   sp!, {lr}
-	CMP     r2, #0
-	MOVNE   pc, lr
+	STMFD	sp!, {lr}
+	BL	|delink|
+	LDMFD	sp!, {lr}
+	CMP	r2, #0
+	MOVNE	pc, lr
 
-	ADR     r0, error_unknown - module_start ; Unable to find key
-	TEQ     r0, r0
-	TEQ     pc, pc
-	ORRNES  pc, lr, #VFlag                   ; Return error (26bit)
-	MSR     CPSR_f, #VFlag
-	MOV     pc, lr                           ; Return error (32bit)
+	ADR	r0, error_unknown - module_start	; Unable to find key
+	TEQ	r0, r0
+	TEQ	pc, pc
+	ORRNES	pc, lr, #VFlag			; Return error (26bit)
+	MSR	CPSR_f, #VFlag
+	MOV	pc, lr				; Return error (32bit)
 
 
 	; Delink the handler
@@ -222,26 +218,26 @@ ListHead     EQU   12      ; Pointer to head of list
 	STMFD   sp!, {r0-r1, lr}
 
 	; Try to find reference
-	MOV     r1, r12              ; Set to previous point in list
-	LDR     r0, [r12, #ListNext] ; Get first item in list
+	MOV	r1, r12			; Set to previous point in list
+	LDR	r0, [r12, #ListNext]	; Get first item in list
 
 |delink_find|
-	CMP     r0, #0
-	MOVEQ   r2, #0
-	LDMEQFD sp!, {r0-r1, pc}     ; End of list, not found
+	CMP	r0, #0
+	MOVEQ	r2, #0
+	LDMEQFD	sp!, {r0-r1, pc}	; End of list, not found
 
-	CMP     r0, r2               ; Compare passed key
-	MOVNE   r1, r0               ; Set to current point in list
-	LDR     r0, [r0, #ListNext]  ; Get next item
-	BNE     |delink_find|
+	CMP	r0, r2			; Compare passed key
+	MOVNE	r1, r0			; Set to current point in list
+	LDR	r0, [r0, #ListNext]	; Get next item
+	BNE	|delink_find|
 
-	STR     r0, [r1, #ListNext]  ; Fix up next pointer at previous point in list
+	STR	r0, [r1, #ListNext]	; Fix up next pointer at previous point in list
 
-	MOV     r0, #7
-	SWI     XOS_Module           ; Free block
+	MOV	r0, #7
+	SWI	XOS_Module		; Free block
 
-	MOV     r2, #1
-	LDMFD   sp!, {r0-r1, pc}
+	MOV	r2, #1
+	LDMFD	sp!, {r0-r1, pc}
 
 
 	; Set value at handler address
@@ -259,22 +255,22 @@ ListHead     EQU   12      ; Pointer to head of list
 	MOV	r2, r12
 
 |value_find|
-	LDR     r2, [r2, #ListNext]
-	CMP     r2, #0
-	LDMEQFD sp!, {r2-r3, pc}
-	CMP     r2, r0
-	BNE     value_find
-	STR     r1, [r2, #ListValue]
-	LDMFD   sp!, {r2-r3, pc}
+	LDR	r2, [r2, #ListNext]
+	CMP	r2, #0
+	LDMEQFD	sp!, {r2-r3, pc}
+	CMP	r2, r0
+	BNE	value_find
+	STR	r1, [r2, #ListValue]
+	LDMFD	sp!, {r2-r3, pc}
 
 
 
 	; Return number of current clients in R0
 |count|
-	STMFD   sp!, {r1, lr}
+	STMFD	sp!, {r1, lr}
 
-	MOV     r0, #0
-	LDR     r1, [r12]
+	MOV	r0, #0
+	LDR	r1, [r12]
 
 |count_find|
 	CMP	r1, #0
@@ -287,7 +283,7 @@ ListHead     EQU   12      ; Pointer to head of list
 	; Module initialisation
 
 |init_code|
-	MOV    pc, lr
+	MOV	pc, lr
 
 
 	; Module finalisation
@@ -295,23 +291,22 @@ ListHead     EQU   12      ; Pointer to head of list
 	; Only allow exit if there are no claimants
 
 |final_code|
-	STMFD   sp!, {r0, lr}
+	STMFD	sp!, {r0, lr}
 
-	LDR     r0, [r12, #ListNext]
-	CMP     r0, #0                          ; Is head of list set?
+	LDR	r0, [r12, #ListNext]
+	CMP	r0, #0			; Is head of list set?
 
-	LDMEQFD sp!, {r0, pc}                   ; No, so allow normal finalisation
+	LDMEQFD sp!, {r0, pc}		; No, so allow normal finalisation
 
-	ADR     r0, error_active - module_start ; If so, set error and
-	                                        ; disallow module finalisation
-	ADD     sp, sp, #4
-	LDMFD   sp!, {lr}
-	TEQ     r0, r0
-	TEQ     pc, pc
-	ORRNES  pc, lr, #VFlag                   ; Return error (26bit)
-	MSR     CPSR_f, #VFlag
-	MOV     pc, lr                           ; Return error (32bit)
+	ADR	r0, error_active - module_start	; If so, set error and
+						; disallow module finalisation
+	ADD	sp, sp, #4
+	LDMFD	sp!, {lr}
+	TEQ	r0, r0
+	TEQ	pc, pc
+	ORRNES	pc, lr, #VFlag		; Return error (26bit)
+	MSR	CPSR_f, #VFlag
+	MOV	pc, lr			; Return error (32bit)
 
 
 	END
-

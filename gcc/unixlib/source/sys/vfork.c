@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/vfork.c,v $
- * $Date: 2004/01/14 23:16:59 $
- * $Revision: 1.6 $
+ * $Date: 2004/03/17 20:00:51 $
+ * $Revision: 1.7 $
  * $State: Exp $
  * $Author: joty $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: vfork.c,v 1.6 2004/01/14 23:16:59 joty Exp $";
+static const char rcs_id[] = "$Id: vfork.c,v 1.7 2004/03/17 20:00:51 joty Exp $";
 #endif
 
 #include <errno.h>
@@ -182,7 +182,7 @@ nomem:
   free_process (child);
   /* Ensure errno is ENOMEM in case free causes it to be set.  */
   (void) __set_errno (ENOMEM);
-  return 0;
+  return NULL;
 }
 
 int *
@@ -254,8 +254,7 @@ __vexit (int e)
   __u->child[0].usage = p->usage;
   __u->child[0].status = p->status;
 
-  for (x = 0; x < __JMP_BUF_SIZE; x++)
-    __u->child[0].vreg[x] = p->vreg[x];
+  memcpy(__u->child[0].vreg, p->vreg, __JMP_BUF_SIZE * sizeof(p->vreg[0]));
   /* Copy the pid of the old child process into the jmp_buf */
   __u->child[0].vreg[15] = p->pid;
 

@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/tty.c,v $
- * $Date: 2003/11/23 20:26:45 $
- * $Revision: 1.11 $
+ * $Date: 2004/01/02 23:33:59 $
+ * $Revision: 1.12 $
  * $State: Exp $
  * $Author: joty $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: tty.c,v 1.11 2003/11/23 20:26:45 joty Exp $";
+static const char rcs_id[] = "$Id: tty.c,v 1.12 2004/01/02 23:33:59 joty Exp $";
 #endif
 
 /* System V tty device driver for RISC OS.  */
@@ -883,9 +883,9 @@ __ttynl (struct tty *tty, tcflag_t oflag)
 	   __funcall ((*(tty->out)), ('\r'));
       if (oflag & (ONLCR
 #if 0
-      	 	   | ONLRET
+		   | ONLRET
 #endif
-      	 	  ))
+		  ))
 	tty->sx = 0;
     }
   __funcall ((*(tty->out)), ('\n'));
@@ -953,8 +953,6 @@ __ttyioctl (struct __unixlib_fd *file_desc, unsigned long request, void *arg)
 #endif
       }
       return 0;
-      break;
-      break;
       break;
     case TIOCGETD: /* Get line discipline.  */
       break;

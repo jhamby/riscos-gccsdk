@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/mman.c,v $
- * $Date: 2002/02/14 15:56:37 $
- * $Revision: 1.3 $
+ * $Date: 2003/04/28 21:04:36 $
+ * $Revision: 1.4 $
  * $State: Exp $
- * $Author: admin $
+ * $Author: alex $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: mman.c,v 1.3 2002/02/14 15:56:37 admin Exp $";
+static const char rcs_id[] = "$Id: mman.c,v 1.4 2003/04/28 21:04:36 alex Exp $";
 #endif
 
 /* Definitions for BSD-style memory management.  Generic/4.4 BSD version.  */
@@ -61,7 +61,7 @@ static size_t page_size = 0;
 extern void __mmap_page_copy (caddr_t dst, caddr_t src, int len);
 
 
-/* Free all mmapped memory. This is called from _exit and __exit.  */
+/* Free all mmapped memory. This is called from __dynamic_area_exit.  */
 void
 __munmap_all (void)
 {

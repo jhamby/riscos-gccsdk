@@ -1,10 +1,10 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/signal/_signal.s,v $
-; $Date: 2004/05/16 12:46:22 $
-; $Revision: 1.19 $
+; $Date: 2004/06/12 08:59:48 $
+; $Revision: 1.20 $
 ; $State: Exp $
-; $Author: alex $
+; $Author: peter $
 ;
 ;----------------------------------------------------------------------------
 
@@ -43,15 +43,18 @@
 ;	Change to USR mode and raise a signal while preserving all registers,
 ;	providing the signal number is non-zero. We can't make any assumptions
 ;	about the state of the USR mode stack, so set up our own.
+;	This can only be called in SVC mode.
 
 	NAME	__raise
 |__raise|
-	CMP	a1, #0
+	TEQ	a1, #0
 	MOVEQ	pc, lr
 
+	; Saves LR_SVC.
 	STMFD	sp!, {lr}
+	; Saves all USR registers on the SP_SVC stack.
 	SUB	sp, sp, #15*4
-	STMIA	sp, {a1,a2,a3,a4,v1,v2,v3,v4,v5,v6,sl,fp,ip,sp,lr}^
+	STMIA	sp, {a1, a2, a3, a4, v1, v2, v3, v4, v5, v6, sl, fp, ip, sp, lr}^
 	MOV	a1, a1
 
 	MOV	v1, a1
@@ -61,10 +64,12 @@
 	BL	|__pthread_disable_ints|
 	]
 
+	; Drop in USR mode and raises the signal
 	CHGMODE	a2, USR_Mode
 	MOV	a2, v1
 	MOV	a1, #0
 	BL	|__unixlib_raise_signal|
+	; Go back in SVC mode.
 	SWI	XOS_EnterOS
 
 	[ __FEATURE_PTHREADS = 1
@@ -76,7 +81,8 @@
 	SUB	a2, a2, #1
 	STR	a2, [a1]
 
-	LDMIA	sp, {a1,a2,a3,a4,v1,v2,v3,v4,v5,v6,sl,fp,ip,sp,lr}^
+	; Restores all USR registers from the SP_SVC stack.
+	LDMIA	sp, {a1, a2, a3, a4, v1, v2, v3, v4, v5, v6, sl, fp, ip, sp, lr}^
 	MOV	a1, a1
 	ADD	sp, sp, #15*4
 	LDMIA	sp!, {pc}
@@ -98,7 +104,7 @@
 	TEQ	a1, #0			; quick exit when no error
 	MOVEQ	pc, lr
 
-	STMFD	sp!, {v1-v5,lr}		; Stack working registers
+	STMFD	sp!, {v1-v5, lr}		; Stack working registers
 	MOV	a3, #EOPSYS
 	__set_errno	a3, a2 ; Set errno = EOPSYS
 
@@ -177,7 +183,7 @@
 
 ;-----------------------------------------------------------------------
 ; Undefined instruction handler
-; Entered in SVC mode
+; Entered in SVC26 mode (26 bit system) or UND32 mode (32 bit system).
 ; On entry:
 ;	lr = address of instruction 1 word after the undefined instruction.
 ;
@@ -189,13 +195,12 @@
 	STMIA	lr!, {a1-ip}		; store non-banked registers
 	STMIA	lr, {sp, lr}^		; store banked registers
 	MOV	a1, #SIGILL
-	SUB	lr, lr, #13*4		; adjust base register back
 	STR	a1, |__cba1|
 	B	|__h_cback_common|
 
 ;-----------------------------------------------------------------------
 ; Address exception handler
-; Entered in SVC mode
+; Entered in SVC26 mode
 ; On entry:
 ;	lr = address of instruction 1 word after the address exception.
 ;
@@ -208,13 +213,12 @@
 	STMIA	lr!, {a1-ip}		; store non-banked registers
 	STMIA	lr, {sp, lr}^		; store banked registers
 	MOV	a1, #SIGBUS
-	SUB	lr, lr, #13*4		; adjust base register back
 	STR	a1, |__cba1|
 	B	|__h_cback_common|
 
 ;-----------------------------------------------------------------------
 ; Prefetch abort handler
-; Entered in SVC mode
+; Entered in SVC26 mode (26 bit system) or ABT32 (32 bit system).
 ; On entry:
 ;	lr = address of instruction 1 word after the aborted instruction.
 ;
@@ -227,13 +231,12 @@
 	STMIA	lr!, {a1-ip}		; store non-banked registers
 	STMIA	lr, {sp, lr}^		; store banked registers
 	MOV	a1, #SIGSEGV
-	SUB	lr, lr,#13*4		; adjust base register back
 	STR	a1, |__cba1|
 	B	|__h_cback_common|
 
 ;-----------------------------------------------------------------------
 ; Data abort handler
-; Entered in SVC mode
+; Entered in SVC26 mode (26 bit system) or ABT32 (32 bit system).
 ; On entry:
 ;	lr = address of instruction 2 words after the aborted instruction.
 ;
@@ -269,7 +272,6 @@
 |__h_sigsegv1|
 	SUB	lr, lr, #8
 	STR	lr, |__cbreg|+15*4
-	STR     lr, |abortpc|+4
 	ADR	lr, |__cbreg|
 	STMIA	lr!, {a1-ip}		; store non-banked registers
 	STMIA	lr, {sp, lr}^		; store banked registers
@@ -299,7 +301,7 @@
 
 ;-----------------------------------------------------------------------
 ; Error handler (1-289).
-; Entered in USR mode.
+; Entered in USR26 mode (26 bit system) or USR32 (32 bit system).
 ; On entry:
 ;	a1 = pointer to [pc, error number, zero term. error string]
 ; On exit:
@@ -336,7 +338,7 @@
 	[ __FEATURE_PTHREADS = 1
 	LDR	a1, =|__pthread_system_running|
 	LDR	a1, [a1]
-	CMP	a1, #0
+	TEQ	a1, #0
 	BLNE	|__pthread_disable_ints|
 	]
 
@@ -410,6 +412,7 @@ unrecoverable_error
 	STR	a2, [a1], #4
 	BIC	a2, a2, #&FF	; Disable all exceptions to prevent the
 	WFS	a2		; signal handler triggering another exception
+
 	STFD	f0, [a1], #8
 	STFD	f1, [a1], #8
 	STFD	f2, [a1], #8
@@ -431,7 +434,8 @@ non_fp_exception
 
 ;-----------------------------------------------------------------------
 ; Escape handler (1-290).
-; Entered in IRQ mode.
+; Entered in IRQ mode (FIXME: is this *really* correct ?) (26 bit system)
+; or SVC32 (32 bit system).
 ; On entry:
 ;	r11/fp = bit 6 set, implies escape condition.
 ;	r12/ip = pointer to workspace, if set up - should never be 1.
@@ -458,7 +462,7 @@ non_fp_exception
 	LDR	ip, |__cbflg|
 	ORRNE	ip, ip, #1		; set CallBack
 	BICEQ	ip, ip, #1		; clear CallBack
-	STR	ip,|__cbflg|		; set/clear __cbflg bit 0
+	STR	ip, |__cbflg|		; set/clear __cbflg bit 0
 
 	MOVEQ	ip, #0
 	MOVNE	ip, #1
@@ -466,7 +470,8 @@ non_fp_exception
 
 ;-----------------------------------------------------------------------
 ; Event handler (1-290).
-; Entered in either SVC *or* IRQ mode, called from EventV.
+; Entered in either SVC26 *or* IRQ26 mode (26 bit system), or SVC32 *or*
+; IRQ32 (32 bit system), called from EventV.
 ; On entry:
 ;	a1 = event reason code
 ;	a2... parameters according to event code
@@ -491,16 +496,17 @@ Internet_Event	EQU	19
 	MOVNE	pc, lr
 
 	; Convert the internet event into a suitable signal for raising
-	CMP	a2, #1 ; Out-of-band data has arrived
+	TEQ	a2, #1		; Out-of-band data has arrived
+	MOVNE	pc, lr
 
 	; Set the internet event flag
 	LDR	ip, |__cbflg|
-	ORREQ	ip, ip, #2
-	STR	ip,|__cbflg|
+	ORR	ip, ip, #2
+	STR	ip, |__cbflg|
 
-	MOVEQ	ip, #SIGURG
-	STREQ	ip, |__cba1|
-	MOVEQ	ip, #1 ; Callback set if R12 = 1
+	MOV	ip, #SIGURG
+	STR	ip, |__cba1|
+	MOV	ip, #1		; Callback set if R12 = 1
 	MOV	pc, lr
 
 ;-----------------------------------------------------------------------
@@ -510,7 +516,10 @@ Internet_Event	EQU	19
 ; On entry:
 ;	r11/fp = SWI number (Bit 17 (the X bit) clear)
 ;	r13/sp = SVC stack pointer
-;	r14/lr = user PC with V cleared
+;	r14/lr = return address in the kernel with NZCVIF flags the
+;                same as teh callers (except V clear) (26 bit system) or
+;                return address in the kernel (32 bit system).
+;       PSR flags undefined (except I+F as caller)
 ; On exit:
 ;	r10/sl, r11/fp, r12/ip can be corrupted.
 ;	No other details known.
@@ -526,7 +535,6 @@ Internet_Event	EQU	19
 	STMIA	lr!, {a1-ip}		; store non-banked registers
 	STMIA	lr, {sp, lr}^		; store banked registers
 	MOV	a1, #SIGSYS
-	SUB	lr, lr, #13*4		; adjust base register back
 	STR	a1, |__cba1|
 	B	|__h_cback_common|
 
@@ -546,7 +554,8 @@ Internet_Event	EQU	19
 
 ;-----------------------------------------------------------------------
 ; Callback handler.
-; Entered in SVC or IRQ mode, IRQs disabled.
+; Entered in SVC26 or IRQ26 mode (26 bit system) or SVC32 (32 bit system),
+; IRQs disabled.
 ; __h_cback_commom is called directly from other handlers.
 ; On entry:
 ;
@@ -563,29 +572,35 @@ Internet_Event	EQU	19
 	; Check that the return PC value is within our wimpslot.
 	; If it isn't, then we don't want to do a context switch
 	; so return straight away.
-	LDR	a1,|__cbreg|+15*4
+	LDR	a1, |__cbreg|+15*4
+	TEQ	pc, pc
+	BICNE	a1, a1, #&fc000003
+
 	LDR	a2, =|__image_ro_base|
 	LDR	a2, [a2]
 	CMP	a1, a2
 	BLO	return_quickly
+
 	LDR	a2, =|__unixlib_real_himem|
 	LDR	a2, [a2]
 	CMP	a1, a2
 	BHI	return_quickly
 
 	LDR	a1, |__cbflg|
-	TST	a1, #3 ; Check escape and internet flags
+	TST	a1, #3			; Check escape and internet flags
 	BNE	|__h_cback_common|
+
 	LDR	a1, =|__pthread_system_running|
 	LDR	a1, [a1]
-	CMP	a1, #0
+	TEQ	a1, #0
 	BNE	|__pthread_callback|
 	B	|__h_cback_common|
 
 return_quickly
 	ADR	lr, |__cbreg|
-	LDR	a1, [lr, #16*4]
-	MSR	SPSR_cxsf, a1
+	TEQ	pc, pc
+	LDREQ	a1, [lr, #16*4]
+	MSREQ	SPSR_cxsf, a1
 	LDMIA	lr, {a1-lr}^
 	MOV	a1, a1
 	LDR	lr, [lr, #15*4]
@@ -604,44 +619,41 @@ return_quickly
 
 	CHGMODE	a1, USR_Mode+IFlag
 	; The USR mode registers r0-r15 and CPSR are extracted from the
-	; callback register block while irqs are disabled. The registers
+	; callback register block while IRQs are disabled. The registers
 	; are then saved on the USR mode signal handler stack.
-	ADR	a1,|__cbreg|+8*4
-	LDMIA	a1,{a2,a3,a4,v1,v2,v3,v4,v5}
-	STMFD	sp!,{a2,a3,a4,v1,v2,v3,v4,v5}
-	LDMDB	a1,{a2,a3,a4,v1,v2,v3,v4,v5}
-	STMFD	sp!,{a2,a3,a4,v1,v2,v3,v4,v5}
+	ADR	a1, |__cbreg|+8*4
+	LDMIA	a1, {a2, a3, a4, v1, v2, v3, v4, v5}
+	STMFD	sp!, {a2, a3, a4, v1, v2, v3, v4, v5}
+	LDMDB	a1, {a2, a3, a4, v1, v2, v3, v4, v5}
+	STMFD	sp!, {a2, a3, a4, v1, v2, v3, v4, v5}
 	LDR	a2, [a1, #8*4]
-	STMFD	sp!,{a2}
+	STMFD	sp!, {a2}
 
 	; Check for an escape condition
-	LDR	a1,|__cbflg|		; check __cbflg bit 0
-	TST	a1,#1
+	LDR	a1, |__cbflg|		; check __cbflg bit 0
+	TST	a1, #1
 	BIC	a1, a1, #2		; clear the internet event flag bit
-	STR	a1,|__cbflg|
+	STR	a1, |__cbflg|
 	; There was an escape condition.  Clear it.
-	MOVNE	a1,#&7e
+	MOVNE	a1, #&7e
 	SWINE	XOS_Byte		; This calls our escape handler
 
 	; Create an APCS-compilant signal stack frame
-	ADR	a4,|__h_cback|+12	; point at handler name for backtrace
+	ADR	a4, |__h_cback|+12	; point at handler name for backtrace
 	LDR	a3, [sp, #14*4+4]	; saved USR lr
 	LDR	a2, [sp, #13*4+4]	; saved USR sp
 	LDR	a1, [sp, #11*4+4]	; saved USR fp
-	STMFD	sp!,{a1,a2,a3,a4}	; create signal frame
-	ADD	fp,sp,#12
+	STMFD	sp!, {a1, a2, a3, a4}	; create signal frame
+	ADD	fp, sp, #12
 
 	LDR	v1, =|__ul_errfp|	; Save error FP backtrace
 	STR	a1, [v1]
 
 	MOV	a1, #0
-	LDR	a2,|__cba1|
-
+	LDR	a2, |__cba1|
 	; Raise the signal in USR mode with IRQs enabled
 	SWI	XOS_IntOn
-
 	BL	|__unixlib_raise_signal|
-
 	; Disable IRQs again while updating semaphores
 	SWI	XOS_IntOff
 
@@ -665,8 +677,9 @@ return_quickly
 				; another callback
 	MOV	lr, a1
 	LDR	a1, [lr], #4	; Get user PSR
-	MSR	SPSR_cxsf, a1	; Put it into SPSR_SVC/IRQ
-	LDMIA	lr,{a1,a2,a3,a4,v1,v2,v3,v4,v5,v6,sl,fp,ip,sp,lr}^
+	TEQ	pc, pc
+	MSREQ	SPSR_cxsf, a1	; Put it into SPSR_SVC/IRQ
+	LDMIA	lr, {a1, a2, a3, a4, v1, v2, v3, v4, v5, v6, sl, fp, ip, sp, lr}^
 	MOV	a1, a1
 	LDR	lr, [lr, #15*4]	; Load the old PC value
 	MOVS	pc, lr		; Return (Valid for 26 and 32bit modes)
@@ -680,15 +693,19 @@ return_quickly
 |__setup_signalhandler_stack|
 	LDR	a1, =|__executing_signalhandler|
 	LDR	a2, [a1]
-	CMP	a2, #0
+	TEQ	a2, #0
 	ADD	a2, a2, #1
 	STR	a2, [a1]
-	LDR	a1, =|__signalhandler_sl|
-	LDR	sl, [a1]
-	LDR	a1, =|__signalhandler_sp|
+
+	;FIXME: we need a sanity check here (based on EXTREMELY_PARANOID ?):
+	;if the signalhandler is already executing, verify that
+	;sl < sp, if not, panic and jump to e.g. __exit.
+	LDR	sl, =|__signalhandler_sl|
+	LDR	sl, [sl]
 	MOV	fp, #0
 	return	NE, pc, lr
 
+	LDR	a1, =|__signalhandler_sp|
 	TEQ	a1, a1
 	TEQ	pc, pc
 	MOVNE	a2, pc
@@ -700,16 +717,17 @@ return_quickly
 	return	AL, pc, lr
 
 	; User registers are preserved in here for the callback execution.
+	; User registers = R0-R15 and CPSR in 32-bit mode
+	;                = R0-R15 only in 26-bit mode
 	EXPORT	|__cbreg|
-|__cbreg|	%	4 * 17; R0-R15 and CPSR in 32-bit mode
-        EXPORT  |abortpc|
-|abortpc|       %       12
+|__cbreg|	%	4 * 17
 
 	; bit 0 Escape condition flag
 	; bit 1 Internet event flag
 |__cbflg|
 	DCD	0
 
+	; Signal number to use for __unixlib_raise_signal().
 |__cba1|
 	DCD	0
 
@@ -718,7 +736,7 @@ return_quickly
 	EXPORT	|__h_exit|
 	NAME	__h_exit
 |__h_exit|
-	MOV	a1,#EXIT_FAILURE
+	MOV	a1, #EXIT_FAILURE
 	B	|exit|
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -730,6 +748,7 @@ return_quickly
 
 ; Interval timer handler for ITIMER_REAL
 ; On entry R12 = pointer to interval timerval
+; Called in SVC mode.
 ; Preserve all registers
 
 	; Interval timer handler for ITIMER_REAL
@@ -742,12 +761,12 @@ return_quickly
 	BL	|__raise|
 	; Have we previously setup a CallEvery handler
 	LDR	a1, |__h_sigalrm_sema|
-	CMP	a1, #1
+	TEQ	a1, #1
 	LDMEQFD	sp!, {a1, a2, a3, pc}
 	; r12->it_interval = 0 secs and 0 usecs then exit
 	LDMIA	ip, {a1, a2}
-	CMP	a1, #0
-	CMPEQ	a2, #0
+	TEQ	a1, #0
+	TEQEQ	a2, #0
 	LDMEQFD	sp!, {a1, a2, a3, pc}
 	; Calculate delay in csecs between successive calls
 	MOV	a3, #100
@@ -762,7 +781,7 @@ return_quickly
 	STR	a1, |__h_sigalrm_sema|
 	LDMFD	sp!, {a1, a2, a3, pc}
 
-
+; Called in SVC mode with IRQs disabled.
 	EXPORT	|__h_sigalrm_init|
 	NAME	__h_sigalrm_init
 |__h_sigalrm_init|
@@ -779,6 +798,7 @@ return_quickly
 
 ; Interval timer handler for ITIMER_VIRTUAL
 ; On entry R12 = pointer to interval timerval
+; Called in SVC mode.
 ; Preserve all registers
 	EXPORT	|__h_sigvtalrm|
 	NAME	__h_sigvtalrm
@@ -787,11 +807,11 @@ return_quickly
 	MOV	a1, #SIGVTALRM	;  No access to banked registers
 	BL	|__raise|
 	LDR	a1, |__h_sigvtalrm_sema|
-	CMP	a1, #1
+	TEQ	a1, #1
 	LDMEQFD	sp!, {a1, a2, a3, pc}
 	LDMIA	ip, {a1, a2}
-	CMP	a1, #0
-	CMPEQ	a2, #0
+	TEQ	a1, #0
+	TEQEQ	a2, #0
 	LDMEQFD	sp!, {a1, a2, a3, pc}
 	MOV	a3, #100
 	MLA	a1, a3, a1, a2
@@ -803,6 +823,7 @@ return_quickly
 	STR	a1, |__h_sigvtalrm_sema|
 	LDMFD	sp!, {a1, a2, a3, pc}
 
+; Called in SVC mode with IRQs disabled.
 	EXPORT	|__h_sigvtalrm_init|
 	NAME	__h_sigvtalrm_init
 |__h_sigvtalrm_init|
@@ -820,6 +841,7 @@ return_quickly
 
 ; Interval timer handler for ITIMER_PROF
 ; On entry R12 = pointer to interval timerval
+; Called in SVC mode.
 ; Preserve all registers
 	EXPORT	|__h_sigprof|
 	NAME	__h_sigprof
@@ -828,11 +850,11 @@ return_quickly
 	MOV	a1, #SIGPROF	; No access to banked registers
 	BL	|__raise|
 	LDR	a1, |__h_sigprof_sema|
-	CMP	a1, #1
+	TEQ	a1, #1
 	LDMEQFD	sp!, {a1, a2, a3, pc}
 	LDMIA	ip, {a1, a2}
-	CMP	a1, #0
-	CMPEQ	a2, #0
+	TEQ	a1, #0
+	TEQEQ	a2, #0
 	LDMEQFD	sp!, {a1, a2, a3, pc}
 	MOV	a3, #100
 	MLA	a1, a3, a1, a2
@@ -844,6 +866,7 @@ return_quickly
 	STR	a1, |__h_sigprof_sema|
 	LDMFD	sp!, {a1, a2, a3, pc}
 
+; Called in SVC mode with IRQs disabled.
 	EXPORT	|__h_sigprof_init|
 	NAME	__h_sigprof_init
 |__h_sigprof_init|

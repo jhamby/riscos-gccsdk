@@ -1,16 +1,16 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/_exec.s,v $
-; $Date: 2004/03/06 13:24:43 $
-; $Revision: 1.4 $
+; $Date: 2004/06/12 08:59:49 $
+; $Revision: 1.5 $
 ; $State: Exp $
-; $Author: alex $
+; $Author: peter $
 ;
 ;----------------------------------------------------------------------------
 
 	GET	clib/unixlib/asm_dec.s
 
-	AREA	|C$$code|,CODE,READONLY
+	AREA	|C$$code|, CODE, READONLY
 
 	IMPORT	|__exret|
 	IMPORT	|__env_wimpslot|
@@ -65,68 +65,68 @@
 
 	; Relocate old application prior to executing the new app.
 	[ PARANOID = 1
-	CMP	a3,#0
-	MOVEQ	a3,a1			; no code shift required, so set
+	CMP	a3, #0
+	MOVEQ	a3, a1			; no code shift required, so set
 	BEQ	|__exec_s3|		; a3 to base (what else?)
 	]
 
-	ADD	a3,a2,a3
+	ADD	a3, a2, a3
 
-	SUB	a1,a2,a1
-	ANDS	a4,a1,#31
+	SUB	a1, a2, a1
+	ANDS	a4, a1, #31
 	BEQ	|__exec_s2_1|
 |__exec_s2_0|
-	LDR	ip,[a2,#-4]!
-	SUB	a1,a1,#4
-	STR	ip,[a3,#-4]!
-	ANDS	a4,a1,#31
+	LDR	ip, [a2, #-4]!
+	SUB	a1, a1, #4
+	STR	ip, [a3, #-4]!
+	ANDS	a4, a1, #31
 	BNE	|__exec_s2_0|
 |__exec_s2_1|
-	CMP	a1,#0
+	CMP	a1, #0
 	BEQ	|__exec_s3|
 |__exec_s2_2|
-	LDMDB	a2!,{a4,v2,v3,v4,v5,v6,sl,ip}
-	STMDB	a3!,{a4,v2,v3,v4,v5,v6,sl,ip}
-	SUBS	a1,a1,#64
-	LDMGEDB a2!,{a4,v2,v3,v4,v5,v6,sl,ip}
-	STMGEDB a3!,{a4,v2,v3,v4,v5,v6,sl,ip}
+	LDMDB	a2!, {a4, v2, v3, v4, v5, v6, sl, ip}
+	STMDB	a3!, {a4, v2, v3, v4, v5, v6, sl, ip}
+	SUBS	a1, a1, #64
+	LDMGEDB a2!, {a4, v2, v3, v4, v5, v6, sl, ip}
+	STMGEDB a3!, {a4, v2, v3, v4, v5, v6, sl, ip}
 	BGT	|__exec_s2_2|
 
 |__exec_s3|
 	; save dynamic area information four times at top of application
 	; memory so it can be validated in new image
 	; start of area for spawned programs = __real_break
-	LDR	a4,[pc,#|__real_break_|-.-8]
-	EOR	v3,a4,a4,ROR #7
-	EOR	v5,a4,a4,ROR #13
-	EOR	sl,a4,a4,ROR #23
-	LDR	v2,[pc,#|__dynamic_num_|-.-8]
-	EOR	v4,v2,v2,ROR #7
-	EOR	v6,v2,v2,ROR #13
-	EOR	ip,v2,v2,ROR #23
-	STMDB	a3!,{a4,v2,v3,v4,v5,v6,sl,ip}
+	LDR	a4, [pc, #|__real_break_|-.-8]
+	EOR	v3, a4, a4, ROR #7
+	EOR	v5, a4, a4, ROR #13
+	EOR	sl, a4, a4, ROR #23
+	LDR	v2, [pc, #|__dynamic_num_|-.-8]
+	EOR	v4, v2, v2, ROR #7
+	EOR	v6, v2, v2, ROR #13
+	EOR	ip, v2, v2, ROR #23
+	STMDB	a3!, {a4, v2, v3, v4, v5, v6, sl, ip}
 
 	; Set memory limit for new application.  Prevent it from writing
 	; over us.
-	MOV	a1,#0
-	MOV	a2,a3
-	MOV	a3,#0
-	MOV	a4,#0
+	MOV	a1, #0
+	MOV	a2, a3
+	MOV	a3, #0
+	MOV	a4, #0
 	SWI	XOS_ChangeEnvironment
 	; Save old memory limit.
-	STR	a2,[pc,#|__o_himem|-.-8]
+	STR	a2, [pc, #|__o_himem|-.-8]
 
 	; Execute the command/application.
-	MOV	a1,v1
+	MOV	a1, v1
 	SWI	XOS_CLI
-	MOVVC	a1,#0
-	STR	a1,[pc,#|__exerr_|-.-8]
+	MOVVC	a1, #0
+	STR	a1, [pc, #|__exerr_|-.-8]
 
 	; If we created an DDE extended command line and OSCLI has failed
 	; (probably due to insufficient memory to load program) then it is
 	; likely that nothing has read (and hence cleared) the extended
 	; command line. We must do it before it confuses any other program.
-	MOVVS	a1,#0
+	MOVVS	a1, #0
 	SWIVS	XDDEUtils_SetCLSize
 	; You wouldn't credit it, but there is actually a race condition in
 	; DDEUtils  !!
@@ -140,78 +140,78 @@
 	; mode.
 |__exec_s4|
 	; Restore old memory limit.
-	MOV	a1,#0
-	LDR	a2,[pc,#|__o_himem|-.-8]
-	MOV	a3,#0
-	MOV	a4,#0
+	MOV	a1, #0
+	LDR	a2, [pc, #|__o_himem|-.-8]
+	MOV	a3, #0
+	MOV	a4, #0
 	SWI	XOS_ChangeEnvironment
 
-	LDR	a1,[pc,#|__rwlimit_|-.-8]
-	LDR	a2,[pc,#|__codeshift|-.-8]
-	LDR	a3,[pc,#|__base_|-.-8]
+	LDR	a1, [pc, #|__rwlimit_|-.-8]
+	LDR	a2, [pc, #|__codeshift|-.-8]
+	LDR	a3, [pc, #|__base_|-.-8]
 	[ PARANOID = 1
-	CMP	a2,#0
+	CMP	a2, #0
 	BEQ	|__exec_s6|
 	]
 
 	; Relocate our application back down to its original position.
-	ADD	a1,a1,a2
-	ADD	a2,a3,a2
+	ADD	a1, a1, a2
+	ADD	a2, a3, a2
 
-	SUB	a1,a1,a2
-	ANDS	a4,a1,#31
+	SUB	a1, a1, a2
+	ANDS	a4, a1, #31
 	BEQ	|__exec_s5_1|
 |__exec_s5_0|
-	LDR	ip,[a2],#4
-	SUB	a1,a1,#4
-	STR	ip,[a3],#4
-	ANDS	a4,a1,#31
+	LDR	ip, [a2], #4
+	SUB	a1, a1, #4
+	STR	ip, [a3], #4
+	ANDS	a4, a1, #31
 	BNE	|__exec_s5_0|
 |__exec_s5_1|
-	CMP	a1,#0
+	CMP	a1, #0
 	BEQ	|__exec_s6|
 |__exec_s5_2|
-	LDMIA	a2!,{a4,v2,v3,v4,v5,v6,sl,ip}
-	STMIA	a3!,{a4,v2,v3,v4,v5,v6,sl,ip}
-	SUBS	a1,a1,#64
-	LDMGEIA a2!,{a4,v2,v3,v4,v5,v6,sl,ip}
-	STMGEIA a3!,{a4,v2,v3,v4,v5,v6,sl,ip}
+	LDMIA	a2!, {a4, v2, v3, v4, v5, v6, sl, ip}
+	STMIA	a3!, {a4, v2, v3, v4, v5, v6, sl, ip}
+	SUBS	a1, a1, #64
+	LDMGEIA a2!, {a4, v2, v3, v4, v5, v6, sl, ip}
+	STMGEIA a3!, {a4, v2, v3, v4, v5, v6, sl, ip}
 	BGT	|__exec_s5_2|
 
 |__exec_s6|
 	; Flush instruction cache for StrongARM. Use RWLimit rather
 	; than ROLimit in case some code is in the data section
-	MOV	a1,#1
-	LDR	a2,[pc,#|__base_|-.-8]
-	LDR	a3,[pc,#|__rwlimit_|-.-8]
+	MOV	a1, #1
+	LDR	a2, [pc, #|__base_|-.-8]
+	LDR	a3, [pc, #|__rwlimit_|-.-8]
 	SWI	XOS_SynchroniseCodeAreas
 
 	; Restore the original exit handler
-	MOV	a1,#11
-	LDR	a2,[pc,#|__o_exit|-.-8]
-	MOV	a3,#0
-	MOV	a4,#0
+	MOV	a1, #11
+	LDR	a2, [pc, #|__o_exit|-.-8]
+	MOV	a3, #0
+	MOV	a4, #0
 	SWI	XOS_ChangeEnvironment
 
-	LDR	a1,[pc,#|__exerr_ptr|-.-8]
-	LDR	a2,[pc,#|__exerr_|-.-8]
-	STR	a2,[a1,#0]
+	LDR	a1, [pc, #|__exerr_ptr|-.-8]
+	LDR	a2, [pc, #|__exerr_|-.-8]
+	STR	a2, [a1, #0]
 
 	; Restore the stack registers.
-	ADR	a1,|__exreg|
-	LDMIA	a1,{sl,fp,sp}
+	ADR	a1, |__exreg|
+	LDMIA	a1, {sl, fp, sp}
 
-	LDR	a1,[pc,#|__exret_ptr|-.-8]
-	LDR	a2,[pc,#|__base_|-.-8]
-	CMP	a1,a2
+	LDR	a1, [pc, #|__exret_ptr|-.-8]
+	LDR	a2, [pc, #|__base_|-.-8]
+	CMP	a1, a2
 	BCC	|__exec_rtn_corrupt|
-	BIC	a2,a1,#3
-	CMP	a1,a2
+	BIC	a2, a1, #3
+	CMP	a1, a2
 	BNE	|__exec_rtn_corrupt|
 	; Call __exret
-	MOV	pc,a1
+	MOV	pc, a1
 |__exec_rtn_corrupt|
-	ADR	a1,|__exec_rtn_msg|
+	ADR	a1, |__exec_rtn_msg|
 	SWI	XOS_Write0
 	; This call will never return.
 	MOV	a1, #127
@@ -236,7 +236,7 @@
 |__rwlimit_|
 	DCD	0	; __rwlimit value
 |__exreg|
-	%	12	; sl,fp,sp
+	%	12	; sl, fp, sp
 |__exerr_ptr|
 	DCD	|__exerr|
 |__exerr_|
@@ -268,23 +268,25 @@
 
         EXPORT  |__exec_cli|
 |__exec_cli|
-        LDR     a2,=|__image_rw_lomem|
-        LDR     a2,[a2]
+        LDR     a2, =|__image_rw_lomem|
+        LDR     a2, [a2]
 |__exec_cli_0|
-        LDRB    a3,[a1],#1
-        STRB    a3,[a2],#1
-        CMP     a3,#0
+        LDRB    a3, [a1], #1
+        STRB    a3, [a2], #1
+        CMP     a3, #0
         BNE     |__exec_cli_0|
         BL      |__env_wimpslot|
 
-        LDR     a1,=|__image_rw_lomem|
-        LDR     a1,[a1]
+        LDR     a1, =|__image_rw_lomem|
+        LDR     a1, [a1]
         SWI     XOS_CLI
-        MOV     R0,#0
+
+        MOV     R0, #0
         SWI     XDDEUtils_SetCLSize
-        MOV     R0,#0
-        MOV     R1,#0
-        MOV     R2,#0
+
+        MOV     R0, #0
+        MOV     R1, #0
+        MOV     R2, #0
         SWI     XOS_Exit
 
 	END

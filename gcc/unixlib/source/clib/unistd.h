@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/unistd.h,v $
- * $Date: 2004/04/12 13:03:37 $
- * $Revision: 1.11 $
+ * $Date: 2004/04/15 22:21:02 $
+ * $Revision: 1.12 $
  * $State: Exp $
- * $Author: nick $
+ * $Author: alex $
  *
  ***************************************************************************/
 
@@ -165,6 +165,7 @@ extern int access (const char *__name, int __type) __THROW;
    or the end of the file (SEEK_END).
    Return the new file position.  */
 extern __off_t lseek (int __fd, __off_t __offset, int __whence) __THROW;
+extern __off_t lseek64 (int __fd, __off_t __offset, int __whence) __THROW;
 
 /* Close the file descriptor fd.  */
 extern int close (int __fd) __THROW;

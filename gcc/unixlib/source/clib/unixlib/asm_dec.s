@@ -1,8 +1,8 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/unixlib/asm_dec.s,v $
-; $Date: 2003/11/23 20:26:44 $
-; $Revision: 1.14 $
+; $Date: 2004/08/16 21:01:27 $
+; $Revision: 1.15 $
 ; $State: Exp $
 ; $Author: joty $
 ;
@@ -153,7 +153,7 @@ IFlag32		EQU	&00000080
 	LDR	$val,[$Rerrno]
 	MEND
 
-	; NetSWI macro to call a networking (tcp/ip) swi.
+	; NetSWI macro to call a networking (TCP/IP) swi.
 	; We ensure that we are in SVC mode before calling the SWI because,
 	; according to Stewart Brodie, certain versions of Acorn's Internet
 	; stack require SWIs to be called in SVC mode.
@@ -331,14 +331,28 @@ SIGOSERROR EQU	33	;   RISC OS error
 
 EOPSYS	EQU	88	; RISC OS error
 
+SharedUnixLibrary_SWIChunk	EQU	&55c80	;Range &55c80 - &55cc0 (excl) is allocated.
+SharedUnixLibrary_ErrorChunk	EQU	&81a400	;Range &81a400 - &81a40 (excl) is allocated.
+; The beginning of the error range is used by the SUL module.  The end of
+; the error ranged (allocated from back to front) is used by the UnixLib
+; main code itself (to generate errors during startup when necessary).
+SharedUnixLibrary_Error_UnknownSWI	EQU SharedUnixLibrary_ErrorChunk + &00
+SharedUnixLibrary_Error_UnknownKey	EQU SharedUnixLibrary_ErrorChunk + &01
+SharedUnixLibrary_Error_StillActive	EQU SharedUnixLibrary_ErrorChunk + &02
+; ...
+SharedUnixLibrary_Error_FatalError	EQU SharedUnixLibrary_ErrorChunk + &3B
+SharedUnixLibrary_Error_NoFPE		EQU SharedUnixLibrary_ErrorChunk + &3C
+SharedUnixLibrary_Error_NotRecentEnough	EQU SharedUnixLibrary_ErrorChunk + &3D
+SharedUnixLibrary_Error_NotEnoughMem	EQU SharedUnixLibrary_ErrorChunk + &3E
+SharedUnixLibrary_Error_NoCallASWI	EQU SharedUnixLibrary_ErrorChunk + &3F
 
-OS_WriteS	EQU	&000001
-OS_NewLine	EQU	&000003
-OS_Exit		EQU	&000011
-OS_EnterOS	EQU	&000016
-OS_GenerateError	EQU	&00002B
+OS_WriteS			EQU	&000001
+OS_NewLine			EQU	&000003
+OS_Exit				EQU	&000011
+OS_EnterOS			EQU	&000016
+OS_GenerateError		EQU	&00002B
 
-X_Bit	EQU	&20000
+X_Bit				EQU	&20000
 
 XOS_WriteC			EQU	&000000 + X_Bit
 XOS_WriteS			EQU	&000001 + X_Bit

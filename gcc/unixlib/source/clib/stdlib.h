@@ -1,8 +1,8 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/stdlib.h,v $
- * $Date: 2004/05/10 14:20:16 $
- * $Revision: 1.12 $
+ * $Date: 2004/06/12 08:59:47 $
+ * $Revision: 1.13 $
  * $State: Exp $
  * $Author: peter $
  *
@@ -271,8 +271,7 @@ __END_NAMESPACE_C99
    perform the comparisons.  */
 extern void *bsearch (const void *__key, const void *__base,
 		      size_t __nmemb, size_t __size,
-		      int (*__compare)(const void *, const void *))
-     __THROW;
+		      int (*__compare)(const void *, const void *)) __THROW;
 
 /* Sort 'nmemb' elements of 'base', or 'size' bytes each.
    Use 'compare' to perform the comparisons.  */

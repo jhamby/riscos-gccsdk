@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/exec.c,v $
- * $Date: 2004/03/17 20:00:51 $
- * $Revision: 1.11 $
+ * $Date: 2004/06/12 08:59:49 $
+ * $Revision: 1.12 $
  * $State: Exp $
- * $Author: joty $
+ * $Author: peter $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: exec.c,v 1.11 2004/03/17 20:00:51 joty Exp $";
+static const char rcs_id[] = "$Id: exec.c,v 1.12 2004/06/12 08:59:49 peter Exp $";
 #endif
 
 #include <ctype.h>
@@ -128,25 +128,27 @@ set_dde_cli (char *cli)
   char *temp;
 
   /* Skip program name.  */
-  temp = cli;
-  while (*temp && *temp != ' ')
-    temp ++;
+  for (temp = cli; *temp != '\0' && *temp != ' '; ++temp)
+    ;
+  if (*temp == ' ')
+    ++temp;
 
   /* Check that the actual command is not greater than
      RISC OS's maximum path length.  */
   if ((temp - cli) >= MAXPATHLEN)
     return __set_errno (E2BIG);
 
-  /* Set the command line size within DDE utils.  */
-  regs[0] = strlen (temp + 1) + 1;
+  /* Set the command line size within DDEUtils.  */
+  regs[0] = strlen (temp) + 1;
   if (__os_swi (DDEUtils_SetCLSize, regs))
-    /* We're buggered if DDE utils isn't on this system.  */
+    /* We're buggered if DDEUtils isn't on this system.  */
     return __set_errno (E2BIG);
 
-  regs[0] = (int) temp + 1;
+  regs[0] = (int) temp;
   __os_swi (DDEUtils_SetCL, regs);
 
-  *temp = '\0';		/* terminate cli.  */
+  if (*temp != '\0')
+    temp[-1] = '\0';		/* terminate cli.  */
 #ifdef DEBUG
   __os_print ("DDEUtils set up\n\r");
 #endif
@@ -365,23 +367,23 @@ execve (const char *execname, char *const argv[], char *const envp[])
 	  p += nasty_hack;
 	while (*p)
 	  {
-            /* If character is a " or a ' then preceed with a backslash.  */
-            if ((!nasty_hack || x != 1) && (*p == '\"' || *p == '\''))
-              *command_line ++ = '\\';
+	    /* If character is a " or a ' then preceed with a backslash.  */
+	    if ((!nasty_hack || x != 1) && (*p == '\"' || *p == '\''))
+	      *command_line ++ = '\\';
 
-            if (*p == 127 || *p < 32)
-              {
-                sprintf (command_line, "\\x%.2X", *p);
-                command_line += 4;
-              }
-            else
-              *command_line ++ = *p;
+	    if (*p == 127 || *p < 32)
+	      {
+		sprintf (command_line, "\\x%.2X", *p);
+		command_line += 4;
+	      }
+	    else
+	      *command_line ++ = *p;
 
 	    p++;
 	  }
-        if (contains_space)
-          *command_line ++ = '\"';
-        *command_line ++ = ' ';
+	if (contains_space)
+	  *command_line ++ = '\"';
+	*command_line ++ = ' ';
       }
   command_line[-1] = '\0';
 
@@ -477,7 +479,7 @@ execve (const char *execname, char *const argv[], char *const envp[])
     {
       /* Make a copy of the command line arguments.  */
       process->envp = (char **) malloc ((process->envc + 1)
-      	       	       	    	       	* sizeof (char *));
+					* sizeof (char *));
       if (process->envp == NULL)
         __exit_no_code ();
       for (x = 0; x < process->envc; x++)

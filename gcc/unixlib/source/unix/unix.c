@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/unix.c,v $
- * $Date: 2004/06/12 08:59:48 $
- * $Revision: 1.23 $
+ * $Date: 2004/09/06 08:40:47 $
+ * $Revision: 1.24 $
  * $State: Exp $
  * $Author: peter $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: unix.c,v 1.23 2004/06/12 08:59:48 peter Exp $";
+static const char rcs_id[] = "$Id: unix.c,v 1.24 2004/09/06 08:40:47 peter Exp $";
 #endif
 
 #include <stdio.h>
@@ -22,19 +22,19 @@ static const char rcs_id[] = "$Id: unix.c,v 1.23 2004/06/12 08:59:48 peter Exp $
 
 #include <unistd.h>
 #include <fcntl.h>
+#include <pthread.h>
+#include <swis.h>
 #include <termios.h>
 #include <time.h>
 
-#include <unixlib/os.h>
-#include <unixlib/unix.h>
 #include <sys/param.h>
-#include <swis.h>
 #include <sys/wait.h>
 
 #include <unixlib/fd.h>
 #include <unixlib/local.h>
-
-#include <pthread.h>
+#include <unixlib/os.h>
+#include <unixlib/unix.h>
+#include <unixlib/sigstate.h>
 
 /* #define DEBUG 1 */
 
@@ -60,9 +60,9 @@ static const char *find_terminator (const char *s);
 static void get_io_redir (const char *cli);
 static int verify_redirection (const char *redirection);
 static const char *find_redirection_type (const char *command_line,
-       	     	   			  char redirection_type);
+					  char redirection_type);
 static int convert_command_line (struct proc *process, const char *cli,
-       	   	   	   	 int cli_size);
+				 int cli_size);
 
 static void __badr (void) __attribute__ ((__noreturn__));
 
@@ -118,8 +118,6 @@ __hexstrtochar (const char *nptr)
   return result;
 }
 
-extern char *__unixlib_cli;
-
 /* Initialise the UnixLib world.  Create a new process structure, initialise
    the UnixLib library and parse command line arguments.
    This function is called by __main () in sys.s._syslib.  */
@@ -140,14 +138,16 @@ void __unixinit (void)
 
 #ifdef DEBUG
   __os_print ("-- __unixinit: __u = "); __os_prhex ((unsigned int) __u);
-  if (__u)
+  if (__u != NULL && valid_address((int *)&__u[0], (int *)&__u[1]))
     {
       __os_print (", __u->magic="); __os_prhex ((unsigned int) __u->__magic);
     }
   __os_print ("\r\n");
 #endif
 
-  if (__u == NULL || __u->__magic != _PROCMAGIC)
+  if (__u == NULL
+      || !valid_address((int *)&__u[0], (int *)&__u[1])
+      || __u->__magic != _PROCMAGIC)
     {
 #ifdef DEBUG
       __os_print ("-- __unixinit: new process\r\n");

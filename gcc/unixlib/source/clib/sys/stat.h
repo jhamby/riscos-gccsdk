@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/sys/stat.h,v $
- * $Date: 2003/04/12 11:31:39 $
- * $Revision: 1.6 $
+ * $Date: 2004/04/17 10:51:15 $
+ * $Revision: 1.7 $
  * $State: Exp $
- * $Author: alex $
+ * $Author: nick $
  *
  ***************************************************************************/
 
@@ -173,7 +173,9 @@ struct stat
 
 extern int stat (const char *__filename, struct stat *__buf) __THROW;
 extern int lstat (const char *__filename, struct stat *__buf) __THROW;
+extern int lstat64 (const char *__filename, struct stat *__buf) __THROW;
 extern int fstat (int __fd, struct stat *__buf) __THROW;
+extern int fstat64 (int __fd, struct stat *__buf) __THROW;
 
 #ifdef __UNIXLIB_INTERNALS
 /* We declare __stat here to prevent the inclusion if <sys/stat.h> in

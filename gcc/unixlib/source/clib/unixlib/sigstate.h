@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/unixlib/sigstate.h,v $
- * $Date: 2002/09/24 21:02:37 $
- * $Revision: 1.4 $
+ * $Date: 2004/02/23 16:07:28 $
+ * $Revision: 1.5 $
  * $State: Exp $
- * $Author: admin $
+ * $Author: peter $
  *
  ***************************************************************************/
 
@@ -51,7 +51,7 @@ struct unixlib_sigstate
 /* Raise a signal as described by __signo on the process whose sigstate
    __ss points to. If __ss is null, this will affect the calling process.  */
 extern void __unixlib_raise_signal (struct unixlib_sigstate *__ss,
-       	    			   int __signo);
+				   int __signo);
 
 /* Function run for SIGINFO when its action is SIG_DFL and the current
    process is the session leader.  */
@@ -65,7 +65,11 @@ extern void __unixlib_exec_sigstack (void *__sp, int size, __sighandler_t, int);
 extern void __unixlib_default_sigaction (struct unixlib_sigstate *);
 
 /* Helper C function for signal handler */
-void __write_unrecoverable(const char *errmess);
+extern void __write_unrecoverable(const char *errmess);
+
+/* Returns non-zero value when address range __lower - __upper (excl) is
+   a valid address range.  */
+extern int valid_address (int *__lower, int *__upper);
 
 /* SIGALRM handler.  */
 extern void __h_sigalrm_init (void);

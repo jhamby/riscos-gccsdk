@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/unixlib/unix.h,v $
- * $Date: 2004/03/17 20:00:51 $
- * $Revision: 1.14 $
+ * $Date: 2004/06/12 08:59:47 $
+ * $Revision: 1.15 $
  * $State: Exp $
- * $Author: joty $
+ * $Author: peter $
  *
  * UNIX is a registered trademark of AT&T Bell Laboratories
  *
@@ -104,7 +104,7 @@ struct proc
   __pid_t pid;  /* Process ID.  */
   __pid_t ppid;  /* Parent process ID.  */
   int ppri, gpri, upri;  /* Process priority, process group priority
-      	    	  	    and user process priority.  */
+			    and user process priority.  */
   __mode_t umask;  /* File creation mode mask.  */
   struct __process status;  /* Process status.  */
   struct itimerval itimers[__MAX_ITIMERS];  /* Defined interval timers.  */
@@ -149,7 +149,10 @@ extern int __funcall_error (const char *, int, unsigned int);
 
 
 /* Assembler exit.  */
-extern void __exit (int) __attribute__ ((__noreturn__));
+
+/* __returncode is the final program's return code.
+ */
+extern void __exit (int __returncode) __attribute__ ((__noreturn__));
 extern void __exit_no_code (void) __attribute__ ((__noreturn__));
 
 /* __unixlib_break is initialised to __image_rw_lomem & __unixlib_stack to
@@ -211,7 +214,6 @@ extern void __stop_itimers (void);
 /* Reset handlers, etc. back to original state.  */
 extern void __env_riscos (void);
 extern void __env_unixlib (void);
-extern void __env_read (void);
 
 /* vfork() & exec() */
 
@@ -238,9 +240,7 @@ extern unsigned int __decstrtoui (const char *__string, char **__end);
 /* If this variable is non-null then we allocated the current environment.  */
 extern char **__last_environ;
 
-/* UnixLib's prefix for global RISC OS environment variables. I considered
-   using Unix$ rather than UnixEnv$, but that means the environment variable
-   PATH would get confused with Unix$Path which is used in makefiles.  */
+/* UnixLib's prefix for global RISC OS environment variables.  */
 #define __UNIX_ENV_PREFIX "UnixEnv$"
 
 /* Add NAME=VALUE to the environment. If NAME is already in the environment,

@@ -1,3 +1,54 @@
+Tue Sep  7 16:03:14 2004  John Tytgat  <John.Tytgat@aaug.net>
+
+	* Docs/ReadMe: Documented UnixLib$env as private UnixLib environment
+	  variable.
+	* source/clib/setjmp.h: Aesthetic change.
+	* source/clib/stdlib.h: Likewise.
+	* source/clib/unixlib/asm_dec.s: Likewise.
+	* source/clib/unixlib/local.h: Likewise.
+	* source/stdio/fopen.c: Likewise.
+	* source/sys/exec.c: Likewise.
+	* source/clib/unistd.h: Added lseek64() prototype.
+	* source/clib/sys/stat.h: Added lstat64(), fstat64() prototype.
+	* source/clib/sys/un.h: Added RCS/CVS keywords.
+	* source/clib/unixlib/asm_dec.s: Moved chunk and error definitions from
+	  source/module/sul.s to here as SharedUnixLibrary_SWIChunk and
+	  SharedUnixLibrary_ErrorChunk; Formally defined the
+	  SharedUnixLib_Error_* errors; Incorrect SWI error exit code was
+	  generated with objasm; TABified.
+	* source/clib/unixlib/sigstate.h: Aesthetic change; declared
+	  valid_address().
+	* source/clib/unixlib/unix.h: Removed __env_read() declaration.
+	  Adjusted comment on UnixEnv environment prefix.
+	* source/common/unixify.c (__unixify): Suffix swapping could access
+	  memory before start of path.
+	* source/module/sul.s: Moved chunk and error definitions to
+	  source/clib/unixlib/asm_dec.s.
+	* source/pthread/_ints.s: Signed -> unsigned compares.
+	* source/sys/_mem.s: Likewise; Space injections.
+	* source/signal/_signal.s: Added comments; (__h_sigill, __h_sigsegv0,
+	  __h_sigsegv1, __h_sigsys) removed useless instruction; (__h_event)
+	  simplified; (__h_cback) exit sequences were not 26 bit system
+	  compatible; Removed abortpc; CMP -> TEQ if only (non)equivalence test
+	  is needed.
+	* source/signal/post.c (valid_address): Exported.
+	* source/sys/_exec.s: Space injections.
+	* source/sys/_syslib.s: Introduced startup errors instead of VDU
+	  writing; Ensuring SUL v1.02 instead of v1.00; Rename __cli ->
+	  __uixlib_cli, __himem -> __image_rw_himem; a1 (on entry) of OS_Exit
+	  must point to a filled in RISC OS error block; Define stack_corrupt_msg
+	  and stack_corrupt conditionally; Calling __unixlib_fatal a 2nd time
+	  results in panic calling OS_Exit; (stack_overflow_common) executing
+	  signalhandler stack check *before* validity stack check otherwise you
+	  get the wrong fatal error message.
+	* source/sys/_vfork.s: Added comments.
+	* source/sys/mman.c (__munmap_all): Updated comments.
+	* source/sys/vfork.c: Minor cleanup.
+	* source/unix/unix.c: Removed __unixlib_cli declaration; Be more
+	  paranoid on the validity of __u as it might be an UnixLib$env value
+	  picked up by another TaskWindow UnixLib based process doing fork()s.
+	* source/unix/tty.c (__ttyioctl): Removed excessive break usage. 
+	
 Mon Sep  6 09:35:03 2004  Peter Naulls  <peter@chocky.org>
 
 	* source/clib/pthread.h: Fix spelling mistakes. Add comment about
