@@ -16,8 +16,9 @@ all:	gcc
 gccpath=$(objdir)/gcc-$(VERSION)/$@
 
 gcc:
-	mkdir -p $(gccpath) $(gccpath)/cp $(gccpath)/cpp $(gccpath)/f77 $(gccpath)/gpc
-	mkdir -p $(gccpath)/config/arm $(gccpath)/gen $(gccpath)/insn
+	mkdir -p $(gccpath) $(gccpath)/cp $(gccpath)/cpp $(gccpath)/f77 \
+	$(gccpath)/gpc $(gccpath)/objc $(gccpath)/java $(gccpath)/config/arm \
+	$(gccpath)/gen $(gccpath)/insn
 	$(MAKE) -C gcc
 
 libgcc:
