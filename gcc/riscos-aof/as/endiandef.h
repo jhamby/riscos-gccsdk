@@ -20,6 +20,7 @@ unsigned armword (unsigned val);
 unsigned ourword (unsigned val);
 #endif /* __BYTE_ORDER != __LITTLE_ENDIAN */
 #elif BYTE_ORDER
+#if BYTE_ORDER == LITTLE_ENDIAN
 #define armword(x) (x)
 #define ourword(x) (x)
 #else
