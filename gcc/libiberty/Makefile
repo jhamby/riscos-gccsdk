@@ -25,13 +25,13 @@ objtarget=$(objdir)/libiberty
 else
 
 # Building to target RISC OS
-CC = $(standard_exec_prefix)/gcc $(CFLAGS)
+CC = $(standard_exec_prefix)/gcc
 objtarget=$(objdir)/libiberty/$(TRG)
 endif
 
 
 $(objtarget)/%.o: %.c
-	$(CC) -o $@ -c $< $(INCLUDES)
+	$(CC) $(CFLAGS) -o $@ -c $< $(INCLUDES)
 
 
 LIBIBERTY = $(objtarget)/choose-temp.o $(objtarget)/cplus-dem.o \
