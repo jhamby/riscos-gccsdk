@@ -1,3 +1,7 @@
+Mon Jun 23 10:31:08 2003  Peter Naulls <peter@chocky.org>
+	* source/unix/fcntl.c: Patches missed from 2.95 trunk.
+	  Fix use of O_EXECCL flag, and add F_SETOWN stub.
+
 Fri Jun 20 00:50:01 2003  John Tytgat <John.Tytgat@aaug.net>
 
 	* source/clib/errno.h (__ul_errbuf): Not a char* but a struct

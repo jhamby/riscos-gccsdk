@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/fcntl.c,v $
- * $Date: 2002/12/22 18:22:29 $
- * $Revision: 1.5 $
+ * $Date: 2003/04/05 09:33:56 $
+ * $Revision: 1.6 $
  * $State: Exp $
- * $Author: admin $
+ * $Author: alex $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: fcntl.c,v 1.5 2002/12/22 18:22:29 admin Exp $";
+static const char rcs_id[] = "$Id: fcntl.c,v 1.6 2003/04/05 09:33:56 alex Exp $";
 #endif
 
 #include <errno.h>
@@ -30,7 +30,7 @@ fcntl (int fd, int cmd, ...)
   struct __unixlib_fd *file_desc;
 
   PTHREAD_UNSAFE_CANCELLATION
-  
+
   if (BADF (fd))
     return __set_errno (EBADF);
 
@@ -67,13 +67,20 @@ fcntl (int fd, int cmd, ...)
       }
 
     case F_GETFD:
-      return file_desc->dflag;
+      return (file_desc->fflag & O_EXECCL) ? 1 : 0;
 
     case F_SETFD:
-      va_start (ap, cmd);
-      file_desc->dflag = va_arg (ap, int);
-      va_end (ap);
-      return 0;
+      {
+      /* Set close-on-exec flag */
+            va_start(ap, cmd);
+
+	if (va_arg (ap, int))
+	  file_desc->fflag != O_EXECCL;
+	else
+	  file_desc->fflag &= ~O_EXECCL;
+		va_end(ap);
+	return 0;
+	}
 
     case F_GETFL:
       return file_desc->fflag;
@@ -121,6 +128,11 @@ fcntl (int fd, int cmd, ...)
 	  file_desc->fflag |= O_UNLINKED;
 	else
 	  file_desc->fflag &= ~O_UNLINKED;
+	return 0;
+      }
+
+    case F_SETOWN:
+      {
 	return 0;
       }
     }
