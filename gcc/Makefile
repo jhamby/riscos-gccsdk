@@ -2,67 +2,7 @@
 # Copyright (c) 2000 Nick Burrett
 # Written by Nick Burrett <nick@dsvr.net>
 
-# Set to `yes' if we are cross-compiling
-crosscompile=yes
-
-# Define this to be the version of GCC we are compiling
-VERSION = 2_95_2
-# VERSION = 3_0_0
-
-# Uncomment if we are building for ARM/RISC OS with ELF executables
-#TARGET_NAME = arm-riscos-elf
-#TARGET_DEFS = -DTARGET_RISCOSELF
-
-# Uncomment if we are building for ARM/RISC OS with AOF executables
-TARGET_NAME = arm-riscos-aof
-TARGET_DEFS = -DTARGET_RISCOSAOF
-
-
-# Installation directories
-ifeq ($(crosscompile),yes)
-gccpkg=/home/riscos/dist
-standard_exec_prefix=$(gccpkg)/bin/
-standard_startfile_prefix=$(gccpkg)/startup/
-gcc_include_dir=$(gccpkg)/lib/gcc-lib/$(TARGET_NAME)/$(VERSION)/include
-gplusplus_include_dir=$(gccpkg)/lib/gcc-lib/$(TARGET_NAME)/$(VERSION)/include/g++-3
-cross_include_dir=$(gccpkg)/include
-local_include_dir=
-system_include_dir=
-
-# Used in GCC's makefile
-hostsystem=HOST_I386_LINUX
-else
-standard_exec_prefix="gccpkg:bin/"
-standard_startfile_prefix="gccpkg:startup/"
-gcc_include_dir="gccpkg:lib/gcc-lib/$(TARGET_NAME)/$(VERSION)/include"
-gplusplus_include_dir="gccpkg:lib/gcc-lib/$(TARGET_NAME)/$(VERSION)/include/g++-3"
-local_include_dir="$(gccpkg)/local/include"
-system_include_dir="$(gccpkg)/sys/include"
-cross_include_dir=
-
-# Used in GCC's makefile
-hostsystem=HOST_ARM_RISCOS
-endif
-
-export standard_exec_prefix standard_startfile_prefix
-export gcc_include_dir gplusplus_include_dir
-export local_include_dir system_include_dir cross_include_dir
-export hostsystem
-
-# Path to root of source tree
-srcdir=/home/riscos/gccsdk
-
-# For the RISC OS gcc compiler
-#OPTS = -mthrowback -mpoke-function-name
-# Crazy ass optimisations that free up another 2 registers.  Doesn't work
-# properly yet.
-#OPTS = -mthrowback -mno-apcs-frame -mno-apcs-stack-check -muse-arg-pointer
-
-# Where object files are stored
-objdir=/home/riscos/$(TARGET_NAME)
-
-# Where resulting binaries will be placed
-distdir=/home/riscos/dist
+include local.mk
 
 # Path to where we place non-target specific compiled binaries
 BIN = $(distdir)/bin
@@ -80,10 +20,14 @@ AR_FLAGS = -c
 endif
 
 # Pass these variables through the environment to sub-makes.
-export srcdir objdir distdir VERSION TARGET_NAME TARGET_DEFS OPTS BIN TBIN
+export VERSION TARGET_NAME TARGET_DEFS BIN TBIN
 export CFLAGS AR AR_FLAGS crosscompile
 
 all:	crosshost crosstarget
+
+# Setup build and installation directories.  Install run-time library
+# headers
+setup:	directories install_headers
 
 # Tools that will run natively in any environment
 # i.e. under Linux this will build the GCC cross-compiler, cross-assembler
@@ -95,6 +39,7 @@ crosshost:	libiberty riscos-aof gcc
 # on RISC OS machines only.
 crosstarget:	libgcc unixlib libscl libio libstdc libf2c libgpc riscos-progs riscos-libs
 
+.PHONY: directories
 .PHONY: libgcc
 .PHONY: libgpc
 .PHONY: unixlib
@@ -148,6 +93,7 @@ cfl32="CFL=-mapcs-26 -mno-apcs-float -mcpu=strongarm -mlibscl"
 
 cfl40="CFL=-mapcs-32 -mno-apcs-float -mcpu=arm6 -mlibscl"
 cfl41="CFL=-mapcs-32 -mno-apcs-float -mcpu=strongarm -mlibscl"
+
 
 
 libscl:
@@ -227,3 +173,18 @@ libgpc libio libf2c libstdc:
 	$(MAKE) -C "gcc-$(VERSION)" $@ $(trg22) $(cfl22)
 	$(MAKE) -C "gcc-$(VERSION)" $@ $(trg23) $(cfl23)
 
+# Make sure build and installation directories exist
+directories:
+	mkdir -p $(gccpkg)
+	mkdir -p $(standard_exec_prefix)
+	mkdir -p $(standard_startfile_prefix)
+	mkdir -p $(gcc_include_dir)
+	mkdir -p $(gcc_bin_dir)
+	mkdir -p $(gplusplus_include_dir)
+	mkdir -p $(cross_include_dir)
+	mkdir -p $(objdir)
+
+# Install header files for our standard C run-time libraries.
+install_headers:
+	$(MAKE) -C libscl install_headers
+	$(MAKE) -C unixlib install_headers
