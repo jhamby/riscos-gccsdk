@@ -1,4 +1,8 @@
-Sun Feb 07 18:07:37 2004  Alex Waugh  <alex@alexwaugh.com>
+Sun Feb 08 00:19:58 2004  Alex Waugh  <alex@alexwaugh.com>
+
+	* Docs/ReadMe: Added sections on stack/heap changes and pthreads.
+
+Sat Feb 07 18:07:37 2004  Alex Waugh  <alex@alexwaugh.com>
 
 	* source/common/riscosify.c (__sfixfind): Add length parameter to ease
 	  calling from rname.c
