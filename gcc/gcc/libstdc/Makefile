@@ -31,7 +31,7 @@ target_alias = config/io
 
 stdcobjdir=$(objdir)/gcc-$(VERSION)/libstdc++/$(STAGE)
 
-glibcpp_srcdir = /home/nick/riscos/gcc-3.3/libstdc++-v3
+glibcpp_srcdir = /home/nick/riscos/masters/gcc-3.3/libstdc++-v3
 glibcpp_builddir = @glibcpp_builddir@
 
 bits_srcdir = ${glibcpp_srcdir}/include/bits
