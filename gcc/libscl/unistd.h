@@ -23,6 +23,10 @@ extern __ssize_t read (int __fd, void *__buf, size_t __nbytes);
 /* Write n bytes of buf to fd.  */
 extern __ssize_t write (int __fd, const void *__buf, size_t __nbytes);
 
+/* Seek to file position of fd.  */
+__off_t lseek (int fd, __off_t offset, int whence);
+
+
 #ifdef __cplusplus
 }
 #endif

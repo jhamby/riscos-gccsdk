@@ -23,3 +23,8 @@ int close (int fd)
 {
   return fclose (&__iob[fd]);
 }
+
+__off_t lseek (int fd, __off_t offset, int whence)
+{
+  return fseek(&__iob[fd], offset, whence);
+}
