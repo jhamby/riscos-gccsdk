@@ -7,6 +7,12 @@ RISC OS GCC release 3.3.3 pre-release 2 (released XX XXXXX 2004)
 
 * grep: Upgrade to version 2.5
 
+* diffutils: Upgrade to version 2.8.1
+
+* patch: Upgrade to version 2.5.4
+
+* sed: Upgrade to version 4.0.9
+
 RISC OS GCC release 3.3.3 pre-release 1 (released 20 March 2004)
 =======================================
 
