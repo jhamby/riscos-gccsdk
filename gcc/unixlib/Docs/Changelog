@@ -1,3 +1,10 @@
+Sun Apr  6 22:48:08 2003  John Tytgat <John.Tytgat@aaug.net>
+
+	* unix/dirent.c: Norcroft C breaks on an int64 switch argument
+	  since __off_t has been changed to 64 bits.  Void'ing or using
+	  the return parameter of __set_errno() to reduce warnings.
+	* !MKDir: Removed, an up-to-date copy is MKDir.
+
 Sun Apr  6 15:03:26 2003  Peter Naulls <peter@chocky.org>
 
 	* source/netlib/socketpair.c: socketpair() implementation
@@ -35,7 +42,7 @@ Sat Apr  6 11:54:16 2003  Alex Waugh  <alex@alexwaugh.com>
 	* pthread/init.c: Likewise.
 	* pthread/_context.s: Likewise, add missing IMPORT.
 
-Sun Apr  5 01:00:57 2003  John Tytgat <John.Tytgat@aaug.net>
+Sun Apr  6 01:00:57 2003  John Tytgat <John.Tytgat@aaug.net>
 
 	* source/clib/bits/netdb.h: Removed _gethostbyname() and
 	  _gethostbyaddr() definition

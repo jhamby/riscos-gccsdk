@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/dirent.c,v $
- * $Date: 2002/09/24 21:02:38 $
- * $Revision: 1.4 $
+ * $Date: 2003/04/05 09:33:56 $
+ * $Revision: 1.5 $
  * $State: Exp $
- * $Author: admin $
+ * $Author: alex $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: dirent.c,v 1.4 2002/09/24 21:02:38 admin Exp $";
+static const char rcs_id[] = "$Id: dirent.c,v 1.5 2003/04/05 09:33:56 alex Exp $";
 #endif
 
 /* #define DEBUG */
@@ -344,12 +344,15 @@ readdir_r (DIR *stream, struct dirent *entry, struct dirent **result)
   	   "readir_r: stream 0x%p : enum user offset 0x%x, system offset 0x%x\n",
   	   stream, stream->dd_off, stream->gbpb_off);
 #endif
-  switch (stream->dd_off)
+  /* Instead of a more natural switch() statement, we're using cascaded if()
+     statements until Norcroft C supports int64 switch() arguments.  */
+  if (stream->dd_off == GBPB_FAKE_CURRENTDIR
+      || stream->dd_off == GBPB_FAKE_PARENTDIR)
     {
-    case GBPB_FAKE_PARENTDIR: /* Fake directory '..' */
-      entry->d_name[x++] = '.';
-      /* Fall through */
-    case GBPB_FAKE_CURRENTDIR: /* Fake directory '.' */
+      /* Fake directory '.' or '..' */
+      if (stream->dd_off == GBPB_FAKE_PARENTDIR)
+        entry->d_name[x++] = '.'; /* Fake directory '..' */
+
       entry->d_name[x++] = '.';
 
       entry->d_name[x] = '\0';
@@ -361,10 +364,11 @@ readdir_r (DIR *stream, struct dirent *entry, struct dirent **result)
       stream->dd_off = stream->gbpb_off =
       	(stream->gbpb_off == GBPB_FAKE_CURRENTDIR)
       	? GBPB_FAKE_PARENTDIR : GBPB_START_ENUM;
-      break;
-    case GBPB_END_ENUM:
-      return 0;
-    default:
+    }
+  else if (stream->dd_off == GBPB_END_ENUM)
+    return 0;
+  else
+    {
       /* Does the cache needs a refill ? */
       if (stream->do_read == 0)
         {
@@ -423,7 +427,7 @@ readdir_r (DIR *stream, struct dirent *entry, struct dirent **result)
                         return 0;
                       }
 
-                    regs[4] = GBPB_END_ENUM;
+                    regs[4] = (int)GBPB_END_ENUM;
                   }
               }
 
@@ -536,8 +540,6 @@ readdir_r (DIR *stream, struct dirent *entry, struct dirent **result)
 #endif
           return 0;
         }
-
-      break;
     }
 
 
@@ -683,7 +685,7 @@ scandir (const char *dir, struct dirent ***namelist,
         return -1;
 
     save = errno;
-    __set_errno(0);
+    (void) __set_errno(0);
 
     i = 0;
     while ((d = readdir(dp)) != NULL)
@@ -693,19 +695,19 @@ scandir (const char *dir, struct dirent ***namelist,
             size_t dsize;
 
             /* Ignore errors from select or readdir */
-            __set_errno(0);
+            (void) __set_errno(0);
 
             if (i == vsize)
             {
-                struct dirent **new;
+                struct dirent **newdir;
                 if (vsize == 0)
                     vsize = 10;
                 else
                     vsize *= 2;
-                new = (struct dirent **) realloc(v, vsize * sizeof(*v));
-                if (new == NULL)
+                newdir = (struct dirent **) realloc(v, vsize * sizeof(*v));
+                if (newdir == NULL)
                     break;
-                v = new;
+                v = newdir;
             }
 
             /* FIXME: this 256 should be a macro, but see comments in dirent.h */
@@ -726,12 +728,11 @@ scandir (const char *dir, struct dirent ***namelist,
             free(v[--i]);
         free(v);
 
-        __set_errno (save);
-        return -1;
+        return __set_errno (save);
     }
 
     (void) closedir(dp);
-    __set_errno(save);
+    (void) __set_errno(save);
 
     /* Sort the list if we have a comparison function to sort with.  */
     if (cmp != NULL)
