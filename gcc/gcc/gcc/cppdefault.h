@@ -39,7 +39,11 @@ Foundation, 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.  */
 #undef SYSTEM_INCLUDE_DIR
 #undef STANDARD_INCLUDE_DIR
 #else
+/* NAB++ */
+#ifndef TARGET_RISCOSAOF
 #undef CROSS_INCLUDE_DIR
+#endif
+/* NAB-- */
 #endif
 
 /* This is the default list of directories to search for include files.
