@@ -89,3 +89,13 @@ typedef unsigned char uch;
 #ifdef USEBCOPY
 #define	memmove(d, s, c)	bcopy(s, d, c)
 #endif
+
+/* START: UnixLib patch
+ * Our assert.h doesn't define this macro
+ * It is BSD specific and is defined away unless _DIAGNOSTIC is
+ * defined. As this only happens when debugging the library, we
+ * simply do away with it completely
+ */
+#undef _DIAGASSERT
+#define _DIAGASSERT(e) ((void) 0)
+/* END: UnixLib patch */

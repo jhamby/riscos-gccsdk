@@ -1,3 +1,11 @@
+Mon Feb 7 14:52:18 2005  John-Mark Bell  <jmb202@ecs.soton.ac.uk>
+
+	* source/regexp/{cclass.h, cname.h, engine.h, regcomp.c,
+	  regexec.c, regerror.c, regfree.c, utils.h, COPYRIGHT}:
+	  Use regex implementation from NetBSD CVS. The previous
+	  version appeared to be non-POSIX compliant.
+	* source/regexp/{regexp.c, regmagic.h, regsub.c}: Remove unused files
+
 Sun Feb 6 19:48:21 2005  Alex Waugh  <alex@alexwaugh.com>
 
 	* source/module/sul.s: Change upcall handler to refuse all new

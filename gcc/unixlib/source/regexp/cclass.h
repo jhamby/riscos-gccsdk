@@ -1,4 +1,4 @@
-/*	$NetBSD: regfree.c,v 1.13 2003/08/07 16:43:21 agc Exp $	*/
+/*	$NetBSD: cclass.h,v 1.7 2003/08/07 16:43:19 agc Exp $	*/
 
 /*-
  * Copyright (c) 1992, 1993, 1994
@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- *	@(#)regfree.c	8.3 (Berkeley) 3/20/94
+ *	@(#)cclass.h	8.3 (Berkeley) 3/20/94
  */
 
 /*-
@@ -68,62 +68,37 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- *	@(#)regfree.c	8.3 (Berkeley) 3/20/94
+ *	@(#)cclass.h	8.3 (Berkeley) 3/20/94
  */
 
-#include <sys/cdefs.h>
-#if defined(LIBC_SCCS) && !defined(lint)
-#if 0
-static char sccsid[] = "@(#)regfree.c	8.3 (Berkeley) 3/20/94";
-#else
-__RCSID("$NetBSD: regfree.c,v 1.13 2003/08/07 16:43:21 agc Exp $");
-#endif
-#endif /* LIBC_SCCS and not lint */
-
-/*#include "namespace.h"*/
-#include <sys/types.h>
-
-#include <assert.h>
-#include <regex.h>
-#include <stdio.h>
-#include <stdlib.h>
-
-#ifdef __weak_alias
-__weak_alias(regfree,_regfree)
-#endif
-
-#include "utils.h"
-#include "regex2.h"
-
-/*
- - regfree - free everything
- = extern void regfree(regex_t *);
- */
-void
-regfree(preg)
-regex_t *preg;
-{
-	struct re_guts *g;
-
-	_DIAGASSERT(preg != NULL);
-
-	_DIAGASSERT(preg->re_magic == MAGIC1);
-	if (preg->re_magic != MAGIC1)	/* oops */
-		return;			/* nice to complain, but hard */
-
-	g = preg->re_g;
-	if (g == NULL || g->magic != MAGIC2)	/* oops again */
-		return;
-	preg->re_magic = 0;		/* mark it invalid */
-	g->magic = 0;			/* mark it invalid */
-
-	if (g->strip != NULL)
-		free(g->strip);
-	if (g->sets != NULL)
-		free(g->sets);
-	if (g->setbits != NULL)
-		free(g->setbits);
-	if (g->must != NULL)
-		free(g->must);
-	free(g);
-}
+/* character-class table */
+static const struct cclass {
+	const char *name;
+	const char *chars;
+	const char *multis;
+} cclasses[] = {
+	{ "alnum",	"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz\
+0123456789",				"" },
+	{ "alpha",	"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz",
+					"" },
+	{ "blank",	" \t",		"" },
+	{ "cntrl",	"\007\b\t\n\v\f\r\1\2\3\4\5\6\16\17\20\21\22\23\24\
+\25\26\27\30\31\32\33\34\35\36\37\177",	"" },
+	{ "digit",	"0123456789",	"" },
+	{ "graph",	"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz\
+0123456789!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~",
+					"" },
+	{ "lower",	"abcdefghijklmnopqrstuvwxyz",
+					"" },
+	{ "print",	"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz\
+0123456789!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~ ",
+					"" },
+	{ "punct",	"!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~",
+					"" },
+	{ "space",	"\t\n\v\f\r ",	"" },
+	{ "upper",	"ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+					"" },
+	{ "xdigit",	"0123456789ABCDEFabcdef",
+					"" },
+	{ NULL,		0,		"" }
+};
