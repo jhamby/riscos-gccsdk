@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/dirent.c,v $
- * $Date: 2004/12/11 14:18:57 $
- * $Revision: 1.10 $
+ * $Date: 2005/03/20 15:46:02 $
+ * $Revision: 1.11 $
  * $State: Exp $
- * $Author: joty $
+ * $Author: alex $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: dirent.c,v 1.10 2004/12/11 14:18:57 joty Exp $";
+static const char rcs_id[] = "$Id: dirent.c,v 1.11 2005/03/20 15:46:02 alex Exp $";
 #endif
 
 /* #define DEBUG */
@@ -476,10 +476,12 @@ readdir_r (DIR *stream, struct dirent *entry, struct dirent **result)
           slen = (offsetof (__os_gbpb_10, obj_name)
                   + (str - entry->d_name) + 1 + 3) & -4;
 
-          /* Need to add filetype extension (only for straight files not
-             for directories nor image files) ? */
+          /* Need to add filetype extension (for straight files or
+             image files if they are treated as files) */
           if ((riscosify_ctl & __RISCOSIFY_FILETYPE_EXT)
-              && stream->dir_cache_index->obj_type == 1
+              && (stream->dir_cache_index->obj_type == 1 ||
+                  (stream->dir_cache_index->obj_type == 3
+                   && __get_feature_imagefs_is_file ()))
               && (stream->dir_cache_index->load_address & 0xfff00000U) == 0xfff00000U)
             {
               int filetype;
@@ -527,8 +529,9 @@ readdir_r (DIR *stream, struct dirent *entry, struct dirent **result)
             }
         }
 
-      /* Is this correct ? */
-      entry->d_type = (stream->dir_cache_index->obj_type == 1)
+      entry->d_type = (stream->dir_cache_index->obj_type == 1 ||
+                       (stream->dir_cache_index->obj_type == 3
+                        && __get_feature_imagefs_is_file ()))
       	       	      ? DT_REG : DT_DIR;
 
       entry->d_namlen = str - entry->d_name;

@@ -1,4 +1,9 @@
-Sat Apr  3 09:28:42 2005  Stefan Bellon <sbellon@sbellon.de>
+Sat Apr  2 22:03:12 2005  Alex Waugh  <alex@alexwaugh.com>
+
+	* source/unix/dirent.c (readdir_r): Take account of
+	  __feature_imagefs_is_file.
+
+Sat Apr  2 09:28:42 2005  Stefan Bellon <sbellon@sbellon.de>
 
 	* source/sys/debug.c: Fix compile error.
 	* objs/.cvsignore: Add more filenames to ignore.
