@@ -1,8 +1,8 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/module/sul.s,v $
-; $Date: 2005/03/04 20:59:05 $
-; $Revision: 1.9 $
+; $Date: 2005/03/06 21:53:53 $
+; $Revision: 1.10 $
 ; $State: Exp $
 ; $Author: alex $
 ;
@@ -137,7 +137,7 @@ EARLIEST_SUPPORTED_VERSION	EQU	105
 
 |help|
 	DCB	"SharedUnixLibrary", 9
-	DCB	"1.05 (4 Mar 2005) (C) UnixLib Developers, 2001-2005", 0
+	DCB	"1.05 (13 Mar 2005) (C) UnixLib Developers, 2001-2005", 0
 	ALIGN
 
 |title|
@@ -386,8 +386,8 @@ deregister_error
 
 	LDMEQFD sp!, {r0, pc}		; No, so allow normal finalisation
 
-	ADR	r0, error_active - module_start	; If so, set error and
-						; disallow module finalisation
+	ADR	r0, error_active	; If so, set error and
+					; disallow module finalisation
 	ADD	sp, sp, #4
 	LDMFD	sp!, {lr}
 	TEQ	r0, r0
