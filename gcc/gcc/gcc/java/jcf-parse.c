@@ -1,5 +1,5 @@
 /* Parser for Java(TM) .class files.
-   Copyright (C) 1996, 1998, 1999, 2000, 2001, 2002
+   Copyright (C) 1996, 1998, 1999, 2000, 2001, 2002, 2003
    Free Software Foundation, Inc.
 
 This file is part of GNU CC.
@@ -44,7 +44,7 @@ The Free Software Foundation is independent of Sun Microsystems, Inc.  */
 #include <locale.h>
 #endif
 
-#ifdef HAVE_NL_LANGINFO
+#ifdef HAVE_LANGINFO_CODESET
 #include <langinfo.h>
 #endif
 
@@ -548,6 +548,10 @@ read_class (name)
 	    read_zip_member(current_jcf,
 			    current_jcf->zipd, current_jcf->zipd->zipf);
 	  jcf_parse (current_jcf);
+	  /* Parsing might change the class, in which case we have to
+	     put it back where we found it.  */
+	  if (current_class != class && icv != NULL_TREE)
+	    TREE_TYPE (icv) = current_class;
 	  class = current_class;
 	  java_pop_parser_context (0);
 	  java_parser_context_restore_global ();
@@ -838,7 +842,7 @@ parse_source_file_1 (file, finput)
   /* There's no point in trying to find the current encoding unless we
      are going to do something intelligent with it -- hence the test
      for iconv.  */
-#if defined (HAVE_LOCALE_H) && defined (HAVE_ICONV) && defined (HAVE_NL_LANGINFO)
+#if defined (HAVE_LOCALE_H) && defined (HAVE_ICONV) && defined (HAVE_LANGINFO_CODESET)
   setlocale (LC_CTYPE, "");
   if (current_encoding == NULL)
     current_encoding = nl_langinfo (CODESET);

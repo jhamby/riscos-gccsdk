@@ -1,6 +1,6 @@
 /* Expand the basic unary and binary arithmetic operations, for GNU compiler.
    Copyright (C) 1987, 1988, 1992, 1993, 1994, 1995, 1996, 1997, 1998,
-   1999, 2000, 2001 Free Software Foundation, Inc.
+   1999, 2000, 2001, 2002, 2003 Free Software Foundation, Inc.
 
 This file is part of GCC.
 
@@ -40,6 +40,7 @@ Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 #include "reload.h"
 #include "ggc.h"
 #include "real.h"
+#include "basic-block.h"
 
 /* Each optab contains info on how this target machine
    can perform a particular operation
@@ -85,6 +86,11 @@ enum insn_code setcc_gen_code[NUM_RTX_CODE];
 enum insn_code movcc_gen_code[NUM_MACHINE_MODES];
 #endif
 
+/* The insn generating function can not take an rtx_code argument.
+   TRAP_RTX is used as an rtx argument.  Its code is replaced with
+   the code to be used in the trap insn and all other fields are ignored.  */
+static GTY(()) rtx trap_rtx;
+
 static int add_equal_note	PARAMS ((rtx, rtx, enum rtx_code, rtx, rtx));
 static rtx widen_operand	PARAMS ((rtx, enum machine_mode,
 				       enum machine_mode, int, int));
@@ -111,9 +117,6 @@ static inline optab init_optabv	PARAMS ((enum rtx_code));
 static void init_libfuncs PARAMS ((optab, int, int, const char *, int));
 static void init_integral_libfuncs PARAMS ((optab, const char *, int));
 static void init_floating_libfuncs PARAMS ((optab, const char *, int));
-#ifdef HAVE_conditional_trap
-static void init_traps PARAMS ((void));
-#endif
 static void emit_cmp_and_jump_insn_1 PARAMS ((rtx, rtx, enum machine_mode,
 					    enum rtx_code, int, rtx));
 static void prepare_float_lib_cmp PARAMS ((rtx *, rtx *, enum rtx_code *,
@@ -123,6 +126,11 @@ static rtx expand_vector_binop PARAMS ((enum machine_mode, optab,
 					enum optab_methods));
 static rtx expand_vector_unop PARAMS ((enum machine_mode, optab, rtx, rtx,
 				       int));
+
+#ifndef HAVE_conditional_trap
+#define HAVE_conditional_trap 0
+#define gen_conditional_trap(a,b) (abort (), NULL_RTX)
+#endif
 
 /* Add a REG_EQUAL note to the last insn in INSNS.  TARGET is being set to
    the result of operation CODE applied to OP0 (and OP1 if it is a binary
@@ -1306,6 +1314,8 @@ expand_binop (mode, binoptab, op0, op1, target, unsignedp, methods)
 						   copy_rtx (xop0),
 						   copy_rtx (xop1)));
 	    }
+	  else
+	    target = xtarget;
 
 	  return target;
 	}
@@ -3241,10 +3251,26 @@ emit_libcall_block (insns, target, result, equiv)
   /* Encapsulate the block so it gets manipulated as a unit.  */
   if (!flag_non_call_exceptions || !may_trap_p (equiv))
     {
-      REG_NOTES (first) = gen_rtx_INSN_LIST (REG_LIBCALL, last,
-		      			     REG_NOTES (first));
-      REG_NOTES (last) = gen_rtx_INSN_LIST (REG_RETVAL, first,
-		      			    REG_NOTES (last));
+      /* We can't attach the REG_LIBCALL and REG_RETVAL notes
+	 when the encapsulated region would not be in one basic block,
+	 i.e. when there is a control_flow_insn_p insn between FIRST and LAST.
+       */
+      bool attach_libcall_retval_notes = true;
+      next = NEXT_INSN (last);
+      for (insn = first; insn != next; insn = NEXT_INSN (insn))
+	if (control_flow_insn_p (insn))
+	  {
+	    attach_libcall_retval_notes = false;
+	    break;
+	  }
+
+      if (attach_libcall_retval_notes)
+	{
+	  REG_NOTES (first) = gen_rtx_INSN_LIST (REG_LIBCALL, last,
+						 REG_NOTES (first));
+	  REG_NOTES (last) = gen_rtx_INSN_LIST (REG_RETVAL, first,
+						REG_NOTES (last));
+	}
     }
 }
 
@@ -3506,7 +3532,12 @@ prepare_operand (icode, x, opnum, mode, wider_mode, unsignedp)
 
   if (! (*insn_data[icode].operand[opnum].predicate)
       (x, insn_data[icode].operand[opnum].mode))
-    x = copy_to_mode_reg (insn_data[icode].operand[opnum].mode, x);
+    {
+      if (no_new_pseudos)
+	return NULL_RTX;
+      x = copy_to_mode_reg (insn_data[icode].operand[opnum].mode, x);
+    }
+
   return x;
 }
 
@@ -4464,10 +4495,10 @@ expand_float (to, from, unsignedp)
      wider mode.  If the integer mode is wider than the mode of FROM,
      we can do the conversion signed even if the input is unsigned.  */
 
-  for (imode = GET_MODE (from); imode != VOIDmode;
-       imode = GET_MODE_WIDER_MODE (imode))
-    for (fmode = GET_MODE (to); fmode != VOIDmode;
-	 fmode = GET_MODE_WIDER_MODE (fmode))
+  for (fmode = GET_MODE (to); fmode != VOIDmode;
+       fmode = GET_MODE_WIDER_MODE (fmode))
+    for (imode = GET_MODE (from); imode != VOIDmode;
+	 imode = GET_MODE_WIDER_MODE (imode))
       {
 	int doing_unsigned = unsignedp;
 
@@ -5424,9 +5455,8 @@ init_optabs ()
   profile_function_exit_libfunc
     = init_one_libfunc ("__cyg_profile_func_exit");
 
-#ifdef HAVE_conditional_trap
-  init_traps ();
-#endif
+  if (HAVE_conditional_trap)
+    trap_rtx = gen_rtx_fmt_ee (EQ, VOIDmode, NULL_RTX, NULL_RTX);
 
 #ifdef INIT_TARGET_OPTABS
   /* Allow the target to add more libcalls or rename some, etc.  */
@@ -5434,24 +5464,6 @@ init_optabs ()
 #endif
 }
 
-static GTY(()) rtx trap_rtx;
-
-#ifdef HAVE_conditional_trap
-/* The insn generating function can not take an rtx_code argument.
-   TRAP_RTX is used as an rtx argument.  Its code is replaced with
-   the code to be used in the trap insn and all other fields are
-   ignored.  */
-
-static void
-init_traps ()
-{
-  if (HAVE_conditional_trap)
-    {
-      trap_rtx = gen_rtx_fmt_ee (EQ, VOIDmode, NULL_RTX, NULL_RTX);
-    }
-}
-#endif
-
 /* Generate insns to trap with code TCODE if OP1 and OP2 satisfy condition
    CODE.  Return 0 on failure.  */
 
@@ -5461,30 +5473,39 @@ gen_cond_trap (code, op1, op2, tcode)
      rtx op1, op2 ATTRIBUTE_UNUSED, tcode ATTRIBUTE_UNUSED;
 {
   enum machine_mode mode = GET_MODE (op1);
+  enum insn_code icode;
+  rtx insn;
+
+  if (!HAVE_conditional_trap)
+    return 0;
 
   if (mode == VOIDmode)
     return 0;
 
-#ifdef HAVE_conditional_trap
-  if (HAVE_conditional_trap
-      && cmp_optab->handlers[(int) mode].insn_code != CODE_FOR_nothing)
-    {
-      rtx insn;
-      start_sequence ();
-      emit_insn (GEN_FCN (cmp_optab->handlers[(int) mode].insn_code) (op1, op2));
-      PUT_CODE (trap_rtx, code);
-      insn = gen_conditional_trap (trap_rtx, tcode);
-      if (insn)
-	{
-	  emit_insn (insn);
-	  insn = get_insns ();
-	}
-      end_sequence ();
-      return insn;
-    }
-#endif
+  icode = cmp_optab->handlers[(int) mode].insn_code;
+  if (icode == CODE_FOR_nothing)
+    return 0;
 
-  return 0;
+  start_sequence ();
+  op1 = prepare_operand (icode, op1, 0, mode, mode, 0);
+  op2 = prepare_operand (icode, op2, 1, mode, mode, 0);
+  if (!op1 || !op2)
+    {
+      end_sequence ();
+      return 0;
+    }
+  emit_insn (GEN_FCN (icode) (op1, op2));
+
+  PUT_CODE (trap_rtx, code);
+  insn = gen_conditional_trap (trap_rtx, tcode);
+  if (insn)
+    {
+      emit_insn (insn);
+      insn = get_insns ();
+    }
+  end_sequence ();
+
+  return insn;
 }
 
 #include "gt-optabs.h"

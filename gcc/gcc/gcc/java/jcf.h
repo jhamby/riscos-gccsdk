@@ -1,6 +1,7 @@
 /* Utility macros to read Java(TM) .class files and byte codes.
 
-   Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
+   Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003
+   Free Software Foundation, Inc.
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -70,6 +71,33 @@ The Free Software Foundation is independent of Sun Microsystems, Inc.  */
 #else
 #define JCF_USE_SCANDIR 0
 #endif 
+
+/* On case-insensitive file systems, file name components must be 
+   compared using "strcasecmp", if available, instead of "strcmp".
+   Assumes "config.h" has already been included.  */
+#if defined (HAVE_DOS_BASED_FILE_SYSTEM) && defined (HAVE_STRCASECMP)
+#define COMPARE_FILENAMES(X, Y) strcasecmp ((X), (Y))
+#else
+#define COMPARE_FILENAMES(X, Y) strcmp ((X), (Y))
+#endif
+
+/* On case-insensitive file systems, we need to ensure that a request
+   to open a .java or .class file is honored only if the file to be
+   opened is of the exact case we are asking for. In other words, we
+   want to override the inherent case insensitivity of the underlying
+   file system. On other platforms, this macro becomes the vanilla
+   open() call.
+
+   If you want to add another host, add your define to the list below
+   (i.e. defined(WIN32) || defined(YOUR_HOST)) and add an host-specific
+   .c file to Make-lang.in similar to win32-host.c  */
+#if defined(WIN32)
+extern int
+jcf_open_exact_case (const char* filename, int oflag);
+#define JCF_OPEN_EXACT_CASE(X, Y) jcf_open_exact_case (X, Y)
+#else
+#define JCF_OPEN_EXACT_CASE open
+#endif /* WIN32 */
 
 struct JCF;
 typedef int (*jcf_filbuf_t) PARAMS ((struct JCF*, int needed));

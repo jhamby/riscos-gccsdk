@@ -203,7 +203,8 @@ static char *find_membername(unsigned int index) {
   diryentry *dp, *diryend;
   dp = COERCE(dirybase, diryentry *);
   diryend = COERCE(COERCE(dp, char *)+dirysize, diryentry *);
-  while (dp<diryend && index!=dp->dataindex) dp = COERCE(COERCE(dp, char *)+dp->dirylen, diryentry *);
+  while (dp<diryend && index!=dp->dataindex)
+    dp = COERCE(COERCE(dp, char *)+dp->dirylen, diryentry *);
   return (dp<diryend ? &dp->diryname : NIL);
 }
 

@@ -302,9 +302,11 @@ unroll_loop (loop, insn_count, strength_reduce_p)
 	 jump to the loop condition.  Make sure to delete the jump
 	 insn, otherwise the loop body will never execute.  */
 
+      /* FIXME this actually checks for a jump to the continue point, which
+	 is not the same as the condition in a for loop.  As a result, this
+	 optimization fails for most for loops.  We should really use flow
+	 information rather than instruction pattern matching.  */
       rtx ujump = ujump_to_loop_cont (loop->start, loop->cont);
-      if (ujump)
-	delete_related_insns (ujump);
 
       /* If number of iterations is exactly 1, then eliminate the compare and
 	 branch at the end of the loop since they will never be taken.
@@ -316,9 +318,10 @@ unroll_loop (loop, insn_count, strength_reduce_p)
       if (GET_CODE (last_loop_insn) == BARRIER)
 	{
 	  /* Delete the jump insn.  This will delete the barrier also.  */
-	  delete_related_insns (PREV_INSN (last_loop_insn));
+	  last_loop_insn = PREV_INSN (last_loop_insn);
 	}
-      else if (GET_CODE (last_loop_insn) == JUMP_INSN)
+
+      if (ujump && GET_CODE (last_loop_insn) == JUMP_INSN)
 	{
 #ifdef HAVE_cc0
 	  rtx prev = PREV_INSN (last_loop_insn);
@@ -330,24 +333,27 @@ unroll_loop (loop, insn_count, strength_reduce_p)
 	  if (only_sets_cc0_p (prev))
 	    delete_related_insns (prev);
 #endif
+
+	  delete_related_insns (ujump);
+
+	  /* Remove the loop notes since this is no longer a loop.  */
+	  if (loop->vtop)
+	    delete_related_insns (loop->vtop);
+	  if (loop->cont)
+	    delete_related_insns (loop->cont);
+	  if (loop_start)
+	    delete_related_insns (loop_start);
+	  if (loop_end)
+	    delete_related_insns (loop_end);
+
+	  return;
 	}
-
-      /* Remove the loop notes since this is no longer a loop.  */
-      if (loop->vtop)
-	delete_related_insns (loop->vtop);
-      if (loop->cont)
-	delete_related_insns (loop->cont);
-      if (loop_start)
-	delete_related_insns (loop_start);
-      if (loop_end)
-	delete_related_insns (loop_end);
-
-      return;
     }
-  else if (loop_info->n_iterations > 0
-	   /* Avoid overflow in the next expression.  */
-	   && loop_info->n_iterations < (unsigned) MAX_UNROLLED_INSNS
-	   && loop_info->n_iterations * insn_count < (unsigned) MAX_UNROLLED_INSNS)
+
+  if (loop_info->n_iterations > 0
+      /* Avoid overflow in the next expression.  */
+      && loop_info->n_iterations < (unsigned) MAX_UNROLLED_INSNS
+      && loop_info->n_iterations * insn_count < (unsigned) MAX_UNROLLED_INSNS)
     {
       unroll_number = loop_info->n_iterations;
       unroll_type = UNROLL_COMPLETELY;
@@ -786,9 +792,9 @@ unroll_loop (loop, insn_count, strength_reduce_p)
       /* We must limit the generic test to max_reg_before_loop, because only
 	 these pseudo registers have valid regno_first_uid info.  */
       for (r = FIRST_PSEUDO_REGISTER; r < max_reg_before_loop; ++r)
-	if (REGNO_FIRST_UID (r) > 0 && REGNO_FIRST_UID (r) <= max_uid_for_loop
+	if (REGNO_FIRST_UID (r) > 0 && REGNO_FIRST_UID (r) < max_uid_for_loop
 	    && REGNO_FIRST_LUID (r) >= copy_start_luid
-	    && REGNO_LAST_UID (r) > 0 && REGNO_LAST_UID (r) <= max_uid_for_loop
+	    && REGNO_LAST_UID (r) > 0 && REGNO_LAST_UID (r) < max_uid_for_loop
 	    && REGNO_LAST_LUID (r) <= copy_end_luid)
 	  {
 	    /* However, we must also check for loop-carried dependencies.
@@ -1621,11 +1627,13 @@ calculate_giv_inc (pattern, src_insn, regno)
 	}
 
       else if (GET_CODE (increment) == IOR
+	       || GET_CODE (increment) == PLUS
 	       || GET_CODE (increment) == ASHIFT
-	       || GET_CODE (increment) == PLUS)
+	       || GET_CODE (increment) == LSHIFTRT)
 	{
 	  /* The rs6000 port loads some constants with IOR.
-	     The alpha port loads some constants with ASHIFT and PLUS.  */
+	     The alpha port loads some constants with ASHIFT and PLUS.
+	     The sparc64 port loads some constants with LSHIFTRT.  */
 	  rtx second_part = XEXP (increment, 1);
 	  enum rtx_code code = GET_CODE (increment);
 
@@ -1642,8 +1650,10 @@ calculate_giv_inc (pattern, src_insn, regno)
 	    increment = GEN_INT (INTVAL (increment) | INTVAL (second_part));
 	  else if (code == PLUS)
 	    increment = GEN_INT (INTVAL (increment) + INTVAL (second_part));
-	  else
+	  else if (code == ASHIFT)
 	    increment = GEN_INT (INTVAL (increment) << INTVAL (second_part));
+	  else
+	    increment = GEN_INT ((unsigned HOST_WIDE_INT) INTVAL (increment) >> INTVAL (second_part));
 	}
 
       if (GET_CODE (increment) != CONST_INT)
@@ -2214,6 +2224,7 @@ copy_loop_body (loop, copy_start, copy_end, map, exit_label, last_iteration,
 	  REG_NOTES (copy) = initial_reg_note_copy (REG_NOTES (insn), map);
 	  INSN_SCOPE (copy) = INSN_SCOPE (insn);
 	  SIBLING_CALL_P (copy) = SIBLING_CALL_P (insn);
+	  CONST_OR_PURE_CALL_P (copy) = CONST_OR_PURE_CALL_P (insn);
 
 	  /* Because the USAGE information potentially contains objects other
 	     than hard registers, we need to copy it.  */
@@ -2936,9 +2947,13 @@ reg_dead_after_loop (loop, reg)
 	  code = GET_CODE (insn);
 	  if (GET_RTX_CLASS (code) == 'i')
 	    {
-	      rtx set;
+	      rtx set, note;
 
 	      if (reg_referenced_p (reg, PATTERN (insn)))
+		return 0;
+
+	      note = find_reg_equal_equiv_note (insn);
+	      if (note && reg_overlap_mentioned_p (reg, XEXP (note, 0)))
 		return 0;
 
 	      set = single_set (insn);
@@ -3661,7 +3676,7 @@ loop_iterations (loop)
 
 	  if (find_common_reg_term (temp, reg2))
 	    initial_value = temp;
-	  else
+	  else if (loop_invariant_p (loop, reg2))
 	    {
 	      /* Find what reg2 is equivalent to.  Hopefully it will
 		 either be reg1 or reg1 plus a constant.  Let's ignore

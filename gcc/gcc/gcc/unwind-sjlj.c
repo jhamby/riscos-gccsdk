@@ -174,6 +174,15 @@ _Unwind_GetGR (struct _Unwind_Context *context, int index)
   return context->fc->data[index];
 }
 
+/* Get the value of the CFA as saved in CONTEXT.  */
+
+_Unwind_Word
+_Unwind_GetCFA (struct _Unwind_Context *context)
+{
+  /* ??? Ideally __builtin_setjmp places the CFA in the jmpbuf.  */
+  return NULL;
+}
+
 void
 _Unwind_SetGR (struct _Unwind_Context *context, int index, _Unwind_Word val)
 {
@@ -280,6 +289,7 @@ uw_identify_context (struct _Unwind_Context *context)
 #define _Unwind_RaiseException		_Unwind_SjLj_RaiseException
 #define _Unwind_ForcedUnwind		_Unwind_SjLj_ForcedUnwind
 #define _Unwind_Resume			_Unwind_SjLj_Resume
+#define _Unwind_Resume_or_Rethrow	_Unwind_SjLj_Resume_or_Rethrow
 
 #include "unwind.inc"
 

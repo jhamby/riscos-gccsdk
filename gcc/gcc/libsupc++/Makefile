@@ -23,6 +23,7 @@ OBJS =	$(supcobjdir)/del_op.o \
 	$(supcobjdir)/eh_terminate.o \
 	$(supcobjdir)/eh_throw.o \
 	$(supcobjdir)/eh_type.o \
+	$(supcobjdir)/guard.o \
 	$(supcobjdir)/new_handler.o \
 	$(supcobjdir)/new_op.o \
 	$(supcobjdir)/new_opnt.o \
@@ -61,6 +62,7 @@ $(supcobjdir)/eh_personality.o: eh_personality.cc
 $(supcobjdir)/eh_terminate.o: eh_terminate.cc
 $(supcobjdir)/eh_throw.o: eh_throw.cc
 $(supcobjdir)/eh_type.o: eh_type.cc
+$(supcobjdir)/guard.o: guard.cc
 $(supcobjdir)/new_handler.o: new_handler.cc
 $(supcobjdir)/new_op.o: new_op.cc
 $(supcobjdir)/new_opnt.o: new_opnt.cc

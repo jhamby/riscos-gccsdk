@@ -56,7 +56,7 @@ static size_t deferred_count, deferred_size;
 static void missing_arg PARAMS ((size_t));
 static size_t find_opt PARAMS ((const char *, int));
 static void set_Wimplicit PARAMS ((int));
-static void complain_wrong_lang PARAMS ((size_t));
+static void complain_wrong_lang PARAMS ((size_t, int));
 static void write_langs PARAMS ((char *, int));
 static void print_help PARAMS ((void));
 static void handle_OPT_d PARAMS ((const char *));
@@ -208,6 +208,8 @@ static void sanitize_cpp_opts PARAMS ((void));
   OPT("fenforce-eh-specs",	CL_CXX,   OPT_fenforce_eh_specs)	     \
   OPT("fenum-int-equiv",	CL_CXX,   OPT_fenum_int_equiv)		     \
   OPT("fexternal-templates",	CL_CXX,   OPT_fexternal_templates)	     \
+  OPT("ffixed-form",		CL_C,	  OPT_ffixed_form)		     \
+  OPT("ffixed-line-length-",	CL_C | CL_JOINED, OPT_ffixed_line_length)    \
   OPT("ffor-scope",		CL_CXX,   OPT_ffor_scope)		     \
   OPT("ffreestanding",		CL_C,     OPT_ffreestanding)		     \
   OPT("fgnu-keywords",		CL_CXX,   OPT_fgnu_keywords)		     \
@@ -612,7 +614,7 @@ c_common_decode_option (argc, argv)
      after the call to find_opt, and return argc.  */
   if (!(cl_options[opt_index].flags & lang_flag))
     {
-      complain_wrong_lang (opt_index);
+      complain_wrong_lang (opt_index, on);
       goto done;
     }
 
@@ -697,7 +699,8 @@ c_common_decode_option (argc, argv)
       warn_parentheses = on;
       warn_return_type = on;
       warn_sequence_point = on;	/* Was C only.  */
-      warn_sign_compare = on;	/* Was C++ only.  */
+      if (c_language == clk_cplusplus)
+	warn_sign_compare = on;
       warn_switch = on;
       warn_strict_aliasing = on;
       
@@ -1126,6 +1129,13 @@ c_common_decode_option (argc, argv)
     case OPT_fexternal_templates:
       flag_external_templates = on;
       goto cp_deprecated;
+
+    case OPT_ffixed_form:
+    case OPT_ffixed_line_length:
+      /* Fortran front end options ignored when preprocessing only.  */
+      if (flag_preprocess_only)
+        result = -1;
+      break;
 
     case OPT_ffor_scope:
       flag_new_for_scope = on;
@@ -1693,16 +1703,18 @@ write_langs (buf, flags)
 
 /* Complain that switch OPT_INDEX does not apply to this front end.  */
 static void
-complain_wrong_lang (opt_index)
+complain_wrong_lang (opt_index, on)
      size_t opt_index;
+     int on;
 {
   char ok_langs[60], bad_langs[60];
   int ok_flags = cl_options[opt_index].flags;
 
   write_langs (ok_langs, ok_flags);
   write_langs (bad_langs, ~ok_flags);
-  warning ("\"-%s\" is valid for %s but not for %s",
-	   cl_options[opt_index].opt_text, ok_langs, bad_langs);
+  warning ("\"-%c%s%s\" is valid for %s but not for %s",
+	   cl_options[opt_index].opt_text[0], on ? "" : "no-",
+	   cl_options[opt_index].opt_text + 1, ok_langs, bad_langs);
 }
 
 /* Handle --help output.  */

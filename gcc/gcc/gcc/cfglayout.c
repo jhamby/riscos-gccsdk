@@ -460,11 +460,44 @@ fixup_reorder_chain ()
 		      && e_fall->dest == EXIT_BLOCK_PTR))
 		continue;
 
+	      if (!e_taken)
+		e_taken = e_fall;
+
+	      /* The degenerated case of conditional jump jumping to the next
+		 instruction can happen on target having jumps with side
+		 effects.  
+
+		 Create temporarily the duplicated edge representing branch.
+		 It will get unidentified by force_nonfallthru_and_redirect
+		 that would otherwise get confused by fallthru edge not pointing
+		 to the next basic block.  */
+	      if (!e_taken)
+		{
+		  rtx note;
+		  edge e_fake;
+
+		  e_fake = unchecked_make_edge (bb, e_fall->dest, 0);
+
+		  note = find_reg_note (bb->end, REG_BR_PROB, NULL_RTX);
+		  if (note)
+		    {
+		      int prob = INTVAL (XEXP (note, 0));
+
+		      e_fake->probability = prob;
+		      e_fake->count = e_fall->count * prob / REG_BR_PROB_BASE;
+		      e_fall->probability -= e_fall->probability;
+		      e_fall->count -= e_fake->count;
+		      if (e_fall->probability < 0)
+			e_fall->probability = 0;
+		      if (e_fall->count < 0)
+			e_fall->count = 0;
+		    }
+		}
 	      /* There is one special case: if *neither* block is next,
 		 such as happens at the very end of a function, then we'll
 		 need to add a new unconditional jump.  Choose the taken
 		 edge based on known or assumed probability.  */
-	      if (RBI (bb)->next != e_taken->dest)
+	      else if (RBI (bb)->next != e_taken->dest)
 		{
 		  rtx note = find_reg_note (bb_end_insn, REG_BR_PROB, 0);
 
@@ -708,7 +741,7 @@ cfg_layout_can_duplicate_bb_p (bb)
   if (bb == EXIT_BLOCK_PTR || bb == ENTRY_BLOCK_PTR)
     return false;
 
-  /* Duplicating fallthru block to exit would require adding an jump
+  /* Duplicating fallthru block to exit would require adding a jump
      and splitting the real last BB.  */
   for (s = bb->succ; s; s = s->succ_next)
     if (s->dest == EXIT_BLOCK_PTR && s->flags & EDGE_FALLTHRU)
@@ -836,6 +869,13 @@ cfg_layout_redirect_edge (e, dest)
   src->next_bb = NULL;
   if (e->flags & EDGE_FALLTHRU)
     {
+      /* Redirect any branch edges unified with the fallthru one.  */
+      if (GET_CODE (src->end) == JUMP_INSN
+	  && JUMP_LABEL (src->end) == e->dest->head)
+	{
+          if (!redirect_jump (src->end, block_label (dest), 0))
+	    abort ();
+	}
       /* In case we are redirecting fallthru edge to the branch edge
          of conditional jump, remove it.  */
       if (src->succ->succ_next
@@ -862,7 +902,7 @@ cfg_layout_redirect_edge (e, dest)
   src->next_bb = old_next_bb;
 }
 
-/* Create an duplicate of the basic block BB and redirect edge E into it.  */
+/* Create a duplicate of the basic block BB and redirect edge E into it.  */
 
 basic_block
 cfg_layout_duplicate_bb (bb, e)

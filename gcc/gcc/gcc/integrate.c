@@ -157,11 +157,13 @@ function_cannot_inline_p (fndecl)
   tree last = tree_last (TYPE_ARG_TYPES (TREE_TYPE (fndecl)));
 
   /* For functions marked as inline increase the maximum size to
-     MAX_INLINE_INSNS (-finline-limit-<n>).  For regular functions
-     use the limit given by INTEGRATE_THRESHOLD.  */
+     MAX_INLINE_INSNS_RTL (--param max-inline-insn-rtl=<n>). For
+     regular functions use the limit given by INTEGRATE_THRESHOLD.
+     Note that the RTL inliner is not used by the languages that use
+     the tree inliner (C, C++).  */
 
   int max_insns = (DECL_INLINE (fndecl))
-		   ? (MAX_INLINE_INSNS
+		   ? (MAX_INLINE_INSNS_RTL
 		      + 8 * list_length (DECL_ARGUMENTS (fndecl)))
 		   : INTEGRATE_THRESHOLD (fndecl);
 
@@ -344,16 +346,42 @@ copy_decl_for_inlining (decl, from_fn, to_fn)
   /* Copy the declaration.  */
   if (TREE_CODE (decl) == PARM_DECL || TREE_CODE (decl) == RESULT_DECL)
     {
+      tree type;
+      int invisiref = 0;
+
+      /* See if the frontend wants to pass this by invisible reference.  */
+      if (TREE_CODE (decl) == PARM_DECL
+	  && DECL_ARG_TYPE (decl) != TREE_TYPE (decl)
+	  && POINTER_TYPE_P (DECL_ARG_TYPE (decl))
+	  && TREE_TYPE (DECL_ARG_TYPE (decl)) == TREE_TYPE (decl))
+	{
+	  invisiref = 1;
+	  type = DECL_ARG_TYPE (decl);
+	}
+      else
+	type = TREE_TYPE (decl);
+
       /* For a parameter, we must make an equivalent VAR_DECL, not a
 	 new PARM_DECL.  */
-      copy = build_decl (VAR_DECL, DECL_NAME (decl), TREE_TYPE (decl));
-      TREE_ADDRESSABLE (copy) = TREE_ADDRESSABLE (decl);
-      TREE_READONLY (copy) = TREE_READONLY (decl);
-      TREE_THIS_VOLATILE (copy) = TREE_THIS_VOLATILE (decl);
+      copy = build_decl (VAR_DECL, DECL_NAME (decl), type);
+      if (!invisiref)
+	{
+	  TREE_ADDRESSABLE (copy) = TREE_ADDRESSABLE (decl);
+	  TREE_READONLY (copy) = TREE_READONLY (decl);
+	  TREE_THIS_VOLATILE (copy) = TREE_THIS_VOLATILE (decl);
+	}
+      else
+	{
+	  TREE_ADDRESSABLE (copy) = 0;
+	  TREE_READONLY (copy) = 1;
+	  TREE_THIS_VOLATILE (copy) = 0;
+	}
     }
   else
     {
       copy = copy_node (decl);
+      /* The COPY is not abstract; it will be generated in TO_FN.  */
+      DECL_ABSTRACT (copy) = 0;
       (*lang_hooks.dup_lang_specific_decl) (copy);
 
       /* TREE_ADDRESSABLE isn't used to indicate that a label's
@@ -837,7 +865,7 @@ expand_inline_function (fndecl, parms, target, ignore, type,
 
      ??? These numbers are quite arbitrary and were obtained by
      experimentation.  At some point, we should try to allocate the
-     table after all the parameters are set up so we an more accurately
+     table after all the parameters are set up so we can more accurately
      estimate the number of pseudos we will need.  */
 
   VARRAY_CONST_EQUIV_INIT (map->const_equiv_varray,
@@ -2978,15 +3006,17 @@ set_decl_abstract_flags (decl, setting)
    from its DECL_SAVED_INSNS.  Used for inline functions that are output
    at end of compilation instead of where they came in the source.  */
 
+static GTY(()) struct function *old_cfun;
+
 void
 output_inline_function (fndecl)
      tree fndecl;
 {
-  struct function *old_cfun = cfun;
   enum debug_info_type old_write_symbols = write_symbols;
   const struct gcc_debug_hooks *const old_debug_hooks = debug_hooks;
   struct function *f = DECL_SAVED_INSNS (fndecl);
 
+  old_cfun = cfun;
   cfun = f;
   current_function_decl = fndecl;
 
@@ -3001,6 +3031,11 @@ output_inline_function (fndecl)
       write_symbols = NO_DEBUG;
       debug_hooks = &do_nothing_debug_hooks;
     }
+
+  /* Make sure warnings emitted by the optimizers (e.g. control reaches
+     end of non-void function) is not wildly incorrect.  */
+  input_filename = DECL_SOURCE_FILE (fndecl);
+  lineno = DECL_SOURCE_LINE (fndecl);
 
   /* Compile this function all the way down to assembly code.  As a
      side effect this destroys the saved RTL representation, but

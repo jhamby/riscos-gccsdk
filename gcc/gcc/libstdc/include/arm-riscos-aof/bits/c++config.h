@@ -95,7 +95,7 @@ libstdc++-v3/include/bits/c++config before full recompilation of the library.
 #undef _GLIBCPP_SUPPORTS_WEAK
 
 // Define if gthr-default.h exists (meaning that threading support is enabled).
-#define _GLIBCPP_HAVE_GTHR_DEFAULT 1
+// #define _GLIBCPP_HAVE_GTHR_DEFAULT 1
 
 // Include I/O support for 'long long' and 'unsigned long long'.
 #define _GLIBCPP_USE_LONG_LONG 1
@@ -104,7 +104,7 @@ libstdc++-v3/include/bits/c++config before full recompilation of the library.
 #define _GLIBCPP_USE_C99 1
 
 // Define if code specialized for wchar_t should be used.
-#undef _GLIBCPP_USE_WCHAR_T
+/* #undef _GLIBCPP_USE_WCHAR_T */
 
 // Define if using setrlimit to limit memory usage during 'make check'.
 #undef _GLIBCPP_MEM_LIMITS
@@ -113,7 +113,7 @@ libstdc++-v3/include/bits/c++config before full recompilation of the library.
 /* #undef _GLIBCPP_CONCEPT_CHECKS */
 
 // Define if mbstate_t exists in wchar.h.
-#define _GLIBCPP_HAVE_MBSTATE_T 1
+/* #define _GLIBCPP_HAVE_MBSTATE_T 1 */
 
 // Define if you have the modff function.
 #define _GLIBCPP_HAVE_MODFF 1
@@ -500,10 +500,10 @@ libstdc++-v3/include/bits/c++config before full recompilation of the library.
 #define _GLIBCPP_HAVE_GETPAGESIZE 1
 
 /* Define if you have the getwc function.  */
-#define _GLIBCPP_HAVE_GETWC 1
-
+/* #undef _GLIBCPP_HAVE_GETWC */
+ 
 /* Define if you have the getwchar function.  */
-#define _GLIBCPP_HAVE_GETWCHAR 1
+/* #undef _GLIBCPP_HAVE_GETWCHAR */
 
 /* Define if you have the hypot function.  */
 #define _GLIBCPP_HAVE_HYPOT 1
@@ -560,16 +560,16 @@ libstdc++-v3/include/bits/c++config before full recompilation of the library.
 #define _GLIBCPP_HAVE_LOGL 1
 
 /* Define if you have the mbrlen function.  */
-#define _GLIBCPP_HAVE_MBRLEN 1
+/* #undef _GLIBCPP_HAVE_MBRLEN */
 
 /* Define if you have the mbrtowc function.  */
-#define _GLIBCPP_HAVE_MBRTOWC 1
+/* #undef _GLIBCPP_HAVE_MBRTOWC */
 
 /* Define if you have the mbsinit function.  */
-#define _GLIBCPP_HAVE_MBSINIT 1
+/* #undef _GLIBCPP_HAVE_MBSINIT */
 
 /* Define if you have the mbsrtowcs function.  */
-#define _GLIBCPP_HAVE_MBSRTOWCS 1
+/* #undef _GLIBCPP_HAVE_MBSRTOWCS */
 
 /* Define if you have the modff function.  */
 #define _GLIBCPP_HAVE_MODFF 1
@@ -590,10 +590,10 @@ libstdc++-v3/include/bits/c++config before full recompilation of the library.
 #define _GLIBCPP_HAVE_POWL 1
 
 /* Define if you have the putwc function.  */
-#define _GLIBCPP_HAVE_PUTWC 1
+/* #undef _GLIBCPP_HAVE_PUTWC */
 
 /* Define if you have the putwchar function.  */
-#define _GLIBCPP_HAVE_PUTWCHAR 1
+/* #undef _GLIBCPP_HAVE_PUTWCHAR */
 
 /* Define if you have the qfpclass function.  */
 /* #undef _GLIBCPP_HAVE_QFPCLASS */
@@ -673,14 +673,15 @@ libstdc++-v3/include/bits/c++config before full recompilation of the library.
 /* Define if you have the vwscanf function.  */
 #define _GLIBCPP_HAVE_VWSCANF 1
 
+#if 0
 /* Define if you have the wcrtomb function.  */
-#define _GLIBCPP_HAVE_WCRTOMB 1
+/* #define _GLIBCPP_HAVE_WCRTOMB 1 */
 
 /* Define if you have the wcscat function.  */
-#define _GLIBCPP_HAVE_WCSCAT 1
+/* #define _GLIBCPP_HAVE_WCSCAT 1 */
 
 /* Define if you have the wcschr function.  */
-#define _GLIBCPP_HAVE_WCSCHR 1
+/* #define _GLIBCPP_HAVE_WCSCHR 1 */
 
 /* Define if you have the wcscmp function.  */
 #define _GLIBCPP_HAVE_WCSCMP 1
@@ -766,6 +767,8 @@ libstdc++-v3/include/bits/c++config before full recompilation of the library.
 /* Define if you have the wscanf function.  */
 #define _GLIBCPP_HAVE_WSCANF 1
 
+#endif
+
 /* Define if you have the <endian.h> header file.  */
 #define _GLIBCPP_HAVE_ENDIAN_H 1
 
@@ -824,10 +827,10 @@ libstdc++-v3/include/bits/c++config before full recompilation of the library.
 #define _GLIBCPP_HAVE_UNISTD_H 1
 
 /* Define if you have the <wchar.h> header file.  */
-#define _GLIBCPP_HAVE_WCHAR_H 1
+/* #undef _GLIBCPP_HAVE_WCHAR_H */
 
 /* Define if you have the <wctype.h> header file.  */
-#undef _GLIBCPP_HAVE_WCTYPE_H
+/* #undef _GLIBCPP_HAVE_WCTYPE_H */
 
 /* Define if you have the m library (-lm).  */
 #define _GLIBCPP_HAVE_LIBM 1
@@ -855,6 +858,13 @@ libstdc++-v3/include/bits/c++config before full recompilation of the library.
 
 /* Only used in build directory testsuite_hooks.h. */
 // #define _GLIBCPP_HAVE_MEMLIMIT_AS 1
+
+
+// Define symbol versioning in assember directives. If symbol
+// versioning is beigng used, and the assembler supports this kind of
+// thing, then use it.
+// NB: _GLIBCPP_AT_AT is a hack to work around quoting issues in m4.
+#define _GLIBCPP_ASM_SYMVER(cur, old, version)
 
 //
 // Systems that have certain non-standard functions prefixed with an

@@ -1,4 +1,6 @@
-// Copyright (C) 2001 Free Software Foundation, Inc.
+// std::time_get, std::time_put implementation, generic version -*- C++ -*-
+
+// Copyright (C) 2001, 2002, 2003 Free Software Foundation, Inc.
 //
 // This file is part of the GNU ISO C++ Library.  This library is free
 // software; you can redistribute it and/or modify it under the
@@ -25,17 +27,35 @@
 // invalidate any other reasons why the executable file might be covered by
 // the GNU General Public License.
 
-#ifndef _GLIBCPP_CPU_LIMITS
-#define _GLIBCPP_CPU_LIMITS 1
+//
+// ISO C++ 14882: 22.2.5.1.2 - time_get functions
+// ISO C++ 14882: 22.2.5.3.2 - time_put functions
+//
 
-// Nothing is defined in the generic file.  In that way, we fall back
-// on the defaults in std_limits.h.
+// Written by Benjamin Kosnik <bkoz@redhat.com>
 
-// If you need to override these defaults, you can either use a
-// CPU-specific version (in which case you must modify
-// configure.target) or you must add the overrides to your
-// os_defines.h.  In general, if all systems for your CPU use the
-// same values, it is best to use a cpu-specific configuration file.
+  template<typename _CharT>
+    __timepunct<_CharT>::__timepunct(size_t __refs) 
+    : locale::facet(__refs)
+    { 
+      _M_name_timepunct = _S_c_name;
+      _M_initialize_timepunct(); 
+    }
 
-#endif
+  template<typename _CharT>
+    __timepunct<_CharT>::__timepunct(__c_locale __cloc, const char* __s, 
+				     size_t __refs) 
+    : locale::facet(__refs)
+    { 
+      _M_name_timepunct = new char[strlen(__s) + 1];
+      strcpy(_M_name_timepunct, __s);
+      _M_initialize_timepunct(__cloc); 
+    }
 
+  template<typename _CharT>
+    __timepunct<_CharT>::~__timepunct()
+    { 
+      if (_S_c_name != _M_name_timepunct)
+	delete [] _M_name_timepunct;
+      _S_destroy_c_locale(_M_c_locale_timepunct); 
+    }

@@ -288,13 +288,15 @@ build_base_path (code, expr, binfo, nonnull)
       return error_mark_node;
     }
 
+  if (!want_pointer)
+    /* This must happen before the call to save_expr.  */
+    expr = build_unary_op (ADDR_EXPR, expr, 0);
+
   fixed_type_p = resolves_to_fixed_type_p (expr, &nonnull);
   if (fixed_type_p <= 0 && TREE_SIDE_EFFECTS (expr))
     expr = save_expr (expr);
 
-  if (!want_pointer)
-    expr = build_unary_op (ADDR_EXPR, expr, 0);
-  else if (!nonnull)
+  if (want_pointer && !nonnull)
     null_test = build (EQ_EXPR, boolean_type_node, expr, integer_zero_node);
   
   offset = BINFO_OFFSET (binfo);
@@ -304,8 +306,27 @@ build_base_path (code, expr, binfo, nonnull)
       /* Going via virtual base V_BINFO.  We need the static offset
          from V_BINFO to BINFO, and the dynamic offset from D_BINFO to
          V_BINFO.  That offset is an entry in D_BINFO's vtable.  */
-      tree v_offset = build_vfield_ref (build_indirect_ref (expr, NULL),
-					TREE_TYPE (TREE_TYPE (expr)));
+      tree v_offset;
+
+      if (fixed_type_p < 0 && in_base_initializer)
+	{
+	  /* In a base member initializer, we cannot rely on
+	     the vtable being set up. We have to use the vtt_parm.  */
+	  tree derived = v_binfo;
+
+	  while (BINFO_INHERITANCE_CHAIN (derived))
+	    derived = BINFO_INHERITANCE_CHAIN (derived);
+	  
+	  v_offset = build (PLUS_EXPR, TREE_TYPE (current_vtt_parm),
+			    current_vtt_parm, BINFO_VPTR_INDEX (derived));
+	  
+	  v_offset = build1 (INDIRECT_REF,
+			     TREE_TYPE (TYPE_VFIELD (BINFO_TYPE (derived))),
+			     v_offset);
+	}
+      else
+	v_offset = build_vfield_ref (build_indirect_ref (expr, NULL),
+				     TREE_TYPE (TREE_TYPE (expr)));
       
       v_binfo = binfo_for_vbase (BINFO_TYPE (v_binfo), BINFO_TYPE (d_binfo));
       
@@ -1130,6 +1151,9 @@ handle_using_decl (using_decl, t)
   tree flist = NULL_TREE;
   tree old_value;
 
+  if (ctype == error_mark_node)
+    return;
+
   binfo = lookup_base (t, ctype, ba_any, NULL);
   if (! binfo)
     {
@@ -1832,7 +1856,7 @@ maybe_warn_about_overly_private_class (t)
 	      return;
 		
 	    has_nonprivate_method = 1;
-	    break;
+	    /* Keep searching for a static member function.  */
 	  }
 	else if (!DECL_CONSTRUCTOR_P (fn) && !DECL_DESTRUCTOR_P (fn))
 	  has_member_fn = 1;
@@ -2537,11 +2561,19 @@ get_basefndecls (name, t)
   int n_baseclasses = CLASSTYPE_N_BASECLASSES (t);
   int i;
 
-  for (methods = TYPE_METHODS (t); methods; methods = TREE_CHAIN (methods))
-    if (TREE_CODE (methods) == FUNCTION_DECL
-	&& DECL_VINDEX (methods) != NULL_TREE
-	&& DECL_NAME (methods) == name)
-      base_fndecls = tree_cons (NULL_TREE, methods, base_fndecls);
+  /* Find virtual functions in T with the indicated NAME.  */
+  i = lookup_fnfields_1 (t, name);
+  if (i != -1)
+    for (methods = TREE_VEC_ELT (CLASSTYPE_METHOD_VEC (t), i);
+	 methods;
+	 methods = OVL_NEXT (methods))
+      {
+	tree method = OVL_CURRENT (methods);
+
+	if (TREE_CODE (method) == FUNCTION_DECL
+	    && DECL_VINDEX (method))
+	  base_fndecls = tree_cons (NULL_TREE, method, base_fndecls);
+      }
 
   if (base_fndecls)
     return base_fndecls;
@@ -3061,15 +3093,6 @@ check_field_decl (field, t, cant_have_const_ctor,
 	cp_error_at ("multiple fields in union `%T' initialized");
       *any_default_members = 1;
     }
-
-  /* Non-bit-fields are aligned for their type, except packed fields
-     which require only BITS_PER_UNIT alignment.  */
-  DECL_ALIGN (field) = MAX (DECL_ALIGN (field), 
-			    (DECL_PACKED (field) 
-			     ? BITS_PER_UNIT
-			     : TYPE_ALIGN (TREE_TYPE (field))));
-  if (! DECL_PACKED (field))
-    DECL_USER_ALIGN (field) |= TYPE_USER_ALIGN (TREE_TYPE (field));
 }
 
 /* Check the data members (both static and non-static), class-scoped
@@ -3841,9 +3864,8 @@ build_base_field (record_layout_info rli, tree binfo,
       DECL_SIZE_UNIT (decl) = CLASSTYPE_SIZE_UNIT (basetype);
       DECL_ALIGN (decl) = CLASSTYPE_ALIGN (basetype);
       DECL_USER_ALIGN (decl) = CLASSTYPE_USER_ALIGN (basetype);
-      /* Tell the backend not to round up to TYPE_ALIGN.  */
-      DECL_PACKED (decl) = 1;
-  
+      DECL_IGNORED_P (decl) = 1;
+
       /* Try to place the field.  It may take more than one try if we
 	 have a hard time placing the field without putting two
 	 objects of the same type at the same address.  */
@@ -4762,7 +4784,7 @@ end_of_class (t, include_virtuals_p)
 
       if (!include_virtuals_p
 	  && TREE_VIA_VIRTUAL (binfo) 
-	  && !BINFO_PRIMARY_P (binfo))
+	  && BINFO_PRIMARY_BASE_OF (binfo) != TYPE_BINFO (t))
 	continue;
 
       offset = end_of_base (binfo);
@@ -4987,12 +5009,19 @@ layout_class_type (tree t, tree *virtuals_p)
 	  DECL_SIZE (field) = TYPE_SIZE (integer_type);
 	  DECL_ALIGN (field) = TYPE_ALIGN (integer_type);
 	  DECL_USER_ALIGN (field) = TYPE_USER_ALIGN (integer_type);
+	  layout_nonempty_base_or_field (rli, field, NULL_TREE,
+					 empty_base_offsets);
+	  /* Now that layout has been performed, set the size of the
+	     field to the size of its declared type; the rest of the
+	     field is effectively invisible.  */
+	  DECL_SIZE (field) = TYPE_SIZE (type);
 	}
       else
-	padding = NULL_TREE;
-
-      layout_nonempty_base_or_field (rli, field, NULL_TREE,
-				     empty_base_offsets);
+	{
+	  padding = NULL_TREE;
+	  layout_nonempty_base_or_field (rli, field, NULL_TREE,
+					 empty_base_offsets);
+	}
 
       /* Remember the location of any empty classes in FIELD.  */
       if (abi_version_at_least (2))
@@ -5084,16 +5113,28 @@ layout_class_type (tree t, tree *virtuals_p)
 	}
       else
 	{
+	  tree eoc;
+
+	  /* If the ABI version is not at least two, and the last
+	     field was a bit-field, RLI may not be on a byte
+	     boundary.  In particular, rli_size_unit_so_far might
+	     indicate the last complete byte, while rli_size_so_far
+	     indicates the total number of bits used.  Therefore,
+	     rli_size_so_far, rather than rli_size_unit_so_far, is
+	     used to compute TYPE_SIZE_UNIT.  */
+	  eoc = end_of_class (t, /*include_virtuals_p=*/0);
 	  TYPE_SIZE_UNIT (base_t) 
 	    = size_binop (MAX_EXPR,
-			  rli_size_unit_so_far (rli),
-			  end_of_class (t, /*include_virtuals_p=*/0));
+			  convert (sizetype,
+				   size_binop (CEIL_DIV_EXPR,
+					       rli_size_so_far (rli),
+					       bitsize_int (BITS_PER_UNIT))),
+			  eoc);
 	  TYPE_SIZE (base_t) 
 	    = size_binop (MAX_EXPR,
 			  rli_size_so_far (rli),
 			  size_binop (MULT_EXPR,
-				      convert (bitsizetype,
-					       TYPE_SIZE_UNIT (base_t)),
+				      convert (bitsizetype, eoc),
 				      bitsize_int (BITS_PER_UNIT)));
 	}
       TYPE_ALIGN (base_t) = rli->record_align;
@@ -5116,6 +5157,7 @@ layout_class_type (tree t, tree *virtuals_p)
 
       /* Record the base version of the type.  */
       CLASSTYPE_AS_BASE (t) = base_t;
+      TYPE_CONTEXT (base_t) = t;
     }
   else
     CLASSTYPE_AS_BASE (t) = t;
@@ -5152,6 +5194,30 @@ layout_class_type (tree t, tree *virtuals_p)
 
   /* Clean up.  */
   splay_tree_delete (empty_base_offsets);
+}
+
+/* Returns the virtual function with which the vtable for TYPE is
+   emitted, or NULL_TREE if that heuristic is not applicable to TYPE.  */
+
+static tree
+key_method (tree type)
+{
+  tree method;
+
+  if (TYPE_FOR_JAVA (type)
+      || processing_template_decl
+      || CLASSTYPE_TEMPLATE_INSTANTIATION (type)
+      || CLASSTYPE_INTERFACE_KNOWN (type))
+    return NULL_TREE;
+
+  for (method = TYPE_METHODS (type); method != NULL_TREE;
+       method = TREE_CHAIN (method))
+    if (DECL_VINDEX (method) != NULL_TREE
+	&& ! DECL_DECLARED_INLINE_P (method)
+	&& ! DECL_PURE_VIRTUAL_P (method))
+      return method;
+
+  return NULL_TREE;
 }
 
 /* Perform processing required when the definition of T (a class type)
@@ -5194,6 +5260,17 @@ finish_struct_1 (t)
   /* Do end-of-class semantic processing: checking the validity of the
      bases and members and add implicitly generated methods.  */
   check_bases_and_members (t);
+
+  /* Find the key method */
+    if (TYPE_CONTAINS_VPTR_P (t))
+    {
+      CLASSTYPE_KEY_METHOD (t) = key_method (t);
+
+      /* If a polymorphic class has no key method, we may emit the vtable
+	 in every translation unit where the class definition appears. */
+      if (CLASSTYPE_KEY_METHOD (t) == NULL_TREE)
+	keyed_classes = tree_cons (NULL_TREE, t, keyed_classes);
+    }
 
   /* Layout the class itself.  */
   layout_class_type (t, &virtuals);
@@ -5263,9 +5340,6 @@ finish_struct_1 (t)
 			? TARGET_VTABLE_USES_DESCRIPTORS : 1))
 	if (TREE_CODE (DECL_VINDEX (BV_FN (fn))) != INTEGER_CST)
 	  DECL_VINDEX (BV_FN (fn)) = build_shared_int_cst (vindex);
-
-      /* Add this class to the list of dynamic classes.  */
-      dynamic_classes = tree_cons (NULL_TREE, t, dynamic_classes);
     }
 
   finish_struct_bits (t);
@@ -5280,8 +5354,7 @@ finish_struct_1 (t)
   /* Done with FIELDS...now decide whether to sort these for
      faster lookups later.
 
-     The C front-end only does this when n_fields > 15.  We use
-     a smaller number because most searches fail (succeeding
+     We use a small number because most searches fail (succeeding
      ultimately as the search bores through the inheritance
      hierarchy), and we want this failure to occur quickly.  */
 
@@ -5348,7 +5421,6 @@ unreverse_member_declarations (t)
   /* The following lists are all in reverse order.  Put them in
      declaration order now.  */
   TYPE_METHODS (t) = nreverse (TYPE_METHODS (t));
-  CLASSTYPE_TAGS (t) = nreverse (CLASSTYPE_TAGS (t));
   CLASSTYPE_DECL_LIST (t) = nreverse (CLASSTYPE_DECL_LIST (t));
 
   /* Actually, for the TYPE_FIELDS, only the non TYPE_DECLs are in
@@ -5518,11 +5590,21 @@ fixed_type_or_null (instance, nonnull, cdtorp)
           /* Reference variables should be references to objects.  */
           if (nonnull)
 	    *nonnull = 1;
-
-	  if (TREE_CODE (instance) == VAR_DECL
-	      && DECL_INITIAL (instance))
-	    return fixed_type_or_null (DECL_INITIAL (instance),
-				       nonnull, cdtorp);
+	  
+	  /* DECL_VAR_MARKED_P is used to prevent recursion; a
+	     variable's initializer may refer to the variable
+	     itself.  */
+	  if (TREE_CODE (instance) == VAR_DECL 
+	      && DECL_INITIAL (instance)
+	      && !DECL_VAR_MARKED_P (instance))
+	    {
+	      tree type;
+	      DECL_VAR_MARKED_P (instance) = 1;
+	      type = fixed_type_or_null (DECL_INITIAL (instance),
+					 nonnull, cdtorp);
+	      DECL_VAR_MARKED_P (instance) = 0;
+	      return type;
+	    }
 	}
       return NULL_TREE;
 
@@ -5700,7 +5782,7 @@ pushclass (type, modify)
 	  unuse_fields (type);
 	}
 
-      storetags (CLASSTYPE_TAGS (type));
+      cxx_remember_type_decls (CLASSTYPE_NESTED_UDTS (type));
     }
 }
 
@@ -6455,6 +6537,7 @@ build_self_reference ()
   DECL_NONLOCAL (value) = 1;
   DECL_CONTEXT (value) = current_class_type;
   DECL_ARTIFICIAL (value) = 1;
+  SET_DECL_SELF_REFERENCE_P (value);
 
   if (processing_template_decl)
     value = push_template_decl (value);
@@ -8171,22 +8254,20 @@ build_rtti_vtbl_entries (binfo, vid)
 
   /* The second entry is the address of the typeinfo object.  */
   if (flag_rtti)
-    decl = build_unary_op (ADDR_EXPR, get_tinfo_decl (t), 0);
+    decl = build_address (get_tinfo_decl (t));
   else
     decl = integer_zero_node;
   
   /* Convert the declaration to a type that can be stored in the
      vtable.  */
-  init = build1 (NOP_EXPR, vfunc_ptr_type_node, decl);
-  TREE_CONSTANT (init) = 1;
+  init = build_nop (vfunc_ptr_type_node, decl);
   *vid->last_init = build_tree_list (NULL_TREE, init);
   vid->last_init = &TREE_CHAIN (*vid->last_init);
 
   /* Add the offset-to-top entry.  It comes earlier in the vtable that
      the the typeinfo entry.  Convert the offset to look like a
      function pointer, so that we can put it in the vtable.  */
-  init = build1 (NOP_EXPR, vfunc_ptr_type_node, offset);
-  TREE_CONSTANT (init) = 1;
+  init = build_nop (vfunc_ptr_type_node, offset);
   *vid->last_init = build_tree_list (NULL_TREE, init);
   vid->last_init = &TREE_CHAIN (*vid->last_init);
 }

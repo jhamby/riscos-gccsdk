@@ -343,6 +343,7 @@ DEFUN(caching_stat, (filename, buf),
 {
 #if JCF_USE_SCANDIR
   char *sep;
+  char origsep = 0;
   char *base;
   memoized_dirlist_entry *dent;
   void **slot;
@@ -356,15 +357,20 @@ DEFUN(caching_stat, (filename, buf),
 
   /* Get the name of the directory.  */
   sep = strrchr (filename, DIR_SEPARATOR);
+#ifdef DIR_SEPARATOR_2
+  if (! sep)
+    sep = strrchr (filename, DIR_SEPARATOR_2);
+#endif
   if (sep)
     {
+      origsep = *sep;
       *sep = '\0';
       base = sep + 1;
     }
   else
     base = filename;
 
-  /* Obtain the entry for this directory form the hash table.  */
+  /* Obtain the entry for this directory from the hash table.  */
   slot = htab_find_slot (memoized_dirlists, filename, INSERT);
   if (!*slot)
     {
@@ -375,20 +381,19 @@ DEFUN(caching_stat, (filename, buf),
       /* Unfortunately, scandir is not fully standardized.  In
 	 particular, the type of the function pointer passed as the
 	 third argument sometimes takes a "const struct dirent *"
-	 parameter, and sometimes just a "struct dirent *".  We rely
-	 on the ability to interchange these two types of function
-	 pointers.  */
+	 parameter, and sometimes just a "struct dirent *".  We cast
+	 to (void *) so that either way it is quietly accepted.  */
       dent->num_files = scandir (filename, &dent->files, 
-				 java_or_class_file, 
+				 (void *) java_or_class_file, 
 				 alphasort);
       *slot = dent;
     }
   else
     dent = *((memoized_dirlist_entry **) slot);
 
-  /* Put the spearator back.  */
+  /* Put the separator back.  */
   if (sep)
-    *sep = DIR_SEPARATOR;
+    *sep = origsep;
 
   /* If the file is not in the list, there is no need to stat it; it
      does not exist.  */
@@ -518,7 +523,8 @@ DEFUN(find_class, (classname, classname_length, jcf, source_ok),
 	  strcpy (java_buffer, path_name);
 	  l = strlen (java_buffer);
 	  for (m = 0; m < classname_length; ++m)
-	    java_buffer[m + l] = (classname[m] == '.' ? '/' : classname[m]);
+	    java_buffer[m + l] = (classname[m] == '.'
+				  ? DIR_SEPARATOR : classname[m]);
 	  strcpy (java_buffer + m + l, ".java");
 	  java = caching_stat (java_buffer, &java_buf);
 	  if (java == 0)
@@ -548,7 +554,7 @@ DEFUN(find_class, (classname, classname_length, jcf, source_ok),
 			      classname+classname_length-
 			      (classname_length <= 30 ? 
 			       classname_length : 30)));
-      fd = open (buffer, O_RDONLY | O_BINARY);
+      fd = JCF_OPEN_EXACT_CASE (buffer, O_RDONLY | O_BINARY);
       if (fd >= 0)
 	goto found;
     }
@@ -560,7 +566,7 @@ DEFUN(find_class, (classname, classname_length, jcf, source_ok),
 			      classname+classname_length-
 			      (classname_length <= 30 ? 
 			       classname_length : 30)));
-      fd = open (buffer, O_RDONLY);
+      fd = JCF_OPEN_EXACT_CASE (buffer, O_RDONLY);
       if (fd >= 0)
 	{
 	  jcf->java_source = 1;

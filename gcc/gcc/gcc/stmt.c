@@ -541,10 +541,23 @@ expand_computed_goto (exp)
 #endif
 
   emit_queue ();
-  do_pending_stack_adjust ();
-  emit_indirect_jump (x);
 
-  current_function_has_computed_jump = 1;
+  if (! cfun->computed_goto_common_label)
+    {
+      cfun->computed_goto_common_reg = copy_to_mode_reg (Pmode, x);
+      cfun->computed_goto_common_label = gen_label_rtx ();
+      emit_label (cfun->computed_goto_common_label);
+  
+      do_pending_stack_adjust ();
+      emit_indirect_jump (cfun->computed_goto_common_reg);
+
+      current_function_has_computed_jump = 1;
+    }
+  else
+    {
+      emit_move_insn (cfun->computed_goto_common_reg, x);
+      emit_jump (cfun->computed_goto_common_label);
+    }
 }
 
 /* Handle goto statements and the labels that they can go to.  */
@@ -1107,18 +1120,26 @@ n_occurrences (c, s)
 }
 
 /* Generate RTL for an asm statement (explicit assembler code).
-   BODY is a STRING_CST node containing the assembler code text,
-   or an ADDR_EXPR containing a STRING_CST.  */
+   STRING is a STRING_CST node containing the assembler code text,
+   or an ADDR_EXPR containing a STRING_CST.  VOL nonzero means the
+   insn is volatile; don't optimize it.  */
 
 void
-expand_asm (body)
-     tree body;
+expand_asm (string, vol)
+     tree string;
+     int vol;
 {
-  if (TREE_CODE (body) == ADDR_EXPR)
-    body = TREE_OPERAND (body, 0);
+  rtx body;
 
-  emit_insn (gen_rtx_ASM_INPUT (VOIDmode,
-				TREE_STRING_POINTER (body)));
+  if (TREE_CODE (string) == ADDR_EXPR)
+    string = TREE_OPERAND (string, 0);
+
+  body = gen_rtx_ASM_INPUT (VOIDmode, TREE_STRING_POINTER (string));
+
+  MEM_VOLATILE_P (body) = vol;
+
+  emit_insn (body);
+  
   clear_last_expr ();
 }
 
@@ -1597,6 +1618,7 @@ expand_asm_operands (string, outputs, inputs, clobbers, vol, filename, line)
       bool is_inout;
       bool allows_reg;
       bool allows_mem;
+      rtx op;
 
       if (!parse_output_constraint (&constraints[i], i, ninputs,
 				    noutputs, &allows_mem, &allows_reg,
@@ -1620,24 +1642,28 @@ expand_asm_operands (string, outputs, inputs, clobbers, vol, filename, line)
 	  || ! allows_reg
 	  || is_inout)
 	{
-	  output_rtx[i] = expand_expr (val, NULL_RTX, VOIDmode, EXPAND_WRITE);
+	  op = expand_expr (val, NULL_RTX, VOIDmode, EXPAND_WRITE);
+	  if (GET_CODE (op) == MEM)
+	    op = validize_mem (op);
 
-	  if (! allows_reg && GET_CODE (output_rtx[i]) != MEM)
+	  if (! allows_reg && GET_CODE (op) != MEM)
 	    error ("output number %d not directly addressable", i);
-	  if ((! allows_mem && GET_CODE (output_rtx[i]) == MEM)
-	      || GET_CODE (output_rtx[i]) == CONCAT)
+	  if ((! allows_mem && GET_CODE (op) == MEM)
+	      || GET_CODE (op) == CONCAT)
 	    {
-	      real_output_rtx[i] = protect_from_queue (output_rtx[i], 1);
-	      output_rtx[i] = gen_reg_rtx (GET_MODE (output_rtx[i]));
+	      real_output_rtx[i] = protect_from_queue (op, 1);
+	      op = gen_reg_rtx (GET_MODE (op));
 	      if (is_inout)
-		emit_move_insn (output_rtx[i], real_output_rtx[i]);
+		emit_move_insn (op, real_output_rtx[i]);
 	    }
 	}
       else
 	{
-	  output_rtx[i] = assign_temp (type, 0, 0, 1);
-	  TREE_VALUE (tail) = make_tree (type, output_rtx[i]);
+	  op = assign_temp (type, 0, 0, 1);
+	  op = validize_mem (op);
+	  TREE_VALUE (tail) = make_tree (type, op);
 	}
+      output_rtx[i] = op;
 
       generating_concat_p = old_generating_concat_p;
 
@@ -1684,11 +1710,15 @@ expand_asm_operands (string, outputs, inputs, clobbers, vol, filename, line)
 
       val = TREE_VALUE (tail);
       type = TREE_TYPE (val);
-      op = expand_expr (val, NULL_RTX, VOIDmode, 0);
+      op = expand_expr (val, NULL_RTX, VOIDmode,
+			(allows_mem && !allows_reg
+			 ? EXPAND_MEMORY : EXPAND_NORMAL));
 
       /* Never pass a CONCAT to an ASM.  */
       if (GET_CODE (op) == CONCAT)
 	op = force_reg (GET_MODE (op), op);
+      else if (GET_CODE (op) == MEM)
+	op = validize_mem (op);
 
       if (asm_operand_ok (op, constraint) <= 0)
 	{
@@ -1697,35 +1727,36 @@ expand_asm_operands (string, outputs, inputs, clobbers, vol, filename, line)
 	  else if (!allows_mem)
 	    warning ("asm operand %d probably doesn't match constraints",
 		     i + noutputs);
-	  else if (CONSTANT_P (op))
-	    op = force_const_mem (TYPE_MODE (type), op);
-	  else if (GET_CODE (op) == REG
-		   || GET_CODE (op) == SUBREG
-		   || GET_CODE (op) == ADDRESSOF
-		   || GET_CODE (op) == CONCAT)
+	  else if (GET_CODE (op) == MEM)
 	    {
-	      tree qual_type = build_qualified_type (type,
-						     (TYPE_QUALS (type)
-						      | TYPE_QUAL_CONST));
-	      rtx memloc = assign_temp (qual_type, 1, 1, 1);
-
-	      emit_move_insn (memloc, op);
-	      op = memloc;
+	      /* We won't recognize either volatile memory or memory
+		 with a queued address as available a memory_operand
+		 at this point.  Ignore it: clearly this *is* a memory.  */
 	    }
-
-	  else if (GET_CODE (op) == MEM && MEM_VOLATILE_P (op))
-	    {
-	      /* We won't recognize volatile memory as available a
-		 memory_operand at this point.  Ignore it.  */
-	    }
-	  else if (queued_subexp_p (op))
-	    ;
 	  else
-	    /* ??? Leave this only until we have experience with what
-	       happens in combine and elsewhere when constraints are
-	       not satisfied.  */
-	    warning ("asm operand %d probably doesn't match constraints",
-		     i + noutputs);
+	    {
+	      warning ("use of memory input without lvalue in "
+		       "asm operand %d is deprecated", i + noutputs);
+
+	      if (CONSTANT_P (op))
+		{
+		  op = force_const_mem (TYPE_MODE (type), op);
+		  op = validize_mem (op);
+		}
+	      else if (GET_CODE (op) == REG
+		       || GET_CODE (op) == SUBREG
+		       || GET_CODE (op) == ADDRESSOF
+		       || GET_CODE (op) == CONCAT)
+		{
+		  tree qual_type = build_qualified_type (type,
+							 (TYPE_QUALS (type)
+							  | TYPE_QUAL_CONST));
+		  rtx memloc = assign_temp (qual_type, 1, 1, 1);
+		  memloc = validize_mem (memloc);
+		  emit_move_insn (memloc, op);
+		  op = memloc;
+		}
+	    }
 	}
 
       generating_concat_p = old_generating_concat_p;
@@ -2735,8 +2766,11 @@ expand_continue_loop (whichloop)
   /* Emit information for branch prediction.  */
   rtx note;
 
-  note = emit_note (NULL, NOTE_INSN_PREDICTION);
-  NOTE_PREDICTION (note) = NOTE_PREDICT (PRED_CONTINUE, IS_TAKEN);
+  if (flag_guess_branch_prob)
+    {
+      note = emit_note (NULL, NOTE_INSN_PREDICTION);
+      NOTE_PREDICTION (note) = NOTE_PREDICT (PRED_CONTINUE, IS_TAKEN);
+    }
   clear_last_expr ();
   if (whichloop == 0)
     whichloop = loop_stack;
@@ -2929,7 +2963,8 @@ expand_value_return (val)
   rtx return_reg;
   enum br_predictor pred;
 
-  if ((pred = return_prediction (val)) != PRED_NO_PREDICTION)
+  if (flag_guess_branch_prob
+      && (pred = return_prediction (val)) != PRED_NO_PREDICTION)
     {
       /* Emit information for branch prediction.  */
       rtx note;
@@ -3106,7 +3141,6 @@ expand_return (retval)
 	 machine, this means we must skip the empty high order bytes when
 	 calculating the bit offset.  */
       if (BYTES_BIG_ENDIAN
-	  && !FUNCTION_ARG_REG_LITTLE_ENDIAN
 	  && bytes % UNITS_PER_WORD)
 	big_endian_correction = (BITS_PER_WORD - ((bytes % UNITS_PER_WORD)
 						  * BITS_PER_UNIT));
@@ -3313,15 +3347,15 @@ tail_recursion_args (actuals, formals)
       else
 	{
 	  rtx tmp = argvec[i];
-
+	  int unsignedp = TREE_UNSIGNED (TREE_TYPE (TREE_VALUE (a)));
+	  promote_mode(TREE_TYPE (TREE_VALUE (a)), GET_MODE (tmp),
+		       &unsignedp, 0);
 	  if (DECL_MODE (f) != GET_MODE (DECL_RTL (f)))
 	    {
 	      tmp = gen_reg_rtx (DECL_MODE (f));
-	      convert_move (tmp, argvec[i],
-			    TREE_UNSIGNED (TREE_TYPE (TREE_VALUE (a))));
+	      convert_move (tmp, argvec[i], unsignedp);
 	    }
-	  convert_move (DECL_RTL (f), tmp,
-			TREE_UNSIGNED (TREE_TYPE (TREE_VALUE (a))));
+	  convert_move (DECL_RTL (f), tmp, unsignedp);
 	}
     }
 
@@ -3888,6 +3922,7 @@ expand_decl (decl)
 	   && !(flag_float_store
 		&& TREE_CODE (type) == REAL_TYPE)
 	   && ! TREE_THIS_VOLATILE (decl)
+	   && ! DECL_NONLOCAL (decl)
 	   && (DECL_REGISTER (decl) || optimize))
     {
       /* Automatic variable that can go in a register.  */
@@ -3915,7 +3950,7 @@ expand_decl (decl)
 
       /* If something wants our address, try to use ADDRESSOF.  */
       if (TREE_ADDRESSABLE (decl))
-	put_var_into_stack (decl);
+	put_var_into_stack (decl, /*rescan=*/false);
     }
 
   else if (TREE_CODE (DECL_SIZE_UNIT (decl)) == INTEGER_CST
@@ -4015,6 +4050,8 @@ expand_decl_init (decl)
 
   /* Compute and store the initial value now.  */
 
+  push_temp_slots ();
+
   if (DECL_INITIAL (decl) == error_mark_node)
     {
       enum tree_code code = TREE_CODE (TREE_TYPE (decl));
@@ -4038,6 +4075,7 @@ expand_decl_init (decl)
   /* Free any temporaries we made while initializing the decl.  */
   preserve_temp_slots (NULL_RTX);
   free_temp_slots ();
+  pop_temp_slots ();
 }
 
 /* CLEANUP is an expression to be executed at exit from this binding contour;
@@ -4418,6 +4456,7 @@ expand_start_case (exit_flag, expr, type, printname)
   nesting_stack = thiscase;
 
   do_pending_stack_adjust ();
+  emit_queue ();
 
   /* Make sure case_stmt.start points to something that won't
      need any transformation before expand_end_case.  */
@@ -5245,7 +5284,7 @@ expand_end_case_type (orig_index, orig_type)
 
   do_pending_stack_adjust ();
 
-  /* This might get an spurious warning in the presence of a syntax error;
+  /* This might get a spurious warning in the presence of a syntax error;
      it could be fixed by moving the call to check_seenlabel after the
      check for error_mark_node, and copying the code of check_seenlabel that
      deals with case_stack->data.case_stmt.line_number_status /

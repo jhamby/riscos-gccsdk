@@ -2030,7 +2030,7 @@ expand_builtin_strcpy (exp, target, mode)
      enum machine_mode mode;
 {
   tree arglist = TREE_OPERAND (exp, 1);
-  tree fn, len;
+  tree fn, len, src, dst;
 
   if (!validate_arglist (arglist, POINTER_TYPE, POINTER_TYPE, VOID_TYPE))
     return 0;
@@ -2039,12 +2039,16 @@ expand_builtin_strcpy (exp, target, mode)
   if (!fn)
     return 0;
 
-  len = c_strlen (TREE_VALUE (TREE_CHAIN (arglist)));
-  if (len == 0)
+  src = TREE_VALUE (TREE_CHAIN (arglist));
+  len = c_strlen (src);
+  if (len == 0 || TREE_SIDE_EFFECTS (len))
     return 0;
 
+  dst = TREE_VALUE (arglist);
   len = size_binop (PLUS_EXPR, len, ssize_int (1));
-  chainon (arglist, build_tree_list (NULL_TREE, len));
+  arglist = build_tree_list (NULL_TREE, len);
+  arglist = tree_cons (NULL_TREE, src, arglist);
+  arglist = tree_cons (NULL_TREE, dst, arglist);
   return expand_expr (build_function_call_expr (fn, arglist),
 		      target, mode, EXPAND_NORMAL);
 }
@@ -2557,7 +2561,9 @@ expand_builtin_strcmp (exp, target, mode)
   if (!fn)
     return 0;
 
-  chainon (arglist, build_tree_list (NULL_TREE, len));
+  arglist = build_tree_list (NULL_TREE, len);
+  arglist = tree_cons (NULL_TREE, arg2, arglist);
+  arglist = tree_cons (NULL_TREE, arg1, arglist);
   return expand_expr (build_function_call_expr (fn, arglist),
 		      target, mode, EXPAND_NORMAL);
 }
@@ -3472,8 +3478,12 @@ expand_builtin_fputs (arglist, ignore, unlocked)
       /* FALLTHROUGH */
     case 1: /* length is greater than 1, call fwrite.  */
       {
-	tree string_arg = TREE_VALUE (arglist);
+	tree string_arg;
 
+	/* If optimizing for size keep fputs. */
+	if (optimize_size)
+	  return 0;
+	string_arg = TREE_VALUE (arglist);
 	/* New argument list transforming fputs(string, stream) to
 	   fwrite(string, 1, len, stream).  */
 	arglist = build_tree_list (NULL_TREE, TREE_VALUE (TREE_CHAIN (arglist)));
@@ -3519,7 +3529,7 @@ expand_builtin_expect (arglist, target)
   target = expand_expr (exp, target, VOIDmode, EXPAND_NORMAL);
 
   /* Don't bother with expected value notes for integral constants.  */
-  if (GET_CODE (target) != CONST_INT)
+  if (flag_guess_branch_prob && GET_CODE (target) != CONST_INT)
     {
       /* We do need to force this into a register so that we can be
 	 moderately sure to be able to correctly interpret the branch
@@ -3690,6 +3700,9 @@ expand_builtin (exp, target, subtarget, mode, ignore)
   tree fndecl = TREE_OPERAND (TREE_OPERAND (exp, 0), 0);
   tree arglist = TREE_OPERAND (exp, 1);
   enum built_in_function fcode = DECL_FUNCTION_CODE (fndecl);
+
+  /* Perform postincrements before expanding builtin functions.  */
+  emit_queue ();
 
   if (DECL_BUILT_IN_CLASS (fndecl) == BUILT_IN_MD)
     return (*targetm.expand_builtin) (exp, target, subtarget, mode, ignore);
@@ -4037,8 +4050,8 @@ expand_builtin (exp, target, subtarget, mode, ignore)
     case BUILT_IN_DWARF_CFA:
       return virtual_cfa_rtx;
 #ifdef DWARF2_UNWIND_INFO
-    case BUILT_IN_DWARF_FP_REGNUM:
-      return expand_builtin_dwarf_fp_regnum ();
+    case BUILT_IN_DWARF_SP_COLUMN:
+      return expand_builtin_dwarf_sp_column ();
     case BUILT_IN_INIT_DWARF_REG_SIZES:
       expand_builtin_init_dwarf_reg_sizes (TREE_VALUE (arglist));
       return const0_rtx;

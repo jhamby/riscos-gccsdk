@@ -426,9 +426,6 @@ reg_to_stack (first, file)
   /* Clean up previous run.  */
   stack_regs_mentioned_data = 0;
 
-  if (!optimize)
-    split_all_insns (0);
-
   /* See if there is something to do.  Flow analysis is quite
      expensive so we might save some compilation time.  */
   for (i = FIRST_STACK_REG; i <= LAST_STACK_REG; i++)
@@ -587,6 +584,9 @@ get_true_reg (pat)
       }
 }
 
+/* Set if we find any malformed asms in a block.  */
+static bool any_malformed_asm;
+
 /* There are many rules that an asm statement for stack-like regs must
    follow.  Those rules are explained at the top of this file: the rule
    numbers below refer to that explanation.  */
@@ -768,6 +768,7 @@ check_asm_stack_operands (insn)
     {
       /* Avoid further trouble with this insn.  */
       PATTERN (insn) = gen_rtx_USE (VOIDmode, const0_rtx);
+      any_malformed_asm = true;
       return 0;
     }
 
@@ -2620,6 +2621,7 @@ convert_regs_1 (file, block)
   edge e, beste = NULL;
 
   inserted = 0;
+  any_malformed_asm = false;
 
   /* Find the edge we will copy stack from.  It should be the most frequent
      one as it will get cheapest after compensation code is generated,
@@ -2733,9 +2735,12 @@ convert_regs_1 (file, block)
 	}
     }
 
-  /* Something failed if the stack lives don't match.  */
+  /* Something failed if the stack lives don't match.  If we had malformed
+     asms, we zapped the instruction itself, but that didn't produce the
+     same pattern of register kills as before.  */
   GO_IF_HARD_REG_EQUAL (regstack.reg_set, bi->out_reg_set, win);
-  abort ();
+  if (!any_malformed_asm)
+    abort ();
  win:
   bi->stack_out = regstack;
 
@@ -2848,6 +2853,7 @@ convert_regs (file)
 	  inserted |= convert_regs_2 (file, b);
 	}
     }
+  clear_aux_for_blocks ();
 
   fixup_abnormal_edges ();
   if (inserted)

@@ -1,6 +1,6 @@
 /* Output variables, constants and external declarations, for GNU compiler.
    Copyright (C) 1987, 1988, 1989, 1992, 1993, 1994, 1995, 1996, 1997,
-   1998, 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
+   1998, 1999, 2000, 2001, 2002, 2003 Free Software Foundation, Inc.
 
 This file is part of GCC.
 
@@ -1586,6 +1586,8 @@ assemble_variable (decl, top_level, at_end, dont_output_data)
   else if (DECL_INITIAL (decl) == 0
 	   || DECL_INITIAL (decl) == error_mark_node
 	   || (flag_zero_initialized_in_bss
+	       /* Leave constant zeroes in .rodata so they can be shared.  */
+	       && !TREE_READONLY (decl)
 	       && initializer_zerop (DECL_INITIAL (decl))))
     {
       unsigned HOST_WIDE_INT size = tree_low_cst (DECL_SIZE_UNIT (decl), 1);
@@ -2148,7 +2150,11 @@ struct rtx_const GTY(())
   ENUM_BITFIELD(machine_mode) mode : 16;
   union rtx_const_un {
     REAL_VALUE_TYPE du;
-    struct addr_const GTY ((tag ("1"))) addr;
+    struct rtx_const_u_addr {
+      rtx base;
+      const char *symbol;
+      HOST_WIDE_INT offset;
+    } GTY ((tag ("1"))) addr;
     struct rtx_const_u_di {
       HOST_WIDE_INT high;
       HOST_WIDE_INT low;
@@ -2859,9 +2865,6 @@ struct constant_descriptor_rtx GTY(())
   /* More constant_descriptors with the same hash code.  */
   struct constant_descriptor_rtx *next;
 
-  /* The label of the constant.  */
-  const char *label;
-
   /* A MEM for the constant.  */
   rtx rtl;
 
@@ -3081,13 +3084,12 @@ decode_rtx_const (mode, x, value)
   if (value->kind >= RTX_INT && value->un.addr.base != 0)
     switch (GET_CODE (value->un.addr.base))
       {
-#if 0
       case SYMBOL_REF:
 	/* Use the string's address, not the SYMBOL_REF's address,
 	   for the sake of addresses of library routines.  */
-	value->un.addr.base = (rtx) XSTR (value->un.addr.base, 0);
+	value->un.addr.symbol = XSTR (value->un.addr.base, 0);
+	value->un.addr.base = NULL_RTX;
 	break;
-#endif
 
       case LABEL_REF:
 	/* For a LABEL_REF, compare labels.  */
@@ -3112,7 +3114,8 @@ simplify_subtraction (x)
 
   if (val0.kind >= RTX_INT
       && val0.kind == val1.kind
-      && val0.un.addr.base == val1.un.addr.base)
+      && val0.un.addr.base == val1.un.addr.base
+      && val0.un.addr.symbol == val1.un.addr.symbol)
     return GEN_INT (val0.un.addr.offset - val1.un.addr.offset);
 
   return x;
@@ -3208,6 +3211,10 @@ force_const_mem (mode, x)
   rtx def;
   struct pool_constant *pool;
   unsigned int align;
+
+  /* If we're not allowed to drop X into the constant pool, don't.  */
+  if ((*targetm.cannot_force_const_mem) (x))
+    return NULL_RTX;
 
   /* Compute hash code of X.  Search the descriptors for that hash code
      to see if any of them describes X.  If yes, we have an rtx to use.  */
@@ -4656,12 +4663,13 @@ default_assemble_visibility (decl, vis)
 
   const char *name, *type;
 
-  name = (* targetm.strip_name_encoding)
-	 (IDENTIFIER_POINTER (DECL_ASSEMBLER_NAME (decl)));
+  name = (IDENTIFIER_POINTER (DECL_ASSEMBLER_NAME (decl)));
   type = visibility_types[vis];
 
 #ifdef HAVE_GAS_HIDDEN
-  fprintf (asm_out_file, "\t.%s\t%s\n", type, name);
+  fprintf (asm_out_file, "\t.%s\t", type);
+  assemble_name (asm_out_file, name);
+  fprintf (asm_out_file, "\n");
 #else
   warning ("visibility attribute not supported in this configuration; ignored");
 #endif
@@ -5413,7 +5421,7 @@ default_binds_local_p_1 (exp, shlib)
   else if (! TREE_PUBLIC (exp))
     local_p = true;
   /* A variable is local if the user tells us so.  */
-  else if (MODULE_LOCAL_P (exp))
+  else if (decl_visibility (exp) != VISIBILITY_DEFAULT)
     local_p = true;
   /* Otherwise, variables defined outside this object may not be local.  */
   else if (DECL_EXTERNAL (exp))

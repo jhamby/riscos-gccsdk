@@ -48,6 +48,7 @@ Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 
 static void init_reg_sets_1	PARAMS ((void));
 static void init_reg_modes	PARAMS ((void));
+static void init_reg_autoinc	PARAMS ((void));
 
 /* If we have auto-increment or auto-decrement and we can have secondary
    reloads, we are not allowed to use classes requiring secondary
@@ -228,9 +229,9 @@ static char *in_inc_dec;
 #endif /* FORBIDDEN_INC_DEC_CLASSES */
 
 #ifdef CANNOT_CHANGE_MODE_CLASS
-/* All registers that have been subreged.  Indexed by mode, where each
-   entry is a regset of registers.  */
-regset_head subregs_of_mode [NUM_MACHINE_MODES];
+/* All registers that have been subreged.  Indexed by regno * MAX_MACHINE_MODE
+   + mode.  */
+bitmap_head subregs_of_mode;
 #endif
 
 /* Sample MEM values for use by memory_move_secondary_cost.  */
@@ -576,6 +577,8 @@ init_regs ()
   init_reg_sets_1 ();
 
   init_reg_modes ();
+
+  init_reg_autoinc ();
 }
 
 /* Initialize some fake stack-frame MEM references for use in
@@ -1141,37 +1144,18 @@ scan_one_insn (insn, pass)
   return insn;
 }
 
-/* This is a pass of the compiler that scans all instructions
-   and calculates the preferred class for each pseudo-register.
-   This information can be accessed later by calling `reg_preferred_class'.
-   This pass comes just before local register allocation.  */
+/* Initialize information about which register classes can be used for
+   pseudos that are auto-incremented or auto-decremented.  */
 
-void
-regclass (f, nregs, dump)
-     rtx f;
-     int nregs;
-     FILE *dump;
+static void
+init_reg_autoinc ()
 {
-  rtx insn;
-  int i;
-  int pass;
-
-  init_recog ();
-
-  costs = (struct costs *) xmalloc (nregs * sizeof (struct costs));
-
 #ifdef FORBIDDEN_INC_DEC_CLASSES
-
-  in_inc_dec = (char *) xmalloc (nregs);
-
-  /* Initialize information about which register classes can be used for
-     pseudos that are auto-incremented or auto-decremented.  It would
-     seem better to put this in init_reg_sets, but we need to be able
-     to allocate rtx, which we can't do that early.  */
+  int i;
 
   for (i = 0; i < N_REG_CLASSES; i++)
     {
-      rtx r = gen_rtx_REG (VOIDmode, 0);
+      rtx r = gen_rtx_raw_REG (VOIDmode, 0);
       enum machine_mode m;
       int j;
 
@@ -1211,6 +1195,32 @@ regclass (f, nregs, dump)
 		}
 	  }
     }
+#endif /* FORBIDDEN_INC_DEC_CLASSES */
+}
+
+/* This is a pass of the compiler that scans all instructions
+   and calculates the preferred class for each pseudo-register.
+   This information can be accessed later by calling `reg_preferred_class'.
+   This pass comes just before local register allocation.  */
+
+void
+regclass (f, nregs, dump)
+     rtx f;
+     int nregs;
+     FILE *dump;
+{
+  rtx insn;
+  int i;
+  int pass;
+
+  init_recog ();
+
+  costs = (struct costs *) xmalloc (nregs * sizeof (struct costs));
+
+#ifdef FORBIDDEN_INC_DEC_CLASSES
+
+  in_inc_dec = (char *) xmalloc (nregs);
+
 #endif /* FORBIDDEN_INC_DEC_CLASSES */
 
   /* Normally we scan the insns once and determine the best class to use for
@@ -1678,7 +1688,7 @@ record_reg_classes (n_alts, n_ops, ops, modes,
 		    if (GET_CODE (op) == MEM)
 		      win = 1;
 		  }
-		if (EXTRA_ADDRESS_CONSTRAINT (op))
+		if (EXTRA_ADDRESS_CONSTRAINT (c))
 		  {
 		    /* Every address can be reloaded to fit.  */
 		    allows_addr = 1;
@@ -2614,15 +2624,18 @@ cannot_change_mode_set_regs (used, from, regno)
      unsigned int regno;
 {
   enum machine_mode to;
-  enum reg_class class;
+  int n, i;
+  int start = regno * MAX_MACHINE_MODE;
 
-  for (to = VOIDmode; to < MAX_MACHINE_MODE; ++to)
-    if (REGNO_REG_SET_P (&subregs_of_mode[to], regno))
-      {
-        class = CANNOT_CHANGE_MODE_CLASS (from, to);
-        if (class != NO_REGS)
-          IOR_HARD_REG_SET (*used, reg_class_contents [(int) class]);
-      }
+  EXECUTE_IF_SET_IN_BITMAP (&subregs_of_mode, start, n,
+    if (n >= MAX_MACHINE_MODE + start)
+      return;
+    to = n - start;
+    for (i = 0; i < FIRST_PSEUDO_REGISTER; i++)
+      if (! TEST_HARD_REG_BIT (*used, i)
+	  && REG_CANNOT_CHANGE_MODE_P (i, from, to))
+	SET_HARD_REG_BIT (*used, i);
+  );
 }
 
 /* Return 1 if REGNO has had an invalid mode change in CLASS from FROM
@@ -2635,12 +2648,16 @@ invalid_mode_change_p (regno, class, from_mode)
      enum machine_mode from_mode;
 {
   enum machine_mode to_mode;
+  int n;
+  int start = regno * MAX_MACHINE_MODE;
 
-  for (to_mode = 0; to_mode < NUM_MACHINE_MODES; ++to_mode)
-    if (REGNO_REG_SET_P (&subregs_of_mode[(int) to_mode], regno)
-	&& reg_classes_intersect_p 
-	     (class, CANNOT_CHANGE_MODE_CLASS (from_mode, to_mode)))
+  EXECUTE_IF_SET_IN_BITMAP (&subregs_of_mode, start, n,
+    if (n >= MAX_MACHINE_MODE + start)
+      return 0;
+    to_mode = n - start;
+    if (CANNOT_CHANGE_MODE_CLASS (from_mode, to_mode, class))
       return 1;
+  );
   return 0;
 }
 #endif /* CANNOT_CHANGE_MODE_CLASS */

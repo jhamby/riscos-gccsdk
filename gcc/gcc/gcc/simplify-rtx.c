@@ -381,6 +381,44 @@ simplify_unary_operation (code, mode, op, op_mode)
   unsigned int width = GET_MODE_BITSIZE (mode);
   rtx trueop = avoid_constant_pool_reference (op);
 
+  if (code == VEC_DUPLICATE)
+    {
+      if (!VECTOR_MODE_P (mode))
+	abort ();
+      if (GET_MODE (trueop) != VOIDmode
+	  && !VECTOR_MODE_P (GET_MODE (trueop))
+	  && GET_MODE_INNER (mode) != GET_MODE (trueop))
+	abort ();
+      if (GET_MODE (trueop) != VOIDmode
+	  && VECTOR_MODE_P (GET_MODE (trueop))
+	  && GET_MODE_INNER (mode) != GET_MODE_INNER (GET_MODE (trueop)))
+	abort ();
+      if (GET_CODE (trueop) == CONST_INT || GET_CODE (trueop) == CONST_DOUBLE
+	  || GET_CODE (trueop) == CONST_VECTOR)
+	{
+          int elt_size = GET_MODE_SIZE (GET_MODE_INNER (mode));
+          unsigned n_elts = (GET_MODE_SIZE (mode) / elt_size);
+	  rtvec v = rtvec_alloc (n_elts);
+	  unsigned int i;
+
+	  if (GET_CODE (trueop) != CONST_VECTOR)
+	    for (i = 0; i < n_elts; i++)
+	      RTVEC_ELT (v, i) = trueop;
+	  else
+	    {
+	      enum machine_mode inmode = GET_MODE (trueop);
+              int in_elt_size = GET_MODE_SIZE (GET_MODE_INNER (inmode));
+              unsigned in_n_elts = (GET_MODE_SIZE (inmode) / in_elt_size);
+
+	      if (in_n_elts >= n_elts || n_elts % in_n_elts)
+		abort ();
+	      for (i = 0; i < n_elts; i++)
+	        RTVEC_ELT (v, i) = CONST_VECTOR_ELT (trueop, i % in_n_elts);
+	    }
+	  return gen_rtx_CONST_VECTOR (mode, v);
+	}
+    }
+
   /* The order of these tests is critical so that, for example, we don't
      check the wrong mode (input vs. output) for a conversion operation,
      such as FIX.  At some point, this should be simplified.  */
@@ -1401,6 +1439,10 @@ simplify_binary_operation (code, mode, op0, op1)
 	  /* ??? There are simplifications that can be done.  */
 	  return 0;
 
+	case VEC_SELECT:
+	case VEC_CONCAT:
+	  return 0;
+
 	default:
 	  abort ();
 	}
@@ -1931,8 +1973,10 @@ simplify_relational_operation (code, mode, op0, op1)
     return const0_rtx;
 
   /* For modes without NaNs, if the two operands are equal, we know the
-     result.  */
-  if (!HONOR_NANS (GET_MODE (trueop0)) && rtx_equal_p (trueop0, trueop1))
+     result.  Nevertheless, don't discard them if they have side-effects.  */
+  if (!HONOR_NANS (GET_MODE (trueop0))
+      && rtx_equal_p (trueop0, trueop1)
+      && ! side_effects_p (trueop0))
     equal = 1, op0lt = 0, op0ltu = 0, op1lt = 0, op1ltu = 0;
 
   /* If the operands are floating-point constants, see if we can fold
@@ -2270,6 +2314,30 @@ simplify_ternary_operation (code, mode, op0_mode, op0, op1, op2)
 	    }
 	}
       break;
+    case VEC_MERGE:
+      if (GET_MODE (op0) != mode
+	  || GET_MODE (op1) != mode
+	  || !VECTOR_MODE_P (mode))
+	abort ();
+      op0 = avoid_constant_pool_reference (op0);
+      op1 = avoid_constant_pool_reference (op1);
+      op2 = avoid_constant_pool_reference (op2);
+      if (GET_CODE (op0) == CONST_VECTOR
+	  && GET_CODE (op1) == CONST_VECTOR
+	  && GET_CODE (op2) == CONST_INT)
+	{
+          int elt_size = GET_MODE_SIZE (GET_MODE_INNER (mode));
+	  unsigned n_elts = (GET_MODE_SIZE (mode) / elt_size);
+	  rtvec v = rtvec_alloc (n_elts);
+	  unsigned int i;
+
+	  for (i = 0; i < n_elts; i++)
+	    RTVEC_ELT (v, i) = (INTVAL (op2) & (1 << i)
+				? CONST_VECTOR_ELT (op0, i)
+				: CONST_VECTOR_ELT (op1, i));
+	  return gen_rtx_CONST_VECTOR (mode, v);
+	}
+      break;
 
     default:
       abort ();
@@ -2351,13 +2419,16 @@ simplify_subreg (outermode, op, innermode, byte)
 		}
 	      if (GET_CODE (elt) != CONST_INT)
 		return NULL_RTX;
+	      /* Avoid overflow.  */
+	      if (high >> (HOST_BITS_PER_WIDE_INT - shift))
+		return NULL_RTX;
 	      high = high << shift | sum >> (HOST_BITS_PER_WIDE_INT - shift);
 	      sum = (sum << shift) + INTVAL (elt);
 	    }
 	  if (GET_MODE_BITSIZE (outermode) <= HOST_BITS_PER_WIDE_INT)
 	    return GEN_INT (trunc_int_for_mode (sum, outermode));
 	  else if (GET_MODE_BITSIZE (outermode) == 2* HOST_BITS_PER_WIDE_INT)
-	    return immed_double_const (high, sum, outermode);
+	    return immed_double_const (sum, high, outermode);
 	  else
 	    return NULL_RTX;
 	}
@@ -2588,7 +2659,7 @@ simplify_subreg (outermode, op, innermode, byte)
 	  || ! rtx_equal_function_value_matters)
       && REGNO (op) < FIRST_PSEUDO_REGISTER
 #ifdef CANNOT_CHANGE_MODE_CLASS
-      && ! (REG_CANNOT_CHANGE_MODE_P (REGNO (op), outermode, innermode)
+      && ! (REG_CANNOT_CHANGE_MODE_P (REGNO (op), innermode, outermode)
 	    && GET_MODE_CLASS (innermode) != MODE_COMPLEX_INT
 	    && GET_MODE_CLASS (innermode) != MODE_COMPLEX_FLOAT)
 #endif

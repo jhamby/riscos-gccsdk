@@ -75,7 +75,9 @@ static int merge_init_test_initialization PARAMS ((void * *,
 static int inline_init_test_initialization PARAMS ((void * *, 
 						    void *));
 static bool java_can_use_bit_fields_p PARAMS ((void));
+static bool java_decl_ok_for_sibcall (tree);
 static int java_dump_tree PARAMS ((void *, tree));
+static void dump_compound_expr PARAMS ((dump_info_p, tree));
 
 #ifndef TARGET_OBJECT_SUFFIX
 # define TARGET_OBJECT_SUFFIX ".o"
@@ -290,6 +292,9 @@ struct language_function GTY(())
 
 #undef LANG_HOOKS_TREE_DUMP_DUMP_TREE_FN
 #define LANG_HOOKS_TREE_DUMP_DUMP_TREE_FN java_dump_tree
+
+#undef LANG_HOOKS_DECL_OK_FOR_SIBCALL
+#define LANG_HOOKS_DECL_OK_FOR_SIBCALL java_decl_ok_for_sibcall
 
 /* Each front end provides its own.  */
 const struct lang_hooks lang_hooks = LANG_HOOKS_INITIALIZER;
@@ -1155,4 +1160,16 @@ java_dump_tree (dump_info, t)
     }
   return 0;
 }
+
+/* Java calls can't, in general, be sibcalls because we need an
+   accurate stack trace in order to guarantee correct operation of
+   methods such as Class.forName(String) and
+   SecurityManager.getClassContext().  */
+
+static bool
+java_decl_ok_for_sibcall (tree decl)
+{
+  return decl != NULL && DECL_CONTEXT (decl) == current_class;
+}
+
 #include "gt-java-lang.h"

@@ -167,7 +167,7 @@ throw_bad_cast ()
     fn = push_throw_library_fn (fn, build_function_type (ptr_type_node,
 							 void_list_node));
   
-  return build_call (fn, NULL_TREE);
+  return build_cxx_call (fn, NULL_TREE, NULL_TREE);
 }
 
 static tree
@@ -183,7 +183,7 @@ throw_bad_typeid ()
       fn = push_throw_library_fn (fn, t);
     }
 
-  return build_call (fn, NULL_TREE);
+  return build_cxx_call (fn, NULL_TREE, NULL_TREE);
 }
 
 /* Return a pointer to type_info function associated with the expression EXP.
@@ -352,9 +352,8 @@ get_tinfo_decl (type)
       DECL_EXTERNAL (d) = 1;
       SET_DECL_ASSEMBLER_NAME (d, name);
       DECL_COMDAT (d) = 1;
-      cp_finish_decl (d, NULL_TREE, NULL_TREE, 0);
 
-      pushdecl_top_level (d);
+      pushdecl_top_level_and_finish (d, NULL_TREE);
 
       if (CLASS_TYPE_P (type))
 	CLASSTYPE_TYPEINFO_VAR (TYPE_MAIN_VARIANT (type)) = d;
@@ -653,7 +652,7 @@ build_dynamic_cast_1 (type, expr)
               pop_nested_namespace (ns);
               dynamic_cast_node = dcast_fn;
 	    }
-          result = build_call (dcast_fn, elems);
+          result = build_cxx_call (dcast_fn, elems, elems);
 
 	  if (tc == REFERENCE_TYPE)
 	    {
@@ -768,8 +767,7 @@ tinfo_base_init (desc, target)
     SET_DECL_ASSEMBLER_NAME (name_decl,
 			     mangle_typeinfo_string_for_type (target));
     DECL_INITIAL (name_decl) = name_string;
-    cp_finish_decl (name_decl, name_string, NULL_TREE, 0);
-    pushdecl_top_level (name_decl);
+    pushdecl_top_level_and_finish (name_decl, name_string);
   }
 
   vtable_ptr = TINFO_VTABLE_DECL (desc);

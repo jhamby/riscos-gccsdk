@@ -165,6 +165,7 @@ maybe_clone_body (fn)
       /* Update CLONE's source position information to match FN's.  */
       DECL_SOURCE_LOCATION (clone) = DECL_SOURCE_LOCATION (fn);
       DECL_INLINE (clone) = DECL_INLINE (fn);
+      DID_INLINE_FUNC (clone) = DID_INLINE_FUNC (fn);
       DECL_DECLARED_INLINE_P (clone) = DECL_DECLARED_INLINE_P (fn);
       DECL_COMDAT (clone) = DECL_COMDAT (fn);
       DECL_WEAK (clone) = DECL_WEAK (fn);
@@ -263,6 +264,9 @@ maybe_clone_body (fn)
 
       /* Clean up.  */
       splay_tree_delete (decl_map);
+
+      /* The clone can throw iff the original function can throw.  */
+      cp_function_chain->can_throw = !TREE_NOTHROW (fn);
 
       /* Now, expand this function into RTL, if appropriate.  */
       finish_function (0);

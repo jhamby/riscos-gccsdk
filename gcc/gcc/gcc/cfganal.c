@@ -1,6 +1,6 @@
 /* Control flow graph analysis code for GNU compiler.
    Copyright (C) 1987, 1988, 1992, 1993, 1994, 1995, 1996, 1997, 1998,
-   1999, 2000, 2001 Free Software Foundation, Inc.
+   1999, 2000, 2001, 2003 Free Software Foundation, Inc.
 
 This file is part of GCC.
 
@@ -223,10 +223,14 @@ set_edge_can_fallthru_flag ()
     {
       edge e;
 
-      /* The FALLTHRU edge is also CAN_FALLTHRU edge.  */
       for (e = bb->succ; e; e = e->succ_next)
-	if (e->flags & EDGE_FALLTHRU)
-	  e->flags |= EDGE_CAN_FALLTHRU;
+	{
+	  e->flags &= ~EDGE_CAN_FALLTHRU;
+
+	  /* The FALLTHRU edge is also CAN_FALLTHRU edge.  */
+	  if (e->flags & EDGE_FALLTHRU)
+	    e->flags |= EDGE_CAN_FALLTHRU;
+	}
 
       /* If the BB ends with an invertable condjump all (2) edges are
 	 CAN_FALLTHRU edges.  */
@@ -320,10 +324,11 @@ flow_call_edges_add (blocks)
 
 	  for (e = bb->succ; e; e = e->succ_next)
 	    if (e->dest == EXIT_BLOCK_PTR)
-	      break;
-
-	  insert_insn_on_edge (gen_rtx_USE (VOIDmode, const0_rtx), e);
-	  commit_edge_insertions ();
+	      {
+		insert_insn_on_edge (gen_rtx_USE (VOIDmode, const0_rtx), e);
+		commit_edge_insertions ();
+		break;
+	      }
 	}
     }
 

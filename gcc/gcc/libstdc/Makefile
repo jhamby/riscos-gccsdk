@@ -24,12 +24,11 @@ endif
 
 OS_INC_SRCDIR = config/os/generic
 ATOMICITY_INC_SRCDIR = config/cpu/generic
-CPU_LIMITS_INC_SRCDIR = config/cpu/generic
 target_alias = config/io
 
 stdcobjdir=$(objdir)/gcc-$(VERSION)/libstdc++/$(STAGE)
 
-glibcpp_srcdir = /home/nick/gcc-3.1/libstdc++-v3
+glibcpp_srcdir = /home/nick/riscos/gcc-3.3/libstdc++-v3
 glibcpp_builddir = @glibcpp_builddir@
 
 bits_srcdir = ${glibcpp_srcdir}/include/bits
@@ -48,13 +47,13 @@ bits_headers = \
 	${bits_srcdir}/fpos.h \
 	${bits_srcdir}/fstream.tcc \
 	${bits_srcdir}/functexcept.h \
-	${bits_srcdir}/generic_shadow.h \
 	${bits_srcdir}/gslice.h \
 	${bits_srcdir}/gslice_array.h \
 	${bits_srcdir}/indirect_array.h \
 	${bits_srcdir}/ios_base.h \
 	${bits_srcdir}/istream.tcc \
 	${bits_srcdir}/list.tcc \
+	$(bits_srcdir)/locale_classes.h \
 	${bits_srcdir}/locale_facets.h \
 	${bits_srcdir}/locale_facets.tcc \
 	${bits_srcdir}/localefwd.h \
@@ -308,8 +307,7 @@ target_headers = \
 	${target_srcdir}/ctype_inline.h \
 	${target_srcdir}/ctype_noninline.h \
 	${target_srcdir}/os_defines.h \
-	${glibcpp_srcdir}/$(ATOMICITY_INC_SRCDIR)/atomicity.h \
-	${glibcpp_srcdir}/$(CPU_LIMITS_INC_SRCDIR)/cpu_limits.h 
+	${glibcpp_srcdir}/$(ATOMICITY_INC_SRCDIR)/atomicity.h
 
 # These target_headers_extra files are all built with ad hoc naming rules.
 target_headers_extra = \
@@ -364,7 +362,8 @@ sources = \
         vterminate.cc \
         wstring-inst.cc
 
-OBJS =	$(libobjdir)/basic_file.o \
+OBJS =	$(libobjdir)/atomicity.o \
+	$(libobjdir)/basic_file.o \
 	$(libobjdir)/bitset.o \
 	$(libobjdir)/cp-demangle.o \
         $(libobjdir)/c++locale.o \
@@ -434,6 +433,7 @@ import:
 	for x in $(ext_headers); do cp -a $$x ./include/ext; done
 	for x in $(c_base_headers); do cp -a $$x ./include; done
 	for x in $(c_base_headers_extra); do cp -a $$x ./include/bits; done
+	cp -a $(glibcpp_srcdir)/config/locale/generic/time_members.h ./include/bits
 	#for x in $(c_compatibility_headers); do cp -a $$x ./include; done
 	for x in $(std_headers); do cp -a $$x ./include; done
 	for x in $(target_headers); do cp -a $$x $(target_builddir); done
@@ -454,7 +454,7 @@ import:
 	cp -a $(glibcpp_srcdir)/config/locale/generic/messages_members.cc ./messages.cc
 	cp -a $(glibcpp_srcdir)/config/locale/generic/monetary_members.cc ./monetary.cc
 	cp -a $(glibcpp_srcdir)/config/locale/generic/numeric_members.cc ./numeric.cc
-	cp -a $(glibcpp_srcdir)/config/locale/generic/time_members.cc ./time.cc
+	cp -a $(glibcpp_srcdir)/config/locale/generic/time_members.cc ./time.cc	
 	# Merge libio directory
 	#cp -a $(glibcpp_srcdir)/libio/*.c ./
 	#cp -a $(glibcpp_srcdir)/libio/*.h ./
@@ -469,6 +469,7 @@ $(libobjdir)/dyn-string.o: ../../libiberty/dyn-string.c ../../include/dyn-string
 	$(CROSS_CC) $(CROSS_CCFLAGS) -o $@ -c $< -I ../../include $(CFL) -DIN_GLIBCPP_V3
 
 
+$(libobjdir)/atomicity.o: atomicity.cc
 $(libobjdir)/bitset.o: bitset.cc
 $(libobjdir)/c++locate.o: c++locate.cc
 $(libobjdir)/codecvt.o: codecvt.cc

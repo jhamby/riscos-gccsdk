@@ -1481,7 +1481,9 @@ reg_overlap_mentioned_p (x, in)
   unsigned int regno, endregno;
 
   /* Overly conservative.  */
-  if (GET_CODE (x) == STRICT_LOW_PART)
+  if (GET_CODE (x) == STRICT_LOW_PART
+      || GET_CODE (x) == ZERO_EXTRACT
+      || GET_CODE (x) == SIGN_EXTRACT)
     x = XEXP (x, 0);
 
   /* If either argument is a constant, then modifying X can not affect IN.  */
@@ -2138,7 +2140,6 @@ volatile_insn_p (x)
     case REG:
     case SCRATCH:
     case CLOBBER:
-    case ASM_INPUT:
     case ADDR_VEC:
     case ADDR_DIFF_VEC:
     case CALL:
@@ -2149,6 +2150,7 @@ volatile_insn_p (x)
  /* case TRAP_IF: This isn't clear yet.  */
       return 1;
 
+    case ASM_INPUT:
     case ASM_OPERANDS:
       if (MEM_VOLATILE_P (x))
 	return 1;
@@ -2205,7 +2207,6 @@ volatile_refs_p (x)
     case REG:
     case SCRATCH:
     case CLOBBER:
-    case ASM_INPUT:
     case ADDR_VEC:
     case ADDR_DIFF_VEC:
       return 0;
@@ -2214,6 +2215,7 @@ volatile_refs_p (x)
       return 1;
 
     case MEM:
+    case ASM_INPUT:
     case ASM_OPERANDS:
       if (MEM_VOLATILE_P (x))
 	return 1;
@@ -2269,7 +2271,6 @@ side_effects_p (x)
     case PC:
     case REG:
     case SCRATCH:
-    case ASM_INPUT:
     case ADDR_VEC:
     case ADDR_DIFF_VEC:
       return 0;
@@ -2292,6 +2293,7 @@ side_effects_p (x)
       return 1;
 
     case MEM:
+    case ASM_INPUT:
     case ASM_OPERANDS:
       if (MEM_VOLATILE_P (x))
 	return 1;
@@ -2363,6 +2365,8 @@ may_trap_p (x)
 
       /* Memory ref can trap unless it's a static var or a stack slot.  */
     case MEM:
+      if (MEM_NOTRAP_P (x))
+	return 0;
       return rtx_addr_can_trap_p (XEXP (x, 0));
 
       /* Division by a non-constant might trap.  */
@@ -2415,6 +2419,12 @@ may_trap_p (x)
       /* Often comparison is CC mode, so check operand modes.  */
       if (HONOR_SNANS (GET_MODE (XEXP (x, 0)))
 	  || HONOR_SNANS (GET_MODE (XEXP (x, 1))))
+	return 1;
+      break;
+
+    case FIX:
+      /* Conversion of floating point might trap.  */
+      if (flag_trapping_math && HONOR_NANS (GET_MODE (XEXP (x, 0))))
 	return 1;
       break;
 
@@ -3151,6 +3161,74 @@ subreg_regno_offset (xregno, xmode, offset, ymode)
   y_offset = offset / GET_MODE_SIZE (ymode);
   nregs_multiple =  nregs_xmode / nregs_ymode;
   return (y_offset / (mode_multiple / nregs_multiple)) * nregs_ymode;
+}
+
+/* This function returns true when the offset is representable via
+   subreg_offset in the given regno.
+   xregno - A regno of an inner hard subreg_reg (or what will become one).
+   xmode  - The mode of xregno.
+   offset - The byte offset.
+   ymode  - The mode of a top level SUBREG (or what may become one).
+   RETURN - The regno offset which would be used.  */
+bool
+subreg_offset_representable_p (xregno, xmode, offset, ymode)
+     unsigned int xregno;
+     enum machine_mode xmode;
+     unsigned int offset;
+     enum machine_mode ymode;
+{
+  int nregs_xmode, nregs_ymode;
+  int mode_multiple, nregs_multiple;
+  int y_offset;
+
+  if (xregno >= FIRST_PSEUDO_REGISTER)
+    abort ();
+
+  nregs_xmode = HARD_REGNO_NREGS (xregno, xmode);
+  nregs_ymode = HARD_REGNO_NREGS (xregno, ymode);
+
+  /* paradoxical subregs are always valid.  */
+  if (offset == 0
+      && nregs_ymode > nregs_xmode
+      && (GET_MODE_SIZE (ymode) > UNITS_PER_WORD
+	  ? WORDS_BIG_ENDIAN : BYTES_BIG_ENDIAN))
+    return true;
+
+  /* Lowpart subregs are always valid.  */
+  if (offset == subreg_lowpart_offset (ymode, xmode))
+    return true;
+
+#ifdef ENABLE_CHECKING
+  /* This should always pass, otherwise we don't know how to verify the
+     constraint.  These conditions may be relaxed but subreg_offset would
+     need to be redesigned.  */
+  if (GET_MODE_SIZE (xmode) % GET_MODE_SIZE (ymode)
+      || GET_MODE_SIZE (ymode) % nregs_ymode
+      || nregs_xmode % nregs_ymode)
+    abort ();
+#endif
+
+  /* The XMODE value can be seen as an vector of NREGS_XMODE
+     values.  The subreg must represent an lowpart of given field.
+     Compute what field it is.  */
+  offset -= subreg_lowpart_offset (ymode, 
+		  		   mode_for_size (GET_MODE_BITSIZE (xmode)
+			  			  / nregs_xmode,
+						  MODE_INT, 0));
+
+  /* size of ymode must not be greater than the size of xmode.  */
+  mode_multiple = GET_MODE_SIZE (xmode) / GET_MODE_SIZE (ymode);
+  if (mode_multiple == 0)
+    abort ();
+
+  y_offset = offset / GET_MODE_SIZE (ymode);
+  nregs_multiple =  nregs_xmode / nregs_ymode;
+#ifdef ENABLE_CHECKING
+  if (offset % GET_MODE_SIZE (ymode)
+      || mode_multiple % nregs_multiple)
+    abort ();
+#endif
+  return (!(y_offset % (mode_multiple / nregs_multiple)));
 }
 
 /* Return the final regno that a subreg expression refers to.  */

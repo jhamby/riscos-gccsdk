@@ -51,6 +51,7 @@ OBJS = $(objtarget)/asprintf.o \
 	$(objtarget)/mkstemps.o \
 	$(objtarget)/partition.o \
 	$(objtarget)/pexecute.o \
+	$(objtarget)/physmem.o \
 	$(objtarget)/safe-ctype.o \
 	$(objtarget)/splay-tree.o \
 	$(objtarget)/stpcpy.o \

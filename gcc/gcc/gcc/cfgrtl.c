@@ -682,7 +682,7 @@ try_redirect_by_replacing_jump (e, target)
 
   if (tmp || !onlyjump_p (insn))
     return false;
-  if (reload_completed && JUMP_LABEL (insn)
+  if (flow2_completed && JUMP_LABEL (insn)
       && (table = NEXT_INSN (JUMP_LABEL (insn))) != NULL_RTX
       && GET_CODE (table) == JUMP_INSN
       && (GET_CODE (PATTERN (table)) == ADDR_VEC
@@ -793,7 +793,7 @@ try_redirect_by_replacing_jump (e, target)
 /* Return last loop_beg note appearing after INSN, before start of next
    basic block.  Return INSN if there are no such notes.
 
-   When emitting jump to redirect an fallthru edge, it should always appear
+   When emitting jump to redirect a fallthru edge, it should always appear
    after the LOOP_BEG notes, as loop optimizer expect loop to either start by
    fallthru edge or jump following the LOOP_BEG note jumping to the loop exit
    test.  */
@@ -933,12 +933,54 @@ force_nonfallthru_and_redirect (e, target)
      edge e;
      basic_block target;
 {
-  basic_block jump_block, new_bb = NULL;
+  basic_block jump_block, new_bb = NULL, src = e->src;
   rtx note;
   edge new_edge;
+  int abnormal_edge_flags = 0;
+
+  /* In the case the last instruction is conditional jump to the next
+     instruction, first redirect the jump itself and then continue
+     by creating an basic block afterwards to redirect fallthru edge.  */
+  if (e->src != ENTRY_BLOCK_PTR && e->dest != EXIT_BLOCK_PTR
+      && any_condjump_p (e->src->end)
+      /* When called from cfglayout, fallthru edges do not
+         neccessarily go to the next block.  */
+      && e->src->next_bb == e->dest
+      && JUMP_LABEL (e->src->end) == e->dest->head)
+    {
+      rtx note;
+      edge b = unchecked_make_edge (e->src, target, 0);
+
+      if (!redirect_jump (e->src->end, block_label (target), 0))
+	abort ();
+      note = find_reg_note (e->src->end, REG_BR_PROB, NULL_RTX);
+      if (note)
+	{
+	  int prob = INTVAL (XEXP (note, 0));
+
+	  b->probability = prob;
+	  b->count = e->count * prob / REG_BR_PROB_BASE;
+	  e->probability -= e->probability;
+	  e->count -= b->count;
+	  if (e->probability < 0)
+	    e->probability = 0;
+	  if (e->count < 0)
+	    e->count = 0;
+	}
+    }
 
   if (e->flags & EDGE_ABNORMAL)
-    abort ();
+    {
+      /* Irritating special case - fallthru edge to the same block as abnormal
+	 edge.
+	 We can't redirect abnormal edge, but we still can split the fallthru
+	 one and create separate abnormal edge to original destination. 
+	 This allows bb-reorder to make such edge non-fallthru.  */
+      if (e->dest != target)
+	abort ();
+      abnormal_edge_flags = e->flags & ~(EDGE_FALLTHRU | EDGE_CAN_FALLTHRU);
+      e->flags &= EDGE_FALLTHRU | EDGE_CAN_FALLTHRU;
+    }
   else if (!(e->flags & EDGE_FALLTHRU))
     abort ();
   else if (e->src == ENTRY_BLOCK_PTR)
@@ -962,7 +1004,7 @@ force_nonfallthru_and_redirect (e, target)
       make_single_succ_edge (ENTRY_BLOCK_PTR, bb, EDGE_FALLTHRU);
     }
 
-  if (e->src->succ->succ_next)
+  if (e->src->succ->succ_next || abnormal_edge_flags)
     {
       /* Create the new structures.  */
 
@@ -1028,6 +1070,9 @@ force_nonfallthru_and_redirect (e, target)
 
   emit_barrier_after (jump_block->end);
   redirect_edge_succ_nodup (e, target);
+
+  if (abnormal_edge_flags)
+    make_edge (src, target, abnormal_edge_flags);
 
   return new_bb;
 }
@@ -1434,7 +1479,8 @@ commit_one_edge_insertion (e, watch_calls)
   else if (GET_CODE (last) == JUMP_INSN)
     abort ();
 
-  find_sub_basic_blocks (bb);
+  /* Mark the basic block for find_sub_basic_blocks.  */
+  bb->aux = &bb->aux;
 }
 
 /* Update the CFG for all queued instructions.  */
@@ -1443,6 +1489,8 @@ void
 commit_edge_insertions ()
 {
   basic_block bb;
+  sbitmap blocks;
+  bool changed = false;
 
 #ifdef ENABLE_CHECKING
   verify_flow_info ();
@@ -1456,9 +1504,26 @@ commit_edge_insertions ()
 	{
 	  next = e->succ_next;
 	  if (e->insns)
-	    commit_one_edge_insertion (e, false);
+	    {
+	      changed = true;
+	      commit_one_edge_insertion (e, false);
+	    }
 	}
     }
+
+  if (!changed)
+    return;
+
+  blocks = sbitmap_alloc (last_basic_block);
+  sbitmap_zero (blocks);
+  FOR_EACH_BB (bb)
+    if (bb->aux)
+      {
+        SET_BIT (blocks, bb->index);
+	bb->aux = NULL;
+      }
+  find_many_sub_basic_blocks (blocks);
+  sbitmap_free (blocks);
 }
 
 /* Update the CFG for all queued instructions, taking special care of inserting
@@ -1468,6 +1533,8 @@ void
 commit_edge_insertions_watch_calls ()
 {
   basic_block bb;
+  sbitmap blocks;
+  bool changed = false;
 
 #ifdef ENABLE_CHECKING
   verify_flow_info ();
@@ -1481,9 +1548,26 @@ commit_edge_insertions_watch_calls ()
 	{
 	  next = e->succ_next;
 	  if (e->insns)
-	    commit_one_edge_insertion (e, true);
+	    {
+	      changed = true;
+	      commit_one_edge_insertion (e, true);
+	    }
 	}
     }
+
+  if (!changed)
+    return;
+
+  blocks = sbitmap_alloc (last_basic_block);
+  sbitmap_zero (blocks);
+  FOR_EACH_BB (bb)
+    if (bb->aux)
+      {
+        SET_BIT (blocks, bb->index);
+	bb->aux = NULL;
+      }
+  find_many_sub_basic_blocks (blocks);
+  sbitmap_free (blocks);
 }
 
 /* Print out one basic block with live information at start and end.  */

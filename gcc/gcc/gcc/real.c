@@ -1,6 +1,6 @@
 /* real.c - software floating point emulation.
    Copyright (C) 1993, 1994, 1995, 1996, 1997, 1998,
-   1999, 2000, 2002 Free Software Foundation, Inc.
+   1999, 2000, 2002, 2003 Free Software Foundation, Inc.
    Contributed by Stephen L. Moshier (moshier@world.std.com).
    Re-written by Richard Henderson  <rth@redhat.com>
 
@@ -1369,7 +1369,7 @@ real_to_integer2 (plow, phigh, r)
       exp = r->exp;
       if (exp <= 0)
 	goto underflow;
-      if (exp >= 2*HOST_BITS_PER_WIDE_INT)
+      if (exp > 2*HOST_BITS_PER_WIDE_INT)
 	goto overflow;
 
       rshift_significand (&t, r, 2*HOST_BITS_PER_WIDE_INT - exp);
@@ -3208,6 +3208,23 @@ const struct real_format ieee_extended_intel_128_format =
     true
   };
 
+/* The following caters to i386 systems that set the rounding precision
+   to 53 bits instead of 64, e.g. FreeBSD.  */
+const struct real_format ieee_extended_intel_96_round_53_format = 
+  {
+    encode_ieee_extended,
+    decode_ieee_extended,
+    2,
+    1,
+    53,
+    -16381,
+    16384,
+    true,
+    true,
+    true,
+    true,
+    true
+  };
 
 /* IBM 128-bit extended precision format: a pair of IEEE double precision
    numbers whose sum is equal to the extended precision value.  The number
@@ -3254,8 +3271,23 @@ encode_ibm_extended (fmt, buf, r)
       u = *r;
       clear_significand_below (&u, SIGNIFICAND_BITS - 53);
 
-      /* v = remainder containing additional 53 bits of significand.  */
-      do_add (&v, r, &u, 1);
+      normalize (&u);
+      /* If the upper double is zero, we have a denormal double, so
+	 move it to the first double and leave the second as zero.  */
+      if (u.class == rvc_zero)
+	{
+	  v = u;
+	  u = *r;
+	  normalize (&u);
+	}
+      else
+	{
+	  /* v = remainder containing additional 53 bits of significand.  */
+	  do_add (&v, r, &u, 1);
+	  round_for_format (&ieee_double_format, &v);
+	}
+
+      round_for_format (&ieee_double_format, &u);
 
       encode_ieee_double (&ieee_double_format, &buf[0], &u);
       encode_ieee_double (&ieee_double_format, &buf[2], &v);
@@ -3292,7 +3324,7 @@ const struct real_format ibm_extended_format =
     2,
     1,
     53 + 53,
-    -1021,
+    -1021 + 53,
     1024,
     true,
     true,

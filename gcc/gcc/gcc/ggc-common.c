@@ -30,6 +30,10 @@ Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 #include "varray.h"
 #include "ggc.h"
 #include "langhooks.h"
+#include "params.h"
+#ifdef HAVE_SYS_RESOURCE_H
+# include <sys/resource.h>
+#endif
 #ifdef ENABLE_VALGRIND_CHECKING
 #include <valgrind.h>
 #else
@@ -41,6 +45,7 @@ Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 static ggc_statistics *ggc_stats;
 
 static int ggc_htab_delete PARAMS ((void **, void *));
+static double ggc_rlimit_bound PARAMS ((double));
 
 /* Maintain global roots that are preserved during GC.  */
 
@@ -278,4 +283,82 @@ ggc_print_common_statistics (stream, stats)
 
   /* Don't gather statistics any more.  */
   ggc_stats = NULL;
+}
+
+/* Modify the bound based on rlimits.  Keep the smallest number found.  */
+static double
+ggc_rlimit_bound (limit)
+     double limit;
+{
+#if defined(HAVE_GETRLIMIT)
+  struct rlimit rlim;
+# ifdef RLIMIT_RSS
+  if (getrlimit (RLIMIT_RSS, &rlim) == 0
+      && rlim.rlim_cur != (rlim_t) RLIM_INFINITY
+      && rlim.rlim_cur < limit)
+    limit = rlim.rlim_cur;
+# endif
+# ifdef RLIMIT_DATA
+  if (getrlimit (RLIMIT_DATA, &rlim) == 0
+      && rlim.rlim_cur != (rlim_t) RLIM_INFINITY
+      && rlim.rlim_cur < limit)
+    limit = rlim.rlim_cur;
+# endif
+# ifdef RLIMIT_AS
+  if (getrlimit (RLIMIT_AS, &rlim) == 0
+      && rlim.rlim_cur != (rlim_t) RLIM_INFINITY
+      && rlim.rlim_cur < limit)
+    limit = rlim.rlim_cur;
+# endif
+#endif /* HAVE_GETRLIMIT */
+
+  return limit;
+}
+
+/* Heuristic to set a default for GGC_MIN_EXPAND.  */
+int
+ggc_min_expand_heuristic()
+{
+  double min_expand = physmem_total();
+
+  /* Adjust for rlimits.  */
+  min_expand = ggc_rlimit_bound (min_expand);
+  
+  /* The heuristic is a percentage equal to 30% + 70%*(RAM/1GB), yielding
+     a lower bound of 30% and an upper bound of 100% (when RAM >= 1GB).  */
+  min_expand /= 1024*1024*1024;
+  min_expand *= 70;
+  min_expand = MIN (min_expand, 70);
+  min_expand += 30;
+
+  return min_expand;
+}
+
+/* Heuristic to set a default for GGC_MIN_HEAPSIZE.  */
+int
+ggc_min_heapsize_heuristic()
+{
+  double min_heap_kbytes = physmem_total();
+
+  /* Adjust for rlimits.  */
+  min_heap_kbytes = ggc_rlimit_bound (min_heap_kbytes);
+
+  min_heap_kbytes /= 1024; /* convert to Kbytes. */
+  
+  /* The heuristic is RAM/8, with a lower bound of 4M and an upper
+     bound of 128M (when RAM >= 1GB).  */
+  min_heap_kbytes /= 8;
+  min_heap_kbytes = MAX (min_heap_kbytes, 4 * 1024);
+  min_heap_kbytes = MIN (min_heap_kbytes, 128 * 1024);
+
+  return min_heap_kbytes;
+}
+
+void
+init_ggc_heuristics ()
+{
+#ifndef ENABLE_GC_ALWAYS_COLLECT
+  set_param_value ("ggc-min-expand", ggc_min_expand_heuristic());
+  set_param_value ("ggc-min-heapsize", ggc_min_heapsize_heuristic());
+#endif
 }

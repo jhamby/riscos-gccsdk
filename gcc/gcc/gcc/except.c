@@ -74,12 +74,6 @@ Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 
 /* Provide defaults for stuff that may not be defined when using
    sjlj exceptions.  */
-#ifndef EH_RETURN_STACKADJ_RTX
-#define EH_RETURN_STACKADJ_RTX 0
-#endif
-#ifndef EH_RETURN_HANDLER_RTX
-#define EH_RETURN_HANDLER_RTX 0
-#endif
 #ifndef EH_RETURN_DATA_REGNO
 #define EH_RETURN_DATA_REGNO(N) INVALID_REGNUM
 #endif
@@ -184,6 +178,7 @@ struct eh_region GTY(())
        we can match up fixup regions.  */
     struct eh_region_u_cleanup {
       tree exp;
+      struct eh_region *prev_try;
     } GTY ((tag ("ERT_CLEANUP"))) cleanup;
 
     /* The real region (by expression and by pointer) that fixup code
@@ -206,6 +201,9 @@ struct eh_region GTY(())
   /* The RESX insn for handing off control to the next outermost handler,
      if appropriate.  */
   rtx resume;
+
+  /* True if something in this region may throw.  */
+  unsigned may_contain_throw : 1;
 };
 
 struct call_site_record GTY(())
@@ -551,39 +549,43 @@ expand_eh_region_end_cleanup (handler)
   region->type = ERT_CLEANUP;
   region->label = gen_label_rtx ();
   region->u.cleanup.exp = handler;
+  region->u.cleanup.prev_try = cfun->eh->try_region;
 
   around_label = gen_label_rtx ();
   emit_jump (around_label);
 
   emit_label (region->label);
 
-  /* Give the language a chance to specify an action to be taken if an
-     exception is thrown that would propagate out of the HANDLER.  */
-  protect_cleanup_actions
-    = (lang_protect_cleanup_actions
-       ? (*lang_protect_cleanup_actions) ()
-       : NULL_TREE);
+  if (flag_non_call_exceptions || region->may_contain_throw)
+    {
+      /* Give the language a chance to specify an action to be taken if an
+	 exception is thrown that would propagate out of the HANDLER.  */
+      protect_cleanup_actions
+	= (lang_protect_cleanup_actions
+	   ? (*lang_protect_cleanup_actions) ()
+	   : NULL_TREE);
 
-  if (protect_cleanup_actions)
-    expand_eh_region_start ();
+      if (protect_cleanup_actions)
+	expand_eh_region_start ();
 
-  /* In case this cleanup involves an inline destructor with a try block in
-     it, we need to save the EH return data registers around it.  */
-  data_save[0] = gen_reg_rtx (ptr_mode);
-  emit_move_insn (data_save[0], get_exception_pointer (cfun));
-  data_save[1] = gen_reg_rtx (word_mode);
-  emit_move_insn (data_save[1], get_exception_filter (cfun));
+      /* In case this cleanup involves an inline destructor with a try block in
+	 it, we need to save the EH return data registers around it.  */
+      data_save[0] = gen_reg_rtx (ptr_mode);
+      emit_move_insn (data_save[0], get_exception_pointer (cfun));
+      data_save[1] = gen_reg_rtx (word_mode);
+      emit_move_insn (data_save[1], get_exception_filter (cfun));
 
-  expand_expr (handler, const0_rtx, VOIDmode, 0);
+      expand_expr (handler, const0_rtx, VOIDmode, 0);
 
-  emit_move_insn (cfun->eh->exc_ptr, data_save[0]);
-  emit_move_insn (cfun->eh->filter, data_save[1]);
+      emit_move_insn (cfun->eh->exc_ptr, data_save[0]);
+      emit_move_insn (cfun->eh->filter, data_save[1]);
 
-  if (protect_cleanup_actions)
-    expand_eh_region_end_must_not_throw (protect_cleanup_actions);
+      if (protect_cleanup_actions)
+	expand_eh_region_end_must_not_throw (protect_cleanup_actions);
 
-  /* We need any stack adjustment complete before the around_label.  */
-  do_pending_stack_adjust ();
+      /* We need any stack adjustment complete before the around_label.  */
+      do_pending_stack_adjust ();
+    }
 
   /* We delay the generation of the _Unwind_Resume until we generate
      landing pads.  We emit a marker here so as to get good control
@@ -817,6 +819,22 @@ expand_eh_region_end_fixup (handler)
   fixup = expand_eh_region_end ();
   fixup->type = ERT_FIXUP;
   fixup->u.fixup.cleanup_exp = handler;
+}
+
+/* Note that the current EH region (if any) may contain a throw, or a
+   call to a function which itself may contain a throw.  */
+
+void
+note_eh_region_may_contain_throw ()
+{
+  struct eh_region *region;
+
+  region = cfun->eh->cur_region;
+  while (region && !region->may_contain_throw)
+    {
+      region->may_contain_throw = 1;
+      region = region->outer;
+    }
 }
 
 /* Return an rtl expression for a pointer to the exception object
@@ -1679,7 +1697,6 @@ build_post_landing_pads ()
 	    struct eh_region *c;
 	    for (c = region->u.try.catch; c ; c = c->u.catch.next_catch)
 	      {
-		/* ??? _Unwind_ForcedUnwind wants no match here.  */
 		if (c->u.catch.type_list == NULL)
 		  emit_jump (c->label);
 		else
@@ -2577,8 +2594,6 @@ reachable_next_level (region, type_thrown, info)
 	for (c = region->u.try.catch; c ; c = c->u.catch.next_catch)
 	  {
 	    /* A catch-all handler ends the search.  */
-	    /* ??? _Unwind_ForcedUnwind will want outer cleanups
-	       to be run as well.  */
 	    if (c->u.catch.type_list == NULL)
 	      {
 		add_reachable_handler (info, region, c);
@@ -2760,10 +2775,20 @@ reachable_handlers (insn)
       region = region->outer;
     }
 
-  for (; region; region = region->outer)
-    if (reachable_next_level (region, type_thrown, &info) >= RNL_CAUGHT)
-      break;
-
+  while (region)
+    {
+      if (reachable_next_level (region, type_thrown, &info) >= RNL_CAUGHT)
+	break;
+      /* If we have processed one cleanup, there is no point in
+	 processing any more of them.  Each cleanup will have an edge
+	 to the next outer cleanup region, so the flow graph will be
+	 accurate.  */
+      if (region->type == ERT_CLEANUP)
+	region = region->u.cleanup.prev_try;
+      else
+	region = region->outer;
+    }
+    
   return info.handlers;
 }
 
@@ -3044,77 +3069,73 @@ expand_builtin_frob_return_addr (addr_tree)
 
 void
 expand_builtin_eh_return (stackadj_tree, handler_tree)
-    tree stackadj_tree, handler_tree;
+    tree stackadj_tree ATTRIBUTE_UNUSED;
+    tree handler_tree;
 {
-  rtx stackadj, handler;
+  rtx tmp;
 
-  stackadj = expand_expr (stackadj_tree, cfun->eh->ehr_stackadj, VOIDmode, 0);
-  handler = expand_expr (handler_tree, cfun->eh->ehr_handler, VOIDmode, 0);
-
+#ifdef EH_RETURN_STACKADJ_RTX
+  tmp = expand_expr (stackadj_tree, cfun->eh->ehr_stackadj, VOIDmode, 0);
 #ifdef POINTERS_EXTEND_UNSIGNED
-  if (GET_MODE (stackadj) != Pmode)
-    stackadj = convert_memory_address (Pmode, stackadj);
-
-  if (GET_MODE (handler) != Pmode)
-    handler = convert_memory_address (Pmode, handler);
+  if (GET_MODE (tmp) != Pmode)
+    tmp = convert_memory_address (Pmode, tmp);
+#endif
+  if (!cfun->eh->ehr_stackadj)
+    cfun->eh->ehr_stackadj = copy_to_reg (tmp);
+  else if (tmp != cfun->eh->ehr_stackadj)
+    emit_move_insn (cfun->eh->ehr_stackadj, tmp);
 #endif
 
-  if (! cfun->eh->ehr_label)
-    {
-      cfun->eh->ehr_stackadj = copy_to_reg (stackadj);
-      cfun->eh->ehr_handler = copy_to_reg (handler);
-      cfun->eh->ehr_label = gen_label_rtx ();
-    }
-  else
-    {
-      if (stackadj != cfun->eh->ehr_stackadj)
-	emit_move_insn (cfun->eh->ehr_stackadj, stackadj);
-      if (handler != cfun->eh->ehr_handler)
-	emit_move_insn (cfun->eh->ehr_handler, handler);
-    }
+  tmp = expand_expr (handler_tree, cfun->eh->ehr_handler, VOIDmode, 0);
+#ifdef POINTERS_EXTEND_UNSIGNED
+  if (GET_MODE (tmp) != Pmode)
+    tmp = convert_memory_address (Pmode, tmp);
+#endif
+  if (!cfun->eh->ehr_handler)
+    cfun->eh->ehr_handler = copy_to_reg (tmp);
+  else if (tmp != cfun->eh->ehr_handler)
+    emit_move_insn (cfun->eh->ehr_handler, tmp);
 
+  if (!cfun->eh->ehr_label)
+    cfun->eh->ehr_label = gen_label_rtx ();
   emit_jump (cfun->eh->ehr_label);
 }
 
 void
 expand_eh_return ()
 {
-  rtx sa, ra, around_label;
+  rtx around_label;
 
   if (! cfun->eh->ehr_label)
     return;
 
-  sa = EH_RETURN_STACKADJ_RTX;
-  if (! sa)
-    {
-      error ("__builtin_eh_return not supported on this target");
-      return;
-    }
-
   current_function_calls_eh_return = 1;
 
+#ifdef EH_RETURN_STACKADJ_RTX
+  emit_move_insn (EH_RETURN_STACKADJ_RTX, const0_rtx);
+#endif
+
   around_label = gen_label_rtx ();
-  emit_move_insn (sa, const0_rtx);
   emit_jump (around_label);
 
   emit_label (cfun->eh->ehr_label);
   clobber_return_register ();
 
+#ifdef EH_RETURN_STACKADJ_RTX
+  emit_move_insn (EH_RETURN_STACKADJ_RTX, cfun->eh->ehr_stackadj);
+#endif
+
 #ifdef HAVE_eh_return
   if (HAVE_eh_return)
-    emit_insn (gen_eh_return (cfun->eh->ehr_stackadj, cfun->eh->ehr_handler));
+    emit_insn (gen_eh_return (cfun->eh->ehr_handler));
   else
 #endif
     {
-      ra = EH_RETURN_HANDLER_RTX;
-      if (! ra)
-	{
-	  error ("__builtin_eh_return not supported on this target");
-	  ra = gen_reg_rtx (Pmode);
-	}
-
-      emit_move_insn (sa, cfun->eh->ehr_stackadj);
-      emit_move_insn (ra, cfun->eh->ehr_handler);
+#ifdef EH_RETURN_HANDLER_RTX
+      emit_move_insn (EH_RETURN_HANDLER_RTX, cfun->eh->ehr_handler);
+#else
+      error ("__builtin_eh_return not supported on this target");
+#endif
     }
 
   emit_label (around_label);

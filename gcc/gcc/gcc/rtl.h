@@ -140,7 +140,8 @@ struct rtx_def GTY((chain_next ("RTX_NEXT (&%h)"),
      1 in a SET that is for a return.
      In a CODE_LABEL, part of the two-bit alternate entry field.  */
   unsigned int jump : 1;
-  /* In a CODE_LABEL, part of the two-bit alternate entry field.  */
+  /* In a CODE_LABEL, part of the two-bit alternate entry field.
+     1 in a MEM if it cannot trap.  */
   unsigned int call : 1;
   /* 1 in a REG, MEM, or CONCAT if the value is set at most once, anywhere.
      1 in a SUBREG if it references an unsigned object whose mode has been
@@ -683,11 +684,6 @@ enum reg_note
      return.  */
   REG_BR_PROB,
 
-  /* REG_EXEC_COUNT is attached to the first insn of each basic block, and
-     the first insn after each CALL_INSN.  It indicates how many times this
-     block was executed.  */
-  REG_EXEC_COUNT,
-
   /* Attached to a call insn; indicates that the call is malloc-like and
      that the pointer returned cannot alias anything else.  */
   REG_NOALIAS,
@@ -1038,6 +1034,10 @@ extern unsigned int subreg_regno_offset 	PARAMS ((unsigned int,
 							 enum machine_mode, 
 							 unsigned int, 
 							 enum machine_mode));
+extern bool subreg_offset_representable_p 	PARAMS ((unsigned int, 
+							 enum machine_mode, 
+							 unsigned int, 
+							 enum machine_mode));
 extern unsigned int subreg_regno 	PARAMS ((rtx));
 
 /* 1 if RTX is a subreg containing a reg that is already known to be
@@ -1105,6 +1105,10 @@ do {									\
 #define MEM_SCALAR_P(RTX)						\
   (RTL_FLAG_CHECK1("MEM_SCALAR_P", (RTX), MEM)->frame_related)
 
+/* 1 if RTX is a mem that cannot trap.  */
+#define MEM_NOTRAP_P(RTX) \
+  (RTL_FLAG_CHECK1("MEM_NOTRAP_P", (RTX), MEM)->call)
+
 /* If VAL is nonzero, set MEM_IN_STRUCT_P and clear MEM_SCALAR_P in
    RTX.  Otherwise, vice versa.  Use this macro only when you are
    *sure* that you know that the MEM is in a structure, or is a
@@ -1165,6 +1169,7 @@ do {						\
   (MEM_VOLATILE_P (LHS) = MEM_VOLATILE_P (RHS),			\
    MEM_IN_STRUCT_P (LHS) = MEM_IN_STRUCT_P (RHS),		\
    MEM_SCALAR_P (LHS) = MEM_SCALAR_P (RHS),			\
+   MEM_NOTRAP_P (LHS) = MEM_NOTRAP_P (RHS),			\
    RTX_UNCHANGING_P (LHS) = RTX_UNCHANGING_P (RHS),		\
    MEM_KEEP_ALIAS_SET_P (LHS) = MEM_KEEP_ALIAS_SET_P (RHS),	\
    MEM_ATTRS (LHS) = MEM_ATTRS (RHS))
@@ -1559,7 +1564,7 @@ extern rtx simplify_rtx			PARAMS ((rtx));
 extern rtx avoid_constant_pool_reference PARAMS ((rtx));
 
 /* In function.c  */
-extern rtx gen_mem_addressof		PARAMS ((rtx, tree));
+extern rtx gen_mem_addressof		PARAMS ((rtx, tree, int));
 
 /* In regclass.c  */
 extern enum machine_mode choose_hard_reg_mode PARAMS ((unsigned int,
@@ -1937,6 +1942,7 @@ extern int safe_to_remove_jump_p	PARAMS ((rtx));
 extern rtx pc_set			PARAMS ((rtx));
 extern rtx condjump_label		PARAMS ((rtx));
 extern int simplejump_p			PARAMS ((rtx));
+extern int tablejump_p			PARAMS ((rtx));
 extern int returnjump_p			PARAMS ((rtx));
 extern int onlyjump_p			PARAMS ((rtx));
 extern int only_sets_cc0_p		PARAMS ((rtx));

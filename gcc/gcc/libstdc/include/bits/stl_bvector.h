@@ -356,8 +356,8 @@ template <typename _Alloc>
     typedef _Bit_iterator                iterator;
     typedef _Bit_const_iterator          const_iterator;
   
-    typedef reverse_iterator<const_iterator> const_reverse_iterator;
-    typedef reverse_iterator<iterator> reverse_iterator;
+    typedef std::reverse_iterator<const_iterator> const_reverse_iterator;
+    typedef std::reverse_iterator<iterator> reverse_iterator;
   
     typedef typename _Bvector_base<_Alloc>::allocator_type allocator_type;
     allocator_type get_allocator() const {
@@ -604,7 +604,9 @@ template <typename _Alloc>
     }    
   
     void reserve(size_type __n) {
-      if (capacity() < __n) {
+      if (__n > this->max_size())
+	__throw_length_error("vector::reserve");
+      if (this->capacity() < __n) {
         _Bit_type * __q = _M_bit_alloc(__n);
         _M_finish = copy(begin(), end(), iterator(__q, 0));
         _M_deallocate();

@@ -1,6 +1,6 @@
 /* Reload pseudo regs into hard regs for insns that require hard regs.
    Copyright (C) 1987, 1988, 1989, 1992, 1993, 1994, 1995, 1996, 1997, 1998,
-   1999, 2000, 2001, 2002 Free Software Foundation, Inc.
+   1999, 2000, 2001, 2002, 2003 Free Software Foundation, Inc.
 
 This file is part of GCC.
 
@@ -352,11 +352,14 @@ static int num_eliminable_invariants;
 
 /* For each label, we record the offset of each elimination.  If we reach
    a label by more than one path and an offset differs, we cannot do the
-   elimination.  This information is indexed by the number of the label.
-   The first table is an array of flags that records whether we have yet
-   encountered a label and the second table is an array of arrays, one
-   entry in the latter array for each elimination.  */
+   elimination.  This information is indexed by the difference of the
+   number of the label and the first label number.  We can't offset the
+   pointer itself as this can cause problems on machines with segmented
+   memory.  The first table is an array of flags that records whether we
+   have yet encountered a label and the second table is an array of arrays,
+   one entry in the latter array for each elimination.  */
 
+static int first_label_num;
 static char *offsets_known_at;
 static int (*offsets_at)[NUM_ELIMINABLE_REGS];
 
@@ -673,11 +676,6 @@ reload (first, global)
   struct elim_table *ep;
   basic_block bb;
 
-  /* The two pointers used to track the true location of the memory used
-     for label offsets.  */
-  char *real_known_ptr = NULL;
-  int (*real_at_ptr)[NUM_ELIMINABLE_REGS];
-
   /* Make sure even insns with volatile mem refs are recognizable.  */
   init_recog ();
 
@@ -817,8 +815,12 @@ reload (first, global)
 		      else if (LEGITIMATE_CONSTANT_P (x))
 			reg_equiv_constant[i] = x;
 		      else
-			reg_equiv_memory_loc[i]
-			  = force_const_mem (GET_MODE (SET_DEST (set)), x);
+			{
+			  reg_equiv_memory_loc[i]
+			    = force_const_mem (GET_MODE (SET_DEST (set)), x);
+			  if (!reg_equiv_memory_loc[i])
+			    continue;
+			}
 		    }
 		  else
 		    continue;
@@ -852,20 +854,17 @@ reload (first, global)
 
   init_elim_table ();
 
-  num_labels = max_label_num () - get_first_label_num ();
+  first_label_num = get_first_label_num ();
+  num_labels = max_label_num () - first_label_num;
 
   /* Allocate the tables used to store offset information at labels.  */
   /* We used to use alloca here, but the size of what it would try to
      allocate would occasionally cause it to exceed the stack limit and
      cause a core dump.  */
-  real_known_ptr = xmalloc (num_labels);
-  real_at_ptr
+  offsets_known_at = xmalloc (num_labels);
+  offsets_at
     = (int (*)[NUM_ELIMINABLE_REGS])
     xmalloc (num_labels * NUM_ELIMINABLE_REGS * sizeof (int));
-
-  offsets_known_at = real_known_ptr - get_first_label_num ();
-  offsets_at
-    = (int (*)[NUM_ELIMINABLE_REGS]) (real_at_ptr - get_first_label_num ());
 
   /* Alter each pseudo-reg rtx to contain its hard reg number.
      Assign stack slots to the pseudos that lack hard regs or equivalents.
@@ -1265,10 +1264,10 @@ reload (first, global)
     free (reg_equiv_memory_loc);
   reg_equiv_memory_loc = 0;
 
-  if (real_known_ptr)
-    free (real_known_ptr);
-  if (real_at_ptr)
-    free (real_at_ptr);
+  if (offsets_known_at)
+    free (offsets_known_at);
+  if (offsets_at)
+    free (offsets_at);
 
   free (reg_equiv_mem);
   free (reg_equiv_init);
@@ -2151,13 +2150,13 @@ set_label_offsets (x, insn, initial_p)
 	 we guessed wrong, we will suppress an elimination that might have
 	 been possible had we been able to guess correctly.  */
 
-      if (! offsets_known_at[CODE_LABEL_NUMBER (x)])
+      if (! offsets_known_at[CODE_LABEL_NUMBER (x) - first_label_num])
 	{
 	  for (i = 0; i < NUM_ELIMINABLE_REGS; i++)
-	    offsets_at[CODE_LABEL_NUMBER (x)][i]
+	    offsets_at[CODE_LABEL_NUMBER (x) - first_label_num][i]
 	      = (initial_p ? reg_eliminate[i].initial_offset
 		 : reg_eliminate[i].offset);
-	  offsets_known_at[CODE_LABEL_NUMBER (x)] = 1;
+	  offsets_known_at[CODE_LABEL_NUMBER (x) - first_label_num] = 1;
 	}
 
       /* Otherwise, if this is the definition of a label and it is
@@ -2174,7 +2173,7 @@ set_label_offsets (x, insn, initial_p)
 	   where the offsets disagree.  */
 
 	for (i = 0; i < NUM_ELIMINABLE_REGS; i++)
-	  if (offsets_at[CODE_LABEL_NUMBER (x)][i]
+	  if (offsets_at[CODE_LABEL_NUMBER (x) - first_label_num][i]
 	      != (initial_p ? reg_eliminate[i].initial_offset
 		  : reg_eliminate[i].offset))
 	    reg_eliminate[i].can_eliminate = 0;
@@ -3383,7 +3382,7 @@ static void
 set_initial_label_offsets ()
 {
   rtx x;
-  memset ((char *) &offsets_known_at[get_first_label_num ()], 0, num_labels);
+  memset (offsets_known_at, 0, num_labels);
 
   for (x = forced_labels; x; x = XEXP (x, 1))
     if (XEXP (x, 0))
@@ -3404,7 +3403,8 @@ set_offsets_for_label (insn)
   num_not_at_initial_offset = 0;
   for (i = 0, ep = reg_eliminate; i < NUM_ELIMINABLE_REGS; ep++, i++)
     {
-      ep->offset = ep->previous_offset = offsets_at[label_nr][i];
+      ep->offset = ep->previous_offset
+		 = offsets_at[label_nr - first_label_num][i];
       if (ep->can_eliminate && ep->offset != ep->initial_offset)
 	num_not_at_initial_offset++;
     }
@@ -3508,7 +3508,6 @@ init_elim_table ()
   /* Does this function require a frame pointer?  */
 
   frame_pointer_needed = (! flag_omit_frame_pointer
-#ifndef TARGET_RISCOSAOF
 #ifdef EXIT_IGNORE_STACK
 			  /* ?? If EXIT_IGNORE_STACK is set, we will not save
 			     and restore sp for alloca.  So we can't eliminate
@@ -3517,7 +3516,6 @@ init_elim_table ()
 			     sp-adjusting insns for this case.  */
 			  || (current_function_calls_alloca
 			      && EXIT_IGNORE_STACK)
-#endif
 #endif
 			  || FRAME_POINTER_REQUIRED);
 
@@ -3932,6 +3930,7 @@ reload_as_needed (live_known)
 	      if (asm_noperands (PATTERN (insn)) >= 0)
 		for (p = NEXT_INSN (prev); p != next; p = NEXT_INSN (p))
 		  if (p != insn && INSN_P (p)
+		      && GET_CODE (PATTERN (p)) != USE
 		      && (recog_memoized (p) < 0
 			  || (extract_insn (p), ! constrain_operands (1))))
 		    {
@@ -5495,7 +5494,7 @@ choose_reload_regs (chain)
 #ifdef CANNOT_CHANGE_MODE_CLASS
 		      (!REG_CANNOT_CHANGE_MODE_P (i, GET_MODE (last_reg),
 						  need_mode)
-		       ||
+		       &&
 #endif
 		      (GET_MODE_SIZE (GET_MODE (last_reg))
 		       >= GET_MODE_SIZE (need_mode))
@@ -6125,13 +6124,15 @@ merge_assigned_reloads (insn)
 		       ? RELOAD_FOR_OTHER_ADDRESS : RELOAD_OTHER);
 
 		  /* Check to see if we accidentally converted two reloads
-		     that use the same reload register to the same type.
-		     If so, the resulting code won't work, so abort.  */
+		     that use the same reload register with different inputs
+		     to the same type.  If so, the resulting code won't work,
+		     so abort.  */
 		  if (rld[j].reg_rtx)
 		    for (k = 0; k < j; k++)
 		      if (rld[k].in != 0 && rld[k].reg_rtx != 0
 			  && rld[k].when_needed == rld[j].when_needed
-			  && rtx_equal_p (rld[k].reg_rtx, rld[j].reg_rtx))
+			  && rtx_equal_p (rld[k].reg_rtx, rld[j].reg_rtx)
+			  && ! rtx_equal_p (rld[k].in, rld[j].in))
 			abort ();
 		}
 	}
@@ -7610,6 +7611,11 @@ delete_output_reload (insn, j, last_reload_reg)
   rtx i1;
   rtx substed;
 
+  /* It is possible that this reload has been only used to set another reload
+     we eliminated earlier and thus deleted this instruction too.  */
+  if (INSN_DELETED_P (output_reload_insn))
+    return;
+
   /* Get the raw pseudo-register referred to.  */
 
   while (GET_CODE (reg) == SUBREG)
@@ -8272,7 +8278,13 @@ reload_cse_simplify_set (set, insn)
 	{
 #ifdef LOAD_EXTEND_OP
 	  if (GET_MODE_BITSIZE (GET_MODE (SET_DEST (set))) < BITS_PER_WORD
-	      && extend_op != NIL)
+	      && extend_op != NIL
+#ifdef CANNOT_CHANGE_MODE_CLASS
+	      && !CANNOT_CHANGE_MODE_CLASS (GET_MODE (SET_DEST (set)),
+					    word_mode,
+					    REGNO_REG_CLASS (REGNO (SET_DEST (set))))
+#endif
+	      )
 	    {
 	      rtx wide_dest = gen_rtx_REG (word_mode, REGNO (SET_DEST (set)));
 	      ORIGINAL_REGNO (wide_dest) = ORIGINAL_REGNO (SET_DEST (set));
@@ -9462,7 +9474,7 @@ fixup_abnormal_edges ()
     {
       edge e;
 
-      /* Look for cases we are interested in - an calls or instructions causing
+      /* Look for cases we are interested in - calls or instructions causing
          exceptions.  */
       for (e = bb->succ; e; e = e->succ_next)
 	{

@@ -63,6 +63,7 @@ extern bool lhd_can_use_bit_fields_p PARAMS ((void));
 extern bool lhd_warn_unused_global_decl PARAMS ((tree));
 extern void lhd_incomplete_type_error PARAMS ((tree, tree));
 extern tree lhd_type_promotes_to PARAMS ((tree));
+extern bool lhd_decl_ok_for_sibcall PARAMS ((tree));
 extern tree lhd_expr_size PARAMS ((tree));
 
 /* Declarations of default tree inlining hooks.  */
@@ -81,6 +82,8 @@ int lhd_tree_inlining_anon_aggr_type_p		PARAMS ((tree));
 int lhd_tree_inlining_start_inlining		PARAMS ((tree));
 void lhd_tree_inlining_end_inlining		PARAMS ((tree));
 tree lhd_tree_inlining_convert_parm_for_inlining PARAMS ((tree, tree, tree));
+
+void write_global_declarations PARAMS ((void));
 
 #define LANG_HOOKS_NAME			"GNU unknown"
 #define LANG_HOOKS_IDENTIFIER_SIZE	sizeof (struct lang_identifier)
@@ -209,6 +212,8 @@ int lhd_tree_dump_type_quals			PARAMS ((tree));
 #define LANG_HOOKS_PUSHDECL	pushdecl
 #define LANG_HOOKS_GETDECLS	getdecls
 #define LANG_HOOKS_WARN_UNUSED_GLOBAL_DECL lhd_warn_unused_global_decl
+#define LANG_HOOKS_WRITE_GLOBALS write_global_declarations
+#define LANG_HOOKS_DECL_OK_FOR_SIBCALL	lhd_decl_ok_for_sibcall
 
 #define LANG_HOOKS_DECLS { \
   LANG_HOOKS_PUSHLEVEL, \
@@ -218,7 +223,9 @@ int lhd_tree_dump_type_quals			PARAMS ((tree));
   LANG_HOOKS_SET_BLOCK, \
   LANG_HOOKS_PUSHDECL, \
   LANG_HOOKS_GETDECLS, \
-  LANG_HOOKS_WARN_UNUSED_GLOBAL_DECL \
+  LANG_HOOKS_WARN_UNUSED_GLOBAL_DECL, \
+  LANG_HOOKS_WRITE_GLOBALS, \
+  LANG_HOOKS_DECL_OK_FOR_SIBCALL, \
 }
 
 /* The whole thing.  The structure is defined in langhooks.h.  */

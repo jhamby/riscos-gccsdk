@@ -414,8 +414,8 @@ life_analysis (f, file, flags)
      FILE *file;
      int flags;
 {
-  int i;
 #ifdef ELIMINABLE_REGS
+  int i;
   static const struct {const int from, to; } eliminables[] = ELIMINABLE_REGS;
 #endif
 
@@ -433,9 +433,7 @@ life_analysis (f, file, flags)
 
 
 #ifdef CANNOT_CHANGE_MODE_CLASS
-  if (flags & PROP_REG_INFO)
-    for (i=0; i < NUM_MACHINE_MODES; ++i)
-      INIT_REG_SET (&subregs_of_mode[i]);
+  bitmap_initialize (&subregs_of_mode, 1);
 #endif
 
   if (! optimize)
@@ -1380,7 +1378,7 @@ calculate_global_regs_live (blocks_in, blocks_out, flags)
 }
 
 
-/* This structure is used to pass parameters to an from the
+/* This structure is used to pass parameters to and from the
    the function find_regno_partial(). It is used to pass in the
    register number we are looking, as well as to return any rtx
    we find.  */
@@ -1473,8 +1471,11 @@ initialize_uninitialized_subregs ()
 	      for_each_rtx (&i, find_regno_partial, &param);
 	      if (param.retval != NULL_RTX)
 		{
-		  insn = gen_move_insn (param.retval,
-				        CONST0_RTX (GET_MODE (param.retval)));
+		  start_sequence ();
+		  emit_move_insn (param.retval,
+				  CONST0_RTX (GET_MODE (param.retval)));
+		  insn = get_insns ();
+		  end_sequence ();
 		  insert_insn_on_edge (insn, e);
 		  did_something = 1;
 		}
@@ -3823,8 +3824,9 @@ mark_used_regs (pbi, x, cond, insn)
 #ifdef CANNOT_CHANGE_MODE_CLASS
       if (GET_CODE (SUBREG_REG (x)) == REG
 	  && REGNO (SUBREG_REG (x)) >= FIRST_PSEUDO_REGISTER)
-	SET_REGNO_REG_SET (&subregs_of_mode[GET_MODE (x)],
-			   REGNO (SUBREG_REG (x)));
+	bitmap_set_bit (&subregs_of_mode, REGNO (SUBREG_REG (x))
+					  * MAX_MACHINE_MODE
+					  + GET_MODE (x));
 #endif
 
       /* While we're here, optimize this case.  */
@@ -3872,8 +3874,9 @@ mark_used_regs (pbi, x, cond, insn)
 	    if (GET_CODE (testreg) == SUBREG
 		&& GET_CODE (SUBREG_REG (testreg)) == REG
 		&& REGNO (SUBREG_REG (testreg)) >= FIRST_PSEUDO_REGISTER)
-	      SET_REGNO_REG_SET (&subregs_of_mode[GET_MODE (testreg)],
-				 REGNO (SUBREG_REG (testreg)));
+	      bitmap_set_bit (&subregs_of_mode, REGNO (SUBREG_REG (testreg))
+						* MAX_MACHINE_MODE
+						+ GET_MODE (testreg));
 #endif
 
 	    /* Modifying a single register in an alternate mode

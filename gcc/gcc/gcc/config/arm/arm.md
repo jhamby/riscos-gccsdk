@@ -33,7 +33,7 @@
 
 ;; Register numbers
 (define_constants
-  [(SL_REGNUM	    10)		; Stack limit register
+  [(SL_REGNUM       10)		; Stack limit register
    (IP_REGNUM	    12)		; Scratch register
    (SP_REGNUM	    13)		; Stack pointer
    (LR_REGNUM       14)		; Return address register
@@ -60,7 +60,11 @@
    (UNSPEC_PIC_SYM   3) ; A symbol that has been treated properly for pic
 			;   usage, that is, we will add the pic_register
 			;   value to it before trying to dereference it.
-   (UNSPEC_PRLG_STK  4) ; A special barrier that prevents frame accesses 
+   (UNSPEC_PIC_BASE  4)	; Adding the PC value to the offset to the
+			;   GLOBAL_OFFSET_TABLE.  The operation is fully
+			;   described by the RTL but must be wrapped to
+			;   prevent combine from trying to rip it apart.
+   (UNSPEC_PRLG_STK  5) ; A special barrier that prevents frame accesses 
 			;   being scheduled before the stack adjustment insn.
    (UNSPEC_CLZ	     5) ; `clz' instruction, count leading zeros (SImode):
 			;   operand 0 is the result,
@@ -70,11 +74,11 @@
    			; instructions setting registers for EH handling
    			; and stack frame generation.  Operand 0 is the
    			; register to "use".
-   (UNSPEC_CHECK_ARCH 7); Set CCs to indicate 26-bit or 32-bit mode. 
+   (UNSPEC_CHECK_ARCH 7); Set CCs to indicate 26-bit or 32-bit mode.
    (UNSPEC_CALL_ALLOCA 8)
    (UNSPEC_STK 9)
    (UNSPEC_STK_BIG 10)
- ]
+  ]
 )
 
 ;; UNSPEC_VOLATILE Usage:
@@ -4206,7 +4210,9 @@
 
 (define_insn "pic_add_dot_plus_four"
   [(set (match_operand:SI 0 "register_operand" "+r")
-	(plus:SI (match_dup 0) (const (plus:SI (pc) (const_int 4)))))
+	(unspec:SI [(plus:SI (match_dup 0)
+			     (const (plus:SI (pc) (const_int 4))))]
+		   UNSPEC_PIC_BASE))
    (use (label_ref (match_operand 1 "" "")))]
   "TARGET_THUMB && flag_pic"
   "*
@@ -4219,7 +4225,9 @@
 
 (define_insn "pic_add_dot_plus_eight"
   [(set (match_operand:SI 0 "register_operand" "+r")
-	(plus:SI (match_dup 0) (const (plus:SI (pc) (const_int 8)))))
+	(unspec:SI [(plus:SI (match_dup 0)
+			     (const (plus:SI (pc) (const_int 8))))]
+		   UNSPEC_PIC_BASE))
    (use (label_ref (match_operand 1 "" "")))]
   "TARGET_ARM && flag_pic"
   "*
@@ -8685,8 +8693,14 @@
   "
 )
 
+;; Note - although unspec_volatile's USE all hard registers,
+;; USEs are ignored after relaod has completed.  Thus we need
+;; to add an unspec of the link register to ensure that flow
+;; does not think that it is unused by the sibcall branch that
+;; will replace the standard function epilogue.
 (define_insn "sibcall_epilogue"
-  [(unspec_volatile [(const_int 0)] VUNSPEC_EPILOGUE)]
+  [(parallel [(unspec:SI [(reg:SI LR_REGNUM)] UNSPEC_PROLOGUE_USE)
+              (unspec_volatile [(return)] VUNSPEC_EPILOGUE)])]
   "TARGET_ARM"
   "*
   if (USE_RETURN_INSN (FALSE))
@@ -8695,7 +8709,11 @@
   "
 ;; Length is absolute worst case
   [(set_attr "length" "44")
-   (set_attr "type" "block")]
+   (set_attr "type" "block")
+   ;; We don't clobber the conditions, but the potential length of this
+   ;; operation is sufficient to make conditionalizing the sequence 
+   ;; unlikely to be profitable.
+   (set_attr "conds" "clob")]
 )
 
 (define_insn "*epilogue_insns"
@@ -8709,7 +8727,11 @@
   "
   ; Length is absolute worst case
   [(set_attr "length" "44")
-   (set_attr "type" "block")]
+   (set_attr "type" "block")
+   ;; We don't clobber the conditions, but the potential length of this
+   ;; operation is sufficient to make conditionalizing the sequence 
+   ;; unlikely to be profitable.
+   (set_attr "conds" "clob")]
 )
 
 (define_expand "eh_epilogue"
@@ -9143,6 +9165,8 @@
   ""
   "%@ %0 needed for prologue"
 )
+
+
 
 ;; Implementations for dyamic allocation off the stack.
 

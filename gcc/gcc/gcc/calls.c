@@ -1,6 +1,6 @@
 /* Convert function calls to rtl insns, for GNU C compiler.
    Copyright (C) 1989, 1992, 1993, 1994, 1995, 1996, 1997, 1998
-   1999, 2000, 2001 Free Software Foundation, Inc.
+   1999, 2000, 2001, 2002, 2003 Free Software Foundation, Inc.
 
 This file is part of GCC.
 
@@ -35,6 +35,7 @@ Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 #include "sbitmap.h"
 #include "langhooks.h"
 #include "target.h"
+#include "except.h"
 
 #if !defined FUNCTION_OK_FOR_SIBCALL
 #define FUNCTION_OK_FOR_SIBCALL(DECL) 1
@@ -227,6 +228,7 @@ static int check_sibcall_argument_overlap	PARAMS ((rtx, struct arg_data *));
 
 static int combine_pending_stack_adjustment_and_call
                                                 PARAMS ((int, struct args_size *, int));
+static tree fix_unsafe_tree		PARAMS ((tree));
 
 #ifdef REG_PARM_STACK_SPACE
 static rtx save_fixed_argument_area	PARAMS ((int, rtx, int *, int *));
@@ -616,6 +618,8 @@ emit_call_1 (funexp, fndecl, funtype, stack_size, rounded_stack_size,
   if (ecf_flags & ECF_NOTHROW)
     REG_NOTES (call_insn) = gen_rtx_EXPR_LIST (REG_EH_REGION, const0_rtx,
 					       REG_NOTES (call_insn));
+  else
+    note_eh_region_may_contain_throw ();
 
   if (ecf_flags & ECF_NORETURN)
     REG_NOTES (call_insn) = gen_rtx_EXPR_LIST (REG_NORETURN, const0_rtx,
@@ -839,10 +843,13 @@ flags_from_decl_or_type (exp)
 
       if (TREE_NOTHROW (exp))
 	flags |= ECF_NOTHROW;
+
+      if (TREE_READONLY (exp) && ! TREE_THIS_VOLATILE (exp))
+	flags |= ECF_LIBCALL_BLOCK;
     }
 
   if (TREE_READONLY (exp) && ! TREE_THIS_VOLATILE (exp))
-    flags |= ECF_CONST | ECF_LIBCALL_BLOCK;
+    flags |= ECF_CONST;
 
   if (TREE_THIS_VOLATILE (exp))
     flags |= ECF_NORETURN;
@@ -1071,7 +1078,6 @@ store_unaligned_arguments_into_pseudos (args, num_actuals)
 	   this means we must skip the empty high order bytes when
 	   calculating the bit offset.  */
 	if (BYTES_BIG_ENDIAN
-	    && !FUNCTION_ARG_REG_LITTLE_ENDIAN
 	    && bytes < UNITS_PER_WORD)
 	  big_endian_correction = (BITS_PER_WORD  - (bytes * BITS_PER_UNIT));
 
@@ -1663,6 +1669,7 @@ compute_argument_addresses (args, argblock, num_actuals)
 
 	  addr = plus_constant (addr, arg_offset);
 	  args[i].stack = gen_rtx_MEM (args[i].mode, addr);
+	  set_mem_align (args[i].stack, PARM_BOUNDARY);
 	  set_mem_attributes (args[i].stack,
 			      TREE_TYPE (args[i].tree_value), 1);
 
@@ -1673,6 +1680,7 @@ compute_argument_addresses (args, argblock, num_actuals)
 
 	  addr = plus_constant (addr, arg_offset);
 	  args[i].stack_slot = gen_rtx_MEM (args[i].mode, addr);
+	  set_mem_align (args[i].stack_slot, PARM_BOUNDARY);
 	  set_mem_attributes (args[i].stack_slot,
 			      TREE_TYPE (args[i].tree_value), 1);
 
@@ -1692,12 +1700,12 @@ compute_argument_addresses (args, argblock, num_actuals)
    FNDECL is the tree node for the target function.  For an indirect call
    FNDECL will be NULL_TREE.
 
-   EXP is the CALL_EXPR for this call.  */
+   ADDR is the operand 0 of CALL_EXPR for this call.  */
 
 static rtx
-rtx_for_function_call (fndecl, exp)
+rtx_for_function_call (fndecl, addr)
      tree fndecl;
-     tree exp;
+     tree addr;
 {
   rtx funexp;
 
@@ -1721,7 +1729,7 @@ rtx_for_function_call (fndecl, exp)
       rtx funaddr;
       push_temp_slots ();
       funaddr = funexp
-	= expand_expr (TREE_OPERAND (exp, 0), NULL_RTX, VOIDmode, 0);
+	= expand_expr (addr, NULL_RTX, VOIDmode, 0);
       pop_temp_slots ();	/* FUNEXP can't be BLKmode.  */
       emit_queue ();
     }
@@ -2082,6 +2090,35 @@ check_sibcall_argument_overlap (insn, arg)
   return insn != NULL_RTX;
 }
 
+static tree
+fix_unsafe_tree (t)
+     tree t;
+{
+  switch (unsafe_for_reeval (t))
+    {
+    case 0: /* Safe.  */
+      break;
+
+    case 1: /* Mildly unsafe.  */
+      t = unsave_expr (t);
+      break;
+
+    case 2: /* Wildly unsafe.  */
+      {
+	tree var = build_decl (VAR_DECL, NULL_TREE,
+			       TREE_TYPE (t));
+	SET_DECL_RTL (var,
+		      expand_expr (t, NULL_RTX, VOIDmode, EXPAND_NORMAL));
+	t = var;
+      }
+      break;
+
+    default:
+      abort ();
+    }
+  return t;
+}
+
 /* Generate all the code for a function call
    and return an rtx for its value.
    Store the value in TARGET (specified as an rtx) if convenient.
@@ -2193,6 +2230,7 @@ expand_call (exp, target, ignore)
   int old_stack_allocated;
   rtx call_fusage;
   tree p = TREE_OPERAND (exp, 0);
+  tree addr = TREE_OPERAND (exp, 0);
   int i;
   /* The alignment of the stack, in bits.  */
   HOST_WIDE_INT preferred_stack_boundary;
@@ -2314,7 +2352,7 @@ expand_call (exp, target, ignore)
   preferred_stack_boundary = PREFERRED_STACK_BOUNDARY;
 
   /* Operand 0 is a pointer-to-function; get the type of the function.  */
-  funtype = TREE_TYPE (TREE_OPERAND (exp, 0));
+  funtype = TREE_TYPE (addr);
   if (! POINTER_TYPE_P (funtype))
     abort ();
   funtype = TREE_TYPE (funtype);
@@ -2451,8 +2489,8 @@ expand_call (exp, target, ignore)
 
   /* Tail recursion fails, when we are not dealing with recursive calls.  */
   if (!try_tail_recursion
-      || TREE_CODE (TREE_OPERAND (exp, 0)) != ADDR_EXPR
-      || TREE_OPERAND (TREE_OPERAND (exp, 0), 0) != current_function_decl)
+      || TREE_CODE (addr) != ADDR_EXPR
+      || TREE_OPERAND (addr, 0) != current_function_decl)
     try_tail_recursion = 0;
 
   /*  Rest of purposes for tail call optimizations to fail.  */
@@ -2483,10 +2521,11 @@ expand_call (exp, target, ignore)
       || args_size.constant > current_function_args_size
       /* If the callee pops its own arguments, then it must pop exactly
 	 the same number of arguments as the current function.  */
-      || RETURN_POPS_ARGS (fndecl, funtype, args_size.constant)
-	 != RETURN_POPS_ARGS (current_function_decl,
-			      TREE_TYPE (current_function_decl),
-			      current_function_args_size))
+      || (RETURN_POPS_ARGS (fndecl, funtype, args_size.constant)
+	  != RETURN_POPS_ARGS (current_function_decl,
+			       TREE_TYPE (current_function_decl),
+			       current_function_args_size))
+      || !(*lang_hooks.decls.ok_for_sibcall) (fndecl))
     try_tail_call = 0;
 
   if (try_tail_call || try_tail_recursion)
@@ -2523,35 +2562,16 @@ expand_call (exp, target, ignore)
 
       for (; i != end; i += inc)
 	{
-	  switch (unsafe_for_reeval (args[i].tree_value))
-	    {
-	    case 0: /* Safe.  */
-	      break;
-
-	    case 1: /* Mildly unsafe.  */
-	      args[i].tree_value = unsave_expr (args[i].tree_value);
-	      break;
-
-	    case 2: /* Wildly unsafe.  */
-	      {
-		tree var = build_decl (VAR_DECL, NULL_TREE,
-				       TREE_TYPE (args[i].tree_value));
-		SET_DECL_RTL (var,
-			      expand_expr (args[i].tree_value, NULL_RTX,
-					   VOIDmode, EXPAND_NORMAL));
-		args[i].tree_value = var;
-	      }
-	      break;
-
-	    default:
-	      abort ();
-	    }
+          args[i].tree_value = fix_unsafe_tree (args[i].tree_value);
 	  /* We need to build actparms for optimize_tail_recursion.  We can
 	     safely trash away TREE_PURPOSE, since it is unused by this
 	     function.  */
 	  if (try_tail_recursion)
 	    actparms = tree_cons (NULL_TREE, args[i].tree_value, actparms);
 	}
+      /* Do the same for the function address if it is an expression. */
+      if (!fndecl)
+        addr = fix_unsafe_tree (addr);
       /* Expanding one of those dangerous arguments could have added
 	 cleanups, but otherwise give it a whirl.  */
       if (any_pending_cleanups (1))
@@ -2945,7 +2965,7 @@ expand_call (exp, target, ignore)
 	 be deferred during the evaluation of the arguments.  */
       NO_DEFER_POP;
 
-      funexp = rtx_for_function_call (fndecl, exp);
+      funexp = rtx_for_function_call (fndecl, addr);
 
       /* Figure out the register where the value, if any, will come back.  */
       valreg = 0;
@@ -4132,7 +4152,7 @@ emit_library_call_value_1 (retval, orgfun, value, fn_type, outmode, nargs, p)
     {
       rtx insns;
 
-      if (valreg == 0 || GET_CODE (valreg) == PARALLEL)
+      if (valreg == 0)
 	{
 	  insns = get_insns ();
 	  end_sequence ();
@@ -4141,8 +4161,17 @@ emit_library_call_value_1 (retval, orgfun, value, fn_type, outmode, nargs, p)
       else
 	{
 	  rtx note = 0;
-	  rtx temp = gen_reg_rtx (GET_MODE (valreg));
+	  rtx temp;
 	  int i;
+
+	  if (GET_CODE (valreg) == PARALLEL)
+	    {
+	      temp = gen_reg_rtx (outmode);
+	      emit_group_store (temp, valreg, outmode);
+	      valreg = temp;
+	    }
+
+	  temp = gen_reg_rtx (GET_MODE (valreg));
 
 	  /* Construct an "equal form" for the value which mentions all the
 	     arguments in order as well as the function name.  */
@@ -4176,6 +4205,12 @@ emit_library_call_value_1 (retval, orgfun, value, fn_type, outmode, nargs, p)
 	    value = mem_value;
 	  if (value != mem_value)
 	    emit_move_insn (value, mem_value);
+	}
+      else if (GET_CODE (valreg) == PARALLEL)
+	{
+	  if (value == 0)
+	    value = gen_reg_rtx (outmode);
+	  emit_group_store (value, valreg, outmode);
 	}
       else if (value != 0)
 	emit_move_insn (value, valreg);
@@ -4395,13 +4430,6 @@ store_one_arg (arg, argblock, flags, variable_size, reg_parm_stack_space)
 		}
 	    }
 	}
-      /* Now that we have saved any slots that will be overwritten by this
-	 store, mark all slots this store will use.  We must do this before
-	 we actually expand the argument since the expansion itself may
-	 trigger library calls which might need to use the same stack slot.  */
-      if (argblock && ! variable_size && arg->stack)
-	for (i = lower_bound; i < upper_bound; i++)
-	  stack_usage_map[i] = 1;
     }
 
   /* If this isn't going to be placed on both the stack and in registers,
@@ -4454,7 +4482,7 @@ store_one_arg (arg, argblock, flags, variable_size, reg_parm_stack_space)
 				(partial
 				 || TYPE_MODE (TREE_TYPE (pval)) != arg->mode)
 				? NULL_RTX : arg->stack,
-				VOIDmode, 0);
+				VOIDmode, EXPAND_STACK_PARM);
 
       /* If we are promoting object (or for any other reason) the mode
 	 doesn't agree, convert the mode.  */
@@ -4597,37 +4625,6 @@ store_one_arg (arg, argblock, flags, variable_size, reg_parm_stack_space)
 	    }
 	}
 
-      /* Special handling is required if part of the parameter lies in the
-	 register parameter area.  The argument may be copied into the stack
-	 slot using memcpy(), but the original contents of the register
-	 parameter area will be restored after the memcpy() call.
-
-	 To ensure that the part that lies in the register parameter area
-	 is copied correctly, we emit a separate push for that part.  This
-	 push should be small enough to avoid a call to memcpy().  */
-#ifndef STACK_PARMS_IN_REG_PARM_AREA
-      if (arg->reg && arg->pass_on_stack)
-#else
-      if (1)
-#endif
-	{
-	  if (arg->offset.constant < reg_parm_stack_space && arg->offset.var)
-	    error ("variable offset is passed partially in stack and in reg");
-	  else if (arg->offset.constant < reg_parm_stack_space && arg->size.var)
-	    error ("variable size is passed partially in stack and in reg");
-	  else if (arg->offset.constant < reg_parm_stack_space 
-	      && ((arg->offset.constant + arg->size.constant) 
-		   > reg_parm_stack_space))
-          {
-	    rtx size_rtx1 = GEN_INT (reg_parm_stack_space - arg->offset.constant);
-	    emit_push_insn (arg->value, arg->mode, TREE_TYPE (pval), size_rtx1,
-		            parm_align, partial, reg, excess, argblock,
-			    ARGS_SIZE_RTX (arg->offset), reg_parm_stack_space,
-		            ARGS_SIZE_RTX (arg->alignment_pad));
-	  }
-	}
-	
-
       emit_push_insn (arg->value, arg->mode, TREE_TYPE (pval), size_rtx,
 		      parm_align, partial, reg, excess, argblock,
 		      ARGS_SIZE_RTX (arg->offset), reg_parm_stack_space,
@@ -4644,6 +4641,12 @@ store_one_arg (arg, argblock, flags, variable_size, reg_parm_stack_space)
       if (partial == 0)
 	arg->value = arg->stack_slot;
     }
+
+  /* Mark all slots this store used.  */
+  if (ACCUMULATE_OUTGOING_ARGS && !(flags & ECF_SIBCALL)
+      && argblock && ! variable_size && arg->stack)
+    for (i = lower_bound; i < upper_bound; i++)
+      stack_usage_map[i] = 1;
 
   /* Once we have pushed something, pops can't safely
      be deferred during the rest of the arguments.  */

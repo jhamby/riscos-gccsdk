@@ -289,6 +289,7 @@ static void compute_insns_for_mem PARAMS ((rtx, rtx, htab_t));
 static void prepare_function_start PARAMS ((void));
 static void do_clobber_return_reg PARAMS ((rtx, void *));
 static void do_use_return_reg PARAMS ((rtx, void *));
+static void instantiate_virtual_regs_lossage PARAMS ((rtx));
 
 /* Pointer to chain of `struct function' for containing functions.  */
 static GTY(()) struct function *outer_function_chain;
@@ -450,6 +451,8 @@ free_after_compilation (f)
   f->x_nonlocal_goto_stack_level = NULL;
   f->x_cleanup_label = NULL;
   f->x_return_label = NULL;
+  f->computed_goto_common_label = NULL;
+  f->computed_goto_common_reg = NULL;
   f->x_save_expr_regs = NULL;
   f->x_stack_slot_list = NULL;
   f->x_rtl_expr_chain = NULL;
@@ -1321,12 +1324,16 @@ init_temp_slots ()
   target_temp_slot_level = 0;
 }
 
-/* Retroactively move an auto variable from a register to a stack slot.
-   This is done when an address-reference to the variable is seen.  */
+/* Retroactively move an auto variable from a register to a stack
+   slot.  This is done when an address-reference to the variable is
+   seen.  If RESCAN is true, all previously emitted instructions are
+   examined and modified to handle the fact that DECL is now
+   addressable.  */
 
 void
-put_var_into_stack (decl)
+put_var_into_stack (decl, rescan)
      tree decl;
+     int rescan;
 {
   rtx reg;
   enum machine_mode promoted_mode, decl_mode;
@@ -1401,7 +1408,7 @@ put_var_into_stack (decl)
 	 to put things in the stack for the sake of setjmp, try to keep it
 	 in a register until we know we actually need the address.  */
       if (can_use_addressof)
-	gen_mem_addressof (reg, decl);
+	gen_mem_addressof (reg, decl, rescan);
       else
 	put_reg_into_stack (function, reg, TREE_TYPE (decl), promoted_mode,
 			    decl_mode, volatilep, 0, usedp, 0);
@@ -1448,7 +1455,7 @@ put_var_into_stack (decl)
       /* Prevent sharing of rtl that might lose.  */
       if (GET_CODE (XEXP (reg, 0)) == PLUS)
 	XEXP (reg, 0) = copy_rtx (XEXP (reg, 0));
-      if (usedp)
+      if (usedp && rescan)
 	{
 	  schedule_fixup_var_refs (function, reg, TREE_TYPE (decl),
 				   promoted_mode, 0);
@@ -2380,7 +2387,7 @@ fixup_var_refs_1 (var, promoted_mode, loc, insn, replacements, no_share)
 	       copy SET_SRC (x) to SET_DEST (x) in some way.  So
 	       we generate the move and see whether it requires more
 	       than one insn.  If it does, we emit those insns and
-	       delete INSN.  Otherwise, we an just replace the pattern
+	       delete INSN.  Otherwise, we can just replace the pattern
 	       of INSN; we have already verified above that INSN has
 	       no other function that to do X.  */
 
@@ -2888,15 +2895,19 @@ static int cfa_offset;
 #define ARG_POINTER_CFA_OFFSET(FNDECL) FIRST_PARM_OFFSET (FNDECL)
 #endif
 
-/* Build up a (MEM (ADDRESSOF (REG))) rtx for a register REG that just had its
-   address taken.  DECL is the decl or SAVE_EXPR for the object stored in the
-   register, for later use if we do need to force REG into the stack.  REG is
-   overwritten by the MEM like in put_reg_into_stack.  */
+/* Build up a (MEM (ADDRESSOF (REG))) rtx for a register REG that just
+   had its address taken.  DECL is the decl or SAVE_EXPR for the
+   object stored in the register, for later use if we do need to force
+   REG into the stack.  REG is overwritten by the MEM like in
+   put_reg_into_stack.  RESCAN is true if previously emitted
+   instructions must be rescanned and modified now that the REG has
+   been transformed.  */
 
 rtx
-gen_mem_addressof (reg, decl)
+gen_mem_addressof (reg, decl, rescan)
      rtx reg;
      tree decl;
+     int rescan;
 {
   rtx r = gen_rtx_ADDRESSOF (Pmode, gen_reg_rtx (GET_MODE (reg)),
 			     REGNO (reg), decl);
@@ -2934,10 +2945,11 @@ gen_mem_addressof (reg, decl)
       if (DECL_P (decl) && decl_rtl == reg)
 	SET_DECL_RTL (decl, reg);
 
-      if (TREE_USED (decl) || (DECL_P (decl) && DECL_INITIAL (decl) != 0))
+      if (rescan 
+	  && (TREE_USED (decl) || (DECL_P (decl) && DECL_INITIAL (decl) != 0)))
 	fixup_var_refs (reg, GET_MODE (reg), TREE_UNSIGNED (type), reg, 0);
     }
-  else
+  else if (rescan)
     fixup_var_refs (reg, GET_MODE (reg), 0, reg, 0);
 
   return reg;
@@ -3045,10 +3057,7 @@ purge_addressof_1 (loc, insn, force, store, ht)
       rtx sub, insns;
 
       if (GET_CODE (XEXP (x, 0)) != MEM)
-	{
-	  put_addressof_into_stack (x, ht);
-	  return true;
-	}
+	put_addressof_into_stack (x, ht);
 
       /* We must create a copy of the rtx because it was created by
 	 overwriting a REG rtx which is always shared.  */
@@ -3151,10 +3160,16 @@ purge_addressof_1 (loc, insn, force, store, ht)
 	  size_x = GET_MODE_BITSIZE (GET_MODE (x));
 	  size_sub = GET_MODE_BITSIZE (GET_MODE (sub));
 
+	  /* Do not frob unchanging MEMs.  If a later reference forces the
+	     pseudo to the stack, we can wind up with multiple writes to
+	     an unchanging memory, which is invalid.  */
+	  if (RTX_UNCHANGING_P (x) && size_x != size_sub)
+	    ;
+
 	  /* Don't even consider working with paradoxical subregs,
 	     or the moral equivalent seen here.  */
-	  if (size_x <= size_sub
-	      && int_mode_for_mode (GET_MODE (sub)) != BLKmode)
+	  else if (size_x <= size_sub
+	           && int_mode_for_mode (GET_MODE (sub)) != BLKmode)
 	    {
 	      /* Do a bitfield insertion to mirror what would happen
 		 in memory.  */
@@ -3562,11 +3577,19 @@ instantiate_virtual_regs (fndecl, insns)
 	|| GET_CODE (insn) == CALL_INSN)
       {
 	instantiate_virtual_regs_1 (&PATTERN (insn), insn, 1);
+	if (INSN_DELETED_P (insn))
+	  continue;
 	instantiate_virtual_regs_1 (&REG_NOTES (insn), NULL_RTX, 0);
 	/* Instantiate any virtual registers in CALL_INSN_FUNCTION_USAGE.  */
 	if (GET_CODE (insn) == CALL_INSN)
 	  instantiate_virtual_regs_1 (&CALL_INSN_FUNCTION_USAGE (insn),
 				      NULL_RTX, 0);
+
+	/* Past this point all ASM statements should match.  Verify that
+	   to avoid failures later in the compilation process.  */
+        if (asm_noperands (PATTERN (insn)) >= 0
+	    && ! check_asm_operands (PATTERN (insn)))
+          instantiate_virtual_regs_lossage (insn);
       }
 
   /* Instantiate the stack slots for the parm registers, for later use in
@@ -3734,6 +3757,22 @@ instantiate_new_reg (x, poffset)
   return new;
 }
 
+
+/* Called when instantiate_virtual_regs has failed to update the instruction.
+   Usually this means that non-matching instruction has been emit, however for
+   asm statements it may be the problem in the constraints.  */
+static void
+instantiate_virtual_regs_lossage (insn)
+     rtx insn;
+{
+  if (asm_noperands (PATTERN (insn)) >= 0)
+    {
+      error_for_asm (insn, "impossible constraint in `asm'");
+      delete_insn (insn);
+    }
+  else
+    abort ();
+}
 /* Given a pointer to a piece of rtx and an optional pointer to the
    containing object, instantiate any virtual registers present in it.
 
@@ -3768,6 +3807,10 @@ instantiate_virtual_regs_1 (loc, object, extra_insns)
 
   x = *loc;
   if (x == 0)
+    return 1;
+
+  /* We may have detected and deleted invalid asm statements.  */
+  if (object && INSN_P (object) && INSN_DELETED_P (object))
     return 1;
 
   code = GET_CODE (x);
@@ -3807,7 +3850,10 @@ instantiate_virtual_regs_1 (loc, object, extra_insns)
 	  /* The only valid sources here are PLUS or REG.  Just do
 	     the simplest possible thing to handle them.  */
 	  if (GET_CODE (src) != REG && GET_CODE (src) != PLUS)
-	    abort ();
+	    {
+	      instantiate_virtual_regs_lossage (object);
+	      return 1;
+	    }
 
 	  start_sequence ();
 	  if (GET_CODE (src) != REG)
@@ -3823,7 +3869,7 @@ instantiate_virtual_regs_1 (loc, object, extra_insns)
 
 	  if (! validate_change (object, &SET_SRC (x), temp, 0)
 	      || ! extra_insns)
-	    abort ();
+	    instantiate_virtual_regs_lossage (object);
 
 	  return 1;
 	}
@@ -3933,7 +3979,10 @@ instantiate_virtual_regs_1 (loc, object, extra_insns)
 		  emit_insn_before (seq, object);
 		  if (! validate_change (object, loc, temp, 0)
 		      && ! validate_replace_rtx (x, temp, object))
-		    abort ();
+		    {
+		      instantiate_virtual_regs_lossage (object);
+		      return 1;
+		    }
 		}
 	    }
 
@@ -4087,7 +4136,7 @@ instantiate_virtual_regs_1 (loc, object, extra_insns)
 	      emit_insn_before (seq, object);
 	      if (! validate_change (object, loc, temp, 0)
 		  && ! validate_replace_rtx (x, temp, object))
-		abort ();
+	        instantiate_virtual_regs_lossage (object);
 	    }
 	}
 
@@ -4539,6 +4588,12 @@ assign_parms (fndecl)
 
 	  if (nregs > 0)
 	    {
+#if defined (REG_PARM_STACK_SPACE) && !defined (MAYBE_REG_PARM_STACK_SPACE)
+	      /* When REG_PARM_STACK_SPACE is nonzero, stack space for
+		 split parameters was allocated by our caller, so we
+		 won't be pushing it in the prolog.  */
+	      if (REG_PARM_STACK_SPACE (fndecl) == 0)
+#endif
 	      current_function_pretend_args_size
 		= (((nregs * UNITS_PER_WORD) + (PARM_BOUNDARY / BITS_PER_UNIT) - 1)
 		   / (PARM_BOUNDARY / BITS_PER_UNIT)
@@ -4989,7 +5044,7 @@ assign_parms (fndecl)
 		 stack.  So, we go back to that sequence, just so that
 		 the fixups will happen.  */
 	      push_to_sequence (conversion_insns);
-	      put_var_into_stack (parm);
+	      put_var_into_stack (parm, /*rescan=*/true);
 	      conversion_insns = get_insns ();
 	      end_sequence ();
 	    }
@@ -5525,7 +5580,7 @@ setjmp_protect (block)
 	    ||
 #endif
 	    ! DECL_REGISTER (decl)))
-      put_var_into_stack (decl);
+      put_var_into_stack (decl, /*rescan=*/true);
   for (sub = BLOCK_SUBBLOCKS (block); sub; sub = TREE_CHAIN (sub))
     setjmp_protect (sub);
 }
@@ -5552,7 +5607,7 @@ setjmp_protect_args ()
 	    ||
 #endif
 	    ! DECL_REGISTER (decl)))
-      put_var_into_stack (decl);
+      put_var_into_stack (decl, /*rescan=*/true);
 }
 
 /* Return the context-pointer register corresponding to DECL,
@@ -7646,19 +7701,8 @@ thread_prologue_and_epilogue_insns (f)
 		 that with a conditional return instruction.  */
 	      else if (condjump_p (jump))
 		{
-		  rtx ret, *loc;
-
-		  ret = SET_SRC (PATTERN (jump));
-		  if (GET_CODE (XEXP (ret, 1)) == LABEL_REF)
-		    loc = &XEXP (ret, 1);
-		  else
-		    loc = &XEXP (ret, 2);
-		  ret = gen_rtx_RETURN (VOIDmode);
-
-		  if (! validate_change (jump, loc, ret, 0))
+		  if (! redirect_jump (jump, 0, 0))
 		    continue;
-		  if (JUMP_LABEL (jump))
-		    LABEL_NUSES (JUMP_LABEL (jump))--;
 
 		  /* If this block has only one successor, it both jumps
 		     and falls through to the fallthru block, so we can't

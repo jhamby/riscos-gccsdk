@@ -39,6 +39,7 @@ Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 #include "langhooks.h"
 #include "except.h"		/* For USING_SJLJ_EXCEPTIONS.  */
 #include "tree-inline.h"
+#include "c-tree.h"
 
 cpp_reader *parse_in;		/* Declared in c-pragma.h.  */
 
@@ -768,6 +769,8 @@ static tree handle_nonnull_attribute	PARAMS ((tree *, tree, tree, int,
 						 bool *));
 static tree handle_nothrow_attribute	PARAMS ((tree *, tree, tree, int,
 						 bool *));
+static tree handle_cleanup_attribute	PARAMS ((tree *, tree, tree, int,
+						 bool *));
 static tree vector_size_helper PARAMS ((tree, tree));
 
 static void check_function_nonnull	PARAMS ((tree, tree));
@@ -856,6 +859,8 @@ const struct attribute_spec c_common_attribute_table[] =
   { "nothrow",                0, 0, true,  false, false,
 			      handle_nothrow_attribute },
   { "may_alias",	      0, 0, false, true, false, NULL },
+  { "cleanup",		      1, 1, true, false, false,
+			      handle_cleanup_attribute },
   { NULL,                     0, 0, false, false, false, NULL }
 };
 
@@ -3185,6 +3190,7 @@ c_common_nodes_and_builtins ()
 #define DEF_FUNCTION_TYPE_VAR_0(NAME, RETURN) NAME,
 #define DEF_FUNCTION_TYPE_VAR_1(NAME, RETURN, ARG1) NAME,
 #define DEF_FUNCTION_TYPE_VAR_2(NAME, RETURN, ARG1, ARG2) NAME,
+#define DEF_FUNCTION_TYPE_VAR_3(NAME, RETURN, ARG1, ARG2, ARG3) NAME,
 #define DEF_POINTER_TYPE(NAME, TYPE) NAME,
 #include "builtin-types.def"
 #undef DEF_PRIMITIVE_TYPE
@@ -3196,6 +3202,7 @@ c_common_nodes_and_builtins ()
 #undef DEF_FUNCTION_TYPE_VAR_0
 #undef DEF_FUNCTION_TYPE_VAR_1
 #undef DEF_FUNCTION_TYPE_VAR_2
+#undef DEF_FUNCTION_TYPE_VAR_3
 #undef DEF_POINTER_TYPE
     BT_LAST
   };
@@ -3390,8 +3397,6 @@ c_common_nodes_and_builtins ()
     = build_pointer_type (build_qualified_type
 			  (char_type_node, TYPE_QUAL_CONST));
 
-  (*targetm.init_builtins) ();
-
   /* This is special for C++ so functions can be overloaded.  */
   wchar_type_node = get_identifier (MODIFIED_WCHAR_TYPE);
   wchar_type_node = TREE_TYPE (identifier_global_value (wchar_type_node));
@@ -3515,6 +3520,19 @@ c_common_nodes_and_builtins ()
 		  tree_cons (NULL_TREE,				\
 			     builtin_types[(int) ARG2],		\
 			     NULL_TREE)));
+
+#define DEF_FUNCTION_TYPE_VAR_3(ENUM, RETURN, ARG1, ARG2, ARG3)		\
+   builtin_types[(int) ENUM]						\
+    = build_function_type 						\
+      (builtin_types[(int) RETURN],					\
+       tree_cons (NULL_TREE,						\
+		  builtin_types[(int) ARG1],				\
+		  tree_cons (NULL_TREE,					\
+			     builtin_types[(int) ARG2],			\
+			     tree_cons (NULL_TREE,			\
+					builtin_types[(int) ARG3],	\
+					NULL_TREE))));
+
 #define DEF_POINTER_TYPE(ENUM, TYPE)			\
   builtin_types[(int) ENUM]				\
     = build_pointer_type (builtin_types[(int) TYPE]);
@@ -3526,6 +3544,8 @@ c_common_nodes_and_builtins ()
 #undef DEF_FUNCTION_TYPE_4
 #undef DEF_FUNCTION_TYPE_VAR_0
 #undef DEF_FUNCTION_TYPE_VAR_1
+#undef DEF_FUNCTION_TYPE_VAR_2
+#undef DEF_FUNCTION_TYPE_VAR_3
 #undef DEF_POINTER_TYPE
 
   if (!c_attrs_initialized)
@@ -3562,6 +3582,8 @@ c_common_nodes_and_builtins ()
     }									
 #include "builtins.def"
 #undef DEF_BUILTIN
+
+  (*targetm.init_builtins) ();
 
   main_identifier_node = get_identifier ("main");
 }
@@ -4894,11 +4916,11 @@ cb_register_builtins (pfile)
 	cpp_define (pfile, "__GXX_WEAK__=1");
       else
 	cpp_define (pfile, "__GXX_WEAK__=0");
-      if (flag_exceptions)
-	cpp_define (pfile, "__EXCEPTIONS");
       if (warn_deprecated)
 	cpp_define (pfile, "__DEPRECATED");
     }
+  if (flag_exceptions)
+    cpp_define (pfile, "__EXCEPTIONS");
 
   /* represents the C++ ABI version, always defined so it can be used while
      preprocessing C and assembler.  */
@@ -5106,8 +5128,9 @@ builtin_define_with_hex_fp_value (macro, type, digits, hex_str, fp_suffix)
   cpp_define (parse_in, buf);
 }
 
-/* Define MAX for TYPE based on the precision of the type, which is assumed
-   to be signed.  IS_LONG is 1 for type "long" and 2 for "long long".  */
+/* Define MAX for TYPE based on the precision of the type.  IS_LONG is
+   1 for type "long" and 2 for "long long".  We have to handle
+   unsigned types, since wchar_t might be unsigned.  */
 
 static void
 builtin_define_type_max (macro, type, is_long)
@@ -5115,41 +5138,37 @@ builtin_define_type_max (macro, type, is_long)
      tree type;
      int is_long;
 {
-  const char *value;
+  static const char *const values[]
+    = { "127", "255",
+	"32767", "65535",
+	"2147483647", "4294967295",
+	"9223372036854775807", "18446744073709551615",
+	"170141183460469231731687303715884105727",
+	"340282366920938463463374607431768211455" };
+  static const char *const suffixes[] = { "", "U", "L", "UL", "LL", "ULL" };
+
+  const char *value, *suffix;
   char *buf;
-  size_t mlen, vlen, extra;
+  size_t idx;
 
   /* Pre-rendering the values mean we don't have to futz with printing a
      multi-word decimal value.  There are also a very limited number of
      precisions that we support, so it's really a waste of time.  */
   switch (TYPE_PRECISION (type))
     {
-    case 8:
-      value = "127";
-      break;
-    case 16:
-      value = "32767";
-      break;
-    case 32:
-      value = "2147483647";
-      break;
-    case 64:
-      value = "9223372036854775807";
-      break;
-    case 128:
-      value = "170141183460469231731687303715884105727";
-      break;
-    default:
-      abort ();
+    case 8:	idx = 0; break;
+    case 16:	idx = 2; break;
+    case 32:	idx = 4; break;
+    case 64:	idx = 6; break;
+    case 128:	idx = 8; break;
+    default:    abort ();
     }
 
-  mlen = strlen (macro);
-  vlen = strlen (value);
-  extra = 2 + is_long;
-  buf = alloca (mlen + vlen + extra);
+  value = values[idx + TREE_UNSIGNED (type)];
+  suffix = suffixes[is_long * 2 + TREE_UNSIGNED (type)];
 
-  sprintf (buf, "%s=%s%s", macro, value,
-	   (is_long == 1 ? "L" : is_long == 2 ? "LL" : ""));
+  buf = alloca (strlen (macro) + 1 + strlen (value) + strlen (suffix) + 1);
+  sprintf (buf, "%s=%s%s", macro, value, suffix);
 
   cpp_define (parse_in, buf);
 }
@@ -5386,16 +5405,19 @@ handle_always_inline_attribute (node, name, args, flags, no_add_attrs)
    struct attribute_spec.handler.  */
 
 static tree
-handle_used_attribute (node, name, args, flags, no_add_attrs)
-     tree *node;
+handle_used_attribute (pnode, name, args, flags, no_add_attrs)
+     tree *pnode;
      tree name;
      tree args ATTRIBUTE_UNUSED;
      int flags ATTRIBUTE_UNUSED;
      bool *no_add_attrs;
 {
-  if (TREE_CODE (*node) == FUNCTION_DECL)
-    TREE_SYMBOL_REFERENCED (DECL_ASSEMBLER_NAME (*node))
-      = TREE_USED (*node) = 1;
+  tree node = *pnode;
+
+  if (TREE_CODE (node) == FUNCTION_DECL
+      || (TREE_CODE (node) == VAR_DECL && TREE_STATIC (node)))
+    TREE_SYMBOL_REFERENCED (DECL_ASSEMBLER_NAME (node))
+      = TREE_USED (node) = 1;
   else
     {
       warning ("`%s' attribute ignored", IDENTIFIER_POINTER (name));
@@ -6054,6 +6076,55 @@ handle_pure_attribute (node, name, args, flags, no_add_attrs)
       warning ("`%s' attribute ignored", IDENTIFIER_POINTER (name));
       *no_add_attrs = true;
     }
+
+  return NULL_TREE;
+}
+
+/* Handle a "cleanup" attribute; arguments as in
+   struct attribute_spec.handler.  */
+
+static tree
+handle_cleanup_attribute (node, name, args, flags, no_add_attrs)
+     tree *node;
+     tree name;
+     tree args;
+     int flags ATTRIBUTE_UNUSED;
+     bool *no_add_attrs;
+{
+  tree decl = *node;
+  tree cleanup_id, cleanup_decl;
+
+  /* ??? Could perhaps support cleanups on TREE_STATIC, much like we do
+     for global destructors in C++.  This requires infrastructure that
+     we don't have generically at the moment.  It's also not a feature
+     we'd be missing too much, since we do have attribute constructor.  */
+  if (TREE_CODE (decl) != VAR_DECL || TREE_STATIC (decl))
+    {
+      warning ("`%s' attribute ignored", IDENTIFIER_POINTER (name));
+      *no_add_attrs = true;
+      return NULL_TREE;
+    }
+
+  /* Verify that the argument is a function in scope.  */
+  /* ??? We could support pointers to functions here as well, if
+     that was considered desirable.  */
+  cleanup_id = TREE_VALUE (args);
+  if (TREE_CODE (cleanup_id) != IDENTIFIER_NODE)
+    {
+      error ("cleanup arg not an identifier");
+      *no_add_attrs = true;
+      return NULL_TREE;
+    }
+  cleanup_decl = lookup_name (cleanup_id);
+  if (!cleanup_decl || TREE_CODE (cleanup_decl) != FUNCTION_DECL)
+    {
+      error ("cleanup arg not a function");
+      *no_add_attrs = true;
+      return NULL_TREE;
+    }
+
+  /* That the function has proper type is checked with the 
+     eventual call to build_function_call.  */
 
   return NULL_TREE;
 }

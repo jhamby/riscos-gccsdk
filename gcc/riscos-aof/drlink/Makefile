@@ -2,7 +2,7 @@
 # Written by Nick Burrett <nick@dsvr.net>
 
 ifeq (${STAGE},stage1)
-CFLAGS += -DCROSS_COMPILE
+CFLAGS += -DCROSS_COMPILE -g2 -O0
 exesfx =
 else
 CC = $(CROSS_CC)
@@ -38,7 +38,7 @@ endif
 all:	$(bin_dir)/drlink$(exesfx)
 
 $(bin_dir)/drlink$(exesfx): $(OBJS) $(DEPS)
-	$(CC) -o $@ $(OBJS)
+	$(CC) -g2 -o $@ $(OBJS)
 
 $(drlinkobjdir)/aofiles.o: aofiles.c
 $(drlinkobjdir)/areas.o: areas.c

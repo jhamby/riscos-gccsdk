@@ -218,6 +218,18 @@ real_lvalue_p (ref)
   return lvalue_p_1 (ref, /*treat_class_rvalues_as_lvalues=*/ 0, /*cast*/ 1);
 }
 
+/* Returns the kind of lvalue that REF is, in the sense of
+   [basic.lval].  This function should really be named lvalue_p; it
+   computes the C++ definition of lvalue.  */
+
+cp_lvalue_kind
+real_non_cast_lvalue_p (tree ref)
+{
+  return lvalue_p_1 (ref, 
+		     /*treat_class_rvalues_as_lvalues=*/0, 
+		     /*allow_cast_as_lvalue=*/0);
+}
+
 /* This differs from real_lvalue_p in that class rvalues are
    considered lvalues.  */
 
@@ -510,7 +522,7 @@ build_cplus_array_type_1 (elt_type, index_type)
        && index_type && TYPE_MAX_VALUE (index_type)
        && TREE_CODE (TYPE_MAX_VALUE (index_type)) != INTEGER_CST)
       || uses_template_parms (elt_type) 
-      || uses_template_parms (index_type))
+      || (index_type && uses_template_parms (index_type)))
     {
       t = make_node (ARRAY_TYPE);
       TREE_TYPE (t) = elt_type;
@@ -1737,8 +1749,10 @@ cp_tree_equal (t1, t2)
       return 0;
 
     case TEMPLATE_PARM_INDEX:
-      return TEMPLATE_PARM_IDX (t1) == TEMPLATE_PARM_IDX (t2)
-	&& TEMPLATE_PARM_LEVEL (t1) == TEMPLATE_PARM_LEVEL (t2);
+      return (TEMPLATE_PARM_IDX (t1) == TEMPLATE_PARM_IDX (t2)
+	      && TEMPLATE_PARM_LEVEL (t1) == TEMPLATE_PARM_LEVEL (t2)
+	      && same_type_p (TREE_TYPE (TEMPLATE_PARM_DECL (t1)),
+			      TREE_TYPE (TEMPLATE_PARM_DECL (t2))));
 
     case SIZEOF_EXPR:
     case ALIGNOF_EXPR:

@@ -1,6 +1,6 @@
 /* Optimize jump instructions, for GNU compiler.
    Copyright (C) 1987, 1988, 1989, 1991, 1992, 1993, 1994, 1995, 1996, 1997
-   1998, 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
+   1998, 1999, 2000, 2001, 2002, 2003  Free Software Foundation, Inc.
 
 This file is part of GCC.
 
@@ -59,6 +59,7 @@ Software Foundation, 59 Temple Place - Suite 330, Boston, MA
    or even change what is live at any point.
    So perhaps let combiner do it.  */
 
+static rtx next_nonnote_insn_in_loop	PARAMS ((rtx));
 static int init_label_info		PARAMS ((rtx));
 static void mark_all_labels		PARAMS ((rtx));
 static int duplicate_loop_exit_test	PARAMS ((rtx));
@@ -119,6 +120,27 @@ cleanup_barriers ()
     }
 }
 
+/* Return the next insn after INSN that is not a NOTE and is in the loop,
+   i.e. when there is no such INSN before NOTE_INSN_LOOP_END return NULL_RTX.
+   This routine does not look inside SEQUENCEs.  */
+
+static rtx
+next_nonnote_insn_in_loop (insn)
+     rtx insn;
+{
+  while (insn)
+    {
+      insn = NEXT_INSN (insn);
+      if (insn == 0 || GET_CODE (insn) != NOTE)
+	break;
+      if (GET_CODE (insn) == NOTE
+	  && NOTE_LINE_NUMBER (insn) == NOTE_INSN_LOOP_END)
+	return NULL_RTX;
+    }
+
+  return insn;
+}
+
 void
 copy_loop_headers (f)
      rtx f;
@@ -137,7 +159,7 @@ copy_loop_headers (f)
 	 the values of regno_first_uid and regno_last_uid.  */
       if (GET_CODE (insn) == NOTE
 	  && NOTE_LINE_NUMBER (insn) == NOTE_INSN_LOOP_BEG
-	  && (temp1 = next_nonnote_insn (insn)) != 0
+	  && (temp1 = next_nonnote_insn_in_loop (insn)) != 0
 	  && any_uncondjump_p (temp1) && onlyjump_p (temp1))
 	{
 	  temp = PREV_INSN (insn);
@@ -293,7 +315,8 @@ duplicate_loop_exit_test (loop_start)
   rtx insn, set, reg, p, link;
   rtx copy = 0, first_copy = 0;
   int num_insns = 0;
-  rtx exitcode = NEXT_INSN (JUMP_LABEL (next_nonnote_insn (loop_start)));
+  rtx exitcode
+    = NEXT_INSN (JUMP_LABEL (next_nonnote_insn_in_loop (loop_start)));
   rtx lastexit;
   int max_reg = max_reg_num ();
   rtx *reg_map = 0;
@@ -1055,6 +1078,22 @@ simplejump_p (insn)
 	  && GET_CODE (PATTERN (insn)) == SET
 	  && GET_CODE (SET_DEST (PATTERN (insn))) == PC
 	  && GET_CODE (SET_SRC (PATTERN (insn))) == LABEL_REF);
+}
+
+/* Return 1 if INSN is an tablejump.  */
+
+int
+tablejump_p (insn)
+     rtx insn;
+{
+  rtx table;
+  return (GET_CODE (insn) == JUMP_INSN
+          && JUMP_LABEL (insn)
+          && NEXT_INSN (JUMP_LABEL (insn))
+          && (table = next_active_insn (JUMP_LABEL (insn)))
+          && GET_CODE (table) == JUMP_INSN
+          && (GET_CODE (PATTERN (table)) == ADDR_VEC
+              || GET_CODE (PATTERN (table)) == ADDR_DIFF_VEC));
 }
 
 /* Return nonzero if INSN is a (possibly) conditional jump
@@ -1877,14 +1916,14 @@ delete_for_peephole (from, to)
      is also an unconditional jump in that case.  */
 }
 
-/* We have determined that INSN is never reached, and are about to
-   delete it.  Print a warning if the user asked for one.
+/* We have determined that AVOIDED_INSN is never reached, and are
+   about to delete it.  If the insn chain between AVOIDED_INSN and
+   FINISH contains more than one line from the current function, and
+   contains at least one operation, print a warning if the user asked
+   for it.  If FINISH is NULL, look between AVOIDED_INSN and a LABEL.
 
-   To try to make this warning more useful, this should only be called
-   once per basic block not reached, and it only warns when the basic
-   block contains more than one line from the current function, and
-   contains at least one operation.  CSE and inlining can duplicate insns,
-   so it's possible to get spurious warnings from this.  */
+   CSE and inlining can duplicate insns, so it's possible to get
+   spurious warnings from this.  */
 
 void
 never_reached_warning (avoided_insn, finish)
@@ -1894,15 +1933,29 @@ never_reached_warning (avoided_insn, finish)
   rtx a_line_note = NULL;
   int two_avoided_lines = 0, contains_insn = 0, reached_end = 0;
 
-  if (! warn_notreached)
+  if (!warn_notreached)
     return;
 
-  /* Scan forwards, looking at LINE_NUMBER notes, until
-     we hit a LABEL or we run out of insns.  */
-
-  for (insn = avoided_insn; insn != NULL; insn = NEXT_INSN (insn))
+  /* Back up to the first of any NOTEs preceding avoided_insn; flow passes
+     us the head of a block, a NOTE_INSN_BASIC_BLOCK, which often follows
+     the line note.  */
+  insn = avoided_insn;
+  while (1)
     {
-      if (finish == NULL && GET_CODE (insn) == CODE_LABEL)
+      rtx prev = PREV_INSN (insn);
+      if (prev == NULL_RTX
+	  || GET_CODE (prev) != NOTE)
+	break;
+      insn = prev;
+    }
+
+  /* Scan forwards, looking at LINE_NUMBER notes, until we hit a LABEL
+     in case FINISH is NULL, otherwise until we run out of insns.  */
+
+  for (; insn != NULL; insn = NEXT_INSN (insn))
+    {
+      if ((finish == NULL && GET_CODE (insn) == CODE_LABEL)
+	  || GET_CODE (insn) == BARRIER)
 	break;
 
       if (GET_CODE (insn) == NOTE		/* A line number note?  */
@@ -1916,7 +1969,7 @@ never_reached_warning (avoided_insn, finish)
 	}
       else if (INSN_P (insn))
 	{
-	  if (reached_end || a_line_note == NULL)
+	  if (reached_end)
 	    break;
 	  contains_insn = 1;
 	}

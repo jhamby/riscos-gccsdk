@@ -1042,11 +1042,13 @@ remove_last_token (t)
   t->last_pos--;
   if (t->last_pos == 0 && t->last_chunk != t->tokens)
     {
-      struct token_chunk **tc;
-      for (tc = &t->tokens; (*tc)->next != NULL; tc = &(*tc)->next)
-	;
-      *tc = NULL;
-      t->last_pos = ARRAY_SIZE ((*tc)->toks);
+      struct token_chunk *c;
+      c = t->tokens;
+      while (c->next != t->last_chunk)
+	c = c->next;
+      c->next = NULL;
+      t->last_chunk = c;
+      t->last_pos = ARRAY_SIZE (c->toks);
     }
   return result;
 }
@@ -1217,6 +1219,10 @@ snarf_method (decl)
 
   DECL_PENDING_INLINE_INFO (decl) = meth;
   DECL_PENDING_INLINE_P (decl) = 1;
+
+  /* We need to know that this was defined in the class, so that
+     friend templates are handled correctly.  */
+  DECL_INITIALIZED_IN_CLASS_P (decl) = 1;
 
   if (pending_inlines_tail)
     pending_inlines_tail->next = meth;
@@ -1519,12 +1525,17 @@ yyerror (msgid)
     error ("%s at end of input", string);
   else if (last_token == CPP_CHAR || last_token == CPP_WCHAR)
     {
-      unsigned int val = TREE_INT_CST_LOW (yylval.ttype);
-      const char *const ell = (last_token == CPP_CHAR) ? "" : "L";
-      if (val <= UCHAR_MAX && ISGRAPH (val))
-	error ("%s before %s'%c'", string, ell, val);
+      if (yylval.ttype && TREE_CODE (yylval.ttype) == INTEGER_CST)
+	{
+	  unsigned int val = TREE_INT_CST_LOW (yylval.ttype);
+	  const char *const ell = (last_token == CPP_CHAR) ? "" : "L";
+	  if (val <= UCHAR_MAX && ISGRAPH (val))
+	    error ("%s before %s'%c'", string, ell, val);
+	  else
+	    error ("%s before %s'\\x%x'", string, ell, val);
+	}
       else
-	error ("%s before %s'\\x%x'", string, ell, val);
+	error ("%s", string);
     }
   else if (last_token == CPP_STRING
 	   || last_token == CPP_WSTRING)

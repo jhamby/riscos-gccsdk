@@ -945,8 +945,8 @@ df_def_record_1 (df, x, bb, insn)
 
 #ifdef CLASS_CANNOT_CHANGE_MODE
   if (GET_CODE (dst) == SUBREG
-      && CLASS_CANNOT_CHANGE_MODE_P (GET_MODE (dst),
-				     GET_MODE (SUBREG_REG (dst))))
+      && CLASS_CANNOT_CHANGE_MODE_P (GET_MODE (SUBREG_REG (dst)),
+				     GET_MODE (dst)))
     flags |= DF_REF_MODE_CHANGE;
 #endif
 
@@ -966,8 +966,8 @@ df_def_record_1 (df, x, bb, insn)
 	}
 #ifdef CLASS_CANNOT_CHANGE_MODE
       if (GET_CODE (dst) == SUBREG
-	  && CLASS_CANNOT_CHANGE_MODE_P (GET_MODE (dst),
-				         GET_MODE (SUBREG_REG (dst))))
+	  && CLASS_CANNOT_CHANGE_MODE_P (GET_MODE (SUBREG_REG (dst)),
+				         GET_MODE (dst)))
         flags |= DF_REF_MODE_CHANGE;
 #endif
       loc = &XEXP (dst, 0);
@@ -1037,6 +1037,7 @@ df_uses_record (df, loc, ref_type, bb, insn, flags)
     case CONST_DOUBLE:
     case CONST_VECTOR:
     case PC:
+    case CC0:
     case ADDR_VEC:
     case ADDR_DIFF_VEC:
       return;
@@ -1102,9 +1103,10 @@ df_uses_record (df, loc, ref_type, bb, insn, flags)
 		}
 	      /* ... FALLTHRU ...  */
 	    case REG:
-	    case PC:
 	    case PARALLEL:
-	      break;
+	    case PC:
+	    case CC0:
+		break;
 	    case MEM:
 	      df_uses_record (df, &XEXP (dst, 0),
 			      DF_REF_REG_MEM_STORE,

@@ -81,7 +81,7 @@ namespace std
   */
   inline size_t 
   __deque_buf_size(size_t __size) 
-    { return __size < 512 ? size_t(512 / __size) : size_t(1); }
+  { return __size < 512 ? size_t(512 / __size) : size_t(1); }
   
   
   /**
@@ -647,8 +647,8 @@ namespace std
     typedef const value_type*                  const_pointer;
     typedef typename _Base::iterator           iterator;
     typedef typename _Base::const_iterator     const_iterator;
-    typedef reverse_iterator<const_iterator>   const_reverse_iterator;
-    typedef reverse_iterator<iterator>         reverse_iterator;
+    typedef std::reverse_iterator<const_iterator>   const_reverse_iterator;
+    typedef std::reverse_iterator<iterator>         reverse_iterator;
     typedef value_type&                        reference;
     typedef const value_type&                  const_reference;
     typedef size_t                             size_type;
@@ -1160,7 +1160,7 @@ namespace std
     */
     iterator
     insert(iterator __position)
-      { return insert(__position, value_type()); }
+    { return insert(__position, value_type()); }
   #endif
   
     /**
@@ -1174,7 +1174,7 @@ namespace std
     */
     void
     insert(iterator __position, size_type __n, const value_type& __x)
-      { _M_fill_insert(__position, __n, __x); }
+    { _M_fill_insert(__position, __n, __x); }
   
     /**
      *  @brief  Inserts a range into the %deque.
@@ -1280,7 +1280,8 @@ namespace std
       }
   
     // called by the second initialize_dispatch above
-    /** @{
+    //@{
+    /**
      *  @if maint
      *  @brief Fills the deque with whatever is in [first,last).
      *  @param  first  An input iterator.
@@ -1302,7 +1303,7 @@ namespace std
       void
       _M_range_initialize(_ForwardIterator __first, _ForwardIterator __last,
                           forward_iterator_tag);
-    /** @} */
+    //@}
   
     /**
      *  @if maint
@@ -1383,7 +1384,8 @@ namespace std
     }
   
   
-    /** @{
+    //@{
+    /**
      *  @if maint
      *  @brief Helper functions for push_* and pop_*.
      *  @endif
@@ -1396,7 +1398,7 @@ namespace std
   #endif
     void _M_pop_back_aux();
     void _M_pop_front_aux();
-    /** @} */
+    //@}
   
   
     // Internal insert functions follow.  The *_aux functions do the actual
@@ -1462,7 +1464,8 @@ namespace std
     iterator _M_insert_aux(iterator __pos);
   #endif
   
-    /** @{
+    //@{
+    /**
      *  @if maint
      *  @brief Memory-handling helpers for the previous internal insert
      *         functions.
@@ -1491,10 +1494,11 @@ namespace std
   
     void
     _M_new_elements_at_back(size_type __new_elements);
-    /** @} */
+    //@}
   
   
-    /** @{
+    //@{
+    /**
      *  @if maint
      *  @brief Memory-handling helpers for the major %map.
      *
@@ -1519,7 +1523,7 @@ namespace std
   
     void
     _M_reallocate_map(size_type __nodes_to_add, bool __add_at_front);
-    /** @} */
+    //@}
   };
   
   

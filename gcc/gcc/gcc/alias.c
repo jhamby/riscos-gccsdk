@@ -1,5 +1,6 @@
 /* Alias analysis for GNU C
-   Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
+   Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003
+   Free Software Foundation, Inc.
    Contributed by John Carr (jfc@mit.edu).
 
 This file is part of GCC.
@@ -322,6 +323,8 @@ int
 objects_must_conflict_p (t1, t2)
      tree t1, t2;
 {
+  HOST_WIDE_INT set1, set2;
+
   /* If neither has a type specified, we don't know if they'll conflict
      because we may be using them to store objects of various types, for
      example the argument and local variables areas of inlined functions.  */
@@ -342,15 +345,15 @@ objects_must_conflict_p (t1, t2)
       || (t1 != 0 && TYPE_VOLATILE (t1) && t2 != 0 && TYPE_VOLATILE (t2)))
     return 1;
 
-  /* If one is aggregate and the other is scalar then they may not
-     conflict.  */
-  if ((t1 != 0 && AGGREGATE_TYPE_P (t1))
-      != (t2 != 0 && AGGREGATE_TYPE_P (t2)))
-    return 0;
+  set1 = t1 ? get_alias_set (t1) : 0;
+  set2 = t2 ? get_alias_set (t2) : 0;
 
-  /* Otherwise they conflict only if the alias sets conflict.  */
-  return alias_sets_conflict_p (t1 ? get_alias_set (t1) : 0,
-				t2 ? get_alias_set (t2) : 0);
+  /* Otherwise they conflict if they have no alias set or the same. We
+     can't simply use alias_sets_conflict_p here, because we must make
+     sure that every subtype of t1 will conflict with every subtype of
+     t2 for which a pair of subobjects of these respective subtypes
+     overlaps on the stack.  */
+  return set1 == 0 || set2 == 0 || set1 == set2;
 }
 
 /* T is an expression with pointer type.  Find the DECL on which this
@@ -785,7 +788,8 @@ find_base_value (src)
 	{
 	  /* If we're inside init_alias_analysis, use new_reg_base_value
 	     to reduce the number of relaxation iterations.  */
-	  if (new_reg_base_value && new_reg_base_value[regno])
+	  if (new_reg_base_value && new_reg_base_value[regno]
+	      && REG_N_SETS (regno) == 1)
 	    return new_reg_base_value[regno];
 
 	  if (reg_base_value[regno])

@@ -645,8 +645,8 @@ noce_emit_store_flag (if_info, x, reversep, normalize)
       end_sequence ();
     }
 
-  /* Don't even try if the comparison operands are weird.  */
-  if (cond_complex)
+  /* Don't even try if the comparison operands or the mode of X are weird.  */
+  if (cond_complex || !SCALAR_INT_MODE_P (GET_MODE (x)))
     return NULL_RTX;
 
   return emit_store_flag (x, code, XEXP (cond, 0),
@@ -1178,7 +1178,16 @@ noce_try_cmove_arith (if_info)
           tmp = gen_reg_rtx (GET_MODE (b));
 	  tmp = emit_insn (gen_rtx_SET (VOIDmode, tmp, b));
 	}
-      else if (! insn_b)
+      else if (! insn_b
+#if 0
+	       /* In the case we are going to duplicate insn originally
+		  present in the front of comparsion, verify that the
+		  comparsion didn't clobbered the operands.  */
+	       || modified_between_p (SET_SRC (single_set (insn_b)),
+				      if_info->cond_earliest,
+				      NEXT_INSN (if_info->jump)))
+#endif
+	      )
 	goto end_seq_and_fail;
       else
 	{
@@ -1770,16 +1779,33 @@ noce_process_if_block (ce_info)
   else
     {
       insn_b = prev_nonnote_insn (if_info.cond_earliest);
+      /* We're going to be moving the evaluation of B down from above
+	 COND_EARLIEST to JUMP.  Make sure the relevant data is still
+	 intact.  */
       if (! insn_b
 	  || GET_CODE (insn_b) != INSN
 	  || (set_b = single_set (insn_b)) == NULL_RTX
 	  || ! rtx_equal_p (x, SET_DEST (set_b))
+	  || reg_overlap_mentioned_p (x, SET_SRC (set_b))
+	  || modified_between_p (SET_SRC (set_b),
+				 PREV_INSN (if_info.cond_earliest), jump)
+	  /* Likewise with X.  In particular this can happen when
+	     noce_get_condition looks farther back in the instruction
+	     stream than one might expect.  */
 	  || reg_overlap_mentioned_p (x, cond)
 	  || reg_overlap_mentioned_p (x, a)
-	  || reg_overlap_mentioned_p (x, SET_SRC (set_b))
-	  || modified_between_p (x, if_info.cond_earliest, NEXT_INSN (jump)))
+	  || modified_between_p (x, PREV_INSN (if_info.cond_earliest), jump))
 	insn_b = set_b = NULL_RTX;
     }
+
+  /* If x has side effects then only the if-then-else form is safe to
+     convert.  But even in that case we would need to restore any notes
+     (such as REG_INC) at then end.  That can be tricky if 
+     noce_emit_move_insn expands to more than one insn, so disable the
+     optimization entirely for now if there are side effects.  */
+  if (side_effects_p (x))
+    return FALSE;
+
   b = (set_b ? SET_SRC (set_b) : x);
 
   /* Only operate on register destinations, and even then avoid extending
@@ -2325,7 +2351,8 @@ find_if_block (ce_info)
   /* The THEN block of an IF-THEN combo must have zero or one successors.  */
   if (then_succ != NULL_EDGE
       && (then_succ->succ_next != NULL_EDGE
-          || (then_succ->flags & EDGE_COMPLEX)))
+          || (then_succ->flags & EDGE_COMPLEX)
+	  || (flow2_completed && tablejump_p (then_bb->end))))
     return FALSE;
 
   /* If the THEN block has no successors, conditional execution can still
@@ -2372,7 +2399,8 @@ find_if_block (ce_info)
 	   && then_succ->dest == else_succ->dest
 	   && else_bb->pred->pred_next == NULL_EDGE
 	   && else_succ->succ_next == NULL_EDGE
-	   && ! (else_succ->flags & EDGE_COMPLEX))
+	   && ! (else_succ->flags & EDGE_COMPLEX)
+	   && ! (flow2_completed && tablejump_p (else_bb->end)))
     join_bb = else_succ->dest;
 
   /* Otherwise it is not an IF-THEN or IF-THEN-ELSE combination.  */
@@ -2701,6 +2729,8 @@ find_if_case_1 (test_bb, then_edge, else_edge)
     {
       new_bb->index = then_bb_index;
       BASIC_BLOCK (then_bb_index) = new_bb;
+      if (post_dominators)
+	add_to_dominance_info (post_dominators, new_bb);
     }
   /* We've possibly created jump to next insn, cleanup_cfg will solve that
      later.  */
@@ -2831,11 +2861,28 @@ dead_or_predicable (test_bb, merge_bb, other_bb, new_dest, reversep)
 
   if (GET_CODE (end) == JUMP_INSN)
     {
+      rtx tmp, insn, label;
+
       if (head == end)
 	{
 	  head = end = NULL_RTX;
 	  goto no_body;
 	}
+
+      /* If there is a jump table following merge_bb, fail
+	 if there are any insn between head and PREV_INSN (end)
+	 references it.  */
+      if ((label = JUMP_LABEL (end)) != NULL_RTX
+	  && (tmp = NEXT_INSN (label)) != NULL_RTX
+	  && GET_CODE (tmp) == JUMP_INSN
+	  && (GET_CODE (PATTERN (tmp)) == ADDR_VEC
+	      || GET_CODE (PATTERN (tmp)) == ADDR_DIFF_VEC))
+	{
+	  for (insn = head; insn != PREV_INSN (end); insn = NEXT_INSN (insn))
+	    if (find_reg_note (insn, REG_LABEL, label))
+	      return FALSE;
+	}
+
       end = PREV_INSN (end);
     }
 

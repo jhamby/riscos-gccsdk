@@ -102,6 +102,7 @@ static tree unextend		PARAMS ((tree, int, int, tree));
 static tree fold_truthop	PARAMS ((enum tree_code, tree, tree, tree));
 static tree optimize_minmax_comparison PARAMS ((tree));
 static tree extract_muldiv	PARAMS ((tree, tree, enum tree_code, tree));
+static tree extract_muldiv_1	PARAMS ((tree, tree, enum tree_code, tree));
 static tree strip_compound_expr PARAMS ((tree, tree));
 static int multiple_of_p	PARAMS ((tree, tree, tree));
 static tree constant_boolean_node PARAMS ((int, tree));
@@ -4044,6 +4045,31 @@ extract_muldiv (t, c, code, wide_type)
      enum tree_code code;
      tree wide_type;
 {
+  /* To avoid exponential search depth, refuse to allow recursion past
+     three levels.  Beyond that (1) it's highly unlikely that we'll find
+     something interesting and (2) we've probably processed it before
+     when we built the inner expression.  */
+
+  static int depth;
+  tree ret;
+
+  if (depth > 3)
+    return NULL;
+
+  depth++;
+  ret = extract_muldiv_1 (t, c, code, wide_type);
+  depth--;
+
+  return ret;
+}
+
+static tree
+extract_muldiv_1 (t, c, code, wide_type)
+     tree t;
+     tree c;
+     enum tree_code code;
+     tree wide_type;
+{
   tree type = TREE_TYPE (t);
   enum tree_code tcode = TREE_CODE (t);
   tree ctype = (wide_type != 0 && (GET_MODE_SIZE (TYPE_MODE (wide_type))
@@ -4091,7 +4117,12 @@ extract_muldiv (t, c, code, wide_type)
 	      /* ... or its type is larger than ctype,
 		 then we cannot pass through this truncation.  */
 	      || (GET_MODE_SIZE (TYPE_MODE (ctype))
-		  < GET_MODE_SIZE (TYPE_MODE (TREE_TYPE (op0))))))
+		  < GET_MODE_SIZE (TYPE_MODE (TREE_TYPE (op0))))
+	      /* ... or signedness changes for division or modulus,
+		 then we cannot pass through this conversion.  */
+	      || (code != MULT_EXPR
+		  && (TREE_UNSIGNED (ctype)
+		      != TREE_UNSIGNED (TREE_TYPE (op0))))))
 	break;
 
       /* Pass the constant down and see if we can make a simplification.  If
@@ -4129,25 +4160,6 @@ extract_muldiv (t, c, code, wide_type)
       if ((t1 = extract_muldiv (TREE_OPERAND (t, 0), c, code, wide_type)) != 0)
 	return build (WITH_RECORD_EXPR, TREE_TYPE (t1), t1,
 		      TREE_OPERAND (t, 1));
-      break;
-
-    case SAVE_EXPR:
-      /* If this has not been evaluated and the operand has no side effects,
-	 we can see if we can do something inside it and make a new one.
-	 Note that this test is overly conservative since we can do this
-	 if the only reason it had side effects is that it was another
-	 similar SAVE_EXPR, but that isn't worth bothering with.  */
-      if (SAVE_EXPR_RTL (t) == 0 && ! TREE_SIDE_EFFECTS (TREE_OPERAND (t, 0))
-	  && 0 != (t1 = extract_muldiv (TREE_OPERAND (t, 0), c, code,
-					wide_type)))
-	{
-	  t1 = save_expr (t1);
-	  if (SAVE_EXPR_PERSISTENT_P (t) && TREE_CODE (t1) == SAVE_EXPR)
-	    SAVE_EXPR_PERSISTENT_P (t1) = 1;
-	  if (is_pending_size (t))
-	    put_pending_size (t1);
-	  return t1;
-	}
       break;
 
     case LSHIFT_EXPR:  case RSHIFT_EXPR:

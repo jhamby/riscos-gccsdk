@@ -1,6 +1,6 @@
 // Allocators -*- C++ -*-
 
-// Copyright (C) 2001, 2002 Free Software Foundation, Inc.
+// Copyright (C) 2001, 2002, 2003 Free Software Foundation, Inc.
 //
 // This file is part of the GNU ISO C++ Library.  This library is free
 // software; you can redistribute it and/or modify it under the
@@ -85,9 +85,10 @@
 #include <cstddef>
 #include <cstdlib>
 #include <cstring>
-#include <cassert>
 #include <bits/functexcept.h>   // For __throw_bad_alloc
 #include <bits/stl_threads.h>
+
+#include <bits/atomicity.h>
 
 namespace std
 {
@@ -111,6 +112,7 @@ namespace std
     { ::operator delete(__p); }
   };
 
+
   /**
    *  @if maint
    *  A malloc-based allocator.  Typically slower than the
@@ -126,9 +128,7 @@ namespace std
     {
     private:
       static void* _S_oom_malloc(size_t);
-#ifdef _GLIBCPP_DEPRECATED
       static void* _S_oom_realloc(void*, size_t);
-#endif
       static void (* __malloc_alloc_oom_handler)();
 
     public:
@@ -136,7 +136,8 @@ namespace std
       allocate(size_t __n)
       {
         void* __result = malloc(__n);
-        if (0 == __result) __result = _S_oom_malloc(__n);
+        if (__builtin_expect(__result == 0, 0))
+	  __result = _S_oom_malloc(__n);
         return __result;
       }
 
@@ -144,22 +145,20 @@ namespace std
       deallocate(void* __p, size_t /* __n */)
       { free(__p); }
 
-#ifdef _GLIBCPP_DEPRECATED
       static void*
       reallocate(void* __p, size_t /* old_sz */, size_t __new_sz)
       {
         void* __result = realloc(__p, __new_sz);
-        if (0 == __result)
+        if (__builtin_expect(__result == 0, 0))
           __result = _S_oom_realloc(__p, __new_sz);
         return __result;
       }
-#endif
 
       static void (* __set_malloc_handler(void (*__f)()))()
       {
         void (* __old)() = __malloc_alloc_oom_handler;
         __malloc_alloc_oom_handler = __f;
-        return(__old);
+        return __old;
       }
     };
 
@@ -178,16 +177,15 @@ namespace std
       for (;;)
         {
           __my_malloc_handler = __malloc_alloc_oom_handler;
-          if (0 == __my_malloc_handler)
-          std::__throw_bad_alloc();
+          if (__builtin_expect(__my_malloc_handler == 0, 0))
+            __throw_bad_alloc();
           (*__my_malloc_handler)();
           __result = malloc(__n);
           if (__result)
-            return(__result);
+            return __result;
         }
     }
 
-#ifdef _GLIBCPP_DEPRECATED
   template<int __inst>
     void*
     __malloc_alloc_template<__inst>::
@@ -199,24 +197,17 @@ namespace std
       for (;;)
         {
           __my_malloc_handler = __malloc_alloc_oom_handler;
-          if (0 == __my_malloc_handler)
-            std::__throw_bad_alloc();
+          if (__builtin_expect(__my_malloc_handler == 0, 0))
+            __throw_bad_alloc();
           (*__my_malloc_handler)();
           __result = realloc(__p, __n);
           if (__result)
-            return(__result);
+            return __result;
         }
     }
-#endif
 
-
-  // Determines the underlying allocator choice for the node allocator.
-#ifdef __USE_MALLOC
-  typedef __malloc_alloc_template<0>  __mem_interface;
-#else
+  // Should not be referenced within the library anymore.
   typedef __new_alloc                 __mem_interface;
-#endif
-
 
   /**
    *  @if maint
@@ -230,34 +221,36 @@ namespace std
    *  (See @link Allocators allocators info @endlink for more.)
    */
   template<typename _Tp, typename _Alloc>
-  class __simple_alloc
-  {
-  public:
-    static _Tp*
-    allocate(size_t __n)
-    { return 0 == __n ? 0 : (_Tp*) _Alloc::allocate(__n * sizeof (_Tp)); }
-
-    static _Tp*
-    allocate()
-    { return (_Tp*) _Alloc::allocate(sizeof (_Tp)); }
-
-    static void
-    deallocate(_Tp* __p, size_t __n)
-    { if (0 != __n) _Alloc::deallocate(__p, __n * sizeof (_Tp)); }
-
-    static void
-    deallocate(_Tp* __p)
-    { _Alloc::deallocate(__p, sizeof (_Tp)); }
-  };
+    class __simple_alloc
+    {
+    public:
+      static _Tp*
+      allocate(size_t __n)
+      {
+	_Tp* __ret = 0;
+	if (__n)
+	  __ret = static_cast<_Tp*>(_Alloc::allocate(__n * sizeof(_Tp)));
+	return __ret;
+      }
+  
+      static _Tp*
+      allocate()
+      { return (_Tp*) _Alloc::allocate(sizeof (_Tp)); }
+  
+      static void
+      deallocate(_Tp* __p, size_t __n)
+      { if (0 != __n) _Alloc::deallocate(__p, __n * sizeof (_Tp)); }
+  
+      static void
+      deallocate(_Tp* __p)
+      { _Alloc::deallocate(__p, sizeof (_Tp)); }
+    };
 
 
   /**
    *  @if maint
    *  An adaptor for an underlying allocator (_Alloc) to check the size
-   *  arguments for debugging.  Errors are reported using assert; these
-   *  checks can be disabled via NDEBUG, but the space penalty is still
-   *  paid, therefore it is far better to just use the underlying allocator
-   *  by itelf when no checking is desired.
+   *  arguments for debugging.
    *
    *  "There is some evidence that this can confuse Purify." - SGI comment
    *
@@ -286,43 +279,36 @@ namespace std
       deallocate(void* __p, size_t __n)
       {
         char* __real_p = (char*)__p - (int) _S_extra;
-        assert(*(size_t*)__real_p == __n);
+        if (*(size_t*)__real_p != __n)
+	  abort();
         _Alloc::deallocate(__real_p, __n + (int) _S_extra);
       }
 
-#ifdef _GLIBCPP_DEPRECATED
       static void*
       reallocate(void* __p, size_t __old_sz, size_t __new_sz)
       {
         char* __real_p = (char*)__p - (int) _S_extra;
-        assert(*(size_t*)__real_p == __old_sz);
-        char* __result = (char*)
-          _Alloc::reallocate(__real_p, __old_sz + (int) _S_extra,
-                             __new_sz + (int) _S_extra);
+        if (*(size_t*)__real_p != __old_sz)
+	  abort();
+        char* __result = (char*) _Alloc::reallocate(__real_p, 
+						    __old_sz + (int) _S_extra,
+						    __new_sz + (int) _S_extra);
         *(size_t*)__result = __new_sz;
         return __result + (int) _S_extra;
       }
-#endif
     };
-
-
-#ifdef __USE_MALLOC
-
-  typedef __mem_interface __alloc;
-  typedef __mem_interface __single_client_alloc;
-
-#else
 
 
   /**
    *  @if maint
-   *  Default node allocator.  "SGI" style.  Uses __mem_interface for its
-   *  underlying requests (and makes as few requests as possible).
-   *  **** Currently __mem_interface is always __new_alloc, never __malloc*.
+   *  Default node allocator.  "SGI" style.  Uses various allocators to
+   *  fulfill underlying requests (and makes as few requests as possible
+   *  when in default high-speed pool mode).
    *
    *  Important implementation properties:
+   *  0. If globally mandated, then allocate objects from __new_alloc
    *  1. If the clients request an object of size > _MAX_BYTES, the resulting
-   *     object will be obtained directly from the underlying __mem_interface.
+   *     object will be obtained directly from __new_alloc
    *  2. In all other cases, we allocate an object of size exactly
    *     _S_round_up(requested_size).  Thus the client has enough size
    *     information that we can return the object to the proper free list
@@ -372,7 +358,7 @@ namespace std
 
       static size_t
       _S_freelist_index(size_t __bytes)
-      { return (((__bytes) + (size_t)_ALIGN-1)/(size_t)_ALIGN - 1); }
+      { return (((__bytes) + (size_t)_ALIGN - 1)/(size_t)_ALIGN - 1); }
 
       // Returns an object of size __n, and optionally adds to size __n
       // free list.
@@ -393,62 +379,77 @@ namespace std
       } __attribute__ ((__unused__));
       friend struct _Lock;
 
+      static _Atomic_word _S_force_new;
+
     public:
       // __n must be > 0
       static void*
       allocate(size_t __n)
       {
-        void* __ret = 0;
+	void* __ret = 0;
 
-        if (__n > (size_t) _MAX_BYTES)
-          __ret = __mem_interface::allocate(__n);
-        else
-          {
-            _Obj* volatile* __my_free_list = _S_free_list
-                                             + _S_freelist_index(__n);
-            // Acquire the lock here with a constructor call.  This
-            // ensures that it is released in exit or during stack
-            // unwinding.
-            _Lock __lock_instance;
-            _Obj* __restrict__ __result = *__my_free_list;
-            if (__result == 0)
-              __ret = _S_refill(_S_round_up(__n));
-            else
-              {
-                *__my_free_list = __result -> _M_free_list_link;
-                __ret = __result;
-              }
-          }
-        return __ret;
-      };
+	// If there is a race through here, assume answer from getenv
+	// will resolve in same direction.  Inspired by techniques
+	// to efficiently support threading found in basic_string.h.
+	if (_S_force_new == 0)
+	  {
+	    if (getenv("GLIBCPP_FORCE_NEW"))
+	      __atomic_add(&_S_force_new, 1);
+	    else
+	      __atomic_add(&_S_force_new, -1);
+	  }
+
+	if ((__n > (size_t) _MAX_BYTES) || (_S_force_new > 0))
+	  __ret = __new_alloc::allocate(__n);
+	else
+	  {
+	    _Obj* volatile* __my_free_list = _S_free_list
+	      + _S_freelist_index(__n);
+	    // Acquire the lock here with a constructor call.  This
+	    // ensures that it is released in exit or during stack
+	    // unwinding.
+	    _Lock __lock_instance;
+	    _Obj* __restrict__ __result = *__my_free_list;
+	    if (__builtin_expect(__result == 0, 0))
+	      __ret = _S_refill(_S_round_up(__n));
+	    else
+	      {
+		*__my_free_list = __result -> _M_free_list_link;
+		__ret = __result;
+	      }	    
+	    if (__builtin_expect(__ret == 0, 0))
+	      __throw_bad_alloc();
+	  }
+	return __ret;
+      }
 
       // __p may not be 0
       static void
       deallocate(void* __p, size_t __n)
       {
-        if (__n > (size_t) _MAX_BYTES)
-          __mem_interface::deallocate(__p, __n);
-        else
-          {
-            _Obj* volatile*  __my_free_list = _S_free_list
-              + _S_freelist_index(__n);
-            _Obj* __q = (_Obj*)__p;
+	if ((__n > (size_t) _MAX_BYTES) || (_S_force_new > 0))
+	  __new_alloc::deallocate(__p, __n);
+	else
+	  {
+	    _Obj* volatile*  __my_free_list = _S_free_list
+	      + _S_freelist_index(__n);
+	    _Obj* __q = (_Obj*)__p;
 
-            // Acquire the lock here with a constructor call.  This
-            // ensures that it is released in exit or during stack
-            // unwinding.
-            _Lock __lock_instance;
-            __q -> _M_free_list_link = *__my_free_list;
-            *__my_free_list = __q;
-          }
+	    // Acquire the lock here with a constructor call.  This
+	    // ensures that it is released in exit or during stack
+	    // unwinding.
+	    _Lock __lock_instance;
+	    __q -> _M_free_list_link = *__my_free_list;
+	    *__my_free_list = __q;
+	  }
       }
 
-#ifdef _GLIBCPP_DEPRECATED
       static void*
       reallocate(void* __p, size_t __old_sz, size_t __new_sz);
-#endif
     };
 
+  template<bool __threads, int __inst> _Atomic_word
+  __default_alloc_template<__threads, __inst>::_S_force_new = 0;
 
   template<bool __threads, int __inst>
     inline bool
@@ -464,8 +465,8 @@ namespace std
 
 
   // We allocate memory in large chunks in order to avoid fragmenting the
-  // malloc heap (or whatever __mem_interface is using) too much.  We assume
-  // that __size is properly aligned.  We hold the allocation lock.
+  // heap too much.  We assume that __size is properly aligned.  We hold
+  // the allocation lock.
   template<bool __threads, int __inst>
     char*
     __default_alloc_template<__threads, __inst>::
@@ -479,7 +480,7 @@ namespace std
         {
           __result = _S_start_free;
           _S_start_free += __total_bytes;
-          return(__result);
+          return __result ;
         }
       else if (__bytes_left >= __size)
         {
@@ -487,7 +488,7 @@ namespace std
           __total_bytes = __size * __nobjs;
           __result = _S_start_free;
           _S_start_free += __total_bytes;
-          return(__result);
+          return __result;
         }
       else
         {
@@ -499,11 +500,11 @@ namespace std
               _Obj* volatile* __my_free_list =
                 _S_free_list + _S_freelist_index(__bytes_left);
 
-              ((_Obj*)_S_start_free) -> _M_free_list_link = *__my_free_list;
-              *__my_free_list = (_Obj*)_S_start_free;
+              ((_Obj*)(void*)_S_start_free) -> _M_free_list_link = *__my_free_list;
+              *__my_free_list = (_Obj*)(void*)_S_start_free;
             }
-          _S_start_free = (char*) __mem_interface::allocate(__bytes_to_get);
-          if (0 == _S_start_free)
+          _S_start_free = (char*) __new_alloc::allocate(__bytes_to_get);
+          if (_S_start_free == 0)
             {
               size_t __i;
               _Obj* volatile* __my_free_list;
@@ -516,24 +517,24 @@ namespace std
                 {
                   __my_free_list = _S_free_list + _S_freelist_index(__i);
                   __p = *__my_free_list;
-                  if (0 != __p)
+                  if (__p != 0)
                     {
                       *__my_free_list = __p -> _M_free_list_link;
                       _S_start_free = (char*)__p;
                       _S_end_free = _S_start_free + __i;
-                      return(_S_chunk_alloc(__size, __nobjs));
+                      return _S_chunk_alloc(__size, __nobjs);
                       // Any leftover piece will eventually make it to the
                       // right free list.
                     }
                 }
               _S_end_free = 0;        // In case of exception.
-              _S_start_free = (char*)__mem_interface::allocate(__bytes_to_get);
+              _S_start_free = (char*)__new_alloc::allocate(__bytes_to_get);
               // This should either throw an exception or remedy the situation.
               // Thus we assume it succeeded.
             }
           _S_heap_size += __bytes_to_get;
           _S_end_free = _S_start_free + __bytes_to_get;
-          return(_S_chunk_alloc(__size, __nobjs));
+          return _S_chunk_alloc(__size, __nobjs);
         }
     }
 
@@ -554,29 +555,28 @@ namespace std
       int __i;
 
       if (1 == __nobjs)
-        return(__chunk);
+        return __chunk;
       __my_free_list = _S_free_list + _S_freelist_index(__n);
 
       // Build free list in chunk.
-      __result = (_Obj*)__chunk;
-      *__my_free_list = __next_obj = (_Obj*)(__chunk + __n);
+      __result = (_Obj*)(void*)__chunk;
+      *__my_free_list = __next_obj = (_Obj*)(void*)(__chunk + __n);
       for (__i = 1; ; __i++)
         {
-          __current_obj = __next_obj;
-          __next_obj = (_Obj*)((char*)__next_obj + __n);
-          if (__nobjs - 1 == __i)
-            {
-              __current_obj -> _M_free_list_link = 0;
-              break;
-            }
-          else
-            __current_obj -> _M_free_list_link = __next_obj;
-        }
-      return(__result);
+	  __current_obj = __next_obj;
+          __next_obj = (_Obj*)(void*)((char*)__next_obj + __n);
+	  if (__nobjs - 1 == __i)
+	    {
+	      __current_obj -> _M_free_list_link = 0;
+	      break;
+	    }
+	  else
+	    __current_obj -> _M_free_list_link = __next_obj;
+	}
+      return __result;
     }
 
 
-#ifdef _GLIBCPP_DEPRECATED
   template<bool threads, int inst>
     void*
     __default_alloc_template<threads, inst>::
@@ -593,9 +593,8 @@ namespace std
       __copy_sz = __new_sz > __old_sz? __old_sz : __new_sz;
       memcpy(__result, __p, __copy_sz);
       deallocate(__p, __old_sz);
-      return(__result);
+      return __result;
     }
-#endif
 
   template<bool __threads, int __inst>
     _STL_mutex_lock
@@ -617,7 +616,6 @@ namespace std
 
   typedef __default_alloc_template<true,0>    __alloc;
   typedef __default_alloc_template<false,0>   __single_client_alloc;
-#endif /* ! __USE_MALLOC */
 
 
   /**
@@ -627,10 +625,6 @@ namespace std
    *  of stl_alloc.h.)
    *
    *  The underlying allocator behaves as follows.
-   *  - if __USE_MALLOC then
-   *    - thread safety depends on malloc and is entirely out of our hands
-   *    - __malloc_alloc_template is used for memory requests
-   *  - else (the default)
    *    - __default_alloc_template is used via two typedefs
    *    - "__single_client_alloc" typedef does no locking for threads
    *    - "__alloc" typedef is threadsafe via the locks
@@ -667,13 +661,20 @@ namespace std
       const_pointer
       address(const_reference __x) const { return &__x; }
 
-      // __n is permitted to be 0.  The C++ standard says nothing about what
-      // the return value is when __n == 0.
+      // NB: __n is permitted to be 0.  The C++ standard says nothing
+      // about what the return value is when __n == 0.
       _Tp*
       allocate(size_type __n, const void* = 0)
       {
-        return __n != 0
-          ? static_cast<_Tp*>(_Alloc::allocate(__n * sizeof(_Tp))) : 0;
+	_Tp* __ret = 0;
+	if (__n)
+	  {
+	    if (__n <= this->max_size())
+	      __ret = static_cast<_Tp*>(_Alloc::allocate(__n * sizeof(_Tp)));
+	    else
+	      __throw_bad_alloc();
+	  }
+	return __ret;
       }
 
       // __p is not permitted to be a null pointer.
@@ -717,12 +718,13 @@ namespace std
 
   /**
    *  @if maint
-   *  Allocator adaptor to turn an "SGI" style allocator (e.g., __alloc,
-   *  __malloc_alloc_template) into a "standard" conforming allocator.  Note
-   *  that this adaptor does *not* assume that all objects of the underlying
-   *  alloc class are identical, nor does it assume that all of the underlying
-   *  alloc's member functions are static member functions.  Note, also, that
-   *  __allocator<_Tp, __alloc> is essentially the same thing as allocator<_Tp>.
+   *  Allocator adaptor to turn an "SGI" style allocator (e.g.,
+   *  __alloc, __malloc_alloc_template) into a "standard" conforming
+   *  allocator.  Note that this adaptor does *not* assume that all
+   *  objects of the underlying alloc class are identical, nor does it
+   *  assume that all of the underlying alloc's member functions are
+   *  static member functions.  Note, also, that __allocator<_Tp,
+   *  __alloc> is essentially the same thing as allocator<_Tp>.
    *  @endif
    *  (See @link Allocators allocators info @endlink for more.)
    */
@@ -730,7 +732,7 @@ namespace std
     struct __allocator
     {
       _Alloc __underlying_alloc;
-
+      
       typedef size_t    size_type;
       typedef ptrdiff_t difference_type;
       typedef _Tp*       pointer;
@@ -759,32 +761,34 @@ namespace std
       const_pointer
       address(const_reference __x) const { return &__x; }
 
-    // __n is permitted to be 0.
-    _Tp*
-    allocate(size_type __n, const void* = 0)
-    {
-      return __n != 0
-        ? static_cast<_Tp*>(__underlying_alloc.allocate(__n * sizeof(_Tp)))
-        : 0;
-    }
+      // NB: __n is permitted to be 0.  The C++ standard says nothing
+      // about what the return value is when __n == 0.
+      _Tp*
+      allocate(size_type __n, const void* = 0)
+      {
+	_Tp* __ret = 0;
+	if (__n)
+	  __ret = static_cast<_Tp*>(_Alloc::allocate(__n * sizeof(_Tp)));
+	return __ret;
+      }
 
-    // __p is not permitted to be a null pointer.
-    void
-    deallocate(pointer __p, size_type __n)
-    { __underlying_alloc.deallocate(__p, __n * sizeof(_Tp)); }
-
-    size_type
-    max_size() const throw() { return size_t(-1) / sizeof(_Tp); }
-
-    void
-    construct(pointer __p, const _Tp& __val) { new(__p) _Tp(__val); }
-
-    void
-    destroy(pointer __p) { __p->~_Tp(); }
-  };
+      // __p is not permitted to be a null pointer.
+      void
+      deallocate(pointer __p, size_type __n)
+      { __underlying_alloc.deallocate(__p, __n * sizeof(_Tp)); }
+      
+      size_type
+      max_size() const throw() { return size_t(-1) / sizeof(_Tp); }
+      
+      void
+      construct(pointer __p, const _Tp& __val) { new(__p) _Tp(__val); }
+      
+      void
+      destroy(pointer __p) { __p->~_Tp(); }
+    };
 
   template<typename _Alloc>
-    class __allocator<void, _Alloc>
+    struct __allocator<void, _Alloc>
     {
       typedef size_t      size_type;
       typedef ptrdiff_t   difference_type;
@@ -907,7 +911,6 @@ namespace std
       typedef __allocator<_Tp, __malloc_alloc_template<__inst> > allocator_type;
     };
 
-#ifndef __USE_MALLOC
   template<typename _Tp, bool __threads, int __inst>
     struct _Alloc_traits<_Tp, __default_alloc_template<__threads, __inst> >
     {
@@ -917,7 +920,6 @@ namespace std
       typedef __allocator<_Tp, __default_alloc_template<__threads, __inst> >
       allocator_type;
     };
-#endif
 
   template<typename _Tp, typename _Alloc>
     struct _Alloc_traits<_Tp, __debug_alloc<_Alloc> >
@@ -940,7 +942,6 @@ namespace std
       typedef __allocator<_Tp, __malloc_alloc_template<__inst> > allocator_type;
     };
 
-#ifndef __USE_MALLOC
   template<typename _Tp, typename _Tp1, bool __thr, int __inst>
     struct _Alloc_traits<_Tp, __allocator<_Tp1, __default_alloc_template<__thr, __inst> > >
     {
@@ -950,7 +951,6 @@ namespace std
       typedef __allocator<_Tp, __default_alloc_template<__thr,__inst> >
       allocator_type;
     };
-#endif
 
   template<typename _Tp, typename _Tp1, typename _Alloc>
     struct _Alloc_traits<_Tp, __allocator<_Tp1, __debug_alloc<_Alloc> > >
@@ -964,11 +964,9 @@ namespace std
   // Inhibit implicit instantiations for required instantiations,
   // which are defined via explicit instantiations elsewhere.
   // NB: This syntax is a GNU extension.
+#if _GLIBCPP_EXTERN_TEMPLATE
   extern template class allocator<char>;
   extern template class allocator<wchar_t>;
-#ifdef __USE_MALLOC
-  extern template class __malloc_alloc_template<0>;
-#else
   extern template class __default_alloc_template<true,0>;
 #endif
 } // namespace std

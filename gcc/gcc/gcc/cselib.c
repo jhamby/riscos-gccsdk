@@ -83,6 +83,7 @@ static GTY((param_is (cselib_val))) htab_t hash_table;
 /* This is a global so we don't have to pass this through every function.
    It is used in new_elt_loc_list to set SETTING_INSN.  */
 static rtx cselib_current_insn;
+static bool cselib_current_insn_in_libcall;
 
 /* Every new unknown value gets a unique number.  */
 static unsigned int next_unknown_value;
@@ -163,6 +164,7 @@ new_elt_loc_list (next, loc)
   el->next = next;
   el->loc = loc;
   el->setting_insn = cselib_current_insn;
+  el->in_libcall = cselib_current_insn_in_libcall;
   return el;
 }
 
@@ -959,8 +961,11 @@ cselib_invalidate_regno (regno, mode)
      pseudos, only REGNO is affected.  For hard regs, we must take MODE
      into account, and we must also invalidate lower register numbers
      if they contain values that overlap REGNO.  */
-  if (regno < FIRST_PSEUDO_REGISTER && mode != VOIDmode) 
+  if (regno < FIRST_PSEUDO_REGISTER)
     {
+      if (mode == VOIDmode)
+	abort ();
+      
       if (regno < max_value_regs)
 	i = 0;
       else
@@ -1308,6 +1313,10 @@ cselib_process_insn (insn)
   int i;
   rtx x;
 
+  if (find_reg_note (insn, REG_LIBCALL, NULL))
+    cselib_current_insn_in_libcall = true;
+  if (find_reg_note (insn, REG_RETVAL, NULL))
+    cselib_current_insn_in_libcall = false;
   cselib_current_insn = insn;
 
   /* Forget everything at a CODE_LABEL, a volatile asm, or a setjmp.  */
@@ -1335,7 +1344,7 @@ cselib_process_insn (insn)
     {
       for (i = 0; i < FIRST_PSEUDO_REGISTER; i++)
 	if (call_used_regs[i])
-	  cselib_invalidate_regno (i, VOIDmode);
+	  cselib_invalidate_regno (i, reg_raw_mode[i]);
 
       if (! CONST_OR_PURE_CALL_P (insn))
 	cselib_invalidate_mem (callmem);
@@ -1407,6 +1416,7 @@ cselib_init ()
   hash_table = htab_create_ggc (31, get_value_hash, entry_and_rtx_equal_p, 
 				NULL);
   clear_table (1);
+  cselib_current_insn_in_libcall = false;
 }
 
 /* Called when the current user is done with cselib.  */

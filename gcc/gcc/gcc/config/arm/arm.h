@@ -797,10 +797,10 @@ extern const char * structure_size_string;
 #ifdef TARGET_RISCOSAOF
 #define FIXED_REGISTERS  \
 {                        \
-  0,0,0,0,0,0,0,0,	 \
-  0,0,0,0,0,1,0,1,	 \
-  0,0,0,0,0,0,0,0,	 \
-  1			 \
+  0,0,0,0,0,0,0,0,       \
+  0,0,0,0,0,1,0,1,       \
+  0,0,0,0,0,0,0,0,       \
+  1                      \
 }
 #else
 #define FIXED_REGISTERS  \
@@ -811,6 +811,7 @@ extern const char * structure_size_string;
   1,1,1			 \
 }
 #endif
+
 /* 1 for registers not available across function calls.
    These must include the FIXED_REGISTERS and also any
    registers that can be used without being saved.
@@ -822,10 +823,10 @@ extern const char * structure_size_string;
 #ifdef TARGET_RISCOSAOF
 #define CALL_USED_REGISTERS  \
 {                            \
-  1,1,1,1,0,0,0,0,	     \
-  0,0,0,0,1,1,1,1,	     \
-  1,1,1,1,0,0,0,0,	     \
-  1			     \
+  1,1,1,1,0,0,0,0,           \
+  0,0,0,0,1,1,1,1,           \
+  1,1,1,1,0,0,0,0,           \
+  1                          \
 }
 #else
 #define CALL_USED_REGISTERS  \
@@ -961,47 +962,48 @@ extern const char * structure_size_string;
 #define FIRST_ARM_FP_REGNUM 	16
 #define LAST_ARM_FP_REGNUM  	23
 
-
 #ifdef TARGET_RISCOSAOF
-#define FP_REGNUM	                11
+
+#define FP_REGNUM                       11
 
 /* Base register for access to local variables of the function.  */
-#define FRAME_POINTER_REGNUM	9
+#define FRAME_POINTER_REGNUM    9
 
 /* Base register for access to arguments of the function.  */
-#define ARG_POINTER_REGNUM	11
+#define ARG_POINTER_REGNUM      11
 
 /* The number of hard registers is 16 ARM + 8 FPU + 1 CC.  */
-#define FIRST_PSEUDO_REGISTER	25
+#define FIRST_PSEUDO_REGISTER   25
 
 #define FRAME_POINTER_REQUIRED 0
 
-#define HARD_REGNO_NREGS(REGNO, MODE)  	\
-  ((TARGET_ARM 				\
-    && REGNO >= FIRST_ARM_FP_REGNUM)	\
+#define HARD_REGNO_NREGS(REGNO, MODE)   \
+  ((TARGET_ARM                          \
+    && REGNO >= FIRST_ARM_FP_REGNUM)    \
    ? 1 : ARM_NUM_REGS (MODE))
 
-#define REG_ALLOC_ORDER  	    \
+#define REG_ALLOC_ORDER             \
 {                                   \
      3,  2,  1,  0, 12, 14,  4,  5, \
      6,  7,  8, 10,  9, 11, 13, 15, \
     16, 17, 18, 19, 20, 21, 22, 23, \
-    24				    \
+    24                              \
 }
 
-#else
+#else /* ! TARGET_RISCOSAOF */
+
 #define HARD_FRAME_POINTER_REGNUM		\
   (TARGET_ARM					\
    ? ARM_HARD_FRAME_POINTER_REGNUM		\
    : THUMB_HARD_FRAME_POINTER_REGNUM)
+
+#define FP_REGNUM	                HARD_FRAME_POINTER_REGNUM
 
 /* Base register for access to local variables of the function.  */
 #define FRAME_POINTER_REGNUM	25
 
 /* Base register for access to arguments of the function.  */
 #define ARG_POINTER_REGNUM	26
-
-#define FP_REGNUM	                HARD_FRAME_POINTER_REGNUM
 
 /* The number of hard registers is 16 ARM + 8 FPU + 1 CC + 1 SFP.  */
 #define FIRST_PSEUDO_REGISTER	27
@@ -1015,6 +1017,7 @@ extern const char * structure_size_string;
 #define FRAME_POINTER_REQUIRED					\
   (current_function_has_nonlocal_label				\
    || (TARGET_ARM && TARGET_APCS_FRAME && ! leaf_function_p ()))
+
 /* Return number of consecutive hard regs needed starting at reg REGNO
    to hold something of mode MODE.
    This is ordinarily the length in words of a value of mode MODE
@@ -1045,6 +1048,7 @@ extern const char * structure_size_string;
 
 #endif /* TARGET_RISCOSAOF */
 
+
 /* Return true if REGNO is suitable for holding a quantity of type MODE.  */
 #define HARD_REGNO_MODE_OK(REGNO, MODE)					\
   arm_hard_regno_mode_ok ((REGNO), (MODE))
@@ -1055,7 +1059,6 @@ extern const char * structure_size_string;
    for any hard reg, then this must be 0 for correct output.  */
 #define MODES_TIEABLE_P(MODE1, MODE2)  \
   (GET_MODE_CLASS (MODE1) == GET_MODE_CLASS (MODE2))
-
 
 /* Interrupt functions can only use registers that have already been
    saved by the prologue, even if they would normally be
@@ -1371,7 +1374,7 @@ enum reg_class
 
 #ifdef TARGET_RISCOSAOF
 #undef FRAME_GROWS_DOWNWARD
-#define STARTING_FRAME_OFFSET	(current_function_outgoing_args_size)
+#define STARTING_FRAME_OFFSET   (current_function_outgoing_args_size)
 #else
 /* Define this if the nominal address of the stack frame
    is at the high-address end of the local variables;
@@ -1384,7 +1387,7 @@ enum reg_class
    first local allocated.  Otherwise, it is the offset to the BEGINNING
    of the first local allocated.  */
 #define STARTING_FRAME_OFFSET  0
-#endif
+#endif /* ! TARGET_RISCOSAOF */
 
 /* If we generate an insn to push BYTES bytes,
    this says how many the stack pointer really advances by.  */
@@ -1499,8 +1502,10 @@ typedef struct machine_function GTY(())
   unsigned long func_type;
   /* Record if the function has a variable argument list.  */
   int uses_anonymous_args;
+  /* NAB++ */
   /* Non-zero if this is a leaf function.  */
   int leaf;
+  /* NAB-- */
 }
 machine_function;
 
@@ -1684,11 +1689,12 @@ typedef struct
    because the definition of HARD_FRAME_POINTER_REGNUM is not a constant.  */
 
 #ifdef TARGET_RISCOSAOF
-#define ELIMINABLE_REGS						\
+#define ELIMINABLE_REGS                                         \
 {{ ARG_POINTER_REGNUM,        STACK_POINTER_REGNUM            },\
  { FRAME_POINTER_REGNUM,      STACK_POINTER_REGNUM            }}
 
 #else
+
 #define ELIMINABLE_REGS						\
 {{ ARG_POINTER_REGNUM,        STACK_POINTER_REGNUM            },\
  { ARG_POINTER_REGNUM,        FRAME_POINTER_REGNUM            },\
@@ -1698,9 +1704,16 @@ typedef struct
  { FRAME_POINTER_REGNUM,      ARM_HARD_FRAME_POINTER_REGNUM   },\
  { FRAME_POINTER_REGNUM,      THUMB_HARD_FRAME_POINTER_REGNUM }}
 #endif
+
 /* Given FROM and TO register numbers, say whether this elimination is
-   allowed.  Frame pointer elimination is automatically handled.  */
-#define CAN_ELIMINATE(FROM, TO)	arm_can_eliminate ((FROM), (TO))
+   allowed.  Frame pointer elimination is automatically handled.
+
+   All eliminations are permissible.  Note that ARG_POINTER_REGNUM and
+   HARD_FRAME_POINTER_REGNUM are in fact the same thing.  If we need a frame
+   pointer, we must eliminate FRAME_POINTER_REGNUM into
+   HARD_FRAME_POINTER_REGNUM and not into STACK_POINTER_REGNUM or
+   ARG_POINTER_REGNUM.  */
+#define CAN_ELIMINATE(FROM, TO) arm_can_eliminate ((FROM), (TO))
 
 #define THUMB_REG_PUSHED_P(reg)					\
   (regs_ever_live [reg]						\
@@ -1851,7 +1864,7 @@ typedef struct
 
 #ifdef TARGET_RISCOSAOF
 /*   On the ARM, don't allow the pc to be used.  */
-#define ARM_REGNO_OK_FOR_BASE_P(REGNO)			\
+#define ARM_REGNO_OK_FOR_BASE_P(REGNO)                  \
   (TEST_REGNO (REGNO, <, PC_REGNUM))
 #else
 /*   On the ARM, don't allow the pc to be used.  */
@@ -1960,8 +1973,8 @@ typedef struct
 #ifndef REG_OK_STRICT
 
 #ifdef TARGET_RISCOSAOF
-#define ARM_REG_OK_FOR_BASE_P(X)		\
-  (REGNO (X) <= LAST_ARM_REGNUM			\
+#define ARM_REG_OK_FOR_BASE_P(X)                \
+  (REGNO (X) <= LAST_ARM_REGNUM                 \
    || REGNO (X) >= FIRST_PSEUDO_REGISTER)
 #else
 #define ARM_REG_OK_FOR_BASE_P(X)		\

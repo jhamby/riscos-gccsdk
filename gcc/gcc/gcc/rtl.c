@@ -1,6 +1,6 @@
 /* RTL utility routines.
-   Copyright (C) 1987, 1988, 1991, 1994, 1997, 1998, 1999, 2000, 2001, 2002
-   Free Software Foundation, Inc.
+   Copyright (C) 1987, 1988, 1991, 1994, 1997, 1998, 1999, 2000, 2001, 2002,
+   2003 Free Software Foundation, Inc.
 
 This file is part of GCC.
 
@@ -226,7 +226,7 @@ const char * const reg_note_name[] =
   "REG_WAS_0", "REG_RETVAL", "REG_LIBCALL", "REG_NONNEG",
   "REG_NO_CONFLICT", "REG_UNUSED", "REG_CC_SETTER", "REG_CC_USER",
   "REG_LABEL", "REG_DEP_ANTI", "REG_DEP_OUTPUT", "REG_BR_PROB",
-  "REG_EXEC_COUNT", "REG_NOALIAS", "REG_SAVE_AREA", "REG_BR_PRED",
+  "REG_NOALIAS", "REG_SAVE_AREA", "REG_BR_PRED",
   "REG_FRAME_RELATED_EXPR", "REG_EH_CONTEXT", "REG_EH_REGION",
   "REG_SAVE_NOTE", "REG_MAYBE_DEAD", "REG_NORETURN",
   "REG_NON_LOCAL_GOTO", "REG_SETJMP", "REG_ALWAYS_RETURN",
@@ -395,29 +395,6 @@ shallow_copy_rtx (orig)
 	  sizeof (struct rtx_def) + sizeof (rtunion) * (n - 1));
 
   return copy;
-}
-
-/* Return the alignment of MODE. This will be bounded by 1 and
-   BIGGEST_ALIGNMENT.  */
-
-unsigned int
-get_mode_alignment (mode)
-     enum machine_mode mode;
-{
-  unsigned int alignment;
-
-  if (GET_MODE_CLASS (mode) == MODE_COMPLEX_FLOAT
-      || GET_MODE_CLASS (mode) == MODE_COMPLEX_INT)
-    alignment = GET_MODE_UNIT_SIZE (mode);
-  else
-    alignment = GET_MODE_SIZE (mode);
-
-  /* Extract the LSB of the size.  */
-  alignment = alignment & -alignment;
-  alignment *= BITS_PER_UNIT;
-
-  alignment = MIN (BIGGEST_ALIGNMENT, MAX (1, alignment));
-  return alignment;
 }
 
 /* This is 1 until after the rtl generation pass.  */

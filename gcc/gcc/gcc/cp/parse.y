@@ -56,6 +56,7 @@ Boston, MA 02111-1307, USA.  */
 
 static short *malloced_yyss;
 static void *malloced_yyvs;
+static int class_template_ok_as_expr;
 
 #define yyoverflow(MSG, SS, SSSIZE, VS, VSSIZE, YYSSZ)			\
 do {									\
@@ -386,7 +387,7 @@ check_class_key (key, aggr)
 %type <ttype> init initlist maybeasm maybe_init defarg defarg1
 %type <ttype> asm_operands nonnull_asm_operands asm_operand asm_clobbers
 %type <ttype> maybe_attribute attributes attribute attribute_list attrib
-%type <ttype> any_word
+%type <ttype> any_word unoperator
 
 %type <itype> save_lineno
 %type <ttype> simple_stmt simple_if
@@ -441,7 +442,7 @@ check_class_key (key, aggr)
 %type <itype> new delete
 /* %type <ttype> primary_no_id */
 %type <ttype> maybe_parmlist
-%type <ttype> member_init
+%type <ttype> begin_member_init member_init
 %type <ftype> member_init_list
 %type <ttype> template_parm_header template_spec_header template_header
 %type <ttype> template_parm_list template_parm
@@ -449,7 +450,7 @@ check_class_key (key, aggr)
 %type <code>  template_close_bracket
 %type <ttype> apparent_template_type
 %type <ttype> template_type template_arg_list template_arg_list_opt
-%type <ttype> template_arg
+%type <ttype> template_arg template_arg_1
 %type <ttype> condition xcond paren_cond_or_null
 %type <ttype> type_name nested_name_specifier nested_type ptr_to_mem
 %type <ttype> complete_type_name notype_identifier nonnested_type
@@ -976,34 +977,35 @@ member_init_list:
 	| member_init_list error
 	;
 
+begin_member_init:
+	  /* empty */
+		{
+ 		  if (current_class_name)
+		    pedwarn ("anachronistic old style base class initializer");
+		  $$ = expand_member_init (NULL_TREE);
+		  in_base_initializer = $$ && !DECL_P ($$);
+		}
+	| notype_identifier
+		{ $$ = expand_member_init ($1);
+		  in_base_initializer = $$ && !DECL_P ($$); }
+	| nonnested_type
+		{ $$ = expand_member_init ($1);
+		  in_base_initializer = $$ && !DECL_P ($$); }
+	| typename_sub
+		{ $$ = expand_member_init ($1);
+		  in_base_initializer = $$ && !DECL_P ($$); }
+	;
+
 member_init:
-	  '(' nonnull_exprlist ')'
-		{
-		  if (current_class_name)
-		    pedwarn ("anachronistic old style base class initializer");
-		  $$ = expand_member_init (NULL_TREE, $2);
-		}
-	| LEFT_RIGHT
-		{
-		  if (current_class_name)
-		    pedwarn ("anachronistic old style base class initializer");
-		  $$ = expand_member_init (NULL_TREE,
-					   void_type_node);
-		}
-	| notype_identifier '(' nonnull_exprlist ')'
-		{ $$ = expand_member_init ($1, $3); }
-	| notype_identifier LEFT_RIGHT
-		{ $$ = expand_member_init ($1, void_type_node); }
-	| nonnested_type '(' nonnull_exprlist ')'
-		{ $$ = expand_member_init ($1, $3); }
-	| nonnested_type LEFT_RIGHT
-		{ $$ = expand_member_init ($1, void_type_node); }
-	| typename_sub '(' nonnull_exprlist ')'
-		{ $$ = expand_member_init ($1, $3); }
-	| typename_sub LEFT_RIGHT
-		{ $$ = expand_member_init ($1, void_type_node); }
+	  begin_member_init '(' nonnull_exprlist ')'
+		{ in_base_initializer = 0;
+		  $$ = $1 ? build_tree_list ($1, $3) : NULL_TREE; }
+	| begin_member_init LEFT_RIGHT
+		{ in_base_initializer = 0;
+		  $$ = $1 ? build_tree_list ($1, void_type_node) : NULL_TREE; }
         | error
-                { $$ = NULL_TREE; }
+                { in_base_initializer = 0;
+		  $$ = NULL_TREE; }
 	;
 
 identifier:
@@ -1120,7 +1122,7 @@ template_close_bracket:
 template_arg_list_opt:
          /* empty */
                  { $$ = NULL_TREE; }
-       | template_arg_list
+       | template_arg_list 
        ;
 
 template_arg_list:
@@ -1131,6 +1133,15 @@ template_arg_list:
 	;
 
 template_arg:
+                { ++class_template_ok_as_expr; }
+        template_arg_1 
+                { 
+		  --class_template_ok_as_expr; 
+		  $$ = $2; 
+		}
+        ;
+
+template_arg_1:
 	  type_id
 		{ $$ = groktypename ($1.t); }
 	| PTYPENAME
@@ -1703,7 +1714,14 @@ primary:
 		    $$ = $2;
 		}
 	| overqualified_id  %prec HYPERUNARY
-		{ $$ = build_offset_ref (OP0 ($$), OP1 ($$)); }
+		{ $$ = build_offset_ref (OP0 ($$), OP1 ($$));
+		  if (!class_template_ok_as_expr 
+		      && DECL_CLASS_TEMPLATE_P ($$))
+		    {
+		      error ("invalid use of template `%D'", $$); 
+		      $$ = error_mark_node;
+		    }
+                }
 	| overqualified_id '(' nonnull_exprlist ')'
                 { $$ = parse_finish_call_expr ($1, $3, 0); }
 	| overqualified_id LEFT_RIGHT
@@ -2327,10 +2345,18 @@ structsp:
 		      tree type = TREE_TYPE ($1.t);
 
 		      if (TREE_CODE (type) == TYPENAME_TYPE)
-			/* In a definition of a member class template,
-                           we will get here with an implicit typename,
-                           a TYPENAME_TYPE with a type. */
-			type = TREE_TYPE (type);
+			{
+			  if (IMPLICIT_TYPENAME_P (type))
+			    /* In a definition of a member class template,
+			       we will get here with an implicit typename,
+			       a TYPENAME_TYPE with a type. */
+			    type = TREE_TYPE (type);
+			  else
+			    {
+			      error ("qualified name does not name a class");
+			      type = error_mark_node;
+			    }
+			}
 		      maybe_process_partial_specialization (type);
 		      xref_basetypes (type, $2);
 		    }
@@ -2482,24 +2508,14 @@ class_head_defn:
 	| class_head_apparent_template '{'
 		{
 		  yyungetc ('{', 1);
-		  $$.t = $1;
-		  $$.new_type_flag = 0;
-		  if (TREE_CODE (TREE_TYPE ($1)) == RECORD_TYPE)
-		    /* We might be specializing a template with a different
-		       class-key.  */
-		    CLASSTYPE_DECLARED_CLASS (TREE_TYPE ($1))
-		      = (current_aggr == class_type_node);
+		  $$.t = handle_class_head_apparent_template
+			   ($1, &$$.new_type_flag);
 		}
 	| class_head_apparent_template ':'
 		{
 		  yyungetc (':', 1);
-		  $$.t = $1;
-		  $$.new_type_flag = 0;
-		  if (TREE_CODE (TREE_TYPE ($1)) == RECORD_TYPE)
-		    /* We might be specializing a template with a different
-		       class-key.  */
-		    CLASSTYPE_DECLARED_CLASS (TREE_TYPE ($1))
-		      = (current_aggr == class_type_node);
+		  $$.t = handle_class_head_apparent_template
+			   ($1, &$$.new_type_flag);
 		}
 	| aggr identifier_defn '{'
 		{
@@ -3830,7 +3846,7 @@ bad_parm:
 		    {
 		      if (TREE_CODE (TREE_OPERAND ($$, 0)) == TEMPLATE_TYPE_PARM
 			  || TREE_CODE (TREE_OPERAND ($$, 0)) == BOUND_TEMPLATE_TEMPLATE_PARM)
-			error ("`%E' is not a type, use `typename %E' to make it one", $$);
+			error ("`%E' is not a type, use `typename %E' to make it one", $$, $$);
 		      else
 			error ("no type `%D' in `%T'", TREE_OPERAND ($$, 1), TREE_OPERAND ($$, 0));
 		    }
@@ -3917,6 +3933,7 @@ unoperator:
           got_object = TREE_VALUE (saved_scopes);
 	  looking_for_typename = TREE_LANG_FLAG_0 (saved_scopes);
           saved_scopes = TREE_CHAIN (saved_scopes);
+	  $$ = got_scope;
 	}
         ;
 
@@ -3988,7 +4005,7 @@ operator_name:
 	| operator DELETE '[' ']' unoperator
 		{ $$ = frob_opname (ansi_opname (VEC_DELETE_EXPR)); }
 	| operator type_specifier_seq conversion_declarator unoperator
-		{ $$ = frob_opname (grokoptypename ($2.t, $3)); }
+		{ $$ = frob_opname (grokoptypename ($2.t, $3, $4)); }
 	| operator error unoperator
 		{ $$ = frob_opname (ansi_opname (ERROR_MARK)); }
 	;
@@ -4030,17 +4047,15 @@ static tree
 parse_scoped_id (token)
      tree token;
 {
-  tree id;
-
-  id = make_node (CPLUS_BINDING);
-  if (!qualified_lookup_using_namespace (token, global_namespace, id, 0))
-    id = NULL_TREE;
-  else
-    id = BINDING_VALUE (id);
+  cxx_binding binding;
+ 
+  cxx_binding_clear (&binding);
+  if (!qualified_lookup_using_namespace (token, global_namespace, &binding, 0))
+    binding.value = NULL;
   if (yychar == YYEMPTY)
     yychar = yylex();
 
-  return do_scoped_id (token, id);
+  return do_scoped_id (token, binding.value);
 }
 
 /* AGGR may be either a type node (like class_type_node) or a
@@ -4117,72 +4132,19 @@ static tree
 parse_finish_call_expr (tree fn, tree args, int koenig)
 {
   bool disallow_virtual;
-  tree template_args;
-  tree template_id;
-  tree f;
 
   if (TREE_CODE (fn) == OFFSET_REF)
     return build_offset_ref_call_from_tree (fn, args);
 
   if (TREE_CODE (fn) == SCOPE_REF)
     {
-      tree scope;
-      tree name;
-
-      scope = TREE_OPERAND (fn, 0);
-      name = TREE_OPERAND (fn, 1);
+      tree scope = TREE_OPERAND (fn, 0);
+      tree name = TREE_OPERAND (fn, 1);
 
       if (scope == error_mark_node || name == error_mark_node)
 	return error_mark_node;
       if (!processing_template_decl)
-	{
-	  if (TREE_CODE (scope) == NAMESPACE_DECL)
-	    fn = lookup_namespace_name (scope, name);
-	  else
-	    {
-	      if (!COMPLETE_TYPE_P (scope) && !TYPE_BEING_DEFINED (scope))
-		{
-		  error ("incomplete type '%T' cannot be used to name a scope",
-			 scope);
-		  return error_mark_node;
-		}
-	      else if (TREE_CODE (name) == TEMPLATE_ID_EXPR)
-		{
-		  template_id = name;
-		  template_args = TREE_OPERAND (name, 1);
-		  name = TREE_OPERAND (name, 0);
-		}
-	      else 
-	        {
-		  template_id = NULL_TREE;
-		  template_args = NULL_TREE;
-		}
-
-	      if (BASELINK_P (name))
-		fn = name;
-	      else 
-		{
-		  if (TREE_CODE (name) == OVERLOAD)
-		    name = DECL_NAME (get_first_fn (name));
-		  fn = lookup_member (scope, name, /*protect=*/1, 
-				      /*prefer_type=*/0);
-		  if (!fn)
-		    {
-		      error ("'%D' has no member named '%E'", scope, name);
-		      return error_mark_node;
-		    }
-		  
-		  if (BASELINK_P (fn) && template_id)
-		    BASELINK_FUNCTIONS (fn) 
-		      = build_nt (TEMPLATE_ID_EXPR,
-				  BASELINK_FUNCTIONS (fn),
-				  template_args);
-		}
-	      if (current_class_type)
-		fn = (adjust_result_of_qualified_name_lookup 
-		      (fn, scope, current_class_type));
-	    }
-	}
+	fn = resolve_scoped_fn_name (scope, name);
       disallow_virtual = true;
     }
   else
@@ -4190,6 +4152,8 @@ parse_finish_call_expr (tree fn, tree args, int koenig)
 
   if (koenig && TREE_CODE (fn) == IDENTIFIER_NODE)
     {
+      tree f;
+      
       /* Do the Koenig lookup.  */
       fn = do_identifier (fn, 2, args);
       /* If name lookup didn't find any matching declarations, we've

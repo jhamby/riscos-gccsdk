@@ -1,6 +1,6 @@
 /* Source code parsing and tree node generation for the GNU compiler
    for the Java(TM) language.
-   Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
+   Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003 Free Software Foundation, Inc.
    Contributed by Alexandre Petit-Bianco (apbianco@cygnus.com)
 
 This file is part of GNU CC.
@@ -4582,6 +4582,18 @@ method_header (flags, type, mdecl, throws)
 	   IDENTIFIER_POINTER (EXPR_WFL_NODE (id)));
     }
 
+  /* A native method can't be strictfp.  */
+  if ((flags & ACC_NATIVE) && (flags & ACC_STRICT))
+    parse_error_context (id, "native method `%s' can't be strictfp",
+			 IDENTIFIER_POINTER (EXPR_WFL_NODE (id)));
+  /* No such thing as a transient or volatile method.  */
+  if ((flags & ACC_TRANSIENT))
+    parse_error_context (id, "method `%s' can't be transient",
+			 IDENTIFIER_POINTER (EXPR_WFL_NODE (id)));
+  if ((flags & ACC_VOLATILE))
+    parse_error_context (id, "method `%s' can't be volatile",
+			 IDENTIFIER_POINTER (EXPR_WFL_NODE (id)));
+
   /* Things to be checked when declaring a constructor */
   if (!type)
     {
@@ -5581,7 +5593,7 @@ java_complete_class ()
   /* Process imports */
   process_imports ();
 
-  /* Rever things so we have the right order */
+  /* Reverse things so we have the right order */
   ctxp->class_list = nreverse (ctxp->class_list);
   ctxp->classd_list = reverse_jdep_list (ctxp);
 
@@ -5752,7 +5764,7 @@ resolve_class (enclosing, class_type, decl, cl)
     return NULL_TREE;
   resolved_type = TREE_TYPE (resolved_type_decl);
 
-  /* 3- If we have and array, reconstruct the array down to its nesting */
+  /* 3- If we have an array, reconstruct the array down to its nesting */
   if (array_dims)
     {
       for (; array_dims; array_dims--)
@@ -5763,11 +5775,11 @@ resolve_class (enclosing, class_type, decl, cl)
   return resolved_type_decl;
 }
 
-/* Effectively perform the resolution of class CLASS_TYPE. DECL or CL
-   are used to report error messages. Do not try to replace TYPE_NAME
-   (class_type) by a variable, since it is changed by
-   find_in_imports{_on_demand} and (but it doesn't really matter)
-   qualify_and_find.  */
+/* Effectively perform the resolution of class CLASS_TYPE.  DECL or CL
+   are used to report error messages; CL must either be NULL_TREE or a
+   WFL wrapping a class.  Do not try to replace TYPE_NAME (class_type)
+   by a variable, since it is changed by find_in_imports{_on_demand}
+   and (but it doesn't really matter) qualify_and_find.  */
 
 tree
 do_resolve_class (enclosing, class_type, decl, cl)
@@ -5778,37 +5790,58 @@ do_resolve_class (enclosing, class_type, decl, cl)
   tree decl_result;
   htab_t circularity_hash;
 
-  /* This hash table is used to register the classes we're going
-     through when searching the current class as an inner class, in
-     order to detect circular references. Remember to free it before
-     returning the section 0- of this function. */
-  circularity_hash = htab_create (20, htab_hash_pointer, htab_eq_pointer,
-				  NULL);
-
-  /* 0- Search in the current class as an inner class.
-     Maybe some code here should be added to load the class or
-     something, at least if the class isn't an inner class and ended
-     being loaded from class file. FIXME. */
-  while (enclosing)
+  if (QUALIFIED_P (TYPE_NAME (class_type)))
     {
-      new_class_decl = resolve_inner_class (circularity_hash, cl, &enclosing,
-					    &super, class_type);
-      if (new_class_decl)
-	break;
-
-      /* If we haven't found anything because SUPER reached Object and
-	 ENCLOSING happens to be an innerclass, try the enclosing context. */
-      if ((!super || super == object_type_node) &&
-	  enclosing && INNER_CLASS_DECL_P (enclosing))
-	enclosing = DECL_CONTEXT (enclosing);
-      else
-	enclosing = NULL_TREE;
+      /* If the type name is of the form `Q . Id', then Q is either a
+	 package name or a class name.  First we try to find Q as a
+	 class and then treat Id as a member type.  If we can't find Q
+	 as a class then we fall through.  */
+      tree q, left, left_type, right;
+      breakdown_qualified (&left, &right, TYPE_NAME (class_type));
+      BUILD_PTR_FROM_NAME (left_type, left);
+      q = do_resolve_class (enclosing, left_type, decl, cl);
+      if (q)
+	{
+	  enclosing = q;
+	  saved_enclosing_type = TREE_TYPE (q);
+	  BUILD_PTR_FROM_NAME (class_type, right);
+	}
     }
 
-  htab_delete (circularity_hash);
+  if (enclosing)
+    {
+      /* This hash table is used to register the classes we're going
+	 through when searching the current class as an inner class, in
+	 order to detect circular references. Remember to free it before
+	 returning the section 0- of this function. */
+      circularity_hash = htab_create (20, htab_hash_pointer, htab_eq_pointer,
+				      NULL);
 
-  if (new_class_decl)
-    return new_class_decl;
+      /* 0- Search in the current class as an inner class.
+	 Maybe some code here should be added to load the class or
+	 something, at least if the class isn't an inner class and ended
+	 being loaded from class file. FIXME. */
+      while (enclosing)
+	{
+	  new_class_decl = resolve_inner_class (circularity_hash, cl, &enclosing,
+						&super, class_type);
+	  if (new_class_decl)
+	    break;
+
+	  /* If we haven't found anything because SUPER reached Object and
+	     ENCLOSING happens to be an innerclass, try the enclosing context. */
+	  if ((!super || super == object_type_node) &&
+	      enclosing && INNER_CLASS_DECL_P (enclosing))
+	    enclosing = DECL_CONTEXT (enclosing);
+	  else
+	    enclosing = NULL_TREE;
+	}
+
+      htab_delete (circularity_hash);
+
+      if (new_class_decl)
+	return new_class_decl;
+    }
 
   /* 1- Check for the type in single imports. This will change
      TYPE_NAME() if something relevant is found */
@@ -5837,7 +5870,7 @@ do_resolve_class (enclosing, class_type, decl, cl)
     if (find_in_imports_on_demand (saved_enclosing_type, class_type))
       return NULL_TREE;
 
-  /* If found in find_in_imports_on_demant, the type has already been
+  /* If found in find_in_imports_on_demand, the type has already been
      loaded. */
   if ((new_class_decl = IDENTIFIER_CLASS_VALUE (TYPE_NAME (class_type))))
     return new_class_decl;
@@ -5858,7 +5891,7 @@ do_resolve_class (enclosing, class_type, decl, cl)
 	  return new_class_decl;
     }
 
-  /* 5- Check an other compilation unit that bears the name of type */
+  /* 5- Check another compilation unit that bears the name of type */
   load_class (TYPE_NAME (class_type), 0);
 
   if (!cl)
@@ -6344,17 +6377,8 @@ java_check_regular_methods (class_decl)
       if (check_method_redefinition (class, method))
 	continue;
 
-      /* If we see one constructor a mark so we don't generate the
-	 default one. Also skip other verifications: constructors
-	 can't be inherited hence hiden or overriden */
-     if (DECL_CONSTRUCTOR_P (method))
-       {
-	 saw_constructor = 1;
-	 continue;
-       }
-
-      /* We verify things thrown by the method. They must inherits from
-	 java.lang.Throwable */
+      /* We verify things thrown by the method.  They must inherit from
+	 java.lang.Throwable.  */
       for (mthrows = DECL_FUNCTION_THROWS (method);
 	   mthrows; mthrows = TREE_CHAIN (mthrows))
 	{
@@ -6363,6 +6387,15 @@ java_check_regular_methods (class_decl)
 	      (TREE_PURPOSE (mthrows), "Class `%s' in `throws' clause must be a subclass of class `java.lang.Throwable'",
 	       IDENTIFIER_POINTER
 	         (DECL_NAME (TYPE_NAME (TREE_VALUE (mthrows)))));
+	}
+
+      /* If we see one constructor a mark so we don't generate the
+	 default one.  Also skip other verifications: constructors
+	 can't be inherited hence hidden or overridden.  */
+      if (DECL_CONSTRUCTOR_P (method))
+	{
+	  saw_constructor = 1;
+	  continue;
 	}
 
       sig = build_java_argument_signature (TREE_TYPE (method));
@@ -7029,7 +7062,7 @@ find_in_imports_on_demand (enclosing_type, class_type)
     return (seen_once < 0 ? 0 : seen_once); /* It's ok not to have found */
 }
 
-/* Add package NAME to the list of package encountered so far. To
+/* Add package NAME to the list of packages encountered so far. To
    speed up class lookup in do_resolve_class, we make sure a
    particular package is added only once.  */
 
@@ -7482,6 +7515,8 @@ source_end_java_method ()
     {
       lineno = DECL_SOURCE_LINE_LAST (fndecl);
       expand_function_end (input_filename, lineno, 0);
+
+      DECL_SOURCE_LINE (fndecl) = DECL_SOURCE_LINE_FIRST (fndecl);
 
       /* Run the optimizers and output assembler code for this function. */
       rest_of_compilation (fndecl);
@@ -9026,6 +9061,65 @@ java_expand_classes ()
 	}
     }
 
+  /* Expanding the constructors of anonymous classes generates access
+     methods.  Scan all the methods looking for null DECL_RESULTs --
+     this will be the case if a method hasn't been expanded.  */
+  for (cur_ctxp = ctxp_for_generation; cur_ctxp; cur_ctxp = cur_ctxp->next)
+    {
+      tree current;
+      ctxp = cur_ctxp;
+      for (current = ctxp->class_list; current; current = TREE_CHAIN (current))
+	{
+	  tree d;
+	  current_class = TREE_TYPE (current);
+	  for (d = TYPE_METHODS (current_class); d; d = TREE_CHAIN (d))
+	    {
+	      if (DECL_RESULT (d) == NULL_TREE)
+		{
+		  restore_line_number_status (1);
+		  java_complete_expand_method (d);
+		  restore_line_number_status (0);
+		}
+	    }
+	}
+    }
+
+  /* ???  Instead of all this we could iterate around the list of
+     classes until there were no more un-expanded methods.  It would
+     take a little longer -- one pass over the whole list of methods
+     -- but it would be simpler.  Like this:  */
+#if 0
+    {
+      int something_changed;
+    
+      do
+	{
+	  something_changed = 0;
+	  for (cur_ctxp = ctxp_for_generation; cur_ctxp; cur_ctxp = cur_ctxp->next)
+	    {
+	      tree current;
+	      ctxp = cur_ctxp;
+	      for (current = ctxp->class_list; current; current = TREE_CHAIN (current))
+		{
+		  tree d;
+		  current_class = TREE_TYPE (current);
+		  for (d = TYPE_METHODS (current_class); d; d = TREE_CHAIN (d))
+		    {
+		      if (DECL_RESULT (d) == NULL_TREE)
+			{
+			  something_changed = 1;
+			  restore_line_number_status (1);
+			  java_complete_expand_method (d);
+			  restore_line_number_status (0);
+			}
+		    }
+		}
+	    }
+	}
+      while (something_changed);
+    }
+#endif
+
   /* If we've found error at that stage, don't try to generate
      anything, unless we're emitting xrefs or checking the syntax only
      (but not using -fsyntax-only for the purpose of generating
@@ -9379,6 +9473,19 @@ resolve_field_access (qual_wfl, field_decl, field_type)
 	return error_mark_node;
       if (is_static)
 	field_ref = maybe_build_class_init_for_field (decl, field_ref);
+
+      /* If we're looking at a static field, we may need to generate a
+	 class initialization for it.  This can happen when the access
+	 looks like `field.ref', where `field' is a static field in an
+	 interface we implement.  */
+      if (!flag_emit_class_files
+	  && !flag_emit_xref
+	  && TREE_CODE (where_found) == VAR_DECL
+	  && FIELD_STATIC (where_found))
+	{
+	  build_static_field_ref (where_found);
+	  field_ref = build_class_init (DECL_CONTEXT (where_found), field_ref);
+	}
     }
   else
     field_ref = decl;
@@ -10766,7 +10873,11 @@ patch_invoke (patch, method, args)
      is NULL.  */
   if (check != NULL_TREE)
     {
-      patch = build (COMPOUND_EXPR, TREE_TYPE (patch), check, patch);
+      /* We have to call force_evaluation_order now because creating a
+ 	 COMPOUND_EXPR wraps the arg list in a way that makes it
+ 	 unrecognizable by force_evaluation_order later.  Yuk.  */
+      patch = build (COMPOUND_EXPR, TREE_TYPE (patch), check, 
+ 		     force_evaluation_order (patch));
       TREE_SIDE_EFFECTS (patch) = 1;
     }
 
@@ -11440,17 +11551,17 @@ breakdown_qualified (left, right, source)
     tree *left, *right, source;
 {
   char *p, *base;
-  int   l = IDENTIFIER_LENGTH (source);
+  int l = IDENTIFIER_LENGTH (source);
 
   base = alloca (l + 1);
   memcpy (base, IDENTIFIER_POINTER (source), l + 1);
 
-  /* Breakdown NAME into REMAINDER . IDENTIFIER */
+  /* Breakdown NAME into REMAINDER . IDENTIFIER.  */
   p = base + l - 1;
   while (*p != '.' && p != base)
     p--;
 
-  /* We didn't find a '.'. Return an error */
+  /* We didn't find a '.'. Return an error.  */
   if (p == base)
     return 1;
 
@@ -11836,7 +11947,9 @@ java_complete_lhs (node)
 	      nn = wfl_op2;
 	      if (TREE_CODE (nn) == EXPR_WITH_FILE_LOCATION)
 		nn = EXPR_WFL_NODE (nn);
-	      if (TREE_CODE (nn) != EXIT_EXPR)
+	      /* NN can be NULL_TREE exactly when UPDATE is, in
+		 finish_for_loop.  */
+	      if (nn != NULL_TREE && TREE_CODE (nn) != EXIT_EXPR)
 		{
 		  SET_WFL_OPERATOR (wfl_operator, node, wfl_op2);
 		  if (SUPPRESS_UNREACHABLE_ERROR (nn))
@@ -12569,17 +12682,18 @@ static char *
 string_convert_int_cst (node)
      tree node;
 {
-  static char buffer[80];
+  /* Long.MIN_VALUE is -9223372036854775808, 20 characters.  */
+  static char buffer[21];
 
   unsigned HOST_WIDE_INT lo = TREE_INT_CST_LOW (node);
   unsigned HOST_WIDE_INT hi = TREE_INT_CST_HIGH (node);
-  char *p = buffer + sizeof (buffer) - 1;
+  char *p = buffer + sizeof (buffer);
   int neg = 0;
 
   unsigned HOST_WIDE_INT hibit = (((unsigned HOST_WIDE_INT) 1)
 				  << (HOST_BITS_PER_WIDE_INT - 1));
 
-  *p-- = '\0';
+  *--p = '\0';
 
   /* If negative, note the fact and negate the value.  */
   if ((hi & hibit))
@@ -12592,7 +12706,7 @@ string_convert_int_cst (node)
     }
 
   /* Divide by 10 until there are no bits left.  */
-  while (hi || lo)
+  do
     {
       unsigned HOST_WIDE_INT acc = 0;
       unsigned HOST_WIDE_INT outhi = 0, outlo = 0;
@@ -12624,17 +12738,18 @@ string_convert_int_cst (node)
 	    }
 	}
 
-      /* FIXME: ASCII assumption.  */
-      *p-- = '0' + acc;
+      /* '0' == 060 in Java, but might not be here (think EBCDIC).  */
+      *--p = '\060' + acc;
 
       hi = outhi;
       lo = outlo;
     }
+  while (hi || lo);
 
   if (neg)
-    *p-- = '-';
+    *--p = '\055'; /* '-' == 055 in Java, but might not be here.  */
 
-  return p + 1;
+  return p;
 }
 
 /* Print an INTEGER_CST node in a static buffer, and return the
@@ -12831,6 +12946,43 @@ patch_assignment (node, wfl_op1)
     {
       TREE_CONSTANT (lvalue) = 1;
       DECL_INITIAL (lvalue) = new_rhs;
+    }
+
+  /* Copy the rhs if it's a reference.  */
+  if (! flag_check_references && ! flag_emit_class_files && optimize > 0)
+    {
+      switch (TREE_CODE (new_rhs))
+	{
+	case ARRAY_REF:
+	case INDIRECT_REF:
+	case COMPONENT_REF:
+	  /* Transform a = foo.bar 
+	     into a = { int tmp; tmp = foo.bar; tmp; ).   	     
+	     We need to ensure that if a read from memory fails
+	     because of a NullPointerException, a destination variable
+	     will remain unchanged.  An explicit temporary does what
+	     we need.  
+
+	     If flag_check_references is set, this is unnecessary
+	     because we'll check each reference before doing any
+	     reads.  If optimize is not set the result will never be
+	     written to a stack slot that contains the LHS.  */
+	  {
+	    tree tmp = build_decl (VAR_DECL, get_identifier ("<tmp>"), 
+				   TREE_TYPE (new_rhs));
+	    tree block = build (BLOCK, TREE_TYPE (new_rhs), NULL);
+	    tree assignment 
+	      = build (MODIFY_EXPR, TREE_TYPE (new_rhs), tmp, fold (new_rhs));
+	    BLOCK_VARS (block) = tmp;
+	    BLOCK_EXPR_BODY (block) 
+	      = build (COMPOUND_EXPR, TREE_TYPE (new_rhs), assignment, tmp);
+	    TREE_SIDE_EFFECTS (block) = 1;
+	    new_rhs = block;
+	  }
+	  break;
+	default:
+	  break;
+	}
     }
 
   TREE_OPERAND (node, 0) = lvalue;
@@ -13747,25 +13899,25 @@ do_merge_string_cste (cste, string, string_len, after)
 }
 
 /* Tries to merge OP1 (a STRING_CST) and OP2 (if suitable). Return a
-   new STRING_CST on success, NULL_TREE on failure */
+   new STRING_CST on success, NULL_TREE on failure.  */
 
 static tree
 merge_string_cste (op1, op2, after)
      tree op1, op2;
      int after;
 {
-  /* Handle two string constants right away */
+  /* Handle two string constants right away.  */
   if (TREE_CODE (op2) == STRING_CST)
     return do_merge_string_cste (op1, TREE_STRING_POINTER (op2),
 				 TREE_STRING_LENGTH (op2), after);
 
-  /* Reasonable integer constant can be treated right away */
+  /* Reasonable integer constant can be treated right away.  */
   if (TREE_CODE (op2) == INTEGER_CST && !TREE_CONSTANT_OVERFLOW (op2))
     {
       static const char *const boolean_true = "true";
       static const char *const boolean_false = "false";
       static const char *const null_pointer = "null";
-      char ch[3];
+      char ch[4];
       const char *string;
 
       if (op2 == boolean_true_node)
@@ -13773,22 +13925,30 @@ merge_string_cste (op1, op2, after)
       else if (op2 == boolean_false_node)
 	string = boolean_false;
       else if (op2 == null_pointer_node)
+	/* FIXME: null is not a compile-time constant, so it is only safe to
+	   merge if the overall expression is non-constant. However, this
+	   code always merges without checking the overall expression.  */
 	string = null_pointer;
       else if (TREE_TYPE (op2) == char_type_node)
 	{
 	  /* Convert the character into UTF-8.	*/
-	  unsigned char c = (unsigned char) TREE_INT_CST_LOW (op2);
+	  unsigned int c = (unsigned int) TREE_INT_CST_LOW (op2);
 	  unsigned char *p = (unsigned char *) ch;
-	  if (0x01 <= c
-	      && c <= 0x7f)
-	    *p++ = c;
+	  if (0x01 <= c && c <= 0x7f)
+	    *p++ = (unsigned char) c;
+	  else if (c < 0x7ff)
+	    {
+	      *p++ = (unsigned char) (c >> 6 | 0xc0);
+	      *p++ = (unsigned char) ((c & 0x3f) | 0x80);
+	    }
 	  else
 	    {
-	      *p++ = c >> 6 | 0xc0;
-	      *p++ = (c & 0x3f) | 0x80;
+	      *p++ = (unsigned char) (c >> 12 | 0xe0);
+	      *p++ = (unsigned char) (((c >> 6) & 0x3f) | 0x80);
+	      *p++ = (unsigned char) ((c & 0x3f) | 0x80);
 	    }
 	  *p = '\0';
- 
+
 	  string = ch;
 	}
       else
@@ -15029,12 +15189,17 @@ finish_for_loop (location, condition, update, body)
       tree up2 = update;
       if (TREE_CODE (up2) == EXPR_WITH_FILE_LOCATION)
 	up2 = EXPR_WFL_NODE (up2);
-      /* Try to detect constraint violations.  These would be
-	 programming errors somewhere.  */
-      if (! IS_EXPR_CODE_CLASS (TREE_CODE_CLASS (TREE_CODE (up2)))
-	  || TREE_CODE (up2) == LOOP_EXPR)
-	abort ();
-      SUPPRESS_UNREACHABLE_ERROR (up2) = 1;
+      /* It is possible for the update expression to be an
+	 EXPR_WFL_NODE wrapping nothing.  */
+      if (up2 != NULL_TREE && up2 != empty_stmt_node)
+	{
+	  /* Try to detect constraint violations.  These would be
+	     programming errors somewhere.  */
+	  if (! IS_EXPR_CODE_CLASS (TREE_CODE_CLASS (TREE_CODE (up2)))
+	      || TREE_CODE (up2) == LOOP_EXPR)
+	    abort ();
+	  SUPPRESS_UNREACHABLE_ERROR (up2) = 1;
+	}
     }
   LOOP_EXPR_BODY_UPDATE_BLOCK (LOOP_EXPR_BODY (loop)) = update;
   return loop;

@@ -1,6 +1,6 @@
 // Stream buffer classes -*- C++ -*-
 
-// Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002
+// Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003
 // Free Software Foundation, Inc.
 //
 // This file is part of the GNU ISO C++ Library.  This library is free
@@ -67,9 +67,8 @@ namespace std
     {
       int_type __ret;
       bool __testpos = _M_in_cur && _M_in_beg < _M_in_cur;
-      bool __testne = _M_in_cur && !traits_type::eq(__c, this->gptr()[-1]);
-      if (!__testpos || __testne)
-	__ret = pbackfail(traits_type::to_int_type(__c));
+      if (!__testpos || !traits_type::eq(__c, this->gptr()[-1]))
+	__ret = this->pbackfail(traits_type::to_int_type(__c));
       else 
 	{
 	  _M_in_cur_move(-1);
@@ -199,52 +198,60 @@ namespace std
 		      basic_streambuf<_CharT, _Traits>* __sbin,
 		      basic_streambuf<_CharT, _Traits>* __sbout) 
   {
-      typedef typename _Traits::int_type	int_type;
-
-      streamsize __ret = 0;
-      streamsize __bufsize = __sbin->in_avail();
-      streamsize __xtrct;
-      bool __testput = __sbout->_M_mode & ios_base::out;
-      try 
-	{
-	  while (__testput && __bufsize != -1)
-	    {
-	      __xtrct = __sbout->sputn(__sbin->gptr(), __bufsize);
-	      __ret += __xtrct;
-	      __sbin->_M_in_cur_move(__xtrct);
-	      if (__xtrct == __bufsize)
-		{
-		  if (_Traits::eq_int_type(__sbin->sgetc(), _Traits::eof()))
-		    break;
-		  __bufsize = __sbin->in_avail();
-		}
-	      else
-		break;
-	    }
-	}
-      catch(exception& __fail) 
-	{
-	  __ios.setstate(ios_base::failbit);
-	  if ((__ios.exceptions() & ios_base::failbit) != 0)
-	    __throw_exception_again;
-	}
-      return __ret;
-    }
+    streamsize __ret = 0;
+    try 
+      {
+	typename _Traits::int_type __c = __sbin->sgetc();
+	while (!_Traits::eq_int_type(__c, _Traits::eof()))
+	  {
+	    const size_t __n = __sbin->_M_in_end - __sbin->_M_in_cur;
+	    if (__n > 1)
+	      {
+		const size_t __wrote = __sbout->sputn(__sbin->_M_in_cur,
+						      __n);
+		__sbin->_M_in_cur_move(__wrote);
+		__ret += __wrote;
+		if (__wrote < __n)
+		  break;
+		__c = __sbin->underflow();
+	      }
+	    else 
+	      {
+		__c = __sbout->sputc(_Traits::to_char_type(__c));
+		if (_Traits::eq_int_type(__c, _Traits::eof()))
+		  break;
+		++__ret;
+		__c = __sbin->snextc();
+	      }
+	  }
+      }
+    catch(exception& __fail) 
+      {
+	__ios.setstate(ios_base::failbit);
+	if ((__ios.exceptions() & ios_base::failbit) != 0)
+	  __throw_exception_again;
+      }
+    return __ret;
+  }
 
   // Inhibit implicit instantiations for required instantiations,
   // which are defined via explicit instantiations elsewhere.  
   // NB:  This syntax is a GNU extension.
+#if _GLIBCPP_EXTERN_TEMPLATE
   extern template class basic_streambuf<char>;
   extern template
     streamsize
     __copy_streambufs(basic_ios<char>&, basic_streambuf<char>*,
 		      basic_streambuf<char>*); 
 
+#ifdef _GLIBCPP_USE_WCHAR_T
   extern template class basic_streambuf<wchar_t>;
   extern template
     streamsize
     __copy_streambufs(basic_ios<wchar_t>&, basic_streambuf<wchar_t>*,
 		      basic_streambuf<wchar_t>*); 
+#endif
+#endif
 } // namespace std
 
 #endif 
