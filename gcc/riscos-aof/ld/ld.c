@@ -2,7 +2,7 @@
    for the GNU compiler, with support for the C++ template repository.
 
    Copyright (C) 1997, 1998, 1999, 2000, 2001, 2004 Nick Burrett
-   Contributed by Nick Burrett (nick.burrett@btinternet.com)
+   Contributed by Nick Burrett (nick@sqrt.co.uk)
 
 This file is part of GNU CC.
 
@@ -1107,7 +1107,7 @@ demangle_new_symbols (void)
   while ((sym = symbol_pop ()) != NULL)
     {
       demangled *dem;
-      char *p = cplus_demangle (sym->root.string, DMGL_PARAMS | DMGL_ANSI);
+      char *p = cplus_demangle_v3 (sym->root.string, DMGL_PARAMS | DMGL_ANSI | DMGL_TYPES);
 
       if (tlink_verbose >= 4)
 	fprintf (stderr, "demangle_new_symbols: sym = '%s', p = '%s'\n",
@@ -1385,7 +1385,7 @@ dump_file (char *name)
 	  if (no_demangle)
 	    result = 0;
 	  else
-	    result = cplus_demangle (p, DMGL_PARAMS | DMGL_ANSI);
+	    result = cplus_demangle_v3 (p, DMGL_PARAMS | DMGL_ANSI | DMGL_TYPES);
 
 	  if (result)
 	    {
