@@ -33,6 +33,5 @@
 
 // System-specific #define, typedefs, corrections, etc, go here.  This
 // file will come before all others.
-#define _GNU_SOURCE 1
 
 #endif

@@ -1,4 +1,4 @@
-// Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003
+// Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004
 // Free Software Foundation, Inc.
 //
 // This file is part of the GNU ISO C++ Library.  This library is free
@@ -35,7 +35,7 @@ namespace std
   using namespace __gnu_cxx;
 
   
-  locale::locale(const char* __s)
+  locale::locale(const char* __s) : _M_impl(0)
   {
     if (__s)
       {
@@ -148,6 +148,7 @@ namespace std
   }
 
   locale::locale(const locale& __base, const char* __s, category __cat)
+  : _M_impl(0)
   { 
     // NB: There are complicated, yet more efficient ways to do
     // this. Building up locales on a per-category way is tedious, so
@@ -157,6 +158,7 @@ namespace std
   }
 
   locale::locale(const locale& __base, const locale& __add, category __cat)
+  : _M_impl(0)
   { _M_coalesce(__base, __add, __cat); }
 
   void
@@ -178,26 +180,25 @@ namespace std
   // Construct named _Impl.
   locale::_Impl::
   _Impl(const char* __s, size_t __refs) 
-  : _M_refcount(__refs), _M_facets_size(_GLIBCXX_NUM_FACETS)
+  : _M_refcount(__refs), _M_facets(0), _M_facets_size(_GLIBCXX_NUM_FACETS),
+  _M_caches(0), _M_names(0)
   {
     // Initialize the underlying locale model, which also checks to
     // see if the given name is valid.
     __c_locale __cloc;
     locale::facet::_S_create_c_locale(__cloc, __s);
 
-    _M_facets = _M_caches = 0;
-    _M_names = 0;
     try
       {
 	_M_facets = new const facet*[_M_facets_size];
 	for (size_t __i = 0; __i < _M_facets_size; ++__i)
 	  _M_facets[__i] = 0;
 	_M_caches = new const facet*[_M_facets_size];
-	for (size_t __i = 0; __i < _M_facets_size; ++__i)
-	  _M_caches[__i] = 0;
+	for (size_t __j = 0; __j < _M_facets_size; ++__j)
+	  _M_caches[__j] = 0;
 	_M_names = new char*[_S_categories_size];
-	for (size_t __i = 0; __i < _S_categories_size; ++__i)
-	  _M_names[__i] = 0;
+	for (size_t __k = 0; __k < _S_categories_size; ++__k)
+	  _M_names[__k] = 0;
 
 	// Name all the categories.
 	const size_t __len = std::strlen(__s);

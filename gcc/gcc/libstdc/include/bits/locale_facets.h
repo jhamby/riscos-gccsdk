@@ -1161,8 +1161,8 @@ namespace std
 
 	_M_widen_ok = 1;
 	// Set _M_widen_ok to 2 if memcpy can't be used.
-	for (size_t __i = 0; __i < sizeof(_M_widen); ++__i)
-	  if (__tmp[__i] != _M_widen[__i])
+	for (size_t __j = 0; __j < sizeof(_M_widen); ++__j)
+	  if (__tmp[__j] != _M_widen[__j])
 	    {
 	      _M_widen_ok = 2;
 	      break;
@@ -1182,11 +1182,11 @@ namespace std
 	// Check if any default values were created.  Do this by
 	// renarrowing with a different default value and comparing.
 	bool __consecutive = true;
-	for (size_t __i = 0; __i < sizeof(_M_narrow); ++__i)
-	  if (!_M_narrow[__i])
+	for (size_t __j = 0; __j < sizeof(_M_narrow); ++__j)
+	  if (!_M_narrow[__j])
 	    {
 	      char __c;
-	      do_narrow(__tmp + __i, __tmp + __i + 1, 1, &__c);
+	      do_narrow(__tmp + __j, __tmp + __j + 1, 1, &__c);
 	      if (__c == 1)
 		{
 		  __consecutive = false;
@@ -1624,6 +1624,13 @@ namespace std
 
       void
       _M_cache(const locale& __loc);
+
+    private:
+      __numpunct_cache&
+      operator=(const __numpunct_cache&);
+      
+      explicit
+      __numpunct_cache(const __numpunct_cache&);
     };
 
   template<typename _CharT>
@@ -2487,8 +2494,8 @@ namespace std
       */
       explicit
       collate(size_t __refs = 0)
-      : facet(__refs)
-      { _M_c_locale_collate = _S_get_c_locale(); }
+      : facet(__refs), _M_c_locale_collate(_S_get_c_locale())
+      { }
 
       /**
        *  @brief  Internal constructor. Not for general use.
@@ -2501,8 +2508,8 @@ namespace std
       */
       explicit
       collate(__c_locale __cloc, size_t __refs = 0)
-      : facet(__refs)
-      { _M_c_locale_collate = _S_clone_c_locale(__cloc); }
+      : facet(__refs), _M_c_locale_collate(_S_clone_c_locale(__cloc))
+      { }
 
       /**
        *  @brief  Compare two strings.
@@ -2757,6 +2764,13 @@ namespace std
 
       void
       _M_cache(const locale& __loc);
+
+    private:
+      __timepunct_cache&
+      operator=(const __timepunct_cache&);
+      
+      explicit
+      __timepunct_cache(const __timepunct_cache&);
     };
 
   template<typename _CharT>
@@ -3493,6 +3507,13 @@ namespace std
 
       void
       _M_cache(const locale& __loc);
+
+    private:
+      __moneypunct_cache&
+      operator=(const __moneypunct_cache&);
+      
+      explicit
+      __moneypunct_cache(const __moneypunct_cache&);
     };
 
   template<typename _CharT, bool _Intl>

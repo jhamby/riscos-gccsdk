@@ -1,4 +1,4 @@
-# Second-level Makefile for RISC OS GCC v3.3
+# Second-level Makefile for RISC OS GCC v3.4
 # Written by Nick Burrett <nick@dsvr.net>
 
 # Passed in by top-level Makefile.  TRG is a path name for the 
@@ -14,6 +14,7 @@ all:	gcc
 .PHONY: gcc
 .PHONY: libgcc
 .PHONY: libf2c
+.PHONY: libobjc
 .PHONY: libstdc
 .PHONY: libffi
 .PHONY: boehm-gc
@@ -23,7 +24,7 @@ gcc:
 	$(gccpath)/gpc $(gccpath)/objc $(gccpath)/java $(gccpath)/config/arm
 	$(MAKE) -C gcc "STAGE=$(STAGE)"
 
-boehm-gc fastjar libgcc libgpc libf2c libstdc libffi zlib:
+boehm-gc fastjar libgcc libgpc libf2c libobjc libstdc libffi zlib:
 	mkdir -p $(libpath)/$(STAGE)/$(TRG)
 	$(MAKE) -C $@ "STAGE=$(STAGE)"
 
