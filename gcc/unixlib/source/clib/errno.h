@@ -1,8 +1,8 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/errno.h,v $
- * $Date: 2003/06/19 23:58:24 $
- * $Revision: 1.8 $
+ * $Date: 2004/05/01 22:43:00 $
+ * $Revision: 1.9 $
  * $State: Exp $
  * $Author: joty $
  *
@@ -29,11 +29,20 @@ extern int errno;
 
 extern const char *sys_errlist[];
 extern int sys_nerr;
+#ifdef __UNIXLIB_INTERNALS
 extern struct {
   void *pc;
   int errnum;
   char errmess[252];
+  int valid;
   } __ul_errbuf;
+
+extern struct
+{
+  int fpsr;
+  double f[8];
+} __ul_fp_registers;
+#endif
 
 #define EPERM           1 /* Operation not permitted.  */
 #define ENOENT		2 /* No such file or directory.  */

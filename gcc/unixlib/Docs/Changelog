@@ -1,3 +1,12 @@
+Tue May 18 22:43:00 2004  John Tytgat  <John.Tytgat@aaug.net>
+
+	* source/signal/post.c: moved __ul_errbuf and __ul_fp_registers
+	  declaration to errno.h; added #include errno.h; beautify output
+	  of write_backtrace().
+	* source/clib/errno.h: updated __ul_errbuf declaration; added
+	  __ul_fp_registers declaration;  __ul_errbuf and __ul_fp_registers
+	  are ony declared when __UNIXLIB_INTERNALS is defined.
+
 Sun May 16 19:47:14 2004  Alex Waugh  <alex@alexwaugh.com>
 
 	* signal/sigsuspend.c: Suspend only the current thread not the

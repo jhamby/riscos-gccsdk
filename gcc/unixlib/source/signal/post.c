@@ -1,21 +1,22 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/signal/post.c,v $
- * $Date: 2004/02/23 16:07:29 $
- * $Revision: 1.10 $
+ * $Date: 2004/05/16 12:46:22 $
+ * $Revision: 1.11 $
  * $State: Exp $
- * $Author: peter $
+ * $Author: alex $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: post.c,v 1.10 2004/02/23 16:07:29 peter Exp $";
+static const char rcs_id[] = "$Id: post.c,v 1.11 2004/05/16 12:46:22 alex Exp $";
 #endif
 
 /* signal.c.post: Written by Nick Burrett, 27 August 1996.  */
 
 #define _GNU_SOURCE
 
+#include <errno.h>
 #include <stdlib.h>
 #include <signal.h>
 #include <stdio.h>
@@ -30,20 +31,6 @@ static const char rcs_id[] = "$Id: post.c,v 1.10 2004/02/23 16:07:29 peter Exp $
 #include <pthread.h>
 
 /* #define DEBUG 1 */
-
-extern struct
-{
-  int pc;
-  int errnum;
-  char errmess[252];
-  int valid;
-} __ul_errbuf;
-
-extern struct
-{
-  int fpsr;
-  double f[8];
-} __ul_fp_registers;
 
 /* This function chooses a suitable execution environment
    for the signal handler and calls the appropriate function
@@ -159,11 +146,9 @@ write_backtrace (int signo)
   /* The ASM version did originally disable environment handlers
      but this seems to cause problems */
 
-  fprintf(stderr, "\nFatal signal received: %s\n"
-                  "A stack backtrace will now follow ...)\n",
-                  sys_siglist[signo]);
+  fprintf(stderr, "\nFatal signal received: %s\n\n", sys_siglist[signo]);
 
-  fputs("stack backtrace:\n\n", stderr);
+  fputs("Stack backtrace:\n\n", stderr);
 
   if (_swix(OS_PlatformFeatures, _IN(0) | _OUT(0), 0, &features))
     features = 0;
@@ -234,11 +219,11 @@ write_backtrace (int signo)
       if (fp == __ul_errfp)
         {
           int reg;
-          const char *rname[16] =
+          const char * const rname[16] =
             { "a1", "a2", "a3", "a4", "v1", "v2", "v3", "v4",
               "v5", "v6", "sl", "fp", "ip", "sp", "lr", "pc" };
 
-          fputs("\nRegister dump:\n", stderr);
+          fprintf(stderr, "\nRegister dump at %p:\n", &oldfp[1]);
 
           for (reg = 0; reg < 16; reg++)
             {
@@ -251,7 +236,7 @@ write_backtrace (int signo)
                 }
               else
                 {
-                  fputs("bad addr", stderr);
+                  fputs(" [bad addr]", stderr);
                   break;
                 }
             }
@@ -433,7 +418,7 @@ post_signal:
 
 	if (errbuf_valid)
 	  {
-	    fprintf(stderr, "\nError 0x%x: %s\n pc: %8x\n", __ul_errbuf.errnum,
+	    fprintf(stderr, "\nError 0x%x: %s\n pc: %p\n", __ul_errbuf.errnum,
 			    __ul_errbuf.errmess, __ul_errbuf.pc);
 	  }
 	if (signo == SIGFPE)
