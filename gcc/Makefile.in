@@ -203,8 +203,8 @@ trg31=apcs32/arch4/libscl
 cfl10="CFL=-mapcs-26 -mcpu=arm2 -munixlib"
 cfl11="CFL=-mapcs-26 -mcpu=arm2 -mlibscl"
 
-cfl20="CFL=-mapcs-32 -mcpu=arm6 -munixlib"
-cfl21="CFL=-mapcs-32 -mcpu=strongarm -munixlib"
+cfl20="CFL=-mapcs-32 -mcpu=arm6 -mtune=xscale -munixlib"
+cfl21="CFL=-mapcs-32 -mcpu=strongarm -mtune=xscale -munixlib"
 
 cfl30="CFL=-mapcs-32 -mcpu=arm6 -mlibscl"
 cfl31="CFL=-mapcs-32 -mcpu=strongarm -mlibscl"
