@@ -773,7 +773,16 @@ decode (Lex * label)
 	if (macro)
 	  {
 	    inputRollback ();
-	    c = inputSymbol (&l, '\0');
+	    if (inputLook () == '|')
+	      {
+		inputSkip ();
+		c = inputSymbol (&l, '|');
+		if (inputGet () != '|')
+		  error (ErrorError, TRUE,
+			 "Identifier continues over newline");
+	      }
+	    else
+	      c = inputSymbol (&l, '\0');
 	    m = macroFind (l, c);
 	  }
 	if (macro && m)

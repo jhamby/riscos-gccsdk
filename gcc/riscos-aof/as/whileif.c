@@ -33,10 +33,17 @@ if_skip (const char *onerror)
   char *str;
   int c;
   int nested = 0;
+  int tmp_inputExpand = inputExpand;
+  inputExpand = FALSE;
   while (inputNextLine ())
-    {
-      if (inputLook () && !isspace (inputGet ()))
-	str = inputSymbol (&c, 0);
+   {
+      if (inputLook () && !isspace (c = inputGet ()))
+	{
+	  char del = c == '|' ? c : 0;
+	  str = inputSymbol (&c, del);
+	  if (del && inputLook () == del)
+	    inputSkip ();
+	}
       skipblanks ();
       c = inputGet ();
       if (inputLook () && !isspace (inputGet ()))
@@ -56,11 +63,13 @@ if_skip (const char *onerror)
 	}
     }
   error (ErrorSerious, TRUE, onerror);
+  inputExpand = tmp_inputExpand;
   return;
 
 skipped:
   ignore_else = TRUE;
   inputRewind = TRUE;
+  inputExpand = tmp_inputExpand;
 }
 
 

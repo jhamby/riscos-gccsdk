@@ -21,13 +21,16 @@
 #include <ctype.h>
 #include "variables.h"
 
+#define MACRO_LIMIT 16
+#define MACRO_DEPTH 10
+
 static Macro *macroList = 0;
 
-MacroStack macroStack[10];
+MacroStack macroStack[MACRO_DEPTH];
 int macroSP = 0;
 
-char *macroArgs[16] =
-{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+char *macroArgs[MACRO_LIMIT] =
+{0};
 
 Macro *macroCurrent = 0;
 char *macroPtr = 0;
@@ -43,7 +46,7 @@ macroPop (void)
   if (!macroSP)
     error (ErrorAbort, FALSE, "Internal macroPop: unexpected call");
   testUnmatched ();
-  for (p = 16; p; free ((void *) (macroArgs[--p])));
+  for (p = MACRO_LIMIT; p; free ((void *) (macroArgs[--p])));
   var_restoreLocals ();
   inputLineNo = macroStack[--macroSP].lineno + 1;
   whileCurrent = macroStack[macroSP].whilestack;
@@ -82,7 +85,7 @@ macroCall (Macro * m, Lex * label)
   int len;
   static long int macroCallNo = 0;
 
-  if (macroSP == 10)
+  if (macroSP == MACRO_DEPTH)
     {
       error (ErrorSerious, TRUE, "Too many nested macro calls");
       return;
@@ -101,7 +104,7 @@ macroCall (Macro * m, Lex * label)
   whileCurrent = 0;
   if_depth = 0;
 
-  for (i = 16; i; macroArgs[--i] = 0);
+  for (i = MACRO_LIMIT; i; macroArgs[--i] = 0);
   if (label->tag == LexId)
     {
       if (m->labelarg)
@@ -160,7 +163,7 @@ macroCall (Macro * m, Lex * label)
     }
 #ifdef DEBUG
   printf ("Macro call = %s\n", inputLine ());
-  for (i = 0; i < 16; ++i)
+  for (i = 0; i < MACRO_LIMIT; ++i)
     if (macroArgs[i])
       printf ("Arg %i = %s\n", i, macroArgs[i]);
 #endif
@@ -299,7 +302,15 @@ c_macro (Lex * label)
 	goto lookforMEND;
     }
   skipblanks ();
-  ptr = inputSymbol (&len, 0);
+  if (inputLook () == '|')
+    {
+      inputSkip ();
+      ptr = inputSymbol (&len, '|');
+      if (inputGet () != '|')
+	error (ErrorError, TRUE, "Macro name continues over newline");
+    }
+  else
+    ptr = inputSymbol (&len, 0);
   if (!len)
     goto missingname;
   if (macroFind (len, ptr))
@@ -315,7 +326,7 @@ c_macro (Lex * label)
   skipblanks ();
   while (!inputComment ())
     {
-      if (m.numargs == 16)
+      if (m.numargs == MACRO_LIMIT)
 	{
 	  error (ErrorError, TRUE, "Too many arguments in macro definition");
 	  skiprest ();
@@ -407,7 +418,7 @@ lookforMEND:
   while (!c_mend ());
   free (buf);
   free (m.name);
-  for (len = 16; len; free ((void *) m.args[--len]));
+  for (len = MACRO_LIMIT; len; free ((void *) m.args[--len]));
 }
 
 
