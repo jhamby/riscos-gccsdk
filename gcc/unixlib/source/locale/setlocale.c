@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/locale/setlocale.c,v $
- * $Date: 2003/01/21 17:54:22 $
- * $Revision: 1.5 $
+ * $Date: 2003/12/29 19:02:38 $
+ * $Revision: 1.6 $
  * $State: Exp $
- * $Author: admin $
+ * $Author: peter $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: setlocale.c,v 1.5 2003/01/21 17:54:22 admin Exp $";
+static const char rcs_id[] = "$Id: setlocale.c,v 1.6 2003/12/29 19:02:38 peter Exp $";
 #endif
 
 /* Locale support. Written by Nick Burrett, 20 July 1997.  */
@@ -110,7 +110,7 @@ static void do_lc_all (char *buffer, int size)
 
 char *setlocale (int category, const char *locale)
 {
-  int new_territory;
+  int new_territory, changed;
   static char old_locale[256];
 
   PTHREAD_UNSAFE
@@ -230,12 +230,18 @@ char *setlocale (int category, const char *locale)
       return NULL;
     }
 
+  /* Mark that we don't really need to build new ctype tables.  */
+  changed = 0;
   if (category == LC_ALL)
     {
       /* Change the locale for all categories. old_locale was created
 	 when we previously checked for a composite string.  */
       for (category = 0; category < LC_ALL; ++category)
-	__locale_territory[category] = new_territory;
+	if (__locale_territory[category] != new_territory)
+	  {
+	    __locale_territory[category] = new_territory;
+	    changed = 1;
+	  }
     }
   else
     {
@@ -243,11 +249,19 @@ char *setlocale (int category, const char *locale)
       territory_name (__locale_territory[category],
 		      old_locale, sizeof (old_locale));
 
-      __locale_territory[category] = new_territory;
+      if (__locale_territory[category] != new_territory)
+	{
+	  __locale_territory[category] = new_territory;
+	  changed = 1;
+	}
     }
 
   /* Re-build the character-type tables if they've changed.  */
-  if (category == LC_ALL || category == LC_CTYPE)
+
+  /* For efficiency, only build the new tables if the locale really
+     is changing.  The GNU Java compiler is known to repeatedly call
+     setlocale.  */
+  if (changed && (category == LC_ALL || category == LC_CTYPE))
     __build_ctype_tables (new_territory);
 
   return old_locale;

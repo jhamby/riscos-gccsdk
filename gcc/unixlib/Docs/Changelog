@@ -1,3 +1,8 @@
+Thu Mar 31 13:50:43 2005  Nick Burrett  <nick@sqrt.co.uk>
+
+	* setlocale.c (setlocale): Only build ctype tables when they
+	are actually being changed.
+
 Thu Mar 31 12:38:23 2005  Nick Burrett  <nick@sqrt.co.uk>
 
 	* signal/sleep.c (nanosleep): New function.
@@ -55,11 +60,11 @@ Tue Mar 29 23:44:37 2005  Peter Naulls  <peter@chocky.org>
 
 Mon Mar 28 15:56:14 2005  John Tytgat  <John.Tytgat@aaug.net>
 
-	* source/clib/kernel.h: Better describe its intention; Added prototypes
+	* kernel.h: Better describe its intention; Added prototypes
 	  __rt_allocauto() and __rt_freeauto().
-	* source/signal/post.c: Added ptr to int cast avoiding Norcroft compiler
+	* signal/post.c: Added ptr to int cast avoiding Norcroft compiler
 	  error.
-	* source/sys/_alloca.s: Exported __rt_allocauto() and __rt_freeauto()
+	* sys/_alloca.s: Exported __rt_allocauto() and __rt_freeauto()
 	  as aliases for alloca() and nop.  For Norcroft users.
 
 Sat Mar 26 23:32:09 2005  Alex Waugh  <alex@alexwaugh.com>
@@ -220,7 +225,7 @@ Mon Jan 24 16:44:19 2005  Peter Naulls  <peter@chocky.org>
 
 Sun Jan 23 21:27:23 2005  John Tytgat  <John.Tytgat@aaug.net>
 
-	* source/clib/features.h: More constify __program_name, ___program_name,
+	* features.h: More constify __program_name, ___program_name,
 	  __dynamic_da_name and prototyped ___dynamic_da_name.
 	* source/sys/_syslib.s: Defined ___dynamic_da_name.
 	* source/sys/mman.c (mmap): DA name is __dynamic_da_name when defined,
