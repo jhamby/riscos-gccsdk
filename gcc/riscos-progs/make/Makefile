@@ -31,10 +31,13 @@ OBJS = $(objdir)/riscos-progs/make/ar.o \
 	$(objdir)/riscos-progs/make/version.o \
 	$(objdir)/riscos-progs/make/vpath.o
 
-all:	$(bin_dir)/make$(exesfx)
+all:	$(bin_dir)/make$(exesfx) $(info_dir)/make
 
 $(bin_dir)/make$(exesfx):	$(OBJS)
 	$(CROSS_CC) -o $@ $(OBJS) -L$(objdir)/libiberty/$(STAGE) -liberty
+
+$(info_dir)/make:	doc/fdl.texi doc/make-stds.texi doc/make.texi
+	makeinfo --no-split --number-sections doc/make.texi -o $@ -I doc
 
 $(objdir)/riscos-progs/make/ar.o: ar.c
 $(objdir)/riscos-progs/make/arscan.o: arscan.c
