@@ -153,6 +153,8 @@ extern rtx    aof_pic_entry		PARAMS ((rtx));
 extern void   aof_dump_pic_table	PARAMS ((FILE *));
 extern char * aof_text_section		PARAMS ((void));
 extern char * aof_data_section		PARAMS ((void));
+extern char * aof_rodata_section		PARAMS ((void));
+extern char * aof_bss_section		PARAMS ((void));
 extern void   aof_add_import		PARAMS ((const char *));
 extern void   aof_delete_import		PARAMS ((const char *));
 extern void   aof_dump_imports		PARAMS ((FILE *));

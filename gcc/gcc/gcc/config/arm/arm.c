@@ -931,8 +931,11 @@ use_return_insn (iscond)
       /* Of if the function calls __builtin_eh_return () */
       || ARM_FUNC_TYPE (func_type) == ARM_FT_EXCEPTION_HANDLER
       /* Or if there is no frame pointer and there is a stack adjustment.  */
-      || ((arm_get_frame_size () + current_function_outgoing_args_size != 0)
-	  && !arm_apcs_frame_needed ()))
+      /* NAB++ */
+      || (current_function_calls_alloca && ! TARGET_APCS_FRAME)
+      || (current_function_outgoing_args_size && ! TARGET_APCS_FRAME)
+      || (arm_get_frame_size () && !arm_apcs_frame_needed ()))
+    /* NAB-- */
     return 0;
 
   saved_int_regs = arm_compute_save_reg_mask ();
@@ -7543,13 +7546,18 @@ arm_output_function_prologue (f, frame_size)
   if (IS_NESTED (func_type))
     asm_fprintf (f, "\t%@ Nested: function declared inside another function.\n");
     
-  asm_fprintf (f, "\t%@ args = %d, pretend = %d, frame = %d\n",
+  asm_fprintf (f, "\t%@ args = %d, pretend = %d, frame = %d, alloca = %d\n",
 	       current_function_args_size,
-	       current_function_pretend_args_size, frame_size);
+	       current_function_pretend_args_size, frame_size,
+	       current_function_calls_alloca);
 
   asm_fprintf (f, "\t%@ frame_needed = %d, uses_anonymous_args = %d\n",
 	       arm_apcs_frame_needed (),
 	       cfun->machine->uses_anonymous_args);
+
+  asm_fprintf (f, "\t%@ nonlocal_label = %d, nonlocal_goto = %d\n",
+	       current_function_has_nonlocal_label,
+	       current_function_has_nonlocal_goto);
 
   if (cfun->machine->lr_save_eliminated)
     asm_fprintf (f, "\t%@ link register save eliminated.\n");
@@ -8311,7 +8319,7 @@ arm_get_frame_size ()
   if (reload_completed)
     return cfun->machine->frame_size;
 
-  leaf = leaf_function_p ();
+  cfun->machine->leaf = leaf = leaf_function_p (); /* NAB++ */
 
   /* A leaf function does not need any stack alignment if it has nothing
      on the stack.  */
@@ -10460,7 +10468,7 @@ thumb_get_frame_size ()
   if (reload_completed)
     return cfun->machine->frame_size;
 
-  leaf = leaf_function_p ();
+  cfun->machine->leaf = leaf = leaf_function_p ();
 
   /* A leaf function does not need any stack alignment if it has nothing
      on the stack.  */
@@ -11314,6 +11322,29 @@ aof_data_section ()
   return buf;
 }
 
+static int arm_rodata_section_count = 1;
+
+char *
+aof_rodata_section ()
+{
+  static char buf[100];
+  sprintf (buf, "\tAREA |C$$rodata%d|, DATA, READONLY",
+	   arm_rodata_section_count++);
+  return buf;
+}
+
+static int arm_bss_section_count = 1;
+
+char *
+aof_bss_section ()
+{
+  static char buf[100];
+  sprintf (buf, "\tAREA |C$$bss%d|, DATA, NOINIT",
+	   arm_data_section_count++);
+  return buf;
+}
+
+
 /* The AOF assembler is religiously strict about declarations of
    imported and exported symbols, so that it is impossible to declare
    a function as imported near the beginning of the file, and then to
@@ -11376,8 +11407,8 @@ aof_dump_imports (f)
   if (arm_main_function)
     {
       text_section ();
-      fputs ("\tIMPORT __main\n", f);
-      fputs ("\tDCD __main\n", f);
+      fputs ("\tIMPORT |__main|\n", f);
+      fputs ("\tDCD |__main|\n", f);
     }
 
   /* Now dump the remaining imports.  */
