@@ -1176,7 +1176,7 @@ deps_output (pfile, string, spacer)
      Make Utility.  */
   if (strcmp (string, " \\\n  ") != 0)
     __riscosify (string, 0, __RISCOSIFY_DONT_TRUNCATE,
-                 riscos_string, sizeof (riscos_string));
+                 riscos_string, sizeof (riscos_string), NULL);
   else
     strcpy (riscos_string, string);
 
