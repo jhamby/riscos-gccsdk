@@ -3,13 +3,19 @@
 # Written by Nick Burrett <nick@dsvr.net>
 #
 
-INCLUDES = -I../libsupc++
+INCLUDES = -I . -I ./include -I../libsupc++ -I ../libstdc++
 libobjdir=$(objdir)/gcc-$(VERSION)/libjava
 JFLAGS=--encoding=UTF-8 -C -classpath '' -bootclasspath . -d $(libobjdir)
 ZIP=$(ux_bin_dir)/fastjar
 
 $(libobjdir)/%.class: %.java
 	$(CROSS_GCJ) -c $< $(JFLAGS)
+
+$(libobjdir)/%.o: %.cc
+	$(CROSS_CXX) -o $@ -c $< $(CROSS_CXXFLAGS) $(INCLUDES) $(CFL)
+
+$(libobjdir)/%.o: %.c
+	$(CROSS_CC) -o $@ -c $< $(CROSS_CFLAGS) $(INCLUDES) $(CFL)
 
 ifeq (${STAGE},stage1)
 bin_dir = $(ux_bin_dir)
@@ -19,8 +25,10 @@ bin_dir = $(ro_bin_dir)
 gcc_bin_dir = $(ro_gcc_bin_dir)
 endif
 
-all:	$(ux_gccpkg)/$(gn_share_dir)/libgcj.jar $(ro_gccpkg)/$(gn_share_dir)/jar/libgcj
-
+all:	$(ux_gccpkg)/$(gn_share_dir)/libgcj.jar \
+	$(ro_gccpkg)/$(gn_share_dir)/jar/libgcj \
+	$(ux_gcc_bin_dir)/$(TRG)/libgcj.o \
+	$(ro_gcc_bin_dir)/$(TRG)/o/libgcj
 
 lib_org_w3c_dom_la_SOURCES = $(libobjdir)/org/w3c/dom/Attr.class \
 $(libobjdir)/org/w3c/dom/CDATASection.class \
@@ -98,13 +106,13 @@ x_nat_headers = $(x_java_source_files:.java=.h)
 
 $(ordinary_nat_headers) $(x_nat_headers): %.h: %.class
 
-java/lang/ClassLoader.h: java/lang/ClassLoader.class
+java/lang/ClassLoader.h: $(libobjdir)/java/lang/ClassLoader.class
 	$(CROSS_GCJH) -classpath '' -bootclasspath $(libobjdir) \
 		-friend 'jclass _Jv_FindClass (_Jv_Utf8Const *name, java::lang::ClassLoader *loader);' \
 		-friend 'void _Jv_RunMain (jclass klass, const char *name, int argc, const char **argv, bool is_jar);' \
-		java/lang/ClassLoader.class
+		java/lang/ClassLoader
 
-java/lang/Thread.h: java/lang/Thread.class
+java/lang/Thread.h: $(libobjdir)/java/lang/Thread.class
 	$(CROSS_GCJH) -classpath '' -bootclasspath $(libobjdir) \
 		-prepend 'class _Jv_JNIEnv;' \
 		-prepend '#define _JV_NOT_OWNER 1' \
@@ -116,9 +124,9 @@ java/lang/Thread.h: java/lang/Thread.class
 		-friend 'java::lang::Thread* _Jv_AttachCurrentThread(jstring name, java::lang::ThreadGroup* group);' \
 		-friend 'java::lang::Thread* _Jv_AttachCurrentThreadAsDaemon(jstring name, java::lang::ThreadGroup* group);' \
 		-friend 'jint _Jv_DetachCurrentThread ();' \
-		$(basename $<)
+		java/lang/Thread
 
-java/lang/String.h: java/lang/String.class
+java/lang/String.h: $(libobjdir)/java/lang/String.class
 	$(CROSS_GCJH) -classpath '' -bootclasspath $(libobjdir) \
 	    -friend 'jchar* _Jv_GetStringChars (jstring str);' \
 	    -friend 'jstring* _Jv_StringFindSlot (jchar*, jint, jint);' \
@@ -126,52 +134,52 @@ java/lang/String.h: java/lang/String.class
 	    -friend 'jstring _Jv_NewStringUtf8Const (_Jv_Utf8Const* str);' \
 	    -friend 'jstring _Jv_NewStringLatin1 (const char*, jsize);' \
 	    -friend 'jstring _Jv_AllocString (jsize);' \
-	    $(basename $<)
+	    java/lang/String
 
-java/lang/reflect/Constructor.h: java/lang/reflect/Constructor.class
+java/lang/reflect/Constructor.h: $(libobjdir)/java/lang/reflect/Constructor.class
 	$(CROSS_GCJH) -classpath '' -bootclasspath $(libobjdir) \
 	    -friend 'jmethodID _Jv_FromReflectedConstructor (java::lang::reflect::Constructor *);' \
 	    -friend 'class java::lang::Class;' \
 	    -friend 'jobject _Jv_JNI_ToReflectedMethod (_Jv_JNIEnv *, jclass, jmethodID, jboolean);' \
-	    $(basename $<)
+	    java/lang/reflect/Constructor
 
-java/lang/reflect/Field.h: java/lang/reflect/Field.class
+java/lang/reflect/Field.h: $(libobjdir)/java/lang/reflect/Field.class
 	$(CROSS_GCJH) -classpath '' -bootclasspath $(libobjdir) \
 	    -friend 'jfieldID _Jv_FromReflectedField (java::lang::reflect::Field *);' \
 	    -friend 'jobject _Jv_JNI_ToReflectedField (_Jv_JNIEnv*, jclass, jfieldID, jboolean);' \
 	    -friend 'class java::lang::Class;' \
-	    $(basename $<)
+	    java/lang/reflect/Field
 
-java/lang/reflect/Method.h: java/lang/reflect/Method.class
+java/lang/reflect/Method.h: $(libobjdir)/java/lang/reflect/Method.class
 	$(CROSS_GCJH) -classpath '' -bootclasspath $(libobjdir) \
 	    -friend 'jmethodID _Jv_FromReflectedMethod (java::lang::reflect::Method *);' \
 	    -friend 'class java::lang::Class;' \
 	    -friend 'class java::io::ObjectInputStream;' \
 	    -friend 'jobject _Jv_JNI_ToReflectedMethod (_Jv_JNIEnv *, jclass, jmethodID, jboolean);' \
-	    $(basename $<)
+	    java/lang/reflect/Method
 
-java/lang/reflect/Proxy.h: java/lang/reflect/Proxy.class
+java/lang/reflect/Proxy.h: $(libobjdir)/java/lang/reflect/Proxy.class
 	$(CROSS_GCJH) -classpath '' -bootclasspath $(libobjdir) \
-	    $(basename $<)
+	    java/lang/reflect/Proxy
 
-java/lang/reflect/Proxy$$ProxyData.h: java/lang/reflect/Proxy.class
+java/lang/reflect/Proxy$$ProxyData.h: $(libobjdir)/java/lang/reflect/Proxy.class
 	$(CROSS_GCJH) -classpath '' -bootclasspath $(libobjdir) \
 	'java/lang/reflect/Proxy$$ProxyData'
 
-java/lang/reflect/Proxy$$ProxyType.h: java/lang/reflect/Proxy.class
+java/lang/reflect/Proxy$$ProxyType.h: $(libobjdir)/java/lang/reflect/Proxy.class
 	$(CROSS_GCJH) -classpath '' -bootclasspath $(libobjdir) \
 	'java/lang/reflect/Proxy$$ProxyType'
 
-gnu/gcj/runtime/VMClassLoader.h: gnu/gcj/runtime/VMClassLoader.class
+gnu/gcj/runtime/VMClassLoader.h: $(libobjdir)/gnu/gcj/runtime/VMClassLoader.class
 	$(CROSS_GCJH) -classpath '' -bootclasspath $(libobjdir) \
 	    -friend 'class ::java::lang::ClassLoader;' \
-	    $(basename $<)
+	    gnu/gcj/runtime/VMClassLoader
 
-java/io/ObjectInputStream$$GetField.h: java/io/ObjectInputStream.class
+java/io/ObjectInputStream$$GetField.h: $(libobjdir)/java/io/ObjectInputStream.class
 	$(CROSS_GCJH) -classpath '' -bootclasspath $(libobjdir) \
 	'java/io/ObjectInputStream$$GetField'
 
-java/io/ObjectOutputStream$$PutField.h: java/io/ObjectOutputStream.class
+java/io/ObjectOutputStream$$PutField.h: $(libobjdir)/java/io/ObjectOutputStream.class
 	$(CROSS_GCJH) -classpath '' -bootclasspath $(libobjdir) \
 	'java/io/ObjectOutputStream$$PutField'
 
@@ -1904,68 +1912,68 @@ c_source_files = \
 
 ## This lists all the C++ source files in subdirectories.
 nat_source_files = \
-$(libobjdir)/gnu/gcj/natCore.cc \
-$(libobjdir)/gnu/gcj/convert/JIS0208_to_Unicode.cc \
-$(libobjdir)/gnu/gcj/convert/JIS0212_to_Unicode.cc \
-$(libobjdir)/gnu/gcj/convert/Unicode_to_JIS.cc \
-$(libobjdir)/gnu/gcj/convert/natIconv.cc \
-$(libobjdir)/gnu/gcj/convert/natInput_EUCJIS.cc \
-$(libobjdir)/gnu/gcj/convert/natInput_SJIS.cc \
-$(libobjdir)/gnu/gcj/convert/natOutput_EUCJIS.cc \
-$(libobjdir)/gnu/gcj/convert/natOutput_SJIS.cc \
-$(libobjdir)/gnu/gcj/io/natSimpleSHSStream.cc \
-$(libobjdir)/gnu/gcj/io/shs.cc \
-$(libobjdir)/gnu/gcj/protocol/core/natCoreInputStream.cc \
-$(libobjdir)/gnu/gcj/runtime/natFinalizerThread.cc \
-$(libobjdir)/gnu/gcj/runtime/natFirstThread.cc \
-$(libobjdir)/gnu/gcj/runtime/natNameFinder.cc \
-$(libobjdir)/gnu/gcj/runtime/natSharedLibLoader.cc \
-$(libobjdir)/gnu/gcj/runtime/natStackTrace.cc \
-$(libobjdir)/gnu/gcj/runtime/natStringBuffer.cc \
-$(libobjdir)/gnu/gcj/runtime/natVMClassLoader.cc \
-$(libobjdir)/gnu/java/nio/natByteBufferImpl.cc \
-$(libobjdir)/gnu/java/nio/natCharBufferImpl.cc \
-$(libobjdir)/gnu/java/nio/natDoubleBufferImpl.cc \
-$(libobjdir)/gnu/java/nio/natFileChannelImpl.cc \
-$(libobjdir)/gnu/java/nio/natFloatBufferImpl.cc \
-$(libobjdir)/gnu/java/nio/natIntBufferImpl.cc \
-$(libobjdir)/gnu/java/nio/natLongBufferImpl.cc \
-$(libobjdir)/gnu/java/nio/natSelectorImpl.cc \
-$(libobjdir)/gnu/java/nio/natShortBufferImpl.cc \
-$(libobjdir)/gnu/java/nio/natSocketChannelImpl.cc \
-$(libobjdir)/java/io/natFile.cc \
-$(libobjdir)/java/io/natFileDescriptor.cc \
-$(libobjdir)/java/io/natObjectInputStream.cc \
-$(libobjdir)/java/io/natVMObjectStreamClass.cc \
-$(libobjdir)/java/lang/natCharacter.cc \
-$(libobjdir)/java/lang/natClass.cc \
-$(libobjdir)/java/lang/natClassLoader.cc \
-$(libobjdir)/java/lang/natConcreteProcess.cc \
-$(libobjdir)/java/lang/natDouble.cc \
-$(libobjdir)/java/lang/natFloat.cc \
-$(libobjdir)/java/lang/natMath.cc \
-$(libobjdir)/java/lang/natObject.cc \
-$(libobjdir)/java/lang/natRuntime.cc	\
-$(libobjdir)/java/lang/natString.cc \
-$(libobjdir)/java/lang/natStringBuffer.cc \
-$(libobjdir)/java/lang/natSystem.cc \
-$(libobjdir)/java/lang/natThread.cc \
-$(libobjdir)/java/lang/natVMSecurityManager.cc \
-$(libobjdir)/java/lang/ref/natReference.cc \
-$(libobjdir)/java/lang/reflect/natArray.cc \
-$(libobjdir)/java/lang/reflect/natConstructor.cc \
-$(libobjdir)/java/lang/reflect/natField.cc \
-$(libobjdir)/java/lang/reflect/natMethod.cc \
-$(libobjdir)/java/lang/reflect/natProxy.cc \
-$(libobjdir)/java/net/natNetworkInterface.cc \
-$(libobjdir)/java/net/natInetAddress.cc \
-$(libobjdir)/java/net/natPlainDatagramSocketImpl.cc \
-$(libobjdir)/java/net/natPlainSocketImpl.cc \
-$(libobjdir)/java/text/natCollator.cc \
-$(libobjdir)/java/util/natResourceBundle.cc \
-$(libobjdir)/java/util/natTimeZone.cc \
-$(libobjdir)/java/util/zip/natDeflater.cc \
-$(libobjdir)/java/util/zip/natInflater.cc
+$(libobjdir)/gnu/gcj/natCore.o \
+$(libobjdir)/gnu/gcj/convert/JIS0208_to_Unicode.o \
+$(libobjdir)/gnu/gcj/convert/JIS0212_to_Unicode.o \
+$(libobjdir)/gnu/gcj/convert/Unicode_to_JIS.o \
+$(libobjdir)/gnu/gcj/convert/natIconv.o \
+$(libobjdir)/gnu/gcj/convert/natInput_EUCJIS.o \
+$(libobjdir)/gnu/gcj/convert/natInput_SJIS.o \
+$(libobjdir)/gnu/gcj/convert/natOutput_EUCJIS.o \
+$(libobjdir)/gnu/gcj/convert/natOutput_SJIS.o \
+$(libobjdir)/gnu/gcj/io/natSimpleSHSStream.o \
+$(libobjdir)/gnu/gcj/io/shs.o \
+$(libobjdir)/gnu/gcj/protocol/core/natCoreInputStream.o \
+$(libobjdir)/gnu/gcj/runtime/natFinalizerThread.o \
+$(libobjdir)/gnu/gcj/runtime/natFirstThread.o \
+$(libobjdir)/gnu/gcj/runtime/natNameFinder.o \
+$(libobjdir)/gnu/gcj/runtime/natSharedLibLoader.o \
+$(libobjdir)/gnu/gcj/runtime/natStackTrace.o \
+$(libobjdir)/gnu/gcj/runtime/natStringBuffer.o \
+$(libobjdir)/gnu/gcj/runtime/natVMClassLoader.o \
+$(libobjdir)/gnu/java/nio/natByteBufferImpl.o \
+$(libobjdir)/gnu/java/nio/natCharBufferImpl.o \
+$(libobjdir)/gnu/java/nio/natDoubleBufferImpl.o \
+$(libobjdir)/gnu/java/nio/natFileChannelImpl.o \
+$(libobjdir)/gnu/java/nio/natFloatBufferImpl.o \
+$(libobjdir)/gnu/java/nio/natIntBufferImpl.o \
+$(libobjdir)/gnu/java/nio/natLongBufferImpl.o \
+$(libobjdir)/gnu/java/nio/natSelectorImpl.o \
+$(libobjdir)/gnu/java/nio/natShortBufferImpl.o \
+$(libobjdir)/gnu/java/nio/natSocketChannelImpl.o \
+$(libobjdir)/java/io/natFile.o \
+$(libobjdir)/java/io/natFileDescriptor.o \
+$(libobjdir)/java/io/natObjectInputStream.o \
+$(libobjdir)/java/io/natVMObjectStreamClass.o \
+$(libobjdir)/java/lang/natCharacter.o \
+$(libobjdir)/java/lang/natClass.o \
+$(libobjdir)/java/lang/natClassLoader.o \
+$(libobjdir)/java/lang/natConcreteProcess.o \
+$(libobjdir)/java/lang/natDouble.o \
+$(libobjdir)/java/lang/natFloat.o \
+$(libobjdir)/java/lang/natMath.o \
+$(libobjdir)/java/lang/natObject.o \
+$(libobjdir)/java/lang/natRuntime.o	\
+$(libobjdir)/java/lang/natString.o \
+$(libobjdir)/java/lang/natStringBuffer.o \
+$(libobjdir)/java/lang/natSystem.o \
+$(libobjdir)/java/lang/natThread.o \
+$(libobjdir)/java/lang/natVMSecurityManager.o \
+$(libobjdir)/java/lang/ref/natReference.o \
+$(libobjdir)/java/lang/reflect/natArray.o \
+$(libobjdir)/java/lang/reflect/natConstructor.o \
+$(libobjdir)/java/lang/reflect/natField.o \
+$(libobjdir)/java/lang/reflect/natMethod.o \
+$(libobjdir)/java/lang/reflect/natProxy.o \
+$(libobjdir)/java/net/natNetworkInterface.o \
+$(libobjdir)/java/net/natInetAddress.o \
+$(libobjdir)/java/net/natPlainDatagramSocketImpl.o \
+$(libobjdir)/java/net/natPlainSocketImpl.o \
+$(libobjdir)/java/text/natCollator.o \
+$(libobjdir)/java/util/natResourceBundle.o \
+$(libobjdir)/java/util/natTimeZone.o \
+$(libobjdir)/java/util/zip/natDeflater.o \
+$(libobjdir)/java/util/zip/natInflater.o
 
 x_java_source_files = \
 $(libobjdir)/gnu/gcj/xlib/Clip.class \
@@ -2002,26 +2010,37 @@ $(libobjdir)/gnu/awt/xlib/XPanelPeer.class \
 $(libobjdir)/gnu/awt/xlib/XToolkit.class
 
 x_nat_source_files = \
-$(libobjdir)/gnu/gcj/xlib/natClip.cc \
-$(libobjdir)/gnu/gcj/xlib/natColormap.cc \
-$(libobjdir)/gnu/gcj/xlib/natDisplay.cc \
-$(libobjdir)/gnu/gcj/xlib/natDrawable.cc \
-$(libobjdir)/gnu/gcj/xlib/natFont.cc \
-$(libobjdir)/gnu/gcj/xlib/natGC.cc \
-$(libobjdir)/gnu/gcj/xlib/natPixmap.cc \
-$(libobjdir)/gnu/gcj/xlib/natScreen.cc \
-$(libobjdir)/gnu/gcj/xlib/natVisual.cc \
-$(libobjdir)/gnu/gcj/xlib/natWMSizeHints.cc \
-$(libobjdir)/gnu/gcj/xlib/natWindow.cc \
-$(libobjdir)/gnu/gcj/xlib/natWindowAttributes.cc \
-$(libobjdir)/gnu/gcj/xlib/natXAnyEvent.cc \
-$(libobjdir)/gnu/gcj/xlib/natXButtonEvent.cc \
-$(libobjdir)/gnu/gcj/xlib/natXColor.cc \
-$(libobjdir)/gnu/gcj/xlib/natXConfigureEvent.cc \
-$(libobjdir)/gnu/gcj/xlib/natXException.cc \
-$(libobjdir)/gnu/gcj/xlib/natXExposeEvent.cc \
-$(libobjdir)/gnu/gcj/xlib/natXImage.cc \
-$(libobjdir)/gnu/gcj/xlib/natXUnmapEvent.cc
+$(libobjdir)/gnu/gcj/xlib/natClip.o \
+$(libobjdir)/gnu/gcj/xlib/natColormap.o \
+$(libobjdir)/gnu/gcj/xlib/natDisplay.o \
+$(libobjdir)/gnu/gcj/xlib/natDrawable.o \
+$(libobjdir)/gnu/gcj/xlib/natFont.o \
+$(libobjdir)/gnu/gcj/xlib/natGC.o \
+$(libobjdir)/gnu/gcj/xlib/natPixmap.o \
+$(libobjdir)/gnu/gcj/xlib/natScreen.o \
+$(libobjdir)/gnu/gcj/xlib/natVisual.o \
+$(libobjdir)/gnu/gcj/xlib/natWMSizeHints.o \
+$(libobjdir)/gnu/gcj/xlib/natWindow.o \
+$(libobjdir)/gnu/gcj/xlib/natWindowAttributes.o \
+$(libobjdir)/gnu/gcj/xlib/natXAnyEvent.o \
+$(libobjdir)/gnu/gcj/xlib/natXButtonEvent.o \
+$(libobjdir)/gnu/gcj/xlib/natXColor.o \
+$(libobjdir)/gnu/gcj/xlib/natXConfigureEvent.o \
+$(libobjdir)/gnu/gcj/xlib/natXException.o \
+$(libobjdir)/gnu/gcj/xlib/natXExposeEvent.o \
+$(libobjdir)/gnu/gcj/xlib/natXImage.o \
+$(libobjdir)/gnu/gcj/xlib/natXUnmapEvent.o
+
+
+libgcj_objs = \
+$(libobjdir)/prims.o \
+$(libobjdir)/jni.o \
+$(libobjdir)/exception.o \
+$(libobjdir)/resolve.o \
+$(libobjdir)/defineclass.o \
+$(libobjdir)/interpret.o \
+$(libobjdir)/verify.o \
+$(nat_source_files)
 
 
 all_java_source_files = \
@@ -2042,6 +2061,12 @@ $(ux_gccpkg)/$(gn_share_dir)/libgcj.jar: $(all_java_class_files)
 
 $(ro_gccpkg)/$(gn_share_dir)/jar/libgcj: $(all_java_class_files)
 	$(ZIP) -cf $@ -C $(libobjdir) gnu -C $(libobjdir) java -C $(libobjdir) javax -C $(libobjdir) org
+
+$(ux_gcc_bin_dir)/$(TRG)/libgcj.o: $(libgcj_objs)
+	$(CROSS_AR) $(CROSS_AR_FLAGS) $@ $(libgcj_objs)
+
+$(ro_gcc_bin_dir)/$(TRG)/o/libgcj: $(libgcj_objs)
+	$(CROSS_AR) $(CROSS_AR_FLAGS) $@ $(libgcj_objs)
 
 ## ################################################################
 
@@ -3809,3 +3834,181 @@ $(libobjdir)/org/xml/sax/helpers/ParserFactory.class: org/xml/sax/helpers/Parser
 $(libobjdir)/org/xml/sax/helpers/XMLFilterImpl.class: org/xml/sax/helpers/XMLFilterImpl.java
 $(libobjdir)/org/xml/sax/helpers/XMLReaderAdapter.class: org/xml/sax/helpers/XMLReaderAdapter.java
 $(libobjdir)/org/xml/sax/helpers/XMLReaderFactory.class: org/xml/sax/helpers/XMLReaderFactory.java
+
+$(libobjdir)/boehm.o: boehm.cc
+$(libobjdir)/defineclass.o: defineclass.cc
+$(libobjdir)/exception.o: exception.cc
+$(libobjdir)/gij.o: gij.cc gcj/cni.h java/lang/Object.h gcj/javaprims.h \
+  gcj/libgcj-config.h java/lang/Class.h
+$(libobjdir)/interpret.o: interpret.cc
+$(libobjdir)/jni.o: jni.cc
+$(libobjdir)/no-threads.o: no-threads.cc
+$(libobjdir)/nogc.o: nogc.cc
+$(libobjdir)/posix-threads.o: posix-threads.cc
+$(libobjdir)/posix.o: posix.cc
+
+$(libobjdir)/prims.o: prims.cc include/config.h include/platform.h \
+  java/lang/Object.h gcj/javaprims.h gcj/libgcj-config.h \
+  java/lang/Class.h java/lang/String.h java/net/URL.h \
+  java/lang/reflect/Modifier.h java/security/ProtectionDomain.h \
+  java/lang/Package.h gnu/gcj/runtime/StackTrace.h gcj/array.h \
+  java/util/Properties.h java/net/InetAddress.h \
+  include/java-assert.h include/java-threads.h include/java-gc.h \
+  gcj/field.h java/lang/reflect/Field.h java/lang/reflect/Modifier.h \
+  gnu/gcj/RawData.h include/jvmpi.h include/jni.h \
+  gnu/gcj/runtime/JNIWeakRef.h include/java-signal.h sys/syscall.h \
+  java/lang/ThreadGroup.h include/java-props.h java/lang/ClassLoader.h \
+  java/lang/Runtime.h java/lang/String.h java/lang/Thread.h \
+  java/lang/ThreadGroup.h java/lang/ArrayIndexOutOfBoundsException.h \
+  java/lang/ArithmeticException.h java/lang/ClassFormatError.h \
+  java/lang/InternalError.h java/lang/NegativeArraySizeException.h \
+  java/lang/NullPointerException.h java/lang/OutOfMemoryError.h \
+  java/lang/System.h java/lang/VMThrowable.h java/lang/reflect/Modifier.h \
+  java/io/PrintStream.h java/lang/UnsatisfiedLinkError.h \
+  java/lang/VirtualMachineError.h gnu/gcj/runtime/VMClassLoader.h \
+  gnu/gcj/runtime/FinalizerThread.h gnu/gcj/runtime/FirstThread.h ltdl.h
+
+$(libobjdir)/resolve.o: resolve.cc
+$(libobjdir)/verify.o: verify.cc
+$(libobjdir)/win32-threads.o: win32-threads.cc
+$(libobjdir)/win32.o: win32.cc
+$(libobjdir)/gnu/awt/gtk/gtkcommon.o: gnu/awt/gtk/gtkcommon.cc
+$(libobjdir)/gnu/awt/gtk/natGtkButtonPeer.o: gnu/awt/gtk/natGtkButtonPeer.cc
+$(libobjdir)/gnu/awt/gtk/natGtkComponentPeer.o: gnu/awt/gtk/natGtkComponentPeer.cc
+$(libobjdir)/gnu/awt/gtk/natGtkContainerPeer.o: gnu/awt/gtk/natGtkContainerPeer.cc
+$(libobjdir)/gnu/awt/gtk/natGtkFramePeer.o: gnu/awt/gtk/natGtkFramePeer.cc
+$(libobjdir)/gnu/awt/gtk/natGtkLabelPeer.o: gnu/awt/gtk/natGtkLabelPeer.cc
+$(libobjdir)/gnu/awt/gtk/natGtkMainThread.o: gnu/awt/gtk/natGtkMainThread.cc
+$(libobjdir)/gnu/awt/gtk/natGtkToolkit.o: gnu/awt/gtk/natGtkToolkit.cc
+$(libobjdir)/gnu/awt/gtk/natGtkWindowPeer.o: gnu/awt/gtk/natGtkWindowPeer.cc
+$(libobjdir)/gnu/gcj/convert/JIS0208_to_Unicode.o: gnu/gcj/convert/JIS0208_to_Unicode.cc
+$(libobjdir)/gnu/gcj/convert/JIS0212_to_Unicode.o: gnu/gcj/convert/JIS0212_to_Unicode.cc
+$(libobjdir)/gnu/gcj/convert/Unicode_to_JIS.o: gnu/gcj/convert/Unicode_to_JIS.cc
+$(libobjdir)/gnu/gcj/convert/natIconv.o: gnu/gcj/convert/natIconv.cc
+$(libobjdir)/gnu/gcj/convert/natInput_EUCJIS.o: gnu/gcj/convert/natInput_EUCJIS.cc
+$(libobjdir)/gnu/gcj/convert/natInput_SJIS.o: gnu/gcj/convert/natInput_SJIS.cc
+$(libobjdir)/gnu/gcj/convert/natOutput_EUCJIS.o: gnu/gcj/convert/natOutput_EUCJIS.cc
+$(libobjdir)/gnu/gcj/convert/natOutput_SJIS.o: gnu/gcj/convert/natOutput_SJIS.cc
+$(libobjdir)/gnu/gcj/natCore.o: gnu/gcj/natCore.cc
+$(libobjdir)/gnu/gcj/io/natSimpleSHSStream.o: gnu/gcj/io/natSimpleSHSStream.cc
+$(libobjdir)/gnu/gcj/io/shs.o: gnu/gcj/io/shs.cc
+$(libobjdir)/gnu/gcj/protocol/core/natCoreInputStream.o: gnu/gcj/protocol/core/natCoreInputStream.cc
+$(libobjdir)/gnu/gcj/runtime/natFinalizerThread.o: gnu/gcj/runtime/natFinalizerThread.cc
+$(libobjdir)/gnu/gcj/runtime/natFirstThread.o: gnu/gcj/runtime/natFirstThread.cc
+$(libobjdir)/gnu/gcj/runtime/natNameFinder.o: gnu/gcj/runtime/natNameFinder.cc
+$(libobjdir)/gnu/gcj/runtime/natSharedLibLoader.o: gnu/gcj/runtime/natSharedLibLoader.cc
+$(libobjdir)/gnu/gcj/runtime/natStackTrace.o: gnu/gcj/runtime/natStackTrace.cc
+$(libobjdir)/gnu/gcj/runtime/natStringBuffer.o: gnu/gcj/runtime/natStringBuffer.cc
+$(libobjdir)/gnu/gcj/runtime/natVMClassLoader.o: gnu/gcj/runtime/natVMClassLoader.cc
+$(libobjdir)/gnu/gcj/xlib/natClip.o: gnu/gcj/xlib/natClip.cc
+$(libobjdir)/gnu/gcj/xlib/natColormap.o: gnu/gcj/xlib/natColormap.cc
+$(libobjdir)/gnu/gcj/xlib/natDisplay.o: gnu/gcj/xlib/natDisplay.cc
+$(libobjdir)/gnu/gcj/xlib/natDrawable.o: gnu/gcj/xlib/natDrawable.cc
+$(libobjdir)/gnu/gcj/xlib/natFont.o: gnu/gcj/xlib/natFont.cc
+$(libobjdir)/gnu/gcj/xlib/natGC.o: gnu/gcj/xlib/natGC.cc
+$(libobjdir)/gnu/gcj/xlib/natPixmap.o: gnu/gcj/xlib/natPixmap.cc
+$(libobjdir)/gnu/gcj/xlib/natScreen.o: gnu/gcj/xlib/natScreen.cc
+$(libobjdir)/gnu/gcj/xlib/natVisual.o: gnu/gcj/xlib/natVisual.cc
+$(libobjdir)/gnu/gcj/xlib/natWMSizeHints.o: gnu/gcj/xlib/natWMSizeHints.cc
+$(libobjdir)/gnu/gcj/xlib/natWindow.o: gnu/gcj/xlib/natWindow.cc
+$(libobjdir)/gnu/gcj/xlib/natWindowAttributes.o: gnu/gcj/xlib/natWindowAttributes.cc
+$(libobjdir)/gnu/gcj/xlib/natXAnyEvent.o: gnu/gcj/xlib/natXAnyEvent.cc
+$(libobjdir)/gnu/gcj/xlib/natXButtonEvent.o: gnu/gcj/xlib/natXButtonEvent.cc
+$(libobjdir)/gnu/gcj/xlib/natXColor.o: gnu/gcj/xlib/natXColor.cc
+$(libobjdir)/gnu/gcj/xlib/natXConfigureEvent.o: gnu/gcj/xlib/natXConfigureEvent.cc
+$(libobjdir)/gnu/gcj/xlib/natXException.o: gnu/gcj/xlib/natXException.cc
+$(libobjdir)/gnu/gcj/xlib/natXExposeEvent.o: gnu/gcj/xlib/natXExposeEvent.cc
+$(libobjdir)/gnu/gcj/xlib/natXImage.o: gnu/gcj/xlib/natXImage.cc
+$(libobjdir)/gnu/gcj/xlib/natXUnmapEvent.o: gnu/gcj/xlib/natXUnmapEvent.cc
+$(libobjdir)/gnu/java/nio/natByteBufferImpl.o: gnu/java/nio/natByteBufferImpl.cc
+$(libobjdir)/gnu/java/nio/natCharBufferImpl.o: gnu/java/nio/natCharBufferImpl.cc
+$(libobjdir)/gnu/java/nio/natDoubleBufferImpl.o: gnu/java/nio/natDoubleBufferImpl.cc
+$(libobjdir)/gnu/java/nio/natFileChannelImpl.o: gnu/java/nio/natFileChannelImpl.cc
+$(libobjdir)/gnu/java/nio/natFloatBufferImpl.o: gnu/java/nio/natFloatBufferImpl.cc
+$(libobjdir)/gnu/java/nio/natIntBufferImpl.o: gnu/java/nio/natIntBufferImpl.cc
+$(libobjdir)/gnu/java/nio/natLongBufferImpl.o: gnu/java/nio/natLongBufferImpl.cc
+$(libobjdir)/gnu/java/nio/natSelectorImpl.o: gnu/java/nio/natSelectorImpl.cc
+$(libobjdir)/gnu/java/nio/natShortBufferImpl.o: gnu/java/nio/natShortBufferImpl.cc
+$(libobjdir)/gnu/java/nio/natSocketChannelImpl.o: gnu/java/nio/natSocketChannelImpl.cc
+$(libobjdir)/java/io/natFileDescriptorEcos.o: java/io/natFileDescriptorEcos.cc
+$(libobjdir)/java/io/natFileDescriptorPosix.o: java/io/natFileDescriptorPosix.cc
+$(libobjdir)/java/io/natFileDescriptorWin32.o: java/io/natFileDescriptorWin32.cc
+$(libobjdir)/java/io/natFilePosix.o: java/io/natFilePosix.cc
+$(libobjdir)/java/io/natFileWin32.o: java/io/natFileWin32.cc
+$(libobjdir)/java/io/natObjectInputStream.o: java/io/natObjectInputStream.cc
+$(libobjdir)/java/io/natVMObjectStreamClass.o: java/io/natVMObjectStreamClass.cc
+$(libobjdir)/java/lang/ref/natReference.o: java/lang/ref/natReference.cc
+$(libobjdir)/java/lang/natCharacter.o: java/lang/natCharacter.cc
+$(libobjdir)/java/lang/natClass.o: java/lang/natClass.cc
+$(libobjdir)/java/lang/natClassLoader.o: java/lang/natClassLoader.cc
+$(libobjdir)/java/lang/natDouble.o: java/lang/natDouble.cc
+$(libobjdir)/java/lang/natEcosProcess.o: java/lang/natEcosProcess.cc
+$(libobjdir)/java/lang/natFloat.o: java/lang/natFloat.cc
+$(libobjdir)/java/lang/natMath.o: java/lang/natMath.cc
+$(libobjdir)/java/lang/natObject.o: java/lang/natObject.cc
+$(libobjdir)/java/lang/natPosixProcess.o: java/lang/natPosixProcess.cc
+$(libobjdir)/java/lang/natRuntime.o: java/lang/natRuntime.cc
+$(libobjdir)/java/lang/natString.o: java/lang/natString.cc
+$(libobjdir)/java/lang/natStringBuffer.o: java/lang/natStringBuffer.cc
+$(libobjdir)/java/lang/natSystem.o: java/lang/natSystem.cc
+$(libobjdir)/java/lang/natThread.o: java/lang/natThread.cc
+$(libobjdir)/java/lang/natVMSecurityManager.o: java/lang/natVMSecurityManager.cc
+$(libobjdir)/java/lang/natWin32Process.o: java/lang/natWin32Process.cc
+$(libobjdir)/java/lang/reflect/natArray.o: java/lang/reflect/natArray.cc
+$(libobjdir)/java/lang/reflect/natConstructor.o: java/lang/reflect/natConstructor.cc
+$(libobjdir)/java/lang/reflect/natField.o: java/lang/reflect/natField.cc
+$(libobjdir)/java/lang/reflect/natMethod.o: java/lang/reflect/natMethod.cc
+$(libobjdir)/java/lang/reflect/natProxy.o: java/lang/reflect/natProxy.cc
+$(libobjdir)/java/net/natInetAddress.o: java/net/natInetAddress.cc
+$(libobjdir)/java/net/natNetworkInterface.o: java/net/natNetworkInterface.cc
+$(libobjdir)/java/net/natPlainDatagramSocketImpl.o: java/net/natPlainDatagramSocketImpl.cc
+$(libobjdir)/java/net/natPlainSocketImpl.o: java/net/natPlainSocketImpl.cc
+$(libobjdir)/java/text/natCollator.o: java/text/natCollator.cc
+$(libobjdir)/java/util/zip/natDeflater.o: java/util/zip/natDeflater.cc
+$(libobjdir)/java/util/zip/natInflater.o: java/util/zip/natInflater.cc
+$(libobjdir)/java/util/natResourceBundle.o: java/util/natResourceBundle.cc
+$(libobjdir)/java/util/natTimeZone.o: java/util/natTimeZone.cc
+
+$(libobjdir)/gnu/gcj/convert/gen-from-JIS.o: gnu/gcj/convert/gen-from-JIS.c
+$(libobjdir)/gnu/gcj/convert/make-trie.o: gnu/gcj/convert/make-trie.c
+$(libobjdir)/java/lang/dtoa.o: java/lang/dtoa.c
+$(libobjdir)/java/lang/e_acos.o: java/lang/e_acos.c
+$(libobjdir)/java/lang/e_asin.o: java/lang/e_asin.c
+$(libobjdir)/java/lang/e_atan2.o: java/lang/e_atan2.c
+$(libobjdir)/java/lang/e_exp.o: java/lang/e_exp.c
+$(libobjdir)/java/lang/e_fmod.o: java/lang/e_fmod.c
+$(libobjdir)/java/lang/e_log.o: java/lang/e_log.c
+$(libobjdir)/java/lang/e_pow.o: java/lang/e_pow.c
+$(libobjdir)/java/lang/e_rem_pio2.o: java/lang/e_rem_pio2.c
+$(libobjdir)/java/lang/e_remainder.o: java/lang/e_remainder.c
+$(libobjdir)/java/lang/e_scalb.o: java/lang/e_scalb.c
+$(libobjdir)/java/lang/e_sqrt.o: java/lang/e_sqrt.c
+$(libobjdir)/java/lang/k_cos.o: java/lang/k_cos.c
+$(libobjdir)/java/lang/k_rem_pio2.o: java/lang/k_rem_pio2.c
+$(libobjdir)/java/lang/k_sin.o: java/lang/k_sin.c
+$(libobjdir)/java/lang/k_tan.o: java/lang/k_tan.c
+$(libobjdir)/java/lang/mprec.o: java/lang/mprec.c
+$(libobjdir)/java/lang/s_atan.o: java/lang/s_atan.c
+$(libobjdir)/java/lang/s_ceil.o: java/lang/s_ceil.c
+$(libobjdir)/java/lang/s_copysign.o: java/lang/s_copysign.c
+$(libobjdir)/java/lang/s_cos.o: java/lang/s_cos.c
+$(libobjdir)/java/lang/s_fabs.o: java/lang/s_fabs.c
+$(libobjdir)/java/lang/s_floor.o: java/lang/s_floor.c
+$(libobjdir)/java/lang/s_rint.o: java/lang/s_rint.c
+$(libobjdir)/java/lang/s_scalbn.o: java/lang/s_scalbn.c
+$(libobjdir)/java/lang/s_sin.o: java/lang/s_sin.c
+$(libobjdir)/java/lang/s_tan.o: java/lang/s_tan.c
+$(libobjdir)/java/lang/sf_fabs.o: java/lang/sf_fabs.c
+$(libobjdir)/java/lang/sf_rint.o: java/lang/sf_rint.c
+$(libobjdir)/java/lang/strtod.o: java/lang/strtod.c
+$(libobjdir)/java/lang/w_acos.o: java/lang/w_acos.c
+$(libobjdir)/java/lang/w_asin.o: java/lang/w_asin.c
+$(libobjdir)/java/lang/w_atan2.o: java/lang/w_atan2.c
+$(libobjdir)/java/lang/w_exp.o: java/lang/w_exp.c
+$(libobjdir)/java/lang/w_fmod.o: java/lang/w_fmod.c
+$(libobjdir)/java/lang/w_log.o: java/lang/w_log.c
+$(libobjdir)/java/lang/w_pow.o: java/lang/w_pow.c
+$(libobjdir)/java/lang/w_remainder.o: java/lang/w_remainder.c
+$(libobjdir)/java/lang/w_sqrt.o: java/lang/w_sqrt.c
+$(libobjdir)/libltdl/ltdl.o: libltdl/ltdl.c
+$(libobjdir)/sysdep/ia64.o: sysdep/ia64.c
