@@ -1,3 +1,8 @@
+Thu Mar 31 12:38:23 2005  Nick Burrett  <nick@sqrt.co.uk>
+
+	* signal/sleep.c (nanosleep): New function.
+	* time.h (nanosleep): Add prototype.
+
 Thu Mar 31 12:26:20 2005  Nick Burrett  <nick@sqrt.co.uk>
 
 	* unix/dev.c (__fsopen): Reduce OS_FSControl canonicalisation

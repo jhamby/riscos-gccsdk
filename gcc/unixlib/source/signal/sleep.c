@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/signal/sleep.c,v $
- * $Date: 2003/11/23 20:26:45 $
- * $Revision: 1.7 $
+ * $Date: 2004/05/16 18:48:24 $
+ * $Revision: 1.8 $
  * $State: Exp $
- * $Author: joty $
+ * $Author: alex $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: sleep.c,v 1.7 2003/11/23 20:26:45 joty Exp $";
+static const char rcs_id[] = "$Id: sleep.c,v 1.8 2004/05/16 18:48:24 alex Exp $";
 #endif
 
 /* Copyright (C) 1991, 1992, 1993, 1996, 1997 Free Software Foundation, Inc.
@@ -37,6 +37,7 @@ static const char rcs_id[] = "$Id: sleep.c,v 1.7 2003/11/23 20:26:45 joty Exp $"
 #include <pthread.h>
 
 #define USECS_PER_CLOCK (1000000 / CLOCKS_PER_SEC)
+#define NSECS_PER_CLOCK (1000000000 / CLOCKS_PER_SEC)
 
 /* #define DEBUG */
 
@@ -170,8 +171,9 @@ sleep (unsigned int seconds)
   return (unsigned int) sleep_int ((clock_t)seconds * CLOCKS_PER_SEC) / CLOCKS_PER_SEC;
 }
 
-int
-usleep (useconds_t usec)
+
+/* Sleep for time periods specified in micro-seconds.  */
+int usleep (useconds_t usec)
 {
   PTHREAD_SAFE_CANCELLATION
 
@@ -181,4 +183,26 @@ usleep (useconds_t usec)
     __set_errno (EINVAL);
 
   return (int) sleep_int ((usec + USECS_PER_CLOCK-1) / USECS_PER_CLOCK) * USECS_PER_CLOCK;
+}
+
+/* Sleep for time periods specified in nanoseconds.  */
+int nanosleep (const struct timespec *req, struct timespec *rem)
+{
+  int ticks, nticks;
+  PTHREAD_SAFE_CANCELLATION;
+
+  if (req->tv_sec < 0 || req->tv_nsec < 0 || req->tv_nsec > 999999999)
+    __set_errno (EINVAL);
+
+  ticks = (int) sleep_int (((req->tv_nsec + NSECS_PER_CLOCK-1)
+			    / NSECS_PER_CLOCK)
+			   + req->tv_sec * CLOCKS_PER_SEC);
+
+  if (rem != NULL)
+    {
+      rem->tv_sec = ticks / CLOCKS_PER_SEC;
+      ticks -= rem->tv_sec * CLOCKS_PER_SEC;
+      rem->tv_nsec = ticks * NSECS_PER_CLOCK;
+    }
+  return 0;
 }

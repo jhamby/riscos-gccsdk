@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/time.h,v $
- * $Date: 2004/10/17 16:24:43 $
- * $Revision: 1.13 $
+ * $Date: 2005/03/31 09:38:46 $
+ * $Revision: 1.14 $
  * $State: Exp $
- * $Author: joty $
+ * $Author: nick $
  *
  ***************************************************************************/
 
@@ -179,6 +179,9 @@ extern int clock_gettime (clockid_t __clk_id, struct timespec *__tp) __THROW;
 
 /* Set the time of the specified clk_id.  */
 extern int clock_settime (clockid_t __clk_id, const struct timespec *__tp) __THROW;
+
+extern int nanosleep (const struct timespec *__req,
+		      struct timespec *__rem);
 
 /* System V compatibility.  */
 
