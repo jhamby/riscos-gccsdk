@@ -21,6 +21,7 @@ packages installed on your system, with at *least* these software revisions.
 
 	autoconf 	version 2.13
 	bison		version 1.27
+	flex		version 2.5.4
 	gcc		version 2.91
 	gperf		version 2.7.2
 	sed		version 2.05
