@@ -1,3 +1,17 @@
+Wed Jan  6 23:07:25  John Tytgat  <John.Tytgat@aaug.net>
+
+	* gen-makefiles.pl: Generated stubs.h file contains a gen-makefiles.pl
+	  reference; clean target removes all obj subdirectories instead of
+	  the objects in the o sub-directories.
+	* obj/Makefile.in: Likewise.
+	* source/gcccompat/{_divdi3.s, _moddi3.s, _udivdi3.s, _umoddi3.s}:
+	  0/0 didn't raise despite previous fix; modulo result wasn't correct
+	  when numerator was zero.  Bugs reported by Stefan Bellon.
+	* source/regexp/{regexp.c, regsub.c}: Norcroft compilation fixes.
+	* source/resolv/inet_net_pton.c: Likewise.
+	* source/sys/{_smod.s, _umod.s}: Added "IMPORT raise" for objasm
+	  compatibility.
+
 Wed Jan  5 11:33:20 2005  Peter Naulls  <peter@chocky.org>
 
 	* Docs/ReadMe36c1, Docs/ReadMe36c2, Docs/ReadMe36d, Docs/ReadMe36e,

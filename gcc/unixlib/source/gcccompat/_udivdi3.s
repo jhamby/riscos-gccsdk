@@ -1,8 +1,8 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/gcccompat/_udivdi3.s,v $
-; $Date: 2004/10/17 16:24:44 $
-; $Revision: 1.5 $
+; $Date: 2005/01/03 22:55:13 $
+; $Revision: 1.6 $
 ; $State: Exp $
 ; $Author: joty $
 ;
@@ -24,14 +24,18 @@
 	EXPORT |__udivdi3|
 	NAME	__udivdi3
 |__udivdi3|
-	TEQ	a1, #0
-	TEQEQ	a2, #0
-	MOVEQ	pc, lr
-
 	TEQ	a3, #0
 	TEQEQ	a4, #0
-	BEQ	divbyzero
+	BEQ	|__udivdi3.divbyzero|
 
+	TEQ	a1, #0
+	TEQEQ	a2, #0
+	BNE	|__udivdi3.start|
+	MOV	a3, #0
+	MOV	a4, #0
+	MOV	pc, lr
+
+|__udivdi3.start|
 	STMFD	sp!, {v2, v3, v4, lr}
 	MOV	v2, #0
 	MOV	v3, #0
@@ -67,7 +71,7 @@
 	MOV	a4, ip
 	LDMFD	sp!, {v2, v3, v4, pc}
 
-divbyzero
+|__udivdi3.divbyzero|
 	MOV	a1, #SIGFPE
 	B	raise
 

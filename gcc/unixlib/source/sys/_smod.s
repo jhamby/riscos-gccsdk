@@ -1,8 +1,8 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/_smod.s,v $
-; $Date: 2004/10/17 16:24:44 $
-; $Revision: 1.5 $
+; $Date: 2005/01/03 22:55:13 $
+; $Revision: 1.6 $
 ; $State: Exp $
 ; $Author: joty $
 ;
@@ -14,6 +14,8 @@ divisor RN 0
 dividend RN 1
 
 	AREA	|C$$code|, CODE, READONLY
+
+	IMPORT	raise
 
 	EXPORT	|x$remainder|
 	EXPORT	|_kernel_srem|

@@ -29,6 +29,8 @@ __RCSID("$NetBSD: regsub.c,v 1.9 2000/09/14 01:24:32 msaitoh Exp $");
 #include <string.h>
 #include "regmagic.h"
 
+extern void regerror(const char *); /* Added for UnixLib & Norcroft compilation. */
+
 #ifndef CHARBITS
 #define	UCHARAT(p)	((int)*(unsigned char *)(p))
 #else

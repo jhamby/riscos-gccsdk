@@ -1,8 +1,8 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/gcccompat/_divdi3.s,v $
-; $Date: 2004/10/17 16:24:44 $
-; $Revision: 1.5 $
+; $Date: 2005/01/03 22:55:13 $
+; $Revision: 1.6 $
 ; $State: Exp $
 ; $Author: joty $
 ;
@@ -24,17 +24,20 @@
 	EXPORT |__divdi3|
 	NAME	__divdi3
 |__divdi3|
-	; fast exits
-	; check the numerator for zero
-	TEQ	a1, #0	; low
-	TEQEQ	a2, #0	; high
-	MOVEQ	pc, lr
-
 	; test for a divide by zero
 	TEQ	a3, #0	; low
 	TEQEQ	a4, #0	; high
-	BEQ	divbyzero
+	BEQ	|__divdi3.divbyzero|
 
+	; fast exit : check the numerator for zero
+	TEQ	a1, #0	; low
+	TEQEQ	a2, #0	; high
+	BNE	|__divdi3.start|
+	MOV	a3, #0
+	MOV	a4, #0
+	MOV	pc, lr
+
+|__divdi3.start|
 	; No stack checking since we are a leaf function.
 	; We don't need to store ip - procedure calling standard
 	; lets it be corrupted.
@@ -118,7 +121,7 @@
 	RSC	a4, ip, #0 ; high
 	LDMFD	sp!, {v2, v3, v4, v6, pc}
 
-divbyzero
+|__divdi3.divbyzero|
 	MOV	a1, #SIGFPE
 	B	raise
 

@@ -1,12 +1,18 @@
 /****************************************************************************
  *
- * $Source: $
- * $Date: $
- * $Revision: $
- * $State: $
- * $Author: $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/resolv/inet_net_pton.c,v $
+ * $Date: 2002/12/22 18:22:29 $
+ * $Revision: 1.1 $
+ * $State: Exp $
+ * $Author: admin $
  *
  ***************************************************************************/
+
+/*
+ * File taken from glibc 2.2.5.
+ * Following changes were made:
+ *  - Renamed __rawmemchr() to rawmemchr().
+ */
 
 /*
  * Copyright (c) 1996,1999 by Internet Software Consortium.
@@ -116,7 +122,7 @@ inet_net_pton_ipv4(src, dst, size)
 		src++;	/* skip x or X. */
 		while (isxdigit((ch = *src++))) {
 			ch = _tolower(ch);
-			n = (const char *) __rawmemchr(xdigits, ch) - xdigits;
+			n = (const char *) rawmemchr(xdigits, ch) - xdigits;
 			assert(n >= 0 && n <= 15);
 			if (dirty == 0)
 				tmp = n;
@@ -139,7 +145,7 @@ inet_net_pton_ipv4(src, dst, size)
 		for (;;) {
 			tmp = 0;
 			do {
-				n = ((const char *) __rawmemchr(xdigits, ch)
+				n = ((const char *) rawmemchr(xdigits, ch)
 				     - xdigits);
 				assert(n >= 0 && n <= 9);
 				tmp *= 10;
@@ -167,7 +173,7 @@ inet_net_pton_ipv4(src, dst, size)
 		ch = *src++;	/* Skip over the /. */
 		bits = 0;
 		do {
-			n = (const char *) __rawmemchr(xdigits, ch) - xdigits;
+			n = (const char *) rawmemchr(xdigits, ch) - xdigits;
 			assert(n >= 0 && n <= 9);
 			bits *= 10;
 			bits += n;

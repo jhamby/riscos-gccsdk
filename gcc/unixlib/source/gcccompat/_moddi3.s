@@ -1,8 +1,8 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/gcccompat/_moddi3.s,v $
-; $Date: 2004/10/17 16:24:44 $
-; $Revision: 1.5 $
+; $Date: 2005/01/03 22:55:13 $
+; $Revision: 1.6 $
 ; $State: Exp $
 ; $Author: joty $
 ;
@@ -24,16 +24,15 @@
 	EXPORT |__moddi3|
 	NAME	__moddi3
 |__moddi3|
-	; fast exits
-	;   check the numerator for zero
-	TEQ	a1, #0	; low
-	TEQEQ	a2, #0	; high
-	MOVEQ	pc, lr
-
 	; test for a divide by zero
 	TEQ	a3, #0	; low
 	TEQEQ	a4, #0	; high
-	BEQ	divbyzero
+	BEQ	|__moddi3.divbyzero|
+
+	; fast exit : check the numerator for zero
+	TEQ	a1, #0	; low
+	TEQEQ	a2, #0	; high
+	MOVEQ	pc, lr
 
 	; No stack checking since we are a leaf function.
 	;   We don't need to store ip - procedure calling standard
@@ -106,7 +105,7 @@
 	RSC	a2, ip, #0 ; high
 	LDMFD	sp!, {v2, v3, v4, v6, pc}
 
-divbyzero
+|__moddi3.divbyzero|
 	MOV	a1, #SIGFPE
 	B	raise
 

@@ -1,8 +1,8 @@
 # Project:   GCCSDK UnixLib
 
 # $Source: /usr/local/cvsroot/gccsdk/unixlib/objs/Makefile.in,v $
-# $Date: 2004/09/23 22:16:39 $
-# $Revision: 1.9 $
+# $Date: 2004/10/17 16:24:43 $
+# $Revision: 1.10 $
 # $State: Exp $
 # $Author: joty $
 
@@ -91,8 +91,8 @@ UnixLib:o.UnixLib:	UnixLib
 	copy @.UnixLib UnixLib:o.UnixLib fv~c
 
 clean:
-	-wipe o.* fv~r~c
-	-wipe module.o.* fv~r~c
+	-wipe o f~vr~c
+	-wipe module f~vr~c
 	-remove UnixLib
 	-remove SharedULib
 	-remove UnixLib:o.UnixLib

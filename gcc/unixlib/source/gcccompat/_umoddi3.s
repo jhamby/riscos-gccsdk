@@ -1,8 +1,8 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/gcccompat/_umoddi3.s,v $
-; $Date: 2004/10/17 16:24:44 $
-; $Revision: 1.5 $
+; $Date: 2005/01/03 22:55:13 $
+; $Revision: 1.6 $
 ; $State: Exp $
 ; $Author: joty $
 ;
@@ -23,13 +23,13 @@
 	EXPORT |__umoddi3|
 	NAME	__umoddi3
 |__umoddi3|
+	TEQ	a3, #0
+	TEQEQ	a4, #0
+	BEQ	|__umoddi3.divbyzero|
+
 	TEQ	a1, #0
 	TEQEQ	a2, #0
 	MOVEQ	pc, lr
-
-	TEQ	a3, #0
-	TEQEQ	a4, #0
-	BEQ	divbyzero
 
 	STMFD	sp!, {v2, v3, v4, lr}
 	MOV	v2, #0
@@ -62,7 +62,7 @@
 	MOV	a2, ip
 	LDMFD	sp!, {v2, v3, v4, pc}
 
-divbyzero
+|__umoddi3.divbyzero|
 	MOV	a1, #SIGFPE
 	B	raise
 

@@ -45,6 +45,15 @@ __RCSID("$NetBSD: regexp.c,v 1.15 2002/11/11 23:43:03 thorpej Exp $");
 #include <string.h>
 #include "regmagic.h"
 
+/* UnixLib change : BEGIN */
+/* Needed for Norcroft compiler which errors out seeing the END definition
+   done in source/clib/unixlib/stdcmac.h.  */
+#ifdef END
+#  undef END
+#endif
+extern void regerror(const char *); /* Added for UnixLib & Norcroft compilation. */
+/* UnixLib change : END */
+
 /*
  * The "internal use only" fields in regexp.h are present to pass info from
  * compile to execute that permits the execute phase to run lots faster on
