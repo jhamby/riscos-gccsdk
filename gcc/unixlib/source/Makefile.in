@@ -11,7 +11,9 @@ WARNINGS = -pedantic -Wall -Wundef -Wpointer-arith \
           -Wmissing-prototypes -Wmissing-declarations -Wnested-externs \
           -Winline -Wno-unused -Wno-long-long -W -Wcast-qual -Wshadow
 
-CROSS_CFLAGS += -D__UNIXLIB_INTERNALS $(WARNINGS) -D_GNU_SOURCE=1
+# C99 mode is required to build UnixLib because the library now contains
+# a lot of C99 features.
+CROSS_CFLAGS += -D__UNIXLIB_INTERNALS $(WARNINGS) -D_GNU_SOURCE=1 -std=c99
 
 #CROSS_CFLAGS += -D__UNIXLIB_INTERNALS -pedantic -Wall -Wno-long-long
 INCLUDES = -isystem clib
