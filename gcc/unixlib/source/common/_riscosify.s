@@ -1,8 +1,8 @@
 ;----------------------------------------------------------------------------
 ;
-; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/common/Attic/_riscosify.s,v $
-; $Date: 2002/08/18 19:57:19 $
-; $Revision: 1.1.2.1 $
+; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/common/_riscosify.s,v $
+; $Date: 2002/09/24 21:02:37 $
+; $Revision: 1.2 $
 ; $State: Exp $
 ; $Author: admin $
 ;
@@ -25,3 +25,6 @@
 	TEQ	a1, #0
 	LDRNE	a1, [a1, #0]
 	return	AL, pc, lr
+
+	END
+
