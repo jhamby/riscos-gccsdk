@@ -1,4 +1,12 @@
-Tue May 14 00:01:05 2003  John Tytgat <John.Tytgat@aaug.net>
+Sun May 18 18:04:16 2003  Alex Waugh  <alex@alexwaugh.com>
+
+	* objs/Makefile,fe1: Add lrintf.c and llrintf.c
+	* source/Makefile: Likewise.
+	* source/clib/math.h: Add decls.
+	* source/math/llrintf.c: New file from glibc 2.3.1
+	* source/math/lrintf.c: Likewise.
+
+Wed May 14 00:01:05 2003  John Tytgat <John.Tytgat@aaug.net>
 
 	* netlib/_accept.s, netlib/_getpeerna.s, netlib/_getsockna.s,
 	  netlib/_recvfrom.s, netlib/_recvmsg.s, netlib/_sendmsg.s:

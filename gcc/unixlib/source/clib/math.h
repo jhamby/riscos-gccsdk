@@ -1,8 +1,8 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/math.h,v $
- * $Date: 2002/09/24 21:02:36 $
- * $Revision: 1.4 $
+ * $Date: 2002/11/26 21:52:07 $
+ * $Revision: 1.5 $
  * $State: Exp $
  * $Author: admin $
  *
@@ -381,6 +381,11 @@ extern double log2 (double __x) __attribute__ ((__const__));
 extern long int lrint (double __x) __attribute__ ((__const__));
 #ifdef __GNUC__
 extern long long int llrint (double __x) __attribute__ ((__const__));
+#endif
+
+extern long int lrintf (float __x) __attribute__ ((__const__));
+#ifdef __GNUC__
+extern long long int llrintf (float __x) __attribute__ ((__const__));
 #endif
 
 /* Round x to integral value.  */

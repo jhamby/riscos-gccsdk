@@ -1,10 +1,10 @@
 # Project:   GCCSDK UnixLib
 
 # $Source: /usr/local/cvsroot/gccsdk/unixlib/objs/Makefile,fe1,v $
-# $Date: 2003/05/11 18:20:01 $
-# $Revision: 1.15 $
+# $Date: 2003/05/13 20:54:59 $
+# $Revision: 1.16 $
 # $State: Exp $
-# $Author: joty $
+# $Author: alex $
 
 CCfeatures =
 Predefs = -D__UNIXLIB_INTERNALS
@@ -80,7 +80,8 @@ MATH =	math.o.acosh math.o.asinh math.o.atanh math.o.cbrt math.o.drem \
 	math.o.fmax math.o.fmin math.o.fdim \
 	math.o.fmod math.o.frexp math.o.huge_val math.o.ilogb \
 	math.o.j0 math.o.j1 math.o.jn math.o.k_cos math.o.k_rem_pio2 \
-	math.o.k_sin math.o.lrint math.o.llrint math.o.log2 \
+	math.o.k_sin math.o.lrint math.o.llrint math.o.lrintf \
+	math.o.llrintf math.o.log2 \
 	math.o.lgamma math.o.lgamma_r math.o.log1p math.o.logb \
 	math.o.modf math.o.nextafter math.o.nearbyint math.o.remainder \
 	math.o.rem_pio2 math.o.remquo math.o.rint math.o.scalbn \
@@ -618,6 +619,8 @@ math.o.lgamma:		math.c.lgamma
 math.o.lgamma_r:	math.c.lgamma_r
 math.o.llrint:		math.c.llrint
 math.o.lrint:		math.c.lrint
+math.o.llrintf:		math.c.llrintf
+math.o.lrintf:		math.c.lrintf
 math.o.log1p:		math.c.log1p
 math.o.log2:		math.c.log2
 math.o.logb:		math.c.logb

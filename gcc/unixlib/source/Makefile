@@ -81,7 +81,9 @@ MATH =	$(libunixobj)/math/acosh.o \
 	$(libunixobj)/math/k_rem_pio2.o \
 	$(libunixobj)/math/k_sin.o \
 	$(libunixobj)/math/lrint.o \
+	$(libunixobj)/math/lrintf.o \
 	$(libunixobj)/math/llrint.o \
+	$(libunixobj)/math/llrintf.o \
 	$(libunixobj)/math/log2.o \
 	$(libunixobj)/math/lgamma.o \
 	$(libunixobj)/math/lgamma_r.o \
@@ -945,6 +947,8 @@ $(libunixobj)/math/lgamma.o: math/lgamma.c
 $(libunixobj)/math/lgamma_r.o: math/lgamma_r.c
 $(libunixobj)/math/llrint.o: math/llrint.c
 $(libunixobj)/math/lrint.o: math/lrint.c
+$(libunixobj)/math/llrintf.o: math/llrintf.c
+$(libunixobj)/math/lrintf.o: math/lrintf.c
 $(libunixobj)/math/lround.o: math/lround.c
 $(libunixobj)/math/llround.o: math/llround.c
 $(libunixobj)/math/log1p.o: math/log1p.c
