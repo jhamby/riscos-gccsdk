@@ -1,10 +1,10 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/_jmp.s,v $
-; $Date: 2003/12/04 22:55:35 $
-; $Revision: 1.9 $
+; $Date: 2004/10/17 16:24:44 $
+; $Revision: 1.10 $
 ; $State: Exp $
-; $Author: alex $
+; $Author: joty $
 ;
 ;----------------------------------------------------------------------------
 
@@ -24,16 +24,12 @@
 	;   +   4 ( 4) : __executing_signalhandler
 	;   +   8 ( 4) : __pthread_worksemaphore
 	;   +  12 (48) : f4, f5, f6, f7 on entry of setjmp()
-	;   +  60 ( 4) : child process
-	;   +  64 (24) : v1, v2, v3, v4, v5, v6 on entry of setjmp()
-	;   +  88 ( 4) : sl
-	;   +  92 ( 4) : fp
-	;   +  96 ( 4) : sp
-	;   + 100 ( 4) : lr
-	; = 104 bytes (= __JMP_BUF_SIZE * sizeof(int))
-
-	; NOTE: If the location of the child process in jmp_buf changes
-	; it must be updated in _vfork.s and vfork.c
+	;   +  60 (24) : v1, v2, v3, v4, v5, v6 on entry of setjmp()
+	;   +  84 ( 4) : sl
+	;   +  88 ( 4) : fp
+	;   +  92 ( 4) : sp
+	;   +  96 ( 4) : lr
+	; = 100 bytes (= __JMP_BUF_SIZE * sizeof(int))
 
 	EXPORT	setjmp
 	NAME	setjmp
@@ -61,10 +57,7 @@ setjmp
 	STR	a4, [a1], #4
 
 	SFM	f4, 4, [a1], #4*12
-	; WARNING :
-	; Even though a1 does not need to be saved, this position in
-	; the jmp_buf is used when a child process returns via vret
-	STMIA	a1, {a1, v1, v2, v3, v4, v5, v6, sl, fp, sp, lr}
+	STMIA	a1, {v1, v2, v3, v4, v5, v6, sl, fp, sp, lr}
 
 	MOV	a1, #0
 	MOV	pc, lr
@@ -109,8 +102,8 @@ longjmp
 
 |__longjmp_l3|
 	; Find the old stack pointer, and free any chunks
-	LDR	sl, [v1, #88 - 4]
-	LDR	sp, [v1, #96 - 4]
+	LDR	sl, [v1, #84 - 4]
+	LDR	sp, [v1, #92 - 4]
 	BL	|__trim_stack|
 
 	LDR	a1, =|__executing_signalhandler|
@@ -127,13 +120,7 @@ longjmp
 	MOVEQ	a1, #1			; longjmp can't return 0
 	; Technically there is a problem here if we should be
 	; moving to a higher processor mode, such as USR -> SVC
-	; WARNING :
-	; While a1 probably doesn't need to be saved here, this
-	; is what the old code did and UnixLib has already caught me out
-	; once by using this position in the jmp_buf as the return
-	; value for vret!!!!
-	STR	a1, [v1]
-	LDMIA	v1, {a1, v1, v2, v3, v4, v5, v6, sl, fp, sp, pc}
+	LDMIA	v1, {v1, v2, v3, v4, v5, v6, sl, fp, sp, pc}
 
 	; If we get here something has screwed up. The old value
 	; of alloca list which we were searching for which was active
