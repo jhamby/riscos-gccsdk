@@ -1,0 +1,83 @@
+| Set file types for GCCSDK RISC OS distribution
+| We require this because Unix has no understanding of RISC OS filetypes
+| and no ZIP archiver recognises the `,xxx' filetype extensions.  It would
+| be nice to fix ZIP,  but I don't have the time.
+
+Set Trg$Dir <Obey$Dir>.bin.arm-riscos.aof.2_95_2
+
+| Zipfile: GCCPKG
+Rename <Obey$Dir>.!Boot,feb <Obey$Dir>.!Boot
+Rename <Obey$Dir>.!Run,feb <Obey$Dir>.!Run
+Rename <Obey$Dir>.!Sprites,ff9 <Obey$Dir>.!Sprites
+Rename <Obey$Dir>.!Sprites22,ff9 <Obey$Dir>.!Sprites22
+SetType <Obey$Dir>.!Boot Obey
+SetType <Obey$Dir>.!Run Obey
+SetType <Obey$Dir>.!Sprites Sprite
+SetType <Obey$Dir>.!Sprites22 Sprite
+SetType <Obey$Dir>.Changes Text
+
+Rename <Obey$Dir>.bin.dyn_kill,ffb <Obey$Dir>.bin.dyn_kill
+SetType <Obey$Dir>.bin.dyn_kill Basic
+
+SetType <Obey$Dir>.bin.drlink Absolute
+SetType <Obey$Dir>.bin.gcc Absolute
+SetType <Obey$Dir>.bin.gcov Absolute
+SetType <Obey$Dir>.bin.libfile Absolute
+
+SetType <Trg$Dir>.as Absolute
+SetType <Trg$Dir>.cpp Absolute
+SetType <Trg$Dir>.ld Absolute
+
+SetType <Trg$Dir>.apcs26.libscl.o.libscl Data
+SetType <Trg$Dir>.apcs26.unixlib.o.libgcc Data
+SetType <Trg$Dir>.apcs26.unixlib.o.unixlib Data
+
+
+| Zipfile: GCCDOCPKG
+
+SetType <Obey$Dir>.docs.COPYING Text
+SetType <Obey$Dir>.docs.COPYINGLIB Text
+SetType <Obey$Dir>.docs.Intro Text
+SetType <Obey$Dir>.docs.bugs Text
+SetType <Obey$Dir>.docs.gcc-faq Text
+SetType <Obey$Dir>.docs.cpp Text
+SetType <Obey$Dir>.docs.gcc Text
+
+| Zipfile: CC1PKG
+SetType <Trg$Dir>.cc1 Absolute
+SetType <Trg$Dir>.apcs26.unixlib.o.libiostream Data
+SetType <Trg$Dir>.apcs26.unixlib.o.libstdc++ Data
+
+| Zipfile: CC1PLUSPKG
+SetType <Obey$Dir>.bin.g++ Absolute
+SetType <Trg$Dir>.cc1 Absolute
+SetType <Trg$Dir>.apcs26.unixlib.o.libiostream Data
+SetType <Trg$Dir>.apcs26.unixlib.o.libstdc++ Data
+
+| Zipfile: G77PKG
+SetType <Obey$Dir>.bin.g77 Absolute
+SetType <Trg$Dir>.f771 Absolute
+SetType <Trg$Dir>.apcs26.unixlib.o.libg2c Data
+SetType <Obey$Dir>.docs.g77 Text
+SetType <Obey$Dir>.docs.g77-readme Text
+
+| Zipfile: UTILSPKG
+SetType <Obey$Dir>.bin.bison Absolute
+SetType <Obey$Dir>.bin.cmp Absolute
+SetType <Obey$Dir>.bin.diff Absolute
+SetType <Obey$Dir>.bin.diff3 Absolute
+SetType <Obey$Dir>.bin.egrep Absolute
+SetType <Obey$Dir>.bin.fgrep Absolute
+SetType <Obey$Dir>.bin.flex Absolute
+SetType <Obey$Dir>.bin.gperf Absolute
+SetType <Obey$Dir>.bin.grep Absolute
+SetType <Obey$Dir>.bin.gzip Absolute
+SetType <Obey$Dir>.bin.make Absolute
+SetType <Obey$Dir>.bin.mkdir Absolute
+SetType <Obey$Dir>.bin.patch Absolute
+SetType <Obey$Dir>.bin.sdiff Absolute
+SetType <Obey$Dir>.bin.sed Absolute
+SetType <Obey$Dir>.bin.touch Absolute
+SetType <Trg$Dir>.apcs26.unixlib.o.libfl Data
+SetType <Trg$Dir>.apcs26.unixlib.o.libiberty Data
+SetType <Trg$Dir>.apcs26.unixlib.o.libmp Data
