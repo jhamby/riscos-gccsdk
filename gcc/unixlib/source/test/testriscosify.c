@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source: $
- * $Date: $
- * $Revision: $
- * $State: $
- * $Author: $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/test/testriscosify.c,v $
+ * $Date: 2003/04/26 11:58:59 $
+ * $Revision: 1.1 $
+ * $State: Exp $
+ * $Author: alex $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: $";
+static const char rcs_id[] = "$Id: testriscosify.c,v 1.1 2003/04/26 11:58:59 alex Exp $";
 #endif
 
 /*
@@ -122,6 +122,7 @@ char tests[][2][256] = {
 {"./foo.c","@.c.foo"},
 {"foo/","foo"},
 {"foo//","foo"},
+{"dir/file.h/","dir.file/h"},
 {"","@"}};
 
 int main (void)
