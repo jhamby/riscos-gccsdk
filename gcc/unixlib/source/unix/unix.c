@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/unix.c,v $
- * $Date: 2004/12/23 21:10:08 $
- * $Revision: 1.33 $
+ * $Date: 2005/01/16 18:27:57 $
+ * $Revision: 1.34 $
  * $State: Exp $
- * $Author: peter $
+ * $Author: alex $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: unix.c,v 1.33 2004/12/23 21:10:08 peter Exp $";
+static const char rcs_id[] = "$Id: unix.c,v 1.34 2005/01/16 18:27:57 alex Exp $";
 #endif
 
 #include <stdio.h>
@@ -826,6 +826,8 @@ find_redirection_type (const char *cmdline, char redirection_type)
               cmdline++;
               while (*cmdline && *cmdline != '"')
                 cmdline++;
+              if (*cmdline == '"')
+                cmdline++;
             }
           else if (*cmdline == '\'')
             {
@@ -835,6 +837,8 @@ find_redirection_type (const char *cmdline, char redirection_type)
               if (cmdline[-2] == ' ')
                 {
                   while (*cmdline && *cmdline != '\'')
+                    cmdline++;
+                  if (*cmdline == '\'')
                     cmdline++;
                 }
             }
