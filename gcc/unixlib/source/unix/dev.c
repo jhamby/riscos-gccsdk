@@ -930,7 +930,14 @@ __randomopen (struct __unixlib_fd *file_desc, const char *file, int mode)
 
   /* Test for the existance of the CryptRandom module */
   if (__os_swi(CryptRandom_Stir, regs))
-    return (void *) __set_errno (ENOENT);
+    {
+      /* Try to load the module. Ignore any errors */
+      __os_cli("RMLoad System:Modules.CryptRand");
+
+     /* If still not available, then the open must fail */
+     if (__os_swi(CryptRandom_Stir, regs))
+       return (void *) __set_errno (ENOENT);
+   }
 
   /* Position of `NULL' in `__sfile' array.  */
   return (void *) 3;

@@ -1,3 +1,8 @@
+Wed Jan 29 18:43:32 2003  Alex Waugh  <alex@alexwaugh.com>
+
+	* unix/dev.c (__randomopen): Attempt to load the CryptRandom
+	module if it doesn't appear to be installed already.
+
 Tue Jan 21 18:03:28 2003  Nick Burrett  <nick@dsvr.net>
 
 	* grp.h (__grpread): Add buf and buflen arguments to prototype.
