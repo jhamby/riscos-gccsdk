@@ -127,6 +127,7 @@ install:
 	find $(ro_gccpkg) -name "CVS" -type d | xargs rm -rf
 	find $(ro_gccpkg) -name "*~*" -or -name "*.orig*" -or -name "*.reg*" -type f | xargs rm -rf
 	cp ../unixlib/Docs/ReadMe $(ro_gccpkg)/docs/UnixLib
+	cp ../unixlib/Docs/Changelog $(ro_gccpkg)/docs/ULChanges
 
 	cp -pR ../unixlib/Docs $(ro_unixlibpkg)
 	cp -pR ../unixlib/objs $(ro_unixlibpkg)
