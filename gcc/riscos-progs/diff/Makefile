@@ -41,7 +41,7 @@ CMPOBJS = $(objdir)/riscos-progs/diff/cmp.o \
 	$(objdir)/riscos-progs/diff/getopt.o \
 	$(objdir)/riscos-progs/diff/getopt1.o \
 	$(objdir)/riscos-progs/diff/xmalloc.o \
-	$(objdir)/riscos-progs/diff/verson.o
+	$(objdir)/riscos-progs/diff/version.o
 
 all:	$(bin_dir)/diff $(bin_dir)/diff3 $(bin_dir)/sdiff $(bin_dir)/cmp
 
@@ -54,8 +54,8 @@ $(bin_dir)/diff3:	$(DIFF3OBJS)
 $(bin_dir)/sdiff:	$(SDIFFOBJS)
 	$(CROSS_CC) -o $@ $(SDIFFOBJS)
 
-$(bin_dir)/cmp:	$(cmp_o)
-	$(CROSS_CC) -o $@ $(CMPOBS)
+$(bin_dir)/cmp:	$(CMPOBJS)
+	$(CROSS_CC) -o $@ $(CMPOBJS)
 
 
 $(objdir)/riscos_progs/diff/analyze.o:	diff.h cmpbuf.h analyze.c
