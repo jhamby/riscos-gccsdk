@@ -37,29 +37,6 @@ get_directory_name (const char *input, char *output)
   if (*input == '\0')
     return 0;
 
-#ifndef CROSS_COMPILE
-  /* RISC OS directory names are delimited by a '.'.
-     We must check for a few Unix styles though.  */
-  t = strchr (input, '.');
-  if (t != NULL)
-    {
-      if (input[0] == '.')
-	{
-	  if (input[1] == '\0')        /* current directory, end of path */
-	    t = 0;
-	  else if (input[1] == '/')    /* current directory, not end of path */
-	    t = input + 1;
-	  else if (input[1] == '.')
-	   {
-	     if (input[2] == '\0')     /* parent directory, end of path */
-	       t = 0;
-	     else if (input[2] == '/') /* parent directory, not end of path */
-	       t = input + 2;
-	   }
-	}
-    }
-#endif
-
   if (t)
   {
     strncpy (output, input, t - input);
@@ -167,7 +144,6 @@ is_prefix (const char *name)
   if (t1 == NULL)
     t1 = name + strlen(name);
 
-#ifdef CROSS_COMPILE
   while (prefixes[x] != 0)
     {
       /* Prefixes must be compared in a case-insensitive manner.  */
@@ -176,9 +152,6 @@ is_prefix (const char *name)
       x++;
     }
   return 0;
-#else
-  return __sfixfind(name, t1 - name) == NULL ? 0 : 1;
-#endif
 }
 
 static int
@@ -269,12 +242,6 @@ riscos_to_unix (const char *filename, char *output)
       temp = strchr (filename, ':');
       if (temp)
 	{
-#ifndef CROSS_COMPILE
-	  /* Add a / to the start to remove any ambiguity when converting back
-	     to RISC OS format */
-	  if (*filename != '/')
-	    *output++ = '/';
-#else
 	/* In a cross-compiling environment we need to find a way of supporting
 	   RISC OS filenames such as DeskLib:foobar.h.  I think the best solution
 	   is to look for a environment variable of similar name (i.e.
@@ -300,7 +267,6 @@ riscos_to_unix (const char *filename, char *output)
 	      *output++ = '/';
 	      i += temp - filename + 1;
 	    }
-#endif
 	}
     }
 
@@ -308,49 +274,6 @@ riscos_to_unix (const char *filename, char *output)
     {
 #ifdef DEBUG
       printf ("i = '%s', tempbuf = '%s'\n", i, tempbuf);
-#endif
-#ifndef CROSS_COMPILE
-      if (one_dot (i))
-	{
-	  char name[128];
-
-	  /* We've processed enough of the filename to be left with the
-	     following combinations:
-	     1. fname.prefix  e.g. fred.c
-	     2. prefix.fname  e.g. c.fred
-	     3. fname.nonprefix  e.g. fred.jim  */
-	  i += strlen (tempbuf) + 1;
-	  get_directory_name (i, name);
-
-	  if (is_prefix (name))
-	    {
-	      /* Method 1.
-	         name contains the prefix.
-	         tempbuf contains the filename.  */
-	      output = add_directory_and_prefix (output, tempbuf, name);
-	    }
-	  else if (is_prefix (tempbuf))
-	    {
-	      /* Method 2.
-	         tempbuf contains the prefix.
-	         name contains the filename.  */
-	      /* printf ("i = '%s', t = '%s', t1 = '%s'\n", i, t, t1); */
-	      output = add_directory_and_prefix (output, name, tempbuf);
-	    }
-	  else
-	    {
-	      /* Method 3. No prefixes in the filename.
-	         tempbuf contains the first section.
-	         name contains the last bit.  */
-	      output = add_directory_name (output, tempbuf);
-	      output = add_directory_name (output, name);
-	      /* Remove the final backslash automatically added in by
-	         add_directory_name.  */
-	      output[-1] = '\0';
-	    }
-	  flag = 1;
-	}
-      else
 #endif
 	{
 	  output = add_directory_name (output, tempbuf);
@@ -379,7 +302,7 @@ riscos_to_unix (const char *filename, char *output)
 static void test (const char *input)
 {
   char out[256], name[256];
-  int flags = __RISCOSIFY_DONT_TRUNCATE;
+  int flags = 0;
 
   riscos_to_unix (input, out);
   __riscosify (out, 0, flags, name, sizeof (name), NULL);

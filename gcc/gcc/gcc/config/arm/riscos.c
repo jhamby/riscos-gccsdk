@@ -295,8 +295,9 @@ const char *riscos_convert_filename (void *obstack, const char *name, int do_exe
 {
   struct obstack *obs = (struct obstack *) obstack;
   char tmp[1024];
-  extern char *riscos_to_unix (const char *, char *);
-  riscos_to_unix (name, tmp);
+
+  __unixify_std(name, tmp, sizeof(tmp), 0);
+
   return obstack_copy0 (obs, tmp, strlen (tmp));
 }
 
