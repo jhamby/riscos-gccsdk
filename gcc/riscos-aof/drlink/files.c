@@ -12,6 +12,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+#include <sys/param.h>
 #include "drlhdr.h"
 #include "chunkhdr.h"
 #include "filehdr.h"
@@ -29,11 +30,6 @@
 #else
 #define WILDCARDS "?*["		/* Unixish filename wildcard characters */
 #endif
-
-
-/* UnixLib filename control */
-
-int __riscosify_control;
 
 /* Variables referenced from other files */
 
@@ -146,7 +142,7 @@ static unsigned int
 ** 'xxxx.o' and if so to change it in to 'o.xxxx'. The text of
 ** the name, the address of which is given by 'filename', is changed.
 ** The function returns 'TRUE' if this was possible, otherwise it returns
-** FALSE. This function is specific to RISCOS
+** FALSE. This function is specific to RISC OS
 */
 static bool rearrange(const char *filename) {
   int len;
@@ -194,11 +190,7 @@ int find_filesize(const char *name) {
   int size;
   FILE *thefile;
   thefile = fopen(name, "rb");
-#ifdef TARGET_RISCOS
-  if (thefile==NIL && rearrange(name)) {	/* If name is 'xxx.o', try for 'o.xxx' */
-    thefile = fopen(name, "rb");
-  }
-#endif
+
   if (thefile==NIL)
     size = -1;
   else {
@@ -278,11 +270,7 @@ fileinfo examine_file(const char *filename) {
   chunkheader libheader;
   chunkindex index;
   libfile = fopen(filename, "rb");
-#ifdef TARGET_RISCOS
-  if (libfile==NIL && rearrange(filename)) {	/* If name is 'xxx.o', try for 'o.xxx' */
-    libfile = fopen(filename, "rb");
-  }
-#endif
+
   if (libfile==NIL) {
     error("Error: Cannot read '%s'", filename);
     return NOWT;
@@ -515,15 +503,6 @@ static int read_file(const char *filename) {
   size_t count;
   if (opt_verbose) error("Drlink: Reading file '%s'", filename);
   objfile = fopen(filename, "rb");
-
-#ifdef TARGET_RISCOS
-/*
- * IF file could not be opened, assume the name is of the
- * form 'xxx.o' and try to rearrange it and see if that file
- * can be opened
- */
-  if (objfile==NIL && rearrange(filename)) objfile = fopen(filename, "rb");
-#endif
 
   if (objfile==NIL) {	/* Could not open file */
     error("Error: Cannot find file '%s'", filename);
@@ -1036,6 +1015,7 @@ bool read_libchunkhdr(libheader *lp) {
 */
 void open_image(void) {
 #ifdef TARGET_RISCOS
+  char ro_name[MAXPATHLEN];
   unsigned int filetype;
   _kernel_swi_regs regs;
   _kernel_oserror *swierror;
@@ -1049,8 +1029,11 @@ void open_image(void) {
   default:
     filetype = (opt_debimage && debugsize>0 ? DEBIMAGE : ABSOLUTE);
   }
+
+  __riscosify_std(imagename, 1, ro_name, sizeof(ro_name), NULL);
+
   regs.r[0] = 0x0B;	/* OS_File call to create a file */
-  regs.r[1] = COERCE(imagename, int);
+  regs.r[1] = COERCE(ro_name, int);
   regs.r[2] = filetype;
   regs.r[4] = 0;
   regs.r[5] = imagesize;
@@ -1058,8 +1041,7 @@ void open_image(void) {
   if (swierror!=NIL) {
     error("Fatal: Cannot create image file '%s'", imagename);
   }
-  /* We're dealing with a RISC OS format output name, passed from ld */
-  __riscosify_control = __RISCOSIFY_NO_PROCESS;
+
   imagefile = fopen(imagename, "rb+");
 #else
   imagefile = fopen(imagename, "wb");
