@@ -38,14 +38,14 @@ all: tools
 else
 LIBS += -L$(ux_gcc_bin_dir)/$(TRG) -lgnat
 
-all: tools tools-stg2
+all: fixup-targetpairs adalib tools tools-stg2
 endif
 
 tools:	$(bin_dir)/gnatbl$(gexesfx) \
 	$(bin_dir)/gnatbind$(gexesfx) \
 	$(gcc_bin_dir)/gnat1$(gexesfx)
 
-tools-stg2: fixup-targetpairs adalib \
+tools-stg2: \
 	$(bin_dir)/gnatmake$(gexesfx) \
 	$(bin_dir)/gnatchop$(gexesfx) \
 	$(bin_dir)/gnatcmd$(gexesfx)\
@@ -992,7 +992,7 @@ $(bin_dir)/gnatchop$(gexesfx): $(adaobj)/b_gnatch.o $(GNATCHOP_OBJS)
 	      $(LIBDEPS) $(LIBS)
 
 $(bin_dir)/gnatmake$(gexesfx): $(adaobj)/b_gnatm.o $(GNATMAKE_OBJS)
-	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(adaobj)/b_gnatm.o $(GNATMAKE_OBJS) $(LIBDEPS) -L$(adaobj) -lgnat $(LIBS)
+	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(adaobj)/b_gnatm.o $(GNATMAKE_OBJS) $(LIBDEPS) $(LIBS)
 
 $(adaobj)/gnatbl.o: gnatbl.c adaint.h
 	$(CC) $(CFLAGS) $(INCLUDES) -o $@ -c $<

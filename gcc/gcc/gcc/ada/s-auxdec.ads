@@ -274,7 +274,7 @@ pragma Elaborate_Body (Aux_DEC);
    end record;
 
    for Aligned_Word'Alignment use
-     Integer'Min (2, Standard'Maximum_Alignment);
+     Integer'Min (4, Standard'Maximum_Alignment);
 
    procedure Clear_Interlocked
      (Bit          : in out Boolean;
