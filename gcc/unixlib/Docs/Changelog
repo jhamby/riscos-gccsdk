@@ -1,3 +1,19 @@
+Sun Aug 03 18:14:27 2003  John Tytgat  <John.Tytgat@aaug.net>
+  
+  	* common/unixify.c (__unixify): filetype extension code will first look
+  	  if the filetype can't be derived from the filename extension & MimeMap.
+  	  If so, then there won't be a filetype extension added to the filename.
+  	  Also, __unixify wrongly returned the end of the buffer (instead of
+  	  the start) when the filetype extension code got activated.
+  	* unix/unix.c: Disabled debug
+  	* wchar/btowc.c: ANSI prototyping.
+  	* wchar/mbrlen.c: Likewise.
+  	* wchar/mbsinit.c: Likewise.
+  	* wchar/wcsdup.c: Likewise.
+  	* wchar/wctob.c: Likewise.
+  	* wchar/wmemcpy.c: Likewise.
+  	* wchar/wmemmove.c: Likewise.
+
 Thu Jul 31 20:55:32 2003  Alex Waugh <alex@alexwaugh.com>
 
 	* common/_riscosify.s: Fix typo.

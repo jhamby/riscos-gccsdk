@@ -1,8 +1,8 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/wchar/c/mbsinit,v $
- * $Date: 2000/06/03 16:53:10 $
- * $Revision: 1.1 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/wchar/mbsinit.c,v $
+ * $Date: 2001/01/29 15:10:22 $
+ * $Revision: 1.2 $
  * $State: Exp $
  * $Author: admin $
  *
@@ -39,8 +39,7 @@
    value collected so far.  Especially, we don't have different shift
    states.  */
 int
-mbsinit (ps)
-     const mbstate_t *ps;
+mbsinit (const mbstate_t *ps)
 {
   return ps == NULL || ps->count == 0;
 }

@@ -1,18 +1,20 @@
 /****************************************************************************
  *
- * $Source$
- * $Date$
- * $Revision$
- * $State$
- * $Author$
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/common/unixify.c,v $
+ * $Date: 2002/09/24 21:02:37 $
+ * $Revision: 1.4 $
+ * $State: Exp $
+ * $Author: admin $
  *
  ***************************************************************************/
 
 #include <errno.h>
 #include <string.h>
 #include <unixlib/local.h>
+#include <unixlib/swiparams.h>
 #include <stdlib.h>
 #include <ctype.h>
+#include <swis.h>
 
 /* Call __unixify with __riscosify_flags as the unixify_flags.  */
 char *__unixify_std (const char *name, char *buffer, size_t buflen,
@@ -48,7 +50,7 @@ __unixify (const char *ro_path, int unixify_flags, char *buffer,
       if ((unixify_flags & __RISCOSIFY_FILETYPE_EXT) != 0
           && filetype != __RISCOSIFY_FILETYPE_NOTSPECIFIED)
         buf_len += 4;
-      
+
       if ((buffer = malloc (buf_len)) == NULL)
 	return NULL;
     }
@@ -260,16 +262,45 @@ __unixify (const char *ro_path, int unixify_flags, char *buffer,
       if ((unixify_flags & __RISCOSIFY_FILETYPE_EXT) != 0
           && filetype != __RISCOSIFY_FILETYPE_NOTSPECIFIED)
         {
-          /* We need to add filetype ",xyz".  */
-          if ((out + 4) >= buf_end)
-            goto buf_overflow;
+          char *fn_extension;
+          int ft_extension_needed = 1;
 
-          *out++ = ',';
-          *out++ = "0123456789abcdef"[(filetype >> 8) & 0xf];
-          *out++ = "0123456789abcdef"[(filetype >> 4) & 0xf];
-          *out++ = "0123456789abcdef"[(filetype >> 0) & 0xf];
-          *out = '\0';
-          return out;
+          /* Check if we don't have a *filename* extension which already maps
+             via MimeMap to the filetype 'filetype'.  If so, no need to
+             add the RISC OS filetype again using *filetype* extension.  */
+          for (fn_extension = out - 1;
+               fn_extension != buffer
+               && *fn_extension != '/' && *fn_extension != '.';
+               --fn_extension)
+            ;
+          if (*fn_extension == '.')
+            {
+              _kernel_swi_regs regs;
+
+              /* We have a filename extension at 'fn_extension'.  */
+              regs.r[0] = MMM_TYPE_DOT_EXTN; /* Input extension */
+              regs.r[1] = (int)fn_extension;
+              regs.r[2] = MMM_TYPE_RISCOS; /* Output extension */
+
+              /* When there is no MimeMap error and the filetype returned
+                 matches 'filetype', we don't want filetype extension.  */
+              if (! _kernel_swi (MimeMap_Translate, &regs, &regs)
+                  && regs.r[3] == filetype)
+                ft_extension_needed = 0;
+            }
+
+          if (ft_extension_needed)
+            {
+              /* We need to add filetype ",xyz".  */
+              if ((out + 4) >= buf_end)
+                goto buf_overflow;
+
+              *out++ = ',';
+              *out++ = "0123456789abcdef"[(filetype >> 8) & 0xf];
+              *out++ = "0123456789abcdef"[(filetype >> 4) & 0xf];
+              *out++ = "0123456789abcdef"[(filetype >> 0) & 0xf];
+              *out = '\0';
+            }
         }
 
       return buffer;

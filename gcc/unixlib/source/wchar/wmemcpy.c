@@ -1,8 +1,8 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/wchar/c/wmemcpy,v $
- * $Date: 2000/06/03 16:53:10 $
- * $Revision: 1.1 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/wchar/wmemcpy.c,v $
+ * $Date: 2001/01/29 15:10:22 $
+ * $Revision: 1.2 $
  * $State: Exp $
  * $Author: admin $
  *
@@ -32,10 +32,7 @@ Boston, MA 02111-1307, USA.  */
 
 
 wchar_t *
-wmemcpy (s1, s2, n)
-     wchar_t *s1;
-     const wchar_t *s2;
-     size_t n;
+wmemcpy (wchar_t *s1, const wchar_t *s2, size_t n)
 {
   return (wchar_t *) memcpy ((char *) s1, (char *) s2, n * sizeof (wchar_t));
 }

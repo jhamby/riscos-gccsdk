@@ -1,8 +1,8 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/wchar/c/btowc,v $
- * $Date: 2000/06/03 16:53:10 $
- * $Revision: 1.1 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/wchar/btowc.c,v $
+ * $Date: 2001/01/29 15:10:22 $
+ * $Revision: 1.2 $
  * $State: Exp $
  * $Author: admin $
  *
@@ -33,8 +33,7 @@
 /* We use UTF8 encoding for multibyte strings and therefore a valid
    one byte multibyte string only can have a value from 0 to 0x7f.  */
 wint_t
-btowc (c)
-     int c;
+btowc (int c)
 {
   if (WEOF != (wint_t) EOF || c < 0 || c > 0x7f)
     return WEOF;

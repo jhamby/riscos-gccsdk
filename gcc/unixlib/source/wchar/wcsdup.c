@@ -1,8 +1,8 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/wchar/wcsdup.c,v $
- * $Date: 2001/09/11 14:16:00 $
- * $Revision: 1.2.2.1 $
+ * $Date: 2002/02/14 15:56:39 $
+ * $Revision: 1.3 $
  * $State: Exp $
  * $Author: admin $
  *
@@ -33,8 +33,7 @@
 
 /* Duplicate S, returning an identical malloc'd string.	 */
 wchar_t *
-wcsdup (s)
-     const wchar_t *s;
+wcsdup (const wchar_t *s)
 {
   size_t len = (wcslen (s) + 1) * sizeof (wchar_t);
   void *newstr = malloc (len);

@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/wchar/mbrlen.c,v $
- * $Date: 2001/01/29 15:10:22 $
- * $Revision: 1.2 $
+ * $Date: 2003/04/05 09:33:57 $
+ * $Revision: 1.3 $
  * $State: Exp $
- * $Author: admin $
+ * $Author: alex $
  *
  ***************************************************************************/
 
@@ -35,10 +35,7 @@
 static mbstate_t internal;
 
 size_t
-mbrlen (s, n, ps)
-     const char *s;
-     size_t n;
-     mbstate_t *ps;
+mbrlen (const char *s, size_t n, mbstate_t *ps)
 {
   PTHREAD_UNSAFE
 
