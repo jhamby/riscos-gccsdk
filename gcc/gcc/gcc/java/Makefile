@@ -19,7 +19,7 @@ all: java
 .PHONY: java
 
 java: $(bin_dir)/gcjh$(gexesfx) $(gcc_bin_dir)/jvgenmain$(gexesfx) \
-	$(bin_dir)/jcf-dump$(gexesfx) $(bin_dir)/gcj \
+	$(bin_dir)/jcf-dump$(gexesfx) $(bin_dir)/gcj$(gexesfx) \
         $(bin_dir)/jv-scan$(gexesfx) $(gcc_bin_dir)/jc1$(gexesfx)
 
 LIBDEPS = $(gccobjdir)/prefix.o
