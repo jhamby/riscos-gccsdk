@@ -175,6 +175,8 @@ lhsrhs (WORD ir)
     }
   else
     error (ErrorError, TRUE, "%slhs", InsertCommaAfter);
+  if ((ir & P_FLAG) && apcs_32bit)
+    error (ErrorWarning, TRUE, "TSTP/TEQP/CMNP/CMPP inadvisable in 32-bit PC configurations");
   ir = getRhs (FALSE, TRUE, ir);
   putIns (ir);
 }
