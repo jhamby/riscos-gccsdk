@@ -1,0 +1,10 @@
+
+AB_INSTALL=yes
+
+AB_CONFLAGS="--without-ftp --without-http --without-reader --without-pattern
+--without-writer --without-catalog --without-docbook --without-xpath
+--without-xptr --without-c14n --without-xinclude --without-schemas
+--without-regexps --with-iconv --with-iso8859x"
+
+mkdir -p $D/include/libxml2/libxml
+
