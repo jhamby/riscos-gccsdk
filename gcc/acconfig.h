@@ -1,0 +1,4 @@
+#undef PACKAGE
+#undef VERSION
+#undef HAVE_CPP_STRINGIFY
+

@@ -1,0 +1,159 @@
+# Top-level configure.in for the RISC OS GCCSDK
+# Copyright (c) 2000 Nick Burrett
+# Written by Nick Burrett <nick@dsvr.net>
+
+AC_INIT(Makefile.in)
+AC_CONFIG_HEADER(config.h)
+AC_CANONICAL_SYSTEM
+AC_ARG_PROGRAM
+
+dnl Global version variable
+PACKAGE="GCCSDK"
+AC_SUBST(PACKAGE)
+VERSION="1.0.0"
+AC_SUBST(VERSION)
+
+dnl Checks for programs
+AC_PROG_CC
+AC_PROG_INSTALL
+AC_PROG_LN_S
+AC_PROG_YACC
+AC_PROG_RANLIB
+AC_PROG_LEX
+AC_PROG_AWK
+
+# See if the system preprocessor understands the ANSI C preprocessor
+# stringification operator.
+AC_MSG_CHECKING(whether cpp understands the stringify operator)
+AC_CACHE_VAL(gcc_cv_c_have_stringify,
+[AC_TRY_COMPILE(,
+[#define S(x)   #x
+char *test = S(foo);],
+gcc_cv_c_have_stringify=yes, gcc_cv_c_have_stringify=no)])
+AC_MSG_RESULT($gcc_cv_c_have_stringify)
+if test $gcc_cv_c_have_stringify = yes; then
+  AC_DEFINE(HAVE_CPP_STRINGIFY)
+fi
+
+dnl Checks for header files
+AC_HEADER_STDC
+AC_HEADER_SYS_WAIT
+AC_HEADER_TIME
+AC_CHECK_HEADERS(stdint.h inttypes.h endian.h machine/endian.h)
+AC_CHECK_HEADERS(vfork.h fcntl.h limits.h stab.h stddef.h stdlib.h)
+AC_CHECK_HEADERS(string.h strings.h sys/file.h sys/param.h sys/resource.h)
+AC_CHECK_HEADERS(sys/stat.h sys/time.h sys/times.h time.h unistd.h)
+
+AC_CHECK_FUNCS(atoll atoq)
+AC_CHECK_FUNCS(bcmp bcopy bsearch bzero getrlimit gettimeofday index)
+AC_CHECK_FUNCS(isascii kill popen putenv setrlimit strchr strerror)
+AC_CHECK_FUNCS(strrchr strsignal strtoul sysconf)
+AC_CHECK_FUNCS(putc_unlocked fputc_unlocked fputs_unlocked)
+
+AC_DECL_SYS_SIGLIST
+
+dnl Checks for typedefs, structures and compiler characteristics
+#AC_CHECK_TYPE(uint32_t, unsigned int)
+#AC_CHECK_TYPE(int32_t, int)
+
+dnl See whether we need a declaration for a function.
+dnl GCC_NEED_DECLARATION(FUNCTION [, EXTRA-HEADER-FILES])
+AC_DEFUN(GCC_NEED_DECLARATION,
+[AC_MSG_CHECKING([whether $1 must be declared])
+AC_CACHE_VAL(gcc_cv_decl_needed_$1,
+[AC_TRY_COMPILE([
+#include <stdio.h>
+#ifdef STRING_WITH_STRINGS
+# include <string.h>
+# include <strings.h>
+#else
+# ifdef HAVE_STRING_H
+#  include <string.h>
+# else
+#  ifdef HAVE_STRINGS_H
+#   include <strings.h>
+#  endif
+# endif
+#endif
+#ifdef HAVE_STDLIB_H
+#include <stdlib.h>
+#endif
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
+#endif
+#ifndef HAVE_RINDEX
+#define rindex strrchr
+#endif
+#ifndef HAVE_INDEX
+#define index strchr
+#endif
+$2],
+[char *(*pfn) = (char *(*)) $1],
+eval "gcc_cv_decl_needed_$1=no", eval "gcc_cv_decl_needed_$1=yes")])
+if eval "test \"`echo '$gcc_cv_decl_needed_'$1`\" = yes"; then
+  AC_MSG_RESULT(yes)
+  gcc_tr_decl=NEED_DECLARATION_`echo $1 | tr 'abcdefghijklmnopqrstuvwxyz' 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'`
+  AC_DEFINE_UNQUOTED($gcc_tr_decl)
+else
+  AC_MSG_RESULT(no)
+fi
+])dnl
+
+dnl Check multiple functions to see whether each needs a declaration.
+dnl GCC_NEED_DECLARATIONS(FUNCTION... [, EXTRA-HEADER-FILES])
+AC_DEFUN(GCC_NEED_DECLARATIONS,
+[for ac_func in $1
+do
+GCC_NEED_DECLARATION($ac_func, $2)
+done
+])
+
+GCC_NEED_DECLARATIONS(malloc realloc calloc free bcopy bzero bcmp \
+        index rindex getenv atol sbrk abort atof strerror getcwd getwd \
+        strsignal putc_unlocked fputs_unlocked strstr)
+
+GCC_NEED_DECLARATIONS(getrlimit setrlimit, [
+#include <sys/types.h>
+#ifdef HAVE_SYS_RESOURCE_H
+#include <sys/resource.h>
+#endif
+])
+
+
+
+
+dnl Checks for library functions
+
+
+echo Targeting for host $host
+
+case "$host" in
+  *-*-freebsd*)
+	os_subdir="freebsd"
+	;;
+  *-*-linux)
+	os_subdir="linux"
+	;;
+  *-*-linux-*)
+	os_subdir="linux"
+	;;
+esac
+os_vendor="unknown"
+if test "$os_subdir" = "linux"; then
+    # Discover distribution type
+    AC_MSG_CHECKING([Linux vendor])
+    if test -f /etc/redhat-release; then
+	os_vendor="redhat"
+    elif test -f /etc/SuSE-release; then
+	os_vendor="suse"
+    elif test -f /etc/debian-version; then
+	os_vendor="debian"
+    fi
+    AC_MSG_RESULT($os_vendor)
+fi
+
+
+#AC_SUBST(os_subdir)
+#AC_SUBST(os_vendor)
+AC_PROG_MAKE_SET
+AC_OUTPUT([Makefile])
