@@ -191,7 +191,7 @@ Contents
 
  4.2 Directories
 
-  Because RiscOS doesn't use file extenders, the files are stored in
+  Because RISC OS doesn't use file extensions, the files are stored in
   different subdirectories:
 
   * c    C source code

@@ -386,7 +386,7 @@ any Virtualise features.
 Troubleshooting
 ---------------
 
-Here are describled some common problems users have with gcc and the GNU
+Here are described some common problems users have with gcc and the GNU
 compilers. Possible solutions are provided for the known problems.
 
 1. The compiler fails to compile anything but no error message is reported.

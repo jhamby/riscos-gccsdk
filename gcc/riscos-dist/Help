@@ -48,7 +48,9 @@ If you've used GCC before:
    ensures the module is loaded.  If you do distribute the module it is
    highly recommended that you watch future GCC and UnixLib developments
    as it is possible that future versions of the module and Unixlib
-   may be incompatible with the current versions.
+   may be incompatible with the current versions.  There is no need
+   to RMEnsure this in your !Run file as UnixLib itself ensures the module
+   is loaded.
 
-GCCSDK Developers, 2001
+GCCSDK Developers, 2003
   
