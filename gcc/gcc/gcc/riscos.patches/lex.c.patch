@@ -1,8 +1,0 @@
---- /home/nick/riscos/masters/gcc-3.4/gcc/f/lex.c	2004-02-15 17:16:03.000000000 +0000
-+++ f77/lex.c	2004-06-18 16:27:36.181939096 +0100
-@@ -4568,4 +4568,4 @@ ffelex_token_use (ffelexToken t)
-   return t;
- }
- 
--#include "gt-f-lex.h"
-+#include "gt-f77-lex.h"

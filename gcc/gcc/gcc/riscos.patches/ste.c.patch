@@ -1,8 +1,0 @@
---- /home/nick/riscos/masters/gcc-3.4/gcc/f/ste.c	2003-09-22 06:09:30.000000000 +0100
-+++ f77/ste.c	2004-06-18 16:27:42.615960976 +0100
-@@ -4472,4 +4472,4 @@ ffeste_terminate_2 (void)
- }
- #endif
- 
--#include "gt-f-ste.h"
-+#include "gt-f77-ste.h"
