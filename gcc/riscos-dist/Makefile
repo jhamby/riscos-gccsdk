@@ -88,12 +88,12 @@ UTILSPKG = $(pkg)/bin/bison$(exesfx) \
 	$(pkg)/bin/sed$(exesfx) \
 	$(pkg)/bin/touch$(exesfx) \
 	$(pkg)/bin/zip$(exesfx) \
-	$(pkg)/doc/bison \
-	$(pkg)/doc/flex \
-	$(pkg)/doc/grep \
-	$(pkg)/doc/gperf \
-	$(pkg)/doc/make \
-	$(pkg)/doc/sed \
+	$(pkg)/docs/bison \
+	$(pkg)/docs/flex \
+	$(pkg)/docs/grep \
+	$(pkg)/docs/gperf \
+	$(pkg)/docs/make \
+	$(pkg)/docs/sed \
 	$(bindir)/apcs32/arch3/unixlib/o/libfl \
 	$(bindir)/apcs32/arch3/unixlib/o/libiberty \
 	$(bindir)/apcs32/arch3/unixlib/o/libmp
