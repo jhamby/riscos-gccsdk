@@ -1,9 +1,5 @@
-The RISC OS Software Development Kit [GCC 3.3 experimental]
+The RISC OS Software Development Kit [GCC 3.3.3 pre-release]
 ====================================
-
-WARNING: This is the trunk of GCCSDK and is currently tracking the GCC 3.3
-development tree.  Don't expect the trunk to build.  If you want something
-stable, then try the release_2_95 branch.
 
 This rather large package is a collection of software that I use regularly
 when writing software.  Originally written as many seperate build trees,
