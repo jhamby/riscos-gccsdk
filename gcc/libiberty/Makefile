@@ -1,5 +1,5 @@
 # Makefile for GNU libiberty for ARM/RISC OS
-# Copyright (c) 1997-2000 Nick Burrett
+# Copyright (c) 1997, 1998, 1999, 2000 Nick Burrett
 # Written by Nick Burrett <nick@dsvr.net>
 #
 # This Makefile gets run twice.  First libiberty must be built
@@ -38,6 +38,7 @@ LIBIBERTY = $(objtarget)/choose-temp.o $(objtarget)/cplus-dem.o \
 	$(objtarget)/getopt.o $(objtarget)/getopt1.o \
 	$(objtarget)/obstack.o $(objtarget)/mkstemps.o \
 	$(objtarget)/pexecute.o $(objtarget)/splay-tree.o \
+	$(objtarget)/stpcpy.o \
 	$(objtarget)/xatexit.o $(objtarget)/xexit.o \
 	$(objtarget)/xmalloc.o $(objtarget)/xstrerror.o
 
@@ -69,8 +70,8 @@ $(objtarget)/mkstemps.o: mkstemps.c
 $(objtarget)/obstack.o: obstack.c
 $(objtarget)/pexecute.o: pexecute.c
 $(objtarget)/splay-tree.o: splay-tree.c
+$(objtarget)/stpcpy.o: stpcpy.c
 $(objtarget)/xatexit.o: xatexit.c
 $(objtarget)/xexit.o: xexit.c
 $(objtarget)/xmalloc.o: xmalloc.c
 $(objtarget)/xstrerror.o: xstrerror.c
- 
