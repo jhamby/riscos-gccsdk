@@ -320,7 +320,7 @@
 #define ENABLE_STD_NAMESPACE 1
 
 /* Define 0/1 to force the choice for exception handling model. */
-#define CONFIG_SJLJ_EXCEPTIONS 0
+#define CONFIG_SJLJ_EXCEPTIONS 1
 
 /* Define if the host execution character set is EBCDIC. */
 /* #undef HOST_EBCDIC */
