@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/unixlib/features.h,v $
- * $Date: 2002/12/22 18:22:28 $
- * $Revision: 1.6 $
+ * $Date: 2003/04/05 12:16:34 $
+ * $Revision: 1.7 $
  * $State: Exp $
- * $Author: admin $
+ * $Author: alex $
  *
  ***************************************************************************/
 
@@ -510,6 +510,7 @@
 # endif
 #endif
 
+#ifdef __UNIXLIB_INTERNALS
 /* This comes between the return type and function name in
    a function definition to make that definition weak.  */
 # define weak_function __attribute__ ((weak))
@@ -522,6 +523,7 @@
 # define internal_function	/* empty */
 #endif
 
+#endif
 
 /* GCC has lots of useful extensions that we can apply to our header
    files.  These aid to improve compile time syntax checking and also

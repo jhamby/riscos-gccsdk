@@ -1,10 +1,10 @@
 /****************************************************************************
  *
- * $Source: $
- * $Date: $
- * $Revision: $
- * $State: $
- * $Author: $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/sys/cdefs.h,v $
+ * $Date: 2003/04/25 14:15:26 $
+ * $Revision: 1.1 $
+ * $State: Exp $
+ * $Author: peter $
  *
  ***************************************************************************/
 
@@ -244,6 +244,7 @@
 # endif
 #endif
 
+#ifdef __UNIXLIB_INTERNALS
 /* This comes between the return type and function name in
    a function definition to make that definition weak.  */
 # define weak_function __attribute__ ((weak))
@@ -255,5 +256,8 @@
 #ifndef internal_function
 # define internal_function	/* empty */
 #endif
+
+#endif
+
 
 #endif	 /* sys/cdefs.h */
