@@ -131,16 +131,38 @@ GCC_NEED_DECLARATIONS(getrlimit setrlimit, [
 dnl Checks for library functions
 
 echo Targeting for host $host
+
+# Get CPU info
 case "$host" in
-  *-*-freebsd*)	host_overrides="config/freebsd.mk";;
-  *-*-linux)	host_overrides="config/linux.mk";;
-  *-*-linux-*)	host_overrides="config/linux.mk";;
+  arm*-*)
+	cpu_type="ARM"
+	;;
+changequote(,)dnl
+  i[34567]86-*)
+changequote([,])dnl
+	cpu_type="I386"
+	;;
 esac
+
+# Determine operating system
+case "$host" in
+  *freebsd*)
+	os_type="FREEBSD"
+	host_overrides="config/freebsd.mk"
+	;;
+  *linux*)
+	os_type="LINUX"
+	host_overrides="config/linux.mk"
+	;;
+esac
+
 
 target_name="arm-riscos-aof"
 target_defs="-DTARGET_RISCOSAOF"
+host_system="HOST_${cpu_type}_${os_type}"
 AC_SUBST(target_name)
 AC_SUBST(target_defs)
+AC_SUBST(host_system)
 
 # Get an absolute path to the GCCSDK top-level source directory
 holddir=`pwd`

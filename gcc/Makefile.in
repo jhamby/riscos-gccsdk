@@ -30,12 +30,16 @@ gccpkg=@prefix@
 distdir=@prefix@
 objdir=@topdir@/$(TARGET_NAME)
 
+# Used in the GCC Makefiles
+hostsystem=@host_system@
+
+
 # set inserts variable overrides after the following line
 ####host definitions
 @host_overrides@
 ####
 
-export TARGET_NAME TARGET_DEFS gccpkg distdir objdir
+export TARGET_NAME TARGET_DEFS gccpkg distdir objdir hostsystem
 
 # Path to where we place non-target specific compiled binaries
 BIN = $(distdir)/bin

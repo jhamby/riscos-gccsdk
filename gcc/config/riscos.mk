@@ -27,13 +27,10 @@ local_include_dir="$(gccpkg)/local/include"
 system_include_dir="$(gccpkg)/sys/include"
 cross_include_dir=
 
-# Used in GCC's makefile
-hostsystem=HOST_ARM_RISCOS
-
 export standard_exec_prefix standard_startfile_prefix
 export gcc_include_dir gplusplus_include_dir
 export local_include_dir system_include_dir cross_include_dir
-export hostsystem gcc_bin_dir
+export gcc_bin_dir
 
 # For the RISC OS gcc compiler
 #OPTS = -mthrowback -mpoke-function-name
