@@ -77,6 +77,10 @@ r14 RN 14
 #define RETCOND
 #endif
 
+/* Keep these in sync with unixlib/asm_dec.s and features.h */
+__FEATURE_PTHREADS	EQU	1
+__PTHREAD_ALLOCA_OFFSET	EQU	8
+
 	AREA	|C$$code|, CODE, READONLY
 
 #ifdef L_ashldi3
@@ -1180,12 +1184,19 @@ Implementation:
   allocation.  This method had extremely bad run-time performance and
   had a memory leak with this saved linkage information persisting
   not being deallocated (not possible without more hacks to the main
-  compiler). */
+  compiler).
+
+  Additionally, if threads are in use then the list of chunks is stored
+  on a per-thread basis, and ___arm_alloca_thread_free_all is called
+  when the thread exits, to ensure all allocations for that thread get
+  released. */
 
 /* Version 2.13 (06 Nov 1999)  */
 
 XOS_Write0	*	&20002
 
+	[ __FEATURE_PTHREADS = 0
+	; When pthreads are in use this is stored per-thread
 	AREA	|C$$data|, DATA
 	ALIGN	4
 	EXPORT	|__arm_alloca_st|
@@ -1194,6 +1205,7 @@ XOS_Write0	*	&20002
 |__arm_alloca_st|
 	DCD	0	/* unsigned int level */
 	DCD	0	/* chunk *list */
+	]
 
 |arm_unwinding|
 	DCD	0
@@ -1230,17 +1242,19 @@ chunk_size		*	16
 level_off		*	0
 list_off		*	4
 
-	/* UnixLib's jmp_buf is 23 words, Norcroft's is 22 words
-	   so gcc's is 24 (one more word than the biggest)
-	   setjmp_save is the offset to the 24th word.  */
-setjmp_save		*	(23*4)
+	/* UnixLib's jmp_buf is 24 words, Norcroft's is 22 words
+	   so gcc's is 25 (one more word than the biggest)
+	   setjmp_save is the offset to the 25th word.  */
+setjmp_save		*	(24*4)
 
 
 	AREA	|C$$code|, CODE, READONLY
 
 	ALIGN	4
+	[ __FEATURE_PTHREADS = 0
 |arm_alloca_ptr|
 	DCD	|__arm_alloca_st|
+	]
 
 	/* please ensure all routines are preceded by their own
 	   register usage.  While ObjASM will complain if the same
@@ -1306,11 +1320,18 @@ chunks_retaddr_a	RN	12
 
 	IMPORT	|free|
 	IMPORT	|abort|
+	IMPORT	|__pthread_running_thread|
 
 	ALIGN	4
 |___arm_alloca_free_all|
 	STMFD	sp!, {a1, a2, a3, a4, arm_alloca_v, chunks, old_chunks, return_addr, alloca_level, fp, ip}
+	[ __FEATURE_PTHREADS = 1
+	LDR	arm_alloca_v, =|__pthread_running_thread|
+	LDR	arm_alloca_v, [arm_alloca_v]
+	ADD	arm_alloca_v, arm_alloca_v, #__PTHREAD_ALLOCA_OFFSET
+	|
 	LDR	arm_alloca_v, [pc, #|arm_alloca_ptr| - . -8]
+	]
 	MOV	return_addr, #0
 
 	/* alloca_level = arm_alloca.level; chunks = arm_allocal.list; */
@@ -1370,6 +1391,43 @@ chunks_retaddr_a	RN	12
 
 
 	/* -----------------------------------------------------------------
+	   ___arm_alloca_thread_free_all
+
+	   register usage  */
+/*
+arm_alloca_v		RN	5
+chunks			RN	9
+*/
+
+	IMPORT	|free|
+	IMPORT	|__pthread_running_thread|
+
+	ALIGN	4
+	EXPORT	|___arm_alloca_thread_free_all|
+|___arm_alloca_thread_free_all|
+	STMFD	sp!, {arm_alloca_v, chunks, lr}
+	[ __FEATURE_PTHREADS = 1
+	LDR	arm_alloca_v, =|__pthread_running_thread|
+	LDR	arm_alloca_v, [arm_alloca_v]
+	ADD	arm_alloca_v, arm_alloca_v, #__PTHREAD_ALLOCA_OFFSET
+	|
+	LDR	arm_alloca_v, [pc, #|arm_alloca_ptr| - . -8]
+	]
+
+	LDR	chunks, [arm_alloca_v, #list_off]
+	MOV	a1, #0
+	STR	a1, [arm_alloca_v, #list_off]
+	STR	a1, [arm_alloca_v, #level_off]
+|L..18|					/* while (chunks != NULL) { */
+	MOVS	a1, chunks		/*    temp = chunks; */
+	LDMEQFD	sp!, {arm_alloca_v, chunks, pc}RETCOND
+	LDR	chunks, [chunks, #chunks_prev_off]
+
+	BL	|free|
+	B	|L..18|
+
+
+	/* -----------------------------------------------------------------
 	   ___arm_alloca_alloc
 
 	  register usage  */
@@ -1403,7 +1461,7 @@ gbaa_t3		RN	12
 	/* Allocating nothing ? Then just return. */
 	CMP	a1, #0
 	RETURNc(eq, pc, lr)
-	STMFD	sp!, {lr}
+	STMFD	sp!, {a1, a2, a3, a4, fp, ip, lr}
 	ADD	a1, a1, #chunk_size
 	BL	|malloc|
 
@@ -1413,12 +1471,25 @@ gbaa_t3		RN	12
 	ADREQ   a1, |dynamic_alloca_error|
 	SWIEQ	XOS_Write0
 	BLEQ	|abort|			/* abort never returns */
+
+	/*  get pointer to chunk list and level number */
+	[ __FEATURE_PTHREADS = 1
+	LDR     arm_alloca_a, =|__pthread_running_thread|
+	LDR     arm_alloca_a, [arm_alloca_a]
+	ADD     arm_alloca_a, arm_alloca_a, #__PTHREAD_ALLOCA_OFFSET
+	|
 	LDR	arm_alloca_a, [pc, #|arm_alloca_ptr|-.-8]
+	]
 	LDMIA	arm_alloca_a, {gbaa_t2,gbaa_t3}
+
 	LDR	gbaa_t1, [fp, #-12]
 	STMIA	buffer, {gbaa_t1,gbaa_t2,gbaa_t3}	/* set fp, level, prev */
 	LDR	gbaa_t2, [fp, #-4]
+	[ {CONFIG} = 26
 	BIC	gbaa_t1, gbaa_t2, #&FC000003
+	|
+	MOV	gbaa_t1, gbaa_t2
+	]
 	ADR	gbaa_t3, |___arm_alloca_free_all|
 	CMP	gbaa_t1, gbaa_t3
 	MOVEQ	gbaa_t2, #0
@@ -1426,7 +1497,7 @@ gbaa_t3		RN	12
 	STR	buffer, [arm_alloca_a, #list_off]
 	STRNE	gbaa_t3, [fp, #-4]
 	ADD	buffer, buffer, #16
-	LDMFD	sp!, {pc}RETCOND
+	LDMFD	sp!, {a1, a2, a3, a4, fp, ip, pc}RETCOND
 
 |dynamic_alloca_error|
 	DCB	"Not enough free memory for dynamic alloca", 13, 10
@@ -1456,10 +1527,16 @@ all_allocations_freed	RN	6
 	ALIGN
 	EXPORT	|___arm_alloca_block_free|
 |___arm_alloca_block_free|
-	STMFD	sp!, {lev, chunks, arm_alloca_v, old_chunks, return_addr, all_allocations_freed, fp, ip, lr}
+	STMFD	sp!, {r0-r12, lr}
 	MOV	lev, a1
 	MOV	return_addr, #0
+	[ __FEATURE_PTHREADS = 1
+	LDR	arm_alloca_v, =|__pthread_running_thread| ; should be conditional on __FEATURE_PTHREADS
+	LDR	arm_alloca_v, [arm_alloca_v]
+	ADD	arm_alloca_v, arm_alloca_v, #__PTHREAD_ALLOCA_OFFSET
+	|
 	LDR	arm_alloca_v, [pc, #|arm_alloca_ptr|-.-8]
+	]
 	MOV	all_allocations_freed, #1
 	LDR	chunks, [arm_alloca_v, #list_off]
 	MOV	old_chunks, #0
@@ -1521,7 +1598,7 @@ all_allocations_freed	RN	6
 	CMP	return_addr, #0
 	CMPNE	all_allocations_freed, #0
 	STRNE	return_addr, [fp, #-4]
-	LDMFD	sp!, {lev, chunks, arm_alloca_v, old_chunks, return_addr, all_allocations_freed, fp, ip, pc}RETCOND
+	LDMFD	sp!, {r0-r12, pc}RETCOND
 
 	/* -----------------------------------------------------------------
 	   ___arm_alloca_block_init
@@ -1532,11 +1609,18 @@ all_allocations_freed	RN	6
 	ALIGN	4
 	EXPORT	|___arm_alloca_block_init|
 |___arm_alloca_block_init|
+	STMFD	sp!, {a2, lr}
+	[ __FEATURE_PTHREADS = 1
+	LDR	arm_alloca_a, =|__pthread_running_thread|
+	LDR	arm_alloca_a, [arm_alloca_a]
+	ADD	arm_alloca_a, arm_alloca_a, #__PTHREAD_ALLOCA_OFFSET
+	|
 	LDR	arm_alloca_a, [pc, #|arm_alloca_ptr|-.-8]
+	]
 	LDR	a1, [arm_alloca_a, #level_off]
 	ADD	a1, a1, #1
 	STR	a1, [arm_alloca_a, #level_off]
-	RETURN(pc, lr)
+	LDMFD	sp!, {a2, pc}RETCOND
 
 	/* -----------------------------------------------------------------
 	   ___arm_alloca_setjmp
@@ -1552,7 +1636,13 @@ all_allocations_freed	RN	6
 	/* Store within the setjmp buffer a pointer to the linked
 	   list of alloca chunks. longjmp will use this to free any
 	   memory allocated with `alloca' between the setjmp and longjmp */
+	[ __FEATURE_PTHREADS = 1
+	LDR	arm_alloca_a, =|__pthread_running_thread| ; should be conditional on __FEATURE_PTHREADS
+	LDR	arm_alloca_a, [arm_alloca_a]
+	ADD	arm_alloca_a, arm_alloca_a, #__PTHREAD_ALLOCA_OFFSET
+	|
 	LDR	arm_alloca_a, [pc, #|arm_alloca_ptr|-.-8]
+	]
 	LDR	a4, [arm_alloca_a, #list_off]
 	STR	a4, [a1, #setjmp_save]
 	B	|setjmp|
@@ -1576,7 +1666,13 @@ jmpbuf		RN	8
 |___arm_alloca_longjmp|
 	MOV	jmpbuf, a1
 	MOV	num_save, a2
+	[ __FEATURE_PTHREADS = 1
+	LDR	arm_alloca_v, =|__pthread_running_thread|
+	LDR	arm_alloca_v, [arm_alloca_v]
+	ADD	arm_alloca_v, arm_alloca_v, #__PTHREAD_ALLOCA_OFFSET
+	|
 	LDR	arm_alloca_v, [pc, #|arm_alloca_ptr|-.-8]
+	]
 	LDR	chunks, [arm_alloca_v, #list_off]
 	LDR	search_value, [jmpbuf, #setjmp_save]
 	B	|L..48|
@@ -1617,7 +1713,13 @@ jmpbuf		RN	8
 	ALIGN	4
 	EXPORT	|___arm_alloca_nonlocal_save|
 |___arm_alloca_nonlocal_save|
+	[ __FEATURE_PTHREADS = 1
+	LDR	arm_alloca_a, =|__pthread_running_thread|
+	LDR	arm_alloca_a, [arm_alloca_a]
+	ADD	arm_alloca_a, arm_alloca_a, #__PTHREAD_ALLOCA_OFFSET
+	|
 	LDR	arm_alloca_a, [pc, #|arm_alloca_ptr|-.-8]
+	]
 	LDR	a1, [arm_alloca_a, #list_off]
 	RETURN(pc, lr)
 
@@ -1637,7 +1739,13 @@ jmpbuf		RN	8
 |___arm_alloca_nonlocal_restore|
 	STMFD	sp!, {chunks, arm_alloca_v, search_value, fp, ip, lr}
 	MOV	search_value, a1
+	[ __FEATURE_PTHREADS = 1
+	LDR	arm_alloca_v, =|__pthread_running_thread|
+	LDR	arm_alloca_v, [arm_alloca_v]
+	ADD	arm_alloca_v, arm_alloca_v, #__PTHREAD_ALLOCA_OFFSET
+	|
 	LDR	arm_alloca_v, [pc, #|arm_alloca_ptr|-.-8]
+	]
 	LDR	chunks, [arm_alloca_v, #list_off]
 	B	|L..48.1|
 |L..49.1|
@@ -1686,7 +1794,12 @@ typedef struct __exception_stack_chunk
   struct __exception_stack_chunk *sc_next, *sc_prev;
   unsigned long sc_size;
   int (*sc_deallocate)(void *);
-} _exception_stack_chunk;  */
+} _exception_stack_chunk;
+
+A UnixLib chunked stack is the same as above, but with an additional
+word at the end holding the return address after the chunk is freed.
+It is 536 bytes below sl, whereas for the scl it is 560 bytes below sl.
+*/
 
 reg_fp	RN	0
 sc	RN	1
@@ -1710,12 +1823,17 @@ next_fp	RN	12
 	/* No enclosing frame, so no return address.  */
 	LDMEQEA	fp, {bra_t1, bra_marker, fp, sp, pc}RETCOND
 	MOV	reg_fp, fp
-	/* Make 'sc' point to the current stack chunk. */
-	SUB	sc, sl, #560
 	/* We must cope with a variety of UnixLib and SharedCLibrary stacks
 	   occuring within a program.  */
-	MOV	x, #0
 	LDR	bra_marker, =&F60690FF
+	/* Make 'sc' point to the current stack chunk. */
+	SUB	sc, sl, #536 /* check for UnixLib chunked stack */
+	LDR	bra_t1, [sc, #0] /* sc->sc_mark  */
+	CMP	bra_t1, bra_marker
+	/* If not a UnixLib chunked stack, then it must be a
+	   SharedCLibrary chunked stack or it is not chunked */
+	SUBNE	sc, sl, #560
+	MOV	x, #0
 |__builtin_frame_address.loop|
 
 	LDR	next_fp, [reg_fp, #-12]
@@ -1788,8 +1906,14 @@ temp_lr	RN	2
 	CMP	a1, #0
 	BLEQ	|abort|	/* no enclosing frame, so no previous stack */
 	/* MOV	reg_fp, fp  */
-	SUB	sc, sl, #560
+
 	LDR	uf_t1, =&F60690FF
+	SUB	sc, sl, #536 /* check for UnixLib chunked stack */
+	LDR	next_fp, [sc, #0] /* sc->sc_mark  */ /* use next_fp as a temp. reg here */
+	CMP	next_fp, bra_marker
+	/* If not a UnixLib chunked stack, then it must be a
+	   SharedCLibrary chunked stack or it is not chunked */
+	SUBNE	sc, sl, #560
 	LDR	next_fp, [sc, #0] /* use next_fp as a temp. reg here */
 	CMP	next_fp, uf_t1	/* sc->sc_mark == 0xf60690ff */
 	LDMNEEA fp, {fp, sp, lr} /* unwind stack one level and exit */
