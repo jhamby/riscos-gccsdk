@@ -4,6 +4,7 @@ Mon Dec 20 16:18:55 2004  Peter Naulls  <peter@chocky.org>
 	* source/sys/_mem.s, source/sys/_memset.s:  Replaced
 	  our memset with hopefully faster (and simpler) one
 	  from glibc.
+	* source/clib/sys/queue.h: Add sys/queue.h functionality.
 
 Sat Dec 18 18:37:52 2004  John Tytgat  <John.Tytgat@aaug.net>
 
