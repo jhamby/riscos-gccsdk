@@ -1,4 +1,4 @@
-Introduction to GCC 3.3 for RISC OS
+Introduction to GCC 3.4 for RISC OS
 ===================================
 
 This is a short introduction to GCC, the GNU Compiler Collection or RISC OS.
@@ -158,12 +158,6 @@ There are some additional ARM specific switches.
    performance of the generated application will not be slower. It is useful
    to turn this option on when developing applications as it can lead to a
    clear indication of where a program is failing.
-
- -mapcs-26
-   target the APCS-26 bit standard. Condition flags are preserved by function
-   calls in this mode.  This was the standard used by RISC OS 3.7 and earlier.
-   Later versions use APCS-32 where condition flags are not preserved and
-   this is now the default.
 
  -mapcs-stack-check
    provide explicit stack checking on entry to each function which allocates
@@ -360,7 +354,7 @@ compilers. Possible solutions are provided for the known problems.
   any program executed. If this happens, try increasing the wimpslot,
   using *wimpslot -min nnnK, where nnn is as follows:
 
-      3000K or more for GNU C, Objective-C, C++, Fortran and Pascal.
+      4000K or more for GNU C, Objective-C, C++, Fortran and Pascal.
       6000K or more for GNAT Ada.
   
   When the compiler runs out of memory during compilation, an error
@@ -457,7 +451,7 @@ Obtaining compilers
 -------------------
 
 As said earlier, GCC is a compiler front end. The compilers themselves
-can be found at http://hard-mofo.dsvr.net/gcc/
+can be found at http://gccsdk.riscos.info/
 
 
 Distribution patches
@@ -467,7 +461,7 @@ From time to time bugs might be fixed in the GCC distribution. To save
 download time involved in uploading/fetching new binaries, patch archives
 will become available from the address:
 
-  http://hard-mofo.dsvr.net/gcc/
+  http://gccsdk.riscos.info/
 
 Announcements will be posted to comp.sys.acorn.announce whenever new
 patch archives are uploaded.
@@ -477,7 +471,7 @@ Contacting the author
 ----------------------
 
 A mailing list has been setup for discussions on GCC, including development
-work.  To join it, send mail to majordomo@hard-mofo.dsvr.net and put
+work.  To join it, send mail to majordomo@gccsdk.riscos.info and put
 `subscribe gcc' as the only item of text in the message body.
 
 

@@ -87,15 +87,8 @@ guidelines:
 Where to Report Bugs
 ====================
 
-Different people have ported different compilers. Here is list of the
-e-mail addresses you should should when reporting a possible bug.
-
-Bug reports relating to GNU C, GNU C++, GNU Objective-C, GNU Fortran
-and GNU Pascal should be sent to:
-  Nick Burrett: gcc-bugs@hard-mofo.dsvr.net
-
-Bug reports relating to GNU GNAT Ada should be sent to:
-  Peter Burwood: gnat@arcangel.dircon.co.uk
+Different people have ported different compilers, but we have a central
+repository for holding bugs at: http://gccsdk.riscos.info/bugs
 
    *Do not send bug reports to `help-gcc@prep.ai.mit.edu' or to the
 newsgroup `gnu.gcc.help'.* Most users of GNU CC do not want to receive

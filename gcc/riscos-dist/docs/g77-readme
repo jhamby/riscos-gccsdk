@@ -38,7 +38,7 @@ Installation
 Before attempting to use GNU C, it should be noted that this distribution
 will require the GCC compiler. If you do not have a copy of this, it can
 be retrieved from
-  http://hard-mofo.dsvr.net/gcc
+  http://gccsdk.riscos.info
 
 GNU Fortran 0.5.25 also requires UnixLib 3.8.
 

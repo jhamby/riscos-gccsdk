@@ -97,7 +97,7 @@ directory for those headers, simply define the variable:
 Bug reporting
 -------------
 
-Please use the bug-tracking system at http://bugs.hard-mofo.dsvr.net.
+Please use the bug-tracking system at http://gccsdk.riscos.info/bugs/
 
 
 GCCSDK package contents
@@ -213,9 +213,9 @@ A4. Fortunately this is quite easy and, in most cases, only requires you to
 Q5. Where do I report bugs or send patches ?
 
 A5. The preferred method for issuing bug reports for any package distributed
-    with GCCSDK can be registered at http://bugs.hard-mofo.dsvr.net.  A
+    with GCCSDK can be registered at http://gccsdk.riscos.info/bugs/.  A
     centralised location for bug reports helps the authors keep track of
     problems which can otherwise get lost under large piles of e-mail.
 
     Patches for any application can also be sent to the site.  Alternatively
-    bugs or patches can be e-mailed to gcc@hard-mofo.dsvr.net.
+    bugs or patches can be e-mailed to gcc@gccsdk.riscos.info.
