@@ -1,10 +1,10 @@
 /****************************************************************************
  *
- * $Source$
- * $Date$
- * $Revision$
- * $State$
- * $Author$
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/assert.h,v $
+ * $Date: 2002/09/24 21:02:36 $
+ * $Revision: 1.4 $
+ * $State: Exp $
+ * $Author: admin $
  *
  ***************************************************************************/
 
@@ -23,12 +23,13 @@
 
 __BEGIN_DECLS
 
-extern void assert (int);
+extern void assert (int) __THROW;
 
 extern void __assert_fail (const char *__message,
 			   const char *__file,
 			   int __line,
-			   const char *__function) __attribute__ ((__noreturn__));
+			   const char *__function)
+     __attribute__ ((__noreturn__)) __THROW;
 
 __END_DECLS
 

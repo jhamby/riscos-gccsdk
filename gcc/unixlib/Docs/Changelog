@@ -1,3 +1,13 @@
+Mon Apr 12 14:02:24 2004  Nick Burrett  <nick@dsvr.net>
+
+	* alloca.h: Add GCC-specific small optimiser hints to function
+	definitions.
+	* assert.h, complex.h, ctype.h, dirent.h, fcntl.h: Likewise.
+	* fenv.h, getopt.h, glob.h, grp.h, inttypes.h: Likewise.
+	* kernel.h, locale.h, math.h, setjmp.h, signal.h: Likewise.
+	* stdio.h, stdlib.h, string.h, time.h: Likewise.
+	* pwd.h, unistd.h: Likewise.
+
 Mon Apr 12 10:37:35 2004  Nick Burrett  <nick@dsvr.net>
 
 	* unix/unix.c (_exit): Set DDEUtils Prefix when parent process

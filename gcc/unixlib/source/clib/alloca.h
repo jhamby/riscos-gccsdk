@@ -1,8 +1,8 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/alloca.h,v $
- * $Date: 2002/09/24 21:02:36 $
- * $Revision: 1.3 $
+ * $Date: 2003/07/29 23:04:27 $
+ * $Revision: 1.4 $
  * $State: Exp $
  * $Author: admin $
  *
@@ -21,7 +21,7 @@
 __BEGIN_DECLS
 
 /* Allocate a block that will be freed when the calling function exits.  */
-extern void *alloca (size_t __size);
+extern void *alloca (size_t __size) __THROW;
 
 __END_DECLS
 

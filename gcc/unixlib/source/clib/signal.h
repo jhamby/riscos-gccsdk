@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/signal.h,v $
- * $Date: 2003/06/16 21:00:32 $
- * $Revision: 1.6 $
+ * $Date: 2003/07/29 23:04:27 $
+ * $Revision: 1.7 $
  * $State: Exp $
- * $Author: joty $
+ * $Author: admin $
  *
  ***************************************************************************/
 
@@ -127,36 +127,36 @@ extern const char * const sys_siglist[NSIG];	/* signal messages */
 /* Ignore signal.  */
 #define SIG_IGN ((__sighandler_t) 1)
 
-extern __sighandler_t signal (int __sig, __sighandler_t __handler);
+extern __sighandler_t signal (int __sig, __sighandler_t __handler) __THROW;
 
 /* Send signal 'sig' to process number 'pid'.  If pid is zero,
    send sig to all processes in the current process's process group.
    If pid is < -1, send sig to all processes in process group -pid.  */
-extern int kill (__pid_t __pid, int __sig);
+extern int kill (__pid_t __pid, int __sig) __THROW;
 
 /* Send signal 'sig' to all processes in process group 'pgrp'.
    If pgrp is zero, send sig to all processes in the current
    process's process group.  */
-extern int killpg (__pid_t __pgrp, int __sig);
+extern int killpg (__pid_t __pgrp, int __sig) __THROW;
 
 /* Raise signal sig.  */
-extern int raise (int __sig);
+extern int raise (int __sig) __THROW;
 
 /* Print a message describing the meaning of the given signal number.  */
-extern void psignal (int __sig, const char *__s);
+extern void psignal (int __sig, const char *__s) __THROW;
 
 
 /* BSD signal functions.  */
 
 /* Block signals in mask, returning the old mask.  */
-extern int sigblock (int __mask);
+extern int sigblock (int __mask) __THROW;
 
 /* Set the mask of blocked signals to mask, return the old mask.  */
-extern int sigsetmask (int __mask);
+extern int sigsetmask (int __mask) __THROW;
 
 /* Set the mask of blocked signals to mask, wait for a signal
    to arrive, and then restore the mask.  */
-extern int sigpause (int __mask);
+extern int sigpause (int __mask) __THROW;
 
 #define sig_atomic_t __sig_atomic_t
 
@@ -210,25 +210,25 @@ struct sigaction
 /* Currently in an optimised state but this could soon change.  */
 
 /* Clear all signals from set.  */
-extern int sigemptyset (__sigset_t *__set);
+extern int sigemptyset (__sigset_t *__set) __THROW;
 #define sigemptyset(set) ((*(set) = (__sigset_t) 0), 0)
 
 /* Set all signals in set.  */
-extern int sigfillset (__sigset_t *__set);
+extern int sigfillset (__sigset_t *__set) __THROW;
 #define sigfillset(set) ((*(set) = ~(__sigset_t) 0), 0)
 
-extern __sigset_t sigmask (int __sig);
+extern __sigset_t sigmask (int __sig) __THROW;
 #define sigmask(sig) (((__sigset_t) 1) << ((sig) - 1))
 
 
 /* Add signo to set.  */
-extern int sigaddset (__sigset_t *__set, int __signo);
+extern int sigaddset (__sigset_t *__set, int __signo) __THROW;
 
 /* Remove signo from set.  */
-extern int sigdelset (__sigset_t *__set, int __signo);
+extern int sigdelset (__sigset_t *__set, int __signo) __THROW;
 
 /* Remove 1 if signo is in set, 0 if not.  */
-extern int sigismember (const __sigset_t *__set, int __signo);
+extern int sigismember (const __sigset_t *__set, int __signo) __THROW;
 
 #ifdef __UNIXLIB_INTERNALS
 /* Inline versions for UnixLib library only. These are subject to change.  */
@@ -246,18 +246,18 @@ extern int sigismember (const __sigset_t *__set, int __signo);
 
 /* Get and/or change the set of blocked signals.  */
 extern int sigprocmask (int __how, const __sigset_t *__restrict __set,
-			__sigset_t *__oldset);
+			__sigset_t *__oldset) __THROW;
 
 /* Change the set of blocked signals,
    wait until a signal arrives, and restore the set of blocked signals.  */
-extern int sigsuspend (const __sigset_t *__set);
+extern int sigsuspend (const __sigset_t *__set) __THROW;
 
 /* Get and/or set the action for signal sig.  */
 extern int sigaction (int __sig, const struct sigaction *__restrict __act,
-		      struct sigaction *__oldact);
+		      struct sigaction *__oldact) __THROW;
 
 /* Put in set all signals that are blocked and waiting to be delivered.  */
-extern int sigpending (__sigset_t *__set);
+extern int sigpending (__sigset_t *__set) __THROW;
 
 /* BSD signal handling functionality.  */
 #if 0
@@ -282,12 +282,13 @@ struct sigvec
 /* Reset handler to SIG_DFL on receipt.  */
 #define SV_RESETHAND 4
 
-extern int sigvec (int __sig, const struct sigvec *__vec, struct sigvec *__ovec);
+extern int sigvec (int __sig, const struct sigvec *__vec,
+		   struct sigvec *__ovec) __THROW;
 
 /* If interrupt is nonzero, make signal sig interrupt system calls
    (causing them to fail with EINTR); if interrupt is zero, make
    system calls be restarted after signal sig.  */
-extern int siginterrupt (int __sig, int __interrupt);
+extern int siginterrupt (int __sig, int __interrupt) __THROW;
 #endif
 
 /* Signal stack structure (BSD style).  */
@@ -301,7 +302,8 @@ struct sigstack
 
 /* Run signal handlers on the stack specified by 'ss' (if not NULL).
    The old status is returned in oss (if not NULL).  */
-extern int sigstack (const struct sigstack *__ss, struct sigstack *__oss);
+extern int sigstack (const struct sigstack *__ss,
+		     struct sigstack *__oss) __THROW;
 
 /* Signal stack structure (POSIX alternative interface).  */
 struct sigaltstack
@@ -315,7 +317,7 @@ struct sigaltstack
   };
 
 extern int sigaltstack (const struct sigaltstack *__ss,
-			struct sigaltstack *__oss);
+			struct sigaltstack *__oss) __THROW;
 
 /* Signal stack constants.  */
 
@@ -328,10 +330,11 @@ extern int sigaltstack (const struct sigaltstack *__ss,
 #define MINSIGSTKSZ 2048
 
 /* Send a signal to a specific thread */
-extern int pthread_kill (pthread_t thread, int sig);
+extern int pthread_kill (pthread_t thread, int sig) __THROW;
 
 /* Set the signal mask for a thread */
-extern int pthread_sigmask (int how, const sigset_t *set, sigset_t *oset);
+extern int pthread_sigmask (int how, const sigset_t *set,
+			    sigset_t *oset) __THROW;
 
 __END_DECLS
 

@@ -1,8 +1,8 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/locale.h,v $
- * $Date: 2001/01/29 15:10:19 $
- * $Revision: 1.2 $
+ * $Date: 2002/09/24 21:02:36 $
+ * $Revision: 1.3 $
  * $State: Exp $
  * $Author: admin $
  *
@@ -43,7 +43,7 @@ __BEGIN_DECLS
    If 'category' is 'LC_ALL', this specifies the locale for
    all purposes. The other possible values of 'category' specify
    an individual purpose.  */
-extern char *setlocale (int __category, const char *__locale);
+extern char *setlocale (int __category, const char *__locale) __THROW;
 
 struct lconv
 {
@@ -95,7 +95,7 @@ struct lconv
 };
 
 /* Set the lconv structure with the current locale settings.  */
-extern struct lconv *localeconv(void);
+extern struct lconv *localeconv (void) __THROW;
 
 #ifdef __UNIXLIB_INTERNALS
 /* Territory number for each locale.  C locale is -1.  */
@@ -105,7 +105,7 @@ extern int __locale_territory[LC_ALL + 1];
    localeconv. localeconv uses this flag to cache the lconv structure.  */
 extern int __setlocale_called;
 
-extern void __build_ctype_tables (int __territory);
+extern void __build_ctype_tables (int __territory) __THROW;
 #endif
 
 __END_DECLS

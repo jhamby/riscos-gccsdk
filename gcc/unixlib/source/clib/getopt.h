@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/getopt.h,v $
- * $Date: 2003/06/23 20:33:03 $
- * $Revision: 1.5 $
+ * $Date: 2004/01/07 21:00:14 $
+ * $Revision: 1.6 $
  * $State: Exp $
- * $Author: joty $
+ * $Author: nick $
  *
  ***************************************************************************/
 
@@ -33,9 +33,9 @@
 # define _GETOPT_H 1
 #endif
 
-#ifdef	__cplusplus
-extern "C" {
-#endif
+#include <unixlib/features.h>
+
+__BEGIN_DECLS
 
 /* For communication from `getopt' to the caller.
    When `getopt' finds an option that takes an argument,
@@ -135,7 +135,8 @@ struct option
 /* Many other libraries have conflicting prototypes for getopt, with
    differences in the consts, in stdlib.h.  To avoid compilation
    errors, only prototype getopt for the GNU C library.  */
-extern int getopt (int ___argc, char *const *___argv, const char *__shortopts);
+extern int getopt (int ___argc, char *const *___argv,
+		   const char *__shortopts) __THROW;
 /* # else */ /* not __GNU_LIBRARY__ */
 /* extern int getopt (); */
 /* # endif */ /* __GNU_LIBRARY__ */
@@ -143,21 +144,21 @@ extern int getopt (int ___argc, char *const *___argv, const char *__shortopts);
 # ifndef __need_getopt
 extern int getopt_long (int ___argc, char *const *___argv,
 			const char *__shortopts,
-		        const struct option *__longopts, int *__longind);
+		        const struct option *__longopts, int *__longind)
+       __THROW;
 extern int getopt_long_only (int ___argc, char *const *___argv,
 			     const char *__shortopts,
-		             const struct option *__longopts, int *__longind);
+		             const struct option *__longopts,
+			     int *__longind) __THROW;
 
 /* Internal only.  Users should not call this directly.  */
 extern int _getopt_internal (int ___argc, char *const *___argv,
 			     const char *__shortopts,
 		             const struct option *__longopts, int *__longind,
-			     int __long_only);
+			     int __long_only) __THROW;
 # endif
 
-#ifdef	__cplusplus
-}
-#endif
+__END_DECLS
 
 /* Make sure we later can get all the definitions and declarations.  */
 #undef __need_getopt

@@ -1,8 +1,8 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/pwd.h,v $
- * $Date: 2003/01/21 18:01:25 $
- * $Revision: 1.5 $
+ * $Date: 2003/07/29 23:04:27 $
+ * $Revision: 1.6 $
  * $State: Exp $
  * $Author: admin $
  *
@@ -54,55 +54,56 @@ struct passwd
 /* System V functions.  */
 
 /* Rewind the password-file stream.  */
-extern void setpwent (void);
+extern void setpwent (void) __THROW;
 
 /* Close the password-file stream.  */
-extern void endpwent (void);
+extern void endpwent (void) __THROW;
 
 /* Read an entry from the password-file stream, opening it if necessary.  */
-extern struct passwd *getpwent (void);
+extern struct passwd *getpwent (void) __THROW;
 
 /* Read an entry from the password-file stream, opening it if
    necessary (re-entrant version).  */
 extern int getpwent_r (struct passwd *__restrict __result_buf,
 		       char *__restrict __buffer, size_t __buflen,
-		       struct passwd **__restrict __result);
+		       struct passwd **__restrict __result) __THROW;
 
 /* Read an entry from stream.  */
-extern struct passwd *fgetpwent (FILE *__stream);
+extern struct passwd *fgetpwent (FILE *__stream) __THROW;
 
 /* Read an entry from stream (re-entrant version).  */
 extern int fgetpwent_r (FILE *__restrict __stream,
 			struct passwd *__restrict __result_buf,
 			char *__restrict __buffer, size_t __buflen,
-			struct passwd **__restrict __result);
+			struct passwd **__restrict __result) __THROW;
 
 extern int putpwent (const struct passwd *__restrict __p,
-		     FILE *__restrict __stream);
+		     FILE *__restrict __stream) __THROW;
 
 /* POSIX functions.  */
 
 /* Search for an entry with a matching user ID.  */
-extern struct passwd *getpwuid (__uid_t __uid);
+extern struct passwd *getpwuid (__uid_t __uid) __THROW;
 
 /* Search for an entry with a matching user ID (re-entrant version).  */
 extern int getpwuid_r (__uid_t __uid, struct passwd *__restrict __resbuf,
 		       char *__restrict __buffer,
-		       size_t __buflen, struct passwd **__restrict __result);
+		       size_t __buflen,
+		       struct passwd **__restrict __result) __THROW;
 
 /* Search for an entry with a matching username.  */
-extern struct passwd *getpwnam (const char *__name);
+extern struct passwd *getpwnam (const char *__name) __THROW;
 
 /* Search for an entry with a matching username (re-entrant version).  */
 extern int getpwnam_r (const char *__restrict __name,
 		       struct passwd *__restrict __result_buf,
 		       char *__restrict __buffer, size_t __buflen,
-		       struct passwd **__restrict __result);
+		       struct passwd **__restrict __result) __THROW;
 
 
 /* Re-construct the password-file line for the given uid in the
    given buffer.  */
-extern int getpw (__uid_t __uid, char *__buf);
+extern int getpw (__uid_t __uid, char *__buf) __THROW;
 
 #ifdef __UNIXLIB_INTERNALS
 /* UnixLib pwd implementation function.  */

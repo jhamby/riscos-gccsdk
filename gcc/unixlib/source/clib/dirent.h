@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/dirent.h,v $
- * $Date: 2003/07/29 23:04:27 $
- * $Revision: 1.6 $
+ * $Date: 2003/12/29 16:48:31 $
+ * $Revision: 1.7 $
  * $State: Exp $
- * $Author: admin $
+ * $Author: peter $
  *
  ***************************************************************************/
 
@@ -110,34 +110,35 @@ struct __dir_stream
 
 /* Open a directory stream on name. Return a dir stream on
    the directory, or NULL if it could not be opened.  */
-extern DIR *opendir (const char *__name);
+extern DIR *opendir (const char *__name) __THROW;
 
 /* Read a directory entry from dirp.
    Return a pointer to a struct dirent describing the entry,
    or NULL for EOF or error.  The storage returned may be overwritten
    by a later readdir call on the same DIR stream, or by closedir.  */
-extern struct dirent *readdir (DIR *__dirp);
+extern struct dirent *readdir (DIR *__dirp) __THROW;
 
 /* Reentrant version of readdir.  */
 extern int readdir_r (DIR *__restrict __dirp,
 		      struct dirent *__restrict __entry,
-		      struct dirent **__restrict __result);
+		      struct dirent **__restrict __result) __THROW;
 
 /* Return the current position of dirp.  */
-extern __off_t telldir (DIR *__dirp);
+extern __off_t telldir (DIR *__dirp) __THROW;
 
 /* Seek to position pos on dirp.  */
-extern void seekdir (DIR *__dirp, __off_t __pos);
+extern void seekdir (DIR *__dirp, __off_t __pos) __THROW;
 
 /* Rewind DIRP to the beginning of the directory.  */
-extern void rewinddir (DIR *__dirp);
+extern void rewinddir (DIR *__dirp) __THROW;
 
 /* Close the directory stream dirp. Return 0 if successful,
    -1 if not.  */
-extern int closedir (DIR *__dirp);
+extern int closedir (DIR *__dirp) __THROW;
 
 /* Function to compare two `struct dirent's alphabetically.  */
-extern int alphasort (const struct dirent **__a, const struct dirent ** __b);
+extern int alphasort (const struct dirent **__a,
+		      const struct dirent ** __b) __THROW;
 
 /* Scan the directory dir, calling 'select' on each directory entry.
    Entries for which 'select' returns nonzero are individually malloc'd,
@@ -148,7 +149,7 @@ extern int scandir (const char *__restrict __dir,
 		    struct dirent ***__restrict __namelist,
 		    int (*__select)(const struct dirent *),
 		    int (*__cmp)(const struct dirent **,
-				 const struct dirent **));
+				 const struct dirent **)) __THROW;
 
 #if 0
 /* Read directory entries from fd into buf, reading at most nbytes.
@@ -156,7 +157,8 @@ extern int scandir (const char *__restrict __dir,
    position after reading.  Returns the number of bytes read; zero when at
    end of directory; or -1 for errors.  */
 extern ssize_t getdirentries (int __fd, char *__restrict __buf,
-			      size_t __nbytes, __off_t *__restrict __basep);
+			      size_t __nbytes,
+			      __off_t *__restrict __basep) __THROW;
 #endif
 
 __END_DECLS

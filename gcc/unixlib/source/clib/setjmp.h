@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/setjmp.h,v $
- * $Date: 2002/12/15 13:16:55 $
- * $Revision: 1.5 $
+ * $Date: 2003/06/23 20:33:03 $
+ * $Revision: 1.6 $
  * $State: Exp $
- * $Author: admin $
+ * $Author: joty $
  *
  ***************************************************************************/
 
@@ -44,11 +44,12 @@ typedef int jmp_buf[__JMP_BUF_SIZE];
 #endif
 
 /* Store the current execution state into env.  */
-extern int setjmp (jmp_buf __env);
+extern int setjmp (jmp_buf __env) __THROW;
 /* Jump to the state saved in 'env'. The setjmp call that
    created 'env' will then return 'val'.  If val is zero, then
    setjmp will return 1. */
-extern void longjmp (jmp_buf __env, int __val) __attribute__ ((__noreturn__));
+extern void longjmp (jmp_buf __env, int __val)
+     __attribute__ ((__noreturn__)) __THROW;
 
 /* POSIX details.  */
 
@@ -67,13 +68,13 @@ typedef struct sigjmp_buf_struct
 /* Similar to setjmp. If save sigs is nonzero, the set of
    blocked signals is saved in state and will be restored
    if a siglongjmp is later performed with this state.  */
-extern int sigsetjmp (sigjmp_buf __state, int __savesigs);
+extern int sigsetjmp (sigjmp_buf __state, int __savesigs) __THROW;
 
 /* Jump to the environment saved in env, making the sigsetjmp
    call there return val, or 1 if val is 0.  Restore the signal
    mask if that sigsetjmp call saved it.  */
 extern void siglongjmp (const sigjmp_buf __env,
-			int __val) __attribute__ ((__noreturn__));
+			int __val) __attribute__ ((__noreturn__)) __THROW;
 
 #ifdef __UNIXLIB_INTERNALS
 /* Internal functions.  */

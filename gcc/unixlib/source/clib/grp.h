@@ -1,8 +1,8 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/grp.h,v $
- * $Date: 2003/01/21 18:01:25 $
- * $Revision: 1.4 $
+ * $Date: 2003/07/29 23:04:27 $
+ * $Revision: 1.5 $
  * $State: Exp $
  * $Author: admin $
  *
@@ -41,58 +41,58 @@ struct group
 };
 
 /* Rewind the group-file stream.  */
-extern void setgrent (void);
+extern void setgrent (void) __THROW;
 
 /* Close the group-file stream.  */
-extern void endgrent (void);
+extern void endgrent (void) __THROW;
 
 /* Read an entry from the group-file stream, opening it if necessary.  */
-extern struct group *getgrent (void);
+extern struct group *getgrent (void) __THROW;
 
 /* Read an entry from the password-file stream, opening it if
    necessary (re-entrant version).  */
 extern int getgrent_r (struct group *__restrict __result_buf,
 		       char *__restrict __buffer, size_t __buflen,
-		       struct group **__restrict __result);
+		       struct group **__restrict __result) __THROW;
 
 /* Read an entry from stream.  */
-extern struct group *fgetgrent (FILE *__stream);
+extern struct group *fgetgrent (FILE *__stream) __THROW;
 
 /* Read an entry from stream (re-entrant version).  */
 extern int fgetgrent_r (FILE *__restrict __stream,
 			struct group *__restrict __result_buf,
 			char *__restrict __buffer, size_t __buflen,
-			struct group **__restrict __result);
+			struct group **__restrict __result) __THROW;
 
 /* Search for an entry with a matching group ID.  */
-extern struct group *getgrgid (gid_t __gid);
+extern struct group *getgrgid (gid_t __gid) __THROW;
 
 /* Search for an entry with a matching group ID (re-entrant version).  */
 extern int getgrgid_r (gid_t __gid, struct group *__resbuf, char *__buffer,
-		       size_t __buflen, struct group **__result);
+		       size_t __buflen, struct group **__result) __THROW;
 
 /* Search for an entry with a matching group name.  */
-extern struct group *getgrnam (const char *__name);
+extern struct group *getgrnam (const char *__name) __THROW;
 
 /* Search for an entry with a matching group name (re-entrant version).  */
 extern int getgrnam_r (const char *__restrict __name,
 		       struct group *__restrict __result_buf,
 		       char *__restrict __buffer, size_t __buflen,
-		       struct group **__restrict __result);
+		       struct group **__restrict __result) __THROW;
 
 /* Get a list of all supplementary groups this user is in */
-extern int getgroups (int __gidsetlen, gid_t *__gidset);
+extern int getgroups (int __gidsetlen, gid_t *__gidset) __THROW;
 
 /* Set the list of supplementary groups this user is in */
-extern int setgroups (int __ngroups, const gid_t *__gidset);
+extern int setgroups (int __ngroups, const gid_t *__gidset) __THROW;
 
 /* Build a list of all groups the user is in, then call setgroups on the list*/
-extern int initgroups (const char *__name, gid_t __basegid);
+extern int initgroups (const char *__name, gid_t __basegid) __THROW;
 
 #ifdef __UNIXLIB_INTERNALS
 /* UnixLib group implementation function.  */
 extern struct group *__grpread (FILE *__stream, struct group *__grp,
-				char *__buf, size_t __buflen);
+				char *__buf, size_t __buflen) __THROW;
 #endif
 
 __END_DECLS

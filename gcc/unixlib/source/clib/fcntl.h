@@ -1,10 +1,10 @@
 /****************************************************************************
  *
- * $Source$
- * $Date$
- * $Revision$
- * $State$
- * $Author$
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/fcntl.h,v $
+ * $Date: 2002/09/24 21:02:36 $
+ * $Revision: 1.4 $
+ * $State: Exp $
+ * $Author: admin $
  *
  *
  ***************************************************************************/
@@ -183,17 +183,17 @@ struct flock
 
 /* Do the file control operation described by CMD on FD.
    The remaining arguments are interpreted depending on CMD.  */
-extern int fcntl (int fd, int cmd, ...);
+extern int fcntl (int fd, int cmd, ...) __THROW;
 
 /* Open FILE and return a new file descriptor for it, or -1 on error.
    OFLAG determines the type of access used.  If O_CREAT is on OFLAG,
    the third argument is taken as a `mode_t', the mode of the created file.  */
-extern int open (const char *file, int oflag, ...);
+extern int open (const char *file, int oflag, ...) __THROW;
 
 /* Create and open FILE, with mode MODE.
    This takes an `int' MODE argument because that is
    what `mode_t' will be widened to.  */
-extern int creat (const char *file, __mode_t mode);
+extern int creat (const char *file, __mode_t mode) __THROW;
 
 #ifndef F_LOCK
 /* These declarations also appear in <unistd.h>; be sure to keep both
@@ -208,7 +208,7 @@ extern int creat (const char *file, __mode_t mode);
 #define F_TLOCK 2       /* Test and lock a region for exclusive use.  */
 #define F_TEST  3       /* Test a region for other processes locks.  */
 
-extern int lockf (int fd, int cmd, __off_t len);
+extern int lockf (int fd, int cmd, __off_t len) __THROW;
 #endif
 
 __END_DECLS

@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/time.h,v $
- * $Date: 2003/07/29 23:04:27 $
- * $Revision: 1.8 $
+ * $Date: 2003/11/21 14:38:33 $
+ * $Revision: 1.9 $
  * $State: Exp $
- * $Author: admin $
+ * $Author: peter $
  *
  ***************************************************************************/
 
@@ -115,44 +115,45 @@ struct tm
 
 /* Convert the broken-down time value into a string in a standard
    format:  "Sat Jul 12 14:47:12 1997\n"  */
-extern char *asctime (const struct tm *__brokentime);
+extern char *asctime (const struct tm *__brokentime) __THROW;
 
 /* Similar to asctime except that the time value is specified
    as a time_t calendar time value.  */
-extern char *ctime (const time_t *__timer);
+extern char *ctime (const time_t *__timer) __THROW;
 
 /* Return the number of seconds elapsed between time1 and time 0
    as a value of type double.  */
-extern double difftime (time_t __time1, time_t __time0);
+extern double difftime (time_t __time1, time_t __time0)
+     __attribute__ ((__const__)) __THROW;
 
 /* Convert the calendar time 'time' to broken-down time,
    expressed relative to the user's specified time zone. */
-extern struct tm *localtime (const time_t *__timer);
+extern struct tm *localtime (const time_t *__timer) __THROW;
 
 /* Convert the calendar time 'time' to broken-down time,
    expressed relative to the user's specified time zone (re-entrant). */
 extern struct tm *localtime_r (const time_t *__restrict __timer,
-			       struct tm *__restrict resultp);
+			       struct tm *__restrict resultp) __THROW;
 
 /* Similar to localtime() but the broken-down time is expressed
    as UTC (GMT) rather than the local time zone.  */
-extern struct tm *gmtime (const time_t *__timer);
+extern struct tm *gmtime (const time_t *__timer) __THROW;
 
 /* Similar to localtime() but the broken-down time is expressed
    as UTC (GMT) rather than the local time zone (re-entrant).  */
 extern struct tm *gmtime_r (const time_t *__restrict __timer,
-			    struct tm *__restrict resultp);
+			    struct tm *__restrict resultp) __THROW;
 
 /* Convert a broken-down time structure to a calendar time
    representation.  */
-extern time_t mktime (struct tm *__brokentime);
+extern time_t mktime (struct tm *__brokentime) __THROW;
 
 /* Place characters into the 's' as controlled by the 'format'.
    'format' is specialised for printing components of 'brokentime'
    according to the locale currently specified for time conversion.  */
 extern size_t strftime (char *__restrict __s, size_t __size,
 			const char *__restrict __format,
-       	      	        const struct tm *__restrict __brokentime);
+       	      	        const struct tm *__restrict __brokentime) __THROW;
 
 
 /* System V compatibility.  */
@@ -169,7 +170,7 @@ extern int daylight;
 
 /* Initialise the tzname variable with the TimeZone information from
    CMOS.  */
-extern void tzset (void);
+extern void tzset (void) __THROW;
 
 /* tzname[0] is the name of the standard time zone.
    tzname[1] is the name for the time zone when daylight saving time

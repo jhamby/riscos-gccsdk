@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/string.h,v $
- * $Date: 2003/07/29 23:04:27 $
- * $Revision: 1.9 $
+ * $Date: 2004/02/15 19:37:38 $
+ * $Revision: 1.10 $
  * $State: Exp $
- * $Author: admin $
+ * $Author: peter $
  *
  ***************************************************************************/
 
@@ -25,79 +25,92 @@ __BEGIN_DECLS
 
 /* Copy n bytes from src to dest.  */
 extern void *memcpy (void *__restrict __dest, const void *__restrict __src,
-		     size_t __n);
+		     size_t __n) __THROW;
 
 /* Copy n bytes from src to dest, guaranteeing correct
    behaviour for overlapping data.  */
-extern void *memmove (void *__dest, const void *__src, size_t __n);
+extern void *memmove (void *__dest, const void *__src, size_t __n) __THROW;
 
 /* Set n bytes of s to c.  */
-extern void *memset (void *__s, int __c, size_t __n);
+extern void *memset (void *__s, int __c, size_t __n) __THROW;
 
 /* Compare n bytes of s1 and s2.  */
-extern int memcmp (const void *__s1, const void *__s2, size_t __n);
+extern int memcmp (const void *__s1, const void *__s2, size_t __n)
+     __attribute_pure__ __THROW;
 
 /* Search n bytes of s for c.  */
-extern void *memchr (const void *__s, int __c, size_t __n);
+extern void *memchr (const void *__s, int __c, size_t __n)
+     __attribute_pure__ __THROW;
 
 extern void *__rawmemchr (__const void *__s, int __c)
-     __attribute_pure__;
+     __attribute_pure__ __THROW;
 
 /* Copy src to dest. */
-extern char *strcpy (char *__restrict __dest, const char *__restrict __src);
+extern char *strcpy (char *__restrict __dest, const char *__restrict __src)
+     __THROW;
 
 /* Copy no more than n chars of src to dest.  */
 extern char *strncpy (char *__restrict __dest, const char *__restrict __src,
-		      size_t __n);
+		      size_t __n) __THROW;
 
 /* Append src onto dest.  */
-extern char *strcat (char *__restrict __dest, const char *__restrict __src);
+extern char *strcat (char *__restrict __dest, const char *__restrict __src)
+     __THROW;
 
 /* Append no more than n chars from src to dest. */
 extern char *strncat (char *__restrict __dest, const char *__restrict __src,
-		      size_t __n);
+		      size_t __n) __THROW;
 
 /* Compare s1 and s2.  */
-extern int strcmp (const char *__s1, const char *__s2);
+extern int strcmp (const char *__s1, const char *__s2)
+     __attribute_pure__ __THROW;
 
 /* Compare n chars of s1 and s2.  */
-extern int strncmp (const char *__s1, const char *__s2, size_t __n);
+extern int strncmp (const char *__s1, const char *__s2, size_t __n)
+     __attribute_pure__ __THROW;
 
 /* Compare two strings according to the locale's collating rules */
-extern int strcoll (const char *__s1, const char *__s2);
+extern int strcoll (const char *__s1, const char *__s2)
+     __attribute_pure__ __THROW;
 
 /* Transform a string according to the locale's collating rules */
 extern size_t strxfrm (char *__restrict __to, const char *__restrict __from,
-		       size_t __size);
+		       size_t __size) __THROW;
 
 /* Find the first occurrence of c in s. */
-extern char *strchr (const char *__s, int __c);
+extern char *strchr (const char *__s, int __c) __attribute_pure__ __THROW;
 
 /* Find the last occurrence of c in s.  */
-extern char *strrchr (const char *__s, int __c);
+extern char *strrchr (const char *__s, int __c) __attribute_pure__ __THROW;
 
 /* Return the length of the initial segment of s that consists
    entirely of chars in accept.  */
-extern size_t strspn (const char *__s, const char *__accept);
+extern size_t strspn (const char *__s, const char *__accept)
+     __attribute_pure__ __THROW;
 
 /* Return the length of the initial segment of s that consists
    entirely of chars not in reject.  */
-extern size_t strcspn (const char *__s, const char *__reject);
+extern size_t strcspn (const char *__s, const char *__reject)
+     __attribute_pure__ __THROW;
 
 /* Find the first occurence in s of any char in accept.  */
-extern char *strpbrk (const char *__s, const char *__accept);
+extern char *strpbrk (const char *__s, const char *__accept)
+     __attribute_pure__ __THROW;
 
 /* Find the first occurrence of s in s1.  */
-extern char *strstr (const char *__s, const char *__s1);
+extern char *strstr (const char *__s, const char *__s1)
+     __attribute_pure__ __THROW;
 
 /* Divide s into tokens separated by chars in delim.  */
-extern char *strtok (char *__restrict __s, const char *__restrict __delim);
+extern char *strtok (char *__restrict __s, const char *__restrict __delim)
+     __THROW;
 
 /* Re-entrant version of strtok.  */
-extern char *strtok_r (char *__s, const char *__delim, char **__save_ptr);
+extern char *strtok_r (char *__s, const char *__delim, char **__save_ptr)
+     __THROW;
 
 /* Return the length of s. */
-extern size_t strlen (const char *__s);
+extern size_t strlen (const char *__s) __attribute_pure__ __THROW;
 
 /* Find the length of STRING, but scan at most MAXLEN characters.
    If no '\0' terminator is found in that many characters, return MAXLEN.  */
@@ -105,22 +118,23 @@ extern size_t strnlen (__const char *__string, size_t __maxlen)
      __THROW __attribute_pure__;
 
 /* Compare S1 and S2, ignoring case.  */
-extern int stricmp (const char *, const char *);
+extern int stricmp (const char *, const char *) __THROW;
 
 /* Compare n chars of S1 and S2, ignoring case.  */
-extern int strnicmp (const char *, const char *, size_t);
+extern int strnicmp (const char *, const char *, size_t) __THROW;
 
-extern char *strichr (const char *, int);
-extern char *strrichr (const char *, int);
+extern char *strichr (const char *, int) __THROW;
+extern char *strrichr (const char *, int) __THROW;
 
 /* Copy src to dest return a pointer to the terminating null
    character of dest.  */
-extern char *stpcpy (char *__restrict __dest, const char *__restrict __src);
+extern char *stpcpy (char *__restrict __dest, const char *__restrict __src)
+     __THROW;
 
 /* Copy no more than n chars of src to dest. Return a pointer
    to the terminating null character of dest. */
 extern char *stpncpy (char *__restrict __dest, const char *__restrict __src,
-		      size_t __n);
+		      size_t __n) __THROW;
 
 
 /* BSD enhancements.  */
@@ -128,15 +142,16 @@ extern char *stpncpy (char *__restrict __dest, const char *__restrict __src,
 /* Copy no more than n bytes of src to dest, stopping when c is found.
    Return the position in dest one byte past where c was copied,
    or null if C was not in the string.  */
-extern void *memccpy (void *__dest, const void *__src, int __c, size_t __n);
+extern void *memccpy (void *__dest, const void *__src, int __c, size_t __n)
+     __THROW;
 
 /* Duplicate s, returning an identical malloc'd string.  */
-extern char *strdup (const char *__s);
+extern char *strdup (const char *__s) __attribute_malloc__ __THROW;
 
 /* Return the next DELIM-delimited token from *STRINGP,
    terminating it with a '\0', and update *STRINGP to point past it.  */
 extern char *strsep (char **__restrict __stringp,
-		     const char *__restrict __delim);
+		     const char *__restrict __delim) __THROW;
 
 /* GNU enhancements.  */
 
@@ -149,17 +164,18 @@ extern char *strsep (char **__restrict __stringp,
 
    This function is different to `strncpy' in that it always
    terminates the destination string.  */
-extern char *strndup (const char *__s, size_t __n) __THROW __attribute_malloc__;
+extern char *strndup (const char *__s, size_t __n)
+     __THROW __attribute_malloc__;
 
 /* This function is similar to `strchr'.  But it returns a pointer to
    the closing NUL byte in case C is not found in S.  */
 extern char *strchrnul (__const char *__s, int __c) __THROW __attribute_pure__;
 
 /* Return a string describing the meaning of the signal number sig.  */
-extern char *strsignal (int __sig);
+extern char *strsignal (int __sig) __THROW;
 
 /* Return the descriptive error message string for an error code.  */
-extern char *strerror (int __errnum);
+extern char *strerror (int __errnum) __THROW;
 
 #if defined __USE_BSD
 /* Copy N bytes of SRC to DEST (like memmove, but args reversed).  */
@@ -204,7 +220,8 @@ extern int strncasecmp (__const char *__s1, __const char *__s2, size_t __n)
 #endif /* Use BSD.  */
 
 /* Re-entrant version of strerror */
-extern int strerror_r (int __errnum, char *__strerrbuf, size_t __buflen);
+extern int strerror_r (int __errnum, char *__strerrbuf, size_t __buflen)
+     __THROW;
 
 __END_DECLS
 

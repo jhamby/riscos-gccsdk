@@ -1,8 +1,8 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/glob.h,v $
- * $Date: 2002/09/24 21:02:36 $
- * $Revision: 1.4 $
+ * $Date: 2003/07/29 23:04:27 $
+ * $Revision: 1.5 $
  * $State: Exp $
  * $Author: admin $
  *
@@ -88,10 +88,10 @@ typedef struct
    'errfunc' is called upon error.  Returns zero on success.  */
 extern int glob (const char *__restrict __pattern, int __flags,
 		 int (*__errfunc) (const char *, int),
-		 glob_t *__restrict __pglob);
+		 glob_t *__restrict __pglob) __THROW;
 
 /* Free storage allocated in 'pglob' by a previous call to glob.  */
-extern void globfree (glob_t *__pglob);
+extern void globfree (glob_t *__pglob) __THROW;
 
 __END_DECLS
 

@@ -1,8 +1,8 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/inttypes.h,v $
- * $Date: 2002/11/26 21:52:07 $
- * $Revision: 1.5 $
+ * $Date: 2003/07/29 23:04:27 $
+ * $Revision: 1.6 $
  * $State: Exp $
  * $Author: admin $
  *
@@ -250,20 +250,20 @@ typedef struct
 
 /* Like `strtol' but convert to `intmax_t'.  */
 extern intmax_t strtoimax (const char *__restrict __nptr,
-			   char **__restrict __endptr, int __base);
+			   char **__restrict __endptr, int __base) __THROW;
 
 /* Like `strtoul' but convert to `uintmax_t'.  */
 extern uintmax_t strtoumax (const char *__restrict __nptr,
-			    char **__restrict __endptr, int __base);
+			    char **__restrict __endptr, int __base) __THROW;
 
 #if 0
 /* Like `wcstol' but convert to `intmax_t'.  */
 extern intmax_t wcstoimax (const wchar_t *__restrict __nptr,
-			   wchar_t **__restrict __endptr, int __base);
+			   wchar_t **__restrict __endptr, int __base) __THROW;
 
 /* Like `wcstoul' but convert to `uintmax_t'.  */
 extern uintmax_t wcstoumax (const wchar_t *__restrict __nptr,
-			    wchar_t **__restrict __endptr, int __base);
+			    wchar_t **__restrict __endptr, int __base) __THROW;
 #endif
 
 __END_DECLS
