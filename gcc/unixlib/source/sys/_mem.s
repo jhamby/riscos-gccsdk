@@ -1,8 +1,8 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/_mem.s,v $
-; $Date: 2004/09/08 16:12:41 $
-; $Revision: 1.7 $
+; $Date: 2004/10/17 16:24:44 $
+; $Revision: 1.8 $
 ; $State: Exp $
 ; $Author: joty $
 ;
@@ -11,59 +11,6 @@
 	GET	clib/unixlib/asm_dec.s
 
 	AREA	|C$$code|,CODE,READONLY
-
-	EXPORT	|_memset|
-	EXPORT	|__memset|
-	EXPORT	|memset|
-	NAME	memset
-|memset|
-|__memset|
-	MOV	ip, a1
-	AND	a2, a2, #&ff
-	CMP	a3, #4
-	BLT	|__memset_l4|
-	ANDS	a4, ip, #3
-	BEQ	|_memset|
-	RSB	a4, a4, #4
-	SUB	a3, a3, a4
-	CMP	a4, #2
-	STRB	a2, [ip], #1
-	STRGEB	a2, [ip], #1
-	STRGTB	a2, [ip], #1
-|_memset|
-	ORR	a2,a2,a2,LSL #8
-	ORR	a2,a2,a2,LSL #16
-	ANDS	a4,a3,#12
-	BEQ	|__memset_l2|
-	CMP	a4,#8
-	STR	a2,[ip],#4
-	STRGE	a2,[ip],#4
-	STRGT	a2,[ip],#4
-|__memset_l2|
-	BICS	a3,a3,#12
-	MOVEQ	pc, lr
-	BICS	a4,a3,#15
-	BEQ	|__memset_l5|
-	STMFD	sp!,{v1,v2,lr}
-	MOV	v1,a2
-	MOV	v2,a2
-	MOV	lr,a2
-	SUB	a3,a3,a4
-|__memset_l3|
-	STMIA	ip!,{a2,v1,v2,lr}
-	SUBS	a4,a4,#32
-	STMGEIA ip!,{a2,v1,v2,lr}
-	BGT	|__memset_l3|
-	LDMFD	sp!,{v1,v2,lr}
-|__memset_l4|
-	CMP	a3,#0
-	MOVEQ	pc, lr
-|__memset_l5|
-	CMP	a3,#2
-	STRB	a2,[ip],#1
-	STRGEB	a2,[ip],#1
-	STRGTB	a2,[ip],#1
-	MOV	pc, lr
 
 
 	EXPORT	|_memcpy|
