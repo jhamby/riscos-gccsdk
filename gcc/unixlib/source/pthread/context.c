@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/pthread/context.c,v $
- * $Date: 2003/01/05 12:36:35 $
- * $Revision: 1.2 $
+ * $Date: 2003/04/05 12:42:28 $
+ * $Revision: 1.3 $
  * $State: Exp $
- * $Author: admin $
+ * $Author: alex $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: context.c,v 1.2 2003/01/05 12:36:35 admin Exp $";
+static const char rcs_id[] = "$Id: context.c,v 1.3 2003/04/05 12:42:28 alex Exp $";
 #endif
 
 /* Context switching/schedulling */
@@ -27,7 +27,7 @@ static const char rcs_id[] = "$Id: context.c,v 1.2 2003/01/05 12:36:35 admin Exp
 pthread_t __pthread_thread_list = NULL; /* Linked list of all threads */
 pthread_t __pthread_running_thread = NULL; /* Currently running thread */
 
-int __pthread_running_threads = 1; /* Number of threads */
+int __pthread_num_running_threads = 1; /* Number of threads */
 
 
 /* De-allocates an idle node from the list */

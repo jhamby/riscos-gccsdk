@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/pthread.h,v $
- * $Date: 2003/01/05 12:36:35 $
- * $Revision: 1.4 $
+ * $Date: 2003/04/05 12:42:28 $
+ * $Revision: 1.5 $
  * $State: Exp $
- * $Author: admin $
+ * $Author: alex $
  *
  ***************************************************************************/
 
@@ -460,7 +460,7 @@ struct __pthread_saved_context
 
 extern pthread_t __pthread_thread_list; /* Linked list of all threads */
 extern int __pthread_system_running; /* Has the thread system been initialised yet */
-extern int __pthread_running_threads; /* Number of threads currently running or blocked */
+extern int __pthread_num_running_threads; /* Number of threads currently running or blocked */
 extern void *__pthread_context_stack_sp; /* Stack pointer to use for the scheduler */
 extern void *__pthread_context_stack_sl; /* Stack limit to use for the scheduler */
 

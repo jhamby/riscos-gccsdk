@@ -1,3 +1,13 @@
+Sat Apr  6 11:54:16 2003  Alex Waugh  <alex@alexwaugh.com>
+
+	* pthread.h (__pthread_running_threads): Renamed to
+	  __pthread_num_running_threads.
+	* pthread/context.c: Likewise.
+	* pthread/create.c: Likewise.
+	* pthread/exit.c: Likewise.
+	* pthread/init.c: Likewise.
+	* pthread/_context.s: Likewise, add missing IMPORT.
+
 Sun Apr  5 01:00:57 2003  John Tytgat <John.Tytgat@aaug.net>
 
 	* source/clib/bits/netdb.h: Removed _gethostbyname() and

@@ -1,10 +1,10 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/pthread/_context.s,v $
-; $Date: 2003/01/05 12:36:35 $
-; $Revision: 1.2 $
+; $Date: 2003/04/05 12:42:28 $
+; $Revision: 1.3 $
 ; $State: Exp $
-; $Author: admin $
+; $Author: alex $
 ;
 ;----------------------------------------------------------------------------
 
@@ -42,6 +42,7 @@
 	IMPORT	|__taskwindow|
 	IMPORT	|__pthread_fatal_error|
 	IMPORT	|__pthread_running_thread|
+	IMPORT	|__pthread_num_running_threads|
 	IMPORT	|__cbreg|
 	IMPORT	|__fpflag|
 
@@ -66,7 +67,7 @@
 	CMP	a1, #1
 	stackreturn	NE, "pc"
 	; Don't start if there's only one thread running
-	LDR	a1, =|__pthread_running_threads|
+	LDR	a1, =|__pthread_num_running_threads|
 	LDR	a1, [a1]
 	CMP	a1, #1
 	stackreturn	LE, "pc"

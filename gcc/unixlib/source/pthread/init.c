@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/pthread/init.c,v $
- * $Date: 2002/12/15 13:16:55 $
- * $Revision: 1.1 $
+ * $Date: 2003/04/05 12:42:28 $
+ * $Revision: 1.2 $
  * $State: Exp $
- * $Author: admin $
+ * $Author: alex $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: init.c,v 1.1 2002/12/15 13:16:55 admin Exp $";
+static const char rcs_id[] = "$Id: init.c,v 1.2 2003/04/05 12:42:28 alex Exp $";
 #endif
 
 /* Written by Martin Piper and Alex Waugh */
@@ -34,7 +34,7 @@ __pthread_prog_init (void)
 
   __pthread_thread_list = __pthread_running_thread;
 
-  __pthread_running_threads = 1;
+  __pthread_num_running_threads = 1;
 
   __pthread_running_thread->magic = PTHREAD_MAGIC;
 }
