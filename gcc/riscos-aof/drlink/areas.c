@@ -240,8 +240,8 @@ static arealist *check_commondef(filelist *fp, areaentry *aep, unsigned int atat
     return NIL;		/* This area will be added to the area list as a normal area */
   }
   if (aep->arsize!=ap->arobjsize) {
-    error("Error: Size of common area '%s' in '%s' differs from definition in '%s'",
-     nameptr, fp->chfilename, ap->arfileptr->chfilename);
+    error("Error: Size of common area '%s' in '%s' differs from definition in '%s' (%d != %d)",
+     nameptr, fp->chfilename, ap->arfileptr->chfilename, aep->arsize, ap->arobjsize);
     return NIL;
   }
   else {
@@ -287,8 +287,8 @@ static arealist *check_commonref(filelist *fp, areaentry *aep, unsigned int atat
     if ((ap->aratattr & ATT_COMDEF)!=0) {		/* Previous ref was definition also */
       if (aofv3flag) {	/* AOF V3 rules apply */
         if (newsize!=ap->arobjsize) {
-          error("Error: Size of Common Block '%s' in '%s' differs from its definition in '%s'",
-           nameptr, fp->chfilename, ap->arfileptr->chfilename);
+          error("Error: Size of common block '%s' in '%s' differs from its definition in '%s' (%d != %d)",
+           nameptr, fp->chfilename, ap->arfileptr->chfilename, newsize, ap->arobjsize);
         }
       }
       else {	/* AOF V2 - Cannot have two definitions of a common block */
