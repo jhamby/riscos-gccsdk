@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/unix/c/tty,v $
- * $Date: 1999/11/16 13:26:50 $
- * $Revision: 1.18 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/tty.c,v $
+ * $Date: 2001/01/29 15:10:22 $
+ * $Revision: 1.2 $
  * $State: Exp $
  * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: tty,v 1.18 1999/11/16 13:26:50 admin Exp $";
+static const char rcs_id[] = "$Id: tty.c,v 1.2 2001/01/29 15:10:22 admin Exp $";
 #endif
 
 /* System V tty device driver for RISC OS.  */
@@ -898,8 +898,13 @@ __ttyioctl (struct __unixlib_fd *file_desc, int request, void *arg)
       return 0;
       break;
     case TIOCSETA: /* Set termios struct.  */
+    case TIOCSETAW: /* Drain output, set.  */
+    case TIOCSETAF: /* Drain output, flush input, set.  */
       {
         struct termios *term = tty->t;
+
+	if (request == TIOCSETAF)
+	  __funcall ((*(tty->flush)), ());
 
         memcpy (term, arg, sizeof (struct termios));
         if (type == TTY_CON)
@@ -911,9 +916,7 @@ __ttyioctl (struct __unixlib_fd *file_desc, int request, void *arg)
       }
       return 0;
       break;
-    case TIOCSETAW: /* Drain output, set.  */
       break;
-    case TIOCSETAF: /* Drain output, flush input, set.  */
       break;
     case TIOCGETD: /* Get line discipline.  */
       break;
@@ -933,8 +936,10 @@ __ttyioctl (struct __unixlib_fd *file_desc, int request, void *arg)
     case TIOCCDTR: /* Clear data terminal ready.  */
       break;
     case TIOCGPGRP: /* Get pgrp of tty.  */
+      *(int *)arg = __u->pgrp;
       break;
     case TIOCSPGRP: /* Set pgrp of tty.  */
+      return __set_errno (EPERM);
       break;
     case TIOCOUTQ: /* Output queue size.  */
       break;
@@ -957,6 +962,105 @@ __ttyioctl (struct __unixlib_fd *file_desc, int request, void *arg)
     case TIOCMGET: /* Get all modem bits.  */
       break;
     case TIOCREMOTE: /* Remove input editing.  */
+      break;
+    case TIOCLGET:  /* Get Local Modes */
+      /* FIXME: This is broken.
+	 Looking in the FreeBSD kernel sources function:
+	   /usr/src/sys/kern/tty_compat.c::ttcompatsetflags()
+
+	 The flags set by TIOCLGET and TIOCLSET are t_flags, which is different
+	 to the c_*flag that our tty structure supports.  So I'm not sure this
+	 can be relied upon.  I think a bit of work is involved to fix
+	 this.  */
+      *(int *)arg = tty->t->c_lflag;
+      return 0;
+      break;
+    case TIOCLSET:  /* Set Local Modes */
+      /* FIXME: This is broken.  See TIOCLGET.  */
+      tty->t->c_lflag = *(int *)arg;
+      return 0;
+      break;
+    case TIOCGETP: /* Get parameters - gtty */
+      {
+        struct termios *term = tty->t;
+        struct sgttyb *gtty = (struct sgttyb *)arg;
+
+        gtty->sg_ispeed = term->__ispeed;
+        gtty->sg_ispeed = term->__ospeed;
+        gtty->sg_erase  = term->c_cc[CERASE];
+        gtty->sg_kill   = term->c_cc[CKILL];
+        gtty->sg_flags  = term->c_cflag; /* FIXME Is this correct? */   
+      }
+      return 0;
+      break;
+    case TIOCSETP: /* Set parameters - stty */
+      {
+        struct termios *term = tty->t;
+        struct sgttyb *gtty = (struct sgttyb *)arg;
+	
+        term->__ispeed = gtty->sg_ispeed;
+        term->__ospeed = gtty->sg_ispeed;
+        term->c_cc[CERASE] = gtty->sg_erase;
+        term->c_cc[CKILL] = gtty->sg_kill;
+        term->c_cflag = gtty->sg_flags; /* FIXME Is this correct? */   
+      }
+      return 0;
+      break;
+    case TIOCGETC: /* Get special characters */
+      {
+        struct tchars *chars = (struct tchars *)arg;
+        struct termios *term = tty->t;
+
+	chars->t_intrc  = term->c_cc[CINTR];
+	chars->t_quitc  = term->c_cc[CQUIT];
+	chars->t_startc = term->c_cc[CSTART];
+	chars->t_stopc  = term->c_cc[CSTOP];
+	chars->t_eofc   = term->c_cc[CEOF];
+	chars->t_brkc   = term->c_cc[CBRK];
+      }
+      return 0;
+      break;
+    case TIOCSETC: /* Set special characters */
+      {
+        struct tchars *chars = (struct tchars *)arg;
+        struct termios *term = tty->t;
+
+	term->c_cc[CINTR] = chars->t_intrc;
+	term->c_cc[CQUIT] = chars->t_quitc;
+	term->c_cc[CSTART] = chars->t_startc;
+	term->c_cc[CSTOP] = chars->t_stopc;
+	term->c_cc[CEOF] = chars->t_eofc;
+	term->c_cc[CBRK] = chars->t_brkc;
+      }
+      return 0;
+      break;
+    case TIOCGLTC: /* Get special characters */
+      {
+        struct ltchars *chars = (struct ltchars *)arg;
+        struct termios *term = tty->t;
+
+        chars->t_suspc  = term->c_cc[CSUSP];
+        chars->t_dsuspc = term->c_cc[CDSUSP];
+        chars->t_rprntc = term->c_cc[CREPRINT];
+        chars->t_flushc = term->c_cc[CFLUSH];
+        chars->t_werasc = term->c_cc[CWERASE];
+        chars->t_lnextc = term->c_cc[CLNEXT];
+      }
+      return 0;
+      break;
+    case TIOCSLTC: /* Set special characters */
+      {
+        struct ltchars *chars = (struct ltchars *)arg;
+        struct termios *term = tty->t;
+
+	term->c_cc[CSUSP] = chars->t_suspc;
+	term->c_cc[CDSUSP] = chars->t_dsuspc;
+	term->c_cc[CREPRINT] = chars->t_rprntc;
+	term->c_cc[CFLUSH] = chars->t_flushc;
+	term->c_cc[CWERASE] = chars->t_werasc;
+	term->c_cc[CLNEXT] = chars->t_lnextc;
+      }
+      return 0;
       break;
     case TIOCGWINSZ: /* Get window size.  */
       {

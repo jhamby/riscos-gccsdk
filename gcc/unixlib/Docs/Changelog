@@ -1,3 +1,10 @@
+Thu May  3 08:27:13 2001  Peter Naulls  <peter@erble.freeserve.co.uk>
+			  Nick Burrett  <nick@dsvr.net>
+
+	* unix/tty.c (__ttyioctl): Implement TIOCSETAW, TIOCSETAF,
+	TIOCGPGRP, TIOCSPGRP, TIOCLGET, TIOCLSET, TIOCGETP, TIOCSETP,
+	TIOCGETC, TIOCSETC, TIOCGLTC and TIOCSLTC.
+
 Thu May  3 07:14:49 2001  Peter Naulls  <peter@erble.freeserve.co.uk>
 
 	* sys/_os.s (os_console): Don't set input stream to listen on
