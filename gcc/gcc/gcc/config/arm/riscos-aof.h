@@ -473,7 +473,7 @@ do {							\
    stubs.  */
 #define LIB_SPEC "%{!nostdlib:%{!mlibscl:-lunixlib}%{mlibscl:-lscl}}"
 
-#define SUBTARGET_CPP_SPEC "-D__JMP_BUF_SIZE=26 %{mlibscl:-D__TARGET_SCL__} \
+#define SUBTARGET_CPP_SPEC "-D__JMP_BUF_SIZE=27 %{mlibscl:-D__TARGET_SCL__} \
 	%{mlibscl:-icrossdirafter /libscl} \
 	%{!mlibscl:-icrossdirafter /unixlib}"
 

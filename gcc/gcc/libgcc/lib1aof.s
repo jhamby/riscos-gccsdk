@@ -1258,10 +1258,10 @@ chunk_size		*	16
 level_off		*	0
 list_off		*	4
 
-	/* UnixLib's jmp_buf is 24 words, Norcroft's is 22 words
-	   so gcc's is 25 (one more word than the biggest)
+	/* UnixLib's jmp_buf is 26 words, Norcroft's is 22 words
+	   so gcc's is 27 (one more word than the biggest)
 	   setjmp_save is the offset to the 25th word.  */
-setjmp_save		*	(26*4)
+setjmp_save		*	(27*4)
 
 
 	AREA	|C$$code|, CODE, READONLY
