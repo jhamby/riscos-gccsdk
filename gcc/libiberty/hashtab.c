@@ -45,6 +45,10 @@ Boston, MA 02111-1307, USA.  */
 #include <string.h>
 #endif
 
+#ifdef HAVE_MALLOC_H
+#include <malloc.h>
+#endif
+
 #include <stdio.h>
 
 #include "libiberty.h"
@@ -306,16 +310,18 @@ htab_expand (htab)
   PTR *olimit;
   PTR *p;
   PTR *nentries;
+  size_t nsize;
 
   oentries = htab->entries;
   olimit = oentries + htab->size;
 
-  htab->size = higher_prime_number (htab->size * 2);
+  nsize = higher_prime_number (htab->size * 2);
 
-  nentries = (PTR *) (*htab->alloc_f) (htab->size, sizeof (PTR *));
+  nentries = (PTR *) (*htab->alloc_f) (nsize, sizeof (PTR));
   if (nentries == NULL)
     return 0;
   htab->entries = nentries;
+  htab->size = nsize;
 
   htab->n_elements -= htab->n_deleted;
   htab->n_deleted = 0;

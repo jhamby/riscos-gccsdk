@@ -411,6 +411,37 @@ expand_builtin_return_addr (fndecl_code, count, tem)
     count--;
 #endif
 
+#if defined(HAVE_BUILTIN_RETURN_ADDR_FUNC) || defined(HAVE_BUILTIN_FRAME_ADDR_FUNC)
+  {
+    char *func = NULL;
+    
+    /* If HAVE_BUILTIN_RETURN_ADDR_FUNC or HAVE_BUILTIN_FRAME_ADDR_FUNC
+       are defined, and evaluate to something, then call
+       __builtin_return_address as a function.  */
+#ifdef HAVE_BUILTIN_RETURN_ADDR_FUNC
+    if (fndecl_code == BUILT_IN_RETURN_ADDRESS
+	&& HAVE_BUILTIN_RETURN_ADDR_FUNC)
+      func = "__builtin_return_address";
+#endif
+#ifdef HAVE_BUILTIN_FRAME_ADDR_FUNC
+    if (fndecl_code == BUILT_IN_FRAME_ADDRESS
+	&& HAVE_BUILTIN_FRAME_ADDR_FUNC)
+      func = "__builtin_frame_address";
+#endif
+    
+    if (func != NULL)
+      {
+	rtx function_call;
+	
+	tem = gen_reg_rtx (Pmode);
+	function_call = gen_rtx (SYMBOL_REF, Pmode, func);
+	emit_library_call_value (function_call, tem, LCT_NORMAL,
+				 Pmode, 1,
+				 GEN_INT (count), SImode);
+      }
+  }
+#endif
+
   /* Scan back COUNT frames to the specified frame.  */
   for (i = 0; i < count; i++)
     {

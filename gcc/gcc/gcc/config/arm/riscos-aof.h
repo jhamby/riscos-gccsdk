@@ -555,3 +555,20 @@ do {							\
    BEG to address END.  */
 #define CLEAR_INSN_CACHE(BEG, END) __clear_icache (BEG, END)
 
+
+#if 0
+#define EH_RETURN_DATA_REGNO(N) ((N) < 4 ? (N) + 4 : INVALID_REGNUM)
+#define EH_RETURN_STACKADJ_RTX  gen_rtx_REG (SImode, IP_REGNUM)
+#define EH_RETURN_HANDLER_RTX \
+  gen_rtx_MEM (Pmode, plus_constant (stack_pointer_rtx, \
+                                     current_function_outgoing_args_size))
+
+#define ASM_OUTPUT_DWARF_DELTA(STREAM,SIZE,LAB1,LAB2) \
+  do { \
+    fprintf ((STREAM), "\tDCD\t"); \
+ assemble_name ((STREAM), (LAB1)); \
+ fprintf ((STREAM), " - "); \
+ assemble_name ((STREAM), (LAB2)); \
+ fprintf ((STREAM), "\n"); \
+  } while (0);
+#endif

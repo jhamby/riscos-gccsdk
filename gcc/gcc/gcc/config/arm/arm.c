@@ -69,9 +69,7 @@ static unsigned  bit_count 			PARAMS ((Ulong));
 static int       const_ok_for_op 		PARAMS ((Hint, enum rtx_code));
 static rtx	 emit_multi_reg_push		PARAMS ((int));
 static rtx	 emit_sfm			PARAMS ((int, int));
-#ifndef AOF_ASSEMBLER
 static bool	 arm_assemble_integer		PARAMS ((rtx, unsigned int, int));
-#endif
 static Ccstar    fp_const_from_val		PARAMS ((REAL_VALUE_TYPE *));
 static arm_cc    get_arm_condition_code		PARAMS ((rtx));
 static void      init_fpa_table			PARAMS ((void));
@@ -152,6 +150,8 @@ static void arm_output_mi_thunk			PARAMS ((FILE *, tree,
 #define TARGET_ASM_ALIGNED_SI_OP "\tDCD\t"
 #undef TARGET_ASM_GLOBALIZE_LABEL
 #define TARGET_ASM_GLOBALIZE_LABEL aof_globalize_label
+/* #undef  TARGET_ASM_INTEGER
+   #define TARGET_ASM_INTEGER arm_assemble_integer */
 #else
 #undef  TARGET_ASM_ALIGNED_SI_OP
 #define TARGET_ASM_ALIGNED_SI_OP NULL
@@ -225,6 +225,9 @@ enum prog_mode_type arm_prgmode;
 
 /* Set by the -mfp=... option.  */
 const char * target_fp_name = NULL;
+
+/* Set by the -mpoke-function-name=... option.  */
+const char * target_poke_func = NULL;
 
 /* Used to parse -mstructure_size_boundary command line option.  */
 const char * structure_size_string = NULL;
@@ -7483,10 +7486,19 @@ arm_poke_function_name (stream, name)
   unsigned long alignlength;
   unsigned long length;
   rtx           x;
+  char *temp;
 
   length      = strlen (name) + 1;
   alignlength = ROUND_UP (length);
-  
+
+#if 0
+  temp = (char *) malloc (length + 5);
+  strcpy (temp, name);
+  strcat (temp, "____");
+  ASM_OUTPUT_LABEL (stream, temp);
+  free (temp);
+#endif
+
   ASM_OUTPUT_ASCII (stream, name, length);
   ASM_OUTPUT_ALIGN (stream, 2);
   x = GEN_INT ((unsigned HOST_WIDE_INT) 0xff000000 + alignlength);
@@ -7502,6 +7514,7 @@ arm_output_function_prologue (f, frame_size)
      HOST_WIDE_INT frame_size;
 {
   unsigned long func_type;
+  const char *name;
 
   if (!TARGET_ARM)
     {
@@ -7562,6 +7575,14 @@ arm_output_function_prologue (f, frame_size)
 
   if (cfun->machine->lr_save_eliminated)
     asm_fprintf (f, "\t%@ link register save eliminated.\n");
+
+  if (target_poke_func)
+    {
+      asm_fprintf (f, "\tswi\t0x1\n"); /* OS_WriteS */
+      name = IDENTIFIER_POINTER (DECL_ASSEMBLER_NAME (current_function_decl));
+      asm_fprintf (f, "\tdcb\t\"(func) %s\", 13, 10, 0\n", name);
+      asm_fprintf (f, "\tALIGN\n");
+    }
 
 #ifdef AOF_ASSEMBLER
   if (flag_pic)
@@ -8452,7 +8473,7 @@ arm_expand_prologue ()
   live_regs_mask = arm_compute_save_reg_mask ();
 
   ip_rtx = gen_rtx_REG (SImode, IP_REGNUM);
-
+  
   if (arm_apcs_frame_needed ())
     {
       if (IS_INTERRUPT (func_type))
@@ -8953,7 +8974,6 @@ arm_print_operand (stream, x, code)
     }
 }
 
-#ifndef AOF_ASSEMBLER
 /* Target hook for assembling integer objects.  The ARM version needs to
    handle word-sized values specially.  */
 
@@ -8963,6 +8983,12 @@ arm_assemble_integer (x, size, aligned_p)
      unsigned int size;
      int aligned_p;
 {
+#ifdef AOF_ASSEMBLER
+  fputs ("\tDCD\t", asm_out_file);
+  output_addr_const (asm_out_file, x);
+  fputc ('\n', asm_out_file);
+  return true;
+#else
   if (size == UNITS_PER_WORD && aligned_p)
     {
       fputs ("\t.word\t", asm_out_file);
@@ -8987,8 +9013,8 @@ arm_assemble_integer (x, size, aligned_p)
     }
 
   return default_assemble_integer (x, size, aligned_p);
-}
 #endif
+}
 
 /* A finite state machine takes care of noticing whether or not instructions
    can be conditionally executed, and thus decrease execution time and code

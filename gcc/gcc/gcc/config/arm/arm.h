@@ -117,6 +117,8 @@ extern GTY(()) rtx arm_target_insn;
 extern int target_flags;
 /* The floating point instruction architecture, can be 2 or 3 */
 extern const char * target_fp_name;
+extern const char * target_poke_func;
+
 /* Define the information needed to generate branch insns.  This is
    stored from the compare operation.  */
 extern GTY(()) rtx arm_compare_op0;
@@ -498,7 +500,9 @@ Unrecognized value in TARGET_CPU_DEFAULT.
   {"structure-size-boundary=", & structure_size_string, 	\
    N_("Specify the minimum bit alignment of structures") }, 	\
   {"pic-register=", & arm_pic_register_string,			\
-   N_("Specify the register to be used for PIC addressing") }	\
+   N_("Specify the register to be used for PIC addressing") },	\
+  {"embed-function-name=", & target_poke_func,			\
+   N_("Specify whether to embed function name in prologue") }	\
 }
 
 struct arm_cpu_select

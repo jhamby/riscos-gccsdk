@@ -19,7 +19,9 @@ along with GNU CC; see the file COPYING.  If not, write to
 the Free Software Foundation, 59 Temple Place - Suite 330,
 Boston, MA 02111-1307, USA.  */
 
+#ifdef HAVE_CONFIG_H
 #include "config.h"
+#endif
 #ifdef HAVE_LIMITS_H
 #include <limits.h>
 #endif
@@ -64,7 +66,7 @@ fibnode_new ()
 {
   fibnode_t node;
 
-  node = xcalloc (1, sizeof *node);
+  node = (fibnode_t) xcalloc (1, sizeof *node);
   node->left = node;
   node->right = node;
 
