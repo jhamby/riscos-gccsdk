@@ -165,7 +165,7 @@ Boston, MA 02111-1307, USA.  */
    we must create a new area with the same attributes and add the new output
    to that.  Unfortunately, there is nothing we can do here to guarantee that
    two areas with the same attributes will be linked adjacently in the
-   resulting executable, so we have to be careful not to do pc-relative 
+   resulting executable, so we have to be careful not to do pc-relative
    addressing across such boundaries.  */
 #define TEXT_SECTION_ASM_OP aof_text_section ()
 #define DATA_SECTION_ASM_OP aof_data_section ()
@@ -272,7 +272,7 @@ common_section ()						\
     }								\
   while (0)
 
-/* Place uninitialised global data in the common section.  */ 
+/* Place uninitialised global data in the common section.  */
 #define ASM_OUTPUT_BSS(STREAM,DECL,NAME,SIZE,ROUNDED)		\
   do								\
     {								\
@@ -322,6 +322,7 @@ do {					\
       ASM_OUTPUT_LABEL (STREAM, NAME);			\
     }							\
   aof_delete_import ((NAME));				\
+}  
 
 #define ASM_DECLARE_OBJECT_NAME(STREAM,NAME,DECL) \
 {						\
@@ -539,7 +540,7 @@ do {							\
                    memory_address (SImode, (TRAMP)), Pmode,           \
                    end_addr, Pmode);                                  \
 }
-  
+
 /* A C expression used to clear the instruction cache from address
    BEG to address END.  */
 #define CLEAR_INSN_CACHE(BEG, END) __clear_icache (BEG, END)
