@@ -377,7 +377,7 @@ outputElf (void)
   /* Symbol table - index 1 */
   nsyms = symbolFix();
   written += writeElfSH(shstrsize, SHT_SYMTAB, 0,
-                        (nsyms + 1 + noareas) * sizeof (Elf32_Sym),
+                        (nsyms + 1) * sizeof (Elf32_Sym),
                         2, 0, 4, sizeof (Elf32_Sym), &offset);
   shstrsize += 8; /* .symtab */
 
@@ -427,7 +427,7 @@ outputElf (void)
 
   /* Write out the sections */
   /* Symbol table */
-  symbolSymbolElfOutput(objfile, noareas);
+  symbolSymbolElfOutput(objfile);
 
   /* String table */
   fputc (0, objfile);

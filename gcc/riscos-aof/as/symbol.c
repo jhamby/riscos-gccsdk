@@ -260,7 +260,7 @@ symbolSymbolOutput (FILE * outfile)
 
   for (i = 0; i < SYMBOL_TABLESIZE; i++)
     for (sym = symbolTable[i]; sym; sym = sym->next)
-      if (sym->type != SYMBOL_AREA && SYMBOL_OUTPUT (sym) /*sym->used >= 0 */ )
+      if (!(sym->type & SYMBOL_AREA) && SYMBOL_OUTPUT (sym) /*sym->used >= 0 */ )
 	{
 	  asym.Name = sym->offset;
 	  if (sym->type & SYMBOL_DEFINED)
@@ -356,7 +356,7 @@ findAreaIndex (struct AREA * area) {
   ap=areaHead;
 
   while (ap) {
-    if (area == ap) {
+    if (area == (struct AREA *)ap) {
       return i;
     }
     i++;
@@ -369,7 +369,7 @@ findAreaIndex (struct AREA * area) {
 }
 
 void
-symbolSymbolElfOutput (FILE * outfile, int noareas)
+symbolSymbolElfOutput (FILE * outfile)
 {
   int i;
   int bind, type;
@@ -388,17 +388,9 @@ symbolSymbolElfOutput (FILE * outfile, int noareas)
 
   fwrite ((void *) &asym, sizeof (Elf32_Sym), 1, outfile);
 
-  /* Output area symbols */
-  for (i = 0; i < noareas; i++) {
-    asym.st_info = ELF32_ST_INFO(STB_LOCAL, STT_SECTION);
-    asym.st_shndx = i + 3;
-
-    fwrite ((void *) &asym, sizeof (Elf32_Sym), 1, outfile);
-  }
-
   for (i = 0; i < SYMBOL_TABLESIZE; i++)
     for (sym = symbolTable[i]; sym; sym = sym-> next)
-      if (sym->type != SYMBOL_AREA && SYMBOL_OUTPUT (sym) /*sym->used >= 0 */ )
+      if (!(sym->type & SYMBOL_AREA) && SYMBOL_OUTPUT (sym) /*sym->used >= 0 */ )
         {
           asym.st_name = sym->offset - 3;
           type = 0;
@@ -491,4 +483,13 @@ one time */
           asym.st_info = ELF32_ST_INFO(bind, type);
           fwrite ((void *) &asym, sizeof (Elf32_Sym), 1, outfile);
         }
+      else if (sym->type & SYMBOL_AREA)
+	{
+	  type = (sym->type & SYMBOL_GLOBAL)?STB_GLOBAL:STB_LOCAL;
+	  asym.st_info = ELF32_ST_INFO(type, STT_SECTION);
+	  asym.st_name = sym->offset - 3;
+	  asym.st_value = 0;
+	  asym.st_shndx = findAreaIndex ((struct AREA *)sym);
+	  fwrite ((void *) &asym, sizeof (Elf32_Sym), 1, outfile);
+	}
 }

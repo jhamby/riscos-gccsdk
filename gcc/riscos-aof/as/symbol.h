@@ -78,6 +78,6 @@ extern int symbolFix (void);		/* Returns number of symbols */
 extern int symbolStringSize (void);
 extern void symbolStringOutput (FILE * outfile);
 extern void symbolSymbolOutput (FILE * outfile);
-extern void symbolSymbolElfOutput (FILE * outfile, int noareas);
+extern void symbolSymbolElfOutput (FILE * outfile);
 
 #endif
