@@ -29,6 +29,10 @@
 /* Define if cpp should also search $prefix/include.  */
 #undef PREFIX_INCLUDE_DIR
 
+#undef HAVE_CPP_STRINGIFY
+#undef PACKAGE
+#undef VERSION
+
 @BOTTOM@
 
 /* Bison unconditionally undefines `const' if neither `__STDC__' nor
