@@ -1,8 +1,13 @@
+Sat Apr  3 09:28:42 2005  Stefan Bellon <sbellon@sbellon.de>
+
+	* source/sys/debug.c: Fix compile error.
+	* objs/.cvsignore: Add more filenames to ignore.
+
 Fri Apr  1 17:05:51 2005  Peter Naulls  <peter@chocky.org>
 
 	* source/strcpy.c, source/strlen.c: Removed
 	* source/string/_strcpy.s, source/string/_strlen.s: New
-	  faster versions from Adiran Lees.
+	  faster versions from Adrian Lees.
 	* source/unix/dev.c: Remove old free call.
 
 Thu Mar 31 13:55:25 2005  Nick Burrett  <nick@sqrt.co.uk>

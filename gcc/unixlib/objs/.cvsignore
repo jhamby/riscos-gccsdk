@@ -6,12 +6,15 @@ grp
 locale
 math
 math-asm
+misc
 module
 netlib
 pthread
 pwd
+regexp
 resolv
 resource
+sched
 scl
 signal
 sound
@@ -29,4 +32,5 @@ UnixLib
 wchar
 SharedULib,ffa
 *,ffd
+Makefile
 Makefile,fe1

@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/debug.c,v $
- * $Date: 2004/12/18 17:45:32 $
- * $Revision: 1.10 $
+ * $Date: 2005/03/04 20:59:06 $
+ * $Revision: 1.11 $
  * $State: Exp $
- * $Author: joty $
+ * $Author: alex $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: debug.c,v 1.10 2004/12/18 17:45:32 joty Exp $";
+static const char rcs_id[] = "$Id: debug.c,v 1.11 2005/03/04 20:59:06 alex Exp $";
 #endif
 
 #ifndef DEBUG
@@ -63,7 +63,7 @@ __debug (const char *s)
   /* Make sure the complete __u struct is pointing to valid memory
      otherwise adding __debug() will raise memory exceptions which
      confuses the poor hacker.  */
-  if (!valid_address((const int *)&__u[0], (const int *)&__u[1]))
+  if (!__valid_address((const int *)&__u[0], (const int *)&__u[1]))
     {
       __os_print ("__u is pointing to invalid memory\r\n");
       return;
