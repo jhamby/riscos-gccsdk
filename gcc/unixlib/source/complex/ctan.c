@@ -1,10 +1,10 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/complex/ctan.c,v $
- * $Date: 2000/07/15 14:52:20 $
- * $Revision: 1.1.1.1 $
+ * $Source: /usr/local/cvsroot/unixlib/source/complex/c/ctan,v $
+ * $Date: 1999/11/16 13:34:50 $
+ * $Revision: 1.1 $
  * $State: Exp $
- * $Author: nick $
+ * $Author: admin $
  *
  ***************************************************************************/
 

@@ -1,5 +1,5 @@
 # Makefile for UnixLib for the ARM/RISC OS GCC port
-# Copyright (c) 2000 Nick Burrett
+# Copyright (c) 2000, 2001 Nick Burrett
 # Written by Nick Burrett <nick@dsvr.net>
 #
 # This file is part of the GNU Compiler Collection
@@ -398,8 +398,7 @@ SYS =	$(libunixobj)/sys/alarm.o \
 	$(libunixobj)/sys/syslib.o \
 	$(libunixobj)/sys/vfork.o
 
-SYS_ASM =	$(libunixobj)/sys/_address.o \
-	$(libunixobj)/sys/_alloca.o \
+SYS_ASM =	$(libunixobj)/sys/_alloca.o \
 	$(libunixobj)/sys/_divsi3.o \
 	$(libunixobj)/sys/_divtest.o \
 	$(libunixobj)/sys/_exec.o \

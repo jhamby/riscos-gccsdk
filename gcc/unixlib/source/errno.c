@@ -1,17 +1,17 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/errno.c,v $
- * $Date: 2000/07/15 14:52:08 $
- * $Revision: 1.1.1.1 $
+ * $Source: /usr/local/cvsroot/unixlib/source/c/errno,v $
+ * $Date: 2000/08/20 11:04:36 $
+ * $Revision: 1.6 $
  * $State: Exp $
- * $Author: nick $
+ * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: errno.c,v 1.1.1.1 2000/07/15 14:52:08 nick Exp $";
+static const char rcs_id[] = "$Id: errno,v 1.6 2000/08/20 11:04:36 admin Exp $";
 #endif
 
 #include <errno.h>
 
-volatile int errno = 0;
+int errno = 0;

@@ -1,10 +1,10 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/string.h,v $
- * $Date: 2000/07/15 14:52:12 $
- * $Revision: 1.1.1.1 $
+ * $Source: /usr/local/cvsroot/unixlib/source/clib/h/string,v $
+ * $Date: 1997/10/09 19:59:48 $
+ * $Revision: 1.8 $
  * $State: Exp $
- * $Author: nick $
+ * $Author: unixlib $
  *
  ***************************************************************************/
 

@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/resource/seteuid.c,v $
- * $Date: 2000/07/15 14:52:28 $
- * $Revision: 1.1.1.1 $
+ * $Source: /usr/local/cvsroot/unixlib/source/resource/c/seteuid,v $
+ * $Date: 1997/10/08 12:48:13 $
+ * $Revision: 1.1 $
  * $State: Exp $
- * $Author: nick $
+ * $Author: unixlib $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: seteuid.c,v 1.1.1.1 2000/07/15 14:52:28 nick Exp $";
+static const char rcs_id[] = "$Id: seteuid,v 1.1 1997/10/08 12:48:13 unixlib Exp $";
 #endif
 
 #include <unistd.h>

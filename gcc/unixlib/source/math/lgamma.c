@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/math/lgamma.c,v $
- * $Date: 2000/07/15 14:52:21 $
- * $Revision: 1.1.1.1 $
+ * $Source: /usr/local/cvsroot/unixlib/source/math/c/lgamma,v $
+ * $Date: 1997/09/07 16:21:53 $
+ * $Revision: 1.1 $
  * $State: Exp $
- * $Author: nick $
+ * $Author: unixlib $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: lgamma.c,v 1.1.1.1 2000/07/15 14:52:21 nick Exp $";
+static const char rcs_id[] = "$Id: lgamma,v 1.1 1997/09/07 16:21:53 unixlib Exp $";
 #endif
 
 #include <math.h>

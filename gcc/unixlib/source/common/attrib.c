@@ -1,16 +1,16 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/common/attrib.c,v $
- * $Date: 2000/07/15 14:52:18 $
- * $Revision: 1.1.1.1 $
+ * $Source: /usr/local/cvsroot/unixlib/source/common/c/attrib,v $
+ * $Date: 1999/11/16 13:26:49 $
+ * $Revision: 1.5 $
  * $State: Exp $
- * $Author: nick $
+ * $Author: admin $
  *
  * Written by Nick Burrett, 3 May 1997.
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: attrib.c,v 1.1.1.1 2000/07/15 14:52:18 nick Exp $";
+static const char rcs_id[] = "$Id: attrib,v 1.5 1999/11/16 13:26:49 admin Exp $";
 #endif
 
 #include <sys/stat.h>

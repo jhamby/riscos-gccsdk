@@ -1,10 +1,10 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/sys/unix.h,v $
- * $Date: 2000/07/15 14:52:16 $
- * $Revision: 1.1.1.1 $
+ * $Source: /usr/local/cvsroot/unixlib/source/clib/sys/h/unix,v $
+ * $Date: 2000/08/17 16:16:06 $
+ * $Revision: 1.20 $
  * $State: Exp $
- * $Author: nick $
+ * $Author: admin $
  *
  * UNIX is a registered trademark of AT&T Bell Laboratories
  *

@@ -1,10 +1,10 @@
 ;----------------------------------------------------------------------------
 ;
-; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/netlib/_recvmsg.s,v $
-; $Date: 2000/07/15 14:52:26 $
-; $Revision: 1.1.1.1 $
+; $Source: /usr/local/cvsroot/unixlib/source/netlib/s/_recvmsg,v $
+; $Date: 2000/12/21 15:09:13 $
+; $Revision: 1.6 $
 ; $State: Exp $
-; $Author: nick $
+; $Author: admin $
 ;
 ;----------------------------------------------------------------------------
 

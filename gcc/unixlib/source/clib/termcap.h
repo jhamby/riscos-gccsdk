@@ -1,10 +1,10 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/termcap.h,v $
- * $Date: 2000/07/15 14:52:12 $
- * $Revision: 1.1.1.1 $
+ * $Source: /usr/local/cvsroot/unixlib/source/clib/h/termcap,v $
+ * $Date: 1997/12/17 22:02:50 $
+ * $Revision: 1.3 $
  * $State: Exp $
- * $Author: nick $
+ * $Author: unixlib $
  *
  ***************************************************************************/
 

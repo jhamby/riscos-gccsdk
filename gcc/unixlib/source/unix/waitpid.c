@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/waitpid.c,v $
- * $Date: 2000/07/15 14:52:46 $
- * $Revision: 1.1.1.1 $
+ * $Source: /usr/local/cvsroot/unixlib/source/unix/c/waitpid,v $
+ * $Date: 1997/10/09 20:00:54 $
+ * $Revision: 1.4 $
  * $State: Exp $
- * $Author: nick $
+ * $Author: unixlib $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: waitpid.c,v 1.1.1.1 2000/07/15 14:52:46 nick Exp $";
+static const char rcs_id[] = "$Id: waitpid,v 1.4 1997/10/09 20:00:54 unixlib Exp $";
 #endif
 
 #include <errno.h>

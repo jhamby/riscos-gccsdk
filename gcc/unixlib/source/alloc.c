@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/alloc.c,v $
- * $Date: 2000/07/15 14:52:08 $
- * $Revision: 1.1.1.1 $
+ * $Source: /usr/local/cvsroot/unixlib/source/c/alloc,v $
+ * $Date: 2000/08/17 16:16:06 $
+ * $Revision: 1.9 $
  * $State: Exp $
- * $Author: nick $
+ * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: alloc.c,v 1.1.1.1 2000/07/15 14:52:08 nick Exp $: alloc,v 1.4 1996/12/29 21:47:10 unixlib Exp $";
+static const char rcs_id[] = "$Id: alloc,v 1.9 2000/08/17 16:16:06 admin Exp $: alloc,v 1.4 1996/12/29 21:47:10 unixlib Exp $";
 #endif
 
 /* #define DEBUG 1 */

@@ -1,10 +1,10 @@
 ;----------------------------------------------------------------------------
 ;
-; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/unixlib/s/asm_dec,v $
-; $Date: 2000/07/15 14:52:18 $
-; $Revision: 1.1.1.1 $
+; $Source: /usr/local/cvsroot/unixlib/source/clib/unixlib/s/asm_dec,v $
+; $Date: 2000/12/21 15:09:13 $
+; $Revision: 1.21 $
 ; $State: Exp $
-; $Author: nick $
+; $Author: admin $
 ;
 ; Declare registers and SWIs we will be calling.
 ;
@@ -398,7 +398,7 @@ XSharedCLibrary_LibInitModule	EQU	&080682 + X_Bit
 XMessageTrans_ErrorLookup	EQU	&041506 + X_Bit
 
 XTaskWindow_TaskInfo		EQU	&043380 + X_Bit
-
+XWimp_ReadSysInfo		EQU	&0400F2 + X_Bit
 XDDEUtils_SetCLSize		EQU	&042581 + X_Bit
 
 	END

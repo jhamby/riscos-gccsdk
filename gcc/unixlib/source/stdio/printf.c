@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/stdio/printf.c,v $
- * $Date: 2000/07/15 14:52:32 $
- * $Revision: 1.1.1.1 $
+ * $Source: /usr/local/cvsroot/unixlib/source/stdio/c/printf,v $
+ * $Date: 1997/10/09 20:00:35 $
+ * $Revision: 1.7 $
  * $State: Exp $
- * $Author: nick $
+ * $Author: unixlib $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: printf.c,v 1.1.1.1 2000/07/15 14:52:32 nick Exp $";
+static const char rcs_id[] = "$Id: printf,v 1.7 1997/10/09 20:00:35 unixlib Exp $";
 #endif
 
 /*-
@@ -53,7 +53,7 @@ static const char rcs_id[] = "$Id: printf.c,v 1.1.1.1 2000/07/15 14:52:32 nick E
 static char sccsid[] = "@(#)vfprintf.c	8.1 (Berkeley) 6/4/93";
 #endif
 static const char rcsid[] =
-		"$Id: printf.c,v 1.1.1.1 2000/07/15 14:52:32 nick Exp $";
+		"$Id: printf,v 1.7 1997/10/09 20:00:35 unixlib Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 /*

@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/signal/sigsetmask.c,v $
- * $Date: 2000/07/15 14:52:30 $
- * $Revision: 1.1.1.1 $
+ * $Source: /usr/local/cvsroot/unixlib/source/signal/c/sigsetmask,v $
+ * $Date: 1997/10/09 20:00:30 $
+ * $Revision: 1.6 $
  * $State: Exp $
- * $Author: nick $
+ * $Author: unixlib $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: sigsetmask.c,v 1.1.1.1 2000/07/15 14:52:30 nick Exp $";
+static const char rcs_id[] = "$Id: sigsetmask,v 1.6 1997/10/09 20:00:30 unixlib Exp $";
 #endif
 
 /* sigsetmask.c: BSD signal blocking function.

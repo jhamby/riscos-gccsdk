@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/resource/setrlimit.c,v $
- * $Date: 2000/07/15 14:52:28 $
- * $Revision: 1.1.1.1 $
+ * $Source: /usr/local/cvsroot/unixlib/source/resource/c/setrlimit,v $
+ * $Date: 1997/10/09 20:00:27 $
+ * $Revision: 1.6 $
  * $State: Exp $
- * $Author: nick $
+ * $Author: unixlib $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: setrlimit.c,v 1.1.1.1 2000/07/15 14:52:28 nick Exp $";
+static const char rcs_id[] = "$Id: setrlimit,v 1.6 1997/10/09 20:00:27 unixlib Exp $";
 #endif
 
 #include <sys/resource.h>

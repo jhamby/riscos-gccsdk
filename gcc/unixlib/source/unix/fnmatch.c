@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/fnmatch.c,v $
- * $Date: 2000/07/15 14:52:43 $
- * $Revision: 1.1.1.1 $
+ * $Source: /usr/local/cvsroot/unixlib/source/unix/c/fnmatch,v $
+ * $Date: 1997/10/30 22:22:45 $
+ * $Revision: 1.4 $
  * $State: Exp $
- * $Author: nick $
+ * $Author: unixlib $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: fnmatch.c,v 1.1.1.1 2000/07/15 14:52:43 nick Exp $";
+static const char rcs_id[] = "$Id: fnmatch,v 1.4 1997/10/30 22:22:45 unixlib Exp $";
 #endif
 
 /*      $NetBSD: fnmatch.c,v 1.11 1995/02/27 03:43:06 cgd Exp $ */

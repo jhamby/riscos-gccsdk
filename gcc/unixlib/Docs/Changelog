@@ -1,12 +1,115 @@
-Sun Jun 11 10:18:09 2000  Nick Burrett  <nick.burrett@btinternet.com>
+Tue Jan  2 10:20:30 2001  Nick Burrett  <nick.burrett@btinternet.com>
+
+	* signal/coredump.c: Delete file.
+	* sys/_address.s: Delete file.
+	* unixlib/local.h (__address_valid): Delete decl.
+
+Fri Dec 29 11:49:55 2000  Nick Burrett  <nick.burrett@btinternet.com>
+
+	* sys/_mem.s (__memcpy_cu_l1): Fix typo in return regs.
+	* Docs/Changes: Delete file.
+
+Thu Dec 21 15:07:42 2000  Nick Burrett  <nick.burrett@btinternet.com>
+
+	Do some of the leg-work required to support APCS-32.
+	* unixlib/asm_dec.s (MACRO return): New MACRO.
+	(MACRO stackreturn): New MACRO.
+	* All assembler files: All files changed to use the MACROs return
+	and stackreturn for function exit.
+
+Wed Nov 29 12:40:26 2000  John Tytgat  <John.Tytgat@aaug.net>
+
+	* stdio/scanf.c (vfscanf): fix for infinite loop when skipping spaces.
+	Reading fixed length string did not consume enough input characters.
+	(problem found by Vincent Lefevre)
+
+Wed Nov 08 10:21:26 2000  John Tytgat  <John.Tytgat@aaug.net>
+
+	* time/broken.c (__cvt_broken_time): Reduced stack requirements.
+	Added workaround for month overflow problem in the Territory/UK module.
+	* time/calendconv.c (__calendar_convert): Removed tzset call (not
+	needed).
+	* time/mktime.c (mktime): Likewise.
+	* time/strftime.c (strftime): Likewise.
+	* clib/time.h (mktime): argument "struct tm *" is not const.
+	* time/mktime.c(mktime): argument "struct tm *" is not const and
+	tm_wday & tm_yday are now correctly filled in (not in __tz variable).
+	* unix/fstat.c (fstat): set regs[3] to zero too when it is not a
+	RISC OS device.
+	* unix/stat.c (stat): stat("/dev/null") didn't work.
+
+Sun Aug 20 12:04:34 2000  John Tytgat  <John.Tytgat@aaug.net>
+
+	* errno.c (errno): Remove volatile, for POSIX conformance.
+	* sys/_syslib.s (__wimpprogram): Export.
+
+Thu Aug 17 17:17:22 2000  Nick Burrett  <nick.burrett@btinternet.com>
+
+	Re-write command line and environment passing between processes.
+	Arguments are now passed on the command line rather than both the
+	command line and the proc structure.
+	* sys/unix.h (struct proc): Delete clean_argv, clean_argb, envb, argb.
+	Add envc and cli.
+	* sys/debug.c (__debug): Fix for new proc structure and print
+	environment vector.
+	* sys/exec.c (__ushift): Comment.
+	(execve): Use os_print for debugging.  Print environment vector.
+	Re-write the code for building argv and envp for the child process.
+	Cope properly with " and ' in arguments.  Don't copy new argv into
+	struct proc - leave this task up to __unixinit.  Major tidyup.
+	Don't prepend command line with a '/' because we won't be able to
+	call RISC OS builtin commands.
+	(__exret): Fixup for new struct proc.
+	* sys/execl.c (execl): Initially allocate memory for 8 arguments.
+	* sys/vfork.c (free_process): New function.
+	(__vfork): Clean up.  Re-write argv and envp inheritance.
+	Call free_process on error.
+	(__vexit): Call free_process.  Tidy up.
+	* sys/_exec.s: Annotate.  So that in the future I don't have such a
+	hard time trying to figure out what it does.
+	* unix/unix.c (__unixinit): Simplify because we know that the command
+	line arguments are always taken from the CLI.
+	Print a more descriptive error message when something serious fails.
+	(__unixexit): More descriptive __debug statements.
+	(find_terminator): Optimise function.
+	(initialise_process_structure): Delete #if 0 code.
+	(convert_command_line): Re-work now that we've changed struct proc.  Cope
+	with an infinite command line length.
+
+	* sys/brk.c (brk, sbrk): Add some debugging code.
+	* sys/execvp.c (execvp): Add some debugging code.
+	* unix/features.c: Likewise.
+	* unix/getenv.c (__chkenv, __addenv): Likewise.
 
 	* unix/getcwd.c (getcwd): Change unixify_path call to a __unixify_std
 	call.
-	* sys/exec.c (execve): Don't prepend command line with a `/' because
-	we won't be able to call RISC OS builtin commands.
-	* unix/unix.c (__unixinit): Fix off-by-one error in argb malloc.
-	Print a more descriptive error message when something serious fails.
-	(find_terminator): Optimise function.
+
+Wed Jul  5 15:58:27 2000  John Tytgat <John.Tytgat@aaug.net>
+
+	* clib/errno.h (errno): Remove volatile, for POSIX conformance.
+	* unix/fchmod.c: Remove garbade from header.
+
+Mon Jul  3 12:31:38 2000  John Tytgat <John.Tytgat@aaug.net>
+
+	* sys/syslib.h (__wimpprogram): Declare.
+	* unixlib/asm_dec.s (XWimp_ReadSysInfo): Define.
+	* sys/_syslib.s: Initialise __wimpprogram.
+	* time/getitmr.c (getitimer): Change test for __taskwindow to
+	__wimpprogram.
+	* time/setitmr.c (setitimer): Likewise.
+	* signal/sleep.c (sleep): Likewise.
+	* unix/unix.c (__stop_itimers): Likewise.
+
+Mon Jul  3 12:19:27 2000  John Tytgat <John.Tytgat@aaug.net>
+
+	* common/unixify.c (unixify): Fix suffix swapping for "c.dev".
+
+Mon Jul  3 12:14:10 2000  John Tytgat <John.Tytgat@aaug.net>
+
+	* !Help: Change "RiscOS" to "RISC OS".
+	* qsort.c: Change PARANOID to __PARANOID.
+	* common/unixify.c (__unixify): Filetype extension marker is
+	a comma, not a dot.
 
 Sat Jun 10 13:58:43 2000  John Tytgat <John.Tytgat@aaug.net>
 

@@ -1,10 +1,10 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/unixlib/local.h,v $
- * $Date: 2000/07/15 14:52:17 $
- * $Revision: 1.1.1.1 $
+ * $Source: /usr/local/cvsroot/unixlib/source/clib/unixlib/h/local,v $
+ * $Date: 2001/01/02 10:23:49 $
+ * $Revision: 1.17 $
  * $State: Exp $
- * $Author: nick $
+ * $Author: admin $
  *
  * This file should eventually contain most / all of the unixlib specific
  * functions.
@@ -37,10 +37,6 @@ extern "C" {
 #endif
 
 #ifdef __UNIXLIB_INTERNALS
-
-/* Returns TRUE if specified range is ok, Otherwise returns FALSE.
-   Uses OS_ValidateAddress (PRMs 1-379).  */
-extern int __address_valid (const void *__start, const void *__end);
 
 /* Generate a file serial number. This should distinguish the file from
    all other files on the same device.  */

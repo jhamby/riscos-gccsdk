@@ -1,10 +1,10 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/wchar/mbrtowc.c,v $
- * $Date: 2000/07/15 14:52:46 $
- * $Revision: 1.1.1.1 $
+ * $Source: /usr/local/cvsroot/unixlib/source/wchar/c/mbrtowc,v $
+ * $Date: 2000/06/03 16:53:10 $
+ * $Revision: 1.1 $
  * $State: Exp $
- * $Author: nick $
+ * $Author: admin $
  *
  ***************************************************************************/
 

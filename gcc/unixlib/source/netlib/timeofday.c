@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/netlib/timeofday.c,v $
- * $Date: 2000/07/15 14:52:26 $
- * $Revision: 1.1.1.1 $
+ * $Source: /usr/local/cvsroot/unixlib/source/netlib/c/timeofday,v $
+ * $Date: 1997/10/09 20:00:23 $
+ * $Revision: 1.6 $
  * $State: Exp $
- * $Author: nick $
+ * $Author: unixlib $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: timeofday.c,v 1.1.1.1 2000/07/15 14:52:26 nick Exp $";
+static const char rcs_id[] = "$Id: timeofday,v 1.6 1997/10/09 20:00:23 unixlib Exp $";
 #endif
 
 #include <sys/time.h>

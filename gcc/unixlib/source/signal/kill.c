@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/signal/kill.c,v $
- * $Date: 2000/07/15 14:52:29 $
- * $Revision: 1.1.1.1 $
+ * $Source: /usr/local/cvsroot/unixlib/source/signal/c/kill,v $
+ * $Date: 1997/10/09 20:00:28 $
+ * $Revision: 1.6 $
  * $State: Exp $
- * $Author: nick $
+ * $Author: unixlib $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: kill.c,v 1.1.1.1 2000/07/15 14:52:29 nick Exp $";
+static const char rcs_id[] = "$Id: kill,v 1.6 1997/10/09 20:00:28 unixlib Exp $";
 #endif
 
 /* Written by Nick Burrett, 27 August 1996.  */

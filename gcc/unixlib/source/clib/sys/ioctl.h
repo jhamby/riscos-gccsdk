@@ -1,10 +1,10 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/sys/ioctl.h,v $
- * $Date: 2000/07/15 14:52:15 $
- * $Revision: 1.1.1.1 $
+ * $Source: /usr/local/cvsroot/unixlib/source/clib/sys/h/ioctl,v $
+ * $Date: 1997/12/17 22:02:52 $
+ * $Revision: 1.5 $
  * $State: Exp $
- * $Author: nick $
+ * $Author: unixlib $
  *
  ***************************************************************************/
 

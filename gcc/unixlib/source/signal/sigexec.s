@@ -1,10 +1,10 @@
 ;----------------------------------------------------------------------------
 ;
-; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/signal/sigexec.s,v $
-; $Date: 2000/07/15 14:52:30 $
-; $Revision: 1.1.1.1 $
+; $Source: /usr/local/cvsroot/unixlib/source/signal/s/sigexec,v $
+; $Date: 2000/12/21 15:09:13 $
+; $Revision: 1.6 $
 ; $State: Exp $
-; $Author: nick $
+; $Author: admin $
 ;
 ;----------------------------------------------------------------------------
 ; signal.s.sigexec: Written by Nick Burrett, 1 September 1996.

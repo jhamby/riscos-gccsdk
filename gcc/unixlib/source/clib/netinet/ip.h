@@ -1,10 +1,10 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/netinet/ip.h,v $
- * $Date: 2000/07/15 14:52:14 $
- * $Revision: 1.1.1.1 $
+ * $Source: /usr/local/cvsroot/unixlib/source/clib/netinet/h/ip,v $
+ * $Date: 1997/10/15 21:00:30 $
+ * $Revision: 1.5 $
  * $State: Exp $
- * $Author: nick $
+ * $Author: unixlib $
  *
  ***************************************************************************/
 

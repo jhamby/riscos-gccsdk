@@ -1,10 +1,10 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/sys/file.h,v $
- * $Date: 2000/07/15 14:52:15 $
- * $Revision: 1.1.1.1 $
+ * $Source: /usr/local/cvsroot/unixlib/source/clib/sys/h/file,v $
+ * $Date: 1997/10/09 19:59:54 $
+ * $Revision: 1.4 $
  * $State: Exp $
- * $Author: nick $
+ * $Author: unixlib $
  *
  ***************************************************************************/
 

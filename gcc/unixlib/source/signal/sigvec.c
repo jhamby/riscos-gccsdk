@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/signal/sigvec.c,v $
- * $Date: 2000/07/15 14:52:30 $
- * $Revision: 1.1.1.1 $
+ * $Source: /usr/local/cvsroot/unixlib/source/signal/c/sigvec,v $
+ * $Date: 1997/10/09 20:00:30 $
+ * $Revision: 1.6 $
  * $State: Exp $
- * $Author: nick $
+ * $Author: unixlib $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: sigvec.c,v 1.1.1.1 2000/07/15 14:52:30 nick Exp $";
+static const char rcs_id[] = "$Id: sigvec,v 1.6 1997/10/09 20:00:30 unixlib Exp $";
 #endif
 
 /* c.sigvec: Written by Nick Burrett, 30 August 1996.  */

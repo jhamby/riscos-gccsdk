@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/signal/sigprocmsk.c,v $
- * $Date: 2000/07/15 14:52:30 $
- * $Revision: 1.1.1.1 $
+ * $Source: /usr/local/cvsroot/unixlib/source/signal/c/sigprocmsk,v $
+ * $Date: 2000/06/03 14:46:10 $
+ * $Revision: 1.11 $
  * $State: Exp $
- * $Author: nick $
+ * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: sigprocmsk.c,v 1.1.1.1 2000/07/15 14:52:30 nick Exp $";
+static const char rcs_id[] = "$Id: sigprocmsk,v 1.11 2000/06/03 14:46:10 admin Exp $";
 #endif
 
 /* signal.c.sigprocmsk: Implementation of the POSIX signal function

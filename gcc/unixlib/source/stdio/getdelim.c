@@ -1,17 +1,17 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/stdio/getdelim.c,v $
- * $Date: 2000/07/15 14:52:31 $
- * $Revision: 1.1.1.1 $
+ * $Source: /usr/local/cvsroot/unixlib/source/stdio/c/getdelim,v $
+ * $Date: 1997/10/08 16:37:50 $
+ * $Revision: 1.6 $
  * $State: Exp $
- * $Author: nick $
+ * $Author: unixlib $
  *
  ***************************************************************************/
 
 /* c.getdelim. Written by Nick Burrett, 27 October 1996.  */
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: getdelim.c,v 1.1.1.1 2000/07/15 14:52:31 nick Exp $";
+static const char rcs_id[] = "$Id: getdelim,v 1.6 1997/10/08 16:37:50 unixlib Exp $";
 #endif
 
 #include <errno.h>

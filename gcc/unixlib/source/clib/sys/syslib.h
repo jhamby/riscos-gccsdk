@@ -1,10 +1,10 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/sys/syslib.h,v $
- * $Date: 2000/07/15 14:52:16 $
- * $Revision: 1.1.1.1 $
+ * $Source: /usr/local/cvsroot/unixlib/source/clib/sys/h/syslib,v $
+ * $Date: 2000/07/03 11:32:43 $
+ * $Revision: 1.16 $
  * $State: Exp $
- * $Author: nick $
+ * $Author: admin $
  *
  ***************************************************************************/
 
@@ -78,6 +78,9 @@ extern void __munmap_all (void);	/* Deallocate all mappings.  */
 /* Zero if we are not executing within a TaskWindow
    Non-zero if we are executing within a TaskWindow.  */
 extern int __taskwindow;
+/* Zero if we are running in command mode (not as a WIMP program)
+   Non-zero if we are running as a WIMP program.  */
+extern int __wimpprogram;
 
 extern unsigned int __time[2];	/* start time */
 

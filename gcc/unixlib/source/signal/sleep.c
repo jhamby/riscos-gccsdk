@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/signal/sleep.c,v $
- * $Date: 2000/07/15 14:52:30 $
- * $Revision: 1.1.1.1 $
+ * $Source: /usr/local/cvsroot/unixlib/source/signal/c/sleep,v $
+ * $Date: 2000/07/03 11:32:44 $
+ * $Revision: 1.9 $
  * $State: Exp $
- * $Author: nick $
+ * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: sleep.c,v 1.1.1.1 2000/07/15 14:52:30 nick Exp $";
+static const char rcs_id[] = "$Id: sleep,v 1.9 2000/07/03 11:32:44 admin Exp $";
 #endif
 
 /* signal.c.sleep: Written by Nick Burrett, 6 October 1996.  */
@@ -44,8 +44,10 @@ sleep (unsigned int seconds)
   if (seconds == 0)
     return 0;
 
-  /* alarm does not work in a TaskWindow.  */
-  if (__taskwindow)
+  /* alarm() does not work in a TaskWindow nor whilst running as a
+     WIMP program.  Note that when __taskwindow == 1 => __wimpprogram == 1
+     but not necessairy vice-versa so the test on __wimpprogram is enough. */
+  if (__wimpprogram)
     {
       before = time ((time_t *) NULL) + seconds;
       while (time ((time_t *) NULL) < before)

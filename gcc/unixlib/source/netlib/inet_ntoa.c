@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/netlib/inet_ntoa.c,v $
- * $Date: 2000/07/15 14:52:25 $
- * $Revision: 1.1.1.1 $
+ * $Source: /usr/local/cvsroot/unixlib/source/netlib/c/inet_ntoa,v $
+ * $Date: 1997/10/09 20:00:20 $
+ * $Revision: 1.4 $
  * $State: Exp $
- * $Author: nick $
+ * $Author: unixlib $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: inet_ntoa.c,v 1.1.1.1 2000/07/15 14:52:25 nick Exp $";
+static const char rcs_id[] = "$Id: inet_ntoa,v 1.4 1997/10/09 20:00:20 unixlib Exp $";
 #endif
 
 #include <stdio.h>

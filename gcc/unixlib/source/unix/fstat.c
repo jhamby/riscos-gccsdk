@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/fstat.c,v $
- * $Date: 2000/07/15 14:52:43 $
- * $Revision: 1.1.1.1 $
+ * $Source: /usr/local/cvsroot/unixlib/source/unix/c/fstat,v $
+ * $Date: 2000/11/08 10:22:57 $
+ * $Revision: 1.5 $
  * $State: Exp $
- * $Author: nick $
+ * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: fstat.c,v 1.1.1.1 2000/07/15 14:52:43 nick Exp $";
+static const char rcs_id[] = "$Id: fstat,v 1.5 2000/11/08 10:22:57 admin Exp $";
 #endif
 
 #include <errno.h>
@@ -67,7 +67,7 @@ fstat (int fd, struct stat *buf)
     {
       /* Fake some stuff for the other device types.  */
       buf->st_ino = 0;
-      regs[0] = regs[2] = regs[4] = regs[5] = 0;
+      regs[0] = regs[2] = regs[3] = regs[4] = regs[5] = 0;
     }
 
   buf->st_dev = file_desc->device;

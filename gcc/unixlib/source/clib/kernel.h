@@ -1,10 +1,10 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/kernel.h,v $
- * $Date: 2000/07/15 14:52:11 $
- * $Revision: 1.1.1.1 $
+ * $Source: /usr/local/cvsroot/unixlib/source/clib/h/kernel,v $
+ * $Date: 1999/11/18 12:17:55 $
+ * $Revision: 1.8 $
  * $State: Exp $
- * $Author: nick $
+ * $Author: admin $
  *
  * This file is intended to provide an interface between UnixLib and
  * DeskLib, for the few _kernel calls that it uses. Any simularity between

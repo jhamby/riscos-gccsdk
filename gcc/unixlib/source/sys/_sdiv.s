@@ -1,10 +1,10 @@
 ;----------------------------------------------------------------------------
 ;
-; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/_sdiv.s,v $
-; $Date: 2000/07/15 14:52:34 $
-; $Revision: 1.1.1.1 $
+; $Source: /usr/local/cvsroot/unixlib/source/sys/s/_sdiv,v $
+; $Date: 2000/12/21 15:09:13 $
+; $Revision: 1.3 $
 ; $State: Exp $
-; $Author: nick $
+; $Author: admin $
 ;
 ;----------------------------------------------------------------------------
 

@@ -1,10 +1,10 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/errno.h,v $
- * $Date: 2000/07/15 14:52:11 $
- * $Revision: 1.1.1.1 $
+ * $Source: /usr/local/cvsroot/unixlib/source/clib/h/errno,v $
+ * $Date: 2000/07/05 15:00:14 $
+ * $Revision: 1.9 $
  * $State: Exp $
- * $Author: nick $
+ * $Author: admin $
  *
  ***************************************************************************/
 
@@ -18,7 +18,7 @@ extern "C" {
 #endif
 
 #ifndef errno
-extern volatile int errno;
+extern int errno;
 #define __errno errno
 #endif
 

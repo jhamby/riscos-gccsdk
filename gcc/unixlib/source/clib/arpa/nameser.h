@@ -1,10 +1,10 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/arpa/nameser.h,v $
- * $Date: 2000/07/15 14:52:14 $
- * $Revision: 1.1.1.1 $
+ * $Source: /usr/local/cvsroot/unixlib/source/clib/arpa/h/nameser,v $
+ * $Date: 1997/10/09 19:59:45 $
+ * $Revision: 1.4 $
  * $State: Exp $
- * $Author: nick $
+ * $Author: unixlib $
  *
  ***************************************************************************/
 
@@ -65,7 +65,7 @@
 
 /*
  *      @(#)nameser.h	8.1 (Berkeley) 6/2/93
- *	$Id: nameser.h,v 1.1.1.1 2000/07/15 14:52:14 nick Exp $
+ *	$Id: nameser,v 1.4 1997/10/09 19:59:45 unixlib Exp $
  */
 
 #ifndef __ARPA_NAMESER_H

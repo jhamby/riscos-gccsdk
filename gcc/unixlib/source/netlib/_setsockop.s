@@ -1,10 +1,10 @@
 ;----------------------------------------------------------------------------
 ;
-; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/netlib/_setsockop.s,v $
-; $Date: 2000/07/15 14:52:27 $
-; $Revision: 1.1.1.1 $
+; $Source: /usr/local/cvsroot/unixlib/source/netlib/s/_setsockop,v $
+; $Date: 2000/12/21 15:09:13 $
+; $Revision: 1.6 $
 ; $State: Exp $
-; $Author: nick $
+; $Author: admin $
 ;
 ;----------------------------------------------------------------------------
 

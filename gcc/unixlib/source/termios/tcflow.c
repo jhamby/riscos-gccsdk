@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/termios/tcflow.c,v $
- * $Date: 2000/07/15 14:52:35 $
- * $Revision: 1.1.1.1 $
+ * $Source: /usr/local/cvsroot/unixlib/source/termios/c/tcflow,v $
+ * $Date: 1997/12/17 22:02:59 $
+ * $Revision: 1.1 $
  * $State: Exp $
- * $Author: nick $
+ * $Author: unixlib $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: tcflow.c,v 1.1.1.1 2000/07/15 14:52:35 nick Exp $";
+static const char rcs_id[] = "$Id: tcflow,v 1.1 1997/12/17 22:02:59 unixlib Exp $";
 #endif
 
 #include <errno.h>

@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/time/setitmr.c,v $
- * $Date: 2000/07/15 14:52:42 $
- * $Revision: 1.1.1.1 $
+ * $Source: /usr/local/cvsroot/unixlib/source/time/c/setitmr,v $
+ * $Date: 2000/07/03 11:32:44 $
+ * $Revision: 1.12 $
  * $State: Exp $
- * $Author: nick $
+ * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: setitmr.c,v 1.1.1.1 2000/07/15 14:52:42 nick Exp $";
+static const char rcs_id[] = "$Id: setitmr,v 1.12 2000/07/03 11:32:44 admin Exp $";
 #endif
 
 #include <stddef.h>
@@ -107,8 +107,11 @@ setitimer (enum __itimer_which which, const struct itimerval *new_timer,
 #ifdef __FEATURE_ITIMERS
   struct itimerval *itimer;
 
-  /* We can't implement interval timers whilst executing in a task window.  */
-  if (__taskwindow)
+  /* We can't implement interval timers whilst executing in a task window
+     nor whilst running as a WIMP program.   Note that when
+     __taskwindow == 1 => __wimpprogram == 1 but not necessairy vice-
+     versa so the test on __wimpprogram is enough. */
+  if (__wimpprogram)
     return __set_errno (ENOSYS);
 
   if ((unsigned) which >= __MAX_ITIMERS)

@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/time/asctime.c,v $
- * $Date: 2000/07/15 14:52:42 $
- * $Revision: 1.1.1.1 $
+ * $Source: /usr/local/cvsroot/unixlib/source/time/c/asctime,v $
+ * $Date: 1997/10/09 20:00:45 $
+ * $Revision: 1.2 $
  * $State: Exp $
- * $Author: nick $
+ * $Author: unixlib $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: asctime.c,v 1.1.1.1 2000/07/15 14:52:42 nick Exp $";
+static const char rcs_id[] = "$Id: asctime,v 1.2 1997/10/09 20:00:45 unixlib Exp $";
 #endif
 
 /* Territory time support, written by Nick Burrett on 12 July 1997.  */

@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/math/erf.c,v $
- * $Date: 2000/07/15 14:52:21 $
- * $Revision: 1.1.1.1 $
+ * $Source: /usr/local/cvsroot/unixlib/source/math/c/erf,v $
+ * $Date: 1997/09/07 16:21:52 $
+ * $Revision: 1.1 $
  * $State: Exp $
- * $Author: nick $
+ * $Author: unixlib $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: erf.c,v 1.1.1.1 2000/07/15 14:52:21 nick Exp $";
+static const char rcs_id[] = "$Id: erf,v 1.1 1997/09/07 16:21:52 unixlib Exp $";
 #endif
 
 /* @(#)s_erf.c 5.1 93/09/24 */

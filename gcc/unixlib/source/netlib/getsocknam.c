@@ -1,16 +1,16 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/netlib/getsocknam.c,v $
- * $Date: 2000/07/15 14:52:24 $
- * $Revision: 1.1.1.1 $
+ * $Source: /usr/local/cvsroot/unixlib/source/netlib/c/getsocknam,v $
+ * $Date: 1997/10/09 20:00:18 $
+ * $Revision: 1.6 $
  * $State: Exp $
- * $Author: nick $
+ * $Author: unixlib $
  *
  * (c) Copyright 1995 Sergio Monesi
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: getsocknam.c,v 1.1.1.1 2000/07/15 14:52:24 nick Exp $";
+static const char rcs_id[] = "$Id: getsocknam,v 1.6 1997/10/09 20:00:18 unixlib Exp $";
 #endif
 
 #include <sys/unix.h>

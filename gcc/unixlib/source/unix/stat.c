@@ -1,19 +1,20 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/stat.c,v $
- * $Date: 2000/07/15 14:52:45 $
- * $Revision: 1.1.1.1 $
+ * $Source: /usr/local/cvsroot/unixlib/source/unix/c/stat,v $
+ * $Date: 2000/11/08 10:22:57 $
+ * $Revision: 1.22 $
  * $State: Exp $
- * $Author: nick $
+ * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: stat.c,v 1.1.1.1 2000/07/15 14:52:45 nick Exp $";
+static const char rcs_id[] = "$Id: stat,v 1.22 2000/11/08 10:22:57 admin Exp $";
 #endif
 
 #include <errno.h>
 #include <limits.h>
+#include <string.h>
 
 #include <sys/dev.h>
 #include <sys/os.h>
@@ -42,6 +43,17 @@ stat (const char *ux_filename, struct stat *buf)
     {
       __seterr (err);
       return __set_errno (EIO);
+    }
+
+  /* Trap case 'stat("/dev/null")' */
+  if (strcmp(filename, "null:") == 0)
+    {
+    buf->st_ino = 0;
+    regs[0] = regs[2] = regs[3] = regs[4] = regs[5] = 0;
+    buf->st_dev = DEV_NULL;
+    __stat(regs, buf);
+    buf->st_mode = S_IRUSR | S_IWUSR;
+    return 0;
     }
 
   /* Does the file has a filetype (at this point we aren't even sure that

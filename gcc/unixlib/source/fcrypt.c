@@ -1,10 +1,10 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/fcrypt.c,v $
- * $Date: 2000/07/15 14:52:08 $
- * $Revision: 1.1.1.1 $
+ * $Source: /usr/local/cvsroot/unixlib/source/c/fcrypt,v $
+ * $Date: 1997/10/09 19:59:38 $
+ * $Revision: 1.3 $
  * $State: Exp $
- * $Author: nick $
+ * $Author: unixlib $
  *
  *
  * This program is copyright (c) Alec Muffett 1991 except for certain
@@ -17,7 +17,7 @@
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: fcrypt.c,v 1.1.1.1 2000/07/15 14:52:08 nick Exp $";
+static const char rcs_id[] = "$Id: fcrypt,v 1.3 1997/10/09 19:59:38 unixlib Exp $";
 #endif
 
 #include <string.h>

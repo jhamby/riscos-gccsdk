@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/pwd/getpwent.c,v $
- * $Date: 2000/07/15 14:52:27 $
- * $Revision: 1.1.1.1 $
+ * $Source: /usr/local/cvsroot/unixlib/source/pwd/c/getpwent,v $
+ * $Date: 1998/01/29 21:15:16 $
+ * $Revision: 1.6 $
  * $State: Exp $
- * $Author: nick $
+ * $Author: unixlib $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: getpwent.c,v 1.1.1.1 2000/07/15 14:52:27 nick Exp $";
+static const char rcs_id[] = "$Id: getpwent,v 1.6 1998/01/29 21:15:16 unixlib Exp $";
 #endif
 
 /* Password-file operations.

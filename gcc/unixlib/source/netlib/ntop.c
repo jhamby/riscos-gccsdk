@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/netlib/ntop.c,v $
- * $Date: 2000/07/15 14:52:25 $
- * $Revision: 1.1.1.1 $
+ * $Source: /usr/local/cvsroot/unixlib/source/netlib/c/ntop,v $
+ * $Date: 1997/12/17 22:27:07 $
+ * $Revision: 1.6 $
  * $State: Exp $
- * $Author: nick $
+ * $Author: unixlib $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: ntop.c,v 1.1.1.1 2000/07/15 14:52:25 nick Exp $";
+static const char rcs_id[] = "$Id: ntop,v 1.6 1997/12/17 22:27:07 unixlib Exp $";
 #endif
 
 /* Copyright (c) 1996 by Internet Software Consortium.

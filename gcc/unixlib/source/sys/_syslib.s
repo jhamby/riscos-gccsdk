@@ -1,10 +1,10 @@
 ;----------------------------------------------------------------------------
 ;
-; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/_syslib.s,v $
-; $Date: 2000/07/15 14:52:35 $
-; $Revision: 1.1.1.1 $
+; $Source: /usr/local/cvsroot/unixlib/source/sys/s/_syslib,v $
+; $Date: 2000/12/21 15:09:13 $
+; $Revision: 1.25 $
 ; $State: Exp $
-; $Author: nick $
+; $Author: admin $
 ;
 ;----------------------------------------------------------------------------
 
@@ -222,6 +222,13 @@ no_dynamic_area
 	MOVVS	a1, #0
 	STR	a1, [a2]
 
+	; Find out whether we are executing as a WIMP program or not.
+	MOV     a1, #3
+	SWI     XWimp_ReadSysInfo
+	LDR     a2, =|__wimpprogram|
+	MOVVS   a1, #0
+	STR     a1, [a2]
+
 	; Recognise the Floating Point facility by determining whether
 	; the SWI FPEmulator_Version actually exists (and works).
 	; If it does, then there is a floating point ability.
@@ -438,6 +445,7 @@ dynamic_area_name_end
 	EXPORT	|__real_break|  ; top limit of dynamic area allocated
 	EXPORT	|__fpflag|
 	EXPORT	|__taskwindow|  ; non-zero if executing in a TaskWindow
+	EXPORT	|__wimpprogram| ; non-zero if executing as a Wimp program
 
 	; Altering this structure will require fixing __main.
 |__cli|		DCD	0				; offset = 0
@@ -454,5 +462,6 @@ dynamic_area_name_end
 |__real_break|	DCD	0				; offset = 48
 |__fpflag|	DCD	0				; offset = 52
 |__taskwindow|	DCD	0				; offset = 56
+|__wimpprogram|	DCD	0				; offset = 60
 
 	END

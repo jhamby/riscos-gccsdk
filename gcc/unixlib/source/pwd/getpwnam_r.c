@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/pwd/getpwnam_r.c,v $
- * $Date: 2000/07/15 14:52:27 $
- * $Revision: 1.1.1.1 $
+ * $Source: /usr/local/cvsroot/unixlib/source/pwd/c/getpwnam_r,v $
+ * $Date: 1998/01/29 21:15:16 $
+ * $Revision: 1.1 $
  * $State: Exp $
- * $Author: nick $
+ * $Author: unixlib $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: getpwnam_r.c,v 1.1.1.1 2000/07/15 14:52:27 nick Exp $";
+static const char rcs_id[] = "$Id: getpwnam_r,v 1.1 1998/01/29 21:15:16 unixlib Exp $";
 #endif
 
 /* Search for an entry with a matching username (re-entrant version).

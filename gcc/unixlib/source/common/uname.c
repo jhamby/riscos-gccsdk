@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/common/uname.c,v $
- * $Date: 2000/07/15 14:52:18 $
- * $Revision: 1.1.1.1 $
+ * $Source: /usr/local/cvsroot/unixlib/source/common/c/uname,v $
+ * $Date: 2000/06/10 12:59:43 $
+ * $Revision: 1.7 $
  * $State: Exp $
- * $Author: nick $
+ * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: uname.c,v 1.1.1.1 2000/07/15 14:52:18 nick Exp $";
+static const char rcs_id[] = "$Id: uname,v 1.7 2000/06/10 12:59:43 admin Exp $";
 #endif
 
 /* Ensure old names are visible.  */

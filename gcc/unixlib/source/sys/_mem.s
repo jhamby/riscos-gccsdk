@@ -1,8 +1,8 @@
 ;----------------------------------------------------------------------------
 ;
-; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/_mem.s,v $
-; $Date: 2000/11/08 09:39:03 $
-; $Revision: 1.1.1.1 $
+; $Source: /usr/local/cvsroot/unixlib/source/sys/s/_mem,v $
+; $Date: 2000/12/29 10:52:31 $
+; $Revision: 1.9 $
 ; $State: Exp $
 ; $Author: admin $
 ;

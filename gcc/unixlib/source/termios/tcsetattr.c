@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/termios/tcsetattr.c,v $
- * $Date: 2000/07/15 14:52:35 $
- * $Revision: 1.1.1.1 $
+ * $Source: /usr/local/cvsroot/unixlib/source/termios/c/tcsetattr,v $
+ * $Date: 1998/06/25 21:35:31 $
+ * $Revision: 1.2 $
  * $State: Exp $
- * $Author: nick $
+ * $Author: unixlib $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: tcsetattr.c,v 1.1.1.1 2000/07/15 14:52:35 nick Exp $";
+static const char rcs_id[] = "$Id: tcsetattr,v 1.2 1998/06/25 21:35:31 unixlib Exp $";
 #endif
 
 #include <errno.h>

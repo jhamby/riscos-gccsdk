@@ -1,10 +1,10 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/time.h,v $
- * $Date: 2000/07/15 14:52:12 $
- * $Revision: 1.1.1.1 $
+ * $Source: /usr/local/cvsroot/unixlib/source/clib/h/time,v $
+ * $Date: 2000/11/08 10:22:57 $
+ * $Revision: 1.8 $
  * $State: Exp $
- * $Author: nick $
+ * $Author: admin $
  *
  ***************************************************************************/
 
@@ -82,7 +82,7 @@ extern struct tm *gmtime (const time_t *__time);
 
 /* Convert a broken-down time structure to a calendar time
    representation.  */
-extern time_t mktime (const struct tm *__brokentime);
+extern time_t mktime (struct tm *__brokentime);
 
 /* Place characters into the 's' as controlled by the 'format'.
    'format' is specialised for printing components of 'brokentime'

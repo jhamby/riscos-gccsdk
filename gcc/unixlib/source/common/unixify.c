@@ -1,10 +1,10 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/common/unixify.c,v $
- * $Date: 2000/07/15 14:52:18 $
- * $Revision: 1.1.1.1 $
+ * $Source: /usr/local/cvsroot/unixlib/source/common/c/unixify,v $
+ * $Date: 2000/07/03 11:20:10 $
+ * $Revision: 1.7 $
  * $State: Exp $
- * $Author: nick $
+ * $Author: admin $
  *
  ***************************************************************************/
 
@@ -226,21 +226,21 @@ __unixify (const char *ro_path, int unixify_flags, char *buffer,
                    before_suffix --)
                 ;
 
-              if (*before_suffix == '/')
+              if (before_suffix == buffer || *before_suffix++ == '/')
                 {
-                  /* before_suffix is "/c/file"
+                  /* before_suffix is "c/file"
                      after_suffix is "/file"  */
                   *after_suffix = '\0'; /* temporary.  */
-                  if (__sfixfind (before_suffix + 1))
+                  if (__sfixfind (before_suffix))
                     {
                       /* We need to do reverse suffix swapping.  */
                       char suffix[32];
 
-                      memcpy (suffix, before_suffix + 1,
-                      	      after_suffix - before_suffix);
-                      strcpy (before_suffix + 1, after_suffix + 1);
-                      before_suffix[1 + (out - after_suffix - 1)] = '.';
-                      strcpy (before_suffix + 1 + (out - after_suffix - 1) + 1,
+                      memcpy (suffix, before_suffix,
+                      	      after_suffix - before_suffix + 1);
+                      strcpy (before_suffix, after_suffix + 1);
+                      before_suffix[out - after_suffix - 1] = '.';
+                      strcpy (before_suffix + (out - after_suffix - 1) + 1,
                       	      suffix);
                     }
                   else
