@@ -6,7 +6,7 @@ Mon Dec 22 21:29:50  John Tytgat  <John.Tytgat@aaug.net>
 	* source/sys/_syslib.s (__unixlib_fatal): Calling with NULL parameter
 	  works again.
 	* source/unix/features.c (features): Added uid feature (was formally
-	  known as Unix$tty).
+	  known as Unix$uid).
 	* source/unix/unix.c (__unixinit): More informative __unixlib_fatal()
 	  error messages; moved Unix$uid support to features.c; removed Unix$tty
 	  support (use command line redirection).
