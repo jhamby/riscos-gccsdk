@@ -1,3 +1,11 @@
+Tue Apr  5 22:09:32 2005  Alex Waugh  <alex@alexwaugh.com>
+
+	* source/termios/tcdrain.c (tcdrain): Remove ioctls that have
+	  no effect.
+	* source/termios/tcgetattr.c (tcgetattr): Use a single ioctl to get
+	  the attrs directly and avoid loss in converting between formats.
+	* source/termios/tcsetattr.c (tcsetattr): Likewise.
+
 Mon Apr  4 19:37:26 2005 Peter Naulls <peter@chocky.org>
 
 	* source/string/_memset.s: Revert; Adrian's version seems to have

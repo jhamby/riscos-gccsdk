@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/termios/c/tcdrain,v $
- * $Date: 1997/12/17 22:02:59 $
- * $Revision: 1.1 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/termios/tcdrain.c,v $
+ * $Date: 2001/01/29 15:10:21 $
+ * $Revision: 1.2 $
  * $State: Exp $
- * $Author: unixlib $
+ * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: tcdrain,v 1.1 1997/12/17 22:02:59 unixlib Exp $";
+static const char rcs_id[] = "$Id: tcdrain.c,v 1.2 2001/01/29 15:10:21 admin Exp $";
 #endif
 
 #include <errno.h>
@@ -23,11 +23,5 @@ static const char rcs_id[] = "$Id: tcdrain,v 1.1 1997/12/17 22:02:59 unixlib Exp
 int
 tcdrain (int fd)
 {
-  /* The TIOCSETP control waits for pending output to be written before
-     affecting its changes, so we use that without changing anything.  */
-  struct sgttyb b;
-  if (ioctl (fd, TIOCGETP, (void *) &b) < 0 ||
-      ioctl (fd, TIOCSETP, (void *) &b) < 0)
-    return -1;
   return 0;
 }
