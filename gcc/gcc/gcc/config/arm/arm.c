@@ -590,6 +590,11 @@ arm_override_options ()
 	  insn_flags = sel->flags;
 	}
     }
+
+  /* NAB++ */
+  /* Hack to workaround emit-rtl.c failure.  */
+  insn_flags |= FL_LDSCHED;
+  /* NAB-- */
   
   /* If tuning has not been specified, tune for whichever processor or
      architecture has been selected.  */
