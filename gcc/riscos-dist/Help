@@ -28,5 +28,26 @@ If you've used GCC before:
 - The file !gcc.Changes lists major changes from the last version.
   !gcc.docs.ULChanges has a comprehensive list of changes to Unixlib.
 
+
+Credits:
+
+  Primary Developers
+
+  - Nick Burret - Project Lead, GCC porting, C++ support, AOF tools
+  - Peter Naulls - Unixlib (All areas, especially glibc compatibility),
+     release management, AOF tools.
+  - John Tytgat - Unixlib (especially process handling, sockets),
+     Norcroft compatibility.
+  - Alew Waugh - Unixlib (especially signals, pthreads, file handling)
+  
+  The following people have also made contributions over the last two years
+
+  - Graham Shaw, John-Mark Bell, James Bursa, Stefan Bellon,
+    David Marston, Steve Ellacott, Rich Hudson, Jeffrey Lee,
+    Alex Macfarlane Smith, Christian Ludlam, Tony van der Hoff,
+    Theo Markettos, Philip Pemberton
+
+  Thanks also to all the testers and bug reporters.
+
 GCCSDK Developers, 2004
 
