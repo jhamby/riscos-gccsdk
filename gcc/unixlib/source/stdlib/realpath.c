@@ -1,8 +1,8 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/stdlib/Attic/realpath.c,v $
- * $Date: 2001/10/04 12:50:46 $
- * $Revision: 1.1.2.1 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/stdlib/realpath.c,v $
+ * $Date: 2002/02/20 08:22:02 $
+ * $Revision: 1.2 $
  * $State: Exp $
  * $Author: admin $
  *
@@ -24,6 +24,7 @@ realpath (const char *file_name, char *resolved_name)
 {
   char buffer[PATH_MAX];
   int r[10];
+  int filetype;
 
   if (file_name == NULL || resolved_name == NULL)
     {
@@ -31,12 +32,12 @@ realpath (const char *file_name, char *resolved_name)
       return NULL;
     }
 
-  if (__riscosify_std (file_name, 0, resolved_name, PATH_MAX, NULL) == NULL)
+  if (__riscosify_std (file_name, 0, resolved_name, PATH_MAX, &filetype) == NULL)
     {
       __set_errno (ENAMETOOLONG);
       return NULL;
     }
-  
+
   r[0] = 37; /* Canonicalise path */
   r[1] = (int) resolved_name;
   r[2] = (int) buffer;
@@ -49,8 +50,7 @@ realpath (const char *file_name, char *resolved_name)
       return NULL;
     }
 
-  if (__unixify_std (buffer, resolved_name, PATH_MAX,
-		     __RISCOSIFY_FILETYPE_NOTSPECIFIED) == NULL)
+  if (__unixify_std (buffer, resolved_name, PATH_MAX, filetype) == NULL)
     {
       __set_errno (ENAMETOOLONG);
       return NULL;
