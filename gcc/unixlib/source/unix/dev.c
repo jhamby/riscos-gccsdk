@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/dev.c,v $
- * $Date: 2004/10/17 16:24:45 $
- * $Revision: 1.21 $
+ * $Date: 2004/10/23 17:23:36 $
+ * $Revision: 1.22 $
  * $State: Exp $
  * $Author: joty $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: dev.c,v 1.21 2004/10/17 16:24:45 joty Exp $";
+static const char rcs_id[] = "$Id: dev.c,v 1.22 2004/10/23 17:23:36 joty Exp $";
 #endif
 
 /* #define DEBUG */
@@ -296,49 +296,61 @@ __fsopen (struct __unixlib_fd *file_desc, const char *filename, int mode)
     }
 
   /* Open the file.  */
-  if (fflag & O_TRUNC)
-    err = __os_fopen (OSFILE_OPENOUT, file, &fd);
-  else
-    {
-      if ((fflag & O_ACCMODE) == O_RDWR)
-	err = __os_fopen (OSFILE_OPENUP, file, &fd);
-      else if ((fflag & O_ACCMODE) == O_WRONLY)
-	err = __os_fopen (OSFILE_OPENUP, file, &fd);
-      else if ((fflag & O_ACCMODE) == O_RDONLY)
-	{
-	  if (file_desc->dflag & FILE_ISDIR)
-	    {
-	      DIR *dir;
+  {
+    int openmode;
+
+    if (fflag & O_TRUNC)
+      err = __os_fopen (openmode = OSFILE_OPENOUT, file, &fd);
+    else
+      {
+        if ((fflag & O_ACCMODE) == O_RDWR)
+	  err = __os_fopen (openmode = OSFILE_OPENUP, file, &fd);
+        else if ((fflag & O_ACCMODE) == O_WRONLY)
+	  err = __os_fopen (openmode = OSFILE_OPENUP, file, &fd);
+        else if ((fflag & O_ACCMODE) == O_RDONLY)
+	  {
+	    if (file_desc->dflag & FILE_ISDIR)
+	      {
+	        DIR *dir;
 #ifdef DEBUG
-	      __os_print ("-- open directory (read only): file=");
-	      __os_print (file); __os_print ("\r\n");
+	        __os_print ("-- open directory (read only): file=");
+	        __os_print (file); __os_print ("\r\n");
 #endif
 
-	      dir = opendir (file);
-	      return (dir == NULL) ? (void *) -1 : (void *) dir;
-	    }
-	  else
-	    err = __os_fopen (OSFILE_OPENIN, file, &fd);
-	}
-      else
-	return (void *) __set_errno (EINVAL);
-    }
+	        dir = opendir (file);
+	        return (dir == NULL) ? (void *) -1 : (void *) dir;
+	      }
+	    else
+	      err = __os_fopen (openmode = OSFILE_OPENIN, file, &fd);
+	  }
+        else
+	  return (void *) __set_errno (EINVAL);
+      }
 
-  if (err)
-    goto os_err;
+    if (err)
+      goto os_err;
+  
+    /* Now set the protection. This must be done after the file is opened,
+       so that the file can be created for writing but set to read only.
+       RCS needs to do that.  However, ShareFS objects to having file
+       attributes changed while a file is open, so it needs to be closed
+       first then reopened  */
 
-  /* Now set the protection. This must be done after the file is opened,
-     so that the file can be created for writing but set to read only.
-     RCS needs to do that.  */
-  if (fflag & O_CREAT)
-    {
-      mode &= ~(__u->umask & 0777);
-      regs[5] = __set_protection (mode);
+    if (fflag & O_CREAT)
+      {
+        __os_fclose(fd);
 
-      /* Write the object attributes.  */
-      if ((err = __os_file (0x04, file, regs)))
-	goto os_err;
-    }
+        mode &= ~(__u->umask & 0777);
+        regs[5] = __set_protection (mode);
+  
+        /* Write the object attributes.  */
+        if ((err = __os_file (0x04, file, regs)))
+          goto os_err;
+
+        if ((err = __os_fopen(openmode, file, &fd)))
+          goto os_err;
+      }
+  }
 
   regs[0] = 254;
   regs[1] = (int)fd;

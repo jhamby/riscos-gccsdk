@@ -1,8 +1,8 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/termios.h,v $
- * $Date: 2004/01/02 23:33:58 $
- * $Revision: 1.5 $
+ * $Date: 2004/10/17 16:24:43 $
+ * $Revision: 1.6 $
  * $State: Exp $
  * $Author: joty $
  *
@@ -123,6 +123,7 @@ typedef __cc_t cc_t;
 #endif  /*_POSIX_SOURCE */
 #define IEXTEN          0x00000400      /* enable DISCARD and LNEXT */
 #define EXTPROC         0x00000800      /* external processing */
+#define XCASE           0x00001000
 #define TOSTOP          0x00400000      /* stop background jobs from output */
 #ifndef _POSIX_SOURCE
 #define FLUSHO          0x00800000      /* output being flushed (state) */

@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/unix.c,v $
- * $Date: 2004/10/30 16:50:13 $
- * $Revision: 1.29 $
+ * $Date: 2004/11/28 21:31:35 $
+ * $Revision: 1.30 $
  * $State: Exp $
- * $Author: alex $
+ * $Author: joty $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: unix.c,v 1.29 2004/10/30 16:50:13 alex Exp $";
+static const char rcs_id[] = "$Id: unix.c,v 1.30 2004/11/28 21:31:35 joty Exp $";
 #endif
 
 #include <stdio.h>
@@ -947,9 +947,10 @@ convert_command_line (struct proc *process, const char *cli, int cli_size)
 	      if (*cli == '\"')
 		cli++;
 	    }
-	  else if (*cli == '\'')
+	  else if (*cli == '\'' && isspace(cli[-1]))
 	    {
-	      /* The argument is contained within single quotes.  */
+	      /* The argument is contained within single quotes. We also hackily check for
+	         a space before it - this avoids problems with filenames with apostrophes in them.  */
 	      cli++;
 	      while (*cli != '\0' && *cli != '\'')
 	        {

@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/select.c,v $
- * $Date: 2003/04/05 09:33:57 $
- * $Revision: 1.5 $
+ * $Date: 2004/09/06 08:40:47 $
+ * $Revision: 1.6 $
  * $State: Exp $
- * $Author: alex $
+ * $Author: peter $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: select.c,v 1.5 2003/04/05 09:33:57 alex Exp $";
+static const char rcs_id[] = "$Id: select.c,v 1.6 2004/09/06 08:40:47 peter Exp $";
 #endif
 
 /* netlib/socket.c: Written by Peter Burwood, July 1997  */
@@ -27,6 +27,7 @@ static const char rcs_id[] = "$Id: select.c,v 1.5 2003/04/05 09:33:57 alex Exp $
 #include <unixlib/types.h>
 #include <pthread.h>
 
+/* #define DEBUG */ 
 
 #ifdef DEBUG
 #include <stdio.h>
@@ -38,17 +39,16 @@ dump_fd_set (int nfds, const fd_set *iset, FILE *file)
   if (!iset)
     return;
 
-  fprintf (file, "%X = ", *(long *) iset);
+  fprintf (file, "%X = ", *(const int *) iset);
   for (; fd < nfds; fd++)
     fputc (FD_ISSET (fd, iset) ? '!' : '.', file);
   fputc ('\n', file);
 }
 #endif
 
-/* Convert a bit pattern of UnixLib FD's in ISET to a bit pattern of socket
-   FD's in OSET and set MAX_FD to the maximum socket FD+1 if it is greater
-   than the incoming value of MAX_FD. Only scan UnixLib FD's up to NFDS-1.
-   Return 0 if conversion okay, -1 on failure.  */
+/* Convert a bit pattern of UnixLib FDs in ISET to a bit pattern of socket
+   FDs in OSET and set MAX_FD to the maximum socket FD+1 if it is greater
+   than the incoming value of MAX_FD. Only scan UnixLib FDs up to NFDS-1. */
 static void
 __convert_fd_set (int nfds, const fd_set *iset, fd_set *oset, int *max_fd)
 {
@@ -115,6 +115,7 @@ select (int nfds, fd_set *readfds, fd_set *writefds,
   unsigned int end = 0, now = 0;
   signed int remain;
   struct timeval poll = {0, 0};
+  int zerotime = 0;
 
 #ifdef DEBUG
   fprintf (stderr, "Entry:\t%d\t%p\t%p\t%p\t%p\n"
@@ -124,14 +125,21 @@ select (int nfds, fd_set *readfds, fd_set *writefds,
 
   if (timeout)
     {
-      /* 21474836.48 seconds will fit in 31 bits.  */
-      if (timeout->tv_usec > 1000000 || timeout->tv_sec > 21474835)
-	return __set_errno (EINVAL);
-
-      /* OK, so we can't cope with anything more than roughly 248.55 days!  */
-      now = clock ();
-      end = now
-	+ timeout->tv_sec * 100 + (50000 + timeout->tv_usec) / 1000000;
+      if (!timeout->tv_usec && !timeout->tv_sec)
+        {
+          zerotime = 1;
+        }
+      else
+        {
+          /* 21474836.48 seconds will fit in 31 bits.  */
+          if (timeout->tv_usec > 1000000 || timeout->tv_sec > 21474835)
+            return __set_errno (EINVAL);
+    
+          /* OK, so we can't cope with anything more than roughly 248.55 days!  */
+          now = clock ();
+          end = now
+           + timeout->tv_sec * 100 + (50000 + timeout->tv_usec) / 1000000;
+        }
     }
 
   pthread_testcancel();
@@ -188,34 +196,62 @@ select (int nfds, fd_set *readfds, fd_set *writefds,
 
       /* At this point live_fds is 0, as are all new fd sets.  */
 
-      while (fd--)
+      while (fd-- > 0)
 	{
 	  struct __unixlib_fd *file_desc = &__u->fd[fd];
-	  fd_set *read_p   = (readfds && FD_ISSET(fd, readfds)) ?
+          fd_set *read_p, *write_p, *except_p;
+          int (*select_func) (struct __unixlib_fd *__fd, int __fd1, fd_set *__read,
+		fd_set *__write, fd_set *__except) = __dev[file_desc->device].select;
+
+	  read_p   = (readfds && FD_ISSET(fd, readfds)) ?
 	    &new_readfds : NULL;
-	  fd_set *write_p  = (writefds && FD_ISSET(fd, writefds)) ?
+	  write_p  = (writefds && FD_ISSET(fd, writefds)) ?
 	    &new_writefds : NULL;
-	  fd_set *except_p = (exceptfds && FD_ISSET(fd, exceptfds)) ?
-	    &new_exceptfds : NULL;
 
-	  /* Don't bother calling if not interested in this fd.  */
-	  if (read_p || write_p || except_p)
-	    {
-#ifdef DEBUG
-	      __os_print ("/");
-#endif
-	      result = __funcall ((*(__dev[file_desc->device].select)),
-				  (file_desc, fd, read_p, write_p, except_p));
-#ifdef DEBUG
-	      __os_print ("\\");
-#endif
-	      if (result < 0)
+          if (select_func == __nullselect)
+            {
+              if (read_p)
+                {
+                  live_fds++;
+                  FD_SET(fd, read_p);
+                }
+              if (write_p)
+                {
+                  live_fds++;
+                  FD_SET(fd, write_p);
+                }
+            }
+          else
+            {
+	      except_p = (exceptfds && FD_ISSET(fd, exceptfds)) ?
+	        &new_exceptfds : NULL;
+
+              if (select_func == __sockselect)
+                {
+                  if (read_p)   FD_SET (fd, read_p);
+                  if (write_p)  FD_SET (fd, write_p);
+                  if (except_p) FD_SET (fd, except_p);
+                  continue;
+                }
+
+	      /* Don't bother calling if not interested in this fd.  */
+	      if (read_p || write_p || except_p)
 	        {
-	          __pthread_enable_ints();
-		  return -1;
-		}
+#ifdef DEBUG
+	          __os_print ("/");
+#endif
+	          result = __funcall (*select_func, (file_desc, fd, read_p, write_p, except_p));
+#ifdef DEBUG
+	          __os_print ("\\");
+#endif
+	          if (result < 0)
+	            {
+	              __pthread_enable_ints();
+		      return -1;
+		    }
 
-	      live_fds += result;
+	          live_fds += result;
+	       }
 	    }
 	}
 
@@ -257,10 +293,10 @@ select (int nfds, fd_set *readfds, fd_set *writefds,
 
       live_fds += result;
 
-      if (live_fds)
+      if (live_fds || zerotime)
 	{
 #ifdef DEBUG
-	  __os_print ("Select is live\n\r");
+	  __os_print ("Select is live/immediate return\n\r");
 #endif
 	  break;	/* Something is live. Break and return.  */
 	}
@@ -335,7 +371,7 @@ select (int nfds, fd_set *readfds, fd_set *writefds,
   dump_fd_set (nfds, readfds, stderr);
 #endif
 
-  if (timeout)
+  if (timeout && !zerotime)
     {
       now = clock () - now;
 

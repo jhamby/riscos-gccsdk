@@ -1,8 +1,8 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sound/dsp.c,v $
- * $Date: 2004/09/23 22:16:39 $
- * $Revision: 1.6 $
+ * $Date: 2004/10/23 17:23:36 $
+ * $Revision: 1.7 $
  * $State: Exp $
  * $Author: joty $
  *
@@ -26,7 +26,7 @@
 #define IGNORE(x) {(void) x;}
 
 
-#define BUFFER_SIZE 512
+#define BUFFER_SIZE 4096
 #define FRAGMENTS   4
 
 static _kernel_oserror *set_defaults(struct __unixlib_fd *fd, int channels, int format, int size, int frequency)
@@ -48,7 +48,7 @@ static _kernel_oserror *set_defaults(struct __unixlib_fd *fd, int channels, int 
   regs.r[1] = format;
   regs.r[2] = 10;
   regs.r[3] = size;
-  regs.r[4] = 43;
+  regs.r[4] = 20;
   regs.r[5] = frequency;
 
   if ((err = _kernel_swi(DigitalRenderer_SetDefaults, &regs, &regs)) ||

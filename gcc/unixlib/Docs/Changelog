@@ -1,3 +1,12 @@
+Thu Dec  2 14:42:35 2004  Peter Naulls  <peter@chocky.org>
+
+	* source/clib/termios.h: Add arbitrary value for XCASE.
+	* source/sound/dsp.c: Modify buffer sizes for slightly better
+	  behaviour.
+	* source/unix/dev.c: Make fopen "w+" work over ShareFS.
+	* source/unix/select.c: Attempt some speed improvements.
+	* source/unix/unix.c: Make command line arguments with apostrophes work.
+
 Sun Nov 28 22:01:02 2004  John Tytgat  <John.Tytgat@aaug.net>
 
 	* !Help: mention APCS-32 explicitly.
