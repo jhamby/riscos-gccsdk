@@ -1,10 +1,10 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/unixlib/asm_dec.s,v $
-; $Date: 2002/12/22 18:22:28 $
-; $Revision: 1.5 $
+; $Date: 2003/04/04 22:04:55 $
+; $Revision: 1.6 $
 ; $State: Exp $
-; $Author: admin $
+; $Author: alex $
 ;
 ; Declare registers and SWIs we will be calling.
 ;
@@ -34,7 +34,7 @@ USEFILEPATH		EQU	0
 COMPAT_INET4	EQU	0
 
 ; The offset of various members of the __pthread_thread structure
-; This should be kept in sync with pthread.h and lib1aof.s
+; This should be kept in sync with pthread.h, lib1aof.s, and stubs.s
 __PTHREAD_MAGIC_OFFSET	EQU	0
 __PTHREAD_CONTEXT_OFFSET	EQU	4
 __PTHREAD_ALLOCA_OFFSET	EQU	8
