@@ -1,13 +1,13 @@
 /****************************************************************************
  *
- * $Source$
- * $Date$
- * $Revision$
- * $State$
- * $Author$
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/arpa/nameser.h,v $
+ * $Date: 2003/01/29 18:49:00 $
+ * $Revision: 1.5 $
+ * $State: Exp $
+ * $Author: admin $
  *
  ***************************************************************************/
-  
+
 /*
  * Copyright (c) 1996-1999 by Internet Software Consortium.
  *
@@ -24,24 +24,24 @@
  * ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
  * SOFTWARE.
  */
- 
+
 /*
  *	$BINDId: nameser.h,v 8.37 2000/03/30 21:16:49 vixie Exp $
  */
- 
+
 #ifndef __ARPA_NAMESER_H
 #define __ARPA_NAMESER_H
- 
+
 #define BIND_4_COMPAT
- 
+
 #include <sys/param.h>
 #if (!defined(BSD)) || (BSD < 199306)
 # include <sys/bitypes.h>
 #else
 # include <sys/types.h>
 #endif
-#include <unixlib/features.h>
- 
+#include <features.h>
+
 /*
  * Revision information.  This is the release date in YYYYMMDD format.
  * It can change every day so the right thing to do with it is use it
@@ -49,9 +49,9 @@
  * compare for equality; rather, use it to determine whether your libbind.a
  * contains a new enough lib/nameser/ to support the feature you need.
  */
- 
+
 #define __NAMESER	19991006	/* New interface version stamp. */
- 
+
 /*
  * Define constants based on RFC 883, RFC 1034, RFC 1035
  */
@@ -69,7 +69,7 @@
 #define NS_IN6ADDRSZ	16	/* IPv6 T_AAAA */
 #define NS_CMPRSFLGS	0xc0	/* Flag bits indicating name compression. */
 #define NS_DEFAULTPORT	53	/* For both TCP and UDP. */
- 
+
 /*
  * These can be expanded with synonyms, just keep ns_parse.c:ns_parserecord()
  * in synch with it.
@@ -84,7 +84,7 @@ typedef enum __ns_sect {
   ns_s_ar = 3,		/* Query|Update: Additional records. */
   ns_s_max = 4
 } ns_sect;
- 
+
 /*
  * This is a message handle.  It is caller allocated and has no dynamic data.
  * This structure is intended to be opaque to all but ns_parse.c, thus the
@@ -98,11 +98,11 @@ typedef struct __ns_msg {
   int		_rrnum;
   const u_char	*_ptr;
 } ns_msg;
- 
+
 /* Private data structure - do not use from outside library. */
 struct _ns_flagdata {  int mask, shift;  };
 extern struct _ns_flagdata _ns_flagdata[];
- 
+
 /* Accessor macros - this is part of the public interface. */
 #define ns_msg_getflag(handle, flag) ( \
  			((handle)._flags & _ns_flagdata[flag].mask) \
@@ -113,7 +113,7 @@ extern struct _ns_flagdata _ns_flagdata[];
 #define ns_msg_end(handle) ((handle)._eom + 0)
 #define ns_msg_size(handle) ((handle)._eom - (handle)._msg)
 #define ns_msg_count(handle, section) ((handle)._counts[section] + 0)
- 
+
 /*
  * This is a parsed record.  It is caller allocated and has no dynamic data.
  */
@@ -125,7 +125,7 @@ typedef	struct __ns_rr {
   u_int16_t	rdlength;
   const u_char *	rdata;
 } ns_rr;
- 
+
 /* Accessor macros - this is part of the public interface. */
 #define ns_rr_name(rr)	(((rr).name[0] != '\0') ? (rr).name : ".")
 #define ns_rr_type(rr)	((ns_type)((rr).type + 0))
@@ -133,7 +133,7 @@ typedef	struct __ns_rr {
 #define ns_rr_ttl(rr)	((rr).ttl + 0)
 #define ns_rr_rdlen(rr)	((rr).rdlength + 0)
 #define ns_rr_rdata(rr)	((rr).rdata + 0)
- 
+
 /*
  * These don't have to be in the same order as in the packet flags word,
  * and they can even overlap in some cases, but they will need to be kept
@@ -152,7 +152,7 @@ typedef enum __ns_flag {
   ns_f_rcode,		/* Response code. */
   ns_f_max
 } ns_flag;
- 
+
 /*
  * Currently defined opcodes.
  */
@@ -165,7 +165,7 @@ typedef enum __ns_opcode {
   ns_o_update = 5,	/* Zone update message. */
   ns_o_max = 6
 } ns_opcode;
- 
+
 /*
  * Currently defined response codes.
  */
@@ -188,14 +188,14 @@ typedef	enum __ns_rcode {
   ns_r_badkey = 17,
   ns_r_badtime = 18
 } ns_rcode;
- 
+
 /* BIND_UPDATE */
 typedef enum __ns_update_operation {
   ns_uop_delete = 0,
   ns_uop_add = 1,
   ns_uop_max = 2
 } ns_update_operation;
- 
+
 /*
  * This structure is used for TSIG authenticated messages
  */
@@ -205,7 +205,7 @@ struct ns_tsig_key {
   int len;
 };
 typedef struct ns_tsig_key ns_tsig_key;
- 
+
 /*
  * This structure is used for TSIG authenticated TCP messages
  */
@@ -217,15 +217,15 @@ struct ns_tcp_tsig_state {
   int siglen;
 };
 typedef struct ns_tcp_tsig_state ns_tcp_tsig_state;
- 
+
 #define NS_TSIG_FUDGE 300
 #define NS_TSIG_TCP_COUNT 100
 #define NS_TSIG_ALG_HMAC_MD5 "HMAC-MD5.SIG-ALG.REG.INT"
- 
+
 #define NS_TSIG_ERROR_NO_TSIG -10
 #define NS_TSIG_ERROR_NO_SPACE -11
 #define NS_TSIG_ERROR_FORMERR -12
- 
+
 /*
  * Currently defined type values for resources and queries.
  */
@@ -281,7 +281,7 @@ typedef enum __ns_type {
   ns_t_zxfr = 256,	/* BIND-specific, nonstandard. */
   ns_t_max = 65536
 } ns_type;
- 
+
 /* Exclusively a QTYPE? (not also an RTYPE) */
 #define	ns_t_qt_p(t) (ns_t_xfr_p(t) || (t) == ns_t_any || \
  		      (t) == ns_t_mailb || (t) == ns_t_maila)
@@ -292,7 +292,7 @@ typedef enum __ns_type {
 #define ns_t_udp_p(t) ((t) != ns_t_axfr && (t) != ns_t_zxfr)
 #define ns_t_xfr_p(t) ((t) == ns_t_axfr || (t) == ns_t_ixfr || \
  		       (t) == ns_t_zxfr)
- 
+
 /*
  * Values for class field
  */
@@ -356,7 +356,7 @@ typedef enum __ns_cert_types {
 				  NS_KEY_RESERVED10 | \
 				  NS_KEY_RESERVED11 )
 #define NS_KEY_RESERVED_BITMASK2 0xFFFF /* no bits defined here */
-  
+
 /* The Algorithm field of the KEY and SIG RR's is an integer, {1..254} */
 #define	NS_ALG_MD5RSA		1	/* MD5 with RSA */
 #define	NS_ALG_DH               2	/* Diffie Hellman KEY */
@@ -372,7 +372,7 @@ typedef enum __ns_cert_types {
 #define NS_KEY_PROT_DNSSEC      3
 #define NS_KEY_PROT_IPSEC       4
 #define NS_KEY_PROT_ANY		255
-  
+
 /* Signatures */
 #define	NS_MD5RSA_MIN_BITS	 512	/* Size of a mod or exp in bits */
 #define	NS_MD5RSA_MAX_BITS	2552
@@ -403,7 +403,7 @@ typedef enum __ns_cert_types {
 #define	NS_NXT_BIT_CLEAR(n,p) (p[(n)/NS_NXT_BITS] &= ~(0x80>>((n)%NS_NXT_BITS)))
 #define	NS_NXT_BIT_ISSET(n,p) (p[(n)/NS_NXT_BITS] &   (0x80>>((n)%NS_NXT_BITS)))
 #define NS_NXT_MAX 127
-  
+
 /*
  * Inline versions of get/put short/long.  Pointer is advanced.
  */
@@ -414,7 +414,7 @@ typedef enum __ns_cert_types {
   	    ; \
 	(cp) += NS_INT16SZ; \
 } while (0)
-  
+
 #define NS_GET32(l, cp) do { \
 	register u_char *t_cp = (u_char *)(cp); \
 	(l) = ((u_int32_t)t_cp[0] << 24) \
@@ -424,7 +424,7 @@ typedef enum __ns_cert_types {
   	    ; \
 	(cp) += NS_INT32SZ; \
 } while (0)
-  
+
 #define NS_PUT16(s, cp) do { \
 	register u_int16_t t_s = (u_int16_t)(s); \
 	register u_char *t_cp = (u_char *)(cp); \
@@ -432,7 +432,7 @@ typedef enum __ns_cert_types {
   	*t_cp   = t_s; \
 	(cp) += NS_INT16SZ; \
 } while (0)
-  
+
 #define NS_PUT32(l, cp) do { \
 	register u_int32_t t_l = (u_int32_t)(l); \
 	register u_char *t_cp = (u_char *)(cp); \
@@ -442,7 +442,7 @@ typedef enum __ns_cert_types {
   	*t_cp   = t_l; \
 	(cp) += NS_INT32SZ; \
 } while (0)
-  
+
 /*
  * ANSI C identifier hiding for bind's lib/nameser.
  */
@@ -528,7 +528,7 @@ int		ns_subdomain __P((const char *, const char *));
 int		ns_makecanon __P((const char *, char *, size_t));
 int		ns_samename __P((const char *, const char *));
 __END_DECLS
-  
+
 #ifdef BIND_4_COMPAT
 #include <arpa/nameser_compat.h>
 #endif

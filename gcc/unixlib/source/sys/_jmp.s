@@ -1,10 +1,10 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/_jmp.s,v $
-; $Date: 2003/06/23 20:33:03 $
-; $Revision: 1.8 $
+; $Date: 2003/12/04 22:55:35 $
+; $Revision: 1.9 $
 ; $State: Exp $
-; $Author: joty $
+; $Author: alex $
 ;
 ;----------------------------------------------------------------------------
 
@@ -40,7 +40,7 @@
 setjmp
 	; record the current allocation pointer for use with longjmp
 	; Note, alloca_list is a weak symbol so may not be set
-	[ __FEATURE_PTHREADS = 1
+	[ __UNIXLIB_FEATURE_PTHREADS > 0
 	IMPORT	|__pthread_running_thread|
 	LDR	a4, =|__pthread_running_thread|
 	LDR	a4, [a4]
@@ -67,7 +67,7 @@ setjmp
 	STMIA	a1, {a1, v1, v2, v3, v4, v5, v6, sl, fp, sp, lr}
 
 	MOV	a1, #0
-	return	AL, pc, lr
+	MOV	pc, lr
 
 	EXPORT	longjmp
 	NAME	longjmp
@@ -80,7 +80,7 @@ longjmp
 	; call to longjmp does occur, then the v1-v6 are going to be
 	; safely restored to their current values.
 
-	[ __FEATURE_PTHREADS = 1
+	[ __UNIXLIB_FEATURE_PTHREADS > 0
 	LDR	v5, =|__pthread_running_thread|
 	LDR	v5, [v5]
 	ADD	v5, v5, #|__PTHREAD_ALLOCA_OFFSET| + 8

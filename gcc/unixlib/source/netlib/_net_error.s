@@ -1,10 +1,10 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/netlib/_net_error.s,v $
-; $Date: 2003/04/21 10:48:45 $
-; $Revision: 1.4 $
+; $Date: 2003/05/13 22:59:47 $
+; $Revision: 1.5 $
 ; $State: Exp $
-; $Author: peter $
+; $Author: joty $
 ;
 ;----------------------------------------------------------------------------
 
@@ -43,6 +43,6 @@
 	AND     a1, a1, #0xff      ; RISC OS 5 correctly returns error numbers
 	                           ; in Internet error block.
 	__set_errno	a1, a2
-	return	AL, pc, lr
+	MOV	pc, lr
 
 	END

@@ -1,8 +1,8 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/netinet/ip_var.h,v $
- * $Date: 2002/08/18 15:19:06 $
- * $Revision: 1.2.2.1 $
+ * $Date: 2002/12/22 18:22:28 $
+ * $Revision: 1.4 $
  * $State: Exp $
  * $Author: admin $
  *
@@ -13,7 +13,7 @@
 
 /* Freenet programmers interface - netinet/ip_var.h - 23/5/95 */
 #ifndef __UNIXLIB_FEATURES_H
-#include <unixlib/features.h>
+#include <features.h>
 #endif
 
 #ifndef __UNIXLIB_TYPES_H

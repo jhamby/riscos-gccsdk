@@ -1,10 +1,10 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/_vfork.s,v $
-; $Date: 2004/06/12 08:59:49 $
-; $Revision: 1.9 $
+; $Date: 2004/09/07 14:05:11 $
+; $Revision: 1.10 $
 ; $State: Exp $
-; $Author: peter $
+; $Author: joty $
 ;
 ;----------------------------------------------------------------------------
 
@@ -34,7 +34,7 @@ vfork
 fork
 	STMFD	sp!, {lr}
 
-	[ __FEATURE_PTHREADS = 1
+	[ __UNIXLIB_FEATURE_PTHREADS > 0
 	LDR	a1, =|__pthread_system_running|
 	LDR	a1, [a1]
 	CMP	a1, #0
@@ -56,7 +56,7 @@ pthread_skip1
 	LDR	a2, =|__saved_lr|
 	STR	lr, [a2]
 
-	[ __FEATURE_PTHREADS = 1
+	[ __UNIXLIB_FEATURE_PTHREADS > 0
 	; save __pthread_system_running, as the child process
 	; will always set it to 0 on exit
 	LDR	a3, =|__pthread_system_running|
@@ -67,7 +67,7 @@ pthread_skip1
 
 	BL	setjmp
 
-	[ __FEATURE_PTHREADS = 1
+	[ __UNIXLIB_FEATURE_PTHREADS > 0
 	LDR	a2, =|__saved_pthread_system_running|
 	LDR	a3, =|__pthread_system_running|
 	LDR	a2, [a2]
@@ -81,7 +81,7 @@ pthread_skip1
 	; Return from the vfork in the child process
 	STMFD	sp!, {lr}
 
-	[ __FEATURE_PTHREADS = 1
+	[ __UNIXLIB_FEATURE_PTHREADS > 0
 	LDR	a1, =|__pthread_system_running|
 	LDR	a1, [a1]
 	CMP	a1, #0
@@ -92,7 +92,7 @@ pthread_skip2
 	]
 
 	MOV	a1, #0
-	stackreturn	AL, "pc"
+	LDMFD	sp!, {pc}
 
 return_parent	; Return from the vfork in the parent process
 	; Restore dynamic area size to size indicated by __real_break
@@ -115,7 +115,7 @@ return_parent	; Return from the vfork in the parent process
 	SWIVC	XOS_ChangeDynamicArea
 return_parent2
 
-	[ __FEATURE_PTHREADS = 1
+	[ __UNIXLIB_FEATURE_PTHREADS > 0
 	LDR	a1, =|__pthread_system_running|
 	LDR	a1, [a1]
 	CMP	a1, #0
@@ -126,10 +126,10 @@ return_parent2
 pthread_skip3
 	]
 
-	stackreturn	AL, "a1,a2,a3,a4,v1,v2,v3,v4,v5,pc"
+	LDMFD	sp!, {a1, a2, a3, a4, v1, v2, v3, v4, v5, pc}
 
 return_fail
-	[ __FEATURE_PTHREADS = 1
+	[ __UNIXLIB_FEATURE_PTHREADS > 0
 	LDR	a1, =|__pthread_system_running|
 	LDR	a1, [a1]
 	CMP	a1, #0
@@ -141,7 +141,7 @@ pthread_skip4
 	]
 
 	MVN	a1, #0
-	stackreturn	AL, "pc"
+	LDMFD	sp!, {pc}
 
 
 	EXPORT	|__vret|
@@ -153,7 +153,7 @@ pthread_skip4
 	AREA	|C$$zidata|, DATA, NOINIT
 |__saved_lr|
 	%	4
-	[ __FEATURE_PTHREADS = 1
+	[ __UNIXLIB_FEATURE_PTHREADS > 0
 |__saved_pthread_system_running|
 	%	4
 	]

@@ -1,10 +1,10 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/_os.s,v $
-; $Date: 2003/05/11 21:05:44 $
-; $Revision: 1.7 $
+; $Date: 2003/06/19 23:58:25 $
+; $Revision: 1.8 $
 ; $State: Exp $
-; $Author: alex $
+; $Author: joty $
 ;
 ;----------------------------------------------------------------------------
 
@@ -21,23 +21,21 @@
 	SWI	XOS_Byte
 	MOVVC	a1, #0
 	MVNVS	a1, #0
-	return	AL, pc, lr
+	MOV	pc, lr
 
 	EXPORT	|__os_vdu|
 	NAME	__os_vdu
 |__os_vdu|
 	SWI	XOS_WriteC
-	return	VC, pc, lr
-	MVN	a1, #0
-	return	AL, pc, lr
+	MVNVS	a1, #0
+	MOV	pc, lr
 
 	EXPORT	|__os_get|
 	NAME	__os_get
 |__os_get|
 	SWI	XOS_ReadC
-	return	VC, pc, lr
-	MVN	a1, #0
-	return	AL, pc, lr
+	MVNVS	a1, #0
+	MOV	pc, lr
 
 	EXPORT	|__os_inkey|
 	NAME	__os_inkey
@@ -48,11 +46,12 @@
 	MOV	a3, ip, LSR #8
 	SWI	XOS_Byte
 	MVNVS	a1, #0
-	return	VS, pc, lr
-	CMP	a3, #0
+	MOVVS	pc, lr
+
+	TEQ	a3, #0
 	MOVEQ	a1, a2
 	MVNNE	a1, #0
-	return	AL, pc, lr
+	MOV	pc, lr
 
 	EXPORT	|__os_keyflush|
 	NAME	__os_keyflush
@@ -63,7 +62,7 @@
 	SWI	XOS_Byte
 	MOVVC	a1, #0
 	MVNVS	a1, #0
-	return	AL, pc, lr
+	MOV	pc, lr
 
 	EXPORT	|__os_423|
 	NAME	__os_423
@@ -72,15 +71,13 @@
 	MOV	a1, #2
 	MOV	a2, #2
 	SWI	XOS_Byte
-	BVS	os_423_l1
-	MOV	a1, #0
-	MOV	a2, #0	; reset 6551
-	MOV	a3, #0
-	SWI	XOS_SerialOp
 	MOVVC	a1, #0
-os_423_l1
+	MOVVC	a2, #0	; reset 6551
+	MOVVC	a3, #0
+	SWIVC	XOS_SerialOp
+	MOVVC	a1, #0
 	MVNVS	a1, #0
-	return	AL, pc, lr
+	MOV	pc, lr
 
 	EXPORT	|__os_423vdu|
 	NAME	__os_423vdu
@@ -91,7 +88,7 @@ os_423_l1
 	MOVVC	a1, #0
 	MVNCS	a1, #0	; buffer full
 	MVNVS	a1, #0
-	return	AL, pc, lr
+	MOV	pc, lr
 
 	EXPORT	|__os_423get|
 	NAME	__os_423get
@@ -102,7 +99,7 @@ os_423get_l1
 	BCS	os_423get_l1
 	MOVVC	a1, a2
 	MVNVS	a1, #0
-	return	AL, pc, lr
+	MOV	pc, lr
 
 	EXPORT	|__os_423inkey|
 	NAME	__os_423inkey
@@ -122,7 +119,7 @@ os_423inkey_l1
 os_423inkey_l2
 	MOVVC	a1, a2
 	MVNVS	a1, #0
-	return	AL, pc, lr
+	MOV	pc, lr
 
 	EXPORT	|__os_423flush|
 	NAME	__os_423flush
@@ -133,7 +130,7 @@ os_423inkey_l2
 	SWI	XOS_Byte
 	MOVVC	a1, #0
 	MVNVS	a1, #0
-	return	AL, pc, lr
+	MOV	pc, lr
 
 	EXPORT	|__os_423break|
 	NAME	__os_423break
@@ -143,25 +140,25 @@ os_423inkey_l2
 	SWI	XOS_SerialOp
 	MOVVC	a1, #0
 	MVNVS	a1, #0
-	return	AL, pc, lr
+	MOV	pc, lr
 
 	EXPORT	|__os_byte|
 	NAME	__os_byte
 |__os_byte|
 	MOV	ip, a4
 	SWI	XOS_Byte
-	return	VS, pc, lr
-	CMP	ip, #0
+	MOVVS	pc, lr
+	TEQ	ip, #0
 	STMNEIA ip, {a1, a2, a3}
 	MOV	a1, #0
-	return	AL, pc, lr
+	MOV	pc, lr
 
 	EXPORT	|__os_word|
 	NAME	__os_word
 |__os_word|
 	SWI	XOS_Word
 	MOVVC	a1, #0
-	return	AL, pc, lr
+	MOV	pc, lr
 
 os_prhex_data
 	DCB	"    "
@@ -187,7 +184,7 @@ os_prhex_l1
 	SWI	XOS_WriteN
 	MOVVC	a1, #0
 	ADD	sp, sp, #8
-	return	AL, pc, lr
+	MOV	pc, lr
 
 	; Print out a 32-bit number (passed in a1) as a signed
 	; decimal quantity
@@ -201,28 +198,28 @@ os_prhex_l1
 	SWIVC	XOS_Write0
 	ADD	sp, sp, #16
 	MOVVC	a1, #0
-	return	AL, pc, lr
+	MOV	pc, lr
 
 	EXPORT	|__os_print|
 	NAME	__os_print
 |__os_print|
 	SWI	XOS_Write0
 	MOVVC	a1, #0
-	return	AL, pc, lr
+	MOV	pc, lr
 
 	EXPORT	|__os_nl|
 	NAME	__os_nl
 |__os_nl|
 	SWI	XOS_NewLine
 	MOVVC	a1, #0
-	return	AL, pc, lr
+	MOV	pc, lr
 
 	EXPORT	|__os_cli|
 	NAME	__os_cli
 |__os_cli|
 	SWI	XOS_CLI
 	MOVVC	a1, #0
-	return	AL, pc, lr
+	MOV	pc, lr
 
 	EXPORT	|__os_file|
 	NAME	__os_file
@@ -232,11 +229,11 @@ os_prhex_l1
 	ADD	a3, a3, #8
 	LDMNEIA a3, {a3, a4, v1, v2}
 	SWI	XOS_File
-	stackreturn	VS, "v1, v2, pc"
+	LDMVSFD	sp!, {v1, v2, pc}
 	CMP	ip, #0
 	STMNEIA ip, {a1, a2, a3, a4, v1, v2}
 	MOV	a1, #0
-	stackreturn	AL, "v1, v2, pc"
+	LDMFD	sp!, {v1, v2, pc}
 
 	EXPORT	|__os_fopen|
 	NAME	__os_fopen
@@ -245,7 +242,7 @@ os_prhex_l1
 	SWI	XOS_Find
 	STR	a1, [ip]
 	MOVVC	a1, #0
-	return	AL, pc, lr
+	MOV	pc, lr
 
 	EXPORT	|__os_fclose|
 	NAME	__os_fclose
@@ -254,7 +251,7 @@ os_prhex_l1
 	MOV	a1, #0
 	SWI	XOS_Find
 	MOVVC	a1, #0
-	return	AL, pc, lr
+	MOV	pc, lr
 
 	EXPORT	|__os_fread|
 	NAME	__os_fread
@@ -266,11 +263,11 @@ os_prhex_l1
 	MOV	a2, a1
 	MOV	a1, #4
 	SWI	XOS_GBPB
-	stackreturn	VS, "v1, pc"
+	LDMVSFD	sp!, {v1, pc}
 	CMP	ip, #0
 	STMNEIA	ip, {a1, a2, a3, a4, v1}
 	MOV	a1, #0
-	stackreturn	AL, "v1, pc"
+	LDMFD	sp!, {v1, pc}
 
 	EXPORT	|__os_fwrite|
 	NAME	__os_fwrite
@@ -282,29 +279,29 @@ os_prhex_l1
 	MOV	a2, a1
 	MOV	a1, #2
 	SWI	XOS_GBPB
-	stackreturn	VS, "v1, pc"
+	LDMVSFD	sp!, {v1, pc}
 	CMP	ip, #0
 	STMNEIA	ip, {a1, a2, a3, a4, v1}
 	MOV	a1, #0
-	stackreturn	AL, "v1, pc"
+	LDMFD	sp!, {v1, pc}
 
 	EXPORT	|__os_args|
 	NAME	__os_args
 |__os_args|
 	MOV	ip, a4
 	SWI	XOS_Args
-	return	VS, pc, lr
-	CMP	ip, #0
+	MOVVS	pc, lr
+	TEQ	ip, #0
 	STMNEIA	ip, {a1, a2, a3}
 	MOV	a1, #0
-	return	AL, pc, lr
+	MOV	pc, lr
 
 	EXPORT	|__os_fsctrl|
 	NAME	__os_fsctrl
 |__os_fsctrl|
 	SWI	XOS_FSControl
 	MOVVC	a1, #0
-	return	AL, pc, lr
+	MOV	pc, lr
 
 	EXPORT	|__os_swi|
 	NAME	__os_swi
@@ -318,6 +315,6 @@ os_prhex_l1
 	TEQ	lr, #0
 	STMNEIA lr, {a1, a2, a3, a4, v1, v2, v3, v4, v5, v6}
 	MOVVC	a1, #0
-	stackreturn	AL, "v1, v2, v3, v4, v5, v6, pc"
+	LDMFD	sp!, {v1, v2, v3, v4, v5, v6, pc}
 
 	END

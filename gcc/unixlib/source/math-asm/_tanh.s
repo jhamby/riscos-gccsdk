@@ -1,8 +1,8 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/math-asm/_tanh.s,v $
-; $Date: 2002/09/24 21:02:37 $
-; $Revision: 1.3 $
+; $Date: 2002/11/26 21:52:07 $
+; $Revision: 1.4 $
 ; $State: Exp $
 ; $Author: admin $
 ;
@@ -27,6 +27,6 @@ tanhl
 	SUFD	f2, f0, f1
 	ADFD	f3, f0, f1
 	DVFD	f0, f2, f3
-	return	AL, pc, lr
+	MOV	pc, lr
 
 	END

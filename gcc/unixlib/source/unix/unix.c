@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/unix.c,v $
- * $Date: 2004/09/23 22:16:39 $
- * $Revision: 1.26 $
+ * $Date: 2004/10/05 15:24:37 $
+ * $Revision: 1.27 $
  * $State: Exp $
- * $Author: joty $
+ * $Author: peter $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: unix.c,v 1.26 2004/09/23 22:16:39 joty Exp $";
+static const char rcs_id[] = "$Id: unix.c,v 1.27 2004/10/05 15:24:37 peter Exp $";
 #endif
 
 #include <stdio.h>
@@ -153,7 +153,7 @@ void __unixinit (void)
       if (__u == NULL)
         __unixlib_fatal ("cannot allocate memory for process structure");
       initialise_process_structure (__u);
-#if __FEATURE_PTHREADS
+#if __UNIXLIB_FEATURE_PTHREADS
       /* Initialise the pthread system */
       __pthread_prog_init ();
 #endif
@@ -193,7 +193,7 @@ void __unixinit (void)
       if (!__u->status.has_parent)
         __unixlib_fatal ("child process doesn't seem to have a parent");
 
-#if __FEATURE_PTHREADS
+#if __UNIXLIB_FEATURE_PTHREADS
       /* Initialise the pthread system */
       __pthread_prog_init ();
 #endif

@@ -1,3 +1,75 @@
+Sun Oct 17 18:19:00 2004  John Tytgat  <John.Tytgat@aaug.net>
+
+	* Docs/ReadMe: Added 'Building' section.
+	* objs/Makefile.in: target 'clean' removes UnixLib:o.UnixLib too.
+	* source/clib/{fnmatch.h, langinfo.h, nl_types.h, bits/locale.h}: Added
+	  CVS/RCS keyword header.
+	* source/clib/string.h: Remove #define ffsl. Declared ffsll too for
+	  Norcroft users.
+	* source/clib/unixlib/asm_dec.s, source/common/_exist.s,
+	  source/gcccompat/{_divdi3.s, _moddi3.s, _udivdi3.s, _umoddi3.s},
+	  source/netlib/{_getsockop.s, _recvfrom.s, _select.s, _sendto.s,
+	  _setsockop.s}, source/pthread/{_context.s, _ints.s},
+	  source/scl/{_kernel_swi.s, _kgetenv.s, _kosargs.s, _kosbget.s,
+	  _kosbput.s, _kosbyte.s, _koscli.s, _kosfind.s, _kosgbpb.s, _kosrdch.s,
+	  _kosword.s, _koswrch.s, _ksetenv.s}, source/sys/{_alloca.s,
+	  _longlong.s, _mem.s, _mman.s, _modsi3, _os.s, _syslib.s, _vfork.s}:
+	  Removed stackreturn macro.
+	* source/clib.unixlib/asm_dec.s, source/unix/getpagsiz.s,
+	  source/time/_clock.s, source/sys/{_umod.s, _udiv10.s, _udiv.s,
+	  _syslib.s, _smod.s, _sdiv10.s, _sdiv.s, _profile.s, _os.s, _mem.s,
+	  _longlong.s, _jmp.s, _divtest.s, _alloca.s, _ffsll.s, _ffs.s,
+	  _signal.s, _memchk.s, _kswi_c.s, _kcurskch.s},
+	  source/pthread/{_ints.s, _exit.s, _context.s},
+	  source/netlib/{htons.s, htonl.s, _net_error.s, _bswap32.s},
+	  source/math-asm/{_tanhf.s, _tanh.s, _tanf.s, _tan.s, _sqrt.s,
+	  _sinhf.s, _sinh.s, _sinf.s, _sincos.s, _sin.s, _signbit.s, _powf.s,
+	  _pow.s, _modf1f.s, _modf1.s, _logf.s, _log10f.s, _log10.s, _log.s,
+	  _ldexpf.s, _ldexp.s, _isnan.s, _isinf.s, _hypot.s, _ftstexcpt.s,
+	  _fsetexcpt.s, _fraiseexc.s, _floorf.s, _floor.s, _finite.s,
+	  _fesetroun.s, _fesetenv.s, _feholdexc.s, _fegetrnd.s, _fegetenv.s,
+	  _fclrexcpt.s, _fabs.s, _expf.s, _exp.s, _coshf.s, _cosh.s, _cosf.s,
+	  _cos.s, _copysign.s, _ceilf.s, _ceil.s, _atanf.s, _atan2f.s,
+	  _atan2.s, _atan.s, _asinf.s, _asin.s, _acosf.s, _acos.s},
+	  source/gcccompat/{_umodi3.s, _udivdi3.s, _moddi3.s, _divdi3,s},
+	  source/common/{_riscosify.s, _exist.s}: Removed return macro.
+	* source/string/{_ffs.s, _ffsll.s}: Added.  Short & fast asm versions
+	  instead of ffs.c and ffsll.c.
+	* source/string/{ffs.c, ffsll.c}: Removed.  Replaced by _ffs.s and
+	  _ffsll.s.
+	* source/clib/unixlib/{buildoptions.h, stdcmac.h, stdsmac.h}:
+	  Added.  buildoptions.h is now the only file containing build related
+	  options.  stdcmac.h and stdsmac.h are support files allowing
+	  buildoptions.h be used in C and ASM files.
+	* source/clib/unixlib/features.h: Removed.
+	* source/clib/unixlib/asm_dec.s: Moved build options to buildoptions.h.
+	* source/math-asm/{_acosf.s, _asinf.s, _atan2f.s, _atanf.s, _ceilf.s,
+	  _cosf.s, _coshf.s, _expf.s, _floorf.s, _ldexpf.s, _log10f.s, _logf.s,
+	  _modf1f.s, _powf.s, _sinf.s, _sinhf.s, _tanf.s, _tanhf.s}:
+	  Uses build option __UNIXLIB_NORCROFT_BUILD to determine which float
+	  ABI is used (GCC vs Norcroft).
+	* source/unix/fnmatch.c: Disabled calling versioned_symbol(),
+	  strong_alias(), compat_symbol() and libc_hidden_ver().
+	* source/clib/arpa/{inet.h, nameser.h}, source/clib/bits/huge_val.h,
+	  source/clib/{alloca.h, complex.h, crypt.h, ctype.h, dirent.h,
+	  fcntl.h, fenv.h, glob.h, grp.h, iconv.h, inttypes.h, kernel.h,
+	  locale.h, math.h, nl_types.h, pthread.h, pwd.h, setjmp.h, sgtty.h,
+	  stdint.h, string.h, swis.h, termcap.h, termios.h, time.h, unistd.h,
+	  utime.h, wchar.h}, source/clib/machine/ieee754.h, source/clib/net/if.h,
+	  source/clib/netinet/{in.h, in_systm.h, ip_icmp.h, ip_var.h, tcp.h,
+	  udp.h}, source/clib/resolv/resolv.h, source/clib/rpc/netdb.h,
+	  source/clib/sys/{byteorder.h, cdefs.h, debug.h, file.h, ioctl.h,
+	  mman.h, netdb.h, poll.h, resource.h, select.h, socket.h, stat.h,
+	  statfs.h, syslog.h, time.h, timeb.h, times.h, uio.h, utsname.h,
+	  wait.h}, source/clib/unixlib/{dev.h, fd.h, local.h, os.h, sigstate.h,
+	  tty.h}, source/crypt/crypt-private.h: Changed unixlib/features.h into
+	  features.h.
+	* source/common/stat.c, source/stdlib/random.c, source/sys/{alarm.c,
+	  exec.c, stackalloc.c, vfork.c}, source/unix/{dev.c, pipe.c, tty.c,
+	  write.c}: Removed unixlib/features.h.
+	* source/crypt/crypt_util.c: No need to define __GNU_LIBRARY__
+	  explicitly because this is now done in features.h.
+
 Tue Oct 12 09:11:22 2004  Peter Naulls  <peter@chocky.org>
 
 	* source/regex.c, source/realpath.c, source/time/mktime.c,

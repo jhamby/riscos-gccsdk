@@ -1,10 +1,10 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/_sdiv10.s,v $
-; $Date: 2002/09/24 21:02:38 $
-; $Revision: 1.4 $
+; $Date: 2003/04/05 23:56:08 $
+; $Revision: 1.5 $
 ; $State: Exp $
-; $Author: admin $
+; $Author: joty $
 ;
 ;----------------------------------------------------------------------------
 
@@ -32,6 +32,6 @@
 	CMP	a4, #0			; Negative sign ?
 	RSBMI	a1, a1, #0
 	RSBMI	a2, a2, #0
-	return	AL, pc, lr
+	MOV	pc, lr
 
 	END

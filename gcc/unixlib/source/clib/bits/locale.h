@@ -1,3 +1,18 @@
+/****************************************************************************
+ *
+ * $Source: $
+ * $Date: $
+ * $Revision: $
+ * $State: $
+ * $Author: $
+ *
+ ***************************************************************************/
+
+/* File taken from glibc 2.3.2.
+ * Following changes were made:
+ *   <none>
+ */
+
 /* Definition of locale category symbol values.
    Copyright (C) 2001 Free Software Foundation, Inc.
    This file is part of the GNU C Library.

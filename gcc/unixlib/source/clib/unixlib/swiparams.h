@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/unixlib/swiparams.h,v $
- * $Date: 2002/09/24 21:02:37 $
- * $Revision: 1.3 $
+ * $Date: 2003/04/12 11:31:39 $
+ * $Revision: 1.4 $
  * $State: Exp $
- * $Author: admin $
+ * $Author: alex $
  *
  ***************************************************************************/
 
@@ -33,7 +33,7 @@
 #define OSFIND_OPEN_ERRORIFABSENT     8
 #define OSFIND_OPEN_ERRORIFDIR	      4
 
-#ifdef __USEFILEPATH
+#ifdef __UNIXLIB_USEFILEPATH
 #define OSFILE_READCATINFO (OSFILE_READCATINFO_FILEPATH)
 #define OSFILE_OPENIN	   (OSFIND_OPEN_OPENIN | OSFIND_OPEN_NOPATH)
 #define OSFILE_OPENOUT	   (OSFIND_OPEN_OPENOUT | OSFIND_OPEN_NOPATH)

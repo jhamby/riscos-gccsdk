@@ -1,3 +1,18 @@
+/****************************************************************************
+ *
+ * $Source: $
+ * $Date: $
+ * $Revision: $
+ * $State: $
+ * $Author: $
+ *
+ ***************************************************************************/
+
+/* File taken from glibc 2.3.2.
+ * Following changes were made:
+ *   <none>
+ */
+
 /* Access to locale-dependent parameters.
    Copyright (C) 1995-99,2000,01,02 Free Software Foundation, Inc.
    This file is part of the GNU C Library.

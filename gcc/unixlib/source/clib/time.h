@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/time.h,v $
- * $Date: 2004/04/15 22:21:02 $
- * $Revision: 1.11 $
+ * $Date: 2004/10/08 11:56:13 $
+ * $Revision: 1.12 $
  * $State: Exp $
- * $Author: alex $
+ * $Author: peter $
  *
  ***************************************************************************/
 
@@ -80,7 +80,7 @@ struct timespec
 #ifdef __TIME_H
 
 #ifndef __UNIXLIB_FEATURES_H
-#include <unixlib/features.h>
+#include <features.h>
 #endif
 
 __BEGIN_DECLS

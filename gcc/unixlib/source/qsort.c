@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/qsort.c,v $
- * $Date: 2003/01/21 17:54:22 $
- * $Revision: 1.5 $
+ * $Date: 2003/12/29 19:02:38 $
+ * $Revision: 1.6 $
  * $State: Exp $
- * $Author: admin $
+ * $Author: peter $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: qsort.c,v 1.5 2003/01/21 17:54:22 admin Exp $";
+static const char rcs_id[] = "$Id: qsort.c,v 1.6 2003/12/29 19:02:38 peter Exp $";
 #endif
 
 #include <unixlib/unix.h>
@@ -176,13 +176,13 @@ qsort (register void *v, register size_t n, register size_t z,
   if (n < 2)
     return;
 
-#if __FEATURE_PTHREADS
+#if __UNIXLIB_FEATURE_PTHREADS
   pthread_mutex_lock (&mutex);
 #endif
 
   if (!(__t = malloc (z)))
     {
-#if __FEATURE_PTHREADS
+#if __UNIXLIB_FEATURE_PTHREADS
       pthread_mutex_unlock (&mutex);
 #endif
       return;
@@ -191,7 +191,7 @@ qsort (register void *v, register size_t n, register size_t z,
   __z = z;
   __c = c;
 
-#ifdef __PARANOID
+#if __UNIXLIB_PARANOID > 0
   /* check function pointer */
   __funcall ((*c), (v, v));
 #endif
@@ -203,7 +203,7 @@ qsort (register void *v, register size_t n, register size_t z,
 
   free (__t);
 
-#if __FEATURE_PTHREADS
+#if __UNIXLIB_FEATURE_PTHREADS
   pthread_mutex_unlock (&mutex);
 #endif
 }

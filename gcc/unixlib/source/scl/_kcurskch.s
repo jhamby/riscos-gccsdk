@@ -1,8 +1,8 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/scl/_kcurskch.s,v $
-; $Date: 2001/01/29 15:10:20 $
-; $Revision: 1.2 $
+; $Date: 2002/09/24 21:02:37 $
+; $Revision: 1.3 $
 ; $State: Exp $
 ; $Author: admin $
 ;
@@ -19,8 +19,8 @@
 	SUB	a1, sl, #560
 	LDR	a2, =&F60690FF
 	LDR	a3, [a1, #0]
-	CMP	a2, a3
+	TEQ	a2, a3
 	MOVNE	a1, #0
-	return	AL, pc, lr
+	MOV	pc, lr
 
 	END

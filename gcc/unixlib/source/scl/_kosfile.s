@@ -1,8 +1,8 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/scl/_kosfile.s,v $
-; $Date: 2001/01/29 15:10:20 $
-; $Revision: 1.2 $
+; $Date: 2002/09/24 21:02:37 $
+; $Revision: 1.3 $
 ; $State: Exp $
 ; $Author: admin $
 ;
@@ -24,9 +24,9 @@
 	LDMNEIA ip, {a3, a4, v1, v2}
 	SWI	XOS_File
 	STMNEIA ip, {a3, a4, v1, v2}
-	stackreturn	VC, "v1-v3, pc"
+	LDMVCFD	sp!, {v1-v3, pc}
 	BL	|__seterr|
 	MOV	a1, #-2
-	stackreturn	AL, "v1-v3, pc"
+	LDMFD	sp!, {v1-v3, pc}
 
 	END

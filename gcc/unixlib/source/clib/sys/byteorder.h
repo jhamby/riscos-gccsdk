@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/sys/byteorder.h,v $
- * $Date: 2002/09/24 21:02:37 $
- * $Revision: 1.3 $
+ * $Date: 2004/04/17 10:51:15 $
+ * $Revision: 1.4 $
  * $State: Exp $
- * $Author: admin $
+ * $Author: nick $
  *
  ***************************************************************************/
 
@@ -12,7 +12,7 @@
 #define __SYS_BYTEORDER_H
 
 #ifndef __UNIXLIB_FEATURES_H
-#include <unixlib/features.h>
+#include <features.h>
 #endif
 
 #ifndef __ENDIAN_H

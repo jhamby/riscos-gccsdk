@@ -1,10 +1,10 @@
 ;----------------------------------------------------------------------------
 ;
-; $Source$
-; $Date$
-; $Revision$
-; $State$
-; $Author$
+; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/_sdiv.s,v $
+; $Date: 2002/09/24 21:02:38 $
+; $Revision: 1.4 $
+; $State: Exp $
+; $Author: admin $
 ;
 ;----------------------------------------------------------------------------
 
@@ -24,7 +24,7 @@ dividend RN 1
 |__rt_sdiv|
 	; Just return for divide by zero
 	MOVS	a4, divisor
-	return	EQ, pc, lr
+	MOVEQ	pc, lr
 	AND	a3, dividend, #&80000000
 	EOR	ip, a4, dividend
 	ORR	a3, a3, ip, LSR #1
@@ -56,6 +56,6 @@ divloop
 	RSBNE	a1, a1, #0
 	TST	a3,  #&80000000
 	RSBNE	a2, a2, #0
-	return	AL, pc, lr
+	MOV	pc, lr
 
 	END

@@ -1,10 +1,10 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/pthread/_exit.s,v $
-; $Date: 2002/12/15 13:16:55 $
-; $Revision: 1.1 $
+; $Date: 2003/11/23 20:26:45 $
+; $Revision: 1.2 $
 ; $State: Exp $
-; $Author: admin $
+; $Author: joty $
 ;
 ;----------------------------------------------------------------------------
 
@@ -33,6 +33,6 @@
 	LDMFD	sp!, {lr}
 	TEQ	a1, #0
 	MOVNE	pc, a1
-	return	AL, pc, lr
+	MOV	pc, lr
 
 	END

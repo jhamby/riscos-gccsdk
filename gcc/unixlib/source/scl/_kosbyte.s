@@ -1,8 +1,8 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/scl/_kosbyte.s,v $
-; $Date: 2001/01/29 15:10:20 $
-; $Revision: 1.2 $
+; $Date: 2002/09/24 21:02:37 $
+; $Revision: 1.3 $
 ; $State: Exp $
 ; $Author: admin $
 ;
@@ -26,10 +26,10 @@
 	ORR	a1, a1, a3, LSL #8
 	; If carry set, then third byte = 1
 	ORRCS	a1, a1, #1:SHL:16
-	stackreturn	AL, "pc"
+	LDMFD	sp!, {pc}
 |err|
 	BL	|__seterr|
 	MOV	a1, #-2
-	stackreturn	AL, "pc"
+	LDMFD	sp!, {pc}
 
 	END

@@ -1,8 +1,8 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/swis.h,v $
- * $Date: 2004/09/12 08:25:52 $
- * $Revision: 1.9 $
+ * $Date: 2004/10/05 15:24:37 $
+ * $Revision: 1.10 $
  * $State: Exp $
  * $Author: peter $
  *
@@ -12,7 +12,7 @@
 #define __SWIS_H
 
 #ifndef __UNIXLIB_FEATURES_H
-#include <unixlib/features.h>
+#include <features.h>
 #endif
 
 #include <kernel.h>

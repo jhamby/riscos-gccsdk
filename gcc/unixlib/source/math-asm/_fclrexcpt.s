@@ -1,8 +1,8 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/math-asm/_fclrexcpt.s,v $
-; $Date: 2001/01/29 15:10:20 $
-; $Revision: 1.2 $
+; $Date: 2002/09/24 21:02:37 $
+; $Revision: 1.3 $
 ; $State: Exp $
 ; $Author: admin $
 ;
@@ -15,11 +15,11 @@
 	EXPORT	feclearexcept
 	NAME	feclearexcept
 feclearexcept
-	rfs	ip
-	and	a1, a1, #15
-	eor	a1, a1, #15
-	and	ip, ip, a1
-	wfs	ip
-	return	AL, pc, lr
+	RFS	ip
+	AND	a1, a1, #15
+	EOR	a1, a1, #15
+	AND	ip, ip, a1
+	WFS	ip
+	MOV	pc, lr
 
 	END

@@ -1,8 +1,8 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/crypt/Attic/crypt-private.h,v $
- * $Date: 2002/08/18 21:22:10 $
- * $Revision: 1.1.2.1 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/crypt/crypt-private.h,v $
+ * $Date: 2002/11/18 15:38:13 $
+ * $Revision: 1.2 $
  * $State: Exp $
  * $Author: admin $
  *
@@ -11,7 +11,7 @@
 /*
  * File taken from glibc 2.2.5.
  * Following changes were made:
- *  - Changed "#include <features.h>" into "#include <unixlib/features.h>"
+ *  <none>
  */
 
 /*
@@ -42,7 +42,7 @@
 #ifndef CRYPT_PRIVATE_H
 #define CRYPT_PRIVATE_H	1
 
-#include <unixlib/features.h>
+#include <features.h>
 
 /* crypt.c */
 extern void _ufc_doit_r (ufc_long itr, struct crypt_data * __restrict __data,

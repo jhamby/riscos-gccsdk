@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/errlist.c,v $
- * $Date: 2003/06/19 23:58:25 $
- * $Revision: 1.8 $
+ * $Date: 2004/05/01 22:43:00 $
+ * $Revision: 1.9 $
  * $State: Exp $
  * $Author: joty $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: errlist.c,v 1.8 2003/06/19 23:58:25 joty Exp $";
+static const char rcs_id[] = "$Id: errlist.c,v 1.9 2004/05/01 22:43:00 joty Exp $";
 #endif
 
 #include <string.h>
@@ -131,7 +131,7 @@ strerror (register int errnum)
     }
   if (errnum == EOPSYS)
     {
-#if __FEATURE_PTHREADS
+#if __UNIXLIB_FEATURE_PTHREADS
       return __pthread_running_thread->errbuf.errmess;
 #else
       return __ul_errbuf.errmess;

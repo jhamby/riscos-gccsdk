@@ -1,8 +1,8 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/scl/_kosrdch.s,v $
-; $Date: 2001/01/29 15:10:20 $
-; $Revision: 1.2 $
+; $Date: 2002/09/24 21:02:37 $
+; $Revision: 1.3 $
 ; $State: Exp $
 ; $Author: admin $
 ;
@@ -21,16 +21,16 @@
 	STMFD	sp!, {lr}
 	SWI	XOS_ReadC
 	BVS	error
-	stackreturn	CC, "pc"
+	LDMCCFD	sp!, {pc}
 	; Escape has been seen.
-	CMP	a1, #27
+	TEQ	a1, #27
 	MOVEQ	a1, #-27
 	MOVNE	a1, #-1
-	stackreturn	AL, "pc"
+	LDMFD	sp!, {pc}
 
 error
 	BL	|__seterr|
 	MOV	a1, #-2
-	stackreturn	AL, "pc"
+	LDMFD	sp!, {pc}
 
 	END

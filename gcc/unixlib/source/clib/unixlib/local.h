@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/unixlib/local.h,v $
- * $Date: 2004/02/29 16:44:59 $
- * $Revision: 1.13 $
+ * $Date: 2004/09/07 14:05:10 $
+ * $Revision: 1.14 $
  * $State: Exp $
- * $Author: alex $
+ * $Author: joty $
  *
  * This file should eventually contain most / all of the UnixLib specific
  * functions.
@@ -26,7 +26,7 @@
 #endif /* __UNIXLIB_INTERNALS */
 
 #ifndef __UNIXLIB_FEATURES_H
-#include <unixlib/features.h>
+#include <features.h>
 #endif
 
 #define __need_size_t

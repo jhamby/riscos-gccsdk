@@ -1,10 +1,10 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/gcccompat/_umoddi3.s,v $
-; $Date: 2002/09/24 21:02:37 $
-; $Revision: 1.3 $
+; $Date: 2004/08/16 21:40:59 $
+; $Revision: 1.4 $
 ; $State: Exp $
-; $Author: admin $
+; $Author: joty $
 ;
 ;----------------------------------------------------------------------------
 
@@ -21,12 +21,14 @@
 	EXPORT |__umoddi3|
 	NAME	__umoddi3
 |__umoddi3|
-	CMP	a1, #0
-	CMPEQ	a2, #0
-	return	EQ, pc, lr
-	CMP	a3, #0
-	CMPEQ	a4, #0
-	return	EQ, pc, lr
+	TEQ	a1, #0
+	TEQEQ	a2, #0
+	MOVEQ	pc, lr
+
+	TEQ	a3, #0
+	TEQEQ	a4, #0
+	MOVEQ	pc, lr
+
 	STMFD	sp!, {v2, v3, v4, lr}
 	MOV	v2, #0
 	MOV	v3, #0
@@ -56,6 +58,6 @@
 	BGE	|__umoddi3.division|
 	MOV	a1, v4
 	MOV	a2, ip
-	stackreturn	AL, "v2, v3, v4, pc"
+	LDMFD	sp!, {v2, v3, v4, pc}
 
 	END

@@ -1,17 +1,16 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/netinet/tcp.h,v $
- * $Date: 2002/12/22 18:22:28 $
- * $Revision: 1.4 $
+ * $Date: 2004/01/14 23:16:58 $
+ * $Revision: 1.5 $
  * $State: Exp $
- * $Author: admin $
+ * $Author: joty $
  *
  ***************************************************************************/
 
 /*
  * File taken from glibc 2.2.5.
  * Following changes were made:
- *  - Changed "#include <features.h>" into "#include <unixlib/features.h>"
  *  - Bitfields can only be taken from int so slightly different struct
  *    tcphdr & tcp_info definition.
  */
@@ -50,7 +49,7 @@
 #ifndef _NETINET_TCP_H
 #define _NETINET_TCP_H	1
 
-#include <unixlib/features.h>
+#include <features.h>
 
 /*
  * User-settable options (used with setsockopt).

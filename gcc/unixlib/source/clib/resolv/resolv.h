@@ -1,10 +1,10 @@
 /****************************************************************************
  *
- * $Source: $
- * $Date: $
- * $Revision: $
- * $State: $
- * $Author: $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/resolv/resolv.h,v $
+ * $Date: 2002/12/22 18:22:28 $
+ * $Revision: 1.1 $
+ * $State: Exp $
+ * $Author: admin $
  *
  ***************************************************************************/
 
@@ -78,7 +78,7 @@
 #else
 # include <sys/types.h>
 #endif
-#include <unixlib/features.h>
+#include <features.h>
 #include <stdio.h>
 
 #include <netinet/in.h>

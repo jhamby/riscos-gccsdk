@@ -1,8 +1,8 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/math-asm/_ftstexcpt.s,v $
-; $Date: 2001/01/29 15:10:20 $
-; $Revision: 1.2 $
+; $Date: 2002/09/24 21:02:37 $
+; $Revision: 1.3 $
 ; $State: Exp $
 ; $Author: admin $
 ;
@@ -15,9 +15,9 @@
 	EXPORT	fetestexcept
 	NAME	fetestexcept
 fetestexcept
-	rfs	ip
-	and	ip, ip, a1
-	and	a1, ip, #15
-	return	AL, pc, lr
+	RFS	ip
+	AND	ip, ip, a1
+	AND	a1, ip, #15
+	MOV	pc, lr
 
 	END

@@ -1,10 +1,10 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/common/_riscosify.s,v $
-; $Date: 2003/06/16 23:09:08 $
-; $Revision: 1.4 $
+; $Date: 2003/07/31 19:57:03 $
+; $Revision: 1.5 $
 ; $State: Exp $
-; $Author: joty $
+; $Author: alex $
 ;
 ;----------------------------------------------------------------------------
 
@@ -22,7 +22,7 @@
 	TEQ	a1, #0
 	LDREQ	a1, =|__riscosify_control_internal|
 	LDR	a1, [a1, #0]
-	return	AL, pc, lr
+	MOV	pc, lr
 
 	;void __set_riscosify_control(int __riscosify_flags)
 	EXPORT	|__set_riscosify_control|
@@ -32,7 +32,7 @@
 	TEQ	a2, #0
 	LDREQ	a2, =|__riscosify_control_internal|
 	STR	a1, [a2, #0]
-	return	AL, pc, lr
+	MOV	pc, lr
 
 	AREA	|C$$data|, DATA
 

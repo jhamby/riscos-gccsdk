@@ -1,10 +1,10 @@
 /****************************************************************************
  *
- * $Source$
- * $Date$
- * $Revision$
- * $State$
- * $Author$
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/stdlib/random.c,v $
+ * $Date: 2003/01/21 17:54:22 $
+ * $Revision: 1.3 $
+ * $State: Exp $
+ * $Author: admin $
  *
  ***************************************************************************/
 
@@ -50,7 +50,6 @@ static char sccsid[] = "@(#)random.c	8.2 (Berkeley) 5/19/95";
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <unixlib/features.h>
 #include <pthread.h>
 
 /*

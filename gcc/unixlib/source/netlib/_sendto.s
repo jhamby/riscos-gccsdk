@@ -1,8 +1,8 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/netlib/_sendto.s,v $
-; $Date: 2001/01/29 15:10:20 $
-; $Revision: 1.2 $
+; $Date: 2002/09/24 21:02:37 $
+; $Revision: 1.3 $
 ; $State: Exp $
 ; $Author: admin $
 ;
@@ -21,6 +21,6 @@
 	LDR	r4, [sp, #12]
 	LDR	r5, [sp, #16]
 	NetSWI	XSocket_Sendto
-	stackreturn	AL, "r4-r5, pc"
+	LDMFD	sp!, {r4-r5, pc}
 
 	END

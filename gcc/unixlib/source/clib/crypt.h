@@ -1,8 +1,8 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/Attic/crypt.h,v $
- * $Date: 2002/08/18 21:22:10 $
- * $Revision: 1.1.2.1 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/crypt.h,v $
+ * $Date: 2002/09/24 21:02:36 $
+ * $Revision: 1.2 $
  * $State: Exp $
  * $Author: admin $
  *
@@ -11,8 +11,7 @@
 /*
  * File taken from glibc 2.2.5.
  * Following changes were made:
- *  - Changed "#include <features>" into "#include <unixlib/features>"
- *  - Changed "#ifdef __USE_GNU" into "#if 1"
+ *  <none>
  */
 
 /*
@@ -42,7 +41,7 @@
 #ifndef __CRYPT_H
 #define __CRYPT_H	1
 
-#include <unixlib/features.h>
+#include <features.h>
 
 __BEGIN_DECLS
 

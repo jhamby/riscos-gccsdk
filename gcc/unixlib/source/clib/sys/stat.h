@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/sys/stat.h,v $
- * $Date: 2004/09/07 14:05:10 $
- * $Revision: 1.8 $
+ * $Date: 2004/09/17 18:39:54 $
+ * $Revision: 1.9 $
  * $State: Exp $
- * $Author: joty $
+ * $Author: peter $
  *
  ***************************************************************************/
 
@@ -14,7 +14,7 @@
 #define __SYS_STAT_H
 
 #ifndef __UNIXLIB_FEATURES_H
-#include <unixlib/features.h>
+#include <features.h>
 #endif
 
 #ifndef __UNIXLIB_TYPES_H

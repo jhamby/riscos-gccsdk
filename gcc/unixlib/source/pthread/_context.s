@@ -1,10 +1,10 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/pthread/_context.s,v $
-; $Date: 2003/11/23 20:26:45 $
-; $Revision: 1.8 $
+; $Date: 2004/03/24 22:30:35 $
+; $Revision: 1.9 $
 ; $State: Exp $
-; $Author: joty $
+; $Author: alex $
 ;
 ;----------------------------------------------------------------------------
 
@@ -66,19 +66,19 @@
 	LDR	a1, =|__pthread_system_running|
 	LDR	a1, [a1]
 	TEQ	a1, #0
-	stackreturn	EQ, "v1-v2, pc"
+	LDMEQFD	sp!, {v1-v2, pc}
 
 	; Don't start if there's only one thread running
 	LDR	a1, =|__pthread_num_running_threads|
 	LDR	a1, [a1]
 	CMP	a1, #1
-	stackreturn	LE, "v1-v2, pc"
+	LDMLEFD	sp!, {v1-v2, pc}
 
 	; Don't start if the ticker is already running
 	LDR	a1, =|ticker_started|
 	LDR	a1, [a1]
 	TEQ	a1, #0
-	stackreturn	NE, "v1-v2, pc"
+	LDMNEFD	sp!, {v1-v2, pc}
 
 	; Are we running as WIMP task ?
 	; If we are then we need a filter switching off our ticker when we're
@@ -107,7 +107,7 @@
 
 start_ticker_core
 	BL	|start_call_every|
-	stackreturn	AL, "v1-v2, pc"
+	LDMFD	sp!, {v1-v2, pc}
 
 filter_name
 	DCB	"pthread filter", 0
@@ -121,7 +121,7 @@ filter_name
 	LDR	a4, =|ticker_started|
 	LDR	a1, [a4]
 	TEQ	a1, #0
-	stackreturn	NE, "pc"
+	LDMNEFD	sp!, {pc}
 
 	MOV	a1, #1
 	ADR	a2, |pthread_call_every|
@@ -130,7 +130,7 @@ filter_name
 
 	MOVVC	a1, #1
 	STRVC	a1, [a4]
-	stackreturn	VC, "pc"
+	LDMVCFD	sp!, {pc}
 	ADD	a1, a1, #4
 	B	|__pthread_fatal_error|
 
@@ -143,14 +143,14 @@ filter_name
 	LDR	a3, =|ticker_started|
 	LDR	a2, [a3]
 	TEQ	a2, #1
-	stackreturn	NE, "pc"
+	LDMNEFD	sp!, {pc}
 	MOV	a2, #0
 	STR	a2, [a3]
 
 	ADR	a1, |pthread_call_every|
 	MOV	a2, #0
 	SWI	XOS_RemoveTickerEvent
-	stackreturn	AL, "pc"
+	LDMFD	sp!, {pc}
 
 
 ;
@@ -163,7 +163,7 @@ filter_name
 	LDR	a1, =|__pthread_system_running|
 	LDR	a1, [a1]
 	TEQ	a1, #0
-	stackreturn	EQ, "v1, pc"
+	LDMEQFD	sp!, {v1, pc}
 
 	; Need to remove the filters ?
 	LDR	a1, =|__taskhandle|
@@ -190,7 +190,7 @@ filter_name
 
 stop_ticker_core
 	BL	|stop_call_every|
-	stackreturn	AL, "v1, pc"
+	LDMFD	sp!, {v1, pc}
 
 
 ; The ticker calls this every clock tick
@@ -346,7 +346,7 @@ skip_callback
 	SFM	f4, 4, [a2], #48
 	RFS	a1	; Read floating status
 	STR	a1, [a2], #12
-	return	AL, pc, lr
+	MOV	pc, lr
 
 
 	AREA	|C$data|, DATA

@@ -1,10 +1,10 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/_udiv10.s,v $
-; $Date: 2002/09/24 21:02:38 $
-; $Revision: 1.4 $
+; $Date: 2003/04/05 23:56:08 $
+; $Revision: 1.5 $
 ; $State: Exp $
-; $Author: admin $
+; $Author: joty $
 ;
 ;----------------------------------------------------------------------------
 
@@ -27,6 +27,6 @@
 	SUBS	a2, a2, a3, LSL #1	; Calculate a1/10 - (a1/10)*10
 	ADDPL	a1, a1, #1		; Fix quotient
 	ADDMI	a2, a2, #10		; Fix remainder
-	return	AL, pc, lr
+	MOV	pc, lr
 
 	END

@@ -1,8 +1,8 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/scl/_kernel.s,v $
-; $Date: 2001/01/29 15:10:20 $
-; $Revision: 1.2 $
+; $Date: 2002/09/24 21:02:37 $
+; $Revision: 1.3 $
 ; $State: Exp $
 ; $Author: admin $
 ;
@@ -45,10 +45,10 @@
 	LDR	ip, [sp]
 	STMIA	ip, {a1-v6}
 	MOVVC	a1, #0
-	stackreturn	VC, "a3, v1-v6, pc"
+	LDMVCFD	sp!, {a3, v1-v6, pc}
 	MOV	v1, a1
 	BL	|__seterr|
 	MOV	a1, v1
-	stackreturn	AL, "a3, v1-v6, pc"
+	LDMFD	sp!, {a3, v1-v6, pc}
 
 	END

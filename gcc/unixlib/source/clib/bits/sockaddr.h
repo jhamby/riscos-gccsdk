@@ -1,18 +1,18 @@
 /****************************************************************************
  *
- * $Source: $
- * $Date: $
- * $Revision: $
- * $State: $
- * $Author: $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/bits/sockaddr.h,v $
+ * $Date: 2002/12/22 18:22:28 $
+ * $Revision: 1.1 $
+ * $State: Exp $
+ * $Author: admin $
  *
  ***************************************************************************/
 
 /*
  * File taken from glibc 2.2.5.
  * Following changes were made:
- *  - Added #define test on COMPAT_INET4 (in order to be compatible with
- *    Acorn's TCPIPLibs.
+ *  - Added #define test on __UNIXLIB_COMPAT_INET4 (equivalent to
+ *    COMPAT_INET4 in Acorn's TCPIPLibs).
  */
 
 /* Definition of `struct sockaddr_*' common members.  4.4 BSD version.
@@ -43,7 +43,7 @@
 
 
 /* POSIX.1g specifies this type name for the `sa_family' member.  */
-#ifdef COMPAT_INET4
+#if __UNIXLIB_COMPAT_INET4
 typedef unsigned short sa_family_t;
 #else
 typedef unsigned char sa_family_t;
@@ -53,7 +53,7 @@ typedef unsigned char sa_family_t;
    of the data types used for socket addresses, `struct sockaddr',
    `struct sockaddr_in', `struct sockaddr_un', etc.  */
 
-#ifdef COMPAT_INET4
+#if __UNIXLIB_COMPAT_INET4
 #define	__SOCKADDR_COMMON(sa_prefix)	\
   sa_family_t sa_prefix##family
 

@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/fcntl.h,v $
- * $Date: 2004/04/12 13:03:37 $
- * $Revision: 1.5 $
+ * $Date: 2004/04/21 19:43:19 $
+ * $Revision: 1.6 $
  * $State: Exp $
- * $Author: nick $
+ * $Author: alex $
  *
  *
  ***************************************************************************/
@@ -15,7 +15,7 @@
 #define __FCNTL_H
 
 #ifndef __UNIXLIB_FEATURES_H
-#include <unixlib/features.h>
+#include <features.h>
 #endif
 
 #ifndef __UNIXLIB_TYPES_H

@@ -1,10 +1,10 @@
 ;----------------------------------------------------------------------------
 ;
-; $Source$
-; $Date$
-; $Revision$
-; $State$
-; $Author$
+; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/_profile.s,v $
+; $Date: 2002/09/24 21:02:38 $
+; $Revision: 1.4 $
+; $State: Exp $
+; $Author: admin $
 ;
 ;----------------------------------------------------------------------------
 
@@ -20,7 +20,7 @@
 	LDR	ip, [lr, #0]
 	ADD	ip, ip, #1
 	STR	ip, [lr], #4
-	return	AL, pc, lr
+	MOV	pc, lr
 
 	EXPORT	|_count1|
 	NAME	_count1
@@ -30,6 +30,6 @@
 	LDR	ip, [lr, #0]
 	ADD	ip, ip, #1
 	STR	ip, [lr], #8
-	return	AL, pc, lr
+	MOV	pc, lr
 
 	END

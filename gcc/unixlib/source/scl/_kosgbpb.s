@@ -1,8 +1,8 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/scl/_kosgbpb.s,v $
-; $Date: 2001/01/29 15:10:20 $
-; $Revision: 1.2 $
+; $Date: 2002/09/24 21:02:37 $
+; $Revision: 1.3 $
 ; $State: Exp $
 ; $Author: admin $
 ;
@@ -24,10 +24,10 @@
 	SWI	XOS_GBPB
 	STMIA	v4, {a3, a4, v1, v2, v3}
 	MVNCS	a1, #0
-	stackreturn	CS, "v1, v2, v3, v4, pc"
+	LDMCSFD	sp!, {v1, v2, v3, v4, pc}
 
 	BL	|__seterr|
 	MVN	a1, #1
-	stackreturn	AL, "v1, v2, v3, v4, pc"
+	LDMFD	sp!, {v1, v2, v3, v4, pc}
 
 	END

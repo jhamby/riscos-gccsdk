@@ -1,10 +1,10 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/_syslib.s,v $
-; $Date: 2004/06/12 08:59:49 $
-; $Revision: 1.29 $
+; $Date: 2004/09/07 14:05:11 $
+; $Revision: 1.30 $
 ; $State: Exp $
-; $Author: peter $
+; $Author: joty $
 ;
 ;----------------------------------------------------------------------------
 
@@ -50,9 +50,6 @@ CHUNK_DEALLOC	*	16	; Function to call to free the chunk
 CHUNK_RETURN	*	20	; Return address after freeing this chunk
 
 CHUNK_OVERHEAD	*	24	; Size of chunk header
-
-STACK_CHECK_MAGIC	*	1	; Should we check that the magic number is valid each time the stack is extended/shrunk
-EXTREMELY_PARANOID	*	0	; Should we check that the entire stack chunk chain is valid each time the stack is extended/shrunk
 
 	AREA	|C$$code|, CODE, READONLY
 
@@ -429,7 +426,7 @@ no_dynamic_area
 
 	; Read the current RISC OS environment handler state
 	BL	|__env_read|
-	; Install the Unixlib environment handlers
+	; Install the UnixLib environment handlers
 	BL	|__env_unixlib|
 	; Initialise the stack heap in application space
 	BL	|__stackalloc_init|
@@ -504,7 +501,7 @@ error_rclimit_exceeded
 	LDMFD	sp!, {lr}
 	LDR	a2, [a2]
 	TEQ	a2, #1
-	return	NE, pc, lr
+	MOVNE	pc, lr
 
 	LDR	a2, =|__dynamic_num|
 	MOV	a4, lr
@@ -512,7 +509,7 @@ error_rclimit_exceeded
 	MOV	a1, #1
 	CMP	a2, #-1
 	SWINE	XOS_DynamicArea
-	return	AL, pc, a4
+	MOV	pc, a4
 
 	; a1 contains the final program's return code.
 	EXPORT	|__exit|
@@ -587,7 +584,7 @@ exit_word
 	SUB	v2, v2, #14*3*4
 	LDMIA	v2, {a2, a3, a4}
 	SWI	XOS_ChangeEnvironment
-	stackreturn     AL, "v1, v2, pc"
+	LDMFD	sp!, {v1, v2, pc}
 
 	; Restore original wimpslot, appspace and himem limits (including
 	; sp), and original RISC OS environment handlers
@@ -623,7 +620,7 @@ t04
 	ADD	v1, v1, #1
 	CMP	v1, #17		;  __ENVIRONMENT_HANDLERS
 	BCC	t04
-	stackreturn	AL, "v1, v2, pc"
+	LDMFD	sp!, {v1, v2, pc}
 
 	; Get current environment handler setup
 	NAME	__env_read
@@ -732,7 +729,7 @@ handlers
 |x$stack_overflow_1|
 |__rt_stkovf_split_big|
 	CMP	ip, sl		; sanity check
-	return	CS, pc, lr
+	MOVCS	pc, lr
 	STMFD	sp!, {a1, a2, a3, a4, v1, v2, v3, lr}
 	; This must store the same regs as for __rt_stkovf_split_small
 	; and if changed, also update the 8*4 in the frame size calculation below
@@ -757,12 +754,12 @@ stack_overflow_common
 	TEQ	a1, #0
 	BNE	signalhandler_overflow
 
-	[ EXTREMELY_PARANOID = 1
+	[ __UNIXLIB_EXTREMELY_PARANOID > 0
 	BL	|__check_stack|
 	]
 
 	SUB	v2, sl, #512+CHUNK_OVERHEAD	; Find bottom of chunk
-	[ STACK_CHECK_MAGIC = 1
+	[ __UNIXLIB_STACK_CHECK_MAGIC > 0
 	LDR	a1, |__stackchunk_magic_number|
 	LDR	a2, [v2, #CHUNK_MAGIC]
 	TEQ	a1, a2
@@ -778,7 +775,7 @@ stack_overflow_common
 	TEQ	a1, #0
 	BEQ	alloc_new_chunk	; There isn't a spare chunk, so we need to alloc a new one
 
-	[ STACK_CHECK_MAGIC = 1
+	[ __UNIXLIB_STACK_CHECK_MAGIC > 0
 	LDR	a3, |__stackchunk_magic_number|
 	LDR	a4, [a1, #CHUNK_MAGIC]
 	TEQ	a3, a4
@@ -847,7 +844,7 @@ raise_sigemt
 	BL	|__unixlib_raise_signal|
 	B	|_exit|		; __unixlib_raise_signal shouldn't return
 
-	[ (EXTREMELY_PARANOID = 1) :LOR: (STACK_CHECK_MAGIC = 1)
+	[ (__UNIXLIB_EXTREMELY_PARANOID > 0) :LOR: (__UNIXLIB_STACK_CHECK_MAGIC > 0)
 stack_corrupt_msg
 	DCB	"***Fatal error: Stack corruption detected***", 13, 10, 0
 	ALIGN
@@ -863,7 +860,7 @@ signalhandler_overflow
 	ADR	a1, signalhandler_overflow_msg
 	B	__unixlib_fatal
 
-	[ EXTREMELY_PARANOID = 1
+	[ __UNIXLIB_EXTREMELY_PARANOID > 0
 	; Check every stack chunk in the chain to ensure it contains
 	; sensible values.
 	EXPORT	|__check_stack|
@@ -873,7 +870,7 @@ signalhandler_overflow
 	STMFD	sp!, {a1, a2, a3, a4, v1, v2, fp, ip, lr, pc}
 	SUB	fp, ip, #4
 
-	[ __FEATURE_PTHREADS = 1
+	[ __UNIXLIB_FEATURE_PTHREADS > 0
 	LDR	a1, =|__pthread_system_running|
 	LDR	a1, [a1]
 	TEQ	a1, #0
@@ -900,7 +897,7 @@ __check_stack_l2
 __check_stack_l3
 	CMP	a1, #0
 	BNE	__check_stack_l4
-	[ __FEATURE_PTHREADS = 1
+	[ __UNIXLIB_FEATURE_PTHREADS > 0
 	LDR	a1, =|__pthread_system_running|
 	LDR	a1, [a1]
 	CMP	a1, #0
@@ -968,7 +965,7 @@ __check_chunk_l1
 	BCS	stack_corrupt
 __check_chunk_l2
 	return	AL, pc, lr
-	] ; EXTREMELY_PARANOID = 1
+	] ; __UNIXLIB_EXTREMELY_PARANOID > 0
 
 
 	EXPORT	|__trim_stack|
@@ -978,14 +975,14 @@ __check_chunk_l2
 	CMP	a1, #0
 	MOVNE	a3, #0
 	STRNE	a3, [a2, #CHUNK_NEXT]
-	return	EQ, pc, lr	; Falls through to __free_stack_chain if required
+	MOVEQ	pc, lr	; Falls through to __free_stack_chain if required
 
 	EXPORT	|__free_stack_chain|
 |__free_stack_chain| ; free a chain of stack chunks pointer to by a1
 	STMFD	sp!, {v1, lr}
 __free_stack_chain_l1
 	; Spare chunk is too small, so free it and alloc another one
-	[ STACK_CHECK_MAGIC = 1
+	[ __UNIXLIB_STACK_CHECK_MAGIC > 0
 	MOV	a2, #0	; Invalidate the magic number
 	STR	a2, [a1, #CHUNK_MAGIC]
 	]
@@ -993,7 +990,7 @@ __free_stack_chain_l1
 	BL	|__stackfree|
 	MOVS	a1, v1
 	BNE	__free_stack_chain_l1
-	stackreturn	AL, "v1, pc"
+	LDMFD	sp!, {v1, pc}
 
 
 free_stack_chunk
@@ -1004,7 +1001,7 @@ free_stack_chunk
 	; so we need to free the previously unused chunk, not the chunk that
 	; has just been finished with. Therefore the chunk just finished
 	; with can be used as a stack for this function
-	[ EXTREMELY_PARANOID = 1
+	[ __UNIXLIB_EXTREMELY_PARANOID > 0
 	BL	|__check_stack|
 	]
 	SUB	sl, sl, #512+CHUNK_OVERHEAD	; sl = start of current chunk
@@ -1015,7 +1012,7 @@ free_stack_chunk
 	; sl remains at the bottom of the chunk, but there's 4K of space and
 	; __stackfree won't need more than 256 bytes of it so this is ok
 
-	[ STACK_CHECK_MAGIC = 1
+	[ __UNIXLIB_STACK_CHECK_MAGIC > 0
 	LDR	a1, |__stackchunk_magic_number|
 	LDR	a2, [sl, #CHUNK_MAGIC]
 	TEQ	a1, a2
@@ -1026,7 +1023,7 @@ free_stack_chunk
 	CMP	a1, #0
 	BEQ	no_chunk_to_free
 
-	[ STACK_CHECK_MAGIC = 1
+	[ __UNIXLIB_STACK_CHECK_MAGIC > 0
 	MOV	a2, #0	; Invalidate the magic number
 	STR	a2, [a1, #CHUNK_MAGIC]
 	]
@@ -1040,7 +1037,7 @@ no_chunk_to_free
 	LDR	lr, [sl, #CHUNK_RETURN]	; Get the real return address
 	LDR	sl, [sl, #CHUNK_PREV]
 	ADD	sl, sl, #512+CHUNK_OVERHEAD	; Set sl up correctly for the old stack chunk
-	return	AL, pc, lr
+	MOV	pc, lr
 
 
 	; Globally used panic button.
@@ -1103,7 +1100,7 @@ __unixlib_fatal_got_msg
 |_kernel_fpavailable|
 	LDR	a1, =struct_base
 	LDR	a1, [a1, #52]	; __fpflag
-	return	AL, pc, lr
+	MOV	pc, lr
 
 	AREA	|C$$zidata|, DATA, NOINIT
 

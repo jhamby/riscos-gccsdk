@@ -1,8 +1,8 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/common/_exist.s,v $
-; $Date: 2003/08/15 13:56:31 $
-; $Revision: 1.5 $
+; $Date: 2003/08/18 22:35:36 $
+; $Revision: 1.6 $
 ; $State: Exp $
 ; $Author: joty $
 ;
@@ -32,7 +32,7 @@
 	ANDEQ	a1, v1, #2	; feature imagefs not set, so bit 1 set for dir or image
 	TEQNE	v1, #2		; feature imagefs set, so only real directories
 	MOVNE	a1, #0
-	stackreturn	AL, "v1, v2, pc"
+	LDMFD	sp!, {v1, v2, pc}
 
 	; int __object_exists_raw (const char *object)
 	; Return nonzero if OBJECT exists (as file, dir or image).
@@ -46,7 +46,7 @@
 	MOV	a1, #17
 	SWI	XOS_File
 	MOVVS	a1, #0		; Error, so assume not there
-	stackreturn	AL, "v1, v2, pc"
+	LDMFD	sp!, {v1, v2, pc}
 
 	; int __get_feature_imagefs_is_file (void)
 	EXPORT	|__get_feature_imagefs_is_file|
@@ -56,7 +56,7 @@
 	TEQ	a1, #0
 	LDREQ	a1, =|__feature_imagefs_is_file_internal|
 	LDR	a1, [a1, #0]
-	return	AL, pc, lr
+	MOV	pc, lr
 
 	; At the moment, we don't need to manipulate the
 	; __set_feature_imagefs_is_file feature directly inside UnixLib, so

@@ -1,8 +1,8 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/unixlib/sigstate.h,v $
- * $Date: 2004/09/07 14:05:10 $
- * $Revision: 1.6 $
+ * $Date: 2004/09/23 22:16:39 $
+ * $Revision: 1.7 $
  * $State: Exp $
  * $Author: joty $
  *
@@ -15,7 +15,7 @@
 #define __UNIXLIB_SIGSTATE_H 1
 
 #ifndef __UNIXLIB_FEATURES_H
-#include <unixlib/features.h>
+#include <features.h>
 #endif
 
 #ifndef __SIGNAL_H

@@ -1,10 +1,10 @@
 /****************************************************************************
  *
- * $Source: $
- * $Date: $
- * $Revision: $
- * $State: $
- * $Author: $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/bits/libc-lock.h,v $
+ * $Date: 2003/04/28 21:04:35 $
+ * $Revision: 1.1 $
+ * $State: Exp $
+ * $Author: alex $
  *
  ***************************************************************************/
 
@@ -14,7 +14,7 @@
 #include <pthread.h>
 
 
-#if __FEATURE_PTHREADS
+#if __UNIXLIB_FEATURE_PTHREADS
 
 #define __libc_lock_define_initialized(class, name) \
 class pthread_mutex_t name = PTHREAD_MUTEX_INITIALIZER;

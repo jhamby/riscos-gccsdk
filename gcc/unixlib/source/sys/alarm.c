@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/alarm.c,v $
- * $Date: 2001/01/29 15:10:21 $
- * $Revision: 1.2 $
+ * $Date: 2002/09/24 21:02:38 $
+ * $Revision: 1.3 $
  * $State: Exp $
  * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: alarm.c,v 1.2 2001/01/29 15:10:21 admin Exp $";
+static const char rcs_id[] = "$Id: alarm.c,v 1.3 2002/09/24 21:02:38 admin Exp $";
 #endif
 
 /* Copyright (C) 1991, 1992, 1994, 1997 Free Software Foundation, Inc.
@@ -32,12 +32,11 @@ static const char rcs_id[] = "$Id: alarm.c,v 1.2 2001/01/29 15:10:21 admin Exp $
 #include <errno.h>
 #include <unistd.h>
 #include <sys/time.h>
-#include <unixlib/features.h>
 
 unsigned int
 alarm (unsigned int seconds)
 {
-#if __FEATURE_ITIMERS
+#if __UNIXLIB_FEATURE_ITIMERS
   struct itimerval old_timer, new_timer;
   unsigned int retval;
 
@@ -60,7 +59,7 @@ alarm (unsigned int seconds)
 useconds_t
 ualarm (useconds_t useconds, useconds_t interval)
 {
-#if __FEATURE_ITIMERS
+#if __UNIXLIB_FEATURE_ITIMERS
   struct itimerval old_timer, new_timer;
 
   new_timer.it_interval.tv_sec = (time_t)interval / 1000000;

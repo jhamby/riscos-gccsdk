@@ -1,8 +1,8 @@
 # Project:   GCCSDK UnixLib
 
 # $Source: /usr/local/cvsroot/gccsdk/unixlib/objs/Makefile.in,v $
-# $Date: 2004/08/16 21:01:26 $
-# $Revision: 1.8 $
+# $Date: 2004/09/23 22:16:39 $
+# $Revision: 1.9 $
 # $State: Exp $
 # $Author: joty $
 
@@ -47,7 +47,7 @@ ASflags = -throwback -depend !Depend -I UnixLib:^ $(ASdflags) -APCS 3/32bit
 #AS = gcc
 #ASflags = -c
 #ASdflags =
-#ASrflags = -I UnixLib:
+#ASrflags = -I UnixLib:^
 
 # Libfile, etc
 AR = libfile
@@ -95,6 +95,7 @@ clean:
 	-wipe module.o.* fv~r~c
 	-remove UnixLib
 	-remove SharedULib
+	-remove UnixLib:o.UnixLib
 
 # Static dependencies:
 

@@ -1,8 +1,8 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/math-asm/_fesetroun.s,v $
-; $Date: 2001/01/29 15:10:20 $
-; $Revision: 1.2 $
+; $Date: 2002/09/24 21:02:37 $
+; $Revision: 1.3 $
 ; $State: Exp $
 ; $Author: admin $
 ;
@@ -16,9 +16,9 @@
 	NAME	fesetround
 fesetround
 	; Only FE_TONEAREST is supported.
-	cmp	a1, #0
-	movne	a1, #0
-	moveq	a1, #1
-	return	AL, pc, lr
+	CMP	a1, #0
+	MOVNE	a1, #0
+	MOVEQ	a1, #1
+	MOV	pc, lr
 
 	END

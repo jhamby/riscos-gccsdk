@@ -1,18 +1,17 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/sys/cdefs.h,v $
- * $Date: 2003/11/21 14:38:33 $
- * $Revision: 1.4 $
+ * $Date: 2004/03/17 20:00:50 $
+ * $Revision: 1.5 $
  * $State: Exp $
- * $Author: peter $
+ * $Author: joty $
  *
  ***************************************************************************/
 
 /*
  * File taken from glibc 2.2.5.
  * Following changes were made:
- *  - Changed _FEATURES_H & #include <features.h> into __UNIXLIB_FEATURES_H
- *    & #include <unixlib/features.h>
+ *  - Changed _FEATURES_H into __UNIXLIB_FEATURES_H
  *  - Changed test "__GNUC__ >= (or <) 2" into __GNUC_PREREQ() construction
  *    in order to avoid Norcroft C compiler warnings
  *  - Added weak_(const)_function, internal_function definitions from
@@ -42,7 +41,7 @@
 
 /* We are almost always included from features.h. */
 #ifndef __UNIXLIB_FEATURES_H
-# include <unixlib/features.h>
+# include <features.h>
 #endif
 
 /* The GNU libc does not support any K&R compilers or the traditional mode

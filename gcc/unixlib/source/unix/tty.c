@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/tty.c,v $
- * $Date: 2004/09/07 14:05:11 $
- * $Revision: 1.13 $
+ * $Date: 2004/09/09 15:34:52 $
+ * $Revision: 1.14 $
  * $State: Exp $
- * $Author: joty $
+ * $Author: peter $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: tty.c,v 1.13 2004/09/07 14:05:11 joty Exp $";
+static const char rcs_id[] = "$Id: tty.c,v 1.14 2004/09/09 15:34:52 peter Exp $";
 #endif
 
 /* System V tty device driver for RISC OS.  */
@@ -34,7 +34,6 @@ static const char rcs_id[] = "$Id: tty.c,v 1.13 2004/09/07 14:05:11 joty Exp $";
 #include <unixlib/dev.h>
 #include <sys/select.h>
 #include <swis.h>
-#include <unixlib/features.h>
 #include <unixlib/fd.h>
 #include <pthread.h>
 #include <time.h>
@@ -223,7 +222,7 @@ __tty_console_sterm (struct termios *term)
     __os_byte (0xe5, 0xff, 0, NULL);
 }
 
-#if __FEATURE_DEV_RS423
+#if __UNIXLIB_FEATURE_DEV_RS423
 /* Maps the B* #define's to RISC OS OS_Serial BaudRate values.  */
 static const int baud_rate[__MAX_BAUD + 1] =
 {
@@ -317,7 +316,7 @@ __ttyopen (struct __unixlib_fd *file_desc, const char *file, int mode)
 
   if (file[sizeof("/dev/")-1] == 'c')
     type = TTY_CON; /* /dev/console */
-#if __FEATURE_DEV_RS423
+#if __UNIXLIB_FEATURE_DEV_RS423
   else if (file[sizeof("/dev/")-1] == 'r'
            || strcmp(file + sizeof("/dev/")-1, "ttyS0") == 0)
     type = TTY_423; /* /dev/rs423 */
@@ -358,7 +357,7 @@ __ttyopen (struct __unixlib_fd *file_desc, const char *file, int mode)
       term->c_cflag = CS8 | CREAD | HUPCL | CLOCAL;
       term->c_ispeed = term->c_ospeed = B38400;
     }
-#if __FEATURE_DEV_RS423
+#if __UNIXLIB_FEATURE_DEV_RS423
   else if (type == TTY_423)
     {
       term->c_cflag = CS8 | CREAD | HUPCL | CLOCAL;
@@ -386,7 +385,7 @@ __ttyopen (struct __unixlib_fd *file_desc, const char *file, int mode)
       tty->init = __os_console;
       tty->flush = __os_keyflush;
     }
-#if __FEATURE_DEV_RS423
+#if __UNIXLIB_FEATURE_DEV_RS423
   else if (type == TTY_423)
     {
       struct winsize *win = tty->w;
@@ -408,7 +407,7 @@ __ttyopen (struct __unixlib_fd *file_desc, const char *file, int mode)
 
   __funcall ((*(tty->init)), ());
 
-#if __FEATURE_DEV_RS423
+#if __UNIXLIB_FEATURE_DEV_RS423
   /* Setup RS423.  */
   if (type == TTY_423)
     __tty_423_sterm (tty->t);
@@ -961,7 +960,7 @@ __ttyioctl (struct __unixlib_fd *file_desc, unsigned long request, void *arg)
         memcpy (term, arg, sizeof (struct termios));
         if (type == TTY_CON)
           __tty_console_sterm (term);
-#if __FEATURE_DEV_RS423
+#if __UNIXLIB_FEATURE_DEV_RS423
         else if (type == TTY_423)
           __tty_423_sterm (term);
 #endif
@@ -973,7 +972,7 @@ __ttyioctl (struct __unixlib_fd *file_desc, unsigned long request, void *arg)
     case TIOCSETD: /* Set line discipline.  */
       break;
     case TIOCSBRK: /* Set break bit.  */
-#if __FEATURE_DEV_RS423
+#if __UNIXLIB_FEATURE_DEV_RS423
       if (type == TTY_423 && !arg)
 	__os_423break (25);
 #endif

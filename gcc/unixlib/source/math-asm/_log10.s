@@ -1,8 +1,8 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/math-asm/_log10.s,v $
-; $Date: 2002/09/24 21:02:37 $
-; $Revision: 1.3 $
+; $Date: 2002/11/26 21:52:07 $
+; $Revision: 1.4 $
 ; $State: Exp $
 ; $Author: admin $
 ;
@@ -20,6 +20,6 @@ log10l
 	STMFD	sp!, {a1, a2}
 	LDFD	f0, [sp], #8
 	LOGD	f0, f0
-	return	AL, pc, lr
+	MOV	pc, lr
 
 	END

@@ -1,8 +1,8 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/math-asm/_isinf.s,v $
-; $Date: 2001/01/29 15:10:20 $
-; $Revision: 1.2 $
+; $Date: 2002/09/24 21:02:37 $
+; $Revision: 1.3 $
 ; $State: Exp $
 ; $Author: admin $
 ;
@@ -21,6 +21,6 @@ isinf
 	ORRS	a2, a1, a2
 	MOVNE	a1, #0
 	MOVEQ	a1, #1
-	return	AL, pc, lr
+	MOV	pc, lr
 
 	END

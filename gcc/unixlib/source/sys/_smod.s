@@ -1,10 +1,10 @@
 ;----------------------------------------------------------------------------
 ;
-; $Source$
-; $Date$
-; $Revision$
-; $State$
-; $Author$
+; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/_smod.s,v $
+; $Date: 2002/09/24 21:02:38 $
+; $Revision: 1.4 $
+; $State: Exp $
+; $Author: admin $
 ;
 ;----------------------------------------------------------------------------
 
@@ -26,7 +26,7 @@ divisor RN 0
 	RSBMI	dividend,dividend,#0
 	MOVS	divisor,divisor
 	; just return for divide by zero
-	return	EQ, pc, lr
+	MOVEQ	pc, lr
 	RSBMI	divisor,divisor,#0
 	MOV	a3,divisor
 
@@ -50,6 +50,6 @@ divloop
 	MOV	a1, dividend
 	TST	ip,#&80000000
 	RSBNE	a1,a1,#0
-	return	AL, pc, lr
+	MOV	pc, lr
 
 	END

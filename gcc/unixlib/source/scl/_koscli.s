@@ -1,8 +1,8 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/scl/_koscli.s,v $
-; $Date: 2004/01/06 00:17:37 $
-; $Revision: 1.4 $
+; $Date: 2004/09/23 22:16:39 $
+; $Revision: 1.5 $
 ; $State: Exp $
 ; $Author: joty $
 ;
@@ -21,9 +21,9 @@
 	STMFD	sp!, {lr}
 	SWI	XOS_CLI
 	MOVVC	a1, #1
-	stackreturn	VC, "pc"
+	LDMVCFD	sp!, {pc}
 	BL	|__seterr|
 	MOV	a1, #-2
-	stackreturn	AL, "pc"
+	LDMFD	sp!, {pc}
 
 	END

@@ -1,8 +1,8 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/glob.c,v $
- * $Date: 2002/01/31 14:32:04 $
- * $Revision: 1.2.2.1 $
+ * $Date: 2002/02/14 15:56:38 $
+ * $Revision: 1.3 $
  * $State: Exp $
  * $Author: admin $
  *
@@ -522,7 +522,7 @@ glob2 (Char *pathbuf, Char *pathend, Char *pattern, glob_t *pglob)
 		if (*pattern == EOS) {		/* End of pattern? */
 			*pathend = EOS;
 #ifdef UNIXLIB_RUNTIME
-			/* Under RISC OS/Unixlib, we don't follow links.  */
+			/* Under RISC OS/UnixLib, we don't follow links.  */
 			if (g_stat (pathbuf, &sb, pglob))
 			   return 0;
 			if ((pglob->gl_flags & GLOB_MARK)

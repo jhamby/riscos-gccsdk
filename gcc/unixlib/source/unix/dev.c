@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/dev.c,v $
- * $Date: 2004/09/07 17:49:40 $
- * $Revision: 1.19 $
+ * $Date: 2004/09/09 15:34:52 $
+ * $Revision: 1.20 $
  * $State: Exp $
  * $Author: peter $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: dev.c,v 1.19 2004/09/07 17:49:40 peter Exp $";
+static const char rcs_id[] = "$Id: dev.c,v 1.20 2004/09/09 15:34:52 peter Exp $";
 #endif
 
 /* #define DEBUG */
@@ -29,7 +29,6 @@ static const char rcs_id[] = "$Id: dev.c,v 1.19 2004/09/07 17:49:40 peter Exp $"
 #include <unixlib/dev.h>
 #include <unixlib/os.h>
 #include <unixlib/local.h>
-#include <unixlib/features.h>
 #include <unixlib/swiparams.h>
 #include <unixlib/unix.h>
 
@@ -60,7 +59,7 @@ struct dev __dev[NDEV] =
   {__ttyopen, __ttyclose, __ttyread, __ttywrite,
     __ttylseek, __ttyioctl, __ttyselect, __nullstat, __nullfstat },
   /* DEV_PIPE */
-#if __FEATURE_PIPEDEV
+#if __UNIXLIB_FEATURE_PIPEDEV
   {__pipeopen, __pipeclose, __piperead, __pipewrite,
     __pipelseek, __pipeioctl, __pipeselect, __nullstat, __nullfstat },
 #else
@@ -71,7 +70,7 @@ struct dev __dev[NDEV] =
   {__nullopen, __nullclose, __nullread, __nullwrite,
     __nulllseek, __nullioctl, __nullselect, __nullstat, __nullfstat },
   /* DEV_SOCKET */
-#if __FEATURE_SOCKET
+#if __UNIXLIB_FEATURE_SOCKET
   /* Socket select is a special case.  */
   {__sockopen, __sockclose, __sockread, __sockwrite,
     __socklseek, __sockioctl, __sockselect, __nullstat, __nullfstat },
@@ -656,7 +655,7 @@ __fsfstat (int fd, struct stat *buf)
   return 0;
 }
 
-#if __FEATURE_PIPEDEV
+#if __UNIXLIB_FEATURE_PIPEDEV
 struct pipe *__pipe = NULL;
 
 void *
@@ -788,7 +787,7 @@ __pipeselect (struct __unixlib_fd *file_desc, int fd,
   /* This may not be correct, but it is consistent with Internet 5 select.  */
   return to_read + (pwrite ? 1 : 0);
 }
-#endif /* __FEATURE_PIPEDEV */
+#endif /* __UNIXLIB_FEATURE_PIPEDEV */
 
 void *
 __nullopen (struct __unixlib_fd *file_desc, const char *file, int mode)
@@ -904,7 +903,7 @@ __nullfstat (int fd, struct stat *buf)
   return 0;
 }
 
-#if __FEATURE_SOCKET
+#if __UNIXLIB_FEATURE_SOCKET
 void *
 __sockopen (struct __unixlib_fd *file_desc, const char *file, int mode)
 {
@@ -967,7 +966,7 @@ __sockselect (struct __unixlib_fd *file_descriptor, int fd,
   /* None are `live' yet.  */
   return 0;
 }
-#endif /* __FEATURE_SOCKET */
+#endif /* __UNIXLIB_FEATURE_SOCKET */
 
 /* Implements /dev/zero */
 int

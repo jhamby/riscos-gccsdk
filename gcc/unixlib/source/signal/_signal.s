@@ -1,8 +1,8 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/signal/_signal.s,v $
-; $Date: 2004/09/07 14:05:11 $
-; $Revision: 1.21 $
+; $Date: 2004/09/23 22:16:39 $
+; $Revision: 1.22 $
 ; $State: Exp $
 ; $Author: joty $
 ;
@@ -60,7 +60,7 @@
 	MOV	v1, a1
 	BL	|__setup_signalhandler_stack|
 
-	[ __FEATURE_PTHREADS = 1
+	[ __UNIXLIB_FEATURE_PTHREADS > 0
 	BL	|__pthread_disable_ints|
 	]
 
@@ -72,7 +72,7 @@
 	; Go back in SVC mode.
 	SWI	XOS_EnterOS
 
-	[ __FEATURE_PTHREADS = 1
+	[ __UNIXLIB_FEATURE_PTHREADS > 0
 	BL	|__pthread_enable_ints|
 	]
 
@@ -108,7 +108,7 @@
 	MOV	a3, #EOPSYS
 	__set_errno	a3, a2 ; Set errno = EOPSYS
 
-	[ __FEATURE_PTHREADS = 1
+	[ __UNIXLIB_FEATURE_PTHREADS > 0
 	LDR	a2, =|__pthread_running_thread|
 	LDR	a2, [a2]
 	ADD	a2, a2, #__PTHREAD_ERRBUF_OFFSET
@@ -142,7 +142,7 @@
 	EXPORT	|_kernel_last_oserror|
 	NAME	_kernel_last_oserror
 |_kernel_last_oserror|
-	[ __FEATURE_PTHREADS = 1
+	[ __UNIXLIB_FEATURE_PTHREADS > 0
 	LDR	a1, =|__pthread_running_thread|
 	LDR	a1, [a1, #0]
 	LDR	a2, [a1, #__PTHREAD_ERRBUF_OFFSET]!
@@ -335,7 +335,7 @@
 	SWI	XOS_EnterOS	; Change to SVC mode so we don't get any
 				; callbacks while we are setting up the stack
 
-	[ __FEATURE_PTHREADS = 1
+	[ __UNIXLIB_FEATURE_PTHREADS > 0
 	LDR	a1, =|__pthread_system_running|
 	LDR	a1, [a1]
 	TEQ	a1, #0
@@ -357,7 +357,7 @@
 	MOV	a2, #EOPSYS
 	__set_errno	a2, a1
 
-	[ __FEATURE_PTHREADS = 1
+	[ __UNIXLIB_FEATURE_PTHREADS > 0
 	IMPORT	|memcpy|
 	; Copy error buffer into thread specific storage
 	LDR	a1, =|__pthread_running_thread|
@@ -568,7 +568,7 @@ Internet_Event	EQU	19
 	EXPORT	|__h_cback|
 	NAME	__h_cback
 |__h_cback|
-	[ __FEATURE_PTHREADS = 1
+	[ __UNIXLIB_FEATURE_PTHREADS > 0
 	; Check that the return PC value is within our wimpslot.
 	; If it isn't, then we don't want to do a context switch
 	; so return straight away.
@@ -607,7 +607,7 @@ return_quickly
 	]
 
 |__h_cback_common|
-	[ __FEATURE_PTHREADS = 1
+	[ __UNIXLIB_FEATURE_PTHREADS > 0
 	LDR	a1, =|__pthread_worksemaphore|
 	LDR	a2, [a1]
 	ADD	a2, a2, #1
@@ -656,7 +656,7 @@ return_quickly
 	; Disable IRQs again while updating semaphores
 	SWI	XOS_IntOff
 
-	[ __FEATURE_PTHREADS = 1
+	[ __UNIXLIB_FEATURE_PTHREADS > 0
 	LDR	a1, =|__pthread_worksemaphore|
 	LDR	a2, [a1]
 	SUB	a2, a2, #1
@@ -695,13 +695,13 @@ return_quickly
 	ADD	a2, a2, #1
 	STR	a2, [a1]
 
-	;FIXME: we need a sanity check here (based on EXTREMELY_PARANOID ?):
+	;FIXME: we need a sanity check here (based on __UNIXLIB_EXTREMELY_PARANOID ?):
 	;if the signalhandler is already executing, verify that
 	;sl < sp, if not, panic and jump to e.g. __exit.
 	LDR	sl, =|__signalhandler_sl|
 	LDR	sl, [sl]
 	MOV	fp, #0
-	return	NE, pc, lr
+	MOVNE	pc, lr
 
 	LDR	a1, =|__signalhandler_sp|
 	TEQ	a1, a1
@@ -712,7 +712,7 @@ return_quickly
 
 	LDMNEIA	a1, {sp}^ ; Not USR mode
 	LDREQ	sp, [a1]  ; USR mode
-	return	AL, pc, lr
+	MOV	pc, lr
 
 	; User registers are preserved in here for the callback execution.
 	; User registers = R0-R15 and CPSR in 32-bit mode

@@ -1,17 +1,16 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/sys/socket.h,v $
- * $Date: 2002/12/22 18:22:28 $
- * $Revision: 1.6 $
+ * $Date: 2004/01/14 23:16:58 $
+ * $Revision: 1.7 $
  * $State: Exp $
- * $Author: admin $
+ * $Author: joty $
  *
  ***************************************************************************/
 
 /*
  * File taken from glibc 2.2.5.
  * Following changes were made:
- *  - Changed "#include <features.h>" into "#include <unixlib/features.h>"
  *  - Added __opensock() internal function definition.
  *  - Added the prototypes for the SWI veneers.
  *  - Added SOMAXCONN constant.
@@ -39,7 +38,7 @@
 #ifndef	__SYS_SOCKET_H
 #define	__SYS_SOCKET_H	1
 
-#include <unixlib/features.h>
+#include <features.h>
 
 __BEGIN_DECLS
 

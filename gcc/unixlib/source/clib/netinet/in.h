@@ -1,17 +1,16 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/netinet/in.h,v $
- * $Date: 2002/12/22 18:22:28 $
- * $Revision: 1.5 $
+ * $Date: 2004/08/08 11:32:41 $
+ * $Revision: 1.6 $
  * $State: Exp $
- * $Author: admin $
+ * $Author: peter $
  *
  ***************************************************************************/
 
 /*
  * File taken from glibc 2.2.5.
  * Following changes were made:
- *  - Changed "#include <features.h>" into "#include <unixlib/features.h>"
  *  - Changed "#include <bits/types.h>" into "#include <unixlib/types.h>"
  *  - The ntohl(), ntohs(), htonl() and htons() are always 'optimized'.
  */
@@ -37,7 +36,7 @@
 #ifndef	__NETINET_IN_H
 #define	__NETINET_IN_H	1
 
-#include <unixlib/features.h>
+#include <features.h>
 #include <stdint.h>
 #include <unixlib/types.h>
 #include <sys/param.h>

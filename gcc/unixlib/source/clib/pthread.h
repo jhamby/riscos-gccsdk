@@ -1,8 +1,8 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/pthread.h,v $
- * $Date: 2004/09/06 08:40:47 $
- * $Revision: 1.11 $
+ * $Date: 2004/09/17 18:39:53 $
+ * $Revision: 1.12 $
  * $State: Exp $
  * $Author: peter $
  *
@@ -492,7 +492,7 @@ extern void __pthread_stop_ticker (void);
 /*#define PTHREAD_DEBUG_CONTEXT*/
 
 #ifndef __UNIXLIB_FEATURES_H
-#include <unixlib/features.h>
+#include <features.h>
 #endif
 
 /* Magic number to check a pthread_t is valid */
@@ -574,7 +574,7 @@ extern void __pthread_exit (void);
    and register a function to reenable them when the current function returns */
 extern void __pthread_protect_unsafe (void);
 
-#if __FEATURE_PTHREADS
+#if __UNIXLIB_FEATURE_PTHREADS
 
 /* Should be placed at the beginning of a function body for a
    thread safe function that is defined as a cancellation point */
@@ -599,7 +599,7 @@ if (__pthread_system_running) \
 #define PTHREAD_UNSAFE
 #define PTHREAD_UNSAFE_CANCELLATION
 
-#endif /* __FEATURE_PTHREADS */
+#endif /* __UNIXLIB_FEATURE_PTHREADS */
 
 /* zero if the context switcher is allowed to switch threads */
 extern int __pthread_worksemaphore;

@@ -1,10 +1,10 @@
 ;----------------------------------------------------------------------------
 ;
-; $Source: $
-; $Date: $
-; $Revision: $
-; $State: $
-; $Author: $
+; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/netlib/_bswap_16.s,v $
+; $Date: 2002/12/22 18:22:29 $
+; $Revision: 1.1 $
+; $State: Exp $
+; $Author: admin $
 ;
 ;----------------------------------------------------------------------------
 
@@ -19,6 +19,6 @@ __bswap_16
 	AND	r1, r2, r0, LSR #8
 	AND	r0, r0, r2
 	ORR	r0, r1, r0, LSL #8
-	return	AL, pc, lr
+	MOV	pc, lr
 
 	END

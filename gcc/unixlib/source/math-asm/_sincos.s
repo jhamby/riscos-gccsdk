@@ -1,10 +1,10 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/math-asm/_sincos.s,v $
-; $Date: 2002/09/24 21:02:37 $
-; $Revision: 1.3 $
+; $Date: 2004/06/05 14:00:08 $
+; $Revision: 1.4 $
 ; $State: Exp $
-; $Author: admin $
+; $Author: joty $
 ;
 ;----------------------------------------------------------------------------
 
@@ -22,6 +22,6 @@
 	COSD	f1, f2
 	STFD	f0, [a3, #0]
 	STFD	f1, [a4, #0]
-	return	AL, pc, lr
+	MOV	pc, lr
 
 	END

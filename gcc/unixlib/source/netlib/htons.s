@@ -1,8 +1,8 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/netlib/htons.s,v $
-; $Date: 2001/01/29 15:10:20 $
-; $Revision: 1.2 $
+; $Date: 2002/09/24 21:02:37 $
+; $Revision: 1.3 $
 ; $State: Exp $
 ; $Author: admin $
 ;
@@ -19,6 +19,6 @@ htons
 	AND	r1, r2, r0, LSR #8
 	AND	r0, r0, r2
 	ORR	r0, r1, r0, LSL #8
-	return	AL, pc, lr
+	MOV	pc, lr
 
 	END

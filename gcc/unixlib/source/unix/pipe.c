@@ -1,18 +1,17 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/pipe.c,v $
- * $Date: 2002/12/13 15:01:59 $
- * $Revision: 1.4 $
+ * $Date: 2003/04/05 09:33:57 $
+ * $Revision: 1.5 $
  * $State: Exp $
- * $Author: admin $
+ * $Author: alex $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: pipe.c,v 1.4 2002/12/13 15:01:59 admin Exp $";
+static const char rcs_id[] = "$Id: pipe.c,v 1.5 2003/04/05 09:33:57 alex Exp $";
 #endif
 
-#include <unixlib/features.h>
 #include <stdlib.h>
 #include <string.h>
 #include <fcntl.h>
@@ -30,7 +29,7 @@ static const char rcs_id[] = "$Id: pipe.c,v 1.4 2002/12/13 15:01:59 admin Exp $"
 int
 pipe (int *p)
 {
-#if __FEATURE_PIPEDEV
+#if __UNIXLIB_FEATURE_PIPEDEV
   struct pipe *pi;
   struct __unixlib_fd *file_desc_0, *file_desc_1;
   int fd0, fd1;
@@ -138,7 +137,7 @@ pipe (int *p)
   p[1] = fd1;
 
   return 0;
-#else /* !__FEATURE_PIPEDEV */
+#else /* !__UNIXLIB_FEATURE_PIPEDEV */
   return __set_errno (ENOSYS);
 #endif
 }

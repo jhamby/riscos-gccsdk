@@ -1,16 +1,12 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/unixlib/features.h,v $
- * $Date: 2004/08/08 11:32:41 $
- * $Revision: 1.17 $
- * $State: Exp $
- * $Author: peter $
+ * $Source: $
+ * $Date: $
+ * $Revision: $
+ * $State: $
+ * $Author: $
  *
  ***************************************************************************/
-
-/* The header file <unixlib/features.h> contains test macros for optionally
-   turning on/off certain features that the library provides or integrity
-   checks.  */
 
 /* This file is derived from GNU Libc 2.2.4, features.h  We are attempting
    to closely match the macros defined within it in order to maintain
@@ -367,68 +363,19 @@
    that will always return failure (and set errno to ENOSYS).  */
 #include <unixlib/stubs.h>
 
-
-/* These macros should be kept in sync with clib.unixlib.s.asm_dec.  */
-
-/* Define this if alloca() should call abort() if no memory can be
-   allocated.  */
-#define __ALLOCA_FATAL
-
-/* Define if function call references through the dev structure should
-   be first checked that their pointer is valid.  */
-#undef __PARANOID
-
-/* Define if support for dynamic areas on RISC OS 3.5+ should be compiled
-   in.  */
-#ifndef __DYNAMIC_AREA
-#define __DYNAMIC_AREA 1
-#endif
-
-/* Amount to align the wimpslot or dynamic area. */
-#define __DA_WIMPSLOT_ALIGNMENT (32*1024-1)
-
-#undef __USEFILEPATH
-
-/* Define if library functions should check certain parameters for their
-   validness.  Undefining will remove these consistency checks.  */
-#ifndef __INTEGRITY_CHECK
-#define __INTEGRITY_CHECK 1
-#endif
-
-/* Define if we want to support POSIX interval timers.  */
-#ifndef __FEATURE_ITIMERS
-#define __FEATURE_ITIMERS 1
-#endif
-
-/* Define if we want Unix socket support.  */
-#ifndef __FEATURE_SOCKET
-#define __FEATURE_SOCKET 1
-#endif
-
-/* Define if we want support for pipes.  */
-#ifndef __FEATURE_PIPEDEV
-#define __FEATURE_PIPEDEV 1
-#endif
-
-/* Define for support of /dev/rs423.  */
-#ifndef __FEATURE_DEV_RS423
-#define __FEATURE_DEV_RS423 1
-#endif
-
-/* Don't want any compatibility with Internet 4 */
-#undef COMPAT_INET4
-
-/* Define for support for pthreads.  */
-#ifndef __FEATURE_PTHREADS
-#define __FEATURE_PTHREADS 1
-#endif
-
 /* Default to recognising Image filesystems as directories.  Some programs
    may wish to expose them as files for the purpose of compression
    or direct manipulation of the contents.  Set to one in this case.  */
 extern int __feature_imagefs_is_file; /* Note: this is a weak symbol.  */
 
 #ifdef __UNIXLIB_INTERNALS
+
+/* Include the UnixLib build options.  */
+#include <unixlib/stdcmac.h>
+#include <unixlib/buildoptions.h>
+
+/* Amount to align the wimpslot or dynamic area. */
+#define __DA_WIMPSLOT_ALIGNMENT (32*1024-1)
 
 /* This is not yet supported by our GCC version but used by glibc 2.2.5.  */
 #define __builtin_expect(exp, c)  (exp)
@@ -460,7 +407,7 @@ extern int __dynamic_no_da; /* Note: this is a weak symbol.  */
 extern const char *__dynamic_da_name; /* Note: this is a weak symbol.  */
 
 /* When defined, indicates the maximum size in bytes of the dynamic area
-   used for the heap. If undefined, Unixlib defaults to 32MB */
+   used for the heap. If undefined, UnixLib defaults to 32MB */
 extern int __dynamic_da_max_size; /* Note: this is a weak symbol */
 
 #ifndef __SYS_CDEFS_H

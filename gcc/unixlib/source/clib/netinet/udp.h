@@ -1,10 +1,10 @@
 /****************************************************************************
  *
- * $Source: $
- * $Date: $
- * $Revision: $
- * $State: $
- * $Author: $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/netinet/udp.h,v $
+ * $Date: 2002/12/22 18:22:28 $
+ * $Revision: 1.4 $
+ * $State: Exp $
+ * $Author: admin $
  *
  ***************************************************************************/
 
@@ -41,7 +41,7 @@
 #ifndef __NETINET_UDP_H
 #define __NETINET_UDP_H    1
 
-#include <unixlib/features.h>
+#include <features.h>
 #include <sys/types.h>
 
 __BEGIN_DECLS

@@ -1,3 +1,18 @@
+/****************************************************************************
+ *
+ * $Source: $
+ * $Date: $
+ * $Revision: $
+ * $State: $
+ * $Author: $
+ *
+ ***************************************************************************/
+
+/* File taken from glibc 2.3.2.
+ * Following changes were made:
+ *   <none>
+ */
+
 /* Copyright (C) 1991,92,93,96,97,98,99,2001 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 

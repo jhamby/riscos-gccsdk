@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/unixlib/unix.h,v $
- * $Date: 2004/09/23 22:16:39 $
- * $Revision: 1.17 $
+ * $Date: 2004/10/12 08:32:38 $
+ * $Revision: 1.18 $
  * $State: Exp $
- * $Author: joty $
+ * $Author: peter $
  *
  * UNIX is a registered trademark of AT&T Bell Laboratories
  *
@@ -139,12 +139,12 @@ extern struct pipe *__pipe;	/* list of currently active pipes */
 
 
 extern int __funcall_error (const char *, int, unsigned int);
-#ifndef __PARANOID
-#define __funcall(f,p) ((f)p)
-#else
+#if __UNIXLIB_PARANOID > 0
 #define __funcall(f,p) \
   ((((void *)(f) >= __image_ro_base) && (((unsigned int)(f) & ~3) == (unsigned int)(f)) \
    ? 0 : __funcall_error(__FILE__,__LINE__,(unsigned int)(f))), (f)p)
+#else
+#define __funcall(f,p) ((f)p)
 #endif
 
 

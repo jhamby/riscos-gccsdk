@@ -1,8 +1,8 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/unixlib/asm_dec.s,v $
-; $Date: 2004/08/16 21:01:27 $
-; $Revision: 1.15 $
+; $Date: 2004/09/07 14:05:10 $
+; $Revision: 1.16 $
 ; $State: Exp $
 ; $Author: joty $
 ;
@@ -13,23 +13,9 @@
 ; Bits that control which bits are compiled into UnixLib. Note, this must be
 ; kept in sync with <sys/syslib.h>, <signal.h> and <errno.h>.
 
-; Is an alloca() failure fatal? Nick says yes, Linux says no.
-ALLOCA_FATAL	EQU	1
-; Do paranoid checks ?
-PARANOID	EQU	0
-; Use dynamic areas for heap on RISC OS 3.5+
-DYNAMIC_AREA	EQU	1
-; Emulate the SWP instruction for ARM2 compatibility
-|__SWP_ARM2|	EQU	0
-
-|__INTEGRITY_CHECK|	EQU	1
-|__FEATURE_ITIMERS|	EQU	1
-|__FEATURE_SOCKET|	EQU	1
-|__FEATURE_PIPEDEV|	EQU	1
-|__FEATURE_PTHREADS|	EQU	1
-USEFILEPATH		EQU	0
-; For Internet 4 compatibility
-COMPAT_INET4	EQU	0
+	; Include the UnixLib build options.
+	GET	clib/unixlib/stdsmac.s
+	GET	clib/unixlib/buildoptions.h
 
 ; The offset of various members of the __pthread_thread structure
 ; This should be kept in sync with pthread.h, lib1aof.s, and stubs.s
@@ -119,16 +105,6 @@ IFlag32		EQU	&00000080
 	DCD	&FF000000 + (:LEN: "$name"+3+1) :AND: &FFFFFFFC
 	MEND
 
-	MACRO
-	return	$cond, $dstreg, $srcreg
-	MOV$cond	$dstreg, $srcreg
-	MEND
-
-	MACRO
-	stackreturn	$cond, $regs
-	LDM$cond.FD	sp!, {$regs}
-	MEND
-
 	; Assembler equivalent of __set_errno in errno.h.
 	; #define __set_errno(val) (errno = (val), -1)
 	; Entry condition
@@ -141,16 +117,16 @@ IFlag32		EQU	&00000080
 	__set_errno	$val,$Rerrno
 	ASSERT	$val <> $Rerrno
 	IMPORT	|errno|
-	LDR	$Rerrno,=|errno|
-	STR	$val,[$Rerrno]
-	MOV	$val,#-1
+	LDR	$Rerrno, =|errno|
+	STR	$val, [$Rerrno]
+	MOV	$val, #-1
 	MEND
 
 	MACRO
 	__get_errno	$val,$Rerrno
 	IMPORT	|errno|
-	LDR	$Rerrno,=|errno|
-	LDR	$val,[$Rerrno]
+	LDR	$Rerrno, =|errno|
+	LDR	$val, [$Rerrno]
 	MEND
 
 	; NetSWI macro to call a networking (TCP/IP) swi.
@@ -169,79 +145,38 @@ IFlag32		EQU	&00000080
 
 	MACRO
 	NetSWI	$swiname
-
-        ; Not really required, and not 32-bit
-;	[	"$ModuleCode" <> "yes"
-;	MOV	ip, pc			; PC+PSR
-;	EOR	ip, ip, #SVC_Mode	; current mode EOR SVC_Mode
-;	SWI	XOS_EnterOS		; enter SVC mode
-;	]
-
 	SWI	$swiname
-
 	BLVS	|__net_error|		; Call net error still in SVC
-;	[	"$ModuleCode" <> "yes"
-;	TEQP	ip, pc			; restore mode, corrupting flags
-;	MOV	a1, a1			; no-op to prevent contention
-;	]
-
 	MEND
 
 	MACRO
 	NetSWIsimple	$swiname
-
 	MOV	ip, lr			; Save mode, return address
-;	[	"$ModuleCode" <> "yes"
-;	SWI	XOS_EnterOS		; enter SVC mode
-;	]
-
 	SWI	$swiname
-
 	MOVVC	pc, ip			; return, restore mode, flags
 	B	|__net_error_simple_entry|
 	; branch to error routine still in SVC mode, with return in ip
-
 	MEND
 
 	; Macros for Socket SWIs which corrupt R0
 	; Ensure R0 is 0 for VC, net_error ensures 1 for VS
 	MACRO
 	NetSWI0	$swiname
-
-;	[	"$ModuleCode" <> "yes"
-;	MOV	ip, pc			; PC+PSR
-;	EOR	ip, ip, #SVC_Mode	; current mode EOR SVC_Mode
-;	SWI	XOS_EnterOS		; enter SVC mode
-;	]
-
 	SWI	$swiname
 	MOVVC	a1, #0
-
 	BLVS	|__net_error|		; Call net error still in SVC
-;	[	"$ModuleCode" <> "yes"
-;	TEQP	ip, pc			; restore mode, corrupting flags
-;	MOV	a1, a1			; no-op to prevent contention
-;	]
-
 	MEND
 
 	; Macro for Socket SWIs which corrupt R0
 	; Ensure R0 is 0 for VC, net_error ensures 1 for VS
 	MACRO
 	NetSWIsimple0	$swiname
-
 	MOV	ip, lr			; Save mode, flags, return adrress
-;	[	"$ModuleCode" <> "yes"
-;	SWI	XOS_EnterOS		; enter SVC mode
-;	]
-
 	SWI	$swiname
 	MOVVC	a1, #0
-
 	MOVVC	pc, ip			; return, restore mode, flags
 	B	|__net_error_simple_entry|
 	; branch to error routine still in SVC mode, with return in ip
-
 	MEND
 
 	; Macro to implement SWP instruction
@@ -251,7 +186,7 @@ IFlag32		EQU	&00000080
 	; same as dstreg
 	MACRO
 	swp_arm2	$dstreg, $srcreg, $addr, $scratch
-	[ __SWP_ARM2 = 0
+	[ __UNIXLIB_SWP_SUPPORTED > 0
 	SWP	$dstreg, $srcreg, [$addr]
 	|
 	STMFD	sp!, {lr}	; Could be called in USR or SVC mode

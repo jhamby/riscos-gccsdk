@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/complex.h,v $
- * $Date: 2003/07/29 23:04:27 $
- * $Revision: 1.4 $
+ * $Date: 2004/04/12 13:03:37 $
+ * $Revision: 1.5 $
  * $State: Exp $
- * $Author: admin $
+ * $Author: nick $
  *
  ***************************************************************************/
 
@@ -13,7 +13,7 @@
 #ifndef __COMPLEX_H
 #define __COMPLEX_H 1
 
-#include <unixlib/features.h>
+#include <features.h>
 
 __BEGIN_DECLS
 

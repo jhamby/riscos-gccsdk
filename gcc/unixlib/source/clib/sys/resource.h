@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/sys/resource.h,v $
- * $Date: 2004/04/17 10:51:15 $
- * $Revision: 1.5 $
+ * $Date: 2004/09/17 18:39:54 $
+ * $Revision: 1.6 $
  * $State: Exp $
- * $Author: nick $
+ * $Author: peter $
  *
  ***************************************************************************/
 
@@ -71,7 +71,7 @@ struct rusage
 #ifdef __SYS_RESOURCE_H
 
 #ifndef __UNIXLIB_FEATURES_h
-#include <unixlib/features.h>
+#include <features.h>
 #endif
 
 __BEGIN_DECLS

@@ -1,8 +1,8 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/netlib/htonl.s,v $
-; $Date: 2001/01/29 15:10:20 $
-; $Revision: 1.2 $
+; $Date: 2002/09/24 21:02:37 $
+; $Revision: 1.3 $
 ; $State: Exp $
 ; $Author: admin $
 ;
@@ -19,6 +19,6 @@ htonl
 	BIC	r1, r1, #&FF0000
 	MOV	r0, r0, ROR #8
 	EOR	r0, r0, r1, LSR #8
-	return	AL, pc, lr
+	MOV	pc, lr
 
 	END

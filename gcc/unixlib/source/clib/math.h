@@ -24,7 +24,7 @@
 #ifndef	_MATH_H
 #define	_MATH_H	1
 
-#include <unixlib/features.h>
+#include <features.h>
 
 __BEGIN_DECLS
 

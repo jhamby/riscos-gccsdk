@@ -1,8 +1,8 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/scl/_memchk.s,v $
-; $Date: 2001/09/11 13:05:55 $
-; $Revision: 1.2.2.1 $
+; $Date: 2002/02/14 15:56:36 $
+; $Revision: 1.3 $
 ; $State: Exp $
 ; $Author: admin $
 ;
@@ -52,7 +52,7 @@
 	LDR	a2, =|__break|
 	LDR	a2, [a2]
 	CMP	a1, a2
-	return	LO, pc, lr
+	MOVLO	pc, lr
 	LDR	a2, =|__stack|
 	LDR	a2, [a2]
 	CMP	a1, a2
@@ -60,7 +60,7 @@
 	LDR	a2, =|__himem|
 	LDR	a2, [a2]
 	CMP	a1, a2
-	return	LO, pc, lr
+	MOVLO	pc, lr
 |__rwNsegv|
 	MOV	a1, #SIGSEGV
 	B	raise

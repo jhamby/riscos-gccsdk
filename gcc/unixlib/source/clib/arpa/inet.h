@@ -1,62 +1,62 @@
 /****************************************************************************
  *
- * $Source: $
- * $Date: $
- * $Revision: $
- * $State: $
- * $Author: $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/arpa/inet.h,v $
+ * $Date: 2002/12/22 18:22:28 $
+ * $Revision: 1.4 $
+ * $State: Exp $
+ * $Author: admin $
  *
  ***************************************************************************/
- 
+
 /*
  * File taken from glibc 2.2.5.
  * Following changes were made:
- *  - Changed "#include <features.h>" into "#include <unixlib/features.h>"
+ *  <none>
  */
- 
+
 /* Copyright (C) 1997, 1999, 2000, 2001 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
- 
+
    The GNU C Library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
    License as published by the Free Software Foundation; either
    version 2.1 of the License, or (at your option) any later version.
- 
+
    The GNU C Library is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Lesser General Public License for more details.
- 
+
    You should have received a copy of the GNU Lesser General Public
    License along with the GNU C Library; if not, write to the Free
    Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
    02111-1307 USA.  */
- 
+
 #ifndef _ARPA_INET_H
 #define	_ARPA_INET_H	1
- 
-#include <unixlib/features.h>
+
+#include <features.h>
 #include <netinet/in.h>		/* To define `struct in_addr'.  */
- 
+
 /* Type for length arguments in socket calls.  */
 #ifndef __socklen_t_defined
 typedef __socklen_t socklen_t;
 # define __socklen_t_defined
 #endif
- 
+
 __BEGIN_DECLS
- 
+
 /* Convert Internet host address from numbers-and-dots notation in CP
    into binary data in network byte order.  */
 extern in_addr_t inet_addr (__const char *__cp) __THROW;
- 
+
 /* Return the local host address part of the Internet address in IN.  */
 extern in_addr_t inet_lnaof (struct in_addr __in) __THROW;
- 
+
 /* Make Internet host address in network byte order by combining the
    network number NET with the local address HOST.  */
 extern struct in_addr inet_makeaddr (in_addr_t __net, in_addr_t __host) __THROW;
- 
+
 /* Return network number part of the Internet address IN.  */
 extern in_addr_t inet_netof (struct in_addr __in) __THROW;
 
@@ -79,8 +79,8 @@ extern int inet_pton (int __af, __const char *__restrict __cp,
    result in buffer of length LEN astarting at BUF.  */
 extern __const char *inet_ntop (int __af, __const void *__restrict __cp,
 				char *__restrict __buf, socklen_t __len) __THROW;
-     
-     
+
+
 /* The following functions are not part of XNS 5.2.  */
 #ifdef __USE_MISC
 /* Convert Internet host address from numbers-and-dots notation in CP
@@ -116,5 +116,5 @@ extern char *inet_nsap_ntoa (int __len, __const unsigned char *__cp,
 #endif
 
 __END_DECLS
- 
+
 #endif /* arpa/inet.h */

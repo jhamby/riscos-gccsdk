@@ -23,7 +23,7 @@
 # error "Never use <bits/huge_val.h> directly; include <math.h> instead."
 #endif
 
-#include <unixlib/features.h>
+#include <features.h>
 
 /* IEEE positive infinity (-HUGE_VAL is negative infinity).  */
 

@@ -1,10 +1,10 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/_mem.s,v $
-; $Date: 2002/09/24 21:02:38 $
-; $Revision: 1.4 $
+; $Date: 2004/09/08 16:12:41 $
+; $Revision: 1.7 $
 ; $State: Exp $
-; $Author: admin $
+; $Author: joty $
 ;
 ;----------------------------------------------------------------------------
 
@@ -41,7 +41,7 @@
 	STRGT	a2,[ip],#4
 |__memset_l2|
 	BICS	a3,a3,#12
-	return	EQ, pc, lr
+	MOVEQ	pc, lr
 	BICS	a4,a3,#15
 	BEQ	|__memset_l5|
 	STMFD	sp!,{v1,v2,lr}
@@ -57,13 +57,13 @@
 	LDMFD	sp!,{v1,v2,lr}
 |__memset_l4|
 	CMP	a3,#0
-	return	EQ, pc, lr
+	MOVEQ	pc, lr
 |__memset_l5|
 	CMP	a3,#2
 	STRB	a2,[ip],#1
 	STRGEB	a2,[ip],#1
 	STRGTB	a2,[ip],#1
-	return	AL, pc, lr
+	MOV	pc, lr
 
 
 	EXPORT	|_memcpy|
@@ -73,7 +73,7 @@
 |_memmove|
 	CMP	a1,a2
 	CMPNE	a3,#0
-	return	EQ, pc, lr
+	MOVEQ	pc, lr
 	MOV	ip,a1
 	CMP	ip,a2
 	BLE	|__memcpy_wd|
@@ -92,7 +92,7 @@
 |memmove|
 	CMP	a1,a2
 	CMPNE	a3,#0
-	return	EQ, pc, lr
+	MOVEQ	pc, lr
 	MOV	ip,a1
 	CMP	ip,a2
 	ADDGT	ip,ip,a3
@@ -149,7 +149,7 @@
 	MOV	a1,v2
 |__memcpy_cu_l1|
 	BICS	a3,a3,#12
-	stackreturn	EQ, "a1, v1, v2, pc"
+	LDMEQFD	sp!, {a1, v1, v2, pc}
 	BICS	lr,a3,#15
 	BEQ	|__memcpy_cu_l4|
 	STMFD	sp!,{v3,v4,v5}
@@ -175,7 +175,7 @@
 	ADD	a2,a2,a4,LSR #3		; reset a2 from [1]
 	LDMFD	sp!,{a1,v1,v2,lr}
 	CMP	a3,#0
-	return	EQ, pc, lr
+	MOVEQ	pc, lr
 	B	|__memcpy_bu|
 
 |__memcpy_cd|				; complex copydown - word align ip
@@ -221,7 +221,7 @@
 	MOV	a1,v2
 |__memcpy_cd_l1|
 	BICS	a3,a3,#12
-	stackreturn	EQ, "a1, v1, v2, pc"
+	LDMEQFD	sp!, {a1, v1, v2, pc}
 	BICS	lr,a3,#15
 	BEQ	|__memcpy_cd_l4|
 	STMFD	sp!,{v3,v4,v5}
@@ -246,7 +246,7 @@
 	SUB	a2,a2,v1,LSR #3		; reset a2 from [1]
 	LDMFD	sp!,{a1,v1,v2,lr}
 	CMP	a3,#0
-	return	EQ, pc, lr
+	MOVEQ	pc, lr
 	B	|__memcpy_bd|
 
 |__memcpy_b|				; byte copy 1 <= length <= 3
@@ -261,7 +261,7 @@
 	STRGEB	a4,[ip,#-1]!
 	LDRGTB	a4,[a2,#-1]!
 	STRGTB	a4,[ip,#-1]!
-	return	AL, pc, lr
+	MOV	pc, lr
 
 |__memcpy_bd|				; byte copydown
 	CMP	a3,#2
@@ -271,7 +271,7 @@
 	STRGEB	a4,[ip],#1
 	LDRGTB	a4,[a2],#1
 	STRGTB	a4,[ip],#1
-	return	AL, pc, lr
+	MOV	pc, lr
 
 |__memcpy_w|				; word aligned copy
 	CMP	ip,a2
@@ -289,7 +289,7 @@
 	STRGT	a4,[ip,#-4]!
 |__memcpy_wu_l0|
 	BICS	a3,a3,#12
-	return	EQ, pc, lr
+	MOVEQ	pc, lr
 	BICS	a4,a3,#15
 	BEQ	|__memcpy_bu|
 	STMFD	sp!,{a1,v1,v2,lr}
@@ -303,7 +303,7 @@
 	BGT	|__memcpy_wu_l1|
 	CMP	a3,#0
 	LDMFD	sp!,{a1,v1,v2,lr}
-	return	EQ, pc, lr
+	MOVEQ	pc, lr
 	B	|__memcpy_bu|
 
 |__memcpy_wd|				; word aligned copydown
@@ -318,7 +318,7 @@
 	STRGT	a4,[ip],#4
 |__memcpy_wd_l0|
 	BICS	a3,a3,#12
-	return	EQ, pc, lr
+	MOVEQ	pc, lr
 	BICS	a4,a3,#15
 	BEQ	|__memcpy_bd|
 	STMFD	sp!,{a1,v1,v2,lr}
@@ -332,7 +332,7 @@
 	BGT	|__memcpy_wd_l1|
 	CMP	a3,#0
 	LDMFD	sp!,{a1,v1,v2,lr}
-	return	EQ, pc, lr
+	MOVEQ	pc, lr
 	B	|__memcpy_bd|
 
 	END

@@ -1,10 +1,10 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/gcccompat/_divdi3.s,v $
-; $Date: 2002/09/24 21:02:37 $
-; $Revision: 1.3 $
+; $Date: 2004/08/16 21:40:59 $
+; $Revision: 1.4 $
 ; $State: Exp $
-; $Author: admin $
+; $Author: joty $
 ;
 ;----------------------------------------------------------------------------
 
@@ -24,13 +24,15 @@
 |__divdi3|
 	; fast exits
 	; check the numerator for zero
-	CMP	a1, #0	; low
-	CMPEQ	a2, #0	; high
-	return	EQ, pc, lr
+	TEQ	a1, #0	; low
+	TEQEQ	a2, #0	; high
+	MOVEQ	pc, lr
+
 	; test for a divide by zero
-	CMP	a3, #0	; low
-	CMPEQ	a4, #0	; high
-	return	EQ, pc, lr
+	TEQ	a3, #0	; low
+	TEQEQ	a4, #0	; high
+	MOVEQ	pc, lr
+
 	; No stack checking since we are a leaf function.
 	; We don't need to store ip - procedure calling standard
 	; lets it be corrupted.
@@ -105,13 +107,13 @@
 	MOV	a2, v3
 	MOV	a3, v4
 	MOV	a4, ip
-	stackreturn	AL, "v2, v3, v4, v6, pc"
+	LDMFD	sp!, {v2, v3, v4, v6, pc}
 
 |__divdi3.L02|
 	RSBS	a1, v2, #0 ; low
 	RSC	a2, v3, #0 ; high
 	RSBS	a3, v4, #0 ; low
 	RSC	a4, ip, #0 ; high
-	stackreturn	AL, "v2, v3, v4, v6, pc"
+	LDMFD	sp!, {v2, v3, v4, v6, pc}
 
 	END

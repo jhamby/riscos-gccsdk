@@ -1,8 +1,8 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/scl/_ksetenv.s,v $
-; $Date: 2001/01/29 15:10:20 $
-; $Revision: 1.2 $
+; $Date: 2002/09/24 21:02:37 $
+; $Revision: 1.3 $
 ; $State: Exp $
 ; $Author: admin $
 ;
@@ -14,7 +14,7 @@
 
 	IMPORT	|__seterr|
 
-	; _kernel_setenv (const char *name, const char *value)
+	; int _kernel_setenv (const char *name, const char *value)
 	EXPORT	|_kernel_setenv|
 	NAME	_kernel_setenv
 |_kernel_setenv|
@@ -31,10 +31,11 @@
 	MOV	v1, #0
 	SWI	XOS_SetVarVal
 	MOVVC	a1, #0
-	stackreturn	VC, "v1, pc"
+	LDMVCFD	sp!, {v1, pc}
+
 	MOV	v1, a1
 	BL	|__seterr|
 	MOV	a1, v1
-	stackreturn	AL, "v1, pc"
+	LDMFD	sp!, {v1, pc}
 
 	END

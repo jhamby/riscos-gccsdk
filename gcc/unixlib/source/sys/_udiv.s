@@ -1,8 +1,8 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/_udiv.s,v $
-; $Date: 2001/01/29 15:10:21 $
-; $Revision: 1.2 $
+; $Date: 2002/09/24 21:02:38 $
+; $Revision: 1.3 $
 ; $State: Exp $
 ; $Author: admin $
 ;
@@ -25,7 +25,7 @@ divisor RN 0
         MOV     a3,dividend
         MOVS    ip,divisor
 	; just return for divide by zero
-	return	EQ, pc, lr
+	MOVEQ	pc, lr
 
         CMP     ip,a3,LSR #16
         MOVLS   ip,ip,LSL #16
@@ -48,6 +48,6 @@ divloop
         BCS     divloop
 	MOV	a1, a2
 	MOV	a2, a3
-	return	AL, pc, lr
+	MOV	pc, lr
 
 	END

@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/dirent.h,v $
- * $Date: 2003/12/29 16:48:31 $
- * $Revision: 1.7 $
+ * $Date: 2004/04/12 13:03:37 $
+ * $Revision: 1.8 $
  * $State: Exp $
- * $Author: peter $
+ * $Author: nick $
  *
  ***************************************************************************/
 
@@ -14,7 +14,7 @@
 #define __DIRENT_H
 
 #ifndef __UNIXLIB_FEATURES_H
-#include <unixlib/features.h>
+#include <features.h>
 #endif
 
 #define __need_size_t
@@ -99,12 +99,8 @@ struct __dir_stream
   struct dirent dirent; /* last directory entry read using readdir */
 };
 
-#if __INTEGRITY_CHECK
 /* Nonzero if stream is a valid stream.  */
 #define __validdir(stream) (stream != NULL && stream->__magic == _DIRMAGIC)
-#else
-#define __validdir(stream) (1)
-#endif
 
 #endif /* __UNIXLIB_INTERNALS */
 

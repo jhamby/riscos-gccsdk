@@ -1,8 +1,8 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/kernel.h,v $
- * $Date: 2004/04/12 13:03:37 $
- * $Revision: 1.6 $
+ * $Date: 2004/06/01 18:45:26 $
+ * $Revision: 1.7 $
  * $State: Exp $
  * $Author: nick $
  *
@@ -17,7 +17,7 @@
 #define __KERNEL_H
 
 #ifndef __UNIXLIB_FEATURES_H
-#include <unixlib/features.h>
+#include <features.h>
 #endif
 
 __BEGIN_DECLS

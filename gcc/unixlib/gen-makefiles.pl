@@ -1,11 +1,11 @@
 #!/usr/bin/perl -w
-# Create various Unixlib Makefiles
+# Create various UnixLib Makefiles
 #
 # $Source: /usr/local/cvsroot/gccsdk/unixlib/gen-makefiles.pl,v $
-# $Date: 2004/03/02 20:26:45 $
-# $Revision: 1.5 $
+# $Date: 2004/08/16 21:01:26 $
+# $Revision: 1.6 $
 # $State: Exp $
-# $Author: nick $
+# $Author: joty $
 
 use Getopt::Long;
 
@@ -198,7 +198,7 @@ while (<SRCMAKEFILEIN>) {
     }
   }
 
-  # Copy all source files to RISC OS Unixlib package
+  # Copy all source files to RISC OS UnixLib package
   if (/^SRCS = \\$/) {
     foreach $src (@srcs) {
       print SRCMAKEFILE "\$(ro_unixlibpkg)/source/".semiriscosify($src)." \\\n";
@@ -217,7 +217,7 @@ while (<SRCMAKEFILEIN>) {
       my $obj = $src;
       $obj =~ s/[cs]$/o/;
       if ($src =~ m/\.s$/) {
-        print SRCMAKEFILE "\$(libunixobj)/$obj\: $src clib/unixlib/asm_dec.s\n";
+        print SRCMAKEFILE "\$(libunixobj)/$obj\: $src clib/unixlib/asm_dec.s clib/unixlib/buildoptions.h\n";
       } else {
         if ($dynamicdeps) {
           my $dir = $src;
@@ -267,7 +267,7 @@ while (<NORCROFTIN>) {
       my $obj = $src;
       $obj =~ s/[cs]$/o/;
       if ($src =~ m/\.s$/) {
-        print NORCROFT riscosify($obj).": ".riscosify($src)." UnixLib:unixlib.s.asm_dec\n";
+        print NORCROFT riscosify($obj).": ".riscosify($src)." UnixLib:unixlib.s.asm_dec UnixLib:unixlib.h.buildoptions\n";
       } else {
         print NORCROFT riscosify($obj).": ".riscosify($src)."\n";
       }

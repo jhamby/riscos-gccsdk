@@ -1,8 +1,8 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/stdio.h,v $
- * $Date: 2004/08/08 11:32:41 $
- * $Revision: 1.11 $
+ * $Date: 2004/10/12 08:32:38 $
+ * $Revision: 1.12 $
  * $State: Exp $
  * $Author: peter $
  *
@@ -111,12 +111,8 @@ struct __iobuf
 /* Magic number to fill __magic.  */
 #define _IOMAGIC 0xfe000000
 
-#if __INTEGRITY_CHECK
 /* Nonzero if stream is a valid stream.  */
 #define __validfp(stream) (stream != NULL && stream->__magic == _IOMAGIC)
-#else
-#define __validfp(stream) (1)
-#endif
 
 /* Invalidate a stream.  */
 extern void __invalidate (FILE *__stream) __THROW;
@@ -238,7 +234,7 @@ extern int getchar (void) __THROW;
 #define getc_unlocked(f) \
 	((--((f)->i_cnt) >= 0 ? *((f)->i_ptr)++ : __filbuf(f)))
 
-#if !__FEATURE_PTHREADS
+#if __UNIXLIB_FEATURE_PTHREADS == 0
 #define getc(f) getc_unlocked(f)
 #endif
 

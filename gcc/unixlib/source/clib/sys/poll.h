@@ -1,24 +1,24 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/sys/poll.h,v $
- * $Date: 2002/09/24 21:02:37 $
- * $Revision: 1.4 $
+ * $Date: 2004/04/17 10:51:15 $
+ * $Revision: 1.5 $
  * $State: Exp $
- * $Author: admin $
+ * $Author: nick $
  *
  ***************************************************************************/
 
 /* System V poll interface.  */
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: poll.h,v 1.4 2002/09/24 21:02:37 admin Exp $";
+static const char rcs_id[] = "$Id: poll.h,v 1.5 2004/04/17 10:51:15 nick Exp $";
 #endif
 
 #ifndef __SYS_POLL_H
 #define __SYS_POLL_H
 
 #ifndef __UNIXLIB_FEATURES_H
-#include <unixlib/features.h>
+#include <features.h>
 #endif
 
 __BEGIN_DECLS

@@ -1,10 +1,10 @@
 ;----------------------------------------------------------------------------
 ;
-; $Source$
-; $Date$
-; $Revision$
-; $State$
-; $Author$
+; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/math-asm/_atan.s,v $
+; $Date: 2003/01/29 18:49:00 $
+; $Revision: 1.5 $
+; $State: Exp $
+; $Author: admin $
 ;
 ;----------------------------------------------------------------------------
 
@@ -20,6 +20,6 @@ atan1
 	STMFD	sp!, {a1, a2}
 	LDFD	f0, [sp], #8
 	ATND	f0, f0
-	return	AL, pc, lr
+	MOV	pc, lr
 
 	END

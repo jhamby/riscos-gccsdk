@@ -29,6 +29,8 @@ The list of recognised features are:
 
    If set, all file paths and filenames will be used verbatim i.e. without
    the usual Unix to RISC OS conversions.  Its value is not important.
+   
+     *Set UnixEnv$my_program$nonametrans ""
 
    This corresponds with having the __RISCOSIFY_NO_PROCESS bit in
    __riscosify_flags set of the __riscosify() routine or having that bit
@@ -270,10 +272,10 @@ redraw loops.
 Sound support
 ~~~~~~~~~~~~~
 
-Unixlib implements the OSS sound interface via the /dev/dsp device.  It
+UnixLib implements the OSS sound interface via the /dev/dsp device.  It
 makes use of the DigitalRenderer module which can be fetched from:
 
-  http://home.t-online.de/home/zarquon/Software.html
+  <URL:http://home.t-online.de/home/zarquon/Software.html>
 
 This is a new feature, and it is likely improvements can be made.
 
@@ -282,14 +284,42 @@ iconv support
 ~~~~~~~~~~~~~
 
 Previously, use of iconv in programs required linking in of the standable
-iconv library, which adds around 1MB to Unixlib programs - mainly because
+iconv library, which adds around 1MB to UnixLib programs - mainly because
 of the lack of a shared library system on RISC OS.  In this version,   
-iconv support is in an external module, and Unixlib provides a C interface
+iconv support is in an external module, and UnixLib provides a C interface
 to call this.  It should act much like the inbuilt iconv support in GLIBC.
 
 The iconv module is currently available from:
 
-http://moose.mine.nu:6888/iconv002.zip
+  <URL:http://moose.mine.nu:6888/iconv002.zip>
+
+
+Building
+~~~~~~~~
+
+UnixLib is part of the GCCSDK deliverables which can be found at
+<URL:http://gccsdk.riscos.info/>.  In case you want to rebuild UnixLib
+yourself or better understand the UnixLib building process as part of
+the GCCSDK build, the following information could be helpful.
+
+The Perl script unixlib/gen-makefiles.pl is used to create three makefiles:
+
+1. unixlib/Makefile and unixlib/source/Makefile: used in the GCCSDK build.
+2. unixlib/objs/Makefile: to be used if you want to build UnixLib yourself
+   outside the context of the GCCSDK kit.
+   The compiler and assembler can easily specified and is by default
+   suited for the Norcroft (Acorn C/C++) users.
+
+A set of build options specifying which parts of UnixLib are to be
+included, which ARM mnemonics can be used for better performance, which
+runtime sanity checks needs to be done, etc are specified at
+unixlib/source/clib/unixlib/buildoptions.h.  Note this file is included by
+both C and assembler code via some trickery so the syntax is quite
+limited.
+
+A special mention is deserved for the __UNIXLIB_NORCROFT_BUILD option
+which specifies, due to some APCS-32 ambiguity, which ABI should be used,
+i.e. the Norcroft or GCC one.
 
 
 Name registration

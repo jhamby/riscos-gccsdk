@@ -1,10 +1,10 @@
 ;----------------------------------------------------------------------------
 ;
-; $Source$
-; $Date$
-; $Revision$
-; $State$
-; $Author$
+; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/_divtest.s,v $
+; $Date: 2002/09/24 21:02:38 $
+; $Revision: 1.4 $
+; $State: Exp $
+; $Author: admin $
 ;
 ;----------------------------------------------------------------------------
 
@@ -19,8 +19,8 @@
 	NAME	__rt_divtest
 |__rt_divtest|
 |x$divtest|
-	CMP	a1, #0
-	return	NE, pc, lr
+	TEQ	a1, #0
+	MOVNE	pc, lr
 	ADR	a1, divide_by_zero
 	SWI	XOS_Write0
 	MOV	a1, #SIGABRT

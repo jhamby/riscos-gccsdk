@@ -1,8 +1,8 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/scl/_kosbput.s,v $
-; $Date: 2001/01/29 15:10:20 $
-; $Revision: 1.2 $
+; $Date: 2002/09/24 21:02:37 $
+; $Revision: 1.3 $
 ; $State: Exp $
 ; $Author: admin $
 ;
@@ -20,9 +20,9 @@
 |_kernel_osbput|
 	STMFD	sp!, {lr}
 	SWI	XOS_BPut
-	stackreturn	VC, "pc"
+	LDMVCFD	sp!, {pc}
 	BL	|__seterr|
 	MOV	a1, #-2
-	stackreturn	AL, "pc"
+	LDMFD	sp!, {pc}
 
 	END

@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/vfork.c,v $
- * $Date: 2004/09/07 14:05:11 $
- * $Revision: 1.8 $
+ * $Date: 2004/09/08 16:12:41 $
+ * $Revision: 1.9 $
  * $State: Exp $
  * $Author: joty $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: vfork.c,v 1.8 2004/09/07 14:05:11 joty Exp $";
+static const char rcs_id[] = "$Id: vfork.c,v 1.9 2004/09/08 16:12:41 joty Exp $";
 #endif
 
 #include <errno.h>
@@ -31,7 +31,6 @@ static const char rcs_id[] = "$Id: vfork.c,v 1.8 2004/09/07 14:05:11 joty Exp $"
 #include <sys/wait.h>
 #include <unixlib/os.h>
 #include <swis.h>
-#include <unixlib/features.h>
 #include <unixlib/local.h>
 
 /* #define DEBUG 1 */
@@ -190,7 +189,7 @@ __vexit (int e)
   int x;
   int regs[10];
 
-#if __FEATURE_ITIMERS
+#if __UNIXLIB_FEATURE_ITIMERS
   /* Stop any interval timers, just in case.  */
   __stop_itimers ();
 #endif

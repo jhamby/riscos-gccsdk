@@ -1,8 +1,8 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/unixlib/dev.h,v $
- * $Date: 2004/09/07 17:49:40 $
- * $Revision: 1.6 $
+ * $Date: 2004/09/09 15:34:52 $
+ * $Revision: 1.7 $
  * $State: Exp $
  * $Author: peter $
  *
@@ -12,7 +12,7 @@
 #define __UNIXLIB_DEV_H
 
 #ifndef __UNIXLIB_FEATURES_H
-#include <unixlib/features.h>
+#include <features.h>
 #endif
 
 #ifndef __UNIXLIB_TYPES_H

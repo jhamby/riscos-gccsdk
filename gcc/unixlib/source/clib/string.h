@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/string.h,v $
- * $Date: 2004/04/12 13:03:37 $
- * $Revision: 1.11 $
+ * $Date: 2004/04/15 22:21:02 $
+ * $Revision: 1.12 $
  * $State: Exp $
- * $Author: nick $
+ * $Author: alex $
  *
  ***************************************************************************/
 
@@ -14,7 +14,7 @@
 #define __STRING_H 1
 
 #ifndef __UNIXLIB_FEATURES_H
-#include <unixlib/features.h>
+#include <features.h>
 #endif
 
 #define __need_size_t
@@ -200,14 +200,11 @@ extern int ffs (int __i) __THROW __attribute__ ((__const__));
 
 /* The following two functions are non-standard but necessary for non-32 bit
    platforms.  */
-# ifdef	__USE_GNU
+# ifdef __USE_GNU
 extern int ffsl (long int __l) __THROW __attribute__ ((__const__));
-#define ffsl(x) ffs(x)
 
-#  ifdef __GNUC__
 __extension__ extern int ffsll (long long int __ll)
      __THROW __attribute__ ((__const__));
-#  endif
 # endif
 
 /* Compare S1 and S2, ignoring case.  */

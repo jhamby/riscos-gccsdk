@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/sys/ioctl.h,v $
- * $Date: 2003/10/26 13:34:33 $
- * $Revision: 1.5 $
+ * $Date: 2004/04/17 10:51:15 $
+ * $Revision: 1.6 $
  * $State: Exp $
- * $Author: joty $
+ * $Author: nick $
  *
  ***************************************************************************/
 
@@ -51,7 +51,7 @@
 #define __SYS_IOCTL_H
 
 #ifndef __UNIXLIB_FEATURES_H
-#include <unixlib/features.h>
+#include <features.h>
 #endif
 
 __BEGIN_DECLS
@@ -250,7 +250,7 @@ struct ttysize
 #define SIOCGETSGCNT    _IOWR('r', 16, struct sioc_sg_req) /* get s,g pkt cnt */
 
 #define SIOCSIFADDR      _IOW('i', 12, struct ifreq)    /* set ifnet address */
-#ifdef COMPAT_INET4
+#if __UNIXLIB_COMPAT_INET4
 #define SIOCGIFADDR     _IOWR('i', 13, struct ifreq)    /* get ifnet address */
 #define NSIOCGIFADDR    _IOWR('i', 99, struct nifreq)   /* get ifnet address */
 #else
@@ -258,7 +258,7 @@ struct ttysize
 #define SIOCGIFADDR     _IOWR('i', 99, struct ifreq)    /* get ifnet address */
 #endif
 #define SIOCSIFDSTADDR   _IOW('i', 14, struct ifreq)    /* set p-p address */
-#ifdef COMPAT_INET4
+#if __UNIXLIB_COMPAT_INET4
 #define SIOCGIFDSTADDR  _IOWR('i', 15, struct ifreq)    /* get p-p address */
 #define NSIOCGIFDSTADDR _IOWR('i', 98, struct nifreq)   /* get p-p address */
 #else
@@ -267,7 +267,7 @@ struct ttysize
 #endif
 #define SIOCSIFFLAGS     _IOW('i', 16, struct ifreq)    /* set ifnet flags */
 #define SIOCGIFFLAGS    _IOWR('i', 17, struct ifreq)    /* get ifnet flags */
-#ifdef COMPAT_INET4
+#if __UNIXLIB_COMPAT_INET4
 #define SIOCGIFBRDADDR  _IOWR('i', 18, struct ifreq)    /* get broadcast addr */
 #define NSIOCGIFBRDADDR _IOWR('i', 97, struct nifreq)   /* get broadcast addr */
 #else
@@ -275,7 +275,7 @@ struct ttysize
 #define SIOCGIFBRDADDR  _IOWR('i', 97, struct ifreq)    /* get broadcast addr */
 #endif
 #define SIOCSIFBRDADDR   _IOW('i', 19, struct ifreq)    /* set broadcast addr */
-#ifdef COMPAT_INET4
+#if __UNIXLIB_COMPAT_INET4
 #define SIOCGIFCONF     _IOWR('i', 20, struct ifconf)   /* get ifnet list */
 #define NSIOCGIFCONF    _IOWR('i', 96, struct nifconf)  /* get ifnet list */
 #define SIOCGIFNETMASK  _IOWR('i', 21, struct ifreq)    /* get net addr mask */

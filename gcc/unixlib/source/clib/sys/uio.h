@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/sys/uio.h,v $
- * $Date: 2002/12/22 18:22:28 $
- * $Revision: 1.5 $
+ * $Date: 2004/04/17 10:51:15 $
+ * $Revision: 1.6 $
  * $State: Exp $
- * $Author: admin $
+ * $Author: nick $
  *
  ***************************************************************************/
 
@@ -12,7 +12,7 @@
 #define __SYS_UIO_H 1
 
 #ifndef __UNIXLIB_FEATURES_H
-#include <unixlib/features.h>
+#include <features.h>
 #endif
 
 #include <sys/types.h>

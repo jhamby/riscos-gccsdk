@@ -1,8 +1,8 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/pthread/_ints.s,v $
-; $Date: 2004/09/07 14:05:11 $
-; $Revision: 1.5 $
+; $Date: 2004/09/23 22:16:39 $
+; $Revision: 1.6 $
 ; $State: Exp $
 ; $Author: joty $
 ;
@@ -39,7 +39,7 @@
 	swp_arm2	a2, a3, a1, a2	; From this point onwards we will not be interrupted by the callback
 	ADD	a2, a2, #1
 	STR	a2, [a1]
-	return	AL, pc, lr
+	MOV	pc, lr
 
 
 ;
@@ -49,16 +49,16 @@
 |__pthread_enable_ints|
 	LDR	a2, =|__pthread_worksemaphore|
 	LDR	a1, [a2]
-	[ PARANOID = 1
+	[ __UNIXLIB_PARANOID > 0
 	CMP	a1, #0
 	ADRLE	a1, |semazero|
 	BLE	|__pthread_fatal_error|
 	]
 	SUB	a1, a1, #1
 	STR	a1, [a2]
-	return	AL, pc, lr
+	MOV	pc, lr
 
-	[ PARANOID = 1
+	[ __UNIXLIB_PARANOID > 0
 |semazero|
 	DCB	"__pthread_enable_ints called with semaphore already 0", 0
 	ALIGN
@@ -69,7 +69,7 @@
 ; when the caller returns
 	NAME	__pthread_protect_unsafe
 |__pthread_protect_unsafe|
-	[ PARANOID = 1
+	[ __UNIXLIB_PARANOID > 0
 	CMP	fp, #0
 	ADREQ	a1, |noframe|
 	BEQ	|__pthread_fatal_error|	; We can't do much without a stack frame
@@ -82,10 +82,10 @@
 	; Return, as if ints are disabled on entry to the
 	; calling function then they should not be reenabled
 	; until the calling function has returned
-	return	NE, pc, lr
+	MOVNE	pc, lr
 
 	LDR	a2, =|__pthread_return_address|
-	[ PARANOID = 1
+	[ __UNIXLIB_PARANOID > 0
 	LDR	a3, [a2]
 	CMP	a3, #0
 	ADRNE	a1, |return_notempty|
@@ -101,9 +101,9 @@
 	; Alter calling function's return address to point to __pthread_unprotect_unsafe
 	STR	a2, [fp, #-4]
 
-	return	AL, pc, lr
+	MOV	pc, lr
 
-	[ PARANOID = 1
+	[ __UNIXLIB_PARANOID > 0
 |noframe|
 	DCB "__pthread_protect_unsafe called without an APCS stack frame" ,0
 	ALIGN
@@ -119,7 +119,7 @@
 |__pthread_unprotect_unsafe|
 	LDR	a4, =|__pthread_return_address|
 	LDR	lr, [a4]
-	[ PARANOID = 1
+	[ __UNIXLIB_PARANOID > 0
 	CMP	lr, #0
 	ADREQ	a1, |return_unset|
 	BEQ	|__pthread_fatal_error|
@@ -128,7 +128,7 @@
 	]
 
 	LDR	a4, =|__pthread_worksemaphore|
-	[ PARANOID = 1
+	[ __UNIXLIB_PARANOID > 0
 	LDR	a3, [a4]
 	CMP	a3, #1
 	ADRNE	a1, |bad_semaphore|
@@ -140,20 +140,20 @@
 	LDR	a4, =|__pthread_callback_missed|
 	LDR	a4, [a4]
 	CMP	a4, #0
-	return	EQ, pc, lr	;No callback occured while ints were disabled
+	MOVEQ	pc, lr	;No callback occured while ints were disabled
 
 	LDR	a4, =|__pthread_callback_semaphore|
 	LDR	a4, [a4]
 	CMP	a4, #0
-	return	NE, pc, lr	;Don't yield if we're in the middle of a context switch
+	MOVNE	pc, lr	;Don't yield if we're in the middle of a context switch
 
 	; An callback occured whilst ints were disabled,
 	; so yield to avoid hogging the processor
 	STMFD	sp!, {a1, a2, lr}
 	BL	|pthread_yield|
-	stackreturn	AL, "a1, a2, pc"
+	LDMFD	sp!, {a1, a2, pc}
 
-	[ PARANOID = 1
+	[ __UNIXLIB_PARANOID > 0
 |bad_semaphore|
 	DCB	"Semaphore not set correctly in __pthread_unprotect_unsafe", 0
 	ALIGN

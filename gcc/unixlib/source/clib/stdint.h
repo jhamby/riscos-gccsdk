@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/stdint.h,v $
- * $Date: 2003/01/29 18:49:00 $
- * $Revision: 1.7 $
+ * $Date: 2004/04/10 10:25:32 $
+ * $Revision: 1.8 $
  * $State: Exp $
- * $Author: admin $
+ * $Author: nick $
  *
  ***************************************************************************/
 
@@ -12,7 +12,7 @@
 #define __STDINT_H 1
 
 #ifndef __UNIXLIB_FEATURES_H
-#include <unixlib/features.h>
+#include <features.h>
 #endif
 
 /* Exact integral types.  */

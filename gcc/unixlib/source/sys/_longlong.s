@@ -1,8 +1,8 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/_longlong.s,v $
-; $Date: 2004/08/16 21:40:59 $
-; $Revision: 1.2 $
+; $Date: 2004/09/23 22:16:39 $
+; $Revision: 1.3 $
 ; $State: Exp $
 ; $Author: joty $
 ;
@@ -28,13 +28,6 @@
 
 	AREA	|C$$code|, CODE, READONLY
 
-	GBLL	MULLSupported
-;	[ {ARCHITECTURE} = "3M" :LOR: {ARCHITECTURE} = "4" :LOR: {ARCHITECTURE} = "4T" :LOR: {ARCHITECTURE} = "5" :LOR: {ARCHITECTURE} = "5T" :LOR: {ARCHITECTURE} = "5TExP" :LOR: {ARCHITECTURE} = "5TE"
-MULLSupported	SETL	{TRUE}
-;	|
-;MULLSupported	SETL	{FALSE}
-;	]
-
 	;Naming conventions used :
 	; 's' = int32_t
 	; 'u' = uint32_t
@@ -46,7 +39,7 @@ MULLSupported	SETL	{TRUE}
 	NAME	_ll_from_u
 |_ll_from_u|
 	MOV	a1, #0
-	return	AL, pc, lr
+	MOV	pc, lr
 
 	; int64_t _ll_from_l(int32_t a)
 	;  { return (int64_t)a; }
@@ -54,14 +47,14 @@ MULLSupported	SETL	{TRUE}
 	NAME	_ll_from_l
 |_ll_from_l|
 	MOV 	a2, a1, ASR#32
-	return	AL, pc, lr
+	MOV	pc, lr
 
 	; int64_t _ll_to_l(int64_t a)
 	;  { return (int64_t)a; }
 	EXPORT	|_ll_to_l|
 	NAME	_ll_to_l
 |_ll_to_l|
-	return	AL, pc, lr
+	MOV	pc, lr
 
 	; int64_t _ll_add(int64_t a, int64_t b)
 	;  { return a + b; }
@@ -70,7 +63,7 @@ MULLSupported	SETL	{TRUE}
 |_ll_add|
 	ADDS	a1, a1, a3
 	ADC	a2, a2, a4
-	return	AL, pc, lr
+	MOV	pc, lr
 
 	; int64_t _ll_addlu(int64_t a, uint32_t b)
 	;  { return a + (uint64_t)b; }
@@ -79,7 +72,7 @@ MULLSupported	SETL	{TRUE}
 |_ll_addlu|
 	ADDS	a1, a1, a3
 	ADC	a2, a2, #0
-	return	AL, pc, lr
+	MOV	pc, lr
 
 	; int64_t _ll_addls(int64_t a, int32_t b)
 	;  { return a + (int64_t)b; }
@@ -88,7 +81,7 @@ MULLSupported	SETL	{TRUE}
 |_ll_addls|
 	ADDS	a1, a1, a3
 	ADC	a2, a2, a3, ASR#32
-	return	AL, pc, lr
+	MOV	pc, lr
 
 	; int64_t _ll_adduu(uint32_t a, uint32_t b)
         ;  { return (int64_t)a + (int64_t)b; }
@@ -98,7 +91,7 @@ MULLSupported	SETL	{TRUE}
 	MOV	a3, #0
 	ADDS	a1, a1, a2
 	ADC	a2, a3, #0
-	return	AL, pc, lr
+	MOV	pc, lr
 
 	; int64_t _ll_addss(int32_t a, int32_t b)
         ;  { return (int64_t)a + (int64_t)b; }
@@ -108,7 +101,7 @@ MULLSupported	SETL	{TRUE}
 	MOV	a3, a1, ASR#32
 	ADDS	a1, a1, a2
 	ADC	a2, a3, a2, ASR#32
-	return	AL, pc, lr
+	MOV	pc, lr
 
 	; int64_t _ll_sub(int64_t a, int64_t b)
 	;  { return a - b; }
@@ -117,7 +110,7 @@ MULLSupported	SETL	{TRUE}
 |_ll_sub|
 	SUBS	a1, a1, a2
 	SBC	a2, a2, a3
-	return	AL, pc, lr
+	MOV	pc, lr
 
 	; int64_t _ll_sublu(int64_t a, uint32_t b)
 	;  { return a - (int64_t)b; }
@@ -126,7 +119,7 @@ MULLSupported	SETL	{TRUE}
 |_ll_sublu|
 	SUBS	a1, a1, a2
 	SBC	a2, a2, #0
-	return	AL, pc, lr
+	MOV	pc, lr
 
 	; int64_t _ll_subls(int64_t a, int32_t b)
 	;  { return a - (int64_t)b; }
@@ -135,7 +128,7 @@ MULLSupported	SETL	{TRUE}
 |_ll_subls|
 	SUBS	a1, a1, a3
 	SBC	a2, a2, a3, ASR#32
-	return	AL, pc, lr
+	MOV	pc, lr
 
 	; int64_t _ll_subuu(uint32_t a, uint32_t b)
 	;  { return (int64_t)a - (int64_t)b; }
@@ -144,7 +137,7 @@ MULLSupported	SETL	{TRUE}
 |_ll_subuu|
 	SUBS	a1, a1, a2
 	SBC	a2, a2, a2
-	return	AL, pc, lr
+	MOV	pc, lr
 
 	; int64_t _ll_subss(int32_t a, int32_t b)
 	;  { return (int64_t)a - (int64_t)b; }
@@ -154,7 +147,7 @@ MULLSupported	SETL	{TRUE}
 	MOV	a3, a1, ASR#32
 	SUBS	a1, a1, a2
 	SBC	a2, a3, a2, ASR#32
-	return	AL, pc, lr
+	MOV	pc, lr
 
 	; int64_t _ll_rsb(int64_t a, int64_t b)
 	;  { return b - a; }
@@ -163,7 +156,7 @@ MULLSupported	SETL	{TRUE}
 |_ll_rsb|
 	RSBS	a1, a1, a3
 	RSC	a2, a2, a4
-	return	AL, pc, lr
+	MOV	pc, lr
 
 	; int64_t _ll_rsblu(int64_t a, uint32_t b)
 	;  { return (int64_t)b - a; }
@@ -172,7 +165,7 @@ MULLSupported	SETL	{TRUE}
 |_ll_rsblu|
 	RSBS	a1, a1, a3
 	RSC	a2, a2, #0
-	return	AL, pc, lr
+	MOV	pc, lr
 
 	; int64_t _ll_rsbls(int64_t a, int32_t b)
 	;  { return (int64_t)b - a; }
@@ -181,7 +174,7 @@ MULLSupported	SETL	{TRUE}
 |_ll_rsbls|
 	RSBS	a1, a1, a3
 	RSC	a2, a2, a3, ASR#32
-	return	AL, pc, lr
+	MOV	pc, lr
 
 	; int64_t _ll_rsbuu(uint32_t a, uint32_t b)
 	;  { return (int64_t)b - (int64_t)a; }
@@ -190,7 +183,7 @@ MULLSupported	SETL	{TRUE}
 |_ll_rsbuu|
 	RSBS	a1, a1, a2
 	RSC	a2, a2, a2
-	return	AL, pc, lr
+	MOV	pc, lr
 
 	; int64_t _ll_rsbss(int32_t a, int32_t b)
 	;  { return (int64_t)b - (int64_t)a; }
@@ -200,7 +193,7 @@ MULLSupported	SETL	{TRUE}
 	MOV	a3, a1, ASR#32
 	RSBS	a1, a1, a2
 	RSB	a2, a3, a2, ASR#32
-	return	AL, pc, lr
+	MOV	pc, lr
 
 	; int64_t _ll_mul(int64_t a, int32_t b)
 	;  { return a * (int64_t)b; }
@@ -225,12 +218,12 @@ MULLSupported	SETL	{TRUE}
 	;  +                (a2 * a3 + a4 * a1) << 32
 	EXPORT	|_ll_mul|
 |_ll_mul|
-	[ MULLSupported
+	[ __UNIXLIB_MULL_SUPPORTED > 0
 	MUL	ip, a2, a3		;ip = a2 * a3
 	MLA	ip, a4, a1, ip		;ip = a2 * a3 + a4 * a1
 	SMULL	a1, a2, a3, a1		;a2,a1 = a1 * a3
 	ADD	a2, a2, ip		;a2,a1 = a1 * a3 + (a2 * a3 + a4 * a1) << 32
-	return	AL, pc, lr
+	MOV	pc, lr
 	|
 	STMFD	sp!, {v1-v3, lr}
 	MOV	lr, a1
@@ -248,7 +241,7 @@ MULLSupported	SETL	{TRUE}
 	ADC	ip, ip, v2, LSR #16
 	MLA	a2, a3, a2, ip		;a2,a1 = a1l * a3l + (a3h * a1l + a3l * a1h)<<16 + (a1h * a3h + a2 * a3)<<32
 	MLA	a2, a4, lr, a2		;a2,a1 = a1l * a3l + (a3h * a1l + a3l * a1h)<<16 + (a1h * a3h + a2 * a3 + a4 * a1)<<32
-	stackreturn	AL, "v1-v3, pc"
+	LDMFD	sp!, {v1-v3, pc}
 	]
 
 	; int64_t _ll_mul(int64_t a, uint32_t b)
@@ -266,11 +259,11 @@ MULLSupported	SETL	{TRUE}
 	EXPORT	|_ll_mullu|
 	NAME	_ll_mullu
 |_ll_mullu|
-	[ MULLSupported
+	[ __UNIXLIB_MULL_SUPPORTED > 0
 	MOV	ip, a2
 	UMULL	a1, a2, a3, a1
 	MLA	a2, ip, a3, a2
-	return	AL, pc, lr
+	MOV	pc, lr
 	|
 	STMFD	sp!, {v1-v2, lr}
 	MOV	lr, a1
@@ -287,7 +280,7 @@ MULLSupported	SETL	{TRUE}
 	ADDS	a1, a1, v2, LSL #16	;ip,a1 = a1l * a3l + (a3h * a1l + a3l * a1h)<<16 + (a1h * a3h)<<32
 	ADC	ip, ip, v2, LSR #16
 	MLA	a2, a3, a2, ip		;a2,a1 = a1l * a3l + (a3h * a1l + a3l * a1h)<<16 + (a1h * a3h + a2 * a3)<<32
-	stackreturn	AL, "v1-v2, pc"
+	LDMFD	sp!, {v1-v2, pc}
 	]
 
 	; int64_t _ll_muluu(uint32_t a, uint32_t b)
@@ -303,10 +296,10 @@ MULLSupported	SETL	{TRUE}
 	EXPORT	|_ll_muluu|
 	NAME	_ll_muluu
 |_ll_muluu|
-	[ MULLSupported
+	[ __UNIXLIB_MULL_SUPPORTED > 0
 	MOV	a3, a1
 	UMULL	a1, a2, a3, a2
-	return	AL, pc, lr
+	MOV	pc, lr
 	|
 	STMFD	sp!, {v1, lr}
 	MOV	lr, a1
@@ -322,7 +315,7 @@ MULLSupported	SETL	{TRUE}
 	ADC	ip, ip, v1, LSR #16
 	ADDS	a1, a1, a4, LSL #16	;a2,a1 = a1l * a2l + (a2h * a1l + a2l * a1h)<<16 + (a1h * a2h)<<32
 	ADC	a2, ip, a4, LSR #16
-	stackreturn	AL, "v1, pc"
+	LDMFD	sp!, {v1, pc}
 	]
 
 	; int64_t _ll_mulss(int32_t a, int32_t b)
@@ -330,10 +323,10 @@ MULLSupported	SETL	{TRUE}
 	EXPORT	|_ll_mulss|
 	NAME	_ll_mulss
 |_ll_mulss|
-	[ MULLSupported
+	[ __UNIXLIB_MULL_SUPPORTED > 0
 	MOV	a3, a1
 	SMULL	a1, a2, a3, a2
-	return	AL, pc, lr
+	MOV	pc, lr
 	|
 	MOV	a4, a2, ASR#32
 	MOV	a3, a2
@@ -408,10 +401,10 @@ MULLSupported	SETL	{TRUE}
 	SBCS	a4, a4, ip		; a2,a3 = a1,a2 - 10 - 10 * (a1,a2 / 10)
 	MOV	a4, #0
 	ADDMI	a3, a3, #10		; Fix up remainder
-	stackreturn	MI, "pc"
+	LDMMIFD	sp!, {pc}
 	ADDS	a1, a1, #1		; Fix up quotient
 	ADC	a2, a2, #0
-	stackreturn	AL, "pc"
+	LDMFD	sp!, {pc}
 
 	; int64_t _ll_sdiv(int64_t a, int64_t b)
 	;  { return a / b; }
@@ -490,13 +483,13 @@ _ll_sdiv10_pos
 	ADDS	a1, a1, #1		; Fix up quotient
 	ADC	a2, a2, #0
 	TST	v1, v1			; Need to fix sign ?
-	stackreturn	PL, "v1, pc"
+	LDMPLFD	sp!, {v1, pc}
 _ll_sdiv10_fixsign
 	RSBS	a1, a1, #0		; Fix sign quotient
 	RSC	a2, a2, #0
 	RSBS	a3, a3, #0		; Fix sign remainder
 	RSC	a4, a4, #0
-	stackreturn	AL, "v1, pc"
+	LDMFD	sp!, {v1, pc}
 
 	; int64_t _ll_not(int64_t a)
 	;  { return ~a; }
@@ -505,7 +498,7 @@ _ll_sdiv10_fixsign
 |_ll_not|
 	MVN	a1, a1
 	MVN	a2, a2
-	return	AL, pc, lr
+	MOV	pc, lr
 
 	; int64_t _ll_neg(int64_t a)
 	;  { return -a; }
@@ -514,7 +507,7 @@ _ll_sdiv10_fixsign
 |_ll_neg|
 	RSBS	a1, a1, #0
 	RSC	a2, a2, #0
-	return	AL, pc, lr
+	MOV	pc, lr
 
 	; int64_t _ll_and(int64_t a, int64_t b)
 	;  { return a & b; }
@@ -523,7 +516,7 @@ _ll_sdiv10_fixsign
 |_ll_and|
 	AND	a1, a1, a3
 	AND	a2, a2, a4
-	return	AL, pc, lr
+	MOV	pc, lr
 
 	; int64_t _ll_or(int64_t a, int64_t b)
 	;  { return a | b; }
@@ -532,7 +525,7 @@ _ll_sdiv10_fixsign
 |_ll_or|
 	ORR	a1, a1, a3
 	ORR	a2, a2, a4
-	return	AL, pc, lr
+	MOV	pc, lr
 
 	; int64_t _ll_eor(int64_t a, int64_t b)
 	;  { return a ^ b; }
@@ -541,7 +534,7 @@ _ll_sdiv10_fixsign
 |_ll_eor|
 	EOR	a1, a1, a3
 	EOR	a2, a2, a4
-	return	AL, pc, lr
+	MOV	pc, lr
 
 	; int64_t _ll_shift_l(int64_t a, uint32_t b)
 	;  { return a << b; }
@@ -554,11 +547,11 @@ _ll_sdiv10_fixsign
 	MOV	a2, a2, LSL a3
 	ORR	a2, a2, a1, LSR a4
 	MOV	a1, a1, LSL a3
-	return	AL, pc, lr
+	MOV	pc, lr
 _ll_shift_l_more32bits
 	MOV	a2, a1, LSL a4
 	MOV	a1, #0
-	return	AL, pc, lr
+	MOV	pc, lr
 
 	; int64_t _ll_ushift_r(uint64_t a, uint32_t b)
 	;  { return a >> b; }
@@ -571,11 +564,11 @@ _ll_shift_l_more32bits
 	MOV	a1, a1, LSR a3
 	ORR	a1, a1, a2, LSL a4
 	MOV	a2, a2, LSR a3
-	return	AL, pc, lr
+	MOV	pc, lr
 _ll_ushift_r_more32bits
 	MOV	a1, a2, LSR a4
 	MOV	a2, #0
-	return	AL, pc, lr
+	MOV	pc, lr
 
 	; int64_t _ll_sshift_r(int64_t a, uint32_t b)
 	;  { return a >> b; }
@@ -588,11 +581,11 @@ _ll_ushift_r_more32bits
 	MOV	a1, a1, LSR a3
 	ORR	a1, a1, a2, LSL a4
 	MOV	a2, a2, ASR a3
-	return	AL, pc, lr
+	MOV	pc, lr
 _ll_sshift_r_more32bits
 	MOV	a1, a2, ASR a4
 	MOV	a2, a2, ASR #32
-	return	AL, pc, lr
+	MOV	pc, lr
 
 	; uint64_t a, b
 	; CMP a, b
@@ -659,7 +652,7 @@ _ll_sto_d_preload_exponent
 	MOVS	a4, a2
 	MOVNE	a4, #32			;a4 = 32 - leading zero bits found so far (= 32)
 	MOVEQS	a2, a1			;                                         (= 0)
-	return	EQ, pc, lr		;a1,a2 = 0, so quit with 0 result
+	MOVEQ	pc, lr			;a1,a2 = 0, so quit with 0 result
 
 	MOVS	ip, a2, LSR #16		;Highest 16 bits set ?
 	SUBEQ	a4, a4, #16		; - no, we have 16 more zero leading bits
@@ -691,7 +684,7 @@ _ll_sto_d_preload_exponent
 	MOV	a2, a4, LSR #11		;a2 = lowest 21 bits of the fraction
 	ADCS	a2, a2, ip, LSL #21	;a2 = fraction_low
 	ADC	a1, a3, ip, LSR #11	;a1 = sign<<31 + (1023 + # meaningful bits before dot - 1)<<20 + fraction_high
-	return	AL, pc, lr
+	MOV	pc, lr
 
 	; float _ll_uto_f(uint64_t a)
 	;  { return (float)a; }
@@ -726,7 +719,7 @@ _ll_sto_f_preload_exponent
 	MOVS	a4, a2
 	MOVNE	a4, #32			;a4 = 32 - leading zero bits found so far (= 32)
 	MOVEQS	a2, a1			;                                         (= 0)
-	return	EQ, pc, lr		;a1,a2 = 0, so quit with 0 result
+	MOVEQ	pc, lr			;a1,a2 = 0, so quit with 0 result
 
 	MOVS	ip, a2, LSR#16		;Highest 16 bits set ?
 	SUBEQ	a4, a4, #16		; - no, we have 16 more zero leading bits
@@ -756,7 +749,7 @@ _ll_sto_f_preload_exponent
 	;                     a2
 	ADD	a3, a3, a4, LSL#23	;a3 = sign<<31 + (&7F + # meaningful bits before dot - 2)<<23
 	ADD	a1, a3, a2, LSR#8	;a1 = sign<<31 + (&7F + # meaningful bits before dot - 1)<<23 + fraction
-	return	AL, pc, lr
+	MOV	pc, lr
 
 	; uint64_t _ll_ufrom_d(double a)
 	;  { return (uint64_t)a; }
@@ -769,13 +762,13 @@ _ll_sto_f_preload_exponent
 	MOVS	r3, r2, lsl #20		; Check for sign=1 or exponent=0
 	MOVLE	r0, #0			; ...in which case return 0
 	MOVLE	r1, #0
-	return	LE, pc, lr
+	MOVLE	pc, lr
 
 	SUB	r2, r2, #1024		; Adjust exponent (really this should be 1023, but that'd take two instructions)
 	CMP	r2, #62			; Maximum exponent we can allow is 63, since 2^64 would overflow
 	MVNGT	r0, #0
 	MVNGT	r1, #0			; unsigned +infinity
-	return	GT, pc, lr
+	MOVGT	pc, lr
 
 	; Else exponent is in range
 	SUBS	r2, r2, #19+32		; Adjust again so that the 1 bit will lie in bit 0 of r0
@@ -797,7 +790,7 @@ _ll_sto_f_preload_exponent
 	; return (completing word order swap started above)
 	MOV	r0, r1
 	MOV	r1, r2
-	return	AL, pc, lr
+	MOV	pc, lr
 
 _ll_ufrom_d_left
 	MOV	r0, r0, lsl r2		; Shift upper word
@@ -810,7 +803,7 @@ _ll_ufrom_d_left
 	; return (completing word order swap started above)
 	MOV	r1, r0
 	MOV	r0, r2
-	return	AL, pc, lr
+	MOV	pc, lr
 
 	; int64_t _ll_sfrom_d(double a)
 	;  { return (int64_t)a; }
@@ -823,7 +816,7 @@ _ll_ufrom_d_left
 	BICS	r2, r2, #&800		; Clear sign bit from exponent and check for exponent of 0
 	MOVEQ	r0, #0			; If the exponent was 0, return 0
 	MOVEQ	r1, #0			; (Handles cases where fraction == 0 and so number=0, or fraction != 0 and so number=0.fraction*2^-1022 (i.e. very small indeed))
-	return	EQ, pc, lr
+	MOVEQ	pc, lr
 
 	SUB	r2, r2, #1024		; Adjust exponent (really this should be 1023, but that'd take two instructions)
 	CMP	r2, #61			; Maximum exponent we can allow is 62, since 2^63 would overflow into the sign slot and result in -1
@@ -850,10 +843,10 @@ _ll_ufrom_d_left
 	CMP	r3, #0			; Negative ?
 	MOVEQ	r0, r1			; Finish word swap
 	MOVEQ	r1, r2
-	return	EQ, pc, lr
+	MOVEQ	pc, lr
 	RSBS	r0, r1, #0
 	RSC	r1, r2, #0
-	return	AL, pc, lr
+	MOV	pc, lr
 
 _ll_sfrom_d_left
 	MOV	r0, r0, lsl r2		; Shift upper word
@@ -867,11 +860,11 @@ _ll_sfrom_d_left
 	CMP	r3, #0			; Negative ?
 	MOVEQ	r1, r0			; complete word order swap started above
 	MOVEQ	r0, r2
-	return	EQ, pc, lr
+	MOVEQ	pc, lr
 	RSBS	r2, r2, #0
 	RSC	r1, r0, #0
 	MOV	r0, r2
-	return	AL, pc, lr
+	MOV	pc, lr
 
 	; For big numbers, including infinity
 _ll_sfrom_d_big
@@ -880,7 +873,7 @@ _ll_sfrom_d_big
 	MVNEQ	r1, #1<<31		; signed +infinity
 	MOVNE	r0, #0
 	MOVNE	r1, #1<<31		; signed -infinity
-	return	AL, pc, lr
+	MOV	pc, lr
 
 	; uint64_t _ll_ufrom_f(float a)
 	;  { return (uint64_t)a; }
@@ -892,12 +885,12 @@ _ll_sfrom_d_big
 	MOVS	r1, r2, lsl #23		; Check for sign=1 or exponent=0
 	MOVLE	r0, #0			; ...in which case return 0
 	MOVLE	r1, #0
-	return	LE, pc, lr
+	MOVLE	pc, lr
 
 	CMP	r2, #190		; Maximum exponent we can allow is 63, since 2^64 would overflow. Tracing that back results in an r2 of 63+127 = 190
 	MVNGT	r0, #0
 	MVNGT	r1, #0			; unsigned +infinity
-	return	GT, pc, lr
+	MOVGT	pc, lr
 
 	; Else exponent >0 and <191, so treat as 1.fraction*2^(exponent-127)
 	ORR	r1, r0, #&800000	; Add the implicit 1 to the fraction
@@ -915,7 +908,7 @@ _ll_sfrom_d_big
 	RSBLT	r2, r2, #0
 	MOVLT	r1, r1, lsr r2
 
-	return	AL, pc, lr
+	MOV	pc, lr
 
 	; int64_t _ll_sfrom_f(float a)
 	;  { return (int64_t)a; }
@@ -928,7 +921,7 @@ _ll_sfrom_d_big
 	ANDS	r2, r2, #255		; Clear sign bit from exponent, and check for an exponent of 0
 	MOVEQ	r0, #0			; If the exponent was 0, return 0
 	MOVEQ	r1, #0			; (Handles cases where fraction == 0 and so number=0, or fraction != 0 and so number=0.fraction*2^-126 (i.e. very small indeed))
-	return	EQ, pc, lr
+	MOVEQ	pc, lr
 
 	CMP	r2, #189		; Maximum exponent we can allow is 62, since 2^63 would overflow into the sign slot and result in -1. Tracing that back results in an r2 of 62+127 = 189
 	BGT	_ll_sfrom_f_big
@@ -951,10 +944,10 @@ _ll_sfrom_d_big
 
 	; Check sign
 	CMP	r3, #0
-	return	EQ, pc, r14		; Return if positive
+	MOVEQ	pc, r14			; Return if positive
 	RSBS	r0, r0, #0		; Or negate
 	RSC	r1, r1, #0
-	return	AL, pc, lr
+	MOV	pc, lr
 
 	; For big numbers, including infinity
 _ll_sfrom_f_big
@@ -963,6 +956,6 @@ _ll_sfrom_f_big
 	MVNEQ	r1, #1<<31		; signed +infinity
 	MOVNE	r0, #0
 	MOVNE	r1, #1<<31		; signed -infinity
-	return	AL, pc, lr
+	MOV	pc, lr
 
 	END

@@ -1,10 +1,10 @@
 ;----------------------------------------------------------------------------
 ;
-; $Source$
-; $Date$
-; $Revision$
-; $State$
-; $Author$
+; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/_umod.s,v $
+; $Date: 2002/09/24 21:02:38 $
+; $Revision: 1.4 $
+; $State: Exp $
+; $Author: admin $
 ;
 ;----------------------------------------------------------------------------
 
@@ -24,7 +24,7 @@ dividend RN 1
 |__rt_urem|
         MOVS    a3,divisor
 	; just return for divide by zero
-	return	EQ, pc, lr
+	MOVEQ	pc, lr
 
         CMP     a3, dividend, LSR #16
         MOVLS   a3, a3, LSL #16
@@ -44,6 +44,6 @@ divloop
         CMP     a3, divisor
         BCS     divloop
 	MOV	a1, dividend
-	return	AL, pc, lr
+	MOV	pc, lr
 
 	END

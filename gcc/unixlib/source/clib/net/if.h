@@ -1,17 +1,16 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/net/if.h,v $
- * $Date: 2002/12/22 18:22:28 $
- * $Revision: 1.3 $
+ * $Date: 2003/11/18 23:35:57 $
+ * $Revision: 1.4 $
  * $State: Exp $
- * $Author: admin $
+ * $Author: joty $
  *
  ***************************************************************************/
 
 /*
  * File taken from glibc 2.2.5.
  * Following changes were made:
- *  - Changed "#include <features.h>" into "#include <unixlib/features.h>"
  *  - Commented out the if_*() routines because these are not implemented.
  */
 
@@ -37,7 +36,7 @@
 #ifndef _NET_IF_H
 #define _NET_IF_H	1
 
-#include <unixlib/features.h>
+#include <features.h>
 
 #ifdef __USE_MISC
 # include <sys/types.h>

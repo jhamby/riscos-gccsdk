@@ -1,10 +1,10 @@
 ;----------------------------------------------------------------------------
 ;
-; $Source: $
-; $Date: $
-; $Revision: $
-; $State: $
-; $Author: $
+; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/netlib/_bswap_32.s,v $
+; $Date: 2002/12/22 18:22:29 $
+; $Revision: 1.1 $
+; $State: Exp $
+; $Author: admin $
 ;
 ;----------------------------------------------------------------------------
 
@@ -19,6 +19,6 @@ __bswap_32
 	BIC	r1, r1, #&FF0000
 	MOV	r0, r0, ROR #8
 	EOR	r0, r0, r1, LSR #8
-	return	AL, pc, lr
+	MOV	pc, lr
 
 	END

@@ -1,3 +1,18 @@
+/****************************************************************************
+ *
+ * $Source: $
+ * $Date: $
+ * $Revision: $
+ * $State: $
+ * $Author: $
+ *
+ ***************************************************************************/
+
+/* File taken from glibc 2.3.2.
+ * Following changes were made:
+ *   <none>
+ */
+
 /* Copyright (C) 1996, 1997, 1999, 2003 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
@@ -19,7 +34,7 @@
 #ifndef _NL_TYPES_H
 #define _NL_TYPES_H 1
 
-#include <unixlib/features.h>
+#include <features.h>
 
 /* The default message set used by the gencat program.  */
 #define NL_SETD 1

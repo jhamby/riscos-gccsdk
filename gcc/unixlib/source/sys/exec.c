@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/exec.c,v $
- * $Date: 2004/09/07 14:05:11 $
- * $Revision: 1.13 $
+ * $Date: 2004/09/23 22:16:39 $
+ * $Revision: 1.14 $
  * $State: Exp $
  * $Author: joty $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: exec.c,v 1.13 2004/09/07 14:05:11 joty Exp $";
+static const char rcs_id[] = "$Id: exec.c,v 1.14 2004/09/23 22:16:39 joty Exp $";
 #endif
 
 #include <ctype.h>
@@ -27,7 +27,6 @@ static const char rcs_id[] = "$Id: exec.c,v 1.13 2004/09/07 14:05:11 joty Exp $"
 #include <swis.h>
 #include <sys/wait.h>
 #include <unixlib/local.h>
-#include <unixlib/features.h>
 #include <pthread.h>
 
 /* #define DEBUG 1 */
@@ -262,7 +261,7 @@ execve (const char *execname, char *const argv[], char *const envp[])
   __os_print ("\r\n");
 #endif
 
-#if __FEATURE_PTHREADS
+#if __UNIXLIB_FEATURE_PTHREADS
   /* All threads are terminated on an exec call.
      Destructor functions are not called. */
   if (__pthread_system_running)
@@ -272,7 +271,7 @@ execve (const char *execname, char *const argv[], char *const envp[])
     }
 #endif
 
-#if __FEATURE_ITIMERS
+#if __UNIXLIB_FEATURE_ITIMERS
   /* Stop any interval timers that might be running.  Technically
      the new process should inherit the pending alarms.  */
   __stop_itimers ();

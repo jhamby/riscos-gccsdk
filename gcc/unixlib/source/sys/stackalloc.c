@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/stackalloc.c,v $
- * $Date: 2003/04/05 12:16:34 $
- * $Revision: 1.2 $
+ * $Date: 2004/06/12 08:59:49 $
+ * $Revision: 1.3 $
  * $State: Exp $
- * $Author: alex $
+ * $Author: peter $
  *
  ***************************************************************************/
 
@@ -29,13 +29,12 @@
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: stackalloc.c,v 1.2 2003/04/05 12:16:34 alex Exp $";
+static const char rcs_id[] = "$Id: stackalloc.c,v 1.3 2004/06/12 08:59:49 peter Exp $";
 #endif
 
 #include <stddef.h>
 #include <unixlib/os.h>
 #include <unixlib/unix.h>
-#include <unixlib/features.h>
 #include <pthread.h>
 #include <swis.h>
 
@@ -281,7 +280,7 @@ __stackalloc_trim (void)
 {
   struct block *bottomblock;
 
-#if __FEATURE_PTHREADS
+#if __UNIXLIB_FEATURE_PTHREADS
   if (__pthread_system_running)
     __pthread_disable_ints ();
 #endif
@@ -291,7 +290,7 @@ __stackalloc_trim (void)
 
   if (bottomblock->size != BLOCK_FREE)
     {
-#if __FEATURE_PTHREADS
+#if __UNIXLIB_FEATURE_PTHREADS
       if (__pthread_system_running)
         __pthread_enable_ints ();
 #endif
@@ -310,7 +309,7 @@ __stackalloc_trim (void)
   __os_prhex ((int)__unixlib_stack); __os_print ("\r\n");
 #endif
 
-#if __FEATURE_PTHREADS
+#if __UNIXLIB_FEATURE_PTHREADS
   if (__pthread_system_running)
     __pthread_enable_ints ();
 #endif
@@ -372,7 +371,7 @@ __stackalloc (size_t size)
   struct block *lastblocktoalloc;
   void *returnptr;
 
-#if __FEATURE_PTHREADS
+#if __UNIXLIB_FEATURE_PTHREADS
   if (__pthread_system_running)
     __pthread_disable_ints ();
 #endif
@@ -429,7 +428,7 @@ __stackalloc (size_t size)
 #ifdef DEBUG
           __os_print ("-- __stackalloc: no free memory\r\n");
 #endif
-#if __FEATURE_PTHREADS
+#if __UNIXLIB_FEATURE_PTHREADS
           if (__pthread_system_running)
             __pthread_enable_ints ();
 #endif
@@ -467,7 +466,7 @@ __stackalloc (size_t size)
   __os_print ("-- __stackalloc: returning "); __os_prhex ((int)returnptr); __os_print ("\r\n");
 #endif
 
-#if __FEATURE_PTHREADS
+#if __UNIXLIB_FEATURE_PTHREADS
   if (__pthread_system_running)
     __pthread_enable_ints ();
 #endif
@@ -485,7 +484,7 @@ __stackfree (void *ptr)
   struct block *nextblock;
   struct block *lastblock;
 
-#if __FEATURE_PTHREADS
+#if __UNIXLIB_FEATURE_PTHREADS
   if (__pthread_system_running)
     __pthread_disable_ints ();
 #endif
@@ -537,7 +536,7 @@ __stackfree (void *ptr)
   lastblock->startofcon = startblock;
   blocktofree->size = BLOCK_FREE;
 
-#if __FEATURE_PTHREADS
+#if __UNIXLIB_FEATURE_PTHREADS
   if (__pthread_system_running)
     __pthread_enable_ints ();
 #endif

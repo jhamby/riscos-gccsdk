@@ -1,17 +1,17 @@
 /****************************************************************************
  *
- * $Source: $
- * $Date: $
- * $Revision: $
- * $State: $
- * $Author: $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/rpc/netdb.h,v $
+ * $Date: 2002/12/22 18:22:28 $
+ * $Revision: 1.1 $
+ * $State: Exp $
+ * $Author: admin $
  *
  ***************************************************************************/
 
 /*
  * File taken from glibc 2.2.5.
  * Following changes were made:
- *  - Changed "#include <features.h>" into "#include <unixlib/features.h>"
+ *  <none>
  */
 
 /* @(#)netdb.h	2.1 88/07/29 3.9 RPCSRC */
@@ -52,7 +52,7 @@
 #ifndef _RPC_NETDB_H
 #define _RPC_NETDB_H	1
 
-#include <unixlib/features.h>
+#include <features.h>
 
 #define __need_size_t
 #include <stddef.h>

@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/write.c,v $
- * $Date: 2002/02/14 15:56:39 $
- * $Revision: 1.3 $
+ * $Date: 2003/04/05 09:33:57 $
+ * $Revision: 1.4 $
  * $State: Exp $
- * $Author: admin $
+ * $Author: alex $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: write.c,v 1.3 2002/02/14 15:56:39 admin Exp $";
+static const char rcs_id[] = "$Id: write.c,v 1.4 2003/04/05 09:33:57 alex Exp $";
 #endif
 
 /* #define DEBUG */
@@ -22,7 +22,6 @@ static const char rcs_id[] = "$Id: write.c,v 1.3 2002/02/14 15:56:39 admin Exp $
 #include <sys/types.h>
 #include <unixlib/dev.h>
 #include <unixlib/unix.h>
-#include <unixlib/features.h>
 #include <unixlib/fd.h>
 #include <pthread.h>
 
@@ -72,7 +71,7 @@ write (int fd, const void *buf, size_t nbytes)
   status = __funcall ((*(__dev[file_desc->device].write)),
 		      (file_desc, buf, nbytes));
 
-#if __FEATURE_PIPEDEV
+#if __UNIXLIB_FEATURE_PIPEDEV
 #ifdef SIGPIPE
   /* Raise the SIGPIPE signal if we tried to write to a pipe
      or FIFO that isn't open for reading by any process.  */

@@ -1,8 +1,8 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/math-asm/_feholdexc.s,v $
-; $Date: 2001/01/29 15:10:20 $
-; $Revision: 1.2 $
+; $Date: 2002/09/24 21:02:37 $
+; $Revision: 1.3 $
 ; $State: Exp $
 ; $Author: admin $
 ;
@@ -15,11 +15,12 @@
 	EXPORT	feholdexcept
 	NAME	feholdexcept
 feholdexcept
-	rfs	ip
-	str	ip, [a1, #0]
+	RFS	ip
+	STR	ip, [a1, #0]
 	; ip &= ~(FE_ALL_EXCEPT << FE_EXCEPT_SHIFT)
-	bic	ip, ip, #&F0000
-	wfs	ip
-	mov	a1, #1
-	return	AL, pc, lr
+	BIC	ip, ip, #&F0000
+	WFS	ip
+	MOV	a1, #1
+	MOV	pc, lr
+
 	END

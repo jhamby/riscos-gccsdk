@@ -1,10 +1,10 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/_exec.s,v $
-; $Date: 2004/06/12 08:59:49 $
-; $Revision: 1.5 $
+; $Date: 2004/09/07 14:05:11 $
+; $Revision: 1.6 $
 ; $State: Exp $
-; $Author: peter $
+; $Author: joty $
 ;
 ;----------------------------------------------------------------------------
 
@@ -64,7 +64,7 @@
 
 
 	; Relocate old application prior to executing the new app.
-	[ PARANOID = 1
+	[ __UNIXLIB_PARANOID > 0
 	CMP	a3, #0
 	MOVEQ	a3, a1			; no code shift required, so set
 	BEQ	|__exec_s3|		; a3 to base (what else?)
@@ -149,7 +149,7 @@
 	LDR	a1, [pc, #|__rwlimit_|-.-8]
 	LDR	a2, [pc, #|__codeshift|-.-8]
 	LDR	a3, [pc, #|__base_|-.-8]
-	[ PARANOID = 1
+	[ __UNIXLIB_PARANOID > 0
 	CMP	a2, #0
 	BEQ	|__exec_s6|
 	]

@@ -1,8 +1,8 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/_umodsi3.s,v $
-; $Date: 2001/01/29 15:10:21 $
-; $Revision: 1.2 $
+; $Date: 2002/09/24 21:02:38 $
+; $Revision: 1.3 $
 ; $State: Exp $
 ; $Author: admin $
 ;
@@ -25,6 +25,6 @@
 	MOV	a2, a3
 	BL	|_kernel_udiv|
 	MOV	a1, a2
-	stackreturn	AL, "pc"
+	LDMFD	sp!, {pc}
 
 	END
