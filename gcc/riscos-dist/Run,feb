@@ -64,11 +64,7 @@ Set gpc$heap ""
 Set as$heap ""
 
 | Used for extended command lines
-| Initially, we look in !System for the DDEUtils module supplied by Acorn
-| If not present, then we will load the DDEUtilsCy version.
-RMEnsure DDEUtils 0.02 Run <GCC$Dir>.Support.DDEUtilsCy.IFExist System:Modules.DDEUtils Then RMLoad System:Modules.DDEUtils
-RMEnsure DDEUtils 0.01 RMRun <GCC$Dir>.Support.DDEUtilsCy.DDEUtilsCy
-RMEnsure DDEUtils 0.01 %Obey -c <GCC$Dir>.Support.DDEUtilsCy.InitDDECy
+RMEnsure DDEUtils 0.02 RMLoad System:Modules.DDEUtils
 
 RMEnsure UtilityModule 3.10 Obey
 | Details specific to RISC OS 3.10 and above
