@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/dirent.c,v $
- * $Date: 2004/02/07 18:09:19 $
- * $Revision: 1.9 $
+ * $Date: 2004/12/11 14:18:57 $
+ * $Revision: 1.10 $
  * $State: Exp $
- * $Author: alex $
+ * $Author: joty $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: dirent.c,v 1.9 2004/02/07 18:09:19 alex Exp $";
+static const char rcs_id[] = "$Id: dirent.c,v 1.10 2004/12/11 14:18:57 joty Exp $";
 #endif
 
 /* #define DEBUG */
@@ -500,17 +500,17 @@ readdir_r (DIR *stream, struct dirent *entry, struct dirent **result)
 
                       if (*fn_extension == '.')
                         {
-                          _kernel_swi_regs regs;
+                          int regs[10];
 
                           /* We have a filename extension at 'fn_extension'.  */
-                          regs.r[0] = MMM_TYPE_DOT_EXTN; /* Input extension */
-                          regs.r[1] = (int)fn_extension;
-                          regs.r[2] = MMM_TYPE_RISCOS; /* Output extension */
+                          regs[0] = MMM_TYPE_DOT_EXTN; /* Input extension */
+                          regs[1] = (int)fn_extension;
+                          regs[2] = MMM_TYPE_RISCOS; /* Output extension */
 
                           /* When there is no MimeMap error and the filetype returned
                              matches 'filetype', we don't want filetype extension.  */
-                          if (! _kernel_swi (MimeMap_Translate, &regs, &regs)
-                              && regs.r[3] == filetype)
+                          if (! __os_swi (MimeMap_Translate, regs)
+                              && regs[3] == filetype)
                             ft_extension_needed = 0;
                         }
                     }

@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/common/unixify.c,v $
- * $Date: 2005/01/04 22:54:37 $
- * $Revision: 1.10 $
+ * $Date: 2005/03/05 14:46:27 $
+ * $Revision: 1.11 $
  * $State: Exp $
- * $Author: alex $
+ * $Author: joty $
  *
  ***************************************************************************/
 
@@ -12,6 +12,7 @@
 #include <string.h>
 #include <unixlib/local.h>
 #include <unixlib/swiparams.h>
+#include <unixlib/os.h>
 #include <stdlib.h>
 #include <ctype.h>
 #include <swis.h>
@@ -38,17 +39,17 @@ add_filetype (char *buffer, char *out, char *out_end, int filetype, int unixify_
 	;
       if (*fn_extension == '.')
 	{
-	  _kernel_swi_regs regs;
+	  int regs[10];
 
 	  /* We have a filename extension at 'fn_extension'.  */
-	  regs.r[0] = MMM_TYPE_DOT_EXTN; /* Input extension */
-	  regs.r[1] = (int)fn_extension;
-	  regs.r[2] = MMM_TYPE_RISCOS; /* Output extension */
+	  regs[0] = MMM_TYPE_DOT_EXTN; /* Input extension */
+	  regs[1] = (int)fn_extension;
+	  regs[2] = MMM_TYPE_RISCOS; /* Output extension */
 
 	  /* When there is no MimeMap error and the filetype returned
 	     matches 'filetype', we don't want filetype extension.  */
-	  if (! _kernel_swi (MimeMap_Translate, &regs, &regs)
-	      && regs.r[3] == filetype)
+	  if (! __os_swi (MimeMap_Translate, regs)
+	      && regs[3] == filetype)
 	    ft_extension_needed = 0;
 	}
     }

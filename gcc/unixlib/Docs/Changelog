@@ -1,6 +1,12 @@
+Sun Mar 20 15:44:23 2005  Alex Waugh  <alex@alexwaugh.com>
+
+	* source/common/riscosify.c, source/common/unixify.c,
+	  source/unix/dirent.c: Use __os_swi instead of _kernel_swi to avoid
+	  modifying errno (Bug#140).
+
 Sat Mar 19 19:26:16 2005  John-Mark Bell  <jmb202@ecs.soton.ac.uk>
 
-	* source/sys/_swi.s, source/test/test1-swi.c: Fix handling of return 
+	* source/sys/_swi.s, source/test/test1-swi.c: Fix handling of return
 	  registers > r3. Update testcase appropriately.
 
 Sat Mar 19 11:54:53 2005  Alex Waugh  <alex@alexwaugh.com>
@@ -19,7 +25,7 @@ Tue Mar 15 22:07:05 2005  Alex Waugh  <alex@alexwaugh.com>
 	  parameter to __getenv_from_os calls.
 	* source/unix/{getenv.c, putenv.c, setenv.c}: Change environment
 	  variable behaviour to use global RISC OS environment for anything
-	  with a $ in the name, nd the process' private environment otherwise.
+	  with a $ in the name, and the process' private environment otherwise.
 	* source/unix/unix.c: Populate environ on program initialisation.
 
 Sun Mar 13 19:37:45 2005  Alex Waugh  <alex@alexwaugh.com>

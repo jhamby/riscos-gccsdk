@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/common/riscosify.c,v $
- * $Date: 2004/10/08 11:56:13 $
- * $Revision: 1.15 $
+ * $Date: 2004/12/16 17:10:30 $
+ * $Revision: 1.17 $
  * $State: Exp $
  * $Author: peter $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: riscosify.c,v 1.15 2004/10/08 11:56:13 peter Exp $";
+static const char rcs_id[] = "$Id: riscosify.c,v 1.17 2004/12/16 17:10:30 peter Exp $";
 #endif
 
 /* #define DEBUG */
@@ -497,8 +497,16 @@ translate_or_null (int create_dir, int flags,
 
       /* If there's an error, then the filetype will remain
          __RISCOSIFY_FILETYPE_NOT_FOUND.  */
+#ifdef __TARGET_SCL__
       if (! _kernel_swi (MimeMap_Translate, &regs, &regs))
+#else
+      /* Avoid _kernel_swi if possible because it can corrupt errno and
+         _kernel_last_oserror if the mimemap translation fails.
+         __os_swi is not available in the SCL. */
+      if (! __os_swi (MimeMap_Translate, (int *)&regs))
+#endif
         *filetype = regs.r[3];
+
     }
 
   /* Check if we have "blabla,xyz" as filename where `xyz' is a
