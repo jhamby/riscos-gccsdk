@@ -1,10 +1,10 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/_alloca.s,v $
-; $Date: 2003/01/05 12:36:35 $
-; $Revision: 1.7 $
+; $Date: 2003/05/07 22:10:27 $
+; $Revision: 1.8 $
 ; $State: Exp $
-; $Author: admin $
+; $Author: alex $
 ;
 ;----------------------------------------------------------------------------
 
@@ -35,9 +35,11 @@ alloca		; just in case
 	|
 	; If we could not malloc any space then print an error message
 	; and force an abort - just like a true alloca function should.
-	ADREQ	a1, |__alloca_malloc_msg|
-	SWIEQ	XOS_Write0
-	BEQ	abort			; never returns
+	BNE	noabort
+	ADR	a1, |__alloca_malloc_msg|
+	SWI	XOS_Write0
+	B	abort			; never returns
+noabort
 	]
 
 	; Overwrite the return link value of the caller by __alloca_free which will
