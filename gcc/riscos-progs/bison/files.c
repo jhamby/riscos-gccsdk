@@ -1,459 +1,337 @@
-/* Open and close files for bison,
-   Copyright (C) 1984, 1986, 1989, 1992 Free Software Foundation, Inc.
+/* Open and close files for Bison.
 
-This file is part of Bison, the GNU Compiler Compiler.
+   Copyright (C) 1984, 1986, 1989, 1992, 2000, 2001, 2002
+   Free Software Foundation, Inc.
 
-Bison is free software; you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 2, or (at your option)
-any later version.
+   This file is part of Bison, the GNU Compiler Compiler.
 
-Bison is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+   Bison is free software; you can redistribute it and/or modify it
+   under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 2, or (at your option)
+   any later version.
 
-You should have received a copy of the GNU General Public License
-along with Bison; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-Boston, MA 02111-1307, USA.  */
+   Bison is distributed in the hope that it will be useful, but
+   WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+   General Public License for more details.
+
+   You should have received a copy of the GNU General Public License
+   along with Bison; see the file COPYING.  If not, write to the Free
+   Software Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
+   02111-1307, USA.  */
 
 
 #include "system.h"
 
-#if defined (VMS) & !defined (__VMS_POSIX)
-#include <ssdef.h>
-#define unlink delete
-#ifndef XPFILE
-#define XPFILE "GNU_BISON:[000000]BISON.SIMPLE"
-#endif
-#ifndef XPFILE1
-#define XPFILE1 "GNU_BISON:[000000]BISON.HAIRY"
-#endif
-#endif
+#include <error.h>
+#include <get-errno.h>
+#include <quote.h>
 
-#if defined (_MSC_VER)
-#ifndef XPFILE
-#define XPFILE "c:/usr/local/lib/bison.simple"
-#endif
-#ifndef XPFILE1
-#define XPFILE1 "c:/usr/local/lib/bison.hairy"
-#endif
-#endif
-
-#include <stdio.h>
-
-#ifdef HAVE_UNISTD_H
-#include <unistd.h>
-#endif
-
+#include "complain.h"
 #include "files.h"
-#include "alloc.h"
+#include "getargs.h"
 #include "gram.h"
 
+/* From basename.c.  Almost a lie, as it returns a char *. */
+const char *base_name (char const *name);
+
 FILE *finput = NULL;
-FILE *foutput = NULL;
-FILE *fdefines = NULL;
-FILE *ftable = NULL;
-FILE *fattrs = NULL;
-FILE *fguard = NULL;
-FILE *faction = NULL;
-FILE *fparser = NULL;
 
-/* File name specified with -o for the output file, or 0 if no -o.  */
-char *spec_outfile;
+struct obstack pre_prologue_obstack;
+struct obstack post_prologue_obstack;
 
-char *infile;
-char *outfile;
-char *defsfile;
-char *tabfile;
-char *attrsfile;
-char *guardfile;
-char *actfile;
-char *tmpattrsfile;
-char *tmptabfile;
-char *tmpdefsfile;
+/* Initializing some values below (such SPEC_NAME_PREFIX to `yy') is
+   tempting, but don't do that: for the time being our handling of the
+   %directive vs --option leaves precedence to the options by deciding
+   that if a %directive sets a variable which is really set (i.e., not
+   NULL), then the %directive is ignored.  As a result, %name-prefix,
+   for instance, will not be honored.  */
 
-extern int noparserflag;
+char *spec_outfile = NULL;	/* for -o. */
+char *spec_file_prefix = NULL;	/* for -b. */
+const char *spec_name_prefix = NULL;	/* for -p. */
+char *spec_verbose_file = NULL;   /* for --verbose. */
+char *spec_graph_file = NULL;   /* for -g. */
+char *spec_defines_file = NULL; /* for --defines. */
+char *parser_file_name = NULL;
 
-extern char	*mktemp();	/* So the compiler won't complain */
-extern char	*getenv();
-extern void	perror();
+uniqstr grammar_file = NULL;
+uniqstr current_file = NULL;
 
-char *stringappend PARAMS((char *, int, char *));
-void openfiles PARAMS((void));
-void open_extra_files PARAMS((void));
-FILE *tryopen PARAMS((char *, char *));	/* This might be a good idea */
-int tryclose PARAMS((FILE *));
-void done PARAMS((int));
+static char *full_base_name = NULL;
 
-extern char *program_name;
-extern int verboseflag;
-extern int definesflag;
-int fixed_outfiles = 0;
+/* Prefix used to generate output file names.  */
+char *short_base_name = NULL;
+
+/* C source file extension (the parser source).  */
+const char *src_extension = NULL;
+/* Header file extension (if option ``-d'' is specified).  */
+const char *header_extension = NULL;
 
+/*-----------------------------------------------------------------.
+| Return a newly allocated string composed of the concatenation of |
+| STR1, and STR2.                                                  |
+`-----------------------------------------------------------------*/
 
-char *
-stringappend (char *string1, int end1, char *string2)
+static char *
+concat2 (char const *str1, char const *str2)
 {
-  register char *ostring;
-  register char *cp, *cp1;
-  register int i;
-
-  cp = string2;  i = 0;
-  while (*cp++) i++;
-
-  ostring = NEW2(i+end1+1, char);
-
-  cp = ostring;
-  cp1 = string1;
-  for (i = 0; i < end1; i++)
-    *cp++ = *cp1++;
-
-  cp1 = string2;
-  while ((*cp++ = *cp1++))
-    ;
-
-  return ostring;
-}
-
-
-/* JF this has been hacked to death.  Nowaday it sets up the file names for
-   the output files, and opens the tmp files and the parser */
-void
-openfiles (void)
-{
-  char *name_base;
-#ifdef MSDOS
-  register char *cp;
-#endif
-  char *filename;
-  int base_length;
-  int short_base_length;
-
-#if defined (VMS) & !defined (__VMS_POSIX)
-  char *tmp_base = "sys$scratch:b_";
-#else
-  char *tmp_base = "/tmp/b.";
-#endif
-  int tmp_len;
-
-#ifdef MSDOS
-  tmp_base = getenv ("TMP");
-  if (tmp_base == 0)
-    tmp_base = "";
-  strlwr (infile);
-#endif /* MSDOS */
-
-#if (defined(_WIN32) && !defined(__CYGWIN32__))
-  tmp_base = getenv ("TEMP");		/* Windows95 defines this ... */
-  if (tmp_base == 0)
-    tmp_base = getenv ("Temp");		/* ... while NT prefers this */
-  if (tmp_base == 0)
-    tmp_base = "";
-  strlwr (infile);
-#endif /* _WIN32 && !__CYGWIN32__ */
-
-#if (defined(unix) || defined(__unix) || defined(__unix__))
-  {
-    char *tmp_ptr = getenv("TMPDIR");
-
-    if (tmp_ptr != 0)
-      tmp_base = stringappend (tmp_ptr, strlen (tmp_ptr), "/b.");
-  }
-#endif  /* unix || __unix || __unix__ */
-
-  tmp_len = strlen (tmp_base);
-
-  if (spec_outfile)
-    {
-      /* -o was specified.  The precise -o name will be used for ftable.
-	 For other output files, remove the ".c" or ".tab.c" suffix.  */
-      name_base = spec_outfile;
-#ifdef MSDOS
-      strlwr (name_base);
-#endif /* MSDOS */
-      /* BASE_LENGTH includes ".tab" but not ".c".  */
-      base_length = strlen (name_base);
-      if (!strcmp (name_base + base_length - 2, ".c"))
-	base_length -= 2;
-      /* SHORT_BASE_LENGTH includes neither ".tab" nor ".c".  */
-      short_base_length = base_length;
-      if (!strncmp (name_base + short_base_length - 4, ".tab", 4))
-	short_base_length -= 4;
-      else if (!strncmp (name_base + short_base_length - 4, "_tab", 4))
-	short_base_length -= 4;
-    }
-  else if (spec_file_prefix)
-    {
-      /* -b was specified.  Construct names from it.  */
-      /* SHORT_BASE_LENGTH includes neither ".tab" nor ".c".  */
-      short_base_length = strlen (spec_file_prefix);
-      /* Count room for `.tab'.  */
-      base_length = short_base_length + 4;
-      name_base = (char *) xmalloc (base_length + 1);
-      /* Append `.tab'.  */
-      strcpy (name_base, spec_file_prefix);
-#ifdef VMS
-      strcat (name_base, "_tab");
-#else
-      strcat (name_base, ".tab");
-#endif
-#ifdef MSDOS
-      strlwr (name_base);
-#endif /* MSDOS */
-    }
-  else
-    {
-      /* -o was not specified; compute output file name from input
-	 or use y.tab.c, etc., if -y was specified.  */
-
-      name_base = fixed_outfiles ? "y.y" : infile;
-
-      /* BASE_LENGTH gets length of NAME_BASE, sans ".y" suffix if any.  */
-
-      base_length = strlen (name_base);
-      if (!strcmp (name_base + base_length - 2, ".y"))
-	base_length -= 2;
-      short_base_length = base_length;
-
-#ifdef VMS
-      name_base = stringappend(name_base, short_base_length, "_tab");
-#else
-#ifdef MSDOS
-      name_base = stringappend(name_base, short_base_length, "_tab");
-#else
-      name_base = stringappend(name_base, short_base_length, ".tab");
-#endif /* not MSDOS */
-#endif
-      base_length = short_base_length + 4;
-    }
-
-  finput = tryopen(infile, "r");
-
-  if (! noparserflag) 
-    {
-      filename = getenv("BISON_SIMPLE");
-#ifdef MSDOS
-      /* File doesn't exist in current directory; try in INIT directory.  */
-      cp = getenv("INIT");
-      if (filename == 0 && cp != NULL)
-        {
-          filename = xmalloc(strlen(cp) + strlen(PFILE) + 2);
-          strcpy(filename, cp);
-          cp = filename + strlen(filename);
-          *cp++ = '/';
-          strcpy(cp, PFILE);
-        }
-#endif /* MSDOS */
-      fparser = tryopen(filename ? filename : PFILE, "r");
-    }
-
-  if (verboseflag)
-    {
-#ifdef MSDOS
-      outfile = stringappend(name_base, short_base_length, ".out");
-#else
-      /* We used to use just .out if spec_name_prefix (-p) was used,
-	 but that conflicts with Posix.  */
-      outfile = stringappend(name_base, short_base_length, ".output");
-#endif
-      foutput = tryopen(outfile, "w");
-    }
-
-  if (noparserflag)
-    {
-      /* use permanent name for actions file */
-      actfile = stringappend(name_base, short_base_length, ".act");
-      faction = tryopen(actfile, "w");
-    } 
-
-#ifdef MSDOS
-  if (! noparserflag)
-    actfile = mktemp(stringappend(tmp_base, tmp_len, "acXXXXXX"));
-  tmpattrsfile = mktemp(stringappend(tmp_base, tmp_len, "atXXXXXX"));
-  tmptabfile = mktemp(stringappend(tmp_base, tmp_len, "taXXXXXX"));
-  tmpdefsfile = mktemp(stringappend(tmp_base, tmp_len, "deXXXXXX"));
-#else
-  if (! noparserflag)
-    actfile = mktemp(stringappend(tmp_base, tmp_len, "act.XXXXXX"));
-  tmpattrsfile = mktemp(stringappend(tmp_base, tmp_len, "attrs.XXXXXX"));
-  tmptabfile = mktemp(stringappend(tmp_base, tmp_len, "tab.XXXXXX"));
-  tmpdefsfile = mktemp(stringappend(tmp_base, tmp_len, "defs.XXXXXX"));
-#endif /* not MSDOS */
-
-  if (! noparserflag)
-    faction = tryopen(actfile, "w+");
-  fattrs = tryopen(tmpattrsfile,"w+");
-  ftable = tryopen(tmptabfile, "w+");
-
-  if (definesflag)
-    {
-      defsfile = stringappend(name_base, base_length, ".h");
-      fdefines = tryopen(tmpdefsfile, "w+");
-    }
-
-#if !(defined (MSDOS) || (defined(_WIN32) && !defined(__CYGWIN32__)))
-  if (! noparserflag)
-    unlink(actfile);
-  unlink(tmpattrsfile);
-  unlink(tmptabfile);
-  unlink(tmpdefsfile);
-#endif /* MSDOS || (_WIN32 && !__CYGWIN32__) */
-
-	/* These are opened by `done' or `open_extra_files', if at all */
-  if (spec_outfile)
-    tabfile = spec_outfile;
-  else
-    tabfile = stringappend(name_base, base_length, ".c");
-
-#ifdef VMS
-  attrsfile = stringappend(name_base, short_base_length, "_stype.h");
-  guardfile = stringappend(name_base, short_base_length, "_guard.c");
-#else
-#ifdef MSDOS
-  attrsfile = stringappend(name_base, short_base_length, ".sth");
-  guardfile = stringappend(name_base, short_base_length, ".guc");
-#else
-  attrsfile = stringappend(name_base, short_base_length, ".stype.h");
-  guardfile = stringappend(name_base, short_base_length, ".guard.c");
-#endif /* not MSDOS */
-#endif /* not VMS */
-}
-
-
-
-/* open the output files needed only for the semantic parser.
-This is done when %semantic_parser is seen in the declarations section.  */
-
-void
-open_extra_files (void)
-{
-  FILE *ftmp;
-  int c;
-  char *filename;
-#ifdef MSDOS
+  size_t len = strlen (str1) + strlen (str2);
+  char *res = xmalloc (len + 1);
   char *cp;
-#endif
-
-  tryclose(fparser);
-
-  if (! noparserflag) 
-    {
-      filename = (char *) getenv ("BISON_HAIRY");
-#ifdef MSDOS
-      /* File doesn't exist in current directory; try in INIT directory.  */
-      cp = getenv("INIT");
-      if (filename == 0 && cp != NULL)
-        {
-          filename = xmalloc(strlen(cp) + strlen(PFILE1) + 2);
-          strcpy(filename, cp);
-          cp = filename + strlen(filename);
-          *cp++ = '/';
-          strcpy(cp, PFILE1);
-        }
-#endif
-      fparser= tryopen(filename ? filename : PFILE1, "r");
-    }
-
-		/* JF change from inline attrs file to separate one */
-  ftmp = tryopen(attrsfile, "w");
-  rewind(fattrs);
-  while((c=getc(fattrs))!=EOF)	/* Thank god for buffering */
-    putc(c,ftmp);
-  tryclose(fattrs);
-  fattrs=ftmp;
-
-  fguard = tryopen(guardfile, "w");
-
+  cp = stpcpy (res, str1);
+  cp = stpcpy (cp, str2);
+  return res;
 }
 
-	/* JF to make file opening easier.  This func tries to open file
-	   NAME with mode MODE, and prints an error message if it fails. */
-FILE *
-tryopen (char *name, char *mode)
-{
-  FILE	*ptr;
+/*-----------------------------------------------------------------.
+| Try to open file NAME with mode MODE, and print an error message |
+| if fails.                                                        |
+`-----------------------------------------------------------------*/
 
-  ptr = fopen(name, mode);
-  if (ptr == NULL)
-    {
-      fprintf(stderr, "%s: ", program_name);
-      perror(name);
-      done(2);
-    }
+FILE *
+xfopen (const char *name, const char *mode)
+{
+  FILE *ptr;
+
+  ptr = fopen (name, mode);
+  if (!ptr)
+    error (EXIT_FAILURE, get_errno (), _("cannot open file `%s'"), name);
+
   return ptr;
 }
 
-int
-tryclose (FILE *ptr)
-{
-  int result;
-
-  if (ptr == NULL)
-    return 0;
-
-  result = fclose (ptr);
-  if (result == EOF)
-    {
-      fprintf (stderr, "%s: ", program_name);
-      perror ("fclose");
-      done (2);
-    }
-  return result;
-}
+/*-------------------------------------------------------------.
+| Try to close file PTR, and print an error message if fails.  |
+`-------------------------------------------------------------*/
 
 void
-done (int k)
+xfclose (FILE *ptr)
 {
-  tryclose(faction);
-  tryclose(fattrs);
-  tryclose(fguard);
-  tryclose(finput);
-  tryclose(fparser);
-  tryclose(foutput);
+  if (ptr == NULL)
+    return;
 
-	/* JF write out the output file */
-  if (k == 0 && ftable)
+  if (ferror (ptr))
+    error (EXIT_FAILURE, 0, _("I/O error"));
+
+  if (fclose (ptr) != 0)
+    error (EXIT_FAILURE, get_errno (), _("cannot close file"));
+}
+
+
+/*---------------------------------------------------------------------.
+| Compute FULL_BASE_NAME, SHORT_BASE_NAME and output files extensions. |
+`---------------------------------------------------------------------*/
+
+/* Replace all characters FROM by TO in the string IN.
+   and returns a new allocated string.  */
+static char *
+tr (const char *in, char from, char to)
+{
+  char *temp;
+  char *out = xmalloc (strlen (in) + 1);
+
+  for (temp = out; *in; in++, out++)
+    if (*in == from)
+      *out = to;
+    else
+      *out = *in;
+  *out = 0;
+  return (temp);
+}
+
+/* Computes extensions from the grammar file extension. */
+static void
+compute_exts_from_gf (const char *ext)
+{
+  src_extension = tr (ext, 'y', 'c');
+  src_extension = tr (src_extension, 'Y', 'C');
+  header_extension = tr (ext, 'y', 'h');
+  header_extension = tr (header_extension, 'Y', 'H');
+}
+
+/* Computes extensions from the given c source file extension. */
+static void
+compute_exts_from_src (const char *ext)
+{
+  /* We use this function when the user specifies `-o' or `--output',
+     so the extenions must be computed unconditionally from the file name
+     given by this option.  */
+  src_extension = xstrdup (ext);
+  header_extension = tr (ext, 'c', 'h');
+  header_extension = tr (header_extension, 'C', 'H');
+}
+
+
+/* Decompose FILENAME in four parts: *BASE, *TAB, and *EXT, the fourth
+   part, (the directory) is ranging from FILENAME to the char before
+   *BASE, so we don't need an additional parameter.
+
+   *EXT points to the last period in the basename, or NULL if none.
+
+   If there is no *EXT, *TAB is NULL.  Otherwise, *TAB points to
+   `.tab' or `_tab' if present right before *EXT, or is NULL. *TAB
+   cannot be equal to *BASE.
+
+   None are allocated, they are simply pointers to parts of FILENAME.
+   Examples:
+
+   '/tmp/foo.tab.c' -> *BASE = 'foo.tab.c', *TAB = '.tab.c', *EXT =
+   '.c'
+
+   'foo.c' -> *BASE = 'foo.c', *TAB = NULL, *EXT = '.c'
+
+   'tab.c' -> *BASE = 'tab.c', *TAB = NULL, *EXT = '.c'
+
+   '.tab.c' -> *BASE = '.tab.c', *TAB = NULL, *EXT = '.c'
+
+   'foo.tab' -> *BASE = 'foo.tab', *TAB = NULL, *EXT = '.tab'
+
+   'foo_tab' -> *BASE = 'foo_tab', *TAB = NULL, *EXT = NULL
+
+   'foo' -> *BASE = 'foo', *TAB = NULL, *EXT = NULL.  */
+
+static void
+filename_split (const char *filename,
+		const char **base, const char **tab, const char **ext)
+{
+  *base = base_name (filename);
+
+  /* Look for the extension, i.e., look for the last dot. */
+  *ext = strrchr (*base, '.');
+  *tab = NULL;
+
+  /* If there is an extension, check if there is a `.tab' part right
+     before.  */
+  if (*ext)
     {
-      FILE *ftmp;
-      register int c;
+      size_t baselen = *ext - *base;
+      size_t dottablen = 4;
+      if (dottablen < baselen
+	  && (strncmp (*ext - dottablen, ".tab", dottablen) == 0
+	      || strncmp (*ext - dottablen, "_tab", dottablen) == 0))
+	*tab = *ext - dottablen;
+    }
+}
 
-      ftmp=tryopen(tabfile, "w");
-      rewind(ftable);
-      while((c=getc(ftable)) != EOF)
-        putc(c,ftmp);
-      tryclose(ftmp);
-      tryclose(ftable);
 
-      if (definesflag)
-        {
-          ftmp = tryopen(defsfile, "w");
-          fflush(fdefines);
-          rewind(fdefines);
-          while((c=getc(fdefines)) != EOF)
-            putc(c,ftmp);
-          tryclose(ftmp);
-          tryclose(fdefines);
-        }
+/* FIXME: Should use xstrndup. */
+
+static void
+compute_base_names (void)
+{
+  const char *base, *tab, *ext;
+
+  /* If --output=foo.c was specified (SPEC_OUTFILE == foo.c),
+     FULL_BASE_NAME and SHORT_BASE_NAME are `foo'.
+
+     If --output=foo.tab.c was specified, FULL_BASE_NAME is `foo.tab'
+     and SHORT_BASE_NAME is `foo'.
+
+     The precise -o name will be used for FTABLE.  For other output
+     files, remove the ".c" or ".tab.c" suffix.  */
+  if (spec_outfile)
+    {
+      filename_split (spec_outfile, &base, &tab, &ext);
+
+      /* The full base name goes up the EXT, excluding it. */
+      full_base_name =
+	xstrndup (spec_outfile,
+		  (strlen (spec_outfile) - (ext ? strlen (ext) : 0)));
+
+      /* The short base name goes up to TAB, excluding it.  */
+      short_base_name =
+	xstrndup (spec_outfile,
+		  (strlen (spec_outfile)
+		   - (tab ? strlen (tab) : (ext ? strlen (ext) : 0))));
+
+      if (ext)
+	compute_exts_from_src (ext);
     }
 
-#if defined (VMS) & !defined (__VMS_POSIX)
-  if (faction && ! noparserflag)
-    delete(actfile);
-  if (fattrs)
-    delete(tmpattrsfile);
-  if (ftable)
-    delete(tmptabfile);
-  if (k==0) sys$exit(SS$_NORMAL);
-  sys$exit(SS$_ABORT);
-#else
-#if (defined (MSDOS) || (defined(_WIN32) && !defined(__CYGWIN32__)))
-  if (actfile && ! noparserflag) unlink(actfile);
-  if (tmpattrsfile) unlink(tmpattrsfile);
-  if (tmptabfile) unlink(tmptabfile);
-  if (tmpdefsfile) unlink(tmpdefsfile);
-#endif /* MSDOS || (_WIN32 && !__CYGWIN32__) */
-  exit(k);
-#endif /* not VMS, or __VMS_POSIX */
+  /* If --file-prefix=foo was specified, FULL_BASE_NAME = `foo.tab'
+     and SHORT_BASE_NAME = `foo'.
+
+     Construct names from it.  */
+  else
+    {
+      if (spec_file_prefix)
+	{
+	  /* If --file-prefix=foo was specified, SHORT_BASE_NAME =
+	     `foo'.  */
+	  short_base_name = xstrdup (spec_file_prefix);
+	}
+      else if (yacc_flag)
+	{
+	  /* If --yacc, then the output is `y.tab.c'. */
+	  short_base_name = xstrdup ("y");
+	}
+      else
+	{
+	  /* Otherwise, the short base name is computed from the input
+	     grammar: `foo/bar.yy' => `bar'.  */
+	  filename_split (grammar_file, &base, &tab, &ext);
+	  short_base_name =
+	    xstrndup (base,
+		      (strlen (base) - (ext ? strlen (ext) : 0)));
+	}
+
+      full_base_name = xmalloc (strlen (short_base_name)
+				+ strlen (TAB_EXT) + 1);
+      stpcpy (stpcpy (full_base_name, short_base_name), TAB_EXT);
+
+      /* Computes the extensions from the grammar file name.  */
+      filename_split (grammar_file, &base, &tab, &ext);
+      if (ext && !yacc_flag)
+	compute_exts_from_gf (ext);
+    }
+}
+
+
+/* Compute the output file names.  Warn if we detect conflicting
+   outputs to the same file.  */
+
+void
+compute_output_file_names (void)
+{
+  char const *name[4];
+  int i;
+  int j;
+  int names = 0;
+
+  compute_base_names ();
+
+  /* If not yet done. */
+  if (!src_extension)
+    src_extension = ".c";
+  if (!header_extension)
+    header_extension = ".h";
+
+  name[names++] = parser_file_name =
+    spec_outfile ? spec_outfile : concat2 (full_base_name, src_extension);
+
+  if (defines_flag)
+    {
+      if (! spec_defines_file)
+	spec_defines_file = concat2 (full_base_name, header_extension);
+      name[names++] = spec_defines_file;
+    }
+
+  if (graph_flag)
+    {
+      if (! spec_graph_file)
+	spec_graph_file = concat2 (short_base_name, ".vcg");
+      name[names++] = spec_graph_file;
+    }
+
+  if (report_flag)
+    {
+      spec_verbose_file = concat2 (short_base_name, OUTPUT_EXT);
+      name[names++] = spec_verbose_file;
+    }
+
+  for (j = 0; j < names; j++)
+    for (i = 0; i < j; i++)
+      if (strcmp (name[i], name[j]) == 0)
+	warn (_("conflicting outputs to file %s"), quote (name[i]));
 }

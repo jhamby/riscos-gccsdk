@@ -1,52 +1,79 @@
 # Makefile for GNU bison
 # Written by Nick Burrett <nick@dsvr.net>
 
-INCLUDES = -I.
-CROSS_CFLAGS += -DHAVE_CONFIG_H
+INCLUDES = -I. -I ./lib -I ../../include
+CROSS_CFLAGS += -DHAVE_CONFIG_H -DPKGDATADIR=\"GCCsys:bison\"
 
 $(objdir)/riscos-progs/bison/%.o: %.c
 	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c $< $(INCLUDES)
 
-OBJS = $(objdir)/riscos-progs/bison/allocate.o \
-	$(objdir)/riscos-progs/bison/closure.o \
-	$(objdir)/riscos-progs/bison/conflicts.o \
-	$(objdir)/riscos-progs/bison/derives.o \
-	$(objdir)/riscos-progs/bison/files.o \
-	$(objdir)/riscos-progs/bison/getargs.o \
-	$(objdir)/riscos-progs/bison/gram.o \
-	$(objdir)/riscos-progs/bison/lalr.o \
-	$(objdir)/riscos-progs/bison/lex.o \
-	$(objdir)/riscos-progs/bison/LR0.o \
-	$(objdir)/riscos-progs/bison/main.o \
-	$(objdir)/riscos-progs/bison/nullable.o \
-	$(objdir)/riscos-progs/bison/output.o \
-	$(objdir)/riscos-progs/bison/print.o \
-	$(objdir)/riscos-progs/bison/reader.o \
-	$(objdir)/riscos-progs/bison/reduce.o \
-	$(objdir)/riscos-progs/bison/symtab.o \
-	$(objdir)/riscos-progs/bison/warshall.o
+bobj = $(objdir)/riscos-progs/bison
 
+OBJS = $(bobj)/assoc.o \
+	$(bobj)/closure.o \
+	$(bobj)/complain.o \
+	$(bobj)/conflicts.o \
+	$(bobj)/derives.o \
+	$(bobj)/files.o \
+	$(bobj)/getargs.o \
+	$(bobj)/gram.o \
+	$(bobj)/lalr.o \
+	$(bobj)/location.o \
+	$(bobj)/LR0.o \
+	$(bobj)/main.o \
+	$(bobj)/muscle_tab.o \
+	$(bobj)/nullable.o \
+	$(bobj)/output.o \
+	$(bobj)/parse-gram.o \
+	$(bobj)/print.o \
+	$(bobj)/print_graph.o \
+	$(bobj)/reader.o \
+	$(bobj)/reduce.o \
+	$(bobj)/relation.o \
+	$(bobj)/scan-gram.o \
+	$(bobj)/scan-skel.o \
+	$(bobj)/state.o \
+	$(bobj)/symlist.o \
+	$(bobj)/symtab.o \
+	$(bobj)/tables.o \
+	$(bobj)/uniqstr.o \
+	$(bobj)/vcg.o
 
-all:	$(bin_dir)/bison$(exesfx)
+LIB = \
+	$(bobj)/lib/abitset.o \
+	$(bobj)/lib/argmatch.o \
+	$(bobj)/lib/basename.o \
+	$(bobj)/lib/bitset.o \
+	$(bobj)/lib/bitset_stats.o \
+	$(bobj)/lib/bitsetv.o \
+	$(bobj)/lib/bitsetv-print.o \
+	$(bobj)/lib/dirname.o \
+	$(bobj)/lib/ebitset.o \
+	$(bobj)/lib/error.o \
+	$(bobj)/lib/get-errno.o \
+	$(bobj)/lib/hash.o \
+	$(bobj)/lib/lbitset.o \
+	$(bobj)/lib/mbswidth.o \
+	$(bobj)/lib/quotearg.o \
+	$(bobj)/lib/quote.o \
+	$(bobj)/lib/subpipe.o \
+	$(bobj)/lib/timevar.o \
+	$(bobj)/lib/xmalloc.o \
+	$(bobj)/lib/xstrndup.o
 
-$(bin_dir)/bison$(exesfx):	$(OBJS)
-	$(CROSS_CC) -o $@ $(OBJS) -L$(objdir)/libiberty/$(STAGE) -liberty
+all:	dirs $(bin_dir)/bison$(exesfx)
 
-$(objdir)/riscos-progs/bison/allocate.o: allocate.c
-$(objdir)/riscos-progs/bison/closure.o: closure.c
-$(objdir)/riscos-progs/bison/conflicts.o: conflicts.c
-$(objdir)/riscos-progs/bison/derives.o: derives.c
-$(objdir)/riscos-progs/bison/files.o: files.c
-$(objdir)/riscos-progs/bison/getargs.o: getargs.c
-$(objdir)/riscos-progs/bison/gram.o: gram.c
-$(objdir)/riscos-progs/bison/lalr.o: lalr.c
-$(objdir)/riscos-progs/bison/lex.o: lex.c
-$(objdir)/riscos-progs/bison/LR0.o: LR0.c
-$(objdir)/riscos-progs/bison/main.o: main.c
-$(objdir)/riscos-progs/bison/nullable.o: nullable.c
-$(objdir)/riscos-progs/bison/output.o: output.c
-$(objdir)/riscos-progs/bison/print.o: print.c
-$(objdir)/riscos-progs/bison/reader.o: reader.c
-$(objdir)/riscos-progs/bison/reduce.o: reduce.c
-$(objdir)/riscos-progs/bison/symtab.o: symtab.c
-$(objdir)/riscos-progs/bison/warshall.o: warshall.c
+dirs:
+	mkdir -p $(bobj) $(bobj)/lib
+
+$(bin_dir)/bison$(exesfx):	$(OBJS) $(LIB)
+	$(CROSS_CC) -o $@ $(OBJS) $(LIB) -L$(objdir)/libiberty/$(STAGE) -liberty
+
+scan-gram.c: scan-gram.l
+	flex -o$@ scan-gram.l
+
+scan-skel.c: scan-skel.l
+	flex -o$@ scan-skel.l
+
+$(bobj)/scan-gram.o: scan-gram.c scan-gram.l
+$(bobj)/scan-skel.o: scan-skel.c scan-skel.l
