@@ -335,6 +335,17 @@ do {					\
   aof_delete_import ((NAME));			\
 }
 
+/* This is how we tell the assembler that two symbols have the same value.  */
+#define ASM_OUTPUT_DEF(FILE, NAME1, NAME2) \
+  do					   \
+    {					   \
+      assemble_name (FILE, NAME1); 	   \
+      fputs (" EQU ", FILE);		   \
+      assemble_name (FILE, NAME2);	   \
+      fputc ('\n', FILE);		   \
+    }					   \
+  while (0)
+
 #define ASM_OUTPUT_EXTERNAL(STREAM,DECL,NAME)	\
  aof_add_import ((NAME))
 
