@@ -63,7 +63,6 @@ OBJS =	$(asobjdir)/area.o \
 	$(asobjdir)/variables.o \
 	$(asobjdir)/whileif.o \
 	$(asobjdir)/local.o \
-	$(asobjdir)/strdup.o \
 	$(asobjdir)/targetcpu.o
 
 ifeq (${STAGE},stage2)
@@ -120,7 +119,6 @@ $(asobjdir)/macros.o: macros.c
 $(asobjdir)/variables.o: variables.c
 $(asobjdir)/whileif.o: whileif.c
 $(asobjdir)/local.o: local.c
-$(asobjdir)/strdup.o: strdup.c
 $(asobjdir)/targetcpu.o: targetcpu.c
 
 $(asobjdir)/area.o:  \
