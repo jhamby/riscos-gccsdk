@@ -1,0 +1,11 @@
+
+AB_CATEGORY=terminal
+
+AB_CONFLAGS="--disable-libutil --without-lastlog --disable-utmp --disable-wtmp"
+
+AB_FILESNOPATH="ssh,ff8 LICENCE"
+
+AB_MANPAGE=ssh.1
+
+
+

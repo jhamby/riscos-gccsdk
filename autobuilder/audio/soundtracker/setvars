@@ -1,0 +1,9 @@
+
+AB_CATEGORY=x11/test
+
+AB_CONFLAGS="--disable-nls --disable-esd --disable-asm"
+
+AB_FILESNOPATH="app/soundtracker,ff8"
+
+AB_MANPAGE=debian/soundtracker.1
+

@@ -1,0 +1,10 @@
+
+AB_CATEGORY=graphics
+
+AB_FILESNOPATH="utilities/*ff8 Magick.pdf,adf"
+AB_FILESPATH="!UnixHome"
+AB_MANPAGE=utilities/ImageMagick.1
+
+AB_CONFLAGS="--with-perl=no"
+
+AB_PREZIP="mkdir -p \!UnixHome/home/.magick; cp config/*.mgk \!UnixHome/home/.magick; ln -s Magick.pdf Magick.pdf,adf"

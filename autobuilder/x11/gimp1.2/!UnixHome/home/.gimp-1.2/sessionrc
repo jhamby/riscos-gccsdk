@@ -1,0 +1,30 @@
+# GIMP sessionrc
+# This file takes session-specific info (that is info,
+# you want to keep between two gimp-sessions). You are
+# not supposed to edit it manually, but of course you
+# can do. This file will be entirely rewritten every time
+# you quit the gimp. If this file isn't found, defaults
+# are used.
+
+(session-info "lc-dialog"
+   (position 269 379)
+   (size 281 337)
+   (open-on-exit))
+
+(session-info "tool-options"
+   (position 281 82)
+   (size 188 199)
+   (open-on-exit))
+
+(session-info "brush-select"
+   (position 497 64)
+   (size 153 125)
+   (open-on-exit))
+
+(session-info "toolbox"
+   (position 778 109)
+   (size 142 220)
+   (open-on-exit))
+
+(last-tip-shown 1)
+

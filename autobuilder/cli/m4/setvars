@@ -1,0 +1,7 @@
+
+AB_CATEGORY=cli
+
+AB_FILESNOPATH="src/m4,ff8"
+AB_MANPAGE=debian/m4.1
+
+AB_PRECONF="CFLAGS=-O2"

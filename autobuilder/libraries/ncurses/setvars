@@ -1,0 +1,9 @@
+
+
+AB_CONFLAGS="--disable-database --with-fallbacks=vt102,vt220,xterm-vt220 CPPFLAGS="
+AB_INSTALL=yes
+
+
+AB_MAKE="TERM=xterm-colour make -C ncurses fallback.c; $AB_MAKE"
+
+mkdir -p /tmp/ro-package/include/ncurses/

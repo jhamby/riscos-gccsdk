@@ -1,0 +1,30 @@
+Before you start
+----------------
+
+Please obtain Nettle from:
+
+    http://nettle.sourceforge.net/
+
+And !UnixHome from
+
+    http://www.chocky.org/unix/
+
+
+Installing
+----------
+
+Place the ncftp2 binary anywhere you like - somewhere in the Run$Path
+may be sensible.  ncftp2 makes use of the !UnixHome application to store
+files, this will need to be seen by the filer beforehand.
+
+
+Usage
+-----
+
+ncftp2 is designed to work running as an "ANSI Task" under Nettle. Its use
+running outside of Nettle is limited.
+
+ncftp2 is started by typing "ncftp" it into the command dialogue of Nettle as
+an ANSI task, with an optional site name as a parameter.
+
+

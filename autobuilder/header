@@ -1,0 +1,23 @@
+PACKAGE for RISC OS
+XXXXXXX============
+
+Version:          VERSION
+RISC OS Release:  RELEASE
+
+Ported by Peter Naulls (unix@chocky.org)
+
+PACKAGE for RISC OS homepage: http://www.chocky.org/unix/
+
+
+Please note
+-----------
+
+Part of the Unix Porting Project.  Support for this program under RISC OS
+is only offered to subscribers.  See http://www.chocky.org/unix/
+for more information.
+
+This program is 32-bit compatible, and is suitable for all RISC OS
+ARM6, ARM7, StrongARM and XScale machines.  It may not be suitable for
+earlier machines.
+
+

@@ -1,0 +1,104 @@
+#!/bin/bash
+
+AB_PACKAGES=""
+AB_DEBUG=no           # Leave source
+AB_PACKONLY=no        # Zip only from current directory
+AB_NOFETCH=no         # Using existing source fetched from last time
+AB_VERBOSE=no         # Echo output
+
+for param in $@ ; do
+ if [ "$param" == "-d" ] ; then
+   AB_DEBUG=yes
+ else
+   if [ "$param" == "-p" ] ; then
+     AB_PACKONLY=yes
+   else
+     if [ "$param" == "-f" ] ; then
+       AB_NOFETCH=yes
+     else
+       if [ "$param" == "-v" ] ; then
+         AB_VERBOSE=yes
+       else
+         AB_PACKAGES="$AB_PACKAGES $param"
+       fi
+     fi
+   fi  
+ fi
+done
+
+export AB_PACKONLY
+export AB_DEBUG
+export AB_NOFETCH
+set -a
+
+# Autobuilder home
+AB_HOME=/usr/src/autobuild
+AB_OUTPUT=/var/www/info/unix/downloads/
+
+# GCCSDK Scripts
+AB_GCCENV=/home/riscos/env
+# GCCSDK Binaries
+
+if [ -z "$RO_BIN" ] ; then
+  RO_BIN=/home/riscos/cross/bin
+fi
+AB_GCCBIN=$RO_BIN
+
+# build location
+AB_TMPDIR=$PWD
+
+
+# Change to autobuilder home
+if [ "$AB_PACKONLY" != "yes" ] ; then
+ cd $AB_HOME
+fi  
+
+# If a specific package is named, build that; otherwise everything
+if [ "$AB_PACKAGES" == "" ] ; then
+  AB_PACKAGES=$(find -type d)
+fi
+
+#rm -f /tmp/ab-success
+#rm -f /tmp/ab-failure
+
+for AB_PACKAGEDIR in $AB_PACKAGES ; do
+ AB_PACKAGE=$(echo "$AB_PACKAGEDIR" | perl -pi -e "s%/%\n%g;" | tail -1)
+
+ if [ -d $AB_HOME/$AB_PACKAGEDIR ] ; then
+
+   if [ -e $AB_HOME/$AB_PACKAGEDIR/setvars ] ; then
+     if [ "$AB_VERBOSE" == "yes" ] ; then
+       AB_STDOUT=/dev/stdout
+     else
+       AB_STDOUT=/dev/null
+     fi
+
+     $AB_HOME/build-program 2>&1 | tee /tmp/ab-output >$AB_STDOUT
+
+     if ! grep "Autobuilder - package completed" < /tmp/ab-output >/dev/null ; then
+       echo "Package $AB_PACKAGE: ***Failure***"
+       #cat /tmp/ab-output >> /tmp/ab-failure
+       mv /tmp/ab-output $AB_HOME/$AB_PACKAGEDIR/last-failure
+     else
+       echo "Package $AB_PACKAGE: Success"
+       #cat /tmp/ab-output >> /tmp/ab-success
+
+       if ! grep "Autobuilder - Running make install" > /dev/null < /tmp/ab-output   && \
+            grep "Autobuilder: No files specified to package" > /dev/null < /tmp/ab-output ; then
+         echo "Warning: not installed, and not packaged"
+       fi
+
+       mv /tmp/ab-output $AB_HOME/$AB_PACKAGEDIR/last-success
+       rm -f $AB_HOME/$AB_PACKAGEDIR/last-failure
+     fi
+     echo
+   fi
+   #rm -f /tmp/ab-success /tmp/ab-failure
+ else
+   if ! [ -e "$AB_HOME/$AB_PACKAGEDIR" ] ; then
+     echo "Autobuilder: No directory found for package \"$AB_PACKAGE\" - ignoring" 1>&2
+   fi  
+ fi
+done
+
+

@@ -1,0 +1,15 @@
+
+AB_CATEGORY=cli/test
+
+AB_PRECONF=:
+
+. sys/unix/setup.sh
+
+cd ../../src
+make objects.o monst.o
+make -C ../util makedefs
+
+rm *.o
+rm ../util/makedefs.o
+
+

@@ -1,0 +1,13 @@
+
+AB_CATEGORY=games
+AB_DEBNAME=freeciv-client-gtk
+
+AB_CONFLAGS="--disable-esd"
+
+#AB_PREZIP="cp $AB_HOME/$AB_PACKAGEDIR/Run* ."
+
+#AB_FILESNOPATH="server/civserver,ff8 client/civclient,ff8 COPYING doc/HOWTOPLAY Run*"
+#AB_FILESPATH="data"
+
+
+

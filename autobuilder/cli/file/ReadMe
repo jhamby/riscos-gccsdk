@@ -1,0 +1,24 @@
+Before you start
+----------------
+
+Please obtain !UnixHome from
+
+    http://www.chocky.org/unix/
+
+
+Installing
+----------
+
+Place the file binary anywhere you like - somewhere in the Run$Path
+may be sensible.   File's magic config file is in a dummy !UnixHome
+application.  Place this over the top of the real !UnixHome application.
+
+
+
+Usage
+-----
+
+File is used by simply typing "file <filename>" to identify the content
+of a file.  n.b.  file intentionally accepts only RISC OS format filenames,
+not Unix format ones like some other ports.
+

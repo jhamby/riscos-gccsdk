@@ -1,0 +1,5 @@
+
+AB_INSTALL=yes
+
+mkdir -p /tmp/ro-package/include/gtk-1.2/gdk/
+mkdir -p /tmp/ro-package/include/gtk-1.2/gtk/

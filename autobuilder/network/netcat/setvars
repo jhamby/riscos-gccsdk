@@ -1,0 +1,11 @@
+
+AB_CATEGORY=cli
+
+AB_PRECONF=:
+
+AB_MAKE="$AB_MAKE riscos"
+
+AB_MANPAGE=debian/nc.1
+
+AB_FILESNOPATH="nc,ff8 README netcat.blurb"
+

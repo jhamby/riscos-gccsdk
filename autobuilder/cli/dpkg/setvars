@@ -1,0 +1,8 @@
+
+AB_CATEGORY=cli
+
+AB_IYONIX=yes
+
+AB_CONFLAGS="--disable-nls --without-start-stop-daemon --srcdir=$PWD"
+
+cp /usr/include/ar.h include

@@ -1,0 +1,8 @@
+| Run file for LinCity
+
+Wimpslot -min 4096K -max 4096K
+
+Set Lincity$Path <Obey$Dir>.
+Set LINCITY_HOME /Lincity:
+
+Run <Obey$Dir>.xlincity ><Obey$Dir>.stdout 2><Obey$Dir>.stderr

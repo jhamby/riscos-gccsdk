@@ -1,0 +1,8 @@
+
+AB_CATEGORY=terminal
+
+AB_PREZIP="cp faq.html faq.html,faf; cp nano.1.html nano.1.html,faf"
+AB_FILESNOPATH="nano,ff8 COPYING faq.html,faf nano.1.html,faf"
+
+#touch configure.in aclocal.m4 stamp-h.in Makefile.in config.status
+

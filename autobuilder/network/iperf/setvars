@@ -1,0 +1,12 @@
+
+AB_CATEGORY=network
+
+export ac_cv_func_pthread_cancel=no
+
+AB_MANPAGE=debian/iperf.1
+
+ab_package() {
+  cp -av $S/src/iperf,ff8 $D
+}
+
+

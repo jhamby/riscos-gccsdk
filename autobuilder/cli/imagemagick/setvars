@@ -1,0 +1,8 @@
+
+AB_CATEGORY=graphics
+
+AB_FILESNOPATH="utilities/*ff8"
+AB_MANPAGE=utilities/ImageMagick.1
+
+AB_CONFLAGS="--with-perl=no"
+

@@ -1,0 +1,11 @@
+
+AB_CATEGORY=x11/test
+
+cp $AB_HOME/$AB_PACKAGEDIR/Makefile.riscos makefiles
+
+AB_MAKE="$AB_MAKE riscos"
+
+AB_PRECONF=:
+
+touch util/check_lin_tif
+

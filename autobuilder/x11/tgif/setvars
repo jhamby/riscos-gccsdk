@@ -1,0 +1,12 @@
+
+chmod u+w Tgif.tmpl
+
+cp $AB_HOME/$AB_PACKAGEDIR/Tgif.tmpl-riscos Tgif.tmpl
+
+AB_CATEGORY=graphics
+
+AB_FILESNOPATH="tgif,ff8 tgif.n.html License"
+
+AB_IYONIX=yes
+
+

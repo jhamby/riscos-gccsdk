@@ -1,0 +1,269 @@
+#!/bin/bash
+
+if [ "$AB_PACKONLY" != "yes" ] ; then
+  echo "Autobuilder - Building package: $AB_PACKAGE"
+else
+  echo "Autobuilder - Zipping package: $AB_PACKAGE"
+fi
+
+set -e
+
+# Reset vars for each package
+
+AB_FILESPATH=
+AB_FILESNOPATH=
+AB_MANPAGE=
+AB_ROVERSION=1
+AB_PREZIP=
+AB_PRECONF=
+AB_COMPILEFAIL=no
+AB_INSTALL=no
+AB_CATEGORY=
+AB_ZIPNAME=
+AB_README=ReadMe,fff
+AB_ARFLAGS=
+
+
+H=$AB_HOME/$AB_PACKAGEDIR
+S=$PWD
+
+rm -rf $D
+
+
+addzip() {
+ result=$($AB_GCCBIN/zip -, $@ 2>&1)
+ echo $result
+ if echo $result | grep "zip warning" > /dev/null ; then
+   exit 1
+ fi
+}
+
+ab_package() {
+  echo "Not Packaging"
+  AB_NOPACKAGE=yes
+}
+
+
+AB_CONFIG=$AB_GCCENV/ro-config
+AB_MAKE=$AB_GCCENV/ro-make
+
+if [ "$AB_PACKONLY" == "yes" ] ; then
+
+ AB_DIR=.
+ D=$AB_DIR/package
+
+ if [ -e $AB_HOME/$AB_PACKAGEDIR/preprocess ] ; then
+  . $AB_HOME/$AB_PACKAGEDIR/preprocess
+ fi
+ 
+ . $AB_HOME/$AB_PACKAGEDIR/setvars
+
+else
+ 
+ # Build directory
+ AB_DIR=$AB_TMPDIR/$AB_PACKAGE
+ D=$AB_DIR/package
+
+ # Remove old dir and create new one
+ [ "$AB_DEBUG" == "yes" ] || [ "$AB_NOFETCH" == "yes" ] || rm -rf $AB_DIR
+ mkdir -p $AB_DIR
+ cd $AB_DIR
+ 
+ if [ "$AB_NOFETCH" != "yes" ] ; then
+   # Fetch the source
+   echo "Autobuilder: Fetching source for $AB_PACKAGE"
+   apt-get source $AB_PACKAGE
+ fi
+ 
+ AB_FULLNAME=$(find -mindepth 1 -maxdepth 1 -type d | grep -v unpack | cut --bytes 3-)
+ 
+ # Run any preprocess script to unpack it in any special way
+ if [ -e $AB_HOME/$AB_PACKAGEDIR/preprocess ] ; then
+   cd $AB_FULLNAME
+   . $AB_HOME/$AB_PACKAGEDIR/preprocess
+ 
+ 
+ # Check to see if it's tarred up inside
+ elif [ -d "$AB_FULLNAME/upstream" ] ; then
+ 
+   mkdir unpack
+   cd unpack
+ 
+   for tarball in $(find ../$AB_FULLNAME/upstream/ | grep gz) ; do
+     tar xfz $tarball
+   done
+ 
+   cp -a */* ../$AB_FULLNAME
+ 
+   cd ../$AB_FULLNAME
+   rm -rf ../unpack
+ 
+   AB_PATCHES=
+ 
+   if [ -d upstream/patches ] ; then
+     AB_PATCHES=$(find upstream/patches/ | grep "\.patch$" || true)
+   fi
+ 
+   # Apply any Debian/Upstream patches
+   for AB_PATCH in $AB_PATCHES ; do
+    echo "Autobuilder - Upstream patch: $AB_PATCH"
+    patch -p1 -l < "$AB_PATCH" || true
+   done
+ else
+   cd $AB_FULLNAME
+ fi
+ 
+ # Get the version number
+ AB_PVERSION=$(echo $AB_FULLNAME | sed s/$AB_PACKAGE-//)
+ 
+ # Apply any Debian patches
+ if [ -d debian/patches ] ; then
+   for AB_PATCH in $(find debian/patches/ -type f || true) ; do
+     echo "Autobuilder - Debian patch: $AB_PATCH"
+     patch -p1 -l < "$AB_PATCH" || true
+   done
+ fi  
+ 
+ # Apply any RISC OS patches
+ for AB_PATCH in $(find $AB_HOME/$AB_PACKAGEDIR/ | grep "\.p$") ; do
+   echo "Autobuilder - RISC OS patch: $AB_PATCH"
+  patch -p0 -l < $AB_PATCH || [ "$AB_DEBUG" == "yes" ]
+ done
+ 
+ . $AB_HOME/$AB_PACKAGEDIR/setvars
+ 
+ if [ -z "$AB_INSTALLTARGET" ] ; then
+   AB_INSTALLTARGET=install
+ fi
+ 
+ export AB_DEFINSTALL
+ export AB_INSTALLTARGET
+ export AB_DIR
+ 
+ if [ -e Imakefile ] ; then
+  echo Autobuilder - Calling xmkmf
+  /home/riscos/env/ro-path /home/riscos/env/X11R6/bin/xmkmf -a
+ else
+   echo Autobuilder - Calling configure command: $AB_PRECONF $AB_CONFIG $AB_CONFLAGS
+   eval $AB_PRECONF $AB_CONFIG $AB_CONFLAGS
+ fi
+ 
+ if [ -e $AB_HOME/$AB_PACKAGEDIR/post-configure ] ; then
+   . $AB_HOME/$AB_PACKAGEDIR/post-configure
+ fi
+ 
+ 
+ echo "Autobuilder - Running make command: $AB_MAKE"
+ 
+ # It seems that some makefiles have incomplete depedencies, and this
+ # means that use of -jX may cause failures.  The work around is to retry.
+ 
+ #retries=3
+ succeed=0
+ 
+ #while [ "$retries" -gt 0 ] && [ "$succeed" == "0" ] ; do
+   if eval $AB_MAKE ; then
+     succeed=1
+   fi
+ 
+ #  retries=$(($retries - 1))
+ #  echo "succeed: $succeed retries: $retries"
+ #done
+ 
+ if [ "$AB_COMPILEFAIL" != "yes" ] && [ "$succeed" != "1" ] ; then
+   exit 1
+ fi
+ 
+ 
+ if [ "$AB_INSTALL" == "yes" ] ; then
+   echo "Autobuilder - Running make install"
+   if [ "$AB_COMPILEFAIL" != "yes" ] ; then
+     eval $AB_MAKE $AB_INSTALLTARGET
+   else
+     eval $AB_MAKE $AB_INSTALLTARGET || true
+   fi
+   RO_PKG=$AB_FULLNAME /home/riscos/env/ro-libpack
+ fi
+ 
+
+fi # Package only
+
+
+rm -rf $D
+mkdir -p $D
+
+ab_package
+
+
+#if [ "$AB_FILESPATH" == "" ] && \
+#   [ "$AB_FILESNOPATH" == "" ] && \
+#   [ "$AB_FILESNOPATHEVAL" == "" ]  ; then
+# echo "Autobuilder: No files specified to package"
+#else
+
+if [ "$AB_NOPACKAGE" == "" ] ; then
+
+ if [ "$AB_CATEGORY" == "" ] ; then
+   echo "Autobuilder: No category specified, not packaging"
+   exit 1
+ fi
+ 
+ echo "Autobuilder: Packaging files"
+ if [ "$AB_PACKONLY" == "yes" ] ; then
+ 
+   if [ "$AB_ZIPNAME" != "" ] ; then
+     echo "Autobuilder: Packaging as $AB_ZIPNAME"
+     AB_ZIP=$AB_ZIPNAME.zip
+   else
+     AB_ZIP=$AB_PACKAGE.zip
+   fi
+ 
+ else
+   if [ "$AB_ZIPNAME" != "" ] ; then
+     echo "Autobuilder: Packaging as $AB_ZIPNAME"
+     AB_ZIPNAME=$(echo $AB_FULLNAME | sed s#"$AB_PACKAGE"#"$AB_ZIPNAME"#)
+ 
+     AB_ZIP=$AB_DIR/$AB_ZIPNAME-$AB_ROVERSION.zip
+   else  
+     AB_ZIP=$AB_DIR/$AB_FULLNAME-$AB_ROVERSION.zip
+   fi
+ fi
+ 
+ cd $D
+ 
+ if [ "$AB_MANPAGE" != "" ] ; then
+   for AB_PAGE in $AB_MANPAGE ; do
+     rman -f HTML $S/$AB_PAGE > $S/$AB_PAGE.html
+     addzip -j $AB_ZIP $S/$AB_PAGE.html
+   done
+ fi
+ 
+ if [ -e $B/ReadMe ] ; then
+   AB_UNDER=$(echo $AB_PACKAGE | tr [:alnum:] =)
+ 
+   sed "s/PACKAGE/$AB_PACKAGE/; s/XXXXXXX/$AB_UNDER/; s/VERSION/$AB_PVERSION/; s/RELEASE/$AB_ROVERSION/" \
+     < $AB_HOME/header \
+     > $AB_DIR/ReadMe,fff
+ 
+   cat $B/ReadMe >> $AB_DIR/ReadMe,fff
+ 
+  if [ "$AB_README" != "ReadMe,fff" ] ; then
+    mv $AB_DIR/ReadMe,fff $AB_README
+  else
+    :
+  fi
+
+
+ fi
+
+ addzip -r $AB_ZIP *
+
+ mkdir -p  $AB_OUTPUT/$AB_CATEGORY
+ mv $AB_ZIP $AB_OUTPUT/$AB_CATEGORY
+fi
+
+[ "$AB_PACKONLY" == "yes" ] || [ "$AB_NOFETCH" == "yes" ] || [ "$AB_DEBUG" == "yes" ] || rm -rf $AB_DIR
+
+echo "Autobuilder - package completed"
+
+

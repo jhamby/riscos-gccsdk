@@ -1,0 +1,10 @@
+
+AB_CATEGORY=x11/test
+
+AB_CONFLAGS="--disable-cdrom --with-sdl"
+
+AB_MANPAGE=doc/man/bochs.1
+
+AB_FILESNOPATH="bochs,ff8 bximage,ff8 COPYING"
+
+CFLAGS=/home/riscos/env/include

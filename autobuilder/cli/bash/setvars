@@ -1,0 +1,15 @@
+
+
+AB_CATEGORY=cli/test
+
+AB_CONFLAGS=--without-bash-malloc
+AB_MAKE=make
+
+ln -s mksignames,ff8 mksignames
+ln -s mksyntax,ff8 mksyntax
+
+AB_MANPAGE=doc/bash.1
+
+AB_FILESNOPATH="bash,ff8 COPYING"
+
+touch configure.in aclocal.m4 stamp-h.in Makefile.in config.status

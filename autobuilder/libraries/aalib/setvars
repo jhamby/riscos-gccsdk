@@ -1,0 +1,10 @@
+
+AB_INSTALL=yes
+
+ln -sf /usr/share/automake-1.7/depcomp
+
+libtoolize --force
+aclocal-1.7
+automake-1.7 --force-missing --add-missing --foreign
+autoconf
+

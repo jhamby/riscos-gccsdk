@@ -1,0 +1,9 @@
+
+AB_INSTALL=yes
+AB_PRECONF=:
+
+AB_MAKE="$AB_MAKE libpng.a"
+
+cp scripts/makefile.linux Makefile
+
+mkdir -p $D/include/libpng12

@@ -1,0 +1,9 @@
+
+AB_CONFIG=./Configure
+AB_CONFLAGS="--prefix=/home/riscos/env riscos-aof-arm no-threads no-shared no-idea no-mdc2 no-rc5"
+
+AB_INSTALL=yes
+
+ln -s ssl/ssl.pod doc/ssl.pod
+ln -s crypto/crypto.pod doc/crypto.pod
+ln -s apps/openssl.pod doc/openssl.pod

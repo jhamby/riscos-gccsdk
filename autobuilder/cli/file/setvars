@@ -1,0 +1,14 @@
+
+AB_CATEGORY=cli
+
+AB_PRECONF="CFLAGS=\"-I$AB_GCCENV/include -O2 -D_USE_BSD\""
+AB_CONFLAGS="--disable-elf --disable-elf-core"
+
+AB_PREZIP="mkdir -p \!UnixHome/home; cp magic/magic \!UnixHome/home/.magic; "
+
+AB_FILESNOPATH="src/file,ff8 LEGAL.NOTICE"
+AB_FILESPATH="!UnixHome"
+AB_MANPAGE=doc/file.1
+
+
+AB_IYONIX=yes

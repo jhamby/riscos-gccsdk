@@ -1,0 +1,6 @@
+
+AB_CONFLAGS="--enable-tif --enable-xmf"
+
+AB_INSTALL=yes
+
+mkdir -p /tmp/ro-package/include/SDL/

@@ -1,0 +1,9 @@
+
+
+AB_INSTALL=yes
+
+AB_CONFLAGS=--with-included-modules=basic-x,basic-fc
+
+mkdir -p /tmp/ro-package/include/pango-1.0/pango/
+mkdir -p /tmp/ro-package/lib/pango/1.4.0/modules/
+

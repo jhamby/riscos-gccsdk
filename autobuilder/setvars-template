@@ -1,0 +1,61 @@
+#
+#
+# Template for setvars file for autobuilder package
+#
+# The file can set a number of variables, all of which have defaults
+# to perform various actions during the build.  Copy this file to
+# a new package directory and delete uneeded parts.
+
+
+# Files to be zipped into the package with their complete path
+AB_FILESPATH=
+
+# Files to be zipped into the package at the top level without paths
+AB_FILESNOPATH=
+
+# Man page file, to be processed by rman to make an HTML helpfile
+# Updated so this can now be a list of files
+AB_MANPAGE=
+
+# RISC OS Version of the package
+AB_ROVERSION=1
+
+# Commands to be carried out prior to zip, such as copying or moving files
+AB_PREZIP=
+
+# Command in front of invokation of RISC OS GNU configure wrapper.  If you do
+# not want this to be called, you could see this var to ":"
+AB_PRECONF=
+
+# Flags to pass to configure in addition to those added by the configure
+# wrapper.
+AB_CONFLAGS=
+
+# Continue on, even if the program or library fails to fully compile
+# (e.g. example/test apps)
+AB_COMPILEFAIL=no
+
+# Run "make install" after build
+AB_INSTALL=no
+
+# RISC OS configuration script
+AB_CONFIG=$AB_GCCENV/ro-config
+
+# RISC OS make wrapper.  This can be set to just "make" if setting the
+# path causes problems - e.g., the native compiler is required too
+AB_MAKE=$AB_GCCENV/ro-make
+
+# Zip name; alternate name for package to be zipped as
+# Useful if tools from a library, etc.
+AB_ZIPNAME=
+
+# Name ReadMe should be zipped as.  For example, !Program/!Help,fff
+# Don't forget to escape '!' in bash.
+AB_README=ReadMe,fff
+
+# Finally, as this file is executed as a bash script, you can place other
+# commands in here.  These will be executed after unpack of the source
+# and application of any patches, but before any configuration or build.
+
+
+

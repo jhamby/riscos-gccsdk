@@ -1,0 +1,9 @@
+
+AB_CATEGORY=games
+
+ab_package() {
+  cp -av $H/\!LinCity $D
+  cp -av $S/help $S/icons $S/messages $S/opening $S/colour.pal $S/xlincity,ff8 \
+         $D/\!LinCity
+  cp -av $S/README $D/\!LinCity/\!Help
+}

@@ -1,0 +1,10 @@
+
+AB_CATEGORY=games/test
+
+AB_FILESNOPATH="moon-buggy,ff8 COPYING"
+AB_MANPAGE=moon-buggy.6
+
+AB_IYONIX=yes
+
+find patches -type f | xargs cat | patch -p1 || true
+

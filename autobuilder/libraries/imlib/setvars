@@ -1,0 +1,6 @@
+
+#AB_PRECONF=/home/riscos/env/ro-path
+AB_CONFLAGS=--enable-modules
+
+AB_INSTALL=yes
+

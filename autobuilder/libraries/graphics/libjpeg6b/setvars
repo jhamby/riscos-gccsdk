@@ -1,0 +1,9 @@
+
+AB_CATEGORY=graphics
+
+AB_INSTALL=yes
+AB_INSTALLTARGET=install-lib 
+
+AB_FILESNOPATH="*ff8"
+AB_ZIPNAME=libjpeg-progs
+AB_MANPAGE="*jpeg*.1"

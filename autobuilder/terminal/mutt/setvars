@@ -1,0 +1,16 @@
+
+AB_CATEGORY=terminal/test
+
+AB_FILESPATH="mutt,ff8 doc/*,faf COPYRIGHT"
+
+AB_CONFLAGS=--without-regex
+
+AB_MANPAGE=doc/mutt.man
+
+AB_IYONIX=yes
+
+mutt_files=$(echo doc/*.html)
+
+for file in $mutt_files ; do
+ cp $file $file,faf
+done

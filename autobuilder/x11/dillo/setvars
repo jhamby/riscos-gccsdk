@@ -1,0 +1,11 @@
+
+AB_CATEGORY=browser/test
+
+#AB_FILESNOPATH="src/dillo,ff8 COPYING"
+AB_MANPAGE=debian/dillo.1
+
+# We require this nonsense, otherwise the Makefile goes and regenerates
+# the configure script, which doesn't help with our file extensions
+
+
+AB_IYONIX=yes

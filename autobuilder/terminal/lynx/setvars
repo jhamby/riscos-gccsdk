@@ -1,0 +1,10 @@
+
+AB_CATEGORY=browser
+
+AB_CONFLAGS=--with-zlib
+AB_MAKE=make
+
+AB_PREZIP="mkdir -p \!UnixHome/home; cp lynx.cfg \!UnixHome/home/"
+
+AB_FILESPATH="lynx,ff8 !UnixHome COPYING" 
+AB_MANPAGE=lynx.man

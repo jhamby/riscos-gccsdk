@@ -1,0 +1,6 @@
+
+cd gettext-runtime
+
+AB_INSTALL=yes
+
+AB_CONFLAGS="--with-included-gettext --enable-nls"

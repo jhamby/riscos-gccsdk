@@ -1,0 +1,6 @@
+
+AB_CONFLAGS="--disable-esd"
+
+AB_INSTALL=yes
+
+cp /usr/share/automake-1.8/config.sub .

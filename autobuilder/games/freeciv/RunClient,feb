@@ -1,0 +1,4 @@
+Set civclient$heap ""
+Dir <Obey$Dir>
+Set FREECIV_PATH data
+Taskwindow <Obey$Dir>.civclient -wimpslot 5000k -quit

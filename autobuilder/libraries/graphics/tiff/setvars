@@ -1,0 +1,9 @@
+
+AB_DEFINSTALL=yes
+AB_INSTALL=yes
+
+AB_PRECONF="echo | OPTIMIZER=-O2 DIR_MAN=/home/riscos/env/man"
+AB_CONFLAGS="--target=arm-riscos-aof --with-CC=$CC --with-JPEG=yes"
+
+AB_MAKE="mkdir -p libtiff/static; /usr/bin/cc libtiff/mkversion.c -o libtiff/static/mkversion; ln -sf static/libtiff.a libtiff; $AB_MAKE"
+

@@ -1,0 +1,19 @@
+
+AB_CONFIG=":"
+
+cd libastro
+$AB_MAKE
+
+cd ../libip
+$AB_MAKE
+
+cd ../GUI/xephem
+$AB_MAKE -f Makefile.smple
+
+AB_MAKE=""
+
+AB_MANPAGE="xephem.1"
+
+AB_FILESNOPATH="xephem,ff8"
+
+AB_CATEGORY=x11/test

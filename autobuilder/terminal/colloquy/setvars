@@ -1,0 +1,14 @@
+
+AB_CATEGORY=terminal
+
+AB_MAKE="make -C src bin2c; $AB_MAKE"
+
+cp -a $AB_HOME/$AB_PACKAGEDIR/!Colloquy .
+cp LICENSE \!Colloquy
+
+AB_PREZIP="cp -a dist-riscos-arm \!Colloquy"
+
+AB_FILESPATH="!Colloquy docs"
+
+AB_README="!Colloquy/!Help,fff"
+

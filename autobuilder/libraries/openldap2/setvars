@@ -1,0 +1,6 @@
+
+AB_INSTALL=yes
+
+AB_CONFLAGS="--enable-x-compile --with-yielding_select=no"
+
+

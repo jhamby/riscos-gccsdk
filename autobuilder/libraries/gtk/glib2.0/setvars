@@ -1,0 +1,7 @@
+
+
+AB_INSTALL=yes
+
+mkdir -p /tmp/ro-package/include/glib-2.0/glib/
+mkdir -p /tmp/ro-package/include/glib-2.0/gobject/
+

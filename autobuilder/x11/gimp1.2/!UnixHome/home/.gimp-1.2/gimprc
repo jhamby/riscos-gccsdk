@@ -1,0 +1,31 @@
+# This is your personal gimprc file.  Any variable defined in this file
+# takes precedence over the value defined in the system-wide gimprc:
+# ${prefix}/share/gimp/1.2/gimprc
+# (where ${prefix} is /usr, which on Windows will be replaced at run-time
+# with the GIMP installation directory))
+# Take a look at that file if you want to see some of the options that
+# can be set here.
+
+# Most values can be set automatically within the GIMP, if you press
+# the "save" button after changing some options in the Preferences
+# dialog box.  You can also edit this file by hand, and the GIMP will
+# always try to do the right thing when saving new options after you
+# have edited this file.
+
+(show-tips yes)
+
+# Install a GIMP colormap by default -- only for 8-bit displays
+# (install-colormap)
+
+#- Next line added by GIMP on 2002-07-07 15:47:07
+(tile-cache-size 4M)
+
+#- Next line added by GIMP on 2002-07-07 15:47:07
+(swap-path "/tmp")
+
+#- Next line added by GIMP on 2002-07-07 15:47:07
+(monitor-xresolution 102.972977)
+
+#- Next line added by GIMP on 2002-07-07 15:47:07
+(monitor-yresolution 112.888885)
+

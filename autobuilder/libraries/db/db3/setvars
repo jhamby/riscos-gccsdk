@@ -1,0 +1,9 @@
+
+AB_INSTALL=yes
+
+#chmod u+w dist/Makefile.in
+
+#patch -p0 < $AB_HOME/$AB_PACKAGEDIR/configure.p.script
+
+cd dist
+

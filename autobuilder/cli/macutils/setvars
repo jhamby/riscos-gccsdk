@@ -1,0 +1,12 @@
+
+AB_CATEGORY=cli
+
+AB_FILESNOPATHEVAL="find | grep ff8 | grep -v makecrc"
+AB_FILESPATH="README doc"
+
+AB_PRECONF=:
+
+rm -f crc/*.o crc/*.a
+make -C crc
+rm -f crc/*.o crc/*.a
+

@@ -1,0 +1,2 @@
+
+export LIBS="-ljpeg -lpng -ltiff -lz"

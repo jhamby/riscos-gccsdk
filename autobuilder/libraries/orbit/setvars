@@ -1,0 +1,18 @@
+
+AB_INSTALL=yes
+
+AB_CONFLAGS=--disable-nls
+
+./configure $AB_CONFLAGS --disable-shared --enable-static
+
+make -C src/orbit-idl-compiler
+cp src/orbit-idl-compiler/orbit-idl /tmp
+
+make clean
+
+# Install in bin manually; make install will only put RISC OS version there.
+cp /tmp/orbit-idl /home/riscos/env/bin
+mv /tmp/orbit-idl src/orbit-idl-compiler/
+
+mkdir -p /tmp/ro-package/include/libIDL-1.0/libIDL/
+
