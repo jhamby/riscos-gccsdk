@@ -286,8 +286,8 @@ will not be able to use this software.
 Dynamic areas
 -------------
 
-The following information is deprecated, as recent versions of UnixLib
-can extend their own Wimpslot, but it is included for reference.
+The following information is deprecated, as UnixLib programs have been able
+to extend their own Wimpslot for some years, but it is included for reference.
 
 UnixLib has a facility to use Dynamic Areas, found in RISC OS 3.5
 and above, for the program's heap. The heap is another name for the

@@ -1,4 +1,4 @@
-Welcome to GCC 3.4.1 for RISC OS.
+Welcome to GCC 3.4.4 for RISC OS.
 
 This document covers important notes for new users and existing users alike.
 GCC and Unixlib have undergone many changes, so it's important that you read
@@ -26,7 +26,7 @@ If you've used GCC before:
   explicitly prepend 'std::' to all function and variable references.
 
 - The file !gcc.Changes lists major changes from the last version.
-  !gcc.docs.Changes has a comprehensive list of changes to Unixlib.
+  !gcc.docs.ULChanges has a comprehensive list of changes to Unixlib.
 
 GCCSDK Developers, 2004
 

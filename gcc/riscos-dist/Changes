@@ -1,21 +1,60 @@
 Noteworthy changes to the RISC OS GCCSDK
 
-RISC OS GCC release 3.4.4 pre-release 3 (released XX XXXX XXXX)
+For Unixlib changes, see !gcc.docs.ULChanges
+
+RISC OS GCC release 3.4.4 release 1 (released 25 December 2004)
+===================================
+
+* Modernisation of assert() handling and ensure compability with StubsG.
+
+* Improved Co-processor register support in 'as'
+
+
+RISC OS GCC release 3.4.4 pre-release 4 (released 20 December 2004)
 =======================================
 
-* gcc: Updated to versionm 3.4.4 (prerelease of 03/Dec/2004)
+* Extensive improvement of filename handling in AOF tools and GCC.  They
+  now all use Unixlib's riscosify/unixify functions and can handle
+  and disambiguate a much larger range of filenames.
+
+* drlink: Ensure that partially linked AOF files work correctly.
+
+* drlink: Improve behaviour of GNU LINKONCE areas, which previosly prevented
+  some C++ programs from linking.
+
+* libscl: Minor tidying, add stdint.h Castle C/C++ compatibility header.
+  Make riscosify work properly with libscl.
+
+* as: Now linked with SCL instead of Unixlib, so it is smaller. 
 
 
-RISC OS GCC release 3.4.4 pre-release 2 (released XX November 2004)
+RISC OS GCC release 3.4.4 pre-release 3 (released 10 December 2004)
+=======================================
+
+* gcc: Updated to version 3.4.4 (prerelease of 03/Dec/2004)
+
+* gcc: No longer prefix register names with '__' in assembler output.
+
+* drlink: Fix reporting of size mismatches.
+
+* ld: Use demangler API for C++ v3 symbols.
+
+* gcc: Correct output of some floating point code that could result
+  in stack mismatches.
+
+
+RISC OS GCC release 3.4.4 pre-release 2 (released 29 November 2004)
 =======================================
 
 * gcc: Minor bug fixes.
 
+* zip: Be more intelligent when setting RISC OS filetype.
 
-RISC OS GCC release 3.4.4 pre-release 1 (released XX November 2004)
+
+RISC OS GCC release 3.4.4 pre-release 1 (released 26 November 2004)
 =======================================
 
-* gcc: Updated to versionm 3.4.4 (prerelease of 13/Nov/2004)
+* gcc: Updated to version 3.4.4 (prerelease of 13/Nov/2004)
 
 
 RISC OS GCC release 3.4.1 release 1 (released 05 October 2004)
