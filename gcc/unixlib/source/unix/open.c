@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/open.c,v $
- * $Date: 2002/01/31 14:32:04 $
- * $Revision: 1.2.2.3 $
- * $State: Exp $
- * $Author: admin $
+ * $Source$
+ * $Date$
+ * $Revision$
+ * $State$
+ * $Author$
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: open.c,v 1.2.2.3 2002/01/31 14:32:04 admin Exp $";
+static const char rcs_id[] = "$Id$";
 #endif
 
 #include <stdarg.h>
@@ -25,23 +25,6 @@ static const char rcs_id[] = "$Id: open.c,v 1.2.2.3 2002/01/31 14:32:04 admin Ex
 #include <unixlib/fd.h>
 #include <unixlib/local.h>
 
-/* Map of special device names to device types.  */
-struct sfile
-{
-  const char *name;
-  const dev_t dev;
-};
-
-static const struct sfile __sfile[] =
-{
-  {"tty", DEV_TTY},
-  {"console", DEV_TTY},
-  {"rs423", DEV_TTY},
-  {"null", DEV_NULL},
-/*   {"pipe", DEV_PIPE}, does open on /dev/pipe make sense ?  */
-/*   {"socket", DEV_SOCKET}, does open on /dev/socket make sense ?  */
-  {NULL, DEV_RISCOS} /* table terminator */
-};
 
 char *
 ttyname (int fd)
@@ -72,21 +55,7 @@ __open (int fd, const char *file, int oflag, int mode)
   file_desc->dflag = 0;
 
   /* Perform a special check for devices.  */
-  if (file[0] == '/' && file[1] == 'd' && file[2] == 'e' &&
-      file[3] == 'v' && file[4] == '/')
-    {
-      const struct sfile *special = __sfile;
-
-      while (special->name != NULL)
-	{
-	  if (strcmp (special->name, file + sizeof ("/dev/") - 1) == 0)
-	    break;
-	  special++;
-	}
-      file_desc->device = special->dev;
-    }
-  else
-    file_desc->device = DEV_RISCOS;
+  file_desc->device = __getdevtype (file);
 
   /* Perform the device specific open operation.  */
   file_desc->handle = __funcall ((*(__dev[file_desc->device].open)),

@@ -1,10 +1,10 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/unixlib/dev.h,v $
- * $Date: 2002/02/14 15:56:35 $
- * $Revision: 1.2 $
- * $State: Exp $
- * $Author: admin $
+ * $Source$
+ * $Date$
+ * $Revision$
+ * $State$
+ * $Author$
  *
  ***************************************************************************/
 
@@ -24,10 +24,10 @@
 #endif
 
 #include <sys/select.h>
+#include <sys/stat.h>
 
 __BEGIN_DECLS
 
-#define NDEV		5
 
 /* major device numbers */
 
@@ -36,6 +36,11 @@ __BEGIN_DECLS
 #define DEV_PIPE	2	/* UnixLib pipe() */
 #define DEV_NULL	3	/* /dev/null */
 #define DEV_SOCKET	4	/* Freenet socket */
+#define DEV_ZERO	5	/* /dev/zero */
+#define DEV_RANDOM	6	/* /dev/random */
+
+#define NDEV		7
+
 
 struct dev
 {
@@ -47,9 +52,13 @@ struct dev
   int (*ioctl) (struct __unixlib_fd *__fd, int __request, void *__arg);
   int (*select)(struct __unixlib_fd *__fd, int __fd1, fd_set *__read,
 		fd_set *__write, fd_set *__except);
+  int (*stat) (const char *filename, struct stat *buf);
+  int (*fstat) (int fd, struct stat *buf);
 };
 
 extern struct dev __dev[NDEV];
+
+extern const dev_t __getdevtype (const char *__filename);
 
 extern void *__fsopen (struct __unixlib_fd *__fd, const char *__fname,
 		       int __mode);
@@ -65,6 +74,8 @@ extern int __fsselect (struct __unixlib_fd *__fd, int __fd1,
 		       fd_set *__read, fd_set *__write,
 		       fd_set *__except);
 #endif
+extern int __fsstat (const char *__filename, struct stat *__buf);
+extern int __fsfstat (int __fd, struct stat *__buf);
 
 extern void *__ttyopen	     (struct __unixlib_fd *__fd,
 			      const char *file, int __mode);
@@ -116,6 +127,8 @@ extern int __nullselect	     (struct __unixlib_fd *__fdriptor,
 			      int __fd1, fd_set *__read,
 			      fd_set *__write, fd_set *__except);
 #endif
+extern int __nullstat (const char *__filename, struct stat *__buf);
+extern int __nullfstat (int __fd, struct stat *__buf);
 
 extern void *__sockopen	     (struct __unixlib_fd *__fd,
 			      const char *file, int __mode);
@@ -146,6 +159,11 @@ extern int __commonselect    (struct __unixlib_fd *__fdriptor,
 			      int __fd, fd_set *__read,
 			      fd_set *__write, fd_set *__except);
 #endif
+
+extern int __zeroread (struct __unixlib_fd *__file_desc, void *__data, int __nbyte);
+
+extern void *__randomopen (struct __unixlib_fd *__file_desc, const char *__file, int __mode);
+extern int __randomread (struct __unixlib_fd *__file_desc, void *__data, int __nbyte);
 
 __END_DECLS
 

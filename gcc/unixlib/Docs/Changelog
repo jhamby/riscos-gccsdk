@@ -1,4 +1,33 @@
-Sun Jan  5 12:44:20 2002  Alex Waugh  <alex@alexwaugh.com>
+Tue Jan 21 17:49:27 2003  Alex Waugh  <alex@alexwaugh.com>
+
+	Provide /dev/random and /dev/zero emulation.
+	* swis.h (CryptRandom_*): Add CryptRandom module SWIs.
+	* unixlib/dev.h (DEV_ZERO): Add.
+	(DEV_RANDOM): Add.
+	(NDEV): Bump to 7.
+	(struct dev): Add stat and fstat.
+	(__getdevtype): Add prototype.
+	(__fsstat): Add prototype.
+	(__fsfstat): Add prototype.
+	(__nullstat, __nullfstat, __zeroread, __randomopen): Likewise.
+	(__randomread): Likewise.
+	* unix/dev.c (__dev): Support new fields in struct dev.
+	(struct sfile): New.
+	(__sfile): New.
+	(__getdevtype): New function.
+	(__fsstat): New function.
+	(__fsfstat): New function.
+	(__nullstat): New function.
+	(__nullfstat): New function.
+	(__zeroread): New function.
+	(__randomopen): New function.
+	(__randomread): New function.
+	* unix/fstat.c (fstat): Call fstat function from struct dev.
+	* unix/open.c (struct file): Moved to unix/dev.c.
+	(__sfile): Moved to unix/dev.c.
+	* unix/stat.c (stat): Call stat function from struct dev.
+
+Sun Jan  5 12:44:20 2003  Alex Waugh  <alex@alexwaugh.com>
 
 	* common/riscosify.c:
 	"./foo.c" now translates to "@.c.foo" rather than "c.foo"
@@ -8,7 +37,7 @@ Sun Jan  5 12:44:20 2002  Alex Waugh  <alex@alexwaugh.com>
 	Interprets ".svn/text-base/malloc.c.svn-base" as unix format
 	not RISC OS format.
 
-Sun Jan  5 12:41:31 2002  Alex Waugh  <alex@alexwaugh.com>
+Sun Jan  5 12:41:31 2003  Alex Waugh  <alex@alexwaugh.com>
 
 	Make UnixLib thread-safe.
 	* abort.c (abort): Add PTHREAD_UNSAFE
@@ -21,7 +50,7 @@ Sun Jan  5 12:41:31 2002  Alex Waugh  <alex@alexwaugh.com>
 
 	* strsignal.c (strsignal): Simplify.
 
-Sun Jan  5 12:37:50 2002  Alex Waugh  <alex@alexwaugh.com>
+Sun Jan  5 12:37:50 2003  Alex Waugh  <alex@alexwaugh.com>
 
 	* errno.h: Always define 'errno' as errno.
 	* errno.c: Remove conditional.
@@ -35,7 +64,7 @@ Sun Jan  5 12:37:50 2002  Alex Waugh  <alex@alexwaugh.com>
 
 	* sys/errlist.c: Include pthread.h.
 
-Sun Jan  5 12:29:13 2002  Alex Waugh  <alex@alexwaugh.com>
+Sun Jan  5 12:29:13 2003  Alex Waugh  <alex@alexwaugh.com>
 
 	* sys/exec.c (execve): Change control characters to \xXX.
 	Don't backslash already quoted characters.

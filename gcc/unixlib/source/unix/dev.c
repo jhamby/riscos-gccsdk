@@ -53,24 +53,73 @@ static const char rcs_id[] = "$Id$";
 struct dev __dev[NDEV] =
 {
   {__fsopen, __fsclose, __fsread, __fswrite,
-    __fslseek, __fsioctl, __fsselect },
+    __fslseek, __fsioctl, __fsselect, __fsstat, __fsfstat },
   {__ttyopen, __ttyclose, __ttyread, __ttywrite,
-    __ttylseek, __ttyioctl, __ttyselect },
+    __ttylseek, __ttyioctl, __ttyselect, __nullstat, __nullfstat },
 #if __FEATURE_PIPEDEV
   {__pipeopen, __pipeclose, __piperead, __pipewrite,
-    __pipelseek, __pipeioctl, __pipeselect },
+    __pipelseek, __pipeioctl, __pipeselect, __nullstat, __nullfstat },
 #else
   {__nullopen, __nullclose, __nullread, __nullwrite,
-    __nulllseek, __nullioctl, __nullselect },
+    __nulllseek, __nullioctl, __nullselect, __nullstat, __nullfstat },
 #endif
   {__nullopen, __nullclose, __nullread, __nullwrite,
-    __nulllseek, __nullioctl, __nullselect },
+    __nulllseek, __nullioctl, __nullselect, __nullstat, __nullfstat },
 #if __FEATURE_SOCKET
   /* Socket select is a special case.  */
   {__sockopen, __sockclose, __sockread, __sockwrite,
-    __socklseek, __sockioctl, __sockselect }
+    __socklseek, __sockioctl, __sockselect, __nullstat, __nullfstat },
+#else
+  {__nullopen, __nullclose, __nullread, __nullwrite,
+    __nulllseek, __nullioctl, __nullselect, __nullstat, __nullfstat },
 #endif
+  {__nullopen, __nullclose, __zeroread, __nullwrite,
+    __nulllseek, __nullioctl, __nullselect, __nullstat, __nullfstat },
+  {__randomopen, __nullclose, __randomread, __nullwrite,
+    __nulllseek, __nullioctl, __nullselect, __nullstat, __nullfstat }
 };
+
+/* Map of special device names to device types.  */
+struct sfile
+{
+  const char *name;
+  const dev_t dev;
+};
+
+static const struct sfile __sfile[] =
+{
+  {"tty", DEV_TTY},
+  {"console", DEV_TTY},
+  {"rs423", DEV_TTY},
+  {"null", DEV_NULL},
+  {"zero", DEV_ZERO},
+  {"random", DEV_RANDOM},
+  {"urandom", DEV_RANDOM},
+/*   {"pipe", DEV_PIPE}, does open on /dev/pipe make sense ?  */
+/*   {"socket", DEV_SOCKET}, does open on /dev/socket make sense ?  */
+  {NULL, DEV_RISCOS} /* table terminator */
+};
+
+const dev_t
+__getdevtype (const char *filename)
+{
+  if (filename[0] == '/' && filename[1] == 'd' && filename[2] == 'e' &&
+      filename[3] == 'v' && filename[4] == '/')
+    {
+      const struct sfile *special = __sfile;
+
+      while (special->name != NULL)
+        {
+          if (strcmp (special->name, filename + sizeof ("/dev/") - 1) == 0)
+            break;
+          special++;
+        }
+
+      return special->dev;
+    }
+
+  return DEV_RISCOS;
+}
 
 #ifndef __UNIXLIB_NO_COMMON_DEV
 __off_t
@@ -458,6 +507,92 @@ __fsselect (struct __unixlib_fd *file_descriptor, int fd,
 }
 #endif
 
+int
+__fsstat (const char *ux_filename, struct stat *buf)
+{
+  char filename[_POSIX_PATH_MAX];
+  _kernel_oserror *err;
+  int regs[6], sftype, aftype;
+
+  if (buf == NULL)
+    return __set_errno (EINVAL);
+
+  if (!__riscosify_std (ux_filename, 0, filename, sizeof (filename),
+      &sftype))
+    return __set_errno (ENAMETOOLONG);
+
+  /* Get vital file statistics and use File$Path.  */
+  err = __os_file (OSFILE_READCATINFO, filename, regs);
+  if (err)
+    {
+      __seterr (err);
+      return __set_errno (EIO);
+    }
+
+  /* Does the file has a filetype (at this point we aren't even sure that
+     the file exists but that's not a problem, see next 'if') ? */
+  if ((regs[2] & 0xfff00000U) == 0xfff00000U)
+    aftype = (regs[2] >> 8) & 0xfff;
+  else
+    aftype = __RISCOSIFY_FILETYPE_NOTFOUND;
+
+  /* Fail if file doesn't exist or (if specified) filetype is different.  */
+  if (regs[0] == 0
+      || (sftype != __RISCOSIFY_FILETYPE_NOTFOUND && sftype != aftype))
+    return __set_errno (ENOENT);
+
+  buf->st_ino = __get_file_ino (NULL, filename);
+
+  __stat (regs, buf);
+
+  return 0;
+}
+
+int
+__fsfstat (int fd, struct stat *buf)
+{
+  struct __unixlib_fd *file_desc;
+  int regs[10];
+  char *buffer;
+  _kernel_oserror *err;
+  int argsregs[3];
+
+  file_desc = &__u->fd[fd];
+
+  if (file_desc->dflag & FILE_ISDIR)
+    buffer = ((DIR *) file_desc->handle)->dd_name_can;
+  else
+    buffer = __fd_to_name ((int) file_desc->handle, NULL, 0);
+
+  if (buffer == NULL)
+    return __set_errno (EBADF);
+
+  /* Get vital file statistics and use File$Path.  */
+  err = __os_file (OSFILE_READCATINFO, buffer, regs);
+  if (err)
+    {
+      __seterr (err);
+      free (buffer);
+      return __set_errno (EIO);
+    }
+  buf->st_ino = __get_file_ino (NULL, buffer);
+  free (buffer);
+
+  /* __os_file returns the allocated size of the file,
+     but we want the current extent of the file */
+  err = __os_args (2, (int) file_desc->handle, 0, argsregs);
+  if (err)
+    {
+      __seterr (err);
+      return __set_errno (EIO);
+    }
+  regs[4] = argsregs[2];
+
+  __stat (regs, buf);
+
+  return 0;
+}
+
 #if __FEATURE_PIPEDEV
 struct pipe *__pipe = NULL;
 
@@ -663,6 +798,51 @@ __nullselect (struct __unixlib_fd *file_descriptor, int fd,
 }
 #endif
 
+int
+__nullstat (const char *filename, struct stat *buf)
+{
+  int regs[6];
+  IGNORE (filename);
+
+  buf->st_ino = 0;
+  regs[0] = regs[2] = regs[3] = regs[4] = regs[5] = 0;
+
+   __stat(regs, buf);
+
+   buf->st_mode = S_IRUSR | S_IWUSR;
+
+   return 0;
+}
+
+int
+__nullfstat (int fd, struct stat *buf)
+{
+  int regs[6];
+  struct __unixlib_fd *file_desc;
+  int fflag;
+  __mode_t mode = 0;
+
+  file_desc = &__u->fd[fd];
+
+  buf->st_ino = 0;
+  regs[0] = regs[2] = regs[3] = regs[4] = regs[5] = 0;
+
+  __stat (regs, buf);
+
+  fflag = file_desc->fflag;
+
+  if (fflag & O_RDONLY)
+    mode |= S_IRUSR;
+  if (fflag & O_WRONLY)
+    mode |= S_IWUSR;
+  if (fflag & O_PIPE)
+    mode |= S_IFIFO;
+
+  buf->st_mode |= mode;
+
+  return 0;
+}
+
 #if __FEATURE_SOCKET
 void *
 __sockopen (struct __unixlib_fd *file_desc, const char *file, int mode)
@@ -726,3 +906,53 @@ __sockselect (struct __unixlib_fd *file_descriptor, int fd,
   return 0;
 }
 #endif /* __FEATURE_SOCKET */
+
+/* Implements /dev/zero */
+int
+__zeroread (struct __unixlib_fd *file_desc, void *data, int nbyte)
+{
+  IGNORE (file_desc);
+
+  memset (data, 0, nbyte);
+
+  return nbyte;
+}
+
+/* Implements /dev/random */
+void *
+__randomopen (struct __unixlib_fd *file_desc, const char *file, int mode)
+{
+  int regs[10];
+
+  IGNORE (file);
+  IGNORE (mode);
+  IGNORE (file_desc);
+
+  /* Test for the existance of the CryptRandom module */
+  if (__os_swi(CryptRandom_Stir, regs))
+    return (void *) __set_errno (ENOENT);
+
+  /* Position of `NULL' in `__sfile' array.  */
+  return (void *) 3;
+}
+
+int
+__randomread (struct __unixlib_fd *file_desc, void *data, int nbyte)
+{
+  int regs[10];
+  _kernel_oserror *err;
+
+  IGNORE (file_desc);
+
+  regs[0] = data;
+  regs[1] = nbyte;
+  err = __os_swi(CryptRandom_Block, regs);
+  if (err)
+    {
+      __seterr (err);
+      return -1;
+    }
+
+  return nbyte;
+}
+

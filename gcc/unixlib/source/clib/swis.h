@@ -691,5 +691,12 @@ __END_DECLS
 #define SysLog_ReadErrorMessage        0x04c88c
 #define SysLog_LogComplete             0x04c88d
 
-#define MimeMap_Translate		0x050b00
+#define MimeMap_Translate              0x050b00
+
+#define CryptRandom_Byte               0x051980
+#define CryptRandom_Stir               0x051981
+#define CryptRandom_AddNoise           0x051982
+#define CryptRandom_Block              0x051983
+#define CryptRandom_Word               0x051984
+
 #endif
