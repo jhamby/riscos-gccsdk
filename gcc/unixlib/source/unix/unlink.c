@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source$
- * $Date$
- * $Revision$
- * $State$
- * $Author$
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/unlink.c,v $
+ * $Date: 2003/01/29 18:46:02 $
+ * $Revision: 1.4 $
+ * $State: Exp $
+ * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id$";
+static const char rcs_id[] = "$Id: unlink.c,v 1.4 2003/01/29 18:46:02 admin Exp $";
 #endif
 
 #include <errno.h>
@@ -47,46 +47,19 @@ __unlinksuffix (char *file)
 int
 unlink (const char *ux_file)
 {
-  int regs[10], sftype, aftype;
+  int regs[10], ftype, objtype, attr;
   _kernel_oserror *err;
   char file[_POSIX_PATH_MAX];
 
-  if (ux_file == NULL)
-    return __set_errno (EINVAL);
+  if (__object_get_attrs (ux_file, file, sizeof (file),
+                          &objtype, &ftype, NULL, NULL, NULL, &attr))
+    return -1;
 
-  if (!__riscosify_std (ux_file, 0, file, sizeof (file), &sftype))
-    return __set_errno (ENAMETOOLONG);
-
-  /* Check no RISC OS equivalent.  */
-  if (*file == '\0')
-    return __set_errno (ENOENT);
-
-  /* Get file's catalogue entry (unfortunately uses wildcards.
-     Still, shouldn't be a major problem).  */
-  err = __os_file (OSFILE_READCATINFO_NOPATH, file, regs);
-  if (err)
-    {
-      __seterr (err);
-      return -1;
-    }
-
-  /* Does the file has a filetype (at this point we aren't even sure that
-     the file exists but that's not a problem, see next 'if') ? */
-  if ((regs[2] & 0xfff00000U) == 0xfff00000)
-    aftype = (regs[2] >> 8) & 0xfff;
-  else
-    aftype = __RISCOSIFY_FILETYPE_NOTFOUND;
-
-  /* Fail if file doesn't exist or (if specified) filetype is different.  */
-  if (regs[0] == 0 /* Non-existent.  */
-      || (sftype != __RISCOSIFY_FILETYPE_NOTFOUND && sftype != aftype))
-    return __set_errno (ENOENT);
-
-  if (regs[0] == 2 || (! __feature_imagefs_is_file && regs[0] == 3)) /* Directory/Image FS.  */ 
+  if (objtype == 2 || (! __feature_imagefs_is_file && objtype == 3)) /* Directory/Image FS.  */
     return __set_errno (EISDIR);
 
   /* Check for permission to delete the file. Bit 3 set => it is locked.  */
-  if (regs[5] & (1 << 3))
+  if (attr & (1 << 3))
     return __set_errno (EACCES);
 
   /* Try to zap the file.  */

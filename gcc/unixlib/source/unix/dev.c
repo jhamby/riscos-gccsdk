@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/dev.c,v $
- * $Date: 2003/01/29 18:49:00 $
- * $Revision: 1.10 $
+ * $Date: 2003/04/06 14:19:07 $
+ * $Revision: 1.11 $
  * $State: Exp $
- * $Author: admin $
+ * $Author: peter $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: dev.c,v 1.10 2003/01/29 18:49:00 admin Exp $";
+static const char rcs_id[] = "$Id: dev.c,v 1.11 2003/04/06 14:19:07 peter Exp $";
 #endif
 
 /* #define DEBUG */
@@ -525,39 +525,18 @@ int
 __fsstat (const char *ux_filename, struct stat *buf)
 {
   char filename[_POSIX_PATH_MAX];
-  _kernel_oserror *err;
-  int regs[6], sftype, aftype;
+  int objtype, load, exec, length, attr;
 
   if (buf == NULL)
     return __set_errno (EINVAL);
 
-  if (!__riscosify_std (ux_filename, 0, filename, sizeof (filename),
-      &sftype))
-    return __set_errno (ENAMETOOLONG);
-
-  /* Get vital file statistics and use File$Path.  */
-  err = __os_file (OSFILE_READCATINFO, filename, regs);
-  if (err)
-    {
-      __seterr (err);
-      return __set_errno (EIO);
-    }
-
-  /* Does the file has a filetype (at this point we aren't even sure that
-     the file exists but that's not a problem, see next 'if') ? */
-  if ((regs[2] & 0xfff00000U) == 0xfff00000U)
-    aftype = (regs[2] >> 8) & 0xfff;
-  else
-    aftype = __RISCOSIFY_FILETYPE_NOTFOUND;
-
-  /* Fail if file doesn't exist or (if specified) filetype is different.  */
-  if (regs[0] == 0
-      || (sftype != __RISCOSIFY_FILETYPE_NOTFOUND && sftype != aftype))
-    return __set_errno (ENOENT);
+  if (__object_get_attrs (ux_filename, filename, sizeof (filename),
+                          &objtype, NULL, &load, &exec, &length, &attr))
+    return -1;
 
   buf->st_ino = __get_file_ino (NULL, filename);
 
-  __stat (regs, buf);
+  __stat (objtype, load, exec, length, attr, buf);
 
   return 0;
 }
@@ -602,7 +581,7 @@ __fsfstat (int fd, struct stat *buf)
     }
   regs[4] = argsregs[2];
 
-  __stat (regs, buf);
+  __stat (regs[0], regs[2], regs[3], regs[4], regs[5], buf);
 
   return 0;
 }
@@ -819,9 +798,8 @@ __nullstat (const char *filename, struct stat *buf)
   IGNORE (filename);
 
   buf->st_ino = 0;
-  regs[0] = regs[2] = regs[3] = regs[4] = regs[5] = 0;
 
-   __stat(regs, buf);
+   __stat (0, 0, 0, 0, 0, buf);
 
    buf->st_mode = S_IRUSR | S_IWUSR;
 
@@ -839,9 +817,8 @@ __nullfstat (int fd, struct stat *buf)
   file_desc = &__u->fd[fd];
 
   buf->st_ino = 0;
-  regs[0] = regs[2] = regs[3] = regs[4] = regs[5] = 0;
 
-  __stat (regs, buf);
+  __stat (0, 0, 0, 0, 0, buf);
 
   fflag = file_desc->fflag;
 

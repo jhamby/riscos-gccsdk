@@ -1,10 +1,10 @@
 # Project:   UnixLib 4.0
 
 # $Source: /usr/local/cvsroot/gccsdk/unixlib/objs/Makefile,fe1,v $
-# $Date: 2003/01/29 18:49:00 $
-# $Revision: 1.7 $
+# $Date: 2003/04/05 23:56:08 $
+# $Revision: 1.8 $
 # $State: Exp $
-# $Author: admin $
+# $Author: joty $
 
 CCfeatures =
 Predefs = -D__UNIXLIB_INTERNALS
@@ -110,9 +110,9 @@ OBJS =	o.abort o.abs o.alloc o.assert o.atexit o.bsearch o.ctype \
 	o.strtoll o.strtoull o.system o.termcap
 
 COMMON = common.o.attrib common.o.cvttime common.o.exist \
-	common.o.fdname common.o.funcallerr common.o.riscosify \
-	common.o.riscosifyc common.o.serial common.o.sockvalid \
-	common.o.stat common.o.uname common.o.unixify
+	common.o.fdname common.o.funcallerr common.o.objattr \
+	common.o.riscosify common.o.riscosifyc common.o.serial \
+	common.o.sockvalid common.o.stat common.o.uname common.o.unixify
 
 COMMON_ASM =	common.o._exist common.o._riscosify
 
@@ -539,6 +539,7 @@ common.o.cvttime:	common.c.cvttime
 common.o.exist:		common.c.exist
 common.o.fdname:	common.c.fdname
 common.o.funcallerr:	common.c.funcallerr
+common.o.objattr:	common.c.objattr
 common.o.riscosify:	common.c.riscosify
 common.o.riscosifyc:	common.c.riscosifyc
 common.o.serial:	common.c.serial

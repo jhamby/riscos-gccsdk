@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/chdir.c,v $
- * $Date: 2001/09/04 16:32:04 $
- * $Revision: 1.2.2.2 $
+ * $Date: 2002/02/14 15:56:38 $
+ * $Revision: 1.3 $
  * $State: Exp $
  * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: chdir.c,v 1.2.2.2 2001/09/04 16:32:04 admin Exp $";
+static const char rcs_id[] = "$Id: chdir.c,v 1.3 2002/02/14 15:56:38 admin Exp $";
 #endif
 
 #include <errno.h>
@@ -31,24 +31,16 @@ chdir (const char *ux_path)
 {
   char *prefix_path, *full_path;
   _kernel_oserror *err;
-  int regs[10], filetype;
+  int regs[10], objtype;
   char canon_path[_POSIX_PATH_MAX];
   char path[_POSIX_PATH_MAX];
-  char *path_end;
 
-  if (ux_path == NULL)
-    return __set_errno (EINVAL);
-
-  path_end = __riscosify_std (ux_path, 0, path, sizeof (path), &filetype);
-  if (path_end == NULL || filetype != __RISCOSIFY_FILETYPE_NOTFOUND)
-    return __set_errno (ENAMETOOLONG);
-
-  /* Check for existence.  */
-  if (!__object_exists_raw (path))
-    return __set_errno (ENOENT);
+  if (__object_get_attrs (ux_path, path, sizeof (path),
+                          &objtype, NULL, NULL, NULL, NULL, NULL))
+    return -1;
 
   /* We can only change to directories.  */
-  if (!__isdir_raw (path))
+  if ((objtype & 2) == 0)
     return __set_errno (ENOTDIR);
 
   /* All of the above path checks are affected by Prefix$Dir. Unfortunately
@@ -76,16 +68,17 @@ chdir (const char *ux_path)
         }
       else
         {
-          int len = strlen (prefix_path);
+          int path_len = strlen (path);
+          int prefix_len = strlen (prefix_path);
 
           /* Use malloc rather than a fixed buffer since path could
              contain parent components (^.), so could be longer than
              _POSIX_PATH_MAX before canonicalisation. */
-          full_path = realloc (prefix_path, len + 1 + (path_end - path) + 1);
+          full_path = realloc (prefix_path, prefix_len + 1 + path_len + 1);
           if (full_path)
             {
-              full_path[len++] = '.';
-              strcpy (full_path + len, path);
+              full_path[prefix_len++] = '.';
+              strcpy (full_path + prefix_len, path);
 
               /* We must pass a canonicalised directory to
               	 DDEUtils_Prefix.  */

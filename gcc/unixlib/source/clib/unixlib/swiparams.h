@@ -1,8 +1,8 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/unixlib/swiparams.h,v $
- * $Date: 2001/01/29 15:10:19 $
- * $Revision: 1.2 $
+ * $Date: 2002/09/24 21:02:37 $
+ * $Revision: 1.3 $
  * $State: Exp $
  * $Author: admin $
  *
@@ -19,6 +19,9 @@
 #define OSFILE_READCATINFO_PATH     13
 #define OSFILE_READCATINFO_PATHVAR  15
 #define OSFILE_READCATINFO_NOPATH   17
+
+#define OSFILE_WRITECATINFO_ATTR     4
+#define OSFILE_WRITECATINFO_FILETYPE 18
 
 #define OSFIND_OPEN_OPENIN            (4<<4)
 #define OSFIND_OPEN_OPENOUT           (8<<4)

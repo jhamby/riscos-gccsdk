@@ -1,8 +1,8 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/sys/stat.h,v $
- * $Date: 2002/09/24 21:02:37 $
- * $Revision: 1.4 $
+ * $Date: 2002/11/27 19:07:01 $
+ * $Revision: 1.5 $
  * $State: Exp $
  * $Author: admin $
  *
@@ -178,7 +178,8 @@ extern int fstat (int __fd, struct stat *__buf);
 #ifdef __UNIXLIB_INTERNALS
 /* We declare __stat here to prevent the inclusion if <sys/stat.h> in
    <unixlib/local.h>.  This function is internal to stat and fstat.  */
-extern void __stat (int *__regs, struct stat *__buf);
+extern void __stat (int __objtype, int __loadaddr, int __execaddr,
+                    int __length, int __attr, struct stat *buf);
 #endif
 
 /* Set file access permissions for file to mode.  */

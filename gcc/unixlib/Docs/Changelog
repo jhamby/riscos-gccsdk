@@ -1,3 +1,24 @@
+Sat Apr 12 12:32:53 2003  Alex Waugh  <alex@alexwaugh.com>
+
+	* objs/Makefile,fe1: Add new file
+	* Makefile: Likewise.
+	* clib/sys/stat.h (__stat): Alter decl.
+	* clib/unixlib/local.h (__object_get_attrs, __object_set_attrs):
+	  Add decl.
+	* clib/unixlib/swiparams.h: Add more OS_File parameters.
+	* common/stat.c (__stat): Take named arguments rather than a
+	  register list.
+	* unix/chdir.c (chdir): Remove common code.
+	* unix/chmod.c (chmod): Likewise.
+	* unix/dev.c (__fsstat): Likewise.
+	* unix/mkdir.c (mkdir): Likewise.
+	* unix/rmdir.c (rmdir): Likewise.
+	* unix/unlink.c (unlink): Likewise.
+	* unix/utime.c (utime): Likewise.
+	* common/objattr.c: New file containing common code for the above
+	  files. Fix bug that could cause stat to return ENOENT for a file
+	  where the filetype didn't match the extension mimetype lookup.
+
 Mon Apr  7 21:09:46 2003  Alex Waugh  <alex@alexwaugh.com>
 
 	* Makefile: Add -pedantic to assembly rule.

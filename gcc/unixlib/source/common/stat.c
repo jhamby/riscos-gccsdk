@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source$
- * $Date$
- * $Revision$
- * $State$
- * $Author$
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/common/stat.c,v $
+ * $Date: 2002/09/24 21:02:37 $
+ * $Revision: 1.4 $
+ * $State: Exp $
+ * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id$";
+static const char rcs_id[] = "$Id: stat.c,v 1.4 2002/09/24 21:02:37 admin Exp $";
 #endif
 
 #include <time.h>
@@ -20,14 +20,14 @@ static const char rcs_id[] = "$Id$";
 #include <unixlib/features.h>
 
 void
-__stat (int *regs, struct stat *buf)
+__stat (int objtype, int loadaddr, int execaddr, int length, int attr, struct stat *buf)
 {
   __mode_t mode;
 
   /* Calculate the file mode.  */
-  mode = __get_protection (regs[5]);
+  mode = __get_protection (attr);
 
-  switch (regs[0])
+  switch (objtype)
     {
       case 1: /* Regular file.  */
 	/* The number of hard links to the file. For RISC OS, there is only
@@ -38,7 +38,7 @@ __stat (int *regs, struct stat *buf)
 	mode |= S_IFREG;
 	/* ASR &FFFtttDD maps to FFFFFttt
 	   all filetypes are treated as +x except "text" and "data" */
-	switch (regs[2] >> 8)
+	switch (loadaddr >> 8)
 	  {
 	    case 0xfffffFFF:	/* Text. */
 	    case 0xfffffFFD:	/* Data. */
@@ -65,8 +65,8 @@ __stat (int *regs, struct stat *buf)
 	   a buffer to hold all the filenames, so it is better to return an
 	   underestimate of the size. We choose an arbitrary maximum size
 	   of 32,768 and set the actual size to 0.  */
-	if ((size_t) regs[4] > 32768)
-	  regs[4] = 0;
+	if ((size_t) length > 32768)
+	  length = 0;
 	break;
 
       case 3: /* Image directory (RISC OS 3 and above).  */
@@ -83,8 +83,8 @@ __stat (int *regs, struct stat *buf)
 	    mode |= S_IFDIR;
 	    buf->st_nlink = 2;
 	    /* Fudge directory size (as above).  */
-	    if ((size_t) regs[4] > 32768)
-	      regs[4] = 0;
+	    if ((size_t) length > 32768)
+	      length = 0;
 	  }
 	break;
     }
@@ -114,20 +114,20 @@ __stat (int *regs, struct stat *buf)
   /* If the descriptor is a device, the device number.  */
   buf->st_rdev = buf->st_dev;
   /* Size of file, in bytes.  */
-  buf->st_size = regs[4];
+  buf->st_size = length;
   /* Disc space that the file occupies, measured in units of 512
      byte blocks.  */
-  buf->st_blocks = ((unsigned long int)regs[4] + 511) / 512;
+  buf->st_blocks = ((unsigned long int)length + 511) / 512;
   /* Optimal block size for reading or writing this file.  Programs
      usually use as a suitable parameter for setvbuf.  */
   buf->st_blksize = 4096;
 
-  if ((((unsigned int) regs[2]) >> 20) == 0xfff)	/* date stamped file */
+  if ((((unsigned int) loadaddr) >> 20) == 0xfff)	/* date stamped file */
     {
       time_t time;
 
-      time = __cvt_riscos_time ((unsigned int)(regs[2] & 0xff),
-				(unsigned int)regs[3]);
+      time = __cvt_riscos_time ((unsigned int)(loadaddr & 0xff),
+				(unsigned int)execaddr);
 
       buf->st_atime = buf->st_mtime = buf->st_ctime = time;
     }

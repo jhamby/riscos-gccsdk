@@ -216,6 +216,7 @@ COMMON = $(libunixobj)/common/attrib.o \
 	$(libunixobj)/common/exist.o \
 	$(libunixobj)/common/fdname.o \
 	$(libunixobj)/common/funcallerr.o \
+	$(libunixobj)/common/objattr.o \
 	$(libunixobj)/common/riscosify.o \
 	$(libunixobj)/common/riscosifyc.o \
 	$(libunixobj)/common/serial.o \
@@ -845,6 +846,7 @@ $(libunixobj)/common/cvttime.o: common/cvttime.c
 $(libunixobj)/common/exist.o: common/exist.c
 $(libunixobj)/common/fdname.o: common/fdname.c
 $(libunixobj)/common/funcallerr.o: common/funcallerr.c
+$(libunixobj)/common/objattr.o: common/objattr.c
 $(libunixobj)/common/riscosify.o: common/riscosify.c
 $(libunixobj)/common/riscosifyc.o: common/riscosifyc.c
 $(libunixobj)/common/serial.o: common/serial.c

@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/rmdir.c,v $
- * $Date: 2001/09/04 16:32:04 $
- * $Revision: 1.2.2.2 $
+ * $Date: 2002/02/14 15:56:39 $
+ * $Revision: 1.3 $
  * $State: Exp $
  * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: rmdir.c,v 1.2.2.2 2001/09/04 16:32:04 admin Exp $";
+static const char rcs_id[] = "$Id: rmdir.c,v 1.3 2002/02/14 15:56:39 admin Exp $";
 #endif
 
 #include <errno.h>
@@ -26,27 +26,20 @@ int
 rmdir (const char *ux_directory)
 {
   char directory[_POSIX_PATH_MAX];
-  int regs[10], filetype;
+  int regs[10], filetype, objtype, attr;
   _kernel_oserror *err;
   char scratch_buf[NAME_MAX];
 
-  if (ux_directory == NULL)
-    return __set_errno (EINVAL);
-
-  if (!__riscosify_std (ux_directory, 0, directory, sizeof (directory),
-                      &filetype))
-    return __set_errno (ENAMETOOLONG);
-
-  /* Does the directory exist ?  */
-  if (__os_file (OSFILE_READCATINFO_NOPATH, directory, regs) || regs[0] == 0)
-    return __set_errno (ENOENT);
+  if (__object_get_attrs (ux_directory, directory, sizeof (directory),
+                          &objtype, &filetype, NULL, NULL, NULL, &attr))
+    return -1;
 
   /* Images and directories have bit 1 set. Clear implies file.  */
-  if ((regs[0] & 2) == 0 || filetype != __RISCOSIFY_FILETYPE_NOTFOUND)
+  if ((objtype & 2) == 0)
     return __set_errno (ENOTDIR);
 
   /* Directory is locked against deletion if bit 3 is set.  */
-  if (regs[5] & (1 << 3))
+  if (attr & (1 << 3))
     return __set_errno (EACCES);
 
   /* Explicitly check that DIRECTORY is empty, otherwise non-empty image

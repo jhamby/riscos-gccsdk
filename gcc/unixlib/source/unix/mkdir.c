@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/mkdir.c,v $
- * $Date: 2001/09/04 16:32:04 $
- * $Revision: 1.2.2.1 $
+ * $Date: 2002/02/14 15:56:38 $
+ * $Revision: 1.3 $
  * $State: Exp $
  * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: mkdir.c,v 1.2.2.1 2001/09/04 16:32:04 admin Exp $";
+static const char rcs_id[] = "$Id: mkdir.c,v 1.3 2002/02/14 15:56:38 admin Exp $";
 #endif
 
 #include <errno.h>
@@ -25,22 +25,16 @@ static const char rcs_id[] = "$Id: mkdir.c,v 1.2.2.1 2001/09/04 16:32:04 admin E
 int
 mkdir (const char *ux_path, __mode_t mode)
 {
-  int regs[6], filetype;
+  int regs[6], filetype, objtype;
   _kernel_oserror *err;
   char path[_POSIX_PATH_MAX];
 
-  if (ux_path == NULL)
-    return __set_errno (EINVAL);
-
-  if (!__riscosify_std (ux_path, 1, path, sizeof (path), &filetype))
-    return __set_errno (ENAMETOOLONG);
-
-  if (filetype != __RISCOSIFY_FILETYPE_NOTFOUND)
-    return __set_errno (ENOTDIR);
+  if (__object_get_attrs (ux_path, path, sizeof (path),
+                          &objtype, &filetype, NULL, NULL, NULL, NULL) && errno != ENOENT)
+    return -1;
 
   /* Fail if the directory already exists.  */
-  if (__os_file (OSFILE_READCATINFO_NOPATH, path, regs) == NULL
-      && regs[0] != 0)
+  if (objtype != 0)
     return __set_errno (EEXIST);
 
   /* Create the directory, with default number of entries per directory.  */

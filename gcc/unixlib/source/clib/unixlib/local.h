@@ -1,10 +1,10 @@
 /****************************************************************************
  *
- * $Source$
- * $Date$
- * $Revision$
- * $State$
- * $Author$
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/unixlib/local.h,v $
+ * $Date: 2002/09/24 21:02:37 $
+ * $Revision: 1.4 $
+ * $State: Exp $
+ * $Author: admin $
  *
  * This file should eventually contain most / all of the unixlib specific
  * functions.
@@ -248,6 +248,25 @@ extern int __uname_control;
 /* Just declare __uname_dont_pack to disable vowel dropping.  */
 extern int *__uname_dont_pack_ptr;
 #endif /* __UNIXLIB_OLD_UNAME */
+
+
+
+/* Get an objects filetype, object type, etc and do some common checks.
+   Returns nonzero and sets errno on error. Returns riscosified filename
+   in __buffer. __objtype, __ftype and __attr may be NULL if not needed. */
+int
+__object_get_attrs (const char *__ux_file, char *__buffer, size_t __buf_len,
+                    int *__objtype, int *__ftype, int *__loadaddr,
+                    int *__execaddr, int *__length, int *__attr);
+
+#define __ATTR_NOTSPECIFIED (-1)
+
+/* Sets an objects filetype and attributes (either can be set to
+   __ATTR_NOTSPECIFIED to leave unchanged).
+   Returns nonzero and sets errno on error.  */
+int
+__object_set_attrs (const char *__ux_file, char *__buffer, size_t __buf_len,
+                    int __ftype, int __attr);
 
 __END_DECLS
 
