@@ -21,7 +21,6 @@
 #include "area.h"
 #include "os.h"
 #include "version.h"
-#include "endiandef.h"
 #include "uname.h"
 #if defined(UNIXLIB) || defined(CROSS_COMPILE)
 #include <ctype.h>
@@ -42,6 +41,51 @@ char *idfn_text = MESSAGE;
 
 #define MAXNAME 256
 static char outname[MAXNAME + 1];
+
+#define BYTE0SHIFT 24
+#define BYTE1SHIFT 16
+#define BYTE2SHIFT 8
+#define BYTE3SHIFT 0
+
+#if !defined(__riscos__) && defined(WORDS_BIGENDIAN)
+/* Convert to ARM byte-sex.  */
+static unsigned armword (unsigned val)
+{
+  union
+    {
+      unsigned i;
+      char c[4];
+    }
+  ret;
+
+  ret.c[0] = (val >> BYTE0SHIFT) & 0xff;
+  ret.c[1] = (val >> BYTE1SHIFT) & 0xff;
+  ret.c[2] = (val >> BYTE2SHIFT) & 0xff;
+  ret.c[3] = (val >> BYTE3SHIFT) & 0xff;
+  return (ret.i);
+}
+
+/* Convert from ARM byte-sex.  */
+static unsigned ourword (unsigned val)
+{
+  union
+  {
+    unsigned i;
+    char c[4];
+  }
+  ret;
+
+  ret.c[0] = (val >> BYTE0SHIFT) & 0xff;
+  ret.c[1] = (val >> BYTE1SHIFT) & 0xff;
+  ret.c[2] = (val >> BYTE2SHIFT) & 0xff;
+  ret.c[3] = (val >> BYTE3SHIFT) & 0xff;
+  return (ret.i);
+}
+#else
+/* Little endian host machines.  */
+#define armword(x) (x)
+#define ourword(x) (x)
+#endif
 
 void
 outputInit (char *outfile)
