@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/time.h,v $
- * $Date: 2004/10/08 11:56:13 $
- * $Revision: 1.12 $
+ * $Date: 2004/10/17 16:24:43 $
+ * $Revision: 1.13 $
  * $State: Exp $
- * $Author: peter $
+ * $Author: joty $
  *
  ***************************************************************************/
 
@@ -155,6 +155,30 @@ extern size_t strftime (char *__restrict __s, size_t __size,
 			const char *__restrict __format,
        	      	        const struct tm *__restrict __brokentime) __THROW;
 
+
+/* C99 Additions.  */
+
+/* Identifier for system-wide realtime clock.  */
+#define CLOCK_REALTIME 0
+
+/* Monotonic system-wide clock.  */
+#define CLOCK_MONOTONIC 1
+
+/* High-resolution timer from the CPU.  */
+#define CLOCK_PROCESS_CPUTIME_ID 2
+
+/* Thread-specific CPU-time clock.  */
+#define CLOCK_THREAD_CPUTIME_ID 3
+
+/* Find the resolution of a specified clockid.  If 'res' is non NULL,
+   then store the result into the structure pointed to by it.  */
+extern int clock_getres (clockid_t __clk_id, struct timespec *__res) __THROW;
+
+/* Retrieve the time of the specified clk_id.  */
+extern int clock_gettime (clockid_t __clk_id, struct timespec *__tp) __THROW;
+
+/* Set the time of the specified clk_id.  */
+extern int clock_settime (clockid_t __clk_id, const struct timespec *__tp) __THROW;
 
 /* System V compatibility.  */
 

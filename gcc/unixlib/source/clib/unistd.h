@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/unistd.h,v $
- * $Date: 2004/10/17 16:24:43 $
- * $Revision: 1.14 $
+ * $Date: 2005/03/04 20:59:05 $
+ * $Revision: 1.15 $
  * $State: Exp $
- * $Author: joty $
+ * $Author: alex $
  *
  ***************************************************************************/
 
@@ -77,6 +77,16 @@ __BEGIN_DECLS
 
 /* Library supports select and pselect.  */
 #define _POSIX_SELECT 1
+
+/* The Monotonic Clock POSIX timer.  */
+#define _POSIX_MONOTONIC_CLOCK 1
+
+/* A high-resolution per-process timer from the CPU.  */
+/*#define _POSIX_CPUTIME 0 */
+
+/* Thread-specific CPU-time clock.  */
+/*#define _POSIX_THREAD_CPUTIME 0 */
+
 
 /* Standard file descriptors.  */
 #define	STDIN_FILENO	0	/* Standard input.  */
