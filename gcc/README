@@ -35,3 +35,21 @@ Using it
 For Unix users.  You need to add the bin directory to your PATH, so you
 probably need to look at config/local.mk to do this.  The `bin' directory
 will be in whatever directory `distdir' was set to.
+
+
+RISC OS filename compatibility issues for the cross-compiler
+------------------------------------------------------------
+
+Since the cross-compiler is built to execute on a Unix-like file system,
+it expects file naming conventions particular to that operating system.
+However, since there is going to be a lot of source code out there that
+makes use of some RISC OS pathname features, the pre-processor has been
+fixed to cope with path variable names in file names.
+
+When the pre-processor attempts to read an include statement like:
+  #include <DeskLib:Wimp.h>
+it will try to resolve the DeskLib reference against the environment variable
+DESKLIB_PATH.  So you could install the DeskLib header files in a place
+such as /home/riscos/libs/include/desklib.  To get GCC to search in that
+directory for those headers, simply define the variable:
+  $ export DESKLIB_PATH=/home/riscos/lib/include/desklib
