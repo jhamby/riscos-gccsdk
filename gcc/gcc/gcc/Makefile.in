@@ -16,6 +16,7 @@ bin_dir = $(ux_bin_dir)
 gcc_bin_dir = $(ux_gcc_bin_dir)
 GNATBIND = @GNATBIND@ -C
 GNATCC = @CC@
+softlinks = cc c++ ranlib
 .NOTPARALLEL:
 else
 prefix = $(riscos_prefix)
@@ -226,7 +227,7 @@ $(gccobjdir)/%.o: %.c
 	$(CC) $(CFLAGS) -o $@ -c $< $(INCLUDES)
 
 
-all: c cp f77 objc java docs
+all: c cp f77 objc docs  $(softlinks)
 # cp f77 gpc objc java docs
 
 .PHONY: c
@@ -237,6 +238,9 @@ all: c cp f77 objc java docs
 .PHONY: objc
 .PHONY: java
 .PHONY: docs
+.PHONY: cc
+.PHONY: c++
+.PHONY: ranlib
 
 c: $(bin_dir)/gcc$(gexesfx) $(gcc_bin_dir)/cpp$(gexesfx) \
    $(gcc_bin_dir)/cc1$(gexesfx) $(bin_dir)/gcov$(gexesfx)
@@ -244,6 +248,21 @@ c: $(bin_dir)/gcc$(gexesfx) $(gcc_bin_dir)/cpp$(gexesfx) \
 ada cp f77 gpc objc java: $(BACKEND)
 	$(MAKE) -C $@
 
+cc:
+	if ! [ -e $(bin_dir)/cc$(gexesfx) ] ; then \
+	  ln -s gcc$(gexesfx) $(bin_dir)/cc$(gexesfx); \
+	fi
+
+c++:
+	if ! [ -e $(bin_dir)/c++$(gexesfx) ] ; then \
+	  ln -s gcc$(gexesfx) $(bin_dir)/c++$(gexesfx); \
+	fi
+
+ranlib:
+	if ! [ -e $(bin_dir)/ranlib$(gexesfx) ] ; then \
+	  touch $(bin_dir)/ranlib$(gexesfx); \
+	  chmod +x $(bin_dir)/ranlib$(gexesfx); \
+	fi 
 
 ifeq (${STAGE},stage1)
 docs:
