@@ -1,3 +1,7 @@
+Tue Mar 16 19:03:59 2004  Nick Burrett  <nick@dsvr.net>
+
+	* unixlib/unix.h (__exec_cli): Add prototype.
+
 Sat Mar 06 13:05:58 2004  Graham Shaw  <gdshaw@sagitta.demon.co.uk>
 
 	* source/sys/exec.c (execve): Restore wimpslot and himem to
@@ -16,6 +20,7 @@ Sun Feb 29 16:36:30 2004  Alex Waugh  <alex@alexwaugh.com>
 	  __RISCOSIFY_FILETYPE_NOT_SET.
 
 Mon Feb 23 16:04:06 2004  Peter Naulls  <peter@chocky.org>
+
 	* source/clib/unixlib/sigstate.h, source/unix/close.c,
 	  source/signal/_coredump.s, source/signal/_signal.s,
 	  source/signal/post.c: Enable writing of backtraces etc to
@@ -25,6 +30,7 @@ Mon Feb 23 16:04:06 2004  Peter Naulls  <peter@chocky.org>
 	  improve it.
 
 Sat Feb 21 20:58:10 2004  Peter Naulls  <peter@chocky.org>
+
 	* source/clib/strings.h: Remove extra #ifdef
 
 Sun Feb 15 18:45:16 2004  Peter Naulls  <peter@chocky.org>

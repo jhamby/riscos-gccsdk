@@ -1,8 +1,8 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/unixlib/unix.h,v $
- * $Date: 2004/01/06 00:17:36 $
- * $Revision: 1.11 $
+ * $Date: 2004/01/14 23:16:59 $
+ * $Revision: 1.12 $
  * $State: Exp $
  * $Author: joty $
  *
@@ -224,6 +224,7 @@ extern void __exret (void);	/* return from __exec() - calls __vret() */
 extern void (*__exptr) (char *); /* pointer to __exec() routine */
 extern int __exlen;		/* length of __exec() routine */
 extern int __exshift;		/* __exec() shift */
+extern void __exec_cli (const char *) __attribute__ ((__noreturn__));
 
 /* vfork weak link.  */
 
