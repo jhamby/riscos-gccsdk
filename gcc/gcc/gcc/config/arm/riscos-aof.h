@@ -433,6 +433,10 @@ do {							\
 #define LINK_SPEC ""
 #define ASM_FINAL_SPEC ""
 
+/* The GNU C++ standard library requires that these macros be defined.  */
+#undef CPLUSPLUS_CPP_SPEC
+#define CPLUSPLUS_CPP_SPEC "-D_GNU_SOURCE %(cpp)"
+
 #ifdef CROSS_COMPILE
 /* Cross-compiler specific definitions.  */
 
@@ -442,7 +446,8 @@ do {							\
 
 #define SUBTARGET_CPP_SPEC "-D__JMP_BUF_SIZE=27 %{mlibscl:-D__TARGET_SCL__} \
 	%{mlibscl:-icrossdirafter /libscl} \
-	%{!mlibscl:-icrossdirafter /unixlib}"
+	%{!mlibscl:-icrossdirafter /unixlib} \
+	%{posix:-D_POSIX_SOURCE}"
 
 #else
 
@@ -455,7 +460,8 @@ do {							\
 #define SUBTARGET_CPP_SPEC "%{mamu:-MD !Depend} \
 	%{mlibscl:-icrossdirafter /libscl} \
 	%{!mlibscl:-icrossdirafter /unixlib} \
-	-D__JMP_BUF_SIZE=27 %{mlibscl:-D__TARGET_SCL__}"
+	-D__JMP_BUF_SIZE=27 %{mlibscl:-D__TARGET_SCL__} \
+	%{posix:-D_POSIX_SOURCE}"
 
 #endif /* CROSS_COMPILE */
 
