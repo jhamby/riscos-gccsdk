@@ -1,8 +1,8 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/features.h,v $
- * $Date: 2004/10/17 16:24:43 $
- * $Revision: 1.2 $
+ * $Date: 2005/01/23 19:39:58 $
+ * $Revision: 1.3 $
  * $State: Exp $
  * $Author: joty $
  *
@@ -395,14 +395,15 @@ extern void __set_feature_imagefs_is_file (int __feature_imagefs_is_file_value);
 #endif
 
 /* NULL if user didn't specify __program_name; non-NULL otherwise and then
-   equal to ptr to __program_name.  */
-extern const char **___program_name;
+   its value equals __program_name.  */
+extern const char * const * const ___program_name;
+extern const char * const * const ___dynamic_da_name;
 
 #endif  /* __UNIXLIB_INTERNALS */
 
 /* When defined, specifies the <program name> part of the UnixLib OS
    variables.  Otherwise, the leaf filename part of argv[0] is used.  */
-extern const char *__program_name; /* Note: this is a weak symbol.  */
+extern const char * const __program_name; /* Note: this is a weak symbol.  */
 
 /* When defined, the memory pool will be created in the WimpSlot area
    instead of a dynamic area (on RISC OS versions supporting dynamic
@@ -412,7 +413,7 @@ extern int __dynamic_no_da; /* Note: this is a weak symbol.  */
 /* When a dynamic area is created as memory pool, __dynamic_da_name can
    be used to specify its name.  When this variable is not defined, the
    dynamic area name will be <program name> + "$Heap".  */
-extern const char *__dynamic_da_name; /* Note: this is a weak symbol.  */
+extern const char * const __dynamic_da_name; /* Note: this is a weak symbol.  */
 
 /* When defined, indicates the maximum size in bytes of the dynamic area
    used for the heap. If undefined, UnixLib defaults to 32MB */

@@ -1,8 +1,8 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/_syslib.s,v $
-; $Date: 2005/01/05 23:15:10 $
-; $Revision: 1.36 $
+; $Date: 2005/01/23 19:39:57 $
+; $Revision: 1.37 $
 ; $State: Exp $
 ; $Author: joty $
 ;
@@ -293,9 +293,9 @@ t02
 	; no need to set a $Heap variable.
 
 	; The main use of this is when the binary is called !RunImage.
-	; e.g.:  const char *__dynamic_da_name = "Nettle Heap";
+	; e.g.:  const char * const __dynamic_da_name = "Nettle Heap";
 
-	LDR	v5, =|__dynamic_da_name|
+	LDR	v5, |___dynamic_da_name|
 	TEQ	v5, #0
 	LDRNE	v5, [v5, #0]	; get the actual string referred to
 	BNE	t07
@@ -450,6 +450,10 @@ env
 	EXPORT	|___program_name|
 |___program_name|
 	DCD	|__program_name|
+
+	EXPORT	|___dynamic_da_name|
+|___dynamic_da_name|
+	DCD	|__dynamic_da_name|
 
 	; Can only be used to report fatal errors under certain conditions.
 	; Be sure that at this point the UnixLib environment handlers

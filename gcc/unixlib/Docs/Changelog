@@ -1,3 +1,11 @@
+Sun Jan 23 21:27:23 2005  John Tytgat  <John.Tytgat@aaug.net>
+
+	* source/clib/features.h: More constify __program_name, ___program_name,
+	  __dynamic_da_name and prototyped ___dynamic_da_name.
+	* source/sys/_syslib.s: Defined ___dynamic_da_name.
+	* source/sys/mman.c (mmap): DA name is __dynamic_da_name when defined,
+	  otherwise <program name> + " MMap". Suggestion of Alex in bug #138.
+
 Sun Jan 23 20:27:33 2005  John Tytgat  <John.Tytgat@aaug.net>
 
 	* Docs/ReadMe: Added more info on what <program name> really is; Changed

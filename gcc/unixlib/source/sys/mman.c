@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/mman.c,v $
- * $Date: 2004/09/07 14:05:11 $
- * $Revision: 1.5 $
+ * $Date: 2005/01/23 19:39:57 $
+ * $Revision: 1.6 $
  * $State: Exp $
  * $Author: joty $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: mman.c,v 1.5 2004/09/07 14:05:11 joty Exp $";
+static const char rcs_id[] = "$Id: mman.c,v 1.6 2005/01/23 19:39:57 joty Exp $";
 #endif
 
 /* Definitions for BSD-style memory management.  Generic/4.4 BSD version.  */
@@ -164,8 +164,14 @@ mmap (caddr_t addr, size_t len, int prot, int flags, int fd, off_t offset)
      heap.  */
   {
     char namebuf[128];
-    regs[8] = (int)get_program_name(__u->argv[0], namebuf, sizeof(namebuf) - sizeof(" MMap"));
-    strcat(namebuf, " MMap");
+
+    if (___dynamic_da_name != NULL)
+      regs[8] = (int)*___dynamic_da_name;
+    else
+      {
+        regs[8] = (int)get_program_name(__u->argv[0], namebuf, sizeof(namebuf) - sizeof(" MMap"));
+        strcat(namebuf, " MMap");
+      }
 
     if (__os_swi (OS_DynamicArea, regs))
       return (caddr_t) __set_errno (ENOMEM);
