@@ -1,3 +1,8 @@
+Fri Jun 18 19:21:03 2004  Nick Burrett  <nick@dsvr.net>
+
+	* errno.h: Drop requirement on unixlib/features.h as there is
+	nothing in this header that is C++ incompatible.
+
 Sat Jun 12 11:56:18 2004  Peter Naulls  <peter@chocky.org>
 
 	* source/Makefile.in: Some files require _GNU_SOURCE to be defined.
@@ -43,8 +48,8 @@ Sat Jun  5 21:49:35 2004  John Tytgat  <John.Tytgat@aaug.net>
 
 Sat Jun  5 15:58:28 2004  John Tytgat  <John.Tytgat@aaug.net>
 
-	* source/math-asm/_sincos.s (__sincos): Results got written to incorrect
-	  pointers.
+	* source/math-asm/_sincos.s (__sincos): Results got written to
+	incorrect pointers.
 
 Tue Jun  1 19:42:03 2004  Nick Burrett  <nick@dsvr.net>
 

@@ -1,8 +1,8 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/errno.h,v $
- * $Date: 2004/05/01 22:43:00 $
- * $Revision: 1.9 $
+ * $Date: 2004/05/18 20:49:23 $
+ * $Revision: 1.10 $
  * $State: Exp $
  * $Author: joty $
  *
@@ -12,37 +12,6 @@
 
 #ifndef __ERRNO_H
 #define __ERRNO_H
-
-#ifndef __UNIXLIB_FEATURES_H
-#include <unixlib/features.h>
-#endif
-
-__BEGIN_DECLS
-
-#ifndef errno
-
-extern int errno;
-
-#define __errno errno
-
-#endif /* errno */
-
-extern const char *sys_errlist[];
-extern int sys_nerr;
-#ifdef __UNIXLIB_INTERNALS
-extern struct {
-  void *pc;
-  int errnum;
-  char errmess[252];
-  int valid;
-  } __ul_errbuf;
-
-extern struct
-{
-  int fpsr;
-  double f[8];
-} __ul_fp_registers;
-#endif
 
 #define EPERM           1 /* Operation not permitted.  */
 #define ENOENT		2 /* No such file or directory.  */
@@ -143,6 +112,14 @@ extern struct
 
 #define __SYS_NERR	90
 
+#ifndef errno
+extern int errno;
+#define __errno errno
+#endif /* errno */
+
+extern const char *sys_errlist[];
+extern int sys_nerr;
+
 #ifdef __UNIXLIB_INTERNALS
 /* This macro should be used whenever errno is to be set. This permits
    us to easily make setting the errno call a function if necessary if
@@ -151,8 +128,21 @@ extern struct
 #ifndef __set_errno
 #define __set_errno(val) (errno = (val), -1)
 #endif
-#endif
 
-__END_DECLS
+extern struct
+{
+  void *pc;
+  int errnum;
+  char errmess[252];
+  int valid;
+} __ul_errbuf;
+
+extern struct
+{
+  int fpsr;
+  double f[8];
+} __ul_fp_registers;
+
+#endif /* __UNIXLIB_INTERNALS */
 
 #endif
