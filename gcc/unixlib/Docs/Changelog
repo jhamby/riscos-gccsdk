@@ -1,3 +1,7 @@
+Tue Jun  1 19:42:03 2004  Nick Burrett  <nick@dsvr.net>
+
+	* kernel.h: Fix __THROW attribute positioning.
+
 Mon May 31 14:40:09 2004  Alex Waugh  <alex@alexwaugh.com>
 
 	Based on a patch from John-Mark Bell <jmb202@ecs.soton.ac.uk>

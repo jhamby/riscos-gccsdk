@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/kernel.h,v $
- * $Date: 2002/09/24 21:02:36 $
- * $Revision: 1.5 $
+ * $Date: 2004/04/12 13:03:37 $
+ * $Revision: 1.6 $
  * $State: Exp $
- * $Author: admin $
+ * $Author: nick $
  *
  * This file is intended to provide an interface between UnixLib and
  * DeskLib, for the few _kernel calls that it uses. Any simularity between
@@ -129,32 +129,32 @@ _kernel_setenv (const char *__name, const char *__value) __THROW;
 /* Unsigned divide and remainder function. Returns the remainder in R1. */
 extern unsigned int
 _kernel_udiv (unsigned int __divisor,
-	      unsigned int __dividend) __attribute__ ((__const__)) __THROW;
+	      unsigned int __dividend) __THROW __attribute__ ((__const__));
 
 /* Unsigned remainder function.  */
 extern unsigned int
 _kernel_urem (unsigned int __divisor,
-	      unsigned int __dividend) __attribute__ ((__const__)) __THROW;
+	      unsigned int __dividend) __THROW __attribute__ ((__const__));
 
 /* Unsigned divide and remainder function by 10.
    Returns the remainder in R1. */
 extern unsigned int
-_kernel_udiv10 (unsigned int __dividend) __attribute__ ((__const__)) __THROW;
+_kernel_udiv10 (unsigned int __dividend) __THROW __attribute__ ((__const__));
 
 /* Signed divide and remainder function. Returns the remainder in R1. */
 extern int
-_kernel_sdiv (int __divisor, int __dividend)
-     __attribute__ ((__const__)) __THROW;
+_kernel_sdiv (int __divisor, int __dividend) __THROW
+     __attribute__ ((__const__));
 
 /* Signed remainder function.  */
 extern int
-_kernel_srem (int __divisor, int __dividend)
-     __attribute__ ((__const__)) __THROW;
+_kernel_srem (int __divisor, int __dividend) __THROW
+     __attribute__ ((__const__));
 
 /* Signed divide and remainder function by 10.
    Returns the remainder in R1. */
 extern int
-_kernel_sdiv10 (int __dividend) __attribute__ ((__const__)) __THROW;
+_kernel_sdiv10 (int __dividend) __THROW __attribute__ ((__const__));
 
 /* Return a pointer to the current stack chunk.  */
 extern _kernel_stack_chunk *_kernel_current_stack_chunk (void) __THROW;
