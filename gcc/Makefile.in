@@ -156,13 +156,13 @@ setup:	directories install_headers
 # and linker natively
 
 # These dependencies are split to help make get parallel building right.
-build-cross:	libiberty-stg1 gcc-libs-stg1 riscos-aof-stg1 gcc-stg1 \
-	cross-progs
+build-cross:	c-libs libiberty-stg1 gcc-libs-stg1 gcc-libs-stg2 \
+		riscos-aof-stg1 gcc-stg1 cross-progs
 
 # These targets build the libraries and binaries suitable for execution
 # on RISC OS machines only.
-build-native:	c-libs libiberty-stg2 gcc-libs-stg2 gcc-stg2 riscos-aof-stg2 \
-	riscos-libs riscos-progs riscos-dist
+build-native:	libiberty-stg2 gcc-stg2 riscos-aof-stg2 \
+		riscos-libs riscos-progs riscos-dist gcc-libs-stg2-extra
 
 .PHONY: directories
 .PHONY: c-libs
@@ -177,6 +177,7 @@ build-native:	c-libs libiberty-stg2 gcc-libs-stg2 gcc-stg2 riscos-aof-stg2 \
 .PHONY: gcc-stg2
 .PHONY: gcc-libs-stg1
 .PHONY: gcc-libs-stg2
+.PHONY: gcc-libs-stg2-extra
 .PHONY: libiberty-stg1
 .PHONY: libiberty-stg2
 .PHONY: riscos-aof-stg1
@@ -246,8 +247,6 @@ gcc-libs-stg1:
 gcc-libs-stg2:
 	$(MAKE) -C gcc libgcc "TRG=$(trg20)" $(cfl20) "STAGE=stage2"
 	$(MAKE) -C gcc libgcc "TRG=$(trg30)" $(cfl30) "STAGE=stage2"
-	$(MAKE) -C gcc zlib "TRG=$(trg20)" $(cfl20) "STAGE=stage2"
-	$(MAKE) -C gcc fastjar "TRG=$(trg20)" "STAGE=stage2"
 	$(MAKE) -C gcc libffi "TRG=$(trg20)" $(cfl20) "STAGE=stage2"
 	#$(MAKE) -C gcc boehm-gc "TRG=$(trg20)" $(cfl20) "STAGE=stage2"
 	#$(MAKE) -C gcc libjava "TRG=$(trg20)" $(cfl20) "STAGE=stage2" "lib_incl_dir=$(libscl_incl_dir)"
@@ -256,6 +255,10 @@ gcc-libs-stg2:
 	$(MAKE) -C gcc libobjc "TRG=$(trg20)" $(cfl20) "STAGE=stage2"
 	$(MAKE) -C gcc libstdc "TRG=$(trg20)" $(cfl20) "STAGE=stage2" "lib_incl_dir=$(unixlib_incl_dir)"
 	$(MAKE) -C gcc libstdc "TRG=$(trg30)" $(cfl30) "STAGE=stage2" "lib_incl_dir=$(libscl_incl_dir)"
+
+gcc-libs-stg2-extra:
+	$(MAKE) -C gcc zlib "TRG=$(trg20)" $(cfl20) "STAGE=stage2"
+	$(MAKE) -C gcc fastjar "TRG=$(trg20)" "STAGE=stage2"
 
 riscos-dist:
 	$(MAKE) -C riscos-dist install
