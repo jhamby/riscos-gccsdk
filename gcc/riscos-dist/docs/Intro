@@ -1,5 +1,5 @@
-Introduction to GCC for RISC OS
-===============================
+Introduction to GCC 3.3 for RISC OS
+===================================
 
 This is a short introduction to GCC, the GNU Compiler Collection or RISC OS.
 This document does not provide an introduction to programming, for that you
@@ -22,8 +22,8 @@ Currently compilers are supported for the languages C, C++ and Fortran.
 GCC is covered by the FSF General Public License (see the files docs.COPYING
 and docs.COPYINGLIB for details).
 
-This port of GCC is © Copyright 1996, 1997, 1998, 1999, 2000, 2001 Nick Burrett
-© Copyright 2002, 2003 GCCSDK Development Team
+This port of GCC is Copyright (c) 1996, 1997, 1998, 1999, 2000, 2001 Nick Burrett
+Copyright (c) 2002, 2003, 2004 GCCSDK Development Team
 
 As with all GNU programs, THERE IS NO WARRANTY OF ANY SORT
 
