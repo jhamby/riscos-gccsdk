@@ -53,6 +53,7 @@ CC1PLUSPKG = $(bindir)/cc1plus$(exesfx) \
 G77PKG = $(pkg)/bin/g77$(exesfx) \
 	$(bindir)/f771$(exesfx) \
 	$(bindir)/apcs32/arch3/unixlib/o/libg2c \
+	$(bindir)/apcs32/arch3/libscl/o/libg2c \
 	$(pkg)/docs/g77 \
 	$(pkg)/docs/g77-readme
 
