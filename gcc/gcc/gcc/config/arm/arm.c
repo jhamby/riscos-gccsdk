@@ -6392,7 +6392,10 @@ print_multi_reg (stream, instr, reg, mask)
 	not_first = TRUE;
       }
 
-  fprintf (stream, "}%s\n", TARGET_APCS_32 ? "" : "^");
+  if (! TARGET_APCS_32 && (mask & (1 << PC_REGNUM)))
+    fputs ("}^\n", stream);
+  else
+    fputs ("}\n", stream);
 }
 
 /* Output a 'call' insn.  */
