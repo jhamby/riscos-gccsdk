@@ -1,0 +1,513 @@
+#!/bin/bash
+
+
+# Binary install path
+
+if [ -z "$RO_BIN" ] ; then
+  RO_BIN=/home/riscos/cross/bin
+fi
+
+if [ "$RO_DIST" == "YES" ] ; then
+  DISTCC=$(which distcc)
+else
+  DISTCC=""
+fi
+
+RO_CPARAMS=
+RO_RECURSE=no
+
+# Check Parameters for recurse option
+for param in $@ ; do
+  if [ "$param" == "--ro-recurse" ] ; then
+    RO_RECURSE=yes
+  else
+    RO_CPARAMS="$RO_CPARAMS $param"
+  fi
+done
+
+
+if [ "$RO_ELF" == "YES" ] ; then
+  exeext=e1f
+  target=elf
+else
+  exeext=ff8
+  target=aof
+fi
+
+
+
+
+# Add onto exeext with ,ff8 extension 
+addff8() {
+  if grep "exeext=$" $ff8PATH >/dev/null ; then
+    echo RISC OS: Adding filetype for exeext for $ff8PATH
+    sed s#exeext=\$#"exeext=,ff8;"# < $ff8PATH > /tmp/new-configure
+    mv /tmp/new-configure $ff8PATH
+    chmod +x $ff8PATH
+  fi
+
+  # Fix some tests that assume no file extension for binaries
+  if grep -- "-s conftest;" >/dev/null $ff8PATH; then
+    echo RISC OS: Adding filetype for binary tests for $ff8PATH
+    sed s#-s\ conftest\;#"-s conftest\$\{ac_exeext\}\;"# < $ff8PATH > /tmp/new-configure
+    mv /tmp/new-configure $ff8PATH
+    chmod +x $ff8PATH
+  fi
+
+  # Doesn't strictly belong here, but it fits
+  if grep "sys_lib_dlsearch_path_spec=" >/dev/null $ff8PATH; then
+    echo RISC OS: Setting libtool library paths for $ff8PATH
+    sed -e s#"sys_lib_dlsearch_path_spec=".*\$#"sys_lib_dlsearch_path_spec=/home/riscos/env/lib"# \
+        -e s#"sys_lib_search_path_spec=".*\$#"sys_lib_search_path_spec=/home/riscos/env/lib"# \
+         < $ff8PATH > /tmp/new-configure
+    mv /tmp/new-configure $ff8PATH
+    chmod +x $ff8PATH
+  fi
+
+  if grep -q -- "-lSDL_mixer.*\$L" $ff8PATH; then
+    echo RISC OS: Adding vorbis library
+    sed -e s#"-lSDL_mixer.*\$L"#"-lSDL_mixer -lvorbisfile \$L"# \
+         < $ff8PATH > /tmp/new-configure
+    mv /tmp/new-configure $ff8PATH
+    chmod +x $ff8PATH
+  fi  
+}
+
+
+
+# If the path for the configure script wasn't set, then use .
+if [ -z "$RO_CPATH" ] ; then
+  RO_CPATH=.
+fi
+
+# Also check .. if it doesn't exist.  This is useful for some setups
+#  (e.g. bash)
+if ! [ -e $RO_CPATH/configure ] ; then
+  if [ -e ../configure ] ; then
+    RO_CPATH=..
+  else
+    echo "No configure script found" 1>&2
+    exit 1
+  fi
+fi
+
+
+# Prevent configure being re-run by make in some circumstances
+for touched in \
+  configure.in aclocal.m4 stamp-h.in Makefile.in config.status
+do
+  touch $RO_CPATH/touched
+done
+
+
+# Massage the configure scripts
+
+if [ "$RO_RECURSE" == "yes" ] ; then
+  # Search for more configure files
+  RO_CFILES=$(find $RO_PATH -type f)
+
+  for ff8PATH in $RO_CFILES ; do
+    if echo $ff8PATH | grep "configure$" > /dev/null ; then
+      addff8
+    fi
+  done
+
+else
+  # Otherwise, just the single one at the top
+  ff8PATH=$RO_CPATH/configure
+  addff8
+fi
+
+
+# Record configure options so switches can be added if needed
+$RO_CPATH/configure --help > /tmp/out-configure
+
+# Set target type
+if grep -- --target $RO_CPATH/configure >/dev/null ; then
+ TARGET="--target=arm-riscos"
+else
+ TARGET=
+fi
+
+if grep -- --build $RO_CPATH/configure >/dev/null; then
+ BUILD="--build=i686-linux"
+else
+ BUILD=
+fi
+
+
+if grep -- --host $RO_CPATH/configure >/dev/null; then
+ HOST="--host=arm-riscos"
+else
+ HOST=
+fi
+
+
+# Well, this should ideally be set.  But some things (e.g. ncurses) get
+# confused and think we're no longer cross compiling.  OTOH, the TIFF
+# library needs it set, so we do so manually for its configure switches
+TARGET=
+
+
+# Set Prefix
+if grep -- --prefix /tmp/out-configure >/dev/null; then
+ PREFIX="--prefix=/home/riscos/env"
+else
+ if grep -- -prefix /tmp/out-configure >/dev/null; then
+  PREFIX="--prefix=/home/riscos/env"
+ else
+  PREFIX=
+ fi 
+fi
+
+# Set WITHLIBS
+#if grep -- --with-libs /tmp/out-configure >/dev/null; then
+# WITHLIBS="--with-libs=/home/riscos/env"
+#else
+ WITHLIBS= 
+#fi
+
+# Add X paths if needed
+if grep -- -x-includes $RO_CPATH/configure >/dev/null; then
+ echo RISC OS: Adding X Paths
+ X="--x-libraries=/home/riscos/env/X11R6/lib --x-includes=/home/riscos/env/X11R6/include"
+else
+ X=
+fi
+
+
+# Add OpenSSL
+if grep -- --with-openssl $RO_CPATH/configure >/dev/null; then
+ echo RISC OS: Adding SSL Path
+ SSL="--with-openssl=/home/riscos/env"
+else
+ SSL=
+fi
+
+
+# Disable NLS unless otherwise specified
+ NLS=
+if echo $@ | grep -- -nls > /dev/null ; then
+ :
+else
+ if grep -- --disable-nls $RO_CPATH/configure >/dev/null; then
+  echo RISC OS: Disable NLS
+  NLS="--disable-nls"
+ fi
+fi
+
+
+# Set Static and Dynamic options
+if grep -- --enable-shared /tmp/out-configure >/dev/null; then
+ echo RISC OS: Disabling shared libraries
+ SHARED=--enable-shared=no
+else
+ if grep -- --disable-shared /tmp/out-configure > /dev/null; then
+   echo RISC OS: Disabling shared libraries
+   SHARED=--disable-shared
+ else
+   SHARED=
+ fi
+fi
+
+if grep enable-static /tmp/out-configure >/dev/null; then
+ echo RISC OS: Enabling static libraries
+ STATIC=--enable-static=yes
+else
+ if grep -- " -static" /tmp/out-configure >/dev/null; then
+  STATIC=-static
+ else
+  STATIC=
+ fi
+fi
+
+
+# Glib location
+if grep with-glib-prefix /tmp/out-configure >/dev/null; then
+ echo RISC OS: Setting Glib path
+ GLIB=--with-glib-prefix=/home/riscos/env
+else
+ GLIB=
+fi
+
+# GTK location
+if grep with-gtk-prefix /tmp/out-configure >/dev/null; then
+ echo RISC OS: Setting GTK path
+ GTK=--with-gtk-prefix=/home/riscos/env
+else
+ GTK=
+fi
+
+
+# TCL
+if grep with-tclconfig /tmp/out-configure >/dev/null; then
+ echo RISC OS: Setting TCL path
+ TCLTK="--with-tclconfig=/home/riscos/env/lib/tcl8.4"
+else
+ TCLTK=
+ fi
+
+# TK
+if grep with-tkconfig /tmp/out-configure >/dev/null; then
+ echo RISC OS: Setting TK path
+ TCLTK="$TCLTK --with-tkconfig=/home/riscos/env/lib/tk8.4"
+fi
+
+
+# Threading
+# We probably want this on in future. 
+#if grep -- "--enable-thread" /tmp/out-configure >/dev/null; then
+# echo RISC OS: Disabling threads
+# THREADS=--disable-threads
+#else
+# THREADS=
+#fi
+
+
+# Native compilers
+if grep -- "--with-build-cc" /tmp/out-configure >/dev/null; then
+ echo RISC OS: Setting native compiler
+ NATIVE="--with-build-cc=$(which cc)"
+else
+ NATIVE=
+fi
+
+
+LTOOL=/home/riscos/env/bin/libtool
+
+# Remove configure options
+rm /tmp/out-configure
+
+
+# Set tool chain variables picked up by configure
+export CC="$DISTCC $RO_BIN/gcc"
+export CPPFLAGS=-I/home/riscos/env/include
+export LDFLAGS="-L/home/riscos/env/lib $AB_LDFLAGS"
+export CXX="$DISTCC $RO_BIN/g++"
+#export CXXLIBS=-liostream
+
+export config_BUILD_CC=/usr/bin/cc
+export config_TARGET_CC="$DISTCC $RO_BIN/gcc"
+
+export AR="$RO_BIN/ar $AB_ARFLAGS"
+export NM="$RO_BIN/libfile -s"
+export RANLIB=echo
+if [ -z "$AB_DEFINSTALL" ] ; then
+  export INSTALL=/home/riscos/env/ro-install
+fi
+export STRIP=echo
+# Used by Mozilla
+export CROSS_COMPILE=1
+export HOST_RANLIB=/usr/bin/ranlib
+export HOST_AR=/usr/bin/ar
+export HOST_CC=/usr/bin/cc
+export HOST_CXX=/usr/bin/c++
+
+# Set autoconf variables to avoid configure scripts complaining about running
+# programs during cross compile
+
+export ac_cv_prog_system=riscos
+
+export ac_cv_gnu_library_version=2.3.2
+
+export ac_cv_sizeof_char=1
+export ac_cv_sizeof_unsigned_char=1
+export ac_cv_sizeof_short=2
+export ac_cv_sizeof_short_int=2
+export ac_cv_sizeof_unsigned_short_int=2
+export ac_cv_sizeof_int=4
+export ac_cv_sizeof_unsigned_int=4
+export ac_cv_sizeof_unsigned_long_int=4
+export ac_cv_sizeof_long=4
+export ac_cv_sizeof_long_int=4
+export ac_cv_sizeof_long_long=8
+export ac_cv_sizeof_long_long_int=8
+export ac_cv_sizeof_unsigned_long_long=8
+export ac_cv_sizeof_void_p=4
+export ac_cv_sizeof_char_p=4
+export ac_cv_sizeof_unsigned_char_p=4
+export ac_cv_sizeof_off_t=4
+export ac_cv_sizeof_pid_t=4
+export ac_cv_sizeof_size_t=4
+export ac_cv_sizeof_ssize_t=4
+
+export ac_cv_type_long_long=yes
+export ac_cv_type_unsigned_long_long=yes
+
+export ac_cv_have_int64_t=yes
+export ac_cv_have_accrights_in_msghdr=no
+export ac_cv_have_control_in_msghdr=no
+export ac_cv_have_uname_domainname_field=no
+export ac_cv_have_uname_us_domainname_field=no
+
+export ac_exeext=,ff8
+export ac_cv_exeext=,ff8
+
+export ac_cv_file___dev_ptmx_=no
+export ac_cv_file___dev_ptc_=no
+export ac_cv_file___etc_default_login_=no
+export ac_cv_file___dev_urandom_=yes
+
+export ac_cv_need_trio=no
+
+export ac_cv_prog_cc_works=yes
+export ac_cv_prog_cc_cross=yes
+export ac_cv_prog_cc_g=no
+
+export lt_cv_prog_cc_can_build_shared=no
+export lt_cv_prog_cc_pic_works=no
+
+export ac_cv_func_atexit=yes
+export ac_cv_func_bcopy=yes
+export ac_cv_func_bsd_getpgrp=yes
+export ac_cv_func_bsd_setpgrp=yes
+export ac_cv_func_dtoa=yes
+export ac_cv_func_dtoa_r=yes
+export ac_cv_func_ecvt=no
+export ac_cv_func_fcvt=no
+export ac_cv_func_fork=yes
+export ac_cv_func_fork_works=yes
+export ac_cv_func_gcvt=no
+export ac_cv_func_getloadavg=no
+export ac_cv_func_getpgrp_void=yes
+export ac_cv_func_getpgrp_void=yes
+export ac_cv_func_getpwuid_r=yes
+export ac_cv_func_gnu_get_libc_version=no
+export ac_cv_func_log=yes
+export ac_cv_func_malloc_works=yes
+export ac_cv_func_memcmp_clean=yes
+export ac_cv_func_memcpy=yes
+export ac_cv_func_memset=yes
+export ac_cv_func_memmove=yes
+export ac_cv_func_mlock=no
+export ac_cv_func_mlockall=no
+export ac_cv_func_nl_langinfo=no
+export ac_cv_func_posix_getpwuid_r=no
+export ac_cv_func_realloc_works=yes
+export ac_cv_func_setenv=yes
+export ac_cv_func_setpgrp_void=yes
+export ac_cv_func_setvbuf_reversed=no
+export ac_cv_func_snprintf=yes
+export ac_cv_func_strcasecmp=yes
+export ac_cv_func_strdup=yes
+export ac_cv_func_strerror=yes
+export ac_cv_func_strerror_r=yes
+export ac_cv_func_strsignal=yes
+export ac_cv_func_strstr=yes
+export ac_cv_func_strtod=yes
+export ac_cv_func_strtoul=yes
+export ac_cv_func_sys_siglist=yes
+export ac_cv_have_decl_sys_siglist=yes
+export ac_cv_func_realloc_0_nonnull=yes
+export ac_cv_func_malloc_0_nonnull=yes
+export ac_cv_func_unsetenv=yes
+export ac_cv_func_vprintf=yes
+export ac_cv_func_vfork=yes
+export ac_cv_func_vfork_works=yes
+
+export ac_cv_no_user_malloc=no
+
+export ac_cv_c_char_unsigned=yes
+export ac_cv_c_bitfields_htol=no
+
+export ac_cv_dev_minor_bits=0
+export ac_cv_dev_minor_noncontig=no
+
+export ac_cv_type_prototypes=yes
+
+export ac_cv_sctp=no
+
+export bash_cv_have_mbstate_t=no
+export bash_cv_getenv_redef=no
+
+export kde_cv_shortsetgroups=no
+export kde_cv_prog_uic_nounload=yes
+export kde_cv_defines_imake=""
+
+export glib_cv_hasinline=yes
+export glib_cv_has__inline=yes
+export glib_cv_has__inline__=yes
+export glib_cv_sane_realloc=yes
+export glib_cv_va_copy=""
+export glib_cv___va_copy=""
+export glib_cv_va_val_copy=""
+export glib_cv_sizeof_gmutex=24
+export glib_cv_stack_grows=yes
+
+export ac_cv_alignof_CORBA_char=1
+export ac_cv_alignof_CORBA_boolean=1
+export ac_cv_alignof_CORBA_octet=1
+export ac_cv_alignof_CORBA_short=2
+export ac_cv_alignof_CORBA_long=4
+export ac_cv_alignof_CORBA_unsigned_short=2
+export ac_cv_alignof_CORBA_unsigned_long=4
+export ac_cv_alignof_CORBA_float=4
+export ac_cv_alignof_CORBA_double=4
+export ac_cv_alignof_CORBA_long_double=4
+export ac_cv_alignof_CORBA_wchar=2
+export ac_cv_alignof_CORBA_long_long=4
+export ac_cv_alignof_CORBA_unsigned_long_long=4
+export ac_cv_alignof_CORBA_struct=4
+export ac_cv_alignof_CORBA_pointer=4
+
+export lftp_cv_va_copy=no
+export lftp_cv___va_copy=yes
+export lftp_cv_precompiled_readline=yes
+
+export rsync_cv_HAVE_GETTIMEOFDAY_TZ=yes
+export rsync_cv_HAVE_C99_VSNPRINTF=yes
+export rsync_cv_HAVE_LONGLONG=yes
+export rsync_cv_HAVE_OFF64_T=yes
+export rsync_cv_HAVE_UNSIGNED_CHAR=yes
+
+export ac_cv_path_db_cv_path_ar=ar
+export ac_cv_path_db_cv_path_ranlib=:
+export ac_cv_path_db_cv_path_cp=$INSTALL
+export ac_cv_path_db_cv_path_chmod=/bin/echo
+export ac_cv_path_db_cv_path_strip=:
+
+export ac_cv_lib_db_4___db185_open=yes
+export ac_cv_lib_cposix_strerror=no
+export ac_cv_lib_z_gzopen=yes
+
+export ac_cv_path_install=$INSTALL
+
+export db_cv_alignp_t=int
+export db_cv_fcntl_f_setfd=yes
+export db_cv_sprintf_count=yes
+export db_cv_path_cp=$INSTALL
+export db_cv_path_rm=echo
+
+export tcl_cv_strtod_buggy=1
+
+export ac_cv_header_wctype_h=no
+export ac_cv_header_dlfcn_h=no
+export ac_cv_header_mcheck=no
+export ac_cv_header_tcl_h=yes 
+export ac_cv_header_readline_h=yes
+export ac_cv_header_nl_types_h=no
+export ac_cv_header_sys_vfs_h=no
+export ac_cv_header_sys_statfs_h=no
+export ac_cv_header_sys_statvfs_h=no
+
+export ac_cv_lib_z_deflate=yes
+
+export ac_cv_lib_SDL_ttf_TTF_RenderUNICODE_Blended_Shaded=yes
+export ac_cv_lib_SDL_ttf_TTF_Init=yes
+export ac_cv_lib_SDL_mixer_Mix_OpenAudio=yes
+
+export ac_cv_kaffe_pathsep=:
+
+export libc_cv_asm_global_directive=EXPORT
+
+export libltdl_cv_sys_dlopen_deplibs=no
+export lt_cv_sys_global_symbol_pipe="cut -d ' ' -f 1"
+export lt_cv_global_symbol_to_cdecl="sed -n -e 's/\\(.*\\)\$/extern char \\1;/p'"
+export lt_cv_global_symbol_to_c_name_address="sed -n -e 's/^: \\([^ ]*\\) \$/  {\\\"\\1\\\", (lt_ptr) 0},/p' -e 's/^\\([^ ]*\\)\$/  {\"\\1\", (lt_ptr) \\&\\1},/p'"
+
+
+
+/home/riscos/env/ro-path $RO_CPATH/configure \
+  $HOST $BUILD $TARGET $PREFIX $WITHLIBS $X $SHARED $STATIC $GLIB $GTK \
+  $TCLTK $THREADS $NATIVE $SSL $NLS $RO_CPARAMS 
+

@@ -144,7 +144,7 @@ export VERSION TARGET_NAME CFLAGS CXXFLAGS AR AR_FLAGS
 export BISON FLEX GPERF GREP MAKEINFO SED SHELL
 export insthdr instsrc
 
-all:	build-cross build-native
+all:	build-cross build-native porting-scripts
 
 # Setup build and installation directories.  Install run-time library
 # headers
@@ -184,6 +184,7 @@ build-native:	libiberty-stg2 gcc-stg2 riscos-aof-stg2 \
 
 .PHONY: build-cross
 .PHONY: build-native
+.PHONY: porting-scripts
 
 .PHONY: install_headers
 
@@ -197,10 +198,10 @@ trg21=apcs32/arch4/unixlib
 trg30=apcs32/arch3/libscl
 trg31=apcs32/arch4/libscl
 
-cfl20="CFL=-mapcs-32 -mcpu=arm6 -mtune=xscale -munixlib"
+cfl20="CFL=-mapcs-32 -munixlib"
 cfl21="CFL=-mapcs-32 -mcpu=strongarm -mtune=xscale -munixlib"
 
-cfl30="CFL=-mapcs-32 -mcpu=arm6 -mlibscl"
+cfl30="CFL=-mapcs-32 -mlibscl"
 cfl31="CFL=-mapcs-32 -mcpu=strongarm -mlibscl"
 
 libiberty-stg1:
@@ -226,6 +227,9 @@ riscos-progs:
 
 riscos-elf:
 	$(MAKE) -C riscos-elf
+
+porting-scripts:
+	$(MAKE) -C porting-scripts
 
 # The ballache of having to keep support with Objasm forces us
 # to do this (CFL1) brain damage.

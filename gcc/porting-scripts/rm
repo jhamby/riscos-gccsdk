@@ -1,0 +1,8 @@
+#!/bin/bash
+
+# Avoid removing files during library package creation
+if ! [ -z "$RO_PKG" ] ; then
+ echo "rm: Not removing files during library package creation: $@"
+else
+ /bin/rm $@
+fi

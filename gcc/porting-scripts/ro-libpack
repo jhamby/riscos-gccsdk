@@ -1,0 +1,53 @@
+#!/bin/bash
+
+set -e
+
+output=/var/www/info/downloads/unix-libraries
+
+if [ -z "$RO_PKG" ] ; then 
+  echo RO_PKG must be set to the package filename
+  exit 1
+fi
+
+if [ -z "$AB_INSTALLTARGET" ] ; then
+  AB_INSTALLTARGET=install
+fi
+
+mkdir -p $AB_DIR/package/include/
+mkdir -p $AB_DIR/package/lib/pkgconfig/
+
+echo "Running install target: $AB_INSTALLTARGET" 
+/home/riscos/env/ro-make $AB_INSTALLTARGET
+
+cd $AB_DIR/package
+
+files=$(find -type f)
+
+if [ -z "$files" ] ; then
+ echo "No files to pack"
+ exit 1
+fi
+
+tar cfvz $output/$RO_PKG.tgz $files
+
+# Process to turn into RISC OS format filenames for zipping
+
+for file in $(find) ; do
+ if echo $file | grep "\.h$" > /dev/null ; then
+   filename=$(basename $file | sed s#\.h\$##)
+   dirname=$(echo $file | sed s#/$filename\.h\$##)
+   mkdir -p $dirname/h
+   mv $file $dirname/h/$filename
+ fi
+
+ if echo $file | grep "\.a$" > /dev/null ; then
+   filename=$(basename $file | sed s#\.a\$##)
+   dirname=$(echo $file | sed s#/$filename\.a\$##)
+   mkdir -p $dirname/o
+   mv $file $dirname/o/$filename
+ fi
+done
+
+/home/riscos/cross/bin/zip -, -r -D $output/$RO_PKG.zip .
+
+rm -rf $AB_DIR/package

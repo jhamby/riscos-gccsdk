@@ -1,0 +1,71 @@
+#!/bin/bash
+
+# Install wrapper for RISC OS, to handle ",ff8" extensions
+
+installparams=
+hasff8=0
+dest=
+
+for param in $@ ; do
+  installparams="$installparams $dest"
+
+  if [ "$(echo "$param" | cut -c 1)" != "-" ] ; then
+    if ! [ -e "$param" ] ; then
+      # Add ,ff8 if the source doesn't exist but it's there with ,ff8
+      if [ -e "$param,ff8" ] ; then
+        param="$param,ff8"
+      fi
+    fi
+
+    # Don't install RISC OS binaries
+    if file $param | grep "RISC OS AIF executable" > /dev/null; then
+      echo "RISC OS Cross installer: Not installing RISC OS binary"
+      exit 0;
+    fi
+
+#    # If one of the parameters ends in ",ff8", then the next parameter
+#    # should too, if it's not a directory
+#    if echo "$param" | grep ",ff8" > /dev/null ; then
+#      hasff8=1
+#    else
+#      if [ "$hasff8" == 1 ] && ! [ -d $param ] ; then
+#        param="$param,ff8"
+#      fi
+#    fi
+  fi
+
+  dest=$param
+done
+
+
+# Check for ending up with no parameters
+if [ -z "$installparams" ] ; then
+  exit 0
+fi
+
+
+if [ -z "$RO_PKG" ] ; then
+  # Regular unix style install for cross environment
+
+  # Only install files in bin|include|lib|X11R6 in /home/riscos/env
+  
+  if echo "$dest" | grep -E "/env/bin|/env/include|/env/lib|/etc/etc|/env/X11R6" >/dev/null ; then
+    /usr/bin/install $installparams $dest
+  
+  else
+    if echo "$dest" | grep "/home/riscos/env" > /dev/null; then
+      echo "RISC OS Cross installer: Not installing non bin/include/lib/X11R6 files"
+    else
+      /usr/bin/install $installparams $dest
+    fi
+  fi
+
+else
+  # Install for RISC OS headers and libraries
+
+  if echo "$dest" | grep -E "/env/lib|env/include" >/dev/null ; then
+    dest=$(echo $dest | sed s#/home/riscos/env/#$AB_DIR/package/#)
+    echo "RO Install: $installparams $dest"
+    /usr/bin/install $installparams $dest
+  fi
+fi

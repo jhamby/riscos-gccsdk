@@ -1,0 +1,8 @@
+#!/bin/bash
+
+# Look for 'cp' trying to do the job of 'install'
+if echo "$@" | grep "riscos/env" > /dev/null ; then
+ /home/riscos/env/ro-install $@
+else
+ /bin/cp $@
+fi

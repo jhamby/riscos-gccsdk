@@ -1,0 +1,9 @@
+#!/bin/bash
+
+# Binary install path
+
+if [ -z "$RO_BIN" ] ; then
+  RO_BIN=/home/riscos/cross/bin
+fi
+
+PATH=$RO_BIN:/home/riscos/env/bin:/home/riscos/env/X11R6/bin:$PATH $@

@@ -1,0 +1,9 @@
+#!/bin/bash
+
+case "$1" in
+     "-m")
+        echo "armv4l" ;;
+     "-s" | "")
+        echo "RISCOS" ;;
+esac
+

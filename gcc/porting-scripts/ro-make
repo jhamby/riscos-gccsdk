@@ -1,0 +1,16 @@
+#!/bin/bash
+
+ro_jobs=""
+ro_hosts=/home/riscos/env/ro-hosts
+
+export ac_exeext=,ff8
+export ac_cv_exeext=,ff8
+
+if [ -f $ro_hosts ] && [ "$RO_DIST" == "YES" ] ; then
+  export DISTCC_HOSTS=$(cat $ro_hosts)
+  ro_jobs="-j$(wc -w < $ro_hosts | tr -s " " | cut -f 2 -d ' ')"
+fi
+
+/home/riscos/env/ro-path make $ro_jobs $@
+ 
+

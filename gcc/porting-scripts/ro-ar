@@ -1,0 +1,18 @@
+# !/bin/bash
+
+RO_CPARAMS=
+
+# Check Parameters for recurse option
+for param in $@ ; do
+  if [ $(echo $param | cut -b 1) == "-" ] ; then
+    :
+  else
+    RO_CPARAMS="$RO_CPARAMS $param"
+  fi
+done
+
+if [ -z "$RO_BIN" ] ; then
+  RO_BIN=/home/riscos/cross/bin
+fi
+
+$RO_BIN/ar $RO_CPARAMS
