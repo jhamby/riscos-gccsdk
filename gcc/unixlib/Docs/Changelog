@@ -1,3 +1,9 @@
+Wed May  9 09:21:36 2001  Nick Burrett  <nick@dsvr.net>
+
+	* signal/_signal.s: Add IMPORTs for __sigstk and __sigstksize.
+	Remove IMPORT for __unixlib_exec_sig_interrupt.
+	* objs/Makefile (SYS_ASM): Remove sys/_address.o
+
 Thu May  3 08:35:46 2001  Peter Naulls  <peter@erble.freeserve.co.uk>
 
 	* unix/tty.c (__ttyiraw): Check appropriate file descriptor
