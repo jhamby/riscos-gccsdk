@@ -1,3 +1,8 @@
+Thu Dec 16 17:09:18 2004  Peter Naulls  <peter@chocky.org>
+
+	* source/common/riscosify.c: Handle use of ~ in filenames
+	  by substituting our HOME value.
+
 Thu Dec 16 11:32:48 2004  Peter Naulls  <peter@chocky.org>
 
 	* source/termios/tcsetattr.c: Compare the correct flags before

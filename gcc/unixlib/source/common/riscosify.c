@@ -40,6 +40,7 @@ extern const char __filename_char_map[256];
 #include <unixlib/unix.h>
 #include <unixlib/os.h>
 #include <unixlib/swiparams.h>
+#include <pwd.h>
 
 #endif
 
@@ -776,6 +777,40 @@ __riscosify (const char *name, int create_dir,
   /* We can tell quite a lot from the first character of the path */
   switch (*in)
     {
+    case '~':
+      /* Reference to home directory.  We need to handle:
+
+         ~/file.c
+         ~<user>/somefile.c
+
+         We skip over the user part, since there's nothing we can
+         do about that, and just use our value for $HOME.  We then
+         make a new buffer containing a concatentaion of the path
+         passed in and our HOME value, and call __riscosify again
+         (but making sure we don't infinitely loop).
+      */
+         {
+           char new_buffer[MAXPATHLEN];
+           char *home =
+#ifdef __TARGET_SCL__
+             getenv("UnixEnv$HOME") ?: getenv("HOME");
+#else
+             __pwddefault()->pw_dir;
+#endif
+           strcpy(new_buffer, home);
+
+           do {
+             in++;
+           } while (*in != '\0' && *in != '/');
+
+           if (new_buffer[0] != '~')
+             {
+               strcat(new_buffer, in);
+               return __riscosify(new_buffer, create_dir, flags, buffer, buf_len, filetype);
+             }
+         }
+         /* Fall through */
+
     case '/':
       /* The directory separator must be a slash. Could be an absolute unix
          pathname, or a unixified RISC OS path.
