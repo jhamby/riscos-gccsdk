@@ -1,3 +1,9 @@
+Wed Apr 21 20:42:11 2004  Alex Waugh  <alex@alexwaugh.com>
+
+	* clib/fcntl.h: Don't define O_BINARY or O_TEXT if _POSIX_SOURCE.
+	* netlib/accept.c: Remove unecessary use of O_BINARY.
+	* netlib/socket.c: Likewise.
+
 Tue Apr 20 21:57:51 2004  John Tytgat  <John.Tytgat@aaug.net>
 
 	* source/assert.c (__assert_fail): Renamed to __assert2 & paremeter
@@ -5,7 +11,7 @@ Tue Apr 20 21:57:51 2004  John Tytgat  <John.Tytgat@aaug.net>
 	* source/clib/assert.h: Likewise.  Also using __func__ to print
 	  function name.
 	* source/wchar/wctype.c: Added RCS header.
-	  
+
 Sat Apr 17 11:50:11 2004  Nick Burrett  <nick@dsvr.net>
 
 	* sys/byteorder.h: Add __THROW attribute.

@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/fcntl.h,v $
- * $Date: 2002/09/24 21:02:36 $
- * $Revision: 1.4 $
+ * $Date: 2004/04/12 13:03:37 $
+ * $Revision: 1.5 $
  * $State: Exp $
- * $Author: admin $
+ * $Author: nick $
  *
  *
  ***************************************************************************/
@@ -85,9 +85,11 @@ __BEGIN_DECLS
 /* close on exec() flag - must be bit 8 */
 #define O_EXECCL	0x0100
 
+#ifndef _POSIX_SOURCE
 /* Strict POSIX doesn't allow this. */
 #define O_BINARY	0x2000
 #define O_TEXT		0x1000
+#endif
 
 #define O_PIPE		0x4000 /* UnixLib specific */
 #define O_UNLINKED	0x8000 /* UnixLib specific - unlink file on close */
