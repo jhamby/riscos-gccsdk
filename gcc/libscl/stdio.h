@@ -158,6 +158,7 @@ extern FILE *freopen (const char *__filename, const char *__opentype,
 #define freopen(f, t, s) (freopen(__uname(f), t, s))
 #endif
 
+
 /* Set file buffering for 'stream'. If 'buf' is null, then
    file buffering is turned off, otherwise we use full file buffering.  */
 extern void setbuf (FILE *__stream, char *__buf);
@@ -197,47 +198,78 @@ extern int fscanf (FILE *__stream, const char *__fmt, ...);
 /* Similar to scanf but reads from the array 'string'.  */
 extern int sscanf (const char *__string, const char *__fmt, ...);
 
-/* Similar to printf but it takes an argument list pointer 'ap'
-   instead of a variable number of arguments directly.
+/* Write formatted output to s from argument list arg.  limit is the
+   maximum number of characters to produce.  */
+extern int vsnprintf (char *__restrict __s, size_t __limit,
+                      const char *__restrict __format,
+                      __gnuc_va_list __arg)
+     __attribute__ ((__format__ (__printf__, 3, 0)));
 
-   The definition of __va_list differs between the GCC and ARM specs.
-   ARM's version applies an extra level of indirection.  For GCC, we
-   need to create a macro to force compatibility here.  */
-#ifdef __GNUC__
-extern int vprintf (const char *__fmt, __gnuc_va_list __ap);
-extern int __gcc_vprintf (const char *__fmt, __gnuc_va_list *__ap);
-#define vprintf(__fmt,__ap) (__gcc_vprintf(__fmt, &__ap))
-#else
-extern int vprintf (const char *__fmt, __va_list __ap);
+/* Write formatted output to s from argument list arg.  */
+extern int vsprintf (char *__restrict __s,
+                     const char *__restrict __format, __gnuc_va_list __arg);
+
+/* Write formatted output to stream from arg list arg.  */
+extern int vfprintf (FILE *__restrict __stream,
+                     const char *__restrict __format, __gnuc_va_list __arg);
+
+/* Write formatted output to stdio from arg list arg.  */
+extern int vprintf (const char *__restrict __format, __gnuc_va_list __arg);
+
+#ifndef __GNUC__
+#pragma -v1
 #endif
 
-/* Similar to fprintf but it takes an argument list pointer 'ap'
-   instead of a variable number of arguments directly.  */
-#ifdef __GNUC__
-extern int vfprintf (FILE *__stream, const char *__fmt,
-		     __gnuc_va_list __ap);
+/* Write formatted output to s.  limit is the maximum number of characters
+   to produce.  */
+extern int snprintf (char *__restrict __s, size_t __limit,
+                     const char *__restrict __format, ...)
+     __attribute__ ((__format__ (__printf__, 3, 4)));
 
-extern int __gcc_vfprintf (FILE *__stream, const char *__fmt,
-			   __gnuc_va_list *__ap);
+/* Write formatted output to s.  */
+extern int sprintf (char *__restrict __s,
+                    const char *__restrict __format, ...);
 
-#define vfprintf(__stream,__fmt,__ap) (__gcc_vfprintf(__stream, __fmt, &__ap))
-#else
-extern int vfprintf (FILE *__stream, const char *__fmt, __va_list __ap);
+/* Write formatted output to stream.  */
+extern int fprintf (FILE *__restrict __stream,
+                    const char *__restrict __format, ...);
+
+/* Write formatted output to stdout.  */
+extern int printf (const char *__restrict __format, ...);
+
+#ifndef __GNUC__
+#pragma -v2
 #endif
 
-/* Similar to sprintf but it takes an argument list pointer 'ap'
-   instead of a variable number of arguments directly.  */
-#ifdef __GNUC__
-extern int vsprintf (char *__string, const char *__fmt,
-		     __gnuc_va_list __ap);
+/* Read formatted input from s.  */
+extern int sscanf (const char *__restrict __s,
+                   const char *__restrict __format, ...);
 
-extern int __gcc_vsprintf (char *__string, const char *__fmt,
-			   __gnuc_va_list *__ap);
+/* Read formatted input from stream.  */
+extern int fscanf (FILE *__restrict __stream,
+                   const char *__restrict __format, ...);
 
-#define vsprintf(__string,__fmt,__ap) (__gcc_vsprintf(__string, __fmt, &__ap))
-#else
-extern int vsprintf (char *__string, const char *__fmt, __va_list __ap);
+/* Read formatted input from stdin.  */
+extern int scanf (const char *__restrict __format, ...);
+
+#ifndef __GNUC__
+#pragma -v0
 #endif
+
+/* Read formatted input from stdin into argument list arg.  */
+extern int vscanf (const char *__restrict __format, __gnuc_va_list __ap)
+     __attribute__ ((__format__ (__scanf__, 1, 0)));
+
+/* Read formatted input from stream into argument list arg.  */
+extern int vfscanf (FILE *__restrict __stream,
+                    const char *__restrict __format, __gnuc_va_list __ap)
+     __attribute__ ((__format__ (__scanf__, 2, 0)));
+
+/* Read formatted input from 's' into argument list arg.  */
+extern int vsscanf (const char *__restrict __s,
+                    const char *__restrict __format, __gnuc_va_list __ap)
+     __attribute__ ((__format__ (__scanf__, 2, 0)));
+
 
 /* Read the next character as an unsigned char from the stream
    'stream' and return its value, converted to an int.  EOF
@@ -357,6 +389,10 @@ extern char *__uname (char *name);
 /* Return the system file descriptor for stream.  */
 extern int fileno (FILE *__stream);
 #define fileno(f) ((int)(f))
+
+/* Create a new stream that refers to an existing system file descriptor.  */
+extern FILE *fdopen (int __fd, const char *__modes);
+
 
 #ifdef __cplusplus
 }

@@ -88,6 +88,10 @@ extern char *strerror (int __errnum);
 /* Return the length of s. */
 extern size_t strlen (const char *__s);
 
+/* Duplicate s, returning an identical malloc'd string.  */
+extern char *strdup (const char *__s);
+
+
 #ifdef __cplusplus
 }
 #endif

@@ -23,7 +23,8 @@ extern volatile int errno;
 #define ESIGNUM 3
 
 #define EINVAL 4 /* Invalid argument. */
+#define ENOSYS 5 /* Invalid argument. */
 
-#define __SYS_NERR 4
+#define __SYS_NERR 5
 
 #endif

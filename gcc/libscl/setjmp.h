@@ -1,7 +1,7 @@
 /* setjmp.h
 
    For use with the GNU compilers and the SharedCLibrary.
-   (c) Copyright 1997, Nick Burrett.  */
+   (c) Copyright 1997, 2003, Nick Burrett.  */
 
 #ifndef __SETJMP_H
 #define __SETJMP_H
@@ -33,7 +33,7 @@ extern int setjmp (jmp_buf __state);
    Returning from setjmp by means of longjmp returns 'value'
    argument that was passed to longjmp rather than 0.  If 'value'
    is 0, setjmp returns 1.  */
-extern void longjmp (jmp_buf __state, int __value);
+extern void longjmp (jmp_buf __state, int __value) __attribute__ ((__noreturn__));
 
 #ifdef __cplusplus
 }

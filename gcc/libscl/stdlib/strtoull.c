@@ -1,22 +1,12 @@
-/* Compatibility functions for the libscl.
-   Implementation taken from UnixLib.  */
-
 #include <ctype.h>
 #include <stdlib.h>
 #include <errno.h>
 #include <limits.h>
 
-#undef atoll
-long long atoll (const char *s)
+unsigned long long
+strtoull (const char *nptr, char **end, int base)
 {
-  return strtoll (s, (char **) NULL, 10);
-}
-
-long long
-strtoll (const char *nptr, char **end, int base)
-{
-  int negative = 0;
-  int overflow;
+  int overflow, neg = 0;
   unsigned int digit;
   unsigned long long result;
   unsigned long long cutoff;
@@ -40,7 +30,7 @@ strtoll (const char *nptr, char **end, int base)
   if (*s == '+' || *s == '-')
     {
       if (*s == '-')
-	negative = 1;
+	neg = 1;
       s++;
     }
 
@@ -67,8 +57,8 @@ strtoll (const char *nptr, char **end, int base)
   /* Save the pointer so we can check later if anything happened.  */
   save = s;
 
-  cutoff = ULONG_LONG_MAX / (unsigned long) base;
-  cutlim = ULONG_LONG_MAX % (unsigned long) base;
+  cutoff = ULONG_LONG_MAX / base;
+  cutlim = ULONG_LONG_MAX % base;
 
   overflow = 0;
   result = 0;
@@ -87,7 +77,7 @@ strtoll (const char *nptr, char **end, int base)
 	overflow = 1;
       else
 	{
-	  result *= (unsigned long) base;
+	  result *= base;
 	  result += digit;
 	}
     }
@@ -110,26 +100,11 @@ strtoll (const char *nptr, char **end, int base)
   if (end)
     *end = (char *) s;
 
-  if (overflow == 0)
-    {
-      /* Check for a value that is within the range of
-         an unsigned long but outside the range of long.  */
-      if (negative)
-        {
-	  if (result > (unsigned long) LONG_LONG_MIN)
-	    overflow = 1;
-	}
-      else
-        {
-	  if (result > (unsigned long) LONG_LONG_MAX)
-	    overflow = 1;
-	}
-    }
   if (overflow)
     {
       errno = ERANGE;
-      return (negative) ? LONG_LONG_MIN : LONG_LONG_MAX;
+      return ULONG_LONG_MAX;
     }
 
-  return (negative ? -result : result);
+  return (neg) ? 0 - result : result;
 }
