@@ -30,7 +30,7 @@ static char *prefixes[] =
 static int
 get_directory_name (const char *input, char *output)
 {
-  const char *t;
+  const char *t = 0;
 
   if (*input == '\0')
     return 0;
@@ -43,24 +43,39 @@ get_directory_name (const char *input, char *output)
     {
       if (input[0] == '.')
 	{
-	  if (input[1] == '/')	/* current directory */
+	  if (input[1] == '\0')        /* current directory, end of path */
+	    t = 0;
+	  else if (input[1] == '/')    /* current directory, not end of path */
 	    t = input + 1;
-	  else if (input[1] == '.' && input[2] == '/')	/* parent directory */
-	    t = input + 2;
+	  else if (input[1] == '.')
+	   {
+	     if (input[2] == '\0')     /* parent directory, end of path */
+	       t = 0;
+	     else if (input[2] == '/') /* parent directory, not end of path */
+	       t = input + 2;
+	   }
 	}
-      strncpy (output, input, t - input);
-      output[t - input] = '\0';
-      return 1;
     }
 #endif
-  /* If we reach here, we have two possibilities:
+
+  if (t)
+  {
+    strncpy (output, input, t - input);
+    output[t - input] = '\0';
+    return 1;
+  }
+  else
+  {
+  /* If we reach here, we have four possibilities:
      1. fname
      2. directory/fname
-
-     both don't need any conversion. No.1 has both compatible with RISC OS
-     and Unix, and no. 2 is already in Unix form.  */
-  strcpy (output, input);
-  return 0;
+     3. .
+     4. ..
+     none of which need any conversion. No.1 has both compatible with
+     RISC OS and Unix, and nos. 2-4 are already in Unix form.  */
+    strcpy (output, input);
+    return 0;
+  }
 }
 
 static char *
@@ -140,7 +155,7 @@ add_directory_and_prefix (char *output, char *dir, const char *prefix)
 static int
 is_prefix (const char *name)
 {
-  char *t1;
+  const char *t1;
   int x = 0;
   /* If there is more than one dot left in the filename, then this
      cannot be the prefix.  */
