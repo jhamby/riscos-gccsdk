@@ -1,10 +1,10 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/module/sul.s,v $
-; $Date: 2003/04/06 14:19:07 $
-; $Revision: 1.3 $
+; $Date: 2003/06/01 17:21:03 $
+; $Revision: 1.4 $
 ; $State: Exp $
-; $Author: peter $
+; $Author: alex $
 ;
 ;----------------------------------------------------------------------------
 
@@ -82,7 +82,10 @@ ListHead     EQU   12      ; Pointer to head of list
 	CMP     r11, #3
 	BEQ     count
 	ADR     r0, error_swi - module_start
-	ORRS    pc, lr, #VFlag
+	TEQ	pc, pc
+	ORRNES	pc, lr, #VFlag
+	MSR	CPSR_f, #VFlag
+	MOV	pc, lr
 
 
 	; Application UpCall handler, PRM 1-291
@@ -153,7 +156,7 @@ ListHead     EQU   12      ; Pointer to head of list
 |register|
 	STMFD   sp!, {r0, r3, lr}
 
-	; The memory claimed for now merely provides a way validate a caller.
+	; The memory claimed for now merely provides a way to validate a caller.
 	; Later on, it will be used to store information on a per-client basis.
 
 	MOV     r4, r2

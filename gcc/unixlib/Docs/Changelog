@@ -1,3 +1,6 @@
+Tue Oct 21 20:26:20 2003  David Marston  <david@illudium.org.uk>
+	* module/sul.s: Fix 32-bit behaviour
+
 Sun Oct 12 22:16:01 2003  John Tytgat  <John.Tytgat@aaug.net>
 
 	* source/unix/dev.c (__getdevtype): Introduced rofs2dev mapping table
