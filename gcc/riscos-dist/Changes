@@ -1,7 +1,25 @@
 Noteworthy changes to the RISC OS GCCSDK
 
-RISC OS GCC release 3.4.1 release 1 (released 05 October 2004)
+RISC OS GCC release 3.4.4 pre-release 3 (released XX XXXX XXXX)
 =======================================
+
+* gcc: Updated to versionm 3.4.4 (prerelease of 03/Dec/2004)
+
+
+RISC OS GCC release 3.4.4 pre-release 2 (released XX November 2004)
+=======================================
+
+* gcc: Minor bug fixes.
+
+
+RISC OS GCC release 3.4.4 pre-release 1 (released XX November 2004)
+=======================================
+
+* gcc: Updated to versionm 3.4.4 (prerelease of 13/Nov/2004)
+
+
+RISC OS GCC release 3.4.1 release 1 (released 05 October 2004)
+===================================
 
 * gcc: Updated to version 3.4.1 to make the distribution current and
   bring in speed improvements and better optimisation.  The 3.3 release
