@@ -1,7 +1,7 @@
 /* errno.h
 
    For use with the GNU compilers and the SharedCLibrary.
-   (c) Copyright 1997, 1999, 2001 Nick Burrett.  */
+   (c) Copyright 1997, 1999, 2001, 2003 Nick Burrett.  */
 
 #ifndef __ERRNO_H
 #define __ERRNO_H
@@ -22,6 +22,8 @@ extern volatile int errno;
 /* An unrecognised signal is caught by the default signal handler.  */
 #define ESIGNUM 3
 
-#define __SYS_NERR 3
+#define EINVAL 4 /* Invalid argument. */
+
+#define __SYS_NERR 4
 
 #endif

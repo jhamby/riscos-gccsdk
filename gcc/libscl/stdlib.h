@@ -39,6 +39,16 @@ typedef struct ldiv_t
   long int quot, rem;
 } ldiv_t;
 
+#ifdef __GNUC__
+/* Returned by `lldiv'.  */
+__extension__
+typedef struct
+  {
+    long long int quot; /* Quotient.  */
+    long long int rem;  /* Remainder.  */
+  } lldiv_t;
+#endif
+
 #ifdef __EXIT_FAILURE
 #define EXIT_FAILURE __EXIT_FAILURE
 
@@ -198,6 +208,36 @@ extern size_t mbstowcs (wchar_t *__wstring, const char *__string,
    more than 'size' bytes.  */
 extern size_t wcstombs (char *__string, const wchar_t *__wstring,
 			size_t __size);
+
+
+/* The following functions are libscl extensions.  */
+
+__extension__
+extern lldiv_t lldiv (long long __numer, long long __denom) __attribute__ ((__const__));
+
+/* Convert a string to a 64-bit long integer.  */
+extern long long atoll (const char *__string);
+#define atoll(s) strtoll(s, (char **) NULL, 10)
+
+extern float strtof (const char *__restrict __string,
+                     char **__restrict __end);
+extern long double strtold (const char *__restrict __string,
+                            char **__restrict __end);
+
+/* Convert a string to a 64-bit integer.  */
+__extension__
+extern long long strtoll (const char *__restrict __nptr,
+                          char **__restrict __endptr, int __base);
+
+/* Convert a string to an unsigned 64-bit integer.  */
+__extension__
+extern unsigned long long strtoull (const char *__restrict __nptr,
+                                    char **__restrict __endptr, int __base);
+
+/* Terminate the program with status.  Don't call any functions
+   registerd by atexit.  */
+extern void _Exit (int __status) __attribute__ ((__noreturn__));
+
 
 #ifdef __cplusplus
 }
