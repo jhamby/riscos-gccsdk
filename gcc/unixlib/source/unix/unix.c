@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/unix.c,v $
- * $Date: 2005/03/02 22:57:00 $
- * $Revision: 1.35 $
+ * $Date: 2005/03/04 20:59:06 $
+ * $Revision: 1.36 $
  * $State: Exp $
  * $Author: alex $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: unix.c,v 1.35 2005/03/02 22:57:00 alex Exp $";
+static const char rcs_id[] = "$Id: unix.c,v 1.36 2005/03/04 20:59:06 alex Exp $";
 #endif
 
 #include <stdio.h>
@@ -480,25 +480,25 @@ initialise_unix_io (void)
       __proc->file_descriptors = __proc->sul_malloc (__proc->pid, __proc->maxfd * __proc->fdsize);
       if (__proc->file_descriptors == NULL)
         __unixlib_fatal ("cannot allocate file descriptor memory");
-    }
 
-  /* Set all file descriptors to unallocated status.  */
-  for (i = 0; i < __proc->maxfd; i++)
-    getfd (i)->devicehandle = NULL;
+      /* Set all file descriptors to unallocated status.  */
+      for (i = 0; i < __proc->maxfd; i++)
+        getfd (i)->devicehandle = NULL;
 
-  /* These are guaranteed to be the first files opened. stdin, stdout
-     and stderr will receive file descriptor numbers 0, 1 and 2
-     respectively.  */
+      /* These are guaranteed to be the first files opened. stdin, stdout
+         and stderr will receive file descriptor numbers 0, 1 and 2
+         respectively.  */
 
-  /* Open a file descriptor for reading from the tty (stdin)
-     and writing to the tty (stdout).  */
-  if (__open (STDIN_FILENO, "/dev/tty", O_RDONLY, 0777) < 0
-      || __open (STDOUT_FILENO, "/dev/tty", O_WRONLY | O_CREAT, 0666) < 0)
-    __unixlib_fatal ("cannot open stdin/stdout/stderr");
+      /* Open a file descriptor for reading from the tty (stdin)
+         and writing to the tty (stdout).  */
+      if (__open (STDIN_FILENO, "/dev/tty", O_RDONLY, 0777) < 0
+          || __open (STDOUT_FILENO, "/dev/tty", O_WRONLY | O_CREAT, 0666) < 0)
+        __unixlib_fatal ("cannot open stdin/stdout/stderr");
 
-  /* Duplicate the file descriptor for stdout, to create a suitable
-     file descriptor for stderr.  */
-  fcntl (STDOUT_FILENO, F_DUPFD, STDERR_FILENO);
+      /* Duplicate the file descriptor for stdout, to create a suitable
+         file descriptor for stderr.  */
+      fcntl (STDOUT_FILENO, F_DUPFD, STDERR_FILENO);
+  }
 }
 
 /* Attempt to re-direct a file descriptor based on the file descriptor

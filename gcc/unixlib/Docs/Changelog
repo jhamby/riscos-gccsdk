@@ -1,3 +1,8 @@
+Sat Mar 12 13:32:27 2005  Alex Waugh  <alex@alexwaugh.com>
+
+	* source/unix/unix.c: stdin/stdout should only be opened if we
+	  haven't inherited them from a parent.
+
 Sat Mar 12 10:29:12 2005  Alex Waugh  <alex@alexwaugh.com>
 
 	* source/clib/setjmp.h, source/sys/_jmp.s: Remove unused entry from
