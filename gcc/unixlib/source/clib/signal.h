@@ -1,8 +1,8 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/signal.h,v $
- * $Date: 2001/01/29 15:10:19 $
- * $Revision: 1.2 $
+ * $Date: 2002/09/24 21:02:36 $
+ * $Revision: 1.3 $
  * $State: Exp $
  * $Author: admin $
  *
@@ -23,6 +23,9 @@
 #ifndef __STDDEF_H
 #include <stddef.h>
 #endif
+
+#define __need_pthread_t
+#include <pthread.h>
 
 __BEGIN_DECLS
 
@@ -320,6 +323,12 @@ extern int sigaltstack (const struct sigaltstack *__ss,
    for running signal handlers in.  */
 
 #define MINSIGSTKSZ 2048
+
+/* Send a signal to a specific thread */
+extern int pthread_kill (pthread_t thread, int sig);
+
+/* Set the signal mask for a thread */
+extern int pthread_sigmask (int how, const sigset_t *set, sigset_t *oset);
 
 __END_DECLS
 

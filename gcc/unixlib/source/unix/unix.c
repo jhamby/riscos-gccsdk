@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source$
- * $Date$
- * $Revision$
- * $State$
- * $Author$
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/unix.c,v $
+ * $Date: 2002/12/13 15:01:59 $
+ * $Revision: 1.6 $
+ * $State: Exp $
+ * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id$";
+static const char rcs_id[] = "$Id: unix.c,v 1.6 2002/12/13 15:01:59 admin Exp $";
 #endif
 
 #include <stdio.h>
@@ -33,6 +33,8 @@ static const char rcs_id[] = "$Id$";
 
 #include <unixlib/fd.h>
 #include <unixlib/local.h>
+
+#include <pthread.h>
 
 /* #define DEBUG 1 */
 
@@ -76,7 +78,7 @@ void
 __unixlib_fatal (const char *message)
 {
   if (message == NULL)
-    message = sys_errlist[errno];
+    message = strerror (errno);
   __os_nl ();
   __os_print (message);
   __os_nl ();
@@ -137,6 +139,10 @@ void __unixinit (void)
       if (__u == NULL)
         __unixlib_fatal ("cannot allocate memory for process structure");
       initialise_process_structure (__u);
+#if __FEATURE_PTHREADS
+      /* Initialise the pthread system */
+      __pthread_prog_init ();
+#endif
       __resource_initialise (__u);
       __unixlib_signal_initialise (__u);
       /* Initialise ctype tables to the C locale.  */
@@ -147,6 +153,10 @@ void __unixinit (void)
     }
   else
     {
+#if __FEATURE_PTHREADS
+      /* Initialise the pthread system */
+      __pthread_prog_init ();
+#endif
       __resource_initialise (__u);
       __unixlib_signal_initialise (__u);
       /* Initialise ctype tables to the C locale.  */
@@ -294,6 +304,13 @@ _exit (int return_code)
   /* Interval timers must be stopped.  */
   if (__u)
     __stop_itimers ();
+
+  /* pthread timers must be stopped */
+  if (__pthread_system_running)
+    {
+      __pthread_stop_ticker ();
+      __pthread_system_running = 0;
+    }
 
   /* Convert the 16-bit return code into an 8-bit equivalent
      for compatibility with RISC OS.  See sys.c.vfork for

@@ -1,10 +1,10 @@
 ;----------------------------------------------------------------------------
 ;
-; $Source$
-; $Date$
-; $Revision$
-; $State$
-; $Author$
+; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/_alloca.s,v $
+; $Date: 2002/09/24 21:02:38 $
+; $Revision: 1.5 $
+; $State: Exp $
+; $Author: admin $
 ;
 ;----------------------------------------------------------------------------
 
@@ -47,7 +47,14 @@ alloca		; just in case
 	; + 4 : return link value of caller (i.e. [fp, #-4])
 	; + 8 : start contents block returned from alloca()
 
+	[ |__FEATURE_PTHREADS| = 1
+	IMPORT  |__pthread_running_thread|
+	LDR	a3, =|__pthread_running_thread|
+	LDR	a3, [a3]
+	ADD	a3, a3, #|__PTHREAD_ALLOCA_OFFSET| + 8
+	|
 	LDR	a3, =|__alloca_list|
+	]
 	LDR	a2, [fp, #-4]
 	LDR	a4, [a3]
 	STR	a2, [a1, #4]
@@ -67,7 +74,13 @@ alloca		; just in case
 	stackreturn	AL, "pc"
 
 |__alloca_free|
+	[ |__FEATURE_PTHREADS| = 1
+	LDR	a3, =|__pthread_running_thread|
+	LDR	a3, [a3]
+	ADD	a3, a3, #|__PTHREAD_ALLOCA_OFFSET| + 8
+	|
 	LDR	a3, =|__alloca_list|	; StrongARM order
+	]
 	STMFD	sp!, {a1, a2, v1}
 	LDR	a1, [a3]
 	LDMIA	a1, {a4, v1}
@@ -100,11 +113,33 @@ alloca		; just in case
 	SWI	XOS_Write0
 	B	abort		; never returns
 
+; Free all alloca blocks for the current thread
+	[ |__FEATURE_PTHREADS| = 1
+	EXPORT	|__alloca_thread_free_all|
+|__alloca_thread_free_all|
+	STMFD	sp!, {v1, lr}
+	LDR	a1, =|__pthread_running_thread|
+	LDR	a1, [a1]
+	LDR	v1, [a1, #|__PTHREAD_ALLOCA_OFFSET| + 8]
+	MOV	a2, #0
+	STR	a2, [a1, #|__PTHREAD_ALLOCA_OFFSET| + 8]
+__alloca_thread_free_all_l1
+	CMP	v1, #0
+	stackreturn	EQ, "v1, pc"
+	MOV	a1, v1
+	LDR	v1, [v1]
+	BL	free
+	B	__alloca_thread_free_all_l1
+	]
 
-	AREA	|C$$zidata|, DATA, NOINIT
+
+	[ __FEATURE_PTHREADS = 0
+	; If pthreads are in use then __alloca_list is stored per-thread
+	AREA	|C$$data|, DATA
 
 	EXPORT  |__alloca_list|
 |__alloca_list|
-	%	4
+	DCD	0
+	]
 
 	END

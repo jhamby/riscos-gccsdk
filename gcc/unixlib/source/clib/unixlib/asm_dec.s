@@ -1,8 +1,8 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/unixlib/asm_dec.s,v $
-; $Date: 2001/12/19 16:52:15 $
-; $Revision: 1.2.2.4 $
+; $Date: 2002/02/14 15:56:35 $
+; $Revision: 1.3 $
 ; $State: Exp $
 ; $Author: admin $
 ;
@@ -21,11 +21,23 @@ PARANOID	EQU	0
 DYNAMIC_AREA	EQU	1
 ; Align things to 4K boundaries for exec
 |__4K_BOUNDARY|	EQU	0
+; Emulate the SWP instruction for ARM2 compatibility
+|__SWP_ARM2|	EQU	0
+
 |__INTEGRITY_CHECK|	EQU	1
 |__FEATURE_ITIMERS|	EQU	1
 |__FEATURE_SOCKET|	EQU	1
 |__FEATURE_PIPEDEV|	EQU	1
+|__FEATURE_PTHREADS|	EQU	1
 USEFILEPATH		EQU	0
+
+; The offset of various members of the __pthread_thread structure
+; This should be kept in sync with pthread.h and lib1aof.s
+__PTHREAD_MAGIC_OFFSET	EQU	0
+__PTHREAD_CONTEXT_OFFSET	EQU	4
+__PTHREAD_ALLOCA_OFFSET	EQU	8
+__PTHREAD_ERRNO_OFFSET	EQU	20
+__PTHREAD_ERRBUF_OFFSET	EQU	24
 
 ; registers
 
@@ -125,16 +137,32 @@ FFlag	EQU	&04000000	; FIRQ disable
 	MACRO
 	__set_errno	$val,$Rerrno
 	ASSERT	$val <> $Rerrno
+	[ __FEATURE_PTHREADS = 1
+	IMPORT	|__pthread_running_thread|
+	LDR	$Rerrno, =|__pthread_running_thread|
+	LDR	$Rerrno, [$Rerrno]
+	STR	$val, [$Rerrno, #__PTHREAD_ERRNO_OFFSET]
+	|
+	IMPORT	|errno|
 	LDR	$Rerrno,=|errno|
 	STR	$val,[$Rerrno]
+	]
 	MOV	$val,#-1
 	MEND
 
 	MACRO
 	__get_errno	$val,$Rerrno
 	ASSERT	$val <> $Rerrno
+	[ __FEATURE_PTHREADS = 1
+	IMPORT	|__pthread_running_thread|
+	LDR	$Rerrno, =|__pthread_running_thread|
+	LDR	$Rerrno, [$Rerrno]
+	LDR	$val, [$Rerrno, #__PTHREAD_ERRNO_OFFSET]
+	|
+	IMPORT	|errno|
 	LDR	$Rerrno,=|errno|
 	LDR	$val,[$Rerrno]
+	]
 	MEND
 
 	; NetSWI macro to call a networking (tcp/ip) swi.
@@ -224,6 +252,27 @@ FFlag	EQU	&04000000	; FIRQ disable
 	MOVVCS	pc, ip			; return, restore mode, flags
 	B	|__net_error_simple_entry|
 	; branch to error routine still in SVC mode, with return in ip
+
+	MEND
+
+	; Macro to implement SWP instruction
+	; srcreg and dstreg can be the same register, provided scratch is a different register
+	; if srcreg and dstreg are different registers then scratch can be the same as dstreg
+	MACRO
+	swp_arm2	$dstreg, $srcreg, $addr, $scratch
+	[ __SWP_ARM2 = 0
+	SWP	$dstreg, $srcreg, [$addr]
+	|
+	STMFD	sp!, {lr}	; Could be called in USR or SVC mode
+	SWI	XOS_IntOff
+	LDR	$scratch, [$addr]
+	STR	$srcreg, [$addr]
+	[ $dstreg <> $scratch
+	MOV	$dstreg, $scratch
+	]
+	SWI	XOS_IntOn
+	LDMFD	sp!, {lr}
+	]
 
 	MEND
 

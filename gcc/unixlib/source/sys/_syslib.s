@@ -1,10 +1,10 @@
 ;----------------------------------------------------------------------------
 ;
-; $Source$
-; $Date$
-; $Revision$
-; $State$
-; $Author$
+; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/_syslib.s,v $
+; $Date: 2002/12/13 15:01:59 $
+; $Revision: 1.7 $
+; $State: Exp $
+; $Author: admin $
 ;
 ;----------------------------------------------------------------------------
 
@@ -15,75 +15,48 @@ NO_MEMORY   * 0
 NO_CALLASWI * 1
 NO_SUL      * 2
 
-	AREA	|C$$data|, DATA
+; Constants for field offsets within a stack chunk
+; The stack is allocated in chunks, each chunk is a multiple of 4KB, and
+; contains a 24 byte header.
+; The next and prev fields form a doubly linked list of allocated chunks.
+; This is fairly similar to how the scl's stack works
+; (see PRMs, 4-239 and Appendix C)
+;
+;  ______
+; |      | +0
+; |Header|
+; |      |
+; |______|
+; |      | +24
+; |      |
+; |      | +536 <- sl
+; |      |
+; |      |
+; ________/
+;/
+; |      |
+; |______|
+;         +4096 * n  <- sp (initially)
+;
+CHUNK_MAGIC	*	0	; Magic number to help detect if someone overwrites the stack
+CHUNK_NEXT	*	4	; Ptr to next chunk
+CHUNK_PREV	*	8	; Ptr to previous chunk
+CHUNK_SIZE	*	12	; Size of chunk, including header
+CHUNK_DEALLOC	*	16	; Function to call to free the chunk
+CHUNK_RETURN	*	20	; Return address after freeing this chunk
 
-dynamic_deletion
-	DCD	0
-	DCB	"XXXXXXXXXX"
-dynamic_area_name_end
-	DCB	"$Heap", 0
-	ALIGN
+CHUNK_OVERHEAD	*	24	; Size of chunk header
 
-	IMPORT	|Image$$RO$$Base|
-	IMPORT	|Image$$RW$$Base|
-	IMPORT	|Image$$RW$$Limit|
-	EXPORT	|__cli|		; CLI from OS_GetEnv
-	EXPORT	|__base|	; BASE (application = 0x8000)
-	EXPORT	|__lomem|	; LOMEM
-	EXPORT	|__rwlimit|
-	EXPORT	|__himem|	; HIMEM from OS_GetEnv
-	EXPORT	|__break|	; the 'break'
-	EXPORT	|__stack|	; stack limit
-	EXPORT	|__stack_limit|	; lower stack limit
-	EXPORT	|__time|	; start time - 5 byte format
-	EXPORT	|__real_break|  ; top limit of dynamic area allocated
-	EXPORT	|__fpflag|
-	EXPORT	|__taskwindow|  ; non-zero if executing in a TaskWindow
-	EXPORT	|__wimpprogram| ; non-zero if executing as a Wimp program
-	EXPORT	|__sigstk|	; stack for callback signals
-	EXPORT	|__sigstksize|	; size of callback signal stack
-	EXPORT	|__dynamic_num|
-	EXPORT	|__u|		; pointer to proc structure
-
-	; Altering this structure will require fixing __main.
-struct_base
-|__cli|		DCD	0				; offset = 0
-|__himem|	DCD	0				; offset = 4
-|__time|	DCD	0, 0	; low word, high byte	; offset = 8
-|__stack|	DCD	0				; offset = 16
-
-|__robase|	DCD	|Image$$RO$$Base|		; offset = 20
-|__rwlimit|	DCD	|Image$$RW$$Limit|		; offset = 24
-|__base|	DCD	0				; offset = 28
-
-|__lomem|	DCD	0				; offset = 32
-|__break|	DCD	0				; offset = 36
-|__stack_limit|	DCD	0				; offset = 40
-
-|__rwbase|	DCD	|Image$$RW$$Base|		; offset = 44
-|__real_break|	DCD	0				; offset = 48
-|__fpflag|	DCD	0				; offset = 52
-
-|__taskwindow|	DCD	0				; offset = 56
-|__wimpprogram|	DCD	0				; offset = 60
-|__sigstk|	DCD	0				; offset = 64
-|__sigstksize|	DCD	4096				; offset = 68
-
-|__dynamic_num|	DCD	-1				; offset = 72
-|__u|		DCD	0				; offset = 76
-
-	AREA	|C$$zidata|, DATA, NOINIT
-
-	; This space is reserved for UnixLib to store the environment handlers
-	; of the calling application.
-	EXPORT |__calling_environment|
-|__calling_environment|
-	% 204
+STACK_CHECK_MAGIC	*	1	; Should we check that the magic number is valid each time the stack is extended/shrunk
+EXTREMELY_PARANOID	*	0	; Should we check that the entire stack chunk chain is valid each time the stack is extended/shrunk
 
 	AREA	|C$$code|, CODE, READONLY
 
 	IMPORT  |__unixinit|            ;C function (unix/unix.c)
 	IMPORT  |exit|                  ;C function (unix/unix.c)
+	IMPORT	|__stackalloc_init|     ;C function (sys/stackalloc.c)
+	IMPORT	|__stackalloc|          ;C function (sys/stackalloc.c)
+	IMPORT	|__stackfree|           ;C function (sys/stackalloc.c)
 	IMPORT  |__cbreg|               ;Data (signal/_signal.s)
 	IMPORT  |__h_sigill|            ;ASM function (signal/_signal.s)
 	IMPORT  |__h_sigsegv0|          ;ASM function (signal/_signal.s)
@@ -95,15 +68,17 @@ struct_base
 	IMPORT  |__h_event|             ;ASM function (signal/_signal.s)
 	IMPORT  |__h_exit|              ;ASM function (signal/_signal.s)
 	IMPORT  |__h_upcall|            ;ASM function (signal/_signal.s)
+	IMPORT  |__unixlib_fatal|          ;C function (signal/post.c)
+	IMPORT  |__pthread_system_running| ;variable (pthread/_context.s)
+	IMPORT  |__pthread_disable_ints|   ;ASM function (pthread/_ints.s)
+	IMPORT  |__pthread_enable_ints|    ;ASM function (pthread/_ints.s)
 
 	IMPORT	|_main|
 	IMPORT	|__dynamic_no_da|, WEAK
 	IMPORT	|__dynamic_da_name|, WEAK
-	IMPORT	|__alloca_list|, WEAK
 
 |rmensure|
-	DCB "RMEnsure SharedUnixLibrary 1.00 RMLoad System:Modules.SharedULib"
-	DCB 0
+	DCB "RMEnsure SharedUnixLibrary 1.00 RMLoad System:Modules.SharedULib", 0
 	ALIGN
 
 	EXPORT	|__main|
@@ -129,28 +104,12 @@ struct_base
 	; will always use ip as the base register.
 	LDR	ip, =struct_base
 
-	; The stack is allocated at the top of RAM.  We cannot place it
-	; in a dynamic area because GCC might generate trampolines.
-	; Trampolines (for the un-initiated) are little code fragments that
-	; execute in stack space.
-	MOV	sp, a2
-
-	; For simplicity, the first X bytes of stack is reserved for the
-	; signal callback stack.
-	STR	sp, [ip, #64]	; __sigstk
-	LDR	a4, [ip, #68]	; __sigstksize
-	BIC	a4, a4, #&03	;  Round to a 4 byte boundary.
-	SUB	sp, sp, a4	; Setup the application stack
-	SUB	sl, sp, #2048	; Default stack limit is 2048 bytes.
-
 	STR	a1, [ip, #0]	; __cli = pointer to command line
 	STR	a2, [ip, #4]	; __himem = permitted RAM limit
 
 	LDMIA	a3, {a1, a2}	; Get time
 	STR	a1, [ip, #8]	; __time (low word)
 	STR	a2, [ip, #12]	; __time (high word)
-
-	STR	sl, [ip, #16]	; __stack = bottom of stack
 
 	; For a description of the memory layout of a UnixLib application
 	; see sys/brk.c.
@@ -172,8 +131,33 @@ struct_base
 	STR	a2, [ip, #40]	; __stack_limit = __rwlimit
 	STR	a2, [ip, #48]	; __real_break = __rwlimit
 
-	CMP	sl, a1		; Check that stack doesn't overlap program
-	BLS	exit_with_error_no_memory ; No stack, exit.
+	; The stack is allocated in chunks in the wimpslot, with the first 4KB
+	; chunk immediately below __himem.  We cannot place it in a dynamic
+	; area because GCC might generate trampolines.
+	; Trampolines (for the un-initiated) are little code fragments that
+	; execute in stack space.
+
+	LDR	sp, [ip, #4]	; __himem
+	SUB	a1, sp, #4096
+	ADD	sl, a1, #512 + CHUNK_OVERHEAD
+
+	SUB	a3, a1, #8
+	; __stackalloc_init needs a minimum of 8 bytes more than the initial
+	; chunk for its heap - check this doesn't overlap the code section
+	STR	a3, [ip, #16]	; __stack = bottom of stack
+	CMP	a3, a2
+	BCC	exit_with_error_no_memory	; No room for stack, exit.
+
+	; Initialise the first stack chunk
+	MOV	a2, #0
+	STR	a2, [a1, #CHUNK_PREV]
+	STR	a2, [a1, #CHUNK_NEXT]
+	STR	a2, [a1, #CHUNK_DEALLOC]
+	STR	a2, [a1, #CHUNK_RETURN]
+	LDR	a2, |__stackchunk_magic_number|
+	STR	a2, [a1, #CHUNK_MAGIC]
+	MOV	a2, #4096
+	STR	a2, [a1, #CHUNK_SIZE]
 
 	MOV	v1, ip		; Temporary variable
 
@@ -216,7 +200,7 @@ struct_base
 	MOV	a1, #14
 	MOVS	a2, #0			; Ensure Z flag set
 	SWI	XOS_ChangeEnvironment	; preserves Z
-	LDRVC	a1, [ip, #64]		; top of our app space at __sigstk
+	LDRVC	a1, [ip, #4]		; top of our app space at __himem
 	CMPVC	a2, a1			; only make check if SWI succeeds
 	BEQ	no_old_area		; B if eq or SWI failed
 	; validate numbers at top of application memory (see sys.s._exec)
@@ -271,7 +255,7 @@ t01
 	SUB	a1, a1, #1	; back up to point at terminator char
 
 	; use a maximum of 10 characters from the program name
-	LDR	v5, =|dynamic_area_name_end|
+	LDR	v5, =dynamic_area_name_end
 
 	SUB	a4, a1, #10
 	CMP	a4, a2
@@ -317,7 +301,7 @@ t07
 	BVS	exit_with_error_no_memory	; no DA, report and exit
 	MOV	v6, a3				; setup for deletion at exit
 da_found
-	STR	a2, [ip, #72]	; __dynamic_num
+	STR	a2, [ip, #64]	; __dynamic_num
 
 	; v6 is size left in area, a4 is start offset
 	ADD	a1, v6, a4
@@ -339,12 +323,8 @@ da_found
 	STR	v5, [v3, #0]
 
 no_dynamic_area
-	ADD	sl, sl, #256
-	LDR	a1, =|__alloca_list|
 
 	MOV	fp, #0
-	CMP	a1, #0
-	STRNE	fp, [a1, #0]
 
 	; This line is needed for the GNU Objective-C runtime system.
 	; We need a safe 128 bytes of stack space to prevent a program
@@ -371,6 +351,11 @@ no_dynamic_area
 	MOVVC	a1, #1
 	STR	a1, [ip, #52]	; __fpflag
 
+	; Initialise the stack heap in application space
+	MOV	v1, ip	; Preserve ip
+	BL	|__stackalloc_init|
+	MOV	ip, v1
+
 	; Now we'll initialise the C library, then call the user program.
 
 	; Check the environment variable UnixLib$env.  If set, then
@@ -378,12 +363,12 @@ no_dynamic_area
 	; If we have successfully read the variable, then immediately
 	; delete it so that we don't confuse any other forking processes.
 	ADR	a1, env		; Environment variable name
-	ADD	a2, ip, #76	; pointer to __u
+	ADD	a2, ip, #68	; pointer to __u
 	MOV	a3, #4		; buffer length is 4 bytes
 	MOV	a4, #0		; context pointer (0 = first call)
 	MOV	v1, #1		; variable type is number
 	SWI	XOS_ReadVarVal
-	LDR	a1, [ip, #76]	; If __u is non-zero, then variable existed
+	LDR	a1, [ip, #68]	; If __u is non-zero, then variable existed
 	CMP	a1, #0		; so delete it.
 	ADRNE	a1, env		; Environment variable name
 	MVNNE	a3, #0		; Set negative to delete variable
@@ -577,29 +562,23 @@ handlers
 |__sharedunixlibrary_key|
 	DCD	0
 
+	EXPORT	|__stackchunk_magic_number|
+|__stackchunk_magic_number|
+	DCD	&F60690FF ;Same as the scl's magic number, for compatibility in libgcc
 
 	IMPORT	|__unixlib_raise_signal|
 	; allocate 512 bytes more stack
+	; round up to 4K as stack is only allocated in multiples of 4K
 	EXPORT	|x$stack_overflow|
 	EXPORT	|__rt_stkovf_split_small|
 	NAME	__rt_stkovf_split_small
 |x$stack_overflow|
 |__rt_stkovf_split_small|
-	STMFD	sp!, {a1, a2, lr}
-	LDR	lr, =struct_base
-	LDR	a2, [lr, #16] ; get __stack
-	LDR	a1, [lr, #40] ; get __stack_limit
-	SUB	a2, a2, #512
-	CMP	a2, a1
-	STR	a2, [lr, #16] ; store in __stack
-	ADD	sl, a2, #256
-	stackreturn	CS, "a1, a2, pc"
-	STMFD	sp!, {a3, a4, ip}
-	MOV	a1, #0
-	MOV	a2, #SIGEMT
-	BL	|__unixlib_raise_signal|
-	LDMFD	sp!, {a3, a4, ip}
-	stackreturn	AL, "a1, a2, pc"
+	STMFD	sp!, {a1, a2, a3, a4, v1, v2, v3, lr}	; This must store the same regs as for __rt_stkovf_split_big
+
+	MOV	v1, #4096
+	B	stack_overflow_common
+
 
 	; Allocate stack to below <ip>
 	EXPORT	|x$stack_overflow_1|
@@ -607,22 +586,288 @@ handlers
 	NAME	__rt_stkovf_split_big
 |x$stack_overflow_1|
 |__rt_stkovf_split_big|
-	CMP	ip, sl ; sanity check
+	CMP	ip, sl	; sanity check
 	return	CS, pc, lr
-	STMFD	sp!, {a1, a2, lr}
-	LDR	lr, =struct_base
-	SUB	a2, ip, #512
-	LDR	a1, [lr, #40] ; get __stack_limit
-	CMP	a2, a1
-	STR	a2, [lr, #16] ; store in __stack
-	ADD	sl, a2, #256
-	stackreturn	CS, "a1, a2, pc"
-	STMFD	sp!, {a3, a4, ip}
+	STMFD	sp!, {a1, a2, a3, a4, v1, v2, v3, lr}
+	; This must store the same regs as for __rt_stkovf_split_small
+	; and if changed, also update the 8*4 in the frame size calculation below
+
+	SUB	v1, sp, ip	; Get required frame size
+	ADD	v1, v1, #8*4	; Take account of the earlier STMFD
+
+	ADD	v1, v1, #512+CHUNK_OVERHEAD	;size of chunk header and space for stack extension procedures
+	ADD	v1, v1, #&FF0	;round up to nearest 4KB
+	ADD	v1, v1, #&00F
+	BIC	v1, v1, #&FF0
+	BIC	v1, v1, #&00F
+
+	; The rest is common to both split_small and split_big
+	; Thread-safe, other than the __stackalloc/free calls
+stack_overflow_common
+	[ EXTREMELY_PARANOID = 1
+	BL	|__check_stack|
+	]
+
+	SUB	v2, sl, #512+CHUNK_OVERHEAD	; Find bottom of chunk
+	[ STACK_CHECK_MAGIC = 1
+	LDR	a1, |__stackchunk_magic_number|
+	LDR	a2, [v2, #CHUNK_MAGIC]
+	CMP	a1, a2
+	BNE	stack_corrupt
+	]
+
+	MOV	v3, sp	; Store old sp
+	; We know there is enough stack to call stackalloc or stackfree, so sl just
+	; needs to be set to a value that won't cause a recursive stack overflow
+	SUB	sl, sp, #512
+
+	LDR	a1, [v2, #CHUNK_NEXT]
+	CMP	a1, #0
+	BEQ	alloc_new_chunk	; There isn't a spare chunk, so we need to alloc a new one
+
+	[ STACK_CHECK_MAGIC = 1
+	LDR	a3, |__stackchunk_magic_number|
+	LDR	a4, [a1, #CHUNK_MAGIC]
+	CMP	a3, a4
+	BNE	stack_corrupt
+	]
+	LDR	a2, [a1, #CHUNK_SIZE]
+	CMP	v1, a2
+	MOVLE	v1, a2
+	BLE	use_existing_chunk	; Spare chunk is big enough, so use it
+
+	; Spare chunk is too small, so free it and alloc another one
+	BL	|__free_stack_chain|
+
+alloc_new_chunk
+	MOV	a1, v1
+	BL	|__stackalloc|
+	CMP	a1, #0
+	BEQ	raise_sigemt	; No free memory
+
+	LDR	a3, |__stackchunk_magic_number|
+	STR	a3, [a1, #CHUNK_MAGIC]
+
+	; Add chunk into linked list
+	STR	a1, [v2, #CHUNK_NEXT]
+	STR	v2, [a1, #CHUNK_PREV]
+
+use_existing_chunk
+	; a1 contains the new/existing chunk to be used, v1 contains its size.
+	MOV	a2, #0
+	STR	a2, [a1, #CHUNK_NEXT]
+	STR	v1, [a1, #CHUNK_SIZE]
+
+	ADD	sp, a1, v1	; New sp is the top of the new chunk
+	ADD	sl, a1, #512+CHUNK_OVERHEAD
+
+	LDR	a2, =|__stackfree|
+	STR	a2, [a1, #CHUNK_DEALLOC] ; For compatibility with scl, in libgcc
+
+	LDR	a2, [fp, #-4]	; Load the return address
+	STR	a2, [a1, #CHUNK_RETURN]	; Remember it
+
+	ADR	a3, free_stack_chunk
+	[ {CONFIG} = 26
+	AND	a2, a2, #&fc000003
+	BIC	a3, a3, #&fc000003
+	ORR	a2, a2, a3
+	]
+	STR	a3, [fp, #-4]	; Replace it with our chunk free procedure
+
+	[ {CONFIG} = 26
+	LDMFD	v3, {a1, a2, a3, a4, v1, v2, v3, pc}^
+	|
+	LDMFD	v3, {a1, a2, a3, a4, v1, v2, v3, pc}
+	]
+
+raise_sigemt
 	MOV	a1, #0
 	MOV	a2, #SIGEMT
 	BL	|__unixlib_raise_signal|
-	LDMFD	sp!, {a3, a4, ip}
-	stackreturn	AL, "a1, a2, pc"
+
+	[ {CONFIG} = 26
+	LDMFD	v3, {a1, a2, a3, a4, v1, v2, v3, pc}^
+	|
+	LDMFD	v3, {a1, a2, a3, a4, v1, v2, v3, pc}
+	]
+
+stack_corrupt_msg
+	DCB	"***Fatal error: Stack corruption detected***", 13, 10, 0
+	ALIGN
+stack_corrupt
+	ADR	a1, stack_corrupt_msg
+	B	__unixlib_fatal
+
+	[ EXTREMELY_PARANOID = 1
+	NAME	"__check_stack"
+	EXPORT	|__check_stack|
+|__check_stack| ; Check every stack chunk in the chain to ensure it contains sensible values
+	MOV	ip, sp
+	STMFD	sp!, {a1, a2, a3, a4, v1, v2, fp, ip, lr, pc}
+	SUB	fp, ip, #4
+
+	[ __FEATURE_PTHREADS = 1
+	LDR	a1, =|__pthread_system_running|
+	LDR	a1, [a1]
+	CMP	a1, #0
+	BLNE	|__pthread_disable_ints|
+	]
+
+	LDR	a2, =|__stack|
+	LDR	a2, [a2]
+	LDR	a3, =|__himem|
+	LDR	a3, [a3]
+	LDR	a4, =|__base|
+	LDR	a4, [a4]
+
+	SUB	a1, sl, #512+CHUNK_OVERHEAD
+__check_stack_l1
+	CMP	a1, #0
+	BEQ	__check_stack_l2
+	BL	__check_chunk
+	LDR	a1, [a1, #CHUNK_NEXT]
+	B	__check_stack_l1
+
+__check_stack_l2
+	SUB	a1, sl, #512+CHUNK_OVERHEAD
+__check_stack_l3
+	CMP	a1, #0
+	BNE	__check_stack_l4
+	[ __FEATURE_PTHREADS = 1
+	LDR	a1, =|__pthread_system_running|
+	LDR	a1, [a1]
+	CMP	a1, #0
+	BLNE	|__pthread_enable_ints|
+	]
+	LDMEA	fp, {a1, a2, a3, a4, v1, v2, fp, sp, pc}^
+__check_stack_l4
+	BL	__check_chunk
+	LDR	a1, [a1, #CHUNK_PREV]
+	B	__check_stack_l3
+
+__check_chunk ; a1 = chunk, a2 = __stack, a3 = __himem, a4 = __base
+	CMP	a1, a2
+	BCC	stack_corrupt
+	CMP	a1, a3
+	BCS	stack_corrupt
+
+	LDR	v1, [a1, #CHUNK_MAGIC]
+	LDR	v2, |__stackchunk_magic_number|
+	CMP	v1, v2
+	BNE	stack_corrupt
+
+	LDR	v1, [a1, #CHUNK_SIZE]
+	CMP	v1, #&1000
+	BLT	stack_corrupt
+	SUB	v2, a3, a2
+	CMP	v1, v2
+	BGT	stack_corrupt
+
+	LDR	v1, [a1, #CHUNK_NEXT]
+	CMP	v1, #0
+	BEQ	__check_chunk_l1
+	CMP	v1, a2
+	BCC	stack_corrupt
+	CMP	v1, a3
+	BCS	stack_corrupt
+__check_chunk_l1
+	LDR	v1, [a1, #CHUNK_PREV]
+	CMP	v1, #0
+	BEQ	__check_chunk_l2 ; If the previous chunk is zero then dealloc and return may also be zero
+	CMP	v1, a2
+	BCC	stack_corrupt
+	CMP	v1, a3
+	BCS	stack_corrupt
+
+	LDR	v1, [a1, #CHUNK_DEALLOC]
+	BIC	v1, v1, #&fc000003
+	CMP	v1, a4
+	BCC	stack_corrupt
+	CMP	v1, a3
+	BCS	stack_corrupt
+
+	LDR	v1, [a1, #CHUNK_RETURN]
+	BIC	v1, v1, #&fc000003
+	CMP	v1, a4
+	BCC	stack_corrupt
+	CMP	v1, a3
+	BCS	stack_corrupt
+__check_chunk_l2
+	return	AL, pc, lr
+	] ; EXTREMELY_PARANOID = 1
+
+
+	EXPORT	|__trim_stack|
+|__trim_stack| ; Remove any unused stack chunks
+	SUB	a2, sl, #512+CHUNK_OVERHEAD	; Find bottom of chunk
+	LDR	a1, [a2, #CHUNK_NEXT]
+	CMP	a1, #0
+	MOVNE	a3, #0
+	STRNE	a3, [a2, #CHUNK_NEXT]
+	return	EQ, pc, lr	; Falls through to __free_stack_chain if required
+
+	EXPORT	|__free_stack_chain|
+|__free_stack_chain| ; free a chain of stack chunks pointer to by a1
+	STMFD	sp!, {v1, lr}
+__free_stack_chain_l1
+	; Spare chunk is too small, so free it and alloc another one
+	[ STACK_CHECK_MAGIC = 1
+	MOV	a2, #0	; Invalidate the magic number
+	STR	a2, [a1, #CHUNK_MAGIC]
+	]
+	LDR	v1, [a1, #CHUNK_NEXT]
+	BL	|__stackfree|
+	MOVS	a1, v1
+	BNE	__free_stack_chain_l1
+	stackreturn	AL, "v1, pc"
+
+
+free_stack_chunk
+	; Called on exit from a function that caused stack extension
+	; a2-a4, ip, sl and lr can be corrupted, all others (including sp) 
+	; must be preserved. Stack chunks are freed with one chunk of latency,
+	; so we need to free the previously unused chunk, not the chunk that
+	; has just been finished with. Therefore the chunk just finished 
+	; with can be used as a stack for this function
+	[ EXTREMELY_PARANOID = 1
+	BL	|__check_stack|
+	]
+	SUB	sl, sl, #512+CHUNK_OVERHEAD	; sl = start of current chunk
+	LDR	ip, [sl, #CHUNK_SIZE]
+	ADD	ip, sl, ip	; ip = top of chunk
+	STMFD	ip!, {a1, fp, sp}	; stack important regs
+	MOV	sp, ip	; set up sp
+	; sl remains at the bottom of the chunk, but there's 4K of space and 
+	; __stackfree won't need more than 256 bytes of it so this is ok
+
+	[ STACK_CHECK_MAGIC = 1
+	LDR	a1, |__stackchunk_magic_number|
+	LDR	a2, [sl, #CHUNK_MAGIC]
+	CMP	a1, a2
+	BNE	stack_corrupt
+	]
+
+	LDR	a1, [sl, #CHUNK_NEXT]
+	CMP	a1, #0
+	BEQ	no_chunk_to_free
+
+	[ STACK_CHECK_MAGIC = 1
+	MOV	a2, #0	; Invalidate the magic number
+	STR	a2, [a1, #CHUNK_MAGIC]
+	]
+	BL	|__stackfree|
+	MOV	a1, #0
+	STR	a1, [sl, #CHUNK_NEXT]
+
+no_chunk_to_free
+	LDMFD	sp, {a1, fp, sp} ; Restore important regs
+
+	LDR	lr, [sl, #CHUNK_RETURN]	; Get the real return address
+	LDR	sl, [sl, #CHUNK_PREV]
+	ADD	sl, sl, #512+CHUNK_OVERHEAD	; Set sl up correctly for the old stack chunk
+	return	AL, pc, lr
+
 
 	; Return non-zero if the floating point instruction set is available
 	EXPORT	|_kernel_fpavailable|
@@ -631,5 +876,67 @@ handlers
 	LDR	a1, =struct_base
 	LDR	a1, [a1, #52]	; __fpflag
 	return	AL, pc, lr
+
+	AREA	|C$$zidata|, DATA, NOINIT
+
+	; This space is reserved for UnixLib to store the environment handlers
+	; of the calling application.
+	EXPORT |__calling_environment|
+|__calling_environment|
+	% 204
+
+	AREA	|C$$data|, DATA
+
+dynamic_deletion
+	DCD	0
+	DCB	"XXXXXXXXXX"
+dynamic_area_name_end
+	DCB	"$Heap", 0
+	ALIGN
+
+
+	IMPORT	|Image$$RO$$Base|
+	IMPORT	|Image$$RW$$Base|
+	IMPORT	|Image$$RW$$Limit|
+	EXPORT	|__cli|		; CLI from OS_GetEnv
+	EXPORT	|__base|	; BASE (application = 0x8000)
+	EXPORT	|__lomem|	; LOMEM
+	EXPORT	|__rwlimit|
+	EXPORT	|__himem|	; HIMEM from OS_GetEnv
+	EXPORT	|__break|	; the 'break'
+	EXPORT	|__stack|	; stack limit
+	EXPORT	|__stack_limit|	; lower stack limit
+	EXPORT	|__time|	; start time - 5 byte format
+	EXPORT	|__real_break|  ; top limit of dynamic area allocated
+	EXPORT	|__fpflag|
+	EXPORT	|__taskwindow|  ; non-zero if executing in a TaskWindow
+	EXPORT	|__wimpprogram| ; non-zero if executing as a Wimp program
+	EXPORT	|__dynamic_num|
+	EXPORT	|__u|		; pointer to proc structure
+		
+	; Altering this structure will require fixing __main.
+struct_base
+|__cli|		DCD	0				; offset = 0
+|__himem|	DCD	0				; offset = 4
+|__time|	DCD	0, 0	; low word, high byte	; offset = 8
+|__stack|	DCD	0				; offset = 16
+
+|__robase|	DCD	|Image$$RO$$Base|		; offset = 20
+|__rwlimit|	DCD	|Image$$RW$$Limit|		; offset = 24
+|__base|	DCD	0				; offset = 28
+
+|__lomem|	DCD	0				; offset = 32
+|__break|	DCD	0				; offset = 36
+|__stack_limit|	DCD	0				; offset = 40
+
+|__rwbase|	DCD	|Image$$RW$$Base|		; offset = 44
+|__real_break|	DCD	0				; offset = 48
+|__fpflag|	DCD	0				; offset = 52
+
+|__taskwindow|	DCD	0				; offset = 56
+|__wimpprogram|	DCD	0				; offset = 60
+
+|__dynamic_num|	DCD	-1				; offset = 64
+|__u|		DCD	0				; offset = 68
 
 	END

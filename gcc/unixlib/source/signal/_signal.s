@@ -1,10 +1,10 @@
 ;----------------------------------------------------------------------------
 ;
-; $Source$
-; $Date$
-; $Revision$
-; $State$
-; $Author$
+; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/signal/_signal.s,v $
+; $Date: 2002/09/24 21:02:37 $
+; $Revision: 1.6 $
+; $State: Exp $
+; $Author: admin $
 ;
 ;----------------------------------------------------------------------------
 
@@ -22,9 +22,13 @@
 
 	AREA	|C$$code|, CODE, READONLY
 
-	IMPORT	errno
-	IMPORT	sys_errlist
 	IMPORT	|__unixlib_raise_signal|
+	IMPORT	|__pthread_system_running|
+	IMPORT	|__pthread_disable_ints|
+	IMPORT	|__pthread_enable_ints|
+	IMPORT	|__pthread_callback_pending|
+	IMPORT	|__pthread_running_thread|
+
 
 ;-----------------------------------------------------------------------
 ; static void __raise (int signo)
@@ -74,14 +78,16 @@
 	MOVEQS	pc, lr
 
 	STMFD	sp!, {v1-v5,lr}		; Stack working registers
-	LDR	a2, =|errno|		; Set errno = EOPSYS
 	MOV	a3, #EOPSYS
-	STR	a3, [a2, #0]
+	__set_errno	a3, a2 ; Set errno = EOPSYS
 
-	LDR     a4, =sys_errlist
+	[ __FEATURE_PTHREADS = 1
+	LDR	a2, =|__pthread_running_thread|
+	LDR	a2, [a2]
+	ADD	a2, a2, #__PTHREAD_ERRBUF_OFFSET
+	|
 	LDR     a2, =|__ul_errbuf_errblock|
-	ADD     a3, a2, #4
-	STR     a3, [a4, #(EOPSYS:SHL:2)]
+	]
 
 	; Copy the error to UnixLib's buffer.
 	MOV	a3, #|__ul_errbuf__size|
@@ -109,7 +115,13 @@
 	EXPORT	|_kernel_last_oserror|
 	NAME	_kernel_last_oserror
 |_kernel_last_oserror|
+	[ __FEATURE_PTHREADS = 1
+	LDR	a1, =|__pthread_running_thread|
+	LDR	a1, [a1]
+	ADD	a1, a1, #__PTHREAD_ERRBUF_OFFSET
+	|
 	LDR	a1, =|__ul_errbuf_errblock|
+	]
 	LDR	a2, [a1, #0]
 	CMP	a2, #0
 	MOVNES	pc, lr
@@ -140,6 +152,8 @@
 ; raising the appropriate signal. The old code used to save all the
 ; registers in the callback register save area, but we do not do that
 ; since it is unnecessary.
+; The handlers will not be switched out by the pthread scheduler whilst
+; they remain in SVC/IRQ mode (as callbacks only occur when in USR mode)
 
 ;-----------------------------------------------------------------------
 ; Undefined instruction handler
@@ -297,37 +311,60 @@
 	STMFD	sp!, {a1, a2, a3, a4, fp, ip, lr, pc}
 	SUB	fp, ip, #4
 
-	; Set errno to EOPSYS
-	LDR	a1, =|errno|
-	MOV	a2, #EOPSYS
-	STR	a2, [a1, #0]
+	[ __FEATURE_PTHREADS = 1
+	LDR	a1, =|__pthread_system_running|
+	LDR	a1, [a1]
+	CMP	a1, #0
+	BLNE	|__pthread_disable_ints|
+	]
 
-	; sys_errlist[EOPSYS] = __ul_errbuf_errblock+4
-	LDR	a1, =sys_errlist
-	LDR	a3, =|__ul_errbuf_errblock|
-	ADD	a2, a3, #4
-	STR	a2, [a1, #(EOPSYS:SHL:2)]
+	; Set errno to EOPSYS
+	MOV	a2, #EOPSYS
+	__set_errno	a2, a1
+
+	[ __FEATURE_PTHREADS = 1
+	IMPORT	|memcpy|
+	; Copy error buffer into thread specific storage
+	LDR	a1, =|__pthread_running_thread|
+	LDR	a1, [a1]
+	ADD	a1, a1, #__PTHREAD_ERRBUF_OFFSET
+	LDR	a2, =|__ul_errbuf_errblock|
+	LDR	a3, =|__ul_errbuf__size|
+	LDR	a3, [a3]
+	BL	|memcpy|
+	]
 
 	; Check the error number. Its value will determine the
 	; appropriate signal to call.
-	LDR	a3, [a3, #0]
+	LDR	a2, =|__ul_errbuf_errblock|
+	LDR	a3, [a2, #0]
 
 	; Check bit 31 of the error number.  If it is set, then it
 	; indicates a serious error, usually a hardware exception e.g.
 	; a page-fault or a floating point exception.
 	TST	a3, #&80000000
+	BNE	unrecoverable_error
 	; Bit 31 was not set so raise a RISC OS error.
-	MOVEQ	a2, #SIGERR
-	MOVEQ	a1, #0
-	BLEQ	|__unixlib_raise_signal|
-	LDMEQEA	fp, {a1, a2, a3, a4, fp, sp, pc}^
+	MOV	a2, #SIGERR
+	MOV	a1, #0
+	BL	|__unixlib_raise_signal|
 
+	[ __FEATURE_PTHREADS = 1
+	LDR	a1, =|__pthread_system_running|
+	LDR	a1, [a1]
+	CMP	a1, #0
+	BLNE	|__pthread_enable_ints|
+	]
+
+	LDMEA	fp, {a1, a2, a3, a4, fp, sp, pc}^
+
+unrecoverable_error
 	; Bit 31-was set, therefore it was a hardware error.
 
 	; Print the error
 	ADR	a1, unrecoverable_error_msg
 	SWI	XOS_Write0
-	MOV	a1, a2		; Write out __ul_errbuf_errblock+4
+	ADD	a1, a2, #4		; Write out __ul_errbuf_errblock+4
 	SWI	XOS_Write0
 	SWI	XOS_NewLine
 
@@ -344,6 +381,14 @@
 	MOVNE	a2, #SIGEMT	;  A RISC OS exception.
 	MOV	a1, #0
 	BL	|__unixlib_raise_signal|
+
+	[ __FEATURE_PTHREADS = 1
+	LDR	a1, =|__pthread_system_running|
+	LDR	a1, [a1]
+	CMP	a1, #0
+	BLNE	|__pthread_enable_ints|
+	]
+
 	LDMEA	fp, {a1, a2, a3, a4, fp, sp, pc}^
 
 unrecoverable_error_msg
@@ -468,9 +513,26 @@ UpCall_NewApplication	EQU	256
 	MOVNES	pc, lr
 	B	|__env_riscos|
 
+	IMPORT	|__pthread_callback|
 	EXPORT	|__h_cback|
 	NAME	__h_cback
 |__h_cback|
+	[ __FEATURE_PTHREADS = 1
+	; Check if the pthreads code was expecting a callback
+
+	LDR	a1, =|__pthread_callback_pending|
+	LDR	a2, [a1]
+	CMP	a2, #0
+	MOVNE	a2, #0
+	STRNE	a2, [a1]
+	BNE	|__pthread_callback|
+	; We aren't expecting a callback, so prevent any further callbacks then handle this one
+	LDR	a1, =|__pthread_system_running|
+	LDR	a1, [a1]
+	CMP	a1, #0
+	BL	|__pthread_disable_ints|
+	]
+
 	TEQP	pc, #IFlag	; USR mode IntOff (irq off, fiq on)
 	; The USR mode registers r0-r15 are extracted from the callback
 	; register block while irqs are disabled. The registers are then
@@ -515,6 +577,14 @@ UpCall_NewApplication	EQU	256
 	LDR	a2,|__cba1|
 	MOV	v1,sp
 	BL	|__unixlib_raise_signal|
+
+	[ __FEATURE_PTHREADS = 1
+	LDR	a1, =|__pthread_system_running|
+	LDR	a1, [a1]
+	CMP	a1, #0
+	BLNE	|__pthread_enable_ints|
+	]
+
 	ADD	sp,v1,#16		; skip signal frame
 	LDMFD	sp,{a1,a2,a3,a4,v1,v2,v3,v4,v5,v6,sl,fp,ip,sp,lr,pc}^
 
@@ -699,7 +769,8 @@ itimer_exit
 
 ;-----------------------------------------------------------------------
 ; UnixLib's error buffer.
-; Note, sys_errlist[EOPSYS] points to this buffer at __ul_errbuf.
+; If threads are in use then it is only temporary, as the error handler
+; copies it into the thread's error buffer.
 ;
 ; According to 1-289 the error handler must provide an error buffer of
 ; size 256 bytes, the address of which should be set along with the

@@ -1,10 +1,10 @@
 /****************************************************************************
  *
- * $Source$
- * $Date$
- * $Revision$
- * $State$
- * $Author$
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/string.h,v $
+ * $Date: 2002/09/24 21:02:36 $
+ * $Revision: 1.4 $
+ * $State: Exp $
+ * $Author: admin $
  *
  ***************************************************************************/
 
@@ -130,6 +130,9 @@ extern char *strsignal (int __sig);
 
 /* Return the descriptive error message string for an error code.  */
 extern char *strerror (int __errnum);
+
+/* Re-entrant version of strerror */
+extern int strerror_r (int __errnum, char *__strerrbuf, size_t __buflen);
 
 __END_DECLS
 

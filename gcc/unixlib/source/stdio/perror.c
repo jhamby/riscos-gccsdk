@@ -1,27 +1,28 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/stdio/c/perror,v $
- * $Date: 1998/11/02 21:05:51 $
- * $Revision: 1.5 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/stdio/perror.c,v $
+ * $Date: 2001/01/29 15:10:21 $
+ * $Revision: 1.2 $
  * $State: Exp $
- * $Author: unixlib $
+ * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: perror,v 1.5 1998/11/02 21:05:51 unixlib Exp $";
+static const char rcs_id[] = "$Id: perror.c,v 1.2 2001/01/29 15:10:21 admin Exp $";
 #endif
 
 #include <errno.h>
 #include <stdio.h>
+#include <string.h>
 
 __STDIOLIB__
 
 void
 perror (const char *string)
 {
-  const char *error = (errno < sys_nerr) ? sys_errlist[errno]
-					 : "Unknown Error";
+  const char *error = strerror (errno);
+
   if (string)
     fprintf (stderr, "%s: %s\n", string, error);
   else

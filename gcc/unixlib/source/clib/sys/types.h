@@ -1,8 +1,8 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/sys/types.h,v $
- * $Date: 2002/02/14 15:56:35 $
- * $Revision: 1.3 $
+ * $Date: 2002/11/27 19:07:01 $
+ * $Revision: 1.4 $
  * $State: Exp $
  * $Author: admin $
  *
@@ -142,5 +142,9 @@ typedef __fsfilcnt_t fsfilcnt_t;
 #ifndef __MACHINE_ENDIAN_H
 #include <machine/endian.h>
 #endif
+
+/* pthread related types */
+#define __need_pthread_t
+#include <pthread.h>
 
 #endif

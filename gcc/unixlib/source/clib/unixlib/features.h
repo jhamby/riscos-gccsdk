@@ -1,10 +1,10 @@
 /****************************************************************************
  *
- * $Source$
- * $Date$
- * $Revision$
- * $State$
- * $Author$
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/unixlib/features.h,v $
+ * $Date: 2002/09/24 21:02:37 $
+ * $Revision: 1.4 $
+ * $State: Exp $
+ * $Author: admin $
  *
  ***************************************************************************/
 
@@ -456,6 +456,11 @@
 /* Define for support of /dev/rs423.  */
 #ifndef __FEATURE_DEV_RS423
 #define __FEATURE_DEV_RS423 1
+#endif
+
+/* Define for support for pthreads.  */
+#ifndef __FEATURE_PTHREADS
+#define __FEATURE_PTHREADS 1
 #endif
 
 /* Default to recognising Image filesystems as directories.  Some programs

@@ -305,6 +305,39 @@ NETLIB_ASM = $(libunixobj)/netlib/htonl.o \
 	$(libunixobj)/netlib/_swrite.o \
 	$(libunixobj)/netlib/_writev.o
 
+PTHREAD = $(libunixobj)/pthread/atfork.o \
+	$(libunixobj)/pthread/attr.o \
+	$(libunixobj)/pthread/cancel.o \
+	$(libunixobj)/pthread/cleanup.o \
+	$(libunixobj)/pthread/cleanupcall.o \
+	$(libunixobj)/pthread/cond.o \
+	$(libunixobj)/pthread/condattr.o \
+	$(libunixobj)/pthread/context.o \
+	$(libunixobj)/pthread/create.o \
+	$(libunixobj)/pthread/detach.o \
+	$(libunixobj)/pthread/equal.o \
+	$(libunixobj)/pthread/error.o \
+	$(libunixobj)/pthread/exit.o \
+	$(libunixobj)/pthread/init.o \
+	$(libunixobj)/pthread/join.o \
+	$(libunixobj)/pthread/key.o \
+	$(libunixobj)/pthread/keydest.o \
+	$(libunixobj)/pthread/lock.o \
+	$(libunixobj)/pthread/mutex.o \
+	$(libunixobj)/pthread/mutexattr.o \
+	$(libunixobj)/pthread/newnode.o \
+	$(libunixobj)/pthread/once.o \
+	$(libunixobj)/pthread/rwlock.o \
+	$(libunixobj)/pthread/rwlockattr.o \
+	$(libunixobj)/pthread/self.o \
+	$(libunixobj)/pthread/signal.o \
+	$(libunixobj)/pthread/testcancel.o 
+
+PTHREAD_ASM = $(libunixobj)/pthread/_context.o \
+	$(libunixobj)/pthread/_exit.o \
+	$(libunixobj)/pthread/_ints.o \
+	$(libunixobj)/pthread/_yield.o 
+
 PWD =	$(libunixobj)/pwd/fgetpwent.o \
 	$(libunixobj)/pwd/fgetpwentr.o \
 	$(libunixobj)/pwd/getlogin.o \
@@ -459,6 +492,7 @@ SYS =	$(libunixobj)/sys/alarm.o \
 	$(libunixobj)/sys/execvp.o \
 	$(libunixobj)/sys/mman.o \
 	$(libunixobj)/sys/sigsetjmp.o \
+	$(libunixobj)/sys/stackalloc.o \
 	$(libunixobj)/sys/vfork.o
 
 SYS_ASM =	$(libunixobj)/sys/_alloca.o \
@@ -642,17 +676,20 @@ WCHAR = $(libunixobj)/wchar/btowc.o \
 #  wchar.o.wcstold wchar.o.wcstod wchar.o.wcstof
 
 C_OBJS = $(COMPLEX) $(CRYPT) $(MATH) $(OBJS) $(COMMON) $(LOCALE) $(NETLIB) \
-	$(PWD) $(GRP) $(RESOURCE) $(SIGNAL) $(STAT) $(STDIO) $(STRING) \
+	$(PTHREAD) $(PWD) $(GRP) $(RESOURCE) $(SIGNAL) $(STAT) $(STDIO) $(STRING) \
 	$(STDLIB) $(SYS) $(TIME) $(TERMIOS) $(UNISTD) $(UNIX) $(WCHAR)
 
 ASM_OBJS = $(MATH_ASM) $(COMMON_ASM) $(GCCCOMPAT_ASM) $(NETLIB_ASM) \
-	$(SIGNAL_ASM) $(STDIO_ASM) $(SCL_ASM) $(SYS_ASM) $(TIME_ASM) \
-	$(UNIX_ASM)
+	$(PTHREAD_ASM) $(SIGNAL_ASM) $(STDIO_ASM) $(SCL_ASM) $(SYS_ASM) \
+	$(TIME_ASM) $(UNIX_ASM)
 
 SUL = $(ro_syspkg)/310/Modules/SharedULib,ffa
 
 all:	$(ux_gcc_bin_dir)/$(TRG)/unixlib.o $(ro_gcc_bin_dir)/$(TRG)/o/unixlib \
 	$(ro_unixlibpkg)/source/clib/o/unixlib $(SUL)
+
+$(libunixobj)/sys/stackalloc.o: sys/stackalloc.c
+	$(CROSS_CC) $(CROSS_CFLAGS) -mno-apcs-stack-check -o $@ -c $< $(INCLUDES) $(CFL)
 
 install_headers:
 	$(insthdr) clib "*.h" unixlib $(ux_gccpkg)/$(gn_cross_include_dir) $(ro_gccpkg)/$(gn_cross_include_dir)
@@ -681,6 +718,7 @@ $(ux_gcc_bin_dir)/$(TRG)/unixlib.o $(ro_gcc_bin_dir)/$(TRG)/o/unixlib $(ro_unixl
 	#$(CROSS_AR) -i $@ $(ICONV)
 	$(CROSS_AR) -i $@ $(LOCALE)
 	$(CROSS_AR) -i $@ $(NETLIB)
+	$(CROSS_AR) -i $@ $(PTHREAD)
 	$(CROSS_AR) -i $@ $(PWD)
 	$(CROSS_AR) -i $@ $(GRP)
 	$(CROSS_AR) -i $@ $(RESOURCE)
@@ -699,6 +737,7 @@ $(ux_gcc_bin_dir)/$(TRG)/unixlib.o $(ro_gcc_bin_dir)/$(TRG)/o/unixlib $(ro_unixl
 	$(CROSS_AR) -i $@ $(COMMON_ASM)
 	$(CROSS_AR) -i $@ $(GCCCOMPAT_ASM)
 	$(CROSS_AR) -i $@ $(NETLIB_ASM)
+	$(CROSS_AR) -i $@ $(PTHREAD_ASM)
 	$(CROSS_AR) -i $@ $(SIGNAL_ASM)
 	$(CROSS_AR) -i $@ $(STDIO_ASM)
 	$(CROSS_AR) -i $@ $(SCL_ASM)
@@ -991,6 +1030,39 @@ $(libunixobj)/netlib/_sockstat.o: netlib/_sockstat.s clib/unixlib/asm_dec.s
 $(libunixobj)/netlib/_sread.o: netlib/_sread.s clib/unixlib/asm_dec.s
 $(libunixobj)/netlib/_swrite.o: netlib/_swrite.s clib/unixlib/asm_dec.s
 $(libunixobj)/netlib/_writev.o: netlib/_writev.s clib/unixlib/asm_dec.s
+
+$(libunixobj)/pthread/atfork.o: pthread/atfork.c clib/pthread.h
+$(libunixobj)/pthread/attr.o: pthread/attr.c clib/pthread.h
+$(libunixobj)/pthread/cancel.o: pthread/cancel.c clib/pthread.h
+$(libunixobj)/pthread/cleanup.o: pthread/cleanup.c clib/pthread.h
+$(libunixobj)/pthread/cleanupcall.o: pthread/cleanupcall.c clib/pthread.h
+$(libunixobj)/pthread/cond.o: pthread/cond.c clib/pthread.h
+$(libunixobj)/pthread/condattr.o: pthread/condattr.c clib/pthread.h
+$(libunixobj)/pthread/context.o: pthread/context.c clib/pthread.h
+$(libunixobj)/pthread/create.o: pthread/create.c clib/pthread.h
+$(libunixobj)/pthread/detach.o: pthread/detach.c clib/pthread.h
+$(libunixobj)/pthread/equal.o: pthread/equal.c clib/pthread.h
+$(libunixobj)/pthread/error.o: pthread/error.c clib/pthread.h
+$(libunixobj)/pthread/exit.o: pthread/exit.c clib/pthread.h
+$(libunixobj)/pthread/init.o: pthread/init.c clib/pthread.h
+$(libunixobj)/pthread/join.o: pthread/join.c clib/pthread.h
+$(libunixobj)/pthread/key.o: pthread/key.c clib/pthread.h
+$(libunixobj)/pthread/keydest.o: pthread/keydest.c clib/pthread.h
+$(libunixobj)/pthread/lock.o: pthread/lock.c clib/pthread.h
+$(libunixobj)/pthread/mutex.o: pthread/mutex.c clib/pthread.h
+$(libunixobj)/pthread/mutexattr.o: pthread/mutexattr.c clib/pthread.h
+$(libunixobj)/pthread/newnode.o: pthread/newnode.c clib/pthread.h
+$(libunixobj)/pthread/once.o: pthread/once.c clib/pthread.h
+$(libunixobj)/pthread/rwlock.o: pthread/rwlock.c clib/pthread.h
+$(libunixobj)/pthread/rwlockattr.o: pthread/rwlockattr.c clib/pthread.h
+$(libunixobj)/pthread/self.o: pthread/self.c clib/pthread.h
+$(libunixobj)/pthread/signal.o: pthread/signal.c clib/pthread.h
+$(libunixobj)/pthread/testcancel.o: pthread/testcancel.c clib/pthread.h
+
+$(libunixobj)/pthread/_context.o: pthread/_context.s
+$(libunixobj)/pthread/_exit.o: pthread/_exit.s
+$(libunixobj)/pthread/_ints.o: pthread/_ints.s
+$(libunixobj)/pthread/_yield.o: pthread/_yield.s
 
 $(libunixobj)/pwd/fgetpwent.o: pwd/fgetpwent.c
 $(libunixobj)/pwd/fgetpwentr.o: pwd/fgetpwentr.c

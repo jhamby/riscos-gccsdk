@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source$
- * $Date$
- * $Revision$
- * $State$
- * $Author$
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/exec.c,v $
+ * $Date: 2002/12/13 15:01:59 $
+ * $Revision: 1.5 $
+ * $State: Exp $
+ * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id$";
+static const char rcs_id[] = "$Id: exec.c,v 1.5 2002/12/13 15:01:59 admin Exp $";
 #endif
 
 #include <ctype.h>
@@ -27,6 +27,7 @@ static const char rcs_id[] = "$Id$";
 #include <sys/wait.h>
 #include <unixlib/local.h>
 #include <unixlib/features.h>
+#include <pthread.h>
 
 /* #define DEBUG 1 */
 
@@ -259,6 +260,16 @@ execve (const char *execname, char *const argv[], char *const envp[])
   __os_print ("\r\n");
 #endif
 
+#if __FEATURE_PTHREADS
+  /* All threads are terminated on an exec call.
+     Destructor functions are not called. */
+  if (__pthread_system_running)
+    {
+      __pthread_stop_ticker ();
+      __pthread_system_running = 0;
+    }
+#endif
+
 #if __FEATURE_ITIMERS
   /* Stop any interval timers that might be running.  Technically
      the new process should inherit the pending alarms.  */
@@ -308,8 +319,9 @@ execve (const char *execname, char *const argv[], char *const envp[])
   __os_print ("\r\n");
 #endif
 
-  /* Hmmm.  This malloc *must not* be in a dynamic area.  */
-  cli = (char *) malloc (cli_length + 1);
+  /* This malloc *must not* be in a dynamic area.  */
+  cli = (char *) __stackalloc (cli_length + 1);
+  __u->cli = cli;
   if (cli == NULL)
     return __set_errno (ENOMEM);
 
@@ -504,6 +516,7 @@ execve (const char *execname, char *const argv[], char *const envp[])
      is guaranteed to minimise the malloc heap as best as possible
      before running the child program.  */
   malloc_trim (0);
+  __stackalloc_trim ();
 
   if (((unsigned int) __base & ~0xff) == 0x8000)
     {
@@ -669,6 +682,8 @@ __exret (void)
 #ifdef DEBUG
   __debug ("-- __exret: process table has just been relocated");
 #endif
+
+  __stackfree (__u->cli);
 
   __u->status.has_parent = 1;
   if (__exerr)

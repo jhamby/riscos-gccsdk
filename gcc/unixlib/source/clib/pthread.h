@@ -1,2 +1,553 @@
-/* pthread.h is not implemented.
-   This is a placeholder so that the header conformance tests can check signal.h.  */
+/****************************************************************************
+ *
+ * $Source: $
+ * $Date: $
+ * $Revision: $
+ * $State: $
+ * $Author: $
+ *
+ ***************************************************************************/
+
+/* pthread.h - IEEE Std 1003.1-2001 threads */
+
+#ifndef __PTHREAD_H
+
+#if (! defined __need_pthread_t)
+#define __PTHREAD_H
+#endif
+
+#define __need_size_t
+#include <stddef.h>
+
+#define __need_clock_t
+#include <time.h>
+
+#include <sched.h> /* for struct sched_param */
+
+#if !defined __pthread_t_defined && (defined __PTHREAD_H || defined __need_pthread_t)
+#define __pthread_t_defined
+
+/* Mutex/rwlock/cond var attributes structure */
+struct __pthread_lock_attr
+{
+  int pshared; /* can the mutex be shared between processes */
+  int type; /* mutex type */
+};
+
+/* Mutex/rwlock type */
+enum __pthread_locktype
+{
+  LOCK_INVALID = 0,
+  LOCK_READ  = 'R',
+  LOCK_WRITE = 'W',
+  LOCK_MUTEX = 'M'
+};
+
+/* Mutex/rwlock object */
+struct __pthread_lock
+{
+  unsigned int count; /* Number of times the current thread has got this lock recursively */
+  enum __pthread_locktype type; /* Type of lock */
+  struct __pthread_thread *owner; /* Thread that currently owns the lock */
+  struct __pthread_thread *waiting; /* Linked list of threads that are blocked on this lock */
+  struct __pthread_lock_attr attr; /* Attributes of the lock */
+};
+
+/* Condition var object */
+struct __pthread_cond
+{
+  struct __pthread_thread *waiting; /* Linked list of threads that are blocked on this condition var */
+};
+
+typedef struct __pthread_lock pthread_mutex_t;
+typedef struct __pthread_lock pthread_rwlock_t;
+typedef struct __pthread_cond pthread_cond_t;
+
+typedef struct __pthread_lock_attr pthread_mutexattr_t;
+typedef struct __pthread_lock_attr pthread_rwlockattr_t;
+typedef struct __pthread_lock_attr pthread_condattr_t;
+
+typedef struct __pthread_thread *pthread_t; /* Thread ID type */
+
+/* Thread attributes object */
+struct __pthread_attr
+{
+  int detachstate;  /* Whether newly created threads should be joinable or detached */
+  size_t guardsize; /* Amount of extra memory to allocate at the end of the stack, in case of overflow */
+                    /* Not used under RISC OS as the stack is extensible */
+  void *stackaddr;  /* Address of the stack to use for the thread */
+                    /* Ignored under RISC OS, as a malloced area may be unsuitable for the stack */
+  size_t stacksize; /* Size to use for the thread's stack (ignored) */
+  struct sched_param param; /* Scheduling parameters. Currently ignored */
+};
+
+typedef struct __pthread_attr pthread_attr_t;
+
+typedef int pthread_key_t; /* Key type for thread specific data */
+
+typedef int pthread_once_t; /* Type for pthread_once */
+
+/* Current schedulability state of the thread */
+enum __pthread_state
+{
+  STATE_IDLE,
+  STATE_MUTEX_WAIT, /* Waiting for a mutex to become available */
+  STATE_COND_WAIT, /* Waiting for a condition variable to be signalled */
+  STATE_COND_TIMED_WAIT, /* Waiting for a condition variable with a timeout */
+  STATE_JOIN,
+  STATE_UNALLOCED,
+
+  /* All states below this point are for threads that may be switched in by the scheduler */
+  STATE_RUNNING, /* A normally running thread */
+  STATE_CLEANUP  /* A (possibly cancelled) thread that is running its cleanup handlers */
+};
+
+/* Hold all details about the thread. A pthread_t points to one of these structures */
+struct __pthread_thread
+{
+  int magic; /* Magic number */
+
+  struct __pthread_saved_context *saved_context; /* Space for registers on the context switch */
+
+  int alloca[3]; /* Storage for alloca */
+
+  int thread_errno; /* Value of errno for this thread */
+
+  struct
+  {
+    int errnum;
+    char errmess[252];
+  } errbuf; /* Last RISC OS error from error handler */
+
+  /* WARNING: Various assembly files refer to this structure, using
+     offsets defined in asm_dec.s
+     If you change the ordering of any of the elements above this
+     comment then make sure the offsets are kept in sync. */
+
+
+  struct __pthread_thread *next; /* Linked list of all threads */
+  enum __pthread_state state; /* Running/blocked/idle/etc. */
+  void *ret; /* Value returned from thread */
+
+  void *(*start_routine)(void *); /* Function to call as the new thread */
+  void *arg; /* Argument to pass to the start_routine */
+
+  struct __stack_chunk *stack; /* Initial stack chunk allocated to thread */
+
+  struct __pthread_thread *joined; /* Thread that wishes to join with this thread */
+
+  struct __pthread_key *keys; /* Linked list of keys associated with this thread */
+
+  pthread_mutex_t *mutex; /* Mutex that the thread is waiting for */
+  enum __pthread_locktype mutextype; /* Type of mutex that the thread is waiting for */
+  pthread_cond_t *cond; /* Condition var that the thread is waiting for */
+  clock_t condtimeout; /* Timeout value for condition var */
+  struct __pthread_thread *nextwait; /* Next thread that is waiting on the same mutex/condition var */
+
+  struct __pthread_cleanup *cleanupfns; /* Linked list of cleanup functions to call when this thread exits */
+
+  unsigned int cancelstate : 1; /* Cancelability state of this thread (enabled or disabled) */
+  unsigned int canceltype : 1; /* Cancelability type (asynchronous or deferred) */
+  unsigned int cancelpending : 1; /* Should this thread be cancelled when it next reaches a cancellation point */
+  unsigned int detachstate : 1; /* Is the thread detached of can it still be joined to */
+};
+
+extern pthread_t __pthread_running_thread; /* Currently running thread */
+
+#endif /* !defined __pthread_t_defined && (defined __PTHREAD_H || defined __need_pthread_t) */
+#undef __need_pthread_t
+
+#ifdef __PTHREAD_H
+
+/* Including pthread.h should make all symbols defined in time.h visible */
+#include <time.h> /* for struct timespec */
+
+#ifndef __GNUC__
+#undef  __attribute__
+#define __attribute__(x) /* Ignore */
+#endif
+
+/* Main thread routines */
+
+/* Run start_routine as a new thread */
+extern int pthread_create (pthread_t *thread, const pthread_attr_t *attr, void *(*start_routine) (void *), void *arg);
+/* Exit from the current thread */
+extern void pthread_exit (void *value_ptr) __attribute__ ((__noreturn__));
+/* Wait for another thread to finish and get its exit status */
+extern int pthread_join (pthread_t thread, void **value_ptr);
+/* Detach a thread so all its memory is freed when it exits */
+extern int pthread_detach (pthread_t thread);
+/* Force a context switch as the current thread has nothing to do */
+extern void pthread_yield (void);
+
+/* Cancellation */
+
+/* Exit status returned by a thread that has been cancelled */
+#define PTHREAD_CANCELED ((void*)1)
+
+/* Enable a thread to be cancelled */
+#define PTHREAD_CANCEL_ENABLE 0
+/* Disable thread from being cancelled */
+#define PTHREAD_CANCEL_DISABLE 1
+/* Only cancel a thread when it reaches a cencellation point */
+#define PTHREAD_CANCEL_DEFERRED 0
+/* Cancel a thread at any point */
+#define PTHREAD_CANCEL_ASYNCHRONOUS 1
+
+/* Set whether the current thread can be cancelled or not */
+extern int pthread_setcancelstate (int state, int *oldstate);
+/* Set whether the current thread can be cancelled asynchonously or not */
+extern int pthread_setcanceltype (int type, int *oldtype);
+/* Introduce a cancellation point into the current thread */
+extern void pthread_testcancel (void);
+/* Cancel a thread */
+extern int pthread_cancel (pthread_t thread);
+
+/* Cleanup */
+
+/* Record details of a cleanup handler */
+struct __pthread_cleanup
+{
+  void (*routine) (void*); /* Cleanup routine */
+  void *arg; /* Argument to call cleanup routine with */
+  struct __pthread_cleanup *next; /* Linked list of other cleanup handlers */
+};
+
+/* Add a new cleanup handler */
+/* For every cleanup_push there must be exactly one corresponding cleanup_pop in the same scope */
+#define pthread_cleanup_push(cleanup_routine, cleanup_arg) \
+{ \
+  struct __pthread_cleanup __pthread_cleanupblk; \
+  __pthread_cleanupblk.routine = cleanup_routine; \
+  __pthread_cleanupblk.arg = cleanup_arg; \
+\
+  __pthread_cleanup_push (&__pthread_cleanupblk);
+
+/* Remove a cleanup handler, running it first if execute is nonzero */
+#define pthread_cleanup_pop(execute) \
+  if (execute && __pthread_cleanupblk.routine != NULL) \
+    __pthread_cleanupblk.routine(__pthread_cleanupblk.arg); \
+\
+  __pthread_cleanup_pop (); \
+}
+
+/* Internal functions used by the above macros */
+extern void __pthread_cleanup_push (struct __pthread_cleanup *cleanup);
+extern void __pthread_cleanup_pop (void);
+
+/* Thread attributes */
+
+/* The thread should be created so other threads may join with it */
+#define PTHREAD_CREATE_JOINABLE 0
+/* The thread should be created detached, so no threads may join with it */
+#define PTHREAD_CREATE_DETACHED 1
+
+
+/* Initialise a thread attributes object with default values */
+extern int pthread_attr_init (pthread_attr_t *attr);
+/* Destroy a thread attributes object (does nothing) */
+extern int pthread_attr_destroy (pthread_attr_t *attr);
+
+/* Sets the detach state attribute */
+extern int pthread_attr_setdetachstate (pthread_attr_t *attr, int detachstate);
+/* Gets the detach state attribute */
+extern int pthread_attr_getdetachstate (const pthread_attr_t *attr, int *detachstate);
+
+/* Sets the size of the stack guard attribute
+   The stack guard is an area of memory at the end of the stack to
+   provide protection against stack overflow. This is ignored as
+   the stack is extensible. */
+extern int pthread_attr_setguardsize (pthread_attr_t *attr, size_t guardsize);
+/* Gets the size of the stack guard attribute */
+extern int pthread_attr_getguardsize (const pthread_attr_t *attr, size_t *guardsize);
+
+/* Sets the address of a thread's stack
+   This is ignored as there are limitations on what can be used
+   for the stack. */
+extern int pthread_attr_setstackaddr (pthread_attr_t *attr, void *stackaddr);
+/* Gets the address of a thread's stack */
+extern int pthread_attr_getstackaddr (const pthread_attr_t *attr, void **stackaddr);
+
+/* Sets the size of a thread's stack (ignored) */
+extern int pthread_attr_setstacksize (pthread_attr_t *attr, size_t stacksize);
+/* Gets the size of a thread's stack (as set with setstacksize) */
+extern int pthread_attr_getstacksize (const pthread_attr_t *attr, size_t *stacksize);
+
+/* Set scheduling parameter attributes (currently ignored) */
+extern int pthread_attr_setschedparam (pthread_attr_t *attr, const struct sched_param *param);
+/* Get scheduling parameter attributes */
+extern int pthread_attr_getschedparam (const pthread_attr_t *attr, struct sched_param *param);
+
+/* Mutexes */
+
+/* Static default initialiser for a pthread_mutex_t */
+#define PTHREAD_MUTEX_INITIALIZER {0,LOCK_MUTEX,NULL,NULL,{PTHREAD_PROCESS_PRIVATE,PTHREAD_MUTEX_DEFAULT}}
+
+/* A recursively attempt to lock a mutex will cause deadlock */
+#define PTHREAD_MUTEX_NORMAL 0
+/* A recursively attempt to lock a mutex will cause an error to be returned */
+#define PTHREAD_MUTEX_ERRORCHECK 1
+/* A recursively attempt to lock a mutex will succeed */
+#define PTHREAD_MUTEX_RECURSIVE 2
+/* The default of the above settings */
+#define PTHREAD_MUTEX_DEFAULT 1
+
+/* The mutex is private to the process */
+#define PTHREAD_PROCESS_PRIVATE 0
+/* The mutex is shared between processes (ignored) */
+#define PTHREAD_PROCESS_SHARED 1
+
+/* Initialise a mutex object with the specified attributes */
+extern int pthread_mutex_init (pthread_mutex_t *mutex, const pthread_mutexattr_t *attr);
+/* Destroy a mutex that is finished with */
+extern int pthread_mutex_destroy (pthread_mutex_t *mutex);
+
+/* Lock a mutex, blocking if it is not available */
+extern int pthread_mutex_lock (pthread_mutex_t *mutex);
+/* Try to lock a mutex, but don't block if it is unavailable */
+extern int pthread_mutex_trylock (pthread_mutex_t *mutex);
+/* Unlock a previously locked mutex */
+extern int pthread_mutex_unlock (pthread_mutex_t *mutex);
+
+/* Initialise an attributes object */
+extern int pthread_mutexattr_init (pthread_mutexattr_t *attr);
+/* Destroy an attributes object */
+extern int pthread_mutexattr_destroy (pthread_mutexattr_t *attr);
+
+/* Set the process shared attribute (ignored) */
+extern int pthread_mutexattr_setpshared (pthread_mutexattr_t *attr, int pshared);
+/* Get the process shared attribute */
+extern int pthread_mutexattr_getpshared (const pthread_mutexattr_t *attr, int *pshared);
+
+/* Set the type of mutex (specifies the behaviour when a thread recursively locks the mutex) */
+extern int pthread_mutexattr_settype (pthread_mutexattr_t *attr, int type);
+/* Get the type of mutex */
+extern int pthread_mutexattr_gettype (const pthread_mutexattr_t *attr, int *type);
+
+/* Read/Write locks */
+
+/* Static default initialiser for a pthread_rwlock_t */
+#define PTHREAD_RWLOCK_INITIALIZER {0,LOCK_READ,NULL,NULL,{PTHREAD_PROCESS_PRIVATE,PTHREAD_MUTEX_DEFAULT}}
+
+/* Initialise a rwlock object with the specified attributes */
+extern int pthread_rwlock_init (pthread_rwlock_t *rwlock, const pthread_rwlockattr_t *attr);
+/* Destroy a rwlock that is finished with */
+extern int pthread_rwlock_destroy (pthread_rwlock_t *rwlock);
+
+/* Try to lock a rwlock for reading, blocking if unavailable */
+extern int pthread_rwlock_rdlock (pthread_rwlock_t *rwlock);
+/* Try to lock a rwlock for reading, but don't block if it is unavailable */
+extern int pthread_rwlock_tryrdlock (pthread_rwlock_t *rwlock);
+/* Try to lock a rwlock for writing, blocking if unavailable */
+extern int pthread_rwlock_wrlock (pthread_rwlock_t *rwlock);
+/* Try to lock a rwlock for writing, but don't block if it is unavailable */
+extern int pthread_rwlock_trywrlock (pthread_rwlock_t *rwlock);
+/* Unlock a previously locked rwlock */
+extern int pthread_rwlock_unlock (pthread_rwlock_t *rwlock);
+
+/* Initialise an attributes object */
+extern int pthread_rwlockattr_init (pthread_rwlockattr_t *attr);
+/* Destroy an attributes object */
+extern int pthread_rwlockattr_destroy (pthread_rwlockattr_t *attr);
+/* Set the process shared attribute (ignored) */
+extern int pthread_rwlockattr_setpshared (pthread_rwlockattr_t *attr, int pshared);
+/* Get the process shared attribute */
+extern int pthread_rwlockattr_getpshared (const pthread_rwlockattr_t *attr, int *pshared);
+
+/* Condition variables */
+
+/* Static default initialiser for a pthread_cond_t */
+#define PTHREAD_COND_INITIALIZER {NULL}
+
+/* Initialise a condition variable with the given attributes */
+extern int pthread_cond_init (pthread_cond_t *cond, const pthread_condattr_t *attr);
+/* Destroy a condition variable */
+extern int pthread_cond_destroy (pthread_cond_t *cond);
+
+/* Wait for a condition variable to be signalled */
+extern int pthread_cond_wait (pthread_cond_t *cond, pthread_mutex_t *mutex);
+/* Wait for a condition variable to be signalled, with a timeout */
+extern int pthread_cond_timedwait (pthread_cond_t *cond, pthread_mutex_t *mutex, const struct timespec *abstime);
+/* Signal the specified condition var */
+extern int pthread_cond_signal (pthread_cond_t *cond);
+/* Broadcast a signal to all threads waiting on this conition var */
+extern int pthread_cond_broadcast (pthread_cond_t *cond);
+
+/* Initialise a condition variable attributes object */
+extern int pthread_condattr_init (pthread_condattr_t *attr);
+/* Destroy an attributes object */
+extern int pthread_condattr_destroy (pthread_condattr_t *attr);
+/* Set process shared attribute (ignored) */
+extern int pthread_condattr_setpshared (pthread_condattr_t *attr, int pshared);
+/* Get process shared attribute */
+extern int pthread_condattr_getpshared (const pthread_condattr_t *attr, int *pshared);
+
+/* Keys */
+
+/* Maximum number of times a key destructor will be called */
+#define PTHREAD_DESTRUCTOR_ITERATIONS 50
+/* Maximum number of keys that can be created */
+#define PTHREAD_KEYS_MAX 256
+
+/* Create a key and associate a destructor function with it */
+extern int pthread_key_create (pthread_key_t *key, void (*destructor) (void*));
+/* Deletes a thread specific key (does not call the key's destructors) */
+extern int pthread_key_delete (pthread_key_t key);
+/* Set a thread specific value to associate with the given key */
+extern int pthread_setspecific (pthread_key_t key, const void *value);
+/* Read value associated with given key for the current thread */
+/* Returns NULL if no value has been set for this thread yet */
+extern void *pthread_getspecific (pthread_key_t key);
+
+/* Miscellaneous */
+
+
+/* Max munber of threads that may be active at once */
+#define PTHREAD_THREADS_MAX 256
+
+/* Size to allocate for a thread's initial stack chunk */
+#define PTHREAD_STACK_MIN 4096
+
+/* Static default initialiser for a pthread_once_t */
+#define PTHREAD_ONCE_INIT 0
+
+/* Ensure init_routine is called exactly once */
+extern int pthread_once (pthread_once_t *once_control, void (*init_routine) (void));
+
+/* Return the thread id of the current thread */
+extern pthread_t pthread_self (void);
+
+/* Compare two thread ids */
+extern int pthread_equal (pthread_t t1, pthread_t t2);
+
+/* Set handlers to be called when a process forks */
+extern int pthread_atfork (void (*prepare)(void), void (*parent)(void), void (*child)(void));
+
+
+#ifdef __UNIXLIB_INTERNALS
+
+/* Print lots of general debugging info */
+/*#define PTHREAD_DEBUG*/
+/* Print debug info for the context switcher */
+/*#define PTHREAD_DEBUG_CONTEXT*/
+
+#ifndef __UNIXLIB_FEATURES_H
+#include <unixlib/features.h>
+#endif
+
+/* Magic number to check a pthread_t is valid */
+#define PTHREAD_MAGIC 0x52485450
+
+#define __pthread_invalid(thread) (thread == NULL || thread->magic != PTHREAD_MAGIC)
+
+/* Holds data about a thread specific key */
+struct __pthread_key
+{
+  pthread_key_t keyid; /* Key that this value is attached to */
+  void *value; /* Value of the key for this thread */
+  void (*destructor) (void*); /* Destructor function to call for this value */
+  struct __pthread_key *next; /* Linked list of all keys for this thread */
+};
+
+/* Holds all the state associated with a thread when it is switched out */
+struct __pthread_saved_context
+{
+  int r[16]; /* User mode integer registers */
+  char fpregs[12*8]; /* Floating point registers */
+  int fpstatus; /* Floatingpoint status register */
+};
+
+extern pthread_t __pthread_thread_list; /* Linked list of all threads */
+extern int __pthread_system_running; /* Has the thread system been initialised yet */
+extern int __pthread_running_threads; /* Number of threads currently running or blocked */
+extern void *__pthread_context_stack_sp; /* Stack pointer to use for the scheduler */
+extern void *__pthread_context_stack_sl; /* Stack limit to use for the scheduler */
+
+/* Called once early in program initialisation */
+extern void __pthread_prog_init (void);
+/* Called once on first call to a pthread function, to initialise the thread system */
+extern void __pthread_init (void);
+/* Called if a non recoverable error is detected */
+extern void __pthread_fatal_error (const char *msg);
+
+/* Initialise a new node, allocating it if node is NULL */
+extern pthread_t __pthread_new_node (pthread_t node);
+
+/* Common routines used by mutex/rwlock/cond functions */
+extern int __pthread_lock_lock (pthread_mutex_t *mutex, const enum __pthread_locktype, const int trylock);
+extern int __pthread_lock_unlock (pthread_mutex_t *mutex, const int yield);
+
+/* Call all cleanup handlers registered for the current thread */
+extern void __pthread_cleanup_callhandlers (void);
+
+/* Call all destructors for remaining thread specific key values */
+extern void __pthread_key_calldestructors (void);
+
+/* Called by fork() just before the fork is about to happen */
+extern void __pthread_atfork_callprepare (void);
+/* Called by fork() once the fork has happened */
+extern void __pthread_atfork_callparentchild (const int parent);
+
+/* Allocate and initialise a stack chunk for a new thread */
+extern struct __stack_chunk *__pthread_new_stack (void);
+
+/* Main scheduling code */
+extern void __pthread_context_switch (void);
+
+/* Assembly functions */
+
+/* Start the callevery interrupt */
+extern void __pthread_start_ticker (void);
+/* Remove the callevery interrupt */
+extern void __pthread_stop_ticker (void);
+/* Prevent the callevery interrupt from initialising a context switch */
+extern int __pthread_disable_ints (void);
+/* Allow the callevery interrupt from initialising a context switch */
+extern int __pthread_enable_ints (void);
+/* Initialise a context save area */
+extern void __pthread_init_save_area (struct __pthread_saved_context *);
+/* Calls alloca cleanup functions on thread exit */
+extern void __pthread_exit (void);
+
+
+/* Prevent the callevery interrupt from initialising a context switch,
+   and register a function to reenable them when the current function returns */
+extern void __pthread_protect_unsafe (void);
+
+#if __FEATURE_PTHREADS
+
+/* Should be placed at the begginning of a function body for a
+   thread safe function that is defined as a cancellation point */
+#define PTHREAD_SAFE_CANCELLATION if (__pthread_system_running) pthread_testcancel ();
+
+/* Should be placed at the begginning of a function body for a
+   function that is not reentrant */
+#define PTHREAD_UNSAFE if (__pthread_system_running) __pthread_protect_unsafe ();
+
+/* Should be placed at the begginning of a function body for a
+   function that is not reentrant and is also defined as a cancellation point */
+#define PTHREAD_UNSAFE_CANCELLATION \
+if (__pthread_system_running) \
+  { \
+    pthread_testcancel (); \
+    __pthread_protect_unsafe (); \
+  }
+
+#else
+
+#define PTHREAD_SAFE_CANCELLATION
+#define PTHREAD_UNSAFE
+#define PTHREAD_UNSAFE_CANCELLATION
+
+#endif /* __FEATURE_PTHREADS */
+
+/* zero if the context switcher is allowed to switch threads */
+extern int __pthread_worksemaphore;
+
+#define PTHREAD_INIT if (!__pthread_system_running) __pthread_init ();
+
+#endif /* __UNIXLIB_INTERNALS */
+
+#endif /* __PTHREAD_H */
+#endif /* ! __PTHREAD_H */
+

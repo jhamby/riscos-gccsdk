@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source$
- * $Date$
- * $Revision$
- * $State$
- * $Author$
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/errlist.c,v $
+ * $Date: 2002/09/24 21:02:38 $
+ * $Revision: 1.4 $
+ * $State: Exp $
+ * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id$";
+static const char rcs_id[] = "$Id: errlist.c,v 1.4 2002/09/24 21:02:38 admin Exp $";
 #endif
 
 #include <string.h>
@@ -120,10 +120,41 @@ const char *sys_errlist[__SYS_NERR + 1] =
 };
 
 char *
-strerror (register int e)
+strerror (register int errnum)
 {
-  if (e < 0 || e >= sys_nerr)
-    return (0);
+  if (errnum < 0 || errnum >= sys_nerr)
+    {
+      __set_errno (EINVAL);
+      return (char *) "Unknown Error";
+    }
+  if (errnum == EOPSYS)
+    {
+#if __FEATURE_PTHREADS
+      return __pthread_running_thread->errbuf.errmess;
+#else
+      return __ul_errbuf + 8;
+#endif
+    }
 
-  return (char *) sys_errlist[e];
+  return (char *) sys_errlist[errnum];
+}
+
+int
+strerror_r (int errnum, char *strerrbuf, size_t buflen)
+{
+  size_t len;
+  const char *errmess;
+
+  if (errnum < 0 || errnum >= sys_nerr)
+    return EINVAL;
+
+  errmess = strerror (errnum);
+
+  len = strlen (errmess);
+  if (len >= buflen)
+    return ERANGE;
+
+  memcpy (strerrbuf, errmess, len + 1);
+
+  return 0;
 }

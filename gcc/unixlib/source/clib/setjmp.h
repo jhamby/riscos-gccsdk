@@ -1,10 +1,10 @@
 /****************************************************************************
  *
- * $Source$
- * $Date$
- * $Revision$
- * $State$
- * $Author$
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/setjmp.h,v $
+ * $Date: 2002/09/24 21:02:36 $
+ * $Revision: 1.4 $
+ * $State: Exp $
+ * $Author: admin $
  *
  ***************************************************************************/
 
@@ -23,14 +23,16 @@
 
 __BEGIN_DECLS
 
+/* Warning: if __JMP_BUF_SIZE is updated then lib1aof.s and riscos-{aof/elf}.h in
+   gcc/config/arm/ also need changing */
 #ifdef __JMP_BUF_SIZE
-#if __JMP_BUF_SIZE < 23
+#if __JMP_BUF_SIZE < 24
 #undef __JMP_BUF_SIZE
 #endif
 #endif
 
 #ifndef __JMP_BUF_SIZE
-#define __JMP_BUF_SIZE 23
+#define __JMP_BUF_SIZE 24
 #endif
 
 typedef int jmp_buf[__JMP_BUF_SIZE];

@@ -1,18 +1,20 @@
 /****************************************************************************
  *
- * $Source$
- * $Date$
- * $Revision$
- * $State$
- * $Author$
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/alloc.c,v $
+ * $Date: 2002/09/24 21:02:36 $
+ * $Revision: 1.4 $
+ * $State: Exp $
+ * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id$: alloc,v 1.4 1996/12/29 21:47:10 unixlib Exp $";
+static const char rcs_id[] = "$Id: alloc.c,v 1.4 2002/09/24 21:02:36 admin Exp $: alloc,v 1.4 1996/12/29 21:47:10 unixlib Exp $";
 #endif
 
 /* #define DEBUG 1 */
+
+#include <pthread.h>
 
 /*
    Functions for the malloc family.  See below for implementation details.
@@ -2133,6 +2135,8 @@ Void_t* mALLOc(bytes) size_t bytes;
 
   if (nb < bytes) return 0;  /* Fail when request size wraps around */
 
+  PTHREAD_UNSAFE
+
   /* Check for exact match in a bin */
 
   if (is_small_request(nb))  /* Faster version for small requests */
@@ -2389,6 +2393,8 @@ void fREe(mem) Void_t* mem;
   if (mem == 0)                              /* free(0) has no effect */
     return;
 
+  PTHREAD_UNSAFE
+
   p = mem2chunk(mem);
   hd = p->size;
 
@@ -2538,6 +2544,8 @@ Void_t* rEALLOc(oldmem, bytes) Void_t* oldmem; size_t bytes;
 
   /* realloc of null is supposed to be same as malloc */
   if (oldmem == 0) return mALLOc(bytes);
+
+  PTHREAD_UNSAFE
 
   newp    = oldp    = mem2chunk(oldmem);
   newsize = oldsize = chunksize(oldp);
@@ -2742,6 +2750,8 @@ Void_t* mEMALIGn(alignment, bytes) size_t alignment; size_t bytes;
   INTERNAL_SIZE_T  leadsize;  /* leading space befor alignment point */
   mchunkptr remainder;        /* spare room at end to split off */
   long      remainder_size;   /* its size */
+
+  PTHREAD_UNSAFE
 
   /* If need less alignment than we give anyway, just relay to malloc */
 
@@ -2973,6 +2983,8 @@ int malloc_trim(pad) size_t pad;
   char* new_brk;         /* address returned by negative sbrk call */
 
   unsigned long pagesz = malloc_getpagesize;
+
+  PTHREAD_UNSAFE
 
   top_size = chunksize(top);
   extra = ((top_size - pad - MINSIZE + (pagesz-1)) / pagesz - 1) * pagesz;

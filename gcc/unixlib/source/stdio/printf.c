@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source$
- * $Date$
- * $Revision$
- * $State$
- * $Author$
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/stdio/printf.c,v $
+ * $Date: 2002/12/13 15:01:59 $
+ * $Revision: 1.5 $
+ * $State: Exp $
+ * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id$";
+static const char rcs_id[] = "$Id: printf.c,v 1.5 2002/12/13 15:01:59 admin Exp $";
 #endif
 
 /*-
@@ -53,7 +53,7 @@ static const char rcs_id[] = "$Id$";
 static char sccsid[] = "@(#)vfprintf.c	8.1 (Berkeley) 6/4/93";
 #endif
 static const char rcsid[] =
-		"$Id$";
+		"$Id: printf.c,v 1.5 2002/12/13 15:01:59 admin Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 /*
@@ -302,7 +302,7 @@ pad_file (FILE * fp, char pad, int count, size_t limit)
 
   return limit;
 }
-
+#include <pthread.h>
 
 static int
 vfprintfsub(FILE *fp, size_t max, const char *fmt0, va_list ap)
@@ -388,6 +388,7 @@ vfprintfsub(FILE *fp, size_t max, const char *fmt0, va_list ap)
 	}
 
 
+PTHREAD_UNSAFE
 	/* sorry, fprintf(read_only_file, "") returns EOF, not 0 */
 	if (!fp->__mode.__write) {
 		return (EOF);

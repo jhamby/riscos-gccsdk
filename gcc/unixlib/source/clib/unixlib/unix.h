@@ -1,8 +1,8 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/unixlib/unix.h,v $
- * $Date: 2002/02/14 15:56:35 $
- * $Revision: 1.2 $
+ * $Date: 2002/09/24 21:02:37 $
+ * $Revision: 1.3 $
  * $State: Exp $
  * $Author: admin $
  *
@@ -150,9 +150,9 @@ extern void __exit (int) __attribute__ ((__noreturn__));
 extern void __exit_no_code (void) __attribute__ ((__noreturn__));
 
 /* __break is initialised to __lomem & __stack to __himem - STAKSIZ;
- * __stack is extended downwards in 512 byte chunks by x$stack_overflow()
+ * __stack is extended downwards in chunks by x$stack_overflow()
  * and __break is extended upwards by brk() and sbrk(). The sl
- * register is kept equal to __stack + 256. Should x$stack_overflow()
+ * register is kept equal to __stack + 512. Should x$stack_overflow()
  * attempt to extend __stack below __break then SIGEMT is raised.
  * Should brk() or sbrk() be asked to extend __break above __stack
  * then they return with ENOMEM. */
@@ -277,6 +277,28 @@ extern void __unixlib_signal_initialise (struct proc *__p);
 
 /* Resource limit initialisation */
 extern void __resource_initialise (struct proc *__p);
+
+/* Stack manipulation */
+
+#define STACK_CHUNK_MAGIC 0xf60690ff
+
+/* Structure representing the bottom part of a stack chunk */
+/* See _syslib.s for more details */
+struct __stack_chunk
+{
+  unsigned int magic;
+  struct __stack_chunk *next;
+  struct __stack_chunk *prev;
+  unsigned int size;
+  void (*dealloc) (void *);
+  void (*returnaddr) (void);
+};
+
+extern void __stackalloc_init (void);
+extern void *__stackalloc (size_t __size);
+extern void __stackfree (void *__ptr);
+extern int __stackalloc_trim (void);
+extern void __free_stack_chain (void *__ptr);
 
 /* Initialise the UnixLib world.  */
 void __unixinit (void);

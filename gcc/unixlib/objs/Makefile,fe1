@@ -1,8 +1,8 @@
 # Project:   UnixLib 4.0
 
 # $Source: /usr/local/cvsroot/gccsdk/unixlib/objs/Makefile,fe1,v $
-# $Date: 2002/09/24 21:02:36 $
-# $Revision: 1.4 $
+# $Date: 2002/12/13 11:07:59 $
+# $Revision: 1.5 $
 # $State: Exp $
 # $Author: admin $
 
@@ -147,6 +147,15 @@ NETLIB_ASM = netlib.o.htonl netlib.o.htons netlib.o.ntohl netlib.o.ntohs \
 	netlib.o._socket netlib.o._sockstat netlib.o._sread \
 	netlib.o._swrite netlib.o._writev
 
+PTHREAD = pthread.o.atfork pthread.o.attr pthread.o.cancel pthread.o.cleanup \
+	pthread.o.cleanupcall pthread.o.cond pthread.o.condattr pthread.o.context \
+	pthread.o.create pthread.o.detach pthread.o.equal pthread.o.error pthread.o.exit \
+	pthread.o.init pthread.o.join pthread.o.key pthread.o.keydest pthread.o.lock \
+	pthread.o.mutex pthread.o.mutexattr pthread.o.once pthread.o.rwlock \
+	pthread.o.rwlockattr pthread.o.self pthread.o.signal pthread.o.testcancel
+
+PTHREAD_ASM = pthread.o._context pthread.o._ints pthread.o._yield
+
 PWD =	pwd.o.fgetpwent pwd.o.fgetpwentr pwd.o.getlogin pwd.o.getpw \
 	pwd.o.getpwent pwd.o.getpwnam pwd.o.getpwnam_r pwd.o.getpwuid \
 	pwd.o.getpwuid_r pwd.o.putpwent pwd.o.pwdread
@@ -202,7 +211,7 @@ SCL_ASM = scl.o._kcurskch scl.o._kernel scl.o._kgetenv scl.o._kosargs \
 
 SYS =	sys.o.alarm sys.o.brk sys.o.debug sys.o.errlist \
 	sys.o.exec sys.o.execl sys.o.execle sys.o.execlp sys.o.execv \
-	sys.o.execvp sys.o.mman sys.o.sigsetjmp sys.o.vfork
+	sys.o.execvp sys.o.mman sys.o.sigsetjmp sys.o.stackalloc sys.o.vfork
 
 SYS_ASM =	sys.o._alloca sys.o._divsi3 sys.o._divtest \
 	sys.o._exec sys.o._jmp sys.o._mem sys.o._mman sys.o._modsi3 sys.o._os \
@@ -266,7 +275,7 @@ WCHAR = wchar.o.btowc wchar.o.mblen wchar.o.mbrlen wchar.o.mbrtowc \
 STAMP =	!Stamp common.!Stamp complex.!Stamp \
 	crypt.!Stamp gcccompat.!Stamp \
 	grp.!Stamp locale.!Stamp math.!Stamp math-asm.!Stamp \
-	netlib.!Stamp pwd.!Stamp resource.!Stamp signal.!Stamp \
+	netlib.!Stamp pthread.!Stamp pwd.!Stamp resource.!Stamp signal.!Stamp \
 	scl.!Stamp stat.!Stamp stdio.!Stamp stdlib.!Stamp sys.!Stamp \
 	string.!Stamp termios.!Stamp time.!Stamp unistd.!Stamp unix.!Stamp \
 	wchar.!Stamp
@@ -275,7 +284,7 @@ STAMP =	!Stamp common.!Stamp complex.!Stamp \
 UnixLib:   $(STAMP)
 	$(AR) $(ARflags) -o $@ o.* common.o.* complex.o.* \
 	crypt.o.* gcccompat.o.* \
-	grp.o.* locale.o.* math.o.* math-asm.o.* netlib.o.* pwd.o.* \
+	grp.o.* locale.o.* math.o.* math-asm.o.* netlib.o.* pthread.o.* pwd.o.* \
 	resource.o.* scl.o.* signal.o.* stat.o.* stdio.o.* stdlib.o.* \
 	string.o.* sys.o.* termios.o.* time.o.* unistd.o.* unix.o.* wchar.o.*
 
@@ -287,7 +296,7 @@ objs:	$(STAMP)
 # assemblers, and for release, the assembler needs to be run on the A5000,
 # rather then the RiscPC. Thank god for Access
 
-asm:	$(NETLIB_ASM) $(SCL_ASM) $(SYS_ASM) $(SIGNAL_ASM) $(UNIX_ASM)
+asm:	$(NETLIB_ASM) $(PTHREAD_ASM) $(SCL_ASM) $(SYS_ASM) $(SIGNAL_ASM) $(UNIX_ASM)
 	$(STDIO_ASM) $(MATH_ASM) $(GCCCOMPAT_ASM) $(COMMON_ASM) $(TIME_ASM)
 	|
 
@@ -317,6 +326,8 @@ clean:
 	-remove math-asm.!stamp
 	-wipe netlib.o.* fv~r~c
 	-remove netlib.!stamp
+	-wipe pthread.o.* fv~r~c
+	-remove pthread.!stamp
 	-wipe pwd.o.* fv~r~c
 	-remove pwd.!stamp
 	-wipe resource.o.* fv~r~c
@@ -391,6 +402,10 @@ math-asm.!Stamp:	$(MATH_ASM)
 netlib.!Stamp:	$(NETLIB) $(NETLIB_ASM)
 	-remove netlib.!Stamp
 	-create netlib.!Stamp 0
+
+pthread.!Stamp:	$(PTHREAD) $(PTHREAD_ASM)
+	-remove pthread.!Stamp
+	-create pthread.!Stamp 0
 
 pwd.!Stamp:	$(PWD)
 	-remove pwd.!Stamp
@@ -470,7 +485,6 @@ o.memcpy:		c.memcpy
 o.memset:		c.memset
 o.psignal:		c.psignal
 o.qsort:		c.qsort
-o.rand:			c.rand
 o.stpcpy:		c.stpcpy
 o.stpncpy:		c.stpncpy
 o.strcat:		c.strcat
@@ -697,6 +711,37 @@ netlib.o._sockstat:	netlib.s._sockstat <UnixHdr$Dir>.unixlib.s.asm_dec
 netlib.o._sread:	netlib.s._sread <UnixHdr$Dir>.unixlib.s.asm_dec
 netlib.o._swrite:	netlib.s._swrite <UnixHdr$Dir>.unixlib.s.asm_dec
 netlib.o._writev:	netlib.s._writev <UnixHdr$Dir>.unixlib.s.asm_dec
+
+pthread.o.atfork:	pthread.c.atfork
+pthread.o.attr:		pthread.c.attr
+pthread.o.cancel:	pthread.c.cancel
+pthread.o.cleanup:	pthread.c.cleanup
+pthread.o.cleanupcall:	pthread.c.cleanupcall
+pthread.o.cond:		pthread.c.cond
+pthread.o.condattr:	pthread.c.condattr
+pthread.o.context:	pthread.c.context
+pthread.o.create:	pthread.c.create
+pthread.o.detach:	pthread.c.detach
+pthread.o.equal:	pthread.c.equal
+pthread.o.error:	pthread.c.error
+pthread.o.exit:		pthread.c.exit
+pthread.o.init:		pthread.c.init
+pthread.o.join:		pthread.c.join
+pthread.o.key:		pthread.c.key
+pthread.o.keydest:	pthread.c.keydest
+pthread.o.lock:		pthread.c.lock
+pthread.o.mutex:	pthread.c.mutex
+pthread.o.mutexattr:	pthread.c.mutexattr
+pthread.o.once:		pthread.c.once
+pthread.o.rwlock:	pthread.c.rwlock
+pthread.o.rwlockattr:	pthread.c.rwlockattr
+pthread.o.self:		pthread.c.self
+pthread.o.signal:	pthread.c.signal
+pthread.o.testcancel:	pthread.c.testcancel
+
+pthread.o._context:	pthread.s._context <UnixHdr$Dir>.unixlib.s.asm_dec
+pthread.o._ints:	pthread.s._ints <UnixHdr$Dir>.unixlib.s.asm_dec
+pthread.o._yield:	pthread.s._yield <UnixHdr$Dir>.unixlib.s.asm_dec
 
 pwd.o.fgetpwent:	pwd.c.fgetpwent
 pwd.o.fgetpwentr:	pwd.c.fgetpwentr
