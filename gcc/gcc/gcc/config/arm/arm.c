@@ -7558,7 +7558,7 @@ arm_output_function_prologue (f, frame_size)
   asm_fprintf (f, "\t%@ nonlocal_label = %d, nonlocal_goto = %d, leaf = %d\n",
 	       current_function_has_nonlocal_label,
 	       current_function_has_nonlocal_goto,
-	       cfun->machine->leaf);
+	       arm_leaf_function_p ());
 
   if (cfun->machine->lr_save_eliminated)
     asm_fprintf (f, "\t%@ link register save eliminated.\n");
@@ -7869,10 +7869,10 @@ arm_output_function_epilogue (file, frame_size)
 
       if (use_return_insn (FALSE)
 	  && return_used_this_function
-	  && (frame_size + current_function_outgoing_args_size) != 0
+	  && abs (frame_size + current_function_outgoing_args_size) > 256
 	  && !arm_apcs_frame_needed ())
 	abort ();
-
+      
       /* Reset the ARM-specific per-function variables.  */
       after_arm_reorg = 0;
     }
@@ -8320,7 +8320,7 @@ arm_get_frame_size ()
   if (reload_completed)
     return cfun->machine->frame_size;
 
-  leaf = leaf_function_p (); /* NAB++ */
+  leaf = arm_leaf_function_p (); /* NAB++ */
 
   /* A leaf function does not need any stack alignment if it has nothing
      on the stack.  */
@@ -10480,7 +10480,7 @@ thumb_get_frame_size ()
   if (reload_completed)
     return cfun->machine->frame_size;
 
-  cfun->machine->leaf = leaf = leaf_function_p ();
+  leaf = arm_leaf_function_p ();
 
   /* A leaf function does not need any stack alignment if it has nothing
      on the stack.  */
@@ -10744,7 +10744,7 @@ thumb_output_function_prologue (f, size)
     if (THUMB_REG_PUSHED_P (regno))
       live_regs_mask |= 1 << regno;
 
-  if (live_regs_mask || !leaf_function_p () || thumb_far_jump_used_p (1))
+  if (live_regs_mask || ! arm_leaf_function_p () || thumb_far_jump_used_p (1))
     live_regs_mask |= 1 << LR_REGNUM;
 
   if (TARGET_BACKTRACE)
