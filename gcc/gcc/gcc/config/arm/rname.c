@@ -17,6 +17,8 @@
 #include <stdlib.h>
 #include <ctype.h>
 
+/* #define DEBUG */
+
 /* A list of prefixes we will try to swap round.  */
 
 static char *prefixes[] =

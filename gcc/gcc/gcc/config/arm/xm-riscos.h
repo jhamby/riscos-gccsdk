@@ -42,7 +42,7 @@ extern const char *riscos_convert_filename (void *obstack,
 
 #define ERROR_THROWBACK_FINALISE arm_throwback_finish ()
 #define GCC_DRIVER_HOST_INITIALIZATION riscos_host_initialisation ()
-#define TARGET_CONVERT_FILENAME(a,b,c,d) return riscos_convert_filename (a,b,c,d)
+/*#define TARGET_CONVERT_FILENAME(a,b,c,d) return riscos_convert_filename (a,b,c,d)*/
 #endif
 
 /* Character constant used in separating components in paths.  */
