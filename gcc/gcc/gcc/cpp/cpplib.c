@@ -978,7 +978,7 @@ do_include (pfile, keyword)
   long flen;
   unsigned char *ftok;
   cpp_buffer *fp;
-#ifdef __riscos__
+#if defined(__riscos__) || defined(CROSS_COMPILE)
   char unixed[256]; /* Temp buffer to translate Unix filenames to RISCOS */
   extern char *riscos_to_unix (char *, char *);
 #endif
@@ -1079,7 +1079,7 @@ do_include (pfile, keyword)
       ftok[flen] = '\0';
     }
 
-#ifdef __riscos__
+#if defined(__riscos__) || defined(CROSS_COMPILE)
   /* Convert the #include filename to a Unix version, then setup
      flen and fbeg as if nothing had ever happened.  */
   riscos_to_unix (ftok, unixed);
