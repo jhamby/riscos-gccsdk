@@ -1554,7 +1554,8 @@ add_library_file (const char *library)
 {
   llist *list = libraries;
 
-  if (strcmp (library, "m") == 0 || strcmp (library, "c") == 0)
+  if (strcmp (library, "m") == 0 || strcmp (library, "c") == 0 ||
+      strcmp (library, "pthread") == 0)
     {
       if (tlink_verbose >= 2)
 	printf ("Library lib%s was specified. Ignoring it\n", library);
@@ -1607,65 +1608,79 @@ static int check_and_add_library (const char *file_name)
 static void parse_library (const char *library)
 {
   char file_name[200];
-  llist *list = library_path;
-  int i;
+  int pass;
 
-  while (list)
+  /* For the first pass, try all the "regular" options,
+     for the second last ditch pass, try without the lib prefix */
+  for (pass = 0; pass < 2; pass++)
     {
-      /* Add 'lib' onto the front of each library name. This is what
-	 'ld' does anyway.  */
-      i = strlen (list->name);
-      strcpy (file_name, list->name);
-      if (list->name[i] != ':' && list->name[i] != '.'
-          && list->name[i] != '/')
-        strcat (file_name, "/");
+      llist *list = library_path;
 
-#ifdef CROSS_COMPILE
-      strcat (file_name, "lib"); 
-      strcat (file_name, library); 
-      strcat (file_name, ".a"); 
-#else 
-      strcat (file_name, "a/lib");
-      strcat (file_name, library); 
-#endif 
-      if (check_and_add_library (file_name) == 1) 
-       return; 
- 
-      /* Couldn't find lib<name>.a so try lib<name>.o */ 
-      strcpy (file_name, list->name); 
-      if (list->name[i] != ':' && list->name[i] != '.' 
-          && list->name[i] != '/') 
-        strcat (file_name, "/"); 
+      while (list)
+        {
+          int namelen = strlen (list->name);
 
+          if (pass == 0)
+            {
+  
+              /* Add 'lib' onto the front of each library name. This is what
+                'ld' does anyway.  */
+              strcpy (file_name, list->name);
+              if (list->name[namelen] != ':' && list->name[namelen] != '.'
+                  && list->name[namelen] != '/')
+                strcat (file_name, "/");
+      
 #ifdef CROSS_COMPILE
-      strcat (file_name, "lib");
-      strcat (file_name, library);
-      strcat (file_name, ".o");
+              strcat (file_name, "lib"); 
+              strcat (file_name, library); 
+              strcat (file_name, ".a"); 
 #else
-      strcat (file_name, "o/lib");
-      strcat (file_name, library);
+              strcat (file_name, "a/lib"); 
+              strcat (file_name, library); 
 #endif
-      if (check_and_add_library (file_name) == 1)
-	return;
+              if (check_and_add_library (file_name) == 1)
+               return;
+       
+              /* Couldn't find lib<name>.a so try lib<name>.o */ 
+              strcpy (file_name, list->name); 
+              if (list->name[namelen] != ':' && list->name[namelen] != '.'
+                  && list->name[namelen] != '/')
+                strcat (file_name, "/"); 
+      
+#ifdef CROSS_COMPILE
+              strcat (file_name, "lib");
+              strcat (file_name, library);
+              strcat (file_name, ".o");
+#else
+              strcat (file_name, "o/lib");
+              strcat (file_name, library);
+#endif
+              if (check_and_add_library (file_name) == 1)
+                return;
 
-      /* If we couldn't find the library with lib on the front i.e.
-	 for the case of UnixLib then try it without.  */
-      strcpy (file_name, list->name);
-      if (list->name[i] != ':' && list->name[i] != '.'
-          && list->name[i] != '/')
-        strcat (file_name, "/");
+           }
+         else
+           {
+
+           /* If we couldn't find the library with lib on the front e.g.
+              for the case of UnixLib then try it without.  */
+           strcpy (file_name, list->name);
+           if (list->name[namelen] != ':' && list->name[namelen] != '.'
+               && list->name[namelen] != '/')
+             strcat (file_name, "/");
 
 #ifdef CROSS_COMPILE
-      strcat (file_name, library);
-      strcat (file_name, ".o");
+           strcat (file_name, library);
+           strcat (file_name, ".o");
 #else
-      strcat (file_name, "o/");
-      strcat (file_name, library);
+           strcat (file_name, "o/");
+           strcat (file_name, library);
 #endif
-      if (check_and_add_library (file_name) == 1)
-	return;
-
-      list = list->next;
+           if (check_and_add_library (file_name) == 1)
+             return;
+        }
+        list = list->next;
+      }
     }
 
   /* Check for precise filename */
@@ -1901,7 +1916,7 @@ parse_args (int argc, char **argv)
 	}
     }
 
-  if (! (a & 1))
+  if (! (a & 1) && !getenv ("GCC$Linker"))
     add_option ("-quiet");
   if (! (a & 2))
     add_option ("-rescan");
