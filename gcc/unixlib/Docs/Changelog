@@ -1,3 +1,8 @@
+Sat Jan  4 15:27:54 2003  Nick Burrett  <nick@dsvr.net>
+
+	* sys/_syslib.s: Revert last change.  The SCL doesn't preserve ip
+	either, so the fix should be applied to GCC.
+
 Mon Dec 30 12:05:21 2002  Nick Burrett  <nick@dsvr.net>
 
 	* sys/_syslib.s (__rt_stkovf_split_small): Preserve 'ip'.
