@@ -7,24 +7,35 @@ CROSS_CFLAGS += -DHAVE_CONFIG_H
 $(objdir)/riscos-progs/flex/%.o: %.c
 	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c $< $(INCLUDES)
 
-OBJS = $(objdir)/riscos-progs/flex/parse.o \
-	$(objdir)/riscos-progs/flex/ccl.o \
-	$(objdir)/riscos-progs/flex/dfa.o \
-	$(objdir)/riscos-progs/flex/ecs.o \
-	$(objdir)/riscos-progs/flex/gen.o \
-	$(objdir)/riscos-progs/flex/initscan.o \
-	$(objdir)/riscos-progs/flex/main.o \
-	$(objdir)/riscos-progs/flex/misc.o \
-	$(objdir)/riscos-progs/flex/nfa.o \
-	$(objdir)/riscos-progs/flex/skel.o \
-	$(objdir)/riscos-progs/flex/sym.o \
-	$(objdir)/riscos-progs/flex/tblcmp.o \
-	$(objdir)/riscos-progs/flex/yylex.o
+fobj = $(objdir)/riscos-progs/flex
 
-LIBFL_OBJS = $(objdir)/riscos-progs/flex/libmain.o \
-	$(objdir)/riscos-progs/flex/libyywrap.o
+OBJS = \
+	$(fobj)/buf.o \
+	$(fobj)/ccl.o \
+	$(fobj)/dfa.o \
+	$(fobj)/ecs.o \
+	$(fobj)/filter.o \
+	$(fobj)/gen.o \
+	$(fobj)/main.o \
+	$(fobj)/misc.o \
+	$(fobj)/nfa.o \
+	$(fobj)/options.o \
+	$(fobj)/parse.o \
+	$(fobj)/regex.o \
+	$(fobj)/scan.o \
+	$(fobj)/scanopt.o \
+	$(fobj)/skel.o \
+	$(fobj)/sym.o \
+	$(fobj)/tables.o \
+	$(fobj)/tables_shared.o \
+	$(fobj)/tblcmp.o \
+	$(fobj)/yylex.o
 
-all:	$(bin_dir)/flex$(exesfx) $(gcc_bin_dir)/$(TRG)/o/libfl
+LIBFL_OBJS = $(fobj)/libmain.o \
+	$(fobj)/libyywrap.o
+
+all:	$(bin_dir)/flex$(exesfx) $(gcc_bin_dir)/$(TRG)/o/libfl \
+	$(info_dir)/flex
 
 $(bin_dir)/flex$(exesfx):	$(OBJS)
 	$(CROSS_CC) -o $@ $(OBJS)
@@ -32,21 +43,33 @@ $(bin_dir)/flex$(exesfx):	$(OBJS)
 $(gcc_bin_dir)/$(TRG)/o/libfl:	$(LIBFL_OBJS)
 	$(CROSS_AR) $(CROSS_AR_FLAGS) $@ $(LIBFL_OBJS)
 
+$(info_dir)/flex:	doc/flex.texi doc/version.texi
+	makeinfo --no-split --number-sections doc/flex -o $@ -I doc
+
 parse.h parse.c: parse.y
 	bison -d parse.y -o parse.c
 
-$(objdir)/riscos-progs/flex/parse.o: parse.c parse.y parse.h
-$(objdir)/riscos-progs/flex/ccl.o: ccl.c
-$(objdir)/riscos-progs/flex/dfa.o: dfa.c
-$(objdir)/riscos-progs/flex/ecs.o: ecs.c
-$(objdir)/riscos-progs/flex/gen.o: gen.c
-$(objdir)/riscos-progs/flex/initscan.o: initscan.c
-$(objdir)/riscos-progs/flex/main.o: main.c
-$(objdir)/riscos-progs/flex/misc.o: misc.c
-$(objdir)/riscos-progs/flex/nfa.o: nfa.c
-$(objdir)/riscos-progs/flex/skel.o: skel.c
-$(objdir)/riscos-progs/flex/sym.o: sym.c
-$(objdir)/riscos-progs/flex/tblcmp.o: tblcmp.c
-$(objdir)/riscos-progs/flex/yylex.o: yylex.c
-$(objdir)/riscos-progs/flex/libmain.o: libmain.c
-$(objdir)/riscos-progs/flex/libyywrap.o: libyywrap.c
+scan.c: scan.l
+	flex -t -o$@ scan.l > $@
+
+$(fobj)/parse.o: parse.c parse.y parse.h
+$(fobj)/buf.o: buf.c
+$(fobj)/ccl.o: ccl.c
+$(fobj)/dfa.o: dfa.c
+$(fobj)/ecs.o: ecs.c
+$(fobj)/filter.o: filter.c
+$(fobj)/gen.o: gen.c
+$(fobj)/main.o: main.c
+$(fobj)/misc.o: misc.c
+$(fobj)/nfa.o: nfa.c
+$(fobj)/options.o: options.c
+$(fobj)/regex.o: regex.c
+$(fobj)/scan.o: scan.c flexdef.h parse.h
+$(fobj)/scanopt.o: scanopt.c
+$(fobj)/skel.o: skel.c
+$(fobj)/sym.o: sym.c
+$(fobj)/tables.o: tables.c
+$(fobj)/tables_shared.o: tables_shared.c
+$(fobj)/tblcmp.o: tblcmp.c
+$(fobj)/yylex.o: yylex.c
+
