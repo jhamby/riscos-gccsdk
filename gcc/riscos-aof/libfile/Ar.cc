@@ -74,15 +74,13 @@ void Ar::run ()
 
   // Insert files into archive (with replacement)
   if (m_argParser->getOption ("-r")
-      || m_argParser->getOption ("-q"))
+      || m_argParser->getOption ("-q")
+      || m_argParser->getOption ("-c"))
     action = ActionInsert;
 
   // Extract members from the archive
   if (m_argParser->getOption ("-x"))
     action = (argList.length () == 0) ? ActionExtractAll : ActionExtract;
-
-  if (m_argParser->getOption ("-c"))
-    action = ActionCreate;
 
   // Display a table listing the archive contents
   if (m_argParser->getOption ("-t"))
@@ -116,7 +114,6 @@ void Ar::run ()
 	  if (err.m_err != BError::FileNotFound)
 	    THROW_SPEC_ERR (BError::FileNotFound);
 	};
-    case ActionCreate:
       library->addMembers (argList);
       library->updateOflTime ();
       library->updateOflSymt ();
