@@ -27,7 +27,11 @@ static const char rcs_id[] = "$Id: select.c,v 1.6 2004/09/06 08:40:47 peter Exp 
 #include <unixlib/types.h>
 #include <pthread.h>
 
-/* #define DEBUG */ 
+/* #define DEBUG */
+
+
+fd_set __socket_fd_set;
+
 
 #ifdef DEBUG
 #include <stdio.h>
@@ -52,19 +56,37 @@ dump_fd_set (int nfds, const fd_set *iset, FILE *file)
 static void
 __convert_fd_set (int nfds, const fd_set *iset, fd_set *oset, int *max_fd)
 {
-  int fd = nfds, sock_fd;
+#define WORD_BITS 32
+  /* Round up to whole words */
+  int words = (nfds + WORD_BITS - 1) / WORD_BITS;
 
   FD_ZERO (oset);
-  while (fd--)
+
+  while (words-- > 0)
     {
-      if ((FD_ISSET (fd, iset)) && (__socket_valid(fd) != -1))
-	{
-	  sock_fd = (int)__u->fd[fd].handle;
-	  /* FD_SET evaluates first argument twice.  */
-	  FD_SET (sock_fd, oset);
-	  if (sock_fd + 1 > *max_fd)
-	    *max_fd = sock_fd + 1;
-	}
+      int bothset; 
+
+      /* Check for bits set in both passed in set to select() and socket fds */
+      bothset = ((int *)iset)[words] & ((int *)&__socket_fd_set)[words];
+
+      if (bothset)
+        {
+          int bits = (nfds % WORD_BITS) ?: WORD_BITS;
+
+          while (bits-- > 0)
+            {
+              if ((bothset >> bits) & 1)
+                {
+                  int fd = words * WORD_BITS + bits;
+                  int sock_fd = (int)__u->fd[fd].handle;
+
+                  FD_SET (sock_fd, oset);
+                  
+                  if (sock_fd + 1 > *max_fd)
+                    *max_fd = sock_fd + 1;
+                }
+            }
+        }
     }
 #ifdef DEBUG
   fprintf (stderr, "Max sock fd is number %d\n", *max_fd);
@@ -74,26 +96,29 @@ __convert_fd_set (int nfds, const fd_set *iset, fd_set *oset, int *max_fd)
 static void
 __return_fd_set (int nfds, fd_set *iset, const fd_set *oset)
 {
-  int fd = nfds, sock_fd;
+  /* Round up to whole words */
+  int words = (nfds + WORD_BITS - 1) / WORD_BITS;
 
-#ifdef DEBUG
-  fprintf (stderr, "Returning fds from %d downwards\n", nfds);
-#endif
-  while (fd--)
+  while (words-- > 0)
     {
-      if ((FD_ISSET (fd, iset)) && (__socket_valid(fd) != -1))
-	{
-	  /* Only check sockets in the original input set.  */
-	  sock_fd = (int)__u->fd[fd].handle;
-	  /* Clear orginal set if internal set is clear for this FD.  */
-	  if (!FD_ISSET (sock_fd, oset))
-	    {
-#ifdef DEBUG
-	      fprintf (stderr, "FD_CLR fd = %d sock_fd = %d\n", fd, sock_fd);
-#endif
-	      FD_CLR(fd, iset);
-	    }
-	}
+      int bothset; 
+
+      /* Only check sockets in the original input set.  */
+      bothset = ((int *)iset)[words] & ((int *)&__socket_fd_set)[words];
+
+      if (bothset)
+        {
+          int bits = (nfds % WORD_BITS) ?: WORD_BITS;
+
+          while (bits-- > 0)
+            {
+              int fd = words * WORD_BITS + bits;
+              int sock_fd = (int)__u->fd[fd].handle;
+
+               if (!FD_ISSET (sock_fd, oset))
+                 FD_CLR (fd, iset);
+            }
+        }
     }
 }
 

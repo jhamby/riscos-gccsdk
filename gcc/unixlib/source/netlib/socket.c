@@ -1,8 +1,8 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/netlib/socket.c,v $
- * $Date: 2003/04/28 21:04:36 $
- * $Revision: 1.5 $
+ * $Date: 2004/04/21 19:43:20 $
+ * $Revision: 1.6 $
  * $State: Exp $
  * $Author: alex $
  *
@@ -10,7 +10,7 @@
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: socket.c,v 1.5 2003/04/28 21:04:36 alex Exp $";
+static const char rcs_id[] = "$Id: socket.c,v 1.6 2004/04/21 19:43:20 alex Exp $";
 #endif
 
 #include <errno.h>
@@ -80,6 +80,8 @@ socket (int af, int type, int protocol)
 
   file_desc->__magic = _FDMAGIC;
   file_desc->pid = __u->pid;
+
+  FD_SET (fd, &__socket_fd_set);
 
   return fd;
 }

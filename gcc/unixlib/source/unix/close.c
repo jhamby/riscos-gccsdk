@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/close.c,v $
- * $Date: 2003/04/05 09:33:56 $
- * $Revision: 1.4 $
+ * $Date: 2004/02/23 16:07:28 $
+ * $Revision: 1.5 $
  * $State: Exp $
- * $Author: alex $
+ * $Author: peter $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: close.c,v 1.4 2003/04/05 09:33:56 alex Exp $";
+static const char rcs_id[] = "$Id: close.c,v 1.5 2004/02/23 16:07:28 peter Exp $";
 #endif
 
 #include <errno.h>
@@ -57,6 +57,9 @@ int __close (int fd)
 #ifdef DEBUG
 	  __os_print (", closing\r\n");
 #endif
+          if (file_desc->device == DEV_SOCKET)
+            FD_CLR (fd, &__socket_fd_set);
+
 	  x = __funcall ((*(__dev[file_desc->device].close)), (file_desc));
 	  if (x == -1)
 	    {

@@ -1,8 +1,8 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/unixlib/dev.h,v $
- * $Date: 2004/10/17 16:24:44 $
- * $Revision: 1.8 $
+ * $Date: 2004/10/23 17:23:36 $
+ * $Revision: 1.9 $
  * $State: Exp $
  * $Author: joty $
  *
@@ -57,6 +57,9 @@ struct dev
   int (*stat) (const char *filename, struct stat *buf);
   int (*fstat) (int fd, struct stat *buf);
 };
+
+/* Keep track of an fd_set of socket handles for use with select()  */
+extern fd_set __socket_fd_set;
 
 extern const struct dev __dev[NDEV];
 
