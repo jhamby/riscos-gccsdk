@@ -302,7 +302,7 @@ do					\
      aof_delete_import ((NAME));				\
     }								\
   while (0)
-  
+
 /* Place uninitialised global data in the common section.  */ 
 #define ASM_OUTPUT_BSS(STREAM,DECL,NAME,SIZE,ROUNDED)		\
   do								\
@@ -473,22 +473,22 @@ do {							\
    stubs.  */
 #define LIB_SPEC "%{!nostdlib:%{!mlibscl:-lunixlib}%{mlibscl:-lscl}}"
 
-#define SUBTARGET_CPP_SPEC "-D__JMP_BUF_SIZE=27 %{mlibscl:-D__TARGET_SCL__} \
+#define SUBTARGET_CPP_SPEC "-D__JMP_BUF_SIZE=26 %{mlibscl:-D__TARGET_SCL__} \
 	%{mlibscl:-icrossdirafter /libscl} \
 	%{!mlibscl:-icrossdirafter /unixlib}"
 
 #else
-/* Library specs for RISC OS.  We look for Unixlib in the path Unix:.
-   SharedCLibrary headers will be looked for in C:.  */
-#define LIB_SPEC \
-	"%D %{!nostdlib:%{!mlibscl:-LUnix: -lunixlib}" \
-	"%{mlibscl:-LC: -lscl}}"
+
+/* Look for UnixLib unless mlibscl is set, then look for SharedCLib
+   stubs.  */
+#define LIB_SPEC "%{!nostdlib:%{!mlibscl:-lunixlib}%{mlibscl:-lscl}}"
 
 #define LIBGCC_SPEC "%{!nostdlib:-lgcc}"
 
 #define SUBTARGET_CPP_SPEC "%{mamu:-MD !Depend} \
-	%{!mlibscl:-idirafter Unix:} %{mlibscl:-idirafter C:} \
-	-D__JMP_BUF_SIZE=27 %{mlibscl:-D__TARGET_SCL__}"
+	%{mlibscl:-icrossdirafter /libscl} \
+	%{!mlibscl:-icrossdirafter /unixlib} \
+	-D__JMP_BUF_SIZE=26 %{mlibscl:-D__TARGET_SCL__}"
 
 #endif /* CROSS_COMPILE */
 
