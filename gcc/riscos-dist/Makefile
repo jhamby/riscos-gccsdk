@@ -90,9 +90,7 @@ UTILSPKG = $(pkg)/bin/bison$(exesfx) \
 	$(pkg)/bin/zip$(exesfx) \
 	$(bindir)/apcs32/arch3/unixlib/o/libfl \
 	$(bindir)/apcs32/arch3/unixlib/o/libiberty \
-	$(bindir)/apcs32/arch3/unixlib/o/libmp \
-	$(pkg)/sys/bison/simple \
-	$(pkg)/sys/bison/hairy
+	$(bindir)/apcs32/arch3/unixlib/o/libmp
 
 SYSTEMPKG = `basename $(ro_syspkg)`
 
