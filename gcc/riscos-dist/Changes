@@ -7,7 +7,9 @@ RISC OS GCC release 3.3.3 pre-release 1 (released XX XXXXXX 2004)
   makefiles that previously used the path Unix: will have to be updated
   to use UnixLib: instead.
 
-* gcc: updated to snapshot 3.3.3 20031030
+* gcc: updated to release 3.3.3 20040214.  The Standard C++ Library
+  has undergone a re-write, meaning any applications compiled with this
+  C++ compiler are not compatible with previous GCC releases.
 
 * unixlib: POSIX thread (pthread) support
 
