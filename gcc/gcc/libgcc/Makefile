@@ -193,8 +193,8 @@ $(libobjdir)/fixdfdi.o: libgcc2.c
 $(libobjdir)/fixxfdi.o: libgcc2.c
 	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c libgcc2.c $(INCLUDES) -DL_fixxfdi
 
-#$(libobjdir)/fixunsxfdi.o: libgcc2.c
-#	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c libgcc2.c $(INCLUDES) -DL_fixunsxfdi
+$(libobjdir)/fixunsdfdi.o: libgcc2.c
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c libgcc2.c $(INCLUDES) -DL_fixunsdfdi
 
 $(libobjdir)/floatdixf.o: libgcc2.c
 	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c libgcc2.c $(INCLUDES) -DL_floatdixf
@@ -291,8 +291,8 @@ $(libobjdir)/floatdidf.o:	lib1aof.s
 #	$(CC_S) -c lib1aof.s -o $@ -DL_floatdixf
 $(libobjdir)/fixunsxfdi.o:	lib1aof.s
 	$(CC_S) -c lib1aof.s -o $@ -DL_fixunsxfdi
-$(libobjdir)/fixunsdfdi.o:	lib1aof.s
-	$(CC_S) -c lib1aof.s -o $@ -DL_fixunsdfdi
+#$(libobjdir)/fixunsdfdi.o:	lib1aof.s
+#	$(CC_S) -c lib1aof.s -o $@ -DL_fixunsdfdi
 $(libobjdir)/fixunssfdi.o:	lib1aof.s
 	$(CC_S) -c lib1aof.s -o $@ -DL_fixunssfdi
 $(libobjdir)/fixsfdi.o:	lib1aof.s
