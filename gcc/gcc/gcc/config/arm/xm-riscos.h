@@ -1,6 +1,6 @@
 /* Configuration for GNU compilers for processor running RISC OS.
    Copyright (C) 1998, 2003, 2004 Free Software Foundation, Inc.
-   Contributed by Nick Burrett (nick.burrett@btinternet.com)
+   Contributed by Nick Burrett (nick@sqrt.co.uk)
 
 This file is part of GNU CC.
 
@@ -42,7 +42,7 @@ extern const char *riscos_convert_filename (void *obstack,
 
 #define ERROR_THROWBACK_FINALISE arm_throwback_finish ()
 #define GCC_DRIVER_HOST_INITIALIZATION riscos_host_initialisation ()
-/*#define TARGET_CONVERT_FILENAME(a,b,c,d) return riscos_convert_filename (a,b,c,d)*/
+#define TARGET_CONVERT_FILENAME(a,b,c,d) return riscos_convert_filename (a,b,c,d)
 #endif
 
 /* Character constant used in separating components in paths.  */
