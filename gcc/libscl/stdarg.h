@@ -25,7 +25,6 @@ typedef char * __gnuc_va_list;
 #if defined(__LCC__)
 /* Definition for the LCC compiler.  */
 
-typedef __gnuc_va_list va_list;
 #define va_start(list, start) ((void)((list) = (sizeof(start)<4 ? \
   (char *)((int *)&(start)+1) : (char *)(&(start)+1))))
 #define va_arg(list, mode) \
@@ -37,7 +36,6 @@ typedef __gnuc_va_list va_list;
 /* Definitions for the Norcroft compiler.  */
 
 #define va_align(x)     (((x) + (sizeof(int) - 1)) & (~(sizeof(int) - 1)))
-
 #define va_start(a,p)   ((void)((a) = ((char *)(&(p)) + va_align(sizeof(p)))))
 #define va_arg(a,t)     ((sizeof(t) > sizeof(int)) ? \
         *(t *)(void *)(((a) += va_align(sizeof(t))) - va_align(sizeof(t))) : \
