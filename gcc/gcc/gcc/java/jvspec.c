@@ -574,9 +574,12 @@ lang_specific_driver (in_argc, in_argv, in_added_libraries)
       arglist[j++] = filelist_filename;
     }
 
+  /* NAB++ On RISC OS we don't have debugging support.  */
+#if 0
   /* If we saw no -O or -g option, default to -g1, for javac compatibility. */
   if (saw_g + saw_O == 0)
     arglist[j++] = "-g1";
+#endif
 
   /* Read the specs file corresponding to libgcj.
      If we didn't find the spec file on the -L path, then we hope it
