@@ -438,6 +438,7 @@ expand_builtin_return_addr (fndecl_code, count, tem)
 	emit_library_call_value (function_call, tem, LCT_NORMAL,
 				 Pmode, 1,
 				 GEN_INT (count), SImode);
+	return tem;
       }
   }
 #endif
