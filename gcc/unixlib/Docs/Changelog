@@ -1,3 +1,53 @@
+Sat Apr  5 10:33:45 2003  Alex Waugh  <alex@alexwaugh.com>
+
+	Thread safety patches
+	* termios/ctermid.c: Changed.
+	* termios/cuserid.c: Changed.
+	* termios/tcgetattr.c: Changed.
+	* time/asctime.c: Changed.
+	* time/ctime.c: Changed.
+	* time/setitmr.c: Changed.
+	* time/stdtime.c: Changed.
+	* time/tzset.c: Changed.
+	* wchar/mbrlen.c: Changed.
+	* wchar/mbrtowc.c: Changed.
+	* wchar/wcrtomb.c: Changed.
+	* unix/close.c: Changed.
+	* unix/dirent.c (readdir_r): Fix return values
+	(invalidate, newstream): Thready safety
+	* unix/fchmod.c: Changed.
+	* unix/fcntl.c: Changed.
+	* unix/fstat.c: Changed.
+	* unix/getcwd.c: Changed.
+	* unix/getenv.c: Changed.
+	* unix/gethostnam.c: Changed.
+	* unix/getopt.c: Changed.
+	* unix/ioctl.c: Changed.
+	* unix/isatty.c: Changed.
+	* unix/ispipe.c: Changed.
+	* unix/lseek.c: Changed.
+	* unix/open.c: Changed.
+	* unix/pathconf.c: Changed.
+	* unix/pipe.c: Changed.
+	* unix/poll.c: Changed.
+	* unix/proc.c: Changed.
+	* unix/read.c: Changed.
+	* unix/readv.c: Changed.
+	* unix/reopen.c: Changed.
+	* unix/select.c: Changed.
+	* unix/setenv.c: Changed.
+	* unix/stat.c: Changed.
+	* unix/sync.c: Changed.
+	* unix/syslog.c: Changed.
+	* unix/truncate.c: Changed.
+	* unix/tty.c: Changed.
+	* unix/umask.c: Changed.
+	* unix/unix.c: Changed.
+	* unix/wait.c: Changed.
+	* unix/wait4.c: Changed.
+	* unix/write.c: Changed.
+	* unix/writev.c: Changed.
+
 Sat Apr  5 10:12:54 2003  Alex Waugh  <alex@alexwaugh.com>
 
 	* sys/_syslib.s (free_stack_chunk): Preserve a2 as

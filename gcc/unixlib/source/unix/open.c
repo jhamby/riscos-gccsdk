@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source$
- * $Date$
- * $Revision$
- * $State$
- * $Author$
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/open.c,v $
+ * $Date: 2003/01/21 17:48:32 $
+ * $Revision: 1.4 $
+ * $State: Exp $
+ * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id$";
+static const char rcs_id[] = "$Id: open.c,v 1.4 2003/01/21 17:48:32 admin Exp $";
 #endif
 
 #include <stdarg.h>
@@ -24,12 +24,15 @@ static const char rcs_id[] = "$Id$";
 
 #include <unixlib/fd.h>
 #include <unixlib/local.h>
+#include <pthread.h>
 
 
 char *
 ttyname (int fd)
 {
   static char name[10];
+
+  PTHREAD_UNSAFE
 
   if (BADF (fd))
     {
@@ -49,6 +52,8 @@ int
 __open (int fd, const char *file, int oflag, int mode)
 {
   struct __unixlib_fd *file_desc;
+
+  PTHREAD_UNSAFE
 
   file_desc = &__u->fd[fd];
   file_desc->fflag = oflag;
@@ -76,6 +81,8 @@ open (const char *file, int oflag, ...)
 {
   va_list ap;
   int mode, fd;
+
+  PTHREAD_UNSAFE_CANCELLATION
 
   if (file == NULL)
     return __set_errno (EINVAL);

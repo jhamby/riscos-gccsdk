@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/fchmod.c,v $
- * $Date: 2001/09/04 16:32:04 $
- * $Revision: 1.2.2.1 $
+ * $Date: 2002/02/14 15:56:38 $
+ * $Revision: 1.3 $
  * $State: Exp $
  * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: fchmod.c,v 1.2.2.1 2001/09/04 16:32:04 admin Exp $";
+static const char rcs_id[] = "$Id: fchmod.c,v 1.3 2002/02/14 15:56:38 admin Exp $";
 #endif
 
 #include <errno.h>
@@ -23,6 +23,7 @@ static const char rcs_id[] = "$Id: fchmod.c,v 1.2.2.1 2001/09/04 16:32:04 admin 
 #include <unixlib/unix.h>
 
 #include <unixlib/local.h>
+#include <pthread.h>
 
 int fchmod (int fd, mode_t mode)
 {
@@ -31,6 +32,8 @@ int fchmod (int fd, mode_t mode)
   int regs[10];
   char name[_POSIX_NAME_MAX];
 
+  PTHREAD_UNSAFE
+  
   if (BADF (fd))
     return __set_errno (EBADF);
 

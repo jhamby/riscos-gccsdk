@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/getenv.c,v $
- * $Date: 2001/09/04 16:32:04 $
- * $Revision: 1.2.2.2 $
+ * $Date: 2002/02/14 15:56:38 $
+ * $Revision: 1.3 $
  * $State: Exp $
  * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: getenv.c,v 1.2.2.2 2001/09/04 16:32:04 admin Exp $";
+static const char rcs_id[] = "$Id: getenv.c,v 1.3 2002/02/14 15:56:38 admin Exp $";
 #endif
 
 #include <errno.h>
@@ -19,6 +19,7 @@ static const char rcs_id[] = "$Id: getenv.c,v 1.2.2.2 2001/09/04 16:32:04 admin 
 #include <unixlib/os.h>
 #include <unixlib/unix.h>
 #include <swis.h>
+#include <pthread.h>
 
 /* #define DEBUG 1 */
 
@@ -250,6 +251,8 @@ __chkenv (const char *name)
   const size_t len = strlen (name);
   char **ep;
 
+  PTHREAD_UNSAFE
+  
 #ifdef DEBUG
   __os_print ("-- chkenv: name='"); __os_print (name);
   __os_print ("', environ="); __os_prhex ((int) environ);
@@ -275,6 +278,8 @@ __addenv (const char *name, const char *value, int replace, int add_to_os)
   size_t envcnt = 0;
   const size_t namelen = strlen (name);
   const size_t valuelen = strlen (value) + 1;
+
+  PTHREAD_UNSAFE
 
 #ifdef DEBUG
   __os_print ("-- addenv: name='"); __os_print (name);

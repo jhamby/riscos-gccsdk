@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/termios/tcgetattr.c,v $
- * $Date: 2001/09/11 16:53:58 $
- * $Revision: 1.2.2.2 $
+ * $Date: 2002/02/14 15:56:37 $
+ * $Revision: 1.3 $
  * $State: Exp $
  * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: tcgetattr.c,v 1.2.2.2 2001/09/11 16:53:58 admin Exp $";
+static const char rcs_id[] = "$Id: tcgetattr.c,v 1.3 2002/02/14 15:56:37 admin Exp $";
 #endif
 
 #include <errno.h>
@@ -18,6 +18,7 @@ static const char rcs_id[] = "$Id: tcgetattr.c,v 1.2.2.2 2001/09/11 16:53:58 adm
 #include <sys/ioctl.h>
 #include <sys/types.h>
 #include <unixlib/unix.h>
+#include <pthread.h>
 
 /* Put the state of FD into *TERMIOS_P.  */
 int
@@ -30,6 +31,8 @@ tcgetattr (int fd, struct termios *termios_p)
 #ifdef	TIOCGETX
   int extra;
 #endif
+
+  PTHREAD_UNSAFE
 
   if (termios_p == NULL)
     return __set_errno (EINVAL);

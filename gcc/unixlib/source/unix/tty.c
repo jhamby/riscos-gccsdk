@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source$
- * $Date$
- * $Revision$
- * $State$
- * $Author$
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/tty.c,v $
+ * $Date: 2002/12/13 15:01:59 $
+ * $Revision: 1.7 $
+ * $State: Exp $
+ * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id$";
+static const char rcs_id[] = "$Id: tty.c,v 1.7 2002/12/13 15:01:59 admin Exp $";
 #endif
 
 /* System V tty device driver for RISC OS.  */
@@ -36,6 +36,7 @@ static const char rcs_id[] = "$Id$";
 #include <swis.h>
 #include <unixlib/features.h>
 #include <unixlib/fd.h>
+#include <pthread.h>
 
 #define IGNORE(x) x = x
 
@@ -155,6 +156,8 @@ __tty_console_swinsz (struct winsize *win)
   int j;
   int regs[10];
 
+  PTHREAD_UNSAFE
+
   regs[0] = (int) vars;
   regs[1] = (int) values;
   __os_swi (OS_ReadVduVariables, regs);
@@ -193,6 +196,8 @@ __tty_console_gterm (struct termios *term)
 {
   int regs[3];
 
+  PTHREAD_UNSAFE
+
   /* Get `Interrupt key' and state of `Interrupt key'.  */
   __os_byte (0xdc, 0, 0xff, regs);
   term->c_cc[VINTR] = regs[1];
@@ -207,6 +212,8 @@ __tty_console_gterm (struct termios *term)
 static void
 __tty_console_sterm (struct termios *term)
 {
+  PTHREAD_UNSAFE
+
   /* Set `Interrupt key' and state of `Interrupt key'.  */
   __os_byte (0xdc, term->c_cc[VINTR], 0, NULL);
   if (term->c_lflag & ISIG)
@@ -255,6 +262,8 @@ __tty_423_sterm (struct termios *term)
   int control;
   tcflag_t cflag;
   int regs[10];
+
+  PTHREAD_UNSAFE
 
   /* Set baud rate for receive and transmit and data format.  */
 

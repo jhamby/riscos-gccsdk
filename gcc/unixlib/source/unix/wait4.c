@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/wait4.c,v $
- * $Date: 2001/09/04 16:32:04 $
- * $Revision: 1.2.2.1 $
+ * $Date: 2002/02/14 15:56:39 $
+ * $Revision: 1.3 $
  * $State: Exp $
  * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: wait4.c,v 1.2.2.1 2001/09/04 16:32:04 admin Exp $";
+static const char rcs_id[] = "$Id: wait4.c,v 1.3 2002/02/14 15:56:39 admin Exp $";
 #endif
 
 #include <errno.h>
@@ -19,6 +19,7 @@ static const char rcs_id[] = "$Id: wait4.c,v 1.2.2.1 2001/09/04 16:32:04 admin E
 #include <sys/types.h>
 #include <unixlib/unix.h>
 #include <sys/wait.h>
+#include <pthread.h>
 
 /* If usage is not null, wait4 returns usage figures for the child
    process in *usage (but only if the child has terminated and not
@@ -103,6 +104,8 @@ wait4 (pid_t pid, int *status, int options, struct rusage *usage)
 {
   static int process = 0;
   int start_value;
+
+  PTHREAD_UNSAFE
 
   if ((options & ~(WNOHANG | WUNTRACED)) != 0)
     return (pid_t) __set_errno (EINVAL);

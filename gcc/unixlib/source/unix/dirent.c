@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source$
- * $Date$
- * $Revision$
- * $State$
- * $Author$
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/dirent.c,v $
+ * $Date: 2002/09/24 21:02:38 $
+ * $Revision: 1.4 $
+ * $State: Exp $
+ * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id$";
+static const char rcs_id[] = "$Id: dirent.c,v 1.4 2002/09/24 21:02:38 admin Exp $";
 #endif
 
 /* #define DEBUG */
@@ -29,6 +29,7 @@ static const char rcs_id[] = "$Id$";
 #include <swis.h>
 
 #include <unixlib/local.h>
+#include <pthread.h>
 
 /* Size of OS_GBPB buffer. If this is too small, directory reading
    performance is severly reduced. A 1K buffer is sufficient until
@@ -69,7 +70,11 @@ static DIR *dir_head = NULL;
 static void
 invalidate (DIR *stream)
 {
-  DIR *next = stream->next;
+  DIR *next;
+
+  PTHREAD_UNSAFE
+
+  next = stream->next;
   memset(stream, 0, sizeof (DIR));
   stream->next = next;
 }
@@ -82,6 +87,8 @@ newstream (const char *name, __off_t offset)
   DIR *stream;
   _kernel_oserror *err;
   int regs[10];
+
+  PTHREAD_UNSAFE
 
   stream = dir_head;
   /* Look for a previously created stream that is now finished free.  */
@@ -239,8 +246,7 @@ opendir (const char *ux_name)
   return stream;
 }
 
-/* Read the next entry from the directory stream. POSIX.4a version.
-   What does the return value mean ? Seems to be always 0 ?! */
+/* Read the next entry from the directory stream. POSIX.4a version. */
 int
 readdir_r (DIR *stream, struct dirent *entry, struct dirent **result)
 {
@@ -258,7 +264,7 @@ readdir_r (DIR *stream, struct dirent *entry, struct dirent **result)
 #endif
 
   if (!__validdir (stream))
-    return __set_errno (EBADF);
+    return EBADF;
 
   /* Enumerating the suffix swapped directory ? */
   if (stream->suffix)
@@ -381,7 +387,7 @@ readdir_r (DIR *stream, struct dirent *entry, struct dirent **result)
             if (err)
               {
                 __seterr (err);
-                return 0;
+                return EIO;
               }
 
 #ifdef DEBUG

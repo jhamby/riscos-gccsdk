@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source$
- * $Date$
- * $Revision$
- * $State$
- * $Author$
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/pipe.c,v $
+ * $Date: 2002/12/13 15:01:59 $
+ * $Revision: 1.4 $
+ * $State: Exp $
+ * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id$";
+static const char rcs_id[] = "$Id: pipe.c,v 1.4 2002/12/13 15:01:59 admin Exp $";
 #endif
 
 #include <unixlib/features.h>
@@ -25,6 +25,7 @@ static const char rcs_id[] = "$Id$";
 #include <unixlib/unix.h>
 
 #include <unixlib/fd.h>
+#include <pthread.h>
 
 int
 pipe (int *p)
@@ -35,6 +36,8 @@ pipe (int *p)
   int fd0, fd1;
   char file[32];
   int pcnt;
+
+  PTHREAD_UNSAFE
 
   fd0 = __alloc_file_descriptor ();
   if (fd0 == -1)

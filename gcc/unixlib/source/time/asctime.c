@@ -1,21 +1,22 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/time/c/asctime,v $
- * $Date: 1997/10/09 20:00:45 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/time/asctime.c,v $
+ * $Date: 2001/01/29 15:10:22 $
  * $Revision: 1.2 $
  * $State: Exp $
- * $Author: unixlib $
+ * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: asctime,v 1.2 1997/10/09 20:00:45 unixlib Exp $";
+static const char rcs_id[] = "$Id: asctime.c,v 1.2 2001/01/29 15:10:22 admin Exp $";
 #endif
 
 /* Territory time support, written by Nick Burrett on 12 July 1997.  */
 
 #include <time.h>
 
+/* Defined by POSIX as not threadsafe */
 char *
 asctime (const struct tm *brokentime)
 {

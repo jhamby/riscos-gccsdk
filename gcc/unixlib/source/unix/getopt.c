@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/unix/c/getopt,v $
- * $Date: 1997/10/19 21:50:54 $
- * $Revision: 1.4 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/getopt.c,v $
+ * $Date: 2001/01/29 15:10:22 $
+ * $Revision: 1.2 $
  * $State: Exp $
- * $Author: unixlib $
+ * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: getopt,v 1.4 1997/10/19 21:50:54 unixlib Exp $";
+static const char rcs_id[] = "$Id: getopt.c,v 1.2 2001/01/29 15:10:22 admin Exp $";
 #endif
 
 /*
@@ -67,6 +67,8 @@ char *optarg;			/* Argument associated with option.  */
 /*
    getopt --
 	Parse argc/argv argument vector.  */
+
+/* Defined by POSIX as not threadsafe */
 
 int
 getopt (int nargc, char * const *nargv, const char *ostr)

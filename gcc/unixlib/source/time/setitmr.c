@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source$
- * $Date$
- * $Revision$
- * $State$
- * $Author$
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/time/setitmr.c,v $
+ * $Date: 2002/09/24 21:02:38 $
+ * $Revision: 1.4 $
+ * $State: Exp $
+ * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id$";
+static const char rcs_id[] = "$Id: setitmr.c,v 1.4 2002/09/24 21:02:38 admin Exp $";
 #endif
 
 #include <stddef.h>
@@ -18,6 +18,7 @@ static const char rcs_id[] = "$Id$";
 #include <swis.h>
 #include <sys/time.h>
 #include <unixlib/unix.h>
+#include <pthread.h>
 
 #ifndef __GNUC__
 #define __inline__ /**/
@@ -104,6 +105,8 @@ setitimer (enum __itimer_which which, const struct itimerval *new_timer,
 	   struct itimerval *old_timer)
 {
   struct itimerval *itimer;
+
+  PTHREAD_UNSAFE
 
   /* We can't implement interval timers whilst executing in a task window
      nor whilst running as a WIMP program.   Note that when

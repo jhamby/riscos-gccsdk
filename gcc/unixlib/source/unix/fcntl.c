@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source$
- * $Date$
- * $Revision$
- * $State$
- * $Author$
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/fcntl.c,v $
+ * $Date: 2002/12/22 18:22:29 $
+ * $Revision: 1.5 $
+ * $State: Exp $
+ * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id$";
+static const char rcs_id[] = "$Id: fcntl.c,v 1.5 2002/12/22 18:22:29 admin Exp $";
 #endif
 
 #include <errno.h>
@@ -21,6 +21,7 @@ static const char rcs_id[] = "$Id$";
 #include <unixlib/unix.h>
 #include <unixlib/fd.h>
 #include <unixlib/dev.h>
+#include <pthread.h>
 
 int
 fcntl (int fd, int cmd, ...)
@@ -28,6 +29,8 @@ fcntl (int fd, int cmd, ...)
   va_list ap;
   struct __unixlib_fd *file_desc;
 
+  PTHREAD_UNSAFE_CANCELLATION
+  
   if (BADF (fd))
     return __set_errno (EBADF);
 

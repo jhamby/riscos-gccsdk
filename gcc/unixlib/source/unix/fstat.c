@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source$
- * $Date$
- * $Revision$
- * $State$
- * $Author$
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/fstat.c,v $
+ * $Date: 2003/01/21 17:48:32 $
+ * $Revision: 1.5 $
+ * $State: Exp $
+ * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id$";
+static const char rcs_id[] = "$Id: fstat.c,v 1.5 2003/01/21 17:48:32 admin Exp $";
 #endif
 
 #include <errno.h>
@@ -24,6 +24,7 @@ static const char rcs_id[] = "$Id$";
 
 #include <unixlib/local.h>
 #include <unixlib/swiparams.h>
+#include <pthread.h>
 
 int
 fstat (int fd, struct stat *buf)
@@ -31,6 +32,8 @@ fstat (int fd, struct stat *buf)
   struct __unixlib_fd *file_desc;
   int regs[10];
 
+  PTHREAD_UNSAFE
+  
   if (buf == NULL)
     return __set_errno (EINVAL);
 

@@ -1,8 +1,8 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/wchar/c/wcrtomb,v $
- * $Date: 2000/06/03 16:53:10 $
- * $Revision: 1.1 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/wchar/wcrtomb.c,v $
+ * $Date: 2001/01/29 15:10:22 $
+ * $Revision: 1.2 $
  * $State: Exp $
  * $Author: admin $
  *
@@ -47,6 +47,7 @@ static const unsigned char encoding_byte[] =
 /* The state is for this UTF8 encoding not used.  */
 static mbstate_t internal;
 
+/* Defined by POSIX as not threadsafe when passed a NULL ps argument */
 size_t
 wcrtomb (char *s, wchar_t wc, mbstate_t *ps)
 {

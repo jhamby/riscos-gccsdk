@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/termios/c/ctermid,v $
- * $Date: 1997/12/17 22:02:58 $
- * $Revision: 1.1 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/termios/ctermid.c,v $
+ * $Date: 2001/01/29 15:10:21 $
+ * $Revision: 1.2 $
  * $State: Exp $
- * $Author: unixlib $
+ * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: ctermid,v 1.1 1997/12/17 22:02:58 unixlib Exp $";
+static const char rcs_id[] = "$Id: ctermid.c,v 1.2 2001/01/29 15:10:21 admin Exp $";
 #endif
 
 #include <stdio.h>
@@ -19,6 +19,8 @@ static const char rcs_id[] = "$Id: ctermid,v 1.1 1997/12/17 22:02:58 unixlib Exp
 /* Return the name of the controlling terminal.
    If S is not NULL, the name is copied into it (it should be at
    least L_ctermid bytes long), otherwise a static buffer is used.  */
+
+/* Defined by POSIX as not threadsafe when passed a NULL argument */
 char *
 ctermid (char *s)
 {

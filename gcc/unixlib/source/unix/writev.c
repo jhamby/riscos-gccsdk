@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/writev.c,v $
- * $Date: 2001/09/04 16:32:04 $
- * $Revision: 1.2.2.2 $
+ * $Date: 2002/02/14 15:56:39 $
+ * $Revision: 1.3 $
  * $State: Exp $
  * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: writev.c,v 1.2.2.2 2001/09/04 16:32:04 admin Exp $";
+static const char rcs_id[] = "$Id: writev.c,v 1.3 2002/02/14 15:56:39 admin Exp $";
 #endif
 
 #include <errno.h>
@@ -23,6 +23,7 @@ static const char rcs_id[] = "$Id: writev.c,v 1.2.2.2 2001/09/04 16:32:04 admin 
 #include <unixlib/unix.h>
 
 #include <unixlib/fd.h>
+#include <pthread.h>
 
 /* Write data pointed by the buffers described by VECTOR, which
    is a vector of COUNT `struct iovec's, to file descriptor FD.
@@ -35,6 +36,8 @@ writev (int fd, const struct iovec *vector, int count)
   size_t bytes, bytes_written;
   int i;
   unsigned int device;
+
+  PTHREAD_UNSAFE_CANCELLATION
 
   if (count <= 0)
     return __set_errno (EINVAL);

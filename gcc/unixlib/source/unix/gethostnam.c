@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/gethostnam.c,v $
- * $Date: 2001/09/04 16:32:04 $
- * $Revision: 1.2.2.2 $
+ * $Date: 2002/02/14 15:56:38 $
+ * $Revision: 1.3 $
  * $State: Exp $
  * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: gethostnam.c,v 1.2.2.2 2001/09/04 16:32:04 admin Exp $";
+static const char rcs_id[] = "$Id: gethostnam.c,v 1.3 2002/02/14 15:56:38 admin Exp $";
 #endif
 
 #include <string.h>
@@ -31,9 +31,9 @@ fakehostname (char *name, size_t len)
 {
   int regs[3];
   _kernel_oserror *err;
-  static char buf[8] = "acorn";
-  static char hex[16] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
-			 'A', 'B', 'C', 'D', 'E', 'F'};
+  char buf[8] = "acorn";
+  static const char hex[16] = {'0', '1', '2', '3', '4', '5', '6', '7', '8',
+                               '9', 'A', 'B', 'C', 'D', 'E', 'F'};
 
   /* Create a string that consists of "acorn<econet station number>".
      Read station number from CMOS location 1.  */

@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/time/tzset.c,v $
- * $Date: 2001/09/04 16:32:04 $
- * $Revision: 1.3.2.2 $
+ * $Date: 2002/02/14 15:56:38 $
+ * $Revision: 1.4 $
  * $State: Exp $
  * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: tzset.c,v 1.3.2.2 2001/09/04 16:32:04 admin Exp $";
+static const char rcs_id[] = "$Id: tzset.c,v 1.4 2002/02/14 15:56:38 admin Exp $";
 #endif
 
 /* Territory time support, written by Nick Burrett on 12 July 1997.  */
@@ -22,6 +22,7 @@ static const char rcs_id[] = "$Id: tzset.c,v 1.3.2.2 2001/09/04 16:32:04 admin E
 #include <string.h>
 #include <unixlib/os.h>
 #include <swis.h>
+#include <pthread.h>
 
 /* The default timezones.  */
 static char __tzname[2][8] = { "GMT", "BST" };
@@ -36,6 +37,8 @@ tzset (void)
 {
   int regs[10];
   int nondstoffset;
+
+  PTHREAD_UNSAFE
 
   /* Use current territory.  */
   regs[0] = __locale_territory[LC_TIME];

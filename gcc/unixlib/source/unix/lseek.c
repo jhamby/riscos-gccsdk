@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/lseek.c,v $
- * $Date: 2001/09/04 16:32:04 $
- * $Revision: 1.2.2.2 $
+ * $Date: 2002/02/14 15:56:38 $
+ * $Revision: 1.3 $
  * $State: Exp $
  * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: lseek.c,v 1.2.2.2 2001/09/04 16:32:04 admin Exp $";
+static const char rcs_id[] = "$Id: lseek.c,v 1.3 2002/02/14 15:56:38 admin Exp $";
 #endif
 
 #include <errno.h>
@@ -20,11 +20,14 @@ static const char rcs_id[] = "$Id: lseek.c,v 1.2.2.2 2001/09/04 16:32:04 admin E
 #include <unixlib/unix.h>
 
 #include <unixlib/fd.h>
+#include <pthread.h>
 
 off_t
 lseek (int fd, off_t offset, int whence)
 {
   struct __unixlib_fd *file_desc;
+
+  PTHREAD_UNSAFE
 
   if (BADF (fd))
     return __set_errno (EBADF);

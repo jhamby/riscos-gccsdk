@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source$
- * $Date$
- * $Revision$
- * $State$
- * $Author$
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/select.c,v $
+ * $Date: 2002/12/13 15:01:59 $
+ * $Revision: 1.4 $
+ * $State: Exp $
+ * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id$";
+static const char rcs_id[] = "$Id: select.c,v 1.4 2002/12/13 15:01:59 admin Exp $";
 #endif
 
 /* netlib/socket.c: Written by Peter Burwood, July 1997  */
@@ -25,6 +25,7 @@ static const char rcs_id[] = "$Id$";
 #include <sys/time.h>
 #include <unixlib/local.h>
 #include <unixlib/types.h>
+#include <pthread.h>
 
 
 #ifdef DEBUG
@@ -114,6 +115,8 @@ select (int nfds, fd_set *readfds, fd_set *writefds,
   unsigned int end = 0, now = 0;
   signed int remain;
   struct timeval poll = {0, 0};
+
+  PTHREAD_UNSAFE_CANCELLATION
 
 #ifdef DEBUG
   fprintf (stderr, "Entry:\t%d\t%p\t%p\t%p\t%p\n"

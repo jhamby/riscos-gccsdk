@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/syslog.c,v $
- * $Date: 2002/01/31 14:32:04 $
- * $Revision: 1.2.2.5 $
+ * $Date: 2002/12/22 18:32:47 $
+ * $Revision: 1.5 $
  * $State: Exp $
  * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: syslog.c,v 1.2.2.5 2002/01/31 14:32:04 admin Exp $";
+static const char rcs_id[] = "$Id: syslog.c,v 1.5 2002/12/22 18:32:47 admin Exp $";
 #endif
 
 /*
@@ -62,6 +62,7 @@ static const char rcs_id[] = "$Id: syslog.c,v 1.2.2.5 2002/01/31 14:32:04 admin 
 #include <unistd.h>
 
 #include <stdarg.h>
+#include <pthread.h>
 
 
 static int LogStat = 0;		/* status bits, set by openlog() */
@@ -93,6 +94,8 @@ vsyslog (int pri, const char *fmt, va_list ap)
   char *stdp = NULL, tbuf[2048], fmt_cpy[1024];
   char *msg;
   int regs[10];
+
+  PTHREAD_UNSAFE
 
 #define	INTERNALLOG	LOG_ERR|LOG_CONS|LOG_PERROR|LOG_PID
   /* Check for invalid bits. */
@@ -195,6 +198,8 @@ vsyslog (int pri, const char *fmt, va_list ap)
 void
 openlog (const char *ident, int logstat, int logfac)
 {
+  PTHREAD_UNSAFE
+
   if (ident != NULL)
     LogTag = ident;
   LogStat = logstat;
@@ -213,6 +218,8 @@ setlogmask (pmask)
      int pmask;
 {
   int omask;
+
+  PTHREAD_UNSAFE
 
   omask = LogMask;
   if (pmask != 0)

@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/setenv.c,v $
- * $Date: 2001/09/04 16:32:04 $
- * $Revision: 1.2.2.2 $
+ * $Date: 2002/02/14 15:56:39 $
+ * $Revision: 1.3 $
  * $State: Exp $
  * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: setenv.c,v 1.2.2.2 2001/09/04 16:32:04 admin Exp $";
+static const char rcs_id[] = "$Id: setenv.c,v 1.3 2002/02/14 15:56:39 admin Exp $";
 #endif
 
 #include <stdlib.h>
@@ -18,6 +18,7 @@ static const char rcs_id[] = "$Id: setenv.c,v 1.2.2.2 2001/09/04 16:32:04 admin 
 #include <unixlib/os.h>
 #include <unixlib/unix.h>
 #include <swis.h>
+#include <pthread.h>
 
 int
 setenv (const char *name, const char *value, int replace)
@@ -63,6 +64,8 @@ unsetenv (const char *name)
   char **ep;
   const char *env;
 
+  PTHREAD_UNSAFE
+
   if (environ != NULL)
     for (ep = environ; (env = *ep) != NULL; ep++)
       if (!strncmp (env, name, len) && env[len] == '=')
@@ -91,6 +94,8 @@ clearenv (void)
 {
   /* We do not remove names from the global OS environment with clearenv.
      If the user wants to remove a global name, they should use unsetenv.  */
+
+  PTHREAD_UNSAFE
 
   if (environ == __last_environ && environ != NULL)
     {

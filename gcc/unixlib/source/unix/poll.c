@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/poll.c,v $
- * $Date: 2001/09/14 14:01:17 $
- * $Revision: 1.2.2.1 $
+ * $Date: 2002/02/14 15:56:38 $
+ * $Revision: 1.3 $
  * $State: Exp $
  * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: poll.c,v 1.2.2.1 2001/09/14 14:01:17 admin Exp $";
+static const char rcs_id[] = "$Id: poll.c,v 1.3 2002/02/14 15:56:38 admin Exp $";
 #endif
 
 #include <string.h>
@@ -17,6 +17,7 @@ static const char rcs_id[] = "$Id: poll.c,v 1.2.2.1 2001/09/14 14:01:17 admin Ex
 #include <sys/poll.h>
 #include <sys/time.h>
 #include <sys/select.h>
+#include <pthread.h>
 
 /* Poll the file descriptors described by the NFDS structures starting at
    FDS.  If TIMEOUT is nonzero and not -1, allow TIMEOUT milliseconds for
@@ -32,6 +33,8 @@ poll (struct pollfd *fds, nfds_t nfds, int timeout)
   struct pollfd *f;
   int ready;
   int maxfd = 0;
+
+  PTHREAD_SAFE_CANCELLATION
 
   FD_ZERO (&rset);
   FD_ZERO (&wset);

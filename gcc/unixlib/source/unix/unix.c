@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source$
- * $Date$
- * $Revision$
- * $State$
- * $Author$
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/unix.c,v $
+ * $Date: 2003/01/05 12:27:55 $
+ * $Revision: 1.8 $
+ * $State: Exp $
+ * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id$";
+static const char rcs_id[] = "$Id: unix.c,v 1.8 2003/01/05 12:27:55 admin Exp $";
 #endif
 
 #include <stdio.h>
@@ -290,7 +290,10 @@ exit (int status)
   int i;
 
   /* Execute atexit functions in the reverse order of their
-     registration.  */
+     registration.
+     Although this accesses globals, we don't want to disable threads
+     whilst calling the functions. Anything calling atexit from an already
+     registered function is on dodgy ground anyway. */
   i = __atexit_function_count;
   while (i)
     {
@@ -391,6 +394,8 @@ __alloc_file_descriptor (void)
 {
   struct __unixlib_fd *fd;
   int i;
+
+  PTHREAD_UNSAFE
 
   fd = __u->fd;
 

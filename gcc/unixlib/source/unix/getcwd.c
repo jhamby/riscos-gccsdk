@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/getcwd.c,v $
- * $Date: 2001/09/04 16:32:04 $
- * $Revision: 1.2.2.3 $
+ * $Date: 2002/02/14 15:56:38 $
+ * $Revision: 1.3 $
  * $State: Exp $
  * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: getcwd.c,v 1.2.2.3 2001/09/04 16:32:04 admin Exp $";
+static const char rcs_id[] = "$Id: getcwd.c,v 1.3 2002/02/14 15:56:38 admin Exp $";
 #endif
 
 #include <errno.h>
@@ -23,6 +23,7 @@ static const char rcs_id[] = "$Id: getcwd.c,v 1.2.2.3 2001/09/04 16:32:04 admin 
 #include <unixlib/unix.h>
 
 #include <unixlib/local.h>
+#include <pthread.h>
 
 /* Return current working directory in Unix format ('.' and '/' swapped).  */
 char *
@@ -34,6 +35,8 @@ getcwd (char *buffer, size_t size)
   _kernel_oserror *err;
   int regs[10];
 
+  PTHREAD_UNSAFE
+  
   if (size == 0 && buffer)
     {
       (void) __set_errno (EINVAL);

@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/write.c,v $
- * $Date: 2001/09/11 14:16:00 $
- * $Revision: 1.2.2.3 $
+ * $Date: 2002/02/14 15:56:39 $
+ * $Revision: 1.3 $
  * $State: Exp $
  * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: write.c,v 1.2.2.3 2001/09/11 14:16:00 admin Exp $";
+static const char rcs_id[] = "$Id: write.c,v 1.3 2002/02/14 15:56:39 admin Exp $";
 #endif
 
 /* #define DEBUG */
@@ -24,6 +24,7 @@ static const char rcs_id[] = "$Id: write.c,v 1.2.2.3 2001/09/11 14:16:00 admin E
 #include <unixlib/unix.h>
 #include <unixlib/features.h>
 #include <unixlib/fd.h>
+#include <pthread.h>
 
 #ifdef DEBUG
 #include <unixlib/os.h>
@@ -34,6 +35,8 @@ write (int fd, const void *buf, size_t nbytes)
 {
   struct __unixlib_fd *file_desc;
   ssize_t status;
+
+  PTHREAD_UNSAFE_CANCELLATION
 
 #ifdef DEBUG
   __os_print ("write(fd="); __os_prdec (fd);

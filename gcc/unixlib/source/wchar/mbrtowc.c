@@ -1,8 +1,8 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/wchar/c/mbrtowc,v $
- * $Date: 2000/06/03 16:53:10 $
- * $Revision: 1.1 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/wchar/mbrtowc.c,v $
+ * $Date: 2001/01/29 15:10:22 $
+ * $Revision: 1.2 $
  * $State: Exp $
  * $Author: admin $
  *
@@ -29,6 +29,7 @@
 
 #include <errno.h>
 #include <wchar.h>
+#include <pthread.h>
 
 #ifndef EILSEQ
 #define EILSEQ EINVAL
@@ -41,6 +42,8 @@ size_t
 mbrtowc (wchar_t *pwc, const char *s, size_t n, mbstate_t *ps)
 {
   size_t used = 0;
+
+  PTHREAD_UNSAFE
 
   if (ps == NULL)
     ps = &internal;

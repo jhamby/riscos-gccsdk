@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/pathconf.c,v $
- * $Date: 2001/09/04 16:32:04 $
- * $Revision: 1.2.2.1 $
+ * $Date: 2002/02/14 15:56:38 $
+ * $Revision: 1.3 $
  * $State: Exp $
  * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: pathconf.c,v 1.2.2.1 2001/09/04 16:32:04 admin Exp $";
+static const char rcs_id[] = "$Id: pathconf.c,v 1.3 2002/02/14 15:56:38 admin Exp $";
 #endif
 
 /* unix.c.pathconf. Return filing system implementation details.
@@ -24,6 +24,7 @@ static const char rcs_id[] = "$Id: pathconf.c,v 1.2.2.1 2001/09/04 16:32:04 admi
 #include <unixlib/unix.h>
 #include <unixlib/fd.h>
 #include <unixlib/local.h>
+#include <pthread.h>
 
 /* These functions are stub varieties that need a proper
    implementation.  */
@@ -107,6 +108,8 @@ long int
 fpathconf (int fd, int selection)
 {
   char filename[_POSIX_PATH_MAX];
+
+  PTHREAD_UNSAFE
 
   if (BADF (fd))
     return __set_errno (EBADF);

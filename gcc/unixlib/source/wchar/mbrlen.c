@@ -1,8 +1,8 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/wchar/c/mbrlen,v $
- * $Date: 2000/06/03 16:53:10 $
- * $Revision: 1.1 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/wchar/mbrlen.c,v $
+ * $Date: 2001/01/29 15:10:22 $
+ * $Revision: 1.2 $
  * $State: Exp $
  * $Author: admin $
  *
@@ -28,7 +28,7 @@
    Boston, MA 02111-1307, USA.  */
 
 #include <wchar.h>
-
+#include <pthread.h>
 
 /* The mbrlen function has an internal shift state which gets used if
    the PS parameter is NULL.  */
@@ -40,5 +40,7 @@ mbrlen (s, n, ps)
      size_t n;
      mbstate_t *ps;
 {
+  PTHREAD_UNSAFE
+
   return mbrtowc (NULL, s, n, ps ? ps : &internal);
 }
