@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source: $
- * $Date: $
- * $Revision: $
- * $State: $
- * $Author: $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/pthread/key.c,v $
+ * $Date: 2002/12/15 13:16:55 $
+ * $Revision: 1.1 $
+ * $State: Exp $
+ * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: $";
+static const char rcs_id[] = "$Id: key.c,v 1.1 2002/12/15 13:16:55 admin Exp $";
 #endif
 
 /* Thread specific keys */
@@ -127,7 +127,7 @@ pthread_setspecific (pthread_key_t key, const void *value)
     }
 
   newkey->keyid = key;
-  newkey->value = (void *)value;
+  newkey->value.constvalue = value;
   newkey->destructor = keylist->destructor;
 
   /* Add key to list for this thread */
@@ -152,7 +152,7 @@ pthread_getspecific (pthread_key_t key)
       if (keylist->keyid == key)
         {
           __pthread_enable_ints ();
-          return keylist->value;
+          return keylist->value.nonconst;
         }
 
       keylist = keylist->next;

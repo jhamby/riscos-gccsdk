@@ -1,10 +1,10 @@
 ;----------------------------------------------------------------------------
 ;
-; $Source$
-; $Date$
-; $Revision$
-; $State$
-; $Author$
+; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/_alloca.s,v $
+; $Date: 2003/01/05 12:36:35 $
+; $Revision: 1.7 $
+; $State: Exp $
+; $Author: admin $
 ;
 ;----------------------------------------------------------------------------
 
@@ -61,15 +61,13 @@ alloca		; just in case
 	STR	a4, [a1, #0]
 	STR	a1, [a3]		; Add the malloc'd block in front of the __alloca_list
 
-	[ {CONFIG} = 26
-	AND	a2, a2, #&fc000003	; a2 = PSR flags
+	TEQ	a1, a1
+	TEQ	pc, pc	; Only preserve flags when in 26bit mode
+	ANDNE	a2, a2, #&fc000003	; a2 = PSR flags
 	ADR	a3, |__alloca_free|
-	BIC	a3, a3, #&fc000003
-	ORR	a2, a2, a3
-	|
-	ADR	a2, |__alloca_free|
-	]
-	STR	a2, [fp, #-4]
+	BICNE	a3, a3, #&fc000003
+	ORRNE	a3, a2, a3
+	STR	a3, [fp, #-4]
 	ADD	a1, a1, #8
 	stackreturn	AL, "pc"
 

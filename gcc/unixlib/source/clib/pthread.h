@@ -1,8 +1,8 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/pthread.h,v $
- * $Date: 2003/04/06 10:58:40 $
- * $Revision: 1.6 $
+ * $Date: 2003/04/28 12:07:01 $
+ * $Revision: 1.7 $
  * $State: Exp $
  * $Author: alex $
  *
@@ -444,7 +444,11 @@ extern int pthread_atfork (void (*prepare)(void), void (*parent)(void), void (*c
 struct __pthread_key
 {
   pthread_key_t keyid; /* Key that this value is attached to */
-  void *value; /* Value of the key for this thread */
+  union {
+    const void *constvalue;
+    void *nonconst;
+  } value; /* Value of the key for this thread. Mess around with a union
+              to get around const issues */
   void (*destructor) (void*); /* Destructor function to call for this value */
   struct __pthread_key *next; /* Linked list of all keys for this thread */
 };

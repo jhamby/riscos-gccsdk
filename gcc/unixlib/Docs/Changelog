@@ -1,3 +1,14 @@
+Wed May  7 23:07:05 2003  Alex Waugh  <alex@alexwaugh.com>
+
+	* clib/pthread.h (__pthread_key): Add a union for value, to avoid
+	  const issues.
+	* pthread/key.c: Use union to prevent const warning.
+	* pthread/keydest.c: Likewise.
+	* pthread/_ints.s: Preserve PSR bits of PC based on processor mode,
+	  not APCS variant.
+	* sys/_alloca.s: Likewise.
+	* sys/_syslib.s: Likewise.
+
 Tue May  6 23:29:21 2003  Alex Waugh  <alex@alexwaugh.com>
 
 	* riscos-dist/Makefile: Remove !MKDir from binary !unixlib,

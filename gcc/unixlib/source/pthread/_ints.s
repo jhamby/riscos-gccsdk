@@ -1,10 +1,10 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/pthread/_ints.s,v $
-; $Date: 2002/12/15 13:16:55 $
-; $Revision: 1.1 $
+; $Date: 2003/04/28 12:07:02 $
+; $Revision: 1.2 $
 ; $State: Exp $
-; $Author: admin $
+; $Author: alex $
 ;
 ;----------------------------------------------------------------------------
 
@@ -91,10 +91,10 @@
 	LDR	a1, [fp, #-4]	; Load calling function's return address
 	STR	a1, [a2]	; Save it
 	ADR	a2, |__pthread_unprotect_unsafe|
-	[ {CONFIG} = 26
-	AND	a1, a1, #&fc000003	; Make sure the flags and mode bits of pc are preserved
-	ORR	a2, a1, a2
-	]
+	TEQ	a1, a1
+	TEQ	pc, pc
+	ANDNE	a1, a1, #&fc000003	; Make sure the flags and mode bits of
+	ORRNE	a2, a1, a2		; pc are preserved when in 26bit mode
 	; Alter calling function's return address to point to __pthread_unprotect_unsafe
 	STR	a2, [fp, #-4]
 

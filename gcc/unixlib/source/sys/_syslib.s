@@ -1,8 +1,8 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/_syslib.s,v $
-; $Date: 2003/04/28 22:44:03 $
-; $Revision: 1.16 $
+; $Date: 2003/04/29 19:38:49 $
+; $Revision: 1.17 $
 ; $State: Exp $
 ; $Author: alex $
 ;
@@ -717,11 +717,11 @@ use_existing_chunk
 	STR	a2, [a1, #CHUNK_RETURN]	; Remember it
 
 	ADR	a3, free_stack_chunk
-	[ {CONFIG} = 26
-	AND	a2, a2, #&fc000003
-	BIC	a3, a3, #&fc000003
-	ORR	a3, a2, a3
-	]
+	TEQ	a1, a1
+	TEQ	pc, pc
+	ANDNE	a2, a2, #&fc000003	; Preserve flags if in 26bit mode
+	BICNE	a3, a3, #&fc000003
+	ORRNE	a3, a2, a3
 	STR	a3, [fp, #-4]	; Replace it with our chunk free procedure
 
 	[ {CONFIG} = 26
