@@ -9708,8 +9708,13 @@ arm_expand_prologue (void)
 	    insn = gen_rtx_REG (SImode, 3);
 	  else /* if (current_function_pretend_args_size == 0) */
 	    {
+#ifdef TARGET_RISCOSAOF
+	      insn = gen_rtx_PLUS (SImode, fp_rtx,
+				   GEN_INT (4));
+#else
 	      insn = gen_rtx_PLUS (SImode, hard_frame_pointer_rtx,
 				   GEN_INT (4));
+#endif
 	      insn = gen_rtx_MEM (SImode, insn);
 	    }
 
