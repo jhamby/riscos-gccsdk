@@ -36,6 +36,8 @@
 #define AREA_BASED     0x100000
 #define AREA_STUBDATA  0x200000
 
+#define AREA_LINKONCE  0x10000000 /* GNU linkonce (extension) */
+
 #define AREA_IMAGE(x) (!((x)->type&AREA_UDATA))
 #define AREA_NOSPACE(x,v) ((x)->imagesize < v)
 typedef struct AREA

@@ -31,6 +31,7 @@
 #define ATT_NOSTAK 0x00800		/* Area contains no stack checking code */
 #define ATT_BASED  0x01000		/* Area contains based data */
 #define ATT_STUBS  0x02000		/* Area contains shared library stub data */
+#define ATT_LINKONCE 0x0100000		/* GNU Linkonce section.  */
 #define ATT_BRMASK 0xF0000		/* Mask for based area register number */
 #define ATT_A3ATTR 0x03F41		/* Mask for AOF 3 attributes */
 #define ATT_UNSUPP 0x02001		/* Mask for unsupported AOF 3 attributes */

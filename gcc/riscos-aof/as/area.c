@@ -256,6 +256,8 @@ c_area (void)
 	newtype |= AREA_PIC | AREA_INIT;
       else if (!strncmp ("REENTRANT", attribute.LexId.str, attribute.LexId.len))
 	newtype |= AREA_REENTRANT | AREA_INIT;
+      else if (!strncmp ("LINKONCE", attribute.LexId.str, attribute.LexId.len))
+	newtype |= AREA_LINKONCE;
       else if (!strncmp ("BASED", attribute.LexId.str, attribute.LexId.len))
 	{
 	  WORD reg;
@@ -281,6 +283,9 @@ c_area (void)
 
   if ((newtype & AREA_READONLY) && (newtype & AREA_UDATA))
     error (ErrorError, TRUE, "Attributes READONLY and NOINIT are mutually exclusive");
+
+  if ((newtype & AREA_LINKONCE) && !(newtype & AREA_COMMONDEF))
+    error (ErrorError, TRUE, "Attribute LINKONCE must appear as part of a COMDEF.");
 
   if (!(newtype & AREA_CODE))
     {

@@ -250,17 +250,15 @@ static arealist *check_commondef(filelist *fp, areaentry *aep, unsigned int atat
      nameptr, fp->chfilename, ap->arfileptr->chfilename, aep->arsize, ap->arobjsize);
     return NIL;
   }
-  else {
-    //int x;
-    count = ap->arobjsize >> 2;	/* Verify areas' contents are the same */
+
+  /* The GNU linkonce attribute allows us to combine multiple COMDEF
+     areas of the same name which contain different data.  The choice
+     of which is indetermined.  */
+  if (! (atattr & ATT_LINKONCE)) {
+    /* Verify areas' contents are the same */
+    count = ap->arobjsize >> 2;
     p1 = ap->arobjdata;
-    //p2 = fp->objareaptr;
     p2 = thisarea;
-    //printf ("count=%d, p1=%08x, p2=%08x, name=%s\n", count, p1, p2, nameptr);
-
-    //for (x = 0; x < count; x++)
-    //printf ("x=%d, p1=%08x, p2=%08x\n", x, p1[x], p2[x]);
-
     while (count>0 && *p1==*p2) {
       p2++;
       p1++;
