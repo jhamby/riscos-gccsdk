@@ -1,8 +1,8 @@
 ;----------------------------------------------------------------------------
 ;
-; $Source: /usr/local/cvsroot/unixlib/source/sys/s/_alloca,v $
-; $Date: 2000/12/21 15:09:13 $
-; $Revision: 1.9 $
+; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/_alloca.s,v $
+; $Date: 2001/01/29 15:10:21 $
+; $Revision: 1.2 $
 ; $State: Exp $
 ; $Author: admin $
 ;
@@ -51,7 +51,7 @@ alloca		; just in case
 	ORR	a2, a2, a3
 	STR	a2, [fp, #-4]
 	ADD	a1, a1, #8
-	stackreturn	EQ, "pc"
+	stackreturn	AL, "pc"
 
 |__alloca_free|
 	LDR	a3, =|__alloca_list|	; StrongARM order

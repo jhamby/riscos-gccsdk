@@ -1,3 +1,8 @@
+Thu May 24 14:46:43 2001  Nick Burrett  <nick@dsvr.net>
+
+	* sys/_alloca.s (__alloca): Use unconditional stackreturn
+	otherwise we drop into __alloca_free.
+
 Wed May  9 09:21:36 2001  Nick Burrett  <nick@dsvr.net>
 
 	* signal/_signal.s: Add IMPORTs for __sigstk and __sigstksize.
