@@ -44,27 +44,50 @@ if test $gcc_cv_c_have_stringify = yes; then
   AC_DEFINE(HAVE_CPP_STRINGIFY)
 fi
 
+# See if the stage1 system preprocessor understands the ANSI C
+# preprocessor stringification operator.  (Used by symcat.h.)
+AC_C_STRINGIZE
+
+# Use <inttypes.h> only if it exists,
+# doesn't clash with <sys/types.h>, and declares intmax_t.
+AC_MSG_CHECKING(for inttypes.h)
+AC_CACHE_VAL(gcc_cv_header_inttypes_h,
+[AC_TRY_COMPILE(
+  [#include <sys/types.h>
+#include <inttypes.h>],
+  [intmax_t i = -1;],
+  [gcc_cv_header_inttypes_h=yes],
+  gcc_cv_header_inttypes_h=no)])
+AC_MSG_RESULT($gcc_cv_header_inttypes_h)
+if test $gcc_cv_header_inttypes_h = yes; then
+  AC_DEFINE(HAVE_INTTYPES_H, 1,
+        [Define if you have a working <inttypes.h> header file.])
+fi
+
 dnl Checks for header files
 AC_HEADER_STDC
 AC_HEADER_SYS_WAIT
 AC_HEADER_TIME
 gcc_AC_HEADER_STDBOOL
 gcc_AC_HEADER_STRING
-AC_CHECK_HEADERS(stdint.h inttypes.h endian.h machine/endian.h)
+AC_CHECK_HEADERS(direct.h malloc.h stdint.h inttypes.h endian.h machine/endian.h)
 AC_CHECK_HEADERS(vfork.h fcntl.h limits.h stab.h stddef.h stdlib.h)
-AC_CHECK_HEADERS(string.h strings.h sys/file.h sys/param.h sys/resource.h)
+AC_CHECK_HEADERS(string.h strings.h sys/file.h sys/mman.h sys/param.h sys/resource.h)
 AC_CHECK_HEADERS(sys/stat.h sys/time.h sys/times.h time.h unistd.h)
 
 # Check for thread headers.
 AC_CHECK_HEADER(thread.h, [have_thread_h=yes], [have_thread_h=])
 AC_CHECK_HEADER(pthread.h, [have_pthread_h=yes], [have_pthread_h=])
 
-AC_CHECK_FUNCS(atoll atoq)
-AC_CHECK_FUNCS(bcmp bcopy bsearch bzero getrlimit gettimeofday index)
-AC_CHECK_FUNCS(isascii kill popen putenv setrlimit strchr strerror)
-AC_CHECK_FUNCS(strrchr strsignal strtoul sysconf stpcpy)
+AC_CHECK_FUNCS(alphasort atoll atoq)
+AC_CHECK_FUNCS(bcmp bcopy bsearch bzero clock dup2 getrlimit gettimeofday index)
+AC_CHECK_FUNCS(isascii kill lstat mmap popen putenv scandir setrlimit strchr strerror)
+AC_CHECK_FUNCS(strrchr strsignal strtoul sysconf stpcpy times)
 AC_CHECK_FUNCS(putc_unlocked fputc_unlocked fputs_unlocked)
+AC_CHECK_FUNCS(fwrite_unlocked fprintf_unlocked getrusage)
 AC_CHECK_FUNCS(vprintf)
+
+AC_CHECK_TYPE(ssize_t, int)
 
 AC_DECL_SYS_SIGLIST
 
