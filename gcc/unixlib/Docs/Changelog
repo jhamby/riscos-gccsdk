@@ -1,3 +1,9 @@
+Mon Dec 30 12:05:21 2002  Nick Burrett  <nick@dsvr.net>
+
+	* sys/_syslib.s (__rt_stkovf_split_small): Preserve 'ip'.
+	(__rt_stkovf_split_big): Likewise.
+	(stack_overflow_common): Restore 'ip'.
+
 Sun Dec 22 18:21:18 2002  John Tytgat <John.Tytgat@aaug.net>
 
 	* MKDir: added resolv & resolv.o

@@ -1,10 +1,10 @@
 ;----------------------------------------------------------------------------
 ;
-; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/_syslib.s,v $
-; $Date: 2002/12/13 15:01:59 $
-; $Revision: 1.7 $
-; $State: Exp $
-; $Author: admin $
+; $Source$
+; $Date$
+; $Revision$
+; $State$
+; $Author$
 ;
 ;----------------------------------------------------------------------------
 
@@ -574,7 +574,7 @@ handlers
 	NAME	__rt_stkovf_split_small
 |x$stack_overflow|
 |__rt_stkovf_split_small|
-	STMFD	sp!, {a1, a2, a3, a4, v1, v2, v3, lr}	; This must store the same regs as for __rt_stkovf_split_big
+	STMFD	sp!, {a1, a2, a3, a4, v1, v2, v3, ip, lr}	; This must store the same regs as for __rt_stkovf_split_big
 
 	MOV	v1, #4096
 	B	stack_overflow_common
@@ -588,7 +588,7 @@ handlers
 |__rt_stkovf_split_big|
 	CMP	ip, sl	; sanity check
 	return	CS, pc, lr
-	STMFD	sp!, {a1, a2, a3, a4, v1, v2, v3, lr}
+	STMFD	sp!, {a1, a2, a3, a4, v1, v2, v3, ip, lr}
 	; This must store the same regs as for __rt_stkovf_split_small
 	; and if changed, also update the 8*4 in the frame size calculation below
 
@@ -676,9 +676,9 @@ use_existing_chunk
 	STR	a3, [fp, #-4]	; Replace it with our chunk free procedure
 
 	[ {CONFIG} = 26
-	LDMFD	v3, {a1, a2, a3, a4, v1, v2, v3, pc}^
+	LDMFD	v3, {a1, a2, a3, a4, v1, v2, v3, ip, pc}^
 	|
-	LDMFD	v3, {a1, a2, a3, a4, v1, v2, v3, pc}
+	LDMFD	v3, {a1, a2, a3, a4, v1, v2, v3, ip, pc}
 	]
 
 raise_sigemt
@@ -687,9 +687,9 @@ raise_sigemt
 	BL	|__unixlib_raise_signal|
 
 	[ {CONFIG} = 26
-	LDMFD	v3, {a1, a2, a3, a4, v1, v2, v3, pc}^
+	LDMFD	v3, {a1, a2, a3, a4, v1, v2, v3, ip, pc}^
 	|
-	LDMFD	v3, {a1, a2, a3, a4, v1, v2, v3, pc}
+	LDMFD	v3, {a1, a2, a3, a4, v1, v2, v3, ip, pc}
 	]
 
 stack_corrupt_msg
