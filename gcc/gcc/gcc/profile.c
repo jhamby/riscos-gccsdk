@@ -91,18 +91,18 @@ Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 struct edge_info {
   unsigned int count_valid : 1;
   
-  /* Is on the spanning tree. */
+  /* Is on the spanning tree.  */
   unsigned int on_tree : 1;
   
   /* Pretend this edge does not exist (it is abnormal and we've
-     inserted a fake to compensate). */
+     inserted a fake to compensate).  */
   unsigned int ignore : 1;
 };
 
 struct bb_info {
   unsigned int count_valid : 1;
 
-  /* Number of successor and predecessor edges. */
+  /* Number of successor and predecessor edges.  */
   gcov_type succ_count;
   gcov_type pred_count;
 };
@@ -162,7 +162,7 @@ static long compute_checksum PARAMS ((void));
 static basic_block find_group PARAMS ((basic_block));
 static void union_groups PARAMS ((basic_block, basic_block));
 
-/* If non-zero, we need to output a constructor to set up the
+/* If nonzero, we need to output a constructor to set up the
    per-object-file data.  */
 static int need_func_profiler = 0;
 
@@ -221,7 +221,7 @@ output_gcov_string (string, delimiter)
      const char *string;
      long delimiter;
 {
-  long temp;
+  size_t temp;
 
   /* Write a delimiter to indicate that a file name follows.  */
   __write_long (delimiter, bb_file, 4);
@@ -260,6 +260,8 @@ get_exec_counts ()
   char *function_name_buffer;
   int function_name_buffer_len;
   gcov_type max_counter_in_run;
+  const char *name = IDENTIFIER_POINTER
+		      (DECL_ASSEMBLER_NAME (current_function_decl));
 
   profile_info.max_counter_in_program = 0;
   profile_info.count_profiles_merged = 0;
@@ -282,7 +284,7 @@ get_exec_counts ()
 
   profile = xmalloc (sizeof (gcov_type) * num_edges);
   rewind (da_file);
-  function_name_buffer_len = strlen (current_function_name) + 1;
+  function_name_buffer_len = strlen (name) + 1;
   function_name_buffer = xmalloc (function_name_buffer_len + 1);
 
   for (i = 0; i < num_edges; i++)
@@ -349,7 +351,7 @@ get_exec_counts ()
 	      break;
 	    }
 
-	  if (strcmp (function_name_buffer, current_function_name) != 0)
+	  if (strcmp (function_name_buffer, name) != 0)
 	    {
 	      /* skip */
 	      if (fseek (da_file, arc_count * 8, SEEK_CUR) < 0)
@@ -772,6 +774,8 @@ branch_prob ()
   int i;
   int num_edges, ignored_edges;
   struct edge_list *el;
+  const char *name = IDENTIFIER_POINTER
+		       (DECL_ASSEMBLER_NAME (current_function_decl));
 
   profile_info.current_function_cfg_checksum = compute_checksum ();
 
@@ -781,7 +785,7 @@ branch_prob ()
 
   /* Start of a function.  */
   if (flag_test_coverage)
-    output_gcov_string (current_function_name, (long) -2);
+    output_gcov_string (name, (long) -2);
 
   total_num_times_called++;
 
@@ -995,8 +999,7 @@ branch_prob ()
     {
       int flag_bits;
 
-      __write_gcov_string (current_function_name,
-		           strlen (current_function_name), bbg_file, -1);
+      __write_gcov_string (name, strlen (name), bbg_file, -1);
 
       /* write checksum.  */
       __write_long (profile_info.current_function_cfg_checksum, bbg_file, 4);

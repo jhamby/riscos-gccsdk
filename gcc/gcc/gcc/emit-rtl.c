@@ -204,7 +204,7 @@ const_int_htab_hash (x)
   return (hashval_t) INTVAL ((struct rtx_def *) x);
 }
 
-/* Returns non-zero if the value represented by X (which is really a
+/* Returns nonzero if the value represented by X (which is really a
    CONST_INT) is the same as that given by Y (which is really a
    HOST_WIDE_INT *).  */
 
@@ -221,16 +221,17 @@ static hashval_t
 const_double_htab_hash (x)
      const void *x;
 {
-  hashval_t h = 0;
-  size_t i;
   rtx value = (rtx) x;
+  hashval_t h;
 
-  for (i = 0; i < sizeof(CONST_DOUBLE_FORMAT)-1; i++)
-    h ^= XWINT (value, i);
+  if (GET_MODE (value) == VOIDmode)
+    h = CONST_DOUBLE_LOW (value) ^ CONST_DOUBLE_HIGH (value);
+  else
+    h = real_hash (CONST_DOUBLE_REAL_VALUE (value));
   return h;
 }
 
-/* Returns non-zero if the value represented by X (really a ...)
+/* Returns nonzero if the value represented by X (really a ...)
    is the same as that represented by Y (really a ...) */
 static int
 const_double_htab_eq (x, y)
@@ -238,15 +239,15 @@ const_double_htab_eq (x, y)
      const void *y;
 {
   rtx a = (rtx)x, b = (rtx)y;
-  size_t i;
 
   if (GET_MODE (a) != GET_MODE (b))
     return 0;
-  for (i = 0; i < sizeof(CONST_DOUBLE_FORMAT)-1; i++)
-    if (XWINT (a, i) != XWINT (b, i))
-      return 0;
-
-  return 1;
+  if (GET_MODE (a) == VOIDmode)
+    return (CONST_DOUBLE_LOW (a) == CONST_DOUBLE_LOW (b)
+	    && CONST_DOUBLE_HIGH (a) == CONST_DOUBLE_HIGH (b));
+  else
+    return real_identical (CONST_DOUBLE_REAL_VALUE (a),
+			   CONST_DOUBLE_REAL_VALUE (b));
 }
 
 /* Returns a hash code for X (which is a really a mem_attrs *).  */
@@ -263,7 +264,7 @@ mem_attrs_htab_hash (x)
 	  ^ (size_t) p->expr);
 }
 
-/* Returns non-zero if the value represented by X (which is really a
+/* Returns nonzero if the value represented by X (which is really a
    mem_attrs *) is the same as that given by Y (which is also really a
    mem_attrs *).  */
 
@@ -801,12 +802,7 @@ gen_reg_rtx (mode)
 	 which makes much better code.  Besides, allocating DCmode
 	 pseudos overstrains reload on some machines like the 386.  */
       rtx realpart, imagpart;
-      int size = GET_MODE_UNIT_SIZE (mode);
-      enum machine_mode partmode
-	= mode_for_size (size * BITS_PER_UNIT,
-			 (GET_MODE_CLASS (mode) == MODE_COMPLEX_FLOAT
-			  ? MODE_FLOAT : MODE_INT),
-			 0);
+      enum machine_mode partmode = GET_MODE_INNER (mode);
 
       realpart = gen_reg_rtx (partmode);
       imagpart = gen_reg_rtx (partmode);
@@ -998,6 +994,10 @@ gen_lowpart_common (mode, x)
   else if (GET_CODE (x) == SUBREG || GET_CODE (x) == REG
 	   || GET_CODE (x) == CONCAT || GET_CODE (x) == CONST_VECTOR)
     return simplify_gen_subreg (mode, x, GET_MODE (x), offset);
+  else if ((GET_MODE_CLASS (mode) == MODE_VECTOR_INT
+	    || GET_MODE_CLASS (mode) == MODE_VECTOR_FLOAT)
+	   && GET_MODE (x) == VOIDmode)
+    return simplify_gen_subreg (mode, x, int_mode_for_mode (mode), offset);
   /* If X is a CONST_INT or a CONST_DOUBLE, extract the appropriate bits
      from the low-order part of the constant.  */
   else if ((GET_MODE_CLASS (mode) == MODE_INT
@@ -1042,10 +1042,9 @@ gen_lowpart_common (mode, x)
 	   && GET_CODE (x) == CONST_INT)
     {
       REAL_VALUE_TYPE r;
-      HOST_WIDE_INT i;
+      long i = INTVAL (x);
 
-      i = INTVAL (x);
-      r = REAL_VALUE_FROM_TARGET_SINGLE (i);
+      real_from_target (&r, &i, mode);
       return CONST_DOUBLE_FROM_REAL_VALUE (r, mode);
     }
   else if (GET_MODE_CLASS (mode) == MODE_FLOAT
@@ -1054,8 +1053,8 @@ gen_lowpart_common (mode, x)
 	   && GET_MODE (x) == VOIDmode)
     {
       REAL_VALUE_TYPE r;
-      HOST_WIDE_INT i[2];
       HOST_WIDE_INT low, high;
+      long i[2];
 
       if (GET_CODE (x) == CONST_INT)
 	{
@@ -1068,18 +1067,17 @@ gen_lowpart_common (mode, x)
 	  high = CONST_DOUBLE_HIGH (x);
 	}
 
-#if HOST_BITS_PER_WIDE_INT == 32
+      if (HOST_BITS_PER_WIDE_INT > 32)
+	high = low >> 31 >> 1;
+
       /* REAL_VALUE_TARGET_DOUBLE takes the addressing order of the
 	 target machine.  */
       if (WORDS_BIG_ENDIAN)
 	i[0] = high, i[1] = low;
       else
 	i[0] = low, i[1] = high;
-#else
-      i[0] = low;
-#endif
 
-      r = REAL_VALUE_FROM_TARGET_DOUBLE (i);
+      real_from_target (&r, i, mode);
       return CONST_DOUBLE_FROM_REAL_VALUE (r, mode);
     }
   else if ((GET_MODE_CLASS (mode) == MODE_INT
@@ -1805,11 +1803,36 @@ set_mem_attributes_minus_bitpos (ref, t, objectp, bitpos)
 
 	  do
 	    {
+	      tree index = TREE_OPERAND (t, 1);
+	      tree array = TREE_OPERAND (t, 0);
+	      tree domain = TYPE_DOMAIN (TREE_TYPE (array));
+	      tree low_bound = (domain ? TYPE_MIN_VALUE (domain) : 0);
+	      tree unit_size = TYPE_SIZE_UNIT (TREE_TYPE (TREE_TYPE (array)));
+
+	      /* We assume all arrays have sizes that are a multiple of a byte.
+		 First subtract the lower bound, if any, in the type of the
+		 index, then convert to sizetype and multiply by the size of the
+		 array element.  */
+	      if (low_bound != 0 && ! integer_zerop (low_bound))
+		index = fold (build (MINUS_EXPR, TREE_TYPE (index),
+				     index, low_bound));
+
+	      /* If the index has a self-referential type, pass it to a
+		 WITH_RECORD_EXPR; if the component size is, pass our
+		 component to one.  */
+	      if (! TREE_CONSTANT (index)
+		  && contains_placeholder_p (index))
+		index = build (WITH_RECORD_EXPR, TREE_TYPE (index), index, t);
+	      if (! TREE_CONSTANT (unit_size)
+		  && contains_placeholder_p (unit_size))
+		unit_size = build (WITH_RECORD_EXPR, sizetype,
+				   unit_size, array);
+
 	      off_tree
 		= fold (build (PLUS_EXPR, sizetype,
 			       fold (build (MULT_EXPR, sizetype,
-					    TREE_OPERAND (t, 1),
-					    TYPE_SIZE_UNIT (TREE_TYPE (t)))),
+					    index,
+					    unit_size)),
 			       off_tree));
 	      t = TREE_OPERAND (t, 0);
 	    }
@@ -1862,9 +1885,14 @@ set_mem_attributes_minus_bitpos (ref, t, objectp, bitpos)
     }
 
   /* If we modified OFFSET based on T, then subtract the outstanding 
-     bit position offset.  */
+     bit position offset.  Similarly, increase the size of the accessed
+     object to contain the negative offset.  */
   if (apply_bitpos)
-    offset = plus_constant (offset, -(apply_bitpos / BITS_PER_UNIT));
+    {
+      offset = plus_constant (offset, -(apply_bitpos / BITS_PER_UNIT));
+      if (size)
+	size = plus_constant (size, apply_bitpos / BITS_PER_UNIT);
+    }
 
   /* Now set the attributes we computed above.  */
   MEM_ATTRS (ref)
@@ -1941,6 +1969,17 @@ set_mem_offset (mem, offset)
 {
   MEM_ATTRS (mem) = get_mem_attrs (MEM_ALIAS_SET (mem), MEM_EXPR (mem),
 				   offset, MEM_SIZE (mem), MEM_ALIGN (mem),
+				   GET_MODE (mem));
+}
+
+/* Set the size of MEM to SIZE.  */
+
+void
+set_mem_size (mem, size)
+     rtx mem, size;
+{
+  MEM_ATTRS (mem) = get_mem_attrs (MEM_ALIAS_SET (mem), MEM_EXPR (mem),
+				   MEM_OFFSET (mem), size, MEM_ALIGN (mem),
 				   GET_MODE (mem));
 }
 
@@ -2027,7 +2066,7 @@ adjust_address_1 (memref, mode, offset, validate, adjust)
   unsigned int memalign = MEM_ALIGN (memref);
 
   /* ??? Prefer to create garbage instead of creating shared rtl.
-     This may happen even if offset is non-zero -- consider
+     This may happen even if offset is nonzero -- consider
      (plus (plus reg reg) const_int) -- so do this always.  */
   addr = copy_rtx (addr);
 
@@ -3147,7 +3186,7 @@ mark_label_nuses (x)
 /* Try splitting insns that can be split for better scheduling.
    PAT is the pattern which might split.
    TRIAL is the insn providing PAT.
-   LAST is non-zero if we should return the last insn of the sequence produced.
+   LAST is nonzero if we should return the last insn of the sequence produced.
 
    If this routine succeeds in splitting, it returns the first or last
    replacement insn depending on the value of LAST.  Otherwise, it

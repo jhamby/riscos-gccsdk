@@ -54,7 +54,31 @@ static void flow_dfs_compute_reverse_finish
   PARAMS ((depth_first_search_ds));
 static void remove_fake_successors	PARAMS ((basic_block));
 static bool need_fake_edge_p		PARAMS ((rtx));
+static bool flow_active_insn_p		PARAMS ((rtx));
 
+/* Like active_insn_p, except keep the return value clobber around
+   even after reload.  */
+
+static bool
+flow_active_insn_p (insn)
+     rtx insn;
+{
+  if (active_insn_p (insn))
+    return true;
+
+  /* A clobber of the function return value exists for buggy 
+     programs that fail to return a value.  Its effect is to
+     keep the return value from being live across the entire
+     function.  If we allow it to be skipped, we introduce the
+     possibility for register livetime aborts.  */
+  if (GET_CODE (PATTERN (insn)) == CLOBBER
+      && GET_CODE (XEXP (PATTERN (insn), 0)) == REG
+      && REG_FUNCTION_VALUE_P (XEXP (PATTERN (insn), 0)))
+    return true;
+
+  return false;
+}
+
 /* Return true if the block has no effect and only forwards control flow to
    its single destination.  */
 
@@ -69,12 +93,12 @@ forwarder_block_p (bb)
     return false;
 
   for (insn = bb->head; insn != bb->end; insn = NEXT_INSN (insn))
-    if (INSN_P (insn) && active_insn_p (insn))
+    if (INSN_P (insn) && flow_active_insn_p (insn))
       return false;
 
   return (!INSN_P (insn)
 	  || (GET_CODE (insn) == JUMP_INSN && simplejump_p (insn))
-	  || !active_insn_p (insn));
+	  || !flow_active_insn_p (insn));
 }
 
 /* Return nonzero if we can reach target from src by falling through.  */
@@ -97,7 +121,7 @@ can_fallthru (src, target)
 }
 
 /* Mark the back edges in DFS traversal.
-   Return non-zero if a loop (natural or otherwise) is present.
+   Return nonzero if a loop (natural or otherwise) is present.
    Inspired by Depth_First_Search_PP described in:
 
      Advanced Compiler Design and Implementation
@@ -370,7 +394,7 @@ flow_call_edges_add (blocks)
 }
 
 /* Find unreachable blocks.  An unreachable block will have 0 in
-   the reachable bit in block->flags.  A non-zero value indicates the
+   the reachable bit in block->flags.  A nonzero value indicates the
    block is reachable.  */
 
 void
@@ -781,8 +805,8 @@ flow_reverse_top_sort_order_compute (rts_order)
 }
 
 /* Compute the depth first search order and store in the array
-  DFS_ORDER if non-zero, marking the nodes visited in VISITED.  If
-  RC_ORDER is non-zero, return the reverse completion number for each
+  DFS_ORDER if nonzero, marking the nodes visited in VISITED.  If
+  RC_ORDER is nonzero, return the reverse completion number for each
   node.  Returns the number of nodes visited.  A depth first search
   tries to get as far away from the starting point as quickly as
   possible.  */
@@ -1027,7 +1051,7 @@ flow_preorder_transversal_compute (pot_order)
 /* Initialize the data structures used for depth-first search on the
    reverse graph.  If INITIALIZE_STACK is nonzero, the exit block is
    added to the basic block stack.  DATA is the current depth-first
-   search context.  If INITIALIZE_STACK is non-zero, there is an
+   search context.  If INITIALIZE_STACK is nonzero, there is an
    element on the stack.  */
 
 static void
@@ -1110,7 +1134,7 @@ int
 dfs_enumerate_from (bb, reverse, predicate, rslt, rslt_max, data)
      basic_block bb;
      int reverse;
-     bool (*predicate) (basic_block, void *);
+     bool (*predicate) PARAMS ((basic_block, void *));
      basic_block *rslt;
      int rslt_max;
      void *data;

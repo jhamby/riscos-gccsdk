@@ -51,10 +51,10 @@ lang_specific_driver (in_argc, in_argv, in_added_libraries)
 {
   int i, j;
 
-  /* If non-zero, the user gave us the `-p' or `-pg' flag.  */ 
+  /* If nonzero, the user gave us the `-p' or `-pg' flag.  */
   int saw_profile_flag = 0;
 
-  /* If non-zero, the user gave us the `-v' flag.  */ 
+  /* If nonzero, the user gave us the `-v' flag.  */
   int saw_verbose_flag = 0;
 
   /* This will be 0 if we encounter a situation where we should not
@@ -73,7 +73,7 @@ lang_specific_driver (in_argc, in_argv, in_added_libraries)
   /* The new argument list will be contained in this.  */
   const char **arglist;
 
-  /* Non-zero if we saw a `-xfoo' language specification on the
+  /* Nonzero if we saw a `-xfoo' language specification on the
      command line.  Used to avoid adding our own -xc++ if the user
      already gave a language for the file.  */
   int saw_speclang = 0;
@@ -299,11 +299,17 @@ lang_specific_driver (in_argc, in_argv, in_added_libraries)
   *in_added_libraries = added_libraries;
 }
 
-/* Called before linking.  Returns 0 on success and -1 on failure. */
-int lang_specific_pre_link ()  /* Not used for C++. */
+/* Called before linking.  Returns 0 on success and -1 on failure.  */
+int lang_specific_pre_link ()  /* Not used for C++.  */
 {
   return 0;
 }
 
-/* Number of extra output files that lang_specific_pre_link may generate. */
-int lang_specific_extra_outfiles = 0;  /* Not used for C++. */
+/* Number of extra output files that lang_specific_pre_link may generate.  */
+int lang_specific_extra_outfiles = 0;  /* Not used for C++.  */
+
+/* Table of language-specific spec functions.  */ 
+const struct spec_function lang_specific_spec_functions[] =
+{
+  { 0, 0 }
+};

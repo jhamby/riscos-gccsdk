@@ -155,7 +155,7 @@ static int source_label_number = 1;
 #endif
 
 #ifdef DEBUG_SYMS_TEXT
-#define FORCE_TEXT text_section ();
+#define FORCE_TEXT function_section (current_function_decl);
 #else
 #define FORCE_TEXT
 #endif
@@ -397,11 +397,15 @@ dbxout_function_end ()
 
   /* By convention, GCC will mark the end of a function with an N_FUN
      symbol and an empty string.  */
+#ifdef DBX_OUTPUT_NFUN
+  DBX_OUTPUT_NFUN (asmfile, lscope_label_name, current_function_decl);
+#else
   fprintf (asmfile, "%s\"\",%d,0,0,", ASM_STABS_OP, N_FUN);
   assemble_name (asmfile, lscope_label_name);
   putc ('-', asmfile);
   assemble_name (asmfile, XSTR (XEXP (DECL_RTL (current_function_decl), 0), 0));
   fprintf (asmfile, "\n");
+#endif
 }
 #endif /* DBX_DEBUGGING_INFO */
 
@@ -1048,7 +1052,9 @@ dbxout_type (type, full)
   static int anonymous_type_number = 0;
 
   if (TREE_CODE (type) == VECTOR_TYPE)
-    type = TYPE_DEBUG_REPRESENTATION_TYPE (type);
+    /* The frontend feeds us a representation for the vector as a struct
+       containing an array.  Pull out the array type.  */
+    type = TREE_TYPE (TYPE_FIELDS (TYPE_DEBUG_REPRESENTATION_TYPE (type)));
 
   /* If there was an input error and we don't really have a type,
      avoid crashing and write something that is at least valid
@@ -2456,7 +2462,7 @@ dbxout_finish_symbol (sym)
 #endif
 }
 
-/* Output definitions of all the decls in a chain. Return non-zero if
+/* Output definitions of all the decls in a chain. Return nonzero if
    anything was output */
 
 int
@@ -2677,6 +2683,7 @@ dbxout_parms (parms)
 	      current_sym_value
 	        = INTVAL (XEXP (XEXP (XEXP (DECL_RTL (parms), 0), 0), 1));
 	    current_sym_addr = 0;
+	    current_sym_code = N_PSYM;
 
 	    FORCE_TEXT;
 	    fprintf (asmfile, "%s\"%s:v", ASM_STABS_OP, decl_name);

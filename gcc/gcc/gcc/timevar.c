@@ -114,7 +114,7 @@ static float clocks_to_msec;
 
 /* See timevar.h for an explanation of timing variables.  */
 
-/* This macro evaluates to non-zero if timing variables are enabled.  */
+/* This macro evaluates to nonzero if timing variables are enabled.  */
 #define TIMEVAR_ENABLE (time_report)
 
 /* A timing variable.  */
@@ -176,7 +176,7 @@ static void timevar_accumulate
 
 /* Fill the current times into TIME.  The definition of this function
    also defines any or all of the HAVE_USER_TIME, HAVE_SYS_TIME, and
-   HAVA_WALL_TIME macros.  */
+   HAVE_WALL_TIME macros.  */
 
 static void
 get_time (now)

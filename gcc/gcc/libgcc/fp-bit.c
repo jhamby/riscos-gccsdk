@@ -46,7 +46,7 @@ Boston, MA 02111-1307, USA.  */
 #include "tconfig.h"
 #include "fp-bit.h"
 
-/* The following macros can be defined to change the behaviour of this file:
+/* The following macros can be defined to change the behavior of this file:
    FLOAT: Implement a `float', aka SFmode, fp library.  If this is not
      defined, then this file implements a `double', aka DFmode, fp library.
    FLOAT_ONLY: Used with FLOAT, to implement a `float' only library, i.e.
@@ -79,38 +79,42 @@ Boston, MA 02111-1307, USA.  */
 #endif
 
 #ifdef EXTENDED_FLOAT_STUBS
-__truncxfsf2 (){ abort(); }
-__extendsfxf2 (){ abort(); }
-__addxf3 (){ abort(); }
-__divxf3 (){ abort(); }
-__eqxf2 (){ abort(); }
-__extenddfxf2 (){ abort(); }
-__gtxf2 (){ abort(); }
-__lexf2 (){ abort(); }
-__ltxf2 (){ abort(); }
-__mulxf3 (){ abort(); }
-__negxf2 (){ abort(); }
-__nexf2 (){ abort(); }
-__subxf3 (){ abort(); }
-__truncxfdf2 (){ abort(); }
+extern void abort (void);
+void __extendsfxf2 (void) { abort(); }
+void __extenddfxf2 (void) { abort(); }
+void __truncxfdf2 (void) { abort(); }
+void __truncxfsf2 (void) { abort(); }
+void __fixxfsi (void) { abort(); }
+void __floatsixf (void) { abort(); }
+void __addxf3 (void) { abort(); }
+void __subxf3 (void) { abort(); }
+void __mulxf3 (void) { abort(); }
+void __divxf3 (void) { abort(); }
+void __negxf2 (void) { abort(); }
+void __eqxf2 (void) { abort(); }
+void __nexf2 (void) { abort(); }
+void __gtxf2 (void) { abort(); }
+void __gexf2 (void) { abort(); }
+void __lexf2 (void) { abort(); }
+void __ltxf2 (void) { abort(); }
 
-__trunctfsf2 (){ abort(); }
-__extendsftf2 (){ abort(); }
-__addtf3 (){ abort(); }
-__divtf3 (){ abort(); }
-__eqtf2 (){ abort(); }
-__extenddftf2 (){ abort(); }
-__gttf2 (){ abort(); }
-__letf2 (){ abort(); }
-__lttf2 (){ abort(); }
-__multf3 (){ abort(); }
-__negtf2 (){ abort(); }
-__netf2 (){ abort(); }
-__subtf3 (){ abort(); }
-__trunctfdf2 (){ abort(); }
-__gexf2 (){ abort(); }
-__fixxfsi (){ abort(); }
-__floatsixf (){ abort(); }
+void __extendsftf2 (void) { abort(); }
+void __extenddftf2 (void) { abort(); }
+void __trunctfdf2 (void) { abort(); }
+void __trunctfsf2 (void) { abort(); }
+void __fixtfsi (void) { abort(); }
+void __floatsitf (void) { abort(); }
+void __addtf3 (void) { abort(); }
+void __subtf3 (void) { abort(); }
+void __multf3 (void) { abort(); }
+void __divtf3 (void) { abort(); }
+void __negtf2 (void) { abort(); }
+void __eqtf2 (void) { abort(); }
+void __netf2 (void) { abort(); }
+void __gttf2 (void) { abort(); }
+void __getf2 (void) { abort(); }
+void __letf2 (void) { abort(); }
+void __lttf2 (void) { abort(); }
 #else	/* !EXTENDED_FLOAT_STUBS, rest of file */
 
 /* IEEE "special" number predicates */
@@ -136,7 +140,7 @@ INLINE
 static fp_number_type *
 nan (void)
 {
-  /* Discard the const qualifier... */
+  /* Discard the const qualifier...  */
 #ifdef FLOAT  
   return (fp_number_type *) (& __thenan_sf);
 #else
@@ -373,7 +377,7 @@ unpack_d (FLO_union_type * src, fp_number_type * dst)
 	}
       else
 	{
-	  /* Zero exponent with non zero fraction - it's denormalized,
+	  /* Zero exponent with nonzero fraction - it's denormalized,
 	     so there isn't a leading implicit one - we'll shift it so
 	     it gets one.  */
 	  dst->normal_exp = exp - EXPBIAS + 1;
@@ -400,7 +404,7 @@ unpack_d (FLO_union_type * src, fp_number_type * dst)
 	}
       else
 	{
-	  /* Non zero fraction, means nan */
+	  /* Nonzero fraction, means nan */
 	  if (fraction & QUIET_NAN)
 	    {
 	      dst->class = CLASS_QNAN;
@@ -745,14 +749,14 @@ _fpmul_parts ( fp_number_type *  a,
 	high |= 1;
       low <<= 1;
     }
-  /* rounding is tricky. if we only round if it won't make us round later. */
+  /* rounding is tricky. if we only round if it won't make us round later.  */
 #if 0
   if (low & FRACHIGH2)
     {
       if (((high & GARDMASK) != GARDMSB)
 	  && (((high + 1) & GARDMASK) == GARDMSB))
 	{
-	  /* don't round, it gets done again later. */
+	  /* don't round, it gets done again later.  */
 	}
       else
 	{
@@ -920,7 +924,7 @@ int
 __fpcmp_parts (fp_number_type * a, fp_number_type * b)
 {
 #if 0
-  /* either nan -> unordered. Must be checked outside of this routine. */
+  /* either nan -> unordered. Must be checked outside of this routine.  */
   if (isnan (a) && isnan (b))
     {
       return 1;			/* still unordered! */
@@ -940,11 +944,11 @@ __fpcmp_parts (fp_number_type * a, fp_number_type * b)
        -------+--------+--------
        -inf(1)| a>b(1) | a==b(0)
        -------+--------+--------
-       So since unordered must be non zero, just line up the columns...
+       So since unordered must be nonzero, just line up the columns...
        */
       return b->sign - a->sign;
     }
-  /* but not both... */
+  /* but not both...  */
   if (isinf (a))
     {
       return a->sign ? -1 : 1;
@@ -965,7 +969,7 @@ __fpcmp_parts (fp_number_type * a, fp_number_type * b)
     {
       return a->sign ? -1 : 1;
     }
-  /* now both are "normal". */
+  /* now both are "normal".  */
   if (a->sign != b->sign)
     {
       /* opposite signs */
@@ -980,7 +984,7 @@ __fpcmp_parts (fp_number_type * a, fp_number_type * b)
     {
       return a->sign ? 1 : -1;
     }
-  /* same exponents; check size. */
+  /* same exponents; check size.  */
   if (a->fraction.ll > b->fraction.ll)
     {
       return a->sign ? -1 : 1;
@@ -989,7 +993,7 @@ __fpcmp_parts (fp_number_type * a, fp_number_type * b)
     {
       return a->sign ? 1 : -1;
     }
-  /* after all that, they're equal. */
+  /* after all that, they're equal.  */
   return 0;
 }
 #endif
@@ -1246,7 +1250,7 @@ float_to_si (FLO_type arg_a)
     return 0;
   if (isnan (&a))
     return 0;
-  /* get reasonable MAX_SI_INT... */
+  /* get reasonable MAX_SI_INT...  */
   if (isinf (&a))
     return a.sign ? (-MAX_SI_INT)-1 : MAX_SI_INT;
   /* it is a number, but a small one */
@@ -1283,7 +1287,7 @@ float_to_usi (FLO_type arg_a)
   /* it is a negative number */
   if (a.sign)
     return 0;
-  /* get reasonable MAX_USI_INT... */
+  /* get reasonable MAX_USI_INT...  */
   if (isinf (&a))
     return MAX_USI_INT;
   /* it is a number, but a small one */

@@ -49,6 +49,10 @@ trunc_int_for_mode (c, mode)
 {
   int width = GET_MODE_BITSIZE (mode);
 
+  /* You want to truncate to a _what_?  */
+  if (! SCALAR_INT_MODE_P (mode))
+    abort ();
+
   /* Canonicalize BImode to 0 and STORE_FLAG_VALUE.  */
   if (mode == BImode)
     return c & 1 ? STORE_FLAG_VALUE : 0;
@@ -401,10 +405,8 @@ convert_memory_address (to_mode, x)
       break;
 
     case SYMBOL_REF:
-      temp = gen_rtx_SYMBOL_REF (to_mode, XSTR (x, 0));
-      SYMBOL_REF_FLAG (temp) = SYMBOL_REF_FLAG (x);
-      CONSTANT_POOL_ADDRESS_P (temp) = CONSTANT_POOL_ADDRESS_P (x);
-      STRING_POOL_ADDRESS_P (temp) = STRING_POOL_ADDRESS_P (x);
+      temp = shallow_copy_rtx (x);
+      PUT_MODE (temp, to_mode);
       return temp;
       break;
 
@@ -819,7 +821,7 @@ copy_to_suggested_reg (x, target, mode)
    PUNSIGNEDP points to the signedness of the type and may be adjusted
    to show what signedness to use on extension operations.
 
-   FOR_CALL is non-zero if this call is promoting args for a call.  */
+   FOR_CALL is nonzero if this call is promoting args for a call.  */
 
 enum machine_mode
 promote_mode (type, mode, punsignedp, for_call)
@@ -1083,7 +1085,7 @@ emit_stack_restore (save_level, sa, after)
       sa = validize_mem (sa);
       /* These clobbers prevent the scheduler from moving
 	 references to variable arrays below the code
-	 that deletes (pops) the arrays. */
+	 that deletes (pops) the arrays.  */
       emit_insn (gen_rtx_CLOBBER (VOIDmode,
 		    gen_rtx_MEM (BLKmode, 
 			gen_rtx_SCRATCH (VOIDmode))));
@@ -1229,7 +1231,7 @@ allocate_dynamic_stack_space (size, target, known_align)
      always know its final value at this point in the compilation (it
      might depend on the size of the outgoing parameter lists, for
      example), so we must align the value to be returned in that case.
-     (Note that STACK_DYNAMIC_OFFSET will have a default non-zero value if
+     (Note that STACK_DYNAMIC_OFFSET will have a default nonzero value if
      STACK_POINTER_OFFSET or ACCUMULATE_OUTGOING_ARGS are defined).
      We must also do an alignment operation on the returned value if
      the stack pointer alignment is less strict that BIGGEST_ALIGNMENT.
@@ -1712,4 +1714,3 @@ rtx_to_tree_code (code)
 }
 
 #include "gt-explow.h"
-

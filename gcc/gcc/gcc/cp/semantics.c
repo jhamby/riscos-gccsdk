@@ -79,7 +79,7 @@ static tree clear_decl_rtl PARAMS ((tree *, int *, void *));
       (SUBSTMT) = (COND);				\
   } while (0)
 
-/* Returns non-zero if the current statement is a full expression,
+/* Returns nonzero if the current statement is a full expression,
    i.e. temporaries created during that statement should be destroyed
    at the end of the statement.  */
 
@@ -317,7 +317,10 @@ finish_while_stmt_cond (cond, while_stmt)
      tree while_stmt;
 {
   cond = maybe_convert_cond (cond);
-  if (getdecls () == NULL_TREE)
+  if (processing_template_decl)
+    /* Don't mess with condition decls in a template.  */
+    FINISH_COND (cond, while_stmt, WHILE_COND (while_stmt));
+  else if (getdecls () == NULL_TREE)
     /* It was a simple condition; install it.  */
     WHILE_COND (while_stmt) = cond;
   else
@@ -452,7 +455,10 @@ finish_for_cond (cond, for_stmt)
      tree for_stmt;
 {
   cond = maybe_convert_cond (cond);
-  if (getdecls () == NULL_TREE)
+  if (processing_template_decl)
+    /* Don't mess with condition decls in a template.  */
+    FINISH_COND (cond, for_stmt, FOR_COND (for_stmt));
+  else if (getdecls () == NULL_TREE)
     /* It was a simple condition; install it.  */
     FOR_COND (for_stmt) = cond;
   else
@@ -586,7 +592,7 @@ finish_switch_stmt (switch_stmt)
   do_poplevel ();
 }
 
-/* Generate the RTL for T, which is a TRY_BLOCK. */
+/* Generate the RTL for T, which is a TRY_BLOCK.  */
 
 static void 
 genrtl_try_block (t)
@@ -623,7 +629,7 @@ genrtl_try_block (t)
     }
 }
 
-/* Generate the RTL for T, which is an EH_SPEC_BLOCK. */
+/* Generate the RTL for T, which is an EH_SPEC_BLOCK.  */
 
 static void 
 genrtl_eh_spec_block (t)
@@ -732,7 +738,7 @@ finish_function_handler_sequence (try_block)
   check_handlers (TRY_HANDLERS (try_block));
 }
 
-/* Generate the RTL for T, which is a HANDLER. */
+/* Generate the RTL for T, which is a HANDLER.  */
 
 static void
 genrtl_handler (t)
@@ -801,7 +807,7 @@ finish_handler (handler)
   RECHAIN_STMTS (handler, HANDLER_BODY (handler));
 }
 
-/* Begin a compound-statement.  If HAS_NO_SCOPE is non-zero, the
+/* Begin a compound-statement.  If HAS_NO_SCOPE is nonzero, the
    compound-statement does not define a scope.  Returns a new
    COMPOUND_STMT if appropriate.  */
 
@@ -840,7 +846,7 @@ begin_compound_stmt (has_no_scope)
 }
 
 /* Finish a compound-statement, which may be given by COMPOUND_STMT.
-   If HAS_NO_SCOPE is non-zero, the compound statement does not define
+   If HAS_NO_SCOPE is nonzero, the compound statement does not define
    a scope.  */
 
 tree
@@ -929,7 +935,7 @@ finish_asm_stmt (cv_qualifier, string, output_operands,
 	  tree operand;
 
 	  constraint = TREE_STRING_POINTER (TREE_VALUE (TREE_PURPOSE (t)));
-	  operand = TREE_VALUE (output_operands);
+	  operand = TREE_VALUE (t);
 
 	  if (!parse_output_constraint (&constraint,
 					i, ninputs, noutputs,
@@ -1003,7 +1009,7 @@ finish_eh_cleanup (cleanup)
   add_stmt (r);
 }
 
-/* Generate the RTL for a RETURN_INIT. */
+/* Generate the RTL for a RETURN_INIT.  */
 
 static void
 genrtl_named_return_value ()
@@ -1094,67 +1100,21 @@ begin_mem_initializers ()
     error ("only constructors take base initializers");
 }
 
-/* The INIT_LIST is a list of mem-initializers, in the order they were
-   written by the user.  The TREE_VALUE of each node is a list of
-   initializers for a particular subobject.  The TREE_PURPOSE is a
-   FIELD_DECL is the initializer is for a non-static data member, and
-   a class type if the initializer is for a base class.  */
+/* The MEM_INITS is a list of mem-initializers, in reverse of the
+   order they were written by the user.  Each node is as for
+   emit_mem_initializers.  */
 
 void
-finish_mem_initializers (init_list)
-     tree init_list;
+finish_mem_initializers (tree mem_inits)
 {
-  tree member_init_list;
-  tree base_init_list;
-  tree last_base_warned_about;
-  tree next; 
-  tree init;
-
-  member_init_list = NULL_TREE;
-  base_init_list = NULL_TREE;
-  last_base_warned_about = NULL_TREE;
-
-  for (init = init_list; init; init = next)
-    {
-      next = TREE_CHAIN (init);
-      if (TREE_CODE (TREE_PURPOSE (init)) == FIELD_DECL)
-	{
-	  TREE_CHAIN (init) = member_init_list;
-	  member_init_list = init;
-
-	  /* We're running through the initializers from right to left
-	     as we process them here.  So, if we see a data member
-	     initializer after we see a base initializer, that
-	     actually means that the base initializer preceded the
-	     data member initializer.  */
-	  if (warn_reorder && last_base_warned_about != base_init_list)
-	    {
-	      tree base;
-
-	      for (base = base_init_list; 
-		   base != last_base_warned_about; 
-		   base = TREE_CHAIN (base))
-		{
-		  warning ("base initializer for `%T'",
-			      TREE_PURPOSE (base));
-		  warning ("   will be re-ordered to precede member initializations");
-		}
-
-	      last_base_warned_about = base_init_list;
-	    }
-	}
-      else
-	{
-	  TREE_CHAIN (init) = base_init_list;
-	  base_init_list = init;
-	}
-    }
+  /* Reorder the MEM_INITS so that they are in the order they appeared
+     in the source program.  */
+  mem_inits = nreverse (mem_inits);
 
   if (processing_template_decl)
-    add_stmt (build_min_nt (CTOR_INITIALIZER,
-			    member_init_list, base_init_list));
+    add_stmt (build_min_nt (CTOR_INITIALIZER, mem_inits));
   else
-    emit_base_init (member_init_list, base_init_list);
+    emit_mem_initializers (mem_inits);
 }
 
 /* Returns the stack of SCOPE_STMTs for the current function.  */
@@ -1572,7 +1532,7 @@ reset_type_access_control ()
 }
 
 /* Begin a function definition declared with DECL_SPECS, ATTRIBUTES,
-   and DECLARATOR.  Returns non-zero if the function-declaration is
+   and DECLARATOR.  Returns nonzero if the function-declaration is
    valid.  */
 
 int
@@ -1633,7 +1593,7 @@ finish_translation_unit ()
   while (current_namespace != global_namespace)
     pop_namespace ();
 
-  /* Do file scope __FUNCTION__ et al. */
+  /* Do file scope __FUNCTION__ et al.  */
   finish_fname_decls ();
   
   finish_file ();
@@ -1696,7 +1656,7 @@ check_template_template_default_arg (tree argument)
 }
 
 /* Finish a parameter list, indicated by PARMS.  If ELLIPSIS is
-   non-zero, the parameter list was terminated by a `...'.  */
+   nonzero, the parameter list was terminated by a `...'.  */
 
 tree
 finish_parmlist (parms, ellipsis)
@@ -1724,7 +1684,7 @@ begin_class_definition (t)
   if (t == error_mark_node)
     return error_mark_node;
 
-  /* Check the bases are accessible. */
+  /* Check the bases are accessible.  */
   decl_type_access_control (TYPE_NAME (t));
   reset_type_access_control ();
   
@@ -1794,6 +1754,7 @@ begin_class_definition (t)
 	  TYPE_BINFO_BASETYPES (t) = NULL_TREE;
 	  TYPE_FIELDS (t) = NULL_TREE;
 	  TYPE_METHODS (t) = NULL_TREE;
+	  CLASSTYPE_DECL_LIST (t) = NULL_TREE;
 	  CLASSTYPE_TAGS (t) = NULL_TREE;
 	  CLASSTYPE_VBASECLASSES (t) = NULL_TREE;
 	  TYPE_SIZE (t) = NULL_TREE;
@@ -1874,6 +1835,8 @@ finish_member_declaration (decl)
      and the member function type of class member functions.  */
   if (DECL_LANG_SPECIFIC (decl) && DECL_LANGUAGE (decl) == lang_c)
     SET_DECL_LANGUAGE (decl, lang_cplusplus);
+
+  maybe_add_class_template_decl_list (current_class_type, decl, /*friend_p=*/0);
 
   /* Put functions on the TYPE_METHODS list and everything else on the
      TYPE_FIELDS list.  Note that these are built up in reverse order.
@@ -2022,7 +1985,7 @@ finish_template_decl (parms)
 
 /* Finish processing a template-id (which names a type) of the form
    NAME < ARGS >.  Return the TYPE_DECL for the type named by the
-   template-id.  If ENTERING_SCOPE is non-zero we are about to enter
+   template-id.  If ENTERING_SCOPE is nonzero we are about to enter
    the scope of template-id indicated.  */
 
 tree
@@ -2311,35 +2274,9 @@ emit_associated_thunks (fn)
      enabling you to output all the thunks with the function itself.  */
   if (DECL_VIRTUAL_P (fn))
     {
-      tree binfo;
-      tree v;
-
-      for (binfo = TYPE_BINFO (DECL_CONTEXT (fn));
-	   binfo;
-	   binfo = TREE_CHAIN (binfo))
-	for (v = BINFO_VIRTUALS (binfo); v; v = TREE_CHAIN (v))
-	  if (BV_FN (v) == fn
-	      && (!integer_zerop (BV_DELTA (v))
-		  || BV_USE_VCALL_INDEX_P (v)))
-	    {
-	      tree thunk;
-	      tree vcall_index;
-
-	      if (BV_USE_VCALL_INDEX_P (v))
-		{
-		  vcall_index = BV_VCALL_INDEX (v);
-		  my_friendly_assert (vcall_index != NULL_TREE, 20000621);
-		}
-	      else
-		vcall_index = NULL_TREE;
-
-	      thunk = make_thunk (build1 (ADDR_EXPR,
-					  vfunc_ptr_type_node,
-					  fn),
-				  BV_DELTA (v),
-				  vcall_index);
-	      use_thunk (thunk, /*emit_p=*/1);
-	    }
+      tree thunk;
+      for (thunk = DECL_THUNKS (fn); thunk; thunk = TREE_CHAIN (thunk))
+	use_thunk (thunk, /*emit_p=*/1);
     }
 }
 
@@ -2506,7 +2443,7 @@ nullify_returns_r (tp, walk_subtrees, data)
   if (TYPE_P (*tp))
     *walk_subtrees = 0;
   else if (TREE_CODE (*tp) == RETURN_STMT)
-    RETURN_EXPR (*tp) = NULL_TREE;
+    RETURN_STMT_EXPR (*tp) = NULL_TREE;
   else if (TREE_CODE (*tp) == CLEANUP_STMT
 	   && CLEANUP_DECL (*tp) == nrv)
     CLEANUP_EH_ONLY (*tp) = 1;

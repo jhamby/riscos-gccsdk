@@ -23,11 +23,6 @@ Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 #ifndef GCC_SYSTEM_H
 #define GCC_SYSTEM_H
 
-/* This is the location of the online document giving information how
-   to report bugs. If you change this string, also check for strings
-   not under control of the preprocessor.  */
-#define GCCBUGURL "<URL:http://www.gnu.org/software/gcc/bugs.html>"
-
 /* We must include stdarg.h/varargs.h before stdio.h.  */
 #ifdef ANSI_PROTOTYPES
 #include <stdarg.h>
@@ -604,7 +599,8 @@ typedef char _Bool;
 	MD_INIT_BUILTINS MD_EXPAND_BUILTIN ASM_OUTPUT_CONSTRUCTOR	\
 	ASM_OUTPUT_DESTRUCTOR SIGNED_CHAR_SPEC MAX_CHAR_TYPE_SIZE	\
 	WCHAR_UNSIGNED UNIQUE_SECTION SELECT_SECTION SELECT_RTX_SECTION	\
-	ENCODE_SECTION_INFO STRIP_NAME_ENCODING
+	ENCODE_SECTION_INFO STRIP_NAME_ENCODING ASM_GLOBALIZE_LABEL	\
+	ASM_OUTPUT_MI_THUNK
 
 /* Other obsolete target macros, or macros that used to be in target
    headers and were not used, and may be obsolete or may never have

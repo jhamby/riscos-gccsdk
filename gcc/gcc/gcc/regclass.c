@@ -26,10 +26,10 @@ Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 
 #include "config.h"
 #include "system.h"
+#include "hard-reg-set.h"
 #include "rtl.h"
 #include "expr.h"
 #include "tm_p.h"
-#include "hard-reg-set.h"
 #include "flags.h"
 #include "basic-block.h"
 #include "regs.h"
@@ -220,27 +220,18 @@ static int may_move_out_cost[MAX_MACHINE_MODE][N_REG_CLASSES][N_REG_CLASSES];
 
 static int forbidden_inc_dec_class[N_REG_CLASSES];
 
-/* Indexed by n, is non-zero if (REG n) is used in an auto-inc or auto-dec
+/* Indexed by n, is nonzero if (REG n) is used in an auto-inc or auto-dec
    context.  */
 
 static char *in_inc_dec;
 
 #endif /* FORBIDDEN_INC_DEC_CLASSES */
 
-#ifdef CLASS_CANNOT_CHANGE_MODE
-
-/* These are the classes containing only registers that can be used in
-   a SUBREG expression that changes the mode of the register in some
-   way that is illegal.  */
-
-static int class_can_change_mode[N_REG_CLASSES];
-
-/* Registers, including pseudos, which change modes in some way that
-   is illegal.  */
-
-static regset reg_changes_mode;
-
-#endif /* CLASS_CANNOT_CHANGE_MODE */
+#ifdef CANNOT_CHANGE_MODE_CLASS
+/* All registers that have been subreged.  Indexed by mode, where each
+   entry is a regset of registers.  */
+regset_head subregs_of_mode [NUM_MACHINE_MODES];
+#endif
 
 /* Sample MEM values for use by memory_move_secondary_cost.  */
 
@@ -254,7 +245,7 @@ struct reg_info_data {
   struct reg_info_data *next;	/* next set of reg_info structures */
   size_t min_index;		/* minimum index # */
   size_t max_index;		/* maximum index # */
-  char used_p;			/* non-zero if this has been used previously */
+  char used_p;			/* nonzero if this has been used previously */
   reg_info data[1];		/* beginning of the reg_info data */
 };
 
@@ -292,7 +283,7 @@ init_reg_sets ()
   memcpy (call_used_regs, initial_call_used_regs, sizeof call_used_regs);
   memset (global_regs, 0, sizeof global_regs);
 
-  /* Do any additional initialization regsets may need */
+  /* Do any additional initialization regsets may need.  */
   INIT_ONCE_REG_SET ();
 
 #ifdef REG_ALLOC_ORDER
@@ -549,22 +540,6 @@ init_reg_sets_1 ()
 		may_move_out_cost[m][i][j] = 65536;
 	      }
       }
-
-#ifdef CLASS_CANNOT_CHANGE_MODE
-  {
-    HARD_REG_SET c;
-    COMPL_HARD_REG_SET (c, reg_class_contents[CLASS_CANNOT_CHANGE_MODE]);
-
-    for (i = 0; i < N_REG_CLASSES; i++)
-      {
-	GO_IF_HARD_REG_SUBSET (reg_class_contents[i], c, ok_class);
-	class_can_change_mode [i] = 0;
-	continue;
-      ok_class:
-	class_can_change_mode [i] = 1;
-      }
-    }
-#endif /* CLASS_CANNOT_CHANGE_MODE */
 }
 
 /* Compute the table of register modes.
@@ -952,9 +927,9 @@ dump_regclass (dump)
 		&& (!in_inc_dec[i]
 		    || !forbidden_inc_dec_class[(enum reg_class) class])
 #endif
-#ifdef CLASS_CANNOT_CHANGE_MODE
-		&& (!REGNO_REG_SET_P (reg_changes_mode, i)
-		     || class_can_change_mode [(enum reg_class) class])
+#ifdef CANNOT_CHANGE_MODE_CLASS
+		&& ! invalid_mode_change_p (i, (enum reg_class) class,
+					    PSEUDO_REGNO_MODE (i))
 #endif
 		)
 	    fprintf (dump, " %s:%i", reg_class_names[class],
@@ -994,15 +969,7 @@ record_operand_costs (insn, op_costs, reg_pref)
       op_costs[i] = init_cost;
 
       if (GET_CODE (recog_data.operand[i]) == SUBREG)
-	{
-	  rtx inner = SUBREG_REG (recog_data.operand[i]);
-#ifdef CLASS_CANNOT_CHANGE_MODE
-	  if (GET_CODE (inner) == REG
-	      && CLASS_CANNOT_CHANGE_MODE_P (modes[i], GET_MODE (inner)))
-	    SET_REGNO_REG_SET (reg_changes_mode, REGNO (inner));
-#endif
-	  recog_data.operand[i] = inner;
-	}
+	recog_data.operand[i] = SUBREG_REG (recog_data.operand[i]);
 
       if (GET_CODE (recog_data.operand[i]) == MEM)
 	record_address_regs (XEXP (recog_data.operand[i], 0),
@@ -1193,10 +1160,6 @@ regclass (f, nregs, dump)
 
   costs = (struct costs *) xmalloc (nregs * sizeof (struct costs));
 
-#ifdef CLASS_CANNOT_CHANGE_MODE
-  reg_changes_mode = BITMAP_XMALLOC ();
-#endif
-
 #ifdef FORBIDDEN_INC_DEC_CLASSES
 
   in_inc_dec = (char *) xmalloc (nregs);
@@ -1329,9 +1292,9 @@ regclass (f, nregs, dump)
 #ifdef FORBIDDEN_INC_DEC_CLASSES
 		  || (in_inc_dec[i] && forbidden_inc_dec_class[class])
 #endif
-#ifdef CLASS_CANNOT_CHANGE_MODE
-		  || (REGNO_REG_SET_P (reg_changes_mode, i)
-		      && ! class_can_change_mode [class])
+#ifdef CANNOT_CHANGE_MODE_CLASS
+		  || invalid_mode_change_p (i, (enum reg_class) class,
+					    PSEUDO_REGNO_MODE (i))
 #endif
 		  )
 		;
@@ -1359,9 +1322,9 @@ regclass (f, nregs, dump)
 #ifdef FORBIDDEN_INC_DEC_CLASSES
 		  && ! (in_inc_dec[i] && forbidden_inc_dec_class[class])
 #endif
-#ifdef CLASS_CANNOT_CHANGE_MODE
-		  && ! (REGNO_REG_SET_P (reg_changes_mode, i)
-			&& ! class_can_change_mode [class])
+#ifdef CANNOT_CHANGE_MODE_CLASS
+		  && ! invalid_mode_change_p (i, (enum reg_class) class,
+					      PSEUDO_REGNO_MODE (i))
 #endif
 		  )
 		alt = reg_class_subunion[(int) alt][class];
@@ -1394,9 +1357,6 @@ regclass (f, nregs, dump)
 
 #ifdef FORBIDDEN_INC_DEC_CLASSES
   free (in_inc_dec);
-#endif
-#ifdef CLASS_CANNOT_CHANGE_MODE
-  BITMAP_XFREE (reg_changes_mode);
 #endif
   free (costs);
 }
@@ -1904,7 +1864,7 @@ record_reg_classes (n_alts, n_ops, ops, modes,
 	}
 }
 
-/* Compute the cost of loading X into (if TO_P is non-zero) or from (if
+/* Compute the cost of loading X into (if TO_P is nonzero) or from (if
    TO_P is zero) a register of class CLASS in mode MODE.
 
    X must not be a pseudo.  */
@@ -2189,10 +2149,10 @@ static unsigned int reg_n_max;
 
 /* Allocate enough space to hold NUM_REGS registers for the tables used for
    reg_scan and flow_analysis that are indexed by the register number.  If
-   NEW_P is non zero, initialize all of the registers, otherwise only
+   NEW_P is nonzero, initialize all of the registers, otherwise only
    initialize the new registers allocated.  The same table is kept from
    function to function, only reallocating it when we need more room.  If
-   RENUMBER_P is non zero, allocate the reg_renumber array also.  */
+   RENUMBER_P is nonzero, allocate the reg_renumber array also.  */
 
 void
 allocate_reg_info (num_regs, new_p, renumber_p)
@@ -2296,7 +2256,7 @@ allocate_reg_info (num_regs, new_p, renumber_p)
   if (renumber_p)
     reg_renumber = renumber;
 
-  /* Tell the regset code about the new number of registers */
+  /* Tell the regset code about the new number of registers.  */
   MAX_REGNO_REG_SET (num_regs, new_p, renumber_p);
 }
 
@@ -2642,5 +2602,47 @@ regset_release_memory ()
 {
   bitmap_release_memory ();
 }
+
+#ifdef CANNOT_CHANGE_MODE_CLASS
+/* Set bits in *USED which correspond to registers which can't change
+   their mode from FROM to any mode in which REGNO was encountered.  */
+
+void
+cannot_change_mode_set_regs (used, from, regno)
+     HARD_REG_SET *used;
+     enum machine_mode from;
+     unsigned int regno;
+{
+  enum machine_mode to;
+  enum reg_class class;
+
+  for (to = VOIDmode; to < MAX_MACHINE_MODE; ++to)
+    if (REGNO_REG_SET_P (&subregs_of_mode[to], regno))
+      {
+        class = CANNOT_CHANGE_MODE_CLASS (from, to);
+        if (class != NO_REGS)
+          IOR_HARD_REG_SET (*used, reg_class_contents [(int) class]);
+      }
+}
+
+/* Return 1 if REGNO has had an invalid mode change in CLASS from FROM
+   mode.  */
+
+bool
+invalid_mode_change_p (regno, class, from_mode)
+     unsigned int regno;
+      enum reg_class class;
+     enum machine_mode from_mode;
+{
+  enum machine_mode to_mode;
+
+  for (to_mode = 0; to_mode < NUM_MACHINE_MODES; ++to_mode)
+    if (REGNO_REG_SET_P (&subregs_of_mode[(int) to_mode], regno)
+	&& reg_classes_intersect_p 
+	     (class, CANNOT_CHANGE_MODE_CLASS (from_mode, to_mode)))
+      return 1;
+  return 0;
+}
+#endif /* CANNOT_CHANGE_MODE_CLASS */
 
 #include "gt-regclass.h"

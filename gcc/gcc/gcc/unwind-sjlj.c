@@ -208,6 +208,12 @@ _Unwind_GetRegionStart (struct _Unwind_Context *context __attribute__((unused)) 
   return 0;
 }
 
+void *
+_Unwind_FindEnclosingFunction (void *pc)
+{
+  return NULL;
+}
+
 #ifndef __ia64__
 _Unwind_Ptr
 _Unwind_GetDataRelBase (struct _Unwind_Context *context __attribute__((unused)) )
@@ -251,7 +257,7 @@ uw_init_context (struct _Unwind_Context *context)
 }
 
 /* ??? There appear to be bugs in integrate.c wrt __builtin_longjmp and
-   virtual-stack-vars.  An inline version of this segfaults on Sparc.  */
+   virtual-stack-vars.  An inline version of this segfaults on SPARC.  */
 #define uw_install_context(CURRENT, TARGET)		\
   do							\
     {							\

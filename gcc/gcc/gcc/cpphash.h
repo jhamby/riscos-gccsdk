@@ -99,7 +99,7 @@ struct cpp_macro
   /* If macro defined in system header.  */
   unsigned int syshdr   : 1;
 
-  /* Non-zero if it has been expanded or had its existence tested.  */
+  /* Nonzero if it has been expanded or had its existence tested.  */
   unsigned int used     : 1;
 };
 
@@ -141,7 +141,7 @@ struct search_path
      of an earlier directory on the search path.  */
   ino_t ino;
   dev_t dev;
-  /* Non-zero if it is a system include directory.  */
+  /* Nonzero if it is a system include directory.  */
   int sysp;
   /* Mapping of file names for this directory.  Only used on MS-DOS
      and related platforms.  */
@@ -166,10 +166,10 @@ struct tokenrun
 };
 
 /* Accessor macros for struct cpp_context.  */
-#define FIRST(c) (c->u.iso.first)
-#define LAST(c) (c->u.iso.last)
-#define CUR(c) (c->u.trad.cur)
-#define RLIMIT(c) (c->u.trad.rlimit)
+#define FIRST(c) ((c)->u.iso.first)
+#define LAST(c) ((c)->u.iso.last)
+#define CUR(c) ((c)->u.trad.cur)
+#define RLIMIT(c) ((c)->u.trad.rlimit)
 
 typedef struct cpp_context cpp_context;
 struct cpp_context
@@ -372,7 +372,7 @@ struct cpp_reader
   tokenrun base_run, *cur_run;
   unsigned int lookaheads;
 
-  /* Non-zero prevents the lexer from re-using the token runs.  */
+  /* Nonzero prevents the lexer from re-using the token runs.  */
   unsigned int keep_tokens;
 
   /* Error counter for exit code.  */

@@ -123,7 +123,7 @@ struct file_name_map_list;
   OP(CPP_SCOPE,		"::")			\
   OP(CPP_DEREF_STAR,	"->*")			\
   OP(CPP_DOT_STAR,	".*")			\
-  OP(CPP_ATSIGN,	"@")  /* used in Objective C */ \
+  OP(CPP_ATSIGN,	"@")  /* used in Objective-C */ \
 \
   TK(CPP_NAME,		SPELL_IDENT)	/* word */			\
   TK(CPP_NUMBER,	SPELL_NUMBER)	/* 34_be+ta  */			\
@@ -532,7 +532,7 @@ extern int cpp_handle_option PARAMS ((cpp_reader *, int, char **));
    too.  If there was an error opening the file, it returns NULL.
 
    If you want cpplib to manage its own hashtable, pass in a NULL
-   pointer.  Otherise you should pass in an initialised hash table
+   pointer.  Otherise you should pass in an initialized hash table
    that cpplib will share; this technique is used by the C front
    ends.  */
 extern const char *cpp_read_main_file PARAMS ((cpp_reader *, const char *,
@@ -659,7 +659,7 @@ cpp_num cpp_num_sign_extend PARAMS ((cpp_num, size_t));
 #define DL_ICE			0x04
 /* Extracts a diagnostic level from an int.  */
 #define DL_EXTRACT(l)		(l & 0xf)
-/* Non-zero if a diagnostic level is one of the warnings.  */
+/* Nonzero if a diagnostic level is one of the warnings.  */
 #define DL_WARNING_P(l)		(DL_EXTRACT (l) >= DL_WARNING \
 				 && DL_EXTRACT (l) <= DL_PEDWARN)
 

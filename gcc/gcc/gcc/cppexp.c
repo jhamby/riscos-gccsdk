@@ -383,7 +383,7 @@ cpp_interpret_integer (pfile, token, type)
 		   "integer constant is too large for its type");
       /* If too big to be signed, consider it unsigned.  Only warn for
 	 decimal numbers.  Traditional numbers were always signed (but
-	 we still honour an explicit U suffix); but we only have
+	 we still honor an explicit U suffix); but we only have
 	 traditional semantics in directives.  */
       else if (!result.unsignedp
 	       && !(CPP_OPTION (pfile, traditional)
@@ -774,7 +774,7 @@ _cpp_parse_expr (pfile)
 	}
       else if (want_value)
 	{
-	  /* Ordering here is subtle and intended to favour the
+	  /* Ordering here is subtle and intended to favor the
 	     missing parenthesis diagnostics over alternatives.  */
 	  if (op.op == CPP_CLOSE_PAREN)
 	    {
@@ -1446,6 +1446,7 @@ num_part_mul (lhs, rhs)
 
   result.high += HIGH_PART (middle[0]);
   result.high += HIGH_PART (middle[1]);
+  result.unsignedp = 1;
 
   return result;
 }
@@ -1551,7 +1552,7 @@ num_div_op (pfile, lhs, rhs, op)
       return lhs;
     }
 
-  /* First non-zero bit of RHS is bit I.  Do naive division by
+  /* First nonzero bit of RHS is bit I.  Do naive division by
      shifting the RHS fully left, and subtracting from LHS if LHS is
      at least as big, and then repeating but with one less shift.
      This is not very efficient, but is easy to understand.  */

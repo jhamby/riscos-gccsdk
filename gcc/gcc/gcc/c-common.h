@@ -43,7 +43,7 @@ Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 */
 
 /* Reserved identifiers.  This is the union of all the keywords for C,
-   C++, and Objective C.  All the type modifiers have to be in one
+   C++, and Objective-C.  All the type modifiers have to be in one
    block at the beginning, because they are used as mask bits.  There
    are 27 type modifiers; if we add many more we will have to redesign
    the mask mechanism.  */
@@ -93,7 +93,7 @@ enum rid
   /* casts */
   RID_CONSTCAST, RID_DYNCAST, RID_REINTCAST, RID_STATCAST,
 
-  /* Objective C */
+  /* Objective-C */
   RID_ID,          RID_AT_ENCODE,    RID_AT_END,
   RID_AT_CLASS,    RID_AT_ALIAS,     RID_AT_DEFS,
   RID_AT_PRIVATE,  RID_AT_PROTECTED, RID_AT_PUBLIC,
@@ -131,10 +131,6 @@ enum c_tree_index
     CTI_SIGNED_WCHAR_TYPE,
     CTI_UNSIGNED_WCHAR_TYPE,
     CTI_WINT_TYPE,
-    CTI_C_SIZE_TYPE, /* The type used for the size_t typedef and the
-			result type of sizeof (an ordinary type without
-			TYPE_IS_SIZETYPE set, unlike the internal
-			sizetype).  */
     CTI_SIGNED_SIZE_TYPE, /* For format checking only.  */
     CTI_UNSIGNED_PTRDIFF_TYPE, /* For format checking only.  */
     CTI_INTMAX_TYPE,
@@ -188,7 +184,6 @@ struct c_common_identifier GTY(())
 #define signed_wchar_type_node		c_global_trees[CTI_SIGNED_WCHAR_TYPE]
 #define unsigned_wchar_type_node	c_global_trees[CTI_UNSIGNED_WCHAR_TYPE]
 #define wint_type_node			c_global_trees[CTI_WINT_TYPE]
-#define c_size_type_node		c_global_trees[CTI_C_SIZE_TYPE]
 #define signed_size_type_node		c_global_trees[CTI_SIGNED_SIZE_TYPE]
 #define unsigned_ptrdiff_type_node	c_global_trees[CTI_UNSIGNED_PTRDIFF_TYPE]
 #define intmax_type_node		c_global_trees[CTI_INTMAX_TYPE]
@@ -253,12 +248,12 @@ struct stmt_tree_s GTY(()) {
   tree x_last_expr_type;
   /* The last filename we recorded.  */
   const char *x_last_expr_filename;
-  /* In C++, Non-zero if we should treat statements as full
+  /* In C++, Nonzero if we should treat statements as full
      expressions.  In particular, this variable is no-zero if at the
      end of a statement we should destroy any temporaries created
      during that statement.  Similarly, if, at the end of a block, we
      should destroy any local variables in this block.  Normally, this
-     variable is non-zero, since those are the normal semantics of
+     variable is nonzero, since those are the normal semantics of
      C++.
 
      However, in order to represent aggregate initialization code as
@@ -465,7 +460,7 @@ extern int warn_write_strings;
 
 extern int warn_redundant_decls;
 
-/* Warn about testing equality of floating point numbers. */
+/* Warn about testing equality of floating point numbers.  */
 
 extern int warn_float_equal;
 
@@ -477,7 +472,7 @@ extern int warn_char_subscripts;
 
 extern int warn_conversion;
 
-/* Warn about #pragma directives that are not recognised.  */      
+/* Warn about #pragma directives that are not recognized.  */      
 
 extern int warn_unknown_pragmas; /* Tri state variable.  */  
 
@@ -609,9 +604,17 @@ extern int print_struct_values;
 extern const char *constant_string_class_name;
 
 /* Warn if multiple methods are seen for the same selector, but with
-   different argument types.  */
+   different argument types.  Performs the check on the whole selector
+   table at the end of compilation.  */
 
 extern int warn_selector;
+
+/* Warn if a @selector() is found, and no method with that selector
+   has been previously declared.  The check is done on each
+   @selector() as soon as it is found - so it warns about forward
+   declarations.  */
+
+extern int warn_undeclared_selector;
 
 /* Warn if methods required by a protocol are not implemented in the 
    class adopting it.  When turned off, methods inherited to that
@@ -729,6 +732,26 @@ extern int flag_permissive;
 
 extern int flag_enforce_eh_specs;
 
+/*  The version of the C++ ABI in use.  The following values are
+    allowed:
+
+    0: The version of the ABI believed most conformant with the 
+       C++ ABI specification.  This ABI may change as bugs are
+       discovered and fixed.  Therefore, 0 will not necessarily
+       indicate the same ABI in different versions of G++.
+
+    1: The version of the ABI first used in G++ 3.2.
+
+    Additional positive integers will be assigned as new versions of
+    the ABI become the default version of the ABI.  */
+
+extern int flag_abi_version;
+
+/* Nonzero means warn about things that will change when compiling
+   with an ABI-compliant compiler.  */
+
+extern int warn_abi;
+
 /* Nonzero means warn about implicit declarations.  */
 
 extern int warn_implicit;
@@ -738,26 +761,26 @@ extern int warn_implicit;
 
 extern int warn_ctor_dtor_privacy;
 
-/* Non-zero means warn in function declared in derived class has the
+/* Nonzero means warn in function declared in derived class has the
    same name as a virtual in the base class, but fails to match the
    type signature of any virtual function in the base class.  */
 
 extern int warn_overloaded_virtual;
 
-/* Non-zero means warn when declaring a class that has a non virtual
+/* Nonzero means warn when declaring a class that has a non virtual
    destructor, when it really ought to have a virtual one.  */
 
 extern int warn_nonvdtor;
 
-/* Non-zero means warn when the compiler will reorder code.  */
+/* Nonzero means warn when the compiler will reorder code.  */
 
 extern int warn_reorder;
 
-/* Non-zero means warn when synthesis behavior differs from Cfront's.  */
+/* Nonzero means warn when synthesis behavior differs from Cfront's.  */
 
 extern int warn_synth;
 
-/* Non-zero means warn when we convert a pointer to member function
+/* Nonzero means warn when we convert a pointer to member function
    into a pointer to (void or function).  */
 
 extern int warn_pmf2ptr;
@@ -945,7 +968,7 @@ extern tree strip_array_types                   PARAMS ((tree));
 /* RETURN_STMT accessors. These give the expression associated with a
    return statement, and whether it should be ignored when expanding
    (as opposed to inlining).  */
-#define RETURN_EXPR(NODE)       TREE_OPERAND (RETURN_STMT_CHECK (NODE), 0)
+#define RETURN_STMT_EXPR(NODE)  TREE_OPERAND (RETURN_STMT_CHECK (NODE), 0)
 
 /* EXPR_STMT accessor. This gives the expression associated with an
    expression statement.  */
@@ -1075,7 +1098,7 @@ extern tree strip_array_types                   PARAMS ((tree));
 #define STMT_LINENO(NODE)			\
   (TREE_COMPLEXITY ((NODE)))
 
-/* If non-zero, the STMT_LINENO for NODE is the line at which the
+/* If nonzero, the STMT_LINENO for NODE is the line at which the
    function ended.  */
 #define STMT_LINENO_FOR_FN_P(NODE)		\
   (TREE_LANG_FLAG_2 ((NODE)))

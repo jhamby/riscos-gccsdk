@@ -335,7 +335,7 @@ genrtl_expr_stmt (expr)
    whether to (1) save the value of the expression, (0) discard it or
    (-1) use expr_stmts_for_value to tell.  The use of -1 is
    deprecated, and retained only for backward compatibility.
-   MAYBE_LAST is non-zero if this EXPR_STMT might be the last statement
+   MAYBE_LAST is nonzero if this EXPR_STMT might be the last statement
    in expression statement.  */
 
 void 
@@ -447,8 +447,9 @@ genrtl_do_stmt (t)
   /* Recognize the common special-case of do { ... } while (0) and do
      not emit the loop widgetry in this case.  In particular this
      avoids cluttering the rtl with dummy loop notes, which can affect
-     alignment of adjacent labels.  */
-  if (integer_zerop (cond))
+     alignment of adjacent labels.  COND can be NULL due to parse
+     errors.  */
+  if (!cond || integer_zerop (cond))
     {
       expand_start_null_loop ();
       expand_stmt (DO_BODY (t));
@@ -487,7 +488,7 @@ genrtl_return_stmt (stmt)
 {
   tree expr;
 
-  expr = RETURN_EXPR (stmt);
+  expr = RETURN_STMT_EXPR (stmt);
 
   emit_line_note (input_filename, lineno);
   if (!expr)

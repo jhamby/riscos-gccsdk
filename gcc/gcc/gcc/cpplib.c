@@ -207,7 +207,7 @@ skip_rest_of_line (pfile)
      cpp_reader *pfile;
 {
   /* Discard all stacked contexts.  */
-  while (pfile->context != &pfile->base_context)
+  while (pfile->context->prev)
     _cpp_pop_context (pfile);
 
   /* Sweep up all tokens remaining on the line.  */
@@ -300,7 +300,7 @@ prepare_directive_trad (pfile)
   pfile->state.prevent_expansion++;
 }
 
-/* Output diagnostics for a directive DIR.  INDENTED is non-zero if
+/* Output diagnostics for a directive DIR.  INDENTED is nonzero if
    the '#' was indented.  */
 static void
 directive_diagnostics (pfile, dir, indented)
@@ -336,10 +336,10 @@ directive_diagnostics (pfile, dir, indented)
     }
 }
 
-/* Check if we have a known directive.  INDENTED is non-zero if the
+/* Check if we have a known directive.  INDENTED is nonzero if the
    '#' of the directive was indented.  This function is in this file
    to save unnecessarily exporting dtable etc. to cpplex.c.  Returns
-   non-zero if the line of tokens has been handled, zero if we should
+   nonzero if the line of tokens has been handled, zero if we should
    continue processing the line.  */
 int
 _cpp_handle_directive (pfile, indented)
@@ -367,7 +367,7 @@ _cpp_handle_directive (pfile, indented)
       if (dname->val.node->directive_index)
 	dir = &dtable[dname->val.node->directive_index - 1];
     }
-  /* We do not recognise the # followed by a number extension in
+  /* We do not recognize the # followed by a number extension in
      assembler code.  */
   else if (dname->type == CPP_NUMBER && CPP_OPTION (pfile, lang) != CLK_ASM)
     {
@@ -1288,7 +1288,45 @@ destringize_and_run (pfile, in)
     }
   *dest = '\0';
 
-  run_directive (pfile, T_PRAGMA, result, dest - result);
+  /* Ugh; an awful kludge.  We are really not set up to be lexing
+     tokens when in the middle of a macro expansion.  Use a new
+     context to force cpp_get_token to lex, and so skip_rest_of_line
+     doesn't go beyond the end of the text.  Also, remember the
+     current lexing position so we can return to it later.
+
+     Something like line-at-a-time lexing should remove the need for
+     this.  */
+  {
+    cpp_context *saved_context = pfile->context;
+    cpp_token *saved_cur_token = pfile->cur_token;
+    tokenrun *saved_cur_run = pfile->cur_run;
+
+    pfile->context = xnew (cpp_context);
+    pfile->context->macro = 0;
+    pfile->context->prev = 0;
+    run_directive (pfile, T_PRAGMA, result, dest - result);
+    free (pfile->context);
+    pfile->context = saved_context;
+    pfile->cur_token = saved_cur_token;
+    pfile->cur_run = saved_cur_run;
+    pfile->line--;
+  }
+
+  /* See above comment.  For the moment, we'd like
+
+     token1 _Pragma ("foo") token2
+
+     to be output as
+
+		token1
+		# 7 "file.c"
+		#pragma foo
+		# 7 "file.c"
+			       token2
+
+      Getting the line markers is a little tricky.  */
+  if (pfile->cb.line_change)
+    (*pfile->cb.line_change) (pfile, pfile->cur_token, false);
 }
 
 /* Handle the _Pragma operator.  */
@@ -1298,26 +1336,11 @@ _cpp_do__Pragma (pfile)
 {
   const cpp_token *string = get__Pragma_string (pfile);
 
-  if (!string)
+  if (string)
+    destringize_and_run (pfile, &string->val.str);
+  else
     cpp_error (pfile, DL_ERROR,
 	       "_Pragma takes a parenthesized string literal");
-  else
-    {
-      /* Ideally, we'd like
-			token1 _Pragma ("foo") token2
-	 to be output as
-			token1
-			# 7 "file.c"
-			#pragma foo
-			# 7 "file.c"
-					       token2
-	 Getting these correct line markers is a little tricky.  */
-
-      unsigned int orig_line = pfile->line;
-      destringize_and_run (pfile, &string->val.str);
-      pfile->line = orig_line;
-      pfile->buffer->saved_flags = BOL;
-    }
 }
 
 /* Just ignore #sccs on all systems.  */
@@ -1665,8 +1688,8 @@ find_answer (node, candidate)
 }
 
 /* Test an assertion within a preprocessor conditional.  Returns
-   non-zero on failure, zero on success.  On success, the result of
-   the test is written into VALUE.  */
+   nonzero on failure, zero on success.  On success, the result of
+   the test is written into VALUE, otherwise the value 0.  */
 int
 _cpp_test_assertion (pfile, value)
      cpp_reader *pfile;
@@ -1676,6 +1699,11 @@ _cpp_test_assertion (pfile, value)
   cpp_hashnode *node;
 
   node = parse_assertion (pfile, &answer, T_IF);
+
+  /* For recovery, an erroneous assertion expression is handled as a
+     failing assertion.  */
+  *value = 0;
+
   if (node)
     *value = (node->type == NT_ASSERTION &&
 	      (answer == 0 || *find_answer (node, answer) != 0));
@@ -1963,7 +1991,7 @@ _cpp_pop_buffer (pfile)
     }
 }
 
-/* Enter all recognised directives in the hash table.  */
+/* Enter all recognized directives in the hash table.  */
 void
 _cpp_init_directives (pfile)
      cpp_reader *pfile;

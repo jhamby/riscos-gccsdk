@@ -1,5 +1,5 @@
 /* Java(TM) language-specific utility routines.
-   Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001
+   Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002
    Free Software Foundation, Inc.
 
 This file is part of GNU CC.
@@ -41,6 +41,8 @@ The Free Software Foundation is independent of Sun Microsystems, Inc.  */
 #include "ggc.h"
 #include "diagnostic.h"
 #include "tree-inline.h"
+#include "splay-tree.h"
+#include "tree-dump.h"
 
 struct string_option
 {
@@ -62,12 +64,18 @@ static void java_print_error_function PARAMS ((diagnostic_context *,
 static int process_option_with_no PARAMS ((const char *,
 					   const struct string_option *,
 					   int));
-static tree java_tree_inlining_walk_subtrees  PARAMS ((tree *,
-						       int *,
-						       walk_tree_fn,
-						       void *,
-						       void *));
+static tree java_tree_inlining_walk_subtrees PARAMS ((tree *,
+						      int *,
+						      walk_tree_fn,
+						      void *,
+						      void *));
 static int java_unsafe_for_reeval PARAMS ((tree));
+static int merge_init_test_initialization PARAMS ((void * *, 
+						   void *));
+static int inline_init_test_initialization PARAMS ((void * *, 
+						    void *));
+static bool java_can_use_bit_fields_p PARAMS ((void));
+static int java_dump_tree PARAMS ((void *, tree));
 
 #ifndef TARGET_OBJECT_SUFFIX
 # define TARGET_OBJECT_SUFFIX ".o"
@@ -124,62 +132,65 @@ int flag_emit_class_files = 0;
 
 int flag_filelist_file = 0;
 
-/* When non zero, we emit xref strings. Values of the flag for xref
+/* When nonzero, we emit xref strings. Values of the flag for xref
    backends are defined in xref_flag_table, xref.c.  */
 
 int flag_emit_xref = 0;
 
-/* When non zero, -Wall was turned on.  */
+/* When nonzero, -Wall was turned on.  */
 int flag_wall = 0;
 
-/* When non zero, check for redundant modifier uses.  */
+/* When nonzero, check for redundant modifier uses.  */
 int flag_redundant = 0;
 
-/* When non zero, call a library routine to do integer divisions. */
+/* When nonzero, call a library routine to do integer divisions. */
 int flag_use_divide_subroutine = 1;
 
-/* When non zero, generate code for the Boehm GC.  */
+/* When nonzero, generate code for the Boehm GC.  */
 int flag_use_boehm_gc = 0;
 
-/* When non zero, assume the runtime uses a hash table to map an
+/* When nonzero, assume the runtime uses a hash table to map an
    object to its synchronization structure.  */
 int flag_hash_synchronization;
 
-/* When non zero, assume all native functions are implemented with
+/* When nonzero, permit the use of the assert keyword.  */
+int flag_assert = 1;
+
+/* When nonzero, assume all native functions are implemented with
    JNI, not CNI.  */
 int flag_jni = 0;
 
-/* When non zero, warn when source file is newer than matching class
+/* When nonzero, warn when source file is newer than matching class
    file.  */
 int flag_newer = 1;
 
-/* When non zero, generate checks for references to NULL.  */
+/* When nonzero, generate checks for references to NULL.  */
 int flag_check_references = 0;
 
 /* The encoding of the source file.  */
 const char *current_encoding = NULL;
 
-/* When non zero, report the now deprecated empty statements.  */
+/* When nonzero, report the now deprecated empty statements.  */
 int flag_extraneous_semicolon;
 
-/* When non zero, always check for a non gcj generated classes archive.  */
+/* When nonzero, always check for a non gcj generated classes archive.  */
 int flag_force_classes_archive_check;
 
 /* When zero, don't optimize static class initialization. This flag shouldn't
    be tested alone, use STATIC_CLASS_INITIALIZATION_OPTIMIZATION_P instead.  */
 int flag_optimize_sci = 1;
 
-/* When non zero, use offset tables for virtual method calls
+/* When nonzero, use offset tables for virtual method calls
    in order to improve binary compatibility. */
 int flag_indirect_dispatch = 0;
 
 /* When zero, don't generate runtime array store checks. */
 int flag_store_check = 1;
 
-/* When non zero, print extra version information.  */
+/* When nonzero, print extra version information.  */
 static int version_flag = 0;
 
-/* Set non-zero if the user specified -finline-functions on the command 
+/* Set nonzero if the user specified -finline-functions on the command
    line.  */
 int flag_really_inline = 0;
 
@@ -203,7 +214,8 @@ lang_f_options[] =
   {"force-classes-archive-check", &flag_force_classes_archive_check, 1},
   {"optimize-static-class-initialization", &flag_optimize_sci, 1 },
   {"indirect-dispatch", &flag_indirect_dispatch, 1},
-  {"store-check", &flag_store_check, 1}
+  {"store-check", &flag_store_check, 1},
+  {"assert", &flag_assert, 1}
 };
 
 static const struct string_option
@@ -259,6 +271,8 @@ struct language_function GTY(())
 #define LANG_HOOKS_DECL_PRINTABLE_NAME lang_printable_name
 #undef LANG_HOOKS_PRINT_ERROR_FUNCTION
 #define LANG_HOOKS_PRINT_ERROR_FUNCTION	java_print_error_function
+#undef LANG_HOOKS_CAN_USE_BIT_FIELDS_P
+#define LANG_HOOKS_CAN_USE_BIT_FIELDS_P java_can_use_bit_fields_p
 
 #undef LANG_HOOKS_TYPE_FOR_MODE
 #define LANG_HOOKS_TYPE_FOR_MODE java_type_for_mode
@@ -273,6 +287,9 @@ struct language_function GTY(())
 
 #undef LANG_HOOKS_TREE_INLINING_WALK_SUBTREES
 #define LANG_HOOKS_TREE_INLINING_WALK_SUBTREES java_tree_inlining_walk_subtrees
+
+#undef LANG_HOOKS_TREE_DUMP_DUMP_TREE_FN
+#define LANG_HOOKS_TREE_DUMP_DUMP_TREE_FN java_dump_tree
 
 /* Each front end provides its own.  */
 const struct lang_hooks lang_hooks = LANG_HOOKS_INITIALIZER;
@@ -307,7 +324,7 @@ process_option_with_no (p, table, table_size)
 
 /*
  * process java-specific compiler command-line options
- * return 0, but do not complain if the option is not recognised.
+ * return 0, but do not complain if the option is not recognized.
  */
 static int
 java_decode_option (argc, argv)
@@ -508,6 +525,13 @@ java_init (filename)
   if (flag_inline_functions)
     flag_inline_trees = 1;
 
+  /* Force minimum function alignment if g++ uses the least significant
+     bit of function pointers to store the virtual bit. This is required
+     to keep vtables compatible.  */
+  if (TARGET_PTRMEMFUNC_VBIT_LOCATION == ptrmemfunc_vbit_in_pfn
+      && force_align_functions_log < 1)
+    force_align_functions_log = 1;
+
   /* Open input file.  */
 
   if (filename == 0 || !strcmp (filename, "-"))
@@ -535,8 +559,8 @@ java_init (filename)
 		error ("couldn't determine target name for dependency tracking");
 	      else
 		{
-		  char *buf = (char *) xmalloc (dot - filename +
-						3 + sizeof (TARGET_OBJECT_SUFFIX));
+		  char *buf = xmalloc (dot - filename +
+				       3 + sizeof (TARGET_OBJECT_SUFFIX));
 		  strncpy (buf, filename, dot - filename);
 
 		  /* If emitting class files, we might have multiple
@@ -609,12 +633,12 @@ put_decl_string (str, len)
       if (decl_buf == NULL)
 	{
 	  decl_buflen = len + 100;
-	  decl_buf = (char *) xmalloc (decl_buflen);
+	  decl_buf = xmalloc (decl_buflen);
 	}
       else
 	{
 	  decl_buflen *= 2;
-	  decl_buf = (char *) xrealloc (decl_buf, decl_buflen);
+	  decl_buf = xrealloc (decl_buf, decl_buflen);
 	}
     }
   strcpy (decl_buf + decl_bufpos, str);
@@ -794,6 +818,14 @@ java_init_options ()
   flag_trapping_math = 0;
 }
 
+static bool
+java_can_use_bit_fields_p ()
+{
+  /* The bit-field optimizations cause problems when generating class
+     files.  */
+  return flag_emit_class_files ? false : true;
+}
+
 /* Post-switch processing.  */
 static bool
 java_post_options ()
@@ -905,4 +937,222 @@ java_unsafe_for_reeval (t)
   return -1;
 }
 
+/* Every call to a static constructor has an associated boolean
+   variable which is in the outermost scope of the calling method.
+   This variable is used to avoid multiple calls to the static
+   constructor for each class.  
+
+   It looks somthing like this:
+
+   foo ()
+   {
+      boolean dummy = OtherClass.is_initialized;
+  
+     ...
+  
+     if (! dummy)
+       OtherClass.initialize();
+
+     ... use OtherClass.data ...
+   }
+
+   Each of these boolean variables has an entry in the
+   DECL_FUNCTION_INIT_TEST_TABLE of a method.  When inlining a method
+   we must merge the DECL_FUNCTION_INIT_TEST_TABLE from the function
+   being linlined and create the boolean variables in the outermost
+   scope of the method being inlined into.  */
+
+/* Create a mapping from a boolean variable in a method being inlined
+   to one in the scope of the method being inlined into.  */
+
+static int
+merge_init_test_initialization (entry, x)
+     void * * entry;
+     void * x;
+{
+  struct treetreehash_entry *ite = (struct treetreehash_entry *) *entry;
+  splay_tree decl_map = (splay_tree)x;
+  splay_tree_node n;
+  tree *init_test_decl;
+  
+  /* See if we have remapped this declaration.  If we haven't there's
+     a bug in the inliner.  */
+  n = splay_tree_lookup (decl_map, (splay_tree_key) ite->value);
+  if (! n)
+    abort ();
+
+  /* Create a new entry for the class and its remapped boolean
+     variable.  If we already have a mapping for this class we've
+     already initialized it, so don't overwrite the value.  */
+  init_test_decl = java_treetreehash_new
+    (DECL_FUNCTION_INIT_TEST_TABLE (current_function_decl), ite->key);
+  if (!*init_test_decl)
+    *init_test_decl = (tree)n->value;
+
+  return true;
+}
+
+/* Merge the DECL_FUNCTION_INIT_TEST_TABLE from the function we're
+   inlining.  */
+
+void
+java_inlining_merge_static_initializers (fn, decl_map)
+     tree fn;
+     void *decl_map;
+{
+  htab_traverse 
+    (DECL_FUNCTION_INIT_TEST_TABLE (fn),
+     merge_init_test_initialization, decl_map);
+}
+
+/* Lookup a DECL_FUNCTION_INIT_TEST_TABLE entry in the method we're
+   inlining into.  If we already have a corresponding entry in that
+   class we don't need to create another one, so we create a mapping
+   from the variable in the inlined class to the corresponding
+   pre-existing one.  */
+
+static int
+inline_init_test_initialization (entry, x)
+     void * * entry;
+     void * x;
+{
+  struct treetreehash_entry *ite = (struct treetreehash_entry *) *entry;
+  splay_tree decl_map = (splay_tree)x;
+  
+  tree h = java_treetreehash_find 
+    (DECL_FUNCTION_INIT_TEST_TABLE (current_function_decl), ite->key);
+  if (! h)
+    return true;
+
+  splay_tree_insert (decl_map,
+		     (splay_tree_key) ite->value,
+		     (splay_tree_value) h);
+
+  return true;
+}
+
+/* Look up the boolean variables in the DECL_FUNCTION_INIT_TEST_TABLE
+   of a method being inlined.  For each hone, if we already have a
+   variable associated with the same class in the method being inlined
+   into, create a new mapping for it.  */
+
+void
+java_inlining_map_static_initializers (fn, decl_map)
+     tree fn;
+     void *decl_map;
+{
+  htab_traverse 
+    (DECL_FUNCTION_INIT_TEST_TABLE (fn),
+     inline_init_test_initialization, decl_map);
+}
+
+/* Avoid voluminous output for deep recursion of compound exprs.  */
+
+static void
+dump_compound_expr (di, t)
+     dump_info_p di;
+     tree t;
+{
+  int i;
+
+  for (i=0; i<2; i++)
+    {
+      switch (TREE_CODE (TREE_OPERAND (t, i)))
+	{
+	case COMPOUND_EXPR:
+	  dump_compound_expr (di, TREE_OPERAND (t, i));
+	  break;
+
+	case EXPR_WITH_FILE_LOCATION:
+	    {
+	      tree wfl_node = EXPR_WFL_NODE (TREE_OPERAND (t, i));
+	      dump_child ("expr", wfl_node);
+	      break;
+	    }
+
+	default:
+	  dump_child ("expr", TREE_OPERAND (t, i));
+	}
+    }
+}
+  
+static int
+java_dump_tree (dump_info, t)
+     void *dump_info;
+     tree t;
+{
+  enum tree_code code;
+  dump_info_p di = (dump_info_p) dump_info;
+
+  /* Figure out what kind of node this is.  */
+  code = TREE_CODE (t);
+
+  switch (code)
+    {
+    case FUNCTION_DECL:
+      dump_child ("args", DECL_ARGUMENTS (t));
+      if (DECL_EXTERNAL (t))
+	dump_string (di, "undefined");
+      if (TREE_PUBLIC (t))
+	dump_string (di, "extern");
+      else
+	dump_string (di, "static");
+      if (DECL_LANG_SPECIFIC (t))
+	dump_child ("body", DECL_FUNCTION_BODY (t));
+      if (DECL_LANG_SPECIFIC (t) && !dump_flag (di, TDF_SLIM, t))
+	dump_child ("inline body", DECL_SAVED_TREE (t));
+      return 1;
+
+    case RETURN_EXPR:
+      dump_child ("expr", TREE_OPERAND (t, 0));
+      return 1;
+
+    case GOTO_EXPR:
+      dump_child ("goto", TREE_OPERAND (t, 0));
+      return 1;
+
+    case LABEL_EXPR:
+      dump_child ("label", TREE_OPERAND (t, 0));
+      return 1;
+
+    case LABELED_BLOCK_EXPR:
+      dump_child ("label", TREE_OPERAND (t, 0));
+      dump_child ("block", TREE_OPERAND (t, 1));
+      return 1;
+
+    case EXIT_BLOCK_EXPR:
+      dump_child ("block", TREE_OPERAND (t, 0));
+      dump_child ("val", TREE_OPERAND (t, 1));
+      return 1;
+
+    case BLOCK:
+      if (BLOCK_EXPR_BODY (t))
+	{
+	  tree local = BLOCK_VARS (t);
+	  while (local)
+	    {
+	      tree next = TREE_CHAIN (local);
+	      dump_child ("var", local);
+	      local = next;
+	    }
+	  
+	  {
+	    tree block = BLOCK_EXPR_BODY (t);
+	    dump_child ("body", block);
+	    block = TREE_CHAIN (block);
+	  }
+	}
+      return 1;
+      
+    case COMPOUND_EXPR:
+      if (!dump_flag (di, TDF_SLIM, t))
+	return 0;
+      dump_compound_expr (di, t);
+      return 1;
+
+    default:
+      break;
+    }
+  return 0;
+}
 #include "gt-java-lang.h"

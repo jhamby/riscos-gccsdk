@@ -159,12 +159,12 @@ struct bb_info_list
   struct bb_info_list *next;
 };
 
-/* Used to hold information about each line. */
+/* Used to hold information about each line.  */
 struct line_info
 {
   gcov_type count;	      /* execution count */
-  struct arcdata *branches;   /* list of branch probabilities for line. */
-  unsigned exists : 1;	      /* has code associated with it. */
+  struct arcdata *branches;   /* list of branch probabilities for line.  */
+  unsigned exists : 1;	      /* has code associated with it.  */
 };
   
 struct coverage
@@ -186,7 +186,7 @@ struct coverage
 
 static struct bb_info_list *bb_graph_list = 0;
 
-/* Modification time of data files. */
+/* Modification time of data files.  */
 
 static time_t bb_file_time;
 
@@ -238,7 +238,7 @@ static int output_long_names = 0;
 static int output_function_summary = 0;
 
 /* Object directory file prefix.  This is the directory/file
-   where .bb and .bbg files are looked for, if non-zero.  */
+   where .bb and .bbg files are looked for, if nonzero.  */
 
 static char *object_directory = 0;
 
@@ -349,7 +349,7 @@ print_usage (error_p)
   fnotice (file, "  -o, --object-directory DIR|FILE Search for object files in DIR or called FILE\n");
   fnotice (file, "  -p, --preserve-paths            Preserve all pathname components\n");
   fnotice (file, "\nFor bug reporting instructions, please see:\n%s.\n",
-	   GCCBUGURL);
+	   bug_report_url);
   exit (status);
 }
 
@@ -477,7 +477,7 @@ open_files ()
 
       strcat (name, cptr);
     }
-  /* Remove the extension. */
+  /* Remove the extension.  */
   cptr = strrchr (name, '.');
   if (cptr)
     *cptr = 0;
@@ -1055,7 +1055,7 @@ scan_for_source_files ()
 	}
       /* There will be a zero before the first file name, in which case s_ptr
 	 will still be uninitialized.  So, only try to set the maxlineno
-	 field if line_num is non-zero.  */
+	 field if line_num is nonzero.  */
       else if (line_num > 0)
 	{
 	  if (s_ptr->maxlineno <= line_num)
@@ -1225,7 +1225,7 @@ function_summary (function, title)
    to each output name (except when the current source file is the
    input file, so you don't get a double concatenation). The two
    components are separated by '##'. Also '.' filename components are
-   removed and '..'  components are renamed to '^'. */
+   removed and '..'  components are renamed to '^'.  */
 
 static char *
 make_gcov_file_name (src_name)
@@ -1244,7 +1244,7 @@ make_gcov_file_name (src_name)
       strcat (name, "##");
     }
    
-  /* Generate the source filename part. */
+  /* Generate the source filename part.  */
   cptr = preserve_paths ? NULL : strrchr (src_name, '/');
   cptr = cptr ? cptr + 1 : src_name;
   strcat (name, cptr);
@@ -1303,12 +1303,12 @@ init_line_info (line_info, total, maxlineno)
   struct bb_info *block_ptr = NULL;	/* current block ptr */
   struct coverage function;
   struct coverage *func_ptr = NULL;
-  struct bb_info_list *current_graph = NULL; /* Graph for current function. */
-  int is_this_file = 0;	/* We're scanning a block from the desired file. */
+  struct bb_info_list *current_graph = NULL; /* Graph for current function.  */
+  int is_this_file = 0;	/* We're scanning a block from the desired file.  */
   char *ptr = bb_data;
   long count;
   long line_num;
-  struct line_info *line_ptr = 0; /* line info ptr. */
+  struct line_info *line_ptr = 0; /* line info ptr.  */
    
   memset (&function, 0, sizeof (function));
   if (output_function_summary)
@@ -1431,7 +1431,7 @@ init_line_info (line_info, total, maxlineno)
 	    total->lines_executed++;
 	}
 
-      /* Total and reverse the branch information. */
+      /* Total and reverse the branch information.  */
       for (a_ptr = line_ptr->branches, prev = NULL; a_ptr; a_ptr = next)
 	{
 	  next = a_ptr->next;
@@ -1457,9 +1457,9 @@ output_line_info (gcov_file, line_info, total, maxlineno)
 {
   FILE *source_file;
   long line_num;                    /* current line number */
-  const struct line_info *line_ptr; /* current line info ptr. */
-  char string[STRING_SIZE];         /* line buffer. */
-  char const *retval = "";	    /* status of source file reading. */
+  const struct line_info *line_ptr; /* current line info ptr.  */
+  char string[STRING_SIZE];         /* line buffer.  */
+  char const *retval = "";	    /* status of source file reading.  */
 
   fprintf (gcov_file, "%9s:%5d:Source:%s\n", "-", 0, total->name);
   fprintf (gcov_file, "%9s:%5d:Object:%s\n", "-", 0, bb_file_name);
@@ -1619,7 +1619,7 @@ output_data (s_ptr)
       free (gcov_file_name);
     }
 
-  /* Free data. */
+  /* Free data.  */
   for (line_num = 1; line_num != s_ptr->maxlineno; line_num++)
     {
       struct arcdata *branch, *next;

@@ -59,6 +59,7 @@ extern rtx lhd_expand_expr PARAMS ((tree, rtx, enum machine_mode, int));
 extern void lhd_print_error_function PARAMS ((struct diagnostic_context *,
 					      const char *));
 extern void lhd_set_decl_assembler_name PARAMS ((tree));
+extern bool lhd_can_use_bit_fields_p PARAMS ((void));
 extern bool lhd_warn_unused_global_decl PARAMS ((tree));
 extern void lhd_incomplete_type_error PARAMS ((tree, tree));
 extern tree lhd_type_promotes_to PARAMS ((tree));
@@ -89,7 +90,7 @@ tree lhd_tree_inlining_convert_parm_for_inlining PARAMS ((tree, tree, tree));
 #define LANG_HOOKS_CLEAR_BINDING_STACK	lhd_clear_binding_stack
 #define LANG_HOOKS_INIT_OPTIONS		lhd_do_nothing
 #define LANG_HOOKS_DECODE_OPTION	lhd_decode_option
-#define LANG_HOOKS_POST_OPTIONS		hook_void_bool_false
+#define LANG_HOOKS_POST_OPTIONS		hook_bool_void_false
 #define LANG_HOOKS_GET_ALIAS_SET	lhd_get_alias_set
 #define LANG_HOOKS_EXPAND_CONSTANT	lhd_return_tree
 #define LANG_HOOKS_EXPAND_EXPR		lhd_expand_expr
@@ -102,6 +103,7 @@ tree lhd_tree_inlining_convert_parm_for_inlining PARAMS ((tree, tree, tree));
 #define LANG_HOOKS_UNSAVE_EXPR_NOW	lhd_unsave_expr_now
 #define LANG_HOOKS_MAYBE_BUILD_CLEANUP	lhd_return_null_tree
 #define LANG_HOOKS_SET_DECL_ASSEMBLER_NAME lhd_set_decl_assembler_name
+#define LANG_HOOKS_CAN_USE_BIT_FIELDS_P lhd_can_use_bit_fields_p
 #define LANG_HOOKS_HONOR_READONLY	false
 #define LANG_HOOKS_PRINT_STATISTICS	lhd_do_nothing
 #define LANG_HOOKS_PRINT_XNODE		lhd_print_tree_nothing
@@ -138,6 +140,8 @@ tree lhd_tree_inlining_convert_parm_for_inlining PARAMS ((tree, tree, tree));
   lhd_tree_inlining_copy_res_decl_for_inlining
 #define LANG_HOOKS_TREE_INLINING_ANON_AGGR_TYPE_P \
   lhd_tree_inlining_anon_aggr_type_p
+#define LANG_HOOKS_TREE_INLINING_VAR_MOD_TYPE_P \
+  hook_bool_tree_false
 #define LANG_HOOKS_TREE_INLINING_START_INLINING \
   lhd_tree_inlining_start_inlining
 #define LANG_HOOKS_TREE_INLINING_END_INLINING \
@@ -154,6 +158,7 @@ tree lhd_tree_inlining_convert_parm_for_inlining PARAMS ((tree, tree, tree));
   LANG_HOOKS_TREE_INLINING_AUTO_VAR_IN_FN_P, \
   LANG_HOOKS_TREE_INLINING_COPY_RES_DECL_FOR_INLINING, \
   LANG_HOOKS_TREE_INLINING_ANON_AGGR_TYPE_P, \
+  LANG_HOOKS_TREE_INLINING_VAR_MOD_TYPE_P, \
   LANG_HOOKS_TREE_INLINING_START_INLINING, \
   LANG_HOOKS_TREE_INLINING_END_INLINING, \
   LANG_HOOKS_TREE_INLINING_CONVERT_PARM_FOR_INLINING \
@@ -241,6 +246,7 @@ int lhd_tree_dump_type_quals			PARAMS ((tree));
   LANG_HOOKS_UNSAVE_EXPR_NOW, \
   LANG_HOOKS_MAYBE_BUILD_CLEANUP, \
   LANG_HOOKS_SET_DECL_ASSEMBLER_NAME, \
+  LANG_HOOKS_CAN_USE_BIT_FIELDS_P, \
   LANG_HOOKS_HONOR_READONLY, \
   LANG_HOOKS_PRINT_STATISTICS, \
   LANG_HOOKS_PRINT_XNODE, \

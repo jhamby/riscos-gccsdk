@@ -409,12 +409,18 @@ stringify_arg (pfile, arg)
     }
 
   /* Commit the memory, including NUL, and return the token.  */
+  if ((size_t) (BUFF_LIMIT (pfile->u_buff) - dest) < 1)
+    {
+      size_t len_so_far = dest - BUFF_FRONT (pfile->u_buff);
+      _cpp_extend_buff (pfile, &pfile->u_buff, 1);
+      dest = BUFF_FRONT (pfile->u_buff) + len_so_far;
+    }
   len = dest - BUFF_FRONT (pfile->u_buff);
   BUFF_FRONT (pfile->u_buff) = dest + 1;
   return new_string_token (pfile, dest - len, len);
 }
 
-/* Try to paste two tokens.  On success, return non-zero.  In any
+/* Try to paste two tokens.  On success, return nonzero.  In any
    case, PLHS is updated to point to the pasted token, which is
    guaranteed to not have the PASTE_LEFT flag set.  */
 static bool
@@ -436,8 +442,7 @@ paste_tokens (pfile, plhs, rhs)
      It is simpler to insert a space here, rather than modifying the
      lexer to ignore comments in some circumstances.  Simply returning
      false doesn't work, since we want to clear the PASTE_LEFT flag.  */
-  if (lhs->type == CPP_DIV
-      && (rhs->type == CPP_MULT || rhs->type == CPP_DIV))
+  if (lhs->type == CPP_DIV && rhs->type != CPP_EQ)
     *end++ = ' ';
   end = cpp_spell_token (pfile, rhs, end);
   *end = '\0';
@@ -1032,9 +1037,14 @@ expand_arg (pfile, arg)
      macro_arg *arg;
 {
   unsigned int capacity;
+  bool saved_warn_trad;
 
   if (arg->count == 0)
     return;
+
+  /* Don't warn about funlike macros when pre-expanding.  */
+  saved_warn_trad = CPP_WTRADITIONAL (pfile);
+  CPP_WTRADITIONAL (pfile) = 0;
 
   /* Loop, reading in the arguments.  */
   capacity = 256;
@@ -1062,6 +1072,8 @@ expand_arg (pfile, arg)
     }
 
   _cpp_pop_context (pfile);
+
+  CPP_WTRADITIONAL (pfile) = saved_warn_trad;
 }
 
 /* Pop the current context off the stack, re-enabling the macro if the
@@ -1233,7 +1245,7 @@ _cpp_backup_tokens (pfile, count)
 
 /* #define directive parsing and handling.  */
 
-/* Returns non-zero if a macro redefinition warning is required.  */
+/* Returns nonzero if a macro redefinition warning is required.  */
 static bool
 warn_of_redefinition (pfile, node, macro2)
      cpp_reader *pfile;
@@ -1287,7 +1299,7 @@ _cpp_free_definition (h)
 }
 
 /* Save parameter NODE to the parameter list of macro MACRO.  Returns
-   zero on success, non-zero if the parameter is a duplicate.  */
+   zero on success, nonzero if the parameter is a duplicate.  */
 bool
 _cpp_save_parameter (pfile, macro, node)
      cpp_reader *pfile;
@@ -1527,7 +1539,7 @@ create_iso_definition (pfile, macro)
   return true;
 }
 
-/* Parse a macro and save its expansion.  Returns non-zero on success.  */
+/* Parse a macro and save its expansion.  Returns nonzero on success.  */
 bool
 _cpp_create_definition (pfile, node)
      cpp_reader *pfile;

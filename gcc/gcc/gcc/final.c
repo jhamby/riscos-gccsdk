@@ -997,7 +997,7 @@ compute_alignments ()
 	 align it.  It is most likely an first block of loop.  */
       if (has_fallthru
 	  && branch_frequency + fallthru_frequency > BB_FREQ_MAX / 10
-	  && branch_frequency > fallthru_frequency * 5)
+	  && branch_frequency > fallthru_frequency * 2)
 	{
 	  log = LOOP_ALIGN (label);
 	  if (max_log < log)
@@ -1915,7 +1915,8 @@ final (first, file, optimize, prescan)
       functions_tail = &new_item->next;
 
       new_item->next = 0;
-      new_item->name = xstrdup (current_function_name);
+      new_item->name = xstrdup (IDENTIFIER_POINTER
+				 (DECL_ASSEMBLER_NAME (current_function_decl)));
       new_item->cfg_checksum = profile_info.current_function_cfg_checksum;
       new_item->count_edges = profile_info.count_edges_instrumented_now;
     }
@@ -1965,7 +1966,7 @@ output_alternate_entry_point (file, insn)
       ASM_WEAKEN_LABEL (file, name);
 #endif
     case LABEL_GLOBAL_ENTRY:
-      ASM_GLOBALIZE_LABEL (file, name);
+      (*targetm.asm_out.globalize_label) (file, name);
     case LABEL_STATIC_ENTRY:
 #ifdef ASM_OUTPUT_TYPE_DIRECTIVE
       ASM_OUTPUT_TYPE_DIRECTIVE (file, name, "function");
@@ -2185,7 +2186,11 @@ final_scan_insn (insn, file, optimize, prescan, nopeepholes)
 #ifdef ASM_OUTPUT_MAX_SKIP_ALIGN
 	      ASM_OUTPUT_MAX_SKIP_ALIGN (file, align, max_skip);
 #else
+#ifdef ASM_OUTPUT_ALIGN_WITH_NOP
+              ASM_OUTPUT_ALIGN_WITH_NOP (file, align);
+#else
 	      ASM_OUTPUT_ALIGN (file, align);
+#endif
 #endif
 	    }
 	}

@@ -71,7 +71,7 @@ int flag_print_fields = 1;
 int flag_print_methods = 1;
 int flag_print_attributes = 1;
 
-/* When non zero, warn when source file is newer than matching class
+/* When nonzero, warn when source file is newer than matching class
    file.  */
 int flag_newer = 1;
 
@@ -504,10 +504,18 @@ DEFUN(print_constant, (out, jcf, index, verbosity),
       break;
     case CONSTANT_Float:
       {
-	jfloat fnum = JPOOL_FLOAT (jcf, index);
-	fprintf (out, "%s%.10g", verbosity > 0 ? "Float " : "", (double) fnum);
+	union
+	{
+	  jfloat f;
+	  int32 i;
+	} pun;
+	
+	pun.f = JPOOL_FLOAT (jcf, index);
+	fprintf (out, "%s%.10g",
+		 verbosity > 0 ? "Float " : "", (double) pun.f);
 	if (verbosity > 1)
-	  fprintf (out, ", bits = 0x%08lx", (long) (* (int32 *) &fnum));
+	  fprintf (out, ", bits = 0x%08lx", (long) pun.i);
+	
 	break;
       }
     case CONSTANT_Double:
@@ -821,7 +829,7 @@ help ()
   printf ("  -v, --verbose           Print extra information while running\n");
   printf ("\n");
   printf ("For bug reporting instructions, please see:\n");
-  printf ("%s.\n", GCCBUGURL);
+  printf ("%s.\n", bug_report_url);
   exit (0);
 }
 

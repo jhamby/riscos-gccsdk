@@ -169,11 +169,14 @@ Perhaps there should be a bitmap argument to df_analyse to specify
 #include "df.h"
 #include "fibheap.h"
 
-#define FOR_EACH_BB_IN_BITMAP(BITMAP, MIN, BB, CODE)		\
-do {								\
-  unsigned int node_;						\
-  EXECUTE_IF_SET_IN_BITMAP (BITMAP, MIN, node_, 		\
-    {(BB) = BASIC_BLOCK (node_); CODE;});} while (0)
+#define FOR_EACH_BB_IN_BITMAP(BITMAP, MIN, BB, CODE)	\
+  do							\
+    {							\
+      unsigned int node_;				\
+      EXECUTE_IF_SET_IN_BITMAP (BITMAP, MIN, node_,	\
+      {(BB) = BASIC_BLOCK (node_); CODE;});		\
+    }							\
+  while (0)
 
 static struct obstack df_ref_obstack;
 static struct df *ddf;
@@ -375,7 +378,7 @@ df_def_table_realloc (df, size)
 
   /* Link all the new refs together, overloading the chain field.  */
   for (i = 0; i < size - 1; i++)
-      refs[i].chain = (struct df_link *)(refs + i + 1);
+    refs[i].chain = (struct df_link *) (refs + i + 1);
   refs[size - 1].chain = 0;
 }
 #endif
@@ -392,7 +395,7 @@ df_bitmaps_alloc (df, flags)
   basic_block bb;
 
   /* Free the bitmaps if they need resizing.  */
-  if ((flags & DF_LR) && df->n_regs < (unsigned int)max_reg_num ())
+  if ((flags & DF_LR) && df->n_regs < (unsigned int) max_reg_num ())
     dflags |= DF_LR | DF_RU;
   if ((flags & DF_RU) && df->n_uses < df->use_id)
     dflags |= DF_RU;
@@ -507,7 +510,7 @@ df_bitmaps_free (df, flags)
 }
 
 
-/* Allocate and initialise dataflow memory.  */
+/* Allocate and initialize dataflow memory.  */
 static void
 df_alloc (df, n_regs)
      struct df *df;
@@ -936,7 +939,7 @@ df_def_record_1 (df, x, bb, insn)
       int i;
 
       for (i = XVECLEN (dst, 0) - 1; i >= 0; i--)
-	  df_def_record_1 (df, XVECEXP (dst, 0, i), bb, insn);
+	df_def_record_1 (df, XVECEXP (dst, 0, i), bb, insn);
       return;
     }
 
@@ -972,9 +975,9 @@ df_def_record_1 (df, x, bb, insn)
       flags |= DF_REF_READ_WRITE;
     }
 
-    if (GET_CODE (dst) == REG
-	|| (GET_CODE (dst) == SUBREG && GET_CODE (SUBREG_REG (dst)) == REG))
-      df_ref_record (df, dst, loc, insn, DF_REF_REG_DEF, flags);
+  if (GET_CODE (dst) == REG
+      || (GET_CODE (dst) == SUBREG && GET_CODE (SUBREG_REG (dst)) == REG))
+    df_ref_record (df, dst, loc, insn, DF_REF_REG_DEF, flags);
 }
 
 
@@ -1236,12 +1239,12 @@ df_insn_refs_record (df, bb, insn)
 	  {
 	    switch (REG_NOTE_KIND (note))
 	      {
-		case REG_EQUIV:
-		case REG_EQUAL:
-		  df_uses_record (df, &XEXP (note, 0), DF_REF_REG_USE,
-				  bb, insn, 0);
-		default:
-		  break;
+	      case REG_EQUIV:
+	      case REG_EQUAL:
+		df_uses_record (df, &XEXP (note, 0), DF_REF_REG_USE,
+				bb, insn, 0);
+	      default:
+		break;
 	      }
 	  }
 
@@ -1992,7 +1995,7 @@ df_analyse_1 (df, blocks, flags, update)
     aflags |= DF_LR;
 
   if (! blocks)
-      blocks = df->all_blocks;
+    blocks = df->all_blocks;
 
   df->flags = flags;
   if (update)
@@ -2040,21 +2043,21 @@ df_analyse_1 (df, blocks, flags, update)
       df_reg_use_chain_create (df, blocks);
     }
 
-  df->dfs_order = xmalloc (sizeof(int) * n_basic_blocks);
-  df->rc_order = xmalloc (sizeof(int) * n_basic_blocks);
-  df->rts_order = xmalloc (sizeof(int) * n_basic_blocks);
-  df->inverse_dfs_map = xmalloc (sizeof(int) * last_basic_block);
-  df->inverse_rc_map = xmalloc (sizeof(int) * last_basic_block);
-  df->inverse_rts_map = xmalloc (sizeof(int) * last_basic_block);
+  df->dfs_order = xmalloc (sizeof (int) * n_basic_blocks);
+  df->rc_order = xmalloc (sizeof (int) * n_basic_blocks);
+  df->rts_order = xmalloc (sizeof (int) * n_basic_blocks);
+  df->inverse_dfs_map = xmalloc (sizeof (int) * last_basic_block);
+  df->inverse_rc_map = xmalloc (sizeof (int) * last_basic_block);
+  df->inverse_rts_map = xmalloc (sizeof (int) * last_basic_block);
 
   flow_depth_first_order_compute (df->dfs_order, df->rc_order);
   flow_reverse_top_sort_order_compute (df->rts_order);
-  for (i = 0; i < n_basic_blocks; i ++)
-   {
-     df->inverse_dfs_map[df->dfs_order[i]] = i;
-     df->inverse_rc_map[df->rc_order[i]] = i;
-     df->inverse_rts_map[df->rts_order[i]] = i;
-   }
+  for (i = 0; i < n_basic_blocks; i++)
+    {
+      df->inverse_dfs_map[df->dfs_order[i]] = i;
+      df->inverse_rc_map[df->rc_order[i]] = i;
+      df->inverse_rts_map[df->rts_order[i]] = i;
+    }
   if (aflags & DF_RD)
     {
       /* Compute the sets of gens and kills for the defs of each bb.  */
@@ -2128,7 +2131,7 @@ df_analyse_1 (df, blocks, flags, update)
 
   /* Free up bitmaps that are no longer required.  */
   if (dflags)
-     df_bitmaps_free (df, dflags);
+    df_bitmaps_free (df, dflags);
 
   if (aflags & DF_LR)
     {
@@ -2169,7 +2172,7 @@ df_analyse_1 (df, blocks, flags, update)
 }
 
 
-/* Initialise dataflow analysis.  */
+/* Initialize dataflow analysis.  */
 struct df *
 df_init ()
 {
@@ -2274,7 +2277,7 @@ df_refs_update (df)
   basic_block bb;
   int count = 0;
 
-  if ((unsigned int)max_reg_num () >= df->reg_size)
+  if ((unsigned int) max_reg_num () >= df->reg_size)
     df_reg_table_realloc (df, 0);
 
   df_refs_queue (df);
@@ -2289,7 +2292,7 @@ df_refs_update (df)
 }
 
 
-/* Return non-zero if any of the requested blocks in the bitmap
+/* Return nonzero if any of the requested blocks in the bitmap
    BLOCKS have been modified.  */
 static int
 df_modified_p (df, blocks)
@@ -2340,7 +2343,7 @@ df_analyse (df, blocks, flags)
 	      /* Recompute everything from scratch.  */
 	      df_free (df);
 	    }
-	  /* Allocate and initialise data structures.  */
+	  /* Allocate and initialize data structures.  */
 	  df_alloc (df, max_reg_num ());
 	  df_analyse_1 (df, 0, flags, 0);
 	  update = 1;
@@ -2497,8 +2500,7 @@ df_insn_modify (df, bb, insn)
 }
 
 
-typedef struct replace_args
-{
+typedef struct replace_args {
   rtx match;
   rtx replacement;
   rtx insn;
@@ -2951,7 +2953,7 @@ df_insn_dominates_all_uses_p (df, bb, insn)
 }
 
 
-/* Return non-zero if all DF dominates all the uses within the bitmap
+/* Return nonzero if all DF dominates all the uses within the bitmap
    BLOCKS.  */
 static int
 df_def_dominates_uses_p (df, def, blocks)
@@ -2982,7 +2984,7 @@ df_def_dominates_uses_p (df, def, blocks)
 }
 
 
-/* Return non-zero if all the defs of INSN within BB dominates
+/* Return nonzero if all the defs of INSN within BB dominates
    all the corresponding uses.  */
 int
 df_insn_dominates_uses_p (df, bb, insn, blocks)
@@ -3029,7 +3031,7 @@ df_regno_bb (df, regno)
 }
 
 
-/* Return non-zero if REG used in multiple basic blocks.  */
+/* Return nonzero if REG used in multiple basic blocks.  */
 int
 df_reg_global_p (df, reg)
      struct df *df;
@@ -3049,7 +3051,7 @@ df_reg_lifetime (df, reg)
 }
 
 
-/* Return non-zero if REG live at start of BB.  */
+/* Return nonzero if REG live at start of BB.  */
 int
 df_bb_reg_live_start_p (df, bb, reg)
      struct df *df ATTRIBUTE_UNUSED;
@@ -3067,7 +3069,7 @@ df_bb_reg_live_start_p (df, bb, reg)
 }
 
 
-/* Return non-zero if REG live at end of BB.  */
+/* Return nonzero if REG live at end of BB.  */
 int
 df_bb_reg_live_end_p (df, bb, reg)
      struct df *df ATTRIBUTE_UNUSED;
@@ -3427,42 +3429,42 @@ df_dump (df, flags, file)
 	       && (reg_info[j].n_uses || reg_info[j].n_defs))
 	      || ((flags & DF_RD_CHAIN) && reg_info[j].defs)
 	      || ((flags & DF_RU_CHAIN) && reg_info[j].uses))
-	  {
-	    fprintf (file, "reg %d", j);
-	    if ((flags & DF_RD_CHAIN) && (flags & DF_RU_CHAIN))
-	      {
-		basic_block bb = df_regno_bb (df, j);
+	    {
+	      fprintf (file, "reg %d", j);
+	      if ((flags & DF_RD_CHAIN) && (flags & DF_RU_CHAIN))
+		{
+		  basic_block bb = df_regno_bb (df, j);
 
-		if (bb)
-		  fprintf (file, " bb %d", bb->index);
-		else
-		  fprintf (file, " bb ?");
-	      }
-	    if (flags & DF_REG_INFO)
-	      {
-		fprintf (file, " life %d", reg_info[j].lifetime);
-	      }
+		  if (bb)
+		    fprintf (file, " bb %d", bb->index);
+		  else
+		    fprintf (file, " bb ?");
+		}
+	      if (flags & DF_REG_INFO)
+		{
+		  fprintf (file, " life %d", reg_info[j].lifetime);
+		}
 
-	    if ((flags & DF_REG_INFO) || (flags & DF_RD_CHAIN))
-	      {
-		fprintf (file, " defs ");
-		if (flags & DF_REG_INFO)
-		  fprintf (file, "%d ", reg_info[j].n_defs);
-		if (flags & DF_RD_CHAIN)
-		  df_chain_dump (reg_info[j].defs, file);
-	      }
+	      if ((flags & DF_REG_INFO) || (flags & DF_RD_CHAIN))
+		{
+		  fprintf (file, " defs ");
+		  if (flags & DF_REG_INFO)
+		    fprintf (file, "%d ", reg_info[j].n_defs);
+		  if (flags & DF_RD_CHAIN)
+		    df_chain_dump (reg_info[j].defs, file);
+		}
 
-	    if ((flags & DF_REG_INFO) || (flags & DF_RU_CHAIN))
-	      {
-		fprintf (file, " uses ");
-		if (flags & DF_REG_INFO)
-		  fprintf (file, "%d ", reg_info[j].n_uses);
-		if (flags & DF_RU_CHAIN)
-		  df_chain_dump (reg_info[j].uses, file);
-	      }
+	      if ((flags & DF_REG_INFO) || (flags & DF_RU_CHAIN))
+		{
+		  fprintf (file, " uses ");
+		  if (flags & DF_REG_INFO)
+		    fprintf (file, "%d ", reg_info[j].n_uses);
+		  if (flags & DF_RU_CHAIN)
+		    df_chain_dump (reg_info[j].uses, file);
+		}
 
-	    fprintf (file, "\n");
-	  }
+	      fprintf (file, "\n");
+	    }
 	}
     }
   fprintf (file, "\n");
@@ -3484,7 +3486,7 @@ df_insn_debug (df, insn, file)
 
   if (df->insns[uid].defs)
     bbi = DF_REF_BBNO (df->insns[uid].defs->ref);
-  else  if (df->insns[uid].uses)
+  else if (df->insns[uid].uses)
     bbi = DF_REF_BBNO (df->insns[uid].uses->ref);
   else
     bbi = -1;
@@ -3512,7 +3514,7 @@ df_insn_debug_regno (df, insn, file)
 
   if (df->insns[uid].defs)
     bbi = DF_REF_BBNO (df->insns[uid].defs->ref);
-  else  if (df->insns[uid].uses)
+  else if (df->insns[uid].uses)
     bbi = DF_REF_BBNO (df->insns[uid].uses->ref);
   else
     bbi = -1;
@@ -3637,7 +3639,7 @@ hybrid_search_bitmap (block, in, out, gen, kill, dir,
   int changed;
   int i = block->index;
   edge e;
-  basic_block bb= block;
+  basic_block bb = block;
   SET_BIT (visited, block->index);
   if (TEST_BIT (pending, block->index))
     {
@@ -3663,7 +3665,7 @@ hybrid_search_bitmap (block, in, out, gen, kill, dir,
       else
 	{
 	  /* Calculate <conf_op> of successor ins */
-	  bitmap_zero(out[i]);
+	  bitmap_zero (out[i]);
 	  for (e = bb->succ; e != 0; e = e->succ_next)
 	    {
 	      if (e->dest == EXIT_BLOCK_PTR)
@@ -3748,7 +3750,7 @@ hybrid_search_sbitmap (block, in, out, gen, kill, dir,
   int changed;
   int i = block->index;
   edge e;
-  basic_block bb= block;
+  basic_block bb = block;
   SET_BIT (visited, block->index);
   if (TEST_BIT (pending, block->index))
     {
@@ -3774,7 +3776,7 @@ hybrid_search_sbitmap (block, in, out, gen, kill, dir,
       else
 	{
 	  /* Calculate <conf_op> of successor ins */
-	  sbitmap_zero(out[i]);
+	  sbitmap_zero (out[i]);
 	  for (e = bb->succ; e != 0; e = e->succ_next)
 	    {
 	      if (e->dest == EXIT_BLOCK_PTR)

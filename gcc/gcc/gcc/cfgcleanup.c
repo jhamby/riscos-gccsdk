@@ -515,6 +515,15 @@ try_forward_edges (mode, b)
 
 	      if (GET_CODE (insn) == NOTE)
 		break;
+
+	      /* Do not clean up branches to just past the end of a loop
+		 at this time; it can mess up the loop optimizer's
+		 recognition of some patterns.  */
+
+	      insn = PREV_INSN (target->head);
+	      if (insn && GET_CODE (insn) == NOTE
+		    && NOTE_LINE_NUMBER (insn) == NOTE_INSN_LOOP_END)
+		break;
 	    }
 
 	  counter++;
@@ -902,8 +911,9 @@ insns_match_p (mode, i1, i2)
      equal, they were constructed identically.  */
 
   if (GET_CODE (i1) == CALL_INSN
-      && !rtx_equal_p (CALL_INSN_FUNCTION_USAGE (i1),
-		       CALL_INSN_FUNCTION_USAGE (i2)))
+      && (!rtx_equal_p (CALL_INSN_FUNCTION_USAGE (i1),
+		        CALL_INSN_FUNCTION_USAGE (i2))
+	  || SIBLING_CALL_P (i1) != SIBLING_CALL_P (i2)))
     return false;
 
 #ifdef STACK_REGS
@@ -1308,11 +1318,9 @@ try_crossjump_to_edge (mode, e1, e2)
 {
   int nmatch;
   basic_block src1 = e1->src, src2 = e2->src;
-  basic_block redirect_to;
+  basic_block redirect_to, redirect_from, to_remove;
   rtx newpos1, newpos2;
   edge s;
-  rtx last;
-  rtx label;
 
   /* Search backward through forwarder blocks.  We don't need to worry
      about multiple entry or chained forwarders, as they will be optimized
@@ -1440,28 +1448,14 @@ try_crossjump_to_edge (mode, e1, e2)
 
   if (GET_CODE (newpos1) == NOTE)
     newpos1 = NEXT_INSN (newpos1);
-  last = src1->end;
 
-  /* Emit the jump insn.  */
-  label = block_label (redirect_to);
-  emit_jump_insn_after (gen_jump (label), src1->end);
-  JUMP_LABEL (src1->end) = label;
-  LABEL_NUSES (label)++;
+  redirect_from = split_block (src1, PREV_INSN (newpos1))->src;
+  to_remove = redirect_from->succ->dest;
 
-  /* Delete the now unreachable instructions.  */
-  delete_insn_chain (newpos1, last);
+  redirect_edge_and_branch_force (redirect_from->succ, redirect_to);
+  flow_delete_block (to_remove);
 
-  /* Make sure there is a barrier after the new jump.  */
-  last = next_nonnote_insn (src1->end);
-  if (!last || GET_CODE (last) != BARRIER)
-    emit_barrier_after (src1->end);
-
-  /* Update CFG.  */
-  while (src1->succ)
-    remove_edge (src1->succ);
-  make_single_succ_edge (src1, redirect_to, 0);
-
-  update_forwarder_flag (src1);
+  update_forwarder_flag (redirect_from);
 
   return true;
 }

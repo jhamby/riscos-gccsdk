@@ -1,5 +1,5 @@
 /* Alias analysis for GNU C
-   Copyright (C) 1997, 1998, 1999, 2000, 2001 Free Software Foundation, Inc.
+   Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
    Contributed by John Carr (jfc@mit.edu).
 
 This file is part of GCC.
@@ -199,7 +199,7 @@ char *reg_known_equiv_p;
 
 /* True when scanning insns from the start of the rtl to the
    NOTE_INSN_FUNCTION_BEG note.  */
-static int copying_arguments;
+static bool copying_arguments;
 
 /* The splay-tree used to store the various alias set entries.  */
 static splay_tree alias_sets;
@@ -332,8 +332,8 @@ objects_must_conflict_p (t1, t2)
      then they may not conflict.  */
   if ((t1 != 0 && readonly_fields_p (t1))
       || (t2 != 0 && readonly_fields_p (t2))
-      || (t1 != 0 && TYPE_READONLY (t1))
-      || (t2 != 0 && TYPE_READONLY (t2)))
+      || (t1 != 0 && lang_hooks.honor_readonly && TYPE_READONLY (t1))
+      || (t2 != 0 && lang_hooks.honor_readonly && TYPE_READONLY (t2)))
     return 0;
 
   /* If they are the same type, they must conflict.  */
@@ -781,9 +781,16 @@ find_base_value (src)
 	 The test above is not sufficient because the scheduler may move
 	 a copy out of an arg reg past the NOTE_INSN_FUNCTION_BEGIN.  */
       if ((regno >= FIRST_PSEUDO_REGISTER || fixed_regs[regno])
-	  && regno < reg_base_value_size
-	  && reg_base_value[regno])
-	return reg_base_value[regno];
+	  && regno < reg_base_value_size)
+	{
+	  /* If we're inside init_alias_analysis, use new_reg_base_value
+	     to reduce the number of relaxation iterations.  */
+	  if (new_reg_base_value && new_reg_base_value[regno])
+	    return new_reg_base_value[regno];
+
+	  if (reg_base_value[regno])
+	    return reg_base_value[regno];
+	}
 
       return src;
 
@@ -2199,8 +2206,8 @@ canon_true_dependence (mem, mem_mode, mem_addr, x, varies)
 					      varies);
 }
 
-/* Returns non-zero if a write to X might alias a previous read from
-   (or, if WRITEP is non-zero, a write to) MEM.  */
+/* Returns nonzero if a write to X might alias a previous read from
+   (or, if WRITEP is nonzero, a write to) MEM.  */
 
 static int
 write_dependence_p (mem, x, writep)
@@ -2389,7 +2396,7 @@ nonlocal_mentioned_p_1 (loc, data)
   return 0;
 }
 
-/* Returns non-zero if X might mention something which is not
+/* Returns nonzero if X might mention something which is not
    local to the function and is not constant.  */
 
 static int
@@ -2487,7 +2494,7 @@ nonlocal_referenced_p_1 (loc, data)
   return 0;
 }
 
-/* Returns non-zero if X might reference something which is not
+/* Returns nonzero if X might reference something which is not
    local to the function and is not constant.  */
 
 static int
@@ -2567,7 +2574,7 @@ nonlocal_set_p_1 (loc, data)
   return 0;
 }
 
-/* Returns non-zero if X might set something which is not
+/* Returns nonzero if X might set something which is not
    local to the function and is not constant.  */
 
 static int
@@ -2744,7 +2751,7 @@ init_alias_analysis ()
 
       /* We're at the start of the function each iteration through the
 	 loop, so we're copying arguments.  */
-      copying_arguments = 1;
+      copying_arguments = true;
 
       /* Wipe the potential alias information clean for this pass.  */
       memset ((char *) new_reg_base_value, 0, reg_base_value_size * sizeof (rtx));
@@ -2834,7 +2841,7 @@ init_alias_analysis ()
 	    }
 	  else if (GET_CODE (insn) == NOTE
 		   && NOTE_LINE_NUMBER (insn) == NOTE_INSN_FUNCTION_BEG)
-	    copying_arguments = 0;
+	    copying_arguments = false;
 	}
 
       /* Now propagate values from new_reg_base_value to reg_base_value.  */

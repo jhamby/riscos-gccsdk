@@ -34,6 +34,7 @@ Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 #include "varray.h"
 #include "ggc.h"
 #include "langhooks.h"
+#include "target.h"
 
 static bool c_tree_printer PARAMS ((output_buffer *, text_info *));
 static tree inline_forbidden_p PARAMS ((tree *, int *, void *));
@@ -120,7 +121,7 @@ inline_forbidden_p (nodep, walk_subtrees, fn)
       /* We will not inline a function which uses computed goto.  The
 	 addresses of its local labels, which may be tucked into
 	 global storage, are of course not constant across
-	 instantiations, which causes unexpected behaviour.  */
+	 instantiations, which causes unexpected behavior.  */
       if (TREE_CODE (t) != LABEL_DECL)
 	return node;
 
@@ -131,6 +132,22 @@ inline_forbidden_p (nodep, walk_subtrees, fn)
 	return node;
 
       break;
+
+    case RECORD_TYPE:
+    case UNION_TYPE:
+      /* We cannot inline a function of the form
+
+	   void F (int i) { struct S { int ar[i]; } s; }
+
+	 Attempting to do so produces a catch-22 in tree-inline.c.
+	 If walk_tree examines the TYPE_FIELDS chain of RECORD_TYPE/
+	 UNION_TYPE nodes, then it goes into infinite recursion on a
+	 structure containing a pointer to its own type.  If it doesn't,
+	 then the type node for S doesn't get adjusted properly when
+	 F is inlined, and we abort in find_function_data.  */
+      for (t = TYPE_FIELDS (node); t; t = TREE_CHAIN (t))
+	if (variably_modified_type_p (TREE_TYPE (t)))
+	  return node;
 
     default:
       break;
@@ -150,11 +167,13 @@ c_cannot_inline_tree_fn (fnp)
       && lookup_attribute ("always_inline", DECL_ATTRIBUTES (fn)) == NULL)
     return 1;
 
+  /* Don't auto-inline anything that might not be bound within 
+     this unit of translation.  */
+  if (!DECL_DECLARED_INLINE_P (fn) && !(*targetm.binds_local_p) (fn))
+    goto cannot_inline;
+
   if (! function_attribute_inlinable_p (fn))
-    {
-      DECL_UNINLINABLE (fn) = 1;
-      return 1;
-    }
+    goto cannot_inline;
 
   /* If a function has pending sizes, we must not defer its
      compilation, and we can't inline it as a tree.  */
@@ -164,10 +183,7 @@ c_cannot_inline_tree_fn (fnp)
       put_pending_sizes (t);
 
       if (t)
-	{
-	  DECL_UNINLINABLE (fn) = 1;
-	  return 1;
-	}
+	goto cannot_inline;
     }
 
   if (DECL_CONTEXT (fn))
@@ -175,10 +191,7 @@ c_cannot_inline_tree_fn (fnp)
       /* If a nested function has pending sizes, we may have already
          saved them.  */
       if (DECL_LANG_SPECIFIC (fn)->pending_sizes)
-	{
-	  DECL_UNINLINABLE (fn) = 1;
-	  return 1;
-	}
+	goto cannot_inline;
     }
   else
     {
@@ -201,12 +214,13 @@ c_cannot_inline_tree_fn (fnp)
     }
     
   if (walk_tree (&DECL_SAVED_TREE (fn), inline_forbidden_p, fn, NULL))
-    {
-      DECL_UNINLINABLE (fn) = 1;
-      return 1;
-    }
+    goto cannot_inline;
 
   return 0;
+
+ cannot_inline:
+  DECL_UNINLINABLE (fn) = 1;
+  return 1;
 }
 
 /* Called from check_global_declarations.  */

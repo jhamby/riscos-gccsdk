@@ -23,7 +23,7 @@ CFLAGS = $(CROSS_CFLAGS)
 INCLUDES += -I$(unixlib_incl_dir)
 endif
 
-CFLAGS += -DIN_GCC -DHAVE_CONFIG_H $(TARGET_DEFS)
+CFLAGS += -DHAVE_CONFIG_H $(TARGET_DEFS)
 objtarget = $(objdir)/libiberty/$(STAGE)
 
 $(objtarget)/%.o: %.c
@@ -46,6 +46,7 @@ OBJS = $(objtarget)/asprintf.o \
 	$(objtarget)/lbasename.o \
 	$(objtarget)/obstack.o \
 	$(objtarget)/make-temp-file.o \
+	$(objtarget)/make-relative-prefix.o \
 	$(objtarget)/md5.o \
 	$(objtarget)/mkstemps.o \
 	$(objtarget)/partition.o \
@@ -100,6 +101,7 @@ $(objtarget)/hashtab.o: hashtab.c
 $(objtarget)/hex.o: hex.c
 $(objtarget)/lbasename.o: lbasename.c
 $(objtarget)/make-temp-file.o: make-temp-file.c
+$(objtarget)/make-relative-prefix.o: make-relative-prefix.c
 $(objtarget)/md5.o: md5.c
 $(objtarget)/mkstemps.o: mkstemps.c
 $(objtarget)/obstack.o: obstack.c

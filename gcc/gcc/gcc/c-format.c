@@ -286,7 +286,7 @@ decode_format_attr (args, info, validated_p)
 
 /* Check a call to a format function against a parameter list.  */
 
-/* The meaningfully distinct length modifiers for format checking recognised
+/* The meaningfully distinct length modifiers for format checking recognized
    by GCC.  */
 enum format_lengths
 {
@@ -439,7 +439,7 @@ typedef struct
   /* The flag character in question (0 for end of array).  */
   const int flag_char;
   /* Zero if this entry describes the flag character in general, or a
-     non-zero character that may be found in flags2 if it describes the
+     nonzero character that may be found in flags2 if it describes the
      flag when used with certain formats only.  If the latter, only
      the first such entry found that applies to the current conversion
      specifier is used; the values of `name' and `long_name' it supplies
@@ -469,11 +469,11 @@ typedef struct
   const int flag_char1;
   /* The second flag character.  */
   const int flag_char2;
-  /* Non-zero if the message should say that the first flag is ignored with
+  /* Nonzero if the message should say that the first flag is ignored with
      the second, zero if the combination should simply be objected to.  */
   const int ignored;
   /* Zero if this entry applies whenever this flag combination occurs,
-     a non-zero character from flags2 if it only applies in some
+     a nonzero character from flags2 if it only applies in some
      circumstances (e.g. 'i' for printf formats ignoring 0 with precision).  */
   const int predicate;
 } format_flag_pair;
@@ -729,7 +729,7 @@ static const format_flag_pair strfmon_flag_pairs[] =
 #define T_WI	&wint_type_node
 #define T94_WI	{ STD_C94, "wint_t", T_WI }
 #define TEX_WI	{ STD_EXT, "wint_t", T_WI }
-#define T_ST    &c_size_type_node
+#define T_ST    &size_type_node
 #define T99_ST	{ STD_C99, "size_t", T_ST }
 #define T_SST   &signed_size_type_node
 #define T99_SST	{ STD_C99, "signed size_t", T_SST }

@@ -52,7 +52,6 @@ Software Foundation, 59 Temple Place - Suite 330, Boston, MA
   || !strcmp (STR, "imacros") || !strcmp (STR, "aux-info") \
   || !strcmp (STR, "idirafter") || !strcmp (STR, "iprefix") \
   || !strcmp (STR, "iwithprefix") || !strcmp (STR, "iwithprefixbefore") \
-  || !strcmp (STR, "icrossdirafter") /* NAB */ \
   || !strcmp (STR, "isystem") || !strcmp (STR, "specs") \
   || !strcmp (STR, "MF") || !strcmp (STR, "MT") || !strcmp (STR, "MQ"))
 
@@ -239,3 +238,9 @@ int lang_specific_pre_link ()
 
 /* Number of extra output files that lang_specific_pre_link may generate.  */
 int lang_specific_extra_outfiles = 0;  /* Not used for cpp.  */
+
+/* Table of language-specific spec functions.  */
+const struct spec_function lang_specific_spec_functions[] =
+{
+  { 0, 0 }
+};

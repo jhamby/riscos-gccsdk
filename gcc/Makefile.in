@@ -22,9 +22,10 @@ sysconfdir=@sysconfdir@
 TARGET_NAME=@target_name@
 TARGET_DEFS=@target_defs@
 
-# The native C and C++ compiler on the host computer
+# The native C and C++ compilers on the host computer
 CC=@CC@
 CXX=@CXX@
+
 CFLAGS=@CFLAGS@ $(TARGET_DEFS)
 CXXFLAGS=@CXXFLAGS@ $(TARGET_DEFS)
 
@@ -113,7 +114,7 @@ export gn_local_include_dir gn_system_include_dir gn_cross_include_dir
 export gn_gcc_bin_dir info_dir exesfx ro_unixlibpkg ro_libsclpkg
 export ux_bin_dir ux_gcc_bin_dir ro_bin_dir ro_gcc_bin_dir
 export unixlib_incl_dir libscl_incl_dir
-export CC CXX
+export CC CXX GNATCC
 export CROSS_CC CROSS_CXX CROSS_CFLAGS CROSS_CXXFLAGS
 export CROSS_AR CROSS_AR_FLAGS
 export VERSION TARGET_NAME CFLAGS CXXFLAGS AR AR_FLAGS
@@ -240,13 +241,8 @@ riscos-libs:
 	$(MAKE) -C $@ "TRG=$(trg10)" $(cfl10)
 
 gcc-libs-stg1:
-	$(MAKE) -C gcc libgcc "TRG=$(trg10)" $(cfl10) "STAGE=stage1"
-	#$(MAKE) -C gcc libgpc "TRG=$(trg10)" $(cfl10) "STAGE=stage1"
-	#$(MAKE) -C gcc libio "TRG=$(trg10)" $(cfl10) "STAGE=stage1"
-	$(MAKE) -C gcc libf2c "TRG=$(trg10)" $(cfl10) "STAGE=stage1"
-	$(MAKE) -C gcc libstdc "TRG=$(trg10)" $(cfl10) "STAGE=stage1"
-	$(MAKE) -C gcc libsupc++ "TRG=$(trg10)" $(cfl10) "STAGE=stage1"
-	$(MAKE) -C gcc zlib "TRG=$(trg10)" $(cfl10) "STAGE=stage1"
+	$(MAKE) -C gcc libgcc "TRG=$(trg10)" "STAGE=stage1"
+	$(MAKE) -C gcc zlib "TRG=$(trg10)" "STAGE=stage1"
 
 gcc-libs-stg2:
 	$(MAKE) -C gcc libgcc "TRG=$(trg10)" $(cfl10) "STAGE=stage2"

@@ -66,7 +66,7 @@
    is rounded towards 0.
 
    5) count_leading_zeros(count, x) counts the number of zero-bits from the
-   msb to the first non-zero bit in the UWtype X.  This is the number of
+   msb to the first nonzero bit in the UWtype X.  This is the number of
    steps X needs to be shifted left to set the msb.  Undefined for X == 0,
    unless the symbol COUNT_LEADING_ZEROS_0 is defined to some value.
 
@@ -124,7 +124,7 @@
     (q) = __udiv_qrnnd (&__r, (n1), (n0), (d));				\
     (r) = __r;								\
   } while (0)
-extern UDItype __udiv_qrnnd PARAMS ((UDItype *, UDItype, UDItype, UDItype));
+extern UDItype __udiv_qrnnd (UDItype *, UDItype, UDItype, UDItype);
 #define UDIV_TIME 220
 #endif /* LONGLONG_STANDALONE */
 #ifdef __alpha_cix__
@@ -292,44 +292,27 @@ UDItype __umulsidi3 (USItype, USItype);
   } while (0)
 #endif
 
-#if (defined (__i370__) || defined (__mvs__)) && W_TYPE_SIZE == 32
-#define umul_ppmm(xh, xl, m0, m1) \
-  do {									\
-    union {UDItype __ll;						\
-	   struct {USItype __h, __l;} __i;				\
-	  } __xx;							\
-    USItype __m0 = (m0), __m1 = (m1);					\
-    __asm__ ("mr %0,%3"							\
-	     : "=r" (__xx.__i.__h),					\
-	       "=r" (__xx.__i.__l)					\
-	     : "%1" (__m0),						\
-	       "r" (__m1));						\
-    (xh) = __xx.__i.__h; (xl) = __xx.__i.__l;				\
-    (xh) += ((((SItype) __m0 >> 31) & __m1)				\
-	     + (((SItype) __m1 >> 31) & __m0));				\
-  } while (0)
+#if (defined (__i370__) || defined (__s390__) || defined (__mvs__)) && W_TYPE_SIZE == 32
 #define smul_ppmm(xh, xl, m0, m1) \
   do {									\
     union {DItype __ll;							\
 	   struct {USItype __h, __l;} __i;				\
-	  } __xx;							\
-    __asm__ ("mr %0,%3"							\
-	     : "=r" (__xx.__i.__h),					\
-	       "=r" (__xx.__i.__l)					\
-	     : "%1" (m0),						\
-	       "r" (m1));						\
-    (xh) = __xx.__i.__h; (xl) = __xx.__i.__l;				\
+	  } __x;							\
+    __asm__ ("lr %N0,%1\n\tmr %0,%2"					\
+	     : "=&r" (__x.__ll)						\
+	     : "r" (m0), "r" (m1));					\
+    (xh) = __x.__i.__h; (xl) = __x.__i.__l;				\
   } while (0)
 #define sdiv_qrnnd(q, r, n1, n0, d) \
   do {									\
     union {DItype __ll;							\
 	   struct {USItype __h, __l;} __i;				\
-	  } __xx;							\
-    __xx.__i.__h = n1; __xx.__i.__l = n0;				\
+	  } __x;							\
+    __x.__i.__h = n1; __x.__i.__l = n0;					\
     __asm__ ("dr %0,%2"							\
-	     : "=r" (__xx.__ll)						\
-	     : "0" (__xx.__ll), "r" (d));				\
-    (q) = __xx.__i.__l; (r) = __xx.__i.__h;				\
+	     : "=r" (__x.__ll)						\
+	     : "0" (__x.__ll), "r" (d));				\
+    (q) = __x.__i.__l; (r) = __x.__i.__h;				\
   } while (0)
 #endif
 
@@ -621,127 +604,135 @@ UDItype __umulsidi3 (USItype, USItype);
   } while (0)
 #endif /* __ns32000__ */
 
-#if (defined (_ARCH_PPC) || defined (_IBMR2))
-#if W_TYPE_SIZE == 32
+/* FIXME: We should test _IBMR2 here when we add assembly support for the
+   system vendor compilers.
+   FIXME: What's needed for gcc PowerPC VxWorks?  __vxworks__ is not good
+   enough, since that hits ARM and m68k too.  */
+#if (defined (_ARCH_PPC)	/* AIX */				\
+     || defined (_ARCH_PWR)	/* AIX */				\
+     || defined (_ARCH_COM)	/* AIX */				\
+     || defined (__powerpc__)	/* gcc */				\
+     || defined (__POWERPC__)	/* BEOS */				\
+     || defined (__ppc__)	/* Darwin */				\
+     || defined (PPC)		/* GNU/Linux, SysV */			\
+     ) && W_TYPE_SIZE == 32
 #define add_ssaaaa(sh, sl, ah, al, bh, bl) \
   do {									\
     if (__builtin_constant_p (bh) && (bh) == 0)				\
       __asm__ ("{a%I4|add%I4c} %1,%3,%4\n\t{aze|addze} %0,%2"		\
-	     : "=r" ((USItype) (sh)),					\
-	       "=&r" ((USItype) (sl))					\
-	     : "%r" ((USItype) (ah)),					\
-	       "%r" ((USItype) (al)),					\
-	       "rI" ((USItype) (bl)));					\
-    else if (__builtin_constant_p (bh) && (bh) ==~(USItype) 0)		\
+	     : "=r" (sh), "=&r" (sl) : "r" (ah), "%r" (al), "rI" (bl));\
+    else if (__builtin_constant_p (bh) && (bh) == ~(USItype) 0)		\
       __asm__ ("{a%I4|add%I4c} %1,%3,%4\n\t{ame|addme} %0,%2"		\
-	     : "=r" ((USItype) (sh)),					\
-	       "=&r" ((USItype) (sl))					\
-	     : "%r" ((USItype) (ah)),					\
-	       "%r" ((USItype) (al)),					\
-	       "rI" ((USItype) (bl)));					\
+	     : "=r" (sh), "=&r" (sl) : "r" (ah), "%r" (al), "rI" (bl));\
     else								\
       __asm__ ("{a%I5|add%I5c} %1,%4,%5\n\t{ae|adde} %0,%2,%3"		\
-	     : "=r" ((USItype) (sh)),					\
-	       "=&r" ((USItype) (sl))					\
-	     : "%r" ((USItype) (ah)),					\
-	       "r" ((USItype) (bh)),					\
-	       "%r" ((USItype) (al)),					\
-	       "rI" ((USItype) (bl)));					\
+	     : "=r" (sh), "=&r" (sl)					\
+	     : "%r" (ah), "r" (bh), "%r" (al), "rI" (bl));		\
   } while (0)
 #define sub_ddmmss(sh, sl, ah, al, bh, bl) \
   do {									\
     if (__builtin_constant_p (ah) && (ah) == 0)				\
       __asm__ ("{sf%I3|subf%I3c} %1,%4,%3\n\t{sfze|subfze} %0,%2"	\
-	       : "=r" ((USItype) (sh)),					\
-		 "=&r" ((USItype) (sl))					\
-	       : "r" ((USItype) (bh)),					\
-		 "rI" ((USItype) (al)),					\
-		 "r" ((USItype) (bl)));					\
-    else if (__builtin_constant_p (ah) && (ah) ==~(USItype) 0)		\
+	       : "=r" (sh), "=&r" (sl) : "r" (bh), "rI" (al), "r" (bl));\
+    else if (__builtin_constant_p (ah) && (ah) == ~(USItype) 0)		\
       __asm__ ("{sf%I3|subf%I3c} %1,%4,%3\n\t{sfme|subfme} %0,%2"	\
-	       : "=r" ((USItype) (sh)),					\
-		 "=&r" ((USItype) (sl))					\
-	       : "r" ((USItype) (bh)),					\
-		 "rI" ((USItype) (al)),					\
-		 "r" ((USItype) (bl)));					\
+	       : "=r" (sh), "=&r" (sl) : "r" (bh), "rI" (al), "r" (bl));\
     else if (__builtin_constant_p (bh) && (bh) == 0)			\
       __asm__ ("{sf%I3|subf%I3c} %1,%4,%3\n\t{ame|addme} %0,%2"		\
-	       : "=r" ((USItype) (sh)),					\
-		 "=&r" ((USItype) (sl))					\
-	       : "r" ((USItype) (ah)),					\
-		 "rI" ((USItype) (al)),					\
-		 "r" ((USItype) (bl)));					\
-    else if (__builtin_constant_p (bh) && (bh) ==~(USItype) 0)		\
+	       : "=r" (sh), "=&r" (sl) : "r" (ah), "rI" (al), "r" (bl));\
+    else if (__builtin_constant_p (bh) && (bh) == ~(USItype) 0)		\
       __asm__ ("{sf%I3|subf%I3c} %1,%4,%3\n\t{aze|addze} %0,%2"		\
-	       : "=r" ((USItype) (sh)),					\
-		 "=&r" ((USItype) (sl))					\
-	       : "r" ((USItype) (ah)),					\
-		 "rI" ((USItype) (al)),					\
-		 "r" ((USItype) (bl)));					\
+	       : "=r" (sh), "=&r" (sl) : "r" (ah), "rI" (al), "r" (bl));\
     else								\
       __asm__ ("{sf%I4|subf%I4c} %1,%5,%4\n\t{sfe|subfe} %0,%3,%2"	\
-	       : "=r" ((USItype) (sh)),					\
-		 "=&r" ((USItype) (sl))					\
-	       : "r" ((USItype) (ah)),					\
-		 "r" ((USItype) (bh)),					\
-		 "rI" ((USItype) (al)),					\
-		 "r" ((USItype) (bl)));					\
+	       : "=r" (sh), "=&r" (sl)					\
+	       : "r" (ah), "r" (bh), "rI" (al), "r" (bl));		\
   } while (0)
-#endif /* W_TYPE_SIZE */
 #define count_leading_zeros(count, x) \
-  __asm__ ("{cntlz|cntlzw} %0,%1"					\
-	   : "=r" ((USItype) (count))					\
-	   : "r" ((USItype) (x)))
+  __asm__ ("{cntlz|cntlzw} %0,%1" : "=r" (count) : "r" (x))
 #define COUNT_LEADING_ZEROS_0 32
-#if defined (_ARCH_PPC)
+#if defined (_ARCH_PPC) || defined (__powerpc__) || defined (__POWERPC__) \
+  || defined (__ppc__) || defined (PPC) || defined (__vxworks__)
 #define umul_ppmm(ph, pl, m0, m1) \
   do {									\
     USItype __m0 = (m0), __m1 = (m1);					\
-    __asm__ ("mulhwu %0,%1,%2"						\
-	     : "=r" ((USItype) ph)					\
-	     : "%r" (__m0),						\
-	       "r" (__m1));						\
+    __asm__ ("mulhwu %0,%1,%2" : "=r" (ph) : "%r" (m0), "r" (m1));	\
     (pl) = __m0 * __m1;							\
   } while (0)
 #define UMUL_TIME 15
 #define smul_ppmm(ph, pl, m0, m1) \
   do {									\
     SItype __m0 = (m0), __m1 = (m1);					\
-    __asm__ ("mulhw %0,%1,%2"						\
-	     : "=r" ((SItype) ph)					\
-	     : "%r" (__m0),						\
-	       "r" (__m1));						\
+    __asm__ ("mulhw %0,%1,%2" : "=r" (ph) : "%r" (m0), "r" (m1));	\
     (pl) = __m0 * __m1;							\
   } while (0)
 #define SMUL_TIME 14
 #define UDIV_TIME 120
 #elif defined (_ARCH_PWR)
-#define umul_ppmm(xh, xl, m0, m1) \
-  do {									\
-    USItype __m0 = (m0), __m1 = (m1);					\
-    __asm__ ("mul %0,%2,%3"						\
-	     : "=r" ((USItype) (xh)),					\
-	       "=q" ((USItype) (xl))					\
-	     : "r" (__m0),						\
-	       "r" (__m1));						\
-    (xh) += ((((SItype) __m0 >> 31) & __m1)				\
-	     + (((SItype) __m1 >> 31) & __m0));				\
-  } while (0)
 #define UMUL_TIME 8
 #define smul_ppmm(xh, xl, m0, m1) \
-  __asm__ ("mul %0,%2,%3"						\
-	   : "=r" ((SItype) (xh)),					\
-	     "=q" ((SItype) (xl))					\
-	   : "r" (m0),							\
-	     "r" (m1))
+  __asm__ ("mul %0,%2,%3" : "=r" (xh), "=q" (xl) : "r" (m0), "r" (m1))
 #define SMUL_TIME 4
 #define sdiv_qrnnd(q, r, nh, nl, d) \
-  __asm__ ("div %0,%2,%4"						\
-	   : "=r" ((SItype) (q)), "=q" ((SItype) (r))			\
-	   : "r" ((SItype) (nh)), "1" ((SItype) (nl)), "r" ((SItype) (d)))
+  __asm__ ("div %0,%2,%4" : "=r" (q), "=q" (r) : "r" (nh), "1" (nl), "r" (d))
 #define UDIV_TIME 100
 #endif
-#endif /* Power architecture variants.  */
+#endif /* 32-bit POWER architecture variants.  */
+
+/* We should test _IBMR2 here when we add assembly support for the system
+   vendor compilers.  */
+#if (defined (_ARCH_PPC64) || defined (__powerpc64__)) && W_TYPE_SIZE == 64
+#define add_ssaaaa(sh, sl, ah, al, bh, bl) \
+  do {									\
+    if (__builtin_constant_p (bh) && (bh) == 0)				\
+      __asm__ ("{a%I4|add%I4c} %1,%3,%4\n\t{aze|addze} %0,%2"		\
+	     : "=r" (sh), "=&r" (sl) : "r" (ah), "%r" (al), "rI" (bl));\
+    else if (__builtin_constant_p (bh) && (bh) == ~(UDItype) 0)		\
+      __asm__ ("{a%I4|add%I4c} %1,%3,%4\n\t{ame|addme} %0,%2"		\
+	     : "=r" (sh), "=&r" (sl) : "r" (ah), "%r" (al), "rI" (bl));\
+    else								\
+      __asm__ ("{a%I5|add%I5c} %1,%4,%5\n\t{ae|adde} %0,%2,%3"		\
+	     : "=r" (sh), "=&r" (sl)					\
+	     : "%r" (ah), "r" (bh), "%r" (al), "rI" (bl));		\
+  } while (0)
+#define sub_ddmmss(sh, sl, ah, al, bh, bl) \
+  do {									\
+    if (__builtin_constant_p (ah) && (ah) == 0)				\
+      __asm__ ("{sf%I3|subf%I3c} %1,%4,%3\n\t{sfze|subfze} %0,%2"	\
+	       : "=r" (sh), "=&r" (sl) : "r" (bh), "rI" (al), "r" (bl));\
+    else if (__builtin_constant_p (ah) && (ah) == ~(UDItype) 0)		\
+      __asm__ ("{sf%I3|subf%I3c} %1,%4,%3\n\t{sfme|subfme} %0,%2"	\
+	       : "=r" (sh), "=&r" (sl) : "r" (bh), "rI" (al), "r" (bl));\
+    else if (__builtin_constant_p (bh) && (bh) == 0)			\
+      __asm__ ("{sf%I3|subf%I3c} %1,%4,%3\n\t{ame|addme} %0,%2"		\
+	       : "=r" (sh), "=&r" (sl) : "r" (ah), "rI" (al), "r" (bl));\
+    else if (__builtin_constant_p (bh) && (bh) == ~(UDItype) 0)		\
+      __asm__ ("{sf%I3|subf%I3c} %1,%4,%3\n\t{aze|addze} %0,%2"		\
+	       : "=r" (sh), "=&r" (sl) : "r" (ah), "rI" (al), "r" (bl));\
+    else								\
+      __asm__ ("{sf%I4|subf%I4c} %1,%5,%4\n\t{sfe|subfe} %0,%3,%2"	\
+	       : "=r" (sh), "=&r" (sl)					\
+	       : "r" (ah), "r" (bh), "rI" (al), "r" (bl));		\
+  } while (0)
+#define count_leading_zeros(count, x) \
+  __asm__ ("cntlzd %0,%1" : "=r" (count) : "r" (x))
+#define COUNT_LEADING_ZEROS_0 64
+#define umul_ppmm(ph, pl, m0, m1) \
+  do {									\
+    UDItype __m0 = (m0), __m1 = (m1);					\
+    __asm__ ("mulhdu %0,%1,%2" : "=r" (ph) : "%r" (m0), "r" (m1));	\
+    (pl) = __m0 * __m1;							\
+  } while (0)
+#define UMUL_TIME 15
+#define smul_ppmm(ph, pl, m0, m1) \
+  do {									\
+    DItype __m0 = (m0), __m1 = (m1);					\
+    __asm__ ("mulhd %0,%1,%2" : "=r" (ph) : "%r" (m0), "r" (m1));	\
+    (pl) = __m0 * __m1;							\
+  } while (0)
+#define SMUL_TIME 14  /* ??? */
+#define UDIV_TIME 120 /* ??? */
+#endif /* 64-bit PowerPC.  */
 
 #if defined (__ibm032__) /* RT/ROMP */ && W_TYPE_SIZE == 32
 #define add_ssaaaa(sh, sl, ah, al, bh, bl) \
@@ -1193,6 +1184,20 @@ UDItype __umulsidi3 (USItype, USItype);
   } while (0)
 #endif
 
+/* If we lack umul_ppmm but have smul_ppmm, define umul_ppmm in terms of
+   smul_ppmm.  */
+#if !defined (umul_ppmm) && defined (smul_ppmm)
+#define umul_ppmm(w1, w0, u, v)						\
+  do {									\
+    UWtype __w1;							\
+    UWtype __xm0 = (u), __xm1 = (v);					\
+    smul_ppmm (__w1, w0, __xm0, __xm1);					\
+    (w1) = __w1 + (-(__xm0 >> (W_TYPE_SIZE - 1)) & __xm1)		\
+		+ (-(__xm1 >> (W_TYPE_SIZE - 1)) & __xm0);		\
+  } while (0)
+#endif
+
+/* If we still don't have umul_ppmm, define it using plain C.  */
 #if !defined (umul_ppmm)
 #define umul_ppmm(w1, w0, u, v)						\
   do {									\

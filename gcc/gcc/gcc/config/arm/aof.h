@@ -118,6 +118,10 @@ do {					\
     (*ptr++) ();			\
 } while (0)
 
+/* We really want to put Thumb tables in a read-only data section, but
+   switching to another section during function output is not
+   possible.  We could however do what the SPARC does and defer the
+   whole table generation until the end of the function.  */
 #define JUMP_TABLES_IN_TEXT_SECTION 1
 
 #ifndef ARM_OS_NAME
@@ -216,14 +220,8 @@ do					\
 
 extern int arm_main_function;
 
-#define ASM_GLOBALIZE_LABEL(STREAM,NAME)		\
-do {							\
-  fprintf ((STREAM), "\tEXPORT\t");			\
-  assemble_name ((STREAM), (NAME));			\
-  fputc ('\n', (STREAM));				\
-  if ((NAME)[0] == 'm' && ! strcmp ((NAME), "main"))	\
-    arm_main_function = 1;				\
-} while (0)
+/* Globalizing directive for a label.  */
+#define GLOBAL_ASM_OP "\tEXPORT\t"
 
 #define ASM_OUTPUT_LABEL(STREAM,NAME)	\
 do {					\
@@ -320,8 +318,13 @@ do {					\
 
 /* Output of Dispatch Tables */
 
-#define ASM_OUTPUT_ADDR_DIFF_ELT(STREAM,BODY,VALUE,REL)		\
-  fprintf ((STREAM), "\tb\t|L..%d|\n", (VALUE))
+#define ASM_OUTPUT_ADDR_DIFF_ELT(STREAM,BODY,VALUE,REL)			\
+  do {									\
+    if (TARGET_ARM)							\
+      fprintf ((STREAM), "\tb\t|L..%d|\n", (VALUE));			\
+    else								\
+      fprintf ((STREAM), "\tDCD\t|L..%d| - |L..%d|\n", (VALUE), (REL));	\
+  } while (0)
 
 #define ASM_OUTPUT_ADDR_VEC_ELT(STREAM,VALUE)	\
   fprintf ((STREAM), "\tDCD\t|L..%d|\n", (VALUE))

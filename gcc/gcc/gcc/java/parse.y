@@ -69,10 +69,6 @@ definitions and other extensions.  */
 #include "debug.h"
 #include "tree-inline.h"
 
-#ifndef DIR_SEPARATOR
-#define DIR_SEPARATOR '/'
-#endif
-
 /* Local function prototypes */
 static char *java_accstring_lookup PARAMS ((int));
 static void  classitf_redefinition_error PARAMS ((const char *,tree, tree, tree));
@@ -394,12 +390,6 @@ static GTY(()) tree java_lang_id;
 /* The generated `inst$' identifier used for generated enclosing
    instance/field access functions.  */
 static GTY(()) tree inst_id;
-
-/* The "java.lang.Cloneable" qualified name.  */
-static GTY(()) tree java_lang_cloneable;
-
-/* The "java.io.Serializable" qualified name.  */
-static GTY(()) tree java_io_serializable;
 
 /* Context and flag for static blocks */
 static GTY(()) tree current_static_block;
@@ -1004,12 +994,7 @@ variable_declarator_id:
 		{yyerror ("Invalid declaration"); DRECOVER(vdi);}
 |	variable_declarator_id OSB_TK error
 		{
-		  tree node = java_lval.node;
-		  if (node && (TREE_CODE (node) == INTEGER_CST
-			       || TREE_CODE (node) == EXPR_WITH_FILE_LOCATION))
-		    yyerror ("Can't specify array dimension in a declaration");
-		  else
-		    yyerror ("']' expected");
+		  yyerror ("']' expected");
 		  DRECOVER(vdi);
 		}
 |	variable_declarator_id CSB_TK error
@@ -2682,7 +2667,7 @@ pop_current_osb (ctxp)
    Add mode documentation here. FIXME */
 
 /* Helper function. Create a new parser context. With
-   COPY_FROM_PREVIOUS set to a non zero value, content of the previous
+   COPY_FROM_PREVIOUS set to a nonzero value, content of the previous
    context is copied, otherwise, the new context is zeroed. The newly
    created context becomes the current one.  */
 
@@ -3449,12 +3434,11 @@ check_class_interface_creation (is_interface, flags, raw_name, qualified_name, d
     {
       const char *f;
 
-      /* Contains OS dependent assumption on path separator. FIXME */
       for (f = &input_filename [strlen (input_filename)];
-	   f != input_filename && f[0] != '/' && f[0] != DIR_SEPARATOR;
+	   f != input_filename && ! IS_DIR_SEPARATOR (f[0]);
 	   f--)
 	;
-      if (f[0] == '/' || f[0] == DIR_SEPARATOR)
+      if (IS_DIR_SEPARATOR (f[0]))
 	f++;
       if (strncmp (IDENTIFIER_POINTER (raw_name),
 		   f , IDENTIFIER_LENGTH (raw_name)) ||
@@ -6504,7 +6488,7 @@ java_check_regular_methods (class_decl)
     abort ();
 }
 
-/* Return a non zero value if the `throws' clause of METHOD (if any)
+/* Return a nonzero value if the `throws' clause of METHOD (if any)
    is incompatible with the `throws' clause of FOUND (if any).  */
 
 static void
@@ -7449,6 +7433,7 @@ dump_java_tree (phase, t)
   int flags;
 
   stream = dump_begin (phase, &flags);
+  flags |= TDF_SLIM;
   if (stream)
     {
       dump_node (t, flags, stream);
@@ -8243,7 +8228,7 @@ build_outer_field_access (id, decl)
   return resolve_expression_name (access, NULL);
 }
 
-/* Return a non zero value if NODE describes an outer field inner
+/* Return a nonzero value if NODE describes an outer field inner
    access.  */
 
 static int
@@ -8279,7 +8264,7 @@ outer_field_access_p (type, decl)
   return 0;
 }
 
-/* Return a non zero value if NODE represents an outer field inner
+/* Return a nonzero value if NODE represents an outer field inner
    access that was been already expanded. As a side effect, it returns
    the name of the field being accessed and the argument passed to the
    access function, suitable for a regeneration of the access method
@@ -9514,6 +9499,8 @@ resolve_qualified_expression_name (wfl, found_decl, where_found, type_found)
 	    }
 	  *type_found = type = QUAL_DECL_TYPE (*where_found);
 
+	  *where_found = force_evaluation_order (*where_found);
+
 	  /* If we're creating an inner class instance, check for that
 	     an enclosing instance is in scope */
 	  if (TREE_CODE (qual_wfl) == NEW_CLASS_EXPR
@@ -10407,7 +10394,7 @@ patch_method_invocation (patch, primary, where, from_super,
 	     this$0 (the immediate outer context) to
 	     access$0(access$0(...(this$0))).
 
-	     maybe_use_access_method returns a non zero value if the
+	     maybe_use_access_method returns a nonzero value if the
 	     this_arg has to be moved into the (then generated) stub
 	     argument list. In the meantime, the selected function
 	     might have be replaced by a generated stub. */
@@ -10648,7 +10635,7 @@ maybe_use_access_method (is_super_init, mdecl, this_arg)
   *mdecl = md;
   *this_arg = ta;
 
-  /* Returnin a non zero value indicates we were doing a non static
+  /* Returnin a nonzero value indicates we were doing a non static
      method invokation that is now a static invocation. It will have
      callee displace `this' to insert it in the regular argument
      list. */
@@ -10795,7 +10782,10 @@ patch_invoke (patch, method, args)
     {
       tree list;
       tree fndecl = current_function_decl;
-      tree save = save_expr (patch);
+      /* We have to call force_evaluation_order now because creating a
+	 COMPOUND_EXPR wraps the arg list in a way that makes it
+	 unrecognizable by force_evaluation_order later.  Yuk.  */
+      tree save = save_expr (force_evaluation_order (patch));
       tree type = TREE_TYPE (patch);
 
       patch = build (COMPOUND_EXPR, type, save, empty_stmt_node);
@@ -11514,22 +11504,9 @@ java_complete_tree (node)
       && DECL_INITIAL (node) != NULL_TREE
       && !flag_emit_xref)
     {
-      tree value = DECL_INITIAL (node);
-      DECL_INITIAL (node) = NULL_TREE;
-      value = fold_constant_for_init (value, node);
-      DECL_INITIAL (node) = value;
+      tree value = fold_constant_for_init (node, node);
       if (value != NULL_TREE)
-	{
-	  /* fold_constant_for_init sometimes widens the original type
-             of the constant (i.e. byte to int). It's not desirable,
-             especially if NODE is a function argument. */
-	  if ((TREE_CODE (value) == INTEGER_CST
-	       || TREE_CODE (value) == REAL_CST)
-	      && TREE_TYPE (node) != TREE_TYPE (value))
-	    return convert (TREE_TYPE (node), value);
-	  else
-	    return value;
-	}
+	return value;
     }
   return node;
 }
@@ -12312,7 +12289,7 @@ java_complete_lhs (node)
   return node;
 }
 
-/* Complete function call's argument. Return a non zero value is an
+/* Complete function call's argument. Return a nonzero value is an
    error was found.  */
 
 static int
@@ -12915,11 +12892,14 @@ try_builtin_assignconv (wfl_op1, lhs_type, rhs)
     new_rhs = convert (lhs_type, rhs);
 
   /* Try a narrowing primitive conversion (5.1.3):
-       - expression is a constant expression of type int AND
+       - expression is a constant expression of type byte, short, char,
+         or int, AND
        - variable is byte, short or char AND
        - The value of the expression is representable in the type of the
          variable */
-  else if (rhs_type == int_type_node && TREE_CONSTANT (rhs)
+  else if ((rhs_type == byte_type_node || rhs_type == short_type_node
+	    || rhs_type == char_type_node || rhs_type == int_type_node)
+	    && TREE_CONSTANT (rhs)
 	   && (lhs_type == byte_type_node || lhs_type == char_type_node
 	       || lhs_type == short_type_node))
     {
@@ -13085,9 +13065,10 @@ valid_ref_assignconv_cast_p (source, dest, cast)
 	{
 	  /* Array */
 	  return (cast
-		  && (DECL_NAME (TYPE_NAME (source)) == java_lang_cloneable
+		  && (DECL_NAME (TYPE_NAME (source))
+		      == java_lang_cloneable_identifier_node
 		      || (DECL_NAME (TYPE_NAME (source))
-			  == java_io_serializable)));
+			  == java_io_serializable_identifier_node)));
 	}
     }
   if (TYPE_ARRAY_P (source))
@@ -13097,8 +13078,10 @@ valid_ref_assignconv_cast_p (source, dest, cast)
       /* Can't cast an array to an interface unless the interface is
 	 java.lang.Cloneable or java.io.Serializable.  */
       if (TYPE_INTERFACE_P (dest))
-	return (DECL_NAME (TYPE_NAME (dest)) == java_lang_cloneable
-		|| DECL_NAME (TYPE_NAME (dest)) == java_io_serializable);
+	return (DECL_NAME (TYPE_NAME (dest))
+		== java_lang_cloneable_identifier_node
+		|| (DECL_NAME (TYPE_NAME (dest))
+		    == java_io_serializable_identifier_node));
       else			/* Arrays */
 	{
 	  tree source_element_type = TYPE_ARRAY_ELEMENT (source);
@@ -13151,7 +13134,7 @@ do_unary_numeric_promotion (arg)
   return arg;
 }
 
-/* Return a non zero value if SOURCE can be converted into DEST using
+/* Return a nonzero value if SOURCE can be converted into DEST using
    the method invocation conversion rule (5.3).  */
 static int
 valid_method_invocation_conversion_p (dest, source)
@@ -13250,7 +13233,7 @@ java_decl_equiv (var_acc1, var_acc2)
 	  && TREE_OPERAND (var_acc1, 1) == TREE_OPERAND (var_acc2, 1));
 }
 
-/* Return a non zero value if CODE is one of the operators that can be
+/* Return a nonzero value if CODE is one of the operators that can be
    used in conjunction with the `=' operator in a compound assignment.  */
 
 static int
@@ -13481,6 +13464,11 @@ patch_binop (node, wfl_op1, wfl_op2)
          separately */
       op1 = do_unary_numeric_promotion (op1);
       op2 = do_unary_numeric_promotion (op2);
+
+      /* If the right hand side is of type `long', first cast it to
+	 `int'.  */
+      if (TREE_TYPE (op2) == long_type_node)
+	op2 = build1 (CONVERT_EXPR, int_type_node, op2);
 
       /* The type of the shift expression is the type of the promoted
          type of the left-hand operand */
@@ -13788,8 +13776,19 @@ merge_string_cste (op1, op2, after)
 	string = null_pointer;
       else if (TREE_TYPE (op2) == char_type_node)
 	{
-	  ch[0] = (char )TREE_INT_CST_LOW (op2);
-	  ch[1] = '\0';
+	  /* Convert the character into UTF-8.	*/
+	  unsigned char c = (unsigned char) TREE_INT_CST_LOW (op2);
+	  unsigned char *p = (unsigned char *) ch;
+	  if (0x01 <= c
+	      && c <= 0x7f)
+	    *p++ = c;
+	  else
+	    {
+	      *p++ = c >> 6 | 0xc0;
+	      *p++ = (c & 0x3f) | 0x80;
+	    }
+	  *p = '\0';
+ 
 	  string = ch;
 	}
       else
@@ -14951,7 +14950,7 @@ build_new_loop (loop_body)
            BODY			 end of this labeled block)
        INCREMENT		(if any)
 
-  REVERSED, if non zero, tells that the loop condition expr comes
+  REVERSED, if nonzero, tells that the loop condition expr comes
   after the body, like in the do-while loop.
 
   To obtain a loop, the loop body structure described above is
@@ -16012,8 +16011,10 @@ fold_constant_for_init (node, context)
 
   switch (code)
     {
-    case STRING_CST:
     case INTEGER_CST:
+      if (node == null_pointer_node)
+	return NULL_TREE;
+    case STRING_CST:
     case REAL_CST:
       return node;
 
@@ -16086,6 +16087,8 @@ fold_constant_for_init (node, context)
       /* Guard against infinite recursion. */
       DECL_INITIAL (node) = NULL_TREE;
       val = fold_constant_for_init (val, node);
+      if (val != NULL_TREE && TREE_CODE (val) != STRING_CST)
+	val = try_builtin_assignconv (NULL_TREE, TREE_TYPE (node), val);
       DECL_INITIAL (node) = val;
       return val;
 
@@ -16221,8 +16224,11 @@ attach_init_test_initialization_flags (entry, ptr)
   tree block = (tree)ptr;
   struct treetreehash_entry *ite = (struct treetreehash_entry *) *entry;
 
-  TREE_CHAIN (ite->value) = BLOCK_EXPR_DECLS (block);
-  BLOCK_EXPR_DECLS (block) = ite->value;
+  if (block != error_mark_node)
+    {
+      TREE_CHAIN (ite->value) = BLOCK_EXPR_DECLS (block);
+      BLOCK_EXPR_DECLS (block) = ite->value;
+    }
   return true;
 }
 

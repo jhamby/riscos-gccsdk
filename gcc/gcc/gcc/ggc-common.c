@@ -30,11 +30,16 @@ Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 #include "varray.h"
 #include "ggc.h"
 #include "langhooks.h"
+#ifdef ENABLE_VALGRIND_CHECKING
+#include <valgrind.h>
+#else
+/* Avoid #ifdef:s when we can help it.  */
+#define VALGRIND_DISCARD(x)
+#endif
 
 /* Statistics about the allocation.  */
 static ggc_statistics *ggc_stats;
 
-static void ggc_mark_rtx_children_1 PARAMS ((rtx));
 static int ggc_htab_delete PARAMS ((void **, void *));
 
 /* Maintain global roots that are preserved during GC.  */
@@ -128,141 +133,8 @@ ggc_mark_roots ()
      they are not already marked.  */
   for (ct = gt_ggc_cache_rtab; *ct; ct++)
     for (cti = *ct; cti->base != NULL; cti++)
-      htab_traverse (*cti->base, ggc_htab_delete, (PTR) cti);
-}
-
-/* R had not been previously marked, but has now been marked via
-   ggc_set_mark.  Now recurse and process the children.  */
-
-void
-ggc_mark_rtx_children (r)
-     rtx r;
-{
-  rtx i, last;
-
-  /* Special case the instruction chain.  This is a data structure whose
-     chain length is potentially unbounded, and which contain references
-     within the chain (e.g. label_ref and insn_list).  If do nothing here,
-     we risk blowing the stack recursing through a long chain of insns.
-
-     Combat this by marking all of the instructions in the chain before
-     marking the contents of those instructions.  */
-
-  switch (GET_CODE (r))
-    {
-    case INSN:
-    case JUMP_INSN:
-    case CALL_INSN:
-    case NOTE:
-    case CODE_LABEL:
-    case BARRIER:
-      for (i = NEXT_INSN (r); ; i = NEXT_INSN (i))
-	if (! ggc_test_and_set_mark (i))
-	  break;
-      last = i;
-
-      for (i = NEXT_INSN (r); i != last; i = NEXT_INSN (i))
-	ggc_mark_rtx_children_1 (i);
-
-    default:
-      break;
-    }
-
-  ggc_mark_rtx_children_1 (r);
-}
-
-static void
-ggc_mark_rtx_children_1 (r)
-     rtx r;
-{
-  const char *fmt;
-  int i;
-  rtx next_rtx;
-
-  do
-    {
-      enum rtx_code code = GET_CODE (r);
-      /* This gets set to a child rtx to eliminate tail recursion.  */
-      next_rtx = NULL;
-
-      /* Collect statistics, if appropriate.  */
-      if (ggc_stats)
-	{
-	  ++ggc_stats->num_rtxs[(int) code];
-	  ggc_stats->size_rtxs[(int) code] += ggc_get_size (r);
-	}
-
-      /* ??? If (some of) these are really pass-dependent info, do we
-	 have any right poking our noses in?  */
-      switch (code)
-	{
-	case MEM:
-	  gt_ggc_m_mem_attrs (MEM_ATTRS (r));
-	  break;
-	case JUMP_INSN:
-	  ggc_mark_rtx (JUMP_LABEL (r));
-	  break;
-	case CODE_LABEL:
-	  ggc_mark_rtx (LABEL_REFS (r));
-	  break;
-	case LABEL_REF:
-	  ggc_mark_rtx (LABEL_NEXTREF (r));
-	  ggc_mark_rtx (CONTAINING_INSN (r));
-	  break;
-	case ADDRESSOF:
-	  ggc_mark_tree (ADDRESSOF_DECL (r));
-	  break;
-	case NOTE:
-	  switch (NOTE_LINE_NUMBER (r))
-	    {
-	    case NOTE_INSN_EXPECTED_VALUE:
-	      ggc_mark_rtx (NOTE_EXPECTED_VALUE (r));
-	      break;
-
-	    case NOTE_INSN_BLOCK_BEG:
-	    case NOTE_INSN_BLOCK_END:
-	      ggc_mark_tree (NOTE_BLOCK (r));
-	      break;
-
-	    default:
-	      break;
-	    }
-	  break;
-
-	default:
-	  break;
-	}
-
-      for (fmt = GET_RTX_FORMAT (GET_CODE (r)), i = 0; *fmt ; ++fmt, ++i)
-	{
-	  rtx exp;
-	  switch (*fmt)
-	    {
-	    case 'e': case 'u':
-	      exp = XEXP (r, i);
-	      if (ggc_test_and_set_mark (exp))
-		{
-		  if (next_rtx == NULL)
-		    next_rtx = exp;
-		  else
-		    ggc_mark_rtx_children (exp);
-		}
-	      break;
-	    case 'V': case 'E':
-	      gt_ggc_m_rtvec_def (XVEC (r, i));
-	      break;
-	    }
-	}
-    }
-  while ((r = next_rtx) != NULL);
-}
-
-/* Various adaptor functions.  */
-void
-gt_ggc_mx_rtx_def (x)
-     void *x;
-{
-  ggc_mark_rtx((rtx)x);
+      if (*cti->base)
+	htab_traverse (*cti->base, ggc_htab_delete, (PTR) cti);
 }
 
 /* Allocate a block of memory, then clear it.  */
@@ -289,10 +161,36 @@ ggc_realloc (x, size)
 
   old_size = ggc_get_size (x);
   if (size <= old_size)
-    return x;
+    {
+      /* Mark the unwanted memory as unaccessible.  We also need to make
+	 the "new" size accessible, since ggc_get_size returns the size of
+	 the pool, not the size of the individually allocated object, the
+	 size which was previously made accessible.  Unfortunately, we
+	 don't know that previously allocated size.  Without that
+	 knowledge we have to lose some initialization-tracking for the
+	 old parts of the object.  An alternative is to mark the whole
+	 old_size as reachable, but that would lose tracking of writes 
+	 after the end of the object (by small offsets).  Discard the
+	 handle to avoid handle leak.  */
+      VALGRIND_DISCARD (VALGRIND_MAKE_NOACCESS ((char *) x + size,
+						old_size - size));
+      VALGRIND_DISCARD (VALGRIND_MAKE_READABLE (x, size));
+      return x;
+    }
 
   r = ggc_alloc (size);
+
+  /* Since ggc_get_size returns the size of the pool, not the size of the
+     individually allocated object, we'd access parts of the old object
+     that were marked invalid with the memcpy below.  We lose a bit of the
+     initialization-tracking since some of it may be uninitialized.  */
+  VALGRIND_DISCARD (VALGRIND_MAKE_READABLE (x, old_size));
+
   memcpy (r, x, old_size);
+
+  /* The old object is not supposed to be used anymore.  */
+  VALGRIND_DISCARD (VALGRIND_MAKE_NOACCESS (x, old_size));
+
   return r;
 }
 

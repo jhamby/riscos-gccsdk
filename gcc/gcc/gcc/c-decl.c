@@ -1474,9 +1474,10 @@ duplicate_decls (newdecl, olddecl, different_binding_level)
 	 inline, make sure we emit debug info for the inline before we
 	 throw it away, in case it was inlined into a function that hasn't
 	 been written out yet.  */
-      if (new_is_definition && DECL_INITIAL (olddecl) && TREE_USED (olddecl))
+      if (new_is_definition && DECL_INITIAL (olddecl))
 	{
-	  (*debug_hooks->outlining_inline_function) (olddecl);
+	  if (TREE_USED (olddecl))
+	    (*debug_hooks->outlining_inline_function) (olddecl);
 
 	  /* The new defn must not be inline.  */
 	  DECL_INLINE (newdecl) = 0;
@@ -2691,8 +2692,8 @@ shadow_tag_warned (declspecs, warned)
 /* Construct an array declarator.  EXPR is the expression inside [], or
    NULL_TREE.  QUALS are the type qualifiers inside the [] (to be applied
    to the pointer to which a parameter array is converted).  STATIC_P is
-   non-zero if "static" is inside the [], zero otherwise.  VLA_UNSPEC_P
-   is non-zero is the array is [*], a VLA of unspecified length which is
+   nonzero if "static" is inside the [], zero otherwise.  VLA_UNSPEC_P
+   is nonzero is the array is [*], a VLA of unspecified length which is
    nevertheless a complete type (not currently implemented by GCC),
    zero otherwise.  The declarator is constructed as an ARRAY_REF
    (to be decoded by grokdeclarator), whose operand 0 is what's on the
@@ -2725,7 +2726,7 @@ build_array_declarator (expr, quals, static_p, vla_unspec_p)
 
 /* Set the type of an array declarator.  DECL is the declarator, as
    constructed by build_array_declarator; TYPE is what appears on the left
-   of the [] and goes in operand 0.  ABSTRACT_P is non-zero if it is an
+   of the [] and goes in operand 0.  ABSTRACT_P is nonzero if it is an
    abstract declarator, zero otherwise; this is used to reject static and
    type qualifiers in abstract declarators, where they are not in the
    C99 grammar.  */
@@ -2821,15 +2822,9 @@ start_decl (declarator, declspecs, initialized, attributes)
     switch (TREE_CODE (decl))
       {
       case TYPE_DECL:
-	/* typedef foo = bar  means give foo the same type as bar.
-	   We haven't parsed bar yet, so `finish_decl' will fix that up.
-	   Any other case of an initialization in a TYPE_DECL is an error.  */
-	if (pedantic || list_length (declspecs) > 1)
-	  {
-	    error ("typedef `%s' is initialized",
-		   IDENTIFIER_POINTER (DECL_NAME (decl)));
-	    initialized = 0;
-	  }
+	error ("typedef `%s' is initialized (use __typeof__ instead)",
+	       IDENTIFIER_POINTER (DECL_NAME (decl)));
+	initialized = 0;
 	break;
 
       case FUNCTION_DECL:
@@ -2988,16 +2983,7 @@ finish_decl (decl, init, asmspec_tree)
     init = 0;
 
   if (init)
-    {
-      if (TREE_CODE (decl) != TYPE_DECL)
-	store_init_value (decl, init);
-      else
-	{
-	  /* typedef foo = bar; store the type of bar as the type of foo.  */
-	  TREE_TYPE (decl) = TREE_TYPE (init);
-	  DECL_INITIAL (decl) = init = 0;
-	}
-    }
+    store_init_value (decl, init);
 
   /* Deduce size of array from initialization, if not already known */
   if (TREE_CODE (type) == ARRAY_TYPE
@@ -3556,7 +3542,15 @@ grokdeclarator (declarator, declspecs, decl_context, initialized)
 		    }
 		}
 	      else if (specbits & (1 << (int) i))
-		pedwarn ("duplicate `%s'", IDENTIFIER_POINTER (id));
+		{
+		  if (i == RID_CONST || i == RID_VOLATILE || i == RID_RESTRICT)
+		    {
+		      if (!flag_isoc99)
+			pedwarn ("duplicate `%s'", IDENTIFIER_POINTER (id));
+		    }
+		  else
+		    error ("duplicate `%s'", IDENTIFIER_POINTER (id));
+		}
 
 	      /* Diagnose "__thread extern".  Recall that this list
 		 is in the reverse order seen in the text.  */
@@ -3689,12 +3683,11 @@ grokdeclarator (declarator, declspecs, decl_context, initialized)
       else
 	{
 	  ok = 1;
-	  if (!explicit_int && !defaulted_int && !explicit_char && pedantic)
+	  if (!explicit_int && !defaulted_int && !explicit_char)
 	    {
-	      pedwarn ("long, short, signed or unsigned used invalidly for `%s'",
-		       name);
-	      if (flag_pedantic_errors)
-		ok = 0;
+	      error ("long, short, signed or unsigned used invalidly for `%s'",
+		     name);
+	      ok = 0;
 	    }
 	}
 
@@ -4961,25 +4954,22 @@ start_struct (code, name)
     ref = lookup_tag (code, name, current_binding_level, 1);
   if (ref && TREE_CODE (ref) == code)
     {
-      C_TYPE_BEING_DEFINED (ref) = 1;
-      TYPE_PACKED (ref) = flag_pack_struct;
       if (TYPE_FIELDS (ref))
         {
 	  if (code == UNION_TYPE)
-	    error ("redefinition of `union %s'",
-		   IDENTIFIER_POINTER (name));
+	    error ("redefinition of `union %s'", IDENTIFIER_POINTER (name));
           else
-	    error ("redefinition of `struct %s'",
-		   IDENTIFIER_POINTER (name));
+	    error ("redefinition of `struct %s'", IDENTIFIER_POINTER (name));
 	}  
-
-      return ref;
     }
+  else
+    {
+      /* Otherwise create a forward-reference just so the tag is in scope.  */
 
-  /* Otherwise create a forward-reference just so the tag is in scope.  */
-
-  ref = make_node (code);
-  pushtag (name, ref);
+      ref = make_node (code);
+      pushtag (name, ref);
+    }
+  
   C_TYPE_BEING_DEFINED (ref) = 1;
   TYPE_PACKED (ref) = flag_pack_struct;
   return ref;
@@ -6427,7 +6417,7 @@ c_expand_deferred_function (fndecl)
     }
 }
 
-/* Generate the RTL for the body of FNDECL.  If NESTED_P is non-zero,
+/* Generate the RTL for the body of FNDECL.  If NESTED_P is nonzero,
    then we are already in the process of generating RTL for another
    function.  If can_defer_p is zero, we won't attempt to defer the
    generation of RTL.  */
@@ -6770,7 +6760,7 @@ c_dup_lang_specific_decl (decl)
    functions are not called from anywhere in the C front end, but as
    these changes continue, that will change.  */
 
-/* Returns non-zero if the current statement is a full expression,
+/* Returns nonzero if the current statement is a full expression,
    i.e. temporaries created during that statement should be destroyed
    at the end of the statement.  */
 

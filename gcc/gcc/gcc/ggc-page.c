@@ -28,6 +28,13 @@ Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 #include "flags.h"
 #include "ggc.h"
 #include "timevar.h"
+#include "params.h"
+#ifdef ENABLE_VALGRIND_CHECKING
+#include <valgrind.h>
+#else
+/* Avoid #ifdef:s when we can help it.  */
+#define VALGRIND_DISCARD(x)
+#endif
 
 /* Prefer MAP_ANON(YMOUS) to /dev/zero, since we don't need to keep a
    file open.  Prefer either to valloc.  */
@@ -88,23 +95,6 @@ Software Foundation, 59 Temple Place - Suite 330, Boston, MA
    deallocated at the start of the next collection if they haven't
    been recycled by then.  */
 
-
-/* Define GGC_POISON to poison memory marked unused by the collector.  */
-#undef GGC_POISON
-
-/* Define GGC_ALWAYS_COLLECT to perform collection every time
-   ggc_collect is invoked.  Otherwise, collection is performed only
-   when a significant amount of memory has been allocated since the
-   last collection.  */
-#undef GGC_ALWAYS_COLLECT
-
-#ifdef ENABLE_GC_CHECKING
-#define GGC_POISON
-#endif
-#ifdef ENABLE_GC_ALWAYS_COLLECT
-#define GGC_ALWAYS_COLLECT
-#endif
-
 /* Define GGC_DEBUG_LEVEL to print debugging information.
      0: No debugging output.
      1: GC statistics only.
@@ -158,6 +148,15 @@ Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 /* The size of an object on a page of the indicated ORDER.  */
 #define OBJECT_SIZE(ORDER) object_size_table[ORDER]
 
+/* For speed, we avoid doing a general integer divide to locate the
+   offset in the allocation bitmap, by precalculating numbers M, S
+   such that (O * M) >> S == O / Z (modulo 2^32), for any offset O
+   within the page which is evenly divisible by the object size Z.  */
+#define DIV_MULT(ORDER) inverse_table[ORDER].mult
+#define DIV_SHIFT(ORDER) inverse_table[ORDER].shift
+#define OFFSET_TO_BIT(OFFSET, ORDER) \
+  (((OFFSET) * DIV_MULT (ORDER)) >> DIV_SHIFT (ORDER))
+
 /* The number of extra orders, not corresponding to power-of-two sized
    objects.  */
 
@@ -208,6 +207,17 @@ static unsigned objects_per_page_table[NUM_ORDERS];
 /* The Ith entry is the size of an object on a page of order I.  */
 
 static size_t object_size_table[NUM_ORDERS];
+
+/* The Ith entry is a pair of numbers (mult, shift) such that
+   ((k * mult) >> shift) mod 2^32 == (k / OBJECT_SIZE(I)) mod 2^32,
+   for all k evenly divisible by OBJECT_SIZE(I).  */
+
+static struct
+{
+  unsigned int mult;
+  unsigned int shift;
+}
+inverse_table[NUM_ORDERS];
 
 /* A page_entry records the status of an allocation page.  This
    structure is dynamically sized to fit the bitmap in_use_p.  */
@@ -344,16 +354,6 @@ static struct globals
 #define BITMAP_SIZE(Num_objects) \
   (CEIL ((Num_objects), HOST_BITS_PER_LONG) * sizeof(long))
 
-/* Skip garbage collection if the current allocation is not at least
-   this factor times the allocation at the end of the last collection.
-   In other words, total allocation must expand by (this factor minus
-   one) before collection is performed.  */
-#define GGC_MIN_EXPAND_FOR_GC (1.3)
-
-/* Bound `allocated_last_gc' to 4MB, to prevent the memory expansion
-   test from triggering too often when the heap is small.  */
-#define GGC_MIN_LAST_ALLOCATED (4 * 1024 * 1024)
-
 /* Allocate pages in chunks of this size, to throttle calls to memory
    allocation routines.  The first page is used, the rest go onto the
    free list.  This cannot be larger than HOST_BITS_PER_INT for the
@@ -377,14 +377,15 @@ static void release_pages PARAMS ((void));
 static void clear_marks PARAMS ((void));
 static void sweep_pages PARAMS ((void));
 static void ggc_recalculate_in_use_p PARAMS ((page_entry *));
+static void compute_inverse PARAMS ((unsigned));
 
-#ifdef GGC_POISON
+#ifdef ENABLE_GC_CHECKING
 static void poison_pages PARAMS ((void));
 #endif
 
 void debug_print_page_list PARAMS ((int));
 
-/* Returns non-zero if P was allocated in GC'able memory.  */
+/* Returns nonzero if P was allocated in GC'able memory.  */
 
 static inline int
 ggc_allocated_p (p)
@@ -528,6 +529,11 @@ alloc_anon (pref, size)
 
   /* Remember that we allocated this memory.  */
   G.bytes_mapped += size;
+
+  /* Pretend we don't have access to the allocated pages.  We'll enable
+     access to smaller pieces of the area in ggc_alloc.  Discard the
+     handle to avoid handle leak.  */
+  VALGRIND_DISCARD (VALGRIND_MAKE_NOACCESS (page, size));
 
   return page;
 }
@@ -755,6 +761,10 @@ free_page (entry)
 	     "Deallocating page at %p, data %p-%p\n", (PTR) entry,
 	     entry->page, entry->page + entry->bytes - 1);
 
+  /* Mark the page as inaccessible.  Discard the handle to avoid handle
+     leak.  */
+  VALGRIND_DISCARD (VALGRIND_MAKE_NOACCESS (entry->page, entry->bytes));
+
   set_page_table_entry (entry->page, NULL);
 
 #ifdef USING_MALLOC_PAGE_GROUPS
@@ -853,7 +863,7 @@ static unsigned char size_lookup[257] =
   8
 };
 
-/* Allocate a chunk of memory of SIZE bytes.  If ZERO is non-zero, the
+/* Allocate a chunk of memory of SIZE bytes.  If ZERO is nonzero, the
    memory is zeroed; otherwise, its contents are undefined.  */
 
 void *
@@ -947,11 +957,27 @@ ggc_alloc (size)
   /* Calculate the object's address.  */
   result = entry->page + object_offset;
 
-#ifdef GGC_POISON
+#ifdef ENABLE_GC_CHECKING
+  /* Keep poisoning-by-writing-0xaf the object, in an attempt to keep the
+     exact same semantics in presence of memory bugs, regardless of
+     ENABLE_VALGRIND_CHECKING.  We override this request below.  Drop the
+     handle to avoid handle leak.  */
+  VALGRIND_DISCARD (VALGRIND_MAKE_WRITABLE (result, OBJECT_SIZE (order)));
+
   /* `Poison' the entire allocated object, including any padding at
      the end.  */
   memset (result, 0xaf, OBJECT_SIZE (order));
+
+  /* Make the bytes after the end of the object unaccessible.  Discard the
+     handle to avoid handle leak.  */
+  VALGRIND_DISCARD (VALGRIND_MAKE_NOACCESS ((char *) result + size,
+					    OBJECT_SIZE (order) - size));
 #endif
+
+  /* Tell Valgrind that the memory is there, but its content isn't
+     defined.  The bytes at the end of the object are still marked
+     unaccessible.  */
+  VALGRIND_DISCARD (VALGRIND_MAKE_WRITABLE (result, size));
 
   /* Keep track of how many bytes are being allocated.  This
      information is used in deciding when to collect.  */
@@ -988,7 +1014,7 @@ ggc_set_mark (p)
 
   /* Calculate the index of the object on the page; this is its bit
      position in the in_use_p bitmap.  */
-  bit = (((const char *) p) - entry->page) / OBJECT_SIZE (entry->order);
+  bit = OFFSET_TO_BIT (((const char *) p) - entry->page, entry->order);
   word = bit / HOST_BITS_PER_LONG;
   mask = (unsigned long) 1 << (bit % HOST_BITS_PER_LONG);
 
@@ -1028,7 +1054,7 @@ ggc_marked_p (p)
 
   /* Calculate the index of the object on the page; this is its bit
      position in the in_use_p bitmap.  */
-  bit = (((const char *) p) - entry->page) / OBJECT_SIZE (entry->order);
+  bit = OFFSET_TO_BIT (((const char *) p) - entry->page, entry->order);
   word = bit / HOST_BITS_PER_LONG;
   mask = (unsigned long) 1 << (bit % HOST_BITS_PER_LONG);
 
@@ -1045,8 +1071,49 @@ ggc_get_size (p)
   return OBJECT_SIZE (pe->order);
 }
 
-/* Initialize the ggc-mmap allocator.  */
+/* Subroutine of init_ggc which computes the pair of numbers used to
+   perform division by OBJECT_SIZE (order) and fills in inverse_table[].
 
+   This algorithm is taken from Granlund and Montgomery's paper
+   "Division by Invariant Integers using Multiplication"
+   (Proc. SIGPLAN PLDI, 1994), section 9 (Exact division by
+   constants).  */
+
+static void
+compute_inverse (order)
+     unsigned order;
+{
+  unsigned size, inv, e;
+
+  /* There can be only one object per "page" in a bucket for sizes
+     larger than half a machine page; it will always have offset zero.  */
+  if (OBJECT_SIZE (order) > G.pagesize/2)
+    {
+      if (OBJECTS_PER_PAGE (order) != 1)
+	abort ();
+
+      DIV_MULT (order) = 1;
+      DIV_SHIFT (order) = 0;
+      return;
+    }
+
+  size = OBJECT_SIZE (order);
+  e = 0;
+  while (size % 2 == 0)
+    {
+      e++;
+      size >>= 1;
+    }
+
+  inv = size;
+  while (inv * size != 1)
+    inv = inv * (2 - inv*size);
+
+  DIV_MULT (order) = inv;
+  DIV_SHIFT (order) = e;
+}
+
+/* Initialize the ggc-mmap allocator.  */
 void
 init_ggc ()
 {
@@ -1066,8 +1133,6 @@ init_ggc ()
 #else
   G.debug_file = stdout;
 #endif
-
-  G.allocated_last_gc = GGC_MIN_LAST_ALLOCATED;
 
 #ifdef USING_MMAP
   /* StunOS has an amazing off-by-one error for the first mmap allocation
@@ -1109,12 +1174,13 @@ init_ggc ()
       object_size_table[order] = s;
     }
 
-  /* Initialize the objects-per-page table.  */
+  /* Initialize the objects-per-page and inverse tables.  */
   for (order = 0; order < NUM_ORDERS; ++order)
     {
       objects_per_page_table[order] = G.pagesize / OBJECT_SIZE (order);
       if (objects_per_page_table[order] == 0)
 	objects_per_page_table[order] = 1;
+      compute_inverse (order);
     }
 
   /* Reset the size_lookup array to put appropriately sized objects in
@@ -1367,7 +1433,7 @@ sweep_pages ()
     }
 }
 
-#ifdef GGC_POISON
+#ifdef ENABLE_GC_CHECKING
 /* Clobber all free objects.  */
 
 static inline void
@@ -1398,7 +1464,19 @@ poison_pages ()
 	      word = i / HOST_BITS_PER_LONG;
 	      bit = i % HOST_BITS_PER_LONG;
 	      if (((p->in_use_p[word] >> bit) & 1) == 0)
-		memset (p->page + i * size, 0xa5, size);
+		{
+		  char *object = p->page + i * size;
+
+		  /* Keep poison-by-write when we expect to use Valgrind,
+		     so the exact same memory semantics is kept, in case
+		     there are memory errors.  We override this request
+		     below.  */
+		  VALGRIND_DISCARD (VALGRIND_MAKE_WRITABLE (object, size));
+		  memset (object, 0xa5, size);
+
+		  /* Drop the handle to avoid handle leak.  */
+		  VALGRIND_DISCARD (VALGRIND_MAKE_NOACCESS (object, size));
+		}
 	    }
 	}
     }
@@ -1413,10 +1491,13 @@ ggc_collect ()
   /* Avoid frequent unnecessary work by skipping collection if the
      total allocations haven't expanded much since the last
      collection.  */
-#ifndef GGC_ALWAYS_COLLECT
-  if (G.allocated < GGC_MIN_EXPAND_FOR_GC * G.allocated_last_gc)
+  size_t allocated_last_gc =
+    MAX (G.allocated_last_gc, (size_t)PARAM_VALUE (GGC_MIN_HEAPSIZE) * 1024);
+
+  size_t min_expand = allocated_last_gc * PARAM_VALUE (GGC_MIN_EXPAND) / 100;
+
+  if (G.allocated < allocated_last_gc + min_expand)
     return;
-#endif
 
   timevar_push (TV_GC);
   if (!quiet_flag)
@@ -1433,15 +1514,13 @@ ggc_collect ()
   clear_marks ();
   ggc_mark_roots ();
 
-#ifdef GGC_POISON
+#ifdef ENABLE_GC_CHECKING
   poison_pages ();
 #endif
 
   sweep_pages ();
 
   G.allocated_last_gc = G.allocated;
-  if (G.allocated_last_gc < GGC_MIN_LAST_ALLOCATED)
-    G.allocated_last_gc = GGC_MIN_LAST_ALLOCATED;
 
   timevar_pop (TV_GC);
 

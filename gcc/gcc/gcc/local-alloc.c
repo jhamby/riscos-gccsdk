@@ -61,10 +61,10 @@ Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 
 #include "config.h"
 #include "system.h"
+#include "hard-reg-set.h"
 #include "rtl.h"
 #include "tm_p.h"
 #include "flags.h"
-#include "hard-reg-set.h"
 #include "basic-block.h"
 #include "regs.h"
 #include "function.h"
@@ -144,12 +144,6 @@ struct qty
      or -1 if none was found.  */
 
   short phys_reg;
-
-  /* Nonzero if this quantity has been used in a SUBREG in some
-     way that is illegal.  */
-
-  char changes_mode;
-
 };
 
 static struct qty *qty;
@@ -328,7 +322,6 @@ alloc_qty (regno, mode, size, birth)
   qty[qtyno].alternate_class = reg_alternate_class (regno);
   qty[qtyno].n_refs = REG_N_REFS (regno);
   qty[qtyno].freq = REG_FREQ (regno);
-  qty[qtyno].changes_mode = REG_CHANGES_MODE (regno);
 }
 
 /* Main entry point of this file.  */
@@ -577,7 +570,7 @@ equiv_init_varies_p (x)
   return 0;
 }
 
-/* Returns non-zero if X (used to initialize register REGNO) is movable.
+/* Returns nonzero if X (used to initialize register REGNO) is movable.
    X is only movable if the registers it uses have equivalent initializations
    which appear to be within the same loop (or in an inner loop) and movable
    or if they are not candidates for local_alloc and don't vary.  */
@@ -1778,11 +1771,11 @@ qty_sugg_compare_1 (q1p, q2p)
    If we really combined them, we could lose if the pseudo lives
    across an insn that clobbers the hard reg (eg, movstr).
 
-   ALREADY_DEAD is non-zero if USEDREG is known to be dead even though
+   ALREADY_DEAD is nonzero if USEDREG is known to be dead even though
    there is no REG_DEAD note on INSN.  This occurs during the processing
    of REG_NO_CONFLICT blocks.
 
-   MAY_SAVE_COPYCOPY is non-zero if this insn is simply copying USEDREG to
+   MAY_SAVE_COPYCOPY is nonzero if this insn is simply copying USEDREG to
    SETREG or if the input and output must share a register.
    In that case, we record a hard reg suggestion in QTY_PHYS_COPY_SUGG.
 
@@ -2026,9 +2019,6 @@ update_qty_class (qtyno, reg)
   rclass = reg_alternate_class (reg);
   if (reg_class_subset_p (rclass, qty[qtyno].alternate_class))
     qty[qtyno].alternate_class = rclass;
-
-  if (REG_CHANGES_MODE (reg))
-    qty[qtyno].changes_mode = 1;
 }
 
 /* Handle something which alters the value of an rtx REG.
@@ -2099,7 +2089,7 @@ reg_is_born (reg, birth)
     }
 }
 
-/* Record the death of REG in the current insn.  If OUTPUT_P is non-zero,
+/* Record the death of REG in the current insn.  If OUTPUT_P is nonzero,
    REG is an output that is dying (i.e., it is never used), otherwise it
    is an input (the normal case).
    If OUTPUT_P is 1, then we extend the life past the end of this insn.  */
@@ -2168,7 +2158,7 @@ wipe_dead_reg (reg, output_p)
    If QTYNO crosses calls, insist on a register preserved by calls,
    unless ACCEPT_CALL_CLOBBERED is nonzero.
 
-   If JUST_TRY_SUGGESTED is non-zero, only try to see if the suggested
+   If JUST_TRY_SUGGESTED is nonzero, only try to see if the suggested
    register is available.  If not, return -1.  */
 
 static int
@@ -2182,11 +2172,7 @@ find_free_reg (class, mode, qtyno, accept_call_clobbered, just_try_suggested,
      int born_index, dead_index;
 {
   int i, ins;
-#ifdef HARD_REG_SET
-  /* Declare it register if it's a scalar.  */
-  register
-#endif
-    HARD_REG_SET used, first_used;
+  HARD_REG_SET first_used, used;
 #ifdef ELIMINABLE_REGS
   static const struct {const int from, to; } eliminables[] = ELIMINABLE_REGS;
 #endif
@@ -2234,10 +2220,8 @@ find_free_reg (class, mode, qtyno, accept_call_clobbered, just_try_suggested,
   SET_HARD_REG_BIT (used, FRAME_POINTER_REGNUM);
 #endif
 
-#ifdef CLASS_CANNOT_CHANGE_MODE
-  if (qty[qtyno].changes_mode)
-    IOR_HARD_REG_SET (used,
-		      reg_class_contents[(int) CLASS_CANNOT_CHANGE_MODE]);
+#ifdef CANNOT_CHANGE_MODE_CLASS
+  cannot_change_mode_set_regs (&used, mode, qty[qtyno].first_reg);
 #endif
 
   /* Normally, the registers that can be used for the first register in
@@ -2327,7 +2311,7 @@ find_free_reg (class, mode, qtyno, accept_call_clobbered, just_try_suggested,
 }
 
 /* Mark that REGNO with machine-mode MODE is live starting from the current
-   insn (if LIFE is non-zero) or dead starting at the current insn (if LIFE
+   insn (if LIFE is nonzero) or dead starting at the current insn (if LIFE
    is zero).  */
 
 static void
@@ -2346,7 +2330,7 @@ mark_life (regno, mode, life)
 }
 
 /* Mark register number REGNO (with machine-mode MODE) as live (if LIFE
-   is non-zero) or dead (if LIFE is zero) from insn number BIRTH (inclusive)
+   is nonzero) or dead (if LIFE is zero) from insn number BIRTH (inclusive)
    to insn number DEATH (exclusive).  */
 
 static void

@@ -87,7 +87,7 @@ Software Foundation, 59 Temple Place - Suite 330, Boston, MA
    `__builtin' version, we will create an ordinary version (e.g,
    `strchr') as well.  If we cannot compute the answer using the
    builtin function, we will fall back to the standard library
-   version. */
+   version.  */
 #undef DEF_LIB_BUILTIN					
 #define DEF_LIB_BUILTIN(ENUM, NAME, TYPE, ATTRS)	\
   DEF_BUILTIN (ENUM, NAME, BUILT_IN_NORMAL, TYPE, TYPE,	\
@@ -114,7 +114,7 @@ Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 #undef DEF_C99_BUILTIN					
 #define DEF_C99_BUILTIN(ENUM, NAME, TYPE)		\
   DEF_BUILTIN (ENUM, NAME, BUILT_IN_NORMAL, TYPE, TYPE,	\
-   	       true, !flag_isoc99, true, ATTR_NOTHROW_LIST)
+   	       true, true, !flag_isoc99, ATTR_NOTHROW_LIST)
 
 /* Like DEF_LIB_BUILTIN, except that the function is expanded in the
    front-end.  */
@@ -401,8 +401,57 @@ DEF_LIB_BUILTIN(BUILT_IN_LOGL,
 				   ? ATTR_CONST_NOTHROW_LIST
 				   : ATTR_PURE_NOTHROW_LIST))
 
-DEF_UNUSED_BUILTIN(BUILT_IN_GETEXP)
-DEF_UNUSED_BUILTIN(BUILT_IN_GETMAN)
+DEF_GCC_BUILTIN(BUILT_IN_INF,
+		"__builtin_inf",
+		BT_FN_DOUBLE,
+		ATTR_CONST_NOTHROW_LIST)
+DEF_GCC_BUILTIN(BUILT_IN_INFF,
+		"__builtin_inff",
+		BT_FN_FLOAT,
+		ATTR_CONST_NOTHROW_LIST)
+DEF_GCC_BUILTIN(BUILT_IN_INFL,
+		"__builtin_infl",
+		BT_FN_LONG_DOUBLE,
+		ATTR_CONST_NOTHROW_LIST)
+
+DEF_GCC_BUILTIN(BUILT_IN_HUGE_VAL,
+		"__builtin_huge_val",
+		BT_FN_DOUBLE,
+		ATTR_CONST_NOTHROW_LIST)
+DEF_GCC_BUILTIN(BUILT_IN_HUGE_VALF,
+		"__builtin_huge_valf",
+		BT_FN_FLOAT,
+		ATTR_CONST_NOTHROW_LIST)
+DEF_GCC_BUILTIN(BUILT_IN_HUGE_VALL,
+		"__builtin_huge_vall",
+		BT_FN_LONG_DOUBLE,
+		ATTR_CONST_NOTHROW_LIST)
+
+DEF_LIB_BUILTIN(BUILT_IN_NAN,
+		"__builtin_nan",
+		BT_FN_DOUBLE_CONST_STRING,
+		ATTR_CONST_NOTHROW_LIST)
+DEF_LIB_BUILTIN(BUILT_IN_NANF,
+		"__builtin_nanf",
+		BT_FN_FLOAT_CONST_STRING,
+		ATTR_CONST_NOTHROW_LIST)
+DEF_LIB_BUILTIN(BUILT_IN_NANL,
+		"__builtin_nanl",
+		BT_FN_LONG_DOUBLE_CONST_STRING,
+		ATTR_CONST_NOTHROW_LIST)
+
+DEF_LIB_BUILTIN(BUILT_IN_NANS,
+		"__builtin_nans",
+		BT_FN_DOUBLE_CONST_STRING,
+		ATTR_CONST_NOTHROW_LIST)
+DEF_LIB_BUILTIN(BUILT_IN_NANSF,
+		"__builtin_nansf",
+		BT_FN_FLOAT_CONST_STRING,
+		ATTR_CONST_NOTHROW_LIST)
+DEF_LIB_BUILTIN(BUILT_IN_NANSL,
+		"__builtin_nansl",
+		BT_FN_LONG_DOUBLE_CONST_STRING,
+		ATTR_CONST_NOTHROW_LIST)
 
 DEF_GCC_BUILTIN(BUILT_IN_SAVEREGS,
 		"__builtin_saveregs",

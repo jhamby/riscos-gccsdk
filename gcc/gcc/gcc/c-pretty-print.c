@@ -463,14 +463,14 @@ pp_c_integer_literal (ppi, i)
     }
 }
 
-/* Print out a REAL value. */
+/* Print out a REAL value.  */
 static inline void
 pp_c_real_literal (ppi, r)
      c_pretty_printer ppi;
      tree r;
 {
-  REAL_VALUE_TO_DECIMAL (TREE_REAL_CST (r), "%.16g",
-			 pp_buffer (ppi)->digit_buffer);
+  real_to_decimal (pp_buffer (ppi)->digit_buffer, &TREE_REAL_CST (r),
+		   sizeof (pp_buffer (ppi)->digit_buffer), 0, 1);
   pp_identifier (ppi, pp_buffer(ppi)->digit_buffer);
 }
 
@@ -557,7 +557,7 @@ pp_c_primary_expression (ppi, e)
       break;
 
     default:
-      /*  Make sure this call won't cause any infinite loop. */
+      /*  Make sure this call won't cause any infinite loop.  */
       pp_c_left_paren (ppi);
       pp_c_expression (ppi, e);
       pp_c_right_paren (ppi);
@@ -1384,7 +1384,7 @@ pp_c_statement (ppi, stmt)
     case GOTO_STMT:
       {
 	tree e = code == RETURN_STMT 
-	  ? RETURN_EXPR (stmt)
+	  ? RETURN_STMT_EXPR (stmt)
 	  : GOTO_DESTINATION (stmt);
 
 	pp_newline (ppi);

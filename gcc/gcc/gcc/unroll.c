@@ -170,7 +170,7 @@ enum unroll_types
   UNROLL_NAIVE
 };
 
-/* Indexed by register number, if non-zero, then it contains a pointer
+/* Indexed by register number, if nonzero, then it contains a pointer
    to a struct induction for a DEST_REG giv which has been combined with
    one of more address givs.  This is needed because whenever such a DEST_REG
    giv is modified, we must modify the value of all split address givs
@@ -193,6 +193,9 @@ static int *splittable_regs_updates;
 
 /* Forward declarations.  */
 
+static rtx simplify_cmp_and_jump_insns PARAMS ((enum rtx_code,
+						enum machine_mode,
+						rtx, rtx, rtx));
 static void init_reg_map PARAMS ((struct inline_remap *, int));
 static rtx calculate_giv_inc PARAMS ((rtx, rtx, unsigned int));
 static rtx initial_reg_note_copy PARAMS ((rtx, struct inline_remap *));
@@ -843,7 +846,7 @@ unroll_loop (loop, insn_count, strength_reduce_p)
 			       &initial_value, &final_value, &increment,
 			       &mode))
 	{
-	  rtx diff;
+	  rtx diff, insn;
 	  rtx *labels;
 	  int abs_inc, neg_inc;
 	  enum rtx_code cc = loop_info->comparison_code;
@@ -875,26 +878,20 @@ unroll_loop (loop, insn_count, strength_reduce_p)
 
 	  start_sequence ();
 
+	  /* We must copy the final and initial values here to avoid
+	     improperly shared rtl.  */
+	  final_value = copy_rtx (final_value);
+	  initial_value = copy_rtx (initial_value);
+
 	  /* Final value may have form of (PLUS val1 const1_rtx).  We need
 	     to convert it into general operand, so compute the real value.  */
 
-	  if (GET_CODE (final_value) == PLUS)
-	    {
-	      final_value = expand_simple_binop (mode, PLUS,
-						 copy_rtx (XEXP (final_value, 0)),
-						 copy_rtx (XEXP (final_value, 1)),
-						 NULL_RTX, 0, OPTAB_LIB_WIDEN);
-	    }
+	  final_value = force_operand (final_value, NULL_RTX);
 	  if (!nonmemory_operand (final_value, VOIDmode))
-	    final_value = force_reg (mode, copy_rtx (final_value));
+	    final_value = force_reg (mode, final_value);
 
 	  /* Calculate the difference between the final and initial values.
 	     Final value may be a (plus (reg x) (const_int 1)) rtx.
-	     Let the following cse pass simplify this if initial value is
-	     a constant.
-
-	     We must copy the final and initial values here to avoid
-	     improperly shared rtl.
 
 	     We have to deal with for (i = 0; --i < 6;) type loops.
 	     For such loops the real final value is the first time the
@@ -907,18 +904,18 @@ unroll_loop (loop, insn_count, strength_reduce_p)
 	     so we can pretend that the overflow value is 0/~0.  */
 
 	  if (cc == NE || less_p != neg_inc)
-	    diff = expand_simple_binop (mode, MINUS, final_value,
-					copy_rtx (initial_value), NULL_RTX, 0,
-					OPTAB_LIB_WIDEN);
+	    diff = simplify_gen_binary (MINUS, mode, final_value,
+					initial_value);
 	  else
-	    diff = expand_simple_unop (mode, neg_inc ? NOT : NEG,
-				       copy_rtx (initial_value), NULL_RTX, 0);
+	    diff = simplify_gen_unary (neg_inc ? NOT : NEG, mode,
+				       initial_value, mode);
+	  diff = force_operand (diff, NULL_RTX);
 
 	  /* Now calculate (diff % (unroll * abs (increment))) by using an
 	     and instruction.  */
-	  diff = expand_simple_binop (GET_MODE (diff), AND, diff,
-				      GEN_INT (unroll_number * abs_inc - 1),
-				      NULL_RTX, 0, OPTAB_LIB_WIDEN);
+	  diff = simplify_gen_binary (AND, mode, diff,
+				      GEN_INT (unroll_number*abs_inc - 1));
+	  diff = force_operand (diff, NULL_RTX);
 
 	  /* Now emit a sequence of branches to jump to the proper precond
 	     loop entry point.  */
@@ -936,18 +933,22 @@ unroll_loop (loop, insn_count, strength_reduce_p)
 	  if (cc != NE)
 	    {
 	      rtx incremented_initval;
-	      incremented_initval = expand_simple_binop (mode, PLUS,
-							 initial_value,
-							 increment,
-							 NULL_RTX, 0,
-							 OPTAB_LIB_WIDEN);
-	      emit_cmp_and_jump_insns (incremented_initval, final_value,
-				       less_p ? GE : LE, NULL_RTX,
-				       mode, unsigned_p, labels[1]);
-	      predict_insn_def (get_last_insn (), PRED_LOOP_CONDITION,
-				TAKEN);
-	      JUMP_LABEL (get_last_insn ()) = labels[1];
-	      LABEL_NUSES (labels[1])++;
+	      enum rtx_code cmp_code;
+
+	      incremented_initval
+		= simplify_gen_binary (PLUS, mode, initial_value, increment);
+	      incremented_initval
+		= force_operand (incremented_initval, NULL_RTX);
+
+	      cmp_code = (less_p
+			  ? (unsigned_p ? GEU : GE)
+			  : (unsigned_p ? LEU : LE));
+
+	      insn = simplify_cmp_and_jump_insns (cmp_code, mode,
+						  incremented_initval,
+						  final_value, labels[1]);
+	      if (insn)
+	        predict_insn_def (insn, PRED_LOOP_CONDITION, TAKEN);
 	    }
 
 	  /* Assuming the unroll_number is 4, and the increment is 2, then
@@ -986,12 +987,12 @@ unroll_loop (loop, insn_count, strength_reduce_p)
 		  cmp_code = LE;
 		}
 
-	      emit_cmp_and_jump_insns (diff, GEN_INT (abs_inc * cmp_const),
-				       cmp_code, NULL_RTX, mode, 0, labels[i]);
-	      JUMP_LABEL (get_last_insn ()) = labels[i];
-	      LABEL_NUSES (labels[i])++;
-	      predict_insn (get_last_insn (), PRED_LOOP_PRECONDITIONING,
-			    REG_BR_PROB_BASE / (unroll_number - i));
+	      insn = simplify_cmp_and_jump_insns (cmp_code, mode, diff,
+						  GEN_INT (abs_inc*cmp_const),
+						  labels[i]);
+	      if (insn)
+	        predict_insn (insn, PRED_LOOP_PRECONDITIONING,
+			      REG_BR_PROB_BASE / (unroll_number - i));
 	    }
 
 	  /* If the increment is greater than one, then we need another branch,
@@ -1019,10 +1020,8 @@ unroll_loop (loop, insn_count, strength_reduce_p)
 		  cmp_code = GE;
 		}
 
-	      emit_cmp_and_jump_insns (diff, GEN_INT (cmp_const), cmp_code,
-				       NULL_RTX, mode, 0, labels[0]);
-	      JUMP_LABEL (get_last_insn ()) = labels[0];
-	      LABEL_NUSES (labels[0])++;
+	      simplify_cmp_and_jump_insns (cmp_code, mode, diff,
+					   GEN_INT (cmp_const), labels[0]);
 	    }
 
 	  sequence = get_insns ();
@@ -1136,6 +1135,9 @@ unroll_loop (loop, insn_count, strength_reduce_p)
 
   /* And whether the loop has been preconditioned.  */
   loop_info->preconditioned = loop_preconditioned;
+
+  /* Remember whether it was preconditioned for the second loop pass.  */
+  NOTE_PRECONDITIONED (loop->end) = loop_preconditioned;
 
   /* For each biv and giv, determine whether it can be safely split into
      a different variable for each unrolled copy of the loop body.
@@ -1323,6 +1325,43 @@ unroll_loop (loop, insn_count, strength_reduce_p)
   if (map->reg_map)
     free (map->reg_map);
   free (map);
+}
+
+/* A helper function for unroll_loop.  Emit a compare and branch to 
+   satisfy (CMP OP1 OP2), but pass this through the simplifier first.
+   If the branch turned out to be conditional, return it, otherwise
+   return NULL.  */
+
+static rtx
+simplify_cmp_and_jump_insns (code, mode, op0, op1, label)
+     enum rtx_code code;
+     enum machine_mode mode;
+     rtx op0, op1, label;
+{
+  rtx t, insn;
+
+  t = simplify_relational_operation (code, mode, op0, op1);
+  if (!t)
+    {
+      enum rtx_code scode = signed_condition (code);
+      emit_cmp_and_jump_insns (op0, op1, scode, NULL_RTX, mode,
+			       code != scode, label);
+      insn = get_last_insn ();
+
+      JUMP_LABEL (insn) = label;
+      LABEL_NUSES (label) += 1;
+
+      return insn;
+    }
+  else if (t == const_true_rtx)
+    {
+      insn = emit_jump_insn (gen_jump (label));
+      emit_barrier ();
+      JUMP_LABEL (insn) = label;
+      LABEL_NUSES (label) += 1;
+    }
+
+  return NULL_RTX;
 }
 
 /* Return true if the loop can be safely, and profitably, preconditioned
@@ -1997,6 +2036,13 @@ copy_loop_body (loop, copy_start, copy_end, map, exit_label, last_iteration,
 	  REG_NOTES (copy) = initial_reg_note_copy (REG_NOTES (insn), map);
 	  INSN_SCOPE (copy) = INSN_SCOPE (insn);
 
+	  /* If there is a REG_EQUAL note present whose value
+	     is not loop invariant, then delete it, since it
+	     may cause problems with later optimization passes.  */
+	  if ((tem = find_reg_note (copy, REG_EQUAL, NULL_RTX))
+	      && !loop_invariant_p (loop, XEXP (tem, 0)))
+	    remove_note (copy, tem);
+
 #ifdef HAVE_cc0
 	  /* If this insn is setting CC0, it may need to look at
 	     the insn that uses CC0 to see what type of insn it is.
@@ -2419,7 +2465,8 @@ biv_total_increment (bl)
   for (v = bl->biv; v; v = v->next_iv)
     {
       if (v->always_computable && v->mult_val == const1_rtx
-	  && ! v->maybe_multiple)
+	  && ! v->maybe_multiple
+	  && SCALAR_INT_MODE_P (v->mode))
 	result = fold_rtx_mult_add (result, const1_rtx, v->add_val, v->mode);
       else
 	return 0;
@@ -2481,7 +2528,7 @@ find_splittable_regs (loop, unroll_type, unroll_number)
 	 it is unsafe to split the biv since it may not have the proper
 	 value on loop exit.  */
 
-      /* loop_number_exit_count is non-zero if the loop has an exit other than
+      /* loop_number_exit_count is nonzero if the loop has an exit other than
 	 a fall through at the end.  */
 
       biv_splittable = 1;
@@ -2506,7 +2553,7 @@ find_splittable_regs (loop, unroll_type, unroll_number)
 	    || GET_CODE (SET_SRC (tem)) != PLUS)
 	  biv_splittable = 0;
 
-      /* If final value is non-zero, then must emit an instruction which sets
+      /* If final value is nonzero, then must emit an instruction which sets
 	 the value of the biv to the proper value.  This is done after
 	 handling all of the givs, since some of them may need to use the
 	 biv's value in their initialization code.  */
@@ -2566,7 +2613,7 @@ find_splittable_regs (loop, unroll_type, unroll_number)
       result += find_splittable_givs (loop, bl, unroll_type, increment,
 				      unroll_number);
 
-      /* If final value is non-zero, then must emit an instruction which sets
+      /* If final value is nonzero, then must emit an instruction which sets
 	 the value of the biv to the proper value.  This is done after
 	 handling all of the givs, since some of them may need to use the
 	 biv's value in their initialization code.  */
@@ -2695,7 +2742,7 @@ find_splittable_givs (loop, bl, unroll_type, increment, unroll_number)
       /* Should emit insns after the loop if possible, as the biv final value
 	 code below does.  */
 
-      /* If the final value is non-zero, and the giv has not been reduced,
+      /* If the final value is nonzero, and the giv has not been reduced,
 	 then must emit an instruction to set the final value.  */
       if (final_value && !v->new_reg)
 	{
@@ -2785,7 +2832,7 @@ find_splittable_givs (loop, bl, unroll_type, increment, unroll_number)
 		  value = tem;
 		}
 
-	      splittable_regs[REGNO (v->new_reg)] = value;
+	      splittable_regs[reg_or_subregno (v->new_reg)] = value;
 	    }
 	  else
 	    continue;
@@ -2819,7 +2866,7 @@ find_splittable_givs (loop, bl, unroll_type, increment, unroll_number)
 	  if (! v->ignore)
 	    count = REG_IV_CLASS (ivs, REGNO (v->src_reg))->biv_count;
 
-	  splittable_regs_updates[REGNO (v->new_reg)] = count;
+	  splittable_regs_updates[reg_or_subregno (v->new_reg)] = count;
 	}
 
       result++;

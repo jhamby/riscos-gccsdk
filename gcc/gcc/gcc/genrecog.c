@@ -187,22 +187,23 @@ static const struct pred_table
   const RTX_CODE codes[NUM_RTX_CODE];
 } preds[] = {
   {"general_operand", {CONST_INT, CONST_DOUBLE, CONST, SYMBOL_REF,
-		       LABEL_REF, SUBREG, REG, MEM}},
+		       LABEL_REF, SUBREG, REG, MEM, ADDRESSOF}},
 #ifdef PREDICATE_CODES
   PREDICATE_CODES
 #endif
   {"address_operand", {CONST_INT, CONST_DOUBLE, CONST, SYMBOL_REF,
-		       LABEL_REF, SUBREG, REG, MEM, PLUS, MINUS, MULT}},
-  {"register_operand", {SUBREG, REG}},
-  {"pmode_register_operand", {SUBREG, REG}},
+		       LABEL_REF, SUBREG, REG, MEM, ADDRESSOF,
+		       PLUS, MINUS, MULT}},
+  {"register_operand", {SUBREG, REG, ADDRESSOF}},
+  {"pmode_register_operand", {SUBREG, REG, ADDRESSOF}},
   {"scratch_operand", {SCRATCH, REG}},
   {"immediate_operand", {CONST_INT, CONST_DOUBLE, CONST, SYMBOL_REF,
 			 LABEL_REF}},
   {"const_int_operand", {CONST_INT}},
   {"const_double_operand", {CONST_INT, CONST_DOUBLE}},
-  {"nonimmediate_operand", {SUBREG, REG, MEM}},
+  {"nonimmediate_operand", {SUBREG, REG, MEM, ADDRESSOF}},
   {"nonmemory_operand", {CONST_INT, CONST_DOUBLE, CONST, SYMBOL_REF,
-			 LABEL_REF, SUBREG, REG}},
+			 LABEL_REF, SUBREG, REG, ADDRESSOF}},
   {"push_operand", {MEM}},
   {"pop_operand", {MEM}},
   {"memory_operand", {SUBREG, MEM}},
@@ -211,7 +212,7 @@ static const struct pred_table
 			   UNORDERED, ORDERED, UNEQ, UNGE, UNGT, UNLE,
 			   UNLT, LTGT}},
   {"mode_independent_operand", {CONST_INT, CONST_DOUBLE, CONST, SYMBOL_REF,
-				LABEL_REF, SUBREG, REG, MEM}}
+				LABEL_REF, SUBREG, REG, MEM, ADDRESSOF}}
 };
 
 #define NUM_KNOWN_PREDS ARRAY_SIZE (preds)
@@ -520,6 +521,7 @@ validate_pattern (pattern, insn, set, set_code)
 		    if (c != REG
 			&& c != SUBREG
 			&& c != MEM
+			&& c != ADDRESSOF
 			&& c != CONCAT
 			&& c != PARALLEL
 			&& c != STRICT_LOW_PART)
@@ -1200,7 +1202,7 @@ maybe_both_true_1 (d1, d2)
    D1 and D2.  Otherwise, return 1 (it may be that there is an RTL that
    can match both or just that we couldn't prove there wasn't such an RTL).
 
-   TOPLEVEL is non-zero if we are to only look at the top level and not
+   TOPLEVEL is nonzero if we are to only look at the top level and not
    recursively descend.  */
 
 static int
@@ -1677,7 +1679,7 @@ find_afterward (head, real_afterward)
 
 /* Assuming that the state of argument is denoted by OLDPOS, take whatever
    actions are necessary to move to NEWPOS.  If we fail to move to the
-   new state, branch to node AFTERWARD if non-zero, otherwise return.
+   new state, branch to node AFTERWARD if nonzero, otherwise return.
 
    Failure to move to the new state can only occur if we are trying to
    match multiple insns and we try to step past the end of the stream.  */

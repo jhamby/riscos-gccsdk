@@ -91,10 +91,6 @@ java_init_lex (finput, encoding)
 
   if (!java_lang_id)
     java_lang_id = get_identifier ("java.lang");
-  if (!java_lang_cloneable)
-    java_lang_cloneable = get_identifier ("java.lang.Cloneable");
-  if (!java_io_serializable)
-    java_io_serializable = get_identifier ("java.io.Serializable");
   if (!inst_id)
     inst_id = get_identifier ("inst$");
   if (!wpv_id)
@@ -128,8 +124,8 @@ java_init_lex (finput, encoding)
   CPC_INITIALIZER_LIST (ctxp) = CPC_STATIC_INITIALIZER_LIST (ctxp) =
     CPC_INSTANCE_INITIALIZER_LIST (ctxp) = NULL_TREE;
 
-  memset ((PTR) ctxp->modifier_ctx, 0, sizeof (ctxp->modifier_ctx));
-  memset ((PTR) current_jcf, 0, sizeof (JCF));
+  memset (ctxp->modifier_ctx, 0, sizeof (ctxp->modifier_ctx));
+  memset (current_jcf, 0, sizeof (JCF));
   ctxp->current_parsed_class = NULL;
   ctxp->package = NULL_TREE;
 #endif
@@ -196,12 +192,11 @@ java_allocate_new_line ()
 
   if (!ctxp->c_line)
     {
-      ctxp->c_line = (struct java_line *)xmalloc (sizeof (struct java_line));
+      ctxp->c_line = xmalloc (sizeof (struct java_line));
       ctxp->c_line->max = JAVA_LINE_MAX;
-      ctxp->c_line->line = (unicode_t *)xmalloc 
-	(sizeof (unicode_t)*ctxp->c_line->max);
+      ctxp->c_line->line = xmalloc (sizeof (unicode_t)*ctxp->c_line->max);
       ctxp->c_line->unicode_escape_p = 
-	  (char *)xmalloc (sizeof (char)*ctxp->c_line->max);
+	xmalloc (sizeof (char)*ctxp->c_line->max);
       ctxp->c_line->white_space_only = 0;
     }
 
@@ -226,7 +221,7 @@ java_new_lexer (finput, encoding)
      FILE *finput;
      const char *encoding;
 {
-  java_lexer *lex = (java_lexer *) xmalloc (sizeof (java_lexer));
+  java_lexer *lex = xmalloc (sizeof (java_lexer));
   int enc_error = 0;
 
   lex->finput = finput;
@@ -522,9 +517,9 @@ java_store_unicode (l, c, unicode_escape_p)
   if (l->size == l->max)
     {
       l->max += JAVA_LINE_MAX;
-      l->line = (unicode_t *) xrealloc (l->line, sizeof (unicode_t)*l->max);
-      l->unicode_escape_p = (char *) xrealloc (l->unicode_escape_p, 
-					       sizeof (char)*l->max);
+      l->line = xrealloc (l->line, sizeof (unicode_t)*l->max);
+      l->unicode_escape_p = xrealloc (l->unicode_escape_p, 
+				      sizeof (char)*l->max);
     }
   l->line [l->size] = c;
   l->unicode_escape_p [l->size++] = unicode_escape_p;
@@ -599,7 +594,7 @@ java_read_unicode_collapsing_terminators (lex, unicode_escape_p)
 	 return a single line terminator.  */
       int dummy;
       c = java_read_unicode (lex, &dummy);
-      if (c != '\n')
+      if (c != '\n' && c != UEOF)
 	lex->unget_value = c;
       /* In either case we must return a newline.  */
       c = '\n';
@@ -834,7 +829,7 @@ java_parse_escape_sequence ()
 }
 
 #ifndef JC1_LITE
-#define IS_ZERO(X) (ereal_cmp (X, dconst0) == 0)
+#define IS_ZERO(X) REAL_VALUES_EQUAL (X, dconst0)
 
 /* Subroutine of java_lex: converts floating-point literals to tree
    nodes.  LITERAL_TOKEN is the input literal, JAVA_LVAL is where to
@@ -1218,34 +1213,35 @@ java_lex (java_lval)
 	}
       /* End borrowed section.  */
 
-      /* Range checking.  */
-      if (long_suffix)
-	{
-	  /* 9223372036854775808L is valid if operand of a '-'. Otherwise
-	     9223372036854775807L is the biggest `long' literal that can be
-	     expressed using a 10 radix. For other radices, everything that
-	     fits withing 64 bits is OK.  */
-	  int hb = (high >> 31);
-	  if (overflow || (hb && low && radix == 10)
-	      || (hb && high & 0x7fffffff && radix == 10))
-	    JAVA_INTEGRAL_RANGE_ERROR ("Numeric overflow for `long' literal");
-	}
-      else
-	{
-	  /* 2147483648 is valid if operand of a '-'. Otherwise,
-	     2147483647 is the biggest `int' literal that can be
-	     expressed using a 10 radix. For other radices, everything
-	     that fits within 32 bits is OK.  As all literals are
-	     signed, we sign extend here.  */
-	  int hb = (low >> 31) & 0x1;
-	  if (overflow || high || (hb && low & 0x7fffffff && radix == 10))
-	    JAVA_INTEGRAL_RANGE_ERROR ("Numeric overflow for `int' literal");
-	  high = -hb;
-	}
 #ifndef JC1_LITE
+      /* Range checking.  */
       value = build_int_2 (low, high);
+      /* Temporarily set type to unsigned.  */
+      SET_LVAL_NODE_TYPE (value, (long_suffix
+				  ? unsigned_long_type_node
+				  : unsigned_int_type_node));
+
+      /* For base 10 numbers, only values up to the highest value
+	 (plus one) can be written.  For instance, only ints up to
+	 2147483648 can be written.  The special case of the largest
+	 negative value is handled elsewhere.  For other bases, any
+	 number can be represented.  */
+      if (overflow || (radix == 10
+		       && tree_int_cst_lt (long_suffix
+					   ? decimal_long_max
+					   : decimal_int_max,
+					   value)))
+	{
+	  if (long_suffix)
+	    JAVA_INTEGRAL_RANGE_ERROR ("Numeric overflow for `long' literal");
+	  else
+	    JAVA_INTEGRAL_RANGE_ERROR ("Numeric overflow for `int' literal");
+	}
+
+      /* Sign extend the value.  */
+      SET_LVAL_NODE_TYPE (value, (long_suffix ? long_type_node : int_type_node));
+      force_fit_type (value, 0);
       JAVA_RADIX10_FLAG (value) = radix == 10;
-      SET_LVAL_NODE_TYPE (value, long_suffix ? long_type_node : int_type_node);
 #else
       SET_LVAL_NODE_TYPE (build_int_2 (low, high),
 			  long_suffix ? long_type_node : int_type_node);
@@ -1604,6 +1600,15 @@ java_lex (java_lval)
 	      SET_LVAL_NODE (null_pointer_node);
 	      return NULL_TK;
 
+	    case ASSERT_TK:
+	      if (flag_assert)
+		{
+		  BUILD_OPERATOR (kw->token);
+		  return kw->token;
+		}
+	      else
+		break;
+
 	      /* Some keyword we want to retain information on the location
 		 they where found.  */
 	    case CASE_TK:
@@ -1617,7 +1622,6 @@ java_lex (java_lval)
 	    case CATCH_TK:
 	    case THROW_TK:
 	    case INSTANCEOF_TK:
-	    case ASSERT_TK:
 	      BUILD_OPERATOR (kw->token);
 
 	    default:
@@ -1653,24 +1657,14 @@ static void
 error_if_numeric_overflow (value)
      tree value;
 {
-  if (TREE_CODE (value) == INTEGER_CST && JAVA_RADIX10_FLAG (value))
+  if (TREE_CODE (value) == INTEGER_CST
+      && JAVA_RADIX10_FLAG (value)
+      && tree_int_cst_sgn (value) < 0)
     {
-      unsigned HOST_WIDE_INT lo, hi;
-
-      lo = TREE_INT_CST_LOW (value);
-      hi = TREE_INT_CST_HIGH (value);
       if (TREE_TYPE (value) == long_type_node)
-	{
-	  int hb = (hi >> 31);
-	  if (hb && !(hi & 0x7fffffff))
-	    java_lex_error ("Numeric overflow for `long' literal", 0);
-	}
+	java_lex_error ("Numeric overflow for `long' literal", 0);
       else
-	{
-	  int hb = (lo >> 31) & 0x1;
-	  if (hb && !(lo & 0x7fffffff))
-	    java_lex_error ("Numeric overflow for `int' literal", 0);
-	}
+	java_lex_error ("Numeric overflow for `int' literal", 0);
     }
 }
 #endif /* JC1_LITE */

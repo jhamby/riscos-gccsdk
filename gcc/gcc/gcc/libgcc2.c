@@ -366,8 +366,19 @@ __muldi3 (DWtype u, DWtype v)
 }
 #endif
 
+#if (defined (L_udivdi3) || defined (L_divdi3) || \
+     defined (L_umoddi3) || defined (L_moddi3))
+#if defined (sdiv_qrnnd)
+#define L_udiv_w_sdiv
+#endif
+#endif
+
 #ifdef L_udiv_w_sdiv
 #if defined (sdiv_qrnnd)
+#if (defined (L_udivdi3) || defined (L_divdi3) || \
+     defined (L_umoddi3) || defined (L_moddi3))
+static inline __attribute__ ((__always_inline__))
+#endif
 UWtype
 __udiv_w_sdiv (UWtype *rp, UWtype a1, UWtype a0, UWtype d)
 {
@@ -500,7 +511,7 @@ const UQItype __clz_tab[] =
 
 #if (defined (L_udivdi3) || defined (L_divdi3) || \
      defined (L_umoddi3) || defined (L_moddi3))
-static inline
+static inline __attribute__ ((__always_inline__))
 #endif
 UDWtype
 __udivmoddi4 (UDWtype n, UDWtype d, UDWtype *rp)
@@ -1091,7 +1102,10 @@ __floatdisf (DWtype u)
 	     && u < ((DWtype) 1 << DF_SIZE)))
 	{
 	  if ((UDWtype) u & (REP_BIT - 1))
-	    u |= REP_BIT;
+	    {
+	      u &= ~ (REP_BIT - 1);
+	      u |= REP_BIT;
+	    }
 	}
     }
   f = (Wtype) (u >> WORD_SIZE);
@@ -1271,7 +1285,7 @@ struct bb
 #include <errno.h>
 #endif
 
-/* Chain of per-object file bb structures. */
+/* Chain of per-object file bb structures.  */
 static struct bb *bb_head;
 
 /* Dump the coverage counts. We merge with existing counts when
@@ -1295,7 +1309,7 @@ __bb_exit_func (void)
   s_flock.l_type = F_WRLCK;
   s_flock.l_whence = SEEK_SET;
   s_flock.l_start = 0;
-  s_flock.l_len = 0; /* Until EOF. */
+  s_flock.l_len = 0; /* Until EOF.  */
   s_flock.l_pid = getpid ();
 #endif
 
@@ -1432,7 +1446,7 @@ __bb_exit_func (void)
 	merged_max = object_max;
       merged_arcs += ptr->ncounts;
       
-      /* Write out the data. */
+      /* Write out the data.  */
       if (/* magic */
 	  __write_long (-123, da_file, 4)
 	  /* number of functions in object file.  */
@@ -1514,11 +1528,11 @@ __bb_exit_func (void)
 	
 	if (fseek (da_file, 4 * 3, SEEK_SET)
 	    /* number of instrumented arcs.  */
-	    || __write_long (program_arcs, da_file, 4)
+	    || __write_long (merged_arcs, da_file, 4)
 	    /* sum of counters.  */
-	    || __write_gcov_type (program_sum, da_file, 8)
+	    || __write_gcov_type (merged_sum, da_file, 8)
 	    /* maximal counter.  */
-	    || __write_gcov_type (program_max, da_file, 8))
+	    || __write_gcov_type (merged_max, da_file, 8))
 	  fprintf (stderr, "arc profiling: Error updating program header %s.\n",
 		   ptr->filename);
 	if (fclose (da_file))

@@ -981,31 +981,27 @@ member_init:
 		{
 		  if (current_class_name)
 		    pedwarn ("anachronistic old style base class initializer");
-		  $$ = expand_member_init (current_class_ref, NULL_TREE, $2);
+		  $$ = expand_member_init (NULL_TREE, $2);
 		}
 	| LEFT_RIGHT
 		{
 		  if (current_class_name)
 		    pedwarn ("anachronistic old style base class initializer");
-		  $$ = expand_member_init (current_class_ref,
-					   NULL_TREE,
+		  $$ = expand_member_init (NULL_TREE,
 					   void_type_node);
 		}
 	| notype_identifier '(' nonnull_exprlist ')'
-		{ $$ = expand_member_init (current_class_ref, $1, $3); }
+		{ $$ = expand_member_init ($1, $3); }
 	| notype_identifier LEFT_RIGHT
-		{ $$ = expand_member_init (current_class_ref, $1,
-					   void_type_node); }
+		{ $$ = expand_member_init ($1, void_type_node); }
 	| nonnested_type '(' nonnull_exprlist ')'
-		{ $$ = expand_member_init (current_class_ref, $1, $3); }
+		{ $$ = expand_member_init ($1, $3); }
 	| nonnested_type LEFT_RIGHT
-		{ $$ = expand_member_init (current_class_ref, $1,
-					   void_type_node); }
+		{ $$ = expand_member_init ($1, void_type_node); }
 	| typename_sub '(' nonnull_exprlist ')'
-		{ $$ = expand_member_init (current_class_ref, $1, $3); }
+		{ $$ = expand_member_init ($1, $3); }
 	| typename_sub LEFT_RIGHT
-		{ $$ = expand_member_init (current_class_ref, $1,
-					   void_type_node); }
+		{ $$ = expand_member_init ($1, void_type_node); }
         | error
                 { $$ = NULL_TREE; }
 	;
@@ -1355,21 +1351,12 @@ new_initializer:
 		  error ("`%T' is not a valid expression", $2.t);
 		  $$ = error_mark_node;
 		}
-	/* GNU extension so people can use initializer lists.  Note that
-	   this alters the meaning of `new int = 1', which was previously
-	   syntactically valid but semantically invalid.
-           This feature is now deprecated and will be removed in a future
-           release.  */
 	| '=' init
 		{
-		  if (pedantic)
-		    pedwarn ("ISO C++ forbids initialization of new expression with `='");
-		  cp_deprecated ("new initializer lists extension");
-		  if (TREE_CODE ($2) != TREE_LIST
-		      && TREE_CODE ($2) != CONSTRUCTOR)
-		    $$ = build_tree_list (NULL_TREE, $2);
-		  else
-		    $$ = $2;
+		  /* This was previously allowed as an extension, but
+		     was removed in G++ 3.3.  */
+		  error ("initialization of new expression with `='");
+		  $$ = error_mark_node;
 		}
 	;
 
@@ -1529,7 +1516,7 @@ do_id:
 		     do_identifier; we only do that for unqualified
 		     identifiers.  */
 	          if (!lastiddecl || !BASELINK_P (lastiddecl))
-		    $$ = do_identifier ($<ttype>-1, 1, NULL_TREE);
+		    $$ = do_identifier ($<ttype>-1, 3, NULL_TREE);
 		  else
 		    $$ = $<ttype>-1;
 		}
@@ -2537,6 +2524,8 @@ class_head_defn:
 							 make_anon_name (), 
 							 0));
 		  $$.new_type_flag = 0;
+		  CLASSTYPE_DECLARED_CLASS (TREE_TYPE ($$.t))
+		    = $1 == class_type_node;
 		  yyungetc ('{', 1);
 		}
 	;
@@ -4177,6 +4166,12 @@ parse_finish_call_expr (tree fn, tree args, int koenig)
 		    name = DECL_NAME (get_first_fn (name));
 		  fn = lookup_member (scope, name, /*protect=*/1, 
 				      /*prefer_type=*/0);
+		  if (!fn)
+		    {
+		      error ("'%D' has no member named '%E'", scope, name);
+		      return error_mark_node;
+		    }
+		  
 		  if (BASELINK_P (fn) && template_id)
 		    BASELINK_FUNCTIONS (fn) 
 		      = build_nt (TEMPLATE_ID_EXPR,

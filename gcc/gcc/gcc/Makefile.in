@@ -14,10 +14,13 @@ prefix = $(unix_prefix)
 CFLAGS += -DCROSS_COMPILE -D$(hostsystem)
 bin_dir = $(ux_bin_dir)
 gcc_bin_dir = $(ux_gcc_bin_dir)
+GNATBIND = gnatbind -C
+GNATCC = gnatgcc
 else
 prefix = $(riscos_prefix)
 CC = $(CROSS_CC)
 CXX = $(CROSS_CXX)
+GNATCC = $(CROSS_CC)
 CFLAGS = $(CROSS_CFLAGS) -D$(targetsystem)
 bin_dir = $(ro_bin_dir)
 gcc_bin_dir = $(ro_gcc_bin_dir)
@@ -34,7 +37,7 @@ LINK = $(CC) -o $@
 LIBS = -L$(objdir)/libiberty/$(STAGE) -liberty -lm
 gccobjdir = $(objdir)/gcc-$(VERSION)/gcc/$(STAGE)
 
-export prefix CC CXX CFLAGS bin_dir gcc_bin_dir gccobjdir gexesfx
+export prefix CC CXX GNATCC CFLAGS bin_dir gcc_bin_dir gccobjdir gexesfx
 
 LIBDEPS = $(gccobjdir)/prefix.o
 
@@ -92,7 +95,6 @@ OBJS =	$(gccobjdir)/alias.o \
 	$(gccobjdir)/cselib.o \
 	$(gccobjdir)/dbxout.o \
 	$(gccobjdir)/debug.o \
-	$(gccobjdir)/dependence.o \
 	$(gccobjdir)/df.o \
 	$(gccobjdir)/diagnostic.o \
 	$(gccobjdir)/doloop.o \
@@ -223,7 +225,7 @@ $(gccobjdir)/%.o: %.c
 	$(CC) $(CFLAGS) -o $@ -c $< $(INCLUDES)
 
 
-all: c cp f77 objc java
+all: c cp f77 objc java ada
 
 # cp f77 gpc objc java docs
 
@@ -401,7 +403,7 @@ GTFILES = $(GCONFIG_H) $(srcdir)/location.h \
   $(srcdir)/c-common.h $(srcdir)/c-tree.h \
   $(srcdir)/basic-block.h \
   $(srcdir)/alias.c $(srcdir)/bitmap.c $(srcdir)/cselib.c \
-  $(srcdir)/dependence.c $(srcdir)/dwarf2out.c $(srcdir)/emit-rtl.c \
+  $(srcdir)/dwarf2out.c $(srcdir)/emit-rtl.c \
   $(srcdir)/except.c $(srcdir)/explow.c $(srcdir)/expr.c \
   $(srcdir)/fold-const.c $(srcdir)/function.c \
   $(srcdir)/gcse.c $(srcdir)/integrate.c $(srcdir)/lists.c $(srcdir)/optabs.c \
@@ -410,10 +412,12 @@ GTFILES = $(GCONFIG_H) $(srcdir)/location.h \
   $(srcdir)/sdbout.c $(srcdir)/stmt.c $(srcdir)/stor-layout.c \
   $(srcdir)/tree.c $(srcdir)/varasm.c \
   $(srcdir)/config/arm/arm.c \
-   $(srcdir)/ada/ada-tree.h $(srcdir)/ada/gigi.h $(srcdir)/ada/decl.c $(srcdir)/ada/trans.c $(srcdir)/ada/utils.c $(srcdir)/cp/cp-tree.h $(srcdir)/cp/decl.h $(srcdir)/cp/lex.h $(srcdir)/cp/call.c $(srcdir)/cp/decl.c $(srcdir)/cp/decl2.c $(srcdir)/cp/parse.y $(srcdir)/cp/pt.c $(srcdir)/cp/repo.c $(srcdir)/cp/spew.c $(srcdir)/cp/tree.c $(srcdir)/c-common.c $(srcdir)/c-common.h $(srcdir)/c-pragma.c $(srcdir)/f77/com.c $(srcdir)/f77/com.h $(srcdir)/f77/ste.c $(srcdir)/java/java-tree.h $(srcdir)/java/builtins.c $(srcdir)/java/class.c $(srcdir)/java/constants.c $(srcdir)/java/decl.c $(srcdir)/java/expr.c $(srcdir)/java/jcf-parse.c $(srcdir)/java/jcf-write.c $(srcdir)/java/lang.c $(srcdir)/java/mangle.c $(srcdir)/java/parse.y $(srcdir)/objc/objc-act.h $(srcdir)/c-parse.in $(srcdir)/c-tree.h $(srcdir)/c-decl.c $(srcdir)/c-objc-common.c $(srcdir)/c-common.c $(srcdir)/c-common.h $(srcdir)/c-pragma.c $(srcdir)/c-parse.in $(srcdir)/c-lang.c $(srcdir)/c-parse.in $(srcdir)/c-tree.h $(srcdir)/c-decl.c $(srcdir)/c-common.c $(srcdir)/c-common.h $(srcdir)/c-pragma.c $(srcdir)/c-objc-common.c
+   $(srcdir)/ada/ada-tree.h $(srcdir)/ada/gigi.h $(srcdir)/ada/decl.c $(srcdir)/ada/trans.c $(srcdir)/ada/utils.c $(srcdir)/cp/cp-tree.h $(srcdir)/cp/decl.h $(srcdir)/cp/lex.h $(srcdir)/cp/call.c $(srcdir)/cp/decl.c $(srcdir)/cp/decl2.c $(srcdir)/cp/parse.y $(srcdir)/cp/pt.c $(srcdir)/cp/repo.c $(srcdir)/cp/spew.c $(srcdir)/cp/tree.c $(srcdir)/c-common.c $(srcdir)/c-common.h $(srcdir)/c-pragma.c $(srcdir)/f77/com.c $(srcdir)/f77/com.h $(srcdir)/f77/ste.c $(srcdir)/f77/where.h $(srcdir)/f77/where.c $(srcdir)/f77/lex.c $(srcdir)/java/java-tree.h $(srcdir)/java/builtins.c $(srcdir)/java/class.c $(srcdir)/java/constants.c $(srcdir)/java/decl.c $(srcdir)/java/expr.c $(srcdir)/java/jcf-parse.c $(srcdir)/java/jcf-write.c $(srcdir)/java/lang.c $(srcdir)/java/mangle.c $(srcdir)/java/parse.y $(srcdir)/objc/objc-act.h $(srcdir)/c-parse.in $(srcdir)/c-tree.h $(srcdir)/c-decl.c $(srcdir)/c-objc-common.c $(srcdir)/c-common.c $(srcdir)/c-common.h $(srcdir)/c-pragma.c $(srcdir)/c-parse.in $(srcdir)/c-lang.c $(srcdir)/c-parse.in $(srcdir)/c-tree.h $(srcdir)/c-decl.c $(srcdir)/c-common.c $(srcdir)/c-common.h $(srcdir)/c-pragma.c $(srcdir)/c-objc-common.c
 
-GTFILES_FILES_LANGS =  ada  ada  ada  ada  ada  cp  cp  cp  cp  cp  cp  cp  cp  cp  cp  cp  cp  cp  cp  f77  f77  f77  java  java  java  java  java  java  java  java  java  java  java  objc  objc  objc  objc  objc  objc  objc  objc  objc  c  c  c  c  c  c  c  c
-GTFILES_FILES_FILES =  $(srcdir)/ada/ada-tree.h  $(srcdir)/ada/gigi.h  $(srcdir)/ada/decl.c  $(srcdir)/ada/trans.c  $(srcdir)/ada/utils.c  $(srcdir)/cp/cp-tree.h  $(srcdir)/cp/decl.h  $(srcdir)/cp/lex.h  $(srcdir)/cp/call.c  $(srcdir)/cp/decl.c  $(srcdir)/cp/decl2.c  $(srcdir)/cp/parse.y  $(srcdir)/cp/pt.c  $(srcdir)/cp/repo.c  $(srcdir)/cp/spew.c  $(srcdir)/cp/tree.c  $(srcdir)/c-common.c  $(srcdir)/c-common.h  $(srcdir)/c-pragma.c  $(srcdir)/f77/com.c  $(srcdir)/f77/com.h  $(srcdir)/f77/ste.c  $(srcdir)/java/java-tree.h  $(srcdir)/java/builtins.c  $(srcdir)/java/class.c  $(srcdir)/java/constants.c  $(srcdir)/java/decl.c  $(srcdir)/java/expr.c  $(srcdir)/java/jcf-parse.c  $(srcdir)/java/jcf-write.c  $(srcdir)/java/lang.c  $(srcdir)/java/mangle.c  $(srcdir)/java/parse.y  $(srcdir)/objc/objc-act.h  $(srcdir)/c-parse.in  $(srcdir)/c-tree.h  $(srcdir)/c-decl.c  $(srcdir)/c-objc-common.c  $(srcdir)/c-common.c  $(srcdir)/c-common.h  $(srcdir)/c-pragma.c  $(srcdir)/c-parse.in  $(srcdir)/c-lang.c  $(srcdir)/c-parse.in  $(srcdir)/c-tree.h  $(srcdir)/c-decl.c  $(srcdir)/c-common.c  $(srcdir)/c-common.h  $(srcdir)/c-pragma.c  $(srcdir)/c-objc-common.c
+GTFILES_FILES_LANGS =  ada  ada  ada  ada  ada  cp  cp  cp  cp  cp  cp  cp  cp  cp  cp  cp  cp  cp  cp  f77  f77  f77  f77  f77  f77  java  java  java  java  java  java  java  java  java  java  java  objc  objc  objc  objc  objc  objc  objc  objc  objc  c  c  c  c  c  c  c  c
+GTFILES_FILES_FILES =  $(srcdir)/ada/ada-tree.h  $(srcdir)/ada/gigi.h  $(srcdir)/ada/decl.c  $(srcdir)/ada/trans.c  $(srcdir)/ada/utils.c  $(srcdir)/cp/cp-tree.h  $(srcdir)/cp/decl.h  $(srcdir)/cp/lex.h  $(srcdir)/cp/call.c  $(srcdir)/cp/decl.c  $(srcdir)/cp/decl2.c  $(srcdir)/cp/parse.y  $(srcdir)/cp/pt.c  $(srcdir)/cp/repo.c  $(srcdir)/cp/spew.c  $(srcdir)/cp/tree.c  $(srcdir)/c-common.c  $(srcdir)/c-common.h  $(srcdir)/c-pragma.c  $(srcdir)/f77/com.c  $(srcdir)/f77/com.h  $(srcdir)/f77/ste.c  $(srcdir)/f77/where.h  $(srcdir)/f77/where.c  $(srcdir)/f77/lex.c  $(srcdir)/java/java-tree.h  $(srcdir)/java/builtins.c  $(srcdir)/java/class.c  $(srcdir)/java/constants.c  $(srcdir)/java/decl.c  $(srcdir)/java/expr.c  $(srcdir)/java/jcf-parse.c  $(srcdir)/java/jcf-write.c  $(srcdir)/java/lang.c  $(srcdir)/java/mangle.c  $(srcdir)/java/parse.y  $(srcdir)/objc/objc-act.h  $(srcdir)/c-parse.in  $(srcdir)/c-tree.h  $(srcdir)/c-decl.c  $(srcdir)/c-objc-common.c  $(srcdir)/c-common.c  $(srcdir)/c-common.h  $(srcdir)/c-pragma.c  $(srcdir)/c-parse.in  $(srcdir)/c-lang.c  $(srcdir)/c-parse.in  $(srcdir)/c-tree.h  $(srcdir)/c-decl.c  $(srcdir)/c-common.c  $(srcdir)/c-common.h  $(srcdir)/c-pragma.c  $(srcdir)/c-objc-common.c
+
+
 GTFILES_LANG_DIR_NAMES =  ada cp f77 java objc
 GTFILES_SRCDIR = ../../gcc
 

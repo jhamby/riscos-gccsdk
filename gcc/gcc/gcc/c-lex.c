@@ -835,7 +835,7 @@ interpret_integer (token, flags)
 	{
 	  /* In C99, decimal constants are always signed.
 	     In C89, decimal constants that don't fit in long have
-	     undefined behaviour; we try to make them unsigned long.
+	     undefined behavior; we try to make them unsigned long.
 	     In GCC's extended C89, that last is true of decimal
 	     constants that don't fit in long long, too.  */
 
@@ -925,13 +925,8 @@ interpret_float (token, flags)
   memcpy (copy, token->val.str.text, copylen);
   copy[copylen] = '\0';
 
-  /* The second argument, machine_mode, of REAL_VALUE_ATOF tells the
-     desired precision of the binary result of decimal-to-binary
-     conversion.  */
-  if (flags & CPP_N_HEX)
-    real = REAL_VALUE_HTOF (copy, TYPE_MODE (type));
-  else
-    real = REAL_VALUE_ATOF (copy, TYPE_MODE (type));
+  real_from_string (&real, copy);
+  real_convert (&real, TYPE_MODE (type), &real);
 
   /* A diagnostic is required for "soft" overflow by some ISO C
      testsuites.  This is not pedwarn, because some people don't want
@@ -1016,7 +1011,7 @@ lex_string (str, len, wide)
 #ifdef MULTIBYTE_CHARS
       else if (char_len > 1)
 	{
-	  /* We're dealing with a multibyte character. */
+	  /* We're dealing with a multibyte character.  */
 	  for ( ; char_len >0; --char_len)
 	    {
 	      *q++ = *(p - char_len);

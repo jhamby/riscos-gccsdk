@@ -124,6 +124,7 @@ static void sanitize_cpp_opts PARAMS ((void));
   OPT("MQ",                     CL_ALL | CL_ARG, OPT_MQ)		     \
   OPT("MT",                     CL_ALL | CL_ARG, OPT_MT)		     \
   OPT("P",                      CL_ALL,   OPT_P)			     \
+  OPT("Wabi",                   CL_CXX,   OPT_Wabi)                          \
   OPT("Wall",			CL_ALL,   OPT_Wall)			     \
   OPT("Wbad-function-cast",	CL_C,     OPT_Wbad_function_cast)	     \
   OPT("Wcast-qual",		CL_ALL,   OPT_Wcast_qual)		     \
@@ -147,7 +148,7 @@ static void sanitize_cpp_opts PARAMS ((void));
   OPT("Wformat-y2k",		CL_ALL,   OPT_Wformat_y2k)		     \
   OPT("Wformat-zero-length",	CL_C,     OPT_Wformat_zero_length)	     \
   OPT("Wformat=",		CL_ALL | CL_JOINED, OPT_Wformat_eq)	     \
-  OPT("Wimplicit",		CL_CXX,   OPT_Wimplicit)		     \
+  OPT("Wimplicit",		CL_ALL,   OPT_Wimplicit)		     \
   OPT("Wimplicit-function-declaration",	CL_C, OPT_Wimplicit_function_decl)   \
   OPT("Wimplicit-int",		CL_C,	  OPT_Wimplicit_int)		     \
   OPT("Wimport",                CL_ALL,   OPT_Wimport)			     \
@@ -180,12 +181,14 @@ static void sanitize_cpp_opts PARAMS ((void));
   OPT("Wsystem-headers",	CL_ALL,   OPT_Wsystem_headers)		     \
   OPT("Wtraditional",		CL_C,     OPT_Wtraditional)		     \
   OPT("Wtrigraphs",		CL_ALL,   OPT_Wtrigraphs)		     \
+  OPT("Wundeclared-selector",	CL_OBJC,  OPT_Wundeclared_selector)	     \
   OPT("Wundef",			CL_ALL,   OPT_Wundef)			     \
   OPT("Wunknown-pragmas",	CL_ALL,   OPT_Wunknown_pragmas)		     \
   OPT("Wunused-macros",		CL_ALL,   OPT_Wunused_macros)		     \
   OPT("Wwrite-strings",		CL_ALL,   OPT_Wwrite_strings)		     \
   OPT("ansi",			CL_ALL,   OPT_ansi)			     \
   OPT("d",                      CL_ALL | CL_JOINED, OPT_d)		     \
+  OPT("fabi-version=",          CL_CXX | CL_JOINED, OPT_fabi_version)        \
   OPT("faccess-control",	CL_CXX,   OPT_faccess_control)		     \
   OPT("fall-virtual",		CL_CXX,   OPT_fall_virtual)		     \
   OPT("falt-external-templates",CL_CXX,   OPT_falt_external_templates)	     \
@@ -336,10 +339,11 @@ missing_arg (opt_index)
 {
   const char *opt_text = cl_options[opt_index].opt_text;
 
-  switch (opt_index)
+  switch (cl_options[opt_index].opt_code)
     {
     case OPT_Wformat_eq:
     case OPT_d:
+    case OPT_fabi_version:
     case OPT_fbuiltin_:
     case OPT_fdump:
     case OPT_fname_mangling:
@@ -374,7 +378,10 @@ missing_arg (opt_index)
    Complications arise since some options can be suffixed with an
    argument, and multiple complete matches can occur, e.g. -pedantic
    and -pedantic-errors.  Also, some options are only accepted by some
-   languages.  */
+   languages.  If a switch matches for a different language and
+   doesn't match any alternatives for the true front end, the index of
+   the matched switch is returned anyway.  The caller should check for
+   this case.  */
 static size_t
 find_opt (input, lang_flag)
      const char *input;
@@ -382,7 +389,7 @@ find_opt (input, lang_flag)
 {
   size_t md, mn, mx;
   size_t opt_len;
-  size_t wrong_lang = N_OPTS;
+  size_t result = N_OPTS;
   int comp;
 
   mn = 0;
@@ -393,7 +400,7 @@ find_opt (input, lang_flag)
       md = (mn + mx) / 2;
 
       opt_len = cl_options[md].opt_len;
-      comp = memcmp (input, cl_options[md].opt_text, opt_len);
+      comp = strncmp (input, cl_options[md].opt_text, opt_len);
 
       if (comp < 0)
 	mx = md;
@@ -403,13 +410,7 @@ find_opt (input, lang_flag)
 	{
 	  /* The switch matches.  It it an exact match?  */
 	  if (input[opt_len] == '\0')
-	    {
-	    exact_match:
-	      if (cl_options[md].flags & lang_flag)
-		return md;
-	      wrong_lang = md;
-	      break;
-	    }
+	    return md;
 	  else
 	    {
 	      mn = md + 1;
@@ -423,9 +424,10 @@ find_opt (input, lang_flag)
 	      /* Is this switch valid for this front end?  */
 	      if (!(cl_options[md].flags & lang_flag))
 		{
-		  /* If subsequently we don't find a good match,
-		     report this as a bad match.  */
-		  wrong_lang = md;
+		  /* If subsequently we don't find a better match,
+		     return this and let the caller report it as a bad
+		     match.  */
+		  result = md;
 		  continue;
 		}
 
@@ -441,10 +443,10 @@ find_opt (input, lang_flag)
 	      for (md = md + 1; md < (size_t) N_OPTS; md++)
 		{
 		  opt_len = cl_options[md].opt_len;
-		  if (memcmp (input, cl_options[md].opt_text, opt_len))
+		  if (strncmp (input, cl_options[md].opt_text, opt_len))
 		    break;
 		  if (input[opt_len] == '\0')
-		    goto exact_match;
+		    return md;
 		  if (cl_options[md].flags & lang_flag
 		      && cl_options[md].flags & CL_JOINED)
 		    mx = md;
@@ -455,10 +457,7 @@ find_opt (input, lang_flag)
 	}
     }
 
-  if (wrong_lang != N_OPTS)
-    complain_wrong_lang (wrong_lang);
-
-  return N_OPTS;
+  return result;
 }
 
 /* Defer option CODE with argument ARG.  */
@@ -516,9 +515,6 @@ c_common_init_options (lang)
   warn_pointer_arith = (lang == clk_cplusplus);
   if (lang == clk_c)
     warn_sign_compare = -1;
-
-  /* Mark as "unspecified" (see c_common_post_options).  */
-  flag_bounds_check = -1;
 }
 
 /* Handle one command-line option in (argc, argv).
@@ -534,7 +530,7 @@ c_common_decode_option (argc, argv)
   const char *opt, *arg = 0;
   char *dup = 0;
   bool on = true;
-  int result;
+  int result, lang_flag;
   const struct cl_option *option;
   enum opt_code code;
 
@@ -574,7 +570,8 @@ c_common_decode_option (argc, argv)
   result = cpp_handle_option (parse_in, argc, argv);
 
   /* Skip over '-'.  */
-  opt_index = find_opt (opt + 1, lang_flags[(c_language << 1) + flag_objc]);
+  lang_flag = lang_flags[(c_language << 1) + flag_objc];
+  opt_index = find_opt (opt + 1, lang_flag);
   if (opt_index == N_OPTS)
     goto done;
 
@@ -608,6 +605,15 @@ c_common_decode_option (argc, argv)
 	  result = argc;
 	  goto done;
 	}
+    }
+
+  /* Complain about the wrong language after we've swallowed any
+     necessary extra argument.  Eventually make this a hard error
+     after the call to find_opt, and return argc.  */
+  if (!(cl_options[opt_index].flags & lang_flag))
+    {
+      complain_wrong_lang (opt_index);
+      goto done;
     }
 
   switch (code = option->opt_code)
@@ -678,6 +684,10 @@ c_common_decode_option (argc, argv)
       cpp_opts->no_line_commands = 1;
       break;
 
+    case OPT_Wabi:
+      warn_abi = on;
+      break;
+
     case OPT_Wall:
       set_Wunused (on);
       set_Wformat (on);
@@ -689,7 +699,8 @@ c_common_decode_option (argc, argv)
       warn_sequence_point = on;	/* Was C only.  */
       warn_sign_compare = on;	/* Was C++ only.  */
       warn_switch = on;
-
+      warn_strict_aliasing = on;
+      
       /* Only warn about unknown pragmas that are not in system
 	 headers.  */                                        
       warn_unknown_pragmas = on;
@@ -942,6 +953,10 @@ c_common_decode_option (argc, argv)
       cpp_opts->warn_trigraphs = on;
       break;
 
+    case OPT_Wundeclared_selector:
+      warn_undeclared_selector = on;
+      break;
+
     case OPT_Wundef:
       cpp_opts->warn_undef = on;
       break;
@@ -997,6 +1012,10 @@ c_common_decode_option (argc, argv)
     case OPT_fvtable_thunks:
     case OPT_fxref:
       warning ("switch \"%s\" is no longer supported", argv[0]);
+      break;
+
+    case OPT_fabi_version:
+      flag_abi_version = read_integral_parameter (arg, argv[0], 1);
       break;
 
     case OPT_faccess_control:
@@ -1184,7 +1203,7 @@ c_common_decode_option (argc, argv)
       break;
 
     case OPT_ftabstop:
-      /* Don't recognise -fno-tabstop=.  */
+      /* Don't recognize -fno-tabstop=.  */
       if (!on)
 	return 0;
 
@@ -1351,10 +1370,6 @@ c_common_post_options ()
 	  flag_inline_functions = 0;
 	}
     }
-
-  /* If still "unspecified", make it match -fbounded-pointers.  */
-  if (flag_bounds_check == -1)
-    flag_bounds_check = flag_bounded_pointers;
 
   /* Special format checking options don't work without -Wformat; warn if
      they are used.  */
@@ -1625,7 +1640,7 @@ set_Wimplicit (on)
 }
 
 /* Args to -d specify what to dump.  Silently ignore
-   unrecognised options; they may be aimed at toplev.c.  */
+   unrecognized options; they may be aimed at toplev.c.  */
 static void
 handle_OPT_d (arg)
      const char *arg;

@@ -605,7 +605,8 @@ struct lang_identifier GTY(())
 
 /* The resulting tree type.  */
 union lang_tree_node 
-  GTY((desc ("TREE_CODE (&%h.generic) == IDENTIFIER_NODE")))
+  GTY((desc ("TREE_CODE (&%h.generic) == IDENTIFIER_NODE"),
+       chain_next ("(union lang_tree_node *)TREE_CHAIN (&%h.generic)")))
 {
   union tree_node GTY ((tag ("0"), 
 			desc ("tree_node_structure (&%h)"))) 
@@ -805,6 +806,7 @@ ffecom_subscript_check_ (tree array, tree element, int dim, int total_dims,
   die = ffecom_call_gfrt (FFECOM_gfrtRANGE,
 			  args, NULL_TREE);
   TREE_SIDE_EFFECTS (die) = 1;
+  die = convert (void_type_node, die);
 
   element = ffecom_3 (COND_EXPR,
 		      TREE_TYPE (element),
@@ -820,7 +822,7 @@ ffecom_subscript_check_ (tree array, tree element, int dim, int total_dims,
    `item' is NULL_TREE, or the transformed pointer to the array.
    `expr' is the original opARRAYREF expression, which is transformed
      if `item' is NULL_TREE.
-   `want_ptr' is non-zero if a pointer to the element, instead of
+   `want_ptr' is nonzero if a pointer to the element, instead of
      the element itself, is to be returned.  */
 
 static tree
@@ -11123,7 +11125,7 @@ ffecom_init_0 ()
 
       name = bsearch ("foo", &names[0], ARRAY_SIZE (names), sizeof (names[0]),
 		      (int (*)(const void *, const void *)) strcmp);
-      if (name != &names[0][2])
+      if (name != &names[2][0])
 	{
 	  assert ("bsearch doesn't work, #define FFEPROJ_BSEARCH 0 in proj.h"
 		  == NULL);
@@ -14176,7 +14178,6 @@ ffe_init_options ()
   flag_reduce_all_givs = 1;
   flag_argument_noalias = 2;
   flag_merge_constants = 2;
-  flag_finite_math_only = 1;
   flag_errno_math = 0;
   flag_complex_divide_method = 1;
 }
@@ -14758,12 +14759,12 @@ ffe_truthvalue_conversion (expr)
     case ABS_EXPR:
     case FLOAT_EXPR:
     case FFS_EXPR:
-      /* These don't change whether an object is non-zero or zero.  */
+      /* These don't change whether an object is nonzero or zero.  */
       return ffe_truthvalue_conversion (TREE_OPERAND (expr, 0));
 
     case LROTATE_EXPR:
     case RROTATE_EXPR:
-      /* These don't change whether an object is zero or non-zero, but
+      /* These don't change whether an object is zero or nonzero, but
 	 we can't ignore them if their second arg has side-effects.  */
       if (TREE_SIDE_EFFECTS (TREE_OPERAND (expr, 1)))
 	return build (COMPOUND_EXPR, integer_type_node, TREE_OPERAND (expr, 1),
@@ -14772,10 +14773,17 @@ ffe_truthvalue_conversion (expr)
 	return ffe_truthvalue_conversion (TREE_OPERAND (expr, 0));
 
     case COND_EXPR:
-      /* Distribute the conversion into the arms of a COND_EXPR.  */
-      return fold (build (COND_EXPR, integer_type_node, TREE_OPERAND (expr, 0),
-			  ffe_truthvalue_conversion (TREE_OPERAND (expr, 1)),
-			  ffe_truthvalue_conversion (TREE_OPERAND (expr, 2))));
+      {
+	/* Distribute the conversion into the arms of a COND_EXPR.  */
+	tree arg1 = TREE_OPERAND (expr, 1);
+	tree arg2 = TREE_OPERAND (expr, 2);
+	if (! VOID_TYPE_P (TREE_TYPE (arg1)))
+	  arg1 = ffe_truthvalue_conversion (arg1);
+	if (! VOID_TYPE_P (TREE_TYPE (arg2)))
+	  arg2 = ffe_truthvalue_conversion (arg2);
+	return fold (build (COND_EXPR, integer_type_node,
+			    TREE_OPERAND (expr, 0), arg1, arg2));
+      }
 
     case CONVERT_EXPR:
       /* Don't cancel the effect of a CONVERT_EXPR from a REFERENCE_TYPE,
@@ -14880,7 +14888,10 @@ ffe_type_for_mode (mode, unsignedp)
   if (mode == TYPE_MODE (double_type_node))
     return double_type_node;
 
-  if (mode == TYPE_MODE (build_pointer_type (char_type_node)))
+  if (mode == TYPE_MODE (long_double_type_node))
+    return long_double_type_node;
+
+ if (mode == TYPE_MODE (build_pointer_type (char_type_node)))
     return build_pointer_type (char_type_node);
 
   if (mode == TYPE_MODE (build_pointer_type (integer_type_node)))
@@ -15026,7 +15037,7 @@ struct file_name_list
     char *fname;
     /* Mapping of file names for this directory.  */
     struct file_name_map *name_map;
-    /* Non-zero if name_map is valid.  */
+    /* Nonzero if name_map is valid.  */
     int got_name_map;
   };
 

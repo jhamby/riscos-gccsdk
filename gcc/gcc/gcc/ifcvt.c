@@ -343,7 +343,7 @@ cond_exec_get_condition (jump)
 
 /* Given a simple IF-THEN or IF-THEN-ELSE block, attempt to convert it
    to conditional execution.  Return TRUE if we were successful at
-   converting the the block.  */
+   converting the block.  */
 
 static int
 cond_exec_process_if_block (ce_info, do_multiple_p)
@@ -358,7 +358,7 @@ cond_exec_process_if_block (ce_info, do_multiple_p)
   rtx then_end;			/* last insn + 1 in THEN block */
   rtx else_start = NULL_RTX;	/* first insn in ELSE block or NULL */
   rtx else_end = NULL_RTX;	/* last insn + 1 in ELSE block */
-  int max;			/* max # of insns to convert. */
+  int max;			/* max # of insns to convert.  */
   int then_mod_ok;		/* whether conditional mods are ok in THEN */
   rtx true_expr;		/* test for else block insns */
   rtx false_expr;		/* test for then block insns */
@@ -1687,7 +1687,7 @@ noce_operand_ok (op)
 
 /* Given a simple IF-THEN or IF-THEN-ELSE block, attempt to convert it
    without using conditional execution.  Return TRUE if we were
-   successful at converting the the block.  */
+   successful at converting the block.  */
 
 static int
 noce_process_if_block (ce_info)
@@ -1700,7 +1700,7 @@ noce_process_if_block (ce_info)
   rtx insn_a, insn_b;
   rtx set_a, set_b;
   rtx orig_x, x, a, b;
-  rtx jump, cond, insn;
+  rtx jump, cond;
 
   /* We're looking for patterns of the form
 
@@ -1776,23 +1776,11 @@ noce_process_if_block (ce_info)
 	  || ! rtx_equal_p (x, SET_DEST (set_b))
 	  || reg_overlap_mentioned_p (x, cond)
 	  || reg_overlap_mentioned_p (x, a)
-	  || reg_overlap_mentioned_p (x, SET_SRC (set_b)))
+	  || reg_overlap_mentioned_p (x, SET_SRC (set_b))
+	  || modified_between_p (x, if_info.cond_earliest, NEXT_INSN (jump)))
 	insn_b = set_b = NULL_RTX;
     }
   b = (set_b ? SET_SRC (set_b) : x);
-
-  /* X may not be mentioned in the range (cond_earliest, jump]. 
-     Note the use of reg_overlap_mentioned_p, which handles memories
-     properly, as opposed to reg_mentioned_p, which doesn't.  */
-  for (insn = jump; insn != if_info.cond_earliest; insn = PREV_INSN (insn))
-    if (INSN_P (insn) && reg_overlap_mentioned_p (x, PATTERN (insn)))
-      return FALSE;
-
-  /* A and B may not be modified in the range [cond_earliest, jump).  */
-  for (insn = if_info.cond_earliest; insn != jump; insn = NEXT_INSN (insn))
-    if (INSN_P (insn)
-	&& (modified_in_p (a, insn) || modified_in_p (b, insn)))
-      return FALSE;
 
   /* Only operate on register destinations, and even then avoid extending
      the lifetime of hard registers on small register class machines.  */
@@ -1839,7 +1827,7 @@ noce_process_if_block (ce_info)
 
 	  if (else_bb && insn_b == else_bb->end)
 	    else_bb->end = PREV_INSN (insn_b);
-	  reorder_insns (insn_b, insn_b, PREV_INSN (if_info.cond_earliest));
+	  reorder_insns (insn_b, insn_b, PREV_INSN (jump));
 
 	  /* If there was a REG_EQUAL note, delete it since it may have been
 	     true due to this insn being after a jump.  */
@@ -1894,9 +1882,9 @@ noce_process_if_block (ce_info)
   if (insn_b && else_bb)
     delete_insn (insn_b);
 
-  /* The new insns will have been inserted before cond_earliest.  We should
-     be able to remove the jump with impunity, but the condition itself may
-     have been modified by gcse to be shared across basic blocks.  */
+  /* The new insns will have been inserted immediately before the jump.  We
+     should be able to remove the jump with impunity, but the condition itself
+     may have been modified by gcse to be shared across basic blocks.  */
   delete_insn (jump);
 
   /* If we used a temporary, fix it up now.  */
@@ -2230,7 +2218,7 @@ block_jumps_and_fallthru_p (cur_bb, target_bb)
 
 /* Determine if a given basic block heads a simple IF-THEN or IF-THEN-ELSE
    block.  If so, we'll try to convert the insns to not require the branch.
-   Return TRUE if we were successful at converting the the block.  */
+   Return TRUE if we were successful at converting the block.  */
 
 static int
 find_if_block (ce_info)
@@ -2580,7 +2568,7 @@ block_has_only_trap (bb)
    transformable, but not necessarily the other.  There need be no
    JOIN block.
 
-   Return TRUE if we were successful at converting the the block.
+   Return TRUE if we were successful at converting the block.
 
    Cases we'd like to look at:
 
@@ -3115,8 +3103,8 @@ if_convert (x_life_data_ok)
 
       FOR_EACH_BB (bb)
 	{
-	  basic_block new_bb = find_if_header (bb, pass);
-	  if (new_bb)
+	  basic_block new_bb;
+	  while ((new_bb = find_if_header (bb, pass)))
 	    bb = new_bb;
 	}
 

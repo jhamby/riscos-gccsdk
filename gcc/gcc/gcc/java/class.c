@@ -75,7 +75,7 @@ typedef struct assume_compiled_node_struct
   /* The class or package name.  */
   const char *ident;
 
-  /* Non-zero if this represents an exclusion.  */
+  /* Nonzero if this represents an exclusion.  */
   int excludep;
 
   /* Pointers to other nodes in the tree.  */
@@ -141,7 +141,7 @@ find_assume_compiled_node (node, ident)
 }
 
 /* Add a new IDENT to the include/exclude tree.  It's an exclusion
-   if EXCLUDEP is non-zero.  */
+   if EXCLUDEP is nonzero.  */
 
 void
 add_assume_compiled (ident, excludep)
@@ -150,7 +150,7 @@ add_assume_compiled (ident, excludep)
 {
   assume_compiled_node *parent;
   assume_compiled_node *node = 
-    (assume_compiled_node *) xmalloc (sizeof (assume_compiled_node));
+    xmalloc (sizeof (assume_compiled_node));
 
   node->ident = xstrdup (ident);
   node->excludep = excludep;
@@ -160,8 +160,7 @@ add_assume_compiled (ident, excludep)
 
   if (NULL == assume_compiled_tree)
     {
-      assume_compiled_tree = 
-	(assume_compiled_node *) xmalloc (sizeof (assume_compiled_node));
+      assume_compiled_tree = xmalloc (sizeof (assume_compiled_node));
       assume_compiled_tree->ident = "";
       assume_compiled_tree->excludep = 0;
       assume_compiled_tree->sibling = NULL;
@@ -192,7 +191,7 @@ add_assume_compiled (ident, excludep)
   parent->child = node;
 }
 
-/* Returns non-zero if IDENT is the name of a class that the compiler
+/* Returns nonzero if IDENT is the name of a class that the compiler
    should assume has been compiled to FIXME  */
 
 static int
@@ -232,7 +231,7 @@ ident_subst (old_name, old_length, prefix, old_char, new_char, suffix)
 #ifdef __GNUC__
   char buffer[i];
 #else
-  char *buffer = (char *)alloca  (i);
+  char *buffer = alloca (i);
 #endif
   strcpy (buffer, prefix);
   for (i = 0; i < old_length; i++)
@@ -613,7 +612,7 @@ add_method_1 (this_class, access_flags, name, function_type)
   DECL_CONTEXT (fndecl) = this_class;
 
   DECL_LANG_SPECIFIC (fndecl)
-    = (struct lang_decl *) ggc_alloc_cleared (sizeof (struct lang_decl));
+    = ggc_alloc_cleared (sizeof (struct lang_decl));
   DECL_LANG_SPECIFIC (fndecl)->desc = LANG_DECL_FUNC;
 
   /* Initialize the static initializer test table.  */
@@ -1285,7 +1284,7 @@ make_method_value (mdecl)
 	     iter != NULL_TREE;
 	     iter = TREE_CHAIN (iter))
 	  {
-	    tree sig = build_java_signature (TREE_VALUE (iter));
+	    tree sig = DECL_NAME (TYPE_NAME (TREE_VALUE (iter)));
 	    tree utf8
 	      = build_utf8_ref (unmangle_classname (IDENTIFIER_POINTER (sig),
 						    IDENTIFIER_LENGTH (sig)));
@@ -2269,7 +2268,7 @@ static int java_treetreehash_compare PARAMS ((const void *, const void *));
 
 /* A hash table mapping trees to trees.  Used generally.  */
 
-#define JAVA_TREEHASHHASH_H(t) ((hashval_t) (t))
+#define JAVA_TREEHASHHASH_H(t) (htab_hash_pointer (t))
 
 static hashval_t
 java_treetreehash_hash (k_p)

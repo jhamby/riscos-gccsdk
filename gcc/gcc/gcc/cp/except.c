@@ -117,7 +117,7 @@ prepare_eh_type (type)
 }
 
 /* Build the address of a typeinfo decl for use in the runtime
-   matching field of the exception model.   */
+   matching field of the exception model.  */
 
 static tree
 build_eh_type_type (type)
@@ -503,7 +503,7 @@ do_allocate_exception (type)
   else
     {
       /* Declare void *__cxa_allocate_exception(size_t).  */
-      tree tmp = tree_cons (NULL_TREE, c_size_type_node, void_list_node);
+      tree tmp = tree_cons (NULL_TREE, size_type_node, void_list_node);
       fn = push_library_fn (fn, build_function_type (ptr_type_node, tmp));
     }
   
@@ -599,12 +599,31 @@ stabilize_throw_expr (exp, initp)
       init_expr = void_zero_node;
       for (; args; args = TREE_CHAIN (args))
 	{
+	  tree arg = TREE_VALUE (args);
 	  tree arg_init_expr;
-	  tree newarg = stabilize_expr (TREE_VALUE (args), &arg_init_expr);
+	  if (TREE_CODE (arg) == ADDR_EXPR
+	      && ADDR_IS_INVISIREF (arg))
+	    {
+	      /* A sub-TARGET_EXPR.  Recurse; we can't wrap the actual call
+		 without introducing an extra copy.  */
+	      tree sub = TREE_OPERAND (arg, 0);
+	      if (TREE_CODE (sub) != TARGET_EXPR)
+		abort ();
+	      sub = stabilize_throw_expr (sub, &arg_init_expr);
+	      TREE_OPERAND (arg, 0) = sub;
+	      if (TREE_SIDE_EFFECTS (arg_init_expr))
+		init_expr = build (COMPOUND_EXPR, void_type_node, init_expr,
+				   arg_init_expr);
+	    }
+	  else
+	    {
+	      arg = stabilize_expr (arg, &arg_init_expr);
 
-	  if (arg_init_expr != void_zero_node)
-	    init_expr = build (COMPOUND_EXPR, void_type_node, arg_init_expr, init_expr);
-	  *p = tree_cons (NULL_TREE, newarg, NULL_TREE);
+	      if (TREE_SIDE_EFFECTS (arg_init_expr))
+		init_expr = build (COMPOUND_EXPR, void_type_node, init_expr,
+				   arg_init_expr);
+	    }
+	  *p = tree_cons (NULL_TREE, arg, NULL_TREE);
 	  p = &TREE_CHAIN (*p);
 	}
       TREE_OPERAND (aggr_init, 1) = newargs;
@@ -796,7 +815,7 @@ build_throw (exp)
 
 /* Make sure TYPE is complete, pointer to complete, reference to
    complete, or pointer to cv void. Issue diagnostic on failure.
-   Return the zero on failure and non-zero on success. FROM can be
+   Return the zero on failure and nonzero on success. FROM can be
    the expr or decl from whence TYPE came, if available.  */
 
 static int

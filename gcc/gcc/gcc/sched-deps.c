@@ -922,7 +922,15 @@ sched_analyze_insn (deps, x, insn, loop_notes)
       code = GET_CODE (x);
     }
   if (code == SET || code == CLOBBER)
-    sched_analyze_1 (deps, x, insn);
+    {
+      sched_analyze_1 (deps, x, insn);
+
+      /* Bare clobber insns are used for letting life analysis, reg-stack
+	 and others know that a value is dead.  Depend on the last call
+	 instruction so that reg-stack won't get confused.  */
+      if (code == CLOBBER)
+	add_dependence_list (insn, deps->last_function_call, REG_DEP_OUTPUT);
+    }
   else if (code == PARALLEL)
     {
       int i;
@@ -1117,8 +1125,6 @@ sched_analyze_insn (deps, x, insn, loop_notes)
 	  EXECUTE_IF_SET_IN_REG_SET (reg_pending_clobbers, 0, i,
 	    {
 	      struct deps_reg *reg_last = &deps->reg_last[i];
-	      add_dependence_list (insn, reg_last->sets, REG_DEP_OUTPUT);
-	      add_dependence_list (insn, reg_last->uses, REG_DEP_ANTI);
 	      if (reg_last->uses_length > MAX_PENDING_LIST_LENGTH
 		  || reg_last->clobbers_length > MAX_PENDING_LIST_LENGTH)
 		{
@@ -1128,6 +1134,7 @@ sched_analyze_insn (deps, x, insn, loop_notes)
 						REG_DEP_ANTI);
 		  add_dependence_list_and_free (insn, &reg_last->clobbers,
 						REG_DEP_OUTPUT);
+		  reg_last->sets = alloc_INSN_LIST (insn, reg_last->sets);
 		  reg_last->clobbers_length = 0;
 		  reg_last->uses_length = 0;
 		}
@@ -1280,8 +1287,12 @@ sched_analyze (deps, head, tail)
 		    SET_REGNO_REG_SET (reg_pending_sets, i);
 		    SET_REGNO_REG_SET (reg_pending_uses, i);
 		  }
-		/* Other call-clobbered hard regs may be clobbered.  */
-		else if (TEST_HARD_REG_BIT (regs_invalidated_by_call, i))
+		/* Other call-clobbered hard regs may be clobbered.
+		   Since we only have a choice between 'might be clobbered'
+		   and 'definitely not clobbered', we must include all
+		   partly call-clobbered registers here.  */
+		else if (HARD_REGNO_CALL_PART_CLOBBERED (i, reg_raw_mode[i])
+			 || TEST_HARD_REG_BIT (regs_invalidated_by_call, i))
 		  SET_REGNO_REG_SET (reg_pending_clobbers, i);
 		/* We don't know what set of fixed registers might be used
 		   by the function, but it is certain that the stack pointer

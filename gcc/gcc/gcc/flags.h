@@ -184,6 +184,11 @@ extern int warn_disabled_optimization;
 
 extern int warn_deprecated_decl;
 
+/* Nonzero means warn about constructs which might not be strict
+   aliasing safe.  */
+
+extern int warn_strict_aliasing;
+
 /* Nonzero if generating code to do profiling.  */
 
 extern int profile_flag;
@@ -426,7 +431,7 @@ extern int flag_schedule_insns_after_reload;
 /* The following flags have effect only for scheduling before register
    allocation:
 
-   flag_schedule_interblock means schedule insns accross basic blocks.
+   flag_schedule_interblock means schedule insns across basic blocks.
    flag_schedule_speculative means allow speculative motion of non-load insns.
    flag_schedule_speculative_load means allow speculative motion of some
    load insns.
@@ -466,17 +471,6 @@ extern int flag_pedantic_errors;
    target-dependent "small" or "large" mode.  */
 
 extern int flag_pic;
-
-/* Set to the default thread-local storage (tls) model to use.  */
-
-enum tls_model {
-  TLS_MODEL_GLOBAL_DYNAMIC = 1,
-  TLS_MODEL_LOCAL_DYNAMIC,
-  TLS_MODEL_INITIAL_EXEC,
-  TLS_MODEL_LOCAL_EXEC
-};
-
-extern enum tls_model flag_tls_default;
 
 /* Nonzero means generate extra code for exception handling and enable
    exception handling.  */
@@ -569,19 +563,10 @@ extern int flag_peephole2;
 /* Try to guess branch probablities.  */
 extern int flag_guess_branch_prob;
 
-/* -fbounded-pointers causes gcc to compile pointers as composite
-   objects occupying three words: the pointer value, the base address
-   of the referent object, and the address immediately beyond the end
-   of the referent object.  The base and extent allow us to perform
-   runtime bounds checking.  -fbounded-pointers implies -fcheck-bounds.  */
-extern int flag_bounded_pointers;
-
 /* -fcheck-bounds causes gcc to generate array bounds checks.
-   For C, C++: defaults to value of flag_bounded_pointers.
-   For ObjC: defaults to off.
+   For C, C++ and ObjC: defaults off.
    For Java: defaults to on.
-   For Fortran: defaults to off.
-   For CHILL: defaults to off.  */
+   For Fortran: defaults to off.  */
 extern int flag_bounds_check;
 
 /* This will attempt to merge constant section constants, if 1 only
@@ -627,6 +612,10 @@ extern int align_labels_max_skip;
 extern int align_functions;
 extern int align_functions_log;
 
+/* Like align_functions_log above, but used by front-ends to force the
+   minimum function alignment.  Zero means no alignment is forced.  */
+extern int force_align_functions_log;
+
 /* Nonzero if we dump in VCG format, not plain text.  */
 extern int dump_for_graph;
 
@@ -657,7 +646,7 @@ extern int flag_gcse_sm;
 
 extern int flag_eliminate_dwarf2_dups;
 
-/* Non-zero means to collect statistics which might be expensive
+/* Nonzero means to collect statistics which might be expensive
    and to print them when we are done.  */
 extern int flag_detailed_statistics;
 

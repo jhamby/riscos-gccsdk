@@ -1,5 +1,5 @@
 
-/*  A Bison parser, made from parse-scan.y
+/*  A Bison parser, made from ../../gcc/java/parse-scan.y
     by GNU Bison version 1.28  */
 
 #define YYBISON 1  /* Identify Bison output.  */
@@ -114,7 +114,7 @@
 #define	BOOL_LIT_TK	364
 #define	NULL_TK	365
 
-#line 37 "parse-scan.y"
+#line 37 "../../gcc/java/parse-scan.y"
 
 #define JC1_LITE
 
@@ -208,15 +208,21 @@ void report PARAMS ((void));
 #include "lex.h"
 #include "parse.h"
 
-#line 131 "parse-scan.y"
+#line 131 "../../gcc/java/parse-scan.y"
 typedef union {
   char *node;
   struct method_declarator *declarator;
   int value;			/* For modifiers */
 } YYSTYPE;
-#line 137 "parse-scan.y"
+#line 137 "../../gcc/java/parse-scan.y"
+
+extern int flag_assert;
 
 #include "lex.c"
+#ifndef YYDEBUG
+#define YYDEBUG 1
+#endif
+
 #include <stdio.h>
 
 #ifndef __cplusplus
@@ -436,42 +442,42 @@ static const short yyrhs[] = {   125,
 
 #if YYDEBUG != 0
 static const short yyrline[] = { 0,
-   208,   213,   215,   216,   217,   218,   219,   223,   225,   228,
-   234,   239,   246,   248,   251,   255,   259,   263,   269,   277,
-   279,   282,   286,   293,   298,   299,   300,   301,   302,   303,
-   304,   305,   308,   310,   313,   315,   318,   323,   325,   328,
-   332,   336,   338,   339,   345,   354,   365,   372,   372,   375,
-   377,   378,   381,   382,   385,   388,   392,   395,   399,   401,
-   404,   406,   407,   408,   411,   413,   414,   415,   416,   420,
-   423,   427,   430,   433,   435,   438,   441,   445,   447,   451,
-   455,   458,   461,   462,   464,   471,   478,   484,   487,   489,
-   495,   511,   527,   528,   531,   534,   538,   540,   544,   548,
-   558,   560,   563,   565,   571,   574,   578,   580,   581,   582,
-   586,   588,   591,   593,   597,   599,   604,   608,   608,   611,
-   611,   614,   614,   617,   619,   621,   624,   627,   631,   633,
-   636,   638,   639,   640,   643,   647,   652,   654,   655,   656,
-   659,   661,   665,   667,   670,   672,   675,   677,   678,   681,
-   685,   688,   692,   694,   695,   696,   697,   698,   701,   703,
-   704,   705,   706,   709,   711,   712,   713,   714,   715,   716,
-   717,   718,   719,   720,   721,   724,   728,   733,   737,   743,
-   747,   749,   750,   751,   752,   753,   754,   757,   761,   766,
-   771,   775,   777,   778,   779,   782,   784,   787,   792,   794,
-   797,   799,   802,   806,   810,   814,   818,   823,   825,   828,
-   830,   833,   837,   840,   841,   842,   845,   846,   849,   851,
-   854,   856,   861,   863,   866,   868,   871,   875,   877,   878,
-   880,   883,   885,   888,   893,   895,   896,   899,   901,   904,
-   908,   913,   915,   918,   920,   921,   922,   923,   924,   925,
-   926,   930,   934,   937,   939,   941,   945,   947,   948,   949,
-   950,   951,   952,   955,   959,   959,   962,   964,   967,   970,
-   972,   973,   976,   978,   979,   980,   983,   984,   987,   989,
-   992,   996,   999,  1003,  1005,  1011,  1014,  1016,  1017,  1018,
-  1019,  1022,  1025,  1028,  1030,  1032,  1033,  1036,  1040,  1044,
-  1046,  1047,  1048,  1049,  1052,  1056,  1060,  1062,  1063,  1064,
-  1067,  1069,  1070,  1071,  1074,  1076,  1077,  1078,  1081,  1083,
-  1084,  1087,  1089,  1090,  1091,  1094,  1096,  1097,  1098,  1099,
-  1100,  1103,  1105,  1106,  1109,  1111,  1114,  1116,  1119,  1121,
-  1124,  1126,  1130,  1132,  1136,  1138,  1142,  1144,  1147,  1151,
-  1154,  1155,  1158,  1160,  1163,  1167
+   210,   215,   217,   218,   219,   220,   221,   225,   227,   230,
+   236,   241,   248,   250,   253,   257,   261,   265,   271,   279,
+   281,   284,   288,   295,   300,   301,   302,   303,   304,   305,
+   306,   307,   310,   312,   315,   317,   320,   325,   327,   330,
+   334,   338,   340,   341,   347,   356,   367,   374,   374,   377,
+   379,   380,   383,   384,   387,   390,   394,   397,   401,   403,
+   406,   408,   409,   410,   413,   415,   416,   417,   418,   422,
+   425,   429,   432,   435,   437,   440,   443,   447,   449,   453,
+   457,   460,   463,   464,   466,   473,   480,   486,   489,   491,
+   497,   513,   529,   530,   533,   536,   540,   542,   546,   550,
+   560,   562,   565,   567,   573,   576,   580,   582,   583,   584,
+   588,   590,   593,   595,   599,   601,   606,   610,   610,   613,
+   613,   616,   616,   619,   621,   623,   626,   629,   633,   635,
+   638,   640,   641,   642,   645,   649,   654,   656,   657,   658,
+   661,   663,   667,   669,   672,   674,   677,   679,   680,   683,
+   687,   690,   694,   696,   697,   698,   699,   700,   703,   705,
+   706,   707,   708,   711,   713,   714,   715,   716,   717,   718,
+   719,   720,   721,   722,   723,   726,   730,   735,   739,   745,
+   749,   751,   752,   753,   754,   755,   756,   759,   763,   768,
+   773,   777,   779,   780,   781,   784,   786,   789,   794,   796,
+   799,   801,   804,   808,   812,   816,   820,   825,   827,   830,
+   832,   835,   839,   842,   843,   844,   847,   848,   851,   853,
+   856,   858,   863,   865,   868,   870,   873,   877,   879,   880,
+   882,   885,   887,   890,   895,   897,   898,   901,   903,   906,
+   910,   915,   917,   920,   922,   923,   924,   925,   926,   927,
+   928,   932,   936,   939,   941,   943,   947,   949,   950,   951,
+   952,   953,   954,   957,   961,   961,   964,   966,   969,   972,
+   974,   975,   978,   980,   981,   982,   985,   986,   989,   991,
+   994,   998,  1001,  1005,  1007,  1013,  1016,  1018,  1019,  1020,
+  1021,  1024,  1027,  1030,  1032,  1034,  1035,  1038,  1042,  1046,
+  1048,  1049,  1050,  1051,  1054,  1058,  1062,  1064,  1065,  1066,
+  1069,  1071,  1072,  1073,  1076,  1078,  1079,  1080,  1083,  1085,
+  1086,  1089,  1091,  1092,  1093,  1096,  1098,  1099,  1100,  1101,
+  1102,  1105,  1107,  1108,  1111,  1113,  1116,  1118,  1121,  1123,
+  1126,  1128,  1132,  1134,  1138,  1140,  1144,  1146,  1149,  1153,
+  1156,  1157,  1160,  1162,  1165,  1169
 };
 #endif
 
@@ -1990,52 +1996,52 @@ yyreduce:
   switch (yyn) {
 
 case 10:
-#line 230 "parse-scan.y"
+#line 232 "../../gcc/java/parse-scan.y"
 {
 		  /* use preset global here. FIXME */
 		  yyval.node = xstrdup ("int");
 		;
     break;}
 case 11:
-#line 235 "parse-scan.y"
+#line 237 "../../gcc/java/parse-scan.y"
 {
 		  /* use preset global here. FIXME */
 		  yyval.node = xstrdup ("double");
 		;
     break;}
 case 12:
-#line 240 "parse-scan.y"
+#line 242 "../../gcc/java/parse-scan.y"
 {
 		  /* use preset global here. FIXME */
 		  yyval.node = xstrdup ("boolean");
 		;
     break;}
 case 18:
-#line 265 "parse-scan.y"
+#line 267 "../../gcc/java/parse-scan.y"
 {
 	          while (bracket_count-- > 0) 
 		    yyval.node = concat ("[", yyvsp[-1].node, NULL);
 		;
     break;}
 case 19:
-#line 270 "parse-scan.y"
+#line 272 "../../gcc/java/parse-scan.y"
 {
 	          while (bracket_count-- > 0) 
 		    yyval.node = concat ("[", yyvsp[-1].node, NULL);
 		;
     break;}
 case 23:
-#line 288 "parse-scan.y"
+#line 290 "../../gcc/java/parse-scan.y"
 { 
 		  yyval.node = concat (yyvsp[-2].node, ".", yyvsp[0].node, NULL);
 		;
     break;}
 case 37:
-#line 320 "parse-scan.y"
+#line 322 "../../gcc/java/parse-scan.y"
 { package_name = yyvsp[-1].node; ;
     break;}
 case 45:
-#line 347 "parse-scan.y"
+#line 349 "../../gcc/java/parse-scan.y"
 { 
 		  if (yyvsp[0].value == PUBLIC_TK)
 		    modifier_value++;
@@ -2045,7 +2051,7 @@ case 45:
 		;
     break;}
 case 46:
-#line 355 "parse-scan.y"
+#line 357 "../../gcc/java/parse-scan.y"
 { 
 		  if (yyvsp[0].value == PUBLIC_TK)
 		    modifier_value++;
@@ -2055,73 +2061,73 @@ case 46:
 		;
     break;}
 case 47:
-#line 367 "parse-scan.y"
+#line 369 "../../gcc/java/parse-scan.y"
 { 
 		  report_class_declaration(yyvsp[-2].node);
 		  modifier_value = 0;
                 ;
     break;}
 case 49:
-#line 373 "parse-scan.y"
+#line 375 "../../gcc/java/parse-scan.y"
 { report_class_declaration(yyvsp[-2].node); ;
     break;}
 case 55:
-#line 387 "parse-scan.y"
+#line 389 "../../gcc/java/parse-scan.y"
 { USE_ABSORBER; ;
     break;}
 case 56:
-#line 389 "parse-scan.y"
+#line 391 "../../gcc/java/parse-scan.y"
 { USE_ABSORBER; ;
     break;}
 case 57:
-#line 394 "parse-scan.y"
+#line 396 "../../gcc/java/parse-scan.y"
 { pop_class_context (); ;
     break;}
 case 58:
-#line 396 "parse-scan.y"
+#line 398 "../../gcc/java/parse-scan.y"
 { pop_class_context (); ;
     break;}
 case 70:
-#line 422 "parse-scan.y"
+#line 424 "../../gcc/java/parse-scan.y"
 { USE_ABSORBER; ;
     break;}
 case 71:
-#line 424 "parse-scan.y"
+#line 426 "../../gcc/java/parse-scan.y"
 { modifier_value = 0; ;
     break;}
 case 76:
-#line 440 "parse-scan.y"
+#line 442 "../../gcc/java/parse-scan.y"
 { bracket_count = 0; USE_ABSORBER; ;
     break;}
 case 77:
-#line 442 "parse-scan.y"
+#line 444 "../../gcc/java/parse-scan.y"
 { ++bracket_count; ;
     break;}
 case 80:
-#line 453 "parse-scan.y"
+#line 455 "../../gcc/java/parse-scan.y"
 { ++method_depth; ;
     break;}
 case 81:
-#line 455 "parse-scan.y"
+#line 457 "../../gcc/java/parse-scan.y"
 { --method_depth; ;
     break;}
 case 82:
-#line 460 "parse-scan.y"
+#line 462 "../../gcc/java/parse-scan.y"
 { USE_ABSORBER; ;
     break;}
 case 84:
-#line 463 "parse-scan.y"
+#line 465 "../../gcc/java/parse-scan.y"
 { modifier_value = 0; ;
     break;}
 case 85:
-#line 465 "parse-scan.y"
+#line 467 "../../gcc/java/parse-scan.y"
 { 
                   report_main_declaration (yyvsp[-1].declarator);
 		  modifier_value = 0;
 		;
     break;}
 case 86:
-#line 473 "parse-scan.y"
+#line 475 "../../gcc/java/parse-scan.y"
 { 
 		  struct method_declarator *d;
 		  NEW_METHOD_DECLARATOR (d, yyvsp[-2].node, NULL);
@@ -2129,7 +2135,7 @@ case 86:
 		;
     break;}
 case 87:
-#line 479 "parse-scan.y"
+#line 481 "../../gcc/java/parse-scan.y"
 { 
 		  struct method_declarator *d;
 		  NEW_METHOD_DECLARATOR (d, yyvsp[-3].node, yyvsp[-1].node);
@@ -2137,13 +2143,13 @@ case 87:
 		;
     break;}
 case 90:
-#line 490 "parse-scan.y"
+#line 492 "../../gcc/java/parse-scan.y"
 {
 		  yyval.node = concat (yyvsp[-2].node, ",", yyvsp[0].node, NULL);
 		;
     break;}
 case 91:
-#line 497 "parse-scan.y"
+#line 499 "../../gcc/java/parse-scan.y"
 { 
 		  USE_ABSORBER;
 		  if (bracket_count)
@@ -2160,7 +2166,7 @@ case 91:
 		;
     break;}
 case 92:
-#line 512 "parse-scan.y"
+#line 514 "../../gcc/java/parse-scan.y"
 {
 		  if (bracket_count)
 		    {
@@ -2176,219 +2182,219 @@ case 92:
 		;
     break;}
 case 95:
-#line 533 "parse-scan.y"
+#line 535 "../../gcc/java/parse-scan.y"
 { USE_ABSORBER; ;
     break;}
 case 96:
-#line 535 "parse-scan.y"
+#line 537 "../../gcc/java/parse-scan.y"
 { USE_ABSORBER; ;
     break;}
 case 100:
-#line 550 "parse-scan.y"
+#line 552 "../../gcc/java/parse-scan.y"
 { USE_ABSORBER; ;
     break;}
 case 102:
-#line 561 "parse-scan.y"
+#line 563 "../../gcc/java/parse-scan.y"
 { modifier_value = 0; ;
     break;}
 case 104:
-#line 566 "parse-scan.y"
+#line 568 "../../gcc/java/parse-scan.y"
 { modifier_value = 0; ;
     break;}
 case 105:
-#line 573 "parse-scan.y"
+#line 575 "../../gcc/java/parse-scan.y"
 { USE_ABSORBER; ;
     break;}
 case 106:
-#line 575 "parse-scan.y"
+#line 577 "../../gcc/java/parse-scan.y"
 { USE_ABSORBER; ;
     break;}
 case 113:
-#line 592 "parse-scan.y"
+#line 594 "../../gcc/java/parse-scan.y"
 { USE_ABSORBER; ;
     break;}
 case 114:
-#line 594 "parse-scan.y"
+#line 596 "../../gcc/java/parse-scan.y"
 { USE_ABSORBER; ;
     break;}
 case 117:
-#line 606 "parse-scan.y"
+#line 608 "../../gcc/java/parse-scan.y"
 { report_class_declaration (yyvsp[0].node); modifier_value = 0; ;
     break;}
 case 119:
-#line 609 "parse-scan.y"
+#line 611 "../../gcc/java/parse-scan.y"
 { report_class_declaration (yyvsp[0].node); modifier_value = 0; ;
     break;}
 case 121:
-#line 612 "parse-scan.y"
+#line 614 "../../gcc/java/parse-scan.y"
 { report_class_declaration (yyvsp[-1].node); modifier_value = 0; ;
     break;}
 case 123:
-#line 615 "parse-scan.y"
+#line 617 "../../gcc/java/parse-scan.y"
 { report_class_declaration (yyvsp[-1].node); modifier_value = 0; ;
     break;}
 case 127:
-#line 626 "parse-scan.y"
+#line 628 "../../gcc/java/parse-scan.y"
 { pop_class_context (); ;
     break;}
 case 128:
-#line 628 "parse-scan.y"
+#line 630 "../../gcc/java/parse-scan.y"
 { pop_class_context (); ;
     break;}
 case 151:
-#line 687 "parse-scan.y"
+#line 689 "../../gcc/java/parse-scan.y"
 { USE_ABSORBER; ;
     break;}
 case 152:
-#line 689 "parse-scan.y"
+#line 691 "../../gcc/java/parse-scan.y"
 { modifier_value = 0; ;
     break;}
 case 177:
-#line 730 "parse-scan.y"
+#line 732 "../../gcc/java/parse-scan.y"
 { USE_ABSORBER; ;
     break;}
 case 188:
-#line 758 "parse-scan.y"
+#line 760 "../../gcc/java/parse-scan.y"
 { ++complexity; ;
     break;}
 case 189:
-#line 763 "parse-scan.y"
+#line 765 "../../gcc/java/parse-scan.y"
 { ++complexity; ;
     break;}
 case 190:
-#line 768 "parse-scan.y"
+#line 770 "../../gcc/java/parse-scan.y"
 { ++complexity; ;
     break;}
 case 198:
-#line 788 "parse-scan.y"
+#line 790 "../../gcc/java/parse-scan.y"
 { ++complexity; ;
     break;}
 case 203:
-#line 803 "parse-scan.y"
+#line 805 "../../gcc/java/parse-scan.y"
 { ++complexity; ;
     break;}
 case 207:
-#line 820 "parse-scan.y"
+#line 822 "../../gcc/java/parse-scan.y"
 { ++complexity; ;
     break;}
 case 213:
-#line 838 "parse-scan.y"
+#line 840 "../../gcc/java/parse-scan.y"
 { ++complexity; ;
     break;}
 case 224:
-#line 863 "parse-scan.y"
+#line 865 "../../gcc/java/parse-scan.y"
 { ++complexity; ;
     break;}
 case 227:
-#line 872 "parse-scan.y"
+#line 874 "../../gcc/java/parse-scan.y"
 { ++complexity; ;
     break;}
 case 230:
-#line 879 "parse-scan.y"
+#line 881 "../../gcc/java/parse-scan.y"
 {yyerror ("Missing term"); RECOVER;;
     break;}
 case 231:
-#line 881 "parse-scan.y"
+#line 883 "../../gcc/java/parse-scan.y"
 {yyerror ("';' expected"); RECOVER;;
     break;}
 case 234:
-#line 890 "parse-scan.y"
+#line 892 "../../gcc/java/parse-scan.y"
 { USE_ABSORBER; ;
     break;}
 case 240:
-#line 905 "parse-scan.y"
+#line 907 "../../gcc/java/parse-scan.y"
 { ++complexity; ;
     break;}
 case 241:
-#line 909 "parse-scan.y"
+#line 911 "../../gcc/java/parse-scan.y"
 { ++complexity; ;
     break;}
 case 252:
-#line 931 "parse-scan.y"
+#line 933 "../../gcc/java/parse-scan.y"
 { USE_ABSORBER; ;
     break;}
 case 253:
-#line 936 "parse-scan.y"
+#line 938 "../../gcc/java/parse-scan.y"
 { USE_ABSORBER; ;
     break;}
 case 254:
-#line 938 "parse-scan.y"
+#line 940 "../../gcc/java/parse-scan.y"
 { USE_ABSORBER; ;
     break;}
 case 255:
-#line 940 "parse-scan.y"
+#line 942 "../../gcc/java/parse-scan.y"
 { USE_ABSORBER; ;
     break;}
 case 256:
-#line 942 "parse-scan.y"
+#line 944 "../../gcc/java/parse-scan.y"
 { USE_ABSORBER; ;
     break;}
 case 264:
-#line 957 "parse-scan.y"
+#line 959 "../../gcc/java/parse-scan.y"
 { report_class_declaration (anonymous_context); ;
     break;}
 case 266:
-#line 960 "parse-scan.y"
+#line 962 "../../gcc/java/parse-scan.y"
 { report_class_declaration (anonymous_context); ;
     break;}
 case 268:
-#line 966 "parse-scan.y"
+#line 968 "../../gcc/java/parse-scan.y"
 { USE_ABSORBER; ;
     break;}
 case 282:
-#line 998 "parse-scan.y"
+#line 1000 "../../gcc/java/parse-scan.y"
 { bracket_count = 1; ;
     break;}
 case 283:
-#line 1000 "parse-scan.y"
+#line 1002 "../../gcc/java/parse-scan.y"
 { bracket_count++; ;
     break;}
 case 286:
-#line 1013 "parse-scan.y"
+#line 1015 "../../gcc/java/parse-scan.y"
 { USE_ABSORBER; ++complexity; ;
     break;}
 case 287:
-#line 1015 "parse-scan.y"
+#line 1017 "../../gcc/java/parse-scan.y"
 { USE_ABSORBER; ++complexity; ;
     break;}
 case 288:
-#line 1016 "parse-scan.y"
+#line 1018 "../../gcc/java/parse-scan.y"
 { ++complexity; ;
     break;}
 case 289:
-#line 1017 "parse-scan.y"
+#line 1019 "../../gcc/java/parse-scan.y"
 { ++complexity; ;
     break;}
 case 290:
-#line 1018 "parse-scan.y"
+#line 1020 "../../gcc/java/parse-scan.y"
 { ++complexity; ;
     break;}
 case 291:
-#line 1019 "parse-scan.y"
+#line 1021 "../../gcc/java/parse-scan.y"
 { ++complexity; ;
     break;}
 case 292:
-#line 1024 "parse-scan.y"
+#line 1026 "../../gcc/java/parse-scan.y"
 { USE_ABSORBER; ;
     break;}
 case 295:
-#line 1031 "parse-scan.y"
+#line 1033 "../../gcc/java/parse-scan.y"
 { USE_ABSORBER; ;
     break;}
 case 342:
-#line 1127 "parse-scan.y"
+#line 1129 "../../gcc/java/parse-scan.y"
 { ++complexity; ;
     break;}
 case 344:
-#line 1133 "parse-scan.y"
+#line 1135 "../../gcc/java/parse-scan.y"
 { ++complexity; ;
     break;}
 case 346:
-#line 1139 "parse-scan.y"
+#line 1141 "../../gcc/java/parse-scan.y"
 { ++complexity; ;
     break;}
 case 350:
-#line 1153 "parse-scan.y"
+#line 1155 "../../gcc/java/parse-scan.y"
 { USE_ABSORBER; ;
     break;}
 }
@@ -2613,7 +2619,7 @@ yyerrhandle:
     }
   return 1;
 }
-#line 1171 "parse-scan.y"
+#line 1173 "../../gcc/java/parse-scan.y"
 
 
 /* Create a new parser context */

@@ -1,5 +1,5 @@
 /* Garbage collection for the GNU compiler.
-   Copyright (C) 1998, 1999, 2000, 2001 Free Software Foundation, Inc.
+   Copyright (C) 1998, 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
 
 This file is part of GCC.
 
@@ -62,21 +62,13 @@ extern const struct ggc_cache_tab * const gt_ggc_cache_rtab[];
 
 extern void ggc_mark_roots		PARAMS ((void));
 
-extern void ggc_mark_rtx_children	PARAMS ((struct rtx_def *));
-
 /* If EXPR is not NULL and previously unmarked, mark it and evaluate
    to true.  Otherwise evaluate to false.  */
 #define ggc_test_and_set_mark(EXPR) \
   ((EXPR) != NULL && ((void *) (EXPR)) != (void *) 1 && ! ggc_set_mark (EXPR))
 
-#define ggc_mark_rtx(EXPR)                      \
-  do {                                          \
-    rtx const r__ = (EXPR);                     \
-    if (ggc_test_and_set_mark (r__))            \
-      ggc_mark_rtx_children (r__);              \
-  } while (0)
-
-#define ggc_mark_tree gt_ggc_m_tree_node
+#define ggc_mark_rtx gt_ggc_m_7rtx_def
+#define ggc_mark_tree gt_ggc_m_9tree_node
 
 #define ggc_mark(EXPR)				\
   do {						\
@@ -138,7 +130,7 @@ extern void ggc_collect			PARAMS ((void));
 
 /* Actually set the mark on a particular region of memory, but don't
    follow pointers.  This function is called by ggc_mark_*.  It
-   returns zero if the object was not previously marked; non-zero if
+   returns zero if the object was not previously marked; nonzero if
    the object was already marked, or if, for any other reason,
    pointers in this data structure should not be traversed.  */
 extern int ggc_set_mark			PARAMS ((const void *));

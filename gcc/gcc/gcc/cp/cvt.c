@@ -149,12 +149,12 @@ cp_convert_to_pointer (type, expr, force)
 	  enum tree_code code = PLUS_EXPR;
 	  tree binfo;
 
-	  /* Try derived to base conversion. */
+	  /* Try derived to base conversion.  */
 	  binfo = lookup_base (TREE_TYPE (intype), TREE_TYPE (type),
 			       ba_check, NULL);
 	  if (!binfo)
 	    {
-	      /* Try base to derived conversion. */
+	      /* Try base to derived conversion.  */
 	      binfo = lookup_base (TREE_TYPE (type), TREE_TYPE (intype),
 				   ba_check, NULL);
 	      code = MINUS_EXPR;
@@ -164,7 +164,7 @@ cp_convert_to_pointer (type, expr, force)
 	  if (binfo)
 	    {
 	      expr = build_base_path (code, expr, binfo, 0);
-	      /* Add any qualifier conversions. */
+	      /* Add any qualifier conversions.  */
 	      if (!same_type_p (TREE_TYPE (TREE_TYPE (expr)),
 				TREE_TYPE (type)))
 		{
@@ -322,7 +322,7 @@ convert_to_pointer_force (type, expr)
 	  if (binfo)
 	    {
 	      expr = build_base_path (code, expr, binfo, 0);
-	      /* Add any qualifier conversions. */
+	      /* Add any qualifier conversions.  */
 	      if (!same_type_p (TREE_TYPE (TREE_TYPE (expr)),
 				TREE_TYPE (type)))
 		{
@@ -473,12 +473,13 @@ convert_to_reference (reftype, expr, convtype, flags, decl)
      tree decl;
 {
   register tree type = TYPE_MAIN_VARIANT (TREE_TYPE (reftype));
-  register tree intype = TREE_TYPE (expr);
+  register tree intype;
   tree rval = NULL_TREE;
   tree rval_as_conversion = NULL_TREE;
   int i;
 
-  if (TREE_CODE (type) == FUNCTION_TYPE && intype == unknown_type_node)
+  if (TREE_CODE (type) == FUNCTION_TYPE 
+      && TREE_TYPE (expr) == unknown_type_node)
     {
       expr = instantiate_type (type, expr, 
 			       (flags & LOOKUP_COMPLAIN)
@@ -486,6 +487,11 @@ convert_to_reference (reftype, expr, convtype, flags, decl)
       if (expr == error_mark_node)
 	return error_mark_node;
 
+      intype = TREE_TYPE (expr);
+    }
+  else
+    {
+      expr = convert_from_reference (expr);
       intype = TREE_TYPE (expr);
     }
 
@@ -857,7 +863,7 @@ convert_to_void (expr, implicit)
     
     case NON_LVALUE_EXPR:
     case NOP_EXPR:
-      /* These have already decayed to rvalue. */
+      /* These have already decayed to rvalue.  */
       break;
     
     case CALL_EXPR:   /* we have a special meaning for volatile void fn() */
@@ -1014,7 +1020,7 @@ convert_force (type, expr, convtype)
    allowed (references private members, etc).
    If no conversion exists, NULL_TREE is returned.
 
-   If (FOR_SURE & 1) is non-zero, then we allow this type conversion
+   If (FOR_SURE & 1) is nonzero, then we allow this type conversion
    to take place immediately.  Otherwise, we build a SAVE_EXPR
    which can be evaluated if the results are ever needed.
 

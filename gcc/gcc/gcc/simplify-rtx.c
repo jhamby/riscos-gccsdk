@@ -22,8 +22,8 @@ Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 
 #include "config.h"
 #include "system.h"
-
 #include "rtl.h"
+#include "tree.h"
 #include "tm_p.h"
 #include "regs.h"
 #include "hard-reg-set.h"
@@ -145,6 +145,9 @@ avoid_constant_pool_reference (x)
   if (GET_CODE (x) != MEM)
     return x;
   addr = XEXP (x, 0);
+
+  if (GET_CODE (addr) == LO_SUM)
+    addr = XEXP (addr, 1);
 
   if (GET_CODE (addr) != SYMBOL_REF
       || ! CONSTANT_POOL_ADDRESS_P (addr))
@@ -340,9 +343,22 @@ simplify_replace_rtx (x, old, new)
 	return replace_equiv_address_nv (x,
 					 simplify_replace_rtx (XEXP (x, 0),
 							       old, new));
+      else if (code == LO_SUM)
+	{
+	  rtx op0 = simplify_replace_rtx (XEXP (x, 0), old, new);
+	  rtx op1 = simplify_replace_rtx (XEXP (x, 1), old, new);
 
-      if (REG_P (x) && REG_P (old) && REGNO (x) == REGNO (old))
-	return new;
+	  /* (lo_sum (high x) x) -> x  */
+	  if (GET_CODE (op0) == HIGH && rtx_equal_p (XEXP (op0, 0), op1))
+	    return op1;
+
+	  return gen_rtx_LO_SUM (mode, op0, op1);
+	}
+      else if (code == REG)
+	{
+	  if (REG_P (old) && REGNO (x) == REGNO (old))
+	    return new;
+	}
 
       return x;
 
@@ -599,12 +615,22 @@ simplify_unary_operation (code, mode, op, op_mode)
 	  /* We don't attempt to optimize this.  */
 	  return 0;
 
-	case ABS:	      d = REAL_VALUE_ABS (d);			break;
-	case NEG:	      d = REAL_VALUE_NEGATE (d);		break;
-	case FLOAT_TRUNCATE:  d = real_value_truncate (mode, d);	break;
-	case FLOAT_EXTEND:    /* All this does is change the mode.  */  break;
-	case FIX:	      d = REAL_VALUE_RNDZINT (d);		break;
-	case UNSIGNED_FIX:    d = REAL_VALUE_UNSIGNED_RNDZINT (d);	break;
+	case ABS:
+	  d = REAL_VALUE_ABS (d);
+	  break;
+	case NEG:
+	  d = REAL_VALUE_NEGATE (d);
+	  break;
+	case FLOAT_TRUNCATE:
+	  d = real_value_truncate (mode, d);
+	  break;
+	case FLOAT_EXTEND:
+	  /* All this does is change the mode.  */
+	  break;
+	case FIX:
+	  real_arithmetic (&d, FIX_TRUNC_EXPR, &d, NULL);
+	  break;
+
 	default:
 	  abort ();
 	}
@@ -893,7 +919,7 @@ simplify_binary_operation (code, mode, op0, op1)
 	{
 	case PLUS:
 	  /* Maybe simplify x + 0 to x.  The two expressions are equivalent
-	     when x is NaN, infinite, or finite and non-zero.  They aren't
+	     when x is NaN, infinite, or finite and nonzero.  They aren't
 	     when x is -0 and the rounding mode is not towards -infinity,
 	     since (-0) + 0 is then 0.  */
 	  if (!HONOR_SIGNED_ZEROS (mode) && trueop1 == CONST0_RTX (mode))
@@ -1041,7 +1067,7 @@ simplify_binary_operation (code, mode, op0, op1)
 	    return CONST0_RTX (mode);
 
 	  /* Change subtraction from zero into negation.  (0 - x) is the
-	     same as -x when x is NaN, infinite, or finite and non-zero.
+	     same as -x when x is NaN, infinite, or finite and nonzero.
 	     But if the mode has signed zeros, and does not round towards
 	     -infinity, then 0 - 0 is 0, not -0.  */
 	  if (!HONOR_SIGNED_ZEROS (mode) && trueop0 == CONST0_RTX (mode))
@@ -2373,7 +2399,10 @@ simplify_subreg (outermode, op, innermode, byte)
 	      /* This might fail, e.g. if taking a subreg from a SYMBOL_REF.  */
 	      /* ??? It would be nice if we could actually make such subregs
 		 on targets that allow such relocations.  */
-	      elt = simplify_subreg (submode, op, innermode, byte);
+	      if (byte >= GET_MODE_UNIT_SIZE (innermode))
+		elt = CONST0_RTX (submode);
+	      else
+	        elt = simplify_subreg (submode, op, innermode, byte);
 	      if (! elt)
 		return NULL_RTX;
 	      RTVEC_ELT (v, i) = elt;
@@ -2557,15 +2586,12 @@ simplify_subreg (outermode, op, innermode, byte)
   if (REG_P (op)
       && (! REG_FUNCTION_VALUE_P (op)
 	  || ! rtx_equal_function_value_matters)
-#ifdef CLASS_CANNOT_CHANGE_MODE
-      && ! (CLASS_CANNOT_CHANGE_MODE_P (outermode, innermode)
-	    && GET_MODE_CLASS (innermode) != MODE_COMPLEX_INT
-	    && GET_MODE_CLASS (innermode) != MODE_COMPLEX_FLOAT
-	    && (TEST_HARD_REG_BIT
-		(reg_class_contents[(int) CLASS_CANNOT_CHANGE_MODE],
-		 REGNO (op))))
-#endif
       && REGNO (op) < FIRST_PSEUDO_REGISTER
+#ifdef CANNOT_CHANGE_MODE_CLASS
+      && ! (REG_CANNOT_CHANGE_MODE_P (REGNO (op), outermode, innermode)
+	    && GET_MODE_CLASS (innermode) != MODE_COMPLEX_INT
+	    && GET_MODE_CLASS (innermode) != MODE_COMPLEX_FLOAT)
+#endif
       && ((reload_completed && !frame_pointer_needed)
 	  || (REGNO (op) != FRAME_POINTER_REGNUM
 #if HARD_FRAME_POINTER_REGNUM != FRAME_POINTER_REGNUM
@@ -2582,7 +2608,7 @@ simplify_subreg (outermode, op, innermode, byte)
 
       /* ??? We do allow it if the current REG is not valid for
 	 its mode.  This is a kludge to work around how float/complex
-	 arguments are passed on 32-bit Sparc and should be fixed.  */
+	 arguments are passed on 32-bit SPARC and should be fixed.  */
       if (HARD_REGNO_MODE_OK (final_regno, outermode)
 	  || ! HARD_REGNO_MODE_OK (REGNO (op), innermode))
 	{

@@ -181,13 +181,13 @@ struct temp_slot GTY(())
   tree type;
   /* The value of `sequence_rtl_expr' when this temporary is allocated.  */
   tree rtl_expr;
-  /* Non-zero if this temporary is currently in use.  */
+  /* Nonzero if this temporary is currently in use.  */
   char in_use;
-  /* Non-zero if this temporary has its address taken.  */
+  /* Nonzero if this temporary has its address taken.  */
   char addr_taken;
   /* Nesting level at which this slot is being used.  */
   int level;
-  /* Non-zero if this should survive a call to free_temp_slots.  */
+  /* Nonzero if this should survive a call to free_temp_slots.  */
   int keep;
   /* The offset of the slot from the frame_pointer, including extra space
      for alignment.  This info is for combine_temp_slots.  */
@@ -255,10 +255,8 @@ static int instantiate_virtual_regs_1 PARAMS ((rtx *, rtx, int));
 static void delete_handlers	PARAMS ((void));
 static void pad_to_arg_alignment PARAMS ((struct args_size *, int,
 					  struct args_size *));
-#ifndef ARGS_GROW_DOWNWARD
 static void pad_below		PARAMS ((struct args_size *, enum machine_mode,
 					 tree));
-#endif
 static rtx round_trampoline_addr PARAMS ((rtx));
 static rtx adjust_trampoline_addr PARAMS ((rtx));
 static tree *identify_blocks_1	PARAMS ((rtx, tree *, tree *, tree *));
@@ -800,7 +798,8 @@ assign_stack_temp_for_type (mode, size, keep, type)
   /* If a type is specified, set the relevant flags.  */
   if (type != 0)
     {
-      RTX_UNCHANGING_P (slot) = TYPE_READONLY (type);
+      RTX_UNCHANGING_P (slot) = (lang_hooks.honor_readonly 
+				 && TYPE_READONLY (type));
       MEM_VOLATILE_P (slot) = TYPE_VOLATILE (type);
       MEM_SET_IN_STRUCT_P (slot, AGGREGATE_TYPE_P (type));
     }
@@ -3283,10 +3282,10 @@ insns_for_mem_hash (k)
 {
   /* Use the address of the key for the hash value.  */
   struct insns_for_mem_entry *m = (struct insns_for_mem_entry *) k;
-  return (hashval_t) m->key;
+  return htab_hash_pointer (m->key);
 }
 
-/* Return non-zero if K1 and K2 (two REGs) are the same.  */
+/* Return nonzero if K1 and K2 (two REGs) are the same.  */
 
 static int
 insns_for_mem_comp (k1, k2)
@@ -3642,7 +3641,7 @@ instantiate_decls_1 (let, valid_only)
 /* Subroutine of the preceding procedures: Given RTL representing a
    decl and the size of the object, do any instantiation required.
 
-   If VALID_ONLY is non-zero, it means that the RTL should only be
+   If VALID_ONLY is nonzero, it means that the RTL should only be
    changed if the new address is valid.  */
 
 static void
@@ -5206,7 +5205,7 @@ promoted_input_arg (regno, pmode, punsignedp)
    The starting offset and size for this parm are returned in *OFFSET_PTR
    and *ARG_SIZE_PTR, respectively.
 
-   IN_REGS is non-zero if the argument will be passed in registers.  It will
+   IN_REGS is nonzero if the argument will be passed in registers.  It will
    never be set if REG_PARM_STACK_SPACE is not defined.
 
    FNDECL is the function in which the argument was defined.
@@ -5244,6 +5243,9 @@ locate_and_pad_parm (passed_mode, type, in_regs, fndecl,
     = type ? size_in_bytes (type) : size_int (GET_MODE_SIZE (passed_mode));
   enum direction where_pad = FUNCTION_ARG_PADDING (passed_mode, type);
   int boundary = FUNCTION_ARG_BOUNDARY (passed_mode, type);
+#ifdef ARGS_GROW_DOWNWARD
+  tree s2 = sizetree;
+#endif
 
 #ifdef REG_PARM_STACK_SPACE
   /* If we have found a stack parm before we reach the end of the
@@ -5289,13 +5291,20 @@ locate_and_pad_parm (passed_mode, type, in_regs, fndecl,
       offset_ptr->constant = -initial_offset_ptr->constant;
       offset_ptr->var = 0;
     }
+
   if (where_pad != none
       && (!host_integerp (sizetree, 1)
 	  || (tree_low_cst (sizetree, 1) * BITS_PER_UNIT) % PARM_BOUNDARY))
-    sizetree = round_up (sizetree, PARM_BOUNDARY / BITS_PER_UNIT);
-  SUB_PARM_SIZE (*offset_ptr, sizetree);
-  if (where_pad != downward)
+    s2 = round_up (s2, PARM_BOUNDARY / BITS_PER_UNIT);
+  SUB_PARM_SIZE (*offset_ptr, s2);
+
+  if (!in_regs
+#ifdef REG_PARM_STACK_SPACE
+      || REG_PARM_STACK_SPACE (fndecl) > 0
+#endif
+     )
     pad_to_arg_alignment (offset_ptr, boundary, alignment_pad);
+
   if (initial_offset_ptr->var)
     arg_size_ptr->var = size_binop (MINUS_EXPR,
 				    size_binop (MINUS_EXPR,
@@ -5306,6 +5315,13 @@ locate_and_pad_parm (passed_mode, type, in_regs, fndecl,
   else
     arg_size_ptr->constant = (-initial_offset_ptr->constant
 			      - offset_ptr->constant);
+
+  /* Pad_below needs the pre-rounded size to know how much to pad below.
+     We only pad parameters which are not in registers as they have their
+     padding done elsewhere.  */
+  if (where_pad == downward
+      && !in_regs)
+    pad_below (offset_ptr, passed_mode, sizetree);
 
 #else /* !ARGS_GROW_DOWNWARD */
   if (!in_regs
@@ -5392,7 +5408,6 @@ pad_to_arg_alignment (offset_ptr, boundary, alignment_pad)
     }
 }
 
-#ifndef ARGS_GROW_DOWNWARD
 static void
 pad_below (offset_ptr, passed_mode, sizetree)
      struct args_size *offset_ptr;
@@ -5420,7 +5435,6 @@ pad_below (offset_ptr, passed_mode, sizetree)
 	}
     }
 }
-#endif
 
 /* Walk the tree of blocks describing the binding levels within a function
    and warn about uninitialized variables.
@@ -6282,6 +6296,8 @@ prepare_function_start ()
 
   cfun->function_frequency = FUNCTION_FREQUENCY_NORMAL;
 
+  cfun->max_jumptable_ents = 0;
+
   (*lang_hooks.function.init) (cfun);
   if (init_machine_status)
     cfun->machine = (*init_machine_status) ();
@@ -6543,18 +6559,17 @@ expand_function_start (subr, parms_have_cleanups)
 			       subr, 1);
 
       /* Structures that are returned in registers are not aggregate_value_p,
-	 so we may see a PARALLEL.  Don't play pseudo games with this.  */
-      if (! REG_P (hard_reg))
-	SET_DECL_RTL (DECL_RESULT (subr), hard_reg);
+	 so we may see a PARALLEL or a REG.  */
+      if (REG_P (hard_reg))
+	SET_DECL_RTL (DECL_RESULT (subr), gen_reg_rtx (GET_MODE (hard_reg)));
+      else if (GET_CODE (hard_reg) == PARALLEL)
+	SET_DECL_RTL (DECL_RESULT (subr), gen_group_rtx (hard_reg));
       else
-	{
-	  /* Create the pseudo.  */
-	  SET_DECL_RTL (DECL_RESULT (subr), gen_reg_rtx (GET_MODE (hard_reg)));
+	abort ();
 
-	  /* Needed because we may need to move this to memory
-	     in case it's a named return value whose address is taken.  */
-	  DECL_REGISTER (DECL_RESULT (subr)) = 1;
-	}
+      /* Set DECL_REGISTER flag so that expand_function_end will copy the
+	 result to the real return register(s).  */
+      DECL_REGISTER (DECL_RESULT (subr)) = 1;
     }
 
   /* Initialize rtx for parameters and local variables.
@@ -6807,7 +6822,7 @@ expand_function_end (filename, line, end_bindings)
 #ifdef TRAMPOLINE_TEMPLATE
       blktramp = replace_equiv_address (initial_trampoline, tramp);
       emit_block_move (blktramp, initial_trampoline,
-		       GEN_INT (TRAMPOLINE_SIZE));
+		       GEN_INT (TRAMPOLINE_SIZE), BLOCK_OP_NORMAL);
 #endif
       INITIALIZE_TRAMPOLINE (tramp, XEXP (DECL_RTL (function), 0), context);
       seq = get_insns ();
@@ -6982,8 +6997,16 @@ expand_function_end (filename, line, end_bindings)
 	      convert_move (real_decl_rtl, decl_rtl, unsignedp);
 	    }
 	  else if (GET_CODE (real_decl_rtl) == PARALLEL)
-	    emit_group_load (real_decl_rtl, decl_rtl,
-			     int_size_in_bytes (TREE_TYPE (decl_result)));
+	    {
+	      /* If expand_function_start has created a PARALLEL for decl_rtl,
+		 move the result to the real return registers.  Otherwise, do
+		 a group load from decl_rtl for a named return.  */
+	      if (GET_CODE (decl_rtl) == PARALLEL)
+		emit_group_move (real_decl_rtl, decl_rtl);
+	      else
+		emit_group_load (real_decl_rtl, decl_rtl,
+				 int_size_in_bytes (TREE_TYPE (decl_result)));
+	    }
 	  else
 	    emit_move_insn (real_decl_rtl, decl_rtl);
 	}
@@ -7745,7 +7768,7 @@ epilogue_done:
 	 note before the end of the first basic block, if there isn't
 	 one already there.
 
-	 ??? This behaviour is completely broken when dealing with
+	 ??? This behavior is completely broken when dealing with
 	 multiple entry functions.  We simply place the note always
 	 into first basic block and let alternate entry points
 	 to be missed.

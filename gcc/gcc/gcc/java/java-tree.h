@@ -160,20 +160,24 @@ extern int flag_emit_class_files;
 
 extern int flag_filelist_file;
 
-/* When non zero, assume all native functions are implemented with
+/* When nonzero, permit the use of the assert keyword.  */
+
+extern int flag_assert;
+
+/* When nonzero, assume all native functions are implemented with
    JNI, not CNI.  */
 
 extern int flag_jni;
 
-/* When non zero, report the now deprecated empty statements.  */
+/* When nonzero, report the now deprecated empty statements.  */
 
 extern int flag_extraneous_semicolon;
 
-/* When non zero, always check for a non gcj generated classes archive.  */
+/* When nonzero, always check for a non gcj generated classes archive.  */
 
 extern int flag_force_classes_archive_check;
 
-/* When non zero, we emit xref strings. Values of the flag for xref
+/* When nonzero, we emit xref strings. Values of the flag for xref
    backends are defined in xref.h.  */
 
 extern int flag_emit_xref;
@@ -190,28 +194,28 @@ extern int flag_redundant;
 extern int flag_not_overriding;
 extern int flag_static_local_jdk1_1;
 
-/* When non zero, warn when source file is newer than matching class
+/* When nonzero, warn when source file is newer than matching class
    file.  */
 extern int flag_newer;
 
-/* When non zero, call a library routine to do integer divisions. */
+/* When nonzero, call a library routine to do integer divisions. */
 extern int flag_use_divide_subroutine;
 
-/* When non zero, generate code for the Boehm GC.  */
+/* When nonzero, generate code for the Boehm GC.  */
 extern int flag_use_boehm_gc;
 
-/* When non zero, assume the runtime uses a hash table to map an
+/* When nonzero, assume the runtime uses a hash table to map an
    object to its synchronization structure.  */
 extern int flag_hash_synchronization;
 
-/* When non zero, generate checks for references to NULL.  */
+/* When nonzero, generate checks for references to NULL.  */
 extern int flag_check_references;
 
 /* Used through STATIC_CLASS_INIT_OPT_P to check whether static
    initialization optimization should be performed.  */
 extern int flag_optimize_sci;
 
-/* When non zero, use offset tables for virtual method calls
+/* When nonzero, use offset tables for virtual method calls
    in order to improve binary compatibility. */
 extern int flag_indirect_dispatch;
 
@@ -254,6 +258,9 @@ typedef struct CPool constant_pool;
 #define COMPONENT_REF_SIGNATURE(CPOOL, IDX) \
   NAME_AND_TYPE_SIGNATURE (CPOOL, COMPONENT_REF_NAME_AND_TYPE(CPOOL, IDX))
 
+extern GTY(()) tree java_lang_cloneable_identifier_node;
+extern GTY(()) tree java_io_serializable_identifier_node;
+
 enum java_tree_index
 {
   JTI_PROMOTED_BYTE_TYPE_NODE,
@@ -271,6 +278,9 @@ enum java_tree_index
   JTI_UNSIGNED_INT_TYPE_NODE,
   JTI_UNSIGNED_LONG_TYPE_NODE,
   
+  JTI_DECIMAL_INT_MAX_NODE,
+  JTI_DECIMAL_LONG_MAX_NODE,
+
   JTI_BOOLEAN_TYPE_NODE,
 
   JTI_OBJECT_TYPE_NODE,
@@ -436,6 +446,11 @@ extern GTY(()) tree java_global_trees[JTI_MAX];
   java_global_trees[JTI_UNSIGNED_INT_TYPE_NODE]
 #define unsigned_long_type_node \
   java_global_trees[JTI_UNSIGNED_LONG_TYPE_NODE]
+
+#define decimal_int_max \
+  java_global_trees[JTI_DECIMAL_INT_MAX_NODE]
+#define decimal_long_max \
+  java_global_trees[JTI_DECIMAL_LONG_MAX_NODE]
 
 #define boolean_type_node \
   java_global_trees[JTI_BOOLEAN_TYPE_NODE]
@@ -693,7 +708,8 @@ struct lang_identifier GTY(())
 
 /* The resulting tree type.  */
 union lang_tree_node 
-  GTY((desc ("TREE_CODE (&%h.generic) == IDENTIFIER_NODE")))
+  GTY((desc ("TREE_CODE (&%h.generic) == IDENTIFIER_NODE"),
+       chain_next ("(union lang_tree_node *)TREE_CHAIN (&%h.generic)")))
 {
   union tree_node GTY ((tag ("0"), 
 			desc ("tree_node_structure (&%h)"))) 
@@ -1287,6 +1303,8 @@ extern tree decl_constant_value PARAMS ((tree));
 struct rtx_def * java_expand_expr PARAMS ((tree, rtx, enum machine_mode,
 					   int)); 
 #endif
+extern void java_inlining_merge_static_initializers PARAMS ((tree, void *));
+extern void java_inlining_map_static_initializers PARAMS ((tree, void *));
 
 #define DECL_FINAL(DECL) DECL_LANG_FLAG_3 (DECL)
 
@@ -1698,7 +1716,7 @@ extern tree *type_map;
     TREE_SIDE_EFFECTS (WHERE) = 1;				\
   }
 
-/* Non zero if TYPE is an unchecked exception */
+/* Nonzero if TYPE is an unchecked exception */
 #define IS_UNCHECKED_EXCEPTION_P(TYPE)				\
   (inherits_from_p ((TYPE), runtime_exception_type_node)	\
    || inherits_from_p ((TYPE), error_exception_type_node))
@@ -1733,9 +1751,10 @@ enum
   JV_STATE_LINKED = 9,		/* Strings interned.  */
 
   JV_STATE_IN_PROGRESS = 10,	/* <Clinit> running.  */
-  JV_STATE_DONE = 12,
+  JV_STATE_ERROR = 12,
 
-  JV_STATE_ERROR = 14		/* must be last.  */
+  JV_STATE_DONE = 14		/* Must be last.  */
+
 };
 
 #undef DEBUG_JAVA_BINDING_LEVELS

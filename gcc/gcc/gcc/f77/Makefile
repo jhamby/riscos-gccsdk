@@ -57,7 +57,6 @@ F77_OBJS = $(gccobjdir)/f77/stb.o \
 	$(gccobjdir)/f77/malloc.o \
 	$(gccobjdir)/f77/name.o \
 	$(gccobjdir)/f77/parse.o \
-	$(gccobjdir)/f77/proj.o \
 	$(gccobjdir)/f77/src.o \
 	$(gccobjdir)/f77/st.o \
 	$(gccobjdir)/f77/sta.o \
@@ -70,8 +69,7 @@ F77_OBJS = $(gccobjdir)/f77/stb.o \
 	$(gccobjdir)/f77/stw.o \
 	$(gccobjdir)/f77/top.o \
 	$(gccobjdir)/f77/type.o \
-	$(gccobjdir)/f77/where.o \
-	$(gccobjdir)/f77/version.o
+	$(gccobjdir)/f77/where.o
 
 STR_HEADERS = str-1t.h str-2t.h str-fo.h str-io.h str-nq.h str-op.h str-ot.h \
 	str-1t.j str-2t.j str-fo.j str-io.j str-nq.j str-op.j str-ot.j
@@ -79,17 +77,14 @@ STR_HEADERS = str-1t.h str-2t.h str-fo.h str-io.h str-nq.h str-op.h str-ot.h \
 
 # The real targets
 $(bin_dir)/g77$(gexesfx): $(gccobjdir)/f77/g77.o $(gccobjdir)/f77/g77spec.o \
-	$(gccobjdir)/version.o \
-	$(gccobjdir)/f77/version.o $(gccobjdir)/config/arm/rname.o \
+	$(gccobjdir)/version.o $(gccobjdir)/config/arm/rname.o \
 	$(RISC_OBJS) $(LIBDEPS)
 	$(LINK) $(gccobjdir)/f77/g77.o $(gccobjdir)/f77/g77spec.o \
-	$(gccobjdir)/version.o \
-	$(gccobjdir)/f77/version.o $(gccobjdir)/config/arm/rname.o \
+	$(gccobjdir)/version.o $(gccobjdir)/config/arm/rname.o \
 	$(RISC_OBJS) $(LIBDEPS) $(LIBS)
 
-$(gccobjdir)/f77/fini:	$(gccobjdir)/f77/fini.o $(gccobjdir)/f77/proj.o $(LIBDEPS)
-	$(LINK) $(gccobjdir)/f77/fini.o $(gccobjdir)/f77/proj.o \
-	$(LIBDEPS) $(LIBS)
+$(gccobjdir)/f77/fini:	$(gccobjdir)/f77/fini.o $(LIBDEPS)
+	$(LINK) $(gccobjdir)/f77/fini.o $(LIBDEPS) $(LIBS)
 
 $(gcc_bin_dir)/f771$(gexesfx): $(F77_OBJS) $(BACKEND) $(RISCOS_OBJS) $(STR_HEADERS)
 	$(LINK) $(F77_OBJS) $(BACKEND) $(RISCOS_OBJS) $(LIBDEPS) $(LIBS)
@@ -160,7 +155,6 @@ $(gccobjdir)/f77/lex.o: lex.c
 $(gccobjdir)/f77/malloc.o: malloc.c
 $(gccobjdir)/f77/name.o: name.c
 $(gccobjdir)/f77/parse.o: parse.c
-$(gccobjdir)/f77/proj.o: proj.c
 $(gccobjdir)/f77/src.o: src.c
 $(gccobjdir)/f77/st.o: st.c
 $(gccobjdir)/f77/sta.o: sta.c
@@ -181,5 +175,4 @@ $(gccobjdir)/f77/symbol.o: symbol.c
 $(gccobjdir)/f77/target.o: target.c
 $(gccobjdir)/f77/top.o: top.c
 $(gccobjdir)/f77/type.o: type.c
-$(gccobjdir)/f77/version.o: version.c
 $(gccobjdir)/f77/where.o: where.c

@@ -111,9 +111,7 @@ Boston, MA 02111-1307, USA.  */
 
 /* Generate DBX debugging information.  riscix.h will undefine this because
    the native assembler does not support stabs. */
-#ifndef DBX_DEBUGGING_INFO
-#define DBX_DEBUGGING_INFO  1
-#endif
+#define DBX_DEBUGGING_INFO 1
 
 /* Acorn dbx moans about continuation chars, so don't use any.  */
 #ifndef DBX_CONTIN_LENGTH
@@ -144,27 +142,8 @@ Boston, MA 02111-1307, USA.  */
   while (0)
 #endif
 
-#ifndef ASM_OUTPUT_LABEL
-#define ASM_OUTPUT_LABEL(STREAM, NAME)		\
-  do						\
-    {						\
-      assemble_name (STREAM,NAME);		\
-      fputs (":\n", STREAM);			\
-    }						\
-  while (0)
-#endif
-     
-/* Output a globalising directive for a label.  */
-#ifndef ASM_GLOBALIZE_LABEL
-#define ASM_GLOBALIZE_LABEL(STREAM, NAME)	\
-  do						\
-    {						\
-      fprintf (STREAM, "\t.global\t");		\
-      assemble_name (STREAM, NAME);		\
-      fputc ('\n',STREAM);			\
-    }						\
-  while (0)
-#endif
+/* Globalizing directive for a label.  */
+#define GLOBAL_ASM_OP "\t.global\t"
 
 /* Make an internal label into a string.  */
 #ifndef ASM_GENERATE_INTERNAL_LABEL
@@ -181,8 +160,16 @@ Boston, MA 02111-1307, USA.  */
 #define ASM_OUTPUT_ADDR_VEC_ELT(STREAM, VALUE)  \
   asm_fprintf (STREAM, "\t.word\t%LL%d\n", VALUE)
 
-#define ASM_OUTPUT_ADDR_DIFF_ELT(STREAM, BODY, VALUE, REL)  \
-  asm_fprintf (STREAM, "\tb\t%LL%d\n", VALUE)
+#define ASM_OUTPUT_ADDR_DIFF_ELT(STREAM, BODY, VALUE, REL)		\
+  do									\
+    {									\
+      if (TARGET_ARM)							\
+	asm_fprintf (STREAM, "\tb\t%LL%d\n", VALUE);			\
+      else								\
+	asm_fprintf (STREAM, "\t.word\t%LL%d-%LL%d\n", VALUE, REL);	\
+    }									\
+  while (0)
+
 
 #undef  ASM_OUTPUT_ASCII
 #define ASM_OUTPUT_ASCII(STREAM, PTR, LEN)  \

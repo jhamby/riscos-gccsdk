@@ -148,6 +148,8 @@ static tree stabilize_va_list		PARAMS ((tree, int));
 static rtx expand_builtin_expect	PARAMS ((tree, rtx));
 static tree fold_builtin_constant_p	PARAMS ((tree));
 static tree fold_builtin_classify_type	PARAMS ((tree));
+static tree fold_builtin_inf		PARAMS ((tree, int));
+static tree fold_builtin_nan		PARAMS ((tree, tree, int));
 static tree build_function_call_expr	PARAMS ((tree, tree));
 static int validate_arglist		PARAMS ((tree, ...));
 
@@ -788,10 +790,10 @@ expand_builtin_prefetch (arglist)
 #ifdef HAVE_prefetch
   if (HAVE_prefetch)
     {
-      if ((! (*insn_data[(int)CODE_FOR_prefetch].operand[0].predicate)
+      if ((! (*insn_data[(int) CODE_FOR_prefetch].operand[0].predicate)
 	     (op0,
-	      insn_data[(int)CODE_FOR_prefetch].operand[0].mode)) ||
-	  (GET_MODE(op0) != Pmode))
+	      insn_data[(int) CODE_FOR_prefetch].operand[0].mode))
+	  || (GET_MODE(op0) != Pmode))
 	{
 #ifdef POINTERS_EXTEND_UNSIGNED
 	  if (GET_MODE(op0) != Pmode)
@@ -804,10 +806,10 @@ expand_builtin_prefetch (arglist)
   else
 #endif
     op0 = protect_from_queue (op0, 0);
-    /* Don't do anything with direct references to volatile memory, but
-       generate code to handle other side effects.  */
-    if (GET_CODE (op0) != MEM && side_effects_p (op0))
-      emit_insn (op0);
+  /* Don't do anything with direct references to volatile memory, but
+     generate code to handle other side effects.  */
+  if (GET_CODE (op0) != MEM && side_effects_p (op0))
+    emit_insn (op0);
 }
 
 /* Get a MEM rtx for expression EXP which is the address of an operand
@@ -831,7 +833,7 @@ get_memory_rtx (exp)
      If it is an ADDR_EXPR, use the operand.  Otherwise, dereference it if
      we can.  First remove any nops.  */
   while ((TREE_CODE (exp) == NOP_EXPR || TREE_CODE (exp) == CONVERT_EXPR
-	 || TREE_CODE (exp) == NON_LVALUE_EXPR)
+	  || TREE_CODE (exp) == NON_LVALUE_EXPR)
 	 && POINTER_TYPE_P (TREE_TYPE (TREE_OPERAND (exp, 0))))
     exp = TREE_OPERAND (exp, 0);
 
@@ -885,7 +887,7 @@ apply_args_register_offset (regno)
   /* Arguments are always put in outgoing registers (in the argument
      block) if such make sense.  */
 #ifdef OUTGOING_REGNO
-  regno = OUTGOING_REGNO(regno);
+  regno = OUTGOING_REGNO (regno);
 #endif
   return apply_args_reg_offset[regno];
 }
@@ -1012,7 +1014,7 @@ apply_result_size ()
 		   mode = GET_MODE_WIDER_MODE (mode))
 		if (HARD_REGNO_MODE_OK (regno, mode)
 		    && have_insn_for (SET, mode))
-		      best_mode = mode;
+		  best_mode = mode;
 
 	    if (best_mode == VOIDmode)
 	      for (mode = GET_CLASS_NARROWEST_MODE (MODE_VECTOR_INT);
@@ -1225,7 +1227,7 @@ expand_builtin_apply (function, arguments, argsize)
   set_mem_align (dest, PARM_BOUNDARY);
   src = gen_rtx_MEM (BLKmode, incoming_args);
   set_mem_align (src, PARM_BOUNDARY);
-  emit_block_move (dest, src, argsize);
+  emit_block_move (dest, src, argsize, BLOCK_OP_NORMAL);
 
   /* Refer to the argument block.  */
   apply_args_size ();
@@ -1260,7 +1262,7 @@ expand_builtin_apply (function, arguments, argsize)
       emit_move_insn (value, adjust_address (arguments, Pmode, size));
       emit_move_insn (struct_value_rtx, value);
       if (GET_CODE (struct_value_rtx) == REG)
-	  use_reg (&call_fusage, struct_value_rtx);
+	use_reg (&call_fusage, struct_value_rtx);
       size += GET_MODE_SIZE (Pmode);
     }
 
@@ -1650,7 +1652,7 @@ expand_builtin_strlen (exp, target)
 
       /* Mark the beginning of the strlen sequence so we can emit the
 	 source operand later.  */
-      before_strlen = get_last_insn();
+      before_strlen = get_last_insn ();
 
       char_rtx = const0_rtx;
       char_mode = insn_data[(int) icode].operand[2].mode;
@@ -2000,7 +2002,8 @@ expand_builtin_memcpy (arglist, target, mode)
       set_mem_align (src_mem, src_align);
 
       /* Copy word part most expediently.  */
-      dest_addr = emit_block_move (dest_mem, src_mem, len_rtx);
+      dest_addr = emit_block_move (dest_mem, src_mem, len_rtx,
+				   BLOCK_OP_NORMAL);
 
       if (dest_addr == 0)
 	{
@@ -2176,14 +2179,14 @@ builtin_memset_gen_str (data, offset, mode)
   char *p;
 
   size = GET_MODE_SIZE (mode);
-  if (size==1)
-    return (rtx)data;
+  if (size == 1)
+    return (rtx) data;
 
   p = alloca (size);
   memset (p, 1, size);
   coeff = c_readstr (p, mode);
 
-  target = convert_to_mode (mode, (rtx)data, 1);
+  target = convert_to_mode (mode, (rtx) data, 1);
   target = expand_mult (mode, target, coeff, NULL_RTX, 1);
   return force_reg (mode, target);
 }
@@ -2254,7 +2257,7 @@ expand_builtin_memset (exp, target, mode)
 	  dest_mem = get_memory_rtx (dest);
 	  store_by_pieces (dest_mem, tree_low_cst (len, 1),
 			   builtin_memset_gen_str,
-			   (PTR)val_rtx, dest_align);
+			   (PTR) val_rtx, dest_align);
 	  dest_mem = force_operand (XEXP (dest_mem, 0), NULL_RTX);
 #ifdef POINTERS_EXTEND_UNSIGNED
 	  if (GET_MODE (dest_mem) != ptr_mode)
@@ -3238,7 +3241,7 @@ expand_builtin_va_end (arglist)
 
 #ifdef EXPAND_BUILTIN_VA_END
   valist = stabilize_va_list (valist, 0);
-  EXPAND_BUILTIN_VA_END(arglist);
+  EXPAND_BUILTIN_VA_END (arglist);
 #else
   /* Evaluate for side effects, if needed.  I hate macros that don't
      do that.  */
@@ -3298,7 +3301,7 @@ expand_builtin_va_copy (arglist)
       set_mem_align (srcb, TYPE_ALIGN (va_list_type_node));
 
       /* Copy.  */
-      emit_block_move (dstb, srcb, size);
+      emit_block_move (dstb, srcb, size, BLOCK_OP_NORMAL);
     }
 
   return const0_rtx;
@@ -4131,6 +4134,44 @@ fold_builtin_classify_type (arglist)
   return build_int_2 (type_to_class (TREE_TYPE (TREE_VALUE (arglist))), 0);
 }
 
+/* Fold a call to __builtin_inf or __builtin_huge_val.  */
+
+static tree
+fold_builtin_inf (type, warn)
+     tree type;
+     int warn;
+{
+  REAL_VALUE_TYPE real;
+
+  if (!MODE_HAS_INFINITIES (TYPE_MODE (type)) && warn)
+    warning ("target format does not support infinity");
+
+  real_inf (&real);
+  return build_real (type, real);
+}
+
+/* Fold a call to __builtin_nan or __builtin_nans.  */
+
+static tree
+fold_builtin_nan (arglist, type, quiet)
+     tree arglist, type;
+     int quiet;
+{
+  REAL_VALUE_TYPE real;
+  const char *str;
+
+  if (!validate_arglist (arglist, POINTER_TYPE, VOID_TYPE))
+    return 0;
+  str = c_getstr (TREE_VALUE (arglist));
+  if (!str)
+    return 0;
+
+  if (!real_nan (&real, str, quiet, TYPE_MODE (type)))
+    return 0;
+
+  return build_real (type, real);
+}
+
 /* Used by constant folding to eliminate some builtin calls early.  EXP is
    the CALL_EXPR of a call to a builtin function.  */
 
@@ -4157,10 +4198,35 @@ fold_builtin (exp)
       if (validate_arglist (arglist, POINTER_TYPE, VOID_TYPE))
 	{
 	  tree len = c_strlen (TREE_VALUE (arglist));
-	  if (len != 0)
-	    return len;
+	  if (len)
+	    {
+	      /* Convert from the internal "sizetype" type to "size_t".  */
+	      if (size_type_node)
+		len = convert (size_type_node, len);
+	      return len;
+	    }
 	}
       break;
+
+    case BUILT_IN_INF:
+    case BUILT_IN_INFF:
+    case BUILT_IN_INFL:
+      return fold_builtin_inf (TREE_TYPE (TREE_TYPE (fndecl)), true);
+
+    case BUILT_IN_HUGE_VAL:
+    case BUILT_IN_HUGE_VALF:
+    case BUILT_IN_HUGE_VALL:
+      return fold_builtin_inf (TREE_TYPE (TREE_TYPE (fndecl)), false);
+
+    case BUILT_IN_NAN:
+    case BUILT_IN_NANF:
+    case BUILT_IN_NANL:
+      return fold_builtin_nan (arglist, TREE_TYPE (TREE_TYPE (fndecl)), true);
+
+    case BUILT_IN_NANS:
+    case BUILT_IN_NANSF:
+    case BUILT_IN_NANSL:
+      return fold_builtin_nan (arglist, TREE_TYPE (TREE_TYPE (fndecl)), false);
 
     default:
       break;
@@ -4196,29 +4262,32 @@ validate_arglist VPARAMS ((tree arglist, ...))
   VA_OPEN (ap, arglist);
   VA_FIXEDARG (ap, tree, arglist);
 
-  do {
-    code = va_arg (ap, enum tree_code);
-    switch (code)
+  do
     {
-    case 0:
-      /* This signifies an ellipses, any further arguments are all ok.  */
-      res = 1;
-      goto end;
-    case VOID_TYPE:
-      /* This signifies an endlink, if no arguments remain, return
-         true, otherwise return false.  */
-      res = arglist == 0;
-      goto end;
-    default:
-      /* If no parameters remain or the parameter's code does not
-         match the specified code, return false.  Otherwise continue
-         checking any remaining arguments.  */
-      if (arglist == 0 || code != TREE_CODE (TREE_TYPE (TREE_VALUE (arglist))))
-	goto end;
-      break;
+      code = va_arg (ap, enum tree_code);
+      switch (code)
+	{
+	case 0:
+	  /* This signifies an ellipses, any further arguments are all ok.  */
+	  res = 1;
+	  goto end;
+	case VOID_TYPE:
+	  /* This signifies an endlink, if no arguments remain, return
+	     true, otherwise return false.  */
+	  res = arglist == 0;
+	  goto end;
+	default:
+	  /* If no parameters remain or the parameter's code does not
+	     match the specified code, return false.  Otherwise continue
+	     checking any remaining arguments.  */
+	  if (arglist == 0
+	      || code != TREE_CODE (TREE_TYPE (TREE_VALUE (arglist))))
+	    goto end;
+	  break;
+	}
+      arglist = TREE_CHAIN (arglist);
     }
-    arglist = TREE_CHAIN (arglist);
-  } while (1);
+  while (1);
 
   /* We need gotos here since we can only have one VA_CLOSE in a
      function.  */

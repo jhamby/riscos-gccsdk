@@ -191,7 +191,7 @@ static int num_changes = 0;
    an INSN, CALL_INSN, or JUMP_INSN, the insn will be re-recognized with
    the change in place.
 
-   IN_GROUP is non-zero if this is part of a group of changes that must be
+   IN_GROUP is nonzero if this is part of a group of changes that must be
    performed as a group.  In that case, the changes will be stored.  The
    function `apply_change_group' will validate and apply the changes.
 
@@ -522,10 +522,10 @@ validate_replace_rtx_1 (loc, from, to, object)
     {
     case PLUS:
       /* If we have a PLUS whose second operand is now a CONST_INT, use
-         plus_constant to try to simplify it.
+         simplify_gen_binary to try to simplify it.
          ??? We may want later to remove this, once simplification is
          separated from this function.  */
-      if (GET_CODE (XEXP (x, 1)) == CONST_INT)
+      if (GET_CODE (XEXP (x, 1)) == CONST_INT && XEXP (x, 1) == to)
 	validate_change (object, loc,
 			 simplify_gen_binary
 			 (PLUS, GET_MODE (x), XEXP (x, 0), XEXP (x, 1)), 1);
@@ -856,7 +856,7 @@ find_single_use_1 (dest, loc)
    sequel.  If so, return a pointer to the innermost rtx expression in which
    it is used.
 
-   If PLOC is non-zero, *PLOC is set to the insn containing the single use.
+   If PLOC is nonzero, *PLOC is set to the insn containing the single use.
 
    This routine will return usually zero either before flow is called (because
    there will be no LOG_LINKS notes) or after reload (because the REG_DEAD
@@ -954,6 +954,7 @@ general_operand (op, mode)
     return 0;
 
   if (GET_CODE (op) == CONST_INT
+      && mode != VOIDmode
       && trunc_int_for_mode (INTVAL (op), mode) != INTVAL (op))
     return 0;
 
@@ -1082,13 +1083,10 @@ register_operand (op, mode)
       if (! reload_completed && GET_CODE (sub) == MEM)
 	return general_operand (op, mode);
 
-#ifdef CLASS_CANNOT_CHANGE_MODE
+#ifdef CANNOT_CHANGE_MODE_CLASS
       if (GET_CODE (sub) == REG
 	  && REGNO (sub) < FIRST_PSEUDO_REGISTER
-	  && (TEST_HARD_REG_BIT
-	      (reg_class_contents[(int) CLASS_CANNOT_CHANGE_MODE],
-	       REGNO (sub)))
-	  && CLASS_CANNOT_CHANGE_MODE_P (mode, GET_MODE (sub))
+	  && REG_CANNOT_CHANGE_MODE_P (REGNO (sub), mode, GET_MODE (sub))
 	  && GET_MODE_CLASS (GET_MODE (sub)) != MODE_COMPLEX_INT
 	  && GET_MODE_CLASS (GET_MODE (sub)) != MODE_COMPLEX_FLOAT)
 	return 0;
@@ -1159,6 +1157,7 @@ immediate_operand (op, mode)
     return 0;
 
   if (GET_CODE (op) == CONST_INT
+      && mode != VOIDmode
       && trunc_int_for_mode (INTVAL (op), mode) != INTVAL (op))
     return 0;
 
@@ -1241,6 +1240,7 @@ nonmemory_operand (op, mode)
 	return 0;
 
       if (GET_CODE (op) == CONST_INT
+	  && mode != VOIDmode
 	  && trunc_int_for_mode (INTVAL (op), mode) != INTVAL (op))
 	return 0;
 
@@ -2338,7 +2338,7 @@ preprocess_constraints ()
    This is used in final, just before printing the assembler code and by
    the routines that determine an insn's attribute.
 
-   If STRICT is a positive non-zero value, it means that we have been
+   If STRICT is a positive nonzero value, it means that we have been
    called after reload has been completed.  In that case, we must
    do all checks strictly.  If it is zero, it means that we have been called
    before reload has completed.  In that case, we first try to see if we can
@@ -2628,23 +2628,23 @@ constrain_operands (strict)
 
 		  if (EXTRA_MEMORY_CONSTRAINT (c))
 		    {
-		      /* Every memory operand can be reloaded to fit,
-			 so copy the condition from the 'm' case.  */
-		      if (GET_CODE (op) == MEM
-		          /* Before reload, accept what reload can turn into mem.  */
-		          || (strict < 0 && CONSTANT_P (op))
-		          /* During reload, accept a pseudo  */
-		          || (reload_in_progress && GET_CODE (op) == REG
-			      && REGNO (op) >= FIRST_PSEUDO_REGISTER))
+		      /* Every memory operand can be reloaded to fit.  */
+		      if (strict < 0 && GET_CODE (op) == MEM)
+			win = 1;
+	
+		      /* Before reload, accept what reload can turn into mem.  */
+		      if (strict < 0 && CONSTANT_P (op))
+			win = 1;
+
+		      /* During reload, accept a pseudo  */
+		      if (reload_in_progress && GET_CODE (op) == REG
+			  && REGNO (op) >= FIRST_PSEUDO_REGISTER)
 			win = 1;
 		    }
 		  if (EXTRA_ADDRESS_CONSTRAINT (c))
 		    {
-		      /* Every address operand can be reloaded to fit,
-			 so copy the condition from the 'p' case.  */
-		      if (strict <= 0
-		          || (strict_memory_address_p (recog_data.operand_mode[opno],
-						       op)))
+		      /* Every address operand can be reloaded to fit.  */
+		      if (strict < 0)
 		        win = 1;
 		    }
 #endif

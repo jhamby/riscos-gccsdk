@@ -275,7 +275,7 @@ extern diagnostic_context *global_dc;
 /* Similarly, but for sorrys.  */
 #define sorrycount diagnostic_kind_count (global_dc, DK_SORRY)
 
-/* Returns non-zero if warnings should be emitted.  */
+/* Returns nonzero if warnings should be emitted.  */
 #define diagnostic_report_warnings_p()			\
   (!inhibit_warnings					\
    && !(in_system_header && !warn_system_headers))
@@ -316,6 +316,7 @@ extern void output_add_character	PARAMS ((output_buffer *, int));
 extern void output_decimal		PARAMS ((output_buffer *, int));
 extern void output_add_string		PARAMS ((output_buffer *,
 						 const char *));
+extern void output_add_identifier	PARAMS ((output_buffer *, tree));
 extern const char *output_finalize_message PARAMS ((output_buffer *));
 extern void output_clear_message_text	PARAMS ((output_buffer *));
 extern void output_printf		PARAMS ((output_buffer *, const char *,

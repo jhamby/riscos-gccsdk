@@ -48,7 +48,7 @@ static int found_error = 0;
 /* Nonzero if we're generating JNI output.  */
 static int flag_jni = 0;
 
-/* When non zero, warn when source file is newer than matching class
+/* When nonzero, warn when source file is newer than matching class
    file.  */
 int flag_newer = 1;
 
@@ -834,13 +834,13 @@ DEFUN(print_method_info, (stream, jcf, name_index, sig_index, flags),
     {
       struct method_name *nn;
 
-      nn = (struct method_name *) xmalloc (sizeof (struct method_name));
-      nn->name = (char *) xmalloc (length);
+      nn = xmalloc (sizeof (struct method_name));
+      nn->name = xmalloc (length);
       memcpy (nn->name, str, length);
       nn->length = length;
       nn->next = method_name_list;
       nn->sig_length = JPOOL_UTF_LENGTH (jcf, sig_index);
-      nn->signature = (char *) xmalloc (nn->sig_length);
+      nn->signature = xmalloc (nn->sig_length);
       memcpy (nn->signature, JPOOL_UTF_DATA (jcf, sig_index),
 	      nn->sig_length);
       method_name_list = nn;
@@ -1151,7 +1151,7 @@ throwable_p (clname)
 
   for (length = 0; clname[length] != ';' && clname[length] != '\0'; ++length)
     ;
-  current = (unsigned char *) ALLOC (length);
+  current = ALLOC (length);
   for (i = 0; i < length; ++i)
     current[i] = clname[i] == '/' ? '.' : clname[i];
   current[length] = '\0';
@@ -1189,7 +1189,7 @@ throwable_p (clname)
       jcf_parse_class (&jcf);
 
       tmp = (unsigned char *) super_class_name (&jcf, &super_length);
-      super = (unsigned char *) ALLOC (super_length + 1);
+      super = ALLOC (super_length + 1);
       memcpy (super, tmp, super_length);      
       super[super_length] = '\0';
 
@@ -1289,7 +1289,7 @@ decode_signature_piece (stream, signature, limit, need_space)
       /* If the previous iterations left us with something to print,
 	 print it.  For JNI, we always print `jobjectArray' in the
 	 nested cases.  */
-      if (flag_jni && ctype == NULL)
+      if (flag_jni && (ctype == NULL || array_depth > 0))
 	{
 	  ctype = "jobjectArray";
 	  *need_space = 1;
@@ -1565,7 +1565,7 @@ DEFUN(print_stub_or_jni, (stream, jcf, name_index, signature_index, is_init,
 	return;
 
       if (flag_jni && ! stubs)
-	fputs ("extern ", stream);
+	fputs ("extern JNIEXPORT ", stream);
 
       /* If printing a method, skip to the return signature and print
 	 that first.  However, there is no return value if this is a
@@ -1597,6 +1597,9 @@ DEFUN(print_stub_or_jni, (stream, jcf, name_index, signature_index, is_init,
       /* When printing a JNI header we need to respect the space.  In
 	 other cases we're just going to insert a newline anyway.  */
       fputs (need_space && ! stubs ? " " : "\n", stream);
+
+      if (flag_jni && ! stubs)
+	fputs ("JNICALL ", stream);
       
       /* Now print the name of the thing.  */
       print_name_for_stub_or_jni (stream, jcf, name_index,
@@ -1730,7 +1733,7 @@ print_include (out, utf8, len)
 	return;
     }
 
-  incl = (struct include *) xmalloc (sizeof (struct include));
+  incl = xmalloc (sizeof (struct include));
   incl->name = xmalloc (len + 1);
   strncpy (incl->name, utf8, len);
   incl->name[len] = '\0';
@@ -1817,7 +1820,7 @@ add_namelet (name, name_limit, parent)
 
   if (n == NULL)
     {
-      n = (struct namelet *) xmalloc (sizeof (struct namelet));
+      n = xmalloc (sizeof (struct namelet));
       n->name = xmalloc (p - name + 1);
       strncpy (n->name, name, p - name);
       n->name[p - name] = '\0';
@@ -2289,7 +2292,7 @@ help ()
   /* We omit -MG until it is implemented.  */
   printf ("\n");
   printf ("For bug reporting instructions, please see:\n");
-  printf ("%s.\n", GCCBUGURL);
+  printf ("%s.\n", bug_report_url);
   exit (0);
 }
 
@@ -2373,25 +2376,25 @@ DEFUN(main, (argc, argv),
 
 	case OPT_PREPEND:
 	  if (prepend_count == 0)
-	    prepend_specs = (char**) ALLOC (argc * sizeof (char*));
+	    prepend_specs = ALLOC (argc * sizeof (char*));
 	  prepend_specs[prepend_count++] = optarg;
 	  break;
 
 	case OPT_FRIEND:
 	  if (friend_count == 0)
-	    friend_specs = (char**) ALLOC (argc * sizeof (char*));
+	    friend_specs = ALLOC (argc * sizeof (char*));
 	  friend_specs[friend_count++] = optarg;
 	  break;
 
 	case OPT_ADD:
 	  if (add_count == 0)
-	    add_specs = (char**) ALLOC (argc * sizeof (char*));
+	    add_specs = ALLOC (argc * sizeof (char*));
 	  add_specs[add_count++] = optarg;
 	  break;
 
 	case OPT_APPEND:
 	  if (append_count == 0)
-	    append_specs = (char**) ALLOC (argc * sizeof (char*));
+	    append_specs = ALLOC (argc * sizeof (char*));
 	  append_specs[append_count++] = optarg;
 	  break;
 
@@ -2478,7 +2481,7 @@ DEFUN(main, (argc, argv),
 	{
 	  int dir_len = strlen (output_directory);
 	  int i, classname_length = strlen (classname);
-	  current_output_file = (char*) ALLOC (dir_len + classname_length + 5);
+	  current_output_file = ALLOC (dir_len + classname_length + 5);
 	  strcpy (current_output_file, output_directory);
 	  if (dir_len > 0 && output_directory[dir_len-1] != '/')
 	    current_output_file[dir_len++] = '/';

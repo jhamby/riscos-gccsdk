@@ -962,7 +962,7 @@ signed_condition (code)
     }
 }
 
-/* Return non-zero if CODE1 is more strict than CODE2, i.e., if the
+/* Return nonzero if CODE1 is more strict than CODE2, i.e., if the
    truth of CODE1 implies the truth of CODE2.  */
 
 int
@@ -1255,7 +1255,7 @@ onlyjump_p (insn)
 
 #ifdef HAVE_cc0
 
-/* Return non-zero if X is an RTX that only sets the condition codes
+/* Return nonzero if X is an RTX that only sets the condition codes
    and has no side effects.  */
 
 int
@@ -1397,7 +1397,6 @@ mark_jump_label (x, insn, in_mem)
     case PC:
     case CC0:
     case REG:
-    case SUBREG:
     case CONST_INT:
     case CONST_DOUBLE:
     case CLOBBER:
@@ -1917,7 +1916,7 @@ never_reached_warning (avoided_insn, finish)
 	}
       else if (INSN_P (insn))
 	{
-	  if (reached_end)
+	  if (reached_end || a_line_note == NULL)
 	    break;
 	  contains_insn = 1;
 	}
@@ -2409,4 +2408,16 @@ true_regnum (x)
 					   SUBREG_BYTE (x), GET_MODE (x));
     }
   return -1;
+}
+
+/* Return regno of the register REG and handle subregs too.  */
+unsigned int
+reg_or_subregno (reg)
+     rtx reg;
+{
+  if (REG_P (reg))
+    return REGNO (reg);
+  if (GET_CODE (reg) == SUBREG)
+    return REGNO (SUBREG_REG (reg));
+  abort ();
 }

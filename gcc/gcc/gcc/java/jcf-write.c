@@ -826,21 +826,18 @@ find_constant_index (value, state)
   else if (TREE_CODE (value) == REAL_CST)
     {
       long words[2];
+
+      real_to_target (words, &TREE_REAL_CST (value),
+		      TYPE_MODE (TREE_TYPE (value)));
+      words[0] &= 0xffffffff;
+      words[1] &= 0xffffffff;
+
       if (TYPE_PRECISION (TREE_TYPE (value)) == 32)
-	{
-	  words[0] = etarsingle (TREE_REAL_CST (value)) & 0xFFFFFFFF;
-	  return find_constant1 (&state->cpool, CONSTANT_Float, 
-				 (jword)words[0]);
-	}
+	return find_constant1 (&state->cpool, CONSTANT_Float, (jword)words[0]);
       else
-	{
-	  etardouble (TREE_REAL_CST (value), words);
-	  return find_constant2 (&state->cpool, CONSTANT_Double,
-				 (jword)(words[1-FLOAT_WORDS_BIG_ENDIAN] & 
-					 0xFFFFFFFF),
-				 (jword)(words[FLOAT_WORDS_BIG_ENDIAN] & 
-					 0xFFFFFFFF));
-	}
+	return find_constant2 (&state->cpool, CONSTANT_Double,
+			       (jword)words[1-FLOAT_WORDS_BIG_ENDIAN],
+			       (jword)words[FLOAT_WORDS_BIG_ENDIAN]);
     }
   else if (TREE_CODE (value) == STRING_CST)
     return find_string_constant (&state->cpool, value);
@@ -3425,6 +3422,15 @@ write_classfile (clas)
       write_chunks (stream, chunks);
       if (fclose (stream))
 	fatal_io_error ("error closing %s", temporary_file_name);
+
+      /* If a file named by the string pointed to by `new' exists
+         prior to the call to the `rename' function, the bahaviour
+         is implementation-defined.  ISO 9899-1990 7.9.4.2.
+
+         For example, on Win32 with MSVCRT, it is an error. */
+
+      unlink (class_file_name);
+
       if (rename (temporary_file_name, class_file_name) == -1)
 	{
 	  remove (temporary_file_name);
