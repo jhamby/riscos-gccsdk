@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/strings.h,v $
- * $Date: 2002/12/22 18:22:28 $
- * $Revision: 1.5 $
+ * $Date: 2003/05/06 22:31:54 $
+ * $Revision: 1.6 $
  * $State: Exp $
- * $Author: admin $
+ * $Author: alex $
  *
  ***************************************************************************/
 
@@ -13,9 +13,12 @@
 
 #ifdef __USE_BSD
 
-# ifndef __UNIXLIB_FEATURES_H
-#  include <unixlib/features.h>
-# endif
+/* We don't need and should not read this file if <string.h> was already
+   read. The one exception being that if __USE_BSD isn't defined, then
+   these aren't defined in string.h, so we need to define them here.  */
+#if !defined __STRING_H || !defined __USE_BSD
+
+# include <unixlib/features.h>
 # define __need_size_t
 # include <stddef.h>
 
@@ -46,8 +49,8 @@ extern int strncasecmp (const char *__s1, const char *__s2, size_t __n);
 /* Return the position of the first bit set in I, or 0 if none are set.
    The least-significant bit is position 1, the most-significant 32.  */
 extern int ffs (int __i);
-#endif
+#endif /* string.h  */
 
 __END_DECLS
 
-#endif
+#endif /* strings.h  */

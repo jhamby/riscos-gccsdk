@@ -1,8 +1,8 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/unixlib/types.h,v $
- * $Date: 2003/04/06 12:28:37 $
- * $Revision: 1.6 $
+ * $Date: 2003/04/06 14:19:07 $
+ * $Revision: 1.7 $
  * $State: Exp $
  * $Author: peter $
  *
@@ -99,6 +99,7 @@ typedef unsigned int __ino_t;	/* Type of file serial numbers.  */
 typedef __quad_t __ino64_t;	/* Type of file serial numbers (LFS).  */
 typedef unsigned int __mode_t;	/* Type of file attribute bitmasks.  */
 typedef unsigned short int __nlink_t; /* Type of file link counts.  */
+__extension__ 
 typedef long long __off_t;	/* Type of file sizes and offsets.  */
 typedef __quad_t __loff_t;	/* Type of file sizes and offsets.  */
 typedef __loff_t __off64_t;	/* Type of file sizes and offsets (LFS).  */

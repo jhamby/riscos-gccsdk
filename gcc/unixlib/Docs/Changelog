@@ -1,3 +1,11 @@
+Sun Feb 15 18:45:16 2004  Peter Naulls  <peter@chocky.org>
+
+	* source/clib/unixlib/types.h, source/clib/math.h,
+	  source/clib/stdlib.h: Use __extension__ for long long types
+	  to avoid warnings.
+	* source/clib/strings.h, source/clib/string.h: Handle
+	  includes as GLIBC does.
+
 Mon Feb 09 21:09:02 2004  Alex Waugh  <alex@alexwaugh.com>
 
 	* source/stdlib/realpath.c (realpath): Preserve any ,xyz extension.

@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/stdlib.h,v $
- * $Date: 2003/04/25 00:04:48 $
- * $Revision: 1.6 $
+ * $Date: 2003/07/29 23:04:27 $
+ * $Revision: 1.7 $
  * $State: Exp $
- * $Author: joty $
+ * $Author: admin $
  *
  ***************************************************************************/
 
@@ -180,7 +180,7 @@ extern long atol (const char *__string);
 #define atol(s) strtol(s, (char **) NULL, 10)
 
 /* Convert a string to a 64-bit long integer.  */
-extern long long atoll (const char *__string);
+__extension__ extern long long atoll (const char *__string);
 #define atoll(s) strtoll(s, (char **) NULL, 10)
 
 

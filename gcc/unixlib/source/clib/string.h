@@ -1,17 +1,17 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/string.h,v $
- * $Date: 2003/06/07 02:30:21 $
- * $Revision: 1.8 $
+ * $Date: 2003/07/29 23:04:27 $
+ * $Revision: 1.9 $
  * $State: Exp $
- * $Author: joty $
+ * $Author: admin $
  *
  ***************************************************************************/
 
 /* ANSI Standard 4.11: String Handling <string.h>.  */
 
 #ifndef __STRING_H
-#define __STRING_H
+#define __STRING_H 1
 
 #ifndef __UNIXLIB_FEATURES_H
 #include <unixlib/features.h>
