@@ -1,3 +1,8 @@
+Sun Jan  9 23:26:02 2005  Alex Waugh  <alex@alexwaugh.com>
+
+	* source/locale/nl_langinfo.c (nl_langinfo): Change CODESET value to
+	  a format that iconv recognises.
+
 Wed Jan  6 23:42:25  John Tytgat  <John.Tytgat@aaug.net>
 
 	* Docs/Copyright: consistent spelling of UnixLib.
