@@ -6,8 +6,8 @@
 --                                                                          --
 --                                  B o d y                                 --
 --                                                                          --
---                                                                          --
---             Copyright (C) 1991-2000 Florida State University             --
+--             Copyright (C) 1991-1994, Florida State University            --
+--             Copyright (C) 1995-2003, Ada Core Technologies               --
 --                                                                          --
 -- GNARL is free software; you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -27,9 +27,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
--- GNARL was developed by the GNARL team at Florida State University. It is --
--- now maintained by Ada Core Technologies Inc. in cooperation with Florida --
--- State University (http://www.gnat.com).                                  --
+-- GNARL was developed by the GNARL team at Florida State University.       --
+-- Extensive contributions were provided by Ada Core Technologies, Inc.     --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -43,11 +42,34 @@ pragma Polling (Off);
 --  tasking operations. It causes infinite loops and other problems.
 
 with Interfaces.C; use Interfaces.C;
+with System.Machine_Code; use System.Machine_Code;
+
 package body System.OS_Interface is
+
+   ------------------
+   -- pthread_self --
+   ------------------
+
+   function pthread_self return pthread_t is
+      use ASCII;
+      Self : pthread_t;
+
+   begin
+      Asm ("call_pal 0x9e" & LF & HT &
+           "bis $31, $0, %0",
+           Outputs => pthread_t'Asm_Output ("=r", Self),
+           Clobber => "$0");
+      return Self;
+   end pthread_self;
+
+   -----------------
+   -- sched_yield --
+   -----------------
 
    function sched_yield return int is
       procedure sched_yield_base;
       pragma Import (C, sched_yield_base, "PTHREAD_YIELD_NP");
+
    begin
       sched_yield_base;
       return 0;

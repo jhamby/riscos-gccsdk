@@ -6,8 +6,7 @@
 --                                                                          --
 --                                  B o d y                                 --
 --                                                                          --
---                                                                          --
---         Copyright (C) 1992-2002, Free Software Foundation, Inc.          --
+--         Copyright (C) 1992-2004, Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNARL is free software; you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -28,7 +27,7 @@
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
 -- GNARL was developed by the GNARL team at Florida State University.       --
--- Extensive contributions were provided by Ada Core Technologies Inc.      --
+-- Extensive contributions were provided by Ada Core Technologies, Inc.     --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -78,6 +77,9 @@ with Ada.Task_Identification;
 with Ada.Exceptions;
 --  used for Raise_Exception
 
+with System.Interrupt_Management;
+--  used for Reserve
+
 with System.Task_Primitives.Operations;
 --  used for Write_Lock
 --           Unlock
@@ -110,7 +112,6 @@ package body System.Interrupts is
    use Tasking;
    use Ada.Exceptions;
 
-   package PRI renames System.Task_Primitives;
    package POP renames System.Task_Primitives.Operations;
 
    function To_Ada is new Unchecked_Conversion
@@ -421,12 +422,15 @@ package body System.Interrupts is
    --------------------------------
 
    --  Restore default handlers for interrupt servers.
+
    --  This is called by the Interrupt_Manager task when it receives the abort
    --  signal during program finalization.
 
    procedure Finalize_Interrupt_Servers is
+      HW_Interrupts : constant Boolean := HW_Interrupt'Last >= 0;
+
    begin
-      if HW_Interrupt'Last >= 0 then
+      if HW_Interrupts then
          for Int in HW_Interrupt loop
             if Server_ID (Interrupt_ID (Int)) /= null
               and then
@@ -448,13 +452,21 @@ package body System.Interrupts is
    -------------------------------------
 
    function Has_Interrupt_Or_Attach_Handler
-     (Object : access Dynamic_Interrupt_Protection) return Boolean is
+     (Object : access Dynamic_Interrupt_Protection)
+      return   Boolean
+   is
+      pragma Unreferenced (Object);
+
    begin
       return True;
    end Has_Interrupt_Or_Attach_Handler;
 
    function Has_Interrupt_Or_Attach_Handler
-     (Object : access Static_Interrupt_Protection) return Boolean is
+     (Object : access Static_Interrupt_Protection)
+      return   Boolean
+   is
+      pragma Unreferenced (Object);
+
    begin
       return True;
    end Has_Interrupt_Or_Attach_Handler;
@@ -518,11 +530,16 @@ package body System.Interrupts is
    is
       use Interfaces.VxWorks;
 
-      Vec  : constant Interrupt_Vector :=
-        INUM_TO_IVEC (Interfaces.VxWorks.int (Interrupt));
+      Vec : constant Interrupt_Vector :=
+              INUM_TO_IVEC (Interfaces.VxWorks.int (Interrupt));
+
       Old_Handler : constant VOIDFUNCPTR :=
-        intVecGet (INUM_TO_IVEC (Interfaces.VxWorks.int (Interrupt)));
+                      intVecGet
+                        (INUM_TO_IVEC (Interfaces.VxWorks.int (Interrupt)));
+
       Stat : Interfaces.VxWorks.STATUS;
+      pragma Unreferenced (Stat);
+      --  ??? shouldn't we test Stat at least in a pragma Assert?
 
    begin
       --  Only install umbrella handler when no Ada handler has already been
@@ -532,7 +549,7 @@ package body System.Interrupts is
 
       if Default_Handler (Interrupt) = null then
          Stat :=
-           intConnect (Vec, VOIDFUNCPTR (Handler), System.Address (Interrupt));
+           intConnect (Vec, Handler, System.Address (Interrupt));
          Default_Handler (Interrupt) := Old_Handler;
       end if;
    end Install_Umbrella_Handler;
@@ -602,7 +619,7 @@ package body System.Interrupts is
 
       Ptr := Registered_Handler_Head;
 
-      while (Ptr /= null) loop
+      while Ptr /= null loop
          if Ptr.H = Fat.Handler_Addr then
             return True;
          end if;
@@ -618,8 +635,9 @@ package body System.Interrupts is
    -----------------
 
    function Is_Reserved (Interrupt : Interrupt_ID) return Boolean is
+      use System.Interrupt_Management;
    begin
-      return False;
+      return Reserve (System.Interrupt_Management.Interrupt_ID (Interrupt));
    end Is_Reserved;
 
    ----------------------
@@ -643,8 +661,10 @@ package body System.Interrupts is
    --  server task deletes its semaphore and terminates.
 
    procedure Notify_Interrupt (Param : System.Address) is
-      Interrupt      : Interrupt_ID := Interrupt_ID (Param);
+      Interrupt : constant Interrupt_ID := Interrupt_ID (Param);
+
       Discard_Result : STATUS;
+      pragma Unreferenced (Discard_Result);
 
    begin
       Discard_Result := semGive (Semaphore_ID_Map (Interrupt));
@@ -738,11 +758,6 @@ package body System.Interrupts is
    -----------------------
 
    task body Interrupt_Manager is
-      ---------------------
-      -- Local Variables --
-      ---------------------
-
-      Self_Id : constant Task_ID := POP.Self;
 
       --------------------
       -- Local Routines --
@@ -992,7 +1007,7 @@ package body System.Interrupts is
                         "A binding for this interrupt is already present");
                   end if;
 
-                  User_Entry (Interrupt) := Entry_Assoc' (T => T, E => E);
+                  User_Entry (Interrupt) := Entry_Assoc'(T => T, E => E);
 
                   --  Indicate the attachment of interrupt entry in the ATCB.
                   --  This is needed so when an interrupt entry task terminates
@@ -1023,8 +1038,9 @@ package body System.Interrupts is
                   for Int in Interrupt_ID'Range loop
                      if not Is_Reserved (Int) then
                         if User_Entry (Int).T = T then
-                           User_Entry (Int) := Entry_Assoc'
-                             (T => Null_Task, E => Null_Task_Entry);
+                           User_Entry (Int) :=
+                             Entry_Assoc'
+                               (T => Null_Task, E => Null_Task_Entry);
                            Unbind_Handler (Int);
                         end if;
                      end if;

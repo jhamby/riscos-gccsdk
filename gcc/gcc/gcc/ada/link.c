@@ -4,10 +4,9 @@
  *                                                                          *
  *                                 L I N K                                  *
  *                                                                          *
- *                                                                          *
  *                          C Implementation File                           *
  *                                                                          *
- *          Copyright (C) 1992-2001, Free Software Foundation, Inc.         *
+ *          Copyright (C) 1992-2004, Free Software Foundation, Inc.         *
  *                                                                          *
  * GNAT is free software;  you can  redistribute it  and/or modify it under *
  * terms of the  GNU General Public License as published  by the Free Soft- *
@@ -97,7 +96,7 @@ const char *object_file_option = "-Wl,-objectlist,";
 const char *run_path_option = "-Wl,-rpath,";
 int link_max = 5000;
 unsigned char objlist_file_supported = 1;
-char shared_libgnat_default = SHARED;
+char shared_libgnat_default = STATIC;
 unsigned char using_gnu_linker = 0;
 const char *object_library_extension = ".a";
 
@@ -132,7 +131,7 @@ const char *object_library_extension = ".a";
 const char *object_file_option = "-Wl,-f,";
 const char *run_path_option = "";
 int link_max = 15000;
-cnonst unsigned char objlist_file_supported = 1;
+const unsigned char objlist_file_supported = 1;
 char shared_libgnat_default = STATIC;
 unsigned char using_gnu_linker = 0;
 const char *object_library_extension = ".a";
@@ -140,7 +139,7 @@ const char *object_library_extension = ".a";
 #elif defined (VMS)
 const char *object_file_option = "";
 const char *run_path_option = "";
-char shared_libgnat_default = SHARED;
+char shared_libgnat_default = STATIC;
 int link_max = 2147483647;
 unsigned char objlist_file_supported = 0;
 unsigned char using_gnu_linker = 0;
@@ -155,13 +154,22 @@ unsigned char objlist_file_supported = 0;
 unsigned char using_gnu_linker = 0;
 const char *object_library_extension = ".a";
 
-#elif defined (linux)
-const char *object_file_option = "";
-const char *run_path_option = "-Wl,-rpath,";
+#elif defined (__FreeBSD__)
+char *object_file_option = "";
+char *run_path_option = "";
 char shared_libgnat_default = STATIC;
 int link_max = 2147483647;
 unsigned char objlist_file_supported = 0;
 unsigned char using_gnu_linker = 0;
+char *object_library_extension = ".a";
+
+#elif defined (linux)
+const char *object_file_option = "";
+const char *run_path_option = "";
+char shared_libgnat_default = SHARED;
+int link_max = 8192;
+unsigned char objlist_file_supported = 1;
+unsigned char using_gnu_linker = 1;
 const char *object_library_extension = ".a";
 
 #elif defined (__svr4__) && defined (i386)

@@ -6,8 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                                                                          --
---          Copyright (C) 1992-2001, Free Software Foundation, Inc.         --
+--          Copyright (C) 1992-2003, Free Software Foundation, Inc.         --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -125,8 +124,7 @@ package body Fname.UF is
 
    function Get_File_Name
      (Uname   : Unit_Name_Type;
-      Subunit : Boolean)
-      return    File_Name_Type
+      Subunit : Boolean) return File_Name_Type
    is
       Unit_Char : Character;
       --  Set to 's' or 'b' for spec or body or to 'u' for a subunit
@@ -222,6 +220,9 @@ package body Fname.UF is
          Dot  : String_Ptr;
          Dotl : Natural;
 
+         Is_Predef : Boolean;
+         --  Set True for predefined file
+
          function C (N : Natural) return Character;
          --  Return N'th character of pattern
 
@@ -252,11 +253,25 @@ package body Fname.UF is
                if SFN_Patterns.Table (Pent).Typ = Unit_Char_Search then
                   Name_Len := 0;
 
+                  --  Determine if we have a predefined file name
+
+                  Name_Len := Uname'Length;
+                  Name_Buffer (1 .. Name_Len) := Uname;
+                  Is_Predef :=
+                    Is_Predefined_File_Name (Renamings_Included => True);
+
                   --  Found a match, execute the pattern
 
                   Name_Len := Uname'Length;
                   Name_Buffer (1 .. Name_Len) := Uname;
-                  Set_Casing (SFN_Patterns.Table (Pent).Cas);
+
+                  --  Apply casing, except that we do not do this for the case
+                  --  of a predefined library file. For the latter, we always
+                  --  use the all lower case name, regardless of the setting.
+
+                  if not Is_Predef then
+                     Set_Casing (SFN_Patterns.Table (Pent).Cas);
+                  end if;
 
                   --  If dot translation required do it
 

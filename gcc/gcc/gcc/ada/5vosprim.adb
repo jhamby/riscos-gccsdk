@@ -6,8 +6,7 @@
 --                                                                          --
 --                                  B o d y                                 --
 --                                                                          --
---                                                                          --
---          Copyright (C) 1998-2001 Free Software Foundation, Inc.          --
+--          Copyright (C) 1998-2002 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNARL is free software; you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -28,7 +27,7 @@
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
 -- GNARL was developed by the GNARL team at Florida State University.       --
--- Extensive contributions were provided by Ada Core Technologies Inc.      --
+-- Extensive contributions were provided by Ada Core Technologies, Inc.     --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -110,11 +109,10 @@ package body System.OS_Primitives is
    ---------------
    -- Sys_Hiber --
    ---------------
-   --
+
    --  Hibernate (until woken up)
-   --
+
    --  status = returned status
-   --
 
    procedure Sys_Hiber (Status : out Cond_Value_Type);
    --  VMS system call to hibernate the current process
@@ -174,6 +172,7 @@ package body System.OS_Primitives is
    -----------------
 
    function To_Duration (T : OS_Time; Mode : Integer) return Duration is
+      pragma Warnings (Off, Mode);
    begin
       return Duration'Fixed_Value (T - VMS_Epoch_Offset) * 100;
    end To_Duration;

@@ -6,8 +6,7 @@
 --                                                                          --
 --                                  B o d y                                 --
 --                                                                          --
---                                                                          --
---         Copyright (C) 1992-2001, Free Software Foundation, Inc.          --
+--         Copyright (C) 1992-2002, Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNARL is free software; you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -27,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
--- GNARL was developed by the GNARL team at Florida State University. It is --
--- now maintained by Ada Core Technologies, Inc. (http://www.gnat.com).     --
+-- GNARL was developed by the GNARL team at Florida State University.       --
+-- Extensive contributions were provided by Ada Core Technologies, Inc.     --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -52,6 +51,9 @@ package body System.Task_Primitives.Operations is
 
    use System.Tasking;
    use System.Parameters;
+
+   pragma Warnings (Off);
+   --  Turn off warnings since so many unreferenced parameters
 
    -----------------
    -- Stack_Guard --
@@ -86,7 +88,8 @@ package body System.Task_Primitives.Operations is
 
    procedure Initialize_Lock
      (Prio : System.Any_Priority;
-      L    : access Lock) is
+      L    : access Lock)
+   is
    begin
       null;
    end Initialize_Lock;
@@ -120,7 +123,8 @@ package body System.Task_Primitives.Operations is
    end Write_Lock;
 
    procedure Write_Lock
-     (L : access RTS_Lock; Global_Lock : Boolean := False)
+     (L           : access RTS_Lock;
+      Global_Lock : Boolean := False)
    is
    begin
       null;
@@ -262,6 +266,24 @@ package body System.Task_Primitives.Operations is
       return new Ada_Task_Control_Block (Entry_Num);
    end New_ATCB;
 
+   -------------------
+   -- Is_Valid_Task --
+   -------------------
+
+   function Is_Valid_Task return Boolean is
+   begin
+      return False;
+   end Is_Valid_Task;
+
+   -----------------------------
+   -- Register_Foreign_Thread --
+   -----------------------------
+
+   function Register_Foreign_Thread return Task_ID is
+   begin
+      return null;
+   end Register_Foreign_Thread;
+
    ----------------------
    --  Initialize_TCB  --
    ----------------------
@@ -375,7 +397,9 @@ package body System.Task_Primitives.Operations is
 
    function Suspend_Task
      (T           : ST.Task_ID;
-      Thread_Self : OSI.Thread_Id) return Boolean is
+      Thread_Self : OSI.Thread_Id)
+      return        Boolean
+   is
    begin
       return False;
    end Suspend_Task;
@@ -386,7 +410,9 @@ package body System.Task_Primitives.Operations is
 
    function Resume_Task
      (T           : ST.Task_ID;
-      Thread_Self : OSI.Thread_Id) return Boolean is
+      Thread_Self : OSI.Thread_Id)
+      return        Boolean
+   is
    begin
       return False;
    end Resume_Task;

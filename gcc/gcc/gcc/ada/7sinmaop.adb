@@ -6,8 +6,8 @@
 --                                                                          --
 --                                  B o d y                                 --
 --                                                                          --
---                                                                          --
---             Copyright (C) 1997-1998, Florida State University            --
+--             Copyright (C) 1991-1994, Florida State University            --
+--             Copyright (C) 1995-2003, Ada Core Technologies               --
 --                                                                          --
 -- GNARL is free software; you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -27,9 +27,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
--- GNARL was developed by the GNARL team at Florida State University. It is --
--- now maintained by Ada Core Technologies Inc. in cooperation with Florida --
--- State University (http://www.gnat.com).                                  --
+-- GNARL was developed by the GNARL team at Florida State University.       --
+-- Extensive contributions were provided by Ada Core Technologies, Inc.     --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -326,11 +325,16 @@ begin
         Storage_Elements.To_Address
           (Storage_Elements.Integer_Address (SIG_IGN));
 
-      for I in Interrupt_ID loop
-         if Keep_Unmasked (I) then
-            Result := sigaddset (mask'Access, Signal (I));
+      for J in Interrupt_ID loop
+
+         --  We need to check whether J is in Keep_Unmasked because
+         --  the index type of the Keep_Unmasked array is not always
+         --  Interrupt_ID; it may be a subtype of Interrupt_ID.
+
+         if J in Keep_Unmasked'Range and then Keep_Unmasked (J) then
+            Result := sigaddset (mask'Access, Signal (J));
             pragma Assert (Result = 0);
-            Result := sigdelset (allmask'Access, Signal (I));
+            Result := sigdelset (allmask'Access, Signal (J));
             pragma Assert (Result = 0);
          end if;
       end loop;

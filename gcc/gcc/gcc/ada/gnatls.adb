@@ -6,8 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                                                                          --
---           Copyright (C) 1992-2002 Free Software Foundation, Inc.         --
+--           Copyright (C) 1992-2004 Free Software Foundation, Inc.         --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -29,6 +28,7 @@ with ALI;         use ALI;
 with ALI.Util;    use ALI.Util;
 with Binderr;     use Binderr;
 with Butil;       use Butil;
+with Csets;       use Csets;
 with Fname;       use Fname;
 with Gnatvsn;     use Gnatvsn;
 with GNAT.OS_Lib; use GNAT.OS_Lib;
@@ -41,6 +41,7 @@ with Targparm;    use Targparm;
 with Types;       use Types;
 
 procedure Gnatls is
+   pragma Ident (Gnat_Static_Version_String);
 
    Max_Column : constant := 80;
 
@@ -74,11 +75,8 @@ procedure Gnatls is
 
    Main_File : File_Name_Type;
    Ali_File  : File_Name_Type;
-
-   Text : Text_Buffer_Ptr;
-   Id   : ALI_Id;
-
-   Next_Arg : Positive;
+   Text      : Text_Buffer_Ptr;
+   Next_Arg  : Positive;
 
    Too_Long : Boolean := False;
    --  When True, lines are too long for multi-column output and each
@@ -103,6 +101,9 @@ procedure Gnatls is
    --  Various column starts and ends
 
    Spaces : constant String (1 .. Max_Column) := (others => ' ');
+
+   RTS_Specified : String_Access := null;
+   --  Used to detect multiple use of --RTS= switch
 
    -----------------------
    -- Local Subprograms --
@@ -215,9 +216,8 @@ procedure Gnatls is
    ------------------------------
 
    function Corresponding_Sdep_Entry
-     (A     : ALI_Id;
-      U     : Unit_Id)
-      return  Sdep_Id
+     (A : ALI_Id;
+      U : Unit_Id) return Sdep_Id
    is
    begin
       for D in ALIs.Table (A).First_Sdep .. ALIs.Table (A).Last_Sdep loop
@@ -249,7 +249,6 @@ procedure Gnatls is
       --  Compute maximum of each column
 
       for Id in ALIs.First .. ALIs.Last loop
-
          Get_Name_String (Units.Table (ALIs.Table (Id).First_Unit).Uname);
          if Also_Predef or else not Is_Internal_Unit then
 
@@ -641,26 +640,32 @@ procedure Gnatls is
 
          --  Processing for --RTS=path
 
-         elsif Argv (1 .. 5) = "--RTS" then
-
-            if Argv (6) /= '=' or else
-              (Argv (6) = '='
-               and then Argv'Length = 6)
-            then
+         elsif Argv'Length >= 5 and then Argv (1 .. 5) = "--RTS" then
+            if Argv'Length <= 6 or else Argv (6) /= '='then
                Osint.Fail ("missing path for --RTS");
 
             else
+               --  Check that it is the first time we see this switch or, if
+               --  it is not the first time, the same path is specified.
+
+               if RTS_Specified = null then
+                  RTS_Specified := new String'(Argv (7 .. Argv'Last));
+
+               elsif RTS_Specified.all /= Argv (7 .. Argv'Last) then
+                  Osint.Fail ("--RTS cannot be specified multiple times");
+               end if;
+
                --  Valid --RTS switch
 
                Opt.No_Stdinc := True;
                Opt.RTS_Switch := True;
 
                declare
-                  Src_Path_Name : String_Ptr :=
+                  Src_Path_Name : constant String_Ptr :=
                                     String_Ptr
                                       (Get_RTS_Search_Dir
                                         (Argv (7 .. Argv'Last), Include));
-                  Lib_Path_Name : String_Ptr :=
+                  Lib_Path_Name : constant String_Ptr :=
                                     String_Ptr
                                       (Get_RTS_Search_Dir
                                         (Argv (7 .. Argv'Last), Objects));
@@ -807,6 +812,10 @@ procedure Gnatls is
    --   Start of processing for Gnatls
 
 begin
+   --  Initialize standard packages
+
+   Namet.Initialize;
+   Csets.Initialize;
 
    --  Use low level argument routines to avoid dragging in the secondary stack
 
@@ -815,7 +824,6 @@ begin
    Scan_Args : while Next_Arg < Arg_Count loop
       declare
          Next_Argv : String (1 .. Len_Arg (Next_Arg));
-
       begin
          Fill_Arg (Next_Argv'Address, Next_Arg);
          Scan_Ls_Arg (Next_Argv, And_Save => True);
@@ -842,7 +850,6 @@ begin
    Osint.Add_Default_Search_Dirs;
 
    if Verbose_Mode then
-      Namet.Initialize;
       Targparm.Get_Target_Parameters;
 
       --  WARNING: the output of gnatls -v is used during the compilation
@@ -852,13 +859,8 @@ begin
 
       Write_Eol;
       Write_Str ("GNATLS ");
-
-      if Targparm.High_Integrity_Mode_On_Target then
-         Write_Str ("Pro High Integrity ");
-      end if;
-
       Write_Str (Gnat_Version_String);
-      Write_Str (" Copyright 1997-2002 Free Software Foundation, Inc.");
+      Write_Str (" Copyright 1997-2004 Free Software Foundation, Inc.");
       Write_Eol;
       Write_Eol;
       Write_Str ("Source Search Path:");
@@ -912,7 +914,6 @@ begin
       Exit_Program (E_Fatal);
    end if;
 
-   Namet.Initialize;
    Initialize_ALI;
    Initialize_ALI_Source;
 
@@ -924,7 +925,7 @@ begin
 
       if Ali_File = No_File then
          Write_Str ("Can't find library info for ");
-         Get_Decoded_Name_String (Main_File);
+         Get_Name_String (Main_File);
          Write_Char ('"');
          Write_Str (Name_Buffer (1 .. Name_Len));
          Write_Char ('"');
@@ -935,9 +936,16 @@ begin
 
          if Get_Name_Table_Info (Ali_File) = 0 then
             Text := Read_Library_Info (Ali_File, True);
-            Id :=
-              Scan_ALI
-                (Ali_File, Text, Ignore_ED => False, Err => False);
+
+            declare
+               Discard : ALI_Id;
+               pragma Unreferenced (Discard);
+            begin
+               Discard :=
+                 Scan_ALI
+                   (Ali_File, Text, Ignore_ED => False, Err => False);
+            end;
+
             Free (Text);
          end if;
       end if;
@@ -1022,9 +1030,8 @@ begin
       end;
    end loop;
 
-   --  All done. Set proper exit status.
+   --  All done. Set proper exit status
 
    Namet.Finalize;
    Exit_Program (E_Success);
-
 end Gnatls;

@@ -7,8 +7,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                                                                          --
---           Copyright (C) 1999-2002 Ada Core Technologies, Inc.            --
+--           Copyright (C) 1999-2003 Ada Core Technologies, Inc.            --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -29,7 +28,7 @@
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
 -- GNAT was originally developed  by the GNAT team at  New York University. --
--- It is now maintained by Ada Core Technologies Inc (http://www.gnat.com). --
+-- Extensive contributions were provided by Ada Core Technologies Inc.      --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -222,8 +221,7 @@ package body System.Traceback is
      (Pc          : Address;
       Space       : Address;
       Table_Start : Address;
-      Table_End   : Address)
-      return        Address;
+      Table_End   : Address) return Address;
    pragma Import (C, U_get_unwind_entry, "U_get_unwind_entry");
    --  Given the bounds of an unwind table, return the address of the
    --  unwind descriptor associated with a code location/space. In the case
@@ -255,8 +253,7 @@ package body System.Traceback is
    function U_get_previous_frame_x
      (current_frame  : access CFD;
       previous_frame : access PFD;
-      previous_size  : Integer)
-      return           Integer;
+      previous_size  : Integer) return Integer;
    pragma Import (C, U_get_previous_frame_x, "U_get_previous_frame_x");
    --  Fetch the data describing the "previous" frame relatively to the
    --  "current" one. "previous_size" should be the size of the "previous"
@@ -271,9 +268,8 @@ package body System.Traceback is
    ------------------
 
    function C_Call_Chain
-     (Traceback   : System.Address;
-      Max_Len     : Natural)
-      return        Natural
+     (Traceback : System.Address;
+      Max_Len   : Natural) return Natural
    is
       Val : Natural;
 
@@ -291,7 +287,8 @@ package body System.Traceback is
       Max_Len     : Natural;
       Len         : out Natural;
       Exclude_Min : System.Address := System.Null_Address;
-      Exclude_Max : System.Address := System.Null_Address)
+      Exclude_Max : System.Address := System.Null_Address;
+      Skip_Frames : Natural := 1)
    is
       type Tracebacks_Array is array (1 .. Max_Len) of System.Address;
       pragma Suppress_Initialization (Tracebacks_Array);
@@ -530,10 +527,12 @@ package body System.Traceback is
            and then U_is_shared_pc (Frame.cur_rlo, Frame.cur_r19) /= 0
          then
             declare
-               Shlib_UWT   : UWT := U_get_shLib_unwind_table (Frame.cur_r19);
-               Shlib_Start : Address := U_get_shLib_text_addr (Frame.cur_r19);
-               Rlo_Offset  : Address := Frame.cur_rlo - Shlib_Start;
-
+               Shlib_UWT   : constant UWT     :=
+                               U_get_shLib_unwind_table (Frame.cur_r19);
+               Shlib_Start : constant Address :=
+                               U_get_shLib_text_addr (Frame.cur_r19);
+               Rlo_Offset  : constant Address :=
+                               Frame.cur_rlo - Shlib_Start;
             begin
                UWD_Address := U_get_unwind_entry (Rlo_Offset,
                                                   Frame.cur_rls,
@@ -552,9 +551,8 @@ package body System.Traceback is
    --  Start of processing for Call_Chain
 
    begin
-      --  Fetch the state for this subprogram's frame and pop it so that the
-      --  backtrace starts at the right point for our caller, that is at its
-      --  own frame.
+      --  Fetch the state for this subprogram's frame and pop it so that we
+      --  start with an initial out_rlo "here".
 
       U_init_frame_record (Frame'Access);
       Frame.top_sr0 := 0;
@@ -563,6 +561,12 @@ package body System.Traceback is
       U_prep_frame_rec_for_unwind (Frame'Access);
 
       Pop_Success := Pop_Frame (Frame'Access);
+
+      --  Skip the requested number of frames.
+
+      for I in 1 .. Skip_Frames loop
+         Pop_Success := Pop_Frame (Frame'Access);
+      end loop;
 
       --  Loop popping frames and storing locations until either a problem
       --  occurs, or the top of the call chain is reached, or the provided

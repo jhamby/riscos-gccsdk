@@ -6,8 +6,7 @@
  *                                                                          *
  *                          C Implementation File                           *
  *                                                                          *
- *                                                                          *
- *           Copyright (C) 1992-2001 Free Software Foundation, Inc.         *
+ *           Copyright (C) 1992-2003 Free Software Foundation, Inc.         *
  *                                                                          *
  * GNAT is free software;  you can  redistribute it  and/or modify it under *
  * terms of the  GNU General Public License as published  by the Free Soft- *
@@ -43,14 +42,13 @@
 
 #include <errno.h>
 int
-__get_errno()
+__get_errno(void)
 {
   return errno;
 }
 
 void
-__set_errno(err)
-     int err;
+__set_errno(int err)
 {
   errno = err;
 }

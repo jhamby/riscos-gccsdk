@@ -7,7 +7,6 @@
 --                                 B o d y                                  --
 --                            (Version for x86)                             --
 --                                                                          --
---                                                                          --
 --           Copyright (C) 1999-2002 Ada Core Technologies, Inc.            --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
@@ -29,7 +28,7 @@
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
 -- GNAT was originally developed  by the GNAT team at  New York University. --
--- It is now maintained by Ada Core Technologies Inc (http://www.gnat.com). --
+-- Extensive contributions were provided by Ada Core Technologies Inc.      --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -174,12 +173,12 @@ package body System.Machine_State_Operations is
    Op_Immed : constant Bits6 := 2#100000#;
 
    Op2_addl_Immed : constant Bits5 := 2#11100#;
-   --  pragma Unreferenced (Op2_addl_Immed);
+   pragma Unreferenced (Op2_addl_Immed);
 
    Op2_subl_Immed : constant Bits5 := 2#11101#;
 
    type Word_Byte is (Word, Byte);
-   --  pragma Unreferenced (Byte);
+   pragma Unreferenced (Byte);
 
    type Ins_addl_subl_byte is record
       Op   : Bits6;           -- Set to Op_Immed
@@ -464,7 +463,7 @@ package body System.Machine_State_Operations is
          return To_Address (MS.eip);
       else
          --  When doing a call the return address is pushed to the stack.
-         --  We want to return the call point address, so we subtract
+         --  We want to return the call point address, so we substract
          --  Asm_Call_Size from the return address. This value is set
          --  to 5 as an asm call takes 5 bytes on x86 architectures.
 

@@ -6,8 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                                                                          --
---          Copyright (C) 1992-2001 Free Software Foundation, Inc.          --
+--          Copyright (C) 1992-2003 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -27,6 +26,7 @@
 
 with Atree;    use Atree;
 with Debug;    use Debug;
+with Einfo;    use Einfo;
 with Errout;   use Errout;
 with Fname;    use Fname;
 with Fname.UF; use Fname.UF;
@@ -42,6 +42,7 @@ with Scn;      use Scn;
 with Sinfo;    use Sinfo;
 with Sinput;   use Sinput;
 with Sinput.L; use Sinput.L;
+with Stand;    use Stand;
 with Targparm; use Targparm;
 with Tbuild;   use Tbuild;
 with Uname;    use Uname;
@@ -98,7 +99,10 @@ package body Lib.Load is
 
       --  Child package
 
-      else -- Nkind (Name (With_Node)) = N_Expanded_Name
+      else
+
+         --  Nkind (Name (With_Node)) = N_Expanded_Name
+
          Cunit_Entity :=
            Make_Defining_Identifier (No_Location,
              Chars => Chars (Selector_Name (Name (With_Node))));
@@ -106,11 +110,17 @@ package body Lib.Load is
            Make_Defining_Program_Unit_Name (No_Location,
              Name => New_Copy_Tree (Prefix (Name (With_Node))),
              Defining_Identifier => Cunit_Entity);
+
+         Set_Is_Child_Unit (Cunit_Entity);
+
          End_Lab :=
            Make_Designator (No_Location,
              Name => New_Copy_Tree (Prefix (Name (With_Node))),
              Identifier => New_Occurrence_Of (Cunit_Entity, No_Location));
+
       end if;
+
+      Set_Scope (Cunit_Entity, Standard_Standard);
 
       Cunit :=
         Make_Compilation_Unit (No_Location,
@@ -124,6 +134,13 @@ package body Lib.Load is
                   End_Label            => End_Lab)),
           Aux_Decls_Node =>
             Make_Compilation_Unit_Aux (No_Location));
+
+      --  Mark the dummy package as analyzed to prevent analysis of this
+      --  (non-existent) unit in -gnatQ mode because at the moment the
+      --  structure and attributes of this dummy package does not allow
+      --  a normal analysis of this unit
+
+      Set_Analyzed (Cunit);
 
       Units.Increment_Last;
       Unum := Units.Last;
@@ -159,11 +176,28 @@ package body Lib.Load is
    ----------------
 
    procedure Initialize is
-      Fname : File_Name_Type;
-
    begin
       Units.Init;
       Load_Stack.Init;
+   end Initialize;
+
+   ------------------------
+   -- Initialize_Version --
+   ------------------------
+
+   procedure Initialize_Version (U : Unit_Number_Type) is
+   begin
+      Units.Table (U).Version := Source_Checksum (Source_Index (U));
+   end Initialize_Version;
+
+   ----------------------
+   -- Load_Main_Source --
+   ----------------------
+
+   procedure Load_Main_Source is
+      Fname : File_Name_Type;
+
+   begin
       Load_Stack.Increment_Last;
       Load_Stack.Table (Load_Stack.Last) := Main_Unit;
 
@@ -203,16 +237,7 @@ package body Lib.Load is
            Unit_Name       => No_Name,
            Version         => Source_Checksum (Main_Source_File));
       end if;
-   end Initialize;
-
-   ------------------------
-   -- Initialize_Version --
-   ------------------------
-
-   procedure Initialize_Version (U : Unit_Number_Type) is
-   begin
-      Units.Table (U).Version := Source_Checksum (Source_Index (U));
-   end Initialize_Version;
+   end Load_Main_Source;
 
    ---------------
    -- Load_Unit --
@@ -233,11 +258,10 @@ package body Lib.Load is
       Unump        : Unit_Number_Type;
       Fname        : File_Name_Type;
       Src_Ind      : Source_File_Index;
-      Discard      : List_Id;
 
       procedure Set_Load_Unit_Dependency (U : Unit_Number_Type);
       --  Sets the Dependent_Unit flag unless we have a predefined unit
-      --  being loaded in No_Run_Time mode. In this case we do not want
+      --  being loaded in High_Integrity_Mode. In this case we do not want
       --  to create a dependency, since we have loaded the unit only
       --  to inline stuff from it. If this is not the case, an error
       --  message will be issued in Rtsfind in any case.
@@ -248,19 +272,18 @@ package body Lib.Load is
 
       procedure Set_Load_Unit_Dependency (U : Unit_Number_Type) is
       begin
-         --  Differentiate between pragma No_Run_Time (that can be used
-         --  with a standard installation), and HI-E mode which comes
+         --  Differentiate between pragma No_Run_Time mode (that can be
+         --  used with a standard installation), and HI-E mode which comes
          --  with a special installation.
-         --
-         --  For No_Run_Time mode, we do not want to create a dependency
-         --  since the binder would generate references to these units.
-         --  In the case of HI-E, a special run time is provided that do
-         --  not have any elaboration, so it is safe (and useful) to add
-         --  the dependency. In particular, this allows the user to
-         --  recompile run time units, e.g GNAT.IO.
 
-         if No_Run_Time
-           and then not High_Integrity_Mode_On_Target
+         --  For Configurable_Run_Time_Mode set by a pragma, we do not want to
+         --  create a dependency since the binder would generate references to
+         --  these units. In the case of configurable run-time, we do want to
+         --  establish this dependency.
+
+         if Configurable_Run_Time_Mode
+           and then not Configurable_Run_Time_On_Target
+           and then not Debug_Flag_YY
            and then Is_Internal_File_Name (Unit_File_Name (U))
          then
             null;
@@ -367,9 +390,11 @@ package body Lib.Load is
 
       --  Capture error location if it is for the main unit. The idea is to
       --  post errors on the main unit location, not the most recent unit.
+      --  Note: Unit_Name (Main_Unit) is not set if we are parsing gnat.adc.
 
-      if Present (Error_Node) then
-
+      if Present (Error_Node)
+        and then Unit_Name (Main_Unit) /= No_Name
+      then
          --  It seems like In_Extended_Main_Source_Unit (Error_Node) would
          --  do the trick here, but that's wrong, it is much too early to
          --  call this routine. We are still in the parser, and the required
@@ -494,9 +519,15 @@ package body Lib.Load is
          --  legitimately occurs (e.g. two package bodies that contain
          --  inlined subprogram referenced by the other).
 
+         --  Ada0Y (AI-50217): We also ignore limited_with clauses, because
+         --  their purpose is precisely to create legal circular structures.
+
          if Loading (Unum)
            and then (Is_Spec_Name (Units.Table (Unum).Unit_Name)
                        or else Acts_As_Spec (Units.Table (Unum).Cunit))
+           and then (Nkind (Error_Node) /= N_With_Clause
+                       or else not Limited_Present (Error_Node))
+
          then
             if Debug_Flag_L then
                Write_Str ("  circular dependency encountered");
@@ -566,7 +597,7 @@ package body Lib.Load is
             --  Parse the new unit
 
             Initialize_Scanner (Unum, Source_Index (Unum));
-            Discard := Par (Configuration_Pragmas => False);
+            Discard_List (Par (Configuration_Pragmas => False));
             Set_Loading (Unum, False);
 
             --  If spec is irrelevant, then post errors and quit
@@ -657,14 +688,11 @@ package body Lib.Load is
 
    procedure Make_Instance_Unit (N : Node_Id) is
       Sind : constant Source_File_Index := Source_Index (Main_Unit);
-
    begin
       Units.Increment_Last;
-
       Units.Table (Units.Last)               := Units.Table (Main_Unit);
       Units.Table (Units.Last).Cunit         := Library_Unit (N);
       Units.Table (Units.Last).Generate_Code := True;
-
       Units.Table (Main_Unit).Cunit          := N;
       Units.Table (Main_Unit).Unit_Name      :=
         Get_Body_Name (Unit_Name (Get_Cunit_Unit_Number (Library_Unit (N))));
@@ -682,7 +710,6 @@ package body Lib.Load is
    is
       Sunit : constant Node_Id := Cunit (Spec_Unit);
       Bunit : constant Node_Id := Cunit (Body_Unit);
-
    begin
       --  The spec is irrelevant if the body is a subprogram body, and the
       --  spec is other than a subprogram spec or generic subprogram spec.
@@ -694,7 +721,6 @@ package body Lib.Load is
          Nkind (Unit (Bunit)) = N_Subprogram_Body
            and then Nkind (Unit (Sunit)) /= N_Subprogram_Declaration
            and then Nkind (Unit (Sunit)) /= N_Generic_Subprogram_Declaration;
-
    end Spec_Is_Irrelevant;
 
    --------------------
@@ -704,12 +730,13 @@ package body Lib.Load is
    procedure Version_Update (U : Node_Id; From : Node_Id) is
       Unum  : constant Unit_Number_Type := Get_Cunit_Unit_Number (U);
       Fnum  : constant Unit_Number_Type := Get_Cunit_Unit_Number (From);
-
    begin
-      Units.Table (Unum).Version :=
-        Units.Table (Unum).Version
-          xor
-        Source_Checksum (Source_Index (Fnum));
+      if Source_Index (Fnum) /= No_Source_File then
+         Units.Table (Unum).Version :=
+           Units.Table (Unum).Version
+             xor
+              Source_Checksum (Source_Index (Fnum));
+      end if;
    end Version_Update;
 
    ----------------------------

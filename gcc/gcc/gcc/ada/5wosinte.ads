@@ -6,8 +6,7 @@
 --                                                                          --
 --                                  S p e c                                 --
 --                                                                          --
---                                                                          --
---         Copyright (C) 1997-2001, Free Software Foundation, Inc.          --
+--         Copyright (C) 1997-2003, Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNARL is free software; you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -47,6 +46,8 @@ with Interfaces.C.Strings;
 package System.OS_Interface is
 pragma Preelaborate;
 
+   pragma Linker_Options ("-mthreads");
+
    subtype int  is Interfaces.C.int;
    subtype long is Interfaces.C.long;
 
@@ -63,7 +64,6 @@ pragma Preelaborate;
    --  (See Operations.Clock)
 
    type LARGE_INTEGER is delta 1.0 range -2.0**63 .. 2.0**63 - 1.0;
-   for LARGE_INTEGER'Alignment use 4;
 
    subtype PSZ   is Interfaces.C.Strings.chars_ptr;
    subtype PCHAR is Interfaces.C.Strings.chars_ptr;
@@ -184,6 +184,9 @@ pragma Preelaborate;
 
    type Thread_Body is access
      function (arg : System.Address) return System.Address;
+
+   procedure SwitchToThread;
+   pragma Import (Stdcall, SwitchToThread, "SwitchToThread");
 
    -----------------------
    -- Critical sections --
@@ -399,6 +402,11 @@ pragma Preelaborate;
      (hProcess        : HANDLE;
       dwPriorityClass : DWORD) return BOOL;
    pragma Import (Stdcall, SetPriorityClass, "SetPriorityClass");
+
+   procedure SetThreadPriorityBoost
+     (hThread              : HANDLE;
+      DisablePriorityBoost : BOOL);
+   pragma Import (Stdcall, SetThreadPriorityBoost, "SetThreadPriorityBoost");
 
    Normal_Priority_Class   : constant := 16#00000020#;
    Idle_Priority_Class     : constant := 16#00000040#;

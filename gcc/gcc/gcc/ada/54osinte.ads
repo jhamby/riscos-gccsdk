@@ -6,8 +6,7 @@
 --                                                                          --
 --                                  S p e c                                 --
 --                                                                          --
---                                                                          --
---            Copyright (C) 2000-2001 Ada Core Technologies, Inc.           --
+--            Copyright (C) 2000-2003 Ada Core Technologies, Inc.           --
 --                                                                          --
 -- GNARL is free software; you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -27,9 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
--- GNARL was developed by the GNARL team at Florida State University. It is --
--- now maintained by Ada Core Technologies Inc. in cooperation with Florida --
--- State University (http://www.gnat.com).                                  --
+-- GNARL was developed by the GNARL team at Florida State University.       --
+-- Extensive contributions were provided by Ada Core Technologies, Inc.     --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -158,6 +156,8 @@ package System.OS_Interface is
    end record;
    pragma Convention (C, struct_sigaction);
    type struct_sigaction_ptr is access all struct_sigaction;
+
+   SA_SIGINFO : constant := 16#0008#;
 
    SIG_BLOCK   : constant := 1;
    SIG_UNBLOCK : constant := 2;
@@ -293,7 +293,7 @@ package System.OS_Interface is
    function sigwait
      (set : access sigset_t;
       sig : access Signal) return int;
-   pragma Import (C, sigwait, "sigwait");
+   pragma Import (C, sigwait, "__posix_sigwait");
 
    function pthread_kill
      (thread : pthread_t;

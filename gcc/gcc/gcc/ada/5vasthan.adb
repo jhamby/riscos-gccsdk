@@ -6,8 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                                                                          --
---          Copyright (C) 1996-2002 Free Software Foundation, Inc.          --
+--          Copyright (C) 1996-2004 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -39,6 +38,7 @@ with System; use System;
 with System.IO;
 
 with System.Machine_Code;
+with System.Parameters;
 with System.Storage_Elements;
 
 with System.Tasking;
@@ -64,6 +64,7 @@ package body System.AST_Handling is
 
    package ATID renames Ada.Task_Identification;
 
+   package SP   renames System.Parameters;
    package ST   renames System.Tasking;
    package STR  renames System.Tasking.Rendezvous;
    package STI  renames System.Tasking.Initialization;
@@ -87,23 +88,23 @@ package body System.AST_Handling is
    --  All nested locks must be released before other tasks competing for the
    --  tasking lock are released.
 
-   ---------------
+   --------------
    -- Lock_AST --
-   ---------------
+   --------------
 
    procedure Lock_AST (Self_ID : ST.Task_ID) is
    begin
       STI.Defer_Abort_Nestable (Self_ID);
-      STPO.Write_Lock (AST_Lock'Access);
+      STPO.Write_Lock (AST_Lock'Access, Global_Lock => True);
    end Lock_AST;
 
-   -----------------
+   ----------------
    -- Unlock_AST --
-   -----------------
+   ----------------
 
    procedure Unlock_AST (Self_ID : ST.Task_ID) is
    begin
-      STPO.Unlock (AST_Lock'Access);
+      STPO.Unlock (AST_Lock'Access, Global_Lock => True);
       STI.Undefer_Abort_Nestable (Self_ID);
    end Unlock_AST;
 
@@ -135,6 +136,10 @@ package body System.AST_Handling is
 
    type Descriptor_Type is new SSE.Storage_Array (1 .. 48);
    for  Descriptor_Type'Alignment use Standard'Maximum_Alignment;
+   pragma Warnings (Off, Descriptor_Type);
+   --  Suppress harmless warnings about alignment.
+   --  Should explain why this warning is harmless ???
+
    type Descriptor_Ref is access all Descriptor_Type;
 
    --  Normally, there is only one such descriptor for a given procedure, but
@@ -315,6 +320,7 @@ package body System.AST_Handling is
 
    procedure Allocate_New_AST_Server is
       Dummy : AST_Server_Task_Ptr;
+      pragma Unreferenced (Dummy);
 
    begin
       if Num_AST_Servers = Max_AST_Servers then
@@ -369,6 +375,11 @@ package body System.AST_Handling is
          Unlock_AST (Self_Id);
 
          STI.Defer_Abort (Self_Id);
+
+         if SP.Single_Lock then
+            STPO.Lock_RTS;
+         end if;
+
          STPO.Write_Lock (Self_Id);
 
          Is_Waiting (Num) := True;
@@ -378,6 +389,10 @@ package body System.AST_Handling is
          Self_Id.Common.State := ST.Runnable;
 
          STPO.Unlock (Self_Id);
+
+         if SP.Single_Lock then
+            STPO.Unlock_RTS;
+         end if;
 
          --  If the process is finalizing, Undefer_Abort will simply end
          --  this task.
@@ -414,21 +429,24 @@ package body System.AST_Handling is
                  (Acceptor           => To_ST_Task_Id (Taskid),
                   E                  => ST.Task_Entry_Index (Entryno),
                   Uninterpreted_Data => P'Address);
+
             exception
                when E : others =>
                   System.IO.Put_Line ("%Debugging event");
                   System.IO.Put_Line (Exception_Name (E) &
                     " raised when trying to deliver an AST.");
+
                   if Exception_Message (E)'Length /= 0 then
                      System.IO.Put_Line (Exception_Message (E));
                   end if;
+
                   System.IO.Put_Line ("Task type is " & "Receiver_Type");
                   System.IO.Put_Line ("Task id is " & ATID.Image (Taskid));
             end;
+
             Lock_AST (Self_Id);
          end loop;
       end loop;
-
    end AST_Server_Task;
 
    ------------------------
@@ -437,8 +455,7 @@ package body System.AST_Handling is
 
    function Create_AST_Handler
      (Taskid  : ATID.Task_Id;
-      Entryno : Natural)
-      return    System.Aux_DEC.AST_Handler
+      Entryno : Natural) return System.Aux_DEC.AST_Handler
    is
       Attr_Ref : Attribute_Handle;
 
@@ -448,7 +465,7 @@ package body System.AST_Handling is
       function To_Descriptor_Ref is new Ada.Unchecked_Conversion
         (AST_Handler, Descriptor_Ref);
 
-      Original_Descriptor_Ref : Descriptor_Ref :=
+      Original_Descriptor_Ref : constant Descriptor_Ref :=
                                   To_Descriptor_Ref (Process_AST_Ptr);
 
    begin
@@ -505,6 +522,7 @@ package body System.AST_Handling is
       Actual_Number     : out Natural;
       Total_Number      : out Natural)
    is
+      pragma Unreferenced (Requested_Packets);
    begin
       --  The AST implementation of GNAT does not permit dynamic expansion
       --  of the pool, so we simply add no entries and return the total. If
@@ -547,9 +565,13 @@ package body System.AST_Handling is
          Entryno => Handler_Data_Ptr.Entryno,
          Param   => Param);
 
-      --  ??? What is the protection of this variable ?
-      --  It seems that trying to use any lock in this procedure will get
-      --  an ACCVIO.
+      --  OpenVMS Programming Concepts manual, chapter 8.2.3:
+      --  "Implicit synchronization can be achieved for data that is shared
+      --   for write by using only AST routines to write the data, since only
+      --   one AST can be running at any one time."
+
+      --  This subprogram runs at AST level so is guaranteed to be
+      --  called sequentially at a given access level.
 
       AST_Service_Queue_Put := AST_Service_Queue_Put + 1;
 
@@ -563,10 +585,8 @@ package body System.AST_Handling is
             Is_Waiting (J) := False;
 
             --  Sleeps are handled by ASTs on VMS, so don't call Wakeup.
-            --  ??? We should lock AST_Task_Ids (J) here. What's the story ?
 
-            STPOD.Interrupt_AST_Handler
-              (To_Address (AST_Task_Ids (J)));
+            STPOD.Interrupt_AST_Handler (To_Address (AST_Task_Ids (J)));
             exit;
          end if;
       end loop;
