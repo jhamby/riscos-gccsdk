@@ -8323,8 +8323,9 @@ grokdeclarator (tree declarator,
 	  {
 	    if (friendp)
 	      {
-		error ("`%s' is neither function nor member function; cannot be declared friend",
-		       IDENTIFIER_POINTER (declarator));
+		if (declarator)
+		  error ("`%s' is neither function nor member function; cannot be declared friend",
+			 IDENTIFIER_POINTER (declarator));
 		friendp = 0;
 	      }
 	    decl = NULL_TREE;
