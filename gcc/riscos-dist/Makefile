@@ -77,8 +77,6 @@ UTILSPKG = $(pkg)/bin/bison$(exesfx) \
 	$(pkg)/bin/cmp$(exesfx) \
 	$(pkg)/bin/diff$(exesfx) \
 	$(pkg)/bin/diff3$(exesfx) \
-	$(pkg)/bin/egrep$(exesfx) \
-	$(pkg)/bin/fgrep$(exesfx) \
 	$(pkg)/bin/flex$(exesfx) \
 	$(pkg)/bin/gperf$(exesfx) \
 	$(pkg)/bin/grep$(exesfx) \
