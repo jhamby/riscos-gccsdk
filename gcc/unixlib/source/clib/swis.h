@@ -1,10 +1,10 @@
 /****************************************************************************
  *
- * $Source$
- * $Date$
- * $Revision$
- * $State$
- * $Author$
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/swis.h,v $
+ * $Date: 2002/08/18 15:19:06 $
+ * $Revision: 1.1.2.4 $
+ * $State: Exp $
+ * $Author: admin $
  *
  ***************************************************************************/
 
@@ -14,6 +14,8 @@
 #ifndef __UNIXLIB_FEATURES_H
 #include <unixlib/features.h>
 #endif
+
+#include <kernel.h>
 
 __BEGIN_DECLS
 
@@ -483,6 +485,8 @@ __END_DECLS
 
 #define ResourceFS_RegisterFiles       0x041b40
 #define ResourceFS_DeregisterFiles     0x041b41
+
+#define CDFS_ConvertDriveToDevice      0x041e80
 
 #define DragASprite_Start              0x042400
 #define DragASprite_Stop               0x042401

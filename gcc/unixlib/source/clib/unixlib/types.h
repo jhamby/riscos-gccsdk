@@ -1,10 +1,10 @@
 /****************************************************************************
  *
- * $Source: $
- * $Date: $
- * $Revision: $
- * $State: $
- * $Author: $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/unixlib/types.h,v $
+ * $Date: 2002/12/22 18:22:28 $
+ * $Revision: 1.5 $
+ * $State: Exp $
+ * $Author: admin $
  *
  ***************************************************************************/
 
@@ -41,8 +41,8 @@
  * Never include this file directly; use <sys/types.h> instead.
  */
 
-#ifndef	_BITS_TYPES_H
-#define	_BITS_TYPES_H	1
+#ifndef __UNIXLIB_TYPES_H
+#define __UNIXLIB_TYPES_H 1
 
 #include <unixlib/features.h>
 
@@ -54,6 +54,12 @@ typedef unsigned char __u_char;
 typedef unsigned short __u_short;
 typedef unsigned int __u_int;
 typedef unsigned long __u_long;
+
+#ifdef __LCC__
+/* Actually, it's 32 bits in LCC, but this is a work around */+
+typedef long long int __int64;
+#endif
+
 #ifdef __GNUC__
 __extension__
 typedef unsigned long long int __u_quad_t;
@@ -76,7 +82,9 @@ typedef unsigned short int __uint16_t;
 typedef signed int __int32_t;
 typedef unsigned int __uint32_t;
 #ifdef __GNUC__
-typedef signed long long int __int64_t;
+__extension__
+typedef signed long long int __inot64_t;
+__extension__
 typedef unsigned long long int __uint64_t;
 #else
 typedef signed __int64 __int64_t;
@@ -91,7 +99,7 @@ typedef unsigned int __ino_t;	/* Type of file serial numbers.  */
 typedef __quad_t __ino64_t;	/* Type of file serial numbers (LFS).  */
 typedef unsigned int __mode_t;	/* Type of file attribute bitmasks.  */
 typedef unsigned short int __nlink_t; /* Type of file link counts.  */
-typedef long int __off_t;	/* Type of file sizes and offsets.  */
+typedef long long __off_t;	/* Type of file sizes and offsets.  */
 typedef __quad_t __loff_t;	/* Type of file sizes and offsets.  */
 typedef __loff_t __off64_t;	/* Type of file sizes and offsets (LFS).  */
 typedef int __pid_t;		/* Type of process identifications.  */
@@ -102,7 +110,7 @@ typedef long int __rlim_t;	/* Type for resource measurement.  */
 typedef __quad_t __rlim64_t;	/* Type for resource measurement (LFS).  */
 typedef unsigned int __id_t;	/* General type for IDs.  */
 
-/* Everythin' else.  */
+/* Everything else.  */
 typedef long int __daddr_t;	/* The type of a disk address.  */
 typedef char *__caddr_t;
 typedef long int __time_t;
@@ -110,7 +118,6 @@ typedef unsigned int __useconds_t;
 typedef long int __suseconds_t;
 typedef long int __swblk_t;	/* Type of a swap block maybe?  */
 typedef long int __key_t;	/* Type of an IPC key */
-
 
 /* Clock ID used in clock and timer functions.  */
 typedef int __clockid_t;
@@ -168,4 +175,4 @@ typedef long int __intptr_t;
 /* Duplicate info from sys/socket.h.  */
 typedef unsigned int __socklen_t;
 
-#endif /* unixlib/types.h */
+#endif /* __UNIXLIB_TYPES_H */
