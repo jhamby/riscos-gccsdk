@@ -1,7 +1,7 @@
 /* GNU ld implementation as a wrapper to an ARM/RISC OS linker
    for the GNU compiler, with support for the C++ template repository.
 
-   Copyright (C) 1997, 1998, 1999, 2000 Nick Burrett
+   Copyright (C) 1997, 1998, 1999, 2000, 2001 Nick Burrett
    Contributed by Nick Burrett (nick.burrett@btinternet.com)
 
 This file is part of GNU CC.
@@ -1660,11 +1660,19 @@ static void add_input_file (const char *fname)
 
 static void add_output_file (const char *fname)
 {
+#if defined(CROSS_COMPILE) && defined(ENABLE_FILETYPE_FF8)
+  char tmp[256];
+
+  strcpy (tmp, fname);
+  strcat (tmp, ",ff8");
+#else
+  char *tmp = fname;
+#endif
   if (tlink_verbose >= 4)
-    printf ("adding output file %s\n", fname);
+    printf ("adding output file %s\n", tmp);
 
   append_arg (command_line, &command_line_offset, "-o");
-  append_arg (command_line, &command_line_offset, fname);
+  append_arg (command_line, &command_line_offset, tmp);
 }
 
 static void add_option_file (const char *option, const char *fname)
