@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/unixlib/local.h,v $
- * $Date: 2004/01/14 23:16:59 $
- * $Revision: 1.11 $
+ * $Date: 2004/02/07 18:09:18 $
+ * $Revision: 1.12 $
  * $State: Exp $
- * $Author: joty $
+ * $Author: alex $
  *
  * This file should eventually contain most / all of the unixlib specific
  * functions.
@@ -159,7 +159,8 @@ extern int __riscosify_control; /* Note: this is a weak symbol.  */
 
 /* If the filename has a unix-style extension, look up the extension
    using RISC OS MimeMap SWIs and set a filetype.  If the filetype
-   could not be found, use 0xFFF.  */
+   could not be found, use 0xFFF.
+   This is turned on by default - set this bit to turn it off. */
 #define __RISCOSIFY_FILETYPE_NOT_SET    0x4000
 
 /* Mask of acceptable values. Keep other bits zero. Checks may be made.  */

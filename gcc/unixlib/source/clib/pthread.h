@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/pthread.h,v $
- * $Date: 2003/05/07 22:10:26 $
- * $Revision: 1.8 $
+ * $Date: 2003/07/29 23:04:27 $
+ * $Revision: 1.9 $
  * $State: Exp $
- * $Author: alex $
+ * $Author: admin $
  *
  ***************************************************************************/
 
@@ -478,6 +478,10 @@ extern int pthread_equal (pthread_t t1, pthread_t t2);
 extern int pthread_atfork (void (*prepare)(void), void (*parent)(void),
 			   void (*child)(void));
 
+/* Start the callevery interrupt */
+extern void __pthread_start_ticker (void);
+/* Remove the callevery interrupt */
+extern void __pthread_stop_ticker (void);
 
 #ifdef __UNIXLIB_INTERNALS
 
@@ -554,10 +558,6 @@ extern void __pthread_context_switch (void);
 
 /* Assembly functions */
 
-/* Start the callevery interrupt */
-extern void __pthread_start_ticker (void);
-/* Remove the callevery interrupt */
-extern void __pthread_stop_ticker (void);
 /* Prevent the callevery interrupt from initialising a context switch */
 extern int __pthread_disable_ints (void);
 /* Allow the callevery interrupt from initialising a context switch */

@@ -1,3 +1,10 @@
+Sun Feb 29 16:36:30 2004  Alex Waugh  <alex@alexwaugh.com>
+
+	* source/clib/pthread.h: Make __pthread_start/stop_ticker
+	  visible to user programs.
+	* source/clib/unixlib/local.h: Clarify description for
+	  __RISCOSIFY_FILETYPE_NOT_SET.
+
 Mon Feb 23 16:04:06 2004  Peter Naulls  <peter@chocky.org>
 	* source/clib/unixlib/sigstate.h, source/unix/close.c,
 	  source/signal/_coredump.s, source/signal/_signal.s,
