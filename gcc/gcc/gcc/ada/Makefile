@@ -30,15 +30,22 @@ $(adaobj)/%.o: %.adb
 $(adaobj)/%.o: %.ads
 	$(GNATCC) $(CFLAGS) $(ALL_ADAFLAGS) -o $@ -c $< $(INCLUDES)
 
-all: tools
-
 .PHONY: tools
 .PHONY: fixup-targetpairs
 
+ifeq (${STAGE},stage1)
+all: tools
+else
+LIBS += -L$(ux_gcc_bin_dir)/$(TRG) -lgnat
+
+all: tools tools-stg2
+endif
+
 tools:	$(bin_dir)/gnatbl$(gexesfx) \
 	$(bin_dir)/gnatbind$(gexesfx) \
-	fixup-targetpairs \
-	$(ux_gcc_bin_dir)/$(TRG)/libgnat.o \
+	$(gcc_bin_dir)/gnat1$(gexesfx)
+
+tools-stg2: fixup-targetpairs adalib \
 	$(bin_dir)/gnatmake$(gexesfx) \
 	$(bin_dir)/gnatchop$(gexesfx) \
 	$(bin_dir)/gnatcmd$(gexesfx)\
@@ -50,8 +57,6 @@ tools:	$(bin_dir)/gnatbl$(gexesfx) \
 	$(bin_dir)/gnatpsys$(gexesfx) \
 	$(bin_dir)/gnatxref$(gexesfx) \
 	$(bin_dir)/gnatfind$(gexesfx) \
-	$(gcc_bin_dir)/gnat1$(gexesfx) \
-	$(ro_gcc_bin_dir)/$(TRG)/libgnat.o
 
 # Languages-specific object files for Ada.
 # Object files for gnat1 from C sources.
@@ -987,7 +992,7 @@ $(bin_dir)/gnatchop$(gexesfx): $(adaobj)/b_gnatch.o $(GNATCHOP_OBJS)
 	      $(LIBDEPS) $(LIBS)
 
 $(bin_dir)/gnatmake$(gexesfx): $(adaobj)/b_gnatm.o $(GNATMAKE_OBJS)
-	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(adaobj)/b_gnatm.o $(GNATMAKE_OBJS) $(LIBDEPS) $(LIBS)
+	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(adaobj)/b_gnatm.o $(GNATMAKE_OBJS) $(LIBDEPS) -L$(adaobj) -lgnat $(LIBS)
 
 $(adaobj)/gnatbl.o: gnatbl.c adaint.h
 	$(CC) $(CFLAGS) $(INCLUDES) -o $@ -c $<
@@ -1172,10 +1177,24 @@ fixup-targetpairs:
 			cp $(word 2,$(subst <, ,$(PAIR))) \
 			$(word 1,$(subst <, ,$(PAIR)));)
 
+ifeq (${STAGE},stage1)
+adalib:    $(adaobj)/libgnat.a
+
+$(adaobj)/libgnat.a: $(LIBGNAT_OBJS) $(GNATRTL_OBJS)
+	$(AR) $(AR_FLAGS) $@ $(LIBGNAT_OBJS) $(GNATRTL_OBJS)
+
+else
+adalib:    $(ux_gcc_bin_dir)/$(TRG)/libgnat.o \
+	$(ro_gcc_bin_dir)/$(TRG)/o/libgnat
+
 $(ux_gcc_bin_dir)/$(TRG)/libgnat.o: $(LIBGNAT_OBJS) $(GNATRTL_OBJS)
 	$(CROSS_AR) $(CROSS_AR_FLAGS) -c $@ $(LIBGNAT_OBJS) $(GNATRTL_OBJS)
 
 $(ro_gcc_bin_dir)/$(TRG)/o/libgnat: $(LIBGNAT_OBJS) $(GNATRTL_OBJS)
 	$(CROSS_AR) $(CROSS_AR_FLAGS) -c $@ $(LIBGNAT_OBJS) $(GNATRTL_OBJS)
+
+endif
+
+
 
 $(adaobj)/adaint.o: adaint.c
