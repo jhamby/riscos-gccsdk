@@ -1,10 +1,10 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/signal/_signal.s,v $
-; $Date: 2004/06/12 08:59:48 $
-; $Revision: 1.20 $
+; $Date: 2004/09/07 14:05:11 $
+; $Revision: 1.21 $
 ; $State: Exp $
-; $Author: peter $
+; $Author: joty $
 ;
 ;----------------------------------------------------------------------------
 
@@ -598,9 +598,8 @@ Internet_Event	EQU	19
 
 return_quickly
 	ADR	lr, |__cbreg|
-	TEQ	pc, pc
-	LDREQ	a1, [lr, #16*4]
-	MSREQ	SPSR_cxsf, a1
+	LDR	a1, [lr, #16*4]
+	MSR	SPSR_cxsf, a1
 	LDMIA	lr, {a1-lr}^
 	MOV	a1, a1
 	LDR	lr, [lr, #15*4]
@@ -677,8 +676,7 @@ return_quickly
 				; another callback
 	MOV	lr, a1
 	LDR	a1, [lr], #4	; Get user PSR
-	TEQ	pc, pc
-	MSREQ	SPSR_cxsf, a1	; Put it into SPSR_SVC/IRQ
+	MSR	SPSR_cxsf, a1	; Put it into SPSR_SVC/IRQ
 	LDMIA	lr, {a1, a2, a3, a4, v1, v2, v3, v4, v5, v6, sl, fp, ip, sp, lr}^
 	MOV	a1, a1
 	LDR	lr, [lr, #15*4]	; Load the old PC value

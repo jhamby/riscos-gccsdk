@@ -1,10 +1,10 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/_longlong.s,v $
-; $Date: 2003/04/21 16:04:01 $
-; $Revision: 1.1 $
+; $Date: 2004/08/16 21:40:59 $
+; $Revision: 1.2 $
 ; $State: Exp $
-; $Author: peter $
+; $Author: joty $
 ;
 ;----------------------------------------------------------------------------
 
@@ -744,7 +744,7 @@ _ll_sto_f_preload_exponent
 	SUBEQ	a4, a4, #2		; - no, we have 2 more zero leading bits,
 	MOVEQS  a2, a2, LSL #2		;   move a2 2 bits to the left and updates N as a2 & (1<<31)
 					; - yes, note that N is also a2 & (1<<31)
-					;Highest bit set (= look at N) ?
+				  	;Highest bit set (= look at N) ?
 	MOVPL	a2, a2, LSL #1		; - no, we have 1 more zero leading bit
 	SUBPL	a4, a4, #1		;   and move a2 1 bit to the left
 					;Bit 31 of a2 is garanteed set
@@ -758,33 +758,211 @@ _ll_sto_f_preload_exponent
 	ADD	a1, a3, a2, LSR#8	;a1 = sign<<31 + (&7F + # meaningful bits before dot - 1)<<23 + fraction
 	return	AL, pc, lr
 
-; *** FIXME ***
-;	; uint64_t _ll_ufrom_d(double a)
-;	;  { return (uint64_t)a; }
-;	EXPORT	|_ll_ufrom_d|
-;	NAME	_ll_ufrom_d
-;|_ll_ufrom_d|
+	; uint64_t _ll_ufrom_d(double a)
+	;  { return (uint64_t)a; }
+	EXPORT	|_ll_ufrom_d|
+	NAME	_ll_ufrom_d
+|_ll_ufrom_d|
+	MOV	r2, r0, lsr #20		; r2 = exponent
+	BIC	r0, r0, r2, lsl #20	; r0 = fraction
 
-; *** FIXME ***
-;	; int64_t _ll_sfrom_d(double a)
-;	;  { return (int64_t)a; }
-;	EXPORT	|_ll_sfrom_d|
-;	NAME	_ll_sfrom_d
-;|_ll_sfrom_d|
+	MOVS	r3, r2, lsl #20		; Check for sign=1 or exponent=0
+	MOVLE	r0, #0			; ...in which case return 0
+	MOVLE	r1, #0
+	return	LE, pc, lr
 
-; *** FIXME ***
-;	; uint64_t _ll_ufrom_f(float a)
-;	;  { return (uint64_t)a; }
-;	EXPORT	|_ll_ufrom_f|
-;	NAME	_ll_ufrom_f
-;|_ll_ufrom_f|
+	SUB	r2, r2, #1024		; Adjust exponent (really this should be 1023, but that'd take two instructions)
+	CMP	r2, #62			; Maximum exponent we can allow is 63, since 2^64 would overflow
+	MVNGT	r0, #0
+	MVNGT	r1, #0			; unsigned +infinity
+	return	GT, pc, lr
 
-; *** FIXME ***
-;	; int64_t _ll_sfrom_f(float a)
-;	;  { return (int64_t)a; }
-;	EXPORT	|_ll_sfrom_f|
-;	NAME	_ll_sfrom_f
-;|_ll_sfrom_f|
+	; Else exponent is in range
+	SUBS	r2, r2, #19+32		; Adjust again so that the 1 bit will lie in bit 0 of r0
+	ORR	r0, r0, #&100000	; Add the 1 bit
+	BGE	_ll_ufrom_d_left	; Need to shift left
+
+	; Else shift right
+	RSB	r2, r2, #0
+	MOV	r1, r1, lsr r2		; Shift lower word
+	; Now add overlapping bits from upper word
+	RSBS	r2, r2, #32
+	ORRGE	r1, r1, r0, lsl r2
+	RSBLT	r2, r2, #0
+	ORRLT	r1, r1, r0, lsr r2
+	RSBLT	r2, r2, #0
+	RSB	r2, r2, #32
+	MOV	r2, r0, lsr r2		; And shift upper word
+
+	; return (completing word order swap started above)
+	MOV	r0, r1
+	MOV	r1, r2
+	return	AL, pc, lr
+
+_ll_ufrom_d_left
+	MOV	r0, r0, lsl r2		; Shift upper word
+	; now add overlapping bits from lower word
+	RSB	r2, r2, #32
+	ORR	r0, r0, r1, lsr r2
+	RSB	r2, r2, #32
+	MOV	r2, r1, lsl r2		; shift lower word
+
+	; return (completing word order swap started above)
+	MOV	r1, r0
+	MOV	r0, r2
+	return	AL, pc, lr
+
+	; int64_t _ll_sfrom_d(double a)
+	;  { return (int64_t)a; }
+	EXPORT	|_ll_sfrom_d|
+	NAME	_ll_sfrom_d
+|_ll_sfrom_d|
+	MOV	r3, r0, lsr #31		; r3 = sign bit
+	MOV	r2, r0, lsr #20		; r2 = exponent
+	BIC	r0, r0, r2, lsl #20	; r0 = fraction
+	BICS	r2, r2, #&800		; Clear sign bit from exponent and check for exponent of 0
+	MOVEQ	r0, #0			; If the exponent was 0, return 0
+	MOVEQ	r1, #0			; (Handles cases where fraction == 0 and so number=0, or fraction != 0 and so number=0.fraction*2^-1022 (i.e. very small indeed))
+	return	EQ, pc, lr
+
+	SUB	r2, r2, #1024		; Adjust exponent (really this should be 1023, but that'd take two instructions)
+	CMP	r2, #61			; Maximum exponent we can allow is 62, since 2^63 would overflow into the sign slot and result in -1
+	BGT	_ll_sfrom_d_big
+
+	; Else exponent is in range
+	SUBS	r2, r2, #19+32		; Adjust again so that the 1 bit will lie in bit 0 of r0
+	ORR	r0, r0, #&100000	; Add the 1 bit
+	BGE	_ll_sfrom_d_left		; Need to shift left
+
+	; Else shift right
+	RSB	r2, r2, #0
+	MOV	r1, r1, lsr r2		; Shift lower word
+	; Now add overlapping bits from upper word
+	RSBS	r2, r2, #32
+	ORRGE	r1, r1, r0, lsl r2
+	RSBLT	r2, r2, #0
+	ORRLT	r1, r1, r0, lsr r2
+	RSBLT	r2, r2, #0
+	RSB	r2, r2, #32
+	MOV	r2, r0, lsr r2		; And shift upper word (And start a word swap using r2 as temp, since r1 and r0 are currently the wrong way round)
+
+	; return
+	CMP	r3, #0			; Negative ?
+	MOVEQ	r0, r1			; Finish word swap
+	MOVEQ	r1, r2
+	return	EQ, pc, lr
+	RSBS	r0, r1, #0
+	RSC	r1, r2, #0
+	return	AL, pc, lr
+
+_ll_sfrom_d_left
+	MOV	r0, r0, lsl r2		; Shift upper word
+	; now add overlapping bits from lower word
+	RSB	r2, r2, #32
+	ORR	r0, r0, r1, lsr r2
+	RSB	r2, r2, #32
+	MOV	r2, r1, lsl r2		; shift lower word
+
+	; return
+	CMP	r3, #0			; Negative ?
+	MOVEQ	r1, r0			; complete word order swap started above
+	MOVEQ	r0, r2
+	return	EQ, pc, lr
+	RSBS	r2, r2, #0
+	RSC	r1, r0, #0
+	MOV	r0, r2
+	return	AL, pc, lr
+
+	; For big numbers, including infinity
+_ll_sfrom_d_big
+	CMP	r3, #0
+	MVNEQ	r0, #0
+	MVNEQ	r1, #1<<31		; signed +infinity
+	MOVNE	r0, #0
+	MOVNE	r1, #1<<31		; signed -infinity
+	return	AL, pc, lr
+
+	; uint64_t _ll_ufrom_f(float a)
+	;  { return (uint64_t)a; }
+	EXPORT	|_ll_ufrom_f|
+	NAME	_ll_ufrom_f
+|_ll_ufrom_f|
+	MOV	r2, r0, lsr #23		; r2 = exponent
+	BIC	r0, r0, r2, lsl #23	; r0 = fraction
+	MOVS	r1, r2, lsl #23		; Check for sign=1 or exponent=0
+	MOVLE	r0, #0			; ...in which case return 0
+	MOVLE	r1, #0
+	return	LE, pc, lr
+
+	CMP	r2, #190		; Maximum exponent we can allow is 63, since 2^64 would overflow. Tracing that back results in an r2 of 63+127 = 190
+	MVNGT	r0, #0
+	MVNGT	r1, #0			; unsigned +infinity
+	return	GT, pc, lr
+
+	; Else exponent >0 and <191, so treat as 1.fraction*2^(exponent-127)
+	ORR	r1, r0, #&800000	; Add the implicit 1 to the fraction
+	SUBS	r2, r2, #127+23		; Adjust exponent to give us hiw far we need to shift
+
+	; Calculate the low word
+	MOVGE	r0, r1, lsl r2
+	RSBLT	r2, r2, #0
+	MOVLT	r0, r1, lsr r2
+	RSBLT	r2, r2, #0
+
+	; Calculate the high word
+	SUBS	r2, r2, #32
+	MOVGE	r1, r1, lsl r2
+	RSBLT	r2, r2, #0
+	MOVLT	r1, r1, lsr r2
+
+	return	AL, pc, lr
+
+	; int64_t _ll_sfrom_f(float a)
+	;  { return (int64_t)a; }
+	EXPORT	|_ll_sfrom_f|
+	NAME	_ll_sfrom_f
+|_ll_sfrom_f|
+	MOV	r3, r0, lsr #31		; r3 = sign bit
+	MOV	r2, r0, lsr #23		; r2 = exponent
+	BIC	r0, r0, r2, lsl #23	; r0 = fraction
+	ANDS	r2, r2, #255		; Clear sign bit from exponent, and check for an exponent of 0
+	MOVEQ	r0, #0			; If the exponent was 0, return 0
+	MOVEQ	r1, #0			; (Handles cases where fraction == 0 and so number=0, or fraction != 0 and so number=0.fraction*2^-126 (i.e. very small indeed))
+	return	EQ, pc, lr
+
+	CMP	r2, #189		; Maximum exponent we can allow is 62, since 2^63 would overflow into the sign slot and result in -1. Tracing that back results in an r2 of 62+127 = 189
+	BGT	_ll_sfrom_f_big
+
+	; Else exponent >0 and <190, so treat as 1.fraction*2^(exponent-127)
+	ORR	r1, r0, #&800000	; Add the implicit 1 to the fraction
+	SUBS	r2, r2, #127+23		; Adjust exponent to give us hiw far we need to shift
+
+	; Calculate the low word
+	MOVGE	r0, r1, lsl r2
+	RSBLT	r2, r2, #0
+	MOVLT	r0, r1, lsr r2
+	RSBLT	r2, r2, #0
+
+	; Calculate the high word
+	SUBS	r2, r2, #32
+	MOVGE	r1, r1, lsl r2
+	RSBLT	r2, r2, #0
+	MOVLT	r1, r1, lsr r2
+
+	; Check sign
+	CMP	r3, #0
+	return	EQ, pc, r14		; Return if positive
+	RSBS	r0, r0, #0		; Or negate
+	RSC	r1, r1, #0
+	return	AL, pc, lr
+
+	; For big numbers, including infinity
+_ll_sfrom_f_big
+	CMP	r3, #0
+	MVNEQ	r0, #0
+	MVNEQ	r1, #1<<31		; signed +infinity
+	MOVNE	r0, #0
+	MOVNE	r1, #1<<31		; signed -infinity
+	return	AL, pc, lr
 
 	END
-

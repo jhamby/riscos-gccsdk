@@ -1,8 +1,8 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/pthread/_ints.s,v $
-; $Date: 2003/11/23 20:26:45 $
-; $Revision: 1.4 $
+; $Date: 2004/09/07 14:05:11 $
+; $Revision: 1.5 $
 ; $State: Exp $
 ; $Author: joty $
 ;
@@ -51,8 +51,8 @@
 	LDR	a1, [a2]
 	[ PARANOID = 1
 	CMP	a1, #0
-	ADRLS	a1, |semazero|
-	BLS	|__pthread_fatal_error|
+	ADRLE	a1, |semazero|
+	BLE	|__pthread_fatal_error|
 	]
 	SUB	a1, a1, #1
 	STR	a1, [a2]

@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/unixlib/sigstate.h,v $
- * $Date: 2004/02/23 16:07:28 $
- * $Revision: 1.5 $
+ * $Date: 2004/09/07 14:05:10 $
+ * $Revision: 1.6 $
  * $State: Exp $
- * $Author: peter $
+ * $Author: joty $
  *
  ***************************************************************************/
 
@@ -69,7 +69,7 @@ extern void __write_unrecoverable(const char *errmess);
 
 /* Returns non-zero value when address range __lower - __upper (excl) is
    a valid address range.  */
-extern int valid_address (int *__lower, int *__upper);
+extern int valid_address (const int *__lower, const int *__upper);
 
 /* SIGALRM handler.  */
 extern void __h_sigalrm_init (void);

@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/unixlib/unix.h,v $
- * $Date: 2004/06/12 08:59:47 $
- * $Revision: 1.15 $
+ * $Date: 2004/09/07 14:05:10 $
+ * $Revision: 1.16 $
  * $State: Exp $
- * $Author: peter $
+ * $Author: joty $
  *
  * UNIX is a registered trademark of AT&T Bell Laboratories
  *
@@ -119,8 +119,8 @@ struct proc
      These could change at any time.  */
   volatile int sleeping, orphaned, stopped;
   jmp_buf vreg;  /* Process context.  */
-  /* UGLY HACK: We store cli malloc pointer here prior to calling child
-     process.  The malloc store is then freed in __exret.  */
+  /* UGLY HACK: In execve() we store cli malloc pointer prior to calling
+     child process.  The malloc store is then freed in __exret().  */
   void *cli;
   /* DDEUtils_Prefix value at the beginning of this process.  */
   const char *dde_prefix;
@@ -156,13 +156,14 @@ extern void __exit (int __returncode) __attribute__ ((__noreturn__));
 extern void __exit_no_code (void) __attribute__ ((__noreturn__));
 
 /* __unixlib_break is initialised to __image_rw_lomem & __unixlib_stack to
- * __image_rw_himem - STAKSIZ;
- * __unixlib_stack is extended downwards in chunks by x$stack_overflow()
- * and __unixlib_break is extended upwards by brk() and sbrk(). The sl
- * register is kept equal to __unixlib_stack + 512. Should x$stack_overflow()
- * attempt to extend __unixlib_stack below __unixlib_break then SIGEMT is raised.
- * Should brk() or sbrk() be asked to extend __unixlib_break above
- * __unixlib_stack then they return with ENOMEM. */
+   __image_rw_himem - STAKSIZ;
+   __unixlib_stack is extended downwards in chunks by x$stack_overflow()
+   and __unixlib_break is extended upwards by brk() and sbrk(). The sl
+   register is kept equal to __unixlib_stack + 512. Should x$stack_overflow()
+   attempt to extend __unixlib_stack below __unixlib_break then SIGEMT is
+   raised.
+   Should brk() or sbrk() be asked to extend __unixlib_break above
+   __unixlib_stack then they return with ENOMEM.  */
 
 extern char *__unixlib_cli;		/* command line from OS_GetEnv */
 extern void *__image_ro_base;		/* BASE = Image$$RO$$Base */
@@ -191,15 +192,15 @@ extern int __32bit;
 
 extern unsigned int __time[2];	/* start time */
 
-#define __OS_ARTHUR	0xA0
-#define __OS_RISCOS_200 0xA1
-#define __OS_RISCOS_201 0xA2
-#define __OS_RISCOS_300 0xA3
-#define __OS_RISCOS_310 0xA4
-#define __OS_RISCOS_350	0xA5
-#define	__OS_RISCOS_360 0xA6
-#define __OS_RISCOS_370 0xA7
-#define __OS_RISCOS_400 0xA8
+#define	__OS_ARTHUR	0xA0
+#define	__OS_RISCOS_200	0xA1
+#define	__OS_RISCOS_201	0xA2
+#define	__OS_RISCOS_300	0xA3
+#define	__OS_RISCOS_310	0xA4
+#define	__OS_RISCOS_350	0xA5
+#define	__OS_RISCOS_360	0xA6
+#define	__OS_RISCOS_370	0xA7
+#define	__OS_RISCOS_400	0xA8
 
 /* FP flag reflecting Floating Point presence or not.  */
 extern int __fpflag;

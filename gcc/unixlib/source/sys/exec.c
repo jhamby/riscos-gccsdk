@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/exec.c,v $
- * $Date: 2004/06/12 08:59:49 $
- * $Revision: 1.12 $
+ * $Date: 2004/09/07 14:05:11 $
+ * $Revision: 1.13 $
  * $State: Exp $
- * $Author: peter $
+ * $Author: joty $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: exec.c,v 1.12 2004/06/12 08:59:49 peter Exp $";
+static const char rcs_id[] = "$Id: exec.c,v 1.13 2004/09/07 14:05:11 joty Exp $";
 #endif
 
 #include <ctype.h>
@@ -32,11 +32,7 @@ static const char rcs_id[] = "$Id: exec.c,v 1.12 2004/06/12 08:59:49 peter Exp $
 
 /* #define DEBUG 1 */
 
-#ifdef DEBUG
 #include <sys/debug.h>
-#include <unixlib/os.h>
-#include <stdio.h>
-#endif
 
 
 #ifdef DEBUG
@@ -130,6 +126,7 @@ set_dde_cli (char *cli)
   /* Skip program name.  */
   for (temp = cli; *temp != '\0' && *temp != ' '; ++temp)
     ;
+  /* We know there is exactly one space after the program name.  */
   if (*temp == ' ')
     ++temp;
 
@@ -147,6 +144,8 @@ set_dde_cli (char *cli)
   regs[0] = (int) temp;
   __os_swi (DDEUtils_SetCL, regs);
 
+  /* As we're now passing the CLI arguments via DDEUtils, the CLI
+     is now reduced to the program name only.  */
   if (*temp != '\0')
     temp[-1] = '\0';		/* terminate cli.  */
 #ifdef DEBUG
@@ -502,7 +501,7 @@ execve (const char *execname, char *const argv[], char *const envp[])
   __os_print ("-- execve: proc->argc="); __os_prhex ((int) process->argc); __os_nl();
 #endif
 
-  /* If the cli is >= MAXPATHLEN, we will need the aid of DDE utils.  */
+  /* If the cli is >= MAXPATHLEN, we will need the aid of DDEUtils.  */
   if (strlen (cli) >= MAXPATHLEN && set_dde_cli (cli) < 0)
     return -1;
 
@@ -512,8 +511,6 @@ execve (const char *execname, char *const argv[], char *const envp[])
   for (x = 0; x < MAXFD; x++)
     if (process->fd[x].__magic == _FDMAGIC && process->fd[x].dflag & O_EXECCL)
       close (x);
-
-  process->status.has_parent = 0;
 
 #ifdef DEBUG
   __debug ("-- execve: process after new argv and envp setup");
@@ -567,11 +564,12 @@ execve (const char *execname, char *const argv[], char *const envp[])
       unsigned int code = __codeshift;
       int i;
 
-      /* Pointers located between __image_ro_base and __unixlib_rwlimit (i.e. the code
-	 section of a program) will be relocated using 'code'.
+      /* Pointers located between __image_ro_base and __unixlib_rwlimit
+	 (i.e. the code section of a program) will be relocated using 'code'.
 
-	 Pointers located between __image_rw_lomem and __unixlib_break (i.e. the data
-	 section of a program) will be relocated using 'variable'.  */
+	 Pointers located between __image_rw_lomem and __unixlib_break
+	 (i.e. the data section of a program) will be relocated using
+	 'variable'.  */
       ushift (process->envp, variable, code);
       for (i = 0; i < process->envc; i++)
 	ushift (process->envp[i], variable, code);

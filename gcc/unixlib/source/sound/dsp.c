@@ -1,8 +1,8 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sound/dsp.c,v $
- * $Date: 2004/09/09 15:34:52 $
- * $Revision: 1.4 $
+ * $Date: 2004/09/12 08:25:52 $
+ * $Revision: 1.5 $
  * $State: Exp $
  * $Author: peter $
  *
@@ -64,7 +64,6 @@ static _kernel_oserror *set_defaults(struct __unixlib_fd *fd, int channels, int 
 
 void *__dspopen (struct __unixlib_fd *fd, const char *file, int mode)
 {
-  int handle;
   _kernel_oserror *err;
 
   IGNORE(file);
@@ -72,8 +71,8 @@ void *__dspopen (struct __unixlib_fd *fd, const char *file, int mode)
 
   fd->handle = NULL;
 
-  __os_cli("RMEnsure DigitalRenderer 0.51 RMload System:Modules.DRenderer");
-  if ((err = __os_cli("RMEnsure DigitalRenderer 0.51 Error Sound support requires DigitalRenderer 0.51 or newer")) != NULL
+  if ((err = __os_cli("RMEnsure DigitalRenderer 0.51 RMLoad System:Modules.DRenderer")) != NULL
+      || (err = __os_cli("RMEnsure DigitalRenderer 0.51 Error Sound support requires DigitalRenderer 0.51 or newer")) != NULL
       || (err = set_defaults(fd, 2, 2, BUFFER_SIZE, 44100)) != NULL)
     {
       __seterr (err);

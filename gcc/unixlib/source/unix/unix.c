@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/unix.c,v $
- * $Date: 2004/09/06 08:40:47 $
- * $Revision: 1.24 $
+ * $Date: 2004/09/07 14:05:11 $
+ * $Revision: 1.25 $
  * $State: Exp $
- * $Author: peter $
+ * $Author: joty $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: unix.c,v 1.24 2004/09/06 08:40:47 peter Exp $";
+static const char rcs_id[] = "$Id: unix.c,v 1.25 2004/09/07 14:05:11 joty Exp $";
 #endif
 
 #include <stdio.h>
@@ -38,14 +38,7 @@ static const char rcs_id[] = "$Id: unix.c,v 1.24 2004/09/06 08:40:47 peter Exp $
 
 /* #define DEBUG 1 */
 
-#ifdef DEBUG
 #include <sys/debug.h>
-#endif
-
-#ifndef __GNUC__
-#undef attribute
-#define attribute(x) /* ignore */
-#endif
 
 void (*__atexit_function_array[__MAX_ATEXIT_FUNCTION_COUNT]) (void);
 int __atexit_function_count = 0;
@@ -138,7 +131,7 @@ void __unixinit (void)
 
 #ifdef DEBUG
   __os_print ("-- __unixinit: __u = "); __os_prhex ((unsigned int) __u);
-  if (__u != NULL && valid_address((int *)&__u[0], (int *)&__u[1]))
+  if (__u != NULL && valid_address((const int *)&__u[0], (const int *)&__u[1]))
     {
       __os_print (", __u->magic="); __os_prhex ((unsigned int) __u->__magic);
     }
@@ -146,7 +139,7 @@ void __unixinit (void)
 #endif
 
   if (__u == NULL
-      || !valid_address((int *)&__u[0], (int *)&__u[1])
+      || !valid_address((const int *)&__u[0], (const int *)&__u[1])
       || __u->__magic != _PROCMAGIC)
     {
 #ifdef DEBUG
@@ -171,10 +164,34 @@ void __unixinit (void)
       /* Define and initialise the Unix I/O.  */
       initialise_unix_io (__u);
       __stdioinit ();
+
+      /* When the DDEUtils module is loaded, we can support chdir() without
+         RISC OS' CSD being changed. When not loaded, chdir() will work by
+         changing CSD for all processes.
+
+         IMPORTANT NOTE: because of bugs in DDEUtils' path processing
+         we don't set DDEUtils_Prefix at the beginning of each process.
+         Symptoms of these bugs are "ADFS::HardDisc4.$ is a directory"
+         RISC OS error when Font_FindFont is done for a font not yet in
+         the font cache.
+         These problems are known to be solved in RISC OS Adjust 1.  */
+#if 0
+      __u->dde_prefix = __get_dde_prefix ();
+#else
+      if ((__u->dde_prefix = __get_dde_prefix ()) == NULL)
+        {
+          regs[0] = (int)"@";
+          (void) __os_swi (DDEUtils_Prefix, regs);
+        }
+#endif
     }
   else
     {
       /* We are a child process of an another UnixLib application.  */
+
+      /* Sanity check */
+      if (!__u->status.has_parent)
+        __unixlib_fatal ("child process doesn't seem to have a parent");
 
 #if __FEATURE_PTHREADS
       /* Initialise the pthread system */
@@ -186,6 +203,9 @@ void __unixinit (void)
       __build_ctype_tables (-2);
       __stdioinit ();
 
+      /* Don't touch __u->dde_prefix as it already holds a valid ptr to
+         DDEUtils' Prefix value at this point.  */
+
       /* Inherit environ from parent.  This is our copy, to do with as we
          like except for freeing.  */
       environ = __u->envp;
@@ -196,14 +216,13 @@ void __unixinit (void)
       /* If we are a new process, then we are building a new environment
 	 table here.  We can also arrive here if we are a child process
 	 and the parent process had nothing in its environment to pass on.  */
-      environ = malloc (sizeof (char *));
-      if (environ == NULL)
+      if ((environ = malloc (sizeof (char *))) == NULL)
 	__unixlib_fatal ("cannot allocate memory for environment structure");
       *environ = NULL;
     }
 
-  /* Get command line.  __unixlib_cli's pointing to the command line block returned
-     by OS_GetEnv in __main ().  */
+  /* Get command line.  __unixlib_cli's pointing to the command line block
+     returned by OS_GetEnv in __main ().  */
   __cli_size = strlen (__unixlib_cli);
 
 #ifdef DEBUG
@@ -255,25 +274,6 @@ void __unixinit (void)
   /* Convert the command line to a argv block.  */
   convert_command_line (__u, cli, cli_size);
   free (cli);
-
-  /* When the DDEUtils module is loaded, we can support chdir() without
-     RISC OS' CSD being changed. When not loaded, chdir() will work by
-     changing CSD for all processes.
-
-     IMPORTANT NOTE: because of bugs in DDEUtils' path processing
-     we don't set DDEUtils_Prefix at the beginning of each process.
-     Symptoms of these bugs are "ADFS::HardDisc4.$ is a directory" RISC OS
-     error when Font_FindFont is done for a font not yet in the font cache.
-     These problems are known to be solved in RISC OS Adjust 1.  */
-#if 1
-  __u->dde_prefix = __get_dde_prefix ();
-#else
-  if ((__u->dde_prefix = __get_dde_prefix ()) == NULL)
-    {
-      regs[0] = (int)"@";
-      (void) __os_swi (DDEUtils_Prefix, regs);
-    }
-#endif
 
 #ifdef DEBUG
   __debug ("__unixinit: process creation complete");
@@ -341,23 +341,11 @@ void
 _exit (int return_code)
 {
   int status;
+  struct __unixlib_fd *fd;
 
   /* __u should always have a defined value.  */
   if (! __u)
     __unixlib_fatal ("_exit() called with non-process structure");
-
-  /* Reset the DDEUtils' Prefix variable.  Only when we're really
-     terminating this RISC OS process.  */
-  if (__u->dde_prefix)
-    {
-      int regs[10];
-
-      regs[0] = (int) __u->dde_prefix;
-      (void) __os_swi (DDEUtils_Prefix, regs);
-
-      free((void *)__u->dde_prefix);
-      __u->dde_prefix = NULL;
-    }
 
   /* Interval timers must be stopped.  */
   __stop_itimers ();
@@ -384,37 +372,40 @@ _exit (int return_code)
       status = WEXITSTATUS (return_code);
     }
 
-  /* If we aren't a child process then we can just exit the system.  */
-  if (!__u->status.has_parent || !___vret)
+  /* Reset the DDEUtils' Prefix variable to the value at startup and
+     free the DDEUtils' Prefix storage.  We do not do this as a child
+     because the parent will reset the Prefix value.  */
+  if (!__u->status.has_parent && __u->dde_prefix)
     {
-      struct __unixlib_fd *fd = __u->fd;
-      int i;
+      int regs[10];
 
-      /* Close all file descriptors.  */
-      if (fd)
-	for (i = 0; i < MAXFD; i++)
-	  if (fd[i].__magic == _FDMAGIC)
-	    close (i);
-
-#ifdef DEBUG
-      __os_print ("_exit(): Setting return code = ");
-      __os_prhex (return_code);
-      __os_print ("\r\n");
-#endif
-
-      /* OS_Exit with return value 'r'.  This function never returns.  */
-      __exit (status);
+      regs[0] = (int) __u->dde_prefix;
+      (void) __os_swi (DDEUtils_Prefix, regs);
+      free((void *)__u->dde_prefix);
+      __u->dde_prefix = NULL;
     }
 
-  /* Due to the change to clock(), this is currently complete crap.  */
+  /* Close all file descriptors.  */
+  if ((fd = __u->fd) != NULL)
+    {
+      int i;
+
+      for (i = 0; i < MAXFD; i++)
+        if (fd[i].__magic == _FDMAGIC)
+          close (i);
+    }
 
 #ifdef DEBUG
-  __os_print ("_exit(): calling ___vret with return code = ");
+  __os_print ("_exit(): Setting return code = ");
   __os_prhex (return_code);
   __os_print ("\r\n");
 #endif
 
-  __vret (status);
+  /* OS_Exit with return value 'r'.  This function never returns.
+     Note that in case of a fork() + execve(), the Exit handler is
+     still ours (in fact __exec_s4) so that when this child dies
+     the parent, still same RISC OS process, continues at __exec_s4.  */
+  __exit (status);
 }
 
 

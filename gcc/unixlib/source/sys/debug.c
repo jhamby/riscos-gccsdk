@@ -1,42 +1,40 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/debug.c,v $
- * $Date: 2003/04/28 21:04:36 $
- * $Revision: 1.6 $
+ * $Date: 2004/06/12 08:59:49 $
+ * $Revision: 1.7 $
  * $State: Exp $
- * $Author: alex $
+ * $Author: peter $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: debug.c,v 1.6 2003/04/28 21:04:36 alex Exp $";
+static const char rcs_id[] = "$Id: debug.c,v 1.7 2004/06/12 08:59:49 peter Exp $";
 #endif
 
 #ifndef DEBUG
 #define DEBUG
 #endif
 
-/* __debug(s) dumps UNIX status with title "s" */
-
+#include <pthread.h>
 #include <string.h>
+#include <sys/debug.h>
 
 #include <unixlib/dev.h>
-#include <unixlib/os.h>
-#include <unixlib/unix.h>
-#include <sys/debug.h>
 #include <unixlib/local.h>
-#include <pthread.h>
+#include <unixlib/os.h>
+#include <unixlib/sigstate.h>
+#include <unixlib/unix.h>
 
 static void
 __debugval (const char *s, int i)
 {
-  const char *p = "        ";
+  const char p[9] = "        ";
   int x;
 
   __os_print (s);
-  x = (strlen (s) & 7);
-  x = x ? x : 8;
-  __os_print (p + x);
+  if ((x = (strlen (s) & 7)) != 0)
+    __os_print (p + x);
   __os_prhex (i);
 }
 
@@ -69,6 +67,14 @@ __debug (const char *s)
   VAL ("__u:", (int) __u);
   VAL (" __unixlib_break: ", (int) __unixlib_break);
   VAL (" __unixlib_stack: ", (int) __unixlib_stack);
+  /* Make sure the complete __u struct is pointing to valid memory
+     otherwise adding __debug() will raise memory exceptions which
+     confuses the poor hacker.  */
+  if (!valid_address((const int *)&__u[0], (const int *)&__u[1]))
+    {
+      __os_print ("__u is pointing to invalid memory\r\n");
+      return;
+    }
   NL ();
   NL ();
   VAL ("argc:", __u->argc);
@@ -122,6 +128,8 @@ __debug (const char *s)
   VAL ("sigexit:", (int) __u->status.signal_exit);
   VAL (" core:", (int) __u->status.core_dump);
   VAL (" stopped:", (int) __u->status.stopped);
+  NL ();
+  VAL ("has_parent:", (int) __u->status.has_parent);
   NL ();
   VAL ("signal:", (int) __u->status.signal);
   VAL (" return:", (int) __u->status.return_code);

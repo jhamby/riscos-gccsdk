@@ -1,3 +1,39 @@
+Fri Sep 24 00:09:00 2004  John Tytgat  <John.Tytgat@aaug.net>
+
+	* objs/Makefile.in: Predefined _GNU_SOURCE as quick fix for Norcroft
+	  users after the 12 Sept 2004 change in post.c.  Better fix would
+	  probably be to make sure that UnixLib is compilable with and without
+	  _GNU_SOURCE defined.
+	* source/clib/sys/debug.h (__debug): Added comment what __debug is
+	  doing.
+	* source/clib/unixlib/sigstate.h (valid_address): constify its parameters
+	* source/signal/post.c (valid_address): Likewise.
+	* source/clib/unixlib/unix.h: Minor comment updating.
+	* source/scl/_koscli.s: Likewise.
+	* source/pthread/_ints.s: Reverted the signed/unsigned compare change
+	  from 7 Sep 2004 on request from Alex.
+	* source/sound/dsp.c: Test result of first __os_cli("RMEnsure...
+	  call too.
+	* source/locale/iconv.c: Likewise; Added CVS/RCS keyword header.
+	* source/signal/_signal.s (return_quickly/__h_cback_common): Removed
+	  unnessary teq pc,pc test (partly revert from 7 Sep 2004 change).
+	  Feedback from Alex.
+	* source/sys/_longlong.s (_ll_ufrom_d, _ll_sfrom_d, _ll_ufrom_f,
+	  _ll_sfrom_f): Added, based on a patch from Jeffrey Lee for
+	  gccsdk/gcc/libgcc/lib1aof.s.
+	* source/sys/debug.c (__debug): Avoid crash when __u is bogus; Print
+	  the has_process value too.
+	* source/sys/exec.c (execve): execve() after fork() still means that
+	  there is a parent so has_parent may not be reset.  Also necessary
+	  to correctly identify when dde_prefix needs to be set & used in
+	  unix.c (__unixinit, _exit).
+	* source/unix/unix.c (__unixinit, _exit): dde_prefix may only be updated
+	  and used to reset process' CSD when the process isn't a child; Added
+	  assert that has_parent is always set in a process struct found via
+	  UnixLib$env; (_exit) Removed test based on has_parent/___vret because
+	  we want both parent & child to exit via __exit() and not directly
+	  via __vret (resumely legacy code).
+
 Fri Sep 17 19:20:35 2004  Peter Naulls  <peter@chocky.org>
 
 	* Docs/ReadMe: Updated documentation.

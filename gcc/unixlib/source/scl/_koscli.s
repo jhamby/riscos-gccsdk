@@ -1,10 +1,10 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/scl/_koscli.s,v $
-; $Date: 2002/09/24 21:02:37 $
-; $Revision: 1.3 $
+; $Date: 2004/01/06 00:17:37 $
+; $Revision: 1.4 $
 ; $State: Exp $
-; $Author: admin $
+; $Author: joty $
 ;
 ;----------------------------------------------------------------------------
 
@@ -14,7 +14,7 @@
 
 	IMPORT	|__seterr|
 
-	; _kernel_oscli (const char *cli)
+	; int _kernel_oscli (const char *cli)
 	EXPORT	|_kernel_oscli|
 	NAME	_kernel_oscli
 |_kernel_oscli|

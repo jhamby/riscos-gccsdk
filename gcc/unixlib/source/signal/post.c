@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/signal/post.c,v $
- * $Date: 2004/09/07 14:05:11 $
- * $Revision: 1.13 $
+ * $Date: 2004/09/12 08:25:52 $
+ * $Revision: 1.14 $
  * $State: Exp $
- * $Author: joty $
+ * $Author: peter $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: post.c,v 1.13 2004/09/07 14:05:11 joty Exp $";
+static const char rcs_id[] = "$Id: post.c,v 1.14 2004/09/12 08:25:52 peter Exp $";
 #endif
 
 /* signal.c.post: Written by Nick Burrett, 27 August 1996.  */
@@ -128,7 +128,7 @@ write_termination(int signo)
 /* Returns non-zero value when address range <lower> - <upper> (excl) is
    a valid address range.  */
 int
-valid_address(int *lower, int *upper)
+valid_address(const int *lower, const int *upper)
 {
   int flags;
 
