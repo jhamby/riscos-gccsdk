@@ -487,6 +487,8 @@ STDLIB = $(libunixobj)/stdlib/drand48.o \
 	$(libunixobj)/stdlib/strtold.o
 
 STRING = \
+	$(libunixobj)/string/ffs.o \
+	$(libunixobj)/string/ffsll.o \
 	$(libunixobj)/string/rawmemchr.o \
 	$(libunixobj)/string/strchrnul.o \
 	$(libunixobj)/string/strndup.o \
@@ -746,9 +748,9 @@ install_headers:
 install_source:
 	$(instsrc) . "*.[chs]" source $(ro_unixlibpkg)
 	for dir in common complex crypt gcccompat grp iconv locale math math-asm \
-		module netlib pwd resolv resource scl signal stat stdio stdlib sys \
-		 string termios time unistd unix wchar clib clib/arpa \
-		 clib/machine clib/net clib/netinet clib/sys clib/unixlib; do \
+		module netlib pthread pwd resolv resource scl signal stat stdio stdlib sys \
+		 string termios time unistd unix wchar clib clib/arpa clib/bits \
+		 clib/machine clib/net clib/netinet clib/rpc clib/resolv clib/stdio-common clib/sys clib/unixlib; do \
 	  $(instsrc) $$dir "*.[chs]" source/$$dir $(ro_unixlibpkg) ; done
 
 $(ux_gcc_bin_dir)/$(TRG)/unixlib.o $(ro_gcc_bin_dir)/$(TRG)/o/unixlib : $(ro_unixlibpkg)/source/clib/o/unixlib
@@ -1283,8 +1285,12 @@ $(libunixobj)/stdlib/srand48.o: stdlib/srand48.c
 $(libunixobj)/stdlib/strtof.o: stdlib/strtof.c
 $(libunixobj)/stdlib/strtold.o: stdlib/strtold.c
 
+$(libunixobj)/string/rawmemchr.o: string/rawmemchr.c
+$(libunixobj)/string/ffs.o: string/ffs.c
+$(libunixobj)/string/ffsll.o: string/ffsll.c
 $(libunixobj)/string/strchrnul.o: string/strchrnul.c
 $(libunixobj)/string/strndup.o: string/strndup.c
+$(libunixobj)/string/strnlen.o: string/strnlen.c
 $(libunixobj)/string/swab.o: string/swab.c
 
 $(libunixobj)/sys/alarm.o: sys/alarm.c

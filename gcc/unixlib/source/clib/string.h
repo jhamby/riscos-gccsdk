@@ -1,10 +1,10 @@
 /****************************************************************************
  *
- * $Source$
- * $Date$
- * $Revision$
- * $State$
- * $Author$
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/string.h,v $
+ * $Date: 2002/12/22 18:22:28 $
+ * $Revision: 1.6 $
+ * $State: Exp $
+ * $Author: admin $
  *
  ***************************************************************************/
 
@@ -171,7 +171,6 @@ extern char *index (__const char *__s, int __c) __THROW __attribute_pure__;
 /* Find the last occurrence of C in S (same as strrchr).  */
 extern char *rindex (__const char *__s, int __c) __THROW __attribute_pure__;
 
-#if 0
 /* Return the position of the first bit set in I, or 0 if none are set.
    The least-significant bit is position 1, the most-significant 32.  */
 extern int ffs (int __i) __THROW __attribute__ ((__const__));
@@ -180,12 +179,13 @@ extern int ffs (int __i) __THROW __attribute__ ((__const__));
    platforms.  */
 # ifdef	__USE_GNU
 extern int ffsl (long int __l) __THROW __attribute__ ((__const__));
+#define ffsl(x) ffs(x)
+
 #  ifdef __GNUC__
 __extension__ extern int ffsll (long long int __ll)
      __THROW __attribute__ ((__const__));
 #  endif
 # endif
-#endif
 
 /* Compare S1 and S2, ignoring case.  */
 extern int strcasecmp (__const char *__s1, __const char *__s2)

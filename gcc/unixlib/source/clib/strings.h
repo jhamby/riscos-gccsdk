@@ -1,10 +1,10 @@
 /****************************************************************************
  *
- * $Source$
- * $Date$
- * $Revision$
- * $State$
- * $Author$
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/strings.h,v $
+ * $Date: 2002/12/22 18:22:28 $
+ * $Revision: 1.5 $
+ * $State: Exp $
+ * $Author: admin $
  *
  ***************************************************************************/
 
@@ -43,11 +43,9 @@ extern int strcasecmp (const char *__s1, const char *__s2);
 extern int strncasecmp (const char *__s1, const char *__s2, size_t __n);
 
 
-# if 0
 /* Return the position of the first bit set in I, or 0 if none are set.
    The least-significant bit is position 1, the most-significant 32.  */
 extern int ffs (int __i);
-# endif
 #endif
 
 __END_DECLS

@@ -1,3 +1,14 @@
+Tue May  6 23:29:21 2003  Alex Waugh  <alex@alexwaugh.com>
+
+	* riscos-dist/Makefile: Remove !MKDir from binary !unixlib,
+	  add !Setup to source !unixlib.
+	* unixlib/objs/Makefile,fe1: Add missing files.
+	* unixlib/source/Makefile: Add ffs files.
+	* clib/string.h: Enable ffs decls.
+	* clib/strings.h: Likewise.
+	* string/ffs.c: New file implementing ffs().
+	* string/ffsll.c: New file implementing ffsll().
+
 Sat May  3 12:20:14 2003  Alex Waugh  <alex@alexwaugh.com>
 
 	* signal/_signal.s: Move IMPORTs earlier in file for objasm.

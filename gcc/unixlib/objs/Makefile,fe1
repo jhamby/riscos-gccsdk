@@ -1,10 +1,10 @@
 # Project:   GCCSDK UnixLib
 
-# $Source$
-# $Date$
-# $Revision$
-# $State$
-# $Author$
+# $Source: /usr/local/cvsroot/gccsdk/unixlib/objs/Makefile,fe1,v $
+# $Date: 2003/04/28 21:16:41 $
+# $Revision: 1.13 $
+# $State: Exp $
+# $Author: admin $
 
 CCfeatures =
 Predefs = -D__UNIXLIB_INTERNALS
@@ -211,7 +211,8 @@ STDLIB = stdlib.o.drand48 stdlib.o.erand48 stdlib.o.jrand48 stdlib.o.lcong48 \
 	stdlib.o.rand stdlib.o.random stdlib.o.realpath stdlib.o.seed48 \
 	stdlib.o.srand48
 
-STRING = string.o.swab
+STRING = string.o.ffs string.o.ffsll string.o.rawmemchr string.o.strndup \
+	string.o.strnlen string.o.swab
 
 SCL_ASM = scl.o._kcurskch scl.o._kernel scl.o._kgetenv scl.o._kosargs \
 	scl.o._kosbget scl.o._kosbput scl.o._kosbyte scl.o._koscli \
