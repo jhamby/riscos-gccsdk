@@ -1,10 +1,10 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/_mem.s,v $
-; $Date: 2000/07/15 14:52:34 $
+; $Date: 2000/11/08 09:39:03 $
 ; $Revision: 1.1.1.1 $
 ; $State: Exp $
-; $Author: nick $
+; $Author: admin $
 ;
 ;----------------------------------------------------------------------------
 
@@ -147,7 +147,7 @@
 	MOV	a1,v2
 |__memcpy_cu_l1|
 	BICS	a3,a3,#12
-	stackreturn	EQ, "a1, v2, v2, pc"
+	stackreturn	EQ, "a1, v1, v2, pc"
 	BICS	lr,a3,#15
 	BEQ	|__memcpy_cu_l4|
 	STMFD	sp!,{v3,v4,v5}
