@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/open.c,v $
- * $Date: 2004/09/06 08:40:47 $
- * $Revision: 1.6 $
+ * $Date: 2004/12/11 14:18:57 $
+ * $Revision: 1.7 $
  * $State: Exp $
- * $Author: peter $
+ * $Author: joty $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: open.c,v 1.6 2004/09/06 08:40:47 peter Exp $";
+static const char rcs_id[] = "$Id: open.c,v 1.7 2004/12/11 14:18:57 joty Exp $";
 #endif
 
 #include <stdarg.h>
@@ -26,7 +26,7 @@ static const char rcs_id[] = "$Id: open.c,v 1.6 2004/09/06 08:40:47 peter Exp $"
 #include <unixlib/local.h>
 #include <pthread.h>
 
-// #define DEBUG
+/* #define DEBUG */
 
 char *
 ttyname (int fd)
@@ -41,7 +41,7 @@ ttyname (int fd)
       return NULL;
     }
 
-  if (__u->fd[fd].device == DEV_TTY)
+  if (getfd (fd)->devicehandle->type == DEV_TTY)
     return strcpy (name, "/dev/tty");
 
   return NULL;
@@ -56,23 +56,27 @@ __open (int fd, const char *file, int oflag, int mode)
 
   PTHREAD_UNSAFE
 
-  file_desc = &__u->fd[fd];
+  file_desc = getfd (fd);
   file_desc->fflag = oflag;
   file_desc->dflag = 0;
 
-  /* Perform a special check for devices.  */
-  file_desc->device = __getdevtype (file);
-
-  /* Perform the device specific open operation.  */
-  file_desc->handle = __funcall ((*(__dev[file_desc->device].open)),
-				 (file_desc, file, mode));
-  if (file_desc->handle == (void *) -1)
+  file_desc->devicehandle = __proc->sul_malloc (__proc->pid, __proc->fdhandlesize);
+  if (file_desc->devicehandle == NULL)
     return -1;
 
-  file_desc->pid = __u->pid;
-  /* Set the magic number right at the end. This saves us invalidating
-     it during the previous error checking.  */
-  file_desc->__magic = _FDMAGIC;
+  /* Perform a special check for devices.  */
+  file_desc->devicehandle->type = __getdevtype (file);
+  file_desc->devicehandle->refcount = 1;
+
+  /* Perform the device specific open operation.  */
+  file_desc->devicehandle->handle = dev_funcall (file_desc->devicehandle->type,
+				 open, (file_desc, file, mode));
+  if (file_desc->devicehandle->handle == (void *) -1)
+    {
+      __proc->sul_free (__proc->pid, file_desc->devicehandle);
+      file_desc->devicehandle = NULL;
+      return -1;
+    }
 
   return fd;
 }

@@ -1,8 +1,8 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/unistd.h,v $
- * $Date: 2004/09/07 14:05:10 $
- * $Revision: 1.13 $
+ * $Date: 2004/10/17 16:24:43 $
+ * $Revision: 1.14 $
  * $State: Exp $
  * $Author: joty $
  *
@@ -368,7 +368,7 @@ extern int setregid (__gid_t __rgid, __gid_t __egid) __THROW;
 #endif
 
 /* Clone the calling process, creating an exact copy.  */
-#define fork() vfork()	/* WARNING */
+extern __pid_t fork (void) __THROW;
 /* Clone the calling process, but without copying the whole address
    space (from BSD).  */
 extern __pid_t vfork (void) __THROW;

@@ -1,8 +1,8 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/unixlib/local.h,v $
- * $Date: 2004/09/07 14:05:10 $
- * $Revision: 1.14 $
+ * $Date: 2004/10/17 16:24:44 $
+ * $Revision: 1.15 $
  * $State: Exp $
  * $Author: joty $
  *
@@ -88,7 +88,7 @@ extern int __socket_valid (int __socket);
 extern int __open (int __fd, const char *__file, int __oflag, int __mode);
 
 /* Close a file descriptor.  Returns zero on success, -1 on failure.  */
-extern int __close (int __fd);
+extern int __close (struct __unixlib_fd *file_desc);
 
 /* Re-open a file descriptor.  Returns the file descriptor on success,
    -1 on failure.  */

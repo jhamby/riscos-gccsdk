@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/signal/kill.c,v $
- * $Date: 2002/02/14 15:56:36 $
- * $Revision: 1.3 $
+ * $Date: 2003/04/28 21:04:36 $
+ * $Revision: 1.4 $
  * $State: Exp $
- * $Author: admin $
+ * $Author: alex $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: kill.c,v 1.3 2002/02/14 15:56:36 admin Exp $";
+static const char rcs_id[] = "$Id: kill.c,v 1.4 2003/04/28 21:04:36 alex Exp $";
 #endif
 
 /* Written by Nick Burrett, 27 August 1996.  */
@@ -26,7 +26,7 @@ kill (pid_t pid, int sig)
 {
   PTHREAD_UNSAFE
 
-  if (pid != __u->pid)
+  if (pid != __proc->pid)
     __unixlib_raise_signal (&__u->sigstate, sig);
   else
     __unixlib_raise_signal (0, sig);

@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/stat.c,v $
- * $Date: 2004/09/17 18:39:57 $
- * $Revision: 1.7 $
+ * $Date: 2004/12/11 14:18:57 $
+ * $Revision: 1.8 $
  * $State: Exp $
- * $Author: peter $
+ * $Author: joty $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: stat.c,v 1.7 2004/09/17 18:39:57 peter Exp $";
+static const char rcs_id[] = "$Id: stat.c,v 1.8 2004/12/11 14:18:57 joty Exp $";
 #endif
 
 #include <errno.h>
@@ -42,7 +42,7 @@ stat (const char *filename, struct stat *buf)
   buf->st_dev = __getdevtype (filename);
 
   /* Perform the device specific open operation.  */
-  return __funcall ((*(__dev[buf->st_dev].stat)),(filename, buf));
+  return dev_funcall (buf->st_dev, stat, (filename, buf));
 }
 
 #undef stat

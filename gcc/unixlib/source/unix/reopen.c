@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/reopen.c,v $
- * $Date: 2002/02/14 15:56:39 $
- * $Revision: 1.3 $
+ * $Date: 2003/04/05 09:33:57 $
+ * $Revision: 1.4 $
  * $State: Exp $
- * $Author: admin $
+ * $Author: alex $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: reopen.c,v 1.3 2002/02/14 15:56:39 admin Exp $";
+static const char rcs_id[] = "$Id: reopen.c,v 1.4 2003/04/05 09:33:57 alex Exp $";
 #endif
 
 #include <stdarg.h>
@@ -45,7 +45,7 @@ __reopen (int fd, const char *file, int oflag, ...)
     mode = 0777;
 
   /* First close the file.  */
-  if (__close (fd) == -1)
+  if (__close (getfd (fd)) == -1)
     return -1;
 
   /* Now open the file.  */

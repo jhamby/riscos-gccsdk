@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source: $
- * $Date: $
- * $Revision: $
- * $State: $
- * $Author: $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unistd/fchdir.c,v $
+ * $Date: 2003/06/01 20:47:07 $
+ * $Revision: 1.1 $
+ * $State: Exp $
+ * $Author: alex $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: $";
+static const char rcs_id[] = "$Id: fchdir.c,v 1.1 2003/06/01 20:47:07 alex Exp $";
 #endif
 
 #include <errno.h>
@@ -32,12 +32,12 @@ int fchdir (int fd)
     return __set_errno (EBADF);
 
   /* Get the dir name associated with the file descriptor.  */
-  file_desc = &__u->fd[fd];
+  file_desc = getfd (fd);
 
-  if (file_desc->device != DEV_RISCOS || (file_desc->dflag & FILE_ISDIR) == 0)
+  if (file_desc->devicehandle->type != DEV_RISCOS || (file_desc->dflag & FILE_ISDIR) == 0)
     return __set_errno (ENOTDIR);
 
-  name = ((DIR *)(file_desc->handle))->dd_name_can;
+  name = ((DIR *)(file_desc->devicehandle->handle))->dd_name_can;
 
   return chdir (name);
 }

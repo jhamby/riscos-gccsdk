@@ -1,3 +1,27 @@
+Fri Mar 4 21:55:54: 2005  Alex Waugh  <alex@alexwaugh.com>
+
+	* source/clib/unistd.h, source/clib/unixlib/{asm_dec.s,
+	  buildoptions.h, dev.h, fd.h, local.h, tty.h, unix.h},
+	  source/common/{_atomic.s, sockvalid.c},  source/module/sul.s,
+	  source/netlib/{accept.c, bind.c, connect.c, getpeernam.c,
+	  getsocknam.c, getsockopt.c, listen.c, recv.c, recvfrom.c, recvmsg.c,
+	  send.c, sendmsg.c, sendto.c, setsockopt.c, shutdown.c, socket.c},
+	  source/pthread/_context.s, source/resource/{getegid.c, geteuid.c,
+	  getgid.c, getpgrp.c, getpid.c, getppid.c, getprior.c, getuid.c,
+	  seteuid.c, setgid.c, setpgrp.c, setprior.c, setuid.c},
+	  source/signal/{kill.c, post.c}, source/sound/dsp.c,
+	  source/stdio/{fopen.c, stdio.c, tmpfile.c}, source/sys/{_exec.s,
+	  _syslib.s, _vfork.s, debug.c, exec.c, stackalloc.c, vfork.c},
+	  source/termios/{tcgetattr.c, tcsetattr.c}, source/unistd/{fchdir.c,
+	  fchown.c}, source/unix/{close.c, dev.c, dup2.c, fchmod.c, fcntl.c,
+	  features.c, fstat.c, ioctl.c, isatty.c, ispipe.c, lseek.c, open.c,
+	  pathconf.c, pipe.c, proc.c, read.c, readv.c, reopen.c, select.c,
+	  stat.c, sync.c, truncate.c, tty.c, umask.c, unix.c, wait4.c, write.c,
+	  writev.c}:
+	  Rewrite large parts of vfork() and exec(), and add better support
+	  for fork(). Make SUL aware of processes, and improve file descriptor
+	  handling.
+
 Wed Mar 2 22:54:07 2005  Alex Waugh  <alex@alexwaugh.com>
 
 	* source/unix/unix.c: Fix parsing for commandline redirection when

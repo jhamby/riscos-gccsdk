@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/lseek.c,v $
- * $Date: 2004/06/12 08:59:48 $
- * $Revision: 1.5 $
+ * $Date: 2004/06/18 21:56:43 $
+ * $Revision: 1.6 $
  * $State: Exp $
- * $Author: peter $
+ * $Author: alex $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: lseek.c,v 1.5 2004/06/12 08:59:48 peter Exp $";
+static const char rcs_id[] = "$Id: lseek.c,v 1.6 2004/06/18 21:56:43 alex Exp $";
 #endif
 
 #include <errno.h>
@@ -32,11 +32,11 @@ lseek (int fd, off_t offset, int whence)
   if (BADF (fd))
     return __set_errno (EBADF);
 
-  file_desc = &__u->fd[fd];
+  file_desc = getfd (fd);
 
   /* The validity of whence is check by the device specific operation.  */
 
-  return __funcall ((*(__dev[file_desc->device].lseek)),
+  return dev_funcall (file_desc->devicehandle->type, lseek,
 		    (file_desc, offset, whence));
 }
 

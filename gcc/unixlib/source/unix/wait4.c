@@ -1,19 +1,20 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/wait4.c,v $
- * $Date: 2002/02/14 15:56:39 $
- * $Revision: 1.3 $
+ * $Date: 2003/04/05 09:33:57 $
+ * $Revision: 1.4 $
  * $State: Exp $
- * $Author: admin $
+ * $Author: alex $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: wait4.c,v 1.3 2002/02/14 15:56:39 admin Exp $";
+static const char rcs_id[] = "$Id: wait4.c,v 1.4 2003/04/05 09:33:57 alex Exp $";
 #endif
 
 #include <errno.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include <sys/resource.h>
 #include <sys/types.h>
@@ -77,21 +78,21 @@ wait_convert_status (const struct __process *status)
 
 /* Make the process of comparing process IDs fairly easy.  */
 static int
-wait_type (pid_t pid, int process)
+wait_type (pid_t pid, struct __sul_process *process)
 {
   /* Match any process.  */
   if (pid == WAIT_ANY)
     return 1;
   /* Match any process in the current process's group.  */
   if (pid == WAIT_MYPGRP)
-    if (__u->child[process].gid == __u->gid)
+    if (process->gid == __proc->pgrp)
       return 1;
   /* Match any process whose process group is the abs(pid).  */
   if (pid < -1)
-    if (__u->child[process].gid == abs (pid))
+    if (process->gid == abs (pid))
       return 1;
   /* Match a specific process id.  */
-  if (__u->child[process].pid == pid)
+  if (process->pid == pid)
     return 1;
 
   /* No match found.  */
@@ -102,47 +103,72 @@ wait_type (pid_t pid, int process)
 pid_t
 wait4 (pid_t pid, int *status, int options, struct rusage *usage)
 {
-  static int process = 0;
-  int start_value;
+  struct __sul_process *process;
+  struct __sul_process *lastprocess;
 
   PTHREAD_UNSAFE
 
   if ((options & ~(WNOHANG | WUNTRACED)) != 0)
     return (pid_t) __set_errno (EINVAL);
 
-  start_value = process;
-  while (1)
+  while (__proc->children)
     {
-      if (wait_type (pid, process))
-	if (!__u->child[process].status.stopped
-	    || ((options & WUNTRACED) && __u->child[process].status.stopped))
-	  {
-	    /* If the untraced bit is set, we will match against
-	       stopped children; otherwise we won't.  */
+      process = __proc->children;
+      lastprocess = NULL;
 
-	    /* Copy the resource usage details (if usage is not null).  */
-	    if (usage && __u->child[process].pid == pid)
-	      *usage = __u->child[process].usage;
-	    if (status)
-	      {
-		*status = wait_convert_status (&__u->child[process].status);
+      while (process)
+        {
+          if (wait_type (pid, process))
+            if (process->status.zombie
+                || ((options & WUNTRACED) && process->status.stopped && !process->status.reported))
+              {
+                /* If the untraced bit is set, we will match against
+                   stopped children; otherwise we won't.  */
+
+                process->status.reported = 1;
+
+                /* Copy the resource usage details (if usage is not null).  */
+                if (usage && process->pid == pid)
+                  memset(usage, 0, sizeof (struct rusage));
+                if (status)
+                  {
+                    *status = wait_convert_status (&(process->status));
 #ifdef DEBUG
-		printf ("wait4: process = %d, status = %x\n", process, *status);
+                    printf ("wait4: process = %d, status = %x\n", process, *status);
 #endif
-	      }
-	    return __u->child[process].pid;
-	  }
+                  }
 
-      if (++process == CHILD_MAX)
-	process = 0;
+                pid = process->pid;
+
+                if (process->status.zombie)
+                  {
+                    /* Remove the child from the children list */
+                    if (lastprocess)
+                      lastprocess->next_child = process->next_child;
+                    else
+                      __proc->children = process->next_child;
+
+                    __free_process (process);
+                  }
+
+                return pid;
+              }
+
+            lastprocess = process;
+            process = process->next_child;
+        }
+
 
       /* If the no hang bit is set and we have found no dead
-	 children, return 0.  */
-      if ((options & WNOHANG) && process == start_value)
-	{
-	  (void) __set_errno (ECHILD);
-	  return (pid_t) 0;
-	}
-    };
+         children, return 0.  */
+      if ((options & WNOHANG))
+        {
+          (void)__set_errno (ECHILD);
+          return (pid_t) 0;
+        }
+
+      pthread_yield ();
+    }
+
   return (pid_t) -1;
 }

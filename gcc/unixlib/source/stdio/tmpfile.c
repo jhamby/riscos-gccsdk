@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/stdio/tmpfile.c,v $
- * $Date: 2002/09/24 21:02:38 $
- * $Revision: 1.4 $
+ * $Date: 2003/04/13 16:21:02 $
+ * $Revision: 1.5 $
  * $State: Exp $
- * $Author: admin $
+ * $Author: alex $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: tmpfile.c,v 1.4 2002/09/24 21:02:38 admin Exp $";
+static const char rcs_id[] = "$Id: tmpfile.c,v 1.5 2003/04/13 16:21:02 alex Exp $";
 #endif
 
 #include <string.h>
@@ -120,7 +120,7 @@ tmpfile (void)
     {
 #if 1
       /* Inline the fcntl call.  */
-      __u->fd[result->fd].fflag |= O_UNLINKED;
+      getfd (result->fd)->fflag |= O_UNLINKED;
 #else
       /* This should never fail. */
       if (fcntl (result->fd, F_SETUNL, 1))

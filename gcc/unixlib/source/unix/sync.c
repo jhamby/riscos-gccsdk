@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/sync.c,v $
- * $Date: 2002/02/14 15:56:39 $
- * $Revision: 1.3 $
+ * $Date: 2003/04/05 09:33:57 $
+ * $Revision: 1.4 $
  * $State: Exp $
- * $Author: admin $
+ * $Author: alex $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: sync.c,v 1.3 2002/02/14 15:56:39 admin Exp $";
+static const char rcs_id[] = "$Id: sync.c,v 1.4 2003/04/05 09:33:57 alex Exp $";
 #endif
 
 #include <errno.h>
@@ -48,9 +48,9 @@ fsync (int fd)
   if (BADF (fd))
     return __set_errno (EBADF);
 
-  file_desc = &__u->fd[fd];
+  file_desc = getfd (fd);
   /* Ensure data has been written to the file.  */
-  err = __os_args (255, (int) file_desc->handle, 0, NULL);
+  err = __os_args (255, (int) file_desc->devicehandle->handle, 0, NULL);
   if (err)
     {
       __seterr (err);

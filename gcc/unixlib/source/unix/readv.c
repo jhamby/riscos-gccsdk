@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/readv.c,v $
- * $Date: 2002/02/14 15:56:38 $
- * $Revision: 1.3 $
+ * $Date: 2003/04/05 09:33:57 $
+ * $Revision: 1.4 $
  * $State: Exp $
- * $Author: admin $
+ * $Author: alex $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: readv.c,v 1.3 2002/02/14 15:56:38 admin Exp $";
+static const char rcs_id[] = "$Id: readv.c,v 1.4 2003/04/05 09:33:57 alex Exp $";
 #endif
 
 #include <errno.h>
@@ -44,13 +44,13 @@ readv (int fd, const struct iovec *vector, int count)
   if (BADF (fd))
     return __set_errno (EBADF);
 
-  file_desc = &__u->fd[fd];
+  file_desc = getfd (fd);
 
   /* Confirm that the file is open for reading.  */
   if ((file_desc->fflag & O_ACCMODE) == O_WRONLY)
     return __set_errno (EBADF);
 
-  device = file_desc->device;
+  device = file_desc->devicehandle->type;
 
   /* Read each buffer, recording how many bytes were read.  */
   bytes_read = 0;
@@ -58,7 +58,7 @@ readv (int fd, const struct iovec *vector, int count)
     if (vector[i].iov_len > 0)
       {
 	__u->usage.ru_inblock++;
-	bytes = __funcall ((*(__dev[device].read)),
+	bytes = dev_funcall (device, read,
 			   (file_desc, vector[i].iov_base, vector[i].iov_len));
 	/* If we failed on the first read, then return -1, otherwise return
 	   the number of bytes we have read.  */

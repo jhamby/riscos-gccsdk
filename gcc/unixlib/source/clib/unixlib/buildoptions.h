@@ -18,9 +18,6 @@
 # define __UNIXLIB_CLZ_SUPPORTED	0	/* Set to 1 if the CLZ instruction can be used. */
 
 # define __UNIXLIB_FEATURE_ITIMERS	1	/* Set to 1 if we want to support POSIX interval timers.  */
-# define __UNIXLIB_FEATURE_SOCKET	1	/* Set to 1 if we want Unix socket support.  */
-# define __UNIXLIB_FEATURE_PIPEDEV	1	/* Set to 1 if we want support for pipes.  */
-# define __UNIXLIB_FEATURE_DEV_RS423	1	/* Set to 1 if we want support of /dev/rs423.  */
 # define __UNIXLIB_FEATURE_PTHREADS	1	/* Set to 1 if we want support for pthreads. */
 
   COMMENT /* The APCS-32 ABI in GCC and Norcroft are not 100% */

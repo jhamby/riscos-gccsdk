@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/termios/tcsetattr.c,v $
- * $Date: 2004/09/09 15:34:52 $
- * $Revision: 1.5 $
+ * $Date: 2004/12/16 11:37:08 $
+ * $Revision: 1.6 $
  * $State: Exp $
  * $Author: peter $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: tcsetattr.c,v 1.5 2004/09/09 15:34:52 peter Exp $";
+static const char rcs_id[] = "$Id: tcsetattr.c,v 1.6 2004/12/16 11:37:08 peter Exp $";
 #endif
 
 #include <errno.h>
@@ -135,10 +135,10 @@ tcsetattr (int fd, int optional_actions, const struct termios *termios_p)
   tchars.t_stopc = termios_p->c_cc[VSTOP];
 
   {
-    struct __unixlib_fd *file_desc = &__u->fd[fd];
+    struct __unixlib_fd *file_desc = getfd (fd);
     struct tty *tty;
 
-    tty = __u->tty + (int) file_desc->handle;
+    tty = file_desc->devicehandle->handle;
 
     tty->t->c_cc[VMIN]  = termios_p->c_cc[VMIN];
     tty->t->c_cc[VTIME] = termios_p->c_cc[VTIME];

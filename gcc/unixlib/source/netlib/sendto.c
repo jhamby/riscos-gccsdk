@@ -1,16 +1,16 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/netlib/sendto.c,v $
- * $Date: 2002/12/22 18:22:29 $
- * $Revision: 1.4 $
+ * $Date: 2003/04/28 21:04:36 $
+ * $Revision: 1.5 $
  * $State: Exp $
- * $Author: admin $
+ * $Author: alex $
  *
  * (c) Copyright 1995 Sergio Monesi
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: sendto.c,v 1.4 2002/12/22 18:22:29 admin Exp $";
+static const char rcs_id[] = "$Id: sendto.c,v 1.5 2003/04/28 21:04:36 alex Exp $";
 #endif
 
 #include <unixlib/unix.h>
@@ -29,5 +29,5 @@ sendto (int s, const void *msg, size_t len, int flags,
   if (__socket_valid (s) == -1)
     return -1;
 
-  return _sendto ((int)__u->fd[s].handle, msg, len, flags, to, tolen);
+  return _sendto ((int)(getfd (s)->devicehandle->handle), msg, len, flags, to, tolen);
 }

@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/read.c,v $
- * $Date: 2002/02/14 15:56:38 $
- * $Revision: 1.3 $
+ * $Date: 2003/04/05 09:33:57 $
+ * $Revision: 1.4 $
  * $State: Exp $
- * $Author: admin $
+ * $Author: alex $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: read.c,v 1.3 2002/02/14 15:56:38 admin Exp $";
+static const char rcs_id[] = "$Id: read.c,v 1.4 2003/04/05 09:33:57 alex Exp $";
 #endif
 
 #include <errno.h>
@@ -35,7 +35,7 @@ read (int fd, void *buf, size_t nbytes)
   if (BADF (fd))
     return __set_errno (EBADF);
 
-  file_desc = &__u->fd[fd];
+  file_desc = getfd (fd);
 
   /* Confirm that the file is open for reading.  */
   if ((file_desc->fflag & O_ACCMODE) == O_WRONLY)
@@ -45,6 +45,6 @@ read (int fd, void *buf, size_t nbytes)
   __u->usage.ru_inblock++;
 
   /* Perform the device specific read operation.  */
-  return __funcall ((*(__dev[file_desc->device].read)),
+  return dev_funcall (file_desc->devicehandle->type, read,
 		    (file_desc, buf, nbytes));
 }

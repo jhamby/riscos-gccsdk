@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/pipe.c,v $
- * $Date: 2004/10/17 16:24:45 $
- * $Revision: 1.6 $
+ * $Date: 2005/01/30 16:08:35 $
+ * $Revision: 1.7 $
  * $State: Exp $
- * $Author: joty $
+ * $Author: alex $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: pipe.c,v 1.6 2004/10/17 16:24:45 joty Exp $";
+static const char rcs_id[] = "$Id: pipe.c,v 1.7 2005/01/30 16:08:35 alex Exp $";
 #endif
 
 #include <stdlib.h>
@@ -29,7 +29,6 @@ static const char rcs_id[] = "$Id: pipe.c,v 1.6 2004/10/17 16:24:45 joty Exp $";
 int
 pipe (int *p)
 {
-#if __UNIXLIB_FEATURE_PIPEDEV
   struct __unixlib_fd *file_desc_0, *file_desc_1;
   int fd0, fd1;
   char file[32];
@@ -40,20 +39,26 @@ pipe (int *p)
   fd0 = __alloc_file_descriptor ();
   if (fd0 == -1)
     return -1;
-  file_desc_0 = &__u->fd[fd0];
-  /* Allocate the file descriptor.  */
-  file_desc_0->__magic = _FDMAGIC;
+  file_desc_0 = getfd (fd0);
+
+  file_desc_0->devicehandle = __proc->sul_malloc (__proc->pid, __proc->fdhandlesize);
+  if (file_desc_0->devicehandle == NULL)
+    return -1;
 
   fd1 = __alloc_file_descriptor ();
   if (fd1 == -1)
     {
       /* Deallocate the first file descriptor.  */
-      file_desc_0->__magic = 0;
+      __proc->sul_free (__proc->pid, file_desc_0->devicehandle);
+      file_desc_0->devicehandle = NULL;
       return -1;
     }
 
-  file_desc_1 = &__u->fd[fd1];
-  file_desc_1->__magic = _FDMAGIC;
+  file_desc_1 = getfd (fd1);
+  file_desc_1->devicehandle = file_desc_0->devicehandle;
+
+  file_desc_0->devicehandle->refcount = 2;
+  file_desc_0->devicehandle->type = DEV_PIPE;
 
   {
     char *s;
@@ -79,16 +84,16 @@ pipe (int *p)
   {
     int handle;
 
-    handle = (int) __funcall ((*(__dev[DEV_PIPE].open)), (file_desc_0, file, 0777));
+    handle = (int) dev_funcall (DEV_PIPE, open, (file_desc_0, file, 0777));
     if (handle == -1)
       {
 	/* Opening the pipes failed, so deallocate the file
 	   descriptors and return.  */
-	file_desc_0->__magic = file_desc_1->__magic = 0;
+	__proc->sul_free (__proc->pid, file_desc_0->devicehandle);
+	file_desc_0->devicehandle = file_desc_1->devicehandle = NULL;
 	return -1;
       }
-    file_desc_0->device = file_desc_1->device = DEV_PIPE;
-    file_desc_0->handle = file_desc_1->handle = (void *) handle;
+    file_desc_0->devicehandle->handle = (void *) handle;
   }
 
   {
@@ -108,13 +113,8 @@ pipe (int *p)
   file_desc_0->fflag = O_RDONLY | O_UNLINKED | O_PIPE;
   file_desc_1->fflag = O_WRONLY | O_UNLINKED | O_PIPE;
 
-  file_desc_0->pid = file_desc_1->pid = __u->pid;
-
   p[0] = fd0;
   p[1] = fd1;
 
   return 0;
-#else /* !__UNIXLIB_FEATURE_PIPEDEV */
-  return __set_errno (ENOSYS);
-#endif
 }

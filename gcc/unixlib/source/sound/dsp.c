@@ -1,8 +1,8 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sound/dsp.c,v $
- * $Date: 2004/12/02 14:49:24 $
- * $Revision: 1.8 $
+ * $Date: 2004/12/23 21:10:08 $
+ * $Revision: 1.9 $
  * $State: Exp $
  * $Author: peter $
  *
@@ -143,7 +143,6 @@ static _kernel_oserror *set_defaults(struct __unixlib_fd *fd, int channels, int 
     }
 
 
-  fd->handle = (void *)1; /* Dummy value */
   dr_registered = 1;
 
   return NULL;
@@ -157,19 +156,17 @@ void *__dspopen (struct __unixlib_fd *fd, const char *file, int mode)
   IGNORE(file);
   IGNORE(mode);
 
-  fd->handle = NULL;
   dr_fragscale = 1;
 
   if ((err = __os_cli("RMEnsure DigitalRenderer 0.51 RMLoad System:Modules.DRenderer")) != NULL
       || (err = __os_cli("RMEnsure DigitalRenderer 0.51 Error 16_10F Sound support requires DigitalRenderer 0.51 or newer")) != NULL
       || (err = set_defaults(fd, 2, 2, 44100, 0)) != NULL)
     {
-      fd->handle = NULL;
       __seterr (err);
       return (void *) -1;
     }
 
-  return (void *)fd->handle;
+  return (void *)1; /* Dummy value */
 }
 
 
@@ -177,7 +174,7 @@ int __dspclose (struct __unixlib_fd *fd)
 {
   _kernel_oserror *err = NULL;
 
-  if (fd->handle) {
+  if (fd->devicehandle->handle) {
     _kernel_swi_regs regs;
 
     regs.r[0] = 0;

@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source$
- * $Date$
- * $Revision$
- * $State$
- * $Author$
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/common/sockvalid.c,v $
+ * $Date: 2003/01/21 17:54:22 $
+ * $Revision: 1.4 $
+ * $State: Exp $
+ * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id$";
+static const char rcs_id[] = "$Id: sockvalid.c,v 1.4 2003/01/21 17:54:22 admin Exp $";
 #endif
 
 #include <errno.h>
@@ -31,7 +31,7 @@ int __socket_valid (int socket)
       return -1;
     }
 
-  if (__u->fd[socket].device != DEV_SOCKET)
+  if (getfd (socket)->devicehandle->type != DEV_SOCKET)
     {
       errno = ENOTSOCK;
       return -1;

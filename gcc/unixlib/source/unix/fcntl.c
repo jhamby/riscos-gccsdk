@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/fcntl.c,v $
- * $Date: 2003/06/23 09:30:11 $
- * $Revision: 1.7 $
+ * $Date: 2003/11/23 20:26:45 $
+ * $Revision: 1.8 $
  * $State: Exp $
- * $Author: peter $
+ * $Author: joty $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: fcntl.c,v 1.7 2003/06/23 09:30:11 peter Exp $";
+static const char rcs_id[] = "$Id: fcntl.c,v 1.8 2003/11/23 20:26:45 joty Exp $";
 #endif
 
 #include <errno.h>
@@ -34,7 +34,7 @@ fcntl (int fd, int cmd, ...)
   if (BADF (fd))
     return __set_errno (EBADF);
 
-  file_desc = &__u->fd[fd];
+  file_desc = getfd (fd);
 
   switch (cmd)
     {
@@ -48,7 +48,7 @@ fcntl (int fd, int cmd, ...)
 	va_end (ap);
 
 	/* Check the new file descriptor for validity.  */
-	if ((unsigned int) duplicate_fd < MAXFD)
+	if ((unsigned int) duplicate_fd < __proc->maxfd)
 	  {
 	    if (duplicate_fd == 0)
 	      /* Allocate a new file descriptor.  */
@@ -56,9 +56,13 @@ fcntl (int fd, int cmd, ...)
 
 	    if (duplicate_fd != -1)
 	      {
-		__u->fd[duplicate_fd] = __u->fd[fd];
+		struct __unixlib_fd *dup_file_desc = getfd (duplicate_fd);
+
+		dup_file_desc->fflag = file_desc->fflag;
+		dup_file_desc->devicehandle = file_desc->devicehandle;
+		__atomic_modify (&(dup_file_desc->devicehandle->refcount), 1);
 		/* File descriptor flags aren't duplicated.  */
-		__u->fd[duplicate_fd].dflag = 0;
+		dup_file_desc->dflag = 0;
 	      }
 	    return duplicate_fd;
 	  }
@@ -78,7 +82,7 @@ fcntl (int fd, int cmd, ...)
 	  file_desc->fflag |= O_EXECCL;
 	else
 	  file_desc->fflag &= ~O_EXECCL;
-		va_end(ap);
+	va_end(ap);
 	return 0;
 	}
 
@@ -94,18 +98,18 @@ fcntl (int fd, int cmd, ...)
         newfflag = va_arg (ap, int);
         va_end (ap);
 
-        if (file_desc->device == DEV_SOCKET)
+        if (file_desc->devicehandle->type == DEV_SOCKET)
           {
              if ((file_desc->fflag ^ newfflag) & O_NONBLOCK)
 	       {
 		 int arg = (newfflag & O_NONBLOCK) ? 1 : 0;
-		 _sioctl((int)file_desc->handle, FIONBIO, &arg);
+		 _sioctl((int)file_desc->devicehandle->handle, FIONBIO, &arg);
 	       }
 
              if ((file_desc->fflag ^ newfflag) & O_ASYNC)
 	       {
 		 int arg = (newfflag & O_ASYNC) ? 1 : 0;
-		 _sioctl((int)file_desc->handle, FIOASYNC, &arg);
+		 _sioctl((int)file_desc->devicehandle->handle, FIOASYNC, &arg);
 	       }
           }
 

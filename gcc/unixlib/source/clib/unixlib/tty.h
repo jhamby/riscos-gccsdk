@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/unixlib/tty.h,v $
- * $Date: 2002/09/24 21:02:37 $
- * $Revision: 1.3 $
+ * $Date: 2004/10/17 16:24:44 $
+ * $Revision: 1.4 $
  * $State: Exp $
- * $Author: admin $
+ * $Author: joty $
  *
  ***************************************************************************/
 
@@ -34,32 +34,22 @@ __BEGIN_DECLS
 #define TTY_CON 0
 #define TTY_423 1
 
+/* Beware of backwards compatibility when altering this structure.
+   It is referenced by SUL and other processes */
 struct tty
   {
+  int type;             /* tty type */
+  unsigned int refcount;
   struct termios t[1];
   struct winsize w[1];
-  int (*out) (int);
-  int (*in) (void);
-  int (*scan) (int);
-  int (*init) (void);
-  int (*flush) (void);
   int sx,cx;		/* screen x, character x */
   int cnt;		/* number of characters in input buffer */
   char *ptr;		/* read pointer in input buffer */
+  int lookahead;	/* [1 byte or -1] lookahead to allow select() */
   char buf[MAX_INPUT];  /* input buffer */
   char del[MAX_INPUT];  /* number of displayed characters for character cx */
-  int lookahead;	/* [1 byte or -1] lookahead to allow select() */
   };
 
-/* Note, the buf and del buffers are declared statically in the tty struct.
-   This is so that an exec'd process which shares the tty struct doesn't
-   free something allocated by the parent process.  Such a call to free would
-   confuse the memory allocation system since the buffer wouldn't have been
-   allocated by that process but by the parent process.  We could check the
-   address of the buffer against __lomem and __break, but we might aswell
-   just live with the statically allocated memory compared to the extra code
-   we would need to have.  Lazy, probably, but it works okay and only costs
-   MAXTTY * MAX_INPUT * 2 (= 1024 bytes in current implementation).  */
 
 __END_DECLS
 

@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/pathconf.c,v $
- * $Date: 2002/02/14 15:56:38 $
- * $Revision: 1.3 $
+ * $Date: 2003/04/05 09:33:57 $
+ * $Revision: 1.4 $
  * $State: Exp $
- * $Author: admin $
+ * $Author: alex $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: pathconf.c,v 1.3 2002/02/14 15:56:38 admin Exp $";
+static const char rcs_id[] = "$Id: pathconf.c,v 1.4 2003/04/05 09:33:57 alex Exp $";
 #endif
 
 /* unix.c.pathconf. Return filing system implementation details.
@@ -114,7 +114,7 @@ fpathconf (int fd, int selection)
   if (BADF (fd))
     return __set_errno (EBADF);
 
-  if (__u->fd[fd].device == DEV_RISCOS)
+  if (getfd (fd)->devicehandle->type == DEV_RISCOS)
     {
       if (__fd_to_name (fd, filename, sizeof (filename)) == NULL)
 	return __set_errno (EBADF);

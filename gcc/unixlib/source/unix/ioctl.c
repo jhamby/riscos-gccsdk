@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/ioctl.c,v $
- * $Date: 2003/10/26 13:34:34 $
- * $Revision: 1.5 $
+ * $Date: 2004/09/09 15:34:52 $
+ * $Revision: 1.6 $
  * $State: Exp $
- * $Author: joty $
+ * $Author: peter $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: ioctl.c,v 1.5 2003/10/26 13:34:34 joty Exp $";
+static const char rcs_id[] = "$Id: ioctl.c,v 1.6 2004/09/09 15:34:52 peter Exp $";
 #endif
 
 #include <errno.h>
@@ -29,8 +29,8 @@ ioctl (int fd, unsigned long request, void *arg)
   if (BADF (fd))
     return __set_errno (EBADF);
 
-  file_desc = &__u->fd[fd];
+  file_desc = getfd (fd);
 
-  return __funcall ((*__dev[file_desc->device].ioctl),
+  return dev_funcall (file_desc->devicehandle->type, ioctl,
 		    (file_desc, request, arg));
 }

@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/unixlib/unix.h,v $
- * $Date: 2005/01/23 19:39:58 $
- * $Revision: 1.21 $
+ * $Date: 2005/01/30 16:08:35 $
+ * $Revision: 1.22 $
  * $State: Exp $
- * $Author: joty $
+ * $Author: alex $
  *
  * UNIX is a registered trademark of AT&T Bell Laboratories
  *
@@ -54,81 +54,77 @@ __BEGIN_DECLS
 
 struct __process
 {
-  /* This process has a parent process.  */
-  unsigned int has_parent : 1;
+  /* The return code of this process.  */
+  unsigned int return_code : 8;
+  /* The number of the signal we terminated with.  */
+  unsigned int signal : 8;
   /* This process terminated through a signal handler.  */
   unsigned int signal_exit : 1;
   /* This process terminated with a core dump.  */
   unsigned int core_dump : 1;
   /* This process just stopped.  */
   unsigned int stopped : 1;
-  /* This process is controlling the tty. */
-  unsigned int tty_control : 1;
-  /* The type of tty this process is controlling.  */
-  unsigned int tty_type : 8;
-  /* The number of the signal we terminated with.  */
-  unsigned int signal : 8;
-  /* The return code of this process.  */
-  unsigned int return_code : 8;
+  /* This process has exited, but has not been reaped by it's parent.  */
+  unsigned int zombie : 1;
+  /* This process has already been reported to wait() whilst it is stopped.   */
+  unsigned int reported : 1;
 };
-
-struct __child_process
-{
-  __uid_t uid;
-  __gid_t gid;
-  __pid_t pid;
-  int ppri, gpri, upri;
-  struct __process status;
-  struct rusage usage;
-  jmp_buf vreg; /* Process context.  */
-};
-
-/* UnixLib 3.7b == 0xfedcfa5f.  */
-/* UnixLib 3.7c.beta == 0xfedcfa60.  */
-/* UnixLib 3.7c.19970803 == 0xfedcfa61.  */
-/* UnixLib 3.7c.19980504 == 0xfedcfa62.  */
-/* UnixLib 4.0.20040113 == 0xfedcfa63.  */
-/* UnixLib 4.0.20050122 == 0xfedcfa64.  */
-#define _PROCMAGIC 0xfedcfa64
 
 struct proc
 {
-  unsigned int __magic;  /* Magic word.  */
-  int argc, envc;  /* Command line and environment argument count.  */
-  char **envp;  /* Environment argument list.  */
+  int argc;  /* Command line argument count.  */
   char **argv;  /* Command line arguments.  */
-  struct __unixlib_fd fd[MAXFD];  /* File descriptors.  */
-  struct tty *tty;
-  __uid_t uid, euid;  /* Real and effective UID.  */
-  __gid_t gid, egid;  /* Real and effective GID.  */
-  __pid_t pgrp;  /* ID of process group that process belongs to.  */
-  __pid_t pid;  /* Process ID.  */
-  __pid_t ppid;  /* Parent process ID.  */
-  int ppri, gpri, upri;  /* Process priority, process group priority
-			    and user process priority.  */
-  __mode_t umask;  /* File creation mode mask.  */
-  struct __process status;  /* Process status.  */
   struct itimerval itimers[__MAX_ITIMERS];  /* Defined interval timers.  */
   struct rlimit limit[RLIMIT_NLIMITS];  /* Process resource limits.  */
   struct rusage usage;  /* Resource usage of the process.  */
-  struct proc *pproc;  /* Pointer to the parent process's structure.  */
-  /* Details recorded about stopped or terminated children.  */
-  struct __child_process child[CHILD_MAX];
   /* The signal states for this process. */
   struct unixlib_sigstate sigstate;
-  /* Set to 1 if this process is currently sleeping, orphaned or stopped.
+  /* Set to 1 if this process is currently sleeping or stopped.
      These could change at any time.  */
-  volatile int sleeping, orphaned, stopped;
-  jmp_buf vreg;  /* Process context.  */
-  /* UGLY HACK: In execve() we store cli malloc pointer prior to calling
-     child process.  The malloc store is then freed in __exret().  */
-  void *cli;
+  volatile int sleeping, stopped;
   /* DDEUtils_Prefix value at the beginning of this process.  */
   const char *dde_prefix;
 };
 
-extern struct proc *__u;	/* current process */
+/* Beware of backwards compatibility when altering this structure.
+   It is referenced by SUL and other processes */
+struct __sul_process
+{
+  int reserved1; /* Reserved for use by SUL */
+  int reserved2;
+  void *(*sul_malloc)(__pid_t pid, size_t size);
+  void (*sul_free)(__pid_t pid, void *ptr);
+  int (*sul_exit) (__pid_t pid, int status) __attribute__ ((__noreturn__));
+  __pid_t pid;   /* Process ID. */
+  __pid_t ppid;  /* Parent process ID. */
+  __pid_t pgrp;  /* ID of process group that process belongs to.  */
+  __uid_t uid;   /* Real UID.  */
+  __uid_t euid;  /* Effective UID.  */
+  __gid_t gid;   /* Real GID.  */
+  __gid_t egid;  /* Effective GID.  */
+  int ppri;  /* Process priority.  */
+  int gpri;  /* Process group priority.  */
+  int upri;  /* User process priority.  */
+  __mode_t umask;   /* File creation mode mask.  */
+  void *file_descriptors;
+  int maxfd;           /* Number of entries in the file_descriptors array */
+  int fdsize;          /* Size of each entry in the file_descriptors array */
+  int fdhandlesize;    /* Size of each fdhandle */
+  int tty_type;
+  struct tty *console;
+  struct tty *rs423;
+  char **environ;
+  struct __process status;
+  struct __sul_process *children;   /* Linked list of all children of this process */
+  struct __sul_process *next_child;
+  __pid_t (*sul_fork) (__pid_t pid, struct __sul_process **proc, void *stacklimit, void *stack);
+  int environ_size;
+  void (*sul_exec) (__pid_t pid, char *cli, void *stacklimit, void *stack);
+  void *(*sul_wimpslot) (__pid_t pid, void *newslot);
+};
 
+extern struct __sul_process *__proc;
+extern struct proc *__u;	/* current process */
 
 extern int __funcall_error (const char *, int, unsigned int);
 #if __UNIXLIB_PARANOID > 0
@@ -140,12 +136,6 @@ extern int __funcall_error (const char *, int, unsigned int);
 #endif
 
 
-/* Assembler exit.  */
-
-/* __returncode is the final program's return code.
- */
-extern void __exit (int __returncode) __attribute__ ((__noreturn__));
-extern void __exit_no_code (void) __attribute__ ((__noreturn__));
 
 /* __unixlib_break is initialised to __image_rw_lomem & __unixlib_stack to
    __image_rw_himem - STAKSIZ;
@@ -168,8 +158,8 @@ extern void *__unixlib_break;		/* end of data area */
 extern void *__unixlib_real_break;	/* real end of data area */
 extern void *__unixlib_stack;		/* bottom of stack */
 extern void *__unixlib_stack_limit;
-extern int __codeshift;
 extern int __dynamic_num;
+extern unsigned int __dynamic_area_refcount;
 extern void __dynamic_area_exit (void);
 
 extern void __munmap_all (void);	/* Deallocate all mappings.  */
@@ -207,24 +197,6 @@ extern void __stop_itimers (void);
 /* Reset handlers, etc. back to original state.  */
 extern void __env_riscos (void);
 extern void __env_unixlib (void);
-
-/* vfork() & exec() */
-
-extern void __vret (int);	/* return from child - calls __vexit() */
-
-extern int *__vfork (void);	/* fork to child context */
-extern int *__vexit (int);	/* restore to parent context */
-
-extern void __exret (void);	/* return from __exec() - calls __vret() */
-
-extern void (*__exptr) (char *); /* pointer to __exec() routine */
-extern int __exlen;		/* length of __exec() routine */
-extern int __exshift;		/* __exec() shift */
-extern void __exec_cli (const char *) __attribute__ ((__noreturn__));
-
-/* vfork weak link.  */
-
-extern void (*___vret) (int);
 
 /* Return unsigned int from STRING.  END, if non-null, points to character
    after number.  */
@@ -270,6 +242,9 @@ extern void __runtime_features (const char *__cmdline);
 extern void
 __unixlib_fatal (const char *__message) __attribute__ ((__noreturn__));
 
+/* Atomically increment or decrement a word of memory */
+extern unsigned int __atomic_modify (unsigned int *addr, int incr);
+
 /* Initialize the signal code.  */
 extern void __unixlib_signal_initialise (struct proc *__p);
 
@@ -302,10 +277,13 @@ extern void *__stackalloc_incr_wimpslot (int __incr);
 /* Initialise the UnixLib world.  */
 void __unixinit (void);
 
-void _main (void);
+/* Free any remaining memory and file descriptors associated with a process */
+void __free_process(struct __sul_process *process);
 
-/* Shared between sys/exec.c & sys/_exec.s */
-extern _kernel_oserror *__exerr;
+int _main (void);
+
+extern pid_t __fork_post (pid_t pid, int isfork);
+extern int __fork_pre (int isfork, void **sul_fork, pid_t *pid);
 
 #endif  /* __UNIXLIB_INTERNALS */
 

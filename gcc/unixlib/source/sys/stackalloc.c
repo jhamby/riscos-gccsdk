@@ -1,8 +1,8 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/stackalloc.c,v $
- * $Date: 2004/10/17 16:24:44 $
- * $Revision: 1.4 $
+ * $Date: 2004/12/11 14:18:57 $
+ * $Revision: 1.5 $
  * $State: Exp $
  * $Author: joty $
  *
@@ -29,7 +29,7 @@
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: stackalloc.c,v 1.4 2004/10/17 16:24:44 joty Exp $";
+static const char rcs_id[] = "$Id: stackalloc.c,v 1.5 2004/12/11 14:18:57 joty Exp $";
 #endif
 
 #include <stddef.h>
@@ -38,7 +38,7 @@ static const char rcs_id[] = "$Id: stackalloc.c,v 1.4 2004/10/17 16:24:44 joty E
 #include <pthread.h>
 #include <swis.h>
 
-/* #define DEBUG */
+/* #define DEBUG 1*/
 
 #define BLOCK_FREE 0
 #define BLOCK_DATA_SIZE 4096
@@ -112,7 +112,7 @@ static void *__old_himem; /* Value of __image_rw_himem last time the stack was i
 void *
 __stackalloc_incr_wimpslot (int incr)
 {
-  int regs[10];
+  void *new_wimpslot;
 
   if ((u_char *)__image_rw_himem + incr <= (u_char *)__unixlib_real_himem)
     {
@@ -124,28 +124,27 @@ __stackalloc_incr_wimpslot (int incr)
     }
 
   /* Round the size up to reduce the number of calls needed to Wimp_SlotSize */
-  regs[0] = (int) (((u_char *)__image_rw_himem - 0x8000) + incr +
-                   __DA_WIMPSLOT_ALIGNMENT) & ~__DA_WIMPSLOT_ALIGNMENT;
-  regs[1] = -1;
+  new_wimpslot = (void *) ((int) ((u_char *)__image_rw_himem + incr +
+                  __DA_WIMPSLOT_ALIGNMENT) & ~__DA_WIMPSLOT_ALIGNMENT);
+
 #ifdef DEBUG
   __os_print ("-- __stackalloc_incr_wimpslot: attempting to increase wimpslot to ");
-  __os_prhex(regs[0]); __os_nl ();
-#endif
-  if (__os_swi (Wimp_SlotSize, regs))
-    {
-#ifdef DEBUG
-      __os_print ("-- __stackalloc_incr_wimpslot: cannot increase wimpslot\r\n");
-#endif
-      return NULL;
-    }
-#ifdef DEBUG
-  else
-    {
-      __os_print ("-- __stackalloc_incr_wimpslot: increased wimpslot to "); __os_prhex(regs[0]); __os_nl ();
-    }
+  __os_prhex(new_wimpslot); __os_nl ();
 #endif
 
-  __unixlib_real_himem = (void *)(0x8000 + regs[0]);
+  __unixlib_real_himem =
+  new_wimpslot = __proc->sul_wimpslot (__proc->pid, new_wimpslot);
+
+#ifdef DEBUG
+  __os_print ("-- __stackalloc_incr_wimpslot: increased wimpslot to "); __os_prhex(new_wimpslot); __os_nl ();
+#endif
+
+  if (new_wimpslot == NULL)
+    return NULL;
+
+  __unixlib_real_himem = new_wimpslot;
+
+
   if ((u_char *)__image_rw_himem + incr > (u_char *)__unixlib_real_himem)
     {
 #ifdef DEBUG
@@ -323,7 +322,6 @@ void
 __stackalloc_init (void)
 {
   struct block *initialblock;
-  int regs[10];
 
   /* The initial stack chunk is set up in _syslib.s
      __unixlib_stack points 8 bytes below the base of the initial chunk
@@ -341,11 +339,6 @@ __stackalloc_init (void)
   /* Record the value of himem when the initial stack chunk was setup */
   __old_himem = __image_rw_himem;
 
-  /* Set himem to the top of the wimpslot, i.e. above any parent program */
-  regs[0] = 0;
-  regs[1] = (int)__unixlib_real_himem;
-  regs[2] = 0;
-  __os_swi (OS_ChangeEnvironment, regs);
   __image_rw_himem = __unixlib_real_himem;
 
   initialblock = (struct block *)(void *)((u_char *)__unixlib_stack + 4);

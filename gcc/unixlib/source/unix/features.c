@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/features.c,v $
- * $Date: 2004/08/08 12:50:41 $
- * $Revision: 1.9 $
+ * $Date: 2005/01/23 19:39:57 $
+ * $Revision: 1.10 $
  * $State: Exp $
- * $Author: peter $
+ * $Author: joty $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: features.c,v 1.9 2004/08/08 12:50:41 peter Exp $";
+static const char rcs_id[] = "$Id: features.c,v 1.10 2005/01/23 19:39:57 joty Exp $";
 #endif
 
 /* #define DEBUG 1 */
@@ -137,7 +137,7 @@ static void features (const char *progname)
     {
       unsigned int uid = __decstrtoui(ptr, NULL);
 
-    __u->uid = __u->euid = (uid_t)uid;
+    __proc->uid = __proc->euid = (uid_t)uid;
     }
 }
 

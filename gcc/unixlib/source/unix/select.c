@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/select.c,v $
- * $Date: 2004/12/04 22:15:04 $
- * $Revision: 1.9 $
+ * $Date: 2005/02/09 23:16:33 $
+ * $Revision: 1.10 $
  * $State: Exp $
- * $Author: joty $
+ * $Author: alex $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: select.c,v 1.9 2004/12/04 22:15:04 joty Exp $";
+static const char rcs_id[] = "$Id: select.c,v 1.10 2005/02/09 23:16:33 alex Exp $";
 #endif
 
 /* netlib/socket.c: Written by Peter Burwood, July 1997  */
@@ -31,6 +31,7 @@ static const char rcs_id[] = "$Id: select.c,v 1.9 2004/12/04 22:15:04 joty Exp $
 
 
 fd_set __socket_fd_set;
+static int __socket_fd_set_initialised = 0;
 
 
 #ifdef DEBUG
@@ -82,7 +83,7 @@ __convert_fd_set (int nfds, const fd_set *iset, fd_set *oset, int *max_fd)
               if ((bothset >> bits) & 1)
                 {
                   int fd = words * WORD_BITS + bits;
-                  int sock_fd = (int)__u->fd[fd].handle;
+                  int sock_fd = (int)(getfd (fd)->devicehandle->handle);
 
                   FD_SET (sock_fd, oset);
 
@@ -121,9 +122,9 @@ __return_fd_set (int nfds, fd_set *iset, const fd_set *oset)
           while (bits-- > 0)
             {
               int fd = words * WORD_BITS + bits;
-              int sock_fd = (int)__u->fd[fd].handle;
+              int sock_fd = (int)(getfd (fd)->devicehandle->handle);
 
-               if (__u->fd[fd].device == DEV_SOCKET && !FD_ISSET (sock_fd, oset))
+               if (getfd (fd)->devicehandle->type == DEV_SOCKET && !FD_ISSET (sock_fd, oset))
                  FD_CLR (fd, iset);
             }
         }
@@ -155,6 +156,21 @@ select (int nfds, fd_set *readfds, fd_set *writefds,
 	   "sizeof(fd_set) = %d\t__FD_SETSIZE = %d\n", nfds, readfds, writefds,
 	   exceptfds, timeout, sizeof(fd_set), __FD_SETSIZE);
 #endif
+
+  if (!__socket_fd_set_initialised)
+    {
+      /* We need to scan all file descriptors to initialise as we could be
+         a child program with sockets already open */
+      int i;
+
+      FD_ZERO (&__socket_fd_set);
+
+      for (i = 0; i < __proc->maxfd; i++)
+        if (getfd (i)->devicehandle && getfd (i)->devicehandle->type == DEV_SOCKET)
+          FD_SET (i, &__socket_fd_set);
+
+      __socket_fd_set_initialised = 1;
+    }
 
   if (timeout)
     {
@@ -231,10 +247,10 @@ select (int nfds, fd_set *readfds, fd_set *writefds,
 
       while (fd-- > 0)
 	{
-	  struct __unixlib_fd *file_desc = &__u->fd[fd];
+	  struct __unixlib_fd *file_desc = getfd (fd);
           fd_set *read_p, *write_p, *except_p;
           int (*select_func) (struct __unixlib_fd *__fd, int __fd1, fd_set *__read,
-		fd_set *__write, fd_set *__except) = __dev[file_desc->device].select;
+		fd_set *__write, fd_set *__except) = __dev[file_desc->devicehandle->type < NDEV ? file_desc->devicehandle->type : DEV_NULL].select;
 
 	  read_p   = (readfds && FD_ISSET(fd, readfds)) ?
 	    &new_readfds : NULL;

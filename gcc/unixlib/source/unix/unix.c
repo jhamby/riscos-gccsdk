@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/unix.c,v $
- * $Date: 2005/01/16 18:27:57 $
- * $Revision: 1.34 $
+ * $Date: 2005/03/02 22:57:00 $
+ * $Revision: 1.35 $
  * $State: Exp $
  * $Author: alex $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: unix.c,v 1.34 2005/01/16 18:27:57 alex Exp $";
+static const char rcs_id[] = "$Id: unix.c,v 1.35 2005/03/02 22:57:00 alex Exp $";
 #endif
 
 #include <stdio.h>
@@ -37,16 +37,14 @@ static const char rcs_id[] = "$Id: unix.c,v 1.34 2005/01/16 18:27:57 alex Exp $"
 #include <unixlib/sigstate.h>
 #include <unixlib/swiparams.h>
 
-/* #define DEBUG 1 */
+/* #define DEBUG 1*/ 
 
 #include <sys/debug.h>
 
 void (*__atexit_function_array[__MAX_ATEXIT_FUNCTION_COUNT]) (void);
 int __atexit_function_count = 0;
 
-static void initialise_process_structure (struct proc *process);
-static struct proc *create_process_structure (void);
-static void initialise_unix_io (struct proc *process);
+static void initialise_unix_io (void);
 static void check_fd_redirection (const char *filename,
 				  unsigned int fd_to_replace);
 static int get_fd_redirection (const char *redir);
@@ -68,6 +66,11 @@ extern int main (int argc, char *argv[], char **environ);
 
 /* Only called externally from here - see comment below */
 extern int dsp_exit(void);
+
+static struct proc ___u;
+struct proc *__u = &___u;	/* current process */
+
+static char *__default_environ = NULL;
 
 static void
 __badr (void)
@@ -114,6 +117,75 @@ __hexstrtochar (const char *nptr)
   return result;
 }
 
+/* Free any remaining memory and file descriptors associated with a process */
+void __free_process(struct __sul_process *process)
+{
+  struct __sul_process *child = process->children;
+  struct __sul_process *next_child;
+
+  /* Close all file descriptors.  */
+  if (process->file_descriptors)
+    {
+      int i;
+      struct __unixlib_fd *file_desc;
+
+      for (i = 0; i < process->maxfd; i++)
+        {
+          file_desc = (struct __unixlib_fd *)((char *)(process->file_descriptors) + i * process->fdsize);
+          if (file_desc->devicehandle)
+            __close (file_desc);
+        }
+
+      __proc->sul_free (__proc->pid, process->file_descriptors);
+      process->file_descriptors = NULL;
+    }
+
+  if (process->environ)
+    {
+      __proc->sul_free (__proc->pid, process->environ);
+      process->environ = NULL;
+    }
+
+  if (process->console)
+    {
+      if (__atomic_modify (&(process->console->refcount), -1) == 0)
+        __proc->sul_free(__proc->pid, __proc->console);
+      process->console = NULL;
+    }
+
+  if (process->rs423)
+    {
+      if (__atomic_modify (&(process->rs423->refcount), -1) == 0)
+        __proc->sul_free(__proc->pid, process->rs423);
+      process->rs423 = NULL;
+    }
+
+  /* Free all zombie children of this process */
+  while (child)
+    {
+      next_child = child->next_child;
+      if (child->status.zombie)
+        {
+          __free_process (child);
+        }
+      else
+        {
+          /* The child is still running, so we can't free it */
+          child->ppid = 1;
+          child->next_child = NULL;
+        }
+
+      child = next_child;
+    }
+
+  process->children = NULL;
+
+  /* If this a process struct from a zombie child, then free it */
+  if (process->status.zombie)
+    __proc->sul_free (__proc->pid, process);
+
+}
+
 /* Initialise the UnixLib world.  Create a new process structure, initialise
    the UnixLib library and parse command line arguments.
    This function is called by __main () in sys.s._syslib.  */
@@ -122,107 +194,43 @@ void __unixinit (void)
   int __cli_size, cli_size, regs[10];
   char *cli;
 
-  /* The global variable __u is a pointer to the process structure of
-     the current process i.e. the one that would be executing this function.
-     If the value of __u is NULL, or at least points to a non-existant
-     UnixLib process structure, then we make the assumption that this
-     process is a parent process.
-
-     If the value of __u is not NULL, then we know that UnixLib$env points
-     to a valid process structure which should mean that we are a child
-     process of another UnixLib application.  */
-
 #ifdef DEBUG
-  __os_print ("-- __unixinit: __u = "); __os_prhex ((unsigned int) __u);
-  if (__u != NULL && valid_address((const int *)&__u[0], (const int *)&__u[1]))
-    {
-      __os_print (", __u->magic="); __os_prhex ((unsigned int) __u->__magic);
-    }
-  __os_nl ();
+  __os_print ("-- __unixinit: new process\r\n");
 #endif
 
-  if (__u == NULL
-      || !valid_address((const int *)&__u[0], (const int *)&__u[1])
-      || __u->__magic != _PROCMAGIC)
-    {
-#ifdef DEBUG
-      __os_print ("-- __unixinit: new process\r\n");
-#endif
-      /* We are a new process.  */
-
-      /* Create a process structure if no parent exists or the one
-	 pointed to by UnixLib$env is invalid.  */
-      __u = create_process_structure ();
-      if (__u == NULL)
-	__unixlib_fatal ("cannot allocate memory for process structure");
-      initialise_process_structure (__u);
 #if __UNIXLIB_FEATURE_PTHREADS
-      /* Initialise the pthread system */
-      __pthread_prog_init ();
+  /* Initialise the pthread system */
+  __pthread_prog_init ();
 #endif
-      __resource_initialise (__u);
-      __unixlib_signal_initialise (__u);
-      /* Initialise ctype tables to the C locale.  */
-      __build_ctype_tables (-2);
-      /* Define and initialise the Unix I/O.  */
-      initialise_unix_io (__u);
-      __stdioinit ();
+  __resource_initialise (__u);
+  __unixlib_signal_initialise (__u);
+  /* Initialise ctype tables to the C locale.  */
+  __build_ctype_tables (-2);
+  /* Define and initialise the Unix I/O.  */
+  initialise_unix_io ();
+  __stdioinit ();
 
-      /* When the DDEUtils module is loaded, we can support chdir() without
-	 the RISC OS CSD being changed. When not loaded, chdir() will work by
-	 changing CSD for all processes.
+  /* When the DDEUtils module is loaded, we can support chdir() without
+     the RISC OS CSD being changed. When not loaded, chdir() will work by
+     changing CSD for all processes.
 
-	 IMPORTANT NOTE: because of bugs in DDEUtils' path processing
-	 we don't set DDEUtils_Prefix at the beginning of each process.
-	 Symptoms of these bugs are "ADFS::HardDisc4.$ is a directory"
-	 RISC OS error when Font_FindFont is done for a font not yet in
-	 the font cache.
-	 These problems are known to be solved in RISC OS Adjust 1.  */
+     IMPORTANT NOTE: because of bugs in DDEUtils' path processing
+     we don't set DDEUtils_Prefix at the beginning of each process.
+     Symptoms of these bugs are "ADFS::HardDisc4.$ is a directory"
+     RISC OS error when Font_FindFont is done for a font not yet in
+     the font cache.
+     These problems are known to be solved in RISC OS Adjust 1.  */
 #if __UNIXLIB_SET_DDEPREFIX == 0
-      __u->dde_prefix = __get_dde_prefix ();
+  __u->dde_prefix = __get_dde_prefix ();
 #else
-      if ((__u->dde_prefix = __get_dde_prefix ()) == NULL)
-	{
-	  regs[0] = (int)"@";
-	  (void) __os_swi (DDEUtils_Prefix, regs);
-	}
-#endif
-    }
-  else
+  if ((__u->dde_prefix = __get_dde_prefix ()) == NULL)
     {
-      /* We are a child process of an another UnixLib application.  */
-
-      /* Sanity check */
-      if (!__u->status.has_parent)
-	__unixlib_fatal ("child process doesn't seem to have a parent");
-
-#if __UNIXLIB_FEATURE_PTHREADS
-      /* Initialise the pthread system */
-      __pthread_prog_init ();
+      regs[0] = (int)"@";
+      (void) __os_swi (DDEUtils_Prefix, regs);
+    }
 #endif
-      __resource_initialise (__u);
-      __unixlib_signal_initialise (__u);
-      /* Initialise ctype tables to the C locale.  */
-      __build_ctype_tables (-2);
-      __stdioinit ();
 
-      /* Don't touch __u->dde_prefix as it already holds a valid ptr to
-	 DDEUtils' Prefix value at this point.  */
-
-      /* Inherit environ from parent.  This is our copy, to do with as we
-	 like except for freeing.  */
-      environ = __u->envp;
-    }
-
-  if (! environ)
-    {
-      /* If we are a new process, then we are building a new environment
-	 table here.  We can also arrive here if we are a child process
-	 and the parent process had nothing in its environment to pass on.  */
-      if ((environ = malloc (sizeof (char *))) == NULL)
-	__unixlib_fatal ("cannot allocate memory for environment structure");
-      *environ = NULL;
-    }
+  environ = __proc->environ ? __proc->environ : &__default_environ;
 
   /* Get command line.  __unixlib_cli's pointing to the command line block
      returned by OS_GetEnv in __main ().  */
@@ -288,28 +296,15 @@ void __unixinit (void)
 #endif
 }
 
-void _main (void)
+int _main (void)
 {
   /* Enter the user's program. For compatibility with Unix systems,
      pass the 'environ' variable as a third argument.
 
-     Make a snapshot of the current environment.  This is necessary
-     as doing e.g. a getenv() can update *environ so that this main()
-     program is wrongly looking at a free'ed environ ptr array.  */
-  int env_var_index;
-  char **snapshot_environ;
-  for (env_var_index = 0; environ[env_var_index] != NULL; ++env_var_index)
-    ;
-  snapshot_environ = (char **) malloc((env_var_index + 1) * sizeof (char *));
-  if (snapshot_environ == NULL)
-    __unixlib_fatal ("cannot allocate memory for snapshot environment structure");
-  while (env_var_index >= 0)
-    {
-      snapshot_environ[env_var_index] = environ[env_var_index];
-      --env_var_index;
-    }
+     This copy of the environment will not get updated by getenv
+     or setenv */
 
-  main (__u->argc, __u->argv, snapshot_environ);
+  return main (__u->argc, __u->argv, __proc->environ ? __proc->environ : &__default_environ);
 }
 
 void
@@ -350,11 +345,6 @@ void
 _exit (int return_code)
 {
   int status;
-  struct __unixlib_fd *fd;
-
-  /* __u should always have a defined value.  */
-  if (! __u)
-    __unixlib_fatal ("_exit() called with non-process structure");
 
   /* Interval timers must be stopped.  */
   __stop_itimers ();
@@ -370,75 +360,80 @@ _exit (int return_code)
   dsp_exit();
 
   /* Convert the 16-bit return code into an 8-bit equivalent
-     for compatibility with RISC OS.  See sys.c.vfork for
-     further information.  */
+     for compatibility with RISC OS.
+
+     The exit code:
+        if bit 7 == 0
+           bits 0..6 = normal exit code
+        else
+          {
+             bits 0..5 = signal number that terminated the process.
+             bit 6 == 1 if process core dumped
+          }
+  */
+
   if (WIFSIGNALED (return_code))
     {
+      /* Process terminated with a signal.  */
       status = WTERMSIG (return_code);
+      __proc->status.return_code = 0;
+      __proc->status.signal_exit = 1;
+      __proc->status.signal = status;
       status |= (1 << 7);
+
       if (WCOREDUMP (return_code))
-	status |= (1 << 6);
+        {
+          status |= (1 << 6);
+          __proc->status.core_dump = 1;
+        }
+      else
+        {
+          __proc->status.core_dump = 0;
+        }
     }
   else
     {
       status = WEXITSTATUS (return_code);
+      __proc->status.return_code = status;
+      __proc->status.core_dump = 0;
+      __proc->status.signal_exit = 0;
     }
 
   /* Reset the DDEUtils' Prefix variable to the value at startup and
-     free the DDEUtils' Prefix storage.  We do not do this as a child
-     because the parent will reset the Prefix value.  */
-#if __UNIXLIB_SET_DDEPREFIX == 0
-  if (!__u->status.has_parent && __u->dde_prefix)
-#else
-  if (!__u->status.has_parent)
-#endif
+     free the DDEUtils' Prefix storage. */
+  if (__u->dde_prefix)
     {
       int regs[10];
 
       regs[0] = (int) __u->dde_prefix;
       (void) __os_swi (DDEUtils_Prefix, regs);
-      free((void *)__u->dde_prefix);
-      __u->dde_prefix = NULL;
     }
 
-  /* Close all file descriptors.  */
-  if ((fd = __u->fd) != NULL)
-    {
-      int i;
+  /* Re-enable Escape (in case SIGINT handler fired in ttyicanon) */
+  __os_byte (229, 0, 0, NULL);
 
-      for (i = 0; i < MAXFD; i++)
-	if (fd[i].__magic == _FDMAGIC)
-	  close (i);
-    }
+  __free_process (__proc);
+  __dynamic_area_exit ();
+  __env_riscos ();
 
 #ifdef DEBUG
-  __os_print ("_exit(): Setting return code = ");
-  __os_prhex (return_code);
+  __os_print ("__exit(): Calling sul_exit with return code = ");
+  __os_prhex (status);
   __os_nl ();
 #endif
-
-  /* OS_Exit with return value 'r'.  This function never returns.
-     Note that in case of a fork() + execve(), the Exit handler is
-     still ours (in fact __exec_s4) so that when this child dies
-     the parent, still same RISC OS process, continues at __exec_s4.  */
-  __exit (status);
+  __proc->sul_exit (__proc->pid, status);
 }
-
 
 int
 __alloc_file_descriptor (void)
 {
-  struct __unixlib_fd *fd;
   int i;
 
   PTHREAD_UNSAFE
 
-  fd = __u->fd;
-
-  /* Look for a spare file descriptor.  Suitably unallocated
-     ones will have an invalid magic number.  */
-  for (i = 0; i < MAXFD; i++)
-    if (fd[i].__magic != _FDMAGIC)
+  /* Look for a spare file descriptor.  */
+  for (i = 0; i < __proc->maxfd; i++)
+    if (getfd (i)->devicehandle == NULL)
       {
 #ifdef DEBUG
 	__os_print ("__alloc_file_descriptor: found free descriptor ");
@@ -474,55 +469,22 @@ __stop_itimers (void)
   setitimer (ITIMER_PROF, &new_timer, 0);
 }
 
-static void
-initialise_process_structure (struct proc *process)
-{
-  process->uid = process->euid = 1;
-  process->gid = process->egid = 1;
-  /* Give the process a process group ID of 2.  */
-  process->pgrp = 2;
-  /* Give the process a process ID of the monotonic clock.  This is not a
-     guaranteed unique number, but it is about the best we can do until a
-     module registry is written for UnixLib.  */
-  process->pid = (pid_t) clock ();
-  process->ppid = 1;
-  process->status.tty_type = TTY_CON;
-}
-
-/* Initialise a process structure.
-   Return NULL on error otherwise return a memory allocated process
-   structure.  */
-static struct proc *
-create_process_structure (void)
-{
-  struct proc *p;
-
-  /* Reserve some memory for our process structure. If these initialisations
-     fail (due to a lack of memory), then we must exit and die.  */
-  p = calloc (1, sizeof (struct proc));
-  if (p == NULL)
-    return NULL;
-
-  p->tty = calloc (MAXTTY, sizeof (struct tty));
-  if (p->tty == NULL)
-    return NULL;
-
-  /* Set the magic word for our new process structure. We will use
-     this when checking the validity of the pointer specified by
-     UnixLib$env.  */
-  p->__magic = _PROCMAGIC;
-  return p;
-}
-
 /* Define and initialise the Unix I/O.  */
 static void
-initialise_unix_io (struct proc *process)
+initialise_unix_io (void)
 {
   int i;
 
+  if (__proc->file_descriptors == NULL)
+    {
+      __proc->file_descriptors = __proc->sul_malloc (__proc->pid, __proc->maxfd * __proc->fdsize);
+      if (__proc->file_descriptors == NULL)
+        __unixlib_fatal ("cannot allocate file descriptor memory");
+    }
+
   /* Set all file descriptors to unallocated status.  */
-  for (i = 0; i < MAXFD; i++)
-    process->fd[i].__magic = 0;
+  for (i = 0; i < __proc->maxfd; i++)
+    getfd (i)->devicehandle = NULL;
 
   /* These are guaranteed to be the first files opened. stdin, stdout
      and stderr will receive file descriptor numbers 0, 1 and 2
@@ -536,8 +498,7 @@ initialise_unix_io (struct proc *process)
 
   /* Duplicate the file descriptor for stdout, to create a suitable
      file descriptor for stderr.  */
-  process->fd[STDERR_FILENO] = process->fd[STDOUT_FILENO];
-  process->fd[STDERR_FILENO].dflag = 0;
+  fcntl (STDOUT_FILENO, F_DUPFD, STDERR_FILENO);
 }
 
 /* Attempt to re-direct a file descriptor based on the file descriptor
@@ -559,14 +520,13 @@ check_fd_redirection (const char *filename, unsigned int fd_to_replace)
       char *end;
       unsigned int dup_fd = __decstrtoui (filename, &end);
 
-      if (dup_fd >= MAXFD)
+      if (dup_fd >= __proc->maxfd)
 	__badr ();
 
       if (dup_fd != fd_to_replace)
 	{
 	  /* Duplicate the file descriptor.  */
-	  __u->fd[fd_to_replace] = __u->fd[dup_fd];
-	  __u->fd[fd_to_replace].dflag = 0;
+	  fcntl (dup_fd, F_DUPFD, fd_to_replace);
 	}
     }
   else
@@ -593,7 +553,7 @@ get_fd_redirection (const char *redir)
       multiplier *= 10;
       redir--;
     }
-  if (fd >= MAXFD)
+  if (fd >= __proc->maxfd)
     __badr ();
 
   return fd;
@@ -649,7 +609,7 @@ static void check_io_redir (const char *p, int fd, int mode)
     {
       /* Close the file descriptor, if it was defined and open.  */
       if (!BADF (fd))
-	__close (fd);
+	__close (getfd (fd));
 
       fd = __open (fd, ptr, mode, 0666);
       if (fd < 0)

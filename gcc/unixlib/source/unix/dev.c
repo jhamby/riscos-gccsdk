@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/dev.c,v $
- * $Date: 2004/12/23 21:10:08 $
- * $Revision: 1.26 $
+ * $Date: 2005/01/30 16:08:35 $
+ * $Revision: 1.27 $
  * $State: Exp $
- * $Author: peter $
+ * $Author: alex $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: dev.c,v 1.26 2004/12/23 21:10:08 peter Exp $";
+static const char rcs_id[] = "$Id: dev.c,v 1.27 2005/01/30 16:08:35 alex Exp $";
 #endif
 
 /* #define DEBUG */
@@ -45,27 +45,17 @@ const struct dev __dev[NDEV] =
     __nulllseek, __ttyioctl, __ttyselect, __nullstat, __nullfstat },
 
   /* DEV_PIPE */
-#if __UNIXLIB_FEATURE_PIPEDEV
   {__pipeopen, __pipeclose, __piperead, __pipewrite,
     __nulllseek, __nullioctl, __pipeselect, __nullstat, __nullfstat },
-#else
-  {__nullopen, __nullclose, __nullread, __nullwrite,
-    __nulllseek, __nullioctl, __nullselect, __nullstat, __nullfstat },
-#endif
 
   /* DEV_NULL */
   {__nullopen, __nullclose, __nullread, __nullwrite,
     __nulllseek, __nullioctl, __nullselect, __nullstat, __nullfstat },
 
   /* DEV_SOCKET */
-#if __UNIXLIB_FEATURE_SOCKET
   /* Socket select is a special case.  */
   {__sockopen, __sockclose, __sockread, __sockwrite,
     __nulllseek, __sockioctl, __sockselect, __nullstat, __nullfstat },
-#else
-  {__nullopen, __nullclose, __nullread, __nullwrite,
-    __nulllseek, __nullioctl, __nullselect, __nullstat, __nullfstat },
-#endif
 
   /* DEV_ZERO */
   {__nullopen, __nullclose, __zeroread, __nullwrite,
@@ -340,7 +330,7 @@ __fsopen (struct __unixlib_fd *file_desc, const char *filename, int mode)
 
     if (fflag & O_CREAT)
       {
-        mode &= ~(__u->umask & 0777);
+        mode &= ~(__proc->umask & 0777);
         regs[5] = __set_protection (mode);
 
         /* Write the object attributes.  */
@@ -368,9 +358,6 @@ __fsopen (struct __unixlib_fd *file_desc, const char *filename, int mode)
     /* Trying again *might* fix the problem.  */
     return (void *) __set_errno (EAGAIN);
 
-  /* Store the filing system number for this file.  */
-  file_desc->fs = regs[2] & 0xff;
-
   return (void *) fd;
 
 os_err:
@@ -386,22 +373,24 @@ __fsclose (struct __unixlib_fd *file_desc)
   int regs[10];
 
   if (file_desc->dflag & FILE_ISDIR)
-    return closedir ((DIR *) file_desc->handle);
+    return closedir ((DIR *) file_desc->devicehandle->handle);
 
   if (file_desc->fflag & O_UNLINKED)
-    buffer = __fd_to_name ((int) file_desc->handle, NULL, 0);
+    buffer = __fd_to_name ((int) file_desc->devicehandle->handle, NULL, 0);
 
-   /* __os_print ("Closing file ");
-      __os_prhex ((int)file_desc->handle);
-      if( buffer )
-      {
-        __os_print (": ");
-        __os_print (buffer);
-      }
-      __os_nl();  */
+#ifdef DEBUG
+  __os_print ("Closing file ");
+  __os_prhex ((int)file_desc->devicehandle->handle);
+  if( buffer )
+  {
+    __os_print (": ");
+    __os_print (buffer);
+  }
+  __os_nl();
+#endif
 
   /* Close file.  */
-  err = __os_fclose ((int) file_desc->handle);
+  err = __os_fclose ((int) file_desc->devicehandle->handle);
   if (! err && buffer)
     {
       err = __os_file (OSFILE_DELETENAMEDOBJECT, buffer, regs);
@@ -424,7 +413,7 @@ __fsread (struct __unixlib_fd *file_desc, void *data, int nbyte)
       __os_print ("__fsread: read directory entry\r\n");
 #endif
 
-      if (readdir_r ((DIR *) file_desc->handle, &entry, &result))
+      if (readdir_r ((DIR *) file_desc->devicehandle->handle, &entry, &result))
 	return -1;
       if (!result)
         return -1;
@@ -436,7 +425,7 @@ __fsread (struct __unixlib_fd *file_desc, void *data, int nbyte)
       _kernel_oserror *err;
       int regs[5];
 
-      if ((err = __os_fread ((int)file_desc->handle, data, nbyte, regs)))
+      if ((err = __os_fread ((int)file_desc->devicehandle->handle, data, nbyte, regs)))
 	{
 	  __seterr (err);
 	  return -1;
@@ -453,11 +442,11 @@ __fswrite (struct __unixlib_fd *file_desc, const void *data, int nbyte)
   int regs[5];
 
 #ifdef DEBUG
-  __os_print ("__fswrite("); __os_prdec ((int)file_desc->handle);
+  __os_print ("__fswrite("); __os_prdec ((int)file_desc->devicehandle->handle);
   __os_print (", nbyte="); __os_prdec (nbyte); __os_print (")\r\n");
 #endif
 
-  if ((err = __os_fwrite ((int)file_desc->handle, data, nbyte, regs)))
+  if ((err = __os_fwrite ((int)file_desc->devicehandle->handle, data, nbyte, regs)))
     {
       __seterr (err);
       return -1;
@@ -471,7 +460,7 @@ __fslseek (struct __unixlib_fd *file_desc, __off_t lpos, int whence)
 {
   _kernel_oserror *err = NULL;
   int regs[3];
-  int handle = (int) file_desc->handle;
+  int handle = (int) file_desc->devicehandle->handle;
 
   if (whence == SEEK_SET)
     err = __os_args (1, handle, (int) lpos, regs);
@@ -553,12 +542,12 @@ __fsfstat (int fd, struct stat *buf)
   _kernel_oserror *err;
   int argsregs[3];
 
-  file_desc = &__u->fd[fd];
+  file_desc = getfd (fd);
 
   if (file_desc->dflag & FILE_ISDIR)
-    buffer = ((DIR *) file_desc->handle)->dd_name_can;
+    buffer = ((DIR *) file_desc->devicehandle->handle)->dd_name_can;
   else
-    buffer = __fd_to_name ((int) file_desc->handle, NULL, 0);
+    buffer = __fd_to_name ((int) file_desc->devicehandle->handle, NULL, 0);
 
   if (buffer == NULL)
     return __set_errno (EBADF);
@@ -576,7 +565,7 @@ __fsfstat (int fd, struct stat *buf)
 
   /* __os_file returns the allocated size of the file,
      but we want the current extent of the file */
-  err = __os_args (2, (int) file_desc->handle, 0, argsregs);
+  err = __os_args (2, (int) file_desc->devicehandle->handle, 0, argsregs);
   if (err)
     {
       __seterr (err);
@@ -588,8 +577,6 @@ __fsfstat (int fd, struct stat *buf)
 
   return 0;
 }
-
-#if __UNIXLIB_FEATURE_PIPEDEV
 
 void *
 __pipeopen (struct __unixlib_fd *file_desc, const char *file, int mode)
@@ -614,7 +601,7 @@ __pipewrite (struct __unixlib_fd *file_desc, const void *data, int nbyte)
 {
   int handle, regs[3];
 
-  handle = (int) file_desc->handle;
+  handle = (int) file_desc->devicehandle->handle;
   /* Read current file position.  */
   if (! __os_args (0, handle, 0, regs))
     {
@@ -647,11 +634,11 @@ __pipeselect (struct __unixlib_fd *file_desc, int fd,
 	int regs[3];
 	int pos;
 	/* Read current file position.  */
-	if (! __os_args (0, (int)file_desc->handle, 0, regs))
+	if (! __os_args (0, (int)file_desc->devicehandle->handle, 0, regs))
 	  {
 	    pos = regs[2];
 	    /* Read extent.  */
-	    if (! __os_args (2, (int)file_desc->handle, 0, regs))
+	    if (! __os_args (2, (int)file_desc->devicehandle->handle, 0, regs))
 		if (pos != regs[2])
 		  to_read = 1;
 	    /* If file pointer != extent then there is still data to read.  */
@@ -670,7 +657,6 @@ __pipeselect (struct __unixlib_fd *file_desc, int fd,
   /* This may not be correct, but it is consistent with Internet 5 select.  */
   return to_read + (pwrite ? 1 : 0);
 }
-#endif /* __UNIXLIB_FEATURE_PIPEDEV */
 
 void *
 __nullopen (struct __unixlib_fd *file_desc, const char *file, int mode)
@@ -678,8 +664,7 @@ __nullopen (struct __unixlib_fd *file_desc, const char *file, int mode)
   IGNORE (file);
   IGNORE (mode);
   IGNORE (file_desc);
-  /* Position of `NULL' in `__sfile' array.  */
-  return (void *) 3;
+  return (void *) 1;
 }
 
 int
@@ -771,7 +756,7 @@ __nullfstat (int fd, struct stat *buf)
   int fflag;
   __mode_t mode = 0;
 
-  file_desc = &__u->fd[fd];
+  file_desc = getfd (fd);
 
   buf->st_ino = 0;
 
@@ -791,7 +776,6 @@ __nullfstat (int fd, struct stat *buf)
   return 0;
 }
 
-#if __UNIXLIB_FEATURE_SOCKET
 void *
 __sockopen (struct __unixlib_fd *file_desc, const char *file, int mode)
 {
@@ -804,26 +788,26 @@ __sockopen (struct __unixlib_fd *file_desc, const char *file, int mode)
 int
 __sockclose (struct __unixlib_fd *file_desc)
 {
-  return _sclose ((int)file_desc->handle);
+  return _sclose ((int)file_desc->devicehandle->handle);
 }
 
 int
 __sockread (struct __unixlib_fd *file_desc, void *data, int nbyte)
 {
-  return _sread ((int)file_desc->handle, data, nbyte);
+  return _sread ((int)file_desc->devicehandle->handle, data, nbyte);
 }
 
 int
 __sockwrite (struct __unixlib_fd *file_desc, const void *data, int nbyte)
 {
-  return _swrite ((int)file_desc->handle, data, nbyte);
+  return _swrite ((int)file_desc->devicehandle->handle, data, nbyte);
 }
 
 int
 __sockioctl (struct __unixlib_fd *file_desc, unsigned long request,
              void *arg)
 {
-  return _sioctl ((int)file_desc->handle, request, arg);
+  return _sioctl ((int)file_desc->devicehandle->handle, request, arg);
 }
 
 int
@@ -843,7 +827,6 @@ __sockselect (struct __unixlib_fd *file_descriptor, int fd,
   /* None are `live' yet.  */
   return 0;
 }
-#endif /* __UNIXLIB_FEATURE_SOCKET */
 
 /* Implements /dev/zero */
 int
@@ -884,8 +867,7 @@ __randomopen (struct __unixlib_fd *file_desc, const char *file, int mode)
        return (void *) __set_errno (ENOENT);
    }
 
-  /* Position of `NULL' in `__sfile' array.  */
-  return (void *) 3;
+  return (void *) 1;
 }
 
 int

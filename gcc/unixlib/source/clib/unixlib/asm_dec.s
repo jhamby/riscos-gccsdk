@@ -1,8 +1,8 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/unixlib/asm_dec.s,v $
-; $Date: 2004/10/17 16:24:44 $
-; $Revision: 1.17 $
+; $Date: 2004/11/28 21:31:34 $
+; $Revision: 1.18 $
 ; $State: Exp $
 ; $Author: joty $
 ;
@@ -267,6 +267,7 @@ SharedUnixLibrary_ErrorChunk	EQU	&81a400	;Range &81a400 - &81a40 (excl) is alloc
 SharedUnixLibrary_Error_UnknownSWI	EQU SharedUnixLibrary_ErrorChunk + &00
 SharedUnixLibrary_Error_UnknownKey	EQU SharedUnixLibrary_ErrorChunk + &01
 SharedUnixLibrary_Error_StillActive	EQU SharedUnixLibrary_ErrorChunk + &02
+SharedUnixLibrary_Error_TooOld		EQU SharedUnixLibrary_ErrorChunk + &03
 ; ...
 SharedUnixLibrary_Error_FatalError	EQU SharedUnixLibrary_ErrorChunk + &3B
 SharedUnixLibrary_Error_NoFPE		EQU SharedUnixLibrary_ErrorChunk + &3C
@@ -279,6 +280,7 @@ OS_NewLine			EQU	&000003
 OS_Exit				EQU	&000011
 OS_EnterOS			EQU	&000016
 OS_GenerateError		EQU	&00002B
+OS_CLI				EQU	&000005
 
 X_Bit				EQU	&20000
 
@@ -432,6 +434,8 @@ XWimp_ReadSysInfo		EQU	&0400F2 + X_Bit
 XWimp_SlotSize			EQU	&0400EC + X_Bit
 XDDEUtils_SetCLSize		EQU	&042581 + X_Bit
 
+Wimp_SlotSize			EQU	&0400EC
+
 XFilter_RegisterPreFilter	EQU	&042640 + X_Bit
 XFilter_RegisterPostFilter	EQU	&042641 + X_Bit
 XFilter_DeRegisterPreFilter	EQU	&042642 + X_Bit
@@ -441,5 +445,6 @@ XSharedUnixLibrary_RegisterUpCall	EQU	&55c80 + X_Bit
 XSharedUnixLibrary_DeRegisterUpCall	EQU	&55c81 + X_Bit
 XSharedUnixLibrary_SetValue		EQU	&55c82 + X_Bit
 XSharedUnixLibrary_Count		EQU	&55c83 + X_Bit
+XSharedUnixLibrary_Initialise		EQU	&55c84 + X_Bit
 
 	END

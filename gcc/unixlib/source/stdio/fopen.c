@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/stdio/fopen.c,v $
- * $Date: 2004/09/07 14:05:11 $
- * $Revision: 1.5 $
+ * $Date: 2004/12/11 14:18:57 $
+ * $Revision: 1.6 $
  * $State: Exp $
  * $Author: joty $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: fopen.c,v 1.5 2004/09/07 14:05:11 joty Exp $";
+static const char rcs_id[] = "$Id: fopen.c,v 1.6 2004/12/11 14:18:57 joty Exp $";
 #endif
 
 /* #define DEBUG */
@@ -110,7 +110,7 @@ fdopen (int fd, const char *mode)
   __os_print ("fdopen: here1\r\n");
 #endif
   /* Verify the FD is valid and allows the access 'mode' specifies.  */
-  dflags = __u->fd[fd].fflag; /* dflags = fcntl (fd, F_GETFL); */
+  dflags = getfd (fd)->fflag; /* dflags = fcntl (fd, F_GETFL); */
   if (dflags == -1)
     return NULL;
 

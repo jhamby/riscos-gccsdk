@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/proc.c,v $
- * $Date: 2002/09/24 21:02:38 $
- * $Revision: 1.4 $
+ * $Date: 2003/04/05 09:33:57 $
+ * $Revision: 1.5 $
  * $State: Exp $
- * $Author: admin $
+ * $Author: alex $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: proc.c,v 1.4 2002/09/24 21:02:38 admin Exp $";
+static const char rcs_id[] = "$Id: proc.c,v 1.5 2003/04/05 09:33:57 alex Exp $";
 #endif
 
 #include <errno.h>
@@ -22,11 +22,11 @@ setegid (gid_t gid)
 {
   PTHREAD_UNSAFE
 
-  if (gid == __u->egid)
+  if (gid == __proc->egid)
     return 0;
-  if (gid == __u->gid)
+  if (gid == __proc->gid)
     {
-      __u->egid = gid;
+      __proc->egid = gid;
       return 0;
     }
 

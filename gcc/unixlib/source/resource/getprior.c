@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/resource/getprior.c,v $
- * $Date: 2001/09/04 16:32:04 $
- * $Revision: 1.2.2.1 $
+ * $Date: 2002/02/14 15:56:36 $
+ * $Revision: 1.3 $
  * $State: Exp $
  * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: getprior.c,v 1.2.2.1 2001/09/04 16:32:04 admin Exp $";
+static const char rcs_id[] = "$Id: getprior.c,v 1.3 2002/02/14 15:56:36 admin Exp $";
 #endif
 
 #include <errno.h>
@@ -24,7 +24,8 @@ static const char rcs_id[] = "$Id: getprior.c,v 1.2.2.1 2001/09/04 16:32:04 admi
 int
 getpriority (enum __priority_which which, int who)
 {
-  int i;
+  struct __sul_process *child;
+  int ret = -1;
 
   if (who == 0)
     {
@@ -32,33 +33,45 @@ getpriority (enum __priority_which which, int who)
       switch (which)
 	{
 	case PRIO_PROCESS:
-	  return __u->ppri;
+	  return __proc->ppri;
 	case PRIO_PGRP:
-	  return __u->gpri;
+	  return __proc->gpri;
 	case PRIO_USER:
-	  return __u->upri;
+	  return __proc->upri;
 	default:
 	  errno = EINVAL;
 	  return -1;
 	}
       return -1;
     }
-  for (i = 0; i < CHILD_MAX; i++)
+
+  child = __proc->children;
+  while (child && ret == -1)
     {
       switch (which)
 	{
 	case PRIO_PROCESS:
-	  return __u->child[i].ppri;
+	  if (child->pid == who)
+	    ret = child->ppri;
+	  break;
 	case PRIO_PGRP:
-	  return __u->child[i].gpri;
+	  if (child->pgrp == who)
+	    ret = child->gpri;
+	  break;
 	case PRIO_USER:
-	  return __u->child[i].upri;
+	  if (child->euid == who)
+	    ret = child->upri;
+	  break;
 	default:
 	  errno = EINVAL;
 	  return -1;
 	}
+      child = child->next_child;
     }
-  /* Invalid value of 'which'.  */
-  errno = ESRCH;
-  return -1;
+
+  if (ret == -1)
+    /* Invalid value of 'which'.  */
+    errno = ESRCH;
+
+  return ret;
 }

@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/tty.c,v $
- * $Date: 2004/10/23 17:23:36 $
- * $Revision: 1.16 $
+ * $Date: 2004/12/16 11:37:08 $
+ * $Revision: 1.17 $
  * $State: Exp $
- * $Author: joty $
+ * $Author: peter $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: tty.c,v 1.16 2004/10/23 17:23:36 joty Exp $";
+static const char rcs_id[] = "$Id: tty.c,v 1.17 2004/12/16 11:37:08 peter Exp $";
 #endif
 
 /* System V tty device driver for RISC OS.  */
@@ -96,6 +96,35 @@ static cc_t ttydefchars[NCCS] =
   _POSIX_VDISABLE /* 19 */
 };
 
+/* Function pointers used for low level operations.  */
+struct ttyfuncs
+{
+  int (*out) (int);
+  int (*in) (void);
+  int (*scan) (int);
+  int (*init) (void);
+  int (*flush) (void);
+};
+
+static struct ttyfuncs ttyfuncs[MAXTTY] =
+{
+  {
+    __os_vdu,
+    __os_get,
+    __os_inkey,
+    __os_console,
+    __os_keyflush
+  },
+  {
+    __os_423vdu,
+    __os_423get,
+    __os_423inkey,
+    __os_423,
+    __os_423flush
+  }
+};
+
+#define getfunc(tty) ttyfuncs[(tty)->type < MAXTTY ? (tty)->type : TTY_CON]
 
 /* Get console window size.  */
 static void
@@ -222,7 +251,6 @@ __tty_console_sterm (struct termios *term)
     __os_byte (0xe5, 0xff, 0, NULL);
 }
 
-#if __UNIXLIB_FEATURE_DEV_RS423
 /* Maps the B* #define's to RISC OS OS_Serial BaudRate values.  */
 static const int baud_rate[__MAX_BAUD + 1] =
 {
@@ -302,7 +330,6 @@ __tty_423_sterm (struct termios *term)
   regs[1] = control;
   __os_swi (OS_SerialOp, regs);
 }
-#endif
 
 void *
 __ttyopen (struct __unixlib_fd *file_desc, const char *file, int mode)
@@ -316,123 +343,127 @@ __ttyopen (struct __unixlib_fd *file_desc, const char *file, int mode)
 
   if (file[sizeof("/dev/")-1] == 'c')
     type = TTY_CON; /* /dev/console */
-#if __UNIXLIB_FEATURE_DEV_RS423
   else if (file[sizeof("/dev/")-1] == 'r'
            || strcmp(file + sizeof("/dev/")-1, "ttyS0") == 0)
     type = TTY_423; /* /dev/rs423 */
-#endif
   else if (file[sizeof("/dev/")-1] == 't')
-    type = __u->status.tty_type; /* /dev/tty */
+    type = __proc->tty_type; /* /dev/tty */
   else
     return (void *) -1;
 
-  tty = __u->tty + type;
-  __u->status.tty_type = type;
+  if (type >= MAXTTY)
+    return (void *) -1;
 
-  term = tty->t;
-  /* Input mode is set to:
-       a) Signal interrupt on break.
-       b) Map CR to NL on input.
-       c) Ring bell when input queue is full.  */
-  term->c_iflag = BRKINT | ICRNL | IMAXBEL;
-  /* Output mode is set to:
-       a) Perform output processing.
-       b) Map NL to CR-NL on output.
-       c) Expand tabs to spaces.  */
-  term->c_oflag = OPOST | ONLCR | OXTABS;
-  /* For consoles, the control mode is:
-       a) 38400 baud
-       b) 8 bits per byte
-       c) Enable receiver.
-       d) Hang up on last close.
-       e) Ignore modem status lines.
-     For RS423, the control mode is:
-       a) 9600 baud.
-       b) 8 bits per byte.
-       c) Enable receiver.
-       d) Hang up on last close.
-       e) Ignore modem status lines.  */
-  if (type == TTY_CON)
+  __proc->tty_type = type;
+
+  tty = type == TTY_CON ? __proc->console : __proc->rs423;
+
+  if (tty == NULL)
     {
-      term->c_cflag = CS8 | CREAD | HUPCL | CLOCAL;
-      term->c_ispeed = term->c_ospeed = B38400;
+
+      tty = __proc->sul_malloc(__proc->pid, sizeof(struct tty));
+      if (tty == NULL)
+        return (void *) -1;
+
+      if (type == TTY_CON)
+        __proc->console = tty;
+      else
+        __proc->rs423 = tty;
+
+      tty->type = type;
+      tty->refcount = 2; /* There is the reference from the fd, and the
+                            reference from __proc */
+
+      term = tty->t;
+      /* Input mode is set to:
+           a) Signal interrupt on break.
+           b) Map CR to NL on input.
+           c) Ring bell when input queue is full.  */
+      term->c_iflag = BRKINT | ICRNL | IMAXBEL;
+      /* Output mode is set to:
+           a) Perform output processing.
+           b) Map NL to CR-NL on output.
+           c) Expand tabs to spaces.  */
+      term->c_oflag = OPOST | ONLCR | OXTABS;
+      /* For consoles, the control mode is:
+           a) 38400 baud
+           b) 8 bits per byte
+           c) Enable receiver.
+           d) Hang up on last close.
+           e) Ignore modem status lines.
+         For RS423, the control mode is:
+           a) 9600 baud.
+           b) 8 bits per byte.
+           c) Enable receiver.
+           d) Hang up on last close.
+           e) Ignore modem status lines.  */
+      if (type == TTY_CON)
+        {
+          term->c_cflag = CS8 | CREAD | HUPCL | CLOCAL;
+          term->c_ispeed = term->c_ospeed = B38400;
+        }
+      else if (type == TTY_423)
+        {
+          term->c_cflag = CS8 | CREAD | HUPCL | CLOCAL;
+          term->c_ispeed = term->c_ospeed = B9600;
+        }
+
+      /* Local mode is set to:
+           a) Enable signals.
+           b) Do erase and kill processing.
+           c) Enable echo.  */
+      term->c_lflag = ISIG | ICANON | ECHO;
+
+      memcpy (term->c_cc, ttydefchars, NCCS);
+
+      /* RS423 is set up later.  */
+      if (type == TTY_CON)
+        {
+          __tty_console_gterm (term);
+          __tty_console_gwinsz (tty->w);
+        }
+      else if (type == TTY_423)
+        {
+          struct winsize *win = tty->w;
+          win->ws_col = 80;
+          win->ws_row = 25;
+          win->ws_xpixel = win->ws_ypixel = 0;
+        }
+
+      tty->ptr = tty->buf;
+      tty->cnt = 0;
+      tty->sx  = tty->cx = 0;
+      tty->lookahead = -1;
+
+      getfunc (tty).init ();
+
+      /* Setup RS423.  */
+      if (type == TTY_423)
+        __tty_423_sterm (tty->t);
     }
-#if __UNIXLIB_FEATURE_DEV_RS423
-  else if (type == TTY_423)
+  else
     {
-      term->c_cflag = CS8 | CREAD | HUPCL | CLOCAL;
-      term->c_ispeed = term->c_ospeed = B9600;
+      __atomic_modify (&(tty->refcount), 1);
     }
-#endif
 
-  /* Local mode is set to:
-       a) Enable signals.
-       b) Do erase and kill processing.
-       c) Enable echo.  */
-  term->c_lflag = ISIG | ICANON | ECHO;
-
-  memcpy (term->c_cc, ttydefchars, NCCS);
-
-  /* RS423 is set up later.  */
-  if (type == TTY_CON)
-    {
-      __tty_console_gterm (term);
-      __tty_console_gwinsz (tty->w);
-      /* Set function pointers used for low level operations.  */
-      tty->out = __os_vdu;
-      tty->in = __os_get;
-      tty->scan = __os_inkey;
-      tty->init = __os_console;
-      tty->flush = __os_keyflush;
-    }
-#if __UNIXLIB_FEATURE_DEV_RS423
-  else if (type == TTY_423)
-    {
-      struct winsize *win = tty->w;
-      win->ws_col = 80;
-      win->ws_row = 25;
-      win->ws_xpixel = win->ws_ypixel = 0;
-      tty->out = __os_423vdu;
-      tty->in = __os_423get;
-      tty->scan = __os_423inkey;
-      tty->init = __os_423;
-      tty->flush = __os_423flush;
-    }
-#endif
-
-  tty->ptr = tty->buf;
-  tty->cnt = 0;
-  tty->sx  = tty->cx = 0;
-  tty->lookahead = -1;
-
-  __funcall ((*(tty->init)), ());
-
-#if __UNIXLIB_FEATURE_DEV_RS423
-  /* Setup RS423.  */
-  if (type == TTY_423)
-    __tty_423_sterm (tty->t);
-#endif
-
-  return (void *) type;
+  return tty;
 }
 
 int
 __ttyclose (struct __unixlib_fd *file_desc)
 {
-  struct tty *tty = __u->tty + (int) file_desc->handle;
+  struct tty *tty = file_desc->devicehandle->handle;
 
-  tty->ptr = tty->buf;
-  tty->cnt = 0;
-  tty->sx  = tty->cx = 0;
+  if (__atomic_modify (&(tty->refcount), -1) == 0)
+    __proc->sul_free(__proc->pid, file_desc->devicehandle->handle);
 
   return 0;
 }
 
-
 int
 __ttyread (struct __unixlib_fd *file_desc, void *buf, int nbyte)
 {
-  struct tty *tty = __u->tty + (int) file_desc->handle;
+  struct tty *tty = file_desc->devicehandle->handle;
 
   return (tty->t->c_lflag & ICANON)
 	  ? __ttyicanon (file_desc, buf, nbyte, tty)
@@ -458,14 +489,14 @@ __ttyicanon (const struct __unixlib_fd *file_desc, void *buf, int nbyte,
 #define F_MAX		000002
 #define F_NDELAY	000004
 
-  if (tty == __u->tty)
+  if (tty->type == TTY_CON)
     __os_byte (0xe5, 0xff, 0, 0);		/* Disable SIGINT.  */
 
 ret:
 
   if (tty->cnt != 0)
     {
-      if (tty == __u->tty)
+      if (tty->type == TTY_CON)
 	__os_byte (0xe5, 0, 0, 0);	/* Re-enable SIGINT.  */
 
       i = (nbyte > tty->cnt) ? tty->cnt : nbyte;
@@ -491,7 +522,7 @@ ret:
 	{
 	  if (nflag & F_NDELAY)
 	    {
-	      c = __funcall ((*(tty->scan)), (0));
+	      c = getfunc (tty).scan (0);
 
 	      if (c < 0)
 		{
@@ -510,7 +541,7 @@ ret:
             }
 	  else
 	    {
-	      c = __funcall ((*(tty->in)), ());
+	      c = getfunc (tty).in ();
 	    }
 	}
       else
@@ -591,7 +622,7 @@ ret:
       if (nflag & F_MAX)
 	{
 	  if (iflag & IMAXBEL)
-	    __funcall ((*(tty->out)), ('\007'));
+	    getfunc (tty).out ('\007');
 	}
       else
 	{
@@ -613,7 +644,7 @@ eol:
   if (tty->cnt != 0 && !(nflag & F_NDELAY))
     goto ret;
 
-  if (tty == __u->tty)
+  if (tty->type == TTY_CON)
     __os_byte (0xe5, 0, 0, 0);	/* Re-enable SIGINT.  */
 
   if (tty->cnt == 0 && c != ceof)
@@ -675,7 +706,7 @@ __ttyiraw (const struct __unixlib_fd *file_desc, void *buf, int nbyte,
 	{
 	  if (nflag & F_NSCAN)
             {
-	      c = __funcall ((*(tty->scan)), (0));
+	      c = getfunc (tty).scan (0);
 
 	      if (c < 0)
 	        {
@@ -697,7 +728,7 @@ __ttyiraw (const struct __unixlib_fd *file_desc, void *buf, int nbyte,
             }
 	  else
 	    {
-	      c = __funcall ((*(tty->in)), ());
+	      c = getfunc (tty).in ();
 	    }
 	}
 
@@ -706,7 +737,7 @@ __ttyiraw (const struct __unixlib_fd *file_desc, void *buf, int nbyte,
       c = __ttyinput (c, iflag);
       if (lflag & ISIG)
 	{
-	  if (c == cc[VINTR] && tty != __u->tty)
+	  if (c == cc[VINTR] && tty->type != TTY_CON)
 	    {
 	      raise (SIGINT);
 	      continue;
@@ -731,13 +762,13 @@ __ttyiraw (const struct __unixlib_fd *file_desc, void *buf, int nbyte,
 int
 __ttywrite (struct __unixlib_fd *file_desc, const void *buf, int nbyte)
 {
-  struct tty *tty = __u->tty + (int) file_desc->handle;
+  struct tty *tty = file_desc->devicehandle->handle;
   int i = 0, c;
   const char *s = buf;
   const tcflag_t oflag = tty->t->c_oflag;
   const tcflag_t lflag = tty->t->c_lflag;
   const cc_t * const cc = tty->t->c_cc;
-  int (*const out) (int) = tty->out;
+  int (*const out) (int) = getfunc (tty).out;
 
   while (i < nbyte)
     {
@@ -758,7 +789,7 @@ __ttywrite (struct __unixlib_fd *file_desc, const void *buf, int nbyte)
       else
 	{
 	  __ttyx (tty, 1);
-	  __funcall ((*out), (c));
+	  out(c);
 	}
     }
 
@@ -801,13 +832,13 @@ __ttyecho (struct tty *tty, int c, tcflag_t oflag, tcflag_t lflag)
   else if (iscntrl (c))
     {
       __ttyx (tty, 2);
-      __funcall ((*(tty->out)), ('^'));
-      __funcall ((*(tty->out)), ((c == 0x7f) ? '?' : (c + '@')));
+      getfunc (tty).out ('^');
+      getfunc (tty).out ((c == 0x7f) ? '?' : (c + '@'));
     }
   else
     {
       __ttyx (tty, 1);
-      __funcall ((*(tty->out)), (c));
+      getfunc (tty).out (c);
     }
 }
 
@@ -828,19 +859,19 @@ __ttydel (struct tty *tty, tcflag_t lflag)
 
   if (lflag & ECHO)
     {
-      int (*const out) (int) = tty->out;
+      int (*const out) (int) = getfunc (tty).out;
 
       if (lflag & ECHOE)
 	while (x--)
 	  {
-	    __funcall ((*out), ('\b'));
-	    __funcall ((*out), (' '));
-	    __funcall ((*out), ('\b'));
+	    out ('\b');
+	    out (' ');
+	    out ('\b');
 	  }
       else
 	while (x--)
 	  {
-	    __funcall ((*out), ('\177'));
+	    out ('\177');
 	  }
     }
 }
@@ -850,20 +881,20 @@ __ttytab (struct tty *tty, tcflag_t oflag)
 {
   if ((oflag & (OPOST | OXTABS)) == (OPOST | OXTABS))
     {
-      int (*const out) (int) = tty->out;
+      int (*const out) (int) = getfunc (tty).out;
       int x;
 
       x = (8 - (tty->sx & 0x7));
       __ttyx (tty, x);
       do
       {
-	__funcall ((*(out)), (' '));
+	out (' ');
       } while (--x);
     }
   else
     {
       __ttyx (tty, 1);
-      __funcall ((*(tty->out)), ('\t'));
+      getfunc (tty).out ('\t');
     }
 }
 
@@ -873,12 +904,12 @@ __ttycr (struct tty *tty, tcflag_t oflag)
   tty->sx = 0;
 #if 0
   if ((oflag & (OPOST | OCRNL)) == (OPOST | OCRNL))
-    __funcall ((*(tty->out)), ('\n'));
+    getfunc (tty).out ('\n');
   else if ((oflag & (OPOST | ONOCR)) != (OPOST | ONOCR))
 #else
   IGNORE (oflag);
 #endif
-  __funcall ((*(tty->out)), ('\r'));
+  getfunc (tty).out ('\r');
 }
 
 static void
@@ -892,7 +923,7 @@ __ttynl (struct tty *tty, tcflag_t oflag)
 	    || !(oflag & ONOCR)
 #endif
 	   )
-	   __funcall ((*(tty->out)), ('\r'));
+	   getfunc (tty).out ('\r');
       if (oflag & (ONLCR
 #if 0
 		   | ONLRET
@@ -900,15 +931,14 @@ __ttynl (struct tty *tty, tcflag_t oflag)
 		  ))
 	tty->sx = 0;
     }
-  __funcall ((*(tty->out)), ('\n'));
+  getfunc (tty).out ('\n');
 }
 
 /* Return zero on success. Any other value on failure.  */
 int
 __ttyioctl (struct __unixlib_fd *file_desc, unsigned long request, void *arg)
 {
-  int type = (int) file_desc->handle;
-  struct tty *tty = __u->tty + type;
+  struct tty *tty = file_desc->devicehandle->handle;
 
   if (!arg)
     return __set_errno (EINVAL);
@@ -926,14 +956,14 @@ __ttyioctl (struct __unixlib_fd *file_desc, unsigned long request, void *arg)
       return 0;
       break;
     case TIOCFLUSH: /* Flush buffers.  */
-      __funcall ((*(tty->flush)), ());
+      getfunc (tty).flush ();
       return 0;
       break;
     case TIOCGETA: /* Get termios struct.  */
       {
         struct termios *term = tty->t;
 
-        if (type == TTY_CON)
+        if (tty->type == TTY_CON)
 	  __tty_console_gterm (term);
         memcpy (arg, term, sizeof (struct termios));
       }
@@ -946,15 +976,13 @@ __ttyioctl (struct __unixlib_fd *file_desc, unsigned long request, void *arg)
         struct termios *term = tty->t;
 
 	if (request == TIOCSETAF)
-	  __funcall ((*(tty->flush)), ());
+	  getfunc (tty).flush ();
 
         memcpy (term, arg, sizeof (struct termios));
-        if (type == TTY_CON)
+        if (tty->type == TTY_CON)
           __tty_console_sterm (term);
-#if __UNIXLIB_FEATURE_DEV_RS423
-        else if (type == TTY_423)
+        else if (tty->type == TTY_423)
           __tty_423_sterm (term);
-#endif
       }
       return 0;
       break;
@@ -963,10 +991,8 @@ __ttyioctl (struct __unixlib_fd *file_desc, unsigned long request, void *arg)
     case TIOCSETD: /* Set line discipline.  */
       break;
     case TIOCSBRK: /* Set break bit.  */
-#if __UNIXLIB_FEATURE_DEV_RS423
-      if (type == TTY_423 && !arg)
+      if (tty->type == TTY_423 && !arg)
 	__os_423break (25);
-#endif
       return 0;
       break;
     case TIOCCBRK: /* Clear break bit.  */
@@ -976,7 +1002,7 @@ __ttyioctl (struct __unixlib_fd *file_desc, unsigned long request, void *arg)
     case TIOCCDTR: /* Clear data terminal ready.  */
       break;
     case TIOCGPGRP: /* Get pgrp of tty.  */
-      *(int *)arg = __u->pgrp;
+      *(int *)arg = __proc->pgrp;
       break;
     case TIOCSPGRP: /* Set pgrp of tty.  */
       return __set_errno (EPERM);
@@ -1133,7 +1159,7 @@ __ttyioctl (struct __unixlib_fd *file_desc, unsigned long request, void *arg)
       {
         struct winsize *win = tty->w;
 
-	if (type == TTY_CON)
+	if (tty->type == TTY_CON)
 	  __tty_console_gwinsz (win);
 	memcpy (arg, win, sizeof (struct winsize));
       }
@@ -1144,7 +1170,7 @@ __ttyioctl (struct __unixlib_fd *file_desc, unsigned long request, void *arg)
         struct winsize *win = tty->w;
 
         memcpy (win, arg, sizeof (struct winsize));
-        if (type == TTY_CON)
+        if (tty->type == TTY_CON)
           __tty_console_swinsz (win);
       }
       return 0;
@@ -1173,8 +1199,7 @@ int
 __ttyselect (struct __unixlib_fd *file_desc, int fd,
 	     fd_set *read, fd_set *write, fd_set *except)
 {
-  int type = (int) file_desc->handle;
-  struct tty *tty = __u->tty + type;
+  struct tty *tty = file_desc->devicehandle->handle;
 
   if (read)
     {
@@ -1185,7 +1210,7 @@ __ttyselect (struct __unixlib_fd *file_desc, int fd,
 	{
 	  /* If no lookahead, then get some.  */
 	  if (tty->lookahead < 0)
-	    tty->lookahead = __funcall ((*(tty->scan)), (0));
+	    tty->lookahead = getfunc (tty).scan (0);
 
 	  if (tty->lookahead >= 0)
 	    FD_SET(fd, read);

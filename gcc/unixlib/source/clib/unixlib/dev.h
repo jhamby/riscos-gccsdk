@@ -1,8 +1,8 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/unixlib/dev.h,v $
- * $Date: 2004/12/03 11:37:51 $
- * $Revision: 1.10 $
+ * $Date: 2004/12/23 21:10:07 $
+ * $Revision: 1.11 $
  * $State: Exp $
  * $Author: peter $
  *
@@ -41,6 +41,9 @@ __BEGIN_DECLS
 #define DEV_DSP		7	/* /dev/dsp            */
 
 #define NDEV		8
+
+/* Call a device function, ensuring we don't refer to an invalid device */
+#define dev_funcall(type, func, args) __funcall ((*(__dev[(type) < NDEV ? (type) : DEV_NULL].func)), args)
 
 
 struct dev
@@ -82,14 +85,12 @@ extern int __ttywrite (struct __unixlib_fd *__fd, const void *buf, int __nbyte);
 extern int __ttyioctl (struct __unixlib_fd *__fd, unsigned long __request, void *__arg);
 extern int __ttyselect (struct __unixlib_fd *__fdriptor, int __fd1, fd_set *__read, fd_set *__write, fd_set *__except);
 
-#if __UNIXLIB_FEATURE_PIPEDEV
 /* UnixLib pipe() support */
 extern void *__pipeopen (struct __unixlib_fd *__fd, const char *file, int __mode);
 extern int __pipeclose (struct __unixlib_fd *__fd);
 extern int __piperead (struct __unixlib_fd *__fd, void *__data, int __nbyte);
 extern int __pipewrite (struct __unixlib_fd *__fd, const void *__data, int __nbyte);
 extern int __pipeselect (struct __unixlib_fd *__fdriptor, int __fd1, fd_set *__read, fd_set *__write, fd_set *__except);
-#endif
 
 /* /dev/null support */
 extern void *__nullopen (struct __unixlib_fd *__fd, const char *file, int __mode);
@@ -102,7 +103,6 @@ extern int __nullselect (struct __unixlib_fd *__fd, int __fd1, fd_set *__read, f
 extern int __nullstat (const char *filename, struct stat *buf);
 extern int __nullfstat (int fd, struct stat *buf);
 
-#if __UNIXLIB_FEATURE_SOCKET
 /* socket support */
 extern void *__sockopen (struct __unixlib_fd *__fd, const char *file, int __mode);
 extern int __sockclose (struct __unixlib_fd *__fd);
@@ -110,7 +110,6 @@ extern int __sockread (struct __unixlib_fd *__fd, void *__data, int __nbyte);
 extern int __sockwrite (struct __unixlib_fd *__fd, const void *__data, int __nbyte);
 extern int __sockioctl (struct __unixlib_fd *__fd, unsigned long __request, void *__arg);
 extern int __sockselect (struct __unixlib_fd *__fdriptor, int __fd1, fd_set *__read, fd_set *__write, fd_set *__except);
-#endif
 
 /* /dev/zero support */
 extern int __zeroread (struct __unixlib_fd *__file_desc, void *__data, int __nbyte);

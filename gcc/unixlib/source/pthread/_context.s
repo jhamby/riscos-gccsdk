@@ -1,8 +1,8 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/pthread/_context.s,v $
-; $Date: 2005/01/03 16:32:29 $
-; $Revision: 1.11 $
+; $Date: 2005/02/12 13:45:59 $
+; $Revision: 1.12 $
 ; $State: Exp $
 ; $Author: alex $
 ;
@@ -42,12 +42,13 @@
 	IMPORT	|__setup_signalhandler_stack|
 	IMPORT	|__executing_signalhandler|
 	IMPORT	|__taskhandle|
+	IMPORT	|__taskwindow|
 	IMPORT	|__pthread_fatal_error|
 	IMPORT	|__pthread_running_thread|
 	IMPORT	|__pthread_num_running_threads|
 	IMPORT	|__cbreg|
 	IMPORT	|__upcall_handler_addr|
-	IMPORT	|__sharedunixlibrary_key|
+	IMPORT	|__upcall_handler_r12|
 
 	EXPORT	|__pthread_start_ticker|
 	EXPORT	|__pthread_stop_ticker|
@@ -219,7 +220,7 @@ stop_ticker_core
 	LDR	a1, [a1]
 	TEQ	a1, a2
 	BNE	skip_callback	; Not sul's upcall handler
-	LDR	a1, =|__sharedunixlibrary_key|
+	LDR	a1, =|__upcall_handler_r12|
 	LDR	a1, [a1]
 	TEQ	a1, a3
 	BNE	skip_callback	; Not our sul key

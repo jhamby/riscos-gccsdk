@@ -1,28 +1,28 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/unix/c/dup2,v $
- * $Date: 1997/10/19 21:50:52 $
- * $Revision: 1.7 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/dup2.c,v $
+ * $Date: 2001/01/29 15:10:22 $
+ * $Revision: 1.2 $
  * $State: Exp $
- * $Author: unixlib $
+ * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: dup2,v 1.7 1997/10/19 21:50:52 unixlib Exp $";
+static const char rcs_id[] = "$Id: dup2.c,v 1.2 2001/01/29 15:10:22 admin Exp $";
 #endif
 
 #include <errno.h>
 #include <fcntl.h>
 #include <unistd.h>
-#include <unixlib/fd.h>
+#include <unixlib/unix.h>
 
 int
 dup2 (int fd1, int fd2)
 {
   int save;
 
-  if ((unsigned int) fd2 >= MAXFD)
+  if ((unsigned int) fd2 >= __proc->maxfd)
     return __set_errno (EINVAL);
 
   if (fcntl (fd1, F_GETFL) < 0)

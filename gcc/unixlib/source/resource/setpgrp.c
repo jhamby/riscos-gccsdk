@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source$
- * $Date$
- * $Revision$
- * $State$
- * $Author$
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/resource/setpgrp.c,v $
+ * $Date: 2003/01/21 17:54:22 $
+ * $Revision: 1.4 $
+ * $State: Exp $
+ * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id$";
+static const char rcs_id[] = "$Id: setpgrp.c,v 1.4 2003/01/21 17:54:22 admin Exp $";
 #endif
 
 #include <unistd.h>
@@ -20,8 +20,8 @@ int
 setpgrp (__pid_t pid, __pid_t pgid)
 {
   PTHREAD_UNSAFE
-  
-  if (__u->pid == pid)
-    __u->pgrp = pgid;
+ 
+  if (__proc->pid == pid)
+    __proc->pgrp = pgid;
   return 0;
 }

@@ -1,16 +1,16 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/netlib/recvmsg.c,v $
- * $Date: 2002/02/14 15:56:36 $
- * $Revision: 1.3 $
+ * $Date: 2003/04/28 21:04:36 $
+ * $Revision: 1.4 $
  * $State: Exp $
- * $Author: admin $
+ * $Author: alex $
  *
  * (c) Copyright 1995 Sergio Monesi
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: recvmsg.c,v 1.3 2002/02/14 15:56:36 admin Exp $";
+static const char rcs_id[] = "$Id: recvmsg.c,v 1.4 2003/04/28 21:04:36 alex Exp $";
 #endif
 
 #include <unixlib/unix.h>
@@ -27,5 +27,5 @@ recvmsg (int s, struct msghdr *msg, int flags)
   if (__socket_valid (s) == -1)
     return -1;
 
-  return _recvmsg ((int)__u->fd[s].handle, msg, flags);
+  return _recvmsg ((int)(getfd (s)->devicehandle->handle), msg, flags);
 }

@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/write.c,v $
- * $Date: 2004/11/28 21:31:35 $
- * $Revision: 1.6 $
+ * $Date: 2004/12/23 21:10:08 $
+ * $Revision: 1.7 $
  * $State: Exp $
- * $Author: joty $
+ * $Author: peter $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: write.c,v 1.6 2004/11/28 21:31:35 joty Exp $";
+static const char rcs_id[] = "$Id: write.c,v 1.7 2004/12/23 21:10:08 peter Exp $";
 #endif
 
 /* #define DEBUG */
@@ -47,7 +47,7 @@ write (int fd, const void *buf, size_t nbytes)
   if (buf == NULL)
     return __set_errno (EINVAL);
 
-  file_desc = &__u->fd[fd];
+  file_desc = getfd (fd);
 
   /* Confirm that the file is open for writing.  */
   if ((file_desc->fflag & O_ACCMODE) == O_RDONLY)
@@ -64,22 +64,20 @@ write (int fd, const void *buf, size_t nbytes)
   /* If the file is open for appending then we perform all write
      operations at the end of the file.  */
   if (file_desc->fflag & O_APPEND)
-    __funcall ((*(__dev[file_desc->device].lseek)), (file_desc, 0, SEEK_END));
+    dev_funcall (file_desc->devicehandle->type, lseek, (file_desc, 0, SEEK_END));
 
   /* Increment the number of times we have written to device.  */
   __u->usage.ru_oublock++;
 
-  status = __funcall ((*(__dev[file_desc->device].write)),
+  status = dev_funcall (file_desc->devicehandle->type, write,
 		      (file_desc, buf, nbytes));
 
   __pthread_enable_ints();
 
-#if __UNIXLIB_FEATURE_PIPEDEV
   /* Raise the SIGPIPE signal if we tried to write to a pipe
      or FIFO that isn't open for reading by any process.  */
   if (status == -1 && errno == EPIPE)
     raise (SIGPIPE);
-#endif
 
   return status;
 }

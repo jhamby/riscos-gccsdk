@@ -1,8 +1,8 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/_syslib.s,v $
-; $Date: 2005/01/23 19:39:57 $
-; $Revision: 1.37 $
+; $Date: 2005/01/23 20:31:55 $
+; $Revision: 1.38 $
 ; $State: Exp $
 ; $Author: joty $
 ;
@@ -16,7 +16,6 @@ ERR_NO_CALLASWI 	* 1
 ERR_NO_SUL      	* 2
 ERR_NO_FPE      	* 3
 ERR_UNRECOVERABLE	* 4
-ERR_RCLIMIT		* 5
 
 ; Constants for field offsets within a stack chunk
 ; The stack is allocated in chunks, each chunk is a multiple of 4KB, and
@@ -86,11 +85,12 @@ MAX_DA_NAME_SIZE	* 32
 	IMPORT	|__dynamic_da_max_size|, WEAK
 
 	; RMEnsure the minimum version of the SharedUnixLibrary we need.
+SUL_MIN_VERSION	EQU	105
 |rmensure1|
-	DCB "RMEnsure SharedUnixLibrary 1.02 RMLoad System:Modules.SharedULib", 0
+	DCB "RMEnsure SharedUnixLibrary 1.05 RMLoad System:Modules.SharedULib", 0
 	; The exact error message is not important as it will get ignored.
 |rmensure2|
-	DCB "RMEnsure SharedUnixLibrary 1.02 Error XYZ", 0
+	DCB "RMEnsure SharedUnixLibrary 1.05 Error XYZ", 0
 	ALIGN
 
 	EXPORT	|__main|
@@ -216,39 +216,6 @@ MAX_DA_NAME_SIZE	* 32
 	CMP	a2, #165
 	BCC	no_dynamic_area
 
-	; Use old dynamic area if possible
-	; If app mem size = mem size, then can't be a spawned program
-	LDR	a1, [ip, #4]	; __image_rw_himem
-	LDR	a2, [ip, #72]	; __unixlib_real_himem
-	CMP	a2, a1
-	BEQ	no_old_area
-	; Validate numbers at top of application memory (see sys.s._exec)
-	LDMIA	a1, {a1, a2, a3, a4, v1, v2, v3, v4}
-	EOR	a3, a3, a1, ROR #7
-	CMP	a3, a1
-	EOREQ	v1, v1, a1, ROR #13
-	CMPEQ	v1, a1
-	EOREQ	v3, v3, a1, ROR #23
-	CMPEQ	v3, a1
-	EOREQ	a4, a4, a2, ROR #7
-	CMPEQ	a4, a2
-	EOREQ	v2, v2, a2, ROR #13
-	CMPEQ	v2, a2
-	EOREQ	v4, v4, a2, ROR #23
-	CMPEQ	v4, a2
-	BNE	no_old_area
-	MOV	v6, a1		; save new __lomem
-	MOV	a1, #2
-	SWI	XOS_DynamicArea
-	BVS	no_old_area	; bail out if SWI failed
-	; Check new __lomem = end of dynamic area
-	ADD	a4, a4, a3
-	TEQ	a4, v6
-	BNE	no_old_area	; bail out if sizes mismatch
-	MOV	v6, #0
-	B	da_found
-
-no_old_area
 	; Area name is <program name> + "$Heap".  Figure now out what
 	; <program name> is.
 	LDR	a1, |___program_name|
@@ -354,7 +321,6 @@ t08
 	SWI	XOS_DynamicArea
 	BVS	|__exit_with_error_block|	; no DA, report and exit
 	MOV	v6, a3				; setup for deletion at exit
-da_found
 	STR	a2, [ip, #64]	; __dynamic_num
 
 	; v6 is size left in area, a4 is start offset
@@ -362,18 +328,6 @@ da_found
 	STR	a4, [ip, #32]	; __lomem = start of dynamic area
 	STR	a1, [ip, #36]	; __break = end of used part of DA
 	STR	a1, [ip, #48]	; __real_break = end of used part of DA
-
-	; If current size == passed in size, then delete DA at exit.
-	; This means a spawning program must ensure that some of area is used
-	; which is always true, since 8K of heap is initially allocated
-	; FIXME - if we record the initial DA limit, then we can shrink the
-	; dynamic area when the spawned program exits.
-	LDR	v3, =dynamic_deletion	; Could move this above but code would
-					; be less maintainable.
-	TEQ	a3, v6
-	MOVEQ	v5, #1
-	MOVNE	v5, #0
-	STR	v5, [v3, #0]
 
 no_dynamic_area
 	MOV	fp, #0
@@ -410,26 +364,17 @@ no_dynamic_area
 
 	; Now we'll initialise the C library, then call the user program.
 
-	; Check the environment variable UnixLib$env.  If set, then
-	; it will be an integer pointer to the parent process structure.
-	; If we have successfully read the variable, then immediately
-	; delete it so that we don't confuse any other forking processes.
-	ADR	a1, env		; Environment variable name
-	ADD	a2, ip, #68	; pointer to __u
-	MOV	a3, #4		; buffer length is 4 bytes
-	MOV	a4, #0		; context pointer (0 = first call)
-	MOV	v1, #1		; variable type is number
-	SWI	XOS_ReadVarVal
-	; FIXME: I'm not so sure if this is a great idea to delete UnixLib$env
-	; as soon as we find it.  It might be a UnixLib$env set by another
-	; program running in a TaskWindow doing fork()s.
-	LDR	a1, [ip, #68]	; If __u is non-zero, then variable existed
-	TEQ	a1, #0		; so delete it.
-	ADRNE	a1, env		; Environment variable name
-	MVNNE	a3, #0		; Set negative to delete variable
-	MOVNE	a4, #0		; context pointer (0 = first call)
-	MOVNE	v1, #1		; variable type is number
-	SWINE	XOS_SetVarVal
+	MOV	a1, #SUL_MIN_VERSION
+	; SUL version we are expecting. Newer versions should be backwards
+	; compatible, if not they will return an error
+	SWI	XSharedUnixLibrary_Initialise
+	BVS	|__exit_with_error_block|
+	LDR	a4, =|__proc|
+	STR	a1, [a4]
+	LDR	a4, =|__upcall_handler_addr|
+	STR	a2, [a4]
+	LDR	a4, =|__upcall_handler_r12|
+	STR	a3, [a4]
 
 	; Read the current RISC OS environment handler state
 	BL	|__env_read|
@@ -444,9 +389,6 @@ no_dynamic_area
 	; C programs always terminate by calling exit.
 	B	exit
 
-env
-	DCB	"UnixLib$env", 0
-	ALIGN
 	EXPORT	|___program_name|
 |___program_name|
 	DCD	|__program_name|
@@ -477,7 +419,6 @@ error_table
 	DCD	error_no_sharedunixlib
 	DCD	error_no_fpe
 	DCD	error_unrecoverable_loop
-	DCD	error_rclimit_exceeded
 error_table_end
 
 error_no_callaswi
@@ -490,7 +431,7 @@ error_no_memory
 	ALIGN
 error_no_sharedunixlib
 	DCD	SharedUnixLibrary_Error_NotRecentEnough
-	DCB	"This application requires at least version 1.02 of the SharedUnixLibrary module", 0
+	DCB	"This application requires at least version 1.05 of the SharedUnixLibrary module", 0
 	ALIGN
 error_no_fpe
 	DCD	SharedUnixLibrary_Error_NoFPE
@@ -500,140 +441,45 @@ error_unrecoverable_loop
 	DCD	SharedUnixLibrary_Error_FatalError
 	DCB	"Unrecoverable fatal error detected", 0
 	ALIGN
-error_rclimit_exceeded
-	DCD	&1E2		; This is an official RISC OS error number
-	DCB	"Return code limit exceeded", 0
-	ALIGN
 
 	IMPORT	|__munmap_all|
 	EXPORT	|__dynamic_area_exit|
 	NAME	__dynamic_area_exit
 |__dynamic_area_exit|
 	STMFD	sp!, {lr}
-	BL	|__munmap_all|		; this must be done here for exec.c
-	LDR	a2, =dynamic_deletion
-	LDMFD	sp!, {lr}
-	LDR	a2, [a2]
-	TEQ	a2, #1
-	MOVNE	pc, lr
+	LDR	a1, =|__dynamic_area_refcount|
+	LDR	a2, [a1]
+	SUBS	a2, a2, #1		; Decrement __dynamic_area_refcount,
+	STR	a2, [a1]		; and only remove the areas when the
+	LDMNEFD	sp!, {pc}		; count reaches zero
+
+	BL	|__munmap_all|
 
 	LDR	a2, =|__dynamic_num|
-	MOV	a4, lr
 	LDR	a2, [a2]
 	MOV	a1, #1
 	CMP	a2, #-1
 	SWINE	XOS_DynamicArea
-	MOV	pc, a4
-
-	; a1 contains the final program's return code.
-	EXPORT	|__exit|
-	NAME	__exit
-|__exit|
-	MOV	v1, a1
-
-	BL	|__dynamic_area_exit|
-	BL	|__env_riscos_and_wimpslot|
-
-	LDR	a3, =|__sharedunixlibrary_key|
-	LDR	a3, [a3]
-	SWI	XSharedUnixLibrary_DeRegisterUpCall
-
-	; Re-enable Escape (in case SIGINT handler fired in ttyicanon)
-	MOV	a1, #229
-	MOV	a2, #0
-	MOV	a3, #0
-	SWI	XOS_Byte
-
-	ADR	a1, error_rclimit_exceeded
-	LDR	a2, exit_word
-	MOV	a3, v1
-	SWI	OS_Exit		; - never returns
-
-exit_word
-	DCD	&58454241
-
-	EXPORT	|__exit_no_code|
-	NAME	__exit_no_code
-|__exit_no_code|
-	BL	|__dynamic_area_exit|
-	BL	|__env_riscos_and_wimpslot|
-
-	;FIXME: no need to deregister SUL ?
-
-	MOV	a1, #0
-	MOV	a2, #0
-	MOV	a3, #0
-	SWI	OS_Exit		; - never returns
-
-	IMPORT	|__vret|, WEAK
-	EXPORT	|___vret|
-|___vret|
-	DCD	|__vret|
-
-	; Restore original wimpslot, appspace and himem limits (including
-	; sp).
-        EXPORT  |__env_wimpslot|
-	NAME	__env_wimpslot
-|__env_wimpslot|
-	; As we are reducing the wimpslot, the stack pointer may end up
-	; pointing to invalid memory, so we need to reset it.
-	; This will overwrite some of the original stack, but this is
-	; only called just before exiting so won't be a problem
-	LDR	a1, =|__calling_environment|
-	LDR	sp, [a1]		; Original himem value
-
-|__env_wimpslot_0|
-	STMFD	sp!, {v1, v2, lr}
-	ADD	v2, a1, #14*3*4
-
-	LDR	a1, [v2]		; Original appspace value
-	SUB	a1, a1, #&8000
-	MOV	a2, #-1
-	SWI	XWimp_SlotSize		; Corrupts v1
-
-	MOV	a1, #14
-	LDMIA	v2, {a2, a3, a4}
-	SWI	XOS_ChangeEnvironment
-	MOV	a1, #0
-	SUB	v2, v2, #14*3*4
-	LDMIA	v2, {a2, a3, a4}
-	SWI	XOS_ChangeEnvironment
-	LDMFD	sp!, {v1, v2, pc}
-
-	; Restore original wimpslot, appspace and himem limits (including
-	; sp), and original RISC OS environment handlers
-	; Gets called by SUL directly when UpCall_NewApplication is
-	; received.  SUL already deregistered us.
-	NAME	__env_riscos_and_wimpslot
-|__env_riscos_and_wimpslot|
-	; As we are reducing the wimpslot, the stack pointer may end up
-	; pointing to invalid memory, so we need to reset it.
-	; This will overwrite some of the original stack, but this is
-	; only called just before exiting so won't be a problem
-	LDR	a1, =|__calling_environment|
-	LDR	sp, [a1]		; Original himem value
-
-	STMFD	sp!, {lr}
-        BL      |__env_wimpslot_0|
-	LDMFD	sp!, {lr}
-	; Fall through to __env_riscos !
+	LDMFD	sp!, {pc}
 
 	; Restore original RISC OS environment handlers
 	EXPORT	|__env_riscos|
-	; NAME __env_riscos : __env_riscos_and_wimpslot falls through.
+	NAME __env_riscos
 |__env_riscos|
 	STMFD	sp!, {v1, v2, lr}
+	SWI	XOS_IntOff
 	MOV	v1, #0
 	LDR	v2, =|__calling_environment|
 t04
 	MOV	a1, v1
 	LDMIA	v2!, {a2, a3, a4}
-	TEQ	a1, #0  	; Don't restore the himem limit
-	TEQNE	a1, #14 	; Don't restore the appspace limit
+	TEQ	a1, #0		; Don't restore the himem limit or the
+	TEQNE	a1, #14		; appspace limit, as SUL handles these for us
 	SWINE	XOS_ChangeEnvironment
 	ADD	v1, v1, #1
 	CMP	v1, #17		;  __ENVIRONMENT_HANDLERS
 	BCC	t04
+	SWI	XOS_IntOn
 	LDMFD	sp!, {v1, v2, pc}
 
 	; Get current environment handler setup
@@ -675,16 +521,15 @@ t06
 	LDREQ	a4, =|__cbreg|
 	SWI	XOS_ChangeEnvironment
 	ADD	v1, v1, #1
-	CMP	v1, #17
+	CMP	v1, #16
 	BCC	t06
 
-	LDR	r1, =|__env_riscos_and_wimpslot|
-	SWI	XSharedUnixLibrary_RegisterUpCall
-	LDR	r0, =|__sharedunixlibrary_key|
-	STR	r2, [r0]
-	LDR	r0, =|__upcall_handler_addr|
-	STR	r1, [r0]
-	MOV	r0, #16
+	LDR	a2, =|__upcall_handler_addr|
+	LDR	a3, =|__upcall_handler_r12|
+	MOV	a1, #16
+	LDR	a2, [a2]
+	LDR	a3, [a3]
+	MOV	a4, #0
 	SWI	XOS_ChangeEnvironment
 
 	SWI	XOS_IntOn
@@ -709,13 +554,6 @@ handlers
 	DCD	0		; Currently active object
 	DCD	0		; UpCall
 
-	EXPORT	|__sharedunixlibrary_key|
-|__sharedunixlibrary_key|
-	DCD	0
-
-	EXPORT	|__upcall_handler_addr|
-|__upcall_handler_addr|
-	DCD	0
 
 	; Same as the SCL's magic number, for compatibility in libgcc
 	EXPORT	|__stackchunk_magic_number|
@@ -1129,8 +967,16 @@ __unixlib_fatal_got_msg
 
 	AREA	|C$$data|, DATA
 
-dynamic_deletion
+	EXPORT	|__upcall_handler_addr|
+|__upcall_handler_addr|
 	DCD	0
+	EXPORT	|__upcall_handler_r12|
+|__upcall_handler_r12|
+	DCD	0
+
+	EXPORT	|__dynamic_area_refcount|
+|__dynamic_area_refcount|
+	DCD	1
 dynamic_area_name_begin
 	%	MAX_DA_NAME_SIZE
 dynamic_area_name_end
@@ -1155,10 +1001,10 @@ dynamic_area_name_end
 	EXPORT	|__taskwindow|	; non-zero if executing in a TaskWindow
 	EXPORT	|__taskhandle|	; WIMP task handle, or zero if non WIMP task
 	EXPORT	|__dynamic_num|
-	EXPORT	|__u|		; pointer to proc structure
 	EXPORT	|__unixlib_real_himem|
 	EXPORT	|__32bit|	; non-zero if executing in 32-bit mode
 	EXPORT	|__panic_mode|		; non-zero when we're panicing.
+	EXPORT	|__proc|
 
 	; Altering this structure will require fixing __main.
 struct_base
@@ -1183,11 +1029,12 @@ struct_base
 |__taskhandle|	        DCD	0				; offset = 60
 
 |__dynamic_num|	        DCD	-1				; offset = 64
-|__u|		        DCD	0				; offset = 68
+|__old_u|	        DCD	0				; offset = 68
 |__unixlib_real_himem|	DCD	0				; offset = 72
 
 |__32bit|	        DCD	0				; offset = 76
 
 |__panic_mode|		DCD	0				; offset = 80
 
+|__proc|		DCD	0
 	END

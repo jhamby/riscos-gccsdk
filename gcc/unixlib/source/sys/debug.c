@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/debug.c,v $
- * $Date: 2004/12/11 14:18:57 $
- * $Revision: 1.9 $
+ * $Date: 2004/12/18 17:45:32 $
+ * $Revision: 1.10 $
  * $State: Exp $
  * $Author: joty $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: debug.c,v 1.9 2004/12/11 14:18:57 joty Exp $";
+static const char rcs_id[] = "$Id: debug.c,v 1.10 2004/12/18 17:45:32 joty Exp $";
 #endif
 
 #ifndef DEBUG
@@ -44,7 +44,6 @@ __debugval (const char *s, int i)
 void
 __debug (const char *s)
 {
-  struct __unixlib_fd *f;
   int i;
 
   PTHREAD_UNSAFE
@@ -84,51 +83,33 @@ __debug (const char *s)
         __os_print (__u->argv[i]);
         NL ();
       }
-  if (__u->envp)
-    for (i = 0; i < __u->envc; i++)
-      {
-        VAL ("envp[", (int) (__u->envp + i));
-        VAL (" ", i);
-        VAL (" ]:", (int) __u->envp[i]);
-        __os_print (" ");
-        __os_print (__u->envp[i]);
-        NL ();
-      }
-  f = __u->fd;
-  if (f)
-    for (i = 0; i < MAXFD; i++)
-      if (f[i].__magic == _FDMAGIC)
+    for (i = 0; i < __proc->maxfd; i++)
+      if (getfd (i)->devicehandle)
 	{
 	  char fname[_POSIX_PATH_MAX];
 
-	  VAL ("f[", (int) (f + i));
-	  VAL (" ", i);
-	  VAL (" ].handle:", (int) f[i].handle);
+	  VAL ("f[", i);
+	  VAL (" ].handle:", (int) getfd (i)->devicehandle->handle);
 	  NL ();
 	  /* Do not change this to an malloc'ing version. execve can call
 	     this function after it knows no more malloc'ing is done.  */
-	  if ((int) f[i].handle != 0 && f[i].device == DEV_RISCOS
-	      && __fd_to_name ((int) f[i].handle, fname, sizeof (fname)))
+	  if ((int) getfd (i)->devicehandle->handle != 0 && getfd (i)->devicehandle->type == DEV_RISCOS
+	      && __fd_to_name ((int) getfd (i)->devicehandle->handle, fname, sizeof (fname)))
 	    {
 	      __os_print ("filename:");
 	      __os_print (fname);
 	      NL ();
 	    }
 	}
-  VAL ("pid:", (int) __u->pid);
-  VAL (" ppid:", (int) __u->ppid);
-  VAL (" pproc:", (int) __u->pproc);
+  VAL ("pid:", (int) __proc->pid);
+  VAL (" ppid:", (int) __proc->ppid);
   NL ();
-  VAL ("sigexit:", (int) __u->status.signal_exit);
-  VAL (" core:", (int) __u->status.core_dump);
-  VAL (" stopped:", (int) __u->status.stopped);
+  VAL ("sigexit:", (int) __proc->status.signal_exit);
+  VAL (" core:", (int) __proc->status.core_dump);
+  VAL (" stopped:", (int) __proc->status.stopped);
   NL ();
-  VAL ("has_parent:", (int) __u->status.has_parent);
-  NL ();
-  VAL ("signal:", (int) __u->status.signal);
-  VAL (" return:", (int) __u->status.return_code);
-  VAL (" vreg:", (int) __u->vreg);
-  VAL (" cli:", (int) __u->cli);
+  VAL ("signal:", (int) __proc->status.signal);
+  VAL (" return:", (int) __proc->status.return_code);
   VAL (" dde_prefix:", (int) __u->dde_prefix);
   NL ();
   NL ();

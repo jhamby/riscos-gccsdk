@@ -1,8 +1,8 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/_vfork.s,v $
-; $Date: 2004/09/07 14:05:11 $
-; $Revision: 1.10 $
+; $Date: 2004/10/17 16:24:44 $
+; $Revision: 1.11 $
 ; $State: Exp $
 ; $Author: joty $
 ;
@@ -12,150 +12,64 @@
 
 	AREA	|C$$code|,CODE,READONLY
 
-	IMPORT	|__vfork|
-	IMPORT	|__vexit|
-	IMPORT	|__dynamic_num|
-	IMPORT	|__unixlib_real_break|
-	IMPORT	|__pthread_system_running|
-	IMPORT	|__pthread_atfork_callprepare|
-	IMPORT	|__pthread_atfork_callparentchild|
-	IMPORT	|__pthread_disable_ints|
-	IMPORT	|__pthread_enable_ints|
-	IMPORT	|__pthread_start_ticker|
-	IMPORT	|__pthread_stop_ticker|
+	IMPORT	|__fork_pre|
+	IMPORT	|__fork_post|
+	IMPORT	|__unixlib_stack_limit|
+	IMPORT	|__unixlib_stack|
+	IMPORT	|__proc|
 
-	IMPORT	setjmp
-	IMPORT	longjmp
+; vfork is similar to fork.
+;
+; fork makes a complete copy of the calling process's address space
+; and allows both the parent and child to execute independently.
+; vfork does not make this copy.
+;
+; A child process created with vfork shares its parent's address
+; space until it calls exit or one of the exec functions. In the
+; meantime, the parent process suspends execution.
 
 	EXPORT	vfork
 	EXPORT  fork
 	NAME	vfork
 vfork
+	MOV	a1, #0
+	B	fork_common
 fork
-	STMFD	sp!, {lr}
-
-	[ __UNIXLIB_FEATURE_PTHREADS > 0
-	LDR	a1, =|__pthread_system_running|
-	LDR	a1, [a1]
-	CMP	a1, #0
-	BEQ	pthread_skip1
-	BL	|__pthread_atfork_callprepare|
-	; Child process only contins a single thread
-	BL	|__pthread_stop_ticker|
-pthread_skip1
-	]
-
-	BL	|__vfork|
-	; If zero was returned, we will return -1
-	CMP	a1, #0
-	BEQ	return_fail
-	LDMFD	sp!, {lr}
-	; save lr for use when setjmp returns either immediately or
-	; via longjmp as spawned program exits and current program
-	; starts running again.
-	LDR	a2, =|__saved_lr|
-	STR	lr, [a2]
-
-	[ __UNIXLIB_FEATURE_PTHREADS > 0
-	; save __pthread_system_running, as the child process
-	; will always set it to 0 on exit
-	LDR	a3, =|__pthread_system_running|
-	LDR	a2, =|__saved_pthread_system_running|
-	LDR	a3, [a3]
-	STR	a3, [a2]
-	]
-
-	BL	setjmp
-
-	[ __UNIXLIB_FEATURE_PTHREADS > 0
-	LDR	a2, =|__saved_pthread_system_running|
-	LDR	a3, =|__pthread_system_running|
-	LDR	a2, [a2]
-	STR	a2, [a3]
-	]
-
-	LDR	a2, =|__saved_lr|
+	MOV	a1, #1
+fork_common
+	STMFD	sp!, {a1,lr}
+	SUB	sp, sp, #2*4
+	ADD	a2, sp, #4	; Space for __proc->sul_fork
+	MOV	a3, sp		; Space for __proc->pid
+	BL	|__fork_pre|
 	TEQ	a1, #0
-	LDR	lr, [a2]
-	BNE	return_parent
-	; Return from the vfork in the child process
-	STMFD	sp!, {lr}
+	ADDNE	sp, sp, #3*4
+	LDMNEFD	sp!, {pc}
 
-	[ __UNIXLIB_FEATURE_PTHREADS > 0
-	LDR	a1, =|__pthread_system_running|
-	LDR	a1, [a1]
-	CMP	a1, #0
-	BEQ	pthread_skip2
-	MOV	a1, #0
-	BL	|__pthread_atfork_callparentchild|
-pthread_skip2
-	]
+	LDMFD	sp!, {a1-a3,lr}
+	MOV	ip, a2
+	; Save lr as we can't use the stack as it may be corrupted
+	; by the time we return as the parent
+	LDR	a2, =|__saved_lr|
+	STMIA	a2, {a3, lr}
+	LDR	a2, =|__proc|
+	TEQ	a3, #0
+	LDRNE	a3, =|__unixlib_stack_limit|
+	LDRNE	a3, [a3]
+	LDRNE	a4, =|__unixlib_stack|
+	LDRNE	a4, [a4]
+	MOVEQ	a4, #0
+	; Now call sul_fork()
+	MOV	lr, pc
+	MOV	pc, ip
 
-	MOV	a1, #0
-	LDMFD	sp!, {pc}
-
-return_parent	; Return from the vfork in the parent process
-	; Restore dynamic area size to size indicated by __real_break
-	; which was the size of the area before the forked program
-	; ran and extended the dynamic area. We can't do this anywhere
-	; before this point (e.g., in the called program) since some
-	; pointers may need copying down from the spawned program's area.
-	STMFD	sp!,{a1,a2,a3,a4,v1,v2,v3,v4,v5,lr}
-	LDR	a2, =|__dynamic_num|
-	LDR	a2, [a2]
-	CMN	a2, #1
-	BEQ	return_parent2
-	MOV	a1, #2
-	SWI	XOS_DynamicArea
-	MOVVC	a1, a2
-	LDRVC	a2, =|__unixlib_real_break|
-	ADDVC	a3, a3, a4
-	LDRVC	a2, [a2]
-	SUBVC	a2, a2, a3
-	SWIVC	XOS_ChangeDynamicArea
-return_parent2
-
-	[ __UNIXLIB_FEATURE_PTHREADS > 0
-	LDR	a1, =|__pthread_system_running|
-	LDR	a1, [a1]
-	CMP	a1, #0
-	BEQ	pthread_skip3
-	BL	|__pthread_start_ticker|
-	MOV	a1, #1
-	BL	|__pthread_atfork_callparentchild|
-pthread_skip3
-	]
-
-	LDMFD	sp!, {a1, a2, a3, a4, v1, v2, v3, v4, v5, pc}
-
-return_fail
-	[ __UNIXLIB_FEATURE_PTHREADS > 0
-	LDR	a1, =|__pthread_system_running|
-	LDR	a1, [a1]
-	CMP	a1, #0
-	BEQ	pthread_skip4
-	BL	|__pthread_start_ticker|
-	MOV	a1, #1
-	BL	|__pthread_atfork_callparentchild|
-pthread_skip4
-	]
-
-	MVN	a1, #0
-	LDMFD	sp!, {pc}
-
-
-	EXPORT	|__vret|
-|__vret|
-	BL	|__vexit|
-	LDR	a2, [a1, #60]		; a2 = child pid in jmp_buf
-	B	longjmp
+	; Tail-call __fork_post to do the remaining work
+	LDR	lr, =|__saved_lr|
+	LDMIA	lr, {a2, lr}
+	B	|__fork_post|
 
 	AREA	|C$$zidata|, DATA, NOINIT
 |__saved_lr|
-	%	4
-	[ __UNIXLIB_FEATURE_PTHREADS > 0
-|__saved_pthread_system_running|
-	%	4
-	]
+	%	8
 
 	END

@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/umask.c,v $
- * $Date: 2002/02/14 15:56:39 $
- * $Revision: 1.3 $
+ * $Date: 2003/04/05 09:33:57 $
+ * $Revision: 1.4 $
  * $State: Exp $
- * $Author: admin $
+ * $Author: alex $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: umask.c,v 1.3 2002/02/14 15:56:39 admin Exp $";
+static const char rcs_id[] = "$Id: umask.c,v 1.4 2003/04/05 09:33:57 alex Exp $";
 #endif
 
 #include <unixlib/types.h>
@@ -24,8 +24,8 @@ umask (__mode_t cmode)
 
   PTHREAD_UNSAFE
 
-  old_umask = __u->umask;
+  old_umask = __proc->umask;
 
-  __u->umask = cmode & 0777;
+  __proc->umask = cmode & 0777;
   return old_umask;
 }

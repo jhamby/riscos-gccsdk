@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/fchmod.c,v $
- * $Date: 2004/12/11 14:18:57 $
- * $Revision: 1.5 $
+ * $Date: 2004/12/14 23:14:45 $
+ * $Revision: 1.6 $
  * $State: Exp $
- * $Author: joty $
+ * $Author: peter $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: fchmod.c,v 1.5 2004/12/11 14:18:57 joty Exp $";
+static const char rcs_id[] = "$Id: fchmod.c,v 1.6 2004/12/14 23:14:45 peter Exp $";
 #endif
 
 #include <errno.h>
@@ -39,12 +39,12 @@ int fchmod (int fd, mode_t mode)
     return __set_errno (EBADF);
 
   /* Get the file name associated with the file descriptor.  */
-  file_desc = &__u->fd[fd];
+  file_desc = getfd (fd);
 
-  if (file_desc->device != DEV_RISCOS)
+  if (file_desc->devicehandle->type != DEV_RISCOS)
     return __set_errno (EINVAL);
 
-  if (__fd_to_name ((int) file_desc->handle, name, sizeof (name)) == NULL)
+  if (__fd_to_name ((int) file_desc->devicehandle->handle, name, sizeof (name)) == NULL)
     return __set_errno (EBADF);
 
   /* Set the file access permission bits.  */

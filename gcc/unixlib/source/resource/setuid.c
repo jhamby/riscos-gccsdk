@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source$
- * $Date$
- * $Revision$
- * $State$
- * $Author$
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/resource/setuid.c,v $
+ * $Date: 2003/01/21 17:54:22 $
+ * $Revision: 1.4 $
+ * $State: Exp $
+ * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id$";
+static const char rcs_id[] = "$Id: setuid.c,v 1.4 2003/01/21 17:54:22 admin Exp $";
 #endif
 
 #include <unistd.h>
@@ -21,11 +21,11 @@ setuid (__uid_t uid)
 {
   PTHREAD_UNSAFE
   
-  if (uid == __u->uid)
+  if (uid == __proc->uid)
     return 0;
-  if (uid == __u->euid)
+  if (uid == __proc->euid)
     {
-      __u->uid = uid;
+      __proc->uid = uid;
       return 0;
     }
   return -1;

@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/close.c,v $
- * $Date: 2004/02/23 16:07:28 $
- * $Revision: 1.5 $
+ * $Date: 2004/12/03 11:37:51 $
+ * $Revision: 1.6 $
  * $State: Exp $
  * $Author: peter $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: close.c,v 1.5 2004/02/23 16:07:28 peter Exp $";
+static const char rcs_id[] = "$Id: close.c,v 1.6 2004/12/03 11:37:51 peter Exp $";
 #endif
 
 #include <errno.h>
@@ -27,59 +27,41 @@ static const char rcs_id[] = "$Id: close.c,v 1.5 2004/02/23 16:07:28 peter Exp $
 
 /* #define DEBUG */
 
-int __close (int fd)
+int __close (struct __unixlib_fd *file_desc)
 {
-  struct __unixlib_fd *f, *file_desc;
-  int x, duplicate;
-
-  f = &__u->fd[0];
-  file_desc = &__u->fd[fd];
-
-  /* Check for any duplicated file descriptors, recognisable by
-     an equivalent 'handle' field.  */
-  duplicate = 0;
-  for (x = 0; x < MAXFD; x++)
+  if (__atomic_modify (&(file_desc->devicehandle->refcount), -1) == 0)
     {
-      if (x != fd && f[x].__magic == _FDMAGIC
-	  && f[x].handle == file_desc->handle)
-	{
-	  duplicate = 1;
-	  break;
-	}
-    }
+      int x;
+      /* We can close the file */
+#ifdef DEBUG
+      __os_print (", closing\r\n");
+#endif
 
-  if (!duplicate)
+      x = dev_funcall (file_desc->devicehandle->type, close, (file_desc));
+
+      __proc->sul_free (__proc->pid, file_desc->devicehandle);
+
+      /* Invalidate this file descriptor.  */
+      file_desc->devicehandle = NULL;
+
+      if (x == -1)
+        {
+#ifdef DEBUG
+          __os_print ("         Failed!: ");
+          __os_print (_kernel_last_oserror()->errmess);
+          __os_nl();
+#endif
+          return -1;
+        }
+    }
+  else
     {
-      /* We can close the file, providing we are the process that
-	 opened it.  */
-      if (file_desc->pid == __u->pid)
-	{
+      /* Invalidate this file descriptor.  */
+      file_desc->devicehandle = NULL;
 #ifdef DEBUG
-	  __os_print (", closing\r\n");
+      __os_print (", duplicate\r\n");
 #endif
-          if (file_desc->device == DEV_SOCKET)
-            FD_CLR (fd, &__socket_fd_set);
-
-	  x = __funcall ((*(__dev[file_desc->device].close)), (file_desc));
-	  if (x == -1)
-	    {
-#ifdef DEBUG
-	      __os_print ("         Failed!: ");
-	      __os_print (_kernel_last_oserror()->errmess);
-	      __os_nl();
-#endif
-	      return -1;
-	    }
-	}
     }
-#ifdef DEBUG
-    else
-      {
-	__os_print (", duplicate\r\n");
-      }
-#endif
-  /* Invalidate this file descriptor.  */
-  file_desc->__magic = 0;
 
   return 0;
 }
@@ -87,6 +69,8 @@ int __close (int fd)
 int
 close (int fd)
 {
+  struct __unixlib_fd *file_desc;
+
   PTHREAD_UNSAFE_CANCELLATION
 
 #ifdef DEBUG
@@ -103,5 +87,10 @@ close (int fd)
       return __set_errno (EBADF);
     }
 
-  return __close (fd);
+  file_desc = getfd (fd);
+
+  if (file_desc->devicehandle->type == DEV_SOCKET)
+    FD_CLR (fd, &__socket_fd_set);
+
+  return __close (file_desc);
 }

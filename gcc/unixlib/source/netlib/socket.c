@@ -1,16 +1,16 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/netlib/socket.c,v $
- * $Date: 2004/04/21 19:43:20 $
- * $Revision: 1.6 $
+ * $Date: 2004/12/03 11:37:51 $
+ * $Revision: 1.7 $
  * $State: Exp $
- * $Author: alex $
+ * $Author: peter $
  *
  * (c) Copyright 1995 Sergio Monesi
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: socket.c,v 1.6 2004/04/21 19:43:20 alex Exp $";
+static const char rcs_id[] = "$Id: socket.c,v 1.7 2004/12/03 11:37:51 peter Exp $";
 #endif
 
 #include <errno.h>
@@ -66,20 +66,23 @@ socket (int af, int type, int protocol)
 
   /* printf("U! socket: sd=%d fd=%d\n",sd,fd); */
 
-  file_desc = &__u->fd[fd];
+  file_desc = getfd (fd);
   file_desc->fflag = O_RDWR;
   file_desc->dflag = 0;
-  file_desc->handle = (void *) sd;
+
+  file_desc->devicehandle = __proc->sul_malloc (__proc->pid, __proc->fdhandlesize);
+  if (file_desc->devicehandle == NULL)
+    return -1;
+
+  file_desc->devicehandle->handle = (void *) sd;
 #if 0
   f->r[1] = af;
   f->r[2] = type;
   f->r[3] = protocol;
 #endif
 
-  file_desc->device = DEV_SOCKET;
-
-  file_desc->__magic = _FDMAGIC;
-  file_desc->pid = __u->pid;
+  file_desc->devicehandle->type = DEV_SOCKET;
+  file_desc->devicehandle->refcount = 1;
 
   FD_SET (fd, &__socket_fd_set);
 

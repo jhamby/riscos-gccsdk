@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/signal/post.c,v $
- * $Date: 2004/11/28 21:31:34 $
- * $Revision: 1.16 $
+ * $Date: 2004/12/11 14:18:57 $
+ * $Revision: 1.17 $
  * $State: Exp $
  * $Author: joty $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: post.c,v 1.16 2004/11/28 21:31:34 joty Exp $";
+static const char rcs_id[] = "$Id: post.c,v 1.17 2004/12/11 14:18:57 joty Exp $";
 #endif
 
 /* signal.c.post: Written by Nick Burrett, 27 August 1996.  */
@@ -328,7 +328,7 @@ post_signal:
 	    act = core;
 	  else if (signo == SIGINFO)
 	    {
-	      if (__u->pgrp == __u->pid)
+	      if (__proc->pgrp == __proc->pid)
 		{
 		  /* We provide a default handler for SIGINFO since
 		     there is no user-specified handler.  */
@@ -355,7 +355,8 @@ post_signal:
 	  ss->pending &= ~stop_signals;
 	  /* Resume all our children.  */
 	  ss_suspended = 1;
-	  __u->status.stopped = 0;
+	  __proc->status.stopped = 0;
+	  __proc->status.reported = 0;
 	}
     }
 
@@ -364,7 +365,7 @@ post_signal:
   __os_prdec (act); __os_print ("\r\n");
 #endif
 
-  if (__u->orphaned && act == stop &&
+  if (__proc->ppid == 1 && act == stop &&
       (signal_mask & (sigmask (SIGTTIN) | sigmask (SIGTTOU) | sigmask (SIGTSTP))))
     {
       /* If we would ordinarily stop for a job control signal, but we are
@@ -390,7 +391,7 @@ post_signal:
       __os_print ("post_signal: stop\r\n");
 #endif
       /* Stop all our threads, and mark ourselves stopped.  */
-      __u->status.stopped = 1;
+      __proc->status.stopped = 1;
       /* Wake up sigsuspend. */
       __u->sleeping = 0; /* inline version of sigwakeup() */
       break;
