@@ -26,7 +26,7 @@ if ($testtype eq "c" or $testtype eq "c++") {
 			      "-O2", "-o", "$dst/$exec", "-mpoke-function-name");
 	} elsif ($testtype eq "c++") {
 	    $status = system ("./3.3/riscos-cross/bin/g++", "$dir/$entry",
-			      "-O2", "-o", "$dst/$exec", "-mpoke-function-name", "-lsupc++");
+			      "-O2", "-o", "$dst/$exec", "-mpoke-function-name");
 	}
 	if ($status == 0) {
 	    printf OUT "echo %s\n", $entry;
@@ -49,12 +49,12 @@ if ($testtype eq "c" or $testtype eq "c++") {
 	$objfile = `basename $srcfile .cc`;
 	chomp $objfile;
 	printf ("srcfile = '%s'\n", $objfile);
-	$status = system ("./3.3/riscos-cross/bin/g++", $srcfile,
+	$status = system ("/rogcc/3.3/riscos-cross/bin/g++", $srcfile,
 			  "-O1", "-o", "$dst/$objfile",
 			  "-mpoke-function-name",
 			  "-I", "$testdir",
 			  "$testdir/testsuite_allocator.cc",
-			  "$testdir/testsuite_hooks.cc", "-lsupc++");
+			  "$testdir/testsuite_hooks.cc", "-mlibscl");
 	if ($status == 0) {
 	    printf OUT "echo %s\n", $entry;
 	    printf OUT "run %s\n", $exec;
