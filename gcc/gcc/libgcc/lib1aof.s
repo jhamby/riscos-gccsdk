@@ -78,7 +78,7 @@ r14 RN 14
 #endif
 
 /* Keep these in sync with unixlib/asm_dec.s and features.h */
-__FEATURE_PTHREADS	EQU	1
+__FEATURE_PTHREADS	EQU	0
 __PTHREAD_ALLOCA_OFFSET	EQU	8
 
 	AREA	|C$$code|, CODE, READONLY
@@ -1260,9 +1260,8 @@ list_off		*	4
 
 	/* UnixLib's jmp_buf is 26 words, Norcroft's is 22 words
 	   so gcc's is 27 (one more word than the biggest)
-	   setjmp_save is the offset to the 25th word.  */
-setjmp_save		*	(27*4)
-
+	   setjmp_save is the offset to the 27th word.  */
+setjmp_save		*	(26*4)
 
 	AREA	|C$$code|, CODE, READONLY
 
@@ -1295,45 +1294,6 @@ chunks_level_a		RN	3
 chunks_retaddr_a	RN	12
 
 	/* check offsets to fields tie up with ldm/stm register usage */
-#if 0
-	[ chunks_fp_off < chunks_level_off
-	ASSERT	chunks_fp_a < chunks_level_a
-	|
-	ASSERT	chunks_fp_a > chunks_level_a
-	]
-	[ chunks_fp_off < chunks_prev_off
-	ASSERT	chunks_fp_a < chunks
-	|
-	ASSERT	chunks_fp_a > chunks
-	]
-	[ chunks_fp_off < chunks_retaddr_off
-	ASSERT	chunks_fp_a < chunks_retaddr_a
-	|
-	ASSERT	chunks_fp_a > chunks_retaddr_a
-	]
-	[ chunks_level_off < chunks_prev_off
-	ASSERT	chunks_level_a < chunks
-	|
-	ASSERT	chunks_level_a > chunks
-	]
-	[ chunks_level_off < chunks_retaddr_off
-	ASSERT	chunks_level_a < chunks_retaddr_a
-	|
-	ASSERT	chunks_level_a > chunks_retaddr_a
-	]
-	[ chunks_prev_off < chunks_retaddr_off
-	ASSERT	chunks < chunks_retaddr_a
-	|
-	ASSERT	chunks > chunks_retaddr_a
-	]
-
-	[ list_off > level_off
-	ASSERT	alloca_level < chunks
-	|
-	ASSERT	alloca_level > chunks
-	]
-#endif
-
 	IMPORT	|free|
 	IMPORT	|abort|
 	IMPORT	|__pthread_running_thread|
@@ -1512,7 +1472,7 @@ gbaa_t3		RN	12
 	STR	gbaa_t2, [buffer, #12]
 	STR	buffer, [arm_alloca_a, #list_off]
 	STRNE	gbaa_t3, [fp, #-4]
-	ADD	buffer, buffer, #16
+	ADD	buffer, buffer, #chunk_size
 	LDMFD	sp!, {r1-r12, pc}RETCOND
 
 |dynamic_alloca_error|
