@@ -1,0 +1,8 @@
+
+AB_INSTALL=yes
+
+mkdir -p $D/include/libgsf-1/gsf
+mkdir -p $D/include/libgsf-1/gsf-gnome
+mkdir -p $D/include/libgsf-1/gsf-win32
+
+
