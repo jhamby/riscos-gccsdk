@@ -1,3 +1,12 @@
+Mon Feb 23 16:04:06 2004  Peter Naulls  <peter@chocky.org>
+	* source/clib/unixlib/sigstate.h, source/unix/close.c,
+	  source/signal/_coredump.s, source/signal/_signal.s,
+	  source/signal/post.c: Enable writing of backtraces etc to
+	  stderr.  This code isn't new, but wasn't previously enabled.
+	  It is also somewhat imperfect, and doesn't handle all cases
+	  on RISC OS 4 and 5, esp. register dumps.  You are encouraged to
+	  improve it.
+
 Sat Feb 21 20:58:10 2004  Peter Naulls  <peter@chocky.org>
 	* source/clib/strings.h: Remove extra #ifdef
 
