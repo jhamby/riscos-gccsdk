@@ -1,3 +1,8 @@
+Wed Dec 15 17:54:07 2004  Peter Naulls  <peter@chocky.org>
+
+	* source/common/unixify.c: Pull in functionality from rname.c,
+	  so unixify works much better.
+
 Tue Dec 14 23:10:26 2004  Peter Naulls  <peter@chocky.org>
 
 	* source/common/riscosify.c: Make riscosify really work for
