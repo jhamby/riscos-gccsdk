@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/signal/sigstack.c,v $
- * $Date: 2001/09/04 16:32:04 $
- * $Revision: 1.2.2.1 $
+ * $Date: 2002/02/14 15:56:36 $
+ * $Revision: 1.3 $
  * $State: Exp $
  * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: sigstack.c,v 1.2.2.1 2001/09/04 16:32:04 admin Exp $";
+static const char rcs_id[] = "$Id: sigstack.c,v 1.3 2002/02/14 15:56:36 admin Exp $";
 #endif
 
 /* sigstack.c: Written by Nick Burrett, 27 August 1996.
@@ -19,6 +19,7 @@ static const char rcs_id[] = "$Id: sigstack.c,v 1.2.2.1 2001/09/04 16:32:04 admi
 #include <errno.h>
 #include <unixlib/sigstate.h>
 #include <unixlib/unix.h>
+#include <pthread.h>
 
 /* Specifies an alternate stack for use during signal handling.
    When a signal is received by the process and its action
@@ -29,7 +30,11 @@ static const char rcs_id[] = "$Id: sigstack.c,v 1.2.2.1 2001/09/04 16:32:04 admi
 int
 sigstack (const struct sigstack *stack, struct sigstack *oldstack)
 {
-  struct unixlib_sigstate *ss = &__u->sigstate;
+  struct unixlib_sigstate *ss;
+
+  PTHREAD_UNSAFE
+
+  ss = &__u->sigstate;
   if (stack != NULL && ss->signalstack.ss_flags & SA_ONSTACK)
       /* Trying to disable a stack that is currently in use.  */
     return __set_errno (EINVAL);

@@ -1,10 +1,10 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/signal/_signal.s,v $
-; $Date: 2003/04/21 10:48:45 $
-; $Revision: 1.8 $
+; $Date: 2003/04/28 12:07:02 $
+; $Revision: 1.9 $
 ; $State: Exp $
-; $Author: peter $
+; $Author: alex $
 ;
 ;----------------------------------------------------------------------------
 
@@ -56,11 +56,19 @@
 	MOV	v1, a1
 	BL	__setup_signalhandler_stack
 
+	[ __FEATURE_PTHREADS = 1
+	BL	|__pthread_disable_ints|
+	]
+
 	CHGMODE	a2, USR_Mode
 	MOV	a2, v1
 	MOV	a1, #0
 	BL	|__unixlib_raise_signal|
 	SWI	XOS_EnterOS
+
+	[ __FEATURE_PTHREADS = 1
+	BL	|__pthread_enable_ints|
+	]
 
 	LDR	a1, =|__executing_signalhandler|
 	LDR	a2, [a1]

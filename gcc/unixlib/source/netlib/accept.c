@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source$
- * $Date$
- * $Revision$
- * $State$
- * $Author$
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/netlib/accept.c,v $
+ * $Date: 2002/12/13 15:01:59 $
+ * $Revision: 1.4 $
+ * $State: Exp $
+ * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id$";
+static const char rcs_id[] = "$Id: accept.c,v 1.4 2002/12/13 15:01:59 admin Exp $";
 #endif
 
 #include <errno.h>
@@ -20,6 +20,7 @@ static const char rcs_id[] = "$Id$";
 #include <fcntl.h>
 #include <unixlib/fd.h>
 #include <unixlib/local.h>
+#include <pthread.h>
 #ifdef DEBUG
 #include <stdio.h>
 #endif
@@ -30,6 +31,8 @@ accept (int s, struct sockaddr *name, socklen_t *namelen)
   struct __unixlib_fd *file_desc;
   int nfd;
   int nsd;
+
+  PTHREAD_UNSAFE_CANCELLATION
 
 #ifdef DEBUG
   fprintf(stderr, "U! accept: fd=%d, realsocket=%d\n",s,(int)__u->fd[s].handle);

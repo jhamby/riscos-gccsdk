@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/c/system,v $
- * $Date: 1997/10/08 16:37:45 $
- * $Revision: 1.10 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/system.c,v $
+ * $Date: 2001/01/29 15:10:19 $
+ * $Revision: 1.2 $
  * $State: Exp $
- * $Author: unixlib $
+ * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: system,v 1.10 1997/10/08 16:37:45 unixlib Exp $";
+static const char rcs_id[] = "$Id: system.c,v 1.2 2001/01/29 15:10:19 admin Exp $";
 #endif
 
 /* c.system: Written by Nick Burrett, 6 October 1996.  */
@@ -22,6 +22,7 @@ static const char rcs_id[] = "$Id: system,v 1.10 1997/10/08 16:37:45 unixlib Exp
 #include <sys/wait.h>
 #include <signal.h>
 #include <sys/types.h>
+#include <pthread.h>
 
 
 /* Execute LINE as a shell command, returning its status.  */
@@ -32,6 +33,8 @@ system (const char *line)
   pid_t pid;
   struct sigaction sa, intr, quit;
   sigset_t block, omask;
+
+  PTHREAD_SAFE_CANCELLATION
 
   if (line == NULL)
     return 1;

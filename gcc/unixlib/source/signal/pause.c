@@ -1,21 +1,22 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/signal/c/pause,v $
- * $Date: 1997/10/09 20:00:28 $
- * $Revision: 1.5 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/signal/pause.c,v $
+ * $Date: 2001/01/29 15:10:20 $
+ * $Revision: 1.2 $
  * $State: Exp $
- * $Author: unixlib $
+ * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: pause,v 1.5 1997/10/09 20:00:28 unixlib Exp $";
+static const char rcs_id[] = "$Id: pause.c,v 1.2 2001/01/29 15:10:20 admin Exp $";
 #endif
 
 /* signal.c.pause: Written by Nick Burrett, 5 October 1996.  */
 
 #include <signal.h>
 #include <unistd.h>
+#include <pthread.h>
 
 
 /* Suspend the process until a signal arrives.
@@ -24,6 +25,8 @@ static const char rcs_id[] = "$Id: pause,v 1.5 1997/10/09 20:00:28 unixlib Exp $
 int
 pause (void)
 {
+  PTHREAD_SAFE_CANCELLATION
+
   /* errno is set to EINTR by sigsuspend() which is called
      through sigpause().  */
   return sigpause (sigblock (0));

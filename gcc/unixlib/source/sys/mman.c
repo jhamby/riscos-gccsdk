@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/mman.c,v $
- * $Date: 2001/09/04 16:32:04 $
- * $Revision: 1.2.2.3 $
+ * $Date: 2002/02/14 15:56:37 $
+ * $Revision: 1.3 $
  * $State: Exp $
  * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: mman.c,v 1.2.2.3 2001/09/04 16:32:04 admin Exp $";
+static const char rcs_id[] = "$Id: mman.c,v 1.3 2002/02/14 15:56:37 admin Exp $";
 #endif
 
 /* Definitions for BSD-style memory management.  Generic/4.4 BSD version.  */
@@ -30,6 +30,7 @@ static const char rcs_id[] = "$Id: mman.c,v 1.2.2.3 2001/09/04 16:32:04 admin Ex
 #include <unixlib/unix.h>
 #include <string.h>
 #include <errno.h>
+#include <pthread.h>
 
 /* could store the number and the next pointer at the beginning or end of the
    mmap'ed area. The end is better for alignment purposes - so also need length
@@ -66,6 +67,8 @@ __munmap_all (void)
 {
   int i;
 
+  PTHREAD_UNSAFE
+
   for (i = 0; i < MAX_MMAPS; i++)
     {
       if (mmaps[i].number != -1)
@@ -87,6 +90,8 @@ mmap (caddr_t addr, size_t len, int prot, int flags, int fd, off_t offset)
 {
   int regs[10];
   int i;
+
+  PTHREAD_UNSAFE
 
   /* Getting the page size is expensive, so only do it once.  */
   if (page_size == 0)
@@ -189,6 +194,8 @@ munmap (caddr_t addr, size_t len)
   int i;
   _kernel_oserror *err;
 
+  PTHREAD_UNSAFE
+
   len = len; /* XXX don't care about len for now */
 
   for (i = 0; i < MAX_MMAPS; i++)
@@ -265,6 +272,8 @@ mremap (caddr_t addr, size_t old_len, size_t new_len, int may_move)
   caddr_t new_addr;
   _kernel_oserror *err;
   int regs[10];
+
+  PTHREAD_UNSAFE
 
   for (i = 0; i < MAX_MMAPS; i++)
     {

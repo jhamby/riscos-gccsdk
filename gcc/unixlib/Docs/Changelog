@@ -1,3 +1,54 @@
+Mon Apr 28 22:03:02 2003  Alex Waugh  <alex@alexwaugh.com>
+
+	* Makefile: Remove fcrypt.c
+	* fcrypt.c: Remove file, it has been replaced by crypt/*
+	* opensock.c: Enable locking code for thread safety.
+	* regex.c: Add standard UnixLib header.
+	* system.c: Add cancellation point.
+	* clib/bits/libc-lock.h: New file to map __libc_lock calls onto
+	  pthread mutexes.
+	* crypt/crypt_util.c: Enable locking code for thread safety.
+	* netlib/accept.c: Thread safety patches.
+	* netlib/bind.c: Likewise.
+	* netlib/connect.c: Likewise.
+	* netlib/getpeernam.c: Likewise.
+	* netlib/getsocknam.c: Likewise.
+	* netlib/getsockopt.c: Likewise.
+	* netlib/listen.c: Likewise.
+	* netlib/net.c: Likewise.
+	* netlib/proto.c: Likewise.
+	* netlib/recv.c: Likewise.
+	* netlib/recvfrom.c: Likewise.
+	* netlib/recvmsg.c: Likewise.
+	* netlib/send.c: Likewise.
+	* netlib/sendmsg.c: Likewise.
+	* netlib/sendto.c: Likewise.
+	* netlib/serv.c: Likewise.
+	* netlib/setsockopt.c: Likewise.
+	* netlib/shutdown.c: Likewise.
+	* netlib/socket.c: Likewise.
+	* netlib/socketpair.c: Add standard UnixLib header.
+	* resolv/res_hconf.c: Enable locking code for thread safety.
+	* signal/_signal.s: Thread safety patches.
+	* signal/kill.c: Likewise.
+	* signal/pause.c: Likewise.
+	* signal/post.c: Likewise.
+	* signal/sigaction.c: Likewise.
+	* signal/sigaltstk.c: Likewise.
+	* signal/sigpause.c: Likewise.
+	* signal/sigpending.c: Likewise.
+	* signal/sigprocmsk.c: Likewise.
+	* signal/sigstack.c: Likewise.
+	* signal/sigsuspend.c: Likewise.
+	* signal/sigvec.c: Likewise.
+	* signal/sleep.c: Likewise.
+	* sys/brk.c: Likewise.
+	* sys/debug.c: Likewise.
+	* sys/execvp.c: Likewise.
+	* sys/mman.c: Likewise.
+	* sys/sigsetjmp.c: Likewise.
+	* unix/waitpid.c: Likewise.
+
 Mon Apr 28 13:05:24 2003  Alex Waugh  <alex@alexwaugh.com>
 
 	* clib/pthread.h (__pthread_context_stack_sp,

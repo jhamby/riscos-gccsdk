@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/signal/post.c,v $
- * $Date: 2003/04/21 10:48:45 $
- * $Revision: 1.5 $
+ * $Date: 2003/04/26 10:42:09 $
+ * $Revision: 1.6 $
  * $State: Exp $
  * $Author: peter $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: post.c,v 1.5 2003/04/21 10:48:45 peter Exp $";
+static const char rcs_id[] = "$Id: post.c,v 1.6 2003/04/26 10:42:09 peter Exp $";
 #endif
 
 /* signal.c.post: Written by Nick Burrett, 27 August 1996.  */
@@ -482,8 +482,7 @@ post_pending:
 void
 __unixlib_raise_signal (struct unixlib_sigstate *ss, int signo)
 {
-/*  PTHREAD_UNSAFE*/
-  __pthread_disable_ints();
+  PTHREAD_UNSAFE
 
   if (ss == NULL)
     ss = &__u->sigstate;
@@ -508,5 +507,4 @@ __unixlib_raise_signal (struct unixlib_sigstate *ss, int signo)
       __os_print (" is pending for delivery\r\n");
     }
 #endif
-  __pthread_enable_ints();
 }

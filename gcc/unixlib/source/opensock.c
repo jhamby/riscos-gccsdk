@@ -1,17 +1,16 @@
 /****************************************************************************
  *
- * $Source: $
- * $Date: $
- * $Revision: $
- * $State: $
- * $Author: $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/opensock.c,v $
+ * $Date: 2002/12/28 17:59:57 $
+ * $Revision: 1.1 $
+ * $State: Exp $
+ * $Author: admin $
  *
  ***************************************************************************/
 
 /*
  * File taken from glibc 2.2.5.
  * Following changes were made:
- *  - Disabled #include <bits/libc-lock.h> & other locking code
  *  - Changed __sockeet() into socket()
  */
 
@@ -35,7 +34,7 @@
 
 #include <stdio.h>
 #include <sys/socket.h>
-/* #include <bits/libc-lock.h> */
+#include <bits/libc-lock.h>
 
 /* Return a socket of any type.  The socket can be used in subsequent
    ioctl calls to talk to the kernel.  */
@@ -46,7 +45,7 @@ __opensock (void)
      socket().  */
   static int sock_af = -1;
   int fd = -1;
-  /* __libc_lock_define_initialized (static, lock); */
+  __libc_lock_define_initialized (static, lock);
 
   if (sock_af != -1)
     {
@@ -55,7 +54,7 @@ __opensock (void)
         return fd;
     }
 
-  /* __libc_lock_lock (lock); */
+  __libc_lock_lock (lock);
 
   if (sock_af != -1)
     fd = socket (sock_af, SOCK_DGRAM, 0);
@@ -83,6 +82,6 @@ __opensock (void)
 #endif
     }
 
-  /* __libc_lock_unlock (lock); */
+  __libc_lock_unlock (lock);
   return fd;
 }

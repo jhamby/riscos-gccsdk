@@ -1,21 +1,20 @@
 /****************************************************************************
  *
- * $Source: $
- * $Date: $
- * $Revision: $
- * $State: $
- * $Author: $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/resolv/res_hconf.c,v $
+ * $Date: 2002/12/22 18:22:29 $
+ * $Revision: 1.1 $
+ * $State: Exp $
+ * $Author: admin $
  *
  ***************************************************************************/
 
 /*
  * File taken from glibc 2.2.5.
  * Following changes were made:
- *  - Disabled the #include of libintl.h & bits/libc-lock.h
+ *  - Disabled the #include of libintl.h
  *  - Renamed __strncasecmp() into strncasecmp(), __strndup() into strndup(),
  *    __strchrnul() into strchrnul(), __ioctl() into ioctl(), __close()
  *    into close(), __strcasecmp() into strcasecmp().
- *  - Disabled the lock calls.
  *  - Added #include <strings.h> for strncasemcp() definition.
  *  - Changed the __asprintf( error msg code into fprintf(stderr, ...)
  *    version
@@ -65,7 +64,7 @@
 #include <sys/ioctl.h>
 #include <unistd.h>
 #include <netinet/in.h>
-/* #include <bits/libc-lock.h> */
+#include <bits/libc-lock.h>
 #include "ifreq.h"
 #include "res_hconf.h"
 #ifdef USE_IN_LIBIO
@@ -442,7 +441,7 @@ static struct netaddr
 } *ifaddrs;
 
 /* We need to protect the dynamic buffer handling.  */
-/* __libc_lock_define_initialized (static, lock); */
+__libc_lock_define_initialized (static, lock);
 
 /* Reorder addresses returned in a hostent such that the first address
    is an address on the local subnet, if there is such an address.
@@ -482,7 +481,7 @@ _res_hconf_reorder_addrs (struct hostent *hp)
 	return;
 
       /* Get lock.  */
-      /* __libc_lock_lock (lock); */
+      __libc_lock_lock (lock);
 
       /* Get a list of interfaces.  */
       __ifreq (&ifr, &num);
@@ -521,7 +520,7 @@ _res_hconf_reorder_addrs (struct hostent *hp)
     cleanup:
       /* Release lock, preserve error value, and close socket.  */
       save = errno;
-      /* __libc_lock_unlock (lock); */
+      __libc_lock_unlock (lock);
       close (sd);
     }
 

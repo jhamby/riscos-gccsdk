@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/brk.c,v $
- * $Date: 2002/02/14 15:56:37 $
- * $Revision: 1.3 $
+ * $Date: 2003/04/05 12:16:34 $
+ * $Revision: 1.4 $
  * $State: Exp $
- * $Author: admin $
+ * $Author: alex $
  *
  ***************************************************************************/
 
@@ -41,7 +41,7 @@
 /* sys/brk.c: Complete rewrite by Peter Burwood, June 1997  */
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: brk.c,v 1.3 2002/02/14 15:56:37 admin Exp $";
+static const char rcs_id[] = "$Id: brk.c,v 1.4 2003/04/05 12:16:34 alex Exp $";
 #endif
 
 #include <string.h>
@@ -53,6 +53,7 @@ static const char rcs_id[] = "$Id: brk.c,v 1.3 2002/02/14 15:56:37 admin Exp $";
 #include <swis.h>
 #include <sys/types.h>
 #include <unixlib/unix.h>
+#include <pthread.h>
 
 /* #define DEBUG */
 
@@ -195,6 +196,8 @@ __internal_brk (void *addr, int internalcall)
 int
 brk (void *addr)
 {
+  PTHREAD_UNSAFE
+
   return __internal_brk (addr, 0);
 }
 
@@ -204,6 +207,8 @@ void *
 sbrk (int incr)
 {
   void *oldbrk = __break;
+
+  PTHREAD_UNSAFE
 
 #ifdef DEBUG
   __os_print ("-- sbrk: incr = "); __os_prdec (incr); __os_print ("\r\n");

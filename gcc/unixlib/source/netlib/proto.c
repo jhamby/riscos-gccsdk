@@ -1,20 +1,21 @@
 /****************************************************************************
  *
- * $Source$
- * $Date$
- * $Revision$
- * $State$
- * $Author$
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/netlib/proto.c,v $
+ * $Date: 2002/12/22 18:22:29 $
+ * $Revision: 1.3 $
+ * $State: Exp $
+ * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id$";
+static const char rcs_id[] = "$Id: proto.c,v 1.3 2002/12/22 18:22:29 admin Exp $";
 #endif
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <pthread.h>
 
 #include <netdb.h>
 #include <netinet/in.h>
@@ -36,6 +37,8 @@ static struct protoent *__getprotoent (void);
 void
 setprotoent (int stayopen)
 {
+  PTHREAD_UNSAFE
+
   /* Record whether the file should be kept open */
   keepopen = stayopen;
 
@@ -65,6 +68,8 @@ struct protoent *
 getprotoent ()
 {
   struct protoent *proto;
+
+  PTHREAD_UNSAFE
 
   /* Open the file if necessary */
   if (protofile == NULL)
@@ -139,6 +144,8 @@ __getprotoent ()
 void
 endprotoent ()
 {
+  PTHREAD_UNSAFE
+
   /* If its open, close it */
   if (protofile)
     {
@@ -153,6 +160,8 @@ getprotobyname (const char *name)
 {
   struct protoent *proto;
   char **alias;
+
+  PTHREAD_UNSAFE
 
   /* Open/rewind the file */
   if (__setprotoent (1) == -1)
@@ -189,6 +198,8 @@ struct protoent *
 getprotobynumber (int protonum)
 {
   struct protoent *proto;
+
+  PTHREAD_UNSAFE
 
   /* Open/rewind the file */
   if (__setprotoent (1) == -1)

@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/signal/sigaction.c,v $
- * $Date: 2001/09/04 16:32:04 $
- * $Revision: 1.2.2.1 $
+ * $Date: 2002/02/14 15:56:36 $
+ * $Revision: 1.3 $
  * $State: Exp $
  * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: sigaction.c,v 1.2.2.1 2001/09/04 16:32:04 admin Exp $";
+static const char rcs_id[] = "$Id: sigaction.c,v 1.3 2002/02/14 15:56:36 admin Exp $";
 #endif
 
 /* sigaction.c: Written by Nick Burrett, 31 August 1996.  */
@@ -19,6 +19,7 @@ static const char rcs_id[] = "$Id: sigaction.c,v 1.2.2.1 2001/09/04 16:32:04 adm
 #include <signal.h>
 #include <unixlib/sigstate.h>
 #include <unixlib/unix.h>
+#include <pthread.h>
 
 /* Set up a new action for the signal 'sig' specified by 'act'.
    The old action is returned in 'oact'.
@@ -32,7 +33,11 @@ static const char rcs_id[] = "$Id: sigaction.c,v 1.2.2.1 2001/09/04 16:32:04 adm
 int
 sigaction (int sig, const struct sigaction *act, struct sigaction *oact)
 {
-  struct unixlib_sigstate *ss = &__u->sigstate;
+  struct unixlib_sigstate *ss;
+
+  PTHREAD_UNSAFE
+
+  ss = &__u->sigstate;
 
   if (__SIG_INVALID_P (sig) ||
       (act != NULL && act->sa_handler != SIG_DFL &&

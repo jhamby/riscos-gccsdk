@@ -1,20 +1,21 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/netlib/serv.c,v $
- * $Date: 2002/12/22 18:22:29 $
- * $Revision: 1.3 $
+ * $Date: 2003/04/21 10:48:45 $
+ * $Revision: 1.4 $
  * $State: Exp $
- * $Author: admin $
+ * $Author: peter $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: serv.c,v 1.3 2002/12/22 18:22:29 admin Exp $";
+static const char rcs_id[] = "$Id: serv.c,v 1.4 2003/04/21 10:48:45 peter Exp $";
 #endif
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <pthread.h>
 
 #include <netdb.h>
 #include <netinet/in.h>
@@ -36,6 +37,8 @@ static struct servent *__getservent (void);
 void
 setservent (int stayopen)
 {
+  PTHREAD_UNSAFE
+
   /* Record whether the file should be kept open */
   keepopen = stayopen;
 
@@ -65,6 +68,8 @@ struct servent *
 getservent ()
 {
   struct servent *serv;
+
+  PTHREAD_UNSAFE
 
   /* Open the file if necessary */
   if (servfile == NULL)
@@ -144,6 +149,8 @@ __getservent ()
 void
 endservent (void)
 {
+  PTHREAD_UNSAFE
+
   /* If it's open, close it */
   if (servfile)
     {
@@ -158,6 +165,8 @@ getservbyname (const char *name, const char *proto)
 {
   struct servent *serv;
   char **alias;
+
+  PTHREAD_UNSAFE
 
   /* Open/rewind the file */
   if (__setservent (1) == -1)
@@ -198,6 +207,8 @@ struct servent *
 getservbyport (int port, const char *proto)
 {
   struct servent *serv;
+
+  PTHREAD_UNSAFE
 
   /* Open/rewind the file */
   if (__setservent (1) == -1)

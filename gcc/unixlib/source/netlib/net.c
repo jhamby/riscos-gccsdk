@@ -1,20 +1,21 @@
 /****************************************************************************
  *
- * $Source$
- * $Date$
- * $Revision$
- * $State$
- * $Author$
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/netlib/net.c,v $
+ * $Date: 2002/12/22 18:22:29 $
+ * $Revision: 1.3 $
+ * $State: Exp $
+ * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id$";
+static const char rcs_id[] = "$Id: net.c,v 1.3 2002/12/22 18:22:29 admin Exp $";
 #endif
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <pthread.h>
 
 #include <arpa/inet.h>
 #include <netdb.h>
@@ -37,6 +38,8 @@ static struct netent *__getnetent (void);
 void
 setnetent (int stayopen)
 {
+  PTHREAD_UNSAFE
+
   /* Record whether the file should be kept open */
   keepopen = stayopen;
 
@@ -66,6 +69,8 @@ struct netent *
 getnetent ()
 {
   struct netent *net;
+
+  PTHREAD_UNSAFE
 
   /* Open the file if necessary */
   if (netfile == NULL)
@@ -140,6 +145,8 @@ __getnetent ()
 void
 endnetent ()
 {
+  PTHREAD_UNSAFE
+
   /* If its open, close it */
   if (netfile)
     {
@@ -154,6 +161,8 @@ getnetbyname (const char *name)
 {
   struct netent *net;
   char **alias;
+
+  PTHREAD_UNSAFE
 
   /* Open/rewind the file */
   if (__setnetent (1) == -1)
@@ -190,6 +199,8 @@ struct netent *
 getnetbyaddr (uint32_t netaddr, int type)
 {
   struct netent *net;
+
+  PTHREAD_UNSAFE
 
   /* Open/rewind the file */
   if (__setnetent (1) == -1)

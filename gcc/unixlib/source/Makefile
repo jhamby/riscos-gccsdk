@@ -169,7 +169,6 @@ OBJS =	$(libunixobj)/abort.o \
 	$(libunixobj)/ctypeproc.o \
 	$(libunixobj)/div.o \
 	$(libunixobj)/errno.o \
-	$(libunixobj)/fcrypt.o \
 	$(libunixobj)/index.o \
 	$(libunixobj)/memccpy.o \
 	$(libunixobj)/memchr.o \
@@ -809,7 +808,6 @@ $(libunixobj)/ctypeproc.o: ctypeproc.c
 $(libunixobj)/div.o: div.c
 $(libunixobj)/dtoa.o: dtoa.c
 $(libunixobj)/errno.o: errno.c
-$(libunixobj)/fcrypt.o: fcrypt.c
 $(libunixobj)/index.o: index.c
 $(libunixobj)/memchr.o: memchr.c
 $(libunixobj)/memcmp.o: memcmp.c

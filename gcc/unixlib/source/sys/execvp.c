@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source$
- * $Date$
- * $Revision$
- * $State$
- * $Author$
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/execvp.c,v $
+ * $Date: 2002/09/24 21:02:38 $
+ * $Revision: 1.4 $
+ * $State: Exp $
+ * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id$";
+static const char rcs_id[] = "$Id: execvp.c,v 1.4 2002/09/24 21:02:38 admin Exp $";
 #endif
 
 #include <unistd.h>
@@ -17,6 +17,7 @@ static const char rcs_id[] = "$Id$";
 /* #define DEBUG 1 */
 #ifdef DEBUG
 #include <unixlib/os.h>
+#include <pthread.h>
 #endif
 
 /* Execute file, searching in the 'path' environment variable if it
@@ -26,6 +27,8 @@ int
 execvp (const char *name, char *const argv[])
 {
 #ifdef DEBUG
+  PTHREAD_UNSAFE
+
   if (environ != NULL)
     {
       int x = -1;

@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/signal/c/sigvec,v $
- * $Date: 1997/10/09 20:00:30 $
- * $Revision: 1.6 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/signal/sigvec.c,v $
+ * $Date: 2001/01/29 15:10:21 $
+ * $Revision: 1.2 $
  * $State: Exp $
- * $Author: unixlib $
+ * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: sigvec,v 1.6 1997/10/09 20:00:30 unixlib Exp $";
+static const char rcs_id[] = "$Id: sigvec.c,v 1.2 2001/01/29 15:10:21 admin Exp $";
 #endif
 
 /* c.sigvec: Written by Nick Burrett, 30 August 1996.  */
@@ -17,6 +17,7 @@ static const char rcs_id[] = "$Id: sigvec,v 1.6 1997/10/09 20:00:30 unixlib Exp 
 #include <signal.h>
 #include <errno.h>
 #include <stddef.h>
+#include <pthread.h>
 
 
 /* We use a wrapper handler to support SV_RESETHAND.  */
@@ -66,6 +67,8 @@ int
 sigvec (int sig, const struct *vec, struct sigvec *ovec)
 {
   struct sigaction old;
+
+  PTHREAD_UNSAFE
 
   if (vec == NULL || !(vec->sv_flags & SV_RESETHAND))
     {

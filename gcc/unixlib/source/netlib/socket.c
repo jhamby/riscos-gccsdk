@@ -1,16 +1,16 @@
 /****************************************************************************
  *
- * $Source$
- * $Date$
- * $Revision$
- * $State$
- * $Author$
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/netlib/socket.c,v $
+ * $Date: 2002/12/22 18:22:29 $
+ * $Revision: 1.4 $
+ * $State: Exp $
+ * $Author: admin $
  *
  * (c) Copyright 1995 Sergio Monesi
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id$";
+static const char rcs_id[] = "$Id: socket.c,v 1.4 2002/12/22 18:22:29 admin Exp $";
 #endif
 
 #include <errno.h>
@@ -20,12 +20,15 @@ static const char rcs_id[] = "$Id$";
 #include <unixlib/dev.h>
 #include <fcntl.h>
 #include <netdb.h>
+#include <pthread.h>
 
 int
 socket (int af, int type, int protocol)
 {
   struct __unixlib_fd *file_desc;
   int fd, sd;
+
+  PTHREAD_UNSAFE
 
   if ((sd = _socket (af, type, protocol)) < 0)
     return -1;

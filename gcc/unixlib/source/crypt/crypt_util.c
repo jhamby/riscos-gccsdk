@@ -1,8 +1,8 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/crypt/Attic/crypt_util.c,v $
- * $Date: 2002/08/18 21:22:10 $
- * $Revision: 1.1.2.1 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/crypt/crypt_util.c,v $
+ * $Date: 2002/11/18 15:38:13 $
+ * $Revision: 1.2 $
  * $State: Exp $
  * $Author: admin $
  *
@@ -13,6 +13,7 @@
  * Following changes were made:
  *  - Renamed __encrypt_r() to encrypt_r(), __setkey_r() to setkey_r()
  *  - Disabled the weak_alias lines.
+ *  - Defined __GNU_LIBRARY__ so the locking is enabled
  */
 
 /*
@@ -62,6 +63,8 @@
 #endif
 #include "crypt.h"
 #include "crypt-private.h"
+
+#define __GNU_LIBRARY__
 
 /* Prototypes for local functions.  */
 #if __STDC__ - 0

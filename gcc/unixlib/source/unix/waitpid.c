@@ -1,21 +1,22 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/unix/c/waitpid,v $
- * $Date: 1997/10/09 20:00:54 $
- * $Revision: 1.4 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/waitpid.c,v $
+ * $Date: 2001/01/29 15:10:22 $
+ * $Revision: 1.2 $
  * $State: Exp $
- * $Author: unixlib $
+ * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: waitpid,v 1.4 1997/10/09 20:00:54 unixlib Exp $";
+static const char rcs_id[] = "$Id: waitpid.c,v 1.2 2001/01/29 15:10:22 admin Exp $";
 #endif
 
 #include <errno.h>
 #include <sys/wait.h>
 #include <sys/types.h>
 #include <stddef.h>
+#include <pthread.h>
 
 /* Wait for a child matching pid to die.
 
@@ -39,5 +40,7 @@ static const char rcs_id[] = "$Id: waitpid,v 1.4 1997/10/09 20:00:54 unixlib Exp
 pid_t
 waitpid (pid_t pid, int *stat_loc, int options)
 {
+  PTHREAD_SAFE_CANCELLATION
+
   return wait4 (pid, stat_loc, options, NULL);
 }

@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source$
- * $Date$
- * $Revision$
- * $State$
- * $Author$
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/signal/sleep.c,v $
+ * $Date: 2002/12/28 17:59:57 $
+ * $Revision: 1.5 $
+ * $State: Exp $
+ * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id$";
+static const char rcs_id[] = "$Id: sleep.c,v 1.5 2002/12/28 17:59:57 admin Exp $";
 #endif
 
 /* Copyright (C) 1991, 1992, 1993, 1996, 1997 Free Software Foundation, Inc.
@@ -34,6 +34,7 @@ static const char rcs_id[] = "$Id$";
 #include <unistd.h>
 #include <errno.h>
 #include <unixlib/unix.h>
+#include <pthread.h>
 
 #define USECS_PER_CLOCK (1000000 / CLOCKS_PER_SEC)
 
@@ -164,12 +165,16 @@ sleep_int (clock_t clockticks)
 unsigned int
 sleep (unsigned int seconds)
 {
+  PTHREAD_SAFE_CANCELLATION
+
   return (unsigned int) sleep_int ((clock_t)seconds * CLOCKS_PER_SEC) / CLOCKS_PER_SEC;
 }
 
 int
 usleep (useconds_t usec)
 {
+  PTHREAD_SAFE_CANCELLATION
+
   /* An allowed & specified limitation. Otherwise our calculations might
      overflow.  */
   if (usec >= 1000000)
