@@ -2,7 +2,7 @@
 # Written by Nick Burrett <nick@dsvr.net>
 
 INCLUDES = -I.
-CROSS_CFLAGS += -DHAVE_CONFIG_H -D_PTR_T
+CROSS_CFLAGS += -DHAVE_CONFIG_H 
 
 $(objdir)/riscos-progs/grep/%.o: %.c
 	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c $< $(INCLUDES)
