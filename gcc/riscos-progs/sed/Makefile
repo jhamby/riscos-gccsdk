@@ -16,10 +16,13 @@ OBJS = $(objdir)/riscos-progs/sed/compile.o \
 	$(objdir)/riscos-progs/sed/strverscmp.o \
 	$(objdir)/riscos-progs/sed/utils.o
 
-all:	$(bin_dir)/sed$(exesfx)
+all:	$(bin_dir)/sed$(exesfx) $(info_dir)/sed
 
 $(bin_dir)/sed$(exesfx):	$(OBJS)
 	$(CROSS_CC) -o $@ $(OBJS) -L$(objdir)/libiberty/$(STAGE) -liberty
+
+$(info_dir)/sed:	doc/config.texi doc/sed.texi doc/version.texi
+	makeinfo --no-split --number-sections doc/sed.texi -o $@ -I doc
 
 $(objdir)/riscos-progs/sed/compile.o: compile.c
 $(objdir)/riscos-progs/sed/execute.o: execute.c
