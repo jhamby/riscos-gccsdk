@@ -51,6 +51,13 @@ $(zlibobjdir)/libz.o: $(OBJS)
 	$(CROSS_AR) $(CROSS_AR_FLAGS) $@ $(OBJS)
 endif
 
+zlib_srcdir = /home/nick/riscos/gcc-3.3/zlib
+
+import:
+	# Merge header files
+	cp -a ${zlib_srcdir}/*.c ./
+	cp -a ${zlib_srcdir}/*.h ./
+
 $(zlibobjdir)/adler32.o: adler32.c
 $(zlibobjdir)/compress.o: compress.c
 $(zlibobjdir)/crc32.o: crc32.c
