@@ -1,10 +1,10 @@
 # Project:   UnixLib 4.0
 
 # $Source: /usr/local/cvsroot/gccsdk/unixlib/objs/Makefile,fe1,v $
-# $Date: 2003/04/05 23:56:08 $
-# $Revision: 1.8 $
+# $Date: 2003/04/12 11:31:39 $
+# $Revision: 1.9 $
 # $State: Exp $
-# $Author: joty $
+# $Author: alex $
 
 CCfeatures =
 Predefs = -D__UNIXLIB_INTERNALS
@@ -23,7 +23,7 @@ CCrflags =
 # APCS selection :
 #   - APCS-R build : -APCS 3/26bit/fpe2
 #   - APCS-32 build : -APCS 3/32bit/fpe3
-CCapcsflags = -APCS 3/26bit/fpe2
+CCapcsflags = -APCS 3/32bit/fpe3
 CCflags = -depend !Depend -throwback -fcah -JUnixHdr: -wda -wp $(CCdflags) $(CCapcsflags)
 
 # GCC compiler. Comment out if you are using Norcroft C (Acorn) compiler.

@@ -194,8 +194,6 @@ trg31=apcs32/arch4/libscl
 cfl10="CFL=-mapcs-26 -mcpu=arm2 -munixlib"
 cfl11="CFL=-mapcs-26 -mcpu=arm2 -mlibscl"
 
-cfl15="CFL=-mapcs-32 -mcpu=arm6 -mlibscl"
-
 cfl20="CFL=-mapcs-32 -mcpu=arm6 -munixlib"
 cfl21="CFL=-mapcs-32 -mcpu=strongarm -munixlib"
 
@@ -206,22 +204,22 @@ libiberty-stg1:
 	$(MAKE) -C libiberty "STAGE=stage1"
 
 libiberty-stg2:
-	$(MAKE) -C libiberty "STAGE=stage2" "TRG=$(trg10)"
+	$(MAKE) -C libiberty "STAGE=stage2" "TRG=$(trg20)"
 
 gcc-stg1:
-	$(MAKE) -C gcc "STAGE=stage1" "TRG=$(trg10)"
+	$(MAKE) -C gcc "STAGE=stage1" "TRG=$(trg20)"
 
 gcc-stg2:
-	$(MAKE) -C gcc "STAGE=stage2" "TRG=$(trg10)"
+	$(MAKE) -C gcc "STAGE=stage2" "TRG=$(trg20)"
 
 riscos-aof-stg1:
 	$(MAKE) -C riscos-aof "STAGE=stage1"
 
 riscos-aof-stg2:
-	$(MAKE) -C riscos-aof "STAGE=stage2" "TRG=$(trg10)"
+	$(MAKE) -C riscos-aof "STAGE=stage2" "TRG=$(trg20)"
 
 riscos-progs:
-	$(MAKE) -C riscos-progs "TRG=$(trg10)" $(cfl10) "STAGE=stage2"
+	$(MAKE) -C riscos-progs "TRG=$(trg20)" $(cfl20) "STAGE=stage2"
 
 cross-progs:
 	$(MAKE) -C cross-progs "STAGE=stage1"
@@ -232,24 +230,24 @@ riscos-elf:
 # The ballache of having to keep support with Objasm forces us
 # to do this (CFL1) brain damage.
 c-libs:
-	$(MAKE) -C unixlib "TRG=$(trg10)" $(cfl10)
-	$(MAKE) -C libscl "TRG=$(trg11)" $(cfl11)
+	$(MAKE) -C unixlib "TRG=$(trg20)" $(cfl20)
+	$(MAKE) -C libscl "TRG=$(trg30)" $(cfl30)
 
 riscos-libs:
-	$(MAKE) -C $@ "TRG=$(trg10)" $(cfl10)
+	$(MAKE) -C $@ "TRG=$(trg20)" $(cfl20)
 
 gcc-libs-stg1:
-	$(MAKE) -C gcc zlib "TRG=$(trg10)" "STAGE=stage1"
+	$(MAKE) -C gcc zlib "TRG=$(trg20)" "STAGE=stage1"
 
 gcc-libs-stg2:
-	$(MAKE) -C gcc libgcc "TRG=$(trg10)" $(cfl10) "STAGE=stage2"
-	$(MAKE) -C gcc libgcc "TRG=$(trg11)" $(cfl11) "STAGE=stage2"
-	#$(MAKE) -C gcc libgpc "TRG=$(trg10)" $(cfl10) "STAGE=stage2"
-	#$(MAKE) -C gcc libio "TRG=$(trg10)" $(cfl10) "STAGE=stage2"
-	$(MAKE) -C gcc libf2c "TRG=$(trg10)" $(cfl10) "STAGE=stage2"
-	$(MAKE) -C gcc libstdc "TRG=$(trg10)" $(cfl10) "STAGE=stage2"
-	$(MAKE) -C gcc libsupc++ "TRG=$(trg10)" $(cfl10) "STAGE=stage2"
-	$(MAKE) -C gcc zlib "TRG=$(trg10)" $(cfl10) "STAGE=stage2"
+	$(MAKE) -C gcc libgcc "TRG=$(trg20)" $(cfl20) "STAGE=stage2"
+	$(MAKE) -C gcc libgcc "TRG=$(trg30)" $(cfl30) "STAGE=stage2"
+	#$(MAKE) -C gcc libgpc "TRG=$(trg20)" $(cfl20) "STAGE=stage2"
+	#$(MAKE) -C gcc libio "TRG=$(trg20)" $(cfl20) "STAGE=stage2"
+	$(MAKE) -C gcc libf2c "TRG=$(trg20)" $(cfl20) "STAGE=stage2"
+	$(MAKE) -C gcc libstdc "TRG=$(trg20)" $(cfl20) "STAGE=stage2"
+	$(MAKE) -C gcc libsupc++ "TRG=$(trg20)" $(cfl20) "STAGE=stage2"
+	$(MAKE) -C gcc zlib "TRG=$(trg20)" $(cfl20) "STAGE=stage2"
 
 riscos-dist:
 	$(MAKE) -C riscos-dist install
@@ -307,3 +305,6 @@ install_headers:
 
 install_source:
 	$(MAKE) -C unixlib install_source
+
+clean:
+	find arm-riscos-aof -type f | xargs rm

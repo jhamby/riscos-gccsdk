@@ -27,10 +27,10 @@ GCCPKG = $(pkg)/\!Run,feb \
 	$(bindir)/as$(exesfx) \
 	$(bindir)/cpp$(exesfx) \
 	$(bindir)/ld$(exesfx) \
-	$(bindir)/apcs26/libscl/o/libscl \
-	$(bindir)/apcs26/libscl/o/libgcc \
-	$(bindir)/apcs26/unixlib/o/libgcc \
-	$(bindir)/apcs26/unixlib/o/unixlib
+	$(bindir)/apcs32/arch3/libscl/o/libscl \
+	$(bindir)/apcs32/arch3/libscl/o/libgcc \
+	$(bindir)/apcs32/arch3/unixlib/o/libgcc \
+	$(bindir)/apcs32/arch3/unixlib/o/unixlib
 
 GCCDOCPKG = $(pkg)/docs/COPYING \
 	$(pkg)/docs/COPYINGLIB \
@@ -44,23 +44,23 @@ GCCDOCPKG = $(pkg)/docs/COPYING \
 CC1PKG = $(pkg)/bin/g++$(exesfx) \
 	$(bindir)/cc1$(exesfx) \
 	$(libdir)/include/h \
+	$(bindir)/apcs32/arch3/unixlib/o/libiostream \
+	$(bindir)/apcs32/arch3/unixlib/o/libio \
+	$(bindir)/apcs32/arch3/unixlib/o/libstdc++
 
 CC1PLUSPKG = $(bindir)/cc1plus$(exesfx) \
 	$(libdir)/include/g++-3 \
-	$(bindir)/apcs26/unixlib/o/libiostream \
-	$(bindir)/apcs26/unixlib/o/libio \
-	$(bindir)/apcs26/unixlib/o/libstdc++
 
 G77PKG = $(pkg)/bin/g77$(exesfx) \
 	$(bindir)/f771$(exesfx) \
-	$(bindir)/apcs26/unixlib/o/libg2c \
+	$(bindir)/apcs32/arch3/unixlib/o/libg2c \
 	$(pkg)/docs/g77 \
 	$(pkg)/docs/g77-readme
 
 GPCPKG = $(pkg)/bin/gpc$(exesfx) \
 	$(bindir)/gpc1$(exesfx) \
 	$(bindir)/gpcpp$(exesfx) \
-	$(bindir)/apcs26/unixlib/o/libgpc \
+	$(bindir)/apcs32/arch3/unixlib/o/libgpc \
 	$(pkg)/docs/gpc
 
 JAVAPKG = $(bindir)/jc1$(exesfx) \
@@ -85,9 +85,9 @@ UTILSPKG = $(pkg)/bin/bison$(exesfx) \
 	$(pkg)/bin/sdiff$(exesfx) \
 	$(pkg)/bin/sed$(exesfx) \
 	$(pkg)/bin/touch$(exesfx) \
-	$(bindir)/apcs26/unixlib/o/libfl \
-	$(bindir)/apcs26/unixlib/o/libiberty \
-	$(bindir)/apcs26/unixlib/o/libmp \
+	$(bindir)/apcs32/arch3/unixlib/o/libfl \
+	$(bindir)/apcs32/arch3/unixlib/o/libiberty \
+	$(bindir)/apcs32/arch3/unixlib/o/libmp \
 	$(pkg)/sys/bison/simple \
 	$(pkg)/sys/bison/hairy
 

@@ -90,7 +90,7 @@ Boston, MA 02111-1307, USA.  */
 /* Default RISC OS options
    - APCS
    - explicit stack checks */
-#define TARGET_DEFAULT (ARM_FLAG_APCS_FRAME + ARM_FLAG_APCS_STACK)
+#define TARGET_DEFAULT (ARM_FLAG_APCS_FRAME + ARM_FLAG_APCS_STACK + ARM_FLAG_APCS_32)
 
 /* Prevent FRAME_POINTER_REGNUM being clobbered in functions that call
    alloca.  */
@@ -152,7 +152,7 @@ Boston, MA 02111-1307, USA.  */
 #define MAX_WCHAR_TYPE_SIZE 32
 
 /* Override the normal default CPU.  */
-#define SUBTARGET_CPU_DEFAULT TARGET_CPU_arm2
+#define SUBTARGET_CPU_DEFAULT TARGET_CPU_arm6
 
 /* For AOF style output.  */
 #include "arm/aof.h"
@@ -293,9 +293,9 @@ Boston, MA 02111-1307, USA.  */
 
 #undef DOLLARS_IN_IDENTIFIERS
 #define DOLLARS_IN_IDENTIFIERS 0
-  
+
 #undef MULTILIB_DEFAULTS
-#define MULTILIB_DEFAULTS { "munixlib" }
+#define MULTILIB_DEFAULTS { "munixlib", "mapcs-32", "archv3" }
 
 /* The backend assembler used for RISC OS does not support debugging data
    - this might change in the future (but don't bet on it).  */

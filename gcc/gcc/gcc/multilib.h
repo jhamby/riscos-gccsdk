@@ -3,14 +3,15 @@
 
 #if 1
 static const char *const multilib_raw[] = {
-  "apcs26/unixlib !mlibscl !mapcs-32;",
-  "apcs26/libscl mlibscl !mapcs-32;",
-
   "apcs32/arch3/unixlib !mlibscl mapcs-32 archv3 !archv4;",
   "apcs32/arch4/unixlib !mlibscl mapcs-32 !archv3 archv4;",
 
   "apcs32/arch3/libscl mlibscl mapcs-32 archv3 !archv4;",
   "apcs32/arch4/libscl mlibscl mapcs-32 !archv3 archv4;",
+
+  "apcs26/unixlib !mlibscl !mapcs-32;",
+  "apcs26/libscl mlibscl !mapcs-32;",
+
   NULL
 };
 #endif

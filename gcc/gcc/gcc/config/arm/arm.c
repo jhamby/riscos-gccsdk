@@ -335,7 +335,8 @@ static const struct processors all_cores[] =
   
   {"arm2",	FL_CO_PROC | FL_MODE26 },
   {"arm250",	FL_CO_PROC | FL_MODE26 },
-  {"arm3",	FL_CO_PROC | FL_MODE26 },
+  /* ARM3 doesn't have a 32-bit mode, but 32-bit code will run just fine */
+  {"arm3",	FL_CO_PROC | FL_MODE26 | FL_MODE32 },
   {"arm6",	FL_CO_PROC | FL_MODE26 | FL_MODE32 },
   {"arm60",	FL_CO_PROC | FL_MODE26 | FL_MODE32 },
   {"arm600",	FL_CO_PROC | FL_MODE26 | FL_MODE32 },

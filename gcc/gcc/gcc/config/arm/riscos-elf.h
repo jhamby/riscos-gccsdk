@@ -187,7 +187,7 @@ Boston, MA 02111-1307, USA.  */
 #define MAX_WCHAR_TYPE_SIZE 32
 
 /* Override the normal default CPU.  */
-#define SUBTARGET_CPU_DEFAULT TARGET_CPU_arm2
+#define SUBTARGET_CPU_DEFAULT TARGET_CPU_arm6
 
 
 /* Allow #sccs in preprocessor.  */

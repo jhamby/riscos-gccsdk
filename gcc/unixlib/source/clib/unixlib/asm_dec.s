@@ -1,8 +1,8 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/unixlib/asm_dec.s,v $
-; $Date: 2003/04/05 09:03:19 $
-; $Revision: 1.7 $
+; $Date: 2003/04/05 12:16:34 $
+; $Revision: 1.8 $
 ; $State: Exp $
 ; $Author: alex $
 ;
@@ -97,6 +97,17 @@ CFlag	EQU	&20000000	; Carry flag
 VFlag	EQU	&10000000	; Overflow flag
 IFlag	EQU	&08000000	; IRQ disable
 FFlag	EQU	&04000000	; FIRQ disable
+
+USR32_mode	EQU	2_10000
+FIQ32_mode	EQU	2_10001
+IRQ32_mode	EQU	2_10010
+SVC32_Mode	EQU	2_10011
+ABT32_Mode	EQU	2_10111
+UND32_Mode	EQU	2_11011
+SYS32_Mode	EQU	2_11111
+
+IFlag32		EQU	&00000080
+
 
 
 	; Macro for embedding function names in code, just before
@@ -367,6 +378,7 @@ XOS_DynamicArea			EQU	&000066 + X_Bit
 XOS_PlatformFeatures		EQU	&00006D + X_Bit
 XOS_SynchroniseCodeAreas	EQU	&00006E + X_Bit
 XOS_CallASWI			EQU	&00006F + X_Bit
+XOS_AMBControl			EQU	&000070 + X_Bit
 XOS_CallASWIR12			EQU	&000071 + X_Bit
 XOS_ConvertHex8			EQU	&0000D4 + X_Bit
 XOS_ConvertInteger1		EQU	&0000D9 + X_Bit
@@ -467,5 +479,7 @@ XDDEUtils_SetCLSize		EQU	&042581 + X_Bit
 
 XSharedUnixLibrary_RegisterUpCall	EQU	&55c80 + X_Bit
 XSharedUnixLibrary_DeRegisterUpCall	EQU	&55c81 + X_Bit
+XSharedUnixLibrary_SetValue		EQU	&55c82 + X_Bit
+XSharedUnixLibrary_Count		EQU	&55c83 + X_Bit
 
 	END
