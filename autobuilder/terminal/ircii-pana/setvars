@@ -1,10 +1,11 @@
 
 AB_CATEGORY=terminal
 
-AB_FILESNOPATH="source/BitchX,ff8 debian/copyright"
-
 AB_MANPAGE="doc/BitchX.1"
 
 AB_ZIPNAME="bitchx"
 
-AB_IYONIX=yes
+
+ab_package() {
+  cp -av $S/source/BitchX,ff8 $S/debian/copyright $D
+}
