@@ -1,0 +1,37 @@
+The RISC OS Software Development Kit
+====================================
+
+This rather large package is a collection of software that I use regularly
+when writing software.  Originally written as many seperate build trees,
+I decided to take advantage of recursive makefiles and package everything
+together into one large tree.  I was also getting a bit disturbed over
+the increasing length of time it takes to build GCC on RISC OS and since
+I mainy use Linux-based PCs at home and work, I decided to port the whole
+lot to that platform.
+
+What you have here is a complete cross-compiler toolset for targetting
+ARM/RISC OS that is easily portable to other Unix-like operating systems.
+
+
+Installation
+------------
+
+1. Make sure you've got about 100Mb spare disk space.
+
+2. Edit gccsdk/config/local.mk
+     This is a configuration file used by the rest of the Makefile structure.
+     It includes essential information that is operating system dependent.
+
+3. Create the installation and object directory structures
+     $ make -I ~/gccsdk/config setup
+
+4. Build the software.  This takes about 1 hour 30 minutes on a PII-266MHz.
+     $ make -I ~/gccsdk/config
+
+
+Using it
+--------
+
+For Unix users.  You need to add the bin directory to your PATH, so you
+probably need to look at config/local.mk to do this.  The `bin' directory
+will be in whatever directory `distdir' was set to.
