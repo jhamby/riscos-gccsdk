@@ -305,18 +305,23 @@ do {					\
   fputs ("\n", STREAM);			\
 } while (0)
 
-#define ASM_DECLARE_FUNCTION_NAME(STREAM,NAME,DECL) \
-{						\
-  if (TARGET_POKE_FUNCTION_NAME && in_text_section())	\
-    arm_poke_function_name ((STREAM), (NAME));	\
-  ASM_OUTPUT_LABEL (STREAM, NAME);		\
-  if (! TREE_PUBLIC (DECL))			\
-    {						\
-      fputs ("\tKEEP ", STREAM);		\
-      ASM_OUTPUT_LABEL (STREAM, NAME);		\
-    }						\
-  aof_delete_import ((NAME));			\
-}
+/* Encode a function name before the prologue.  RISC OS can use this
+   to provide a more informative stack-backtrace.  Prevent this for
+   linkonce sections because the common areas must exactly match to be
+   merged, which they won't if one is compiled with a function name
+   and the other isn't.  */
+#define ASM_DECLARE_FUNCTION_NAME(STREAM,NAME,DECL)	\
+{							\
+  if (TARGET_POKE_FUNCTION_NAME				\
+      && in_text_section ())				\
+    arm_poke_function_name ((STREAM), (NAME));		\
+  ASM_OUTPUT_LABEL (STREAM, NAME);			\
+  if (! TREE_PUBLIC (DECL))				\
+    {							\
+      fputs ("\tKEEP ", STREAM);			\
+      ASM_OUTPUT_LABEL (STREAM, NAME);			\
+    }							\
+  aof_delete_import ((NAME));				\
 
 #define ASM_DECLARE_OBJECT_NAME(STREAM,NAME,DECL) \
 {						\
