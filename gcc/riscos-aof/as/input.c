@@ -385,7 +385,7 @@ inputArgSub (void)
    if (*++input_pos=='$') {
    input_buff[ptr++]='$'; break;
    } else {
-   char *c=inputSymbol(&len,0);
+   char *c=inputSymbol(&len,0, 1);
    memcpy(input_buff+ptr,c,len);
    ptr+=len;
    }
@@ -492,7 +492,7 @@ finished:
 
 
 char *
-inputSymbol (int *ilen, char del)
+inputSymbol (int *ilen, char del, int include_dot)
 {
   char *p = input_pos;
   int c;
@@ -519,7 +519,7 @@ inputSymbol (int *ilen, char del)
   else
     {
       while ((c = *p) != 0
-             && (isalnum (c) || c == '_' || c == '.'
+             && (isalnum (c) || c == '_' || (include_dot && c == '.')
 		 || (c == '$' && local && (p[1] == 'l' || p[1] == 'L')
 		     && p[2] != '.' && p[2] != '_' && !isalpha (p[2]))))
 	{

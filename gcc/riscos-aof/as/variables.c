@@ -138,7 +138,7 @@ var_inputSymbol (int *len)
     inputSkip ();
   else
     delim = 0;
-  sym = inputSymbol (len, delim);
+  sym = inputSymbol (len, delim, 1);
   if (delim == '|')
     {
       if (inputLook () == '|')
