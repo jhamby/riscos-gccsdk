@@ -1,0 +1,5 @@
+
+AB_CONFLAGS="--with-libs=/home/riscos/env --with-force-zlib --with-ssl"
+
+AB_INSTALL=yes
+

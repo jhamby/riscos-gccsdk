@@ -1,0 +1,11 @@
+
+AB_INSTALL=yes
+
+AB_MAKE="$AB_MAKE -C srclib/apr"
+
+export ac_cv_working_getnameinfo=no
+export ac_cv_working_getaddrinfo=no
+
+#These two are not strictly true, but it stops configure from complaining
+export ac_cv_func_mmap=yes
+export ac_cv_func_munmap=yes
