@@ -19,6 +19,9 @@ along with GCC; see the file COPYING.  If not, write to the Free
 Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 02111-1307, USA.  */
 
+
+/* @@ PATCHED FOR GPC @@ */
+
 /*@@ This file should be rewritten to use an arbitrary precision
   @@ representation for "struct tree_int_cst" and "struct tree_real_cst".
   @@ Perhaps the routines could also be used for bc/dc, and made a lib.
@@ -225,6 +228,17 @@ force_fit_type (tree t, int overflow)
 	    && TYPE_IS_SIZETYPE (TREE_TYPE (t))))
     return overflow;
 
+#ifdef GPC
+  /* Sign extension for unsigned types (sizetype) seems quite wrong.
+     Though the previous comment says otherwise, but according to the
+     GCC ChangeLog entry of 2000-10-20, I suppose it was meant only
+     to allow for overflows, not to sign extension, for sizetypes.
+     The problem shows, e.g., when converting a bitsizetype to
+     sizetype where the value doesn't fit in ssizetype. -- Frank */
+  if (!TREE_UNSIGNED (TREE_TYPE (t)))
+  {
+#endif
+
   /* If the value's sign bit is set, extend the sign.  */
   if (prec != 2 * HOST_BITS_PER_WIDE_INT
       && (prec > HOST_BITS_PER_WIDE_INT
@@ -246,6 +260,10 @@ force_fit_type (tree t, int overflow)
 	    TREE_INT_CST_LOW (t) |= ((unsigned HOST_WIDE_INT) (-1) << prec);
 	}
     }
+
+#ifdef GPC
+  }
+#endif
 
   /* Return nonzero if signed overflow occurred.  */
   return
@@ -1343,10 +1361,14 @@ int_const_binop (enum tree_code code, tree arg1, tree arg2, int notrunc)
     }
 
   TREE_OVERFLOW (t)
+#ifndef GPC
     = ((notrunc
 	? (!uns || is_sizetype) && overflow
 	: (force_fit_type (t, (!uns || is_sizetype) && overflow)
 	   && ! no_overflow))
+#else /* GPC */
+	  = ((notrunc ? overflow : force_fit_type (t, overflow))
+#endif /* GPC */
        | TREE_OVERFLOW (arg1)
        | TREE_OVERFLOW (arg2));
 
@@ -2187,10 +2209,21 @@ operand_equal_p (tree arg0, tree arg1, int only_const)
     {
     case '1':
       /* Two conversions are equal only if signedness and modes match.  */
-      if ((TREE_CODE (arg0) == NOP_EXPR || TREE_CODE (arg0) == CONVERT_EXPR)
-	  && (TREE_UNSIGNED (TREE_TYPE (arg0))
-	      != TREE_UNSIGNED (TREE_TYPE (arg1))))
-	return 0;
+      switch (TREE_CODE (arg0))
+        {
+        case NOP_EXPR:
+        case CONVERT_EXPR:
+        case FIX_CEIL_EXPR:
+        case FIX_TRUNC_EXPR:
+        case FIX_FLOOR_EXPR:
+        case FIX_ROUND_EXPR:
+	  if (TREE_UNSIGNED (TREE_TYPE (arg0))
+	      != TREE_UNSIGNED (TREE_TYPE (arg1)))
+	    return 0;
+	  break;
+	default:
+	  break;
+	}
 
       return operand_equal_p (TREE_OPERAND (arg0, 0),
 			      TREE_OPERAND (arg1, 0), 0);
@@ -3535,7 +3568,13 @@ build_range_check (tree type, tree exp, int in_p, tree low, tree high)
       HOST_WIDE_INT hi;
       int prec;
 
-      prec = TYPE_PRECISION (etype);
+      /* For enums the comparison will be done in the underlying type,
+	 so using enum's precision is wrong here.
+	 Consider e.g. enum { A, B, C, D, E }, low == B and high == D.  */
+      if (TREE_CODE (etype) == ENUMERAL_TYPE)
+	prec = GET_MODE_BITSIZE (TYPE_MODE (etype));
+      else
+	prec = TYPE_PRECISION (etype);
       if (prec <= HOST_BITS_PER_WIDE_INT)
 	{
 	  hi = 0;
@@ -4446,9 +4485,9 @@ extract_muldiv_1 (tree t, tree c, enum tree_code code, tree wide_type)
 		     && TYPE_IS_SIZETYPE (TREE_TYPE (op0)))
 	       && (GET_MODE_SIZE (TYPE_MODE (ctype))
 	           > GET_MODE_SIZE (TYPE_MODE (TREE_TYPE (op0)))))
-	      /* ... or its type is larger than ctype,
-		 then we cannot pass through this truncation.  */
-	      || (GET_MODE_SIZE (TYPE_MODE (ctype))
+	      /* ... or this is a truncation (t is narrower than op0),
+		 then we cannot pass through this narrowing.  */
+	      || (GET_MODE_SIZE (TYPE_MODE (type))
 		  < GET_MODE_SIZE (TYPE_MODE (TREE_TYPE (op0))))
 	      /* ... or signedness changes for division or modulus,
 		 then we cannot pass through this conversion.  */

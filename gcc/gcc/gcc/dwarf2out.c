@@ -8607,6 +8607,9 @@ loc_descriptor_from_tree (tree loc, int addressp)
     case VIEW_CONVERT_EXPR:
     case SAVE_EXPR:
     case MODIFY_EXPR:
+#ifdef GPC
+    case UNSAVE_EXPR:
+#endif
       return loc_descriptor_from_tree (TREE_OPERAND (loc, 0), addressp);
 
     case COMPONENT_REF:
@@ -8809,6 +8812,15 @@ loc_descriptor_from_tree (tree loc, int addressp)
       add_loc_descr (&ret, new_loc_descr (op, 0, 0));
       break;
 
+#ifdef GPC
+    case MIN_EXPR:
+      loc = build (COND_EXPR, TREE_TYPE (loc),
+		   build (GT_EXPR, integer_type_node,
+			  TREE_OPERAND (loc, 0), TREE_OPERAND (loc, 1)),
+		   TREE_OPERAND (loc, 1), TREE_OPERAND (loc, 0));
+      goto cond_expr;
+#endif
+
     case MAX_EXPR:
       loc = build (COND_EXPR, TREE_TYPE (loc),
 		   build (LT_EXPR, integer_type_node,
@@ -8818,6 +8830,9 @@ loc_descriptor_from_tree (tree loc, int addressp)
       /* ... fall through ...  */
 
     case COND_EXPR:
+#ifdef GPC
+    cond_expr:
+#endif
       {
 	dw_loc_descr_ref lhs
 	  = loc_descriptor_from_tree (TREE_OPERAND (loc, 1), 0);
@@ -8848,8 +8863,25 @@ loc_descriptor_from_tree (tree loc, int addressp)
       }
       break;
 
+#ifdef GPC
+    case REAL_CST:
+    case FLOAT_EXPR:
+    case RDIV_EXPR:
+      /* In Pascal it's possible for array bounds to contain floating point
+         expressions (e.g., p/test/emil11c.pas). I don't know if it's
+         possible to represent them in dwarf2, but it doesn't seem terribly
+         important since this occurs quite rarely. -- Frank */
+      return 0;
+#endif
+
     case EXPR_WITH_FILE_LOCATION:
       return loc_descriptor_from_tree (EXPR_WFL_NODE (loc), addressp);
+
+    case FIX_TRUNC_EXPR:
+    case FIX_CEIL_EXPR:
+    case FIX_FLOOR_EXPR:
+    case FIX_ROUND_EXPR:
+      return 0;
 
     default:
       /* Leave front-end specific codes as simply unknown.  This comes
@@ -8858,9 +8890,15 @@ loc_descriptor_from_tree (tree loc, int addressp)
           >= (unsigned int) LAST_AND_UNUSED_TREE_CODE)
 	return 0;
 
+#ifdef ENABLE_CHECKING
       /* Otherwise this is a generic code; we should just lists all of
 	 these explicitly.  Aborting means we forgot one.  */
       abort ();
+#else
+      /* In a release build, we want to degrade gracefully: better to
+	 generate incomplete debugging information than to crash.  */
+      return NULL;
+#endif
     }
 
   /* Show if we can't fill the request for an address.  */
@@ -9457,19 +9495,33 @@ rtl_for_decl_location (tree decl)
     {
       if (rtl == NULL_RTX || is_pseudo_reg (rtl))
 	{
-	  tree declared_type = type_main_variant (TREE_TYPE (decl));
-	  tree passed_type = type_main_variant (DECL_ARG_TYPE (decl));
+	  tree declared_type = TREE_TYPE (decl);
+	  tree passed_type = DECL_ARG_TYPE (decl);
+	  enum machine_mode dmode = TYPE_MODE (declared_type);
+	  enum machine_mode pmode = TYPE_MODE (passed_type);
 
 	  /* This decl represents a formal parameter which was optimized out.
 	     Note that DECL_INCOMING_RTL may be NULL in here, but we handle
 	     all cases where (rtl == NULL_RTX) just below.  */
-	  if (declared_type == passed_type)
+	  if (dmode == pmode)
 	    rtl = DECL_INCOMING_RTL (decl);
-	  else if (! BYTES_BIG_ENDIAN
-		   && TREE_CODE (declared_type) == INTEGER_TYPE
-		   && (GET_MODE_SIZE (TYPE_MODE (declared_type))
-		       <= GET_MODE_SIZE (TYPE_MODE (passed_type))))
-	    rtl = DECL_INCOMING_RTL (decl);
+	  else if (SCALAR_INT_MODE_P (dmode)
+		   && GET_MODE_SIZE (dmode) <= GET_MODE_SIZE (pmode)
+		   && DECL_INCOMING_RTL (decl))
+	    {
+	      rtx inc = DECL_INCOMING_RTL (decl);
+	      if (REG_P (inc))
+		rtl = inc;
+	      else if (GET_CODE (inc) == MEM)
+		{
+		  if (BYTES_BIG_ENDIAN)
+		    rtl = adjust_address_nv (inc, dmode,
+					     GET_MODE_SIZE (pmode)
+					     - GET_MODE_SIZE (dmode));
+		  else
+		    rtl = inc;
+		}
+	    }
 	}
 
       /* If the parm was passed in registers, but lives on the stack, then

@@ -19,6 +19,8 @@ along with GCC; see the file COPYING.  If not, write to the Free
 Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 02111-1307, USA.  */
 
+/* @@ PATCHED FOR GPC @@ */
+
 /* This file contains the low level primitives for operating on tree nodes,
    including allocation, list operations, interning of identifiers,
    construction of data type nodes and statement nodes,
@@ -106,7 +108,6 @@ static int type_hash_eq (const void *, const void *);
 static hashval_t type_hash_hash (const void *);
 static void print_type_hash_statistics (void);
 static void finish_vector_type (tree);
-static tree make_vector (enum machine_mode, tree, int);
 static int type_hash_marked_p (const void *);
 
 tree global_trees[TI_MAX];
@@ -4650,10 +4651,18 @@ get_set_constructor_bits (tree init, char *buffer, int bit_size)
     = tree_low_cst (TYPE_MIN_VALUE (TYPE_DOMAIN (TREE_TYPE (init))), 0);
   tree non_const_bits = NULL_TREE;
 
+#ifdef GPC
+  /* Align the set.  */
+  if (set_alignment)
+    /* Note: `domain_min -= domain_min % set_alignment' would be wrong for negative
+       numbers (rounding towards 0, while we have to round towards -inf). */
+    domain_min &= -(int) set_alignment;
+#endif /* GPC */
+
   for (i = 0; i < bit_size; i++)
     buffer[i] = 0;
 
-  for (vals = TREE_OPERAND (init, 1);
+  for (vals = CONSTRUCTOR_ELTS (init);
        vals != NULL_TREE; vals = TREE_CHAIN (vals))
     {
       if (!host_integerp (TREE_VALUE (vals), 0)
@@ -4671,7 +4680,10 @@ get_set_constructor_bits (tree init, char *buffer, int bit_size)
 
 	  if (lo_index < 0 || lo_index >= bit_size
 	      || hi_index < 0 || hi_index >= bit_size)
-	    abort ();
+	    {
+	      error ("invalid set initializer");
+	      return NULL_TREE;
+	    }
 	  for (; lo_index <= hi_index; lo_index++)
 	    buffer[lo_index] = 1;
 	}
@@ -4682,7 +4694,7 @@ get_set_constructor_bits (tree init, char *buffer, int bit_size)
 	    = tree_low_cst (TREE_VALUE (vals), 0) - domain_min;
 	  if (index < 0 || index >= bit_size)
 	    {
-	      error ("invalid initializer for bit string");
+	      error ("invalid set initializer");
 	      return NULL_TREE;
 	    }
 	  buffer[index] = 1;
@@ -4700,9 +4712,14 @@ tree
 get_set_constructor_bytes (tree init, unsigned char *buffer, int wd_size)
 {
   int i;
+#ifdef GPC
+  int bit_size = wd_size * BITS_PER_UNIT;
+  unsigned int bit_pos = 0;
+#else /* not GPC */
   int set_word_size = BITS_PER_UNIT;
   int bit_size = wd_size * set_word_size;
   int bit_pos = 0;
+#endif /* not GPC */
   unsigned char *bytep = buffer;
   char *bit_buffer = alloca (bit_size);
   tree non_const_bits = get_set_constructor_bits (init, bit_buffer, bit_size);
@@ -4712,6 +4729,24 @@ get_set_constructor_bytes (tree init, unsigned char *buffer, int wd_size)
 
   for (i = 0; i < bit_size; i++)
     {
+#ifdef GPC
+      if (bit_buffer[i])
+	{
+          int k = bit_pos / BITS_PER_UNIT;
+          if (WORDS_BIG_ENDIAN)
+            k = set_word_size / BITS_PER_UNIT - 1 - k;
+	  if (set_words_big_endian)
+	    bytep[k] |= (1 << (BITS_PER_UNIT - 1 - bit_pos % BITS_PER_UNIT));
+	  else
+	    bytep[k] |= (1 << (bit_pos % BITS_PER_UNIT));
+	}
+      bit_pos++;
+      if (bit_pos >= set_word_size)
+	{
+          bit_pos = 0;
+          bytep += set_word_size / BITS_PER_UNIT;
+        }
+#else /* not GPC */
       if (bit_buffer[i])
 	{
 	  if (BYTES_BIG_ENDIAN)
@@ -4722,6 +4757,7 @@ get_set_constructor_bytes (tree init, unsigned char *buffer, int wd_size)
       bit_pos++;
       if (bit_pos >= set_word_size)
 	bit_pos = 0, bytep++;
+#endif /* not GPC */
     }
   return non_const_bits;
 }
@@ -4984,10 +5020,56 @@ build_common_tree_nodes_2 (int short_double)
   V4DF_type_node = make_vector (V4DFmode, double_type_node, 0);
 }
 
+/* HACK.  GROSS.  This is absolutely disgusting.  I wish there was a
+   better way.
+
+   If we requested a pointer to a vector, build up the pointers that
+   we stripped off while looking for the inner type.  Similarly for
+   return values from functions.
+
+   The argument TYPE is the top of the chain, and BOTTOM is the
+   new type which we will point to.  */
+
+tree
+reconstruct_complex_type (tree type, tree bottom)
+{
+  tree inner, outer;
+
+  if (POINTER_TYPE_P (type))
+    {
+      inner = reconstruct_complex_type (TREE_TYPE (type), bottom);
+      outer = build_pointer_type (inner);
+    }
+  else if (TREE_CODE (type) == ARRAY_TYPE)
+    {
+      inner = reconstruct_complex_type (TREE_TYPE (type), bottom);
+      outer = build_array_type (inner, TYPE_DOMAIN (type));
+    }
+  else if (TREE_CODE (type) == FUNCTION_TYPE)
+    {
+      inner = reconstruct_complex_type (TREE_TYPE (type), bottom);
+      outer = build_function_type (inner, TYPE_ARG_TYPES (type));
+    }
+  else if (TREE_CODE (type) == METHOD_TYPE)
+    {
+      inner = reconstruct_complex_type (TREE_TYPE (type), bottom);
+      outer = build_method_type_directly (TYPE_METHOD_BASETYPE (type),
+					 inner,
+					 TYPE_ARG_TYPES (type));
+    }
+  else
+    return bottom;
+
+  TREE_READONLY (outer) = TREE_READONLY (type);
+  TREE_THIS_VOLATILE (outer) = TREE_THIS_VOLATILE (type);
+
+  return outer;
+}
+
 /* Returns a vector tree node given a vector mode, the inner type, and
    the signness.  */
 
-static tree
+tree
 make_vector (enum machine_mode mode, tree innertype, int unsignedp)
 {
   tree t;

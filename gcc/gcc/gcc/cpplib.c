@@ -636,7 +636,7 @@ parse_include (cpp_reader *pfile, int *pangle_brackets)
 {
   char *fname;
   const cpp_token *header;
-#if defined(__riscos__) || defined(CROSS_COMPILE)
+#if defined(CROSS_COMPILE)
   char unixed[256]; /* Temp buffer to translate Unix filenames to RISCOS */
   int len;
   extern char *riscos_to_unix (char *, char *);
@@ -649,7 +649,7 @@ parse_include (cpp_reader *pfile, int *pangle_brackets)
       fname = xmalloc (header->val.str.len - 1);
       memcpy (fname, header->val.str.text + 1, header->val.str.len - 2);
       fname[header->val.str.len - 2] = '\0';
-#if defined(__riscos__) || defined(CROSS_COMPILE)
+#if defined(CROSS_COMPILE)
       /* Convert the #include filename to a Unix version.  */
       riscos_to_unix (fname, unixed);
       free (fname);

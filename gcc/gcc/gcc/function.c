@@ -38,6 +38,8 @@ Software Foundation, 59 Temple Place - Suite 330, Boston, MA
    This function changes the DECL_RTL to be a stack slot instead of a reg
    then scans all the RTL instructions so far generated to correct them.  */
 
+/* @@ PATCHED FOR GPC @@ */
+
 #include "config.h"
 #include "system.h"
 #include "coretypes.h"
@@ -3651,10 +3653,20 @@ instantiate_decl (rtx x, HOST_WIDE_INT size, int valid_only)
   enum machine_mode mode;
   rtx addr;
 
+  if (x == 0)
+    return;
+
+  /* If this is a CONCAT, recurse for the pieces.  */
+  if (GET_CODE (x) == CONCAT)
+    {
+      instantiate_decl (XEXP (x, 0), size / 2, valid_only);
+      instantiate_decl (XEXP (x, 1), size / 2, valid_only);
+      return;
+    }
+
   /* If this is not a MEM, no need to do anything.  Similarly if the
      address is a constant or a register that is not a virtual register.  */
-
-  if (x == 0 || GET_CODE (x) != MEM)
+  if (GET_CODE (x) != MEM)
     return;
 
   addr = XEXP (x, 0);
@@ -5732,6 +5744,11 @@ uninitialized_vars_warning (tree block)
 	  && regno_uninitialized (REGNO (DECL_RTL (decl))))
 	warning ("%J'%D' might be used uninitialized in this function",
 		 decl, decl);
+
+#ifndef TARGET_RISCOSAOF
+      /* NAB++ Disable this warning because it gives splurious messages when
+         compiling C++ applications due to our use of setjmp/longjmp
+         exception handling.  */
       if (extra_warnings
 	  && TREE_CODE (decl) == VAR_DECL
 	  && DECL_RTL_SET_P (decl)
@@ -5739,6 +5756,7 @@ uninitialized_vars_warning (tree block)
 	  && regno_clobbered_at_setjmp (REGNO (DECL_RTL (decl))))
 	warning ("%Jvariable '%D' might be clobbered by `longjmp' or `vfork'",
 		 decl, decl);
+#endif
     }
   for (sub = BLOCK_SUBBLOCKS (block); sub; sub = TREE_CHAIN (sub))
     uninitialized_vars_warning (sub);
@@ -5750,6 +5768,8 @@ uninitialized_vars_warning (tree block)
 void
 setjmp_args_warning (void)
 {
+  /* NAB++ Similarily here.  */
+#ifndef TARGET_RISCOSAOF
   tree decl;
   for (decl = DECL_ARGUMENTS (current_function_decl);
        decl; decl = TREE_CHAIN (decl))
@@ -5758,6 +5778,7 @@ setjmp_args_warning (void)
 	&& regno_clobbered_at_setjmp (REGNO (DECL_RTL (decl))))
       warning ("%Jargument '%D' might be clobbered by `longjmp' or `vfork'",
 	       decl, decl);
+#endif
 }
 
 /* If this function call setjmp, put all vars into the stack
@@ -6985,8 +7006,13 @@ expand_function_end (void)
       tramp = round_trampoline_addr (XEXP (tramp, 0));
 #ifdef TRAMPOLINE_TEMPLATE
       blktramp = replace_equiv_address (initial_trampoline, tramp);
+#ifndef GPC
       emit_block_move (blktramp, initial_trampoline,
 		       GEN_INT (TRAMPOLINE_SIZE), BLOCK_OP_NORMAL);
+#else
+      emit_block_move (blktramp, initial_trampoline,
+                       GEN_INT (TRAMPOLINE_SIZE), BLOCK_OP_NO_LIBCALL);
+#endif
 #endif
       trampolines_created = 1;
       INITIALIZE_TRAMPOLINE (tramp, XEXP (DECL_RTL (function), 0), context);
