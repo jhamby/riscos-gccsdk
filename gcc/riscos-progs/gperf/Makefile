@@ -1,7 +1,7 @@
 # Makefile for GNU gperf - a perfect hash generator
 # Written by Nick Burrett <nick@dsvr.net>
 
-INCLUDES = -I. -I../../include -I../../gcc-2_95_2/libio
+INCLUDES = -I. -I../../include -I../../gcc/libstdc/include
 CROSS_CFLAGS += -DHAVE_CONFIG_H
 
 $(objdir)/riscos-progs/gperf/%.o: %.cc
@@ -25,7 +25,7 @@ OBJS = 	$(objdir)/riscos-progs/gperf/bool-array.o \
 all:	$(bin_dir)/gperf$(exesfx)
 
 $(bin_dir)/gperf$(exesfx):	$(OBJS)
-	$(CROSS_CC) -o $@ $(OBJS) -L$(objdir)/libiberty/stage2 -liberty -lio
+	$(CROSS_CC) -o $@ $(OBJS) -L$(objdir)/libiberty/stage2 -liberty -lstdc++ -lsupc++
 
 $(objdir)/riscos-progs/gperf/bool-array.o: bool-array.cc bool-array.icc options.icc
 $(objdir)/riscos-progs/gperf/gen-perf.o: gen-perf.cc options.icc read-line.icc bool-array.icc

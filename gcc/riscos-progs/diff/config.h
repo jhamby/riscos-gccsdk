@@ -66,7 +66,7 @@
 #define STDC_HEADERS 1
 
 /* Define if <sys/wait.h> is compatible with Posix applications.  */
-#define HAVE_SYS_WAIT_H
+#define HAVE_SYS_WAIT_H 1
 
 /* Define vfork as fork if vfork does not work.  */
 #undef vfork

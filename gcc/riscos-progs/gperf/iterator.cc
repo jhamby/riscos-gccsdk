@@ -20,7 +20,7 @@ Software Foundation, 59 Temple Place - Suite 330, Boston, MA 02111, USA.  */
 
 #include "iterator.h"
 
-#include <stream.h>
+#include <sstream>
 #include <ctype.h>
 #include "trace.h"
 
