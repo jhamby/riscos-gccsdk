@@ -1,5 +1,6 @@
 # Top-level Makefile for the GNU Compiler Collection for ARM/RISC OS
-# Copyright (c) 2000, 2001, 2002, 2003, 2004 Nick Burrett
+# Copyright (c) 2000, 2001, 2002
+# Copyright (c) 2003, 2004 GCCSDK Developers
 # Written by Nick Burrett <nick@dsvr.net>
 
 # Tell GNU make 3.79 not to run this directory in parallel.
@@ -103,10 +104,12 @@ libscl_incl_dir = @topdir@/libscl
 # to build the cross-libraries and cross-tools
 CROSS_CC=$(ux_gccpkg)/$(gn_standard_exec_prefix)/gcc
 CROSS_CXX=$(ux_gccpkg)/$(gn_standard_exec_prefix)/g++
+CROSS_COBJC=$(ux_gccpkg)/$(gn_standard_exec_prefix)/gcc
 CROSS_GCJ=$(ux_gccpkg)/$(gn_standard_exec_prefix)/gcj
 CROSS_GCJH=$(ux_gccpkg)/$(gn_standard_exec_prefix)/gcjh
 CROSS_GNATBIND=$(ux_gccpkg)/$(gn_standard_exec_prefix)/gnatbind
 CROSS_CFLAGS=-O2 $(TARGET_DEFS) -mpoke-function-name
+CROSS_COBJCFLAGS=-O2 $(TARGET_DEFS) -mpoke-function-name
 CROSS_CXXFLAGS=-O2 $(TARGET_DEFS) -mpoke-function-name
 
 # Name of the host computers archiver.  This is only used to build
@@ -134,7 +137,8 @@ export gn_gcc_bin_dir info_dir exesfx ro_unixlibpkg ro_libsclpkg
 export ux_bin_dir ux_gcc_bin_dir ro_bin_dir ro_gcc_bin_dir
 export unixlib_incl_dir libscl_incl_dir host
 export CC CXX GNATCC CROSS_GCJ CROSS_GCJH
-export CROSS_CC CROSS_CXX CROSS_GNATBIND CROSS_CFLAGS CROSS_CXXFLAGS
+export CROSS_CC CROSS_CXX CROSS_COBJC CROSS_GNATBIND
+export CROSS_CFLAGS CROSS_CXXFLAGS CROCC_COBJCFLAGS
 export CROSS_AR CROSS_AR_FLAGS CROSS_LINK
 export VERSION TARGET_NAME CFLAGS CXXFLAGS AR AR_FLAGS
 export BISON FLEX GPERF GREP MAKEINFO SED SHELL
@@ -255,6 +259,7 @@ gcc-libs-stg2:
 	#$(MAKE) -C gcc libjava "TRG=$(trg20)" $(cfl20) "STAGE=stage2" "lib_incl_dir=$(libscl_incl_dir)"
 	$(MAKE) -C gcc libf2c "TRG=$(trg20)" $(cfl20) "STAGE=stage2"
 	$(MAKE) -C gcc libf2c "TRG=$(trg30)" $(cfl30) "STAGE=stage2"
+	$(MAKE) -C gcc libobjc "TRG=$(trg20)" $(cfl20) "STAGE=stage2"
 	$(MAKE) -C gcc libstdc "TRG=$(trg20)" $(cfl20) "STAGE=stage2" "lib_incl_dir=$(unixlib_incl_dir)"
 	#$(MAKE) -C gcc libstdc "TRG=$(trg30)" $(cfl30) "STAGE=stage2" "lib_incl_dir=$(libscl_incl_dir)"
 
