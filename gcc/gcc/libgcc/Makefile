@@ -67,7 +67,8 @@ LIB2FUNCS_ST = $(libobjdir)/eprintf.o \
 LIB2FUNCS_EXTRA = $(libobjdir)/ffs.o \
 	$(libobjdir)/clricache.o \
 	$(libobjdir)/libgcc_fix.o \
-	$(libobjdir)/dynamic.o
+	$(libobjdir)/dynamic.o \
+	$(libobjdir)/nonlocal.o
 
 
 FP_BIT_DOUBLE = $(libobjdir)/pack_df.o \
@@ -253,6 +254,8 @@ $(libobjdir)/ctors.o:	lib1aof.s
 	$(CC_S) -c lib1aof.s -o $@ -DL_ctors
 $(libobjdir)/libgcc_fix.o:	libgcc_fix.s
 	$(CC_S) -c libgcc_fix.s -o $@
+$(libobjdir)/nonlocal.o:	lib1aof.s
+	$(CC_S) -c lib1aof.s -o $@ -DL_nonlocal_goto
 $(libobjdir)/cmpdi2.o:	lib1aof.s
 	$(CC_S) -c lib1aof.s -o $@ -DL_cmpdi2
 $(libobjdir)/ucmpdi2.o:	lib1aof.s

@@ -207,6 +207,19 @@ Boston, MA 02111-1307, USA.  */
 #undef ASM_FINAL_SPEC
 #define ASM_FINAL_SPEC ""
 
+/* Output of Assembler Instructions */
+#undef REGISTER_NAMES
+#define REGISTER_NAMES                  \
+{                                       \
+  "a1", "a2", "a3", "a4",       \
+  "v1", "v2", "v3", "v4",       \
+  "v5", "v6", "sl", "fp",       \
+  "ip", "sp", "lr", "pc",       \
+  "f0", "f1", "f2", "f3",       \
+  "f4", "f5", "f6", "f7",       \
+  "cc"			        \
+}
+
 
 #ifdef CROSS_COMPILE
 /* Cross-compiler specific definitions.  */

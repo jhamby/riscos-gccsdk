@@ -70,11 +70,7 @@
    			; and stack frame generation.  Operand 0 is the
    			; register to "use".
    (UNSPEC_CHECK_ARCH 7); Set CCs to indicate 26-bit or 32-bit mode.
-   (UNSPEC_LONGJMP 8)
-   (UNSPEC_SETJMP 9)
-   (UNSPEC_CALL_ALLOCA 10)
-   (UNSPEC_CALL_ALLOCA_BLOCK_INIT 11)
-   (UNSPEC_CALL_ALLOCA_BLOCK_FREE 12)
+   (UNSPEC_CALL_ALLOCA 8)
   ]
 )
 
@@ -9175,23 +9171,27 @@
   "TARGET_APCS_STACK"
   "
 {
-  rtx r0_rtx = gen_rtx (REG, SImode, 0);
-  emit_insn (gen_alloca_block_init (r0_rtx));
-  emit_move_insn (operands[0], r0_rtx);
+  emit_library_call (gen_rtx_SYMBOL_REF (Pmode,
+                                         \"__arm_save_stack_block\"),
+                    0, VOIDmode, 2,
+		    copy_to_reg (XEXP (operands[0], 0)), Pmode,
+                    operands[1], Pmode);
   DONE;
 }")
 
 (define_expand "save_stack_nonlocal"
-  [(match_operand:SI 0 "memory_operand" "")
-   (match_operand:SI 1 "s_register_operand" "")]
-  "TARGET_APCS_STACK"
-  "
+  [(use (match_operand:SI 0 "memory_operand" ""))
+   (use (match_operand:SI 1 "s_register_operand" ""))]
+  ""
 {
-  rtx r0_rtx = gen_rtx (REG, SImode, 0);
-  emit_insn (gen_alloca_block_init (r0_rtx));
-  emit_move_insn (operands[0], r0_rtx);
+  emit_library_call (gen_rtx_SYMBOL_REF (Pmode,
+                                         \"__arm_save_stack_nonlocal\"),
+                    0, VOIDmode, 2,
+		    copy_to_reg (XEXP (operands[0], 0)), Pmode,
+                    operands[1], Pmode);
+
   DONE;
-}")
+})
 
 
 ;; Use the unique key produced earlier to free chunks created under
@@ -9204,23 +9204,26 @@
   "TARGET_APCS_STACK"
   "
 {
-  rtx r0_rtx = gen_rtx (REG, SImode, 0);
-  emit_move_insn (r0_rtx, operands[1]);
-  emit_insn (gen_alloca_block_free (r0_rtx));
+  emit_library_call (gen_rtx_SYMBOL_REF (Pmode,
+                                         \"__arm_restore_stack_block\"),
+                     0, VOIDmode, 2,
+		     operands[0], Pmode,
+                     operands[1], Pmode);
   DONE;
 }")
 
 (define_expand "restore_stack_nonlocal"
-  [(match_operand:SI 0 "s_register_operand" "")
-   (match_operand:SI 1 "memory_operand" "")]
-  "TARGET_APCS_STACK"
-  "
+  [(use (match_operand:SI 0 "s_register_operand" ""))
+   (use (match_operand:SI 1 "memory_operand" ""))]
+  ""
 {
-  rtx r0_rtx = gen_rtx (REG, SImode, 0);
-  emit_move_insn (r0_rtx, operands[1]);
-  emit_insn (gen_alloca_block_free (r0_rtx));
+  emit_library_call (gen_rtx_SYMBOL_REF (Pmode,
+                                         \"__arm_restore_stack_nonlocal\"),
+                     0, VOIDmode, 2,
+		     operands[0], Pmode,
+                     operands[1], Pmode);
   DONE;
-}")
+})
 
 ;; Call the function that will reserve the necessary amount of memory
 
@@ -9242,39 +9245,28 @@
   DONE;
 }")
 
-(define_expand "builtin_longjmp"
-  [(unspec_volatile [(match_operand 0 "s_register_operand" "r")] UNSPEC_LONGJMP)]
-  "TARGET_APCS_STACK"
-  "
+(define_expand "nonlocal_goto"
+ [(use (match_operand 0 "general_operand" ""))
+  (use (match_operand 1 "general_operand" ""))
+  (use (match_operand 2 "general_operand" ""))
+  (use (match_operand 3 "general_operand" ""))]
+  ""
 {
-  rtx r0_rtx = gen_rtx (REG, SImode, 0);
-  rtx funexp = gen_rtx (SYMBOL_REF, Pmode, \"___arm_alloca_longjmp\");
+  rtx chain = operands[0];
+  rtx handler = operands[1];
+  rtx stack = operands[2];
+  rtx label = operands[3];
 
-  emit_move_insn (r0_rtx, operands[1]);
-  emit_call_insn (gen_call_value (r0_rtx,
-                                  gen_rtx (MEM, FUNCTION_MODE, funexp),
-                                  GEN_INT (4),
-				  const0_rtx));
+  emit_library_call (gen_rtx_SYMBOL_REF (Pmode, \"__arm_nonlocal_goto\"),
+		     LCT_NORETURN, VOIDmode, 4,
+		     chain, Pmode,
+		     handler, Pmode,
+		     stack, Pmode,
+		     label, Pmode);
 
+  emit_barrier ();
   DONE;
-}")
-
-(define_expand "builtin_setjmp"
-  [(unspec [(match_operand 0 "s_register_operand" "r")] UNSPEC_SETJMP)]
-  "TARGET_APCS_STACK"
-  "
-{
-  rtx r0_rtx = gen_rtx (REG, SImode, 0);
-  rtx funexp = gen_rtx (SYMBOL_REF, Pmode, \"___arm_alloca_setjmp\");
-
-  emit_move_insn (r0_rtx, operands[1]);
-  emit_call_insn (gen_call_value (r0_rtx,
-                                  gen_rtx (MEM, FUNCTION_MODE, funexp),
-                                  GEN_INT (4),
-				  const0_rtx));
-
-  DONE;
-}")
+})
 
 (define_insn "alloca"
   [(set (match_operand:SI 0 "s_register_operand" "=r")
@@ -9286,22 +9278,3 @@
 [(set_attr "conds" "clob")
  (set_attr "length" "4")])
 
-(define_insn "alloca_block_init"
-  [(set (match_operand:SI 0 "s_register_operand" "=r")
-        (unspec:SI [(match_dup 0)] UNSPEC_CALL_ALLOCA_BLOCK_INIT))
-   (use (reg:SI 0))
-   (clobber (reg:SI 14))]
-  ""
-  "bl%?\\t___arm_alloca_block_init"
-[(set_attr "conds" "clob")
- (set_attr "length" "4")])
-
-(define_insn "alloca_block_free"
-  [(set (match_operand:SI 0 "s_register_operand" "=r")
-        (unspec:SI [(match_dup 0)] UNSPEC_CALL_ALLOCA_BLOCK_FREE))
-   (use (reg:SI 0))
-   (clobber (reg:SI 14))]
-  ""
-  "bl%?\\t___arm_alloca_block_free"
-[(set_attr "conds" "clob")
- (set_attr "length" "4")])

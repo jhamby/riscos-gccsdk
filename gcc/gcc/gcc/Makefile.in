@@ -703,10 +703,10 @@ $(gccobjdir)/cplus-dem.o: cplus-dem.c
 	$(CC) $(CFLAGS) $(INCLUDES) -o $@ -c cplus-dem.c -DMAIN
 
 $(gccobjdir)/except.o: except.c
-	$(CC) $(CFLAGS) $(INCLUDES) -o $@ -c except.c -DDONT_USE_BUILTIN_SETJMP -DJMP_BUF_SIZE=24
+	$(CC) $(CFLAGS) $(INCLUDES) -o $@ -c except.c -DJMP_BUF_SIZE=25
 
 $(gccobjdir)/optabs.o: optabs.c
-	$(CC) $(CFLAGS) $(INCLUDES) -o $@ -c optabs.c -DDONT_USE_BUILTIN_SETJMP -DJMP_BUF_SIZE=24
+	$(CC) $(CFLAGS) $(INCLUDES) -o $@ -c optabs.c -DJMP_BUF_SIZE=25
 
 $(gccobjdir)/prefix.o: prefix.c
 	$(CC) $(CFLAGS) $(INCLUDES) -o $@ -c prefix.c -DPREFIX=\"rubbish\"
@@ -742,7 +742,7 @@ $(gccobjdir)/arm.o: config/arm/arm.c config.h system.h rtl.h tree.h \
 
 $(gccobjdir)/bb-reorder.o: bb-reorder.c insn-config.h
 $(gccobjdir)/bitmap.o: bitmap.c insn-codes.h insn-flags.h
-$(gccobjdir)/builtins.o: builtins.c
+$(gccobjdir)/builtins.o: builtins.c insn-config.h
 $(gccobjdir)/caller-save.o: caller-save.c
 $(gccobjdir)/calls.o: calls.c
 $(gccobjdir)/combine.o: combine.c insn-attr.h
@@ -759,12 +759,12 @@ $(gccobjdir)/dominance.o: dominance.c
 $(gccobjdir)/dwarf2out.o: dwarf2out.c
 $(gccobjdir)/dyn-string.o: dyn-string.c
 $(gccobjdir)/errors.o: errors.c
-$(gccobjdir)/emit-rtl.o: emit-rtl.c
-$(gccobjdir)/except.o: except.c gt-except.h
+$(gccobjdir)/emit-rtl.o: emit-rtl.c insn-config.h
+$(gccobjdir)/except.o: except.c gt-except.h insn-config.h
 $(gccobjdir)/explow.o: explow.c
 $(gccobjdir)/expmed.o: expmed.c
 $(gccobjdir)/expr.o: expr.c
-$(gccobjdir)/final.o: final.c
+$(gccobjdir)/final.o: final.c insn-config.h insn-attr.h
 $(gccobjdir)/flow.o: flow.c
 $(gccobjdir)/fold-const.o: fold-const.c
 $(gccobjdir)/function.o: function.c

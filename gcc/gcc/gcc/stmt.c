@@ -3537,19 +3537,6 @@ expand_nl_goto_receiver ()
        the original assignment true.
        So the following insn will actually be
        decrementing fp by STARTING_FRAME_OFFSET.  */
-#if defined(TARGET_RISCOSAOF) || defined(TARGET_RISCOSELF)
-    if (! TARGET_APCS_FRAME)
-        {
-          /* We do the equivalent of a stack unwind, but only unwind
-              fp and sp.  */
-          emit_move_insn (stack_pointer_rtx,
-                          gen_rtx (MEM, Pmode,
-                                  plus_constant (arg_pointer_rtx, -8)));
-          emit_move_insn (arg_pointer_rtx,
-                          gen_rtx (MEM, Pmode,
-                                  plus_constant (arg_pointer_rtx, -12)));
-        }
-#else /* ! TARGET_RISCOSAOF */
     emit_move_insn (virtual_stack_vars_rtx, hard_frame_pointer_rtx);
 
 #if ARG_POINTER_REGNUM != HARD_FRAME_POINTER_REGNUM
@@ -3579,8 +3566,6 @@ expand_nl_goto_receiver ()
 	}
     }
 #endif
-#endif /* ! TARGET_RISCOSAOF */
-
 
 #ifdef HAVE_nonlocal_goto_receiver
   if (HAVE_nonlocal_goto_receiver)

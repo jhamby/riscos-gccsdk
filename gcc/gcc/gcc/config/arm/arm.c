@@ -8406,7 +8406,10 @@ arm_apcs_frame_needed ()
 
   /* If we are not optimising, or we call alloca, we will always
      setup a frame.  */
-  if (current_function_calls_alloca || ! optimize)
+  if (current_function_calls_alloca
+      || current_function_has_nonlocal_goto
+      || current_function_has_nonlocal_label
+      || ! optimize)
     return 1;
   
   /* A frame will need to be setup for the cases where there are external
@@ -8683,18 +8686,21 @@ arm_expand_prologue ()
 	}
       while (last != insn);
 
-      if (! optimize)
-	{
-	  insn = emit_insn (gen_movsi (hard_frame_pointer_rtx,
-				       stack_pointer_rtx));
-	  RTX_FRAME_RELATED_P (insn) = 1;
-	}
       /* If the frame pointer is needed, emit a special barrier that
 	 will prevent the scheduler from moving stores to the frame
 	 before the stack adjustment.  */
       if (arm_apcs_frame_needed ())
 	insn = emit_insn (gen_stack_tie (stack_pointer_rtx,
 					 hard_frame_pointer_rtx));
+
+#ifdef TARGET_RISCOSAOF
+      if (! optimize)
+	{
+	  insn = emit_insn (gen_movsi (hard_frame_pointer_rtx,
+				       stack_pointer_rtx));
+	  RTX_FRAME_RELATED_P (insn) = 1;
+	}
+#endif
     }
 
   /* If we are profiling, make sure no instructions are scheduled before
