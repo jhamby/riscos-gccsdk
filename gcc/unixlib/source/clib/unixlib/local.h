@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/unixlib/local.h,v $
- * $Date: 2003/04/22 10:59:44 $
- * $Revision: 1.6 $
+ * $Date: 2003/06/16 23:09:08 $
+ * $Revision: 1.7 $
  * $State: Exp $
- * $Author: peter $
+ * $Author: joty $
  *
  * This file should eventually contain most / all of the unixlib specific
  * functions.
@@ -124,14 +124,11 @@ extern const char __filename_char_map[256];
 
 extern int __riscosify_control; /* Note: this is a weak symbol.  */
 
-/* Bits 0 - 5 (incl) and 15 - 31 (incl) of __riscosify_control are not
+/* Bits 0 - 5 (incl), 7 and 15 - 31 (incl) of __riscosify_control are not
    allocated.  */
 
 /* Don't actually process filenames, copy verbatim into the output buffer.  */
 #define __RISCOSIFY_NO_PROCESS		0x0040
-
-/* If path element is too long, drop vowels before truncating.  */
-#define __RISCOSIFY_DROP_VOWEL		0x0080
 
 /* Disable suffix swapping.  */
 #define __RISCOSIFY_NO_SUFFIX		0x0100
@@ -161,7 +158,7 @@ extern int __riscosify_control; /* Note: this is a weak symbol.  */
 #define __RISCOSIFY_FILETYPE_NOT_SET    0x4000
 
 /* Mask of acceptable values. Keep other bits zero. Checks may be made.  */
-#define __RISCOSIFY_MASK                0x7FC0
+#define __RISCOSIFY_MASK                0x7F40
 
 /* Value indicating that __riscosify[_std] didn't see a filetype extension
    in its argument __name or that it wasn't instructed to look for one.  */
