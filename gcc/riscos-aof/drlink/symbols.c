@@ -493,8 +493,9 @@ bool scan_symt(filelist *fp) {
     }
     attr = symtp->symtattr;
     if (aofv3flag && (attr & SYM_A3ATTR)!=0) {	/* Reject AOF 3 attributes */
-      error("Error: Symbol '%s' in '%s' has unsupported AOF symbol attributes",
-       symtp->symtname+COERCE(strtbase, unsigned int), fp->chfilename);
+      error("Error: Symbol '%s' in '%s' has unsupported AOF symbol attributes (%06x)",
+       symtp->symtname+COERCE(strtbase, unsigned int), fp->chfilename,
+       attr & SYM_A3ATTR);
       ok = FALSE;
     }
     attr = attr & SYM_ATMASK;
