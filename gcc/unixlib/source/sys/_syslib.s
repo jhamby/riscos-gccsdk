@@ -1,10 +1,10 @@
 ;----------------------------------------------------------------------------
 ;
-; $Source$
-; $Date$
-; $Revision$
-; $State$
-; $Author$
+; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/_syslib.s,v $
+; $Date: 2003/01/05 12:36:35 $
+; $Revision: 1.11 $
+; $State: Exp $
+; $Author: admin $
 ;
 ;----------------------------------------------------------------------------
 
@@ -833,8 +833,9 @@ __free_stack_chain_l1
 
 free_stack_chunk
 	; Called on exit from a function that caused stack extension
-	; a2-a4, ip, sl and lr can be corrupted, all others (including sp) 
-	; must be preserved. Stack chunks are freed with one chunk of latency,
+	; a3-a4, ip, sl and lr can be corrupted, all others (including sp)
+	; must be preserved. gcc uses a2 to return 64bit results.
+	; Stack chunks are freed with one chunk of latency,
 	; so we need to free the previously unused chunk, not the chunk that
 	; has just been finished with. Therefore the chunk just finished 
 	; with can be used as a stack for this function
@@ -844,7 +845,7 @@ free_stack_chunk
 	SUB	sl, sl, #512+CHUNK_OVERHEAD	; sl = start of current chunk
 	LDR	ip, [sl, #CHUNK_SIZE]
 	ADD	ip, sl, ip	; ip = top of chunk
-	STMFD	ip!, {a1, fp, sp}	; stack important regs
+	STMFD	ip!, {a1, a2, fp, sp}	; stack important regs
 	MOV	sp, ip	; set up sp
 	; sl remains at the bottom of the chunk, but there's 4K of space and 
 	; __stackfree won't need more than 256 bytes of it so this is ok
@@ -869,7 +870,7 @@ free_stack_chunk
 	STR	a1, [sl, #CHUNK_NEXT]
 
 no_chunk_to_free
-	LDMFD	sp, {a1, fp, sp} ; Restore important regs
+	LDMFD	sp, {a1, a2, fp, sp} ; Restore important regs
 
 	LDR	lr, [sl, #CHUNK_RETURN]	; Get the real return address
 	LDR	sl, [sl, #CHUNK_PREV]

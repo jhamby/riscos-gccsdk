@@ -1,3 +1,8 @@
+Sat Apr  5 10:12:54 2003  Alex Waugh  <alex@alexwaugh.com>
+
+	* sys/_syslib.s (free_stack_chunk): Preserve a2 as
+	  it is used for returning 64bit results from functions
+
 Fri Apr  4 22:51:24 2003  Alex Waugh  <alex@alexwaugh.com>
 
 	* asm_dec.s (__set_errno, __get_errno): Revert back to using
