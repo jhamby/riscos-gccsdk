@@ -1,3 +1,9 @@
+Mon Dec 29 17:51:43 2003  Peter Naulls  <peter@chocky.org>
+
+	* source/math/modf.c, source/math/modff.c, source/netlib/ntop.c,
+	  source/netlib/pton.c, source/wchar/wcstoq.c, source/wchar/wcstouq.c:
+	  Remove files containing duplicate functions.
+
 Mon Dec 29 16:34:25 2003  Peter Naulls  <peter@chocky.org>
 
 	* source/sys/_vfork.s: Alias fork to vfork as a symbol
