@@ -21,7 +21,7 @@
 #if defined(__STDC__) || defined (__cplusplus)
 
 #ifdef __cplusplus
-extern "C" void __assert (const char *, const char *, const char *, int)
+extern "C" void __assert (const char *, const char *, int);
 extern "C" void __assert2(const char *, const char *, const char *, int);
 #else
 extern void __assert(const char *, const char *, int);
