@@ -1,16 +1,10 @@
 The RISC OS Software Development Kit [GCCSDK 3.3.3 pre-release 2]
 ====================================
 
-This rather large package is a collection of software that I use regularly
-when writing software.  Originally written as many seperate build trees,
-I decided to take advantage of recursive makefiles and package everything
-together into one large tree.  I was also getting a bit disturbed over
-the increasing length of time it takes to build GCC on RISC OS and since
-I mainy use Linux-based PCs at home and work, I decided to port the whole
-lot to that platform.
-
-What you have here is a complete cross-compiler toolset for targetting
-ARM/RISC OS that is easily portable to other Unix-like operating systems.
+GCCSDK is a portable build environment for creating ARM executables to
+be run natively on RISC OS.  The build environment is designed to be
+hosted on a Unix-like system, such as GNU/Linux, FreeBSD or Solaris.
+GCCSDK releases are tied-in with the corresponding RISC OS GCC releases.
 
 
 Prerequisites
