@@ -1,0 +1,4 @@
+
+Wimpslot -min 2300k -max 2300k
+<Obey$Dir>.dillo ><Obey$Dir>.stdout 2><Obey$Dir>.stderr
+
