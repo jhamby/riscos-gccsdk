@@ -1,4 +1,4 @@
-The RISC OS Software Development Kit [GCCSDK 3.4.1 Release]
+The RISC OS Software Development Kit [GCCSDK 3.4.4 Prerelease]
 ===========================================================
 
 GCCSDK is a portable build environment for creating ARM executables to
@@ -20,6 +20,13 @@ packages installed on your system, with at *least* these software revisions.
 	gperf		version 2.7.2
 	sed		version 2.05
 	makeinfo	version 4.2
+
+You will of course need a C compiler for the system you are building on
+(normally gcc), and one of the tools requires C++, so you will also need
+g++.  The versions of these aren't particularly important, but it is
+recommended you use at least version 3.3 of GCC.  Other versions are known
+to work.
+
 
 Installation
 ------------
