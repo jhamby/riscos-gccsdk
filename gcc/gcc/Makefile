@@ -16,13 +16,14 @@ all:	gcc
 .PHONY: libf2c
 .PHONY: libstdc
 .PHONY: libffi
+.PHONY: boehm-gc
 
 gcc:
 	mkdir -p $(gccpath) $(gccpath)/ada $(gccpath)/cp $(gccpath)/f77 \
 	$(gccpath)/gpc $(gccpath)/objc $(gccpath)/java $(gccpath)/config/arm
 	$(MAKE) -C gcc "STAGE=$(STAGE)"
 
-fastjar libgcc libgpc libf2c libstdc libffi zlib:
+boehm-gc fastjar libgcc libgpc libf2c libstdc libffi zlib:
 	mkdir -p $(libpath)/$(STAGE)/$(TRG)
 	$(MAKE) -C $@ "STAGE=$(STAGE)"
 
