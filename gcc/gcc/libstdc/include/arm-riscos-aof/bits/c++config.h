@@ -175,6 +175,12 @@ libstdc++-v3/include/bits/c++config before full recompilation of the library.
 // Define if the compiler/host combination has __builtin_sqrtl
 /* #undef _GLIBCPP_HAVE___BUILTIN_SQRTL */
 
+#ifdef __TARGET_SCL__
+#undef _GLIBCPP_HAVE_LC_MESSAGES
+#undef _GLIBCPP_HAVE___SIGNBIT
+#undef _GLIBCPP_HAVE___SIGNBITF
+#undef _GLIBCPP_HAVE___SIGNBITL
+#else
 // Define if LC_MESSAGES is available in <locale.h>.
 #define _GLIBCPP_HAVE_LC_MESSAGES 1
 
@@ -186,6 +192,7 @@ libstdc++-v3/include/bits/c++config before full recompilation of the library.
 
 /* Define if you have the __signbitl function.  */
 #define _GLIBCPP_HAVE___SIGNBITL 1
+#endif
 
 /* Define if you have the _acosf function.  */
 /* #undef _GLIBCPP_HAVE__ACOSF */
