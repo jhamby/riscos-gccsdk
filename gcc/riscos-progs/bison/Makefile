@@ -70,10 +70,10 @@ $(bin_dir)/bison$(exesfx):	$(OBJS) $(LIB)
 	$(CROSS_CC) -o $@ $(OBJS) $(LIB) -L$(objdir)/libiberty/$(STAGE) -liberty
 
 scan-gram.c: scan-gram.l
-	flex -o$@ scan-gram.l
+	flex -t -o$@ scan-gram.l > $@
 
 scan-skel.c: scan-skel.l
-	flex -o$@ scan-skel.l
+	flex -t -o$@ scan-skel.l > $@
 
 $(bobj)/scan-gram.o: scan-gram.c scan-gram.l
 $(bobj)/scan-skel.o: scan-skel.c scan-skel.l
