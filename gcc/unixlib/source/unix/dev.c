@@ -1,19 +1,19 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/dev.c,v $
- * $Date: 2003/10/26 13:34:34 $
- * $Revision: 1.17 $
+ * $Date: 2004/05/03 17:37:07 $
+ * $Revision: 1.18 $
  * $State: Exp $
- * $Author: joty $
+ * $Author: peter $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: dev.c,v 1.17 2003/10/26 13:34:34 joty Exp $";
+static const char rcs_id[] = "$Id: dev.c,v 1.18 2004/05/03 17:37:07 peter Exp $";
 #endif
 
 /* #define DEBUG */
-#define _GNU_SOURCE
+
 #include <ctype.h>
 #include <dirent.h>
 #include <errno.h>
@@ -84,7 +84,10 @@ struct dev __dev[NDEV] =
     __nulllseek, __nullioctl, __nullselect, __nullstat, __nullfstat },
   /* DEV_RANDOM */
   {__randomopen, __nullclose, __randomread, __nullwrite,
-    __nulllseek, __nullioctl, __nullselect, __nullstat, __nullfstat }
+    __nulllseek, __nullioctl, __nullselect, __nullstat, __nullfstat },
+  /* DEV_DSP */
+  {__dspopen, __dspclose, __nullread, __fswrite,
+    __nulllseek, __dspioctl, __nullselect, __nullstat, __nullfstat }
 };
 
 /* Map of special device names to device types.  */
@@ -111,6 +114,7 @@ static const struct sfile __sfile[] =
   {"zero", DEV_ZERO},
   {"random", DEV_RANDOM},
   {"urandom", DEV_RANDOM},
+  {"dsp", DEV_DSP},
 /*   {"pipe", DEV_PIPE}, does open on /dev/pipe make sense ?  */
 /*   {"socket", DEV_SOCKET}, does open on /dev/socket make sense ?  */
   {NULL, DEV_RISCOS} /* table terminator */
@@ -189,19 +193,19 @@ __commonioctl (struct __unixlib_fd *file_desc, unsigned long request,
 
 int
 __commonselect (struct __unixlib_fd *file_desc, int fd,
-		__fd_set *read, __fd_set *write, __fd_set *except)
+		__fd_set *cread, __fd_set *cwrite, __fd_set *except)
 {
   /* Return ready to read, ready to write, no execptional conditions.  */
   IGNORE (file_desc);
-  if (read)
-    FD_SET(fd, read);
-  if (write)
-    FD_SET (fd, write);
+  if (cread)
+    FD_SET(fd, cread);
+  if (cwrite)
+    FD_SET (fd, cwrite);
   if (except)
     FD_CLR (fd, except);
 
   /* This may not be correct, but it is consistent with Internet 5 select.  */
-  return (read ? 1 : 0) + (write ? 1 : 0);
+  return (cread ? 1 : 0) + (cwrite ? 1 : 0);
 }
 #endif
 
@@ -664,26 +668,26 @@ __pipeopen (struct __unixlib_fd *file_desc, const char *file, int mode)
 int
 __pipeclose (struct __unixlib_fd *file_desc)
 {
-  struct pipe *pipe = __pipe, *prev_pipe = NULL;
+  struct pipe *cpipe = __pipe, *prev_pipe = NULL;
   _kernel_oserror *err = NULL;
   char path[MAXPATHLEN];
 
-  while (pipe)
+  while (cpipe)
     {
-      if (pipe->p[0] == file_desc || pipe->p[1] == file_desc)
+      if (cpipe->p[0] == file_desc || cpipe->p[1] == file_desc)
 	break;
-      prev_pipe = pipe;
-      pipe = pipe->next;
+      prev_pipe = cpipe;
+      cpipe = cpipe->next;
     }
-  if (!pipe)
+  if (!cpipe)
     return __set_errno (EBADF);
   if (prev_pipe)
-    prev_pipe->next = pipe->next;
+    prev_pipe->next = cpipe->next;
   else
-    __pipe = pipe->next;
+    __pipe = cpipe->next;
   __fsclose (file_desc);
 
-  if (__riscosify_std (pipe->file, 0, path, sizeof (path), NULL))
+  if (__riscosify_std (cpipe->file, 0, path, sizeof (path), NULL))
     {
       if ((err = __os_fsctrl (27, path, 0, 0x1a2)))
         __seterr (err);
@@ -691,8 +695,8 @@ __pipeclose (struct __unixlib_fd *file_desc)
   else
     err = (void *) 1; /* Conversion failed.  */
 
-  free (pipe->file);
-  free (pipe);
+  free (cpipe->file);
+  free (cpipe);
   return err ? -1 : 0;
 }
 
@@ -749,14 +753,14 @@ __pipeioctl (struct __unixlib_fd *file_desc, unsigned long request,
 
 int
 __pipeselect (struct __unixlib_fd *file_desc, int fd,
-		__fd_set *read, __fd_set *write, __fd_set *except)
+		__fd_set *pread, __fd_set *pwrite, __fd_set *except)
 {
   /* Return ready to write, no exceptional conditions.  Ready to read is a
      little more tricky.  Bascially, work out if there is any data ready.
      Start by assuming there is nothing to read.  */
   int to_read = 0;
 
-  if (read)
+  if (pread)
     {
 	int regs[3];
 	int pos;
@@ -771,18 +775,18 @@ __pipeselect (struct __unixlib_fd *file_desc, int fd,
 	    /* If file pointer != extent then there is still data to read.  */
 	    }
       if (to_read) {
-	FD_SET(fd, read);
+	FD_SET(fd, pread);
       } else
-	FD_CLR (fd, read);
+	FD_CLR (fd, pread);
     }
 
-  if (write)
-    FD_SET (fd, write);
+  if (pwrite)
+    FD_SET (fd, pwrite);
   if (except)
     FD_CLR (fd, except);
 
   /* This may not be correct, but it is consistent with Internet 5 select.  */
-  return to_read + (write ? 1 : 0);
+  return to_read + (pwrite ? 1 : 0);
 }
 #endif /* __FEATURE_PIPEDEV */
 
@@ -948,15 +952,15 @@ __sockioctl (struct __unixlib_fd *file_desc, unsigned long request,
 
 int
 __sockselect (struct __unixlib_fd *file_descriptor, int fd,
-		__fd_set *read, __fd_set *write, __fd_set *except)
+		__fd_set *sread, __fd_set *swrite, __fd_set *except)
 {
   /* Return 1,1,1 so that merge routine will copy in this socket's
      results.  */
   IGNORE (file_descriptor);
-  if (read)
-    FD_SET(fd, read);
-  if (write)
-    FD_SET (fd, write);
+  if (sread)
+    FD_SET(fd, sread);
+  if (swrite)
+    FD_SET (fd, swrite);
   if (except)
     FD_SET (fd, except);
 

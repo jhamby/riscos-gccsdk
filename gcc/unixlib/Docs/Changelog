@@ -1,3 +1,8 @@
+Tue Sep  7 18:47:59 2004  Peter Naulls  <peter@chocky.org>
+	* source/clib/swis.h, source/clib/sys/soundcard.h,
+	  source/clib/unixlib/dev.h, source/sound/dsp.h,
+	  source/unix/dev.c: Experimental /dev/dsp support.
+
 Tue Sep  7 16:03:14 2004  John Tytgat  <John.Tytgat@aaug.net>
 
 	* Docs/ReadMe: Documented UnixLib$env as private UnixLib environment

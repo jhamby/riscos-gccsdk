@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/swis.h,v $
- * $Date: 2003/04/06 12:28:37 $
- * $Revision: 1.6 $
+ * $Date: 2004/01/14 23:16:58 $
+ * $Revision: 1.7 $
  * $State: Exp $
- * $Author: peter $
+ * $Author: joty $
  *
  ***************************************************************************/
 
@@ -695,6 +695,25 @@ __END_DECLS
 #define SysLog_LogFormatted            0x04c88b
 #define SysLog_ReadErrorMessage        0x04c88c
 #define SysLog_LogComplete             0x04c88d
+
+#define DigitalRenderer_Activate       0x04f700
+#define DigitalRenderer_Deactivate     0x04f701
+#define DigitalRenderer_Pause          0x04f702
+#define DigitalRenderer_Resume         0x04f703
+#define DigitalRenderer_GetTables      0x04f704
+#define DigitalRenderer_ReadState      0x04f705
+#define DigitalRenderer_NewSample      0x04f706
+#define DigitalRenderer_New16bitSample 0x04f708
+#define DigitalRenderer_NumBuffers     0x04f709
+#define DigitalRenderer_StreamSamples  0x04f70a
+#define DigitalRenderer_Stream16bitSamples 0x04f70b
+#define DigitalRenderer_StreamStatistics 0x4f70c
+#define DigitalRenderer_StreamFlags    0x4f70d
+#define DigitalRenderer_SetDefaults    0x4f70e
+#define DigitalRenderer_Activate16     0x4f70f
+#define DigitalRenderer_GetFrequency   0x4f710
+#define DigitalRenderer_ActivateAuto   0x4f711
+#define DigitalRenderer_SampleFormat   0x4f712
 
 #define MimeMap_Translate              0x050b00
 

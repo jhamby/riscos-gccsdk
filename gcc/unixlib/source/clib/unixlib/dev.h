@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/unixlib/dev.h,v $
- * $Date: 2003/01/21 17:48:32 $
- * $Revision: 1.4 $
+ * $Date: 2003/10/26 13:34:33 $
+ * $Revision: 1.5 $
  * $State: Exp $
- * $Author: admin $
+ * $Author: joty $
  *
  ***************************************************************************/
 
@@ -32,14 +32,15 @@ __BEGIN_DECLS
 /* major device numbers */
 
 #define DEV_RISCOS	0	/* RISC OS file system */
-#define DEV_TTY		1	/* tty */
-#define DEV_PIPE	2	/* UnixLib pipe() */
-#define DEV_NULL	3	/* /dev/null */
-#define DEV_SOCKET	4	/* Freenet socket */
-#define DEV_ZERO	5	/* /dev/zero */
-#define DEV_RANDOM	6	/* /dev/random */
+#define DEV_TTY		1	/* tty                 */
+#define DEV_PIPE	2	/* UnixLib pipe()      */
+#define DEV_NULL	3	/* /dev/null           */
+#define DEV_SOCKET	4	/* Network socket      */
+#define DEV_ZERO	5	/* /dev/zero           */
+#define DEV_RANDOM	6	/* /dev/random         */
+#define DEV_DSP		7	/* /dev/dsp            */
 
-#define NDEV		7
+#define NDEV		8
 
 
 struct dev
@@ -166,6 +167,11 @@ extern int __zeroread (struct __unixlib_fd *__file_desc, void *__data, int __nby
 
 extern void *__randomopen (struct __unixlib_fd *__file_desc, const char *__file, int __mode);
 extern int __randomread (struct __unixlib_fd *__file_desc, void *__data, int __nbyte);
+
+
+extern void *__dspopen (struct __unixlib_fd *__file_desc, const char *__file, int __mode);
+extern int __dspclose (struct __unixlib_fd *__fd);
+extern int __dspioctl (struct __unixlib_fd *__fd, unsigned long __request, void *__arg);
 
 __END_DECLS
 
