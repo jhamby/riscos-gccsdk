@@ -1,4 +1,4 @@
-@c Copyright (C) 1988, 1989, 1992, 1994, 1997, 1998, 1999, 2000, 2001, 2002
+@c Copyright (C) 1988, 1989, 1992, 1994, 1997, 1998, 1999, 2000, 2001, 2002, 2003
 @c Free Software Foundation, Inc.
 @c This is part of the GCC manual.
 @c For copying conditions, see the file gcc.texi.
@@ -244,7 +244,7 @@ from an @samp{md} file, the vector value of this operand may be omitted.
 An omitted vector is effectively the same as a vector of no elements.
 
 @item B
-@samp{B} indicates a pointer to basic block strucure.
+@samp{B} indicates a pointer to basic block structure.
 
 @item 0
 @samp{0} means a slot whose contents do not fit any normal category.
@@ -608,9 +608,22 @@ Stored in the @code{integrated} field and printed as @samp{/i}.
 @cindex @code{concat} and @samp{/u}
 @cindex @code{unchanging}, in @code{reg} and @code{mem}
 @item RTX_UNCHANGING_P (@var{x})
-Nonzero in a @code{reg}, @code{mem}, or @code{concat} if the memory
-is set at most once,
-anywhere.  This does not mean that it is function invariant.
+Nonzero in a @code{reg}, @code{mem}, or @code{concat} if the register or
+memory is set at most once, anywhere.  This does not mean that it is
+function invariant.
+
+GCC uses this flag to determine whether two references conflict.  As
+implemented by @code{true_dependence} in @file{alias.c} for memory
+references, unchanging memory can't conflict with non-unchanging memory;
+a non-unchanging read can conflict with a non-unchanging write; an
+unchanging read can conflict with an unchanging write (since there may
+be a single store to this address to initialize it); and an unchanging
+store can conflict with a non-unchanging read.  This means we must make
+conservative assumptions when choosing the value of this flag for a
+memory reference to an object containing both unchanging and
+non-unchanging fields: we must set the flag when writing to the object
+and clear it when reading from the object.
+
 Stored in the @code{unchanging} field and printed as @samp{/u}.
 
 @findex SCHED_GROUP_P
@@ -687,13 +700,6 @@ Promoted variables are always either sign- or zero-extended to the wider
 mode on every assignment.  Stored in the @code{in_struct} field and
 printed as @samp{/s}.
 
-@findex SYMBOL_REF_FLAG
-@cindex @code{symbol_ref} and @samp{/v}
-@cindex @code{volatil}, in @code{symbol_ref}
-@item SYMBOL_REF_FLAG (@var{x})
-In a @code{symbol_ref}, this is used as a flag for machine-specific purposes.
-Stored in the @code{volatil} field and printed as @samp{/v}.
-
 @findex SYMBOL_REF_USED
 @cindex @code{used}, in @code{symbol_ref}
 @item SYMBOL_REF_USED (@var{x})
@@ -707,6 +713,17 @@ once.  Stored in the @code{used} field.
 @item SYMBOL_REF_WEAK (@var{x})
 In a @code{symbol_ref}, indicates that @var{x} has been declared weak.
 Stored in the @code{integrated} field and printed as @samp{/i}.
+
+@findex SYMBOL_REF_FLAG
+@cindex @code{symbol_ref} and @samp{/v}
+@cindex @code{volatil}, in @code{symbol_ref}
+@item SYMBOL_REF_FLAG (@var{x})
+In a @code{symbol_ref}, this is used as a flag for machine-specific purposes.
+Stored in the @code{volatil} field and printed as @samp{/v}.
+
+Most uses of @code{SYMBOL_REF_FLAG} are historic and may be subsumed
+by @code{SYMBOL_REF_FLAGS}.  Certainly use of @code{SYMBOL_REF_FLAGS}
+is mandatory if the target requires more than one bit of storage.
 @end table
 
 These are the fields to which the above macros refer:
@@ -1545,7 +1562,7 @@ preferable approach if only a small subset of instructions modify the
 condition code.  Other machines store condition codes in general
 registers; in such cases a pseudo register should be used.
 
-Some machines, such as the Sparc and RS/6000, have two sets of
+Some machines, such as the SPARC and RS/6000, have two sets of
 arithmetic instructions, one that sets and one that does not set the
 condition code.  This is best handled by normally generating the
 instruction that does not set the condition code, and making a pattern
@@ -1854,14 +1871,14 @@ valid.
 Comparison operators test a relation on two operands and are considered
 to represent a machine-dependent nonzero value described by, but not
 necessarily equal to, @code{STORE_FLAG_VALUE} (@pxref{Misc})
-if the relation holds, or zero if it does not.  The mode of the
-comparison operation is independent of the mode of the data being
-compared.  If the comparison operation is being tested (e.g., the first
-operand of an @code{if_then_else}), the mode must be @code{VOIDmode}.
-If the comparison operation is producing data to be stored in some
-variable, the mode must be in class @code{MODE_INT}.  All comparison
-operations producing data must use the same mode, which is
-machine-specific.
+if the relation holds, or zero if it does not, for comparison operators
+whose results have a `MODE_INT' mode, and
+@code{FLOAT_STORE_FLAG_VALUE} (@pxref{Misc}) if the relation holds, or
+zero if it does not, for comparison operators that return floating-point
+values.  The mode of the comparison operation is independent of the mode
+of the data being compared.  If the comparison operation is being tested
+(e.g., the first operand of an @code{if_then_else}), the mode must be
+@code{VOIDmode}.
 
 @cindex condition codes
 There are two ways that comparison operations may be used.  The
@@ -2195,9 +2212,9 @@ the operands of these.
 @item (set @var{lval} @var{x})
 Represents the action of storing the value of @var{x} into the place
 represented by @var{lval}.  @var{lval} must be an expression
-representing a place that can be stored in: @code{reg} (or @code{subreg}
-or @code{strict_low_part}), @code{mem}, @code{pc}, @code{parallel}, or
-@code{cc0}.
+representing a place that can be stored in: @code{reg} (or @code{subreg},
+@code{strict_low_part} or @code{zero_extract}), @code{mem}, @code{pc},
+@code{parallel}, or @code{cc0}.
 
 If @var{lval} is a @code{reg}, @code{subreg} or @code{mem}, it has a
 machine mode; then @var{x} must be valid for that mode.
@@ -2210,10 +2227,10 @@ rest of the register receives an undefined value.  Likewise, if
 the mode of the register, the rest of the register can be changed in
 an undefined way.
 
-If @var{lval} is a @code{strict_low_part} of a @code{subreg}, then the
-part of the register specified by the machine mode of the
-@code{subreg} is given the value @var{x} and the rest of the register
-is not changed.
+If @var{lval} is a @code{strict_low_part} or @code{zero_extract} 
+of a @code{subreg}, then the part of the register specified by the
+machine mode of the @code{subreg} is given the value @var{x} and
+the rest of the register is not changed.
 
 If @var{lval} is @code{(cc0)}, it has no machine mode, and @var{x} may
 be either a @code{compare} expression or a value that may have any mode.
@@ -2355,11 +2372,11 @@ An hypothetical example might be a pattern for an addition that can
 either wrap around or use saturating addition depending on the value
 of a special control register:
 
-@example
+@smallexample
 (parallel [(set (reg:SI 2) (unspec:SI [(reg:SI 3)
                                        (reg:SI 4)] 0))
            (use (reg:SI 1))])
-@end example
+@end smallexample
 
 @noindent
 
@@ -2577,9 +2594,6 @@ Represents the side effect of setting @var{x} to @var{y} and
 represents @var{x} before @var{x} is modified.  @var{x} must be a
 @code{reg} or @code{mem}, but most machines allow only a @code{reg}.
 @var{m} must be the machine mode for pointers on the machine in use.
-The amount @var{x} is decremented by is the length in bytes of the
-machine mode of the containing memory reference of which this expression
-serves as the address.  Note that this is not currently implemented.
 
 The expression @var{y} must be one of three forms:
 @table @code
@@ -2591,15 +2605,15 @@ where @var{z} is an index register and @var{i} is a constant.
 
 Here is an example of its use:
 
-@example
+@smallexample
 (mem:SF (post_modify:SI (reg:SI 42) (plus (reg:SI 42)
                                           (reg:SI 48))))
-@end example
+@end smallexample
 
 This says to modify pseudo register 42 by adding the contents of pseudo
 register 48 to it, after the use of what ever 42 points to.
 
-@findex post_modify
+@findex pre_modify
 @item (pre_modify:@var{m} @var{x} @var{expr})
 Similar except side effects happen before the use.
 @end table
@@ -2844,7 +2858,7 @@ labels: @code{LABEL_NORMAL}, @code{LABEL_STATIC_ENTRY},
 that do not have type @code{LABEL_NORMAL} are @dfn{alternate entry
 points} to the current function.  These may be static (visible only in
 the containing translation unit), global (exposed to all translation
-units), or weak (global, but can be overriden by another symbol with the
+units), or weak (global, but can be overridden by another symbol with the
 same name).
 
 Much of the compiler treats all four kinds of label identically.  Some
@@ -3257,12 +3271,6 @@ are stored in the @code{REG_NOTES} field of an insn as an
 @code{expr_list}.
 
 @table @code
-@findex REG_EXEC_COUNT
-@item REG_EXEC_COUNT
-This is used to indicate the number of times a basic block was executed
-according to the profile data.  The note is attached to the first insn in
-the basic block.
-
 @findex REG_BR_PROB
 @item REG_BR_PROB
 This is used to specify the ratio of branches to non-branches of a

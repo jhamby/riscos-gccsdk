@@ -40,8 +40,11 @@ provided with a @option{-D} option.
 
 @item -undef
 @opindex undef
-Do not predefine any system-specific macros.  The common predefined
-macros remain defined.
+Do not predefine any system-specific or GCC-specific macros.  The
+standard predefined macros remain defined.
+@ifset cppmanual
+@xref{Standard Predefined Macros}.
+@end ifset
 
 @item -I @var{dir}
 @opindex I
@@ -51,16 +54,14 @@ for header files.
 @xref{Search Path}.
 @end ifset
 Directories named by @option{-I} are searched before the standard
-system include directories.
-
-It is dangerous to specify a standard system include directory in an
-@option{-I} option.  This defeats the special treatment of system
-headers
+system include directories.  If the directory @var{dir} is a standard
+system include directory, the option is ignored to ensure that the
+default search order for system directories and the special treatment
+of system headers are not defeated
 @ifset cppmanual
 (@pxref{System Headers})
 @end ifset
-.  It can also defeat the repairs to buggy system headers which GCC
-makes when it is installed.
+.
 
 @item -o @var{file}
 @opindex o
@@ -489,13 +490,6 @@ it does not use shell special characters.
 Cancel an assertion with the predicate @var{predicate} and answer
 @var{answer}.
 
-@item -A-
-@opindex A-
-Cancel all predefined assertions and all assertions preceding it on
-the command line.  Also, undefine all predefined macros and all
-macros preceding it on the command line.  (This is a historical wart and
-may change in the future.)
-
 @item -dCHARS
 @var{CHARS} is a sequence of one or more of the following characters,
 and must not be preceded by a space.  Other characters are interpreted
@@ -566,17 +560,10 @@ also passed through to the output file where the macro is expanded.
 In addition to the side-effects of the @option{-C} option, the
 @option{-CC} option causes all C++-style comments inside a macro
 to be converted to C-style comments.  This is to prevent later use
-of that macro from inadvertently commenting out the remainer of
+of that macro from inadvertently commenting out the remainder of
 the source line.
 
 The @option{-CC} option is generally used to support lint comments.
-
-@item -gcc
-@opindex gcc
-Define the macros @sc{__gnuc__}, @sc{__gnuc_minor__} and
-@sc{__gnuc_patchlevel__}.  These are defined automatically when you use
-@command{gcc -E}; you can turn them off in that case with
-@option{-no-gcc}.
 
 @item -traditional-cpp
 @opindex traditional-cpp
@@ -602,10 +589,10 @@ standard-conforming modes it converts them.  See the @option{-std} and
 
 The nine trigraphs and their replacements are
 
-@example
+@smallexample
 Trigraph:       ??(  ??)  ??<  ??>  ??=  ??/  ??'  ??!  ??-
 Replacement:      [    ]    @{    @}    #    \    ^    |    ~
-@end example
+@end smallexample
 @end ifclear
 
 @item -remap

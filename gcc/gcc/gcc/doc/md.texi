@@ -1,5 +1,5 @@
-@c Copyright (C) 1988, 1989, 1992, 1993, 1994, 1996, 1998, 1999, 2000, 2001, 2002
-@c Free Software Foundation, Inc.
+@c Copyright (C) 1988, 1989, 1992, 1993, 1994, 1996, 1998, 1999, 2000, 2001,
+@c 2002, 2003 Free Software Foundation, Inc.
 @c This is part of the GCC manual.
 @c For copying conditions, see the file gcc.texi.
 
@@ -898,7 +898,7 @@ digit is used together with letters within the same alternative, the
 digit should come last.
 
 This number is allowed to be more than a single digit.  If multiple
-digits are encountered consecutavely, they are interpreted as a single
+digits are encountered consecutively, they are interpreted as a single
 decimal integer.  There is scant chance for ambiguity, since to-date
 it has never been desirable that @samp{10} be interpreted as matching
 either operand 1 @emph{or} operand 0.  Should this be desired, one
@@ -965,7 +965,7 @@ The machine description macro @code{REG_CLASS_FROM_LETTER} has first
 cut at the otherwise unused letters.  If it evaluates to @code{NO_REGS},
 then @code{EXTRA_CONSTRAINT} is evaluated.
 
-A typical use for @code{EXTRA_CONSTRANT} would be to distinguish certain
+A typical use for @code{EXTRA_CONSTRAINT} would be to distinguish certain
 types of memory references that affect other insn operands.
 @end ifset
 @end table
@@ -1256,6 +1256,8 @@ instruction is defined:
   @dots{})
 @end smallexample
 @end ifset
+GCC can only handle one commutative pair in an asm; if you use more, 
+the compiler may fail.
 
 @cindex @samp{#} in constraint
 @item #
@@ -1372,60 +1374,6 @@ An item in the constant pool
 
 @item S
 A symbol in the text segment of the current file
-@end table
-
-@item AMD 29000 family---@file{a29k.h}
-@table @code
-@item l
-Local register 0
-
-@item b
-Byte Pointer (@samp{BP}) register
-
-@item q
-@samp{Q} register
-
-@item h
-Special purpose register
-
-@item A
-First accumulator register
-
-@item a
-Other accumulator register
-
-@item f
-Floating point register
-
-@item I
-Constant greater than 0, less than 0x100
-
-@item J
-Constant greater than 0, less than 0x10000
-
-@item K
-Constant whose high 24 bits are on (1)
-
-@item L
-16-bit constant whose high 8 bits are on (1)
-
-@item M
-32-bit constant whose high 16 bits are on (1)
-
-@item N
-32-bit negative constant that fits in 8 bits
-
-@item O
-The constant 0x80000000 or, on the 29050, any 32-bit constant
-whose low 16 bits are 0.
-
-@item P
-16-bit negative constant that fits in 8 bits
-
-@item G
-@itemx H
-A floating point constant (in @code{asm} statements, use the machine
-independent @samp{E} or @samp{F} instead)
 @end table
 
 @item AVR family---@file{avr.h}
@@ -1606,6 +1554,10 @@ Second floating point register
 @item c
 @samp{c} register
 
+@item C
+Specifies constant that can be easily constructed in SSE register without
+loading it from memory.
+
 @item d
 @samp{d} register
 
@@ -1744,68 +1696,97 @@ Integer constant in the range 1 to 4 for @code{shladd} instruction
 Memory operand except postincrement and postdecrement
 @end table
 
-@item MIPS---@file{mips.h}
+@item FRV---@file{frv.h}
 @table @code
+@item a
+Register in the class @code{ACC_REGS} (@code{acc0} to @code{acc7}).
+
+@item b
+Register in the class @code{EVEN_ACC_REGS} (@code{acc0} to @code{acc7}).
+
+@item c
+Register in the class @code{CC_REGS} (@code{fcc0} to @code{fcc3} and
+@code{icc0} to @code{icc3}).
+
 @item d
-General-purpose integer register
+Register in the class @code{GPR_REGS} (@code{gr0} to @code{gr63}).
+
+@item e
+Register in the class @code{EVEN_REGS} (@code{gr0} to @code{gr63}).
+Odd registers are excluded not in the class but through the use of a machine
+mode larger than 4 bytes.
 
 @item f
-Floating-point register (if available)
+Register in the class @code{FPR_REGS} (@code{fr0} to @code{fr63}).
 
 @item h
-@samp{Hi} register
+Register in the class @code{FEVEN_REGS} (@code{fr0} to @code{fr63}).
+Odd registers are excluded not in the class but through the use of a machine
+mode larger than 4 bytes.
 
 @item l
-@samp{Lo} register
+Register in the class @code{LR_REG} (the @code{lr} register).
+
+@item q
+Register in the class @code{QUAD_REGS} (@code{gr2} to @code{gr63}).
+Register numbers not divisible by 4 are excluded not in the class but through
+the use of a machine mode larger than 8 bytes.
+
+@item t
+Register in the class @code{ICC_REGS} (@code{icc0} to @code{icc3}).
+
+@item u
+Register in the class @code{FCC_REGS} (@code{fcc0} to @code{fcc3}).
+
+@item v
+Register in the class @code{ICR_REGS} (@code{cc4} to @code{cc7}).
+
+@item w
+Register in the class @code{FCR_REGS} (@code{cc0} to @code{cc3}).
 
 @item x
-@samp{Hi} or @samp{Lo} register
-
-@item y
-General-purpose integer register
+Register in the class @code{QUAD_FPR_REGS} (@code{fr0} to @code{fr63}).
+Register numbers not divisible by 4 are excluded not in the class but through
+the use of a machine mode larger than 8 bytes.
 
 @item z
-Floating-point status register
+Register in the class @code{SPR_REGS} (@code{lcr} and @code{lr}).
 
-@item I
-Signed 16-bit constant (for arithmetic instructions)
+@item A
+Register in the class @code{QUAD_ACC_REGS} (@code{acc0} to @code{acc7}).
 
-@item J
-Zero
+@item B
+Register in the class @code{ACCG_REGS} (@code{accg0} to @code{accg7}).
 
-@item K
-Zero-extended 16-bit constant (for logic instructions)
-
-@item L
-Constant with low 16 bits zero (can be loaded with @code{lui})
-
-@item M
-32-bit constant which requires two instructions to load (a constant
-which is not @samp{I}, @samp{K}, or @samp{L})
-
-@item N
-Negative 16-bit constant
-
-@item O
-Exact power of two
-
-@item P
-Positive 16-bit constant
+@item C
+Register in the class @code{CR_REGS} (@code{cc0} to @code{cc7}).
 
 @item G
-Floating point zero
+Floating point constant zero
 
-@item Q
-Memory reference that can be loaded with more than one instruction
-(@samp{m} is preferable for @code{asm} statements)
+@item I
+6-bit signed integer constant
 
-@item R
-Memory reference that can be loaded with one instruction
-(@samp{m} is preferable for @code{asm} statements)
+@item J
+10-bit signed integer constant
 
-@item S
-Memory reference in external OSF/rose PIC format
-(@samp{m} is preferable for @code{asm} statements)
+@item L
+16-bit signed integer constant
+
+@item M
+16-bit unsigned integer constant
+
+@item N
+12-bit signed integer constant that is negative---i.e.@: in the
+range of @minus{}2048 to @minus{}1
+
+@item O
+Constant zero
+
+@item P
+12-bit signed integer constant that is greater than zero---i.e.@: in the
+range of 1 to 2047.
+
 @end table
 
 @item IP2K---@file{ip2k.h}
@@ -1876,6 +1857,70 @@ Zero
 
 @item P
 Integers from 0 to 255
+@end table
+
+@item MIPS---@file{mips.h}
+@table @code
+@item d
+General-purpose integer register
+
+@item f
+Floating-point register (if available)
+
+@item h
+@samp{Hi} register
+
+@item l
+@samp{Lo} register
+
+@item x
+@samp{Hi} or @samp{Lo} register
+
+@item y
+General-purpose integer register
+
+@item z
+Floating-point status register
+
+@item I
+Signed 16-bit constant (for arithmetic instructions)
+
+@item J
+Zero
+
+@item K
+Zero-extended 16-bit constant (for logic instructions)
+
+@item L
+Constant with low 16 bits zero (can be loaded with @code{lui})
+
+@item M
+32-bit constant which requires two instructions to load (a constant
+which is not @samp{I}, @samp{K}, or @samp{L})
+
+@item N
+Negative 16-bit constant
+
+@item O
+Exact power of two
+
+@item P
+Positive 16-bit constant
+
+@item G
+Floating point zero
+
+@item Q
+Memory reference that can be loaded with more than one instruction
+(@samp{m} is preferable for @code{asm} statements)
+
+@item R
+Memory reference that can be loaded with one instruction
+(@samp{m} is preferable for @code{asm} statements)
+
+@item S
+Memory reference in external OSF/rose PIC format
+(@samp{m} is preferable for @code{asm} statements)
 @end table
 
 @item Motorola 680x0---@file{m68k.h}
@@ -1979,10 +2024,27 @@ Constants in the range @minus{}8 to 2
 @item SPARC---@file{sparc.h}
 @table @code
 @item f
-Floating-point register that can hold 32- or 64-bit values.
+Floating-point register on the SPARC-V8 architecture and
+lower floating-point register on the SPARC-V9 architecture.
 
 @item e
-Floating-point register that can hold 64- or 128-bit values.
+Floating-point register. It is equivalent to @samp{f} on the
+SPARC-V8 architecture and contains both lower and upper
+floating-point registers on the SPARC-V9 architecture.
+
+@item c
+Floating-point condition code register.
+
+@item d
+Lower floating-point register. It is only valid on the SPARC-V9
+architecture when the Visual Instruction Set is available.
+
+@item b
+Floating-point register. It is only valid on the SPARC-V9 architecture
+when the Visual Instruction Set is available.
+
+@item h
+64-bit global or out register for the SPARC-V8+ architecture.
 
 @item I
 Signed 13-bit constant
@@ -2004,6 +2066,9 @@ A constant in the range supported by @code{movrcc} instructions
 Same as @samp{K}, except that it verifies that bits that are not in the
 lower 32-bit range are all zero.  Must be used instead of @samp{K} for
 modes wider than @code{SImode}
+
+@item O
+The constant 4096
 
 @item G
 Floating-point zero
@@ -2207,7 +2272,7 @@ A memory reference that is a stack push.
 A memory reference that is a stack pop.
 
 @item S
-A memory reference that refers to an constant address of known value.
+A memory reference that refers to a constant address of known value.
 
 @item T
 The register indicated by Rx (not implemented yet).
@@ -2395,8 +2460,7 @@ Write the generated insn as a @code{parallel} with elements being a
 @code{set} of one register from the appropriate memory location (you may
 also need @code{use} or @code{clobber} elements).  Use a
 @code{match_parallel} (@pxref{RTL Template}) to recognize the insn.  See
-@file{a29k.md} and @file{rs6000.md} for examples of the use of this insn
-pattern.
+@file{rs6000.md} for examples of the use of this insn pattern.
 
 @cindex @samp{store_multiple} instruction pattern
 @item @samp{store_multiple}
@@ -2407,7 +2471,7 @@ operand 2 is a constant: the number of consecutive registers.
 
 @cindex @code{push@var{m}} instruction pattern
 @item @samp{push@var{m}}
-Output an push instruction.  Operand 0 is value to push.  Used only when
+Output a push instruction.  Operand 0 is value to push.  Used only when
 @code{PUSH_ROUNDING} is defined.  For historical reason, this pattern may be
 missing and in such case an @code{mov} expander is used instead, with a
 @code{MEM} expression forming the push operation.  The @code{mov} expander
@@ -3480,7 +3544,7 @@ multiple condition registers, use a pseudo register.
 @findex next_cc0_user
 On some machines, the type of branch instruction generated may depend on
 the way the condition code was produced; for example, on the 68k and
-Sparc, setting the condition code directly from an add or subtract
+SPARC, setting the condition code directly from an add or subtract
 instruction does not clear the overflow bit the way that a test
 instruction does, so a different branch instruction must be used for
 some conditional branches.  For machines that use @code{(cc0)}, the set
@@ -3499,7 +3563,7 @@ different formats of the condition code register.
 Registers used to store the condition code value should have a mode that
 is in class @code{MODE_CC}.  Normally, it will be @code{CCmode}.  If
 additional modes are required (as for the add example mentioned above in
-the Sparc), define the macro @code{EXTRA_CC_MODES} to list the
+the SPARC), define the macro @code{EXTRA_CC_MODES} to list the
 additional modes required (@pxref{Condition Code}).  Also define
 @code{SELECT_CC_MODE} to choose a mode given an operand of a compare.
 
@@ -3511,7 +3575,7 @@ be specified at that time.
 If the cases that require different modes would be made by instruction
 combination, the macro @code{SELECT_CC_MODE} determines which machine
 mode should be used for the comparison result.  The patterns should be
-written using that mode.  To support the case of the add on the Sparc
+written using that mode.  To support the case of the add on the SPARC
 discussed above, we have the pattern
 
 @smallexample
@@ -3525,7 +3589,7 @@ discussed above, we have the pattern
   "@dots{}")
 @end smallexample
 
-The @code{SELECT_CC_MODE} macro on the Sparc returns @code{CC_NOOVmode}
+The @code{SELECT_CC_MODE} macro on the SPARC returns @code{CC_NOOVmode}
 for comparisons whose argument is a @code{plus}.
 
 @node Looping Patterns
@@ -3533,7 +3597,7 @@ for comparisons whose argument is a @code{plus}.
 @cindex looping instruction patterns
 @cindex defining looping instruction patterns
 
-Some machines have special jump instructions that can be utilised to
+Some machines have special jump instructions that can be utilized to
 make loops more efficient.  A common example is the 68000 @samp{dbra}
 instruction which performs a decrement of a register and a branch if the
 result was greater than zero.  Other machines, in particular digital
@@ -3663,6 +3727,14 @@ be supplied.
 For these operators, if only one operand is a @code{neg}, @code{not},
 @code{mult}, @code{plus}, or @code{minus} expression, it will be the
 first operand.
+
+@item
+In combinations of @code{neg}, @code{mult}, @code{plus}, and
+@code{minus}, the @code{neg} operations (if any) will be moved inside
+the operations as far as possible.  For instance, 
+@code{(neg (mult A B))} is canonicalized as @code{(mult (neg A) B)}, but
+@code{(plus (mult (neg A) B) C)} is canonicalized as
+@code{(minus A (mult B C))}.
 
 @cindex @code{compare}, canonicalization of
 @item
@@ -4142,7 +4214,7 @@ instruction is always valid, as compiler expect identical behavior of new
 jump.  When new sequence contains multiple jump instructions or new labels,
 more assistance is needed.  Splitter is required to create only unconditional
 jumps, or simple conditional jump instructions.  Additionally it must attach a
-@code{REG_BR_PROB} note to each conditional jump. An global variable
+@code{REG_BR_PROB} note to each conditional jump.  A global variable
 @code{split_branch_probability} hold the probability of original branch in case
 it was an simple conditional jump, @minus{}1 otherwise.  To simplify
 recomputing of edge frequencies, new sequence is required to have only
@@ -4225,7 +4297,7 @@ For example:
 
 @end smallexample
 
-Where @var{pathname} is a string that specifies the the location of the file,
+Where @var{pathname} is a string that specifies the location of the file,
 specifies the include file to be in @file{gcc/config/target/filestuff}. The
 directory @file{gcc/config/target} is regarded as the default directory.
 
@@ -5246,12 +5318,12 @@ branch is true, we might represent this as follows:
 @cindex RISC
 @cindex VLIW
 
-To achieve better productivity most modern processors
+To achieve better performance, most modern processors
 (super-pipelined, superscalar @acronym{RISC}, and @acronym{VLIW}
 processors) have many @dfn{functional units} on which several
 instructions can be executed simultaneously.  An instruction starts
 execution if its issue conditions are satisfied.  If not, the
-instruction is interlocked until its conditions are satisfied.  Such
+instruction is stalled until its conditions are satisfied.  Such
 @dfn{interlock (pipeline) delay} causes interruption of the fetching
 of successor instructions (or demands nop instructions, e.g. for some
 MIPS processors).
@@ -5261,7 +5333,7 @@ The first one is a data dependence delay determining @dfn{instruction
 latency time}.  The instruction execution is not started until all
 source data have been evaluated by prior instructions (there are more
 complex cases when the instruction execution starts even when the data
-are not availaible but will be ready in given time after the
+are not available but will be ready in given time after the
 instruction execution start).  Taking the data dependence delays into
 account is simple.  The data dependence (true, output, and
 anti-dependence) delay between two instructions is given by a
@@ -5274,25 +5346,25 @@ of delay into account is complex especially for modern @acronym{RISC}
 processors.
 
 The task of exploiting more processor parallelism is solved by an
-instruction scheduler.  For better solution of this problem, the
+instruction scheduler.  For a better solution to this problem, the
 instruction scheduler has to have an adequate description of the
-processor parallelism (or @dfn{pipeline description}).  Currently GCC
-has two ways to describe processor parallelism.  The first one is old
-and originated from instruction scheduler written by Michael Tiemann
-and described in the first subsequent section.  The second one was
-created later.  It is based on description of functional unit
-reservations by processor instructions with the aid of @dfn{regular
-expressions}.  This is so called @dfn{automaton based description}.
+processor parallelism (or @dfn{pipeline description}).  Currently GCC 
+provides two alternative ways to describe processor parallelism,
+both described below.  The first method is outlined in the next section;
+it was once the only method provided by GCC, and thus is used in a number
+of exiting ports.  The second, and preferred method, specifies functional
+unit reservations for groups of instructions with the aid of @dfn{regular
+expressions}.  This is called the @dfn{automaton based description}.	
 
-Gcc instruction scheduler uses a @dfn{pipeline hazard recognizer} to
+The GCC instruction scheduler uses a @dfn{pipeline hazard recognizer} to
 figure out the possibility of the instruction issue by the processor
-on given simulated processor cycle.  The pipeline hazard recognizer is
-a code generated from the processor pipeline description.  The
+on a given simulated processor cycle.  The pipeline hazard recognizer is
+automatically generated from the processor pipeline description.  The
 pipeline hazard recognizer generated from the automaton based
-description is more sophisticated and based on deterministic finite
+description is more sophisticated and based on a deterministic finite
 state automaton (@acronym{DFA}) and therefore faster than one
-generated from the old description.  Also its speed is not depended on
-processor complexity.  The instruction issue is possible if there is
+generated from the old description.  Furthermore, its speed is not dependent
+on processor complexity.  The instruction issue is possible if there is
 a transition from one automaton state to another one.
 
 You can use any model to describe processor pipeline characteristics
@@ -5442,16 +5514,16 @@ in such processors and suggestions for their representation.
 @cindex automaton based pipeline description
 
 This section describes constructions of the automaton based processor
-pipeline description.  The order of all mentioned below constructions
-in the machine description file is not important.
+pipeline description.  The order of constructions within the machine
+description file is not important.
 
 @findex define_automaton
 @cindex pipeline hazard recognizer
 The following optional construction describes names of automata
 generated and used for the pipeline hazards recognition.  Sometimes
 the generated finite state automaton used by the pipeline hazard
-recognizer is large.  If we use more one automaton and bind functional
-units to the automata, the summary size of the automata usually is
+recognizer is large.  If we use more than one automaton and bind functional
+units to the automata, the total size of the automata is usually 
 less than the size of the single automaton.  If there is no one such
 construction, only one finite state automaton is generated.
 
@@ -5461,12 +5533,12 @@ construction, only one finite state automaton is generated.
 
 @var{automata-names} is a string giving names of the automata.  The
 names are separated by commas.  All the automata should have unique names.
-The automaton name is used in construction @code{define_cpu_unit} and
+The automaton name is used in the constructions @code{define_cpu_unit} and
 @code{define_query_cpu_unit}.
 
 @findex define_cpu_unit
 @cindex processor functional units
-Each processor functional unit used in description of instruction
+Each processor functional unit used in the description of instruction
 reservations should be described by the following construction.
 
 @smallexample
@@ -5477,7 +5549,7 @@ reservations should be described by the following construction.
 separated by commas.  Don't use name @samp{nothing}, it is reserved
 for other goals.
 
-@var{automaton-name} is a string giving the name of automaton with
+@var{automaton-name} is a string giving the name of the automaton with
 which the unit is bound.  The automaton should be described in
 construction @code{define_automaton}.  You should give
 @dfn{automaton-name}, if there is a defined automaton.
@@ -5500,14 +5572,14 @@ templates).
 @var{unit-names} is a string giving names of the functional units
 separated by commas.
 
-@var{automaton-name} is a string giving name of the automaton with
+@var{automaton-name} is a string giving the name of the automaton with
 which the unit is bound.
 
 @findex define_insn_reservation
 @cindex instruction latency time
 @cindex regular expressions
 @cindex data bypass
-The following construction is major one to describe pipeline
+The following construction is the major one to describe pipeline
 characteristics of an instruction.
 
 @smallexample
@@ -5519,18 +5591,18 @@ characteristics of an instruction.
 instruction.  There is an important difference between the old
 description and the automaton based pipeline description.  The latency
 time is used for all dependencies when we use the old description.  In
-the automaton based pipeline description, given latency time is used
-only for true dependencies.  The cost of anti-dependencies is always
+the automaton based pipeline description, the given latency time is only
+used for true dependencies.  The cost of anti-dependencies is always
 zero and the cost of output dependencies is the difference between
 latency times of the producing and consuming insns (if the difference
-is negative, the cost is considered to be zero).  You always can
-change the default costs for any description by using target hook
+is negative, the cost is considered to be zero).  You can always
+change the default costs for any description by using the target hook
 @code{TARGET_SCHED_ADJUST_COST} (@pxref{Scheduling}).
 
-@var{insn-names} is a string giving internal name of the insn.  The
+@var{insn-name} is a string giving the internal name of the insn.  The
 internal names are used in constructions @code{define_bypass} and in
 the automaton description file generated for debugging.  The internal
-name has nothing common with the names in @code{define_insn}.  It is a
+name has nothing in common with the names in @code{define_insn}.  It is a
 good practice to use insn classes described in the processor manual.
 
 @var{condition} defines what RTL insns are described by this
@@ -5545,7 +5617,7 @@ contain @code{symbol_ref}).  It is also not checked during the
 pipeline hazard recognizer work because it would slow down the
 recognizer considerably.
 
-@var{regexp} is a string describing reservation of the cpu functional
+@var{regexp} is a string describing the reservation of the cpu's functional
 units by the instruction.  The reservations are described by a regular
 expression according to the following syntax:
 
@@ -5613,7 +5685,7 @@ the common part by the following construction
 @var{reservation-name} is a string giving name of @var{regexp}.
 Functional unit names and reservation names are in the same name
 space.  So the reservation names should be different from the
-functional unit names and can not be reserved name @samp{nothing}.
+functional unit names and can not be the reserved name @samp{nothing}.
 
 @findex define_bypass
 @cindex instruction latency time
@@ -5631,11 +5703,11 @@ given in string @var{out_insn_names} will be ready for the
 instructions given in string @var{in_insn_names}.  The instructions in
 the string are separated by commas.
 
-@var{guard} is an optional string giving name of a C function which
+@var{guard} is an optional string giving the name of a C function which
 defines an additional guard for the bypass.  The function will get the
 two insns as parameters.  If the function returns zero the bypass will
 be ignored for this case.  The additional guard is necessary to
-recognize complicated bypasses, e.g. when consumer is only an address
+recognize complicated bypasses, e.g. when the consumer is only an address
 of insn @samp{store} (not a stored value).
 
 @findex exclusion_set
@@ -5680,7 +5752,7 @@ it is symmetric).  For example, it is useful for description that
 @acronym{VLIW} @samp{slot0} can not be reserved after @samp{slot1} or
 @samp{slot2} reservation.
 
-All functional units mentioned in a set should belong the same
+All functional units mentioned in a set should belong to the same
 automaton.
 
 @findex automata_option
@@ -5700,8 +5772,8 @@ code.  Currently there are the following options:
 @itemize @bullet
 @item
 @dfn{no-minimization} makes no minimization of the automaton.  This is
-only worth to do when we are going to query CPU functional unit
-reservations in an automaton state.
+only worth to do when we are debugging the description and need to
+look more accurately at reservations of states.
 
 @item
 @dfn{time} means printing additional time statistics about
@@ -5734,7 +5806,7 @@ the following functional units.
 
 @smallexample
 (define_cpu_unit "i0_pipeline, i1_pipeline, f_pipeline")
-(define_cpu_unit "port_0, port1")
+(define_cpu_unit "port0, port1")
 @end smallexample
 
 All simple integer insns can be executed in any integer pipeline and
@@ -5746,26 +5818,26 @@ pipeline and their results are ready correspondingly in 8 and 4
 cycles.  The integer division is not pipelined, i.e. the subsequent
 integer division insn can not be issued until the current division
 insn finished.  Floating point insns are fully pipelined and their
-results are ready in 3 cycles.  There is also additional one cycle
-delay in the usage by integer insns of result produced by floating
-point insns.  To describe all of this we could specify
+results are ready in 3 cycles.  Where the result of a floating point
+insn is used by an integer insn, an additional delay of one cycle is
+incurred.  To describe all of this we could specify
 
 @smallexample
 (define_cpu_unit "div")
 
-(define_insn_reservation "simple" 2 (eq_attr "cpu" "int")
-                         "(i0_pipeline | i1_pipeline), (port_0 | port1)")
+(define_insn_reservation "simple" 2 (eq_attr "type" "int")
+                         "(i0_pipeline | i1_pipeline), (port0 | port1)")
 
-(define_insn_reservation "mult" 4 (eq_attr "cpu" "mult")
-                         "i1_pipeline, nothing*2, (port_0 | port1)")
+(define_insn_reservation "mult" 4 (eq_attr "type" "mult")
+                         "i1_pipeline, nothing*2, (port0 | port1)")
 
-(define_insn_reservation "div" 8 (eq_attr "cpu" "div")
-                         "i1_pipeline, div*7, div + (port_0 | port1)")
+(define_insn_reservation "div" 8 (eq_attr "type" "div")
+                         "i1_pipeline, div*7, div + (port0 | port1)")
 
-(define_insn_reservation "float" 3 (eq_attr "cpu" "float")
-                         "f_pipeline, nothing, (port_0 | port1))
+(define_insn_reservation "float" 3 (eq_attr "type" "float")
+                         "f_pipeline, nothing, (port0 | port1))
 
-(define_bypass 4 "float" "simple,mut,div")
+(define_bypass 4 "float" "simple,mult,div")
 @end smallexample
 
 To simplify the description we could describe the following reservation
@@ -5778,7 +5850,7 @@ and use it in all @code{define_insn_reservation} as in the following
 construction
 
 @smallexample
-(define_insn_reservation "simple" 2 (eq_attr "cpu" "int")
+(define_insn_reservation "simple" 2 (eq_attr "type" "int")
                          "(i0_pipeline | i1_pipeline), finish")
 @end smallexample
 
@@ -5821,17 +5893,18 @@ The interface to the pipeline hazard recognizer is more complex than
 one to the automaton based pipeline recognizer.
 
 @item
-An unnatural description when you write an unit and a condition which
+An unnatural description when you write a unit and a condition which
 selects instructions using the unit.  Writing all unit reservations
 for an instruction (an instruction class) is more natural.
 
 @item
-The recognition of the interlock delays has slow implementation.  GCC
+The recognition of the interlock delays has a slow implementation.  The GCC
 scheduler supports structures which describe the unit reservations.
-The more processor has functional units, the slower pipeline hazard
-recognizer.  Such implementation would become slower when we enable to
+The more functional units a processor has, the slower its pipeline hazard
+recognizer will be.  Such an implementation would become even slower when we
+allowed to
 reserve functional units not only at the instruction execution start.
-The automaton based pipeline hazard recognizer speed is not depended
+In an automaton based pipeline hazard recognizer, speed is not dependent
 on processor complexity.
 @end itemize
 

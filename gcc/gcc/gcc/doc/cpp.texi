@@ -6,10 +6,10 @@
 @c @cropmarks
 @c @finalout
 
-@macro copyrightnotice
+@copying
 @c man begin COPYRIGHT
 Copyright @copyright{} 1987, 1989, 1991, 1992, 1993, 1994, 1995, 1996,
-1997, 1998, 1999, 2000, 2001, 2002
+1997, 1998, 1999, 2000, 2001, 2002, 2003
 Free Software Foundation, Inc.
 
 Permission is granted to copy, distribute and/or modify this document
@@ -23,9 +23,7 @@ section entitled ``GNU Free Documentation License''.
 man page gfdl(7).
 @c man end
 @end ignore
-@end macro
 
-@macro covertexts
 @c man begin COPYRIGHT
 This manual contains no Invariant Sections.  The Front-Cover Texts are
 (a) (see below), and the Back-Cover Texts are (b) (see below).
@@ -40,7 +38,7 @@ This manual contains no Invariant Sections.  The Front-Cover Texts are
      software.  Copies published by the Free Software Foundation raise
      funds for GNU development.
 @c man end
-@end macro
+@end copying
 
 @macro gcctabopt{body}
 @code{\body\}
@@ -70,8 +68,7 @@ This manual contains no Invariant Sections.  The Front-Cover Texts are
 @c There is a fill at the bottom of the page, so we need a filll to
 @c override it.
 @vskip 0pt plus 1filll
-@copyrightnotice{}
-@covertexts{}
+@insertcopying
 @end titlepage
 @contents
 @page
@@ -180,8 +177,7 @@ Obsolete Features
 @end detailmenu
 @end menu
 
-@copyrightnotice{}
-@covertexts{}
+@insertcopying
 @end ifnottex
 
 @node Overview
@@ -381,8 +377,9 @@ comment.
 @end group
 @end example
 
-Comments are not recognized within string literals.  @t{@w{"/* blah
-*/"}} is the string constant @samp{@w{/* blah */}}, not an empty string.
+Comments are not recognized within string literals.  
+@t{@w{"/* blah */"}} is the string constant @samp{@w{/* blah */}}, not
+an empty string.
 
 Line comments are not in the 1989 edition of the C standard, but they
 are recognized by GCC as an extension.  In C++ and in the 1999 edition
@@ -823,11 +820,22 @@ version of GCC in use.
 
 You can add to this list with the @option{-I@var{dir}} command line
 option.  All the directories named by @option{-I} are searched, in
-left-to-right order, @emph{before} the default directories.  You can
-also prevent GCC from searching any of the default directories with the
-@option{-nostdinc} option.  This is useful when you are compiling an
+left-to-right order, @emph{before} the default directories.  The only
+exception is when @file{dir} is already searched by default.  In
+this case, the option is ignored and the search order for system
+directories remains unchanged.
+
+Duplicate directories are removed from the quote and bracket search
+chains before the two chains are merged to make the final search chain.
+Thus, it is possible for a directory to occur twice in the final search
+chain if it was specified in both the quote and bracket chains.
+
+You can prevent GCC from searching any of the default directories with
+the @option{-nostdinc} option.  This is useful when you are compiling an
 operating system kernel or some other program that does not use the
 standard C library facilities, or the standard C library itself.
+@option{-I} options are not ignored as described above when
+@option{-nostdinc} is in effect.
 
 GCC looks for headers requested with @code{@w{#include "@var{file}"}}
 first in the directory containing the current file, then in the same
@@ -835,12 +843,6 @@ places it would have looked for a header requested with angle brackets.
 For example, if @file{/usr/include/sys/stat.h} contains
 @code{@w{#include "types.h"}}, GCC looks for @file{types.h} first in
 @file{/usr/include/sys}, then in its usual search path.
-
-If you name a search directory with @option{-I@var{dir}} that is also a
-system include directory, the @option{-I} wins; the directory will be
-searched according to the @option{-I} ordering, and it will not be
-treated as a system include directory. GCC will warn you when a system
-include directory is hidden in this way.
 
 @samp{#line} (@pxref{Line Control}) does not change GCC's idea of the
 directory containing the current file.
@@ -1074,8 +1076,8 @@ found in that directory will be considered system headers.
 All directories named by @option{-isystem} are searched @emph{after} all
 directories named by @option{-I}, no matter what their order was on the
 command line.  If the same directory is named by both @option{-I} and
-@option{-isystem}, @option{-I} wins; it is as if the @option{-isystem} option
-had never been specified at all. GCC warns you when this happens.
+@option{-isystem}, the @option{-I} option is ignored.  GCC provides an
+informative message when this occurs if @option{-v} is used.
 
 @findex #pragma GCC system_header
 There is also a directive, @code{@w{#pragma GCC system_header}}, which
@@ -1730,7 +1732,7 @@ predefined macros, but you cannot undefine them.
 @subsection Standard Predefined Macros
 @cindex standard predefined macros.
 
-The standard predefined macros are specified by the C and/or C++
+The standard predefined macros are specified by the relevant
 language standards, so they are available with all compilers that
 implement those standards.  Older compilers may not provide all of
 them.  Their names all start with double underscores.
@@ -1817,9 +1819,7 @@ conformance to the C Standard.  CPP follows the host convention when
 processing system header files, but when processing user files
 @code{__STDC__} is always 1.  This has been reported to cause problems;
 for instance, some versions of Solaris provide X Windows headers that
-expect @code{__STDC__} to be either undefined or 1.  You may be able to
-work around this sort of problem by using an @option{-I} option to
-cancel treatment of those headers as system headers.  @xref{Invocation}.
+expect @code{__STDC__} to be either undefined or 1.  @xref{Invocation}.
 
 @item __STDC_VERSION__
 This macro expands to the C Standard's version number, a long integer
@@ -1850,6 +1850,15 @@ that it expands to a version number.  A fully conforming implementation
 of the 1998 C++ standard will define this macro to @code{199711L}.  The
 GNU C++ compiler is not yet fully conforming, so it uses @code{1}
 instead.  We hope to complete our implementation in the near future.
+
+@item __OBJC__
+This macro is defined, with value 1, when the Objective-C compiler is in
+use.  You can use @code{__OBJC__} to test whether a header is compiled
+by a C compiler or a Objective-C compiler.
+
+@item __ASSEMBLER__
+This macro is defined with value 1 when preprocessing assembly
+language.
 
 @end table
 
@@ -1912,11 +1921,6 @@ calculate a single number, then compare that against a threshold:
 @noindent
 Many people find this form easier to understand.
 
-@item __OBJC__
-This macro is defined, with value 1, when the Objective-C compiler is in
-use.  You can use @code{__OBJC__} to test whether a header is compiled
-by a C compiler or a Objective-C compiler.
-
 @item __GNUG__
 The GNU C++ compiler defines this.  Testing it is equivalent to
 testing @code{@w{(__GNUC__ && __cplusplus)}}.
@@ -1940,6 +1944,9 @@ depth of nesting in include files.  The value of this macro is
 incremented on every @samp{#include} directive and decremented at the
 end of every included file.  It starts out at 0, it's value within the
 base file specified on the command line.
+
+@item __ELF__
+This macro is defined if the target uses the ELF object format.
 
 @item __VERSION__
 This macro expands to a string constant which describes the version of
@@ -1968,6 +1975,10 @@ GCC defines this macro if and only if the data type @code{char} is
 unsigned on the target machine.  It exists to cause the standard header
 file @file{limits.h} to work correctly.  You should not use this macro
 yourself; instead, refer to the standard macros defined in @file{limits.h}.
+
+@item __WCHAR_UNSIGNED__
+Like @code{__CHAR_UNSIGNED__}, this macro is defined if and only if the
+data type @code{wchar_t} is unsigned and the front-end is in C++ mode.
 
 @item __REGISTER_PREFIX__
 This macro expands to a single token (not a string constant) which is
@@ -1999,14 +2010,41 @@ typedefs, respectively.  They exist to make the standard header files
 these macros directly; instead, include the appropriate headers and use
 the typedefs.
 
+@item __CHAR_BIT__
+Defined to the number of bits used in the representation of the
+@code{char} data type.  It exists to make the standard header given
+numerical limits work correctly.  You should not use
+this macro directly; instead, include the appropriate headers.
+
+@item __SCHAR_MAX__
+@itemx __WCHAR_MAX__
+@itemx __SHRT_MAX__
+@itemx __INT_MAX__
+@itemx __LONG_MAX__
+@itemx __LONG_LONG_MAX__
+Defined to the maximum value of the @code{signed char}, @code{wchar_t}, 
+@code{signed short},
+@code{signed int}, @code{signed long}, and @code{signed long long} types
+respectively.  They exist to make the standard header given numerical limits
+work correctly.  You should not use these macros directly; instead, include
+the appropriate headers.
+
 @item __USING_SJLJ_EXCEPTIONS__
 This macro is defined, with value 1, if the compiler uses the old
 mechanism based on @code{setjmp} and @code{longjmp} for exception
 handling.
 
 @item __NEXT_RUNTIME__
-This macro is defined, with value 1, when the NeXT runtime
-(as in @option{-fnext-runtime}) is in use for Objective-C.
+This macro is defined, with value 1, if (and only if) the NeXT runtime
+(as in @option{-fnext-runtime}) is in use for Objective-C.  If the GNU
+runtime is used, this macro is not defined, so that you can use this
+macro to determine which runtime (NeXT or GNU) is being used.
+
+@item __LP64__
+@item _LP64
+These macros are defined, with value 1, if (and only if) the compilation
+is for a target where @code{long int} and pointer both use 64-bits and
+@code{int} uses 32-bit.
 @end table
 
 @node System-specific Predefined Macros
@@ -3578,11 +3616,11 @@ including extensions, with the exception that the effects of
 __STDC__ is not defined.
 
 @item
-If you use digraphs the behaviour is undefined.
+If you use digraphs the behavior is undefined.
 
 @item
 If a line that looks like a directive appears within macro arguments,
-the behaviour is undefined.
+the behavior is undefined.
 
 @end itemize
 
@@ -3751,7 +3789,7 @@ The standard requires at least 15 levels.
 The C standard mandates this be at least 63.  CPP is limited only by
 available memory.
 
-@item Levels of parenthesised expressions within a full expression.
+@item Levels of parenthesized expressions within a full expression.
 
 The C standard requires this to be at least 63.  In preprocessor
 conditional expressions, it is limited only by available memory.
@@ -3864,9 +3902,9 @@ answers.  Subsequent assertions do not override previous ones for the
 same predicate.  All the answers for any given predicate are
 simultaneously true.
 
-@cindex assertions, cancelling
+@cindex assertions, canceling
 @findex #unassert
-Assertions can be cancelled with the @samp{#unassert} directive.  It
+Assertions can be canceled with the @samp{#unassert} directive.  It
 has the same syntax as @samp{#assert}.  In that form it cancels only the
 answer which was specified on the @samp{#unassert} line; other answers
 for that predicate remain true.  You can cancel an entire predicate by
@@ -3950,7 +3988,7 @@ GCC 3.0 evaluates @samp{#} and @samp{##} at the same time and strictly
 left to right.  Older versions evaluated all @samp{#} operators first,
 then all @samp{##} operators, in an unreliable order.
 
-@item The form of whitespace betwen tokens in preprocessor output
+@item The form of whitespace between tokens in preprocessor output
 
 @xref{Preprocessor Output}, for the current textual format.  This is
 also the format used by stringification.  Normally, the preprocessor

@@ -1,4 +1,4 @@
-@c Copyright (C) 2002
+@c Copyright (C) 2002, 2003
 @c Free Software Foundation, Inc.
 @c This is part of the GCC manual.
 @c For copying conditions, see the file gcc.texi.
@@ -72,6 +72,10 @@ immediately contains the current structure.
 @item %0
 This expands to an expression that evaluates to the outermost structure
 that contains the current structure.
+@item %a
+This expands to the string of the form @code{[i1][i2]...} that indexes
+the array item currently being marked.  For instance, if the field
+being marked is @code{foo}, then @code{%1.foo%a} is the same as @code{%h}.
 @end table
 
 The available options are:
@@ -95,18 +99,21 @@ option is a fragment of C code that calculates the length.
 
 The second case is when a structure or a global variable contains a
 pointer to an array, like this:
-@verbatim
-  tree * GTY ((length ("%h.regno_pointer_align_length"))) regno_decl;
-@end verbatim
+@smallexample
+tree *
+  GTY ((length ("%h.regno_pointer_align_length"))) regno_decl;
+@end smallexample
 In this case, @code{regno_decl} has been allocated by writing something like
-@verbatim
-  x->regno_decl = ggc_alloc (x->regno_pointer_align_length * sizeof (tree));
-@end verbatim
+@smallexample
+  x->regno_decl =
+    ggc_alloc (x->regno_pointer_align_length * sizeof (tree));
+@end smallexample
 and the @code{length} provides the length of the field.
 
 This second use of @code{length} also works on global variables, like:
 @verbatim
-static GTY((length ("reg_base_value_size"))) rtx *reg_base_value;
+  static GTY((length ("reg_base_value_size")))
+    rtx *reg_base_value;
 @end verbatim
 
 @findex skip
@@ -118,32 +125,34 @@ field really isn't ever used.
 
 @findex desc
 @findex tag
-@findex always
+@findex default
 @item desc
 @itemx tag
-@itemx always
+@itemx default
 
 The type machinery needs to be told which field of a @code{union} is
 currently active.  This is done by giving each field a constant @code{tag}
 value, and then specifying a discriminator using @code{desc}.  For example,
-@verbatim
+@smallexample
 struct tree_binding GTY(())
-{
+@{
   struct tree_common common;
-  union tree_binding_u {
+  union tree_binding_u @{
     tree GTY ((tag ("0"))) scope;
     struct cp_binding_level * GTY ((tag ("1"))) level;
-  } GTY ((desc ("BINDING_HAS_LEVEL_P ((tree)&%0)"))) scope;
+  @} GTY ((desc ("BINDING_HAS_LEVEL_P ((tree)&%0)"))) scope;
   tree value;
-};
-@end verbatim
+@};
+@end smallexample
 
 In the @code{desc} option, the ``current structure'' is the union that
 it discriminates.  Use @code{%1} to mean the structure containing it.
 (There are no escapes available to the @code{tag} option, since it's
 supposed to be a constant.)
 
-You can use @code{always} to mean that this field is always used.
+Each @code{tag} should be different.  If no @code{tag} is matched,
+the field marked with @code{default} is used if there is one, otherwise
+no field in the union will be marked.
 
 @findex param_is
 @findex use_param
@@ -151,14 +160,38 @@ You can use @code{always} to mean that this field is always used.
 @itemx use_param
 
 Sometimes it's convenient to define some data structure to work on
-generic pointers (that is, @code{PTR}), and then use it with specific types.
-@code{param_is} specifies the real type pointed to, and @code{use_param}
-says where in the generic data structure that type should be put.
+generic pointers (that is, @code{PTR}) and then use it with a specific
+type.  @code{param_is} specifies the real type pointed to, and
+@code{use_param} says where in the generic data structure that type
+should be put.
 
 For instance, to have a @code{htab_t} that points to trees, one should write
 @verbatim
   htab_t GTY ((param_is (union tree_node))) ict;
 @end verbatim
+
+@findex param@var{n}_is
+@findex use_param@var{n}
+@item param@var{n}_is
+@itemx use_param@var{n}
+
+In more complicated cases, the data structure might need to work on
+several different types, which might not necessarily all be pointers.
+For this, @code{param1_is} through @code{param9_is} may be used to
+specify the real type of a field identified by @code{use_param1} through
+@code{use_param9}.
+
+@findex use_params
+@item use_params
+
+When a structure contains another structure that is parameterized,
+there's no need to do anything special, the inner structure inherits the
+parameters of the outer one.  When a structure contains a pointer to a
+parameterized structure, the type machinery won't automatically detect
+this (it could, it just doesn't yet), so it's necessary to tell it that
+the pointed-to structure should use the same parameters as the outer
+structure.  This is done by marking the pointer with the
+@code{use_params} option.
 
 @findex deletable
 @item deletable
