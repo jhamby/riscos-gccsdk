@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/errlist.c,v $
- * $Date: 2003/06/07 02:30:22 $
- * $Revision: 1.7 $
+ * $Date: 2003/06/19 23:58:25 $
+ * $Revision: 1.8 $
  * $State: Exp $
  * $Author: joty $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: errlist.c,v 1.7 2003/06/07 02:30:22 joty Exp $";
+static const char rcs_id[] = "$Id: errlist.c,v 1.8 2003/06/19 23:58:25 joty Exp $";
 #endif
 
 #include <string.h>
@@ -117,7 +117,8 @@ const char *sys_errlist[__SYS_NERR + 1] =
   "Shared library exec format error",		/* ELIBNOEXEC */
   "Function not implemented",			/* ENOSYS */
   "RISC OS error",				/* EOPSYS */
-  "Signal Received"				/* as flagged by SIG_ERR */
+  "Signal Received",				/* ESIG, as flagged by SIG_ERR */
+  "Invalid multibyte sequence"			/* EILSEQ */
 };
 
 char *

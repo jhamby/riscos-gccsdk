@@ -1,3 +1,8 @@
+Sat May 01 23:33:35 2004  John Tytgat  <John.Tytgat@aaug.net>
+
+	* source/clib/errno.h: Added EILSEQ.
+	* source/sys/errlist.c: Likewise.
+
 Wed Apr 21 20:42:11 2004  Alex Waugh  <alex@alexwaugh.com>
 
 	* clib/fcntl.h: Don't define O_BINARY or O_TEXT if _POSIX_SOURCE.

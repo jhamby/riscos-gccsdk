@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/errno.h,v $
- * $Date: 2003/01/05 12:36:35 $
- * $Revision: 1.7 $
+ * $Date: 2003/06/19 23:58:24 $
+ * $Revision: 1.8 $
  * $State: Exp $
- * $Author: admin $
+ * $Author: joty $
  *
  ***************************************************************************/
 
@@ -130,8 +130,9 @@ extern struct {
 
 #define EOPSYS		88 /* RISC OS operating system error.  */
 #define ESIG		89
+#define EILSEQ		90 /* Invalid multibyte sequence.  */
 
-#define __SYS_NERR	89
+#define __SYS_NERR	90
 
 #ifdef __UNIXLIB_INTERNALS
 /* This macro should be used whenever errno is to be set. This permits
