@@ -1,8 +1,8 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/signal/_signal.s,v $
-; $Date: 2003/06/16 21:00:33 $
-; $Revision: 1.13 $
+; $Date: 2003/06/23 20:33:03 $
+; $Revision: 1.15 $
 ; $State: Exp $
 ; $Author: joty $
 ;
@@ -28,6 +28,7 @@
 	IMPORT	|__pthread_enable_ints|
 	IMPORT	|__pthread_running_thread|
 	IMPORT	|__pthread_worksemaphore|
+	IMPORT  |__write_unrecoverable|
 	IMPORT	|exit|
 
 
@@ -387,11 +388,10 @@ unrecoverable_error
 	; Bit 31-was set, therefore it was a hardware error.
 
 	; Print the error
-	ADR	a1, unrecoverable_error_msg
-	SWI	XOS_Write0
-	ADD	a1, a2, #4		; Write out __ul_errbuf_errblock+4
-	SWI	XOS_Write0
-	SWI	XOS_NewLine
+        STMFD   sp!, {a1-a4}
+        ADD     a1, a2, #4
+        BL      __write_unrecoverable
+        LDMFD   sp!, {a1-a4}
 
 	; Test the type of hardware error.  We currently aren't doing
 	; much other than saying it was a Floating Point Exception
@@ -424,9 +424,6 @@ unrecoverable_error
 
 	MOV	a1, #EXIT_FAILURE
 	B	exit	; There is nowhere to go if the signal handler returns
-
-unrecoverable_error_msg
-	DCB	13, 10, "Unrecoverable error received:", 13, 10, "  ", 0
 
 ;-----------------------------------------------------------------------
 ; Escape handler (1-290).

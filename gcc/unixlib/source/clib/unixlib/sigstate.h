@@ -1,10 +1,10 @@
 /****************************************************************************
  *
- * $Source$
- * $Date$
- * $Revision$
- * $State$
- * $Author$
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/unixlib/sigstate.h,v $
+ * $Date: 2002/09/24 21:02:37 $
+ * $Revision: 1.4 $
+ * $State: Exp $
+ * $Author: admin $
  *
  ***************************************************************************/
 
@@ -64,11 +64,8 @@ extern void __unixlib_exec_sigstack_bsd (void *__sp, __sighandler_t, int);
 extern void __unixlib_exec_sigstack (void *__sp, int size, __sighandler_t, int);
 extern void __unixlib_default_sigaction (struct unixlib_sigstate *);
 
-/* Writes a friendly error message depending on whether the signal
-   produces a core dump or just terminates.  */
-extern int __write_corefile (int __signo);
-extern void __write_termination (int __signo);
-
+/* Helper C function for signal handler */
+void __write_unrecoverable(const char *errmess);
 
 /* SIGALRM handler.  */
 extern void __h_sigalrm_init (void);

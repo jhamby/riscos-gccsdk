@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/signal/post.c,v $
- * $Date: 2003/06/07 02:30:22 $
- * $Revision: 1.8 $
+ * $Date: 2003/06/19 23:58:25 $
+ * $Revision: 1.9 $
  * $State: Exp $
  * $Author: joty $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: post.c,v 1.8 2003/06/07 02:30:22 joty Exp $";
+static const char rcs_id[] = "$Id: post.c,v 1.9 2003/06/19 23:58:25 joty Exp $";
 #endif
 
 /* signal.c.post: Written by Nick Burrett, 27 August 1996.  */
@@ -111,7 +111,23 @@ int *__backtrace_getfp(void);
 extern int __calling_environment[17][3];
 extern int * __ul_errfp;
 
-static int valid_address(int *lower, int *upper)
+
+void
+__write_unrecoverable(const char *errmess)
+{
+  fprintf(stderr, "\nUnrecoverable error received:\n%s\n", errmess);
+}
+
+
+static void
+write_termination(int signo)
+{
+   fprintf(stderr, "\nTermination signal received: %s\n", sys_siglist[signo]);
+}
+
+
+static int
+valid_address(int *lower, int *upper)
 {
   int flags;
 
@@ -263,7 +279,7 @@ post_signal (struct unixlib_sigstate *ss, int signo)
   int ss_suspended;
 
   /* 0 is the special signo used for posting any pending signals.  */
-  if (signo == 0)
+  if (signo == 0)   
     goto post_pending;
 
 post_signal:
@@ -396,10 +412,8 @@ post_signal:
 	__os_print ("post_signal: term/core\r\n");
 #endif
 	if (act == term)
-	  __write_termination (signo);
-	else if (act == core && __write_corefile (signo))
 	  {
-	    __write_termination (signo);
+	    write_termination (signo);
           }
 	else if (act == core && write_backtrace (signo))
 	  status |= WCOREFLAG;

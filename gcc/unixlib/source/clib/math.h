@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/math.h,v $
- * $Date: 2003/05/18 17:05:17 $
- * $Revision: 1.6 $
+ * $Date: 2003/12/29 19:02:38 $
+ * $Revision: 1.7 $
  * $State: Exp $
- * $Author: alex $
+ * $Author: peter $
  *
  ***************************************************************************/
 
@@ -171,6 +171,7 @@ extern long lround (double __x) __attribute__ ((__const__));
 
 #ifdef __GNUC__
 /* Nearest integer to X, away from 0 as a long long.  */
+__extension__
 extern long long llround (double __x) __attribute__ ((__const__));
 #endif
 
@@ -382,11 +383,13 @@ extern double log2 (double __x) __attribute__ ((__const__));
 /* Round x to the nearest integral.  */
 extern long int lrint (double __x) __attribute__ ((__const__));
 #ifdef __GNUC__
+__extension__
 extern long long int llrint (double __x) __attribute__ ((__const__));
 #endif
 
 extern long int lrintf (float __x) __attribute__ ((__const__));
 #ifdef __GNUC__
+__extension__
 extern long long int llrintf (float __x) __attribute__ ((__const__));
 #endif
 
