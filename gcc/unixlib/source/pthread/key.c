@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/pthread/key.c,v $
- * $Date: 2002/12/15 13:16:55 $
- * $Revision: 1.1 $
+ * $Date: 2003/05/07 22:10:27 $
+ * $Revision: 1.2 $
  * $State: Exp $
- * $Author: admin $
+ * $Author: alex $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: key.c,v 1.1 2002/12/15 13:16:55 admin Exp $";
+static const char rcs_id[] = "$Id: key.c,v 1.2 2003/05/07 22:10:27 alex Exp $";
 #endif
 
 /* Thread specific keys */
@@ -104,7 +104,7 @@ int
 pthread_setspecific (pthread_key_t key, const void *value)
 {
   struct __pthread_key *keylist;
-  struct __pthread_key *newkey;
+  struct __pthread_key *findkey;
 
   __pthread_disable_ints ();
 
@@ -119,20 +119,29 @@ pthread_setspecific (pthread_key_t key, const void *value)
       return EINVAL;
     }
 
-  newkey = malloc (sizeof (struct __pthread_key));
-  if (newkey == NULL)
+  /* Check to see if it's already set for this thread */
+  findkey = __pthread_running_thread->keys;
+  while (findkey != NULL && findkey->keyid != key)
+    findkey = findkey->next;
+
+  if (findkey == NULL)
     {
-      __pthread_enable_ints ();
-      return ENOMEM;
+      findkey = malloc (sizeof (struct __pthread_key));
+      if (findkey == NULL)
+      {
+        __pthread_enable_ints ();
+        return ENOMEM;
+      }
+
+      /* Add key to list for this thread */
+      findkey->next = __pthread_running_thread->keys;
+      __pthread_running_thread->keys = findkey;
+
+      findkey->keyid = key;
     }
 
-  newkey->keyid = key;
-  newkey->value.constvalue = value;
-  newkey->destructor = keylist->destructor;
-
-  /* Add key to list for this thread */
-  newkey->next = __pthread_running_thread->keys;
-  __pthread_running_thread->keys = newkey;
+  findkey->value.constvalue = value;
+  findkey->destructor = keylist->destructor;
 
   __pthread_enable_ints ();
   return 0;

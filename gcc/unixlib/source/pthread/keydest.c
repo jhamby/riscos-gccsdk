@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/pthread/keydest.c,v $
- * $Date: 2002/12/15 13:16:55 $
- * $Revision: 1.1 $
+ * $Date: 2003/05/07 22:10:27 $
+ * $Revision: 1.2 $
  * $State: Exp $
- * $Author: admin $
+ * $Author: alex $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: keydest.c,v 1.1 2002/12/15 13:16:55 admin Exp $";
+static const char rcs_id[] = "$Id: keydest.c,v 1.2 2003/05/07 22:10:27 alex Exp $";
 #endif
 
 /* Written by Alex Waugh */
@@ -25,14 +25,14 @@ void
 __pthread_key_calldestructors (void)
 {
   struct __pthread_key *key;
-  int trys = 0;
+  int tries = 0;
 
   while ((key = __pthread_running_thread->keys) != NULL)
     {
       __pthread_running_thread->keys = key->next;
-      if (key->value.nonconst != NULL && key->destructor != NULL && trys < PTHREAD_DESTRUCTOR_ITERATIONS)
+      if (key->value.nonconst != NULL && key->destructor != NULL && tries < PTHREAD_DESTRUCTOR_ITERATIONS)
         {
-          trys++;
+          tries++;
           key->destructor (key->value.nonconst);
         }
       free (key);

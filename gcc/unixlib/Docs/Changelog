@@ -1,3 +1,12 @@
+Mon Jan 24 16:44:19 2005  Peter Naulls  <peter@chocky.org>
+
+	* source/regexp/regex2.h, source/regexp/regfree.c,
+	  source/regexp/utils.h: Added: regfree() support.
+	* source/pthread/key.c: Reuse key structure if it's already
+	  allocated for a given ID.
+	* source/pthread/keydest.c: Fix spelling.
+	* source/pthread/lock.c: Return EBUSY when trying for a lock.
+
 Sun Jan 23 21:27:23 2005  John Tytgat  <John.Tytgat@aaug.net>
 
 	* source/clib/features.h: More constify __program_name, ___program_name,

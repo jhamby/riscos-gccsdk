@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/pthread/lock.c,v $
- * $Date: 2003/04/05 12:42:28 $
- * $Revision: 1.2 $
+ * $Date: 2003/04/28 12:07:02 $
+ * $Revision: 1.3 $
  * $State: Exp $
  * $Author: alex $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: lock.c,v 1.2 2003/04/05 12:42:28 alex Exp $";
+static const char rcs_id[] = "$Id: lock.c,v 1.3 2003/04/28 12:07:02 alex Exp $";
 #endif
 
 /* Common routines shared by the mutex, rwlock and cond functions */
@@ -177,7 +177,7 @@ __pthread_lock_lock (pthread_mutex_t *mutex, const enum __pthread_locktype type,
       if (mutex->attr.type == PTHREAD_MUTEX_ERRORCHECK)
         {
           __pthread_enable_ints ();
-          return EDEADLK;
+          return trylock ? EBUSY : EDEADLK;
         }
       else
         {
