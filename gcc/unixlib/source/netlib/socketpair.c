@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/netlib/socketpair.c,v $
- * $Date: 2003/04/28 21:04:36 $
- * $Revision: 1.2 $
+ * $Date: 2003/05/25 21:46:22 $
+ * $Revision: 1.3 $
  * $State: Exp $
  * $Author: alex $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: socketpair.c,v 1.2 2003/04/28 21:04:36 alex Exp $";
+static const char rcs_id[] = "$Id: socketpair.c,v 1.3 2003/05/25 21:46:22 alex Exp $";
 #endif
 
 
@@ -29,7 +29,7 @@ int    protocol;
 int    fd[2];
        {
        int     listen_socket;
-       struct sockaddr_in sin[2];
+       struct sockaddr_in s_in[2];
        int     len;
 
        /* The following is only valid if type == SOCK_STREAM */
@@ -43,18 +43,18 @@ int    fd[2];
                perror("creating listen_socket");
                return -1;
                }
-       sin[0].sin_family = af;
-       sin[0].sin_port = 0; /* Use any port number */
-       sin[0].sin_addr = inet_makeaddr(INADDR_ANY, 0);
-       if (bind(listen_socket, (const struct sockaddr *)&sin[0], sizeof(sin[0])) < 0)
+       s_in[0].sin_family = af;
+       s_in[0].sin_port = 0; /* Use any port number */
+       s_in[0].sin_addr = inet_makeaddr(INADDR_ANY, 0);
+       if (bind(listen_socket, (const struct sockaddr *)&s_in[0], sizeof(s_in[0])) < 0)
                {
                perror("bind");
                return -1;
                }
-       len = sizeof(sin[0]);
+       len = sizeof(s_in[0]);
 
        /* Read the port number we got, so that our client can connect to it */
-       if (getsockname(listen_socket, (struct sockaddr *)&sin[0], (socklen_t *)&len) < 0)
+       if (getsockname(listen_socket, (struct sockaddr *)&s_in[0], (socklen_t *)&len) < 0)
                {
                perror("getsockname");
                return -1;
@@ -77,15 +77,15 @@ int    fd[2];
 
        /* Put the client socket in non-blocking connecting mode */
        fcntl(fd[1], F_SETFL, fcntl(fd[1], F_GETFL, 0) | O_NDELAY);
-       if (connect(fd[1], (const struct sockaddr *)&sin[0], sizeof(sin[0])) < 0)
+       if (connect(fd[1], (const struct sockaddr *)&s_in[0], sizeof(s_in[0])) < 0)
                {
                perror("connect");
                return -1;
                }
 
        /* At the listen-side, accept the incoming connection we generated */
-       len = sizeof(sin[1]);
-       if ((fd[0] = accept(listen_socket, (struct sockaddr *)&sin[1], (socklen_t *)&len)) < 0)
+       len = sizeof(s_in[1]);
+       if ((fd[0] = accept(listen_socket, (struct sockaddr *)&s_in[1], (socklen_t *)&len)) < 0)
                {
                perror("accept");
                return -1;

@@ -1,7 +1,7 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/math/c/j0,v $
- * $Date: 2000/06/10 08:57:26 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/math/j0.c,v $
+ * $Date: 2001/01/29 15:10:19 $
  * $Revision: 1.2 $
  * $State: Exp $
  * $Author: admin $
@@ -9,7 +9,7 @@
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: j0,v 1.2 2000/06/10 08:57:26 admin Exp $";
+static const char rcs_id[] = "$Id: j0.c,v 1.2 2001/01/29 15:10:19 admin Exp $";
 #endif
 
 /* @(#)e_j0.c 5.1 93/09/24 */
@@ -68,6 +68,8 @@ static const char rcs_id[] = "$Id: j0,v 1.2 2000/06/10 08:57:26 admin Exp $";
  *         by the method mentioned above.
  *      3. Special cases: y0(0)=-inf, y0(x<0)=NaN, y0(inf)=0.
  */
+
+#undef __UNIXLIB_INTERNALS
 
 #include <stdlib.h>
 #include <math.h>

@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/common/objattr.c,v $
- * $Date: 2003/06/16 23:09:08 $
- * $Revision: 1.3 $
+ * $Date: 2003/10/06 19:00:00 $
+ * $Revision: 1.4 $
  * $State: Exp $
  * $Author: joty $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: objattr.c,v 1.3 2003/06/16 23:09:08 joty Exp $";
+static const char rcs_id[] = "$Id: objattr.c,v 1.4 2003/10/06 19:00:00 joty Exp $";
 #endif
 
 #include <errno.h>
@@ -20,7 +20,7 @@ static const char rcs_id[] = "$Id: objattr.c,v 1.3 2003/06/16 23:09:08 joty Exp 
 #include <unixlib/local.h>
 #include <unixlib/swiparams.h>
 
-/* Get an objects filetype, object type, etc and do some common checks.
+/* Get an object's filetype, object type, etc and do some common checks.
    Returns nonzero and sets errno on error. Returns riscosified filename
    in __buffer. objtype, ftype, etc may be NULL if not needed. */
 int
@@ -77,9 +77,9 @@ __object_get_attrs (const char *ux_file, char *buffer, size_t buf_len,
     *attr = regs[5];
 
   /* Fail if file doesn't exist or (if specified) filetype is different.  */
-  if (regs[0] == 0
-      || (regs[0] == 1 || regs[0] == 3 && __get_feature_imagefs_is_file ())
-         && sftype != __RISCOSIFY_FILETYPE_NOTFOUND && sftype != aftype)
+  if (regs[0] == 0 ||
+    ((regs[0] == 1 || (regs[0] == 3 && __get_feature_imagefs_is_file ())) &&
+      sftype != __RISCOSIFY_FILETYPE_NOTFOUND && sftype != aftype))
     return __set_errno (ENOENT);
 
   return 0;

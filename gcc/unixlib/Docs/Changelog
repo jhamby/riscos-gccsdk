@@ -1,3 +1,11 @@
+Mon Dec 29 18:59:40 2003  Peter Naulls  <peter@chocky.org>
+
+	* source/alloc.c, source/memchr.c, source/qsort.c, source/clib/math.h,
+	  source/common/objattr.c, source/common/serial.c, source/common/stat.c,
+	  source/locale/setlocale.c, source/math/j0.c, source/math/jn.c,
+	  source/netlib/inet_ntoa.c, source/netlib/shutdown.c,
+	  source/netlib/socketpair.c: Remove warnings
+
 Mon Dec 29 17:51:43 2003  Peter Naulls  <peter@chocky.org>
 
 	* source/math/modf.c, source/math/modff.c, source/netlib/ntop.c,

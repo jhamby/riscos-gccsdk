@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source$
- * $Date$
- * $Revision$
- * $State$
- * $Author$
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/qsort.c,v $
+ * $Date: 2003/01/21 17:54:22 $
+ * $Revision: 1.5 $
+ * $State: Exp $
+ * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id$";
+static const char rcs_id[] = "$Id: qsort.c,v 1.5 2003/01/21 17:54:22 admin Exp $";
 #endif
 
 #include <unixlib/unix.h>
@@ -81,7 +81,8 @@ __qsort (register char *b, register size_t n)
   register size_t z = __z;
   register int (*c) (const void *, const void *) = __c;
   register char *m, *e, *p, *t;
-  register int i, j, k;
+  register size_t i, j;
+  register int k;
 
 #define swap(x,y) (memcpy(t,x,z),memcpy(x,y,z),memcpy(y,t,z))
 

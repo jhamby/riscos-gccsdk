@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/math.h,v $
- * $Date: 2002/11/26 21:52:07 $
- * $Revision: 1.5 $
+ * $Date: 2003/05/18 17:05:17 $
+ * $Revision: 1.6 $
  * $State: Exp $
- * $Author: admin $
+ * $Author: alex $
  *
  ***************************************************************************/
 
@@ -240,9 +240,11 @@ extern double logb (double __x) __attribute__ ((__const__));
 
 extern double significand (double __x) __attribute__ ((__const__));
 
+#ifndef __UNIXLIB_INTERNALS
 /* Bessel function of the first and second kinds of order zero.  */
 extern double j0 (double __x) __attribute__ ((__const__));
 extern double y0 (double __x) __attribute__ ((__const__));
+#endif
 
 /* Bessel function of the first and second kinds of order one.  */
 extern double j1 (double __x) __attribute__ ((__const__));

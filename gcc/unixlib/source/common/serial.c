@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/common/serial.c,v $
- * $Date: 2002/02/14 15:56:35 $
- * $Revision: 1.3 $
+ * $Date: 2003/06/16 23:09:08 $
+ * $Revision: 1.4 $
  * $State: Exp $
- * $Author: admin $
+ * $Author: joty $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: serial.c,v 1.3 2002/02/14 15:56:35 admin Exp $";
+static const char rcs_id[] = "$Id: serial.c,v 1.4 2003/06/16 23:09:08 joty Exp $";
 #endif
 
 #include <stddef.h>
@@ -61,7 +61,7 @@ __get_file_ino (const char *directory, const char *filename)
       name = tmp;
     }
   else
-    name = (char *) filename;	/* It's okay, we won't be modifying name.  */
+    name = (char *)(int) filename;	/* It's okay, we won't be modifying name.  */
 
   /* Need to canonicalise even when canonical dir passed in, as readdir
      generates entries . and .., which map to @ and ^

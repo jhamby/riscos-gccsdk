@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source$
- * $Date$
- * $Revision$
- * $State$
- * $Author$
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/math/jn.c,v $
+ * $Date: 2002/12/22 18:22:28 $
+ * $Revision: 1.3 $
+ * $State: Exp $
+ * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id$";
+static const char rcs_id[] = "$Id: jn.c,v 1.3 2002/12/22 18:22:28 admin Exp $";
 #endif
 
 /* @(#)e_jn.c 5.1 93/09/24 */
@@ -49,6 +49,8 @@ static const char rcs_id[] = "$Id$";
  *      values of n>1.
  *
  */
+
+#undef __UNIXLIB_INTERNALS
 
 #include <math.h>
 #include <unixlib/math.h>

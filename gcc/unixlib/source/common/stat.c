@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/common/stat.c,v $
- * $Date: 2003/08/15 13:56:31 $
- * $Revision: 1.6 $
+ * $Date: 2003/08/18 22:35:36 $
+ * $Revision: 1.7 $
  * $State: Exp $
  * $Author: joty $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: stat.c,v 1.6 2003/08/15 13:56:31 joty Exp $";
+static const char rcs_id[] = "$Id: stat.c,v 1.7 2003/08/18 22:35:36 joty Exp $";
 #endif
 
 #include <time.h>
@@ -124,12 +124,12 @@ __stat (int objtype, int loadaddr, int execaddr, int length, int attr, struct st
 
   if ((((unsigned int) loadaddr) >> 20) == 0xfff)	/* date stamped file */
     {
-      time_t time;
+      time_t filetime;
 
-      time = __cvt_riscos_time ((unsigned int)(loadaddr & 0xff),
-				(unsigned int)execaddr);
+      filetime = __cvt_riscos_time ((unsigned int)(loadaddr & 0xff),
+                                    (unsigned int)execaddr);
 
-      buf->st_atime = buf->st_mtime = buf->st_ctime = time;
+      buf->st_atime = buf->st_mtime = buf->st_ctime = filetime;
     }
   else
     buf->st_atime = buf->st_mtime = buf->st_ctime = 0;

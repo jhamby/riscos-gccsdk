@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source$
- * $Date$
- * $Revision$
- * $State$
- * $Author$
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/locale/setlocale.c,v $
+ * $Date: 2003/01/21 17:54:22 $
+ * $Revision: 1.5 $
+ * $State: Exp $
+ * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id$";
+static const char rcs_id[] = "$Id: setlocale.c,v 1.5 2003/01/21 17:54:22 admin Exp $";
 #endif
 
 /* Locale support. Written by Nick Burrett, 20 July 1997.  */
@@ -143,7 +143,7 @@ char *setlocale (int category, const char *locale)
 
       /* Set all name pointers to the argument name.  */
       for (category = 0; category < LC_ALL; ++category)
-	newnames[category] = (char *) locale;
+	newnames[category] = (char *)(int) locale;
 
       /* Encode the locale string, as we will be returning this
 	 later.  Remember, setlocale returns the locale settings
@@ -155,7 +155,7 @@ char *setlocale (int category, const char *locale)
       if (strchr (locale, ';') != NULL)
 	{
 	  /* This is a composite name, split it up.  */
-	  char *np = (char *)locale;
+	  char *np = (char *)(int) locale;
 	  char *cp;
 	  int cnt;
 
