@@ -1,3 +1,8 @@
+Mon May  3 18:32:45 2004  James Bursa  <james@semichrome.net>
+
+	* unix/dev.c: Fix for fopen() then subsequent fread() on a directory
+	  returning nonsense.
+
 Sat May 01 23:33:35 2004  John Tytgat  <John.Tytgat@aaug.net>
 
 	* source/clib/errno.h: Added EILSEQ.

@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/dev.c,v $
- * $Date: 2003/10/12 21:23:27 $
- * $Revision: 1.16 $
+ * $Date: 2003/10/26 13:34:34 $
+ * $Revision: 1.17 $
  * $State: Exp $
  * $Author: joty $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: dev.c,v 1.16 2003/10/12 21:23:27 joty Exp $";
+static const char rcs_id[] = "$Id: dev.c,v 1.17 2003/10/26 13:34:34 joty Exp $";
 #endif
 
 /* #define DEBUG */
@@ -459,8 +459,10 @@ __fsread (struct __unixlib_fd *file_desc, void *data, int nbyte)
 
       if (readdir_r ((DIR *) file_desc->handle, &entry, &result))
 	return -1;
+      if (!result)
+        return -1;
       memcpy (data, entry.d_name, entry.d_namlen);
-      return (nbyte - entry.d_namlen);
+      return entry.d_namlen;
     }
   else
     {
