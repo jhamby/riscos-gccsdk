@@ -61,13 +61,16 @@ LIB = \
 	$(bobj)/lib/xmalloc.o \
 	$(bobj)/lib/xstrndup.o
 
-all:	dirs $(bin_dir)/bison$(exesfx)
+all:	dirs $(bin_dir)/bison$(exesfx) $(info_dir)/bison
 
 dirs:
 	mkdir -p $(bobj) $(bobj)/lib
 
 $(bin_dir)/bison$(exesfx):	$(OBJS) $(LIB)
 	$(CROSS_CC) -o $@ $(OBJS) $(LIB) -L$(objdir)/libiberty/$(STAGE) -liberty
+
+$(info_dir)/bison:	doc/bison.texinfo doc/fdl.texi doc/gpl.texi doc/version.texi
+	makeinfo --no-split --number-sections doc/bison.texinfo -o $@ -I doc
 
 scan-gram.c: scan-gram.l
 	flex -t -o$@ scan-gram.l > $@
