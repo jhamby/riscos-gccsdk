@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/uname.c,v $
- * $Date: 2001/09/04 16:32:04 $
- * $Revision: 1.2.2.2 $
+ * $Date: 2002/02/14 15:56:39 $
+ * $Revision: 1.3 $
  * $State: Exp $
  * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: uname.c,v 1.2.2.2 2001/09/04 16:32:04 admin Exp $";
+static const char rcs_id[] = "$Id: uname.c,v 1.3 2002/02/14 15:56:39 admin Exp $";
 #endif
 
 #include <errno.h>
@@ -22,30 +22,36 @@ static const char rcs_id[] = "$Id: uname.c,v 1.2.2.2 2001/09/04 16:32:04 admin E
 
 /* Try and extract the help version from the module help string.  */
 static void
-extract_module_version (char *version, const void *module_base)
+extract_module_version (char *version, size_t max, const void *module_base)
 {
-  char *help_string;
+  unsigned int help_offset;
 
   /* Write default value.  */
+  if (max < sizeof ("1.0"))
+    return;
   strcpy (version, "1.0");
 
   if (module_base == NULL)
     return;
 
-  help_string = (char *)module_base + ((unsigned int*)module_base)[5];
-
-  if (help_string)
+  /* Is there a help string ?  */
+  if ((help_offset = ((const unsigned int *)module_base)[5]) != 0)
     {
+      const char *help_string;
+
+      help_string = (const char *)module_base + help_offset;
+
       help_string = strchr (help_string, '\t');
       if (help_string)
-	{
-	  ++help_string;
-	  if (help_string[0] == '\t')
-	    ++help_string;
-	  while (*help_string && *help_string != ' ')
-	    *version++ = *help_string++;
-	  *version = '\0';
-	}
+        {
+          /* According the the spec, only one or two TABs may be used.
+             This is a little bit more foolproof.  */
+          while (*++help_string == '\t')
+            ;
+          while (*help_string != '\0' && *help_string != ' ' && max-- > 1)
+            *version++ = *help_string++;
+          *version = '\0';
+        }
     }
 }
 
@@ -64,7 +70,7 @@ uname (struct utsname *name)
   if (gethostname (name->nodename, sizeof (name->nodename)) < 0)
     {
       if (errno != ENAMETOOLONG)
-	return -1;
+        return -1;
       /* The name was truncated, so zero terminate.  */
       (void) __set_errno (save);
       name->nodename[sizeof (name->nodename) - 1] = '\0';
@@ -85,22 +91,33 @@ uname (struct utsname *name)
     regs[3] = 0;
 
   /* Release level of the operating system.  */
-  extract_module_version (name->release, (void *) regs[3]);
+  extract_module_version (name->release, sizeof (name->release), (const void *) regs[3]);
 
   /* Version level within the release of the operating system.
-     Default to 1.0 unless ROMPatches exists.  */
-
-  /* Get the module number of ROMPatches (if it exists).
-     OS_Module will return this value in regs[1].  */
-  regs[0] = 18;
-  regs[1] = (int)"ROMPatches";
-  if (__os_swi (OS_Module, regs) != NULL)
+     - First try to figure out the RISC OS "part number".
+     - If that fails, figure out if ROMPatches exists and take its version
+       number.
+     - If that fails too, default to "1.0".  */
+  regs[0] = 9;
+  regs[1] = 1;
+  if (__os_swi (OS_ReadSysInfo, regs) == NULL)
     {
-      /* ROMPatches doesn't exist.  */
-      regs[3] = 0;
+      /* Is in the form : "##########-###" potentionally followed by
+         a dash and a comment.  We're not interested in the latter.  */
+      strncpy (name->version, (const char *) regs[0], 12);
+      name->version[12] = '\0';
     }
+  else
+    {
+      /* Get the module number of ROMPatches (if it exists).
+         OS_Module will return this value in regs[1].  */
+      regs[0] = 18;
+      regs[1] = (int)"ROMPatches";
+      if (__os_swi (OS_Module, regs) != NULL)
+        regs[3] = 0;
 
-  extract_module_version (name->version, (void *) regs[3]);
+      extract_module_version (name->version, sizeof (name->version), (const void *) regs[3]);
+    }
 
   return 0;
 }

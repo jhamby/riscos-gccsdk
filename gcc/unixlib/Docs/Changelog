@@ -1,3 +1,7 @@
+Sun Jun  6 13:22:36 2004  John Tytgat  <John.Tytgat@aaug.net>
+
+	* source/unix/uname.c: support for extracting RISC OS part number.
+
 Sat Jun  5 21:49:35 2004  John Tytgat  <John.Tytgat@aaug.net>
 
 	* source/netlib/inet_ntoa.c (inet_ntoa): sprintf() used incorrect
