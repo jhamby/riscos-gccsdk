@@ -11,6 +11,12 @@ FPBIT_FLAGS=-DFINE_GRAINED_LIBRARIES -I. -I../../include -I../gcc -I../gcc/confi
 
 libobjdir=$(objdir)/gcc-$(VERSION)/libgcc/$(STAGE)/$(TRG)
 
+COMMON = $(libobjdir)/divsi3.o \
+        $(libobjdir)/modsi3.o \
+        $(libobjdir)/umodsi3.o \
+        $(libobjdir)/udivsi3.o \
+	$(libobjdir)/div0.o
+
 LIB2ADDEH = $(libobjdir)/unwind-dw2.o \
 	$(libobjdir)/unwind-dw2-fde.o \
 	$(libobjdir)/unwind-sjlj.o
@@ -112,7 +118,7 @@ FP_BIT_SINGLE = $(libobjdir)/pack_sf.o \
 
 all:	$(ux_gcc_bin_dir)/$(TRG)/libgcc.o $(ro_gcc_bin_dir)/$(TRG)/o/libgcc
 
-LIBGCC_OBJS = $(LIB2FUNCS_1) $(LIB2FUNCS_2) \
+LIBGCC_OBJS = $(COMMON) $(LIB2FUNCS_1) $(LIB2FUNCS_2) \
 	$(LIB2FUNCS_EXTRA) $(FP_BIT_DOUBLE) $(FP_BIT_SINGLE) $(LIB2ADDEH)
 
 $(ux_gcc_bin_dir)/$(TRG)/libgcc.o: $(LIBGCC_OBJS)
