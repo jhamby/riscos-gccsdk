@@ -5,8 +5,8 @@
 # Defs for GCC
 GCC_AS = $(CC) -xassembler-with-cpp -c
 LINK = $(CC) -o $@
-INCLUDES = -I./ -I../ -I../../../include -I../config
-LIBS = -L$(objdir)/libiberty/$(STAGE) -liberty
+INCLUDES = -I./ -I../ -I../../../include -I../config -I../../zlib
+LIBS = -L$(objdir)/libiberty/$(STAGE) -liberty -L$(objdir)/gcc-$(VERSION)/zlib/$(STAGE) -lz
 
 $(gccobjdir)/java/%.o: %.c
 	$(CC) $(CFLAGS) -o $@ -c $< $(INCLUDES)
@@ -29,72 +29,6 @@ RISC_OBJS = $(gccobjdir)/config/arm/riscos_fix.o
 RISCOS_OBJS = $(RISC_OBJS) $(gccobjdir)/config/arm/riscos.o
 endif
 
-# Language-independent object files
-OBJS =	$(gccobjdir)/print-tree.o \
-	$(gccobjdir)/genrtl.o \
-	$(gccobjdir)/stmt.o \
-	$(gccobjdir)/except.o \
-	$(gccobjdir)/calls.o \
-	$(gccobjdir)/expmed.o \
-	$(gccobjdir)/explow.o \
-	$(gccobjdir)/varasm.o \
-	$(gccobjdir)/rtl.o \
-	$(gccobjdir)/print-rtl.o \
-	$(gccobjdir)/rtlanal.o \
-	$(gccobjdir)/emit-rtl.o \
-	$(gccobjdir)/real.o \
-	$(gccobjdir)/regmove.o \
-	$(gccobjdir)/bitmap.o \
-	$(gccobjdir)/alias.o \
-	$(gccobjdir)/integrate.o \
-	$(gccobjdir)/dyn-string.o \
-	$(gccobjdir)/dwarf2out.o \
-	$(gccobjdir)/jump.o \
-	$(gccobjdir)/cse.o \
-	$(gccobjdir)/loop.o \
-	$(gccobjdir)/unroll.o \
-	$(gccobjdir)/flow.o \
-	$(gccobjdir)/stupid.o \
-	$(gccobjdir)/combine.o \
-	$(gccobjdir)/regclass.o \
-	$(gccobjdir)/local-alloc.o \
-	$(gccobjdir)/global.o \
-	$(gccobjdir)/reload.o \
-	$(gccobjdir)/reload1.o \
-	$(gccobjdir)/caller-save.o \
-	$(gccobjdir)/insn-peep.o \
-	$(gccobjdir)/reorg.o \
-	$(gccobjdir)/sched.o \
-	$(gccobjdir)/final.o \
-	$(gccobjdir)/recog.o \
-	$(gccobjdir)/reg-stack.o \
-	$(gccobjdir)/insn-opinit.o \
-	$(gccobjdir)/insn-recog.o \
-	$(gccobjdir)/insn-extract.o \
-	$(gccobjdir)/insn-output.o \
-	$(gccobjdir)/insn-emit.o \
-	$(gccobjdir)/profile.o \
-	$(gccobjdir)/insn-attrtab.o \
-	$(gccobjdir)/aux-output.o \
-	$(gccobjdir)/getpwd.o \
-	$(gccobjdir)/lcm.o \
-	$(gccobjdir)/gcse.o \
-	$(gccobjdir)/sbitmap.o \
-	$(gccobjdir)/varray.o \
-	$(gccobjdir)/graph.o \
-	$(gccobjdir)/hash.o
-
-OBJS1 = $(gccobjdir)/convert.o \
-	$(gccobjdir)/expr.o \
-	$(gccobjdir)/fold-const.o \
-	$(gccobjdir)/function.o \
-	$(gccobjdir)/dbxout.o \
-	$(gccobjdir)/optabs.o \
-	$(gccobjdir)/stor-layout.o \
-	$(gccobjdir)/toplev.o \
-	$(gccobjdir)/tree.o \
-	$(gccobjdir)/version.o
-
 # Language specific object files for GCC/Java
 JAVA_OBJS = $(gccobjdir)/java/parse.o \
 	$(gccobjdir)/java/class.o \
@@ -109,38 +43,50 @@ JAVA_OBJS = $(gccobjdir)/java/parse.o \
 	$(gccobjdir)/java/jcf-io.o \
 	$(gccobjdir)/java/jcf-parse.o \
 	$(gccobjdir)/java/mangle.o \
+	$(gccobjdir)/java/mangle_name.o \
+	$(gccobjdir)/java/builtins.o \
 	$(gccobjdir)/java/jcf-write.o \
 	$(gccobjdir)/java/buffer.o \
 	$(gccobjdir)/java/check-init.o \
 	$(gccobjdir)/java/jcf-depend.o \
 	$(gccobjdir)/java/jcf-path.o \
-	$(gccobjdir)/java/xref.o
+	$(gccobjdir)/java/xref.o \
+	$(gccobjdir)/java/boehm.o \
+	$(gccobjdir)/mkdeps.o
 
-JAVA_OBJS_LITE = $(gccobjdir)/java/parse-scan.o \
-	$(gccobjdir)/java/jv-scan.o
+JVSCAN_OBJS = $(gccobjdir)/java/parse-scan.o \
+	$(gccobjdir)/java/jv-scan.o \
+	$(gccobjdir)/version.o
 
 JCF_DUMP_OBJS = $(gccobjdir)/java/jcf-dump.o \
 	$(gccobjdir)/java/jcf-io.o \
 	$(gccobjdir)/java/jcf-depend.o \
 	$(gccobjdir)/java/jcf-path.o \
-	$(gccobjdir)/java/zextract.o
+	$(gccobjdir)/java/zextract.o \
+	$(gccobjdir)/errors.o \
+	$(gccobjdir)/version.o \
+	$(gccobjdir)/mkdeps.o
 
 JVGENMAIN_OBJS = $(gccobjdir)/java/jvgenmain.o \
-	$(gccobjdir)/java/mangle.o
+	$(gccobjdir)/java/mangle_name.o \
+	$(gccobjdir)/errors.o
 
 GCJH_OBJS = $(gccobjdir)/java/gjavah.o \
 	$(gccobjdir)/java/jcf-io.o \
 	$(gccobjdir)/java/jcf-depend.o \
 	$(gccobjdir)/java/jcf-path.o \
-	$(gccobjdir)/java/zextract.o
+	$(gccobjdir)/java/zextract.o \
+	$(gccobjdir)/version.o \
+	$(gccobjdir)/mkdeps.o \
+	$(gccobjdir)/errors.o
 
 
 # The real targets
-$(gcc_bin_dir)/jc1$(gexesfx): $(JAVA_OBJS) $(OBJS) $(OBJS1) $(RISCOS_OBJS)
-	$(LINK) $(JAVA_OBJS) $(OBJS) $(OBJS1) $(RISCOS_OBJS) $(LIBDEPS) $(LIBS)
+$(gcc_bin_dir)/jc1$(gexesfx): $(JAVA_OBJS) $(BACKEND) $(RISCOS_OBJS)
+	$(LINK) $(JAVA_OBJS) $(BACKEND) $(RISCOS_OBJS) $(LIBDEPS) $(LIBS)
 
-$(gcc_bin_dir)/jv-scan$(gexesfx): $(JAVA_OBJS_LITE)
-	$(LINK) $(JAVA_OBJS_LITE) $(LIBDEPS) $(LIBS)
+$(gcc_bin_dir)/jv-scan$(gexesfx): $(JVSCAN_OBJS)
+	$(LINK) $(JVSCAN_OBJS) $(LIBDEPS) $(LIBS)
 
 $(gcc_bin_dir)/jcf-dump$(gexesfx): $(JCF_DUMP_OBJS)
 	$(LINK) $(JCF_DUMP_OBJS) $(LIBDEPS) $(LIBS)
@@ -153,12 +99,23 @@ $(gcc_bin_dir)/gcjh$(gexesfx): $(GCJH_OBJS)
 
 ##############################################################################
 
+parse.c: parse.y
+	bison -t --name-prefix=java_ -o $@ parse.y
+
+parse-scan.c: parse-scan.y
+	bison -o $@ parse-scan.y
+
+keyword.h: keyword.gperf
+	gperf -L C -C -F ', 0' -p -t -j1 -i 1 -g -o -N java_keyword -k1,4,$$ keyword.gperf > $@
+
 $(gccobjdir)/java/jcf-path.o: jcf-path.c
 	$(CC) $(CFLAGS) $(INCLUDES) -O2 -o $@ -c jcf-path.c -DLIBGCJ_ZIP_FILE=\"libgcj.zip\"
 
 
 # Dependencies
+$(gccobjdir)/java/boehm.o: boehm.c
 $(gccobjdir)/java/buffer.o: buffer.c
+$(gccobjdir)/java/builtins.o: builtins.c
 $(gccobjdir)/java/check-init.o: check-init.c
 $(gccobjdir)/java/class.o: class.c
 $(gccobjdir)/java/constants.o: constants.c
@@ -179,6 +136,7 @@ $(gccobjdir)/java/jvspec.o: jvspec.c
 $(gccobjdir)/java/lang.o: lang.c
 $(gccobjdir)/java/lex.o: lex.c
 $(gccobjdir)/java/mangle.o: mangle.c
+$(gccobjdir)/java/mangle_name.o: mangle_name.c
 $(gccobjdir)/java/parse.o: parse.c
 $(gccobjdir)/java/parse-scan.o: parse-scan.c
 $(gccobjdir)/java/typeck.o: typeck.c

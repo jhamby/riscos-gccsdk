@@ -7,8 +7,9 @@ export TRG
 libpath=$(objdir)/gcc-$(VERSION)/$@
 gccpath=$(objdir)/gcc-$(VERSION)/$@/$(STAGE)
 
-all:	gcc
+all:	zlib gcc
 
+.PHONY: zlib
 .PHONY: gcc
 .PHONY: libgcc
 .PHONY: libio
@@ -20,6 +21,10 @@ gcc:
 	mkdir -p $(gccpath) $(gccpath)/ada $(gccpath)/cp $(gccpath)/f77 \
 	$(gccpath)/gpc $(gccpath)/objc $(gccpath)/java $(gccpath)/config/arm
 	$(MAKE) -C gcc "STAGE=$(STAGE)"
+
+zlib:
+	mkdir -p $(gccpath)/zlib
+	$(MAKE) -C $@
 
 libgcc:
 	mkdir -p $(libpath)/$(TRG)

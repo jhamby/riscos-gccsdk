@@ -34,73 +34,6 @@ RISC_OBJS = $(gccobjdir)/config/arm/riscos_fix.o
 RISCOS_OBJS = $(RISC_OBJS) $(gccobjdir)/config/arm/riscos.o
 endif
 
-# Language-independent object files
-OBJS =	$(gccobjdir)/print-tree.o \
-	$(gccobjdir)/genrtl.o \
-	$(gccobjdir)/stmt.o \
-	$(gccobjdir)/except.o \
-	$(gccobjdir)/calls.o \
-	$(gccobjdir)/expmed.o \
-	$(gccobjdir)/explow.o \
-	$(gccobjdir)/varasm.o \
-	$(gccobjdir)/rtl.o \
-	$(gccobjdir)/print-rtl.o \
-	$(gccobjdir)/rtlanal.o \
-	$(gccobjdir)/emit-rtl.o \
-	$(gccobjdir)/real.o \
-	$(gccobjdir)/regmove.o \
-	$(gccobjdir)/bitmap.o \
-	$(gccobjdir)/alias.o \
-	$(gccobjdir)/integrate.o \
-	$(gccobjdir)/dyn-string.o \
-	$(gccobjdir)/dwarf2out.o \
-	$(gccobjdir)/jump.o \
-	$(gccobjdir)/cse.o \
-	$(gccobjdir)/loop.o \
-	$(gccobjdir)/unroll.o \
-	$(gccobjdir)/flow.o \
-	$(gccobjdir)/stupid.o \
-	$(gccobjdir)/combine.o \
-	$(gccobjdir)/regclass.o \
-	$(gccobjdir)/local-alloc.o \
-	$(gccobjdir)/global.o \
-	$(gccobjdir)/reload.o \
-	$(gccobjdir)/reload1.o \
-	$(gccobjdir)/caller-save.o \
-	$(gccobjdir)/insn-peep.o \
-	$(gccobjdir)/reorg.o \
-	$(gccobjdir)/sched.o \
-	$(gccobjdir)/final.o \
-	$(gccobjdir)/recog.o \
-	$(gccobjdir)/reg-stack.o \
-	$(gccobjdir)/insn-opinit.o \
-	$(gccobjdir)/insn-recog.o \
-	$(gccobjdir)/insn-extract.o \
-	$(gccobjdir)/insn-output.o \
-	$(gccobjdir)/insn-emit.o \
-	$(gccobjdir)/profile.o \
-	$(gccobjdir)/insn-attrtab.o \
-	$(gccobjdir)/aux-output.o \
-	$(gccobjdir)/getpwd.o \
-	$(gccobjdir)/lcm.o \
-	$(gccobjdir)/gcse.o \
-	$(gccobjdir)/sbitmap.o \
-	$(gccobjdir)/varray.o \
-	$(gccobjdir)/graph.o \
-	$(gccobjdir)/hash.o
-
-OBJS1 = $(gccobjdir)/convert.o \
-	$(gccobjdir)/expr.o \
-	$(gccobjdir)/fold-const.o \
-	$(gccobjdir)/function.o \
-	$(gccobjdir)/dbxout.o \
-	$(gccobjdir)/optabs.o \
-	$(gccobjdir)/stor-layout.o \
-	$(gccobjdir)/toplev.o \
-	$(gccobjdir)/tree.o \
-	$(gccobjdir)/version.o
-
-
 F77_OBJS = $(gccobjdir)/f77/stb.o \
 	$(gccobjdir)/f77/target.o \
 	$(gccobjdir)/f77/symbol.o \
@@ -158,8 +91,8 @@ $(gccobjdir)/f77/fini:	$(gccobjdir)/f77/fini.o $(gccobjdir)/f77/proj.o $(LIBDEPS
 	$(LINK) $(gccobjdir)/f77/fini.o $(gccobjdir)/f77/proj.o \
 	$(LIBDEPS) $(LIBS)
 
-$(gcc_bin_dir)/f771$(gexesfx): $(F77_OBJS) $(OBJS) $(OBJS1) $(BC_OBJS) $(RISCOS_OBJS) $(STR_HEADERS)
-	$(LINK) $(F77_OBJS) $(OBJS) $(OBJS1) $(BC_OBJS) $(RISCOS_OBJS) $(LIBDEPS) $(LIBS)
+$(gcc_bin_dir)/f771$(gexesfx): $(F77_OBJS) $(BACKEND) $(RISCOS_OBJS) $(STR_HEADERS)
+	$(LINK) $(F77_OBJS) $(BACKEND) $(RISCOS_OBJS) $(LIBDEPS) $(LIBS)
 
 ifeq (${STAGE},stage2)
 $(info_dir)/g77:	bugs.texi bugs0.texi ffe.texi g77.texi \

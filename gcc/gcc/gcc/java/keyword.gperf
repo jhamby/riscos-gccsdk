@@ -25,7 +25,15 @@ of Sun Microsystems, Inc. in the United States and other countries.
 The Free Software Foundation is independent of Sun Microsystems, Inc.  */
 
 %}
-struct java_keyword { const char *name; int token; };
+struct java_keyword { const char *const name; const int token; };
+#ifdef __GNUC__
+__inline
+#endif
+static unsigned int hash		PARAMS ((const char *, unsigned int));
+#ifdef __GNUC__
+__inline
+#endif
+const struct java_keyword *java_keyword	PARAMS ((const char *, unsigned int));
 %%
 abstract, ABSTRACT_TK
 default, DEFAULT_TK
@@ -74,6 +82,7 @@ continue, CONTINUE_TK
 goto, GOTO_TK
 package, PACKAGE_TK
 this, THIS_TK
+strictfp, STRICT_TK
 # true, false and null aren't keyword. But we match them easily this way
 true, TRUE_TK
 false, FALSE_TK
