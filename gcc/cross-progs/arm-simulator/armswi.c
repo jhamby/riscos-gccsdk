@@ -2060,7 +2060,7 @@ swi (register WORD ins)
       break;
 
     case FPEmulator_Version:
-      r (0) = 399;
+      r (0) = 400;
       break;
 
     case DDEUtils_Prefix:
