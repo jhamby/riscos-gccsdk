@@ -1,3 +1,8 @@
+Sat Feb 12 13:44:21 2005  Alex Waugh  <alex@alexwaugh.com>
+
+	* source/pthread/_context.s: Disable context switching in
+	  taskwindows, as it doesn't work reliably.
+
 Wed Feb 9 23:13:58 2005  Alex Waugh  <alex@alexwaugh.com>
 
 	* source/unix/select.c (__return_fd_set): Only clear fds that are

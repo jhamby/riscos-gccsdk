@@ -1,10 +1,10 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/pthread/_context.s,v $
-; $Date: 2004/10/17 16:24:44 $
-; $Revision: 1.10 $
+; $Date: 2005/01/03 16:32:29 $
+; $Revision: 1.11 $
 ; $State: Exp $
-; $Author: joty $
+; $Author: alex $
 ;
 ;----------------------------------------------------------------------------
 
@@ -83,10 +83,14 @@
 	; Are we running as WIMP task ?
 	; If we are then we need a filter switching off our ticker when we're
 	; swapped out.
-	LDR	a1, =|__taskhandle|
+;	LDR	a1, =|__taskhandle|
+	LDR	a1, =|__taskwindow|
 	LDR	a4, [a1]
 	TEQ	a4, #0
 	BEQ	|start_ticker_core|
+
+	; Temporarily disable the filter code as it is not stable.
+	LDMFD	sp!, {v1-v2, pc}
 
 	; Install the filter routines (a4 = WIMP taskhandle) :
 	LDR	v2, =|filter_installed|
