@@ -1,8 +1,8 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/unixlib/features.h,v $
- * $Date: 2003/06/07 02:30:22 $
- * $Revision: 1.11 $
+ * $Date: 2003/08/15 13:56:31 $
+ * $Revision: 1.12 $
  * $State: Exp $
  * $Author: joty $
  *
@@ -621,7 +621,7 @@
 /* Default to recognising Image filesystems as directories.  Some programs
    may wish to expose them as files for the purpose of compression
    or direct manipulation of the contents.  Set to one in this case.  */
-extern int __feature_imagefs_is_file; /* Node: this is a weak symbol. */
+extern int __feature_imagefs_is_file; /* Note: this is a weak symbol.  */
 
 #ifdef __UNIXLIB_INTERNALS
 
@@ -640,5 +640,15 @@ extern void __set_feature_imagefs_is_file (int __feature_imagefs_is_file_value);
 #endif
 
 #endif  /* __UNIXLIB_INTERNALS */
+
+/* When defined, the memory pool will be created in the WimpSlot area
+   instead of a dynamica area (on RISC OS versions supporting dynamic
+   area's). Its value is unimportant.  */
+extern int __dynamic_no_da; /* Note: this is a weak symbol.  */
+
+/* When a dynamica area is created as memory pool, __dynamic_da_name can
+   be used to specify its name.  When this variable is not defined, the
+   dynamic area name will be <program name> + "$Heap".  */
+extern const char *__dynamic_da_name; /* Note: this is a weak symbol.  */
 
 #endif

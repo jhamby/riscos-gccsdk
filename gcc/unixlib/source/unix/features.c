@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/features.c,v $
- * $Date: 2003/06/16 23:09:08 $
- * $Revision: 1.5 $
+ * $Date: 2003/08/15 13:56:31 $
+ * $Revision: 1.6 $
  * $State: Exp $
  * $Author: joty $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: features.c,v 1.5 2003/06/16 23:09:08 joty Exp $";
+static const char rcs_id[] = "$Id: features.c,v 1.6 2003/08/15 13:56:31 joty Exp $";
 #endif
 
 /* #define DEBUG 1 */
@@ -18,8 +18,12 @@ static const char rcs_id[] = "$Id: features.c,v 1.5 2003/06/16 23:09:08 joty Exp
 #include <unixlib/unix.h>
 #include <unixlib/local.h>
 
+static const char __sfix_default[] = "a:c:cc:f:h:i:ii:l:o:p:s:y";
+
+static char *get_program_name (const char *cli, char *fname_buf, size_t fname_buf_len);
+
 /* Get the leaf name from the command line used to run the program.  */
-static char *get_program_name (const char *cli, char *fname_buf)
+static char *get_program_name (const char *cli, char *fname_buf, size_t fname_buf_len)
 {
   char *out = fname_buf;
   const char *start, *end;
@@ -43,7 +47,7 @@ static char *get_program_name (const char *cli, char *fname_buf)
 
   /* Copy the program name into 'out'.  It's bounds should now be
      marked out by 'start' and 'end'.  */
-  while (start != end)
+  while (--fname_buf_len && start != end)
     *out++ = *start++;
 
   /* Zero terminate it.  */
@@ -88,9 +92,6 @@ static char *env (const char *program_name, const char *variable,
   return result;
 }
 
-/* Allow string to be writable by not making const.  */
-static char __sfix_default[] = "a:c:cc:f:h:i:ii:l:o:p:s:y";
-
 /* We have to be careful with the string processing because not enough
    of UnixLib will have been initialised to use more powerful functions.  */
 static void features (const char *progname)
@@ -115,5 +116,5 @@ void __runtime_features (const char *cli)
   __sdirinit (); /* Initialise riscosify.  */
 
   features (NULL);
-  features (get_program_name (cli, program_name));
+  features (get_program_name (cli, program_name, sizeof (program_name)));
 }

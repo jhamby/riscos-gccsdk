@@ -1,8 +1,8 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/unixlib/local.h,v $
- * $Date: 2003/06/16 23:09:08 $
- * $Revision: 1.7 $
+ * $Date: 2003/06/17 19:46:23 $
+ * $Revision: 1.8 $
  * $State: Exp $
  * $Author: joty $
  *
@@ -154,7 +154,7 @@ extern int __riscosify_control; /* Note: this is a weak symbol.  */
 
 /* If the filename has a unix-style extension, look up the extension
    using RISC OS MimeMap SWIs and set a filetype.  If the filetype
-   could not be found, use 0xFFF.                                  */
+   could not be found, use 0xFFF.  */
 #define __RISCOSIFY_FILETYPE_NOT_SET    0x4000
 
 /* Mask of acceptable values. Keep other bits zero. Checks may be made.  */

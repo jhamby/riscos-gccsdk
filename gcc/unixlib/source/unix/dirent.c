@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/dirent.c,v $
- * $Date: 2003/04/05 09:33:56 $
- * $Revision: 1.5 $
+ * $Date: 2003/04/06 20:57:28 $
+ * $Revision: 1.6 $
  * $State: Exp $
- * $Author: alex $
+ * $Author: joty $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: dirent.c,v 1.5 2003/04/05 09:33:56 alex Exp $";
+static const char rcs_id[] = "$Id: dirent.c,v 1.6 2003/04/06 20:57:28 joty Exp $";
 #endif
 
 /* #define DEBUG */
@@ -25,6 +25,7 @@ static const char rcs_id[] = "$Id: dirent.c,v 1.5 2003/04/05 09:33:56 alex Exp $
 
 #include <unixlib/unix.h>
 #include <unixlib/os.h>
+#include <unixlib/swiparams.h>
 #include <sys/types.h>
 #include <swis.h>
 
@@ -254,7 +255,7 @@ readdir_r (DIR *stream, struct dirent *entry, struct dirent **result)
   int regs[10];
   int x = 0, slen;
   char *str;
-  int riscosify_ctl = __get_riscosify_control ();
+  const int riscosify_ctl = __get_riscosify_control ();
 
   *result = NULL;
 
@@ -483,11 +484,42 @@ readdir_r (DIR *stream, struct dirent *entry, struct dirent **result)
               filetype = (stream->dir_cache_index->load_address >> 8) & 0xfff;
               if (filetype != 0xfff && str+4 <= end)
                 {
-                  *str++ = ',';
-                  *str++ = "0123456789abcdef"[filetype >> 8];
-                  *str++ = "0123456789abcdef"[(filetype >> 4) & 0xf];
-                  *str++ = "0123456789abcdef"[filetype & 0xf];
-                  *str = '\0';
+                  int ft_extension_needed = 1;
+
+                  if (!(riscosify_ctl & __RISCOSIFY_FILETYPE_NOT_SET))
+                    {
+                      char *fn_extension;
+
+                      for (fn_extension = str - 1;
+                           fn_extension != entry->d_name && *fn_extension != '.';
+                           --fn_extension)
+                        ;
+
+                      if (*fn_extension == '.')
+                        {
+                          _kernel_swi_regs regs;
+
+                          /* We have a filename extension at 'fn_extension'.  */
+                          regs.r[0] = MMM_TYPE_DOT_EXTN; /* Input extension */
+                          regs.r[1] = (int)fn_extension;
+                          regs.r[2] = MMM_TYPE_RISCOS; /* Output extension */
+
+                          /* When there is no MimeMap error and the filetype returned
+                             matches 'filetype', we don't want filetype extension.  */
+                          if (! _kernel_swi (MimeMap_Translate, &regs, &regs)
+                              && regs.r[3] == filetype)
+                            ft_extension_needed = 0;
+                        }
+                    }
+
+                  if (ft_extension_needed)
+                    {
+                      *str++ = ',';
+                      *str++ = "0123456789abcdef"[filetype >> 8];
+                      *str++ = "0123456789abcdef"[(filetype >> 4) & 0xf];
+                      *str++ = "0123456789abcdef"[filetype & 0xf];
+                      *str = '\0';
+                    }
                 }
             }
         }

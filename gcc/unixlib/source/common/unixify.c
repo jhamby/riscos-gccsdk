@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/common/unixify.c,v $
- * $Date: 2002/09/24 21:02:37 $
- * $Revision: 1.4 $
+ * $Date: 2003/08/03 16:32:13 $
+ * $Revision: 1.5 $
  * $State: Exp $
- * $Author: admin $
+ * $Author: joty $
  *
  ***************************************************************************/
 
@@ -262,31 +262,35 @@ __unixify (const char *ro_path, int unixify_flags, char *buffer,
       if ((unixify_flags & __RISCOSIFY_FILETYPE_EXT) != 0
           && filetype != __RISCOSIFY_FILETYPE_NOTSPECIFIED)
         {
-          char *fn_extension;
           int ft_extension_needed = 1;
 
-          /* Check if we don't have a *filename* extension which already maps
-             via MimeMap to the filetype 'filetype'.  If so, no need to
-             add the RISC OS filetype again using *filetype* extension.  */
-          for (fn_extension = out - 1;
-               fn_extension != buffer
-               && *fn_extension != '/' && *fn_extension != '.';
-               --fn_extension)
-            ;
-          if (*fn_extension == '.')
+          if (!(unixify_flags & __RISCOSIFY_FILETYPE_NOT_SET))
             {
-              _kernel_swi_regs regs;
+              char *fn_extension;
 
-              /* We have a filename extension at 'fn_extension'.  */
-              regs.r[0] = MMM_TYPE_DOT_EXTN; /* Input extension */
-              regs.r[1] = (int)fn_extension;
-              regs.r[2] = MMM_TYPE_RISCOS; /* Output extension */
+              /* Check if we don't have a *filename* extension which already maps
+                 via MimeMap to the filetype 'filetype'.  If so, no need to
+                 add the RISC OS filetype again using *filetype* extension.  */
+              for (fn_extension = out - 1;
+                   fn_extension != buffer
+                   && *fn_extension != '/' && *fn_extension != '.';
+                   --fn_extension)
+                ;
+              if (*fn_extension == '.')
+                {
+                  _kernel_swi_regs regs;
 
-              /* When there is no MimeMap error and the filetype returned
-                 matches 'filetype', we don't want filetype extension.  */
-              if (! _kernel_swi (MimeMap_Translate, &regs, &regs)
-                  && regs.r[3] == filetype)
-                ft_extension_needed = 0;
+                  /* We have a filename extension at 'fn_extension'.  */
+                  regs.r[0] = MMM_TYPE_DOT_EXTN; /* Input extension */
+                  regs.r[1] = (int)fn_extension;
+                  regs.r[2] = MMM_TYPE_RISCOS; /* Output extension */
+
+                  /* When there is no MimeMap error and the filetype returned
+                     matches 'filetype', we don't want filetype extension.  */
+                  if (! _kernel_swi (MimeMap_Translate, &regs, &regs)
+                      && regs.r[3] == filetype)
+                    ft_extension_needed = 0;
+                }
             }
 
           if (ft_extension_needed)

@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/common/stat.c,v $
- * $Date: 2003/04/12 11:31:39 $
- * $Revision: 1.5 $
+ * $Date: 2003/08/15 13:56:31 $
+ * $Revision: 1.6 $
  * $State: Exp $
- * $Author: alex $
+ * $Author: joty $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: stat.c,v 1.5 2003/04/12 11:31:39 alex Exp $";
+static const char rcs_id[] = "$Id: stat.c,v 1.6 2003/08/15 13:56:31 joty Exp $";
 #endif
 
 #include <time.h>
@@ -40,8 +40,8 @@ __stat (int objtype, int loadaddr, int execaddr, int length, int attr, struct st
 	   all filetypes are treated as +x except "text" and "data" */
 	switch (loadaddr >> 8)
 	  {
-	    case 0xfffffFFF:	/* Text. */
-	    case 0xfffffFFD:	/* Data. */
+	    case (int)0xfffffFFF:	/* Text. */
+	    case (int)0xfffffFFD:	/* Data. */
 	      break;
 	    default:
 	      /* set any X bits from any set R bits, by masking R bits and then

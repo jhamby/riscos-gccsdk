@@ -1,6 +1,15 @@
                                    UnixLib
                                    =======
 
+The library name UnixLib
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+Don't confuse this library with the UnixLib library provided by RISCOS Ltd.
+RISCOS Ltd.'s UnixLib is part of the TCPIPLibs and also provides a
+lot of Unix function calls like this library does but it is not a
+Run Time library.
+
+
 Run-time features
 ~~~~~~~~~~~~~~~~~
 
@@ -8,10 +17,10 @@ Certain features of UnixLib can be enabled/disabled by defining environment
 variables. These can be applied to all UnixLib based applications running
 on the system, or to specific programs.
 
-To set globally use
+To set globally use:
   *Set UnixEnv$<features>
 
-to set per-program use
+To set per-program use:
   *Set UnixEnv$<program name>$<features>
 
 The list of recognised features are:
@@ -19,7 +28,22 @@ The list of recognised features are:
 1. nonametrans
 
    If set, all file paths and filenames will be used verbatim i.e. without
-   the usual Unix to RISC OS conversions.
+   the usual Unix to RISC OS conversions.  Its value is not important.
+   
+   This corresponds with having the __RISCOSIFY_NO_PROCESS bit in
+   __riscosify_flags set of the __riscosify() routine or having that bit
+   in the WEAK symbol __riscosify_control specified.  See <unixlib/local.h>
+   include file for more information.
+
+2. sfix
+
+   Default: a:c:cc:f:h:i:ii:l:o:p:s:y
+   This defines the list of suffices with will be used to do suffix
+   swapping when suffix swapping is enabled.  Suffix swapping is enabled
+   by default and can be disabled by having the __RISCOSIFY_NO_SUFFIX
+   bit specified in __riscosify_flags of the __riscosify() routine or
+   having that bit specified in the WEAK symbol __riscosify_control.
+   See <unixlib/local.h> include file for more information.
 
 
 Link-time features
@@ -28,11 +52,12 @@ Link-time features
 There are WEAK'ly defined symbols which can be used to control
 certain UnixLib features too.  I.e. those symbols can, but not have to,
 be *defined* outside UnixLib and when they are defined, they will be
-used by the relevant UnixLib functions.
+used by the relevant UnixLib functions.  When they are not defined,
+they have an implicit value 0.
 
 Its intended use is to provoke as less as possible changes in ported
 Unix programs by simply defining an extra RISC OS specific source file
-containing just like e.g. :
+containing just something like e.g. :
 
 ---8<---
 #include <unixlib/local.h>
@@ -40,18 +65,34 @@ containing just like e.g. :
 int __feature_imagefs_is_file = 1;
 ---8<---
 
-List of current WEAK'ly defined symbols :
+The list of current WEAK'ly defined symbols :
 
 1. __riscosify_control
 
 Header file: <unixlib/local.h>, default value 0.
-This symbol will control how riscosify[_std]() processes filenames.
+This symbol controls how riscosify_std() processes filenames and
+that routine is used by UnixLib to convert (nearly) all Unix filenames
+to RISC OS filenames before those filenames are passed on to RISC OS
+itself.
 
 2. __feature_imagefs_is_file
 
 Header file: <unixlib/features.h>, default value 0.
 When non zero, files with filetypes recognized by an active ImageFS will
 be considered as regular files and not as directories.
+
+3. __dynamic_no_da
+
+Header file: <unixlib/features.h>.
+When defined (value is unimportant), no dynamic area will be created
+for the memory pool, even on RISC OS versions supporting dynamic area's.
+
+4. __dynamic_da_name
+
+Header file: <unixlib/features.h>.
+Specifies the dynamic area name when there is one created for keeping
+the memory pool.  When __dynamic_da_name is not defined, the dynamic
+area name will be <program name> + "$Heap".
 
 
 Compile-time features

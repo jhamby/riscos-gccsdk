@@ -1,10 +1,10 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/common/_exist.s,v $
-; $Date: 2003/01/29 18:46:02 $
-; $Revision: 1.4 $
+; $Date: 2003/08/15 13:56:31 $
+; $Revision: 1.5 $
 ; $State: Exp $
-; $Author: admin $
+; $Author: joty $
 ;
 ;----------------------------------------------------------------------------
 
@@ -68,7 +68,7 @@
 ;|__set_feature_imagefs_is_file|
 ;	LDR	a2, =|__feature_imagefs_is_file|
 ;	TEQ	a2, #0
-;	LDREQ	a2, =|__feature_imagefs_is_file|
+;	LDREQ	a2, =|__feature_imagefs_is_file_internal|
 ;	STR	a1, [a2, #0]
 ;	return	AL, pc, lr
 
