@@ -1,12 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/libscl/uname.c,v $
- * $Date: 2000/07/15 14:51:34 $
+ * $Date: 2000/11/08 09:38:56 $
  * $Revision: 1.1.1.1 $
  * $State: Exp $
- * $Author: nick $
+ * $Author: admin $
  *
  * $Log: uname.c,v $
+ * Revision 1.1.1.1  2000/11/08 09:38:56  admin
+ * RISC OS GCC
+ *
  * Revision 1.1.1.1  2000/07/15 14:51:34  nick
  * GCC Software Development Kit
  *
@@ -200,8 +203,8 @@ __uname (char *name)
       s1--;
       i = j;
       k = '.';
-      /* Since we have done the above then there is not the existance
-         of special fields in this filename e.g. /dev, /usr and /var.
+      /* Since we have done the above then we know there are no special
+         fields in this filename i.e. /dev, /usr and /var.
          So branch past these checks.  */
       goto main;
     }
@@ -221,8 +224,8 @@ __uname (char *name)
       s1--;
       i = j;
       k = '.';
-      /* Since we have done the above then there is not the existance
-         of special fields in this filename e.g. /dev, /usr and /var.
+      /* Since we have done the above then we know there are no special
+         fields in this filename i.e. /dev, /usr and /var.
          So branch past these checks.  */
       goto main;
     }
