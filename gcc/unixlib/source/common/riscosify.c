@@ -1,18 +1,18 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/common/riscosify.c,v $
- * $Date: 2004/08/08 11:32:41 $
- * $Revision: 1.14 $
+ * $Date: 2004/10/08 11:56:13 $
+ * $Revision: 1.15 $
  * $State: Exp $
  * $Author: peter $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: riscosify.c,v 1.14 2004/08/08 11:32:41 peter Exp $";
+static const char rcs_id[] = "$Id: riscosify.c,v 1.15 2004/10/08 11:56:13 peter Exp $";
 #endif
 
-/* #define DEBUG */ 
+/* #define DEBUG */
 
 #ifdef __TARGET_SCL__
 
@@ -30,6 +30,9 @@ static const char rcs_id[] = "$Id: riscosify.c,v 1.14 2004/08/08 11:32:41 peter 
 extern const char __filename_char_map[256];
 
 #define stricmp strcmp
+
+#define __os_prhex(val) fprintf(stderr, "%x", val)
+#define __os_print(val) fputs(val, stderr)
 
 #else
 
@@ -1282,17 +1285,29 @@ __riscosify (const char *name, int create_dir,
 
 #ifdef __TARGET_SCL__
 
+static const char __sfix_default[] = "a:c:cc:f:h:i:ii:l:o:p:s:y";
+
+
 char *
 __riscosify_scl(const char *name, int create_dir)
 {
   static char buffer1[MAXPATHLEN];
   static char buffer2[MAXPATHLEN];
   static int current = 0;
+  static int riscosify_init = 0;
+
+  if (!riscosify_init)
+    {
+      riscosify_init = 1;
+      __sdirinit ();
+      __sfixinit (__sfix_default);
+    }
 
   /* Swap between two static buffers to allow the rename call to work */
   current = 1 - current;
 
   __riscosify (name, create_dir, __get_riscosify_control(), current ? buffer1 : buffer2, sizeof(buffer1), NULL);
+  return current ? buffer1 : buffer2;
 }
 
 #endif

@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/fchmod.c,v $
- * $Date: 2003/04/05 09:33:56 $
- * $Revision: 1.4 $
+ * $Date: 2004/12/11 14:18:57 $
+ * $Revision: 1.5 $
  * $State: Exp $
- * $Author: alex $
+ * $Author: joty $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: fchmod.c,v 1.4 2003/04/05 09:33:56 alex Exp $";
+static const char rcs_id[] = "$Id: fchmod.c,v 1.5 2004/12/11 14:18:57 joty Exp $";
 #endif
 
 #include <errno.h>
@@ -21,6 +21,7 @@ static const char rcs_id[] = "$Id: fchmod.c,v 1.4 2003/04/05 09:33:56 alex Exp $
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unixlib/unix.h>
+#include <unixlib/swiparams.h>
 
 #include <unixlib/local.h>
 #include <pthread.h>
