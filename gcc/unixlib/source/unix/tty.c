@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/tty.c,v $
- * $Date: 2004/09/09 15:34:52 $
- * $Revision: 1.14 $
+ * $Date: 2004/10/17 16:24:45 $
+ * $Revision: 1.15 $
  * $State: Exp $
- * $Author: peter $
+ * $Author: joty $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: tty.c,v 1.14 2004/09/09 15:34:52 peter Exp $";
+static const char rcs_id[] = "$Id: tty.c,v 1.15 2004/10/17 16:24:45 joty Exp $";
 #endif
 
 /* System V tty device driver for RISC OS.  */
@@ -900,17 +900,6 @@ __ttynl (struct tty *tty, tcflag_t oflag)
     }
   __funcall ((*(tty->out)), ('\n'));
 }
-
-#ifdef __UNIXLIB_NO_COMMON_DEV
-off_t
-__ttylseek (struct __unixlib_fd *file_desc, off_t lpos, int whence)
-{
-  IGNORE (lpos);
-  IGNORE (whence);
-  IGNORE (file_desc);
-  return __set_errno (ESPIPE);
-}
-#endif
 
 /* Return zero on success. Any other value on failure.  */
 int

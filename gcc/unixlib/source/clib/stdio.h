@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/stdio.h,v $
- * $Date: 2004/10/12 08:32:38 $
- * $Revision: 1.12 $
+ * $Date: 2004/10/17 16:24:43 $
+ * $Revision: 1.13 $
  * $State: Exp $
- * $Author: peter $
+ * $Author: joty $
  *
  ***************************************************************************/
 
@@ -184,7 +184,7 @@ extern FILE *fopen (const char *__restrict __filename,
 /* Open a file, replacing an existing stream with it.  */
 extern FILE *freopen (const char *__restrict __filename,
 		      const char *__restrict __mode,
-       	     	      FILE *__stream) __THROW;
+		      FILE *__stream) __THROW;
 
 /* Close stream, or all streams if stream is null.  */
 extern int fclose (FILE *__stream) __THROW;
@@ -194,11 +194,11 @@ extern int fflush (FILE *__stream) __THROW;
 
 /* Read chunks of generic data from stream.  */
 extern size_t fread (void *__ptr, size_t __size,
-       	      	     size_t __n, FILE *__stream) __THROW;
+		     size_t __n, FILE *__stream) __THROW;
 
 /* Write chunks of generic data to stream.  */
 extern size_t fwrite (const void *__ptr, size_t __size,
-       	      	      size_t __n, FILE *__stream) __THROW;
+		      size_t __n, FILE *__stream) __THROW;
 
 /* If buf is null, make stream unbuffered.
    If not null, use buffer buf of size BUFSIZ.  */
@@ -269,8 +269,6 @@ extern int fputs (const char *__restrict __s, FILE *__restrict __stream)
 extern int puts (const char *__s) __THROW;
 
 /* Formatted I/O */
-
-/* I know I said I would not do this, but ... */
 
 /* Write formatted output to s from argument list arg.  limit is the
    maximum number of characters to produce.  */
@@ -441,7 +439,7 @@ extern __ssize_t getline (char **__restrict __lineptr,
    have to be a newline.  */
 extern __ssize_t getdelim (char **__restrict __lineptr,
 			   size_t *__restrict __n,
-       		 	   int __delimiter,
+			   int __delimiter,
 			   FILE *__restrict __stream) __THROW;
 #endif
 

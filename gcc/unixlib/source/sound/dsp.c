@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sound/dsp.c,v $
- * $Date: 2004/09/12 08:25:52 $
- * $Revision: 1.5 $
+ * $Date: 2004/09/23 22:16:39 $
+ * $Revision: 1.6 $
  * $State: Exp $
- * $Author: peter $
+ * $Author: joty $
  *
  ***************************************************************************/
 
@@ -72,7 +72,7 @@ void *__dspopen (struct __unixlib_fd *fd, const char *file, int mode)
   fd->handle = NULL;
 
   if ((err = __os_cli("RMEnsure DigitalRenderer 0.51 RMLoad System:Modules.DRenderer")) != NULL
-      || (err = __os_cli("RMEnsure DigitalRenderer 0.51 Error Sound support requires DigitalRenderer 0.51 or newer")) != NULL
+      || (err = __os_cli("RMEnsure DigitalRenderer 0.51 Error 16_10F Sound support requires DigitalRenderer 0.51 or newer")) != NULL
       || (err = set_defaults(fd, 2, 2, BUFFER_SIZE, 44100)) != NULL)
     {
       __seterr (err);

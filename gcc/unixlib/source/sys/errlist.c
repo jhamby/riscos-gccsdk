@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/errlist.c,v $
- * $Date: 2004/05/01 22:43:00 $
- * $Revision: 1.9 $
+ * $Date: 2004/10/17 16:24:44 $
+ * $Revision: 1.10 $
  * $State: Exp $
  * $Author: joty $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: errlist.c,v 1.9 2004/05/01 22:43:00 joty Exp $";
+static const char rcs_id[] = "$Id: errlist.c,v 1.10 2004/10/17 16:24:44 joty Exp $";
 #endif
 
 #include <string.h>
@@ -122,7 +122,7 @@ const char *sys_errlist[__SYS_NERR + 1] =
 };
 
 char *
-strerror (register int errnum)
+strerror (int errnum)
 {
   if (errnum < 0 || errnum >= sys_nerr)
     {

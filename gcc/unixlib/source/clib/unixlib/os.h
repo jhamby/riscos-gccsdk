@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/unixlib/os.h,v $
- * $Date: 2002/09/24 21:02:37 $
- * $Revision: 1.3 $
+ * $Date: 2004/10/17 16:24:44 $
+ * $Revision: 1.4 $
  * $State: Exp $
- * $Author: admin $
+ * $Author: joty $
  *
  ***************************************************************************/
 
@@ -62,7 +62,9 @@ extern _kernel_oserror *__os_fwrite (int,const void *,int,int * /* 5 reg */ );
 extern _kernel_oserror *__os_args (int,int,int,int * /* 3 reg */ );
 extern _kernel_oserror *__os_fsctrl (int,const char *,char *,int);
 
-/* Flag RISC OS error to UNIX.  */
+/* Flag RISC OS error to UNIX. When NULL is given as parameter, __seterr()
+   doesn't do anything. Sets UnixLib's errno to EOPSYS too and takes
+   a copy of the RISC OS error block.  */
 extern void __seterr (const _kernel_oserror *);
 #endif
 

@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/kernel.h,v $
- * $Date: 2004/06/01 18:45:26 $
- * $Revision: 1.7 $
+ * $Date: 2004/10/17 16:24:43 $
+ * $Revision: 1.8 $
  * $State: Exp $
- * $Author: nick $
+ * $Author: joty $
  *
  * This file is intended to provide an interface between UnixLib and
  * DeskLib, for the few _kernel calls that it uses. Any simularity between
@@ -102,7 +102,7 @@ typedef struct
 
 /* Read/write a number of bytes on file 'handle'. */
 extern int _kernel_osgbpb (int __operation, unsigned __handle,
-       	   		   _kernel_osgbpb_block *__inout) __THROW;
+			   _kernel_osgbpb_block *__inout) __THROW;
 
 /* Perform an OS_Word operation.  */
 extern int _kernel_osword (int __operation, int *__data) __THROW;

@@ -1,8 +1,8 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/pthread/_yield.s,v $
-; $Date: 2003/06/23 20:33:03 $
-; $Revision: 1.3 $
+; $Date: 2003/11/23 20:26:45 $
+; $Revision: 1.4 $
 ; $State: Exp $
 ; $Author: joty $
 ;
@@ -28,7 +28,7 @@
 ; Called in USR mode by a thread wishing to give up the processor
 	NAME	pthread_yield
 |pthread_yield|
-	; Setup an APCS stack frame so this will appear in a backtrace
+	; Setup an APCS-32 stack frame so this will appear in a backtrace
 	MOV	ip, sp
 	STMFD	sp!, {fp, ip, lr, pc}
 	SUB	fp, ip, #4

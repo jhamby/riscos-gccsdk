@@ -1,8 +1,8 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/pthread/_ints.s,v $
-; $Date: 2004/09/23 22:16:39 $
-; $Revision: 1.6 $
+; $Date: 2004/10/17 16:24:44 $
+; $Revision: 1.7 $
 ; $State: Exp $
 ; $Author: joty $
 ;
@@ -105,7 +105,7 @@
 
 	[ __UNIXLIB_PARANOID > 0
 |noframe|
-	DCB "__pthread_protect_unsafe called without an APCS stack frame" ,0
+	DCB "__pthread_protect_unsafe called without an APCS-32 stack frame" , 0
 	ALIGN
 |return_notempty|
 	DCB	"Return address is not empty in __pthread_protect_unsafe", 0

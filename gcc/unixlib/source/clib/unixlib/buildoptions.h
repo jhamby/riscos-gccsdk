@@ -1,4 +1,4 @@
-  COMMENT /* This file contains the UnixLib builds options and */
+  COMMENT /* This file contains the UnixLib build options and */
   COMMENT /* gets included by C and ASM files so its syntax is */
   COMMENT /* quite restricted. */
 

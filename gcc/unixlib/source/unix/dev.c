@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/dev.c,v $
- * $Date: 2004/09/09 15:34:52 $
- * $Revision: 1.20 $
+ * $Date: 2004/10/17 16:24:45 $
+ * $Revision: 1.21 $
  * $State: Exp $
- * $Author: peter $
+ * $Author: joty $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: dev.c,v 1.20 2004/09/09 15:34:52 peter Exp $";
+static const char rcs_id[] = "$Id: dev.c,v 1.21 2004/10/17 16:24:45 joty Exp $";
 #endif
 
 /* #define DEBUG */
@@ -34,56 +34,47 @@ static const char rcs_id[] = "$Id: dev.c,v 1.20 2004/09/09 15:34:52 peter Exp $"
 
 #define IGNORE(x) {(void) x;}
 
-#ifndef __UNIXLIB_NO_COMMON_DEV
-#define __fsioctl	__commonioctl
-#define __fsselect	__commonselect
-
-#define __ttylseek	__commonlseek
-
-#define __pipelseek	__commonlseek
-#define __pipeioctl	__commonioctl
-
-#define __nulllseek	__commonlseek
-#define __nullioctl	__commonioctl
-#define __nullselect	__commonselect
-
-#define __socklseek	__commonlseek
-#endif
-
-struct dev __dev[NDEV] =
+const struct dev __dev[NDEV] =
 {
   /* DEV_RISCOS */
   {__fsopen, __fsclose, __fsread, __fswrite,
-    __fslseek, __fsioctl, __fsselect, __fsstat, __fsfstat },
+    __fslseek, __nullioctl, __nullselect, __fsstat, __fsfstat },
+
   /* DEV_TTY */
   {__ttyopen, __ttyclose, __ttyread, __ttywrite,
-    __ttylseek, __ttyioctl, __ttyselect, __nullstat, __nullfstat },
+    __nulllseek, __ttyioctl, __ttyselect, __nullstat, __nullfstat },
+
   /* DEV_PIPE */
 #if __UNIXLIB_FEATURE_PIPEDEV
   {__pipeopen, __pipeclose, __piperead, __pipewrite,
-    __pipelseek, __pipeioctl, __pipeselect, __nullstat, __nullfstat },
+    __nulllseek, __nullioctl, __pipeselect, __nullstat, __nullfstat },
 #else
   {__nullopen, __nullclose, __nullread, __nullwrite,
     __nulllseek, __nullioctl, __nullselect, __nullstat, __nullfstat },
 #endif
+
   /* DEV_NULL */
   {__nullopen, __nullclose, __nullread, __nullwrite,
     __nulllseek, __nullioctl, __nullselect, __nullstat, __nullfstat },
+
   /* DEV_SOCKET */
 #if __UNIXLIB_FEATURE_SOCKET
   /* Socket select is a special case.  */
   {__sockopen, __sockclose, __sockread, __sockwrite,
-    __socklseek, __sockioctl, __sockselect, __nullstat, __nullfstat },
+    __nulllseek, __sockioctl, __sockselect, __nullstat, __nullfstat },
 #else
   {__nullopen, __nullclose, __nullread, __nullwrite,
     __nulllseek, __nullioctl, __nullselect, __nullstat, __nullfstat },
 #endif
+
   /* DEV_ZERO */
   {__nullopen, __nullclose, __zeroread, __nullwrite,
     __nulllseek, __nullioctl, __nullselect, __nullstat, __nullfstat },
+
   /* DEV_RANDOM */
   {__randomopen, __nullclose, __randomread, __nullwrite,
     __nulllseek, __nullioctl, __nullselect, __nullstat, __nullfstat },
+
   /* DEV_DSP */
   {__dspopen, __dspclose, __nullread, __fswrite,
     __dsplseek, __dspioctl, __nullselect, __nullstat, __nullfstat }
@@ -162,52 +153,6 @@ __getdevtype (const char *filename)
   return DEV_RISCOS;
 }
 
-#ifndef __UNIXLIB_NO_COMMON_DEV
-__off_t
-__commonlseek (struct __unixlib_fd *file_desc, __off_t lpos, int whence)
-{
-  IGNORE (lpos);
-  IGNORE (whence);
-  IGNORE (file_desc);
-  return __set_errno (ESPIPE);
-}
-
-int
-__commonioctl (struct __unixlib_fd *file_desc, unsigned long request,
-               void *arg)
-{
-  IGNORE (request);
-  IGNORE (arg);
-  IGNORE (file_desc);
-
-  switch (request)
-    {
-    case FIOASYNC:
-      /* Set/Clear async I/O.  Do nothing */
-      return 0;
-    }
-
-  return __set_errno (EINVAL);
-}
-
-int
-__commonselect (struct __unixlib_fd *file_desc, int fd,
-		__fd_set *cread, __fd_set *cwrite, __fd_set *except)
-{
-  /* Return ready to read, ready to write, no execptional conditions.  */
-  IGNORE (file_desc);
-  if (cread)
-    FD_SET(fd, cread);
-  if (cwrite)
-    FD_SET (fd, cwrite);
-  if (except)
-    FD_CLR (fd, except);
-
-  /* This may not be correct, but it is consistent with Internet 5 select.  */
-  return (cread ? 1 : 0) + (cwrite ? 1 : 0);
-}
-#endif
-
 void *
 __fsopen (struct __unixlib_fd *file_desc, const char *filename, int mode)
 {
@@ -232,7 +177,7 @@ __fsopen (struct __unixlib_fd *file_desc, const char *filename, int mode)
       /* Some sort of object exists.  */
       if ((fflag & (O_EXCL | O_CREAT)) == (O_EXCL | O_CREAT))
 	/* File exists and the user set O_EXCL.  */
-	return (void *)  __set_errno (EEXIST);
+	return (void *) __set_errno (EEXIST);
 
       /* Check for permission to access the file in the mode we
 	 requested.  */
@@ -365,8 +310,8 @@ __fsopen (struct __unixlib_fd *file_desc, const char *filename, int mode)
 	    {
 	      DIR *dir;
 #ifdef DEBUG
-       	      __os_print ("-- open directory (read only): file=");
-       	      __os_print (file); __os_print ("\r\n");
+	      __os_print ("-- open directory (read only): file=");
+	      __os_print (file); __os_print ("\r\n");
 #endif
 
 	      dir = opendir (file);
@@ -533,36 +478,6 @@ __fslseek (struct __unixlib_fd *file_desc, __off_t lpos, int whence)
   return (! err) ? ((__off_t) regs[2]) : (__seterr (err), -1);
 }
 
-#ifdef __UNIXLIB_NO_COMMON_DEV
-int
-__fsioctl (struct __unixlib_fd *file_desc, unsigned long request, void *arg)
-{
-  IGNORE (request);
-  IGNORE (arg);
-  IGNORE (file_desc);
-  return __set_errno (EINVAL);
-}
-
-
-int
-__fsselect (struct __unixlib_fd *file_descriptor, int fd,
-		__fd_set *read, __fd_set *write, __fd_set *except)
-{
-  /* Return ready to read, ready to write, no execptional conditions.  */
-  IGNORE (file_desc);
-  if (read)
-    FD_SET (fd, read);
-  if (write)
-    FD_SET (fd, write);
-  if (except)
-    FD_CLR (fd, except);
-
-  /* This may not be correct, but it is consistent with Internet 5
-     select.  */
-  return (read ? 1 : 0) + (write ? 1 : 0);
-}
-#endif
-
 int
 __fsstat (const char *ux_filename, struct stat *buf)
 {
@@ -717,38 +632,17 @@ __pipewrite (struct __unixlib_fd *file_desc, const void *data, int nbyte)
       int offset = regs[2];
       /* Read extent && Set file pointer to end of file.  */
       if (! __os_args (2, handle, 0, regs)
-          && ! __os_args (1, handle, regs[2], regs))
-    	  {
-  	    /* Write some more data to the "pipe" at the end of the file.  */
-            int write_err = __fswrite (file_desc, data, nbyte);
-  	    /* Restore the pointer to where we found it.  */
-    	    if (! __os_args (1, handle, offset, regs))
-              return write_err;
-          }
+	  && ! __os_args (1, handle, regs[2], regs))
+	  {
+	    /* Write some more data to the "pipe" at the end of the file.  */
+	    int write_err = __fswrite (file_desc, data, nbyte);
+	    /* Restore the pointer to where we found it.  */
+	    if (! __os_args (1, handle, offset, regs))
+	      return write_err;
+	  }
     }
   return __set_errno (EPIPE);
 }
-
-#ifdef __UNIXLIB_NO_COMMON_DEV
-__off_t
-__pipelseek (struct __unixlib_fd *file_desc, __off_t lpos, int whence)
-{
-  IGNORE (lpos);
-  IGNORE (whence);
-  IGNORE (file_desc);
-  return __set_errno (ESPIPE);
-}
-
-int
-__pipeioctl (struct __unixlib_fd *file_desc, unsigned long request,
-             void *arg)
-{
-  IGNORE (request);
-  IGNORE (arg);
-  IGNORE (file_desc);
-  return __set_errno (EINVAL);
-}
-#endif
 
 int
 __pipeselect (struct __unixlib_fd *file_desc, int fd,
@@ -823,7 +717,6 @@ __nullwrite (struct __unixlib_fd *file_desc, const void *data, int nbyte)
   return nbyte;
 }
 
-#ifdef __UNIXLIB_NO_COMMON_DEV
 __off_t
 __nulllseek (struct __unixlib_fd *file_desc, __off_t lpos, int whence)
 {
@@ -835,32 +728,38 @@ __nulllseek (struct __unixlib_fd *file_desc, __off_t lpos, int whence)
 
 int
 __nullioctl (struct __unixlib_fd *file_desc, unsigned long request,
-             void *arg)
+               void *arg)
 {
   IGNORE (request);
   IGNORE (arg);
   IGNORE (file_desc);
+
+  switch (request)
+    {
+    case FIOASYNC:
+      /* Set/Clear async I/O.  Do nothing */
+      return 0;
+    }
+
   return __set_errno (EINVAL);
 }
 
 int
-__nullselect (struct __unixlib_fd *file_descriptor, int fd,
-		__fd_set *read, __fd_set *write, __fd_set *except)
+__nullselect (struct __unixlib_fd *file_desc, int fd,
+		__fd_set *cread, __fd_set *cwrite, __fd_set *except)
 {
   /* Return ready to read, ready to write, no execptional conditions.  */
   IGNORE (file_desc);
-  if (read)
-    FD_SET(fd, read);
-  if (write)
-    FD_SET (fd, write);
+  if (cread)
+    FD_SET(fd, cread);
+  if (cwrite)
+    FD_SET (fd, cwrite);
   if (except)
     FD_CLR (fd, except);
 
-  /* This may not be correct, but it is consistent with Internet 5
-     select.  */
-  return (read ? 1 : 0) + (write ? 1 : 0);
+  /* This may not be correct, but it is consistent with Internet 5 select.  */
+  return (cread ? 1 : 0) + (cwrite ? 1 : 0);
 }
-#endif
 
 int
 __nullstat (const char *filename, struct stat *buf)
@@ -931,17 +830,6 @@ __sockwrite (struct __unixlib_fd *file_desc, const void *data, int nbyte)
   return _swrite ((int)file_desc->handle, data, nbyte);
 }
 
-#ifdef __UNIXLIB_NO_COMMON_DEV
-__off_t
-__socklseek (struct __unixlib_fd *file_desc, __off_t lpos, int whence)
-{
-  IGNORE (lpos);
-  IGNORE (whence);
-  IGNORE (file_desc);
-  return __set_errno (ESPIPE);
-}
-#endif
-
 int
 __sockioctl (struct __unixlib_fd *file_desc, unsigned long request,
              void *arg)
@@ -979,7 +867,7 @@ __zeroread (struct __unixlib_fd *file_desc, void *data, int nbyte)
   return nbyte;
 }
 
-/* Implements /dev/random */
+/* Implements /dev/random, /dev/urandom */
 void *
 __randomopen (struct __unixlib_fd *file_desc, const char *file, int mode)
 {
@@ -992,8 +880,15 @@ __randomopen (struct __unixlib_fd *file_desc, const char *file, int mode)
   /* Test for the existance of the CryptRandom module */
   if (__os_swi(CryptRandom_Stir, regs))
     {
+      _kernel_oserror *err;
+
       /* Try to load the module. Ignore any errors */
-      __os_cli("RMLoad System:Modules.CryptRand");
+      if ((err = __os_cli("RMEnsure CryptRandom 0.12 RMLoad System:Modules.CryptRand")) != NULL
+          || (err = __os_cli("RMEnsure CryptRandom 0.12 Error 16_10F /dev/random support requires CryptRand 0.12 or newer")) != NULL)
+        {
+          __seterr (err);
+          return (void *)-1;
+        }
 
      /* If still not available, then the open must fail */
      if (__os_swi(CryptRandom_Stir, regs))

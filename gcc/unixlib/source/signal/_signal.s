@@ -1,8 +1,8 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/signal/_signal.s,v $
-; $Date: 2004/09/23 22:16:39 $
-; $Revision: 1.22 $
+; $Date: 2004/10/17 16:24:44 $
+; $Revision: 1.23 $
 ; $State: Exp $
 ; $Author: joty $
 ;
@@ -93,7 +93,7 @@
 ; On entry:
 ;	a1 = err
 ; On exit:
-;	APCS compliant. a1-a4, ip corrupted.
+;	APCS-32 compliant. a1-a4, ip corrupted.
 ;
 ; Set UnixLib's errno to EOPSYS and copy the error from err to UnixLib's
 ; error buffer.
@@ -104,9 +104,9 @@
 	TEQ	a1, #0			; quick exit when no error
 	MOVEQ	pc, lr
 
-	STMFD	sp!, {v1-v5, lr}		; Stack working registers
+	STMFD	sp!, {v1-v5, lr}	; Stack working registers
 	MOV	a3, #EOPSYS
-	__set_errno	a3, a2 ; Set errno = EOPSYS
+	__set_errno	a3, a2		; Set errno = EOPSYS
 
 	[ __UNIXLIB_FEATURE_PTHREADS > 0
 	LDR	a2, =|__pthread_running_thread|
@@ -117,7 +117,18 @@
 	]
 
 	; Copy the error to UnixLib's buffer.
-	MOV	a3, #|__ul_errbuf__size|
+
+	; If errnum is zero, we cheat and make it 1 so that at least
+	; _kernel_last_oserror returns that error message and not NULL.
+	; FIXME: better have a boolean somewhere saying we filled in
+	; a real error message but that requires changes to pthread_t
+	; structure which has implications.
+	LDMIA	a1!, {a4, v1-v5, ip, lr}
+	TEQ	a4, #0
+	MOVEQ	a4, #1
+	STMIA	a2!, {a4, v1-v5, ip, lr}
+
+	MOV	a3, #|__ul_errbuf__size| - 8*4
 |__seterr.00|
 	LDMIA	a1!, {a4, v1-v5, ip, lr}
 	STMIA	a2!, {a4, v1-v5, ip, lr}
@@ -132,7 +143,7 @@
 ;-----------------------------------------------------------------------
 ; _kernel_oserror *_kernel_last_oserror (void)
 ; On exit:
-;	APCS compliant. a1, a2 corrupted.
+;	APCS-32 compliant. a1, a2 corrupted.
 ;
 ; Provide access to the last operating system error.  This is a
 ; SharedCLibrary compatibility function.  It appears in here because
@@ -346,9 +357,9 @@
 	CHGMODE	a1, USR_Mode	; Back to USR mode now we have a stack
 
 	ADR	v4, |__h_error_entry|	; Point at handler name
-	STMFD	sp!, {v1, v2, v3, v4}	; Setup an APCS stack frame so we can
-	ADD	fp, sp, #12		; get a proper stack backtrace in case
-					; anything goes horribly wrong.
+	STMFD	sp!, {v1, v2, v3, v4}	; Setup an APCS-32 stack frame so we
+	ADD	fp, sp, #12		; can get a proper stack backtrace in
+					; case anything goes horribly wrong.
 
 	LDR	a1, =|__ul_errfp|	; Save error FP backtrace
 	STR	v1, [a1]
@@ -637,7 +648,7 @@ return_quickly
 	MOVNE	a1, #&7e
 	SWINE	XOS_Byte		; This calls our escape handler
 
-	; Create an APCS-compilant signal stack frame
+	; Create an APCS-32 compilant signal stack frame
 	ADR	a4, |__h_cback|+12	; point at handler name for backtrace
 	LDR	a3, [sp, #14*4+4]	; saved USR lr
 	LDR	a2, [sp, #13*4+4]	; saved USR sp

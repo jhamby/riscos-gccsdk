@@ -1,10 +1,10 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/signal/sigexec.s,v $
-; $Date: 2002/09/24 21:02:38 $
-; $Revision: 1.5 $
+; $Date: 2003/06/23 20:33:03 $
+; $Revision: 1.6 $
 ; $State: Exp $
-; $Author: admin $
+; $Author: joty $
 ;
 ;----------------------------------------------------------------------------
 ; signal.s.sigexec: Written by Nick Burrett, 1 September 1996.
@@ -40,7 +40,7 @@
 	; Preserve sp
 	MOV	v1, sp
 	; Switch to the signal stack, setting it up for a proper
-	; APCS stack frame.
+	; APCS-32 stack frame.
 	MOV	fp, #0
 	ADD	sp, a1, a2
 	; Pad the stack chunk limit in case we run out of room.
@@ -61,7 +61,7 @@
 	; Preserve sp
 	MOV	v1, sp
 	; Switch to the signal stack, setting it up for a proper
-	; APCS stack frame.
+	; APCS-32 stack frame.
 	MOV	fp, #0
 	MOV	sp, a1
 	; Under BSD, we don't know the size of the signal stack. Let's

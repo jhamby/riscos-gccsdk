@@ -1,8 +1,8 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/_syslib.s,v $
-; $Date: 2004/09/07 14:05:11 $
-; $Revision: 1.30 $
+; $Date: 2004/10/17 16:24:44 $
+; $Revision: 1.31 $
 ; $State: Exp $
 ; $Author: joty $
 ;
@@ -836,8 +836,8 @@ raise_sigemt
 	BL	|__setup_signalhandler_stack|
 
 	ADR	v4,|__rt_stkovf_split_small|+12	; Point at function name
-	STMFD	sp!, {v1, v2, v3, v4}	; Setup an APCS stack frame to link to
-	ADD	fp, sp, #12		; the old stack
+	STMFD	sp!, {v1, v2, v3, v4}	; Setup an APCS-32 stack frame to
+	ADD	fp, sp, #12		; link to the old stack
 
 	MOV	a1, #0
 	MOV	a2, #SIGEMT

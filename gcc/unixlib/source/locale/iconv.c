@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/locale/iconv.c,v $
- * $Date: 2004/10/05 15:24:37 $
- * $Revision: 1.3 $
+ * $Date: 2004/10/08 11:56:13 $
+ * $Revision: 1.4 $
  * $State: Exp $
  * $Author: peter $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: iconv.c,v 1.3 2004/10/05 15:24:37 peter Exp $";
+static const char rcs_id[] = "$Id: iconv.c,v 1.4 2004/10/08 11:56:13 peter Exp $";
 #endif
 
 #include <stdlib.h>
@@ -61,8 +61,8 @@ iconv_t iconv_open(const char *tocode, const char *fromcode)
   iconv_t ret;
   _kernel_oserror *err;
 
-  if ((err = __os_cli("RMEnsure Iconv 0.01 RMload System:Modules.Iconv")) != NULL
-      || (err = __os_cli("RMEnsure Iconv 0.01 Error iconv support requires the Iconv module 0.01 or newer")) != NULL
+  if ((err = __os_cli("RMEnsure Iconv 0.02 RMload System:Modules.Iconv")) != NULL
+      || (err = __os_cli("RMEnsure Iconv 0.02 Error 16_10F iconv support requires the Iconv module 0.02 or newer")) != NULL
       || (err = _swix(Iconv_Open, _INR(0,1) | _OUT(0), tocode, fromcode, &ret)) != NULL)
     {
       return (iconv_t)iconv_error(err);
