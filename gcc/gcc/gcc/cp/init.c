@@ -1797,6 +1797,7 @@ build_new (tree placement, tree decl, tree init, int use_global_new)
       rval = build_min (NEW_EXPR, build_pointer_type (type), 
 			placement, t, init);
       NEW_EXPR_USE_GLOBAL (rval) = use_global_new;
+      TREE_SIDE_EFFECTS (rval) = 1;
       return rval;
     }
 
@@ -2068,6 +2069,15 @@ build_new_1 (tree exp)
 	  args = tree_cons (NULL_TREE, size, placement);
 	  /* Do name-lookup to find the appropriate operator.  */
 	  fns = lookup_fnfields (true_type, fnname, /*protect=*/2);
+	  if (!fns)
+	    {
+	      /* See PR 15967. This should never happen (and it is
+		 fixed correctly in mainline), but on the release branch
+		 we prefer this less-intrusive approacch.  */
+	      error ("no suitable or ambiguous `%D' found in class `%T'",
+		     fnname, true_type);
+	      return error_mark_node;
+	    }
 	  if (TREE_CODE (fns) == TREE_LIST)
 	    {
 	      error ("request for member `%D' is ambiguous", fnname);

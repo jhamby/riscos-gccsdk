@@ -7612,27 +7612,28 @@ grokdeclarator (tree declarator,
 	    ctype = TREE_OPERAND (declarator, 0);
 
 	    t = ctype;
-	    while (t != NULL_TREE && CLASS_TYPE_P (t))
-	      {
-		/* You're supposed to have one `template <...>'
-		   for every template class, but you don't need one
-		   for a full specialization.  For example:
-
+	    if (TREE_CODE (TREE_OPERAND (declarator, 1)) != INDIRECT_REF)
+	      while (t != NULL_TREE && CLASS_TYPE_P (t))
+		{
+		  /* You're supposed to have one `template <...>'
+		     for every template class, but you don't need one
+		     for a full specialization.  For example:
+		     
 		     template <class T> struct S{};
 		     template <> struct S<int> { void f(); };
 		     void S<int>::f () {}
-
-		   is correct; there shouldn't be a `template <>' for
-		   the definition of `S<int>::f'.  */
-		if (CLASSTYPE_TEMPLATE_INFO (t)
-		    && (CLASSTYPE_TEMPLATE_INSTANTIATION (t)
-			|| uses_template_parms (CLASSTYPE_TI_ARGS (t)))
-	            && PRIMARY_TEMPLATE_P (CLASSTYPE_TI_TEMPLATE (t)))
-		  template_count += 1;
-
-		t = TYPE_MAIN_DECL (t);
-		t = DECL_CONTEXT (t);
-	      }
+		     
+		     is correct; there shouldn't be a `template <>' for
+		     the definition of `S<int>::f'.  */
+		  if (CLASSTYPE_TEMPLATE_INFO (t)
+		      && (CLASSTYPE_TEMPLATE_INSTANTIATION (t)
+			  || uses_template_parms (CLASSTYPE_TI_ARGS (t)))
+		      && PRIMARY_TEMPLATE_P (CLASSTYPE_TI_TEMPLATE (t)))
+		    template_count += 1;
+		  
+		  t = TYPE_MAIN_DECL (t);
+		  t = DECL_CONTEXT (t);
+		}
 
 	    if (sname == NULL_TREE)
 	      goto done_scoping;
@@ -9463,6 +9464,13 @@ xref_tag (enum tag_types tag_code, tree name,
     {
       if (!globalize && processing_template_decl && IS_AGGR_TYPE (t))
 	redeclare_class_template (t, current_template_parms);
+      else if (!processing_template_decl 
+	       && CLASS_TYPE_P (t)
+	       && CLASSTYPE_IS_TEMPLATE (t))
+	{
+	  error ("redeclaration of `%T' as a non-template", t);
+	  t = error_mark_node;
+	}
     }
 
   POP_TIMEVAR_AND_RETURN (TV_NAME_LOOKUP, t);

@@ -1,5 +1,5 @@
 --- /home/nick/riscos/masters/gcc-3.4/gcc/builtins.c	2004-05-31 11:33:10.000000000 +0100
-+++ builtins.c	2004-06-18 15:08:38.267211616 +0100
++++ builtins.c	2004-06-18 16:26:47.398355328 +0100
 @@ -437,6 +437,41 @@ expand_builtin_return_addr (enum built_i
      count--;
  #endif

@@ -780,7 +780,7 @@ assign_stack_temp_for_type (enum machine_mode mode, HOST_WIDE_INT size, int keep
   if (keep == 2)
     {
       p->level = target_temp_slot_level;
-      p->keep = 0;
+      p->keep = 1;
     }
   else if (keep == 3)
     {
@@ -4611,10 +4611,8 @@ assign_parms (tree fndecl)
 						  offset_rtx));
 
 	set_mem_attributes (stack_parm, parm, 1);
-	if (entry_parm && MEM_ATTRS (stack_parm)->align < PARM_BOUNDARY)
-	  set_mem_align (stack_parm, PARM_BOUNDARY);
-
-	/* Set also REG_ATTRS if parameter was passed in a register.  */
+	set_mem_align (stack_parm, 
+		       FUNCTION_ARG_BOUNDARY (promoted_mode, passed_type));
 	if (entry_parm)
 	  set_reg_attrs_for_parm (entry_parm, stack_parm);
       }
@@ -4688,13 +4686,9 @@ assign_parms (tree fndecl)
       /* If we can't trust the parm stack slot to be aligned enough
 	 for its ultimate type, don't use that slot after entry.
 	 We'll make another stack slot, if we need one.  */
-      {
-	unsigned int thisparm_boundary
-	  = FUNCTION_ARG_BOUNDARY (promoted_mode, passed_type);
-
-	if (GET_MODE_ALIGNMENT (nominal_mode) > thisparm_boundary)
-	  stack_parm = 0;
-      }
+      if (STRICT_ALIGNMENT && stack_parm
+	  && GET_MODE_ALIGNMENT (nominal_mode) > MEM_ALIGN (stack_parm))
+	stack_parm = 0;
 
       /* If parm was passed in memory, and we need to convert it on entry,
 	 don't store it back in that same slot.  */
@@ -5722,6 +5716,11 @@ uninitialized_vars_warning (tree block)
 	  && regno_uninitialized (REGNO (DECL_RTL (decl))))
 	warning ("%J'%D' might be used uninitialized in this function",
 		 decl, decl);
+
+#ifndef TARGET_RISCOSAOF
+      /* NAB++ Disable this warning because it gives splurious messages when
+         compiling C++ applications due to our use of setjmp/longjmp
+         exception handling.  */
       if (extra_warnings
 	  && TREE_CODE (decl) == VAR_DECL
 	  && DECL_RTL_SET_P (decl)
@@ -5729,6 +5728,7 @@ uninitialized_vars_warning (tree block)
 	  && regno_clobbered_at_setjmp (REGNO (DECL_RTL (decl))))
 	warning ("%Jvariable '%D' might be clobbered by `longjmp' or `vfork'",
 		 decl, decl);
+#endif
     }
   for (sub = BLOCK_SUBBLOCKS (block); sub; sub = TREE_CHAIN (sub))
     uninitialized_vars_warning (sub);
@@ -5740,6 +5740,8 @@ uninitialized_vars_warning (tree block)
 void
 setjmp_args_warning (void)
 {
+  /* NAB++ Similarily here.  */
+#ifndef TARGET_RISCOSAOF
   tree decl;
   for (decl = DECL_ARGUMENTS (current_function_decl);
        decl; decl = TREE_CHAIN (decl))
@@ -5748,6 +5750,7 @@ setjmp_args_warning (void)
 	&& regno_clobbered_at_setjmp (REGNO (DECL_RTL (decl))))
       warning ("%Jargument '%D' might be clobbered by `longjmp' or `vfork'",
 	       decl, decl);
+#endif
 }
 
 /* If this function call setjmp, put all vars into the stack
@@ -6906,6 +6909,19 @@ use_return_register (void)
   diddle_return_value (do_use_return_reg, NULL);
 }
 
+/* Possibly warn about unused parameters.  */
+void
+do_warn_unused_parameter (tree fn)
+{
+  tree decl;
+
+  for (decl = DECL_ARGUMENTS (fn);
+       decl; decl = TREE_CHAIN (decl))
+    if (!TREE_USED (decl) && TREE_CODE (decl) == PARM_DECL
+	&& DECL_NAME (decl) && !DECL_ARTIFICIAL (decl))
+      warning ("%Junused parameter '%D'", decl, decl);
+}
+
 static GTY(()) rtx initial_trampoline;
 
 /* Generate RTL for the end of the current function.  */
@@ -6994,17 +7010,12 @@ expand_function_end (void)
 	  }
     }
 
-  /* Possibly warn about unused parameters.  */
-  if (warn_unused_parameter)
-    {
-      tree decl;
-
-      for (decl = DECL_ARGUMENTS (current_function_decl);
-	   decl; decl = TREE_CHAIN (decl))
-	if (! TREE_USED (decl) && TREE_CODE (decl) == PARM_DECL
-	    && DECL_NAME (decl) && ! DECL_ARTIFICIAL (decl))
-          warning ("%Junused parameter '%D'", decl, decl);
-    }
+  /* Possibly warn about unused parameters.
+     When frontend does unit-at-a-time, the warning is already
+     issued at finalization time.  */
+  if (warn_unused_parameter
+      && !lang_hooks.callgraph.expand_function)
+    do_warn_unused_parameter (current_function_decl);
 
   /* Delete handlers for nonlocal gotos if nothing uses them.  */
   if (nonlocal_goto_handler_slots != 0

@@ -1,5 +1,5 @@
 --- /home/nick/riscos/masters/gcc-3.4/gcc/c-opts.c	2004-02-18 00:09:03.000000000 +0000
-+++ c-opts.c	2004-05-31 16:10:20.000000000 +0100
++++ c-opts.c	2004-06-18 16:27:10.522839872 +0100
 @@ -151,6 +151,7 @@ c_common_missing_argument (const char *o
        break;
  

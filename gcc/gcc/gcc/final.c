@@ -3294,7 +3294,6 @@ asm_fprintf (FILE *file, const char *p, ...)
   char *q, c;
   va_list argptr;
 
-  /* printf ("p = '%s'\n", p); */
   va_start (argptr, p);
 
   buf[0] = '%';
@@ -3343,7 +3342,6 @@ asm_fprintf (FILE *file, const char *p, ...)
 	    *q++ = c;
 	    c = *p++;
 	  }
-	/* printf ("p = '%s', c = '%c'\n", p, c); */
 	switch (c)
 	  {
 	  case '%':
@@ -3359,8 +3357,6 @@ asm_fprintf (FILE *file, const char *p, ...)
 	    break;
 
 	  case 'w':
-	    {
-	    HOST_WIDE_INT z = va_arg (argptr, HOST_WIDE_INT);
 	    /* This is a prefix to the 'd', 'i', 'u', 'x', 'X', and
 	       'o' cases, but we do not check for those cases.  It
 	       means that the value is a HOST_WIDE_INT, which may be
@@ -3369,9 +3365,7 @@ asm_fprintf (FILE *file, const char *p, ...)
 	    q += strlen (HOST_WIDE_INT_PRINT);
 	    *q++ = *p++;
 	    *q = 0;
-	    /* printf ("buf = '%s' '%d'\n", buf, z); */
-	    fprintf (file, buf, z);
-	    }
+	    fprintf (file, buf, va_arg (argptr, HOST_WIDE_INT));
 	    break;
 
 	  case 'l':
@@ -3379,12 +3373,10 @@ asm_fprintf (FILE *file, const char *p, ...)
 #ifdef HAVE_LONG_LONG
 	    if (*p == 'l')
 	      {
-		HOST_WIDE_INT z = va_arg (argptr, HOST_WIDE_INT);
 		*q++ = *p++;
 		*q++ = *p++;
 		*q = 0;
-		/* printf ("buf = '%s' '%d'\n", buf, z); */ 
-		fprintf (file, buf, z);
+		fprintf (file, buf, va_arg (argptr, long long));
 	      }
 	    else
 #endif

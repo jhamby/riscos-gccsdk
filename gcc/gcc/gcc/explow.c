@@ -935,7 +935,7 @@ emit_stack_save (enum save_level save_level, rtx *psave, rtx after)
       if (mode != VOIDmode)
 	{
 	  if (save_level == SAVE_NONLOCAL)
-	    *psave = sa = assign_stack_local (mode, GET_MODE_SIZE (mode) * 2, 0); /* NAB */
+	    *psave = sa = assign_stack_local (mode, GET_MODE_SIZE (mode), 0);
 	  else
 	    *psave = sa = gen_reg_rtx (mode);
 	}
