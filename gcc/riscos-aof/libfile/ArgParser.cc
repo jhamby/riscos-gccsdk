@@ -1,4 +1,4 @@
-#include <errno.h>
+#include <cerrno>
 #include <iostream>
 #include "ArgParser.h"
 #include "BError.h"

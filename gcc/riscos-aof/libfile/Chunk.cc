@@ -1,6 +1,6 @@
-#include <stdio.h>
+#include <cstdio>
 #include <iostream>
-#include <assert.h>
+#include <cassert>
 #include <sys/stat.h>
 #include "Chunk.h"
 #include "Library.h"

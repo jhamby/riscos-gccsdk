@@ -1,8 +1,8 @@
 #ifndef __TimeStamp_h__
 #define __TimeStamp_h__
 
-#include <stdio.h>
-#include <time.h>
+#include <cstdio>
+#include <ctime>
 #include <sys/stat.h>
 #include <iostream>
 #include "BString.h"

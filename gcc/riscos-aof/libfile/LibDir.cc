@@ -1,5 +1,5 @@
-#include <errno.h>
-#include <ctype.h>
+#include <cerrno>
+#include <cctype>
 #include "LibDir.h"
 #include "TimeStamp.h"
 #include "BError.h"

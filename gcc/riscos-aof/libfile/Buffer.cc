@@ -1,10 +1,10 @@
-#include <errno.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
+#include <cerrno>
+#include <cstdlib>
+#include <cstdio>
+#include <cstring>
 #include <sys/stat.h>
 #include <iostream>
-#include <ctype.h>
+#include <cctype>
 #include "Buffer.h"
 #include "BString.h"
 #include "BError.h"

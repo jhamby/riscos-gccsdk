@@ -1,4 +1,4 @@
-#include <ctype.h>
+#include <cctype>
 #include <glob.h>
 #include <iostream>
 #include "Path.h"

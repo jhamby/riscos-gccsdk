@@ -1,4 +1,4 @@
-#include <stdio.h>
+#include <cstdio>
 #include "LibTimeBas.h"
 #include "BError.h"
 

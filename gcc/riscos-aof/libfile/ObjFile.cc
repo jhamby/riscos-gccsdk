@@ -1,4 +1,4 @@
-#include <errno.h>
+#include <cerrno>
 #include <iostream>
 #include "ObjFile.h"
 #include "BError.h"

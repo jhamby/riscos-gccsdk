@@ -1,5 +1,5 @@
-#include <stdlib.h>
-#include <assert.h>
+#include <cstdlib>
+#include <cassert>
 #include <iostream>
 #include "ChunkFile.h"
 #include "BError.h"

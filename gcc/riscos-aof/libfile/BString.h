@@ -3,8 +3,8 @@
 
 using namespace std;
 
-#include <stdio.h>
-#include <string.h>
+#include <cstdio>
+#include <cstring>
 #include <iostream>
 
 class BString

@@ -1,5 +1,5 @@
-#include <string.h>
-#include <ctype.h>
+#include <cstring>
+#include <cctype>
 //#include <osfcn.h>
 #include <fcntl.h>
 

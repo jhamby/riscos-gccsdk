@@ -1,6 +1,6 @@
-#include <errno.h>
-#include <ctype.h>
-#include <stdlib.h>
+#include <cerrno>
+#include <cctype>
+#include <cstdlib>
 #include "Chunk.h"
 #include "Librarian.h"
 #include "ArgParser.h"

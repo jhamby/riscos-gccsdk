@@ -1,7 +1,7 @@
 #ifndef __Chunk_h__
 #define __Chunk_h__
 
-#include <stdio.h>
+#include <cstdio>
 #include "BString.h"
 #include "Buffer.h"
 

@@ -1,5 +1,5 @@
-#include <ctype.h>
-#include <stdlib.h>
+#include <cctype>
+#include <cstdlib>
 #include "Chunk.h"
 #include "Ar.h"
 #include "ArgParser.h"
