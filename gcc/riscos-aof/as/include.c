@@ -146,8 +146,8 @@ getInclude (const char *filename, const char *mode, const char **strdupFilename)
 #else
 	  if ((fp = openInclude (incpath, mode, strdupFilename)) != NULL)
 	    return fp;
-	}
 #endif
+	}
     }
 
   return NULL;
