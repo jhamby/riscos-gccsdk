@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source: $
- * $Date: $
- * $Revision: $
- * $State: $
- * $Author: $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/pthread/atfork.c,v $
+ * $Date: 2002/12/15 13:16:55 $
+ * $Revision: 1.1 $
+ * $State: Exp $
+ * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: $";
+static const char rcs_id[] = "$Id: atfork.c,v 1.1 2002/12/15 13:16:55 admin Exp $";
 #endif
 
 /* Written by Alex Waugh */
@@ -33,8 +33,6 @@ int
 pthread_atfork (void (*prepare)(void), void (*parent)(void), void (*child)(void))
 {
   struct fork_handlers *newhandlers;
-
-  PTHREAD_INIT
 
   newhandlers = malloc (sizeof (struct fork_handlers));
   if (newhandlers == NULL)

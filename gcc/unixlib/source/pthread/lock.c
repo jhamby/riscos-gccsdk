@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source: $
- * $Date: $
- * $Revision: $
- * $State: $
- * $Author: $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/pthread/lock.c,v $
+ * $Date: 2002/12/15 13:16:55 $
+ * $Revision: 1.1 $
+ * $State: Exp $
+ * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: $";
+static const char rcs_id[] = "$Id: lock.c,v 1.1 2002/12/15 13:16:55 admin Exp $";
 #endif
 
 /* Common routines shared by the mutex, rwlock and cond functions */
@@ -125,8 +125,6 @@ __pthread_lock_block (pthread_mutex_t *mutex, const enum __pthread_locktype type
 int
 __pthread_lock_lock (pthread_mutex_t *mutex, const enum __pthread_locktype type, const int trylock)
 {
-  PTHREAD_INIT
-
   __pthread_disable_ints ();
 
 #ifdef PTHREAD_DEBUG
@@ -216,8 +214,6 @@ int
 __pthread_lock_unlock (pthread_mutex_t *mutex, int yield)
 {
   pthread_t write = NULL;
-
-  PTHREAD_INIT
 
   if (mutex == NULL)
     return EINVAL;

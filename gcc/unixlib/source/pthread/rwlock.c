@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source: $
- * $Date: $
- * $Revision: $
- * $State: $
- * $Author: $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/pthread/rwlock.c,v $
+ * $Date: 2002/12/15 13:16:55 $
+ * $Revision: 1.1 $
+ * $State: Exp $
+ * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: $";
+static const char rcs_id[] = "$Id: rwlock.c,v 1.1 2002/12/15 13:16:55 admin Exp $";
 #endif
 
 /* Read/write lock routines. Most of the functionality is implemented in lock.c */
@@ -71,8 +71,6 @@ pthread_rwlock_destroy (pthread_rwlock_t *rwlock)
 int
 pthread_rwlock_rdlock (pthread_rwlock_t *rwlock)
 {
-  PTHREAD_INIT
-
   if (rwlock == NULL || (rwlock->type != LOCK_WRITE && rwlock->type != LOCK_READ))
     return EINVAL;
 
@@ -83,8 +81,6 @@ pthread_rwlock_rdlock (pthread_rwlock_t *rwlock)
 int
 pthread_rwlock_wrlock (pthread_rwlock_t *rwlock)
 {
-  PTHREAD_INIT
-
   if (rwlock == NULL || (rwlock->type != LOCK_WRITE && rwlock->type != LOCK_READ))
     return EINVAL;
 
@@ -95,8 +91,6 @@ pthread_rwlock_wrlock (pthread_rwlock_t *rwlock)
 int
 pthread_rwlock_tryrdlock (pthread_rwlock_t *rwlock)
 {
-  PTHREAD_INIT
-
   if (rwlock == NULL || (rwlock->type != LOCK_WRITE && rwlock->type != LOCK_READ))
     return EINVAL;
 
@@ -107,8 +101,6 @@ pthread_rwlock_tryrdlock (pthread_rwlock_t *rwlock)
 int
 pthread_rwlock_trywrlock (pthread_rwlock_t *rwlock)
 {
-  PTHREAD_INIT
-
   if (rwlock == NULL || (rwlock->type != LOCK_WRITE && rwlock->type != LOCK_READ))
     return EINVAL;
 

@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source: $
- * $Date: $
- * $Revision: $
- * $State: $
- * $Author: $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/pthread/create.c,v $
+ * $Date: 2002/12/15 13:16:55 $
+ * $Revision: 1.1 $
+ * $State: Exp $
+ * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: $";
+static const char rcs_id[] = "$Id: create.c,v 1.1 2002/12/15 13:16:55 admin Exp $";
 #endif
 
 /* Thread creation */
@@ -53,7 +53,7 @@ pthread_create (pthread_t *threadin, const pthread_attr_t *attr, void * (*start_
 {
   pthread_t thread;
 
-  PTHREAD_INIT
+  if (!__pthread_system_running) __pthread_init ();
 
   if (threadin == NULL)
     return EINVAL;
@@ -98,7 +98,6 @@ pthread_create (pthread_t *threadin, const pthread_attr_t *attr, void * (*start_
   if (attr != NULL)
     thread->detachstate = attr->detachstate;
 
-  __pthread_running_threads++;
 
   __pthread_init_save_area (thread->saved_context);
 
@@ -122,7 +121,12 @@ pthread_create (pthread_t *threadin, const pthread_attr_t *attr, void * (*start_
 
   *threadin = thread;
 
+  __pthread_running_threads++;
+
+  __pthread_start_ticker ();
+
   __pthread_enable_ints ();
+
 
   return 0;
 }

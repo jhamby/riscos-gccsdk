@@ -1,3 +1,27 @@
+Sat Apr  5 13:41:35 2003  Alex Waugh  <alex@alexwaugh.com>
+
+	* pthread.h (PTHREAD_INIT): Remove.
+	* pthread/_context.s (__pthread_start_ticker): Don't start ticker if
+	  there is only one thread running.
+	* pthread/atfork.c (pthread_atfork): Remove unneeded initialisation.
+	* pthread/cleanup.c (__pthread_cleanup_push): Likewise.
+	(__pthread_cleanup_pop): Likewise.
+	* pthread/cond.c (pthread_cond_timedwait): Likewise.
+	* pthread/context.c (__pthread_running_threads): Change default to 1
+	  running thread.
+	* pthread/create.c (pthread_create): Start the ticker every time a
+	  thread is created.
+	* pthread/exit.c (pthread_exit): Stop the ticker if there is only one
+	  thread left.
+	* pthread/init.c (__pthread_init): Don't start the ticker on
+	  initialisation.
+	* pthread/join.c (pthread_join): Remove unneeded initialisation.
+	* pthread/lock.c (__pthread_lock_lock, __pthread_lock_unlock): Likewise.
+	* pthread/mutex.c (pthread_mutex_trylock, pthread_mutex_lock): Likewise.
+	* pthread/rwlock.c (pthread_rwlock_rdlock, pthread_rwlock_wrlock,
+	  pthread_rwlock_tryrdlock, pthread_rwlock_trywrlock): Likewise.
+	* pthread/self.c (pthread_self): Likewise.
+
 Sat Apr  5 13:14:30 2003  Alex Waugh  <alex@alexwaugh.com>
 
 	Allow malloc or stack extention to increase the wimpslot.
@@ -14,20 +38,21 @@ Sat Apr  5 13:14:30 2003  Alex Waugh  <alex@alexwaugh.com>
 	* resource/initialise.c (__resource_initialise): Try to determine the
 	  maximum possible wimpslot size.
 	* sys/_exec.s (__exec_s3, __exlen): Remove __4K_BOUNDARY code.
-	* sys/_syslib.s (__main): Remove __4K_BOUNDARY code, read current wimpslot
-	  size on startup, move stackalloc initialisation to after the environment
-	  handlers are setup, restore RISC OS environment handlers on exit.
+	* sys/_syslib.s (__main): Remove __4K_BOUNDARY code, read current
+	  wimpslot size on startup, move stackalloc initialisation to after
+	  the environment handlers are setup, restore RISC OS environment
+	  handlers on exit.
 	(__env_riscos_and_wimpslot): New function.
 	(__env_riscos): Don't alter wimpslot size.
 	(__real_himem): Add.
 	* sys/_vfork.s (return_parent): Remove debug code.
-	* sys/brk.c (__internal_brk): Renamed from brk, try to increase wimpslot
-	  if needed.
+	* sys/brk.c (__internal_brk): Renamed from brk, try to increase
+	  wimpslot if needed.
 	(brk): Call __internal_brk
 	(sbrk): Call __internal_brk
 	(__internal_sbrk): New function.
-	* sys/exec.c (__ushift, __dshift, execve): Cope with a non-contiguous heap,
-	  remove __4K_BOUNDARY code, don't reread environment handlers
+	* sys/exec.c (__ushift, __dshift, execve): Cope with a non-contiguous
+	  heap, remove __4K_BOUNDARY code, don't reread environment handlers.
 	* sys/stackalloc.c (__stackalloc_incr_wimpslot): New function.
 	(__stackalloc_incr_upwards): New function.
 	(__stackalloc_incr_downwards): New function.

@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source: $
- * $Date: $
- * $Revision: $
- * $State: $
- * $Author: $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/pthread/mutex.c,v $
+ * $Date: 2002/12/15 13:16:55 $
+ * $Revision: 1.1 $
+ * $State: Exp $
+ * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: $";
+static const char rcs_id[] = "$Id: mutex.c,v 1.1 2002/12/15 13:16:55 admin Exp $";
 #endif
 
 /* Mutex routines. Most of the functionality is implemented in lock.c */
@@ -69,8 +69,6 @@ pthread_mutex_destroy (pthread_mutex_t *mutex)
 int
 pthread_mutex_trylock (pthread_mutex_t *mutex)
 {
-  PTHREAD_INIT
-
   if (mutex == NULL || mutex->type != LOCK_MUTEX)
     return EINVAL;
 
@@ -81,8 +79,6 @@ pthread_mutex_trylock (pthread_mutex_t *mutex)
 int
 pthread_mutex_lock (pthread_mutex_t *mutex)
 {
-  PTHREAD_INIT
-
   if (mutex == NULL || mutex->type != LOCK_MUTEX)
     return EINVAL;
 

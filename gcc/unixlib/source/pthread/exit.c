@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source: $
- * $Date: $
- * $Revision: $
- * $State: $
- * $Author: $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/pthread/exit.c,v $
+ * $Date: 2002/12/15 13:16:55 $
+ * $Revision: 1.1 $
+ * $State: Exp $
+ * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: $";
+static const char rcs_id[] = "$Id: exit.c,v 1.1 2002/12/15 13:16:55 admin Exp $";
 #endif
 
 /* Written by Martin Piper and Alex Waugh */
@@ -74,6 +74,16 @@ pthread_exit (void *status)
 #endif
 
   __pthread_running_threads--;
+
+  if (__pthread_running_threads <= 1)
+    {
+#ifdef PTHREAD_DEBUG
+      __os_print ("-- pthread_exit: Last or penultimate thread exited, stopping interrupts\r\n");
+#endif
+      /* There is no need for the ticker if there is only one thread left */
+      __pthread_stop_ticker ();
+    }
+
   if (__pthread_running_threads > 0)
     {
       /* Not the last thread */
@@ -87,12 +97,9 @@ pthread_exit (void *status)
         }
     }
 
-
-  /* Last thread running has called pthread_exit so do some special cleanup */
 #ifdef PTHREAD_DEBUG
-  __os_print ("-- pthread_exit: Last thread exited, stopping interrupts\r\n");
+  __os_print ("-- pthread_exit: Last thread exited, calling exit()\r\n");
 #endif
-  __pthread_stop_ticker (); /* Turn off the scheduler for the last time */
 
   exit ((int)status);
 }

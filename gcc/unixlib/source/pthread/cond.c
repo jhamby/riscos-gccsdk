@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source: $
- * $Date: $
- * $Revision: $
- * $State: $
- * $Author: $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/pthread/cond.c,v $
+ * $Date: 2002/12/15 13:16:55 $
+ * $Revision: 1.1 $
+ * $State: Exp $
+ * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: $";
+static const char rcs_id[] = "$Id: cond.c,v 1.1 2002/12/15 13:16:55 admin Exp $";
 #endif
 
 /* Condition variables */
@@ -58,8 +58,6 @@ int
 pthread_cond_timedwait (pthread_cond_t *cond, pthread_mutex_t *mutex, const struct timespec *abstime)
 {
   pthread_t thread;
-
-  PTHREAD_INIT
 
   if (cond == NULL || mutex == NULL)
     return EINVAL;

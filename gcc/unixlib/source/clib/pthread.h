@@ -1,10 +1,10 @@
 /****************************************************************************
  *
- * $Source$
- * $Date$
- * $Revision$
- * $State$
- * $Author$
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/pthread.h,v $
+ * $Date: 2003/01/05 12:36:35 $
+ * $Revision: 1.4 $
+ * $State: Exp $
+ * $Author: admin $
  *
  ***************************************************************************/
 
@@ -544,8 +544,6 @@ if (__pthread_system_running) \
 
 /* zero if the context switcher is allowed to switch threads */
 extern int __pthread_worksemaphore;
-
-#define PTHREAD_INIT if (!__pthread_system_running) __pthread_init ();
 
 #endif /* __UNIXLIB_INTERNALS */
 

@@ -1,8 +1,8 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/pthread/_context.s,v $
-; $Date: 2002/12/15 13:16:55 $
-; $Revision: 1.1 $
+; $Date: 2003/01/05 12:36:35 $
+; $Revision: 1.2 $
 ; $State: Exp $
 ; $Author: admin $
 ;
@@ -65,6 +65,11 @@
 	LDR	a1, [a1]
 	CMP	a1, #1
 	stackreturn	NE, "pc"
+	; Don't start if there's only one thread running
+	LDR	a1, =|__pthread_running_threads|
+	LDR	a1, [a1]
+	CMP	a1, #1
+	stackreturn	LE, "pc"
 	; Don't start if the ticker is already running
 	LDR	a1, =|ticker_started|
 	LDR	a1, [a1]

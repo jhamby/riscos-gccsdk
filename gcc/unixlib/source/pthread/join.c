@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source: $
- * $Date: $
- * $Revision: $
- * $State: $
- * $Author: $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/pthread/join.c,v $
+ * $Date: 2002/12/15 13:16:55 $
+ * $Revision: 1.1 $
+ * $State: Exp $
+ * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: $";
+static const char rcs_id[] = "$Id: join.c,v 1.1 2002/12/15 13:16:55 admin Exp $";
 #endif
 
 /* Written by Martin Piper and Alex Waugh */
@@ -24,8 +24,6 @@ int
 pthread_join (pthread_t tojoin, void **status)
 {
   pthread_t thread;
-
-  PTHREAD_INIT
 
   if (tojoin == __pthread_running_thread)
     {
