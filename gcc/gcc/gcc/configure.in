@@ -122,6 +122,10 @@ GCC_NEED_DECLARATIONS(malloc realloc calloc free bcopy bzero bcmp \
         index rindex getenv atol sbrk abort atof strerror getcwd getwd \
         strsignal putc_unlocked fputs_unlocked strstr)
 
+# We will need to find libiberty.h and ansidecl.h
+saved_CFLAGS="$CFLAGS"
+CFLAGS="$CFLAGS -I. -I../../include"
+
 
 gcc_AC_CHECK_DECLS(getrlimit setrlimit getrusage, , ,[
 #include "ansidecl.h"
@@ -165,7 +169,8 @@ if test $gcc_cv_type_clock_t = yes; then
   [Define if <time.h> defines clock_t.])
 fi
 
-
+# Restore CFLAGS from before the gcc_AC_NEED_DECLARATIONS tests.
+CFLAGS="$saved_CFLAGS"
 
 gcc_AC_C_VOLATILE
 
