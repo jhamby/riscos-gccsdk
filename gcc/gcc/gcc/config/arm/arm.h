@@ -2764,6 +2764,17 @@ extern int making_const_table;
 		     GET_CODE (X) == POST_DEC ? "-" : "",	\
 		     GET_MODE_SIZE (output_memory_reference_mode));\
     }								\
+  else if (GET_CODE (X) == SYMBOL_REF && TARGET_APCS_STACK)     \
+    {                                                           \
+      /* Convert setjmp and longjmp to alternative names for    \
+         extra processing.  */                                  \
+      if (strcmp (XSTR (X, 0), "setjmp") == 0)                  \
+        assemble_name (STREAM, "___arm_alloca_setjmp");         \
+      else if (strcmp (XSTR (X, 0), "longjmp") == 0)            \
+        assemble_name (STREAM, "___arm_alloca_longjmp");        \
+      else                                                      \
+        assemble_name (STREAM, XSTR (X, 0));                    \
+    }                                                           \
   else output_addr_const (STREAM, X);				\
 }
 
