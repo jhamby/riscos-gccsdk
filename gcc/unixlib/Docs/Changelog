@@ -1,3 +1,12 @@
+Sun May 11 13:28:12 2003  John Tytgat <John.Tytgat@aaug.net>
+
+	* source/unix/chdir.c (chdir): chdir(".") did not work when Prefix$Dir
+	  was defined.
+	* objs/.cvsignore: Added.  Lets CVS ignore all derived objects when
+	  using the Norcroft compiler.
+	* source/clib/.cvsignore: Added.  Lets CVS ignore the created UnixLib
+	  library object file.
+
 Wed May  7 23:07:05 2003  Alex Waugh  <alex@alexwaugh.com>
 
 	* clib/pthread.h (__pthread_key): Add a union for value, to avoid

@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/chdir.c,v $
- * $Date: 2003/04/12 11:31:39 $
- * $Revision: 1.4 $
+ * $Date: 2003/04/27 11:39:29 $
+ * $Revision: 1.5 $
  * $State: Exp $
- * $Author: alex $
+ * $Author: joty $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: chdir.c,v 1.4 2003/04/12 11:31:39 alex Exp $";
+static const char rcs_id[] = "$Id: chdir.c,v 1.5 2003/04/27 11:39:29 joty Exp $";
 #endif
 
 #include <errno.h>
@@ -34,6 +34,11 @@ chdir (const char *ux_path)
   int regs[10], objtype;
   char canon_path[_POSIX_PATH_MAX];
   char path[_POSIX_PATH_MAX];
+
+  /* Filter this trivial case, otherwise we have to take care of this
+     case later on (Unix '.' -> '@' in RISC OS).  */
+  if (ux_path[0] == '.' && ux_path[1] == '\0')
+    return 0;
 
   if (__object_get_attrs (ux_path, path, sizeof (path),
                           &objtype, NULL, NULL, NULL, NULL, NULL))
@@ -77,11 +82,11 @@ chdir (const char *ux_path)
           full_path = realloc (prefix_path, prefix_len + 1 + path_len + 1);
           if (full_path)
             {
+              /* Append 'prefix' with relative path but take care of the
+                 RISC OS CSD indicator.  */
               const char *rel_path = (path[0] == '@' && path[1] == '.') ? path + 2 : path;
 
               full_path[prefix_len++] = '.';
-              /* Append 'prefix' with relative path but take care of the
-                 RISC OS CSD indicator.  */
               strcpy (full_path + prefix_len, rel_path);
 
               /* We must pass a canonicalised directory to
