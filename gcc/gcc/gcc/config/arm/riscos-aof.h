@@ -228,7 +228,7 @@ Boston, MA 02111-1307, USA.  */
    stubs.  */
 #define LIB_SPEC "%{!nostdlib:%{!mlibscl:-lunixlib}%{mlibscl:-lscl}}"
 
-#define SUBTARGET_CPP_SPEC "-D__JMP_BUF_SIZE=25 %{mlibscl:-D__TARGET_SCL__} \
+#define SUBTARGET_CPP_SPEC "-D__JMP_BUF_SIZE=27 %{mlibscl:-D__TARGET_SCL__} \
 	%{mlibscl:-icrossdirafter /libscl} \
 	%{!mlibscl:-icrossdirafter /unixlib}"
 
@@ -243,7 +243,7 @@ Boston, MA 02111-1307, USA.  */
 
 #define SUBTARGET_CPP_SPEC "%{mamu:-MD !Depend} \
 	%{!mlibscl:-idirafter Unix:} %{mlibscl:-idirafter C:} \
-	-D__JMP_BUF_SIZE=25 %{mlibscl:-D__TARGET_SCL__}"
+	-D__JMP_BUF_SIZE=27 %{mlibscl:-D__TARGET_SCL__}"
 
 #endif /* CROSS_COMPILE */
 

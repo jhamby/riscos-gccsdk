@@ -1261,7 +1261,7 @@ list_off		*	4
 	/* UnixLib's jmp_buf is 24 words, Norcroft's is 22 words
 	   so gcc's is 25 (one more word than the biggest)
 	   setjmp_save is the offset to the 25th word.  */
-setjmp_save		*	(24*4)
+setjmp_save		*	(26*4)
 
 
 	AREA	|C$$code|, CODE, READONLY
