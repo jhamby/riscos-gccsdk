@@ -29,13 +29,16 @@ LIB = \
 	$(gobj)/lib/xstrtol.o \
 	$(gobj)/lib/xstrtoumax.o
 
-all:	dirs $(bin_dir)/grep$(exesfx)
+all:	dirs $(bin_dir)/grep$(exesfx) $(info_dir)/grep
 
 dirs:
 	mkdir -p $(gobj) $(gobj)/lib
 
 $(bin_dir)/grep$(exesfx):	$(OBJS) $(LIB)
 	$(CROSS_CC) -o $@ $(OBJS) $(LIB) -L$(objdir)/libiberty/$(STAGE) -liberty
+
+$(info_dir)/grep:	doc/grep.texi
+	makeinfo --no-split --number-sections doc/grep.texi -o $@ -I doc
 
 $(gobj)/grep.o:	grep.c
 $(gobj)/grepmat.o: grepmat.c
