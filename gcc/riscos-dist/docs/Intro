@@ -5,8 +5,7 @@ This is a short introduction to GCC, the GNU Compiler Collection or RISC OS.
 This document does not provide an introduction to programming, for that you
 will have to get a text book on the language you are interested in.
 
-
-IMPORTANT NOTE 1: The GCC compiler binaries are at least 1800K, so you must
+IMPORTANT NOTE 1: The GCC compiler binaries are at least 3000K, so you must
 ensure that a large enough wimpslot has been allocated. Please refer to the
 `Troubleshooting' section later in this document, if you are getting
 `Address exception' and `No writeable memory at this address' errors.
@@ -14,7 +13,7 @@ ensure that a large enough wimpslot has been allocated. Please refer to the
 IMPORTANT NOTE 2: If ypu have received this copy of GCC from a CD, then it is
 likely there is a more up-to-date version obtainable from elsewhere.
 
-IMPORTANT NOTE 3: GCC requires a minimum of 8Mb RAM.
+IMPORTANT NOTE 3: GCC requires a minimum of 16Mb RAM.
 
 The RISC OS GNU Compiler Collection consists of a generic front end program
 `gcc' that provides a consistent interface to the compilers themselves.
@@ -24,6 +23,7 @@ GCC is covered by the FSF General Public License (see the files docs.COPYING
 and docs.COPYINGLIB for details).
 
 This port of GCC is © Copyright 1996, 1997, 1998, 1999, 2000, 2001 Nick Burrett
+© Copyright 2002, 2003 GCCSDK Development Team
 
 As with all GNU programs, THERE IS NO WARRANTY OF ANY SORT
 
@@ -33,16 +33,6 @@ a C compiler, a C++ compiler, an AOF linker, an AOF assembler, the UnixLib
 C runtime library and headers and stubs for the SharedCLibrary (as found in
 the RISC OS ROMS). 
 
-Thanks go to various people for the help and assistance that they have
-given me. Notably:
-
-Peter Burwood for bug fixes, enhancements, testing, suggestions and more...
-Niklas RÖjemo and Darren Salt for the assembler 'as'
-Simon Callan, Nick Clark and Peter Burwood for UnixLib.
-Cy Brooker for the DDEUtilsCy module.
-
-The RISC OS GCC project would not have been released without the donation
-of a StrongARM RiscPC, coordinated by Steffen Huber.
 
 Installation
 ------------
@@ -169,21 +159,23 @@ There are some additional ARM specific switches.
    to turn this option on when developing applications as it can lead to a
    clear indication of where a program is failing.
 
- -mfpe
-   prevents instruction scheduling of floating point instructions since it
-   increases compile time and the benefits acheived make no difference
-   through the FPE.
-
- -mapcs-32
-   target the APCS-32 bit standard. Condition flags are assumed to be
-   corrupted by function calls in this mode. This option is not very
-   useful under RISC OS.
+ -mapcs-26
+   target the APCS-26 bit standard. Condition flags are preserved by function
+   calls in this mode.  This was the standard used by RISC OS 3.7 and earlier.
+   Later versions use APCS-32 where condition flags are not preserved and
+   this is now the default.
 
  -mapcs-stack-check
    provide explicit stack checking on entry to each function which allocates
    temporary variables on the stack.  This option is enabled by default.
    Disabling this option will reduce the function prologue overhead by
    3-5 instructions.
+
+ -mfpe=2
+   Target the Floating Point architecture version 2.  Notably the function
+   prologues and epilogues use the STFE instruction to preserve floating-point
+   registers rathern than the much faster and more accurate SFM instruction
+   of the version 3 (default) architecture.
 
 RISC OS specific options
 
@@ -273,7 +265,7 @@ Predefines
 ----------
 
 The following preprocessor constants are defined by GCC:
-   'arm', '__arm__', 'riscos', '__riscos__',
+   'arm', '__arm', '__arm__', 'riscos', '__riscos', '__riscos__', '__aof__'
    '__GNUC__', '__GNUC_MAJOR__', '__JMP_BUF_SIZE'
 
 To implement dynamic allocations within a function, it is necessary to add
@@ -283,25 +275,6 @@ __JMP_BUF_SIZE and can alter their jmpbuf array appropriately.
 When targetting the SharedCLibrary (i.e. -mlibscl switch is supplied on
 gcc command line) then an additional preprocessor constant is defined,
 namely `__TARGET_SCL__'.
-
-The use of 'arm' and 'riscos' are deprecated and will be removed in
-later releases of GCC.
-
-Search paths
-------------
-
-The default search paths for GCC are as follows and searched in the
-specified order.
-   GCC$Path        GCC specific include files.
-   Unix$Path       Unixlib header files.
-
-
-<varargs.h>, <assert.h>, <stdarg.h>
------------------------------------
-
-GCC supplies its own versions of these header files since they are not
-compatible with the headers supplied with Acorn C and UnixLib.  However,
-this feature is invisible to the user.
 
 
 GCC and Virtual Memory
@@ -314,22 +287,12 @@ working virtual memory envionment for them. See the section *Dynamic Areas*
 below.
 
 Users of older machines, the Archimedes and A5000, with less than 8Mb RAM
-will not be able to use this software.  In previous releases it was possible
-to use !Virtual to work around the physical RAM limitations of the machine,
-however UnixLib was significantly extended and outgrew the environment
-that !Virtual provided.
+will not be able to use this software.
 
 Dynamic areas
 -------------
 
-Peter Burwood has modified UnixLib to use dynamic areas on the Risc PC and
-these modifications have been included in UnixLib 3.7a. This section applies
-to all GNU compilers supplied by either Nick Burrett, Peter Burwood or
-(hopefully) anyone else providing they have used UnixLib 3.7a or later. A
-description of using dynamic areas is included with UnixLib 3.7a and some
-of it is duplicated here:
-
-UnixLib 3.7a has a facility to use Dynamic Areas, found in RISC OS 3.5
+UnixLib has a facility to use Dynamic Areas, found in RISC OS 3.5
 and above, for the program's heap. The heap is another name for the
 malloc area. The advantages of using a dynamic area for the program's
 heap include :-
@@ -342,11 +305,6 @@ heap include :-
    * Dynamic Areas provide a means of Virtual Memory when used with a
      product such as Virtualise[1]. Virtual Memory allows programs to
      use more data space than is available with just physical memory.
-
-If any problems are encountered with the implementation or use of the
-dynamic area UnixLib heap then please contact Peter Burwood via e-mail at
-daheap@arcangel.dircon.co.uk. Please do not contact Peter with general
-UnixLib problems, but see the UnixLib ReadMe file for a contact address.
 
 Basically, use
 
@@ -513,34 +471,6 @@ As said earlier, GCC is a compiler front end. The compilers themselves
 can be found at http://hard-mofo.dsvr.net/gcc
 
 
-Other compiler related utilities
---------------------------------
-
-Listed below is a small set of utilities you might find a useful
-complement to the GNU compilers.
-
-Drlink (an AOF linker):
-  ftp://micros.hensa.ac.uk/micros/arch/riscos/b/b071/drlink.arc
-
-UnixLib (a C library emulating BSD, System V and POSIX functions):
-  http://hard-mofo.dsvr.net/unixlib
-
-Bison (a yacc parser):
-  ftp://ftp.demon.co.uk/pub/archimedes/gnu/bison124.spk
-
-Diffutils (file difference and patch programs):
-  ftp://ftp.demon.co.uk/pub/archimedes/gnu/diffdist.spk
-
-Flex (a lexical analyser: Unix Lex equivalent):
-  ftp://ftp.demon.co.uk/pub/archimedes/gnu/flex252.spk
-
-Indent (C source code formatter):
-  ftp://ftp.demon.co.uk/pub/archimedes/gnu/indent.spk
-
-Sed (batch stream editor):
-  ftp://ftp.demon.co.uk/pub/archimedes/gnu/sed.spk
-
-
 Distribution patches
 --------------------
 
@@ -552,38 +482,6 @@ will become available from the address:
 
 Announcements will be posted to comp.sys.acorn.announce whenever new
 patch archives are uploaded.
-
-
-Porting compilers
------------------
-
-The above compilers are all called front ends. They provide a mechanism
-for translating the relevant source code format (C, C++, Fortran etc.) into
-relevant information for the back-end. The back-end converts this information
-into a register transfer language and performs most of the optimisation
-techniques. This register transfer language is then applied to a processor
-back-end which will apply further optimisation (processor specific) and then
-output assembler instructions.  The compiler backend can support many
-different processors and operating systems, ARM and RISC OS are just two of
-them.
-
-The job of actually porting new compilers has been made very easy due to the
-hard work of the compiler development teams. Nick Burrett wrote the RISC OS
-port of the ARM processor backend with a little help from Peter Burwood.
-Simon Callan, Nick Burrett, Nick Clark and Peter Burwood wrote UnixLib
-without which the job of porting the compiler would probably never have
-surfaced.
-
-The actual ARM backend used to create the RISC OS port is, for the moment,
-unavailable on mainstream release in the GCC distribution. The alterations
-made to make the compilers work under RISC OS are very involved, but
-procedures are slowly underway to merge changes. Fortunately, the ARM
-backend for RISC OS is only going to be of interest to any future language
-compiler porters. If anybody wishes to port a new compiler then they should
-talk to Nick Burrett who will then send the changes through on request.
-
-The main GCC compiler sources can be obtained from the sites listed described
-below. Sources are approximately 10Mb compressed, 47Mb uncompressed.
 
 
 Contacting the author
