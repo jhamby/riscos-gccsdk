@@ -26,6 +26,8 @@ dnl Check the GCC version
 AC_PROG_CXX
 gxx_version=`${CXX} --version`
 
+AC_C_BIGENDIAN
+
 # See if the system preprocessor understands the ANSI C preprocessor
 # stringification operator.
 AC_MSG_CHECKING(whether cpp understands the stringify operator)
