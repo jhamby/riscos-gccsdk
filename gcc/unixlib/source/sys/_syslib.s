@@ -1,8 +1,8 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/_syslib.s,v $
-; $Date: 2003/04/29 19:38:49 $
-; $Revision: 1.17 $
+; $Date: 2003/05/07 22:10:27 $
+; $Revision: 1.18 $
 ; $State: Exp $
 ; $Author: alex $
 ;
@@ -68,7 +68,6 @@ EXTREMELY_PARANOID	*	0	; Should we check that the entire stack chunk chain is va
 	IMPORT  |__h_sigint|            ;ASM function (signal/_signal.s)
 	IMPORT  |__h_event|             ;ASM function (signal/_signal.s)
 	IMPORT  |__h_exit|              ;ASM function (signal/_signal.s)
-	IMPORT  |__h_upcall|            ;ASM function (signal/_signal.s)
 	IMPORT  |__unixlib_fatal|          ;C function (signal/post.c)
 	IMPORT  |__pthread_system_running| ;variable (pthread/_context.s)
 	IMPORT  |__pthread_disable_ints|   ;ASM function (pthread/_ints.s)
@@ -893,7 +892,7 @@ free_stack_chunk
 	; must be preserved. gcc uses a2 to return 64bit results.
 	; Stack chunks are freed with one chunk of latency,
 	; so we need to free the previously unused chunk, not the chunk that
-	; has just been finished with. Therefore the chunk just finished 
+	; has just been finished with. Therefore the chunk just finished
 	; with can be used as a stack for this function
 	[ EXTREMELY_PARANOID = 1
 	BL	|__check_stack|
@@ -903,7 +902,7 @@ free_stack_chunk
 	ADD	ip, sl, ip	; ip = top of chunk
 	STMFD	ip!, {a1, a2, fp, sp}	; stack important regs
 	MOV	sp, ip	; set up sp
-	; sl remains at the bottom of the chunk, but there's 4K of space and 
+	; sl remains at the bottom of the chunk, but there's 4K of space and
 	; __stackfree won't need more than 256 bytes of it so this is ok
 
 	[ STACK_CHECK_MAGIC = 1

@@ -1,8 +1,8 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/signal/_signal.s,v $
-; $Date: 2003/04/28 21:04:36 $
-; $Revision: 1.10 $
+; $Date: 2003/05/03 11:27:08 $
+; $Revision: 1.11 $
 ; $State: Exp $
 ; $Author: alex $
 ;
@@ -26,7 +26,6 @@
 	IMPORT	|__pthread_system_running|
 	IMPORT	|__pthread_disable_ints|
 	IMPORT	|__pthread_enable_ints|
-	IMPORT	|__pthread_callback_pending|
 	IMPORT	|__pthread_running_thread|
 	IMPORT	|__pthread_worksemaphore|
 	IMPORT	|exit|

@@ -1,8 +1,8 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/unixlib/features.h,v $
- * $Date: 2003/04/05 12:16:34 $
- * $Revision: 1.7 $
+ * $Date: 2003/04/29 21:16:11 $
+ * $Revision: 1.8 $
  * $State: Exp $
  * $Author: alex $
  *
@@ -380,19 +380,21 @@
 #endif
 
 
+#ifndef __flexarr
 /* Support for flexible arrays.  */
-#if __GNUC_PREREQ (2,97)
+# if __GNUC_PREREQ (2,97)
 /* GCC 2.97 supports C99 flexible array members.  */
-# define __flexarr	[]
-#else
-# ifdef __GNUC__
-#  define __flexarr	[0]
+#  define __flexarr	[]
 # else
-#  if defined __STDC_VERSION__ && __STDC_VERSION__ >= 199901L
-#   define __flexarr	[]
+#  ifdef __GNUC__
+#   define __flexarr	[0]
 #  else
+#   if defined __STDC_VERSION__ && __STDC_VERSION__ >= 199901L
+#    define __flexarr	[]
+#   else
 /* Some other non-C99 compiler.  Approximate with [1].  */
-#   define __flexarr	[1]
+#    define __flexarr	[1]
+#   endif
 #  endif
 # endif
 #endif
@@ -422,90 +424,108 @@
 */
 #endif
 
+#ifndef __attribute__
 /* GCC has various useful declarations that can be made with the
    `__attribute__' syntax.  All of the ways we use this do fine if
    they are omitted for compilers that don't understand it. */
-#if !defined __GNUC__ || !__GNUC_PREREQ(2,0)
-# define __attribute__(xyz)	/* Ignore */
+# if !defined __GNUC__ || !__GNUC_PREREQ(2,0)
+#  define __attribute__(xyz)	/* Ignore */
+# endif
 #endif
 
+#ifndef __attribute_malloc__
 /* At some point during the gcc 2.96 development the `malloc' attribute
    for functions was introduced.  We don't want to use it unconditionally
    (although this would be possible) since it generates warnings.  */
-#if __GNUC_PREREQ (2,96)
-# define __attribute_malloc__ __attribute__ ((__malloc__))
-#else
-# define __attribute_malloc__ /* Ignore */
+# if __GNUC_PREREQ (2,96)
+#  define __attribute_malloc__ __attribute__ ((__malloc__))
+# else
+#  define __attribute_malloc__ /* Ignore */
+# endif
 #endif
 
+#ifndef __attribute_pure__
 /* At some point during the gcc 2.96 development the `pure' attribute
    for functions was introduced.  We don't want to use it unconditionally
    (although this would be possible) since it generates warnings.  */
-#if __GNUC_PREREQ (2,96)
-# define __attribute_pure__ __attribute__ ((__pure__))
-#else
-# define __attribute_pure__ /* Ignore */
+# if __GNUC_PREREQ (2,96)
+#  define __attribute_pure__ __attribute__ ((__pure__))
+# else
+#  define __attribute_pure__ /* Ignore */
+# endif
 #endif
 
+#ifndef __attribute_used__
 /* At some point during the gcc 3.1 development the `used' attribute
    for functions was introduced.  We don't want to use it unconditionally
    (although this would be possible) since it generates warnings.  */
-#if __GNUC_PREREQ (3,1)
-# define __attribute_used__ __attribute__ ((__used__))
-#else
-# define __attribute_used__ __attribute__ ((__unused__))
+# if __GNUC_PREREQ (3,1)
+#  define __attribute_used__ __attribute__ ((__used__))
+# else
+#  define __attribute_used__ __attribute__ ((__unused__))
+# endif
 #endif
 
+#ifndef __attribute_format_arg__
 /* At some point during the gcc 2.8 development the `format_arg' attribute
    for functions was introduced.  We don't want to use it unconditionally
    (although this would be possible) since it generates warnings.
    If several `format_arg' attributes are given for the same function, in
    gcc-3.0 and older, all but the last one are ignored.  In newer gccs,
    all designated arguments are considered.  */
-#if __GNUC_PREREQ (2,8)
-# define __attribute_format_arg__(x) __attribute__ ((__format_arg__ (x)))
-#else
-# define __attribute_format_arg__(x) /* Ignore */
+# if __GNUC_PREREQ (2,8)
+#  define __attribute_format_arg__(x) __attribute__ ((__format_arg__ (x)))
+# else
+#  define __attribute_format_arg__(x) /* Ignore */
+# endif
 #endif
 
+#ifndef __attribute_format_strfmon__
 /* At some point during the gcc 2.97 development the `strfmon' format
    attribute for functions was introduced.  We don't want to use it
    unconditionally (although this would be possible) since it
    generates warnings.  */
-#if __GNUC_PREREQ (2,97)
-# define __attribute_format_strfmon__(a,b) \
-  __attribute__ ((__format__ (__strfmon__, a, b)))
-#else
-# define __attribute_format_strfmon__(a,b) /* Ignore */
+# if __GNUC_PREREQ (2,97)
+#  define __attribute_format_strfmon__(a,b) \
+   __attribute__ ((__format__ (__strfmon__, a, b)))
+# else
+#  define __attribute_format_strfmon__(a,b) /* Ignore */
+# endif
 #endif
 
+#ifndef __extension__
 /* It is possible to compile containing GCC extensions even if GCC is
    run in pedantic mode if the uses are carefully marked using the
    `__extension__' keyword.  But this is not generally available before
    version 2.8.  */
-#if !__GNUC_PREREQ (2,8)
-# define __extension__		/* Ignore */
+# if !__GNUC_PREREQ (2,8)
+#  define __extension__		/* Ignore */
+# endif
 #endif
 
+#ifndef __restrict
 /* __restrict is known in EGCS 1.2 and above. */
-#if !__GNUC_PREREQ (2,92)
-# define __restrict	/* Ignore */
+# if !__GNUC_PREREQ (2,92)
+#  define __restrict	/* Ignore */
+# endif
 #endif
 
+#ifndef __restrict_arr
 /* ISO C99 also allows to declare arrays as non-overlapping.  The syntax is
      array_name[restrict]
    GCC 3.1 supports this.  */
-#if __GNUC_PREREQ (3,1) && !defined __GNUG__
-# define __restrict_arr	__restrict
-#else
-# ifdef __GNUC__
-#  define __restrict_arr	/* Not supported in old GCC.  */
+# if __GNUC_PREREQ (3,1) && !defined __GNUG__
+#  define __restrict_arr	__restrict
 # else
-#  if defined __STDC_VERSION__ && __STDC_VERSION__ >= 199901L
-#   define __restrict_arr	restrict
+#  ifdef __GNUC__
+#   define __restrict_arr	/* Not supported in old GCC.  */
 #  else
+#   if defined __STDC_VERSION__ && __STDC_VERSION__ >= 199901L
+#    define __restrict_arr	restrict
+#   else
 /* Some other non-C99 compiler.  */
-#   define __restrict_arr	/* Not supported.  */
+#    define __restrict_arr	/* Not supported.  */
+#   endif
 #  endif
 # endif
 #endif
@@ -599,4 +619,3 @@
 extern int __feature_imagefs_is_file;
 
 #endif
-
