@@ -97,7 +97,7 @@ pexecute (program, argv, this_pname, temp_base, errmsg_fmt, errmsg_arg, flags)
   pid = -1;
   for (retries = 0; retries < 4; retries++)
     {
-      pid = fork ();
+      pid = vfork ();
       if (pid >= 0)
 	break;
       sleep (sleep_interval);
