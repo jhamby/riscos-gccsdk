@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/grp/Attic/grpread.c,v $
- * $Date: 2001/09/11 13:32:33 $
- * $Revision: 1.1.2.1 $
- * $State: Exp $
- * $Author: admin $
+ * $Source$
+ * $Date$
+ * $Revision$
+ * $State$
+ * $Author$
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: grpread.c,v 1.1.2.1 2001/09/11 13:32:33 admin Exp $";
+static const char rcs_id[] = "$Id$";
 #endif
 
 /* Internal group password-file reading functions. */
@@ -66,9 +66,8 @@ g_gdecode (char *line, struct group *grp)
 
 /* Read one entry from the given stream.  */
 struct group *
-__grpread (FILE * stream, struct group *grp)
+__grpread (FILE * stream, struct group *grp, char *buf, size_t buflen)
 {
-  static char buf[256];
   char *bp;
 
   if (stream == NULL)
@@ -76,7 +75,7 @@ __grpread (FILE * stream, struct group *grp)
 
   /* Get a line, skipping past comment lines.  */
   do
-    if (fgets (buf, sizeof (buf) - 1, stream) == 0)
+    if (fgets (buf, buflen - 1, stream) == 0)
       return 0;
   while (buf[0] == '#');
 

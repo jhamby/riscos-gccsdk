@@ -1,10 +1,10 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/stdlib/Attic/mrand48.c,v $
- * $Date: 2002/07/19 13:14:49 $
- * $Revision: 1.1.2.2 $
- * $State: Exp $
- * $Author: admin $
+ * $Source$
+ * $Date$
+ * $Revision$
+ * $State$
+ * $Author$
  *
  ***************************************************************************/
 
@@ -22,12 +22,15 @@
  */
 
 #include "rand48.h"
+#include <pthread.h>
 
 extern unsigned short _rand48_seed[3];
 
 long
 mrand48 (void)
 {
+  PTHREAD_UNSAFE
+
   _dorand48 (_rand48_seed);
   return ((long) _rand48_seed[2] << 16) + (long) _rand48_seed[1];
 }

@@ -1,27 +1,30 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/locale/ctypetable.c,v $
- * $Date: 2002/01/12 16:15:31 $
- * $Revision: 1.2.2.3 $
- * $State: Exp $
- * $Author: admin $
+ * $Source$
+ * $Date$
+ * $Revision$
+ * $State$
+ * $Author$
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: ctypetable.c,v 1.2.2.3 2002/01/12 16:15:31 admin Exp $";
+static const char rcs_id[] = "$Id$";
 #endif
 
 #include <ctype.h>
 #include <unixlib/os.h>
 #include <swis.h>
 #include <locale.h>
+#include <pthread.h>
 
 void __build_ctype_tables (int territory)
 {
   int regs[10], x, y, code, pos, offset;
   unsigned int *table, bits;
   char *p, *q;
+
+  PTHREAD_UNSAFE
 
   if (territory == -2)
     {

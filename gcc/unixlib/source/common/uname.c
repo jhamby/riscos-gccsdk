@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/common/uname.c,v $
- * $Date: 2001/01/29 15:10:19 $
- * $Revision: 1.2 $
- * $State: Exp $
- * $Author: admin $
+ * $Source$
+ * $Date$
+ * $Revision$
+ * $State$
+ * $Author$
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: uname.c,v 1.2 2001/01/29 15:10:19 admin Exp $";
+static const char rcs_id[] = "$Id$";
 #endif
 
 /* Ensure old names are visible.  */
@@ -26,7 +26,8 @@ int __uname_control = __UNAME_DROP_VOWEL + __UNAME_LONG_TRUNC;
 static char __unbuf[MAXPATHLEN << 1];
 
 /* Convert a Unix format filename to RISC OS format.  If CFLAG is
-   non-zero then missing subdirectories are automatically created.  */
+   non-zero then missing subdirectories are automatically created.
+   Not thread safe */
 char *
 __uname (const char *name, int cflag)
 {

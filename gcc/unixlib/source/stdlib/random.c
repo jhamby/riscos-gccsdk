@@ -1,10 +1,10 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/stdlib/Attic/random.c,v $
- * $Date: 2002/07/19 13:14:49 $
- * $Revision: 1.1.2.2 $
- * $State: Exp $
- * $Author: admin $
+ * $Source$
+ * $Date$
+ * $Revision$
+ * $State$
+ * $Author$
  *
  ***************************************************************************/
 
@@ -51,6 +51,7 @@ static char sccsid[] = "@(#)random.c	8.2 (Berkeley) 5/19/95";
 #include <stdio.h>
 #include <stdlib.h>
 #include <unixlib/features.h>
+#include <pthread.h>
 
 /*
  * random.c:
@@ -273,6 +274,8 @@ srandom (unsigned int x)
 {
   long i;
 
+  PTHREAD_UNSAFE
+
   if (rand_type == TYPE_0)
     state[0] = x;
   else
@@ -314,6 +317,8 @@ char *initstate (unsigned int seed, char *arg_state, size_t n)
 {
   register char *ostate = (char *) (&state[-1]);
   register long *long_arg_state = (long *) arg_state;
+
+  PTHREAD_UNSAFE
 
   if (rand_type == TYPE_0)
     state[-1] = rand_type;
@@ -392,6 +397,8 @@ setstate (char *arg_state)
   register long rear = new_state[0] / MAX_TYPES;
   char *ostate = (char *) (&state[-1]);
 
+  PTHREAD_UNSAFE
+
   if (rand_type == TYPE_0)
     state[-1] = rand_type;
   else
@@ -442,6 +449,8 @@ random (void)
 {
   register long i;
   register long *f, *r;
+
+  PTHREAD_UNSAFE
 
   if (rand_type == TYPE_0)
     {

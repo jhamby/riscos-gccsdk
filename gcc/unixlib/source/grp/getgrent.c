@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/grp/Attic/getgrent.c,v $
- * $Date: 2001/09/11 13:32:33 $
- * $Revision: 1.1.2.1 $
- * $State: Exp $
- * $Author: admin $
+ * $Source$
+ * $Date$
+ * $Revision$
+ * $State$
+ * $Author$
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: getgrent.c,v 1.1.2.1 2001/09/11 13:32:33 admin Exp $";
+static const char rcs_id[] = "$Id$";
 #endif
 
 /* Group Password-file operations. */
@@ -20,7 +20,8 @@ static const char rcs_id[] = "$Id: getgrent.c,v 1.1.2.1 2001/09/11 13:32:33 admi
 
 static FILE *stream = NULL;
 
-/* Rewind the stream.  */
+/* Rewind the stream.
+   Defined by POSIX as not threadsafe */
 void
 setgrent (void)
 {
@@ -28,7 +29,8 @@ setgrent (void)
     rewind (stream);
 }
 
-/* Close the stream.  */
+/* Close the stream.
+   Defined by POSIX as not threadsafe */
 void
 endgrent (void)
 {
@@ -39,11 +41,13 @@ endgrent (void)
     }
 }
 
-/* Return one entry from the password file.  */
+/* Return one entry from the password file.
+   Defined by POSIX as not threadsafe */
 struct group *
 getgrent (void)
 {
   static struct group grp;
+  static char buffer[256];
 
   /* Open the password file if not already open.  */
   if (stream == NULL)
@@ -52,7 +56,7 @@ getgrent (void)
   if (stream == NULL)
     return NULL;
 
-  return __grpread (stream, &grp);
+  return __grpread (stream, &grp, buffer, sizeof (buffer));
 }
 
 /* Return one entry from the password file (re-entrant version).  */

@@ -1,10 +1,10 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/stdlib/Attic/lcong48.c,v $
- * $Date: 2002/07/19 13:14:49 $
- * $Revision: 1.1.2.2 $
- * $State: Exp $
- * $Author: admin $
+ * $Source$
+ * $Date$
+ * $Revision$
+ * $State$
+ * $Author$
  *
  ***************************************************************************/
 
@@ -22,6 +22,7 @@
  */
 
 #include "rand48.h"
+#include <pthread.h>
 
 extern unsigned short _rand48_seed[3];
 extern unsigned short _rand48_mult[3];
@@ -30,6 +31,8 @@ extern unsigned short _rand48_add;
 void
 lcong48 (unsigned short p[7])
 {
+  PTHREAD_UNSAFE
+
   _rand48_seed[0] = p[0];
   _rand48_seed[1] = p[1];
   _rand48_seed[2] = p[2];

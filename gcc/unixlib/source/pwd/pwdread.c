@@ -23,6 +23,7 @@ static const char rcs_id[] = "$Id$";
 #include <string.h>
 #include <stdlib.h>
 #include <pwd.h>
+#include <pthread.h>
 
 /* p_pstrcp() */
 
@@ -62,9 +63,8 @@ p_pdecode (char *line, struct passwd *passwd)
 
 /* Read one entry from the given stream.  */
 struct passwd *
-__pwdread (FILE * stream, struct passwd *ppwd)
+__pwdread (FILE * stream, struct passwd *ppwd, char *buf, size_t buflen)
 {
-  static char buf[256];
   char *bp;
 
   if (stream == NULL)
@@ -72,7 +72,7 @@ __pwdread (FILE * stream, struct passwd *ppwd)
 
   /* Get a line, skipping past comment lines.  */
   do
-    if (fgets (buf, sizeof (buf) - 1, stream) == 0)
+    if (fgets (buf, buflen - 1, stream) == 0)
       /* if (getline (buf, sizeof (buf) - 1, stream) == -1) */
       return 0;
   while (buf[0] == '#');
@@ -97,6 +97,8 @@ __pwddefault (void)
 {
   static int pwd_inited = 0;
   static struct passwd pwd;
+
+  PTHREAD_UNSAFE
 
   if (pwd_inited == 0)
     {

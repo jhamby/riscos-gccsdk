@@ -99,7 +99,7 @@ static void read_byte_list (int reason_code, char **grouping, int territory)
   *grouping = new_grouping;
 }
 
-
+/* Defined by POSIX as not threadsafe */
 struct lconv *localeconv (void)
 {
   static struct lconv lc = { NULL, NULL, NULL, NULL, NULL,

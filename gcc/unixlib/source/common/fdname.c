@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/common/fdname.c,v $
- * $Date: 2001/09/04 16:32:04 $
- * $Revision: 1.2.2.2 $
- * $State: Exp $
- * $Author: admin $
+ * $Source$
+ * $Date$
+ * $Revision$
+ * $State$
+ * $Author$
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: fdname.c,v 1.2.2.2 2001/09/04 16:32:04 admin Exp $";
+static const char rcs_id[] = "$Id$";
 #endif
 
 #include <stdlib.h>
@@ -17,6 +17,7 @@ static const char rcs_id[] = "$Id: fdname.c,v 1.2.2.2 2001/09/04 16:32:04 admin 
 #include <unixlib/os.h>
 #include <swis.h>
 #include <errno.h>
+#include <pthread.h>
 
 /* Return canonicalised RISCOS filename corresponding to a RISC OS file
    descriptor RISCOS_FD, or NULL if failed to canonicalise filename. The
@@ -30,6 +31,8 @@ __fd_to_name (int riscos_fd, char *buf, size_t buflen)
   int save = errno;
   _kernel_oserror *err;
   int regs[10];
+
+  PTHREAD_UNSAFE
 
   /* Check illegal argument combination.  */
   if (buflen == 0 && buf != NULL)

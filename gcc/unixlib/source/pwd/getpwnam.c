@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/pwd/getpwnam.c,v $
- * $Date: 2001/01/29 15:10:20 $
- * $Revision: 1.2 $
- * $State: Exp $
- * $Author: admin $
+ * $Source$
+ * $Date$
+ * $Revision$
+ * $State$
+ * $Author$
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: getpwnam.c,v 1.2 2001/01/29 15:10:20 admin Exp $";
+static const char rcs_id[] = "$Id$";
 #endif
 
 /* pwd.c.getpwnam. Search for an entry with a matching username.
@@ -21,7 +21,8 @@ static const char rcs_id[] = "$Id: getpwnam.c,v 1.2 2001/01/29 15:10:20 admin Ex
 #include <string.h>
 #include <pwd.h>
 
-/* Search for an entry with a matching name.  */
+/* Search for an entry with a matching name.
+   Defined by POSIX as not threadsafe */
 struct passwd *
 getpwnam (const char *name)
 {

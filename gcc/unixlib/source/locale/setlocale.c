@@ -21,6 +21,7 @@ static const char rcs_id[] = "$Id$";
 #include <stddef.h>
 #include <unixlib/os.h>
 #include <swis.h>
+#include <pthread.h>
 
 /* Locale information types. These should correspond to the #defines
    in <locale.h>.  */
@@ -111,6 +112,8 @@ char *setlocale (int category, const char *locale)
 {
   int new_territory;
   static char old_locale[256];
+
+  PTHREAD_UNSAFE
 
   /* This tells localeconv to re-read data for the lconv structure.  */
   __setlocale_called = 1;

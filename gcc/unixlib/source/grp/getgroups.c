@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/grp/Attic/getgroups.c,v $
- * $Date: 2001/09/11 13:32:33 $
- * $Revision: 1.1.2.1 $
- * $State: Exp $
- * $Author: admin $
+ * $Source$
+ * $Date$
+ * $Revision$
+ * $State$
+ * $Author$
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: getgroups.c,v 1.1.2.1 2001/09/11 13:32:33 admin Exp $";
+static const char rcs_id[] = "$Id$";
 #endif
 
 /* Supplementary group reading and setting functions */
@@ -21,6 +21,7 @@ static const char rcs_id[] = "$Id: getgroups.c,v 1.1.2.1 2001/09/11 13:32:33 adm
 #include <string.h>
 #include <stdlib.h>
 #include <grp.h>
+#include <pthread.h>
 
 #define MAX_GROUPS 10 /* Maximum number of groups initgroups() can handle */
 
@@ -32,6 +33,8 @@ static int g_ngroups=0; /* number of items in the list */
 int
 getgroups (int gidsetlen, gid_t *gidset)
 {
+  PTHREAD_UNSAFE
+
   if (gidsetlen == 0)
     return g_ngroups;
 
@@ -50,6 +53,8 @@ getgroups (int gidsetlen, gid_t *gidset)
 int
 setgroups (int ngroups, const gid_t *gidset)
 {
+  PTHREAD_UNSAFE
+
   if (g_gidset) free (g_gidset);
   g_gidset = NULL;
 
@@ -72,6 +77,8 @@ initgroups (const char *name, gid_t basegid)
   struct group *grp;
   int ngroups=0;
   gid_t gidset[MAX_GROUPS];
+
+  PTHREAD_UNSAFE
 
   while ( (grp = getgrent ()) !=NULL)
     {

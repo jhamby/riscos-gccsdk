@@ -175,11 +175,15 @@ qsort (register void *v, register size_t n, register size_t z,
   if (n < 2)
     return;
 
+#if __FEATURE_PTHREADS
   pthread_mutex_lock (&mutex);
+#endif
 
   if (!(__t = malloc (z)))
     {
+#if __FEATURE_PTHREADS
       pthread_mutex_unlock (&mutex);
+#endif
       return;
     }
 
@@ -198,5 +202,7 @@ qsort (register void *v, register size_t n, register size_t z,
 
   free (__t);
 
+#if __FEATURE_PTHREADS
   pthread_mutex_unlock (&mutex);
+#endif
 }

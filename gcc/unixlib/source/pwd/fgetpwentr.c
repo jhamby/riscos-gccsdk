@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/pwd/c/fgetpwentr,v $
- * $Date: 1998/01/29 21:15:15 $
- * $Revision: 1.1 $
- * $State: Exp $
- * $Author: unixlib $
+ * $Source$
+ * $Date$
+ * $Revision$
+ * $State$
+ * $Author$
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: fgetpwentr,v 1.1 1998/01/29 21:15:15 unixlib Exp $";
+static const char rcs_id[] = "$Id$";
 #endif
 
 /* Read a password file entry (re-entrant version).
@@ -19,8 +19,7 @@ static const char rcs_id[] = "$Id: fgetpwentr,v 1.1 1998/01/29 21:15:15 unixlib 
 #include <stdio.h>
 #include <pwd.h>
 
-/* Read one entry from the given stream.  
-   We currently do not place anything in buffer.  */
+/* Read one entry from the given stream.  */
 int
 fgetpwent_r (FILE *stream, struct passwd *result_buf, char *buffer,
 	     size_t buflen, struct passwd **result)
@@ -30,7 +29,7 @@ fgetpwent_r (FILE *stream, struct passwd *result_buf, char *buffer,
   if (stream == NULL)
     return -1;
 
-  p = __pwdread (stream, result_buf);
+  p = __pwdread (stream, result_buf, buffer, buflen);
   if (p == NULL)
     return -1;
 

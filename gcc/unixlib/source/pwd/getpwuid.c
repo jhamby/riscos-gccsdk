@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/pwd/getpwuid.c,v $
- * $Date: 2001/01/29 15:10:20 $
- * $Revision: 1.2 $
- * $State: Exp $
- * $Author: admin $
+ * $Source$
+ * $Date$
+ * $Revision$
+ * $State$
+ * $Author$
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: getpwuid.c,v 1.2 2001/01/29 15:10:20 admin Exp $";
+static const char rcs_id[] = "$Id$";
 #endif
 
 /* pwd.c.getpwuid. Search for an entry with a matching user ID.
@@ -21,7 +21,8 @@ static const char rcs_id[] = "$Id: getpwuid.c,v 1.2 2001/01/29 15:10:20 admin Ex
 #include <pwd.h>
 #include <sys/types.h>
 
-/* Search for an entry with a matching uid.  */
+/* Search for an entry with a matching uid.
+   Defined by POSIX as not threadsafe */
 struct passwd *
 getpwuid (uid_t uid)
 {

@@ -1,21 +1,22 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/resource/setprior.c,v $
- * $Date: 2001/09/04 16:32:04 $
- * $Revision: 1.2.2.1 $
- * $State: Exp $
- * $Author: admin $
+ * $Source$
+ * $Date$
+ * $Revision$
+ * $State$
+ * $Author$
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: setprior.c,v 1.2.2.1 2001/09/04 16:32:04 admin Exp $";
+static const char rcs_id[] = "$Id$";
 #endif
 
 #include <errno.h>
 #include <sys/resource.h>
 #include <unixlib/unix.h>
 #include <limits.h>
+#include <pthread.h>
 
 /* A return value of zero indicates success.  */
 
@@ -23,6 +24,8 @@ int
 setpriority (enum __priority_which which, int who, int prio)
 {
   int i;
+
+  PTHREAD_UNSAFE
 
   if (who == 0)
     {

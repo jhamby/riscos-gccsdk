@@ -1,10 +1,10 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/stdlib/Attic/srand48.c,v $
- * $Date: 2002/07/19 13:14:49 $
- * $Revision: 1.1.2.2 $
- * $State: Exp $
- * $Author: admin $
+ * $Source$
+ * $Date$
+ * $Revision$
+ * $State$
+ * $Author$
  *
  ***************************************************************************/
 
@@ -22,6 +22,7 @@
  */
 
 #include "rand48.h"
+#include <pthread.h>
 
 extern unsigned short _rand48_seed[3];
 extern unsigned short _rand48_mult[3];
@@ -30,6 +31,8 @@ extern unsigned short _rand48_add;
 void
 srand48 (long seed)
 {
+  PTHREAD_UNSAFE
+
   _rand48_seed[0] = RAND48_SEED_0;
   _rand48_seed[1] = (unsigned short) seed;
   _rand48_seed[2] = (unsigned short) (seed >> 16);

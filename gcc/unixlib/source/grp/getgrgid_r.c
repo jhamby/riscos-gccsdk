@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/grp/Attic/getgrgid_r.c,v $
- * $Date: 2001/09/11 13:32:33 $
- * $Revision: 1.1.2.1 $
- * $State: Exp $
- * $Author: admin $
+ * $Source$
+ * $Date$
+ * $Revision$
+ * $State$
+ * $Author$
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: getgrgid_r.c,v 1.1.2.1 2001/09/11 13:32:33 admin Exp $";
+static const char rcs_id[] = "$Id$";
 #endif
 
 /* Search for an entry with a matching group ID (re-entrant version). */
@@ -27,19 +27,19 @@ getgrgid_r (gid_t gid, struct group *resbuf, char *buffer, size_t buflen,
   FILE *stream;
   struct group *grp;
 
-  if (resbuf == NULL)
+  if (resbuf == NULL || buffer == NULL)
     return __set_errno (EINVAL);
 
   stream = fopen ("/etc/group", "r");
   if (stream == NULL)
     return -1;
 
-  grp = __grpread (stream, resbuf);
+  grp = __grpread (stream, resbuf, buffer, buflen);
   while (grp != NULL)
     {
       if (resbuf->gr_gid == gid)
         break;
-      grp = __grpread (stream, resbuf);
+      grp = __grpread (stream, resbuf, buffer, buflen);
     }
 
   fclose (stream);

@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/grp/Attic/getgrgid.c,v $
- * $Date: 2001/09/11 13:32:33 $
- * $Revision: 1.1.2.1 $
- * $State: Exp $
- * $Author: admin $
+ * $Source$
+ * $Date$
+ * $Revision$
+ * $State$
+ * $Author$
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: getgrgid.c,v 1.1.2.1 2001/09/11 13:32:33 admin Exp $";
+static const char rcs_id[] = "$Id$";
 #endif
 
 /* Search for an entry with a matching user ID. */
@@ -19,7 +19,8 @@ static const char rcs_id[] = "$Id: getgrgid.c,v 1.1.2.1 2001/09/11 13:32:33 admi
 #include <grp.h>
 #include <sys/types.h>
 
-/* Search for an entry with a matching gid.  */
+/* Search for an entry with a matching gid.
+   Defined by POSIX as not threadsafe */
 struct group *
 getgrgid (gid_t gid)
 {

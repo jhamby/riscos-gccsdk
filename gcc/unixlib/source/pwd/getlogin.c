@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/pwd/c/getlogin,v $
- * $Date: 1998/01/29 21:15:15 $
- * $Revision: 1.5 $
- * $State: Exp $
- * $Author: unixlib $
+ * $Source$
+ * $Date$
+ * $Revision$
+ * $State$
+ * $Author$
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: getlogin,v 1.5 1998/01/29 21:15:15 unixlib Exp $";
+static const char rcs_id[] = "$Id$";
 #endif
 
 #include <pwd.h>
@@ -17,7 +17,8 @@ static const char rcs_id[] = "$Id: getlogin,v 1.5 1998/01/29 21:15:15 unixlib Ex
 #include <unistd.h>
 
 /* Return a pointer to a string containing the name of the user logged
-   in on the controlling terminal of the process.  */
+   in on the controlling terminal of the process.
+   Defined by POSIX as not threadsafe  */
 
 char *
 getlogin (void)

@@ -1,10 +1,10 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/stdlib/Attic/erand48.c,v $
- * $Date: 2002/07/19 13:14:49 $
- * $Revision: 1.1.2.2 $
- * $State: Exp $
- * $Author: admin $
+ * $Source$
+ * $Date$
+ * $Revision$
+ * $State$
+ * $Author$
  *
  ***************************************************************************/
 
@@ -22,10 +22,13 @@
  */
 
 #include "rand48.h"
+#include <pthread.h>
 
 double
 erand48 (unsigned short xseed[3])
 {
+  PTHREAD_UNSAFE
+
   _dorand48 (xseed);
   return ldexp ((double) xseed[0], -48) +
     ldexp ((double) xseed[1], -32) + ldexp ((double) xseed[2], -16);

@@ -1,23 +1,26 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/resource/seteuid.c,v $
- * $Date: 2001/09/04 16:32:04 $
- * $Revision: 1.2.2.1 $
- * $State: Exp $
- * $Author: admin $
+ * $Source$
+ * $Date$
+ * $Revision$
+ * $State$
+ * $Author$
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: seteuid.c,v 1.2.2.1 2001/09/04 16:32:04 admin Exp $";
+static const char rcs_id[] = "$Id$";
 #endif
 
 #include <unistd.h>
 #include <unixlib/unix.h>
+#include <pthread.h>
 
 int
 seteuid (__uid_t uid)
 {
+  PTHREAD_UNSAFE
+
   if (uid == __u->euid)
     return 0;
   if (uid == __u->uid)

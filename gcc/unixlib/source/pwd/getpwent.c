@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/pwd/c/getpwent,v $
- * $Date: 1998/01/29 21:15:16 $
- * $Revision: 1.6 $
- * $State: Exp $
- * $Author: unixlib $
+ * $Source$
+ * $Date$
+ * $Revision$
+ * $State$
+ * $Author$
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: getpwent,v 1.6 1998/01/29 21:15:16 unixlib Exp $";
+static const char rcs_id[] = "$Id$";
 #endif
 
 /* Password-file operations.
@@ -21,7 +21,8 @@ static const char rcs_id[] = "$Id: getpwent,v 1.6 1998/01/29 21:15:16 unixlib Ex
 
 static FILE *stream = NULL;
 
-/* Rewind the stream.  */
+/* Rewind the stream.
+   Defined by POSIX as not threadsafe */
 void
 setpwent (void)
 {
@@ -29,7 +30,8 @@ setpwent (void)
     rewind (stream);
 }
 
-/* Close the stream.  */
+/* Close the stream.
+   Defined by POSIX as not threadsafe */
 void
 endpwent (void)
 {
@@ -40,11 +42,13 @@ endpwent (void)
     }
 }
 
-/* Return one entry from the password file.  */
+/* Return one entry from the password file.
+   Defined by POSIX as not threadsafe */
 struct passwd *
 getpwent (void)
 {
   static struct passwd pwd;
+  static char buffer[256];
 
   /* Open the password file if not already open.  */
   if (stream == NULL)
@@ -53,7 +57,7 @@ getpwent (void)
   if (stream == NULL)
     return NULL;
 
-  return __pwdread (stream, &pwd);
+  return __pwdread (stream, &pwd, buffer, sizeof (buffer));
 }
 
 /* Return one entry from the password file (re-entrant version).  */

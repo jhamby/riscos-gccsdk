@@ -1,3 +1,49 @@
+Tue Jan 21 17:56:18 2003  Alex Waugh  <alex@alexwaugh.com>
+
+	Thread safety patches
+	* common/fdname.c: Changed.
+	* common/sockvalid.c: Changed.
+	* common/uname.c: Changed.
+	* locale/ctypetable.c: Changed.
+	* locale/localeconv.c: Changed.
+	* locale/setlocale.c: Changed.
+	* math/lgamma.c: Changed.
+	* stdlib/_rand48.c: Changed.
+	* stdlib/erand48.c: Changed.
+	* stdlib/jrand48.c: Changed.
+	* stdlib/lcong48.c: Changed.
+	* stdlib/lrand48.c: Changed.
+	* stdlib/mrand48.c: Changed.
+	* stdlib/nrand48.c: Changed.
+	* stdlib/rand.c: Changed.
+	* stdlib/random.c: Changed.
+	* stdlib/seed48.c: Changed.
+	* stdlib/srand48.c: Changed.
+	* pwd/fgetpwent.c: Changed.
+	* pwd/fgetpwentr.c: Changed.
+	* pwd/getlogin.c: Changed.
+	* pwd/getpwent.c: Changed.
+	* pwd/getpwnam.c: Changed.
+	* pwd/getpwnam_r.c: Changed.
+	* pwd/getpwuid.c: Changed.
+	* pwd/getpwuid_r.c: Changed.
+	* pwd/pwdread.c: Changed.
+	* resource/seteuid.c: Changed.
+	* resource/setgid.c: Changed.
+	* resource/setpgrp.c: Changed.
+	* resource/setprior.c: Changed.
+	* resource/setrlimit.c: Changed.
+	* resource/setuid.c: Changed.
+	* grp/fgetgrent.c: Changed.
+	* grp/fgetgrentr.c: Changed.
+	* grp/getgrent.c: Changed.
+	* grp/getgrgid.c: Changed.
+	* grp/getgrgid_r.c: Changed.
+	* grp/getgrnam.c: Changed.
+	* grp/getgrnam_r.c: Changed.
+	* grp/getgroups.c: Changed.
+	* grp/grpread.c: Changed.
+
 Tue Jan 21 17:49:27 2003  Alex Waugh  <alex@alexwaugh.com>
 
 	Provide /dev/random and /dev/zero emulation.

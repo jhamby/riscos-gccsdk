@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/grp/Attic/getgrnam.c,v $
- * $Date: 2001/09/11 13:32:33 $
- * $Revision: 1.1.2.1 $
- * $State: Exp $
- * $Author: admin $
+ * $Source$
+ * $Date$
+ * $Revision$
+ * $State$
+ * $Author$
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: getgrnam.c,v 1.1.2.1 2001/09/11 13:32:33 admin Exp $";
+static const char rcs_id[] = "$Id$";
 #endif
 
 /* Search for an entry with a matching username. */
@@ -19,7 +19,8 @@ static const char rcs_id[] = "$Id: getgrnam.c,v 1.1.2.1 2001/09/11 13:32:33 admi
 #include <string.h>
 #include <grp.h>
 
-/* Search for an entry with a matching name.  */
+/* Search for an entry with a matching name.
+   Defined by POSIX as not threadsafe */
 struct group *
 getgrnam (const char *name)
 {

@@ -1,18 +1,19 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/stdlib/Attic/rand.c,v $
- * $Date: 2002/06/12 14:34:19 $
- * $Revision: 1.1.2.2 $
- * $State: Exp $
- * $Author: admin $
+ * $Source$
+ * $Date$
+ * $Revision$
+ * $State$
+ * $Author$
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: rand.c,v 1.1.2.2 2002/06/12 14:34:19 admin Exp $";
+static const char rcs_id[] = "$Id$";
 #endif
 
 #include <stdlib.h>
+#include <pthread.h>
 
 /* This is a BAD random number generator.  Use the random functions
    instead.  */
@@ -33,6 +34,8 @@ srand (long seed)
 {
   int i;
 
+  PTHREAD_UNSAFE
+
   for (i = 0; i < 32; i++)
     seed = __state[i] = (seed * 1103515245 + 12345);
   __st1 = 0;
@@ -47,6 +50,8 @@ rand (void)
 {
   long i, j;
   int k, l;
+
+  PTHREAD_UNSAFE
 
   i = *((long *) (__state + (k = __st1)));
   j = *((long *) (__state + (l = __st2)));

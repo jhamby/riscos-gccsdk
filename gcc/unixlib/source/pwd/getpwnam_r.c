@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/pwd/getpwnam_r.c,v $
- * $Date: 2001/01/29 15:10:20 $
- * $Revision: 1.2 $
- * $State: Exp $
- * $Author: admin $
+ * $Source$
+ * $Date$
+ * $Revision$
+ * $State$
+ * $Author$
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: getpwnam_r.c,v 1.2 2001/01/29 15:10:20 admin Exp $";
+static const char rcs_id[] = "$Id$";
 #endif
 
 /* Search for an entry with a matching username (re-entrant version).
@@ -29,7 +29,7 @@ getpwnam_r (const char *name, struct passwd *result_buf, char *buffer,
   FILE *stream;
   struct passwd *p;
 
-  if (result_buf == NULL)
+  if (result_buf == NULL || buffer == NULL)
     return __set_errno (EINVAL);
 
   stream = fopen ("/etc/passwd", "r");
@@ -39,12 +39,12 @@ getpwnam_r (const char *name, struct passwd *result_buf, char *buffer,
       return 0;
     }
 
-  p = __pwdread (stream, result_buf);
+  p = __pwdread (stream, result_buf, buffer, buflen);
   while (p != NULL)
     {
       if (strcmp (result_buf->pw_name, name) == 0)
         break;
-      p = __pwdread (stream, result_buf);
+      p = __pwdread (stream, result_buf, buffer, buflen);
     }
 
   fclose (stream);
