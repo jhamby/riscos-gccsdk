@@ -15,8 +15,9 @@ all: java
 
 .PHONY: java
 
-java: $(gcc_bin_dir)/gcjh $(gcc_bin_dir)/jvgenmain \
-	$(gcc_bin_dir)/jcf-dump $(gcc_bin_dir)/jv-scan $(gcc_bin_dir)/jc1
+java: $(gcc_bin_dir)/gcjh$(gexesfx) $(gcc_bin_dir)/jvgenmain$(gexesfx) \
+	$(gcc_bin_dir)/jcf-dump$(gexesfx) \
+        $(gcc_bin_dir)/jv-scan$(gexesfx) $(gcc_bin_dir)/jc1$(gexesfx)
 
 LIBDEPS = $(gccobjdir)/prefix.o
 
@@ -135,19 +136,19 @@ GCJH_OBJS = $(gccobjdir)/java/gjavah.o \
 
 
 # The real targets
-$(gcc_bin_dir)/jc1: $(JAVA_OBJS) $(OBJS) $(OBJS1) $(RISCOS_OBJS)
+$(gcc_bin_dir)/jc1$(gexesfx): $(JAVA_OBJS) $(OBJS) $(OBJS1) $(RISCOS_OBJS)
 	$(LINK) $(JAVA_OBJS) $(OBJS) $(OBJS1) $(RISCOS_OBJS) $(LIBDEPS) $(LIBS)
 
-$(gcc_bin_dir)/jv-scan: $(JAVA_OBJS_LITE)
+$(gcc_bin_dir)/jv-scan$(gexesfx): $(JAVA_OBJS_LITE)
 	$(LINK) $(JAVA_OBJS_LITE) $(LIBDEPS) $(LIBS)
 
-$(gcc_bin_dir)/jcf-dump: $(JCF_DUMP_OBJS)
+$(gcc_bin_dir)/jcf-dump$(gexesfx): $(JCF_DUMP_OBJS)
 	$(LINK) $(JCF_DUMP_OBJS) $(LIBDEPS) $(LIBS)
 
-$(gcc_bin_dir)/jvgenmain: $(JVGENMAIN_OBJS)
+$(gcc_bin_dir)/jvgenmain$(gexesfx): $(JVGENMAIN_OBJS)
 	$(LINK) $(JVGENMAIN_OBJS) $(LIBDEPS) $(LIBS)
 
-$(gcc_bin_dir)/gcjh: $(GCJH_OBJS)
+$(gcc_bin_dir)/gcjh$(gexesfx): $(GCJH_OBJS)
 	$(LINK) $(GCJH_OBJS) $(LIBDEPS) $(LIBS)
 
 ##############################################################################

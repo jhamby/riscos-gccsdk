@@ -20,6 +20,7 @@ CXX = $(CROSS_CXX)
 CFLAGS = $(CROSS_CFLAGS) -D$(targetsystem)
 bin_dir = $(ro_bin_dir)
 gcc_bin_dir = $(ro_gcc_bin_dir)
+gexesfx = $(exesfx)
 endif
 
 # Defs for GCC
@@ -30,7 +31,7 @@ INCLUDES = -I./ -I../../include -I./config
 LIBS = -L$(objdir)/libiberty/$(STAGE) -liberty
 gccobjdir = $(objdir)/gcc-$(VERSION)/gcc/$(STAGE)
 
-export prefix CC CXX CFLAGS bin_dir gcc_bin_dir gccobjdir
+export prefix CC CXX CFLAGS bin_dir gcc_bin_dir gccobjdir gexesfx
 
 
 $(gccobjdir)/%.o: %.c
@@ -46,7 +47,8 @@ all: c cp f77 gpc objc java docs
 .PHONY: java
 .PHONY: docs
 
-c: $(bin_dir)/gcc $(gcc_bin_dir)/cpp $(gcc_bin_dir)/cc1 $(bin_dir)/gcov
+c: $(bin_dir)/gcc$(gexesfx) $(gcc_bin_dir)/cpp$(gexesfx) \
+   $(gcc_bin_dir)/cc1$(gexesfx) $(bin_dir)/gcov$(gexesfx)
 
 cp f77 gpc objc java:
 	$(MAKE) -C $@
@@ -169,24 +171,24 @@ GEN = genemit gengenrtl genoutput genrecog genextract genflags \
 
 # The real targets
 
-$(bin_dir)/gcc:	$(gccobjdir)/gcc.o $(gccobjdir)/gccspec.o \
+$(bin_dir)/gcc$(gexesfx): $(gccobjdir)/gcc.o $(gccobjdir)/gccspec.o \
 	$(gccobjdir)/version.o $(RISC_OBJS) \
 	$(gccobjdir)/config/arm/rname.o $(LIBDEPS)
 	$(LINK) $(gccobjdir)/gcc.o $(gccobjdir)/gccspec.o \
 	$(gccobjdir)/version.o $(RISC_OBJS) \
 	$(gccobjdir)/config/arm/rname.o $(LIBDEPS) $(LIBS)
 
-$(gcc_bin_dir)/cc1: $(C_OBJS) $(OBJS) $(OBJS1) $(RISCOS_OBJS)
+$(gcc_bin_dir)/cc1$(gexesfx): $(C_OBJS) $(OBJS) $(OBJS1) $(RISCOS_OBJS)
 	$(LINK) $(C_OBJS) $(OBJS) $(OBJS1) $(RISCOS_OBJS) $(LIBS)
 
-$(gcc_bin_dir)/cpp: $(CPP_OBJS) $(gccobjdir)/version.o \
+$(gcc_bin_dir)/cpp$(gexesfx): $(CPP_OBJS) $(gccobjdir)/version.o \
 	$(gccobjdir)/config/arm/rname.o \
 	$(RISCOS_OBJS) $(LIBDEPS)
 	$(LINK) $(CPP_OBJS) $(gccobjdir)/version.o \
 	$(gccobjdir)/config/arm/rname.o \
 	$(RISCOS_OBJS) $(LIBDEPS) $(LIBS)
 
-$(bin_dir)/gcov: $(gccobjdir)/gcov.o $(LIBDEPS)
+$(bin_dir)/gcov$(gexesfx): $(gccobjdir)/gcov.o $(LIBDEPS)
 	$(LINK) $(gccobjdir)/gcov.o $(LIBDEPS) $(LIBS)
 
 #$(bin_dir)/demangle: $(LIBIBERTY)

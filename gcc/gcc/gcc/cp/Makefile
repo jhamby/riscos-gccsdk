@@ -14,7 +14,7 @@ all: cpp
 
 .PHONY: cpp
 
-cpp: $(gcc_bin_dir)/cc1plus $(bin_dir)/g++
+cpp: $(gcc_bin_dir)/cc1plus$(gexesfx) $(bin_dir)/g++$(gexesfx)
 
 LIBDEPS = $(gccobjdir)/prefix.o
 
@@ -122,12 +122,12 @@ C++OBJS = $(gccobjdir)/cp/call.o \
 	$(gccobjdir)/cp/xref.o
 
 
-$(gcc_bin_dir)/cc1plus: $(C++OBJS) $(OBJS) $(OBJS1) $(gccobjdir)/c-common.o \
-	$(gccobjdir)/c-pragma.o $(RISCOS_OBJS) $(LIBDEPS)
+$(gcc_bin_dir)/cc1plus$(gexesfx): $(C++OBJS) $(OBJS) $(OBJS1) \
+        $(gccobjdir)/c-common.o $(gccobjdir)/c-pragma.o $(RISCOS_OBJS) $(LIBDEPS)
 	$(LINK) $(C++OBJS) $(OBJS) $(OBJS1) $(gccobjdir)/c-common.o \
 	$(gccobjdir)/c-pragma.o $(RISCOS_OBJS) $(LIBDEPS) $(LIBS)
 
-$(bin_dir)/g++: $(gccobjdir)/cp/g++.o $(gccobjdir)/cp/g++spec.o \
+$(bin_dir)/g++$(gexesfx): $(gccobjdir)/cp/g++.o $(gccobjdir)/cp/g++spec.o \
 	$(gccobjdir)/version.o \
 	$(gccobjdir)/config/arm/rname.o $(RISC_OBJS) $(LIBDEPS)
 	$(LINK) $(gccobjdir)/cp/g++.o $(gccobjdir)/cp/g++spec.o \

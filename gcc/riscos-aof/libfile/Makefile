@@ -4,6 +4,7 @@
 ifeq (${STAGE},stage1)
 CXXFLAGS += -DCROSS_COMPILE
 linklibs = -lstdc++
+exesfx = 
 else
 CC = $(CROSS_CC)
 CXX = $(CROSS_CXX)
@@ -49,9 +50,9 @@ OBJS +=	$(libfileobjdir)/OS_File.o \
 	$(libfileobjdir)/OS_CnvtDT.o
 endif
 
-all:	$(bin_dir)/libfile
+all:	$(bin_dir)/libfile$(exesfx)
 
-$(bin_dir)/libfile:	$(OBJS)
+$(bin_dir)/libfile$(exesfx):	$(OBJS)
 	$(CXX) -o $@ $(OBJS) $(linklibs)
 
 $(libfileobjdir)/TimeStamp.o: TimeStamp.cc

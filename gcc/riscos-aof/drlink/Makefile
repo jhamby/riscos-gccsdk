@@ -3,6 +3,7 @@
 
 ifeq (${STAGE},stage1)
 CFLAGS += -DCROSS_COMPILE
+exesfx =
 else
 CC = $(CROSS_CC)
 CFLAGS = $(CROSS_CFLAGS)
@@ -30,9 +31,9 @@ OBJS =	$(drlinkobjdir)/Aoffiles.o \
 	$(drlinkobjdir)/Stdcode.o \
 	$(drlinkobjdir)/Symbols.o
 
-all:	$(bin_dir)/drlink
+all:	$(bin_dir)/drlink$(exesfx)
 
-$(bin_dir)/drlink:	$(OBJS)
+$(bin_dir)/drlink$(exesfx): $(OBJS)
 	$(CC) -o $@ $(OBJS)
 
 $(drlinkobjdir)/Aoffiles.o: Aoffiles.c

@@ -3,6 +3,7 @@
 
 ifeq (${STAGE},stage1)
 CFLAGS += -DCROSS_COMPILE
+exesfx =
 else
 CC = $(CROSS_CC)
 CFLAGS = $(CROSS_CFLAGS) -DUNIXLIB
@@ -69,9 +70,9 @@ ifeq (${STAGE},stage2)
 	OBJS += $(asobjdir)/os.o
 endif
 
-all:	$(gcc_bin_dir)/as
+all:	$(gcc_bin_dir)/as$(exesfx)
 
-$(gcc_bin_dir)/as:	$(OBJS)
+$(gcc_bin_dir)/as$(exesfx):	$(OBJS)
 	$(CC) -o $@ $(OBJS) -lm
 
 $(asobjdir)/area.o: area.c

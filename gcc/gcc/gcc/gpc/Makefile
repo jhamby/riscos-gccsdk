@@ -16,7 +16,8 @@ all: gpc docs
 .PHONY: gpc
 .PHONY: docs
 
-gpc:	$(bin_dir)/gpc $(gcc_bin_dir)/gpc1 $(gcc_bin_dir)/gpcpp
+gpc:	$(bin_dir)/gpc$(gexesfx) $(gcc_bin_dir)/gpc1$(gexesfx) \
+        $(gcc_bin_dir)/gpcpp$(gexesfx)
 
 ifeq (${STAGE},stage1)
 docs:
@@ -132,17 +133,17 @@ GPC_OBJS = $(gccobjdir)/c-aux-info.o \
 	$(gccobjdir)/gpc/tree.o
 
 
-$(bin_dir)/gpc: $(gccobjdir)/gpc/gpc.o $(gccobjdir)/gpc/gpcspec.o \
+$(bin_dir)/gpc$(gexesfx): $(gccobjdir)/gpc/gpc.o $(gccobjdir)/gpc/gpcspec.o \
 	$(gccobjdir)/gpc/version.o $(RISC_OBJS) \
 	$(gccobjdir)/config/arm/rname.o $(LIBDEPS)
 	$(LINK) $(gccobjdir)/gpc/gpc.o $(gccobjdir)/gpc/gpcspec.o \
 	$(gccobjdir)/gpc/version.o $(RISC_OBJS) \
 	$(gccobjdir)/config/arm/rname.o $(LIBDEPS) $(LIBS)
 
-$(gcc_bin_dir)/gpc1:	$(GPC_OBJS) $(OBJS) $(RISCOS_OBJS)
+$(gcc_bin_dir)/gpc1$(gexesfx):	$(GPC_OBJS) $(OBJS) $(RISCOS_OBJS)
 	$(LINK) $(GPC_OBJS) $(OBJS) $(RISCOS_OBJS) $(LIBS)
 
-$(gcc_bin_dir)/gpcpp:	$(gccobjdir)/gpc/gpcpp.o $(gccobjdir)/gpc/cexp.o \
+$(gcc_bin_dir)/gpcpp$(gexesfx):	$(gccobjdir)/gpc/gpcpp.o $(gccobjdir)/gpc/cexp.o \
 	$(gccobjdir)/mbchar.o $(gccobjdir)/version.o
 	$(LINK) $(gccobjdir)/gpc/gpcpp.o $(gccobjdir)/gpc/cexp.o \
 	$(gccobjdir)/mbchar.o $(gccobjdir)/version.o $(LIBDEPS) $(LIBS)
@@ -266,7 +267,6 @@ $(gccobjdir)/gpc/gpc-decl.o: gpc-decl.c gcc-version.h ../config.h ../auto-host.h
  ../tree-check.h ../real.h gpc-tree.h ../input.h ../rtl.h ../rtl.def \
  ../genrtl.h ../../../include/obstack.h ../flags.h ../output.h \
  ../expr.h ../insn-codes.h ../c-lex.h ../except.h ../function.h \
- /usr/lib/gcc-lib/i386-redhat-linux/egcs-2.91.66/include/float.h \
  gpc-defs.h lang.h module.h memfiles.h objects.h types.h util.h \
  gpc-options.h
 $(gccobjdir)/gpc/gpc-lex.o: gpc-lex.c gcc-version.h ../config.h ../auto-host.h \

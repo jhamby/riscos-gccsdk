@@ -21,7 +21,8 @@ else
 docs:	$(info_dir)/g77
 endif
 
-fortran77: $(gccobjdir)/f77/fini $(bin_dir)/g77 $(gcc_bin_dir)/f771
+fortran77: $(gccobjdir)/f77/fini $(bin_dir)/g77$(gexesfx) \
+  $(gcc_bin_dir)/f771$(gexesfx)
 
 LIBDEPS = $(gccobjdir)/prefix.o
 
@@ -144,7 +145,7 @@ STR_HEADERS = str-1t.h str-2t.h str-fo.h str-io.h str-nq.h str-op.h str-ot.h \
 
 
 # The real targets
-$(bin_dir)/g77:	$(gccobjdir)/f77/g77.o $(gccobjdir)/f77/g77spec.o \
+$(bin_dir)/g77$(gexesfx): $(gccobjdir)/f77/g77.o $(gccobjdir)/f77/g77spec.o \
 	$(gccobjdir)/version.o \
 	$(gccobjdir)/f77/version.o $(gccobjdir)/config/arm/rname.o \
 	$(RISC_OBJS) $(LIBDEPS)
@@ -157,7 +158,7 @@ $(gccobjdir)/f77/fini:	$(gccobjdir)/f77/fini.o $(gccobjdir)/f77/proj.o $(LIBDEPS
 	$(LINK) $(gccobjdir)/f77/fini.o $(gccobjdir)/f77/proj.o \
 	$(LIBDEPS) $(LIBS)
 
-$(gcc_bin_dir)/f771:	$(F77_OBJS) $(OBJS) $(OBJS1) $(BC_OBJS) $(RISCOS_OBJS) $(STR_HEADERS)
+$(gcc_bin_dir)/f771$(gexesfx): $(F77_OBJS) $(OBJS) $(OBJS1) $(BC_OBJS) $(RISCOS_OBJS) $(STR_HEADERS)
 	$(LINK) $(F77_OBJS) $(OBJS) $(OBJS1) $(BC_OBJS) $(RISCOS_OBJS) $(LIBDEPS) $(LIBS)
 
 ifeq (${STAGE},stage2)

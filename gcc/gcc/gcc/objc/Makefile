@@ -14,7 +14,7 @@ all: objc
 
 .PHONY: objc
 
-objc: $(gcc_bin_dir)/cc1obj
+objc: $(gcc_bin_dir)/cc1obj$(gexesfx)
 
 LIBDEPS = $(gccobjdir)/prefix.o
 
@@ -105,7 +105,7 @@ OBJC_OBJS = $(gccobjdir)/objc/objc-parse.o \
 
 
 # The real targets
-$(gcc_bin_dir)/cc1obj:	$(OBJS) $(OBJS1) $(OBJC_OBJS) $(RISCOS_OBJS) $(LIBDEPS)
+$(gcc_bin_dir)/cc1obj$(gexesfx): $(OBJS) $(OBJS1) $(OBJC_OBJS) $(RISCOS_OBJS) $(LIBDEPS)
 	$(LINK) $(OBJS) $(OBJS1) $(OBJC_OBJS) $(RISCOS_OBJS) $(LIBS)
 
 ##############################################################################

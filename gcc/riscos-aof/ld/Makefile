@@ -4,6 +4,7 @@
 ifeq (${STAGE},stage1)
 prefix = $(unix_prefix)
 CFLAGS += -DCROSS_COMPILE
+exesfx = 
 else
 prefix = $(riscos_prefix)
 CC = $(CROSS_CC)
@@ -20,9 +21,9 @@ $(ldobjdir)/%.o: %.c
 
 OBJS = $(ldobjdir)/ld.o $(ldobjdir)/rname.o
 
-all:	$(gcc_bin_dir)/ld
+all:	$(gcc_bin_dir)/ld$(exesfx)
 
-$(gcc_bin_dir)/ld:	$(OBJS)
+$(gcc_bin_dir)/ld$(exesfx):	$(OBJS)
 	$(CC) -o $@ $(OBJS) -L$(objdir)/libiberty/$(STAGE) -liberty
 
 $(ldobjdir)/ld.o: ld.c
