@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/setjmp.h,v $
- * $Date: 2004/04/12 13:03:37 $
- * $Revision: 1.7 $
+ * $Date: 2004/04/15 22:21:02 $
+ * $Revision: 1.8 $
  * $State: Exp $
- * $Author: nick $
+ * $Author: alex $
  *
  ***************************************************************************/
 
@@ -36,12 +36,6 @@ __BEGIN_DECLS
 #endif
 
 typedef int jmp_buf[__JMP_BUF_SIZE];
-
-/* ANSI says that setjmp is a macro.  */
-#ifdef __STDC__
-/* -pcc mode doesn't allow circular definitions... */
-#define setjmp(jmp_buf) (setjmp(jmp_buf))
-#endif
 
 /* Store the current execution state into env.  */
 extern int setjmp (jmp_buf __env) __THROW;

@@ -1,8 +1,8 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/netdb.h,v $
- * $Date: 2002/09/24 11:29:18 $
- * $Revision: 1.2.2.3 $
+ * $Date: 2002/12/22 18:22:28 $
+ * $Revision: 1.4 $
  * $State: Exp $
  * $Author: admin $
  *
@@ -331,6 +331,7 @@ extern struct protoent *getprotobynumber (int __proto) __THROW;
 
 
 #ifdef	__USE_MISC
+#if 0
 /* Reentrant versions of the functions above.  The additional
    arguments specify a buffer of BUFLEN starting at BUF.  */
 extern int getprotoent_r (struct protoent *__restrict __result_buf,
@@ -346,6 +347,7 @@ extern int getprotobynumber_r (int __proto,
 			       struct protoent *__restrict __result_buf,
 			       char *__restrict __buf, size_t __buflen,
 			       struct protoent **__restrict __result) __THROW;
+#endif
 #endif	/* misc */
 
 

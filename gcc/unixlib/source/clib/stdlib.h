@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/stdlib.h,v $
- * $Date: 2004/04/12 13:03:37 $
- * $Revision: 1.9 $
+ * $Date: 2004/04/15 22:21:02 $
+ * $Revision: 1.10 $
  * $State: Exp $
- * $Author: nick $
+ * $Author: alex $
  *
  ***************************************************************************/
 
@@ -174,51 +174,96 @@ extern lldiv_t lldiv (long long __numer, long long __denom)
      __THROW __attribute__ ((__const__));
 #endif
 
-/* Convert a string to a floating point number.  */
-extern double atof (const char *__string) __THROW __attribute_pure__;
-#define atof(s) strtod(s, (char **)NULL)
-
+__BEGIN_NAMESPACE_STD
+/* Convert a string to a floating-point number.  */
+extern double atof (__const char *__nptr) __THROW __attribute_pure__;
 /* Convert a string to an integer.  */
-extern int atoi (const char *__string) __THROW __attribute_pure__;
-#define atoi(s) ((int)strtol(s, (char **) NULL, 10))
-
+extern int atoi (__const char *__nptr) __THROW __attribute_pure__;
 /* Convert a string to a long integer.  */
-extern long atol (const char *__string) __THROW __attribute_pure__;
-#define atol(s) strtol(s, (char **) NULL, 10)
+extern long int atol (__const char *__nptr) __THROW __attribute_pure__;
+__END_NAMESPACE_STD
 
-/* Convert a string to a 64-bit long integer.  */
-__extension__ extern long long atoll (const char *__string)
+#if defined __USE_ISOC99 || (defined __GLIBC_HAVE_LONG_LONG && defined __USE_MISC)
+__BEGIN_NAMESPACE_C99
+/* Convert a string to a long long integer.  */
+__extension__ extern long long int atoll (__const char *__nptr)
      __THROW __attribute_pure__;
-#define atoll(s) strtoll(s, (char **) NULL, 10)
+__END_NAMESPACE_C99
+#endif
 
+__BEGIN_NAMESPACE_STD
+/* Convert a string to a floating-point number.  */
+extern double strtod (__const char *__restrict __nptr,
+		      char **__restrict __endptr) __THROW;
+__END_NAMESPACE_STD
 
-/* Convert a string to a floating point number.  */
-extern double strtod (const char *__restrict __string,
-		      char **__restrict __end) __THROW;
-extern float strtof (const char *__restrict __string,
-		     char **__restrict __end) __THROW;
-extern long double strtold (const char *__restrict __string,
-			    char **__restrict __end) __THROW;
+#ifdef	__USE_ISOC99
+__BEGIN_NAMESPACE_C99
+/* Likewise for `float' and `long double' sizes of floating-point numbers.  */
+extern float strtof (__const char *__restrict __nptr,
+		     char **__restrict __endptr) __THROW;
 
+extern long double strtold (__const char *__restrict __nptr,
+			    char **__restrict __endptr) __THROW;
+__END_NAMESPACE_C99
+#endif
+
+__BEGIN_NAMESPACE_STD
 /* Convert a string to a long integer.  */
-extern long strtol (const char *__restrict __nptr,
-		    char **__restrict __endptr, int __base) __THROW;
-
+extern long int strtol (__const char *__restrict __nptr,
+			char **__restrict __endptr, int __base) __THROW;
 /* Convert a string to an unsigned long integer.  */
-extern unsigned long strtoul (const char *__restrict __nptr,
-			      char **__restrict __endptr, int __base)
+extern unsigned long int strtoul (__const char *__restrict __nptr,
+				  char **__restrict __endptr, int __base)
      __THROW;
+__END_NAMESPACE_C99
 
-/* Convert a string to a 64-bit integer.  */
+#if defined __USE_ISOC99 || (defined __GLIBC_HAVE_LONG_LONG && defined __USE_MISC)
+__BEGIN_NAMESPACE_C99
+/* Convert a string to a quadword integer.  */
 __extension__
-extern long long strtoll (const char *__restrict __nptr,
-			  char **__restrict __endptr, int __base) __THROW;
-
-/* Convert a string to an unsigned 64-bit integer.  */
+extern long long int strtoll (__const char *__restrict __nptr,
+			      char **__restrict __endptr, int __base) __THROW;
+/* Convert a string to an unsigned quadword integer.  */
 __extension__
-extern unsigned long long strtoull (const char *__restrict __nptr,
-				    char **__restrict __endptr, int __base)
+extern unsigned long long int strtoull (__const char *__restrict __nptr,
+					char **__restrict __endptr, int __base)
      __THROW;
+__END_NAMESPACE_C99
+#endif /* ISO C99 or GCC and use MISC.  */
+
+#ifdef __USE_EXTERN_INLINES
+/* Define inline functions which call the internal entry points.  */
+
+__BEGIN_NAMESPACE_STD
+extern __inline double
+atof (__const char *__nptr) __THROW
+{
+  return strtod (__nptr, (char **) NULL);
+}
+extern __inline int
+atoi (__const char *__nptr) __THROW
+{
+  return (int) strtol (__nptr, (char **) NULL, 10);
+}
+extern __inline long int
+atol (__const char *__nptr) __THROW
+{
+  return strtol (__nptr, (char **) NULL, 10);
+}
+__END_NAMESPACE_STD
+
+# if defined __USE_MISC || defined __USE_ISOC99
+__BEGIN_NAMESPACE_C99
+__extension__ extern __inline long long int
+atoll (__const char *__nptr) __THROW
+{
+  return strtoll (__nptr, (char **) NULL, 10);
+}
+__END_NAMESPACE_C99
+# endif
+#endif /* Optimizing and Inlining.  */
+
 
 /* Do a binary search for 'key' in 'base', which consists of
    'nmemb' elements of 'size' bytes each, using 'compare' to

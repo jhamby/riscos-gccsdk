@@ -1,3 +1,14 @@
+Mon May 10 11:59:58 2004  Peter Naulls  <peter@chocky.org>
+
+	* clib/netdb.h: Disable unimplemented functions.
+	* clib/setjmp.h: Remove setjmp macro - it causes problems with C++,
+	  and doesn't appear in glibc in any case.
+	* clib/stdlib.h: Remove ato* macros which cause problems with C++,
+	and replace with inline fucntions from glibc headers.  Also change
+	other declarations as per glibc.
+	* clib/strings.h: Fix ordering of #endif at the end.
+	* unistd/lockf.c: Add lockf() function.
+
 Mon May  3 18:32:45 2004  James Bursa  <james@semichrome.net>
 
 	* unix/dev.c: Fix for fopen() then subsequent fread() on a directory

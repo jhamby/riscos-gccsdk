@@ -1,8 +1,8 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/strings.h,v $
- * $Date: 2004/02/15 19:37:38 $
- * $Revision: 1.7 $
+ * $Date: 2004/02/21 21:02:56 $
+ * $Revision: 1.8 $
  * $State: Exp $
  * $Author: peter $
  *
@@ -47,8 +47,9 @@ extern int strncasecmp (const char *__s1, const char *__s2, size_t __n);
 /* Return the position of the first bit set in I, or 0 if none are set.
    The least-significant bit is position 1, the most-significant 32.  */
 extern int ffs (int __i);
-#endif /* string.h  */
 
 __END_DECLS
+
+#endif /* string.h  */
 
 #endif /* strings.h  */
