@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/dev.c,v $
- * $Date: 2005/03/19 11:58:06 $
- * $Revision: 1.29 $
+ * $Date: 2005/03/31 11:33:14 $
+ * $Revision: 1.30 $
  * $State: Exp $
- * $Author: alex $
+ * $Author: nick $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: dev.c,v 1.29 2005/03/19 11:58:06 alex Exp $";
+static const char rcs_id[] = "$Id: dev.c,v 1.30 2005/03/31 11:33:14 nick Exp $";
 #endif
 
 /* #define DEBUG */
@@ -224,8 +224,6 @@ __fsopen (struct __unixlib_fd *file_desc, const char *filename, int mode)
 	     return ENOENT.  */
           if (!(fflag & O_CREAT))
 	    {
-	      if (temp)
-		free(temp);
 	      return (void *) __set_errno (ENOENT);
 	    }
         }
