@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/stddef.h,v $
- * $Date: 2002/09/24 21:02:36 $
- * $Revision: 1.4 $
+ * $Date: 2003/04/22 10:59:44 $
+ * $Revision: 1.5 $
  * $State: Exp $
- * $Author: admin $
+ * $Author: peter $
  *
  ***************************************************************************/
 
@@ -57,6 +57,7 @@ typedef __SIZE_TYPE__ size_t;
 #if !defined __wchar_t_defined && defined __need_wchar_t
 #define __wchar_t_defined
 
+#define _WCHAR_T
 #ifndef __WCHAR_TYPE__
 #define __WCHAR_TYPE__ int
 #endif
@@ -70,6 +71,7 @@ typedef __WCHAR_TYPE__ wchar_t;
 
 #if !defined __wint_t_defined && defined __need_wint_t
 #define __wint_t_defined
+#define _WINT_T
 #ifndef __WINT_TYPE__
 #define __WINT_TYPE__ unsigned int
 #endif

@@ -1,3 +1,9 @@
+Fri Apr 25 15:14:29 2003  Peter Naulls <peter@chocky.org>
+	* clib/sys/cdefs.h: Added, from a patch by John T.  Didn't create
+	  the needless misc directory in use with that, however.
+	* clib/stddef.h: Add _WCHAR_T and _WINT_T defines as per glibc.
+	* clib/signal.h: Add __USE_GNU wrapper to sighandler_t typedef.
+
 Fri Apr 25 00:32:18 2003  John Tytgat <John.Tytgat@aaug.net>
 
 	* objs/Makefile,fe1: Forgot to specify APCS 3/32bit for assembler.

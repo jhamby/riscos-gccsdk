@@ -1,8 +1,8 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/signal.h,v $
- * $Date: 2002/09/24 21:02:36 $
- * $Revision: 1.3 $
+ * $Date: 2002/12/15 13:16:55 $
+ * $Revision: 1.4 $
  * $State: Exp $
  * $Author: admin $
  *
@@ -109,7 +109,9 @@ __BEGIN_DECLS
 
 /* Type of a signal handler.  */
 typedef void (*__sighandler_t)(int);
+#ifdef __USE_GNU
 typedef __sighandler_t sighandler_t;
+#endif
 
 extern int sys_nsig;		/* = NSIG */
 extern const char * const sys_siglist[NSIG];	/* signal messages */
