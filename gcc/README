@@ -51,6 +51,10 @@ computer to make a working compiler.
 	--with-riscos-dist=/home/riscos/riscos-dist
 	--with-riscos-pkg=/home/riscos/riscos-pkg
 
+Adding the flag --enable-filetype-ff8 to the configure options will add the
+",ff8" suffix to any RISC OS executables built under Unix.  This is to allow
+filetyping by networking filing systems from RISC OS, such as LanMan98.  
+
 Create installation directory structure
   $ make setup
 
@@ -104,19 +108,19 @@ The cross-compiler contains the following tools:
 	    implementation of several RISC OS SWIs in order to get a
 	    very small number of RISC OS applications running on Unix.
 
-   drlink - Dave Daniels RISC OS AOF linker.
+   drlink - Dave Daniels' RISC OS AOF linker.
   libfile - a RISC OS ALF builder.
      gcov - a test coverage program
    libscl - C library headers and stubs for linking with the SharedCLibrary.
   unixlib - A C library with BSD, System V and POSIX library extensions.
-  rink, rinkptr, extractsym - components of Ben Summers run-time linker
+  rink, rinkptr, extractsym - components of Ben Summers' run-time linker
 
 
 The RISC OS distribution contains the following tools:
 
   Language compilers for C, C++, Fortran 77 and Pascal.
 
-   drlink - Dave Daniels RISC OS AOF linker.
+   drlink - Dave Daniels' RISC OS AOF linker.
   libfile - a RISC OS ALF builder.
      gcov - a test coverage program
    libscl - C library headers and stubs for linking with the SharedCLibrary.
@@ -132,4 +136,65 @@ The RISC OS distribution contains the following tools:
 	    of diff.
       sed - A batch stream editor
     touch - A port of the Unix touch command for changing file timestamps.
-  rink, rinkptr, extractsym - components of Ben Summers run-time linker.
+  rink, rinkptr, extractsym - components of Ben Summers' run-time linker.
+
+
+FAQ
+---
+
+Q1. How can I build Unixlib with function names?
+
+A1. The default is for GCC to not embed function names in the program,
+    so backtraces will show ?() for functions.   The following applies
+    equally to most parts of the build process:
+
+    In unixlib/source/Makefile, add "-mpoke-function-name" to the
+    CROSS_CFLAGS line.
+
+    Delete previous Unixlib objetcs, e.g.:
+       find arm-riscos-aof/unixlib/ -type f | xargs rm
+
+    Rebuild with make.
+
+
+Q2. Libfile crashes in ARM Linux, what can I do?
+
+A2. There appears to be a C++ destructor bug.  As the very last line
+    in the Librarian::run() function, in riscos-aof/libfile/Librarian.cc,
+    add "exit(0)" as a work-around.
+
+
+Q3. What systems has GCCSDK been built on?
+
+A3. Systems on which it has successfully been built upon include:
+        Debian i386/Linux,
+	RedHat i386/Linux,
+	Debian ARM/Linux,
+	FreeBSD,
+	Cygwin,
+	and others.
+
+
+Q4. Where does the Unixlib library file end up?
+
+A4. It depends on the parameters you pass to configure.  But for the
+    RISC OS distribution it could be something like:
+      /usr/home/riscos/riscos-dist/bin/arm-riscos-aof/apcs26/unixlib/o/
+
+    For the Unix tree it could be:
+      /usr/home/riscos/riscos-cross/bin/arm-riscos-aof/apcs26/unixlib/unixlib.o
+
+
+Q5. My Unix variant appears to be unsupported.  How do I fix it.
+
+A5. Fortunately this is quite easy and, in most cases, only require you to
+    make changes to a few configuration files.
+
+    a) Change gccsdk/configure.in to correctly detect your CPU and OS type,
+       fixing up cpu_type and os_type respectively.
+
+    b) Fix config.h and hconfig.h.  Add a HOST_CPU_OS clause for your machine,
+       which should include an appropriate xm-*.h file, which you would have
+       previously copied from an original GCC 2.95.x release.
+
+    Big-endian CPUs, such as Sparc and MIPS, are currently unsupported.
