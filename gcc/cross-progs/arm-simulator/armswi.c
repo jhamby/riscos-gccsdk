@@ -589,6 +589,8 @@ swi (register WORD ins)
       return;
     }
 
+  /*printf ("calling swi(%08x)\n", num);*/
+
   switch (num)
     {
     case OS_WriteC:
@@ -1885,7 +1887,7 @@ swi (register WORD ins)
 
 	gettimeofday (&tv, NULL);
 
-#ifdef DEBUG
+#if 0 /*def DEBUG*/
 	printf ("MonotonicTime: sec = %d, usec = %d\n",
 		tv.tv_sec, tv.tv_usec);
 #endif

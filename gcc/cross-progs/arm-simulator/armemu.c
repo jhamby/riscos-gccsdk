@@ -1200,6 +1200,7 @@ emulator (void)
     case VECTOR_SOFTWARE_INTERRUPT:
     case VECTOR_ABORT_PREFETCH:
       *arm_regs[SVC_MODE][14] = addPC (r15, -4);
+      printf ("exception: %d r15 = %08x\n", vector,  r15);
       r15 = (r15 & 0xfc000003) | vector | SVC_MODE | I_BIT;
       PCwrite = TRUE;
       break;
@@ -1207,18 +1208,21 @@ emulator (void)
     case VECTOR_ABORT_DATA:
     case VECTOR_ADDRESS_EXCEPTION:
       *arm_regs[SVC_MODE][14] = r15;
+      printf ("exception: %d r15 = %08x\n", vector,  r15);
       r15 = (r15 & 0xfc000003) | vector | SVC_MODE | I_BIT;
       PCwrite = TRUE;
       break;
 
     case VECTOR_IRQ:
       *arm_regs[IRQ_MODE][14] = addPC (r15, -4);
+      printf ("exception: %d r15 = %08x\n", vector,  r15);
       r15 = (r15 & 0xfc000003) | vector | IRQ_MODE | I_BIT;
       PCwrite = TRUE;
       break;
 
     case VECTOR_FIQ:
       *arm_regs[FIQ_MODE][14] = addPC (r15, -4);
+      printf ("exception: %d r15 = %08x\n", vector,  r15);
       r15 = (r15 & 0xfc000003) | vector | FIQ_MODE | F_BIT | I_BIT;
       PCwrite = TRUE;
       break;
