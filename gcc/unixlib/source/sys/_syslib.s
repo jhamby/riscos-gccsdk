@@ -671,7 +671,7 @@ use_existing_chunk
 	[ {CONFIG} = 26
 	AND	a2, a2, #&fc000003
 	BIC	a3, a3, #&fc000003
-	ORR	a2, a2, a3
+	ORR	a3, a2, a3
 	]
 	STR	a3, [fp, #-4]	; Replace it with our chunk free procedure
 
@@ -740,7 +740,11 @@ __check_stack_l3
 	CMP	a1, #0
 	BLNE	|__pthread_enable_ints|
 	]
+	[ {CONFIG} = 26
 	LDMEA	fp, {a1, a2, a3, a4, v1, v2, fp, sp, pc}^
+	|
+	LDMEA	fp, {a1, a2, a3, a4, v1, v2, fp, sp, pc}
+	]
 __check_stack_l4
 	BL	__check_chunk
 	LDR	a1, [a1, #CHUNK_PREV]
@@ -781,14 +785,18 @@ __check_chunk_l1
 	BCS	stack_corrupt
 
 	LDR	v1, [a1, #CHUNK_DEALLOC]
-	BIC	v1, v1, #&fc000003
+	TEQ	a1, a1
+	TEQ	pc, pc	; EQ if in a 32-bit mode, NE if 26-bit
+	BICNE	v1, v1, #&fc000003
 	CMP	v1, a4
 	BCC	stack_corrupt
 	CMP	v1, a3
 	BCS	stack_corrupt
 
 	LDR	v1, [a1, #CHUNK_RETURN]
-	BIC	v1, v1, #&fc000003
+	TEQ	a1, a1
+	TEQ	pc, pc	; EQ if in a 32-bit mode, NE if 26-bit
+	BICNE	v1, v1, #&fc000003
 	CMP	v1, a4
 	BCC	stack_corrupt
 	CMP	v1, a3

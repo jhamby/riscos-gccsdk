@@ -1,10 +1,10 @@
 /****************************************************************************
  *
- * $Source: $
- * $Date: $
- * $Revision: $
- * $State: $
- * $Author: $
+ * $Source$
+ * $Date$
+ * $Revision$
+ * $State$
+ * $Author$
  *
  ***************************************************************************/
 
@@ -453,6 +453,7 @@ struct __pthread_key
 struct __pthread_saved_context
 {
   int r[16]; /* User mode integer registers */
+  int spsr;
   char fpregs[12*8]; /* Floating point registers */
   int fpstatus; /* Floatingpoint status register */
 };

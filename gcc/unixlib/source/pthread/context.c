@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source: $
- * $Date: $
- * $Revision: $
- * $State: $
- * $Author: $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/pthread/context.c,v $
+ * $Date: 2002/12/15 13:16:55 $
+ * $Revision: 1.1 $
+ * $State: Exp $
+ * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: $";
+static const char rcs_id[] = "$Id: context.c,v 1.1 2002/12/15 13:16:55 admin Exp $";
 #endif
 
 /* Context switching/schedulling */
@@ -82,6 +82,7 @@ __pthread_context_switch (void)
   __os_print ("\r\n");
 #endif
 
+  __pthread_running_thread->thread_errno = errno;
   next = __pthread_running_thread->next;
 
   /* Loop around the list looking for a thread that is running */
@@ -132,6 +133,8 @@ __pthread_context_switch (void)
 
     }
   while (__pthread_running_thread->state < STATE_RUNNING);
+
+  errno = __pthread_running_thread->thread_errno;
 
   if (__pthread_running_thread->cancelpending && __pthread_running_thread->cancelstate == PTHREAD_CANCEL_ENABLE && __pthread_running_thread->canceltype == PTHREAD_CANCEL_ASYNCHRONOUS)
     {

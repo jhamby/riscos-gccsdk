@@ -1,10 +1,10 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/errno.h,v $
- * $Date: 2002/12/13 11:07:59 $
- * $Revision: 1.5 $
- * $State: Exp $
- * $Author: admin $
+ * $Source$
+ * $Date$
+ * $Revision$
+ * $State$
+ * $Author$
  *
  ***************************************************************************/
 
@@ -21,16 +21,7 @@ __BEGIN_DECLS
 
 #ifndef errno
 
-#if __FEATURE_PTHREADS
-
-#define __need_pthread_t
-#include <pthread.h>
-
-#define errno (__pthread_running_thread->thread_errno)
-
-#else
 extern int errno;
-#endif /* __FEATURE_PTHREADS */
 
 #define __errno errno
 
@@ -144,11 +135,7 @@ extern char *__ul_errbuf;
    threads ever appear.  We also give a return value so we can use
    return __set_errno () which can allow function tail calling.  */
 #ifndef __set_errno
-#if __FEATURE_PTHREADS
-#define __set_errno(val) (__pthread_running_thread->thread_errno = (val), -1)
-#else
 #define __set_errno(val) (errno = (val), -1)
-#endif
 #endif
 #endif
 

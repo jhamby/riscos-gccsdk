@@ -1,10 +1,10 @@
 ;----------------------------------------------------------------------------
 ;
-; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/_alloca.s,v $
-; $Date: 2002/09/24 21:02:38 $
-; $Revision: 1.5 $
-; $State: Exp $
-; $Author: admin $
+; $Source$
+; $Date$
+; $Revision$
+; $State$
+; $Author$
 ;
 ;----------------------------------------------------------------------------
 
@@ -67,7 +67,7 @@ alloca		; just in case
 	BIC	a3, a3, #&fc000003
 	ORR	a2, a2, a3
 	|
-	ADR	a3, |__alloca_free|
+	ADR	a2, |__alloca_free|
 	]
 	STR	a2, [fp, #-4]
 	ADD	a1, a1, #8

@@ -1,3 +1,17 @@
+Sun Jan  5 12:37:50 2002  Alex Waugh  <alex@alexwaugh.com>
+
+	* errno.h: Always define 'errno' as errno.
+	* errno.c: Remove conditional.
+	* pthread/context.c (__pthread_context_switch): Preserve errno.
+
+	* pthread.h (__pthread_saved_context): Add spsr.
+	* pthread/_context.s: Store/restore the SPSR.
+
+	* sys/_alloca.s: Various APCS-32 fixes.
+	* sys/_syslib.s: Likewise.
+
+	* sys/errlist.c: Include pthread.h.
+
 Sun Jan  5 12:29:13 2002  Alex Waugh  <alex@alexwaugh.com>
 
 	* sys/exec.c (execve): Change control characters to \xXX.

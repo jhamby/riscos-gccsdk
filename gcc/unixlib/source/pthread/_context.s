@@ -1,10 +1,10 @@
 ;----------------------------------------------------------------------------
 ;
-; $Source: $
-; $Date: $
-; $Revision: $
-; $State: $
-; $Author: $
+; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/pthread/_context.s,v $
+; $Date: 2002/12/15 13:16:55 $
+; $Revision: 1.1 $
+; $State: Exp $
+; $Author: admin $
 ;
 ;----------------------------------------------------------------------------
 
@@ -145,9 +145,8 @@
 	TEQP	pc, #USR_Mode	; Switch to user mode, IRQs on
 	|
 	MRS	a1, CPSR
-	BIC	a1, a1, #&9F
-	ORR	a1, a1, #&10 ;USR Mode
-	MSR	CPSR, a1
+	BIC	a1, a1, #&8F	; Switch to user mode, IRQs on
+	MSR	CPSR_c, a1
 	]
 	MOV	a1, a1
 
@@ -162,6 +161,13 @@
 	STMIA	a1!, {a3, a4, v1, v2, v3, v4, v5, v6}
 	LDMIA	a2!, {a3, a4, v1, v2, v3, v4, v5, v6}
 	STMIA	a1!, {a3, a4, v1, v2, v3, v4, v5, v6}
+	[ {CONFIG} = 32
+	; Copy SPSR
+	LDR	a3, [a2]
+	STR	a3, [a1], #4
+	|
+	ADD	a1, a1, #4
+	]
 
 ; Save floating point regs
 	LDR	a4, =|__fpflag|
@@ -178,7 +184,8 @@
 	STFE	f6, [a1], #12
 	STFE	f7, [a1], #12
 	|
-	SFM	f0, 8, [a1], #96
+	SFM	f0, 4, [a1], #48
+	SFM	f4, 4, [a1], #48
 	]
 	RFS	a2	; Read floating status
 	STR	a2, [a1], #12
@@ -202,7 +209,7 @@ no_fp1
 	LDR	a4, [a4]
 	CMP	a4, #0
 	BEQ	no_fp2
-	ADD	a2, a2, #16*4
+	ADD	a2, a2, #17*4
 	[ {CONFIG} = 26
 	LDFE	f0, [a2], #12
 	LDFE	f1, [a2], #12
@@ -213,7 +220,8 @@ no_fp1
 	LDFE	f6, [a2], #12
 	LDFE	f7, [a2], #12
 	|
-	LFM	f0, 8, [a2], #96
+	LFM	f0, 4, [a2], #48
+	LFM	f4, 4, [a2], #48
 	]
 	LDR	a1, [a2], #12
 	WFS	a1	; Write floating status
@@ -235,9 +243,9 @@ no_fp2
 	TEQP	pc, #IFlag+SVC_Mode	; Force SVC mode, IRQs off
 	|
 	MRS	a2, CPSR
-	BIC	a2, a2, #&9F
-	ORR	a2, a2, #&93 ;SVC Mode
-	MSR	CPSR, a2
+	BIC	a2, a2, #&0F
+	ORR	a2, a2, #&83 ;SVC Mode, IRQs off
+	MSR	CPSR_c, a2
 	]
 	MOV	a1, a1
 
@@ -246,11 +254,15 @@ no_fp2
 	STR	a3, [a2]
 
 	MOV	r14, a1
-	LDMIA	r14, {r0-r14}^	; Load USR mode regs
+	[ {CONFIG} = 32
+	LDR	a1, [r14, #16*4]	; Get user PSR
+	MSR	SPSR_cxsf, a1		; Put it into SPSR_SVC/IRQ (NOP on ARM2/3, shouldn't have any effect in 26bit mode)
+	]
+	LDMIA	r14, {r0-r14}^		; Load USR mode regs
 	MOV	a1, a1
 
 	LDR	r14, [r14, #15*4]	; Load the old PC value
-	MOVS	pc, lr			; Return
+	MOVS	pc, lr			; Return (Valid for 26 and 32bit modes)
 
 |skip_contextswitch|
 	LDR	a3, =|__pthread_callback_missed|	; Indicate that this context switch did not occur
@@ -267,7 +279,7 @@ no_fp2
 	LDR	a4, [a4]
 	CMP	a4, #0
 	return	EQ, pc, lr
-	ADD	a2, a1, #16*4
+	ADD	a2, a1, #17*4
 	[ {CONFIG} = 26
 	STFE	f0, [a2], #12
 	STFE	f1, [a2], #12
@@ -278,7 +290,8 @@ no_fp2
 	STFE	f6, [a2], #12
 	STFE	f7, [a2], #12
 	|
-	SFM	f0, 8, [a2], #96
+	SFM	f0, 4, [a2], #48
+	SFM	f4, 4, [a2], #48
 	]
 	RFS	a1	; Read floating status
 	STR	a1, [a2], #12
