@@ -17,6 +17,7 @@ $(libsclobj)/%.o: %.s
 	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c $< $(CFL)
 
 STDLIB = $(libsclobj)/stdlib/div.o \
+	$(libsclobj)/stdlib/_exit.o \
 	$(libsclobj)/stdlib/strtof.o \
 	$(libsclobj)/stdlib/strtold.o \
 	$(libsclobj)/stdlib/strtoll.o \
@@ -53,6 +54,7 @@ $(libsclobj)/stubs.o: stubs.s
 $(libsclobj)/uname.o: uname.c
 
 $(libsclobj)/stdlib/div.o: stdlib/div.c
+$(libsclobj)/stdlib/_exit.o: stdlib/_exit.c
 $(libsclobj)/stdlib/strtof.o: stdlib/strtof.c
 $(libsclobj)/stdlib/strtold.o: stdlib/strtold.c
 $(libsclobj)/stdlib/strtoll.o: stdlib/strtoll.c
