@@ -22,7 +22,7 @@
 
 #ifdef __cplusplus
 extern "C" void __assert (const char *, const char *, int);
-extern "C" void __assert2(const char *, const char *, const char *, int);
+extern "C" int __assert2(const char *, const char *, const char *, int);
 #else
 extern void __assert(const char *, const char *, int);
 extern void __assert2(const char *, const char *, const char *, int);
