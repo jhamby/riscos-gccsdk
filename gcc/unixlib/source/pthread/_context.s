@@ -1,10 +1,10 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/pthread/_context.s,v $
-; $Date: 2003/04/29 19:38:49 $
-; $Revision: 1.6 $
+; $Date: 2003/06/23 20:33:03 $
+; $Revision: 1.7 $
 ; $State: Exp $
-; $Author: alex $
+; $Author: joty $
 ;
 ;----------------------------------------------------------------------------
 
@@ -35,13 +35,13 @@
 	GET	clib/unixlib/asm_dec.s
 
 
-	AREA |C$$code|, CODE, READONLY
+	AREA	|C$$code|, CODE, READONLY
 
 	IMPORT	|__pthread_context_switch|
 	IMPORT	|__pthread_worksemaphore|
 	IMPORT	|__setup_signalhandler_stack|
 	IMPORT	|__executing_signalhandler|
-	IMPORT	|__taskwindow|
+	IMPORT	|__taskhandle|
 	IMPORT	|__pthread_fatal_error|
 	IMPORT	|__pthread_running_thread|
 	IMPORT	|__pthread_num_running_threads|
@@ -57,102 +57,180 @@
 ;
 ; Start a ticker which will set the callback flag every clock tick
 ;
+	NAME	__pthread_start_ticker
 |__pthread_start_ticker|
-	STMFD	sp!, {lr}
+	STMFD	sp!, {v1-v2, lr}
 	; Don't start until the thread system has been setup
 	LDR	a1, =|__pthread_system_running|
 	LDR	a1, [a1]
-	CMP	a1, #1
-	stackreturn	NE, "pc"
+	TEQ	a1, #0
+	stackreturn	EQ, "v1-v2, pc"
+
 	; Don't start if there's only one thread running
 	LDR	a1, =|__pthread_num_running_threads|
 	LDR	a1, [a1]
 	CMP	a1, #1
-	stackreturn	LE, "pc"
+	stackreturn	LE, "v1-v2, pc"
+
 	; Don't start if the ticker is already running
 	LDR	a1, =|ticker_started|
 	LDR	a1, [a1]
-	CMP	a1, #0
-	stackreturn	NE, "pc"
-	; Are we running in a task window?
-	; If we are it's bad news for the ticker interupt so don't start
-	LDR	a1, =|__taskwindow|
-	LDR	a1, [a1]
-	CMP	a1, #0
-	stackreturn	NE, "pc"
+	TEQ	a1, #0
+	stackreturn	NE, "v1-v2, pc"
 
-	; Set the ticker
-	MOV	a1, #1
-	ADR	a2, call_every
+	; Are we running as WIMP task ?
+	; If we are then we need a filter switching off our ticker when we're
+	; swapped out.
+	LDR	a1, =|__taskhandle|
+	LDR	a4, [a1]
+	TEQ	a4, #0
+	BEQ	|start_ticker_core|
+
+	; Install the filter routines (a4 = WIMP taskhandle) :
+	LDR	v2, =|filter_installed|
+	LDR	a1, [v2]
+	STR	v2, [v2]
+	TEQ	a1, #0
+	BNE	|start_ticker_core|
+
+	ADR	a1, |filter_name|
+	ADR	a2, |stop_call_every|
 	MOV	a3, #0
-	SWI	XOS_CallEvery
+	SWI	XFilter_RegisterPreFilter
+	ADRVC	a2, |start_call_every|
+	MVNVC	v1, #0
+	SWIVC	XFilter_RegisterPostFilter
 	ADDVS	a1, a1, #4
 	BVS	|__pthread_fatal_error|
-	MOV	a1, #1
-	LDR	a2, =|ticker_started|
-	STR	a1, [a2]
-	stackreturn	AL, "pc"
 
-;
-; Stop the ticker running
-;
-|__pthread_stop_ticker|
+start_ticker_core
+	BL	|start_call_every|
+	stackreturn	AL, "v1-v2, pc"
+
+filter_name
+	DCB	"pthread filter", 0
+	ALIGN
+
+
+	; Start the RISC OS CallEvery ticker
+	NAME	start_call_every
+|start_call_every|
 	STMFD	sp!, {lr}
-	; Don't bother if thread system is not running
-	LDR	a1, =|__pthread_system_running|
-	LDR	a1, [a1]
-	CMP	a1, #0
-	stackreturn	EQ, "pc"
+	LDR	a4, =|ticker_started|
+	LDR	a1, [a4]
+	TEQ	a1, #0
+	stackreturn	NE, "pc"
+
+	MOV	a1, #1
+	ADR	a2, |pthread_call_every|
+	MOV	a3, #0
+	SWI	XOS_CallEvery
+
+	MOVVC	a1, #1
+	STRVC	a1, [a4]
+	stackreturn	VC, "pc"
+	ADD	a1, a1, #4
+	B	|__pthread_fatal_error|
+
+
+	; Stop the RISC OS CallEvery ticker
+	NAME	stop_call_every
+|stop_call_every|
+	STMFD	sp!, {lr}
 	; Don't stop it if it isn't enabled yet
 	LDR	a3, =|ticker_started|
 	LDR	a2, [a3]
-	CMP	a2, #1
+	TEQ	a2, #1
 	stackreturn	NE, "pc"
 	MOV	a2, #0
 	STR	a2, [a3]
 
-	ADR	a1, |call_every|
+	ADR	a1, |pthread_call_every|
 	MOV	a2, #0
 	SWI	XOS_RemoveTickerEvent
 	stackreturn	AL, "pc"
 
 
+;
+; Stop the ticker running
+;
+	NAME	__pthread_stop_ticker
+|__pthread_stop_ticker|
+	STMFD	sp!, {v1, lr}
+	; Don't bother if thread system is not running
+	LDR	a1, =|__pthread_system_running|
+	LDR	a1, [a1]
+	TEQ	a1, #0
+	stackreturn	EQ, "v1, pc"
+
+	; Need to remove the filters ?
+	LDR	a1, =|__taskhandle|
+	LDR	a4, [a1]
+	TEQ	a4, #0
+	BEQ	|stop_ticker_core|
+
+	; Remove the filter routines (a4 = WIMP taskhandle) :
+	; Ignore any errors.
+	LDR	v2, =|filter_installed|
+	LDR	a1, [v2]
+	TEQ	a1, #0
+	BEQ	|stop_ticker_core|
+
+	ADR	a1, |filter_name|
+	ADR	a2, |stop_call_every|
+	MOV	a3, #0
+	SWI	XFilter_DeRegisterPreFilter
+	ADR	a1, |filter_name|	; a1 can be corrupted, so re-init
+	ADR	a2, |start_call_every|
+	MVN	v1, #0
+	SWI	XFilter_DeRegisterPostFilter
+	STR	a3, [v2]
+
+stop_ticker_core
+	BL	|stop_call_every|
+	stackreturn	AL, "v1, pc"
+
+
 ; The ticker calls this every clock tick
 ; Called in SVC mode with IRQs disabled
-|call_every|
+	NAME	pthread_call_every
+|pthread_call_every|
 	STMFD	sp!, {a1, lr}
 	LDR	a1, =|__pthread_callback_semaphore|
 	LDR	a1, [a1]
-	CMP	a1, #0	; Check we are not already in the middle of a context switch callback
+	TEQ	a1, #0	; Check we are not already in the middle of a context switch callback
 	LDMNEFD	sp!, {a1, pc}
 
 	LDR	a1, =|__pthread_worksemaphore|
 	LDR	a1, [a1]
-	CMP	a1, #0
+	TEQ	a1, #0
 	LDMNEFD	sp!, {a1, pc}	; In a critical region, so don't switch threads
 
 	SWI	XOS_SetCallBack	; Set the OS callback flag. Not much we can do if this fails
 	LDMFD	sp!, {a1, pc}
 
 
-; This is called from __h_cback in signal/_signal.s when the OS is returning to USR mode
+; This is called from __h_cback in signal/_signal.s when the OS is returning
+; to USR mode
 ; Also called directly from pthread_yield
 ; Called in SVC or IRQ mode with IRQs disabled
 	EXPORT	|__pthread_callback|
+
+	NAME	__pthread_callback
 |__pthread_callback|
 	; Setup a stack for the context switcher
 	BL	|__setup_signalhandler_stack|
 
 	LDR	a1, =|__pthread_callback_semaphore|
 	LDR	a2, [a1]
-	CMP	a2, #0
+	TEQ	a2, #0
 	BNE	|skip_contextswitch|	; Check we are not already in the middle of a context switch callback
 	MOV	a2, #1
 	STR	a2, [a1]	; Set the semaphore
 
 	LDR	a1, =|__pthread_worksemaphore|
 	LDR	a1, [a1]
-	CMP	a1, #0
+	TEQ	a1, #0
 	BNE	|skip_contextswitch|	; In a critical region, so don't switch threads
 
 	; Save regs to thread's save area
@@ -236,6 +314,7 @@
 
 ; entry:
 ;   R0 = save area
+	NAME	__pthread_init_save_area
 |__pthread_init_save_area|
 	ADD	a2, a1, #17*4
 	SFM	f0, 4, [a2], #48
@@ -245,9 +324,12 @@
 	return	AL, pc, lr
 
 
-	AREA |C$data|, DATA
+	AREA	|C$data|, DATA
 
-|ticker_started| ; Have we registered the callevery ticker
+|ticker_started| 		; Have we registered the CallEvery ticker ?
+	DCD	0
+
+|filter_installed|		; Have we installed Filter ?
 	DCD	0
 
 |__pthread_callback_semaphore|	; Prevent a callback being set whilst servicing another callback
@@ -259,4 +341,4 @@
 |__pthread_callback_missed|	; Non zero if a callback occured when context switching was temporarily disabled
 	DCD	0
 
- END
+	END

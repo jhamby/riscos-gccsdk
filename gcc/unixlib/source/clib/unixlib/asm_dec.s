@@ -1,8 +1,8 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/unixlib/asm_dec.s,v $
-; $Date: 2003/06/16 21:00:33 $
-; $Revision: 1.12 $
+; $Date: 2003/06/23 20:33:03 $
+; $Revision: 1.13 $
 ; $State: Exp $
 ; $Author: joty $
 ;
@@ -488,6 +488,11 @@ XTaskWindow_TaskInfo		EQU	&043380 + X_Bit
 XWimp_ReadSysInfo		EQU	&0400F2 + X_Bit
 XWimp_SlotSize			EQU	&0400EC + X_Bit
 XDDEUtils_SetCLSize		EQU	&042581 + X_Bit
+
+XFilter_RegisterPreFilter	EQU	&042640 + X_Bit
+XFilter_RegisterPostFilter	EQU	&042641 + X_Bit
+XFilter_DeRegisterPreFilter	EQU	&042642 + X_Bit
+XFilter_DeRegisterPostFilter	EQU	&042643 + X_Bit
 
 XSharedUnixLibrary_RegisterUpCall	EQU	&55c80 + X_Bit
 XSharedUnixLibrary_DeRegisterUpCall	EQU	&55c81 + X_Bit

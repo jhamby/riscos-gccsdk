@@ -1,8 +1,8 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/pthread/_ints.s,v $
-; $Date: 2003/04/28 12:07:02 $
-; $Revision: 1.2 $
+; $Date: 2003/05/07 22:10:27 $
+; $Revision: 1.3 $
 ; $State: Exp $
 ; $Author: alex $
 ;
@@ -16,7 +16,7 @@
 
 	GET	clib/unixlib/asm_dec.s
 
-	AREA |C$$code|, CODE, READONLY
+	AREA	|C$$code|, CODE, READONLY
 
 	IMPORT	|__pthread_fatal_error|
 	IMPORT	|__pthread_callback_missed|
@@ -32,6 +32,7 @@
 ;
 ; Disable context switches by incrementing the semaphore
 ; May be called from USR or SVC mode
+	NAME	__pthread_disable_ints
 |__pthread_disable_ints|
 	LDR	a1, =|__pthread_worksemaphore|
 	MOV	a3, #1
@@ -44,6 +45,7 @@
 ;
 ; Decrement the semaphore, thus enabling context switches if it reaches 0
 ; May be called from USR or SVC mode
+	NAME	__pthread_enable_ints
 |__pthread_enable_ints|
 	LDR	a2, =|__pthread_worksemaphore|
 	LDR	a1, [a2]
@@ -58,13 +60,14 @@
 
 	[ PARANOID = 1
 |semazero|
-	DCB "__pthread_enable_ints called with semaphore already 0" ,0
+	DCB	"__pthread_enable_ints called with semaphore already 0", 0
 	ALIGN
 	]
 
 ; Similar to __pthread_disable_ints, but alters the caller's
 ; stack frame so __pthread_unprotect_unsafe is called
 ; when the caller returns
+	NAME	__pthread_protect_unsafe
 |__pthread_protect_unsafe|
 	[ PARANOID = 1
 	CMP	fp, #0
@@ -112,6 +115,7 @@
 
 ; Similar to __pthread_enable_ints, but return to the saved __pthread_return_address
 ; Can corrupt a3-a4,ip,lr but NOT a1 or a2
+	NAME	__pthread_unprotect_unsafe
 |__pthread_unprotect_unsafe|
 	LDR	a4, =|__pthread_return_address|
 	LDR	lr, [a4]
@@ -159,12 +163,11 @@
 	]
 
 
-	AREA |C$$data|, DATA
+	AREA	|C$$data|, DATA
 
 |__pthread_return_address|
-	DCD 0
+	DCD	0
 |__pthread_worksemaphore|
-	DCD 0
+	DCD	0
 
-
- END
+	END

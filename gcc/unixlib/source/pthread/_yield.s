@@ -1,10 +1,10 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/pthread/_yield.s,v $
-; $Date: 2003/04/28 12:07:02 $
-; $Revision: 1.2 $
+; $Date: 2003/06/23 20:33:03 $
+; $Revision: 1.3 $
 ; $State: Exp $
-; $Author: alex $
+; $Author: joty $
 ;
 ;----------------------------------------------------------------------------
 
@@ -12,21 +12,21 @@
 
 	GET	clib/unixlib/asm_dec.s
 
-	AREA |C$$code|, CODE, READONLY
+	AREA	|C$$code|, CODE, READONLY
 
-	IMPORT |__pthread_fatal_error|
-	IMPORT |__pthread_callback_semaphore|
-	IMPORT |__pthread_system_running|
-	IMPORT |__pthread_worksemaphore|
-	IMPORT |__pthread_callback|
-	IMPORT |__cbreg|
+	IMPORT	|__pthread_fatal_error|
+	IMPORT	|__pthread_callback_semaphore|
+	IMPORT	|__pthread_system_running|
+	IMPORT	|__pthread_worksemaphore|
+	IMPORT	|__pthread_callback|
+	IMPORT	|__cbreg|
 
-	EXPORT |pthread_yield|
+	EXPORT	|pthread_yield|
 
 ;
 ; pthread_yield
 ; Called in USR mode by a thread wishing to give up the processor
-	NAME pthread_yield
+	NAME	pthread_yield
 |pthread_yield|
 	; Setup an APCS stack frame so this will appear in a backtrace
 	MOV	ip, sp
@@ -70,5 +70,4 @@ failmessage
 	DCB	"pthread_yield called with context switching disabled", 0
 	ALIGN
 
-
- END
+	END

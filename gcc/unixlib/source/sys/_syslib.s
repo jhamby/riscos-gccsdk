@@ -1,10 +1,10 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/_syslib.s,v $
-; $Date: 2003/06/23 20:33:04 $
-; $Revision: 1.20 $
+; $Date: 2003/07/29 23:04:27 $
+; $Revision: 1.21 $
 ; $State: Exp $
-; $Author: joty $
+; $Author: admin $
 ;
 ;----------------------------------------------------------------------------
 
@@ -183,7 +183,7 @@ EXTREMELY_PARANOID	*	0	; Should we check that the entire stack chunk chain is va
 
 	MOV	ip, v1		; Restore ip.
 
-	LDR	a1, =|rmensure| 
+	LDR	a1, =|rmensure|
 	SWI	XOS_CLI
 	MOVVS	a1, #NO_SUL
 	BVS	exit_with_error
@@ -344,10 +344,13 @@ no_dynamic_area
 	STR	a1, [ip, #56]	; __taskwindow
 
 	; Find out whether we are executing as a WIMP program or not.
-	MOV     a1, #3
+	MOV     a1, #3		; Text output mode, or desktop mode ?
 	SWI     XWimp_ReadSysInfo
 	MOVVS	a1, #0
-	STR	a1, [ip, #60]	; __wimpprogram
+	TEQ	a1, #0
+	MOVNE	a1, #5		; When desktop mode, get the taskhandle
+	SWINE	XWimp_ReadSysInfo
+	STR	a1, [ip, #60]	; __taskhandle
 
 	; Recognise the Floating Point facility by determining whether
 	; the SWI FPEmulator_Version actually exists (and works).
@@ -996,10 +999,10 @@ dynamic_area_name_end
 	EXPORT	|__stack|	; stack limit
 	EXPORT	|__stack_limit|	; lower stack limit
 	EXPORT	|__time|	; start time - 5 byte format
-	EXPORT	|__real_break|  ; top limit of dynamic area allocated
+	EXPORT	|__real_break|	; top limit of dynamic area allocated
 	EXPORT	|__fpflag|
-	EXPORT	|__taskwindow|  ; non-zero if executing in a TaskWindow
-	EXPORT	|__wimpprogram| ; non-zero if executing as a Wimp program
+	EXPORT	|__taskwindow|	; non-zero if executing in a TaskWindow
+	EXPORT	|__taskhandle|	; WIMP task handle, or zero if non WIMP task
 	EXPORT	|__dynamic_num|
 	EXPORT	|__u|		; pointer to proc structure
 	EXPORT	|__real_himem|
@@ -1025,7 +1028,7 @@ struct_base
 |__fpflag|	DCD	0				; offset = 52
 
 |__taskwindow|	DCD	0				; offset = 56
-|__wimpprogram|	DCD	0				; offset = 60
+|__taskhandle|	DCD	0				; offset = 60
 
 |__dynamic_num|	DCD	-1				; offset = 64
 |__u|		DCD	0				; offset = 68

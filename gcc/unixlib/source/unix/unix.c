@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/unix.c,v $
- * $Date: 2003/10/26 13:34:34 $
- * $Revision: 1.14 $
+ * $Date: 2003/11/01 20:42:19 $
+ * $Revision: 1.15 $
  * $State: Exp $
  * $Author: joty $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: unix.c,v 1.14 2003/10/26 13:34:34 joty Exp $";
+static const char rcs_id[] = "$Id: unix.c,v 1.15 2003/11/01 20:42:19 joty Exp $";
 #endif
 
 #include <stdio.h>
@@ -418,9 +418,9 @@ __stop_itimers (void)
 
   /* Interval timers are not implemented in task windows nor in WIMP
      programs so we don't need to stop them.   Note that when
-     __taskwindow == 1 => __wimpprogram == 1 but not necessarily vice-
-     versa so the test on __wimpprogram is enough.  */
-  if (__wimpprogram)
+     __taskwindow == 1 => __taskhandle != 0 but not necessary vice-
+     versa so the test on __taskhandle is enough.  */
+  if (__taskhandle != 0)
     return;
 
   /* Stop all interval timers.  */

@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/unixlib/unix.h,v $
- * $Date: 2003/04/06 14:19:07 $
- * $Revision: 1.6 $
+ * $Date: 2003/06/23 20:33:03 $
+ * $Revision: 1.7 $
  * $State: Exp $
- * $Author: peter $
+ * $Author: joty $
  *
  * UNIX is a registered trademark of AT&T Bell Laboratories
  *
@@ -177,8 +177,8 @@ extern void __munmap_all (void);	/* Deallocate all mappings.  */
 /* Zero if we are not executing within a TaskWindow.  Non-zero otherwise.  */
 extern int __taskwindow;
 /* Zero if we are running in command mode (not as a WIMP program).  Non-zero
-   otherwise.  */
-extern int __wimpprogram;
+   otherwise and equals current WIMP task handle.  */
+extern int __taskhandle;
 /* Zero if we are running in 26-bit, non-zero for 32-bit */
 extern int __32bit;
 

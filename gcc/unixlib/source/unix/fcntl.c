@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/fcntl.c,v $
- * $Date: 2003/04/05 09:33:56 $
- * $Revision: 1.6 $
+ * $Date: 2003/06/23 09:30:11 $
+ * $Revision: 1.7 $
  * $State: Exp $
- * $Author: alex $
+ * $Author: peter $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: fcntl.c,v 1.6 2003/04/05 09:33:56 alex Exp $";
+static const char rcs_id[] = "$Id: fcntl.c,v 1.7 2003/06/23 09:30:11 peter Exp $";
 #endif
 
 #include <errno.h>
@@ -75,7 +75,7 @@ fcntl (int fd, int cmd, ...)
             va_start(ap, cmd);
 
 	if (va_arg (ap, int))
-	  file_desc->fflag != O_EXECCL;
+	  file_desc->fflag |= O_EXECCL;
 	else
 	  file_desc->fflag &= ~O_EXECCL;
 		va_end(ap);

@@ -1,3 +1,25 @@
+Sun Nov 23 22:05:07 2003  John Tytgat  <John.Tytgat@aaug.net>
+
+	* source/clib/unixlib/asm_dec.s: Added
+	  XFilter_(De)Register{Pre|Post}Filter SWI numbers.
+	* source/clib/unixlib/unix.h: Renamed __wimpprogram to __taskhandle.
+	* source/pthread/_context.s: Used NAME macro; pthread routines now
+	  work for Wimp/TaskWindow applications too.
+	* source/pthread/_exit.s: Used NAME macro.
+	* source/pthread/_ints.s: Likewise.
+	* source/pthread/_yield.s: Likewise.
+	* source/pthread/cond.c: Added #include <stdio.h> when PTHREAD_DEBUG
+	  is #define'd.
+	* source/sys/_syslib.s: Instead of setting __wimpprogram to 1 when
+	  we're multitasking, we fill the non zero taskhandle value in
+	  __taskhandle.
+	* source/signal/sleep.c: Renamed __wimpprogram to __taskhandle.
+	* source/time/getitmr.c: Likewise.
+	* source/time/setitmr.c: Likewise.
+	* source/unix/tty.c: Likewise.
+	* source/unix/unix.c: Likewise.
+	* source/unix/fcntl.c: Fixed typo : "!=" -> "|=" !
+
 Sat Nov 22 00:47:33 2003  John Tytgat  <John.Tytgat@aaug.net>
 
 	* !Help: SharedULib has to come into !System.310.Modules, not

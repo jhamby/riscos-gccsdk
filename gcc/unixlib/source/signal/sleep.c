@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/signal/sleep.c,v $
- * $Date: 2002/12/28 17:59:57 $
- * $Revision: 1.5 $
+ * $Date: 2003/04/28 21:04:36 $
+ * $Revision: 1.6 $
  * $State: Exp $
- * $Author: admin $
+ * $Author: alex $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: sleep.c,v 1.5 2002/12/28 17:59:57 admin Exp $";
+static const char rcs_id[] = "$Id: sleep.c,v 1.6 2003/04/28 21:04:36 alex Exp $";
 #endif
 
 /* Copyright (C) 1991, 1992, 1993, 1996, 1997 Free Software Foundation, Inc.
@@ -73,9 +73,9 @@ sleep_int (clock_t clockticks)
     return 0;
 
   /* alarm() does not work in a TaskWindow nor whilst running as a
-     WIMP program.  Note that when __taskwindow == 1 => __wimpprogram == 1
-     but not necessairy vice-versa so the test on __wimpprogram is enough. */
-  if (__wimpprogram)
+     WIMP program.  Note that when __taskwindow == 1 => __taskhandle != 0
+     but not necessary vice-versa so the test on __taskhandle is enough. */
+  if (__taskhandle != 0)
     {
       before = clock () + clockticks;
       while (clock () < before)

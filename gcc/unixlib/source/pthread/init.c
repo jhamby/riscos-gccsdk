@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/pthread/init.c,v $
- * $Date: 2003/04/28 12:07:02 $
- * $Revision: 1.4 $
+ * $Date: 2003/05/26 17:27:07 $
+ * $Revision: 1.5 $
  * $State: Exp $
  * $Author: alex $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: init.c,v 1.4 2003/04/28 12:07:02 alex Exp $";
+static const char rcs_id[] = "$Id: init.c,v 1.5 2003/05/26 17:27:07 alex Exp $";
 #endif
 
 /* Written by Martin Piper and Alex Waugh */
@@ -40,8 +40,6 @@ __pthread_prog_init (void)
 }
 
 
-
-
 /* Called once, the first time a pthread call is made */
 void
 __pthread_init (void)
@@ -65,4 +63,3 @@ __pthread_init (void)
 #endif
   __pthread_system_running = 1;
 }
-
