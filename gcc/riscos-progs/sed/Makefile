@@ -16,7 +16,7 @@ OBJS = $(objdir)/riscos-progs/sed/compile.o \
 all:	$(bin_dir)/sed$(exesfx)
 
 $(bin_dir)/sed$(exesfx):	$(OBJS)
-	$(CROSS_CC) -o $@ $(OBJS)
+	$(CROSS_CC) -o $@ $(OBJS) -L$(objdir)/libiberty/$(STAGE) -liberty
 
 $(objdir)/riscos-progs/sed/compile.o: compile.c
 $(objdir)/riscos-progs/sed/execute.o: execute.c

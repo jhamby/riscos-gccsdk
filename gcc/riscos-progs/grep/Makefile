@@ -20,13 +20,13 @@ all:	$(bin_dir)/grep$(exesfx) $(bin_dir)/egrep$(exesfx) \
 	$(bin_dir)/fgrep$(exesfx)
 
 $(bin_dir)/grep$(exesfx):	$(OBJS) $(objdir)/riscos-progs/grep/grepmat.o
-	$(CROSS_CC) -o $@ $(OBJS) $(objdir)/riscos-progs/grep/grepmat.o
+	$(CROSS_CC) -o $@ $(OBJS) $(objdir)/riscos-progs/grep/grepmat.o -L$(objdir)/libiberty/$(STAGE) -liberty
 
 $(bin_dir)/egrep$(exesfx):	$(OBJS) $(objdir)/riscos-progs/grep/egrepmat.o
-	$(CROSS_CC) -o $@ $(OBJS) $(objdir)/riscos-progs/grep/egrepmat.o
+	$(CROSS_CC) -o $@ $(OBJS) $(objdir)/riscos-progs/grep/egrepmat.o -L$(objdir)/libiberty/$(STAGE) -liberty
 
 $(bin_dir)/fgrep$(exesfx):	$(OBJS) $(objdir)/riscos-progs/grep/fgrepmat.o
-	$(CROSS_CC) -o $@ $(OBJS) $(objdir)/riscos-progs/grep/fgrepmat.o
+	$(CROSS_CC) -o $@ $(OBJS) $(objdir)/riscos-progs/grep/fgrepmat.o -L$(objdir)/libiberty/$(STAGE) -liberty
 
 $(objdir)/riscos-progs/grep/grep.o:	grep.c
 $(objdir)/riscos-progs/grep/btowc.o:	btowc.c

@@ -30,7 +30,7 @@ OBJS = $(objdir)/riscos-progs/bison/allocate.o \
 all:	$(bin_dir)/bison$(exesfx)
 
 $(bin_dir)/bison$(exesfx):	$(OBJS)
-	$(CROSS_CC) -o $@ $(OBJS)
+	$(CROSS_CC) -o $@ $(OBJS) -L$(objdir)/libiberty/$(STAGE) -liberty
 
 $(objdir)/riscos-progs/bison/allocate.o: allocate.c
 $(objdir)/riscos-progs/bison/closure.o: closure.c

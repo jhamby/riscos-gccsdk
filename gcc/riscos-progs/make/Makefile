@@ -32,7 +32,7 @@ OBJS = $(objdir)/riscos-progs/make/ar.o \
 all:	$(bin_dir)/make$(exesfx)
 
 $(bin_dir)/make$(exesfx):	$(OBJS)
-	$(CROSS_CC) -o $@ $(OBJS)
+	$(CROSS_CC) -o $@ $(OBJS) -L$(objdir)/libiberty/$(STAGE) -liberty
 
 $(objdir)/riscos-progs/make/ar.o: ar.c
 $(objdir)/riscos-progs/make/arscan.o: arscan.c

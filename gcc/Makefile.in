@@ -221,7 +221,7 @@ riscos-aof-stg2:
 	$(MAKE) -C riscos-aof "STAGE=stage2" "TRG=$(trg10)"
 
 riscos-progs:
-	$(MAKE) -C riscos-progs "TRG=$(trg10)" $(cfl10)
+	$(MAKE) -C riscos-progs "TRG=$(trg10)" $(cfl10) "STAGE=stage2"
 
 cross-progs:
 	$(MAKE) -C cross-progs "STAGE=stage1"
