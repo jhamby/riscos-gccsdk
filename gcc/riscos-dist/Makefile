@@ -87,6 +87,7 @@ UTILSPKG = $(pkg)/bin/bison$(exesfx) \
 	$(pkg)/bin/sdiff$(exesfx) \
 	$(pkg)/bin/sed$(exesfx) \
 	$(pkg)/bin/touch$(exesfx) \
+	$(pkg)/bin/zip$(exesfx) \
 	$(bindir)/apcs32/arch3/unixlib/o/libfl \
 	$(bindir)/apcs32/arch3/unixlib/o/libiberty \
 	$(bindir)/apcs32/arch3/unixlib/o/libmp \
