@@ -121,12 +121,12 @@ int ArgParser::getOption(BString a_option, List<BString> &a_argList, int a_min, 
  	 		else
  	 		{
  	 			// Leading '-' = next option
- 	 			if(a_min>0)
- 	 				THROW_SPEC_ERR(BError::WrongNumArgs);
  	 			break;
  	 		}
 
  	 	}
+ 	 	if(a_min>0)
+ 	 		THROW_SPEC_ERR(BError::WrongNumArgs);
  	 	return 1;
  	}
  // Option not found
