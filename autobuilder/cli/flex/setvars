@@ -1,0 +1,8 @@
+
+AB_CATEGORY=cli
+
+AB_MANPAGE=doc/flex.1
+
+ab_package() {
+  cp $S/flex,ff8 $S/COPYING $D
+}

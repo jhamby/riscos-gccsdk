@@ -1,3 +1,8 @@
 
 AB_CATEGORY=cli
 
+AB_MANPAGE=patch.man
+
+ab_package() {
+  cp $S/patch,ff8 $S/COPYING $D
+}

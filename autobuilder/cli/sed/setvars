@@ -1,0 +1,8 @@
+
+AB_CATEGORY=cli
+
+AB_MANPAGE=doc/sed.1
+
+ab_package() {
+  cp $S/sed/sed,ff8 $S/COPYING $D
+}

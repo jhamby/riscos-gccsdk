@@ -1,0 +1,8 @@
+
+AB_CATEGORY=cli
+
+AB_MANPAGE=doc/gperf.1
+
+ab_package() {
+  cp $S/src/gperf,ff8 $S/COPYING $D
+}

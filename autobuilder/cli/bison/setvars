@@ -1,0 +1,8 @@
+
+AB_CATEGORY=cli
+
+AB_MANPAGE=doc/bison.1
+
+ab_package() {
+  cp $S/src/bison,ff8 $S/COPYING $D
+}
