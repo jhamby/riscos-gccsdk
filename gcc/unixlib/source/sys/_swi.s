@@ -1,10 +1,10 @@
 ;----------------------------------------------------------------------------
 ;
-; $Source$
-; $Date$
-; $Revision$
-; $State$
-; $Author$
+; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/_swi.s,v $
+; $Date: 2004/12/26 18:12:40 $
+; $Revision: 1.5 $
+; $State: Exp $
+; $Author: jmb $
 ;
 ; _swi and _swix implementation
 ;
@@ -32,23 +32,23 @@ _swi
 	; block arguments, if mask bit 11 is set
 
 
-	STMFD	sp!, {a2-a4, v1-v6, r10-r11, lr} ; save APCS regs & scratch
-	ADD	lr, sp, #48		; lr points to arguments
+	STMFD	sp!, {a1-a4, v1-v6, r10-r11, lr} ; save APCS regs & scratch
+	ADD	lr, sp, #52		; lr points to arguments
 
 	; scratch space on stack:
 	;
 	; sp+0	mask
 	; sp+4	pointer to remaining arguments (lr)
 	; sp+8	SWI number
+	; sp+12	PC value to return
 
 	STR	a1, [sp, #8]		; save SWI num on stack
+	MOV	r11, a2			; stick mask in r11
 
 	MOV	a3, #&300
 	ORR	a3, a3, #&FF
 	TST	a2, a3			; fast-track no arguments
 	BEQ	swi_block
-
-	MOV	r11, a2			; stick mask in r11
 
 	; load registers off stack, two at a time
 	MOVS	r10, r11, LSL #31
@@ -101,40 +101,28 @@ swi_block
 	ADDNE	r12, r12, #1
 
 	; block register number is in bits 12-15 of the mask
-	MOVS	r10, r11, LSL #17
-	BCC	%FA10
-	; 8, 9
-	TST	r11, #(1<<12)
-	ADDNE	v6, lr, r12, LSL #2	; 9
-	ADDEQ	v5, lr, r12, LSL #2	; 8
-	B	swi_call
-10	; 0->7
-	BPL	%FA20
-	; 4->7
-	TST	r11, #(3<<12)
-	ADDEQ	v1, lr, r12, LSL #2	; 4
+	ANDS	r10, r11, #(15<<12)
+	ADDEQ	a1, lr, r12, LSL #2
 	BEQ	swi_call
 
-	TSTNE	r11, #(1<<12)
-	ADDEQ	v3, lr, r12, LSL #2	; 6
-	BEQ	swi_call
-
-	TST	r11, #(1<<13)
-	ADDNE	v4, lr, r12, LSL #2	; 7
-	ADDEQ	v2, lr, r12, LSL #2	; 5
-	B	swi_call
-20	; 0->3
-	TST	r11, #(3<<12)
-	ADDEQ	a1, lr, r12, LSL #2	; 0
-	BEQ	swi_call
-
-	TSTNE	r11, #(1<<12)
-	ADDEQ	a3, lr, r12, LSL #2	; 2
-	BEQ	swi_call
-
-	TST	r11, #(1<<13)
-	ADDNE	a4, lr, r12, LSL #2	; 3
-	ADDEQ	a2, lr, r12, LSL #2	; 1
+	TEQ	r10, #(1<<12)
+	ADDEQ	a2, lr, r12, LSL #2
+	TEQ	r10, #(2<<12)
+	ADDEQ	a3, lr, r12, LSL #2
+	TEQ	r10, #(3<<12)
+	ADDEQ	a4, lr, r12, LSL #2
+	TEQ	r10, #(4<<12)
+	ADDEQ	v1, lr, r12, LSL #2
+	TEQ	r10, #(5<<12)
+	ADDEQ	v2, lr, r12, LSL #2
+	TEQ	r10, #(6<<12)
+	ADDEQ	v3, lr, r12, LSL #2
+	TEQ	r10, #(7<<12)
+	ADDEQ	v4, lr, r12, LSL #2
+	TEQ	r10, #(8<<12)
+	ADDEQ	v5, lr, r12, LSL #2
+	TEQ	r10, #(9<<12)
+	ADDEQ	v6, lr, r12, LSL #2
 
 	; now call the SWI
 swi_call
@@ -142,19 +130,36 @@ swi_call
 	STR	r11, [sp, #0]		; save the mask, for use on return
 	SWI	&71			; OS_CallASWIR12
 
-	; now handle the SWI return
-	LDR	lr, [sp, #4]		; restore argument pointer
-	LDR	r11, [sp, #0]		; restore mask
+	STR	pc, [sp, #12]		; save PC on return
 
-	; TODO: should we return the entire PC, rather than just the PSR
-	;       (even though only the top 4 bits would have any meaning)?
-	MRS	r12, CPSR		; save flags (won't work on <ARMv3)
-	STR	r12, [sp, #0]		; on stack
+	; now handle the SWI return
+
+	MOV	r12, #0			; put known value in r12
+	MRS	r12, CPSR		; save flags (NOP on <ARMv3)
+	TEQ	r12, #0			; <ARMv3?
+	; If < ARMv3, PC already contains flags
+	;    >=ARMv3, need to ORR flags into PC value
+	LDRNE	lr, [sp, #12]		; get PC off stack
+	BICNE	lr, lr, #(15<<28)	; clear top 4 bits of PC
+	ANDNE	r12, r12, #(15<<28)	; only interested in the flags
+	ORRNE	r12, lr, r12		; put flags into top 4 bits of PC
+	STRNE	r12, [sp, #12]		; save on stack
+
+	LDR	r11, [sp], #4		; restore mask
+
+	; the stack pointer has now been moved (to avoid corrupting a1 on
+	; exit). Therefore from now on, the scratch space looks like:
+	;
+	; sp+0	pointer to remaining arguments (lr)
+	; sp+4	SWI number
+	; sp+8	PC value to return
+
+	LDR	lr, [sp, #0]		; restore argument pointer
 
 	BVC	fill_return		; V clear, continue as normal
 					; TODO: any way to avoid this branch?
 
-	LDR	r12, [sp, #8]		; get the SWI num
+	LDR	r12, [sp, #4]		; get the SWI num
 	TST	r12, #(1<<17)		; X bit set?
 	BNE	swi_end			; yes => exit
 
@@ -190,62 +195,44 @@ fill_return
 	LDRCS	r12, [lr], #4
 	STRCS	v5, [r12, #0]
 
-	; do we need to put the processor flags anywhere?
+	; do we need to return PC?
 swi_flags
 	TST	r11, #(1<<21)
 	LDRNE	lr, [lr, #0]
-	LDRNE	r12, [sp, #0]
+	LDRNE	r12, [sp, #8]
 	STRNE	r12, [lr]
 
 swi_return
-	LDR	r12, [sp, #8]		; this is not applicable for swix
+	LDR	r12, [sp, #4]		; this is not applicable for _swix
 	TST	r12, #(1<<17)
 	MOVNE	a1, #0			; ensure no error
 	BNE	swi_end
 
-	; return register number is in bits 16-19
-	; fast-track common case exit (r0)
-	TST	r11, #(15<<16)
+	ANDS	r11, r11, #(15<<16)
 	BEQ	swi_end
 
-	; TODO: it's feasible to be asked to return r10->r14, too. should we?
-	MOVS	r10, r11, LSL #13
-	BCC	%FA30
-	; 8, 9, 15
-	TST	r11, #(1<<16)
-	MOVEQ	a1, v5			; 8
-	BEQ	swi_end
-	TSTNE	r11, #(1<<17)
-	MOVEQ	a1, v6			; 9
-	MOVNE	a1, r12			; 15
-	B	swi_end
-30	; 0->7
-	BPL	%FA40
-	; 4->7
-	TST	r11, #(3<<16)
-	MOVEQ	a1, v1			; 4
-	BEQ	swi_end
-
-	TSTNE	r11, #(1<<16)
-	MOVEQ	a1, v3			; 6
-	BEQ	swi_end
-
-	TST	r11, #(1<<17)
-	MOVNE	a1, v4			; 7
-	MOVEQ	a1, v2			; 5
-	B	swi_end
-40	; 0->3
-	TST	r11, #(3<<16)
-	MOVEQ	a1, a1			; 0
-	BEQ	swi_end
-
-	TSTNE	r11, #(1<<16)
-	MOVEQ	a1, a3			; 2
-	BEQ	swi_end
-
-	TST	r11, #(1<<17)
-	MOVNE	a1, a4			; 3
-	MOVEQ	a1, a2			; 1
+	; return register number is in bits 16-19 of the mask
+	TEQ	r11, #(1<<16)
+	MOVEQ	a1, a2
+	TEQ	r11, #(2<<16)
+	MOVEQ	a1, a3
+	TEQ	r11, #(3<<16)
+	MOVEQ	a1, a4
+	TEQ	r11, #(4<<16)
+	MOVEQ	a1, v1
+	TEQ	r11, #(5<<16)
+	MOVEQ	a1, v2
+	TEQ	r11, #(6<<16)
+	MOVEQ	a1, v3
+	TEQ	r11, #(7<<16)
+	MOVEQ	a1, v4
+	TEQ	r11, #(8<<16)
+	MOVEQ	a1, v5
+	TEQ	r11, #(9<<16)
+	MOVEQ	a1, v6
+	; PC
+	TEQ	r11, #(15<<16)
+	LDREQ	a1, [sp, #8]
 
 swi_end
 	LDMFD	sp!, {a2-a4, v1-v6, r10-r11, lr}

@@ -1,3 +1,9 @@
+Mon Dec 27 19:38:27 2004  John-Mark Bell <jmb202@ecs.soton.ac.uk>
+
+	* source/sys/_swi.s: Simplify _BLOCK and _RETURN handling. 
+	  Modify return of PC to work on <ARMv3.
+	* source/test/test1-swi.c: Improve test case.
+	  
 Sun Dec 26 18:09:45 2004  John-Mark Bell <jmb202@ecs.soton.ac.uk>
 
 	* source/sys/_swi.s: Clean implementation of this file.
