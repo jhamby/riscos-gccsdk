@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/regex.c,v $
- * $Date: 2004/01/06 00:17:36 $
- * $Revision: 1.4 $
+ * $Date: 2004/06/12 08:59:46 $
+ * $Revision: 1.5 $
  * $State: Exp $
- * $Author: joty $
+ * $Author: peter $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: regex.c,v 1.4 2004/01/06 00:17:36 joty Exp $";
+static const char rcs_id[] = "$Id: regex.c,v 1.5 2004/06/12 08:59:46 peter Exp $";
 #endif
 
 /* Extended regular expression matching and search library,
@@ -37,8 +37,6 @@ static const char rcs_id[] = "$Id: regex.c,v 1.4 2004/01/06 00:17:36 joty Exp $"
 #if defined (_AIX) && !defined (REGEX_MALLOC)
   #pragma alloca
 #endif
-
-#define _GNU_SOURCE
 
 /* We need this for `regex.h', and perhaps for the Emacs include files.  */
 #include <sys/types.h>

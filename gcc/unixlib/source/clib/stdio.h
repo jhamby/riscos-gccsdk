@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/stdio.h,v $
- * $Date: 2004/04/15 22:21:02 $
- * $Revision: 1.10 $
+ * $Date: 2004/08/08 11:32:41 $
+ * $Revision: 1.11 $
  * $State: Exp $
- * $Author: alex $
+ * $Author: peter $
  *
  ***************************************************************************/
 
@@ -16,7 +16,7 @@
 #define __STDIO_H
 #endif
 
-#include <unixlib/features.h>
+#include <features.h>
 #include <unixlib/types.h>
 #define __need_size_t
 #define __need_NULL

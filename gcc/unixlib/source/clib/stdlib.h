@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/stdlib.h,v $
- * $Date: 2004/06/12 08:59:47 $
- * $Revision: 1.13 $
+ * $Date: 2004/09/07 14:05:10 $
+ * $Revision: 1.14 $
  * $State: Exp $
- * $Author: peter $
+ * $Author: joty $
  *
  ***************************************************************************/
 
@@ -14,7 +14,7 @@
 #define __STDLIB_H
 
 #ifndef __UNIXLIB_FEATURES_H
-#include <unixlib/features.h>
+#include <features.h>
 #endif
 
 #define __need_size_t

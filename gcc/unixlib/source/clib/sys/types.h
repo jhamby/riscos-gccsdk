@@ -1,17 +1,16 @@
 /****************************************************************************
  *
- * $Source: $
- * $Date: $
- * $Revision: $
- * $State: $
- * $Author: $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/sys/types.h,v $
+ * $Date: 2002/12/22 18:22:28 $
+ * $Revision: 1.6 $
+ * $State: Exp $
+ * $Author: admin $
  *
  ***************************************************************************/
 
 /*
  * File taken from glibc 2.2.5.
  * Following changes were made:
- *  - Replaced "#include <features.h>" into "#include <unixlib/features.h>"
  *  - Replaced "#include <bits/types.h>" into "#include <unixlib/types.h>"
  */
 
@@ -40,7 +39,7 @@
 #ifndef	_SYS_TYPES_H
 #define	_SYS_TYPES_H	1
 
-#include <unixlib/features.h>
+#include <features.h>
 
 __BEGIN_DECLS
 

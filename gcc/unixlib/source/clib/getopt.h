@@ -1,8 +1,8 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/getopt.h,v $
- * $Date: 2004/01/07 21:00:14 $
- * $Revision: 1.6 $
+ * $Date: 2004/04/12 13:03:37 $
+ * $Revision: 1.7 $
  * $State: Exp $
  * $Author: nick $
  *
@@ -33,7 +33,7 @@
 # define _GETOPT_H 1
 #endif
 
-#include <unixlib/features.h>
+#include <features.h>
 
 __BEGIN_DECLS
 

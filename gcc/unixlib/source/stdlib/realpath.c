@@ -1,14 +1,13 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/stdlib/realpath.c,v $
- * $Date: 2004/02/09 21:13:24 $
- * $Revision: 1.3 $
+ * $Date: 2004/03/17 20:00:51 $
+ * $Revision: 1.4 $
  * $State: Exp $
- * $Author: alex $
+ * $Author: joty $
  *
  ***************************************************************************/
 
-#define _GNU_SOURCE
 #include <errno.h>
 #include <stdlib.h>
 #include <kernel.h>

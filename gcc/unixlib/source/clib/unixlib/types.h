@@ -1,8 +1,8 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/unixlib/types.h,v $
- * $Date: 2003/04/06 14:19:07 $
- * $Revision: 1.7 $
+ * $Date: 2004/02/15 19:37:37 $
+ * $Revision: 1.8 $
  * $State: Exp $
  * $Author: peter $
  *
@@ -11,7 +11,6 @@
 /*
  * File taken from glibc 2.2.5 (generic/bits/types.h).
  * Following changes were made:
- *  - Renamed "#include <features.h>" into "#include <unixlib/features.h>"
  *  - Added __extension__ to __u_quad_t and __quad_t definitions
  *  - Added definitions for __tcflag_t, __cc_t, __speed_t, __sig_atomic_t
  *    __sigset_t
@@ -44,7 +43,7 @@
 #ifndef __UNIXLIB_TYPES_H
 #define __UNIXLIB_TYPES_H 1
 
-#include <unixlib/features.h>
+#include <features.h>
 
 #define __need_size_t
 #include <stddef.h>

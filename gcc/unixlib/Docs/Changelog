@@ -1,3 +1,15 @@
+Tue Oct 12 09:11:22 2004  Peter Naulls  <peter@chocky.org>
+
+	* source/regex.c, source/realpath.c, source/time/mktime.c,
+	  source/unistd/getpass.c: Work better with Norcroft.
+	* source/clib/assert.h, source/clib/getopt.h, source/clib/netdb.h,
+	  source/clib/stdio.h, source/clib/strings.h, source/clib/types.h,
+	  source/clib/unixlib/types.h, source/unixlib/unix.h:
+          Reference moved features.h
+	* source/clib/unixlib/features.h: Warning if we use the old
+	  features.h file path.
+	* source/module/sul.s: Fix inadvertant change to SWI base.
+
 Sun Oct 10 17:37:38 2004  Alex Waugh  <alex@alexwaugh.com>
 
 	* source/unix/uname.c: Cope with OS_ReadSysInfo returning 0

@@ -1,8 +1,8 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/strings.h,v $
- * $Date: 2004/02/21 21:02:56 $
- * $Revision: 1.8 $
+ * $Date: 2004/05/10 10:58:55 $
+ * $Revision: 1.9 $
  * $State: Exp $
  * $Author: peter $
  *
@@ -16,7 +16,7 @@
    these aren't defined in string.h, so we need to define them here.  */
 #if !defined __STRING_H || !defined __USE_BSD
 
-# include <unixlib/features.h>
+# include <features.h>
 # define __need_size_t
 # include <stddef.h>
 

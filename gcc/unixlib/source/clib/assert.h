@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/assert.h,v $
- * $Date: 2004/04/15 22:21:01 $
- * $Revision: 1.6 $
+ * $Date: 2004/04/20 20:20:36 $
+ * $Revision: 1.7 $
  * $State: Exp $
- * $Author: alex $
+ * $Author: joty $
  *
  ***************************************************************************/
 
@@ -18,7 +18,7 @@
 #define __ASSERT_H
 
 #ifndef __UNIXLIB_FEATURES_H
-#include <unixlib/features.h>
+#include <features.h>
 #endif
 
 __BEGIN_DECLS

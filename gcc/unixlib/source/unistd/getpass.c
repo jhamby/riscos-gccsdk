@@ -1,10 +1,10 @@
 /***************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unistd/getpass.c,v $
- * $Date: 2002/11/18 15:44:17 $
- * $Revision: 1.2 $
+ * $Date: 2003/04/21 16:04:02 $
+ * $Revision: 1.3 $
  * $State: Exp $
- * $Author: admin $
+ * $Author: peter $
  *
  ***************************************************************************/  
 
@@ -26,8 +26,7 @@
    Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 
    02111-1307 USA.  */ 
 
-#define _GNU_SOURCE
-#include <stdio.h> 
+#include <stdio.h>
 #include <termios.h> 
 #include <unistd.h> 
 

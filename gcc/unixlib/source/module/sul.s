@@ -1,10 +1,10 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/module/sul.s,v $
-; $Date: 2003/10/21 19:28:29 $
-; $Revision: 1.5 $
+; $Date: 2004/09/07 14:05:11 $
+; $Revision: 1.6 $
 ; $State: Exp $
-; $Author: peter $
+; $Author: joty $
 ;
 ;----------------------------------------------------------------------------
 
@@ -27,7 +27,7 @@ ListHead	EQU	12	; Pointer to head of list
 	DCD	title - module_start		; Title string
 	DCD	help - module_start		; Help string
 	DCD	0				; Command table
-	DCD	SharedUnixLibrary_ErrorChunk	; SWI Base
+	DCD	SharedUnixLibrary_SWIChunk	; SWI Base
 	DCD	swi_handler - module_start	; SWI Handler
 	DCD	swi_table - module_start	; SWI Table
 	DCD	0				; SWI Decoder

@@ -1,8 +1,8 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/netdb.h,v $
- * $Date: 2004/09/17 18:39:51 $
- * $Revision: 1.7 $
+ * $Date: 2004/10/05 15:24:37 $
+ * $Revision: 1.8 $
  * $State: Exp $
  * $Author: peter $
  *
@@ -11,7 +11,6 @@
 /*
  * File taken from glibc 2.2.5.
  * Following changes were made:
- *  - Changed "#include <features.h>" into "#include <unixlib/features.h>"
  *  - Disabled the #include <bits/siginfo.h> for the sigevent_t definition
  *    (which we don't have at the moment) and disabled the getaddrinfo_a
  *    declaration too.
@@ -49,7 +48,7 @@
 #ifndef	__NETDB_H
 #define	__NETDB_H	1
 
-#include <unixlib/features.h>
+#include <features.h>
 
 #include <netinet/in.h>
 #include <stdint.h>

@@ -1,8 +1,8 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/unixlib/unix.h,v $
- * $Date: 2004/09/07 14:05:10 $
- * $Revision: 1.16 $
+ * $Date: 2004/09/23 22:16:39 $
+ * $Revision: 1.17 $
  * $State: Exp $
  * $Author: joty $
  *
@@ -14,7 +14,7 @@
 #define __UNIXLIB_UNIX_H 1
 
 #ifndef __UNIXLIB_FEATURES_H
-#include <unixlib/features.h>
+#include <features.h>
 #endif
 #ifndef __UNIXLIB_TYPES_H
 #include <unixlib/types.h>
