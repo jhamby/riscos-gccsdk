@@ -50,7 +50,8 @@ G77PKG = $(pkg)/bin/g77$(exesfx) \
 	$(pkg)/docs/g77 \
 	$(pkg)/docs/g77-readme
 
-GPCPKG = $(bindir)/gpc1$(exesfx) \
+GPCPKG = $(pkg)/bin/gpc$(exesfx) \
+	$(bindir)/gpc1$(exesfx) \
 	$(bindir)/gpcpp$(exesfx) \
 	$(bindir)/apcs26/unixlib/o/libgpc \
 	$(pkg)/docs/gpc
