@@ -32,6 +32,8 @@ STDLIB = $(libsclobj)/stdlib/div.o \
 
 STRING = $(libsclobj)/string/strdup.o
 
+TIME = $(libsclobj)/time/times.o
+
 MATH = 	$(libsclobj)/math/acosf.o \
 	$(libsclobj)/math/acosl.o \
 	$(libsclobj)/math/asinf.o \
@@ -99,10 +101,11 @@ all:	mkdirs \
 mkdirs:
 	mkdir -p $(libsclobj)
 	mkdir -p $(libsclobj)/gcc-compat
+	mkdir -p $(libsclobj)/math
 	mkdir -p $(libsclobj)/stdio
 	mkdir -p $(libsclobj)/stdlib
 	mkdir -p $(libsclobj)/string
-	mkdir -p $(libsclobj)/math
+	mkdir -p $(libsclobj)/time
 
 install_headers:
 	$(insthdr) . "*.h" libscl $(ux_gccpkg)/$(gn_cross_include_dir) $(ro_gccpkg)/$(gn_cross_include_dir)
@@ -111,8 +114,8 @@ install_headers:
 	$(instsrc) . "*.h" . $(ro_libsclpkg)
 	$(instsrc) sys "*.h" sys $(ro_libsclpkg)
 
-$(ux_gcc_bin_dir)/$(TRG)/libscl.o $(ro_gcc_bin_dir)/$(TRG)/o/libscl $(ro_libsclpkg)/o/stubs: $(LIBC) $(STDLIB) $(STRING) $(MATH) $(COMPAT) $(STDIO)
-	$(CROSS_AR) $(CROSS_AR_FLAGS) $@ $(LIBC) $(STDLIB) $(STRING) $(MATH) $(COMPAT) $(STDIO)
+$(ux_gcc_bin_dir)/$(TRG)/libscl.o $(ro_gcc_bin_dir)/$(TRG)/o/libscl $(ro_libsclpkg)/o/stubs: $(LIBC) $(STDLIB) $(STRING) $(MATH) $(COMPAT) $(STDIO) $(TIME)
+	$(CROSS_AR) $(CROSS_AR_FLAGS) $@ $(LIBC) $(STDLIB) $(STRING) $(MATH) $(COMPAT) $(STDIO) $(TIME)
 
 $(libsclobj)/unistd.o: unistd.c unistd.h
 $(libsclobj)/fcntl.o: fcntl.c fcntl.h
@@ -134,6 +137,8 @@ $(libsclobj)/stdlib/strtoll.o: stdlib/strtoll.c
 $(libsclobj)/stdlib/strtoull.o: stdlib/strtoull.c
 
 $(libsclobj)/string/strdup.o: string/strdup.c
+
+$(libsclobj)/time/times.o: time/times.c
 
 $(libsclobj)/math/acosf.o: math/acosf.s
 $(libsclobj)/math/acosl.o: math/acosl.s
