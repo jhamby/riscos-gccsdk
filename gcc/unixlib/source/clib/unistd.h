@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/unistd.h,v $
- * $Date: 2003/01/29 18:46:02 $
- * $Revision: 1.5 $
+ * $Date: 2003/04/05 12:16:34 $
+ * $Revision: 1.6 $
  * $State: Exp $
- * $Author: admin $
+ * $Author: alex $
  *
  ***************************************************************************/
 
@@ -326,10 +326,8 @@ extern __pid_t getpgrp (void);
 extern int setpgrp (__pid_t __pid, __pid_t __pgid);
 extern int setpgid (__pid_t __pid, __pid_t __pgid);
 
-#if 0
 /* Create a new session with the calling process as its leader.  */
 extern __pid_t setsid (void);
-#endif
 
 /* Get the real user id of the calling process.  */
 extern __uid_t getuid (void);

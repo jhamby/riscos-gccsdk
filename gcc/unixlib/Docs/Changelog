@@ -1,4 +1,8 @@
-Mon Apr 21 08:40:33  2003 Peter Naulls <peter@chocky.org>
+Mon Apr 21 14:18:04 2003  Peter Naulls <peter@chocky.org>
+	* clib/unistd.h, resource/setsid.c: Dummy setsid implementation.
+	* Makefile: prevent library being created 3 times.
+
+Mon Apr 21 08:40:33 2003  Peter Naulls <peter@chocky.org>
 	* objs/Makefile,fe1: Change APCS flags to 32-bit
 	* clib/unixlib/asm_dec.s: Extra definitions for 32-bit,
 	  make networking macros 32-bit.
