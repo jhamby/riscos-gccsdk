@@ -60,7 +60,7 @@ version is 0.03 and can be found at
 <URL:http://www.iyonix.com/32bit/CallASWI.shtml>.
 
 3) The module "SharedUnixLibrary" needs to be copied as
-!System.Modules.SharedULib.  In !UnixLib you can find the sources of
+!System.310.Modules.SharedULib.  In !UnixLib you can find the sources of
 this module.
 
 
@@ -68,15 +68,16 @@ Distributing of UnixLib based programs
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 When your program is linked with UnixLib, it needs the "SharedUnixLibrary"
-module so you should provide appropriate installation notes or an
-installation program to install the latest version of this module as
-!System.Modules.SharedULib.
+module.  We advise to ship together with your product the following
+directory tree !System.310.Modules containing a copy of the
+"SharedUnixLibrary" module as file "SharedULib".  Users can use the
+!System merger to make sure they have the latest version of this module.
 
-When your program is suited for running on RISC OS version older than 3.7,
+If you intend your program to run on versions of RISC OS older than 3.7,
 you should also provide an installation note or program to install the
 CallASWI module as !System.Modules.CallASWI.  Or, even better, redirect
 the users to <URL:http://www.iyonix.com/32bit/CallASWI.shtml> for the
-latest known version.
+latest known version and approved installation program.
 
 
 UnixLib and GCC
