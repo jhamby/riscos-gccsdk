@@ -10,18 +10,18 @@
 
 typedef struct
 {
-  uint32_t ChunkIDPrefix;
-  uint32_t ChunkIDType;
-  uint32_t FileOffset;
-  uint32_t Size;
+  unsigned int ChunkIDPrefix;
+  unsigned int ChunkIDType;
+  unsigned int FileOffset;
+  unsigned int Size;
 }
 ChunkFileHeaderEntry;
 
 typedef struct
 {
-  uint32_t ChunkField;
-  uint32_t maxChunks;
-  uint32_t noChunks;
+  unsigned int ChunkField;
+  unsigned int maxChunks;
+  unsigned int noChunks;
 }
 ChunkFileHeader;
 
@@ -47,9 +47,9 @@ ChunkFileHeader;
 
 typedef struct
 {
-  uint32_t ChunkIndex;
-  uint32_t EntryLength;
-  uint32_t DataLength;
+  unsigned int ChunkIndex;
+  unsigned int EntryLength;
+  unsigned int DataLength;
   char LibData[1];
 }
 LibDirectoryEntry;

@@ -51,8 +51,8 @@
 typedef struct SYMBOL
 {
   struct SYMBOL *next;
-  uint32_t type;
-  int32_t declared;
+  unsigned int type;
+  int declared;
   Value value;
   union
   {
@@ -60,10 +60,10 @@ typedef struct SYMBOL
     struct AREA *info;
   }
   area;
-  uint32_t offset;		/* Offset in stringtabel */
-  int32_t used;		/* this id is used (ie not resolved) */
+  unsigned int offset;		/* Offset in stringtabel */
+  int used;		/* this id is used (ie not resolved) */
   /* Later changed to index in symbol table */
-  int32_t len;		/* length of str[] */
+  int len;		/* length of str[] */
   char str[1];			/* str[len+1] */
 }
 Symbol;

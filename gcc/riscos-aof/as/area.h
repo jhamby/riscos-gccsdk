@@ -41,8 +41,8 @@
 typedef struct AREA
 {
   Symbol *next;
-  uint32_t type;
-  int32_t imagesize;
+  unsigned int type;
+  int imagesize;
   unsigned char *image;
   int norelocs;
   Reloc *relocs;

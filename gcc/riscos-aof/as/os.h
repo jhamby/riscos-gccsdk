@@ -26,7 +26,7 @@ os_error;
 
 extern char *ErrorFile;
 
-int32_t switonum (char *swi);
+int switonum (char *swi);
 os_error *cdir (char *name);
 
 
