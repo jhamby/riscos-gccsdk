@@ -238,32 +238,34 @@ static arealist *check_commondef(filelist *fp, areaentry *aep, unsigned int atat
 
   if (ap==NIL) return NIL;	/* Common block is unknown */
 
-  //printf ("ap=%08x, thisarea=%08x\n", ap, thisarea);
-
   if (ap->aratattr!=atattr) {	/* Known common area. Check attributes are the same */
     error("Warning: Attributes of common area '%s' in '%s' conflict with those in '%s'",
      nameptr, fp->chfilename, ap->arfileptr->chfilename);
     return NIL;		/* This area will be added to the area list as a normal area */
   }
-  if (aep->arsize!=ap->arobjsize) {
-    /* hack: error() only allows 4 params */
-    char buffer[256];
-
-    sprintf(buffer, "(%d != %d)", aep->arsize, ap->arobjsize);
-
-    error("Error: Size of common area '%s' in '%s' differs from definition in '%s' %s)",
-     nameptr, fp->chfilename, ap->arfileptr->chfilename, buffer);
-    return NIL;
-  }
 
   /* The GNU linkonce attribute allows us to combine multiple COMDEF
      areas of the same name which contain different data.  The choice
-     of which is indetermined.  */
+     of which is indetermined.  We cannot verify for either common code-size
+     or actual content because areas of the same name may have been compiled
+     with different compilation options.  */
   if (! (atattr & ATT_LINKONCE)) {
+    if (aep->arsize!=ap->arobjsize) {
+      /* hack: error() only allows 4 params */
+      char buffer[256];
+      
+      sprintf(buffer, "(%d != %d)", aep->arsize, ap->arobjsize);
+      
+      error("Error: Size of common area '%s' in '%s' differs from definition in '%s' %s)",
+	    nameptr, fp->chfilename, ap->arfileptr->chfilename, buffer);
+      return NIL;
+    }
+    
     /* Verify areas' contents are the same */
     count = ap->arobjsize >> 2;
     p1 = ap->arobjdata;
     p2 = thisarea;
+
     while (count>0 && *p1==*p2) {
       p2++;
       p1++;
@@ -364,6 +366,7 @@ static void list_attributes(arealist *ap) {
     {ATT_NOSTAK, "No stack checking code"},
     {ATT_BASED,  "Based area"},
     {ATT_STUBS,  "Shared library stub data"},
+    {ATT_LINKONCE, "Linkonce area"},
     {0,          "*"}
   };
 
@@ -487,7 +490,8 @@ static arealist *add_newarea(filelist *fp, areaentry *aep, unsigned int atattr, 
   ap->aralign = alattr;
   ap->arobjsize = aep->arsize;
   ap->arobjdata = thisarea;
-  if ((atattr & ATT_NOINIT)==0) thisarea = COERCE(COERCE(thisarea, char *)+aep->arsize, unsigned int *);
+  if ((atattr & ATT_NOINIT)==0)
+    thisarea = COERCE(COERCE(thisarea, char *)+aep->arsize, unsigned int *);
   ap->areldata = COERCE(thisarea, relocation*);
   ap->arnumrelocs = aep->arelocs;
   thisarea = COERCE(COERCE(thisarea, char *)+aep->arelocs*RELOCSIZE, unsigned int *);
