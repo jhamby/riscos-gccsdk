@@ -177,6 +177,28 @@ fatal	= "Invalid pointer passed to ThrowbackSendError",0
 	MOV	a1,v2
 	LDMDB	fp,{v1,v2,fp,sp,pc}^
 
+	= "OSArgs7",0
+	ALIGN
+	& &FF00008
+|OSArgs7|
+	EXPORT	OSArgs7
+	MOV	ip,sp
+	STMDB	sp!,{v1,v2,fp,ip,lr,pc}
+	SUB	fp,ip,#4
+; a2 <- a1   = char *path
+; a3 <- a2   = char *buffer
+; v2 <- a3   = int bufferSize
+	MOV	v2,a3
+	MOV	v1,#0
+	MOV	a4,#0
+	MOV	a3,a2
+	MOV	a2,a1
+	MOV	a1,#7
+	SWI	&20009 ; XOS_Args
+	MOVVC	a1,v2
+	MOVVS	a1,#0
+	LDMDB	fp,{v1,v2,fp,sp,pc}^
+
 
 	AREA	|C$$data|, DATA
 

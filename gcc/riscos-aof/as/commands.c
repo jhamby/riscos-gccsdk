@@ -395,8 +395,8 @@ c_get (void)
   inputLineNo = 0;
 #ifdef __riscos__
   dependPut (" ", filename, "");
-  inputName = CanonicalisePath (filename);
 #endif
+  inputName = CanonicaliseFile (getfp);
   asmfile = getfp;
   if (verbose)
     fprintf (stderr, "Including file %s\n", filename);
@@ -437,11 +437,7 @@ c_lnk (void)
   skiprest ();
   inputFinish ();
   inputLineNo = 0;
-#ifdef __riscos
-  inputName = CanonicalisePath (filename);
-#else
-  inputName = filename;
-#endif
+  inputName = CanonicaliseFile (lnkfp);
   if_depth = 0;
   asmfile = lnkfp;
   if (verbose)

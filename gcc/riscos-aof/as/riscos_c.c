@@ -3,11 +3,20 @@
  * Copyright © 1992 Niklas Röjemo
  */
 
-#ifdef __riscos
+#include "sdk-config.h"
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <unistd.h>
+#ifdef HAVE_STDINT_H
+#include <stdint.h>
+#elif HAVE_INTTYPES_H
+#include <inttypes.h>
+#endif
+
 #include "error.h"
+
+#ifdef __riscos
 #include "os.h"
 #ifdef UNIXLIB
 #include <unixlib/local.h>
@@ -52,15 +61,15 @@ CanonicalisePath (const char *path1)
 {
   int size;
   char *buffer;
-  char path[256];
 #ifdef UNIXLIB
 #if 0
-  path = __uname (path, 0);
+  char *path = __uname (path, 0);
 #else
+  char path[1024];
   __riscosify (path, 0, __RISCOSIFY_DONT_TRUNCATE, path, sizeof (path), NULL);
 #endif
 #else
-  path = uname (path, dde);
+  char *path = uname (path1, dde);
 #endif
   if (dde && *path == '@')
     {				/* Replace @ with <Prefix$Dir> if dde flags */
@@ -84,5 +93,51 @@ CanonicalisePath (const char *path1)
   exit (-1);
   return 0;			/* keep the compiler happy */
 }
-#endif /* __riscos */
- 
+
+char *
+CanonicaliseFile (const FILE * fh)
+{
+  int size;
+  char *buffer;
+  size = 1 - OSArgs7 (fh, 0, 0);
+  if (size)
+    {
+      buffer = malloc (size);
+      if (buffer)
+	{
+	  OSArgs7 (fh, buffer, size);
+	  buffer[size] = 0;
+	  return buffer;
+	}
+    }
+  error (ErrorAbort, TRUE, "Internal error in CanonicaliseFile");
+  exit (-1);
+  return 0;			/* keep the compiler happy */
+}
+
+#else /* not RISC OS */
+
+static char filename[1024];
+
+char *
+CanonicaliseFile (const FILE * fh)
+/* There's probably an easier way to look up the filename associated with a
+ * given handle which doesn't rely on the proc filesystem... */
+{
+  int len;
+  char *name;
+  sprintf (filename, "/proc/%i/fd/%i", getpid (), fileno (fh));
+  len = readlink (filename, filename, sizeof (filename));
+  if (len >= 0)
+    {
+      filename[len] = 0;
+      name = strdup (filename);
+      if (name)
+	return name;
+    }
+  error (ErrorAbort, TRUE, "Internal error in CanonicaliseFile");
+  exit (-1);
+  return 0;			/* keep the compiler happy */
+}
+
+#endif /* !__riscos */
