@@ -1,3 +1,8 @@
+Sun May 16 13:45:07 2004  James Bursa  <bursa@users.sourceforge.net>
+
+	* signal/_signal.s: Store fp registers on a fp exception.
+	* signal/post.c (post_signal): Print error buffer and fp registers.
+
 Wed May 12 23:01:30 2004  Alex Waugh  <alex@alexwaugh.com>
 
 	* signal/_signal.s (__setup_signalhandler_stack): Support calling from

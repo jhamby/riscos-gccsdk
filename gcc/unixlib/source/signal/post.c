@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/signal/post.c,v $
- * $Date: 2003/06/19 23:58:25 $
- * $Revision: 1.9 $
+ * $Date: 2004/02/23 16:07:29 $
+ * $Revision: 1.10 $
  * $State: Exp $
- * $Author: joty $
+ * $Author: peter $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: post.c,v 1.9 2003/06/19 23:58:25 joty Exp $";
+static const char rcs_id[] = "$Id: post.c,v 1.10 2004/02/23 16:07:29 peter Exp $";
 #endif
 
 /* signal.c.post: Written by Nick Burrett, 27 August 1996.  */
@@ -30,6 +30,20 @@ static const char rcs_id[] = "$Id: post.c,v 1.9 2003/06/19 23:58:25 joty Exp $";
 #include <pthread.h>
 
 /* #define DEBUG 1 */
+
+extern struct
+{
+  int pc;
+  int errnum;
+  char errmess[252];
+  int valid;
+} __ul_errbuf;
+
+extern struct
+{
+  int fpsr;
+  double f[8];
+} __ul_fp_registers;
 
 /* This function chooses a suitable execution environment
    for the signal handler and calls the appropriate function
@@ -277,9 +291,14 @@ post_signal (struct unixlib_sigstate *ss, int signo)
   __sighandler_t handler;
   sigset_t pending, signal_mask;
   int ss_suspended;
+  int errbuf_valid;
+
+  /* The error buffer is only valid for this signal and not the next */
+  errbuf_valid = __ul_errbuf.valid;
+  __ul_errbuf.valid = 0;
 
   /* 0 is the special signo used for posting any pending signals.  */
-  if (signo == 0)   
+  if (signo == 0)
     goto post_pending;
 
 post_signal:
@@ -411,6 +430,23 @@ post_signal:
 #ifdef DEBUG
 	__os_print ("post_signal: term/core\r\n");
 #endif
+
+	if (errbuf_valid)
+	  {
+	    fprintf(stderr, "\nError 0x%x: %s\n pc: %8x\n", __ul_errbuf.errnum,
+			    __ul_errbuf.errmess, __ul_errbuf.pc);
+	  }
+	if (signo == SIGFPE)
+	  {
+	    fprintf(stderr, " f0: %f  f1: %f  f2: %f  f3: %f\n"
+			    " f4: %f  f5: %f  f6: %f  f7: %f  fpsr: %x\n",
+			    __ul_fp_registers.f[0], __ul_fp_registers.f[1],
+			    __ul_fp_registers.f[2], __ul_fp_registers.f[3],
+			    __ul_fp_registers.f[4], __ul_fp_registers.f[5],
+			    __ul_fp_registers.f[5], __ul_fp_registers.f[7],
+			    __ul_fp_registers.fpsr);
+	  }
+
 	if (act == term)
 	  {
 	    write_termination (signo);

@@ -1,8 +1,8 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/signal/_signal.s,v $
-; $Date: 2004/03/24 22:30:35 $
-; $Revision: 1.17 $
+; $Date: 2004/05/12 22:02:49 $
+; $Revision: 1.18 $
 ; $State: Exp $
 ; $Author: alex $
 ;
@@ -185,7 +185,7 @@
 	NAME	__h_sigill
 |__h_sigill|
 	STR	lr, |__cbreg|+15*4
-	ADR	lr, |__cbreg|
+	ADRL	lr, |__cbreg|
 	STMIA	lr!, {a1-ip}		; store non-banked registers
 	STMIA	lr, {sp, lr}^		; store banked registers
 	MOV	a1, #SIGILL
@@ -366,6 +366,11 @@
 	BL	|memcpy|
 	]
 
+	; Mark the error buffer as valid.
+	LDR	a1, =|__ul_errbuf_valid|
+	MOV	a2, #1
+	STR	a2, [a1]
+
 	; Check the error number. Its value will determine the
 	; appropriate signal to call.
 	LDR	a2, =|__ul_errbuf_errblock|
@@ -387,12 +392,6 @@
 unrecoverable_error
 	; Bit 31-was set, therefore it was a hardware error.
 
-	; Print the error
-        STMFD   sp!, {a1-a4}
-        ADD     a1, a2, #4
-        BL      __write_unrecoverable
-        LDMFD   sp!, {a1-a4}
-
 	; Test the type of hardware error.  We currently aren't doing
 	; much other than saying it was a Floating Point Exception
 	; or something else.
@@ -402,23 +401,28 @@ unrecoverable_error
 	MOV	a3, a3, LSR #8
 	AND	a3, a3, #&FF
 	CMP	a3, #&02
-	MOVEQ	a2, #SIGFPE	;  A floating point exception
 	MOVNE	a2, #SIGEMT	;  A RISC OS exception.
-	MOV	a1, #0
+	BNE	|non_fp_exception|
 
-;	LDR	a3, =|__ul_errbuf|
-;	LDR	a3, [a3]
-;	STR	a3, [sp, #7*4]       ; Store error PC
-;	STR	a3, [sp, #(8+15)*4]  ; Store error PC
-;
-;	; Create APCS stack for error handler
-;
-;	ADR	v4, |__h_error|+12
-;	MOV	v3, lr
-;	ADD	v2, sp, #8*4
-;	MOV	v1, fp
-;	STMFD	sp!, {v1-v4}
-;	ADD	fp, sp, #12
+	; Store FP registers.
+	LDR	a1, =|__ul_fp_registers|
+	RFS	a2		; Read FP status register
+	STR	a2, [a1], #4
+	BIC	a2, a2, #&FF	; Disable all exceptions to prevent the
+	WFS	a2		; signal handler triggering another exception
+	STFD	f0, [a1], #8
+	STFD	f1, [a1], #8
+	STFD	f2, [a1], #8
+	STFD	f3, [a1], #8
+	STFD	f4, [a1], #8
+	STFD	f5, [a1], #8
+	STFD	f6, [a1], #8
+	STFD	f7, [a1], #8
+
+	MOV	a2, #SIGFPE	;  A floating point exception
+
+non_fp_exception
+	MOV	a1, #0
 
 	BL	|__unixlib_raise_signal|
 
@@ -890,5 +894,11 @@ return_quickly
 	%	4	; Error number provided with the error
 	%	252	; Error string, zero terminated
 |__ul_errbuf__size|	EQU	{PC} - |__ul_errbuf_errblock|
+|__ul_errbuf_valid|
+	DCD	0	; Valid flag for errbuf
+
+	EXPORT |__ul_fp_registers|
+|__ul_fp_registers|
+	%	8 * 8 + 4	; 8 double-precision registers and FPSR
 
 	END
