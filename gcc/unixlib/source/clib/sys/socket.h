@@ -255,21 +255,21 @@ struct linger
 extern int socket (int af, int __type, int __protocol);
 
 /* Bind a name to a socket.  */
-extern int bind (int __s, const struct sockaddr *__name, int namelen);
+extern int bind (int __s, const struct sockaddr *__name, socklen_t namelen);
 
 /* Start listening for connections on a socket.  */
 extern int listen (int __s, int __backlog);
 
 /* Accept a connection on a socket.  */
-extern int accept (int __s, struct sockaddr *__name, int *__namelen);
+extern int accept (int __s, struct sockaddr *__name, socklen_t *__namelen);
 
 /* Make a connection on a socket.  */
-extern int connect (int __s, const struct sockaddr *__name, int namelen);
+extern int connect (int __s, const struct sockaddr *__name, socklen_t namelen);
 
 /* Routines to receive data on a socket. */
 extern int recv (int __s, void *__msg, int __len, int __flags);
 extern int recvfrom (int __s, void *__msg, int __len, int __flags,
-		    struct sockaddr *__from, int *__fromlen);
+		    struct sockaddr *__from, socklen_t *__fromlen);
 extern int recvmsg (int __s, struct msghdr *__msg, int __flags);
 
 /* Routines to send data from a socket.  */
@@ -282,24 +282,25 @@ extern int sendmsg (int __s, const struct msghdr *__msg, int __flags);
 extern int shutdown (int __s, int __how);
 
 /* Manipulate socket options.  */
-extern int setsockopt (int __s, int __level, int __optname, const void *__optval, int optlen);
-extern int getsockopt (int __s, int __level, int __optname, void *__optval, int *__optlen);
+extern int setsockopt (int __s, int __level, int __optname, const void *__optval, socklen_t optlen);
+extern int getsockopt (int __s, int __level, int __optname, void *__optval, socklen_t *__optlen);
 
 /* Find the names of a socket and its peer.  */
-extern int getsockname (int __s, struct sockaddr *__name, int *__namelen);
-extern int getpeername (int __s, struct sockaddr *__name, int *__namelen);
+extern int getsockname (int __s, struct sockaddr *__name, socklen_t *__namelen);
+extern int getpeername (int __s, struct sockaddr *__name, socklen_t *__namelen);
 
+extern int socketpair(int d, int type, int protocol, int sv[2]);
 
 /* Direct SWI veneers: */
 extern int _socket (int af, int __type, int __protocol);
-extern int _bind (int __s, const struct sockaddr *__name, int __namelen);
+extern int _bind (int __s, const struct sockaddr *__name, socklen_t __namelen);
 extern int _listen (int __s, int __backlog);
-extern int _accept (int __s, struct sockaddr *__name, int *__namelen);
-extern int _connect (int __s, const struct sockaddr *__name, int namelen);
+extern int _accept (int __s, struct sockaddr *__name, socklen_t *__namelen);
+extern int _connect (int __s, const struct sockaddr *__name, socklen_t namelen);
 
 extern int _recv (int __s, void *__msg, int __len, int __flags);
 extern int _recvfrom (int __s, void *__msg, int __len, int __flags,
-		     struct sockaddr *__from, int *__fromlen);
+		     struct sockaddr *__from, socklen_t *__fromlen);
 extern int _recvmsg (int __s, struct msghdr *__msg, int __flags);
 
 extern int _send (int __s, const void *__msg, int __len, int __flags);
@@ -312,8 +313,8 @@ extern int _setsockopt (int __s, int __level, int __optname,
        	   	        const void *__optval, int __optlen);
 extern int _getsockopt (int __s, int __level, int __optname,
        	   	        char *__optval, int *__optlen);
-extern int _getsockname (int __s, struct sockaddr *__name, int *__namelen);
-extern int _getpeername (int __s, struct sockaddr *__name, int *__namelen);
+extern int _getsockname (int __s, struct sockaddr *__name, socklen_t *__namelen);
+extern int _getpeername (int __s, struct sockaddr *__name, socklen_t *__namelen);
 
 __END_DECLS
 

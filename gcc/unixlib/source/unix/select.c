@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/select.c,v $
- * $Date: 2001/09/14 14:01:17 $
- * $Revision: 1.2.2.5 $
- * $State: Exp $
- * $Author: admin $
+ * $Source$
+ * $Date$
+ * $Revision$
+ * $State$
+ * $Author$
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: select.c,v 1.2.2.5 2001/09/14 14:01:17 admin Exp $";
+static const char rcs_id[] = "$Id$";
 #endif
 
 /* netlib/socket.c: Written by Peter Burwood, July 1997  */
@@ -338,7 +338,7 @@ select (int nfds, fd_set *readfds, fd_set *writefds,
 
       timeout->tv_sec -= poll.tv_sec;
 
-      if (timeout->tv_sec < 0)
+      if ((int)timeout->tv_sec < 0)
 	timeout->tv_usec = timeout->tv_sec = 0;
     }
 

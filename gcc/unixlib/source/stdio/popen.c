@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/stdio/popen.c,v $
- * $Date: 2001/09/04 16:32:04 $
- * $Revision: 1.2.2.1 $
- * $State: Exp $
- * $Author: admin $
+ * $Source$
+ * $Date$
+ * $Revision$
+ * $State$
+ * $Author$
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: popen.c,v 1.2.2.1 2001/09/04 16:32:04 admin Exp $";
+static const char rcs_id[] = "$Id$";
 #endif
 
 #include <errno.h>
@@ -27,7 +27,7 @@ static const char rcs_id[] = "$Id: popen.c,v 1.2.2.1 2001/09/04 16:32:04 admin E
 
 __STDIOLIB__
 
-/* FIXME, hang this of the FILE structure.  */
+/* FIXME, hang this off the FILE structure.  */
 struct pwr
   {
     FILE *f;
@@ -163,7 +163,10 @@ pclose (FILE * stream)
     {
       /* The current process has written to the pipe, so now fork the child
 	 to read from the pipe.  */
-      struct pwr *pwr = __pwr, *prev_pwr = NULL;
+      static struct pwr *pwr;
+      struct pwr *prev_pwr = NULL;
+
+      pwr = __pwr;
 
       /* Locate saved pipe command and remove it from the list.  */
       while (pwr)

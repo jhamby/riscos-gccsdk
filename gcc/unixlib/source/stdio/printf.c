@@ -904,12 +904,6 @@ number:			if ((dprec = prec) >= 0)
 
 		/* finally, adjust ret */
 		ret += width > realsz ? width : realsz;
-
-                if (max < 1 || (flags & STOP))
-                {
-                    ret = EOF;
-                    break;
-                }
 	}
 done:
 	if (ferror(fp))

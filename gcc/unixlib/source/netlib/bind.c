@@ -1,16 +1,16 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/netlib/bind.c,v $
- * $Date: 2001/09/04 16:32:04 $
- * $Revision: 1.2.2.1 $
- * $State: Exp $
- * $Author: admin $
+ * $Source$
+ * $Date$
+ * $Revision$
+ * $State$
+ * $Author$
  *
  * (c) Copyright 1995 Sergio Monesi
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: bind.c,v 1.2.2.1 2001/09/04 16:32:04 admin Exp $";
+static const char rcs_id[] = "$Id$";
 #endif
 
 #include <unixlib/unix.h>
@@ -19,7 +19,7 @@ static const char rcs_id[] = "$Id: bind.c,v 1.2.2.1 2001/09/04 16:32:04 admin Ex
 #include <unixlib/local.h>
 
 int
-bind (int s, const struct sockaddr *name, int namelen)
+bind (int s, const struct sockaddr *name, socklen_t namelen)
 {
   if (__socket_valid (s) == -1)
     return -1;

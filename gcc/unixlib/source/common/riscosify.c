@@ -943,12 +943,10 @@ main:
           regs.r[1] = (int)last_dot;
           regs.r[2] = MMM_TYPE_RISCOS; /* Output filetype */
 
-          if (_kernel_swi(MimeMap_Translate, &regs, &regs)) {
-            /* Default to text if there's an error */
-            *filetype = 0xFFF;
-          } else {
-            *filetype = regs.r[3];
-          }
+	  /* If there's an error, then the filetype will remain
+	     __RISCOSIFY_FILETYPE_NOT_FOUND.  */
+          if (! _kernel_swi (MimeMap_Translate, &regs, &regs))
+	    *filetype = regs.r[3];
         }
 
       /* Check if we have "blabla,xyz" as filename where `xyz' is a

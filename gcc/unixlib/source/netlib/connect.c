@@ -19,7 +19,7 @@ static const char rcs_id[] = "$Id$";
 #include <unixlib/local.h>
 
 int
-connect (int s, const struct sockaddr *name, int namelen)
+connect (int s, const struct sockaddr *name, socklen_t namelen)
 {
   if (__socket_valid (s) == -1)
     return -1;

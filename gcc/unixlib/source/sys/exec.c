@@ -167,9 +167,16 @@ execve (const char *execname, char *const argv[], char *const envp[])
   char *cli;
   char pathname[MAXPATHLEN];
   int nasty_hack = 0;
+  char *null_list = NULL;
 
-  if (! execname || ! argv || ! envp)
+  if (! execname)
     return __set_errno (EINVAL);
+
+  if (! argv)
+    argv = &null_list;
+
+  if (! envp)
+    envp = &null_list;
 
 #ifdef DEBUG
   __os_print ("-- execve: function arguments\r\n");

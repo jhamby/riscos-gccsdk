@@ -86,6 +86,59 @@ Tue Nov 26 21:46:52 2002  Nick Burrett  <nick@dsvr.net>
 	(strtof): New prototype.
 	(strtold): New prototype.
 
+Wed Nov 13 11:58:00 2002  Peter Naulls  <peter@chocky.org>
+
+	* sys/socket.h (bind): Correct prototype.
+	(accept, connect, recvfrom, getsockname, getpeername): Likewise.
+	(_bind, _accept, _connect, _recvfrom, _getsockname): Likewise.
+	(_getpeername): Likewise.
+	* netlib/accept.c: Likewise.
+	* netlib/bind.c: Likewise.
+	* netlib/connect.c: Likewise.
+	* netlib/getsocknam.c: Likewise.
+	* netlib/getsockopt.c: Likewise.
+	* netlib/recvfrom.c: Likewise.
+	* netlib/setsockopt.c: Likewise.
+
+	* stdio/popen.c (pclose): Correct type usage. 
+	* sys/execl.c (execl): Likewise.
+
+	* unix/dev.c (__piperead): Fix pipe code to actually work.
+	(__pipewrite): Don't seek on pipes.
+	(__pipeselect): Likewise.
+	* unix/pipe.c (pipe): Put temporary pipe files into /tmp/pipe.
+
+	* unix/select.c (select): Fix broken comparison.
+
+	* unix/tty.c (__tty_console_gwinsz): Change variable naming
+	to better suit terminal handling.
+
+Wed Nov 13 10:55:36 2002  Stefan Bellon  <sbellon@sbellon.de>
+
+	* stdint.h: Norcroft version 5.50 supports long long.
+
+	* stdio/_printf.s (_vprintf, _snprintf): New functions.
+	(_vsprintf, _vsnprintf): New Norcroft compatibility functions.
+
+Mon Oct 21 22:12:25 2002  Alex Waugh  <alex.waugh@arm.com>
+
+	* sys/exec.c (execve): Allow a null argument list.
+
+	* stdio/printf.c (vfprintfsub): When the buffer isn't large enough,
+	return the number of characters that would be written had the
+	buffer been big enough.
+
+Mon Oct 21 21:53:21 2002  Peter Naulls  <peter@chocky.org>
+
+	* sys/_syslib.s (__main): Move ENTRY after NAME.
+	* common/riscosify.c (__riscosify): Don't default to filetype text
+	if there is an error.
+
+Sat Sep 28 16:00:00 2002  Peter Naulls  <peter@chocky.org>
+
+	* unix/unix.c (convert_command_line): Fix argument could error
+	when faced with arguments like "2> stderr".
+
 Tue Sep 24 14:32:56 2002  Nick Burrett  <nick@dsvr.net>
 
 	* sys/exec.c (execve): Make 2nd and 3rd param char *const [].

@@ -505,11 +505,6 @@ __pipeclose (struct __unixlib_fd *file_desc)
 int
 __piperead (struct __unixlib_fd *file_desc, void *data, int nbyte)
 {
-  if (file_desc->fflag & O_PIPE)
-    {
-      file_desc->fflag &= ~O_PIPE;
-      __fslseek (file_desc, 0, 0);
-    }
   return __fsread (file_desc, data, nbyte);
 }
 
@@ -517,9 +512,6 @@ int
 __pipewrite (struct __unixlib_fd *file_desc, const void *data, int nbyte)
 {
   int handle, regs[3];
-
-  if (file_desc->fflag & O_PIPE)
-    return __fswrite (file_desc, data, nbyte);
 
   handle = (int) file_desc->handle;
   /* Read current file position.  */
@@ -564,40 +556,28 @@ int
 __pipeselect (struct __unixlib_fd *file_desc, int fd,
 		__fd_set *read, __fd_set *write, __fd_set *except)
 {
-  /* Return ready to write, no execptional conditions.  Ready to read is a
+  /* Return ready to write, no exceptional conditions.  Ready to read is a
      little more tricky.  Bascially, work out if there is any data ready.
      Start by assuming there is nothing to read.  */
   int to_read = 0;
+
   if (read)
     {
-      if (file_desc->fflag & O_PIPE)
-	{
-	  /* Not read anything yet.  */
-	  long where = __fslseek (file_desc, 0, SEEK_CUR);
-	  /* There is data to read unless file position is zero.  */
-	  if (where != 0 && where != -1)
-	    to_read = 1;
-	}
-	else
-	{
-	  /* Have already read something.  */
-	  int regs[3];
-	  int pos;
-	  /* Read current file position.  */
-	  if (! __os_args (0, (int)file_desc->handle, 0, regs))
-	    {
-	      pos = regs[2];
-	      /* Read extent.  */
-	      if (! __os_args (2, (int)file_desc->handle, 0, regs))
+	int regs[3];
+	int pos;
+	/* Read current file position.  */
+	if (! __os_args (0, (int)file_desc->handle, 0, regs))
+	  {
+	    pos = regs[2];
+	    /* Read extent.  */
+	    if (! __os_args (2, (int)file_desc->handle, 0, regs))
 		if (pos != regs[2])
 		  to_read = 1;
-	      /* If file pointer != extent then there is still data to
-		 read.  */
+	    /* If file pointer != extent then there is still data to read.  */
 	    }
-	}
-      if (to_read)
+      if (to_read) {
 	FD_SET(fd, read);
-      else
+      } else
 	FD_CLR (fd, read);
     }
 
@@ -606,8 +586,7 @@ __pipeselect (struct __unixlib_fd *file_desc, int fd,
   if (except)
     FD_CLR (fd, except);
 
-  /* This may not be correct, but it is consistent with Internet 5
-     select.  */
+  /* This may not be correct, but it is consistent with Internet 5 select.  */
   return to_read + (write ? 1 : 0);
 }
 #endif /* __FEATURE_PIPEDEV */
