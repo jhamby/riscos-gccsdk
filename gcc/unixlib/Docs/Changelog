@@ -1,4 +1,20 @@
-Sun Apr  6 13:22:00 BST 2003  Peter Naulls <peter@chocky.org>
+Sun Apr  6 15:03:26 2003  Peter Naulls <peter@chocky.org>
+
+	* source/netlib/socketpair.c: socketpair() implementation
+	* source/clib/regex.h, source/regex.c: regex implementation
+	* source/Makefile: Add new files
+	* source/clib/stdio.h: Add fseeko/ftello, wrap GNU only
+	  functions up as per glibc.
+	* source/stdio/fpos.c: fseeko/ftello implementation
+	* source/clib/unixlib/unix.h: Add __32bit variable
+	  reference (not implemented yet)
+	* source/common/riscosify.c: Add hard/soft space mapping
+	* source/module/sul.s: SharedUnixLibrary 1.02 update
+	* source/unix/dev.c: Add ttyS0, add FIOASYNC (from 2.95.4 branch)
+	* source/unix/tty.c: Check for ttyS0, and alias to rs423
+	* source/clib/unixlib/types.h: Remove rouge +
+
+Sun Apr  6 13:22:00 2003  Peter Naulls <peter@chocky.org>
 
 	* clib/swis.h: Include kernel.h, add new CDFS SWI.
 	* clib/unixlib/types.h: LCC support, change __off_t to

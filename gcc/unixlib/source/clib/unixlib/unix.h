@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/unixlib/unix.h,v $
- * $Date: 2002/12/15 13:16:55 $
- * $Revision: 1.4 $
+ * $Date: 2003/04/05 12:16:34 $
+ * $Revision: 1.5 $
  * $State: Exp $
- * $Author: admin $
+ * $Author: alex $
  *
  * UNIX is a registered trademark of AT&T Bell Laboratories
  *
@@ -179,6 +179,8 @@ extern int __taskwindow;
 /* Zero if we are running in command mode (not as a WIMP program).  Non-zero
    otherwise.  */
 extern int __wimpprogram;
+/* Zero if we are running in 26-bit, non-zero for 32-bit */
+extern int __32bit;
 
 extern unsigned int __time[2];	/* start time */
 

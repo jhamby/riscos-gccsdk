@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/unixlib/types.h,v $
- * $Date: 2002/12/22 18:22:28 $
- * $Revision: 1.5 $
+ * $Date: 2003/04/06 12:28:37 $
+ * $Revision: 1.6 $
  * $State: Exp $
- * $Author: admin $
+ * $Author: peter $
  *
  ***************************************************************************/
 
@@ -56,7 +56,7 @@ typedef unsigned int __u_int;
 typedef unsigned long __u_long;
 
 #ifdef __LCC__
-/* Actually, it's 32 bits in LCC, but this is a work around */+
+/* Actually, it's 32 bits in LCC, but this is a work around */
 typedef long long int __int64;
 #endif
 

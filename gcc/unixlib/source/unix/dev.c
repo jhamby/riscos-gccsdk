@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source$
- * $Date$
- * $Revision$
- * $State$
- * $Author$
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/dev.c,v $
+ * $Date: 2003/01/29 18:49:00 $
+ * $Revision: 1.10 $
+ * $State: Exp $
+ * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id$";
+static const char rcs_id[] = "$Id: dev.c,v 1.10 2003/01/29 18:49:00 admin Exp $";
 #endif
 
 /* #define DEBUG */
@@ -91,6 +91,7 @@ static const struct sfile __sfile[] =
   {"tty", DEV_TTY},
   {"console", DEV_TTY},
   {"rs423", DEV_TTY},
+  {"ttyS0", DEV_TTY},
   {"null", DEV_NULL},
   {"zero", DEV_ZERO},
   {"random", DEV_RANDOM},
@@ -137,6 +138,14 @@ __commonioctl (struct __unixlib_fd *file_desc, int request, void *arg)
   IGNORE (request);
   IGNORE (arg);
   IGNORE (file_desc);
+
+  switch (request)
+    {
+    case FIOASYNC:
+      /* Set/Clear async I/O.  Do nothing */
+      return 0;
+    }
+
   return __set_errno (EINVAL);
 }
 

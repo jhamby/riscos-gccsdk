@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/tty.c,v $
- * $Date: 2002/12/13 15:01:59 $
- * $Revision: 1.7 $
+ * $Date: 2003/04/05 09:33:57 $
+ * $Revision: 1.8 $
  * $State: Exp $
- * $Author: admin $
+ * $Author: alex $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: tty.c,v 1.7 2002/12/13 15:01:59 admin Exp $";
+static const char rcs_id[] = "$Id: tty.c,v 1.8 2003/04/05 09:33:57 alex Exp $";
 #endif
 
 /* System V tty device driver for RISC OS.  */
@@ -320,7 +320,7 @@ __ttyopen (struct __unixlib_fd *file_desc, const char *file, int mode)
   if (file[5] == 'c')
     type = TTY_CON; /* /dev/console */
 #if __FEATURE_DEV_RS423
-  else if (file[5] == 'r')
+  else if (file[5] == 'r' || strcmp(file + 5, "ttyS0") == 0)
     type = TTY_423; /* /dev/rs423 */
 #endif
   else if (file[5] == 't')

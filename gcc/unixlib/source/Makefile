@@ -178,6 +178,7 @@ OBJS =	$(libunixobj)/abort.o \
 	$(libunixobj)/opensock.o \
 	$(libunixobj)/psignal.o \
 	$(libunixobj)/qsort.o \
+	$(libunixobj)/regex.o \
 	$(libunixobj)/stpcpy.o \
 	$(libunixobj)/stpncpy.o \
 	$(libunixobj)/strcat.o \
@@ -268,7 +269,8 @@ NETLIB = $(libunixobj)/netlib/accept.o \
 	$(libunixobj)/netlib/serv.o \
 	$(libunixobj)/netlib/setsockopt.o \
 	$(libunixobj)/netlib/shutdown.o \
-	$(libunixobj)/netlib/socket.o
+	$(libunixobj)/netlib/socket.o \
+	$(libunixobj)/netlib/socketpair.o
 
 NETLIB_ASM = \
 	$(libunixobj)/netlib/_accept.o \

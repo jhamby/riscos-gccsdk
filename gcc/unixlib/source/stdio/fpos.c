@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source$
- * $Date$
- * $Revision$
- * $State$
- * $Author$
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/stdio/fpos.c,v $
+ * $Date: 2002/07/26 09:58:06 $
+ * $Revision: 1.2.2.2 $
+ * $State: Exp $
+ * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id$";
+static const char rcs_id[] = "$Id: fpos.c,v 1.2.2.2 2002/07/26 09:58:06 admin Exp $";
 #endif
 
 /* #define DEBUG */
@@ -119,6 +119,12 @@ fseek (FILE * stream, long offset, int w)
   return 0;
 }
 
+int
+fseeko (FILE * stream, __off_t offset, int w)
+{
+  return fseek(stream, offset, w);
+}
+
 long
 ftell (FILE *stream)
 {
@@ -166,6 +172,12 @@ ftell (FILE *stream)
     }
   return stream->__offset - stream->__pushedback;
   /* NWC 1997/05/26 */
+}
+
+__off_t
+ftello (FILE *stream)
+{
+  return ftell(stream);
 }
 
 void

@@ -1,10 +1,10 @@
 /****************************************************************************
  *
- * $Source$
- * $Date$
- * $Revision$
- * $State$
- * $Author$
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/stdio.h,v $
+ * $Date: 2002/08/18 15:19:06 $
+ * $Revision: 1.2.2.7 $
+ * $State: Exp $
+ * $Author: admin $
  *
  ***************************************************************************/
 
@@ -217,8 +217,10 @@ extern int fsetpos (FILE *__stream, const fpos_t *__pos);
 
 /* Seek to a certain position on stream.  */
 extern int fseek (FILE *__stream, long int __off, int __whence);
+extern int fseeko (FILE *__stream, __off_t __off, int __whence);
 /* Return the current position of stream.  */
 extern long ftell (FILE *__stream);
+extern __off_t ftello (FILE *__stream);
 /* Rewind to the beginning of stream.  */
 extern void rewind (FILE *__stream);
 
@@ -383,6 +385,7 @@ extern int pclose (FILE *__stream);
 
 /* GNU extenstions.  */
 
+#ifdef __USE_GNU
 /* Read an entire line from stream (upto newline), storing the text in
    a buffer and storing the buffer address in *lineptr.  */
 extern __ssize_t getline (char **__lineptr, size_t *__n, FILE *__stream);
@@ -391,6 +394,11 @@ extern __ssize_t getline (char **__lineptr, size_t *__n, FILE *__stream);
    have to be a newline.  */
 extern __ssize_t getdelim (char **__lineptr, size_t *__n,
        		 	   int __delimiter, FILE *__stream);
+#endif
+
+#if defined __USE_XOPEN && !defined __USE_XOPEN2K && !defined __USE_GNU
+#include <getopt.h>
+#endif
 
 __END_DECLS
 
