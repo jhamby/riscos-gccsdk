@@ -116,6 +116,9 @@ case "$host" in
   *irix*)
         os_type="IRIX"
         ;;
+  *cygwin*)
+	os_type="CYGWIN"
+	;;
 esac
 
 

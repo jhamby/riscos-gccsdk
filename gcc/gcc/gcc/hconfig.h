@@ -13,10 +13,12 @@
 #include "config/arm/xm-riscos.h"
 #elif HOST_ARM_LINUX
 #include "config/arm/xm-linux.h"
-#elif HOST_I386_LINUX
-#include "config/i386/xm-linux.h"
+#elif HOST_I386_CYGWIN
+#include "config/i386/xm-cygwin.h"
 #elif HOST_I386_FREEBSD
 #include "config/i386/xm-freebsd.h"
+#elif HOST_I386_LINUX
+#include "config/i386/xm-linux.h"
 #elif HOST_MIPS_IRIX
 #include "config/mips/xm-iris6.h"
 #endif
