@@ -1,10 +1,10 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/module/sul.s,v $
-; $Date: 2004/09/07 14:05:11 $
-; $Revision: 1.6 $
+; $Date: 2004/10/12 08:32:38 $
+; $Revision: 1.7 $
 ; $State: Exp $
-; $Author: joty $
+; $Author: peter $
 ;
 ;----------------------------------------------------------------------------
 
@@ -36,7 +36,7 @@ ListHead	EQU	12	; Pointer to head of list
 
 |help|
 	DCB	"SharedUnixLibrary", 9
-	DCB	"1.02 (3 Nov 2002) (C) Peter Naulls, 2001", 0
+	DCB	"1.03 (6 Feb 2005) (C) Peter Naulls, 2001", 0
 	ALIGN
 
 |title|
@@ -95,6 +95,10 @@ ListHead	EQU	12	; Pointer to head of list
 |upcall_handler|
 	TEQ	r0, #256		; New Application UpCall
 	MOVNE	pc, lr			; Otherwise exit quickly
+
+	MOV	r0, #0			; Prevent new application from starting
+	MOV	pc, lr			; This is easier than ensuring the
+					; handler frees all resources correctly
 
 	STMFD	sp!, {r0-r4, lr}	; Save SVC_R14 and registers during
 					; environment handler

@@ -1,3 +1,9 @@
+Sun Feb 6 19:48:21 2005  Alex Waugh  <alex@alexwaugh.com>
+
+	* source/module/sul.s: Change upcall handler to refuse all new
+	  applications from starting. This avoids bugs in the current
+	  upcall handler.
+
 Sun Jan 30 16:04:32 2005  Alex Waugh  <alex@alexwaugh.com>
 
 	* source/unix/pipe.c, source/unix/dev.c, source/clib/unixlib/unix.h:
