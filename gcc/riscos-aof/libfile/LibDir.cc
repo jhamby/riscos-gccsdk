@@ -20,77 +20,85 @@ LibDir::~LibDir()
 
 void LibDir::set(Buffer *a_data)
 {
- readData(a_data);
+  readData(a_data);
 }
 
 void LibDir::set(const List<BString> &a_fileList)
 {
- Const_listiter<BString> iter(a_fileList);
- BString *file;
+  Const_listiter<BString> iter(a_fileList);
+  BString *file;
 
- while(file = iter.next())
- 	addFile(*file);
+  while(file = iter.next())
+    addFile(*file);
 }
 
 int LibDir::deleteMember(const BString &a_file)
 {
- List_of_piter<DirEntry> iter(m_fileList);
- DirEntry *entry;
- int sub = 0, theChunk = -1;
+  List_of_piter<DirEntry> iter(m_fileList);
+  DirEntry *entry;
+  int sub = 0, theChunk = -1;
 
- // Go through list of directory entries
- while(entry = iter.next())
- {
-  	// reduce index by one if entry was deleted
-  	entry->m_chunkIndex -= sub;
-  	// This is the desired entry
-  	if(entry->m_fileName == a_file)
+  // Go through list of directory entries
+  while(entry = iter.next())
+    {
+      // reduce index by one if entry was deleted
+      entry->m_chunkIndex -= sub;
+      // This is the desired entry
+      if(entry->m_fileName == a_file)
   	{
-  	 	// Save the chunkIndex
-  	 	theChunk = entry->m_chunkIndex;
-  	 	// Remove it from the list
-  	 	iter.remove_prev();
-  	 	// And delete it
-  	 	delete entry;
-  	 	// shift all following entries
-  	 	sub = 1;
+	  // Save the chunkIndex
+	  theChunk = entry->m_chunkIndex;
+	  // Remove it from the list
+	  iter.remove_prev();
+	  // And delete it
+	  delete entry;
+	  // shift all following entries
+	  sub = 1;
   	}
- }
-
- if(sub)
- 	return theChunk;
-
- return -1;
+    }
+  
+  if(sub)
+    return theChunk;
+  
+  return -1;
 }
 
+// return 1 if a new member added,
+// 0 if nothing added or an existing member replaced
 int LibDir::addFile(const BString &a_file)
 {
- DirEntry *entry;
- // first chunkindex is 3
- int index = 3 + m_fileList.length();
- TimeStamp time;
+  DirEntry *entry;
+  // first chunkindex is 3
+  int index = 3 + m_fileList.length();
+  TimeStamp time;
 
- if(exists(a_file))
- {
-  	// get real filename (upper/lower case)
-  	// todo
+  if(exists(a_file))
+    {
+      int newmember = 1;
 
-  	// remove file from library if it exists
-  	deleteMember(a_file);
-
-  	// get timestamp
-  	time.load(a_file);
-
-	// add to list
-	entry = new DirEntry(a_file, index, time);
-	if(!entry)
-		THROW_SPEC_ERR(BError::NewFailed);
-	m_fileList.put(entry);
-	return 1;
- }
- else
- 	cout << "Warning: File '" << a_file << "' cannot be loaded" << endl;
-
+      // get real filename (upper/lower case)
+      // todo
+      
+      // remove file from library if it exists
+      if (deleteMember(a_file) != -1)
+	{
+	  index --;
+	  newmember = 0;
+	}
+      
+      // get timestamp
+      time.load(a_file);
+      
+      // add to list
+      entry = new DirEntry(a_file, index, time);
+      if(!entry)
+	THROW_SPEC_ERR(BError::NewFailed);
+      m_fileList.put(entry);
+      return newmember;
+    }
+  else
+    cout << "Warning: File '" << a_file << "' cannot be loaded" << endl;
+  
  return 0;
 }
 
