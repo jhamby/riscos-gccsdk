@@ -39,6 +39,10 @@ static const char rcs_id[] = "$Id$";
 
 /* #define DEBUG */
 
+#ifdef DEBUG
+#include <unixlib/os.h>
+#endif
+
 /* SIGALRM signal handler for `sleep'.  This does nothing but return,
    but SIG_IGN isn't supposed to break `pause'.  */
 static void
@@ -93,11 +97,6 @@ sleep_int (clock_t clockticks)
   before = clock ();
   remaining = (ualarm ((useconds_t) clockticks * USECS_PER_CLOCK, 0)
 	       / USECS_PER_CLOCK);
-
-#ifdef DEBUG
-  __os_print ("sleep: Set up an alarm for "); __os_prdec (seconds);
-  __os_print (" seconds\r\n");
-#endif
 
 #ifdef DEBUG
   __os_print ("sleep: Set up an alarm for "); __os_prdec (clockticks);
