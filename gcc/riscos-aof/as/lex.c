@@ -267,6 +267,8 @@ lexGetPrim (void)
       result.LexOperator.op = Op_not;
       result.LexOperator.pri = PRI (10);
       break;
+    case '?':
+      error (ErrorError, TRUE, "Sorry, '?' not implemented");
     case '(':
     case ')':
       result.tag = LexDelim;

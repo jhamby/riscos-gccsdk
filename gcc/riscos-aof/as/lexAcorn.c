@@ -32,6 +32,15 @@ lexAcornUnop (Lex * lex)
     {
     case 'c':
       FINISH_STR ("hr:", Op_chr, 10);
+    case 'd':
+      if (notinput ("ef:"))
+	goto illegal;
+      *lex = lexGetPrim ();
+      if (lex->tag != LexId)
+	goto illegal;
+      lex->LexInt.value = symbolFind (*lex) != 0;
+      lex->tag = LexBool;
+      return 1;
     case 'f':
       switch (inputGetLower ())
 	{
@@ -159,6 +168,10 @@ lexAcornPrim (Lex * lex)
       FINISH_STR_PRIM ("rue}");
       lex->tag = LexBool;
       lex->LexInt.value = TRUE;
+      return 1;
+    case 'v':
+      FINISH_STR_PRIM ("ar}");
+      lex->tag = LexStorage;
       return 1;
     default:
     illegal:if (lex);
