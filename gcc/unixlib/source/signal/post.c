@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/signal/post.c,v $
- * $Date: 2004/12/11 14:18:57 $
- * $Revision: 1.17 $
+ * $Date: 2005/03/04 20:59:06 $
+ * $Revision: 1.18 $
  * $State: Exp $
- * $Author: joty $
+ * $Author: alex $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: post.c,v 1.17 2004/12/11 14:18:57 joty Exp $";
+static const char rcs_id[] = "$Id: post.c,v 1.18 2005/03/04 20:59:06 alex Exp $";
 #endif
 
 /* signal.c.post: Written by Nick Burrett, 27 August 1996.  */
@@ -407,14 +407,34 @@ post_signal:
     case core:			/* and leave a rotting corpse.  */
     death:
       /* Stop all other threads in our task.  */
-      /* No more user instructions wil be executed. */
+      /* No more user instructions will be executed. */
       {
+	int regs[10];
 	int status = W_EXITCODE (0, signo);
 	/* Do a core dump if desired. Only set the wait status bit saying
 	   we in fact dumped core if the operation was actually successful.  */
 #ifdef DEBUG
 	__os_print ("post_signal: term/core\r\n");
 #endif
+
+	/* Update __taskhandle (The task could have called Wimp_Initialise
+	   since we last checked at program startup */
+	regs[0] = 3;
+	if (__os_swi (Wimp_ReadSysInfo, regs))
+	  regs[0] = 0;
+	if (regs[0])
+	  {
+	    regs[0] = 5;
+	    if (__os_swi (Wimp_ReadSysInfo, regs))
+	      regs[0] = 0;
+	  }
+	__taskhandle = regs[0];
+
+	if (__taskhandle && !__taskwindow && isatty (fileno (stderr)))
+	  {
+	    regs[0] = __u->argv[0];
+	    __os_swi (Wimp_CommandWindow, regs);
+	  }
 
 	if (errbuf_valid)
 	  {

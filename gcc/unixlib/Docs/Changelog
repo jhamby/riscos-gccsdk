@@ -1,3 +1,8 @@
+Sat Mar 26 23:32:09 2005  Alex Waugh  <alex@alexwaugh.com>
+
+	* source/signal/post.c (post_signal): Open a command window if the
+	  backtrace would otherwise get lost.
+
 Mon Mar 21 12:03:23 2005  Peter Naulls  <peter@chocky.org>
 
 	* source/clib/pthread.h, source/pthread/lock.c: Tidy comments.
