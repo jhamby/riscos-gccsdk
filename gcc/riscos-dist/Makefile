@@ -37,6 +37,8 @@ GCCDOCPKG = $(pkg)/docs/COPYING \
 	$(pkg)/docs/bugs \
 	$(pkg)/docs/cpp \
 	$(pkg)/docs/gcc \
+	$(pkg)/docs/ULChanges \
+	$(pkg)/docs/UnixLib \
 	$(pkg)/examples
 
 CC1PKG = $(pkg)/bin/g++$(exesfx) \
