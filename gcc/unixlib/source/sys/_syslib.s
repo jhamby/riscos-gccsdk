@@ -1,8 +1,8 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/_syslib.s,v $
-; $Date: 2004/03/24 22:30:35 $
-; $Revision: 1.25 $
+; $Date: 2004/05/12 22:02:49 $
+; $Revision: 1.26 $
 ; $State: Exp $
 ; $Author: alex $
 ;
@@ -55,6 +55,7 @@ EXTREMELY_PARANOID	*	0	; Should we check that the entire stack chunk chain is va
 
 	IMPORT  |__unixinit|            ;C function (unix/unix.c)
 	IMPORT  |exit|                  ;C function (unix/unix.c)
+	IMPORT  |_exit|                 ;C function (unix/unix.c)
 	IMPORT	|__stackalloc_init|     ;C function (sys/stackalloc.c)
 	IMPORT	|__stackalloc|          ;C function (sys/stackalloc.c)
 	IMPORT	|__stackfree|           ;C function (sys/stackalloc.c)
@@ -71,6 +72,7 @@ EXTREMELY_PARANOID	*	0	; Should we check that the entire stack chunk chain is va
 	IMPORT  |__pthread_system_running| ;variable (pthread/_context.s)
 	IMPORT  |__pthread_disable_ints|   ;ASM function (pthread/_ints.s)
 	IMPORT  |__pthread_enable_ints|    ;ASM function (pthread/_ints.s)
+	IMPORT	|__setup_signalhandler_stack| ;ASM function (signal/_signal.s)
 	IMPORT  |__executing_signalhandler|;variable (signal/_signal.s)
 	IMPORT  |__signalhandler_sp|       ;variable (signal/_signal.s)
 	IMPORT  |__signalhandler_sl|       ;variable (signal/_signal.s)
@@ -962,7 +964,6 @@ no_chunk_to_free
 	IMPORT	|strerror|
 	IMPORT	|__os_nl|
 	IMPORT	|__os_print|
-	IMPORT	|_exit|
 	NAME	__unixlib_fatal
 |__unixlib_fatal|
 	; We don't want to assume anything about the stack as the stack

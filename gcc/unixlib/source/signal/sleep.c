@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/signal/sleep.c,v $
- * $Date: 2003/04/28 21:04:36 $
- * $Revision: 1.6 $
+ * $Date: 2003/11/23 20:26:45 $
+ * $Revision: 1.7 $
  * $State: Exp $
- * $Author: alex $
+ * $Author: joty $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: sleep.c,v 1.6 2003/04/28 21:04:36 alex Exp $";
+static const char rcs_id[] = "$Id: sleep.c,v 1.7 2003/11/23 20:26:45 joty Exp $";
 #endif
 
 /* Copyright (C) 1991, 1992, 1993, 1996, 1997 Free Software Foundation, Inc.
@@ -79,7 +79,7 @@ sleep_int (clock_t clockticks)
     {
       before = clock () + clockticks;
       while (clock () < before)
-	;
+	pthread_yield ();
       return 0;
     }
 

@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/signal/sigsuspend.c,v $
- * $Date: 2002/02/14 15:56:36 $
- * $Revision: 1.3 $
+ * $Date: 2003/04/28 21:04:36 $
+ * $Revision: 1.4 $
  * $State: Exp $
- * $Author: admin $
+ * $Author: alex $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: sigsuspend.c,v 1.3 2002/02/14 15:56:36 admin Exp $";
+static const char rcs_id[] = "$Id: sigsuspend.c,v 1.4 2003/04/28 21:04:36 alex Exp $";
 #endif
 
 /* Written by Nick Burrett, 26 Aug 1996.  */
@@ -32,7 +32,7 @@ sigsuspend (const sigset_t * set)
 {
   sigset_t oset;
 
-  PTHREAD_UNSAFE_CANCELLATION
+  PTHREAD_SAFE_CANCELLATION
 
   if (set == NULL)
     return __set_errno (EINVAL);
@@ -52,7 +52,7 @@ sigsuspend (const sigset_t * set)
   __os_print ("sigsuspend: Process suspended. Waiting for a signal.\r\n");
 #endif
   while (__u->sleeping)
-    ;
+    pthread_yield ();
 #ifdef DEBUG
   __os_print ("sigsuspend: Signal received. Process continuing\r\n");
 #endif

@@ -1,3 +1,10 @@
+Sun May 16 19:47:14 2004  Alex Waugh  <alex@alexwaugh.com>
+
+	* signal/sigsuspend.c: Suspend only the current thread not the
+	  entire process.
+	* signal/sleep.c: Likewise.
+	* sys/_syslib.s: Add missing IMPORTs.
+
 Sun May 16 13:45:07 2004  James Bursa  <bursa@users.sourceforge.net>
 
 	* signal/_signal.s: Store fp registers on a fp exception.
