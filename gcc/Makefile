@@ -36,7 +36,7 @@ setup:	directories install_headers
 crosshost:	libiberty riscos-aof gcc
 
 ifeq ($(crosscompile),yes)
-riscoshost:
+riscoshost:	cross-progs
 else
 # We don't build these for on the cross compiler because the host probably
 # has the tools anyway.  They get built as RISC OS binaries, so it would
@@ -117,6 +117,9 @@ gcc:
 riscos-progs:
 	$(MAKE) -C libiberty $(trg10) $(cfl10)
 	$(MAKE) -C riscos-progs $(trg10) $(cfl10)
+
+cross-progs:
+	$(MAKE) -C cross-progs
 
 riscos-aof:
 	$(MAKE) -C riscos-aof
