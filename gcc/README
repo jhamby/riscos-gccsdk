@@ -34,7 +34,8 @@ hours.  It is recommended that you install GCCSDK has a non-root user.
 The makefiles are still under development.  If something does go wrong
 then at least your system directory structure will still be preserved. 
 
-Generate the configure script:
+Generate the configure script. The 'WARNING:' messages can be safely
+ignored.
   $ autoconf ; autoheader
 
 Configure it.  The package creates two main installations.  The first,
