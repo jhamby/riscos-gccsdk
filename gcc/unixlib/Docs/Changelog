@@ -1,3 +1,8 @@
+Sat Jun  5 15:58:28 2004  John Tytgat  <John.Tytgat@aaug.net>
+
+	* source/math-asm/_sincos.s (__sincos): Results got written to incorrect
+	  pointers.
+
 Tue Jun  1 19:42:03 2004  Nick Burrett  <nick@dsvr.net>
 
 	* kernel.h: Fix __THROW attribute positioning.

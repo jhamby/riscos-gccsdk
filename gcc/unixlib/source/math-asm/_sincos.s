@@ -1,8 +1,8 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/math-asm/_sincos.s,v $
-; $Date: 2001/01/29 15:10:20 $
-; $Revision: 1.2 $
+; $Date: 2002/09/24 21:02:37 $
+; $Revision: 1.3 $
 ; $State: Exp $
 ; $Author: admin $
 ;
@@ -20,8 +20,8 @@
 	LDFD	f2, [sp], #8
 	SIND	f0, f2
 	COSD	f1, f2
-	STFD	f0, [r1, #0]
-	STFD	f1, [r2, #0]
+	STFD	f0, [a3, #0]
+	STFD	f1, [a4, #0]
 	return	AL, pc, lr
 
 	END
