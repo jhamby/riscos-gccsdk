@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/sys/cdefs.h,v $
- * $Date: 2003/06/07 02:30:22 $
- * $Revision: 1.3 $
+ * $Date: 2003/11/21 14:38:33 $
+ * $Revision: 1.4 $
  * $State: Exp $
- * $Author: joty $
+ * $Author: peter $
  *
  ***************************************************************************/
 
@@ -184,7 +184,9 @@
 /* GCC has various useful declarations that can be made with the
    `__attribute__' syntax.  All of the ways we use this do fine if
    they are omitted for compilers that don't understand it. */
-#if !defined __GNUC__ || __GNUC__ < 2
+#if !defined __GNUC__
+# define __attribute__(xyz)	/* Ignore */
+#elif __GNUC__ < 2
 # define __attribute__(xyz)	/* Ignore */
 #endif
 
@@ -222,7 +224,7 @@
 # define __attribute_deprecated__ __attribute__ ((__deprecated__))
 #else
 # define __attribute_deprecated__ /* Ignore */
-#endif                                                                                                                  
+#endif
 
 /* At some point during the gcc 2.8 development the `format_arg' attribute
    for functions was introduced.  We don't want to use it unconditionally

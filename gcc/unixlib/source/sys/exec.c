@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/exec.c,v $
- * $Date: 2003/06/16 21:00:33 $
- * $Revision: 1.9 $
+ * $Date: 2004/03/06 13:24:43 $
+ * $Revision: 1.10 $
  * $State: Exp $
- * $Author: joty $
+ * $Author: alex $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: exec.c,v 1.9 2003/06/16 21:00:33 joty Exp $";
+static const char rcs_id[] = "$Id: exec.c,v 1.10 2004/03/06 13:24:43 alex Exp $";
 #endif
 
 #include <ctype.h>
@@ -120,7 +120,7 @@ __dshift (unsigned char *p, unsigned int v, unsigned int c)
 #endif
 
 /* Setup the extended command line by sending all the arguments to the
-   program via dde utils.  */
+   program via DDEUtils module.  */
 static int
 set_dde_cli (char *cli)
 {
@@ -148,7 +148,7 @@ set_dde_cli (char *cli)
 
   *temp = '\0';		/* terminate cli.  */
 #ifdef DEBUG
-  __os_print ("DDE utils set up\n\r");
+  __os_print ("DDEUtils set up\n\r");
 #endif
   return 0;
 }
@@ -411,7 +411,7 @@ execve (const char *execname, char *const argv[], char *const envp[])
       if (cli_length + 1 + 256 > (char*)__himem - (char*)__lomem)
 	__exit_no_code ();	/* No return possible (see above).  */
 
-      /* If the cli is >= MAXPATHLEN, we will need the aid of DDE utils.  */
+      /* If the cli is >= MAXPATHLEN, we will need the aid of DDEUtils.  */
       if (cli_length >= MAXPATHLEN && set_dde_cli (cli) < 0)
 	__exit_no_code ();	/* No return possible (see above).  */
 
@@ -425,8 +425,8 @@ execve (const char *execname, char *const argv[], char *const envp[])
 	}
 
       /* Restore wimpslot and memory limit, then execute command.
-       * (This function never returns, even for a RISC OS built-in
-       * command.) */
+         (This function never returns, even for a RISC OS built-in
+         command.)  */
       __exec_cli (cli);
 
       /* NOTREACHED */

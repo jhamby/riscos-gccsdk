@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/unix.c,v $
- * $Date: 2004/01/06 00:17:37 $
- * $Revision: 1.19 $
+ * $Date: 2004/01/14 23:17:00 $
+ * $Revision: 1.20 $
  * $State: Exp $
  * $Author: joty $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: unix.c,v 1.19 2004/01/06 00:17:37 joty Exp $";
+static const char rcs_id[] = "$Id: unix.c,v 1.20 2004/01/14 23:17:00 joty Exp $";
 #endif
 
 #include <stdio.h>
@@ -125,7 +125,6 @@ void __unixinit (void)
 {
   int __cli_size, cli_size, regs[10];
   char *cli;
-  const char *prefix;
 
 #ifdef DEBUG
   __os_print ("-- __unixinit: __u = "); __os_prhex ((unsigned int) __u);
@@ -241,13 +240,20 @@ void __unixinit (void)
   /* When the DDEUtils module is loaded, we can support chdir() without
      RISC OS' CSD being changed. When not loaded, chdir() will work by
      changing CSD for all processes.  */
-  if ((prefix = __get_dde_prefix ()) == NULL)
+  /* IMPORTANT NOTE: because of bugs in DDEUtils' path processing
+     we don't set DDEUtils_Prefix at the beginning of each process.
+     Symptoms of these bugs are "ADFS::HardDisc4.$ is a directory" RISC OS
+     error when Font_FindFont is done for a font not yet in the font cache.
+     These problems are known to be solved in RISC OS Adjust 1.  */
+#if 1
+  __u->dde_prefix = __get_dde_prefix ();
+#else
+  if ((__u->dde_prefix = __get_dde_prefix ()) == NULL)
     {
       regs[0] = (int)"@";
       (void) __os_swi (DDEUtils_Prefix, regs);
     }
-  else
-    free ((void *)prefix);
+#endif
 
 #ifdef DEBUG
   __debug ("__unixinit: process creation complete");
@@ -326,12 +332,15 @@ _exit (int return_code)
     {
       int regs[10];
 
-      regs[0] = 0;
+      regs[0] = (int) __u->dde_prefix;
       (void) __os_swi (DDEUtils_Prefix, regs);
+
+      free((void *)__u->dde_prefix);
+      __u->dde_prefix = NULL;
     }
 
   /* Interval timers must be stopped.  */
-  if (__u)
+  if (__u != NULL)
     __stop_itimers ();
 
   /* pthread timers must be stopped */

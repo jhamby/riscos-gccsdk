@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/vfork.c,v $
- * $Date: 2003/12/04 22:55:35 $
- * $Revision: 1.5 $
+ * $Date: 2004/01/14 23:16:59 $
+ * $Revision: 1.6 $
  * $State: Exp $
- * $Author: alex $
+ * $Author: joty $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: vfork.c,v 1.5 2003/12/04 22:55:35 alex Exp $";
+static const char rcs_id[] = "$Id: vfork.c,v 1.6 2004/01/14 23:16:59 joty Exp $";
 #endif
 
 #include <errno.h>
@@ -63,6 +63,9 @@ static void free_process (struct proc *p)
 	  free (p->envp[x]);
       free (p->envp);
     }
+
+  if (p->dde_prefix)
+    free ((void *)p->dde_prefix);
 
   free (p);
 }
@@ -259,8 +262,6 @@ __vexit (int e)
   /* Restore DDEUtils_Prefix value.  */
   regs[0] = (int)p->dde_prefix;
   (void) __os_swi (DDEUtils_Prefix, regs);
-  free((void *)p->dde_prefix);
-  p->dde_prefix = NULL;
 
   /* Free memory allocated to the child process.  */
   free_process (p);

@@ -193,6 +193,7 @@ particular greater than 28MB, then it depends on the OS. For RISC OS
 must use dynamic areas, but on RISC OS 5 the wimpslot can be a lot
 larger, whereas dynamic area space may be limited.
 
+
 pthreads
 ~~~~~~~~
 
@@ -237,3 +238,19 @@ __pthread_start_ticker();
 You may also find it beneficial to put a pthread_yield() call somewhere
 inside the Wimp_Poll loop, to ensure other threads get a better chance
 of running.
+
+
+Name registration
+~~~~~~~~~~~~~~~~~
+
+On behalf of the "GCCSDK developers", the following names have been
+registered for use in and by UnixLib :
+
+- OS system variables : UnixEnv$* and UnixFS$*
+- Application names : UnixLib and GCC
+  [ Which also means that the UnixLib$* and GCC$* OS system variables
+    are registered too. ]
+
+The previous usage of the OS system variables Unix$* has been discontinued.
+
+-EOF-

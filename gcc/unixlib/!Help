@@ -25,12 +25,12 @@ It is also the default Run-Time Library for the RISC OS port of GCC.
 
 Quoting the original documentation :
 
-    [Unixlib] is a complete replacement ANSI compliant C library for use
+    [UnixLib] is a complete replacement ANSI compliant C library for use
     with Acorn RISC OS ANSI C Release 3.0/3.1A/3.1B/4.0. It incorporates
     a subset of the UNIX system call interface and some common System V
     and 4.3 BSD C libraries.
 
-Unixlib was originaly developed by Huw Rogers, up to version 3.6c, after
+UnixLib was originaly developed by Huw Rogers, up to version 3.6c, after
 which Simon Callan took over development. This was mainly triggered by
 his work on the port of GCC 2.4.5 to RISC OS. Nick Burrett and Peter
 Burwood did a lot of the development work starting at version 3.7b and
@@ -39,7 +39,7 @@ Additional help along the way has been provided by Nick Clark and
 John Tytgat. Peter Naulls and Alex Waugh contributed significantly to
 create 4.0 which features 32-bit compliancy and pthread support.
 
-Unixlib is covered with various licenses but freely usable for
+UnixLib is covered with various licenses but freely usable for
 non-commercial programs. For commercial use, and usage of parts of the
 source code, please contact the UnixLib developers. In most cases there
 will be no charges or restrictions. 
@@ -97,7 +97,7 @@ command switches
         -IUnixLib: -JUnixLib: -lUnixLib:o.UnixLib
 
 If you are using a seperate link stage, the -l switch is not needed, instead
-you should specifiy UnixLib:o.UnixLib in the link command line.
+you should specifiy 'UnixLib:o.UnixLib' in the link command line.
 
 If using the DDE frontend '!CC', the following needs to be changed
 
@@ -105,8 +105,8 @@ The 'Include' field should be changed to 'UnixLib:'
 On the popup menu, the 'Default path' should be set to 'UnixLib:', while the
 'libraries' should be set to 'UnixLib:o.UnixLib'.
 
-For !Link, UnixLib:o.UnixLib should be specified as one of the files to be
-linked.
+For !Link, 'UnixLib:o.UnixLib' should be specified as one of the files
+to be linked.
 
 Please note that the math functions defined in complex.h cannot be
 used if UnixLib is compiled with Norcroft C.

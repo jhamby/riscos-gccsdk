@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/signal/sigvec.c,v $
- * $Date: 2003/05/25 21:46:23 $
- * $Revision: 1.4 $
+ * $Date: 2003/06/07 02:30:22 $
+ * $Revision: 1.5 $
  * $State: Exp $
- * $Author: alex $
+ * $Author: joty $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: sigvec.c,v 1.4 2003/05/25 21:46:23 alex Exp $";
+static const char rcs_id[] = "$Id: sigvec.c,v 1.5 2003/06/07 02:30:22 joty Exp $";
 #endif
 
 /* c.sigvec: Written by Nick Burrett, 30 August 1996.  */
@@ -19,13 +19,12 @@ static const char rcs_id[] = "$Id: sigvec.c,v 1.4 2003/05/25 21:46:23 alex Exp $
 #include <stddef.h>
 #include <pthread.h>
 
-
+#if 0
 /* We use a wrapper handler to support SV_RESETHAND.  */
 
 static __sighandler_t wrapped_handlers[NSIG];
 static sigset_t wrapped_masks[NSIG];
 
-#if 0
 static void
 wrapper_handle (int sig)
 {
@@ -65,7 +64,7 @@ convert_mask (sigset_t * set, const int mask)
    reset to SIG_DFL before `sv_handler' is entered.  If OVEC is non-NULL,
    it is filled in with the old information for SIG.  */
 int
-sigvec (int sig, const struct *vec, struct sigvec *ovec)
+sigvec (int sig, const struct sigvec *vec, struct sigvec *ovec)
 {
   struct sigaction old;
 

@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/unixlib/unix.h,v $
- * $Date: 2004/01/14 23:16:59 $
- * $Revision: 1.12 $
+ * $Date: 2004/03/16 19:06:00 $
+ * $Revision: 1.13 $
  * $State: Exp $
- * $Author: joty $
+ * $Author: nick $
  *
  * UNIX is a registered trademark of AT&T Bell Laboratories
  *
@@ -122,7 +122,7 @@ struct proc
   /* UGLY HACK: We store cli malloc pointer here prior to calling child
      process.  The malloc store is then freed in __exret.  */
   void *cli;
-  /* DDEUtils_Prefix value of child just after vfork().  */
+  /* DDEUtils_Prefix value at the beginning of this process.  */
   const char *dde_prefix;
 };
 

@@ -1,3 +1,21 @@
+Wed Mar 17 20:00:14 2004  John Tytgat  <John.Tytgat@aaug.net>
+
+	* !Help: Consisting spelling & notation.
+	* Docs.ReadMe: Added "Name registration" section.
+	* source/clib/sys/cdefs.h: Avoid annoying Norcroft compiler warning
+	  on undefined #define symbol to be evaluated as 0.
+	* source/clib/unixlib/unix.h: Changed comment on dde_prefix.
+	* source/signal/sigvec.c: Static variables wrapped_handlers and
+	  wrapped_masks can be (temporary ?) disabled too.
+	* source/stdlib/realpath.c: Minor cleanup.
+	* source/sys/exec.c: Beautify comments.
+	* source/sys/vfork.c (free_process): Free process' dde_prefix.
+	* source/unix/unix.c (_exit): Free process' dde_prefix. Restore
+	  DDEUtils' Prefix to what it was at startup (instead of resetting
+	  it what the documentation is saying).  Also don't set DDEUtils'
+	  Prefix at startup with "@" because this triggers bugs in its path
+	  handling on some versions of DDEUtils module.
+	
 Tue Mar 16 19:03:59 2004  Nick Burrett  <nick@dsvr.net>
 
 	* unixlib/unix.h (__exec_cli): Add prototype.

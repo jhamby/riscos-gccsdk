@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/stdlib/realpath.c,v $
- * $Date: 2002/02/20 08:22:02 $
- * $Revision: 1.2 $
+ * $Date: 2004/02/09 21:13:24 $
+ * $Revision: 1.3 $
  * $State: Exp $
- * $Author: admin $
+ * $Author: alex $
  *
  ***************************************************************************/
 
@@ -41,9 +41,8 @@ realpath (const char *file_name, char *resolved_name)
   r[0] = 37; /* Canonicalise path */
   r[1] = (int) resolved_name;
   r[2] = (int) buffer;
-  r[3] = 0;
-  r[4] = 0;
-  r[5] = PATH_MAX;
+  r[3] = r[4] = 0;
+  r[5] = sizeof (buffer);
   if (__os_swi (OS_FSControl, r) != NULL)
     {
       __set_errno (EIO);
