@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/common/unixify.c,v $
- * $Date: 2004/09/07 14:05:11 $
- * $Revision: 1.8 $
+ * $Date: 2004/12/15 17:55:17 $
+ * $Revision: 1.9 $
  * $State: Exp $
- * $Author: joty $
+ * $Author: peter $
  *
  ***************************************************************************/
 
@@ -161,8 +161,15 @@ add_directory_name (char *o, const char *i)
     }
   else
     {
-      strcpy (o, i);
-      o += strlen (i);
+      int c = 0;
+      while (i[c])
+        {
+          if (i[c] == '/')
+            *o++ = '.';
+          else
+            *o++ = i[c];
+          c++;
+        }
     }
   /* Look out for the :^ and :/ constructs.  */
   if (o[-2] == ':' && o[-1] == '^')

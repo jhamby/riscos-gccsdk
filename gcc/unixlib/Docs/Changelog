@@ -1,3 +1,8 @@
+Tue Jan  4 22:50:42 2005  Alex Waugh  <alex@alexwaugh.com>
+
+	* source/common/unixify.c (add_directory_name): Slashes should be
+	  converted to dots.
+
 Tue Jan  4 00:30:47 2005  Peter Naulls  <peter@chocky.org>
 
 	* source/regex.c: Removed.
