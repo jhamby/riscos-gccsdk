@@ -1,3 +1,11 @@
+Sat Dec 18 18:37:52 2004  John Tytgat  <John.Tytgat@aaug.net>
+
+	* source/sys/debug.c: Removed __debugnl(); Added debug print of
+	  struct proc::cli and struct proc::dde_prefix.
+	* source/sys/exec.c (execve): First shift contents of struct proc::envp
+	  array and then the array ptr (and not visa versa).  Bug reported by
+	  Steve Ellacott.
+
 Thu Dec 16 17:09:18 2004  Peter Naulls  <peter@chocky.org>
 
 	* source/common/riscosify.c: Handle use of ~ in filenames

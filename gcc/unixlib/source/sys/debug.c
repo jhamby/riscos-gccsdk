@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/debug.c,v $
- * $Date: 2004/09/23 22:16:39 $
- * $Revision: 1.8 $
+ * $Date: 2004/12/11 14:18:57 $
+ * $Revision: 1.9 $
  * $State: Exp $
  * $Author: joty $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: debug.c,v 1.8 2004/09/23 22:16:39 joty Exp $";
+static const char rcs_id[] = "$Id: debug.c,v 1.9 2004/12/11 14:18:57 joty Exp $";
 #endif
 
 #ifndef DEBUG
@@ -38,13 +38,7 @@ __debugval (const char *s, int i)
   __os_prhex (i);
 }
 
-static void
-__debugnl (void)
-{
-  __os_nl ();
-}
-
-#define NL() __debugnl()
+#define NL() __os_nl()
 #define VAL(s,i) __debugval(s,i)
 
 void
@@ -134,6 +128,8 @@ __debug (const char *s)
   VAL ("signal:", (int) __u->status.signal);
   VAL (" return:", (int) __u->status.return_code);
   VAL (" vreg:", (int) __u->vreg);
+  VAL (" cli:", (int) __u->cli);
+  VAL (" dde_prefix:", (int) __u->dde_prefix);
   NL ();
   NL ();
   /* os_get (); */

@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/exec.c,v $
- * $Date: 2004/10/17 16:24:44 $
- * $Revision: 1.15 $
+ * $Date: 2004/12/11 14:18:57 $
+ * $Revision: 1.16 $
  * $State: Exp $
  * $Author: joty $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: exec.c,v 1.15 2004/10/17 16:24:44 joty Exp $";
+static const char rcs_id[] = "$Id: exec.c,v 1.16 2004/12/11 14:18:57 joty Exp $";
 #endif
 
 #include <ctype.h>
@@ -58,7 +58,7 @@ static const char rcs_id[] = "$Id: exec.c,v 1.15 2004/10/17 16:24:44 joty Exp $"
    If `p' is located between __image_rw_lomem and __unixlib_break (i.e. the data section
    of the program) then it will be relocated using `v'.  */
 static void *
-__ushift (unsigned char *p, unsigned int v, unsigned int c, char *n)
+__ushift (unsigned char *p, unsigned int v, unsigned int c, const char *n)
 {
   void *r = (((void *)p >= __image_ro_base && (void *)p < __unixlib_rwlimit) ? p + c
 	     : ((void *)p >= __image_rw_lomem && (void *)p < __unixlib_stack_limit) ? p + v : p);
@@ -183,14 +183,12 @@ execve (const char *execname, char *const argv[], char *const envp[])
 #ifdef DEBUG
   __os_print ("-- execve: function arguments\r\n");
   __os_print ("      execname: '"); __os_print (execname); __os_print ("'\r\n");
-  x = -1;
-  while (argv[++x])
+  for (x = 0; argv[x] != NULL; ++x)
     {
       __os_print ("      argv["); __os_prdec (x); __os_print ("]: ");
       __os_print (argv[x]); __os_nl ();
     }
-  x = -1;
-  while (envp[++x])
+  for (x = 0; envp[x] != NULL; ++x)
     {
       __os_print ("      envp["); __os_prdec (x); __os_print ("]: ");
       __os_print (envp[x]); __os_nl ();
@@ -468,8 +466,7 @@ execve (const char *execname, char *const argv[], char *const envp[])
 #endif
 
   /* Count new environment variable vector length.  */
-  x = -1;
-  while (envp[++x])
+  for (x = 0; envp[x] != NULL; ++x)
     ;
 
   process->envc = x;
@@ -569,9 +566,9 @@ execve (const char *execname, char *const argv[], char *const envp[])
 	 Pointers located between __image_rw_lomem and __unixlib_break
 	 (i.e. the data section of a program) will be relocated using
 	 'variable'.  */
-      ushift (process->envp, variable, code);
       for (i = 0; i < process->envc; i++)
 	ushift (process->envp[i], variable, code);
+      ushift (process->envp, variable, code);
       for (i = 0; i < MAXTTY; i++)
 	{
 	  if (process->tty[i].out)
