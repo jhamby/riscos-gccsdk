@@ -168,7 +168,7 @@ Boston, MA 02111-1307, USA.  */
 #define TEXT_SECTION_ASM_OP aof_text_section ()
 #define DATA_SECTION_ASM_OP aof_data_section ()
 #define READONLY_DATA_SECTION_ASM_OP aof_rodata_section ()
-#define BSS_SECTION_ASM_OP "\tAREA\t|C$$bss|, DATA, COMMON"
+#define BSS_SECTION_ASM_OP "\tAREA\t|C$$data|, DATA"
 
 /* This code handle the constructor/destructor tables required for C++.
    It relies on a feature in the AOF linker that sorts areas in the object
@@ -295,7 +295,7 @@ do					\
   do									\
     {									\
      common_section ();							\
-     fprintf ((STREAM), "\tAREA\t|%s|, DATA, COMMON\n", (NAME));	\
+     fprintf ((STREAM), "\tAREA |C$$data|, DATA\n", (NAME));	\
      fprintf ((STREAM), "\tEXPORT\t|%s|\n", (NAME));			\
      fprintf ((STREAM), "\t%% %d\t%s size=%d\n",			\
 	      (ROUNDED), ASM_COMMENT_START, (SIZE));			\
