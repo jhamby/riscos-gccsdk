@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/stdio.h,v $
- * $Date: 2002/08/18 15:19:06 $
- * $Revision: 1.2.2.7 $
+ * $Date: 2003/04/06 14:19:07 $
+ * $Revision: 1.6 $
  * $State: Exp $
- * $Author: admin $
+ * $Author: peter $
  *
  ***************************************************************************/
 
@@ -228,11 +228,16 @@ extern int getc (FILE *__stream);
 extern int getchar (void);
 
 /* Read a character from stream.  */
-#define getc(f) \
+#define getc_unlocked(f) \
 	((--((f)->i_cnt) >= 0 ? *((f)->i_ptr)++ : __filbuf(f)))
+
+#if !__FEATURE_PTHREADS
+#define getc(f) getc_unlocked(f)
+#endif
 
 /* Read a character from stdin.  */
 #define getchar() getc(stdin)
+#define getchar_unlocked() getc_unlocked(stdin)
 
 /* Read a character from stream.  */
 extern int fgetc (FILE *__stream);

@@ -1,19 +1,20 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/stdio/c/ferror,v $
- * $Date: 1997/10/09 20:00:33 $
- * $Revision: 1.4 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/stdio/ferror.c,v $
+ * $Date: 2001/01/29 15:10:21 $
+ * $Revision: 1.2 $
  * $State: Exp $
- * $Author: unixlib $
+ * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: ferror,v 1.4 1997/10/09 20:00:33 unixlib Exp $";
+static const char rcs_id[] = "$Id: ferror.c,v 1.2 2001/01/29 15:10:21 admin Exp $";
 #endif
 
 #include <errno.h>
 #include <stdio.h>
+#include <pthread.h>
 
 #undef	ferror
 
@@ -21,6 +22,8 @@ static const char rcs_id[] = "$Id: ferror,v 1.4 1997/10/09 20:00:33 unixlib Exp 
 int
 ferror (FILE *stream)
 {
+  PTHREAD_UNSAFE
+
   if (!__validfp (stream))
     {
       errno = EINVAL;

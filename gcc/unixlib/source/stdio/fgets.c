@@ -1,19 +1,20 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/stdio/c/fgets,v $
- * $Date: 1997/10/09 20:00:33 $
- * $Revision: 1.7 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/stdio/fgets.c,v $
+ * $Date: 2001/01/29 15:10:21 $
+ * $Revision: 1.2 $
  * $State: Exp $
- * $Author: unixlib $
+ * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: fgets,v 1.7 1997/10/09 20:00:33 unixlib Exp $";
+static const char rcs_id[] = "$Id: fgets.c,v 1.2 2001/01/29 15:10:21 admin Exp $";
 #endif
 
 #include <stdio.h>
 #include <errno.h>
+#include <pthread.h>
 
 __STDIOLIB__
 
@@ -22,6 +23,8 @@ fgets (char *s, size_t n, FILE * stream)
 {
   char *p = s;
   int c = 0;
+
+  PTHREAD_UNSAFE
 
   if (!__validfp (stream) || s == NULL || n == 0)
     {

@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unistd/Attic/fchown.c,v $
- * $Date: 2002/06/15 12:59:11 $
- * $Revision: 1.1.2.1 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unistd/fchown.c,v $
+ * $Date: 2002/11/18 15:44:17 $
+ * $Revision: 1.2 $
  * $State: Exp $
  * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: fchown.c,v 1.1.2.1 2002/06/15 12:59:11 admin Exp $";
+static const char rcs_id[] = "$Id: fchown.c,v 1.2 2002/11/18 15:44:17 admin Exp $";
 #endif
 
 #include <errno.h>
@@ -20,6 +20,7 @@ static const char rcs_id[] = "$Id: fchown.c,v 1.1.2.1 2002/06/15 12:59:11 admin 
 #include <unixlib/unix.h>
 
 #include <unixlib/fd.h>
+#include <pthread.h>
 
 #define IGNORE(x) x = x
 
@@ -28,6 +29,8 @@ fchown (int fd, uid_t owner, gid_t group)
 {
   struct __unixlib_fd *file_desc;
 
+  PTHREAD_UNSAFE
+  
   if (BADF (fd))
     return __set_errno (EBADF);
 

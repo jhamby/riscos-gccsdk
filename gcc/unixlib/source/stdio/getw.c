@@ -1,18 +1,19 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/stdio/c/getw,v $
- * $Date: 1997/10/09 20:00:35 $
- * $Revision: 1.4 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/stdio/getw.c,v $
+ * $Date: 2001/01/29 15:10:21 $
+ * $Revision: 1.2 $
  * $State: Exp $
- * $Author: unixlib $
+ * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: getw,v 1.4 1997/10/09 20:00:35 unixlib Exp $";
+static const char rcs_id[] = "$Id: getw.c,v 1.2 2001/01/29 15:10:21 admin Exp $";
 #endif
 
 #include <stdio.h>
+#include <pthread.h>
 
 #define INTSIZE 4
 
@@ -22,6 +23,8 @@ int
 getw (register FILE * f)
 {
   register int i;
+
+  PTHREAD_UNSAFE
 
   i = getc (f);
   i |= (getc (f) << 8);

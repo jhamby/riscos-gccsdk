@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/stdio/fclose.c,v $
- * $Date: 2001/09/04 16:32:04 $
- * $Revision: 1.2.2.1 $
+ * $Date: 2002/02/14 15:56:36 $
+ * $Revision: 1.3 $
  * $State: Exp $
  * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: fclose.c,v 1.2.2.1 2001/09/04 16:32:04 admin Exp $";
+static const char rcs_id[] = "$Id: fclose.c,v 1.3 2002/02/14 15:56:36 admin Exp $";
 #endif
 
 /* #define DEBUG */
@@ -24,6 +24,7 @@ static const char rcs_id[] = "$Id: fclose.c,v 1.2.2.1 2001/09/04 16:32:04 admin 
 #endif
 
 #include <fcntl.h>
+#include <pthread.h>
 
 __STDIOLIB__
 
@@ -31,6 +32,8 @@ int
 fclose (FILE * stream)
 {
   int status;
+
+  PTHREAD_UNSAFE
 
   if (stream == NULL)
     {

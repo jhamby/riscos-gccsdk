@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/stdio/fpos.c,v $
- * $Date: 2002/07/26 09:58:06 $
- * $Revision: 1.2.2.2 $
+ * $Date: 2003/04/06 14:19:07 $
+ * $Revision: 1.5 $
  * $State: Exp $
- * $Author: admin $
+ * $Author: peter $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: fpos.c,v 1.2.2.2 2002/07/26 09:58:06 admin Exp $";
+static const char rcs_id[] = "$Id: fpos.c,v 1.5 2003/04/06 14:19:07 peter Exp $";
 #endif
 
 /* #define DEBUG */
@@ -18,6 +18,7 @@ static const char rcs_id[] = "$Id: fpos.c,v 1.2.2.2 2002/07/26 09:58:06 admin Ex
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
+#include <pthread.h>
 
 #ifdef DEBUG
 #include <unixlib/os.h>
@@ -28,6 +29,8 @@ __STDIOLIB__
 int
 fgetpos (FILE * stream, fpos_t * pos)
 {
+  PTHREAD_UNSAFE
+
   if (!__validfp (stream) || pos == NULL)
     {
       errno = EINVAL;
@@ -55,6 +58,8 @@ int
 fseek (FILE * stream, long offset, int w)
 {
   long current, result;
+
+  PTHREAD_UNSAFE
 
   if (!__validfp (stream))
     {
@@ -128,6 +133,8 @@ fseeko (FILE * stream, __off_t offset, int w)
 long
 ftell (FILE *stream)
 {
+  PTHREAD_UNSAFE
+
   if (!__validfp (stream))
     {
       errno = EINVAL;
@@ -183,6 +190,8 @@ ftello (FILE *stream)
 void
 rewind (FILE *stream)
 {
+  PTHREAD_UNSAFE
+
   /* Clear any file errors before and after the seek operation.  */
   clearerr (stream);
   fseek (stream, 0L, SEEK_SET);

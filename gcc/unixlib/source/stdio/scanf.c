@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/stdio/scanf.c,v $
- * $Date: 2001/01/29 15:10:21 $
- * $Revision: 1.2 $
+ * $Date: 2002/09/24 21:02:38 $
+ * $Revision: 1.3 $
  * $State: Exp $
  * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: scanf.c,v 1.2 2001/01/29 15:10:21 admin Exp $";
+static const char rcs_id[] = "$Id: scanf.c,v 1.3 2002/09/24 21:02:38 admin Exp $";
 #endif
 
 /*-
@@ -53,7 +53,7 @@ static const char rcs_id[] = "$Id: scanf.c,v 1.2 2001/01/29 15:10:21 admin Exp $
 static char sccsid[] = "@(#)vfscanf.c	8.1 (Berkeley) 6/4/93";
 #endif
 static const char rcsid[] =
-		"$Id: scanf.c,v 1.2 2001/01/29 15:10:21 admin Exp $";
+		"$Id: scanf.c,v 1.3 2002/09/24 21:02:38 admin Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 #include <stdio.h>
@@ -61,6 +61,7 @@ static const char rcsid[] =
 #include <ctype.h>
 #include <stdarg.h>
 #include <string.h>
+#include <pthread.h>
 
 #define FLOATING_POINT
 
@@ -132,6 +133,8 @@ vfscanf (FILE *fp, char const *fmt0, va_list ap)
 	/* `basefix' is used to avoid `if' tests in the integer scanner */
 	static char basefix[17] =
 		{ 10, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 };
+
+	PTHREAD_UNSAFE
 
 	nassigned = 0;
 	nconversions = 0;

@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source$
- * $Date$
- * $Revision$
- * $State$
- * $Author$
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/stdio/tmpfile.c,v $
+ * $Date: 2002/09/24 21:02:38 $
+ * $Revision: 1.4 $
+ * $State: Exp $
+ * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id$";
+static const char rcs_id[] = "$Id: tmpfile.c,v 1.4 2002/09/24 21:02:38 admin Exp $";
 #endif
 
 #include <string.h>
@@ -23,6 +23,7 @@ static const char rcs_id[] = "$Id$";
 
 #include <unixlib/local.h>
 #include <unixlib/unix.h>
+#include <pthread.h>
 
 __STDIOLIB__
 
@@ -105,7 +106,11 @@ FILE *
 tmpfile (void)
 {
   FILE *result;
-  const char *name = tmpnam (NULL);
+  const char *name;
+
+  PTHREAD_UNSAFE
+
+  name = tmpnam (NULL);
 
   if ((result = fopen (name, "wb+")) == NULL)
     {
@@ -133,6 +138,7 @@ tmpfile (void)
 
 static char __tmpbuf[L_tmpnam + 1];
 
+/* Defined by POSIX as not threadsafe when passed a NULL argument */
 char *
 tmpnam (char *buf)
 {

@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/stdio/c/fread,v $
- * $Date: 1998/10/05 21:54:11 $
- * $Revision: 1.9 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/stdio/fread.c,v $
+ * $Date: 2001/01/29 15:10:21 $
+ * $Revision: 1.2 $
  * $State: Exp $
- * $Author: unixlib $
+ * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: fread,v 1.9 1998/10/05 21:54:11 unixlib Exp $";
+static const char rcs_id[] = "$Id: fread.c,v 1.2 2001/01/29 15:10:21 admin Exp $";
 #endif
 
 #include <errno.h>
@@ -18,6 +18,7 @@ static const char rcs_id[] = "$Id: fread,v 1.9 1998/10/05 21:54:11 unixlib Exp $
 #include <stdio.h>
 #include <unistd.h>
 #include <sys/types.h>
+#include <pthread.h>
 
 __STDIOLIB__
 
@@ -28,6 +29,8 @@ fread (void *data, size_t size, size_t count, FILE *stream)
 {
   size_t to_read;
   ssize_t bytes;
+
+  PTHREAD_UNSAFE
 
   /* Check for any errors.  */
   if (!__validfp (stream) || !stream->__mode.__read)

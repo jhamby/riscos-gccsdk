@@ -1,17 +1,17 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/stdio/c/getdelim,v $
- * $Date: 1997/10/08 16:37:50 $
- * $Revision: 1.6 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/stdio/getdelim.c,v $
+ * $Date: 2001/01/29 15:10:21 $
+ * $Revision: 1.2 $
  * $State: Exp $
- * $Author: unixlib $
+ * $Author: admin $
  *
  ***************************************************************************/
 
 /* c.getdelim. Written by Nick Burrett, 27 October 1996.  */
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: getdelim,v 1.6 1997/10/08 16:37:50 unixlib Exp $";
+static const char rcs_id[] = "$Id: getdelim.c,v 1.2 2001/01/29 15:10:21 admin Exp $";
 #endif
 
 #include <errno.h>
@@ -21,6 +21,7 @@ static const char rcs_id[] = "$Id: getdelim,v 1.6 1997/10/08 16:37:50 unixlib Ex
 #include <string.h>
 #include <limits.h>
 #include <sys/types.h>
+#include <pthread.h>
 
 /* Read up to (and including) a terminator from stream into *lineptr
    (and null-terminate it). *lineptr is a pointer returned from malloc
@@ -33,6 +34,8 @@ getdelim (char **lineptr, size_t * n, int terminator, FILE * stream)
 {
   char *line, *p;
   size_t size, copy;
+
+  PTHREAD_UNSAFE
 
   /* Validity check.  */
   if (!__validfp (stream) || lineptr == NULL || n == NULL)

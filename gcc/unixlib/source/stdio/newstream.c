@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/stdio/newstream.c,v $
- * $Date: 2001/09/04 16:32:04 $
- * $Revision: 1.2.2.1 $
+ * $Date: 2002/02/14 15:56:36 $
+ * $Revision: 1.3 $
  * $State: Exp $
  * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: newstream.c,v 1.2.2.1 2001/09/04 16:32:04 admin Exp $";
+static const char rcs_id[] = "$Id: newstream.c,v 1.3 2002/02/14 15:56:36 admin Exp $";
 #endif
 
 #include <errno.h>
@@ -18,12 +18,17 @@ static const char rcs_id[] = "$Id: newstream.c,v 1.2.2.1 2001/09/04 16:32:04 adm
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <pthread.h>
 
 /* Invalidate a stream.  */
 void
 __invalidate (FILE *stream)
 {
-  FILE *next = stream->next;
+  FILE *next;
+
+  PTHREAD_UNSAFE
+
+  next = stream->next;
   memset((void *) stream, 0, sizeof(FILE));
   stream->next = next;
 }
@@ -32,6 +37,8 @@ __invalidate (FILE *stream)
 FILE *__newstream (void)
 {
   FILE *stream;
+
+  PTHREAD_UNSAFE
 
   stream = __iob_head;
   /* Look for a previously created stream that is now
@@ -60,6 +67,8 @@ FILE *__newstream (void)
 FILE *
 __stream_init (int fd, FILE *stream)
 {
+  PTHREAD_UNSAFE
+
   /* Set the magic word for this FILE struct.  */
   stream->__magic = _IOMAGIC;
   stream->fd = fd;

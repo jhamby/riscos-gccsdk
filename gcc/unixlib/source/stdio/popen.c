@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source$
- * $Date$
- * $Revision$
- * $State$
- * $Author$
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/stdio/popen.c,v $
+ * $Date: 2002/12/13 15:01:59 $
+ * $Revision: 1.4 $
+ * $State: Exp $
+ * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id$";
+static const char rcs_id[] = "$Id: popen.c,v 1.4 2002/12/13 15:01:59 admin Exp $";
 #endif
 
 #include <errno.h>
@@ -17,6 +17,7 @@ static const char rcs_id[] = "$Id$";
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
+#include <pthread.h>
 
 #include <sys/param.h>
 #include <sys/wait.h>
@@ -72,6 +73,8 @@ popen (const char *command, const char *mode)
 {
   FILE *stream;
   int pipedes[2];
+
+  PTHREAD_UNSAFE
 
   if (command == NULL || mode == NULL || (*mode != 'r' && *mode != 'w'))
     {
@@ -155,6 +158,8 @@ int
 pclose (FILE * stream)
 {
   int status;
+
+  PTHREAD_UNSAFE
 
   if (!stream->__ispipe)
     return __set_errno (EINVAL);

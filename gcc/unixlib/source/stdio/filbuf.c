@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/stdio/c/filbuf,v $
- * $Date: 1997/10/08 16:37:50 $
- * $Revision: 1.10 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/stdio/filbuf.c,v $
+ * $Date: 2001/01/29 15:10:21 $
+ * $Revision: 1.2 $
  * $State: Exp $
- * $Author: unixlib $
+ * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: filbuf,v 1.10 1997/10/08 16:37:50 unixlib Exp $";
+static const char rcs_id[] = "$Id: filbuf.c,v 1.2 2001/01/29 15:10:21 admin Exp $";
 #endif
 
 #include <errno.h>
@@ -17,6 +17,7 @@ static const char rcs_id[] = "$Id: filbuf,v 1.10 1997/10/08 16:37:50 unixlib Exp
 #include <stdio.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <pthread.h>
 
 __STDIOLIB__
 
@@ -101,6 +102,8 @@ __filbuf (FILE *stream)
 {
   int count;
 
+  PTHREAD_UNSAFE
+
   if (check_stream (stream) == EOF)
     return EOF;
 
@@ -133,6 +136,8 @@ int
 __peek_char (FILE *stream)
 {
   int count;
+
+  PTHREAD_UNSAFE
 
   if (check_stream (stream) == EOF)
     return EOF;

@@ -1,20 +1,21 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/stdio/c/setbuf,v $
- * $Date: 1997/09/19 21:43:43 $
- * $Revision: 1.9 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/stdio/setbuf.c,v $
+ * $Date: 2001/01/29 15:10:21 $
+ * $Revision: 1.2 $
  * $State: Exp $
- * $Author: unixlib $
+ * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: setbuf,v 1.9 1997/09/19 21:43:43 unixlib Exp $";
+static const char rcs_id[] = "$Id: setbuf.c,v 1.2 2001/01/29 15:10:21 admin Exp $";
 #endif
 
 #include <errno.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <pthread.h>
 
 __STDIOLIB__
 
@@ -86,6 +87,8 @@ int
 setvbuf (FILE * stream, char *buf, int flag, size_t bufsiz)
 {
   unsigned int userbuf;
+
+  PTHREAD_UNSAFE
 
   if (!__validfp (stream))
     {

@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/stdio/printf.c,v $
- * $Date: 2002/12/13 15:01:59 $
- * $Revision: 1.5 $
+ * $Date: 2002/12/15 13:16:55 $
+ * $Revision: 1.6 $
  * $State: Exp $
  * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: printf.c,v 1.5 2002/12/13 15:01:59 admin Exp $";
+static const char rcs_id[] = "$Id: printf.c,v 1.6 2002/12/15 13:16:55 admin Exp $";
 #endif
 
 /*-
@@ -53,7 +53,7 @@ static const char rcs_id[] = "$Id: printf.c,v 1.5 2002/12/13 15:01:59 admin Exp 
 static char sccsid[] = "@(#)vfprintf.c	8.1 (Berkeley) 6/4/93";
 #endif
 static const char rcsid[] =
-		"$Id: printf.c,v 1.5 2002/12/13 15:01:59 admin Exp $";
+		"$Id: printf.c,v 1.6 2002/12/15 13:16:55 admin Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 /*
@@ -71,6 +71,7 @@ static const char rcsid[] =
 #include <strings.h>
 #include <stdarg.h>
 #include <wchar.h>
+#include <pthread.h>
 
 
 /* Define FLOATING_POINT to get floating point. */
@@ -302,7 +303,6 @@ pad_file (FILE * fp, char pad, int count, size_t limit)
 
   return limit;
 }
-#include <pthread.h>
 
 static int
 vfprintfsub(FILE *fp, size_t max, const char *fmt0, va_list ap)
@@ -388,7 +388,8 @@ vfprintfsub(FILE *fp, size_t max, const char *fmt0, va_list ap)
 	}
 
 
-PTHREAD_UNSAFE
+	PTHREAD_UNSAFE
+
 	/* sorry, fprintf(read_only_file, "") returns EOF, not 0 */
 	if (!fp->__mode.__write) {
 		return (EOF);

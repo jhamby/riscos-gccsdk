@@ -1,19 +1,20 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/stdio/c/gets,v $
- * $Date: 1997/10/09 20:00:35 $
- * $Revision: 1.5 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/stdio/gets.c,v $
+ * $Date: 2001/01/29 15:10:21 $
+ * $Revision: 1.2 $
  * $State: Exp $
- * $Author: unixlib $
+ * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: gets,v 1.5 1997/10/09 20:00:35 unixlib Exp $";
+static const char rcs_id[] = "$Id: gets.c,v 1.2 2001/01/29 15:10:21 admin Exp $";
 #endif
 
 #include <stdio.h>
 #include <errno.h>
+#include <pthread.h>
 
 __STDIOLIB__
 
@@ -23,6 +24,8 @@ gets (char *_s)
   FILE *stream = stdin;
   char *s = _s;
   int c = 0;
+
+  PTHREAD_UNSAFE
 
   if (!__validfp (stream) || s == NULL)
     {

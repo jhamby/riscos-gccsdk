@@ -1,3 +1,38 @@
+Sat Apr 13 17:20:43 2003  Alex Waugh  <alex@alexwaugh.com>
+
+	* clib/stdio.h: Thread safety patches.
+	* stdio/clearerr.c: Likewise.
+	* stdio/fclose.c: Likewise.
+	* stdio/feof.c: Likewise.
+	* stdio/ferror.c: Likewise.
+	* stdio/fflush.c: Likewise.
+	* stdio/fgets.c: Likewise.
+	* stdio/filbuf.c: Likewise.
+	* stdio/fileno.c: Likewise.
+	* stdio/flsbuf.c: Likewise.
+	* stdio/fopen.c: Likewise.
+	* stdio/fpos.c: Likewise.
+	* stdio/fputs.c: Likewise.
+	* stdio/fread.c: Likewise.
+	* stdio/freopen.c: Likewise.
+	* stdio/fwrite.c: Likewise.
+	* stdio/getc.c: Likewise.
+	* stdio/getdelim.c: Likewise.
+	* stdio/gets.c: Likewise.
+	* stdio/getw.c: Likewise.
+	* stdio/newstream.c: Likewise.
+	* stdio/popen.c: Likewise.
+	* stdio/printf.c: Likewise.
+	* stdio/putc.c: Likewise.
+	* stdio/puts.c: Likewise.
+	* stdio/putw.c: Likewise.
+	* stdio/rename.c: Likewise.
+	* stdio/scanf.c: Likewise.
+	* stdio/setbuf.c: Likewise.
+	* stdio/tmpfile.c: Likewise.
+	* stdio/ungetc.c: Likewise.
+	* unistd/fchown.c: Likewise.
+
 Sat Apr 12 12:32:53 2003  Alex Waugh  <alex@alexwaugh.com>
 
 	* objs/Makefile,fe1: Add new file

@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source$
- * $Date$
- * $Revision$
- * $State$
- * $Author$
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/stdio/rename.c,v $
+ * $Date: 2003/01/29 18:46:02 $
+ * $Revision: 1.4 $
+ * $State: Exp $
+ * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id$";
+static const char rcs_id[] = "$Id: rename.c,v 1.4 2003/01/29 18:46:02 admin Exp $";
 #endif
 
 #include <stdio.h>
@@ -22,6 +22,7 @@ static const char rcs_id[] = "$Id$";
 #include <sys/stat.h>
 #include <sys/param.h>
 #include <unixlib/local.h>
+#include <pthread.h>
 
 int
 rename (const char *old_name, const char *new_name)
@@ -30,6 +31,8 @@ rename (const char *old_name, const char *new_name)
   _kernel_oserror *err;
   int regs[10], oftype, oftype_a, nftype, nftype_a;
   char ofile[MAXPATHLEN], nfile[MAXPATHLEN];
+
+  PTHREAD_UNSAFE
 
   if (old_name == NULL || new_name == NULL)
     return __set_errno (EINVAL);
