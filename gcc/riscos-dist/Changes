@@ -20,6 +20,12 @@ RISC OS GCC release 3.3.3 pre-release 2 (released 18 April 2004)
 * gcc: Fix accidental commit that prevented error messages for compiled
   files from being displayed.
 
+* unixlib: Preserve DDEUtils Prefix upon parent process exit.  This fixes
+  an interaction bug between AMU and gcc causing files to be stored in
+  the wrong place.
+
+* drlink: Fix handling of RISC OS filenames.
+
 RISC OS GCC release 3.3.3 pre-release 1 (released 20 March 2004)
 =======================================
 
