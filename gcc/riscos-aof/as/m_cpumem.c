@@ -109,6 +109,7 @@ dstmem (WORD ir)
 		ir |= ((ir & 0x90) == 0x90) ? (1 << 22) /* for H/SH/SB */ : REG_FLAG;
 		ir = getRhs (TRUE, ((ir & 0x90) == 0x90) ? FALSE : TRUE, ir);
 		/* Reg {,shiftop {#shift}} */
+		offValue = TRUE;
 		if (up)
 		  ir |= UP_FLAG;/* | PRE_FLAG;*/	/* 0 nicer than #-0 */
 	      }
