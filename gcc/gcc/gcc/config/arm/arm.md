@@ -78,6 +78,7 @@
    (UNSPEC_CALL_ALLOCA 8)
    (UNSPEC_STK 9)
    (UNSPEC_STK_BIG 10)
+   (UNSPEC_SWI 11)
   ]
 )
 
@@ -9274,24 +9275,6 @@
 })
 
 ;; Call the function that will reserve the necessary amount of memory
-
-(define_expand "allocate_stack"
-  [(set (match_operand:SI 0 "s_register_operand" "=r")
-        (minus:SI (reg:SI 13) (match_operand:SI 1 "reg_or_int_operand" "")))
-   (set (reg:SI 13)
-        (minus:SI (reg:SI 13) (match_dup 1)))
-   (clobber (reg:SI 0))
-   (clobber (reg:SI 14))]
-  "TARGET_ARM && TARGET_APCS_STACK"
-{
-  rtx r0_rtx = gen_rtx (REG, SImode, 0);
-
-  emit_move_insn (r0_rtx, operands[1]);
-  emit_insn (gen_alloca (r0_rtx));
-  emit_move_insn (operands[0], r0_rtx);
-  DONE;
-})
-
 (define_expand "nonlocal_goto"
  [(use (match_operand 0 "general_operand" ""))
   (use (match_operand 1 "general_operand" ""))
@@ -9315,15 +9298,22 @@
   DONE;
 })
 
-(define_insn "alloca"
+(define_expand "allocate_stack"
   [(set (match_operand:SI 0 "s_register_operand" "=r")
-        (unspec:SI [(match_dup 0)] UNSPEC_CALL_ALLOCA))
-   (use (reg:SI 0))
-   (clobber (reg:SI LR_REGNUM))]
-  ""
-  "bl%?\\t___arm_alloca_alloc"
-[(set_attr "conds" "clob")
- (set_attr "length" "4")])
+        (minus:SI (reg:SI 13) (match_operand:SI 1 "reg_or_int_operand" "")))
+   (set (reg:SI 13)
+        (minus:SI (reg:SI 13) (match_dup 1)))
+   (clobber (reg:SI 0))
+   (clobber (reg:SI 14))]
+  "TARGET_APCS_STACK"
+  "
+{
+  emit_library_call_value (gen_rtx_SYMBOL_REF (Pmode,
+                         	               \"___arm_alloca_alloc\"),
+			   operands[0], LCT_NORMAL, GET_MODE (operands[0]),
+			   1, operands[1], SImode);
+  DONE;
+}")
 
 ;(define_insn "call_no_clobber"
 ;  [(unspec:SI [(match_operand 0 "" "")] UNSPEC_CALL)
@@ -9344,3 +9334,11 @@
   "cmp\\t%0, %1\;bllt\\t%a2"
 [(set_attr "conds" "clob")
  (set_attr "length" "8")])
+
+; Software Interrupt
+(define_insn "swi"
+  [(unspec:SI [(match_operand 0 "" "")] UNSPEC_SWI)
+   (use (reg:SI 0))]
+  ""
+  "swi%?\\t%a0"
+[(set_attr "length" "4")])
