@@ -56,7 +56,7 @@ extern char *inputRest (void);
 extern char *inputLine (void);
 extern void inputSkip (void);
 extern void inputSkipN (int n);
-extern char *inputSymbol (int *ilen, char del, int include_dot);
+extern char *inputSymbol (int *ilen, char del);
 
 extern void inputMark (void);
 extern void inputRollback (void);

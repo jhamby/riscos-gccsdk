@@ -57,4 +57,8 @@ char *(CanonicalisePath) (const char *path);
 
 char *CanonicaliseFile (const FILE * path);
 
+#if (defined (CROSS_COMPILE) && ! defined (HAVE_STRNDUP))
+extern char *strndup (const char *str, int len);
+#endif
+
 #endif

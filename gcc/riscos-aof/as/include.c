@@ -15,6 +15,7 @@
 
 #include "include.h"
 #include "uname.h"
+#include "rname.h"
 
 extern int dde;
 
@@ -80,8 +81,10 @@ getInclude (const char *filename, const char *mode)
   FILE *fp;
 #endif
   char incpath[MAXPATHLEN];
-#if defined (UNIXLIB) || defined (CROSS_COMPILE)
+#if defined (UNIXLIB)
   char *file = (char *) filename;
+#elif defined (CROSS_COMPILE)
+  char *file = rname (filename);
 #else
   char *file = uname (filename, dde);
 #endif

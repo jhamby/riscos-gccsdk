@@ -85,11 +85,12 @@ getFpuReg (void)
   Symbol *sym;
   unsigned int loop;
 
+
   lexSym = lexGetId ();
   if (lexSym.tag == LexNone)
     return 0;
 
-  if ((lexSym.tag == LexId) && (lexSym.LexId.len == 2))
+  if (lexSym.tag == LexId && lexSym.LexId.len == 2)
     for (loop = 0; loop < sizeof (cpu_regs) / sizeof (struct reg_id); loop++)
       {
 	if ((cpu_regs[loop].len == lexSym.LexId.len) &&

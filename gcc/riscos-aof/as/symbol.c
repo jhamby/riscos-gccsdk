@@ -13,6 +13,7 @@
 #include <inttypes.h>
 #endif
 
+#include "main.h"
 #include "symbol.h"
 #include "global.h"
 #include "error.h"
@@ -30,8 +31,6 @@ int (SYMBOL_OUTPUT) (const Symbol *);	/* typedef it */
 
 static Symbol *symbolTabel[SYMBOL_TABELSIZE];
 
-extern int pedantic;		/* main.c */
-
 static Symbol *
 symbolNew (int len, const char *str)
 {
@@ -48,7 +47,10 @@ symbolNew (int len, const char *str)
       result->str[len] = 0;
     }
   else
-    errorOutOfMem ("symbolNew");
+    {
+      printf("%d  %s\n", sizeof (Symbol) + len, str);
+      errorOutOfMem ("symbolNew");
+    }
   return result;
 }
 

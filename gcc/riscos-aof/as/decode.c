@@ -776,13 +776,13 @@ decode (Lex * label)
 	    if (inputLook () == '|')
 	      {
 		inputSkip ();
-		c = inputSymbol (&l, '|', 1);
+		c = inputSymbol (&l, '|');
 		if (inputGet () != '|')
 		  error (ErrorError, TRUE,
 			 "Identifier continues over newline");
 	      }
 	    else
-	      c = inputSymbol (&l, '\0', 1);
+	      c = inputSymbol (&l, '\0');
 	    m = macroFind (l, c);
 	  }
 	if (macro && m)

@@ -16,9 +16,9 @@
 
 #include "main.h"
 #include "error.h"
+#include "os.h"
 
 #ifdef __riscos__
-#include "os.h"
 #ifdef UNIXLIB
 #include <unixlib/local.h>
 #else

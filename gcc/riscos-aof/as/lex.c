@@ -126,7 +126,7 @@ lexGetId (void)
   if ((c = inputGet ()) == '|')
     {
       result.tag = LexId;
-      result.LexId.str = inputSymbol (&result.LexId.len, '|', 1);
+      result.LexId.str = inputSymbol (&result.LexId.len, '|');
       if (inputGet () != '|')
 	error (ErrorError, TRUE, "Identifier continues over newline");
       result.LexId.hash = hashstr (result.LexId.str, result.LexId.len, SYMBOL_TABELSIZE);
@@ -137,7 +137,7 @@ lexGetId (void)
       if (isalpha (c) || c == '.' || c == '_')
 	{
 	  result.tag = LexId;
-	  result.LexId.str = inputSymbol (&result.LexId.len, 0, 1);
+	  result.LexId.str = inputSymbol (&result.LexId.len, 0);
 	  result.LexId.hash = hashstr (result.LexId.str, result.LexId.len, SYMBOL_TABELSIZE);
 	}
       else
@@ -165,7 +165,7 @@ lexReadLocal (int *len, int *label)
   *label = inputGet () - '0';
   if (isdigit (inputLook ()))
     *label = (*label * 10) + (inputGet () - '0');
-  name = inputSymbol (len, 0, 1);
+  name = inputSymbol (len, 0);
   if (len)
     if (strncmp (rout_id, name, *len))
       {
@@ -315,14 +315,14 @@ lexGetPrim (void)
       break;
     case '\'':
       result.tag = LexInt;
-      str = inputSymbol (&len, '\'', 1);
+      str = inputSymbol (&len, '\'');
       if (inputGet () != '\'')
 	error (ErrorError, TRUE, "Character continues over newline");
       result.LexInt.value = lexChar2Int (TRUE, len, str);
       break;
     case '"':
       result.tag = LexString;
-      str = inputSymbol (&len, '"', 1);
+      str = inputSymbol (&len, '"');
       str = strndup (str, len);
       if (inputGet () != '"')
 	error (ErrorError, TRUE, "String continues over newline");
@@ -333,7 +333,7 @@ lexGetPrim (void)
 	  while (inputLook () == '"')
 	    {			/* cope with "" in strings */
 	      inputSkip ();
-	      s1 = inputSymbol (&l1, '"', 1);
+	      s1 = inputSymbol (&l1, '"');
 	      if (inputGet () != '"')
 		{
 		  error (ErrorError, TRUE, "String continues over newline");
@@ -432,7 +432,7 @@ lexGetPrim (void)
       break;
     case '|':
       result.tag = LexId;
-      result.LexId.str = inputSymbol (&result.LexId.len, '|', 1);
+      result.LexId.str = inputSymbol (&result.LexId.len, '|');
       if (inputGet () != '|')
 	error (ErrorError, TRUE, "Identifier continues over newline");
       result.LexId.hash = hashstr (result.LexId.str, result.LexId.len, SYMBOL_TABELSIZE);
@@ -485,7 +485,7 @@ lexGetPrim (void)
       if (isalpha (c) || c == '_')
 	{
 	  result.tag = LexId;
-	  result.LexId.str = inputSymbol (&result.LexId.len, 0, 1);
+	  result.LexId.str = inputSymbol (&result.LexId.len, 0);
 	  result.LexId.hash = hashstr (result.LexId.str, result.LexId.len, SYMBOL_TABELSIZE);
 	}
       else

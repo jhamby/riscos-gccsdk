@@ -63,8 +63,12 @@ OBJS =	$(asobjdir)/area.o \
 	$(asobjdir)/variables.o \
 	$(asobjdir)/whileif.o \
 	$(asobjdir)/local.o \
+	$(asobjdir)/strdup.o \
 	$(asobjdir)/targetcpu.o
 
+ifeq (${STAGE},stage1)
+	OBJS +=	$(asobjdir)/rname.o $(asobjdir)/rname2.o
+endif
 ifeq (${STAGE},stage2)
 	OBJS += $(asobjdir)/os.o
 	DEPS += $(gcc_bin_dir)/$(TRG)/o/unixlib
@@ -73,7 +77,7 @@ endif
 all:	$(gcc_bin_dir)/as$(exesfx)
 
 $(gcc_bin_dir)/as$(exesfx):	$(OBJS) $(DEPS)
-	$(CC) -o $@ $(OBJS) -lm
+	$(CC) -o $@ $(OBJS) -lm 
 
 $(asobjdir)/area.o: area.c
 $(asobjdir)/asm.o: asm.c
@@ -114,11 +118,14 @@ $(asobjdir)/include.o: include.c
 $(asobjdir)/lexAcorn.o: lexAcorn.c
 $(asobjdir)/lit.o: lit.c
 $(asobjdir)/uname.o: uname.c
+$(asobjdir)/rname2.o: rname.c
+$(asobjdir)/rname.o: rname.c
 $(asobjdir)/os.o: os.s
 $(asobjdir)/macros.o: macros.c
 $(asobjdir)/variables.o: variables.c
 $(asobjdir)/whileif.o: whileif.c
 $(asobjdir)/local.o: local.c
+$(asobjdir)/strdup.o: strdup.c
 $(asobjdir)/targetcpu.o: targetcpu.c
 
 $(asobjdir)/area.o:  \
@@ -251,6 +258,10 @@ $(asobjdir)/targetcpu.o:  \
  targetcpu.c targetcpu.h global.h error.h
 $(asobjdir)/uname.o:  \
  uname.c
+$(asobjdir)/rname.o:  \
+ rname.c
+$(asobjdir)/rname2.o:  \
+ rname2.c rname.h
 $(asobjdir)/value.o:  \
  value.c ../../sdk-config.h value.h global.h code.h lex.h symbol.h \
   reloc.h error.h

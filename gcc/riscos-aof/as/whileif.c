@@ -40,7 +40,7 @@ if_skip (const char *onerror)
       if (inputLook () && !isspace (c = inputGet ()))
 	{
 	  char del = c == '|' ? c : 0;
-	  str = inputSymbol (&c, del, 1);
+	  str = inputSymbol (&c, del);
 	  if (del && inputLook () == del)
 	    inputSkip ();
 	}
@@ -140,7 +140,7 @@ while_skip (void)
   while (inputNextLine ())
     {
       if (inputLook () && !isspace (inputGet ()))
-	str = inputSymbol (&c, 0, 1);
+	str = inputSymbol (&c, 0);
       skipblanks ();
       if (inputGetLower () == 'w')
 	{

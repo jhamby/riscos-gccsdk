@@ -141,14 +141,14 @@ macroCall (Macro * m, Lex * label)
       if (inputLook () == '"')
 	{
 	  inputSkip ();
-	  c = inputSymbol (&len, '"', 0);  /* handles "x\"y", but not "x""y" */
+	  c = inputSymbol (&len, '"');	/* handles "x\"y", but not "x""y" */
 	  inputSkip ();
 	  skipblanks ();
 	}
       else
 	{
 	  /*inputRollback(); */
-	  c = inputSymbol (&len, ',', 0);
+	  c = inputSymbol (&len, ',');
 	  while (len > 0 && (c[len - 1] == ' ' || c[len - 1] == '\t'))
 	    len--;
 	}
@@ -294,7 +294,7 @@ c_macro (Lex * label)
     goto missingname;
   if (inputLook () == '$')
     inputSkip ();
-  ptr = inputSymbol (&len, 0, 0);
+  ptr = inputSymbol (&len, 0);
   if (len)
     {
       m.labelarg = m.numargs = 1;
@@ -306,12 +306,12 @@ c_macro (Lex * label)
   if (inputLook () == '|')
     {
       inputSkip ();
-      ptr = inputSymbol (&len, '|', 0);
+      ptr = inputSymbol (&len, '|');
       if (inputGet () != '|')
 	error (ErrorError, TRUE, "Macro name continues over newline");
     }
   else
-    ptr = inputSymbol (&len, 0, 0);
+    ptr = inputSymbol (&len, 0);
   if (!len)
     goto missingname;
   if (macroFind (len, ptr))
@@ -336,7 +336,7 @@ c_macro (Lex * label)
       skipblanks ();
       if (inputLook () == '$')
 	inputSkip ();
-      ptr = inputSymbol (&len, ',', 0);
+      ptr = inputSymbol (&len, ',');
       m.args[m.numargs] = strndup (ptr, len);
       if (!m.args[m.numargs++])
 	goto lookforMEND;
@@ -360,7 +360,7 @@ c_macro (Lex * label)
 		inputSkip ();
 	      else
 		{		/* Token? Check list and substitute */
-		  ptr = inputSymbol (&len, '\0', 0);
+		  ptr = inputSymbol (&len, '\0');
 		  if (inputLook () == '.')
 		    inputSkip ();
 		  i = 0;
