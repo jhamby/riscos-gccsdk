@@ -2,7 +2,7 @@
 # Written by Nick Burrett <nick@dsvr.net>
 
 ifeq (${STAGE},stage1)
-CFLAGS += -DCROSS_COMPILE -g2 -O0
+CFLAGS += -DCROSS_COMPILE
 exesfx =
 else
 CC = $(CROSS_CC)
