@@ -1,117 +1,11 @@
 /* auto-host.h.  Generated automatically by configure.  */
-/* config.in.  Generated automatically from configure.in by autoheader.  */
-/* Define if you can safely include both <string.h> and <strings.h>.  */
-#define STRING_WITH_STRINGS 1
-
-/* Define if printf supports "%p".  */
-#define HAVE_PRINTF_PTR 1
-
-#define PACKAGE "gcc"
-#define VERSION "2.95.2"
-
-/* Define if you want expensive run-time checks. */
-/* #undef ENABLE_CHECKING */
-
-/* Define if your cpp understands the stringify operator.  */
-#define HAVE_CPP_STRINGIFY 1
-
-/* Define if your compiler understands volatile.  */
-#define HAVE_VOLATILE 1
-
-#define HAVE_STPCPY 1
-
-/* Define if your assembler supports specifying the maximum number
-   of bytes to skip when using the GAS .p2align command. */
-/* #undef HAVE_GAS_MAX_SKIP_P2ALIGN */
-
-/* Define if your assembler supports .balign and .p2align.  */
-/* #undef HAVE_GAS_BALIGN_AND_P2ALIGN */
-
-/* Define if your assembler supports .subsection and .subsection -1 starts
-   emitting at the beginning of your section */
-/* #undef HAVE_GAS_SUBSECTION_ORDERING */
-
-/* Define if you have a working <inttypes.h> header file.  */
-/* #undef HAVE_INTTYPES_H */
-
-/* Whether malloc must be declared even if <stdlib.h> is included.  */
-/* #undef NEED_DECLARATION_MALLOC */
-
-/* Whether realloc must be declared even if <stdlib.h> is included.  */
-/* #undef NEED_DECLARATION_REALLOC */
-
-/* Whether calloc must be declared even if <stdlib.h> is included.  */
-/* #undef NEED_DECLARATION_CALLOC */
-
-/* Whether free must be declared even if <stdlib.h> is included.  */
-/* #undef NEED_DECLARATION_FREE */
-
-/* Whether bcopy must be declared even if <string.h> is included.  */
-/* #undef NEED_DECLARATION_BCOPY */
-
-/* Whether bcmp must be declared even if <string.h> is included.  */
-/* #undef NEED_DECLARATION_BCMP */
-
-/* Whether bzero must be declared even if <string.h> is included.  */
-/* #undef NEED_DECLARATION_BZERO */
-
-/* Whether index must be declared even if <string.h> is included.  */
-/* #undef NEED_DECLARATION_INDEX */
-
-/* Whether rindex must be declared even if <string.h> is included.  */
-/* #undef NEED_DECLARATION_RINDEX */
-
-/* Whether getenv must be declared even if <stdlib.h> is included.  */
-/* #undef NEED_DECLARATION_GETENV */
-
-/* Whether atol must be declared even if <stdlib.h> is included.  */
-/* #undef NEED_DECLARATION_ATOL */
-
-/* Whether sbrk must be declared even if <stdlib.h> is included.  */
-/* #undef NEED_DECLARATION_SBRK */
-
-/* Whether abort must be declared even if <stdlib.h> is included.  */
-/* #undef NEED_DECLARATION_ABORT */
-
-/* Whether strerror must be declared even if <string.h> is included.  */
-/* #undef NEED_DECLARATION_STRERROR */
-
-/* Whether strsignal must be declared even if <string.h> is included.  */
-/* #undef NEED_DECLARATION_STRSIGNAL */
-
-/* Whether getcwd must be declared even if <unistd.h> is included.  */
-/* #undef NEED_DECLARATION_GETCWD */
-
-/* Whether getwd must be declared even if <unistd.h> is included.  */
-/* #undef NEED_DECLARATION_GETWD */
-
-/* Whether getrlimit must be declared even if <sys/resource.h> is included.  */
-/* #undef NEED_DECLARATION_GETRLIMIT */
-
-/* Whether setrlimit must be declared even if <sys/resource.h> is included.  */
-/* #undef NEED_DECLARATION_SETRLIMIT */
-
-/* Define if you want expensive run-time checks. */
-/* #undef ENABLE_CHECKING */
-
-/* Define to enable the use of a default assembler. */
-/* #undef DEFAULT_ASSEMBLER */
-
-/* Define to enable the use of a default linker. */
-/* #undef DEFAULT_LINKER */
-
-
-/* Define if you don't have vprintf but do have _doprnt.  */
-/* #undef HAVE_DOPRNT */
+/* auto-host.h.in.  Generated automatically from configure.in by autoheader.  */
 
 /* Define if you have <sys/wait.h> that is POSIX.1 compatible.  */
 #define HAVE_SYS_WAIT_H 1
 
 /* Define if you have <vfork.h>.  */
 /* #undef HAVE_VFORK_H */
-
-/* Define if you have the vprintf function.  */
-#define HAVE_VPRINTF 1
 
 /* Define to `int' if <sys/types.h> doesn't define.  */
 /* #undef pid_t */
@@ -128,8 +22,16 @@
 /* Define vfork as fork if vfork does not work.  */
 /* #undef vfork */
 
+/* Define if your processor stores words with the most significant
+   byte first (like Motorola and SPARC, unlike Intel and VAX).  */
+/* #undef WORDS_BIGENDIAN */
+
+/* #undef PACKAGE */
+/* #undef VERSION */
+#define HAVE_CPP_STRINGIFY 1
+
 /* Define if you have the atoll function.  */
-/* #define HAVE_ATOLL 1 /*
+#define HAVE_ATOLL 1
 
 /* Define if you have the atoq function.  */
 /* #undef HAVE_ATOQ */
@@ -147,10 +49,10 @@
 #define HAVE_BZERO 1
 
 /* Define if you have the fputc_unlocked function.  */
-/* #undef HAVE_FPUTC_UNLOCKED */
+#define HAVE_FPUTC_UNLOCKED 1
 
 /* Define if you have the fputs_unlocked function.  */
-/* #undef HAVE_FPUTS_UNLOCKED */
+#define HAVE_FPUTS_UNLOCKED 1
 
 /* Define if you have the getrlimit function.  */
 #define HAVE_GETRLIMIT 1
@@ -171,16 +73,16 @@
 #define HAVE_POPEN 1
 
 /* Define if you have the putc_unlocked function.  */
-/* #undef HAVE_PUTC_UNLOCKED */
+#define HAVE_PUTC_UNLOCKED 1
 
 /* Define if you have the putenv function.  */
 #define HAVE_PUTENV 1
 
-/* Define if you have the rindex function.  */
-#define HAVE_RINDEX 1
-
 /* Define if you have the setrlimit function.  */
 #define HAVE_SETRLIMIT 1
+
+/* Define if you have the stpcpy function.  */
+#define HAVE_STPCPY 1
 
 /* Define if you have the strchr function.  */
 #define HAVE_STRCHR 1
@@ -200,17 +102,29 @@
 /* Define if you have the sysconf function.  */
 #define HAVE_SYSCONF 1
 
+/* Define if you have the <endian.h> header file.  */
+#define HAVE_ENDIAN_H 1
+
 /* Define if you have the <fcntl.h> header file.  */
 #define HAVE_FCNTL_H 1
+
+/* Define if you have the <inttypes.h> header file.  */
+#define HAVE_INTTYPES_H 1
 
 /* Define if you have the <limits.h> header file.  */
 #define HAVE_LIMITS_H 1
 
+/* Define if you have the <machine/endian.h> header file.  */
+/* #undef HAVE_MACHINE_ENDIAN_H */
+
 /* Define if you have the <stab.h> header file.  */
-/* #define HAVE_STAB_H 1 */
+#define HAVE_STAB_H 1
 
 /* Define if you have the <stddef.h> header file.  */
 #define HAVE_STDDEF_H 1
+
+/* Define if you have the <stdint.h> header file.  */
+#define HAVE_STDINT_H 1
 
 /* Define if you have the <stdlib.h> header file.  */
 #define HAVE_STDLIB_H 1
@@ -244,3 +158,6 @@
 
 /* Define if you have the <unistd.h> header file.  */
 #define HAVE_UNISTD_H 1
+
+/* Define if you have the <vfork.h> header file.  */
+/* #undef HAVE_VFORK_H */

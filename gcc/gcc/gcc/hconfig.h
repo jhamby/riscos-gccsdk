@@ -1,7 +1,12 @@
 /* config.h */
 
 #ifdef IN_GCC
+
+#ifdef HOST_ARM_RISCOS
+#include "auto-host-riscos.h"
+#else
 #include "auto-host.h"
+#endif
 #include "gansidecl.h"
 
 #ifdef HOST_ARM_RISCOS
