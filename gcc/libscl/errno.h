@@ -1,7 +1,7 @@
 /* errno.h
 
    For use with the GNU compilers and the SharedCLibrary.
-   (c) Copyright 1997, 1999, 2001, 2003 Nick Burrett.  */
+   (c) Copyright 1997, 1999, 2001, 2003, 2004 Nick Burrett.  */
 
 #ifndef __ERRNO_H
 #define __ERRNO_H
@@ -25,6 +25,8 @@ extern volatile int errno;
 #define EINVAL 4 /* Invalid argument. */
 #define ENOSYS 5 /* Invalid argument. */
 
-#define __SYS_NERR 5
+#define EINTR 6 /* System call interrupted.  */
+
+#define __SYS_NERR 7
 
 #endif
