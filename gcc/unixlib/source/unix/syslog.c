@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/syslog.c,v $
- * $Date: 2002/12/22 18:32:47 $
- * $Revision: 1.5 $
+ * $Date: 2003/04/05 09:33:57 $
+ * $Revision: 1.6 $
  * $State: Exp $
- * $Author: admin $
+ * $Author: alex $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: syslog.c,v 1.5 2002/12/22 18:32:47 admin Exp $";
+static const char rcs_id[] = "$Id: syslog.c,v 1.6 2003/04/05 09:33:57 alex Exp $";
 #endif
 
 /*
@@ -214,8 +214,7 @@ closelog (void)
 
 /* setlogmask -- set the log mask level */
 int
-setlogmask (pmask)
-     int pmask;
+setlogmask (int pmask)
 {
   int omask;
 

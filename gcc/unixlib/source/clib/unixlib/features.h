@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/unixlib/features.h,v $
- * $Date: 2003/05/11 18:20:01 $
- * $Revision: 1.9 $
+ * $Date: 2003/05/13 20:54:59 $
+ * $Revision: 1.10 $
  * $State: Exp $
- * $Author: joty $
+ * $Author: alex $
  *
  ***************************************************************************/
 
@@ -363,6 +363,7 @@
 #define __STRING(x)	#x
 
 /* This is not a typedef so `const __ptr_t' does the right thing.  */
+#undef __ptr_t
 #define __ptr_t void *
 #define __long_double_t  long double
 

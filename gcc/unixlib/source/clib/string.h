@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/string.h,v $
- * $Date: 2002/12/22 18:22:28 $
- * $Revision: 1.6 $
+ * $Date: 2003/05/06 22:31:54 $
+ * $Revision: 1.7 $
  * $State: Exp $
- * $Author: admin $
+ * $Author: alex $
  *
  ***************************************************************************/
 
@@ -96,7 +96,7 @@ extern size_t strlen (const char *__s);
 
 /* Find the length of STRING, but scan at most MAXLEN characters.
    If no '\0' terminator is found in that many characters, return MAXLEN.  */
-extern size_t __strnlen (__const char *__string, size_t __maxlen)
+extern size_t strnlen (__const char *__string, size_t __maxlen)
      __THROW __attribute_pure__;
 
 /* Compare S1 and S2, ignoring case.  */

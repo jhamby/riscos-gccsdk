@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source$
- * $Date$
- * $Revision$
- * $State$
- * $Author$
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/errlist.c,v $
+ * $Date: 2003/01/05 12:36:35 $
+ * $Revision: 1.6 $
+ * $State: Exp $
+ * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id$";
+static const char rcs_id[] = "$Id: errlist.c,v 1.6 2003/01/05 12:36:35 admin Exp $";
 #endif
 
 #include <string.h>
@@ -96,7 +96,7 @@ const char *sys_errlist[__SYS_NERR + 1] =
   "Too many processes",				/* EPROCLIM */
   "Too many users",				/* EUSERS */
   "Disc quota exceeded",			/* EDQUOT */
-	
+
   "Stale NFS file handle",			/* ESTALE */
   "Too many levels of remote in path",		/* EREMOTE */
   "Not a stream device",			/* ENOSTR */
@@ -125,7 +125,7 @@ strerror (register int errnum)
 {
   if (errnum < 0 || errnum >= sys_nerr)
     {
-      __set_errno (EINVAL);
+      (void) __set_errno (EINVAL);
       return (char *) "Unknown Error";
     }
   if (errnum == EOPSYS)

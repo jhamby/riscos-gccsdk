@@ -1,8 +1,8 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/time.h,v $
- * $Date: 2002/09/24 21:02:37 $
- * $Revision: 1.5 $
+ * $Date: 2002/12/13 11:07:59 $
+ * $Revision: 1.6 $
  * $State: Exp $
  * $Author: admin $
  *
@@ -131,7 +131,7 @@ extern struct tm *localtime (const time_t *__time);
 
 /* Convert the calendar time 'time' to broken-down time,
    expressed relative to the user's specified time zone (re-entrant). */
-extern struct tm *localtime_p (const time_t *__time, struct tm *resultp);
+extern struct tm *localtime_r (const time_t *__time, struct tm *resultp);
 
 /* Similar to localtime() but the broken-down time is expressed
    as UTC (GMT) rather than the local time zone.  */

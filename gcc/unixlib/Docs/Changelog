@@ -1,3 +1,21 @@
+Sat Jun  7 04:20:04 2003  John Tytgat <John.Tytgat@aaug.net>
+
+	* .cvsignore: Added MKDir,feb
+	* gen-makefiles.pl: Removed cdir of objs.clib.o
+	* objs/.cvsignore: Added Makefile,fe1
+	* source/clib/string.h: Renamed __strnlen() into strnlen()
+	* source/clib/time.h: Renamed localtime_p() into localtime_r()
+	* source/clib/sys/cdef.h: Added #undef __ptr_t
+	* source/clib/sys/features.h: Likewise.
+	* source/common/objattr.c: Removed unused variables.
+	* source/common/riscosify.c: Likewise.
+	* source/signal/post.c: Likewise.
+	* source/unix/chmod.c: Likewise.
+	* source/unix/fstat.c: Likewise.
+	* source/signal/sigvec.c: wrapper_handle() and convert_mask() are not
+	  used.
+	* source/sys/errlist.c: Cast away return param __set_errno().
+
 Sun Jun  1 21:46:05 2003  Alex Waugh  <alex@alexwaugh.com>
 
 	* clib/unistd.h (fchdir): Add decl.

@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/chmod.c,v $
- * $Date: 2002/02/14 15:56:38 $
- * $Revision: 1.3 $
+ * $Date: 2003/04/12 11:31:39 $
+ * $Revision: 1.4 $
  * $State: Exp $
- * $Author: admin $
+ * $Author: alex $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: chmod.c,v 1.3 2002/02/14 15:56:38 admin Exp $";
+static const char rcs_id[] = "$Id: chmod.c,v 1.4 2003/04/12 11:31:39 alex Exp $";
 #endif
 
 #include <errno.h>
@@ -28,7 +28,7 @@ chmod (const char *ux_file, mode_t mode)
 {
   char file[_POSIX_PATH_MAX];
   _kernel_oserror *err;
-  int regs[10], sftype, aftype;
+  int regs[10];
 
   if (__object_get_attrs (ux_file, file, sizeof (file),
                           NULL, NULL, NULL, NULL, NULL, NULL))

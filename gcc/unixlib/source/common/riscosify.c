@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/common/riscosify.c,v $
- * $Date: 2003/01/05 12:43:18 $
- * $Revision: 1.7 $
+ * $Date: 2003/04/06 14:19:07 $
+ * $Revision: 1.8 $
  * $State: Exp $
- * $Author: admin $
+ * $Author: peter $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: riscosify.c,v 1.7 2003/01/05 12:43:18 admin Exp $";
+static const char rcs_id[] = "$Id: riscosify.c,v 1.8 2003/04/06 14:19:07 peter Exp $";
 #endif
 
 /* #define DEBUG */
@@ -86,9 +86,6 @@ static struct sfix *__sfix[SFIXSIZE] =
   NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
   NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL
 };
-
-/* Declared at end of file, close to code that accesses it.  */
-static const size_t truncate[4];
 
 static char *copy_or_null (char *to, const char *from, const char *buf_end);
 

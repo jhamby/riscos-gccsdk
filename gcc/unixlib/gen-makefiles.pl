@@ -229,7 +229,6 @@ close SRCMAKEFILE;
 # Write unixlib/MKDir
 open(MKDIR, ">MKDir,feb") or die $^E;
 print MKDIR "cdir <obey\$dir>.objs.o\n";
-print MKDIR "cdir <obey\$dir>.objs.clib.o\n";
 print MKDIR "cdir <obey\$dir>.objs.module\n";
 print MKDIR "cdir <obey\$dir>.objs.module.o\n";
 foreach $dir (@dirs) {

@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/signal/post.c,v $
- * $Date: 2003/04/26 10:42:09 $
- * $Revision: 1.6 $
+ * $Date: 2003/04/28 21:04:36 $
+ * $Revision: 1.7 $
  * $State: Exp $
- * $Author: peter $
+ * $Author: alex $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: post.c,v 1.6 2003/04/26 10:42:09 peter Exp $";
+static const char rcs_id[] = "$Id: post.c,v 1.7 2003/04/28 21:04:36 alex Exp $";
 #endif
 
 /* signal.c.post: Written by Nick Burrett, 27 August 1996.  */
@@ -124,10 +124,8 @@ static int valid_address(int *lower, int *upper)
 static int
 write_backtrace (int signo)
 {
-  int handler;
   int features;
   int *fp = __backtrace_getfp(), *oldfp = NULL;
-  int regs[10];
 
   /* The ASM version did originally disable environment handlers
      but this seems to cause problems */
@@ -251,7 +249,7 @@ post_signal (struct unixlib_sigstate *ss, int signo)
   static const unsigned int ignore_signals = sigmask (SIGCONT)
     | sigmask (SIGIO) | sigmask (SIGURG) | sigmask (SIGCHLD)
     | sigmask (SIGWINCH);
-  
+
   static const unsigned int core_signals = sigmask (SIGQUIT) | sigmask (SIGILL)
     | sigmask (SIGTRAP) | sigmask (SIGIOT) | sigmask (SIGEMT)
     | sigmask (SIGFPE)	| sigmask (SIGBUS) | sigmask (SIGSEGV)
