@@ -1,10 +1,10 @@
 /****************************************************************************
  *
- * $Source: $
- * $Date: $
- * $Revision: $
- * $State: $
- * $Author: $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/resolv/gethnamaddr.c,v $
+ * $Date: 2002/12/22 18:22:29 $
+ * $Revision: 1.1 $
+ * $State: Exp $
+ * $Author: admin $
  *
  ***************************************************************************/
 
@@ -69,7 +69,7 @@
 
 #if defined(LIBC_SCCS) && !defined(lint)
 static char sccsid[] = "@(#)gethostnamadr.c	8.1 (Berkeley) 6/4/93";
-static char rcsid[] = "$Id: gethnamaddr.c,v 1.37 2001/10/26 23:49:48 drepper Exp $";
+static char rcsid[] = "$Id: gethnamaddr.c,v 1.1 2002/12/22 18:22:29 admin Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 #include <sys/types.h>
@@ -635,7 +635,7 @@ gethostbyname2(name, af)
 
 	if ((n = res_nsearch(&_res, name, C_IN, type, buf.buf, sizeof(buf.buf))) < 0) {
 		dprintf("res_nsearch failed (%d)\n", n);
-		if (errno == ECONNREFUSED)
+		if (errno == ETIMEDOUT || errno == ECONNREFUSED)
 			return (_gethtbyname2(name, af));
 		return (NULL);
 	}

@@ -1,3 +1,15 @@
+Fri Apr 25 00:32:18 2003  John Tytgat <John.Tytgat@aaug.net>
+
+	* objs/Makefile,fe1: Forgot to specify APCS 3/32bit for assembler.
+	* source/netlib/timeofday.c: Removed (duplicate of
+	  source/time/gettod.c)
+	* source/Makefile: Added fcrypt.c, strtoimax.c, strtoumax.c to OBJS.
+	* source/time/gettod.c: Increased time results from sec to centi secs.
+	* source/clib/stdlib.h (strtoll, strtoull): enable it for Norcroft
+	  builds.
+	* source/resolv/gethnamaddr.c(gethostbyname2): timeout in the resolver
+	  requests will result in hosts file lookup.
+
 Tue Apr 22 11:57:14 2003  Peter Naulls <peter@chocky.org>
 	* clib/stddef.h: Remove ptr_t.  Not defined in glibc, and
 	  sometimes clashes in programs.

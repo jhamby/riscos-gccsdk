@@ -169,6 +169,7 @@ OBJS =	$(libunixobj)/abort.o \
 	$(libunixobj)/ctypeproc.o \
 	$(libunixobj)/div.o \
 	$(libunixobj)/errno.o \
+	$(libunixobj)/fcrypt.o \
 	$(libunixobj)/index.o \
 	$(libunixobj)/memccpy.o \
 	$(libunixobj)/memchr.o \
@@ -202,12 +203,14 @@ OBJS =	$(libunixobj)/abort.o \
 	$(libunixobj)/strspn.o \
 	$(libunixobj)/strstr.o \
 	$(libunixobj)/strtod.o \
+	$(libunixobj)/strtoimax.o \
 	$(libunixobj)/strtok.o \
 	$(libunixobj)/strtok_r.o \
 	$(libunixobj)/strtol.o \
 	$(libunixobj)/strtoll.o \
 	$(libunixobj)/strtoul.o \
 	$(libunixobj)/strtoull.o \
+	$(libunixobj)/strtoumax.o \
 	$(libunixobj)/system.o \
 	$(libunixobj)/termcap.o
 
@@ -806,6 +809,7 @@ $(libunixobj)/ctypeproc.o: ctypeproc.c
 $(libunixobj)/div.o: div.c
 $(libunixobj)/dtoa.o: dtoa.c
 $(libunixobj)/errno.o: errno.c
+$(libunixobj)/fcrypt.o: fcrypt.c
 $(libunixobj)/index.o: index.c
 $(libunixobj)/memchr.o: memchr.c
 $(libunixobj)/memcmp.o: memcmp.c
@@ -838,12 +842,14 @@ $(libunixobj)/strsignal.o: strsignal.c
 $(libunixobj)/strspn.o: strspn.c
 $(libunixobj)/strstr.o: strstr.c
 $(libunixobj)/strtod.o: strtod.c
+$(libunixobj)/strtoimax.o: strtoimax.c
 $(libunixobj)/strtok.o: strtok.c
 $(libunixobj)/strtok_r.o: strtok_r.c
 $(libunixobj)/strtol.o: strtol.c
 $(libunixobj)/strtoll.o: strtoll.c
 $(libunixobj)/strtoul.o: strtoul.c
 $(libunixobj)/strtoull.o: strtoull.c
+$(libunixobj)/strtoumax.o: strtoumax.c
 $(libunixobj)/system.o: system.c
 $(libunixobj)/termcap.o: termcap.c
 

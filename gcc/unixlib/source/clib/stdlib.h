@@ -1,8 +1,8 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/stdlib.h,v $
- * $Date: 2002/09/24 21:02:36 $
- * $Revision: 1.4 $
+ * $Date: 2002/11/26 21:52:07 $
+ * $Revision: 1.5 $
  * $State: Exp $
  * $Author: admin $
  *
@@ -23,7 +23,7 @@
 #include <stddef.h>
 
 __BEGIN_DECLS
-  
+
 /* Returned by `div'.  */
 typedef struct
   {
@@ -196,7 +196,6 @@ extern long strtol (const char *__nptr, char **__endptr, int __base);
 extern unsigned long strtoul (const char *__nptr,
 			      char **__endptr, int __base);
 
-#ifdef __GNUC__
 /* Convert a string to a 64-bit integer.  */
 __extension__
 extern long long strtoll (const char *__nptr, char **__endptr, int __base);
@@ -205,7 +204,6 @@ extern long long strtoll (const char *__nptr, char **__endptr, int __base);
 __extension__
 extern unsigned long long strtoull (const char *__nptr,
 				    char **__endptr, int __base);
-#endif
 
 /* Do a binary search for 'key' in 'base', which consists of
    'nmemb' elements of 'size' bytes each, using 'compare' to

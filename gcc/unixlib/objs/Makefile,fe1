@@ -1,8 +1,8 @@
 # Project:   UnixLib 4.0
 
 # $Source: /usr/local/cvsroot/gccsdk/unixlib/objs/Makefile,fe1,v $
-# $Date: 2003/04/21 07:39:38 $
-# $Revision: 1.10 $
+# $Date: 2003/04/21 16:04:01 $
+# $Revision: 1.11 $
 # $State: Exp $
 # $Author: peter $
 
@@ -40,7 +40,7 @@ ASrflags =
 # APCS selection :
 #   - APCS-R build : -APCS 3/26bit
 #   - APCS-32 build : -APCS 3/32bit
-ASapcsflags = -APCS 3/26bit
+ASapcsflags = -APCS 3/32bit
 ASflags = -throwback -depend !Depend -I UnixHdr:^ $(ASdflags) $(ASapcsflags)
 
 # as Assembler. Comment out if you are using Acorn Objasm.
