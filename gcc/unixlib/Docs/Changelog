@@ -1,3 +1,11 @@
+Tue Apr 20 21:57:51 2004  John Tytgat  <John.Tytgat@aaug.net>
+
+	* source/assert.c (__assert_fail): Renamed to __assert2 & paremeter
+	  order shuffling to match Norcroft SCL implementation.
+	* source/clib/assert.h: Likewise.  Also using __func__ to print
+	  function name.
+	* source/wchar/wctype.c: Added RCS header.
+	  
 Sat Apr 17 11:50:11 2004  Nick Burrett  <nick@dsvr.net>
 
 	* sys/byteorder.h: Add __THROW attribute.

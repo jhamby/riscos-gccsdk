@@ -1,3 +1,13 @@
+/****************************************************************************
+ *
+ * $Source: $
+ * $Date: $
+ * $Revision: $
+ * $State: $
+ * $Author: $
+ *
+ ***************************************************************************/
+
 /* Copyright (C) 1996, 1997, 1998, 2000 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
    Contributed by Ulrich Drepper <drepper@gnu.ai.mit.edu>, 1996.
@@ -59,5 +69,3 @@ towlower (wint_t wc)
 {
   return tolower(wc);
 }
-
-

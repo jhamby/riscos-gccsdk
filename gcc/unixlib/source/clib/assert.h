@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/assert.h,v $
- * $Date: 2004/04/12 13:03:37 $
- * $Revision: 1.5 $
+ * $Date: 2004/04/15 22:21:01 $
+ * $Revision: 1.6 $
  * $State: Exp $
- * $Author: nick $
+ * $Author: alex $
  *
  ***************************************************************************/
 
@@ -25,36 +25,37 @@ __BEGIN_DECLS
 
 extern void assert (int) __THROW;
 
-extern void __assert_fail (const char *__message,
-			   const char *__file,
-			   int __line,
-			   const char *__function)
+/* __assert2 is also used by Norcroft C compiler.  */
+extern void __assert2 (const char *__message,
+		       const char *__function,
+		       const char *__file,
+		       int __line)
      __THROW __attribute__ ((__noreturn__));
 
 __END_DECLS
 
 #else
-#undef assert
+# undef assert
 #endif /* __ASSERT_H */
 
 #ifdef NDEBUG
-#define assert(x) ((void) 0)
+# define assert(x) ((void) 0)
 #else
-#ifdef __GNUC__
+# ifdef __GNUC__
 /* If compiled under GCC, we can also output the function name.  */
-#define assert(expr) \
-  ((void)((expr) ||  \
-	  (__assert_fail (#expr, __FILE__, __LINE__, __PRETTY_FUNCTION__), 0)))
-#else
+#  define assert(expr) \
+    ((void)((expr) || (__assert2 (#expr, __PRETTY_FUNCTION__, __FILE__, __LINE__), 0)))
+# else
 
-#ifdef __STDC__
-#define assert(expr) \
-  ((void)((expr) || (__assert_fail (#expr, __FILE__, __LINE__, NULL), 0)))
-#else
-#define assert(expr) \
-  ((void)((expr) || (__assert_fail ("expr", __FILE__, __LINE__, NULL), 0)))
-#endif
+#  ifdef __STDC__
+/* __func__ is defined by Norcroft C.  */
+#   define assert(expr) \
+     ((void)((expr) || (__assert2 (#expr, __func__, __FILE__, __LINE__), 0)))
+#  else
+#   define assert(expr) \
+     ((void)((expr) || (__assert2 ("expr", NULL, __FILE__, __LINE__), 0)))
+#  endif
 
-#endif /* __GNUC__ */
+# endif /* __GNUC__ */
 
 #endif /* NDEBUG */
