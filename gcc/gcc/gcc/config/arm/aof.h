@@ -269,7 +269,7 @@ do {					\
   {"r15", 15}, {"pc", 15}			\
 }
 
-#define REGISTER_PREFIX "__"
+#define REGISTER_PREFIX ""
 #define USER_LABEL_PREFIX ""
 #define LOCAL_LABEL_PREFIX ""
 

@@ -307,7 +307,7 @@ do {					\
 
 #define ASM_DECLARE_FUNCTION_NAME(STREAM,NAME,DECL) \
 {						\
-  if (TARGET_POKE_FUNCTION_NAME)		\
+  if (TARGET_POKE_FUNCTION_NAME && in_text_section())	\
     arm_poke_function_name ((STREAM), (NAME));	\
   ASM_OUTPUT_LABEL (STREAM, NAME);		\
   if (! TREE_PUBLIC (DECL))			\
@@ -389,7 +389,7 @@ do {					\
   {"r15", 15}, {"pc", 15}			\
 }
 
-#define REGISTER_PREFIX "__"
+#define REGISTER_PREFIX ""
 #define USER_LABEL_PREFIX ""
 #define LOCAL_LABEL_PREFIX ""
 
