@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/signal.h,v $
- * $Date: 2004/08/16 21:01:26 $
- * $Revision: 1.9 $
+ * $Date: 2004/10/08 11:56:13 $
+ * $Revision: 1.10 $
  * $State: Exp $
- * $Author: joty $
+ * $Author: peter $
  *
  ***************************************************************************/
 
@@ -336,6 +336,9 @@ extern int pthread_kill (pthread_t thread, int sig) __THROW;
 /* Set the signal mask for a thread */
 extern int pthread_sigmask (int how, const sigset_t *set,
 			    sigset_t *oset) __THROW;
+
+/* Suspend thread until delivery of a signal */
+extern int sigwait (const sigset_t *__restrict set, int *sig) __THROW;
 
 __END_DECLS
 

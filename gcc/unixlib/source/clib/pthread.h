@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/pthread.h,v $
- * $Date: 2004/09/17 18:39:53 $
- * $Revision: 1.12 $
+ * $Date: 2004/10/17 16:24:43 $
+ * $Revision: 1.13 $
  * $State: Exp $
- * $Author: peter $
+ * $Author: joty $
  *
  ***************************************************************************/
 
@@ -151,6 +151,10 @@ struct __pthread_thread
   unsigned int canceltype : 1; /* Cancelability type (asynchronous or deferred) */
   unsigned int cancelpending : 1; /* Should this thread be cancelled when it next reaches a cancellation point */
   unsigned int detachstate : 1; /* Is the thread detached of can it still be joined to */
+
+  __sigset_t blocked; /* Signal mask for this thread. */
+  __sigset_t pending; /* Pending signals for this thread */
+  pthread_cond_t sigwait_cond;
 };
 
 extern pthread_t __pthread_running_thread; /* Currently running thread */
