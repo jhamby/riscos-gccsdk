@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/swis.h,v $
- * $Date: 2002/08/18 15:19:06 $
- * $Revision: 1.1.2.4 $
+ * $Date: 2003/04/06 12:28:37 $
+ * $Revision: 1.6 $
  * $State: Exp $
- * $Author: admin $
+ * $Author: peter $
  *
  ***************************************************************************/
 
@@ -501,6 +501,7 @@ __END_DECLS
 #define DDEUtils_ThrowbackStart        0x042587
 #define DDEUtils_ThrowbackSend         0x042588
 #define DDEUtils_ThrowbackEnd          0x042589
+#define DDEUtils_ReadPrefix            0x04258A
 
 #define Filter_RegisterPreFilter       0x042640
 #define Filter_RegisterPostFilter      0x042641

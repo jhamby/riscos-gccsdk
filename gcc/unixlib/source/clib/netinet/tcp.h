@@ -1,10 +1,10 @@
 /****************************************************************************
  *
- * $Source: $
- * $Date: $
- * $Revision: $
- * $State: $
- * $Author: $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/netinet/tcp.h,v $
+ * $Date: 2002/12/22 18:22:28 $
+ * $Revision: 1.4 $
+ * $State: Exp $
+ * $Author: admin $
  *
  ***************************************************************************/
 
@@ -12,6 +12,8 @@
  * File taken from glibc 2.2.5.
  * Following changes were made:
  *  - Changed "#include <features.h>" into "#include <unixlib/features.h>"
+ *  - Bitfields can only be taken from int so slightly different struct
+ *    tcphdr & tcp_info definition.
  */
 
 /*
@@ -82,21 +84,21 @@ struct tcphdr
     tcp_seq th_seq;		/* sequence number */
     tcp_seq th_ack;		/* acknowledgement number */
 #  if __BYTE_ORDER == __LITTLE_ENDIAN
-    u_int8_t th_x2:4;		/* (unused) */
-    u_int8_t th_off:4;		/* data offset */
+    u_int32_t th_x2:4;		/* (unused) */
+    u_int32_t th_off:4;		/* data offset */
 #  endif
 #  if __BYTE_ORDER == __BIG_ENDIAN
-    u_int8_t th_off:4;		/* data offset */
-    u_int8_t th_x2:4;		/* (unused) */
+    u_int32_t th_off:4;		/* data offset */
+    u_int32_t th_x2:4;		/* (unused) */
 #  endif
-    u_int8_t th_flags;
+    u_int32_t th_flags:8;
 #  define TH_FIN	0x01
 #  define TH_SYN	0x02
 #  define TH_RST	0x04
 #  define TH_PUSH	0x08
 #  define TH_ACK	0x10
 #  define TH_URG	0x20
-    u_int16_t th_win;		/* window */
+    u_int32_t th_win:16;	/* window */
     u_int16_t th_sum;		/* checksum */
     u_int16_t th_urp;		/* urgent pointer */
 };
@@ -109,29 +111,29 @@ struct tcphdr
     u_int32_t seq;
     u_int32_t ack_seq;
 #  if __BYTE_ORDER == __LITTLE_ENDIAN
-    u_int16_t res1:4;
-    u_int16_t doff:4;
-    u_int16_t fin:1;
-    u_int16_t syn:1;
-    u_int16_t rst:1;
-    u_int16_t psh:1;
-    u_int16_t ack:1;
-    u_int16_t urg:1;
-    u_int16_t res2:2;
+    u_int32_t res1:4;
+    u_int32_t doff:4;
+    u_int32_t fin:1;
+    u_int32_t syn:1;
+    u_int32_t rst:1;
+    u_int32_t psh:1;
+    u_int32_t ack:1;
+    u_int32_t urg:1;
+    u_int32_t res2:2;
 #  elif __BYTE_ORDER == __BIG_ENDIAN
-    u_int16_t doff:4;
-    u_int16_t res1:4;
-    u_int16_t res2:2;
-    u_int16_t urg:1;
-    u_int16_t ack:1;
-    u_int16_t psh:1;
-    u_int16_t rst:1;
-    u_int16_t syn:1;
-    u_int16_t fin:1;
+    u_int32_t doff:4;
+    u_int32_t res1:4;
+    u_int32_t res2:2;
+    u_int32_t urg:1;
+    u_int32_t ack:1;
+    u_int32_t psh:1;
+    u_int32_t rst:1;
+    u_int32_t syn:1;
+    u_int32_t fin:1;
 #  else
 #   error "Adjust your <bits/endian.h> defines"
 #  endif
-    u_int16_t window;
+    u_int32_t window:16;
     u_int16_t check;
     u_int16_t urg_ptr;
 };
@@ -204,9 +206,9 @@ struct tcp_info
   u_int8_t	tcpi_ca_state;
   u_int8_t	tcpi_retransmits;
   u_int8_t	tcpi_probes;
-  u_int8_t	tcpi_backoff;
-  u_int8_t	tcpi_options;
-  u_int8_t	tcpi_snd_wscale : 4, tcpi_rcv_wscale : 4;
+  u_int32_t	tcpi_backoff:8;
+  u_int32_t	tcpi_options:8;
+  u_int32_t	tcpi_snd_wscale : 4, tcpi_rcv_wscale : 4;
 
   u_int32_t	tcpi_rto;
   u_int32_t	tcpi_ato;

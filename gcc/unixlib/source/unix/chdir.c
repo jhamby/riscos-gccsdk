@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/chdir.c,v $
- * $Date: 2003/05/11 12:49:07 $
- * $Revision: 1.6 $
+ * $Date: 2003/10/06 19:00:01 $
+ * $Revision: 1.7 $
  * $State: Exp $
  * $Author: joty $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: chdir.c,v 1.6 2003/05/11 12:49:07 joty Exp $";
+static const char rcs_id[] = "$Id: chdir.c,v 1.7 2003/10/06 19:00:01 joty Exp $";
 #endif
 
 #include <errno.h>
@@ -24,12 +24,13 @@ static const char rcs_id[] = "$Id: chdir.c,v 1.6 2003/05/11 12:49:07 joty Exp $"
 
 #include <unixlib/local.h>
 
-/* Change the current directory to PATH, taking into consideration any setting
-   of Prefix$Dir.  */
+/* Change the current directory to PATH, taking into consideration any
+   setting of Prefix$Dir.  */
 int
 chdir (const char *ux_path)
 {
-  char *prefix_path, *full_path;
+  const char *prefix_path;
+  char *full_path;
   _kernel_oserror *err;
   int regs[10], objtype;
   char canon_path[_POSIX_PATH_MAX];
@@ -62,9 +63,7 @@ chdir (const char *ux_path)
      OS_FSControl 0 does not use Prefix$Dir if it is set when changing
      directory. So, we check to see whether Prefix$Dir is set first and if it
      is we use the DDEUtils_Prefix call.  */
-
-  prefix_path = __getenv_from_os ("Prefix$Dir", NULL, 0);
-  if (prefix_path != NULL && *prefix_path != '\0')
+  if ((prefix_path = __get_dde_prefix()) != NULL)
     {
       /* Now we have to see if the supplied unix path is an absolute one
          or a relative one.  If absolute, we define Prefix$Dir as the
@@ -72,7 +71,7 @@ chdir (const char *ux_path)
          the relative riscosified unix path and define that as Prefix$Dir. */
       if (ux_path[0] == '/') /* Cfr. riscosify.c */
         {
-          free(prefix_path);
+          free((void *)prefix_path);
 
           regs[0] = (int) path;
           err = __os_swi (DDEUtils_Prefix, regs);
@@ -89,8 +88,8 @@ chdir (const char *ux_path)
           /* Use malloc rather than a fixed buffer since path could
              contain parent components (^.), so could be longer than
              _POSIX_PATH_MAX before canonicalisation. */
-          full_path = realloc (prefix_path, prefix_len + 1 + path_len + 1);
-          if (full_path)
+          full_path = realloc ((void *)prefix_path, prefix_len + 1 + path_len + 1);
+          if (full_path != NULL)
             {
               /* Append 'prefix' with relative path but take care of the
                  RISC OS CSD indicator.  */
@@ -120,7 +119,7 @@ chdir (const char *ux_path)
               __seterr (err);
             }
           else
-            free (prefix_path);
+            free ((void *)prefix_path);
         }
 
       /* Failed to set path, so return an error rather than resorting to old

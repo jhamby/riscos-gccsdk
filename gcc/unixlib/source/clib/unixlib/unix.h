@@ -1,8 +1,8 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/unixlib/unix.h,v $
- * $Date: 2004/01/02 23:33:58 $
- * $Revision: 1.10 $
+ * $Date: 2004/01/06 00:17:36 $
+ * $Revision: 1.11 $
  * $State: Exp $
  * $Author: joty $
  *
@@ -86,8 +86,9 @@ struct __child_process
 /* UnixLib 3.7b == 0xfedcfa5f.  */
 /* UnixLib 3.7c.beta == 0xfedcfa60.  */
 /* UnixLib 3.7c.19970803 == 0xfedcfa61.  */
-/* UnixLib 3.7c.19980504 == 0xfedcfa62  */
-#define _PROCMAGIC 0xfedcfa62
+/* UnixLib 3.7c.19980504 == 0xfedcfa62.  */
+/* UnixLib 4.0.20040113 == 0xfedcfa63.  */
+#define _PROCMAGIC 0xfedcfa63
 
 struct proc
 {
@@ -121,6 +122,8 @@ struct proc
   /* UGLY HACK: We store cli malloc pointer here prior to calling child
      process.  The malloc store is then freed in __exret.  */
   void *cli;
+  /* DDEUtils_Prefix value of child just after vfork().  */
+  const char *dde_prefix;
 };
 
 extern struct proc *__u;	/* current process */

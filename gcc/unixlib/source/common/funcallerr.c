@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/common/funcallerr.c,v $
- * $Date: 2001/09/04 16:32:04 $
- * $Revision: 1.2.2.2 $
+ * $Date: 2002/02/14 15:56:35 $
+ * $Revision: 1.3 $
  * $State: Exp $
  * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: funcallerr.c,v 1.2.2.2 2001/09/04 16:32:04 admin Exp $";
+static const char rcs_id[] = "$Id: funcallerr.c,v 1.3 2002/02/14 15:56:35 admin Exp $";
 #endif
 
 #include <signal.h>
@@ -20,7 +20,7 @@ int
 __funcall_error (const char *file, int line, unsigned int addr)
 {
   char buf[11];
-  char *s = buf + 11;
+  char *s = buf + sizeof(buf);
 
   __os_print ("fatal error: Attempt to call a function at address below 0x");
   __os_prhex ((unsigned int) __base);

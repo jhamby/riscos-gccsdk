@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/vfork.c,v $
- * $Date: 2002/09/24 21:02:38 $
- * $Revision: 1.4 $
+ * $Date: 2003/12/04 22:55:35 $
+ * $Revision: 1.5 $
  * $State: Exp $
- * $Author: admin $
+ * $Author: alex $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: vfork.c,v 1.4 2002/09/24 21:02:38 admin Exp $";
+static const char rcs_id[] = "$Id: vfork.c,v 1.5 2003/12/04 22:55:35 alex Exp $";
 #endif
 
 #include <errno.h>
@@ -32,6 +32,7 @@ static const char rcs_id[] = "$Id: vfork.c,v 1.4 2002/09/24 21:02:38 admin Exp $
 #include <unixlib/os.h>
 #include <swis.h>
 #include <unixlib/features.h>
+#include <unixlib/local.h>
 
 /* #define DEBUG 1 */
 
@@ -156,6 +157,9 @@ __vfork (void)
   /* Copy tty.  */
   child->tty = __u->tty;
 
+  /* Take a snapshot of DDEUtils_Prefix value.  */
+  child->dde_prefix = __get_dde_prefix ();
+
   child->__magic = _PROCMAGIC;
 
   /* As a process, we now stop executing. The following line will
@@ -183,6 +187,7 @@ __vexit (int e)
 {
   struct proc *p = __u;
   int x;
+  int regs[10];
 
 #if __FEATURE_ITIMERS
   /* Stop any interval timers, just in case.  */
@@ -250,6 +255,12 @@ __vexit (int e)
     __u->child[0].vreg[x] = p->vreg[x];
   /* Copy the pid of the old child process into the jmp_buf */
   __u->child[0].vreg[15] = p->pid;
+
+  /* Restore DDEUtils_Prefix value.  */
+  regs[0] = (int)p->dde_prefix;
+  (void) __os_swi (DDEUtils_Prefix, regs);
+  free((void *)p->dde_prefix);
+  p->dde_prefix = NULL;
 
   /* Free memory allocated to the child process.  */
   free_process (p);

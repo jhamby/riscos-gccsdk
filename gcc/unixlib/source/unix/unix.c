@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/unix.c,v $
- * $Date: 2004/01/02 23:33:59 $
- * $Revision: 1.18 $
+ * $Date: 2004/01/06 00:17:37 $
+ * $Revision: 1.19 $
  * $State: Exp $
  * $Author: joty $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: unix.c,v 1.18 2004/01/02 23:33:59 joty Exp $";
+static const char rcs_id[] = "$Id: unix.c,v 1.19 2004/01/06 00:17:37 joty Exp $";
 #endif
 
 #include <stdio.h>
@@ -123,8 +123,9 @@ extern char *__cli;
 /* Initialise the UnixLib world.  */
 void __unixinit (void)
 {
-  int __cli_size, cli_size = 0, newproc = 0, regs[10];
-  char *cli = NULL;
+  int __cli_size, cli_size, regs[10];
+  char *cli;
+  const char *prefix;
 
 #ifdef DEBUG
   __os_print ("-- __unixinit: __u = "); __os_prhex ((unsigned int) __u);
@@ -140,9 +141,8 @@ void __unixinit (void)
 #ifdef DEBUG
       __os_print ("-- __unixinit: new process\r\n");
 #endif
+      /* We are a new process.  */
 
-      /* Flag that we are a new process.  */
-      newproc = 1;
       /* Create a process structure if no parent exists or the one
          pointed to by UnixLib$env is invalid.  */
       __u = create_process_structure ();
@@ -175,9 +175,8 @@ void __unixinit (void)
 
       /* Inherit environ from parent.  This is our copy, to do with as we
          like except for freeing.  */
-      if (! newproc)
-        environ = __u->envp;
-   }
+      environ = __u->envp;
+    }
 
   if (! environ)
     {
@@ -199,7 +198,7 @@ void __unixinit (void)
 #endif
 
   /* Get extra command line from DDEUtils.  */
-  if (__os_swi (DDEUtils_GetCLSize, regs))
+  if (__os_swi (DDEUtils_GetCLSize, regs) != NULL)
     regs[0] = 0;
 
   cli_size = __cli_size + regs[0];
@@ -213,7 +212,8 @@ void __unixinit (void)
           /* Append DDEUtils command line.  */
           cli[__cli_size] = ' ';
           regs[0] = (int) cli + __cli_size + 1;
-          (void) __os_swi (DDEUtils_GetCl, regs);
+          if (__os_swi (DDEUtils_GetCl, regs) != NULL)
+            __unixlib_fatal ("cant get command line");
         }
     }
 
@@ -241,8 +241,13 @@ void __unixinit (void)
   /* When the DDEUtils module is loaded, we can support chdir() without
      RISC OS' CSD being changed. When not loaded, chdir() will work by
      changing CSD for all processes.  */
-  regs[0] = (int)"@";
-  (void) __os_swi (DDEUtils_Prefix, regs);
+  if ((prefix = __get_dde_prefix ()) == NULL)
+    {
+      regs[0] = (int)"@";
+      (void) __os_swi (DDEUtils_Prefix, regs);
+    }
+  else
+    free ((void *)prefix);
 
 #ifdef DEBUG
   __debug ("__unixinit: process creation complete");
@@ -315,7 +320,7 @@ _exit (int return_code)
 {
   int status;
 
-  /* Reset the DDE Utils' Prefix variable.  Only when we're really
+  /* Reset the DDEUtils' Prefix variable.  Only when we're really
      terminating this RISC OS process.  */
   if (__u == NULL || !__u->status.has_parent || ___vret == NULL)
     {

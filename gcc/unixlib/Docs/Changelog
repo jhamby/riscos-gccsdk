@@ -1,3 +1,28 @@
+Thu Jan 15 00:18:59 2004  John Tytgat  <John.Tytgat@aaug.net>
+
+	* Setup,feb: Removed.
+	* gen-makefiles.pl: UnixHdr$Dir -> Unix:
+	* objs/Makefile.in: Likewise.
+	* source/clib/swis.h: Added DDEUtils_ReadPrefix.
+	* source/clib/netinet/tcp.h: Bitfields can only be taken from int so
+	  slightly different struct tcphdr & tcp_info definition (patch from
+	  Theo Markettos <theo@markettos.org.uk>).
+	* source/clib/sys/socket.h: Added SOMAXCONN #define (patch from Theo
+	  Markettos <theo@markettos.org.uk>).
+	* source/clib/unixlib/local.h: Added __get_dde_prefix().
+	* source/clib/unixlib/unix.h: Added dde_prefix to "struct proc" and
+	  increased _PROCMAGIC to 0xfedcfa63.
+	* source/common/funcallerr.c (__funcall_error): sizeof() usage.
+	* source/common/prefix.c (__get_dde_prefix): New file.
+	* source/netlib/socketpair.c: Reident.
+	* source/sys/vfork.c: save DDEUtils_Prefix value during __vfork() and
+	  restore it at __vexit().
+	* source/unix/chdir.c (chdir): make use of __get_dde_prefix() instead of
+	  __getenv_from_os("Prefix$Dir").
+	* source/unix/getcwd.c (getcwd): Likewise.
+	* source/unix/unix.c (__unixinit): Small src cleanup; Call only
+	  DDEUtils_Prefix("@") when there isn't a DDEUtils_Prefix defined.
+
 Wed Jan 07 20:58:37 2004  Nick Burrett  <nick@dsvr.net>
 
 	* getopt.h: Prevent inclusion of ctype.h.

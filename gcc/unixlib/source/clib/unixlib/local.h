@@ -1,8 +1,8 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/unixlib/local.h,v $
- * $Date: 2003/08/18 22:35:36 $
- * $Revision: 1.9 $
+ * $Date: 2003/10/06 19:00:00 $
+ * $Revision: 1.10 $
  * $State: Exp $
  * $Author: joty $
  *
@@ -232,6 +232,11 @@ __object_get_attrs (const char *__ux_file, char *__buffer, size_t __buf_len,
 int
 __object_set_attrs (const char *__ux_file, char *__buffer, size_t __buf_len,
                     int __ftype, int __attr);
+
+/* Returns malloced block of memory holding DDEUtils_Prefix non zero-length
+   string value or NULL when there isn't one set.  Caller needs to free
+   memory after use.  */
+const char *__get_dde_prefix (void);
 
 __END_DECLS
 

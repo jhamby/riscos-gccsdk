@@ -1,10 +1,10 @@
 /****************************************************************************
  *
- * $Source$
- * $Date$
- * $Revision$
- * $State$
- * $Author$
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/sys/socket.h,v $
+ * $Date: 2002/12/22 18:22:28 $
+ * $Revision: 1.6 $
+ * $State: Exp $
+ * $Author: admin $
  *
  ***************************************************************************/
 
@@ -14,6 +14,7 @@
  *  - Changed "#include <features.h>" into "#include <unixlib/features.h>"
  *  - Added __opensock() internal function definition.
  *  - Added the prototypes for the SWI veneers.
+ *  - Added SOMAXCONN constant.
  */
 
 /* Declarations of socket constants, types, and functions.
@@ -61,6 +62,9 @@ struct osockaddr
     unsigned char sa_data[14];
   };
 #endif
+
+/* Maximum queue length for listen() calls.  */
+#define SOMAXCONN   128
 
 /* The following constants should be used for the second parameter of
    `shutdown'.  */
