@@ -362,7 +362,7 @@ sources = \
         vterminate.cc \
         wstring-inst.cc
 
-OBJS =	$(libobjdir)/atomicity.o \
+OBJS =	 \
 	$(libobjdir)/basic_file.o \
 	$(libobjdir)/bitset.o \
 	$(libobjdir)/cp-demangle.o \
