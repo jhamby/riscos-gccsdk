@@ -14,14 +14,14 @@ GCCPKG = $(pkg)/\!Boot,feb \
 	$(pkg)/\!Sprites22,ff9 \
 	$(pkg)/Changes \
 	$(pkg)/support \
-	$(pkg)/bin/drlink \
+	$(pkg)/bin/drlink$(exesfx) \
 	$(pkg)/bin/dyn_kill,ffb \
-	$(pkg)/bin/gcc \
-	$(pkg)/bin/gcov \
-	$(pkg)/bin/libfile \
-	$(bindir)/as \
-	$(bindir)/cpp \
-	$(bindir)/ld \
+	$(pkg)/bin/gcc$(exesfx) \
+	$(pkg)/bin/gcov$(exesfx) \
+	$(pkg)/bin/libfile$(exesfx) \
+	$(bindir)/as$(exesfx) \
+	$(bindir)/cpp$(exesfx) \
+	$(bindir)/ld$(exesfx) \
 	$(bindir)/apcs26/libscl/o/libscl \
 	$(bindir)/apcs26/unixlib/o/libgcc \
 	$(bindir)/apcs26/unixlib/o/unixlib
@@ -35,44 +35,48 @@ GCCDOCPKG = $(pkg)/docs/COPYING \
 	$(pkg)/docs/gcc \
 	$(pkg)/examples
 
-CC1PKG = $(pkg)/bin/g++ \
-	$(bindir)/cc1 \
+CC1PKG = $(pkg)/bin/g++$(exesfx) \
+	$(bindir)/cc1$(exesfx) \
 	$(libdir)/include/h \
 	$(bindir)/apcs26/unixlib/o/libiostream \
 	$(bindir)/apcs26/unixlib/o/libstdc++
 
-CC1PLUSPKG = $(bindir)/cc1plus \
+CC1PLUSPKG = $(bindir)/cc1plus$(exesfx) \
 	$(libdir)/include/g++-3
 
-G77PKG = $(pkg)/bin/g77 \
-	$(bindir)/f771 \
+G77PKG = $(pkg)/bin/g77$(exesfx) \
+	$(bindir)/f771$(exesfx) \
 	$(bindir)/apcs26/unixlib/o/libg2c \
 	$(pkg)/docs/g77 \
 	$(pkg)/docs/g77-readme
 
-GPCPKG = $(bindir)/gpc1 \
-	$(bindir)/gpcpp \
+GPCPKG = $(bindir)/gpc1$(exesfx) \
+	$(bindir)/gpcpp$(exesfx) \
 	$(bindir)/apcs26/unixlib/o/libgpc \
 	$(pkg)/docs/gpc
 
-JAVAPKG = $(bindir)/jc1 \
-	$(bindir)/jcf-dump \
-	$(bindir)/jv-scan \
-	$(bindir)/jvgenmain \
-	$(bindir)/gcjh
+JAVAPKG = $(bindir)/jc1$(exesfx) \
+	$(bindir)/jcf-dump$(exesfx) \
+	$(bindir)/jv-scan$(exesfx) \
+	$(bindir)/jvgenmain$(exesfx) \
+	$(bindir)/gcjh$(exesfx)
 
-UTILSPKG = $(pkg)/bin/bison \
-	$(pkg)/bin/egrep \
-	$(pkg)/bin/fgrep \
-	$(pkg)/bin/grep \
-	$(pkg)/bin/flex \
-	$(pkg)/bin/gperf \
-	$(pkg)/bin/gzip \
-	$(pkg)/bin/make \
-	$(pkg)/bin/mkdir \
-	$(pkg)/bin/patch \
-	$(pkg)/bin/sed \
-	$(pkg)/bin/touch \
+UTILSPKG = $(pkg)/bin/bison$(exesfx) \
+	$(pkg)/bin/cmp$(exesfx) \
+	$(pkg)/bin/diff$(exesfx) \
+	$(pkg)/bin/diff3$(exesfx) \
+	$(pkg)/bin/egrep$(exesfx) \
+	$(pkg)/bin/fgrep$(exesfx) \
+	$(pkg)/bin/flex$(exesfx) \
+	$(pkg)/bin/gperf$(exesfx) \
+	$(pkg)/bin/grep$(exesfx) \
+	$(pkg)/bin/gzip$(exesfx) \
+	$(pkg)/bin/make$(exesfx) \
+	$(pkg)/bin/mkdir$(exesfx) \
+	$(pkg)/bin/patch$(exesfx) \
+	$(pkg)/bin/sdiff$(exesfx) \
+	$(pkg)/bin/sed$(exesfx) \
+	$(pkg)/bin/touch$(exesfx) \
 	$(bindir)/apcs26/unixlib/o/libfl \
 	$(bindir)/apcs26/unixlib/o/libiberty \
 	$(bindir)/apcs26/unixlib/o/libmp
