@@ -1,15 +1,12 @@
-
 /*
  * error.h
  * Copyright © 1992 Niklas Röjemo
  */
 
-#ifndef _error_h
-#define _error_h
+#ifndef error_header_included
+#define error_header_included
 
-#ifndef _global_h
 #include "global.h"
-#endif
 
 extern char er[1024];
 

@@ -2,6 +2,7 @@
  * local.c
  * Copyright © 1997 Darren Salt
  */
+
 #include "sdk-config.h"
 #include <string.h>
 #include <stdlib.h>
@@ -11,12 +12,13 @@
 #include <inttypes.h>
 #endif
 
-#include "local.h"
-#include "error.h"
 #include "asm.h"
+#include "error.h"
 #include "input.h"
-#include "variables.h"
+#include "local.h"
+#include "main.h"
 #include "os.h"
+#include "variables.h"
 
 typedef struct localPos
   {
@@ -52,7 +54,7 @@ static localPos
 * localList = 0, *localListEnd = 0;
 
 
-void 
+void
 c_rout (Lex * label)
 {
   routPos *p = malloc (sizeof (localPos));
@@ -71,9 +73,9 @@ c_rout (Lex * label)
           rout_id = new_rout_id;
         }
     }
-  if (!rout_id)
+  if (rout_id == NULL || p == NULL)
     errorOutOfMem ("c_rout");
-  if (p)
+  else
     {
       if (routListEnd)
 	routListEnd->next = p;
@@ -87,15 +89,17 @@ c_rout (Lex * label)
 }
 
 
-void 
+void
 c_local (Lex * label)
 {
-  localPos *p = malloc (sizeof (localPos));
+  localPos *p;
 
   if (label && label->tag != LexNone)
     error (ErrorWarning, TRUE, "Label not allowed here - ignoring");
   localCurrent++;
-  if (p)
+  if ((p = malloc (sizeof (localPos))) == NULL)
+    errorOutOfMem("c_local");
+  else
     {
       if (localListEnd)
 	localListEnd->next = p;
@@ -109,19 +113,17 @@ c_local (Lex * label)
 }
 
 
-int 
+int
 localTest (const char *s)
 {
   return !memcmp (s, localFormat + 1, 7);
 }
 
 
-extern int local;		/* in main.c */
-
-void 
+void
 localMunge (Lex * label)
 {
-  register int i;
+  int i;
   if (!local)
     return;
   if (label->LexId.str[i = label->LexId.len - 2] == '$' &&
@@ -143,7 +145,7 @@ localMunge (Lex * label)
 }
 
 
-void 
+void
 localFindLocal (int local, const char **file, long int *lineno)
 {
   localPos *p = localList;
@@ -162,7 +164,7 @@ localFindLocal (int local, const char **file, long int *lineno)
 }
 
 
-void 
+void
 localFindRout (const char *rout, const char **file, long int *lineno)
 {
   routPos *p = routList;

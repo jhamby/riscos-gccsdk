@@ -3,12 +3,10 @@
  * Copyright © 1997 Darren Salt
  */
 
-#ifndef __TARGETCPU_H
-#define __TARGETCPU_H
+#ifndef targetcpu_header_included
+#define targetcpu_header_included
 
-#ifndef __GLOBAL_H
 #include "global.h"
-#endif
 
 typedef enum
 {

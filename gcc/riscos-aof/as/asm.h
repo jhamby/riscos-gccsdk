@@ -1,15 +1,15 @@
-
 /*
  *  asm.h
  * Copyright © 1992 Niklas Röjemo
  */
 
-#ifndef _lex_h
+#ifndef asm_header_included
+#define asm_header_included
+
 #include "lex.h"
-#endif
-#ifndef _symbol_h
 #include "symbol.h"
-#endif
 
 extern void asm_ (void);
 extern Symbol *asm_label (Lex * label);
+
+#endif

@@ -2,6 +2,7 @@
  * storage.c
  * Copyright © 1992 Niklas Röjemo
  */
+
 #include "sdk-config.h"
 #ifdef HAVE_STDINT_H
 #include <stdint.h>
@@ -9,19 +10,19 @@
 #include <inttypes.h>
 #endif
 
+#include "error.h"
+#include "expr.h"
+#include "get.h"
+#include "input.h"
+#include "lex.h"
+#include "main.h"
 #include "storage.h"
 #include "value.h"
-#include "get.h"
-#include "lex.h"
-#include "input.h"
-#include "expr.h"
-#include "error.h"
 
 static int storageD = 0;
 static Value storageV;
 
-extern int pedantic;
-Value 
+Value
 storageValue (void)
 {
   if (!storageD)
@@ -34,7 +35,7 @@ storageValue (void)
   return valueCopy (storageV);
 }
 
-void 
+void
 c_record (void)
 {
   Value value;
@@ -51,6 +52,7 @@ c_record (void)
     default:
       storageV.ValueAddr.i = 0;
       error (ErrorError, FALSE, "^ cannot evaluate its offset expression");
+      break;
     }
   if (inputLook () == ',')
     {
@@ -60,7 +62,7 @@ c_record (void)
     }
 }
 
-void 
+void
 c_alloc (Symbol * sym)
 {
   Value value;

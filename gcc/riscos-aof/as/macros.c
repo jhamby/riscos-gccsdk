@@ -2,43 +2,39 @@
  *  macros.c
  * Copyright © 1997 Darren Salt
  */
+
 #include "sdk-config.h"
 #ifdef HAVE_STDINT_H
 #include <stdint.h>
 #elif HAVE_INTTYPES_H
 #include <inttypes.h>
 #endif
-
-#include "commands.h"
-  /* for strndup() & strdup() */
-
-#include "macros.h"
-#include "input.h"
-#include "error.h"
 #include <string.h>
 #include <stdlib.h>
 #include <ctype.h>
-#include "variables.h"
+
+#include "commands.h"
+#include "error.h"
+#include "input.h"
+#include "macros.h"
 #include "os.h"
+#include "variables.h"
 
-#define MACRO_LIMIT 16
-#define MACRO_DEPTH 10
+#define MACRO_LIMIT (16)
+#define MACRO_DEPTH (10)
 
-static Macro *macroList = 0;
+static Macro *macroList = NULL;
 
 MacroStack macroStack[MACRO_DEPTH];
 int macroSP = 0;
 
-char *macroArgs[MACRO_LIMIT] =
-{0};
-
-Macro *macroCurrent = 0;
-char *macroPtr = 0;
-
+Macro *macroCurrent = NULL;
 long int macroCurrentCallNo = 0;
+const char *macroPtr = NULL;
+char *macroArgs[MACRO_LIMIT] = {0};
 
 
-static void 
+static void
 macroPop (void)
 {
   int p;
@@ -59,7 +55,7 @@ macroPop (void)
       macroCurrentCallNo = macroStack[macroSP].callno;
     }
   else
-    macroCurrent = 0;
+    macroCurrent = NULL;
 }
 
 
@@ -77,11 +73,11 @@ macroFind (size_t len, char *name)
 }
 
 
-void 
+void
 macroCall (Macro * m, Lex * label)
 {
   int i;
-  char *c;
+  const char *c;
   int len;
   static long int macroCallNo = 0;
 
@@ -110,11 +106,15 @@ macroCall (Macro * m, Lex * label)
       if (m->labelarg)
 	{
 	  c = label->LexId.str;
+	  if (c[i] == '#')
+	    ++i;
 	  while (isalnum (c[i]) || c[i] == '_')
 	    i++;
-	  macroArgs[0] = strndup (label->LexId.str, i);
-	  if (!macroArgs[0])
-	    return;
+	  if ((macroArgs[0] = strndup (label->LexId.str, i)) == NULL)
+	    {
+	      errorOutOfMem("macroCall");
+	      return;
+	    }
 	  i = 1;
 	}
       else
@@ -152,9 +152,11 @@ macroCall (Macro * m, Lex * label)
 	  while (len > 0 && (c[len - 1] == ' ' || c[len - 1] == '\t'))
 	    len--;
 	}
-      macroArgs[i] = strndup (c, len);
-      if (!macroArgs[i++])
-	break;
+      if ((macroArgs[i++] = strndup (c, len)) == NULL)
+        {
+          errorOutOfMem("macroCall");
+	  break;
+	}
       if (inputLook () == ',')
 	inputSkip ();
       else
@@ -165,12 +167,12 @@ macroCall (Macro * m, Lex * label)
   printf ("Macro call = %s\n", inputLine ());
   for (i = 0; i < MACRO_LIMIT; ++i)
     if (macroArgs[i])
-      printf ("Arg %i = %s\n", i, macroArgs[i]);
+      printf ("  Arg %i = <%s>\n", i, macroArgs[i]);
 #endif
 }
 
 
-BOOL 
+BOOL
 macroGetLine (char *buf)	/* returns 0 if already at end of macro */
 {
   /* Hardcoded buffer size (4K) */
@@ -227,12 +229,11 @@ linetoolong:
 }
 
 
-BOOL 
+BOOL
 macroAdd (Macro * m)
 {
   Macro *p;
-  p = malloc (sizeof (Macro));
-  if (!p)
+  if ((p = malloc (sizeof (Macro))) == NULL)
     {
       errorOutOfMem ("macroAdd");
       return FALSE;
@@ -247,7 +248,7 @@ macroAdd (Macro * m)
 /* Macro builder code */
 
 
-static BOOL 
+static BOOL
 c_mend (void)
 {
   char c;
@@ -270,14 +271,14 @@ c_mend (void)
 }
 
 
-void 
+void
 c_macro (Lex * label)
 {
   int len, bufptr = 0, buflen = 0, i;
-  char *ptr, *buf = 0, c;
+  char *ptr, *buf = NULL, c;
   Macro m;
 
-  memset(&m, 0, sizeof(Macro));  
+  memset(&m, 0, sizeof(Macro));
 
   inputExpand = FALSE;
   if (label->tag != LexNone)
@@ -298,9 +299,11 @@ c_macro (Lex * label)
   if (len)
     {
       m.labelarg = m.numargs = 1;
-      m.args[0] = strndup (ptr, len);
-      if (!m.args[0])
-	goto lookforMEND;
+      if ((m.args[0] = strndup (ptr, len)) == NULL)
+        {
+          errorOutOfMem("c_macro");
+	  goto lookforMEND;
+	}
     }
   skipblanks ();
   if (inputLook () == '|')
@@ -320,9 +323,11 @@ c_macro (Lex * label)
       error (ErrorError, TRUE, "Macro %s is already defined", ptr);
       goto lookforMEND;
     }
-  m.name = strndup (ptr, len);
-  if (!m.name)
-    goto lookforMEND;
+  if ((m.name = strndup (ptr, len)) == NULL)
+    {
+      errorOutOfMem("c_macro");
+      goto lookforMEND;
+    }
   m.startline = inputLineNo;
   skipblanks ();
   while (!inputComment ())
@@ -337,9 +342,11 @@ c_macro (Lex * label)
       if (inputLook () == '$')
 	inputSkip ();
       ptr = inputSymbol (&len, ',');
-      m.args[m.numargs] = strndup (ptr, len);
-      if (!m.args[m.numargs++])
-	goto lookforMEND;
+      if ((m.args[m.numargs++] = strndup (ptr, len)) == NULL)
+        {
+          errorOutOfMem("c_macro");
+	  goto lookforMEND;
+	}
       if (inputLook () == ',')
 	inputSkip ();
     }
@@ -399,7 +406,8 @@ c_macro (Lex * label)
   if (buf)
     buf[bufptr] = 0;
   m.file = inputName;
-  m.buf = buf ? buf : strdup("");
+  if ((m.buf = buf ? buf : strdup("")) == NULL)
+    errorOutOfMem("c_macro");
   macroAdd (&m);
   return;
 
@@ -423,7 +431,7 @@ lookforMEND:
 }
 
 
-void 
+void
 c_mexit (Lex * label)
 {
   if (label->tag != LexNone)

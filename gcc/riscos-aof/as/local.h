@@ -3,12 +3,10 @@
  * Copyright © 1997 Darren Salt
  */
 
-#ifndef _local_h
-#define _local_h
+#ifndef local_header_included
+#define local_header_included
 
-#ifndef _lex_h
 #include "lex.h"
-#endif
 
 extern int rout_lblno[100];
 extern const char *rout_id;

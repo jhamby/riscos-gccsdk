@@ -5,6 +5,7 @@
  *     Added line numbers  Niklas Röjemo
  *     Added filenames     Darren Salt
  */
+
 #include "sdk-config.h"
 #include <stdio.h>
 #ifdef HAVE_STDINT_H
@@ -13,12 +14,12 @@
 #include <inttypes.h>
 #endif
 
-#include "input.h"
 #include "error.h"
-#include "whileif.h"
 #include "filestack.h"
+#include "input.h"
+#include "whileif.h"
 
-#define STACKSIZE  10
+#define STACKSIZE  (10)
 
 typedef struct FileStack
   {
@@ -42,7 +43,7 @@ push_file (FILE * fp)
   if (top == STACKSIZE)
     {
       error (ErrorSerious, TRUE, "Maximum file nesting level reached (%d)", STACKSIZE);
-      return (-1);
+      return -1;
     }
   stack[top].line = inputLineNo;
   stack[top].name = inputName;
@@ -72,7 +73,7 @@ pop_file (void)
   return NULL;
 }
 
-const int 
+const int
 get_file (const char **file, long int *line)
 {
   static int f;

@@ -1,16 +1,12 @@
-
 /*
  * get.h
  * Copyright © 1992 Niklas Röjemo
  */
 
-#ifndef _get_h
-#define _get_h
+#ifndef get_header_included
+#define get_header_included
 
-#ifndef _global_h
 #include "global.h"
-#endif
-
 
 WORD getCpuReg (void);
 WORD getFpuReg (void);

@@ -2,7 +2,7 @@
  * include.c
  *
  * (c) Andy Duplain, August 1992.
- * Converted to RISC/OS by Niklas Röjemo
+ * Converted to RISC OS by Niklas Röjemo
  */
 
 #include <stdio.h>
@@ -13,29 +13,28 @@
 #include <unistd.h>
 #endif
 
+#include "error.h"
 #include "include.h"
+#include "os.h"
 #include "uname.h"
 #include "rname.h"
+#include "main.h"
 
-extern int dde;
-
-#define INCDIRMAX  10
-//#define DEBUG 1
-
+#define INCDIRMAX  (10)
 
 static char *incdir[INCDIRMAX];
 
-int 
+int
 initInclude (void)
 {
   int i;
 
   for (i = 0; i < INCDIRMAX; i++)
     incdir[i] = NULL;
-  return (0);
+  return 0;
 }
 
-int 
+int
 addInclude (const char *incpath)
 {
   int i;
@@ -48,35 +47,33 @@ addInclude (const char *incpath)
   for (i = 0; i < INCDIRMAX; i++)
     if (incdir[i])
       if (strcmp (incdir[i], path) == 0)
-	return (0);		/* already in list */
+	return 0;		/* already in list */
 
   for (i = 0; i < INCDIRMAX; i++)
     if (!incdir[i])
       {
-	if ((incdir[i] = strdup (path)) != 0)
+        int len;
+	if ((incdir[i] = strdup (path)) == NULL)
 	  {
-	    int len = strlen (incdir[i]);
+	    errorOutOfMem("addInclude");
+	    return -1;
+	  }
+	len = strlen (incdir[i]);
 
-	    if (*(incdir[i] + len) == DIR)
-	      *(incdir[i] + len) = '\0';
+	if (*(incdir[i] + len) == DIR)
+	  *(incdir[i] + len) = '\0';
 #if (defined DEBUG) && (DEBUG > 0)
-	    fprintf (stderr, "addInclude: added %s\n", incdir[i]);
+	fprintf (stderr, "addInclude: added %s\n", incdir[i]);
 #endif
 
 
-	    return (0);
-	  }
-	else
-	  {
-	    fprintf (stderr, "addInclude: strdup failed\n");
-	    return (-1);
-	  }
+	return 0;
       }
 
   fprintf (stderr, "addInclude: maximum number of include paths exceeded (%d)\n",
 	   INCDIRMAX);
 
-  return (-1);
+  return -1;
 }
 
 FILE *

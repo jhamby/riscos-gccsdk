@@ -1,1 +1,1 @@
-#define AS_VERSION "1.40"
+#define AS_VERSION "1.41"

@@ -2,6 +2,7 @@
  * reloc.c
  * Copyright © 1992 Niklas Röjemo
  */
+
 #include "sdk-config.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -11,21 +12,21 @@
 #include <inttypes.h>
 #endif
 
+#include "aoffile.h"
+#include "area.h"
 #include "code.h"
-#include "get.h"
-#include "lex.h"
-#include "symbol.h"
-#include "global.h"
+#include "elf.h"
 #include "error.h"
 #include "eval.h"
-#include "reloc.h"
-#include "area.h"
-#include "option.h"
-#include "input.h"
-#include "aoffile.h"
-#include "elf.h"
 #include "fix.h"
-#include "output.h" 
+#include "get.h"
+#include "global.h"
+#include "input.h"
+#include "lex.h"
+#include "option.h"
+#include "output.h"
+#include "reloc.h"
+#include "symbol.h"
 
 #define READWORD(image,offset) \
   (((image)[(offset)+3]<<24) | ((image)[(offset)+2]<<16) | \
@@ -57,33 +58,34 @@ reloc2String (RelocTag tag)
 static Reloc *
 relocNew (Reloc * more, RelocTag tag, int offset, Value value)
 {
-  Reloc *new = malloc (sizeof (Reloc));
-  if (new)
+  Reloc *newReloc;
+  if ((newReloc = malloc (sizeof (Reloc))) != NULL)
     {
-      new->more = more;
-      new->Tag = tag;
-      new->lineno = inputLineNo;
-      new->file = inputName;
-      new->offset = offset;
+      newReloc->more = more;
+      newReloc->Tag = tag;
+      newReloc->lineno = inputLineNo;
+      newReloc->file = inputName;
+      newReloc->offset = offset;
       /* fprintf (stderr, "relocNew: line=%d, offset=%d\n", inputLineNo, offset); */
-      new->value = valueCopy (value);
+      newReloc->value = valueCopy (value);
     }
   else
     errorOutOfMem ("relocNew2");
-  return new;
+  return newReloc;
 }
 
 
 static void
 relocOp (int word, Value * value, RelocTag tag)
 {
-  Reloc *new;
   if (areaCurrent)
     {
-      new = relocNew (areaCurrent->area.info->relocs, tag,
+        Reloc *newReloc;
+
+      newReloc = relocNew (areaCurrent->area.info->relocs, tag,
 		      areaCurrent->value.ValueInt.i, *value);
-      new->extra = word;
-      areaCurrent->area.info->relocs = new;
+      newReloc->extra = word;
+      areaCurrent->area.info->relocs = newReloc;
     }
   else
     areaError ();
@@ -175,12 +177,12 @@ relocFloat (int size, Value value)
 
 
 void
-relocAdd (Reloc * new)
+relocAdd (Reloc * newReloc)
 {
   if (areaCurrent)
     {
-      new->more = areaCurrent->area.info->relocs;
-      areaCurrent->area.info->relocs = new;
+      newReloc->more = areaCurrent->area.info->relocs;
+      areaCurrent->area.info->relocs = newReloc;
     }
   else
     areaError ();
@@ -220,8 +222,6 @@ static int
 relocEval (Reloc * r, Value * value, Symbol * area)
 {
   int norelocs = 0;
-  int this = 0;
-  LateInfo *late;
 
   codeInit ();
   *value = codeEvalLow (ValueAll, r->value.ValueCode.len, r->value.ValueCode.c);
@@ -231,10 +231,12 @@ relocEval (Reloc * r, Value * value, Symbol * area)
       errorLine (r->lineno, r->file, ErrorError, TRUE, "Cannot evaluate expression (illegal)");
       r->Tag = RelocNone;
       return 0;
+
     case ValueCode:
       errorLine (r->lineno, r->file, ErrorError, TRUE, "Cannot evaluate expression (code)");
       r->Tag = RelocNone;
       return 0;
+
     case ValueLateLabel:
       switch (r->Tag)
 	{
@@ -248,12 +250,16 @@ relocEval (Reloc * r, Value * value, Symbol * area)
    }
  */
 	  break;
+
 	case RelocBranch:
-	  this = 0;
+	  {
+	    LateInfo *late;
+	    int thisF = 0;
+
 	  for (late = value->ValueLate.late; late; late = late->next)
 	    if (late->symbol == area)
 	      {
-		this = late->factor;
+		thisF = late->factor;
 		late->factor = 0;
 		break;
 	      }
@@ -262,17 +268,22 @@ relocEval (Reloc * r, Value * value, Symbol * area)
 	      {
 		if (!(late->symbol->type & SYMBOL_AREA))
 		  late->symbol->used++;
-		this += late->factor;
+		thisF += late->factor;
 	      }
 	    else if (late->factor < 0)
 	      {
 		errorLine (r->lineno, r->file, ErrorError, TRUE, "Only positive relocation allowed");
 		late->factor = 1;
 	      }
-	  if (this)
-	    errorLine (r->lineno, r->file, ErrorError, TRUE, "Unbalanced relocation (%d)", this);
+	  if (thisF)
+	    errorLine (r->lineno, r->file, ErrorError, TRUE, "Unbalanced relocation (%d)", thisF);
 	  break;
+	  }
+
 	case RelocImmN:
+	  {
+	    LateInfo *late;
+
 	  for (late = value->ValueLate.late; late; late = late->next)
 	    {
 	      if (late->factor > 0)
@@ -295,27 +306,37 @@ relocEval (Reloc * r, Value * value, Symbol * area)
 		}
 	    }
 	  break;
+	  }
+
 	case RelocAdr:
 	case RelocAdrl:
+	  {
+	    LateInfo *late;
+
 	  for (late = value->ValueLate.late; late; late = late->next)
 	    if (late->factor > 0)
 	      if (!(late->symbol->type & SYMBOL_AREA))
 		late->symbol->used++;
 	  break;
-	case ValueInt:
-	  break;
+	  }
+
 	default:
 	  errorLine (r->lineno, r->file, ErrorError, TRUE, "Linker cannot handle %s", reloc2String (r->Tag));
 	  r->Tag = RelocNone;
 	  return 0;
 	}			/* ValueLateLabel */
+
       norelocs = relocLate2Reloc (r, value);
       break;
+
     case ValueInt:
       break;
+
     default:
       errorLine (r->lineno, r->file, ErrorSerious, FALSE, "Illegal ValueTag in relocEval");
+      break;
     }
+
   return norelocs;
 }
 
@@ -467,6 +488,7 @@ relocWrite (Reloc * r, Value * value, unsigned char *image)
 	  break;
 	default:
 	  errorLine (r->lineno, r->file, ErrorError, TRUE, "Cannot handle %s when value is %s", reloc2String (r->Tag), "float");
+	  break;
 	}
       r->Tag = RelocNone;
     }
@@ -500,6 +522,7 @@ relocFix (Symbol * area)
 	default:
 	  errorLine (relocs->lineno, relocs->file, ErrorSerious, TRUE, "Internal relocFix: not a legal value");
 	  relocs->Tag = RelocNone;
+	  break;
 	}
       if (relocs->Tag != RelocNone)	/* We now have a Value */
 	relocWrite (relocs, &value, image);
@@ -514,7 +537,9 @@ relocOutput (FILE * outfile, Symbol * area)
 {
   Reloc *relocs;
   AofReloc areloc;
-  int How, loop = 0, ip;
+  int loop = 0, ip;
+  unsigned int How;
+
   for (relocs = area->area.info->relocs; relocs; relocs = relocs->more)
     {
       switch (relocs->Tag)
@@ -588,6 +613,7 @@ relocOutput (FILE * outfile, Symbol * area)
     }
 }
 
+#ifndef NO_ELF_SUPPORT
 void
 relocElfOutput (FILE * outfile, Symbol * area)
 {
@@ -677,3 +703,4 @@ relocElfOutput (FILE * outfile, Symbol * area)
         }
     }
 }
+#endif

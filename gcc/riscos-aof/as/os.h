@@ -3,9 +3,12 @@
   (c) Copyright Nick Burrett, 1998.
   Part of the assembler AS.  */
 
-#ifndef __os_h
-#define __os_h
+#ifndef os_header_included
+#define os_header_included
+
 #include <stdio.h>
+
+#include "sdk-config.h"
 
 #ifdef CROSS_COMPILE
 /* UNIX specific information.  */
@@ -13,9 +16,8 @@
 #define CanonicalisePath(x) (x)
 #define toriscos(f,a,b)     (f)
 
-#endif /* CROSS_COMPILE */
+#else
 
-#ifdef __riscos__
 /* Acorn/RISC OS specific information.  */
 typedef struct os_error
 {
@@ -26,8 +28,8 @@ os_error;
 
 extern char *ErrorFile;
 
-int switonum (char *swi);
-os_error *cdir (char *name);
+int switonum (const char *swi);
+os_error *cdir (const char *name);
 
 
 int (OSCanonicalisePath) (char *path,
@@ -53,12 +55,18 @@ os_error *ThrowbackEnd (void);
 char *(toriscos) (char *name, char *oldsuffixes, char newsuffix);
 char *(CanonicalisePath) (const char *path);
 
-#endif /* __riscos__ */
+#endif /* !CROSS_COMPILE */
 
 char *CanonicaliseFile (const FILE * path);
 
-#if (defined (CROSS_COMPILE) && ! defined (HAVE_STRNDUP))
-extern char *strndup (const char *str, int len);
+#if defined CROSS_COMPILE && !defined (HAVE_STRNDUP)
+char *strndup (const char *str, size_t len);
+#endif
+#if defined CROSS_COMPILE && !defined (HAVE_STRDUP)
+char *strdup (const char *str);
+#endif
+#if defined CROSS_COMPILE && !defined (HAVE_STRNCASECMP)
+int strncasecmp(const char *str1, const char *str2, size_t n);
 #endif
 
 #endif

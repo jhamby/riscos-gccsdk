@@ -1,15 +1,12 @@
-
 /*
  * fix.h
  * Copyright © 1992 Niklas Röjemo
  */
 
-#ifndef _fix_h
-#define _fix_h
+#ifndef fix_header_included
+#define fix_header_included
 
-#ifndef _global_h
 #include "global.h"
-#endif
 
 #define RRX 5
 #define LSL 0x00000000

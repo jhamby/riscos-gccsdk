@@ -3,25 +3,14 @@
  * Copyright © 1992 Niklas Röjemo
  */
 
-#ifndef _code_h
-#define _code_h
+#ifndef code_header_included
+#define code_header_included
 
-#ifndef _global_h
 #include "global.h"
-#endif
-
-#ifndef _lex_h
 #include "lex.h"
-#endif
-
-#ifndef _symbol_h
+#include "reloc.h"
 #include "symbol.h"
-#endif
-
-
-#ifndef _value_h
 #include "value.h"
-#endif
 
 typedef enum
 {
@@ -55,23 +44,20 @@ typedef union CODE
 }
 Code;
 
-#ifndef _reloc_h
-#include "reloc.h"
-#endif
+#define CODE_SIZECODE  (1024)
+#define CODE_SIZESTACK (1024)
+#define CODE_SIZELATE  (1024)
 
-#define CODE_SIZECODE  1024
-#define CODE_SIZESTACK 1024
-#define CODE_SIZELATE  1024
+extern BOOL exprNotConst;
 
 void codeInit (void);
-
 
 void codeOperator (Operator op);
 void codeSymbol (Symbol * symbol);
 void codeInt (int value);
 void codePosition (Symbol * area);
 void codeStorage (void);
-void codeString (int len, char *str);
+void codeString (int len, const char *str);
 void codeFloat (FLOAT value);
 void codeBool (BOOL value);
 

@@ -1,18 +1,18 @@
-
 /*
  * fix.c
  * Copyright © 1992 Niklas Röjemo
  */
 
 #include "error.h"
-#include "help_cpu.h"
 #include "fix.h"
 #include "global.h"
+#include "help_cpu.h"
+#include "main.h"
 #include "m_cpu.h"
 #include "m_fpu.h"
 #include "option.h"
 
-WORD 
+WORD
 fixShiftImm (long int lineno, WORD shiftop, int shift)
 {
   switch (shiftop)
@@ -53,13 +53,12 @@ fixShiftImm (long int lineno, WORD shiftop, int shift)
       break;
     default:
       errorLine (lineno, 0, ErrorSerious, FALSE, "Internal fixShiftImm: unknown shift type");
+      break;
     }
   return SHIFT_IMM (shift) | SHIFT_OP (shiftop);
 }
 
-extern int fussy;
-
-WORD 
+WORD
 fixImm8s4 (long int lineno, WORD ir, int im)
 {
   int i8s4 = help_cpuImm8s4 (im);
@@ -157,7 +156,7 @@ fixImm8s4 (long int lineno, WORD ir, int im)
   return ir | i8s4;
 }
 
-WORD 
+WORD
 fixImmFloat (long int lineno, WORD ir, FLOAT im)
 {
   int f = fpuImm (im);
@@ -239,7 +238,7 @@ fixImmFloat (long int lineno, WORD ir, FLOAT im)
   return ir | f;
 }
 
-WORD 
+WORD
 fixAdr (long int lineno, WORD ir, int im)	/* !!! mov and mvn should be possible */
 {
   int i8s4;
@@ -258,7 +257,7 @@ fixAdr (long int lineno, WORD ir, int im)	/* !!! mov and mvn should be possible 
   return ir;
 }
 
-void 
+void
 fixAdrl (long int lineno, WORD * ir, WORD * ir2, int im, int warn)
 {
   int i8s4;
@@ -291,7 +290,7 @@ fixAdrl (long int lineno, WORD * ir, WORD * ir2, int im, int warn)
     }
 }
 
-WORD 
+WORD
 fixSwi (long int lineno, int im)
 {
   if ((im & 0xffffff) != im)
@@ -299,7 +298,7 @@ fixSwi (long int lineno, int im)
   return im & 0xffffff;
 }
 
-WORD 
+WORD
 fixBranch (long int lineno, int im)
 {
   if (im & 3)
@@ -307,7 +306,7 @@ fixBranch (long int lineno, int im)
   return (im >> 2) & 0xffffff;
 }
 
-WORD 
+WORD
 fixCopOffset (long int lineno, WORD ir, int offset)
 {
   BOOL up = TRUE;
@@ -326,7 +325,7 @@ fixCopOffset (long int lineno, WORD ir, int offset)
   return ir;
 }
 
-WORD 
+WORD
 fixCpuOffset (long int lineno, WORD ir, int offset)
 {
   BOOL up = TRUE;
@@ -352,7 +351,7 @@ fixCpuOffset (long int lineno, WORD ir, int offset)
   return ir;
 }
 
-WORD 
+WORD
 fixMask (long int lineno, int mask)
 {
   if (mask < 0 || mask > 0xffff)
@@ -360,7 +359,7 @@ fixMask (long int lineno, int mask)
   return mask & 0xffff;
 }
 
-WORD 
+WORD
 fixInt (long int lineno, int size, int value)
 {
   switch (size)
@@ -383,6 +382,7 @@ fixInt (long int lineno, int size, int value)
       break;
     default:
       errorLine (lineno, 0, ErrorSerious, TRUE, "Internal fixInt: size %d is not legal", size);
+      break;
     }
   return value;
 }

@@ -2,6 +2,7 @@
  * error.c
  * Copyright © 1992 Niklas Röjemo
  */
+
 #include "sdk-config.h"
 #include <setjmp.h>
 #include <stdarg.h>
@@ -15,16 +16,17 @@
 #include <inttypes.h>
 #endif
 
-#include "filestack.h"
 #include "error.h"
+#include "filestack.h"
 #include "input.h"
-#include "output.h"
-#include "os.h"
 #include "macros.h"
+#include "main.h"
+#include "os.h"
+#include "output.h"
 
-#define MAXERR 100
+#define MAXERR (100)
 
-extern int pedantic, throwback, verbose;
+const char *const InsertCommaAfter = "Inserting missing comma after ";
 
 static int no_errors = 0;
 static int no_warnings = 0;
@@ -37,7 +39,7 @@ static int ThrowbackStarted;
 static char errbuf[2048];
 char er[1024];
 
-void 
+void
 errorInit (char *filename)
 {
   source = filename;
@@ -45,7 +47,7 @@ errorInit (char *filename)
 
 
 #ifdef __riscos__
-void 
+void
 errorFinish (void)
 {
   if (ThrowbackStarted > 0)
@@ -70,7 +72,7 @@ LF (char *buf)
   return buf;
 }
 
-static void 
+static void
 TB (int level, long int lineno, char *error, const char *file)
 {
   os_error *err;
@@ -94,33 +96,26 @@ TB (int level, long int lineno, char *error, const char *file)
   if (ThrowbackStarted > 0)
     ThrowbackSendError (level, lineno, error);
 }
-#endif /* __riscos__ */
-
-#ifndef __riscos__
+#else
 #define TB(x,y,z,f)
 #endif
 
 
-int 
+int
 noerrors (void)
 {
-  /* if (no_errors) outputRemove(); */
-  return no_errors;
+  return no_errors ? EXIT_FAILURE : EXIT_SUCCESS;
 }
 
 
-int 
+int
 nowarnings (void)
 {
   return no_warnings;
 }
 
 
-extern jmp_buf asmContinue;
-extern jmp_buf asmAbort;
-
-
-static void 
+static void
 fixup (ErrorTag t)
 {
   skiprest ();
@@ -130,7 +125,7 @@ fixup (ErrorTag t)
     longjmp (asmContinue, 1);
 }
 
-static void 
+static void
 doline (int t, long int line, int sameline)
 {
 #ifndef __riscos__
@@ -139,7 +134,7 @@ doline (int t, long int line, int sameline)
   if (line > 0)
     {
       TB (t, line, errbuf, inputName);
-      if (get_file (0, 0))
+      if (get_file (NULL, NULL))
 	{
 	  const char *file = inputName, *nfile;
 	  long int diffline = 0, nline, i;
@@ -147,7 +142,7 @@ doline (int t, long int line, int sameline)
 	    {
 	      fprintf (stderr, "%s at line %li", diffline ? "\n " : (" " + sameline), line);
 	      if ((i = get_file (&nfile, &nline)) != 0)
-		fprintf (stderr, " in file '%s'", file);
+		fprintf (stderr, " in file '%s'", nfile);
 	      if (diffline)
 		{
 		  sprintf (errbuf, "  included from here");
@@ -173,7 +168,7 @@ doline (int t, long int line, int sameline)
     }
 }
 
-void 
+void
 error (ErrorTag e, BOOL c, const char *format,...)
 {
   const char *str;
@@ -267,7 +262,7 @@ error (ErrorTag e, BOOL c, const char *format,...)
 }
 
 
-void 
+void
 errorLine (long int lineno, const char *file,
 	   ErrorTag e, BOOL c, const char *format,...)
 {
@@ -315,6 +310,7 @@ errorLine (long int lineno, const char *file,
     default:
       str = "Fatal error";
       no_errors++;
+      break;
     }
 #endif
 
@@ -336,11 +332,8 @@ errorLine (long int lineno, const char *file,
 }
 
 
-void 
+void
 errorOutOfMem (const char *fn)
 {
   error (ErrorSerious, FALSE, "Internal %s: out of memory", fn);
 }
-
-
-const char *const InsertCommaAfter = "Inserting missing comma after ";

@@ -1,3 +1,4 @@
+#ifndef NO_ELF_SUPPORT
 #ifndef _elf_h
 #define _elf_h
 
@@ -544,7 +545,7 @@ typedef struct elf64_phdr {
 #define SHN_COMMON	0xfff2
 #define SHN_HIRESERVE	0xffff
 #define SHN_MIPS_ACCOMON	0xff00
- 
+
 typedef struct {
   Elf32_Word	sh_name;
   Elf32_Word	sh_type;
@@ -644,4 +645,4 @@ extern Elf64_Dyn _DYNAMIC [];
 
 
 #endif
-
+#endif

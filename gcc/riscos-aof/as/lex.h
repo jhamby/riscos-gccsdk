@@ -3,12 +3,10 @@
  * Copyright © 1992 Niklas Röjemo
  */
 
-#ifndef _lex_h
-#define _lex_h
+#ifndef lex_header_included
+#define lex_header_included
 
-#ifndef _global_h
 #include "global.h"
-#endif
 
 typedef enum
 {
@@ -65,7 +63,7 @@ typedef union
   struct
   {
     LexTag tag;
-    char *str;
+    const char *str;
     int len;
     int hash;
   }
@@ -73,7 +71,7 @@ typedef union
   struct
   {
     LexTag tag;
-    char *str;
+    const char *str;
     int len;
   }
   LexString;
@@ -125,12 +123,14 @@ Lex lexGetPrim (void);
 Lex lexGetBinop (void);
 int lexNextPri (void);
 
-Lex lexTempLabel (char *, int);
+Lex lexTempLabel (const char *, int);
 
+int lexAcornBinop (Lex * lex);
+int lexAcornUnop (Lex * lex);
+int lexAcornPrim (Lex * lex);
 
-extern int lexAcornBinop (Lex * lex);
-extern int lexAcornUnop (Lex * lex);
-extern int lexAcornPrim (Lex * lex);
-
+#ifdef DEBUG
+void lexPrint(const Lex * lex);
+#endif
 
 #endif

@@ -1,15 +1,12 @@
-
 /*
  * mnemonics.h
  * Copyright © 1992 Niklas Röjemo
  */
 
-#ifndef _mnemonics_h
-#define _mnemonics_h
+#ifndef mnemonics_header_included
+#define mnemonics_header_included
 
-#ifndef _global_h
 #include "global.h"
-#endif
 
 void m_abs (WORD cc);
 void m_acs (WORD cc);

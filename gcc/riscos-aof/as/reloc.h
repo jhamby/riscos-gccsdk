@@ -3,16 +3,11 @@
  * Copyright © 1992 Niklas Röjemo
  */
 
-#ifndef _reloc_h
-#define _reloc_h
+#ifndef reloc_header_included
+#define reloc_header_included
 
-#ifndef _symbol_h
 #include "symbol.h"
-#endif
-
-#ifndef _value_h
 #include "value.h"
-#endif
 
 typedef enum
 {
@@ -65,5 +60,5 @@ void relocAdrl (WORD ir, Value addr);
 void relocMask (Value mask);
 void relocInt (int size, Value value);
 void relocFloat (int size, Value value);
-void relocAdd (Reloc * new);
+void relocAdd (Reloc * newReloc);
 #endif

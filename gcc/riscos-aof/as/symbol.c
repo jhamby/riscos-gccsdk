@@ -1,8 +1,8 @@
-
 /*
  *   symbol.c
  * Copyright © 1992 Niklas Röjemo
  */
+
 #include "sdk-config.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -13,21 +13,21 @@
 #include <inttypes.h>
 #endif
 
-#include "main.h"
-#include "symbol.h"
-#include "global.h"
-#include "error.h"
 #include "aoffile.h"
-#include "elf.h"
+#include "area.h"
 #include "code.h"
+#include "elf.h"
+#include "error.h"
+#include "global.h"
 #include "help_lex.h"
 #include "local.h"
-#include "area.h"
+#include "main.h"
 #include "output.h"
+#include "symbol.h"
 
 #define SYMBOL_OUTPUT(sym) \
-  (((sym)->type & (SYMBOL_EXPORT|SYMBOL_KEEP))>0 && \
-   (((sym)->type & SYMBOL_DEFINED)>0 || (sym)->used > -1))
+  (((sym)->type & (SYMBOL_EXPORT|SYMBOL_KEEP)) > 0 \
+    && (((sym)->type & SYMBOL_DEFINED) > 0 || (sym)->used > -1))
   /* must be exported & defined, or imported and referenced */
 int (SYMBOL_OUTPUT) (const Symbol *);	/* typedef it */
 
@@ -37,9 +37,9 @@ static Symbol *
 symbolNew (int len, const char *str)
 {
   Symbol *result;
-  if ((result = (Symbol *) malloc (sizeof (Symbol) + len)) != 0)
+  if ((result = (Symbol *) malloc (sizeof (Symbol) + len)) != NULL)
     {
-      result->next = 0;
+      result->next = NULL;
       result->type = result->declared = result->offset = 0;
       result->value.Tag.t = ValueIllegal;
       result->value.Tag.v = ValueConst;
@@ -49,17 +49,15 @@ symbolNew (int len, const char *str)
       result->str[len] = 0;
     }
   else
-    {
-      printf("%d  %s\n", sizeof (Symbol) + len, str);
-      errorOutOfMem ("symbolNew");
-    }
+    errorOutOfMem ("symbolNew");
+
   return result;
 }
 
 static BOOL
-EqSymLex (Symbol * str, Lex * lx)
+EqSymLex (const Symbol * str, const Lex * lx)
 {
-  char *s, *l;
+  const char *s, *l;
   int i;
   if (str->len != lx->LexId.len)
     return FALSE;
@@ -139,15 +137,16 @@ symbolGet (Lex l)
 }
 
 Symbol *
-symbolFind (Lex l)
+symbolFind (const Lex * l)
 {
   Symbol **isearch;
-  if (l.tag != LexId)
+
+  if (l->tag != LexId)
     return NULL;
-  isearch = &symbolTable[l.LexId.hash];
+  isearch = &symbolTable[l->LexId.hash];
   while (*isearch)
     {
-      if (EqSymLex (*isearch, &l))
+      if (EqSymLex (*isearch, l))
 	return *isearch;
       isearch = &((*isearch)->next);
     }
@@ -319,6 +318,7 @@ symbolSymbolOutput (FILE * outfile)
 		  break;
 		default:
 		  errorLine (0, 0, ErrorSerious, FALSE, "Internal symbolSymbolOutput: not possible (%s) (0x%x)", sym->str, value.Tag.t);
+		  break;
 		}
 	      asym.Value = v;
 	      if ((asym.Type = sym->type) & SYMBOL_ABSOLUTE)
@@ -348,6 +348,7 @@ symbolSymbolOutput (FILE * outfile)
 	}
 }
 
+#ifndef NO_ELF_SUPPORT
 static int
 findAreaIndex (struct AREA * area) {
   Symbol *ap;
@@ -453,6 +454,7 @@ one time */
                   break;
                 default:
                   errorLine (0, 0, ErrorSerious, FALSE, "Internal symbolSymbolOutput: not possible (%s) (0x%x)", sym->str, value.Tag.t);
+                  break;
                 }
               asym.st_value = v;
               if (sym->type & SYMBOL_ABSOLUTE)
@@ -493,3 +495,4 @@ one time */
 	  fwrite ((void *) &asym, sizeof (Elf32_Sym), 1, outfile);
 	}
 }
+#endif

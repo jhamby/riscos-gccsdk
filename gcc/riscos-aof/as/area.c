@@ -14,26 +14,24 @@
 #include <inttypes.h>
 #endif
 
-#include "lex.h"
-#include "hash.h"
-#include "symbol.h"
+#include "area.h"
 #include "commands.h"
 #include "error.h"
-#include "input.h"
 #include "expr.h"
-#include "area.h"
 #include "get.h"
+#include "hash.h"
+#include "input.h"
+#include "lex.h"
+#include "main.h"
+#include "symbol.h"
 
-#define DOUBLE_UP_TO 128*1024
-#define GROWSIZE      16*1024
+#define DOUBLE_UP_TO (128*1024)
+#define GROWSIZE      (16*1024)
 
-Symbol *areaCurrent = 0;
-Symbol *areaEntry = 0;
+Symbol *areaCurrent = NULL;
+Symbol *areaEntry = NULL;
 int areaEntryOffset;
-
-Symbol *areaHead = 0;
-
-extern int apcs_32bit, apcs_softfloat, apcs_fpv3;
+Symbol *areaHead = NULL;
 
 void
 areaError (void)
@@ -55,10 +53,10 @@ areaNew (int type)
       res->next = areaHead;
       res->type = type | AREA_INIT;
       res->imagesize = 0;
-      res->image = 0;
+      res->image = NULL;
       res->norelocs = 0;
-      res->relocs = 0;
-      res->lits = 0;
+      res->relocs = NULL;
+      res->lits = NULL;
     }
   else
     errorOutOfMem ("areaNew");
@@ -68,15 +66,15 @@ areaNew (int type)
 static BOOL
 areaImage (Area * area, int newsize)
 {
-  unsigned char *new;
+  unsigned char *newImage;
   if (area->imagesize)
-    new = realloc (area->image, newsize);
+    newImage = realloc (area->image, newsize);
   else
-    new = malloc (newsize);
-  if (new)
+    newImage = malloc (newsize);
+  if (newImage)
     {
       area->imagesize = newsize;
-      area->image = new;
+      area->image = newImage;
       return TRUE;
     }
   else
@@ -104,7 +102,7 @@ areaGrow (Area * area, int mingrow)
 void
 areaInit (void)
 {
-  areaCurrent = 0;
+  areaCurrent = NULL;
 }
 
 void
@@ -206,6 +204,7 @@ c_reserve (void)
       break;
     default:
       error (ErrorError, TRUE, "Unresolved reserve not possible");
+      break;
     }
 }
 

@@ -3,8 +3,8 @@
  * Copyright © 1997 Darren Salt
  */
 
-#ifndef _depend_h
-#define _depend_h
+#ifndef depend_header_included
+#define depend_header_included
 
 #include <stdio.h>
 

@@ -3,8 +3,8 @@
  * Borrowed from Gustav (pmoore@cix.compulink.co.uk) C utilities
  */
 
-#ifndef __chunkfile_h
-#define __chunkfile_h
+#ifndef chunkfile_header_included
+#define chunkfile_header_included
 
 /* Format of a chunk file header - first few bytes of a chunk file */
 

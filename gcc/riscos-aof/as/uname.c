@@ -10,12 +10,11 @@ int dummy = 0;
 #include <string.h>
 #include <stdlib.h>
 
-#include "kernel.h"
+#include "error.h"
 #include "os.h"
+#include "main.h"
 
 #define EXTRA(x) ((x)<<1)	/* Reserve double space */
-
-extern int objasm;
 
 char *
 special1 (char const *dotpos, char const *end)
@@ -83,14 +82,14 @@ uname (const char *name, int PrefixDir)
   int c;
 
   if (!name)
-    return ("");		/* What no filename ! */
+    return "";		/* What no filename ! */
 
   if (EXTRA (c = strlen (name)) > sizeName)
     {				/* Reserve space */
       if (sizeName)
 	free (newName);
       sizeName = c + 100;	/* Add 100 increases chance we don't need to allocate again */
-      if ((newName = malloc (sizeName)) == 0)
+      if ((newName = malloc (sizeName)) == NULL)
 	{
 	  sizeName = 0;
 	  return 0;
@@ -99,8 +98,12 @@ uname (const char *name, int PrefixDir)
 
   if (strchr (name, ':'))
     {
-      if (!tmp)
-	tmp = strdup (getenv ("Wimp$ScrapDir"));
+      if (tmp == NULL
+	  && (tmp = strdup (getenv ("Wimp$ScrapDir"))) == NULL)
+	{
+	  errorOutOfMem("uname");
+	  return NULL;
+	}
       if (strncmp (name, tmp, strlen (tmp)) == 0 && name[strlen (tmp)] == '/')
 	{
 	  /* it's a temporary file */

@@ -1,4 +1,3 @@
-
 /*
  * m_cop.c
  * Copyright © 1992 Niklas Röjemo
@@ -11,21 +10,20 @@
 #include <inttypes.h>
 #endif
 
-#include "mnemonics.h"
-#include "error.h"
-#include "option.h"
-#include "input.h"
-#include "expr.h"
-#include "reloc.h"
-#include "put.h"
 #include "area.h"
+#include "error.h"
+#include "expr.h"
 #include "get.h"
 #include "help_cop.h"
+#include "input.h"
+#include "main.h"
+#include "mnemonics.h"
+#include "option.h"
+#include "put.h"
+#include "reloc.h"
 #include "targetcpu.h"
 
-extern int pedantic;
-
-static void 
+static void
 coprocessor (BOOL CopOnly, int ir, int maxop)	/* cp#,cpop,cpdst,cplhs,cprhs {,info} */
 {
   /* int cop = CP_NUMBER (getCopNum ()); */
@@ -88,7 +86,7 @@ coprocessor (BOOL CopOnly, int ir, int maxop)	/* cp#,cpop,cpdst,cplhs,cprhs {,in
   putIns (ir);
 }
 
-void 
+void
 m_cdp (WORD cc)			/* cdp CC cp#,cpop,cpdst,cplhs,cprhs {,info} */
 {
   coprocessor (TRUE, cc | 0x0e000000, 15);
@@ -96,13 +94,13 @@ m_cdp (WORD cc)			/* cdp CC cp#,cpop,cpdst,cplhs,cprhs {,info} */
 
 /** REGISTER TRANSFER **/
 
-void 
+void
 m_mcr (WORD cc)
 {
   coprocessor (FALSE, cc | 0x0e000010, 15);
 }
 
-void 
+void
 m_mrc (WORD cc)
 {
   coprocessor (FALSE, cc | 0x0e100010, 15);

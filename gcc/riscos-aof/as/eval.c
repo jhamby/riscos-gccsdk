@@ -1,4 +1,3 @@
-
 /*
  * eval.c
  * Copyright © 1992 Niklas Röjemo
@@ -7,25 +6,23 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include "global.h"
-#include "eval.h"
-#include "help_eval.h"
+
 #include "error.h"
+#include "eval.h"
+#include "global.h"
+#include "help_eval.h"
 #include "include.h"
+#include "os.h"
 
-#ifndef SEEK_END
-#define SEEK_END 2
-#endif
-
-
-static int 
-ememcmp (Value * lv, Value * rv)
-{				/* No validation checking on value types! */
-  register int lvl = lv->ValueString.len;
-  register int rvl = rv->ValueString.len;
+/* No validation checking on value types! */
+static int
+ememcmp (Value * lv, const Value * rv)
+{
+  const int lvl = lv->ValueString.len;
+  const int rvl = rv->ValueString.len;
   int a = memcmp (lv->ValueString.s, rv->ValueString.s, lvl < rvl ? lvl : rvl);
   if (a == 0 && lvl != rvl)
-    a = lvl < rvl ? -1 : 1;
+    a = lvl - rvl;
   return a;
 }
 
@@ -55,14 +52,14 @@ ememcmp (Value * lv, Value * rv)
       return TRUE		/* Last ; is where macro is used */
 
 
-BOOL 
-evalBinop (Operator op, Value * lvalue, Value * rvalue)
+BOOL
+evalBinop (Operator op, Value * lvalue, const Value * rvalue)
 {
   switch (op)
     {
     case Op_mul:
-      if ((lvalue->Tag.t == ValueAddr && rvalue->Tag.t == ValueInt) ||
-	  (lvalue->Tag.t == ValueInt && rvalue->Tag.t == ValueAddr))
+      if ((lvalue->Tag.t == ValueAddr && rvalue->Tag.t == ValueInt)
+	  || (lvalue->Tag.t == ValueInt && rvalue->Tag.t == ValueAddr))
 	{
 	  lvalue->ValueInt.i *= rvalue->ValueInt.i;
 	  return TRUE;
@@ -79,6 +76,7 @@ evalBinop (Operator op, Value * lvalue, Value * rvalue)
 	  return TRUE;
 	default:
 	  abort ();
+	  break;
 	}
       return FALSE;
     case Op_div:
@@ -94,6 +92,7 @@ evalBinop (Operator op, Value * lvalue, Value * rvalue)
 	  return TRUE;
 	default:
 	  abort ();
+	  break;
 	}
       return FALSE;
     case Op_mod:
@@ -120,13 +119,14 @@ evalBinop (Operator op, Value * lvalue, Value * rvalue)
 	  lvalue->ValueInt.i += rvalue->ValueInt.i;
 	  return TRUE;
 	}
+      /* FALL THROUGH */
     case Op_concat:		/* fall thru from Op_add */
       if (lvalue->Tag.t == ValueString && rvalue->Tag.t == ValueString)
 	{
-	  char *c = malloc (lvalue->ValueString.len + rvalue->ValueString.len);
-	  if (!c)
+	  char *c;
+	  if ((c = malloc (lvalue->ValueString.len + rvalue->ValueString.len)) == NULL)
 	    {
-	      error (ErrorAbort, FALSE, "Internal evalBinop: out of memory");
+	      errorOutOfMem("evalBinop");
 	      return FALSE;
 	    }
 	  memcpy (c, lvalue->ValueString.s, lvalue->ValueString.len);
@@ -259,12 +259,13 @@ evalBinop (Operator op, Value * lvalue, Value * rvalue)
       return TRUE;
     default:
       error (ErrorError, TRUE, "Illegal binary operator");
+      break;
     }
   error (ErrorError, TRUE, "Internal evalBinop: illegal fall through");
   return FALSE;
 }
 
-BOOL 
+BOOL
 evalUnop (Operator op, Value * value)
 {
   switch (op)
@@ -285,33 +286,41 @@ evalUnop (Operator op, Value * value)
       error (ErrorError, TRUE, "%s not implemented", "fload");
       return TRUE;
     case Op_fsize:
+      {
+      const char *s;
       if (value->Tag.t != ValueString)
 	return FALSE;
-      value->ValueString.s[value->ValueString.len] = 0;
+      if ((s = strndup(value->ValueString.s, value->ValueString.len)) == NULL)
+        {
+          errorOutOfMem("evalUnop");
+          return FALSE;
+        }
       {
-	FILE *fp = getInclude (value->ValueString.s, "r");
-	if (!fp)
+	FILE *fp;
+	if ((fp = getInclude (s, "r")) == NULL)
 	  {
-	    error (ErrorError, TRUE,
-		   "Cannot open file \"%s\"", value->ValueString.s);
+	    error (ErrorError, TRUE, "Cannot open file \"%s\"", s ? s : "");
+	    free((void *)s);
 	    return FALSE;
 	  }
 	if (fseek (fp, 0l, SEEK_END))
 	  {
-	    error (ErrorError, TRUE,
-		 "Cannot seek to end of file \"%s\"", value->ValueString.s);
+	    error (ErrorError, TRUE, "Cannot seek to end of file \"%s\"", s ? s : "");
+	    free((void *)s);
 	    return FALSE;
 	  }
 	if (-1 == (value->ValueInt.i = (int) ftell (fp)))
 	  {
-	    error (ErrorError, TRUE,
-		   "Cannot find size of file \"%s\"", value->ValueString.s);
+	    error (ErrorError, TRUE, "Cannot find size of file \"%s\"", s ? s : "");
+	    free((void *)s);
 	    return FALSE;
 	  }
 	fclose (fp);
+	free((void *)s);
 	value->Tag.t = ValueInt;
       }
       return TRUE;
+      }
     case Op_lnot:
       if (value->Tag.t != ValueBool)
 	return FALSE;
@@ -357,9 +366,11 @@ evalUnop (Operator op, Value * value)
 	  default:
 	    return FALSE;
 	  }
-	value->ValueString.s = strdup (num);
-	if (!value->ValueString.s)
-	  return FALSE;
+	if ((value->ValueString.s = strdup (num)) == NULL)
+	  {
+	    errorOutOfMem("evalUnop");
+	    return FALSE;
+	  }
 	value->ValueString.len = strlen (num);
 	value->Tag.t = ValueString;
       }
@@ -369,19 +380,21 @@ evalUnop (Operator op, Value * value)
 	char num[2];
 	if (value->Tag.t != ValueInt)
 	  return FALSE;
-	num[0] = value->ValueInt.i;
-	if (num[0] == 0)
+	if ((num[0] = value->ValueInt.i) == 0)
 	  error (ErrorWarning, TRUE, ":CHR:0 is a problem...");
 	num[1] = 0;
-	value->ValueString.s = strdup (num);
-	if (!value->ValueString.s)
-	  return FALSE;
-	value->ValueString.len = strlen (num);
+	if ((value->ValueString.s = strdup (num)) == NULL)
+	  {
+	    errorOutOfMem("evalUnop");
+	    return FALSE;
+	  }
+	value->ValueString.len = 1;
 	value->Tag.t = ValueString;
       }
       return TRUE;
     default:
       error (ErrorError, TRUE, "Illegal unary operator");
+      break;
     }
   error (ErrorSerious, FALSE, "Internal evalUnop: illegal fall through");
   return FALSE;

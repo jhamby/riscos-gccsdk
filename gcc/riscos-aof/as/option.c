@@ -1,8 +1,8 @@
-
 /*
  * option.c
  * Copyright © 1992 Niklas Röjemo
  */
+
 #include "sdk-config.h"
 #include <ctype.h>
 #ifdef HAVE_STDINT_H
@@ -11,15 +11,12 @@
 #include <inttypes.h>
 #endif
 
-#include "option.h"
 #include "error.h"
 #include "input.h"
+#include "main.h"
+#include "option.h"
 
-extern int fussy, pedantic;
-extern int uc;
-
-
-static WORD 
+static WORD
 getCond (void)
 {
   WORD cc = AL;
@@ -152,7 +149,7 @@ getCond (void)
 }
 
 
-static WORD 
+static WORD
 getDir (BOOL ldm)
 {
   WORD dir = optionError;
@@ -215,7 +212,7 @@ getDir (BOOL ldm)
 }
 
 
-static WORD 
+static WORD
 getPrec (int P)
 {
   switch (inputGetUC ())
@@ -233,7 +230,7 @@ getPrec (int P)
 }
 
 
-static WORD 
+static WORD
 getRound (void)
 {
   switch (inputLookUC ())
@@ -252,7 +249,7 @@ getRound (void)
 }
 
 
-static WORD 
+static WORD
 isOK (WORD option)
 {
   if (inputLook () && !isspace (inputGet ()))
@@ -262,14 +259,14 @@ isOK (WORD option)
 }
 
 
-WORD 
+WORD
 optionCond (void)
 {
   return isOK (getCond ());
 }
 
 
-WORD 
+WORD
 optionCondS (void)
 {
   WORD option = getCond ();
@@ -282,7 +279,7 @@ optionCondS (void)
 }
 
 
-WORD 
+WORD
 optionCondSP (void)
 {
   WORD option = getCond () | S_FLAG;
@@ -301,7 +298,7 @@ optionCondSP (void)
 }
 
 
-WORD 
+WORD
 optionCondB (void)
 {
   WORD option = getCond ();
@@ -314,7 +311,7 @@ optionCondB (void)
 }
 
 
-WORD 
+WORD
 optionCondBT (void)		/* also does signed byte, (un)signed halfword */
 {
   WORD option = getCond ();
@@ -331,6 +328,7 @@ optionCondBT (void)		/* also does signed byte, (un)signed halfword */
 	  break;
 	default:
 	  option = optionError;
+	  break;
 	}
     }
   else
@@ -356,7 +354,7 @@ optionCondBT (void)		/* also does signed byte, (un)signed halfword */
 }
 
 
-WORD 
+WORD
 optionCondDirLdm (void)
 {
   WORD option = getCond ();
@@ -366,7 +364,7 @@ optionCondDirLdm (void)
 }
 
 
-WORD 
+WORD
 optionCondDirStm (void)
 {
   WORD option = getCond ();
@@ -376,14 +374,14 @@ optionCondDirStm (void)
 }
 
 
-WORD 
+WORD
 optionCondLfmSfm (void)
 {
   return getCond ();
 }
 
 
-WORD 
+WORD
 optionCondPrecRound (void)
 {
   WORD option = getCond ();
@@ -393,7 +391,7 @@ optionCondPrecRound (void)
 }
 
 
-WORD 
+WORD
 optionCondOptPrecRound (void)
 {
   WORD optionCC = getCond ();
@@ -404,7 +402,7 @@ optionCondOptPrecRound (void)
 }
 
 
-WORD 
+WORD
 optionCondPrec_P (void)
 {
   WORD option = getCond ();
@@ -414,7 +412,7 @@ optionCondPrec_P (void)
 }
 
 
-WORD 
+WORD
 optionCondL (void)
 {
   WORD option = getCond ();
@@ -431,7 +429,7 @@ optionCondL (void)
 
 
 
-WORD 
+WORD
 optionCondOptRound (void)
 {
   WORD optionCC = getCond ();
@@ -439,7 +437,7 @@ optionCondOptRound (void)
 }
 
 
-WORD 
+WORD
 optionLinkCond (void)		/* 'b' is matched before call */
 {
   if (inputLookUC () != 'l')
@@ -478,7 +476,7 @@ optionLinkCond (void)		/* 'b' is matched before call */
 }
 
 
-WORD 
+WORD
 optionExceptionCond (void)
 {
   if (inputLookUC () != 'e')
@@ -502,7 +500,7 @@ optionExceptionCond (void)
 }
 
 
-WORD 
+WORD
 optionAdrL (void)
 {
   WORD option = getCond ();

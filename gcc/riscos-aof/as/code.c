@@ -2,6 +2,7 @@
  * code.c
  * Copyright © 1992 Niklas Röjemo
  */
+
 #include "sdk-config.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -11,14 +12,14 @@
 #include <inttypes.h>
 #endif
 
-#include "main.h"
+#include "aoffile.h"
+#include "area.h"
 #include "code.h"
 #include "error.h"
 #include "eval.h"
-#include "area.h"
-#include "option.h"
 #include "input.h"
-#include "aoffile.h"
+#include "main.h"
+#include "option.h"
 #include "storage.h"
 
 static Code Program[CODE_SIZECODE];
@@ -27,6 +28,8 @@ static Value Stack[CODE_SIZESTACK];
 
 static LateInfo LateHeap[CODE_SIZELATE];
 static int LateHeapPtr;
+
+static int Sp;				/* Used by codeEvalLow and codeEvalLowest */
 
 BOOL exprNotConst;
 
@@ -45,14 +48,14 @@ codeNewLateInfo (Symbol * symbol)
   return &LateHeap[LateHeapPtr++];
 }
 
-void 
+void
 codeInit (void)
 {
   FirstFreeIns = LateHeapPtr = 0;
   exprNotConst = FALSE;
 }
 
-void 
+void
 codeOperator (Operator op)
 {
   if (FirstFreeIns < CODE_SIZECODE)
@@ -64,7 +67,7 @@ codeOperator (Operator op)
     error (ErrorSerious, FALSE, "Internal codeOp: overflow");
 }
 
-void 
+void
 codeSymbol (Symbol * symbol)
 {
   if (FirstFreeIns < CODE_SIZECODE)
@@ -97,6 +100,7 @@ codeSymbol (Symbol * symbol)
 	      break;
 	    default:
 	      error (ErrorSerious, FALSE, "Internal codeSymbol: illegal symbol value");
+	      break;
 	    }
 	}
       else
@@ -110,7 +114,7 @@ codeSymbol (Symbol * symbol)
     error (ErrorSerious, FALSE, "Internal codeSymbol: overflow (1)");
 }
 
-void 
+void
 codePosition (Symbol * area)
 {
   if (area)
@@ -123,15 +127,15 @@ codePosition (Symbol * area)
     error (ErrorError, FALSE, "'.' found, but no area is defined");
 }
 
-void 
+void
 codeStorage (void)
 {
   Value value = storageValue ();	/* Must be ValueInt */
   codeInt (value.ValueInt.i);
 }
 
-void 
-codeString (int len, char *str)
+void
+codeString (int len, const char *str)
 {
   if (FirstFreeIns < CODE_SIZECODE)
     {
@@ -144,7 +148,7 @@ codeString (int len, char *str)
     error (ErrorSerious, FALSE, "Internal codeString: overflow");
 }
 
-void 
+void
 codeInt (int value)
 {
   if (FirstFreeIns < CODE_SIZECODE)
@@ -157,7 +161,7 @@ codeInt (int value)
     error (ErrorSerious, FALSE, "Internal codeInt: overflow");
 }
 
-void 
+void
 codeFloat (FLOAT value)
 {
   if (FirstFreeIns < CODE_SIZECODE)
@@ -170,7 +174,7 @@ codeFloat (FLOAT value)
     error (ErrorSerious, FALSE, "Internal codeFloat: overflow");
 }
 
-void 
+void
 codeBool (BOOL value)
 {
   if (FirstFreeIns < CODE_SIZECODE)
@@ -184,9 +188,7 @@ codeBool (BOOL value)
 }
 
 
-int Sp;				/* Used by codeEvalLow and codeEvalLowest */
-
-static BOOL 
+static BOOL
 codeEvalLowest (int size, Code * program)
 /* True if codeEvalLowest succeeded */
 {
@@ -212,8 +214,8 @@ codeEvalLowest (int size, Code * program)
 	  Stack[++Sp] = program[Pp].CodeValue.value;
 	  break;
 	case CodeSymbol:
-	  if (program[Pp].CodeSymbol.symbol->type & SYMBOL_DEFINED &&
-	      !(program[Pp].CodeSymbol.symbol->type & SYMBOL_AREA))
+	  if ((program[Pp].CodeSymbol.symbol->type & SYMBOL_DEFINED)
+	      && !(program[Pp].CodeSymbol.symbol->type & SYMBOL_AREA))
 	    {
 	      /* This can happen in the relocation phase. */
 	      switch (program[Pp].CodeSymbol.symbol->value.Tag.t)
@@ -237,6 +239,7 @@ codeEvalLowest (int size, Code * program)
 		  error (ErrorSerious, FALSE,
 			 "Internal codeEvalLow: illegal value for symbol %s",
 			 program[Pp].CodeSymbol.symbol->str);
+		  break;
 		}
 	    }
 	  else
@@ -248,18 +251,19 @@ codeEvalLowest (int size, Code * program)
 	  break;
 	default:
 	  error (ErrorSerious, FALSE, "Internal codeEvalLow: illegal expression");
+	  break;
 	}
     }
   return TRUE;
 }
 
-Value 
+Value
 codeEval (ValueTag legal)
 {
   return codeEvalLow (legal, FirstFreeIns, Program);
 }
 
-Value 
+Value
 codeEvalLow (ValueTag legal, int size, Code * program)
 {
   Value Result;
@@ -294,28 +298,28 @@ Code *
 codeCopy (int len, Code * code)
 {
   int i;
-  Code *new = malloc (len * sizeof (Code));
-  if (new)
+  Code *newCode = malloc (len * sizeof (Code));
+  if (newCode)
     for (i = 0; i < len; i++)
       {
-	switch (new[i].Tag = code[i].Tag)
+	switch (newCode[i].Tag = code[i].Tag)
 	  {
 	  case CodeOperator:
-	    new[i].CodeOperator.op = code[i].CodeOperator.op;
+	    newCode[i].CodeOperator.op = code[i].CodeOperator.op;
 	    break;
 	  case CodeValue:
-	    new[i].CodeValue.value = valueCopy (code[i].CodeValue.value);
+	    newCode[i].CodeValue.value = valueCopy (code[i].CodeValue.value);
 	    break;
 	  case CodeSymbol:
-	    new[i].CodeSymbol.symbol = code[i].CodeSymbol.symbol;
+	    newCode[i].CodeSymbol.symbol = code[i].CodeSymbol.symbol;
 	  }
       }
   else
     errorOutOfMem ("codeCopy");
-  return new;
+  return newCode;
 }
 
-int 
+int
 codeEqual (int len, Code * a, Code * b)
 {
   int i;

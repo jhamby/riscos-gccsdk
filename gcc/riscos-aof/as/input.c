@@ -2,6 +2,7 @@
  *  input.c
  * Copyright © 1992 Niklas Röjemo
  */
+
 #include "sdk-config.h"
 #include <ctype.h>
 #include <stdlib.h>
@@ -15,35 +16,35 @@
 #endif
 
 #include "error.h"
+#include "filestack.h"
 #include "global.h"
 #include "input.h"
-#include "os.h"
-#include "filestack.h"
-#include "uname.h"
-#include "macros.h"
 #include "lex.h"
+#include "macros.h"
+#include "main.h"
+#include "os.h"
+#include "uname.h"
 
-#define MAX_LINE 4096
-
-extern int gcc_backend;
-extern int dde;
-extern int objasm;
-extern int local;		/* these externs from main.c */
-extern int pedantic;
+#define MAX_LINE (4096)
 
 FILE *asmfile;
-
-static char workBuff[MAX_LINE + 1]; /* holds each line from input file */
-char *inputName = NULL;
-
 long int inputLineNo;
 BOOL inputExpand = TRUE;
 BOOL inputRewind = FALSE;
+char *inputName = NULL;
 
-/* Keep global as these are used by the inline versions of some input
-   functions.  */
-char *input_buff = NULL;
-char *input_pos, *input_mark;
+static char *input_buff = NULL;
+static char *input_pos, *input_mark;
+static char workBuff[MAX_LINE + 1]; /* holds each line from input file */
+
+static BOOL inputArgSub (void);
+
+/* Debug only:
+ */
+const char *inputGiveRestLine(void)
+{
+  return input_pos;
+}
 
 char
 inputLook (void)
@@ -68,7 +69,7 @@ inputLookUC (void)
 int
 inputComment (void)
 {
-  int c = *input_pos;
+  const int c = *input_pos;
   return c == 0 || c == ';' || (gcc_backend && c == '@');
 }
 
@@ -165,7 +166,7 @@ char *
 inputRest (void)
 {
   char *t = input_pos;
-  register char *p = input_pos - 1;
+  char *p = input_pos - 1;
   while (*++p);
   input_pos = p;
   return t;
@@ -219,11 +220,11 @@ inputRollback (void)
 void
 inputInit (char *infile)
 {
-  if (input_buff == NULL)
-    {
-      /* 256 bytes of overflow */
-      input_buff = (char *) malloc (MAX_LINE + 256);
-    }
+  /* 256 bytes of overflow */
+  if (input_buff == NULL
+      && (input_buff = (char *) malloc (MAX_LINE + 256)) == NULL)
+    errorOutOfMem("inputInit");
+
   if (infile && strcmp (infile, "-"))
     {
 #if defined(UNIXLIB) || defined(CROSS_COMPILE)
@@ -242,7 +243,8 @@ inputInit (char *infile)
 #else
 	  inputName = infile;
 #endif
-	  buffer = (char *) malloc (17 * 1024);
+	  if ((buffer = (char *) malloc (17 * 1024)) == NULL)
+	    errorOutOfMem("inputInit");
 	  setvbuf (asmfile, buffer, _IOFBF, 16 * 1024);
 	}
     }
@@ -267,14 +269,14 @@ inputFinish (void)
 }
 
 
-BOOL inputArgSub (void);
-
 /******************************************************************
 * Read a line from the input file into file global |workBuff|, with some
 *   minimal error checking.
 * Application global |inputLineNo| is incremented for each line read
 *
-* Any empty line and any line starting with '#' is discarded
+* Any empty line and any line starting with '#' followed by space and
+* one or more digits is discarded.  The '#' exception is to be able to
+* parse C preprocessed assembler files.
 *
 * If file global |inputExpand| is not set,
 *   then workBuff is copied into application global |input_buff|.
@@ -312,14 +314,25 @@ inputNextLine (void)
   l = strlen (workBuff);
   if (l)
     {
-      /* If we start the line with a '#' then treat the whole
-       * line as a comment.
+      /* If we start the line with a '#' followed by a space and one or
+       * more digits then treat the whole line as a comment.
+       * Like: # 5 "lib1funcs-aof.S"
+       * FIXME: We could do better by using the digits as line number and
+       * the next argument as a file reference of the file before
+       * preprocessing.
        */
-      if (workBuff[0] == '#')
+      if (workBuff[0] == '#' && workBuff[1] == ' ')
 	{
-	  (input_pos = input_buff)[0] = 0;
-	  return TRUE;
+	  int i;
+	  for (i = 2; workBuff[i] != '\0' && isdigit(workBuff[i]); ++i)
+	    ;
+	  if (i > 2 && workBuff[i] == ' ')
+	    {
+	      (input_pos = input_buff)[0] = 0;
+	      return TRUE;
+	    }
 	}
+
       if (workBuff[l - 1] != '\n')
 	{
 	  if ((l = getc (asmfile)) != EOF && l != '\n')
@@ -331,6 +344,7 @@ inputNextLine (void)
       else
 	workBuff[l - 1] = 0;
     }
+
 ret:
   if (!inputExpand)
     {
@@ -348,7 +362,7 @@ ret:
 *
 ****************************************************************/
 
-BOOL
+static BOOL
 inputArgSub (void)
 {
   Lex label;
@@ -470,7 +484,7 @@ inputArgSub (void)
 	      input_buff[ptr++] = *label.LexId.str;
 	      break;
 	    }
-	  sym = symbolFind (label);
+	  sym = symbolFind (&label);
 	  if (sym)
 	    {
 	      switch (sym->value.Tag.t)
@@ -500,11 +514,15 @@ inputArgSub (void)
 		case ValueLateLabel:
 		case ValueAddr:
 		  {
-		    char c = label.LexId.str[label.LexId.len];
-		    label.LexId.str[label.LexId.len] = 0;
+		    const char *s;
+		    if ((s = strndup(label.LexId.str, label.LexId.len)) == NULL)
+		      {
+		        errorOutOfMem("inputArgSub");
+		        return FALSE;
+		      }
 		    error (ErrorError, TRUE, "$ expansion '%s' is a pointer",
-			   label.LexId.str);
-		    label.LexId.str[label.LexId.len] = c;
+			   s);
+		    free((void *)s);
 		  }
 		  break;
 		default:
@@ -526,12 +544,16 @@ inputArgSub (void)
 	    }
 	  else
 	    {
-	      char c;
-	    unknown:c = label.LexId.str[label.LexId.len];
-	      label.LexId.str[label.LexId.len] = 0;
+	      const char *s;
+	    unknown:
+	      if ((s = strndup(label.LexId.str, label.LexId.len)) == NULL)
+	        {
+	          errorOutOfMem("inputArgSub");
+	          return FALSE;
+	        }
 	      error (ErrorError, TRUE, "Unknown value '%s' for $ expansion",
-		     label.LexId.str);
-	      label.LexId.str[label.LexId.len] = c;
+		     s);
+	      free((void *)s);
 	      input_buff[ptr++] = '$';
 	    }
 	}
@@ -576,10 +598,18 @@ inputSymbol (int *ilen, char del)
     }
   else
     {
+      /* We do allow labels beginning with '#' */
+      if (*p == '#')
+        ++p;
       while ((c = *p) != 0
-             && (isalnum (c) || c == '_'
-		 || (c == '$' && local && (p[1] == 'l' || p[1] == 'L')
-		     && p[2] != '.' && p[2] != '_' && !isalpha (p[2]))))
+             && (isalnum (c)
+		 || c == '_'
+		 || (c == '$'
+		     && local
+		     && (p[1] == 'l' || p[1] == 'L')
+		     && p[2] != '.'
+		     && p[2] != '_'
+		     && !isalpha (p[2]))))
 	{
 	  p++;
 	  if (c == '\\' && *p)
@@ -593,7 +623,7 @@ inputSymbol (int *ilen, char del)
 
 
 void
-inputThisInstead (char *p)
+inputThisInstead (const char *p)
 {
   strcpy (input_pos = input_mark = input_buff, p);
 }

@@ -3,14 +3,12 @@
  * Copyright © 1992 Niklas Röjemo
  */
 
-#ifndef _help_lex_h
-#define _help_lex_h
+#ifndef help_lex_header_included
+#define help_lex_header_included
 
-#ifndef _global_h
 #include "global.h"
-#endif
 
-WORD lexGetCharFromString (int *ilen, char **istr);
-WORD lexChar2Int (BOOL rev, int len, char *str);
+WORD lexGetCharFromString (int *ilen, const char **istr);
+WORD lexChar2Int (BOOL rev, int len, const char *str);
 
 #endif

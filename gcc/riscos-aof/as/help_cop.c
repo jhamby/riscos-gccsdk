@@ -1,8 +1,8 @@
-
 /*
  * help_cop.c
  * Copyright © 1992 Niklas Röjemo
  */
+
 #include "sdk-config.h"
 #ifdef HAVE_STDINT_H
 #include <stdint.h>
@@ -11,19 +11,19 @@
 #endif
 #include <stdlib.h>
 
+#include "area.h"
+#include "code.h"
 #include "error.h"
 #include "expr.h"
+#include "fix.h"
+#include "get.h"
 #include "help_cop.h"
 #include "input.h"
-#include "area.h"
-#include "get.h"
 #include "option.h"
-#include "value.h"
-#include "code.h"
-#include "fix.h"
 #include "reloc.h"
+#include "value.h"
 
-int 
+int
 help_copInt (int max, const char *msg)
 {
   Value i;
@@ -46,7 +46,7 @@ help_copInt (int max, const char *msg)
 }
 
 
-WORD 
+WORD
 help_copAddr (WORD ir, BOOL stack)
 {
   BOOL pre, up = TRUE;
@@ -108,6 +108,7 @@ help_copAddr (WORD ir, BOOL stack)
 		      break;
 		    default:
 		      error (ErrorError, TRUE, "Illegal offset expression");
+		      break;
 		    }
 		  if (!pre)
 		    ir |= WB_FLAG;	/* If postfix, set writeback */
@@ -176,10 +177,12 @@ help_copAddr (WORD ir, BOOL stack)
 	      ir = (ir & ~PRECISION_MEM_PACKED) | PRECISION_MEM_DOUBLE;
 	      litInt (8, offset);
 	      /* note that litFloat==litInt, so there's no litFloat */
+	      break;
 	    }
 	  break;
 	default:
 	  abort ();
+	  break;
 	}
       break;
     default:
@@ -210,7 +213,9 @@ help_copAddr (WORD ir, BOOL stack)
 	  break;
 	default:
 	  error (ErrorError, TRUE, "Illegal address expression");
+	  break;
 	}
+      break;
     }
   return ir;
 }

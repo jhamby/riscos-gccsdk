@@ -4,13 +4,13 @@
  */
 
 #include <ctype.h>
-#include "global.h"
+
 #include "error.h"
+#include "global.h"
 #include "help_lex.h"
+#include "main.h"
 
-extern int objasm;
-
-static int 
+static int
 char2digit (char c)
 {
   if (c > 'a')
@@ -20,10 +20,10 @@ char2digit (char c)
   return c - '0';
 }
 
-WORD 
-lexGetCharFromString (int *ilen, char **istr)
+WORD
+lexGetCharFromString (int *ilen, const char **istr)
 {
-  char *str = *istr;
+  const char *str = *istr;
   int len = *ilen;
   char c;
 
@@ -111,6 +111,7 @@ lexGetCharFromString (int *ilen, char **istr)
 		    }
 		  len -= 2;
 		  str += 2;
+		  break;
 		}
 	      break;
 	    case '0':
@@ -143,11 +144,13 @@ lexGetCharFromString (int *ilen, char **istr)
 		    }
 		  len -= 3;
 		  str += 3;
+		  break;
 		}
 	      break;
 	    default:		/* Do not understand */
 	      error (ErrorError, TRUE, "Illegal character after \\");
 	      c = *str++;
+	      break;
 	    }
 	}
     }
@@ -161,8 +164,8 @@ lexGetCharFromString (int *ilen, char **istr)
   return c;
 }
 
-WORD 
-lexChar2Int (BOOL rev, int len, char *str)
+WORD
+lexChar2Int (BOOL rev, int len, const char *str)
 {
   char c[4];
   int i = 0;

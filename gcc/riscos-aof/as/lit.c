@@ -2,6 +2,7 @@
  * lit.c
  * Copyright © 1992 Niklas Röjemo
  */
+
 #include "sdk-config.h"
 #include <stdlib.h>
 #ifdef HAVE_STDINT_H
@@ -10,13 +11,15 @@
 #include <inttypes.h>
 #endif
 
-#include "error.h"
-#include "input.h"
 #include "area.h"
-#include "reloc.h"
-#include "put.h"
+#include "error.h"
 #include "fix.h"
+#include "input.h"
 #include "lit.h"
+#include "put.h"
+#include "reloc.h"
+
+static LitList *cache = NULL;
 
 static LitInfo *
 litFind (LitInfo * p, RelocTag tag, WORD extra, int notbefore, Value value)
@@ -31,50 +34,49 @@ litFind (LitInfo * p, RelocTag tag, WORD extra, int notbefore, Value value)
   return 0;
 }
 
-static LitList *cache = 0;
-
 static LitList *
 litListNew (LitList * next, int offset)
 {
-  LitList *new;
+  LitList *newLitList;
+
   if (cache)
     {
-      new = cache;
-      cache = new->next;
+      newLitList = cache;
+      cache = newLitList->next;
     }
   else
-    new = malloc (sizeof (LitList));
-  if (new)
+    newLitList = malloc (sizeof (LitList));
+  if (newLitList)
     {
-      new->next = next;
-      new->offset = offset;
-      new->lineno = inputLineNo;
+      newLitList->next = next;
+      newLitList->offset = offset;
+      newLitList->lineno = inputLineNo;
     }
   else
     errorOutOfMem ("litListNew");
-  return new;
+  return newLitList;
 }
 
 static LitInfo *
 litInfoNew (LitInfo * more, RelocTag tag, WORD extra, Value value)
 {
-  LitInfo *new = malloc (sizeof (LitInfo));
-  if (new)
+  LitInfo *newLitList = malloc (sizeof (LitInfo));
+  if (newLitList)
     {
-      new->next = more;
-      new->used = 0;
-      new->reloc.Tag = tag;
-      new->reloc.lineno = -1;
-      new->reloc.offset = -1;
-      new->reloc.extra = extra;
-      new->reloc.value = valueCopy (value);
+      newLitList->next = more;
+      newLitList->used = 0;
+      newLitList->reloc.Tag = tag;
+      newLitList->reloc.lineno = -1;
+      newLitList->reloc.offset = -1;
+      newLitList->reloc.extra = extra;
+      newLitList->reloc.value = valueCopy (value);
     }
   else
     errorOutOfMem ("litInfoNew");
-  return new;
+  return newLitList;
 }
 
-static void 
+static void
 litNew (RelocTag tag, WORD extra, int offset, int notbefore, Value value)
 {
   LitInfo *p = litFind (areaCurrent->area.info->lits, tag, extra, notbefore, value);
@@ -86,7 +88,7 @@ litNew (RelocTag tag, WORD extra, int offset, int notbefore, Value value)
   p->used = litListNew (p->used, offset);
 }
 
-void 
+void
 litInt (int size, Value value)
 {
   if (areaCurrent)
@@ -97,7 +99,7 @@ litInt (int size, Value value)
     error (ErrorError, TRUE, "No area defined");
 }
 
-void 
+void
 litOrg (LitInfo * li)
 {
   LitList *ll, *nll;

@@ -1,11 +1,10 @@
-
 /*
  * output.h
  * Copyright © 1992 Niklas Röjemo
  */
 
-#ifndef _output_h
-#define _output_h
+#ifndef output_header_included
+#define output_header_included
 
 void outputInit (char *outfile);
 void outputFinish (void);
@@ -23,7 +22,5 @@ unsigned ourword (unsigned val);
 #define armword(x) (x)
 #define ourword(x) (x)
 #endif
-
-
 
 #endif

@@ -1,11 +1,10 @@
-
 /*
  * commands.h
  * Copyright © 1992 Niklas Röjemo
  */
 
-#ifndef _commands_h
-#define _commands_h
+#ifndef commands_header_included
+#define commands_header_included
 
 #include "symbol.h"
 

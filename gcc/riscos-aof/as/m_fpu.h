@@ -1,15 +1,12 @@
-
 /*
  * m_fpu.h
  * Copyright © 1992 Niklas Röjemo
  */
 
-#ifndef _m_fpu_h
-#define _m_fpu_h
+#ifndef m_fpu_header_included
+#define m_fpu_header_included
 
-#ifndef _global_h
 #include "global.h"
-#endif
 
 WORD fpuImm (FLOAT d);
 

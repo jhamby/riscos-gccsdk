@@ -3,18 +3,12 @@
  * Copyright © 1997 Darren Salt
  */
 
-#ifndef _macros_h
-#define _macros_h
+#ifndef macros_header_included
+#define macros_header_included
 
-#ifndef _global_h
 #include "global.h"
-#endif
-#ifndef _lex_h
 #include "lex.h"
-#endif
-#ifndef _whileif_h
 #include "whileif.h"
-#endif
 
 #define MACRO_ARG0  16
 #define MACRO_ARG15 31
@@ -39,7 +33,7 @@ typedef struct MacroStack
 {
   Macro *macro;
   long int callno;
-  char *offset;			/* Filled in for *current* macro */
+  const char *offset;		/* Filled in for *current* macro */
   long int lineno;		/* Return to this line... */
   WhileBlock *whilestack;
   int if_depth;
@@ -51,7 +45,7 @@ extern int macroSP;
 extern MacroStack macroStack[10];
 extern char *macroArgs[16];
 extern Macro *macroCurrent;
-extern char *macroPtr;
+extern const char *macroPtr;
 extern long int macroCurrentCallNo;
 
 Macro *macroFind (size_t len, char *);

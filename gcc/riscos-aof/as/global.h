@@ -1,11 +1,10 @@
-
 /*
  * global.h
  * Copyright © 1992 Niklas Röjemo
  */
 
-#ifndef _global_h
-#define _global_h
+#ifndef global_header_included
+#define global_header_included
 
 typedef unsigned int WORD;
 typedef double FLOAT;

@@ -2,7 +2,9 @@
  * m_cpuctrl.c
  * Copyright © 1992 Niklas Röjemo
  */
+
 #include "sdk-config.h"
+#include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
 #ifdef HAVE_STDINT_H
@@ -11,25 +13,25 @@
 #include <inttypes.h>
 #endif
 
-#include "mnemonics.h"
-#include "error.h"
-#include "option.h"
-#include "put.h"
-#include "input.h"
-#include "global.h"
-#include "expr.h"
-#include "code.h"
 #include "area.h"
-#include "help_cpu.h"
-#include "get.h"
-#include "value.h"
+#include "code.h"
+#include "error.h"
+#include "expr.h"
 #include "fix.h"
+#include "get.h"
+#include "global.h"
+#include "help_cpu.h"
+#include "input.h"
+#include "mnemonics.h"
+#include "option.h"
 #include "os.h"
+#include "put.h"
 #include "targetcpu.h"
+#include "value.h"
 
 /** CONTROL **/
 
-void 
+void
 m_branch (WORD cc)
 {
   Value im;
@@ -47,6 +49,7 @@ m_branch (WORD cc)
       codeOperator (Op_sub);
       codeInt (8);
       codeOperator (Op_sub);
+      break;
     }
   im = exprEval (ValueInt | ValueCode | ValueLateLabel);
   switch (im.Tag.t)
@@ -60,11 +63,12 @@ m_branch (WORD cc)
       break;
     default:
       error (ErrorError, TRUE, "Illegal branch destination");
+      break;
     }
   putIns (ir);
 }
 
-void 
+void
 m_swi (WORD cc)
 {
   Value im;
@@ -87,17 +91,26 @@ m_swi (WORD cc)
       break;
     case ValueString:
 #ifdef __riscos__
-      im.ValueString.s[im.ValueString.len] = 0;
-      ir |= switonum (im.ValueString.s);
-      if (ir == 0xFFFFFFFF)
-	error (ErrorError, TRUE, "Unknown SWI name");
+      {
+      const char *s;
+      if ((s = strndup(im.ValueString.s, im.ValueString.len)) == NULL)
+        errorOutOfMem("m_swi");
+      else
+        {
+          ir |= switonum (s);
+          free((void *)s);
+          if (ir == 0xFFFFFFFF)
+	    error (ErrorError, TRUE, "Unknown SWI name");
+	}
+      }
 #else
       error (ErrorError, TRUE,
-	     "Sorry, RISC OS is required to look up the SWI name");
+	     "RISC OS is required to look up the SWI name");
 #endif
       break;
     default:
       error (ErrorError, TRUE, "Illegal SWI expression");
+      break;
     }
   putIns (ir);
 }
@@ -105,7 +118,7 @@ m_swi (WORD cc)
 
 /** EXTENSION **/
 
-void 
+void
 m_adr (WORD cc)
 {
   WORD ir = cc & ~1, ir2 = 0;	/* bit 0 set to indicate ADRL */
@@ -160,12 +173,12 @@ static signed int regs[3] =
  * [2] Stack fp vars    0 = no, 1..4 = f4-f(3+n)
  */
 
-void 
+void
 m_stack (void)
 {
   static const unsigned int lim[3] =
   {4, 6, 4};
-  static const int
+  static const unsigned int
     arg_regs[] =
   {0x00000000, 0xE92D0001, 0xE92D0003, 0xE92D0007, 0xE92D000F}, push_inst[] =
   {0xE92DD800, 0xE92DD810, 0xE92DD830, 0xE92DD870,
@@ -195,6 +208,7 @@ m_stack (void)
 	      break;
 	    default:
 	      error (ErrorError, TRUE, "Illegal register class %c", c);
+	      break;
 	    }
 	  if (regs[reg] != -1)
 	    error (ErrorError, TRUE, "Register class %c duplicated", c);
@@ -238,7 +252,7 @@ m_stack (void)
 
 /** APCS epilogue **/
 
-static void 
+static void
 apcsEpi (WORD cc, const int *pop_inst, const char *op)
 {
   static const int pfp_inst[]
@@ -255,7 +269,7 @@ apcsEpi (WORD cc, const int *pop_inst, const char *op)
 
 /* APCS epilogue - return */
 
-void 
+void
 m_ret (WORD cc)
 {
   static const int pop_inst[]
@@ -267,7 +281,7 @@ m_ret (WORD cc)
 
 /* APCS epilogue - tail call */
 
-void 
+void
 m_tail (WORD cc)
 {
   static const int pop_inst[]
@@ -283,7 +297,7 @@ m_tail (WORD cc)
 
 /* PSR access */
 
-static WORD 
+static WORD
 getpsr (BOOL only_all)
 {
   WORD saved;
@@ -348,6 +362,7 @@ getpsr (BOOL only_all)
 	      break;
 	    default:
 	      error (ErrorError, TRUE, "Unrecognised PSR subset");
+	      break;
 	    }
 	  if (p)
 	    {
@@ -364,7 +379,7 @@ getpsr (BOOL only_all)
 }
 
 
-void 
+void
 m_msr (WORD cc)
 {
   cpuWarn (ARM6);
@@ -397,7 +412,7 @@ m_msr (WORD cc)
 }
 
 
-void 
+void
 m_mrs (WORD cc)
 {
   cpuWarn (ARM6);

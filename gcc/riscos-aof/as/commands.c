@@ -14,36 +14,35 @@
 #include <inttypes.h>
 #endif
 
-#include "main.h"
+#include "area.h"
+#include "code.h"
 #include "commands.h"
+#include "decode.h"
 #include "depend.h"
 #include "error.h"
-#include "input.h"
-#include "output.h"
-#include "lex.h"
-#include "help_lex.h"
 #include "expr.h"
-#include "code.h"
-#include "value.h"
-#include "put.h"
-#include "fix.h"
-#include "include.h"
 #include "filestack.h"
-#include "area.h"
-#include "lit.h"
-#include "macros.h"
+#include "fix.h"
 #include "hash.h"
-#include "symbol.h"
+#include "help_lex.h"
+#include "include.h"
+#include "input.h"
+#include "lex.h"
+#include "lit.h"
 #include "local.h"
+#include "macros.h"
+#include "main.h"
 #include "os.h"
-
-extern FILE *asmfile;		/* in input.c */
-
+#include "output.h"
+#include "put.h"
+#include "symbol.h"
+#include "value.h"
 
 static Symbol *
 c_define (const char *msg, Symbol * sym, ValueTag legal)
 {
   Value value;
+
   if (!sym)
     error (ErrorError, FALSE, "Missing label before %s", msg);
   sym->type |= SYMBOL_ABSOLUTE;
@@ -64,14 +63,14 @@ c_define (const char *msg, Symbol * sym, ValueTag legal)
 }
 
 
-void 
+void
 c_equ (Symbol * symbol)
 {
   (void) c_define ("equ", symbol, ValueAll);
 }
 
 
-void 
+void
 c_fn (Symbol * symbol)
 {
   int no = c_define ("float register", symbol, ValueInt)->value.ValueInt.i;
@@ -84,7 +83,7 @@ c_fn (Symbol * symbol)
 }
 
 
-void 
+void
 c_rn (Symbol * symbol)
 {
   int no = c_define ("register", symbol, ValueInt)->value.ValueInt.i;
@@ -97,7 +96,7 @@ c_rn (Symbol * symbol)
 }
 
 
-void 
+void
 c_cn (Symbol * symbol)
 {
   int no = c_define ("coprocessor register", symbol, ValueInt)->value.ValueInt.i;
@@ -109,7 +108,7 @@ c_cn (Symbol * symbol)
     }
 }
 
-void 
+void
 c_cp (Symbol * symbol)
 {
   int no = c_define ("coprocessor number", symbol, ValueInt)->value.ValueInt.i;
@@ -122,7 +121,7 @@ c_cp (Symbol * symbol)
 }
 
 
-void 
+void
 c_ltorg (void)
 {
   if (areaCurrent)
@@ -132,7 +131,7 @@ c_ltorg (void)
 }
 
 
-static void 
+static void
 defineint (int size)
 {
   Value value;
@@ -154,7 +153,7 @@ defineint (int size)
 	  if (size == 1)
 	    {			/* Lay out a string */
 	      int len = value.ValueString.len;
-	      char *str = value.ValueString.s;
+	      const char *str = value.ValueString.s;
 	      while (len > 0)
 		putData (1, lexGetCharFromString (&len, &str));
 	    }
@@ -168,6 +167,7 @@ defineint (int size)
 	  break;
 	default:
 	  error (ErrorError, TRUE, "Illegal %s expression", "int");
+	  break;
 	}
       skipblanks ();
     }
@@ -176,7 +176,7 @@ defineint (int size)
 }
 
 
-void 
+void
 c_head (void)
 {
   int i;
@@ -192,7 +192,7 @@ c_head (void)
       if (areaCurrent)
 	{
 	  int len = value.ValueString.len;
-	  char *str = value.ValueString.s;
+	  const char *str = value.ValueString.s;
 	  while (len > 0)
 	    putData (1, lexGetCharFromString (&len, &str));
 	  putData (1, 0);
@@ -200,6 +200,7 @@ c_head (void)
       break;
     default:
       error (ErrorError, TRUE, "Illegal %s expression", "string");
+      break;
     }
   if (areaCurrent)
     {
@@ -212,27 +213,27 @@ c_head (void)
 }
 
 
-void 
+void
 c_dcb (void)
 {
   defineint (1);
 }
 
 
-void 
+void
 c_dcw (void)
 {
   defineint (2);
 }
 
 
-void 
+void
 c_dcd (void)
 {
   defineint (4);
 }
 
-static void 
+static void
 definereal (int size)
 {
   Value value;
@@ -257,6 +258,7 @@ definereal (int size)
 	  break;
 	default:
 	  error (ErrorError, TRUE, "Illegal %s expression", "float");
+	  break;
 	}
       skipblanks ();
     }
@@ -265,35 +267,35 @@ definereal (int size)
 }
 
 
-void 
+void
 c_dcfd (void)
 {
   definereal (8);
 }
 
 
-void 
+void
 c_dcfe (void)
 {
   error (ErrorError, FALSE, "Not implemented: dcf%c %s", 'e', inputRest ());
 }
 
 
-void 
+void
 c_dcfs (void)
 {
   definereal (4);
 }
 
 
-void 
+void
 c_dcfp (void)
 {
   error (ErrorError, FALSE, "Not implemented: dcf%c %s", 'p', inputRest ());
 }
 
 
-static void 
+static void
 symFlag (int flag, int declared, const char *err)
 {
   Symbol *sym;
@@ -312,28 +314,28 @@ symFlag (int flag, int declared, const char *err)
 }
 
 
-void 
+void
 c_globl (void)
 {
   symFlag (SYMBOL_REFERENCE, 1, "exported");
 }
 
 
-void 
+void
 c_strong (void)
 {
   symFlag (SYMBOL_STRONG, 0, "marked 'strong'");
 }
 
 
-void 
+void
 c_keep (void)
 {
   symFlag (SYMBOL_KEEP, 1, "marked 'keep'");
 }
 
 
-void 
+void
 c_import (void)
 {
   int c;
@@ -355,7 +357,7 @@ c_import (void)
 }
 
 
-void 
+void
 c_get (void)
 {
   char *filename, *cptr;
@@ -368,8 +370,7 @@ c_get (void)
       return;
     }
   inputExpand = FALSE;
-  filename = strdup (inputRest ());
-  if (!filename)
+  if ((filename = strdup (inputRest ())) == NULL)
     errorOutOfMem ("c_get");
   for (cptr = filename; *cptr && !isspace (*cptr); cptr++);
   if (*cptr)
@@ -421,8 +422,7 @@ c_lnk (void)
   if (if_depth)
     if_depth--;
   testUnmatched ();
-  filename = strdup (inputRest ());
-  if (!filename)
+  if ((filename = strdup (inputRest ())) == NULL)
     errorOutOfMem ("c_lnk");
 #ifdef __riscos__
   dependPut (" ", filename, "");
@@ -451,23 +451,23 @@ c_lnk (void)
 }
 
 
-void 
+void
 c_idfn (void)
 {
-  idfn_text = strdup (inputRest ());
+  if ((idfn_text = strdup (inputRest ())) == NULL)
+    errorOutOfMem("c_idfn");
   skiprest ();
 }
 
 
-void 
+void
 c_bin (void)
 {
   char *filename, *cptr;
   FILE *binfp;
 
   inputExpand = FALSE;
-  filename = strdup (inputRest ());
-  if (!filename)
+  if ((filename = strdup (inputRest ())) == NULL)
     errorOutOfMem ("c_bin");
   for (cptr = filename; *cptr && !isspace (*cptr); cptr++);
   *cptr = '\0';
@@ -486,10 +486,7 @@ c_bin (void)
 }
 
 
-extern int returnvalue;
-
-
-void 
+void
 c_end (void)
 {
   FILE *fp;
@@ -512,7 +509,7 @@ c_end (void)
 }
 
 
-void 
+void
 c_assert (void)
 {
   Value value;

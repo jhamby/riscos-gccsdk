@@ -1,20 +1,18 @@
-
 /*
-   ** A simple and fast generic string hasher based on Peter K. Pearson's
-   ** article in CACM 33-6, pp. 677.
+** A simple and fast generic string hasher based on Peter K. Pearson's
+** article in CACM 33-6, pp. 677.
  */
 
 #include "hash.h"
 
-int 
-hashstr (char *s, int maxn, int hashs)
+int
+hashstr (const char *s, int maxn, int hashs)
 /* s string to hash */
 /* maxn maximum number of chars to consider */
 /* hashs hash table size. */
 {
-  register int h;
-  register unsigned char *p;
-  register int i;
+  int h, i;
+  const unsigned char *p;
   static const int T[] =
   {
     1, 87, 49, 12, 176, 178, 102, 166, 121, 193, 6, 84, 249, 230, 44, 163,
@@ -34,12 +32,12 @@ hashstr (char *s, int maxn, int hashs)
     140, 36, 210, 172, 41, 54, 159, 8, 185, 232, 113, 196, 231, 47, 146, 120,
     51, 65, 28, 144, 254, 221, 93, 189, 194, 139, 112, 43, 71, 109, 184, 209,
   };
-  for (h = 0, i = 0, p = (unsigned char *) s; *p && i < maxn; i++, p++)
+  for (h = 0, i = 0, p = (const unsigned char *) s; *p && i < maxn; i++, p++)
     h = T[h ^ *p];
   if (hashs > 256 && *s)
     {
       int oh = h;
-      for (i = 1, p = (unsigned char *) s, h = (*p++ + 1) & 0xff; *p && i < maxn; i++, p++)
+      for (i = 1, p = (const unsigned char *) s, h = (*p++ + 1) & 0xff; *p && i < maxn; i++, p++)
 	h = T[h ^ *p];
       h += (oh << 8);
     }

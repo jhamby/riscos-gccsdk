@@ -40,12 +40,6 @@ ThrowbackSeriousError		* 2
 FSControl_CanonicalisePath	* 37
 
 
-	IMPORT	|__rt_stkovf_split_small|
-	IMPORT	strlen
-	IMPORT	malloc
-	IMPORT	strcpy
-
-
 	= "switonum",0
 	ALIGN
 	& &FF00000C

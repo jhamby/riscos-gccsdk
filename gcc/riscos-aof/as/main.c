@@ -1,8 +1,8 @@
-
 /*
  *  main.c
  * Copyright © 1992 Niklas Röjemo
  */
+
 #include "sdk-config.h"
 #include <setjmp.h>
 #include <stdio.h>
@@ -16,16 +16,16 @@
 #include <inttypes.h>
 #endif
 
-#include "main.h"
-#include "input.h"
-#include "output.h"
-#include "error.h"
-#include "asm.h"
 #include "area.h"
-#include "os.h"
+#include "asm.h"
+#include "error.h"
 #include "include.h"
-#include "version.h"
+#include "input.h"
+#include "main.h"
+#include "os.h"
+#include "output.h"
 #include "targetcpu.h"
+#include "version.h"
 #ifndef CROSS_COMPILE
 #include "depend.h"
 #endif
@@ -47,7 +47,6 @@ int local = 1;
 int objasm = 0;
 int uc = 0;
 int apcs_32bit = 1;
-int apcs_softfloat = 0;
 int apcs_fpv3 = 1;
 int elf = 0;
 
@@ -59,34 +58,45 @@ static void
 as_help (char *progname)
 {
   fprintf (stderr,
-	   "AS AOF Assembler  Versionm %s %s  [GCCSDK build]"
+	   "AS AOF"
+#ifndef NO_ELF_SUPPORT
+	   "/ELF"
+#endif
+	   " Assembler  Version %s %s  [GCCSDK build]"
 	   "\n"
 	   "Usage: %s [option]... <asmfile>\n"
 	   "\n"
 	   "Options:\n"
-	   "-o objfile        Destination AOF file\n"
-       "-Idirectory       Search 'directory' for included assembler files\n"
-	   "-pedantic   -p    Display extra warnings\n"
-	   "-verbose    -v    Display progress information\n"
-	   "-fussy      -f    Display conversion information\n"
-	   "-dde              Replace '@' in filenames with <Prefix$Dir>\n"
-	   "-throwback  -tb   Throwback errors to a text editor\n"
-	   "-autocast   -ac   Enable casting from integer to float\n"
-	   "-target     -t    Target ARM CPU (ARM2...SA110)\n"
-	   "-gas              Support some GNU GAS keywords\n"
-	   "-noalign    -na   Don't auto-align words and halfwords\n"
-	   "-nolocal    -nl   No builtin LOCAL support\n"
-	   "-objasm     -obj  More compatibility with ObjAsm\n"
-	   "-upper      -up   Mnemonics must be in upper case\n"
-	   "-help -h -H -?    Display this help\n"
-	   "-version    -ver  Display the version number\n"
-	   "-From asmfile     Source assembler file (Objasm compatibility)\n"
-	   "-To objfile       Destination AOF file (Objasm compatibility)\n"
-	   "-apcs26           26-bit APCS AREAs\n"
-	   "-apcs32           32-bit APCS AREAs (default)\n"
-	   "-apcsfpv2         Use floating point v2 AREAs\n"
-	   "-apcsfpv3         Use floating point v3 AREAs (SFM, LFM) (default)\n"
-	   "-elf              Output ELF file\n"
+	   "-o objfile                 Destination AOF file\n"
+	   "-Idirectory                Search 'directory' for included assembler files\n"
+	   "-pedantic      -p          Display extra warnings\n"
+	   "-verbose       -v          Display progress information\n"
+	   "-fussy         -f          Display conversion information\n"
+	   "-dde                       Replace '@' in filenames with <Prefix$Dir>\n"
+#ifndef CROSS_COMPILE
+	   "-throwback     -tb         Throwback errors to a text editor\n"
+#endif
+	   "-autocast      -ac         Enable casting from integer to float\n"
+	   "-target        -t          Target ARM CPU (ARM2...SA110)\n"
+	   "-gas                       Support some GNU GAS keywords (NOT IMPLEMENTED)\n"
+#ifndef CROSS_COMPILE
+	   "-depend <file> -d <file>   Write 'make' source file dependency information to 'file'\n"
+#endif
+	   "-noalign       -na         Don't auto-align words and halfwords\n"
+	   "-nolocal       -nl         No builtin LOCAL support\n"
+	   "-objasm        -obj        More compatibility with ObjAsm\n"
+	   "-upper         -up         Mnemonics must be in upper case\n"
+	   "-help          -h -H -?    Display this help\n"
+	   "-version       -ver        Display the version number\n"
+	   "-From asmfile              Source assembler file (Objasm compatibility)\n"
+	   "-To objfile                Destination AOF file (Objasm compatibility)\n"
+	   "-apcs26                    26-bit APCS AREAs\n"
+	   "-apcs32                    32-bit APCS AREAs (default)\n"
+	   "-apcsfpv2                  Use floating point v2 AREAs\n"
+	   "-apcsfpv3                  Use floating point v3 AREAs (SFM, LFM) (default)\n"
+#ifndef NO_ELF_SUPPORT
+	   "-elf                       Output ELF file\n"
+#endif
 	   "\n",
 	   AS_VERSION, __DATE__, progname);
 }
@@ -95,8 +105,6 @@ as_help (char *progname)
 #ifdef __riscos__
 extern int _kernel_setenv (const char *, const char *);
 static char *prefix;
-#else
-static const char *DependFileName;
 #endif
 
 static int finished = 0;
@@ -105,7 +113,7 @@ static int finished = 0;
 static void
 restore_prefix (void)
 {
-  if (!finished || noerrors ())
+  if (!finished || noerrors () != EXIT_SUCCESS)
     outputRemove ();
 #ifdef __riscos__
   if (prefix)
@@ -137,7 +145,7 @@ main (int argc, char **argv)
     {
       /* No command line arguments supplied. Print help and exit.  */
       as_help (ProgName);
-      return 0;
+      return EXIT_SUCCESS;
     }
   /* Analyse the command line */
 
@@ -152,7 +160,7 @@ main (int argc, char **argv)
 	      else
 		{
 		  fprintf (stderr, "%s: Missing argument after -o\n", ProgName);
-		  return -1;
+		  return EXIT_FAILURE;
 		}
 	    }
 	  else
@@ -163,18 +171,20 @@ main (int argc, char **argv)
 	  if (ObjFileName)
 	    {
 	      fprintf (stderr, "%s: Only one output file allowed\n", ProgName);
-	      return -1;
+	      return EXIT_FAILURE;
 	    }
 	  if (--argc)
 	    ObjFileName = *++argv;
 	  else
 	    {
 	      fprintf (stderr, "%s: Missing filename after -o\n", ProgName);
-	      return -1;
+	      return EXIT_FAILURE;
 	    }
 	}
+#ifndef CROSS_COMPILE
       else if (IS_ARG ("-throwback", "-tb"))
 	throwback++;
+#endif
       else if (IS_ARG ("-autocast", "-ac"))
 	autocast++;
       else if (IS_ARG ("-noalign", "-na"))
@@ -193,7 +203,7 @@ main (int argc, char **argv)
       else if (IS_ARG ("-pedantic", "-p"))
 	pedantic++;
       else if (IS_ARG ("-target", "-t"))
-	as_target (--argc ? *++argv : 0);
+	as_target (--argc ? *++argv : NULL);
       else if (IS_ARG ("-verbose", "-v"))
 	verbose++;
       else if (IS_ARG ("-fussy", "-f"))
@@ -212,16 +222,30 @@ main (int argc, char **argv)
 	dde++;
       else if (!strncmp (*argv, "-I", 2))
 	{
-	  if (addInclude (*argv + 2) < 0)
-	    return 1;
+	  const char *inclDir = *argv + 2;
+	  if (*inclDir == '\0')
+	    {
+	      if (--argc == 0)
+	        {
+	          fprintf(stderr, "%s: Missing include directory after -I\n", ProgName);
+	          return EXIT_FAILURE;
+	        }
+	      inclDir = *++argv;
+	    }
+	  if (addInclude (inclDir) < 0)
+	    return EXIT_FAILURE;
 	}
       else if (IS_ARG ("-version", "-ver"))
 	{
-	  fprintf (stderr, "AS AOF Assembler  Version %s %s  [GCCSDK build]\n",
+	  fprintf (stderr, "AS AOF"
+#ifndef NO_ELF_SUPPORT
+		   "/ELF"
+#endif
+		   " Assembler  Version %s %s  [GCCSDK build]\n",
 		   AS_VERSION, __DATE__);
 
-	  fprintf (stderr, "Copyright (c) 1992-2003 Niklas Rojemo, Darren Salt and GCCSDK Development Team\n");
-	  return 0;
+	  fprintf (stderr, "Copyright (c) 1992-2004 Niklas Rojemo, Darren Salt and GCCSDK Development Team\n");
+	  return EXIT_SUCCESS;
 	}
       else if (IS_ARG ("-H", "-h")
 	       || IS_ARG ("-help", "-?")
@@ -229,50 +253,56 @@ main (int argc, char **argv)
 	{
 	  /* We need the `--help' option for gcc's --help -v  */
 	  as_help (ProgName);
-	  return 0;
+	  return EXIT_SUCCESS;
 	}
       else if (!strcmp (*argv, "-From"))
 	{
-	  if (SourceFileName)
-	    {
-	      fprintf (stderr, "%s: Only one input file allowed\n", ProgName);
-	      return -1;
-	    }
 	  if (--argc)
-	    SourceFileName = *++argv;
+	    {
+	      if (SourceFileName)
+	        {
+	          fprintf (stderr, "%s: Only one input file allowed (%s & %s specified)\n", ProgName, SourceFileName, *++argv);
+	          return EXIT_FAILURE;
+	        }
+	      SourceFileName = *++argv;
+	    }
 	  else
 	    {
 	      fprintf (stderr, "%s: Missing filename after -From\n", ProgName);
-	      return -1;
+	      return EXIT_FAILURE;
 	    }
 	}
 #ifndef CROSS_COMPILE
       else if (IS_ARG ("-depend", "-d"))
 	{
-	  if (DependFileName)
-	    {
-	      fprintf (stderr, "%s: Only one dependency file allowed\n", ProgName);
-	      return -1;
-	    }
 	  if (--argc)
-	    DependFileName = *++argv;
+	    {
+	      if (DependFileName)
+	        {
+	          fprintf (stderr, "%s: Only one dependency file allowed (%s & %s specified)\n", ProgName, DependFileName, *++argv);
+	          return EXIT_FAILURE;
+	        }
+	      DependFileName = *++argv;
+	    }
 	  else
 	    {
 	      fprintf (stderr, "%s: Missing filename after -depend\n", ProgName);
-	      return -1;
+	      return EXIT_FAILURE;
 	    }
 	}
 #endif
+#ifndef NO_ELF_SUPPORT
       else if (IS_ARG ("-elf", "-e"))
         {
           elf++;
         }
+#endif
       else if (**argv != '-')
 	{
 	  if (SourceFileName)
 	    {
-	      fprintf (stderr, "%s: Only one input file allowed\n", ProgName);
-	      return -1;
+	      fprintf (stderr, "%s: Only one input file allowed (%s & %s specified)\n", ProgName, SourceFileName, *argv);
+	      return EXIT_FAILURE;
 	    }
 	  SourceFileName = *argv;
 	}
@@ -308,7 +338,11 @@ main (int argc, char **argv)
       if (setjmp (asmContinue))
 	fprintf (stdout, "%s: Error when writing object file '%s'.\n", ProgName, ObjFileName);
       else
+#ifndef NO_ELF_SUPPORT
 	elf==0?outputAof ():outputElf();
+#else
+	outputAof();
+#endif
 #ifndef CROSS_COMPILE
       dependPut ("\n", "", "");
 #endif

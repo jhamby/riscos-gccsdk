@@ -10,10 +10,10 @@
 #include <inttypes.h>
 #endif
 
-#include "main.h"
-#include "lex.h"
-#include "input.h"
 #include "decode.h"
+#include "input.h"
+#include "lex.h"
+#include "main.h"
 
 #define FINISH_STR(string,Op,Pri) \
   if(notinput(string)) goto illegal; \
@@ -23,7 +23,7 @@
   if(inputGet()!=':') goto illegal; \
   lex->LexOperator.op = Op; lex->LexOperator.pri = PRI(Pri); return 1;
 
-int 
+int
 lexAcornUnop (Lex * lex)
 {
   lex->tag = LexOperator;
@@ -37,7 +37,7 @@ lexAcornUnop (Lex * lex)
       *lex = lexGetPrim ();
       if (lex->tag != LexId)
 	goto illegal;
-      lex->LexInt.value = symbolFind (*lex) != 0;
+      lex->LexInt.value = symbolFind (lex) != NULL;
       lex->tag = LexBool;
       return 1;
     case 'f':
@@ -69,13 +69,14 @@ lexAcornUnop (Lex * lex)
       FINISH_STR ("tr:", Op_str, 10);
     default:
     illegal:;
+      break;
     }
   lex->tag = LexNone;
   return 0;
 }
 
 
-int 
+int
 lexAcornBinop (Lex * lex)
 {
   lex->tag = LexOperator;
@@ -140,6 +141,7 @@ lexAcornBinop (Lex * lex)
       break;
     default:
     illegal:;
+      break;
     }
   lex->tag = LexNone;
   return 0;
@@ -149,7 +151,7 @@ lexAcornBinop (Lex * lex)
 #define FINISH_STR_PRIM(string) if(notinput(string)) goto illegal;
 
 
-int 
+int
 lexAcornPrim (Lex * lex)
 {
   switch (inputGetLower ())
@@ -179,6 +181,7 @@ lexAcornPrim (Lex * lex)
       return 1;
     default:
     illegal:;
+      break;
     }
   lex->tag = LexNone;
   return 0;

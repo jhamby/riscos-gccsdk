@@ -1,4 +1,3 @@
-
 /*
  * AofFile.h
  * Copyright © 1992 Niklas Röjemo
@@ -6,8 +5,8 @@
  * Types that exist in an AOF file.
  */
 
-#ifndef AofFile_h
-#define AofFile_h
+#ifndef aoffile_header_included
+#define aoffile_header_included
 
 typedef struct
 {
@@ -64,8 +63,8 @@ AofHeader;
 #define HOW2_SIDMASK  0x00ffffff
 
 /* Type 3 relocation directive.  */
-#define HOW_TYPE3     (1 << 31)
-#define HOW3_INIT     (1 << 31)
+#define HOW_TYPE3     (1U << 31)
+#define HOW3_INIT     (1U << 31)
 /* Field to be relocated is a byte.  */
 #define HOW3_BYTE     (0 << 24)
 /* Field to be relocated is a half word.  */

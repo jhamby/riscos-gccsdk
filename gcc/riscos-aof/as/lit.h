@@ -3,12 +3,10 @@
  * Copyright © 1992 Niklas Röjemo
  */
 
-#ifndef _lit_h
-#define _lit_h
+#ifndef lit_header_included
+#define lit_header_included
 
-#ifndef _reloc_h
 #include "reloc.h"
-#endif
 
 typedef struct LITLIST
 {

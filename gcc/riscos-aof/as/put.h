@@ -1,16 +1,12 @@
-
 /*
  * put.h
  * Copyright © 1992 Niklas Röjemo
  */
 
-#ifndef _put_h
-#define _put_h
+#ifndef put_header_included
+#define put_header_included
 
-
-#ifndef _global_h
 #include "global.h"
-#endif
 
 void putData (int size, WORD data);
 void putDataFloat (int size, FLOAT data);

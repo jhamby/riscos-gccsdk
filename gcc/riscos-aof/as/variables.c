@@ -2,6 +2,7 @@
  * variables.c
  * Copyright © 1997 Darren Salt
  */
+
 #include "sdk-config.h"
 #include <stdlib.h>
 #include <stdio.h>
@@ -13,26 +14,25 @@
 #include <inttypes.h>
 #endif
 
-#include "variables.h"
-#include "error.h"
-#include "input.h"
-#include "output.h"
-#include "lex.h"
-#include "help_lex.h"
-#include "expr.h"
-#include "code.h"
-#include "value.h"
-#include "put.h"
-#include "fix.h"
-#include "include.h"
-#include "filestack.h"
 #include "area.h"
+#include "code.h"
+#include "error.h"
+#include "expr.h"
+#include "filestack.h"
+#include "fix.h"
+#include "hash.h"
+#include "help_lex.h"
+#include "include.h"
+#include "input.h"
+#include "lex.h"
 #include "lit.h"
 #include "macros.h"
-#include "hash.h"
-#include "symbol.h"
+#include "output.h"
 #include "os.h"
-
+#include "put.h"
+#include "symbol.h"
+#include "value.h"
+#include "variables.h"
 
 typedef struct varPos
   {
@@ -44,10 +44,10 @@ typedef struct varPos
 varPos;
 
 
-static varPos *varList = 0;
+static varPos *varList = NULL;
 
 
-static char 
+static char
 var_type (ValueTag type)
 {
   switch (type)
@@ -65,7 +65,7 @@ var_type (ValueTag type)
 }
 
 
-static void 
+static void
 assign_var (Symbol * sym, ValueTag type)
 {
   sym->value.Tag.t = type;
@@ -80,23 +80,26 @@ assign_var (Symbol * sym, ValueTag type)
       break;
     case ValueString:
       sym->value.ValueString.len = 0;
-      sym->value.ValueString.s = malloc (1);
-      sym->value.ValueString.s[0] = 0;	/* No error checking */
+      if ((sym->value.ValueString.s = calloc (1, 1)) == NULL)
+        errorOutOfMem("assign_var");
       break;
     default:
       abort ();
+      break;
     }
 }
 
 
-static void 
+/* Contents pointed by ptr has to remain valid all the time.
+ */
+static void
 declare_var (const char *ptr, int len, const ValueTag type, BOOL local)
 {
   Lex var;
-  Symbol *sym = 0;
+  Symbol *sym = NULL;
 
-  var = lexTempLabel ((char *) ptr, len);
-  if (local == FALSE && (sym = symbolFind (var)) != NULL)
+  var = lexTempLabel (ptr, len);
+  if (local == FALSE && (sym = symbolFind (&var)) != NULL)
     {
       error (ErrorWarning, TRUE, "Redeclaration of variable '%*s'",
 	     var.LexId.len, var.LexId.str);
@@ -149,7 +152,7 @@ var_inputSymbol (int *len)
 }
 
 
-void 
+void
 c_gbl (ValueTag type, Lex * label)
 {
   char *ptr = NULL;
@@ -169,13 +172,14 @@ c_gbl (ValueTag type, Lex * label)
 }
 
 
-void 
+void
 c_lcl (ValueTag type, Lex * label)
 {
-  char *ptr = NULL;
-  int len = 0;
+  char *ptr;
+  int len;
   varPos *p;
   Symbol *sym;
+  Lex l;
 
   if (!macroSP)
     {
@@ -188,18 +192,22 @@ c_lcl (ValueTag type, Lex * label)
   skipblanks ();
   if (!inputComment ())
     ptr = var_inputSymbol (&len);
+  else
+    {
+      ptr = NULL;
+      len = 0;
+    }
   if (!len)
     {
       error (ErrorError, TRUE, "Missing variable name");
       return;
     }
-  sym = symbolFind (lexTempLabel (ptr, len));
-  p = malloc (sizeof (varPos));
-  if (!p)
+  l = lexTempLabel (ptr, len);
+  sym = symbolFind (&l);
+  if ((p = malloc (sizeof (varPos))) == NULL)
     goto nomem;
   p->next = varList;
-  p->name = strndup (ptr, len);
-  if (!p->name)
+  if ((p->name = strndup (ptr, len)) == NULL)
     goto nomem;
   p->symptr = sym;
   if (sym)
@@ -217,13 +225,13 @@ nomem:
 }
 
 
-void 
+void
 c_set (ValueTag type, Lex * label)
 {
   Value value;
-  const char *c = 0;
-  Symbol *sym = symbolFind (*label);
-  if (sym == 0 || sym->value.Tag.t == ValueIllegal)
+  const char *c = NULL;
+  Symbol *sym = symbolFind (label);
+  if (sym == NULL || sym->value.Tag.t == ValueIllegal)
     c = "undefined";
   else if (sym->value.Tag.v == ValueConst)
     c = "not a variable";
@@ -248,32 +256,33 @@ c_set (ValueTag type, Lex * label)
       break;
 #ifdef DEBUG
     case ValueString:
-      printf ("String: len %i, value %s\n", value.ValueString.len, value.ValueString.s);
+      printf ("c_set: string: <%.*s>\n", value.ValueString.len, value.ValueString.s);
 #endif
     default:
       sym->value = valueCopy (value);
+      break;
     }
 }
 
 
-void 
+void
 var_restoreLocals (void)
 {
   varPos *p, *q = varList;
-  Symbol *sym;
 
   while (p = q, p)
     {
       if (p->symptr)
 	{
 	  if (p->symptr->value.Tag.t == ValueString)
-	    free (p->symptr->value.ValueString.s);
+	    free ((void *)p->symptr->value.ValueString.s);
 	  memcpy (p->symptr, &p->symbol, sizeof (Symbol));
 	}
       else
 	{
-	  sym = symbolFind (lexTempLabel (p->name, strlen (p->name)));
-	  if (sym)
+	  Lex l = lexTempLabel (p->name, strlen (p->name));
+	  Symbol *sym;
+	  if ((sym = symbolFind (&l)) != NULL)
 	    {
 	      sym->type = 0;	/* undefined */
 	      sym->value.Tag.t = ValueIllegal;
@@ -283,11 +292,13 @@ var_restoreLocals (void)
       free (p->name);
       free (p);
     }
-  varList = 0;
+  varList = NULL;
 }
 
 
-void 
+/* Contents pointed by def has to remain valid all the time.
+ */
+void
 var_define (const char *def)
 {
   Lex var;
@@ -297,7 +308,7 @@ var_define (const char *def)
   const char *i = strchr (def, '=');
   len = i ? i - def : strlen (def);
   declare_var (def, len, ValueString, FALSE);
-  var = lexTempLabel ((char *) def, len);
+  var = lexTempLabel (def, len);
   if (!i)
     i = "";
   else
@@ -306,5 +317,6 @@ var_define (const char *def)
   value.Tag.v = ValueString;
   value.ValueString.len = strlen (i);
   value.ValueString.s = (char *) i;
-  symbolFind (var)->value = valueCopy (value);
+  /* FIXME: symbolFid() can return NULL here, no ? */
+  symbolFind (&var)->value = valueCopy (value);
 }

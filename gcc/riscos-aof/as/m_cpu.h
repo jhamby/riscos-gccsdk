@@ -1,12 +1,10 @@
-
 /*
  * m_cpu.h
  * Copyright © 1992 Niklas Röjemo
  */
 
-#ifndef _m_cpu_h
-#define _m_cpu_h
-
+#ifndef m_cpu_header_included
+#define m_cpu_header_included
 
 #define M_MNEM 0x01e00000
 

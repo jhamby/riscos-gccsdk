@@ -7,23 +7,25 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#if defined(CROSS_COMPILE) || defined(UNIXLIB)
 #include <unistd.h>
+#endif
 #ifdef HAVE_STDINT_H
 #include <stdint.h>
 #elif HAVE_INTTYPES_H
 #include <inttypes.h>
 #endif
 
-#include "main.h"
 #include "error.h"
+#include "main.h"
 #include "os.h"
 
 #ifndef CROSS_COMPILE
-#ifdef UNIXLIB
-#include <unixlib/local.h>
-#else
-#include "uname.h"
-#endif /* UNIXLIB */
+# ifdef UNIXLIB
+#  include <unixlib/local.h>
+# else
+#  include "uname.h"
+# endif /* UNIXLIB */
 
 char *toriscos (char *name, char *oldsuffixes, char newsuffix)
 {
@@ -75,17 +77,18 @@ char *CanonicalisePath (const char *path1)
       strcpy (filename, path);
     }
   size = 1 - OSCanonicalisePath (filename, 0, 0, 0, 0);
-  buffer = malloc (size);
-  if (buffer)
+  if ((buffer = malloc (size)) == NULL)
     {
-      size = OSCanonicalisePath (filename, buffer, size, 0, 0);
-      if (size == 1)
-	return buffer;
+      errorOutOfMem("CanonicalisePath");
+      return NULL;
     }
+  size = OSCanonicalisePath (filename, buffer, size, 0, 0);
+  if (size == 1)
+    return buffer;
 
   error (ErrorAbort, TRUE, "Internal error in CanonicalisePath");
   exit (-1);
-  return 0;			/* keep the compiler happy */
+  return NULL;			/* keep the compiler happy */
 }
 
 char *
@@ -106,7 +109,7 @@ CanonicaliseFile (const FILE * fh)
     }
   error (ErrorAbort, TRUE, "Internal error in CanonicaliseFile");
   exit (-1);
-  return 0;			/* keep the compiler happy */
+  return NULL;			/* keep the compiler happy */
 }
 
 #endif /* ! CROSS_COMPILE */

@@ -1,8 +1,8 @@
-
 /*
  * expr.c
  * Copyright © 1992 Niklas Röjemo
  */
+
 #include "sdk-config.h"
 #ifdef HAVE_STDINT_H
 #include <stdint.h>
@@ -10,17 +10,17 @@
 #include <inttypes.h>
 #endif
 
-#include "expr.h"
-#include "lex.h"
-#include "error.h"
-#include "global.h"
-#include "symbol.h"
-#include "code.h"
 #include "area.h"
+#include "code.h"
+#include "error.h"
+#include "expr.h"
+#include "global.h"
+#include "lex.h"
+#include "symbol.h"
 
 static void expr (int pri);
 
-static void 
+static void
 prim (void)
 {
   Lex lex = lexGetPrim ();
@@ -73,11 +73,12 @@ prim (void)
       break;
     default:
       error (ErrorError, TRUE, "Illegal expression");
+      break;
     }
 }
 
 
-static void 
+static void
 expr (int pri)
 {
   Lex op;
@@ -99,7 +100,7 @@ expr (int pri)
 }
 
 
-void 
+void
 exprBuild (void)
 {
   codeInit ();
@@ -107,7 +108,7 @@ exprBuild (void)
 }
 
 
-Value 
+Value
 exprEval (ValueTag legal)
 {
   return codeEval (legal);

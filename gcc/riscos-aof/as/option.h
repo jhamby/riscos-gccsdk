@@ -1,15 +1,12 @@
-
 /*
  * option.h
  * Copyright © 1992 Niklas Röjemo
  */
 
-#ifndef _option_h
-#define _option_h
+#ifndef option_header_included
+#define option_header_included
 
-#ifndef _global_h
 #include "global.h"
-#endif
 
 WORD optionCond (void);
 WORD optionCondS (void);

@@ -1,8 +1,8 @@
-
 /*
  * get.c
  * Copyright © 1992 Niklas Röjemo
  */
+
 #include "sdk-config.h"
 #include <string.h>
 #ifdef HAVE_STDINT_H
@@ -11,15 +11,16 @@
 #include <inttypes.h>
 #endif
 
-#include "get.h"
 #include "error.h"
+#include "expr.h"
+#include "fix.h"
+#include "get.h"
+#include "help_cpu.h"
 #include "input.h"
 #include "lex.h"
-#include "symbol.h"
-#include "expr.h"
+#include "os.h"
 #include "reloc.h"
-#include "help_cpu.h"
-#include "fix.h"
+#include "symbol.h"
 
 struct reg_id
   {
@@ -28,7 +29,7 @@ struct reg_id
     int len;
   };
 
-WORD 
+WORD
 getCpuReg (void)
 {
   static const struct reg_id cpu_regs[] =
@@ -40,8 +41,8 @@ getCpuReg (void)
     { "a1", 0, 2 },  { "a2", 1, 2  },  { "a3", 2, 2 },   { "a4", 3, 2 },
     { "v1", 4, 2 },  { "v2", 5, 2  },  { "v3", 6, 2 },   { "v4", 7, 2 },  { "v5", 8, 2  }, { "v6", 9, 2 },
     { "sl", 10, 2 }, { "fp", 11, 2 },  { "ip", 12, 2 },  { "sp", 13, 2 }, { "lr", 14, 2 }, {"pc", 15, 2 },
-    { "rfp", 9, 3 }, { "sb", 9, 2 }    
-  };                 
+    { "rfp", 9, 3 }, { "sb", 9, 2 }
+  };
 
   Lex lexSym;
   unsigned int loop;
@@ -54,8 +55,8 @@ getCpuReg (void)
   if (lexSym.tag == LexId)
     for (loop = 0; loop < sizeof (cpu_regs) / sizeof (struct reg_id); loop++)
       {
-	if ((cpu_regs[loop].len == lexSym.LexId.len) &&
-	 !strncasecmp (cpu_regs[loop].name, lexSym.LexId.str, lexSym.LexId.len))
+	if (cpu_regs[loop].len == lexSym.LexId.len
+	    && !strncasecmp (cpu_regs[loop].name, lexSym.LexId.str, lexSym.LexId.len))
 	  return cpu_regs[loop].reg_no;
       }
 
@@ -73,7 +74,7 @@ getCpuReg (void)
   return 0;
 }
 
-WORD 
+WORD
 getFpuReg (void)
 {
   /* NB since len is fixed at 2, we don't actually use the length */
@@ -113,7 +114,7 @@ getFpuReg (void)
   return 0;
 }
 
-WORD 
+WORD
 getCopReg (void)
 {
   Symbol *sym;
@@ -135,7 +136,7 @@ getCopReg (void)
   return 0;
 }
 
-WORD 
+WORD
 getCopNum (void)
 {
   Symbol *sym;
@@ -157,7 +158,7 @@ getCopNum (void)
   return 0;
 }
 
-static WORD 
+static WORD
 getShiftOp (void)
 {
   WORD r = 0;
@@ -232,12 +233,13 @@ getShiftOp (void)
     default:
     illegal:
       error (ErrorError, TRUE, "Illegal shiftop %c%c%c", inputLook (), inputLookN (1), inputLookN (2));
+      break;
     }
   return r;
 }
 
 
-static WORD 
+static WORD
 getShift (BOOL immonly)
 {
   WORD shift;
@@ -285,7 +287,7 @@ getShift (BOOL immonly)
   return op;
 }
 
-WORD 
+WORD
 getRhs (BOOL immonly, BOOL shift, WORD ir)
 {
   Value im;

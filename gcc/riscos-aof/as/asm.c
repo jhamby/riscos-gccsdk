@@ -1,8 +1,8 @@
-
 /*
  *  asm.c
  * Copyright © 1992 Niklas Röjemo
  */
+
 #include "sdk-config.h"
 #include <setjmp.h>
 #include <stdlib.h>
@@ -15,13 +15,13 @@
 #include <inttypes.h>
 #endif
 
-#include "input.h"
-#include "error.h"
-#include "decode.h"
-#include "lex.h"
 #include "area.h"
 #include "asm.h"
 #include "code.h"
+#include "decode.h"
+#include "error.h"
+#include "input.h"
+#include "lex.h"
 
 /******************************************************************
 * Parse the input file, and perform the assembly.
@@ -30,15 +30,15 @@
 void
 asm_ (void)
 {
-  Lex label;
-  Symbol *symbol;
-
-  /* read each line from the input into niput.c:workBuff,
-  ** if inputExpand is true, then expand the input line into  where necessary
+  /* read each line from the input into input.c:workBuff,
+  ** if inputExpand is true, then expand the input line into where necessary
   */
   while (inputNextLine ())
     {
-    	/* ignore blank lines and comments */
+      Lex label;
+      Symbol *symbol;
+
+	/* ignore blank lines and comments */
       if (inputLook () && !isspace (inputLook ()) && !inputComment ())
 	{
 	  /* Deal with any label */
@@ -52,7 +52,7 @@ asm_ (void)
       else
 	{
 	  label.tag = LexNone;
-	  symbol = 0;
+	  symbol = NULL;
 	}
       skipblanks ();
       if (!inputComment ())
@@ -62,6 +62,7 @@ asm_ (void)
 	}
       else
 	asm_label (&label);
+
       inputExpand = TRUE;
     }
 }

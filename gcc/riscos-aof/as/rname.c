@@ -13,7 +13,6 @@
 
 /* The master file resides at gccsdk/gcc/gcc/config/arm/rname.c */
 
-#define _GNU_SOURCE
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -34,7 +33,9 @@ static const char *prefixes[] =
 static int
 get_directory_name (const char *input, char *output)
 {
+#ifndef CROSS_COMPILE
   const char *t;
+#endif
 
   if (*input == '\0')
     return 0;

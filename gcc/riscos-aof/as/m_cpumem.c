@@ -2,6 +2,7 @@
  * m_cpumem.c
  * Copyright © 1992 Niklas Röjemo
  */
+
 #include "sdk-config.h"
 #ifdef HAVE_STDINT_H
 #include <stdint.h>
@@ -9,19 +10,19 @@
 #include <inttypes.h>
 #endif
 
-#include "mnemonics.h"
+#include "area.h"
+#include "code.h"
 #include "error.h"
+#include "expr.h"
+#include "expr.h"
+#include "fix.h"
+#include "get.h"
+#include "global.h"
+#include "input.h"
+#include "lit.h"
+#include "mnemonics.h"
 #include "option.h"
 #include "put.h"
-#include "input.h"
-#include "global.h"
-#include "expr.h"
-#include "code.h"
-#include "area.h"
-#include "lit.h"
-#include "get.h"
-#include "fix.h"
-#include "expr.h"
 #include "targetcpu.h"
 
 
@@ -208,6 +209,7 @@ dstmem (WORD ir)
 	  error (ErrorError, TRUE, "Illegal address expression");
 	  break;
 	}
+      break;
     }
   putIns (ir);
 }

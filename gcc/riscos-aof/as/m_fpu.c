@@ -1,8 +1,8 @@
-
 /*
  * m_fpu.c
  * Copyright © 1992 Niklas Röjemo
  */
+
 #include "sdk-config.h"
 #ifdef HAVE_STDINT_H
 #include <stdint.h>
@@ -10,21 +10,21 @@
 #include <inttypes.h>
 #endif
 
-#include "mnemonics.h"
-#include "error.h"
-#include "option.h"
-#include "input.h"
-#include "expr.h"
-#include "code.h"
-#include "get.h"
-#include "put.h"
 #include "area.h"
-#include "value.h"
-#include "m_fpu.h"
+#include "code.h"
+#include "error.h"
+#include "expr.h"
 #include "fix.h"
+#include "get.h"
+#include "input.h"
+#include "mnemonics.h"
+#include "m_fpu.h"
+#include "option.h"
+#include "put.h"
 #include "reloc.h"
+#include "value.h"
 
-WORD 
+WORD
 fpuImm (FLOAT d)
 {
   if (d == 0.0)
@@ -63,7 +63,7 @@ fpuImm (FLOAT d)
     return -1;
 }
 
-static WORD 
+static WORD
 getFloatRhs (WORD ir)
 {
   Value im;
@@ -99,7 +99,7 @@ getFloatRhs (WORD ir)
 
 /** DATA dyadic **/
 
-static void 
+static void
 dstlhsrhs (WORD ir)
 {
   WORD op;
@@ -127,79 +127,79 @@ dstlhsrhs (WORD ir)
 }
 
 
-void 
+void
 m_adf (WORD cc)
 {
   dstlhsrhs (M_ADF | cc);
 }
 
-void 
+void
 m_dvf (WORD cc)
 {
   dstlhsrhs (M_DVF | cc);
 }
 
-void 
+void
 m_fdv (WORD cc)
 {
   dstlhsrhs (M_FDV | cc);
 }
 
-void 
+void
 m_fml (WORD cc)
 {
   dstlhsrhs (M_FML | cc);
 }
 
-void 
+void
 m_frd (WORD cc)
 {
   dstlhsrhs (M_FRD | cc);
 }
 
-void 
+void
 m_muf (WORD cc)
 {
   dstlhsrhs (M_MUF | cc);
 }
 
-void 
+void
 m_pol (WORD cc)
 {
   dstlhsrhs (M_POL | cc);
 }
 
-void 
+void
 m_pow (WORD cc)
 {
   dstlhsrhs (M_POW | cc);
 }
 
-void 
+void
 m_rdf (WORD cc)
 {
   dstlhsrhs (M_RDF | cc);
 }
 
-void 
+void
 m_rmf (WORD cc)
 {
   dstlhsrhs (M_RMF | cc);
 }
 
-void 
+void
 m_rpw (WORD cc)
 {
   dstlhsrhs (M_RPW | cc);
 }
 
-void 
+void
 m_rsf (WORD cc)
 {
   dstlhsrhs (M_RSF | cc);
 }
 
-void 
+void
 m_suf (WORD cc)
 {
   dstlhsrhs (M_SUF | cc);
@@ -208,7 +208,7 @@ m_suf (WORD cc)
 
 /** DATA monadic **/
 
-static void 
+static void
 dstrhs (WORD ir)
 {
   WORD op;
@@ -225,97 +225,97 @@ dstrhs (WORD ir)
   putIns (getFloatRhs (ir));
 }
 
-void 
+void
 m_abs (WORD cc)
 {
   dstrhs (M_ABS | cc);
 }
 
-void 
+void
 m_acs (WORD cc)
 {
   dstrhs (M_ACS | cc);
 }
 
-void 
+void
 m_asn (WORD cc)
 {
   dstrhs (M_ASN | cc);
 }
 
-void 
+void
 m_atn (WORD cc)
 {
   dstrhs (M_ATN | cc);
 }
 
-void 
+void
 m_cos (WORD cc)
 {
   dstrhs (M_COS | cc);
 }
 
-void 
+void
 m_exp (WORD cc)
 {
   dstrhs (M_EXP | cc);
 }
 
-void 
+void
 m_lgn (WORD cc)
 {
   dstrhs (M_LGN | cc);
 }
 
-void 
+void
 m_log (WORD cc)
 {
   dstrhs (M_LOG | cc);
 }
 
-void 
+void
 m_mnf (WORD cc)
 {
   dstrhs (M_MNF | cc);
 }
 
-void 
+void
 m_mvf (WORD cc)
 {
   dstrhs (M_MVF | cc);
 }
 
-void 
+void
 m_rnd (WORD cc)
 {
   dstrhs (M_RND | cc);
 }
 
-void 
+void
 m_sin (WORD cc)
 {
   dstrhs (M_SIN | cc);
 }
 
-void 
+void
 m_sqt (WORD cc)
 {
   dstrhs (M_SQT | cc);
 }
 
-void 
+void
 m_tan (WORD cc)
 {
   dstrhs (M_TAN | cc);
 }
 
-void 
+void
 m_urd (WORD cc)
 {
   dstrhs (M_URD | cc);
 }
 
-void 
+void
 m_nrm (WORD cc)
 {
   dstrhs (M_NRM | cc);
@@ -323,7 +323,7 @@ m_nrm (WORD cc)
 
 /** REGISTER TRANSFER **/
 
-void 
+void
 m_fix (WORD cc)
 {
   WORD ir = M_FIX | cc;
@@ -339,7 +339,7 @@ m_fix (WORD cc)
   putIns (getFloatRhs (ir));
 }
 
-void 
+void
 m_flt (WORD cc)
 {
   WORD ir = M_FLT | cc;
@@ -356,7 +356,7 @@ m_flt (WORD cc)
   putIns (ir);
 }
 
-static void 
+static void
 flagtransfer (WORD ir)
 {
   WORD op;
@@ -365,31 +365,31 @@ flagtransfer (WORD ir)
   putIns (ir);
 }
 
-void 
+void
 m_wfs (WORD cc)
 {
   flagtransfer (M_WFS | cc);
 }
 
-void 
+void
 m_rfs (WORD cc)
 {
   flagtransfer (M_RFS | cc);
 }
 
-void 
+void
 m_wfc (WORD cc)
 {
   flagtransfer (M_WFC | cc);
 }
 
-void 
+void
 m_rfc (WORD cc)
 {
   flagtransfer (M_RFC | cc);
 }
 
-static void 
+static void
 comparelow (WORD ir)		/* No precision and no rounding allowed ? */
 {
   ir |= LHS_OP (getFpuReg ());
@@ -404,13 +404,13 @@ comparelow (WORD ir)		/* No precision and no rounding allowed ? */
   putIns (getFloatRhs (ir));
 }
 
-void 
+void
 m_cmf (WORD cc)
 {
   comparelow (M_CMF | cc);
 }
 
-void 
+void
 m_cnf (WORD cc)
 {
   comparelow (M_CNF | cc);

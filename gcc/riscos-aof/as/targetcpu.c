@@ -7,15 +7,16 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
-#include "targetcpu.h"
+
 #include "error.h"
+#include "main.h"
+#include "os.h"
+#include "targetcpu.h"
 
 TargetCPU_t targetCPU = UNKNOWN;
 
 
-extern char *ProgName;		/* from main.c */
-
-void 
+void
 as_target (const char *target)	/* only called from main() */
 {
   static const struct
@@ -96,7 +97,11 @@ as_target (const char *target)	/* only called from main() */
       fprintf (stderr, "%s: Missing target CPU\n", ProgName);
       exit (1);
     }
-  c = strdup (target);
+  if ((c = strdup (target)) == NULL)
+    {
+      errorOutOfMem("as_target");
+      return;
+    }
   n = 0;
   while (c[n])
     {
@@ -119,7 +124,7 @@ as_target (const char *target)	/* only called from main() */
 }
 
 
-BOOL 
+BOOL
 cpuWarn (TargetCPU_t type)	/* true if warning is output */
 {
   if (targetCPU >= type)

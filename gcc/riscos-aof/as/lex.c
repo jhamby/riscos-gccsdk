@@ -2,6 +2,7 @@
  *   lex.c
  * Copyright © 1992 Niklas Röjemo
  */
+
 #include "sdk-config.h"
 #include <ctype.h>
 #include <math.h>
@@ -13,16 +14,16 @@
 #include <inttypes.h>
 #endif
 
-#include "main.h"
+#include "area.h"
 #include "error.h"
-#include "lex.h"
-#include "local.h"
+#include "hash.h"
 #include "help_lex.h"
 #include "input.h"
-#include "hash.h"
-#include "symbol.h"
-#include "area.h"
+#include "lex.h"
+#include "local.h"
+#include "main.h"
 #include "os.h"
+#include "symbol.h"
 
 
 const char Pri[2][10] =
@@ -35,7 +36,7 @@ const char Pri[2][10] =
 static Lex nextbinop;
 static BOOL nextbinopvalid = FALSE;
 
-static int 
+static int
 lexint (int base)
 {
   int res = 0;
@@ -78,7 +79,7 @@ lexint (int base)
 }
 
 
-static FLOAT 
+static FLOAT
 lexfloat (int r)
 {
   FLOAT res = r;
@@ -116,12 +117,13 @@ lexfloat (int r)
 }
 
 
-Lex 
+Lex
 lexGetId (void)
 {
   char c;
   Lex result;
   nextbinopvalid = FALSE;
+
   skipblanks ();
   if ((c = inputGet ()) == '|')
     {
@@ -141,7 +143,9 @@ lexGetId (void)
 	inputPutBack( c );
 #endif
 
-      if (isalpha (c) || c == '.' || c == '_')
+      /* Note: we allow identifiers to begin with '#'.
+       */
+      if (isalpha (c) || c == '.' || c == '_' || c == '#')
 	{
 	  result.tag = LexId;
 	  result.LexId.str = inputSymbol (&result.LexId.len, 0);
@@ -183,7 +187,7 @@ lexReadLocal (int *len, int *label)
 }
 
 
-static Lex 
+static Lex
 lexMakeLocal (int dir)
 {
   int label, len;
@@ -223,7 +227,7 @@ lexMakeLocal (int dir)
 }
 
 
-Lex 
+Lex
 lexGetLocal (void)
 {
   Lex result;
@@ -256,7 +260,7 @@ lexGetLocal (void)
 
 
 
-Lex 
+Lex
 lexGetPrim (void)
 {
   char c;
@@ -330,7 +334,11 @@ lexGetPrim (void)
     case '"':
       result.tag = LexString;
       str = inputSymbol (&len, '"');
-      str = strndup (str, len);
+      if ((str = strndup (str, len)) == NULL)
+        {
+          errorOutOfMem("lexGetPrim");
+          break;
+        }
       if (inputGet () != '"')
 	error (ErrorError, TRUE, "String continues over newline");
       if (objasm)
@@ -346,8 +354,7 @@ lexGetPrim (void)
 		  error (ErrorError, TRUE, "String continues over newline");
 		  break;
 		}
-	      s2 = malloc (len + l1 + 1);
-	      if (!s2)
+	      if ((s2 = malloc (len + l1 + 1)) == NULL)
 		{
 		  errorOutOfMem ("macroAdd");
 		  break;
@@ -424,6 +431,7 @@ lexGetPrim (void)
 		      break;
 		    default:
 		      s1++;
+		      break;
 		    }
 		  *s2++ = l1;
 		}
@@ -488,7 +496,7 @@ lexGetPrim (void)
 	    inputSkip ();
 	    break;
 	  default:
-	    	if (pedantic)
+	    if (pedantic)
 		{
 #if 0
 /*	This warning is confusing to the user, as it warns of a deficiency in as.
@@ -519,6 +527,7 @@ lexGetPrim (void)
 	}
       else
 	result.tag = LexNone;
+      break;
     }
   if (result.tag == LexId && result.LexId.len > 1)
     localMunge (&result);
@@ -592,6 +601,7 @@ lexGetBinop (void)
 	default:
 	  result.LexOperator.op = Op_gt;
 	  result.LexOperator.pri = PRI (4);
+	  break;
 	}
       break;
     case '<':
@@ -616,6 +626,7 @@ lexGetBinop (void)
 	default:
 	  result.LexOperator.op = Op_lt;
 	  result.LexOperator.pri = PRI (4);
+	  break;
 	}
       break;
     case '=':
@@ -670,11 +681,12 @@ lexGetBinop (void)
     default:
       inputUnGet (c);
       result.tag = LexNone;
+      break;
     }
   return result;
 }
 
-int 
+int
 lexNextPri ()
 {
   if (!nextbinopvalid)
@@ -688,9 +700,8 @@ lexNextPri ()
     return -1;
 }
 
-
 Lex
-lexTempLabel (char *ptr, int len)
+lexTempLabel (const char *ptr, int len)
 {
   Lex var;
 
@@ -700,3 +711,54 @@ lexTempLabel (char *ptr, int len)
   var.LexId.hash = hashstr (ptr, len, SYMBOL_TABLESIZE);
   return var;
 }
+
+#ifdef DEBUG
+void
+lexPrint(const Lex *lex)
+{
+  if (lex == NULL)
+    {
+      printf("<NULL> ");
+      return;
+    }
+  switch (lex->tag)
+    {
+    case LexId:
+      printf("Id <%.*s> ", lex->LexId.len, lex->LexId.str);
+      break;
+    case LexString:
+      printf("Str <%.*s> ", lex->LexString.len, lex->LexString.str);
+      break;
+    case LexInt:
+      printf("Int <%d> ", lex->LexInt.value);
+      break;
+    case LexFloat:
+      printf("Flt <%g> ", lex->LexFloat.value);
+      break;
+    case LexOperator:
+      printf("Op <%d, %d> ", lex->LexOperator.op, lex->LexOperator.pri);
+      break;
+    case LexPosition:
+      printf("Pos ");
+      break;
+    case LexStorage:
+      printf("Stor ");
+      break;
+    case LexDelim:
+      printf("Delim <%d> ", lex->LexDelim.delim);
+      break;
+    case Lex00Label:
+      printf("Label <%d> ", lex->Lex00Label.value);
+      break;
+    case LexBool:
+      printf("Bool <%d> ", lex->Lex00Label.value);
+      break;
+    case LexNone:
+      printf("None ");
+      break;
+    default:
+      printf("Unknown lex tag 0x%x ", lex->tag);
+      break;
+    }
+}
+#endif

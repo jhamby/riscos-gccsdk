@@ -1,0 +1,18 @@
+Sun Oct 17 17:45:00 2004  John Tytgat  <John.Tytgat@aaug.net>
+
+	* Removed leading underscores of the preprocessor defines preventing
+	  cyclic includes.
+	* Changed 0 -> NULL for NULL pointers.
+	* Constify several variables, function parameters and struct
+	  elements.
+	* Various fixes to avoid Norcroft compiler warnings.
+	* Identifiers starting with '#' are now allowed, except when they
+	  are followed by a space, one or more digits and a space.
+	* Made ELF code compile conditional (NO_ELF_SUPPORT).
+	* Moved all global option variable declaration into main.h.
+	* lex.c: Added lexPrint() for debugging purposes.
+	* main.c: Using EXIT_SUCCESS/EXIT_FAILURE as return values; Better
+	  option parsing.
+	* value.c: Added valuePrint() for debugging purposes.
+	* version.h: Increased version number from 1.40 to 1.41.
+	* whileif.c: Body of WHILE {TRUE} was incorrectly executed once.

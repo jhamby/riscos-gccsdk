@@ -1,8 +1,8 @@
-
 /*
  * m_cpu.c
  * Copyright © 1992 Niklas Röjemo
  */
+
 #include "sdk-config.h"
 #ifdef HAVE_STDINT_H
 #include <stdint.h>
@@ -10,22 +10,22 @@
 #include <inttypes.h>
 #endif
 
+#include "area.h"
+#include "error.h"
+#include "expr.h"
+#include "get.h"
+#include "global.h"
+#include "input.h"
 #include "main.h"
 #include "mnemonics.h"
-#include "error.h"
+#include "m_cpu.h"
 #include "option.h"
 #include "put.h"
-#include "input.h"
-#include "global.h"
-#include "expr.h"
-#include "area.h"
-#include "get.h"
-#include "m_cpu.h"
 #include "targetcpu.h"
 
 /** DATA none (or optional register) **/
 
-void 
+void
 m_nop (void)
 {
   if (!inputComment ())
@@ -41,7 +41,7 @@ m_nop (void)
 
 /** DATA dst=lhs<op>rhs **/
 
-static void 
+static void
 dstlhsrhs (WORD ir)
 {
   WORD op;
@@ -69,7 +69,7 @@ dstlhsrhs (WORD ir)
   putIns (ir);
 }
 
-static void 
+static void
 dstrhs (WORD ir)
 {
   WORD op;
@@ -87,73 +87,73 @@ dstrhs (WORD ir)
   putIns (ir);
 }
 
-void 
+void
 m_adc (WORD cc)
 {
   dstlhsrhs (cc | M_ADC);
 }
 
-void 
+void
 m_add (WORD cc)
 {
   dstlhsrhs (cc | M_ADD);
 }
 
-void 
+void
 m_and (WORD cc)
 {
   dstlhsrhs (cc | M_AND);
 }
 
-void 
+void
 m_bic (WORD cc)
 {
   dstlhsrhs (cc | M_BIC);
 }
 
-void 
+void
 m_eor (WORD cc)
 {
   dstlhsrhs (cc | M_EOR);
 }
 
-void 
+void
 m_mov (WORD cc)
 {
   dstrhs (cc | M_MOV);
 }
 
-void 
+void
 m_mvn (WORD cc)
 {
   dstrhs (cc | M_MVN);
 }
 
-void 
+void
 m_orr (WORD cc)
 {
   dstlhsrhs (cc | M_ORR);
 }
 
-void 
+void
 m_rsb (WORD cc)
 {
   dstlhsrhs (cc | M_RSB);
 }
 
-void 
+void
 m_rsc (WORD cc)
 {
   dstlhsrhs (cc | M_RSC);
 }
 
-void 
+void
 m_sbc (WORD cc)
 {
   dstlhsrhs (cc | M_SBC);
 }
 
-void 
+void
 m_sub (WORD cc)
 {
   dstlhsrhs (cc | M_SUB);
@@ -161,7 +161,7 @@ m_sub (WORD cc)
 
 /** DATA test **/
 
-static void 
+static void
 lhsrhs (WORD ir)
 {
   WORD op;
@@ -176,30 +176,30 @@ lhsrhs (WORD ir)
   else
     error (ErrorError, TRUE, "%slhs", InsertCommaAfter);
   if ((ir & P_FLAG) && apcs_32bit)
-    error (ErrorWarning, TRUE, "TSTP/TEQP/CMNP/CMPP inadvisable in 32-bit PC configurations"); 
+    error (ErrorWarning, TRUE, "TSTP/TEQP/CMNP/CMPP inadvisable in 32-bit PC configurations");
   ir = getRhs (FALSE, TRUE, ir);
   putIns (ir);
 }
 
-void 
+void
 m_cmn (WORD cc)
 {
   lhsrhs (cc | M_CMN);
 }
 
-void 
+void
 m_cmp (WORD cc)
 {
   lhsrhs (cc | M_CMP);
 }
 
-void 
+void
 m_teq (WORD cc)
 {
   lhsrhs (cc | M_TEQ);
 }
 
-void 
+void
 m_tst (WORD cc)
 {
   lhsrhs (cc | M_TST);
@@ -207,9 +207,7 @@ m_tst (WORD cc)
 
 /** DATA 1a **/
 
-extern int fussy;
-
-static void 
+static void
 onlyregs (BOOL acc, WORD ir)
 {
   WORD dst, rhs, lhs;
@@ -266,19 +264,19 @@ onlyregs (BOOL acc, WORD ir)
   putIns (ir);
 }
 
-void 
+void
 m_mla (WORD cc)
 {
   onlyregs (TRUE, cc | M_MLA);
 }
 
-void 
+void
 m_mul (WORD cc)
 {
   onlyregs (FALSE, cc | M_MUL);
 }
 
-static void 
+static void
 l_onlyregs (WORD ir, const char *op)
 {
   WORD dstl, dsth, lhs, rhs;
@@ -332,25 +330,25 @@ l_onlyregs (WORD ir, const char *op)
   putIns (ir);
 }
 
-void 
+void
 m_smull (WORD cc)
 {
   l_onlyregs (cc | M_SMULL, "SMULL");
 }
 
-void 
+void
 m_smlal (WORD cc)
 {
   l_onlyregs (cc | M_SMLAL, "SMLAL");
 }
 
-void 
+void
 m_umull (WORD cc)
 {
   l_onlyregs (cc | M_UMULL, "UMULL");
 }
 
-void 
+void
 m_umlal (WORD cc)
 {
   l_onlyregs (cc | M_UMLAL, "UMLAL");

@@ -1,11 +1,10 @@
-
 /*
  * help_cop.h
  * Copyright © 1992 Niklas Röjemo
  */
 
-#ifndef _help_cop_h
-#define _help_cop_h
+#ifndef help_cop_header_included
+#define help_cop_header_included
 
 #define CP_NUMBER(n) ((n)<< 8)
 #define CP_DCODE(n)  ((n)<<20)

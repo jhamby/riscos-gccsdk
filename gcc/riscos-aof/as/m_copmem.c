@@ -1,8 +1,8 @@
-
 /*
  * m_copmem.c
  * Copyright © 1992 Niklas Röjemo
  */
+
 #include "sdk-config.h"
 #ifdef HAVE_STDINT_H
 #include <stdint.h>
@@ -10,21 +10,21 @@
 #include <inttypes.h>
 #endif
 
-#include "mnemonics.h"
-#include "error.h"
-#include "option.h"
-#include "input.h"
-#include "expr.h"
-#include "reloc.h"
-#include "put.h"
 #include "area.h"
+#include "error.h"
+#include "expr.h"
 #include "get.h"
 #include "help_cop.h"
+#include "input.h"
+#include "mnemonics.h"
+#include "option.h"
+#include "put.h"
+#include "reloc.h"
 
 /** MEMMORY **/
 
 
-static void 
+static void
 dstmem (WORD ir)
 {
   ir |= CP_NUMBER (help_copInt (15, "coprocessor number"));
@@ -41,13 +41,13 @@ dstmem (WORD ir)
   putIns (ir);
 }
 
-void 
+void
 m_ldc (WORD cc)
 {
   dstmem (cc | 0x0c100000);
 }
 
-void 
+void
 m_stc (WORD cc)
 {
   dstmem (cc | 0x0c000000);

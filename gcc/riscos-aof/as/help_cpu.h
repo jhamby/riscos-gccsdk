@@ -1,11 +1,10 @@
-
 /*
  * help_cpu.h
  * Copyright © 1992 Niklas Röjemo
  */
 
-#ifndef _help_cpu_h
-#define _help_cpu_h
+#ifndef help_cpu_header_included
+#define help_cpu_header_included
 
 int help_cpuImm8s4 (int value);
 

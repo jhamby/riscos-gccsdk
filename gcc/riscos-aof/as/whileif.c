@@ -2,6 +2,7 @@
  * whileif.c
  * Copyright 1997 Darren Salt
  */
+
 #include "sdk-config.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -13,21 +14,29 @@
 #include <inttypes.h>
 #endif
 
+#include "code.h"
 #include "commands.h"
 #include "decode.h"
 #include "error.h"
+#include "expr.h"
+#include "filestack.h"
 #include "input.h"
 #include "lex.h"
-#include "expr.h"
-#include "value.h"
 #include "os.h"
-
+#include "value.h"
 #include "whileif.h"
 
 int if_depth = 0;
+WhileBlock *whileCurrent = NULL;
+
 static BOOL ignore_else = FALSE;
 
-static void 
+static void if_skip (const char *onerror);
+static void while_skip (void);
+static void whileFree (void);
+static BOOL whileReEval (void);
+
+static void
 if_skip (const char *onerror)
 {
   char *str;
@@ -73,7 +82,7 @@ skipped:
 }
 
 
-void 
+void
 c_if (void)
 {
   Value flag;
@@ -93,7 +102,7 @@ c_if (void)
 }
 
 
-void 
+void
 c_else (Lex * label)
 {
   if (!if_depth)
@@ -110,7 +119,7 @@ c_else (Lex * label)
 }
 
 
-void 
+void
 c_endif (Lex * label)
 {
   if (!if_depth)
@@ -123,15 +132,7 @@ c_endif (Lex * label)
 }
 
 
-WhileBlock *whileCurrent = 0;
-
-extern FILE *asmfile;
-extern long int fileCurrentNo;
-
-extern int exprNotConst;	/* from code.c */
-
-
-static void 
+static void
 while_skip (void)
 {
   char *str;
@@ -163,7 +164,7 @@ while_skip (void)
 
 
 
-void 
+void
 c_while (Lex * label)
 {
   WhileBlock *whileNew;
@@ -189,8 +190,15 @@ c_while (Lex * label)
       while_skip ();
       return;
     }
-  whileNew = malloc (sizeof (WhileBlock));
-  if (whileNew == 0)
+#ifdef DEBUG
+  printf("c_while() : expr is <%s>\n", flag.ValueBool.b ? "TRUE" : "FALSE");
+#endif
+  if (!flag.ValueBool.b)
+    {
+      while_skip ();
+      return;
+    }
+  if ((whileNew = malloc (sizeof (WhileBlock))) == NULL)
     {
     nomem:
       errorOutOfMem ("c_while");
@@ -198,8 +206,7 @@ c_while (Lex * label)
     }
   /* Copy expression */
   inputRollback ();
-  whileNew->expr = strdup (inputRest ());
-  if (!whileNew->expr)
+  if ((whileNew->expr = strdup (inputRest ())) == NULL)
     {
       free (whileNew);
       goto nomem;
@@ -223,17 +230,17 @@ c_while (Lex * label)
 }
 
 
-void 
+static void
 whileFree (void)
 {
   WhileBlock *p = whileCurrent;
   whileCurrent = p->prev;
-  free (p->expr);
+  free ((void *)p->expr);
   free (p);
 }
 
 
-static BOOL 
+static BOOL
 whileReEval (void)
 {
   Value flag;
@@ -247,6 +254,9 @@ whileReEval (void)
 	     "WHILE expression must be boolean (treating as FALSE)");
       return FALSE;
     }
+#ifdef DEBUG
+  printf("whileReEval() : expr is <%s>\n", flag.ValueBool.b ? "TRUE" : "FALSE");
+#endif
   if (flag.ValueBool.b)
     switch (whileCurrent->tag)
       {
@@ -260,12 +270,13 @@ whileReEval (void)
 	return TRUE;
       default:
 	error (ErrorError, TRUE, "Internal whileReEval: unrecognised WHILE type");
+	break;
       }
   return FALSE;
 }
 
 
-void 
+void
 c_wend (Lex * label)
 {
   label = label;
@@ -284,22 +295,22 @@ c_wend (Lex * label)
       break;
     default:
       error (ErrorError, TRUE, "Internal c_wend: unrecognised WHILE type");
+      break;
     }
   whileFree ();
 }
 
 
-void 
+void
 testUnmatched (void)
 {
-  int i = 0;
+  int i;
+
   if (if_depth)
     error (ErrorSerious, TRUE, "Unmatched IF%s", "s" + (if_depth > 1));
-  while (whileCurrent)
-    {
-      i++;
-      whileFree ();
-    }
+
+  for (i = 0; whileCurrent != NULL; ++i)
+    whileFree ();
   if (i)
     error (ErrorSerious, TRUE, "Unmatched WHILE%s", "s" + (i > 1));
 }

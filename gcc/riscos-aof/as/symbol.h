@@ -1,21 +1,15 @@
-
 /*
- *   symbol.h
+ * symbol.h
  * Copyright © 1992 Niklas Röjemo
  */
 
-#ifndef _symbol_h
-#define _symbol_h
+#ifndef symbol_header_included
+#define symbol_header_included
 
 #include <stdio.h>
 
-#ifndef _lex_h
 #include "lex.h"
-#endif
-
-#ifndef _value_h
 #include "value.h"
-#endif
 
 #define SYMBOL_LOCAL     0x01	/* Defined with local scope */
 #define SYMBOL_REFERENCE 0x02
@@ -69,15 +63,14 @@ typedef struct SYMBOL
 Symbol;
 
 
-extern Symbol *symbolAdd (Lex l);
-extern Symbol *symbolGet (Lex l);
-extern Symbol *symbolFind (Lex l);
-extern void symbolPrint (void);
+Symbol *symbolAdd (Lex l);
+Symbol *symbolGet (Lex l);
+Symbol *symbolFind (const Lex * l);
 
-extern int symbolFix (void);		/* Returns number of symbols */
-extern int symbolStringSize (void);
-extern void symbolStringOutput (FILE * outfile);
-extern void symbolSymbolOutput (FILE * outfile);
-extern void symbolSymbolElfOutput (FILE * outfile);
+int symbolFix (void);		/* Returns number of symbols */
+int symbolStringSize (void);
+void symbolStringOutput (FILE * outfile);
+void symbolSymbolOutput (FILE * outfile);
+void symbolSymbolElfOutput (FILE * outfile);
 
 #endif

@@ -1,8 +1,8 @@
-
 /*
  * help_eval.c
  * Copyright © 1992 Niklas Röjemo
  */
+
 #include "sdk-config.h"
 #ifdef HAVE_STDINT_H
 #include <stdint.h>
@@ -10,13 +10,13 @@
 #include <inttypes.h>
 #endif
 
+#include "error.h"
+#include "eval.h"
 #include "global.h"
 #include "help_eval.h"
-#include "eval.h"
-#include "error.h"
 #include "symbol.h"
 
-static void 
+static void
 fixValueTag (Value * value)
 {
   LateInfo **c;
@@ -38,7 +38,7 @@ fixValueTag (Value * value)
     value->Tag.t = ValueInt;
 }
 
-void 
+void
 help_evalNegLate (Value * value)
 {
   LateInfo *l;
@@ -47,8 +47,8 @@ help_evalNegLate (Value * value)
       l->factor = -l->factor;
 }
 
-void 
-help_evalSubLate (Value * lvalue, Value * rvalue)
+void
+help_evalSubLate (Value * lvalue, const Value * rvalue)
 {
   LateInfo *l, *r, *rnext;
   if (rvalue->Tag.t == ValueInt)	/* No late info in rvalue */
@@ -84,8 +84,8 @@ help_evalSubLate (Value * lvalue, Value * rvalue)
   fixValueTag (lvalue);
 }
 
-void 
-help_evalAddLate (Value * lvalue, Value * rvalue)
+void
+help_evalAddLate (Value * lvalue, const Value * rvalue)
 {
   LateInfo *l, *r, *rnext;
   if (rvalue->Tag.t == ValueInt)	/* Nothing late info in rvalue */

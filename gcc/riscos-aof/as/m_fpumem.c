@@ -1,8 +1,8 @@
-
 /*
  * mnem_float.c
  * Copyright © 1992 Niklas Röjemo
  */
+
 #include "sdk-config.h"
 #include <ctype.h>
 #ifdef HAVE_STDINT_H
@@ -11,15 +11,15 @@
 #include <inttypes.h>
 #endif
 
-#include "mnemonics.h"
 #include "error.h"
 #include "expr.h"
+#include "get.h"
 #include "help_cop.h"
 #include "input.h"
-#include "get.h"
+#include "mnemonics.h"
 #include "put.h"
 
-static void 
+static void
 dstmem (WORD ir)
 {
   ir |= DST_OP (getFpuReg ());
@@ -27,20 +27,20 @@ dstmem (WORD ir)
   putIns (ir);
 }
 
-void 
+void
 m_stf (WORD cc)
 {
   dstmem (0x0c000100 | cc);
 }
 
-void 
+void
 m_ldf (WORD cc)
 {
   dstmem (0x0c100100 | cc);
 }
 
 
-static void 
+static void
 dstmemx (WORD ir)
 {
   BOOL stack_ia = FALSE;
@@ -101,13 +101,13 @@ dstmemx (WORD ir)
   putIns (ir);
 }
 
-void 
+void
 m_sfm (WORD cc)
 {
   dstmemx (0x0c000200 | cc);
 }
 
-void 
+void
 m_lfm (WORD cc)
 {
   dstmemx (0x0c100200 | cc);

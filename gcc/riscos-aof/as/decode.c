@@ -2,6 +2,7 @@
  * decode.c
  * Copyright © 1992 Niklas Röjemo
  */
+
 #include "sdk-config.h"
 #include <ctype.h>
 #ifdef HAVE_STDINT_H
@@ -9,31 +10,28 @@
 #elif HAVE_INTTYPES_H
 #include <inttypes.h>
 #endif
-
 #include <stdio.h>
-#include "decode.h"
-#include "input.h"
+
+#include "asm.h"
 #include "commands.h"
-#include "whileif.h"
-#include "variables.h"
-#include "mnemonics.h"
-#include "storage.h"
-#include "option.h"
+#include "decode.h"
 #include "error.h"
 #include "filestack.h"
-#include "macros.h"
-#include "asm.h"
+#include "input.h"
 #include "local.h"
-
-
-extern FILE *asmfile;		/* in input.c */
-extern int local;		/* in main.c */
+#include "macros.h"
+#include "main.h"
+#include "mnemonics.h"
+#include "option.h"
+#include "storage.h"
+#include "variables.h"
+#include "whileif.h"
 
 BOOL ignoreInput = FALSE;
 int returnvalue = 0;
 
 
-BOOL 
+BOOL
 notinput (const char *str)
 {
   for (; *str;)
@@ -43,7 +41,7 @@ notinput (const char *str)
 }
 
 
-static BOOL 
+static BOOL
 checkspace (void)
 {
   if (inputLook () && !isspace (inputGet ()))
@@ -53,7 +51,7 @@ checkspace (void)
 }
 
 
-static BOOL 
+static BOOL
 checkstr (const char *str)
 {
   if (notinput (str) || (inputLook () && !isspace (inputGet ())))
@@ -63,7 +61,7 @@ checkstr (const char *str)
 }
 
 
-static BOOL 
+static BOOL
 checkchr (char chr)
 {
   if (inputGetUC () != chr || (inputLook () && !isspace (inputGet ())))
@@ -154,7 +152,7 @@ checkchr (char chr)
 	macro=FALSE; fun(option);	 \
 	break;
 
-int 
+int
 decode (Lex * label)
 {
   int c;
@@ -239,6 +237,7 @@ decode (Lex * label)
 	default:
 	  inputUnGet (c);
 	  M_FINISH (m_branch, optionLinkCond);	/* b, bl */
+	  break;
 	}
       break;
     case 'c':
@@ -268,6 +267,7 @@ decode (Lex * label)
 	    default:
 	      inputUnGet (c);
 	      C_FINISH_SYMBOL (c_cn);	/* CN */
+	      break;
 	    }
 	  break;
 	case 'o':
@@ -350,6 +350,7 @@ decode (Lex * label)
 		default:
 		  inputUnGet (c);
 		  M_FINISH (m_exp, optionCondPrecRound);	/* exp CC P R */
+		  break;
 		}
 	      break;
 	    default:
@@ -577,6 +578,7 @@ decode (Lex * label)
 	    default:
 	      inputUnGet (c);
 	      C_FINISH_SYMBOL (c_rn);	/* rn */
+	      break;
 	    }
 	  break;
 	case 'o':
@@ -649,6 +651,7 @@ decode (Lex * label)
 		default:
 		  inputUnGet (c);
 		  M_FINISH (m_str, optionCondBT);	/* str CC BYTE */
+		  break;
 		}
 	      break;
 	    default:
@@ -792,6 +795,7 @@ decode (Lex * label)
 	    inputRollback ();
 	    error (ErrorError, FALSE, "Illegal line \"%s\"", inputRest ());
 	  }
+      break;
       }
     }
   skipblanks ();

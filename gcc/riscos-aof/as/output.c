@@ -3,6 +3,7 @@
  * Copyright © 1992 Niklas Röjemo
  * Copyright 1997, Nick Burrett.
  */
+
 #include "sdk-config.h"
 #include <stdio.h>
 #include <string.h>
@@ -13,16 +14,19 @@
 #include <inttypes.h>
 #endif
 
-#include "error.h"
-#include "chunkfile.h"
 #include "aoffile.h"
-#include "elf.h"
-#include "symbol.h"
-#include "output.h"
 #include "area.h"
+#include "chunkfile.h"
+#include "depend.h"
+#include "elf.h"
+#include "error.h"
+#include "output.h"
 #include "os.h"
-#include "version.h"
+#include "main.h"
+#include "symbol.h"
 #include "uname.h"
+#include "version.h"
+
 #if defined(UNIXLIB) || defined(CROSS_COMPILE)
 #include <ctype.h>
 #include <errno.h>
@@ -32,13 +36,15 @@
 #endif
 
 static FILE *objfile;
-extern char *ObjFileName;
-extern int dde;
 
 #define FIX(n) ((3+(int)n)&~3)
 #define EXTRA(n) (FIX(n)-n)
 
-const char *idfn_text = "Creator: GCCSDK AOF ASM vsn " AS_VERSION " [" __DATE__ "]\n";
+const char *idfn_text = "Creator: GCCSDK AOF"
+#ifndef NO_ELF_SUPPORT
+	"/ELF"
+#endif
+	" ASM vsn " AS_VERSION " [" __DATE__ "]\n";
 
 #define MAXNAME 1024
 static char outname[MAXNAME + 1];
@@ -47,7 +53,7 @@ static char outname[MAXNAME + 1];
 /* Convert to ARM byte-sex.  */
 unsigned armword (unsigned val)
 {
-  return (val >> 24) | 
+  return (val >> 24) |
          ((val >> 8) & 0xff00)   |
          ((val << 8) & 0xff0000) |
           (val << 24);
@@ -58,7 +64,7 @@ unsigned ourword (unsigned val)
 {
   return  (val >> 24) |
          ((val >> 8) & 0xff00)   |
-         ((val << 8) & 0xff0000) | 
+         ((val << 8) & 0xff0000) |
           (val << 24);
 }
 #endif
@@ -286,6 +292,7 @@ outputAof (void)
     }
 }
 
+#ifndef NO_ELF_SUPPORT
 static int
 countRels (Symbol * ap)
 {
@@ -320,7 +327,7 @@ writeElfSH (int nmoffset, int type, int flags, int size,
 }
 
 void
-outputElf (void)  
+outputElf (void)
 {
   int noareas = countAreas (areaHead);
   int norels;
@@ -476,3 +483,4 @@ outputElf (void)
   for (pad = EXTRA (shstrsize); pad; pad--)
     fputc (0, objfile);
 }
+#endif

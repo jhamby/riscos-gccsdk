@@ -1,11 +1,10 @@
-
 /*
  * whileif.h
  * Copyright © 1997 Darren Salt
  */
 
-#ifndef _whileif_h
-#define _whileif_h
+#ifndef whileif_header_included
+#define whileif_header_included
 
 #include "symbol.h"
 
@@ -21,7 +20,7 @@ typedef struct WhileBlock
 {
   struct WhileBlock *prev;
   WhileTag tag;
-  char *expr;
+  const char *expr;	/* Ptr to malloced block holding the expression */
   union
   {
     struct
@@ -29,13 +28,13 @@ typedef struct WhileBlock
       long int fileno;
       long int offset;
     }
-    file;
+    file;		/* Valid when tag == WhileInFile */
     struct
     {
       long int callno;
-      char *offset;
+      const char *offset;
     }
-    macro;
+    macro;		/* Valid when tag == WhileInMacro */
   }
   ptr;
   long int lineno;
@@ -48,8 +47,6 @@ extern WhileBlock *whileCurrent;
 void c_if (void);
 void c_else (Lex *);
 void c_endif (Lex *);
-
-void whileFree (void);
 
 void c_while (Lex *);
 void c_wend (Lex *);

@@ -2,6 +2,7 @@
  * put.c
  * Copyright © 1992 Niklas Röjemo
  */
+
 #include "sdk-config.h"
 #ifdef HAVE_STDINT_H
 #include <stdint.h>
@@ -9,14 +10,12 @@
 #include <inttypes.h>
 #endif
 
-#include "put.h"
-#include "error.h"
 #include "area.h"
+#include "error.h"
+#include "main.h"
+#include "put.h"
 
-extern int align;
-
-
-static void 
+static void
 putAlign (int align, const char *msg)
 {
   error (ErrorInfo, TRUE, "Unaligned %s", msg);
@@ -28,7 +27,7 @@ putAlign (int align, const char *msg)
 }
 
 
-void 
+void
 putData (int size, WORD data)
 {
   if (!areaCurrent)
@@ -55,6 +54,7 @@ putData (int size, WORD data)
 	  break;
 	default:
 	  error (ErrorSerious, TRUE, "Internal putData: illegal size");
+	  break;
 	}
     }
 
@@ -82,7 +82,7 @@ putData (int size, WORD data)
 }
 
 
-void 
+void
 putDataFloat (int size, FLOAT data)
 {
   union
@@ -117,6 +117,7 @@ putDataFloat (int size, FLOAT data)
       break;
     default:
       error (ErrorSerious, TRUE, "Internal putDataFloat: illegal size %d", size);
+      break;
     }
 
   if (AREA_IMAGE (areaCurrent->area.info))
@@ -137,7 +138,7 @@ putDataFloat (int size, FLOAT data)
 }
 
 
-void 
+void
 putIns (WORD ins)
 {
   if (!areaCurrent)

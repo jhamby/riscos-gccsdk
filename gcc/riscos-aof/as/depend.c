@@ -7,15 +7,16 @@
 #include <stdio.h>
 #include <ctype.h>
 #include <string.h>
+
 #include "error.h"
 #include "depend.h"
+#include "main.h"
 
 FILE *dependfile;
 const char *DependFileName;
-extern char *SourceFileName;
 
 
-void 
+void
 dependPut (const char *pre, const char *name, const char *post)
 {
   if (!dependfile)
@@ -25,15 +26,14 @@ dependPut (const char *pre, const char *name, const char *post)
 }
 
 
-void 
+void
 dependOpen (const char *objname)
 {
   if (dependfile || DependFileName == 0)
     return;
-  dependfile = fopen (DependFileName, "w");
-  if (!dependfile)
+  if ((dependfile = fopen (DependFileName, "w")) == NULL)
     {
-      DependFileName = 0;
+      DependFileName = NULL;
       error (ErrorSerious, FALSE, "Failed to open dependencies file");
     }
   else
