@@ -246,6 +246,7 @@ main (int argc, char **argv)
 	      return -1;
 	    }
 	}
+#ifndef CROSS_COMPILE
       else if (IS_ARG ("-depend", "-d"))
 	{
 	  if (DependFileName)
@@ -261,6 +262,7 @@ main (int argc, char **argv)
 	      return -1;
 	    }
 	}
+#endif
       else if (IS_ARG ("-elf", "-e"))
         {
           elf++;
@@ -307,7 +309,7 @@ main (int argc, char **argv)
 	fprintf (stdout, "%s: Error when writing object file '%s'.\n", ProgName, ObjFileName);
       else
 	elf==0?outputAof ():outputElf();
-#ifdef __riscos__
+#ifndef CROSS_COMPILE
       dependPut ("\n", "", "");
 #endif
       outputFinish ();

@@ -14,11 +14,9 @@ void outputRemove (void);
 void outputAof (void);
 void outputElf (void);
 
-static int countAreas(Symbol *ap);
-
 extern const char *idfn_text;
 
-#if !defined(__riscos__) && defined(WORDS_BIGENDIAN)
+#if !defined(CROSS_COMPILE) && defined(WORDS_BIGENDIAN)
 unsigned armword (unsigned val);
 unsigned ourword (unsigned val);
 #else

@@ -18,15 +18,14 @@
 #include "error.h"
 #include "os.h"
 
-#ifdef __riscos__
+#ifndef CROSS_COMPILE
 #ifdef UNIXLIB
 #include <unixlib/local.h>
 #else
 #include "uname.h"
 #endif /* UNIXLIB */
 
-char *
-toriscos (char *name, char *oldsuffixes, char newsuffix)
+char *toriscos (char *name, char *oldsuffixes, char newsuffix)
 {
   char *suf, *last;
 
@@ -56,8 +55,7 @@ toriscos (char *name, char *oldsuffixes, char newsuffix)
 
 static char filename[1024];
 
-char *
-CanonicalisePath (const char *path1)
+char *CanonicalisePath (const char *path1)
 {
   int size;
   char *buffer;
@@ -111,31 +109,4 @@ CanonicaliseFile (const FILE * fh)
   return 0;			/* keep the compiler happy */
 }
 
-#else /* not RISC OS */
-
-#if 0
-static char filename[1024];
-
-char *
-CanonicaliseFile (FILE * fh)
-/* There's probably an easier way to look up the filename associated with a
- * given handle which doesn't rely on the proc filesystem... */
-{
-  int len;
-  char *name;
-  sprintf (filename, "/proc/%i/fd/%i", getpid (), fileno (fh));
-  len = readlink (filename, filename, sizeof (filename));
-  if (len >= 0)
-    {
-      filename[len] = 0;
-      name = strdup (filename);
-      if (name)
-	return name;
-    }
-  error (ErrorAbort, TRUE, "Internal error in CanonicaliseFile");
-  exit (-1);
-  return 0;			/* keep the compiler happy */
-}
-#endif
-
-#endif /* !__riscos__ */
+#endif /* ! CROSS_COMPILE */
