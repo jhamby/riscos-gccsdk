@@ -1,10 +1,10 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/pthread/_yield.s,v $
-; $Date: 2002/12/15 13:16:55 $
-; $Revision: 1.1 $
+; $Date: 2003/04/28 12:07:02 $
+; $Revision: 1.2 $
 ; $State: Exp $
-; $Author: admin $
+; $Author: alex $
 ;
 ;----------------------------------------------------------------------------
 
@@ -37,11 +37,7 @@
 	LDR	a1, =|__pthread_system_running|
 	LDR	a2, [a1]
 	CMP	a2, #0
-	[ {CONFIG} = 26
-	LDMEQDB	fp, {fp, sp, pc}^
-	|
 	LDMEQDB	fp, {fp, sp, pc}
-	]
 
 	; Check that a context switch can take place
 	LDR	a1, =|__pthread_worksemaphore|
@@ -68,12 +64,7 @@
 	B	__pthread_callback
 
 callback_return
-
-	[ {CONFIG} = 26
-	LDMDB	fp, {fp, sp, pc}^
-	|
 	LDMDB	fp, {fp, sp, pc}
-	]
 
 failmessage
 	DCB	"pthread_yield called with context switching disabled", 0

@@ -1,10 +1,10 @@
 ;----------------------------------------------------------------------------
 ;
-; $Source$
-; $Date$
-; $Revision$
-; $State$
-; $Author$
+; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/signal/sigexec.s,v $
+; $Date: 2002/09/24 21:02:38 $
+; $Revision: 1.5 $
+; $State: Exp $
+; $Author: admin $
 ;
 ;----------------------------------------------------------------------------
 ; signal.s.sigexec: Written by Nick Burrett, 1 September 1996.
@@ -28,11 +28,7 @@
 	MOV	a1, a2
 	MOV	lr, pc
 	MOV	pc, a3
-	[ {CONFIG} = 26
-	LDMEA	fp, {v1, v2, v3, v4, v5, v6, fp, sp, pc}^
-	|
 	LDMEA	fp, {v1, v2, v3, v4, v5, v6, fp, sp, pc}
-	]
 
 
         ; Execute a signal handler on an alternative stack
@@ -54,11 +50,7 @@
 	MOV	lr, pc
 	MOV	pc, a3
 	MOV	sp, v1
-	[ {CONFIG} = 26
-	LDMFD	sp!, {a3, a4, v1, v2, v3, v4, v5, v6, sl, fp, ip, pc}^
-	|
 	LDMFD	sp!, {a3, a4, v1, v2, v3, v4, v5, v6, sl, fp, ip, pc}
-	]
 
 	; Execute a signal handler on an alternative stack
 	; (sigstack for BSD).
@@ -80,10 +72,6 @@
 	MOV	lr, pc
 	MOV	pc, a2
 	MOV	sp, v1
-	[ {CONFIG} = 26
-	LDMFD	sp!, {a3, a4, v1, v2, v3, v4, v5, v6, sl, fp, ip, pc}^
-	|
 	LDMFD	sp!, {a3, a4, v1, v2, v3, v4, v5, v6, sl, fp, ip, pc}
-	]
 
 	END

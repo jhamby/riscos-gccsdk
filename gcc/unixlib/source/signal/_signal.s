@@ -29,7 +29,6 @@
 	IMPORT	|__pthread_running_thread|
 	IMPORT	|__pthread_worksemaphore|
 	IMPORT	|exit|
-	IMPORT	|_exit|
 
 
 ;-----------------------------------------------------------------------

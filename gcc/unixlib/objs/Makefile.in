@@ -1,8 +1,8 @@
 # Project:   GCCSDK UnixLib
 
-# $Source: /usr/local/cvsroot/gccsdk/unixlib/objs/Makefile,fe1,v $
-# $Date: 2003/05/18 17:05:16 $
-# $Revision: 1.17 $
+# $Source: /usr/local/cvsroot/gccsdk/unixlib/objs/Makefile.in,v $
+# $Date: 2003/05/25 21:46:22 $
+# $Revision: 1.1 $
 # $State: Exp $
 # $Author: alex $
 
@@ -20,11 +20,7 @@ Predefs = -D__UNIXLIB_INTERNALS
 CC = cc
 CCdflags = -g
 CCrflags =
-# APCS selection :
-#   - APCS-R build : -APCS 3/26bit/fpe2
-#   - APCS-32 build : -APCS 3/32bit/fpe3
-CCapcsflags = -APCS 3/32bit/fpe3
-CCflags = -depend !Depend -throwback -fcah -JUnixHdr: -Wdap -ccversion 553 $(CCrflags) $(CCapcsflags)
+CCflags = -depend !Depend -throwback -fcah -JUnixHdr: -Wdap -ccversion 553 $(CCrflags) -APCS 3/32bit/fpe3
 
 # GCC compiler. Comment out if you are using Norcroft C (Acorn) compiler.
 #CC = gcc
@@ -37,11 +33,7 @@ AS = objasm
 ASflags = -Stamp -quit -CloseExec
 ASdflags =
 ASrflags =
-# APCS selection :
-#   - APCS-R build : -APCS 3/26bit
-#   - APCS-32 build : -APCS 3/32bit
-ASapcsflags = -APCS 3/32bit
-ASflags = -throwback -depend !Depend -I UnixHdr:^ $(ASdflags) $(ASapcsflags)
+ASflags = -throwback -depend !Depend -I UnixHdr:^ $(ASdflags) -APCS 3/32bit
 
 # as Assembler. Comment out if you are using Acorn Objasm.
 #AS = gcc

@@ -1,3 +1,31 @@
+Mon Jun 23 21:10:01 2003  John Tytgat <John.Tytgat@aaug.net>
+
+	* MKDir,fe1: Removed objs.clib & objs.clib.o directory creation.
+	* objs/Makefile.in: APCS-R builds are no longer supported.
+	* source/clib/getopt.h: Full prototyping for getopt(), we don't have
+	  other definitions in other libraries.
+	* source/clib/setjmp.h: Added __executing_signalhandler and
+	  __pthread_worksemaphore to jmp_buf; Added
+	  saved_currently_handling to sigjmp_buf.
+	* source/clib/unixlib/asm_dec.s: APCS-R builds are no longer supported;
+	  __get_errno macros doesn't need an assert on its registers.
+	* source/clib/unixlib/unix.h: Removed comment on __fpflag usage in
+	  setjmp() and longjmp() (as we're minimally need FPE 4.00 now).
+	* source/pthread/_context.s: APCS-R builds are no longer supported.
+	* source/pthread/_yield.s: Likewise.
+	* source/signal/_coredump.s: Likewise.
+	* source/signal/sigexec.s: Likewise.
+	* source/signal/_signal.s: Removed unnecessary IMPORT |_exit|.
+	* source/sys/_jmp.s: Added __executing_signalhandler and
+	  __pthread_worksemaphore to jmp_buf struct.
+	* source/sys/_syslib.s: APCS-R builds are no longer supported; Moved
+	  __unixlib_fatal from unix.c to here and use __signalhandler_xx
+	  as stack parameters as you might not have a valid one.
+	* source/sys/sigsetjmp.c: Support for saved_currently_handling in
+	  sigjmp_buf.
+	* source/unix/unix.c(__unixlib_fatal): Moved to _syslib.s and added
+	  explicit stack setup.
+
 Mon Jun 23 10:31:08 2003  Peter Naulls <peter@chocky.org>
 	* source/unix/fcntl.c: Patches missed from 2.95 trunk.
 	  Fix use of O_EXECCL flag, and add F_SETOWN stub.

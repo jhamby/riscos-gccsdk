@@ -1,10 +1,10 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/signal/_coredump.s,v $
-; $Date: 2002/09/24 21:02:37 $
-; $Revision: 1.4 $
+; $Date: 2003/04/21 10:48:45 $
+; $Revision: 1.5 $
 ; $State: Exp $
-; $Author: admin $
+; $Author: peter $
 ;
 ;----------------------------------------------------------------------------
 
@@ -274,11 +274,7 @@ backtrace_reinstall_loop
 
 	LDR	ip, |__backtrace_reg_ptr|
 	MOV	a1, #1	; for the benefit of _write_corefile, which returns 1
-	[	{CONFIG} = 26
-	LDMIA	ip, {v4, v5, v6, pc}^
-	|
 	LDMIA	ip, {v4, v5, v6, pc}
-	]
 
 |__calling_environment_end|
 	DCD |__calling_environment| + NUM_ENV_HANDLERS * 12

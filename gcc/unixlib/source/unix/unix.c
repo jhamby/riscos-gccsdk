@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/unix.c,v $
- * $Date: 2003/04/05 09:33:57 $
- * $Revision: 1.9 $
+ * $Date: 2003/04/05 12:16:34 $
+ * $Revision: 1.10 $
  * $State: Exp $
  * $Author: alex $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: unix.c,v 1.9 2003/04/05 09:33:57 alex Exp $";
+static const char rcs_id[] = "$Id: unix.c,v 1.10 2003/04/05 12:16:34 alex Exp $";
 #endif
 
 #include <stdio.h>
@@ -72,18 +72,6 @@ static void __badr (void) __attribute__ ((__noreturn__));
    declaration here.  */
 extern int main (int argc, char *argv[], char **environ);
 
-
-/* Globally used panic button.  */
-void
-__unixlib_fatal (const char *message)
-{
-  if (message == NULL)
-    message = strerror (errno);
-  __os_nl ();
-  __os_print (message);
-  __os_nl ();
-  _exit (1);
-}
 
 static void
 __badr (void)
@@ -280,7 +268,7 @@ void _main (void)
       snapshot_environ[env_var_index] = environ[env_var_index];
       --env_var_index;
     }
-  
+
   main (__u->argc, __u->argv, snapshot_environ);
 }
 
@@ -738,7 +726,7 @@ verify_redirection (const char *redir)
     {
       while (redir[x] && isdigit (redir[x]))
 	x++;
-      
+
       if (redir[x] == '<' || redir[x] == '>')
 	return 1;
     }

@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/unixlib/unix.h,v $
- * $Date: 2003/04/05 12:16:34 $
- * $Revision: 1.5 $
+ * $Date: 2003/04/06 14:19:07 $
+ * $Revision: 1.6 $
  * $State: Exp $
- * $Author: alex $
+ * $Author: peter $
  *
  * UNIX is a registered trademark of AT&T Bell Laboratories
  *
@@ -193,8 +193,6 @@ extern unsigned int __time[2];	/* start time */
 #define	__OS_RISCOS_360 0xA6
 #define __OS_RISCOS_370 0xA7
 #define __OS_RISCOS_400 0xA8
-
-/* setjmp() and longjmp() modify their behaviour according to __fpflag */
 
 /* FP flag reflecting Floating Point presence or not.  */
 extern int __fpflag;

@@ -1,10 +1,10 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/unixlib/asm_dec.s,v $
-; $Date: 2003/04/28 12:07:01 $
-; $Revision: 1.11 $
+; $Date: 2003/06/16 21:00:33 $
+; $Revision: 1.12 $
 ; $State: Exp $
-; $Author: alex $
+; $Author: joty $
 ;
 ; Declare registers and SWIs we will be calling.
 ;
@@ -121,20 +121,12 @@ IFlag32		EQU	&00000080
 
 	MACRO
 	return	$cond, $dstreg, $srcreg
-	[ {CONFIG} = 26
-	MOV$cond.S	$dstreg, $srcreg
-	|
 	MOV$cond	$dstreg, $srcreg
-	]
 	MEND
 
 	MACRO
 	stackreturn	$cond, $regs
-	[ {CONFIG} = 26
-	LDM$cond.FD	sp!, {$regs}^
-	|
 	LDM$cond.FD	sp!, {$regs}
-	]
 	MEND
 
 	; Assembler equivalent of __set_errno in errno.h.
@@ -156,7 +148,6 @@ IFlag32		EQU	&00000080
 
 	MACRO
 	__get_errno	$val,$Rerrno
-	ASSERT	$val <> $Rerrno
 	IMPORT	|errno|
 	LDR	$Rerrno,=|errno|
 	LDR	$val,[$Rerrno]

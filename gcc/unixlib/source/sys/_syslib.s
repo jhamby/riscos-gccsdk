@@ -1,10 +1,10 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/_syslib.s,v $
-; $Date: 2003/05/07 22:10:27 $
-; $Revision: 1.18 $
+; $Date: 2003/05/11 18:20:01 $
+; $Revision: 1.19 $
 ; $State: Exp $
-; $Author: alex $
+; $Author: joty $
 ;
 ;----------------------------------------------------------------------------
 
@@ -68,7 +68,6 @@ EXTREMELY_PARANOID	*	0	; Should we check that the entire stack chunk chain is va
 	IMPORT  |__h_sigint|            ;ASM function (signal/_signal.s)
 	IMPORT  |__h_event|             ;ASM function (signal/_signal.s)
 	IMPORT  |__h_exit|              ;ASM function (signal/_signal.s)
-	IMPORT  |__unixlib_fatal|          ;C function (signal/post.c)
 	IMPORT  |__pthread_system_running| ;variable (pthread/_context.s)
 	IMPORT  |__pthread_disable_ints|   ;ASM function (pthread/_ints.s)
 	IMPORT  |__pthread_enable_ints|    ;ASM function (pthread/_ints.s)
@@ -237,13 +236,13 @@ EXTREMELY_PARANOID	*	0	; Should we check that the entire stack chunk chain is va
 
 
 no_old_area
-	; Allow the user the option of setting theirr own name for the
+	; Allow the user the option of setting their own name for the
 	; dyanmic area used as a heap.   If the variable __dynamic_da_name
 	; exists, then it must be a char pointer (not an array) to an
 	; alternate name.  DAs are always used in this case, and there's
 	; no need to set a $heap variable.
 
-	; The main use of this is when the binary is called !RumImage.
+	; The main use of this is when the binary is called !RunImage.
 	; e.g.:  const char *__dynamic_da_name = "Nettle Heap";
 
 	LDR	v5, =|__dynamic_da_name|
@@ -610,8 +609,8 @@ handlers
 	DCD	&F60690FF ;Same as the scl's magic number, for compatibility in libgcc
 
 	IMPORT	|__unixlib_raise_signal|
-	; allocate 512 bytes more stack
-	; round up to 4K as stack is only allocated in multiples of 4K
+	; Allocate 512 bytes more stack
+	; Round up to 4K as stack is only allocated in multiples of 4K
 	EXPORT	|x$stack_overflow|
 	EXPORT	|__rt_stkovf_split_small|
 	NAME	__rt_stkovf_split_small
@@ -723,22 +722,13 @@ use_existing_chunk
 	ORRNE	a3, a2, a3
 	STR	a3, [fp, #-4]	; Replace it with our chunk free procedure
 
-	[ {CONFIG} = 26
-	LDMFD	v3, {a1, a2, a3, a4, v1, v2, v3, pc}^
-	|
 	LDMFD	v3, {a1, a2, a3, a4, v1, v2, v3, pc}
-	]
 
 raise_sigemt
 	MOV	a1, #0
 	MOV	a2, #SIGEMT
 	BL	|__unixlib_raise_signal|
-
-	[ {CONFIG} = 26
-	LDMFD	v3, {a1, a2, a3, a4, v1, v2, v3, pc}^
-	|
 	LDMFD	v3, {a1, a2, a3, a4, v1, v2, v3, pc}
-	]
 
 stack_corrupt_msg
 	DCB	"***Fatal error: Stack corruption detected***", 13, 10, 0
@@ -755,9 +745,11 @@ signalhandler_overflow
 	B	__unixlib_fatal
 
 	[ EXTREMELY_PARANOID = 1
+	; Check every stack chunk in the chain to ensure it contains
+	; sensible values.
 	NAME	"__check_stack"
 	EXPORT	|__check_stack|
-|__check_stack| ; Check every stack chunk in the chain to ensure it contains sensible values
+|__check_stack|
 	MOV	ip, sp
 	STMFD	sp!, {a1, a2, a3, a4, v1, v2, fp, ip, lr, pc}
 	SUB	fp, ip, #4
@@ -770,11 +762,11 @@ signalhandler_overflow
 	]
 
 	LDR	a2, =|__stack|
-	LDR	a2, [a2]
+	LDR	a2, [a2]			; a2 = __stack
 	LDR	a3, =|__himem|
-	LDR	a3, [a3]
+	LDR	a3, [a3]			; a3 = __himem
 	LDR	a4, =|__base|
-	LDR	a4, [a4]
+	LDR	a4, [a4]			; a4 = __base
 
 	SUB	a1, sl, #512+CHUNK_OVERHEAD
 __check_stack_l1
@@ -795,11 +787,8 @@ __check_stack_l3
 	CMP	a1, #0
 	BLNE	|__pthread_enable_ints|
 	]
-	[ {CONFIG} = 26
-	LDMEA	fp, {a1, a2, a3, a4, v1, v2, fp, sp, pc}^
-	|
 	LDMEA	fp, {a1, a2, a3, a4, v1, v2, fp, sp, pc}
-	]
+
 __check_stack_l4
 	BL	__check_chunk
 	LDR	a1, [a1, #CHUNK_PREV]
@@ -932,6 +921,42 @@ no_chunk_to_free
 	ADD	sl, sl, #512+CHUNK_OVERHEAD	; Set sl up correctly for the old stack chunk
 	return	AL, pc, lr
 
+
+	; Globally used panic button.
+	; void __unixlib_fatal(const char *message)
+	EXPORT	|__unixlib_fatal|
+	IMPORT	|strerror|
+	IMPORT	|__os_nl|
+	IMPORT	|__os_print|
+	IMPORT	|_exit|
+	NAME	__unixlib_fatal
+|__unixlib_fatal|
+	; We don't want to assume anything about the stack as the stack
+	; corruption detection routines will call this routine in case
+	; something is wrong.
+	LDR	sp, =|__signalhandler_sp|
+	LDR	sp, [sp, #0]
+	MOV	fp, #0
+	LDR	sl, =|__signalhandler_sl|
+	LDR	sl, [sl, #0]
+
+	MOV	ip, sp
+	STMDB	sp!, {v1, fp, ip, lr, pc}
+	SUB	fp, ip, #4
+
+	MOVS	v1, a1
+	BNE	__unixlib_fatal_got_msg
+	__get_errno	v1, a1
+	BL	strerror
+__unixlib_fatal_got_msg
+	BL	__os_nl
+	MOV	a1, v1
+	BL	__os_print
+	BL	__os_nl
+	MOV	a1, #1
+	BL	_exit
+	; Should never return
+	LDMDB	fp, {v1, fp, sp, pc}
 
 	; Return non-zero if the floating point instruction set is available
 	EXPORT	|_kernel_fpavailable|

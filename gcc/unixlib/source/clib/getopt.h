@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/getopt.h,v $
- * $Date: 2002/09/24 21:02:36 $
- * $Revision: 1.3 $
+ * $Date: 2003/05/13 20:54:59 $
+ * $Revision: 1.4 $
  * $State: Exp $
- * $Author: admin $
+ * $Author: alex $
  *
  ***************************************************************************/
 
@@ -148,14 +148,14 @@ struct option
    `getopt'.  */
 
 #if (defined __STDC__ && __STDC__) || defined __cplusplus
-# ifdef __GNU_LIBRARY__
+/* # ifdef __GNU_LIBRARY__ */
 /* Many other libraries have conflicting prototypes for getopt, with
    differences in the consts, in stdlib.h.  To avoid compilation
    errors, only prototype getopt for the GNU C library.  */
 extern int getopt (int ___argc, char *const *___argv, const char *__shortopts);
-# else /* not __GNU_LIBRARY__ */
-extern int getopt ();
-# endif /* __GNU_LIBRARY__ */
+/* # else */ /* not __GNU_LIBRARY__ */
+/* extern int getopt (); */
+/* # endif */ /* __GNU_LIBRARY__ */
 
 # ifndef __need_getopt
 extern int getopt_long (int ___argc, char *const *___argv,

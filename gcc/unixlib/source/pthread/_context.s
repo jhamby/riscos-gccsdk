@@ -1,8 +1,8 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/pthread/_context.s,v $
-; $Date: 2003/04/28 12:07:02 $
-; $Revision: 1.5 $
+; $Date: 2003/04/29 19:38:49 $
+; $Revision: 1.6 $
 ; $State: Exp $
 ; $Author: alex $
 ;
@@ -166,13 +166,9 @@
 	STMIA	a1!, {a3, a4, v1, v2, v3, v4, v5, v6}
 	LDMIA	a2!, {a3, a4, v1, v2, v3, v4, v5, v6}
 	STMIA	a1!, {a3, a4, v1, v2, v3, v4, v5, v6}
-	[ {CONFIG} = 32
 	; Copy SPSR
 	LDR	a3, [a2]
 	STR	a3, [a1], #4
-	|
-	ADD	a1, a1, #4
-	]
 
 	; We have to copy the integer regs before switching IRQs
 	; back on, so they don't get overwritten by another callback,
@@ -222,10 +218,8 @@
 	STR	a3, [a2]
 
 	MOV	r14, a1
-	[ {CONFIG} = 32
 	LDR	a1, [r14, #16*4]	; Get user PSR
 	MSR	SPSR_cxsf, a1		; Put it into SPSR_SVC/IRQ (NOP on ARM2/3, shouldn't have any effect in 26bit mode)
-	]
 	LDMIA	r14, {r0-r14}^		; Load USR mode regs
 	MOV	a1, a1
 
