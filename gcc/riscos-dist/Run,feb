@@ -1,7 +1,7 @@
 | !Run file for the GCCSDK
-| (c) Copyright Nick Burrett, 1996, 1997, 1998, 1999, 2001
-| (c) Copyright GCCSDK Development Team 2002, 2003
-| Version 1.10 (21 December 2003)
+| Copyright (c) Nick Burrett, 1996, 1997, 1998, 1999, 2001
+| Copyright (c) GCCSDK Development Team 2002, 2003, 2004
+| Version 1.11 (12 April 2004)
 
 Set GCC$Dir <Obey$Dir>
 
@@ -29,6 +29,7 @@ Set UnixEnv$g++$sfix <UnixEnv$gcc$sfix>
 Set UnixEnv$g77$sfix <UnixEnv$gcc$sfix>
 Set UnixEnv$f771$sfix <UnixEnv$gcc$sfix>
 Set UnixEnv$gcov$sfix <UnixEnv$gcc$sfix>
+Set UnixEnv$make$sfix <UnixEnv$gcc$sfix>
 Set UnixEnv$as$sfix "h:S:s:o"
 
 | Set search paths for the Ada run time library files
@@ -63,6 +64,9 @@ Set gpc$heap ""
 
 | For the assembler
 Set as$heap ""
+
+| For GNU Make
+Set make$heap ""
 
 | Used for extended command lines
 RMEnsure DDEUtils 0.02 RMLoad System:Modules.DDEUtils
