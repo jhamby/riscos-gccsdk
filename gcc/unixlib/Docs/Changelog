@@ -1,3 +1,16 @@
+Tue Mar 15 22:07:05 2005  Alex Waugh  <alex@alexwaugh.com>
+
+	* Docs/ReadMe: Document new behaviour of environment variables.
+	  Update fork/wimpslot section.
+	* source/clib/stdlib.h (unsetenv, putenv): Fix prototypes.
+	* source/clib/unixlib/unix.h: Add/remove prototypes.
+	* source/common/prefix.c, source/unix/features.c: Add extra
+	  parameter to __getenv_from_os calls.
+	* source/unix/{getenv.c, putenv.c, setenv.c}: Change environment
+	  variable behaviour to use global RISC OS environment for anything
+	  with a $ in the name, nd the process' private environment otherwise.
+	* source/unix/unix.c: Populate environ on program initialisation.
+
 Sun Mar 13 19:37:45 2005  Alex Waugh  <alex@alexwaugh.com>
 
 	* source/module/sul.s: Fix logic for out of memory error handling.

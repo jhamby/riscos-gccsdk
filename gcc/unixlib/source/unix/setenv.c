@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/setenv.c,v $
- * $Date: 2002/02/14 15:56:39 $
- * $Revision: 1.3 $
+ * $Date: 2003/04/05 09:33:57 $
+ * $Revision: 1.4 $
  * $State: Exp $
- * $Author: admin $
+ * $Author: alex $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: setenv.c,v 1.3 2002/02/14 15:56:39 admin Exp $";
+static const char rcs_id[] = "$Id: setenv.c,v 1.4 2003/04/05 09:33:57 alex Exp $";
 #endif
 
 #include <stdlib.h>
@@ -19,68 +19,110 @@ static const char rcs_id[] = "$Id: setenv.c,v 1.3 2002/02/14 15:56:39 admin Exp 
 #include <unixlib/unix.h>
 #include <swis.h>
 #include <pthread.h>
+#include <errno.h>
+
+/* Put value into the OS environment. Will not overwrite an existing
+   variable of the same name if replace is 0 */
+static int
+__addenv_to_os (const char *name, const char *value, int replace)
+{
+  _kernel_oserror *err;
+  int regs[10];
+
+  if (!replace)
+    {
+      /* Check whether the variable already exists */
+      regs[0] = (int) name;
+      regs[1] = 0;
+      regs[2] = -1;
+      regs[3] = 0;
+      regs[4] = 0;
+      __os_swi (OS_ReadVarVal, regs);
+      if (regs[2] != 0)
+        return 0;
+    }
+
+  regs[0] = (int) name;
+  regs[1] = (int) value;
+  regs[2] = strlen (value);
+  regs[3] = 0;
+  regs[4] = 4;
+  err = __os_swi (OS_SetVarVal, regs);
+  if (err)
+    {
+      __seterr (err);
+      return -1;
+    }
+
+  return 0;
+}
+
+
+/* Remove NAME from the OS environment. Returns -1 on failure or not found.  */
+static int
+__remenv_from_os (const char *name)
+{
+  _kernel_oserror *err;
+  int regs[10];
+
+  regs[0] = (int) name;
+  regs[1] = 0;
+  regs[2] = -1;
+  regs[3] = 0;
+  regs[4] = 0;
+  /* Do not set the errno if the variable was not found. */
+  err = __os_swi (OS_SetVarVal, regs);
+  return (err ? -1 : 0);
+}
+
 
 int
 setenv (const char *name, const char *value, int replace)
 {
-  return (__addenv (name, value, replace, strchr (name, '$') != NULL) != NULL
-	  ? 0 : -1);
-}
+  if (strchr (name, '='))
+    return __set_errno (EINVAL);
 
-/* Remove NAME from the OS environment. If NAME contains a '$', then use NAME
-   'as is', otherwise prefix NAME with __UNIX_ENV_PREFIX.  This is not
-   symmetric with __getenv_unix_from_os, but it feels wrong to remove NAME
-   unconditionally from the global OS environment.  This function is
-   symmetric with __addenv_unix_to_os.  */
-static void
-__remenv_unix_from_os (const char *name)
-{
-  if (strchr (name, '$') == NULL)
-    {
-      const size_t len = sizeof (__UNIX_ENV_PREFIX) + strlen (name);
-      int rval;
-      char *ro_name = malloc (len);
-
-      if (ro_name == NULL)
-	return;
-      strcpy (ro_name, __UNIX_ENV_PREFIX);
-      strcat (ro_name, name);
-      rval = __remenv_from_os (ro_name);
-      free (ro_name);
-      if (rval)
-	return;
-    }
+  if (strchr (name, '$'))
+    return __addenv_to_os (name, value, replace);
   else
-    __remenv_from_os (name);
+    return __addenv_to_env (NULL, name, value, replace);
 }
 
 /* There is a likely memory leak with unsetenv.  If the environment name,value
    pair was malloc'ed by us, then we will leak this memory.  We cannot free
    it in case the memory was not malloc'ed.  */
-void
+int
 unsetenv (const char *name)
 {
-  const size_t len = strlen (name);
-  char **ep;
-  const char *env;
-
   PTHREAD_UNSAFE
 
-  if (environ != NULL)
-    for (ep = environ; (env = *ep) != NULL; ep++)
-      if (!strncmp (env, name, len) && env[len] == '=')
-	{
-	  /* Found it.  Remove this pointer by moving later ones back.  */
-	  char **dp = ep;
-	  do
-	    dp[0] = dp[1];
-	  while (*dp++);
-	  /* Continuing the loop in case NAME appears again, so adjust ep.  */
-	  --ep;
+  if (name == NULL || strchr (name, '='))
+    return __set_errno (EINVAL);
 
-	  /* Remove it from the OS environment.  */
-	  __remenv_unix_from_os (name);
-	}
+  if (strchr (name, '$'))
+    {
+      __remenv_from_os (name);
+    }
+  else
+    {
+      const size_t len = strlen (name);
+      char **ep;
+      const char *env;
+
+      if (environ != NULL)
+        for (ep = environ; (env = *ep) != NULL; ep++)
+          if (!strncmp (env, name, len) && env[len] == '=')
+            {
+              /* Found it.  Remove this pointer by moving later ones back.  */
+              char **dp = ep;
+              do
+                dp[0] = dp[1];
+              while (*dp++);
+              /* Continuing the loop in case NAME appears again, so adjust ep.  */
+              --ep;
+            }
+    }
+    return 0;
 }
 
 /* The `clearenv' was planned to be added to POSIX.1 but probably

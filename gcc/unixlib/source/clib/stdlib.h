@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/stdlib.h,v $
- * $Date: 2004/09/07 14:05:10 $
- * $Revision: 1.14 $
+ * $Date: 2004/10/12 08:32:38 $
+ * $Revision: 1.15 $
  * $State: Exp $
- * $Author: joty $
+ * $Author: peter $
  *
  ***************************************************************************/
 
@@ -83,7 +83,7 @@ extern int setenv (const char *__name, const char *__value, int __replace)
      __THROW;
 
 /* Remove NAME from the environment.  */
-extern void unsetenv (const char *__name) __THROW;
+extern int unsetenv (const char *__name) __THROW;
 
 /* The `clearenv' was planned to be added to POSIX.1 but probably
    never made it.  Nevertheless the POSIX.9 standard (POSIX bindings
@@ -91,7 +91,7 @@ extern void unsetenv (const char *__name) __THROW;
 extern int clearenv (void) __THROW;
 
 /* Put string, which is of the form "NAME=VALUE" in the environment.  */
-extern int putenv (const char *__string) __THROW;
+extern int putenv (char *__string) __THROW;
 
 /* Execute the given line via the CLI.  */
 extern int system (const char *__command) __THROW;

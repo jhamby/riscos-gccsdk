@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/unix.c,v $
- * $Date: 2005/03/04 20:59:06 $
- * $Revision: 1.36 $
+ * $Date: 2005/03/12 13:34:20 $
+ * $Revision: 1.37 $
  * $State: Exp $
  * $Author: alex $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: unix.c,v 1.36 2005/03/04 20:59:06 alex Exp $";
+static const char rcs_id[] = "$Id: unix.c,v 1.37 2005/03/12 13:34:20 alex Exp $";
 #endif
 
 #include <stdio.h>
@@ -69,8 +69,6 @@ extern int dsp_exit(void);
 
 static struct proc ___u;
 struct proc *__u = &___u;	/* current process */
-
-static char *__default_environ = NULL;
 
 static void
 __badr (void)
@@ -230,7 +228,49 @@ void __unixinit (void)
     }
 #endif
 
-  environ = __proc->environ ? __proc->environ : &__default_environ;
+  /* Set up the environment */
+  if (__proc->environ)
+    {
+      /* We have inherited an environment from our parent */
+      environ = __proc->environ;
+    }
+  else
+    {
+      /* We have no parent, so populate our environment with a subset of the
+         RISC OS global environment. */
+      char **new_environ;
+      char *call = 0;
+      int environlen = 10;
+      int environentries = 0;
+
+      environ = malloc (environlen * sizeof (char *));
+      if (environ == NULL)
+        __unixlib_fatal ("Cannot allocate memory for environ");
+
+      do
+        {
+          char *value = __getenv_from_os ("*", NULL, 0, &call);
+          if (value)
+            {
+              if (environentries >= environlen)
+                {
+                  environlen += 10;
+                  new_environ = realloc (environ, environlen * sizeof (char *));
+                  if (new_environ == NULL)
+                    __unixlib_fatal ("Cannot allocate memory for environ");
+                  environ = new_environ;
+                }
+              environ[environentries++] = value;
+            }
+        }
+      while (call);
+
+      /* Terminate the list and shrink it to the exact size needed */
+      environ[environentries] = NULL;
+      new_environ = realloc (environ, (environentries + 1) * sizeof (char *));
+      if (new_environ)
+        environ = new_environ;
+    }
 
   /* Get command line.  __unixlib_cli's pointing to the command line block
      returned by OS_GetEnv in __main ().  */
@@ -304,7 +344,7 @@ int _main (void)
      This copy of the environment will not get updated by getenv
      or setenv */
 
-  return main (__u->argc, __u->argv, __proc->environ ? __proc->environ : &__default_environ);
+  return main (__u->argc, __u->argv, environ);
 }
 
 void

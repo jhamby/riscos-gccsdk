@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/features.c,v $
- * $Date: 2005/01/23 19:39:57 $
- * $Revision: 1.10 $
+ * $Date: 2005/03/04 20:59:06 $
+ * $Revision: 1.11 $
  * $State: Exp $
- * $Author: joty $
+ * $Author: alex $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: features.c,v 1.10 2005/01/23 19:39:57 joty Exp $";
+static const char rcs_id[] = "$Id: features.c,v 1.11 2005/03/04 20:59:06 alex Exp $";
 #endif
 
 /* #define DEBUG 1 */
@@ -94,7 +94,7 @@ static char *env (const char *program_name, const char *variable,
       __os_print ("'.");
 #endif
 
-      result = __getenv_from_os (envvar, buffer, bufsiz);
+      result = __getenv_from_os (envvar, buffer, bufsiz, NULL);
     }
 
   if (!result)
@@ -106,7 +106,7 @@ static char *env (const char *program_name, const char *variable,
       __os_print ("'.");
 #endif
 
-      result = __getenv_from_os (envvar, buffer, bufsiz);
+      result = __getenv_from_os (envvar, buffer, bufsiz, NULL);
     }
 
 #ifdef DEBUG

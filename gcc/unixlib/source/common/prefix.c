@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source: $
- * $Date: $
- * $Revision: $
- * $State: $
- * $Author: $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/common/prefix.c,v $
+ * $Date: 2004/01/14 23:16:59 $
+ * $Revision: 1.1 $
+ * $State: Exp $
+ * $Author: joty $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: $";
+static const char rcs_id[] = "$Id: prefix.c,v 1.1 2004/01/14 23:16:59 joty Exp $";
 #endif
 
 #include <stdlib.h>
@@ -50,7 +50,7 @@ const char *__get_dde_prefix (void)
   else
     {
       /* SWI DDEUtils_ReadPrefix is not known.  */
-      result = __getenv_from_os ("Prefix$Dir", NULL, 0);
+      result = __getenv_from_os ("Prefix$Dir", NULL, 0, NULL);
 
       /* Filter out zero length results.  */
       if (result[0] == '\0')

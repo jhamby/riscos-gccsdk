@@ -209,23 +209,33 @@ user programs.  However, as a consequence of this change, it is now possible
 for the wimpslot to be extended automatically if more stack or heap space is
 needed.
 
-There is one caveat; if a fork() and exec() call is made (or system()
-which uses fork and exec internally) then there must be sufficient free
-space already inside the wimpslot to start the child program - the
-wimpslot cannot be extended in this situation. It is intended that this
-limitation will be removed in the future.
+There are a couple of caveats:
+Firstly, if a vfork() and exec() call is made (or system() which uses
+vfork and exec internally) then, if the child program is greater than
+200k, there must be sufficient free space already inside the wimpslot
+to start the child program. If the child program is less than 200k then
+the wimpslot can be extended to accomodate it. The 200k limit is a bit
+aribtrary, but it is not trivial to determine the size of the child
+program before it is loaded, and setting a larger limit could waste
+lots of memory when the child is small.
+Secondly, while vfork() will work when the heap is in the wimpslot or
+in a dynamic area, fork() will only work when the heap is in the
+wimpslot. If it is called when the heap is in a dynamic area then it
+will just return an error.
+
 
 This raises the question of whether a program should use dynamic areas
 for the heap or not. If it uses only a few megabytes of memory and never
-calls fork/system then the wimpslot is the best place. If the program
-calls fork/system then using a dynamic area is probably best, although
-in some cases where the child program uses lots of memory but the
-parent doesn't (as is the case for gcc) then the wimpslot may be
-equally good. If the program requires large amounts of memory, in
-particular greater than 28MB, then it depends on the OS. For RISC OS
-3 and 4 the wimpslot is limited to 28MB and so if you need more then you
-must use dynamic areas, but on RISC OS 5 the wimpslot can be a lot
-larger, whereas dynamic area space may be limited.
+calls vfork/system then the wimpslot is the best place. If the program
+calls fork() then it has to use the wimpslot. If the program calls
+vfork/system a lot then using a dynamic area may be best, although in
+some cases where the child program uses lots of memory but the parent
+doesn't (as is the case for gcc) then the wimpslot may be equally good.
+If the program requires large amounts of memory, in particular greater
+than 28MB, then it depends on the OS. For RISC OS 3 and 4 the wimpslot
+is limited to 28MB and so if you need more then you must use dynamic
+areas, but on RISC OS 5 the wimpslot can be a lot larger, whereas
+dynamic area space may be limited.
 
 
 pthreads
@@ -313,6 +323,26 @@ CryptRandom RISC OS module.  This CryptRandom module is currently available
 from:
 
   <URL:http://www.markettos.org.uk/>
+
+
+Environment Variables
+~~~~~~~~~~~~~~~~~~~~~
+
+Unix systems have an environment that is private to each process, and
+changing an environment for one process will only that process and
+possibly its children. However RISC OS system variables are global and
+if one process changes a variable then that change is seen by all other
+processes.
+To cater for both ported programs and native programs, UnixLib changes
+the behaviour of the getenv and setenv functions depending on the name
+of the variable. If the variable has a $ in the name, then it is
+assumed to be a RISC OS system variable and it is fetched/written to
+the global environment. However, if the name does not contain a $ then
+it is assumed to be a Unix style environment variable and is
+fetched/written to the process' private environment.
+When a program is run, the environ array will be populated with all
+RISC OS system variables that exist at the time that either have no $
+in their name, or are prefixed with UnixEnv$.
 
 
 Building

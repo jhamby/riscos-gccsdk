@@ -1,8 +1,8 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/unixlib/unix.h,v $
- * $Date: 2005/01/30 16:08:35 $
- * $Revision: 1.22 $
+ * $Date: 2005/03/04 20:59:05 $
+ * $Revision: 1.23 $
  * $State: Exp $
  * $Author: alex $
  *
@@ -209,26 +209,20 @@ extern char **__last_environ;
 #define __UNIX_ENV_PREFIX "UnixEnv$"
 
 /* Add NAME=VALUE to the environment. If NAME is already in the environment,
-   only add when REPLACE is non-zero. If NAME is added to the environment
-   and ADD_TO_OS is non-zero, then also add it to the RISC OS global
-   environment.  */
-extern char *__addenv (const char *__name, const char *__value,
-		       int __replace, int __add_to_os);
-
-/* Lookup NAME in the environment and return value if found.  */
-extern char *__chkenv (const char *__name);
+   only add when replace is non-zero.  If string is non-NULL then it is
+   used directly, otherwise a copy of name and value is used. */
+extern int __addenv_to_env (char *string, const char *__name,
+                            const char *__value, int __replace);
 
 /* Get environment value from OS and copy into BUF and return a pointer to BUF.
    If no match found then return NULL.  If BUF is NULL, then allocate space
-   as necessary, otherwise BUFLEN is length of supplied buffer.  */
+   as necessary, otherwise BUFLEN is length of supplied buffer.
+   If buf is NULL and call is not NULL then an enumeration is taking place.  */
 extern char *__getenv_from_os (const char *__name, char *__buf,
-			       size_t __buflen);
+			       size_t __buflen, char **call);
 
 /* Return the integer value of NAME, from the RISC OS global environment.  */
 extern int __intenv (const char *__name);
-
-/* Remove NAME from the OS environment. Returns -1 on failure or not found.  */
-extern int __remenv_from_os (const char *__name);
 
 /* Get the leaf name from the command line used to run the program
    or returns __program_name if defined.  */
