@@ -227,7 +227,7 @@ void Library::extractMembers(const List<BString> &a_wildMembers, const BString &
 
  // Add a '.' to end of path if necessary
  int l=path.laenge();
-#ifdef UNIX
+#ifdef CROSS_COMPILE
  if(path[l-1] != '/')
    path += "/";
 #else

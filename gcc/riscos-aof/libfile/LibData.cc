@@ -3,8 +3,8 @@
 #include "TimeStamp.h"
 #include "BError.h"
 
-#ifndef UNIX
-extern "C" OS_File(int *);
+#ifndef CROSS_COMPILE
+extern "C" void OS_File(int *);
 #endif
 
 LibData::LibData(Library *a_owner) : Chunk("LIB_DATA", a_owner)
@@ -19,7 +19,7 @@ void LibData::save(const BString &a_fileName, TimeStamp a_time)
 {
  m_data.save(a_fileName, 0);
 
-#ifndef UNIX
+#ifndef CROSS_COMPILE
  int regs[6] = { 2, 0, 0, 0, 0, 0 };
  regs[1] = (int) a_fileName();
  regs[2] = (a_time.m_load | 0xFFFFFD00);

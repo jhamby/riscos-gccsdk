@@ -3,11 +3,11 @@
 #include <iostream.h>
 #include "Path.h"
 
-#ifndef UNIX
+#ifndef CROSS_COMPILE
 extern "C" void OS_GBPB(int *);
 #endif
 
-#ifdef UNIX
+#ifdef CROSS_COMPILE
 #define DIRECTORY_SEPERATOR "/"
 #else
 #define DIRECTORY_SEPERATOR "."
@@ -15,7 +15,7 @@ extern "C" void OS_GBPB(int *);
 
 int Path::isRelativePath(const BString &a_path)
 {
-#ifdef UNIX
+#ifdef CROSS_COMPILE
   // user root directory
   if (a_path.suchen("~") != -1)
     return 0;
@@ -92,7 +92,7 @@ List<BString> Path::getMatchingFiles(const BString &a_wildName)
  	int start = 0;
  	int type;
 
-#ifdef UNIX
+#ifdef CROSS_COMPILE
 	glob_t zzz;
 
 	if (glob ((char *) (a_wildName ()), 0, NULL, &zzz) == 0)
@@ -109,7 +109,7 @@ List<BString> Path::getMatchingFiles(const BString &a_wildName)
 	return result;
 }
 
-#ifndef UNIX
+#ifndef CROSS_COMPILE
 int Path::getNextFile(const BString &a_wildName, BString &a_fileName, int &a_start)
 {
  BString path = getPath(a_wildName);

@@ -2,8 +2,8 @@
 #include "LibTimeBas.h"
 #include "BError.h"
 
-#ifndef UNIX
-extern "C" OS_File(int *);
+#ifndef CROSS_COMPILE
+extern "C" void OS_File(int *);
 #endif
 
 LibTimeBas::LibTimeBas(const BString &a_chunkName, Library *a_owner)

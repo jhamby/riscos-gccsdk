@@ -8,9 +8,9 @@
 #include "BString.h"
 #include "BError.h"
 
-#ifndef UNIX
-extern "C" OS_File(int *);
-extern "C" OS_GBPB(int *);
+#ifndef CROSS_COMPILE
+extern "C" void OS_File(int *);
+extern "C" void OS_GBPB(int *);
 #endif
 
 Buffer::Buffer()
@@ -222,7 +222,7 @@ void Buffer::save(const BString &a_file, int a_append)
  }
  else
  {
-#ifdef UNIX
+#ifdef CROSS_COMPILE
 	fp = fopen (a_file(), "wb");
 	if (fp == NULL)
 	  THROW_SPEC_ERR(BError::CantOpenFile);
@@ -249,7 +249,7 @@ void Buffer::load(const BString &a_file)
  if(!fp)
  	THROW_SPEC_ERR(BError::FileNotFound);
 
-#ifdef UNIX
+#ifdef CROSS_COMPILE
  struct stat f;
 
  stat (a_file(), &f);

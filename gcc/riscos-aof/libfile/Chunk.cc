@@ -6,8 +6,8 @@
 #include "Library.h"
 #include "BError.h"
 
-#ifndef UNIX
-extern "C" OS_File(int *);
+#ifndef CROSS_COMPILE
+extern "C" void OS_File(int *);
 #endif
 
 Chunk::Chunk()
@@ -95,7 +95,7 @@ int Chunk::createPath(const BString &a_path)
  int save, start = 0;
  BString dir, fullDir;
  int regs[6] = { 17, 0, 0, 0, 0, 0 };
-#ifdef UNIX
+#ifdef CROSS_COMPILE
  while(a_path.leseWort(dir, start, "/"))
  {
   	fullDir += dir;

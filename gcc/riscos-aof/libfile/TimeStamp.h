@@ -8,10 +8,10 @@
 #include "BString.h"
 #include "Buffer.h"
 
-#ifndef UNIX
-extern "C" OS_File(int *);
-extern "C" OS_Word(int, int);
-extern "C" OS_ConvertDataAndTime(int *);
+#ifndef CROSS_COMPILE
+extern "C" void OS_File(int *);
+extern "C" void OS_Word(int, int);
+extern "C" void OS_ConvertDataAndTime(int *);
 #endif
 
 class TimeStamp
@@ -43,7 +43,7 @@ public:
  	 	 	return;
  	 	}
 
-#ifdef UNIX
+#ifdef CROSS_COMPILE
 		time ((time_t *) &m_exe);
 		m_load = 0;
 #else
@@ -60,7 +60,7 @@ public:
 
  	BString asString()
  	{
-#ifdef UNIX
+#ifdef CROSS_COMPILE
 		return BString (ctime ((time_t *) &m_exe));
 #else
  	 	char *fmt = "%24:%MI:%SE %DY-%M3-%CE%YR";
@@ -114,7 +114,7 @@ public:
  	 	 	return;
  	 	}
 
-#ifdef UNIX
+#ifdef CROSS_COMPILE
 		struct stat f;
 
 		stat (a_file(), &f);

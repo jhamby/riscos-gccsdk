@@ -2,8 +2,8 @@
 #include <stdio.h>
 #include <iostream.h>
 
-#ifndef UNIX
-extern "C" OS_File(int *);
+#ifndef CROSS_COMPILE
+extern "C" void OS_File(int *);
 #endif
 
 void writeInt(FILE *a_out,int a_data);
@@ -39,9 +39,8 @@ int offset=0;
 void usage()
 {
  cout << "AOF Librarian" << endl;
- cout << "Version 1.00 compiled by gcc 2.7.2.1" << endl;
  cout << "ALF creation and maintenance tool" << endl;
- cout << "(02-Jul-1997) by Bernhard Walter" << endl;
+ cout << "Version 1.00 (02-Jul-1997) by Bernhard Walter" << endl;
  cout << endl;
  cout << "Syntax: LibFile <Options> <Library> [ <FileList> | <MemberList> ]" << endl;
  cout << endl;
@@ -75,7 +74,7 @@ int exists(char *a_file)
 
 TimeStamp readTimeStamp(char *a_fileName)
 {
-#ifdef UNIX
+#ifdef CROSS_COMPILE
  return TimeStamp (0, 0);
 #else
  int reg[6]={17,0,0,0,0,0};
@@ -90,7 +89,7 @@ TimeStamp readTimeStamp(char *a_fileName)
 
 static int readFileSize(char *a_fileName)
 {
-#ifdef UNIX
+#ifdef CROSS_COMPILE
  struct stat f;
 
  if (stat (a_fileName, &f) == -1)
