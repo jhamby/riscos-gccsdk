@@ -109,11 +109,6 @@ Boston, MA 02111-1307, USA.  */
 {									\
   if (write_symbols != NO_DEBUG)					\
     warning ("-g under RISC OS does not give useful debugging data");	\
-  /* Floating point tuning. ARM 6, ARM 7 and StrongARM were */		\
-  /* released for RISC OS 3.5 and above and this included an */		\
-  /* architecture 3 floating point emulator.  */			\
-  if (arm_is_strong || arm_is_6_or_7)					\
-    arm_fpu_arch = FP_SOFT3;						\
 }
 
 #define SUBTARGET_CONDITIONAL_REGISTER_USAGE				\
@@ -156,6 +151,11 @@ Boston, MA 02111-1307, USA.  */
 
 /* Override the normal default CPU.  */
 #define SUBTARGET_CPU_DEFAULT TARGET_CPU_arm6
+
+
+/* The minimum FPEmulator we now support is 4.00, which has
+   full support for architecture 3.  */
+#define FP_DEFAULT FP_SOFT3
 
 /* Dividing the Output into Sections (Text, Data, ...) */
 /* AOF Assembler syntax is a nightmare when it comes to areas, since once
@@ -488,7 +488,7 @@ do {							\
 #define SUBTARGET_CPP_SPEC "%{mamu:-MD !Depend} \
 	%{mlibscl:-icrossdirafter /libscl} \
 	%{!mlibscl:-icrossdirafter /unixlib} \
-	-D__JMP_BUF_SIZE=26 %{mlibscl:-D__TARGET_SCL__}"
+	-D__JMP_BUF_SIZE=27 %{mlibscl:-D__TARGET_SCL__}"
 
 #endif /* CROSS_COMPILE */
 
