@@ -32,7 +32,7 @@ Once it knows which kind of compilation to perform, the procedure for
 compilation is specified by a string called a "spec". */
 
 #include "gcc-version.h"
-#include "p/version.h"
+#include "version.h"
 #include "config.h"
 #include "gansidecl.h"
 #ifdef EGCS
