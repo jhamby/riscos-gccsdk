@@ -656,6 +656,7 @@ parse_include (pfile)
     unsigned char tmp[1024];
     int tmp_len;
     extern char *riscos_to_unix (const char *, char *);
+    cpp_token *cast_header = (void *)header;
     
     riscos_to_unix (header->val.str.text, tmp);
     tmp_len = strlen (tmp);
@@ -666,8 +667,8 @@ parse_include (pfile)
 	memcpy (token_mem, tmp, tmp_len);
 	token_mem[tmp_len] = '\0';
 	
-	header->val.str.text = token_mem;
-	header->val.str.len = tmp_len;
+	cast_header->val.str.text = token_mem;
+	cast_header->val.str.len = tmp_len;
       }
   }
 #endif
