@@ -1,3 +1,10 @@
+Sun Apr  6 13:22:00 BST 2003  Peter Naulls <peter@chocky.org>
+
+	* clib/swis.h: Include kernel.h, add new CDFS SWI.
+	* clib/unixlib/types.h: LCC support, change __off_t to
+	  64 bits for consistency with other types in UnixLib.
+	  Minor tidying to UnixLibify.
+
 Sun Apr  6 12:48:17 2003  Peter Naulls <peter@chocky.org>
 
 	* Help: Remove extra help file, and just use !Help
