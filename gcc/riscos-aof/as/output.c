@@ -43,7 +43,7 @@ const char *idfn_text = "Creator: GCCSDK AOF ASM vsn " AS_VERSION " [" __DATE__ 
 #define MAXNAME 1024
 static char outname[MAXNAME + 1];
 
-#if !defined(CROSS_COMPILE) || defined(WORDS_BIGENDIAN)
+#if defined(WORDS_BIGENDIAN)
 /* Convert to ARM byte-sex.  */
 unsigned armword (unsigned val)
 {
