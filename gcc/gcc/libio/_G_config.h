@@ -10,7 +10,7 @@
 /* No dollars in labels please.  */
 /* #define _G_DOLLAR_IN_LABEL 0 */
 /* Define how virtual function tables are named. */
-#define _G_VTABLE_LABEL_PREFIX "_vt_"
+#define _G_VTABLE_LABEL_PREFIX "_vt$"
 /* If _G_VTABLE_LABEL_PREFIX = __vt_ or ___vt_
    then we define _G_USING_THUNKS.  */
 /* #define _G_USING_THUNKS */
