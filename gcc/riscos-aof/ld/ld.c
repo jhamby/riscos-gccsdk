@@ -1675,13 +1675,15 @@ static void add_output_file (const char *fname)
 {
 #if defined(CROSS_COMPILE) && defined(ENABLE_FILETYPE_FF8)
   char tmp[256];
+  int len;
 
   /* If asked for, append a filetype to the RISC OS executable in the
      format of ,xxx.  Network mounts, will automatically remove the
      ,xxx suffix and replace it with proper filetype information.  */
   strcpy (tmp, fname);
+  len = strlen (tmp);
   /* If the filetype suffix already exists then don't add it again.  */
-  if (strcmp (tmp - 4, ",ff8"))
+  if (len < 4 || (strcmp (tmp + len - 4, ",ff8") && len < 252))
     strcat (tmp, ",ff8");
 #else
   const char *tmp = fname;
