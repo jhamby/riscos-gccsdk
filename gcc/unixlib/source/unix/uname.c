@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/uname.c,v $
- * $Date: 2002/02/14 15:56:39 $
- * $Revision: 1.3 $
+ * $Date: 2004/06/06 11:37:40 $
+ * $Revision: 1.4 $
  * $State: Exp $
- * $Author: admin $
+ * $Author: joty $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: uname.c,v 1.3 2002/02/14 15:56:39 admin Exp $";
+static const char rcs_id[] = "$Id: uname.c,v 1.4 2004/06/06 11:37:40 joty Exp $";
 #endif
 
 #include <errno.h>
@@ -100,7 +100,7 @@ uname (struct utsname *name)
      - If that fails too, default to "1.0".  */
   regs[0] = 9;
   regs[1] = 1;
-  if (__os_swi (OS_ReadSysInfo, regs) == NULL)
+  if (__os_swi (OS_ReadSysInfo, regs) == NULL && regs[0] != 0)
     {
       /* Is in the form : "##########-###" potentionally followed by
          a dash and a comment.  We're not interested in the latter.  */

@@ -1,3 +1,7 @@
+Sun Oct 10 17:37:38 2004  Alex Waugh  <alex@alexwaugh.com>
+
+	* source/unix/uname.c: Cope with OS_ReadSysInfo returning 0
+
 Fri Oct  8 12:56:32 2004  Peter Naulls  <peter@chocky.org>
 
 	* source/clib/signal.h, source/signal/signal.c: Stub siginterrupt
