@@ -1,8 +1,8 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/module/sul.s,v $
-; $Date: 2005/02/06 19:52:59 $
-; $Revision: 1.8 $
+; $Date: 2005/03/04 20:59:05 $
+; $Revision: 1.9 $
 ; $State: Exp $
 ; $Author: alex $
 ;
@@ -1074,7 +1074,7 @@ convert_loop
 	MUL	v1, a4, v1
 	ADD	a2, a2, v1
 	MOV	v3, #10
-	MUL	a4, a4, v3
+	MUL	a4, v3, a4
 	B	convert_loop
 
 exit_error_handler_common	; a1 = __proc, a2 = returncode
