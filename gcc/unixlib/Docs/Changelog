@@ -1,6 +1,9 @@
 Mon May 10 13:52:40 2004  Peter Naulls  <peter@chocky.org>
 
 	* clib/setjmp.h: Reinstate setjmp macro so it doesn't cause problems.
+	* clib/stdlib.h: Allow strtoll/ull to be seen.  This is a work around;
+	  probably the whole of the stdlib.h functionality needs to be
+	  rearranged to bring it into line with glibc.
 
 Mon May 10 11:59:58 2004  Peter Naulls  <peter@chocky.org>
 

@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/stdlib.h,v $
- * $Date: 2004/04/15 22:21:02 $
- * $Revision: 1.10 $
+ * $Date: 2004/05/10 10:58:55 $
+ * $Revision: 1.11 $
  * $State: Exp $
- * $Author: alex $
+ * $Author: peter $
  *
  ***************************************************************************/
 
@@ -218,7 +218,7 @@ extern unsigned long int strtoul (__const char *__restrict __nptr,
      __THROW;
 __END_NAMESPACE_C99
 
-#if defined __USE_ISOC99 || (defined __GLIBC_HAVE_LONG_LONG && defined __USE_MISC)
+/*#if defined __USE_ISOC99 || (defined __GLIBC_HAVE_LONG_LONG && defined __USE_MISC)*/
 __BEGIN_NAMESPACE_C99
 /* Convert a string to a quadword integer.  */
 __extension__
@@ -230,7 +230,7 @@ extern unsigned long long int strtoull (__const char *__restrict __nptr,
 					char **__restrict __endptr, int __base)
      __THROW;
 __END_NAMESPACE_C99
-#endif /* ISO C99 or GCC and use MISC.  */
+/*#endif*/ /* ISO C99 or GCC and use MISC.  */
 
 #ifdef __USE_EXTERN_INLINES
 /* Define inline functions which call the internal entry points.  */
