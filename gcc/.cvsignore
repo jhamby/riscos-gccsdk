@@ -1,0 +1,9 @@
+Makefile
+arm-riscos-aof
+config.cache
+config.log
+config.status
+configure
+do-configure
+sdk-config.h
+sdk-config.h.in
