@@ -1716,8 +1716,10 @@ static void add_input_file (const char *fname)
 #else
   /* For tlink, we need to have all names in Unix format for proper
      processing.  */
-  riscos_to_unix (fname, tmp);
-  append_arg (object_list, &object_offset, tmp);
+
+  fname = __unixify_std(fname, tmp, sizeof(tmp), 0); 
+
+  append_arg (object_list, &object_offset, fname);
 #endif
 }
 

@@ -14,7 +14,7 @@ endif
 INCLUDES = -I. -I../../ -I../../include
 CFLAGS += -DHAVE_CONFIG_H
 ldobjdir = $(objdir)/riscos-aof/ld/$(STAGE)
-OBJS = $(ldobjdir)/ld.o $(ldobjdir)/rname.o
+OBJS = $(ldobjdir)/ld.o
 
 ifeq (${STAGE},stage2)
 	DEPS += $(gcc_bin_dir)/$(TRG)/o/unixlib
@@ -30,5 +30,3 @@ $(ldobjdir)/ld.o: ld.c ../../sdk-config.h ../../include/obstack.h \
 	$(CC) $(CFLAGS) -o $@ -c ld.c $(INCLUDES) \
 	-DSTANDARD_EXEC_PREFIX=\"$(prefix)$(gn_standard_exec_prefix)\"
 
-$(ldobjdir)/rname.o: rname.c
-	$(CC) $(CFLAGS) -o $@ -c rname.c $(INCLUDES)
