@@ -79,6 +79,9 @@ static char *temp_filename;
 
 static int tlink_verbose = 0;
 
+static const char *output_filetype = "ff8";
+static int filetype_offset = -1;
+
 typedef struct
 {
   char *arg;
@@ -237,6 +240,19 @@ main (int argc, char *argv[])
 
   if (tlink_verbose >= 5)
     printf ("About to do_tlink()\n");
+
+  if (filetype_offset != -1)
+    {
+      int len = strlen(command_line[filetype_offset].arg);
+      char *ext = command_line[filetype_offset].arg + len - 4;
+
+      ext[0] = '\0';
+      if (output_filetype)
+       {
+         ext[0] = ',';
+         strcpy(ext + 1, output_filetype);
+       }
+    }
 
   do_tlink (requested_linker, (char **)command_line, object_list);
 
@@ -1286,7 +1302,7 @@ do_tlink (const char *linker, char **ld_argv, args *object_lst)
       int i = 0;
 
       if (read_repo_files (object_lst))
-	while (exit && i++ < MAX_ITERATIONS)
+	while (exit_code && i++ < MAX_ITERATIONS)
 	  {
 	    if (tlink_verbose >= 3)
 	      dump_file (ldout);
@@ -1710,6 +1726,7 @@ static void add_output_file (const char *fname)
 #if defined(CROSS_COMPILE) && defined(ENABLE_FILETYPE_FF8)
   char tmp[256];
   int len;
+  int append;
 
   /* If asked for, append a filetype to the RISC OS executable in the
      format of ,xxx.  Network mounts, will automatically remove the
@@ -1718,7 +1735,10 @@ static void add_output_file (const char *fname)
   len = strlen (tmp);
   /* If the filetype suffix already exists then don't add it again.  */
   if (len < 4 || (tmp[len - 4] != ',' && len < 252))
-    strcat (tmp, ",ff8");
+    {
+      append = 1;
+      strcat (tmp, "    ");
+    }
 #else
   const char *tmp = fname;
 #endif
@@ -1727,6 +1747,9 @@ static void add_output_file (const char *fname)
 
   append_arg (command_line, &command_line_offset, "-o");
   append_arg (command_line, &command_line_offset, tmp);
+#if defined(CROSS_COMPILE) && defined(ENABLE_FILETYPE_FF8)
+  if (append) filetype_offset = command_line_offset - 1;
+#endif  
 }
 
 static void add_option_file (const char *option, const char *fname)
@@ -1827,6 +1850,7 @@ parse_args (int argc, char **argv)
 	  break;
 	case OPTION_AOF:
 	  add_option ("-aof");
+	  output_filetype = NULL;
 	  break;
 	case OPTION_AREAMAP:
 	  add_option_file ("-areamap", optarg);
