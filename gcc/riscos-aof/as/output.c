@@ -407,8 +407,8 @@ outputElf (void)
     writeElfSH(shstrsize, sectionType, areaFlags, sectionSize,
                0, 0, 4, 0, &offset);
     shstrsize += ap->len + 1;
-    elfIndex++;
     if (ap->area.info->norelocs) {
+      elfIndex++;
       /* relocations */
       writeElfSH(shstrsize, SHT_REL, 0,
         (ap->area.info->norelocs)*sizeof(Elf32_Rel),
