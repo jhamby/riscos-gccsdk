@@ -1,4 +1,9 @@
-Fri Mar 4 21:55:54: 2005  Alex Waugh  <alex@alexwaugh.com>
+Sat Mar 5 15:45:00  2005  John Tytgat  <John.Tytgat@aaug.net>
+
+	* source/common/unixify.c (__unixify): __RISCOSIFY_FILETYPE_EXT
+	  support got broken.
+ 
+Fri Mar 4 21:55:54  2005  Alex Waugh  <alex@alexwaugh.com>
 
 	* source/clib/unistd.h, source/clib/unixlib/{asm_dec.s,
 	  buildoptions.h, dev.h, fd.h, local.h, tty.h, unix.h},

@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/common/unixify.c,v $
- * $Date: 2004/12/15 17:55:17 $
- * $Revision: 1.9 $
+ * $Date: 2005/01/04 22:54:37 $
+ * $Revision: 1.10 $
  * $State: Exp $
- * $Author: peter $
+ * $Author: alex $
  *
  ***************************************************************************/
 
@@ -66,17 +66,20 @@ add_filetype (char *buffer, char *out, char *out_end, int filetype, int unixify_
       *out = '\0';
     }
 
-  return 1;  
+  return 1;
 }
 
 
 static int
 get_directory_name (const char *input, char *output)
 {
-  const char *t = 0;
+  const char *t = NULL;
 
   if (*input == '\0')
-    return 0;
+    {
+      *output = '\0';
+      return 0;
+    }
 
   /* RISC OS directory names are delimited by a '.'.
      We must check for a few Unix styles though.  */
@@ -86,37 +89,37 @@ get_directory_name (const char *input, char *output)
       if (input[0] == '.')
 	{
 	  if (input[1] == '\0')        /* current directory, end of path */
-	    t = 0;
+	    t = NULL;
 	  else if (input[1] == '/')    /* current directory, not end of path */
 	    t = input + 1;
 	  else if (input[1] == '.')
 	   {
 	     if (input[2] == '\0')     /* parent directory, end of path */
-	       t = 0;
+	       t = NULL;
 	     else if (input[2] == '/') /* parent directory, not end of path */
 	       t = input + 2;
 	   }
 	}
     }
 
-  if (t)
-  {
-    strncpy (output, input, t - input);
-    output[t - input] = '\0';
-    return 1;
-  }
+  if (t != NULL)
+    {
+      strncpy (output, input, t - input);
+      output[t - input] = '\0';
+      return 1;
+    }
   else
-  {
-  /* If we reach here, we have four possibilities:
-     1. fname
-     2. directory/fname
-     3. .
-     4. ..
-     none of which need any conversion. No.1 has both compatible with
-     RISC OS and Unix, and nos. 2-4 are already in Unix form.  */
-    strcpy (output, input);
-    return 0;
-  }
+    {
+    /* If we reach here, we have four possibilities:
+       1. fname
+       2. directory/fname
+       3. .
+       4. ..
+       none of which need any conversion. No.1 has both compatible with
+       RISC OS and Unix, and nos. 2-4 are already in Unix form.  */
+      strcpy (output, input);
+      return 0;
+    }
 }
 
 static char *
@@ -173,11 +176,11 @@ add_directory_name (char *o, const char *i)
     }
   /* Look out for the :^ and :/ constructs.  */
   if (o[-2] == ':' && o[-1] == '^')
-  {
-    o[-1] = '/';
-    *o++ = '.';
-    *o++ = '.';
-  }
+    {
+      o[-1] = '/';
+      *o++ = '.';
+      *o++ = '.';
+    }
   if (o[-2] == ':' && o[-1] == '/')
     *o++ = '.';
   else
@@ -189,9 +192,10 @@ add_directory_name (char *o, const char *i)
 
 
 static char *
-add_directory_and_prefix (char *output, char *dir, const char *prefix)
+add_directory_and_prefix (char *output, const char *dir, const char *prefix)
 {
-  /* Output in the form: 'dir.prefix' */
+  /* Output in the form: 'dir.prefix'
+     Return ptr to \0 string terminating char in output buffer. */
   strcpy (output, dir);
   output += strlen (dir);
   *output++ = '.';
@@ -206,7 +210,7 @@ static int
 is_prefix (const char *name)
 {
   const char *t1;
-  int x = 0;
+
   /* If there is more than one dot left in the filename, then this
      cannot be the prefix.  */
   if ((t1 = strchr (name, '.')) != strrchr (name, '.'))
@@ -251,10 +255,13 @@ __unixify (const char *ro_path, int unixify_flags, char *buffer,
   char tempbuf[256];
   char *out_end, *out;
   char *temp;
-  int flag = 0, skip;
+  int flag, skip;
   const char *const in_buf = buffer; /* = NULL if we malloc the buffer.  */
   const char *input;
 
+#ifdef DEBUG
+  printf("__unixfy(%s, 0x%x, %p, %d, 0x%x)\n", ro_path, unixify_flags, buffer, buf_len, filetype);
+#endif
   if (buffer == NULL)
     {
       buf_len = strlen (ro_path) + 2;
@@ -285,41 +292,39 @@ __unixify (const char *ro_path, int unixify_flags, char *buffer,
   buffer[0] = '\0';
   out_end = buffer + buf_len;
 
-  /* Fast case. Look for a `.', `..' or `/'.  */
-  if (ro_path[0] == '.' && ro_path[1] == '\0')
+  /* Fast case. Look for a `.', `..', '../', '/' or `./'.  */
+  if (ro_path[0] == '.')
     {
-      *out++ = '.';
-      *out = '\0';
-      return out;
-    }
+      if (ro_path[1] == '\0')
+        {
+          *out++ = '.';
+          *out = '\0';
+          return out;
+        }
 
-  if (ro_path[0] == '.' && ro_path[1] == '.' && ro_path[2] == '\0')
-    {
-      *out++ = '.';
-      *out++ = '.';
-      *out = '\0';
-      return out;
-    }
+      if (ro_path[1] == '.')
+        {
+          if (ro_path[2] == '\0'
+              || ro_path[2] == '/' && ro_path[3] == '\0')
+            {
+              *out++ = '.';
+              *out++ = '.';
+              *out = '\0';
+              return out;
+            }
+        }
 
-  if (ro_path[0] == '.' && ro_path[1] == '.' &&
-      ro_path[2] == '/' && ro_path[3] == '\0')
-    {
-      *out++ = '.';
-      *out++ = '.';
-      *out = '\0';
-      return out;
+      if (ro_path[1] == '/' && ro_path[2] == '\0')
+        {
+          *out++ = '.';
+          *out = '\0';
+          return out;
+        }
     }
 
   if (ro_path[0] == '/' && ro_path[1] == '\0')
     {
       *out++ = '/';
-      *out = '\0';
-      return out;
-    }
-
-  if (ro_path[0] == '.' && ro_path[1] == '/' && ro_path[2] == '\0')
-    {
-      *out++ = '.';
       *out = '\0';
       return out;
     }
@@ -337,7 +342,7 @@ __unixify (const char *ro_path, int unixify_flags, char *buffer,
       /* We've found a '.$' */
       if (*input != '/')
         *out++ = '/';
-      temp+= 2;
+      temp += 2;
       while (input != temp)
 	*out++ = *input++;
       /* Copy across the '.$' */
@@ -356,7 +361,8 @@ __unixify (const char *ro_path, int unixify_flags, char *buffer,
 	}
     }
 
-  while ((skip = get_directory_name (input, tempbuf)))
+  flag = 0;
+  while ((skip = get_directory_name (input, tempbuf)) != 0)
     {
 #ifdef DEBUG
       printf ("input = '%s', tempbuf = '%s'\n", input, tempbuf);
@@ -370,6 +376,7 @@ __unixify (const char *ro_path, int unixify_flags, char *buffer,
 	     1. fname.prefix  e.g. fred.c
 	     2. prefix.fname  e.g. c.fred
 	     3. fname.nonprefix  e.g. fred.jim  */
+	  /* Add 1 to get past dot.  */
 	  input += strlen (tempbuf) + 1;
 	  get_directory_name (input, name);
 
@@ -385,7 +392,6 @@ __unixify (const char *ro_path, int unixify_flags, char *buffer,
 	      /* Method 2.
 	         tempbuf contains the prefix.
 	         name contains the filename.  */
-	      /* printf ("input = '%s', t = '%s', t1 = '%s'\n", input, t, t1); */
 	      out = add_directory_and_prefix (out, name, tempbuf);
 	    }
 	  else
@@ -397,26 +403,27 @@ __unixify (const char *ro_path, int unixify_flags, char *buffer,
 	      out = add_directory_name (out, name);
 	      /* Remove the final backslash automatically added in by
 	         add_directory_name.  */
-	      out[-1] = '\0';
+	      *--out = '\0';
 	    }
 	  flag = 1;
 	}
       else
-	{
+        {
 	  out = add_directory_name (out, tempbuf);
 	  /* Add 1 to get past dot.  */
 	  input += strlen (tempbuf) + 1;
 	}
     }
 #ifdef DEBUG
-  printf ("final i = '%s', tempbuf = '%s'\n", input, tempbuf);
+  printf ("final i = '%s', tempbuf = '%s', flag %d\n", input, tempbuf, flag);
 #endif
 
   if (!flag)
     {
       strcpy (out, tempbuf);
+      out += strlen(out);
     }
-#ifdef TEST
+#ifdef DEBUG
   printf ("input = '%s'\noutput = '%s'\n", ro_path, buffer);
 #endif
 
