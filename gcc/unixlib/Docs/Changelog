@@ -1,3 +1,8 @@
+Sun Apr 27 13:31:44 2003  John Tytgat <John.Tytgat@aaug.net>
+
+	* source/unix/chdir.c: Code failed when chdir() was done for a
+	  subdirectory in the CSD.
+	  
 Sat Apr 26 11:36:00 2003  Peter Naulls <peter@chocky.org>
 	* source/signal/signal.c, source/signal/post.c:
 	  Add _GNU_SOURCE define, to allow use of sighandler_t.

@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/chdir.c,v $
- * $Date: 2002/02/14 15:56:38 $
- * $Revision: 1.3 $
+ * $Date: 2003/04/12 11:31:39 $
+ * $Revision: 1.4 $
  * $State: Exp $
- * $Author: admin $
+ * $Author: alex $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: chdir.c,v 1.3 2002/02/14 15:56:38 admin Exp $";
+static const char rcs_id[] = "$Id: chdir.c,v 1.4 2003/04/12 11:31:39 alex Exp $";
 #endif
 
 #include <errno.h>
@@ -77,8 +77,12 @@ chdir (const char *ux_path)
           full_path = realloc (prefix_path, prefix_len + 1 + path_len + 1);
           if (full_path)
             {
+              const char *rel_path = (path[0] == '@' && path[1] == '.') ? path + 2 : path;
+
               full_path[prefix_len++] = '.';
-              strcpy (full_path + prefix_len, path);
+              /* Append 'prefix' with relative path but take care of the
+                 RISC OS CSD indicator.  */
+              strcpy (full_path + prefix_len, rel_path);
 
               /* We must pass a canonicalised directory to
               	 DDEUtils_Prefix.  */
