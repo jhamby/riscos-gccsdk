@@ -7555,9 +7555,10 @@ arm_output_function_prologue (f, frame_size)
 	       arm_apcs_frame_needed (),
 	       cfun->machine->uses_anonymous_args);
 
-  asm_fprintf (f, "\t%@ nonlocal_label = %d, nonlocal_goto = %d\n",
+  asm_fprintf (f, "\t%@ nonlocal_label = %d, nonlocal_goto = %d, leaf = %d\n",
 	       current_function_has_nonlocal_label,
-	       current_function_has_nonlocal_goto);
+	       current_function_has_nonlocal_goto,
+	       cfun->machine->leaf);
 
   if (cfun->machine->lr_save_eliminated)
     asm_fprintf (f, "\t%@ link register save eliminated.\n");
@@ -8319,7 +8320,7 @@ arm_get_frame_size ()
   if (reload_completed)
     return cfun->machine->frame_size;
 
-  cfun->machine->leaf = leaf = leaf_function_p (); /* NAB++ */
+  leaf = leaf_function_p (); /* NAB++ */
 
   /* A leaf function does not need any stack alignment if it has nothing
      on the stack.  */
@@ -8359,6 +8360,16 @@ arm_get_frame_size ()
 }
 
 /* NAB++ */
+/* Return non-zero if this is a leaf function.  */
+static int
+arm_leaf_function_p ()
+{
+  if (cfun->machine->leaf < 0)
+    cfun->machine->leaf = leaf_function_p ();
+
+  return cfun->machine->leaf;
+}
+
 /* Return 1 if the function prologue should contain an explicit
    stack check.  */
 static int
@@ -8375,7 +8386,7 @@ arm_stack_check_needed ()
 
   /* Don't do any stack checking if the function is a leaf function
      and the amount of stack actually needed <= 256 bytes.  */
-  if (cfun->machine->leaf && abs (get_frame_size ()) <= 256)
+  if (arm_leaf_function_p () && abs (cfun->machine->frame_size) <= 256)
     return 0;
 
   return 1;
@@ -8401,7 +8412,7 @@ arm_apcs_frame_needed ()
   /* A frame will need to be setup for the cases where there are external
      function calls within the current function or there is a need
      for definite stack checking.  */
-  if (! cfun->machine->leaf || arm_stack_check_needed ())
+  if (! arm_leaf_function_p () || arm_stack_check_needed ())
     return 1;
 
   return 0;
@@ -10404,6 +10415,7 @@ arm_init_machine_status ()
 #if ARM_FT_UNKNOWN != 0  
   machine->func_type = ARM_FT_UNKNOWN;
 #endif
+  machine->leaf = -1;
   return machine;
 }
 
