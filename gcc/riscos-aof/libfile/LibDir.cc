@@ -1,3 +1,4 @@
+#include <errno.h>
 #include <iostream.h>
 #include <ctype.h>
 #include "LibDir.h"

@@ -2,6 +2,7 @@
 #define BString_hxx
 
 #include <stdio.h>
+#include <string.h>
 #include <iostream.h>
 
 class BString

@@ -1,3 +1,4 @@
+#include <errno.h>
 #include "Library.h"
 #include "LibTime.h"
 #include "LibVersion.h"

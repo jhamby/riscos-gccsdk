@@ -1,3 +1,4 @@
+#include <errno.h>
 #include <iostream.h>
 #include "ArgParser.h"
 #include "BError.h"
@@ -65,24 +66,23 @@ int ArgParser::getOption(BString a_option)
 
 int ArgParser::getOption(BString a_option, BString &a_singleArg)
 {
- List<BString> dummyList;
- BError *err;
- int ret = 0;
+  List<BString> dummyList;
+  int ret = 0;
 
- TRY
- {
- 	ret = getOption(a_option, dummyList, 1, 1);
- 	if(ret)
- 		a_singleArg = dummyList[0];
- }
- CATCH(err)
- {
-  	ret = 0;
-  	a_singleArg = "";
-  	cout << "Warning: ignoring option '" << a_option << "' (parameter missing)" << endl;
- }
-
- return ret;
+  try
+    {
+      ret = getOption(a_option, dummyList, 1, 1);
+      if(ret)
+	a_singleArg = dummyList[0];
+    }
+  catch (BError)
+    {
+      ret = 0;
+      a_singleArg = "";
+      cout << "Warning: ignoring option '" << a_option << "' (parameter missing)" << endl;
+    }
+  
+  return ret;
 }
 
 int ArgParser::getOption(BString a_option, List<BString> &a_argList, int a_min, int a_max)

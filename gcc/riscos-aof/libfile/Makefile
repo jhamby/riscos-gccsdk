@@ -8,7 +8,7 @@ exesfx =
 else
 CC = $(CROSS_CC)
 CXX = $(CROSS_CXX)
-CXXFLAGS = $(CROSS_CXXFLAGS) -fpermissive
+CXXFLAGS = $(CROSS_CXXFLAGS)
 linklibs = -liostream -lstdc++
 endif
 
@@ -34,7 +34,6 @@ OBJS = $(libfileobjdir)/TimeStamp.o \
 	$(libfileobjdir)/Library.o \
 	$(libfileobjdir)/ArgParser.o \
 	$(libfileobjdir)/ObjFile.o \
-	$(libfileobjdir)/BException.o \
 	$(libfileobjdir)/BError.o \
 	$(libfileobjdir)/Librarian.o \
 	$(libfileobjdir)/BString.o \
@@ -65,7 +64,6 @@ $(libfileobjdir)/LibData.o: LibData.cc
 $(libfileobjdir)/Library.o: Library.cc
 $(libfileobjdir)/ArgParser.o: ArgParser.cc
 $(libfileobjdir)/ObjFile.o: ObjFile.cc
-$(libfileobjdir)/BException.o: BException.cc
 $(libfileobjdir)/BError.o: BError.cc
 $(libfileobjdir)/Librarian.o: Librarian.cc
 $(libfileobjdir)/BString.o: BString.cc

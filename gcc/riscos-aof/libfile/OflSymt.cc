@@ -1,3 +1,4 @@
+#include <errno.h>
 #include <stdio.h>
 #include <iostream.h>
 #include "OflSymt.h"
@@ -13,61 +14,60 @@ OflSymt::OflSymt(Library *a_owner) : Chunk("OFL_SYMT", a_owner)
 
 OflSymt::~OflSymt()
 {
- List_of_piter<SymbolInfo> iter(m_symbols);
- SymbolInfo *symbol;
-
- while(symbol = iter.next())
- 	delete symbol;
+  List_of_piter<SymbolInfo> iter(m_symbols);
+  SymbolInfo *symbol;
+  
+  while(symbol = iter.next())
+    delete symbol;
 }
 
 void OflSymt::set(const List_of_p<Chunk> &a_memberList, LibDir *a_libDir)
 {
- Const_list_of_piter<Chunk> iter(a_memberList);
- Chunk *chunk;
- ObjFile ofile;
- BError *err;
- int chunkIndex;
+  Const_list_of_piter<Chunk> iter(a_memberList);
+  Chunk *chunk;
+  ObjFile ofile;
+  int chunkIndex;
 
- for(chunkIndex = 0; chunk = iter.next(); chunkIndex++)
- {
-  	List<BString> externalList;
-
-  	// process LibData chunks only
-  	if(chunk->getName() == "LIB_DATA")
+  for(chunkIndex = 0; chunk = iter.next(); chunkIndex++)
+    {
+      List<BString> externalList;
+      
+      // process LibData chunks only
+      if(chunk->getName() == "LIB_DATA")
   	{
-  	 	//load file data
-  	 	ofile.load(chunk->getData());
-  	 	TRY
-  	 	{
-  	 	 	// try to get symbol table
-  	 	 	externalList = ofile.getExternals();
-  	 	}
-  	 	CATCH(err)
-  	 	{
-  	 	 	// there is none
-  	 	 	// could print a warning
-
-  	 	 	// BString fileName;
-  	 	 	// cerr << "Warning: no symbol table in file '";
-  	 	 	// cerr << a_libDir->getMemberName(chunkIndex);
-  	 	 	// cerr << "' (ignored)" << endl;
-  	 	 	continue;
-  	 	}
+	  //load file data
+	  ofile.load(chunk->getData());
+	  try
+	    {
+	      // try to get symbol table
+	      externalList = ofile.getExternals();
+	    }
+	  catch (BError err)
+	    {
+	      // there is none
+	      // could print a warning
+	      
+	      // BString fileName;
+	      // cerr << "Warning: no symbol table in file '";
+	      // cerr << a_libDir->getMemberName(chunkIndex);
+	      // cerr << "' (ignored)" << endl;
+	      continue;
+	    }
   	}
 
-	// build list of symbols
-  	Listiter<BString> extIter(externalList);
-  	BString *symbol;
-  	SymbolInfo *newSymbol;
-
-  	while(symbol = extIter.next())
+      // build list of symbols
+      Listiter<BString> extIter(externalList);
+      BString *symbol;
+      SymbolInfo *newSymbol;
+      
+      while(symbol = extIter.next())
   	{
-  	 	newSymbol = new SymbolInfo(*symbol, chunkIndex);
-  	 	if(!newSymbol)
-  	 		THROW_SPEC_ERR(BError::NewFailed);
-  	 	m_symbols.put(newSymbol);
+	  newSymbol = new SymbolInfo(*symbol, chunkIndex);
+	  if(!newSymbol)
+	    THROW_SPEC_ERR(BError::NewFailed);
+	  m_symbols.put(newSymbol);
   	}
- }
+    }
 }
 
 void OflSymt::set(Buffer *a_data)

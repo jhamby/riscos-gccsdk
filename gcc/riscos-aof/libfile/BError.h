@@ -2,7 +2,6 @@
 #define __HiAsnError__
 
 #include <iostream.h>
-#include "BException.h"
 #include "BString.h"
 
 class BError
@@ -43,12 +42,7 @@ protected:
 
 extern BError theError;
 
-#define THROW_ERR \
-	{ theError=BError((int) BError::Generic, __FILE__,__LINE__); \
-	THROW(&theError) }
-
-#define THROW_SPEC_ERR(errno) \
-	{ theError=BError((int) errno, __FILE__,__LINE__); \
-	THROW(&theError) }
+#define THROW_ERR throw BError ((int) BError::Generic, __FILE__, __LINE__);
+#define THROW_SPEC_ERR(errno) throw BError ((int) errno, __FILE__, __LINE__);
 
 #endif

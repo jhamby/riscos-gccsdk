@@ -1,3 +1,4 @@
+#include <errno.h>
 #include <iostream.h>
 #include "ObjFile.h"
 #include "BError.h"
@@ -34,14 +35,16 @@ List<BString> ObjFile::getExternals()
  if(!symbolTable)
  	THROW_SPEC_ERR(BError::ChunkNotFound);
 
- Buffer symbolData = symbolTable->getData();
+// Buffer symbolData = symbolTable->getData();
+ Buffer symbolData(symbolTable->getData());
 
  // Open symbol name table
  Chunk *symbolNameTable = getChunk("OBJ_STRT");
  if(!symbolNameTable)
  	THROW_SPEC_ERR(BError::ChunkNotFound);
 
- Buffer symbolNameData = symbolNameTable->getData();
+// Buffer symbolNameData = symbolNameTable->getData();
+ Buffer symbolNameData(symbolNameTable->getData());
 
  int numSymbols = symbolData.length() / 16;
  int i, position, info, index=0;
@@ -78,3 +81,4 @@ List<BString> ObjFile::getExternals()
 
  return nameList;
 }
+

@@ -1,3 +1,4 @@
+#include <errno.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -187,17 +188,18 @@ int Buffer::length()
 
 unsigned char &Buffer::operator[](int a_index)
 {
- if(a_index>=m_length)
- {
- 	m_data=(unsigned char *) realloc(m_data,(a_index+1)*sizeof(unsigned char));
-	if(!m_data)
- 		THROW_SPEC_ERR(BError::NewFailed)
- 	int i;
- 	m_size=m_length=a_index+1;
- 	for(i=0;i<=a_index;i++)
- 		m_data[i]=0;
- }
- return m_data[a_index];
+  if(a_index>=m_length)
+    {
+      m_data=(unsigned char *) realloc(m_data,(a_index+1)*sizeof(unsigned char));
+      if(!m_data)
+	THROW_SPEC_ERR(BError::NewFailed);
+
+      int i;
+      m_size=m_length=a_index+1;
+      for(i=0;i<=a_index;i++)
+	m_data[i]=0;
+    }
+  return m_data[a_index];
 }
 
 unsigned char *Buffer::getData()
