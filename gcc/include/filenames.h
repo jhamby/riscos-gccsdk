@@ -43,7 +43,11 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.  */
 #else  /* not DOSish */
 
 #define IS_DIR_SEPARATOR(c)	((c) == '/')
+#ifdef __riscos__
+#define IS_ABSOLUTE_PATH(f)	(IS_DIR_SEPARATOR((f)[0]) || strchr(f,':'))
+#else
 #define IS_ABSOLUTE_PATH(f)	(IS_DIR_SEPARATOR((f)[0]))
+#endif
 #define FILENAME_CMP(s1, s2)	strcmp(s1, s2)
 
 #endif /* not DOSish */
