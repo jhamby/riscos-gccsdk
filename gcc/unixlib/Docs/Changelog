@@ -1,3 +1,8 @@
+Thu Oct 30 22:58:57 2003  Alex Waugh <alex@alexwaugh.com>
+
+	* unix/getcwd.c (getcwd): Canonicalise result before unixifying it.
+	  Remove obsure methods for finding the cwd.
+
 Sun Oct 26 14:15:00 2003  John Tytgat  <John.Tytgat@aaug.net>
 
 	* objs/Makefile.in: Added rule to build SharedULib.  Also default
