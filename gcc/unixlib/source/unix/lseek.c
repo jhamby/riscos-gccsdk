@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/lseek.c,v $
- * $Date: 2003/04/05 09:33:57 $
- * $Revision: 1.4 $
+ * $Date: 2004/06/12 08:59:48 $
+ * $Revision: 1.5 $
  * $State: Exp $
- * $Author: alex $
+ * $Author: peter $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: lseek.c,v 1.4 2003/04/05 09:33:57 alex Exp $";
+static const char rcs_id[] = "$Id: lseek.c,v 1.5 2004/06/12 08:59:48 peter Exp $";
 #endif
 
 #include <errno.h>

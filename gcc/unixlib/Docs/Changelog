@@ -1,3 +1,7 @@
+Fri Jun 18 22:56:14 2004  Alex Waugh  <alex@alexwaugh.com>
+
+	* unix/lseek.c, unix/fstat.c: Add trailing newline.
+
 Fri Jun 18 19:21:03 2004  Nick Burrett  <nick@dsvr.net>
 
 	* errno.h: Drop requirement on unixlib/features.h as there is
