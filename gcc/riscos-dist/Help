@@ -1,4 +1,4 @@
-Welcome to the latest version of GCC for RISC OS.
+Welcome to GCC 3.3.3 for RISC OS.
 
 This document covers important notes for new users and existing users alike.
 GCC and Unixlib have undergone many changes, so it's important that you read
@@ -15,42 +15,14 @@ If you're new to GCC:
 
 If you've used GCC before:
 
- - You will probably have !UnixLib and/or !Clib applications.  These are no
-   longer required, as their functionality has been incorporated into the !gcc
-   application, so you should delete them.
-  
-   We strongly discourage continuing to use older versions of GCC, as there
-   are many issues related to it.  We do not know of *any* reason not to use
-   the new version over any old version.  As such, reporting bugs on old
-   versions of GCC or Unixlib will not gain you any sympathy.
-  
-   On the other hand, if you have any problems with this version, we'd like
-   to hear about them as soon as possible.  
+- The standard C++ library has been re-written.  Any existing C++ applications
+  and libraries will require re-compiling before interoperability can be
+  achieved.
 
- - Ensure you don't have any old versions of GCC-related utilities in your
-   RISC OS Library path.   In particular, Drlink.
+- The C++ compiler does not specify the 'std' namespace by default.  To use
+  functions defined within the standard C++ library you must now either
+  explicitly declare 'using namespace std' at the head of your source file, or
+  explicitly prepend 'std::' to all function and variable references.
 
- - The previously named -mstubs flag has changed to -mlibscl, to tell GCC
-   to link against SharedCLibrary instead of UnixLib.
+GCCSDK Developers, 2004
 
- - You can now automatically set the use of a Dynamic Area as heap with
-   Unixlib, and set that area's name by adding code like the following:
-
-      const char *__dynamic_da_name = "Nettle Heap";
-
- - You may have noticed that GCC now ships with a new module
-   "SharedUnixLibrary", which is currently used as a solution to the long-
-   standing "UpCall handler bug".  If you wish to distribute any UnixLib
-   programs, then you'll also need to distribute this module - probably
-   in the same way GCC does in a !System skeleton.
-
-   There is no need to RMEnsure this in your !Run file as UnixLib itself
-   ensures the module is loaded.  If you do distribute the module it is
-   highly recommended that you watch future GCC and UnixLib developments
-   as it is possible that future versions of the module and Unixlib
-   may be incompatible with the current versions.  There is no need
-   to RMEnsure this in your !Run file as UnixLib itself ensures the module
-   is loaded.
-
-GCCSDK Developers, 2003
-  
