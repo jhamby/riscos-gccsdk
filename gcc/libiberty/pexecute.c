@@ -24,7 +24,7 @@ Boston, MA 02111-1307, USA.  */
    Don't change one without the other.  */
 
 #ifdef HAVE_CONFIG_H
-#include "config.h"
+#include "../sdk-config.h"
 #endif
 
 #include <stdio.h>
