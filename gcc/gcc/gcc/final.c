@@ -3360,6 +3360,7 @@ asm_fprintf (FILE *file, const char *p, ...)
 
 	  case 'w':
 	    {
+	    HOST_WIDE_INT z = va_arg (argptr, HOST_WIDE_INT);
 	    /* This is a prefix to the 'd', 'i', 'u', 'x', 'X', and
 	       'o' cases, but we do not check for those cases.  It
 	       means that the value is a HOST_WIDE_INT, which may be
@@ -3368,7 +3369,6 @@ asm_fprintf (FILE *file, const char *p, ...)
 	    q += strlen (HOST_WIDE_INT_PRINT);
 	    *q++ = *p++;
 	    *q = 0;
-	    HOST_WIDE_INT z = va_arg (argptr, HOST_WIDE_INT);
 	    /* printf ("buf = '%s' '%d'\n", buf, z); */
 	    fprintf (file, buf, z);
 	    }
