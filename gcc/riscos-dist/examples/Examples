@@ -57,57 +57,24 @@ and full optimisation.
 helloworld
 ---------
 
-The standard C++ program. The application requires linking against the
-iostream libraries - we specify this with the `-liostream' option.
+The standard C++ program.  We use the g++ driver to build and link C++
+applications.  This does nothing more than adding -lstdc++ to the linker
+command line.
 
 Source: 	cc.helloworld
-Compile using: 	gcc helloworld.cc -o helloworld -liostream
+Compile using: 	g++ helloworld.cc -o helloworld
 Run using: 	helloworld
 
+exception
+---------
 
-Dhrystone 2.1
--------------
+A demonstration of basic exception handling.  The application
+calls a function that throws a string as an exception which will
+be caught by the calling function.
 
-This is a C++ derivative of the standard integer benchmark.
-You will probably need 4500K of WimpSlot on a non-RISC PC machine to
-compile this.
-
-Source:		cc.dhrystone, h.Int, h.Char
-
-Compile using:	gcc dhrystone.cc -o dhrystone -O2 -DQUICK
-
-Run using:	dhrystone
-
-When prompted for the number of iterations, use any number in the range
-10000 to 200000.
-
-There are several derivatives of this program that can be activated
-by adding certain command line options to gcc:
-
-
-To get standard integers and characters
-compile using:	gcc dhrystone.cc -o dhrystone -DBUILTIN
-
-To use function calls instead of inlined function calls
-compile using:	gcc dhrystone.cc -o dhrystone -DCALLS
-
-To make all class members virtual
-compile using:	gcc dhrystone.cc -o dhrystone -DVIRT
-
-To use call-by-value, not by-reference
-compile using:	gcc dhrystone.cc -o dhrystone -DBYVAL
-
-To eliminate mixed mode functions that avoid constructors
-compile using:	gcc dhrystone.cc -o dhrystone -DCONVERT
-
-To eliminate the use of named return values
-compile using:	gcc dhrystone.cc -o dhrystone -DNO_NRV
-
-To get one pointer per object padding:
-compile using:	gcc dhrystone.cc -o dhrystone -DFAKEVPTR
-
-To make =, +=, etc. return *this, not void
-compile using:	gcc dhrystone.cc -o dhrystone -DRETREF
+Source:         cc.exception
+Compile using:  g++ exception.cc -o exception
+Run using:      exception
 
 
 template
@@ -116,5 +83,5 @@ template
 Demonstrates the instantiation of templates.
 
 Source: 	cc.template
-Compile using: 	gcc template.cc -o template
+Compile using: 	g++ template.cc -o template
 Run using: 	template
