@@ -390,7 +390,16 @@ language_name
 	LDR	r0, c_run		; get our main()
 	CMP	r0, #0			; was there one?
 	ADRNE	r0, c_next		; yup, so point to hook to it
-	LDMFD	sp!, {pc}^
+
+	; For 26-bit SharedCLibrary (in which case, we're using a 26-bit OS)
+	; we still need to restore flags on exit.  For 32-bit SCL on 26-bit
+	; we restore them anyway, as this makes no difference.
+
+	TEQ     r0, r0                  ; Set Z flag
+	TEQ     pc, pc                  ; EQ if in 32-bit mode
+
+	LDMEQFD sp!, {pc}
+	LDMFD   sp!, {pc}^
 
 	DCB     "___init",0
 	ALIGN
