@@ -8,6 +8,8 @@
 #include "config/arm/xm-riscos.h"
 #elif HOST_I386_LINUX
 #include "config/i386/xm-linux.h"
+#elif HOST_I386_FREEBSD
+#include "config/i386/xm-freebsd.h"
 #endif
 
 #include "hwint.h"
