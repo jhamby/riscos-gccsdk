@@ -206,13 +206,14 @@ _fltdisf
 	mvfeqd	f0, #0.0
 	moveq	pc, lr
 
-	tst	r1, #1<<31
-	moveq	r2, r0	; bottom word
-	moveq	r3, r1	; top word
-	moveq	r0, #0  ; first word of IEEE result
-	rsbne	r2, r0, #0 ; negate fraction
-	rsbne	r3, r1, #0
-	movne	r0, #1<<31  ; first word of IEEE result (with sign bit)
+	movs	r3, r1		; check sign and copy top word
+	movge	r2, r0		; bottom word
+	movge	r0, #0		; first word of IEEE result
+	bge	fltdidf_pos
+	rsbs	r2, r0, #0	; make positive if negative
+	rsc	r3, r1, #0
+	mov	r0, #1<<31	; first word of IEEE result (with sign bit)
+fltdidf_pos
 
 	cmp	r3, #0 ; if top word if 0 then we'll use the bottom word
 	movne	r12, #64 ; exponent
