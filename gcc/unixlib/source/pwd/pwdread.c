@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source$
- * $Date$
- * $Revision$
- * $State$
- * $Author$
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/pwd/pwdread.c,v $
+ * $Date: 2003/01/21 17:54:22 $
+ * $Revision: 1.5 $
+ * $State: Exp $
+ * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id$";
+static const char rcs_id[] = "$Id: pwdread.c,v 1.5 2003/01/21 17:54:22 admin Exp $";
 #endif
 
 /* pwd.c.pwdread. Internal password-file reading functions.
@@ -102,14 +102,33 @@ __pwddefault (void)
 
   if (pwd_inited == 0)
     {
-      pwd.pw_name   = strdup("unixlib");
+      /* Unix user name.  Look at environment var first */
+      const char *home, *user = getenv("USER");
+      /* If not set, try Select variable, when not set to "Single" */
+      if (!user)
+        {
+          if (strcmp(user = getenv("Choices$User"), "Single") == 0)
+            user = NULL;
+        }
+
+      /* Otherwise, default to "riscos" */
+      pwd.pw_name   = strdup(user ? user : "riscos");
+
       pwd.pw_passwd = strdup("");
       pwd.pw_uid    = 1;
       pwd.pw_gid    = 1;
-      pwd.pw_gecos  = strdup("UnixLib User");
-      pwd.pw_dir    = strdup(getenv("HOME"));
-      pwd.pw_shell  = strdup("/bin/bash");
 
+      /* A variable could be added for this too */
+      pwd.pw_gecos  = strdup("RISC OS User");
+
+      /* Use setting of HOME for first choice (probably !Unixhome) */
+      home = getenv("HOME");
+      /* If not, try RISC OS Choices directory */
+      if (!home)
+        home = getenv("Choice$Write");
+      pwd.pw_dir    = strdup(home);
+
+      pwd.pw_shell  = strdup("/bin/bash");
       pwd_inited = 1;
    }
 

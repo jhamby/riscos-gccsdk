@@ -1,8 +1,8 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/_vfork.s,v $
-; $Date: 2003/04/05 12:16:34 $
-; $Revision: 1.6 $
+; $Date: 2003/12/04 22:55:35 $
+; $Revision: 1.7 $
 ; $State: Exp $
 ; $Author: alex $
 ;
@@ -28,8 +28,10 @@
 	IMPORT	longjmp
 
 	EXPORT	vfork
+	EXPORT  fork
 	NAME	vfork
 vfork
+fork
 	STMFD	sp!, {lr}
 	[ __FEATURE_PTHREADS = 1
 	LDR	a1, =|__pthread_system_running|

@@ -1,3 +1,14 @@
+Mon Dec 29 16:34:25 2003  Peter Naulls  <peter@chocky.org>
+
+	* source/sys/_vfork.s: Alias fork to vfork as a symbol
+	* source/clib/sys/dirent.h: sys/dirent.h doesn't exist in glibc; only
+	  dirent.h.
+	* source/clib/dirent.h: Define MAXNAMLEN
+	* source/clib/sys/un.h: Add, even though it isn't supported, it is
+	  required to keep some programs happy.
+	* source/pwd/pwdread.c: Improve behaviour of setting of pwd structure,
+	  including determining username under Select.
+
 Mon Dec 22 21:29:50  John Tytgat  <John.Tytgat@aaug.net>
 
 	* Docs/ReadMe: Documented the new uid feature.
