@@ -16,7 +16,6 @@ GCCPKG = $(pkg)/\!Run,feb \
 	$(pkg)/\!Help \
 	$(pkg)/Changes \
 	$(pkg)/include \
-	$(pkg)/support \
 	$(pkg)/bin/ar$(exesfx) \
 	$(pkg)/bin/drlink$(exesfx) \
 	$(pkg)/bin/dyn_kill,ffb \
@@ -119,7 +118,7 @@ LIBSCLPKG = $(spkg)
 all:	install
 
 install:
-	for dir in bin docs examples support sys; do \
+	for dir in bin docs examples sys; do \
 		cp -pR $$dir $(ro_gccpkg) ; done
 	cp Run,feb $(ro_gccpkg)/\!Run,feb
 	cp Sprites,ff9 $(ro_gccpkg)/\!Sprites,ff9
