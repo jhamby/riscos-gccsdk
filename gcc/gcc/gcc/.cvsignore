@@ -41,8 +41,8 @@ gt-cp-repo.h
 gt-cp-spew.h
 gt-cp-tree.h
 gt-cselib.h
-gt-dboxout.h
-gt-dwarfasm.h
+gt-dbxout.h
+gt-dwarf2asm.h
 gt-dwarf2out.h
 gt-emit-rtl.h
 gt-except.h
@@ -105,7 +105,8 @@ insn-opinit.c
 insn-output.c
 insn-peep.c
 insn-recog.c
-min-isnm-modes.c
+min-isnn-modes.c
+options.c
 s-gtype
 tm-preds.h
 tree-check.h
