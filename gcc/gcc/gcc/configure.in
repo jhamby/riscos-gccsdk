@@ -8,10 +8,12 @@ AC_CANONICAL_SYSTEM
 AC_ARG_PROGRAM
 
 dnl Global version variable
-PACKAGE="gcc"
-AC_SUBST(PACKAGE)
+PACKAGE=gcc
 VERSION="2.95.2"
+AC_SUBST(PACKAGE)
 AC_SUBST(VERSION)
+AC_DEFINE_UNQUOTED(PACKAGE, "$PACKAGE")
+AC_DEFINE_UNQUOTED(VERSION, "$VERSION")
 
 dnl Checks for programs
 AC_PROG_CC
@@ -43,6 +45,7 @@ dnl Checks for header files
 AC_HEADER_STDC
 AC_HEADER_SYS_WAIT
 AC_HEADER_TIME
+GCC_HEADER_STRING
 AC_CHECK_HEADERS(stdint.h inttypes.h endian.h machine/endian.h)
 AC_CHECK_HEADERS(vfork.h fcntl.h limits.h stab.h stddef.h stdlib.h)
 AC_CHECK_HEADERS(string.h strings.h sys/file.h sys/param.h sys/resource.h)
