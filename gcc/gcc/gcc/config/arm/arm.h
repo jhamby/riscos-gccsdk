@@ -1713,6 +1713,8 @@ typedef struct machine_function GTY(())
   /* NAB++ */
   /* Non-zero if this is a leaf function.  */
   int leaf;
+  /* Non-zero if this function calls __builtin_apply.  */
+  int apply_args;
   /* NAB-- */
 }
 machine_function;

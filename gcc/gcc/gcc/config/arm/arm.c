@@ -9080,7 +9080,7 @@ arm_can_eliminate (from, to)
   if (from == ARG_POINTER_REGNUM && to == STACK_POINTER_REGNUM
       && ! arm_apcs_frame_needed ())
     return 1;
-
+  
   /* FRAMEP can be eliminated to STACKP.  */
   if (from == FRAME_POINTER_REGNUM && to == STACK_POINTER_REGNUM)
     return 1;
@@ -9748,7 +9748,7 @@ arm_expand_prologue (void)
 
       /* NAB++ */
 #ifdef TARGET_RISCOSAOF
-      if (! optimize)
+      if (cfun->machine->apply_args || ! optimize)
         {
           insn = emit_insn (gen_movsi (frame_pointer_rtx,
                                        stack_pointer_rtx));
@@ -12290,6 +12290,7 @@ arm_init_machine_status (void)
   machine->func_type = ARM_FT_UNKNOWN;
 #endif
   machine->leaf = -1; /* NAB */
+  machine->apply_args = 0;
   return machine;
 }
 

@@ -1170,7 +1170,6 @@ expand_builtin_apply_args_1 (void)
 		     NULL_RTX);
 #endif
   emit_move_insn (adjust_address (registers, Pmode, 0), tem);
-  
   size = GET_MODE_SIZE (Pmode);
 
   /* Save the structure value address unless this is passed as an
@@ -1240,7 +1239,7 @@ expand_builtin_apply (rtx function, rtx arguments, rtx argsize)
 
 #ifdef TARGET_RISCOSAOF
   /* This is really broken on RISC OS.  */
-  abort ();
+  cfun->machine->apply_args = 1;
 #endif
 
   arguments = convert_memory_address (Pmode, arguments);
@@ -1275,8 +1274,8 @@ expand_builtin_apply (rtx function, rtx arguments, rtx argsize)
 
   /* Allocate a block of memory onto the stack and copy the memory
      arguments to the outgoing arguments address.  */
-  allocate_dynamic_stack_space (argsize, 0, BITS_PER_UNIT);
-  dest = virtual_outgoing_args_rtx;
+  dest = allocate_dynamic_stack_space (argsize, 0, BITS_PER_UNIT);
+  //dest = virtual_outgoing_args_rtx;
 #ifndef STACK_GROWS_DOWNWARD
   if (GET_CODE (argsize) == CONST_INT)
     dest = plus_constant (dest, -INTVAL (argsize));
