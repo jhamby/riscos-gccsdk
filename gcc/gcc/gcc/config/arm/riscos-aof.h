@@ -168,7 +168,7 @@ Boston, MA 02111-1307, USA.  */
 #define TEXT_SECTION_ASM_OP aof_text_section ()
 #define DATA_SECTION_ASM_OP aof_data_section ()
 #define READONLY_DATA_SECTION_ASM_OP aof_rodata_section ()
-#define BSS_SECTION_ASM_OP aof_bss_section ()
+#define BSS_SECTION_ASM_OP "\tAREA\t|C$$bss|, DATA, COMMON"
 
 /* This code handle the constructor/destructor tables required for C++.
    It relies on a feature in the AOF linker that sorts areas in the object
@@ -291,19 +291,19 @@ do					\
 #define IS_ASM_LOGICAL_LINE_SEPARATOR(C) ((C) == '\n')
 
 /* Output of Uninitialized Variables */
-#define ASM_OUTPUT_COMMON(STREAM,NAME,SIZE,ROUNDED)		\
-  (common_section (),						\
-   fprintf ((STREAM), "\tAREA |C$$%s|, DATA, COMMON\n",	\
-            (NAME)),						\
-   assemble_name ((STREAM), (NAME)),				\
-   fprintf ((STREAM), "\n\t%% %d\t%s size=%d\n",		\
-	    (ROUNDED), ASM_COMMENT_START, (SIZE)),		\
-   aof_delete_import ((NAME)),					\
-   fprintf ((STREAM), "\tEXPORT\t"),				\
-   assemble_name ((STREAM), (NAME)),				\
-   fputc ('\n', (STREAM)))
+#define ASM_OUTPUT_COMMON(STREAM,NAME,SIZE,ROUNDED)			\
+  do									\
+    {									\
+     common_section ();							\
+     fprintf ((STREAM), "\tAREA |%s|, DATA, COMMON\n", (NAME));	\
+     fprintf ((STREAM), "\n\t%% %d\t%s size=%d\n",			\
+	      (ROUNDED), ASM_COMMENT_START, (SIZE));			\
+     aof_delete_import ((NAME));					\
+    }									\
+  while (0)
 
-#define ASM_OUTPUT_BSS(STREAM,DECL,NAME,SIZE,ROUNDED)		\
+/* Place uninitialised global data in the common section.  */ 
+#define ASM_OUTPUT_BSS(STREAM,DECL,NAME,SIZE,ROUNDED) \
   asm_output_bss ((STREAM), (DECL), (NAME), (SIZE), (ROUNDED));
 
 #define ASM_OUTPUT_LOCAL(STREAM,NAME,SIZE,ROUNDED)	\
