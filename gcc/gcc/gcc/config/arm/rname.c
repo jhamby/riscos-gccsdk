@@ -21,7 +21,7 @@
 
 static char *prefixes[] =
 {
-  "f", "for", "fpp", "p", "pas", "ph", "gpi",
+  "java", "class", "jar", "f", "for", "fpp", "p", "pas", "ph", "gpi",
   "cc", "cxx", "cpp", "c++", "c", "m", "rpo",
   "i", "ii", "h", "i", "s", "l", "o", "y",
   "ads", "adb", "ada", "ali", "adc", "xrb", "xrs", 0
