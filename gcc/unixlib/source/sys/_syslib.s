@@ -1,8 +1,8 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/_syslib.s,v $
-; $Date: 2004/03/06 13:24:43 $
-; $Revision: 1.24 $
+; $Date: 2004/03/24 22:30:35 $
+; $Revision: 1.25 $
 ; $State: Exp $
 ; $Author: alex $
 ;
@@ -748,10 +748,21 @@ use_existing_chunk
 	LDMFD	v3, {a1, a2, a3, a4, v1, v2, v3, pc}
 
 raise_sigemt
+	; The 256 bytes left on the stack aren't enough for the signal handler
+	; so setup a larger stack
+	MOV	v1, fp
+	MOV	v2, sp
+	MOV	v3, lr
+	BL	|__setup_signalhandler_stack|
+
+	ADR	v4,|__rt_stkovf_split_small|+12	; Point at function name
+	STMFD	sp!, {v1, v2, v3, v4}	; Setup an APCS stack frame to link to
+	ADD	fp, sp, #12		; the old stack
+
 	MOV	a1, #0
 	MOV	a2, #SIGEMT
 	BL	|__unixlib_raise_signal|
-	LDMFD	v3, {a1, a2, a3, a4, v1, v2, v3, pc}
+	B	|_exit|	; __unixlib_raise_signal shouldn't return
 
 stack_corrupt_msg
 	DCB	"***Fatal error: Stack corruption detected***", 13, 10, 0

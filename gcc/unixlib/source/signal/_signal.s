@@ -1,10 +1,10 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/signal/_signal.s,v $
-; $Date: 2004/02/23 16:07:29 $
-; $Revision: 1.16 $
+; $Date: 2004/03/24 22:30:35 $
+; $Revision: 1.17 $
 ; $State: Exp $
-; $Author: peter $
+; $Author: alex $
 ;
 ;----------------------------------------------------------------------------
 
@@ -669,7 +669,7 @@ return_quickly
 
 
 	; Setup a USR mode stack for the signal handler and pthread
-	; context switcher. Should be called in SVC or IRQ mode.
+	; context switcher. Should be called in USR, SVC or IRQ mode.
 	; We cope with recursive signals by only setting up the stack
 	; if we're not already in a signal handler
 	EXPORT	|__setup_signalhandler_stack|
@@ -683,8 +683,16 @@ return_quickly
 	LDR	sl, [a1]
 	LDR	a1, =|__signalhandler_sp|
 	MOV	fp, #0
-	LDMEQIA	a1, {sp}^
-	MOV	a1, a1
+	return	NE, pc, lr
+
+	TEQ	a1, a1
+	TEQ	pc, pc
+	MOVNE	a2, pc
+	MRSEQ	a2, CPSR
+	TST	a2, #Mode_Bits
+
+	LDMNEIA	a1, {sp}^ ; Not USR mode
+	LDREQ	sp, [a1]  ; USR mode
 	return	AL, pc, lr
 
 	; User registers are preserved in here for the callback execution.

@@ -1,3 +1,10 @@
+Wed May 12 23:01:30 2004  Alex Waugh  <alex@alexwaugh.com>
+
+	* signal/_signal.s (__setup_signalhandler_stack): Support calling from
+	  USR mode.
+	* sys/_syslib.s: Call __setup_signalhandler_stack before raising a
+	  signal on a stack overflow.
+
 Mon May 10 13:52:40 2004  Peter Naulls  <peter@chocky.org>
 
 	* clib/setjmp.h: Reinstate setjmp macro so it doesn't cause problems.
