@@ -1,5 +1,6 @@
 /* Definition of target file data structures for GNU Make.
-Copyright (C) 1988,89,90,91,92,93,94,97 Free Software Foundation, Inc.
+Copyright (C) 1988, 1989, 1990, 1991, 1992, 1993, 1994, 1997,
+2002 Free Software Foundation, Inc.
 This file is part of GNU Make.
 
 GNU Make is free software; you can redistribute it and/or modify
@@ -22,13 +23,14 @@ Boston, MA 02111-1307, USA.  */
    that the makefile says how to make.
    All of these are chained together through `next'.  */
 
+#include "hash.h"
+
 struct file
   {
-    struct file *next;
     char *name;
     char *hname;                /* Hashed filename */
     char *vpath;                /* VPATH/vpath pathname */
-    struct dep *deps;
+    struct dep *deps;		/* all dependencies, including duplicates */
     struct commands *cmds;	/* Commands to execute for this target.  */
     int command_flags;		/* Flags OR'd in for cmds; see commands.h.  */
     char *stem;			/* Implicit stem, if an implicit
@@ -72,6 +74,8 @@ struct file
       } command_state ENUM_BITFIELD (2);
 
     unsigned int precious:1;	/* Non-0 means don't delete file on quit */
+    unsigned int low_resolution_time:1;	/* Nonzero if this file's time stamp
+					   has only one-second resolution.  */
     unsigned int tried_implicit:1; /* Nonzero if have searched
 				      for implicit rule for making
 				      this file; don't search again.  */
@@ -104,19 +108,15 @@ extern void remove_intermediates PARAMS ((int sig));
 extern void snap_deps PARAMS ((void));
 extern void rename_file PARAMS ((struct file *file, char *name));
 extern void rehash_file PARAMS ((struct file *file, char *name));
-extern void file_hash_enter PARAMS ((struct file *file, char *name,
-                                     unsigned int oldhash, char *oldname));
 extern void set_command_state PARAMS ((struct file *file, int state));
 extern void notice_finished_file PARAMS ((struct file *file));
+extern void init_hash_files PARAMS ((void));
+extern char *build_target_list PARAMS ((char *old_list));
 
-
-#ifdef ST_MTIM_NSEC
-# define FILE_TIMESTAMP_HI_RES \
-    (2147483647 < INTEGER_TYPE_MAXIMUM (FILE_TIMESTAMP) >> 31)
+#if FILE_TIMESTAMP_HI_RES
 # define FILE_TIMESTAMP_STAT_MODTIME(fname, st) \
     file_timestamp_cons (fname, (st).st_mtime, (st).st_mtim.ST_MTIM_NSEC)
 #else
-# define FILE_TIMESTAMP_HI_RES 0
 # define FILE_TIMESTAMP_STAT_MODTIME(fname, st) \
     file_timestamp_cons (fname, (st).st_mtime, 0)
 #endif
@@ -131,8 +131,8 @@ extern void notice_finished_file PARAMS ((struct file *file));
 
 #define FILE_TIMESTAMP_S(ts) (((ts) - ORDINARY_MTIME_MIN) \
 			      >> FILE_TIMESTAMP_LO_BITS)
-#define FILE_TIMESTAMP_NS(ts) (((ts) - ORDINARY_MTIME_MIN) \
-			       & ((1 << FILE_TIMESTAMP_LO_BITS) - 1))
+#define FILE_TIMESTAMP_NS(ts) ((int) (((ts) - ORDINARY_MTIME_MIN) \
+				      & ((1 << FILE_TIMESTAMP_LO_BITS) - 1)))
 
 /* Upper bound on length of string "YYYY-MM-DD HH:MM:SS.NNNNNNNNN"
    representing a file timestamp.  The upper bound is not necessarily 19,
@@ -154,7 +154,7 @@ extern void notice_finished_file PARAMS ((struct file *file));
 
 extern FILE_TIMESTAMP file_timestamp_cons PARAMS ((char const *,
 						   time_t, int));
-extern FILE_TIMESTAMP file_timestamp_now PARAMS ((void));
+extern FILE_TIMESTAMP file_timestamp_now PARAMS ((int *));
 extern void file_timestamp_sprintf PARAMS ((char *p, FILE_TIMESTAMP ts));
 
 /* Return the mtime of file F (a struct file *), caching it.

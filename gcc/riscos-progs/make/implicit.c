@@ -100,7 +100,7 @@ pattern_search (file, archive, depth, recursions)
 
   /* List of dependencies found recursively.  */
   struct file **intermediate_files
-    = (struct file **) alloca (max_pattern_deps * sizeof (struct file *));
+    = (struct file **) xmalloc (max_pattern_deps * sizeof (struct file *));
 
   /* List of the patterns used to find intermediate files.  */
   char **intermediate_patterns
@@ -121,8 +121,8 @@ pattern_search (file, archive, depth, recursions)
 
   /* Buffer in which we store all the rules that are possibly applicable.  */
   struct rule **tryrules
-    = (struct rule **) alloca (num_pattern_rules * max_pattern_targets
-			       * sizeof (struct rule *));
+    = (struct rule **) xmalloc (num_pattern_rules * max_pattern_targets
+                                * sizeof (struct rule *));
 
   /* Number of valid elements in TRYRULES.  */
   unsigned int nrules;
@@ -168,7 +168,7 @@ pattern_search (file, archive, depth, recursions)
 	lastslash = strrchr (filename, ':');
 #else
       lastslash = strrchr (filename, '/');
-#if defined(__MSDOS__) || defined(WINDOWS32)
+#ifdef HAVE_DOS_PATHS
       /* Handle backslashes (possibly mixed with forward slashes)
 	 and the case of "d:file".  */
       {
@@ -399,8 +399,8 @@ pattern_search (file, archive, depth, recursions)
 		 directory (the one gotten by prepending FILENAME's directory),
 		 so it might actually exist.  */
 
-	      if ((!dep->changed || check_lastslash)
-		  && (lookup_file (p) != 0 || file_exists_p (p)))
+	      if (lookup_file (p) != 0
+		  || ((!dep->changed || check_lastslash) && file_exists_p (p)))
 		{
 		  found_files[deps_found++] = xstrdup (p);
 		  continue;
@@ -495,7 +495,7 @@ pattern_search (file, archive, depth, recursions)
   /* RULE is nil if the loop went all the way
      through the list and everything failed.  */
   if (rule == 0)
-    return 0;
+    goto done;
 
   foundrule = i;
 
@@ -546,6 +546,7 @@ pattern_search (file, archive, depth, recursions)
 	}
 
       dep = (struct dep *) xmalloc (sizeof (struct dep));
+      dep->ignore_mtime = 0;
       s = found_files[deps_found];
       if (recursions == 0)
 	{
@@ -611,6 +612,8 @@ pattern_search (file, archive, depth, recursions)
       if (i != matches[foundrule])
 	{
 	  struct dep *new = (struct dep *) xmalloc (sizeof (struct dep));
+	  /* GKM FIMXE: handle '|' here too */
+	  new->ignore_mtime = 0;
 	  new->name = p = (char *) xmalloc (rule->lens[i] + fullstemlen + 1);
 	  bcopy (rule->targets[i], p,
 		 rule->suffixes[i] - rule->targets[i] - 1);
@@ -624,6 +627,9 @@ pattern_search (file, archive, depth, recursions)
 	  file->also_make = new;
 	}
 
+ done:
+  free (intermediate_files);
+  free (tryrules);
 
-  return 1;
+  return rule != 0;
 }

@@ -2,7 +2,8 @@
 # Written by Nick Burrett <nick@dsvr.net>
 
 INCLUDES = -I.
-CROSS_CFLAGS += -DHAVE_CONFIG_H
+CROSS_CFLAGS += -DHAVE_CONFIG_H -DLOCALEDIR=\".\" -DINCLUDEDIR=\".\" \
+                -DLIBDIR=\".\"
 
 $(objdir)/riscos-progs/make/%.o: %.c
 	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c $< $(INCLUDES)
@@ -16,6 +17,7 @@ OBJS = $(objdir)/riscos-progs/make/ar.o \
 	$(objdir)/riscos-progs/make/file.o \
 	$(objdir)/riscos-progs/make/function.o \
 	$(objdir)/riscos-progs/make/getloadavg.o \
+	$(objdir)/riscos-progs/make/hash.o \
 	$(objdir)/riscos-progs/make/implicit.o \
 	$(objdir)/riscos-progs/make/job.o \
 	$(objdir)/riscos-progs/make/main.o \
