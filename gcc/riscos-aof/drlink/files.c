@@ -30,6 +30,11 @@
 #define WILDCARDS "?*["		/* Unixish filename wildcard characters */
 #endif
 
+
+/* UnixLib filename control */
+
+int __riscosify_control;
+
 /* Variables referenced from other files */
 
 chunkindex *chunkhdrbase;		/* Address of file's chunk header when in memory */
@@ -1054,7 +1059,7 @@ void open_image(void) {
     error("Fatal: Cannot create image file '%s'", imagename);
   }
   /* We're dealing with a RISC OS format output name, passed from ld */
-  __set_riscosify_control(__RISCOSIFY_NO_PROCESS);
+  __riscosify_control = __RISCOSIFY_NO_PROCESS;
   imagefile = fopen(imagename, "rb+");
 #else
   imagefile = fopen(imagename, "wb");
