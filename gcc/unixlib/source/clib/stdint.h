@@ -1,10 +1,10 @@
 /****************************************************************************
  *
- * $Source$
- * $Date$
- * $Revision$
- * $State$
- * $Author$
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/stdint.h,v $
+ * $Date: 2003/01/29 18:49:00 $
+ * $Revision: 1.7 $
+ * $State: Exp $
+ * $Author: admin $
  *
  ***************************************************************************/
 
@@ -98,8 +98,8 @@ typedef unsigned long long int uint_fast64_t;
 #ifndef __intptr_t_defined
 #define __intptr_t_defined
 typedef int intptr_t;
-typedef unsigned int uintptr_t;
 #endif
+typedef unsigned int uintptr_t;
 
 
 #ifdef __GNUC__

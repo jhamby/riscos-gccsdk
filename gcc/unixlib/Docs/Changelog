@@ -1,5 +1,11 @@
+Sat Apr 10 11:23:16 2004  Nick Burrett  <nick@dsvr.net>
+
+	* stdint.h (uintptr_t): Move declaration to be not influenced
+	by __intptr_t_defined.
+
 Sat Mar 27 12:58:06 2004  Peter Naulls  <peter@chocky.org>
-	* source/clib/ar.h: Add Unix 'ar' format support header.
+
+	* ar.h: Add Unix 'ar' format support header.
 
 Wed Mar 24 22:22:01 2004  Alex Waugh  <alex@alexwaugh.com>
 
