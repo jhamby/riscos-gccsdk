@@ -16,25 +16,23 @@ ARM/RISC OS that is easily portable to other Unix-like operating systems.
 Installation
 ------------
 
-1. Make sure you've got about 100Mb spare disk space.
+Make sure you've got about 100Mb spare disk space.
 
-2. Edit gccsdk/config/local.mk
-     This is a configuration file used by the rest of the Makefile structure.
-     It includes essential information that is operating system dependent.
+$ ./configure --prefix=/home/riscos/cross
 
-3. Create the installation and object directory structures
-     $ make -I ~/gccsdk/config setup
+Create installation directory structure
+$ make setup
 
-4. Build the software.  This takes about 1 hour 30 minutes on a PII-266MHz.
-     $ make -I ~/gccsdk/config
+Build it.  This will take about 1 hour 30 mins on a Pentium II-266MHz.
+$ make
+
 
 
 Using it
 --------
 
-For Unix users.  You need to add the bin directory to your PATH, so you
-probably need to look at config/local.mk to do this.  The `bin' directory
-will be in whatever directory `distdir' was set to.
+For Unix users.  You need to add the bin directory to your PATH and this
+will depend on the path you gave to `prefix' on the configure command line.
 
 
 RISC OS filename compatibility issues for the cross-compiler
