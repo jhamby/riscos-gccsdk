@@ -26,7 +26,7 @@ gccobjdir = $(objdir)/gcc-$(VERSION)/gcc
 $(gccobjdir)/%.o: %.c
 	$(CC) $(CFLAGS) -o $@ -c $< $(INCLUDES)
 
-all: c cpp fortran77 pascal objc java
+all: c cpp fortran77 pascal objc
 
 .PHONY: c
 .PHONY: cpp
@@ -665,7 +665,7 @@ $(gccobjdir)/gpc/gpcpp.o: gpc/gpcpp.c
 	-DSYSTEM_INCLUDE_DIR=\"$(system_include_dir)\" \
 	-DCROSS_INCLUDE_DIR=\"$(cross_include_dir)\"
 
-$(gccobjdir)/gpc/gpc-common.o: gpc/gpc-common.c
+$(gccobjdir)/gpc/gpc-common.o: gpc/gpc-common.c gpc/parse.c
 	$(CC) $(CFLAGS) -o $@ -c $< -I./gpc $(INCLUDES) -DGPC -DEGCS92 -DEGCS -DEGCS95
 
 $(gccobjdir)/gpc/gpc-convert.o: gpc/gpc-convert.c
@@ -874,7 +874,8 @@ $(gccobjdir)/f77/proj.o: f77/proj.c
 $(gccobjdir)/f77/src.o: f77/src.c
 $(gccobjdir)/f77/st.o: f77/st.c
 $(gccobjdir)/f77/sta.o: f77/sta.c
-$(gccobjdir)/f77/stb.o: f77/stb.c
+$(gccobjdir)/f77/stb.o: f77/stb.c f77/str.h f77/str-1t.h f77/str-fo.h \
+	f77/str-io.h f77/str-nq.h f77/str-ot.h f77/str-op.h f77/str-2t.h
 $(gccobjdir)/f77/stc.o: f77/stc.c
 $(gccobjdir)/f77/std.o: f77/std.c
 $(gccobjdir)/f77/ste.o: f77/ste.c
