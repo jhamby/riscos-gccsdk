@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/unix.c,v $
- * $Date: 2003/01/05 12:27:55 $
- * $Revision: 1.8 $
+ * $Date: 2003/04/05 09:33:57 $
+ * $Revision: 1.9 $
  * $State: Exp $
- * $Author: admin $
+ * $Author: alex $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: unix.c,v 1.8 2003/01/05 12:27:55 admin Exp $";
+static const char rcs_id[] = "$Id: unix.c,v 1.9 2003/04/05 09:33:57 alex Exp $";
 #endif
 
 #include <stdio.h>
@@ -363,9 +363,6 @@ _exit (int return_code)
 	for (i = 0; i < MAXFD; i++)
 	  if (fd[i].__magic == _FDMAGIC)
 	    close (i);
-
-      /* We're going back to the RISC OS world.  */
-      __env_riscos ();
 
 #ifdef DEBUG
       __os_print ("_exit(): Setting return code = ");

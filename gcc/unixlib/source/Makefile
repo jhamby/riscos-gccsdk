@@ -722,6 +722,9 @@ all:	$(ux_gcc_bin_dir)/$(TRG)/unixlib.o $(ro_gcc_bin_dir)/$(TRG)/o/unixlib \
 $(libunixobj)/sys/stackalloc.o: sys/stackalloc.c
 	$(CROSS_CC) $(CROSS_CFLAGS) -mno-apcs-stack-check -o $@ -c $< $(INCLUDES) $(CFL)
 
+$(libunixobj)/sys/brk.o: sys/brk.c
+	$(CROSS_CC) $(CROSS_CFLAGS) -mno-apcs-stack-check -o $@ -c $< $(INCLUDES) $(CFL)
+
 install_headers:
 	$(insthdr) clib "*.h" unixlib $(ux_gccpkg)/$(gn_cross_include_dir) $(ro_gccpkg)/$(gn_cross_include_dir)
 	$(insthdr) clib/arpa "*.h" unixlib/arpa $(ux_gccpkg)/$(gn_cross_include_dir) $(ro_gccpkg)/$(gn_cross_include_dir)

@@ -1,10 +1,10 @@
 /****************************************************************************
  *
- * $Source$
- * $Date$
- * $Revision$
- * $State$
- * $Author$
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/unistd.h,v $
+ * $Date: 2003/01/29 18:46:02 $
+ * $Revision: 1.5 $
+ * $State: Exp $
+ * $Author: admin $
  *
  ***************************************************************************/
 
@@ -434,8 +434,12 @@ extern int lockf (int __fd, int __cmd, __off_t __len);
 
 /* BSD extensions.  */
 
-extern int brk (void *__addr);
-extern void *sbrk (int __incr);
+extern int brk (void *__addr) __attribute__ ((deprecated));
+extern void *sbrk (int __incr) __attribute__ ((deprecated));
+
+#ifdef __UNIXLIB_INTERNALS
+extern void *__internal_sbrk (int __incr);
+#endif
 
 /* Put the name of the current host in no more than len bytes of name.  */
 extern int gethostname (char *__name, size_t __len);

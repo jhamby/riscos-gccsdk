@@ -1,8 +1,8 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/brk.c,v $
- * $Date: 2001/09/04 16:32:04 $
- * $Revision: 1.2.2.3 $
+ * $Date: 2002/02/14 15:56:37 $
+ * $Revision: 1.3 $
  * $State: Exp $
  * $Author: admin $
  *
@@ -16,29 +16,32 @@
  *
  * Case 1: No dynamic area
  *
- *    +-------+-------------+         +--------+
- *    |       | heap ->     | ....... |        |
- *    +-------+-------------+         +--------+
- *    ^       ^             ^->     <-^        ^
- * __base  __rwlimit     __break   __stack  __himem
- *         __lomem       __stack_limit
+ *    +-------+-------------+         +--------+.....+
+ *    |       | heap ->     | ....... |        |     | ......
+ *    +-------+-------------+         +--------+.....+
+ *    ^       ^             ^->     <-^        ^     ^->
+ * __base  __rwlimit     __break   __stack     |  __real_himem
+ *         __lomem       __stack_limit      __himem
  *
  *
  * Case 2: Heap in dynamic area
- *                                        /
- *    +-------+          +--------+      /      +--------+.....+
- *    |       |  ....... |        |      \      | heap ->|     | ......
- *    +-------+          +--------+      /      +--------+.....+
- *    ^       ^        <-^        ^     /       ^        ^     ^->
- * __base  __rwlimit  __stack  __himem       __lomem     |  __real_break
- *         __stack_limit                              __break
+ *                                                    /
+ *    +-------+          +--------+.....+            /      +--------+.....+
+ *    |       |  ....... |        |     | ......     \      | heap ->|     | ......
+ *    +-------+          +--------+.....+            /      +--------+.....+
+ *    ^       ^        <-^        ^     ^->         /       ^        ^     ^->
+ * __base  __rwlimit  __stack     |  __real_himem        __lomem     |  __real_break
+ *         __stack_limit       __himem                            __break
  *
+ * The stack initially decends (in chunks) downto __stack_limit, then
+ * increases (in chunks) by increasing the wimpslot. If the malloc heap is
+ * also in the wimpslot then it can also cause the wimpslot to extend.
  ***************************************************************************/
 
 /* sys/brk.c: Complete rewrite by Peter Burwood, June 1997  */
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: brk.c,v 1.2.2.3 2001/09/04 16:32:04 admin Exp $";
+static const char rcs_id[] = "$Id: brk.c,v 1.3 2002/02/14 15:56:37 admin Exp $";
 #endif
 
 #include <string.h>
@@ -59,19 +62,26 @@ static const char rcs_id[] = "$Id: brk.c,v 1.2.2.3 2001/09/04 16:32:04 admin Exp
 
 #define align(x) ((void *)(((unsigned int)(x) + 3) & ~3))
 
+/* This file should be compiled without stack checking, as it is could
+   confuse malloc if the stack extension caused __himem to move whilst
+   malloc is trying to sbrk a region */
+#ifdef __CC_NORCROFT
+#pragma -s1
+#endif
+
 /* __real_break is the top limit of the dynamic area allocated.  */
 extern void * __real_break;
 
-int
-brk (void *addr)
+static int
+__internal_brk (void *addr, int internalcall)
 {
   addr = align (addr);
 
 #ifdef DEBUG
-  __os_print ("-- brk: addr = "); __os_prhex (addr); __os_print ("\r\n");
-  __os_print ("-- brk: __lomem = "); __os_prhex (__lomem); __os_print ("\r\n");
-  __os_print ("-- brk: __break = "); __os_prhex (__break); __os_print ("\r\n");
-  __os_print ("-- brk: __stack = "); __os_prhex (__stack); __os_print ("\r\n");
+  __os_print ("-- brk: addr = ");    __os_prhex ((int)addr);    __os_print ("\r\n");
+  __os_print ("-- brk: __lomem = "); __os_prhex ((int)__lomem); __os_print ("\r\n");
+  __os_print ("-- brk: __break = "); __os_prhex ((int)__break); __os_print ("\r\n");
+  __os_print ("-- brk: __stack = "); __os_prhex ((int)__stack); __os_print ("\r\n");
 #endif
 
   /* Check new limit isn't below minimum brk limit, i.e., __lomem.
@@ -117,7 +127,7 @@ brk (void *addr)
 	  /* Align size to multiple of 32K to reduce number of expensive sbrk
 	     calls.  This is done because OS_ChangeDynamicArea can be expensive,
 	     so smaller [s]brk increments will fit inside __real_break.  */
-	  regs[1] = (regs[1] + 32767) & ~32767;
+	  regs[1] = (regs[1] + __DA_WIMPSLOT_ALIGNMENT) & ~__DA_WIMPSLOT_ALIGNMENT;
 	  if (__os_swi (OS_ChangeDynamicArea, regs))
 	    {
 #ifdef DEBUG
@@ -139,7 +149,7 @@ brk (void *addr)
 	  __break = addr;
 	  regs[1] = (int) ((u_char *) __real_break - (u_char *) addr);
 	  /* Align size down to multiple of 32K */
-	  regs[1] = regs[1] & ~32767;
+	  regs[1] = regs[1] & ~__DA_WIMPSLOT_ALIGNMENT;
 	  /* Trim dynamic area by 32K multiples if enough unused memory.  */
 	  if (regs[1] > 0)
 	    {
@@ -162,17 +172,34 @@ brk (void *addr)
 #ifdef DEBUG
            __os_print ("-- brk: addr > __stack\r\n");
 #endif
-	   return __set_errno (ENOMEM);
+
+           /* No space before stack, so try to increase wimpslot
+              If this is a userland call then increasing the wimpslot is
+              likely to give unexpected results so don't bother */
+           if (!internalcall || __stackalloc_incr_wimpslot((u_char *)addr - (u_char *)__himem) == 0)
+             return __set_errno (ENOMEM);
         }
-      /* Adjust stack and break limits.
+      else
+        {
+          /* Adjust stack limit.*/
+          __stack_limit = addr;
+        }
+      /* Adjust break limit.
 	 This allows +ve or -ve sbrk increments.  */
-      __stack_limit = addr;
       __real_break = __break = addr;
     }
 
   return 0;
 }
 
+int
+brk (void *addr)
+{
+  return __internal_brk (addr, 0);
+}
+
+/* External calls to sbrk can only increase __break upto __stack,
+   and cannot increase the wimplot as the stack will be in the way. */
 void *
 sbrk (int incr)
 {
@@ -182,7 +209,41 @@ sbrk (int incr)
   __os_print ("-- sbrk: incr = "); __os_prdec (incr); __os_print ("\r\n");
 #endif
 
-  if (incr != 0 && brk ((u_char *) oldbrk + incr) < 0)
+  if (incr != 0 && __internal_brk ((u_char *) oldbrk + incr, 0) < 0)
+    return ((void *)-1);
+
+  return (__dynamic_num == -1 && oldbrk > __stack_limit) ? __stack_limit : oldbrk;
+}
+
+/* sbrk for internal UnixLib callers (i.e. malloc) that are aware that
+   space allocated may not be contiguous */
+void *
+__internal_sbrk (int incr)
+{
+  void *oldbrk;
+  /* Record once we have returned some memory above the stack, to ensure all
+     subsequent memory is also from above the stack, otherwise malloc would
+     get confused */
+  static int overstack = 0;
+
+#ifdef DEBUG
+  __os_print ("-- __internal_sbrk: incr = ");
+  __os_prdec (incr); __os_print ("\r\n");
+#endif
+
+  if (incr < 0)
+    return ((void *)-1);
+
+  if (__dynamic_num == -1
+      && (overstack || ((u_char *)__break + incr >= (u_char *)__stack)))
+    {
+      oldbrk = __himem;
+      overstack = 1;
+    }
+  else
+    oldbrk = __break;
+
+  if (incr != 0 && __internal_brk ((u_char *) oldbrk + incr, 1) < 0)
     return ((void *)-1);
 
   return oldbrk;

@@ -1,8 +1,8 @@
 ;----------------------------------------------------------------------------
 ;
-; $Source: /usr/local/cvsroot/unixlib/source/sys/s/_exec,v $
-; $Date: 2000/12/21 15:09:13 $
-; $Revision: 1.14 $
+; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/_exec.s,v $
+; $Date: 2001/01/29 15:10:21 $
+; $Revision: 1.2 $
 ; $State: Exp $
 ; $Author: admin $
 ;
@@ -102,13 +102,6 @@
 	EOR	v4,v2,v2,ROR #7
 	EOR	v6,v2,v2,ROR #13
 	EOR	ip,v2,v2,ROR #23
-	[ |__4K_BOUNDARY| = 1
-	; align top of wimpslot to 4k (downwards)
-	SUB	a3,a3,#32
-	BIC	a3,a3,#&ff
-	BIC	a3,a3,#&f00
-	ADD	a3,a3,#32
-	]
 	STMDB	a3!,{a4,v2,v3,v4,v5,v6,sl,ip}
 
 	; Set memory limit for new application.  Prevent it from writing
@@ -269,10 +262,6 @@
 	DCD	|__exec_s0|
 	EXPORT	|__exlen|
 |__exlen|
-	[ |__4K_BOUNDARY| = 1
-	DCD	(|__exec_s7|-|__exec_s0| + 4095) :AND: -4096
-	|
 	DCD	|__exec_s7|-|__exec_s0|
-	]
 
 	END

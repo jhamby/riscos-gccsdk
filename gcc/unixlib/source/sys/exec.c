@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source$
- * $Date$
- * $Revision$
- * $State$
- * $Author$
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/exec.c,v $
+ * $Date: 2003/01/05 12:27:55 $
+ * $Revision: 1.7 $
+ * $State: Exp $
+ * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id$";
+static const char rcs_id[] = "$Id: exec.c,v 1.7 2003/01/05 12:27:55 admin Exp $";
 #endif
 
 #include <ctype.h>
@@ -66,7 +66,7 @@ static void *
 __ushift (unsigned char *p, unsigned int v, unsigned int c, char *n)
 {
   void *r = (((void *)p >= __base && (void *)p < __rwlimit) ? p + c
-	     : ((void *)p >= __lomem && (void *)p < __break) ? p + v : p);
+	     : ((void *)p >= __lomem && (void *)p < __stack_limit) ? p + v : p);
   showmove ("ushift", n, p, r);
   return r;
 }
@@ -80,7 +80,7 @@ static void *
 __ushift (unsigned char *p, unsigned int v, unsigned int c)
 {
   return (((void *)p >= __base && (void *)p < __rwlimit) ? p + c
-	  : ((void *)p >= __lomem && (void *)p < __break) ? p + v : p);
+	  : ((void *)p >= __lomem && (void *)p < __stack_limit) ? p + v : p);
 }
 
 #endif
@@ -95,7 +95,7 @@ __dshift (unsigned char *p, unsigned int v, unsigned int c, char *n)
   void *q1 = p - c;
   void *q2 = p - v;
   void *r = ((q1 >= __base && q1 < __rwlimit) ? q1
-	     : (q2 >= __lomem && q2 < __break) ? q2 : p);
+	     : (q2 >= __lomem && q2 < __stack_limit) ? q2 : p);
   showmove ("dshift", n, p, r);
   return r;
 }
@@ -114,7 +114,7 @@ __dshift (unsigned char *p, unsigned int v, unsigned int c)
   /* This is only safe when 2 * maximum application space size < start of
      dynamic areas. This is not true, see PJB any real restrictions.  */
   return ((q1 >= __base && q1 < __rwlimit) ? q1
-	  : (q2 >= __lomem && q2 < __break) ? q2 : p);
+	  : (q2 >= __lomem && q2 < __stack_limit) ? q2 : p);
 }
 
 #endif
@@ -533,10 +533,6 @@ execve (const char *execname, char *const argv[], char *const envp[])
   if (((unsigned int) __base & ~0xff) == 0x8000)
     {
       __codeshift = ((char *) __stack - (char *) __stack_limit) - 512 - __exlen;
-#ifdef __4K_BOUNDARY
-      /* Align down to 4K boundary.  */
-      __codeshift = __codeshift & ~4095;
-#endif
       /* Heap might not be in a dynamic area (dynamic_num == -1).  */
       __exshift = (__dynamic_num == -1) ? __codeshift : 0;
     }
@@ -606,7 +602,7 @@ execve (const char *execname, char *const argv[], char *const envp[])
     int regs[10];
     char *address;
 
-    address = (char *) process + __exshift;
+    address = (char *) process + (process < __stack_limit ? __exshift : 0);
     regs[0] = (int) "UnixLib$env";
     regs[1] = (int) &address;
     regs[2] = 4;
@@ -631,12 +627,13 @@ execve (const char *execname, char *const argv[], char *const envp[])
     }
   if (__exshift)
     memcpy ((char *) __lomem + __exshift, (char *) __lomem,
-	    (char *) __break - (char *) __lomem);
+	    (char *) __stack_limit - (char *) __lomem);
 
   /* Finally call the program.  */
 #ifdef DEBUG
   __os_print ("-- execve: about to call:"); __os_print (cli); __os_nl ();
 #endif
+
   __funcall ((*__exec), (cli));
   /* This is never reached.  */
   return 0;
@@ -657,7 +654,7 @@ __exret (void)
       if (__exshift)
 	memcpy ((char *) __lomem,
 		(char *) __lomem + __exshift,
-		(char *) __break - (char *) __lomem);
+		(char *) __stack_limit - (char *) __lomem);
       dshift (process->tty, variable, code);
       for (i = 0; i < MAXTTY; i++)
 	{
@@ -682,10 +679,10 @@ __exret (void)
       process->argv = NULL;
     }
 
-  /* Read the current RISC OS environment handlers.  We probably don't need
-     to do this because they should be exactly the same as when we read them
-     at UnixLib initialisation time.  */
-  __env_read ();
+  /* We don't need to read the current RISC OS environment handlers because
+     they should be exactly the same as when we read them at UnixLib
+     initialisation time, other than the wimpslot/appspace/himem sizes which
+     we don't want to alter anyway.  */
 
   /* Install the UnixLib environment handlers.  */
   __env_unixlib ();

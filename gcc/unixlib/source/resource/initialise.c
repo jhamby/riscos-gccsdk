@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/resource/initialise.c,v $
- * $Date: 2001/09/04 16:32:04 $
- * $Revision: 1.2.2.3 $
+ * $Date: 2002/02/14 15:56:36 $
+ * $Revision: 1.3 $
  * $State: Exp $
  * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: initialise.c,v 1.2.2.3 2001/09/04 16:32:04 admin Exp $";
+static const char rcs_id[] = "$Id: initialise.c,v 1.3 2002/02/14 15:56:36 admin Exp $";
 #endif
 
 #include <sys/resource.h>
@@ -28,6 +28,7 @@ void
 __resource_initialise (struct proc *p)
 {
   int regs[10];
+  int max_wimpslot;
 
   /* The maximum amount of cpu time the process can use.  */
   p->limit[RLIMIT_CPU].rlim_cur = RLIM_INFINITY;
@@ -41,20 +42,21 @@ __resource_initialise (struct proc *p)
   p->limit[RLIMIT_CORE].rlim_cur = RLIM_INFINITY;
   p->limit[RLIMIT_CORE].rlim_max = RLIM_INFINITY;
 
-  /* The maximum size of data memory for the process.
-     Reference src.sys.c.brk for a clear example.
+  regs[0] = -1;
+  if (__os_swi (OS_ReadDynamicArea, regs))
+    /* If the call failed then it's probably because we are on
+       RISC OS < 3.5 so we know it can't be more than 16MB */
+    max_wimpslot = 16*1024*1024;
+  else
+    max_wimpslot = regs[2];
 
-     This should be the same for both cases of dynamic area or not.
-     Data area should lie between __lomem and __break. However, __break
-     can gradually grow as more memory is requested. For non dynamic
-     areas, the data area can lie between __lomem and __stack (yes
-     __stack can become less, but stack checking accounts for this).
+  /* The maximum size of data memory for the process.
 
      For dynamic areas the limit is current available memory size or
      the limit imposed by any virtual memory system such as Virtualise.  */
 
   if (__dynamic_num == -1)	/* No dynamic area */
-    p->limit[RLIMIT_DATA].rlim_max = (u_char *) __stack - (u_char *) __lomem;
+    p->limit[RLIMIT_DATA].rlim_max = max_wimpslot;
   else
     {
       regs[0] = __dynamic_num;
@@ -66,11 +68,9 @@ __resource_initialise (struct proc *p)
   p->limit[RLIMIT_DATA].rlim_cur = p->limit[RLIMIT_DATA].rlim_max;
 
 
-  /* The maximum stack size for the process. This lies between
-     __himem and __stack_limit.  */
-  p->limit[RLIMIT_STACK].rlim_max = (u_char *) __himem - (u_char *) __stack_limit;
-  /* Maximum (soft limit) stack size for the process lies between __stack
-     and __himem.  */
+  /* The maximum stack size for the process. As the stack is extensible then
+     it can grow up to the maximum wimpslot size */
+  p->limit[RLIMIT_STACK].rlim_max = max_wimpslot;
   p->limit[RLIMIT_STACK].rlim_cur = p->limit[RLIMIT_STACK].rlim_max;
 
 
@@ -85,7 +85,7 @@ __resource_initialise (struct proc *p)
      and beyond for dynamic areas.  */
   if (__dynamic_num == -1)	/* No dynamic area */
     {
-      p->limit[RLIMIT_RSS].rlim_max = (u_char *) __himem - (u_char *) __base;
+      p->limit[RLIMIT_RSS].rlim_max = max_wimpslot;
       p->limit[RLIMIT_RSS].rlim_cur = p->limit[RLIMIT_RSS].rlim_max;
     }
   else

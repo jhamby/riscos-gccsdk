@@ -1,8 +1,8 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/unixlib/unix.h,v $
- * $Date: 2002/09/24 21:02:37 $
- * $Revision: 1.3 $
+ * $Date: 2002/12/15 13:16:55 $
+ * $Revision: 1.4 $
  * $State: Exp $
  * $Author: admin $
  *
@@ -161,6 +161,7 @@ extern char *__cli;		/* command line from OS_GetEnv */
 extern void *__base;		/* BASE = Image$$RO$$Base */
 extern void *__lomem;		/* LOMEM = Image$$RW$$Limit */
 extern void *__himem;		/* HIMEM from OS_GetEnv */
+extern void *__real_himem;	/* Real HIMEM  - application space limit */
 extern void *__rwlimit;
 
 extern void *__break;		/* end of data area */
@@ -299,6 +300,7 @@ extern void *__stackalloc (size_t __size);
 extern void __stackfree (void *__ptr);
 extern int __stackalloc_trim (void);
 extern void __free_stack_chain (void *__ptr);
+extern void *__stackalloc_incr_wimpslot (int __incr);
 
 /* Initialise the UnixLib world.  */
 void __unixinit (void);

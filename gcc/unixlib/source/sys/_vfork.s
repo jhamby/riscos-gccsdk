@@ -1,8 +1,8 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/_vfork.s,v $
-; $Date: 2002/09/24 21:02:38 $
-; $Revision: 1.4 $
+; $Date: 2002/12/15 13:16:55 $
+; $Revision: 1.5 $
 ; $State: Exp $
 ; $Author: admin $
 ;
@@ -114,9 +114,6 @@ return_parent2
 	BL	|__pthread_atfork_callparentchild|
 pthread_skip3
 	]
-	SWI	XOS_WriteS
-	DCB	"exiting to parent",10,13,0
-	ALIGN
 	stackreturn	AL, "a1,a2,a3,a4,v1,v2,v3,v4,v5,pc"
 
 return_fail

@@ -1,10 +1,10 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/_syslib.s,v $
-; $Date: 2003/01/05 12:36:35 $
-; $Revision: 1.11 $
+; $Date: 2003/04/05 09:13:00 $
+; $Revision: 1.12 $
 ; $State: Exp $
-; $Author: admin $
+; $Author: alex $
 ;
 ;----------------------------------------------------------------------------
 
@@ -93,12 +93,6 @@ EXTREMELY_PARANOID	*	0	; Should we check that the entire stack chunk chain is va
 	;   a3 = pointer to real time the program was started (5 bytes)
 	SWI	XOS_GetEnv
 
-	[ |__4K_BOUNDARY| = 1
-	; align top of wimpslot to 4k (downwards)
-	BIC	a2, a2, #&ff
-	BIC	a2, a2, #&f00
-	]
-
 	; struct_base is the start of our memory environment variables
 	; See the end of this file.  For the initialisation here, we
 	; will always use ip as the base register.
@@ -111,19 +105,16 @@ EXTREMELY_PARANOID	*	0	; Should we check that the entire stack chunk chain is va
 	STR	a1, [ip, #8]	; __time (low word)
 	STR	a2, [ip, #12]	; __time (high word)
 
+	MOV	a1, #14	; Read appspace value
+	MOV	a2, #0
+	MOV	a3, #0
+	SWI	XOS_ChangeEnvironment
+	STR	a2, [ip, #72]	; Default value of __real_himem is the size of application space
+
 	; For a description of the memory layout of a UnixLib application
 	; see sys/brk.c.
 	LDR	a1, [ip, #20]	; __robase
 	LDR	a2, [ip, #24]	; __rwlimit
-
-	[ |__4K_BOUNDARY| = 1
-	; align rwlimit to 4Kbyte boundary
-	ADD	a2, a2, #&1000
-	SUB	a2, a2, #1
-	BIC	a2, a2, #&ff
-	BIC	a2, a2, #&f00
-	STR	a2, [ip, #24]	; __rwlimit
-	]
 
 	STR	a1, [ip, #28]	; __base = __robase
 	STR	a2, [ip, #32]	; __lomem = __rwlimit
@@ -138,11 +129,14 @@ EXTREMELY_PARANOID	*	0	; Should we check that the entire stack chunk chain is va
 	; execute in stack space.
 
 	LDR	sp, [ip, #4]	; __himem
+	; 8 bytes are needed above the initial chunk
+	; for the stackalloc heap
+	SUB	sp, sp, #8
 	SUB	a1, sp, #4096
 	ADD	sl, a1, #512 + CHUNK_OVERHEAD
 
 	SUB	a3, a1, #8
-	; __stackalloc_init needs a minimum of 8 bytes more than the initial
+	; __stackalloc_init needs a minimum of 8 bytes below the initial
 	; chunk for its heap - check this doesn't overlap the code section
 	STR	a3, [ip, #16]	; __stack = bottom of stack
 	CMP	a3, a2
@@ -176,10 +170,10 @@ EXTREMELY_PARANOID	*	0	; Should we check that the entire stack chunk chain is va
 
 	MOV	ip, v1		; Restore ip.
 
-	;LDR	a1, =|rmensure|
-	;SWI	XOS_CLI
-	;MOVVS	a1, #NO_SUL
-	;BVS	exit_with_error
+	LDR	a1, =|rmensure|
+	SWI	XOS_CLI
+	MOVVS	a1, #NO_SUL
+	BVS	exit_with_error
 
 	; use of da's explicitly overridden if __dynamic_no_da is declared
 	LDR	a1, =|__dynamic_no_da|
@@ -197,12 +191,10 @@ EXTREMELY_PARANOID	*	0	; Should we check that the entire stack chunk chain is va
 
 	; use old dynamic area if possible
 	; if app mem size = mem size, then can't be a spawned program
-	MOV	a1, #14
-	MOVS	a2, #0			; Ensure Z flag set
-	SWI	XOS_ChangeEnvironment	; preserves Z
-	LDRVC	a1, [ip, #4]		; top of our app space at __himem
-	CMPVC	a2, a1			; only make check if SWI succeeds
-	BEQ	no_old_area		; B if eq or SWI failed
+	LDR	a1, [ip, #4]	; __himem
+	LDR	a2, [ip, #72]	; __real_himem
+	CMP	a2, a1
+	BEQ	no_old_area
 	; validate numbers at top of application memory (see sys.s._exec)
 	LDMIA	a1, {a1, a2, a3, a4, v1, v2, v3, v4}
 	EOR	a3, a3, a1, ROR #7
@@ -351,11 +343,6 @@ no_dynamic_area
 	MOVVC	a1, #1
 	STR	a1, [ip, #52]	; __fpflag
 
-	; Initialise the stack heap in application space
-	MOV	v1, ip	; Preserve ip
-	BL	|__stackalloc_init|
-	MOV	ip, v1
-
 	; Now we'll initialise the C library, then call the user program.
 
 	; Check the environment variable UnixLib$env.  If set, then
@@ -380,6 +367,8 @@ no_dynamic_area
 	BL	|__env_read|
 	; Install the Unixlib environment handlers
 	BL	|__env_unixlib|
+	; Initialise the stack heap in application space
+	BL	|__stackalloc_init|
 	; Initialise the UnixLib library
 	BL	|__unixinit|
 	; Run the users program.
@@ -442,6 +431,7 @@ check_for_callaswi
 |__exit|
 	MOV	v1, a1
 	BL	|__dynamic_area_exit|
+	BL	|__env_riscos_and_wimpslot|
 	LDR	a3, =|__sharedunixlibrary_key|
 	LDR	a3, [a3]
 	SWI	XSharedUnixLibrary_DeRegisterUpCall
@@ -462,6 +452,7 @@ exit_word
 	NAME	__exit_no_code
 |__exit_no_code|
 	BL	|__dynamic_area_exit|
+	BL	|__env_riscos_and_wimpslot|
 	MOV	a1, #0
 	MOV	a2, #0
 	MOV	a3, #0
@@ -472,20 +463,52 @@ exit_word
 |___vret|
 	DCD	|__vret|
 
+	; Restore original wimpslot, appspace and himem limits, and original
+	; RISC OS environment handlers
+|__env_riscos_and_wimpslot|
+	; As we are reducing the wimpslot, the stack pointer may end up
+	; pointing to invalid memory, so we need to reset it.
+	; This will overwrite some of the original stack, but this is
+	; only called just before exiting so won't be a problem
+	LDR	a1, =|__calling_environment|
+	LDR	sp, [a1]	; Original himem value
+
+	STMFD	sp!, {v1, lr}
+	ADD	v1, a1, #14*3*4
+
+	LDR	a1, [v1]	; Original appspace value
+	SUB	a1, a1, #&8000
+	MOV	a2, #-1
+	SWI	XWimp_SlotSize
+
+	MOV	a1, #14
+	LDMIA	v1, {a2, a3, a4}
+	SWI	XOS_ChangeEnvironment
+	MOV	a1, #0
+	SUB	v1, v1, #14*3*4
+	LDMIA	v1, {a2, a3, a4}
+	SWI	XOS_ChangeEnvironment
+
+	LDMFD	sp!, {v1, lr}
+	; Fall through to __env_riscos
+
 	EXPORT	|__env_riscos|
 	; Restore original RISC OS environment handlers
 |__env_riscos|
-	STMFD	sp!, {a1, a2, a3, a4, v1, v2, lr}
+	STMFD	sp!, {v1, v2, lr}
+
 	MOV	v1, #0
 	LDR	v2, =|__calling_environment|
 t04
 	MOV	a1, v1
 	LDMIA	v2!, {a2, a3, a4}
-	SWI	XOS_ChangeEnvironment
+	CMP	a1, #0  ; Don't restore the himem limit
+	CMPNE	a1, #14 ; Don't restore the appspace limit
+	SWINE	XOS_ChangeEnvironment
 	ADD	v1, v1, #1
 	CMP	v1, #17		;  __ENVIRONMENT_HANDLERS
 	BLT	t04
-	LDMFD	sp!, {a1, a2, a3, a4, v1, v2, pc}^
+	stackreturn	AL, "v1, v2, pc"
 
 	; Get current environment handler setup
 	EXPORT	|__env_read|
@@ -529,7 +552,7 @@ t06
 	CMP	v1, #17
 	BLT	t06
 
-	LDR	r1, =|__env_riscos|
+	LDR	r1, =|__env_riscos_and_wimpslot|
 	SWI	XSharedUnixLibrary_RegisterUpCall
 	LDR	r0, =|__sharedunixlibrary_key|
 	STR	r2, [r0]
@@ -922,7 +945,8 @@ dynamic_area_name_end
 	EXPORT	|__wimpprogram| ; non-zero if executing as a Wimp program
 	EXPORT	|__dynamic_num|
 	EXPORT	|__u|		; pointer to proc structure
-		
+	EXPORT	|__real_himem|
+
 	; Altering this structure will require fixing __main.
 struct_base
 |__cli|		DCD	0				; offset = 0
@@ -947,5 +971,6 @@ struct_base
 
 |__dynamic_num|	DCD	-1				; offset = 64
 |__u|		DCD	0				; offset = 68
+|__real_himem|	DCD	0				; offset = 72
 
 	END

@@ -1,10 +1,10 @@
 /****************************************************************************
  *
- * $Source$
- * $Date$
- * $Revision$
- * $State$
- * $Author$
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/unixlib/features.h,v $
+ * $Date: 2002/12/22 18:22:28 $
+ * $Revision: 1.6 $
+ * $State: Exp $
+ * $Author: admin $
  *
  ***************************************************************************/
 
@@ -552,8 +552,8 @@
 #define __DYNAMIC_AREA 1
 #endif
 
-/* Align the stack on a 4K boundary.  */
-#undef __4K_BOUNDARY
+/* Amount to align the wimpslot or dynamic area. */
+#define __DA_WIMPSLOT_ALIGNMENT (32*1024-1)
 
 #undef __USEFILEPATH
 

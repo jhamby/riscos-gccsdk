@@ -1,8 +1,8 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/unixlib/asm_dec.s,v $
-; $Date: 2003/04/04 22:04:55 $
-; $Revision: 1.6 $
+; $Date: 2003/04/05 09:03:19 $
+; $Revision: 1.7 $
 ; $State: Exp $
 ; $Author: alex $
 ;
@@ -19,8 +19,6 @@ ALLOCA_FATAL	EQU	1
 PARANOID	EQU	0
 ; Use dynamic areas for heap on RISC OS 3.5+
 DYNAMIC_AREA	EQU	1
-; Align things to 4K boundaries for exec
-|__4K_BOUNDARY|	EQU	0
 ; Emulate the SWP instruction for ARM2 compatibility
 |__SWP_ARM2|	EQU	0
 
@@ -464,6 +462,7 @@ XMessageTrans_ErrorLookup	EQU	&041506 + X_Bit
 
 XTaskWindow_TaskInfo		EQU	&043380 + X_Bit
 XWimp_ReadSysInfo		EQU	&0400F2 + X_Bit
+XWimp_SlotSize			EQU	&0400EC + X_Bit
 XDDEUtils_SetCLSize		EQU	&042581 + X_Bit
 
 XSharedUnixLibrary_RegisterUpCall	EQU	&55c80 + X_Bit
