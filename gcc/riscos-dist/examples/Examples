@@ -13,7 +13,7 @@ hellow
 The standard C program.
 
 Source: 	c.hellow
-Compile using: 	gcc c.hellow -o hellow
+Compile using: 	gcc hellow.c -o hellow
 Run using: 	hellow
 
 
@@ -24,7 +24,7 @@ A benchmark program, used to indicate the coding efficiency of procedures.
 Also illustrates how to receive arguments passed on the command line.
 
 Source:		c.ackermann
-Compile using:	gcc c.ackermann -o ackermann
+Compile using:	gcc ackermann.c -o ackermann
 Run using:	ackermann 3 4
 
 Try using different numbers instead of 3 and 4.
@@ -41,10 +41,10 @@ libraries to create an executable.
 
 Source:		c.dhry_1, c.dhry_2, h.dhry_2
 
-Compile using:	gcc -c c.dhry_1
-		gcc -c c.dhry_2
+Compile using:	gcc -c dhry_1.c
+		gcc -c dhry_2.c
 
-Link using:	drlink -o dhry o.dhry_1 o.dhry_2 gcc:o.libgcc unix:o.unixlib
+Link using:	gcc -o dhry dhry_1.o dhry_2.o
 
 Run using:	dhry
 
@@ -61,7 +61,7 @@ The standard C++ program. The application requires linking against the
 iostream libraries - we specify this with the `-liostream' option.
 
 Source: 	cc.helloworld
-Compile using: 	gcc cc.helloworld -o helloworld -liostream
+Compile using: 	gcc helloworld.cc -o helloworld -liostream
 Run using: 	helloworld
 
 
@@ -74,7 +74,7 @@ compile this.
 
 Source:		cc.dhrystone, h.Int, h.Char
 
-Compile using:	gcc cc.dhrystone -o dhrystone -O2 -DQUICK
+Compile using:	gcc dhrystone.cc -o dhrystone -O2 -DQUICK
 
 Run using:	dhrystone
 
@@ -86,28 +86,28 @@ by adding certain command line options to gcc:
 
 
 To get standard integers and characters
-compile using:	gcc cc.dhrystone -o dhrystone -DBUILTIN
+compile using:	gcc dhrystone.cc -o dhrystone -DBUILTIN
 
 To use function calls instead of inlined function calls
-compile using:	gcc cc.dhrystone -o dhrystone -DCALLS
+compile using:	gcc dhrystone.cc -o dhrystone -DCALLS
 
 To make all class members virtual
-compile using:	gcc cc.dhrystone -o dhrystone -DVIRT
+compile using:	gcc dhrystone.cc -o dhrystone -DVIRT
 
 To use call-by-value, not by-reference
-compile using:	gcc cc.dhrystone -o dhrystone -DBYVAL
+compile using:	gcc dhrystone.cc -o dhrystone -DBYVAL
 
 To eliminate mixed mode functions that avoid constructors
-compile using:	gcc cc.dhrystone -o dhrystone -DCONVERT
+compile using:	gcc dhrystone.cc -o dhrystone -DCONVERT
 
 To eliminate the use of named return values
-compile using:	gcc cc.dhrystone -o dhrystone -DNO_NRV
+compile using:	gcc dhrystone.cc -o dhrystone -DNO_NRV
 
 To get one pointer per object padding:
-compile using:	gcc cc.dhrystone -o dhrystone -DFAKEVPTR
+compile using:	gcc dhrystone.cc -o dhrystone -DFAKEVPTR
 
 To make =, +=, etc. return *this, not void
-compile using:	gcc cc.dhrystone -o dhrystone -DRETREF
+compile using:	gcc dhrystone.cc -o dhrystone -DRETREF
 
 
 template
@@ -116,5 +116,5 @@ template
 Demonstrates the instantiation of templates.
 
 Source: 	cc.template
-Compile using: 	gcc cc.template -o template
+Compile using: 	gcc template.cc -o template
 Run using: 	template
