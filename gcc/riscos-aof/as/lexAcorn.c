@@ -3,7 +3,13 @@
  * Copyright © 1993 Niklas Röjemo
  */
 
+#include "sdk-config.h"
+#ifdef HAVE_STDINT_H
 #include <stdint.h>
+#elif HAVE_INTTYPES_H
+#include <inttypes.h>
+#endif
+
 #include "lex.h"
 #include "input.h"
 #include "decode.h"

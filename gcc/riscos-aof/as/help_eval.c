@@ -3,8 +3,13 @@
  * help_eval.c
  * Copyright © 1992 Niklas Röjemo
  */
-
+#include "sdk-config.h"
+#ifdef HAVE_STDINT_H
 #include <stdint.h>
+#elif HAVE_INTTYPES_H
+#include <inttypes.h>
+#endif
+
 #include "global.h"
 #include "help_eval.h"
 #include "eval.h"

@@ -5,9 +5,14 @@
  *     Added line numbers  Niklas Röjemo
  *     Added filenames     Darren Salt
  */
-
+#include "sdk-config.h"
 #include <stdio.h>
+#ifdef HAVE_STDINT_H
 #include <stdint.h>
+#elif HAVE_INTTYPES_H
+#include <inttypes.h>
+#endif
+
 #include "input.h"
 #include "error.h"
 #include "whileif.h"

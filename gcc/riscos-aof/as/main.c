@@ -3,13 +3,19 @@
  *  main.c
  * Copyright © 1992 Niklas Röjemo
  */
+#include "sdk-config.h"
 #include <setjmp.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 #include <ctype.h>
 #include <locale.h>
+#ifdef HAVE_STDINT_H
 #include <stdint.h>
+#elif HAVE_INTTYPES_H
+#include <inttypes.h>
+#endif
+
 #include "strdup.h"
 #include "input.h"
 #include "output.h"

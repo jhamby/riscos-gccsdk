@@ -3,11 +3,16 @@
  * Copyright © 1992 Niklas Röjemo
  * Copyright 1997, Nick Burrett.
  */
-
+#include "sdk-config.h"
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#ifdef HAVE_STDINT_H
 #include <stdint.h>
+#elif HAVE_INTTYPES_H
+#include <inttypes.h>
+#endif
+
 #include "error.h"
 #include "chunkfile.h"
 #include "aoffile.h"

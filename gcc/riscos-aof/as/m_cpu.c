@@ -3,8 +3,13 @@
  * m_cpu.c
  * Copyright © 1992 Niklas Röjemo
  */
-
+#include "sdk-config.h"
+#ifdef HAVE_STDINT_H
 #include <stdint.h>
+#elif HAVE_INTTYPES_H
+#include <inttypes.h>
+#endif
+
 #include "mnemonics.h"
 #include "error.h"
 #include "option.h"

@@ -3,11 +3,17 @@
  * Copyright © 1992 Niklas Röjemo
  */
 
+#include "sdk-config.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <ctype.h>
 #include <string.h>
+#ifdef HAVE_STDINT_H
 #include <stdint.h>
+#elif HAVE_INTTYPES_H
+#include <inttypes.h>
+#endif
+
 #include "lex.h"
 #include "hash.h"
 #include "symbol.h"

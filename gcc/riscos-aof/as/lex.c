@@ -2,11 +2,16 @@
  *   lex.c
  * Copyright © 1992 Niklas Röjemo
  */
-
+#include "sdk-config.h"
 #include <ctype.h>
 #include <math.h>
 #include <string.h>
+#ifdef HAVE_STDINT_H
 #include <stdint.h>
+#elif HAVE_INTTYPES_H
+#include <inttypes.h>
+#endif
+
 #include "error.h"
 #include "lex.h"
 #include "local.h"

@@ -3,8 +3,13 @@
  *
  * Andy Duplain, August 1992.
  */
-
+#include "sdk-config.h"
+#ifdef HAVE_ENDIAN_H
 #include <endian.h>
+#elif HAVE_MACHINE_ENDIAN_H
+#include <machine/endian.h>
+#endif
+
 #include "endiandef.h"
 
 #define BYTE0SHIFT 24

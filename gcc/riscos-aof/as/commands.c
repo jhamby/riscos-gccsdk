@@ -3,11 +3,17 @@
  * Copyright © 1992 Niklas Röjemo, 1997 Darren Salt
  */
 
+#include "sdk-config.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <ctype.h>
 #include <string.h>
+#ifdef HAVE_STDINT_H
 #include <stdint.h>
+#elif HAVE_INTTYPES_H
+#include <inttypes.h>
+#endif
+
 #include "commands.h"
 #include "error.h"
 #include "input.h"
