@@ -1,8 +1,8 @@
 ;----------------------------------------------------------------------------
 ;
-; $Source: /usr/local/cvsroot/unixlib/source/netlib/s/ntohl,v $
-; $Date: 2000/12/21 15:09:13 $
-; $Revision: 1.5 $
+; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/netlib/ntohl.s,v $
+; $Date: 2001/01/29 15:10:20 $
+; $Revision: 1.2 $
 ; $State: Exp $
 ; $Author: admin $
 ;
@@ -13,6 +13,7 @@
 	AREA	|C$$code|,CODE,READONLY
 
 	EXPORT	ntohl
+	NAME	ntohl
 ntohl
 	EOR	r1, r0, r0, ROR #16
 	BIC	r1, r1, #&FF0000

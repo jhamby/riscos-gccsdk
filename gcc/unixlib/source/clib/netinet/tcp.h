@@ -1,10 +1,10 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/clib/netinet/h/tcp,v $
- * $Date: 1997/10/15 21:00:31 $
- * $Revision: 1.5 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/netinet/tcp.h,v $
+ * $Date: 2001/01/29 15:10:19 $
+ * $Revision: 1.2 $
  * $State: Exp $
- * $Author: unixlib $
+ * $Author: admin $
  *
  ***************************************************************************/
 
@@ -13,6 +13,10 @@
 
 /* Freenet programmers interface - netinet/tcp.h - 23/5/95 */
 
+#ifndef __UNIXLIB_FEATURES_H
+#include <unixlib/features.h>
+#endif
+
 #ifndef __UNIXLIB_TYPES_H
 #include <unixlib/types.h>
 #endif
@@ -20,6 +24,8 @@
 #ifndef __SYS_BYTEORDER_H
 #include <sys/byteorder.h>
 #endif
+
+__BEGIN_DECLS
 
 /*
  * Type of a TCP sequence number
@@ -95,5 +101,7 @@ struct tcphdr {
  */
 #define TCP_NODELAY 0x01       /* Don't delay send to coalesce packets */
 #define TCP_MAXSEG  0x02       /* Set the maximum segment size */
+
+__END_DECLS
 
 #endif

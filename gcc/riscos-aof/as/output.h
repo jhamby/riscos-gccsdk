@@ -13,6 +13,6 @@ void outputRemove (void);
 
 void outputAof (void);
 
-extern char *idfn_text;
+extern const char *idfn_text;
 
 #endif

@@ -1,23 +1,25 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/unixlib/Attic/os.h,v $
- * $Date: 2001/09/04 16:32:04 $
- * $Revision: 1.1.2.1 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/unixlib/os.h,v $
+ * $Date: 2002/02/14 15:56:35 $
+ * $Revision: 1.2 $
  * $State: Exp $
  * $Author: admin $
  *
  ***************************************************************************/
 
-#ifndef __SYS_OS_H
-#define __SYS_OS_H
+#ifndef __UNIXLIB_OS_H
+#define __UNIXLIB_OS_H
+
+#ifndef __UNIXLIB_FEATURES_H
+#include <unixlib/features.h>
+#endif
 
 #ifndef __KERNEL_H
 #include <kernel.h>
 #endif
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+__BEGIN_DECLS
 
 #ifdef __UNIXLIB_INTERNALS
 
@@ -64,8 +66,6 @@ extern _kernel_oserror *__os_fsctrl (int,const char *,char *,int);
 extern void __seterr (const _kernel_oserror *);
 #endif
 
-#ifdef __cplusplus
-	}
-#endif
+__END_DECLS
 
 #endif

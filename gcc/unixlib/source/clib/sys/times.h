@@ -1,10 +1,10 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/sys/times.h,v $
- * $Date: 2001/09/14 14:01:17 $
- * $Revision: 1.2.2.1 $
- * $State: Exp $
- * $Author: admin $
+ * $Source$
+ * $Date$
+ * $Revision$
+ * $State$
+ * $Author$
  *
  ***************************************************************************/
 
@@ -13,12 +13,14 @@
 #ifndef __SYS_TIMES_H
 #define __SYS_TIMES_H
 
+#ifndef __UNIXLIB_FEATURES_H
+#include <unixlib/features.h>
+#endif
+
 #define __need_clock_t
 #include <time.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+__BEGIN_DECLS
 
 /* Structure describing CPU time used by a process and its children.  */
 
@@ -34,8 +36,6 @@ struct tms
    in buffer.  */
 extern clock_t times (struct tms *__tmsp);
 
-#ifdef __cplusplus
-}
-#endif
+__END_DECLS
 
 #endif

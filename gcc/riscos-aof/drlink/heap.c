@@ -84,7 +84,7 @@ void *allocmem(unsigned int size) {
   char *area, *newnext;
   blockinfo *lp, *mp, *np, *p;
   unsigned int wordsize, bitleft;
-  size = (size+sizeof(int)-1) & ALIGNMASK;
+  size = (size+sizeof(int)-1) & -sizeof(int);	/* Round size up to next word boundary */
   if (size<MINALLOC) size = MINALLOC;
   if (size<=MAXFREEBYTES) {	/* Look for entry in small block free list array */
     wordsize = size/sizeof(unsigned int);

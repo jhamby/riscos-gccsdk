@@ -1,10 +1,10 @@
 ;----------------------------------------------------------------------------
 ;
-; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/_syslib.s,v $
-; $Date: 2002/02/11 13:11:31 $
-; $Revision: 1.3.2.9 $
-; $State: Exp $
-; $Author: admin $
+; $Source$
+; $Date$
+; $Revision$
+; $State$
+; $Author$
 ;
 ;----------------------------------------------------------------------------
 
@@ -44,7 +44,7 @@ dynamic_area_name_end
 	EXPORT	|__sigstksize|	; size of callback signal stack
 	EXPORT	|__dynamic_num|
 	EXPORT	|__u|		; pointer to proc structure
-		
+
 	; Altering this structure will require fixing __main.
 struct_base
 |__cli|		DCD	0				; offset = 0
@@ -101,14 +101,14 @@ struct_base
 	IMPORT	|__dynamic_da_name|, WEAK
 	IMPORT	|__alloca_list|, WEAK
 
-	EXPORT	|__main|
-
 |rmensure|
 	DCB "RMEnsure SharedUnixLibrary 1.00 RMLoad System:Modules.SharedULib"
 	DCB 0
 	ALIGN
 
 	ENTRY
+	EXPORT	|__main|
+	NAME	__main
 |__main|
 	; Read environment parameters
 	; On exit:
@@ -127,13 +127,13 @@ struct_base
 	; See the end of this file.  For the initialisation here, we
 	; will always use ip as the base register.
 	LDR	ip, =struct_base
-	
+
 	; The stack is allocated at the top of RAM.  We cannot place it
 	; in a dynamic area because GCC might generate trampolines.
 	; Trampolines (for the un-initiated) are little code fragments that
 	; execute in stack space.
 	MOV	sp, a2
-	
+
 	; For simplicity, the first X bytes of stack is reserved for the
 	; signal callback stack.
 	STR	sp, [ip, #64]	; __sigstk
@@ -175,7 +175,7 @@ struct_base
 	BLS	exit_with_error_no_memory ; No stack, exit.
 
 	MOV	v1, ip		; Temporary variable
-	
+
 	; Check for the existence of CallASWI.  Terminate the process
 	; with an appropriate error message, if it doesn't exist.
 	ADR	a1, error_no_callaswi
@@ -215,7 +215,7 @@ struct_base
 	MOV	a1, #14
 	MOVS	a2, #0			; Ensure Z flag set
 	SWI	XOS_ChangeEnvironment	; preserves Z
-	LDRVC	a1, [ip, #64]		; top of our app space at __sigstk 
+	LDRVC	a1, [ip, #64]		; top of our app space at __sigstk
 	CMPVC	a2, a1			; only make check if SWI succeeds
 	BEQ	no_old_area		; B if eq or SWI failed
 	; validate numbers at top of application memory (see sys.s._exec)
@@ -258,7 +258,7 @@ no_old_area
 	TEQ	v5, #0
 	LDRNE	v5, [v5, #0]	; get the actual string referred to
 	BNE	t07
-	
+
 	; area name is program name + "$Heap"
 	LDR	a1, [ip, #0]	; __cli
 	MOV	a2, a1
@@ -371,7 +371,7 @@ no_dynamic_area
 	STR	a1, [ip, #52]	; __fpflag
 
 	; Now we'll initialise the C library, then call the user program.
-	
+
 	; Check the environment variable UnixLib$env.  If set, then
 	; it will be an integer pointer to the parent process structure.
 	; If we have successfully read the variable, then immediately
@@ -389,7 +389,7 @@ no_dynamic_area
 	MOVNE	a4, #0		; context pointer (0 = first call)
 	MOVNE	v1, #1		; variable type is number
 	SWINE	XOS_SetVarVal
-	
+
 	; Read the current RISC OS environment handler state
 	BL	|__env_read|
 	; Install the Unixlib environment handlers
@@ -434,6 +434,7 @@ check_for_callaswi
 
 	IMPORT	|__munmap_all|
 	EXPORT	|__dynamic_area_exit|
+	NAME	__dynamic_area_exit
 |__dynamic_area_exit|
 	STMFD	sp!, {lr}
 	BL	|__munmap_all|		; this must be done here for exec.c
@@ -451,6 +452,7 @@ check_for_callaswi
 	return	AL, pc, a4
 
 	EXPORT	|__exit|
+	NAME	__exit
 |__exit|
 	MOV	v1, a1
 	BL	|__dynamic_area_exit|
@@ -471,6 +473,7 @@ exit_word
 	DCD	&58454241
 
 	EXPORT	|__exit_no_code|
+	NAME	__exit_no_code
 |__exit_no_code|
 	BL	|__dynamic_area_exit|
 	MOV	a1, #0
@@ -500,6 +503,7 @@ t04
 
 	; Get current environment handler setup
 	EXPORT	|__env_read|
+	NAME	__env_read
 |__env_read|
 	STMFD	sp!, {a1, a2, a3, a4, v1, v2, lr}
 	MOV	v1, #0
@@ -515,10 +519,11 @@ t05
 	CMP	v1, #17
 	BLT	t05
 	LDMFD	sp!, {a1, a2, a3, a4, v1, v2, pc}^
-	
+
+	IMPORT	|__ul_errbuf|
 	; Install the Unixlib environment handlers
 	EXPORT	|__env_unixlib|
-	IMPORT	|__ul_errbuf|
+	NAME	__env_unixlib
 |__env_unixlib|
 	STMFD	sp!, {a1, a2, a3, a4, v1, v2, lr}
 	SWI	XOS_IntOff
@@ -547,7 +552,7 @@ t06
 
 	SWI	XOS_IntOn
 	LDMFD	sp!, {a1, a2, a3, a4, v1, v2, pc}^
-	
+
 handlers
 	DCD	0		; Memory limit
 	DCD	|__h_sigill|	; Undefined instruction
@@ -573,9 +578,10 @@ handlers
 
 
 	IMPORT	|__unixlib_raise_signal|
+	; allocate 512 bytes more stack
 	EXPORT	|x$stack_overflow|
 	EXPORT	|__rt_stkovf_split_small|
-	; allocate 512 bytes more stack
+	NAME	__rt_stkovf_split_small
 |x$stack_overflow|
 |__rt_stkovf_split_small|
 	STMFD	sp!, {a1, a2, lr}
@@ -594,9 +600,10 @@ handlers
 	LDMFD	sp!, {a3, a4, ip}
 	stackreturn	AL, "a1, a2, pc"
 
+	; Allocate stack to below <ip>
 	EXPORT	|x$stack_overflow_1|
 	EXPORT	|__rt_stkovf_split_big|
-	; Allocate stack to below <ip>
+	NAME	__rt_stkovf_split_big
 |x$stack_overflow_1|
 |__rt_stkovf_split_big|
 	CMP	ip, sl ; sanity check
@@ -616,12 +623,12 @@ handlers
 	LDMFD	sp!, {a3, a4, ip}
 	stackreturn	AL, "a1, a2, pc"
 
-	EXPORT	|_kernel_fpavailable|
 	; Return non-zero if the floating point instruction set is available
+	EXPORT	|_kernel_fpavailable|
+	NAME	_kernel_fpavailable
 |_kernel_fpavailable|
 	LDR	a1, =struct_base
 	LDR	a1, [a1, #52]	; __fpflag
 	return	AL, pc, lr
 
 	END
-

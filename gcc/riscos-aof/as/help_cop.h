@@ -17,7 +17,7 @@
 
 #define FROM_CP_BIT  (1<<20)
 
-int help_copInt (int max, char *msg);
+int help_copInt (int max, const char *msg);
 
 WORD help_copAddr (WORD ir, BOOL stack);
 

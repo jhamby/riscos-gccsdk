@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/stdio/c/scanf,v $
- * $Date: 2000/11/29 12:54:29 $
- * $Revision: 1.10 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/stdio/scanf.c,v $
+ * $Date: 2001/01/29 15:10:21 $
+ * $Revision: 1.2 $
  * $State: Exp $
  * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: scanf,v 1.10 2000/11/29 12:54:29 admin Exp $";
+static const char rcs_id[] = "$Id: scanf.c,v 1.2 2001/01/29 15:10:21 admin Exp $";
 #endif
 
 /*-
@@ -53,7 +53,7 @@ static const char rcs_id[] = "$Id: scanf,v 1.10 2000/11/29 12:54:29 admin Exp $"
 static char sccsid[] = "@(#)vfscanf.c	8.1 (Berkeley) 6/4/93";
 #endif
 static const char rcsid[] =
-		"$Id: scanf,v 1.10 2000/11/29 12:54:29 admin Exp $";
+		"$Id: scanf.c,v 1.2 2001/01/29 15:10:21 admin Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 #include <stdio.h>
@@ -124,7 +124,8 @@ vfscanf (FILE *fp, char const *fmt0, va_list ap)
 	int nconversions;	/* number of conversions */
 	int nread;		/* number of characters consumed from fp */
 	int base;		/* base argument to strtol/strtoul */
-	u_long (*ccfn)();	/* conversion function (strtol/strtoul) */
+	u_long (*ccfn)(const char *, char **, int);
+				/* conversion function (strtol/strtoul) */
 	char ccltab[256];	/* character class table for %[...] */
 	char buf[BUF];		/* buffer for numeric conversions */
 
@@ -208,13 +209,13 @@ literal:
 			/* FALLTHROUGH */
 		case 'd':
 			c = CT_INT;
-			ccfn = (u_long (*)())strtol;
+			ccfn = (u_long (*)(const char *, char **, int))strtol;
 			base = 10;
 			break;
 
 		case 'i':
 			c = CT_INT;
-			ccfn = (u_long (*)())strtol;
+			ccfn = (u_long (*)(const char *, char **, int))strtol;
 			base = 0;
 			break;
 
@@ -297,7 +298,7 @@ literal:
 			if (isupper(c))
 				flags |= LONG;
 			c = CT_INT;
-			ccfn = (u_long (*)())strtol;
+			ccfn = (u_long (*)(const char *, char **, int))strtol;
 			base = 10;
 			break;
 		}

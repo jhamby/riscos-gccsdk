@@ -1,8 +1,8 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/unixlib/Attic/unix.h,v $
- * $Date: 2001/09/14 14:01:17 $
- * $Revision: 1.1.2.4 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/unixlib/unix.h,v $
+ * $Date: 2002/02/14 15:56:35 $
+ * $Revision: 1.2 $
  * $State: Exp $
  * $Author: admin $
  *
@@ -10,9 +10,12 @@
  *
  ***************************************************************************/
 
-#ifndef __SYS_UNIX_H
-#define __SYS_UNIX_H 1
+#ifndef __UNIXLIB_UNIX_H
+#define __UNIXLIB_UNIX_H 1
 
+#ifndef __UNIXLIB_FEATURES_H
+#include <unixlib/features.h>
+#endif
 #ifndef __UNIXLIB_TYPES_H
 #include <unixlib/types.h>
 #endif
@@ -45,16 +48,9 @@
 #include <kernel.h>
 #endif
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+__BEGIN_DECLS
 
 #ifdef __UNIXLIB_INTERNALS
-
-#ifndef __GNUC__
-#undef attribute
-#define attribute(x) /* ignore */
-#endif
 
 struct __process
 {
@@ -294,8 +290,6 @@ extern _kernel_oserror *__exerr;
 
 #endif  /* __UNIXLIB_INTERNALS */
 
-#ifdef __cplusplus
-}
-#endif
+__END_DECLS
 
 #endif

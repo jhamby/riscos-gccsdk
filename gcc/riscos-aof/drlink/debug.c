@@ -71,7 +71,7 @@ static char *nullfill(char *p) {
 /*
 ** 'add_lldentry' adds one entry to the low level debugging tables
 */
-static void add_lldentry(char *name, unsigned int class, int value) {
+static void add_lldentry(const char *name, unsigned int class, int value) {
   strcpy(lldnamenext, name);
   lldinfonext->lldoffset = class+(lldnamenext-lldnametable);
   lldinfonext->lldvalue = value;

@@ -1,7 +1,7 @@
 ;----------------------------------------------------------------------------
 ;
-; $Source: /usr/local/cvsroot/unixlib/source/math-asm/s/_hypot,v $
-; $Date: 2000/12/21 15:09:13 $
+; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/math-asm/_hypot.s,v $
+; $Date: 2001/01/29 15:10:20 $
 ; $Revision: 1.2 $
 ; $State: Exp $
 ; $Author: admin $
@@ -12,8 +12,9 @@
 
 	AREA	|C$$code|,CODE,READONLY
 
-	EXPORT	hypot
 	; return sqrt (x*x + y*y)
+	EXPORT	hypot
+	NAME	hypot
 hypot
 	STMFD	sp!, {a1, a2, a3, a4}
 	LDFD	f0, [sp], #8

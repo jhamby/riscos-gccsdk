@@ -1,8 +1,8 @@
 ;----------------------------------------------------------------------------
 ;
-; $Source: /usr/local/cvsroot/unixlib/source/netlib/s/_getsockop,v $
-; $Date: 2000/12/21 15:09:13 $
-; $Revision: 1.6 $
+; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/netlib/_getsockop.s,v $
+; $Date: 2001/01/29 15:10:20 $
+; $Revision: 1.2 $
 ; $State: Exp $
 ; $Author: admin $
 ;
@@ -15,6 +15,7 @@
 	IMPORT	|__net_error|
 
 	EXPORT	|_getsockopt|
+	NAME	_getsockopt
 |_getsockopt|
 	STMFD	sp!, {r4, lr}
 	LDR	r4, [sp, #8]

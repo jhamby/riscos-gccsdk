@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/unix.c,v $
- * $Date: 2002/01/31 14:32:04 $
- * $Revision: 1.2.2.8 $
- * $State: Exp $
- * $Author: admin $
+ * $Source$
+ * $Date$
+ * $Revision$
+ * $State$
+ * $Author$
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: unix.c,v 1.2.2.8 2002/01/31 14:32:04 admin Exp $";
+static const char rcs_id[] = "$Id$";
 #endif
 
 #include <stdio.h>
@@ -51,7 +51,8 @@ int __atexit_function_count = 0;
 static void initialise_process_structure (struct proc *process);
 static struct proc *create_process_structure (void);
 static void initialise_unix_io (struct proc *process);
-static void check_fd_redirection (const char *filename, int fd_to_replace);
+static void check_fd_redirection (const char *filename,
+				  unsigned int fd_to_replace);
 static int get_fd_redirection (const char *redir);
 static const char *find_terminator (const char *s);
 static void get_io_redir (const char *cli);
@@ -87,12 +88,6 @@ __badr (void)
 {
   __unixlib_fatal ("Bad redirection");
 }
-
-#ifndef __GNUC__
-/* Macros to simulate 'noreturn' functions.  */
-#define __badr() do { __badr (); return; } while (0)
-#define __unixlib_fatal(msg) do { __unixlib_fatal (msg); return; } while (0)
-#endif
 
 /* strtoul to avoid pulling in global verion for small executables.
    This version is limited to base 10, the first character is known to be
@@ -236,8 +231,25 @@ void __unixinit (void)
 void _main (void)
 {
   /* Enter the user's program. For compatibility with Unix systems,
-     pass the 'environ' variable as a third argument.  */
-  main (__u->argc, __u->argv, environ);
+     pass the 'environ' variable as a third argument.
+
+     Make a snapshot of the current environment.  This is necessary
+     as doing e.g. a getenv() can update *environ so that this main()
+     program is wrongly looking at a free'ed environ ptr array.  */
+  int env_var_index;
+  char **snapshot_environ;
+  for (env_var_index = 0; environ[env_var_index] != NULL; ++env_var_index)
+    ;
+  snapshot_environ = (char **) malloc((env_var_index + 1) * sizeof (char *));
+  if (snapshot_environ == NULL)
+    __unixlib_fatal (NULL);
+  while (env_var_index >= 0)
+    {
+      snapshot_environ[env_var_index] = environ[env_var_index];
+      --env_var_index;
+    }
+  
+  main (__u->argc, __u->argv, snapshot_environ);
 }
 
 void
@@ -452,7 +464,7 @@ initialise_unix_io (struct proc *process)
 /* Attempt to re-direct a file descriptor based on the file descriptor
    number that was passed on the command line.  */
 static void
-check_fd_redirection (const char *filename, int fd_to_replace)
+check_fd_redirection (const char *filename, unsigned int fd_to_replace)
 {
   /* <&- means shut.
      <&[fd] would mean dup this fd.  */
@@ -528,6 +540,8 @@ static void check_io_redir (const char *p, int fd, int mode)
 
   if (isdigit (p[-1]))
     fd = get_fd_redirection (p);
+  else if (p[-1] == '>' && isdigit (p[-2]))
+    fd = get_fd_redirection (p - 1);
 
 #ifdef DEBUG
   __os_print ("-- check_io_redir: redirecting fd ");
@@ -545,7 +559,8 @@ static void check_io_redir (const char *p, int fd, int mode)
   fn[space - p] = '\0';
 #ifdef DEBUG
   __os_print ("-- check_io_redir: filename = '");
-  __os_print (fn); __os_print ("'\r\n");
+  __os_print (fn); __os_print (", mode = ");
+  __os_prhex (mode) ; __os_print ("'\r\n");
 #endif
 
   /* Check the >& construct.  */
@@ -599,10 +614,27 @@ static void get_io_redir (const char *cli)
     {
       if (p[-1] != '<')
         {
-          if (p[1] == '>')
-            p++, check_io_redir (p, STDOUT_FILENO, mode);
-          else
-            check_io_redir (p, STDOUT_FILENO, mode | O_TRUNC);
+	  /* p might point to:
+	     1. >
+	     2. >>
+	     3. 2>
+	     4. 2>>
+	  */
+	  if (isdigit (p[0]))
+	    {
+	      p++;
+	      if (p[0] == '>' && p[1] == '>')
+		p++, check_io_redir (p, STDOUT_FILENO, mode);
+	      else if (p[0] == '>')
+		check_io_redir (p, STDOUT_FILENO, mode | O_TRUNC);
+	    }
+	  else
+	    {
+	      if (p[0] == '>' && p[1] == '>')
+		p++, check_io_redir (p, STDOUT_FILENO, mode);
+	      else
+		check_io_redir (p, STDOUT_FILENO, mode | O_TRUNC);
+	    }
         }
       p++;
     }
@@ -613,6 +645,8 @@ static void get_io_redir (const char *cli)
 static int
 verify_redirection (const char *redir)
 {
+  int x;
+
 #if 0 /*def DEBUG*/
   __os_print ("-- verify_redirection: ");
   __os_print (redir);
@@ -646,9 +680,20 @@ verify_redirection (const char *redir)
       && (redir[2] == '-' || isdigit (redir[2])))
     return 1;
 
-  if ((redir[0] == '>' || redir[0] == '<')
-      && (redir[1] == ' ' || isdigit (redir[-1])))
-    return 1;
+
+  /* This should match:
+     "2>foo"
+     "2<foo"
+  */
+  x = 0;
+  if (isdigit (redir[x]))
+    {
+      while (redir[x] && isdigit (redir[x]))
+	x++;
+      
+      if (redir[x] == '<' || redir[x] == '>')
+	return 1;
+    }
 
   if (redir[0] == '<')
     {
@@ -699,6 +744,10 @@ find_redirection_type (const char *cmdline, char redirection_type)
     	return NULL;
       else
         {
+	  /* Cope with "2> foobar" */
+	  while (isdigit (cmdline[-1]))
+	    cmdline --;
+
           if (verify_redirection (cmdline))
             return cmdline;
           /* Skip a character otherwise we loop on <foo$bar>.  */

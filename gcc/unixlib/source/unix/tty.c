@@ -1,18 +1,20 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/tty.c,v $
- * $Date: 2002/01/12 16:06:57 $
- * $Revision: 1.4.2.11 $
- * $State: Exp $
- * $Author: admin $
+ * $Source$
+ * $Date$
+ * $Revision$
+ * $State$
+ * $Author$
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: tty.c,v 1.4.2.11 2002/01/12 16:06:57 admin Exp $";
+static const char rcs_id[] = "$Id$";
 #endif
 
 /* System V tty device driver for RISC OS.  */
+
+#define _BSD_SOURCE
 
 #include <signal.h>
 #include <string.h>
@@ -607,7 +609,7 @@ eol:
   if (tty == __u->tty)
     __os_byte (0xe5, 0, 0, 0);	/* Re-enable SIGINT.  */
 
-  if (tty->cnt == 0)
+  if (tty->cnt == 0 && c != ceof)
     return __set_errno (EAGAIN);
 
   return 0;

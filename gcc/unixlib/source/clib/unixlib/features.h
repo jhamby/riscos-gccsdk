@@ -1,10 +1,10 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/unixlib/features.h,v $
- * $Date: 2001/09/21 10:21:15 $
- * $Revision: 1.2.2.2 $
- * $State: Exp $
- * $Author: admin $
+ * $Source$
+ * $Date$
+ * $Revision$
+ * $State$
+ * $Author$
  *
  ***************************************************************************/
 
@@ -24,7 +24,7 @@
    modify it under the terms of the GNU Library General Public License as
    published by the Free Software Foundation; either version 2 of the
    License, or (at your option) any later version.
-   
+
    The GNU C Library is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
@@ -123,6 +123,19 @@
 #undef  __FAVOR_BSD
 #undef  __KERNEL_STRICT_NAMES
 
+/* This will reduce the number of Norcroft compiler warnings "Undefined macro
+   'xxx' in #if - treated as 0".  */
+#ifdef __CC_NORCROFT
+#ifndef __STDC_VERSION__
+# define __STDC_VERSION__      199409L
+#endif
+#ifndef _XOPEN_SOURCE
+# define _XOPEN_SOURCE         500
+#endif
+#ifndef _FILE_OFFSET_BITS
+# define _FILE_OFFSET_BITS     32
+#endif
+#endif
 
 /* If _BSD_SOURCE was defined by the user, favor BSD over POSIX.  */
 #if defined _BSD_SOURCE && \
@@ -294,7 +307,7 @@
 /* GCC has various useful declarations that can be made with the
    `__attribute__' syntax.  All of the ways we use this do fine if
    they are omitted for compilers that don't understand it. */
-#if !defined __GNUC__ || __GNUC__ < 2
+#if !defined __GNUC__ || __GNUC_PREREQ(2,0)
 # undef __attribute__
 # define __attribute__(xyz)     /* Ignore */
 #endif
@@ -375,6 +388,10 @@
 # define __ptrvalue     /* nothing */
 #endif
 
+#ifdef __CC_NORCROFT
+#define __const const
+#define __THROW
+#endif
 
 /* Support for flexible arrays.  */
 #if __GNUC_PREREQ (2,97)
@@ -440,5 +457,10 @@
 #ifndef __FEATURE_DEV_RS423
 #define __FEATURE_DEV_RS423 1
 #endif
+
+/* Default to recognising Image filesystems as directories.  Some programs
+   may wish to expose them as files for the purpose of compression
+   or direct manipulation of the contents.  Set to one in this case.  */
+extern int __feature_imagefs_is_file;
 
 #endif

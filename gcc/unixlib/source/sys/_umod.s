@@ -1,10 +1,10 @@
 ;----------------------------------------------------------------------------
 ;
-; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/_umod.s,v $
-; $Date: 2001/09/11 13:05:55 $
-; $Revision: 1.2.2.1 $
-; $State: Exp $
-; $Author: admin $
+; $Source$
+; $Date$
+; $Revision$
+; $State$
+; $Author$
 ;
 ;----------------------------------------------------------------------------
 
@@ -18,7 +18,7 @@ dividend RN 1
 	EXPORT	|__rt_urem|
 	EXPORT	|x$uremainder|
 	EXPORT	|_kernel_urem|
-
+	NAME	__rt_urem
 |_kernel_urem|
 |x$uremainder|
 |__rt_urem|

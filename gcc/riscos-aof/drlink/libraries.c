@@ -135,7 +135,7 @@ bool isoldlib(void) {
 ** something is wrong
 */
 static bool scan_libchunkhdr(libheader *lp) {
-  int n, start, size;
+  unsigned int n, start, size;
   chunkindex *cp;
   bool datafound;
   dirystart = vsrnstart = symtstart = 0;

@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/locale/setlocale.c,v $
- * $Date: 2001/09/04 16:32:04 $
- * $Revision: 1.2.2.2 $
- * $State: Exp $
- * $Author: admin $
+ * $Source$
+ * $Date$
+ * $Revision$
+ * $State$
+ * $Author$
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: setlocale.c,v 1.2.2.2 2001/09/04 16:32:04 admin Exp $";
+static const char rcs_id[] = "$Id$";
 #endif
 
 /* Locale support. Written by Nick Burrett, 20 July 1997.  */
@@ -24,8 +24,9 @@ static const char rcs_id[] = "$Id: setlocale.c,v 1.2.2.2 2001/09/04 16:32:04 adm
 
 /* Locale information types. These should correspond to the #defines
    in <locale.h>.  */
-static char *locale_names[] = { "LC_COLLATE", "LC_CTYPE", "LC_MONETARY",
-				"LC_NUMERIC", "LC_TIME", "LC_ALL" };
+static const char *locale_names[] = { "LC_COLLATE", "LC_CTYPE", "LC_MESSAGES",
+                                      "LC_MONETARY", "LC_NUMERIC", "LC_TIME",
+                                      "LC_ALL" };
 
 /* Convert a territory number into a name.  */
 static void territory_name (int territory, char *buffer, int size)

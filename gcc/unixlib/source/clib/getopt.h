@@ -1,8 +1,8 @@
 /****************************************************************************
  * 
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/Attic/getopt.h,v $
- * $Date: 2002/01/31 16:23:17 $
- * $Revision: 1.1.2.2 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/getopt.h,v $
+ * $Date: 2002/02/14 15:56:33 $
+ * $Revision: 1.2 $
  * $State: Exp $
  * $Author: admin $
  *
@@ -33,7 +33,9 @@
 #define __GETOPT_H
 #endif
 
+#ifndef __UNIXLIB_FEATURES_H
 #include <unixlib/features.h>
+#endif
 
 #include <ctype.h>
 

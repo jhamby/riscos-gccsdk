@@ -1,10 +1,10 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/unixlib/sigstate.h,v $
- * $Date: 2001/09/06 14:52:00 $
- * $Revision: 1.2.2.1 $
- * $State: Exp $
- * $Author: admin $
+ * $Source$
+ * $Date$
+ * $Revision$
+ * $State$
+ * $Author$
  *
  ***************************************************************************/
 
@@ -14,13 +14,15 @@
 #ifndef __UNIXLIB_SIGSTATE_H
 #define __UNIXLIB_SIGSTATE_H 1
 
+#ifndef __UNIXLIB_FEATURES_H
+#include <unixlib/features.h>
+#endif
+
 #ifndef __SIGNAL_H
 #include <signal.h>
 #endif
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+__BEGIN_DECLS
 
 #define __SIG_INVALID_P(sig) ((unsigned int)sig >= NSIG)
 
@@ -89,8 +91,6 @@ extern void __backtrace (const unsigned int *__fp);
 /* Generate a core dump, from the current frame pointer.  */
 extern void __core (void);
 
-#ifdef __cplusplus
-}
-#endif
+__END_DECLS
 
 #endif

@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include <iostream.h>
+#include <iostream>
 #include <assert.h>
 #include <sys/stat.h>
 #include "Chunk.h"
@@ -7,7 +7,7 @@
 #include "BError.h"
 
 #ifndef CROSS_COMPILE
-extern "C" void OS_File(int *);
+extern "C" void *OS_File(int *);
 #endif
 
 Chunk::Chunk()

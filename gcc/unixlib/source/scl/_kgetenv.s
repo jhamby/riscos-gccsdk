@@ -1,7 +1,7 @@
 ;----------------------------------------------------------------------------
 ;
-; $Source: /usr/local/cvsroot/unixlib/source/scl/s/_kgetenv,v $
-; $Date: 2000/12/21 15:09:13 $
+; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/scl/_kgetenv.s,v $
+; $Date: 2001/01/29 15:10:20 $
 ; $Revision: 1.2 $
 ; $State: Exp $
 ; $Author: admin $
@@ -12,9 +12,11 @@
 
 	AREA	|C$$code|, CODE, READONLY
 
-	; _kernel_getenv (const char *name, char *buffer, unsigned size)
 	IMPORT	|__seterr|
+
+	; _kernel_getenv (const char *name, char *buffer, unsigned size)
 	EXPORT	|_kernel_getenv|
+	NAME	_kernel_getenv
 |_kernel_getenv|
 	STMFD	sp!, {v1, lr}
 	SUB	a3, a3, #1		; leave room for terminator

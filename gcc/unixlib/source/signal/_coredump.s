@@ -1,10 +1,10 @@
 ;----------------------------------------------------------------------------
 ;
-; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/signal/_coredump.s,v $
-; $Date: 2001/09/11 13:05:55 $
-; $Revision: 1.2.2.4 $
-; $State: Exp $
-; $Author: admin $
+; $Source$
+; $Date$
+; $Revision$
+; $State$
+; $Author$
 ;
 ;----------------------------------------------------------------------------
 
@@ -13,11 +13,12 @@
 	AREA	|C$$code|, CODE, READONLY
 
 	IMPORT	sys_siglist
-	EXPORT	|__write_termination|
 
 sys_siglist_ptr
 	DCD	sys_siglist
 
+	EXPORT	|__write_termination|
+	NAME	__write_termination
 |__write_termination|
 	LDR	a2, sys_siglist_ptr
 	MOV	ip, lr
@@ -30,7 +31,7 @@ sys_siglist_ptr
 	return	AL, pc, ip
 
 	EXPORT	|__write_corefile|
-
+	NAME	__write_corefile
 |__write_corefile|
 	LDR	a2, sys_siglist_ptr
 	MOV	ip, lr
@@ -53,6 +54,7 @@ sys_siglist_ptr
 ; hence APCS compliant
 
 	EXPORT	|__core|
+	NAME	__core
 |__core|
 	MOV	a1, fp
 ;
@@ -431,4 +433,3 @@ backtrace_prhex_buffer
 	%	16	; Four registers - v4, v5, v6, lr
 
 	END
-

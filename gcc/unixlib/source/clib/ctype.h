@@ -1,10 +1,10 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/ctype.h,v $
- * $Date: 2001/09/14 14:01:17 $
- * $Revision: 1.2.2.1 $
- * $State: Exp $
- * $Author: admin $
+ * $Source$
+ * $Date$
+ * $Revision$
+ * $State$
+ * $Author$
  *
  ***************************************************************************/
 
@@ -13,9 +13,11 @@
 #ifndef __CTYPE_H
 #define __CTYPE_H
 
-#ifdef __cplusplus
-extern "C" {
+#ifndef __UNIXLIB_FEATURES_H
+#include <unixlib/features.h>
 #endif
+
+__BEGIN_DECLS
 
 /* Characteristics. */
 extern unsigned char *__ctype;
@@ -64,7 +66,7 @@ extern int isupper (int __c);
 
 /* c is a printable character.  */
 extern int isprint (int __c);
-#define isprint(c) (__ctype[(int) (c)] & ~___ctype_ctrl)
+#define isprint(c) (~__ctype[(int) (c)] & ___ctype_ctrl)
 
 /* c is a printable character other than a space or a
    alphanumeric character.  */
@@ -106,8 +108,6 @@ extern int toascii (int __c);
 extern int isascii (int __c);
 #define isascii(c) ((unsigned)(c) <= 0x7f)
 
-#ifdef __cplusplus
-	}
-#endif
+__END_DECLS
 
 #endif

@@ -7,13 +7,14 @@
 		IMPORT	|__errno|
 
 OS_GBPB
-		STMFD	sp!,{r0-r6,lr}
+		STMFD	sp!,{r4-r6,lr}
 		STMFD	sp!,{r0}
 		LDR	r1,[r0,#4]
 		LDR	r2,[r0,#8]
 		LDR	r3,[r0,#12]
 		LDR	r4,[r0,#16]
 		LDR	r5,[r0,#20]
+		LDR	r6,[r0,#24]
 		LDR	r0,[r0]
 		SWI	&2000C
 		LDMFD	sp!,{r6}
@@ -24,6 +25,7 @@ OS_GBPB
 		MVNVS	r4,#0
 		STR	r4,[r6,#16]
 		STR	r5,[r6,#20]
-		LDMFD	sp!,{r0-r6,pc}^
+		MOVVC	r0, #0
+		LDMFD	sp!,{r4-r6,pc}^
 
 		END

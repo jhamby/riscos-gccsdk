@@ -1,19 +1,25 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/clib/netinet/h/udp,v $
- * $Date: 1997/10/09 19:59:52 $
- * $Revision: 1.4 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/netinet/udp.h,v $
+ * $Date: 2001/01/29 15:10:19 $
+ * $Revision: 1.2 $
  * $State: Exp $
- * $Author: unixlib $
+ * $Author: admin $
  *
  ***************************************************************************/
 
 #ifndef __NETINET_UDP_H
 #define __NETINET_UDP_H
 
+#ifndef __UNIXLIB_FEATURES_H
+#include <unixlib/features.h>
+#endif
+
 #ifndef __UNIXLIB_TYPES_H
 #include <unixlib/types.h>
 #endif
+
+__BEGIN_DECLS
 
 /*
  * Structure of a UDP header
@@ -27,5 +33,7 @@ struct udphdr
   short uh_ulen;       	   /* Length */
   __u_short uh_sum;        /* Checksum */
 };
+
+__END_DECLS
 
 #endif

@@ -1,10 +1,10 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/time.h,v $
- * $Date: 2001/09/14 14:01:17 $
- * $Revision: 1.3.2.1 $
- * $State: Exp $
- * $Author: admin $
+ * $Source$
+ * $Date$
+ * $Revision$
+ * $State$
+ * $Author$
  *
  ***************************************************************************/
 
@@ -16,30 +16,34 @@
     && ! defined __need_timespec && ! defined __need_clockid_t \
     && ! defined __need_timer_t)
 #define __TIME_H
-#endif
 
-#ifdef __TIME_H
+#define __need_time_t
+#define __need_clock_t
+#define __need_timespec
+#define __need_clockid_t
+#define __need_timer_t
+
 #define __need_size_t
 #define __need_NULL
 #include <stddef.h>
-#endif /* __TIME_H */
+#endif
 
 
-#if !defined __clock_t_defined && (defined __TIME_H || defined __need_clock_t)
+#if !defined __clock_t_defined && defined __need_clock_t
 #define __clock_t_defined 1
 #include <unixlib/types.h>
 typedef __clock_t clock_t;  /* Data type used to represent clock ticks.  */
 #endif
 #undef __need_clock_t
 
-#if !defined __clockid_t_defined && (defined __TIME_H || defined __need_clockid_t)
+#if !defined __clockid_t_defined && defined __need_clockid_t
 #define __clockid_t_defined 1
 #include <unixlib/types.h>
 typedef __clockid_t clockid_t;  /* Data type used to represent clock ticks.  */
 #endif
 #undef __need_clockid_t
 
-#if !defined __time_t_defined && (defined __TIME_H || defined __need_time_t)
+#if !defined __time_t_defined && defined __need_time_t
 #define __time_t_defined 1
 #include <unixlib/types.h>
 /* The data type used to represent calendar time. It represents
@@ -49,7 +53,7 @@ typedef __time_t time_t;
 #endif
 #undef __need_time_t
 
-#if !defined __timer_t_defined && (defined __TIME_H || defined __need_timer_t)
+#if !defined __timer_t_defined && defined __need_timer_t
 #define __timer_t_defined 1
 #include <unixlib/types.h>
 /* The data type used to represent calendar time. It represents
@@ -59,7 +63,7 @@ typedef __timer_t timer_t;
 #endif
 #undef __need_timer_t
 
-#if !defined __timespec_defined && (defined __TIME_H || defined __need_timespec)
+#if !defined __timespec_defined && defined __need_timespec
 #define __timespec_defined 1
 
 /* POSIX.1b structure for a time value.  This is like a `struct timeval' but
@@ -75,9 +79,11 @@ struct timespec
 
 #ifdef __TIME_H
 
-#ifdef __cplusplus
-extern "C" {
+#ifndef __UNIXLIB_FEATURES_H
+#include <unixlib/features.h>
 #endif
+
+__BEGIN_DECLS
 
 /* The number of clock ticks per second measured by the clock function.  */
 #define CLOCKS_PER_SEC 100
@@ -104,7 +110,7 @@ struct tm
   int tm_yday;	/* day of year (0 - 365) */
   int tm_isdst;	/* 1 - DST in effect,0 - not,-1 - not known */
   int tm_gmtoff;	/* offset east of UTC (GMT) in seconds */
-  char *tm_zone;	/* abbreviation of timezone name */
+  const char *tm_zone;	/* abbreviation of timezone name */
 };
 
 /* Convert the broken-down time value into a string in a standard
@@ -173,9 +179,13 @@ extern struct tm *__calendar_convert (int __swinum, const time_t *__tp);
 extern char *__standard_time (const char *__riscos_time);
 #endif /* __UNIXLIB_INTERNALS */
 
-#ifdef __cplusplus
-	}
-#endif
+__END_DECLS
 
 #endif /* __TIME_H */
-#endif
+#else
+#undef __need_time_t
+#undef __need_clock_t
+#undef __need_timespec
+#undef __need_clockid_t
+#undef __need_timer_t
+#endif /* ! __TIME_H */

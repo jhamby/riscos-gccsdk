@@ -1,15 +1,19 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/clib/sys/h/byteorder,v $
- * $Date: 1997/10/09 19:59:53 $
- * $Revision: 1.4 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/sys/byteorder.h,v $
+ * $Date: 2001/01/29 15:10:19 $
+ * $Revision: 1.2 $
  * $State: Exp $
- * $Author: unixlib $
+ * $Author: admin $
  *
  ***************************************************************************/
 
 #ifndef __SYS_BYTEORDER_H
 #define __SYS_BYTEORDER_H
+
+#ifndef __UNIXLIB_FEATURES_H
+#include <unixlib/features.h>
+#endif
 
 #ifndef __ENDIAN_H
 #include <machine/endian.h>
@@ -19,9 +23,7 @@
 #include <unixlib/types.h>
 #endif
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+__BEGIN_DECLS
 
 /* Convert a 32 bit word from host to net byte order.  */
 extern __u_long htonl (__u_long);
@@ -35,8 +37,6 @@ extern __u_short htons (__u_short);
 /* Convert a 16 bit word from net to host byte order. */
 extern __u_short ntohs (__u_short);
 
-#ifdef __cplusplus
-}
-#endif
+__END_DECLS
 
 #endif

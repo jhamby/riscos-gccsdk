@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/stdio/printf.c,v $
- * $Date: 2002/02/11 13:11:31 $
- * $Revision: 1.2.2.3 $
- * $State: Exp $
- * $Author: admin $
+ * $Source$
+ * $Date$
+ * $Revision$
+ * $State$
+ * $Author$
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: printf.c,v 1.2.2.3 2002/02/11 13:11:31 admin Exp $";
+static const char rcs_id[] = "$Id$";
 #endif
 
 /*-
@@ -53,7 +53,7 @@ static const char rcs_id[] = "$Id: printf.c,v 1.2.2.3 2002/02/11 13:11:31 admin 
 static char sccsid[] = "@(#)vfprintf.c	8.1 (Berkeley) 6/4/93";
 #endif
 static const char rcsid[] =
-		"$Id: printf.c,v 1.2.2.3 2002/02/11 13:11:31 admin Exp $";
+		"$Id$";
 #endif /* LIBC_SCCS and not lint */
 
 /*
@@ -1351,7 +1351,7 @@ exponent(char *p0, int exp, int fmtch)
 int
 vfprintf(FILE *fp, const char *fmt0, va_list ap)
 {
-    return vfprintfsub(fp, 2147483647, fmt0, ap);
+  return vfprintfsub(fp, 2147483647, fmt0, ap);
 }
 
 
@@ -1360,6 +1360,7 @@ vsnprintf (char *buf, size_t limit, const char *format, va_list ap)
 {
   FILE f[1];
   int ret;
+  int newlimit;
 
   f->o_ptr = f->o_base = (unsigned char *) buf;
   /* This is one big fucking buffer.  */
@@ -1372,8 +1373,15 @@ vsnprintf (char *buf, size_t limit, const char *format, va_list ap)
   f->fd = -1;
   f->__magic = _IOMAGIC;
 
-  ret = vfprintfsub(f, limit - 1, format, ap);
-  putc ('\0', f); /* safe because we passed limit-1 above */
+  if (limit > 0)
+    newlimit = limit - 1;
+  else
+    newlimit = 0;
+
+  ret = vfprintfsub(f, newlimit, format, ap);
+  if (limit > 0)
+    putc ('\0', f);
+
   return ret;
 }
 
@@ -1381,7 +1389,7 @@ vsnprintf (char *buf, size_t limit, const char *format, va_list ap)
 int
 vsprintf(char *buf, const char *format, va_list ap)
 {
-    return vsnprintf(buf, 2147483647, format, ap);
+  return vsnprintf(buf, 2147483647, format, ap);
 }
 
 

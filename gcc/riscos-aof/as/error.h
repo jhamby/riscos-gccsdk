@@ -13,9 +13,9 @@
 
 extern char er[1024];
 
-void errorInit (int throwback, char *filename);
+void errorInit (char *filename);
 
-#ifdef __riscos
+#ifdef __riscos__
 void errorFinish (void);
 #else
 #define errorFinish()

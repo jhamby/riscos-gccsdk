@@ -34,7 +34,7 @@ int returnvalue = 0;
 
 
 BOOL 
-notinput (char *str)
+notinput (const char *str)
 {
   for (; *str;)
     if (*str++ != inputGetUC ())
@@ -54,7 +54,7 @@ checkspace (void)
 
 
 static BOOL 
-checkstr (char *str)
+checkstr (const char *str)
 {
   if (notinput (str) || (inputLook () && !isspace (inputGet ())))
     return TRUE;

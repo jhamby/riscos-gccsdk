@@ -1,8 +1,8 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/Attic/swis.h,v $
- * $Date: 2001/08/16 09:18:13 $
- * $Revision: 1.1.2.2 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/swis.h,v $
+ * $Date: 2002/02/14 15:56:34 $
+ * $Revision: 1.2 $
  * $State: Exp $
  * $Author: admin $
  *
@@ -11,16 +11,16 @@
 #ifndef __SWIS_H
 #define __SWIS_H
 
-#ifdef __cplusplus
-extern "C" {
+#ifndef __UNIXLIB_FEATURES_H
+#include <unixlib/features.h>
 #endif
+
+__BEGIN_DECLS
 
 extern int _swi (int __swi_no, unsigned int, ...);
 extern _kernel_oserror *_swix (int __swi_no, unsigned int, ...);
 
-#ifdef __cplusplus
-	}
-#endif
+__END_DECLS
 
 #define _FLAGS     0x10 /*use with _RETURN() or _OUT()*/
 #define _IN(i)     (1U << (i))
@@ -682,4 +682,5 @@ extern _kernel_oserror *_swix (int __swi_no, unsigned int, ...);
 #define SysLog_ReadErrorMessage        0x04c88c
 #define SysLog_LogComplete             0x04c88d
 
+#define MimeMap_Translate		0x050b00
 #endif

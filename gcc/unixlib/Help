@@ -1,0 +1,59 @@
+                                UnixLib 3.8
+                                ~~~~~~~~~~~
+
+This document provides a VERY short introduction to UnixLib, and only covers
+the RISC OS specific details of using UnixLib. It does not document what
+facilites it provides, or how it works. For this you should look at the
+various documents elsewhere in this distribution, the source, and a proper
+manual.
+
+I can be contacted at :
+
+	unixlib@hard-mofo.dsvr.net
+
+Aternatively, the UnixLib home page is
+http://hard-mofo.dsvr.net/unixlib, and this should be checked for
+updates and bug-fixes.
+
+
+Installation
+~~~~~~~~~~~~
+
+Installation is quite simple:
+
+1) Copy the !UnixLib directory to an appropriate location on your hard disc,
+and ensure that !UnixLib.!Boot is run during the boot up process.
+
+2) If you have a verison of RISC OS earlier than 3.7, copy the module
+CallAWSI.CallASWI to System:modules.
+
+UnixLib and GCC
+~~~~~~~~~~~~~~~
+
+UnixLib is the default library for GCC, and there are no actions that need
+to be taken to use this combination.
+
+UnixLib and Norcroft C
+~~~~~~~~~~~~~~~~~~~~~~
+
+By default Norcroft C uses the ANSI library that come with the compiler. To
+use UnixLib, you have to change its behaviour, by using the following
+command switches
+
+        -IUnix: -JUnix: -lUnix:o.UnixLib
+
+If you are using a seperate link stage, the -l switch is not needed, instead
+you should specifiy Unix:o.UnixLib in the link command line.
+
+If using the DDE frontend '!CC', the following needs to be changed
+
+The 'Include' field should be changed to 'Unix:'
+On the popup menu, the 'Default path' should be set to 'Unix:', while the
+'libraries' should be set to 'Unix:o.UnixLib'.
+
+For !Link, Unix:o.UnixLib should be specified as one of the files to be
+linked.
+
+Please note that the math functions defined in complex.h cannot be
+used if UnixLib is compiled with Norcroft C.
+

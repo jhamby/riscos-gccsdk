@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/vfork.c,v $
- * $Date: 2001/09/11 14:16:00 $
- * $Revision: 1.2.2.8 $
- * $State: Exp $
- * $Author: admin $
+ * $Source$
+ * $Date$
+ * $Revision$
+ * $State$
+ * $Author$
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: vfork.c,v 1.2.2.8 2001/09/11 14:16:00 admin Exp $";
+static const char rcs_id[] = "$Id$";
 #endif
 
 #include <errno.h>
@@ -123,6 +123,7 @@ __vfork (void)
       /* Copy entries from the environment and argument vectors.  */
       for (x = 0; x < __u->argc; x++)
         child->argv[x] = strdup (__u->argv[x]);
+      child->argv[x] = NULL;
       child->argc = __u->argc;
     }
 
@@ -134,6 +135,7 @@ __vfork (void)
         goto nomem;
       for (x = 0; x < __u->envc; x++)
         child->envp[x] = strdup (__u->envp[x]);
+      child->envp[x] = NULL;
       child->envc = __u->envc;
     }
 

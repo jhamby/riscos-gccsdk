@@ -50,7 +50,7 @@ unsigned int
 /* Private declarations */
 
 typedef struct missing {
-  char *symname, *filename;	/* Symbol not found and the file that referenced it */
+  const char *symname, *filename;	/* Symbol not found and the file that referenced it */
   struct missing *nextsym;	/* Next missing symbol */
 } missing;
 
@@ -85,7 +85,7 @@ int stricmp(const char *str1, const char *str2) {
 ** any letters. I suppose it would be better to use 'tolower' but
 ** it's only a hashing function.
 */
-int hash(char *name) {
+int hash(const char *name) {
   int total;
   total = 0;
   while (*name!=0) {
@@ -169,7 +169,7 @@ static void check_edits(void) {
 static void check_symedit(symtentry *symtp) {
   int fnhashval, syhashval;
   editcmd *ep;
-  char *symname;
+  const char *symname;
   symname = symtp->symtname;
   fnhashval = current_file->chfilehash;
   syhashval = hash(symname);
@@ -209,6 +209,8 @@ static void check_symedit(symtentry *symtp) {
         else {
           error("Warning: Symbol '%s' in '%s' is already a 'global' symbol", symtp->symtname, ep->edtfile);
         }
+      default:
+        break;  
       }
     }
     ep = ep->edtnext;
@@ -222,7 +224,7 @@ static void check_symedit(symtentry *symtp) {
 static void check_refedit(symtentry *symtp) {
   int syhashval, fnhashval;
   editcmd *ep;
-  char *symname;
+  const char *symname;
   symname = symtp->symtname;
   fnhashval = current_file->chfilehash;
   syhashval = hash(symname);
@@ -283,8 +285,9 @@ static void check_refedit(symtentry *symtp) {
 static bool add_symbol(symtentry *symtp) {
   symbol *p;
   symbol **table;
-  int hashval, attr;
-  char *name;
+  int hashval;
+  unsigned int attr;
+  const char *name;
   arealist *ap;
   symtp->symtname = symtp->symtname+COERCE(strtbase, unsigned int);
   if (current_symedit!=NIL) check_symedit(symtp);
@@ -325,16 +328,21 @@ static bool add_symbol(symtentry *symtp) {
     *table = p;
   }
   else if ((p->symtptr->symtattr & SYM_STRONG)==(attr & SYM_STRONG)) {	/* Duplicate symbol */
-    if (p->symtptr->symtarea.areaptr!=symtp->symtarea.areaptr) {	/* Not common def either */
-      if (link_state==LIB_SEARCH) {
-        error("Error: '%s' in '%s(%s)' duplicates a symbol already read",
-         decode_name(name), current_lib->libname, objectname);
-      }
-      else {
-        error("Error: '%s' in '%s' duplicates a symbol already read", decode_name(name), objectname);
-      }
-      return FALSE;
+    arealist *cp = p->symtptr->symtarea.areaptr;
+    if ((ap->aratattr & (ATT_COMDEF|ATT_COMMON))!=0	/* Symbol's area is common block */
+     && (cp->aratattr & (ATT_COMDEF|ATT_COMMON))!=0	/* Dup symbol's area is common block too */
+     && strcmp(ap->arname, cp->arname)==0		/* Common block names are the same */
+     && symtp->symtvalue==p->symtptr->symtvalue) {		/* Symbol values are the same */
+      return TRUE;					/* No problem */
     }
+    if (link_state==LIB_SEARCH)
+      error("Error: '%s' in '%s(%s)' duplicates a symbol already read in '%s'",
+       decode_name(name), current_lib->libname, objectname, cp->arfileptr->chfilename);
+    else {
+      error("Error: '%s' in '%s' duplicates a symbol already read in '%s'", 
+       decode_name(name), objectname, cp->arfileptr->chfilename);
+    }
+    return FALSE;
   }
   else {	/* New symbol of different 'strength' to existing definition */
     if ((attr & SYM_STRONG)!=0) {	/* New symbol is strong; old one is non-strong */
@@ -361,7 +369,7 @@ static bool add_symbol(symtentry *symtp) {
 */
 static void add_externref(symtentry *symtp) {
   symbol *sp;
-  char *name;
+  const char *name;
   symtp->symtname = symtp->symtname+COERCE(strtbase, unsigned int);
   if (current_refedit!=NIL) check_refedit(symtp);
   name = symtp->symtname;
@@ -393,7 +401,7 @@ static void add_externref(symtentry *symtp) {
 symbol *create_externref(symtentry *stp) {
   symbol *sp;
   symtentry *newstp;
-  char *name;
+  const char *name;
   sp = allocmem(sizeof(symbol));
   newstp = allocmem(sizeof(symtentry));
   if (sp==NIL || newstp==NIL) error("Fatal: Out of memory in 'create_externref'");
@@ -423,7 +431,7 @@ symbol *create_externref(symtentry *stp) {
 ** words 'bug fix' and 'hack' come to mind here).
 */
 static void add_commonref(symtentry *stp) {
-  char *name;
+  const char *name;
   symbol *sp;
   stp->symtname = stp->symtname+COERCE(strtbase, unsigned int);
   if (current_refedit!=NIL) check_refedit(stp);
@@ -515,7 +523,7 @@ bool scan_symt(filelist *fp) {
 */
 static symbol *search_global(symbol *wantedsym) {
   symbol *p;
-  char *name;
+  const char *name;
   int hashval;
   hashval = wantedsym->symhash;
   if ((p = globalsyms[hashval & GLOBALMASK])==NIL) return NIL;
@@ -535,7 +543,7 @@ static symbol *search_global(symbol *wantedsym) {
 */
 static symbol *search_local(symbol *wantedsym) {
   symbol *p;
-  char *name;
+  const char *name;
   int hashval;
   hashval = wantedsym->symhash;
   if ((p = (*current_table)[hashval & LOCALMASK])==NIL) return NIL;
@@ -555,7 +563,7 @@ static symbol *search_local(symbol *wantedsym) {
 */
 symbol *search_common(symbol *wantedsym) {
   symbol *p;
-  char *name;
+  const char *name;
   int hashval;
   hashval = wantedsym->symhash;
   if ((p = commonsyms[hashval & COMMONMASK])==NIL) return NIL;
@@ -591,7 +599,7 @@ symbol *find_common(char *name) {
 */
 static void add_unresolved(missing **list, symbol *sp, filelist *fp) {
   missing *mp;
-  char *sname;
+  const char *sname;
   mp = *list;
   sname = sp->symtptr->symtname;
   if (opt_case || (sp->symtptr->symtattr & SYM_IGNCASE)!=0) {
@@ -663,7 +671,7 @@ static void list_unresolved(void) {
 */
 static libentry *search_lib(symbol *wantedsym) {
   libentry *lp;
-  char *name;
+  const char *name;
   int hashval;
   hashval = wantedsym->symhash;
   name = wantedsym->symtptr->symtname;
@@ -974,10 +982,7 @@ bool resolve(void) {
       if (fp->symtries.wantedsyms!=NIL) ok = check_library(fp);
       fp = fp->nextfile;
     }
-/* NAB++ */
-    /*if (numfound!=0) lastlp = lp;*/
     if (numfound!=0 || lastlp==NIL) lastlp = lp;
-/* NAB++ */
     close_library(lp);
     lp = lp->libflink;
   }
@@ -1039,7 +1044,7 @@ void define_symbol(symbol *sp, unsigned int value) {
 ** are marked as being relocatable although they are not relocated by
 ** the linker at all.
 */
-symbol *make_symbol(char *name, unsigned int attributes) {
+symbol *make_symbol(const char *name, unsigned int attributes) {
   unsigned int hashval;
   symbol *sp;
   symtentry *stp;
@@ -1070,7 +1075,7 @@ symbol *make_symbol(char *name, unsigned int attributes) {
 ** 'new_symbol' is called to create a symbol that will be added to the
 ** low-level debugging tables
 */
-static symbol *new_symbol(char *name) {
+static symbol *new_symbol(const char *name) {
   if (opt_keepdebug) lldsize+=strlen(name)+sizeof(char);
   return make_symbol(name, SYM_GLOBAL);
 }
@@ -1080,10 +1085,10 @@ static symbol *new_symbol(char *name) {
 ** from the area 'ap'. It returns a pointer to a name or NIL if it
 ** cannot find anything
 */
-char *find_areasymbol(arealist *ap) {
+const char *find_areasymbol(arealist *ap) {
   symtentry *sp;
   filelist *fp;
-  char *anp;
+  const char *anp;
   unsigned int symcount, n;
   anp = ap->arname;
   fp = ap->arfileptr;
@@ -1110,7 +1115,7 @@ char *find_areasymbol(arealist *ap) {
 symtentry *find_nonstrong(symtentry *stp) {
   symbol dummysym;
   symtentry dummysymt;
-  char *name;
+  const char *name;
   symbol *sp;
   name = stp->symtname;
   dummysym.symhash = hash(name);
@@ -1195,7 +1200,7 @@ static void print_symblist(void) {
 /*
 ** 'symtcmp' compares the values of the two symbols passed to it
 */
-int symtcmp(const void *first, const void *second) {
+static int symtcmp(const void *first, const void *second) {
   if (((*COERCE(first, symtentry **)))->symtvalue<((*COERCE(second, symtentry **)))->symtvalue) return -1;
   if (((*COERCE(first, symtentry **)))->symtvalue>((*COERCE(second, symtentry **)))->symtvalue) return 1;
   return 0;

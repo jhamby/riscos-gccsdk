@@ -9,6 +9,7 @@
 #elif HAVE_INTTYPES_H
 #include <inttypes.h>
 #endif
+#include <stdlib.h>
 
 #include "error.h"
 #include "expr.h"
@@ -23,7 +24,7 @@
 #include "reloc.h"
 
 int 
-help_copInt (int max, char *msg)
+help_copInt (int max, const char *msg)
 {
   Value i;
   exprBuild ();

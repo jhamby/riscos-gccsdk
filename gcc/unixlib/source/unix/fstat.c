@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/fstat.c,v $
- * $Date: 2001/09/04 16:32:04 $
- * $Revision: 1.2.2.1 $
- * $State: Exp $
- * $Author: admin $
+ * $Source$
+ * $Date$
+ * $Revision$
+ * $State$
+ * $Author$
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: fstat.c,v 1.2.2.1 2001/09/04 16:32:04 admin Exp $";
+static const char rcs_id[] = "$Id$";
 #endif
 
 #include <errno.h>
@@ -43,6 +43,7 @@ fstat (int fd, struct stat *buf)
     {
       char *buffer;
       _kernel_oserror *err;
+      int argsregs[3];
 
       if (file_desc->dflag & FILE_ISDIR)
         buffer = ((DIR *) file_desc->handle)->dd_name_can;
@@ -62,6 +63,16 @@ fstat (int fd, struct stat *buf)
 	}
       buf->st_ino = __get_file_ino (NULL, buffer);
       free (buffer);
+
+      /* __os_file returns the allocated size of the file,
+         but we want the current extent of the file */
+      err = __os_args (2, (int) file_desc->handle, 0, argsregs);
+      if (err)
+        {
+          __seterr (err);
+          return __set_errno (EIO);
+        }
+      regs[4] = argsregs[2];
     }
   else
     {

@@ -1,10 +1,10 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/clib/sys/h/debug,v $
- * $Date: 1997/10/09 19:59:53 $
- * $Revision: 1.3 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/sys/debug.h,v $
+ * $Date: 2001/01/29 15:10:19 $
+ * $Revision: 1.2 $
  * $State: Exp $
- * $Author: unixlib $
+ * $Author: admin $
  *
  ***************************************************************************/
 
@@ -13,15 +13,15 @@
 #ifndef __SYS_DEBUG_H
 #define __SYS_DEBUG_H
 
-#ifdef __cplusplus
-extern "C" {
+#ifndef __UNIXLIB_FEATURES_H
+#include <unixlib/features.h>
 #endif
+
+__BEGIN_DECLS
 
 extern void __debug(const char *);
 
-#ifdef __cplusplus
-	}
-#endif
+__END_DECLS
 
 #endif
 

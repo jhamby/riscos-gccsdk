@@ -65,7 +65,7 @@
 #define REL_TYPE2 0x80000000		/* Type 2 relocation flag */
 
 typedef struct symtentry {		/* Entry in OBJ_SYMT chunk */
-  char *symtname;			/* Offset of symbol's name in OBJ_STRT chunk */
+  const char *symtname;			/* Offset of symbol's name in OBJ_STRT chunk */
   unsigned int symtattr;		/* Symbol attributes */
   unsigned int symtvalue;		/* Symbol's value */
   union {

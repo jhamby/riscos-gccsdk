@@ -1,7 +1,7 @@
 ;----------------------------------------------------------------------------
 ;
-; $Source: /usr/local/cvsroot/unixlib/source/math-asm/s/_fesetenv,v $
-; $Date: 2000/12/21 15:09:13 $
+; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/math-asm/_fesetenv.s,v $
+; $Date: 2001/01/29 15:10:20 $
 ; $Revision: 1.2 $
 ; $State: Exp $
 ; $Author: admin $
@@ -13,6 +13,7 @@
 	AREA	|C$$code|, CODE, READONLY
 
 	EXPORT	fesetenv
+	NAME	fesetenv
 fesetenv
 	cmn	a1, #1 ; if envp == FE_DFL_ENV
 	; set FPSR to FPU_DEFAULT

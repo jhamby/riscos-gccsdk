@@ -54,7 +54,7 @@ extern Macro *macroCurrent;
 extern char *macroPtr;
 extern long int macroCurrentCallNo;
 
-Macro *macroFind (int len, char *);
+Macro *macroFind (size_t len, char *);
 void macroCall (Macro *, Lex *);
 BOOL macroGetLine (char *buf);	/* returns 0 if end of macro */
 

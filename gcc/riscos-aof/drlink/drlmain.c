@@ -76,7 +76,7 @@ static bool scan_cmdline(void);
 int main(int argc, char *argv[]) {
   time_t startime;
   int elapsed;
-
+  
   errors = 0;
   if (startup()) {
     startime = clock();
@@ -99,6 +99,7 @@ int main(int argc, char *argv[]) {
   }
   return (errors==0 ? EXIT_OK : EXIT_ERROR);
 }
+
 
 static void print_help(void) {
   announce();
@@ -387,7 +388,11 @@ static bool get_option(char *tp) {
     OPT_WORKS
   } actions;
 
-typedef struct {char *optname; unsigned char optlen; actions optaction;} option;
+typedef struct {
+  const char *optname;
+  unsigned char optlen;
+  actions optaction;
+} option;
 
 option optionlist [] = {
 /* areamap */	{"area", 4, OPT_MAPFILE},
@@ -438,7 +443,7 @@ option optionlist [] = {
 /* workspace */	{"w", 1, OPT_WORKS},
 /* xref */	{"x", 1, IGNORED}};
 
-  int n;
+  unsigned int n;
   unsigned int value;
   bool ok;
   char *op;
@@ -649,10 +654,7 @@ option optionlist [] = {
     break;
 #ifdef TARGET_RISCOS
   case OPT_THROW:
-    if (!opt_throw) {	/* Only try this if throwback not in use */
-      opt_throw = TRUE;
-      start_throwback();
-    }
+    opt_throw = TRUE;
     break;
 #endif
   case OPT_VIA:
@@ -694,6 +696,8 @@ option optionlist [] = {
     break;
   case NOSUPPORT:
     error("Fatal: 'link' option '%s' is not supported", op);
+  default:
+    break;  
   }
   return ok;
 }
@@ -735,6 +739,8 @@ static bool scan_cmdline(void) {
   case AOF:
     if (imagename==NIL) imagename = "aof";
     opt_nounused = FALSE;
+  default:
+    break;  
   }
   if (imagename==NIL) imagename = "!RunImage";
   opt_verbose = opt_verbose && !opt_quiet;

@@ -1,10 +1,10 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/clib/h/signal,v $
- * $Date: 1997/10/09 19:59:48 $
- * $Revision: 1.9 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/signal.h,v $
+ * $Date: 2001/01/29 15:10:19 $
+ * $Revision: 1.2 $
  * $State: Exp $
- * $Author: unixlib $
+ * $Author: admin $
  *
  ***************************************************************************/
 
@@ -13,6 +13,10 @@
 #ifndef __SIGNAL_H
 #define __SIGNAL_H
 
+#ifndef __UNIXLIB_FEATURES_H
+#include <unixlib/features.h>
+#endif
+
 #ifndef __UNIXLIB_TYPES_H
 #include <unixlib/types.h>
 #endif
@@ -20,9 +24,7 @@
 #include <stddef.h>
 #endif
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+__BEGIN_DECLS
 
 /* Hangup (POSIX).  */
 #define SIGHUP	1
@@ -107,7 +109,7 @@ typedef void (*__sighandler_t)(int);
 typedef __sighandler_t sighandler_t;
 
 extern int sys_nsig;		/* = NSIG */
-extern char *sys_siglist[NSIG];	/* signal messages */
+extern const char * const sys_siglist[NSIG];	/* signal messages */
 
 /* Fake signal functions, based on the BSD versions.  */
 
@@ -319,8 +321,6 @@ extern int sigaltstack (const struct sigaltstack *__ss,
 
 #define MINSIGSTKSZ 2048
 
-#ifdef __cplusplus
-	}
-#endif
+__END_DECLS
 
 #endif

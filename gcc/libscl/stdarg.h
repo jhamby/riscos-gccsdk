@@ -35,6 +35,8 @@ typedef __gnuc_va_list va_list;
 
 #error stdarg.h has not been implemented for this compiler
 
+#elif defined(__GNUC__)
+#error Incorrect stdarg.h included (shouldn't get here)
 #endif
 
 #ifdef __cplusplus

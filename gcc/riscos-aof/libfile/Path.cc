@@ -1,10 +1,10 @@
 #include <ctype.h>
 #include <glob.h>
-#include <iostream.h>
+#include <iostream>
 #include "Path.h"
 
 #ifndef CROSS_COMPILE
-extern "C" void OS_GBPB(int *);
+extern "C" void *OS_GBPB(int *);
 #endif
 
 #ifdef CROSS_COMPILE
@@ -109,6 +109,8 @@ List<BString> Path::getMatchingFiles(const BString &a_wildName)
  		if((type == 1) && (match(a_wildName, file)))
  			result.put(file);
 #endif
+	if (result.length() == 0)
+		cout << "Warning: File '" << a_wildName() << "' not found" << endl;
 
 	return result;
 }

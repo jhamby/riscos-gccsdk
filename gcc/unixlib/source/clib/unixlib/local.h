@@ -1,10 +1,10 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/unixlib/local.h,v $
- * $Date: 2001/09/14 14:01:17 $
- * $Revision: 1.2.2.3 $
- * $State: Exp $
- * $Author: admin $
+ * $Source$
+ * $Date$
+ * $Revision$
+ * $State$
+ * $Author$
  *
  * This file should eventually contain most / all of the unixlib specific
  * functions.
@@ -28,9 +28,11 @@
 
 #endif /* __UNIXLIB_INTERNALS */
 
-#ifdef __cplusplus
-extern "C" {
+#ifndef __UNIXLIB_FEATURES_H
+#include <unixlib/features.h>
 #endif
+
+__BEGIN_DECLS
 
 #ifdef __UNIXLIB_INTERNALS
 
@@ -156,19 +158,24 @@ extern int __riscosify_control;
    will get a ",fff" extension when translated to their Unix form.  */
 #define __RISCOSIFY_FILETYPE_FFF_EXT	0x2000
 
+/* If the filename has a unix-style extension, look up the extension
+   using RISC OS MimeMap SWIs and set a filetype.  If the filetype
+   could not be found, use 0xFFF.                                  */
+#define __RISCOSIFY_FILETYPE_SET        0x4000
+ 
 /* Mask of acceptable values. Keep other bits zero. Checks may be made.  */
-#define __RISCOSIFY_MASK		0x3FF0
-
+#define __RISCOSIFY_MASK               0x7FF0
+  
 /* Value indicating that __riscosify[_std] didn't see a filetype extension
-   in it's argument __name or that it wasn't instructed to look for one.  */
-#define __RISCOSIFY_FILETYPE_NOTFOUND 	-1
+   in its argument __name or that it wasn't instructed to look for one.  */
+#define __RISCOSIFY_FILETYPE_NOTFOUND  -1
 
 /* Value indicating for __unixify that there is no filetype (e.g. a
    directory) even when __RISCOSIFY_FILETYPE_EXT is specified as one of
    the flag bits.  */
 #define __RISCOSIFY_FILETYPE_NOTSPECIFIED -1
 
-/* Convert Unix filenames/pathnames to Risc OS format creating the final
+/* Convert Unix filenames/pathnames to RISC OS format creating the final
    directory if necessary and CREATE_DIR is non-zero.
    Pass RISC OS pathnames through unchanged.
    Returns pointer to terminating '\0' in buffer,
@@ -181,6 +188,11 @@ extern char *__riscosify (const char *__name, int __create_dir,
 extern char *__riscosify_std (const char *__name, int __create_dir,
 			      char *__buffer, size_t __buf_len,
 			      int *__filetype);
+
+/* Gets the __riscosify_control value which can be defined by
+   the global variable __riscosify_control in the user program.
+   Returns 0 (= default value) when not defined.  */
+extern int __get_riscosify_control (void);
 
 /* Convert `__name' into a Unix style pathname and store in `buffer'.
    If buffer is non-null then it is at least buf_len long.  If buffer
@@ -237,8 +249,6 @@ extern int __uname_control;
 extern int *__uname_dont_pack_ptr;
 #endif /* __UNIXLIB_OLD_UNAME */
 
-#ifdef __cplusplus
-}
-#endif
+__END_DECLS
 
 #endif

@@ -1,15 +1,19 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/unixlib/Attic/dev.h,v $
- * $Date: 2001/09/14 14:01:17 $
- * $Revision: 1.1.2.2 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/unixlib/dev.h,v $
+ * $Date: 2002/02/14 15:56:35 $
+ * $Revision: 1.2 $
  * $State: Exp $
  * $Author: admin $
  *
  ***************************************************************************/
 
-#ifndef __SYS_DEV_H
-#define __SYS_DEV_H
+#ifndef __UNIXLIB_DEV_H
+#define __UNIXLIB_DEV_H
+
+#ifndef __UNIXLIB_FEATURES_H
+#include <unixlib/features.h>
+#endif
 
 #ifndef __UNIXLIB_TYPES_H
 #include <unixlib/types.h>
@@ -21,9 +25,7 @@
 
 #include <sys/select.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+__BEGIN_DECLS
 
 #define NDEV		5
 
@@ -144,8 +146,7 @@ extern int __commonselect    (struct __unixlib_fd *__fdriptor,
 			      int __fd, fd_set *__read,
 			      fd_set *__write, fd_set *__except);
 #endif
-#ifdef __cplusplus
-	}
-#endif
+
+__END_DECLS
 
 #endif

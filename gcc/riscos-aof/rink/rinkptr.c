@@ -152,7 +152,7 @@ static char id_chunk[] = { "rinkptr (c) Ben Summers" };
 static int id_chunk_size;
 
 static char *chunk_file;
-static int chunk_file_size;
+static unsigned int chunk_file_size;
 
 char alloc_fn[256] = "malloc";
 char free_fn[256] = "free";
@@ -180,7 +180,7 @@ char map_name[256], aof_name[256];
 
 #define MAX_PARAM 1
 char *params[] = { map_name, aof_name };
-char *param_trans[] = { "pointer block map", "output AOF file" };
+const char *param_trans[] = { "pointer block map", "output AOF file" };
 
 static char *symbols;
 static int sym_len;
@@ -192,7 +192,7 @@ static BOOL vverbose = FALSE;
 
 /* **************************************************************************** misc functions */
 
-void
+static void
 add_symbol (char *symbol)
 {
   int l;
@@ -215,7 +215,7 @@ add_symbol (char *symbol)
 
 /* *************************************************************************** create aof file */
 
-BOOL
+static BOOL
 create_aof_file (void)
 {
   FILE *output;
@@ -298,7 +298,7 @@ create_aof_file (void)
 
   string_table = aof_symbols;
   string_table_size = (aof_sym_i + 4) & (~3);
-  *((int *) aof_symbols) = string_table_size;
+  *((int *)(void *) aof_symbols) = string_table_size;
 
 
   printf ("rinkptr: size of _rink_pointerblock: %d\n\n",
@@ -317,9 +317,9 @@ create_aof_file (void)
     }
   memset (area_chunk, '\0', (n_aof_symbols * sizeof (int *)));
   for (l = n_aof_symbols; l < (n_aof_symbols + N_SUGARS); l++)
-    ((int *) area_chunk)[l] = BRANCH;
+    ((int *)(void *) area_chunk)[l] = BRANCH;
   re =
-    (relocation *) (area_chunk +
+    (relocation *)(void *) (area_chunk +
 		    ((n_aof_symbols + N_SUGARS) * sizeof (int *)));
   for (l = 0; l < (n_aof_symbols + N_SUGARS); l++)
     {
@@ -351,7 +351,7 @@ create_aof_file (void)
       return 1;
     }
   i = sizeof (int);
-  se = (symbol_entry *) symbol_table;
+  se = (symbol_entry *)(void *) symbol_table;
   for (l = 0; l < (n_aof_symbols + (N_SUGARS * 2)); l++)
     {
       se->name_offset = i;
@@ -406,7 +406,7 @@ create_aof_file (void)
       printf ("rinkptr: no room\n\n");
       return 1;
     }
-  ah = (aof_header *) header;
+  ah = (aof_header *)(void *) header;
   he = (area_header_entry *) (ah + 1);
   ah->object_file_type = 0xC5E2D080;
   ah->version = 150;
@@ -445,7 +445,7 @@ create_aof_file (void)
       return 1;
     }
   i = sizeof (chunk_file_hdr) + (sizeof (chunk_entry) * CHUNKS_IN_FILE);
-  ch = (chunk_file_hdr *) chunk_file;
+  ch = (chunk_file_hdr *)(void *) chunk_file;
   ce = (chunk_entry *) (ch + 1);
 
   ch->chunkfield = 0xC3CBC6C5;
@@ -507,7 +507,7 @@ create_aof_file (void)
 
 /* ************************************************************************ parse command line */
 
-BOOL
+static BOOL
 parse_commandline (int argc, char *argv[])
 {
   int l, ll;

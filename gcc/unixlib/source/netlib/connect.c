@@ -1,16 +1,16 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/netlib/connect.c,v $
- * $Date: 2001/09/04 16:32:04 $
- * $Revision: 1.2.2.1 $
- * $State: Exp $
- * $Author: admin $
+ * $Source$
+ * $Date$
+ * $Revision$
+ * $State$
+ * $Author$
  *
  * (c) Copyright 1995 Sergio Monesi
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: connect.c,v 1.2.2.1 2001/09/04 16:32:04 admin Exp $";
+static const char rcs_id[] = "$Id$";
 #endif
 
 #include <unixlib/unix.h>
@@ -24,6 +24,6 @@ connect (int s, const struct sockaddr *name, int namelen)
   if (__socket_valid (s) == -1)
     return -1;
 
-  /* printf("U! connect: fd=%d, realsocket=%d\n",s,(__u->file+s)->r[0]); */
+  /* printf("U! connect: fd=%d, realsocket=%d\n", s, __u->fd[s].handle); */
   return _connect ((int)__u->fd[s].handle, name, namelen);
 }

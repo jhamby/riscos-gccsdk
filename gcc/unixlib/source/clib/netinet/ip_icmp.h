@@ -1,10 +1,10 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/clib/netinet/h/ip_icmp,v $
- * $Date: 1997/10/09 19:59:52 $
- * $Revision: 1.4 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/netinet/ip_icmp.h,v $
+ * $Date: 2001/01/29 15:10:19 $
+ * $Revision: 1.2 $
  * $State: Exp $
- * $Author: unixlib $
+ * $Author: admin $
  *
  ***************************************************************************/
 
@@ -13,6 +13,9 @@
 
 /* Freenet programmers interface - netinet/ip_icmp.h - 23/5/95 */
 
+#ifndef __UNIXLIB_FEATURES_H
+#include <unixlib/features.h>
+#endif
 
 #ifndef __UNIXLIB_TYPES_H
 #include <unixlib/types.h>
@@ -29,6 +32,8 @@
 #ifndef __NETINET_IN_SYSTM_H
 #include <netinet/in_systm.h>
 #endif
+
+__BEGIN_DECLS
 
 /*
  * Interface Control Message Protocol Definitions.
@@ -141,5 +146,7 @@ struct icmp {
 	(type) == ICMP_TSTAMP || (type) == ICMP_TSTAMPREPLY || \
 	(type) == ICMP_IREQ || (type) == ICMP_IREQREPLY || \
 	(type) == ICMP_MASKREQ || (type) == ICMP_MASKREPLY)
+
+__END_DECLS
 
 #endif

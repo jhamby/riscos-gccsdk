@@ -1,10 +1,10 @@
-#include <iostream.h>
+#include <iostream>
 #include "LibData.h"
 #include "TimeStamp.h"
 #include "BError.h"
 
 #ifndef CROSS_COMPILE
-extern "C" void OS_File(int *);
+extern "C" void *OS_File(int *);
 #endif
 
 LibData::LibData(Library *a_owner) : Chunk("LIB_DATA", a_owner)

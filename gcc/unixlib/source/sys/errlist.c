@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/errlist.c,v $
- * $Date: 2001/09/11 16:53:58 $
- * $Revision: 1.2.2.1 $
- * $State: Exp $
- * $Author: admin $
+ * $Source$
+ * $Date$
+ * $Revision$
+ * $State$
+ * $Author$
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: errlist.c,v 1.2.2.1 2001/09/11 16:53:58 admin Exp $";
+static const char rcs_id[] = "$Id$";
 #endif
 
 #include <string.h>
@@ -17,7 +17,7 @@ static const char rcs_id[] = "$Id: errlist.c,v 1.2.2.1 2001/09/11 16:53:58 admin
 
 int sys_nerr = __SYS_NERR + 1;
 
-char *sys_errlist[__SYS_NERR + 1] =
+const char *sys_errlist[__SYS_NERR + 1] =
 {
   "Error 0",
   "Operation not permitted",			/* EPERM */
@@ -125,5 +125,5 @@ strerror (register int e)
   if (e < 0 || e >= sys_nerr)
     return (0);
 
-  return (sys_errlist[e]);
+  return (char *) sys_errlist[e];
 }

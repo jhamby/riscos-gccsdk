@@ -1,8 +1,8 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/clib/h/fenv,v $
- * $Date: 2000/06/03 15:28:47 $
- * $Revision: 1.3 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/fenv.h,v $
+ * $Date: 2001/01/29 15:10:19 $
+ * $Revision: 1.2 $
  * $State: Exp $
  * $Author: admin $
  *
@@ -11,9 +11,11 @@
 #ifndef __FENV_H
 #define __FENV_H 1
 
-#ifdef __cplusplus
-extern "C" {
+#ifndef __UNIXLIB_FEATURES_H
+#include <unixlib/features.h>
 #endif
+
+__BEGIN_DECLS
 
 /* Define bits representing exceptions in the FPU status word.  */
 
@@ -105,8 +107,6 @@ extern void fesetenv (const fenv_t *__envp);
    according to saved exceptions.  */
 extern void feupdateenv (const fenv_t *__envp);
 
-#ifdef __cplusplus
-}
-#endif
+__END_DECLS
 
 #endif

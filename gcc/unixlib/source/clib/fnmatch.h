@@ -1,10 +1,10 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/fnmatch.h,v $
- * $Date: 2001/09/14 14:01:17 $
- * $Revision: 1.2.2.1 $
- * $State: Exp $
- * $Author: admin $
+ * $Source$
+ * $Date$
+ * $Revision$
+ * $State$
+ * $Author$
  *
  ***************************************************************************/
 
@@ -13,10 +13,11 @@
 #ifndef	__FNMATCH_H
 #define	__FNMATCH_H 1
 
-#ifdef __cplusplus
-extern "C" {
+#ifndef __UNIXLIB_FEATURES_H
+#include <unixlib/features.h>
 #endif
 
+__BEGIN_DECLS
 
 /* Bits for the 'flags' argument to fnmatch().  */
 
@@ -33,8 +34,6 @@ extern "C" {
    returning zero if it matches, FNM_NOMATCH if not.  */
 extern int fnmatch (const char *__pattern, const char *__string, int __flags);
 
-#ifdef __cplusplus
-}
-#endif
+__END_DECLS
 
 #endif

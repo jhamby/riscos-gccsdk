@@ -1,8 +1,8 @@
 ;----------------------------------------------------------------------------
 ;
-; $Source: /usr/local/cvsroot/unixlib/source/sys/s/_udiv,v $
-; $Date: 2000/12/21 15:09:13 $
-; $Revision: 1.4 $
+; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/_udiv.s,v $
+; $Date: 2001/01/29 15:10:21 $
+; $Revision: 1.2 $
 ; $State: Exp $
 ; $Author: admin $
 ;
@@ -18,7 +18,7 @@ divisor RN 0
 	EXPORT	|_kernel_udiv|
 	EXPORT	|x$udivide|
 	EXPORT	|__rt_udiv|
-
+	NAME	__rt_udiv
 |_kernel_udiv|
 |x$udivide|
 |__rt_udiv|

@@ -42,7 +42,7 @@ int link_bug_patch = 0;
 
 typedef struct
 {
-  int chunkfield;
+  unsigned int chunkfield;
   int maxchunks, numchunks;
 }
 chunk_file_hdr;
@@ -80,7 +80,7 @@ area_header_entry;
 
 typedef struct
 {
-  int object_file_type;
+  unsigned int object_file_type;
   int version;
   int n_areas;
   int n_symbols;
@@ -240,7 +240,7 @@ char aof_name[PARAM_LEN];
 
 #define MAX_PARAM 3
 char *params[] = { code_name, links_name, header_name, map_name };
-char *param_trans[] = { "code", "links", "header description", "map" };
+const char *param_trans[] = { "code", "links", "header description", "map" };
 
 typedef struct
 {
@@ -266,13 +266,13 @@ int aof_size;
 char *header_cp;
 char *areas;
 char *identification;
-char *symbol_table;
+void *symbol_table;
 char *string_table;
 
 aof_header *header;
 
 char **aof_chunks[] =
-  { &header_cp, &areas, &identification, &symbol_table, &string_table };
+  { &header_cp, &areas, &identification, (char **)&symbol_table, &string_table };
 char aof_chunkids[7][9] =
   { "OBJ_HEAD", "OBJ_AREA", "OBJ_IDFN", "OBJ_SYMT", "OBJ_STRT", "" };
 #define OBJ_IDFN 2
@@ -317,7 +317,7 @@ int map_entries;
 
 /* **************************************************************************** map functions */
 
-char *
+static char *
 map_find_name (int n)
 {
   int l, i;
@@ -331,7 +331,7 @@ map_find_name (int n)
   return map + i;
 }
 
-int
+static int
 map_lookup (char *symbol)
 {
   int l, i;
@@ -349,7 +349,7 @@ map_lookup (char *symbol)
   return -1;
 }
 
-BOOL
+static BOOL
 map_load (char *filename)
 {
   FILE *f;
@@ -433,16 +433,18 @@ map_load (char *filename)
 
 /* *************************************************************************** misc functions */
 
-void
-delete_file (char *name)
+static void
+delete_file (const char *name)
 {
   unlink (name);
 }
 
-BOOL
+static BOOL
 save_file (char *name, char *start, int length, int type)
 {
   FILE *handle;
+
+  type = type;
 
   handle = fopen (name, "w");
   fwrite (start, 1, length, handle);
@@ -450,7 +452,7 @@ save_file (char *name, char *start, int length, int type)
   return TRUE;
 }
 
-char *
+static char *
 find_area_address (int index)
 {
   int l;
@@ -466,7 +468,7 @@ find_area_address (int index)
   return loc;
 }
 
-relocation *
+static relocation *
 find_area_reloc_address (int index)
 {
   int l;
@@ -490,10 +492,10 @@ find_area_reloc_address (int index)
 
   loc += t;
 
-  return (relocation *) loc;
+  return (relocation *)(void *)loc;
 }
 
-area_map_entry *
+static area_map_entry *
 find_area_search (char *name, area_map_entry * table, int entries)
 {
   int l;
@@ -509,7 +511,7 @@ find_area_search (char *name, area_map_entry * table, int entries)
   return 0;
 }
 
-char *
+static char *
 name_of_area (int index)
 {
   area_header_entry *ai = (area_header_entry *) (header + 1);
@@ -517,7 +519,8 @@ name_of_area (int index)
   return string_table + ai[index].name_offset;
 }
 
-area_map_entry *
+#if 0
+static area_map_entry *
 find_area_index (char *name)
 {
   area_map_entry *a;
@@ -531,6 +534,7 @@ find_area_index (char *name)
 
   return 0;
 }
+#endif
 
 /* ********************************************************************* get info on a symbol */
 
@@ -547,7 +551,7 @@ symbol_info;
 
   /* fills in a symbol_info given an index into the symbol table,
      returns TRUE if the symbol can be resolved (reports error to user, returns FALSE if not)  */
-BOOL
+static BOOL
 get_symbol_info (int s_index, symbol_info * info)
 {
   symbol_entry *se;
@@ -633,14 +637,14 @@ get_symbol_info (int s_index, symbol_info * info)
 
 /* ****************************************************************************** make header */
 
-BOOL
+static BOOL
 make_header (void)
 {
   int l, ll;
   rink_code_fn_entry *en =
-    (rink_code_fn_entry *) (code + sizeof (rink_code_hdr));
+    (rink_code_fn_entry *)(void *)(code + sizeof (rink_code_hdr));
   rink_code_named_fn_entry *nn =
-    (rink_code_named_fn_entry *) (((char *) en) +
+    (rink_code_named_fn_entry *)(void *)(((char *) en) +
 				  (sizeof (rink_code_fn_entry) *
 				   header_entries));
   char *named_sym =
@@ -745,7 +749,7 @@ make_header (void)
 
 /* ********************************************************************** perform relocations */
 
-void
+static void
 links_check_size (int data_size)
 {
   if ((links_end + data_size + 4) > links_size)
@@ -758,7 +762,7 @@ links_check_size (int data_size)
     }
 }
 
-void
+static void
 add_link (rink_link * link)
 {
   links_check_size (sizeof (rink_link));
@@ -797,7 +801,7 @@ add_link (rink_link * link)
       pl.index = link->index;
       pl.type = TYPE_ADD_FN_PACKED;
 
-      *((link_info_packed *) (links + links_end)) = pl;
+      *((link_info_packed *) (void *)(links + links_end)) = pl;
       links_end += sizeof (link_info_packed);
       n_links++;
 
@@ -807,14 +811,14 @@ add_link (rink_link * link)
       return;
     }
 
-  *((rink_link *) (links + links_end)) = *link;
+  *((rink_link *)(void *)(links + links_end)) = *link;
   links_end +=
     (link->sys.type ==
      TYPE_ADD_BASE) ? sizeof (link_info) : sizeof (rink_link);
   n_links++;
 }
 
-BOOL
+static BOOL
 make_relocations (void)
 {
   char id[] = RINK_LINKS_ID;
@@ -844,10 +848,10 @@ make_relocations (void)
     }
   links_size = LINKS_BLOCK;
   /* make links file header */
-  ((rink_links_hdr *) links)->id = *((int *) id);
-  ((rink_links_hdr *) links)->version = RINK_LINKS_VERSION;
+  ((rink_links_hdr *)(void *) links)->id = *((int *)(void *) id);
+  ((rink_links_hdr *)(void *) links)->version = RINK_LINKS_VERSION;
   n_links = 0;
-  ((rink_links_hdr *) links)->reserved = 0;
+  ((rink_links_hdr *)(void *) links)->reserved = 0;
 
   links_end = sizeof (rink_links_hdr);
 
@@ -913,7 +917,7 @@ make_relocations (void)
 		    }
 
 		  /* next, add the offset of the base of the area from the field */
-		  *((int *) (code + real_map[area].start_offset + re->offset))
+		  *((int *)(void *)(code + real_map[area].start_offset + re->offset))
 		    += base;
 
 		  /* and then generate a run-time relocation directive to add the
@@ -952,7 +956,7 @@ make_relocations (void)
 		  else if (si.absolute_value)
 		    {
 		      /* add constant to field */
-		      *((int *)
+		      *((int *)(void *)
 			(code + real_map[area].start_offset + re->offset)) +=
 			si.value;
 
@@ -960,7 +964,7 @@ make_relocations (void)
 		  else
 		    {
 		      /* add address of location within an area */
-		      *((int *)
+		      *((int *)(void *)
 			(code + real_map[area].start_offset + re->offset)) +=
 			si.area_base + si.value;
 		      link.index = 0;
@@ -997,7 +1001,7 @@ make_relocations (void)
 		  base = fa->start_offset;
 
 		  /* add offset of start base */
-		  *((int *) (code + real_map[area].start_offset + re->offset))
+		  *((int *)(void *) (code + real_map[area].start_offset + re->offset))
 		    += base - real_map[area].start_offset;
 
 
@@ -1049,7 +1053,7 @@ make_relocations (void)
 		      if (
 			  (*
 			   ((unsigned
-			     int *) (code + real_map[area].start_offset +
+			     int *)(void *) (code + real_map[area].start_offset +
 				     re->offset)) & 0x0e000000) != 0x0a000000)
 			{
 			  // oh dear, it's not a branch...
@@ -1064,18 +1068,18 @@ make_relocations (void)
 
 		      /* perform the relocation */
 		      nn =
-			*((unsigned int *)
+			*((unsigned int *)(void *)
 			  (code + real_map[area].start_offset +
 			   re->offset)) & 0xff000000;
 		      n =
 			((signed
 			  int) ((*
 				 ((unsigned
-				   int *) (code +
+				   int *)(void *) (code +
 					   real_map[area].start_offset +
 					   re->offset)) & 0x00ffffff) << 8)) +
 			(n << 8);
-		      *((unsigned int *)
+		      *((unsigned int *)(void *)
 			(code + real_map[area].start_offset + re->offset)) =
 			nn | (((unsigned int) n) >> 8);
 
@@ -1099,7 +1103,7 @@ make_relocations (void)
 	}
     }
 
-  ((rink_links_hdr *) links)->n_links = n_links;
+  ((rink_links_hdr *)(void *) links)->n_links = n_links;
 
   if (vverbose)
     printf ("\n\n\n");
@@ -1109,7 +1113,7 @@ make_relocations (void)
 
 /* ********************************************************** copy areas into real code block */
 
-BOOL
+static BOOL
 make_code (void)
 {
   int l;
@@ -1122,18 +1126,18 @@ make_code (void)
     }
 
   /* set up the header */
-  strcpy (((rink_code_hdr *) code)->id, code_id);
-  ((rink_code_hdr *) code)->main_version = main_version;
-  ((rink_code_hdr *) code)->code_version = code_version;
-  ((rink_code_hdr *) code)->fn_entries = header_entries;
-  ((rink_code_hdr *) code)->code_size = real_size;
-  ((rink_code_hdr *) code)->zero_init_size = zero_size;
-  ((rink_code_hdr *) code)->named_entries = named_entries;
+  strcpy (((rink_code_hdr *)(void *)code)->id, code_id);
+  ((rink_code_hdr *)(void *) code)->main_version = main_version;
+  ((rink_code_hdr *)(void *) code)->code_version = code_version;
+  ((rink_code_hdr *)(void *) code)->fn_entries = header_entries;
+  ((rink_code_hdr *)(void *) code)->code_size = real_size;
+  ((rink_code_hdr *)(void *) code)->zero_init_size = zero_size;
+  ((rink_code_hdr *)(void *) code)->named_entries = named_entries;
   
-    ((rink_code_hdr *) code)->named_offset =
+    ((rink_code_hdr *)(void *) code)->named_offset =
     sizeof (rink_code_hdr) + (sizeof (rink_code_fn_entry) * header_entries);
-  ((rink_code_hdr *) code)->reserved1 = 0;
-  ((rink_code_hdr *) code)->reserved2 = 0;
+  ((rink_code_hdr *)(void *) code)->reserved1 = 0;
+  ((rink_code_hdr *)(void *) code)->reserved2 = 0;
 
   ae = (area_header_entry *) (header + 1);
 
@@ -1150,7 +1154,7 @@ make_code (void)
 
 /* ************************************************** generate maps for real and zeroed areas */
 
-BOOL
+static BOOL
 generate_area_map (void)
 {
   int l;
@@ -1286,7 +1290,7 @@ printf("\nentry %d\nname %s\nstart_offset %d\nsize %d\narea_index %d\nis_zero %d
 /* ************************************************************ parse header description file */
 
 #define MAX_TOKEN_LEN 32
-BOOL
+static BOOL
 parse_header_file (char *filename)
 {
   FILE *f;
@@ -1439,7 +1443,7 @@ parse_header_file (char *filename)
 
 /* *********************************************************************** parse command line */
 
-BOOL
+static BOOL
 parse_commandline (int argc, char *argv[])
 {
   int l, ll;
@@ -1613,13 +1617,13 @@ main (int argc, char *argv[])
   fclose (handle);
 
   /* set up pointers to the areas within the file */
-  if (((chunk_file_hdr *) aof)->chunkfield != 0xC3CBC6C5)
+  if (((chunk_file_hdr *)(void *) aof)->chunkfield != 0xC3CBC6C5)
     {
       printf ("rink: source 'aof' file is not an aof file\n\n");
       return 1;
     }
-  ce = (chunk_entry *) (((chunk_file_hdr *) aof) + 1);
-  for (l = 0; l < ((chunk_file_hdr *) aof)->numchunks; l++)
+  ce = (chunk_entry *)(void *) (((chunk_file_hdr *)(void *) aof) + 1);
+  for (l = 0; l < ((chunk_file_hdr *)(void *) aof)->numchunks; l++)
     {
       n = 0;
       while (aof_chunkids[n][0] != '\0')
@@ -1647,7 +1651,7 @@ main (int argc, char *argv[])
       printf ("rink: source aof file created by '%s'\n\n", identification);
     }
 
-  header = (aof_header *) header_cp;
+  header = (aof_header *)(void *) header_cp;
 
   if (header->version == 311)
     areas += link_bug_patch;

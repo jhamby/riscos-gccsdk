@@ -17,10 +17,22 @@
 
 Ar::Ar (int argc, char **argv)
 {
+  char *argv1 = NULL;
+
+  if (argc >= 2)
+    {
+      argv1 = new char[strlen (argv[1]) + 2];
+      argv1[0] = '-';
+      strcpy (argv1 + 1, argv[1]);
+      argv[1] = argv1;
+    }
   m_argParser = new ArgParser (argc, argv);
 
   if (! m_argParser)
     THROW_SPEC_ERR (BError::NewFailed);
+  
+  if (argc>=2)
+    delete argv1;
 }
 
 Ar::~Ar ()
@@ -31,11 +43,11 @@ void Ar::run ()
 {
   BString libFile, destDir;
   List<BString> argList, memberName, tmpList;
- int listSymbols = 0;
- int listLib = 0;
- int nullStamps = 0;
- Action action = ActionNone;
-
+  int listSymbols = 0;
+  int listLib = 0;
+  int nullStamps = 0;
+  Action action = ActionNone;
+  
   if (m_argParser->getOption ("-h")
       || m_argParser->getOption ("-?"))
     {
@@ -50,6 +62,12 @@ void Ar::run ()
   if (m_argParser->getOption ("-V"))
     version ();
 
+#ifdef CROSS_COMPILE
+  destDir = "./";
+#else
+  destDir = "@.";
+#endif
+
   // Delete modules from the archive
   if (m_argParser->getOption ("-d"))
     action = ActionDelete;
@@ -61,7 +79,7 @@ void Ar::run ()
 
   // Extract members from the archive
   if (m_argParser->getOption ("-x"))
-    action = ActionExtract;
+    action = (argList.length () == 0) ? ActionExtractAll : ActionExtract;
 
   if (m_argParser->getOption ("-c"))
     action = ActionCreate;
@@ -76,26 +94,43 @@ void Ar::run ()
     }
 
   if (libFile == "")
-    return;
+    {
+      usage ();
+      return;
+    }
 
   Library *library = new Library (libFile);
   switch (action)
     {
     case ActionInsert:
-    case ActionCreate:
-      if (action == ActionInsert
-	  || argList.length () == 0)
-	library->load ();
+      // Don't error if the library does not exist.  Sliently create
+      // a new one instead.
+      try
+	{
+	  library->load ();
+	}
 
+      catch (BError err)
+	{
+	  // Re-throw the error if it is one we aren't interested in.
+	  if (err.m_err != BError::FileNotFound)
+	    THROW_SPEC_ERR (BError::FileNotFound);
+	};
+    case ActionCreate:
       library->addMembers (argList);
-      library->updateOflSymt ();
       library->updateOflTime ();
+      library->updateOflSymt ();
       library->save ();
       break;
 
     case ActionExtract:
       library->load ();
       library->extractMembers (argList, destDir);
+      break;
+
+    case ActionExtractAll:
+      library->load();
+      library->extractAllMembers (destDir);
       break;
 
     case ActionExtractDelete:
@@ -105,8 +140,8 @@ void Ar::run ()
 	library->extractMembers (argList, destDir);
 
       library->deleteMembers (argList);
-      library->updateOflSymt ();
       library->updateOflTime ();
+      library->updateOflSymt ();
       library->save ();
       break;
 

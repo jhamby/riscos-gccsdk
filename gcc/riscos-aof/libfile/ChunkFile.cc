@@ -1,6 +1,6 @@
 #include <stdlib.h>
 #include <assert.h>
-#include <iostream.h>
+#include <iostream>
 #include "ChunkFile.h"
 #include "BError.h"
 

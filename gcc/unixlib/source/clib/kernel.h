@@ -1,10 +1,10 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/kernel.h,v $
- * $Date: 2001/08/08 18:42:55 $
- * $Revision: 1.3.2.1 $
- * $State: Exp $
- * $Author: admin $
+ * $Source$
+ * $Date$
+ * $Revision$
+ * $State$
+ * $Author$
  *
  * This file is intended to provide an interface between UnixLib and
  * DeskLib, for the few _kernel calls that it uses. Any simularity between
@@ -16,14 +16,11 @@
 #ifndef __KERNEL_H
 #define __KERNEL_H
 
-#ifdef __cplusplus
-extern "C" {
+#ifndef __UNIXLIB_FEATURES_H
+#include <unixlib/features.h>
 #endif
 
-#ifndef __GNUC__
-#undef  __attribute__
-#define __attribute__(x) /* Ignore */
-#endif
+__BEGIN_DECLS
 
 typedef struct
 {
@@ -159,8 +156,6 @@ _kernel_sdiv10 (int __dividend) __attribute__ ((__const__));
 /* Return a pointer to the current stack chunk.  */
 extern _kernel_stack_chunk *_kernel_current_stack_chunk (void);
 
-#ifdef __cplusplus
-}
-#endif
+__END_DECLS
 
 #endif

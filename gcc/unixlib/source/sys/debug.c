@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/debug.c,v $
- * $Date: 2001/09/04 16:32:04 $
- * $Revision: 1.2.2.3 $
- * $State: Exp $
- * $Author: admin $
+ * $Source$
+ * $Date$
+ * $Revision$
+ * $State$
+ * $Author$
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: debug.c,v 1.2.2.3 2001/09/04 16:32:04 admin Exp $";
+static const char rcs_id[] = "$Id$";
 #endif
 
 #ifndef DEBUG
@@ -29,9 +29,9 @@ static const char rcs_id[] = "$Id: debug.c,v 1.2.2.3 2001/09/04 16:32:04 admin E
 extern unsigned int __sigstk, __sigstksize;
 
 static void
-__debugval (char *s, int i)
+__debugval (const char *s, int i)
 {
-  char *p = "        ";
+  const char *p = "        ";
   int x;
 
   __os_print (s);

@@ -1,29 +1,29 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/clib/h/alloca,v $
- * $Date: 1997/10/09 19:59:45 $
- * $Revision: 1.4 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/alloca.h,v $
+ * $Date: 2001/01/29 15:10:19 $
+ * $Revision: 1.2 $
  * $State: Exp $
- * $Author: unixlib $
+ * $Author: admin $
  *
  ***************************************************************************/
 
 #ifndef __ALLOCA_H
 #define __ALLOCA_H
 
+#ifndef __UNIXLIB_FEATURES_H
+#include <unixlib/features.h>
+#endif
+
 #ifndef __STDDEF_H
 #include <stddef.h>
 #endif
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+__BEGIN_DECLS
 
 /* Allocate a block that will be freed when the calling function exits.  */
 extern void *alloca (size_t);
 
-#ifdef __cplusplus
-	}
-#endif
+__END_DECLS
 
 #endif

@@ -1,3 +1,4 @@
+#undef VERSION
 #define VERSION \
   "AS v1.30, " __DATE__ "\n"
 #ifdef CROSS_COMPILE

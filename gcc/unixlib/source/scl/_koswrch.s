@@ -1,7 +1,7 @@
 ;----------------------------------------------------------------------------
 ;
-; $Source: /usr/local/cvsroot/unixlib/source/scl/s/_koswrch,v $
-; $Date: 2000/12/21 15:09:13 $
+; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/scl/_koswrch.s,v $
+; $Date: 2001/01/29 15:10:20 $
 ; $Revision: 1.2 $
 ; $State: Exp $
 ; $Author: admin $
@@ -12,9 +12,11 @@
 
 	AREA	|C$$code|, CODE, READONLY
 
-	; _kernel_oswrch (int ch)
 	IMPORT	|__seterr|
+
+	; _kernel_oswrch (int ch)
 	EXPORT	|_kernel_oswrch|
+	NAME	_kernel_oswrch
 |_kernel_oswrch|
 	STMFD	sp!, {lr}
 	SWI	XOS_WriteC

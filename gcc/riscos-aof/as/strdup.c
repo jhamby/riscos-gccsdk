@@ -3,11 +3,13 @@
  * Copyright © 1997 Darren Salt
  */
 
+#include "sdk-config.h"
 #include <stdlib.h>
 #include <string.h>
 #include "os.h"
 #include "error.h"
 
+#if (defined (CROSS_COMPILE) && ! defined (HAVE_STRNDUP)) || ! defined (CROSS_COMPILE)
 char *
 strndup (const char *str, int len)
 {
@@ -21,3 +23,5 @@ strndup (const char *str, int len)
     }
   return c;
 }
+#endif
+

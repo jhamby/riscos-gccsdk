@@ -1,10 +1,10 @@
 ;----------------------------------------------------------------------------
 ;
-; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/_os.s,v $
-; $Date: 2001/09/04 16:32:04 $
-; $Revision: 1.3.2.2 $
-; $State: Exp $
-; $Author: admin $
+; $Source$
+; $Date$
+; $Revision$
+; $State$
+; $Author$
 ;
 ;----------------------------------------------------------------------------
 
@@ -13,6 +13,7 @@
 	AREA	|C$$code|, CODE, READONLY
 
 	EXPORT	|__os_console|
+	NAME	__os_console
 |__os_console|
 	; Set operating system output stream to the console only
 	MOV	a1, #3
@@ -23,6 +24,7 @@
 	return	AL, pc, lr
 
 	EXPORT	|__os_vdu|
+	NAME	__os_vdu
 |__os_vdu|
 	SWI	XOS_WriteC
 	return	VC, pc, lr
@@ -30,6 +32,7 @@
 	return	AL, pc, lr
 
 	EXPORT	|__os_get|
+	NAME	__os_get
 |__os_get|
 	SWI	XOS_ReadC
 	return	VC, pc, lr
@@ -37,6 +40,7 @@
 	return	AL, pc, lr
 
 	EXPORT	|__os_inkey|
+	NAME	__os_inkey
 |__os_inkey|
 	MOV	ip, a1
 	MOV	a1, #&81
@@ -51,6 +55,7 @@
 	return	AL, pc, lr
 
 	EXPORT	|__os_keyflush|
+	NAME	__os_keyflush
 |__os_keyflush|
 	MOV	a1, #21
 	MOV	a2, #0
@@ -61,6 +66,7 @@
 	return	AL, pc, lr
 
 	EXPORT	|__os_423|
+	NAME	__os_423
 |__os_423|
 	; Enable serial port and keyboard for input
 	MOV	a1, #2
@@ -77,6 +83,7 @@ os_423_l1
 	return	AL, pc, lr
 
 	EXPORT	|__os_423vdu|
+	NAME	__os_423vdu
 |__os_423vdu|
 	MOV	a2, a1
 	MOV	a1, #3
@@ -87,6 +94,7 @@ os_423_l1
 	return	AL, pc, lr
 
 	EXPORT	|__os_423get|
+	NAME	__os_423get
 |__os_423get|
 	MOV	a1, #4
 os_423get_l1
@@ -97,6 +105,7 @@ os_423get_l1
 	return	AL, pc, lr
 
 	EXPORT	|__os_423inkey|
+	NAME	__os_423inkey
 |__os_423inkey|
 	MOV	a4, a1
 	SWI	XOS_ReadMonotonicTime
@@ -116,6 +125,7 @@ os_423inkey_l2
 	return	AL, pc, lr
 
 	EXPORT	|__os_423flush|
+	NAME	__os_423flush
 |__os_423flush|
 	MOV	a1, #21
 	MOV	a2, #1
@@ -126,6 +136,7 @@ os_423inkey_l2
 	return	AL, pc, lr
 
 	EXPORT	|__os_423break|
+	NAME	__os_423break
 |__os_423break|
 	MOV	a2, a1
 	MOV	a1, #2
@@ -135,6 +146,7 @@ os_423inkey_l2
 	return	AL, pc, lr
 
 	EXPORT	|__os_byte|
+	NAME	__os_byte
 |__os_byte|
 	MOVS	ip, a4
 	SWI	XOS_Byte
@@ -143,15 +155,19 @@ os_423inkey_l2
 	return	AL, pc, lr
 
 	EXPORT	|__os_word|
+	NAME	__os_word
 |__os_word|
 	SWI	XOS_Word
 	MOVVC	a1, #0
 	return	AL, pc, lr
 
-	EXPORT	|__os_prhex|
+os_prhex_data
 	DCB	"    "
+
+	EXPORT	|__os_prhex|
+	NAME	__os_prhex
 |__os_prhex|
-	LDR	a3, |__os_prhex| - 4
+	LDR	a3, os_prhex_data
 	MOV	a2, a3
 	STMFD	sp!, {a2, a3}	; fill buffer with 8 spaces
 	ADD	a3, sp, #8
@@ -174,6 +190,7 @@ os_prhex_l1
 	; Print out a 32-bit number (passed in a1) as a signed
 	; decimal quantity
 	EXPORT	|__os_prdec|
+	NAME	__os_prdec
 |__os_prdec|
 	MOV	a3, #16		; allocate a temporary buffer of 16 bytes
 	SUB	a2, sp, a3
@@ -182,24 +199,28 @@ os_prhex_l1
 	return	AL, pc, lr
 
 	EXPORT	|__os_print|
+	NAME	__os_print
 |__os_print|
 	SWI	XOS_Write0
 	MOVVC	a1, #0
 	return	AL, pc, lr
 
 	EXPORT	|__os_nl|
+	NAME	__os_nl
 |__os_nl|
 	SWI	XOS_NewLine
 	MOVVC	a1, #0
 	return	AL, pc, lr
 
 	EXPORT	|__os_cli|
+	NAME	__os_cli
 |__os_cli|
 	SWI	XOS_CLI
 	MOVVC	a1, #0
 	return	AL, pc, lr
 
 	EXPORT	|__os_file|
+	NAME	__os_file
 |__os_file|
 	STMFD	sp!, {v1, v2, lr}
 	CMP	a3, #0
@@ -212,6 +233,7 @@ os_prhex_l1
 	stackreturn	AL, "v1, v2, pc"
 
 	EXPORT	|__os_fopen|
+	NAME	__os_fopen
 |__os_fopen|
 	MOV	ip, a3
 	SWI	XOS_Find
@@ -220,6 +242,7 @@ os_prhex_l1
 	return	AL, pc, lr
 
 	EXPORT	|__os_fclose|
+	NAME	__os_fclose
 |__os_fclose|
 	MOV	a2, a1
 	MOV	a1, #0
@@ -228,6 +251,7 @@ os_prhex_l1
 	return	AL, pc, lr
 
 	EXPORT	|__os_fread|
+	NAME	__os_fread
 |__os_fread|
 	STMFD	sp!, {v1, lr}
 	MOVS	ip, a4
@@ -241,6 +265,7 @@ os_prhex_l1
 	stackreturn	AL, "v1, pc"
 
 	EXPORT	|__os_fwrite|
+	NAME	__os_fwrite
 |__os_fwrite|
 	STMFD	sp!, {v1, lr}
 	MOVS	ip, a4
@@ -254,6 +279,7 @@ os_prhex_l1
 	stackreturn	AL, "v1, pc"
 
 	EXPORT	|__os_args|
+	NAME	__os_args
 |__os_args|
 	MOVS	ip, a4
 	SWI	XOS_Args
@@ -262,12 +288,14 @@ os_prhex_l1
 	return	AL, pc, lr
 
 	EXPORT	|__os_fsctrl|
+	NAME	__os_fsctrl
 |__os_fsctrl|
 	SWI	XOS_FSControl
 	MOVVC	a1, #0
 	return	AL, pc, lr
 
 	EXPORT	|__os_swi|
+	NAME	__os_swi
 |__os_swi|
 	STMFD	sp!, {a2, v1, v2, v3, v4, v5, v6, lr}
 	ORR	ip, a1, #&20000		; X bit

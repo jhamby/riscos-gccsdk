@@ -1,7 +1,7 @@
 ;----------------------------------------------------------------------------
 ;
-; $Source: /usr/local/cvsroot/unixlib/source/math-asm/s/_fesetroun,v $
-; $Date: 2000/12/21 15:09:13 $
+; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/math-asm/_fesetroun.s,v $
+; $Date: 2001/01/29 15:10:20 $
 ; $Revision: 1.2 $
 ; $State: Exp $
 ; $Author: admin $
@@ -13,6 +13,7 @@
 	AREA	|C$$code|, CODE, READONLY
 
 	EXPORT	fesetround
+	NAME	fesetround
 fesetround
 	; Only FE_TONEAREST is supported.
 	cmp	a1, #0

@@ -1,10 +1,10 @@
 ;----------------------------------------------------------------------------
 ;
-; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/signal/_signal.s,v $
-; $Date: 2001/10/02 10:16:45 $
-; $Revision: 1.4.2.9 $
-; $State: Exp $
-; $Author: admin $
+; $Source$
+; $Date$
+; $Revision$
+; $State$
+; $Author$
 ;
 ;----------------------------------------------------------------------------
 
@@ -65,10 +65,10 @@
 ;	APCS compliant. a1-a4, ip corrupted.
 ;
 ; Set UnixLib's errno to EOPSYS and copy the error from err to UnixLib's
-; error buffer. UnixLib's sys_errlist[EOPSYS] already points to this
-; buffer, so there is no need to update sys_errlist.
+; error buffer.
 ;
 	EXPORT	|__seterr|
+	NAME	__seterr
 |__seterr|
 	TEQ	a1, #0			; quick exit when no error
 	MOVEQS	pc, lr
@@ -78,8 +78,12 @@
 	MOV	a3, #EOPSYS
 	STR	a3, [a2, #0]
 
-	; Copy the error to UnixLib's buffer.
+	LDR     a4, =sys_errlist
 	LDR     a2, =|__ul_errbuf_errblock|
+	ADD     a3, a2, #4
+	STR     a3, [a4, #(EOPSYS:SHL:2)]
+
+	; Copy the error to UnixLib's buffer.
 	MOV	a3, #|__ul_errbuf__size|
 |__seterr.00|
 	LDMIA	a1!, {a4, v1-v5, ip, lr}
@@ -90,19 +94,20 @@
 	MOV	a1, #0			; ensure zero-terminated.
 	STRB	a1, [a2, #-1]
 
-	LDMFD	sp!, {v1-v5, pc}^	
+	LDMFD	sp!, {v1-v5, pc}^
 
 ;-----------------------------------------------------------------------
 ; _kernel_oserror *_kernel_last_oserror (void)
 ; On exit:
 ;	APCS compliant. a1, a2 corrupted.
-; 
+;
 ; Provide access to the last operating system error.  This is a
 ; SharedCLibrary compatibility function.  It appears in here because
 ; it is associated with the __seterr function above.  It is also not
 ; very big.
 ;
 	EXPORT	|_kernel_last_oserror|
+	NAME	_kernel_last_oserror
 |_kernel_last_oserror|
 	LDR	a1, =|__ul_errbuf_errblock|
 	LDR	a2, [a1, #0]
@@ -110,7 +115,7 @@
 	MOVNES	pc, lr
 	MOV	a1, #0
 	MOV	pc, lr
-	
+
 	; The following code is in a writable area because we need access to
 	; the callback register save area without corrupting any registers
 	; or needing to stack any registers. Thus, the callback register
@@ -143,6 +148,7 @@
 ;	lr = address of instruction 1 word after the undefined instruction.
 ;
 	EXPORT	|__h_sigill|
+	NAME	__h_sigill
 |__h_sigill|
 	STR	lr, |__cbreg|+60
 	ADR	lr, |__cbreg|
@@ -160,6 +166,7 @@
 ;	lr = address of instruction 1 word after the address exception.
 ;
 	EXPORT	|__h_sigbus|
+	NAME	__h_sigbus
 |__h_sigbus|
 	SUB	lr, lr, #4
 	STR	lr, |__cbreg|+60
@@ -178,6 +185,7 @@
 ;	lr = address of instruction 1 word after the aborted instruction.
 ;
 	EXPORT	|__h_sigsegv0|
+	NAME	__h_sigsegv0
 |__h_sigsegv0|
 	SUB	lr, lr, #4
 	STR	lr, |__cbreg|+60
@@ -223,6 +231,7 @@
 ; expected to return.
 ; Finally, the SCL does not bother, so why should we ?
 	EXPORT	|__h_sigsegv1|
+	NAME	__h_sigsegv1
 |__h_sigsegv1|
 	SUB	lr, lr, #8
 	STR	lr, |__cbreg|+60
@@ -279,9 +288,7 @@
 ; For non-serious errors, bit 31 = 0, raise SIGERR.
 ;
 	EXPORT	|__h_error|
-lb1	DCB	"*** UnixLib error handler ***", 0
-	ALIGN
-lb2	DCD	&FF000000 + lb2 - lb1
+	NAME	"*** UnixLib error handler ***"
 |__h_error|
 	; Entered in USR mode. Setup an APCS stack frame
 	; so we can get a proper stack backtrace in case anything
@@ -294,7 +301,7 @@ lb2	DCD	&FF000000 + lb2 - lb1
 	LDR	a1, =|errno|
 	MOV	a2, #EOPSYS
 	STR	a2, [a1, #0]
-	
+
 	; sys_errlist[EOPSYS] = __ul_errbuf_errblock+4
 	LDR	a1, =sys_errlist
 	LDR	a3, =|__ul_errbuf_errblock|
@@ -316,7 +323,7 @@ lb2	DCD	&FF000000 + lb2 - lb1
 	LDMEQEA	fp, {a1, a2, a3, a4, fp, sp, pc}^
 
 	; Bit 31-was set, therefore it was a hardware error.
-	
+
 	; Print the error
 	ADR	a1, unrecoverable_error_msg
 	SWI	XOS_Write0
@@ -360,6 +367,7 @@ unrecoverable_error_msg
 ; race conditions ?
 ;
 	EXPORT	|__h_sigint|
+	NAME	__h_sigint
 |__h_sigint|
 	; Entered in IRQ mode. Be quick by just clearing the escape
 	; flag and setting a callback.
@@ -396,6 +404,7 @@ unrecoverable_error_msg
 Internet_Event	EQU	19
 
 	EXPORT	|__h_event|
+	NAME	__h_event
 |__h_event|
 	; Check for the event 'Internet event'.
 	TEQ	a1, #Internet_Event
@@ -424,6 +433,7 @@ Internet_Event	EQU	19
 ; Should return a `No such SWI' error ?
 ;
 	EXPORT	|__h_sigsys|
+	NAME	__h_sigsys
 |__h_sigsys|
 	STR	lr, |__cbreg|+60
 	ADR	lr, |__cbreg|
@@ -441,16 +451,17 @@ Internet_Event	EQU	19
 ;	r12/ip = pointer to workspace
 ; On exit:
 ;	All registers preserved
-; 
+;
 ; When UpCall_NewApplication is received, then all handlers should be
 ; restored to their original values and return to caller, preserving
 ; registers.
 ;
-	
+
 UpCall_NewApplication	EQU	256
 
-	EXPORT	|__h_upcall|
 	IMPORT	|__env_riscos|
+	EXPORT	|__h_upcall|
+	NAME	__h_upcall
 |__h_upcall|
 	; Check for the application starting UpCall
 	CMP	a1, #UpCall_NewApplication
@@ -458,6 +469,7 @@ UpCall_NewApplication	EQU	256
 	B	|__env_riscos|
 
 	EXPORT	|__h_cback|
+	NAME	__h_cback
 |__h_cback|
 	TEQP	pc, #IFlag	; USR mode IntOff (irq off, fiq on)
 	; The USR mode registers r0-r15 are extracted from the callback
@@ -506,8 +518,8 @@ UpCall_NewApplication	EQU	256
 	ADD	sp,v1,#16		; skip signal frame
 	LDMFD	sp,{a1,a2,a3,a4,v1,v2,v3,v4,v5,v6,sl,fp,ip,sp,lr,pc}^
 
-	EXPORT	|__cbreg|
 	; User registers are preserved in here for the callback execution.
+	EXPORT	|__cbreg|
 |__cbreg|	%	64
 
 	; bit 0 Escape condition flag
@@ -524,6 +536,7 @@ UpCall_NewApplication	EQU	256
 ; Called in USR mode
 	IMPORT	|_exit|
 	EXPORT	|__h_exit|
+	NAME	__h_exit
 |__h_exit|
 	ORR	lr,pc,#&0c000000	; USR mode IntOff
 	MOVS	pc,lr
@@ -544,6 +557,7 @@ UpCall_NewApplication	EQU	256
 
 	; Interval timer handler for ITIMER_REAL
 	EXPORT	|__h_sigalrm|
+	NAME	__h_sigalrm
 |__h_sigalrm|
 	STMFD	sp!, {a1, a2, a3, lr}
 	; Enter user mode
@@ -581,6 +595,7 @@ itimer_exit
 
 
 	EXPORT	|__h_sigalrm_init|
+	NAME	__h_sigalrm_init
 |__h_sigalrm_init|
 	STMFD	sp!, {a1, a2, lr}
 	ADR	a1, |__h_sigalrm|
@@ -588,8 +603,8 @@ itimer_exit
 	SWI	XOS_AddCallBack
 	LDMFD	sp!, {a1, a2, pc} ;  return without restoring PSR
 
-	EXPORT	|__h_sigalrm_sema|
 	; Set to one to prevent multiple CallEverys being set up.
+	EXPORT	|__h_sigalrm_sema|
 |__h_sigalrm_sema|
 	DCD	0
 
@@ -597,6 +612,7 @@ itimer_exit
 ; On entry R12 = pointer to interval timerval
 ; Preserve all registers
 	EXPORT	|__h_sigvtalrm|
+	NAME	__h_sigvtalrm
 |__h_sigvtalrm|
 	STMFD	sp!, {a1, a2, a3, lr}
 	TEQP	pc, #0		;  Enter user mode
@@ -622,6 +638,7 @@ itimer_exit
 	B	itimer_exit
 
 	EXPORT	|__h_sigvtalrm_init|
+	NAME	__h_sigvtalrm_init
 |__h_sigvtalrm_init|
 	STMFD	sp!, {a1, a2, lr}
 	ADR	a1, |__h_sigvtalrm|
@@ -629,8 +646,9 @@ itimer_exit
 	SWI	XOS_AddCallBack
 	LDMFD	sp!, {a1, a2, pc} ;  return without restoring PSR
 
-	EXPORT	|__h_sigvtalrm_sema|
 	; Set to one to prevent multiple CallEverys being set up.
+	EXPORT	|__h_sigvtalrm_sema|
+	NAME	__h_sigvtalrm_sema
 |__h_sigvtalrm_sema|
 	DCD	0
 
@@ -638,6 +656,7 @@ itimer_exit
 ; On entry R12 = pointer to interval timerval
 ; Preserve all registers
 	EXPORT	|__h_sigprof|
+	NAME	__h_sigprof
 |__h_sigprof|
 	STMFD	sp!, {a1, a2, a3, lr}
 	TEQP	pc, #0		; Enter user mode
@@ -663,6 +682,7 @@ itimer_exit
 	B	itimer_exit
 
 	EXPORT	|__h_sigprof_init|
+	NAME	__h_sigprof_init
 |__h_sigprof_init|
 	STMFD	sp!, {a1, a2, lr}
 	ADR	a1, |__h_sigprof|
@@ -670,8 +690,8 @@ itimer_exit
 	SWI	XOS_AddCallBack
 	LDMFD	sp!, {a1, a2, pc} ;  return without restoring PSR
 
-	EXPORT	|__h_sigprof_sema|
 	; Set to one to prevent multiple CallEverys being set up.
+	EXPORT	|__h_sigprof_sema|
 |__h_sigprof_sema|
 	DCD	0
 

@@ -1,10 +1,10 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/sys/wait.h,v $
- * $Date: 2001/09/14 14:01:17 $
- * $Revision: 1.2.2.1 $
- * $State: Exp $
- * $Author: admin $
+ * $Source$
+ * $Date$
+ * $Revision$
+ * $State$
+ * $Author$
  *
  ***************************************************************************/
 
@@ -13,6 +13,10 @@
 #ifndef	__SYS_WAIT_H
 #define	__SYS_WAIT_H 1
 
+#ifndef __UNIXLIB_FEATURES_H
+#include <unixlib/features.h>
+#endif
+
 #ifndef __UNIXLIB_TYPES_H
 #include <unixlib/types.h>
 #endif
@@ -20,9 +24,7 @@
 #define __need_rusage
 #include <sys/resource.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+__BEGIN_DECLS
 
 /* Bits in the third arguent to waitpid.  */
 #define WNOHANG 1 /* Don't block waiting.  */
@@ -90,8 +92,6 @@ extern __pid_t wait3 (int *, int, struct rusage *);
 /* Wait for a child matching pid_t to die and return its usage statistics. */
 extern __pid_t wait4 (__pid_t, int *, int, struct rusage *);
 
-#ifdef __cplusplus
-  }
-#endif
+__END_DECLS
 
 #endif /* sys/wait.h  */

@@ -4,6 +4,8 @@
    ** article in CACM 33-6, pp. 677.
  */
 
+#include "hash.h"
+
 int 
 hashstr (char *s, int maxn, int hashs)
 /* s string to hash */

@@ -1,7 +1,7 @@
 ;----------------------------------------------------------------------------
 ;
-; $Source: /usr/local/cvsroot/unixlib/source/gcccompat/s/_udivdi3,v $
-; $Date: 2000/12/21 15:09:13 $
+; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/gcccompat/_udivdi3.s,v $
+; $Date: 2001/01/29 15:10:19 $
 ; $Revision: 1.2 $
 ; $State: Exp $
 ; $Author: admin $
@@ -16,11 +16,11 @@
 
 	AREA	|C$$code|, CODE, READONLY
 
-	EXPORT |__udivdi3|
-
 	; (a1, a2) / (a3, a4)
    	; result in v2 and v3
    	; remainder in v4 and ip
+	EXPORT |__udivdi3|
+	NAME	__udivdi3
 |__udivdi3|
 	CMP	a1, #0
 	CMPEQ	a2, #0

@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/fcntl.c,v $
- * $Date: 2002/01/12 16:09:28 $
- * $Revision: 1.2.2.2 $
- * $State: Exp $
- * $Author: admin $
+ * $Source$
+ * $Date$
+ * $Revision$
+ * $State$
+ * $Author$
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: fcntl.c,v 1.2.2.2 2002/01/12 16:09:28 admin Exp $";
+static const char rcs_id[] = "$Id$";
 #endif
 
 #include <errno.h>
@@ -17,8 +17,10 @@ static const char rcs_id[] = "$Id: fcntl.c,v 1.2.2.2 2002/01/12 16:09:28 admin E
 #include <stdlib.h>
 #include <stdarg.h>
 #include <unistd.h>
+#include <sys/netdb.h>
 #include <unixlib/unix.h>
 #include <unixlib/fd.h>
+#include <unixlib/dev.h>
 
 int
 fcntl (int fd, int cmd, ...)
@@ -76,11 +78,28 @@ fcntl (int fd, int cmd, ...)
     case F_SETFL:
       {
 	int modify = O_APPEND | O_NONBLOCK | O_ASYNC;
+	int newfflag;
 
 	va_start (ap, cmd);
-        file_desc->fflag =
-          (file_desc->fflag & ~modify) | (va_arg (ap, int) & modify);
-	va_end (ap);
+        newfflag = va_arg (ap, int);
+        va_end (ap);
+
+        if (file_desc->device == DEV_SOCKET)
+          {
+             if ((file_desc->fflag ^ newfflag) & O_NONBLOCK)
+	       {
+		 int arg = (newfflag & O_NONBLOCK) ? 1 : 0;
+		 _sioctl((int)file_desc->handle, FIONBIO, &arg);
+	       }
+ 
+             if ((file_desc->fflag ^ newfflag) & O_ASYNC)
+	       {
+		 int arg = (newfflag & O_ASYNC) ? 1 : 0;
+		 _sioctl((int)file_desc->handle, FIOASYNC, &arg);
+	       }
+          }
+
+        file_desc->fflag = (file_desc->fflag & ~modify) | (newfflag & modify);
       }
       return 0;
 

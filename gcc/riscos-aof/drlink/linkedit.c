@@ -48,7 +48,7 @@ static int editline;
 /*
 ** 'edit_error' lists the edit error message passed to it
 */
-static void edit_error(char *message) {
+static void edit_error(const char *message) {
   char text[MSGBUFLEN];
   strcpy(text, message);
   strcat(text, " at line %d in edit file '%s'");
@@ -102,7 +102,7 @@ static void getsym(void) {
 #define MAXLEN 6
 
 static editcommands find_cmd(void) {
-  typedef struct {char *cmdname; editcommands cmd;} commands;
+  typedef struct {const char *cmdname; editcommands cmd;} commands;
   commands cmdlist [] = {
 /* rename */	   {"rename", EDT_RENAME},
 /* change */	   {"change", EDT_CHANGE},
@@ -110,7 +110,7 @@ static editcommands find_cmd(void) {
 /* reveal */	   {"reveal", EDT_REVEAL},
 /* entry */	   {"entry", EDT_ENTRY}
   };
-  int n;
+  unsigned int n;
   char *p;
   char name[10];
   n = 0;
@@ -251,6 +251,8 @@ static bool parse_command(void) {
     break;
   case EDT_ENTRY:
     new_entry = p;
+  default:
+    break;  
   }
   return TRUE;
 }
@@ -279,7 +281,7 @@ bool scan_editfile(void) {
 ** 'list_badedits' lists edits that were not carried out
 */
 static void list_badedits(editcmd *p) {
-  char *opnames [] = {"", "rename", "change", "hide", "reveal", "entry"};
+  const char *opnames [] = {"", "rename", "change", "hide", "reveal", "entry"};
   while (p!=NIL) {
     if (!p->edtdone) error("    %s '%s' in '%s'", opnames[p->edtoper], p->edtold, p->edtfile);
     p = p->edtnext;

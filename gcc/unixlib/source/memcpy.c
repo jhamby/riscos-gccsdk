@@ -1,18 +1,19 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/c/memcpy,v $
- * $Date: 1997/10/09 19:59:39 $
- * $Revision: 1.6 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/memcpy.c,v $
+ * $Date: 2001/01/29 15:10:18 $
+ * $Revision: 1.2 $
  * $State: Exp $
- * $Author: unixlib $
+ * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: memcpy,v 1.6 1997/10/09 19:59:39 unixlib Exp $";
+static const char rcs_id[] = "$Id: memcpy.c,v 1.2 2001/01/29 15:10:18 admin Exp $";
 #endif
 
 #include <string.h>
+#include <strings.h>
 
 void
 bcopy (const void *src, void *dest, size_t n)

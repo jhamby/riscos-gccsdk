@@ -1,7 +1,7 @@
 ;----------------------------------------------------------------------------
 ;
-; $Source: /usr/local/cvsroot/unixlib/source/math-asm/s/_copysign,v $
-; $Date: 2000/12/21 15:09:13 $
+; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/math-asm/_copysign.s,v $
+; $Date: 2001/01/29 15:10:20 $
 ; $Revision: 1.2 $
 ; $State: Exp $
 ; $Author: admin $
@@ -16,6 +16,7 @@
 	; returns a value with the magnitude of x and with
 	; the sign bit of y.
         EXPORT  copysign
+	NAME    copysign
 copysign
 	TST	a3, #&80000000
 	ORRNE	a1, a1, #&80000000

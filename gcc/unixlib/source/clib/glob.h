@@ -1,23 +1,24 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/glob.h,v $
- * $Date: 2001/09/14 14:01:17 $
- * $Revision: 1.2.2.1 $
- * $State: Exp $
- * $Author: admin $
+ * $Source$
+ * $Date$
+ * $Revision$
+ * $State$
+ * $Author$
  *
  ***************************************************************************/
 
 #ifndef __GLOB_H
 #define __GLOB_H 1
 
+#ifndef __UNIXLIB_FEATURES_H
+#include <unixlib/features.h>
+#endif
+
 #undef __ptr_t
 #define __ptr_t void *
 
-#ifdef __cplusplus
-extern "C"
-{
-#endif
+__BEGIN_DECLS
 
 /* Bits set in the 'flags' argument to `glob'.  */
 #define	GLOB_ERR	(1 << 0)/* Return on read errors.  */
@@ -92,8 +93,6 @@ extern int glob (const char *__pattern, int __flags,
 /* Free storage allocated in 'pglob' by a previous call to glob.  */
 extern void globfree (glob_t *__pglob);
 
-#ifdef __cplusplus
-}
-#endif
+__END_DECLS
 
 #endif

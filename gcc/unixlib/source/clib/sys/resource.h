@@ -1,10 +1,10 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/sys/resource.h,v $
- * $Date: 2001/09/14 14:01:17 $
- * $Revision: 1.2.2.1 $
- * $State: Exp $
- * $Author: admin $
+ * $Source$
+ * $Date$
+ * $Revision$
+ * $State$
+ * $Author$
  *
  ***************************************************************************/
 
@@ -70,9 +70,11 @@ struct rusage
 
 #ifdef __SYS_RESOURCE_H
 
-#ifdef __cplusplus
-extern "C" {
+#ifndef __UNIXLIB_FEATURES_h
+#include <unixlib/features.h>
 #endif
+
+__BEGIN_DECLS
 
 typedef __rlim_t rlim_t;
 
@@ -160,9 +162,7 @@ extern int setpriority (enum __priority_which, int, int);
 /* Alter the priority of the current process by 'increment'.  */
 extern int nice (int __increment);
 
-#ifdef __cplusplus
-	}
-#endif
+__END_DECLS
 
 #endif /* resource.h  */
 #endif /* ! __SYS_RESOURCE_H */

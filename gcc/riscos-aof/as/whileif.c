@@ -5,6 +5,7 @@
 #include "sdk-config.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <ctype.h>
 #ifdef HAVE_STDINT_H
 #include <stdint.h>
@@ -168,6 +169,8 @@ c_while (Lex * label)
   WhileBlock *whileNew;
   Value flag;
 
+  label = label;
+
   inputMark ();
   /* Evaluate expression */
   exprBuild ();
@@ -265,6 +268,8 @@ whileReEval (void)
 void 
 c_wend (Lex * label)
 {
+  label = label;
+
   if (!whileCurrent)
     {
       error (ErrorError, TRUE, "Mismatched WEND");

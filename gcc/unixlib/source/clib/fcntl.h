@@ -1,10 +1,10 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/fcntl.h,v $
- * $Date: 2002/02/07 10:19:30 $
- * $Revision: 1.2.2.2 $
- * $State: Exp $
- * $Author: admin $
+ * $Source$
+ * $Date$
+ * $Revision$
+ * $State$
+ * $Author$
  *
  *
  ***************************************************************************/
@@ -14,6 +14,10 @@
 #ifndef __FCNTL_H
 #define __FCNTL_H
 
+#ifndef __UNIXLIB_FEATURES_H
+#include <unixlib/features.h>
+#endif
+
 #ifndef __UNIXLIB_TYPES_H
 #include <unixlib/types.h>
 #endif
@@ -22,10 +26,7 @@
 #include <sys/stat.h>
 #endif
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
+__BEGIN_DECLS
 
 /* File access modes for open() and fcntl()  */
 
@@ -210,9 +211,6 @@ extern int creat (const char *file, __mode_t mode);
 extern int lockf (int fd, int cmd, __off_t len);
 #endif
 
-
-#ifdef __cplusplus
-	}
-#endif
+__END_DECLS
 
 #endif

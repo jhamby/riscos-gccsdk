@@ -86,7 +86,7 @@ typedef struct arearef {		/* Area's 'referenced area' list entry */
 */
 typedef struct arealist {
   int arhash;				/* Area name's hash value */
-  char *arname;				/* Pointer to area name in loaded OBJ_STRT chunk */
+  const char *arname;			/* Pointer to area name in loaded OBJ_STRT chunk */
   struct arealist *arbase;		/* Pointer to first area with same name */
   struct arealist *arlast;		/* Pointer to last area with same name or nil */
   struct filelist *arfileptr;		/* Pointer to area's file's file list entry */

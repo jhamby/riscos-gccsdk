@@ -1,10 +1,10 @@
 ;----------------------------------------------------------------------------
 ;
-; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/_vfork.s,v $
-; $Date: 2001/09/11 13:05:55 $
-; $Revision: 1.2.2.2 $
-; $State: Exp $
-; $Author: admin $
+; $Source$
+; $Date$
+; $Revision$
+; $State$
+; $Author$
 ;
 ;----------------------------------------------------------------------------
 
@@ -21,13 +21,10 @@
 	IMPORT	longjmp
 
 	EXPORT	vfork
-
 	NAME	vfork
 vfork
 	STMFD	sp!, {v1, lr}
-	MOV	v1, sp
 	BL	|__vfork|
-	MOV	sp, v1
 	; If zero was returned, we will return -1
 	CMP	a1, #0
 	MVNEQ	a1, #0
@@ -75,4 +72,3 @@ vfork
 	%	4
 
 	END
-

@@ -356,7 +356,7 @@ m_flt (WORD cc)
   putIns (ir);
 }
 
-void 
+static void 
 flagtransfer (WORD ir)
 {
   WORD op;
@@ -389,7 +389,7 @@ m_rfc (WORD cc)
   flagtransfer (M_RFC | cc);
 }
 
-void 
+static void 
 comparelow (WORD ir)		/* No precision and no rounding allowed ? */
 {
   ir |= LHS_OP (getFpuReg ());

@@ -1,8 +1,8 @@
 ;----------------------------------------------------------------------------
 ;
-; $Source: /usr/local/cvsroot/unixlib/source/sys/s/_mem,v $
-; $Date: 2000/12/29 10:52:31 $
-; $Revision: 1.9 $
+; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/_mem.s,v $
+; $Date: 2001/01/29 15:10:21 $
+; $Revision: 1.3 $
 ; $State: Exp $
 ; $Author: admin $
 ;
@@ -15,7 +15,7 @@
 	EXPORT	|_memset|
 	EXPORT	|__memset|
 	EXPORT	|memset|
-
+	NAME	memset
 |memset|
 |__memset|
 	MOV	ip, a1
@@ -68,6 +68,7 @@
 
 	EXPORT	|_memcpy|
 	EXPORT	|_memmove|
+	NAME	_memcpy
 |_memcpy|
 |_memmove|
 	CMP	a1,a2
@@ -84,6 +85,7 @@
 	EXPORT	|memcpy|
 	EXPORT	|__memmove|
 	EXPORT	|memmove|
+	NAME	memcpy
 |memcpy|
 |__memcpy|
 |__memmove|

@@ -1,26 +1,25 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/sys/uio.h,v $
- * $Date: 2001/09/14 14:01:17 $
- * $Revision: 1.2.2.1 $
- * $State: Exp $
- * $Author: admin $
+ * $Source$
+ * $Date$
+ * $Revision$
+ * $State$
+ * $Author$
  *
  ***************************************************************************/
 
 #ifndef __SYS_UIO_H
 #define __SYS_UIO_H 1
 
+#ifndef __UNIXLIB_FEATURES_H
+#include <unixlib/features.h>
+#endif
+
 #ifndef __UNIXLIB_TYPES_H
 #include <unixlib/types.h>
 #endif
 
-#define __need_size_t
-#include <stdarg.h>
-
-#ifdef __cplusplus
-extern "C" {
-#endif
+__BEGIN_DECLS
 
 /* Structure describing a section of memory.  */
 
@@ -42,8 +41,6 @@ extern __ssize_t readv (int __fd, const struct iovec * __vector, int __count);
    The data is written in the order specified. */
 extern __ssize_t writev (int __fd, const struct iovec * __vector, int __count);
 
-#ifdef __cplusplus
-}
-#endif
+__END_DECLS
 
 #endif

@@ -1,7 +1,7 @@
 ;----------------------------------------------------------------------------
 ;
-; $Source: /usr/local/cvsroot/unixlib/source/math-asm/s/_fabs,v $
-; $Date: 2000/12/21 15:09:13 $
+; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/math-asm/_fabs.s,v $
+; $Date: 2001/01/29 15:10:20 $
 ; $Revision: 1.2 $
 ; $State: Exp $
 ; $Author: admin $
@@ -15,6 +15,7 @@
 	; double fabs (double x)
 	; returns the absolute value of x
 	EXPORT  fabs
+	NAME	fabs
 fabs
 	BIC	a1, a1, #&80000000
 	STMFD	sp!, {a1, a2}

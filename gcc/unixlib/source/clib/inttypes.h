@@ -1,15 +1,19 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/inttypes.h,v $
- * $Date: 2002/02/07 10:19:30 $
- * $Revision: 1.2.2.2 $
- * $State: Exp $
- * $Author: admin $
+ * $Source$
+ * $Date$
+ * $Revision$
+ * $State$
+ * $Author$
  *
  ***************************************************************************/
 
 #ifndef __INTTYPES_H
 #define __INTTYPES_H 1
+
+#ifndef __UNIXLIB_FEATURES_H
+#include <unixlib/features.h.
+#endif
 
 /* Get the type definitions.  */
 #include <stdint.h>
@@ -234,9 +238,7 @@
 
 #endif	/* C++ && format macros */
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+__BEGIN_DECLS
 
 /* We have to define the `uintmax_t' type using `lldiv_t'.  */
 __extension__
@@ -264,8 +266,6 @@ extern uintmax_t wcstoumax (const wchar_t *__nptr,
 			    wchar_t **__endptr, int __base);
 #endif
 
-#ifdef __cplusplus
-}
-#endif
+__END_DECLS
 
 #endif

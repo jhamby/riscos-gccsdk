@@ -1,8 +1,8 @@
 ;----------------------------------------------------------------------------
 ;
-; $Source: /usr/local/cvsroot/unixlib/source/netlib/s/htons,v $
-; $Date: 2000/12/21 15:09:13 $
-; $Revision: 1.5 $
+; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/netlib/htons.s,v $
+; $Date: 2001/01/29 15:10:20 $
+; $Revision: 1.2 $
 ; $State: Exp $
 ; $Author: admin $
 ;
@@ -13,6 +13,7 @@
 	AREA	|C$$code|,CODE,READONLY
 
 	EXPORT	htons
+	NAME	htons
 htons
 	MOV	r2, #255
 	AND	r1, r2, r0, LSR #8

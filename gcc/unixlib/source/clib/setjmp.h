@@ -1,10 +1,10 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/setjmp.h,v $
- * $Date: 2001/09/14 14:01:17 $
- * $Revision: 1.2.2.1 $
- * $State: Exp $
- * $Author: admin $
+ * $Source$
+ * $Date$
+ * $Revision$
+ * $State$
+ * $Author$
  *
  ***************************************************************************/
 
@@ -13,18 +13,15 @@
 #ifndef __SETJMP_H
 #define __SETJMP_H
 
+#ifndef __UNIXLIB_FEATURES_H
+#include <unixlib/features.h>
+#endif
+
 #ifndef __UNIXLIB_TYPES_H
 #include <unixlib/types.h>
 #endif
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-#ifndef __GNUC__
-#undef  __attribute__
-#define __attribute__(x) /* Ignore */
-#endif
+__BEGIN_DECLS
 
 #ifdef __JMP_BUF_SIZE
 #if __JMP_BUF_SIZE < 23
@@ -81,8 +78,6 @@ extern void __sigsetjmp_helper (sigjmp_buf __state, int __savesigs);
 extern void __siglongjmp_helper (const sigjmp_buf __state, int __savesigs);
 #endif
 
-#ifdef __cplusplus
-	}
-#endif
+__END_DECLS
 
 #endif

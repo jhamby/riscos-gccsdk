@@ -1,10 +1,10 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/termios.h,v $
- * $Date: 2001/09/14 14:01:17 $
- * $Revision: 1.2.2.2 $
- * $State: Exp $
- * $Author: admin $
+ * $Source$
+ * $Date$
+ * $Revision$
+ * $State$
+ * $Author$
  *
  ***************************************************************************/
 
@@ -13,13 +13,15 @@
 #ifndef __TERMIOS_H
 #define __TERMIOS_H 1
 
+#ifndef __UNIXLIB_FEATURES_H
+#include <unixlib/features.h>
+#endif
+
 #ifndef __UNIXLIB_TYPES_H
 #include <unixlib/types.h>
 #endif
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+__BEGIN_DECLS
 
 /* Get the system-dependent definitions of `struct termios', `tcflag_t',
    `cc_t', `speed_t', and all the macros specifying the flag bits.  */
@@ -103,14 +105,14 @@ typedef __cc_t cc_t;
 #define	MDMBUF		(1 << 20)	/* Carrier flow control of output.  */
 
 /* Local modes.  */
-#ifndef _POSIX_SOURCE
+#ifdef __USE_MISC
 #define ECHOKE          0x00000001      /* visual erase for line kill */
 #endif  /*_POSIX_SOURCE */
 #define ECHOE           0x00000002      /* visually erase chars */
 #define ECHOK           0x00000004      /* echo NL after line kill */
 #define ECHO            0x00000008      /* enable echoing */
 #define ECHONL          0x00000010      /* echo NL even if ECHO is off */
-#ifndef _POSIX_SOURCE
+#ifdef __USE_MISC
 #define ECHOPRT         0x00000020      /* visual erase mode for hardcopy */
 #define ECHOCTL         0x00000040      /* echo control chars as ^(Char) */
 #endif  /*_POSIX_SOURCE */
@@ -304,9 +306,6 @@ extern int tcflush (int __fd, int __queue_selector);
    Values for ACTION (TC[IO]{OFF,ON}) are in <termbits.h>.  */
 extern int tcflow (int __fd, int __action);
 
-
-#ifdef __cplusplus
-}
-#endif
+__END_DECLS
 
 #endif

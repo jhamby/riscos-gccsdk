@@ -7,8 +7,9 @@
 		IMPORT	|__errno|
 
 OS_Word
-		STMFD	sp!,{r0-r1,lr}
-		SWI	&07
-		LDMFD	sp!,{r0-r1,pc}^
+		STMFD	sp!,{lr}
+		SWI	&20007
+		MOVVC	r0, #0
+		LDMFD	sp!,{pc}^
 
 		END

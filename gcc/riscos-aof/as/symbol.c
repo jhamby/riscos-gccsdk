@@ -33,7 +33,7 @@ static Symbol *symbolTabel[SYMBOL_TABELSIZE];
 extern int pedantic;		/* main.c */
 
 static Symbol *
-symbolNew (int len, char *str)
+symbolNew (int len, const char *str)
 {
   Symbol *result;
   if ((result = (Symbol *) malloc (sizeof (Symbol) + len)) != 0)

@@ -1,10 +1,10 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/utime.h,v $
- * $Date: 2001/09/14 14:01:17 $
- * $Revision: 1.2.2.1 $
- * $State: Exp $
- * $Author: admin $
+ * $Source$
+ * $Date$
+ * $Revision$
+ * $State$
+ * $Author$
  *
  ***************************************************************************/
 
@@ -13,6 +13,10 @@
 #ifndef	__UTIME_H
 #define	__UTIME_H  1
 
+#ifndef __UNIXLIB_FEATURES_H
+#include <unixlib/features.h>
+#endif
+
 #ifndef __UNIXLIB_TYPES_H
 #include <unixlib/types.h>
 #endif
@@ -20,9 +24,7 @@
 #define __need_time_t
 #include <time.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+__BEGIN_DECLS
 
 /* Structure describing file times.  */
 struct utimbuf
@@ -35,8 +37,6 @@ struct utimbuf
    If TIMES is NULL, set them to the current time.  */
 extern int utime (const char *__file, const struct utimbuf *__times);
 
-#ifdef __cplusplus
-}
-#endif
+__END_DECLS
 
 #endif

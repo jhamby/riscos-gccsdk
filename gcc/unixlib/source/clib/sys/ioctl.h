@@ -1,10 +1,10 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/sys/ioctl.h,v $
- * $Date: 2001/09/11 16:53:58 $
- * $Revision: 1.2.2.2 $
- * $State: Exp $
- * $Author: admin $
+ * $Source$
+ * $Date$
+ * $Revision$
+ * $State$
+ * $Author$
  *
  ***************************************************************************/
 
@@ -49,6 +49,12 @@
 
 #ifndef __SYS_IOCTL_H
 #define __SYS_IOCTL_H
+
+#ifndef __UNIXLIB_FEATURES_H
+#include <unixlib/features.h>
+#endif
+
+__BEGIN_DECLS
 
 /* These macros are also defined in some ioctls.h files (with numerically
    identical values), but this serves to shut up cpp's complaining. */
@@ -422,13 +428,6 @@ struct sgttyb
 #define NTTYDISC        2
 
 
-
-
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /* Union for generic ioctl() argument handling.  */
 union ioctl_arg
 {
@@ -444,8 +443,6 @@ union ioctl_arg
    -1 usually indicates an error.  */
 extern int ioctl (int __fd, int __request, void *arg);
 
-#ifdef __cplusplus
-}
-#endif
+__END_DECLS
 
 #endif

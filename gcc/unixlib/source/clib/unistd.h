@@ -1,10 +1,10 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/unistd.h,v $
- * $Date: 2002/01/31 16:19:53 $
- * $Revision: 1.2.2.5 $
- * $State: Exp $
- * $Author: admin $
+ * $Source$
+ * $Date$
+ * $Revision$
+ * $State$
+ * $Author$
  *
  ***************************************************************************/
 
@@ -13,18 +13,15 @@
 #ifndef __UNISTD_H
 #define __UNISTD_H
 
+#ifndef __UNIXLIB_FEATURES_H
+#include <unixlib/features.h>
+#endif
+
 #ifndef __UNIXLIB_TYPES_H
 #include <unixlib/types.h>
 #endif
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-#ifndef __GNUC__
-#undef  __attribute__
-#define __attribute__(x) /* Ignore */
-#endif
+__BEGIN_DECLS
 
 /* These may be used to determine what facilities are present at compile time.
    Their values can be obtained at run time from sysconf.  */
@@ -192,10 +189,16 @@ extern unsigned int alarm (unsigned int __seconds);
    signal afterwards is undefined.  There is no return value to indicate
    error, but if `sleep' returns '__seconds', it probably didn't work.  */
 extern unsigned int sleep (unsigned int __seconds);
- 
+
+/* Set an alarm to go off (generating a SIGALRM signal) in VALUE
+   microseconds.  If INTERVAL is nonzero, when the alarm goes off, the
+   timer is reset to go off every INTERVAL microseconds thereafter.
+   Returns the number of microseconds remaining before the alarm.  */
+extern __useconds_t ualarm(__useconds_t __useconds, __useconds_t __interval);
+
 /* Make the process sleep for '__usec' microseconds, or until a signal
    arrives that is not blocked or ignored.  */
-extern unsigned int usleep (unsigned int __usec);
+extern int usleep (__useconds_t __usec);
 
 /* Suspend the process until a signal arrives.  */
 extern int pause (void);
@@ -227,10 +230,11 @@ extern char **environ;
 
 /* Replace the current process, executing path with args argv and
    environment envp.  */
-extern int execve (const char *__path, char **__argv, char **__envp);
+extern int execve (const char *__path, char * const __argv[],
+		   char *const __envp[]);
 
 /* Execute PATH with arguments ARGV and environment from `environ'.  */
-extern int execv (const char *__path, char **__argv);
+extern int execv (const char *__path, char *const __argv[]);
 
 /* Execute PATH with all arguments after PATH until a NULL pointer,
    and the argument after that for environment.  */
@@ -242,7 +246,7 @@ extern int execl (const char *__path, const char *__arg, ...);
 
 /* Execute FILE, searching in the `PATH' environment variable if it contains
    no slashes, with arguments ARGV and environment from `environ'.  */
-extern int execvp (const char *__file, char **__argv);
+extern int execvp (const char *__file, char *const __argv[]);
 
 /* Execute FILE, searching in the `PATH' environment variable if
    it contains no slashes, with all arguments after FILE until a
@@ -460,7 +464,6 @@ extern size_t getpagesize (void);
 extern int getdtablesize (void);
 
 #if 0
-
 /* Return the current machine's Internet number.  */
 extern long int gethostid (void);
 
@@ -480,10 +483,6 @@ extern int vhangup (void);
    turn accounting off.  This call is restricted to the super-user.  */
 extern int acct (const char *__name);
 
-/* Make PATH be the root directory (the starting point for absolute paths).
-   This call is restricted to the super-user.  */
-extern int chroot (const char *__path);
-
 /* Make the block special device PATH available to the system for swapping.
    This call is restricted to the super-user.  */
 extern int swapon (const char *__path);
@@ -496,12 +495,15 @@ extern int reboot (int __howto);
 extern char *getusershell (void);
 extern void endusershell (void); /* Discard cached info.  */
 extern void setusershell (void); /* Rewind and re-read the file.  */
+#endif
 
+/* Make PATH be the root directory (the starting point for absolute paths).
+   This call is restricted to the super-user.  */
+extern int chroot (const char *__path);
 
 /* Prompt with PROMPT and read a string from the terminal without echoing.
    Uses /dev/tty if possible; otherwise stderr and stdin.  */
 extern char *getpass (const char *__prompt);
-#endif
 
 /* POSIX 2 extensions.  */
 
@@ -515,11 +517,17 @@ enum
 /* Get the value of the string-valued system variable NAME.  */
 extern size_t confstr (int __name, char *__buf, size_t __len);
 
+#ifdef __USE_XOPEN
+/* Swab pairs bytes in the first N bytes of the area pointed to by
+   FROM and copy the result to TO.  The value of TO must not be in the
+   range [FROM - N + 1, FROM - 1].  If N is odd the first byte in FROM
+   is without partner.  */
+extern void swab (const void * __from, void * __to, ssize_t __n);
+#endif
+
 #define __need_getopt
 #include <getopt.h>
 
-#ifdef __cplusplus
-	}
-#endif
+__END_DECLS
 
 #endif

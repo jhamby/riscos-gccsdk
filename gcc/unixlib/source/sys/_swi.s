@@ -1,8 +1,8 @@
 ;----------------------------------------------------------------------------
 ;
-; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/Attic/_swi.s,v $
-; $Date: 2001/08/07 09:08:51 $
-; $Revision: 1.1.2.2 $
+; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/_swi.s,v $
+; $Date: 2002/02/14 15:56:37 $
+; $Revision: 1.2 $
 ; $State: Exp $
 ; $Author: admin $
 ;
@@ -31,9 +31,6 @@
 ;
 ; Use:		Calls a SWI or assembler routine.
 
-	EXPORT	|_swi|
-	EXPORT	|_swix|
-
 	; --- How this works ---
 	;
 	; The old version of this code used to build some neat code
@@ -55,7 +52,8 @@
 	; --- SWI entries ---
 
 
-
+	EXPORT  |_swi|
+	NAME    _swi
 |_swi|
 	STMFD	sp!, {r2, r3}		;Stack all variable args
 	STMFD	sp!, {r4 - r12, r14}	;Save other registers
@@ -64,6 +62,8 @@
 	LDR	r0, |_swihack|		;Point to SWI calling routine
 	B	|_swi_main|		;Skip onwards to main code
 
+	EXPORT  |_swix|
+	NAME    _swix
 |_swix|
 	STMFD	sp!,{r2,r3}		;Stack all variable args
 	STMFD	sp!,{r4-r12,r14}	;Save other registers
@@ -328,4 +328,3 @@ swibl00	MOVS	r11,r11,LSL #2		;Shift into C and N flags
 	LDMFD	r13!,{pc}		;And return with SWI's flags
 
 	END
-

@@ -1,8 +1,8 @@
 ;----------------------------------------------------------------------------
 ;
-; $Source: /usr/local/cvsroot/unixlib/source/netlib/s/_recvfrom,v $
-; $Date: 2000/12/21 15:09:13 $
-; $Revision: 1.6 $
+; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/netlib/_recvfrom.s,v $
+; $Date: 2001/01/29 15:10:20 $
+; $Revision: 1.2 $
 ; $State: Exp $
 ; $Author: admin $
 ;
@@ -15,6 +15,7 @@
 	IMPORT	|__net_error|
 
 	EXPORT	|_recvfrom|
+	NAME	_recvfrom
 |_recvfrom|
 	STMFD	sp!, {r4-r5, lr}
 	LDR	r4, [sp, #12]

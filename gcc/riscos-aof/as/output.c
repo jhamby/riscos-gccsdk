@@ -26,7 +26,7 @@
 #include <ctype.h>
 #include <errno.h>
 #endif
-#ifdef __riscos
+#ifdef __riscos__
 #include "depend.h"
 #endif
 
@@ -37,7 +37,7 @@ extern int dde;
 #define FIX(n) ((3+(int)n)&~3)
 #define EXTRA(n) (FIX(n)-n)
 
-char *idfn_text = MESSAGE;
+const char *idfn_text = MESSAGE;
 
 #define MAXNAME 256
 static char outname[MAXNAME + 1];
@@ -162,7 +162,7 @@ outputRemove (void)
     remove (outname);
 }
 
-int
+static int
 countAreas (Symbol * ap)
 {
   int i = 0;
@@ -308,7 +308,7 @@ outputAof (void)
     {
       if (!(ap->area.info->type & AREA_UDATA))
 	{
-	  if (ourword (FIX (ap->value.ValueInt.i)) !=
+	  if ((size_t)ourword (FIX (ap->value.ValueInt.i)) !=
 	      fwrite ((void *) ap->area.info->image, sizeof (char),
 		      ourword (FIX (ap->value.ValueInt.i)), objfile))
 	    {

@@ -1,8 +1,8 @@
 ;----------------------------------------------------------------------------
 ;
-; $Source: /usr/local/cvsroot/unixlib/source/sys/s/_udivsi3,v $
-; $Date: 2000/12/21 15:09:13 $
-; $Revision: 1.3 $
+; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/_udivsi3.s,v $
+; $Date: 2001/01/29 15:10:21 $
+; $Revision: 1.2 $
 ; $State: Exp $
 ; $Author: admin $
 ;
@@ -15,9 +15,10 @@
 	AREA	|C$$code|, CODE, READONLY
 
 	IMPORT	|_kernel_udiv|
+
 	EXPORT	|__udivsi3|
 	EXPORT	|__udivmodsi4|
-
+	NAME	__udivmodsi4
 |__udivsi3|
 |__udivmodsi4|
 	MOV	a3, a1

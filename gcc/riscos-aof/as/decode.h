@@ -9,7 +9,7 @@
 
 #include "symbol.h"
 
-BOOL notinput (char *str);
+BOOL notinput (const char *str);
 int decode (Lex * label);
 
 #endif

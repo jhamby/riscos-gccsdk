@@ -28,6 +28,8 @@ TargetCPU_t;
 
 extern TargetCPU_t targetCPU;
 
+extern void as_target (char *target);	/* only called from main() */
+
 BOOL cpuWarn (TargetCPU_t);
 
 #endif

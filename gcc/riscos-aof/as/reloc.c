@@ -185,7 +185,7 @@ relocAdd (Reloc * new)
 }
 
 
-int
+static int
 relocLate2Reloc (Reloc * r, Value * value)
 {
   int size = 0;
@@ -214,7 +214,7 @@ relocLate2Reloc (Reloc * r, Value * value)
 }
 
 
-int
+static int
 relocEval (Reloc * r, Value * value, Symbol * area)
 {
   int norelocs = 0;
@@ -319,8 +319,7 @@ relocEval (Reloc * r, Value * value, Symbol * area)
 
 
 static void
-relocWrite (Symbol * area, Reloc * r, Value * value,
-	    unsigned char *image)
+relocWrite (Reloc * r, Value * value, unsigned char *image)
 {
   int offset = r->offset;
   WORD w, w1;
@@ -436,7 +435,7 @@ relocWrite (Symbol * area, Reloc * r, Value * value,
 	case RelocImmN:	/* ? */
 	case RelocFloat:
 	  {
-	    int i;
+	    unsigned int i;
 	    union
 	      {
 		double d;
@@ -501,7 +500,7 @@ relocFix (Symbol * area)
 	  relocs->Tag = RelocNone;
 	}
       if (relocs->Tag != RelocNone)	/* We now have a Value */
-	relocWrite (area, relocs, &value, image);
+	relocWrite (relocs, &value, image);
       relocs = relocs->more;
     }
   return norelocs;

@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/stdio/tmpfile.c,v $
- * $Date: 2002/01/31 15:53:16 $
- * $Revision: 1.2.2.3 $
- * $State: Exp $
- * $Author: admin $
+ * $Source$
+ * $Date$
+ * $Revision$
+ * $State$
+ * $Author$
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: tmpfile.c,v 1.2.2.3 2002/01/31 15:53:16 admin Exp $";
+static const char rcs_id[] = "$Id$";
 #endif
 
 #include <string.h>
@@ -38,7 +38,7 @@ generate_temporary_filename (char *buf, const char *dir,
 {
   char *s = buf;
   unsigned long idx;
-  const int maxidx = (sizeof (letters) - 1) * (sizeof (letters) - 1)
+  const unsigned int maxidx = (sizeof (letters) - 1) * (sizeof (letters) - 1)
     * (sizeof (letters) - 1) * (sizeof (letters) - 1)
     * (sizeof (letters) - 1) * (sizeof (letters) - 1);
   int loop = 0;
@@ -184,7 +184,7 @@ tempnam (const char *dir, const char *prefix)
     d = NULL;
 
   /* 2. Use the 'dir' argument, if it is not a null pointer.  */
-  if (d == NULL && dir != NULL && !__isdir (dir))
+  if (d == NULL && dir != NULL && __isdir (dir))
     d = dir;
 
   /* 3. The value of the 'P_tmpdir' macro.  */

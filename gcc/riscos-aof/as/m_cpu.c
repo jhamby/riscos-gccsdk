@@ -10,6 +10,7 @@
 #include <inttypes.h>
 #endif
 
+#include "main.h"
 #include "mnemonics.h"
 #include "error.h"
 #include "option.h"

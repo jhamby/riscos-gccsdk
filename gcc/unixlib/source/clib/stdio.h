@@ -1,10 +1,10 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/stdio.h,v $
- * $Date: 2002/01/15 13:21:19 $
- * $Revision: 1.2.2.5 $
- * $State: Exp $
- * $Author: admin $
+ * $Source$
+ * $Date$
+ * $Revision$
+ * $State$
+ * $Author$
  *
  ***************************************************************************/
 
@@ -32,9 +32,7 @@ typedef struct __iobuf FILE;
 
 typedef char *__va_list;
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+__BEGIN_DECLS
 
 typedef __off_t fpos_t;
 
@@ -354,7 +352,7 @@ extern void setlinebuf (FILE *__stream);
 
 extern int sys_nerr;
 /* This is also defined in <errno.h> */
-extern char *sys_errlist[];
+extern const char *sys_errlist[];
 
 /* POSIX enhancements.  */
 
@@ -393,9 +391,7 @@ extern __ssize_t getline (char **__lineptr, size_t *__n, FILE *__stream);
 extern __ssize_t getdelim (char **__lineptr, size_t *__n,
        		 	   int __delimiter, FILE *__stream);
 
-#ifdef __cplusplus
-	}
-#endif
+__END_DECLS
 
 #endif /* __STDIO_H */
 #endif /* ! __STDIO_H */

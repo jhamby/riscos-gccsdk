@@ -1,8 +1,8 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/unixlib/Attic/tty.h,v $
- * $Date: 2001/09/14 14:01:17 $
- * $Revision: 1.1.2.1 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/unixlib/tty.h,v $
+ * $Date: 2002/02/14 15:56:35 $
+ * $Revision: 1.2 $
  * $State: Exp $
  * $Author: admin $
  *
@@ -10,6 +10,10 @@
 
 #ifndef __UNIXLIB_TTY_H
 #define __UNIXLIB_TTY_H
+
+#ifndef __UNIXLIB_FEATURES_H
+#include <unixlib/features.h>
+#endif
 
 #ifndef __TERMIOS_H
 #include <termios.h>
@@ -23,9 +27,7 @@
 #include <sys/param.h>
 #endif
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+__BEGIN_DECLS
 
 #define MAXTTY	2
 
@@ -59,8 +61,6 @@ struct tty
    we would need to have.  Lazy, probably, but it works okay and only costs
    MAXTTY * MAX_INPUT * 2 (= 1024 bytes in current implementation).  */
 
-#ifdef __cplusplus
-	}
-#endif
+__END_DECLS
 
 #endif

@@ -38,7 +38,7 @@ extern void alloc_filebuffer(void);
 extern void resize_filebuffer(void);
 extern bool get_files(char *);
 extern int find_filesize(char *);
-extern bool read_chunk(char *, int, int, void *);
+extern bool read_chunk(const char *, int, int, void *);
 extern bool cache_files(void);
 extern void addto_debuglist(char *);
 extern void check_debuglist(void);
@@ -52,9 +52,9 @@ extern filelist *read_member(libentry *, filelist *, symbol *);
 extern bool extract_member(chunkindex *);
 extern void tidy_files(void);
 extern void open_image(void);
-extern void write_image(void *, int);
-extern void write_string(char *);
-extern void write_zeroes(int);
+extern void write_image(void *, unsigned int);
+extern void write_string(const char *);
+extern void write_zeroes(unsigned int);
 extern void close_image(void);
 extern void reset_image(unsigned int);
 extern void flush_image(void);
@@ -82,10 +82,9 @@ extern bool discard_libraries(void);
 /* -- In 'Messages' -- */
 
 extern void announce(void);
-extern void error(char *, ...);
+extern void error(const char *, ...);
 extern bool got_errors(void);
 #ifdef TARGET_RISCOS
-extern void start_throwback(void);
 extern void end_throwback(void);
 #endif
 
@@ -116,7 +115,7 @@ extern void print_mapfile(void);
 /* -- In 'Symbols' -- */
 
 extern int stricmp(const char *, const char*);
-extern symbol *make_symbol(char *, unsigned int);
+extern symbol *make_symbol(const char *, unsigned int);
 extern void create_linksyms(void);
 extern symbol *create_externref(symtentry *);
 extern void init_symbols(void);
@@ -126,8 +125,8 @@ extern void resolve_refs(filelist *);
 extern bool resolve(void);
 extern void relocate_symbols(void);
 extern void define_symbol(symbol *, unsigned int);
-extern int hash(char *);
-extern char *find_areasymbol(arealist *);
+extern int hash(const char *);
+extern const char *find_areasymbol(arealist *);
 extern symtentry *find_nonstrong(symtentry *);
 extern symbol *search_common(symbol *);
 extern symbol *find_common(char *);
@@ -162,6 +161,6 @@ extern bool build_debugtables(void);
 
 /* -- In 'C++names' -- */
 
-extern char *decode_name(char *);
+extern char *decode_name(const char *);
 
 #endif

@@ -1,7 +1,7 @@
 #ifndef __HiAsnError__
 #define __HiAsnError__
 
-#include <iostream.h>
+#include <iostream>
 #include "BString.h"
 
 class BError
@@ -34,10 +34,11 @@ public:
 	~BError();
 
 	friend ostream &operator<<(ostream &out, BError *a_err);
+
+	int m_err;
 protected:
 	BString m_file;
 	int m_line;
-	int m_err;
 };
 
 extern BError theError;

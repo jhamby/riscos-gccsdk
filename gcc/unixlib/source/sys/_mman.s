@@ -1,8 +1,8 @@
 ;----------------------------------------------------------------------------
 ;
-; $Source: /usr/local/cvsroot/unixlib/source/sys/s/_mman,v $
-; $Date: 2000/12/21 15:09:13 $
-; $Revision: 1.3 $
+; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/_mman.s,v $
+; $Date: 2001/01/29 15:10:21 $
+; $Revision: 1.2 $
 ; $State: Exp $
 ; $Author: admin $
 ;
@@ -20,6 +20,7 @@
 	; do not overlap, so we don't have to worry whether to copy up
 	; or copy down.
 	EXPORT	|__mmap_page_copy|
+	NAME	__mmap_page_copy
 |__mmap_page_copy|
 	STMFD	sp!,{v1-v6,lr}
 |__mmap_page_copy_l1|

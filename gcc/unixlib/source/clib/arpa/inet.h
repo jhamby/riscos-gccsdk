@@ -1,10 +1,10 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/clib/arpa/h/inet,v $
- * $Date: 1997/10/09 19:59:45 $
- * $Revision: 1.4 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/arpa/inet.h,v $
+ * $Date: 2001/01/29 15:10:19 $
+ * $Revision: 1.2 $
  * $State: Exp $
- * $Author: unixlib $
+ * $Author: admin $
  *
  ***************************************************************************/
 
@@ -32,6 +32,10 @@
 #ifndef __ARPA_INET_H
 #define __ARPA_INET_H
 
+#ifndef __UNIXLIB_FEATURES_H
+#include <unixlib/features.h>
+#endif
+
 /* Freenet programmers interface - arpa/inet.h - edited by andy 23/5/95 */
 
 #ifndef __NETINET_IN_H
@@ -46,9 +50,7 @@
 #include <stddef.h>
 #endif
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+__BEGIN_DECLS
 
 /*
  * Check whether "cp" is a valid ascii representation
@@ -110,8 +112,6 @@ extern int inet_pton (int af, const char *src, void *dst);
  */
 extern const char *inet_ntop (int af, const void *src, char *dst, size_t s);
 
-#ifdef __cplusplus
-}
-#endif
+__END_DECLS
 
 #endif

@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/dev.c,v $
- * $Date: 2002/01/12 16:15:31 $
- * $Revision: 1.2.2.4 $
- * $State: Exp $
- * $Author: admin $
+ * $Source$
+ * $Date$
+ * $Revision$
+ * $State$
+ * $Author$
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: dev.c,v 1.2.2.4 2002/01/12 16:15:31 admin Exp $";
+static const char rcs_id[] = "$Id$";
 #endif
 
 /* #define DEBUG */
@@ -120,7 +120,7 @@ __fsopen (struct __unixlib_fd *file_desc, const char *filename, int mode)
 
   end_of_filename = __riscosify (filename,
 				 fflag & (O_CREAT | O_WRONLY | O_RDWR),
-				 __riscosify_control, file,
+				 __get_riscosify_control (), file,
 				 sizeof (file) - 2, &sftype);
   if (end_of_filename == NULL)
     return (void *) __set_errno (ENAMETOOLONG);
@@ -138,7 +138,7 @@ __fsopen (struct __unixlib_fd *file_desc, const char *filename, int mode)
 
       /* Check for permission to access the file in the mode we
 	 requested.  */
-      if (regs[0] == 2 || regs[0] == 3)
+      if (regs[0] == 2 || (! __feature_imagefs_is_file && regs[0] == 3))
 	{
 	  /* Directory or image file.  Set errno if the user
 	     specified write access.  */
@@ -162,9 +162,51 @@ __fsopen (struct __unixlib_fd *file_desc, const char *filename, int mode)
     }
   else
     {
-      /* If no file exists and O_CREAT was not specified, return ENOENT.  */
-      if (!(fflag & O_CREAT))
-	return (void *) __set_errno (ENOENT);
+      /* We try to do our best to get at the filing system name
+         by canonicalising the filename if possible, otherwise checking
+         for pipe: anyway.
+         NOTE: This is an ugly hack to make opening non-existent files
+	 for reading on PipeFS work.  We should handle PipeFS though
+         a proper device ioctl.  */
+      char *temp;
+      regs[0] = 37;
+      regs[1] = (int) filename;
+      regs[2] = 0;
+      regs[3] = 0;
+      regs[4] = 0;
+      regs[5] = 0;
+      __os_swi (OS_FSControl, regs);
+      temp = malloc (1 - regs[5]);
+      if (temp)
+	{
+	  regs[0] = 37;
+	  regs[1] = (int) filename;
+	  regs[2] = (int) temp;
+	  regs[3] = 0;
+	  regs[4] = 0;
+	  regs[5] = 1 - regs[5];
+	  __os_swi (OS_FSControl, regs);
+	} else
+	  temp = (char *) filename;
+      
+      if (! (strlen (temp) > 5
+	     && tolower (temp[0]) == 'p'
+	     && tolower (temp[1]) == 'i'
+	     && tolower (temp[2]) == 'p'
+	     && tolower (temp[3]) == 'e'
+	     && temp[4] == ':'))
+        {
+          /* If no file exists and O_CREAT was not specified,
+	     return ENOENT.  */
+          if (!(fflag & O_CREAT))
+	    {
+	      if (temp)
+		free(temp);
+	      return (void *) __set_errno (ENOENT);
+	    }
+        }
+      if (temp)
+        free(temp);
     }
 
   if (fflag & O_CREAT)

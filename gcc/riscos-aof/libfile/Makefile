@@ -29,13 +29,13 @@ OBJS = $(libfileobjdir)/TimeStamp.o \
 	$(libfileobjdir)/LibDir.o \
 	$(libfileobjdir)/LibVersion.o \
 	$(libfileobjdir)/LibTimeBas.o \
-	$(libfileobjdir)/LibFile.o \
 	$(libfileobjdir)/LibData.o \
 	$(libfileobjdir)/Library.o \
 	$(libfileobjdir)/ArgParser.o \
 	$(libfileobjdir)/ObjFile.o \
 	$(libfileobjdir)/BError.o \
 	$(libfileobjdir)/Librarian.o \
+	$(libfileobjdir)/Ar.o \
 	$(libfileobjdir)/BString.o \
 	$(libfileobjdir)/Buffer.o \
 	$(libfileobjdir)/Chunk.o \
@@ -50,10 +50,13 @@ OBJS +=	$(libfileobjdir)/OS_File.o \
 DEPS += $(gcc_bin_dir)/$(TRG)/o/unixlib
 endif
 
-all:	$(bin_dir)/libfile$(exesfx)
+all:	$(bin_dir)/libfile$(exesfx) $(bin_dir)/ar$(exesfx)
 
-$(bin_dir)/libfile$(exesfx):	$(OBJS) $(DEPS)
-	$(CXX) -o $@ $(OBJS) $(linklibs)
+$(bin_dir)/libfile$(exesfx):	$(libfileobjdir)/LibFile.o $(OBJS) $(DEPS)
+	$(CXX) -o $@ $(libfileobjdir)/LibFile.o $(OBJS) $(linklibs)
+
+$(bin_dir)/ar$(exesfx):	$(libfileobjdir)/ArFile.o $(OBJS) $(DEPS)
+	$(CXX) -o $@ $(libfileobjdir)/ArFile.o $(OBJS) $(linklibs)
 
 $(libfileobjdir)/TimeStamp.o: TimeStamp.cc
 $(libfileobjdir)/OflSymt.o: OflSymt.cc
@@ -64,6 +67,8 @@ $(libfileobjdir)/LibFile.o: LibFile.cc
 $(libfileobjdir)/LibData.o: LibData.cc
 $(libfileobjdir)/Library.o: Library.cc
 $(libfileobjdir)/ArgParser.o: ArgParser.cc
+$(libfileobjdir)/Ar.o: Ar.cc Ar.h
+$(libfileobjdir)/Ar.o: ArFile.cc Ar.h
 $(libfileobjdir)/ObjFile.o: ObjFile.cc
 $(libfileobjdir)/BError.o: BError.cc
 $(libfileobjdir)/Librarian.o: Librarian.cc

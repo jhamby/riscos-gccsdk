@@ -12,18 +12,15 @@
 
 /* First, say which environment the program is being compiled to run under */
 
-#ifdef CROSS_COMPILE
-#define TARGET_UNIX
-#else
+#ifndef CROSS_COMPILE
 #define TARGET_RISCOS
+#define IGNORE_CASE
 #endif
 
-#define IGNORE_CASE
-
 #ifdef TARGET_RISCOS
-#define VERSION "0.37  07/02/98  [GCCSDK build]"
+#define VERSION "0.39  02/03/02"
 #else
-#define VERSION "0.3.7  07/02/98  [GCCSDK build]"
+#define VERSION "0.3.9  02/03/02  [GCCSDK build]"
 #endif
 
 /*
@@ -34,7 +31,7 @@
 #define TRUE 1
 #define NIL 0
 #define NULLCHAR 0
-#define COERCE(x,t) (t)(x)
+#define COERCE(x,t) ((t)(void *)(x))
 
 #define FNAMELEN 500		/* Maximum filename length */
 #define LEAFLEN 100		/* Maximum leaf name length */

@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/pwd/pwdread.c,v $
- * $Date: 2001/09/11 13:32:33 $
- * $Revision: 1.2.2.1 $
- * $State: Exp $
- * $Author: admin $
+ * $Source$
+ * $Date$
+ * $Revision$
+ * $State$
+ * $Author$
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: pwdread.c,v 1.2.2.1 2001/09/11 13:32:33 admin Exp $";
+static const char rcs_id[] = "$Id$";
 #endif
 
 /* pwd.c.pwdread. Internal password-file reading functions.
@@ -90,3 +90,28 @@ __pwdread (FILE * stream, struct passwd *ppwd)
   p_pdecode (buf, ppwd);
   return ppwd;
 }
+
+/* Return default values for when /etc/passwd doesn't exist */
+struct passwd *
+__pwddefault (void)
+{
+  static int pwd_inited = 0;
+  static struct passwd pwd;
+
+  if (pwd_inited == 0)
+    {
+      pwd.pw_name   = strdup("unixlib");
+      pwd.pw_passwd = strdup("");
+      pwd.pw_uid    = 1;
+      pwd.pw_gid    = 1;
+      pwd.pw_gecos  = strdup("UnixLib User");
+      pwd.pw_dir    = strdup(getenv("HOME"));
+      pwd.pw_shell  = strdup("/bin/bash");
+
+      pwd_inited = 1;
+   }
+
+   return &pwd;
+}
+
+

@@ -1,10 +1,10 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/stdlib.h,v $
- * $Date: 2002/02/07 10:19:30 $
- * $Revision: 1.2.2.3 $
- * $State: Exp $
- * $Author: admin $
+ * $Source$
+ * $Date$
+ * $Revision$
+ * $State$
+ * $Author$
  *
  ***************************************************************************/
 
@@ -13,19 +13,16 @@
 #ifndef __STDLIB_H
 #define __STDLIB_H
 
+#ifndef __UNIXLIB_FEATURES_H
+#include <unixlib/features.h>
+#endif
+
 #define __need_size_t
 #define __need_wchar_t
 #define __need_NULL
 #include <stddef.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-#ifndef __GNUC__
-#undef  __attribute__
-#define __attribute__(x) /* Ignore */
-#endif
+__BEGIN_DECLS
   
 /* Returned by `div'.  */
 typedef struct
@@ -132,29 +129,27 @@ extern void cfree (void *__mem);
 extern int malloc_trim (size_t);
 
 /* Return a random integer between 0 and 2^31 (System V interface).  */
-extern long lrand (void);
-extern long lrand48 (void);
-#define lrand48() lrand()
-
-/* Return a random integer between 0 and RAND_MAX.  */
 extern int rand (void);
-#define rand() ((int)lrand())
-
-/* Return a random integer between 0 and RAND_MAX (BSD interface).  */
-extern long random (void);
-#define random() lrand()
 
 /* Seed the random number generator with the given number.  */
 extern void srand (long __seed);
 
+/* Return a random integer between 0 and RAND_MAX (BSD interface).  */
+extern long int random (void);
+
 /* Seed the random number generator (BSD interface).  */
-extern void srandom (long __seed);
-#define srandom(s) srand(s)
+extern void srandom (unsigned int __seed);
 
-/* Seed the random number generator (System V interface).  */
-extern void srand48 (long __seed);
-#define srand48(s) srand(s)
+/* Initialize the random number generator to use state buffer STATEBUF,
+   of length STATELEN, and seed it with SEED.  Optimal lengths are 8, 16,
+   32, 64, 128 and 256, the bigger the better; values less than 8 will
+   cause an error and values greater than 256 will be rounded down.  */
+extern char *initstate (unsigned int __seed, char *__statebuf,
+                        size_t __statelen);
 
+/* Switch the random number generator to state buffer STATEBUF,
+   which should have been previously initialized by `initstate'.  */
+extern char *setstate (char *__statebuf);
 
 /* Return the absolute value of x.  */
 extern int abs (int __x) __attribute__ ((__const__));
@@ -235,8 +230,26 @@ extern int getsubopt (char **__option, const char *const *__tokens,
 		      char **__value);
 extern char *suboptarg;
 
-#ifdef __cplusplus
-	}
-#endif
+/* System V style 48-bit random number generator functions.  */
+
+/* Return a non-negative, double-precision floating-point value in
+   the range 0.0 to 1.0.  */
+extern double drand48 (void);
+extern double erand48 (unsigned short int __xsubi[3]);
+
+/* Return non-negative, long integer in the range 0 to 2^31.  */
+extern long int lrand48 (void);
+extern long int nrand48 (unsigned short int __xsubi[3]);
+
+/* Return signed, long integers in the range -2^31 to 2^31.  */
+extern long int mrand48 (void);
+extern long int jrand48 (unsigned short int __xsubi[3]);
+
+/* Seed random number generator.  */
+extern void srand48 (long int __seedval);
+extern unsigned short int *seed48 (unsigned short int __seed16v[3]);
+extern void lcong48 (unsigned short int __param[7]);
+
+__END_DECLS
 
 #endif

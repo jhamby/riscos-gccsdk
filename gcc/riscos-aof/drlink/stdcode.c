@@ -151,8 +151,8 @@ unsigned int relocode [] = {
 void get_hdrcode(segtype hdrtype, unsigned int **hdrstart, unsigned int *hdrsize) {
   unsigned int *p, *cp;
   unsigned int size;
-  p = cp = 0; /* Stop gcc warnings */
-  size = 0;
+  p = cp = 0;	/* Stop gcc warnings */
+  size = 0;  
   switch (hdrtype) {
   case HDR_BIN:		/* Binary image */
     cp = &bincode[0];

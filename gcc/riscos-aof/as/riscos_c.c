@@ -14,9 +14,10 @@
 #include <inttypes.h>
 #endif
 
+#include "main.h"
 #include "error.h"
 
-#ifdef __riscos
+#ifdef __riscos__
 #include "os.h"
 #ifdef UNIXLIB
 #include <unixlib/local.h>
@@ -54,7 +55,6 @@ toriscos (char *name, char *oldsuffixes, char newsuffix)
 }
 
 static char filename[1024];
-extern int dde;
 
 char *
 CanonicalisePath (const char *path1)
@@ -113,6 +113,7 @@ CanonicaliseFile (const FILE * fh)
 
 #else /* not RISC OS */
 
+#if 0
 static char filename[1024];
 
 char *
@@ -135,5 +136,6 @@ CanonicaliseFile (FILE * fh)
   exit (-1);
   return 0;			/* keep the compiler happy */
 }
+#endif
 
-#endif /* !__riscos */
+#endif /* !__riscos__ */

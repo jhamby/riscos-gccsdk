@@ -15,7 +15,7 @@
 
 #endif /* CROSS_COMPILE */
 
-#ifdef __riscos
+#ifdef __riscos__
 /* Acorn/RISC OS specific information.  */
 typedef struct os_error
 {
@@ -53,9 +53,12 @@ os_error *ThrowbackEnd (void);
 char *(toriscos) (char *name, char *oldsuffixes, char newsuffix);
 char *(CanonicalisePath) (const char *path);
 
-#endif /* __riscos */
+#endif /* __riscos__ */
 
 char *CanonicaliseFile (const FILE * path);
-char *strndup (const char *, int len);
+
+#if (defined (CROSS_COMPILE) && ! defined (HAVE_STRNDUP)) || ! defined (CROSS_COMPILE)
+extern char *strndup (const char *str, int len);
+#endif
 
 #endif

@@ -90,10 +90,10 @@ int SymbolsFound = 0;
 
 /**********************************************************/
 
-static char *
-LoadEntry (char *EntryName, char *Header, int *Size)
+static void *
+LoadEntry (const char *EntryName, char *Header, int *Size)
 {
-  CFF_Header *TheHeader = (CFF_Header *) Header;
+  CFF_Header *TheHeader = (CFF_Header *)(void *) Header;
   CFF_Entry *Entries = (CFF_Entry *) (TheHeader + 1);
   int l = 0;
   BOOL Found = FALSE;
@@ -147,7 +147,7 @@ LoadEntry (char *EntryName, char *Header, int *Size)
 }
 
 static char *
-LoadHeader ()
+LoadHeader (void)
 {
   char *FileHeader;
   CFF_Header TheHeader;
@@ -184,7 +184,7 @@ LoadHeader ()
     }
 
   // copy the header
-  *((CFF_Header *) FileHeader) = TheHeader;
+  *((CFF_Header *)(void *) FileHeader) = TheHeader;
 
   // read in the entries
   if (fread
@@ -280,7 +280,7 @@ ProcessALF (void)
   if ((FileHeader = LoadHeader ()) == 0)
     return FALSE;
 
-  CFFHeader = (CFF_Header *) FileHeader;
+  CFFHeader = (CFF_Header *)(void *) FileHeader;
   CFFEntries = (CFF_Entry *) (CFFHeader + 1);
 
   // load the directory
@@ -335,7 +335,7 @@ ProcessALF (void)
   while (Offset < DirectorySize)
     {
       DoThisOne = FALSE;
-      Entry = (ALF_DirectoryEntry *) (Entries + Offset);
+      Entry = (ALF_DirectoryEntry *)(void *) (Entries + Offset);
 // printf("%d : %s\n", Entry->ChunkIndex, Entry->FileName);
 
       if (Entry->ChunkIndex != 0)

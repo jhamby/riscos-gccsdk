@@ -16,9 +16,9 @@ drlinkobjdir = $(objdir)/riscos-aof/drlink/$(STAGE)
 $(drlinkobjdir)/%.o: %.c
 	$(CC) $(CFLAGS) -o $@ -c $< $(INCLUDES)
 
-OBJS =	$(drlinkobjdir)/aoffiles.o \
+OBJS =	$(drlinkobjdir)/aofiles.o \
 	$(drlinkobjdir)/areas.o \
-	$(drlinkobjdir)/cppnames.o \
+	$(drlinkobjdir)/c++names.o \
 	$(drlinkobjdir)/debug.o \
 	$(drlinkobjdir)/drlmain.o \
 	$(drlinkobjdir)/files.o \
@@ -41,9 +41,9 @@ all:	$(bin_dir)/drlink$(exesfx)
 $(bin_dir)/drlink$(exesfx): $(OBJS) $(DEPS)
 	$(CC) -o $@ $(OBJS)
 
-$(drlinkobjdir)/aoffiles.o: aoffiles.c
+$(drlinkobjdir)/aofiles.o: aofiles.c
 $(drlinkobjdir)/areas.o: areas.c
-$(drlinkobjdir)/cppnames.o: cppnames.c
+$(drlinkobjdir)/c++names.o: c++names.c
 $(drlinkobjdir)/debug.o: debug.c
 $(drlinkobjdir)/drlmain.o: drlmain.c
 $(drlinkobjdir)/files.o: files.c

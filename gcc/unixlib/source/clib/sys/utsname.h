@@ -1,10 +1,10 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/sys/utsname.h,v $
- * $Date: 2001/09/14 14:01:17 $
- * $Revision: 1.2.2.1 $
- * $State: Exp $
- * $Author: admin $
+ * $Source$
+ * $Date$
+ * $Revision$
+ * $State$
+ * $Author$
  *
  ***************************************************************************/
 
@@ -13,9 +13,11 @@
 #ifndef __SYS_UTSNAME_H
 #define __SYS_UTSNAME_H 1
 
-#ifdef __cplusplus
-extern "C" {
+#ifndef __UNIXLIB_FEATURES_H
+#include <unixlib/features.h>
 #endif
+
+__BEGIN_DECLS
 
 /* Length of the entries in `struct utsname' is 65.  */
 #define _UTSNAME_LENGTH 65
@@ -43,8 +45,6 @@ struct utsname
 /* Put information about the system in NAME.  */
 extern int uname (struct utsname *__name);
 
-#ifdef __cplusplus
-}
-#endif
+__END_DECLS
 
 #endif

@@ -1,7 +1,7 @@
 ;----------------------------------------------------------------------------
 ;
-; $Source: /usr/local/cvsroot/unixlib/source/scl/s/_kswi_c,v $
-; $Date: 2000/12/21 15:09:13 $
+; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/scl/_kswi_c.s,v $
+; $Date: 2001/01/29 15:10:20 $
 ; $Revision: 1.2 $
 ; $State: Exp $
 ; $Author: admin $
@@ -14,10 +14,11 @@
 
 
 	IMPORT	|__seterr|
-	EXPORT	|_kernel_swi_c|
 
 	; _kernel_swi_c (int no, _kernel_swi_regs *in,
 	;		 _kernel_swi_regs *out, int *carry);
+	EXPORT	|_kernel_swi_c|
+	NAME	_kernel_swi_c
 |_kernel_swi_c|
 	STMFD	sp!, {a3, a4, v1 - v6, lr}
 	BICS	ip, a1, #&80000000

@@ -1,7 +1,7 @@
 ;----------------------------------------------------------------------------
 ;
-; $Source: /usr/local/cvsroot/unixlib/source/scl/s/_kosargs,v $
-; $Date: 2000/12/21 15:09:13 $
+; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/scl/_kosargs.s,v $
+; $Date: 2001/01/29 15:10:20 $
 ; $Revision: 1.2 $
 ; $State: Exp $
 ; $Author: admin $
@@ -12,9 +12,11 @@
 
 	AREA	|C$$code|, CODE, READONLY
 
-	; _kernel_osargs (int op, unsigned handle, int arg)
 	IMPORT	|__seterr|
+
+	; _kernel_osargs (int op, unsigned handle, int arg)
 	EXPORT	|_kernel_osargs|
+	NAME	_kernel_osargs
 |_kernel_osargs|
 	STMFD	sp!, {lr}
 	ORR	ip, a1, a2	; ip = 0 iff op = handle = 0

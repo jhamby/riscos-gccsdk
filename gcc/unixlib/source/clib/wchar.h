@@ -1,10 +1,10 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/wchar.h,v $
- * $Date: 2002/02/07 10:19:30 $
- * $Revision: 1.2.2.2 $
- * $State: Exp $
- * $Author: admin $
+ * $Source$
+ * $Date$
+ * $Revision$
+ * $State$
+ * $Author$
  *
  ***************************************************************************/
 
@@ -34,9 +34,11 @@
 #ifndef __WCHAR_H
 #define __WCHAR_H 1
 
-#ifdef __cplusplus
-extern "C" {
+#ifndef __UNIXLIB_FEATURES_H
+#include <unixlib/features.h>
 #endif
+
+__BEGIN_DECLS
 
 /* Get size_t, wchar_t, wint_t and NULL from <stddef.h>.  */
 #define __need_size_t
@@ -292,8 +294,6 @@ extern wchar_t *__wcpncpy (wchar_t *__dest, const wchar_t *__src,
 extern wchar_t *wcpncpy (wchar_t *__dest, const wchar_t *__src,
 			      size_t __n);
 
-#ifdef __cplusplus
-}
-#endif
+__END_DECLS
 
 #endif /* wchar.h  */

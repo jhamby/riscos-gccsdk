@@ -1,7 +1,7 @@
 ;----------------------------------------------------------------------------
 ;
-; $Source: /usr/local/cvsroot/unixlib/source/scl/s/_ksetenv,v $
-; $Date: 2000/12/21 15:09:13 $
+; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/scl/_ksetenv.s,v $
+; $Date: 2001/01/29 15:10:20 $
 ; $Revision: 1.2 $
 ; $State: Exp $
 ; $Author: admin $
@@ -12,9 +12,11 @@
 
 	AREA	|C$$code|, CODE, READONLY
 
-	; _kernel_setenv (const char *name, const char *value)
 	IMPORT	|__seterr|
+
+	; _kernel_setenv (const char *name, const char *value)
 	EXPORT	|_kernel_setenv|
+	NAME	_kernel_setenv
 |_kernel_setenv|
 	STMFD	sp!, {v1, lr}
 	SUB	a3, a2, #1

@@ -14,6 +14,7 @@ public:
 	{
 		ActionCreate, ActionInsert,
 		ActionDelete, ActionExtract,
+		ActionExtractAll,
 		ActionExtractDelete,
 		ActionNone
 	};

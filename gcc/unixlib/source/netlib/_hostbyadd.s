@@ -1,8 +1,8 @@
 ;----------------------------------------------------------------------------
 ;
-; $Source: /usr/local/cvsroot/unixlib/source/netlib/s/_hostbyadd,v $
-; $Date: 2000/12/21 15:09:13 $
-; $Revision: 1.4 $
+; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/netlib/_hostbyadd.s,v $
+; $Date: 2001/01/29 15:10:20 $
+; $Revision: 1.2 $
 ; $State: Exp $
 ; $Author: admin $
 ;
@@ -13,6 +13,7 @@
 	AREA	|C$$code|,CODE,READONLY
 
 	EXPORT	|_gethostbyaddr|
+	NAME	_gethostbyaddr
 |_gethostbyaddr|
 	STMFD	sp!, {lr}
 	MOV	r3, r2

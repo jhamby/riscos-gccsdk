@@ -1,22 +1,23 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/proc.c,v $
- * $Date: 2001/09/04 16:32:04 $
- * $Revision: 1.2.2.1 $
- * $State: Exp $
- * $Author: admin $
+ * $Source$
+ * $Date$
+ * $Revision$
+ * $State$
+ * $Author$
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: proc.c,v 1.2.2.1 2001/09/04 16:32:04 admin Exp $";
+static const char rcs_id[] = "$Id$";
 #endif
 
+#include <errno.h>
 #include <unistd.h>
 #include <unixlib/unix.h>
 
 int
-setegid (__gid_t gid)
+setegid (gid_t gid)
 {
   if (gid == __u->egid)
     return 0;
@@ -25,5 +26,6 @@ setegid (__gid_t gid)
       __u->egid = gid;
       return 0;
     }
-  return -1;
+
+  return __set_errno (EPERM);
 }

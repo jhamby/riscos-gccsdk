@@ -1,10 +1,10 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/clib/sys/h/statfs,v $
- * $Date: 1997/10/09 19:59:57 $
- * $Revision: 1.4 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/sys/statfs.h,v $
+ * $Date: 2001/01/29 15:10:19 $
+ * $Revision: 1.2 $
  * $State: Exp $
- * $Author: unixlib $
+ * $Author: admin $
  *
  ***************************************************************************/
 
@@ -13,9 +13,11 @@
 #ifndef	__SYS_STATFS_H
 #define	__SYS_STATFS_H 1
 
-#ifdef __cplusplus
-extern "C" {
+#ifndef __UNIXLIB_FEATURES_H
+#include <unixlib/features.h>
 #endif
+
+__BEGIN_DECLS
 
 struct statfs
 {
@@ -38,8 +40,6 @@ extern int statfs (const char *file, struct statfs *buf);
    refers to.  */
 extern int fstatfs (int fd, struct statfs *buf);
 
-#ifdef __cplusplus
-}
-#endif
+__END_DECLS
 
 #endif

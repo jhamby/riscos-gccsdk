@@ -1,21 +1,21 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/c/strcmp,v $
- * $Date: 1997/10/09 19:59:40 $
- * $Revision: 1.5 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/strcmp.c,v $
+ * $Date: 2001/01/29 15:10:19 $
+ * $Revision: 1.2 $
  * $State: Exp $
- * $Author: unixlib $
+ * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: strcmp,v 1.5 1997/10/09 19:59:40 unixlib Exp $";
+static const char rcs_id[] = "$Id: strcmp.c,v 1.2 2001/01/29 15:10:19 admin Exp $";
 #endif
 
 #include <string.h>
 
 int
-strcmp (register const char *s1, register const char *s2)
+strcmp (const char *s1, const char *s2)
 
 {
   register int i;
@@ -23,5 +23,5 @@ strcmp (register const char *s1, register const char *s2)
   while ((i = *s1) && i == *s2)
     s1++, s2++;
 
-  return (*(unsigned char *) s1 - *(unsigned char *) s2);
+  return (*(const unsigned char *) s1 - *(const unsigned char *) s2);
 }

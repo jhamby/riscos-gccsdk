@@ -1,8 +1,8 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/clib/unixlib/h/fd,v $
- * $Date: 1999/11/16 13:26:49 $
- * $Revision: 1.6 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/unixlib/fd.h,v $
+ * $Date: 2001/01/29 15:10:19 $
+ * $Revision: 1.2 $
  * $State: Exp $
  * $Author: admin $
  *
@@ -13,13 +13,15 @@
 #ifndef __UNIXLIB_FD_H
 #define __UNIXLIB_FD_H 1
 
+#ifndef __UNIXLIB_FEATURES_H
+#include <unixlib/features.h>
+#endif
+
 #ifndef __UNIXLIB_TYPES_H
 #include <unixlib/types.h>
 #endif
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+__BEGIN_DECLS
 
 /* Maximum number of file descriptors that a process can have. */
 #define MAXFD 64
@@ -53,8 +55,6 @@ struct __unixlib_fd
 extern int __alloc_file_descriptor (void);
 #endif
 
-#ifdef __cplusplus
-}
-#endif
+__END_DECLS
 
 #endif

@@ -1,0 +1,9 @@
+The following functions are stub functions.  They are provided in UnixLib
+as either placeholders for functions that await implementation or those
+that simply cannot be, possibly because they are not relevant to RISC OS.
+
+mknod
+mkfifo
+link
+readlink
+symlink

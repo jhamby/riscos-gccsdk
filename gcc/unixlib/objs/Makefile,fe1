@@ -1,10 +1,10 @@
 # Project:   UnixLib 4.0
 
-# $Source: /usr/local/cvsroot/gccsdk/unixlib/objs/Makefile,fe1,v $
-# $Date: 2001/10/04 12:50:46 $
-# $Revision: 1.2.2.6 $
-# $State: Exp $
-# $Author: admin $
+# $Source$
+# $Date$
+# $Revision$
+# $State$
+# $Author$
 
 CCfeatures =
 Predefs = -D__UNIXLIB_INTERNALS
@@ -16,44 +16,44 @@ Predefs = -D__UNIXLIB_INTERNALS
 # XXrflags = release flags
 # XXapcsflags = APCS selection flags
 
-# Compiler
-#CC = cc
-#CCdflags = -g
-#CCrflags =
-## APCS selection :
-##   - APCS-R build : -APCS 3/26bit/fpe2
-##   - APCS-32 build : -APCS 3/32bit/fpe3
-#CCapcsflags = -APCS 3/26bit/fpe2
-#CCflags = -depend !Depend -throwback -fcah -JUnixHdr: -wda -wp $(CCdflags) $(Capcsflags)
-
-# GCC compiler. Comment out if you are using Acorn C
-CC = gcc
-CCdflags = -pedantic -Wall -Wno-long-long
+# Norcroft C (Acorn) compiler. Comment out if you are using GCC compiler.
+CC = cc
+CCdflags = -g
 CCrflags =
-CCflags = -O2 -mpoke-function-name -mthrowback $(CCdflags) $(CCfeatures)
+# APCS selection :
+#   - APCS-R build : -APCS 3/26bit/fpe2
+#   - APCS-32 build : -APCS 3/32bit/fpe3
+CCapcsflags = -APCS 3/26bit/fpe2
+CCflags = -depend !Depend -throwback -fcah -JUnixHdr: -wda -wp $(CCdflags) $(CCapcsflags)
+
+# GCC compiler. Comment out if you are using Norcroft C (Acorn) compiler.
+#CC = gcc
+#CCdflags = -pedantic -Wall -Wno-long-long
+#CCrflags =
+#CCflags = -O2 -mpoke-function-name -mthrowback $(CCdflags) $(CCfeatures)
 
 # Acorn Objasm Assembler. Comment out if you are using 'as'.
-#AS = objasm
-#ASflags = -Stamp -quit -CloseExec
-#ASdflags =
-#ASrflags =
-## APCS selection :
-##   - APCS-R build : -APCS 3/26bit
-##   - APCS-32 build : -APCS 3/32bit
-#ASapcsflags = -APCS 3/26bit
-#ASflags = -throwback -depend !Depend -I UnixHdr:^ $(ASdflags) $(ASapcsflags)
+AS = objasm
+ASflags = -Stamp -quit -CloseExec
+ASdflags =
+ASrflags =
+# APCS selection :
+#   - APCS-R build : -APCS 3/26bit
+#   - APCS-32 build : -APCS 3/32bit
+ASapcsflags = -APCS 3/26bit
+ASflags = -throwback -depend !Depend -I UnixHdr:^ $(ASdflags) $(ASapcsflags)
 
 # as Assembler. Comment out if you are using Acorn Objasm.
-AS = gcc
-ASflags = -c
-ASdflags =
-ASrflags = -I UnixHdr:
+#AS = gcc
+#ASflags = -c
+#ASdflags =
+#ASrflags = -I UnixHdr:
 
 # Libfile, etc
-#AR = libfile
-#ARflags = -c
-AR = makealf
-ARflags =
+AR = libfile
+ARflags = -c
+#AR = makealf
+#ARflags =
 
 # Linker
 LD = drlink
@@ -100,20 +100,24 @@ MATH_ASM = math-asm.o._acos math-asm.o._asin math-asm.o._atan \
 	math-asm.o._sqrt math-asm.o._tan math-asm.o._tanh math-asm.o._sincos
 
 OBJS =	o.abort o.abs o.alloc o.assert o.atexit o.bsearch o.ctype \
-	o.ctypeproc o.div o.errno o.fcrypt o.index o.memccpy o.memchr \
-	o.memcmp o.memcpy o.memset o.psignal o.qsort o.rand \
+	o.ctypeproc o.div o.errno o.index o.memccpy o.memchr \
+	o.memcmp o.memcpy o.memset o.psignal o.qsort \
 	o.stpcpy o.stpncpy o.strcat o.strchr o.strcmp o.strcpy o.strcspn \
 	o.strdup o.strichr o.stricmp o.strlen o.strncat o.strncmp \
 	o.strncpy o.strnicmp o.strpbrk o.strrchr o.strrichr o.strsep \
 	o.strsignal o.strspn o.strstr o.strtod \
-	o.strtok o.strtok_r o.strtol o.strtoul o.system o.termcap
+	o.strtok o.strtok_r o.strtol o.strtoul \
+	o.strtoll o.strtoull o.system o.termcap
 
 COMMON = common.o.attrib common.o.cvttime common.o.exist \
 	common.o.fdname common.o.funcallerr common.o.riscosify \
 	common.o.riscosifyc common.o.serial common.o.sockvalid \
 	common.o.stat common.o.uname common.o.unixify
 
-COMMON_ASM =	common.o._exist
+COMMON_ASM =	common.o._exist common.o._riscosify
+
+CRYPT = crypt.o.crypt crypt.o.crypt-entry crypt.o.crypt_util \
+	crypt.o.md5 crypt.o.md5-crypt
 
 GCCCOMPAT_ASM = gcccompat.o._udivdi3 gcccompat.o._umoddi3 \
 	gcccompat.o._divdi3 gcccompat.o._moddi3
@@ -170,6 +174,7 @@ SIGNAL =	signal.o.init signal.o.kill signal.o.pause \
 
 SIGNAL_ASM =	signal.o.sigexec signal.o._coredump signal.o._signal
 
+STAT = stat.o.mknod stat.o.mkfifo
 
 STDIO =	stdio.o.clearerr stdio.o.fclose stdio.o.feof stdio.o.ferror \
 	stdio.o.fflush stdio.o.fgets stdio.o.filbuf stdio.o.fileno \
@@ -183,7 +188,12 @@ STDIO =	stdio.o.clearerr stdio.o.fclose stdio.o.feof stdio.o.ferror \
 
 STDIO_ASM =	stdio.o._printf
 
-STDLIB = stdlib.o.realpath
+STDLIB = stdlib.o.drand48 stdlib.o.erand48 stdlib.o.jrand48 stdlib.o.lcong48 \
+	stdlib.o.lrand48 stdlib.o.mrand48 stdlib.o.nrand48 stdlib.o._rand48 \
+	stdlib.o.rand stdlib.o.random stdlib.o.realpath stdlib.o.seed48 \
+	stdlib.o.srand48
+
+STRING = string.o.swab
 
 SCL_ASM = scl.o._kcurskch scl.o._kernel scl.o._kgetenv scl.o._kosargs \
 	scl.o._kosbget scl.o._kosbput scl.o._kosbyte scl.o._koscli \
@@ -197,8 +207,8 @@ SYS =	sys.o.alarm sys.o.brk sys.o.debug sys.o.errlist \
 SYS_ASM =	sys.o._alloca sys.o._divsi3 sys.o._divtest \
 	sys.o._exec sys.o._jmp sys.o._mem sys.o._mman sys.o._modsi3 sys.o._os \
 	sys.o._profile sys.o._sigjmp sys.o._sdiv sys.o._sdiv10 sys.o._smod \
-	sys.o._syslib sys.o._udiv sys.o._udiv10 sys.o._udivsi3 sys.o._umod \
-	sys.o._umodsi3 sys.o._vfork
+	sys.o._swi sys.o._syslib sys.o._udiv sys.o._udiv10 sys.o._udivsi3 \
+	sys.o._umod sys.o._umodsi3 sys.o._vfork
 
 TIME =	time.o.adjtime time.o.asctime time.o.broken time.o.calendconv \
 	time.o.ctime time.o.difftime time.o.ftime time.o.getitmr \
@@ -214,17 +224,21 @@ TERMIOS =	 termios.o.cfgetispee termios.o.cfgetospee \
 
 TIME_ASM =	time.o._clock
 
+UNISTD =	unistd.o.chown unistd.o.chroot unistd.o.fchown \
+	unistd.o.getpass unistd.o.link unistd.o.readlink unistd.o.symlink
+
 UNIX =	unix.o.access unix.o.alphasort unix.o.chdir unix.o.chmod \
-	unix.o.chown unix.o.close unix.o.creat unix.o.getdtables unix.o.dev \
-	unix.o.dirent unix.o.dup unix.o.dup2 unix.o.fchmod unix.o.fchown \
+	unix.o.close unix.o.creat unix.o.getdtables unix.o.dev \
+	unix.o.dirent unix.o.dup unix.o.dup2 unix.o.fchmod \
 	unix.o.features unix.o.fnmatch unix.o.fcntl unix.o.fstat \
 	unix.o.getcwd unix.o.getdomain unix.o.getenv unix.o.gethostnam \
 	unix.o.getopt unix.o.getsubopt unix.o.glob unix.o.ioctl \
-	unix.o.isatty unix.o.ispipe unix.o.link unix.o.lseek unix.o.lstat \
+	unix.o.isatty unix.o.ispipe unix.o.lseek unix.o.lstat \
 	unix.o.mkdir unix.o.nice unix.o.open unix.o.pathconf unix.o.pipe \
 	unix.o.poll unix.o.proc unix.o.pselect unix.o.putenv unix.o.read \
 	unix.o.readv unix.o.reopen unix.o.rmdir unix.o.select unix.o.setenv \
-	unix.o.stat unix.o.sync unix.o.sysconf unix.o.truncate unix.o.tty \
+	unix.o.stat unix.o.sync unix.o.sysconf unix.o.syslog \
+	unix.o.truncate unix.o.tty \
 	unix.o.umask unix.o.uname unix.o.unix unix.o.unlink unix.o.utime \
 	unix.o.wait unix.o.wait3 unix.o.wait4 unix.o.waitpid unix.o.write \
 	unix.o.writev
@@ -248,18 +262,21 @@ WCHAR = wchar.o.btowc wchar.o.mblen wchar.o.mbrlen wchar.o.mbrtowc \
 # wchar.o.wcstol wchar.o.wcstoul wchar.o.wcstoq wchar.o.wcstouq
 #  wchar.o.wcstold wchar.o.wcstod wchar.o.wcstof
 
-STAMP =	!Stamp common.!Stamp complex.!Stamp gcccompat.!Stamp \
+STAMP =	!Stamp common.!Stamp complex.!Stamp \
+	crypt.!Stamp gcccompat.!Stamp \
 	grp.!Stamp locale.!Stamp math.!Stamp math-asm.!Stamp \
 	netlib.!Stamp pwd.!Stamp resource.!Stamp signal.!Stamp \
-	scl.!Stamp stdio.!Stamp stdlib.!Stamp sys.!Stamp \
-	termios.!Stamp time.!Stamp unix.!Stamp wchar.!Stamp
+	scl.!Stamp stat.!Stamp stdio.!Stamp stdlib.!Stamp sys.!Stamp \
+	string.!Stamp termios.!Stamp time.!Stamp unistd.!Stamp unix.!Stamp \
+	wchar.!Stamp
 
 # Final targets:
 UnixLib:   $(STAMP)
-	$(AR) $(ARflags) -o $@ o.* common.o.* complex.o.* gcccompat.o.* \
+	$(AR) $(ARflags) -o $@ o.* common.o.* complex.o.* \
+	crypt.o.* gcccompat.o.* \
 	grp.o.* locale.o.* math.o.* math-asm.o.* netlib.o.* pwd.o.* \
-	resource.o.* scl.o.* signal.o.* stdio.o.* stdlib.o.* sys.o.* \
-	termios.o.* time.o.* unix.o.* wchar.o.*
+	resource.o.* scl.o.* signal.o.* stat.o.* stdio.o.* stdlib.o.* \
+	string.o.* sys.o.* termios.o.* time.o.* unistd.o.* unix.o.* wchar.o.*
 
 test:	test.link
 
@@ -285,7 +302,9 @@ clean:
 	-remove common.!Stamp
 	-wipe complex.o.* fv~r~c
 	-remove complex.!Stamp
-	-wipe gcccompat.o.* gv~r~c
+	-wipe crypt.o.* fv~r~c
+	-remove crypt.!Stamp
+	-wipe gcccompat.o.* fv~r~c
 	-remove gcccompat.!Stamp
 	-wipe grp.o.* fv~r~c
 	-remove grp.!stamp
@@ -305,10 +324,14 @@ clean:
 	-remove scl.!stamp
 	-wipe signal.o.* fv~r~c
 	-remove signal.!stamp
+	-wipe stat.o.* fv~r~c
+	-remove stat.!stamp
 	-wipe stdio.o.* fv~r~c
 	-remove stdio.!stamp
 	-wipe stdlib.o.* fv~r~c
 	-remove stdlib.!stamp
+	-wipe string.o.* fv~r~c
+	-remove string.!stamp
 	-wipe sys.o.* fv~r~c
 	-remove sys.!stamp
 	-wipe termios.o.* fv~r~c
@@ -316,6 +339,8 @@ clean:
 	-wipe test.o.* fv~r~c
 	-wipe time.o.* fv~r~c
 	-remove time.!stamp
+	-wipe unistd.o.* fv~r~c
+	-remove unistd.!stamp
 	-wipe unix.o.* fv~r~c
 	-remove unix.!stamp
 	-wipe wchar.o.* fv~r~c
@@ -337,6 +362,10 @@ complex.!Stamp:	$(COMPLEX)
 common.!Stamp:	$(COMMON) $(COMMON_ASM)
 	-remove common.!Stamp
 	-create common.!Stamp
+
+crypt.!Stamp:	$(CRYPT)
+	-remove crypt.!Stamp
+	-create crypt.!Stamp
 
 gcccompat.!Stamp:	$(GCCCOMPAT_ASM)
 	-remove gcccompat.!Stamp
@@ -378,6 +407,10 @@ signal.!Stamp:	$(SIGNAL) $(SIGNAL_ASM)
 	-remove signal.!Stamp
 	-create signal.!Stamp 0
 
+stat.!Stamp:	$(STAT)
+	-remove stat.!Stamp
+	-create stat.!Stamp 0
+
 stdio.!Stamp:	$(STDIO) $(STDIO_ASM)
 	-remove stdio.!Stamp
 	-create stdio.!Stamp 0
@@ -385,6 +418,10 @@ stdio.!Stamp:	$(STDIO) $(STDIO_ASM)
 stdlib.!Stamp:	$(STDLIB)
 	-remove stdlib.!Stamp
 	-create stdlib.!Stamp 0
+
+string.!Stamp:	$(STRING)
+	-remove string.!Stamp
+	-create string.!Stamp 0
 
 sys.!Stamp:	$(SYS) $(SYS_ASM)
 	-remove sys.!Stamp
@@ -397,6 +434,10 @@ termios.!Stamp:	$(TERMIOS)
 time.!Stamp:	$(TIME) $(TIME_ASM)
 	-remove time.!Stamp
 	-create time.!Stamp 0
+
+unistd.!Stamp:	$(UNISTD)
+	-remove unistd.!Stamp
+	-create unistd.!Stamp 0
 
 unix.!Stamp:	$(UNIX) $(UNIX_ASM)
 	-remove unix.!Stamp
@@ -421,7 +462,6 @@ o.ctypeproc:		c.ctypeproc
 o.div:			c.div
 o.dtoa:			c.dtoa
 o.errno:		c.errno
-o.fcrypt:		c.fcrypt
 o.index:		c.index
 o.memchr:		c.memchr
 o.memcmp:		c.memcmp
@@ -456,7 +496,9 @@ o.strtod:		c.strtod
 o.strtok:		c.strtok
 o.strtok_r:		c.strtok_r
 o.strtol:		c.strtol
+o.strtoll:		c.strtoll
 o.strtoul:		c.strtoul
+o.strtoull:		c.strtoull
 o.system:		c.system
 o.termcap:		c.termcap
 
@@ -473,6 +515,7 @@ common.o.stat:		common.c.stat
 common.o.uname:		common.c.uname
 common.o.unixify:	common.c.unixify
 common.o._exist:	common.s._exist
+common.o._riscosify:	common.s._riscosify
 
 complex.o.cabs:		complex.c.cabs
 complex.o.cacos:	complex.c.cacos
@@ -497,6 +540,12 @@ complex.o.csinh:	complex.c.csinh
 complex.o.csqrt:	complex.c.csqrt
 complex.o.ctan:		complex.c.ctan
 complex.o.ctanh:	complex.c.ctanh
+
+crypt.o.crypt:		crypt.c.crypt:
+crypt.o.crypt-entry:	crypt.c.crypt-entry:
+crypt.o.crypt_util:	crypt.c.crypt_util:
+crypt.o.md5:		crypt.c.md5:
+crypt.o.md5-crypt:	crypt.c.md5-crypt:
 
 gcccompat.o._udivdi3:	gcccompat.s._udivdi3
 gcccompat.o._umoddi3:	gcccompat.s._umoddi3
@@ -737,6 +786,9 @@ signal.o.sigexec:	signal.s.sigexec <UnixHdr$Dir>.unixlib.s.asm_dec
 signal.o._coredump:	signal.s._coredump <UnixHdr$Dir>.unixlib.s.asm_dec
 signal.o._signal:	signal.s._signal <UnixHdr$Dir>.unixlib.s.asm_dec
 
+stat.o.mknod:		stat.c.mknod
+stat.o.mkfifo:		stat.c.mkfifo
+
 stdio.o.clearerr:	stdio.c.clearerr
 stdio.o.fclose:		stdio.c.fclose
 stdio.o.feof:		stdio.c.feof
@@ -774,7 +826,21 @@ stdio.o.tmpfile:	stdio.c.tmpfile
 stdio.o.ungetc:		stdio.c.ungetc
 stdio.o._printf:	stdio.s._printf <UnixHdr$Dir>.unixlib.s.asm_dec
 
+stdlib.o.drand48:	stdlib.c.drand48
+stdlib.o.erand48:	stdlib.c.erand48
+stdlib.o.jrand48:	stdlib.c.jrand48
+stdlib.o.lcong48:	stdlib.c.lcong48
+stdlib.o.lrand48:	stdlib.c.lrand48
+stdlib.o.mrand48:	stdlib.c.mrand48
+stdlib.o.nrand48:	stdlib.c.nrand48
+stdlib.o._rand48:	stdlib.c._rand48
+stdlib.o.rand:		stdlib.c.rand
+stdlib.o.random:	stdlib.c.random
 stdlib.o.realpath:	stdlib.c.realpath
+stdlib.o.seed48:	stdlib.c.seed48
+stdlib.o.srand48:	stdlib.c.srand48
+
+string.o.swab:	string.c.swab
 
 sys.o.alarm:		sys.c.alarm
 sys.o.brk:		sys.c.brk
@@ -796,6 +862,7 @@ sys.o._mman:		sys.s._mman <UnixHdr$Dir>.unixlib.s.asm_dec
 sys.o._os:		sys.s._os <UnixHdr$Dir>.unixlib.s.asm_dec
 sys.o._jmp:		sys.s._jmp <UnixHdr$Dir>.unixlib.s.asm_dec
 sys.o._sigjmp:		sys.s._sigjmp <UnixHdr$Dir>.unixlib.s.asm_dec
+sys.o._swi:		sys.s._swi <UnixHdr$Dir>.unixlib.s.asm_dec
 sys.o._syslib:		sys.s._syslib <UnixHdr$Dir>.unixlib.s.asm_dec
 sys.o._vfork:		sys.s._vfork <UnixHdr$Dir>.unixlib.s.asm_dec
 
@@ -823,11 +890,18 @@ time.o.tzset:		time.c.tzset
 time.o.utimes:		time.c.utimes
 time.o._clock:		time.s._clock <UnixHdr$Dir>.unixlib.s.asm_dec
 
+unistd.o.chown:		unistd.c.chown
+unistd.o.chroot:	unistd.c.chroot
+unistd.o.fchown:	unistd.c.fchown
+unistd.o.getpass:	unistd.c.getpass
+unistd.o.link:		unistd.c.link
+unistd.o.readlink:	unistd.c.readlink
+unistd.o.symlink:	unistd.c.symlink
+
 unix.o.access:		unix.c.access
 unix.o.alphasort:	unix.c.alphasort
 unix.o.chdir:		unix.c.chdir
 unix.o.chmod:		unix.c.chmod
-unix.o.chown:		unix.c.chown
 unix.o.close:		unix.c.close
 unix.o.creat:		unix.c.creat
 unix.o.dev:		unix.c.dev
@@ -835,7 +909,6 @@ unix.o.dirent:		unix.c.dirent
 unix.o.dup:		unix.c.dup
 unix.o.dup2:		unix.c.dup2
 unix.o.fchmod:		unix.c.fchmod
-unix.o.fchown:		unix.c.fchown
 unix.o.features:	unix.c.features
 unix.o.fnmatch:		unix.c.fnmatch
 unix.o.fcntl:		unix.c.fcntl
@@ -849,7 +922,6 @@ unix.o.getsubopt:	unix.c.getsubopt
 unix.o.ioctl:		unix.c.ioctl
 unix.o.isatty:		unix.c.isatty
 unix.o.ispipe:		unix.c.ispipe
-unix.o.link:		unix.c.link
 unix.o.lseek:		unix.c.lseek
 unix.o.lstat:		unix.c.lstat
 unix.o.mkdir:		unix.c.mkdir
@@ -870,6 +942,7 @@ unix.o.setenv:		unix.c.setenv
 unix.o.stat:		unix.c.stat
 unix.o.sync:		unix.c.sync
 unix.o.sysconf:		unix.c.sysconf
+unix.o.syslog:		unix.c.syslog
 unix.o.truncate:	unix.c.truncate
 unix.o.tty:		unix.c.tty
 unix.o.umask:		unix.c.umask
@@ -933,3 +1006,5 @@ wchar.o.wmemcmp:	wchar.c.wmemcmp
 wchar.o.wmemcpy:	wchar.c.wmemcpy
 wchar.o.wmemmove:	wchar.c.wmemmove
 wchar.o.wmemset:	wchar.c.wmemset
+
+# Dynamic dependencies:

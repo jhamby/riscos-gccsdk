@@ -1,10 +1,10 @@
 ;----------------------------------------------------------------------------
 ;
-; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/_sdiv10.s,v $
-; $Date: 2001/09/11 13:05:55 $
-; $Revision: 1.2.2.1 $
-; $State: Exp $
-; $Author: admin $
+; $Source$
+; $Date$
+; $Revision$
+; $State$
+; $Author$
 ;
 ;----------------------------------------------------------------------------
 
@@ -14,7 +14,7 @@
 
 	EXPORT	|_kernel_sdiv10|
 	EXPORT	|__rt_sdiv10|
-
+	NAME	__rt_sdiv10
 |_kernel_sdiv10|
 |__rt_sdiv10|
 	MOVS	a4, a1

@@ -1,7 +1,7 @@
 ;----------------------------------------------------------------------------
 ;
-; $Source: /usr/local/cvsroot/unixlib/source/math-asm/s/_ldexp,v $
-; $Date: 2000/12/21 15:09:13 $
+; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/math-asm/_ldexp.s,v $
+; $Date: 2001/01/29 15:10:20 $
 ; $Revision: 1.2 $
 ; $State: Exp $
 ; $Author: admin $
@@ -15,6 +15,8 @@
 	; scalb is the BSD name for ldexp
 	EXPORT	scalb
 	EXPORT	ldexp
+	NAME	scalb
+	NAME	ldexp
 scalb
 ldexp
 	; return x*pow(2, y)

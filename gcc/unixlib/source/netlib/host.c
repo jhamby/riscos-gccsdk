@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/netlib/host.c,v $
- * $Date: 2002/02/07 10:19:31 $
- * $Revision: 1.2.2.1 $
- * $State: Exp $
- * $Author: admin $
+ * $Source$
+ * $Date$
+ * $Revision$
+ * $State$
+ * $Author$
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: host.c,v 1.2.2.1 2002/02/07 10:19:31 admin Exp $";
+static const char rcs_id[] = "$Id$";
 #endif
 
 #include <stdio.h>
@@ -161,16 +161,19 @@ endhostent ()
 
 /* Search the hosts file for a given host name.  */
 struct hostent *
-gethostbyname (const char *name)
+gethostbyname2 (const char *name, int af)
 {
   struct hostent *host;
   char **alias;
 
-  /* Try the resolver first */
-  if ((host = _gethostbyname (name)) != NULL)
-    {
-      return host;
-    }
+  host = _gethostbyname (name);
+  if (host && host->h_addrtype == af)
+    return host;
+
+  /* Currently we don't make distinctions between the different
+     socket address spaces.   */ 
+  if (af != AF_INET)
+    return NULL;
 
   /* Open/rewind the file */
   if (__sethostent (1) == -1)
@@ -200,6 +203,12 @@ gethostbyname (const char *name)
     endhostent ();
 
   return host;
+}
+
+struct hostent *
+gethostbyname (const char *name)
+{
+  return gethostbyname2 (name, AF_INET);
 }
 
 /* Search the hosts file for a given address.  */

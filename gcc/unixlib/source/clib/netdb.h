@@ -1,23 +1,28 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/clib/h/netdb,v $
- * $Date: 1997/10/09 19:59:47 $
- * $Revision: 1.5 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/netdb.h,v $
+ * $Date: 2001/01/29 15:10:19 $
+ * $Revision: 1.2 $
  * $State: Exp $
- * $Author: unixlib $
+ * $Author: admin $
  *
  ***************************************************************************/
 
 #ifndef __NETDB_H
 #define __NETDB_H 1
 
-#ifndef _UNIXLIB_TYPES_H
+#ifndef __UNIXLIB_FEATURES_H
+#include <unixlib/features.h>
+#endif
+
+#ifndef __UNIXLIB_TYPES_H
 #include <unixlib/types.h>
 #endif
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+__BEGIN_DECLS
+
+/* Error status for non-reentrant lookup functions.  */
+extern int h_errno;
 
 /* Database entry for a single host. */
 struct hostent
@@ -40,9 +45,12 @@ extern int sethostent (int __stayopen);
 extern struct hostent *gethostent (void);
 extern int endhostent (void);
 extern struct hostent *gethostbyname (const char *__name);
+extern struct hostent *gethostbyname2 (const char *__name, int __af);
 extern struct hostent *_gethostbyname (const char *__name);
-extern struct hostent *gethostbyaddr (const char *__addr, int __len, int __type);
-extern struct hostent *_gethostbyaddr (const char *__addr, int __len, int __type);
+extern struct hostent *gethostbyaddr (const char *__addr, int __len,
+				      int __type);
+extern struct hostent *_gethostbyaddr (const char *__addr, int __len,
+				       int __type);
 
 
 /* Structure describing a network entry.  */
@@ -132,8 +140,6 @@ extern struct rpcent *getrpcbynumber (int __proto);
 /* no address, look for MX record */
 #define NO_ADDRESS	NO_DATA
 
-#ifdef __cplusplus
-}
-#endif
+__END_DECLS
 
 #endif

@@ -1,4 +1,4 @@
-#include <iostream.h>
+#include <iostream>
 #include "LibVersion.h"
 
 LibVersion::LibVersion(Library *a_owner) : Chunk("LIB_VRSN", a_owner)

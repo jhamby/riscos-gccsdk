@@ -25,7 +25,7 @@ extern int gcc_backend;
 
 struct reg_id
   {
-    char *name;
+    const char *name;
     int reg_no;
     int len;
   };
@@ -46,7 +46,7 @@ getCpuReg (void)
   };                 
 
   Lex lexSym;
-  int loop;
+  unsigned int loop;
   Symbol *sym;
 
   lexSym = lexGetId ();
@@ -85,7 +85,7 @@ getFpuReg (void)
 
   Lex lexSym;
   Symbol *sym;
-  int loop;
+  unsigned int loop;
 
   lexSym = lexGetId ();
   if (lexSym.tag == LexNone)

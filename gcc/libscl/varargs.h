@@ -34,6 +34,8 @@ typedef char *__va_list;
    after this comment.  Then remove the #error line.  */
 #error varargs.h has not been implemented for this compiler
 
+#elif defined(__GNUC__)
+#error Incorrect varargs.h included by gcc (shouldn't get here).
 #endif
 
 #ifdef __cplusplus

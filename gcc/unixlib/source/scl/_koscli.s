@@ -1,7 +1,7 @@
 ;----------------------------------------------------------------------------
 ;
-; $Source: /usr/local/cvsroot/unixlib/source/scl/s/_koscli,v $
-; $Date: 2000/12/21 15:09:13 $
+; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/scl/_koscli.s,v $
+; $Date: 2001/01/29 15:10:20 $
 ; $Revision: 1.2 $
 ; $State: Exp $
 ; $Author: admin $
@@ -12,9 +12,11 @@
 
 	AREA	|C$$code|, CODE, READONLY
 
-	; _kernel_oscli (char *cli)
 	IMPORT	|__seterr|
+
+	; _kernel_oscli (char *cli)
 	EXPORT	|_kernel_oscli|
+	NAME	_kernel_oscli
 |_kernel_oscli|
 	STMFD	sp!, {v6, lr}
 	SWI	XOS_CLI

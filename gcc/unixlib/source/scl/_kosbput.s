@@ -1,7 +1,7 @@
 ;----------------------------------------------------------------------------
 ;
-; $Source: /usr/local/cvsroot/unixlib/source/scl/s/_kosbput,v $
-; $Date: 2000/12/21 15:09:13 $
+; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/scl/_kosbput.s,v $
+; $Date: 2001/01/29 15:10:20 $
 ; $Revision: 1.2 $
 ; $State: Exp $
 ; $Author: admin $
@@ -12,9 +12,11 @@
 
 	AREA	|C$$code|, CODE, READONLY
 
-	; int _kernel_osbput (int ch, int handle)
 	IMPORT	|__seterr|
+
+	; int _kernel_osbput (int ch, int handle)
 	EXPORT	|_kernel_osbput|
+	NAME	_kernel_osbput
 |_kernel_osbput|
 	STMFD	sp!, {lr}
 	SWI	XOS_BPut

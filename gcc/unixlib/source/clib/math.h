@@ -1,10 +1,10 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/math.h,v $
- * $Date: 2002/02/07 10:19:30 $
- * $Revision: 1.2.2.3 $
- * $State: Exp $
- * $Author: admin $
+ * $Source$
+ * $Date$
+ * $Revision$
+ * $State$
+ * $Author$
  *
  ***************************************************************************/
 
@@ -12,6 +12,10 @@
 
 #ifndef __MATH_H
 #define __MATH_H
+
+#ifndef __UNIXLIB_FEATURES_H
+#include <unixlib/features.h>
+#endif
 
 #ifndef __MACHINE_HUGE_VAL_H
 #include <machine/huge_val.h>
@@ -24,14 +28,7 @@
 #include <unixlib/types.h>
 #endif
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-#ifndef __GNUC__
-#undef  __attribute__
-#define __attribute__(x) /* Ignore */
-#endif
+__BEGIN_DECLS
 
 #define INFINITY HUGE_VALF
 
@@ -359,8 +356,6 @@ extern int signbit (double __x) __attribute__ ((__const__));
 extern void __sincos (double __x, double *__sinx, double *__cosx);
 #endif
 
-#ifdef __cplusplus
-}
-#endif
+__END_DECLS
 
 #endif

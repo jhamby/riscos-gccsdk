@@ -1,22 +1,22 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/sys/c/execv,v $
- * $Date: 1997/10/09 13:07:33 $
- * $Revision: 1.1 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/execv.c,v $
+ * $Date: 2001/01/29 15:10:21 $
+ * $Revision: 1.2 $
  * $State: Exp $
- * $Author: unixlib $
+ * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: execv,v 1.1 1997/10/09 13:07:33 unixlib Exp $";
+static const char rcs_id[] = "$Id: execv.c,v 1.2 2001/01/29 15:10:21 admin Exp $";
 #endif
 
 #include <unistd.h>
 
 /* Execute path with arguments argv and environment from 'environ'.  */
 int
-execv (const char *path, char **argv)
+execv (const char *path, char *const argv[])
 {
   return execve (path, argv, environ);
 }

@@ -11,6 +11,7 @@
 #include <inttypes.h>
 #endif
 
+#include "main.h"
 #include "code.h"
 #include "error.h"
 #include "eval.h"
@@ -275,7 +276,6 @@ codeEvalLow (ValueTag legal, int size, Code * program)
     Result.Tag.t = ValueIllegal;
   if (!(Result.Tag.t & legal))
     {
-      extern int fussy, autocast;
       if (autocast && legal & ValueFloat && Result.Tag.t == ValueInt)
 	{
 	  FLOAT f = Result.ValueInt.i;

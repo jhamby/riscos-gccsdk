@@ -1,10 +1,10 @@
 ;----------------------------------------------------------------------------
 ;
-; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/signal/sigexec.s,v $
-; $Date: 2001/09/05 16:28:57 $
-; $Revision: 1.3.2.2 $
-; $State: Exp $
-; $Author: admin $
+; $Source$
+; $Date$
+; $Revision$
+; $State$
+; $Author$
 ;
 ;----------------------------------------------------------------------------
 ; signal.s.sigexec: Written by Nick Burrett, 1 September 1996.
@@ -16,8 +16,9 @@
 	; Low level functions used to setup stack frames and call the
 	; signal handler. These are called by __unixlib_setup_sighandler.
 
-	EXPORT	|__unixlib_exec_sig|
 	; Setup a signal handler to execute on the current stack.
+	EXPORT	|__unixlib_exec_sig|
+	NAME	__unixlib_exec_sig
 |__unixlib_exec_sig|
 	MOV	ip, sp
 	STMFD	sp!, {v1, v2, v3, v4, v5, v6, fp, ip, lr, pc}
@@ -34,9 +35,10 @@
 	]
 
 
-	EXPORT	|__unixlib_exec_sigstack|
         ; Execute a signal handler on an alternative stack
 	; (sigaltstack for POSIX).
+	EXPORT	|__unixlib_exec_sigstack|
+	NAME	__unixlib_exec_sigstack
 |__unixlib_exec_sigstack|
 	STMFD	sp!, {a3, a4, v1, v2, v3, v4, v5, v6, sl, fp, ip, lr}
 	; Preserve sp
@@ -58,9 +60,10 @@
 	LDMFD	sp!, {a3, a4, v1, v2, v3, v4, v5, v6, sl, fp, ip, pc}
 	]
 
-	EXPORT	|__unixlib_exec_sigstack_bsd|
 	; Execute a signal handler on an alternative stack
 	; (sigstack for BSD).
+	EXPORT	|__unixlib_exec_sigstack_bsd|
+	NAME	__unixlib_exec_sigstack_bsd
 |__unixlib_exec_sigstack_bsd|
 	STMFD	sp!, {a3, a4, v1, v2, v3, v4, v5, v6, sl, fp, ip, lr}
 	; Preserve sp

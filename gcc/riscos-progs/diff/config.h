@@ -42,10 +42,10 @@
 
 /* Define if the system does not provide POSIX.1 features except
    with this defined.  */
-#undef _POSIX_1_SOURCE
+#define _POSIX_1_SOURCE 1
 
 /* Define if you need to in order for stat and other things to work.  */
-#undef _POSIX_SOURCE
+#define _POSIX_SOURCE 1
 
 /* Define as the return type of signal handlers (int or void).  */
 #define RETSIGTYPE void

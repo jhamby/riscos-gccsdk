@@ -1,22 +1,24 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/sys/timeb.h,v $
- * $Date: 2001/09/14 14:01:17 $
- * $Revision: 1.2.2.1 $
- * $State: Exp $
- * $Author: admin $
+ * $Source$
+ * $Date$
+ * $Revision$
+ * $State$
+ * $Author$
  *
  ***************************************************************************/
 
 #ifndef __SYS_TIMEB_H
 #define __SYS_TIMEB_H 1
 
+#ifndef __UNIXLIB_FEATURES_H
+#include <unixlib/features.h>
+#endif
+
 #define __need_time_t
 #include <time.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+__BEGIN_DECLS
 
 /* Structure returned by the `ftime' function.  */
 
@@ -31,8 +33,6 @@ struct timeb
 /* Fill in TIMEBUF with information about the current time.  */
 extern int ftime (struct timeb *__timebuf);
 
-#ifdef __cplusplus
-}
-#endif
+__END_DECLS
 
 #endif	/* sys/timeb.h */

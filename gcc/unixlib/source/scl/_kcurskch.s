@@ -1,7 +1,7 @@
 ;----------------------------------------------------------------------------
 ;
-; $Source: /usr/local/cvsroot/unixlib/source/scl/s/_kcurskch,v $
-; $Date: 2000/12/21 15:09:13 $
+; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/scl/_kcurskch.s,v $
+; $Date: 2001/01/29 15:10:20 $
 ; $Revision: 1.2 $
 ; $State: Exp $
 ; $Author: admin $
@@ -14,6 +14,7 @@
 
 	; _kernel_stack_chunk *_kernel_current_stack_chunk (void)
 	EXPORT	|_kernel_current_stack_chunk|
+	NAME	_kernel_current_stack_chunk
 |_kernel_current_stack_chunk|
 	SUB	a1, sl, #560
 	LDR	a2, =&F60690FF

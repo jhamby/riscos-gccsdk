@@ -1,9 +1,9 @@
 #include <stdlib.h>
 #include <stdio.h>
-#include <iostream.h>
+#include <iostream>
 
 #ifndef CROSS_COMPILE
-extern "C" void OS_File(int *);
+extern "C" void *OS_File(int *);
 #endif
 
 void writeInt(FILE *a_out,int a_data);

@@ -1,3 +1,430 @@
+Tue Sep 24 14:32:56 2002  Nick Burrett  <nick@dsvr.net>
+
+	* sys/exec.c (execve): Make 2nd and 3rd param char *const [].
+	* sys/execv.c (execv): Make 2nd param char *const [].
+	* sys/execvp.c (execvp): Likewise.
+	* unistd.h (execv, execve, execvp): Fix prototypes accordingly.
+
+Tue Sep 24 13:08:36 2002  Nick Burrett  <nick@dsvr.net>
+
+	* strsignal.c (strsignal): Return a char *, not const char *.
+	* string.h (strsignal): Fix prototype.
+
+Tue Sep 24 13:03:52 2002  Nick Burrett  <nick@dsvr.net>
+
+	* sys/exec.c (execve): Make 3rd param char *const *.
+	* sys/execv.c (execv): Make 2nd param char *const *.
+	* unistd.h (execv, execve): Fix prototypes accordingly.
+
+Tue Sep 24 13:00:22 2002  Nick Burrett  <nick@dsvr.net>
+
+	* unix/proc.c (setegid): Set errno to EPERM on failure.
+
+Tue Sep 24 12:50:37 2002  John Tytgat  <John.Tytgat@aaug.net>
+
+	* strsignal.c (strsignal): strsignal(NSIG) wasn't detected
+	as an error.
+	* signal.h (sys_siglist): const'ify
+	* signal/signame.c (sys_siglist):  Likewise.
+	* signal/_signal.s (__h_error): Using the NAME macro.
+	* sys/_alloca.s (alloca): Added some comments how this
+	works; Added APCS-32 compatibility.
+	* sys/_sigjmp.s (sigsetjmp): No need to save a2 & ip.
+
+Tue Sep 24 12:28:40 2002  Peter Naulls  <peter@chocky.org>
+
+	* netinet/in.h (struct ip_opts): Rename ip_opts to Ip_opts to
+	workaround C++ incompatibility.
+
+	* alloc.c (mmap_chunk): Fix alignment warning.
+	* strcmp.c (strcmp): Retain type consistency.
+	* netdb.h (gethostbyname2): Add prototype.
+	* common/riscosify.c (__riscosify): Fix signed/unsigned comparison.
+	* math/expm1.c (expm1): Fix warnings about uninitialised variables.
+	* stdio/scanf.c (vfscanf): Fix function type usage.
+	* stdio/tmpfile.c (generate_temporary_filename): Fix type consistency.
+	* sys/exec.c (execve): Avoid alignment warning.
+
+Mon Aug 19 12:50:40 2002  John Tytgat  <John.Tytgat@aaug.net>
+
+	* objs/Makefile,fe1: module 'string' dependency was wrong; Made
+	Norcroft C compiler selection the default.
+	* unistd.h: Added missing #endif to fix 18-Aug-2002 19:32:36 change.
+	
+Sun Aug 18 22:19:01 2002  John Tytgat  <John.Tytgat@aaug.net>
+
+	crypt implementation -- derived from glibc 2.2.5.
+	* MKDir: Creating crypt & crypt.o directories.
+	* objs/Makefile,fe1: Added crypt/*; Removed o.fcrypt.
+	* source/Makefile: Likewise.
+	* fcrypt.h: Replaced by a #include <crypt.h>.
+	* stdint.h: Added long long equivalents for Norcroft C.
+	* unixlib/features.h: Added __const, __THROW definitions
+	for Norcroft C.
+	* fcrypt.c: Remove
+	* crypt.h: New file (from glibc 2.2.5)
+	* crypt/crypt.c: New file.
+	* crypt/crypt-entry.c: New file.
+	* crypt/crypt_util.c: New file.
+	* crypt/crypt-private.h: New file.
+	* crypt/ufc-crypt.h: New file.
+	* crypt/md5.c: New file.
+	* crypt/md5-crypt.c: New file.
+	* crypt/md5.h: New file.
+	
+Sun Aug 18 20:54:03 2002  John Tytgat  <John.Tytgat@aaug.net>
+			  Nick Burrett  <nick@dsvr.net>
+
+	Implement __riscosify_control as a WEAK variable.
+	* common/_riscosify.s: New file.
+	* unixlib/local.h (__get_riscosify_control): Add prototype.
+	* common/riscosify.c (__riscosify_std): Use `__get_riscosify_control'
+	rather than `__riscosify_control'.
+	* common/unixify.c (__unixify_std): Likewise.
+	* unix/dev.c (__fsopen): Likewise.
+	* unix/dirent.c (opendir): Likewise.
+	(readdir_r): Likewise.
+	(rewinddir): Likewise.
+	
+Sun Aug 18 19:32:36 2002  Nick Burrett  <nick@dsvr.net>
+
+	* string/swab.c: New file.
+	* unistd.h (swab): Add prototype.
+
+Sun Aug 18 16:15:25 2002  Nick Burrett  <nick@dsvr.net>
+
+	[ BUG 51 ]
+	* All header files: Include <unixlib/features.h>.  Use __BEGIN_DECLS
+	and __END_DECLS for the extern "C" decls.
+	* unix/tty.c (_BSD_SOURCE): Declare.
+	
+Sat Aug 17 13:58:36 2002  Nick Burrett  <nick@dsvr.net>
+
+	* unix/fstat.c (fstat): Fix bad cast.
+
+Sat Aug 17 12:02:23 2002  Nick Burrett  <nick@dsvr.net>
+
+	* netlib/h_errno.c (h_errno): Change type to int. Include netdb.h.
+
+Sat Aug 17 11:59:58 2002  Nick Burrett  <nick@dsvr.net>
+
+	* netdb.h (h_errno): Declare.
+	
+Sat Aug 17 11:58:29 2002  Alex Waugh  <alex@alexwaugh.com>
+
+	* unix/fstat.c (fstat): Return true extent, rather than file
+	allocation size.
+
+Sat Aug 17 11:51:39 2002  Peter Naulls  <peter@chocky.org>
+
+	* unixlib/local.h (__RISCOSIFY_FILETYPE_SET): New macro.
+	(__RISCOSIFY_MASK): Alter accordingly.
+	* common/riscosify.c (__riscosify): Use the MimeMap module
+	to match the filename extension and set the filetype appropriately.
+	* unix/features.c (__runtime_features): Set riscosify default
+	to setting the filetype.
+	* unixlib/swiparams.h (MMM_TYPE_RISCOS): Define.
+	(MMM_TYPE_RISCOS_STRING): Define.
+	(MMM_TYPE_MIME): Define.
+	(MMM_TYPE_DOT_EXTN): Define.
+	* swis.h (MimeMap_Translate): Define.
+
+Mon Aug  5 10:15:40 2002  Peter Naulls  <peter@chocky.org>
+
+	* netlib/_net_error.s (__net_error_simple_entry): Add branch
+	to jump over recent NAME entry.
+
+	* netlib/connect.c (connect): Update debugging code.
+	
+Mon Aug  5 10:09:40 2002  Nick Burrett  <nick@dsvr.net>
+
+	* unix/unix.c (verify_redirection): A space is not permitted between
+	a file descriptor number and a redirection operator.
+
+Mon Aug  5 10:07:11 2002  Peter Naulls  <peter@chocky.org>
+
+	* pwd/pwdread.c (__pwddefault): Fix logic inversion of pwd_inited
+	comparison.
+
+	* unix/fcntl.c (fcntl): Third argument to _sioctl is an address to
+	an argument.
+	
+Wed Jul 31 15:16:14 2002  Nick Burrett  <nick@dsvr.net>
+
+	* unix/unix.c (check_io_redir): Cope with [fd]>>.
+	(get_io_redir): Likewise.
+	
+Fri Jul 26 13:32:38 2002  Nick Burrett  <nick@dsvr.net>
+
+	* stdint.h: Add missing #endif
+	* net/if.h: Set __NET_IF_H rather than __SYS_IF_H.
+
+Fri Jul 26 11:00:15 2002  Nick Burrett  <nick@dsvr.net>
+
+	* stdio/fpos.c (fseek): Set errno to EINVAL if the offset to
+	SEEK_SET is negative, but don't set the stream error.
+	
+Fri Jul 26 10:47:36 2002  Nick Burrett  <nick@dsvr.net>
+
+	* sys/_vfork.s (vfork): No need to save sp around __vfork call.
+	I think it is legacy from the old __vfork implementation.
+
+Fri Jul 26 10:41:47 2002  Peter Naulls  <peter@chocky.org>
+			  Nick Burrett  <nick@dsvr.net>
+
+	* common/stat.c (__stat): If ImageFS is to be treated as a
+	directory, then fudge directory size and set hard links to 2.
+	Otherwise don't fudge directory size and set hard links to 1.
+	
+Fri Jul 26 10:35:30 2002  Alex Waugh  <alex@alexwaugh.com>
+
+	* unix/fcntl.c (fcntl): When F_SETFL is called on a socket,
+	actually alter the behaviour of the socket.
+
+Fri Jul 19 14:19:48 2002  John Tytgat  <John.Tytgat@aaug.net>
+
+	* index.c: #include <strings.h> so that we have header file
+	declaration all exported functions.
+
+Fri Jul 19 14:18:33 2002  John Tytgat  <John.Tytgat@aaug.net>
+
+	* objs/Makefile,fe1: Fixed typo in the Norcroft compiler settings
+
+Fri Jul 19 14:16:30 2002  John Tytgat  <John.Tytgat@aaug.net>
+
+	* stdlib/_rand48.c, drand48.c, erand48.c, jrand48.c, lcong48.c
+          lrand48.c, mrand48.c, nrand48.c, random.c, seed48.c
+          srand48.c: Added RCS style comment header
+	* sys/vfork.c (__vfork): The last environment and argument
+	  vector needs to be NULL.
+
+Fri Jul 19 14:13:45 2002  John Tytgat  <John.Tytgat@aaug.net>
+
+	* objs/Makefile,fe1: Removed o.rand
+	* scl/_kernel.s: declared AREA readonly. Updated comments.
+	* common/_exist.s: Embedding function names
+	* gcccompat/_divdi3.s, _moddi3.s, _udivdi3.s, _umoddi3.s:
+	  Likewise.
+	* math-asm/_acos.s, _asin.s, _atan.s, _atan2.s, _ceil.s
+	  _copysign.s, _cos.s, _cosh.s, _exp.s, _fabs.s, _fclrexcpt.s
+	  _fegetenv.s, _fegetrnd.s, _feholdexc.s, _fesetenv.s, _fesetroun.s
+	  _finite.s, _floor.s, _fraiseexc.s, _fsetexcpt.s, _ftstexcpt.s
+	  _hypot.s, _isinf.s, _isnan.s, _ldexp.s, _log.s, _log10.s, _modf1.s
+	  _pow.s, _signbit.s, _sin.s, _sincos.s, _sinh.s, _sqrt.s, _tan.s
+	  _tanh.s: Likewise.
+	* netlib/_accept.s, _bind.s, _connect.s, _getpeerna.s
+	  _getsockna.s, _getsockop.s, _gettsize.s, _hostbyadd.s, _hostbynam.s
+	  _listen.s, _net_error.s, _readv.s, _recv.s, _recvfrom.s, _recvmsg.s
+	  _sclose.s, _select.s, _send.s, _sendmsg.s, _sendto.s, _sendtosm.s
+	  _setsockop.s, _shutdown.s, _sioctl.s, _socket.s, _sockstat.s
+	  _sread.s, _swrite.s, _writev.s, htonl.s, htons.s, ntohl.s
+	  ntohs.s: Likewise.
+	* scl/_kcurskch.s, _kernel.s, _kgetenv.s, _kosargs.s
+	  _kosbget.s, _kosbput.s, _kosbyte.s, _koscli.s, _kosfile.s
+	  _kosfind.s, _kosgbpb.s, _kosrdch.s, _kosword.s, _koswrch.s
+	  _ksetenv.s, _kswi_c.s: Likewise.
+	* signal/_coredump.s, _signal.s, sigexec.s, printf.s:
+	  Likewise.
+	* sys/_alloca.s, _divsi3.s, _divtest.s, _jmp.s, _mem.s
+	  _mman.s, _modsi3.s, _os.s, _profile.s, _sdiv.s, _sdiv10.s
+	  _sigjmp.s, _smod.s, _swi.s, _syslib.s, _udiv.s, _udiv10.s
+	  _udivsi3.s, _umod.s, _umodsi3.s, _vfork.s: Likewise.
+	* time/_clock.s: Likewise.
+	* unix/getpagesiz.s: Likewise.
+
+Sat Jun 15 13:56:57 2002  Nick Burrett  <nick@dsvr.net>
+
+	* stat/mknod.c: New file.
+	* stat/mkfifo.c: New file.
+	* sys/stat.h (mknod). Add prototype.
+	(mkfifo): Add prototype.
+	
+	* unistd/chown.c: Move here from directory unix to reduce number of
+	files in the directory.
+	* unistd/fchown.c: Likewise.
+	* unistd/link.c: Likewise.
+	* unistd/readlink.c: New file. Function split from link.c
+	* unistd/symlink.c: Likewise.
+	
+Wed Jun 12 15:34:06 2002  Nick Burrett  <nick@dsvr.net>
+
+	* stdlib/rand.c (srand): Call rand, not lrand.
+
+	* stricmp.c: Include strings.h.
+	* strnicmp.c: Include strings.h.
+
+Wed Jun 12 14:34:13 2002  Nick Burrett  <nick@dsvr.net>
+
+	* stdlib/drand48.c: New file.
+	* stdlib/erand48.c: New file.
+	* stdlib/jrand48.c: New file.
+	* stdlib/lcong48.c: New file.
+	* stdlib/lrand48.c: New file.
+	* stdlib/mrand48.c: New file.
+	* stdlib/nrand48.c: New file.
+	* stdlib/_rand48.c: New file.
+	* stdlib/rand48.h: New file.
+	* stdlib/seed48.c: New file.
+	* stdlib/srand48.c: New file.
+
+	* stdlib/rand.c: Moved here from parent directory.  Stripped out
+	the rand48 functions and random and srandom.
+
+	* stdlib/random.c: New file.  A better random number generator.
+
+	* stdlib.h (lrand48, rand, random, srandom): Remove macroised
+	versions of these functions since they are now properly implemented.
+	(initstate): Declare.
+	(setstate): Declare.
+	(drand48): Declare.
+	(erand48): Declare.
+	(lrand48): Declare.
+	(nrand48): Declare.
+	(mrand48): Declare.
+	(jrand48): Declare.
+	(srand48): Declare.
+	(seed48): Declare.
+	(lcong48): Declare.
+
+	* sys/mman.h (MAP_FAILED): Add macro.
+
+Wed Jun 12 12:13:20 2002  Peter Naulls  <peter@chocky.org>
+
+	* Sprites,ff9, Sprites22,ff9: Rename from !unixlib37 to !unixlib.
+
+Mon Jun 10 19:14:37 2002  Stefan Bellon  <sbellon@sbellon.de>
+
+	* unix/dev.c (__fsopen): Fix ImageFS logic inversion.
+
+Mon Jun 10 19:08:39 2002  Peter Naulls  <peter@chocky.org>
+
+	* locale.h (LC_MESSAGES): Define.
+	* locale/localeconv.c (localeconv): Use malloc'ed strings rather
+	than statics.
+	* locale/setlocale.c (locale_names): Add LC_MESSAGES.
+
+Mon Jun 10 17:31:46 2002  Nick Burrett  <nick@dsvr.net>
+
+	* common/stat.c (__feature_imagefs_is_file): Remove extern decl.
+	* unix/dev.c: Likewise.
+	* unixlib/features.h (__feature_imagefs_is_file): Declare here.
+
+Mon Jun 10 13:08:23 2002  Stefan Bellon  <sbellon@sbellon.de>
+
+	* unix/dev.c (__fsopen): Support PipeFS.
+	
+Mon Jun 10 13:01:48 2002  Nick Burrett  <nick@dsvr.net>
+			  Stefan Bellon  <sbellon@sbellon.de>
+
+	* unix/features.c (__feature_imagefs_is_file): Declare.
+	(__runtime_features): Set default to handling Image filesystems
+	as directories.
+	* unix/stat.c (__stat): Allow image filesystems to be treated
+	as a file.
+	* unix/dev.c (__fsopen): Likewise.
+
+Mon Jun 10 12:43:11 2002  Peter Naulls  <peter@chocky.org>
+			  John Tytgat  <John.Tytgat@aaug.net>
+
+	* pwd.h (__pwddefault): Declare.
+	* getpwnam.c (getpwnam): If passwd file cannot be found,
+	then use __pwddefault to supply fake entries.
+	* getpwnam_r.c (getpwnam_r): Likewise.
+	* getpwuid.c (getpwuid): Likewise.
+	* getpwuid_r.c (getpwuid_r): Likewise.
+	* pwdread.c (__pwddefault): New function.
+
+Mon Jun 10 12:32:13 2002  John Tytgat  <John.Tytgat@aaug.net>
+
+	* math/exp.c: Include stdlib.h.
+	* unix/unix.c (__badr): Delete macro.
+	(__unixlib_fatal): Delete macro.
+
+Mon Jun 10 11:01:17 2002  John Tytgat  <John.Tytgat@aaug.net>
+
+	* unix/unix.c (_main): Make a snapshot of `environ' as calls
+	to getenv can change its value, which is considered invalid.
+
+Mon Jun 10 10:56:10 2002  Maarten Bezemer  <veger2002@hotmail.com>
+
+	* stdio/tmpfile.c (tempnam): A logic error prevents `dir' being
+	used as a suitable temporary directory.
+	
+Thu Apr 18 08:39:08 2002  Alex Waugh  <alex@alexwaugh.com>
+
+	* stdio/printf.c (vsnprintf): Honour the length parameter even
+	if it is zero.
+
+Thu Apr 18 08:32:42 2002  John Tytgat  <John.Tytgat@aaug.net>
+
+	* clib/stddef.h: Better protection against multiple includes
+	avoiding the "repeated definition of #define macro xxx" warning
+	from the Norcroft compiler.  Simplified source a bit.
+	* clib/time.h: Likewise.
+	* sys/time.h: Likewise.
+	* sys/uio.h: Removed the unnecessary #include <stdarg.h> and
+	#define __need_size_t.
+
+Wed Apr 03 09:41:27 2002  Nick Burrett  <nick@dsvr.net>
+
+	* netlib/host.c (gethostbyname2): New function.  Move the
+	main work of gethostbyname into here.
+	(gethostbyname): This is implmented in terms of gethostbyname2.
+	
+Wed Apr 03 08:45:18 2002  Peter Naulls  <peter@chocky.org>
+
+	* memcmp.c (memcmp): Fix compiler warnings.
+	* sys/debug.c (__debugval): Likewise.
+	* strncmp.c (strncmp): Likewise.
+	* errno.h (sys_errlist): Constify.
+	* signal.h (sys_siglist): Constify.
+	* stdio.h (sys_errlist): Constify.
+	* time.h (tm_zone): Constify.
+	* signal/signame.c (sys_siglist): Constify.
+	* sys/errlist.c (sys_errlist): Constify.
+	* uname.c (__uname): Return pointer to empty buffer in read/write
+	space.
+	
+Tue Apr 02 20:01:07 2002  Nick Burrett  <nick@dsvr.net>
+
+	* unix/unix.c (verify_redirection): Add logic to cope with
+	file descriptor numbers before redirection operators.
+	(find_redirection_type): Add logic to recognise file descriptor
+	before redirection operators so as to prevent false arguments.
+
+Mon Apr 01 11:27:23 2002  Peter Naulls  <peter@chocky.org>
+
+	* ctype.h (isprint): Fix logic error.
+
+Sat Mar 30 10:09:52 2002  Alex Waugh  <alex@alexwaugh.com>
+
+	* unix/tty.c (__ttyicanon): Don't set error if EOF is encountered.
+
+Sat Mar 30 10:00:52 2002  Alex Waugh  <alex@alexwaugh.com>
+
+	* sys/_jmp.s: Fix APCS-32 typo.
+
+Sat Mar 30 10:00:52 2002  John Tytgat  <John.Tytgat@aaug.net>
+
+	* unistd.h (ualarm): Declare. 
+	(usleep): return type is now 'int'. 
+	* signal/sleep.c: Added GNU LGPL.
+	(sleep_int): Created, this gets	used by `sleep' and `usleep'.
+	`usleep' works now with a 1/100th sec resolution instead of 1 sec. 
+	* sys/alarm.c: Added GNU LGPL.
+	(alarm): Synced implementation with GNU C Lib.
+	(ualarm): Added. 
+	* time/setitmr.c (setitimer): Changed invalid parameter test 
+
+	* unixlib/features.h: Clean up Norcroft compiler warnings. 
+
+Sat Mar 30 09:37:00 2002  Theo Markettos  <theo@markettos.org.uk>
+
+	* unistd/chroot.c: New file.  Stub function.
+	* unistd/getpass.c: New file.
+	* unistd.h (chroot): Declare.
+	(getpass): Declare.
+
 Mon Feb 11 13:15:03 2002  Alex Waugh  <alex@alexwaugh.com>
 
 	* strtol.c (strtol): Correctly detect when the string supplied

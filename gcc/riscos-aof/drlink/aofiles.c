@@ -25,7 +25,7 @@
 
 typedef struct newhead {
   int headhash;				/* Hashed version of area name */
-  char *headname;			/* Pointer to name of area */
+  const char *headname;			/* Pointer to name of area */
   unsigned int headattr;		/* Area's attributes */
   struct newhead *headflink;		/* Next area in list */
 } newhead;
@@ -39,7 +39,7 @@ typedef struct newsymt {
  } newsymt;
 
 typedef struct strtentry {
-  char *strtname;			/* Pointer to name */
+  const char *strtname;			/* Pointer to name */
   int strthash;				/* Name's hash value */
   unsigned int strtoffset;		/* Name's offset within the OBJ_STRT chunk */
   struct strtentry *strtnext;		/* Next entry in order of creation */
@@ -77,7 +77,7 @@ static newhead *headlist, *headlast;
 /*
 ** 'init_aofile' initialises things concerning the AOF file
 */
-void init_aofile(void) {
+static void init_aofile(void) {
   int n;
   head_start = head_size = 0;
   area_start = area_size = 0;
@@ -104,7 +104,7 @@ void init_aofile(void) {
 ** they are linked together in the order they are created for when
 ** the actual OBJ_STRT is built.
 */
-static unsigned int addto_strt(char *name) {
+static unsigned int addto_strt(const char *name) {
   strtentry *p;
   int hashval;
   hashval = hash(name);
@@ -182,7 +182,7 @@ static void reloc_aofarlist(arealist *ap) {
 ** It also calculates the size of the new OBJ_HEAD chunk as
 ** this is known at this point.
 */
-static void reloc_aofareas() {
+static void reloc_aofareas(void) {
   reloc_aofarlist(rocodelist);
   reloc_aofarlist(rodatalist);
   reloc_aofarlist(rwcodelist);
@@ -200,7 +200,7 @@ unsigned int find_areaindex(arealist *ap) {
   newhead *hp;
   unsigned int index;
   int hash;
-  char *name;
+  const char *name;
   unsigned int attr;
   name = ap->arname;
   attr = ap->aratattr;

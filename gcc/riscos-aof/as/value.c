@@ -15,6 +15,7 @@
 #include "value.h"
 #include "code.h"
 #include "error.h"
+#include "os.h"
 
 /* Code demands at least one Lateinfo */
 Value valueLateToCode(int offset,LateInfo *late)
@@ -104,7 +105,7 @@ Value valueCopy(Value value)
   return value;
 }
 
-void valueFree(Value value)
+static void valueFree(Value value)
 {
   switch(value.Tag.t) {
     case ValueIllegal:

@@ -1,0 +1,96 @@
+!Clib - The Shared C Library Header Files
+=========================================
+
+This directory contains the necessary header files and object file to
+enable programs to use the SharedCLibrary module.
+
+This library is release 1.06 and is Copyright (c) 1997-1999 Nick Burrett
+
+!Clib is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+
+NOTE: THIS VERSION OF !CLIB IS A SNAPSHOT OF A WORK IN PROGRESS TO
+EXTEND THE CAPABILITIES, ALLOWING THE C++ LIBRARIES TO BE COMPILED
+AGAINST IT.
+
+Files
+-----
+
+All header files are accessible through the path C: or Clib:
+
+All programs must additionally link with the Acorn Object Format (AOF)
+file C:o.stubs (or clib:o.stubs).
+
+
+Installation
+------------
+
+Copy the directory !clib somewhere on your hard disc. Double-clicking on it
+will setup the necessary paths, ready for use.
+
+With a slight modification, this library can be used with Easy C and Acorn C.
+To do this, you need to obtain the stdarg.h and varargs.h header files
+appropriate to your compiler and copy them into !clib.h.stdarg and
+!clib.h.varargs. You must also copy the definition of va_list and put it
+towards the start of !clib.h.stdio, renaming va_list to __va_list.
+
+Using the SharedCLibrary library
+--------------------------------
+
+For general use, all that is needed is an extra command line option to GCC:
+  -mstubs
+This will force GCC to search the GCC: and C: paths instead of the usual
+GCC: and Unix: paths.
+
+The library to link against is c:o.stubs
+
+The following commands will compile the file c.hellow:
+  *gcc -c c.hellow -O2 -mstubs
+  *drlink -o hellow o.hellow gcc:o.libgcc c:o.stubs
+
+If you use LD, then add '-Lc: -lstubs' to the command line.
+
+Alternatively, let gcc handle the linking as well:
+  *gcc c.hellow -O2 -mstubs -o hellow
+
+Filename translation for the Shared C Library
+---------------------------------------------
+             
+The Shared C Library does not benefit from UnixLib's filename translation
+code. However, defining the symbol __UNAME before you include stdio.h will
+cause remove(), rename(), fopen() and freopen() to use the UnixLib filename
+translation code on the filenames supplied as arguments to those functions.
+
+See the GCC and UnixLib documentation for instructions on how to use the
+filename translation code, especially the fancy options. Much information is
+given in the source, uname.c, provided, which is a hacked version of that
+supplied with UnixLib.
+
+Thanks go to Reuben Thomas for the effort here.
+
+
+Known problems with the filename translation code
+-------------------------------------------------
+
+If you use command-line redirection of stdin and stdout, the filenames used
+for redirection are not translated. If this is important, use UnixLib.
+
+Directories are not automatically created, so if a file called "junk.o" is
+opened when its parent directory does not have a subdirectory called "o" the
+attempt will fail.
+
+
+SharedCLibrary and the CallASWI module
+--------------------------------------
+
+Code linked for execution with the SharedCLibrary will not need to have the
+CallASWI module distributed with it.
+
+
+Contacting me
+-------------
+
+If you require help, have found a bug or want some funky Unix C library
+feature added, then please e-mail me at nick@dsvr.net.

@@ -161,7 +161,7 @@ static arealist
   *areablock;			/* Memory allocated to hold arealist structures */
 
 typedef struct arealimits {
-    char *areaname;		/* Ptr to name of area */
+    const char *areaname;	/* Ptr to name of area */
     int areahash;		/* Hashed area name */
     symtentry *areabase;	/* Pointer to SYMT entry of area's 'base' symbol */
     symtentry *arealimit;	/* Pointer to SYMT entry of area's 'limit' symbol */
@@ -315,7 +315,7 @@ static arealist *check_commonref(filelist *fp, areaentry *aep, unsigned int atat
   return ap;
 }
 
-static char *make_name(char *s1, char *s2) {
+static char *make_name(const char *s1, const char *s2) {
   char *p;
   if ((p = allocmem(strlen(s1)+strlen(s2)+sizeof(char)))==NIL) {
     error("Fatal: Out of memory in 'make_name'");
@@ -333,7 +333,7 @@ static char *make_name(char *s1, char *s2) {
 static void list_attributes(arealist *ap) {
   char text[MSGBUFLEN];
   unsigned int attr, count, n;
-  struct {unsigned int atmask; char *atname;} attributes[] = {
+  struct {unsigned int atmask; const char *atname;} attributes[] = {
     {ATT_ABSOL,  "Absolute"},
     {ATT_CODE,   "Code"}   ,
     {ATT_COMDEF, "Common definition"},
@@ -389,7 +389,7 @@ static void list_attributes(arealist *ap) {
 static void insert_area(arealist **list, arealist **lastentry, arealist *newarea) {
   int compres, lastres;
   arealist *ap, *lastarea;
-  char *name;
+  const char *name;
   arealimits *lp;
   lastarea = NIL;
   name = newarea->arname;
@@ -538,7 +538,7 @@ static arealist *add_newarea(filelist *fp, areaentry *aep, unsigned int atattr, 
 ** block that is referenced only by an entry in the OBJ_SYMT chunk with the
 ** 'common' attribute set. It returns a pointer to the structure created
 */
-static arealist *add_commonarea(char *name, unsigned int size) {
+static arealist *add_commonarea(const char *name, unsigned int size) {
   arealist *ap;
   ap = allocmem(sizeof(arealist));
   if (ap==NIL) error("Fatal: Out of memory in 'add_commonarea'");
@@ -653,7 +653,7 @@ void free_srchlist(void) {
 ** files
 */
 bool scan_head(filelist *fp) {
-  arealist *ap;		/* Points at arealist entry created for entry being checked */
+  arealist *ap = NULL;  /* Points at arealist entry created for entry being checked */
   objheadhdr *ahp;	/* Points at OBJ_HEAD chunk of file */
   areaentry
    *aep,			/* Points at OBJ_HEAD entry being checked */
@@ -774,22 +774,20 @@ bool scan_head(filelist *fp) {
         }
       }
     }
-    if (ok) {
-      if (ap!=NIL) {
-	aep->arlast.arlptr = ap;
-	add_srchlist(ap);
-	if (firstarea==NIL) firstarea = ap;
+    if (ap!=NIL) {
+      aep->arlast.arlptr = ap;
+      add_srchlist(ap);
+      if (firstarea==NIL) firstarea = ap;
+    }
+    if (areaco==entryareanum) {
+      if (entryarea!=NIL) {
+        error("Error: Program has multiple entry points");
       }
-      if (areaco==entryareanum) {
-	if (entryarea!=NIL) {
-	  error("Error: Program has multiple entry points");
-	}
-	else {
-	  if ((atattr & ATT_CODE)==0) {
-	    error("Warning: Entry point for program in '%s' is in a data area, not code", fp->chfilename);
-	  }
-	  entryarea = ap;
-	}
+      else {
+        if ((atattr & ATT_CODE)==0) {
+          error("Warning: Entry point for program in '%s' is in a data area, not code", fp->chfilename);
+        }
+        entryarea = ap;
       }
     }
     aep++;
@@ -842,7 +840,7 @@ void check_strongrefs(filelist *fp) {
   relocation *rp;		/* Points at entry in relocation part of OBJ_AREA chunk */
   symtentry *stp;		/* Points at entry in OBJ_SYMT chunk */
   symbol *sp;
-  int refcount, i, j, reltype;
+  unsigned int refcount, i, j, reltype;
   refcount = 0;
   ap = &fp->objheadptr->firstarea;
   rp = COERCE(fp->objareaptr, relocation*);
@@ -1074,7 +1072,7 @@ void find_unused(void) {
 static void fillin_limits(arealist *firstarea, arealist *lastarea) {
   arealimits *p;
   int hashval;
-  char *name;
+  const char *name;
   hashval = firstarea->arhash;
   name = firstarea->arname;
   p = arlimlist;
@@ -1428,7 +1426,7 @@ static void fixup_type1(unsigned int reltypesym, unsigned int *relplace) {
 */
 static void fixup_type2(unsigned int reltypesym, unsigned int *relplace) {
   unsigned int reltype, relvalue, symtindex;
-  symtentry *sp;
+  symtentry *sp = NULL;
   arealist *ap;
   reltype = get_type2_type(reltypesym);
   if ((reltype & REL_SYM)!=0) {	/* Symbol relocation */
@@ -1467,9 +1465,38 @@ static void fixup_type2(unsigned int reltypesym, unsigned int *relplace) {
     }
   }
   if ((reltype & REL_PC)!=0) {	/* PC-relative relocation */
-    if ((reltype & REL_BASED)!=0) {	/* PC-relative and based. Defined, but I don't know what it means */
-      error("Error: PC-relative based relocations (found in area '%s' in '%s') are not supported",
+    /* From Linker document :
+     *
+     * If R is 1, B is usually 0.  A B value of 1 is used to denote that the
+     * inter-link-unit value of a branch destination is to be used, rather than
+     * the more usual intra-link-unit value.
+     */
+    if ((reltype & REL_BASED)!=0) {
+      /* PC-relative and based - relocate using the inter-link-unit,
+	 not intra-link unit */
+
+      /* We need to check that the destination is a leaf or not.
+       * If it is a leaf, then we branch to its start; otherwise we branch to
+       * start + 4 :
+       *  Bit 11 is the Simple Leaf Function attribute which is meaningful
+       *  only if this symbol defines the entry point of a sufficiently
+       *  simple leaf function (a leaf function is one which calls no other
+       *  function).  For a reentrant leaf function it denotes that the
+       *  function's inter-link-unit entry point is the same as its
+       *  intra-link-unit entry point.
+       */
+      printf("PC-relative and based in area '%s' in '%s' to offset &%x\n", current_area->arname, current_file->chfilename, relvalue);
+      if ((reltype & REL_SYM) == 0) {
+        /* I don't know what to do if it's not symbol based; I can't look at
+         * the symbol to check how to re-link it; this is (AFAICT) undefined.
+         */
+        error("Error: PC-relative, reentrant linkage of non-symbol data in area '%s' in '%s'",
        current_area->arname, current_file->chfilename);
+        return;
+      }
+      if ((sp->symtattr & SYM_LEAF) == 0)
+        relvalue+=4; /* Use inter-link entry point */
+      fixup_pcrelative(relplace, TYPE_2, relvalue);
     }
     else {
       fixup_pcrelative(relplace, TYPE_2, relvalue);
@@ -1551,12 +1578,34 @@ void check_entryarea(void) {
     entryoffset = 0;
     error("Warning: Program has no entry point. Default of first executable instruction assumed");
   }
-  noheader = imagetype==RMOD
-             || (imagetype==BIN && entryarea==rocodelist)
-	     || (rodatalist==NIL
-		 && rwcodelist==entryarea
-		 && entryoffset==0)
-             || opt_codebase;
+
+  /* Default to suggesting that the program requires a standard
+   * AIF or Binary header.
+   */
+  noheader = 0;
+
+  /* Relocatable modules do not have a standard header.  */
+  if (imagetype==RMOD)
+    noheader = 1;
+
+  /* Images where the user has supplied a base address do not have
+   * a standard header.
+   */
+  if (imagetype==opt_codebase)
+    noheader = 1;
+
+  /* Both AIF and Binary (BIN) images can have headers.
+   *
+   * In the case of binary images, if the user explicitly set an ENTRY
+   * attribute on either a read-only or a read-write CODE AREA, then we
+   * drop the standard binary header and therefore assume that the
+   * user knows better.
+   */
+  if (imagetype==BIN
+      && (entryarea==rocodelist
+	  || (rodatalist==NIL && entryarea==rwcodelist))
+      && entryoffset==0)
+    noheader = 1;
 }
 
 /*
@@ -1624,7 +1673,7 @@ static void write_reloc(arealist *ap) {
 ** 'write_areareloc' builds and writes the relocation information for
 ** each area in the area list passed to it
 */
-void write_areareloc(arealist *ap) {
+static void write_areareloc(arealist *ap) {
   while (ap!=NIL) {
     if (ap->arnumrelocs!=0) write_reloc(ap);
     ap = ap->arflink;
@@ -1663,8 +1712,14 @@ static void write_relocinfo(void) {
 */
 
 /*
-** 'alter_area_offset' is called to change the offset within an
-** instruction (or word of data) used in a type-2 relocation.
+** 'alter_area_offset' is called to change the offset within an instruction
+** (or word of data) used in a type-2 relocation. Note that this code has been
+** modified to handle the case where a type-2 relocation that refers to code
+** has the 'relocate word' attribute. With AOF 3, it should have a 'code'
+** attribute but it looks as if earlier versions of AOF did not make the
+** distinction. What is used to decide whether we are dealing with code or
+** data is the type of relocation. If it is PC-relative then it is assumed
+** to refer to code.
 */
 static void alter_area_offset(relocation *rp) {
   unsigned int inst, reltype, offset;
@@ -1679,7 +1734,7 @@ static void alter_area_offset(relocation *rp) {
   reltype = get_type2_type(rp->reltypesym);	/* Assume type-2 relocation */
   relplace = COERCE(COERCE(areastart, char *)+offset, unsigned int *);
   inst = *relplace;
-  if ((reltype & FTMASK)==REL_SEQ) {	/* Relocate instructions */
+  if ((reltype & FTMASK)==REL_SEQ || (reltype & (FTMASK|REL_PC))==(REL_WORD|REL_PC)) {	/* Relocate instructions */
     if ((inst & INSTMASK)==IN_LDRSTR) {	/* LDR/STR */
       addr = inst & IN_OFFMASK;
       if ((inst & IN_POSOFF)==0) addr = -addr;
@@ -1688,7 +1743,7 @@ static void alter_area_offset(relocation *rp) {
         flag_badreloc(relplace);
       }
       else {
-        *relplace = (inst & LDST_MASK) | (addr<0 ? -addr : (addr | IN_POSOFF));
+        *relplace = (inst & LDST_MASK) | (addr<0 ? -addr : addr | IN_POSOFF);
       }
     }
     else if ((inst & INSTMASK)==IN_DATAPRO) {		/* Data processing instruction */
@@ -1947,6 +2002,8 @@ static void alter_reloc(relocation *rp, relaction t2type) {
     break;
   case TYPE2_AP: /* Area, PC-rel */
     flags = flags & (REL_AOFMASK | REL_PC);
+  default:
+    break;
   }
   rp->reltypesym = flags<<24 | REL_TYPE2 | sid;
 }
@@ -1998,6 +2055,8 @@ static void fixup_reloclist(arealist *ap) {
           break;
         case TYPE2_RP:	/* Cannot do relocation, but modify offset in instruction */
           alter_area_offset(rp);
+        default:
+          break;
         }
         rp++;
       }
@@ -2074,7 +2133,7 @@ void create_image(void) {
 ** 'print_arealist' is called to list the areas in an image file of a
 ** particular type, that is, read-only code, read/write code and so forth
 */
-static void print_arealist(char *areaclass, arealist *ap) {
+static void print_arealist(const char *areaclass, arealist *ap) {
   unsigned int offset;
   char text[MSGBUFLEN];
   offset = (imagetype==RMOD ? progbase : 0);
@@ -2119,7 +2178,7 @@ void print_areamap(void) {
 ** from the image file as there were no references to them
 */
 static void list_unused(arealist *ap, bool findsymbol) {
-  char *symname;
+  const char *symname;
   char text[MSGBUFLEN];
   while (ap!=NIL) {
     if (ap->arefcount==0) {

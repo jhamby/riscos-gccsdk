@@ -1,0 +1,4 @@
+Set Clib$Dir <Obey$Dir>
+Set Clib$Path <Clib$Dir>.
+Set C$Path <Clib$Dir>.
+IconSprites <Obey$Dir>.!Sprites

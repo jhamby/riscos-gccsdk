@@ -1,8 +1,8 @@
 ;----------------------------------------------------------------------------
 ;
-; $Source: /usr/local/cvsroot/unixlib/source/time/s/_clock,v $
-; $Date: 2000/12/21 15:09:13 $
-; $Revision: 1.3 $
+; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/time/_clock.s,v $
+; $Date: 2001/01/29 15:10:22 $
+; $Revision: 1.2 $
 ; $State: Exp $
 ; $Author: admin $
 ;
@@ -16,6 +16,7 @@
 	; Return the elapsed processor time. The base time is
 	; arbitary, but doesn't change.
 	EXPORT	clock
+	NAME	clock
 clock
 	SWI	XOS_ReadMonotonicTime
 	return	AL, pc, lr

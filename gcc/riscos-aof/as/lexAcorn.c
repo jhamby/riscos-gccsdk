@@ -10,11 +10,10 @@
 #include <inttypes.h>
 #endif
 
+#include "main.h"
 #include "lex.h"
 #include "input.h"
 #include "decode.h"
-
-extern int apcs_32bit, objasm;		/* c.main */
 
 #define FINISH_STR(string,Op,Pri) \
   if(notinput(string)) goto illegal; \
@@ -69,7 +68,7 @@ lexAcornUnop (Lex * lex)
     case 's':
       FINISH_STR ("tr:", Op_str, 10);
     default:
-    illegal:if (lex);
+    illegal:;
     }
   lex->tag = LexNone;
   return 0;
@@ -140,7 +139,7 @@ lexAcornBinop (Lex * lex)
 	}
       break;
     default:
-    illegal:if (lex);
+    illegal:;
     }
   lex->tag = LexNone;
   return 0;
@@ -179,7 +178,7 @@ lexAcornPrim (Lex * lex)
       lex->tag = LexStorage;
       return 1;
     default:
-    illegal:if (lex);
+    illegal:;
     }
   lex->tag = LexNone;
   return 0;

@@ -1,10 +1,10 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/sys/socket.h,v $
- * $Date: 2001/09/14 14:01:17 $
- * $Revision: 1.2.2.1 $
- * $State: Exp $
- * $Author: admin $
+ * $Source$
+ * $Date$
+ * $Revision$
+ * $State$
+ * $Author$
  *
  ***************************************************************************/
 
@@ -48,6 +48,10 @@
 
 /* Freenet programmers interface - sys/socket.h - edit by andy 23/5/95 */
 
+#ifndef __UNIXLIB_FEATURES_H
+#include <unixlib/features.h>
+#endif
+
 #ifndef __UNIXLIB_TYPES_H
 #include <unixlib/types.h>
 #endif
@@ -68,9 +72,7 @@ typedef __socklen_t socklen_t;
 /* POSIX.1g specifies this type name for the `sa_family' member.  */
 typedef unsigned short int sa_family_t;
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+__BEGIN_DECLS
 
 /*
  * Definitions related to sockets: types, address families, options.
@@ -313,8 +315,6 @@ extern int _getsockopt (int __s, int __level, int __optname,
 extern int _getsockname (int __s, struct sockaddr *__name, int *__namelen);
 extern int _getpeername (int __s, struct sockaddr *__name, int *__namelen);
 
-#ifdef __cplusplus
-}
-#endif
+__END_DECLS
 
 #endif /* socket.h */

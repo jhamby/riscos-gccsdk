@@ -1,10 +1,10 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/sys/select.h,v $
- * $Date: 2001/09/14 14:01:17 $
- * $Revision: 1.2.2.1 $
- * $State: Exp $
- * $Author: admin $
+ * $Source$
+ * $Date$
+ * $Revision$
+ * $State$
+ * $Author$
  *
  ***************************************************************************/
 
@@ -12,6 +12,10 @@
 
 #ifndef __SYS_SELECT_H
 #define __SYS_SELECT_H
+
+#ifndef __UNIXLIB_FEATURES_H
+#include <unixlib/features.h>
+#endif
 
 #ifndef __UNIXLIB_TYPES_H
 #include <unixlib/types.h>
@@ -23,9 +27,7 @@
 #define __need_timespec
 #include <time.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+__BEGIN_DECLS
 
 /* Number of descriptors that can fit in an `fd_set'.  */
 #define	FD_SETSIZE	256
@@ -74,9 +76,6 @@ int _select (int __nfds, __fd_set *__readfds, __fd_set *__writefds,
 	     __fd_set *__exceptfds, const struct timeval *__timeout);
 #endif  /* __UNIXLIB_INTERNALS */
 
-
-#ifdef __cplusplus
-}
-#endif
+__END_DECLS
 
 #endif

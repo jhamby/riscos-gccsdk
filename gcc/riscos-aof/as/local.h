@@ -11,7 +11,7 @@
 #endif
 
 extern int rout_lblno[100];
-extern char *rout_id;
+extern const char *rout_id;
 
 extern const char localFormat[];
 extern int localCurrent;

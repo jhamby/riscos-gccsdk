@@ -13,6 +13,7 @@
 #include <unistd.h>
 #endif
 
+#include "include.h"
 #include "uname.h"
 
 extern int dde;

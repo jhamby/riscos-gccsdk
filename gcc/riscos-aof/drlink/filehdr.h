@@ -87,7 +87,9 @@ extern FILE
 
 extern char
    *symbolname,				/* Pointer to name of symbol file */
-   *mapfilename,			/* Pointer to name of map file */
+   *mapfilename;			/* Pointer to name of map file */
+
+extern const char
    *imagename;				/* Pointer to name of linker output file */
 
 extern bool

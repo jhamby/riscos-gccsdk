@@ -50,7 +50,7 @@ void Library::build()
  m_data.putInt(members);
 
  // Number of used chunks
- m_data.putInt(members - 1);
+ m_data.putInt(members);
 
  // Get current timestamp
  m_time->set();

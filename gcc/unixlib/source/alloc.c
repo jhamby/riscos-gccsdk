@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/alloc.c,v $
- * $Date: 2002/02/07 10:19:30 $
- * $Revision: 1.2.2.2 $
- * $State: Exp $
- * $Author: admin $
+ * $Source$
+ * $Date$
+ * $Revision$
+ * $State$
+ * $Author$
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: alloc.c,v 1.2.2.2 2002/02/07 10:19:30 admin Exp $: alloc,v 1.4 1996/12/29 21:47:10 unixlib Exp $";
+static const char rcs_id[] = "$Id$: alloc,v 1.4 1996/12/29 21:47:10 unixlib Exp $";
 #endif
 
 /* #define DEBUG 1 */
@@ -1828,8 +1828,8 @@ static mchunkptr mmap_chunk(size) size_t size;
   size = (size + SIZE_SZ + page_mask) & ~page_mask;
 
 #ifdef MAP_ANONYMOUS
-  p = (mchunkptr)mmap(0, size, PROT_READ|PROT_WRITE,
-		      MAP_PRIVATE|MAP_ANONYMOUS, -1, 0);
+  p = (mchunkptr) (void *) mmap(0, size, PROT_READ|PROT_WRITE,
+				MAP_PRIVATE|MAP_ANONYMOUS, -1, 0);
 #else /* !MAP_ANONYMOUS */
   if (fd < 0)
   {

@@ -126,4 +126,11 @@ Lex lexGetBinop (void);
 int lexNextPri (void);
 
 Lex lexTempLabel (char *, int);
+
+
+extern int lexAcornBinop (Lex * lex);
+extern int lexAcornUnop (Lex * lex);
+extern int lexAcornPrim (Lex * lex);
+
+
 #endif

@@ -4,14 +4,14 @@
 #include <stdio.h>
 #include <time.h>
 #include <sys/stat.h>
-#include <iostream.h>
+#include <iostream>
 #include "BString.h"
 #include "Buffer.h"
 
 #ifndef CROSS_COMPILE
-extern "C" void OS_File(int *);
-extern "C" void OS_Word(int, int);
-extern "C" void OS_ConvertDataAndTime(int *);
+extern "C" void *OS_File(int *);
+extern "C" void *OS_Word(int, int);
+extern "C" void *OS_ConvertDataAndTime(int *);
 #endif
 
 class TimeStamp

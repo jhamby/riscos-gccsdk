@@ -1,15 +1,21 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/machine/ieee754.h,v $
- * $Date: 2002/02/07 10:19:30 $
- * $Revision: 1.2.2.1 $
- * $State: Exp $
- * $Author: admin $
+ * $Source$
+ * $Date$
+ * $Revision$
+ * $State$
+ * $Author$
  *
  ***************************************************************************/
 
 #ifndef __MACHINE_IEEE754_H
 #define __MACHINE_IEEE754_H 1
+
+#ifndef __UNIXLIB_FEATURES_H
+#include <unixlib/features.h>
+#endif
+
+__BEGIN_DECLS
 
 union ieee754_float
   {
@@ -93,7 +99,8 @@ union ieee854_long_double
 #define IEEE854_LONG_DOUBLE_BIAS 0x3fff
 
 
-double __ieee754_exp (double x);
+extern double __ieee754_exp (double __x);
 
+__END_DECLS
 
 #endif

@@ -1,18 +1,21 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/c/rand,v $
- * $Date: 1997/10/09 19:59:40 $
- * $Revision: 1.4 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/stdlib/Attic/rand.c,v $
+ * $Date: 2002/06/12 14:34:19 $
+ * $Revision: 1.1.2.2 $
  * $State: Exp $
- * $Author: unixlib $
+ * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: rand,v 1.4 1997/10/09 19:59:40 unixlib Exp $";
+static const char rcs_id[] = "$Id: rand.c,v 1.1.2.2 2002/06/12 14:34:19 admin Exp $";
 #endif
 
 #include <stdlib.h>
+
+/* This is a BAD random number generator.  Use the random functions
+   instead.  */
 
 static unsigned long __state[32] =
 {
@@ -26,26 +29,24 @@ static unsigned long __state[32] =
 static int __st1 = 0, __st2 = 3;
 
 void
-srand (register long seed)
-
+srand (long seed)
 {
-  register int i;
+  int i;
 
   for (i = 0; i < 32; i++)
     seed = __state[i] = (seed * 1103515245 + 12345);
   __st1 = 0;
   __st2 = 3;
-  for (i = 0; i < ((lrand () ^ seed) & 255); i++);
-  for (i = 0; i < ((lrand () ^ seed) & 255); i++)
-    lrand ();
+  for (i = 0; i < ((rand () ^ seed) & 255); i++);
+  for (i = 0; i < ((rand () ^ seed) & 255); i++)
+    rand ();
 }
 
-long
-lrand (void)
-
+int
+rand (void)
 {
-  register long i, j;
-  register int k, l;
+  long i, j;
+  int k, l;
 
   i = *((long *) (__state + (k = __st1)));
   j = *((long *) (__state + (l = __st2)));
@@ -55,39 +56,4 @@ lrand (void)
   __st1 = (k + 1) & 31;
   __st2 = (l + 1) & 31;
   return ((i >> 1) & RAND_MAX);
-}
-
-int
-  (rand) (void)
-
-{
-  return (rand ());
-}
-
-void
-  (srand48) (register long seed)
-
-{
-  srand48 (seed);
-}
-
-long
-  (lrand48) (void)
-
-{
-  return (lrand48 ());
-}
-
-void
-  (srandom) (register long seed)
-
-{
-  srandom (seed);
-}
-
-long
-  (random) (void)
-
-{
-  return (random ());
 }

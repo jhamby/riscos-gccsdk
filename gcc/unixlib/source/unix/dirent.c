@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/dirent.c,v $
- * $Date: 2002/02/07 10:29:19 $
- * $Revision: 1.2.2.4 $
- * $State: Exp $
- * $Author: admin $
+ * $Source$
+ * $Date$
+ * $Revision$
+ * $State$
+ * $Author$
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: dirent.c,v 1.2.2.4 2002/02/07 10:29:19 admin Exp $";
+static const char rcs_id[] = "$Id$";
 #endif
 
 /* #define DEBUG */
@@ -208,7 +208,7 @@ opendir (const char *ux_name)
    * & __RISCOSIFY_NO_REVERSE_SUFFIX is clear, then we're about to enum
    * a dir which doesn't really exist from the unix point of view.
    */
-  if (!(__riscosify_control & __RISCOSIFY_NO_REVERSE_SUFFIX))
+  if (!(__get_riscosify_control () & __RISCOSIFY_NO_REVERSE_SUFFIX))
     {
       const char *leafname, *i;
 
@@ -231,8 +231,9 @@ opendir (const char *ux_name)
     }
 
   /* Get a new DIR stream.  */
-  stream = newstream (name, (__riscosify_control & __RISCOSIFY_NO_PROCESS)
-  	   	      	    ? GBPB_START_ENUM : GBPB_FAKE_CURRENTDIR);
+  stream = newstream (name,
+		      (__get_riscosify_control () & __RISCOSIFY_NO_PROCESS)
+		      ? GBPB_START_ENUM : GBPB_FAKE_CURRENTDIR);
   /* stream = NULL when newstream() failed. */
 
   return stream;
@@ -247,6 +248,7 @@ readdir_r (DIR *stream, struct dirent *entry, struct dirent **result)
   int regs[10];
   int x = 0, slen;
   char *str;
+  int riscosify_ctl = __get_riscosify_control ();
 
   *result = NULL;
 
@@ -286,7 +288,7 @@ readdir_r (DIR *stream, struct dirent *entry, struct dirent **result)
               /* When __RISCOSIFY_FILETYPE_EXT is set in __riscosify_control,
                  map <filename,xyz> to <filename>.d_name,xyz with xyz a
                  valid hex number. */
-              if ((__riscosify_control & __RISCOSIFY_FILETYPE_EXT)
+              if ((riscosify_ctl & __RISCOSIFY_FILETYPE_EXT)
                   && sresult->d_namlen > sizeof(",xyz")-1
                   && sresult->d_name[sresult->d_namlen - 4] == ','
                   && isxdigit (x = sresult->d_name[sresult->d_namlen - 3])
@@ -433,7 +435,7 @@ readdir_r (DIR *stream, struct dirent *entry, struct dirent **result)
       	       stream->dir_cache_index->obj_name, entry);
 #endif
       /* Copy name direct if flag is set.  */
-      if (__riscosify_control & __RISCOSIFY_NO_PROCESS)
+      if (riscosify_ctl & __RISCOSIFY_NO_PROCESS)
         {
           str = stpcpy (entry->d_name, stream->dir_cache_index->obj_name);
           slen = (offsetof (__os_gbpb_10, obj_name)
@@ -462,7 +464,7 @@ readdir_r (DIR *stream, struct dirent *entry, struct dirent **result)
 
           /* Need to add filetype extension (only for straight files not
              for directories nor image files) ? */
-          if ((__riscosify_control & __RISCOSIFY_FILETYPE_EXT)
+          if ((riscosify_ctl & __RISCOSIFY_FILETYPE_EXT)
               && stream->dir_cache_index->obj_type == 1
               && (stream->dir_cache_index->load_address & 0xfff00000U) == 0xfff00000U)
             {
@@ -498,11 +500,11 @@ readdir_r (DIR *stream, struct dirent *entry, struct dirent **result)
 
 #ifdef DEBUG
       fprintf (stderr, "reverse suffix %d, obj_type %d, d_name '%s'\n",
-      	       !(__riscosify_control & __RISCOSIFY_NO_REVERSE_SUFFIX),
+      	       !(riscosify_ctl & __RISCOSIFY_NO_REVERSE_SUFFIX),
       	       entry->d_type == DT_DIR, entry->d_name);
 #endif
       /* Check for reverse suffix dir swapping */
-      if (!(__riscosify_control & __RISCOSIFY_NO_REVERSE_SUFFIX)
+      if (!(riscosify_ctl & __RISCOSIFY_NO_REVERSE_SUFFIX)
           && entry->d_type == DT_DIR
           && __sfixfind (entry->d_name))
         {
@@ -630,7 +632,7 @@ rewinddir (DIR *stream)
 
       stream->dd_suf_off = GBPB_START_ENUM;
       stream->dd_off = stream->gbpb_off
-      	      = (__riscosify_control & __RISCOSIFY_NO_PROCESS)
+      	      = (__get_riscosify_control () & __RISCOSIFY_NO_PROCESS)
       	      	? GBPB_START_ENUM : GBPB_FAKE_CURRENTDIR;
       /* Force a re-cache of the directory entries.  */
       stream->do_read = 0;

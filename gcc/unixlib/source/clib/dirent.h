@@ -1,10 +1,10 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/dirent.h,v $
- * $Date: 2002/02/07 10:29:19 $
- * $Revision: 1.2.2.2 $
- * $State: Exp $
- * $Author: admin $
+ * $Source$
+ * $Date$
+ * $Revision$
+ * $State$
+ * $Author$
  *
  ***************************************************************************/
 
@@ -17,7 +17,6 @@
 #include <unixlib/features.h>
 #endif
 
-
 #define __need_size_t
 #include <stddef.h>
 
@@ -25,9 +24,7 @@
 #include <unixlib/types.h>
 #endif
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+__BEGIN_DECLS
 
 /* This isn't really how ADFS stores files in a directory, but
    since no I/O is permitted on directories anyway this doesn't
@@ -159,8 +156,6 @@ extern ssize_t getdirentries (int __fd, char *__buf,
 			      size_t __nbytes, __off_t *__basep);
 #endif
 
-#ifdef __cplusplus
-}
-#endif
+__END_DECLS
 
 #endif

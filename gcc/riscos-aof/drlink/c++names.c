@@ -14,6 +14,19 @@
 
 /* #define MANGLED */
 
+#include <string.h>
+#include <ctype.h>
+#include "drlhdr.h"
+#include "filehdr.h"
+#include "areahdr.h"
+#include "chunkhdr.h"
+#include "procdefs.h"
+
+#define MAXLENGTH 1024		/* Maximum expanded name length */
+
+static char fullname[MAXLENGTH];	/* Expanded function name */
+
+
 #ifdef MANGLED
 
 /*
@@ -22,10 +35,7 @@
 */
 
 
-#include <string.h>
-#include <ctype.h>
 
-#define MAXLENGTH 1024		/* Maximum expanded name length */
 
 typedef enum {	/* Tokens */
   ALLDONE, NOTMANGLED, IDENT, OPER, BASICTYPE, MODIFIER, POINTER,
@@ -104,7 +114,6 @@ static symboltype nametype;	/* Type of mangled entity */
 
 static signature *sigstack;	/* Stack of function signatures */
 
-static char fullname[MAXLENGTH];	/* Expanded function name */
 
 struct {unsigned char namelen; symboltype what; char *encoded_name, *proper_name;} operators [] = {
 	/* Encoded -> proper operator names */
@@ -179,7 +188,7 @@ char *decode(char *name) {
   return &fullname[0];
 }
 
-char *decode_name(char *name) {
+char *decode_name(const char *name) {
   if (opt_cpp) {
     return decode(name)
   }
@@ -194,8 +203,8 @@ char *decode_name(char *name) {
 ** 'decode_name' returns a pointer to a de-mangled version of the
 ** name passed to it.
 */
-char *decode_name(char *name) {
-  return name;
+char *decode_name(const char *name) {
+  return strncpy(fullname, name, MAXLENGTH);
 }
 
 #endif

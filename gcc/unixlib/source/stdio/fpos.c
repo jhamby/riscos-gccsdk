@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/stdio/fpos.c,v $
- * $Date: 2001/09/04 16:32:04 $
- * $Revision: 1.2.2.1 $
- * $State: Exp $
- * $Author: admin $
+ * $Source$
+ * $Date$
+ * $Revision$
+ * $State$
+ * $Author$
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: fpos.c,v 1.2.2.1 2001/09/04 16:32:04 admin Exp $";
+static const char rcs_id[] = "$Id$";
 #endif
 
 /* #define DEBUG */
@@ -71,11 +71,17 @@ fseek (FILE * stream, long offset, int w)
   if (stream->__error)
     return EOF;
 
-
   result = 0;
   switch (w)
     {
     case SEEK_SET:
+      if (offset < 0)
+	{
+	  /* A negative file offset makes no sense, but it does not
+	     need to put the stream into error.  */
+	  errno = EINVAL;
+	  return EOF;
+	}
       result = lseek (fileno (stream), offset, SEEK_SET);
       break;
     case SEEK_CUR:

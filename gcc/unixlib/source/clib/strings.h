@@ -1,18 +1,24 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/strings.h,v $
- * $Date: 2001/09/14 14:01:17 $
- * $Revision: 1.2.2.1 $
- * $State: Exp $
- * $Author: admin $
+ * $Source$
+ * $Date$
+ * $Revision$
+ * $State$
+ * $Author$
  *
  ***************************************************************************/
 
 #ifndef __STRINGS_H
 #define __STRINGS_H 1
 
+#ifndef __UNIXLIB_FEATURES_H
+#include <unixlib/features.h>
+#endif
+
 #define __need_size_t
 #include <stddef.h>
+
+__BEGIN_DECLS
 
 /* Same as strchr.  */
 extern char *index (const char *__s, int __c);
@@ -41,5 +47,7 @@ extern int strncasecmp (const char *__s1, const char *__s2, size_t __n);
    The least-significant bit is position 1, the most-significant 32.  */
 extern int ffs (int i);
 #endif
+
+__END_DECLS
 
 #endif

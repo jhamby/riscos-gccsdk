@@ -1,10 +1,10 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/clib/sys/h/mman,v $
- * $Date: 1997/10/09 19:59:55 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/sys/mman.h,v $
+ * $Date: 2001/01/29 15:10:19 $
  * $Revision: 1.2 $
  * $State: Exp $
- * $Author: unixlib $
+ * $Author: admin $
  *
  ***************************************************************************/
 
@@ -18,7 +18,13 @@
 #ifndef	__SYS_MMAN_H
 #define	__SYS_MMAN_H
 
+#ifndef __UNIXLIB_FEATURES_H
+#include <unixlib/features.h>
+#endif
+
 #include <sys/types.h>
+
+__BEGIN_DECLS
 
 /* Protections are chosen from these bits, OR'd together.  The
    implementation does not necessarily support PROT_EXEC or PROT_WRITE
@@ -30,6 +36,8 @@
 #define	PROT_WRITE	0x02	/* Pages can be written.  */
 #define	PROT_EXEC	0x01	/* Pages can be executed.  */
 
+/* Return value of mmap in case of errors.  */
+#define MAP_FAILED ((void *) -1)
 
 /* Flags contain mapping type, sharing type and options.  */
 
@@ -58,10 +66,6 @@
 
 /* Flags for `mremap'.  */
 #define MREMAP_MAYMOVE	1	/* May move the pages when remapping.  */
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 /* Map addresses starting near ADDR and extending for LEN bytes.  from
    OFFSET into the file FD describes according to PROT and FLAGS.  If ADDR
@@ -102,8 +106,6 @@ extern int madvise (__caddr_t __addr, size_t __len, int __advice);
    (caddr_t) -1 for errors (in which case `errno' is set).  */
 extern __caddr_t mremap (__caddr_t __addr, size_t __old_len, size_t __new_len, int __may_move);
 
-#ifdef __cplusplus
-	}
-#endif
+__END_DECLS
 
 #endif	/* sys/mman.h */

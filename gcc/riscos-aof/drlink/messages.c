@@ -24,8 +24,8 @@
 
 #ifdef TARGET_RISCOS
 
-static int last_level;
-static bool first_error;
+static int last_level = 0;	/* Last throwback error message level */
+static bool first_error = TRUE;	/* TRUE before first time Throwback is used */
 
 #define DDEUtils_ThrowbackStart 0x42587
 #define DDEUtils_ThrowbackSend 0x42588
@@ -43,9 +43,11 @@ static bool first_error;
 #define  DUMMYLINE 1
 
 /*
-** 'start_throwback' is called to start a throwback session
-*/
-void start_throwback(void) {
+ * 'start_throwback' is called the first time an error is to be
+ * reported via 'throwback' to start the throwback session. It
+ * returns TRUE if this worked otherwise it returns FALSE
+ */
+static bool start_throwback(const char *filename) {
   _kernel_swi_regs regs;
   _kernel_oserror *swierror;
   swierror = _kernel_swi(DDEUtils_ThrowbackStart, &regs, &regs);
@@ -53,9 +55,19 @@ void start_throwback(void) {
     swierror = _kernel_last_oserror();	/* Loose SWI error just logged */
     opt_throw = FALSE;
     error("Warning: 'Throwback' is not available. Option ignored");
+    return FALSE;
   }
-  first_error = TRUE;
-  last_level = 0;
+/* Now register file */
+  regs.r[0] = Throwback_ReasonProcessing;
+  regs.r[2] = COERCE(filename, int);
+  swierror = _kernel_swi(DDEUtils_ThrowbackSend, &regs, &regs);
+  if (swierror!=NIL) {
+    opt_throw = FALSE;
+    error("Error: Error occured sending 'throwback' message: %s", &swierror->errmess);
+    swierror = _kernel_last_oserror();	/* Loose SWI error just logged */
+    return FALSE;
+  }
+  return TRUE;
 }
 
 /*
@@ -78,22 +90,14 @@ void end_throwback(void) {
 */
 static void throwback_message(char *text) {
   int errlevel;
-  char *filename;
+  const char *filename;
   _kernel_oserror *swierror;
   _kernel_swi_regs regs;
   filename = imagename;
   if (filename==NIL) filename = "!RunImage";
-  if (first_error) {	/* First error - Register file with Throwback */
+  if (first_error) {
     first_error = FALSE;
-    regs.r[0] = Throwback_ReasonProcessing;
-    regs.r[2] = COERCE(filename, int);
-    swierror = _kernel_swi(DDEUtils_ThrowbackSend, &regs, &regs);
-    if (swierror!=NIL) {
-      opt_throw = FALSE;
-      error("Error: Error occured sending 'throwback' message: %s", &swierror->errmess);
-      swierror = _kernel_last_oserror();	/* Loose SWI error just logged */
-      return;
-    }
+    if (!start_throwback(filename)) return;
   }
   switch (*text) {	/* Decide on message type according to first char of error */
   case ' ':
@@ -137,7 +141,7 @@ static void throwback_message(char *text) {
 ** the 'throwback' option is used, error messages are sent to a
 ** 'throwback' window otherwise they are just printed.
 */
-void error(char *msg, ...) {
+void error(const char *msg, ...) {
   char *p1, *p2, *p3, *p4;
   va_list parms;
   va_start(parms, msg);

@@ -3,7 +3,7 @@
 #include "BError.h"
 
 #ifndef CROSS_COMPILE
-extern "C" void OS_File(int *);
+extern "C" void *OS_File(int *);
 #endif
 
 LibTimeBas::LibTimeBas(const BString &a_chunkName, Library *a_owner)

@@ -1,23 +1,25 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/clib/sys/h/file,v $
- * $Date: 1997/10/09 19:59:54 $
- * $Revision: 1.4 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/sys/file.h,v $
+ * $Date: 2001/01/29 15:10:19 $
+ * $Revision: 1.2 $
  * $State: Exp $
- * $Author: unixlib $
+ * $Author: admin $
  *
  ***************************************************************************/
 
 #ifndef __SYS_FILE_H
 #define __SYS_FILE_H 1
 
+#ifndef __UNIXLIB_FEATURES_H
+#include <unixlib/features.h>
+#endif
+
 #ifndef __FCNTL_H
 #include <fcntl.h>
 #endif
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+__BEGIN_DECLS
 
 /* Alternate names for values for the whence argument to lseek.
    These are the same as SEEK_SET, SEEK_CUR and SEEK_END respectively.  */
@@ -41,8 +43,6 @@ extern "C" {
    file fd refers to.  */
 extern int flock (int fd, int operation);
 
-#ifdef __cplusplus
-}
-#endif
+__END_DECLS
 
 #endif

@@ -1,8 +1,8 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/Attic/grp.h,v $
- * $Date: 2001/09/14 14:01:17 $
- * $Revision: 1.1.2.2 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/grp.h,v $
+ * $Date: 2002/02/14 15:56:33 $
+ * $Revision: 1.2 $
  * $State: Exp $
  * $Author: admin $
  *
@@ -10,6 +10,10 @@
 
 #ifndef __GRP_H
 #define __GRP_H 1
+
+#ifndef __UNIXLIB_FEATURES_H
+#include <unixlib/features.h>
+#endif
 
 #ifndef __UNIXLIB_TYPES_H
 #include <unixlib/types.h>
@@ -23,9 +27,7 @@ typedef __gid_t gid_t;
 #define __gid_t_defined
 #endif
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+__BEGIN_DECLS
 
 #define __need_FILE
 #include <stdio.h>
@@ -89,8 +91,6 @@ extern int initgroups (const char *__name, gid_t __basegid);
 extern struct group *__grpread (FILE *, struct group *);
 #endif
 
-#ifdef __cplusplus
-}
-#endif
+__END_DECLS
 
 #endif

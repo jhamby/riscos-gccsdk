@@ -6,12 +6,14 @@
 #include <ctype.h>
 #include <math.h>
 #include <string.h>
+#include <stdlib.h>
 #ifdef HAVE_STDINT_H
 #include <stdint.h>
 #elif HAVE_INTTYPES_H
 #include <inttypes.h>
 #endif
 
+#include "main.h"
 #include "error.h"
 #include "lex.h"
 #include "local.h"
@@ -20,12 +22,7 @@
 #include "hash.h"
 #include "symbol.h"
 #include "area.h"
-
-extern int gcc_backend;
-extern int objasm;
-extern int lexAcornBinop (Lex * lex);
-extern int lexAcornUnop (Lex * lex);
-extern int lexAcornPrim (Lex * lex);
+#include "os.h"
 
 
 const char Pri[2][10] =

@@ -1,6 +1,7 @@
 #include <errno.h>
 #include <stdio.h>
-#include <iostream.h>
+#include <iostream>
+
 #include "OflSymt.h"
 #include "TimeStamp.h"
 #include "BError.h"

@@ -1,7 +1,7 @@
 ;----------------------------------------------------------------------------
 ;
-; $Source: /usr/local/cvsroot/unixlib/source/math-asm/s/_acos,v $
-; $Date: 2000/12/21 15:09:13 $
+; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/math-asm/_acos.s,v $
+; $Date: 2001/01/29 15:10:19 $
 ; $Revision: 1.2 $
 ; $State: Exp $
 ; $Author: admin $
@@ -13,6 +13,7 @@
 	AREA	|C$$code|,CODE,READONLY
 
 	EXPORT	acos
+	NAME	acos
 acos
 	STMFD	sp!, {a1, a2}
 	LDFD	f0, [sp], #8

@@ -1,24 +1,43 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/signal/sleep.c,v $
- * $Date: 2001/09/11 13:40:57 $
- * $Revision: 1.2.2.3 $
- * $State: Exp $
- * $Author: admin $
+ * $Source$
+ * $Date$
+ * $Revision$
+ * $State$
+ * $Author$
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: sleep.c,v 1.2.2.3 2001/09/11 13:40:57 admin Exp $";
+static const char rcs_id[] = "$Id$";
 #endif
 
-/* signal.c.sleep: Written by Nick Burrett, 6 October 1996.  */
+/* Copyright (C) 1991, 1992, 1993, 1996, 1997 Free Software Foundation, Inc.
+
+   The GNU C Library is free software; you can redistribute it and/or
+   modify it under the terms of the GNU Lesser General Public
+   License as published by the Free Software Foundation; either
+   version 2.1 of the License, or (at your option) any later version.
+
+   The GNU C Library is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+   Lesser General Public License for more details.
+
+   You should have received a copy of the GNU Lesser General Public
+   License along with the GNU C Library; if not, write to the Free
+   Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
+   02111-1307 USA.  */
 
 #include <signal.h>
 #include <time.h>
 #include <unistd.h>
 #include <errno.h>
 #include <unixlib/unix.h>
+
+#define USECS_PER_CLOCK (1000000 / CLOCKS_PER_SEC)
+
+/* #define DEBUG */
 
 /* SIGALRM signal handler for `sleep'.  This does nothing but return,
    but SIG_IGN isn't supposed to break `pause'.  */
@@ -29,19 +48,23 @@ sleep_handler (int sig)
   return;
 }
 
-/* Make the process sleep for SECONDS seconds, or until a signal arrives
-   and is not ignored.  The function returns the number of seconds less
-   than SECONDS which it actually slept (zero if it slept the full time).  */
-unsigned int
-sleep (unsigned int seconds)
+/* Make the process sleep for CLOCKTICKS clock ticks, or until a signal
+   arrives and is not ignored.  The function returns the number of clock
+   ticks less than CLOCKTICKS which it actually slept (zero if it slept
+   the full time).
+   If a signal handler does a `longjmp' or modifies the handling of the
+   SIGALRM signal while inside `sleep' call, the handling of the SIGALRM
+   signal afterwards is undefined.  There is no return value to indicate
+   error, but if `sleep' returns SECONDS, it probably didn't work.  */
+static clock_t
+sleep_int (clock_t clockticks)
 {
-  unsigned int remaining, slept;
-  time_t before, after;
+  clock_t before, after, slept, remaining;
   sigset_t set, oset;
   struct sigaction act, oact;
   int save = errno;
 
-  if (seconds == 0)
+  if (clockticks == 0)
     return 0;
 
   /* alarm() does not work in a TaskWindow nor whilst running as a
@@ -49,46 +72,56 @@ sleep (unsigned int seconds)
      but not necessairy vice-versa so the test on __wimpprogram is enough. */
   if (__wimpprogram)
     {
-      before = time ((time_t *) NULL) + seconds;
-      while (time ((time_t *) NULL) < before)
-        ;
+      before = clock () + clockticks;
+      while (clock () < before)
+	;
       return 0;
     }
 
   /* Block SIGALRM signals while frobbing the handler.  */
-  sigemptyset (&set);
-  if (sigaddset (&set, SIGALRM) || sigprocmask (SIG_BLOCK, &set, &oset))
-    return seconds;
+  if (sigemptyset (&set) < 0
+      || sigaddset (&set, SIGALRM) < 0
+      || sigprocmask (SIG_BLOCK, &set, &oset))
+    return clockticks;
 
   act.sa_handler = sleep_handler;
   act.sa_flags = 0;
-  sigemptyset (&act.sa_mask);
+  act.sa_mask = oset; /* Execute handler with original mask.  */
   if (sigaction (SIGALRM, &act, &oact))
-    return seconds;
+    return clockticks;
 
-  before = time ((time_t *) NULL);
-  remaining = alarm (seconds);
+  before = clock ();
+  remaining = (ualarm ((useconds_t) clockticks * USECS_PER_CLOCK, 0)
+	       / USECS_PER_CLOCK);
 
 #ifdef DEBUG
   __os_print ("sleep: Set up an alarm for "); __os_prdec (seconds);
   __os_print (" seconds\r\n");
 #endif
 
-  if (remaining > 0 && remaining < seconds)
+#ifdef DEBUG
+  __os_print ("sleep: Set up an alarm for "); __os_prdec (clockticks);
+  __os_print (" clockticks\r\n  Remaining: "); __os_prdec(remaining);
+  __os_print (" clockticks\r\n");
+#endif
+
+  if (remaining > 0 && remaining < clockticks)
     {
       /* The user's alarm will expire before our own would.
          Restore the user's signal action state and let his alarm happen.  */
       sigaction (SIGALRM, &oact, (struct sigaction *) NULL);
-      alarm (remaining);	/* Restore sooner alarm.  */
+
+      /* Restore sooner alarm.  */
+      ualarm ((useconds_t) clockticks * USECS_PER_CLOCK, 0);
 #ifdef DEBUG
       __os_print ("sleep: A user alarm existed. Wait ");
-      __os_prdec (remaining); __os_print (" secs for that instead\r\n");
+      __os_prdec (remaining); __os_print (" clockticks for that instead\r\n");
 #endif
       sigsuspend (&oset);	/* Wait for it to go off.  */
 #ifdef DEBUG
       __os_print ("sleep: Alarm has gone off. Continuing with execution\r\n");
 #endif
-      after = time ((time_t *) NULL);
+      after = clock ();
     }
   else
     {
@@ -102,32 +135,46 @@ sleep (unsigned int seconds)
 #ifdef DEBUG
       __os_print ("sleep: Alarm has gone off. Continuing with execution\r\n");
 #endif
-      after = time ((time_t *) NULL);
+      after = clock ();
 
       /* Restore the old signal action state.  */
       sigaction (SIGALRM, &oact, (struct sigaction *) NULL);
     }
 
   /* Notice how long we actually slept.  */
-  slept = (unsigned int) (after - before);
+  slept = after - before;
 
   /* Restore the user's alarm if we have not already past it.
      If we have, be sure to turn off the alarm in case a signal
      other than SIGALRM was what woke us up.  */
-  alarm (remaining > slept ? remaining - slept : 0);
+  (void) ualarm (remaining > slept ? (useconds_t)(remaining - slept) * USECS_PER_CLOCK : 0, 0);
 
   /* Restore the original signal mask.  */
-  sigprocmask (SIG_SETMASK, &oset, (sigset_t *) NULL);
+  (void) sigprocmask (SIG_SETMASK, &oset, (sigset_t *) NULL);
 
   /* Restore the `errno' value we started with.
      Some of the calls we made might have failed, but we don't care.  */
   (void) __set_errno (save);
 
-  return slept > seconds ? 0 : seconds - slept;
+  return slept > clockticks ? 0 : clockticks - slept;
 }
 
+/* Make the process sleep for SECONDS seconds, or until a signal arrives
+   and is not ignored.  The function returns the number of seconds less
+   than SECONDS which it actually slept (zero if it slept the full time).  */
 unsigned int
-usleep (unsigned int usec)
+sleep (unsigned int seconds)
 {
-  return sleep ((usec + 999) / 1000);
+  return (unsigned int) sleep_int ((clock_t)seconds * CLOCKS_PER_SEC) / CLOCKS_PER_SEC;
+}
+
+int
+usleep (useconds_t usec)
+{
+  /* An allowed & specified limitation. Otherwise our calculations might
+     overflow.  */
+  if (usec >= 1000000)
+    __set_errno (EINVAL);
+
+  return (int) sleep_int ((usec + USECS_PER_CLOCK-1) / USECS_PER_CLOCK) * USECS_PER_CLOCK;
 }
