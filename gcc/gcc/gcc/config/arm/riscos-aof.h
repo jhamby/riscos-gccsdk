@@ -295,8 +295,9 @@ do					\
   do									\
     {									\
      common_section ();							\
-     fprintf ((STREAM), "\tAREA |%s|, DATA, COMMON\n", (NAME));	\
-     fprintf ((STREAM), "\n\t%% %d\t%s size=%d\n",			\
+     fprintf ((STREAM), "\tAREA\t|%s|, DATA, COMMON\n", (NAME));	\
+     fprintf ((STREAM), "\tEXPORT\t|%s|\n", (NAME));			\
+     fprintf ((STREAM), "\t%% %d\t%s size=%d\n",			\
 	      (ROUNDED), ASM_COMMENT_START, (SIZE));			\
      aof_delete_import ((NAME));					\
     }									\
