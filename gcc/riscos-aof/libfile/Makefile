@@ -9,7 +9,6 @@ else
 CC = $(CROSS_CC)
 CXX = $(CROSS_CXX)
 CXXFLAGS = $(CROSS_CXXFLAGS)
-linklibs = -lstdc++ -lsupc++
 endif
 
 INCLUDES = -I. -I../../
@@ -53,10 +52,10 @@ endif
 all:	$(bin_dir)/libfile$(exesfx) $(bin_dir)/ar$(exesfx)
 
 $(bin_dir)/libfile$(exesfx):	$(libfileobjdir)/LibFile.o $(OBJS) $(DEPS)
-	$(CXX) -o $@ $(libfileobjdir)/LibFile.o $(OBJS) $(linklibs)
+	$(CXX) -o $@ $(libfileobjdir)/LibFile.o $(OBJS)
 
 $(bin_dir)/ar$(exesfx):	$(libfileobjdir)/ArFile.o $(OBJS) $(DEPS)
-	$(CXX) -o $@ $(libfileobjdir)/ArFile.o $(OBJS) $(linklibs)
+	$(CXX) -o $@ $(libfileobjdir)/ArFile.o $(OBJS)
 
 $(libfileobjdir)/TimeStamp.o: TimeStamp.cc
 $(libfileobjdir)/OflSymt.o: OflSymt.cc

@@ -1,5 +1,5 @@
 /* Configuration for GNU compilers for processor running RISC OS.
-   Copyright (C) 1998 Free Software Foundation, Inc.
+   Copyright (C) 1998, 2003, 2004 Free Software Foundation, Inc.
    Contributed by Nick Burrett (nick.burrett@btinternet.com)
 
 This file is part of GNU CC.
@@ -20,29 +20,29 @@ the Free Software Foundation, 59 Temple Place - Suite 330,
 Boston, MA 02111-1307, USA.  */
 
 /* This file defines all the specific features for GCC when running
-   on RISC OS.  It is intended for compilation with UnixLib 3.7c.  */
+   on RISC OS.  */
 
 /* For the throwback of GCC errors to a text editor.  */
-extern void arm_error_throwback ();
-extern void arm_throwback_finish ();
+extern void arm_error_throwback (const char *file, int line,
+				 const char *prefix, const char *s);
+extern void arm_throwback_finish (void);
 extern void arm_gnat_error_throwback ();
-
-#if !defined (__GNUC__) && defined(__riscos)
-/* For Acorn C to compile a stage 1 compiler, these must be defined.  */
-#define CODE_FIELD_BUG  1
-#define ONLY_INT_FIELDS 1
-#endif
+extern void riscos_host_initialisation (void);
+extern const char *riscos_convert_filename (void *obstack,
+			const char *name, int do_exe, int do_obj);
 
 #ifndef CROSS_COMPILE
 /* Defines for the implementation of throwbacks.  */
 
-#define ERROR_THROWBACK(FILE,LINE,PREFIX,S,AP)        \
-{						      \
-  if (TARGET_THROWBACK)				      \
-    arm_error_throwback (FILE, LINE, PREFIX, S, AP);  \
+#define ERROR_THROWBACK(FILE,LINE,PREFIX,S)        \
+{						   \
+  if (TARGET_THROWBACK)				   \
+    arm_error_throwback (FILE, LINE, PREFIX, S);  \
 }
 
 #define ERROR_THROWBACK_FINALISE arm_throwback_finish ()
+#define GCC_DRIVER_HOST_INITIALIZATION riscos_host_initialisation ()
+#define TARGET_CONVERT_FILENAME(a,b,c,d) return riscos_convert_filename (a,b,c,d)
 #endif
 
 /* Character constant used in separating components in paths.  */
@@ -56,4 +56,3 @@ extern void arm_gnat_error_throwback ();
 
 /* Maths operation domain error number, EDOM.  For CLib it is 1.  */
 #define TARGET_EDOM 33
-

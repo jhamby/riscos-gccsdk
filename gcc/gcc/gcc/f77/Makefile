@@ -7,6 +7,10 @@ LINK = $(CC) -o $@
 INCLUDES = -I./ -I../ -I../../../include -I../config
 LIBS = -L$(objdir)/libiberty/$(STAGE) -liberty
 
+ifeq (${STAGE},stage1)
+.NOTPARALLEL:
+endif
+
 $(gccobjdir)/f77/%.o: %.c
 	$(CC) $(CFLAGS) -o $@ -c $< $(INCLUDES)
 
@@ -25,15 +29,6 @@ fortran77: $(gccobjdir)/f77/fini $(bin_dir)/g77$(gexesfx) \
   $(gcc_bin_dir)/f771$(gexesfx)
 
 LIBDEPS = $(gccobjdir)/prefix.o
-
-ifeq (${STAGE},stage1)
-RISC_OBJS=
-RISCOS_OBJS=
-.NOTPARALLEL:
-else
-RISC_OBJS = $(gccobjdir)/config/arm/riscos_fix.o
-RISCOS_OBJS = $(RISC_OBJS) $(gccobjdir)/config/arm/riscos.o
-endif
 
 F77_OBJS = $(gccobjdir)/f77/stb.o \
 	$(gccobjdir)/f77/target.o \
@@ -78,11 +73,9 @@ STR_HEADERS = str-1t.h str-2t.h str-fo.h str-io.h str-nq.h str-op.h str-ot.h \
 
 # The real targets
 $(bin_dir)/g77$(gexesfx): $(gccobjdir)/f77/g77.o $(gccobjdir)/f77/g77spec.o \
-	$(gccobjdir)/version.o $(gccobjdir)/config/arm/rname.o \
-	$(RISC_OBJS) $(LIBDEPS)
+	$(gccobjdir)/version.o $(RISCOS_OBJS) $(LIBDEPS)
 	$(LINK) $(gccobjdir)/f77/g77.o $(gccobjdir)/f77/g77spec.o \
-	$(gccobjdir)/version.o $(gccobjdir)/config/arm/rname.o \
-	$(RISC_OBJS) $(LIBDEPS) $(LIBS)
+	$(gccobjdir)/version.o $(RISCOS_OBJS) $(LIBDEPS) $(LIBS)
 
 $(gccobjdir)/f77/fini:	$(gccobjdir)/f77/fini.o $(LIBDEPS)
 	$(LINK) $(gccobjdir)/f77/fini.o $(LIBDEPS) $(LIBS)

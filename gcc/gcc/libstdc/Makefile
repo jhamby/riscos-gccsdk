@@ -1,10 +1,10 @@
 # Makefile for GNU Libstdc++ V3 for the ARM/RISC OS GCC port
-# Copyright (c) 2002 Nick Burrett
+# Copyright (c) 2002, 2003, 2004 Nick Burrett
 # Written by Nick Burrett <nick@dsvr.net>
 #
 
-INCLUDES = -I./include -I./include/bits -I./include/arm-riscos-aof -I./include/backward -I../libsupc++
-SUPCINCLUDES = -I. -I../gcc -I../libstdc/include -I../libstdc/include/arm-riscos-aof
+INCLUDES = -I ./include -I ./include/bits -I ./include/arm-riscos-aof -I ./include/backward -I ./libsupc
+SUPCINCLUDES = -I . -I ../gcc -I ./include -I ./include/arm-riscos-aof
 
 libobjdir=$(objdir)/gcc-$(VERSION)/libstdc/$(STAGE)/$(TRG)
 supcobjdir=$(objdir)/gcc-$(VERSION)/libstdc/$(STAGE)/$(TRG)
@@ -234,8 +234,6 @@ c_compatibility_headers = \
 	${c_compatibility_srcdir}/wctype.h 
 
 c_base_headers_extra = ${c_base_srcdir}/cmath.tcc 
-@GLIBCPP_C_HEADERS_COMPATIBILITY_TRUE@c_compatibility_headers_extra = @GLIBCPP_C_HEADERS_COMPATIBILITY_TRUE@${c_compatibility_headers}
-@GLIBCPP_C_HEADERS_COMPATIBILITY_FALSE@c_compatibility_headers_extra = 
 
 std_srcdir = ${glibcpp_srcdir}/include/std
 std_builddir = .
@@ -339,19 +337,19 @@ sources = \
         ctype.cc \
 	ctype_members.cc \
 	ext-inst.cc \
-        fstream.cc \
+	fstream.cc \
         fstream-inst.cc \
         functexcept.cc \
         globals.cc \
         io-inst.cc \
-        ios.cc \
-        istream-inst.cc \
-        limits.cc \
-        locale-inst.cc \
-        locale.cc \
-        localename.cc \
-        messages.cc \
-        misc-inst.cc \
+	ios.cc \
+	istream-inst.cc \
+	limits.cc \
+	locale-inst.cc \
+	locale.cc \
+	localename.cc \
+	messages.cc \
+	misc-inst.cc \
         monetary.cc \
         numeric.cc \
         ostream-inst.cc \
@@ -441,11 +439,10 @@ install_headers:
 	$(insthdr) include/backward "*" backward $(ux_gccpkg)/$(gn_gplusplus_include_dir) $(ro_gccpkg)/$(gn_gplusplus_include_dir)
 	$(insthdr) include/bits "*" bits $(ux_gccpkg)/$(gn_gplusplus_include_dir) $(ro_gccpkg)/$(gn_gplusplus_include_dir)
 	$(insthdr) include/ext "*" ext $(ux_gccpkg)/$(gn_gplusplus_include_dir) $(ro_gccpkg)/$(gn_gplusplus_include_dir)
-	$(insthdr) libsupc++ "*.h" . $(ux_gccpkg)/$(gn_gplusplus_include_dir) $(ro_gccpkg)/$(gn_gplusplus_include_dir)
-	$(insthdr) libsupc++ exception . $(ux_gccpkg)/$(gn_gplusplus_include_dir) $(ro_gccpkg)/$(gn_gplusplus_include_dir)
-	$(insthdr) libsupc++ new . $(ux_gccpkg)/$(gn_gplusplus_include_dir) $(ro_gccpkg)/$(gn_gplusplus_include_dir)
-	$(insthdr) libsupc++ typeinfo . $(ux_gccpkg)/$(gn_gplusplus_include_dir) $(ro_gccpkg)/$(gn_gplusplus_include_dir)
-
+	$(insthdr) libsupc "*.h" . $(ux_gccpkg)/$(gn_gplusplus_include_dir) $(ro_gccpkg)/$(gn_gplusplus_include_dir)
+	$(insthdr) libsupc exception . $(ux_gccpkg)/$(gn_gplusplus_include_dir) $(ro_gccpkg)/$(gn_gplusplus_include_dir)
+	$(insthdr) libsupc new . $(ux_gccpkg)/$(gn_gplusplus_include_dir) $(ro_gccpkg)/$(gn_gplusplus_include_dir)
+	$(insthdr) libsupc typeinfo . $(ux_gccpkg)/$(gn_gplusplus_include_dir) $(ro_gccpkg)/$(gn_gplusplus_include_dir)
 
 $(ux_gcc_bin_dir)/$(TRG)/libstdc++.o: $(OBJS) $(SUPCOBJS)
 	$(CROSS_AR) $(CROSS_AR_FLAGS) $@ $(OBJS) $(SUPCOBJS)
@@ -492,11 +489,11 @@ import:
 	#cp -a $(glibcpp_srcdir)/libio/*.c ./
 	#cp -a $(glibcpp_srcdir)/libio/*.h ./
 	# Merge libsupc directory
-	cp -a $(glibcpp_srcdir)/libsupc++/*.cc ./libsupc++
-	cp -a $(glibcpp_srcdir)/libsupc++/*.h ./libsupc++
-	cp -a ${glibcpp_srcdir}/libsupc++/new ./libsupc++
-	cp -a ${glibcpp_srcdir}/libsupc++/typeinfo ./libsupc++
-	cp -a ${glibcpp_srcdir}/libsupc++/exception ./libsupc++
+	cp -a $(glibcpp_srcdir)/libsupc/*.cc ./libsupc
+	cp -a $(glibcpp_srcdir)/libsupc/*.h ./libsupc
+	cp -a ${glibcpp_srcdir}/libsupc/new ./libsupc
+	cp -a ${glibcpp_srcdir}/libsupc/typeinfo ./libsupc
+	cp -a ${glibcpp_srcdir}/libsupc/exception ./libsupc
 
 $(libobjdir)/cp-demangle.o: ../../libiberty/cp-demangle.c ../../include/demangle.h
 	$(CROSS_CC) $(CROSS_CCFLAGS) -o $@ -c $< -I ../../include $(CFL) -DIN_GLIBCPP_V3
@@ -543,49 +540,49 @@ $(libobjdir)/valarray-inst.o: valarray-inst.cc
 $(libobjdir)/vterminate.o: vterminate.cc
 $(libobjdir)/wstring-inst.o: wstring-inst.cc
 
-$(supcobjdir)/del_op.o: libsupc++/del_op.cc
+$(supcobjdir)/del_op.o: libsupc/del_op.cc
 	$(CROSS_CXX) $(CROSS_CXXFLAGS) -o $@ -c $< $(SUPCINCLUDES) $(CFL)
-$(supcobjdir)/del_opnt.o: libsupc++/del_opnt.cc
+$(supcobjdir)/del_opnt.o: libsupc/del_opnt.cc
 	$(CROSS_CXX) $(CROSS_CXXFLAGS) -o $@ -c $< $(SUPCINCLUDES) $(CFL)
-$(supcobjdir)/del_opv.o: libsupc++/del_opv.cc
+$(supcobjdir)/del_opv.o: libsupc/del_opv.cc
 	$(CROSS_CXX) $(CROSS_CXXFLAGS) -o $@ -c $< $(SUPCINCLUDES) $(CFL)
-$(supcobjdir)/del_opvnt.o: libsupc++/del_opvnt.cc
+$(supcobjdir)/del_opvnt.o: libsupc/del_opvnt.cc
 	$(CROSS_CXX) $(CROSS_CXXFLAGS) -o $@ -c $< $(SUPCINCLUDES) $(CFL)
-$(supcobjdir)/eh_alloc.o: libsupc++/eh_alloc.cc
+$(supcobjdir)/eh_alloc.o: libsupc/eh_alloc.cc
 	$(CROSS_CXX) $(CROSS_CXXFLAGS) -o $@ -c $< $(SUPCINCLUDES) $(CFL)
-$(supcobjdir)/eh_aux_runtime.o: libsupc++/eh_aux_runtime.cc
+$(supcobjdir)/eh_aux_runtime.o: libsupc/eh_aux_runtime.cc
 	$(CROSS_CXX) $(CROSS_CXXFLAGS) -o $@ -c $< $(SUPCINCLUDES) $(CFL)
-$(supcobjdir)/eh_catch.o: libsupc++/eh_catch.cc
+$(supcobjdir)/eh_catch.o: libsupc/eh_catch.cc
 	$(CROSS_CXX) $(CROSS_CXXFLAGS) -o $@ -c $< $(SUPCINCLUDES) $(CFL)
-$(supcobjdir)/eh_exception.o: libsupc++/eh_exception.cc
+$(supcobjdir)/eh_exception.o: libsupc/eh_exception.cc
 	$(CROSS_CXX) $(CROSS_CXXFLAGS) -o $@ -c $< $(SUPCINCLUDES) $(CFL)
-$(supcobjdir)/eh_globals.o: libsupc++/eh_globals.cc
+$(supcobjdir)/eh_globals.o: libsupc/eh_globals.cc
 	$(CROSS_CXX) $(CROSS_CXXFLAGS) -o $@ -c $< $(SUPCINCLUDES) $(CFL)
-$(supcobjdir)/eh_personality.o: libsupc++/eh_personality.cc
+$(supcobjdir)/eh_personality.o: libsupc/eh_personality.cc
 	$(CROSS_CXX) $(CROSS_CXXFLAGS) -o $@ -c $< $(SUPCINCLUDES) $(CFL)
-$(supcobjdir)/eh_terminate.o: libsupc++/eh_terminate.cc
+$(supcobjdir)/eh_terminate.o: libsupc/eh_terminate.cc
 	$(CROSS_CXX) $(CROSS_CXXFLAGS) -o $@ -c $< $(SUPCINCLUDES) $(CFL)
-$(supcobjdir)/eh_throw.o: libsupc++/eh_throw.cc
+$(supcobjdir)/eh_throw.o: libsupc/eh_throw.cc
 	$(CROSS_CXX) $(CROSS_CXXFLAGS) -o $@ -c $< $(SUPCINCLUDES) $(CFL)
-$(supcobjdir)/eh_type.o: libsupc++/eh_type.cc
+$(supcobjdir)/eh_type.o: libsupc/eh_type.cc
 	$(CROSS_CXX) $(CROSS_CXXFLAGS) -o $@ -c $< $(SUPCINCLUDES) $(CFL)
-$(supcobjdir)/guard.o: libsupc++/guard.cc
+$(supcobjdir)/guard.o: libsupc/guard.cc
 	$(CROSS_CXX) $(CROSS_CXXFLAGS) -o $@ -c $< $(SUPCINCLUDES) $(CFL)
-$(supcobjdir)/new_handler.o: libsupc++/new_handler.cc
+$(supcobjdir)/new_handler.o: libsupc/new_handler.cc
 	$(CROSS_CXX) $(CROSS_CXXFLAGS) -o $@ -c $< $(SUPCINCLUDES) $(CFL)
-$(supcobjdir)/new_op.o: libsupc++/new_op.cc
+$(supcobjdir)/new_op.o: libsupc/new_op.cc
 	$(CROSS_CXX) $(CROSS_CXXFLAGS) -o $@ -c $< $(SUPCINCLUDES) $(CFL)
-$(supcobjdir)/new_opnt.o: libsupc++/new_opnt.cc
+$(supcobjdir)/new_opnt.o: libsupc/new_opnt.cc
 	$(CROSS_CXX) $(CROSS_CXXFLAGS) -o $@ -c $< $(SUPCINCLUDES) $(CFL)
-$(supcobjdir)/new_opv.o: libsupc++/new_opv.cc
+$(supcobjdir)/new_opv.o: libsupc/new_opv.cc
 	$(CROSS_CXX) $(CROSS_CXXFLAGS) -o $@ -c $< $(SUPCINCLUDES) $(CFL)
-$(supcobjdir)/new_opvnt.o: libsupc++/new_opvnt.cc
+$(supcobjdir)/new_opvnt.o: libsupc/new_opvnt.cc
 	$(CROSS_CXX) $(CROSS_CXXFLAGS) -o $@ -c $< $(SUPCINCLUDES) $(CFL)
-$(supcobjdir)/pure.o: libsupc++/pure.cc
+$(supcobjdir)/pure.o: libsupc/pure.cc
 	$(CROSS_CXX) $(CROSS_CXXFLAGS) -o $@ -c $< $(SUPCINCLUDES) $(CFL)
-$(supcobjdir)/tinfo2.o: libsupc++/tinfo2.cc
+$(supcobjdir)/tinfo2.o: libsupc/tinfo2.cc
 	$(CROSS_CXX) $(CROSS_CXXFLAGS) -o $@ -c $< $(SUPCINCLUDES) $(CFL)
-$(supcobjdir)/tinfo.o: libsupc++/tinfo.cc
+$(supcobjdir)/tinfo.o: libsupc/tinfo.cc
 	$(CROSS_CXX) $(CROSS_CXXFLAGS) -o $@ -c $< $(SUPCINCLUDES) $(CFL)
-$(supcobjdir)/vec.o: libsupc++/vec.cc
+$(supcobjdir)/vec.o: libsupc/vec.cc
 	$(CROSS_CXX) $(CROSS_CXXFLAGS) -o $@ -c $< $(SUPCINCLUDES) $(CFL)

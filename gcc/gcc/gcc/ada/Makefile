@@ -8,7 +8,7 @@ INCLUDES = -I./ -I../ -I../../../include -I../config -I../ginclude
 LIBS = -L$(objdir)/libiberty/$(STAGE) -liberty
 
 MKDIR = mkdir
-CP = cp
+CP = cp -a
 
 ADA_CFLAGS =
 ADAFLAGS = -W -Wall -gnatpg -gnata
@@ -1114,12 +1114,12 @@ sinfo.h : sinfo.ads xsinfo.adb
 	$(CP) $^ bldtools
 	(cd bldtools; gnatmake -q xsinfo ; ./xsinfo ../sinfo.h )
 
-nmake.adb : sinfo.ads nmake.adt xnmake.adb
+nmake.adb : sinfo.ads nmake.adt xnmake.adb system.ads
 	-$(MKDIR) bldtools
 	$(CP) $^ bldtools
 	(cd bldtools; gnatmake -q xnmake ; ./xnmake -b ../nmake.adb )
 
-nmake.ads :  sinfo.ads nmake.adt xnmake.adb
+nmake.ads :  sinfo.ads nmake.adt xnmake.adb system.ads
 	-$(MKDIR) bldtools
 	$(CP) $^ bldtools
 	(cd bldtools; gnatmake -q xnmake ; ./xnmake -s ../nmake.ads )
@@ -1198,7 +1198,7 @@ fixup-stg1-targetpairs:
 			$(word 1,$(subst <, ,$(PAIR))))
 	# Copy new target dependent sources
 	$(foreach PAIR,$(LIBGNAT_TARGET_PAIRS_STG1), \
-			cp $(word 2,$(subst <, ,$(PAIR))) \
+			cp -a $(word 2,$(subst <, ,$(PAIR))) \
 			$(word 1,$(subst <, ,$(PAIR)));)
 
 fixup-stg2-targetpairs:
@@ -1208,7 +1208,7 @@ fixup-stg2-targetpairs:
 			$(word 1,$(subst <, ,$(PAIR))))
 	# Copy new target dependent sources
 	$(foreach PAIR,$(LIBGNAT_TARGET_PAIRS_STG2), \
-			cp $(word 2,$(subst <, ,$(PAIR))) \
+			cp -a $(word 2,$(subst <, ,$(PAIR))) \
 			$(word 1,$(subst <, ,$(PAIR)));)
 
 ifeq (${STAGE},stage1)

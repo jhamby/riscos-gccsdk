@@ -1292,6 +1292,17 @@ diagnostic_report_diagnostic (context, diagnostic)
       (*diagnostic_starter (context)) (context, diagnostic);
       output_format (&context->buffer, &diagnostic->message);
       (*diagnostic_finalizer (context)) (context, diagnostic);
+
+#ifdef ERROR_THROWBACK
+      {
+	const char *text = output_finalize_message (&context->buffer);
+	ERROR_THROWBACK (diagnostic->location.file,
+			 diagnostic->location.line,
+			 (diagnostic->kind == DK_WARNING) ? "warning" : NULL,
+			 text);
+	/* output_clear_message_text (context->buffer); */
+      }
+#endif
       output_flush (&context->buffer);
     }
 

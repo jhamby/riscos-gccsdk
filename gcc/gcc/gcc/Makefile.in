@@ -45,11 +45,9 @@ export GNATCC GNATBIND
 LIBDEPS = $(gccobjdir)/prefix.o
 
 ifeq (${STAGE},stage1)
-RISC_OBJS=
 RISCOS_OBJS=
 else
-RISC_OBJS = $(gccobjdir)/config/arm/riscos_fix.o
-RISCOS_OBJS = $(RISC_OBJS) $(gccobjdir)/config/arm/riscos.o
+RISCOS_OBJS = $(gccobjdir)/config/arm/rname.o $(gccobjdir)/config/arm/riscos.o
 endif
 
 
@@ -262,18 +260,14 @@ $(gccobjdir)/libcpp.a:	$(LIBCPP_OBJS)
 
 # The real targets
 $(bin_dir)/gcc$(gexesfx): $(gccobjdir)/gcc.o $(gccobjdir)/gccspec.o \
-	$(gccobjdir)/version.o $(RISC_OBJS) \
-	$(gccobjdir)/config/arm/rname.o $(LIBDEPS)
+	$(gccobjdir)/version.o $(RISCOS_OBJS) $(LIBDEPS)
 	$(LINK) $(gccobjdir)/gcc.o $(gccobjdir)/gccspec.o \
-	$(gccobjdir)/version.o $(RISC_OBJS) \
-	$(gccobjdir)/config/arm/rname.o $(LIBDEPS) $(LIBS)
+	$(gccobjdir)/version.o $(RISCOS_OBJS) $(LIBDEPS) $(LIBS)
 
 $(gcc_bin_dir)/cpp$(gexesfx): $(gccobjdir)/gcc.o $(gccobjdir)/cppspec.o \
-	$(gccobjdir)/version.o $(RISC_OBJS) \
-	$(gccobjdir)/config/arm/rname.o $(LIBDEPS)
+	$(gccobjdir)/version.o $(RISCOS_OBJS) $(LIBDEPS)
 	$(LINK) $(gccobjdir)/gcc.o $(gccobjdir)/cppspec.o \
-	$(gccobjdir)/version.o $(RISC_OBJS) \
-	$(gccobjdir)/config/arm/rname.o $(LIBDEPS) $(LIBS)
+	$(gccobjdir)/version.o $(RISCOS_OBJS) $(LIBDEPS) $(LIBS)
 
 $(gcc_bin_dir)/cc1$(gexesfx): $(C_OBJS) $(BACKEND) $(RISCOS_OBJS)
 	$(LINK) $(C_OBJS) $(BACKEND) $(RISCOS_OBJS) $(LIBS)

@@ -1,5 +1,5 @@
 /* Functions for RISC OS as target machine for GNU C compiler.
-   Copyright (C) 1997, 1999 Free Software Foundation, Inc.
+   Copyright (C) 1997, 1999, 2003, 2004 Free Software Foundation, Inc.
    Contributed by Nick Burrett (nick@dsvr.net)
 
 This file is part of GNU CC.
@@ -30,13 +30,8 @@ Boston, MA 02111-1307, USA.  */
 #include <unistd.h>
 #include <unixlib/os.h>
 #include <unixlib/local.h>
-
-#define OS_FSControl                 0x29
-
-/* The DDEUtils module SWI names and their equivalent numbers.  */
-#define DDEUtils_ThrowbackStart      0x42587
-#define DDEUtils_ThrowbackSend       0x42588
-#define DDEUtils_ThrowbackEnd        0x42589
+#include <swis.h>
+#include <obstack.h>
 
 /* The DDEUtils module throwback error category codes.  */
 #define THROWBACK_INFORMATION         -1
@@ -83,8 +78,7 @@ arm_throwback_start (void)
    The DDE documentation is unclear, but does suggest that this
    message should be sent if the filename changes.  */
 static void
-arm_throwback_new_file (fname)
-  char *fname;
+arm_throwback_new_file (const char *fname)
 {
   int regs[10];
 
@@ -97,11 +91,8 @@ arm_throwback_new_file (fname)
 
 /* Send details of a specific error to DDEUtils module.  */
 static void
-arm_throwback_error (fname, level, line_number, error)
-  char *fname;
-  int level;
-  int line_number;
-  char *error;
+arm_throwback_error (const char *fname, int level,
+		     int line_number, const char *error)
 {
   int regs[10];
 
@@ -132,11 +123,11 @@ arm_throwback_finish (void)
    so that throwback knows the full pathname of the file.
    Return the converted filename, stored in arm_error_file, or NULL.  */
 static char *
-riscos_canonicalise_filename (char *sname)
+riscos_canonicalise_filename (const char *sname)
 {
   char *s;
   int  regs[10];
-  char filename[256];
+  char filename[1024];
 
   /* It's possible that the filename will be in Unix format.
      Convert it into RISC OS format.  */
@@ -177,12 +168,8 @@ riscos_canonicalise_filename (char *sname)
 
 /* Throwback interface to GNU C family of compilers.  */
 void
-arm_error_throwback (file, line, prefix, s, ap)
-     char *file;
-     int line;
-     char *prefix;
-     char *s;
-     va_list ap;
+arm_error_throwback (const char *file, int line, const char *prefix,
+		     const char *s)
 {
   /* If the filename is not specified or "", then return.  */
   if (file == NULL || *file == '\0')
@@ -194,18 +181,13 @@ arm_error_throwback (file, line, prefix, s, ap)
 
   if (arm_throwback_started > 0 && riscos_canonicalise_filename (file))
     {
-      char message[256];
-
       arm_throwback_new_file (arm_error_file);
-      /* We might have been passed a null argument pointer.  */
-      if (ap)
-        vsprintf (message, s, ap);
       /* Traditionally, warning messages are prefixed by the
          word 'warning'.  */
       arm_throwback_error (arm_error_file,
       			   (prefix && strcmp (prefix, "warning") == 0)
-      			    ? THROWBACK_WARNING : THROWBACK_ERROR,
-      			   line, (ap) ? message : s);
+			   ? THROWBACK_WARNING : THROWBACK_ERROR,
+      			   line, s);
     }
 }
 
@@ -262,3 +244,34 @@ arm_gnat_error_throwback (text, sname, sfile, line, column, cat)
 			     line, text);
     }
 }
+
+/* Function is used by the GCC_DRIVER_HOST_INITIALIZATION macro
+   in gcc.c.  */
+void riscos_host_initialisation (void)
+{
+  /* Perform a simple memory check.  Notify the user that there is
+     not enough space in the `next' slot for a task and die.  */
+  int current, next, regs[10];
+  
+  regs[0] = -1;
+  regs[1] = -1;
+  __os_swi (Wimp_SlotSize, regs);
+  if (regs[0] < (4000 * 1024))
+    {
+      fprintf (stderr,
+	       "Application requires a minimum of 4000K to run.\n");
+      exit (1);
+    }
+}
+
+/* Called from the gcc driver to convert a RISC OS filename into a
+   Unix format name.  */
+const char *riscos_convert_filename (void *obstack, const char *name, int do_exe, int do_obj)
+{
+  struct obstack *obs = (struct obstack *) obstack;
+  char tmp[1024];
+  extern char *riscos_to_unix (const char *, char *);
+  riscos_to_unix (name, tmp);
+  return obstack_copy0 (obs, tmp, strlen (tmp));
+}
+

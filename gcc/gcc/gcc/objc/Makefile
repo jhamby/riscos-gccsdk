@@ -18,14 +18,6 @@ objc: $(gcc_bin_dir)/cc1obj$(gexesfx)
 
 LIBDEPS = $(gccobjdir)/prefix.o
 
-ifeq (${STAGE},stage1)
-RISC_OBJS=
-RISCOS_OBJS=
-else
-RISC_OBJS = $(gccobjdir)/config/arm/riscos_fix.o
-RISCOS_OBJS = $(RISC_OBJS) $(gccobjdir)/config/arm/riscos.o
-endif
-
 OBJC_OBJS = $(gccobjdir)/objc/objc-parse.o \
 	$(gccobjdir)/objc/objc-act.o \
 	$(gccobjdir)/objc/objc-lang.o \

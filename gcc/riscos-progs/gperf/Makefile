@@ -24,7 +24,7 @@ OBJS = 	$(objdir)/riscos-progs/gperf/bool-array.o \
 all:	$(bin_dir)/gperf$(exesfx)
 
 $(bin_dir)/gperf$(exesfx):	$(OBJS)
-	$(CROSS_CC) -o $@ $(OBJS) -L$(objdir)/libiberty/stage2 -liberty -lstdc++ -lsupc++
+	$(CROSS_CXX) -o $@ $(OBJS) -L$(objdir)/libiberty/stage2 -liberty
 
 $(objdir)/riscos-progs/gperf/bool-array.o: bool-array.cc bool-array.icc options.icc
 $(objdir)/riscos-progs/gperf/getline.o: getline.cc getline.h

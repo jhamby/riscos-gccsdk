@@ -1,5 +1,5 @@
 # Top-level configure.in for the RISC OS GCCSDK
-# Copyright (c) 2000, 2001 Nick Burrett
+# Copyright (c) 2000, 2001, 2003, 2004 Nick Burrett
 # Written by Nick Burrett <nick@dsvr.net>
 
 AC_INIT(tree.c)
@@ -9,7 +9,7 @@ AC_ARG_PROGRAM
 
 dnl Global version variable
 PACKAGE=gcc
-VERSION="3.3.0"
+VERSION="3.3.3"
 AC_SUBST(PACKAGE)
 AC_SUBST(VERSION)
 AC_DEFINE_UNQUOTED(PACKAGE, "$PACKAGE")

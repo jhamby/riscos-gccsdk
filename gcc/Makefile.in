@@ -1,5 +1,5 @@
 # Top-level Makefile for the GNU Compiler Collection for ARM/RISC OS
-# Copyright (c) 2000, 2001, 2002, 2003 Nick Burrett
+# Copyright (c) 2000, 2001, 2002, 2003, 2004 Nick Burrett
 # Written by Nick Burrett <nick@dsvr.net>
 
 # Tell GNU make 3.79 not to run this directory in parallel.
@@ -56,7 +56,7 @@ hostsystem=@host_system@
 targetsystem=HOST_ARM_RISCOS
 
 # GCC compiler version that we are going to build.
-VERSION = 3_3_0
+VERSION = 3_3
 
 # Define the installation base directory.  These don't determine the actual
 # stored location of files, rather they are the hard-coded values that
@@ -250,14 +250,8 @@ gcc-libs-stg2:
 	$(MAKE) -C gcc libgcc "TRG=$(trg30)" $(cfl30) "STAGE=stage2"
 	$(MAKE) -C gcc zlib "TRG=$(trg20)" $(cfl20) "STAGE=stage2"
 	$(MAKE) -C gcc fastjar "TRG=$(trg20)" "STAGE=stage2"
-<<<<<<< Makefile.in
-	$(MAKE) -C gcc libjava "TRG=$(trg20)" $(cfl20) "STAGE=stage2" "lib_incl_dir=$(libscl_incl_dir)"
-	$(MAKE) -C gcc libgcc "TRG=$(trg20)" $(cfl20) "STAGE=stage2"
-	$(MAKE) -C gcc libgcc "TRG=$(trg30)" $(cfl30) "STAGE=stage2"
-=======
 	$(MAKE) -C gcc libffi "TRG=$(trg20)" $(cfl20) "STAGE=stage2"
 	$(MAKE) -C gcc libjava "TRG=$(trg20)" $(cfl20) "STAGE=stage2" "lib_incl_dir=$(libscl_incl_dir)"
->>>>>>> 1.39
 	$(MAKE) -C gcc libf2c "TRG=$(trg20)" $(cfl20) "STAGE=stage2"
 	$(MAKE) -C gcc libf2c "TRG=$(trg30)" $(cfl30) "STAGE=stage2"
 	$(MAKE) -C gcc libstdc "TRG=$(trg20)" $(cfl20) "STAGE=stage2" "lib_incl_dir=$(unixlib_incl_dir)"
@@ -315,7 +309,6 @@ install_headers:
 	$(MAKE) -C libscl install_headers
 	$(MAKE) -C gcc/gcc install_headers
 	$(MAKE) -C gcc/libstdc install_headers
-	$(MAKE) -C gcc/libsupc++ install_headers
 
 # Generate unixlib makefiles
 # Regenerate whenever Changelog is updated, so that any new files added will get added to the makefiles

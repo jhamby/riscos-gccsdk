@@ -64,11 +64,9 @@ $(gcc_bin_dir)/cc1plus$(gexesfx): $(C++OBJS) $(BACKEND) $(CXX_C_OBJS) \
 	$(RISCOS_OBJS) $(LIBDEPS) $(gccobjdir)/libcpp.a $(LIBS)
 
 $(bin_dir)/g++$(gexesfx): $(gccobjdir)/cp/g++.o $(gccobjdir)/cp/g++spec.o \
-	$(gccobjdir)/version.o \
-	$(gccobjdir)/config/arm/rname.o $(RISC_OBJS) $(LIBDEPS)
+	$(gccobjdir)/version.o $(RISCOS_OBJS) $(LIBDEPS)
 	$(LINK) $(gccobjdir)/cp/g++.o $(gccobjdir)/cp/g++spec.o \
-	$(gccobjdir)/version.o \
-	$(gccobjdir)/config/arm/rname.o $(RISC_OBJS) $(LIBDEPS) $(LIBS)
+	$(gccobjdir)/version.o $(RISCOS_OBJS) $(LIBDEPS) $(LIBS)
 
 
 ##############################################################################

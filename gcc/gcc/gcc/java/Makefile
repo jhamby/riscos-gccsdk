@@ -24,14 +24,6 @@ java: $(bin_dir)/gcjh$(gexesfx) $(gcc_bin_dir)/jvgenmain$(gexesfx) \
 
 LIBDEPS = $(gccobjdir)/prefix.o
 
-ifeq (${STAGE},stage1)
-RISC_OBJS=
-RISCOS_OBJS=
-else
-RISC_OBJS = $(gccobjdir)/config/arm/riscos_fix.o
-RISCOS_OBJS = $(RISC_OBJS) $(gccobjdir)/config/arm/riscos.o
-endif
-
 # Language specific object files for GCC/Java
 JAVA_OBJS = $(gccobjdir)/java/parse.o \
 	$(gccobjdir)/java/class.o \
@@ -87,8 +79,7 @@ GCJH_OBJS = $(gccobjdir)/java/gjavah.o \
 
 GCJ_OBJS = $(gccobjdir)/gcc.o \
 	$(gccobjdir)/java/jvspec.o \
-        $(gccobjdir)/version.o \
-        $(gccobjdir)/config/arm/rname.o
+        $(gccobjdir)/version.o
 
 # The real targets
 $(gcc_bin_dir)/jc1$(gexesfx): $(JAVA_OBJS) $(BACKEND) $(RISCOS_OBJS)

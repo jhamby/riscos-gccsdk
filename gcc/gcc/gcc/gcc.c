@@ -82,13 +82,6 @@ compilation is specified by a string called a "spec".  */
 #include "gcc.h"
 #include "flags.h"
 
-/* NAB++ */
-#ifdef __riscos__
-#include <unixlib/os.h>
-#include <swis.h>
-#endif
-/* NAB-- */
-
 #ifdef HAVE_SYS_RESOURCE_H
 #include <sys/resource.h>
 #endif
@@ -332,7 +325,7 @@ static void init_gcc_specs              PARAMS ((struct obstack *,
 #endif
 
 /* NAB++ */
-#if defined(HAVE_TARGET_OBJECT_SUFFIX) || defined(HAVE_TARGET_EXECUTABLE_SUFFIX) || defined(__riscos__)
+#if defined(HAVE_TARGET_OBJECT_SUFFIX) || defined(HAVE_TARGET_EXECUTABLE_SUFFIX) || defined(TARGET_CONVERT_FILENAME)
 static const char *convert_filename	PARAMS ((const char *, int, int));
 #endif
 
@@ -2828,34 +2821,20 @@ static int warn_B;
 /* Gives value to pass as "warn" to add_prefix for standard prefixes.  */
 static int *warn_std_ptr = 0;
 
-#if defined(HAVE_TARGET_OBJECT_SUFFIX) || defined(HAVE_TARGET_EXECUTABLE_SUFFIX) || defined (__riscos__)
+#if defined(HAVE_TARGET_OBJECT_SUFFIX) || defined(HAVE_TARGET_EXECUTABLE_SUFFIX) || defined (TARGET_CONVERT_FILENAME)
 
 /* Convert NAME to a new name if it is the standard suffix.  DO_EXE
    is true if we should look for an executable suffix.  DO_OBJ
    is true if we should look for an object suffix.  */
-
-/* NAB++ */
-#if defined(__riscos__)
 static const char *
 convert_filename (name, do_exe, do_obj)
      const char *name;
      int do_exe ATTRIBUTE_UNUSED;
      int do_obj ATTRIBUTE_UNUSED;
 {
-  char tmp[256];
-  extern char *riscos_to_unix (const char *, char *);
-  riscos_to_unix (name, tmp);
-  return obstack_copy0 (&obstack, tmp, strlen (tmp));
-}
+#ifdef TARGET_CONVERT_FILENAME
+  TARGET_CONVERT_FILENAME(&obstack, name, do_exe, do_obj);
 #else
-/* NAB-- */
-
-static const char *
-convert_filename (name, do_exe, do_obj)
-     const char *name;
-     int do_exe ATTRIBUTE_UNUSED;
-     int do_obj ATTRIBUTE_UNUSED;
-{
 #if defined(HAVE_TARGET_EXECUTABLE_SUFFIX)
   int i;
 #endif
@@ -2899,10 +2878,8 @@ convert_filename (name, do_exe, do_obj)
 #endif
 
   return name;
+#endif /* ! TARGET_CONVERT_FILENAME */
 }
-/* NAB++ */
-#endif /* ! defined __riscos__ */
-/* NAB--*/
 
 #endif
 
@@ -3683,23 +3660,6 @@ warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n\n"
      directories, so that we can search both the user specified directory
      and the standard place.  */
 
-/* NAB++ */
-#ifdef __riscos__
-  {
-    /* Convert the dots in the version number into underscores - which
-       are more suited to RISC OS's file naming conventions.  */
-    char *v = xmalloc (strlen (spec_version) + 1);
-    char *w;
-
-    strcpy (v, spec_version);
-    for (w = v; *w; w++)
-      if (*w == '.')
-        *w = '_';
-    spec_version = v;
-  }
-#endif
-/* NAB-- */
-
   if (!IS_ABSOLUTE_PATHNAME (tooldir_prefix))
     {
       if (gcc_exec_prefix)
@@ -3929,7 +3889,7 @@ warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n\n"
       else
 	{
 	  /* NAB++ */
-#if defined (HAVE_TARGET_OBJECT_SUFFIX) || defined(__riscos__)
+#if defined (HAVE_TARGET_OBJECT_SUFFIX) || defined(TARGET_CONVERT_FILENAME)
 	  argv[i] = convert_filename (argv[i], 0, access (argv[i], F_OK));
 #endif
 
@@ -5901,27 +5861,6 @@ main (argc, argv)
   while (p != argv[0] && !IS_DIR_SEPARATOR (p[-1]))
     --p;
   programname = p;
-
-/* NAB++ */
-#ifdef __riscos
-  {
-    /* Perform a simple memory check.  Notify the user that there is
-       not enough space in the `next' slot for a task and die.  */
-    int current, next, regs[10];
-
-    regs[0] = -1;
-    regs[1] = -1;
-    __os_swi (Wimp_SlotSize, regs);
-    if (regs[0] < (4000 * 1024))
-      {
-        fprintf (stderr,
-                "%s requires a minimum of 4000K to run.  Please increase the wimpslot.\n",
-                programname);
-        return 1;
-      }
-  }
-#endif
-/* NAB-- */
 
   xmalloc_set_program_name (programname);
 
