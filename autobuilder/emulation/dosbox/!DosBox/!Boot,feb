@@ -1,0 +1,4 @@
+| Boot file for dosbox
+
+Set DosBox$Dir <Obey$Dir>
+IconSprites <DosBox$Dir>.!Sprites

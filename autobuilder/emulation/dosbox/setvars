@@ -1,0 +1,11 @@
+
+AB_CATEGORY=emulation
+
+AB_MANPAGE=docs/dosbox.1
+
+ab_package() {
+  cp -av $H/\!DosBox $D
+  cp -av $S/AUTHORS $S/COPYING $S/INSTALL $S/NEWS $S/THANKS $S/dosbox,ff8 \
+         $D/\!DosBox
+  cp -av $S/README $D/\!DosBox/\!Help
+}
