@@ -1,8 +1,8 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/_swi.s,v $
-; $Date: 2004/12/26 18:12:40 $
-; $Revision: 1.5 $
+; $Date: 2004/12/27 19:38:43 $
+; $Revision: 1.6 $
 ; $State: Exp $
 ; $Author: jmb $
 ;
@@ -176,7 +176,7 @@ fill_return
 	LDRCS	r12, [lr], #4
 	STRCS	a3, [r12, #0]
 	; done 4, can we stop here?
-	TST	r11, #&FC0
+	TST	r11, #(&FC<<20)
 	BEQ	swi_flags
 
 	MOVS	r10, r11, LSL #5

@@ -15,7 +15,7 @@
 
 int main (int argc, char *argv[])
 {
-  unsigned int r0, pc, ret;
+  unsigned int r0, r5, pc, ret;
 
   /* *FX 0 */
   puts("Calling _swix");
@@ -30,6 +30,11 @@ int main (int argc, char *argv[])
   puts("ret and pc should be identical, r0 should be the result from OS_Confirm");
   ret = _swi(OS_Confirm, _OUT(0) | _OUT(_FLAGS) | _RETURN(_FLAGS), &r0, &pc);
   printf("ret: %x r0: %d pc: %x\n", ret, r0, pc);
+  puts("");
+  puts("Calling _swix - testing _OUT");
+  puts("r5 should contain the attributes of this file");
+  _swix(OS_File, _INR(0,1) | _OUT(0) | _OUT(5), 17, argv[0], &r0, &r5);
+  printf("r5: %x\n", r5);
 
   puts("");
   puts("Calling _swix - testing _BLOCK");
