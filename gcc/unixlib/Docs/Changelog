@@ -1,3 +1,7 @@
+Sun Apr  6 12:48:17 2003  Peter Naulls <peter@chocky.org>
+
+	* Help: Remove extra help file, and just use !Help
+
 Sat Apr  6 11:54:16 2003  Alex Waugh  <alex@alexwaugh.com>
 
 	* pthread.h (__pthread_running_threads): Renamed to

@@ -125,14 +125,14 @@ install:
 	cp Sprites,ff9 $(ro_gccpkg)/\!Sprites,ff9
 	cp Sprites22,ff9 $(ro_gccpkg)/\!Sprites22,ff9
 	cp Changes $(ro_gccpkg)/Changes
-	cp Help $(ro_gccpkg)/\!Help
+	cp \!Help $(ro_gccpkg)/\!Help
 	find $(ro_gccpkg) -name "CVS" -type d | xargs rm -rf
 	find $(ro_gccpkg) -name "*~*" -or -name "*.orig*" -or -name "*.reg*" -type f | xargs rm -rf
 
 	for dir in CallASWI Docs objs; do \
 		cp -pR ../unixlib/$$dir $(ro_unixlibpkg) ; done
 	cp ../unixlib/Boot,feb $(ro_unixlibpkg)/\!Boot,feb
-	cp ../unixlib/Help $(ro_unixlibpkg)/\!Help
+	cp ../unixlib/\!Help $(ro_unixlibpkg)/\!Help
 	cp ../unixlib/MKDir,feb $(ro_unixlibpkg)/\!MKDir,feb
 	cp ../unixlib/Run,feb $(ro_unixlibpkg)/\!Run,feb
 	cp ../unixlib/Sprites,ff9 $(ro_unixlibpkg)/\!Sprites,ff9
