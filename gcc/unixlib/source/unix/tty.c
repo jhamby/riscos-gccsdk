@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/tty.c,v $
- * $Date: 2004/12/16 11:37:08 $
- * $Revision: 1.17 $
+ * $Date: 2005/03/04 20:59:06 $
+ * $Revision: 1.18 $
  * $State: Exp $
- * $Author: peter $
+ * $Author: alex $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: tty.c,v 1.17 2004/12/16 11:37:08 peter Exp $";
+static const char rcs_id[] = "$Id: tty.c,v 1.18 2005/03/04 20:59:06 alex Exp $";
 #endif
 
 /* System V tty device driver for RISC OS.  */
@@ -484,20 +484,26 @@ __ttyicanon (const struct __unixlib_fd *file_desc, void *buf, int nbyte,
   const int ceof = cc[VEOF];
   const int ceol = (cc[VEOL] != '\0' ? cc[VEOL] : -1);
   const int ceol2 = (cc[VEOL2] != '\0' ? cc[VEOL2] : -1);
+  int escapestate;
 
 #define F_LNEXT		000001
 #define F_MAX		000002
 #define F_NDELAY	000004
 
   if (tty->type == TTY_CON)
-    __os_byte (0xe5, 0xff, 0, 0);		/* Disable SIGINT.  */
+    {
+      int regs[3];
+
+      __os_byte (0xe5, 0xff, 0, regs);		/* Disable SIGINT.  */
+      escapestate = regs[1];
+    }
 
 ret:
 
   if (tty->cnt != 0)
     {
       if (tty->type == TTY_CON)
-	__os_byte (0xe5, 0, 0, 0);	/* Re-enable SIGINT.  */
+	__os_byte (0xe5, escapestate, 0, 0);	/* Restore SIGINT.  */
 
       i = (nbyte > tty->cnt) ? tty->cnt : nbyte;
       memcpy (buf, tty->ptr, i);
@@ -645,7 +651,7 @@ eol:
     goto ret;
 
   if (tty->type == TTY_CON)
-    __os_byte (0xe5, 0, 0, 0);	/* Re-enable SIGINT.  */
+    __os_byte (0xe5, escapestate, 0, 0);	/* Restore SIGINT.  */
 
   if (tty->cnt == 0 && c != ceof)
     return __set_errno (EAGAIN);

@@ -1,7 +1,12 @@
+Wed Mar 30 22:37:44 2005  Alex Waugh  <alex@alexwaugh.com>
+
+	* source/unix/tty.c (__ttyicanon): Restore the previous escape
+	  state, rather than just assuming it was set.
+
 Tue Mar 29 23:44:37 2005  Peter Naulls  <peter@chocky.org>
 
 	* source/unix/getenv.c, source/unix/select.c: Avoid
-	  NULL pointer reading. 
+	  NULL pointer reading.
 
 Mon Mar 28 15:56:14 2005  John Tytgat  <John.Tytgat@aaug.net>
 
