@@ -1,3 +1,16 @@
+Sun Jan  5 12:41:31 2002  Alex Waugh  <alex@alexwaugh.com>
+
+	Make UnixLib thread-safe.
+	* abort.c (abort): Add PTHREAD_UNSAFE
+	* assert.c (__assert_fail): Likewise.
+	* atexit.c (atexit): Likewise.
+	* qsort.c (qsort): Likewise.
+	* strtod.c: LIkewise.
+	* termcap.c (tgetent, t_tentcp, t_tgetln): Likewise.
+	(t_tgetid, tgetstr, tgoto): Likewise.
+
+	* strsignal.c (strsignal): Simplify.
+
 Sun Jan  5 12:37:50 2002  Alex Waugh  <alex@alexwaugh.com>
 
 	* errno.h: Always define 'errno' as errno.

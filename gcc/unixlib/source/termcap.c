@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/termcap.c,v $
- * $Date: 2001/09/11 14:16:00 $
- * $Revision: 1.2.2.3 $
- * $State: Exp $
- * $Author: admin $
+ * $Source$
+ * $Date$
+ * $Revision$
+ * $State$
+ * $Author$
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: termcap.c,v 1.2.2.3 2001/09/11 14:16:00 admin Exp $";
+static const char rcs_id[] = "$Id$";
 #endif
 
 #include <unixlib/unix.h>
@@ -18,6 +18,7 @@ static const char rcs_id[] = "$Id: termcap.c,v 1.2.2.3 2001/09/11 14:16:00 admin
 #include <string.h>
 #include <ctype.h>
 #include <stdlib.h>
+#include <pthread.h>
 
 #include <termcap.h>
 
@@ -79,6 +80,8 @@ tgetent (char *bp, const char *name)
   char *fnam;
   FILE *tfile = NULL;
   int nbyt, rval;
+
+  PTHREAD_UNSAFE
 
   if (bp == NULL)
     return -1;
@@ -287,6 +290,8 @@ t_tentcp (unsigned char *s)
   char *t_tbp_;
   char *tcnam, *tcn;
 
+  PTHREAD_UNSAFE
+
 #ifdef T_DEBUG
   fputs ("t_tentcp()\n", t_debug);
 #endif
@@ -380,6 +385,8 @@ t_tgetln (FILE * tfile, unsigned char *buf)
   bufp = buf;
   nbyt = 0;
 
+  PTHREAD_UNSAFE
+
   while (-1)
     {
       if (!fgets ((char *) bufp, t_tbpspace - nbyt, tfile))
@@ -409,6 +416,8 @@ t_tgetid (const char *id)
 {
   unsigned char *bptr;
   int found;
+
+  PTHREAD_UNSAFE
 
   if (id == NULL || t_tbpstart == NULL)
     return NULL;
@@ -504,6 +513,8 @@ tgetstr (const char *id, char **area)
   unsigned char obuf[4];
   char *rval;
 
+  PTHREAD_UNSAFE
+  
 #ifdef T_DEBUG
   fprintf (t_debug, "tgetstr(\"%s\")\n", id);
 #endif
@@ -632,6 +643,8 @@ tgoto (char *cm, int destcol, int destline)
   char *cmp, *rstrp, *cp;
   unsigned int f;
 
+  PTHREAD_UNSAFE
+  
 #define TC(f) (((f) & TG_revxy) ? destcol : destline)
 
 #ifdef T_DEBUG
@@ -776,6 +789,8 @@ t_tcoord (int x, unsigned int *_f)
 {
   unsigned int f;
 
+  PTHREAD_UNSAFE
+  
 t_tccalc:
 
   f = (*_f);

@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/c/strtod,v $
- * $Date: 2000/06/10 08:57:26 $
- * $Revision: 1.8 $
- * $State: Exp $
- * $Author: admin $
+ * $Source$
+ * $Date$
+ * $Revision$
+ * $State$
+ * $Author$
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: strtod,v 1.8 2000/06/10 08:57:26 admin Exp $";
+static const char rcs_id[] = "$Id$";
 #endif
 
 /*-
@@ -203,6 +203,8 @@ static char sccsid[] = "@(#)strtod.c	8.1 (Berkeley) 6/4/93";
 #include "math.h"
 #endif
 
+#include <pthread.h>
+
 #ifdef __cplusplus
 extern "C"
 {
@@ -378,6 +380,8 @@ extern "C"
     int x;
     Bigint *rv;
 
+    PTHREAD_UNSAFE
+
     if ((rv = freelist[k]))
       {
 	freelist[k] = rv->next;
@@ -397,6 +401,8 @@ extern "C"
     Bfree
     (Bigint * v)
   {
+    PTHREAD_UNSAFE
+
     if (v)
       {
 	v->next = freelist[v->k];
@@ -688,6 +694,8 @@ extern "C"
     int i;
     static int p05[3] =
     {5, 25, 125};
+
+    PTHREAD_UNSAFE
 
     if ((i = k & 3))
         b = multadd (b, p05[i - 1], 0);
@@ -1981,6 +1989,8 @@ extern "C"
     char *s, *s0;
     static Bigint *result;
     static int result_k;
+
+    PTHREAD_UNSAFE
 
     if (result)
       {

@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/qsort.c,v $
- * $Date: 2001/09/04 16:32:03 $
- * $Revision: 1.2.2.2 $
- * $State: Exp $
- * $Author: admin $
+ * $Source$
+ * $Date$
+ * $Revision$
+ * $State$
+ * $Author$
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: qsort.c,v 1.2.2.2 2001/09/04 16:32:03 admin Exp $";
+static const char rcs_id[] = "$Id$";
 #endif
 
 #include <unixlib/unix.h>
@@ -17,6 +17,7 @@ static const char rcs_id[] = "$Id: qsort.c,v 1.2.2.2 2001/09/04 16:32:03 admin E
 #include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
+#include <pthread.h>
 
 #define N_INSERT	8
 
@@ -168,11 +169,19 @@ qsort (register void *v, register size_t n, register size_t z,
        register int (*c) (const void *, const void *))
 
 {
+  static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+  /* Use a mutex so that threads aren't disabled while calling the user function */
+
   if (n < 2)
     return;
 
+  pthread_mutex_lock (&mutex);
+
   if (!(__t = malloc (z)))
-    return;
+    {
+      pthread_mutex_unlock (&mutex);
+      return;
+    }
 
   __z = z;
   __c = c;
@@ -188,4 +197,6 @@ qsort (register void *v, register size_t n, register size_t z,
     __isort ((char *) v, n);
 
   free (__t);
+
+  pthread_mutex_unlock (&mutex);
 }

@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/strsignal.c,v $
- * $Date: 2001/01/29 15:10:19 $
- * $Revision: 1.2 $
- * $State: Exp $
- * $Author: admin $
+ * $Source$
+ * $Date$
+ * $Revision$
+ * $State$
+ * $Author$
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: strsignal.c,v 1.2 2001/01/29 15:10:19 admin Exp $";
+static const char rcs_id[] = "$Id$";
 #endif
 
 #include <signal.h>
@@ -22,12 +22,7 @@ char *
 strsignal (int signum)
 {
   if (signum < 0 || signum >= NSIG)
-    {
-      static char unknown_signal[] = "Unknown signal 00000000000";
-
-      sprintf (unknown_signal, "Unknown signal %d", signum);
-      return unknown_signal;
-    }
+    return "Unknown signal";
 
   return (char *) sys_siglist[signum];
 }
