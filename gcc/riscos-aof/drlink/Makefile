@@ -1,9 +1,8 @@
 INCLUDES = -I. -I../../
-CFLAGS = -O2 $(OPTS) $(TARGET_DEFS) -DTARGET_UNIXLIB
-CC = gcc $(CFLAGS)
+CFLAGS += $(TARGET_DEFS) -DTARGET_UNIXLIB
 
 $(objdir)/riscos-aof/drlink/%.o: %.c
-	$(CC) -o $@ -c $< $(INCLUDES)
+	$(CC) $(CFLAGS) -o $@ -c $< $(INCLUDES)
 
 OBJS =	$(objdir)/riscos-aof/drlink/Aoffiles.o \
 	$(objdir)/riscos-aof/drlink/Areas.o \
@@ -23,7 +22,7 @@ OBJS =	$(objdir)/riscos-aof/drlink/Aoffiles.o \
 all:	$(BIN)/drlink
 
 $(BIN)/drlink:	$(OBJS)
-	gcc -o $@ $(OBJS)
+	$(CC) -o $@ $(OBJS)
 
 $(objdir)/riscos-aof/drlink/Aoffiles.o: Aoffiles.c
 $(objdir)/riscos-aof/drlink/Areas.o: Areas.c

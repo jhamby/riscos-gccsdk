@@ -2,7 +2,40 @@
 # Copyright (c) 2000 Nick Burrett
 # Written by Nick Burrett <nick@dsvr.net>
 
-include local.mk
+# Set by the configure script
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+datadir=@datadir@
+includedir=@includedir@
+infodir=@infodir@
+libdir=@libdir@
+libexecdir=@libexecdir@
+localstatedir=@localstatedir@
+bindir=@bindir@
+mandir=@mandir@
+oldincludedir=@oldincludedir@
+sbindir=@sbindir@
+sharedstatedir=@sharedstatedir@
+srcdir=@srcdir@
+sysconfdir=@sysconfdir@
+
+CC=@CC@
+CXX=@CXX@
+CFLAGS=@CFLAGS@
+CXXFLAGS=@CXXFLAGS@
+
+TARGET_NAME=@target_name@
+TARGET_DEFS=@target_defs@
+gccpkg=@prefix@
+distdir=@prefix@
+objdir=@topdir@/$(TARGET_NAME)
+
+# set inserts variable overrides after the following line
+####host definitions
+@host_overrides@
+####
+
+export TARGET_NAME TARGET_DEFS gccpkg distdir objdir
 
 # Path to where we place non-target specific compiled binaries
 BIN = $(distdir)/bin

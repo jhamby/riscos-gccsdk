@@ -9,16 +9,7 @@ crosscompile=yes
 VERSION = 2_95_2
 #VERSION = 3_0_0
 
-# Uncomment if we are building for ARM/RISC OS with ELF executables
-#TARGET_NAME = arm-riscos-elf
-#TARGET_DEFS = -DTARGET_RISCOSELF
-
-# Uncomment if we are building for ARM/RISC OS with AOF executables
-TARGET_NAME = arm-riscos-aof
-TARGET_DEFS = -DTARGET_RISCOSAOF
-
 # Installation directories
-gccpkg=/home/riscos/dist
 standard_exec_prefix=$(gccpkg)/bin/
 gcc_bin_dir=$(gccpkg)/bin/$(TARGET_NAME)/$(VERSION)
 standard_startfile_prefix=$(gccpkg)/startup/

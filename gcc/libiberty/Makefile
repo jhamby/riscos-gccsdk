@@ -11,14 +11,12 @@
 #
 
 # Defs for GCC
-CFLAGS = -O2 $(OPTS) -DIN_GCC -DHAVE_CONFIG_H $(TARGET_DEFS)
-
+CFLAGS += -DIN_GCC -DHAVE_CONFIG_H $(TARGET_DEFS)
 INCLUDES = -I. -I../include
 
 ifeq ($(TRG), native)
 
 # Building libiberty for the host binaries
-CC = gcc $(CFLAGS)
 libname=libiberty
 ifeq ($(crosscompile),yes)
 libname=libiberty.a

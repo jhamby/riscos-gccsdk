@@ -9,7 +9,7 @@ HOST_INCLUDES = -I./ -I./include -I./config
 HOST_PREDEFS = -DIN_GCC -DHAVE_CONFIG_H
 
 # Defs for GCC
-CFLAGS = -O2 $(OPTS) -DIN_GCC -DHAVE_CONFIG_H -D$(hostsystem) $(TARGET_DEFS)
+CFLAGS += -DIN_GCC -DHAVE_CONFIG_H -D$(hostsystem) $(TARGET_DEFS)
 GCC_AS = gcc -xassembler-with-cpp -c
 
 ifeq (${crosscompile},no)
@@ -20,14 +20,11 @@ endif
 
 INCLUDES = -I./ -I../../include -I./config -I./cp -I./f77 -I./java -I./objc
 LIBS = -L$(objdir)/libiberty -liberty
-BISON = $(BIN)/bison
-BISONFLAGS =
-CC = gcc -MMD $(CFLAGS)
 
 gccobjdir = $(objdir)/gcc-$(VERSION)/gcc
 
 $(gccobjdir)/%.o: %.c
-	$(CC) -o $@ -c $< $(INCLUDES)
+	$(CC) $(CFLAGS) -o $@ -c $< $(INCLUDES)
 
 all: c cpp fortran77 pascal objc java
 
@@ -606,45 +603,48 @@ f77/str-ot.h f77/str-ot.j:	f77/fin/str-ot $(gccobjdir)/f77/fini
 ##############################################################################
 
 $(gccobjdir)/cplus-dem.o: cplus-dem.c
-	$(CC) $(INCLUDES) -o $@ -c cplus-dem.c -DMAIN
+	$(CC) $(CFLAGS) $(INCLUDES) -o $@ -c cplus-dem.c -DMAIN
 
 $(gccobjdir)/except.o: except.c
-	$(CC) $(INCLUDES) -o $@ -c except.c -DDONT_USE_BUILTIN_SETJMP -DJMP_BUF_SIZE=24
+	$(CC) $(CFLAGS) $(INCLUDES) -o $@ -c except.c -DDONT_USE_BUILTIN_SETJMP -DJMP_BUF_SIZE=24
 
 $(gccobjdir)/optabs.o: optabs.c
-	$(CC) $(INCLUDES) -o $@ -c optabs.c -DDONT_USE_BUILTIN_SETJMP -DJMP_BUF_SIZE=24
+	$(CC) $(CFLAGS) $(INCLUDES) -o $@ -c optabs.c -DDONT_USE_BUILTIN_SETJMP -DJMP_BUF_SIZE=24
 
 $(gccobjdir)/prefix.o: prefix.c
-	$(CC) $(INCLUDES) -o $@ -c prefix.c -DPREFIX=\"rubbish\"
+	$(CC) $(CFLAGS) $(INCLUDES) -o $@ -c prefix.c -DPREFIX=\"rubbish\"
 
 $(gccobjdir)/java/jcf-path.o: java/jcf-path.c
-	$(CC) $(INCLUDES) -O2 -o $@ -c java/jcf-path.c -DLIBGCJ_ZIP_FILE=\"libgcj.zip\"
+	$(CC) $(CFLAGS) $(INCLUDES) -O2 -o $@ -c java/jcf-path.c -DLIBGCJ_ZIP_FILE=\"libgcj.zip\"
 
 
 $(gccobjdir)/toplev.o: toplev.c
-	$(CC) $(INCLUDES) -o $@ -c toplev.c -DTARGET_NAME=\"$(TARGET_NAME)\"
+	$(CC) $(CFLAGS) $(INCLUDES) -o $@ -c toplev.c -DTARGET_NAME=\"$(TARGET_NAME)\"
 
 
 $(gccobjdir)/gcc.o: gcc.c
-	$(CC) $(INCLUDES) -o $@ -c gcc.c -DDEFAULT_TARGET_VERSION=\"$(VERSION)\" \
+	$(CC) $(CFLAGS) $(INCLUDES) -o $@ -c gcc.c \
+	-DDEFAULT_TARGET_VERSION=\"$(VERSION)\" \
 	-DDEFAULT_TARGET_MACHINE=\"$(TARGET_NAME)\" \
 	-DSTANDARD_STARTFILE_PREFIX=\"$(standard_startfile_prefix)\" \
 	-DSTANDARD_EXEC_PREFIX=\"$(standard_exec_prefix)\"
 
 $(gccobjdir)/cp/g++.o: gcc.c
-	$(CC) $(INCLUDES) -o $@ -c gcc.c -DDEFAULT_TARGET_VERSION=\"$(VERSION)\" \
+	$(CC) $(CFLAGS) $(INCLUDES) -o $@ -c gcc.c \
+	-DDEFAULT_TARGET_VERSION=\"$(VERSION)\" \
 	-DDEFAULT_TARGET_MACHINE=\"$(TARGET_NAME)\" -DLANG_SPECIFIC_DRIVER \
 	-DSTANDARD_STARTFILE_PREFIX=\"$(standard_startfile_prefix)\" \
 	-DSTANDARD_EXEC_PREFIX=\"$(standard_exec_prefix)\"
 
 $(gccobjdir)/f77/g77.o: gcc.c
-	$(CC) $(INCLUDES) -o $@ -c gcc.c -DDEFAULT_TARGET_VERSION=\"$(VERSION)\" \
+	$(CC) $(CFLAGS) $(INCLUDES) -o $@ -c gcc.c \
+	-DDEFAULT_TARGET_VERSION=\"$(VERSION)\" \
 	-DDEFAULT_TARGET_MACHINE=\"$(TARGET_NAME)\" -DLANG_SPECIFIC_DRIVER \
 	-DSTANDARD_STARTFILE_PREFIX=\"$(standard_startfile_prefix)\" \
 	-DSTANDARD_EXEC_PREFIX=\"$(standard_exec_prefix)\"
 
 $(gccobjdir)/cpp/cppinit.o: cpp/cppinit.c
-	$(CC) $(INCLUDES) -o $@ -c cpp/cppinit.c \
+	$(CC) $(CFLAGS) $(INCLUDES) -o $@ -c cpp/cppinit.c \
 	-DGCC_INCLUDE_DIR=\"$(gcc_include_dir)\" \
 	-DGPLUSPLUS_INCLUDE_DIR=\"$(gplusplus_include_dir)\" \
 	-DLOCAL_INCLUDE_DIR=\"$(local_include_dir)\" \
@@ -652,13 +652,13 @@ $(gccobjdir)/cpp/cppinit.o: cpp/cppinit.c
 	-DCROSS_INCLUDE_DIR=\"$(cross_include_dir)\"
 
 $(gccobjdir)/gpc/circle-buf.o: gpc/circle-buf.c
-	$(CC) -o $@ -c $< -I./gpc $(INCLUDES) -DGPC -DEGCS92 -DEGCS -DEGCS95
+	$(CC) $(CFLAGS) -o $@ -c $< -I./gpc $(INCLUDES) -DGPC -DEGCS92 -DEGCS -DEGCS95
 
 $(gccobjdir)/gpc/gpc.o: gpc/gpc.c
-	$(CC) -o $@ -c $< -I./gpc $(INCLUDES) -DGPC -DEGCS92 -DEGCS -DEGCS95
+	$(CC) $(CFLAGS) -o $@ -c $< -I./gpc $(INCLUDES) -DGPC -DEGCS92 -DEGCS -DEGCS95
 
 $(gccobjdir)/gpc/gpcpp.o: gpc/gpcpp.c
-	$(CC) -o $@ -c $< -I./gpc $(INCLUDES) -DGPC -DEGCS92 -DEGCS -DEGCS95 \
+	$(CC) $(CFLAGS) -o $@ -c $< -I./gpc $(INCLUDES) -DGPC -DEGCS92 -DEGCS -DEGCS95 \
 	-DGCC_INCLUDE_DIR=\"$(gcc_include_dir)\" \
 	-DGPLUSPLUS_INCLUDE_DIR=\"$(gplusplus_include_dir)\" \
 	-DLOCAL_INCLUDE_DIR=\"$(local_include_dir)\" \
@@ -666,79 +666,79 @@ $(gccobjdir)/gpc/gpcpp.o: gpc/gpcpp.c
 	-DCROSS_INCLUDE_DIR=\"$(cross_include_dir)\"
 
 $(gccobjdir)/gpc/gpc-common.o: gpc/gpc-common.c
-	$(CC) -o $@ -c $< -I./gpc $(INCLUDES) -DGPC -DEGCS92 -DEGCS -DEGCS95
+	$(CC) $(CFLAGS) -o $@ -c $< -I./gpc $(INCLUDES) -DGPC -DEGCS92 -DEGCS -DEGCS95
 
 $(gccobjdir)/gpc/gpc-convert.o: gpc/gpc-convert.c
-	$(CC) -o $@ -c $< -I./gpc $(INCLUDES) -DGPC -DEGCS92 -DEGCS -DEGCS95
+	$(CC) $(CFLAGS) -o $@ -c $< -I./gpc $(INCLUDES) -DGPC -DEGCS92 -DEGCS -DEGCS95
 
 $(gccobjdir)/gpc/gpc-decl.o: gpc/gpc-decl.c
-	$(CC) -o $@ -c $< -I./gpc $(INCLUDES) -DGPC -DEGCS92 -DEGCS -DEGCS95
+	$(CC) $(CFLAGS) -o $@ -c $< -I./gpc $(INCLUDES) -DGPC -DEGCS92 -DEGCS -DEGCS95
 
 $(gccobjdir)/gpc/lang.o: gpc/lang.c
-	$(CC) -o $@ -c $< -I./gpc $(INCLUDES) -DGPC -DEGCS92 -DEGCS -DEGCS95
+	$(CC) $(CFLAGS) -o $@ -c $< -I./gpc $(INCLUDES) -DGPC -DEGCS92 -DEGCS -DEGCS95
 
 $(gccobjdir)/gpc/gpc-lex.o: gpc/gpc-lex.c gpc/hash.h gpc/parse.h
-	$(CC) -o $@ -c $< -I./gpc $(INCLUDES) -DGPC -DEGCS92 -DEGCS -DEGCS95
+	$(CC) $(CFLAGS) -o $@ -c $< -I./gpc $(INCLUDES) -DGPC -DEGCS92 -DEGCS -DEGCS95
 
 $(gccobjdir)/gpc/gpc-typeck.o: gpc/gpc-typeck.c
-	$(CC) -o $@ -c $< -I./gpc $(INCLUDES) -DGPC -DEGCS92 -DEGCS -DEGCS95
+	$(CC) $(CFLAGS) -o $@ -c $< -I./gpc $(INCLUDES) -DGPC -DEGCS92 -DEGCS -DEGCS95
 
 $(gccobjdir)/gpc/gpi-hash.o: gpc/gpi-hash.c
-	$(CC) -o $@ -c $< -I./gpc $(INCLUDES) -DGPC -DEGCS92 -DEGCS -DEGCS95
+	$(CC) $(CFLAGS) -o $@ -c $< -I./gpc $(INCLUDES) -DGPC -DEGCS92 -DEGCS -DEGCS95
 
 $(gccobjdir)/gpc/memfiles.o: gpc/memfiles.c
-	$(CC) -o $@ -c $< -I./gpc $(INCLUDES) -DGPC -DEGCS92 -DEGCS -DEGCS95
+	$(CC) $(CFLAGS) -o $@ -c $< -I./gpc $(INCLUDES) -DGPC -DEGCS92 -DEGCS -DEGCS95
 
 $(gccobjdir)/gpc/module.o: gpc/module.c
-	$(CC) -o $@ -c $< -I./gpc $(INCLUDES) -DGPC -DEGCS92 -DEGCS -DEGCS95
+	$(CC) $(CFLAGS) -o $@ -c $< -I./gpc $(INCLUDES) -DGPC -DEGCS92 -DEGCS -DEGCS95
 
 $(gccobjdir)/gpc/objects.o: gpc/objects.c
-	$(CC) -o $@ -c $< -I./gpc $(INCLUDES) -DGPC -DEGCS92 -DEGCS -DEGCS95
+	$(CC) $(CFLAGS) -o $@ -c $< -I./gpc $(INCLUDES) -DGPC -DEGCS92 -DEGCS -DEGCS95
 
 $(gccobjdir)/gpc/parse.o: gpc/parse.c
-	$(CC) -o $@ -c $< -I./gpc $(INCLUDES) -DGPC -DEGCS92 -DEGCS -DEGCS95
+	$(CC) $(CFLAGS) -o $@ -c $< -I./gpc $(INCLUDES) -DGPC -DEGCS92 -DEGCS -DEGCS95
 
 $(gccobjdir)/gpc/rts.o: gpc/rts.c
-	$(CC) -o $@ -c $< -I./gpc $(INCLUDES) -DGPC -DEGCS92 -DEGCS -DEGCS95
+	$(CC) $(CFLAGS) -o $@ -c $< -I./gpc $(INCLUDES) -DGPC -DEGCS92 -DEGCS -DEGCS95
 
 $(gccobjdir)/gpc/setop.o: gpc/setop.c
-	$(CC) -o $@ -c $< -I./gpc $(INCLUDES) -DGPC -DEGCS92 -DEGCS -DEGCS95
+	$(CC) $(CFLAGS) -o $@ -c $< -I./gpc $(INCLUDES) -DGPC -DEGCS92 -DEGCS -DEGCS95
 
 $(gccobjdir)/gpc/types.o: gpc/types.c
-	$(CC) -o $@ -c $< -I./gpc $(INCLUDES) -DGPC -DEGCS92 -DEGCS -DEGCS95
+	$(CC) $(CFLAGS) -o $@ -c $< -I./gpc $(INCLUDES) -DGPC -DEGCS92 -DEGCS -DEGCS95
 
 $(gccobjdir)/gpc/util.o: gpc/util.c
-	$(CC) -o $@ -c $< -I./gpc $(INCLUDES) -DGPC -DEGCS92 -DEGCS -DEGCS95
+	$(CC) $(CFLAGS) -o $@ -c $< -I./gpc $(INCLUDES) -DGPC -DEGCS92 -DEGCS -DEGCS95
 
 $(gccobjdir)/gpc/version.o: gpc/version.c 
-	$(CC) -o $@ -c $< -I./gpc $(INCLUDES) -DGPC -DEGCS92 -DEGCS -DEGCS95
+	$(CC) $(CFLAGS) -o $@ -c $< -I./gpc $(INCLUDES) -DGPC -DEGCS92 -DEGCS -DEGCS95
 
 $(gccobjdir)/gpc/convert.o: convert.c
-	$(CC) -o $@ -c $< -I./gpc $(INCLUDES) -DGPC -DEGCS92 -DEGCS -DEGCS95
+	$(CC) $(CFLAGS) -o $@ -c $< -I./gpc $(INCLUDES) -DGPC -DEGCS92 -DEGCS -DEGCS95
 
 $(gccobjdir)/gpc/expr.o: expr.c
-	$(CC) -o $@ -c $< -I./gpc $(INCLUDES) -DGPC -DEGCS92 -DEGCS -DEGCS95
+	$(CC) $(CFLAGS) -o $@ -c $< -I./gpc $(INCLUDES) -DGPC -DEGCS92 -DEGCS -DEGCS95
 
 $(gccobjdir)/gpc/fold-const.o: fold-const.c
-	$(CC) -o $@ -c $< -I./gpc $(INCLUDES) -DGPC -DEGCS92 -DEGCS -DEGCS95
+	$(CC) $(CFLAGS) -o $@ -c $< -I./gpc $(INCLUDES) -DGPC -DEGCS92 -DEGCS -DEGCS95
 
 $(gccobjdir)/gpc/function.o: function.c
-	$(CC) -o $@ -c $< -I./gpc $(INCLUDES) -DGPC -DEGCS92 -DEGCS -DEGCS95
+	$(CC) $(CFLAGS) -o $@ -c $< -I./gpc $(INCLUDES) -DGPC -DEGCS92 -DEGCS -DEGCS95
 
 $(gccobjdir)/gpc/dbxout.o: dbxout.c
-	$(CC) -o $@ -c $< -I./gpc $(INCLUDES) -DGPC -DEGCS92 -DEGCS -DEGCS95
+	$(CC) $(CFLAGS) -o $@ -c $< -I./gpc $(INCLUDES) -DGPC -DEGCS92 -DEGCS -DEGCS95
 
 $(gccobjdir)/gpc/optabs.o: optabs.c
-	$(CC) -o $@ -c $< -I./gpc $(INCLUDES) -DGPC -DEGCS92 -DEGCS -DEGCS95
+	$(CC) $(CFLAGS) -o $@ -c $< -I./gpc $(INCLUDES) -DGPC -DEGCS92 -DEGCS -DEGCS95
 
 $(gccobjdir)/gpc/stor-layout.o: stor-layout.c
-	$(CC) -o $@ -c $< -I./gpc $(INCLUDES) -DGPC -DEGCS92 -DEGCS -DEGCS95
+	$(CC) $(CFLAGS) -o $@ -c $< -I./gpc $(INCLUDES) -DGPC -DEGCS92 -DEGCS -DEGCS95
 
 $(gccobjdir)/gpc/toplev.o: toplev.c
-	$(CC) -o $@ -c $< -I./gpc $(INCLUDES) -DGPC -DEGCS92 -DEGCS -DEGCS95 -DTARGET_NAME=\"$(TARGET_NAME)\"
+	$(CC) $(CFLAGS) -o $@ -c $< -I./gpc $(INCLUDES) -DGPC -DEGCS92 -DEGCS -DEGCS95 -DTARGET_NAME=\"$(TARGET_NAME)\"
 
 $(gccobjdir)/gpc/tree.o: tree.c
-	$(CC) -o $@ -c $< -I./gpc $(INCLUDES) -DGPC -DEGCS92 -DEGCS -DEGCS95
+	$(CC) $(CFLAGS) -o $@ -c $< -I./gpc $(INCLUDES) -DGPC -DEGCS92 -DEGCS -DEGCS95
 
 
 # Dependencies

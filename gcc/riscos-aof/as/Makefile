@@ -1,15 +1,14 @@
 INCLUDES = -I. -I../../
-CFLAGS = -Wall -O2 $(OPTS) $(TARGET_DEFS)
+CFLAGS += -Wall $(TARGET_DEFS)
 ifeq ($(crosscompile),no)
 CFLAGS += -DUNIXLIB
 endif
-CC = gcc $(CFLAGS)
 
 $(objdir)/riscos-aof/as/%.o: %.c
-	$(CC) -o $@ -c $< $(INCLUDES)
+	$(CC) $(CFLAGS) -o $@ -c $< $(INCLUDES)
 
 $(objdir)/riscos-aof/as/%.o: %.s
-	$(CC) -o $@ -c $< $(INCLUDES)
+	$(CC) $(CFLAGS) -o $@ -c $< $(INCLUDES)
 
 OBJS =	$(objdir)/riscos-aof/as/area.o \
 	$(objdir)/riscos-aof/as/asm.o \
@@ -64,7 +63,7 @@ endif
 all:	$(TBIN)/as
 
 $(TBIN)/as:	$(OBJS)
-	gcc -o $@ $(OBJS) -lm
+	$(CC) -o $@ $(OBJS) -lm
 
 $(objdir)/riscos-aof/as/area.o: area.c
 $(objdir)/riscos-aof/as/asm.o: asm.c

@@ -22,6 +22,14 @@ AC_PROG_RANLIB
 AC_PROG_LEX
 AC_PROG_AWK
 
+dnl Check the GCC version
+AC_PROG_CXX
+gxx_version=`${CXX} --version`
+case $gxx_version in
+  2.9*)  CXXFLAGS="$CXXFLAGS -fpermissive";;
+  3.*)  CXXFLAGS="$CXXFLAGS -fpermissive";;
+esac
+
 # See if the system preprocessor understands the ANSI C preprocessor
 # stringification operator.
 AC_MSG_CHECKING(whether cpp understands the stringify operator)
@@ -120,40 +128,27 @@ GCC_NEED_DECLARATIONS(getrlimit setrlimit, [
 ])
 
 
-
-
 dnl Checks for library functions
 
-
 echo Targeting for host $host
-
 case "$host" in
-  *-*-freebsd*)
-	os_subdir="freebsd"
-	;;
-  *-*-linux)
-	os_subdir="linux"
-	;;
-  *-*-linux-*)
-	os_subdir="linux"
-	;;
+  *-*-freebsd*)	host_overrides="config/freebsd.mk";;
+  *-*-linux)	host_overrides="config/linux.mk";;
+  *-*-linux-*)	host_overrides="config/linux.mk";;
 esac
-os_vendor="unknown"
-if test "$os_subdir" = "linux"; then
-    # Discover distribution type
-    AC_MSG_CHECKING([Linux vendor])
-    if test -f /etc/redhat-release; then
-	os_vendor="redhat"
-    elif test -f /etc/SuSE-release; then
-	os_vendor="suse"
-    elif test -f /etc/debian-version; then
-	os_vendor="debian"
-    fi
-    AC_MSG_RESULT($os_vendor)
-fi
 
+target_name="arm-riscos-aof"
+target_defs="-DTARGET_RISCOSAOF"
+AC_SUBST(target_name)
+AC_SUBST(target_defs)
 
-#AC_SUBST(os_subdir)
-#AC_SUBST(os_vendor)
+# Get an absolute path to the GCCSDK top-level source directory
+holddir=`pwd`
+cd $srcdir
+topdir=`pwd`
+cd $holddir
+
+AC_SUBST_FILE(host_overrides)
+AC_SUBST(topdir)
 AC_PROG_MAKE_SET
 AC_OUTPUT([Makefile])

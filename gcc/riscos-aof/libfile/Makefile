@@ -1,13 +1,12 @@
 INCLUDES = -I. -I../../
-CFLAGS = -O2 $(OPTS) -DUNIX $(TARGET_DEFS)
-#-fpermissive
-CC = gcc $(CFLAGS)
+CXXFLAGS += -DUNIX $(TARGET_DEFS)
+CFLAGS += -DUNIX $(TARGET_DEFS)
 
 $(objdir)/riscos-aof/libfile/%.o: %.cc
-	$(CC) -o $@ -c $< $(INCLUDES)
+	$(CXX) $(CXXFLAGS) -o $@ -c $< $(INCLUDES)
 
 $(objdir)/riscos-aof/libfile/%.o: %.s
-	$(CC) -o $@ -c $<
+	$(CC) $(CFLAGS) -o $@ -c $<
 
 OBJS = $(objdir)/riscos-aof/libfile/TimeStamp.o \
 	$(objdir)/riscos-aof/libfile/OflSymt.o \
@@ -38,7 +37,7 @@ endif
 all:	$(BIN)/libfile
 
 $(BIN)/libfile:	$(OBJS)
-	gcc -o $@ $(OBJS) -lstdc++
+	$(CC) -o $@ $(OBJS) -lstdc++
 
 $(objdir)/riscos-aof/libfile/TimeStamp.o: TimeStamp.cc
 $(objdir)/riscos-aof/libfile/OflSymt.o: OflSymt.cc
