@@ -1294,8 +1294,6 @@ emulator (void)
 
       if (cond == 14 || conditie[cond] ())
 	{
-	  if (total_instructions >= 561230000)
-	    showins ();
 	  main_decode[((ins & 0x0f000000) >> 22) |
 		      ((ins & 0x00000080) >> 6) |
 		      ((ins & 0x00000010) >> 4)] (ins);

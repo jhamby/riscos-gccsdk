@@ -1,10 +1,10 @@
 ;----------------------------------------------------------------------------
 ;
-; $Source$
-; $Date$
-; $Revision$
-; $State$
-; $Author$
+; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/_syslib.s,v $
+; $Date: 2002/09/24 21:02:38 $
+; $Revision: 1.5 $
+; $State: Exp $
+; $Author: admin $
 ;
 ;----------------------------------------------------------------------------
 
@@ -191,10 +191,10 @@ struct_base
 
 	MOV	ip, v1		; Restore ip.
 
-	LDR	a1, =|rmensure|
-	SWI	XOS_CLI
-	MOVVS	a1, #NO_SUL
-	BVS	exit_with_error
+	;LDR	a1, =|rmensure|
+	;SWI	XOS_CLI
+	;MOVVS	a1, #NO_SUL
+	;BVS	exit_with_error
 
 	; use of da's explicitly overridden if __dynamic_no_da is declared
 	LDR	a1, =|__dynamic_no_da|

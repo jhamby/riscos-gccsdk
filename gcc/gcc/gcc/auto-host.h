@@ -193,7 +193,7 @@
 #define HAVE_DECL_GETRUSAGE 1
 
 /* Define to 1 if we found this declaration otherwise define to 0. */
-#define HAVE_DECL_TIMES 0
+#define HAVE_DECL_TIMES 1
 
 /* Define if <sys/times.h> defines struct tms. */
 #define HAVE_STRUCT_TMS 1
@@ -214,7 +214,7 @@
 /* #undef HAVE___INT64 */
 
 /* Define if the `_Bool' type is built-in. */
-#define HAVE__BOOL 1
+/* #undef HAVE__BOOL */
 
 /* The number of bytes in type short */
 #define SIZEOF_SHORT 2

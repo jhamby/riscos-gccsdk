@@ -34,6 +34,8 @@ ux_gccpkg=@prefix@
 # Installation directory of RISC OS binaries i.e. the stage 2 compiler.
 ro_gccpkg=@with_riscos_dist@/!gcc
 ro_syspkg=@with_riscos_dist@/!System
+ro_unixlibpkg=@with_riscos_dist@/!unixlib
+ro_libsclpkg=@with_riscos_dist@/!clib
 
 # Installation directory of RISC OS distribution packaged as zip files.
 ro_zippkg=@with_riscos_pkg@
@@ -99,6 +101,7 @@ CROSS_AR = $(ux_gccpkg)/$(gn_standard_exec_prefix)/libfile
 CROSS_AR_FLAGS = -c
 
 insthdr = @topdir@/scripts/install-headers.pl
+instsrc = @topdir@/scripts/install-source.pl
 
 # Place variables in the environment.  This saves us having to pass
 # the variables to sub-makes on the command line.
@@ -107,21 +110,21 @@ export ux_gccpkg ro_gccpkg ro_syspkg ro_zippkg unix_prefix riscos_prefix
 export gn_standard_exec_prefix gn_standard_startfile_prefix
 export gn_gcc_include_dir gn_gplusplus_include_dir
 export gn_local_include_dir gn_system_include_dir gn_cross_include_dir
-export gn_gcc_bin_dir info_dir exesfx
+export gn_gcc_bin_dir info_dir exesfx ro_unixlibpkg ro_libsclpkg
 export ux_bin_dir ux_gcc_bin_dir ro_bin_dir ro_gcc_bin_dir
 export unixlib_incl_dir libscl_incl_dir
 export CC CXX
 export CROSS_CC CROSS_CXX CROSS_CFLAGS CROSS_CXXFLAGS
 export CROSS_AR CROSS_AR_FLAGS
 export VERSION TARGET_NAME CFLAGS CXXFLAGS AR AR_FLAGS
-export insthdr
+export insthdr instsrc
 
 all:	build-stg1 build-stg2 build-stg3 build-stg4 build-stg5 build-stg6 \
 	build-stg7
 
 # Setup build and installation directories.  Install run-time library
 # headers
-setup:	directories install_headers
+setup:	directories install_headers install_source
 
 # Tools that will run natively in any environment
 # i.e. under Linux this will build the GCC cross-compiler, cross-assembler
@@ -165,6 +168,9 @@ build-stg7:	build-stg6 libf2c libgpc riscos-libs riscos-progs riscos-dist
 .PHONY: build-stg5
 .PHONY: build-stg6
 .PHONY: build-stg7
+
+.PHONY: install_headers
+.PHONY: install_source
 
 # Target (trgXX) and compiler flags (cflXX) definitions.  The XX must
 # match for both trg and cfl in all calls to sub-make processes.  We
@@ -274,10 +280,13 @@ directories:
 	mkdir -p $(ro_gccpkg)/$(gn_gcc_bin_dir)/$(trg30)/o
 	mkdir -p $(ro_gccpkg)/$(gn_gcc_bin_dir)/$(trg31)/o
 
-	mkdir -p @with_riscos_dist@/!System/Modules
+	mkdir -p ${ro_syspkg}/310/Modules
 	mkdir -p $(info_dir)
 	mkdir -p $(objdir)
 	mkdir -p $(ro_zippkg)
+
+	mkdir -p $(ro_unixlibpkg)/source/clib/o
+	mkdir -p $(ro_libsclpkg)/o
 
 # Install header files for our standard C run-time libraries.
 install_headers:
@@ -285,4 +294,7 @@ install_headers:
 	$(MAKE) -C unixlib install_headers
 	$(MAKE) -C gcc/libgcc install_headers
 	$(MAKE) -C gcc/libio install_headers
-	$(MAKE) -C gcc/libstdc install_headers
+	#$(MAKE) -C gcc/libstdc install_headers
+
+install_source:
+	$(MAKE) -C unixlib install_source

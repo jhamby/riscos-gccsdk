@@ -7,7 +7,8 @@ export TRG
 libpath=$(objdir)/gcc-$(VERSION)/$@
 gccpath=$(objdir)/gcc-$(VERSION)/$@/$(STAGE)
 
-all:	zlib gcc libstdc++-v3
+all:	zlib gcc
+# libstdc++-v3
 
 .PHONY: zlib
 .PHONY: gcc

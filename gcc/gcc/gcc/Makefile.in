@@ -315,7 +315,9 @@ c-parse.c: c-parse.y
 gengtype-yacc.c: gengtype-yacc.y
 	bison -d -o $@ gengtype-yacc.y
 
-gengtype-lex.c: gengtype-lex.l
+gengtype-yacc.h: gengtype-yacc.c
+
+gengtype-lex.c: gengtype-lex.l gengtype-yacc.h
 	flex -t -o$@ gengtype-lex.l | sed 's/^\(char msg\[\];\)/yyconst \1/' > $@
 
 # Perfect hash function generation stuff
