@@ -724,7 +724,7 @@ tlink_execute (char *prog, char **argv, char *redir, char *viafile)
 	    s = stpcpy (s, str);
 #else
 	  temp = __riscosify (str, 0, __RISCOSIFY_DONT_TRUNCATE,
-			      filename, sizeof (filename));
+			      filename, sizeof (filename), NULL);
 	  if (s != NULL)
 	    s = stpcpy (s, filename);
 #endif
@@ -751,7 +751,7 @@ tlink_execute (char *prog, char **argv, char *redir, char *viafile)
 #else
       /* Convert all the objects to a RISC OS format for the linker.  */
       temp = __riscosify (str, 0, __RISCOSIFY_DONT_TRUNCATE, filename,
-			  sizeof (filename));
+			  sizeof (filename), NULL);
 #endif
       if (temp != NULL)
 	{
@@ -787,7 +787,7 @@ tlink_execute (char *prog, char **argv, char *redir, char *viafile)
       temp = strcpy (filename, viafile);
 #else
       temp = __riscosify (viafile, 0, __RISCOSIFY_DONT_TRUNCATE,
-			  filename, sizeof (filename));
+			  filename, sizeof (filename), NULL);
 #endif
       if (temp != NULL)
 	{
@@ -804,7 +804,7 @@ tlink_execute (char *prog, char **argv, char *redir, char *viafile)
   temp = strcpy (filename, redir);
 #else
   temp = __riscosify (redir, 0, __RISCOSIFY_DONT_TRUNCATE,
-		      filename, sizeof (filename));
+		      filename, sizeof (filename), NULL);
 #endif
   if (temp != NULL)
     {
@@ -1546,7 +1546,7 @@ static int check_and_add_library (const char *file_name)
   temp = strcpy (converted, file_name);
 #else
   temp = __riscosify (file_name, 0, __RISCOSIFY_DONT_TRUNCATE,
-		      converted, sizeof (converted));
+		      converted, sizeof (converted), NULL);
 #endif
   if (temp == NULL)
     return 0;
