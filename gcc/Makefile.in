@@ -256,8 +256,6 @@ gcc-libs-stg2:
 	$(MAKE) -C gcc libf2c "TRG=$(trg30)" $(cfl30) "STAGE=stage2"
 	$(MAKE) -C gcc libstdc "TRG=$(trg20)" $(cfl20) "STAGE=stage2" "lib_incl_dir=$(unixlib_incl_dir)"
 	$(MAKE) -C gcc libstdc "TRG=$(trg30)" $(cfl30) "STAGE=stage2" "lib_incl_dir=$(libscl_incl_dir)"
-	$(MAKE) -C gcc libsupc++ "TRG=$(trg20)" $(cfl20) "STAGE=stage2"
-	$(MAKE) -C gcc libsupc++ "TRG=$(trg30)" $(cfl30) "STAGE=stage2"
 
 riscos-dist:
 	$(MAKE) -C riscos-dist install
