@@ -48,15 +48,13 @@ tools:	$(bin_dir)/gnatbl$(gexesfx) \
 tools-stg2: \
 	$(bin_dir)/gnatmake$(gexesfx) \
 	$(bin_dir)/gnatchop$(gexesfx) \
-	$(bin_dir)/gnatcmd$(gexesfx)\
 	$(bin_dir)/gnatkr$(gexesfx) \
 	$(bin_dir)/gnatlink$(gexesfx) \
 	$(bin_dir)/gnatls$(gexesfx) \
 	$(bin_dir)/gnatprep$(gexesfx) \
 	$(bin_dir)/gnatpsta$(gexesfx) \
-	$(bin_dir)/gnatpsys$(gexesfx) \
 	$(bin_dir)/gnatxref$(gexesfx) \
-	$(bin_dir)/gnatfind$(gexesfx) \
+	$(bin_dir)/gnatfind$(gexesfx)
 
 # Languages-specific object files for Ada.
 # Object files for gnat1 from C sources.
@@ -131,7 +129,7 @@ GNATBIND_OBJS = \
 # List of extra object files linked in with various programs.
 EXTRA_GNAT1_OBJS = 
 EXTRA_GNATBIND_OBJS = $(gccobjdir)/version.o
-EXTRA_GNATTOOLS_OBJS = $(gccobjdir)/version.o
+EXTRA_GNATTOOLS_OBJS = $(gccobjdir)/version.o $(adaobj)/mkdir.o
 
 # The runtime library for gnat comprises two directories.  One contains the
 # Ada source files that the compiler (gnat1) needs -- these files are listed
@@ -547,7 +545,8 @@ ADA_BACKEND = $(BACKEND) $(gccobjdir)/attribs.o
 GNATLINK_OBJS = $(adaobj)/gnatlink.o $(adaobj)/link.o \
  $(adaobj)/ali.o $(adaobj)/alloc.o $(adaobj)/butil.o $(adaobj)/casing.o $(adaobj)/csets.o $(adaobj)/debug.o $(adaobj)/fmap.o $(adaobj)/fname.o $(adaobj)/gnatvsn.o \
  $(adaobj)/hostparm.o $(adaobj)/namet.o $(adaobj)/opt.o $(adaobj)/osint.o $(adaobj)/output.o $(adaobj)/rident.o $(adaobj)/sdefault.o $(adaobj)/stylesw.o \
- $(adaobj)/switch.o $(adaobj)/table.o $(adaobj)/tree_io.o $(adaobj)/types.o $(adaobj)/validsw.o $(adaobj)/widechar.o
+ $(adaobj)/switch.o $(adaobj)/table.o $(adaobj)/tree_io.o $(adaobj)/types.o $(adaobj)/validsw.o $(adaobj)/widechar.o \
+ $(EXTRA_GNATTOOLS_OBJS)
 
 GNATMAKE_OBJS = $(adaobj)/ali.o $(adaobj)/ali-util.o \
  $(adaobj)/alloc.o $(adaobj)/atree.o $(adaobj)/binderr.o $(adaobj)/butil.o $(adaobj)/casing.o $(adaobj)/csets.o $(adaobj)/debug.o $(adaobj)/einfo.o $(adaobj)/elists.o \
@@ -561,7 +560,8 @@ GNATMAKE_OBJS = $(adaobj)/ali.o $(adaobj)/ali-util.o \
  $(adaobj)/sinput.o $(adaobj)/sinput-l.o $(adaobj)/sinput-p.o \
  $(adaobj)/snames.o $(adaobj)/stand.o $(adaobj)/stringt.o $(adaobj)/style.o $(adaobj)/stylesw.o $(adaobj)/validsw.o $(adaobj)/switch.o $(adaobj)/switch-m.o \
  $(adaobj)/switch-c.o $(adaobj)/table.o $(adaobj)/targparm.o $(adaobj)/tree_io.o $(adaobj)/types.o \
- $(adaobj)/uintp.o $(adaobj)/uname.o $(adaobj)/urealp.o $(adaobj)/usage.o $(adaobj)/widechar.o
+ $(adaobj)/uintp.o $(adaobj)/uname.o $(adaobj)/urealp.o $(adaobj)/usage.o $(adaobj)/widechar.o \
+ $(EXTRA_GNATTOOLS_OBJS)
 
 
 
@@ -611,6 +611,7 @@ GNATKR_RTL_OBJS = $(adaobj)/ada.o $(adaobj)/a-charac.o $(adaobj)/a-chahan.o $(ad
   $(adaobj)/raise.o $(adaobj)/exit.o $(adaobj)/argv.o $(adaobj)/cio.o $(adaobj)/init.o $(adaobj)/final.o $(adaobj)/s-finroo.o \
   $(adaobj)/a-except.o $(adaobj)/tracebak.o $(adaobj)/s-memory.o $(adaobj)/s-traceb.o $(adaobj)/s-mastop.o $(adaobj)/s-except.o \
   $(adaobj)/a-filico.o  $(adaobj)/s-strops.o  $(adaobj)/s-stratt.o $(adaobj)/s-imgenu.o $(adaobj)/a-ioexce.o $(adaobj)/s-exctab.o
+
 GNATKR_OBJS = $(adaobj)/gnatkr.o $(adaobj)/gnatvsn.o \
   $(adaobj)/krunch.o $(adaobj)/hostparm.o $(GNATKR_RTL_OBJS) $(EXTRA_GNATTOOLS_OBJS)
 
@@ -724,6 +725,8 @@ GNATLS_OBJS = \
  $(adaobj)/nlists.o   \
  $(adaobj)/opt.o      \
  $(adaobj)/osint.o    \
+ $(adaobj)/osint-b.o    \
+ $(adaobj)/osint-l.o    \
  $(adaobj)/output.o   \
  $(adaobj)/prj.o      \
  $(adaobj)/prj-attr.o \
@@ -745,6 +748,7 @@ GNATLS_OBJS = \
  $(adaobj)/sinfo.o    \
  $(adaobj)/sinfo-cn.o \
  $(adaobj)/sinput.o   \
+ $(adaobj)/sinput-l.o   \
  $(adaobj)/sinput-p.o \
  $(adaobj)/snames.o   \
  $(adaobj)/stand.o    \
@@ -754,6 +758,7 @@ GNATLS_OBJS = \
  $(adaobj)/validsw.o  \
  $(adaobj)/switch.o   \
  $(adaobj)/table.o    \
+ $(adaobj)/targparm.o \
  $(adaobj)/tree_io.o  \
  $(adaobj)/uintp.o    \
  $(adaobj)/uname.o    \
@@ -1054,9 +1059,9 @@ b_gnatb.c : $(GNATBIND_OBJS) $(adaobj)/gnatbind.ali
 $(adaobj)/gnatbind.ali: gnatbind.adb gnatbind.ads
 $(adaobj)/b_gnatb.o : b_gnatb.c
 
-b_gnatc.c : $(GNATCMD_OBJS)
-	$(GNATBIND) $(ADA_INCLUDES) -o b_gnatc.c $(adaobj)/gnatcmd.ali
-$(adaobj)/b_gnatc.o : b_gnatc.c
+#b_gnatc.c : $(GNATCMD_OBJS)
+#	$(GNATBIND) $(ADA_INCLUDES) -o b_gnatc.c $(adaobj)/gnatcmd.ali
+#$(adaobj)/b_gnatc.o : b_gnatc.c
 
 b_gnatch.c: $(GNATCHOP_OBJS)
 	$(GNATBIND) $(ADA_INCLUDES) -o b_gnatch.c $(adaobj)/gnatchop.ali
@@ -1196,5 +1201,7 @@ $(ro_gcc_bin_dir)/$(TRG)/o/libgnat: $(LIBGNAT_OBJS) $(GNATRTL_OBJS)
 endif
 
 
+#$(adaobj)/targtyps.o: targtyps.c
+#	$(GNATCC) $(CFLAGS) $(ADA_CFLAGS) -o $@ -c $< $(INCLUDES) -DFLOAT_WORDS_BIG_ENDIAN=1
 
 $(adaobj)/adaint.o: adaint.c

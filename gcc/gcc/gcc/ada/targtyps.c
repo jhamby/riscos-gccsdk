@@ -156,6 +156,9 @@ get_target_no_dollar_in_label ()
 #endif
 }
 
+#undef FLOAT_WORDS_BIG_ENDIAN
+#define FLOAT_WORDS_BIG_ENDIAN 1
+
 #ifndef FLOAT_WORDS_BIG_ENDIAN
 #define FLOAT_WORDS_BIG_ENDIAN WORDS_BIG_ENDIAN
 #endif
