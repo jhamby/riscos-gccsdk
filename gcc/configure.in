@@ -25,10 +25,6 @@ AC_PROG_AWK
 dnl Check the GCC version
 AC_PROG_CXX
 gxx_version=`${CXX} --version`
-case $gxx_version in
-  2.9*)  CXXFLAGS="$CXXFLAGS -fpermissive";;
-  3.*)  CXXFLAGS="$CXXFLAGS -fpermissive";;
-esac
 
 # See if the system preprocessor understands the ANSI C preprocessor
 # stringification operator.
