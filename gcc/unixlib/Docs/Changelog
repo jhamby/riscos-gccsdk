@@ -1,4 +1,24 @@
-Tue Dec 30 12:02:35  2003  Peter Naulls  <peter@chocky.org>
+Sat Jan 03 00:11:39 2004  John Tytgat  <John.Tytgat@aaug.net>
+
+	* source/clib/termios.h: Redefined the B* baud values so that they fit
+	  into a char (= variable type of sg_ispeed and sg_ospeed in struct
+	  sgttyb).  Renamed __ispeed and __ospeed into c_ispeed and c_ospeed.
+	* source/clib/unixlib/unix.h: Removed useless __bsd_speeds.
+	* source/termios/cfgetispee.c(cfgetispeed): Added argument checking
+	  and renamed __ispeed and __ospeed into c_ispeed and c_ospeed.
+	* source/termios/cfgetospee.c(cfgetospeed): Likewise.
+	* source/termios/cfsetispee.c(cfsetispeed): Likewise.
+	* source/termios/cfsetospee.c(cfsetospeed): Likewise.
+	* source/termios/tcgetattr.c(tcgetattr): __bsd_speeds is no longer
+	  needed.
+	* source/termios/tcsetattr.c(tcsetattr): Likewise.
+	* source/unix/tty.c: Removed convert_baud_rate().  Renamed __ispeed and
+	  __ospeed into c_ispeed and c_ospeed.  sg_ospeed gets now updated
+	  in __ttyioctl(TIOCGETP) which makes password typing in getpass()
+	  invisible.
+	* source/unix/unix.c(__unixinit): Got rid of compiler warnings.
+
+Tue Dec 30 12:02:35 2003  Peter Naulls  <peter@chocky.org>
 
 	* source/wchar/wcstoul.c: Removed file containing duplicate
 	  function.
@@ -28,7 +48,7 @@ Mon Dec 29 16:34:25 2003  Peter Naulls  <peter@chocky.org>
 	* source/pwd/pwdread.c: Improve behaviour of setting of pwd structure,
 	  including determining username under Select.
 
-Mon Dec 22 21:29:50  John Tytgat  <John.Tytgat@aaug.net>
+Mon Dec 22 21:29:50 2003  John Tytgat  <John.Tytgat@aaug.net>
 
 	* Docs/ReadMe: Documented the new uid feature.
 	* source/clib/unixlib/unix.h (__unixlib_fatal): Documented the NULL

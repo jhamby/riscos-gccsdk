@@ -1,8 +1,8 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/unixlib/unix.h,v $
- * $Date: 2003/11/23 20:26:44 $
- * $Revision: 1.8 $
+ * $Date: 2003/12/22 21:35:03 $
+ * $Revision: 1.9 $
  * $State: Exp $
  * $Author: joty $
  *
@@ -307,8 +307,6 @@ extern void *__stackalloc_incr_wimpslot (int __incr);
 void __unixinit (void);
 
 void _main (void);
-
-extern const speed_t __bsd_speeds[16];
 
 /* Shared between sys/exec.c & sys/_exec.s */
 extern _kernel_oserror *__exerr;

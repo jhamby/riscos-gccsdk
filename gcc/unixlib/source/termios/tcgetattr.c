@@ -1,17 +1,18 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/termios/tcgetattr.c,v $
- * $Date: 2002/02/14 15:56:37 $
- * $Revision: 1.3 $
+ * $Date: 2003/04/05 09:33:56 $
+ * $Revision: 1.4 $
  * $State: Exp $
- * $Author: admin $
+ * $Author: alex $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: tcgetattr.c,v 1.3 2002/02/14 15:56:37 admin Exp $";
+static const char rcs_id[] = "$Id: tcgetattr.c,v 1.4 2003/04/05 09:33:56 alex Exp $";
 #endif
 
+#include <stdio.h>
 #include <errno.h>
 #include <stddef.h>
 #include <termios.h>
@@ -46,8 +47,10 @@ tcgetattr (int fd, struct termios *termios_p)
       ioctl(fd, TIOCLGET, &local) < 0)
     return -1;
 
-  termios_p->__ispeed = __bsd_speeds[(unsigned char) buf.sg_ispeed];
-  termios_p->__ospeed = __bsd_speeds[(unsigned char) buf.sg_ospeed];
+  if (buf.sg_ispeed > __MAX_BAUD || buf.sg_ospeed > __MAX_BAUD)
+    return __set_errno (EINVAL);
+  termios_p->c_ispeed = buf.sg_ispeed;
+  termios_p->c_ospeed = buf.sg_ospeed;
 
   termios_p->c_iflag = 0;
   termios_p->c_oflag = 0;

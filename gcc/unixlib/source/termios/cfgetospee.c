@@ -1,22 +1,27 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/termios/c/cfgetospee,v $
- * $Date: 1998/06/25 21:35:31 $
- * $Revision: 1.1 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/termios/cfgetospee.c,v $
+ * $Date: 2001/01/29 15:10:21 $
+ * $Revision: 1.2 $
  * $State: Exp $
- * $Author: unixlib $
+ * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: cfgetospee,v 1.1 1998/06/25 21:35:31 unixlib Exp $";
+static const char rcs_id[] = "$Id: cfgetospee.c,v 1.2 2001/01/29 15:10:21 admin Exp $";
 #endif
 
+#include <errno.h>
+#include <stdlib.h>
 #include <termios.h>
 
 /* Return the output baud rate stored in the termios structure.  */
 __speed_t
 cfgetospeed (const struct termios *termios_p)
 {
-  return termios_p->__ospeed;
+  if (termios_p == NULL)
+    return __set_errno (EINVAL);
+
+  return termios_p->c_ospeed;
 }

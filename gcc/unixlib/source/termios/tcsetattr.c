@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/termios/tcsetattr.c,v $
- * $Date: 2002/01/12 16:06:57 $
- * $Revision: 1.2.2.3 $
+ * $Date: 2002/02/14 15:56:38 $
+ * $Revision: 1.3 $
  * $State: Exp $
  * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: tcsetattr.c,v 1.2.2.3 2002/01/12 16:06:57 admin Exp $";
+static const char rcs_id[] = "$Id: tcsetattr.c,v 1.3 2002/02/14 15:56:38 admin Exp $";
 #endif
 
 #include <errno.h>
@@ -18,27 +18,6 @@ static const char rcs_id[] = "$Id: tcsetattr.c,v 1.2.2.3 2002/01/12 16:06:57 adm
 #include <sys/ioctl.h>
 #include <sys/types.h>
 #include <unixlib/unix.h>
-
-const speed_t __bsd_speeds[16] =
-  {
-    0,
-    50,
-    75,
-    110,
-    134,
-    150,
-    200,
-    300,
-    600,
-    1200,
-    1800,
-    2400,
-    4800,
-    9600,
-    19200,
-    38400,
-  };
-
 
 /* Set the state of FD to *TERMIOS_P.  */
 int
@@ -51,7 +30,6 @@ tcsetattr (int fd, int optional_actions, const struct termios *termios_p)
 #ifdef	TIOCGETX
   int extra;
 #endif
-  size_t i;
 
   if (ioctl (fd, TIOCGETP, &buf) < 0 ||
       ioctl (fd, TIOCGETC, &tchars) < 0 ||
@@ -81,16 +59,10 @@ tcsetattr (int fd, int optional_actions, const struct termios *termios_p)
       return __set_errno (EINVAL);
     }
 
-  buf.sg_ispeed = buf.sg_ospeed = (char) -1;
-  for (i = 0; i <= sizeof (__bsd_speeds) / sizeof (__bsd_speeds[0]); ++i)
-    {
-      if (__bsd_speeds[i] == termios_p->__ispeed)
-	buf.sg_ispeed = i;
-      if (__bsd_speeds[i] == termios_p->__ospeed)
-	buf.sg_ospeed = i;
-    }
-  if (buf.sg_ispeed == (char) -1 || buf.sg_ospeed == (char) -1)
+  if (termios_p->c_ispeed > __MAX_BAUD || termios_p->c_ospeed > __MAX_BAUD)
     return __set_errno (EINVAL);
+  buf.sg_ispeed = (char) termios_p->c_ispeed;
+  buf.sg_ospeed = (char) termios_p->c_ospeed;
 
   buf.sg_flags &= ~(CBREAK|RAW);
   if (!(termios_p->c_lflag & ICANON))

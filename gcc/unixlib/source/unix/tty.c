@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/tty.c,v $
- * $Date: 2003/10/26 13:34:34 $
- * $Revision: 1.10 $
+ * $Date: 2003/11/23 20:26:45 $
+ * $Revision: 1.11 $
  * $State: Exp $
  * $Author: joty $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: tty.c,v 1.10 2003/10/26 13:34:34 joty Exp $";
+static const char rcs_id[] = "$Id: tty.c,v 1.11 2003/11/23 20:26:45 joty Exp $";
 #endif
 
 /* System V tty device driver for RISC OS.  */
@@ -223,36 +223,32 @@ __tty_console_sterm (struct termios *term)
 }
 
 #if __FEATURE_DEV_RS423
-struct baud_map
+/* Maps the B* #define's to RISC OS OS_Serial BaudRate values.  */
+static const int baud_rate[__MAX_BAUD + 1] =
 {
-  int baud_rate;
-  int internal_rate;
+  -1,   /*      B0 = Hang up -> undefined */
+   9,   /*     B50 */
+   1,   /*     B75 */
+  10,   /*    B110 */
+  11,   /*    B134 */
+   2,   /*    B150 */
+  -1,   /*    B200 -> not supported under RISC OS */
+   3,   /*    B300 */
+  12,   /*    B600 */
+   4,   /*   B1200 */
+  13,   /*   B1800 */
+   5,   /*   B2400 */
+   6,   /*   B4800 */
+   7,   /*   B9600 */
+   8,   /*  B19200 */
+  16,   /*  B38400 */
+  15,   /*   B7200 */
+  -1,   /*  B14400 -> not supported under RISC OS */
+  -1,   /*  B28800 -> not supported under RISC OS */
+  17,   /*  B57600 */
+  -1,   /*  B76800 -> not supported under RISC OS */
+  18    /* B115200 */
 };
-
-static const struct baud_map baud_rate[] =
-{
-  { 0, 0 }, { 50, 9 }, { 75, 1 }, { 110, 10 }, { 134, 11 },
-  { 150, 2 }, { 200, 0 }, { 300, 3 }, { 600, 12 }, { 1200, 4 },
-  { 1800, 13 }, { 2400, 5 }, { 4800, 6 }, { 9600, 7 },
-  { 19200, 8 }, { 38400, 16 }, { 57600, 17 }, { 115200, 18 },
-  { -1, -1 }
-};
-
-static int
-convert_baud_rate (__speed_t baud)
-{
-  int x;
-
-  /* Map 4 baud rate to RISC OS internal number.  */
-  x = 0;
-  while (baud_rate[x].baud_rate != -1)
-    {
-      if (baud == baud_rate[x].baud_rate)
-        return baud_rate[x].internal_rate;
-      x++;
-    };
-  return 0;
-}
 
 /* Set RS423.  */
 static void
@@ -265,16 +261,18 @@ __tty_423_sterm (struct termios *term)
   PTHREAD_UNSAFE
 
   /* Set baud rate for receive and transmit and data format.  */
+  if (term == NULL
+      || term->c_ispeed > __MAX_BAUD || baud_rate[term->c_ispeed] < 0
+      || term->c_ospeed > __MAX_BAUD || baud_rate[term->c_ospeed] < 0)
+    return;
 
   regs[0] = 5;
-  regs[1] = convert_baud_rate (term->__ispeed);
-  if (regs[1] != 0)
-    __os_swi (OS_SerialOp, regs);
+  regs[1] = baud_rate[term->c_ispeed];
+  __os_swi (OS_SerialOp, regs);
 
   regs[0] = 6;
-  regs[1] = convert_baud_rate (term->__ospeed);
-  if (regs[1] != 0)
-    __os_swi (OS_SerialOp, regs);
+  regs[1] = baud_rate[term->c_ospeed];
+  __os_swi (OS_SerialOp, regs);
 
   /* Get the control mode.  */
   cflag = term->c_cflag;
@@ -316,13 +314,14 @@ __ttyopen (struct __unixlib_fd *file_desc, const char *file, int mode)
   IGNORE (mode);
   IGNORE (file_desc);
 
-  if (file[5] == 'c')
+  if (file[sizeof("/dev/")-1] == 'c')
     type = TTY_CON; /* /dev/console */
 #if __FEATURE_DEV_RS423
-  else if (file[5] == 'r' || strcmp(file + 5, "ttyS0") == 0)
+  else if (file[sizeof("/dev/")-1] == 'r'
+           || strcmp(file + sizeof("/dev/")-1, "ttyS0") == 0)
     type = TTY_423; /* /dev/rs423 */
 #endif
-  else if (file[5] == 't')
+  else if (file[sizeof("/dev/")-1] == 't')
     type = __u->status.tty_type; /* /dev/tty */
   else
     return (void *) -1;
@@ -356,13 +355,13 @@ __ttyopen (struct __unixlib_fd *file_desc, const char *file, int mode)
   if (type == TTY_CON)
     {
       term->c_cflag = CS8 | CREAD | HUPCL | CLOCAL;
-      term->__ispeed = term->__ospeed = (speed_t) B38400;
+      term->c_ispeed = term->c_ospeed = B38400;
     }
 #if __FEATURE_DEV_RS423
   else if (type == TTY_423)
     {
       term->c_cflag = CS8 | CREAD | HUPCL | CLOCAL;
-      term->__ispeed = term->__ospeed = (speed_t) B9600;
+      term->c_ispeed = term->c_ospeed = B9600;
     }
 #endif
 
@@ -1017,8 +1016,11 @@ __ttyioctl (struct __unixlib_fd *file_desc, unsigned long request, void *arg)
         struct sgttyb *gtty = (struct sgttyb *)arg;
 	int flags = 0;
 
-        gtty->sg_ispeed = term->__ispeed;
-        gtty->sg_ispeed = term->__ospeed;
+        if (term->c_ispeed > __MAX_BAUD || term->c_ospeed > __MAX_BAUD)
+          return __set_errno (EINVAL);
+
+        gtty->sg_ispeed = (char) term->c_ispeed;
+        gtty->sg_ospeed = (char) term->c_ospeed;
         gtty->sg_erase  = term->c_cc[VERASE];
         gtty->sg_kill   = term->c_cc[VKILL];
 
@@ -1041,8 +1043,10 @@ __ttyioctl (struct __unixlib_fd *file_desc, unsigned long request, void *arg)
         struct sgttyb *gtty = (struct sgttyb *) arg;
         int flags = gtty->sg_flags;
 
-        term->__ispeed = gtty->sg_ispeed;
-        term->__ospeed = gtty->sg_ispeed;
+        if (gtty->sg_ispeed > __MAX_BAUD || gtty->sg_ospeed > __MAX_BAUD)
+          return __set_errno (EINVAL);
+        term->c_ispeed = gtty->sg_ispeed;
+        term->c_ospeed = gtty->sg_ospeed;
         term->c_cc[VERASE] = gtty->sg_erase;
         term->c_cc[VKILL] = gtty->sg_kill;
 

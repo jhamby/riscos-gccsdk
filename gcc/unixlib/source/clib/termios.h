@@ -1,10 +1,10 @@
 /****************************************************************************
  *
- * $Source$
- * $Date$
- * $Revision$
- * $State$
- * $Author$
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/termios.h,v $
+ * $Date: 2002/09/24 21:02:37 $
+ * $Revision: 1.4 $
+ * $State: Exp $
+ * $Author: admin $
  *
  ***************************************************************************/
 
@@ -157,33 +157,39 @@ typedef __cc_t cc_t;
 #define	NCCS	20	/* Value duplicated in <hurd/tioctl.defs>.  */
 
 /* Input and output baud rates.  */
-#define	B0	0		/* Hang up.  */
-#define	B50	50		/* 50 baud.  */
-#define	B75	75		/* 75 baud.  */
-#define	B110	110		/* 110 baud.  */
-#define	B134	134		/* 134.5 baud.  */
-#define	B150	150		/* 150 baud.  */
-#define	B200	200		/* 200 baud.  */
-#define	B300	300		/* 300 baud.  */
-#define	B600	600		/* 600 baud.  */
-#define	B1200	1200		/* 1200 baud.  */
-#define	B1800	1800		/* 1800 baud.  */
-#define	B2400	2400		/* 2400 baud.  */
-#define	B4800	4800		/* 4800 baud.  */
-#define	B9600	9600		/* 9600 baud.  */
-#define	B19200	19200		/* 19200 baud.  */
-#define	B38400	38400		/* 38400 baud.  */
-
-#define B7200   7200
-#define B14400  14400
-#define B28800  28800
-#define B57600  57600
-#define B76800  76800
-#define B115200 115200
-#define B230400 230400
-#define	EXTA	19200
-#define	EXTB	38400
-
+#ifdef __USE_MISC
+# define CBAUD		0x0000001F
+#endif
+#define	 B0		0x00000000	/* Hang up.  */
+#define	 B50		0x00000001	/* 50 baud.  */
+#define	 B75		0x00000002	/* 75 baud.  */
+#define	 B110		0x00000003	/* 110 baud.  */
+#define	 B134		0x00000004	/* 134.5 baud.  */
+#define	 B150		0x00000005	/* 150 baud.  */
+#define	 B200		0x00000006	/* 200 baud.  */
+#define	 B300		0x00000007	/* 300 baud.  */
+#define	 B600		0x00000008	/* 600 baud.  */
+#define	 B1200		0x00000009	/* 1200 baud.  */
+#define	 B1800		0x0000000A	/* 1800 baud.  */
+#define	 B2400		0x0000000B	/* 2400 baud.  */
+#define	 B4800		0x0000000C	/* 4800 baud.  */
+#define	 B9600		0x0000000D	/* 9600 baud.  */
+#define	 B19200		0x0000000E	/* 19200 baud.  */
+#define	 B38400		0x0000000F	/* 38400 baud.  */
+#ifdef __USE_MISC
+# define EXTA		B19200
+# define EXTB		B38400
+#endif
+#ifdef __USE_MISC
+# define CBAUDEX	0x00000010
+#endif
+#define	 B7200		0x00000010	/* 7200 baud.  */
+#define	 B14400		0x00000011	/* 14400 baud.  */
+#define	 B28800		0x00000012	/* 28800 baud.  */
+#define	 B57600		0x00000013	/* 57600 baud.  */
+#define	 B76800		0x00000014	/* 76800 baud.  */
+#define	 B115200	0x00000015	/* 115200 baud.  */
+#define	 __MAX_BAUD	B115200
 
 #define _IOT_termios /* Hurd ioctl type field.  */ \
   _IOT (_IOTS (tcflag_t), 4, _IOTS (cc_t), NCCS, _IOTS (speed_t), 2)
@@ -262,7 +268,7 @@ struct termios
   cc_t c_cc[NCCS];
 
   /* Input and output baud rates.  */
-  speed_t __ispeed, __ospeed;
+  speed_t c_ispeed, c_ospeed;
 };
 
 /* Return the output baud rate stored in *TERMIOS_P.  */

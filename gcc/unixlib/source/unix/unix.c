@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/unix.c,v $
- * $Date: 2003/11/23 20:26:45 $
- * $Revision: 1.16 $
+ * $Date: 2003/12/22 21:35:03 $
+ * $Revision: 1.17 $
  * $State: Exp $
  * $Author: joty $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: unix.c,v 1.16 2003/11/23 20:26:45 joty Exp $";
+static const char rcs_id[] = "$Id: unix.c,v 1.17 2003/12/22 21:35:03 joty Exp $";
 #endif
 
 #include <stdio.h>
@@ -123,7 +123,7 @@ extern char *__cli;
 /* Initialise the UnixLib world.  */
 void __unixinit (void)
 {
-  int i, __cli_size, cli_size = 0, newproc = 0, regs[10];
+  int __cli_size, cli_size = 0, newproc = 0, regs[10];
   char *cli = NULL;
 
 #ifdef DEBUG
@@ -439,7 +439,7 @@ initialise_process_structure (struct proc *process)
   /* Give the process a process ID of the monotonic clock.  This is not a
      guaranteed unique number, but it is about the best we can do until a
      module registry is written for UnixLib.  */
-  process->pid = clock ();
+  process->pid = (pid_t) clock ();
   process->ppid = 1;
   process->status.tty_type = TTY_CON;
 }
