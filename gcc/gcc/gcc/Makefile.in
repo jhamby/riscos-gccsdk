@@ -380,7 +380,7 @@ options.c: opts.sh options.h $(lang_opt_files)
 options.h: opts.sh $(lang_opt_files)
 	AWK=awk $(SHELL) opts.sh '$(SHELL) move-if-change' options.c options.h $(lang_opt_files)
 
-gcov-iov.h: gcov-iov.c version.h
+gcov-iov.h: $(gccobjdir)/gcov-iov gcov-iov.c version.h
 	$(gccobjdir)/gcov-iov > gcov-iov.h
 
 # Bison object dependencies
@@ -633,7 +633,7 @@ $(gccobjdir)/genconfig.o:	genconfig.c
 $(gccobjdir)/genpeep.o:	genpeep.c
 	$(HOST_CC) -c genpeep.c -o $@ $(HOST_INCLUDES) $(HOST_PREDEFS)
 
-$(gccobjdir)/gensupport.o:	gensupport.c
+$(gccobjdir)/gensupport.o:	gensupport.c gensupport.h
 	$(HOST_CC) -c gensupport.c -o $@ $(HOST_INCLUDES) $(HOST_PREDEFS)
 
 $(gccobjdir)/genpreds.o:	genpreds.c
@@ -645,6 +645,10 @@ $(gccobjdir)/genautomata.o:	genautomata.c
 $(gccobjdir)/genmodes.o:	genmodes.c
 	$(HOST_CC) -c genmodes.c -o $@ $(HOST_INCLUDES) $(HOST_PREDEFS)
 
+$(gccobjdir)/dummy-conditions.o:	dummy-conditions.c
+	$(HOST_CC) -c dummy-conditions.c -o $@ $(HOST_INCLUDES) $(HOST_PREDEFS)
+
+
 $(gccobjdir)/gengtype.o:	gengtype.c gtyp-gen.h insn-modes.h
 	$(HOST_CC) -c gengtype.c -o $@ $(HOST_INCLUDES) $(HOST_PREDEFS)
 
@@ -653,6 +657,8 @@ $(gccobjdir)/gengtype-lex.o:	gengtype-lex.c
 
 $(gccobjdir)/gengtype-yacc.o:	gengtype-yacc.c
 	$(HOST_CC) -c gengtype-yacc.c -o $@ $(HOST_INCLUDES) $(HOST_PREDEFS)
+
+
 
 $(gccobjdir)/genattr:	$(gccobjdir)/genattr.o $(HOST_RTL) $(HOST_SUPPORT) $(HOST_PRINT) $(HOST_ERRORS)
 	$(LINK) $(gccobjdir)/genattr.o $(HOST_RTL) $(HOST_SUPPORT) $(HOST_PRINT) $(HOST_ERRORS) $(LIBS)
@@ -688,8 +694,8 @@ $(gccobjdir)/genemit:	$(gccobjdir)/genemit.o $(HOST_RTL) $(HOST_SUPPORT) $(HOST_
 $(gccobjdir)/genextract:	$(gccobjdir)/genextract.o $(HOST_RTL) $(HOST_SUPPORT) $(HOST_PRINT) $(HOST_ERRORS) insn-config.h
 	$(LINK) $(gccobjdir)/genextract.o $(HOST_RTL) $(HOST_SUPPORT) $(HOST_PRINT) $(HOST_ERRORS) $(LIBS)
 
-$(gccobjdir)/genflags:	  $(gccobjdir)/genflags.o $(HOST_RTL) $(HOST_SUPPORT) $(HOST_PRINT) $(HOST_ERRORS)
-	$(LINK) $(gccobjdir)/genflags.o $(HOST_RTL) $(HOST_SUPPORT) $(HOST_PRINT) $(HOST_ERRORS) $(LIBS)
+$(gccobjdir)/genflags:	  $(gccobjdir)/genflags.o $(HOST_RTL) $(HOST_EARLY_SUPPORT) $(HOST_PRINT) $(HOST_ERRORS)
+	$(LINK) $(gccobjdir)/genflags.o $(HOST_RTL) $(HOST_EARLY_SUPPORT) $(HOST_PRINT) $(HOST_ERRORS) $(LIBS)
 
 $(gccobjdir)/gengtype: $(gccobjdir)/gengtype.o $(gccobjdir)/gengtype-lex.o $(gccobjdir)/gengtype-yacc.o
 	$(LINK) $(gccobjdir)/gengtype.o $(gccobjdir)/gengtype-lex.o $(gccobjdir)/gengtype-yacc.o $(LIBS)
@@ -848,7 +854,7 @@ $(gccobjdir)/flow.o: flow.c
 $(gccobjdir)/fold-const.o: fold-const.c
 $(gccobjdir)/function.o: function.c
 $(gccobjdir)/gcse.o: gcse.c
-$(gccobjdir)/gcov-iov.o: gcov-iov.c version.c coretypes.h
+$(gccobjdir)/gcov-iov.o: gcov-iov.c version.c coretypes.h $(BCONFIG_H) tm.h version.c
 $(gccobjdir)/genrtl.o: genrtl.c
 $(gccobjdir)/ggc-common.o: ggc-common.c
 $(gccobjdir)/ggc-page.o: ggc-page.c
@@ -931,23 +937,23 @@ $(gccobjdir)/genattrtab.o: genattrtab.c
 $(gccobjdir)/gencheck.o: gencheck.c
 $(gccobjdir)/gencodes.o: gencodes.c
 $(gccobjdir)/genconfig.o: genconfig.c
-$(gccobjdir)/genconstants.o: genconstants.c
+$(gccobjdir)/genconstants.o: genconstants.c gensupport.h tm.h $(BCONFIG_H)
 $(gccobjdir)/genemit.o: genemit.c
 $(gccobjdir)/genextract.o: genextract.c
-$(gccobjdir)/genflags.o: genflags.c
+$(gccobjdir)/genflags.o: genflags.c gensupport.h tm.h $(BCONFIG_H)
 $(gccobjdir)/gengenrtl.o: gengenrtl.c
 $(gccobjdir)/genopinit.o: genopinit.c
 $(gccobjdir)/genoutput.o: genoutput.c
 $(gccobjdir)/genpeep.o: genpeep.c
 $(gccobjdir)/genrecog.o: genrecog.c
 $(gccobjdir)/_obstack.o: $(gccobjdir)/obstack.c
-$(gccobjdir)/_print-rtl.o: $(gccobjdir)/print-rtl.c
+$(gccobjdir)/_print-rtl.o: $(gccobjdir)/print-rtl.c tm_p.h tm-preds.h
 $(gccobjdir)/_rtl.o: $(gccobjdir)/rtl.c
 $(gccobjdir)/_rtlanal.o: $(gccobjdir)/rtlanal.c 
-$(gccobjdir)/dummy-conditions.o: dummy-conditions.c gensupport.h
+$(gccobjdir)/dummy-conditions.o: dummy-conditions.c gensupport.h $(BCONFIG_H) tm.h
 
 $(gccobjdir)/insn-attrtab.o: insn-attrtab.c
-$(gccobjdir)/insn-conditions.o: insn-conditions.c gensupport.h insn-constants.h tm_p.h tm-preds.h
+$(gccobjdir)/insn-conditions.o: insn-conditions.c $(BCONFIG_H) insn-constants.h tm_p.h insn-flags.h
 $(gccobjdir)/insn-emit.o: insn-emit.c
 $(gccobjdir)/insn-extract.o: insn-extract.c
 $(gccobjdir)/insn-opinit.o: insn-opinit.c
