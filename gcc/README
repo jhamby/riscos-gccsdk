@@ -1,5 +1,5 @@
-The RISC OS Software Development Kit [GCCSDK 3.4 branch]
-====================================
+The RISC OS Software Development Kit [GCCSDK 3.4.1 Release]
+===========================================================
 
 GCCSDK is a portable build environment for creating ARM executables to
 be run natively on RISC OS.  The build environment is designed to be
@@ -24,7 +24,7 @@ packages installed on your system, with at *least* these software revisions.
 Installation
 ------------
 
-Make sure you've got about 150Mb spare disk space and a spare couple of
+Make sure you've got about 200 MB spare disk space and a spare couple of
 hours.  It is recommended that you install GCCSDK has a non-root user.
 The makefiles are still under development.  If something does go wrong
 then at least your system directory structure will still be preserved. 
@@ -41,10 +41,15 @@ the `--with-riscos-dist' option.  Finally, `--with-riscos-pkg' points
 to a directory where distributable zip files of the RISC OS GCC toolset
 will be created.  These should then be suitable for unpacking on a RISC OS
 computer to make a working compiler.
+
   $ ./configure --prefix=/home/riscos/cross \
 	--with-riscos-dist=/home/riscos/riscos-dist \
 	--with-riscos-pkg=/home/riscos/riscos-pkg \
 	--enable-filetype-ff8 --enable-checking=no
+
+The 'do-configure' script encapsulates this command, so instead of the
+above, you can run "sh do-configure".
+
 
 Adding the flag --enable-filetype-ff8 to the configure options will add the
 ",ff8" suffix to any RISC OS executables built under Unix.  This is to allow
@@ -175,7 +180,7 @@ A2. Systems on which it has successfully been built upon include:
         RedHat i386/Linux,
         Debian ARM/Linux,
         FreeBSD,
-	OpenBSD,
+        OpenBSD,
         Cygwin,
         and others.
 
@@ -186,10 +191,10 @@ Q3. Where does the Unixlib library file end up?
 
 A3. It depends on the parameters you pass to configure.  But for the
     RISC OS distribution it could be something like:
-      /usr/home/riscos/riscos-dist/bin/arm-riscos-aof/apcs26/unixlib/o/
+      /usr/home/riscos/riscos-dist/bin/arm-riscos-aof/apcs32/unixlib/o/
 
     For the Unix tree it could be:
-      /usr/home/riscos/riscos-cross/bin/arm-riscos-aof/apcs26/unixlib/unixlib.o
+      /usr/home/riscos/riscos-cross/bin/arm-riscos-aof/apcs32/unixlib/unixlib.o
 
 
 -----------------------------------------------------------------------------
@@ -204,7 +209,7 @@ A4. Fortunately this is quite easy and, in most cases, only requires you to
 
     b) Fix config.h and hconfig.h.  Add a HOST_CPU_OS clause for your machine,
        which should include an appropriate xm-*.h file, which you would have
-       previously copied from an original GCC 2.95.x release.
+       previously copied from an original GCC 3.4.1 release.
 
     Big-endian CPUs, such as Sparc and MIPS, are currently unsupported.
 
