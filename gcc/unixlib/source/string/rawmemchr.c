@@ -25,6 +25,9 @@
 #include <config.h>
 #endif
 
+#define _LIBC /* UnixLib change */
+#define reg_char char /* UnixLib change */
+
 #undef __ptr_t
 #if defined (__cplusplus) || (defined (__STDC__) && __STDC__)
 # define __ptr_t void *
@@ -34,7 +37,7 @@
 
 #if defined (_LIBC)
 # include <string.h>
-# include <memcopy.h>
+/* # include <memcopy.h> UnixLib change */
 # include <stdlib.h>
 #else
 # define reg_char char

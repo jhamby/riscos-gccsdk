@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/sys/types.h,v $
- * $Date: 2002/12/22 18:22:28 $
- * $Revision: 1.6 $
+ * $Date: 2004/10/12 08:32:38 $
+ * $Revision: 1.7 $
  * $State: Exp $
- * $Author: admin $
+ * $Author: peter $
  *
  ***************************************************************************/
 
@@ -12,6 +12,7 @@
  * File taken from glibc 2.2.5.
  * Following changes were made:
  *  - Replaced "#include <bits/types.h>" into "#include <unixlib/types.h>"
+ *  - Added Norcroft support for int64_t and u_int64_t typedefs.
  */
 
 /* Copyright (C) 1991,92,94,95,96,97,98,99,2000 Free Software Foundation, Inc.
@@ -179,7 +180,11 @@ typedef	char int8_t;
 typedef	short int int16_t;
 typedef	int int32_t;
 #  ifdef __GNUC__
+#   if defined(__CC_NORCROFT) && (__CC_NORCROFT_VERSION < 550)
+typedef __int64 int64_t;
+#   else
 __extension__ typedef long long int int64_t;
+#   endif
 #  endif
 # endif
 
@@ -188,7 +193,11 @@ typedef	unsigned char u_int8_t;
 typedef	unsigned short int u_int16_t;
 typedef	unsigned int u_int32_t;
 # ifdef __GNUC__
+#  if defined(__CC_NORCROFT) && (__CC_NORCROFT_VERSION < 550)
+typedef unsigned __int64 u_int64_t;
+#  else
 __extension__ typedef unsigned long long int u_int64_t;
+#  endif
 # endif
 
 typedef int register_t;

@@ -1,3 +1,18 @@
+Mon Jan  3 23:33:47 2005  John Tytgat  <John.Tytgat@aaug.net>
+
+	* source/clib/sys/types.h: Define int64_t and u_int64_t for Norcroft
+	  users.
+	* source/gcccompat/{_divdi3.s, _moddi3.s, _udivdi3.s, _umoddi3.s}:
+	  Raise SIGFPE when there is an integer division by zero.
+	* source/sys/{_sdiv.s, _smod.s, _udiv.s, _umod.s}: Likewise.
+	* source/string/rawmemchr.c: Workaround for Norcroft users.
+	* source/sys/_divtest.s (__rt_divtest, x$divtest): No longer console
+	  writing of a division by zero and a SIGFPE raise instead of a
+	  SIGABRT raise.
+	* source/sys/_longlong.s: License statement didn't cover complete
+	  source; Implementation of _ll_urdv and _ll_srdv got argument order
+	  wrong.
+
 Mon Jan  3 16:28:34 2005  Alex Waugh  <alex@alexwaugh.com>
 
 	* source/pthread/_context.s (__pthread_stop_ticker): Stack register
