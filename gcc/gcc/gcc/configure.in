@@ -91,7 +91,6 @@ AC_CHECK_FUNCS(fwrite_unlocked fprintf_unlocked getrusage)
 AC_CHECK_FUNCS(vprintf)
 
 AC_CHECK_TYPE(ssize_t, int)
-AC_C_BIGENDIAN_CROSS
 AC_DECL_SYS_SIGLIST
 
 AC_FUNC_VFORK
