@@ -1,10 +1,10 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/signal/_signal.s,v $
-; $Date: 2003/05/03 11:27:08 $
-; $Revision: 1.11 $
+; $Date: 2003/05/11 18:20:01 $
+; $Revision: 1.12 $
 ; $State: Exp $
-; $Author: alex $
+; $Author: joty $
 ;
 ;----------------------------------------------------------------------------
 
@@ -288,7 +288,7 @@
 ; callback, because the exception occurs in non USR mode.
 ; The software exceptions of interest are:
 ;
-;	Error		raise (SIGERR | SIGEMT | SIGFPE)
+;	Error		raise (SIGOSERROR | SIGEMT | SIGFPE)
 ;	Escape		raise (SIGINT)
 ;	Event		on Internet event, raise (SIGIO | SIGURG | SIGPIPE)
 ;	Exit		see sys/syslib.s
@@ -306,7 +306,8 @@
 ; On exit:
 ;	Undefined.
 ;
-; Set UnixLib's errno to EOPSYS and raise one of SIGERR, SIGFPE or SIGEMT.
+; Set UnixLib's errno to EOPSYS and raise one of SIGOSERROR, SIGFPE
+; or SIGEMT.
 ;
 ; Decode the error number and raise an appropriate signal.
 ; PRM 1-43 states that bit 31, if set, implies that the error was
@@ -321,7 +322,7 @@
 ;
 ; For these classes of exceptions, we map Floating Point exceptions
 ; to SIGFPE and all others to SIGEMT.
-; For non-serious errors, bit 31 = 0, raise SIGERR.
+; For non-serious errors, bit 31 = 0, raise SIGOSERROR.
 ;
 	EXPORT	|__h_error|
 	NAME	"*** UnixLib error handler ***"
@@ -376,7 +377,7 @@
 	TST	a3, #&80000000
 	BNE	unrecoverable_error
 	; Bit 31 was not set so raise a RISC OS error.
-	MOV	a2, #SIGERR
+	MOV	a2, #SIGOSERROR
 	MOV	a1, #0
 	BL	|__unixlib_raise_signal|
 

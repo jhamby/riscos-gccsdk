@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/exec.c,v $
- * $Date: 2003/01/05 12:27:55 $
- * $Revision: 1.7 $
+ * $Date: 2003/04/05 12:16:34 $
+ * $Revision: 1.8 $
  * $State: Exp $
- * $Author: admin $
+ * $Author: alex $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: exec.c,v 1.7 2003/01/05 12:27:55 admin Exp $";
+static const char rcs_id[] = "$Id: exec.c,v 1.8 2003/04/05 12:16:34 alex Exp $";
 #endif
 
 #include <ctype.h>
@@ -671,7 +671,7 @@ __exret (void)
 	  if (process->tty[i].ptr)
 	    dshift (process->tty[i].ptr, variable, code);
 	}
-      
+
       dshift (process->envp, variable, code);
       for (i = 0; i < process->envc; i++)
 	dshift (process->envp[i], variable, code);
@@ -699,7 +699,7 @@ __exret (void)
     {
       __seterr (__exerr);
       /* Encode the signal. See sys.c.vfork.  */
-      i = (SIGERR) | (1 << 7);
+      i = (SIGOSERROR) | (1 << 7);
     }
   else
     i = __intenv ("Sys$ReturnCode");

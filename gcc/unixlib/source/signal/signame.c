@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source$
- * $Date$
- * $Revision$
- * $State$
- * $Author$
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/signal/signame.c,v $
+ * $Date: 2002/09/24 21:02:38 $
+ * $Revision: 1.4 $
+ * $State: Exp $
+ * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id$";
+static const char rcs_id[] = "$Id: signame.c,v 1.4 2002/09/24 21:02:38 admin Exp $";
 #endif
 
 /* signame.c: Define signals for sys_siglist.  */
@@ -54,5 +54,5 @@ const char * const sys_siglist[NSIG] =
   "User defined signal 1"      /* 30. SIGUSR1 */,
   "User defined signal 2"      /* 31. SIGUSR2 */,
   "Resource lost"	       /* 32. SIGLOST */,
-  "RISC OS error"	       /* 33. SIGERR */
+  "RISC OS error"	       /* 33. SIGOSERROR */
 };

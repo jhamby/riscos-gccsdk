@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/signal.h,v $
- * $Date: 2002/12/15 13:16:55 $
- * $Revision: 1.4 $
+ * $Date: 2003/04/25 14:15:26 $
+ * $Revision: 1.5 $
  * $State: Exp $
- * $Author: admin $
+ * $Author: peter $
  *
  ***************************************************************************/
 
@@ -100,7 +100,7 @@ __BEGIN_DECLS
 /* Resource lost.  */
 #define SIGLOST 32
 /* RISC OS error.  */
-#define SIGERR	33
+#define SIGOSERROR 33
 
 /* Total number of signals defined. This should be one greater than
    the largest defined signal number.  */

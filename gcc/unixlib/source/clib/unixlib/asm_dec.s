@@ -1,10 +1,10 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/unixlib/asm_dec.s,v $
-; $Date: 2003/04/21 10:48:45 $
-; $Revision: 1.10 $
+; $Date: 2003/04/28 12:07:01 $
+; $Revision: 1.11 $
 ; $State: Exp $
-; $Author: peter $
+; $Author: alex $
 ;
 ; Declare registers and SWIs we will be calling.
 ;
@@ -335,7 +335,7 @@ SIGINFO EQU	29	;   information request
 SIGUSR1 EQU	30	;   user signal 1
 SIGUSR2 EQU	31	;   user signal 2
 SIGLOST EQU	32	;   resource lost
-SIGERR	EQU	33	;   RISC OS error
+SIGOSERROR EQU	33	;   RISC OS error
 
 EOPSYS	EQU	88	; RISC OS error
 
