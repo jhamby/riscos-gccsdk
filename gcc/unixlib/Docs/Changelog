@@ -1,3 +1,8 @@
+Sat Mar 19 19:26:16 2005  John-Mark Bell  <jmb202@ecs.soton.ac.uk>
+
+	* source/sys/_swi.s, source/test/test1-swi.c: Fix handling of return 
+	  registers > r3. Update testcase appropriately.
+
 Sat Mar 19 11:54:53 2005  Alex Waugh  <alex@alexwaugh.com>
 
 	* source/unix/dev.c (__fsread): Fix potential buffer overflow.
