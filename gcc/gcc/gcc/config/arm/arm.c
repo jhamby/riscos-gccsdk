@@ -7410,7 +7410,8 @@ output_return_instruction (operand, really_return, reverse)
 	      memcpy (p + 2, return_reg, l);
 	      strcpy (p + 2 + l, ((TARGET_APCS_32 
 				   && !IS_INTERRUPT (func_type)) 
-				  || !really_return) 
+				  || !really_return
+				  || return_reg == reg_names[LR_REGNUM]) 
 		      ? "}" : "}^");
 	    }
 	  else

@@ -178,10 +178,42 @@
 #define HAVE_MMAP_DEV_ZERO 1
 
 /* Define if mmap can get us zeroed pages using MAP_ANON(YMOUS). */
-#define HAVE_MMAP_ANON 1
+/* #undef HAVE_MMAP_ANON */
 
 /* Define if read-only mmap of a plain file works. */
-#define HAVE_MMAP_FILE 1
+/* #undef HAVE_MMAP_FILE */
+
+/* Define if you want more run-time sanity checks.  This one gets a grab
+   bag of miscellaneous but relatively cheap checks. */
+#define ENABLE_CHECKING 1
+
+/* Define if you want all operations on trees (the basic data
+   structure of the front ends) to be checked for dynamic type safety
+   at runtime.  This is moderately expensive. */
+#define ENABLE_TREE_CHECKING 1
+
+/* Define if you want all operations on RTL (the basic data structure
+   of the optimizer and back end) to be checked for dynamic type safety
+   at runtime.  This is quite expensive. */
+#define ENABLE_RTL_CHECKING 1
+
+/* Define if you want RTL flag accesses to be checked against the RTL
+   codes that are supported for each access macro.  This is relatively
+   cheap. */
+#define ENABLE_RTL_FLAG_CHECKING 1
+
+/* Define if you want the garbage collector to do object poisoning and
+   other memory allocation checks.  This is quite expensive. */
+#define ENABLE_GC_CHECKING 1
+
+/* Define if you want the garbage collector to operate in maximally
+   paranoid mode, validating the entire heap and collecting garbage at
+   every opportunity.  This is extremely expensive. */
+/* #undef ENABLE_GC_ALWAYS_COLLECT */
+
+/* Define if you want to run subprograms and generated programs
+   through valgrind (a memory checker).  This is extremely expensive. */
+/* #undef ENABLE_VALGRIND_CHECKING */
 
 /* Define to 1 if we found this declaration otherwise define to 0. */
 #define HAVE_DECL_GETRLIMIT 1
@@ -214,7 +246,7 @@
 /* #undef HAVE___INT64 */
 
 /* Define if the `_Bool' type is built-in. */
-/* #undef HAVE__BOOL */
+#define HAVE__BOOL 1
 
 /* The number of bytes in type short */
 #define SIZEOF_SHORT 2

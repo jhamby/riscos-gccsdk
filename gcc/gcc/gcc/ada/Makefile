@@ -33,8 +33,25 @@ $(adaobj)/%.o: %.ads
 all: tools
 
 .PHONY: tools
+.PHONY: fixup-targetpairs
 
-tools: 	$(bin_dir)/gnatbind$(gexesfx) $(gcc_bin_dir)/gnat1$(gexesfx)
+tools:	$(bin_dir)/gnatbl$(gexesfx) \
+	$(bin_dir)/gnatbind$(gexesfx) \
+	fixup-targetpairs \
+	$(ux_gcc_bin_dir)/$(TRG)/libgnat.o \
+	$(bin_dir)/gnatmake$(gexesfx) \
+	$(bin_dir)/gnatchop$(gexesfx) \
+	$(bin_dir)/gnatcmd$(gexesfx)\
+	$(bin_dir)/gnatkr$(gexesfx) \
+	$(bin_dir)/gnatlink$(gexesfx) \
+	$(bin_dir)/gnatls$(gexesfx) \
+	$(bin_dir)/gnatprep$(gexesfx) \
+	$(bin_dir)/gnatpsta$(gexesfx) \
+	$(bin_dir)/gnatpsys$(gexesfx) \
+	$(bin_dir)/gnatxref$(gexesfx) \
+	$(bin_dir)/gnatfind$(gexesfx) \
+	$(gcc_bin_dir)/gnat1$(gexesfx) \
+	$(ro_gcc_bin_dir)/$(TRG)/libgnat.o
 
 # Languages-specific object files for Ada.
 # Object files for gnat1 from C sources.
@@ -85,14 +102,13 @@ GNAT_ADA_OBJS = \
 GNAT1_ADA_OBJS = $(GNAT_ADA_OBJS) $(adaobj)/back_end.o $(adaobj)/gnat1drv.o
 GNAT1_OBJS = $(GNAT1_C_OBJS) $(GNAT1_ADA_OBJS) $(EXTRA_GNAT1_OBJS)
 
-
 GNATBIND_OBJS = \
  $(adaobj)/link.o $(adaobj)/ada.o $(adaobj)/adaint.o $(adaobj)/cstreams.o $(adaobj)/cio.o $(adaobj)/ali.o \
  $(adaobj)/ali-util.o $(adaobj)/alloc.o $(adaobj)/a-tags.o $(adaobj)/a-stream.o $(adaobj)/bcheck.o \
  $(adaobj)/binde.o $(adaobj)/binderr.o $(adaobj)/bindgen.o $(adaobj)/bindusg.o $(adaobj)/butil.o \
  $(adaobj)/casing.o $(adaobj)/csets.o $(adaobj)/debug.o $(adaobj)/fname.o $(adaobj)/gnat.o $(adaobj)/g-hesora.o \
  $(adaobj)/g-htable.o $(adaobj)/g-os_lib.o $(adaobj)/s-crc32.o $(adaobj)/fmap.o $(adaobj)/gnatbind.o \
- $(adaobj)/gnatvsn.o $(adaobj)/hostparm.o $(adaobj)/krunch.o $(adaobj)/namet.o $(adaobj)/opt.o $(adaobj)/osint.o \
+ $(adaobj)/gnatvsn.o $(adaobj)/hostparm.o $(adaobj)/interfac.o $(adaobj)/krunch.o $(adaobj)/namet.o $(adaobj)/opt.o $(adaobj)/osint.o \
  $(adaobj)/osint-b.o $(adaobj)/output.o $(adaobj)/rident.o $(adaobj)/s-assert.o $(adaobj)/s-parame.o \
  $(adaobj)/s-sopco3.o $(adaobj)/s-sopco4.o $(adaobj)/s-sopco5.o $(adaobj)/s-stache.o $(adaobj)/s-stalib.o \
  $(adaobj)/s-stoele.o $(adaobj)/s-imgenu.o $(adaobj)/s-strops.o $(adaobj)/s-soflin.o $(adaobj)/s-wchcon.o \
@@ -110,6 +126,7 @@ GNATBIND_OBJS = \
 # List of extra object files linked in with various programs.
 EXTRA_GNAT1_OBJS = 
 EXTRA_GNATBIND_OBJS = $(gccobjdir)/version.o
+EXTRA_GNATTOOLS_OBJS = $(gccobjdir)/version.o
 
 # The runtime library for gnat comprises two directories.  One contains the
 # Ada source files that the compiler (gnat1) needs -- these files are listed
@@ -127,7 +144,24 @@ LIBGNAT_SRCS = ada.h adaint.c adaint.h argv.c cio.c cstreams.c \
 
 LIBGNAT_OBJS = $(adaobj)/adaint.o $(adaobj)/argv.o $(adaobj)/cio.o $(adaobj)/cstreams.o $(adaobj)/errno.o $(adaobj)/exit.o \
   $(adaobj)/raise.o $(adaobj)/sysdep.o $(adaobj)/io-aux.o $(adaobj)/init.o $(adaobj)/cal.o $(adaobj)/final.o \
-  $(adaobj)/tracebak.o $(adaobj)/expect.o ../../$(adaobj)/prefix.o $(EXTRA_LIBGNAT_OBJS)
+  $(adaobj)/tracebak.o $(adaobj)/expect.o $(adaobj)/../prefix.o $(EXTRA_LIBGNAT_OBJS)
+
+# LIBGNAT_TARGET_PAIRS is a list of pairs of filenames.
+# The members of each pair must be separated by a '<' and no whitespace.
+# Each pair must be separated by some amount of whitespace from the following
+# pair.
+
+# Non-tasking case:
+
+LIBGNAT_TARGET_PAIRS = \
+a-intnam.ads<4nintnam.ads \
+s-inmaop.adb<5ninmaop.adb \
+s-intman.adb<5nintman.adb \
+s-osinte.ads<5nosinte.ads \
+s-osprim.adb<7sosprim.adb \
+s-taprop.adb<5ntaprop.adb \
+s-taspri.ads<5ntaspri.ads
+
 
 # NOTE ??? - when the -I option for compiling Ada code is made to work,
 #  the library installation will change and there will be a
@@ -504,16 +538,501 @@ GNATRTL_OBJS = $(GNATRTL_NONTASKING_OBJS) $(GNATRTL_TASKING_OBJS)
 
 ADA_BACKEND = $(BACKEND) $(gccobjdir)/attribs.o
 
+# Object files for gnat executables
+GNATLINK_OBJS = $(adaobj)/gnatlink.o $(adaobj)/link.o \
+ $(adaobj)/ali.o $(adaobj)/alloc.o $(adaobj)/butil.o $(adaobj)/casing.o $(adaobj)/csets.o $(adaobj)/debug.o $(adaobj)/fmap.o $(adaobj)/fname.o $(adaobj)/gnatvsn.o \
+ $(adaobj)/hostparm.o $(adaobj)/namet.o $(adaobj)/opt.o $(adaobj)/osint.o $(adaobj)/output.o $(adaobj)/rident.o $(adaobj)/sdefault.o $(adaobj)/stylesw.o \
+ $(adaobj)/switch.o $(adaobj)/table.o $(adaobj)/tree_io.o $(adaobj)/types.o $(adaobj)/validsw.o $(adaobj)/widechar.o
+
+GNATMAKE_OBJS = $(adaobj)/ali.o $(adaobj)/ali-util.o \
+ $(adaobj)/alloc.o $(adaobj)/atree.o $(adaobj)/binderr.o $(adaobj)/butil.o $(adaobj)/casing.o $(adaobj)/csets.o $(adaobj)/debug.o $(adaobj)/einfo.o $(adaobj)/elists.o \
+ $(adaobj)/errout.o $(adaobj)/fmap.o $(adaobj)/fname.o $(adaobj)/fname-uf.o $(adaobj)/fname-sf.o \
+ $(adaobj)/gnatmake.o $(adaobj)/gnatvsn.o $(adaobj)/hostparm.o $(adaobj)/krunch.o $(adaobj)/lib.o $(adaobj)/make.o $(adaobj)/makeusg.o \
+ $(adaobj)/mlib.o $(adaobj)/mlib-fil.o $(adaobj)/mlib-prj.o $(adaobj)/mlib-tgt.o $(adaobj)/mlib-utl.o \
+ $(adaobj)/namet.o $(adaobj)/nlists.o $(adaobj)/opt.o $(adaobj)/osint.o $(adaobj)/osint-m.o $(adaobj)/output.o \
+ $(adaobj)/prj.o $(adaobj)/prj-attr.o $(adaobj)/prj-com.o $(adaobj)/prj-dect.o $(adaobj)/prj-env.o $(adaobj)/prj-ext.o $(adaobj)/prj-nmsc.o \
+ $(adaobj)/prj-pars.o $(adaobj)/prj-part.o $(adaobj)/prj-proc.o $(adaobj)/prj-strt.o $(adaobj)/prj-tree.o $(adaobj)/prj-util.o \
+ $(adaobj)/rident.o $(adaobj)/scans.o $(adaobj)/scn.o $(adaobj)/sdefault.o $(adaobj)/sfn_scan.o $(adaobj)/sinfo.o $(adaobj)/sinfo-cn.o \
+ $(adaobj)/sinput.o $(adaobj)/sinput-l.o $(adaobj)/sinput-p.o \
+ $(adaobj)/snames.o $(adaobj)/stand.o $(adaobj)/stringt.o $(adaobj)/style.o $(adaobj)/stylesw.o $(adaobj)/validsw.o $(adaobj)/switch.o $(adaobj)/switch-m.o \
+ $(adaobj)/switch-c.o $(adaobj)/table.o $(adaobj)/targparm.o $(adaobj)/tree_io.o $(adaobj)/types.o \
+ $(adaobj)/uintp.o $(adaobj)/uname.o $(adaobj)/urealp.o $(adaobj)/usage.o $(adaobj)/widechar.o
+
+
+
+
+
+
+
+GNATCHOP_RTL_OBJS = $(adaobj)/adaint.o $(adaobj)/argv.o $(adaobj)/cio.o $(adaobj)/cstreams.o $(adaobj)/exit.o \
+ $(adaobj)/final.o $(adaobj)/init.o $(adaobj)/raise.o $(adaobj)/sysdep.o $(adaobj)/ada.o $(adaobj)/a-comlin.o $(adaobj)/gnat.o $(adaobj)/a-string.o \
+ $(adaobj)/a-stmaco.o $(adaobj)/a-strsea.o $(adaobj)/a-charac.o $(adaobj)/a-chlat1.o $(adaobj)/g-except.o $(adaobj)/s-io.o \
+ $(adaobj)/a-chahan.o $(adaobj)/a-strunb.o $(adaobj)/a-strfix.o $(adaobj)/a-strmap.o $(adaobj)/g-casuti.o $(adaobj)/g-comlin.o $(adaobj)/hostparm.o \
+ $(adaobj)/g-dirope.o $(adaobj)/g-hesora.o $(adaobj)/g-htable.o $(adaobj)/g-regexp.o $(adaobj)/interfac.o $(adaobj)/system.o $(adaobj)/s-assert.o \
+ $(adaobj)/s-parame.o $(adaobj)/i-cstrea.o $(adaobj)/s-exctab.o $(adaobj)/a-ioexce.o $(adaobj)/s-except.o $(adaobj)/s-stache.o $(adaobj)/s-stoele.o \
+ $(adaobj)/s-imgint.o $(adaobj)/a-tags.o $(adaobj)/a-stream.o $(adaobj)/s-strops.o $(adaobj)/s-sopco3.o $(adaobj)/s-bitops.o \
+ $(adaobj)/s-sopco4.o $(adaobj)/s-sopco5.o $(adaobj)/s-imgenu.o $(adaobj)/s-soflin.o $(adaobj)/s-secsta.o $(adaobj)/a-except.o \
+ $(adaobj)/s-mastop.o $(adaobj)/s-stalib.o $(adaobj)/g-os_lib.o $(adaobj)/s-unstyp.o $(adaobj)/s-stratt.o $(adaobj)/s-finroo.o $(adaobj)/s-finimp.o \
+ $(adaobj)/tracebak.o $(adaobj)/s-memory.o $(adaobj)/s-traceb.o $(adaobj)/a-finali.o $(adaobj)/a-filico.o $(adaobj)/s-ficobl.o $(adaobj)/s-fileio.o \
+ $(adaobj)/a-textio.o $(adaobj)/s-valuti.o $(adaobj)/s-valuns.o $(adaobj)/s-valint.o $(adaobj)/s-arit64.o
+
+GNATCHOP_OBJS = $(adaobj)/gnatchop.o $(adaobj)/mkdir.o $(adaobj)/gnatvsn.o \
+   $(GNATCHOP_RTL_OBJS) $(EXTRA_GNATTOOLS_OBJS)
+
+GNATCMD_RTL_OBJS = $(adaobj)/adaint.o $(adaobj)/argv.o $(adaobj)/raise.o $(adaobj)/exit.o $(adaobj)/final.o $(adaobj)/init.o \
+   $(adaobj)/ada.o $(adaobj)/a-charac.o $(adaobj)/a-chahan.o $(adaobj)/a-comlin.o $(adaobj)/cstreams.o $(adaobj)/cio.o \
+   $(adaobj)/a-except.o $(adaobj)/tracebak.o $(adaobj)/s-memory.o $(adaobj)/s-traceb.o $(adaobj)/s-mastop.o $(adaobj)/s-except.o \
+   $(adaobj)/a-finali.o $(adaobj)/a-filico.o $(adaobj)/a-ioexce.o $(adaobj)/a-stream.o \
+   $(adaobj)/a-string.o $(adaobj)/a-strmap.o $(adaobj)/a-stmaco.o $(adaobj)/g-htable.o \
+   $(adaobj)/sysdep.o $(adaobj)/a-tags.o $(adaobj)/a-textio.o $(adaobj)/gnat.o $(adaobj)/g-hesora.o $(adaobj)/g-os_lib.o \
+   $(adaobj)/interfac.o $(adaobj)/i-cstrea.o $(adaobj)/system.o $(adaobj)/s-assert.o $(adaobj)/s-bitops.o $(adaobj)/g-except.o $(adaobj)/s-exctab.o \
+   $(adaobj)/s-ficobl.o $(adaobj)/s-fileio.o $(adaobj)/s-finimp.o $(adaobj)/s-finroo.o $(adaobj)/s-imgint.o $(adaobj)/s-imguns.o \
+   $(adaobj)/s-parame.o $(adaobj)/s-secsta.o $(adaobj)/s-stalib.o $(adaobj)/s-imgenu.o $(adaobj)/s-stoele.o $(adaobj)/s-stratt.o \
+   $(adaobj)/s-stache.o $(adaobj)/s-sopco3.o $(adaobj)/s-sopco4.o $(adaobj)/s-sopco5.o \
+   $(adaobj)/s-strops.o $(adaobj)/s-soflin.o $(adaobj)/s-wchcon.o $(adaobj)/s-wchcnv.o $(adaobj)/s-wchjis.o $(adaobj)/s-unstyp.o 
+
+GNATCMD_OBJS = $(adaobj)/alloc.o $(adaobj)/debug.o $(adaobj)/fmap.o $(adaobj)/fname.o $(adaobj)/gnatcmd.o $(adaobj)/gnatvsn.o $(adaobj)/hostparm.o \
+   $(adaobj)/krunch.o $(adaobj)/namet.o $(adaobj)/mlib.o $(adaobj)/mlib-fil.o $(adaobj)/mlib-tgt.o $(adaobj)/mlib-utl.o $(adaobj)/opt.o $(adaobj)/osint.o $(adaobj)/prj.o $(adaobj)/casing.o $(adaobj)/csets.o $(adaobj)/widechar.o \
+   $(adaobj)/output.o $(adaobj)/sdefault.o $(adaobj)/switch.o $(adaobj)/stylesw.o $(adaobj)/validsw.o $(adaobj)/table.o $(adaobj)/tree_io.o $(adaobj)/types.o \
+   $(GNATCMD_RTL_OBJS) $(EXTRA_GNATTOOLS_OBJS)
+
+GNATKR_RTL_OBJS = $(adaobj)/ada.o $(adaobj)/a-charac.o $(adaobj)/a-chahan.o $(adaobj)/a-chlat1.o $(adaobj)/a-comlin.o \
+  $(adaobj)/cstreams.o $(adaobj)/a-finali.o \
+  $(adaobj)/a-string.o $(adaobj)/a-strmap.o $(adaobj)/a-stmaco.o $(adaobj)/a-stream.o $(adaobj)/a-tags.o \
+  $(adaobj)/gnat.o $(adaobj)/g-hesora.o $(adaobj)/g-htable.o $(adaobj)/interfac.o \
+  $(adaobj)/system.o $(adaobj)/s-bitops.o $(adaobj)/g-except.o $(adaobj)/s-finimp.o $(adaobj)/s-io.o $(adaobj)/s-parame.o $(adaobj)/s-secsta.o \
+  $(adaobj)/s-stopoo.o $(adaobj)/s-sopco3.o $(adaobj)/s-sopco4.o $(adaobj)/s-sopco5.o $(adaobj)/s-stache.o \
+  $(adaobj)/s-stoele.o $(adaobj)/s-soflin.o $(adaobj)/s-stalib.o $(adaobj)/s-unstyp.o $(adaobj)/adaint.o \
+  $(adaobj)/raise.o $(adaobj)/exit.o $(adaobj)/argv.o $(adaobj)/cio.o $(adaobj)/init.o $(adaobj)/final.o $(adaobj)/s-finroo.o \
+  $(adaobj)/a-except.o $(adaobj)/tracebak.o $(adaobj)/s-memory.o $(adaobj)/s-traceb.o $(adaobj)/s-mastop.o $(adaobj)/s-except.o \
+  $(adaobj)/a-filico.o  $(adaobj)/s-strops.o  $(adaobj)/s-stratt.o $(adaobj)/s-imgenu.o $(adaobj)/a-ioexce.o $(adaobj)/s-exctab.o
+GNATKR_OBJS = $(adaobj)/gnatkr.o $(adaobj)/gnatvsn.o \
+  $(adaobj)/krunch.o $(adaobj)/hostparm.o $(GNATKR_RTL_OBJS) $(EXTRA_GNATTOOLS_OBJS)
+
+GNATLINK_RTL_OBJS = \
+   $(adaobj)/adaint.o $(adaobj)/argv.o $(adaobj)/cio.o $(adaobj)/cstreams.o \
+   $(adaobj)/exit.o $(adaobj)/init.o $(adaobj)/final.o $(adaobj)/raise.o $(adaobj)/tracebak.o \
+   $(adaobj)/ada.o $(adaobj)/a-comlin.o $(adaobj)/a-except.o \
+   $(adaobj)/gnat.o $(adaobj)/g-hesora.o $(adaobj)/g-htable.o $(adaobj)/g-os_lib.o \
+   $(adaobj)/interfac.o $(adaobj)/i-cstrea.o \
+   $(adaobj)/system.o $(adaobj)/s-assert.o $(adaobj)/s-except.o $(adaobj)/s-exctab.o $(adaobj)/s-mastop.o \
+   $(adaobj)/s-parame.o $(adaobj)/s-secsta.o $(adaobj)/s-soflin.o $(adaobj)/s-sopco3.o $(adaobj)/s-sopco4.o \
+   $(adaobj)/s-stache.o $(adaobj)/s-stalib.o $(adaobj)/s-stoele.o $(adaobj)/s-imgenu.o $(adaobj)/s-strops.o \
+   $(adaobj)/s-memory.o $(adaobj)/s-traceb.o $(adaobj)/s-wchcnv.o $(adaobj)/s-wchcon.o $(adaobj)/s-wchjis.o
+
+GNATLS_RTL_OBJS = \
+ $(adaobj)/ada.o      \
+ $(adaobj)/adaint.o \
+ $(adaobj)/argv.o   \
+ $(adaobj)/a-charac.o \
+ $(adaobj)/a-chahan.o \
+ $(adaobj)/cio.o    \
+ $(adaobj)/a-comlin.o \
+ $(adaobj)/cstreams.o \
+ $(adaobj)/a-except.o \
+ $(adaobj)/exit.o   \
+ $(adaobj)/a-filico.o \
+ $(adaobj)/final.o  \
+ $(adaobj)/a-finali.o \
+ $(adaobj)/init.o   \
+ $(adaobj)/a-ioexce.o \
+ $(adaobj)/raise.o  \
+ $(adaobj)/a-stmaco.o \
+ $(adaobj)/a-stream.o \
+ $(adaobj)/a-strfix.o \
+ $(adaobj)/a-string.o \
+ $(adaobj)/a-strmap.o \
+ $(adaobj)/a-strsea.o \
+ $(adaobj)/a-strunb.o \
+ $(adaobj)/sysdep.o \
+ $(adaobj)/a-tags.o   \
+ $(adaobj)/a-textio.o \
+ $(adaobj)/tracebak.o \
+ $(adaobj)/gnat.o     \
+ $(adaobj)/g-casuti.o \
+ $(adaobj)/g-dirope.o \
+ $(adaobj)/g-except.o \
+ $(adaobj)/g-hesora.o \
+ $(adaobj)/g-htable.o \
+ $(adaobj)/g-os_lib.o \
+ $(adaobj)/g-regexp.o \
+ $(adaobj)/interfac.o \
+ $(adaobj)/i-cstrea.o \
+ $(adaobj)/system.o   \
+ $(adaobj)/s-assert.o \
+ $(adaobj)/s-bitops.o \
+ $(adaobj)/s-crc32.o  \
+ $(adaobj)/s-except.o \
+ $(adaobj)/s-exctab.o \
+ $(adaobj)/s-finroo.o \
+ $(adaobj)/s-finimp.o \
+ $(adaobj)/s-ficobl.o \
+ $(adaobj)/s-fileio.o \
+ $(adaobj)/s-imgenu.o \
+ $(adaobj)/s-imgint.o \
+ $(adaobj)/s-io.o \
+ $(adaobj)/s-mastop.o \
+ $(adaobj)/s-parame.o \
+ $(adaobj)/s-secsta.o \
+ $(adaobj)/s-soflin.o \
+ $(adaobj)/s-sopco3.o \
+ $(adaobj)/s-sopco4.o \
+ $(adaobj)/s-sopco5.o \
+ $(adaobj)/s-stache.o \
+ $(adaobj)/s-stalib.o \
+ $(adaobj)/s-stoele.o \
+ $(adaobj)/s-stratt.o \
+ $(adaobj)/s-strops.o \
+ $(adaobj)/s-memory.o \
+ $(adaobj)/s-traceb.o \
+ $(adaobj)/s-valenu.o \
+ $(adaobj)/s-valuti.o \
+ $(adaobj)/s-wchcnv.o \
+ $(adaobj)/s-wchcon.o \
+ $(adaobj)/s-wchjis.o
+
+GNATLS_OBJS = \
+ $(adaobj)/ali.o      \
+ $(adaobj)/ali-util.o \
+ $(adaobj)/alloc.o    \
+ $(adaobj)/atree.o    \
+ $(adaobj)/binderr.o  \
+ $(adaobj)/butil.o    \
+ $(adaobj)/casing.o   \
+ $(adaobj)/csets.o    \
+ $(adaobj)/debug.o    \
+ $(adaobj)/einfo.o    \
+ $(adaobj)/elists.o   \
+ $(adaobj)/errout.o   \
+ $(adaobj)/fmap.o     \
+ $(adaobj)/fname.o    \
+ $(adaobj)/gnatls.o   \
+ $(adaobj)/gnatvsn.o  \
+ $(adaobj)/hostparm.o \
+ $(adaobj)/krunch.o   \
+ $(adaobj)/lib.o      \
+ $(adaobj)/mlib.o     \
+ $(adaobj)/mlib-fil.o \
+ $(adaobj)/mlib-tgt.o \
+ $(adaobj)/mlib-utl.o \
+ $(adaobj)/namet.o    \
+ $(adaobj)/nlists.o   \
+ $(adaobj)/opt.o      \
+ $(adaobj)/osint.o    \
+ $(adaobj)/output.o   \
+ $(adaobj)/prj.o      \
+ $(adaobj)/prj-attr.o \
+ $(adaobj)/prj-com.o  \
+ $(adaobj)/prj-dect.o \
+ $(adaobj)/prj-env.o  \
+ $(adaobj)/prj-ext.o  \
+ $(adaobj)/prj-nmsc.o \
+ $(adaobj)/prj-pars.o \
+ $(adaobj)/prj-part.o \
+ $(adaobj)/prj-proc.o \
+ $(adaobj)/prj-strt.o \
+ $(adaobj)/prj-tree.o \
+ $(adaobj)/prj-util.o \
+ $(adaobj)/rident.o   \
+ $(adaobj)/scans.o    \
+ $(adaobj)/scn.o      \
+ $(adaobj)/sdefault.o \
+ $(adaobj)/sinfo.o    \
+ $(adaobj)/sinfo-cn.o \
+ $(adaobj)/sinput.o   \
+ $(adaobj)/sinput-p.o \
+ $(adaobj)/snames.o   \
+ $(adaobj)/stand.o    \
+ $(adaobj)/stringt.o  \
+ $(adaobj)/style.o    \
+ $(adaobj)/stylesw.o  \
+ $(adaobj)/validsw.o  \
+ $(adaobj)/switch.o   \
+ $(adaobj)/table.o    \
+ $(adaobj)/tree_io.o  \
+ $(adaobj)/uintp.o    \
+ $(adaobj)/uname.o    \
+ $(adaobj)/urealp.o   \
+ $(adaobj)/types.o    \
+ $(adaobj)/widechar.o $(GNATLS_RTL_OBJS) $(EXTRA_GNATTOOLS_OBJS)
+
+GNATMAKE_RTL_OBJS = $(adaobj)/adaint.o $(adaobj)/argv.o $(adaobj)/raise.o $(adaobj)/exit.o $(adaobj)/a-comlin.o \
+ $(adaobj)/cio.o $(adaobj)/cstreams.o $(adaobj)/a-except.o $(adaobj)/s-mastop.o $(adaobj)/s-except.o $(adaobj)/final.o $(adaobj)/init.o \
+ $(adaobj)/a-finali.o $(adaobj)/a-filico.o $(adaobj)/s-finroo.o $(adaobj)/s-finimp.o $(adaobj)/s-ficobl.o\
+ $(adaobj)/a-charac.o $(adaobj)/a-chahan.o $(adaobj)/a-string.o $(adaobj)/a-strfix.o $(adaobj)/a-strmap.o $(adaobj)/a-strunb.o \
+ $(adaobj)/a-stmaco.o $(adaobj)/a-strsea.o $(adaobj)/a-textio.o $(adaobj)/s-bitops.o $(adaobj)/sysdep.o \
+ $(adaobj)/s-imgint.o $(adaobj)/s-stratt.o \
+ $(adaobj)/a-tags.o   $(adaobj)/a-stream.o \
+ $(adaobj)/a-ioexce.o \
+ $(adaobj)/tracebak.o $(adaobj)/s-memory.o $(adaobj)/s-traceb.o \
+ $(adaobj)/gnat.o $(adaobj)/g-dirope.o $(adaobj)/g-os_lib.o $(adaobj)/g-hesora.o $(adaobj)/g-except.o \
+ $(adaobj)/i-cstrea.o \
+ $(adaobj)/s-parame.o $(adaobj)/s-stache.o $(adaobj)/s-stalib.o $(adaobj)/s-wchcon.o $(adaobj)/s-wchjis.o \
+ $(adaobj)/s-imgenu.o $(adaobj)/s-assert.o $(adaobj)/s-secsta.o $(adaobj)/s-stoele.o $(adaobj)/s-soflin.o $(adaobj)/s-fileio.o \
+ $(adaobj)/s-valenu.o $(adaobj)/s-valuti.o $(adaobj)/g-casuti.o \
+ $(adaobj)/system.o $(adaobj)/s-exctab.o $(adaobj)/s-strops.o $(adaobj)/s-sopco3.o $(adaobj)/s-sopco4.o $(adaobj)/s-sopco5.o \
+ $(adaobj)/g-htable.o $(adaobj)/s-io.o $(adaobj)/g-regexp.o $(adaobj)/s-crc32.o $(adaobj)/s-wchcnv.o
+
+
+GNATMEM_RTL_OBJS = \
+$(adaobj)/adaint.o \
+$(adaobj)/argv.o \
+$(adaobj)/cio.o \
+$(adaobj)/cstreams.o \
+$(adaobj)/exit.o \
+$(adaobj)/final.o \
+$(adaobj)/init.o \
+$(adaobj)/raise.o \
+$(adaobj)/sysdep.o \
+$(adaobj)/ada.o \
+$(adaobj)/a-comlin.o \
+$(adaobj)/a-except.o \
+$(adaobj)/a-filico.o \
+$(adaobj)/a-finali.o \
+$(adaobj)/a-flteio.o \
+$(adaobj)/a-inteio.o \
+$(adaobj)/a-ioexce.o \
+$(adaobj)/a-stream.o \
+$(adaobj)/a-tags.o \
+$(adaobj)/a-textio.o \
+$(adaobj)/a-tiflau.o \
+$(adaobj)/a-tigeau.o \
+$(adaobj)/a-tiinau.o \
+$(adaobj)/a-tiocst.o \
+$(adaobj)/gnat.o \
+$(adaobj)/g-casuti.o \
+$(adaobj)/g-hesora.o \
+$(adaobj)/g-htable.o \
+$(adaobj)/g-os_lib.o \
+$(adaobj)/gnatvsn.o \
+$(adaobj)/interfac.o \
+$(adaobj)/i-cstrea.o \
+$(adaobj)/system.o \
+$(adaobj)/s-assert.o \
+$(adaobj)/s-except.o \
+$(adaobj)/s-exctab.o \
+$(adaobj)/s-exngen.o \
+$(adaobj)/s-exnllf.o \
+$(adaobj)/s-fatllf.o \
+$(adaobj)/s-ficobl.o \
+$(adaobj)/s-fileio.o \
+$(adaobj)/s-finimp.o \
+$(adaobj)/s-finroo.o \
+$(adaobj)/s-imgbiu.o \
+$(adaobj)/s-imgenu.o \
+$(adaobj)/s-imgint.o \
+$(adaobj)/s-imgllb.o \
+$(adaobj)/s-imglli.o \
+$(adaobj)/s-imgllu.o \
+$(adaobj)/s-imgllw.o \
+$(adaobj)/s-imgrea.o \
+$(adaobj)/s-imguns.o \
+$(adaobj)/s-imgwiu.o \
+$(adaobj)/tracebak.o \
+$(adaobj)/s-memory.o \
+$(adaobj)/s-traceb.o \
+$(adaobj)/s-mastop.o \
+$(adaobj)/s-parame.o \
+$(adaobj)/s-powtab.o \
+$(adaobj)/s-secsta.o \
+$(adaobj)/s-sopco3.o \
+$(adaobj)/s-sopco4.o \
+$(adaobj)/s-sopco5.o \
+$(adaobj)/s-stache.o \
+$(adaobj)/s-stalib.o \
+$(adaobj)/s-stoele.o \
+$(adaobj)/s-stratt.o \
+$(adaobj)/s-strops.o \
+$(adaobj)/s-soflin.o \
+$(adaobj)/s-unstyp.o \
+$(adaobj)/s-valllu.o \
+$(adaobj)/s-vallli.o \
+$(adaobj)/s-valint.o \
+$(adaobj)/s-valrea.o \
+$(adaobj)/s-valuns.o \
+$(adaobj)/s-valuti.o
+GNATMEM_OBJS = $(adaobj)/gnatmem.o $(adaobj)/memroot.o $(adaobj)/gmem.o \
+   $(GNATMEM_RTL_OBJS) $(EXTRA_GNATTOOLS_OBJS)
+
+GNATPREP_RTL_OBJS = $(adaobj)/adaint.o $(adaobj)/argv.o $(adaobj)/raise.o $(adaobj)/exit.o $(adaobj)/final.o $(adaobj)/init.o \
+   $(adaobj)/ada.o $(adaobj)/a-charac.o $(adaobj)/a-chahan.o $(adaobj)/a-comlin.o $(adaobj)/cstreams.o $(adaobj)/cio.o \
+   $(adaobj)/a-except.o $(adaobj)/tracebak.o $(adaobj)/s-memory.o $(adaobj)/s-traceb.o $(adaobj)/s-mastop.o $(adaobj)/s-except.o \
+   $(adaobj)/a-finali.o $(adaobj)/a-filico.o $(adaobj)/a-ioexce.o $(adaobj)/a-stream.o $(adaobj)/a-string.o $(adaobj)/a-strmap.o \
+   $(adaobj)/a-stmaco.o $(adaobj)/a-strfix.o $(adaobj)/s-imgenu.o $(adaobj)/a-strsea.o $(adaobj)/a-strunb.o \
+   $(adaobj)/sysdep.o $(adaobj)/a-tags.o $(adaobj)/a-textio.o $(adaobj)/gnat.o $(adaobj)/g-hesora.o $(adaobj)/s-io.o \
+   $(adaobj)/g-casuti.o $(adaobj)/g-dirope.o $(adaobj)/g-os_lib.o $(adaobj)/g-regexp.o $(adaobj)/g-comlin.o $(adaobj)/i-cstrea.o \
+   $(adaobj)/system.o $(adaobj)/s-bitops.o $(adaobj)/g-except.o $(adaobj)/s-exctab.o $(adaobj)/s-ficobl.o $(adaobj)/s-fileio.o $(adaobj)/s-finimp.o \
+   $(adaobj)/s-finroo.o $(adaobj)/s-imgint.o $(adaobj)/s-parame.o $(adaobj)/s-secsta.o $(adaobj)/s-stache.o $(adaobj)/s-stalib.o \
+   $(adaobj)/s-stoele.o $(adaobj)/s-sopco3.o $(adaobj)/s-sopco4.o $(adaobj)/s-sopco5.o $(adaobj)/s-arit64.o \
+   $(adaobj)/s-stratt.o $(adaobj)/s-strops.o $(adaobj)/s-soflin.o $(adaobj)/s-unstyp.o 
+
+GNATPREP_OBJS = $(adaobj)/gnatprep.o $(adaobj)/gnatvsn.o \
+   $(adaobj)/hostparm.o $(GNATPREP_RTL_OBJS) $(EXTRA_GNATTOOLS_OBJS)
+
+GNATPSTA_RTL_OBJS = $(adaobj)/adaint.o $(adaobj)/argv.o $(adaobj)/cstreams.o $(adaobj)/cio.o \
+   $(adaobj)/deftarg.o $(adaobj)/a-except.o $(adaobj)/targtyps.o $(adaobj)/tracebak.o $(adaobj)/s-memory.o $(adaobj)/s-traceb.o \
+   $(adaobj)/s-mastop.o $(adaobj)/s-except.o $(adaobj)/exit.o $(adaobj)/a-filico.o $(adaobj)/final.o $(adaobj)/a-finali.o $(adaobj)/init.o \
+   $(adaobj)/a-ioexce.o $(adaobj)/raise.o $(adaobj)/a-stream.o $(adaobj)/get_targ.o $(adaobj)/gnat.o $(adaobj)/g-hesora.o \
+   $(adaobj)/sysdep.o $(adaobj)/a-tags.o $(adaobj)/a-textio.o $(adaobj)/i-cstrea.o $(adaobj)/system.o $(adaobj)/s-assert.o \
+   $(adaobj)/s-exctab.o $(adaobj)/s-fatllf.o $(adaobj)/s-ficobl.o $(adaobj)/s-fileio.o $(adaobj)/s-finimp.o $(adaobj)/s-finroo.o \
+   $(adaobj)/s-imgint.o $(adaobj)/s-imgrea.o $(adaobj)/s-imglli.o $(adaobj)/s-imgllu.o $(adaobj)/s-imguns.o $(adaobj)/s-parame.o \
+   $(adaobj)/s-powtab.o $(adaobj)/s-sopco3.o $(adaobj)/s-sopco4.o $(adaobj)/s-sopco5.o $(adaobj)/s-secsta.o $(adaobj)/s-stache.o \
+   $(adaobj)/s-stalib.o $(adaobj)/s-stoele.o $(adaobj)/s-stratt.o $(adaobj)/s-strops.o $(adaobj)/s-soflin.o \
+   $(adaobj)/s-imgenu.o $(adaobj)/g-htable.o
+
+GNATPSTA_OBJS = $(adaobj)/gnatpsta.o $(adaobj)/types.o $(adaobj)/ttypes.o \
+   $(adaobj)/gnatvsn.o $(adaobj)/ttypef.o $(GNATPSTA_RTL_OBJS) $(EXTRA_GNATTOOLS_OBJS)
+
+GNATPSYS_RTL_OBJS = $(adaobj)/adaint.o $(adaobj)/argv.o $(adaobj)/cstreams.o $(adaobj)/cio.o \
+   $(adaobj)/a-except.o $(adaobj)/tracebak.o $(adaobj)/s-memory.o $(adaobj)/s-traceb.o $(adaobj)/s-mastop.o $(adaobj)/s-except.o $(adaobj)/exit.o \
+   $(adaobj)/a-filico.o $(adaobj)/final.o $(adaobj)/a-finali.o  $(adaobj)/init.o $(adaobj)/a-ioexce.o \
+   $(adaobj)/raise.o $(adaobj)/a-stream.o \
+   $(adaobj)/sysdep.o $(adaobj)/a-tags.o $(adaobj)/a-textio.o $(adaobj)/i-cstrea.o $(adaobj)/system.o $(adaobj)/s-assert.o \
+   $(adaobj)/gnat.o $(adaobj)/g-hesora.o $(adaobj)/g-htable.o $(adaobj)/s-imgenu.o \
+   $(adaobj)/s-exctab.o $(adaobj)/s-fatllf.o $(adaobj)/s-ficobl.o $(adaobj)/s-fileio.o $(adaobj)/s-finimp.o $(adaobj)/s-finroo.o \
+   $(adaobj)/s-imgint.o $(adaobj)/s-imgrea.o $(adaobj)/s-imglli.o $(adaobj)/s-imgllu.o $(adaobj)/s-imguns.o $(adaobj)/s-parame.o \
+   $(adaobj)/s-powtab.o $(adaobj)/s-secsta.o $(adaobj)/s-stache.o $(adaobj)/s-stalib.o $(adaobj)/s-stoele.o $(adaobj)/s-stratt.o \
+   $(adaobj)/s-strops.o $(adaobj)/s-soflin.o $(adaobj)/s-sopco3.o $(adaobj)/s-sopco4.o $(adaobj)/s-sopco5.o
+
+GNATPSYS_OBJS = $(adaobj)/gnatpsys.o \
+   $(adaobj)/gnatvsn.o $(GNATPSYS_RTL_OBJS) $(EXTRA_GNATTOOLS_OBJS)
+
+GNATXREF_RTL_OBJS =  \
+   $(adaobj)/adaint.o $(adaobj)/argv.o $(adaobj)/cio.o $(adaobj)/cstreams.o \
+   $(adaobj)/exit.o $(adaobj)/init.o $(adaobj)/final.o $(adaobj)/raise.o $(adaobj)/sysdep.o $(adaobj)/tracebak.o \
+   $(adaobj)/ada.o $(adaobj)/a-charac.o $(adaobj)/a-chlat1.o $(adaobj)/gnat.o $(adaobj)/g-casuti.o $(adaobj)/g-hesora.o \
+   $(adaobj)/g-htable.o $(adaobj)/interfac.o $(adaobj)/system.o $(adaobj)/i-cstrea.o $(adaobj)/s-parame.o $(adaobj)/s-exctab.o \
+   $(adaobj)/a-ioexce.o $(adaobj)/a-string.o $(adaobj)/s-assert.o $(adaobj)/s-except.o \
+   $(adaobj)/s-imgenu.o $(adaobj)/s-stoele.o $(adaobj)/s-mastop.o \
+   $(adaobj)/s-imgint.o $(adaobj)/a-comlin.o $(adaobj)/s-soflin.o $(adaobj)/s-stache.o $(adaobj)/s-secsta.o $(adaobj)/s-stalib.o \
+   $(adaobj)/g-os_lib.o $(adaobj)/s-strops.o $(adaobj)/a-tags.o   $(adaobj)/a-stream.o $(adaobj)/s-sopco3.o $(adaobj)/s-sopco4.o \
+   $(adaobj)/s-sopco5.o $(adaobj)/s-memory.o $(adaobj)/s-traceb.o $(adaobj)/a-except.o $(adaobj)/s-unstyp.o $(adaobj)/a-strmap.o \
+   $(adaobj)/a-stmaco.o $(adaobj)/s-io.o \
+   $(adaobj)/a-chahan.o $(adaobj)/a-strsea.o $(adaobj)/a-strfix.o $(adaobj)/s-stratt.o $(adaobj)/s-finroo.o $(adaobj)/g-except.o \
+   $(adaobj)/s-bitops.o $(adaobj)/s-finimp.o $(adaobj)/a-finali.o $(adaobj)/a-filico.o $(adaobj)/a-strunb.o $(adaobj)/g-dirope.o \
+   $(adaobj)/g-comlin.o $(adaobj)/s-ficobl.o $(adaobj)/s-fileio.o $(adaobj)/a-textio.o $(adaobj)/g-regexp.o $(adaobj)/g-io_aux.o \
+   $(adaobj)/s-valuti.o $(adaobj)/s-valuns.o $(adaobj)/s-valint.o $(adaobj)/s-wchcon.o $(adaobj)/s-wchjis.o $(adaobj)/s-wchcnv.o
+
+GNATXREF_OBJS = $(adaobj)/gnatxref.o $(adaobj)/xr_tabls.o $(adaobj)/xref_lib.o \
+   $(adaobj)/alloc.o $(adaobj)/debug.o $(adaobj)/fmap.o $(adaobj)/gnatvsn.o $(adaobj)/hostparm.o $(adaobj)/types.o $(adaobj)/output.o \
+   $(adaobj)/sdefault.o $(adaobj)/stylesw.o $(adaobj)/validsw.o $(adaobj)/tree_io.o $(adaobj)/opt.o $(adaobj)/table.o $(adaobj)/osint.o \
+   $(adaobj)/switch.o $(adaobj)/widechar.o $(adaobj)/namet.o \
+   $(GNATXREF_RTL_OBJS) $(EXTRA_GNATTOOLS_OBJS)
+
+GNATFIND_RTL_OBJS = \
+   $(adaobj)/adaint.o $(adaobj)/argv.o $(adaobj)/cio.o $(adaobj)/cstreams.o \
+   $(adaobj)/exit.o $(adaobj)/init.o $(adaobj)/final.o $(adaobj)/raise.o $(adaobj)/sysdep.o $(adaobj)/tracebak.o \
+   $(adaobj)/ada.o $(adaobj)/a-chahan.o $(adaobj)/a-charac.o $(adaobj)/a-chlat1.o $(adaobj)/a-comlin.o $(adaobj)/a-except.o \
+   $(adaobj)/a-filico.o $(adaobj)/a-finali.o $(adaobj)/a-ioexce.o $(adaobj)/a-stmaco.o $(adaobj)/a-stream.o \
+   $(adaobj)/a-strfix.o $(adaobj)/a-string.o $(adaobj)/a-strmap.o $(adaobj)/a-strsea.o $(adaobj)/a-strunb.o \
+   $(adaobj)/a-tags.o $(adaobj)/a-textio.o  \
+   $(adaobj)/gnat.o $(adaobj)/g-casuti.o $(adaobj)/g-comlin.o $(adaobj)/g-dirope.o $(adaobj)/g-except.o  \
+   $(adaobj)/g-hesora.o $(adaobj)/g-htable.o $(adaobj)/g-io_aux.o $(adaobj)/g-os_lib.o $(adaobj)/g-regexp.o \
+   $(adaobj)/interfac.o $(adaobj)/i-cstrea.o $(adaobj)/s-io.o \
+   $(adaobj)/system.o $(adaobj)/s-assert.o $(adaobj)/s-bitops.o $(adaobj)/s-except.o $(adaobj)/s-exctab.o \
+   $(adaobj)/s-imgenu.o $(adaobj)/s-ficobl.o $(adaobj)/s-fileio.o $(adaobj)/s-finimp.o $(adaobj)/s-finroo.o $(adaobj)/s-imgint.o \
+   $(adaobj)/s-mastop.o $(adaobj)/s-parame.o $(adaobj)/s-secsta.o $(adaobj)/s-soflin.o $(adaobj)/s-sopco3.o \
+   $(adaobj)/s-sopco4.o $(adaobj)/s-sopco5.o $(adaobj)/s-stache.o $(adaobj)/s-stalib.o $(adaobj)/s-stoele.o \
+   $(adaobj)/s-stratt.o $(adaobj)/s-strops.o $(adaobj)/s-memory.o $(adaobj)/s-traceb.o $(adaobj)/s-unstyp.o $(adaobj)/s-valint.o \
+   $(adaobj)/s-valuns.o $(adaobj)/s-valuti.o $(adaobj)/s-wchcnv.o $(adaobj)/s-wchcon.o $(adaobj)/s-wchjis.o
+
+GNATFIND_OBJS = $(adaobj)/gnatfind.o $(adaobj)/xr_tabls.o $(adaobj)/xref_lib.o \
+   $(adaobj)/alloc.o $(adaobj)/debug.o $(adaobj)/fmap.o $(adaobj)/gnatvsn.o $(adaobj)/hostparm.o $(adaobj)/namet.o $(adaobj)/opt.o \
+   $(adaobj)/osint.o $(adaobj)/output.o $(adaobj)/sdefault.o $(adaobj)/stylesw.o $(adaobj)/validsw.o $(adaobj)/switch.o $(adaobj)/table.o \
+   $(adaobj)/tree_io.o $(adaobj)/types.o $(adaobj)/widechar.o \
+   $(GNATFIND_RTL_OBJS) $(EXTRA_GNATTOOLS_OBJS)
+
+GNATDLL_RTL_OBJS = \
+   $(adaobj)/adaint.o $(adaobj)/argv.o $(adaobj)/cio.o $(adaobj)/cstreams.o \
+   $(adaobj)/exit.o $(adaobj)/init.o $(adaobj)/final.o $(adaobj)/raise.o $(adaobj)/sysdep.o $(adaobj)/tracebak.o \
+   $(adaobj)/a-charac.o $(adaobj)/a-chlat1.o $(adaobj)/a-chahan.o $(adaobj)/a-comlin.o $(adaobj)/a-except.o $(adaobj)/a-filico.o \
+   $(adaobj)/a-finali.o $(adaobj)/a-ioexce.o $(adaobj)/a-stream.o $(adaobj)/a-strfix.o $(adaobj)/a-string.o $(adaobj)/a-strmap.o \
+   $(adaobj)/a-strsea.o $(adaobj)/a-stmaco.o $(adaobj)/a-strunb.o $(adaobj)/a-tags.o $(adaobj)/a-textio.o $(adaobj)/ada.o \
+   $(adaobj)/g-casuti.o $(adaobj)/g-comlin.o $(adaobj)/g-dirope.o $(adaobj)/g-except.o $(adaobj)/g-hesora.o $(adaobj)/g-htable.o \
+   $(adaobj)/g-os_lib.o $(adaobj)/g-regexp.o $(adaobj)/gnat.o \
+   $(adaobj)/i-cstrea.o $(adaobj)/interfac.o $(adaobj)/s-io.o \
+   $(adaobj)/s-bitops.o $(adaobj)/s-except.o $(adaobj)/s-exctab.o $(adaobj)/s-ficobl.o $(adaobj)/s-fileio.o $(adaobj)/s-finimp.o \
+   $(adaobj)/s-finroo.o $(adaobj)/s-imgint.o $(adaobj)/s-mastop.o $(adaobj)/s-parame.o $(adaobj)/s-secsta.o $(adaobj)/s-soflin.o \
+   $(adaobj)/s-sopco3.o $(adaobj)/s-sopco4.o $(adaobj)/s-stache.o $(adaobj)/s-stalib.o $(adaobj)/s-stoele.o $(adaobj)/s-stratt.o \
+   $(adaobj)/s-strops.o $(adaobj)/s-memory.o $(adaobj)/s-traceb.o $(adaobj)/s-unstyp.o $(adaobj)/system.o
+
+GNATDLL_OBJS = \
+  $(adaobj)/gnatdll.o $(adaobj)/gnatvsn.o $(adaobj)/mdll.o $(adaobj)/mdllfile.o $(adaobj)/mdlltool.o $(adaobj)/sdefault.o $(adaobj)/types.o \
+   $(GNATDLL_RTL_OBJS) $(EXTRA_GNATTOOLS_OBJS)
+
+
+
+
+
+
+
+
+
+
+
+
+
 # Needs to be built with CC=gcc
 # Since the RTL should be built with the latest compiler, remove the
 #  stamp target in the parent directory whenever gnat1 is rebuilt
-$(gcc_bin_dir)/gnat1$(gexesfx): $(P) $(GNAT1_OBJS) $(ADA_BACKEND) $(LIBDEPS) $(TARGET_ADA_SRCS)
+$(gcc_bin_dir)/gnat1$(gexesfx): $(GNAT1_OBJS) $(ADA_BACKEND) $(LIBDEPS) $(TARGET_ADA_SRCS)
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(GNAT1_OBJS) $(ADA_BACKEND) $(LIBDEPS) $(LIBS)
 
-$(bin_dir)/gnatbind$(gexesfx): $(P) $(adaobj)/b_gnatb.o $(GNATBIND_OBJS)
+$(bin_dir)/gnatbind$(gexesfx): $(adaobj)/b_gnatb.o $(GNATBIND_OBJS)
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(adaobj)/b_gnatb.o $(GNATBIND_OBJS) \
 	      $(LIBIBERTY) $(LIBDEPS) $(LIBS)
 
+$(bin_dir)/gnatchop$(gexesfx): $(adaobj)/b_gnatch.o $(GNATCHOP_OBJS)
+	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(adaobj)/b_gnatch.o $(GNATCHOP_OBJS) \
+	      $(LIBDEPS) $(LIBS)
+
+$(bin_dir)/gnatmake$(gexesfx): $(adaobj)/b_gnatm.o $(GNATMAKE_OBJS)
+	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(adaobj)/b_gnatm.o $(GNATMAKE_OBJS) $(LIBDEPS) $(LIBS)
+
+$(adaobj)/gnatbl.o: gnatbl.c adaint.h
+	$(CC) $(CFLAGS) $(INCLUDES) -o $@ -c $<
+
+$(bin_dir)/gnatbl$(gexesfx): $(adaobj)/gnatbl.o $(adaobj)/adaint.o
+	$(CC) -o $@ $(CFLAGS) $(LDFLAGS) $(adaobj)/gnatbl.o $(adaobj)/adaint.o $(LIBDEPS) $(LIBS)
+
+$(bin_dir)/gnatcmd$(gexesfx): $(adaobj)/b_gnatc.o $(GNATCMD_OBJS)
+	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(adaobj)/b_gnatc.o $(GNATCMD_OBJS) $(LIBDEPS) $(LIBS)
+
+$(bin_dir)/gnatkr$(gexesfx): $(adaobj)/b_gnatkr.o $(GNATKR_OBJS)
+	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(adaobj)/b_gnatkr.o $(GNATKR_OBJS) $(LIBDEPS) $(LIBS)
+
+$(bin_dir)/gnatlink$(gexesfx): $(adaobj)/b_gnatl.o $(GNATLINK_OBJS)
+	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(adaobj)/b_gnatl.o $(GNATLINK_OBJS) $(LIBDEPS) $(LIBS)
+
+$(bin_dir)/gnatls$(gexesfx): $(adaobj)/b_gnatls.o $(GNATLS_OBJS)
+	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(adaobj)/b_gnatls.o $(GNATLS_OBJS) $(LIBDEPS) $(LIBS)
+
+$(bin_dir)/gnatmem$(gexesfx): $(adaobj)/b_gnatmem.o $(GNATMEM_OBJS)
+	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(adaobj)/b_gnatmem.o $(GNATMEM_OBJS) \
+		$(MISCLIB) $(LIBDEPS) $(LIBS)
+
+$(bin_dir)/gnatprep$(gexesfx): $(adaobj)/b_gnatp.o $(GNATPREP_OBJS)
+	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(adaobj)/b_gnatp.o $(GNATPREP_OBJS) $(LIBDEPS) $(LIBS)
+
+$(bin_dir)/gnatpsta$(gexesfx): $(adaobj)/b_gnatpa.o $(GNATPSTA_OBJS)
+	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(adaobj)/b_gnatpa.o $(GNATPSTA_OBJS) \
+		$(LIBDEPS) $(LIBS)
+
+$(bin_dir)/gnatpsys$(gexesfx): $(adaobj)/b_gnatps.o $(GNATPSYS_OBJS)
+	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(adaobj)/b_gnatps.o $(GNATPSYS_OBJS) \
+		$(LIBDEPS) $(LIBS)
+
+$(bin_dir)/gnatxref$(gexesfx): $(adaobj)/b_gnatxref.o $(GNATXREF_OBJS)
+	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(adaobj)/b_gnatxref.o $(GNATXREF_OBJS) \
+		$(LIBDEPS) $(LIBS)
+
+$(bin_dir)/gnatfind$(gexesfx): $(adaobj)/b_gnatfind.o $(GNATFIND_OBJS)
+	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(adaobj)/b_gnatfind.o $(GNATFIND_OBJS) \
+		$(LIBDEPS) $(LIBS)
+
+$(bin_dir)/gnatdll$(gexesfx): $(adaobj)/b_gnatdll.o $(GNATDLL_OBJS)
+	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(adaobj)/b_gnatdll.o $(GNATDLL_OBJS) \
+		$(LIBDEPS) $(LIBS)
 
 
 # Ada language specific files.
@@ -524,9 +1043,63 @@ b_gnat1.c : $(GNAT1_ADA_OBJS)
 	$(GNATBIND) $(ADA_INCLUDES) -o b_gnat1.c -n $(adaobj)/gnat1drv.ali
 $(adaobj)/b_gnat1.o : b_gnat1.c
 
-b_gnatb.c : $(GNATBIND_OBJS)
+b_gnatb.c : $(GNATBIND_OBJS) $(adaobj)/gnatbind.ali
 	$(GNATBIND) $(ADA_INCLUDES) -o b_gnatb.c $(adaobj)/gnatbind.ali
+
+$(adaobj)/gnatbind.ali: gnatbind.adb gnatbind.ads
 $(adaobj)/b_gnatb.o : b_gnatb.c
+
+b_gnatc.c : $(GNATCMD_OBJS)
+	$(GNATBIND) $(ADA_INCLUDES) -o b_gnatc.c $(adaobj)/gnatcmd.ali
+$(adaobj)/b_gnatc.o : b_gnatc.c
+
+b_gnatch.c: $(GNATCHOP_OBJS)
+	$(GNATBIND) $(ADA_INCLUDES) -o b_gnatch.c $(adaobj)/gnatchop.ali
+$(adaobj)/b_gnatch.o: b_gnatch.c
+
+b_gnatkr.c : $(GNATKR_OBJS)
+	$(GNATBIND) $(ADA_INCLUDES) -o b_gnatkr.c $(adaobj)/gnatkr.ali
+$(adaobj)/b_gnatkr.o : b_gnatkr.c
+
+b_gnatl.c : $(GNATLINK_OBJS)
+	$(GNATBIND) $(ADA_INCLUDES) -o b_gnatl.c $(adaobj)/gnatlink.ali
+$(adaobj)/b_gnatl.o : b_gnatl.c
+
+b_gnatls.c : $(GNATLS_OBJS)
+	$(GNATBIND) $(ADA_INCLUDES) -o b_gnatls.c $(adaobj)/gnatls.ali
+
+b_gnatm.c : $(GNATMAKE_OBJS)
+	$(GNATBIND) $(ADA_INCLUDES) -o b_gnatm.c $(adaobj)/gnatmake.ali
+$(adaobj)/b_gnatm.o : b_gnatm.c
+
+b_gnatmem.c : $(GNATMEM_OBJS)
+	$(GNATBIND) $(ADA_INCLUDES) -o b_gnatmem.c $(adaobj)/gnatmem.ali
+$(adaobj)/b_gnatmem.o : b_gnatmem.c
+
+b_gnatp.c : $(GNATPREP_OBJS)
+	$(GNATBIND) $(ADA_INCLUDES) -o b_gnatp.c $(adaobj)/gnatprep.ali
+$(adaobj)/b_gnatp.o : b_gnatp.c
+
+b_gnatpa.c : $(GNATPSTA_OBJS)
+	$(GNATBIND) $(ADA_INCLUDES) -o b_gnatpa.c $(adaobj)/gnatpsta.ali
+$(adaobj)/b_gnatpa.o : b_gnatpa.c
+
+b_gnatps.c : $(GNATPSYS_OBJS)
+	$(GNATBIND) $(ADA_INCLUDES) -o b_gnatps.c $(adaobj)/gnatpsys.ali
+$(adaobj)/b_gnatps.o : b_gnatps.c
+
+b_gnatxref.c : $(GNATXREF_OBJS)
+	$(GNATBIND) $(ADA_INCLUDES) -o b_gnatxref.c $(adaobj)/gnatxref.ali
+$(adaobj)/b_gnatxref.o : b_gnatxref.c
+
+b_gnatfind.c : $(GNATFIND_OBJS)
+	$(GNATBIND) $(ADA_INCLUDES) -o b_gnatfind.c $(adaobj)/gnatfind.ali
+$(adaobj)/b_gnatfind.o : b_gnatfind.c
+
+b_gnatdll.c : $(GNATDLL_OBJS)
+	$(GNATBIND) $(ADA_INCLUDES) -o b_gnatdll.c $(adaobj)/gnatdll.ali
+$(adaobj)/b_gnatdll.o : b_gnatdll.c
+
 
 
 treeprs.ads : treeprs.adt sinfo.ads xtreeprs.adb
@@ -591,8 +1164,18 @@ sdefault.o: sdefault.ads sdefault.adb types.ads unchdeal.ads \
    system.ads s-exctab.ads s-stalib.ads unchconv.ads
 	$(CC) -c -O2 $(MOST_ADAFLAGS) $(ADA_INCLUDES) sdefault.adb
 
+fixup-targetpairs:
+	rm -f $(foreach PAIR,$(LIBGNAT_TARGET_PAIRS), \
+			$(word 1,$(subst <, ,$(PAIR))))
+	# Copy new target dependent sources
+	$(foreach PAIR,$(LIBGNAT_TARGET_PAIRS), \
+			cp $(word 2,$(subst <, ,$(PAIR))) \
+			$(word 1,$(subst <, ,$(PAIR)));)
+
+$(ux_gcc_bin_dir)/$(TRG)/libgnat.o: $(LIBGNAT_OBJS) $(GNATRTL_OBJS)
+	$(CROSS_AR) $(CROSS_AR_FLAGS) -c $@ $(LIBGNAT_OBJS) $(GNATRTL_OBJS)
+
+$(ro_gcc_bin_dir)/$(TRG)/o/libgnat: $(LIBGNAT_OBJS) $(GNATRTL_OBJS)
+	$(CROSS_AR) $(CROSS_AR_FLAGS) -c $@ $(LIBGNAT_OBJS) $(GNATRTL_OBJS)
 
 $(adaobj)/adaint.o: adaint.c
-
-
-

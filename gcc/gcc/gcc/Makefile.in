@@ -15,7 +15,7 @@ CFLAGS += -DCROSS_COMPILE -D$(hostsystem)
 bin_dir = $(ux_bin_dir)
 gcc_bin_dir = $(ux_gcc_bin_dir)
 GNATBIND = @GNATBIND@ -C
-GNATCC = @ADAC@
+GNATCC = @CC@
 else
 prefix = $(riscos_prefix)
 CC = $(CROSS_CC)

@@ -15,13 +15,14 @@ prefix = $(unix_prefix)
 CFLAGS += -DCROSS_COMPILE -D$(hostsystem)
 bin_dir = $(ux_bin_dir)
 gcc_bin_dir = $(ux_gcc_bin_dir)
-GNATBIND = gnatbind -C
-GNATCC = gnatgcc
+GNATBIND = /opt/gcc-3.3-20021127/bin/gnatbind -C
+GNATCC = /opt/gcc-3.3-20021127/bin/gcc
 else
 prefix = $(riscos_prefix)
 CC = $(CROSS_CC)
 CXX = $(CROSS_CXX)
 GNATCC = $(CROSS_CC)
+GNATBIND = $(CROSS_GNATBIND)
 CFLAGS = $(CROSS_CFLAGS) -D$(targetsystem)
 bin_dir = $(ro_bin_dir)
 gcc_bin_dir = $(ro_gcc_bin_dir)
@@ -39,6 +40,7 @@ LIBS = -L$(objdir)/libiberty/$(STAGE) -liberty -lm
 gccobjdir = $(objdir)/gcc-$(VERSION)/gcc/$(STAGE)
 
 export prefix CC CXX GNATCC CFLAGS bin_dir gcc_bin_dir gccobjdir gexesfx
+export GNATCC GNATBIND
 
 LIBDEPS = $(gccobjdir)/prefix.o
 
@@ -329,7 +331,7 @@ gengtype-lex.c: gengtype-lex.l gengtype-yacc.h
 #	gperf -p -j1 -i 1 -g -o -t -G -N is_reserved_word -k1,3,$$ <gperf.c-parse >h.c-gperf
 
 # Bison object dependencies
-$(gccobjdir)/c-parse.o:	c-parse.c c-parse.c c-parse.in tree-check.h
+$(gccobjdir)/c-parse.o:	c-parse.c c-parse.c c-parse.in tree-check.h gt-c-parse.h
 $(gccobjdir)/cexp.o:	cexp.c cexp.y
 
 ##############################################################################
@@ -709,6 +711,9 @@ $(gccobjdir)/prefix.o: prefix.c
 
 $(gccobjdir)/toplev.o: toplev.c
 	$(CC) $(CFLAGS) $(INCLUDES) -o $@ -c toplev.c -DTARGET_NAME=\"$(TARGET_NAME)\"
+
+$(gccobjdir)/insn-extract.o: insn-extract.c
+	$(CC) $(CFLAGS) $(INCLUDES) -o $@ -c insn-extract.c -O0
 
 $(gccobjdir)/gcc.o: gcc.c
 	$(CC) $(CFLAGS) $(INCLUDES) -o $@ -c gcc.c \

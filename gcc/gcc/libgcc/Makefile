@@ -16,41 +16,56 @@ LIB2ADDEH = $(libobjdir)/unwind-dw2.o \
 	$(libobjdir)/unwind-sjlj.o
 
 # All the file that go into the gcc library
-GCC_LIB_COMMON = $(libobjdir)/dummy.o \
-	$(libobjdir)/getopt.o \
-	$(libobjdir)/getopt1.o \
-	$(libobjdir)/floatdidf.o \
-	$(libobjdir)/divsi3.o \
-	$(libobjdir)/modsi3.o \
-	$(libobjdir)/umodsi3.o \
-	$(libobjdir)/udivsi3.o \
-	$(libobjdir)/fixsfdi.o \
-	$(libobjdir)/fixunsxfdi.o \
-	$(libobjdir)/fixunsdfdi.o \
-	$(libobjdir)/fixunssfdi.o \
-	$(libobjdir)/libgcc_fix.o \
-	$(libobjdir)/ffs.o \
-	$(libobjdir)/dynamic.o \
-	$(libobjdir)/gcc_bcmp.o \
+LIB2FUNCS_1 = $(libobjdir)/muldi3.o \
+	$(libobjdir)/negdi2.o \
+	$(libobjdir)/lshrdi3.o \
 	$(libobjdir)/ashldi3.o \
 	$(libobjdir)/ashrdi3.o \
-	$(libobjdir)/lshrdi3.o \
-	$(libobjdir)/clricache.o \
-	$(libobjdir)/divdi3.o \
-	$(libobjdir)/muldi3.o \
-	$(libobjdir)/moddi3.o \
-	$(libobjdir)/udivdi3.o \
-	$(libobjdir)/umoddi3.o \
+	$(libobjdir)/ffsdi2.o \
+	$(libobjdir)/clz.o \
 	$(libobjdir)/cmpdi2.o \
 	$(libobjdir)/ucmpdi2.o \
-	$(libobjdir)/ctors.o \
-	$(libobjdir)/nextarg.o \
+	$(libobjdir)/floatdidf.o \
+	$(libobjdir)/floatdisf.o \
+	$(libobjdir)/fixunsdfsi.o \
+	$(libobjdir)/fixunssfsi.o \
+	$(libobjdir)/fixunsdfdi.o \
+	$(libobjdir)/fixdfdi.o \
+	$(libobjdir)/fixunssfdi.o \
+	$(libobjdir)/fixsfdi.o \
+	$(libobjdir)/fixxfdi.o \
+	$(libobjdir)/fixunsxfdi.o
+
+LIB2FUNCS_2 = $(libobjdir)/floatdixf.o \
+	$(libobjdir)/fixunsxfsi.o \
+	$(libobjdir)/fixtfdi.o \
+	$(libobjdir)/fixunstfdi.o \
+	$(libobjdir)/floatditf.o \
+	$(libobjdir)/clear_cache.o \
+	$(libobjdir)/trampoline.o \
 	$(libobjdir)/main.o \
-	$(libobjdir)/eh.o \
-	$(libobjdir)/eprintf.o \
-	$(libobjdir)/pure.o \
+	$(libobjdir)/exit.o \
+	$(libobjdir)/absvsi2.o \
+	$(libobjdir)/absvdi2.o \
+	$(libobjdir)/addvsi3.o \
+	$(libobjdir)/addvdi3.o \
+	$(libobjdir)/subvsi3.o \
+	$(libobjdir)/subvdi3.o \
+	$(libobjdir)/mulvsi3.o \
+	$(libobjdir)/mulvdi3.o \
+	$(libobjdir)/negvsi2.o \
+	$(libobjdir)/negvdi2.o \
+	$(libobjdir)/ctors.o
+
+LIB2FUNCS_ST = $(libobjdir)/eprintf.o \
 	$(libobjdir)/bb.o \
-	$(libobjdir)/div0.o
+	$(libobjdir)/gcc_bcmp.o
+
+LIB2FUNCS_EXTRA = 
+	$(libobjdir)/ffs.o \
+	$(libobjdir)/clricache.o \
+	$(libobjdir)/libgcc_fix.o \
+	$(libobjdir)/dynamic.o
 
 
 FP_BIT_DOUBLE = $(libobjdir)/pack_df.o \
@@ -66,12 +81,15 @@ FP_BIT_DOUBLE = $(libobjdir)/pack_df.o \
 	$(libobjdir)/ge_df.o \
 	$(libobjdir)/lt_df.o \
 	$(libobjdir)/le_df.o \
+	$(libobjdir)/unord_df.o \
 	$(libobjdir)/si_to_df.o \
 	$(libobjdir)/df_to_si.o \
-	$(libobjdir)/df_to_usi.o \
 	$(libobjdir)/negate_df.o \
 	$(libobjdir)/make_df.o \
-	$(libobjdir)/df_to_sf.o
+	$(libobjdir)/df_to_sf.o \
+	$(libobjdir)/thenan_df.o \
+	$(libobjdir)/df_to_usi.o \
+	$(libobjdir)/usi_to_df.o
 
 FP_BIT_SINGLE = $(libobjdir)/pack_sf.o \
 	$(libobjdir)/unpack_sf.o \
@@ -86,28 +104,30 @@ FP_BIT_SINGLE = $(libobjdir)/pack_sf.o \
 	$(libobjdir)/ge_sf.o \
 	$(libobjdir)/lt_sf.o \
 	$(libobjdir)/le_sf.o \
+	$(libobjdir)/unord_sf.o \
 	$(libobjdir)/si_to_sf.o \
-	$(libobjdir)/sf_to_usi.o \
 	$(libobjdir)/sf_to_si.o \
 	$(libobjdir)/negate_sf.o \
 	$(libobjdir)/make_sf.o \
-	$(libobjdir)/sf_to_df.o
-
+	$(libobjdir)/sf_to_df.o \
+	$(libobjdir)/thenan.o \
+	$(libobjdir)/sf_to_usi.o \
+	$(libobjdir)/usi_to_sf.o
 
 all:	$(ux_gcc_bin_dir)/$(TRG)/libgcc.o $(ro_gcc_bin_dir)/$(TRG)/o/libgcc
 
 install_headers:
 	$(insthdr) ginclude "*.h" . $(ux_gccpkg)/$(gn_gcc_include_dir) $(ro_gccpkg)/$(gn_gcc_include_dir)
 
-$(ux_gcc_bin_dir)/$(TRG)/libgcc.o: $(GCC_LIB_ULIB) \
-	$(GCC_LIB_COMMON) $(FP_BIT_DOUBLE) $(FP_BIT_SINGLE) $(LIB2ADDEH)
-	$(CROSS_AR) $(CROSS_AR_FLAGS) -c $@ $(GCC_LIB_ULIB) \
-	$(GCC_LIB_COMMON) $(FP_BIT_DOUBLE) $(FP_BIT_SINGLE) $(LIB2ADDEH)
+$(ux_gcc_bin_dir)/$(TRG)/libgcc.o: $(LIB2FUNCS_1) $(LIB2FUNCS_2) \
+	$(FP_BIT_DOUBLE) $(FP_BIT_SINGLE) $(LIB2ADDEH)
+	$(CROSS_AR) $(CROSS_AR_FLAGS) -c $@ $(LIB2FUNCS_1) $(LIB2FUNCS_2) \
+	$(FP_BIT_DOUBLE) $(FP_BIT_SINGLE) $(LIB2ADDEH)
 
-$(ro_gcc_bin_dir)/$(TRG)/o/libgcc: $(GCC_LIB_ULIB) \
-	$(GCC_LIB_COMMON) $(FP_BIT_DOUBLE) $(FP_BIT_SINGLE) $(LIB2ADDEH)
-	$(CROSS_AR) $(CROSS_AR_FLAGS) -c $@ $(GCC_LIB_ULIB) \
-	$(GCC_LIB_COMMON) $(FP_BIT_DOUBLE) $(FP_BIT_SINGLE) $(LIB2ADDEH)
+$(ro_gcc_bin_dir)/$(TRG)/o/libgcc: $(LIB2FUNCS_1) $(LIB2FUNCS_2) \
+	$(FP_BIT_DOUBLE) $(FP_BIT_SINGLE) $(LIB2ADDEH)
+	$(CROSS_AR) $(CROSS_AR_FLAGS) -c $@ $(LIB2FUNCS_1) $(LIB2FUNCS_2) \
+	$(FP_BIT_DOUBLE) $(FP_BIT_SINGLE) $(LIB2ADDEH)
 
 ############################################################################
 

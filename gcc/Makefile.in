@@ -2,6 +2,10 @@
 # Copyright (c) 2000, 2001, 2002 Nick Burrett
 # Written by Nick Burrett <nick@dsvr.net>
 
+# Tell GNU make 3.79 not to run this directory in parallel.
+# Not all of the required dependencies are present.
+.NOTPARALLEL:
+
 # Set by the configure script
 prefix=@prefix@
 exec_prefix=@exec_prefix@

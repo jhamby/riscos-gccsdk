@@ -28,6 +28,9 @@ dnl Check the GCC version
 AC_PROG_CXX
 AC_C_BIGENDIAN
 
+# See if GNAT has been installed
+gcc_AC_PROG_GNAT
+
 # See if the system preprocessor understands the ANSI C preprocessor
 # stringification operator.
 AC_MSG_CHECKING(whether cpp understands the stringify operator)
