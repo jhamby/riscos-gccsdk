@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/signal/post.c,v $
- * $Date: 2005/03/31 09:32:23 $
- * $Revision: 1.21 $
+ * $Date: 2005/03/31 09:53:42 $
+ * $Revision: 1.22 $
  * $State: Exp $
  * $Author: nick $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: post.c,v 1.21 2005/03/31 09:32:23 nick Exp $";
+static const char rcs_id[] = "$Id: post.c,v 1.22 2005/03/31 09:53:42 nick Exp $";
 #endif
 
 /* signal.c.post: Written by Nick Burrett, 27 August 1996.  */
@@ -146,7 +146,7 @@ __write_backtrace (int signo)
      fp[-3] => previous fp  */
   while (fp != NULL)
     {
-      int *pc, *lr;
+      unsigned int *pc, *lr;
 
       /* Check that FP is different.  */
       if (fp == oldfp)
@@ -165,9 +165,9 @@ __write_backtrace (int signo)
 
       /* Retrieve PC counter.  */
       if (__32bit)
-	pc = (int *)(fp[0] & 0xfffffffc);
+	pc = (unsigned int *)(fp[0] & 0xfffffffc);
       else
-	pc = (int *)(fp[0] & 0x03fffffc);
+	pc = (unsigned int *)(fp[0] & 0x03fffffc);
       if (!(features & 0x8))
 	pc += 1;
 
@@ -179,9 +179,9 @@ __write_backtrace (int signo)
 
       /* Retrieve lr.  */
       if (__32bit)
-	lr = (int *)(fp[-1] & 0xfffffffc);
+	lr = (unsigned int *)(fp[-1] & 0xfffffffc);
       else
-	lr = (int *)(fp[-1] & 0x03fffffc);
+	lr = (unsigned int *)(fp[-1] & 0x03fffffc);
 
       fprintf(stderr, "  (%8x) pc: %8x lr: %8x sp: %8x ",
 	      (int)fp, (int)pc, (int)lr, fp[-2]);
@@ -241,13 +241,41 @@ __write_backtrace (int signo)
 	      }
 
 	    if (__32bit)
-	      fprintf(stderr, "\n  cpsr: %8x\n\n", oldfp[1]);
+	      fprintf(stderr, "\n  cpsr: %8x\n", oldfp[1]);
 	    else
-	      fprintf(stderr, "\n\n");
+	      fprintf(stderr, "\n");
 	    }
 	  else
-	    fputs("    [bad register dump address]\n\n", stderr);
-	}
+	    fputs("    [bad register dump address]\n", stderr);
+
+          pc = (unsigned int *)oldfp[17];
+
+          /* Try LR if PC invalid */
+          if (pc < (unsigned int *)0x8000  || !__valid_address(pc - 5, pc + 3))
+            pc = (unsigned int *)oldfp[16];
+
+          if (pc > (unsigned int *)0x8000 && __valid_address(pc - 5, pc + 3))
+            {
+              unsigned int *diss;
+
+              for (diss = pc - 5; diss <= pc + 3; diss++)
+                {
+                  const char *ins;
+                  int length;
+
+                  _swix(Debugger_Disassemble, _INR(0,1) | _OUTR(1,2), *diss, diss, &ins, &length);
+
+                   fprintf(stderr, "\n    %08x    ", diss);
+                   fwrite(ins, length, 1, stderr);
+                }
+            }
+          else
+           {
+             fprintf(stderr, "[Disassembly not available]"); 
+           }
+
+         fprintf(stderr, "\n\n");
+       }
     }
 
   fputs("\n", stderr);

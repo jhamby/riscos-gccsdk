@@ -1,10 +1,10 @@
 ;----------------------------------------------------------------------------
 ;
-; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/string/_ffs.s,v $
-; $Date: 2004/10/17 16:24:44 $
+; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/string/_strlen.s,v $
+; $Date: 2005/04/01 16:08:12 $
 ; $Revision: 1.1 $
 ; $State: Exp $
-; $Author: joty $
+; $Author: peter $
 ;
 ;----------------------------------------------------------------------------
 
@@ -17,6 +17,8 @@
 	GET	clib/unixlib/asm_dec.s
 
 	AREA	|C$$code|, CODE, READONLY
+
+        ALIGN 32 ; For cache alignment of the code
 
 	EXPORT	|strlen|
 |strlen|

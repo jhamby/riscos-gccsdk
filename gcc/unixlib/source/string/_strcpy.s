@@ -1,10 +1,10 @@
 ;----------------------------------------------------------------------------
 ;
-; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/string/_ffs.s,v $
-; $Date: 2004/10/17 16:24:44 $
+; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/string/_strcpy.s,v $
+; $Date: 2005/04/01 16:08:12 $
 ; $Revision: 1.1 $
 ; $State: Exp $
-; $Author: joty $
+; $Author: peter $
 ;
 ;----------------------------------------------------------------------------
 
@@ -22,9 +22,9 @@
 
 	AREA	|C$$code|, CODE, READONLY
 
+        ALIGN 32 ; For cache alignment of the code
+
 	EXPORT	|strcpy|
-
-
 |strcpy|	;strongly biased in favour of word-aligned source and destination
 	STR	a1,[sp,#-4]!
 	MOV	a4,#1
