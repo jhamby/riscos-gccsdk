@@ -37,9 +37,9 @@ extern int dde;
 #define FIX(n) ((3+(int)n)&~3)
 #define EXTRA(n) (FIX(n)-n)
 
-const char *idfn_text = MESSAGE;
+const char *idfn_text = "Creator: GCCSDK AOF ASM vsn " AS_VERSION " [" __DATE__ "]\n";
 
-#define MAXNAME 256
+#define MAXNAME 1024
 static char outname[MAXNAME + 1];
 
 #if !defined(__riscos__) && defined(WORDS_BIGENDIAN)

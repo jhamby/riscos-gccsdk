@@ -58,7 +58,7 @@ static void
 as_help (char *progname)
 {
   fprintf (stderr,
-	   "%s"
+	   "AS AOF Assembler  Versionm %s %s  [GCCSDK build]"
 	   "\n"
 	   "Usage: %s [option]... <asmfile>\n"
 	   "\n"
@@ -86,7 +86,7 @@ as_help (char *progname)
 	   "-apcsfpv2         Use floating point v2 AREAs\n"
 	   "-apcsfpv3         Use floating point v3 AREAs (SFM, LFM) (default)\n"
 	   "\n",
-	   VERSION, progname);
+	   AS_VERSION, __DATE__, progname);
 }
 
 
@@ -210,7 +210,10 @@ main (int argc, char **argv)
 	}
       else if (IS_ARG ("-version", "-ver"))
 	{
-	  fprintf (stderr, "%s%s", VERSION, COPYRIGHT);
+	  fprintf (stderr, "AS AOF Assembler  Version %s %s  [GCCSDK build]\n",
+		   AS_VERSION, __DATE__);
+
+	  fprintf (stderr, "Copyright (c) 1992-2003 Niklas Rojemo, Darren Salt and GCCSDK Development Team\n");
 	  return 0;
 	}
       else if (IS_ARG ("-H", "-h")
