@@ -1,9 +1,9 @@
 
-AB_CATEGORY=cli
+AB_CATEGORY=network
 
 AB_CONFIG=:
-AB_FILESNOPATH="whois,ff8"
 AB_MANPAGE=whois.1
 
-
-AB_IYONIX=yes
+ab_package() {
+  cp -av $S/whois,ff8 $D
+}
