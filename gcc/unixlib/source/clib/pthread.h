@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/pthread.h,v $
- * $Date: 2003/07/29 23:04:27 $
- * $Revision: 1.9 $
+ * $Date: 2004/02/29 16:44:58 $
+ * $Revision: 1.10 $
  * $State: Exp $
- * $Author: admin $
+ * $Author: alex $
  *
  ***************************************************************************/
 
@@ -558,7 +558,8 @@ extern void __pthread_context_switch (void);
 
 /* Assembly functions */
 
-/* Prevent the callevery interrupt from initialising a context switch */
+/* Prevent the callevery interrupt from initialising a context switch.
+   Don't use this over a Wimp_Poll - instead use __pthread_stop_ticker */
 extern int __pthread_disable_ints (void);
 /* Allow the callevery interrupt from initialising a context switch */
 extern int __pthread_enable_ints (void);
@@ -574,15 +575,15 @@ extern void __pthread_protect_unsafe (void);
 
 #if __FEATURE_PTHREADS
 
-/* Should be placed at the begginning of a function body for a
+/* Should be placed at the beginning of a function body for a
    thread safe function that is defined as a cancellation point */
 #define PTHREAD_SAFE_CANCELLATION if (__pthread_system_running) pthread_testcancel ();
 
-/* Should be placed at the begginning of a function body for a
+/* Should be placed at the beginning of a function body for a
    function that is not reentrant */
 #define PTHREAD_UNSAFE if (__pthread_system_running) __pthread_protect_unsafe ();
 
-/* Should be placed at the begginning of a function body for a
+/* Should be placed at the beginning of a function body for a
    function that is not reentrant and is also defined as a cancellation point */
 #define PTHREAD_UNSAFE_CANCELLATION \
 if (__pthread_system_running) \

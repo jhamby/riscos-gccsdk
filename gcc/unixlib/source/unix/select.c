@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/select.c,v $
- * $Date: 2002/12/13 15:01:59 $
- * $Revision: 1.4 $
+ * $Date: 2003/04/05 09:33:57 $
+ * $Revision: 1.5 $
  * $State: Exp $
- * $Author: admin $
+ * $Author: alex $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: select.c,v 1.4 2002/12/13 15:01:59 admin Exp $";
+static const char rcs_id[] = "$Id: select.c,v 1.5 2003/04/05 09:33:57 alex Exp $";
 #endif
 
 /* netlib/socket.c: Written by Peter Burwood, July 1997  */
@@ -116,8 +116,6 @@ select (int nfds, fd_set *readfds, fd_set *writefds,
   signed int remain;
   struct timeval poll = {0, 0};
 
-  PTHREAD_UNSAFE_CANCELLATION
-
 #ifdef DEBUG
   fprintf (stderr, "Entry:\t%d\t%p\t%p\t%p\t%p\n"
 	   "sizeof(fd_set) = %d\t__FD_SETSIZE = %d\n", nfds, readfds, writefds,
@@ -135,6 +133,9 @@ select (int nfds, fd_set *readfds, fd_set *writefds,
       end = now
 	+ timeout->tv_sec * 100 + (50000 + timeout->tv_usec) / 1000000;
     }
+
+  pthread_testcancel();
+  __pthread_disable_ints();
 
   /* Limit number of bits to check rather than returning an error.  */
   if (nfds > FD_SETSIZE)
@@ -209,7 +210,10 @@ select (int nfds, fd_set *readfds, fd_set *writefds,
 	      __os_print ("\\");
 #endif
 	      if (result < 0)
-		return -1;
+	        {
+	          __pthread_enable_ints();
+		  return -1;
+		}
 
 	      live_fds += result;
 	    }
@@ -246,7 +250,10 @@ select (int nfds, fd_set *readfds, fd_set *writefds,
 #endif
 
       if (result < 0)
-	return -1;
+        {
+	  __pthread_enable_ints();
+	  return -1;
+	}
 
       live_fds += result;
 
@@ -294,6 +301,10 @@ select (int nfds, fd_set *readfds, fd_set *writefds,
 
 	  __os_swi (OS_UpCall, regs);
 	}
+
+      __pthread_enable_ints();
+      pthread_yield();
+      __pthread_disable_ints();
     }
 
   /* Copy the results back to the input fd sets.
@@ -345,5 +356,6 @@ select (int nfds, fd_set *readfds, fd_set *writefds,
 	timeout->tv_usec = timeout->tv_sec = 0;
     }
 
+  __pthread_enable_ints();
   return live_fds;
 }

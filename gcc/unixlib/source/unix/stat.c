@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/stat.c,v $
- * $Date: 2003/01/21 17:48:32 $
- * $Revision: 1.4 $
+ * $Date: 2003/04/05 09:33:57 $
+ * $Revision: 1.5 $
  * $State: Exp $
- * $Author: admin $
+ * $Author: alex $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: stat.c,v 1.4 2003/01/21 17:48:32 admin Exp $";
+static const char rcs_id[] = "$Id: stat.c,v 1.5 2003/04/05 09:33:57 alex Exp $";
 #endif
 
 #include <errno.h>
@@ -25,10 +25,18 @@ static const char rcs_id[] = "$Id: stat.c,v 1.4 2003/01/21 17:48:32 admin Exp $"
 #include <unixlib/unix.h>
 #include <pthread.h>
 
+// #define DEBUG
+
 int
 stat (const char *filename, struct stat *buf)
 {
   PTHREAD_UNSAFE
+
+#ifdef DEBUG
+  __os_print ("stat(): file = ");
+  __os_print (filename);
+  __os_print ("\r\n");
+#endif
 
   /* Perform a special check for devices.  */
   buf->st_dev = __getdevtype (filename);
