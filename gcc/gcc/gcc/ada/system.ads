@@ -5,7 +5,7 @@
 --                               S Y S T E M                                --
 --                                                                          --
 --                                 S p e c                                  --
---                            (Compiler Version)                             --
+--                          (GNU-Linux/x86 Version)                         --
 --                                                                          --
 --                                                                          --
 --          Copyright (C) 1992-2002 Free Software Foundation, Inc.          --
@@ -37,11 +37,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  This version of System is a generic version that is used in building
---  the compiler. Right now, we have a host/target problem if we try to
---  use the "proper" System, and since the compiler itself does not care
---  about most System parameters, this generic version works fine.
-
 package System is
 pragma Pure (System);
 --  Note that we take advantage of the implementation permission to
@@ -71,9 +66,9 @@ pragma Pure (System);
    type Address is private;
    Null_Address : constant Address;
 
-   Storage_Unit : constant := Standard'Storage_Unit;
-   Word_Size    : constant := Standard'Word_Size;
-   Memory_Size  : constant := 2 ** Standard'Address_Size;
+   Storage_Unit : constant := 8;
+   Word_Size    : constant := 32;
+   Memory_Size  : constant := 2 ** 32;
 
    --  Address comparison
 
@@ -92,8 +87,7 @@ pragma Pure (System);
    --  Other System-Dependent Declarations
 
    type Bit_Order is (High_Order_First, Low_Order_First);
-   Default_Bit_Order : constant Bit_Order :=
-                         Bit_Order'Val (Standard'Default_Bit_Order);
+   Default_Bit_Order : constant Bit_Order := Low_Order_First;
 
    --  Priority-related Declarations (RM D.1)
 
@@ -121,13 +115,6 @@ private
    --  whose source should be consulted for more detailed descriptions
    --  of the individual switch values.
 
-   --  This version of system.ads is used only for building the compiler.
-   --  We really ought to use the proper target system (i.e. the one that
-   --  corresponds to the host for the compiler), but that causes as yet
-   --  unsolved makefile problems. For the most part the setting of these
-   --  parameters is not too critical for the compiler version (e.g. we
-   --  do not use floating-point anyway in the compiler).
-
    AAMP                      : constant Boolean := False;
    Backend_Divide_Checks     : constant Boolean := False;
    Backend_Overflow_Checks   : constant Boolean := False;
@@ -148,5 +135,4 @@ private
    ZCX_By_Default            : constant Boolean := False;
    GCC_ZCX_Support           : constant Boolean := False;
    Front_End_ZCX_Support     : constant Boolean := False;
-
 end System;

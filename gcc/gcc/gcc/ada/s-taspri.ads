@@ -7,7 +7,7 @@
 --                                  S p e c                                 --
 --                                                                          --
 --                                                                          --
---          Copyright (C) 1991-2000 Free Software Foundation, Inc.          --
+--           Copyright (C) 1991-2001 Free Software Foundation, Inc.         --
 --                                                                          --
 -- GNARL is free software; you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -32,25 +32,66 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  This is a no tasking version of this package
+--  This is the GNU/Linux (GNU/LinuxThreads) version of this package.
+
+--  This package provides low-level support for most tasking features.
 
 pragma Polling (Off);
 --  Turn off polling, we do not want ATC polling to take place during
 --  tasking operations. It causes infinite loops and other problems.
 
+with System.OS_Interface;
+--  used for pthread_mutex_t
+--           pthread_cond_t
+--           pthread_t
+
 package System.Task_Primitives is
-   pragma Preelaborate;
 
-   type Lock is new Integer;
+   type Lock is limited private;
+   --  Should be used for implementation of protected objects.
 
-   type RTS_Lock is new Integer;
+   type RTS_Lock is limited private;
+   --  Should be used inside the runtime system.
+   --  The difference between Lock and the RTS_Lock is that the later
+   --  one serves only as a semaphore so that do not check for
+   --  ceiling violations.
 
    type Task_Body_Access is access procedure;
+   --  Pointer to the task body's entry point (or possibly a wrapper
+   --  declared local to the GNARL).
 
+   type Private_Data is limited private;
+   --  Any information that the GNULLI needs maintained on a per-task
+   --  basis.  A component of this type is guaranteed to be included
+   --  in the Ada_Task_Control_Block.
+
+private
+
+   type Prio_Array_Type is array (System.Any_Priority) of Integer;
+
+   type Lock is record
+      L          : aliased System.OS_Interface.pthread_mutex_t;
+      Ceiling    : System.Any_Priority := System.Any_Priority'First;
+      Saved_Priority : System.Any_Priority := System.Any_Priority'First;
+   end record;
+
+   type RTS_Lock is new System.OS_Interface.pthread_mutex_t;
    type Private_Data is record
-      Thread      : aliased Integer;
-      CV          : aliased Integer;
+      Thread      : aliased System.OS_Interface.pthread_t;
+      pragma Atomic (Thread);
+      --  Thread field may be updated by two different threads of control.
+      --  (See, Enter_Task and Create_Task in s-taprop.adb).
+      --  They put the same value (thr_self value). We do not want to
+      --  use lock on those operations and the only thing we have to
+      --  make sure is that they are updated in atomic fashion.
+
+      CV          : aliased System.OS_Interface.pthread_cond_t;
       L           : aliased RTS_Lock;
+      --  protection for all components is lock L
+
+      Active_Priority : System.Any_Priority := System.Any_Priority'First;
+      --  Simulated active priority,
+      --  used only if Priority_Ceiling_Support is True.
    end record;
 
 end System.Task_Primitives;

@@ -699,7 +699,7 @@ package body GNAT.Sockets is
       Family  : Family_Type := Family_Inet)
       return    Host_Entry_Type
    is
-      pragma Unreferenced (Family);
+      --  pragma Unreferenced (Family);
 
       HA  : aliased In_Addr := To_In_Addr (Address);
       Res : Hostent_Access;

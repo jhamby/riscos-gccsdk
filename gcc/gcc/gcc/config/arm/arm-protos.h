@@ -37,6 +37,8 @@ extern void   assemble_align		PARAMS ((int));
 extern const char * arm_strip_name_encoding	PARAMS ((const char *));
 extern void   arm_asm_output_labelref	PARAMS ((FILE *, const char *));
 extern unsigned long arm_current_func_type	PARAMS ((void));
+extern int arm_can_eliminate		PARAMS ((int, int));
+extern int arm_apcs_frame_needed	PARAMS ((void));
 extern unsigned int  arm_compute_initial_elimination_offset PARAMS ((unsigned int, unsigned int));
 
 #ifdef TREE_CODE

@@ -174,12 +174,12 @@ package body System.Machine_State_Operations is
    Op_Immed : constant Bits6 := 2#100000#;
 
    Op2_addl_Immed : constant Bits5 := 2#11100#;
-   pragma Unreferenced (Op2_addl_Immed);
+   --  pragma Unreferenced (Op2_addl_Immed);
 
    Op2_subl_Immed : constant Bits5 := 2#11101#;
 
    type Word_Byte is (Word, Byte);
-   pragma Unreferenced (Byte);
+   --  pragma Unreferenced (Byte);
 
    type Ins_addl_subl_byte is record
       Op   : Bits6;           -- Set to Op_Immed

@@ -34,11 +34,14 @@ $(adaobj)/%.o: %.ads
 .PHONY: fixup-targetpairs
 
 ifeq (${STAGE},stage1)
-all: tools
+LIBS += -L$(adaobj) -lgnat
+
+all: fixup-stg1-targetpairs adalib tools tools-stg2
+
 else
 LIBS += -L$(ux_gcc_bin_dir)/$(TRG) -lgnat
 
-all: fixup-targetpairs adalib tools tools-stg2
+all: fixup-stg2-targetpairs adalib tools tools-stg2
 endif
 
 tools:	$(bin_dir)/gnatbl$(gexesfx) \
@@ -148,22 +151,6 @@ LIBGNAT_SRCS = ada.h adaint.c adaint.h argv.c cio.c cstreams.c \
 LIBGNAT_OBJS = $(adaobj)/adaint.o $(adaobj)/argv.o $(adaobj)/cio.o $(adaobj)/cstreams.o $(adaobj)/errno.o $(adaobj)/exit.o \
   $(adaobj)/raise.o $(adaobj)/sysdep.o $(adaobj)/io-aux.o $(adaobj)/init.o $(adaobj)/cal.o $(adaobj)/final.o \
   $(adaobj)/tracebak.o $(adaobj)/expect.o $(adaobj)/../prefix.o $(EXTRA_LIBGNAT_OBJS)
-
-# LIBGNAT_TARGET_PAIRS is a list of pairs of filenames.
-# The members of each pair must be separated by a '<' and no whitespace.
-# Each pair must be separated by some amount of whitespace from the following
-# pair.
-
-# Non-tasking case:
-
-LIBGNAT_TARGET_PAIRS = \
-a-intnam.ads<4nintnam.ads \
-s-inmaop.adb<5ninmaop.adb \
-s-intman.adb<5nintman.adb \
-s-osinte.ads<5nosinte.ads \
-s-osprim.adb<7sosprim.adb \
-s-taprop.adb<5ntaprop.adb \
-s-taspri.ads<5ntaspri.ads
 
 
 # NOTE ??? - when the -I option for compiling Ada code is made to work,
@@ -581,7 +568,7 @@ GNATCHOP_RTL_OBJS = $(adaobj)/adaint.o $(adaobj)/argv.o $(adaobj)/cio.o $(adaobj
  $(adaobj)/tracebak.o $(adaobj)/s-memory.o $(adaobj)/s-traceb.o $(adaobj)/a-finali.o $(adaobj)/a-filico.o $(adaobj)/s-ficobl.o $(adaobj)/s-fileio.o \
  $(adaobj)/a-textio.o $(adaobj)/s-valuti.o $(adaobj)/s-valuns.o $(adaobj)/s-valint.o $(adaobj)/s-arit64.o
 
-GNATCHOP_OBJS = $(adaobj)/gnatchop.o $(adaobj)/mkdir.o $(adaobj)/gnatvsn.o \
+GNATCHOP_OBJS = $(adaobj)/gnatchop.o $(adaobj)/gnatvsn.o \
    $(GNATCHOP_RTL_OBJS) $(EXTRA_GNATTOOLS_OBJS)
 
 GNATCMD_RTL_OBJS = $(adaobj)/adaint.o $(adaobj)/argv.o $(adaobj)/raise.o $(adaobj)/exit.o $(adaobj)/final.o $(adaobj)/init.o \
@@ -1174,11 +1161,53 @@ sdefault.o: sdefault.ads sdefault.adb types.ads unchdeal.ads \
    system.ads s-exctab.ads s-stalib.ads unchconv.ads
 	$(CC) -c -O2 $(MOST_ADAFLAGS) $(ADA_INCLUDES) sdefault.adb
 
-fixup-targetpairs:
-	rm -f $(foreach PAIR,$(LIBGNAT_TARGET_PAIRS), \
+# LIBGNAT_TARGET_PAIRS is a list of pairs of filenames.
+# The members of each pair must be separated by a '<' and no whitespace.
+# Each pair must be separated by some amount of whitespace from the following
+# pair.
+
+LIBGNAT_TARGET_PAIRS_STG1 = \
+  a-intnam.ads<4lintnam.ads \
+  a-numaux.adb<86numaux.adb \
+  a-numaux.ads<86numaux.ads \
+  s-inmaop.adb<7sinmaop.adb \
+  s-intman.adb<5lintman.adb \
+  s-mastop.adb<5omastop.adb \
+  s-osinte.adb<5iosinte.adb \
+  s-osinte.ads<5iosinte.ads \
+  s-osprim.adb<7sosprim.adb \
+  s-taprop.adb<5itaprop.adb \
+  s-taspri.ads<5itaspri.ads \
+  s-tpopsp.adb<5atpopsp.adb \
+  system.ads<5lsystem.ads
+
+# Non-tasking case:
+LIBGNAT_TARGET_PAIRS_STG2 = \
+a-intnam.ads<4nintnam.ads \
+s-inmaop.adb<5ninmaop.adb \
+s-intman.adb<5nintman.adb \
+s-osinte.ads<5nosinte.ads \
+s-osprim.adb<7sosprim.adb \
+s-taprop.adb<5ntaprop.adb \
+s-taspri.ads<5ntaspri.ads
+
+fixup-stg1-targetpairs:
+	rm -f $(foreach PAIR,$(LIBGNAT_TARGET_PAIRS_STG1), \
+			$(word 1,$(subst <, ,$(PAIR))))
+	rm -f $(foreach PAIR,$(LIBGNAT_TARGET_PAIRS_STG2), \
 			$(word 1,$(subst <, ,$(PAIR))))
 	# Copy new target dependent sources
-	$(foreach PAIR,$(LIBGNAT_TARGET_PAIRS), \
+	$(foreach PAIR,$(LIBGNAT_TARGET_PAIRS_STG1), \
+			cp $(word 2,$(subst <, ,$(PAIR))) \
+			$(word 1,$(subst <, ,$(PAIR)));)
+
+fixup-stg2-targetpairs:
+	rm -f $(foreach PAIR,$(LIBGNAT_TARGET_PAIRS_STG1), \
+			$(word 1,$(subst <, ,$(PAIR))))
+	rm -f $(foreach PAIR,$(LIBGNAT_TARGET_PAIRS_STG2), \
+			$(word 1,$(subst <, ,$(PAIR))))
+	# Copy new target dependent sources
+	$(foreach PAIR,$(LIBGNAT_TARGET_PAIRS_STG2), \
 			cp $(word 2,$(subst <, ,$(PAIR))) \
 			$(word 1,$(subst <, ,$(PAIR)));)
 
@@ -1203,5 +1232,6 @@ endif
 
 #$(adaobj)/targtyps.o: targtyps.c
 #	$(GNATCC) $(CFLAGS) $(ADA_CFLAGS) -o $@ -c $< $(INCLUDES) -DFLOAT_WORDS_BIG_ENDIAN=1
+
 
 $(adaobj)/adaint.o: adaint.c

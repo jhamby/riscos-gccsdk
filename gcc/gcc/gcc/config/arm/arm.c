@@ -929,7 +929,7 @@ use_return_insn (iscond)
       || ARM_FUNC_TYPE (func_type) == ARM_FT_EXCEPTION_HANDLER
       /* Or if there is no frame pointer and there is a stack adjustment.  */
       || ((arm_get_frame_size () + current_function_outgoing_args_size != 0)
-	  && !frame_pointer_needed))
+	  && ! arm_apcs_frame_needed ()))
     return 0;
 
   saved_int_regs = arm_compute_save_reg_mask ();
@@ -7210,7 +7210,7 @@ arm_compute_save_reg0_reg12_mask ()
 
       /* Handle the frame pointer as a special case.  */
       if (! TARGET_APCS_FRAME
-	  && ! frame_pointer_needed
+	  && ! arm_apcs_frame_needed ()
 	  && regs_ever_live[HARD_FRAME_POINTER_REGNUM]
 	  && ! call_used_regs[HARD_FRAME_POINTER_REGNUM])
 	save_reg_mask |= 1 << HARD_FRAME_POINTER_REGNUM;
@@ -7241,7 +7241,7 @@ arm_compute_save_reg_mask ()
 
   /* If we are creating a stack frame, then we must save the frame pointer,
      IP (which will hold the old stack pointer), LR and the PC.  */
-  if (frame_pointer_needed)
+  if (arm_apcs_frame_needed ())
     save_reg_mask |=
       (1 << ARM_HARD_FRAME_POINTER_REGNUM)
       | (1 << IP_REGNUM)
@@ -7372,7 +7372,7 @@ output_return_instruction (operand, really_return, reverse)
 	  int first = 1;
 
 	  /* Generate the load multiple instruction to restore the registers.  */
-	  if (frame_pointer_needed)
+	  if (arm_apcs_frame_needed ())
 	    sprintf (instr, "ldm%sea\t%%|fp, {", conditional);
 	  else if (live_regs_mask & (1 << SP_REGNUM))
 	    sprintf (instr, "ldm%sfd\t%%|sp, {", conditional);
@@ -7572,7 +7572,7 @@ arm_output_function_prologue (f, frame_size)
 	       current_function_pretend_args_size, frame_size);
 
   asm_fprintf (f, "\t%@ frame_needed = %d, uses_anonymous_args = %d\n",
-	       frame_pointer_needed,
+	       arm_apcs_frame_needed (),
 	       cfun->machine->uses_anonymous_args);
 
   if (cfun->machine->lr_save_eliminated)
@@ -7640,7 +7640,7 @@ arm_output_epilogue (really_return)
     if (saved_regs_mask & (1 << reg))
       floats_offset += 4;
   
-  if (frame_pointer_needed)
+  if (arm_apcs_frame_needed ())
     {
       int vfp_offset = 4;
 
@@ -7844,7 +7844,7 @@ arm_output_epilogue (really_return)
       break;
 
     default:
-      if (frame_pointer_needed)
+      if (arm_apcs_frame_needed ())
 	/* If we used the frame pointer then the return adddress
 	   will have been loaded off the stack directly into the
 	   PC, so there is no need to issue a MOV instruction
@@ -7885,7 +7885,7 @@ arm_output_function_epilogue (file, frame_size)
       if (use_return_insn (FALSE)
 	  && return_used_this_function
 	  && (frame_size + current_function_outgoing_args_size) != 0
-	  && !frame_pointer_needed)
+	  && !arm_apcs_frame_needed ())
 	abort ();
 
       /* Reset the ARM-specific per-function variables.  */
@@ -8075,6 +8075,51 @@ emit_sfm (base_reg, count)
   return par;
 }
 
+/* Given FROM and TO register numbers, say whether this elimination is
+   allowed.  Frame pointer elimination is automatically handled.  */
+int
+arm_can_eliminate (from, to)
+     int from, to;
+{
+  /* This should never happen, but it does.  */
+  /* if (! optimize)
+     return 0; */
+
+#ifdef TARGET_RISCOSAOF
+  /* We can eliminate ARGP to STACKP if no alloca, no stack checks needed
+     and frame not needed.  */
+  if (from == ARG_POINTER_REGNUM && to == STACK_POINTER_REGNUM
+      && ! arm_apcs_frame_needed ())
+    return 1;
+
+  /* FRAMEP can be eliminated to STACKP.  */
+  if (from == FRAME_POINTER_REGNUM && to == STACK_POINTER_REGNUM)
+    return 1;
+  
+  /* Can't do any other eliminations.  */
+  return 0;
+#else
+  /*  All eliminations are permissible.  Note that ARG_POINTER_REGNUM and
+      HARD_FRAME_POINTER_REGNUM are in fact the same thing.  If we need a frame
+      pointer, we must eliminate FRAME_POINTER_REGNUM into
+      HARD_FRAME_POINTER_REGNUM and not into STACK_POINTER_REGNUM or
+      ARG_POINTER_REGNUM.  */
+  if (to == FRAME_POINTER_REGNUM && from == ARG_POINTER_REGNUM)
+    return 0;
+
+  if (to == STACK_POINTER_REGNUM && arm_apcs_frame_needed ())
+    return 0;
+
+  if (to == ARM_HARD_FRAME_POINTER_REGNUM && TARGET_THUMB)
+    return 0;
+
+  if (to == THUMB_HARD_FRAME_POINTER_REGNUM && TARGET_ARM)
+    return 0;
+
+  return 1;
+#endif
+}
+
 /* Compute the distance from register FROM to register TO.
    These can be the arg pointer (26), the soft frame pointer (25),
    the stack pointer (13) or the hard frame pointer (11).
@@ -8157,7 +8202,7 @@ arm_compute_initial_elimination_offset (from, to)
 	  /* If a stack frame is going to be created, the LR will
 	     be saved as part of that, so we do not need to allow
 	     for it here.  */
-	  && ! frame_pointer_needed)
+	  && ! arm_apcs_frame_needed ())
 	call_saved_registers += 4;
 
       /* If the hard floating point registers are going to be
@@ -8171,8 +8216,17 @@ arm_compute_initial_elimination_offset (from, to)
   /* The stack frame contains 4 registers - the old frame pointer,
      the old stack pointer, the return address and PC of the start
      of the function.  */
-  stack_frame = frame_pointer_needed ? 16 : 0;
+  stack_frame = arm_apcs_frame_needed () ? 16 : 0;
 
+#ifdef TARGET_RISCOSAOF
+  if (from == ARG_POINTER_REGNUM || to == ARG_POINTER_REGNUM)
+    {
+      if (from == FRAME_POINTER_REGNUM)
+	return 0 - (local_vars + outgoing_args + stack_frame + call_saved_registers);
+      else
+	return local_vars + outgoing_args + stack_frame + call_saved_registers;
+    }
+#else
   /* OK, now we have enough information to compute the distances.
      There must be an entry in these switch tables for each pair
      of registers in ELIMINABLE_REGS, even if some of the entries
@@ -8198,7 +8252,7 @@ arm_compute_initial_elimination_offset (from, to)
 	  if (stack_frame == 0 && call_saved_registers != 0)
 	    return 0;
 	  /* FIXME:  Not sure about this.  Maybe we should always return 0 ?  */
-	  return (frame_pointer_needed
+	  return (arm_apcs_frame_needed ()
 		  && current_function_needs_context
 		  && ! cfun->machine->uses_anonymous_args) ? 4 : 0;
 
@@ -8243,6 +8297,7 @@ arm_compute_initial_elimination_offset (from, to)
 	 hard frame pointer will never be used.  */
       abort ();
     }
+#endif /* ! TARGET_RISCOSAOF */
 }
 
 /* Calculate the size of the stack frame, taking into account any
@@ -8279,7 +8334,7 @@ arm_get_frame_size ()
   if (reload_completed)
     return cfun->machine->frame_size;
 
-  leaf = leaf_function_p ();
+  cfun->machine->leaf = leaf = leaf_function_p ();
 
   /* A leaf function does not need any stack alignment if it has nothing
      on the stack.  */
@@ -8318,6 +8373,51 @@ arm_get_frame_size ()
   return base_size;
 }
 
+/* Return 1 if the function prologue should contain an explicit
+   stack check.  */
+static int
+arm_stack_check_needed ()
+{
+  /* Don't do any stack checking if it was not asked for.  */
+  if (! TARGET_APCS_STACK)
+    return 0;
+  
+  /* We will always use stack checking for non-optimising
+     circumstances.  */
+  if (! optimize)
+    return 1;
+  
+  /* Don't do any stack checking if the function is a leaf function
+     and the amount of stack actually needed <= 256 bytes.  */
+  if (cfun->machine->leaf && abs (get_frame_size ()) <= 256)
+    return 0;
+  
+  return 1;
+}
+
+/* Return 1 if the function prologue really needs to setup an APCS
+   frame.  */
+int
+arm_apcs_frame_needed ()
+{
+  /* If we are not targeting the APCS, we will not use a stack frame.  */
+  if (! TARGET_APCS_FRAME)
+    return 0;
+
+  /* If we are not optimising, or we call alloca, we will always
+     setup a frame.  */
+  if (current_function_calls_alloca || ! optimize)
+    return 1;
+  
+  /* A frame will need to be setup for the cases where there are external
+     function calls within the current function or there is a need
+     for definite stack checking.  */
+  if (! cfun->machine->leaf || arm_stack_check_needed ())
+    return 1;
+  
+  return 0;
+}
+
 /* Generate the prologue instructions for entry into an ARM function.  */
 
 void
@@ -8347,7 +8447,7 @@ arm_expand_prologue ()
 
   ip_rtx = gen_rtx_REG (SImode, IP_REGNUM);
 
-  if (frame_pointer_needed)
+  if (arm_apcs_frame_needed ())
     {
       if (IS_INTERRUPT (func_type))
 	{
@@ -8528,11 +8628,24 @@ arm_expand_prologue ()
 	}
     }
 
-  if (frame_pointer_needed)
-    {
+  if (arm_apcs_frame_needed ())
+   {
+     /* NAB++ */
+      rtx fp_rtx;
+      fp_rtx = gen_rtx_REG (SImode, FP_REGNUM);
+
+#if 0
+      if (! optimize)
+	fp_rtx = gen_rtx_REG (SImode, FP_REGNUM);
+      else
+	fp_rtx = hard_frame_pointer_rtx;
+
+#endif
+      /* NAB-- */
+
       /* Create the new frame pointer.  */
       insn = GEN_INT (-(4 + args_to_push + fp_offset));
-      insn = emit_insn (gen_addsi3 (hard_frame_pointer_rtx, ip_rtx, insn));
+      insn = emit_insn (gen_addsi3 (fp_rtx, ip_rtx, insn));
       RTX_FRAME_RELATED_P (insn) = 1;
       
       if (IS_NESTED (func_type))
@@ -8543,7 +8656,7 @@ arm_expand_prologue ()
 	    insn = gen_rtx_REG (SImode, 3);
 	  else /* if (current_function_pretend_args_size == 0) */
 	    {
-	      insn = gen_rtx_PLUS (SImode, hard_frame_pointer_rtx, GEN_INT (4));
+	      insn = gen_rtx_PLUS (SImode, fp_rtx, GEN_INT (4));
 	      insn = gen_rtx_MEM (SImode, insn);
 	    }
 
@@ -8570,10 +8683,16 @@ arm_expand_prologue ()
 	}
       while (last != insn);
 
+      if (! optimize)
+	{
+	  insn = emit_insn (gen_movsi (hard_frame_pointer_rtx,
+				       stack_pointer_rtx));
+	  RTX_FRAME_RELATED_P (insn) = 1;
+	}
       /* If the frame pointer is needed, emit a special barrier that
 	 will prevent the scheduler from moving stores to the frame
 	 before the stack adjustment.  */
-      if (frame_pointer_needed)
+      if (arm_apcs_frame_needed ())
 	insn = emit_insn (gen_stack_tie (stack_pointer_rtx,
 					 hard_frame_pointer_rtx));
     }
@@ -9358,10 +9477,12 @@ arm_hard_regno_mode_ok (regno, mode)
     /* We allow any value to be stored in the general regisetrs.  */
     return 1;
 
+#ifndef TARGET_RISCOSAOF
   if (   regno == FRAME_POINTER_REGNUM
       || regno == ARG_POINTER_REGNUM)
     /* We only allow integers in the fake hard registers.  */
     return GET_MODE_CLASS (mode) == MODE_INT;
+#endif
 
   /* The only registers left are the FPU registers
      which we only allow to hold FP values.  */
@@ -9421,7 +9542,7 @@ arm_debugger_arg_offset (value, addr)
   
   /* If we are using the stack pointer to point at the
      argument, then an offset of 0 is correct.  */
-  if ((TARGET_THUMB || !frame_pointer_needed)
+  if ((TARGET_THUMB || !arm_apcs_frame_needed ())
       && REGNO (addr) == SP_REGNUM)
     return 0;
   
@@ -10409,7 +10530,7 @@ thumb_expand_prologue ()
       return;
     }
 
-  if (frame_pointer_needed)
+  if (arm_apcs_frame_needed ())
     emit_insn (gen_movsi (hard_frame_pointer_rtx, stack_pointer_rtx));
 
   if (amount)
@@ -10440,7 +10561,7 @@ thumb_expand_prologue ()
 	     it now.  */
 	  for (regno = LAST_ARG_REGNUM + 1; regno <= LAST_LO_REGNUM; regno++)
 	    if (THUMB_REG_PUSHED_P (regno)
-		&& !(frame_pointer_needed
+		&& !(arm_apcs_frame_needed ()
 		     && (regno == THUMB_HARD_FRAME_POINTER_REGNUM)))
 	      break;
 
@@ -10495,7 +10616,7 @@ thumb_expand_epilogue ()
   if (IS_NAKED (arm_current_func_type ()))
     return;
 
-  if (frame_pointer_needed)
+  if (arm_apcs_frame_needed ())
     emit_insn (gen_movsi (stack_pointer_rtx, hard_frame_pointer_rtx));
   else if (amount)
     {

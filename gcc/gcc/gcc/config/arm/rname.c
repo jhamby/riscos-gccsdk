@@ -240,17 +240,22 @@ riscos_to_unix (const char *filename, char *output)
       *output++ = '/';
       i++;
     }
-#ifdef CROSS_COMPILE
   else
     {
-      /* In a cross-compiling environment we need to find a way of supporting
-	 RISC OS filenames such as DeskLib:foobar.h.  I think the best solution
-	 is to look for a environment variable of similar name (i.e.
-	 DESKLIB_PATH) which (if found) we will substitute into the resulting
-	 file name in place of the `DeskLib:'.  */
       temp = strchr (filename, ':');
       if (temp)
 	{
+#ifndef CROSS_COMPILE
+	  /* Add a / to the start to remove any ambiguity when converting back
+	     to RISC OS format */
+	  if (*filename != '/')
+	    *output++ = '/';
+#else
+	/* In a cross-compiling environment we need to find a way of supporting
+	   RISC OS filenames such as DeskLib:foobar.h.  I think the best solution
+	   is to look for a environment variable of similar name (i.e.
+	   DESKLIB_PATH) which (if found) we will substitute into the resulting
+	   file name in place of the `DeskLib:'.  */
 	  char env[256], *e;
 	  int x;
 
@@ -271,9 +276,9 @@ riscos_to_unix (const char *filename, char *output)
 	      *output++ = '/';
 	      i += temp - filename + 1;
 	    }
+#endif
 	}
     }
-#endif
 
   while ((skip = get_directory_name (i, tempbuf)))
     {
@@ -353,7 +358,7 @@ static void test (const char *input)
   int flags = __RISCOSIFY_DONT_TRUNCATE;
 
   riscos_to_unix (input, out);
-  __riscosify (out, 0, flags, name, sizeof (name));
+  __riscosify (out, 0, flags, name, sizeof (name), NULL);
   printf ("uname = %s\n", name);
 }
 #else

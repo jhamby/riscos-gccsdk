@@ -3508,6 +3508,7 @@ init_elim_table ()
   /* Does this function require a frame pointer?  */
 
   frame_pointer_needed = (! flag_omit_frame_pointer
+#ifndef TARGET_RISCOSAOF
 #ifdef EXIT_IGNORE_STACK
 			  /* ?? If EXIT_IGNORE_STACK is set, we will not save
 			     and restore sp for alloca.  So we can't eliminate
@@ -3516,6 +3517,7 @@ init_elim_table ()
 			     sp-adjusting insns for this case.  */
 			  || (current_function_calls_alloca
 			      && EXIT_IGNORE_STACK)
+#endif
 #endif
 			  || FRAME_POINTER_REQUIRED);
 
