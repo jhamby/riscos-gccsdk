@@ -28,16 +28,16 @@
 static void
 dstmem (WORD ir)
 {
-  int op;
+  int dst, op;
   BOOL trans = FALSE;
-  BOOL pre;
+  BOOL pre, offValue = FALSE;
   Value offset;
   if ((ir & 0x90) == 0x90)
     if (cpuWarn (ARM7M) == FALSE && (ir & 0x20))
       error (ErrorWarning, TRUE,
       "Half-word ops only work correctly when accessed location is cached");
-  op = getCpuReg ();
-  ir |= DST_OP (op);
+  dst = getCpuReg ();
+  ir |= DST_OP (dst);
   skipblanks ();
   if (inputLook () == ',')
     {
@@ -86,6 +86,7 @@ dstmem (WORD ir)
 		if (!up)
 		  codeOperator (Op_neg);
 		offset = exprEval (ValueInt | ValueCode | ValueLateLabel | ValueAddr);
+		offValue = TRUE;
 		switch (offset.Tag.t)
 		  {
 		  case ValueInt:
@@ -131,6 +132,14 @@ dstmem (WORD ir)
 	    else
 	      error (ErrorError, TRUE, "Inserting missing ] after address");
 	  }
+	else
+	  {
+            /* If offset value was never set, then make it a pre-index load */
+            if (!offValue)
+              pre = TRUE;
+            else if (dst == op)
+              error (ErrorError, TRUE, "Post increment is not sane where base and destination register are the same");
+          }
 	if (inputLook () == '!')
 	  {
 	    if (pre)
