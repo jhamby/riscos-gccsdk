@@ -1,10 +1,10 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/_mem.s,v $
-; $Date: 2002/09/24 21:02:38 $
-; $Revision: 1.4 $
+; $Date: 2004/09/07 14:05:11 $
+; $Revision: 1.5 $
 ; $State: Exp $
-; $Author: admin $
+; $Author: joty $
 ;
 ;----------------------------------------------------------------------------
 
@@ -279,7 +279,7 @@
 
 |__memcpy_w|				; word aligned copy
 	CMP	ip, a2
-	BLS	|__memcpy_wd|
+	BLE	|__memcpy_wd|
 
 |__memcpy_wu|				; word aligned copyup
 	ANDS	a4, a3, #12
