@@ -10,7 +10,7 @@
 # This script is intentionally left basic as only one person
 # would really need to use this at any one time.
 masterdir=/home/nick/riscos/masters/gcc-3.4
-for file in builtins.c c-opts.c cppdefault.c cppdefault.h gcc.c gcc.h c.opt global.c reload1.c
+for file in builtins.c c-opts.c cppdefault.c cppdefault.h diagnostic.c gcc.c gcc.h c.opt global.c reload1.c
 do
   diff -up $masterdir/gcc/$file $file > riscos.patches/$file.patch
 done
