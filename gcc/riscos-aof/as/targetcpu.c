@@ -16,7 +16,7 @@ TargetCPU_t targetCPU = UNKNOWN;
 extern char *ProgName;		/* from main.c */
 
 void 
-as_target (char *target)	/* only called from main() */
+as_target (const char *target)	/* only called from main() */
 {
   static const struct
     {
@@ -71,6 +71,10 @@ as_target (char *target)	/* only called from main() */
     ,
     {
       "ARM10", ARM10
+    }
+    ,
+    {
+      "XSCALE", XSCALE
     }
     ,
     {

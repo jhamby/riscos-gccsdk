@@ -29,13 +29,16 @@ static void
 dstmem (WORD ir)
 {
   int dst, op;
-  BOOL trans = FALSE;
+  BOOL trans = FALSE, half = FALSE;
   BOOL pre, offValue = FALSE;
   Value offset;
   if ((ir & 0x90) == 0x90)
-    if (cpuWarn (ARM7M) == FALSE && (ir & 0x20))
-      error (ErrorWarning, TRUE,
-      "Half-word ops only work correctly when accessed location is cached");
+    {
+      if (cpuWarn (ARM7M) == FALSE && (ir & 0x20) && targetCPU < ARM10)
+        error (ErrorWarning, TRUE,
+        "Half-word ops only work correctly when accessed location is cached");
+      half = TRUE;
+    }
   dst = getCpuReg ();
   ir |= DST_OP (dst);
   skipblanks ();
@@ -103,11 +106,15 @@ dstmem (WORD ir)
 		    error (ErrorError, TRUE, "Illegal offset expression");
 		    break;
 		  }
+
+		if (half)
+		  ir |= (1 << 22);  /* for H/SH/SB */
+
 		/* UP_FLAG is fixed in fixCpuOffset */
 	      }
 	    else
 	      {
-		ir |= ((ir & 0x90) == 0x90) ? (1 << 22) /* for H/SH/SB */ : REG_FLAG;
+		ir |= ((ir & 0x90) == 0x90) ? 0 : REG_FLAG;
 		ir = getRhs (TRUE, ((ir & 0x90) == 0x90) ? FALSE : TRUE, ir);
 		/* Reg {,shiftop {#shift}} */
 		offValue = TRUE;

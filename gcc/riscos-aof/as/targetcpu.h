@@ -22,13 +22,14 @@ typedef enum
   ARM8,
   ARM9,
   SA1,
-  ARM10
+  ARM10,
+  XSCALE
 }
 TargetCPU_t;
 
 extern TargetCPU_t targetCPU;
 
-extern void as_target (char *target);	/* only called from main() */
+extern void as_target (const char *target);	/* only called from main() */
 
 BOOL cpuWarn (TargetCPU_t);
 
