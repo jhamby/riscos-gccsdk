@@ -408,7 +408,6 @@ outputElf (void)
                0, 0, 4, 0, &offset);
     shstrsize += ap->len + 1;
     if (ap->area.info->norelocs) {
-      elfIndex++;
       /* relocations */
       writeElfSH(shstrsize, SHT_REL, 0,
         (ap->area.info->norelocs)*sizeof(Elf32_Rel),
@@ -416,6 +415,7 @@ outputElf (void)
       shstrsize += ap->len + 5;
       elfIndex++;
     }
+    elfIndex++;
 
     ap = ap->area.info->next;
   }
