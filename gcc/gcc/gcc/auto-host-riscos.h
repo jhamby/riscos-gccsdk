@@ -14,7 +14,7 @@
 #define HAVE_PRINTF_PTR 1
 
 #define PACKAGE "gcc"
-#define VERSION "3.1.0"
+#define VERSION "3.3.0"
 
 /* Define if you want expensive run-time checks. */
 /* #undef ENABLE_CHECKING */
@@ -77,7 +77,7 @@
 /* #undef vfork */
 
 /* Define if you have the atoll function.  */
-/* #define HAVE_ATOLL 1 /*
+#define HAVE_ATOLL 1
 
 /* Define if you have the atoq function.  */
 /* #undef HAVE_ATOQ */
@@ -320,7 +320,7 @@
 #define ENABLE_STD_NAMESPACE 1
 
 /* Define 0/1 to force the choice for exception handling model. */
-#define CONFIG_SJLJ_EXCEPTIONS 1
+#define CONFIG_SJLJ_EXCEPTIONS 0
 
 /* Define if the host execution character set is EBCDIC. */
 /* #undef HOST_EBCDIC */
