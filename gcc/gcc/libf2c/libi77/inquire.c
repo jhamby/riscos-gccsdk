@@ -92,22 +92,23 @@ integer f_inqu(inlist *a)
 	if(a->infmt!=NULL)
 		if((a->infile && x==-1) || (!a->infile && p && !p->ufd))
 			b_char("UNKNOWN",a->infmt,a->infmtlen);
-		if(p!=NULL && p->ufmt==0)
+		else if(p!=NULL && p->ufmt==0)
 			b_char("UNFORMATTED",a->infmt,a->infmtlen);
 		else	b_char("FORMATTED",a->infmt,a->infmtlen);
 	if(a->inform!=NULL)
 		if((a->infile && x==-1) || (!a->infile && p && !p->ufd))
 			b_char("UNKNOWN",a->inform,a->informlen);
-		if(p!=NULL && p->ufmt==0)
-		b_char("NO",a->inform,a->informlen);
-		else b_char("YES",a->inform,a->informlen);
+		else if(p!=NULL && p->ufmt==0)
+			b_char("NO",a->inform,a->informlen);
+		else	b_char("YES",a->inform,a->informlen);
 	if(a->inunf)
 		if((a->infile && x==-1) || (!a->infile && p && !p->ufd))
 			b_char("UNKNOWN",a->inunf,a->inunflen);
-		if(p!=NULL && p->ufmt==0)
+		else if(p!=NULL && p->ufmt==0)
 			b_char("YES",a->inunf,a->inunflen);
-		else if (p!=NULL) b_char("NO",a->inunf,a->inunflen);
-		else b_char("UNKNOWN",a->inunf,a->inunflen);
+		else if(p!=NULL)
+			b_char("NO",a->inunf,a->inunflen);
+		else 	b_char("UNKNOWN",a->inunf,a->inunflen);
 	if(a->inrecl!=NULL && p!=NULL)
 		*a->inrecl=p->url;
 	if(a->innrec!=NULL && p!=NULL && p->url>0)
