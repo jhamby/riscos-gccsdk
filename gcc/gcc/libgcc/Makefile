@@ -37,14 +37,23 @@ LIB2FUNCS_1 = $(libobjdir)/muldi3.o \
 	$(libobjdir)/ucmpdi2.o \
 	$(libobjdir)/floatdidf.o \
 	$(libobjdir)/floatdisf.o \
-	$(libobjdir)/fixunsdfsi.o \
 	$(libobjdir)/fixunssfsi.o \
 	$(libobjdir)/fixunsdfdi.o \
 	$(libobjdir)/fixdfdi.o \
 	$(libobjdir)/fixunssfdi.o \
 	$(libobjdir)/fixsfdi.o \
 	$(libobjdir)/fixxfdi.o \
-	$(libobjdir)/fixunsxfdi.o
+	$(libobjdir)/fixunsxfdi.o \
+	$(libobjdir)/clz.o \
+	$(libobjdir)/clzdi2.o \
+	$(libobjdir)/clzsi2.o \
+	$(libobjdir)/ctzdi2.o \
+	$(libobjdir)/ctzsi2.o \
+	$(libobjdir)/popcountsi2.o \
+	$(libobjdir)/popcountdi2.o \
+	$(libobjdir)/popcount_tab.o \
+	$(libobjdir)/paritysi2.o \
+	$(libobjdir)/paritydi2.o
 
 LIB2FUNCS_2 = $(libobjdir)/floatdixf.o \
 	$(libobjdir)/fixunsxfsi.o \
@@ -63,6 +72,9 @@ LIB2FUNCS_2 = $(libobjdir)/floatdixf.o \
 	$(libobjdir)/negvsi2.o \
 	$(libobjdir)/negvdi2.o \
 	$(libobjdir)/ctors.o
+
+IEEE754 = $(libobjdir)/fixunsdfsi.o
+
 
 LIB2FUNCS_ST = $(libobjdir)/eprintf.o \
 	$(libobjdir)/bb.o \
@@ -132,6 +144,12 @@ $(ux_gcc_bin_dir)/$(TRG)/libgcc.o: $(LIBGCC_OBJS)
 $(ro_gcc_bin_dir)/$(TRG)/o/libgcc: $(LIBGCC_OBJS)
 	$(CROSS_AR) $(CROSS_AR_FLAGS) $@ $(LIBGCC_OBJS)
 
+ieee754-df-aof.S:	ieee754-df.S
+	./aof-convert.pl $< $@
+
+ieee754-sf-aof.S:	ieee754-sf.S
+	./aof-convert.pl $< $@
+
 ############################################################################
 
 # GCC standard run-time libraries
@@ -175,8 +193,6 @@ $(libobjdir)/clz.o:	libgcc2.c
 $(libobjdir)/floatdisf.o:	libgcc2.c
 	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c libgcc2.c $(INCLUDES) -DL_floatdisf
 
-$(libobjdir)/fixunsdfsi.o:	libgcc2.c
-	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c libgcc2.c $(INCLUDES) -DL_fixunsdfsi
 
 $(libobjdir)/fixunssfsi.o:	libgcc2.c
 	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c libgcc2.c $(INCLUDES) -DL_fixunssfsi
@@ -232,6 +248,76 @@ $(libobjdir)/negvsi2.o: libgcc2.c
 	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c libgcc2.c $(INCLUDES) -DL_negvsi2
 $(libobjdir)/negvdi2.o: libgcc2.c
 	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c libgcc2.c $(INCLUDES) -DL_negvdi2
+
+
+$(libobjdir)/clz.o: libgcc2.c
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c libgcc2.c $(INCLUDES) -DL_clz
+$(libobjdir)/clzdi2.o: libgcc2.c
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c libgcc2.c $(INCLUDES) -DL_clzdi2
+$(libobjdir)/clzsi2.o: libgcc2.c
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c libgcc2.c $(INCLUDES) -DL_clzsi2
+$(libobjdir)/ctzdi2.o: libgcc2.c
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c libgcc2.c $(INCLUDES) -DL_ctzdi2
+$(libobjdir)/ctzsi2.o: libgcc2.c
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c libgcc2.c $(INCLUDES) -DL_ctzsi2
+$(libobjdir)/popcountsi2.o: libgcc2.c
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c libgcc2.c $(INCLUDES) -DL_popcountsi2
+$(libobjdir)/popcountdi2.o: libgcc2.c
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c libgcc2.c $(INCLUDES) -DL_popcountdi2
+$(libobjdir)/popcount_tab.o: libgcc2.c
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c libgcc2.c $(INCLUDES) -DL_popcount_tab
+$(libobjdir)/paritysi2.o: libgcc2.c
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c libgcc2.c $(INCLUDES) -DL_paritysi2
+$(libobjdir)/paritydi2.o: libgcc2.c
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c libgcc2.c $(INCLUDES) -DL_paritydi2
+
+# ieee754 double-precision math functions
+$(libobjdir)/negdf2.o: ieee754-df-aof.S
+	$(CC_S) -c $< -o $@ -DL_negdf2
+
+$(libobjdir)/addsubdf3.o: ieee754-df-aof.S
+	$(CC_S) -c $< -o $@ -DL_addsubdf3
+
+$(libobjdir)/muldivdf3.o: ieee754-df-aof.S
+	$(CC_S) -c $< -o $@ -DL_muldivdf3
+
+$(libobjdir)/cmpdf2.o: ieee754-df-aof.S
+	$(CC_S) -c $< -o $@ -DL_cmpdf2
+
+$(libobjdir)/unorddf2.o: ieee754-df-aof.S
+	$(CC_S) -c $< -o $@ -DL_unorddf2
+
+$(libobjdir)/fixdfsi.o: ieee754-df-aof.S
+	$(CC_S) -c $< -o $@ -DL_fixdfsi
+
+$(libobjdir)/fixunsdfsi.o: ieee754-df-aof.S
+	$(CC_S) -c $< -o $@ -DL_fixunsdfsi
+
+$(libobjdir)/truncdfsf2.o: ieee754-df-aof.S
+	$(CC_S) -c $< -o $@ -DL_truncdfsf2
+
+
+# ieee754 single-precision math functions
+$(libobjdir)/negsf2.o: ieee754-sf-aof.S
+	$(CC_S) -c $< -o $@ -DL_negsf2
+
+$(libobjdir)/addsubsf3.o: ieee754-sf-aof.S
+	$(CC_S) -c $< -o $@ -DL_addsubsf3
+
+$(libobjdir)/muldivsf3.o: ieee754-sf-aof.S
+	$(CC_S) -c $< -o $@ -DL_muldivsf3
+
+$(libobjdir)/cmpsf2.o: ieee754-sf-aof.S
+	$(CC_S) -c $< -o $@ -DL_cmpsf2
+
+$(libobjdir)/unordsf2.o: ieee754-sf-aof.S
+	$(CC_S) -c $< -o $@ -DL_unordsf2
+
+$(libobjdir)/fixsfsi.o: ieee754-sf-aof.S
+	$(CC_S) -c $< -o $@ -DL_fixsfsi
+
+$(libobjdir)/fixunssfsi.o: ieee754-sf-aof.S
+	$(CC_S) -c $< -o $@ -DL_fixunssfsi
 
 
 # Exception handling
