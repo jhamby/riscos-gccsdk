@@ -3,11 +3,16 @@ Noteworthy changes to the RISC OS GCCSDK
 RISC OS GCC release 3.3.3 pre-release 1 (released XX XXXXXX 2004)
 =======================================
 
+* unixlib: Path <Unix$Path> has been replaced by <UnixLib$Path>.  All
+  makefiles that previously used the path Unix: will have to be updated
+  to use UnixLib: instead.
+
 * gcc: updated to snapshot 3.3.3 20031030
 
 * unixlib: POSIX thread (pthread) support
 
-* gcc, unixlib, libscl: Default build is now APCS-32.
+* gcc, unixlib, libscl: Default build is now APCS-32.  APCS-26 builds are
+  deprecated and will be removed from a future version.
 
 * gcc: C++ and Fortran applications can now be compiled to use the
   SharedCLibrary (libscl) as an alternative to UnixLib.  UnixLib

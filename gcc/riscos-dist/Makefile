@@ -152,8 +152,6 @@ package:
 	rm -f $(ro_zippkg)/cc1.zip; \
 	rm -f $(ro_zippkg)/cc1plus.zip; \
 	rm -f $(ro_zippkg)/g77.zip; \
-	rm -f $(ro_zippkg)/gpc.zip; \
-	rm -f $(ro_zippkg)/java.zip; \
 	rm -f $(ro_zippkg)/utils.zip; \
 	rm -f $(ro_zippkg)/system.zip; \
 	rm -f $(ro_zippkg)/unixlibbin.zip; \
@@ -164,9 +162,11 @@ package:
 	$(ux_bin_dir)/zip -, -9r $(ro_zippkg)/cc1.zip $(CC1PKG) ; \
 	$(ux_bin_dir)/zip -, -9r $(ro_zippkg)/cc1plus.zip $(CC1PLUSPKG) ; \
 	$(ux_bin_dir)/zip -, -9r $(ro_zippkg)/g77.zip $(G77PKG) ; \
-	$(ux_bin_dir)/zip -, -9r $(ro_zippkg)/java.zip $(JAVAPKG) ; \
 	$(ux_bin_dir)/zip -, -9r $(ro_zippkg)/utils.zip $(UTILSPKG) ; \
 	$(ux_bin_dir)/zip -, -9r $(ro_zippkg)/system.zip $(SYSTEMPKG) ; \
 	$(ux_bin_dir)/zip -, -9r $(ro_zippkg)/unixlibbin.zip $(UNIXLIBBINPKG) ; \
 	$(ux_bin_dir)/zip -, -9r $(ro_zippkg)/unixlibsrc.zip $(UNIXLIBSRCPKG) ; \
 	$(ux_bin_dir)/zip -, -9r $(ro_zippkg)/libscl.zip $(LIBSCLPKG) ; )
+
+
+	#$(ux_bin_dir)/zip -, -9r $(ro_zippkg)/java.zip $(JAVAPKG) ;
