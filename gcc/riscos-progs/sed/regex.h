@@ -1,6 +1,6 @@
 /* Definitions for data structures and routines for the regular
    expression library.
-   Copyright (C) 1985,1989-93,1995-98,2000,2001,2002
+   Copyright (C) 1985,1989-93,1995-98,2000,2001,2002,2003
    Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
@@ -21,6 +21,8 @@
 
 #ifndef _REGEX_H
 #define _REGEX_H 1
+
+#include <sys/types.h>
 
 /* Allow the use in C++ code.  */
 #ifdef __cplusplus
@@ -168,6 +170,15 @@ typedef unsigned long int reg_syntax_t;
    If not set, then case is significant.  */
 #define RE_ICASE (RE_INVALID_INTERVAL_ORD << 1)
 
+/* This bit is used internally like RE_CONTEXT_INDEP_ANCHORS but only
+   for ^, because it is difficult to scan the regex backwards to find
+   whether ^ should be special.  */
+#define RE_CARET_ANCHORS_HERE (RE_ICASE << 1)
+
+/* If this bit is set, then \{ cannot be first in an bre or
+   immediately after an alternation or begin-group operator.  */
+#define RE_CONTEXT_INVALID_DUP (RE_CARET_ANCHORS_HERE << 1)
+
 /* This global variable defines the particular regexp syntax to use (for
    some interfaces).  When a regexp is compiled, the syntax used is
    stored in the pattern buffer, so changing this does not affect
@@ -222,7 +233,7 @@ extern reg_syntax_t re_syntax_options;
    | RE_INTERVALS  | RE_NO_EMPTY_RANGES)
 
 #define RE_SYNTAX_POSIX_BASIC						\
-  (_RE_SYNTAX_POSIX_COMMON | RE_BK_PLUS_QM)
+  (_RE_SYNTAX_POSIX_COMMON | RE_BK_PLUS_QM | RE_CONTEXT_INVALID_DUP)
 
 /* Differs from ..._POSIX_BASIC only in that RE_BK_PLUS_QM becomes
    RE_LIMITED_OPS, i.e., \? \+ \| are not recognized.  Actually, this
@@ -557,15 +568,6 @@ extern size_t regerror _RE_ARGS ((int __errcode, const regex_t *__preg,
 				  char *__errbuf, size_t __errbuf_size));
 
 extern void regfree _RE_ARGS ((regex_t *__preg));
-
-/* Internal entry points */
-extern reg_errcode_t re_compile_internal (regex_t *preg, const char * pattern,
-					  int length, reg_syntax_t syntax);
-extern reg_errcode_t re_search_internal (const regex_t *preg,
-                                         const char *string, int length,
-                                         int start, int range, int stop,
-                                         size_t nmatch, regmatch_t pmatch[],
-                                         int eflags);
 
 
 #ifdef __cplusplus
