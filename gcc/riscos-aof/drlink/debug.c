@@ -157,9 +157,21 @@ void write_lldtable(void) {
 ** debug tables. It returns 'TRUE' if this worked okay otherwise
 ** it returns 'FALSE'
 */
+static void add_common(arealist *ap) {
+  if (ap != NIL) {
+    add_common(ap->left);
+
+    if ((ap->aratattr & (ATT_COMMON | ATT_COMDEF))!=0) {
+      add_lldentry(ap->arname, LLD_COMMON, ap->arplace);
+    }
+
+    add_common(ap->right);
+  }
+}
+
+
 static bool gen_lowlevel(void) {
   filelist *fp;
-  arealist *ap;
   lldinfotable = lldinfonext = allocmem(totalsymbols*sizeof(lldinfo));
   lldsize = align(lldsize);
   lldnametable = lldnamenext = allocmem(lldsize);
@@ -174,13 +186,9 @@ static bool gen_lowlevel(void) {
     if (fp->chfilesize!=0 && fp->keepdebug) gen_llsymt(fp);
     fp = fp->nextfile;
   } while (fp!=NIL);
-  ap = zidatalist;	/* Now add common blocks to table */
-  while (ap!=NIL) {
-    if ((ap->aratattr & (ATT_COMMON | ATT_COMDEF))!=0) {
-      add_lldentry(ap->arname, LLD_COMMON, ap->arplace);
-    }
-    ap = ap->arflink;
-  }
+
+  add_common(zidatalist); /* Now add common blocks to table */
+
   add_lldsymbol(image_robase);
   add_lldsymbol(image_rolimit);
   add_lldsymbol(image_rwbase);

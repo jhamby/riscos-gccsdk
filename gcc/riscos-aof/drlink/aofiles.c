@@ -141,21 +141,20 @@ static unsigned int addto_strt(const char *name) {
 ** the entry point area and offset if there is an entry point in
 ** the AOF files to be included
 */
-static void reloc_aofarlist(arealist *ap) {
-  arealist *firstarea;
-  newhead *hp;
-  unsigned int areabase = 0;
+static void reloc_aofarlist_tree(arealist *ap, arealist **firstarea, unsigned int *areabase) {
 
-  firstarea = NIL;
-  while (ap!=NIL) {
+  if (ap != NIL) {
+    reloc_aofarlist_tree(ap->left, firstarea, areabase);
 
-    if (ap->arbase!=firstarea) {	/* Area name differs from last one */
-      firstarea = ap->arbase;
+    if (ap->arbase != *firstarea) {	/* Area name differs from last one */
+      newhead *hp;
+
+      *firstarea = ap->arbase;
       newareacount+=1;
       if ((hp = allocmem(sizeof(newhead)))==NIL) error("Fatal: Out of memory in 'reloc_aofarlist'");
-      hp->headhash = firstarea->arhash;
-      hp->headname = firstarea->arname;
-      hp->headattr = firstarea->aratattr;
+      hp->headhash = (*firstarea)->arhash;
+      hp->headname = (*firstarea)->arname;
+      hp->headattr = (*firstarea)->aratattr;
       hp->headflink = NIL;
 
       if (headlast==NIL) {
@@ -166,14 +165,23 @@ static void reloc_aofarlist(arealist *ap) {
       headlast = hp;
     }
 
-    ap->arplace = areabase;
+    ap->arplace = *areabase;
     if (ap == entryarea) {	/* Note new entry area if necessary */
       newentryarea = newareacount;
-      entryoffset += areabase;
+      entryoffset += *areabase;
     }
     areabase += ap->arobjsize;
-    ap = ap->arflink;
+
+    reloc_aofarlist_tree(ap->right, firstarea, areabase);
   }
+}
+
+
+static void reloc_aofarlist(arealist *ap) {
+  unsigned int areabase = 0;
+  arealist *firstarea = NIL;
+
+  reloc_aofarlist_tree(ap, &firstarea, &areabase);
 }
 
 /*
@@ -228,12 +236,16 @@ static void compact_reloclist(arealist *ap) {
   relocation *oldrp, *newrp;
   unsigned int n, oldcount, newcount, offset, typesym, reltype;
   indextable *newindex;
-  while (ap!=NIL) {
+
+  if (ap != NIL) {
+    compact_reloclist(ap->left);
+
     newindex = ap->arfileptr->symtries.symtlookup;
     newrp = oldrp = ap->areldata;
     oldcount = ap->arnumrelocs;
     newcount = 0;
     offset = ap->arplace;
+
     for (n = 1; n<=oldcount; n++) {
       if (oldrp->reloffset!=ALLFS) {	/* Relocation that still needs doing */
         newrp->reloffset = oldrp->reloffset+offset;
@@ -261,11 +273,13 @@ static void compact_reloclist(arealist *ap) {
       }
       oldrp++;
     }
+
     ap->arnumrelocs = newcount;
     if ((ap->aratattr & ATT_NOINIT)==0) {	/* Area will appear in AOF file */
       area_size+=ap->arobjsize+newcount*sizeof(relocation);
     }
-    ap = ap->arflink;
+
+    compact_reloclist(ap->right);
   }
 }
 
@@ -380,19 +394,35 @@ static void start_aofile(void) {
 ** from a particular area list, writing them directly to the AOF
 ** file
 */
+static void write_objhead_calcsizes(arealist *ap, arealist *firstarea,
+                                    unsigned int *areasize, unsigned int *relco) {
+
+  if (ap != NIL) {
+    write_objhead_calcsizes(ap->left, firstarea, areasize, relco);
+
+    if (ap->arbase == firstarea) {
+      *areasize += ap->arobjsize;
+      *relco += ap->arnumrelocs;
+    }
+
+    write_objhead_calcsizes(ap->right, firstarea, areasize, relco);
+  }
+}
+
+
 static void write_objhead(arealist *ap) {
   arealist *firstarea;
   unsigned int relco, areasize;
   areaentry entry;
+
   if (ap==NIL) return;
   firstarea = ap->arbase;
+
   do {
     areasize = relco = 0;
-    while (ap!=NIL && ap->arbase==firstarea) {
-      areasize+=ap->arobjsize;
-      relco+=ap->arnumrelocs;
-      ap = ap->arflink;
-    }
+
+    write_objhead_calcsizes(ap, firstarea, &areasize, &relco);
+
     entry.areaname = addto_strt(firstarea->arname);
     entry.attributes = (firstarea->aratattr<<8)+firstarea->aralign;
     entry.arsize = areasize;
@@ -450,21 +480,14 @@ static void create_objidfn(void) {
 ** all the relocation data associated with those areas.
 */
 static void write_objarea(arealist *ap) {
-  arealist *first, *newfirst;
-  if (ap==NIL) return;
-  first = ap->arbase;
-  do {
-    while (ap!=NIL && ap->arbase==first) {
-      write_image(ap->arobjdata, ap->arobjsize);
-      ap = ap->arflink;
-    }
-    newfirst = (ap!=NIL ? ap->arbase : NIL);
-    while (first!=NIL && first!=newfirst) {
-      write_image(first->areldata, first->arnumrelocs*sizeof(relocation));
-      first = first->arflink;
-    }
-    first = newfirst;
-  } while (ap!=NIL);
+  if (ap != NIL) {
+    write_objarea(ap->left);
+
+    write_image(ap->areldata, ap->arnumrelocs * sizeof(relocation));
+    write_image(ap->arobjdata, ap->arobjsize);
+
+    write_objarea(ap->right);
+  }
 }
 
 /*

@@ -24,7 +24,8 @@
 */
 bool read_tables(filelist *fp) {
   bool ok;
-  ok = scan_head(fp) && scan_symt(fp);
+  ok = scan_head(fp);
+  ok = ok && scan_symt(fp);
   free_srchlist();
   return ok;
 }
@@ -56,11 +57,11 @@ void link_program(void) {
     lp = lp->linknext;
   } while (lp!=NIL && ok);
   if (ok) verify_edits();
-  printf("Read files: %d\n", clock()-timer);
+  printf("Read files: %d\n", (clock()-timer) / CLOCKS_PER_SEC);
   timer = clock();
   ok = ok && resolve();
   if (ok) check_debuglist();
-  printf("Resolve references: %d\n", clock()-timer);
+  printf("Resolve references: %d\n", (clock()-timer) / CLOCKS_PER_SEC);
   opt_debug = opt_debug || debugflist!=NIL;	/* Enable 'debug' if necessary */
   if (ok) {
     if (imagetype==AOF) {	/* Partially-linked AOF file */
@@ -73,16 +74,16 @@ void link_program(void) {
       check_entryarea();
       timer = clock();
       if (opt_nounused) find_unused();
-      printf("Remove unused areas: %d\n", clock()-timer);
+      printf("Remove unused areas: %d\n", (clock()-timer) / CLOCKS_PER_SEC);
       timer = clock();
       link_state = RELOCATE;
       if (opt_verbose) error("Drlink: Relocating program...");
       relocate_areas();
       relocate_symbols();
-      printf("Relocate symbols: %d\n", clock()-timer);
+      printf("Relocate symbols: %d\n", (clock()-timer) / CLOCKS_PER_SEC);
       timer = clock();
       ok = relocate();
-      printf("Relocate program: %d\n", clock()-timer);
+      printf("Relocate program: %d\n", (clock()-timer) / CLOCKS_PER_SEC);
       if (ok) {
         if (opt_cpp) build_cdlist();
         if (opt_debug) ok = build_debugtables();
@@ -90,7 +91,7 @@ void link_program(void) {
       if (ok) {
         timer = clock();
         create_image();
-        printf("Create image file: %d\n", clock()-timer);
+        printf("Create image file: %d\n", (clock()-timer) / CLOCKS_PER_SEC);
         if (opt_verbose && opt_nounused) print_unusedlist();
         if (opt_areamap) print_areamap();
         if (opt_mapfile) print_mapfile();

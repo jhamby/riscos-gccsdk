@@ -26,7 +26,7 @@
 #endif
 
 #ifdef TARGET_RISCOS
-#define WILDCARDS "#*"		/* RISCOS filename wildcard characters */
+#define WILDCARDS "#*"		/* RISC OS filename wildcard characters */
 #else
 #define WILDCARDS "?*["		/* Unixish filename wildcard characters */
 #endif

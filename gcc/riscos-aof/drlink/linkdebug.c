@@ -16,7 +16,10 @@
 
 void list_areas(arealist *list) {
   arearef *rp;
-  while (list!=NIL) {
+
+  if (list != NIL) {
+    list_areas(list->left);
+
     printf("Area entry at %p, areaname='%s', hash=%x, base entry at %p, file entry at %p, AT=%x\n",
      list, list->arname, list->arhash, list->arbase, list->arfileptr, list->aratattr);
     printf("  OBJ_AREA at %p, size=%x, relocations at %p, number=%d, area address=%x",
@@ -36,7 +39,8 @@ void list_areas(arealist *list) {
       }
       printf("\n");
     }
-    list = list->arflink;
+
+    list_areas(list->right);
   }
 }
 
