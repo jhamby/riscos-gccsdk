@@ -191,17 +191,11 @@ build-native:	c-libs libiberty-stg2 gcc-libs-stg2 gcc-stg2 riscos-aof-stg2 \
 # match for both trg and cfl in all calls to sub-make processes.  We
 # write them like this because it makes the rest of the makefile easy
 # to read.
-trg10=apcs26/unixlib
-trg11=apcs26/libscl
-
 trg20=apcs32/arch3/unixlib
 trg21=apcs32/arch4/unixlib
 
 trg30=apcs32/arch3/libscl
 trg31=apcs32/arch4/libscl
-
-cfl10="CFL=-mapcs-26 -mcpu=arm2 -munixlib"
-cfl11="CFL=-mapcs-26 -mcpu=arm2 -mlibscl"
 
 cfl20="CFL=-mapcs-32 -mcpu=arm6 -mtune=xscale -munixlib"
 cfl21="CFL=-mapcs-32 -mcpu=strongarm -mtune=xscale -munixlib"
@@ -287,16 +281,11 @@ directories:
 	mkdir -p $(ro_gccpkg)/$(gn_cross_include_dir)
 	mkdir -p $(ro_gccpkg)/$(gn_share_dir)/jar
 
-	mkdir -p $(ux_gccpkg)/$(gn_gcc_bin_dir)/$(trg10)
-	mkdir -p $(ux_gccpkg)/$(gn_gcc_bin_dir)/$(trg11)
 	mkdir -p $(ux_gccpkg)/$(gn_gcc_bin_dir)/$(trg20)
 	mkdir -p $(ux_gccpkg)/$(gn_gcc_bin_dir)/$(trg21)
 	mkdir -p $(ux_gccpkg)/$(gn_gcc_bin_dir)/$(trg30)
 	mkdir -p $(ux_gccpkg)/$(gn_gcc_bin_dir)/$(trg31)
 
-	mkdir -p $(ro_gccpkg)/$(gn_gcc_bin_dir)/$(trg10)/o
-	mkdir -p $(ro_gccpkg)/$(gn_gcc_bin_dir)/$(trg11)/o
-	mkdir -p $(ro_gccpkg)/$(gn_gcc_bin_dir)/$(trg15)/o
 	mkdir -p $(ro_gccpkg)/$(gn_gcc_bin_dir)/$(trg20)/o
 	mkdir -p $(ro_gccpkg)/$(gn_gcc_bin_dir)/$(trg21)/o
 	mkdir -p $(ro_gccpkg)/$(gn_gcc_bin_dir)/$(trg30)/o
