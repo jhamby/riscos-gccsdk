@@ -1,8 +1,8 @@
 # Project:   GCCSDK UnixLib
 
 # $Source: /usr/local/cvsroot/gccsdk/unixlib/objs/Makefile.in,v $
-# $Date: 2003/06/23 20:33:03 $
-# $Revision: 1.2 $
+# $Date: 2003/08/18 22:35:35 $
+# $Revision: 1.3 $
 # $State: Exp $
 # $Author: joty $
 
@@ -17,6 +17,14 @@ Predefs = -D__UNIXLIB_INTERNALS
 # XXapcsflags = APCS selection flags
 
 # Norcroft C (Acorn) compiler. Comment out if you are using GCC compiler.
+#
+# Note: Norcroft versions later than 5.39 (excl) and earlier than 5.55 (excl) could
+# generate wrong code because of the so called "shrinkwrap" bug.  We're not sure
+# that compiling UnixLib triggers this problem but if you want to be on the safe
+# side you might want to disable the shrinkwrap code by adding the "-zpq262144"
+# compiler option.  As soon 5.55 becomes mainstream we can define this version
+# as minimal compiler version.  For more info on the above mentioned compiler option:
+# <URL:http://www.google.be/groups?selm=99e598294c.kbracey%40tematic.com&output=gplain>
 CC = cc
 CCdflags = -g
 CCrflags =

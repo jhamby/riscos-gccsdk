@@ -1,3 +1,7 @@
+Tue Sep 18 23:40:00 2003  John Tytgat  <John.Tytgat@aaug.net>
+
+	* objs/Makefile.in: Added comment on Norcroft's "shrinkwrap bug".
+
 Tue Aug 19 00:34:27 2003  John Tytgat  <John.Tytgat@aaug.net>
 
 	* .cvsignore: MKDir,feb removed.  We don't generate this anymore.
