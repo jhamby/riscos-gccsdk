@@ -1,4 +1,9 @@
 Thu May  3 07:14:49 2001  Peter Naulls  <peter@erble.freeserve.co.uk>
+
+	* sys/_os.s (os_console): Don't set input stream to listen on
+	serial port.
+
+Thu May  3 07:14:49 2001  Peter Naulls  <peter@erble.freeserve.co.uk>
 			  Nick Burrett  <nick@dsvr.net>
 
 	* signal/_signal.s (callback_signal): Use a semaphore to evade
