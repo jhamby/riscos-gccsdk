@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/getenv.c,v $
- * $Date: 2004/12/11 14:18:57 $
- * $Revision: 1.6 $
+ * $Date: 2005/03/15 22:09:40 $
+ * $Revision: 1.7 $
  * $State: Exp $
- * $Author: joty $
+ * $Author: alex $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: getenv.c,v 1.6 2004/12/11 14:18:57 joty Exp $";
+static const char rcs_id[] = "$Id: getenv.c,v 1.7 2005/03/15 22:09:40 alex Exp $";
 #endif
 
 #include <errno.h>
@@ -45,7 +45,7 @@ __getenv_from_os (const char *name, char *buf, size_t buflen, char **call)
   int regs[10];
   int namelen = 0;
   int origcall = call ? (int)*call : 0;
-  char *found;
+  char *found = NULL;
 
   /* Check illegal argument combination.  */
   if (buflen == 0 && buf != NULL)
@@ -73,6 +73,8 @@ __getenv_from_os (const char *name, char *buf, size_t buflen, char **call)
           char *dollar;
 
           *call = found = (char *)regs[3];
+          if (!found) return NULL;
+
           namelen = strlen (found) + 1;
           dollar = strchr (found, '$');
 
@@ -133,7 +135,7 @@ __getenv_from_os (const char *name, char *buf, size_t buflen, char **call)
 	}
       while (* (int *) regs[0] == 0x1E4);
       /* Buffer overflow error is (as per usual for Acorn) ill defined.
-         It apeears that on buffer overflow R[2] == R[2] entry (ie
+         It appears that on buffer overflow R[2] == R[2] entry (ie
          *X*OS_ReadVarVal has just written the last possible character that
          will fit into the buffer, and upon checking to see that it can fit the
          next in it returns the error). Interestingly, for a macro that expands

@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/select.c,v $
- * $Date: 2005/02/09 23:16:33 $
- * $Revision: 1.10 $
+ * $Date: 2005/03/04 20:59:06 $
+ * $Revision: 1.11 $
  * $State: Exp $
  * $Author: alex $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: select.c,v 1.10 2005/02/09 23:16:33 alex Exp $";
+static const char rcs_id[] = "$Id: select.c,v 1.11 2005/03/04 20:59:06 alex Exp $";
 #endif
 
 /* netlib/socket.c: Written by Peter Burwood, July 1997  */
@@ -83,12 +83,16 @@ __convert_fd_set (int nfds, const fd_set *iset, fd_set *oset, int *max_fd)
               if ((bothset >> bits) & 1)
                 {
                   int fd = words * WORD_BITS + bits;
-                  int sock_fd = (int)(getfd (fd)->devicehandle->handle);
 
-                  FD_SET (sock_fd, oset);
+                  if (getfd (fd)->devicehandle)
+                    {
+                      int sock_fd = (int)(getfd (fd)->devicehandle->handle);
 
-                  if (sock_fd + 1 > *max_fd)
-                    *max_fd = sock_fd + 1;
+                      FD_SET (sock_fd, oset);
+
+                      if (sock_fd + 1 > *max_fd)
+                        *max_fd = sock_fd + 1;
+                   }
                 }
             }
         }
@@ -122,10 +126,14 @@ __return_fd_set (int nfds, fd_set *iset, const fd_set *oset)
           while (bits-- > 0)
             {
               int fd = words * WORD_BITS + bits;
-              int sock_fd = (int)(getfd (fd)->devicehandle->handle);
 
-               if (getfd (fd)->devicehandle->type == DEV_SOCKET && !FD_ISSET (sock_fd, oset))
-                 FD_CLR (fd, iset);
+              if (getfd (fd)->devicehandle)
+                {
+                  int sock_fd = (int)(getfd (fd)->devicehandle->handle);
+
+                  if (getfd (fd)->devicehandle->type == DEV_SOCKET && !FD_ISSET (sock_fd, oset))
+                    FD_CLR (fd, iset);
+                }
             }
         }
     }
@@ -249,58 +257,63 @@ select (int nfds, fd_set *readfds, fd_set *writefds,
 	{
 	  struct __unixlib_fd *file_desc = getfd (fd);
           fd_set *read_p, *write_p, *except_p;
-          int (*select_func) (struct __unixlib_fd *__fd, int __fd1, fd_set *__read,
-		fd_set *__write, fd_set *__except) = __dev[file_desc->devicehandle->type < NDEV ? file_desc->devicehandle->type : DEV_NULL].select;
 
-	  read_p   = (readfds && FD_ISSET(fd, readfds)) ?
-	    &new_readfds : NULL;
-	  write_p  = (writefds && FD_ISSET(fd, writefds)) ?
-	    &new_writefds : NULL;
-
-          if (select_func == __nullselect)
+          if (file_desc->devicehandle)
             {
-              if (read_p)
+              int (*select_func) (struct __unixlib_fd *__fd, int __fd1, fd_set *__read,
+                  fd_set *__write, fd_set *__except) =
+                  __dev[file_desc->devicehandle->type < NDEV ? file_desc->devicehandle->type : DEV_NULL].select;
+    
+              read_p   = (readfds && FD_ISSET(fd, readfds)) ?
+                &new_readfds : NULL;
+              write_p  = (writefds && FD_ISSET(fd, writefds)) ?
+                &new_writefds : NULL;
+    
+              if (select_func == __nullselect)
                 {
-                  live_fds++;
-                  FD_SET(fd, read_p);
+                  if (read_p)
+                    {
+                      live_fds++;
+                      FD_SET(fd, read_p);
+                    }
+                  if (write_p)
+                    {
+                      live_fds++;
+                      FD_SET(fd, write_p);
+                    }
                 }
-              if (write_p)
+              else
                 {
-                  live_fds++;
-                  FD_SET(fd, write_p);
-                }
-            }
-          else
-            {
-	      except_p = (exceptfds && FD_ISSET(fd, exceptfds)) ?
-	        &new_exceptfds : NULL;
-
-              if (select_func == __sockselect)
-                {
-                  if (read_p)   FD_SET (fd, read_p);
-                  if (write_p)  FD_SET (fd, write_p);
-                  if (except_p) FD_SET (fd, except_p);
-                  continue;
-                }
-
-	      /* Don't bother calling if not interested in this fd.  */
-	      if (read_p || write_p || except_p)
-	        {
+                  except_p = (exceptfds && FD_ISSET(fd, exceptfds)) ?
+                    &new_exceptfds : NULL;
+    
+                  if (select_func == __sockselect)
+                    {
+                      if (read_p)   FD_SET (fd, read_p);
+                      if (write_p)  FD_SET (fd, write_p);
+                      if (except_p) FD_SET (fd, except_p);
+                      continue;
+                    }
+    
+                  /* Don't bother calling if not interested in this fd.  */
+                  if (read_p || write_p || except_p)
+                    {
 #ifdef DEBUG
-	          __os_print ("/");
+	              __os_print ("/");
 #endif
-	          result = __funcall (*select_func, (file_desc, fd, read_p, write_p, except_p));
+	              result = __funcall (*select_func, (file_desc, fd, read_p, write_p, except_p));
 #ifdef DEBUG
-	          __os_print ("\\");
+	              __os_print ("\\");
 #endif
-	          if (result < 0)
-	            {
-	              __pthread_enable_ints();
-		      return -1;
-		    }
+	              if (result < 0)
+	                {
+	                  __pthread_enable_ints();
+		          return -1;
+		        }
 
-	          live_fds += result;
-	       }
+	              live_fds += result;
+	           }
+	        }
 	    }
 	}
 

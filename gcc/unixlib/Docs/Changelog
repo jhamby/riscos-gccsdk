@@ -1,3 +1,8 @@
+Tue Mar 29 23:44:37 2005  Peter Naulls  <peter@chocky.org>
+
+	* source/unix/getenv.c, source/unix/select.c: Avoid
+	  NULL pointer reading. 
+
 Mon Mar 28 15:56:14 2005  John Tytgat  <John.Tytgat@aaug.net>
 
 	* source/clib/kernel.h: Better describe its intention; Added prototypes
