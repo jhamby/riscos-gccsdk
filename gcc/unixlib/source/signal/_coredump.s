@@ -1,10 +1,10 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/signal/_coredump.s,v $
-; $Date: 2003/06/23 20:33:03 $
-; $Revision: 1.6 $
+; $Date: 2004/02/23 16:07:29 $
+; $Revision: 1.7 $
 ; $State: Exp $
-; $Author: joty $
+; $Author: peter $
 ;
 ;----------------------------------------------------------------------------
 
@@ -12,7 +12,7 @@
 
 	AREA	|C$$code|, CODE, READONLY
 
-	EXPORT |__backtrace_getfp|
+	EXPORT	|__backtrace_getfp|
 |__backtrace_getfp|
 	MOV	a1, fp
 	MOV	pc, lr

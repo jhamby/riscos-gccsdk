@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/unix.c,v $
- * $Date: 2004/10/17 16:24:45 $
- * $Revision: 1.28 $
+ * $Date: 2004/10/30 16:50:13 $
+ * $Revision: 1.29 $
  * $State: Exp $
- * $Author: joty $
+ * $Author: alex $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: unix.c,v 1.28 2004/10/17 16:24:45 joty Exp $";
+static const char rcs_id[] = "$Id: unix.c,v 1.29 2004/10/30 16:50:13 alex Exp $";
 #endif
 
 #include <stdio.h>
@@ -175,7 +175,7 @@ void __unixinit (void)
          RISC OS error when Font_FindFont is done for a font not yet in
          the font cache.
          These problems are known to be solved in RISC OS Adjust 1.  */
-#if 1
+#if __UNIXLIB_SET_DDEPREFIX == 0
       __u->dde_prefix = __get_dde_prefix ();
 #else
       if ((__u->dde_prefix = __get_dde_prefix ()) == NULL)
@@ -673,7 +673,7 @@ static void get_io_redir (const char *cli)
 #ifdef DEBUG
   __os_print ("-- get_io_redir: checking >\r\n");
 #endif
-  while ((p = find_redirection_type (p, '>')))
+  while ((p = find_redirection_type (p, '>')) != NULL)
     {
       if (p[-1] != '<')
         {

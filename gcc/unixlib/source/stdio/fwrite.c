@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/stdio/fwrite.c,v $
- * $Date: 2002/02/14 15:56:36 $
- * $Revision: 1.3 $
+ * $Date: 2003/04/13 16:21:02 $
+ * $Revision: 1.4 $
  * $State: Exp $
- * $Author: admin $
+ * $Author: alex $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: fwrite.c,v 1.3 2002/02/14 15:56:36 admin Exp $";
+static const char rcs_id[] = "$Id: fwrite.c,v 1.4 2003/04/13 16:21:02 alex Exp $";
 #endif
 
 /* #define DEBUG */
@@ -65,7 +65,7 @@ fwrite (const void *data, size_t size, size_t count, FILE *stream)
 #endif
 	  /* We have lots of data to output. First flush the buffer,
 	     then just write the rest out.  */
-	  if (__flsbuf (-1, stream) < 0)
+	  if (__flsbuf (EOF, stream) < 0)
 	    return (size_t)0; /* we wouldn't have written anything yet.  */
 
 	  /* Write it out in a loop, as recommended.  */
@@ -115,7 +115,7 @@ fwrite (const void *data, size_t size, size_t count, FILE *stream)
 #ifdef DEBUG
 	      __os_print (", flushing\r\n");
 #endif
-	      __flsbuf (-1, stream);
+	      __flsbuf (EOF, stream);
 	    }
 #ifdef DEBUG
           else

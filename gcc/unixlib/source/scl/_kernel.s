@@ -1,10 +1,10 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/scl/_kernel.s,v $
-; $Date: 2002/09/24 21:02:37 $
-; $Revision: 1.3 $
+; $Date: 2004/10/17 16:24:44 $
+; $Revision: 1.4 $
 ; $State: Exp $
-; $Author: admin $
+; $Author: joty $
 ;
 ;----------------------------------------------------------------------------
 
@@ -38,11 +38,12 @@
 	NAME	_kernel_swi
 |_kernel_swi|
 	STMFD	sp!, {a3, v1-v6, lr}
-	BICS	ip, a1, #&80000000
-	ORRPL	ip, ip, #&20000		; X bit
+	BIC	ip, a1, #&80000000
+	TEQ	ip, a1
+	ORREQ	ip, ip, #&20000		; X bit
 	LDMIA	a2, {a1-v6}
 	SWI	XOS_CallASWIR12
-	LDR	ip, [sp]
+	LDR	ip, [sp, #0]
 	STMIA	ip, {a1-v6}
 	MOVVC	a1, #0
 	LDMVCFD	sp!, {a3, v1-v6, pc}

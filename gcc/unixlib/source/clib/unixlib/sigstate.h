@@ -1,8 +1,8 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/unixlib/sigstate.h,v $
- * $Date: 2004/09/23 22:16:39 $
- * $Revision: 1.7 $
+ * $Date: 2004/10/17 16:24:44 $
+ * $Revision: 1.8 $
  * $State: Exp $
  * $Author: joty $
  *
@@ -64,9 +64,6 @@ extern void __unixlib_exec_sigstack_bsd (void *__sp, __sighandler_t, int);
 extern void __unixlib_exec_sigstack (void *__sp, int size, __sighandler_t, int);
 extern void __unixlib_default_sigaction (struct unixlib_sigstate *);
 
-/* Helper C function for signal handler */
-extern void __write_unrecoverable(const char *errmess);
-
 /* Returns non-zero value when address range __lower - __upper (excl) is
    a valid address range.  */
 extern int valid_address (const int *__lower, const int *__upper);
@@ -83,14 +80,13 @@ extern void __h_sigprof_init (void);
 /* Alarm semaphores.  */
 extern int __h_sigprof_sema, __h_sigvtalrm_sema, __h_sigalrm_sema;
 
-/* Details for stack backtraces and core dumps.  */
+/* Get the fp at the moment of calling.  */
+extern int *__backtrace_getfp (void);
 
-/* Generate a stack backtrace, __fp is the value of the
-   current frame pointer. */
-extern void __backtrace (const unsigned int *__fp);
-
-/* Generate a core dump, from the current frame pointer.  */
-extern void __core (void);
+/* When non-NULL, the fp at the moment __h_cback_common is executed.  This
+   means that at __ul_callbackfp + 1, a complete exception snapshot of CPSR
+   followed by r0-r16 is located.  */
+extern int * __ul_callbackfp;
 
 __END_DECLS
 

@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/errno.h,v $
- * $Date: 2004/06/18 18:23:33 $
- * $Revision: 1.11 $
+ * $Date: 2004/08/16 21:01:26 $
+ * $Revision: 1.12 $
  * $State: Exp $
- * $Author: nick $
+ * $Author: joty $
  *
  ***************************************************************************/
 
@@ -125,9 +125,7 @@ extern int sys_nerr;
    us to easily make setting the errno call a function if necessary if
    threads ever appear.  We also give a return value so we can use
    return __set_errno () which can allow function tail calling.  */
-#ifndef __set_errno
 #define __set_errno(val) (errno = (val), -1)
-#endif
 
 extern struct
 {

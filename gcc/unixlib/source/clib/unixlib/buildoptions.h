@@ -8,6 +8,7 @@
 # define __UNIXLIB_STACK_CHECK_MAGIC	1	/* Set to 1 if we should check that the magic number is valid each time the stack is extended/shrunk. Otherwise set it to 0.  */
 # define __UNIXLIB_USEFILEPATH		0	/* */
 # define __UNIXLIB_COMPAT_INET4		0	/* Set to 1 if we want Internet 4 compatibility. */
+# define __UNIXLIB_SET_DDEPREFIX	0	/* Set to 1 if DDEUtils' Prefix needs to be set at the beginning of each process task. Note this hits bugs in some versions of RISC OS. */
 
   COMMENT /* Some ARM instructions are very handy and result in */
   COMMENT /* increased performance but they are not supported on */

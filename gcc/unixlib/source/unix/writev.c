@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/writev.c,v $
- * $Date: 2002/02/14 15:56:39 $
- * $Revision: 1.3 $
+ * $Date: 2003/04/05 09:33:57 $
+ * $Revision: 1.4 $
  * $State: Exp $
- * $Author: admin $
+ * $Author: alex $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: writev.c,v 1.3 2002/02/14 15:56:39 admin Exp $";
+static const char rcs_id[] = "$Id: writev.c,v 1.4 2003/04/05 09:33:57 alex Exp $";
 #endif
 
 #include <errno.h>
@@ -67,10 +67,12 @@ writev (int fd, const struct iovec *vector, int count)
 	   the number of bytes we have written.  */
 	if (bytes == -1)
 	  {
+#if __UNIXLIB_FEATURE_PIPEDEV
 	    /* Raise the SIGPIPE signal if we tried to write to a pipe
 	       or FIFO that isn't open for reading by any process.  */
 	    if (errno == EPIPE)
 	      raise (SIGPIPE);
+#endif
 	    return bytes_written ? bytes_written : -1;
 	  }
 	bytes_written += bytes;

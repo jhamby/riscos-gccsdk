@@ -16,10 +16,10 @@ updates and bug-fixes.
 What
 ~~~~
 
-UnixLib is a Run-Time Library for the RISC OS based computers that
-provides a mixed System V / BSD interface for C and C++ programs.  It
-is also an alternative to the "Stubs" and "AnsiLib" libraries supplied
-with the Norcroft C compiler.
+UnixLib is an APCS-32 compliant Run-Time Library for the RISC OS based
+computers that provides a mixed System V / BSD interface for C and C++
+programs.  It is also an alternative to the "Stubs" and "AnsiLib"
+libraries supplied with the Norcroft C compiler.
 
 It is also the default Run-Time Library for the RISC OS port of GCC.
 

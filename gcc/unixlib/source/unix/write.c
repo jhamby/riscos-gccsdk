@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/write.c,v $
- * $Date: 2003/04/05 09:33:57 $
- * $Revision: 1.4 $
+ * $Date: 2004/10/17 16:24:45 $
+ * $Revision: 1.5 $
  * $State: Exp $
- * $Author: alex $
+ * $Author: joty $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: write.c,v 1.4 2003/04/05 09:33:57 alex Exp $";
+static const char rcs_id[] = "$Id: write.c,v 1.5 2004/10/17 16:24:45 joty Exp $";
 #endif
 
 /* #define DEBUG */
@@ -72,12 +72,10 @@ write (int fd, const void *buf, size_t nbytes)
 		      (file_desc, buf, nbytes));
 
 #if __UNIXLIB_FEATURE_PIPEDEV
-#ifdef SIGPIPE
   /* Raise the SIGPIPE signal if we tried to write to a pipe
      or FIFO that isn't open for reading by any process.  */
   if (status == -1 && errno == EPIPE)
     raise (SIGPIPE);
-#endif
 #endif
 
   return status;

@@ -1,8 +1,8 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/unixlib/asm_dec.s,v $
-; $Date: 2004/09/07 14:05:10 $
-; $Revision: 1.16 $
+; $Date: 2004/10/17 16:24:44 $
+; $Revision: 1.17 $
 ; $State: Exp $
 ; $Author: joty $
 ;
@@ -129,61 +129,54 @@ IFlag32		EQU	&00000080
 	LDR	$val, [$Rerrno]
 	MEND
 
-	; NetSWI macro to call a networking (TCP/IP) swi.
-	; We ensure that we are in SVC mode before calling the SWI because,
-	; according to Stewart Brodie, certain versions of Acorn's Internet
-	; stack require SWIs to be called in SVC mode.
-	;
-	; If ModuleCode is "yes", then nothing needs to be done, since
-	; it is assumed we are already in SVC mode (possibly not always true,
-	; so beware).
-	; Note, UnixLib does not define ModuleCode.
-	;
-	; ip is destroyed. lr must be saved if called in SVC mode. This
-	; macro is *NOT* safe for calling from IRQ or FIQ mode because
-	; SVC_r14 is corrupted.
+	; NetSWI, NetSWIsimple, NetSWI0 and NetSWIsimple0 are macros to call
+	; one of the networking (TCP/IP) SWIs.
 
+	; Calls networking (TCP/IP) SWI.
 	MACRO
 	NetSWI	$swiname
+	IMPORT	|__net_error|
 	SWI	$swiname
-	BLVS	|__net_error|		; Call net error still in SVC
+	BLVS	|__net_error|		; Call net error
 	MEND
 
+	; Calls networking (TCP/IP) SWI and returns to lr.
 	MACRO
 	NetSWIsimple	$swiname
-	MOV	ip, lr			; Save mode, return address
+	IMPORT	|__net_error|
 	SWI	$swiname
-	MOVVC	pc, ip			; return, restore mode, flags
-	B	|__net_error_simple_entry|
-	; branch to error routine still in SVC mode, with return in ip
+	MOVVC	pc, lr
+	B	|__net_error|
 	MEND
 
-	; Macros for Socket SWIs which corrupt R0
-	; Ensure R0 is 0 for VC, net_error ensures 1 for VS
+	; Calls networking (TCP/IP) SWI.
+	; Returns 0 in R0 for success, a non zero errno in R0 when
+	; error happened.
 	MACRO
 	NetSWI0	$swiname
+	IMPORT	|__net_error|
 	SWI	$swiname
 	MOVVC	a1, #0
-	BLVS	|__net_error|		; Call net error still in SVC
+	BLVS	|__net_error|		; Call net error
 	MEND
 
-	; Macro for Socket SWIs which corrupt R0
-	; Ensure R0 is 0 for VC, net_error ensures 1 for VS
+	; Calls networking (TCP/IP) SWI and returns to lr.
+	; Returns 0 in R0 for success, a non zero errno in R0 when
+	; error happened.
 	MACRO
 	NetSWIsimple0	$swiname
-	MOV	ip, lr			; Save mode, flags, return adrress
+	IMPORT	|__net_error|
 	SWI	$swiname
 	MOVVC	a1, #0
-	MOVVC	pc, ip			; return, restore mode, flags
-	B	|__net_error_simple_entry|
-	; branch to error routine still in SVC mode, with return in ip
+	MOVVC	pc, lr
+	B	|__net_error|
 	MEND
 
 	; Macro to implement SWP instruction
 	; srcreg and dstreg can be the same register, provided scratch is a
 	; different register.
-	; If srcreg and dstreg are different registers then scratch can be the
-	; same as dstreg
+	; If srcreg and dstreg are different registers then scratch can be
+	; the same as dstreg
 	MACRO
 	swp_arm2	$dstreg, $srcreg, $addr, $scratch
 	[ __UNIXLIB_SWP_SUPPORTED > 0

@@ -107,8 +107,8 @@ the heap. When not defined, it defaults to 32MB or the value specified
 by the __dynamic_da_max_size weak variable.
 eg. *SetEval my_program$HeapMax 64
 
-UnixLib$env
-This is an environment variable used by UnixLib internally and should
+UnixLib$env / UnixLib$pcnt
+These are environment variables used by UnixLib internally and should
 not be used, nor relied on, by clients of UnixLib.
 
 

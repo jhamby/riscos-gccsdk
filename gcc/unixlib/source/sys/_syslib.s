@@ -1,8 +1,8 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/_syslib.s,v $
-; $Date: 2004/10/17 16:24:44 $
-; $Revision: 1.31 $
+; $Date: 2004/10/23 17:23:36 $
+; $Revision: 1.32 $
 ; $State: Exp $
 ; $Author: joty $
 ;
@@ -655,9 +655,9 @@ t06
 	LDR	a2, [v2], #4
 	MOV	a3, #0
 	MOV	a4, #0
-	TEQ	a1, #6
+	TEQ	v1, #6		; Error handler ?
 	LDREQ	a4, =|__ul_errbuf|
-	TEQ	a1, #7
+	TEQ	v1, #7		; CallBack handler ?
 	LDREQ	a4, =|__cbreg|
 	SWI	XOS_ChangeEnvironment
 	ADD	v1, v1, #1
@@ -684,7 +684,7 @@ handlers
 	DCD	|__h_sigbus|	; Address exception
 	DCD	0		; Other exception
 	DCD	|__h_error|	; Error
-	DCD	|__h_cback|	; Callback
+	DCD	|__h_cback|	; CallBack
 	DCD	0		; Breakpoint
 	DCD	|__h_sigint|	; Escape
 	DCD	|__h_event|	; Event
@@ -1107,7 +1107,7 @@ __unixlib_fatal_got_msg
 	; This space is reserved for UnixLib to store the environment
 	; handlers of the calling application.
 	; Size: 17 handlers x 3 words x 4 bytes/word = 204 bytes
-	EXPORT |__calling_environment|
+	EXPORT	|__calling_environment|
 |__calling_environment|
 	% 204
 

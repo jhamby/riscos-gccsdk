@@ -1,8 +1,8 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/stdio.h,v $
- * $Date: 2004/10/17 16:24:43 $
- * $Revision: 1.13 $
+ * $Date: 2004/10/23 17:23:36 $
+ * $Revision: 1.14 $
  * $State: Exp $
  * $Author: joty $
  *
@@ -233,10 +233,6 @@ extern int getchar (void) __THROW;
 /* Read a character from stream.  */
 #define getc_unlocked(f) \
 	((--((f)->i_cnt) >= 0 ? *((f)->i_ptr)++ : __filbuf(f)))
-
-#if __UNIXLIB_FEATURE_PTHREADS == 0
-#define getc(f) getc_unlocked(f)
-#endif
 
 /* Read a character from stdin.  */
 #define getchar() getc(stdin)

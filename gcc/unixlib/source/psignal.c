@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/c/psignal,v $
- * $Date: 1997/10/09 19:59:39 $
- * $Revision: 1.4 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/psignal.c,v $
+ * $Date: 2001/01/29 15:10:18 $
+ * $Revision: 1.2 $
  * $State: Exp $
- * $Author: unixlib $
+ * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: psignal,v 1.4 1997/10/09 19:59:39 unixlib Exp $";
+static const char rcs_id[] = "$Id: psignal.c,v 1.2 2001/01/29 15:10:18 admin Exp $";
 #endif
 
 #include <stdio.h>
@@ -21,7 +21,7 @@ static const char rcs_id[] = "$Id: psignal,v 1.4 1997/10/09 19:59:39 unixlib Exp
    If S is NULL or "", the colon and space are omitted.  */
 
 void
-psignal (int sig, register const char *s)
+psignal (int sig, const char *s)
 {
   const char *colon;
 

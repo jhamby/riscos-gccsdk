@@ -1,18 +1,16 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/netlib/_sendto.s,v $
-; $Date: 2002/09/24 21:02:37 $
-; $Revision: 1.3 $
+; $Date: 2004/10/17 16:24:44 $
+; $Revision: 1.4 $
 ; $State: Exp $
-; $Author: admin $
+; $Author: joty $
 ;
 ;----------------------------------------------------------------------------
 
 	GET	clib/unixlib/asm_dec.s
 
 	AREA	|C$$code|,CODE,READONLY
-
-	IMPORT	|__net_error|
 
 	EXPORT	|_sendto|
 	NAME	_sendto

@@ -1,3 +1,50 @@
+Sun Nov 28 22:01:02 2004  John Tytgat  <John.Tytgat@aaug.net>
+
+	* !Help: mention APCS-32 explicitly.
+	* Docs/ReadMe: UnixLib$pcnt is another internally used environment
+	  variable.
+	* source/psignal.c (psignal): Get rid of 'register'.
+	* source/clib/errno.h: Remove __set_errno multiple define protection
+	  as this shouldn't be needed.
+	* source/clib/stdio.h (getc): Always use the getc() function instead
+	  of using the macro equivalent (bug 122).
+	* source/clib/unixlib/asm_dec.s (NetSWI*): Let all the macro's import
+	  __net_error themselves; Updated their comments; Simplified the
+	  NetSWIsimple(0) even further.
+	* source/clib/unixlib/buildoptions.h (__UNIXLIB_SET_DDEPREFIX): Added.
+	* source/clib/unixlib/sigstate.h: __write_unrecoverable, __backtrace,
+	  __core: Removed as it was nowhere used; __backtrace_getfp,
+	  __ul_callbackfp: Added.
+	* source/clib/netlib/{_accept.s, _bind.s, _connect.s, _getpeers.s,
+	  _getpeerna.s, _getsockna.s, _getsockop.s, _gettsize.s, _listen.s,
+	  _readv.s, _recv.s, _recvfrom.s, _recvmsg.s, _sclose.s, _select.s,
+	  _send.s, _sendmsg.s, _sendto.s, _sendtosm.s, _setsockop.s,
+	  _shutdown.s, _sioctl.s, _socket.s, _sockstat.s, _sread.s, _swrite.s,
+	  _writev.s}: Removed IMPORT __net_error_simple_entry.
+	* source/clib/netlib/_net_error.s: Updated comments; Removed
+	  __net_error_simple_entry as direct calling __net_error from
+	  NetSWIsimple(0) macro's is possible; Removed preserve of ip.
+	* source/scl/{_kernel.s, _kswi_c.s}: _kernel_NONX feature wasn't
+	  working at all.
+	* source/signal/_signal.s: Removed needless IMPORT of
+	  __write_unrecoverable; Updated a couple comments; Take a snapshot
+	  of CPSR during each hardware exception handler; Renamed __ul_errfp
+	  to __ul_callbackfp as this should only be the fp and valid during
+	  CallBack handler code (shared by the hardware exception handlers too),
+	  during error handler this is NULL; Instead of reseting the exception
+	  FP flags, we temporary disable FP traps (cfr bug 119); Pull
+	  __ul_callbackfp in C$$data area.
+	* source/signal/post.c: Removed needless __write_unrecoverable; Updated
+	  write_backtrace so it becomes more useful and foolproof.
+	* source/stdio/flsbuf.c: Replaced -1 by EOF.
+	* source/stdio/fwrite.c: Likewise.
+	* source/sys/_syslib.s: Updated some comments.
+	* source/unix/unix.c: Make use of new __UNIXLIB_SET_DDEPREFIX build
+	  option.
+	* source/unix/write.c: Test on existence of SIGPIPE is no longer
+	  needed when we're already checking for __UNIXLIB_FEATURE_PIPEDEV.
+	* source/unix/writev.c: Added test on __UNIXLIB_FEATURE_PIPEDEV.
+
 Sun Oct 10 17:37:38 2004  Alex Waugh  <alex@alexwaugh.com>
 
 	* source/unix/unix.c: Change default back to not setting

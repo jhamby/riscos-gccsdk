@@ -1,32 +1,32 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/signal/post.c,v $
- * $Date: 2004/09/12 08:25:52 $
- * $Revision: 1.14 $
+ * $Date: 2004/09/23 22:16:39 $
+ * $Revision: 1.15 $
  * $State: Exp $
- * $Author: peter $
+ * $Author: joty $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: post.c,v 1.14 2004/09/12 08:25:52 peter Exp $";
+static const char rcs_id[] = "$Id: post.c,v 1.15 2004/09/23 22:16:39 joty Exp $";
 #endif
 
 /* signal.c.post: Written by Nick Burrett, 27 August 1996.  */
 
 #include <errno.h>
+#include <pthread.h>
 #include <stdlib.h>
 #include <signal.h>
 #include <stdio.h>
+#include <string.h>
 #include <sys/wait.h>
-#include <unistd.h>
 #include <swis.h>
+#include <unistd.h>
 
 #include <unixlib/os.h>
 #include <unixlib/unix.h>
 #include <unixlib/sigstate.h>
-
-#include <pthread.h>
 
 /* #define DEBUG 1 */
 
@@ -96,8 +96,8 @@ sigsetup (struct unixlib_sigstate *ss, sighandler_t handler,
 #ifdef DEBUG
       __os_print (" unixlib_setup_sighandler: executing off POSIX stack\r\n");
 #endif
-      __unixlib_exec_sigstack (ss->signalstack.ss_sp, ss->signalstack.ss_size,
-			       handler, signo);
+      __unixlib_exec_sigstack (ss->signalstack.ss_sp,
+			       ss->signalstack.ss_size, handler, signo);
     }
   /* Say that the signal stack is no longer in use.  */
   ss->signalstack.ss_flags &= ~SA_ONSTACK;
@@ -106,151 +106,150 @@ sigsetup (struct unixlib_sigstate *ss, sighandler_t handler,
 }
 
 
-int *__backtrace_getfp(void);
-extern int __calling_environment[17][3];
-extern int * __ul_errfp;
-
-
-void
-__write_unrecoverable(const char *errmess)
-{
-  fprintf(stderr, "\nUnrecoverable error received:\n%s\n", errmess);
-}
-
-
-static void
-write_termination(int signo)
-{
-   fprintf(stderr, "\nTermination signal received: %s\n", sys_siglist[signo]);
-}
-
-
 /* Returns non-zero value when address range <lower> - <upper> (excl) is
    a valid address range.  */
 int
-valid_address(const int *lower, const int *upper)
+valid_address (const int *lower, const int *upper)
 {
   int flags;
 
   return !(_swix(OS_ValidateAddress,
-         _INR(0,1) | _OUT(_FLAGS), lower, upper, &flags) || (flags & _C) != 0);
+	 _INR(0,1) | _OUT(_FLAGS), lower, upper, &flags) || (flags & _C) != 0);
 }
 
 
-static int
+static void
+write_termination (int signo)
+{
+  fprintf(stderr, "\nTermination signal received: %s\n", sys_siglist[signo]);
+}
+
+
+static void
 write_backtrace (int signo)
 {
   int features;
   int *fp = __backtrace_getfp(), *oldfp = NULL;
 
-  /* The ASM version did originally disable environment handlers
-     but this seems to cause problems */
-
-  fprintf(stderr, "\nFatal signal received: %s\n\n", sys_siglist[signo]);
-
-  fputs("Stack backtrace:\n\n", stderr);
-
   if (_swix(OS_PlatformFeatures, _IN(0) | _OUT(0), 0, &features))
     features = 0;
 
-  while (fp)
+  /* The ASM version did originally disable environment handlers
+     but this seems to cause problems.  */
+
+  fprintf(stderr, "\nFatal signal received: %s\n\nStack backtrace:\n\n",
+	  strsignal(signo));
+
+  /* fp[0]  => pc
+     fp[-1] => lr
+     fp[-2] => sp
+     fp[-3] => previous fp  */
+  while (fp != NULL)
     {
-      int *pc;
+      int *pc, *lr;
 
-      /* Check that FP is different */
+      /* Check that FP is different.  */
       if (fp == oldfp)
-        {
-          fprintf(stderr, "fp unchanged at %x\n", (int)fp);
-          break;
-        }
+	{
+	  fprintf(stderr, "fp unchanged at %x\n", (int)fp);
+	  break;
+	}
 
-      /* Validate FP address */
+      /* Validate FP address.  */
       if (!valid_address(fp - 3, fp))
-        {
-           fprintf(stderr, "Stack frame has gone out of bounds "
-                           "with address %x\n", (int)fp - 12);
-           break;
-        }
+	{
+	  fprintf(stderr, "Stack frame has gone out of bounds "
+			  "with address %x\n", (int)fp - 12);
+	  break;
+	}
 
+      /* Retrieve PC counter.  */
       if (__32bit)
-        pc = (int *)(fp[0] & 0xfffffffc);
+	pc = (int *)(fp[0] & 0xfffffffc);
       else
-        pc = (int *)(fp[0] & 0x03fffffc);
-
+	pc = (int *)(fp[0] & 0x03fffffc);
       if (!(features & 0x8))
-        pc += 1;
+	pc += 1;
 
       if (!valid_address(pc, pc))
-        {
-           fprintf(stderr, "Invalid pc address %x\n", (int)pc);
-           break;
-        }
+	{
+	  fprintf(stderr, "Invalid pc address %x\n", (int)pc);
+	  break;
+	}
 
-     fprintf(stderr, " pc: %8x sp: %8x ", (int)pc, fp[-2]);
-
-      if (!valid_address(pc - 7, pc - 3))
-        {
-          fputs("[invalid address]\n", stderr);
-        }
+      /* Retrieve lr.  */
+      if (__32bit)
+	lr = (int *)(fp[-1] & 0xfffffffc);
       else
-        {
-          int address;
-          const char *name = NULL;
+	lr = (int *)(fp[-1] & 0x03fffffc);
 
-          for (address = -3; address > -8; address--)
-            {
-              if ((pc[address] & 0xffffff00) == 0xff000000)
-                {
-                  name = (char *)(pc + address) - (pc[address] & 0xff);
-                  break;
-                }
-            }
+      fprintf(stderr, "  (%8x) pc: %8x lr: %8x sp: %8x ", (int)fp, (int)pc, (int)lr, fp[-2]);
 
-            if (!name)
-              fputs(" ?()\n", stderr);
-            else
-              fprintf(stderr, " %s()\n", name);
+      /* Retrieve function name.  */
+      if (!valid_address(pc - 7, pc))
+	{
+	  fputs("[invalid address]\n", stderr);
+	}
+      else
+	{
+	  int address;
+	  const char *name = NULL;
 
-        }
+	  for (address = -3; address > -8; address--)
+	    {
+	      if ((pc[address] & 0xffffff00) == 0xff000000)
+		{
+		  name = (const char *)(pc + address) - (pc[address] & 0xff);
+		  break;
+		}
+	    }
+
+	  /* Function name sanity check.  */
+	  if (name != NULL
+	      && (!valid_address((const int *)name, (const int *)(name + 256))
+		  || strnlen(name, 256) == 256))
+	    name = NULL;
+
+	  if (!name)
+	    fputs(" ?()\n", stderr);
+	  else
+	    fprintf(stderr, " %s()\n", name);
+	}
 
       oldfp = fp;
       fp = (int *)fp[-3];
 
-      if (fp == __ul_errfp)
-        {
-          int reg;
-          const char * const rname[16] =
-            { "a1", "a2", "a3", "a4", "v1", "v2", "v3", "v4",
-              "v5", "v6", "sl", "fp", "ip", "sp", "lr", "pc" };
+      if (fp == __ul_callbackfp && fp != NULL)
+	{
+	  int reg;
+	  const char * const rname[16] =
+	    { "a1", "a2", "a3", "a4", "v1", "v2", "v3", "v4",
+	      "v5", "v6", "sl", "fp", "ip", "sp", "lr", "pc" };
 
-          fprintf(stderr, "\nRegister dump at %p:\n", &oldfp[1]);
+	  /* At &oldfp[1] = cpsr, a1-a4, v1-v6, sl, fp, ip, sp, lr, pc */
+	  fprintf(stderr, "\n  Register dump at %p:\n", &oldfp[1]);
 
-          for (reg = 0; reg < 16; reg++)
-            {
-              if ( valid_address(oldfp + reg + 1, oldfp + reg + 1))
-                {
-                  if ((reg & 0x3) == 0)
-                    fputs("\n", stderr);
+	  if (valid_address(oldfp, oldfp + 17))
+	    {
+	    for (reg = 0; reg < 16; reg++)
+	      {
+		if ((reg & 0x3) == 0)
+		  fputs("\n   ", stderr);
 
-                  fprintf(stderr, " %s: %8x", rname[reg], oldfp[reg + 1]);
-                }
-              else
-                {
-                  fputs(" [bad addr]", stderr);
-                  break;
-                }
-            }
-            fprintf(stderr, "\n\n\n");
-        }
+		fprintf(stderr, " %s: %8x", rname[reg], oldfp[reg + 2]);
+	      }
 
-
-     }
+	    if (__32bit)
+	      fprintf(stderr, "\n  cpsr: %8x\n\n", oldfp[1]);
+	    else
+	      fprintf(stderr, "\n\n");
+	    }
+	  else
+	    fputs("    [bad register dump address]\n\n", stderr);
+	}
+    }
 
   fputs("\n", stderr);
-
-  /* And reenable environment handlers here */
-
-  return 1;
 }
 
 
@@ -266,7 +265,7 @@ post_signal (struct unixlib_sigstate *ss, int signo)
 
   static const unsigned int core_signals = sigmask (SIGQUIT) | sigmask (SIGILL)
     | sigmask (SIGTRAP) | sigmask (SIGIOT) | sigmask (SIGEMT)
-    | sigmask (SIGFPE)	| sigmask (SIGBUS) | sigmask (SIGSEGV)
+    | sigmask (SIGFPE) | sigmask (SIGBUS) | sigmask (SIGSEGV)
     | sigmask (SIGSYS);
   enum
   {
@@ -314,7 +313,7 @@ post_signal:
 #endif
 
       if (handler == SIG_DFL)
-        {
+	{
 	  /* Unrecognised signals will cause process termination.  */
 	  act = term;
 
@@ -369,8 +368,8 @@ post_signal:
       (signal_mask & (sigmask (SIGTTIN) | sigmask (SIGTTOU) | sigmask (SIGTSTP))))
     {
       /* If we would ordinarily stop for a job control signal, but we are
-         orphaned so noone would ever notice and continue us again, we just
-         quietly die, alone and in the dark.  */
+	 orphaned so noone would ever notice and continue us again, we just
+	 quietly die, alone and in the dark.  */
       signo = SIGKILL;
       act = term;
     }
@@ -418,13 +417,14 @@ post_signal:
 
 	if (errbuf_valid)
 	  {
-	    fprintf(stderr, "\nError 0x%x: %s\n pc: %p\n", __ul_errbuf.errnum,
-			    __ul_errbuf.errmess, __ul_errbuf.pc);
+	    fprintf(stderr, "\nError 0x%x: %s\n  pc: %p\n",
+			    __ul_errbuf.errnum, __ul_errbuf.errmess,
+			    (int *)__ul_errbuf.pc - 1);
 	  }
 	if (signo == SIGFPE)
 	  {
-	    fprintf(stderr, " f0: %f  f1: %f  f2: %f  f3: %f\n"
-			    " f4: %f  f5: %f  f6: %f  f7: %f  fpsr: %x\n",
+	    fprintf(stderr, "  f0: %f  f1: %f  f2: %f  f3: %f\n"
+			    "  f4: %f  f5: %f  f6: %f  f7: %f\n  fpsr: %x\n",
 			    __ul_fp_registers.f[0], __ul_fp_registers.f[1],
 			    __ul_fp_registers.f[2], __ul_fp_registers.f[3],
 			    __ul_fp_registers.f[4], __ul_fp_registers.f[5],
@@ -435,9 +435,12 @@ post_signal:
 	if (act == term)
 	  {
 	    write_termination (signo);
-          }
-	else if (act == core && write_backtrace (signo))
-	  status |= WCOREFLAG;
+	  }
+	else if (act == core)
+	  {
+	    write_backtrace (signo);
+	    status |= WCOREFLAG;
+	  }
 
 	/* Die, returning information about how we died.  */
 	_exit (status);
@@ -492,6 +495,9 @@ post_signal:
 post_pending:
 #ifdef DEBUG
   __os_print ("post_signal: Deliver pending signals\r\n");
+  __os_print ("  pending 0x"); __os_prhex((int)ss->pending);
+  __os_print (", blocked 0x"); __os_prhex((int)ss->blocked);
+  __os_print ("\r\n");
 #endif
   if (!__u->stopped && (pending = ss->pending & ~ss->blocked))
     {
@@ -516,6 +522,11 @@ __unixlib_raise_signal (struct unixlib_sigstate *ss, int signo)
 {
   PTHREAD_UNSAFE
 
+#ifdef DEBUG
+  __os_print("\n\r__unixlib_raise_signal: state is 0x");
+  __os_prhex ((int)ss); __os_print(", signo is ");
+  __os_prdec (signo); __os_print ("\r\n");
+#endif
   if (ss == NULL)
     ss = &__u->sigstate;
 

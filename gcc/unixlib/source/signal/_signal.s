@@ -1,8 +1,8 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/signal/_signal.s,v $
-; $Date: 2004/10/17 16:24:44 $
-; $Revision: 1.23 $
+; $Date: 2004/10/23 17:23:36 $
+; $Revision: 1.24 $
 ; $State: Exp $
 ; $Author: joty $
 ;
@@ -28,7 +28,6 @@
 	IMPORT	|__pthread_enable_ints|
 	IMPORT	|__pthread_running_thread|
 	IMPORT	|__pthread_worksemaphore|
-	IMPORT  |__write_unrecoverable|
 	IMPORT	|exit|
 
 
@@ -91,7 +90,7 @@
 ;-----------------------------------------------------------------------
 ; void __seterr (const _kernel_oserror *err)
 ; On entry:
-;	a1 = err
+;	a1 = RISC OS error block
 ; On exit:
 ;	APCS-32 compliant. a1-a4, ip corrupted.
 ;
@@ -201,10 +200,17 @@
 	EXPORT	|__h_sigill|
 	NAME	__h_sigill
 |__h_sigill|
-	STR	lr, |__cbreg|+15*4
+	SUB	lr, lr, #4
+	STR	lr, |__cbreg| + 15*4
 	ADRL	lr, |__cbreg|
 	STMIA	lr!, {a1-ip}		; store non-banked registers
 	STMIA	lr, {sp, lr}^		; store banked registers
+
+	TEQ	pc, pc			; store CPSR at time of exception
+	LDRNE	a1, [lr, #4*2]
+	MRSEQ	a1, SPSR
+	STR	a1, [lr, #4*3]
+
 	MOV	a1, #SIGILL
 	STR	a1, |__cba1|
 	B	|__h_cback_common|
@@ -219,10 +225,13 @@
 	NAME	__h_sigbus
 |__h_sigbus|
 	SUB	lr, lr, #4
-	STR	lr, |__cbreg|+15*4
-	ADR	lr, |__cbreg|
+	STR	lr, |__cbreg| + 15*4
+	ADRL	lr, |__cbreg|
 	STMIA	lr!, {a1-ip}		; store non-banked registers
 	STMIA	lr, {sp, lr}^		; store banked registers
+	; No need to save CPSR because an address exception can only
+	; happen in 26 bit mode and then CPSR is nothing more than
+	; flags from pc.
 	MOV	a1, #SIGBUS
 	STR	a1, |__cba1|
 	B	|__h_cback_common|
@@ -237,10 +246,16 @@
 	NAME	__h_sigsegv0
 |__h_sigsegv0|
 	SUB	lr, lr, #4
-	STR	lr, |__cbreg|+15*4
+	STR	lr, |__cbreg| + 15*4
 	ADR	lr, |__cbreg|
 	STMIA	lr!, {a1-ip}		; store non-banked registers
 	STMIA	lr, {sp, lr}^		; store banked registers
+
+	TEQ	pc, pc			; store CPSR at time of exception
+	LDRNE	a1, [lr, #4*2]
+	MRSEQ	a1, SPSR
+	STR	a1, [lr, #4*3]
+
 	MOV	a1, #SIGSEGV
 	STR	a1, |__cba1|
 	B	|__h_cback_common|
@@ -272,8 +287,8 @@
 ;
 ;   . do the bits I've forgotten about.
 ;
-; It's all rather pointless since RO is not a virtual memory OS and the
-; OS should be fixing up the base register before calling us. Further,
+; It's all rather pointless since RISC OS is not a virtual memory OS and
+; the OS should be fixing up the base register before calling us. Further,
 ; other than printing out the correct value for the base register, we
 ; cannot continue executing the program, so the signal handler is not
 ; expected to return.
@@ -282,10 +297,16 @@
 	NAME	__h_sigsegv1
 |__h_sigsegv1|
 	SUB	lr, lr, #8
-	STR	lr, |__cbreg|+15*4
+	STR	lr, |__cbreg| + 15*4
 	ADR	lr, |__cbreg|
 	STMIA	lr!, {a1-ip}		; store non-banked registers
 	STMIA	lr, {sp, lr}^		; store banked registers
+
+	TEQ	pc, pc			; store CPSR at time of exception
+	LDRNE	a1, [lr, #4*2]
+	MRSEQ	a1, SPSR
+	STR	a1, [lr, #4*3]
+
 	MOV	a1, #SIGSEGV
 	STR	a1, |__cba1|
 	B	|__h_cback_common|
@@ -314,7 +335,7 @@
 ; Error handler (1-289).
 ; Entered in USR26 mode (26 bit system) or USR32 (32 bit system).
 ; On entry:
-;	a1 = pointer to [pc, error number, zero term. error string]
+;	a1 = pointer to [pc, error number, zero terminated error string]
 ; On exit:
 ;	Undefined.
 ;
@@ -342,7 +363,6 @@
 	MOV	v1, fp	; Save some USR regs. There is no guarantee that these
 	MOV	v2, sp	; contain anything of use, but they seem to be the USR
 	MOV	v3, lr	; regs at the time of the error.
-|__h_error_entry|
 	SWI	XOS_EnterOS	; Change to SVC mode so we don't get any
 				; callbacks while we are setting up the stack
 
@@ -356,13 +376,14 @@
 	BL	|__setup_signalhandler_stack|
 	CHGMODE	a1, USR_Mode	; Back to USR mode now we have a stack
 
-	ADR	v4, |__h_error_entry|	; Point at handler name
+	ADR	v4, |__h_error| + 4*3	; Point at handler name for backtrace
 	STMFD	sp!, {v1, v2, v3, v4}	; Setup an APCS-32 stack frame so we
-	ADD	fp, sp, #12		; can get a proper stack backtrace in
+	ADD	fp, sp, #4*3		; can get a proper stack backtrace in
 					; case anything goes horribly wrong.
 
-	LDR	a1, =|__ul_errfp|	; Save error FP backtrace
-	STR	v1, [a1]
+	LDR	v1, =|__ul_callbackfp|	; We don't have a r0-r15, CPSR
+	MOV	a1, #0			; snapshot on our sp stack.
+	STR	a1, [v1]
 
 	; Set errno to EOPSYS
 	MOV	a2, #EOPSYS
@@ -408,8 +429,8 @@ unrecoverable_error
 	; Test the type of hardware error.  We currently aren't doing
 	; much other than saying it was a Floating Point Exception
 	; or something else.
-	; For compatability with ISO C99 we should decode the FP exception
-	; more accurately.
+	; FIXME: for compatability with ISO C99 we should decode the FP
+	; exception more accurately.
 	BIC	a3, a3, #&80000000
 	MOV	a3, a3, LSR #8
 	AND	a3, a3, #&FF
@@ -421,9 +442,11 @@ unrecoverable_error
 	LDR	a1, =|__ul_fp_registers|
 	RFS	a2		; Read FP status register
 	STR	a2, [a1], #4
-	BIC	a2, a2, #&FF	; Disable all exceptions to prevent the
-	WFS	a2		; signal handler triggering another exception
+	BIC	a3, a3, #&FF<<16; Disable all exceptions to prevent the
+	WFS	a3		; signal handler triggering another exception
 
+	; We can't use SFM because we really want to write double
+	; values.
 	STFD	f0, [a1], #8
 	STFD	f1, [a1], #8
 	STFD	f2, [a1], #8
@@ -432,6 +455,8 @@ unrecoverable_error
 	STFD	f5, [a1], #8
 	STFD	f6, [a1], #8
 	STFD	f7, [a1], #8
+
+	WFS	a2		; Restore FPE status
 
 	MOV	a2, #SIGFPE	;  A floating point exception
 
@@ -517,7 +542,7 @@ Internet_Event	EQU	19
 
 	MOV	ip, #SIGURG
 	STR	ip, |__cba1|
-	MOV	ip, #1		; Callback set if R12 = 1
+	MOV	ip, #1		; CallBack set if R12 = 1
 	MOV	pc, lr
 
 ;-----------------------------------------------------------------------
@@ -528,7 +553,7 @@ Internet_Event	EQU	19
 ;	r11/fp = SWI number (Bit 17 (the X bit) clear)
 ;	r13/sp = SVC stack pointer
 ;	r14/lr = return address in the kernel with NZCVIF flags the
-;                same as teh callers (except V clear) (26 bit system) or
+;                same as the callers (except V clear) (26 bit system) or
 ;                return address in the kernel (32 bit system).
 ;       PSR flags undefined (except I+F as caller)
 ; On exit:
@@ -545,6 +570,8 @@ Internet_Event	EQU	19
 	ADR	lr, |__cbreg|
 	STMIA	lr!, {a1-ip}		; store non-banked registers
 	STMIA	lr, {sp, lr}^		; store banked registers
+	MOV	a1, #0			; No meaningful CPSR so null it.
+	STR	a1, [lr, #4*3]
 	MOV	a1, #SIGSYS
 	STR	a1, |__cba1|
 	B	|__h_cback_common|
@@ -564,7 +591,7 @@ Internet_Event	EQU	19
 ; SUL calls __env_riscos_and_wimpslot directly
 
 ;-----------------------------------------------------------------------
-; Callback handler.
+; CallBack handler.
 ; Entered in SVC26 or IRQ26 mode (26 bit system) or SVC32 (32 bit system),
 ; IRQs disabled.
 ; __h_cback_commom is called directly from other handlers.
@@ -583,7 +610,7 @@ Internet_Event	EQU	19
 	; Check that the return PC value is within our wimpslot.
 	; If it isn't, then we don't want to do a context switch
 	; so return straight away.
-	LDR	a1, |__cbreg|+15*4
+	LDR	a1, |__cbreg| + 15*4
 	TEQ	pc, pc
 	BICNE	a1, a1, #&fc000003
 
@@ -626,17 +653,18 @@ return_quickly
 	]
 
 	BL	|__setup_signalhandler_stack|
-
+	; Back to USR mode now we have a stack, but with IRQs disabled.
 	CHGMODE	a1, USR_Mode+IFlag
+
 	; The USR mode registers r0-r15 and CPSR are extracted from the
 	; callback register block while IRQs are disabled. The registers
 	; are then saved on the USR mode signal handler stack.
-	ADR	a1, |__cbreg|+8*4
+	ADR	a1, |__cbreg| + 8*4	; Copy R8-R15, R0-R7
 	LDMIA	a1, {a2, a3, a4, v1, v2, v3, v4, v5}
 	STMFD	sp!, {a2, a3, a4, v1, v2, v3, v4, v5}
 	LDMDB	a1, {a2, a3, a4, v1, v2, v3, v4, v5}
 	STMFD	sp!, {a2, a3, a4, v1, v2, v3, v4, v5}
-	LDR	a2, [a1, #8*4]
+	LDR	a2, [a1, #8*4]		; Copy CPSR
 	STMFD	sp!, {a2}
 
 	; Check for an escape condition
@@ -649,14 +677,14 @@ return_quickly
 	SWINE	XOS_Byte		; This calls our escape handler
 
 	; Create an APCS-32 compilant signal stack frame
-	ADR	a4, |__h_cback|+12	; point at handler name for backtrace
-	LDR	a3, [sp, #14*4+4]	; saved USR lr
-	LDR	a2, [sp, #13*4+4]	; saved USR sp
-	LDR	a1, [sp, #11*4+4]	; saved USR fp
+	ADR	a4, |__h_cback| + 4*3	; point at handler name for backtrace
+	LDR	a3, [sp, #14*4 + 4]	; saved USR lr
+	LDR	a2, [sp, #13*4 + 4]	; saved USR sp
+	LDR	a1, [sp, #11*4 + 4]	; saved USR fp
 	STMFD	sp!, {a1, a2, a3, a4}	; create signal frame
-	ADD	fp, sp, #12
+	ADD	fp, sp, #4*3
 
-	LDR	v1, =|__ul_errfp|	; Save error FP backtrace
+	LDR	v1, =|__ul_callbackfp|	; Save callback FP backtrace
 	STR	a1, [v1]
 
 	MOV	a1, #0
@@ -727,7 +755,8 @@ return_quickly
 
 	; User registers are preserved in here for the callback execution.
 	; User registers = R0-R15 and CPSR in 32-bit mode
-	;                = R0-R15 only in 26-bit mode
+	;		 = R0-R15 only in 26-bit mode (the 17th word equals
+	;		   the pc value)
 	EXPORT	|__cbreg|
 |__cbreg|	%	4 * 17
 
@@ -893,32 +922,32 @@ return_quickly
 	AREA	|C$$data|, DATA
 
 	EXPORT	|__executing_signalhandler|
-	EXPORT	|__signalhandler_sp|
-	EXPORT	|__signalhandler_sl|
 |__executing_signalhandler|
 	DCD	0	; Non-zero if we are currently executing a signal handler
+	EXPORT	|__signalhandler_sl|
 |__signalhandler_sl|
 	DCD	0	; Stack limit for signal handlers
+	EXPORT	|__signalhandler_sp|
 |__signalhandler_sp|
 	DCD	0	; Stack pointer for signal handlers
 
-	AREA	|C$$zidata|, DATA, NOINIT
+; The fp at the time when __h_cback_common is executed.  This value
+; will be used during write_backtrace() to know when we can dump the CPSR
+; and USR registers at fp + 4.
+	EXPORT  |__ul_callbackfp|
+|__ul_callbackfp|
+	DCD	0
 
 ;-----------------------------------------------------------------------
 ; UnixLib's error buffer.
 ; If threads are in use then it is only temporary, as the error handler
 ; copies it into the thread's error buffer.
 ;
-; According to 1-289 the error handler must provide an error buffer of
-; size 256 bytes, the address of which should be set along with the
+; According to PRM 1-289 the error handler must provide an error buffer
+; of size 256 bytes, the address of which should be set along with the
 ; handler address.  This is wrong, it actually requires a 260 byte
 ; buffer, for the error PC and the normal 256 byte RISC OS error
 ; block.
-;
-       EXPORT  |__ul_errfp|
-|__ul_errfp|
-	DCD	0
-
 	EXPORT  |__ul_errbuf|
 |__ul_errbuf|
 	%	4	; PC when error occurred
@@ -931,6 +960,6 @@ return_quickly
 
 	EXPORT |__ul_fp_registers|
 |__ul_fp_registers|
-	%	8 * 8 + 4	; 8 double-precision registers and FPSR
+	%	4 + 8 * 8	; FPSR and 8 double-precision registers
 
 	END
