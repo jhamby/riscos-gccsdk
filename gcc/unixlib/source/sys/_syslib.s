@@ -1,10 +1,10 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/_syslib.s,v $
-; $Date: 2003/04/21 10:48:45 $
-; $Revision: 1.14 $
+; $Date: 2003/04/28 12:07:02 $
+; $Revision: 1.15 $
 ; $State: Exp $
-; $Author: peter $
+; $Author: alex $
 ;
 ;----------------------------------------------------------------------------
 
@@ -224,15 +224,16 @@ EXTREMELY_PARANOID	*	0	; Should we check that the entire stack chunk chain is va
 	EOREQ	v4, v4, a2, ROR #23
 	CMPEQ	v4, a2
 	BNE	no_old_area
-	MOV	v6, a1				; save new __lomem
-	MOVS	a1, #2				; ensure Z flag clear
-	SWI	XOS_DynamicArea			; preserves Z, sets V on error
+	MOV	v6, a1		; save new __lomem
+	MOV	a1, #2
+	SWI	XOS_DynamicArea
+	BVS	no_old_area	; bail out if SWI failed
 	; check new __lomem = end of dynamic area
-	ADDVC	a4, a4, a3	; If VC here then SWI sucessful,
-	TEQVC	a4, v6		; if VS then Z will be clear from earlier MOVS
-	BNE	no_old_area	; bail out if SWI failed, or if sizes mismatch
+	ADD	a4, a4, a3
+	TEQ	a4, v6
+	BNE	no_old_area	; bail out if sizes mismatch
 	MOV	v6, #0
-	BVC	da_found
+	B	da_found
 
 
 no_old_area

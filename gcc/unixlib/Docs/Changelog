@@ -1,3 +1,8 @@
+Mon Apr 28 23:42:26 2003  Alex Waugh  <alex@alexwaugh.com>
+
+	* sys/_os.s: Don't rely on flags being preserved across SWI calls.
+	* sys/_syslib.s: Likewise.
+
 Mon Apr 28 22:03:02 2003  Alex Waugh  <alex@alexwaugh.com>
 
 	* Makefile: Remove fcrypt.c

@@ -1,10 +1,10 @@
 ;----------------------------------------------------------------------------
 ;
-; $Source$
-; $Date$
-; $Revision$
-; $State$
-; $Author$
+; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/_os.s,v $
+; $Date: 2002/09/24 21:02:38 $
+; $Revision: 1.5 $
+; $State: Exp $
+; $Author: admin $
 ;
 ;----------------------------------------------------------------------------
 
@@ -148,10 +148,12 @@ os_423inkey_l2
 	EXPORT	|__os_byte|
 	NAME	__os_byte
 |__os_byte|
-	MOVS	ip, a4
+	MOV	ip, a4
 	SWI	XOS_Byte
+	return	VS, pc, lr
+	CMP	ip, #0
 	STMNEIA ip, {a1, a2, a3}
-	MOVVC	a1, #0
+	MOV	a1, #0
 	return	AL, pc, lr
 
 	EXPORT	|__os_word|
@@ -223,13 +225,13 @@ os_prhex_l1
 	NAME	__os_file
 |__os_file|
 	STMFD	sp!, {v1, v2, lr}
-	CMP	a3, #0
-	ADDNE	ip, a3, #8
-	LDMNEIA ip, {a3, a4, v1, v2}
+	MOVS	ip, a3
+	ADD	a3, a3, #8
+	LDMNEIA a3, {a3, a4, v1, v2}
 	SWI	XOS_File
-	SUBNE	ip, ip, #8
-	STMNEIA ip, {a1, a2, a3, a4, v1, v2}
 	MOVVC	a1, #0
+	CMP	ip, #0
+	STMNEIA ip, {a1, a2, a3, a4, v1, v2}
 	stackreturn	AL, "v1, v2, pc"
 
 	EXPORT	|__os_fopen|
@@ -254,37 +256,40 @@ os_prhex_l1
 	NAME	__os_fread
 |__os_fread|
 	STMFD	sp!, {v1, lr}
-	MOVS	ip, a4
+	MOV	ip, a4
 	MOV	a4, a3
 	MOV	a3, a2
 	MOV	a2, a1
 	MOV	a1, #4
 	SWI	XOS_GBPB
-	STMNEIA ip, {a1, a2, a3, a4, v1}
 	MOVVC	a1, #0
+	CMP	ip, #0
+	STMNEIA	ip, {a1, a2, a3, a4, v1}
 	stackreturn	AL, "v1, pc"
 
 	EXPORT	|__os_fwrite|
 	NAME	__os_fwrite
 |__os_fwrite|
 	STMFD	sp!, {v1, lr}
-	MOVS	ip, a4
+	MOV	ip, a4
 	MOV	a4, a3
 	MOV	a3, a2
 	MOV	a2, a1
 	MOV	a1, #2
 	SWI	XOS_GBPB
-	STMNEIA ip, {a1, a2, a3, a4, v1}
 	MOVVC	a1, #0
+	CMP	ip, #0
+	STMNEIA	ip, {a1, a2, a3, a4, v1}
 	stackreturn	AL, "v1, pc"
 
 	EXPORT	|__os_args|
 	NAME	__os_args
 |__os_args|
-	MOVS	ip, a4
+	MOV	ip, a4
 	SWI	XOS_Args
-	STMNEIA ip, {a1, a2, a3}
 	MOVVC	a1, #0
+	CMP	ip, #0
+	STMNEIA	ip, {a1, a2, a3}
 	return	AL, pc, lr
 
 	EXPORT	|__os_fsctrl|
