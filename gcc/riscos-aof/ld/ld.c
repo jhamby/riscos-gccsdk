@@ -1,7 +1,7 @@
 /* GNU ld implementation as a wrapper to an ARM/RISC OS linker
    for the GNU compiler, with support for the C++ template repository.
 
-   Copyright (C) 1997-1999 Free Software Foundation, Inc.
+   Copyright (C) 1997, 1998, 1999, 2000 Nick Burrett
    Contributed by Nick Burrett (nick.burrett@btinternet.com)
 
 This file is part of GNU CC.
@@ -24,6 +24,7 @@ Boston, MA 02111-1307, USA.  */
 /* If building for a cross-compilation environment then be sure to
    define CROSS_COMPILE.  */
 
+#include "sdk-config.h"
 #include <stdio.h>
 #include <stdarg.h>
 #include <stddef.h>
@@ -137,6 +138,16 @@ xrealloc (char *ptr, int size)
     ld_error ("virtual memory exhausted");
   return result;
 }
+
+#ifndef HAVE_STPCPY
+static char *stpcpy (char *s, const char *s2)
+{
+  while ((*s++ = *s2++))
+    ;
+
+  return s - 1;
+}
+#endif
 
 static void
 linker_initialise (void)
