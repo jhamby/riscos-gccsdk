@@ -1173,12 +1173,17 @@ extern const char * structure_size_string;
 
    On the ARM regs are UNITS_PER_WORD bits wide; FPA regs can hold any FP
    mode.  */
+#ifdef TARGET_RISCOSAOF
+#define HARD_REGNO_NREGS(REGNO, MODE)  	\
+  ((TARGET_ARM && REGNO >= FIRST_ARM_FP_REGNUM)	? 1 : ARM_NUM_REGS (MODE))
+#else
 #define HARD_REGNO_NREGS(REGNO, MODE)  	\
   ((TARGET_ARM 				\
     && REGNO >= FIRST_ARM_FP_REGNUM	\
-    && (! TARGET_APCS_STACK && REGNO != FRAME_POINTER_REGNUM)	\
-    && (! TARGET_APCS_STACK && REGNO != ARG_POINTER_REGNUM))	\
+    && REGNO != FRAME_POINTER_REGNUM)	\
+    && REGNO != ARG_POINTER_REGNUM))	\
    ? 1 : ARM_NUM_REGS (MODE))
+#endif
 
 /* Return true if REGNO is suitable for holding a quantity of type MODE.  */
 #define HARD_REGNO_MODE_OK(REGNO, MODE)					\
