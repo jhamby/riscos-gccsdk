@@ -1,4 +1,23 @@
-Mon May 13 21:51:36 2003  Alex Waugh  <alex@alexwaugh.com>
+Tue May 13 22:46:38 2003  Alex Waugh  <alex@alexwaugh.com>
+
+	* math-asm/_acosf.s: Keep sp valid at all times.
+	* math-asm/_asinf.s: Likewise.
+	* math-asm/_atanf.s: Likewise.
+	* math-asm/_ceilf.s: Likewise.
+	* math-asm/_cosf.s: Likewise.
+	* math-asm/_coshf.s: Likewise.
+	* math-asm/_expf.s: Likewise.
+	* math-asm/_floorf.s: Likewise.
+	* math-asm/_ldexpf.s: Likewise.
+	* math-asm/_log10f.s: Likewise.
+	* math-asm/_logf.s: Likewise.
+	* math-asm/_modf1f.s: Likewise.
+	* math-asm/_sinf.s: Likewise.
+	* math-asm/_sinhf.s: Likewise.
+	* math-asm/_tanf.s: Likewise.
+	* math-asm/_tanhf.s: Likewise.
+
+Tue May 13 21:51:36 2003  Alex Waugh  <alex@alexwaugh.com>
 
 	* objs/Makefile,fe1: Add getopt1.c
 	* source/Makefile: Likewise.

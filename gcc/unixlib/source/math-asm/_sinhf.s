@@ -1,8 +1,8 @@
 ;----------------------------------------------------------------------------
 ;
-; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/math-asm/_sinh.s,v $
-; $Date: 2002/09/24 21:02:37 $
-; $Revision: 1.3 $
+; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/math-asm/_sinhf.s,v $
+; $Date: 2002/11/26 21:52:07 $
+; $Revision: 1.1 $
 ; $State: Exp $
 ; $Author: admin $
 ;
@@ -16,8 +16,8 @@
 	EXPORT	sinhf
 	NAME	sinhf
 sinhf
-	STR	a1, [sp, #-4]
-	LDFS	f0, [sp, #-4]
+	STR	a1, [sp, #-4]!
+	LDFS	f0, [sp], #4
 	MNFS	f1, f0
 	EXPS	f0, f0
 	EXPS	f1, f1
