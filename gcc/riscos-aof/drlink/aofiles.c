@@ -144,10 +144,10 @@ static unsigned int addto_strt(const char *name) {
 static void reloc_aofarlist(arealist *ap) {
   arealist *firstarea;
   newhead *hp;
+  unsigned int areabase = 0;
 
   firstarea = NIL;
   while (ap!=NIL) {
-    unsigned int areabase = 0;
 
     if (ap->arbase!=firstarea) {	/* Area name differs from last one */
       firstarea = ap->arbase;
