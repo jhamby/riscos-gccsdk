@@ -4,7 +4,7 @@
 export TLIB
 
 all:	make bison fileutils flex gperf grep gzip patch \
-	sed arm-simulator
+	sed
 
 .PHONY: bison
 .PHONY: diff
@@ -16,9 +16,8 @@ all:	make bison fileutils flex gperf grep gzip patch \
 .PHONY: make
 .PHONY: patch
 .PHONY: sed
-.PHONY: arm-simulator
 
-arm-simulator bison diff fileutils flex gperf grep gzip make patch sed:
+bison diff fileutils flex gperf grep gzip make patch sed:
 	mkdir -p $(objdir)/riscos-progs/$@
 	$(MAKE) -C $@
 
