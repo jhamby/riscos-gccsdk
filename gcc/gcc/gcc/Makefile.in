@@ -380,7 +380,7 @@ options.c: opts.sh options.h $(lang_opt_files)
 options.h: opts.sh $(lang_opt_files)
 	AWK=awk $(SHELL) opts.sh '$(SHELL) move-if-change' options.c options.h $(lang_opt_files)
 
-gcov-iov.h: $(gccobjdir)/gcov-iov gcov-iov.c version.h
+gcov-iov.h: gcov-iov.c version.h
 	$(gccobjdir)/gcov-iov > gcov-iov.h
 
 # Bison object dependencies
@@ -832,7 +832,7 @@ $(gccobjdir)/calls.o: calls.c
 $(gccobjdir)/combine.o: combine.c insn-attr.h
 $(gccobjdir)/conflict.o: conflict.c
 $(gccobjdir)/convert.o: convert.c
-$(gccobjdir)/coverage.o: coverage.c gcov-iov.h
+$(gccobjdir)/coverage.o: coverage.c coverage.h gcov-iov.h
 $(gccobjdir)/cse.o: cse.c
 $(gccobjdir)/dbxout.o: dbxout.c
 $(gccobjdir)/debug.o: debug.c debug.h
