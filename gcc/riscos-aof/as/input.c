@@ -519,7 +519,7 @@ inputSymbol (int *ilen, char del)
   else
     {
       while ((c = *p) != 0
-             && (isalnum (c) || c == '_'
+             && (isalnum (c) || c == '_' || c == '.'
 		 || (c == '$' && local && (p[1] == 'l' || p[1] == 'L')
 		     && p[2] != '.' && p[2] != '_' && !isalpha (p[2]))))
 	{
