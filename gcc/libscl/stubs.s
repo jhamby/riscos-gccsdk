@@ -22,6 +22,10 @@ OS_GetEnv		EQU &10
 
 SharedCLibrary_LibInitAPCS_R	EQU &80681
 SharedCLibrary_LibInitAPCS_32	EQU &80683
+
+; Keep these in sync with unixlib/asm_dec.s and features.h
+__FEATURE_PTHREADS	EQU	1
+__PTHREAD_ALLOCA_OFFSET	EQU	8
  
 	IMPORT	|Image$$RO$$Base|
 	IMPORT	|RTSK$$Data$$Base|
@@ -371,6 +375,16 @@ stack_size
 	; no fast event proc
 	; no unwind proc
 	; no name proc
+
+; Provide storage for __arm_alloca
+	[ __FEATURE_PTHREADS = 1
+	AREA	|C$$Data|, DATA
+	EXPORT	|__pthread_running_thread|
+|__pthread_running_thread|
+	DCD	|__pthread_running_thread_data|-__PTHREAD_ALLOCA_OFFSET
+|__pthread_running_thread_data|
+	%	12
+	]
 
 	AREA	|C$$Code|, CODE, READONLY
 language_name
