@@ -41,10 +41,7 @@ LIB2FUNCS_2 = $(libobjdir)/floatdixf.o \
 	$(libobjdir)/fixtfdi.o \
 	$(libobjdir)/fixunstfdi.o \
 	$(libobjdir)/floatditf.o \
-	$(libobjdir)/clear_cache.o \
-	$(libobjdir)/trampoline.o \
 	$(libobjdir)/main.o \
-	$(libobjdir)/exit.o \
 	$(libobjdir)/absvsi2.o \
 	$(libobjdir)/absvdi2.o \
 	$(libobjdir)/addvsi3.o \
@@ -61,8 +58,7 @@ LIB2FUNCS_ST = $(libobjdir)/eprintf.o \
 	$(libobjdir)/bb.o \
 	$(libobjdir)/gcc_bcmp.o
 
-LIB2FUNCS_EXTRA = 
-	$(libobjdir)/ffs.o \
+LIB2FUNCS_EXTRA = $(libobjdir)/ffs.o \
 	$(libobjdir)/clricache.o \
 	$(libobjdir)/libgcc_fix.o \
 	$(libobjdir)/dynamic.o
@@ -119,15 +115,14 @@ all:	$(ux_gcc_bin_dir)/$(TRG)/libgcc.o $(ro_gcc_bin_dir)/$(TRG)/o/libgcc
 install_headers:
 	$(insthdr) ginclude "*.h" . $(ux_gccpkg)/$(gn_gcc_include_dir) $(ro_gccpkg)/$(gn_gcc_include_dir)
 
-$(ux_gcc_bin_dir)/$(TRG)/libgcc.o: $(LIB2FUNCS_1) $(LIB2FUNCS_2) \
-	$(FP_BIT_DOUBLE) $(FP_BIT_SINGLE) $(LIB2ADDEH)
-	$(CROSS_AR) $(CROSS_AR_FLAGS) -c $@ $(LIB2FUNCS_1) $(LIB2FUNCS_2) \
-	$(FP_BIT_DOUBLE) $(FP_BIT_SINGLE) $(LIB2ADDEH)
+LIBGCC_OBJS = $(LIB2FUNCS_1) $(LIB2FUNCS_2) \
+	$(LIB2FUNCS_EXTRA) $(FP_BIT_DOUBLE) $(FP_BIT_SINGLE) $(LIB2ADDEH)
 
-$(ro_gcc_bin_dir)/$(TRG)/o/libgcc: $(LIB2FUNCS_1) $(LIB2FUNCS_2) \
-	$(FP_BIT_DOUBLE) $(FP_BIT_SINGLE) $(LIB2ADDEH)
-	$(CROSS_AR) $(CROSS_AR_FLAGS) -c $@ $(LIB2FUNCS_1) $(LIB2FUNCS_2) \
-	$(FP_BIT_DOUBLE) $(FP_BIT_SINGLE) $(LIB2ADDEH)
+$(ux_gcc_bin_dir)/$(TRG)/libgcc.o: $(LIBGCC_OBJS)
+	$(CROSS_AR) $(CROSS_AR_FLAGS) -c $@ $(LIBGCC_OBJS)
+
+$(ro_gcc_bin_dir)/$(TRG)/o/libgcc: $(LIBGCC_OBJS)
+	$(CROSS_AR) $(CROSS_AR_FLAGS) -c $@ $(LIBGCC_OBJS)
 
 ############################################################################
 
@@ -158,6 +153,77 @@ $(libobjdir)/main.o:	libgcc2.c
 
 $(libobjdir)/bb.o:	libgcc2.c
 	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c libgcc2.c $(INCLUDES) -DL_bb
+
+
+$(libobjdir)/negdi2.o:	libgcc2.c
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c libgcc2.c $(INCLUDES) -DL_negdi2
+
+$(libobjdir)/ffsdi2.o:	libgcc2.c
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c libgcc2.c $(INCLUDES) -DL_ffsdi2
+
+$(libobjdir)/clz.o:	libgcc2.c
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c libgcc2.c $(INCLUDES) -DL_clz
+
+$(libobjdir)/floatdisf.o:	libgcc2.c
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c libgcc2.c $(INCLUDES) -DL_floatdisf
+
+$(libobjdir)/fixunsdfsi.o:	libgcc2.c
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c libgcc2.c $(INCLUDES) -DL_fixunsdfsi
+
+$(libobjdir)/fixunssfsi.o:	libgcc2.c
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c libgcc2.c $(INCLUDES) -DL_fixunssfsi
+
+$(libobjdir)/fixdfdi.o: libgcc2.c
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c libgcc2.c $(INCLUDES) -DL_fixdfdi
+
+$(libobjdir)/fixunssfdi.o: libgcc2.c
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c libgcc2.c $(INCLUDES) -DL_fixunssfdi
+
+$(libobjdir)/fixsfdi.o: libgcc2.c
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c libgcc2.c $(INCLUDES) -DL_fixsfdi
+
+$(libobjdir)/fixxfdi.o: libgcc2.c
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c libgcc2.c $(INCLUDES) -DL_fixxfdi
+
+$(libobjdir)/fixunsxfdi.o: libgcc2.c
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c libgcc2.c $(INCLUDES) -DL_fixunsxfdi
+
+$(libobjdir)/floatdixf.o: libgcc2.c
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c libgcc2.c $(INCLUDES) -DL_floatdixf
+
+$(libobjdir)/fixunsxfsi.o: libgcc2.c
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c libgcc2.c $(INCLUDES) -DL_fixunsxfsi
+
+$(libobjdir)/fixtfdi.o: libgcc2.c
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c libgcc2.c $(INCLUDES) -DL_fixtfdi
+
+$(libobjdir)/fixunstfdi.o: libgcc2.c
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c libgcc2.c $(INCLUDES) -DL_fixunstfdi
+
+$(libobjdir)/floatditf.o: libgcc2.c
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c libgcc2.c $(INCLUDES) -DL_floatditf
+
+
+$(libobjdir)/absvsi2.o: libgcc2.c
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c libgcc2.c $(INCLUDES) -DL_absvsi2
+$(libobjdir)/absvdi2.o: libgcc2.c
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c libgcc2.c $(INCLUDES) -DL_absvdi2
+$(libobjdir)/addvsi3.o: libgcc2.c
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c libgcc2.c $(INCLUDES) -DL_addvsi3
+$(libobjdir)/addvdi3.o: libgcc2.c
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c libgcc2.c $(INCLUDES) -DL_addvdi3
+$(libobjdir)/subvsi3.o: libgcc2.c
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c libgcc2.c $(INCLUDES) -DL_subvsi3
+$(libobjdir)/subvdi3.o: libgcc2.c
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c libgcc2.c $(INCLUDES) -DL_subvdi3
+$(libobjdir)/mulvsi3.o: libgcc2.c
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c libgcc2.c $(INCLUDES) -DL_mulvsi3
+$(libobjdir)/mulvdi3.o: libgcc2.c
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c libgcc2.c $(INCLUDES) -DL_mulvdi3
+$(libobjdir)/negvsi2.o: libgcc2.c
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c libgcc2.c $(INCLUDES) -DL_negvsi2
+$(libobjdir)/negvdi2.o: libgcc2.c
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c libgcc2.c $(INCLUDES) -DL_negvdi2
 
 
 # Exception handling
@@ -266,8 +332,14 @@ $(libobjdir)/df_to_usi.o:	fp-bit.c
 	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c fp-bit.c $(FPBIT_FLAGS) -DL_df_to_usi
 $(libobjdir)/negate_df.o:	fp-bit.c
 	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c fp-bit.c $(FPBIT_FLAGS) -DL_negate_df
+$(libobjdir)/unord_df.o:	fp-bit.c
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c fp-bit.c $(FPBIT_FLAGS) -DL_unord_df
+$(libobjdir)/thenan_df.o:	fp-bit.c
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c fp-bit.c $(FPBIT_FLAGS) -DL_thenan_df
 $(libobjdir)/make_df.o:	fp-bit.c
 	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c fp-bit.c $(FPBIT_FLAGS) -DL_make_df
+$(libobjdir)/usi_to_df.o:	fp-bit.c
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c fp-bit.c $(FPBIT_FLAGS) -DL_usi_to_df
 
 
 # fplib (single precision)
@@ -305,6 +377,10 @@ $(libobjdir)/sf_to_usi.o:	fp-bit.c
 	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c fp-bit.c -DFLOAT $(FPBIT_FLAGS) -DL_sf_to_usi
 $(libobjdir)/negate_sf.o:	fp-bit.c
 	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c fp-bit.c -DFLOAT $(FPBIT_FLAGS) -DL_negate_sf
+$(libobjdir)/unord_sf.o:	fp-bit.c
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c fp-bit.c $(FPBIT_FLAGS) -DL_unord_sf
+$(libobjdir)/thenan.o:	fp-bit.c
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c fp-bit.c $(FPBIT_FLAGS) -DL_thenan
 $(libobjdir)/make_sf.o:	fp-bit.c
 	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c fp-bit.c -DFLOAT $(FPBIT_FLAGS) -DL_make_sf
 
@@ -312,3 +388,5 @@ $(libobjdir)/df_to_sf.o:	fp-bit.c
 	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c fp-bit.c $(FPBIT_FLAGS) -DL_df_to_sf
 $(libobjdir)/sf_to_df.o:	fp-bit.c
 	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c fp-bit.c -DFLOAT $(FPBIT_FLAGS) -DL_sf_to_df
+$(libobjdir)/usi_to_sf.o:	fp-bit.c
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c fp-bit.c $(FPBIT_FLAGS) -DL_usi_to_sf
