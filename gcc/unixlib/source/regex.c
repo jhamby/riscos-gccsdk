@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/regex.c,v $
- * $Date: 2003/05/25 21:46:22 $
- * $Revision: 1.3 $
+ * $Date: 2004/01/06 00:17:36 $
+ * $Revision: 1.4 $
  * $State: Exp $
- * $Author: alex $
+ * $Author: joty $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: regex.c,v 1.3 2003/05/25 21:46:22 alex Exp $";
+static const char rcs_id[] = "$Id: regex.c,v 1.4 2004/01/06 00:17:36 joty Exp $";
 #endif
 
 /* Extended regular expression matching and search library,
@@ -4924,7 +4924,7 @@ bcmp_translate (s1, s2, len, translate)
 const char *
 re_compile_pattern (pattern, length, bufp)
      const char *pattern;
-     int length;
+     size_t length;
      struct re_pattern_buffer *bufp;
 {
   reg_errcode_t ret;

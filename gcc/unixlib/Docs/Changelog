@@ -1,3 +1,33 @@
+Sat Jun 12 09:36:14 2004  Peter Naulls  <peter@chocky.org>
+
+	* source/regex.c: Fix type usage
+	* source/clib/math.h, source/clib/clib/bits/mathcalls.h,
+	  source/clib/bits/mathdef.h, source/clib/mathinline.h,
+	  source/clib/bits/nan.h: Add glibc math headers.
+	* source/clib/machine/huge_val.h, source/clib/machine/nano.h:
+          Remove old math headers.
+	* source/clib/netdb.h: Add missing EAI_* defines.
+	* source/clib/regex.h: Updated header from glibc
+	* source/clib/stdlib.h: Extra include for sys/types.h as per
+	  glibc to make correct types visible.
+	* source/clib/bits.in.h: Avoid upsetting C++.
+	* source/clib/unixlib/features.h: Include definitions from glibc,
+	  fix wording.
+	* source/math/j1.c, source/math/fmod: Prevent warnings
+	* source/netlib/getpeernam.c: Update funtion header to match
+	  declaration
+	* source/unix/fstat.c, source/unix/lseek.c, source/unix/lstat.c:
+	  Add 64-bit variants.
+	* source/clib/unixlib/unix.h, source/common/funcallerr.c,
+	  source/resource/initialise.c, source/resource/setprior.c,
+	  source/resource/ulimit.c, source/signal/_signal.s,
+	  source/sys/_alloca.s, source/sys/_exec.s, source/sys/_syslib.s,
+	  source/sys/_vfork.s, source/sys/brk.c, source/sys/debug.c,
+	  source/sys/exec.c, source/sys/stackalloc.c, source/unix/unix.c:
+	  Rename __base, __lomem, __himem, and other unixlib internal
+	  values delcared in unix.h as per discussion GCCSDK mailing list. 
+
+
 Sun Jun  6 13:22:36 2004  John Tytgat  <John.Tytgat@aaug.net>
 
 	* source/unix/uname.c: support for extracting RISC OS part number.

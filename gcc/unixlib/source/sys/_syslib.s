@@ -1,8 +1,8 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/_syslib.s,v $
-; $Date: 2004/05/16 18:48:24 $
-; $Revision: 1.27 $
+; $Date: 2004/05/31 13:49:39 $
+; $Revision: 1.28 $
 ; $State: Exp $
 ; $Author: alex $
 ;
@@ -828,11 +828,11 @@ signalhandler_overflow
 	BLNE	|__pthread_disable_ints|
 	]
 
-	LDR	a2, =|__stack|
+	LDR	a2, =|__unixlib_stack|
 	LDR	a2, [a2]			; a2 = __stack
-	LDR	a3, =|__himem|
+	LDR	a3, =|__image_rw_himem|
 	LDR	a3, [a3]			; a3 = __himem
-	LDR	a4, =|__base|
+	LDR	a4, =|__image_ro_base|
 	LDR	a4, [a4]			; a4 = __base
 
 	SUB	a1, sl, #512+CHUNK_OVERHEAD
@@ -1054,50 +1054,50 @@ dynamic_area_name_end
 	IMPORT	|Image$$RO$$Base|
 	IMPORT	|Image$$RW$$Base|
 	IMPORT	|Image$$RW$$Limit|
-	EXPORT	|__cli|		; CLI from OS_GetEnv
-	EXPORT	|__base|	; BASE (application = 0x8000)
-	EXPORT	|__lomem|	; LOMEM
-	EXPORT	|__rwlimit|
-	EXPORT	|__himem|	; HIMEM from OS_GetEnv
-	EXPORT	|__break|	; the 'break'
-	EXPORT	|__stack|	; stack limit
-	EXPORT	|__stack_limit|	; lower stack limit
+	EXPORT	|__unixlib_cli|		; CLI from OS_GetEnv
+	EXPORT	|__image_ro_base|	; BASE (application = 0x8000)
+	EXPORT	|__image_rw_lomem|	; LOMEM
+	EXPORT	|__unixlib_rwlimit|
+	EXPORT	|__image_rw_himem|	; HIMEM from OS_GetEnv
+	EXPORT	|__unixlib_break|	; the 'break'
+	EXPORT	|__unixlib_stack|	; stack limit
+	EXPORT	|__unixlib_stack_limit|	; lower stack limit
 	EXPORT	|__time|	; start time - 5 byte format
-	EXPORT	|__real_break|	; top limit of dynamic area allocated
+	EXPORT	|__unixlib_real_break|	; top limit of dynamic area allocated
 	EXPORT	|__fpflag|
 	EXPORT	|__taskwindow|	; non-zero if executing in a TaskWindow
 	EXPORT	|__taskhandle|	; WIMP task handle, or zero if non WIMP task
 	EXPORT	|__dynamic_num|
 	EXPORT	|__u|		; pointer to proc structure
-	EXPORT	|__real_himem|
+	EXPORT	|__unixlib_real_himem|
 	EXPORT	|__32bit|	; non-zero if executing in 32-bit mode
 
 	; Altering this structure will require fixing __main.
 struct_base
-|__cli|		DCD	0				; offset = 0
-|__himem|	DCD	0				; offset = 4
-|__time|	DCD	0, 0	; low word, high byte	; offset = 8
-|__stack|	DCD	0				; offset = 16
+|__unixlib_cli|	        DCD	0				; offset = 0
+|__image_rw_himem|	DCD	0				; offset = 4
+|__time|	        DCD	0, 0	; low word, high byte	; offset = 8
+|__unixlib_stack|	DCD	0				; offset = 16
 
-|__robase|	DCD	|Image$$RO$$Base|		; offset = 20
-|__rwlimit|	DCD	|Image$$RW$$Limit|		; offset = 24
-|__base|	DCD	0				; offset = 28
+|__robase|	        DCD	|Image$$RO$$Base|		; offset = 20
+|__unixlib_rwlimit|	DCD	|Image$$RW$$Limit|		; offset = 24
+|__image_ro_base|	DCD	0				; offset = 28
 
-|__lomem|	DCD	0				; offset = 32
-|__break|	DCD	0				; offset = 36
-|__stack_limit|	DCD	0				; offset = 40
+|__image_rw_lomem|	DCD	0				; offset = 32
+|__unixlib_break|	DCD	0				; offset = 36
+|__unixlib_stack_limit|	DCD	0				; offset = 40
 
-|__rwbase|	DCD	|Image$$RW$$Base|		; offset = 44
-|__real_break|	DCD	0				; offset = 48
-|__fpflag|	DCD	0				; offset = 52
+|__rwbase|	        DCD	|Image$$RW$$Base|		; offset = 44
+|__unixlib_real_break|  DCD	0				; offset = 48
+|__fpflag|	        DCD	0				; offset = 52
 
-|__taskwindow|	DCD	0				; offset = 56
-|__taskhandle|	DCD	0				; offset = 60
+|__taskwindow|	        DCD	0				; offset = 56
+|__taskhandle|	        DCD	0				; offset = 60
 
-|__dynamic_num|	DCD	-1				; offset = 64
-|__u|		DCD	0				; offset = 68
-|__real_himem|	DCD	0				; offset = 72
+|__dynamic_num|	        DCD	-1				; offset = 64
+|__u|		        DCD	0				; offset = 68
+|__unixlib_real_himem|	DCD	0				; offset = 72
 
-|__32bit|	DCD	0				; offset = 76
+|__32bit|	        DCD	0				; offset = 76
 
 	END

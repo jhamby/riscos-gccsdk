@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/common/funcallerr.c,v $
- * $Date: 2002/02/14 15:56:35 $
- * $Revision: 1.3 $
+ * $Date: 2004/01/14 23:16:59 $
+ * $Revision: 1.4 $
  * $State: Exp $
- * $Author: admin $
+ * $Author: joty $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: funcallerr.c,v 1.3 2002/02/14 15:56:35 admin Exp $";
+static const char rcs_id[] = "$Id: funcallerr.c,v 1.4 2004/01/14 23:16:59 joty Exp $";
 #endif
 
 #include <signal.h>
@@ -23,7 +23,7 @@ __funcall_error (const char *file, int line, unsigned int addr)
   char *s = buf + sizeof(buf);
 
   __os_print ("fatal error: Attempt to call a function at address below 0x");
-  __os_prhex ((unsigned int) __base);
+  __os_prhex ((unsigned int) __image_ro_base);
   __os_print ("\n\ror a function at a non word-aligned address in a UnixLib function.\r\nFile: ");
   __os_print (file);
   __os_print (", line: ");

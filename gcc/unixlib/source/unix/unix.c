@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/unix.c,v $
- * $Date: 2004/03/17 20:00:51 $
- * $Revision: 1.21 $
+ * $Date: 2004/04/12 09:41:11 $
+ * $Revision: 1.22 $
  * $State: Exp $
- * $Author: joty $
+ * $Author: nick $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: unix.c,v 1.21 2004/03/17 20:00:51 joty Exp $";
+static const char rcs_id[] = "$Id: unix.c,v 1.22 2004/04/12 09:41:11 nick Exp $";
 #endif
 
 #include <stdio.h>
@@ -118,7 +118,7 @@ __hexstrtochar (const char *nptr)
   return result;
 }
 
-extern char *__cli;
+extern char *__unixlib_cli;
 
 /* Initialise the UnixLib world.  Create a new process structure, initialise
    the UnixLib library and parse command line arguments.
@@ -202,13 +202,13 @@ void __unixinit (void)
       *environ = NULL;
     }
 
-  /* Get command line.  __cli's pointing to the command line block returned
+  /* Get command line.  __unixlib_cli's pointing to the command line block returned
      by OS_GetEnv in __main ().  */
-  __cli_size = strlen (__cli);
+  __cli_size = strlen (__unixlib_cli);
 
 #ifdef DEBUG
-  __os_print ("-- __unixinit: getting cli: __cli = ");
-  __os_print (__cli); __os_print ("\r\n");
+  __os_print ("-- __unixinit: getting cli: __unixlib_cli = ");
+  __os_print (__unixlib_cli); __os_print ("\r\n");
 #endif
 
   /* Since the command line limit of RISC OS is only 255 characters,
@@ -222,7 +222,7 @@ void __unixinit (void)
   cli = malloc (cli_size + 2);
   if (cli != NULL)
     {
-      memcpy (cli, __cli, __cli_size);
+      memcpy (cli, __unixlib_cli, __cli_size);
       cli[__cli_size] = '\0';
       if (__cli_size < cli_size)
         {

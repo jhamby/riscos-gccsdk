@@ -1,10 +1,10 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/_vfork.s,v $
-; $Date: 2003/12/04 22:55:35 $
-; $Revision: 1.7 $
+; $Date: 2003/12/29 16:37:00 $
+; $Revision: 1.8 $
 ; $State: Exp $
-; $Author: alex $
+; $Author: peter $
 ;
 ;----------------------------------------------------------------------------
 
@@ -15,7 +15,7 @@
 	IMPORT	|__vfork|
 	IMPORT	|__vexit|
 	IMPORT	|__dynamic_num|
-	IMPORT	|__real_break|
+	IMPORT	|__unixlib_real_break|
 	IMPORT	|__pthread_system_running|
 	IMPORT	|__pthread_atfork_callprepare|
 	IMPORT	|__pthread_atfork_callparentchild|
@@ -100,7 +100,7 @@ return_parent	; Return from the vfork in the parent process
 	MOV	a1, #2
 	SWI	XOS_DynamicArea
 	MOVVC	a1, a2
-	LDRVC	a2, =|__real_break|
+	LDRVC	a2, =|__unixlib_real_break|
 	ADDVC	a3, a3, a4
 	LDRVC	a2, [a2]
 	SUBVC	a2, a2, a3

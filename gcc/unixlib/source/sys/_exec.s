@@ -1,8 +1,8 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/_exec.s,v $
-; $Date: 2003/04/05 12:16:34 $
-; $Revision: 1.3 $
+; $Date: 2004/03/06 13:24:43 $
+; $Revision: 1.4 $
 ; $State: Exp $
 ; $Author: alex $
 ;
@@ -15,11 +15,11 @@
 	IMPORT	|__exret|
 	IMPORT	|__env_wimpslot|
 
-	IMPORT	|__base|
-	IMPORT	|__lomem|
-	IMPORT	|__rwlimit|
+	IMPORT	|__image_ro_base|
+	IMPORT	|__image_rw_lomem|
+	IMPORT	|__unixlib_rwlimit|
 	IMPORT	|__dynamic_num|
-	IMPORT	|__real_break|
+	IMPORT	|__unixlib_real_break|
 
 	IMPORT	|__exerr|
 	IMPORT	|abort|
@@ -228,11 +228,11 @@
 |__exret_ptr|
 	DCD	|__exret|
 |__base_ptr|
-	DCD	|__base|
+	DCD	|__image_ro_base|
 |__base_|
 	DCD	0	; __base value
 |__rwlimit_ptr|
-	DCD	|__rwlimit|
+	DCD	|__unixlib_rwlimit|
 |__rwlimit_|
 	DCD	0	; __rwlimit value
 |__exreg|
@@ -246,7 +246,7 @@
 |__dynamic_num_|
 	DCD	0	; __dynamic_num value
 |__real_break_ptr|
-	DCD	|__real_break|
+	DCD	|__unixlib_real_break|
 |__real_break_|
 	DCD	0	; __real_break value
 
@@ -268,7 +268,7 @@
 
         EXPORT  |__exec_cli|
 |__exec_cli|
-        LDR     a2,=|__lomem|
+        LDR     a2,=|__image_rw_lomem|
         LDR     a2,[a2]
 |__exec_cli_0|
         LDRB    a3,[a1],#1
@@ -277,7 +277,7 @@
         BNE     |__exec_cli_0|
         BL      |__env_wimpslot|
 
-        LDR     a1,=|__lomem|
+        LDR     a1,=|__image_rw_lomem|
         LDR     a1,[a1]
         SWI     XOS_CLI
         MOV     R0,#0

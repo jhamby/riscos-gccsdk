@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/lseek.c,v $
- * $Date: 2002/02/14 15:56:38 $
- * $Revision: 1.3 $
+ * $Date: 2003/04/05 09:33:57 $
+ * $Revision: 1.4 $
  * $State: Exp $
- * $Author: admin $
+ * $Author: alex $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: lseek.c,v 1.3 2002/02/14 15:56:38 admin Exp $";
+static const char rcs_id[] = "$Id: lseek.c,v 1.4 2003/04/05 09:33:57 alex Exp $";
 #endif
 
 #include <errno.h>
@@ -38,4 +38,10 @@ lseek (int fd, off_t offset, int whence)
 
   return __funcall ((*(__dev[file_desc->device].lseek)),
 		    (file_desc, offset, whence));
+}
+
+off_t
+lseek64 (int fd, off_t offset, int whence)
+{
+  return lseek(fd, offset, whence);
 }

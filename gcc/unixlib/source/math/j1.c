@@ -1,7 +1,7 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/math/c/j1,v $
- * $Date: 2000/06/10 08:57:26 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/math/j1.c,v $
+ * $Date: 2001/01/29 15:10:19 $
  * $Revision: 1.2 $
  * $State: Exp $
  * $Author: admin $
@@ -9,7 +9,7 @@
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: j1,v 1.2 2000/06/10 08:57:26 admin Exp $";
+static const char rcs_id[] = "$Id: j1.c,v 1.2 2001/01/29 15:10:19 admin Exp $";
 #endif
 
 /* @(#)e_j1.c 5.1 93/09/24 */
@@ -68,6 +68,8 @@ static const char rcs_id[] = "$Id: j1,v 1.2 2000/06/10 08:57:26 admin Exp $";
  *         where x1 = x-3*pi/4. It is better to compute sin(x1),cos(x1)
  *         by method mentioned above.
  */
+
+#undef __UNIXLIB_INTERNALS
 
 #include <stdlib.h>
 #include <math.h>

@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/exec.c,v $
- * $Date: 2004/03/06 13:24:43 $
- * $Revision: 1.10 $
+ * $Date: 2004/03/17 20:00:51 $
+ * $Revision: 1.11 $
  * $State: Exp $
- * $Author: alex $
+ * $Author: joty $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: exec.c,v 1.10 2004/03/06 13:24:43 alex Exp $";
+static const char rcs_id[] = "$Id: exec.c,v 1.11 2004/03/17 20:00:51 joty Exp $";
 #endif
 
 #include <ctype.h>
@@ -57,16 +57,16 @@ static const char rcs_id[] = "$Id: exec.c,v 1.10 2004/03/06 13:24:43 alex Exp $"
    `c' - code
    `n' - comment string.
 
-   If `p' is located between __base and __rwlimit (i.e. the code section
+   If `p' is located between __image_ro_base and __unixlib_rwlimit (i.e. the code section
    of the program) then it will be relocated using `c'.
 
-   If `p' is located between __lomem and __break (i.e. the data section
+   If `p' is located between __image_rw_lomem and __unixlib_break (i.e. the data section
    of the program) then it will be relocated using `v'.  */
 static void *
 __ushift (unsigned char *p, unsigned int v, unsigned int c, char *n)
 {
-  void *r = (((void *)p >= __base && (void *)p < __rwlimit) ? p + c
-	     : ((void *)p >= __lomem && (void *)p < __stack_limit) ? p + v : p);
+  void *r = (((void *)p >= __image_ro_base && (void *)p < __unixlib_rwlimit) ? p + c
+	     : ((void *)p >= __image_rw_lomem && (void *)p < __unixlib_stack_limit) ? p + v : p);
   showmove ("ushift", n, p, r);
   return r;
 }
@@ -79,8 +79,8 @@ __ushift (unsigned char *p, unsigned int v, unsigned int c, char *n)
 static void *
 __ushift (unsigned char *p, unsigned int v, unsigned int c)
 {
-  return (((void *)p >= __base && (void *)p < __rwlimit) ? p + c
-	  : ((void *)p >= __lomem && (void *)p < __stack_limit) ? p + v : p);
+  return (((void *)p >= __image_ro_base && (void *)p < __unixlib_rwlimit) ? p + c
+	  : ((void *)p >= __image_rw_lomem && (void *)p < __unixlib_stack_limit) ? p + v : p);
 }
 
 #endif
@@ -94,8 +94,8 @@ __dshift (unsigned char *p, unsigned int v, unsigned int c, char *n)
 {
   void *q1 = p - c;
   void *q2 = p - v;
-  void *r = ((q1 >= __base && q1 < __rwlimit) ? q1
-	     : (q2 >= __lomem && q2 < __stack_limit) ? q2 : p);
+  void *r = ((q1 >= __image_ro_base && q1 < __unixlib_rwlimit) ? q1
+	     : (q2 >= __image_rw_lomem && q2 < __unixlib_stack_limit) ? q2 : p);
   showmove ("dshift", n, p, r);
   return r;
 }
@@ -113,8 +113,8 @@ __dshift (unsigned char *p, unsigned int v, unsigned int c)
 
   /* This is only safe when 2 * maximum application space size < start of
      dynamic areas. This is not true, see PJB any real restrictions.  */
-  return ((q1 >= __base && q1 < __rwlimit) ? q1
-	  : (q2 >= __lomem && q2 < __stack_limit) ? q2 : p);
+  return ((q1 >= __image_ro_base && q1 < __unixlib_rwlimit) ? q1
+	  : (q2 >= __image_rw_lomem && q2 < __unixlib_stack_limit) ? q2 : p);
 }
 
 #endif
@@ -406,9 +406,9 @@ execve (const char *execname, char *const argv[], char *const envp[])
       __env_riscos ();
 
       /* If the cli plus a small (256-byte) stack is larger than the
-       * gap between __lomem and __himem (unlikely) then fail. */
+       * gap between __image_rw_lomem and __image_rw_himem (unlikely) then fail. */
       cli_length = strlen (cli);
-      if (cli_length + 1 + 256 > (char*)__himem - (char*)__lomem)
+      if (cli_length + 1 + 256 > (char*)__image_rw_himem - (char*)__image_rw_lomem)
 	__exit_no_code ();	/* No return possible (see above).  */
 
       /* If the cli is >= MAXPATHLEN, we will need the aid of DDEUtils.  */
@@ -420,7 +420,7 @@ execve (const char *execname, char *const argv[], char *const envp[])
 	 and hence not in the DA.  Firstly, trim the area back with brk().  */
       if (__dynamic_num != -1)
 	{
-	  brk (__lomem);
+	  brk (__image_rw_lomem);
 	  __dynamic_area_exit ();
 	}
 
@@ -515,22 +515,22 @@ execve (const char *execname, char *const argv[], char *const envp[])
 
 #ifdef DEBUG
   __debug ("-- execve: process after new argv and envp setup");
-  __os_print ("__rwlimit: "); __os_prhex ((unsigned int) __rwlimit); __os_nl ();
-  __os_print ("__stack_limit: "); __os_prhex ((unsigned int) __stack_limit);
+  __os_print ("__unixlib_rwlimit: "); __os_prhex ((unsigned int) __unixlib_rwlimit); __os_nl ();
+  __os_print ("__unixlib_stack_limit: "); __os_prhex ((unsigned int) __unixlib_stack_limit);
   __os_nl ();
 #endif
 
   /* Force a malloc trim to reduce memory usage.  malloc() must not be
-     called after the __codeshift calculation below since __stack_limit
+     called after the __codeshift calculation below since __unixlib_stack_limit
      could be increased by any call to malloc().  Thus, malloc trim here
      is guaranteed to minimise the malloc heap as best as possible
      before running the child program.  */
   malloc_trim (0);
   __stackalloc_trim ();
 
-  if (((unsigned int) __base & ~0xff) == 0x8000)
+  if (((unsigned int) __image_ro_base & ~0xff) == 0x8000)
     {
-      __codeshift = ((char *) __stack - (char *) __stack_limit) - 512 - __exlen;
+      __codeshift = ((char *) __unixlib_stack - (char *) __unixlib_stack_limit) - 512 - __exlen;
       /* Heap might not be in a dynamic area (dynamic_num == -1).  */
       __exshift = (__dynamic_num == -1) ? __codeshift : 0;
     }
@@ -565,10 +565,10 @@ execve (const char *execname, char *const argv[], char *const envp[])
       unsigned int code = __codeshift;
       int i;
 
-      /* Pointers located between __base and __rwlimit (i.e. the code
+      /* Pointers located between __image_ro_base and __unixlib_rwlimit (i.e. the code
 	 section of a program) will be relocated using 'code'.
 
-	 Pointers located between __lomem and __break (i.e. the data
+	 Pointers located between __image_rw_lomem and __unixlib_break (i.e. the data
 	 section of a program) will be relocated using 'variable'.  */
       ushift (process->envp, variable, code);
       for (i = 0; i < process->envc; i++)
@@ -590,7 +590,7 @@ execve (const char *execname, char *const argv[], char *const envp[])
 	}
       ushift (process->tty, variable, code);
 
-      __exec = (void (*)(char *)) (void *) ((char *) __stack_limit + __codeshift);
+      __exec = (void (*)(char *)) (void *) ((char *) __unixlib_stack_limit + __codeshift);
     }
   else
     __exec = __exptr;
@@ -600,7 +600,7 @@ execve (const char *execname, char *const argv[], char *const envp[])
     int regs[10];
     char *address;
 
-    address = (char *) process + (process < __stack_limit ? __exshift : 0);
+    address = (char *) process + (process < __unixlib_stack_limit ? __exshift : 0);
     regs[0] = (int) "UnixLib$env";
     regs[1] = (int) &address;
     regs[2] = 4;
@@ -624,8 +624,8 @@ execve (const char *execname, char *const argv[], char *const envp[])
       __os_swi (OS_SynchroniseCodeAreas, regs);
     }
   if (__exshift)
-    memcpy ((char *) __lomem + __exshift, (char *) __lomem,
-	    (char *) __stack_limit - (char *) __lomem);
+    memcpy ((char *) __image_rw_lomem + __exshift, (char *) __image_rw_lomem,
+	    (char *) __unixlib_stack_limit - (char *) __image_rw_lomem);
 
   /* Finally call the program.  */
 #ifdef DEBUG
@@ -650,9 +650,9 @@ __exret (void)
       struct proc *process = __u;
 
       if (__exshift)
-	memcpy ((char *) __lomem,
-		(char *) __lomem + __exshift,
-		(char *) __stack_limit - (char *) __lomem);
+	memcpy ((char *) __image_rw_lomem,
+		(char *) __image_rw_lomem + __exshift,
+		(char *) __unixlib_stack_limit - (char *) __image_rw_lomem);
       dshift (process->tty, variable, code);
       for (i = 0; i < MAXTTY; i++)
 	{

@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source$
- * $Date$
- * $Revision$
- * $State$
- * $Author$
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/resource/setprior.c,v $
+ * $Date: 2003/01/21 17:54:22 $
+ * $Revision: 1.4 $
+ * $State: Exp $
+ * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id$";
+static const char rcs_id[] = "$Id: setprior.c,v 1.4 2003/01/21 17:54:22 admin Exp $";
 #endif
 
 #include <errno.h>
@@ -72,7 +72,7 @@ setpriority (enum __priority_which which, int who, int prio)
 	    }
 	  break;
 	case PRIO_PGRP:
-	  if (__u->child[i].gid == who)
+	  if (__u->child[i].gid == (unsigned int)who)
 	    {
 	      if (__u->child[i].gpri > prio)
 		{
@@ -85,7 +85,7 @@ setpriority (enum __priority_which which, int who, int prio)
 	    }
 	  break;
 	case PRIO_USER:
-	  if (__u->child[i].uid == who)
+	  if (__u->child[i].uid == (unsigned int)who)
 	    {
 	      if (__u->child[i].upri > prio)
 		{

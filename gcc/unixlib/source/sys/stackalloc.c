@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/stackalloc.c,v $
- * $Date: 2002/12/15 13:16:55 $
- * $Revision: 1.1 $
+ * $Date: 2003/04/05 12:16:34 $
+ * $Revision: 1.2 $
  * $State: Exp $
- * $Author: admin $
+ * $Author: alex $
  *
  ***************************************************************************/
 
@@ -29,7 +29,7 @@
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: stackalloc.c,v 1.1 2002/12/15 13:16:55 admin Exp $";
+static const char rcs_id[] = "$Id: stackalloc.c,v 1.2 2003/04/05 12:16:34 alex Exp $";
 #endif
 
 #include <stddef.h>
@@ -72,7 +72,7 @@ static struct block *freelist; /* Head of linked list of free blocks */
 static struct block *dummybottomblock; /* dummy block header at the bottom of the heap */
 static struct block *dummytopblock; /* dummy block header at the top of the heap */
 
-static void *__old_himem; /* Value of __himem last time the stack was increased */
+static void *__old_himem; /* Value of __image_rw_himem last time the stack was increased */
 
 
 /* Remove a block from the freelist */
@@ -106,26 +106,26 @@ static void *__old_himem; /* Value of __himem last time the stack was increased 
    blocks higher in the heap will be found first, which should help reduce
    fragmentation in a multithreaded program */
 
-/* Increase __himem (and hence the wimpslot, if needed) by incr bytes
-   __real_himem contains the actual wimpslot size, which may be greater
-   than __himem to try to reduce the number of times the wimpslot has
+/* Increase __image_rw_himem (and hence the wimpslot, if needed) by incr bytes
+   __unixlib_real_himem contains the actual wimpslot size, which may be greater
+   than __image_rw_himem to try to reduce the number of times the wimpslot has
    to be increased */
 void *
 __stackalloc_incr_wimpslot (int incr)
 {
   int regs[10];
 
-  if ((u_char *)__himem + incr <= (u_char *)__real_himem)
+  if ((u_char *)__image_rw_himem + incr <= (u_char *)__unixlib_real_himem)
     {
 #ifdef DEBUG
       __os_print ("-- __stackalloc_incr_wimpslot: no need to increase\r\n");
 #endif
-      __himem = (u_char *)__himem + incr;
-      return __himem;
+      __image_rw_himem = (u_char *)__image_rw_himem + incr;
+      return __image_rw_himem;
     }
 
   /* Round the size up to reduce the number of calls needed to Wimp_SlotSize */
-  regs[0] = (int) (((u_char *)__himem - 0x8000) + incr +
+  regs[0] = (int) (((u_char *)__image_rw_himem - 0x8000) + incr +
                    __DA_WIMPSLOT_ALIGNMENT) & ~__DA_WIMPSLOT_ALIGNMENT;
   regs[1] = -1;
 #ifdef DEBUG
@@ -146,8 +146,8 @@ __stackalloc_incr_wimpslot (int incr)
     }
 #endif
 
-  __real_himem = (void *)(0x8000 + regs[0]);
-  if ((u_char *)__himem + incr > (u_char *)__real_himem)
+  __unixlib_real_himem = (void *)(0x8000 + regs[0]);
+  if ((u_char *)__image_rw_himem + incr > (u_char *)__unixlib_real_himem)
     {
 #ifdef DEBUG
       __os_print ("-- __stackalloc_incr_wimpslot: wimpslot not increased by enough\r\n");
@@ -155,9 +155,9 @@ __stackalloc_incr_wimpslot (int incr)
       return NULL;
     }
 
-  __himem = (u_char *)__himem + incr;
+  __image_rw_himem = (u_char *)__image_rw_himem + incr;
 
-  return __himem;
+  return __image_rw_himem;
 }
 
 /* Try to increase the stack heap upwards */
@@ -167,7 +167,7 @@ __stackalloc_incr_upwards (int blocksneeded)
   int realblocksneeded = blocksneeded;
   struct block *topblock = dummytopblock - 1;
   int incr;
-  int foreign_incr = __himem != __old_himem;
+  int foreign_incr = __image_rw_himem != __old_himem;
 
   if (foreign_incr)
     {
@@ -204,13 +204,13 @@ __stackalloc_incr_upwards (int blocksneeded)
 
   if (foreign_incr)
     {
-      topblock = (struct block *)(void *)((u_char *)__himem - incr + DUMMY_BLOCK_SIZE);
+      topblock = (struct block *)(void *)((u_char *)__image_rw_himem - incr + DUMMY_BLOCK_SIZE);
       /* Setup a dummy block below the new block, to prevent us trying to
          coalesce with something that isn't in our heap */
       (topblock - 1)->startofcon = NULL;
     }
 
-  __old_himem = __himem;
+  __old_himem = __image_rw_himem;
 
   /* Setup a new dummy block at the top of the heap */
   dummytopblock = topblock + blocksneeded;
@@ -238,20 +238,20 @@ __stackalloc_incr_downwards (int blocksneeded)
   newbottomblock = bottomblock - realblocksneeded;
 
   incr = realblocksneeded * sizeof (struct block);
-  new__stack = (u_char *)__stack - incr;
+  new__stack = (u_char *)__unixlib_stack - incr;
 
 #ifdef DEBUG
   __os_print ("-- __stackalloc_incr_downwards: incr = ");
   __os_prhex (incr); __os_print ("\r\n");
-  __os_print ("-- __stackalloc_incr_downwards: __stack = ");
-  __os_prhex ((int)__stack); __os_print ("\r\n");
-  __os_print ("-- __stackalloc_incr_downwards: __stack_limit = ");
-  __os_prhex ((int)__stack_limit); __os_print ("\r\n");
+  __os_print ("-- __stackalloc_incr_downwards: __unixlib_stack = ");
+  __os_prhex ((int)__unixlib_stack); __os_print ("\r\n");
+  __os_print ("-- __stackalloc_incr_downwards: __unixlib_stack_limit = ");
+  __os_prhex ((int)__unixlib_stack_limit); __os_print ("\r\n");
 #endif
 
-  if (new__stack >= __stack_limit)
+  if (new__stack >= __unixlib_stack_limit)
     {
-      __stack = new__stack;
+      __unixlib_stack = new__stack;
 
       if (realblocksneeded != blocksneeded)
         {
@@ -303,11 +303,11 @@ __stackalloc_trim (void)
   /* Move dummy block up to where the end of the bottom block was */
   dummybottomblock = bottomblock + bottomblock->contents.free.numconsecutiveblocks - 1;
   dummybottomblock->startofcon = NULL;
-  __stack = (u_char *)dummybottomblock + sizeof(struct block) - 4;
+  __unixlib_stack = (u_char *)dummybottomblock + sizeof(struct block) - 4;
 
 #ifdef DEBUG
-  __os_print ("-- __stackalloc_trim: __stack = ");
-  __os_prhex ((int)__stack); __os_print ("\r\n");
+  __os_print ("-- __stackalloc_trim: __unixlib_stack = ");
+  __os_prhex ((int)__unixlib_stack); __os_print ("\r\n");
 #endif
 
 #if __FEATURE_PTHREADS
@@ -327,29 +327,29 @@ __stackalloc_init (void)
   int regs[10];
 
   /* The initial stack chunk is set up in _syslib.s
-     __stack points 8 bytes below the base of the initial chunk
+     __unixlib_stack points 8 bytes below the base of the initial chunk
      There are also 8 bytes spare above the initial chunk */
 
 #ifdef DEBUG
-  __os_print ("-- __stackalloc_init: __stack      = ");
-  __os_prhex ((int)__stack); __os_print ("\r\n");
-  __os_print ("-- __stackalloc_init: __himem      = ");
-  __os_prhex ((int)__himem); __os_print ("\r\n");
-  __os_print ("-- __stackalloc_init: __real_himem = ");
-  __os_prhex ((int)__real_himem); __os_print ("\r\n");
+  __os_print ("-- __stackalloc_init: __unixlib_stack      = ");
+  __os_prhex ((int)__unixlib_stack); __os_print ("\r\n");
+  __os_print ("-- __stackalloc_init: __image_rw_himem      = ");
+  __os_prhex ((int)__image_rw_himem); __os_print ("\r\n");
+  __os_print ("-- __stackalloc_init: __unixlib_real_himem = ");
+  __os_prhex ((int)__unixlib_real_himem); __os_print ("\r\n");
 #endif
 
   /* Record the value of himem when the initial stack chunk was setup */
-  __old_himem = __himem;
+  __old_himem = __image_rw_himem;
 
   /* Set himem to the top of the wimpslot, i.e. above any parent program */
   regs[0] = 0;
-  regs[1] = (int)__real_himem;
+  regs[1] = (int)__unixlib_real_himem;
   regs[2] = 0;
   __os_swi (OS_ChangeEnvironment, regs);
-  __himem = __real_himem;
+  __image_rw_himem = __unixlib_real_himem;
 
-  initialblock = (struct block *)(void *)((u_char *)__stack + 4);
+  initialblock = (struct block *)(void *)((u_char *)__unixlib_stack + 4);
   initialblock->size = 1;
   initialblock->startofcon = NULL;
 

@@ -1,10 +1,10 @@
 /****************************************************************************
  *
- * $Source: $
- * $Date: $
- * $Revision: $
- * $State: $
- * $Author: $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/bits/in.h,v $
+ * $Date: 2002/12/22 18:22:28 $
+ * $Revision: 1.1 $
+ * $State: Exp $
+ * $Author: admin $
  *
  ***************************************************************************/
 
@@ -61,7 +61,11 @@
 struct ip_opts
   {
     struct in_addr ip_dst;	/* First hop; zero without source route.  */
+#ifndef __cplusplus
     char ip_opts[40];		/* Actually variable in size.  */
+#else
+    char Ip_opts[40];
+#endif
   };
 
 /* Structure used for IP_ADD_MEMBERSHIP and IP_DROP_MEMBERSHIP. */

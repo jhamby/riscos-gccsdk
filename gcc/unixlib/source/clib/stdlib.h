@@ -1,8 +1,8 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/stdlib.h,v $
- * $Date: 2004/05/10 10:58:55 $
- * $Revision: 1.11 $
+ * $Date: 2004/05/10 14:20:16 $
+ * $Revision: 1.12 $
  * $State: Exp $
  * $Author: peter $
  *
@@ -142,6 +142,7 @@ extern int rand (void) __THROW;
 /* Seed the random number generator with the given number.  */
 extern void srand (long __seed) __THROW;
 
+# include <sys/types.h> /* we need int32_t... */
 /* Return a random integer between 0 and RAND_MAX (BSD interface).  */
 extern long int random (void) __THROW;
 

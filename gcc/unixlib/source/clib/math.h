@@ -1,202 +1,251 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/math.h,v $
- * $Date: 2004/04/12 13:03:37 $
- * $Revision: 1.9 $
- * $State: Exp $
- * $Author: nick $
- *
- ***************************************************************************/
+/* Declarations for math functions.
+   Copyright (C) 1991-1993,1995-1999,2001,2002 Free Software Foundation, Inc.
+   This file is part of the GNU C Library.
 
-/* ANSI Standard 4.5: Mathematics <math.h>.  */
+   The GNU C Library is free software; you can redistribute it and/or
+   modify it under the terms of the GNU Lesser General Public
+   License as published by the Free Software Foundation; either
+   version 2.1 of the License, or (at your option) any later version.
 
-#ifndef __MATH_H
-#define __MATH_H
+   The GNU C Library is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+   Lesser General Public License for more details.
 
-#ifndef __UNIXLIB_FEATURES_H
+   You should have received a copy of the GNU Lesser General Public
+   License along with the GNU C Library; if not, write to the Free
+   Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
+   02111-1307 USA.  */
+
+/*
+ *	ISO C99 Standard: 7.12 Mathematics	<math.h>
+ */
+
+#ifndef	_MATH_H
+#define	_MATH_H	1
+
 #include <unixlib/features.h>
-#endif
-
-#ifndef __MACHINE_HUGE_VAL_H
-#include <machine/huge_val.h>
-#endif
-#ifndef __MACHINE_NAN_H
-#include <machine/nan.h>
-#endif
-
-#ifndef __UNIXLIB_TYPES_H
-#include <unixlib/types.h>
-#endif
 
 __BEGIN_DECLS
 
-#define INFINITY HUGE_VALF
+/* Get machine-dependent HUGE_VAL value (returned on overflow).
+   On all IEEE754 machines, this is +Infinity.  */
+#include <bits/huge_val.h>
 
-/* Trigonometric functions.  */
+/* Get machine-dependent NAN value (returned for some domain errors).  */
+#ifdef	 __USE_ISOC99
+# include <bits/nan.h>
+#endif
+/* Get general and ISO C99 specific information.  */
+#include <bits/mathdef.h>
 
-/* Arc cosine of x.  */
-extern double acos (double __x) __THROW __attribute__ ((__const__));
-extern float acosf (float __x) __THROW __attribute__ ((__const__));
-extern long double acosl (long double __x) __THROW __attribute__ ((__const__));
 
-/* Arc sine of x.  */
-extern double asin (double __x) __THROW __attribute__ ((__const__));
-extern float asinf (float __x) __THROW __attribute__ ((__const__));
-extern long double asinl (long double __x) __THROW __attribute__ ((__const__));
+/* The file <bits/mathcalls.h> contains the prototypes for all the
+   actual math functions.  These macros are used for those prototypes,
+   so we can easily declare each function as both `name' and `__name',
+   and can declare the float versions `namef' and `__namef'.  */
 
-/* Arc tangent of x.  */
-extern double atan (double __x) __THROW __attribute__ ((__const__));
-extern float atanf (float __x) __THROW __attribute__ ((__const__));
-extern long double atanl (long double __x) __THROW __attribute__ ((__const__));
+#define __MATHCALL(function,suffix, args)	\
+  __MATHDECL (_Mdouble_,function,suffix, args)
+#define __MATHDECL(type, function,suffix, args) \
+  __MATHDECL_1(type, function,suffix, args); \
+  __MATHDECL_1(type, __CONCAT(__,function),suffix, args)
+#define __MATHCALLX(function,suffix, args, attrib)	\
+  __MATHDECLX (_Mdouble_,function,suffix, args, attrib)
+#define __MATHDECLX(type, function,suffix, args, attrib) \
+  __MATHDECL_1(type, function,suffix, args) __attribute__ (attrib); \
+  __MATHDECL_1(type, __CONCAT(__,function),suffix, args) __attribute__ (attrib)
+#define __MATHDECL_1(type, function,suffix, args) \
+  extern type __MATH_PRECNAME(function,suffix) args __THROW
 
-/* Arc tangent of y/x.  */
-extern double atan2 (double __y, double __x)
-     __THROW __attribute__ ((__const__));
-extern float atan2f (float __y, float __x) __THROW __attribute__ ((__const__));
-extern long double atan2l (long double __y, long double __x)
-     __THROW __attribute__ ((__const__));
+#define _Mdouble_ 		double
+#define __MATH_PRECNAME(name,r)	__CONCAT(name,r)
+# define _Mdouble_BEGIN_NAMESPACE __BEGIN_NAMESPACE_STD
+# define _Mdouble_END_NAMESPACE   __END_NAMESPACE_STD
+#include <bits/mathcalls.h>
+#undef	_Mdouble_
+#undef _Mdouble_BEGIN_NAMESPACE
+#undef _Mdouble_END_NAMESPACE
+#undef	__MATH_PRECNAME
 
-/* Cosine of x.  */
-extern double cos (double __x) __THROW __attribute__ ((__const__));
-extern float cosf (float __x) __THROW __attribute__ ((__const__));
-extern long double cosl (long double __x) __THROW __attribute__ ((__const__));
+#if defined __USE_MISC || defined __USE_ISOC99
 
-/* Sine of x.  */
-extern double sin (double __x) __THROW __attribute__ ((__const__));
-extern float sinf (float __x) __THROW __attribute__ ((__const__));
-extern long double sinl (long double __x) __THROW __attribute__ ((__const__));
 
-/* Tangent of x.  */
-extern double tan (double __x) __THROW __attribute__ ((__const__));
-extern float tanf (float __x) __THROW __attribute__ ((__const__));
-extern long double tanl (long double __x) __THROW __attribute__ ((__const__));
+/* Include the file of declarations again, this time using `float'
+   instead of `double' and appending f to each function name.  */
 
-/* Hyperbolic functions.  */
+# ifndef _Mfloat_
+#  define _Mfloat_		float
+# endif
+# define _Mdouble_ 		_Mfloat_
+# ifdef __STDC__
+#  define __MATH_PRECNAME(name,r) name##f##r
+# else
+#  define __MATH_PRECNAME(name,r) name/**/f/**/r
+# endif
+# define _Mdouble_BEGIN_NAMESPACE __BEGIN_NAMESPACE_C99
+# define _Mdouble_END_NAMESPACE   __END_NAMESPACE_C99
+# include <bits/mathcalls.h>
+# undef	_Mdouble_
+# undef _Mdouble_BEGIN_NAMESPACE
+# undef _Mdouble_END_NAMESPACE
+# undef	__MATH_PRECNAME
 
-/* Hyperbolic cosine of x.  */
-extern double cosh (double __x) __THROW __attribute__ ((__const__));
-extern float coshf (float __x) __THROW __attribute__ ((__const__));
-extern long double coshl (long double __x) __THROW __attribute__ ((__const__));
+# if (__STDC__ - 0 || __GNUC__ - 0) && !defined __NO_LONG_DOUBLE_MATH
+/* Include the file of declarations again, this time using `long double'
+   instead of `double' and appending l to each function name.  */
 
-/* Hyperbolic sine of x.  */
-extern double sinh (double __x) __THROW __attribute__ ((__const__));
-extern float sinhf (float __x) __THROW __attribute__ ((__const__));
-extern long double sinhl (long double __x) __THROW __attribute__ ((__const__));
+#  ifndef _Mlong_double_
+#   define _Mlong_double_	long double
+#  endif
+#  define _Mdouble_ 		_Mlong_double_
+#  ifdef __STDC__
+#   define __MATH_PRECNAME(name,r) name##l##r
+#  else
+#   define __MATH_PRECNAME(name,r) name/**/l/**/r
+#  endif
+#  define _Mdouble_BEGIN_NAMESPACE __BEGIN_NAMESPACE_C99
+#  define _Mdouble_END_NAMESPACE   __END_NAMESPACE_C99
+#  include <bits/mathcalls.h>
+#  undef _Mdouble_
+# undef _Mdouble_BEGIN_NAMESPACE
+# undef _Mdouble_END_NAMESPACE
+#  undef __MATH_PRECNAME
 
-/* Hyperbolic tangent of x.  */
-extern double tanh (double __x) __THROW __attribute__ ((__const__));
-extern float tanhf (float __x) __THROW __attribute__ ((__const__));
-extern long double tanhl (long double __x) __THROW __attribute__ ((__const__));
+# endif /* __STDC__ || __GNUC__ */
 
-/* Hyperbolic arc cosine of x.  */
-extern double acosh (double __x) __THROW __attribute__ ((__const__));
+#endif	/* Use misc or ISO C99.  */
+#undef	__MATHDECL_1
+#undef	__MATHDECL
+#undef	__MATHCALL
 
-/* Hyperbolic arc sine of x.  */
-extern double asinh (double __x) __THROW __attribute__ ((__const__));
 
-/* Hyperbolic arc tangent of x.  */
-extern double atanh (double __x) __THROW __attribute__ ((__const__));
-
-/* Exponential and logarithmic functions.  */
-
-/* Exponentional function of x (2 ^ e).  */
-extern double exp (double __x) __THROW __attribute__ ((__const__));
-extern float expf (float __x) __THROW __attribute__ ((__const__));
-extern long double expl (long double __x) __THROW __attribute__ ((__const__));
-
-/* Exponentional function of x (2 ^ x).  */
-extern double exp2 (double __x) __THROW __attribute__ ((__const__));
-
-/* Exponentional function of x (10 ^ x).  */
-extern double exp10 (double __x) __THROW __attribute__ ((__const__));
-
-/* Break value into a normalized fracton and an integral power of 2.  */
-extern double frexp (double value, int *__exp);
-extern float frexpf (float value, int *__exp);
-extern long double frexpl (long double value, int *__exp);
-
-/* x times (two to the exp power).  */
-extern double ldexp (double __x, int __exp)
-     __THROW __attribute__ ((__const__));
-extern float ldexpf (float __x, int __exp) __THROW __attribute__ ((__const__));
-extern long double ldexpl (long __x, int __exp)
-     __THROW __attribute__ ((__const__));
-
-/* scalb is the BSD name for ldexp.  */
-extern double scalb (double __x, int __exp)
-     __THROW __attribute__ ((__const__));
-
-/* Natural logarithm of x.  */
-extern double log (double __x) __THROW __attribute__ ((__const__));
-extern float logf (float __x) __THROW __attribute__ ((__const__));
-extern long double logl (long double __x) __THROW __attribute__ ((__const__));
-
-/* Base-ten logarithm of x.  */
-extern double log10 (double __x) __THROW __attribute__ ((__const__));
-extern float log10f (float __x) __THROW __attribute__ ((__const__));
-extern long double log10l (long double __x)
-     __THROW __attribute__ ((__const__));
-
-/* Break value into integral and fractional parts.  */
-extern double modf (double __value, double *__iprt);
-extern float modff (float __value, float *__iprt);
-extern long double modfl (long double __value, long double *__iprt);
-
-/* Power functions.  */
-
-/* Return x to the y power.  */
-extern double pow (double __x, double __y) __THROW __attribute__ ((__const__));
-extern float powf (float __x, float __y) __THROW __attribute__ ((__const__));
-extern long double powl (long double __x,
-			 long double __y) __THROW __attribute__ ((__const__));
-
-/* Return the square root of x.  */
-extern double sqrt (double __x) __THROW __attribute__ ((__const__));
-
-/* Nearest integer, absolute value, and remainder functions.  */
-
-/* Smallest integral value not less than X.  */
-extern double ceil (double __x) __THROW __attribute__ ((__const__));
-extern float ceilf (float __x) __THROW __attribute__ ((__const__));
-extern long double ceill (long double __x) __THROW __attribute__ ((__const__));
-
-/* Absolute value of X.  */
-extern double fabs (double __x) __THROW __attribute__ ((__const__));
-
-/* Largest integer not greater than X.  */
-extern double floor (double __x) __THROW __attribute__ ((__const__));
-extern float floorf (float __x) __THROW __attribute__ ((__const__));
-extern long double floorl (long double __x)
-     __THROW __attribute__ ((__const__));
-
-/* Nearest integer to X, away from 0 as a double.  */
-extern double round (double __x) __THROW __attribute__ ((__const__));
-
-/* Nearest integer to X, away from 0 as a long int.  */
-extern long lround (double __x) __THROW __attribute__ ((__const__));
-
-#ifdef __GNUC__
-/* Nearest integer to X, away from 0 as a long long.  */
-__extension__
-extern long long llround (double __x) __THROW __attribute__ ((__const__));
+#if defined __USE_MISC || defined __USE_XOPEN
+/* This variable is used by `gamma' and `lgamma'.  */
+extern int signgam;
 #endif
 
-/* Floating-point modulo remainder of X/Y.  */
-extern double fmod (double __x, double __y)
-     __THROW __attribute__ ((__const__));
-extern float fmodf (float __x, float __y) __THROW __attribute__ ((__const__));
-extern long double fmodl (long double __x,
-			  long double __y) __THROW __attribute__ ((__const__));
 
-/* Hypotenuese of x and y.  */
-extern double hypot (double __x, double __y)
-     __THROW __attribute__ ((__const__));
+/* ISO C99 defines some generic macros which work on any data type.  */
+#if __USE_ISOC99
 
-/* (Exponent of x) minus 1.  */
-extern double expm1 (double __x) __THROW __attribute__ ((__const__));
+/* Get the architecture specific values describing the floating-point
+   evaluation.  The following symbols will get defined:
 
-/* Natural logarithm of (x plus 1).  */
-extern double log1p (double __x) __THROW __attribute__ ((__const__));
+    float_t	floating-point type at least as wide as `float' used
+		to evaluate `float' expressions
+    double_t	floating-point type at least as wide as `double' used
+		to evaluate `double' expressions
+
+    FLT_EVAL_METHOD
+		Defined to
+		  0	if `float_t' is `float' and `double_t' is `double'
+		  1	if `float_t' and `double_t' are `double'
+		  2	if `float_t' and `double_t' are `long double'
+		  else	`float_t' and `double_t' are unspecified
+
+    INFINITY	representation of the infinity value of type `float'
+
+    FP_FAST_FMA
+    FP_FAST_FMAF
+    FP_FAST_FMAL
+		If defined it indicates that the `fma' function
+		generally executes about as fast as a multiply and an add.
+		This macro is defined only iff the `fma' function is
+		implemented directly with a hardware multiply-add instructions.
+
+    FP_ILOGB0	Expands to a value returned by `ilogb (0.0)'.
+    FP_ILOGBNAN	Expands to a value returned by `ilogb (NAN)'.
+
+    DECIMAL_DIG	Number of decimal digits supported by conversion between
+		decimal and all internal floating-point formats.
+
+*/
+
+/* All floating-point numbers can be put in one of these categories.  */
+enum
+  {
+    FP_NAN,
+# define FP_NAN FP_NAN
+    FP_INFINITE,
+# define FP_INFINITE FP_INFINITE
+    FP_ZERO,
+# define FP_ZERO FP_ZERO
+    FP_SUBNORMAL,
+# define FP_SUBNORMAL FP_SUBNORMAL
+    FP_NORMAL
+# define FP_NORMAL FP_NORMAL
+  };
+
+extern int fpclassify (double __x)  __THROW __attribute__ ((__const__));
+
+#if 0
+/* Return number of classification appropriate for X.  */
+# ifdef __NO_LONG_DOUBLE_MATH
+#  define fpclassify(x) \
+     (sizeof (x) == sizeof (float) ? __fpclassifyf (x) : __fpclassify (x))
+# else
+#  define fpclassify(x) \
+     (sizeof (x) == sizeof (float)					      \
+      ? __fpclassifyf (x)						      \
+      : sizeof (x) == sizeof (double)					      \
+      ? __fpclassify (x) : __fpclassifyl (x))
+# endif
+#endif
+
+/* Return nonzero value if sign of X is negative.  */
+# ifdef __NO_LONG_DOUBLE_MATH
+#  define signbit(x) \
+     (sizeof (x) == sizeof (float) ? __signbitf (x) : __signbit (x))
+# else
+#  define signbit(x) \
+     (sizeof (x) == sizeof (float)					      \
+      ? __signbitf (x)							      \
+      : sizeof (x) == sizeof (double)					      \
+      ? __signbit (x) : __signbitl (x))
+# endif
+
+/* Return nonzero value if X is not +-Inf or NaN.  */
+# ifdef __NO_LONG_DOUBLE_MATH
+#  define isfinite(x) \
+     (sizeof (x) == sizeof (float) ? __finitef (x) : __finite (x))
+# else
+#  define isfinite(x) \
+     (sizeof (x) == sizeof (float)					      \
+      ? __finitef (x)							      \
+      : sizeof (x) == sizeof (double)					      \
+      ? __finite (x) : __finitel (x))
+# endif
+
+/* Return nonzero value if X is neither zero, subnormal, Inf, nor NaN.  */
+# define isnormal(x) (fpclassify (x) == FP_NORMAL)
+
+#if 0
+/* Return nonzero value if X is a NaN.  We could use `fpclassify' but
+   we already have this functions `__isnan' and it is faster.  */
+# ifdef __NO_LONG_DOUBLE_MATH
+#  define isnan(x) \
+     (sizeof (x) == sizeof (float) ? __isnanf (x) : __isnan (x))
+# else
+#  define isnan(x) \
+     (sizeof (x) == sizeof (float)					      \
+      ? __isnanf (x)							      \
+      : sizeof (x) == sizeof (double)					      \
+      ? __isnan (x) : __isnanl (x))
+# endif
+
+/* Return nonzero value is X is positive or negative infinity.  */
+# ifdef __NO_LONG_DOUBLE_MATH
+#  define isinf(x) \
+     (sizeof (x) == sizeof (float) ? __isinff (x) : __isinf (x))
+# else
+#  define isinf(x) \
+     (sizeof (x) == sizeof (float)					      \
+      ? __isinff (x)							      \
+      : sizeof (x) == sizeof (double)					      \
+      ? __isinf (x) : __isinfl (x))
+# endif
+#endif
 
 /* Return 1 if x is infinite, else 0. */
 extern int isinf (double __x) __THROW __attribute__ ((__const__));
@@ -204,96 +253,186 @@ extern int isinf (double __x) __THROW __attribute__ ((__const__));
 /* Return 1 if x is Not A Number, else 0.  */
 extern int isnan (double __x) __THROW __attribute__ ((__const__));
 
-/* Return cube root of x. */
-extern double cbrt (double __x) __THROW __attribute__ ((__const__));
 
-/* Return 1 is x is finite, else 0.  */
-extern int finite (double __x) __THROW __attribute__ ((__const__));
 
-/* Return a value with magnitude of x and with the sign bit of y.  */
-extern double copysign (double __x, double __y)
-     __THROW __attribute__ ((__const__));
+/* Bitmasks for the math_errhandling macro.  */
+# define MATH_ERRNO	1	/* errno set by math functions.  */
+# define MATH_ERREXCEPT	2	/* Exceptions raised by math functions.  */
 
-/* Return the next machine floating-point number of x in the
-   direction toward y.  */
-extern double nextafter (double __x, double __y)
-     __THROW __attribute__ ((__const__));
+#endif /* Use ISO C99.  */
 
-/* Return x rounded to integral value according to the prevailing
-   rounding mode.  */
-extern double rint (double __x) __THROW __attribute__ ((__const__));
+#ifdef	__USE_MISC
+/* Support for various different standard error handling behaviors.  */
+typedef enum
+{
+  _IEEE_ = -1,	/* According to IEEE 754/IEEE 854.  */
+  _SVID_,	/* According to System V, release 4.  */
+  _XOPEN_,	/* Nowadays also Unix98.  */
+  _POSIX_,
+  _ISOC_	/* Actually this is ISO C99.  */
+} _LIB_VERSION_TYPE;
 
-/* Return x*(2^n) computed by exponent manipulation rather than
-   by actually performing an exponentiation or a multiplication.  */
-extern double scalbn (double __x, int __n) __THROW __attribute__ ((__const__));
-
-/* Return x rounded toward +inf to integral value. */
-extern double ceil (double __x) __THROW __attribute__ ((__const__));
-
-/* Return x rounded toward -inf to integral value.  */
-extern double floor (double __x) __THROW __attribute__ ((__const__));
-
-/* Return remainder of dividing x by y.  */
-extern double drem (double __x, double __y)
-     __THROW __attribute__ ((__const__));
-
-/* Returns x REM p = x - [x/p]*p as if in infinite precise arithmetic,
-   where [x/p] is the (infinite bit) integet nearest x/p (in half way
-   case choose the even one).  */
-extern double remainder (double __x, double __p)
-     __THROW __attribute__ ((__const__));
-
-/* Return the binary exponent of non-zero x.
-   ilogb(0) = 0x80000001
-   ilogb(inf/NaN) = 0x7fffffff */
-extern int ilogb (double __x) __THROW __attribute__ ((__const__));
-
-/* IEEE 754 logb. Use ilogb instead.  */
-extern double logb (double __x) __THROW __attribute__ ((__const__));
-
-extern double significand (double __x) __THROW __attribute__ ((__const__));
-
-#ifndef __UNIXLIB_INTERNALS
-/* Bessel function of the first and second kinds of order zero.  */
-extern double j0 (double __x) __THROW __attribute__ ((__const__));
-extern double y0 (double __x) __THROW __attribute__ ((__const__));
+/* This variable can be changed at run-time to any of the values above to
+   affect floating point error handling behavior (it may also be necessary
+   to change the hardware FPU exception settings).  */
+extern _LIB_VERSION_TYPE _LIB_VERSION;
 #endif
 
-/* Bessel function of the first and second kinds of order one.  */
-extern double j1 (double __x) __THROW __attribute__ ((__const__));
-extern double y1 (double __x) __THROW __attribute__ ((__const__));
 
-/* Bessel function of the first and second kinds of order n.  */
-extern double jn (int __n, double __x) __THROW __attribute__ ((__const__));
-extern double yn (int __n, double __x) __THROW __attribute__ ((__const__));
+#ifdef __USE_SVID
+/* In SVID error handling, `matherr' is called with this description
+   of the exceptional condition.
 
-/*                           x
-                      2      |\
-       erf(x)  =  ---------  | exp(-t*t)dt
-                   sqrt(pi) \|
-                             0
+   We have a problem when using C++ since `exception' is a reserved
+   name in C++.  */
+# ifdef __cplusplus
+struct __exception
+# else
+struct exception
+# endif
+  {
+    int type;
+    char *name;
+    double arg1;
+    double arg2;
+    double retval;
+  };
 
-       erfc(x) =  1-erf(x)
-*/
-extern double erf (double __x) __THROW __attribute__ ((__const__));
-extern double erfc (double __x) __THROW __attribute__ ((__const__));
+# ifdef __cplusplus
+extern int matherr (struct __exception *__exc) throw ();
+# else
+extern int matherr (struct exception *__exc);
+# endif
 
-#ifdef __UNIXLIB_INTERNALS
-/* Internal function used by rem_pio2().  */
-extern int __kernel_rem_pio2 (double *__x, double *__y,
-			      int __e0, int __nx, int __prec,
-			      const __int32_t *__ipio2);
+# define X_TLOSS	1.41484755040568800000e+16
+
+/* Types of exceptions in the `type' field.  */
+# define DOMAIN		1
+# define SING		2
+# define OVERFLOW	3
+# define UNDERFLOW	4
+# define TLOSS		5
+# define PLOSS		6
+
+/* SVID mode specifies returning this large value instead of infinity.  */
+# define HUGE		3.40282347e+38F
+
+#else	/* !SVID */
+
+# ifdef __USE_XOPEN
+/* X/Open wants another strange constant.  */
+#  define MAXFLOAT	3.40282347e+38F
+# endif
+
+#endif	/* SVID */
+
+
+/* Some useful constants.  */
+#if defined __USE_BSD || defined __USE_XOPEN
+# define M_E		2.7182818284590452354	/* e */
+# define M_LOG2E	1.4426950408889634074	/* log_2 e */
+# define M_LOG10E	0.43429448190325182765	/* log_10 e */
+# define M_LN2		0.69314718055994530942	/* log_e 2 */
+# define M_LN10		2.30258509299404568402	/* log_e 10 */
+# define M_PI		3.14159265358979323846	/* pi */
+# define M_PI_2		1.57079632679489661923	/* pi/2 */
+# define M_PI_4		0.78539816339744830962	/* pi/4 */
+# define M_1_PI		0.31830988618379067154	/* 1/pi */
+# define M_2_PI		0.63661977236758134308	/* 2/pi */
+# define M_2_SQRTPI	1.12837916709551257390	/* 2/sqrt(pi) */
+# define M_SQRT2	1.41421356237309504880	/* sqrt(2) */
+# define M_SQRT1_2	0.70710678118654752440	/* 1/sqrt(2) */
 #endif
 
-/* Return the remainder of x rem pi/2 in y[0] + y[1].  */
-extern __int32_t rem_pio2 (double __x, double *__y);
+/* The above constants are not adequate for computation using `long double's.
+   Therefore we provide as an extension constants with similar names as a
+   GNU extension.  Provide enough digits for the 128-bit IEEE quad.  */
+#ifdef __USE_GNU
+# define M_El		2.7182818284590452353602874713526625L  /* e */
+# define M_LOG2El	1.4426950408889634073599246810018921L  /* log_2 e */
+# define M_LOG10El	0.4342944819032518276511289189166051L  /* log_10 e */
+# define M_LN2l		0.6931471805599453094172321214581766L  /* log_e 2 */
+# define M_LN10l	2.3025850929940456840179914546843642L  /* log_e 10 */
+# define M_PIl		3.1415926535897932384626433832795029L  /* pi */
+# define M_PI_2l	1.5707963267948966192313216916397514L  /* pi/2 */
+# define M_PI_4l	0.7853981633974483096156608458198757L  /* pi/4 */
+# define M_1_PIl	0.3183098861837906715377675267450287L  /* 1/pi */
+# define M_2_PIl	0.6366197723675813430755350534900574L  /* 2/pi */
+# define M_2_SQRTPIl	1.1283791670955125738961589031215452L  /* 2/sqrt(pi) */
+# define M_SQRT2l	1.4142135623730950488016887242096981L  /* sqrt(2) */
+# define M_SQRT1_2l	0.7071067811865475244008443621048490L  /* 1/sqrt(2) */
+#endif
 
-/* Gamma function.  */
-extern double gamma (double __x);
-extern double lgamma (double __x);
-/* Reentrant version of the logarithm of the Gamma function.  */
-extern double lgamma_r (double __x, int *__signgamp);
-extern int signgam;
+
+/* When compiling in strict ISO C compatible mode we must not use the
+   inline functions since they, among other things, do not set the
+   `errno' variable correctly.  */
+#if defined __STRICT_ANSI__ && !defined __NO_MATH_INLINES
+# define __NO_MATH_INLINES	1
+#endif
+
+/* Get machine-dependent inline versions (if there are any).  */
+#ifdef __USE_EXTERN_INLINES
+# include <bits/mathinline.h>
+#endif
+
+
+#if __USE_ISOC99
+/* ISO C99 defines some macros to compare number while taking care
+   for unordered numbers.  Since many FPUs provide special
+   instructions to support these operations and these tests are
+   defined in <bits/mathinline.h>, we define the generic macros at
+   this late point and only if they are not defined yet.  */
+
+/* Return nonzero value if X is greater than Y.  */
+# ifndef isgreater
+#  define isgreater(x, y) \
+  (__extension__							      \
+   ({ __typeof__(x) __x = (x); __typeof__(y) __y = (y);			      \
+      !isunordered (__x, __y) && __x > __y; }))
+# endif
+
+/* Return nonzero value if X is greater than or equal to Y.  */
+# ifndef isgreaterequal
+#  define isgreaterequal(x, y) \
+  (__extension__							      \
+   ({ __typeof__(x) __x = (x); __typeof__(y) __y = (y);			      \
+      !isunordered (__x, __y) && __x >= __y; }))
+# endif
+
+/* Return nonzero value if X is less than Y.  */
+# ifndef isless
+#  define isless(x, y) \
+  (__extension__							      \
+   ({ __typeof__(x) __x = (x); __typeof__(y) __y = (y);			      \
+      !isunordered (__x, __y) && __x < __y; }))
+# endif
+
+/* Return nonzero value if X is less than or equal to Y.  */
+# ifndef islessequal
+#  define islessequal(x, y) \
+  (__extension__							      \
+   ({ __typeof__(x) __x = (x); __typeof__(y) __y = (y);			      \
+      !isunordered (__x, __y) && __x <= __y; }))
+# endif
+
+/* Return nonzero value if either X is less than Y or Y is less than X.  */
+# ifndef islessgreater
+#  define islessgreater(x, y) \
+  (__extension__							      \
+   ({ __typeof__(x) __x = (x); __typeof__(y) __y = (y);			      \
+      !isunordered (__x, __y) && (__x < __y || __y < __x); }))
+# endif
+
+/* Return nonzero value if arguments are unordered.  */
+# ifndef isunordered
+#  define isunordered(u, v) \
+  (__extension__							      \
+   ({ __typeof__(u) __u = (u); __typeof__(v) __v = (v);			      \
+      fpclassify (__u) == FP_NAN || fpclassify (__v) == FP_NAN; }))
+# endif
+
+#endif
 
 #ifdef __UNIXLIB_INTERNALS
 /* Internals used by lgamma().  */
@@ -301,130 +440,15 @@ extern double __kernel_sin (double __x, double __y,
 			    int __iy) __THROW __attribute__ ((__const__));
 extern double __kernel_cos (double __x,
 			    double __y) __THROW __attribute__ ((__const__));
-#endif
 
-/* BSD useful constants.  */
-#define	M_E		2.7182818284590452354	/* e */
-#define	M_LOG2E		1.4426950408889634074	/* log 2e */
-#define	M_LOG10E	0.43429448190325182765	/* log 10e */
-#define	M_LN2		0.69314718055994530942	/* log e2 */
-#define	M_LN10		2.30258509299404568402	/* log e10 */
-#define	M_PI		3.14159265358979323846	/* pi */
-#define	M_PI_2		1.57079632679489661923	/* pi/2 */
-#define	M_PI_4		0.78539816339744830962	/* pi/4 */
-#define	M_1_PI		0.31830988618379067154	/* 1/pi */
-#define	M_2_PI		0.63661977236758134308	/* 2/pi */
-#define	M_2_SQRTPI	1.12837916709551257390	/* 2/sqrt(pi) */
-#define	M_SQRT2		1.41421356237309504880	/* sqrt(2) */
-#define	M_SQRT1_2	0.70710678118654752440	/* 1/sqrt(2) */
-
-
-/* This is a GNU libc extension.  */
-/* The above constants are not adequate for computation using `long double's.
-   Therefore we provide as an extension constants with similar names as a
-   GNU extension.  Provide enough digits for the 128-bit IEEE quad.  */
-#define M_El		2.7182818284590452353602874713526625L  /* e */
-#define M_LOG2El	1.4426950408889634073599246810018922L  /* log_2 e */
-#define M_LOG10El	0.4342944819032518276511289189166051L  /* log_10 e */
-#define M_LN2l		0.6931471805599453094172321214581766L  /* log_e 2 */
-#define M_LN10l	2.3025850929940456840179914546843642L  /* log_e 10 */
-#define M_PIl		3.1415926535897932384626433832795029L  /* pi */
-#define M_PI_2l	1.5707963267948966192313216916397514L  /* pi/2 */
-#define M_PI_4l	0.7853981633974483096156608458198757L  /* pi/4 */
-#define M_1_PIl	0.3183098861837906715377675267450287L  /* 1/pi */
-#define M_2_PIl	0.6366197723675813430755350534900574L  /* 2/pi */
-#define M_2_SQRTPIl	1.1283791670955125738961589031215452L  /* 2/sqrt(pi) */
-#define M_SQRT2l	1.4142135623730950488016887242096981L  /* sqrt(2) */
-#define M_SQRT1_2l	0.7071067811865475244008443621048490L  /* 1/sqrt(2) */
-
-
-/* Categories for floating point numbers.  */
-#define FP_NAN 0
-#define FP_INFINITE 1
-#define FP_ZERO 2
-#define FP_SUBNORMAL 3
-#define FP_NORMAL 4
-
-extern int fpclassify (double __x)  __THROW __attribute__ ((__const__));
-
-/* Values returned by ilogb for 0 and NaN respectively.  */
-#define FP_ILOGB0 0x80000000
-#define FP_ILOGBNAN 0x80000000
-
-/* Return non-zero if X is not +-Inf or NaN.  */
-#define isfinite(x) (finite (x))
-
-/* Return nonzero if x is neither zero, subnormal, Inf or NaN.  */
-#define isnormal(x) (fpclassify (x) == FP_NORMAL)
-
-/* Return non-zero if x > y.  */
-#define isgreater(x, y) (! isunordered (x, y) && x > y)
-
-/* Return non-zero if x >= y.  */
-#define isgreaterequal(x, y) (! isunordered (x, y) && x >= y)
-
-/* Return non-zero if x < y.  */
-#define isless(x, y) (! isunordered (x, y) && x < y)
-
-/* Return non-zero if x <= y.  */
-#define islessequal(x, y) (! isunordered (x, y) && x <= y)
-
-/* Return non-zero if either x < y or y < x.  */
-#define islessgreater(x, y) (! isunordered (x, y) && (x < y || y < x))
-
-/* Return non-zero if arguments are unordered.  */
-#define isunordered(x, y) \
- (fpclassify (x) == FP_NAN || fpclassify(y) == FP_NAN)
-
-/* Return (x*y) + z.  */
-extern double fma (double __x, double __y,
-		   double __z) __THROW __attribute__ ((__const__));
-
-/* Return the value of smaller magnitude.  */
-extern double fmin (double __x, double __y)
-     __THROW __attribute__ ((__const__));
-
-/* Return the value of greater magnitude.  */
-extern double fmax (double __x, double __y)
-     __THROW __attribute__ ((__const__));
-
-/* Return the difference between x and y.  */
-extern double fdim (double __x, double __y)
-     __THROW __attribute__ ((__const__));
-
-/* Compute base-2 logarithm of x.  */
-extern double log2 (double __x) __THROW __attribute__ ((__const__));
-
-/* Round x to the nearest integral.  */
-extern long int lrint (double __x) __THROW __attribute__ ((__const__));
-#ifdef __GNUC__
-__extension__
-extern long long int llrint (double __x) __THROW __attribute__ ((__const__));
-#endif
-
-extern long int lrintf (float __x) __THROW __attribute__ ((__const__));
-#ifdef __GNUC__
-__extension__
-extern long long int llrintf (float __x) __THROW __attribute__ ((__const__));
-#endif
-
-/* Round x to integral value.  */
-extern double nearbyint (double __x) __THROW __attribute__ ((__const__));
-
-/* Round x to integral value, but not to integral larger than x.  */
-extern double trunc (double __x) __THROW __attribute__ ((__const__));
-
-/* Compute remainder of X and Y and put in *QUO a value with sign of x/y
-   and magnitude congruent `mod 2^n' to the magnitude of the integral
-   quotient x/y, with n >= 3.  */
-extern double remquo (double __x, double __y, int *__quo) __THROW;
-
-extern int signbit (double __x) __THROW __attribute__ ((__const__));
-
-#ifdef __UNIXLIB_INTERNALS
-extern void __sincos (double __x, double *__sinx, double *__cosx) __THROW;
+/* Internal function used by rem_pio2().  */
+#include <unixlib/types.h>
+extern int __kernel_rem_pio2 (double *__x, double *__y,
+			      int __e0, int __nx, int __prec,
+			      const __int32_t *__ipio2);
 #endif
 
 __END_DECLS
 
-#endif
+
+#endif /* math.h  */

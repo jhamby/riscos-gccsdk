@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/debug.c,v $
- * $Date: 2002/12/15 13:16:55 $
- * $Revision: 1.5 $
+ * $Date: 2003/04/28 21:04:36 $
+ * $Revision: 1.6 $
  * $State: Exp $
- * $Author: admin $
+ * $Author: alex $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: debug.c,v 1.5 2002/12/15 13:16:55 admin Exp $";
+static const char rcs_id[] = "$Id: debug.c,v 1.6 2003/04/28 21:04:36 alex Exp $";
 #endif
 
 #ifndef DEBUG
@@ -62,13 +62,13 @@ __debug (const char *s)
   if (s)
     __os_print (s);
   NL ();
-  VAL ("__base: ", (int) __base);
-  VAL (" __lomem: ", (int) __lomem);
-  VAL (" __himem: ", (int) __himem);
+  VAL ("__image_ro_base: ", (int) __image_ro_base);
+  VAL (" __image_rw_lomem: ", (int) __image_rw_lomem);
+  VAL (" __image_rw_himem: ", (int) __image_rw_himem);
   NL ();
   VAL ("__u:", (int) __u);
-  VAL (" __break: ", (int) __break);
-  VAL (" __stack: ", (int) __stack);
+  VAL (" __unixlib_break: ", (int) __unixlib_break);
+  VAL (" __unixlib_stack: ", (int) __unixlib_stack);
   NL ();
   NL ();
   VAL ("argc:", __u->argc);

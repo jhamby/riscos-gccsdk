@@ -1,8 +1,8 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/signal/_signal.s,v $
-; $Date: 2004/05/12 22:02:49 $
-; $Revision: 1.18 $
+; $Date: 2004/05/16 12:46:22 $
+; $Revision: 1.19 $
 ; $State: Exp $
 ; $Author: alex $
 ;
@@ -554,8 +554,8 @@ Internet_Event	EQU	19
 ;	All registers should be loaded from the register save area
 
 	IMPORT	|__pthread_callback|
-	IMPORT	|__base|
-	IMPORT	|__real_himem|
+	IMPORT	|__image_ro_base|
+	IMPORT	|__unixlib_real_himem|
 	EXPORT	|__h_cback|
 	NAME	__h_cback
 |__h_cback|
@@ -564,11 +564,11 @@ Internet_Event	EQU	19
 	; If it isn't, then we don't want to do a context switch
 	; so return straight away.
 	LDR	a1,|__cbreg|+15*4
-	LDR	a2, =|__base|
+	LDR	a2, =|__image_ro_base|
 	LDR	a2, [a2]
 	CMP	a1, a2
 	BLO	return_quickly
-	LDR	a2, =|__real_himem|
+	LDR	a2, =|__unixlib_real_himem|
 	LDR	a2, [a2]
 	CMP	a1, a2
 	BHI	return_quickly

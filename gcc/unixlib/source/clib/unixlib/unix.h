@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/unixlib/unix.h,v $
- * $Date: 2004/03/16 19:06:00 $
- * $Revision: 1.13 $
+ * $Date: 2004/03/17 20:00:51 $
+ * $Revision: 1.14 $
  * $State: Exp $
- * $Author: nick $
+ * $Author: joty $
  *
  * UNIX is a registered trademark of AT&T Bell Laboratories
  *
@@ -143,7 +143,7 @@ extern int __funcall_error (const char *, int, unsigned int);
 #define __funcall(f,p) ((f)p)
 #else
 #define __funcall(f,p) \
-  ((((void *)(f) >= __base) && (((unsigned int)(f) & ~3) == (unsigned int)(f)) \
+  ((((void *)(f) >= __image_ro_base) && (((unsigned int)(f) & ~3) == (unsigned int)(f)) \
    ? 0 : __funcall_error(__FILE__,__LINE__,(unsigned int)(f))), (f)p)
 #endif
 
@@ -152,25 +152,26 @@ extern int __funcall_error (const char *, int, unsigned int);
 extern void __exit (int) __attribute__ ((__noreturn__));
 extern void __exit_no_code (void) __attribute__ ((__noreturn__));
 
-/* __break is initialised to __lomem & __stack to __himem - STAKSIZ;
- * __stack is extended downwards in chunks by x$stack_overflow()
- * and __break is extended upwards by brk() and sbrk(). The sl
- * register is kept equal to __stack + 512. Should x$stack_overflow()
- * attempt to extend __stack below __break then SIGEMT is raised.
- * Should brk() or sbrk() be asked to extend __break above __stack
- * then they return with ENOMEM. */
+/* __unixlib_break is initialised to __image_rw_lomem & __unixlib_stack to
+ * __image_rw_himem - STAKSIZ;
+ * __unixlib_stack is extended downwards in chunks by x$stack_overflow()
+ * and __unixlib_break is extended upwards by brk() and sbrk(). The sl
+ * register is kept equal to __unixlib_stack + 512. Should x$stack_overflow()
+ * attempt to extend __unixlib_stack below __unixlib_break then SIGEMT is raised.
+ * Should brk() or sbrk() be asked to extend __unixlib_break above
+ * __unixlib_stack then they return with ENOMEM. */
 
-extern char *__cli;		/* command line from OS_GetEnv */
-extern void *__base;		/* BASE = Image$$RO$$Base */
-extern void *__lomem;		/* LOMEM = Image$$RW$$Limit */
-extern void *__himem;		/* HIMEM from OS_GetEnv */
-extern void *__real_himem;	/* Real HIMEM  - application space limit */
-extern void *__rwlimit;
+extern char *__unixlib_cli;		/* command line from OS_GetEnv */
+extern void *__image_ro_base;		/* BASE = Image$$RO$$Base */
+extern void *__image_rw_lomem;		/* LOMEM = Image$$RW$$Limit */
+extern void *__image_rw_himem;		/* HIMEM from OS_GetEnv */
+extern void *__unixlib_real_himem;	/* Real HIMEM  - application space limit */
+extern void *__unixlib_rwlimit;
 
-extern void *__break;		/* end of data area */
-extern void *__real_break;	/* real end of data area */
-extern void *__stack;		/* bottom of stack */
-extern void *__stack_limit;
+extern void *__unixlib_break;		/* end of data area */
+extern void *__unixlib_real_break;	/* real end of data area */
+extern void *__unixlib_stack;		/* bottom of stack */
+extern void *__unixlib_stack_limit;
 extern int __codeshift;
 extern int __dynamic_num;
 extern void __dynamic_area_exit (void);

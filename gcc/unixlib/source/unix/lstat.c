@@ -1,21 +1,27 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/unix/c/lstat,v $
- * $Date: 1997/10/19 19:19:46 $
- * $Revision: 1.1 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/lstat.c,v $
+ * $Date: 2001/01/29 15:10:22 $
+ * $Revision: 1.2 $
  * $State: Exp $
- * $Author: unixlib $
+ * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: lstat,v 1.1 1997/10/19 19:19:46 unixlib Exp $";
+static const char rcs_id[] = "$Id: lstat.c,v 1.2 2001/01/29 15:10:22 admin Exp $";
 #endif
 
 #include <sys/stat.h>
 
 int
 lstat (const char *fname, struct stat *buf)
+{
+  return stat (fname, buf);
+}
+
+int
+lstat64 (const char *fname, struct stat *buf)
 {
   return stat (fname, buf);
 }

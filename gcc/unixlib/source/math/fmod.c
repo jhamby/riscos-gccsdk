@@ -1,10 +1,10 @@
 /****************************************************************************
  *
- * $Source$
- * $Date$
- * $Revision$
- * $State$
- * $Author$
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/math/fmod.c,v $
+ * $Date: 2002/12/22 18:22:28 $
+ * $Revision: 1.4 $
+ * $State: Exp $
+ * $Author: admin $
  *
  ***************************************************************************/
 
@@ -197,6 +197,8 @@ fmod (double x, double y)
     }
   return x;			/* exact output */
 }
+
+long double fmodl (long double x, long double y);
 
 long double fmodl (long double x, long double y)
 {

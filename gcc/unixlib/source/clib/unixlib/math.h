@@ -1,10 +1,10 @@
 /****************************************************************************
  *
- * $Source$
- * $Date$
- * $Revision$
- * $State$
- * $Author$
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/unixlib/math.h,v $
+ * $Date: 2002/12/22 18:22:28 $
+ * $Revision: 1.3 $
+ * $State: Exp $
+ * $Author: admin $
  *
  ***************************************************************************/
 
@@ -214,6 +214,7 @@ do {								\
   (d) = se_u.value;						\
 } while (0)
 
+#if 0
 #if defined(__GNUC__) && defined(__OPTIMIZE__)
 extern __inline__ int signbit (double x)
 {
@@ -242,6 +243,7 @@ extern __inline__ int finite (double x)
    return (int) ((__uint32_t) ((hx & 0x7fffffff) - 0x7ff00000) >> 31);
 }
 
+#endif
 #endif
 
 #endif

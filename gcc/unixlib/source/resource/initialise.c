@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/resource/initialise.c,v $
- * $Date: 2002/02/14 15:56:36 $
- * $Revision: 1.3 $
+ * $Date: 2003/04/05 12:16:34 $
+ * $Revision: 1.4 $
  * $State: Exp $
- * $Author: admin $
+ * $Author: alex $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: initialise.c,v 1.3 2002/02/14 15:56:36 admin Exp $";
+static const char rcs_id[] = "$Id: initialise.c,v 1.4 2003/04/05 12:16:34 alex Exp $";
 #endif
 
 #include <sys/resource.h>
@@ -61,7 +61,7 @@ __resource_initialise (struct proc *p)
     {
       regs[0] = __dynamic_num;
       if (__os_swi (OS_ReadDynamicArea, regs))
-	p->limit[RLIMIT_DATA].rlim_max = (u_char *) __break - (u_char *) __lomem;
+	p->limit[RLIMIT_DATA].rlim_max = (u_char *) __unixlib_break - (u_char *) __image_rw_lomem;
       else
 	p->limit[RLIMIT_DATA].rlim_max = regs[2];
     }
@@ -80,9 +80,9 @@ __resource_initialise (struct proc *p)
      Again, for RISC OS 3.5+ dynamic areas and without, both cases
      should be treated differently.
 
-     I think that maximum physical memory is the area from __base to
-     __himem (no dynamic area). Also included is from __lomem to __break
-     and beyond for dynamic areas.  */
+     I think that maximum physical memory is the area from __image_ro_base to
+     __image_rw_himem (no dynamic area). Also included is from __image_rw_lomem to
+     __unixlib_break and beyond for dynamic areas.  */
   if (__dynamic_num == -1)	/* No dynamic area */
     {
       p->limit[RLIMIT_RSS].rlim_max = max_wimpslot;
@@ -94,11 +94,11 @@ __resource_initialise (struct proc *p)
          the maximum size.  */
       regs[0] = 6 + 128;
       if (__os_swi (OS_ReadDynamicArea, regs))
-	p->limit[RLIMIT_RSS].rlim_max += (u_char *) __break - (u_char *) __lomem;
+	p->limit[RLIMIT_RSS].rlim_max += (u_char *) __unixlib_break - (u_char *) __image_rw_lomem;
       else
 	/* rlim_max is all of physical memory ?  */
 	p->limit[RLIMIT_RSS].rlim_max = regs[2];
-      /* rlim_cur is available free memory + __base to __himem.  */
+      /* rlim_cur is available free memory + __image_ro_base to __image_rw_himem.  */
       p->limit[RLIMIT_RSS].rlim_cur += regs[1];
     }
 

@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/netdb.h,v $
- * $Date: 2002/12/22 18:22:28 $
- * $Revision: 1.4 $
+ * $Date: 2004/05/10 10:58:55 $
+ * $Revision: 1.5 $
  * $State: Exp $
- * $Author: admin $
+ * $Author: peter $
  *
  ***************************************************************************/
 
@@ -476,6 +476,8 @@ struct gaicb
 # define AI_PASSIVE	0x0001	/* Socket address is intended for `bind'.  */
 # define AI_CANONNAME	0x0002	/* Request for canonical name.  */
 # define AI_NUMERICHOST	0x0004	/* Don't use name resolution.  */
+/* valid flags for addrinfo */
+# define AI_MASK         (AI_PASSIVE | AI_CANONNAME | AI_NUMERICHOST)
 
 /* Error values for `getaddrinfo' function.  */
 # define EAI_BADFLAGS	  -1	/* Invalid value for `ai_flags' field.  */
@@ -489,6 +491,10 @@ struct gaicb
 # define EAI_ADDRFAMILY	  -9	/* Address family for NAME not supported.  */
 # define EAI_MEMORY	  -10	/* Memory allocation failure.  */
 # define EAI_SYSTEM	  -11	/* System error returned in `errno'.  */
+# define EAI_BADHINTS	  -12
+# define EAI_PROTOCOL	  -13
+# define EAI_MAX	  -14 
+
 # ifdef __USE_GNU
 #  define EAI_INPROGRESS  -100	/* Processing request in progress.  */
 #  define EAI_CANCELED	  -101	/* Request canceled.  */

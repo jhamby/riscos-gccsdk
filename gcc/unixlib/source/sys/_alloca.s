@@ -1,8 +1,8 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/_alloca.s,v $
-; $Date: 2003/05/07 22:10:27 $
-; $Revision: 1.8 $
+; $Date: 2003/06/07 09:30:41 $
+; $Revision: 1.9 $
 ; $State: Exp $
 ; $Author: alex $
 ;
@@ -14,7 +14,7 @@
 
 	IMPORT  malloc
 	IMPORT  free
-	IMPORT  |__base|
+	IMPORT  |__image_ro_base|
 	IMPORT  abort
 
 	EXPORT  |__alloca|
@@ -86,7 +86,7 @@ noabort
 	LDMIA	a1, {a4, v1}
 	STR	a4, [a3]
 	BL	free
-	LDR	a2, =|__base|
+	LDR	a2, =|__image_ro_base|
 	MOV	a3, v1
 	LDR	a2, [a2]
 	CMP	a3, a2
