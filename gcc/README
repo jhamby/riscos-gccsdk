@@ -43,14 +43,17 @@ is a Unix-based cross-compiler for targetting RISC OS which will be
 installed under the directory specified with the `--prefix' option. 
 The second, is a complete GCC compiler toolset built to run natively on
 RISC OS and will be installed under the directory specified with
-the `--with-riscos-dist' option.  Finally, `--with-riscos-pkg' points
+the `--with-riscos-dist' option.  `--with-riscos-pkg' points
 to a directory where distributable zip files of the RISC OS GCC toolset
 will be created.  These should then be suitable for unpacking on a RISC OS
-computer to make a working compiler.
+computer to make a working compiler. `--with-riscos-env' points
+to a directory where porting scripts are installed and cross compiled
+libraries may be installed.
 
   $ ./configure --prefix=/home/riscos/cross \
 	--with-riscos-dist=/home/riscos/riscos-dist \
 	--with-riscos-pkg=/home/riscos/riscos-pkg \
+	--with-riscos-env=/home/riscos/env \
 	--enable-filetype-ff8 --enable-checking=no
 
 The 'do-configure' script encapsulates this command, so instead of the

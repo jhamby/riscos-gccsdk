@@ -2,27 +2,25 @@
 
 SCRIPTS=ro-ar ro-config ro-install ro-libpack ro-make ro-path
 
-ENV=$(ro_gccpkg)/../env
-
 all: scripts links dummies wrappers
 
 
 scripts:
-	mkdir -p $(ENV)
-	cp $(SCRIPTS) $(ENV)
+	mkdir -p $(ro_env)
+	cp $(SCRIPTS) $(ro_env)
 
 links:
-	mkdir -p $(ro_gccpkg)/bin
-	ln -sf gcc $(ro_gccpkg)/bin/cc
-	ln -sf g++ $(ro_gccpkg)/bin/c++
+	mkdir -p $(ux_bin_dir)
+	ln -sf gcc $(ux_bin_dir)cc
+	ln -sf g++ $(ux_bin_dir)c++
 
 dummies:
-	mkdir -p $(ro_gccpkg)/bin
-	touch $(ro_gccpkg)/bin/ranlib
-	touch $(ro_gccpkg)/bin/strip
+	mkdir -p $(ux_bin_dir)
+	touch $(ux_bin_dir)ranlib
+	touch $(ux_bin_dir)strip
 
 wrappers:
-	mkdir -p $(ro_gccpkg)/bin
-	cp uname $(ro_gccpkg)/bin
-	cp cp $(ro_gccpkg)/bin
-	cp rm $(ro_gccpkg)/bin
+	mkdir -p $(ux_bin_dir)
+	cp uname $(ux_bin_dir)
+	cp cp $(ux_bin_dir)
+	cp rm $(ux_bin_dir)

@@ -57,6 +57,9 @@ ro_zippkg=@with_riscos_pkg@
 # Suffix applied to executables (usually changed with --enable-filetype-ff8)
 exesfx=@exesfx@
 
+# Directory containing the porting scripts
+ro_env=@with_riscos_env@
+
 # Working directory where object files are stored
 objdir=@topdir@/$(TARGET_NAME)
 
@@ -129,7 +132,7 @@ instsrc = @topdir@/scripts/install-source.pl
 # Place variables in the environment.  This saves us having to pass
 # the variables to sub-makes on the command line.
 export TARGET_NAME objdir hostsystem targetsystem
-export ux_gccpkg ro_gccpkg ro_syspkg ro_zippkg unix_prefix riscos_prefix
+export ux_gccpkg ro_gccpkg ro_syspkg ro_zippkg ro_env unix_prefix riscos_prefix
 export gn_standard_exec_prefix gn_standard_startfile_prefix
 export gn_gcc_include_dir gn_gplusplus_include_dir gn_share_dir
 export gn_local_include_dir gn_system_include_dir gn_cross_include_dir
