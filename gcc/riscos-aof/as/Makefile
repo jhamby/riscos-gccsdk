@@ -1,4 +1,4 @@
-INCLUDES = -I.
+INCLUDES = -I. -I../../
 CFLAGS = -Wall -O2 $(OPTS) $(TARGET_DEFS)
 ifeq ($(crosscompile),no)
 CFLAGS += -DUNIXLIB

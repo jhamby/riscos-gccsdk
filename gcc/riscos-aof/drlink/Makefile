@@ -1,5 +1,5 @@
-INCLUDES = -I.
-CFLAGS = -g2 $(OPTS) $(TARGET_DEFS) -DTARGET_UNIXLIB
+INCLUDES = -I. -I../../
+CFLAGS = -O2 $(OPTS) $(TARGET_DEFS) -DTARGET_UNIXLIB
 CC = gcc $(CFLAGS)
 
 $(objdir)/riscos-aof/drlink/%.o: %.c

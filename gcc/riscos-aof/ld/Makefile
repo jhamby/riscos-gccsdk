@@ -1,4 +1,4 @@
-INCLUDES = -I. -I../../include
+INCLUDES = -I. -I../../ -I../../include
 CFLAGS = -O2 $(OPTS) $(TARGET_DEFS) -DHAVE_CONFIG_H
 CC = gcc $(CFLAGS)
 

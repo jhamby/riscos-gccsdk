@@ -1,4 +1,4 @@
-INCLUDES = -I.
+INCLUDES = -I. -I../../
 CFLAGS = -O2 $(OPTS) -DUNIX $(TARGET_DEFS)
 #-fpermissive
 CC = gcc $(CFLAGS)
