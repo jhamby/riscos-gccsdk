@@ -17,13 +17,14 @@ all:	gcc
 .PHONY: libstdc
 .PHONY: libio
 .PHONY: libsupc++
+.PHONY: libffi
 
 gcc:
 	mkdir -p $(gccpath) $(gccpath)/ada $(gccpath)/cp $(gccpath)/f77 \
 	$(gccpath)/gpc $(gccpath)/objc $(gccpath)/java $(gccpath)/config/arm
 	$(MAKE) -C gcc "STAGE=$(STAGE)"
 
-fastjar libgcc libgpc libf2c libstdc libio libsupc++ zlib:
+fastjar libgcc libgpc libf2c libstdc libffi libio libsupc++ zlib:
 	mkdir -p $(libpath)/$(STAGE)/$(TRG)
 	$(MAKE) -C $@ "STAGE=$(STAGE)"
 
