@@ -11,7 +11,7 @@ all:	gcc
 
 .PHONY: zlib
 .PHONY: gcc
-x.PHONY: libgcc
+.PHONY: libgcc
 .PHONY: libf2c
 .PHONY: libstdc
 .PHONY: libio
