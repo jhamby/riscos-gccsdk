@@ -129,7 +129,7 @@ lexGetId (void)
       result.LexId.str = inputSymbol (&result.LexId.len, '|');
       if (inputGet () != '|')
 	error (ErrorError, TRUE, "Identifier continues over newline");
-      result.LexId.hash = hashstr (result.LexId.str, result.LexId.len, SYMBOL_TABELSIZE);
+      result.LexId.hash = hashstr (result.LexId.str, result.LexId.len, SYMBOL_TABLESIZE);
     }
   else
     {
@@ -138,7 +138,7 @@ lexGetId (void)
 	{
 	  result.tag = LexId;
 	  result.LexId.str = inputSymbol (&result.LexId.len, 0);
-	  result.LexId.hash = hashstr (result.LexId.str, result.LexId.len, SYMBOL_TABELSIZE);
+	  result.LexId.hash = hashstr (result.LexId.str, result.LexId.len, SYMBOL_TABLESIZE);
 	}
       else
 	{
@@ -207,7 +207,7 @@ lexMakeLocal (int dir)
   sprintf (id, localFormat, (int) areaCurrent, label, i, rout_id);
   result.LexId.str = strdup (id);
   result.LexId.len = strlen (id);
-  result.LexId.hash = hashstr (result.LexId.str, result.LexId.len, SYMBOL_TABELSIZE);
+  result.LexId.hash = hashstr (result.LexId.str, result.LexId.len, SYMBOL_TABLESIZE);
   if (!result.LexId.str)
     errorOutOfMem ("lexMakeLocal");
   else
@@ -238,7 +238,7 @@ lexGetLocal (void)
 	  errorOutOfMem ("lexGetLocal");
 	  return result;
 	}
-      result.LexId.hash = hashstr (result.LexId.str, result.LexId.len, SYMBOL_TABELSIZE);
+      result.LexId.hash = hashstr (result.LexId.str, result.LexId.len, SYMBOL_TABLESIZE);
       result.tag = LexId;
       return result;
     }
@@ -435,7 +435,7 @@ lexGetPrim (void)
       result.LexId.str = inputSymbol (&result.LexId.len, '|');
       if (inputGet () != '|')
 	error (ErrorError, TRUE, "Identifier continues over newline");
-      result.LexId.hash = hashstr (result.LexId.str, result.LexId.len, SYMBOL_TABELSIZE);
+      result.LexId.hash = hashstr (result.LexId.str, result.LexId.len, SYMBOL_TABLESIZE);
 
       break;
     case '.':
@@ -486,7 +486,7 @@ lexGetPrim (void)
 	{
 	  result.tag = LexId;
 	  result.LexId.str = inputSymbol (&result.LexId.len, 0);
-	  result.LexId.hash = hashstr (result.LexId.str, result.LexId.len, SYMBOL_TABELSIZE);
+	  result.LexId.hash = hashstr (result.LexId.str, result.LexId.len, SYMBOL_TABLESIZE);
 	}
       else
 	result.tag = LexNone;
@@ -668,6 +668,6 @@ lexTempLabel (char *ptr, int len)
   var.tag = LexId;
   var.LexId.str = ptr;
   var.LexId.len = len;
-  var.LexId.hash = hashstr (ptr, len, SYMBOL_TABELSIZE);
+  var.LexId.hash = hashstr (ptr, len, SYMBOL_TABLESIZE);
   return var;
 }

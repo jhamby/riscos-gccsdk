@@ -45,7 +45,7 @@
 #define SYMBOL_COPNUM	   0x8000
 #define SYMBOL_GETREG(x)   ((x)&0xf000)
 
-#define SYMBOL_TABELSIZE 1024
+#define SYMBOL_TABLESIZE 1024
 
 
 typedef struct SYMBOL
@@ -60,7 +60,7 @@ typedef struct SYMBOL
     struct AREA *info;
   }
   area;
-  unsigned int offset;		/* Offset in stringtabel */
+  unsigned int offset;		/* Offset in stringtable */
   int used;		/* this id is used (ie not resolved) */
   /* Later changed to index in symbol table */
   int len;		/* length of str[] */
