@@ -112,9 +112,6 @@ FP_BIT_SINGLE = $(libobjdir)/pack_sf.o \
 
 all:	$(ux_gcc_bin_dir)/$(TRG)/libgcc.o $(ro_gcc_bin_dir)/$(TRG)/o/libgcc
 
-install_headers:
-	$(insthdr) ginclude "*.h" . $(ux_gccpkg)/$(gn_gcc_include_dir) $(ro_gccpkg)/$(gn_gcc_include_dir)
-
 LIBGCC_OBJS = $(LIB2FUNCS_1) $(LIB2FUNCS_2) \
 	$(LIB2FUNCS_EXTRA) $(FP_BIT_DOUBLE) $(FP_BIT_SINGLE) $(LIB2ADDEH)
 
