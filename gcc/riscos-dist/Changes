@@ -21,6 +21,19 @@ RISC OS GCC release 3.3.3 pre-release 1 (released XX XXXXXX 2004)
 
 * unixlib: New crypt implementation, taken from glibc 2.2.5.
 
+* as: Big-endian processor support.  Required for cross-compiling on
+* processors such as the MIPS.
+
+* as: Fixes for common area symbol handling
+
+* as: Support for ELF object format.
+
+* as: Improve filename handling and search paths for GET.
+
+* ar: Closer emulate UNIX's 'ar' implementation.
+
+* sed: Upgrade to version 4.0.7.
+
 RISC OS GCC release 2.95.4 release 3 (released 05 January 2003)
 ====================================
 
