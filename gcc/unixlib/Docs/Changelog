@@ -1,3 +1,10 @@
+Thu May  3 08:35:46 2001  Peter Naulls  <peter@erble.freeserve.co.uk>
+
+	* unix/tty.c (__ttyiraw): Check appropriate file descriptor
+	flag for O_NDELAY.
+	(__ttyicanon): Likewise.  If buffer is empty and we're doing
+	non-blocking I/O, return and set errno to EAGAIN.
+
 Thu May  3 08:27:13 2001  Peter Naulls  <peter@erble.freeserve.co.uk>
 			  Nick Burrett  <nick@dsvr.net>
 

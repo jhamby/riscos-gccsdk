@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/tty.c,v $
- * $Date: 2001/01/29 15:10:22 $
- * $Revision: 1.2 $
+ * $Date: 2001/05/03 07:30:15 $
+ * $Revision: 1.3 $
  * $State: Exp $
  * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: tty.c,v 1.2 2001/01/29 15:10:22 admin Exp $";
+static const char rcs_id[] = "$Id: tty.c,v 1.3 2001/05/03 07:30:15 admin Exp $";
 #endif
 
 /* System V tty device driver for RISC OS.  */
@@ -453,7 +453,7 @@ ret:
       return i;
     }
 
-  nflag = (file_desc->dflag & O_NDELAY) ? F_NDELAY : 0;
+  nflag = (file_desc->fflag & O_NDELAY) ? F_NDELAY : 0;
 
   ttybuf = tty->ptr = tty->buf;
   tty->sx = tty->cx = 0;
@@ -571,11 +571,15 @@ eol:
       }
 
   tty->cnt = i;
-  if (tty->cnt != 0)
+  if (tty->cnt != 0 && !(nflag & F_NDELAY))
     goto ret;
 
   if (tty == __u->tty)
     os_byte (0xe5, 0, 0, 0);	/* Re-enable SIGINT.  */
+
+  if (tty->cnt == 0)
+    return __set_errno (EAGAIN);
+
   return 0;
 
 #undef F_LNEXT
@@ -600,7 +604,7 @@ __ttyiraw (const struct __unixlib_fd *file_desc, void *buf, int nbyte,
 
   nflag = 0;
 
-  if (file_desc->dflag & O_NDELAY)
+  if (file_desc->fflag & O_NDELAY)
     vm = vt = 0;
   else
     {
