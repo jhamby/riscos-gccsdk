@@ -1,8 +1,8 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/dirent.h,v $
- * $Date: 2002/12/22 18:22:28 $
- * $Revision: 1.5 $
+ * $Date: 2003/07/29 23:04:27 $
+ * $Revision: 1.6 $
  * $State: Exp $
  * $Author: admin $
  *
@@ -25,6 +25,8 @@
 #endif
 
 __BEGIN_DECLS
+
+#define MAXNAMLEN 255
 
 /* This isn't really how ADFS stores files in a directory, but
    since no I/O is permitted on directories anyway this doesn't
