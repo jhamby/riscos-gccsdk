@@ -1,4 +1,9 @@
-Thu Oct 30 22:58:57 2003  Alex Waugh <alex@alexwaugh.com>
+Sat Nov 01 21:40:00 2003  John Tytgat  <John.Tytgat@aaug.net>
+
+	* source/unix/unix.c (_exit): Previous fix didn't properly unset
+	  DDEUtils_Prefix.
+
+Thu Oct 30 22:58:57 2003  Alex Waugh  <alex@alexwaugh.com>
 
 	* unix/getcwd.c (getcwd): Canonicalise result before unixifying it.
 	  Remove obsure methods for finding the cwd.

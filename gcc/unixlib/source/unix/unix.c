@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/unix.c,v $
- * $Date: 2003/08/03 16:32:13 $
- * $Revision: 1.13 $
+ * $Date: 2003/10/26 13:34:34 $
+ * $Revision: 1.14 $
  * $State: Exp $
  * $Author: joty $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: unix.c,v 1.13 2003/08/03 16:32:13 joty Exp $";
+static const char rcs_id[] = "$Id: unix.c,v 1.14 2003/10/26 13:34:34 joty Exp $";
 #endif
 
 #include <stdio.h>
@@ -322,7 +322,7 @@ _exit (int return_code)
 
   /* Reset the DDE Utils' Prefix variable.  */
   regs[0] = 0;
-  (void) __os_swi (DDEUtils_SetCLSize, regs);
+  (void) __os_swi (DDEUtils_Prefix, regs);
 
   /* Interval timers must be stopped.  */
   if (__u)
