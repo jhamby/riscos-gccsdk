@@ -93,24 +93,28 @@ int open (char *filename, int oflag, ...)
         }
     }
 
-  switch (oflag & O_OMASK)
+  cmode[1] = '\0';
+  cmode[2] = '\0';
+  cmode[3] = '\0';
+  switch (oflag)
     {
       case O_RDONLY:
-        strcpy (cmode, "r\0\0");
+	cmode[0] = 'r';      
         break;
       case O_WRONLY:
         if (oflag & O_APPEND)
-          strcpy (cmode, "a\0\0");
+          cmode[1] = 'a';
         else
-          strcpy (cmode, "w\0\0");
+          cmode[1] = 'w';
         break;
       case O_RDWR:
+	cmode[1] = '+';
         if (oflag & O_APPEND)
-          strcpy (cmode, "a+\0");
+          cmode[0] = 'a';
         else if (oflag & O_TRUNC)
-          strcpy (cmode, "w+\0");
+          cmode[0] = 'w';
         else
-          strcpy (cmode, "r+\0");
+          cmode[0] = 'r';
         break;
       default:
         errno = EINVAL;
