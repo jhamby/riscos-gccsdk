@@ -15,7 +15,6 @@ all:	gcc
 .PHONY: libgcc
 .PHONY: libf2c
 .PHONY: libstdc
-.PHONY: libio
 .PHONY: libffi
 
 gcc:
@@ -23,7 +22,7 @@ gcc:
 	$(gccpath)/gpc $(gccpath)/objc $(gccpath)/java $(gccpath)/config/arm
 	$(MAKE) -C gcc "STAGE=$(STAGE)"
 
-fastjar libgcc libgpc libf2c libstdc libffi libio zlib:
+fastjar libgcc libgpc libf2c libstdc libffi zlib:
 	mkdir -p $(libpath)/$(STAGE)/$(TRG)
 	$(MAKE) -C $@ "STAGE=$(STAGE)"
 
