@@ -11,7 +11,7 @@
 #include "filehdr.h"
 #include "procdefs.h"
 
-/* #define TIMING */
+/* #define TIMING */ 
 /* #define DEBUG */
 
 #ifdef TIMING
@@ -24,9 +24,11 @@
 */
 bool read_tables(filelist *fp) {
   bool ok;
+
   ok = scan_head(fp);
   ok = ok && scan_symt(fp);
   free_srchlist();
+
   return ok;
 }
 

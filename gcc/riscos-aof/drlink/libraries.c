@@ -96,7 +96,9 @@ bool addto_liblist(const char *name, unsigned int *filebase, unsigned int filesi
   lp->libextent = filesize;
   lp->libgotsyms = FALSE;
   lp->libvalid = FALSE;
+
   lp->libflink = NIL;
+
   for (n = 0; n<MAXENTRIES; n++) lp->librarysyms[n] = NIL;
   if (liblist==NIL) {
     liblist = lp;
@@ -137,6 +139,7 @@ bool isoldlib(void) {
 static bool scan_libchunkhdr(libheader *lp) {
   unsigned int n, start, size;
   chunkindex *cp;
+
   bool datafound;
   dirystart = vsrnstart = symtstart = 0;
   datafound = FALSE;
@@ -224,22 +227,40 @@ static bool add_libsymbol(libheader *fp, unsigned int index, char *name) {
      name, fp->libname);
     memname = name;
   }
+
   if (freeliblist!=NIL) {	/* Allocate entry from free list */
     lp = freeliblist;
-    freeliblist = freeliblist->libflink;
+    freeliblist = freeliblist->left;
   }
+
   else if ((lp = allocmem(sizeof(libentry)))==NIL ) {
     error("Fatal: Out of memory in 'add_libsymbol' adding '%s'", fp->libname);
   }
   hashval = hash(name);
   hp = find_chunkentry(index);
-  lp->libhash = hashval;
-  lp->libname = name;
+  lp->libhash   = hashval;
+  lp->libname   = name;
   lp->libmember = memname;
   lp->liboffset = hp->chunkoffset;
-  lp->libsize = hp->chunksize;
-  lp->libflink = fp->librarysyms[hashval&LIBEMASK];
-  fp->librarysyms[hashval&LIBEMASK] = lp;
+  lp->libsize   = hp->chunksize;
+  lp->left      = NIL;
+  lp->right     = NIL;
+
+  {
+    libentry **tree = &fp->librarysyms[hashval & LIBEMASK];
+
+    while (*tree != NIL) {
+      int compval = opt_case ? stricmp(name, (*tree)->libname) : strcmp(name, (*tree)->libname);
+
+      if (compval > 0)
+        tree = &(*tree)->right;
+      else
+        tree = &(*tree)->left;
+    }
+
+    *tree = lp;
+  }
+
   return TRUE;
 }
 
@@ -254,6 +275,7 @@ static bool scan_libsymt(libheader *lp) {
     unsigned int datasize;	/* Size of data portion of OFL_SYMT entry */
     char entryname;		/* Start of entry's name */
   } symtentry;
+
   symtentry *sp, *symtend;
   sp = COERCE(symtbase, symtentry *);
   symtend = COERCE(COERCE(sp, char *)+symtsize, symtentry *);
@@ -271,6 +293,7 @@ static bool scan_libsymt(libheader *lp) {
     sp = COERCE(COERCE(sp, char *)+sp->entrysize, symtentry *);
   }
   lp->libgotsyms = TRUE;
+
   return TRUE;
 }
 
@@ -322,22 +345,29 @@ bool open_library(libheader *lp) {
 ** any memory used is freed. Also, if the library is not memory
 ** resident, the file is closed.
 */
+void close_library_free(libentry *lep) {
+
+  if (lep != NIL) {
+    close_library_free(lep->left);
+    close_library_free(lep->right);
+
+    lep->left = freeliblist;
+    freeliblist = lep;
+    lep->right = NIL;
+  }
+}
+
+
 void close_library(libheader *lp) {
   int n;
   libentry *lep, *temp;
   if (lp->libase==NIL) close_object();		/* Were reading library members from disk */
+
   if (!opt_rescan) {	/* Not scanning library again - Free memory used */
     lp->libgotsyms = FALSE;
-    for (n = 0; n<MAXENTRIES; n++) {
-      if (lp->librarysyms[n]!=NIL) {
-        lep = lp->librarysyms[n];
-        while (lep!=NIL) {	/* Free library entries */
-          temp = lep->libflink;
-          lep->libflink = freeliblist;
-          freeliblist = lep;
-          lep = temp;
-        }
-      }
+
+    for (n = 0; n < MAXENTRIES; n++) {
+      close_library_free(lp->librarysyms[n]);
     }
   }
 }
@@ -350,7 +380,7 @@ void free_libmem(void) {
   libentry *lp, *temp;
   lp = freeliblist;
   while (lp!=NIL) {	/* Free library entries */
-    temp = lp->libflink;
+    temp = lp->left;
     freemem(lp, sizeof(libentry));
     lp = temp;
   }

@@ -35,13 +35,13 @@ typedef struct {
 
 /* Entry types in low level debug tables */
 
-#define LLD_SPECIAL 0x01000000		/* Linker symbols */
-#define LLD_ROAREA 0x02000000		/* Read-only area name */
+#define LLD_SPECIAL  0x01000000		/* Linker symbols */
+#define LLD_ROAREA   0x02000000		/* Read-only area name */
 #define LLD_ROSYMBOL 0x03000000		/* Symbol in read-only part of image */
-#define LLD_RWAREA 0x04000000		/* Read/write area name */
+#define LLD_RWAREA   0x04000000		/* Read/write area name */
 #define LLD_RWSYMBOL 0x05000000		/* Symbol in read/write area */
-#define LLD_RWDATA 0x06000000		/* Symbol in read/write data area */
-#define LLD_COMMON 0x07000000		/* Common block name */
+#define LLD_RWDATA   0x06000000		/* Symbol in read/write data area */
+#define LLD_COMMON   0x07000000		/* Common block name */
 
 #define LLD_FLAGS 0x02000000		/* Flag values at start of debug area */
 int

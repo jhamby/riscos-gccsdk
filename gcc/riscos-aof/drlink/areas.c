@@ -227,7 +227,8 @@ static arealist *check_commondef(filelist *fp, areaentry *aep, unsigned int atat
   symbol *sp;
   int hashval, count;
   unsigned int *p1, *p2;
-  nameptr = strtbase+aep->areaname;
+
+  nameptr = strtbase + aep->areaname;
   hashval = hash(nameptr);
 
   if ((atattr & ATT_CODE)!=0) {		/* Figure out which list to check */
@@ -248,7 +249,7 @@ static arealist *check_commondef(filelist *fp, areaentry *aep, unsigned int atat
       ap = ap->right;
   }
 
-  if (ap==NIL) return NIL;	/* Common block is unknown */
+  if (ap == NIL) return NIL;	/* Common block is unknown */
 
   if (ap->aratattr!=atattr) {	/* Known common area. Check attributes are the same */
     error("Warning: Attributes of common area '%s' in '%s' conflict with those in '%s'",
@@ -428,6 +429,7 @@ static void insert_area(arealist **list, arealist **lastentry, arealist *newarea
   compres = 1;
 
   ap = *list;
+
   while (ap != NIL) {
     lastarea = ap;
     compres = strcmp(name, ap->arname);
@@ -480,7 +482,6 @@ static void insert_area(arealist **list, arealist **lastentry, arealist *newarea
       arlimlist = lp;
     }
   }
-/*  *lastentry = newarea->arbase;*/
 }
 
 /*
@@ -720,7 +721,7 @@ bool scan_head(filelist *fp) {
   if (ahp->areaheader.aofversion>AOFVERSION) {
     error("Error: The version of AOF used in '%s' (%d.%02d) is not supported",
      fp->chfilename, ahp->areaheader.aofversion/100, ahp->areaheader.aofversion%100);
-    return FALSE;	/* This line was commented out for some reason... */
+    return FALSE;
   }
   count = ahp->areaheader.numareas;
   if (sizeof(aofheader)+count*sizeof(areaentry)>fp->objheadsize) {

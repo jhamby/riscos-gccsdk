@@ -170,7 +170,7 @@ static void reloc_aofarlist_tree(arealist *ap, arealist **firstarea, unsigned in
       newentryarea = newareacount;
       entryoffset += *areabase;
     }
-    areabase += ap->arobjsize;
+    *areabase += ap->arobjsize;
 
     reloc_aofarlist_tree(ap->right, firstarea, areabase);
   }
@@ -418,19 +418,18 @@ static void write_objhead(arealist *ap) {
   if (ap==NIL) return;
   firstarea = ap->arbase;
 
-  do {
-    areasize = relco = 0;
+  areasize = relco = 0;
 
-    write_objhead_calcsizes(ap, firstarea, &areasize, &relco);
+  write_objhead_calcsizes(ap, firstarea, &areasize, &relco);
 
-    entry.areaname = addto_strt(firstarea->arname);
-    entry.attributes = (firstarea->aratattr<<8)+firstarea->aralign;
-    entry.arsize = areasize;
-    entry.arelocs = relco;
-    entry.arlast.arzero = 0;
-    write_image(&entry, sizeof(entry));
-    if (ap!=NIL) firstarea = ap->arbase;
-  } while (ap!=NIL);
+  entry.areaname = addto_strt(firstarea->arname);
+  entry.attributes = (firstarea->aratattr<<8)+firstarea->aralign;
+  entry.arsize = areasize;
+  entry.arelocs = relco;
+  entry.arlast.arzero = 0;
+  write_image(&entry, sizeof(entry));
+  /* TODO: This isn't exactly how it was previously */
+/*  if (ap!=NIL) firstarea = ap->arbase; */
 }
 
 /*

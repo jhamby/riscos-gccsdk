@@ -13,6 +13,7 @@
 #include <string.h>
 #include <ctype.h>
 #include <sys/param.h>
+
 #include "drlhdr.h"
 #include "chunkhdr.h"
 #include "filehdr.h"
@@ -551,6 +552,7 @@ static int read_file(const char *filename) {
 static bool process_file(const char *filename, unsigned int filesize) {
   filelist *fp;
   bool ok;
+
   ok = FALSE;
   switch (find_filetype()) {
   case AOFILE:
@@ -703,6 +705,7 @@ bool get_files(const char *filename) {
   bool ok;
   char dirname[FNAMELEN];
   char leafname[LEAFLEN];
+
   if (!wildcarded(filename)) {	/* No wildcards. Simple call */
     ok = TRUE;
     if (unread(filename)) {
@@ -960,6 +963,7 @@ bool extract_member(chunkindex *cp) {
   unsigned int *oldbase;
   filelist *fp;
   bool ok;
+
   oldbase = filebase;
   filebase = COERCE(COERCE(filebase, char *)+cp->chunkoffset, unsigned int*);
   ok = FALSE;

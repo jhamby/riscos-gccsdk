@@ -61,7 +61,13 @@ void list_allareas(void) {
 
 void list_symbols(symbol *list) {
   symtentry *sp;
-  while (list!=NIL) {
+  static int indent = 0;
+
+  if (list != NIL) {
+    int spaces = indent;
+
+    while (spaces--) printf(" "); 
+
     sp = list->symtptr;
     printf("    Symbol at %p, symt at %p, name='%s', hash=%x, attributes=%x, value=%x",
      list, sp, sp->symtname, list->symhash, sp->symtattr, sp->symtvalue);
@@ -69,7 +75,18 @@ void list_symbols(symbol *list) {
       printf(", area at %p", sp->symtarea.areaptr);
     }
     printf("\n");
-    list = list->symflink;
+
+    indent++;
+
+    if (!list->left && list->right) {
+      spaces = indent;
+      while (spaces--) printf(" ");
+      puts("    (NIL)"); 
+    }
+
+    list_symbols(list->left);
+    list_symbols(list->right);
+    indent--;
   }
 }
 
@@ -91,10 +108,13 @@ void list_symtable(symbol *table[], unsigned int stsize) {
 }
 
 void list_libentries(libentry *list) {
-  while (list!=NIL) {
+  if (list != NIL) {
+    list_libentries(list->left);
+
     printf("    Lib entry at %p, name='%s', hash=%x, member name='%s', offset in library=%x, size=%x\n",
      list, list->libname, list->libhash, list->libmember, list->liboffset, list->libsize);
-    list = list->libflink;
+
+    list_libentries(list->right);
   }
 }
 

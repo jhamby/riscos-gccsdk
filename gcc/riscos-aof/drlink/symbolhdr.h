@@ -75,11 +75,12 @@ typedef struct symtentry {		/* Entry in OBJ_SYMT chunk */
   } symtarea;
 } symtentry;
 
-typedef struct symbol {			/* Symbol table entry */
-  int symhash;				/* Hash value of symbol's name */
-  struct symtentry *symtptr;		/* Pointer to entry in OBJ_SYMT chunk */
-  struct symtentry *symnormal;		/* Pointer to 'normal' version of symbol when a strong def'n exists*/
-  struct symbol *symflink;		/* Pointer to next symbol */
+typedef struct symbol {			/* Symbol table entry                                               */
+  struct symbol *left;			/* Left in binary tree                                              */
+  struct symbol *right;			/* Rigth in binary tree                                             */
+  int symhash;				/* Hash value of symbol's name                                      */
+  struct symtentry *symtptr;		/* Pointer to entry in OBJ_SYMT chunk                               */
+  struct symtentry *symnormal;		/* Pointer to 'normal' version of symbol when a strong def'n exists */
 } symbol;
 
 typedef symbol *symtable[MAXLOCALS];	/* Local symbol hash table */
@@ -89,13 +90,14 @@ typedef struct relocation {		/* Relocation info layout in OBJ_AREA chunk */
   unsigned int reltypesym;		/* Relocation type and symbol index in OBJ_SYMT area */
 } relocation;
 
-typedef struct libentry {		/* Library symbol table entry */
-  int libhash;				/* Hash value of library entry name */
-  char *libname;			/* Pointer to library entry name */
-  char *libmember;			/* Pointer to name of entry's library member */
-  unsigned int liboffset;		/* Offset in library of entry's LIB_DATA chunk */
-  unsigned int libsize;			/* Size of LIB_DATA chunk */
-  struct libentry *libflink;		/* Pointer to next library entry */
+typedef struct libentry {		/* Library symbol table entry                     */
+  struct libentry *left;		/* Left in binary tree                            */
+  struct libentry *right;		/* Right in binary tree                           */
+  int libhash;				/* Hash value of library entry name               */
+  char *libname;			/* Pointer to library entry name                  */
+  char *libmember;			/* Pointer to name of entry's library member      */
+  unsigned int liboffset;		/* Offset in library of entry's LIB_DATA chunk    */
+  unsigned int libsize;			/* Size of LIB_DATA chunk                         */
 } libentry;
 
 typedef libentry *libtable[MAXENTRIES];	/* Library symbol hash table */

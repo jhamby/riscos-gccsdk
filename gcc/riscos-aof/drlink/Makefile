@@ -1,4 +1,4 @@
-# Makefile for the ARM Object Format linker - DRLINK
+# Makefile for the ARM Object Format linker - DrLink
 # Written by Nick Burrett <nick@dsvr.net>
 
 ifeq (${STAGE},stage1)
