@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/features.c,v $
- * $Date: 2003/08/18 22:35:36 $
- * $Revision: 1.7 $
+ * $Date: 2003/12/22 21:35:03 $
+ * $Revision: 1.8 $
  * $State: Exp $
  * $Author: joty $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: features.c,v 1.7 2003/08/18 22:35:36 joty Exp $";
+static const char rcs_id[] = "$Id: features.c,v 1.8 2003/12/22 21:35:03 joty Exp $";
 #endif
 
 /* #define DEBUG 1 */
@@ -58,8 +58,8 @@ static char *get_program_name (const char *cli, char *fname_buf, size_t fname_bu
 
 /* Build up an environment variable name, variable, with the UnixEnv$
    prefixed to it.  If program_name is non-zero then look for the
-   variable as UnixEnv$program_name$variable, otherwise look for it
-   as UnixEnv$variable.
+   variable as UnixEnv$program_name$variable.  If nothing is found by
+   this method then look for it as UnixEnv$variable.
 
    The intention is to allow the programmer the opportunity to turn on/off
    certain UnixLib runtime functionality, for example the filename
@@ -69,22 +69,35 @@ static char *env (const char *program_name, const char *variable,
 		  char *buffer, size_t bufsiz)
 {
   char envvar[128];
-  char *ptr, *result;
+  char *base_ptr, *ptr, *result;
 
-  ptr = stpcpy (envvar, __UNIX_ENV_PREFIX);
+  base_ptr = stpcpy (envvar, __UNIX_ENV_PREFIX);
+  result = 0;
   if (program_name != NULL)
     {
-      ptr = stpcpy (ptr, program_name);
+      ptr = stpcpy (base_ptr, program_name);
       *ptr++ = '$';
-    }
-  ptr = stpcpy (ptr, variable);
+      ptr = stpcpy (ptr, variable);
 
 #ifdef DEBUG
-  __os_print ("features.c (env): Looking for '"); __os_print (envvar);
-  __os_print ("'.");
+      __os_print ("features.c (env): Looking for '"); __os_print (envvar);
+      __os_print ("'.");
 #endif
 
-  result = __getenv_from_os (envvar, buffer, bufsiz);
+      result = __getenv_from_os (envvar, buffer, bufsiz);
+    }
+
+  if (!result)
+    {
+      ptr = stpcpy (base_ptr, variable);
+
+#ifdef DEBUG
+      __os_print ("features.c (env): Looking for '"); __os_print (envvar);
+      __os_print ("'.");
+#endif
+
+      result = __getenv_from_os (envvar, buffer, bufsiz);
+    }
 
 #ifdef DEBUG
   __os_print ((result) ? "Found\r\n" : "Not found\r\n");

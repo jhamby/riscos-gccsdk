@@ -1,3 +1,7 @@
+Sun Aug  8 12:57:59 2004  Graham Shaw  <gdshaw@sagitta.demon.co.uk>
+	* source/unix/features.c: Make environment variables work
+	  as advertised.
+
 Sun Aug  8 12:28:48 2004  Peter Naulls  <peter@chocky.org>
 	* source/clib/features.h: Stop pretending we have full unicode
 	  support.
