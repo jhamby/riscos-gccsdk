@@ -1,10 +1,10 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/_syslib.s,v $
-; $Date: 2004/12/11 14:18:57 $
-; $Revision: 1.34 $
+; $Date: 2004/12/23 21:10:08 $
+; $Revision: 1.35 $
 ; $State: Exp $
-; $Author: joty $
+; $Author: peter $
 ;
 ;----------------------------------------------------------------------------
 
@@ -1142,8 +1142,7 @@ dynamic_area_name_end
 	EXPORT	|__u|		; pointer to proc structure
 	EXPORT	|__unixlib_real_himem|
 	EXPORT	|__32bit|	; non-zero if executing in 32-bit mode
-	EXPORT	|__panic_mode|		; non-zero if we're panicing.
-	EXPORT  |__os_version|  ; OS Version returned from OS_byte 129
+	EXPORT	|__panic_mode|		; non-zero when we're panicing.
 
 	; Altering this structure will require fixing __main.
 struct_base

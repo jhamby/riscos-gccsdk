@@ -1,3 +1,8 @@
+Wed Jan  6 23:13:25  John Tytgat  <John.Tytgat@aaug.net>
+
+	* source/sys/_syslib.s: Removed export of non-existing __os_version
+	  symbol.
+
 Wed Jan  6 23:07:25  John Tytgat  <John.Tytgat@aaug.net>
 
 	* gen-makefiles.pl: Generated stubs.h file contains a gen-makefiles.pl
