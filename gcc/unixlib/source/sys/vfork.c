@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source$
- * $Date$
- * $Revision$
- * $State$
- * $Author$
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/vfork.c,v $
+ * $Date: 2002/09/24 21:02:38 $
+ * $Revision: 1.4 $
+ * $State: Exp $
+ * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id$";
+static const char rcs_id[] = "$Id: vfork.c,v 1.4 2002/09/24 21:02:38 admin Exp $";
 #endif
 
 #include <errno.h>
@@ -248,7 +248,8 @@ __vexit (int e)
 
   for (x = 0; x < __JMP_BUF_SIZE; x++)
     __u->child[0].vreg[x] = p->vreg[x];
-  __u->child[0].vreg[13] = p->pid;
+  /* Copy the pid of the old child process into the jmp_buf */
+  __u->child[0].vreg[15] = p->pid;
 
   /* Free memory allocated to the child process.  */
   free_process (p);

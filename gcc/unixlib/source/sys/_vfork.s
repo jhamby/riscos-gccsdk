@@ -1,10 +1,10 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/_vfork.s,v $
-; $Date: 2002/12/15 13:16:55 $
-; $Revision: 1.5 $
+; $Date: 2003/04/05 12:16:34 $
+; $Revision: 1.6 $
 ; $State: Exp $
-; $Author: admin $
+; $Author: alex $
 ;
 ;----------------------------------------------------------------------------
 
@@ -134,7 +134,8 @@ pthread_skip4
 	EXPORT	|__vret|
 |__vret|
 	BL	|__vexit|
-	LDR	a2, [a1, #52]
+	; The location of the child pid in jmp_buf
+	LDR	a2, [a1, #60]
 	B	longjmp
 
 	AREA	|C$$zidata|, DATA, NOINIT

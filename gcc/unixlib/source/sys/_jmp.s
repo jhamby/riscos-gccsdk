@@ -1,8 +1,8 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/_jmp.s,v $
-; $Date: 2003/06/19 23:58:25 $
-; $Revision: 1.7 $
+; $Date: 2003/06/23 20:33:03 $
+; $Revision: 1.8 $
 ; $State: Exp $
 ; $Author: joty $
 ;
@@ -31,6 +31,9 @@
 	;   +  96 ( 4) : sp
 	;   + 100 ( 4) : lr
 	; = 104 bytes (= __JMP_BUF_SIZE * sizeof(int))
+
+	; NOTE: If the location of the child process in jmp_buf changes
+	; it must be updated in _vfork.s and vfork.c
 
 	EXPORT	setjmp
 	NAME	setjmp
