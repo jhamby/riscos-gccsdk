@@ -1,5 +1,6 @@
 /* Buffer primitives for comparison operations.
-   Copyright (C) 1993 Free Software Foundation, Inc.
+
+   Copyright (C) 2002 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -12,29 +13,9 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
+   along with this program; see the file COPYING.
+   If not, write to the Free Software Foundation,
+   59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.  */
 
-#include "system.h"
-#include "cmpbuf.h"
-
-/* Least common multiple of two buffer sizes A and B.  */
-
-size_t
-buffer_lcm (a, b)
-     size_t a, b;
-{
-  size_t m, n, r;
-
-  /* Yield reasonable values if buffer sizes are zero.  */
-  if (!a)
-    return b ? b : 8 * 1024;
-  if (!b)
-    return a;
-
-  /* n = gcd (a, b) */
-  for (m = a, n = b;  (r = m % n) != 0;  m = n, n = r)
-    continue;
-
-  return a/n * b;
-}
+size_t block_read (int, char *, size_t);
+size_t buffer_lcm (size_t, size_t, size_t);

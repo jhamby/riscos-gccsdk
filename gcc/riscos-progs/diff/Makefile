@@ -1,84 +1,75 @@
 # Makefile for GNU diffutils
 # Written by Nick Burrett <nick@dsvr.net>
 
-INCLUDES = -I.
+INCLUDES = -I. -I ./lib -I ../../include
 CROSS_CFLAGS += -DHAVE_CONFIG_H
 
 $(objdir)/riscos-progs/diff/%.o: %.c
 	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c $< $(INCLUDES)
 
-DIFFOBJS = $(objdir)/riscos-progs/diff/diff.o \
-	$(objdir)/riscos-progs/diff/analyze.o \
-	$(objdir)/riscos-progs/diff/cmpbuf.o \
-	$(objdir)/riscos-progs/diff/dir.o \
-	$(objdir)/riscos-progs/diff/io.o \
-	$(objdir)/riscos-progs/diff/util.o \
-	$(objdir)/riscos-progs/diff/context.o \
-	$(objdir)/riscos-progs/diff/ed.o \
-	$(objdir)/riscos-progs/diff/ifdef.o \
-	$(objdir)/riscos-progs/diff/normal.o \
-	$(objdir)/riscos-progs/diff/side.o \
-	$(objdir)/riscos-progs/diff/fnmatch.o \
-	$(objdir)/riscos-progs/diff/getopt.o \
-	$(objdir)/riscos-progs/diff/getopt1.o \
-	$(objdir)/riscos-progs/diff/version.o \
-	$(objdir)/riscos-progs/diff/regex.o
-
-DIFF3OBJS = $(objdir)/riscos-progs/diff/diff3.o \
-	$(objdir)/riscos-progs/diff/getopt.o \
-	$(objdir)/riscos-progs/diff/getopt1.o \
-	$(objdir)/riscos-progs/diff/version.o
+dobj = $(objdir)/riscos-progs/diff
 
 
-SDIFFOBJS = $(objdir)/riscos-progs/diff/sdiff.o \
-	$(objdir)/riscos-progs/diff/getopt.o \
-	$(objdir)/riscos-progs/diff/getopt1.o \
-	$(objdir)/riscos-progs/diff/version.o
+DIFFOBJS = \
+	$(dobj)/analyze.o \
+	$(dobj)/context.o \
+	$(dobj)/diff.o \
+	$(dobj)/dir.o \
+	$(dobj)/ed.o \
+	$(dobj)/ifdef.o \
+	$(dobj)/io.o \
+	$(dobj)/normal.o \
+	$(dobj)/side.o \
+	$(dobj)/util.o \
+	$(dobj)/version.o
 
-CMPOBJS = $(objdir)/riscos-progs/diff/cmp.o \
-	$(objdir)/riscos-progs/diff/cmpbuf.o \
-	$(objdir)/riscos-progs/diff/error.o \
-	$(objdir)/riscos-progs/diff/getopt.o \
-	$(objdir)/riscos-progs/diff/getopt1.o \
-	$(objdir)/riscos-progs/diff/xmalloc.o \
-	$(objdir)/riscos-progs/diff/version.o
+DIFF3OBJS = $(dobj)/diff3.o \
+	$(dobj)/version.o
 
-all:	$(bin_dir)/diff$(exesfx) $(bin_dir)/diff3$(exesfx) \
+
+SDIFFOBJS = $(dobj)/sdiff.o \
+	$(dobj)/version.o
+
+CMPOBJS = $(dobj)/cmp.o \
+	$(dobj)/version.o
+
+LIB = \
+	$(dobj)/lib/basename.o \
+	$(dobj)/lib/cmpbuf.o \
+	$(dobj)/lib/c-stack.o \
+	$(dobj)/lib/error.o \
+	$(dobj)/lib/exclude.o \
+	$(dobj)/lib/exitfail.o \
+	$(dobj)/lib/freesoft.o \
+	$(dobj)/lib/hard-locale.o \
+	$(dobj)/lib/offtostr.o \
+	$(dobj)/lib/posixver.o \
+	$(dobj)/lib/prepargs.o \
+	$(dobj)/lib/quotesys.o \
+	$(dobj)/lib/regex.o \
+	$(dobj)/lib/setmode.o \
+	$(dobj)/lib/strftime.o \
+	$(dobj)/lib/xmalloc.o \
+	$(dobj)/lib/xstrtol.o \
+	$(dobj)/lib/xstrtoumax.o
+
+all:	dirs \
+	$(bin_dir)/diff$(exesfx) $(bin_dir)/diff3$(exesfx) \
 	$(bin_dir)/sdiff$(exesfx) $(bin_dir)/cmp$(exesfx)
 
-$(bin_dir)/diff$(exesfx):	$(DIFFOBJS)
-	$(CROSS_CC) -o $@ $(DIFFOBJS)
+dirs:
+	mkdir -p $(dobj) $(dobj)/lib
 
-$(bin_dir)/diff3$(exesfx):	$(DIFF3OBJS)
-	$(CROSS_CC) -o $@ $(DIFF3OBJS)
+$(bin_dir)/diff$(exesfx):	$(DIFFOBJS) $(LIB)
+	$(CROSS_CC) -o $@ $(DIFFOBJS) $(LIB)
 
-$(bin_dir)/sdiff$(exesfx):	$(SDIFFOBJS)
-	$(CROSS_CC) -o $@ $(SDIFFOBJS)
+$(bin_dir)/diff3$(exesfx):	$(DIFF3OBJS) $(LIB)
+	$(CROSS_CC) -o $@ $(DIFF3OBJS) $(LIB)
 
-$(bin_dir)/cmp$(exesfx):	$(CMPOBJS)
-	$(CROSS_CC) -o $@ $(CMPOBJS)
+$(bin_dir)/sdiff$(exesfx):	$(SDIFFOBJS) $(LIB)
+	$(CROSS_CC) -o $@ $(SDIFFOBJS) $(LIB)
+
+$(bin_dir)/cmp$(exesfx):	$(CMPOBJS) $(LIB)
+	$(CROSS_CC) -o $@ $(CMPOBJS) $(LIB)
 
 
-$(objdir)/riscos_progs/diff/analyze.o:	diff.h cmpbuf.h analyze.c
-$(objdir)/riscos_progs/diff/cmp.o:	system.h getopt.h cmpbuf.h cmp.c
-$(objdir)/riscos_progs/diff/cmpbuf.o:	system.h cmpbuf.h cmpbuf.c
-$(objdir)/riscos_progs/diff/context.o:	diff.h context.c
-$(objdir)/riscos_progs/diff/diff.o:	diff.h getopt.h fnmatch.h diff.c
-$(objdir)/riscos_progs/diff/diff3.o:	diff.h getopt.h diff3.c
-$(objdir)/riscos_progs/diff/dir.o:	diff.h dir.c
-$(objdir)/riscos_progs/diff/ed.o:	diff.h ed.c
-$(objdir)/riscos_progs/diff/error.o:	error.c
-$(objdir)/riscos_progs/diff/fnmatch.o:	fnmatch.c
-$(objdir)/riscos_progs/diff/getopt.o:	getopt.h getopt.c
-$(objdir)/riscos_progs/diff/getopt1.o:	getopt.h getopt1.c
-$(objdir)/riscos_progs/diff/ifdef.o:	diff.h ifdef.c
-$(objdir)/riscos_progs/diff/io.o:	diff.h io.c
-$(objdir)/riscos_progs/diff/memchr.o:	memchr.c
-$(objdir)/riscos_progs/diff/normal.o:	diff.h normal.c
-$(objdir)/riscos_progs/diff/regex.o:	regex.h regex.c
-$(objdir)/riscos_progs/diff/sdiff.o:	system.h getopt.h sdiff.c
-$(objdir)/riscos_progs/diff/side.o:	diff.h side.c
-$(objdir)/riscos_progs/diff/util.o:	diff.h util.c
-$(objdir)/riscos_progs/diff/version.o:	version.c
-$(objdir)/riscos_progs/diff/waitpid.o:	system.h
-$(objdir)/riscos_progs/diff/xmalloc.o:	xmalloc.c
