@@ -105,7 +105,7 @@ insn-opinit.c
 insn-output.c
 insn-peep.c
 insn-recog.c
-min-isnn-modes.c
+min-insn-modes.c
 options.c
 s-gtype
 tm-preds.h
