@@ -181,9 +181,9 @@ arm_error_throwback (const char *file, int line, const char *prefix,
   if (!arm_throwback_started)
     arm_throwback_start();
 
-  printf ("throwback: file='%s', line='%d', prefix='%s', s='%s'\n",
-		  file, line, prefix, s);
-  
+  /* printf ("throwback: file='%s', line='%d', prefix='%s', s='%s'\n",
+     file, line, prefix, s);  */
+
   if (arm_throwback_started > 0 && riscos_canonicalise_filename (file))
     {
       arm_throwback_new_file (arm_error_file);
