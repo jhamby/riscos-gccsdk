@@ -1,3 +1,9 @@
+Sat Mar 19 11:54:53 2005  Alex Waugh  <alex@alexwaugh.com>
+
+	* source/unix/dev.c (__fsread): Fix potential buffer overflow.
+	  (__fslseek): Cope with being called for a directory.
+	  (__fsfstat): Fix double free when called for a directory.
+
 Tue Mar 15 22:07:05 2005  Alex Waugh  <alex@alexwaugh.com>
 
 	* Docs/ReadMe: Document new behaviour of environment variables.

@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/dev.c,v $
- * $Date: 2005/01/30 16:08:35 $
- * $Revision: 1.27 $
+ * $Date: 2005/03/04 20:59:06 $
+ * $Revision: 1.28 $
  * $State: Exp $
  * $Author: alex $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: dev.c,v 1.27 2005/01/30 16:08:35 alex Exp $";
+static const char rcs_id[] = "$Id: dev.c,v 1.28 2005/03/04 20:59:06 alex Exp $";
 #endif
 
 /* #define DEBUG */
@@ -417,7 +417,8 @@ __fsread (struct __unixlib_fd *file_desc, void *data, int nbyte)
 	return -1;
       if (!result)
         return -1;
-      memcpy (data, entry.d_name, entry.d_namlen);
+      memcpy (data, entry.d_name, nbyte < entry.d_namlen ? nbyte : entry.d_namlen);
+      /* FIXME: If the buffer is too small then we will lose the rest of the filename */
       return entry.d_namlen;
     }
   else
@@ -461,6 +462,9 @@ __fslseek (struct __unixlib_fd *file_desc, __off_t lpos, int whence)
   _kernel_oserror *err = NULL;
   int regs[3];
   int handle = (int) file_desc->devicehandle->handle;
+
+  if (file_desc->dflag & FILE_ISDIR)
+    return 0; /* Should we call seekdir()? */
 
   if (whence == SEEK_SET)
     err = __os_args (1, handle, (int) lpos, regs);
@@ -545,7 +549,7 @@ __fsfstat (int fd, struct stat *buf)
   file_desc = getfd (fd);
 
   if (file_desc->dflag & FILE_ISDIR)
-    buffer = ((DIR *) file_desc->devicehandle->handle)->dd_name_can;
+    buffer = strdup(((DIR *) file_desc->devicehandle->handle)->dd_name_can);
   else
     buffer = __fd_to_name ((int) file_desc->devicehandle->handle, NULL, 0);
 
@@ -563,15 +567,18 @@ __fsfstat (int fd, struct stat *buf)
   buf->st_ino = __get_file_ino (NULL, buffer);
   free (buffer);
 
-  /* __os_file returns the allocated size of the file,
-     but we want the current extent of the file */
-  err = __os_args (2, (int) file_desc->devicehandle->handle, 0, argsregs);
-  if (err)
+  if (!(file_desc->dflag & FILE_ISDIR))
     {
-      __seterr (err);
-      return __set_errno (EIO);
+      /* __os_file returns the allocated size of the file,
+         but we want the current extent of the file */
+      err = __os_args (2, (int) file_desc->devicehandle->handle, 0, argsregs);
+      if (err)
+        {
+          __seterr (err);
+          return __set_errno (EIO);
+        }
+      regs[4] = argsregs[2];
     }
-  regs[4] = argsregs[2];
 
   __stat (regs[0], regs[2], regs[3], regs[4], regs[5], buf);
 
