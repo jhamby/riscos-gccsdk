@@ -19,7 +19,7 @@ bin_dir = $(ro_bin_dir)
 gcc_bin_dir = $(ro_gcc_bin_dir)
 CC = $(CROSS_CC)
 CFLAGS = $(CROSS_CFLAGS)
-INCLUDES += -I$(unixlib_incl_dir)
+INCLUDES += -I$(lib_incl_dir)
 endif
 
 OS_INC_SRCDIR = config/os/generic
