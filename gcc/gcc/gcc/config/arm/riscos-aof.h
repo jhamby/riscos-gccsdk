@@ -291,21 +291,30 @@ do					\
 #define IS_ASM_LOGICAL_LINE_SEPARATOR(C) ((C) == '\n')
 
 /* Output of Uninitialized Variables */
-#define ASM_OUTPUT_COMMON(STREAM,NAME,SIZE,ROUNDED)			\
-  do									\
-    {									\
-     common_section ();							\
-     fprintf ((STREAM), "\tAREA |C$$data|, DATA\n");	\
-     fprintf ((STREAM), "\tEXPORT\t|%s|\n|%s|\n", (NAME), (NAME));			\
-     fprintf ((STREAM), "\t%% %d\t%s size=%d\n",			\
-	      (ROUNDED), ASM_COMMENT_START, (SIZE));			\
-     aof_delete_import ((NAME));					\
-    }									\
+#define ASM_OUTPUT_COMMON(STREAM,NAME,SIZE,ROUNDED)		\
+  do								\
+    {								\
+     common_section ();						\
+     fprintf ((STREAM), "\tAREA |%s|, DATA, COMMON\n", (NAME));	\
+     fprintf ((STREAM), "\tEXPORT |%s|\n", (NAME));		\
+     fprintf ((STREAM), "\t%% %d\t%s size=%d\n",		\
+	      (ROUNDED), ASM_COMMENT_START, (SIZE));		\
+     aof_delete_import ((NAME));				\
+    }								\
   while (0)
-
+  
 /* Place uninitialised global data in the common section.  */ 
-#define ASM_OUTPUT_BSS(STREAM,DECL,NAME,SIZE,ROUNDED) \
-  asm_output_bss ((STREAM), (DECL), (NAME), (SIZE), (ROUNDED));
+#define ASM_OUTPUT_BSS(STREAM,DECL,NAME,SIZE,ROUNDED)		\
+  do								\
+    {								\
+     common_section ();						\
+     fprintf ((STREAM), "\tAREA |%s|, DATA, COMMON\n", (NAME));	\
+     fprintf ((STREAM), "\tEXPORT |%s|\n", (NAME));		\
+     fprintf ((STREAM), "\t%% %d\t%s size=%d\n",		\
+	      (ROUNDED), ASM_COMMENT_START, (SIZE));		\
+     aof_delete_import ((NAME));				\
+    }								\
+  while (0)
 
 #define ASM_OUTPUT_LOCAL(STREAM,NAME,SIZE,ROUNDED)	\
    (zero_init_section (),				\
