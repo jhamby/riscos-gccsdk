@@ -28,7 +28,7 @@ Boston, MA 02111-1307, USA.  */
 #include <stdarg.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include <sys/os.h>
+#include <unixlib/os.h>
 #include <unixlib/local.h>
 
 #define OS_FSControl                 0x29

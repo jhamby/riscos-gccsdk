@@ -82,6 +82,13 @@ compilation is specified by a string called a "spec".  */
 #include "gcc.h"
 #include "flags.h"
 
+/* NAB++ */
+#ifdef __riscos
+#include <unixlib/os.h>
+#include <swis.h>
+#endif
+/* NAB-- */
+
 #ifdef HAVE_SYS_RESOURCE_H
 #include <sys/resource.h>
 #endif
@@ -317,7 +324,9 @@ static void init_gcc_specs              PARAMS ((struct obstack *,
 						 const char *, const char *,
 						 const char *));
 #endif
-#if defined(HAVE_TARGET_OBJECT_SUFFIX) || defined(HAVE_TARGET_EXECUTABLE_SUFFIX)
+
+/* NAB++ */
+#if defined(HAVE_TARGET_OBJECT_SUFFIX) || defined(HAVE_TARGET_EXECUTABLE_SUFFIX) || defined(__riscos)
 static const char *convert_filename	PARAMS ((const char *, int, int));
 #endif
 
@@ -759,6 +768,7 @@ static struct user_specs *user_specs_head, *user_specs_tail;
   || !strcmp (STR, "iwithprefix") || !strcmp (STR, "iwithprefixbefore") \
   || !strcmp (STR, "isystem") || !strcmp (STR, "-param") \
   || !strcmp (STR, "specs") \
+  || !strcmp (STR, "icrossdirafter") /* NAB++ */ \
   || !strcmp (STR, "MF") || !strcmp (STR, "MT") || !strcmp (STR, "MQ"))
 
 #ifndef WORD_SWITCH_TAKES_ARG
@@ -933,6 +943,9 @@ static const struct option_map option_map[] =
    {"--include-barrier", "-I-", 0},
    {"--include-directory", "-I", "aj"},
    {"--include-directory-after", "-idirafter", "a"},
+   /* NAB++ */
+   {"--include-cross-directory-after", "-icrossdirafter", "a"},
+   /* NAB-- */
    {"--include-prefix", "-iprefix", "a"},
    {"--include-with-prefix", "-iwithprefix", "a"},
    {"--include-with-prefix-before", "-iwithprefixbefore", "a"},
@@ -2967,11 +2980,27 @@ static int warn_B;
 /* Gives value to pass as "warn" to add_prefix for standard prefixes.  */
 static int *warn_std_ptr = 0;
 
-#if defined(HAVE_TARGET_OBJECT_SUFFIX) || defined(HAVE_TARGET_EXECUTABLE_SUFFIX)
+#if defined(HAVE_TARGET_OBJECT_SUFFIX) || defined(HAVE_TARGET_EXECUTABLE_SUFFIX) || defined(__riscos__)
 
 /* Convert NAME to a new name if it is the standard suffix.  DO_EXE
    is true if we should look for an executable suffix.  DO_OBJ
    is true if we should look for an object suffix.  */
+
+/* NAB++ */
+#if defined(__riscos__)
+static const char *
+convert_filename (name, do_exe, do_obj)
+     const char *name;
+     int do_exe ATTRIBUTE_UNUSED;
+     int do_obj ATTRIBUTE_UNUSED;
+{
+  char tmp[256];
+  extern char *riscos_to_unix (const char *, char *);
+  riscos_to_unix (name, tmp);
+  return obstack_copy0 (&obstack, tmp, strlen (tmp));
+}
+#else
+/* NAB-- */
 
 static const char *
 convert_filename (name, do_exe, do_obj)
@@ -3023,6 +3052,9 @@ convert_filename (name, do_exe, do_obj)
 
   return name;
 }
+/* NAB++ */
+#endif /* ! defined __riscos__ */
+/* NAB--*/
 #endif
 
 /* Display the command line switches accepted by gcc.  */
@@ -3793,6 +3825,23 @@ warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n\n"
      directories, so that we can search both the user specified directory
      and the standard place.  */
 
+/* NAB++ */
+#ifdef __riscos__
+  {
+    /* Convert the dots in the version number into underscores - which
+       are more suited to RISC OS's file naming conventions.  */
+    char *v = xmalloc (strlen (spec_version) + 1);
+    char *w;
+
+    strcpy (v, spec_version);
+    for (w = v; *w; w++)
+      if (*w == '.')
+        *w = '_';
+    spec_version = v;
+  }
+#endif
+/* NAB-- */
+
   if (!IS_ABSOLUTE_PATHNAME (tooldir_prefix))
     {
       if (gcc_exec_prefix)
@@ -4019,7 +4068,8 @@ warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n\n"
 	}
       else
 	{
-#ifdef HAVE_TARGET_OBJECT_SUFFIX
+	  /* NAB++ */
+#if defined (HAVE_TARGET_OBJECT_SUFFIX) || defined (__riscos__)
 	  argv[i] = convert_filename (argv[i], 0, access (argv[i], F_OK));
 #endif
 
@@ -5774,6 +5824,27 @@ main (argc, argv)
     --p;
   programname = p;
 
+/* NAB++ */
+#ifdef __riscos
+  {
+    /* Perform a simple memory check.  Notify the user that there is
+       not enough space in the `next' slot for a task and die.  */
+    int current, next, regs[10];
+
+    regs[0] = -1;
+    regs[1] = -1;
+    __os_swi (Wimp_SlotSize, regs);
+    if (regs[0] < (3000 * 1024))
+      {
+        fprintf (stderr,
+                "%s requires a minimum of 3000K to run.  Please increase the wimpslot.\n",
+                programname);
+        return 1;
+      }
+  }
+#endif
+/* NAB-- */
+
   xmalloc_set_program_name (programname);
 
 #ifdef GCC_DRIVER_HOST_INITIALIZATION
@@ -6200,10 +6271,17 @@ main (argc, argv)
 	  if (s == NULL)
 	    linker_name_spec = "ld";
 	}
+
+/* NAB++ */
+#ifndef __riscos__
+/* NAB-- */
       /* Rebuild the COMPILER_PATH and LIBRARY_PATH environment variables
 	 for collect.  */
       putenv_from_prefixes (&exec_prefixes, "COMPILER_PATH");
       putenv_from_prefixes (&startfile_prefixes, LIBRARY_PATH_ENV);
+/* NAB++ */
+#endif
+/* NAB-- */
 
       value = do_spec (link_command_spec);
       if (value < 0)

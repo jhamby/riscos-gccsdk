@@ -30,18 +30,32 @@ $(objtarget)/%.o: %.c
 	$(CC) $(CFLAGS) -o $@ -c $< $(INCLUDES)
 
 
-OBJS = $(objtarget)/choose-temp.o $(objtarget)/cp-demangle.o \
-	$(objtarget)/concat.o $(objtarget)/cplus-dem.o $(objtarget)/dyn-string.o \
-	$(objtarget)/fibheap.o $(objtarget)/getruntime.o \
-	$(objtarget)/getopt.o $(objtarget)/getopt1.o $(objtarget)/getpwd.o \
-	$(objtarget)/hashtab.o $(objtarget)/hex.o $(objtarget)/lbasename.o \
-	$(objtarget)/obstack.o $(objtarget)/make-temp-file.o \
+OBJS = $(objtarget)/asprintf.o \
+	$(objtarget)/choose-temp.o \
+	$(objtarget)/cp-demangle.o \
+	$(objtarget)/concat.o \
+	$(objtarget)/cplus-dem.o \
+	$(objtarget)/dyn-string.o \
+	$(objtarget)/fibheap.o \
+	$(objtarget)/getruntime.o \
+	$(objtarget)/getopt.o \
+	$(objtarget)/getopt1.o \
+	$(objtarget)/getpwd.o \
+	$(objtarget)/hashtab.o \
+	$(objtarget)/hex.o \
+	$(objtarget)/lbasename.o \
+	$(objtarget)/obstack.o \
+	$(objtarget)/make-temp-file.o \
 	$(objtarget)/md5.o \
-	$(objtarget)/mkstemps.o $(objtarget)/partition.o \
-	$(objtarget)/pexecute.o $(objtarget)/safe-ctype.o \
-	$(objtarget)/splay-tree.o $(objtarget)/stpcpy.o \
+	$(objtarget)/mkstemps.o \
+	$(objtarget)/partition.o \
+	$(objtarget)/pexecute.o \
+	$(objtarget)/safe-ctype.o \
+	$(objtarget)/splay-tree.o \
+	$(objtarget)/stpcpy.o \
 	$(objtarget)/vasprintf.o \
-	$(objtarget)/xatexit.o $(objtarget)/xexit.o \
+	$(objtarget)/xatexit.o \
+	$(objtarget)/xexit.o \
 	$(objtarget)/xmalloc.o \
 	$(objtarget)/xmemdup.o \
 	$(objtarget)/xstrdup.o \
@@ -71,6 +85,7 @@ $(gcc_bin_dir)/$(TRG)/o/libiberty: $(OBJS)
 	$(CROSS_AR) $(CROSS_AR_FLAGS) $@ $(OBJS)
 endif
 
+$(objtarget)/asprintf.o: asprintf.c
 $(objtarget)/choose-temp.o: choose-temp.c
 $(objtarget)/concat.o: concat.c
 $(objtarget)/cp-demangle.o: cp-demangle.c

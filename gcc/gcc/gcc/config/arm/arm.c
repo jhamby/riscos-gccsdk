@@ -10931,6 +10931,9 @@ void
 aof_dump_imports (f)
      FILE * f;
 {
+  /* NAB++ */
+#ifndef TARGET_RISCOSAOF
+  /* NAB-- */
   /* The AOF assembler needs this to cause the startup code to be extracted
      from the library.  Brining in __main causes the whole thing to work
      automagically.  */
@@ -10940,6 +10943,9 @@ aof_dump_imports (f)
       fputs ("\tIMPORT __main\n", f);
       fputs ("\tDCD __main\n", f);
     }
+  /* NAB++ */
+#endif
+  /* NAB-- */
 
   /* Now dump the remaining imports.  */
   while (imports_list)

@@ -27,7 +27,7 @@
 /* #undef WORDS_BIGENDIAN */
 
 #define PACKAGE "gcc"
-#define VERSION "3.1.0"
+#define VERSION "3.3.0"
 #define HAVE_CPP_STRINGIFY 1
 
 /* Define if you have the atoll function.  */

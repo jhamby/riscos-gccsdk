@@ -1,4 +1,4 @@
-# Second-level Makefile for RISC OS GCC v2.95.2
+# Second-level Makefile for RISC OS GCC v3.3
 # Written by Nick Burrett <nick@dsvr.net>
 
 # Passed in by top-level Makefile.  TRG is a path name for the 
@@ -7,15 +7,13 @@ export TRG
 libpath=$(objdir)/gcc-$(VERSION)/$@
 gccpath=$(objdir)/gcc-$(VERSION)/$@/$(STAGE)
 
-all:	zlib gcc
+all:	zlib gcc libstdc++-v3
 
 .PHONY: zlib
 .PHONY: gcc
 .PHONY: libgcc
-.PHONY: libio
 .PHONY: libf2c
-.PHONY: libstdc
-.PHONY: libgpc
+.PHONY: libstdc++-v3
 
 gcc:
 	mkdir -p $(gccpath) $(gccpath)/ada $(gccpath)/cp $(gccpath)/f77 \
@@ -28,8 +26,8 @@ zlib:
 
 libgcc:
 	mkdir -p $(libpath)/$(TRG)
-	$(MAKE) -C gcc -f Makelibs "STAGE=$(STAGE)"
+	$(MAKE) -C libgcc "STAGE=$(STAGE)"
 
-libgpc libio libf2c libstdc:
+libgpc libf2c libstdc++-v3:
 	mkdir -p $(libpath)/$(TRG)
 	$(MAKE) -C $@

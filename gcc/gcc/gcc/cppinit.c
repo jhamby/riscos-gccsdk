@@ -1120,6 +1120,7 @@ new_pending_directive (pend, text, handler)
   DEF_OPT("D",                        no_mac, OPT_D)                          \
   DEF_OPT("I",                        no_dir, OPT_I)                          \
   DEF_OPT("U",                        no_mac, OPT_U)                          \
+  DEF_OPT("icrossdirafter",           no_dir, OPT_icrossdirafter) /* NAB */   \
   DEF_OPT("idirafter",                no_dir, OPT_idirafter)                  \
   DEF_OPT("imacros",                  no_fil, OPT_imacros)                    \
   DEF_OPT("include",                  no_fil, OPT_include)                    \
@@ -1376,6 +1377,18 @@ cpp_handle_option (pfile, argc, argv)
 	  /* Add directory to end of path for includes.  */
 	  append_include_chain (pfile, xstrdup (arg), AFTER, 0);
 	  break;
+/* NAB++ */
+        case OPT_icrossdirafter:
+          {
+            int len = strlen (arg);
+            char *fname = xmalloc (cpp_CROSS_INCLUDE_DIR_len + len);
+            memcpy (fname, cpp_CROSS_INCLUDE_DIR, cpp_CROSS_INCLUDE_DIR_len);
+            memcpy (fname + cpp_CROSS_INCLUDE_DIR_len - 1, arg, len + 1);
+            append_include_chain (pfile, fname, AFTER, 0);
+          }
+          break;
+	  /* NAB-- */
+
 	}
     }
   return i + 1;

@@ -283,6 +283,6 @@ directories:
 install_headers:
 	$(MAKE) -C libscl install_headers
 	$(MAKE) -C unixlib install_headers
-	$(MAKE) -C gcc/gcc -f Makelibs install_headers
+	$(MAKE) -C gcc/libgcc install_headers
 	$(MAKE) -C gcc/libio install_headers
 	$(MAKE) -C gcc/libstdc install_headers

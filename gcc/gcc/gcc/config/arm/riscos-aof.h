@@ -169,9 +169,9 @@ Boston, MA 02111-1307, USA.  */
    tables.  Easy !  */
 
 #undef CTORS_SECTION_ASM_OP
-#define CTORS_SECTION_ASM_OP "AREA\t|C$$gnu_ctorsvec2|, DATA, READONLY"
+#define CTORS_SECTION_ASM_OP "\tAREA\t|C$$gnu_ctorsvec2|, DATA, READONLY"
 #undef DTORS_SECTION_ASM_OP
-#define DTORS_SECTION_ASM_OP "AREA\t|C$$gnu_dtorsvec2|, DATA, READONLY"
+#define DTORS_SECTION_ASM_OP "\tAREA\t|C$$gnu_dtorsvec2|, DATA, READONLY"
 
 #undef CTOR_LIST_BEGIN
 #undef CTOR_LIST_END
@@ -267,6 +267,13 @@ Boston, MA 02111-1307, USA.  */
    assemble_name ((STREAM), (NAME)),				\
    fputc ('\n', (STREAM)))
 #endif
+
+#define TARGET_OS_CPP_BUILTINS()		\
+    do {					\
+	builtin_define_std ("riscos");		\
+	builtin_define_std ("arm");		\
+	builtin_define ("__aof__");		\
+    } while (0);
 
 /* This is how we tell the assembler that a symbol is weak.  */
 #undef ASM_WEAKEN_LABEL

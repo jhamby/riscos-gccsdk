@@ -66,5 +66,9 @@ struct default_include
 extern const struct default_include cpp_include_defaults[];
 extern const char cpp_GCC_INCLUDE_DIR[];
 extern const size_t cpp_GCC_INCLUDE_DIR_len;
+/* NAB++ */
+extern const char cpp_CROSS_INCLUDE_DIR[];
+extern const size_t cpp_CROSS_INCLUDE_DIR_len;
+/* NAB-- */
 
 #endif /* ! GCC_CPPDEFAULT_H */
