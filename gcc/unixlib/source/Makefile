@@ -402,8 +402,8 @@ RESOURCE =	$(libunixobj)/resource/getegid.o \
 	$(libunixobj)/resource/setpgrp.o \
 	$(libunixobj)/resource/setprior.o \
 	$(libunixobj)/resource/setrlimit.o \
-	$(libunixobj)/resource/setuid.o \
 	$(libunixobj)/resource/setsid.o \
+	$(libunixobj)/resource/setuid.o \
 	$(libunixobj)/resource/ulimit.o
 
 SIGNAL =	$(libunixobj)/signal/init.o \
@@ -526,11 +526,12 @@ SYS =	$(libunixobj)/sys/alarm.o \
 	$(libunixobj)/sys/stackalloc.o \
 	$(libunixobj)/sys/vfork.o
 
-SYS_ASM =	$(libunixobj)/sys/_alloca.o \
+SYS_ASM = $(libunixobj)/sys/_alloca.o \
 	$(libunixobj)/sys/_divsi3.o \
 	$(libunixobj)/sys/_divtest.o \
 	$(libunixobj)/sys/_exec.o \
 	$(libunixobj)/sys/_jmp.o \
+	$(libunixobj)/sys/_longlong.o \
 	$(libunixobj)/sys/_mem.o \
 	$(libunixobj)/sys/_mman.o \
 	$(libunixobj)/sys/_modsi3.o \

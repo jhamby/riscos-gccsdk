@@ -1,8 +1,8 @@
 /***************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unistd/Attic/getpass.c,v $
- * $Date: 2002/03/30 09:40:18 $
- * $Revision: 1.1.2.1 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unistd/getpass.c,v $
+ * $Date: 2002/11/18 15:44:17 $
+ * $Revision: 1.2 $
  * $State: Exp $
  * $Author: admin $
  *
@@ -26,6 +26,7 @@
    Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 
    02111-1307 USA.  */ 
 
+#define _GNU_SOURCE
 #include <stdio.h> 
 #include <termios.h> 
 #include <unistd.h> 

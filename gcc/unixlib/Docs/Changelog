@@ -1,3 +1,10 @@
+Mon Apr 21 16:48:12 2003  Peter Naulls <peter@chocky.org>
+	* source/Makefile: Added _longlong.s to SYS_ASM.
+	* objs/Makefile,fe1: Add missing setsid, and _longlong.
+	* source/sys/_longlong.s: Added (long long Norcroft helper routines,
+	  from John Tytgat's addition)
+	* source/unistd/getpass.c: define _GNU_SOURCE for getline().
+
 Mon Apr 21 14:18:04 2003  Peter Naulls <peter@chocky.org>
 	* clib/unistd.h, resource/setsid.c: Dummy setsid implementation.
 	* Makefile: prevent library being created 3 times.

@@ -1,10 +1,10 @@
 # Project:   UnixLib 4.0
 
 # $Source: /usr/local/cvsroot/gccsdk/unixlib/objs/Makefile,fe1,v $
-# $Date: 2003/04/12 11:31:39 $
-# $Revision: 1.9 $
+# $Date: 2003/04/21 07:39:38 $
+# $Revision: 1.10 $
 # $State: Exp $
-# $Author: alex $
+# $Author: peter $
 
 CCfeatures =
 Predefs = -D__UNIXLIB_INTERNALS
@@ -178,8 +178,8 @@ RESOURCE =	resource.o.getegid resource.o.geteuid resource.o.getgid \
 	resource.o.getprior resource.o.getrlimit resource.o.getrusage \
 	resource.o.getuid resource.o.initialise resource.o.seteuid \
 	resource.o.setgid resource.o.setpgid resource.o.setpgrp \
-	resource.o.setprior resource.o.setrlimit resource.o.setuid \
-	resource.o.ulimit
+	resource.o.setprior resource.o.setrlimit resource.o.setsid \
+	resource.o.setuid resource.o.ulimit
 
 SIGNAL =	signal.o.init signal.o.kill signal.o.pause \
 	signal.o.post signal.o.raise signal.o.sigaction \
@@ -222,11 +222,11 @@ SYS =	sys.o.alarm sys.o.brk sys.o.debug sys.o.errlist \
 	sys.o.exec sys.o.execl sys.o.execle sys.o.execlp sys.o.execv \
 	sys.o.execvp sys.o.mman sys.o.sigsetjmp sys.o.stackalloc sys.o.vfork
 
-SYS_ASM =	sys.o._alloca sys.o._divsi3 sys.o._divtest \
-	sys.o._exec sys.o._jmp sys.o._mem sys.o._mman sys.o._modsi3 sys.o._os \
-	sys.o._profile sys.o._sigjmp sys.o._sdiv sys.o._sdiv10 sys.o._smod \
-	sys.o._swi sys.o._syslib sys.o._udiv sys.o._udiv10 sys.o._udivsi3 \
-	sys.o._umod sys.o._umodsi3 sys.o._vfork
+SYS_ASM = sys.o._alloca sys.o._divsi3 sys.o._divtest \
+	sys.o._exec sys.o._jmp sys.o._longlong sys.o._mem sys.o._mman \
+	sys.o._modsi3 sys.o._os sys.o._profile sys.o._sigjmp sys.o._sdiv \
+	sys.o._sdiv10 sys.o._smod sys.o._swi sys.o._syslib sys.o._udiv \
+	sys.o._udiv10 sys.o._udivsi3 sys.o._umod sys.o._umodsi3 sys.o._vfork
 
 TIME =	time.o.adjtime time.o.asctime time.o.broken time.o.calendconv \
 	time.o.ctime time.o.difftime time.o.ftime time.o.getitmr \
