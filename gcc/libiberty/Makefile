@@ -42,7 +42,9 @@ OBJS = $(objtarget)/choose-temp.o $(objtarget)/cp-demangle.o \
 	$(objtarget)/splay-tree.o $(objtarget)/stpcpy.o \
 	$(objtarget)/vasprintf.o \
 	$(objtarget)/xatexit.o $(objtarget)/xexit.o \
-	$(objtarget)/xmalloc.o $(objtarget)/xstrdup.o \
+	$(objtarget)/xmalloc.o \
+	$(objtarget)/xmemdup.o \
+	$(objtarget)/xstrdup.o \
 	$(objtarget)/xstrerror.o
 
 .PHONY: mkdirs
@@ -94,5 +96,6 @@ $(objtarget)/vasprintf.o: vasprintf.c
 $(objtarget)/xatexit.o: xatexit.c
 $(objtarget)/xexit.o: xexit.c
 $(objtarget)/xmalloc.o: xmalloc.c
+$(objtarget)/xmemdup.o: xmemdup.c
 $(objtarget)/xstrdup.o: xstrdup.c
 $(objtarget)/xstrerror.o: xstrerror.c
