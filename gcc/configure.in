@@ -65,82 +65,18 @@ dnl Checks for typedefs, structures and compiler characteristics
 #AC_CHECK_TYPE(uint32_t, unsigned int)
 #AC_CHECK_TYPE(int32_t, int)
 
-dnl See whether we need a declaration for a function.
-dnl GCC_NEED_DECLARATION(FUNCTION [, EXTRA-HEADER-FILES])
-AC_DEFUN(GCC_NEED_DECLARATION,
-[AC_MSG_CHECKING([whether $1 must be declared])
-AC_CACHE_VAL(gcc_cv_decl_needed_$1,
-[AC_TRY_COMPILE([
-#include <stdio.h>
-#ifdef STRING_WITH_STRINGS
-# include <string.h>
-# include <strings.h>
-#else
-# ifdef HAVE_STRING_H
-#  include <string.h>
-# else
-#  ifdef HAVE_STRINGS_H
-#   include <strings.h>
-#  endif
-# endif
-#endif
-#ifdef HAVE_STDLIB_H
-#include <stdlib.h>
-#endif
-#ifdef HAVE_UNISTD_H
-#include <unistd.h>
-#endif
-#ifndef HAVE_RINDEX
-#define rindex strrchr
-#endif
-#ifndef HAVE_INDEX
-#define index strchr
-#endif
-$2],
-[char *(*pfn) = (char *(*)) $1],
-eval "gcc_cv_decl_needed_$1=no", eval "gcc_cv_decl_needed_$1=yes")])
-if eval "test \"`echo '$gcc_cv_decl_needed_'$1`\" = yes"; then
-  AC_MSG_RESULT(yes)
-  gcc_tr_decl=NEED_DECLARATION_`echo $1 | tr 'abcdefghijklmnopqrstuvwxyz' 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'`
-  AC_DEFINE_UNQUOTED($gcc_tr_decl)
-else
-  AC_MSG_RESULT(no)
-fi
-])dnl
-
-dnl Check multiple functions to see whether each needs a declaration.
-dnl GCC_NEED_DECLARATIONS(FUNCTION... [, EXTRA-HEADER-FILES])
-AC_DEFUN(GCC_NEED_DECLARATIONS,
-[for ac_func in $1
-do
-GCC_NEED_DECLARATION($ac_func, $2)
-done
-])
-
-GCC_NEED_DECLARATIONS(malloc realloc calloc free bcopy bzero bcmp \
-        index rindex getenv atol sbrk abort atof strerror getcwd getwd \
-        strsignal putc_unlocked fputs_unlocked strstr)
-
-GCC_NEED_DECLARATIONS(getrlimit setrlimit, [
-#include <sys/types.h>
-#ifdef HAVE_SYS_RESOURCE_H
-#include <sys/resource.h>
-#endif
-])
-
-
 dnl Additional configure command line parameters
 AC_ARG_WITH(riscos-dist,
 	[  --with-riscos-dist=DIR    path to RISC OS distribution install dir])
-test "$with_riscos_dist" = yes && with_riscos_dist = $prefix/riscos-dist
-test "$with_riscos_dist" = default && with_riscos_dist = $prefix/riscos-dist
-test "$with_riscos_dist" = "" && with_riscos_dist = $prefix/riscos-dist
+test "$with_riscos_dist" = yes && with_riscos_dist=$prefix/riscos-dist
+test "$with_riscos_dist" = default && with_riscos_dist=$prefix/riscos-dist
+test "$with_riscos_dist" = "" && with_riscos_dist=$prefix/riscos-dist
 
 AC_ARG_WITH(riscos-pkg,
 	[  --with-riscos-pkg=DIR    path to RISC OS distribution package])
-test "$with_riscos_pkg" = yes && with_riscos_pkg = $prefix/riscos-pkg
-test "$with_riscos_pkg" = default && with_riscos_pkg = $prefix/riscos-pkg
-test "$with_riscos_pkg" = "" && with_riscos_pkg = $prefix/riscos-pkg
+test "$with_riscos_pkg" = yes && with_riscos_pkg=$prefix/riscos-pkg
+test "$with_riscos_pkg" = default && with_riscos_pkg=$prefix/riscos-pkg
+test "$with_riscos_pkg" = "" && with_riscos_pkg=$prefix/riscos-pkg
 
 AC_ARG_ENABLE(filetype-ff8,
 	[  --enable-filetype-ff8    add ,ff8 to RISC OS executables])
@@ -198,7 +134,11 @@ cd $srcdir
 topdir=`pwd`
 cd $holddir
 
+# Ensure configure is built.
+( cd gcc-2_95_2/gcc ; autoheader ; autoconf )
+
 AC_SUBST(topdir)
 AC_PROG_MAKE_SET
 AC_CONFIG_SUBDIRS([gcc-2_95_2/gcc])
+#AC_CONFIG_SUBDIRS([gcc-3_1/gcc])
 AC_OUTPUT([Makefile])
