@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/unix.c,v $
- * $Date: 2003/12/22 21:35:03 $
- * $Revision: 1.17 $
+ * $Date: 2004/01/02 23:33:59 $
+ * $Revision: 1.18 $
  * $State: Exp $
  * $Author: joty $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: unix.c,v 1.17 2003/12/22 21:35:03 joty Exp $";
+static const char rcs_id[] = "$Id: unix.c,v 1.18 2004/01/02 23:33:59 joty Exp $";
 #endif
 
 #include <stdio.h>
@@ -314,11 +314,16 @@ void
 _exit (int return_code)
 {
   int status;
-  int regs[10];
 
-  /* Reset the DDE Utils' Prefix variable.  */
-  regs[0] = 0;
-  (void) __os_swi (DDEUtils_Prefix, regs);
+  /* Reset the DDE Utils' Prefix variable.  Only when we're really
+     terminating this RISC OS process.  */
+  if (__u == NULL || !__u->status.has_parent || ___vret == NULL)
+    {
+      int regs[10];
+
+      regs[0] = 0;
+      (void) __os_swi (DDEUtils_Prefix, regs);
+    }
 
   /* Interval timers must be stopped.  */
   if (__u)

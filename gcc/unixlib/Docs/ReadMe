@@ -64,6 +64,36 @@ The list of recognised features are:
    If set, then its value is used to set the UNIX uid and euid values.
 
 
+Another important runtime feature is the environment variable UnixFS$/
+followed by a non-zero length string.  This non-zero length string is
+an Unix subdirectory name in the root directory or an Unix
+subdirectory name in /usr or /var directories which you would like to
+map to specific RISC OS directories.
+
+The Unix subdirectory in /usr and /var directories mapping has higher
+priority than the Unix subdirectory in the root directory mapping.
+
+Note that defining UnixFS$/ does not have any effect.
+
+E.g. :
+  *Set UnixFS$/home ADFS::4.$.MyHome
+  
+    Maps Unix file or directories names like /home/a_file and
+    /home/a_dir/another_dir to ADFS::4.$.MyHome.a_file and
+    ADFS::4.$.MyHome.a_dir.another_dir respectively.
+
+  *Set UnixFS$/mail ADFS::4.$.Mail
+  
+    Maps the Unix filenames /usr/mail or /var/mail directory
+    to filenames inside ADFS::4.$.Mail directory.
+
+Currently, up to 16 UnixFS$/ definitions can be made.  By default, the
+following two are defined :
+
+  *Set UnixFS$/tmp <Wimp$ScrapDir>
+  *Set UnixFS$/pipe <Wimp$ScrapDir>
+
+
 Link-time features
 ~~~~~~~~~~~~~~~~~~
 

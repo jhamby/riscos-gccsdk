@@ -1,3 +1,20 @@
+Mon Jan 05 23:50:26 2004  John Tytgat  <John.Tytgat@aaug.net>
+
+	* Docs/ReadMe: Added section on "UnixFS$/xxx" environment variables.
+	* source/regex.c (re_comp, re_exec): Enabled for old BSD4.2 based
+	  sources (like CVS).
+	* source/strtoll.c(strtoll): Enabled for Norcroft compiler.
+	* source/strtoull.c(strtoull): Likewise.
+	* source/clib/limits.h(LONG_LONG_MIN, LONG_LONG_MAX, QUAD_MAX): Likewise.
+	* source/clib/sys/syslog.h: Removed _PATH_LOG definition as it doesn't
+	  get used (we log everything via the Syslog module if present).
+	* source/clib/unixlib/unix.h(__getenv): Removed.
+	* source/unix/getenv.c(__getenv): Likewise.  Its CACHE parameter was
+	  always set to 1 so we could clean up this source a bit.
+	* source/scl/_koscli.s: v6 doesn't need to be preserved.
+	* source/unix/unix.c(_exit): Only resetting DDEUtils_Prefix when current
+	  process doesn't have a parent.
+
 Sat Jan 03 00:11:39 2004  John Tytgat  <John.Tytgat@aaug.net>
 
 	* source/clib/termios.h: Redefined the B* baud values so that they fit

@@ -1,8 +1,8 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/unixlib/unix.h,v $
- * $Date: 2003/12/22 21:35:03 $
- * $Revision: 1.9 $
+ * $Date: 2004/01/02 23:33:58 $
+ * $Revision: 1.10 $
  * $State: Exp $
  * $Author: joty $
  *
@@ -253,12 +253,6 @@ extern char *__chkenv (const char *__name);
    as necessary, otherwise BUFLEN is length of supplied buffer.  */
 extern char *__getenv_from_os (const char *__name, char *__buf,
 			       size_t __buflen);
-
-/* If CACHE is non-zero, then lookup NAME in the program's environment first.
-   If CACHE is zero or NAME was not found in the program's environment, then
-   look it up in the RISC OS global environment.  If found there, then add
-   it to the program's environment. Return found value or NULL.  */
-extern char *__getenv (const char *__name, int __cache);
 
 /* Return the integer value of NAME, from the RISC OS global environment.  */
 extern int __intenv (const char *__name);

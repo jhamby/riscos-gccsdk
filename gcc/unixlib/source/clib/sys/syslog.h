@@ -1,8 +1,8 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/sys/syslog.h,v $
- * $Date: 2002/09/24 21:02:37 $
- * $Revision: 1.4 $
+ * $Date: 2003/07/29 23:04:27 $
+ * $Revision: 1.5 $
  * $State: Exp $
  * $Author: admin $
  *
@@ -49,10 +49,6 @@
  *
  *	@(#)syslog.h	8.1 (Berkeley) 6/2/93
  */
-
-/* This allows the user to define a logical UnixFS$syslog to point to the
-   relevant directory to contain the log file.  */
-#define	_PATH_LOG	"/usr/syslog"
 
 /*
  * priorities/facilities are encoded into a single 32-bit quantity, where the

@@ -1,10 +1,10 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/clib/h/limits,v $
- * $Date: 1997/10/09 19:59:47 $
- * $Revision: 1.7 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/limits.h,v $
+ * $Date: 2001/01/29 15:10:19 $
+ * $Revision: 1.2 $
  * $State: Exp $
- * $Author: unixlib $
+ * $Author: admin $
  *
  ***************************************************************************/
 
@@ -52,9 +52,6 @@
 #define LONG_MAX	0x7fffffffL
 #define ULONG_MAX	0xffffffffUL
 
-#ifdef __GNUC__
-/* For GNU C long long compatibility only.  */
-
 /* The minimum value that can be represented by a
    'signed long long int'.  */
 #define LONG_LONG_MIN 0x8000000000000000LL
@@ -64,7 +61,6 @@
 #define ULONG_LONG_MAX 0xffffffffffffffffULL
 
 #define QUAD_MAX LONG_LONG_MAX
-#endif
 
 
 /* POSIX Standard 2.9.2: Minimum Values <limits.h>.  */

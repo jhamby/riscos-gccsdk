@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/strtoull.c,v $
- * $Date: 2002/02/11 13:16:40 $
- * $Revision: 1.2.2.1 $
+ * $Date: 2002/02/14 15:56:33 $
+ * $Revision: 1.3 $
  * $State: Exp $
  * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: strtoull.c,v 1.2.2.1 2002/02/11 13:16:40 admin Exp $";
+static const char rcs_id[] = "$Id: strtoull.c,v 1.3 2002/02/14 15:56:33 admin Exp $";
 #endif
 
 #include <ctype.h>
@@ -17,7 +17,6 @@ static const char rcs_id[] = "$Id: strtoull.c,v 1.2.2.1 2002/02/11 13:16:40 admi
 #include <errno.h>
 #include <limits.h>
 
-#ifdef __GNUC__
 unsigned long long
 strtoull (const char *nptr, char **end, int base)
 {
@@ -120,4 +119,3 @@ strtoull (const char *nptr, char **end, int base)
 
   return (neg) ? 0 - result : result;
 }
-#endif

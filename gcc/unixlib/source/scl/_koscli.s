@@ -1,8 +1,8 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/scl/_koscli.s,v $
-; $Date: 2001/01/29 15:10:20 $
-; $Revision: 1.2 $
+; $Date: 2002/09/24 21:02:37 $
+; $Revision: 1.3 $
 ; $State: Exp $
 ; $Author: admin $
 ;
@@ -14,16 +14,16 @@
 
 	IMPORT	|__seterr|
 
-	; _kernel_oscli (char *cli)
+	; _kernel_oscli (const char *cli)
 	EXPORT	|_kernel_oscli|
 	NAME	_kernel_oscli
 |_kernel_oscli|
-	STMFD	sp!, {v6, lr}
+	STMFD	sp!, {lr}
 	SWI	XOS_CLI
 	MOVVC	a1, #1
-	stackreturn	VC, "v6, pc"
+	stackreturn	VC, "pc"
 	BL	|__seterr|
 	MOV	a1, #-2
-	stackreturn	AL, "v6, pc"
+	stackreturn	AL, "pc"
 
 	END

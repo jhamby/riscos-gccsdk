@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/regex.c,v $
- * $Date: 2003/04/28 21:04:35 $
- * $Revision: 1.2 $
+ * $Date: 2003/05/25 21:46:22 $
+ * $Revision: 1.3 $
  * $State: Exp $
  * $Author: alex $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: regex.c,v 1.2 2003/04/28 21:04:35 alex Exp $";
+static const char rcs_id[] = "$Id: regex.c,v 1.3 2003/05/25 21:46:22 alex Exp $";
 #endif
 
 /* Extended regular expression matching and search library,
@@ -4949,7 +4949,8 @@ re_compile_pattern (pattern, length, bufp)
 /* Entry points compatible with 4.2 BSD regex library.  We don't define
    them if this is an Emacs or POSIX compilation.  */
 
-#if !defined (emacs) && !defined (_POSIX_SOURCE)
+/* #if !defined (emacs) && !defined (_POSIX_SOURCE)
+ * We do want BSD4.2 compliancy.  */
 
 /* BSD has one and only one pattern buffer.  */
 static struct re_pattern_buffer re_comp_buf;
@@ -5000,7 +5001,7 @@ re_exec (s)
   return
     0 <= re_search (&re_comp_buf, s, len, 0, len, (struct re_registers *) 0);
 }
-#endif /* not emacs and not _POSIX_SOURCE */
+/* #endif */ /* not emacs and not _POSIX_SOURCE */
 
 /* POSIX.2 functions.  Don't define these for Emacs.  */
 

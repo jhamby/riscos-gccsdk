@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/getenv.c,v $
- * $Date: 2002/02/14 15:56:38 $
- * $Revision: 1.3 $
+ * $Date: 2003/04/05 09:33:57 $
+ * $Revision: 1.4 $
  * $State: Exp $
- * $Author: admin $
+ * $Author: alex $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: getenv.c,v 1.3 2002/02/14 15:56:38 admin Exp $";
+static const char rcs_id[] = "$Id: getenv.c,v 1.4 2003/04/05 09:33:57 alex Exp $";
 #endif
 
 #include <errno.h>
@@ -136,7 +136,7 @@ __getenv_from_os (const char *name, char *buf, size_t buflen)
   int regs[10];
 
   /* Check illegal argument combination.  */
-  if (buflen == 0 && buf)
+  if (buflen == 0 && buf != NULL)
     {
       (void) __set_errno (EINVAL);
       return NULL;
@@ -252,7 +252,7 @@ __chkenv (const char *name)
   char **ep;
 
   PTHREAD_UNSAFE
-  
+
 #ifdef DEBUG
   __os_print ("-- chkenv: name='"); __os_print (name);
   __os_print ("', environ="); __os_prhex ((int) environ);
@@ -365,45 +365,29 @@ __intenv (const char *name)
     return 0;
 }
 
-/* If CACHE is non-zero, then lookup NAME in the program's environment first.
-   If CACHE is zero or NAME was not found in the program's environment, then
-   look it up in the RISC OS global environment.  If found there, then add
-   it to the program's environment. The reason for adding the value to the
-   environ is because the RISC OS environment is global and we want an
-   unchanging value. Return found value or NULL.  */
+/* 1. Lookup NAME in the program's environment first and return its result
+      if found.
+   2. If NAME was not found in the program's environment, then look it up
+      in the RISC OS global environment.  If found there, then add it to
+      the program's environment.
+   The reason for adding the value to the environment is because the
+   RISC OS environment is global and we want an unchanging value.
+   Return found value or NULL.  */
 char *
-__getenv (const char *name, int cache)
+getenv (const char *name)
 {
-  char *buf;
+  char *buf, *rval;
 
-  if (cache)
-    {
-      buf = __chkenv (name);
-      if (buf != NULL)
-	return buf;
-    }
+  buf = __chkenv (name);
+  if (buf != NULL)
+    return buf;
 
   buf = __getenv_unix_from_os (name, NULL, 0);
   if (buf == NULL)
     return NULL;
 
-  /* It does not make sense to add the variable to the cached environment if
-     we were not checking the cached environment for the value.  This must
-     not be changed without rewriting the use of __getenv in unix/unix.c
-     which modifies the returned value for UnixFS$sfix.  In this case,
-     we return the newly allocated string.  */
-  if (cache)
-    {
-      char *rval = __addenv (name, buf, 1, 0);
-      free (buf);
-      return rval;
-    }
-  else
-    return buf;
-}
+  rval = __addenv (name, buf, 1, 0);
+  free (buf);
 
-char *
-getenv (const char *name)
-{
-  return __getenv (name, 1);
+  return rval;
 }
