@@ -6708,7 +6708,7 @@
 		    (match_operand 1 "general_operand" ""))
 	      (return)
 	      (use (match_operand 2 "" ""))])]
-  "TARGET_ARM"
+  "TARGET_ARM && ! TARGET_APCS_STACK"
   "
   {
     if (operands[2] == NULL_RTX)
@@ -6722,7 +6722,7 @@
 			 (match_operand 2 "general_operand" "")))
 	      (return)
 	      (use (match_operand 3 "" ""))])]
-  "TARGET_ARM"
+  "TARGET_ARM && ! TARGET_APCS_STACK"
   "
   {
     if (operands[3] == NULL_RTX)
@@ -6735,7 +6735,7 @@
 	(match_operand 1 "" ""))
   (return)
   (use (match_operand 2 "" ""))]
-  "TARGET_ARM && GET_CODE (operands[0]) == SYMBOL_REF"
+  "TARGET_ARM && GET_CODE (operands[0]) == SYMBOL_REF && ! TARGET_APCS_STACK"
   "*
   return NEED_PLT_RELOC ? \"b%?\\t%a0(PLT)\" : \"b%?\\t%a0\";
   "
@@ -6748,7 +6748,7 @@
 	     (match_operand 2 "" "")))
   (return)
   (use (match_operand 3 "" ""))]
-  "TARGET_ARM && GET_CODE (operands[1]) == SYMBOL_REF"
+  "TARGET_ARM && GET_CODE (operands[1]) == SYMBOL_REF && ! TARGET_APCS_STACK"
   "*
   return NEED_PLT_RELOC ? \"b%?\\t%a1(PLT)\" : \"b%?\\t%a1\";
   "

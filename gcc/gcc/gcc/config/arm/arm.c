@@ -2325,7 +2325,7 @@ arm_function_ok_for_sibcall (decl)
 
   /* Never tailcall something for which we have no decl, or if we
      are in Thumb mode.  */
-  if (decl == NULL || TARGET_THUMB)
+  if (decl == NULL || TARGET_THUMB || TARGET_APCS_STACK)
     return 0;
 
   /* Get the calling method.  */
