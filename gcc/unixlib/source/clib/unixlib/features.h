@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/unixlib/features.h,v $
- * $Date: 2003/08/18 22:35:36 $
- * $Revision: 1.13 $
+ * $Date: 2003/11/21 14:38:33 $
+ * $Revision: 1.14 $
  * $State: Exp $
- * $Author: joty $
+ * $Author: peter $
  *
  ***************************************************************************/
 
@@ -416,14 +416,18 @@ extern void __set_feature_imagefs_is_file (int __feature_imagefs_is_file_value);
 #endif  /* __UNIXLIB_INTERNALS */
 
 /* When defined, the memory pool will be created in the WimpSlot area
-   instead of a dynamica area (on RISC OS versions supporting dynamic
-   area's). Its value is unimportant.  */
+   instead of a dynamic area (on RISC OS versions supporting dynamic
+   areas). Its value is unimportant.  */
 extern int __dynamic_no_da; /* Note: this is a weak symbol.  */
 
-/* When a dynamica area is created as memory pool, __dynamic_da_name can
+/* When a dynamic area is created as memory pool, __dynamic_da_name can
    be used to specify its name.  When this variable is not defined, the
    dynamic area name will be <program name> + "$Heap".  */
 extern const char *__dynamic_da_name; /* Note: this is a weak symbol.  */
+
+/* When defined, indicates the maximum size in bytes of the dynamic area
+   used for the heap. If undefined, Unixlib defaults to 32MB */
+extern int __dynamic_da_max_size; /* Note: this is a weak symbol */
 
 #ifndef __SYS_CDEFS_H
 # include <sys/cdefs.h>

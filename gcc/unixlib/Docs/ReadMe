@@ -29,7 +29,7 @@ The list of recognised features are:
 
    If set, all file paths and filenames will be used verbatim i.e. without
    the usual Unix to RISC OS conversions.  Its value is not important.
-   
+
    This corresponds with having the __RISCOSIFY_NO_PROCESS bit in
    __riscosify_flags set of the __riscosify() routine or having that bit
    in the WEAK symbol __riscosify_control specified.  See <unixlib/local.h>
@@ -44,16 +44,16 @@ The list of recognised features are:
    bit specified in __riscosify_flags of the __riscosify() routine or
    having that bit specified in the WEAK symbol __riscosify_control.
    See <unixlib/local.h> include file for more information.
-   
+
    Suffix swapping can also be disabled by defining the
    UnixEnv$<program name>$sfix environment variable as an empty string :
-   
+
      *Set UnixEnv$my_program$sfix ""
-     
+
    Note that doing :
-   
+
      *UnSet UnixEnv$my_program$sfix
-     
+
    will *enable* suffix swapping with the default suffix list
    mentioned above unless __RISCOSIFY_NO_SUFFIX is specified in the
    __riscosify_flags variable or __riscosify()'s flags parameter.
@@ -77,13 +77,13 @@ Note that defining UnixFS$/ does not have any effect.
 
 E.g. :
   *Set UnixFS$/home ADFS::4.$.MyHome
-  
+
     Maps Unix file or directories names like /home/a_file and
     /home/a_dir/another_dir to ADFS::4.$.MyHome.a_file and
     ADFS::4.$.MyHome.a_dir.another_dir respectively.
 
   *Set UnixFS$/mail ADFS::4.$.Mail
-  
+
     Maps the Unix filenames /usr/mail or /var/mail directory
     to filenames inside ADFS::4.$.Mail directory.
 
@@ -92,6 +92,19 @@ following two are defined :
 
   *Set UnixFS$/tmp <Wimp$ScrapDir>
   *Set UnixFS$/pipe <Wimp$ScrapDir>
+
+
+<programname>$Heap
+Causes the heap to be placed in a dynamic area. Does not have to have
+any specific value. Can be overridden by the __dynamic_no_da weak variable.
+eg. *Set my_program$Heap ""
+
+<programname>$HeapMax
+Specifies the maximum size (in MB) to use when creating a dynamic area for
+the heap. When not defined, it defaults to 32MB or the value specified
+by the __dynamic_da_max_size weak variable.
+eg. *SetEval my_program$HeapMax 64
+
 
 
 Link-time features
@@ -141,6 +154,13 @@ Header file: <unixlib/features.h>.
 Specifies the dynamic area name when there is one created for keeping
 the memory pool.  When __dynamic_da_name is not defined, the dynamic
 area name will be <program name> + "$Heap".
+
+5. __dynamic_da_max_size
+
+Header file: <unixlib/features.h>.
+Specifies the maximum size to use when creating a dynamic area for
+the heap. When not defined, it defaults to 32MB. Can be overridden by
+the programname$HeapMax variable.
 
 
 Compile-time features

@@ -1,8 +1,8 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/_syslib.s,v $
-; $Date: 2004/05/12 22:02:49 $
-; $Revision: 1.26 $
+; $Date: 2004/05/16 18:48:24 $
+; $Revision: 1.27 $
 ; $State: Exp $
 ; $Author: alex $
 ;
@@ -80,6 +80,7 @@ EXTREMELY_PARANOID	*	0	; Should we check that the entire stack chunk chain is va
 	IMPORT	|_main|
 	IMPORT	|__dynamic_no_da|, WEAK
 	IMPORT	|__dynamic_da_name|, WEAK
+	IMPORT	|__dynamic_da_max_size|, WEAK
 
 |rmensure|
 	DCB "RMEnsure SharedUnixLibrary 1.00 RMLoad System:Modules.SharedULib", 0
@@ -238,20 +239,6 @@ EXTREMELY_PARANOID	*	0	; Should we check that the entire stack chunk chain is va
 
 
 no_old_area
-	; Allow the user the option of setting their own name for the
-	; dyanmic area used as a heap.   If the variable __dynamic_da_name
-	; exists, then it must be a char pointer (not an array) to an
-	; alternate name.  DAs are always used in this case, and there's
-	; no need to set a $heap variable.
-
-	; The main use of this is when the binary is called !RunImage.
-	; e.g.:  const char *__dynamic_da_name = "Nettle Heap";
-
-	LDR	v5, =|__dynamic_da_name|
-	TEQ	v5, #0
-	LDRNE	v5, [v5, #0]	; get the actual string referred to
-	BNE	t07
-
 	; area name is program name + "$Heap"
 	LDR	a1, [ip, #0]	; __cli
 	MOV	a2, a1
@@ -263,7 +250,9 @@ t01
 	SUB	a1, a1, #1	; back up to point at terminator char
 
 	; use a maximum of 10 characters from the program name
-	LDR	v5, =dynamic_area_name_end
+	LDR	v4, =dynamic_area_name_end
+	MOV	a3, #0
+	STRB	a3, [v4, #5]	; Terminate the $Heap
 
 	SUB	a4, a1, #10
 	CMP	a4, a2
@@ -278,22 +267,64 @@ t02
 	LDRB	a4, [a1, #-1]!
 	CMP	a4, #"."
 	CMPNE	a4, #':'
-	STRNEB	a4, [v5, #-1]!
+	STRNEB	a4, [v4, #-1]!
 	BEQ	t03		; Not sure if some very slick conditionals
 	CMP	a1, a2		; can eliminate that branch
 	BHI	t02		; limit not yet reached
 t03
 
+	; Allow the user the option of setting their own name for the
+	; dynamic area used as a heap.   If the variable __dynamic_da_name
+	; exists, then it must be a char pointer (not an array) to an
+	; alternate name.  DAs are always used in this case, and there's
+	; no need to set a $heap variable.
+
+	; The main use of this is when the binary is called !RunImage.
+	; e.g.:  const char *__dynamic_da_name = "Nettle Heap";
+
+	LDR	v5, =|__dynamic_da_name|
+	TEQ	v5, #0
+	LDRNE	v5, [v5, #0]	; get the actual string referred to
+	BNE	t07
+
 	; check environment variable for creating a DA
-	MOV	a1, v5
+	MOV	a1, v4
 	MOV	a3, #-1
 	MOV	a4, #0
 	MOV	v1, #0
 	SWI	XOS_ReadVarVal
 	CMP	a3, #0
 	BGE	no_dynamic_area
+	MOV	v5, v4
 
 t07
+	; Default max size for DA is 32MB
+	MOV	v2, #32*1024*1024
+	; If __dynamic_da_max_size is defined, use its value as the max size
+	LDR	v1, =|__dynamic_da_max_size|
+	TEQ	v1, #0
+	LDRNE	v2, [v1]
+
+	LDR	a1, =dynamic_area_name_end
+	MOV	a3, #"M"
+	STRB	a3, [a1, #5]	; Change back to $HeapMax
+
+	MOV	a1, v4
+	MOV	a3, #4
+	SUB	sp, sp, a3
+	MOV	a2, sp
+	MOV	a4, #0
+	SWI	XOS_ReadVarVal	; Read value of progname$HeapMax
+	BVS	t08
+	CMP	v1, #1	; Should be a number variable
+	LDREQ	v2, [sp], #4
+	MOVEQ	v2, v2, LSL#20	; Convert MB into bytes
+
+t08
+	LDR	a1, =dynamic_area_name_end
+	MOV	a3, #0
+	STRB	a3, [a1, #5]	; Change back to $Heap
+
 	; create dynamic area
 	MOV	a1, #0
 	MOV	a2, #-1
@@ -301,7 +332,7 @@ t07
 	MOV	a3, #0
 	MOV	a4, #-1
 	MOV	v1, #&80
-	MOV	v2, #-1			; maximum size is total RAM in m/c
+	; v2 is already set from above
 	MOV	v3, #0
 	MOV	v4, #0
 	; v5 is already set from above
@@ -1016,7 +1047,7 @@ dynamic_deletion
 	DCD	0
 	DCB	"XXXXXXXXXX"
 dynamic_area_name_end
-	DCB	"$Heap", 0
+	DCB	"$HeapMax", 0
 	ALIGN
 
 

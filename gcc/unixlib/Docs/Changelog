@@ -1,3 +1,12 @@
+Mon May 31 14:40:09 2004  Alex Waugh  <alex@alexwaugh.com>
+
+	Based on a patch from John-Mark Bell <jmb202@ecs.soton.ac.uk>
+	* source/sys/_syslib.s: Limit max size of heap dynamic area according
+	  to __dynamic_da_max_size or progname$HeapMax variables.
+	* source/clib/unixlib/features.h (__dynamic_da_max_size): Add
+	  declaration.
+	* Docs/ReadMe: Document max size settings.
+
 Tue May 18 22:43:00 2004  John Tytgat  <John.Tytgat@aaug.net>
 
 	* source/signal/post.c: moved __ul_errbuf and __ul_fp_registers
