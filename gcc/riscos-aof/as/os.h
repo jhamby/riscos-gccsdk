@@ -19,7 +19,7 @@
 /* Acorn/RISC OS specific information.  */
 typedef struct os_error
 {
-  int errno;
+  int errnum;
   char errmess[256];
 }
 os_error;

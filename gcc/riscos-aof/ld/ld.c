@@ -1625,7 +1625,7 @@ static void parse_library (const char *library)
       strcat (file_name, library); 
       strcat (file_name, ".a"); 
 #else 
-      strcat (file_name, "a.lib"); 
+      strcat (file_name, "a/lib");
       strcat (file_name, library); 
 #endif 
       if (check_and_add_library (file_name) == 1) 
@@ -1642,7 +1642,7 @@ static void parse_library (const char *library)
       strcat (file_name, library);
       strcat (file_name, ".o");
 #else
-      strcat (file_name, "o.lib");
+      strcat (file_name, "o/lib");
       strcat (file_name, library);
 #endif
       if (check_and_add_library (file_name) == 1)
@@ -1659,7 +1659,7 @@ static void parse_library (const char *library)
       strcat (file_name, library);
       strcat (file_name, ".o");
 #else
-      strcat (file_name, "o.");
+      strcat (file_name, "o/");
       strcat (file_name, library);
 #endif
       if (check_and_add_library (file_name) == 1)

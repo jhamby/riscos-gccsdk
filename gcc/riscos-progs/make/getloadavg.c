@@ -138,6 +138,10 @@ extern int errno;
 #  undef FSCALE
 # endif /* __GNU__ */
 
+# ifdef __riscos__
+#  undef BSD
+# endif
+
 /* Set values that are different from the defaults, which are
    set a little farther down with #ifndef.  */
 

@@ -63,7 +63,7 @@ VERSION = 3_3_0
 # the gcc driver and pre-processor use to find the binaries and default
 # headers
 unix_prefix=$(ux_gccpkg)/
-riscos_prefix=gccpkg:
+riscos_prefix=/gccpkg:
 
 # Generic installation directories
 # For building the gcc and cpp binaries, unix_prefix or riscos_prefix
