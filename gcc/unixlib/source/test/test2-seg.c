@@ -1,6 +1,6 @@
 
 /**
- * Unixlib test 2
+ * UnixLib test 2
  *
  * Segmentation fault.
  *

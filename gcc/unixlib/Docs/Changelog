@@ -1,3 +1,8 @@
+Wed Jan  6 23:42:25  John Tytgat  <John.Tytgat@aaug.net>
+
+	* Docs/Copyright: consistent spelling of UnixLib.
+	* source/test/{test1-swi.c, test2-seg.c, test3-fpe.c}: Likewise.
+
 Wed Jan  6 23:13:25  John Tytgat  <John.Tytgat@aaug.net>
 
 	* source/sys/_syslib.s: Removed export of non-existing __os_version
@@ -22,7 +27,7 @@ Wed Jan  5 11:33:20 2005  Peter Naulls  <peter@chocky.org>
 	* Docs/ReadMe36c1, Docs/ReadMe36c2, Docs/ReadMe36d, Docs/ReadMe36e,
 	  Docs/ReadMe37a, Docs/ReadMe37b, Docs/ReadMe38: Remove - out
 	  of date information.
-	* Docs/Copyright: Draft of new Unixlib copyright statement.
+	* Docs/Copyright: Draft of new UnixLib copyright statement.
 	* source/clib/regex.h: Matching header file for source.
 
 Tue Jan  4 22:50:42 2005  Alex Waugh  <alex@alexwaugh.com>
@@ -5232,7 +5237,7 @@ Nick Burrett  <nick.burrett@btinternet.com>
 	'as' and making the library with 'makealf'.
 	(CCflags): Remove '-fw' switch for Norcroft C
 	(ARflags): Add switch '-c'
-	(Unixlib): Remove switch '-c'
+	(UnixLib): Remove switch '-c'
 
 Wed Sep 10 18:09:16 1997 CL0035
 Nick Burrett  <nick.burrett@btinternet.com>

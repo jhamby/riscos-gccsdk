@@ -1,11 +1,11 @@
 
 /**
- * Unixlib test 3
+ * UnixLib test 3
  *
  * Error handler.
  *
  * Create a floating point exception - this invokes UnixLib's
- * error environment handler. 
+ * error environment handler.
  *
  */
 

@@ -1,6 +1,6 @@
 
 /**
- * Unixlib test 1
+ * UnixLib test 1
  *
  * _swix and _swi.
  *

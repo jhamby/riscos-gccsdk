@@ -3,32 +3,32 @@ UnixLib is Copyright (c) 1995-1999 Simon Callan, Nick Burrett,
 Nicholas Clark and Peter Burwood.
 
 These contributors have expressed "no interest" in any further licensing or
-copyright in regards to Unixlib.
+copyright in regards to UnixLib.
 
 Other sections are (c) 1999-2005 Nick Burrett, John Tytgat, Peter Naulls,
 Peter Teichmann, Alex Waugh, Christian Ludlam, Theo Markettos, Graham Shaw,
 James Bursa and John-Mark Bell.
 
 In January 2005, permission was obtained from all relevant contributors
-by Peter Naulls to license all past and present contributions to Unixlib
+by Peter Naulls to license all past and present contributions to UnixLib
 (where possible) under the revised BSD license.  The license is included
-in the next section and is applicable to all code in Unixlib that does not
+in the next section and is applicable to all code in UnixLib that does not
 have an explicit license in its source.
 
-Prior to 4th January 2005 and after May 2001, Unixlib contained code licensed
-under the GNU General Public License, and versions of Unixlib produced
+Prior to 4th January 2005 and after May 2001, UnixLib contained code licensed
+under the GNU General Public License, and versions of UnixLib produced
 between these dates are subject to the provisions of the GPL.  We realised
-that this might cause potential problems with the wider use of Unixlib in
+that this might cause potential problems with the wider use of UnixLib in
 RISC OS, and along with the desire to clarify the overall licensing status of
-Unixlib, GPL code was removed from Unixlib and the above permission from all
-copyright holders allowed Unixlib contributions to be relicensed as per the
+UnixLib, GPL code was removed from UnixLib and the above permission from all
+copyright holders allowed UnixLib contributions to be relicensed as per the
 revised BSD license.  The GPL is therefore not included in this notice
-as it is no longer relevant to Unixlib.
+as it is no longer relevant to UnixLib.
 
 
-Practical notes on using Unixlib in your own programs:
+Practical notes on using UnixLib in your own programs:
 
-This is a plain English version of guidelines for use of Unixlib in
+This is a plain English version of guidelines for use of UnixLib in
 your programs.  It does not override any of the licenses included
 below, but is intended to state instances when it may be used in
 free and non-free software.  Where there is contradiction or
@@ -37,11 +37,11 @@ in question.  These recommendations are based upon our understading
 of the GPL/LGPL and BSD licenses and are subject to change should
 our understanding of the topics improve.
 
- - Because Unixlib contains code that is subject to the Lesser GNU
+ - Because UnixLib contains code that is subject to the Lesser GNU
    Public License, the LGPL is the overriding consideration when
-   linking Unixlib to programs (unless the program itself is GPL).
+   linking UnixLib to programs (unless the program itself is GPL).
 
- - You are free to use sections of Unixlib in your own programs
+ - You are free to use sections of UnixLib in your own programs
    subject to the conditions of that code.  If the entirety of
    that code is under a BSD license, then you can generally use
    that code as you see fit, and there is no further obligation
@@ -49,27 +49,27 @@ our understanding of the topics improve.
    use LGPL code in your program, then your program must also be
    distributed under the LGPL (or GPL).
 
- - If you use Unixlib in its intended original form - that is as a
+ - If you use UnixLib in its intended original form - that is as a
    supporting library for ported programs to RISC OS - then your program
    is subject to the LGPL; or the GPL if the program is covered by that.
    Note that you must make the source and any modifications available to for
    both if requested.  This is of course equally true if you write an original
-   GPL program using Unixlib.  In most cases, no additional action is
+   GPL program using UnixLib.  In most cases, no additional action is
    required of you, especially since source is usually readibly available.
 
- - If you use Unixlib for a non-free program - whether that's commercial or
+ - If you use UnixLib for a non-free program - whether that's commercial or
    otherwise, then you should carefully read section 6 of the LGPL.  This
    applies, because at the present time, there is no practical method of
-   dynamic linking on RISC OS.  At such time that Unixlib is available as a
+   dynamic linking on RISC OS.  At such time that UnixLib is available as a
    shared library, then programs dynamically linking to it will no longer be
-   subject to the LPGL as applied to Unixlib.
+   subject to the LPGL as applied to UnixLib.
 
  - Section 6 means that in practice, you must supply, or offer to
    supply either source or object code for your program.
    This is mainly to allow rebuilding of the executable program
-   with later or modified versions of Unixlib.  You must of course
+   with later or modified versions of UnixLib.  You must of course
    supply (or better, contribute to the GCCSDK project) any
-   modifications you make to Unixlib upon request.
+   modifications you make to UnixLib upon request.
 
 
 Recommended reading:
@@ -84,7 +84,7 @@ http://www.fsf.org/licenses/why-not-lgpl.html
 
 ===========================================================================
 
- Copyright (c) 1995-2005 Unixlib Developers
+ Copyright (c) 1995-2005 UnixLib Developers
  All rights reserved.
  
  Redistribution and use in source and binary forms, with or without
@@ -111,7 +111,7 @@ http://www.fsf.org/licenses/why-not-lgpl.html
 
 ===========================================================================
 
-Portions of Unixlib are copyright The Regents of the University of
+Portions of UnixLib are copyright The Regents of the University of
 California.
 
 Portions of this library are copyright Sun Microsystems, Inc.  The 
