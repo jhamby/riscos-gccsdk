@@ -1,5 +1,10 @@
 Noteworthy changes to the RISC OS GCCSDK
 
+RISC OS GCC release 3.3.0 pre-release 1 (released XX XXXXXX 2003)
+=======================================
+
+* gcc: updated to snapshot 3.3 20021201
+
 RISC OS GCC release 2.95.4 release 2 (released XX XXXXXX 2002)
 ====================================
 
