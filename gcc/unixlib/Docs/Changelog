@@ -1,3 +1,8 @@
+Tue Dec  7 22:54:45 2004  Alex Waugh  <alex@alexwaugh.com>
+
+	* source/stdio/fflush.c (fflush): Don't return an error if a read
+	  only stream is flushed.
+
 Sat Dec  4 23:07:00 2004  John Tytgat  <John.Tytgat@aaug.net>
 
 	* source/unix/select.c: Norcroft compatibility; unsigned modulo
