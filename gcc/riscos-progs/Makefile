@@ -10,7 +10,7 @@ LIBIBERTY = $(gcc_bin_dir)/$(TRG)/o/libiberty
 
 export host_bin_dir bin_dir gcc_bin_dir LIBIBERTY
 
-all:	make bison fileutils flex gperf grep gzip patch \
+all:	make diff bison fileutils flex gperf grep gzip patch \
 	sed
 
 .PHONY: bison
