@@ -24,6 +24,7 @@
 #include "input.h"
 #include "aoffile.h"
 #include "fix.h"
+#include "output.h" 
 
 #define READWORD(image,offset) \
   (((image)[(offset)+3]<<24) | ((image)[(offset)+2]<<16) | \
@@ -562,7 +563,7 @@ relocOutput (FILE * outfile, Symbol * area)
 	  errorLine (relocs->lineno, relocs->file, ErrorSerious, TRUE, "Linker cannot handle this");
 	  continue;
 	}
-      areloc.Offset = relocs->offset;
+      areloc.Offset = armword(relocs->offset);
       for (ip = 0; ip < relocs->value.ValueCode.len; ip++)
 	{
 	  if (relocs->value.ValueCode.c[ip].Tag == CodeValue)
@@ -579,6 +580,7 @@ relocOutput (FILE * outfile, Symbol * area)
 	  areloc.How = How | relocs->value.ValueCode.c[ip].CodeSymbol.symbol->used;
 	  if (relocs->value.ValueCode.c[ip].CodeSymbol.symbol->type != SYMBOL_AREA)
 	    areloc.How |= HOW2_SYMBOL;
+	  areloc.How = armword(areloc.How);
 	  while (loop--)
 	    fwrite ((void *) &areloc, 1, 8, outfile);
 	}

@@ -77,7 +77,7 @@ endif
 all:	$(gcc_bin_dir)/as$(exesfx)
 
 $(gcc_bin_dir)/as$(exesfx):	$(OBJS) $(DEPS)
-	$(CC) -o $@ $(OBJS) -lm 
+	$(CC) -o $@ $(OBJS) -lm -L$(objdir)/libiberty/$(STAGE) -liberty 
 
 $(asobjdir)/area.o: area.c
 $(asobjdir)/asm.o: asm.c

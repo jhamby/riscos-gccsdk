@@ -15,4 +15,14 @@ void outputAof (void);
 
 extern const char *idfn_text;
 
+#if !defined(__riscos__) && defined(WORDS_BIGENDIAN)
+unsigned armword (unsigned val);
+unsigned ourword (unsigned val);
+#else
+#define armword(x) (x)
+#define ourword(x) (x)
+#endif
+
+
+
 #endif

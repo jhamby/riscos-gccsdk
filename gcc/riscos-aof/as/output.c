@@ -49,7 +49,7 @@ static char outname[MAXNAME + 1];
 
 #if !defined(__riscos__) && defined(WORDS_BIGENDIAN)
 /* Convert to ARM byte-sex.  */
-static unsigned armword (unsigned val)
+unsigned armword (unsigned val)
 {
   union
     {
@@ -66,7 +66,7 @@ static unsigned armword (unsigned val)
 }
 
 /* Convert from ARM byte-sex.  */
-static unsigned ourword (unsigned val)
+unsigned ourword (unsigned val)
 {
   union
   {
@@ -81,10 +81,6 @@ static unsigned ourword (unsigned val)
   ret.c[3] = (val >> BYTE3SHIFT) & 0xff;
   return (ret.i);
 }
-#else
-/* Little endian host machines.  */
-#define armword(x) (x)
-#define ourword(x) (x)
 #endif
 
 void
@@ -174,6 +170,20 @@ countAreas (Symbol * ap)
   return i;
 }
 
+static int
+writeEntry (int ID, int type, int size, int *offset)
+{
+  ChunkFileHeaderEntry chunk_entry;
+
+  chunk_entry.ChunkIDPrefix = armword (ID);
+  chunk_entry.ChunkIDType = armword (type);
+  chunk_entry.FileOffset = armword (*offset);
+  chunk_entry.Size = armword (size);
+  *offset += size;
+  return fwrite ((void *) &chunk_entry, sizeof (char),
+                 sizeof (chunk_entry), objfile);
+}
+
 void
 outputAof (void)
 {
@@ -198,62 +208,35 @@ outputAof (void)
       ap = ap->area.info->next;
     }
 
-  aof_head.Type = AofHeaderID;
-  aof_head.Version = 310;
-  aof_head.noAreas = noareas;
-  aof_head.noSymbols = symbolFix ();
-  aof_head.EntryArea = areaEntry ? areaEntry->used + 1 : 0;
-  aof_head.EntryOffset = areaEntry ? areaEntryOffset : 0;
+  aof_head.Type = armword (AofHeaderID);
+  aof_head.Version = armword (310);
+  aof_head.noAreas = armword (noareas);
+  aof_head.noSymbols = armword (symbolFix ());
+  aof_head.EntryArea = armword (areaEntry ? areaEntry->used + 1 : 0);
+  aof_head.EntryOffset = armword (areaEntry ? areaEntryOffset : 0);
 
   /* Write out the chunk file header.  */
-  chunk_header.ChunkField = ChunkFileID;
-  chunk_header.maxChunks = 5;
-  chunk_header.noChunks = 5;
+  chunk_header.ChunkField = armword (ChunkFileID);
+  chunk_header.maxChunks = armword (5);
+  chunk_header.noChunks = armword (5);
   written = fwrite ((void *) &chunk_header, sizeof (char),
 		    sizeof (chunk_header), objfile);
   offset = sizeof (chunk_header) + 5 * sizeof (chunk_entry);
 
-  chunk_entry.ChunkIDPrefix = ChunkID_OBJ;
-  chunk_entry.ChunkIDType = ChunkID_OBJ_HEAD;
-  chunk_entry.FileOffset = offset;
-  chunk_entry.Size = sizeof (aof_head) + noareas * sizeof (aof_entry);
-  offset += chunk_entry.Size;
-  written += fwrite ((void *) &chunk_entry, sizeof (char),
-		     sizeof (chunk_entry), objfile);
+  written += writeEntry(ChunkID_OBJ, ChunkID_OBJ_HEAD,
+               sizeof (aof_head) + noareas * sizeof (aof_entry), &offset);
 
-  chunk_entry.ChunkIDPrefix = ChunkID_OBJ;
-  chunk_entry.ChunkIDType = ChunkID_OBJ_IDFN;
-  chunk_entry.FileOffset = offset;
-  chunk_entry.Size = FIX (strlen (idfn_text) + 1);
-  offset += chunk_entry.Size;
-  idfn_size = chunk_entry.Size;
-  written += fwrite ((void *) &chunk_entry, sizeof (char),
-		     sizeof (chunk_entry), objfile);
+  written += writeEntry(ChunkID_OBJ, ChunkID_OBJ_IDFN,
+                        idfn_size = FIX (strlen (idfn_text) + 1), &offset);
 
-  chunk_entry.ChunkIDPrefix = ChunkID_OBJ;
-  chunk_entry.ChunkIDType = ChunkID_OBJ_STRT;
-  chunk_entry.FileOffset = offset;
-  chunk_entry.Size = FIX (symbolStringSize ());
-  offset += chunk_entry.Size;
-  strt_size = chunk_entry.Size;
-  written += fwrite ((void *) &chunk_entry, sizeof (char),
-		     sizeof (chunk_entry), objfile);
+  written += writeEntry(ChunkID_OBJ, ChunkID_OBJ_STRT,
+                        strt_size = FIX (symbolStringSize ()), &offset);
 
-  chunk_entry.ChunkIDPrefix = ChunkID_OBJ;
-  chunk_entry.ChunkIDType = ChunkID_OBJ_SYMT;
-  chunk_entry.FileOffset = offset;
-  chunk_entry.Size = aof_head.noSymbols * sizeof (AofSymbol);
-  offset += chunk_entry.Size;
-  written += fwrite ((void *) &chunk_entry, sizeof (char),
-		     sizeof (chunk_entry), objfile);
+  written += writeEntry(ChunkID_OBJ, ChunkID_OBJ_SYMT,
+                        ourword (aof_head.noSymbols) * sizeof (AofSymbol), &offset);
 
-  chunk_entry.ChunkIDPrefix = ChunkID_OBJ;
-  chunk_entry.ChunkIDType = ChunkID_OBJ_AREA;
-  chunk_entry.FileOffset = offset;
-  chunk_entry.Size = obj_area_size;
-  offset += chunk_entry.Size;
-  written += fwrite ((void *) &chunk_entry, sizeof (char),
-		     sizeof (chunk_entry), objfile);
+  written += writeEntry(ChunkID_OBJ, ChunkID_OBJ_AREA,
+                        obj_area_size, &offset);
 
   if (written != (sizeof (chunk_header) + 5 * sizeof (chunk_entry)))
     {
