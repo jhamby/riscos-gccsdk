@@ -48,7 +48,7 @@ computer to make a working compiler.
   $ ./configure --prefix=/home/riscos/cross \
 	--with-riscos-dist=/home/riscos/riscos-dist \
 	--with-riscos-pkg=/home/riscos/riscos-pkg \
-	--enable-filetype-ff8
+	--enable-filetype-ff8 --enable-checking=no
 
 Adding the flag --enable-filetype-ff8 to the configure options will add the
 ",ff8" suffix to any RISC OS executables built under Unix.  This is to allow
