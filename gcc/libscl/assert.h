@@ -20,35 +20,25 @@
 
 #if defined(__STDC__) || defined (__cplusplus)
 
-/* Defined in libgcc.a */
 #ifdef __cplusplus
-extern "C" {
-extern void __eprintf (const char *, const char *, unsigned, const char *)
-    __attribute__ ((noreturn));
-}
+extern "C" void __assert (const char *, const char *, const char *, int)
+extern "C" void __assert2(const char *, const char *, const char *, int);
 #else
-extern void __eprintf (const char *, const char *, unsigned, const char *)
-    __attribute__ ((noreturn));
+extern void __assert(const char *, const char *, int);
+extern void __assert2(const char *, const char *, const char *, int);
 #endif
+
+
+#define assert(expression)  \
+  ((void) ((expression) ? 0 : __assert2 (#expression, __func__, __FILE__, __LINE__)))
+
+#else /* no __STDC__ and not C++; i.e. -traditional.  */
+
+extern void __assert(const char *, const char *, int);
 
 #define assert(expression)  \
   ((void) ((expression) ? 0 : __assert (#expression, __FILE__, __LINE__)))
 
-#define __assert(expression, file, line)  \
-  (__eprintf ("%s:%u: failed assertion `%s'\n",		\
-	      file, line, expression), 0)
-
-#else /* no __STDC__ and not C++; i.e. -traditional.  */
-
-extern void __eprintf () __attribute__ ((noreturn)); /* Defined in libgcc.a */
-
-#define assert(expression)  \
-  ((void) ((expression) ? 0 : __assert (expression, __FILE__, __LINE__)))
-
-#define __assert(expression, file, lineno)  \
-  (__eprintf ("%s:%u: failed assertion `%s'\n",		\
-	      file, lineno, "expression"), 0)
-
-#endif /* no __STDC__ and not C++; i.e. -traditional.  */
+#endif /* no __STDC__ and not C++; i.e. -traditional. */
 #endif /* no __GNU__; i.e., /bin/cc.  */
 #endif

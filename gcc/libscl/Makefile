@@ -91,6 +91,7 @@ MATH = 	$(libsclobj)/math/acosf.o \
 LIBC =  $(libsclobj)/unistd.o \
 	$(libsclobj)/stubs.o \
 	$(libsclobj)/riscosify.o \
+	$(libsclobj)/assert.o \
 	$(libunixobj)/common/_riscosify.o 
 
 all:	mkdirs \
