@@ -1,10 +1,10 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/_os.s,v $
-; $Date: 2002/09/24 21:02:38 $
-; $Revision: 1.5 $
+; $Date: 2003/04/28 22:44:03 $
+; $Revision: 1.6 $
 ; $State: Exp $
-; $Author: admin $
+; $Author: alex $
 ;
 ;----------------------------------------------------------------------------
 
@@ -229,9 +229,10 @@ os_prhex_l1
 	ADD	a3, a3, #8
 	LDMNEIA a3, {a3, a4, v1, v2}
 	SWI	XOS_File
-	MOVVC	a1, #0
+	stackreturn	VS, "v1, v2, pc"
 	CMP	ip, #0
 	STMNEIA ip, {a1, a2, a3, a4, v1, v2}
+	MOV	a1, #0
 	stackreturn	AL, "v1, v2, pc"
 
 	EXPORT	|__os_fopen|
@@ -262,9 +263,10 @@ os_prhex_l1
 	MOV	a2, a1
 	MOV	a1, #4
 	SWI	XOS_GBPB
-	MOVVC	a1, #0
+	stackreturn	VS, "v1, pc"
 	CMP	ip, #0
 	STMNEIA	ip, {a1, a2, a3, a4, v1}
+	MOV	a1, #0
 	stackreturn	AL, "v1, pc"
 
 	EXPORT	|__os_fwrite|
@@ -277,9 +279,10 @@ os_prhex_l1
 	MOV	a2, a1
 	MOV	a1, #2
 	SWI	XOS_GBPB
-	MOVVC	a1, #0
+	stackreturn	VS, "v1, pc"
 	CMP	ip, #0
 	STMNEIA	ip, {a1, a2, a3, a4, v1}
+	MOV	a1, #0
 	stackreturn	AL, "v1, pc"
 
 	EXPORT	|__os_args|
@@ -287,9 +290,10 @@ os_prhex_l1
 |__os_args|
 	MOV	ip, a4
 	SWI	XOS_Args
-	MOVVC	a1, #0
+	return	VS, pc, lr
 	CMP	ip, #0
 	STMNEIA	ip, {a1, a2, a3}
+	MOV	a1, #0
 	return	AL, pc, lr
 
 	EXPORT	|__os_fsctrl|

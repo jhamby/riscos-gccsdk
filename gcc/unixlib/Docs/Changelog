@@ -1,3 +1,8 @@
+Sun May 11 22:01:15 2003  Alex Waugh  <alex@alexwaugh.com>
+
+	* sys/_os.s (__os_file, __os_fread, __os_fwrite, __os_args): Store a1
+	  before clearing it.
+
 Sun May 11 19:13:12 2003  John Tytgat <John.Tytgat@aaug.net>
 
 	* objs/Makefile,fe1: Specifying minimum Norcroft C version 5.53.
@@ -6,7 +11,7 @@ Sun May 11 19:13:12 2003  John Tytgat <John.Tytgat@aaug.net>
 	* source/signal/_signal.s: Removed "IMPORT __pthread_callback_pending"
 	  (didn't exist).
 	* source/sys/_syslib.s: Removed "IMPORT __h_upcall" (didn't exist).
-	
+
 Sun May 11 13:28:12 2003  John Tytgat <John.Tytgat@aaug.net>
 
 	* source/unix/chdir.c (chdir): chdir(".") did not work when Prefix$Dir
