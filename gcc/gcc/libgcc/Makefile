@@ -1,5 +1,5 @@
 # Makefile for the GNU Compiler Collection for ARM/RISC OS
-# Copyright (c) 1997, 1998, 1999, 2000 Nick Burrett
+# Copyright (c) 1997, 1998, 1999, 2000, 2003 Nick Burrett
 # Written by Nick Burrett <nick@dsvr.net>
 
 CC_S = $(CROSS_CC) -xassembler-with-cpp
@@ -19,7 +19,11 @@ COMMON = $(libobjdir)/divsi3.o \
 
 LIB2ADDEH = $(libobjdir)/unwind-dw2.o \
 	$(libobjdir)/unwind-dw2-fde.o \
-	$(libobjdir)/unwind-sjlj.o
+	$(libobjdir)/unwind-sjlj.o \
+	$(libobjdir)/unwind-c.o
+
+LIB2ADDEHDEP = ../gcc/unwind.inc ../gcc/unwind-dw2-fde.h
+
 
 # All the file that go into the gcc library
 LIB2FUNCS_1 = $(libobjdir)/muldi3.o \
@@ -123,10 +127,10 @@ LIBGCC_OBJS = $(COMMON) $(LIB2FUNCS_1) $(LIB2FUNCS_2) \
 	$(LIB2FUNCS_EXTRA) $(FP_BIT_DOUBLE) $(FP_BIT_SINGLE) $(LIB2ADDEH)
 
 $(ux_gcc_bin_dir)/$(TRG)/libgcc.o: $(LIBGCC_OBJS)
-	$(CROSS_AR) $(CROSS_AR_FLAGS) -c $@ $(LIBGCC_OBJS)
+	$(CROSS_AR) $(CROSS_AR_FLAGS) $@ $(LIBGCC_OBJS)
 
 $(ro_gcc_bin_dir)/$(TRG)/o/libgcc: $(LIBGCC_OBJS)
-	$(CROSS_AR) $(CROSS_AR_FLAGS) -c $@ $(LIBGCC_OBJS)
+	$(CROSS_AR) $(CROSS_AR_FLAGS) $@ $(LIBGCC_OBJS)
 
 ############################################################################
 
@@ -231,14 +235,17 @@ $(libobjdir)/negvdi2.o: libgcc2.c
 
 
 # Exception handling
-$(libobjdir)/unwind-dw2.o: ../gcc/unwind-dw2.c
+$(libobjdir)/unwind-dw2.o: ../gcc/unwind-dw2.c $(LIB2ADDEHDEP)
 	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c ../gcc/unwind-dw2.c $(INCLUDES)
 
-$(libobjdir)/unwind-dw2-fde.o: ../gcc/unwind-dw2-fde.c
+$(libobjdir)/unwind-dw2-fde.o: ../gcc/unwind-dw2-fde.c $(LIB2ADDEHDEP)
 	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c ../gcc/unwind-dw2-fde.c $(INCLUDES)
 
-$(libobjdir)/unwind-sjlj.o: ../gcc/unwind-sjlj.c
+$(libobjdir)/unwind-sjlj.o: ../gcc/unwind-sjlj.c $(LIB2ADDEHDEP)
 	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c ../gcc/unwind-sjlj.c $(INCLUDES) -I../gcc
+
+$(libobjdir)/unwind-c.o: ../gcc/unwind-c.c $(LIB2ADDEHDEP)
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c ../gcc/unwind-c.c $(INCLUDES) -I../gcc
 
 
 
