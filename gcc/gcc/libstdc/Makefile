@@ -477,6 +477,7 @@ $(libobjdir)/atomicity.o: atomicity.cc
 $(libobjdir)/bitset.o: bitset.cc
 $(libobjdir)/c++locate.o: c++locate.cc
 $(libobjdir)/codecvt.o: codecvt.cc
+$(libobjdir)/codecvt_members.o: codecvt_members.cc
 $(libobjdir)/collate.o: collate.cc
 $(libobjdir)/complex_io.o: complex_io.cc
 $(libobjdir)/concept-inst.o: concept-inst.cc
