@@ -96,7 +96,7 @@ crosstarget:	libgcc unixlib libscl libio libstdc libf2c libgpc riscos-libs risco
 .PHONY: riscos-aof
 .PHONY: riscos-elf
 .PHONY: gcc
-
+.PHONY: cross-progs
 
 # Target (trgXX) and compiler flags (cflXX) definitions.  The XX must
 # match for both trg and cfl in all calls to sub-make processes.  We
