@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/locale/localeconv.c,v $
- * $Date: 2005/03/13 10:06:42 $
- * $Revision: 1.6 $
+ * $Date: 2005/03/13 11:09:32 $
+ * $Revision: 1.7 $
  * $State: Exp $
  * $Author: alex $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: localeconv.c,v 1.6 2005/03/13 10:06:42 alex Exp $";
+static const char rcs_id[] = "$Id: localeconv.c,v 1.7 2005/03/13 11:09:32 alex Exp $";
 #endif
 
 /* Character localisation support. Written by Nick Burrett, 20 July 1997.  */
@@ -40,19 +40,9 @@ static void read_byte_list (int reason_code, char **grouping, int territory)
 {
   char *byte_list, *new_grouping;
   char temp[128], *temp1;
-#ifdef DEBUG
-  char *bl, test[16];
-#endif
   int regs[10];
 
   byte_list = (char *)read_symbol (reason_code, territory);
-#ifdef DEBUG
-  /* Bytelist test.  */
-  test[0] = 1; test[1] = 4; test[2] = 8; test[3] = 17; test[4] = 32;
-  test[5] = 255;
-  bl = test;
-  byte_list = test;
-#endif
   /* Build a grouping string.  */
   temp[0] = '\0';
   temp1 = temp;
@@ -72,16 +62,6 @@ static void read_byte_list (int reason_code, char **grouping, int territory)
       temp1 += regs[2];
     }
   *temp1 = '\0';
-#ifdef DEBUG
-  {
-    int x;
-
-    printf ("localeconv(): byte_list = ");
-    for (x = 0; x <= 10; x++)
-      printf ("%d, ", bl[x]);
-    printf ("\ntemp = '%s'\n", temp);
-  }
-#endif
 
   if (*grouping)
     new_grouping = realloc (*grouping, strlen (temp) + 1);
@@ -99,12 +79,20 @@ static void read_byte_list (int reason_code, char **grouping, int territory)
   *grouping = new_grouping;
 }
 
+static void xfree (void *buffer)
+{
+  if (buffer)
+    free (buffer);
+}
+
+static struct lconv lc = { NULL, NULL, NULL, NULL, NULL,
+			   NULL, NULL, NULL, NULL, NULL,
+			   CHAR_MAX, CHAR_MAX, CHAR_MAX, CHAR_MAX,
+			   CHAR_MAX, CHAR_MAX, CHAR_MAX, CHAR_MAX };
+
 /* Defined by POSIX as not threadsafe */
 struct lconv *localeconv (void)
 {
-  static struct lconv lc = { NULL, NULL, NULL, NULL, NULL,
-			     NULL, NULL, NULL, NULL, NULL,
-			     0, 0, 0, 0, 0, 0, 0, 0 };
   int numeric, monetary;
 
   /* If setlocale has not been called since the last call to
@@ -122,18 +110,18 @@ struct lconv *localeconv (void)
   if (numeric == -1)
     {
       /* We're using the 'C' locale.  */
-      free (lc.decimal_point);
+      xfree (lc.decimal_point);
       lc.decimal_point = strdup (".");
-      free (lc.thousands_sep);
+      xfree (lc.thousands_sep);
       lc.thousands_sep = strdup ("");
-      free (lc.grouping);
+      xfree (lc.grouping);
       lc.grouping = strdup ("");
     }
   else
     {
-      free (lc.decimal_point);
+      xfree (lc.decimal_point);
       lc.decimal_point = strdup ((char *) read_symbol (0, numeric));
-      free (lc.thousands_sep);
+      xfree (lc.thousands_sep);
       lc.thousands_sep = strdup ((char *) read_symbol (1, numeric));
       read_byte_list (2, &lc.grouping, numeric);
     }
@@ -141,43 +129,43 @@ struct lconv *localeconv (void)
     {
       /* We using the 'C' locale.  Empty strings and CHAR_MAX means
 	 that these fields are unspecified.  */
-      free (lc.mon_decimal_point);
+      xfree (lc.mon_decimal_point);
       lc.mon_decimal_point = strdup ("");
-      free (lc.mon_thousands_sep);
+      xfree (lc.mon_thousands_sep);
       lc.mon_thousands_sep = strdup ("");
-      free (lc.mon_grouping);
+      xfree (lc.mon_grouping);
       lc.mon_grouping = strdup ("");
       lc.int_frac_digits = CHAR_MAX;
       lc.frac_digits = CHAR_MAX;
-      free (lc.currency_symbol);
+      xfree (lc.currency_symbol);
       lc.currency_symbol = strdup ("");
-      free (lc.int_curr_symbol);
+      xfree (lc.int_curr_symbol);
       lc.int_curr_symbol = strdup ("");
       lc.p_cs_precedes = CHAR_MAX;
       lc.n_cs_precedes = CHAR_MAX;
       lc.p_sep_by_space = CHAR_MAX;
       lc.n_sep_by_space = CHAR_MAX;
-      free (lc.positive_sign);
+      xfree (lc.positive_sign);
       lc.positive_sign = strdup ("");
-      free (lc.negative_sign);
+      xfree (lc.negative_sign);
       lc.negative_sign = strdup ("");
       lc.p_sign_posn = CHAR_MAX;
       lc.n_sign_posn = CHAR_MAX;
     }
   else
     {
-      free (lc.int_curr_symbol);
+      xfree (lc.int_curr_symbol);
       lc.int_curr_symbol = strdup ((char *)read_symbol (3, monetary));
-      free (lc.currency_symbol);
+      xfree (lc.currency_symbol);
       lc.currency_symbol = strdup ((char *)read_symbol (4, monetary));
-      free (lc.mon_decimal_point);
+      xfree (lc.mon_decimal_point);
       lc.mon_decimal_point = strdup ((char *)read_symbol (5, monetary));
-      free (lc.mon_thousands_sep);
+      xfree (lc.mon_thousands_sep);
       lc.mon_thousands_sep = strdup ((char *)read_symbol (6, monetary));
       read_byte_list (7, &lc.mon_grouping, monetary);
-      free (lc.positive_sign);
+      xfree (lc.positive_sign);
       lc.positive_sign = strdup ((char *)read_symbol (8, monetary));
-      free (lc.negative_sign);
+      xfree (lc.negative_sign);
       lc.negative_sign = strdup ((char *)read_symbol (9, monetary));
       lc.int_frac_digits = (char)read_symbol (10, monetary);
       lc.frac_digits = (char)read_symbol (11, monetary);

@@ -1,3 +1,21 @@
+Thu Mar 31 10:44:49 2005  Nick Burrett  <nick@sqrt.co.uk>
+
+	* locale/localeconv.c (xfree): New function.
+	(struct lonv lc): Initialise correctly.
+	(localeconv): Use 'xfree' instead of 'free'.
+	(read_byte_list): Remove DEBUG code because it is incompatible
+	and can cause recursion with 'printf'.
+
+Thu Mar 31 10:37:49 2005  Nick Burrett  <nick@sqrt.co.uk>
+
+	* clk_getres.c: New file.
+	* clk_gettime.c: New file.
+	* clk_settime.c: New file.
+	* time.h (clock_getres): Add prototype.
+	(clock_gettime): Add prototype.
+	(clock_settime): Add prototype.
+	* unistd.h (_POSIX_MONOTONIC_CLOCK): Define.
+
 Thu Mar 31 10:25:40 2005  Nick Burrett  <nick@sqrt.co.uk>
 
 	* unixlib/sigstate.h (__valid_address): Prepend '__' as this is
