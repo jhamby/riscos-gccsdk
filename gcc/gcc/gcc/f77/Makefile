@@ -29,6 +29,7 @@ LIBDEPS = $(gccobjdir)/prefix.o
 ifeq (${STAGE},stage1)
 RISC_OBJS=
 RISCOS_OBJS=
+.NOTPARALLEL:
 else
 RISC_OBJS = $(gccobjdir)/config/arm/riscos_fix.o
 RISCOS_OBJS = $(RISC_OBJS) $(gccobjdir)/config/arm/riscos.o
