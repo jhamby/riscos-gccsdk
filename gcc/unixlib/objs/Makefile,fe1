@@ -1,10 +1,10 @@
 # Project:   UnixLib 4.0
 
-# $Source$
-# $Date$
-# $Revision$
-# $State$
-# $Author$
+# $Source: /usr/local/cvsroot/gccsdk/unixlib/objs/Makefile,fe1,v $
+# $Date: 2003/01/29 18:49:00 $
+# $Revision: 1.7 $
+# $State: Exp $
+# $Author: admin $
 
 CCfeatures =
 Predefs = -D__UNIXLIB_INTERNALS
@@ -127,7 +127,7 @@ LOCALE = locale.o.ctypetable locale.o.localeconv locale.o.setlocale \
 
 NETLIB = netlib.o.accept netlib.o.bind netlib.o.connect \
 	netlib.o.getpeernam netlib.o.getsocknam netlib.o.getsockopt \
-	netlib.o.h_errno netlib.o.host \
+	netlib.o.h_errno \
 	netlib.o.inet_lnaof netlib.o.inet_mkad \
 	netlib.o.inet_netof netlib.o.inet_netwo netlib.o.inet_ntoa \
 	netlib.o.ntop netlib.o.listen netlib.o.net netlib.o.proto \
@@ -138,7 +138,7 @@ NETLIB = netlib.o.accept netlib.o.bind netlib.o.connect \
 NETLIB_ASM = netlib.o._accept netlib.o._bind netlib.o._bswap_16 \
 	netlib.o._bswap_32 netlib.o._connect \
 	netlib.o._getpeerna netlib.o._getsockna netlib.o._getsockop \
-	netlib.o._gettsize netlib.o._hostbyadd netlib.o._hostbynam \
+	netlib.o._gettsize \
 	netlib.o._listen netlib.o._net_error netlib.o._readv netlib.o._recv \
 	netlib.o._recvfrom \
 	netlib.o._recvmsg netlib.o._sclose netlib.o._select netlib.o._send \

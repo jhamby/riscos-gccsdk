@@ -1,3 +1,17 @@
+Sun Apr  5 01:00:57 2003  John Tytgat <John.Tytgat@aaug.net>
+
+	* source/clib/bits/netdb.h: Removed _gethostbyname() and
+	  _gethostbyaddr() definition
+	* source/netlib/_hostbyadd.s: Removed.
+	* source/netlib/_hostbynam.s: Removed.
+	* source/netlib/host.c: Removed.
+	* source/Makefile: Removed _hostbyadd.o & _hostbynam.o from
+	  NETLIB_ASM list.  Removed host.o from NETLIB list.
+	* objs/Makefile: Likewise.
+	* source/sys/_udiv10.s (_kernel_udiv10, __rt_udiv10): Made routine
+	  2 instructions shorter.
+	* source/sys/_sdiv10.s (_kernel_sdiv10, __rt_sdiv10): Likewise.
+
 Sat Apr  5 13:41:35 2003  Alex Waugh  <alex@alexwaugh.com>
 
 	* pthread.h (PTHREAD_INIT): Remove.

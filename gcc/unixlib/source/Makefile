@@ -246,7 +246,6 @@ NETLIB = $(libunixobj)/netlib/accept.o \
 	$(libunixobj)/netlib/getpeernam.o \
 	$(libunixobj)/netlib/getsocknam.o \
 	$(libunixobj)/netlib/getsockopt.o \
-	$(libunixobj)/netlib/host.o \
 	$(libunixobj)/netlib/h_errno.o \
 	$(libunixobj)/netlib/in6_addr.o \
 	$(libunixobj)/netlib/inet_lnaof.o \
@@ -281,8 +280,6 @@ NETLIB_ASM = \
 	$(libunixobj)/netlib/_getsockna.o \
 	$(libunixobj)/netlib/_getsockop.o \
 	$(libunixobj)/netlib/_gettsize.o \
-	$(libunixobj)/netlib/_hostbyadd.o \
-	$(libunixobj)/netlib/_hostbynam.o \
 	$(libunixobj)/netlib/_listen.o \
 	$(libunixobj)/netlib/_net_error.o \
 	$(libunixobj)/netlib/_readv.o \

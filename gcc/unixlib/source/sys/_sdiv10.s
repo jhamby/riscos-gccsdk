@@ -1,10 +1,10 @@
 ;----------------------------------------------------------------------------
 ;
-; $Source$
-; $Date$
-; $Revision$
-; $State$
-; $Author$
+; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/_sdiv10.s,v $
+; $Date: 2002/09/24 21:02:38 $
+; $Revision: 1.4 $
+; $State: Exp $
+; $Author: admin $
 ;
 ;----------------------------------------------------------------------------
 
@@ -19,19 +19,17 @@
 |__rt_sdiv10|
 	MOVS	a4, a1
 	RSBMI	a1, a1, #0
-	MOV	a2, a1
-	MOV	a1, a1, LSR #1
-	ADD	a1, a1, a1, LSR #1
+	SUB	a2, a1, #10		; Keep a1 - 10 for later
+	SUB	a1, a1, a1, LSR #2
 	ADD	a1, a1, a1, LSR #4
 	ADD	a1, a1, a1, LSR #8
 	ADD	a1, a1, a1, LSR #16
-	MOV	a1, a1, LSR #3
+	MOV	a1, a1, LSR #3		; a1 = a1 (on entry) / 10
 	ADD	a3, a1, a1, LSL #2
-	SUB	a2, a2, a3, LSL #1
-	CMP	a2, #10
-	ADDGE	a1, a1, #1
-	SUBGE	a2, a2, #10
-	CMP	a4, #0
+	SUBS	a2, a2, a3, LSL #1	; Calculate a1/10 - (a1/10)*10
+	ADDPL	a1, a1, #1		; Fix quotient
+	ADDMI	a2, a2, #10		; Fix remainder
+	CMP	a4, #0			; Negative sign ?
 	RSBMI	a1, a1, #0
 	RSBMI	a2, a2, #0
 	return	AL, pc, lr

@@ -1,10 +1,10 @@
 /****************************************************************************
  *
- * $Source: $
- * $Date: $
- * $Revision: $
- * $State: $
- * $Author: $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/bits/netdb.h,v $
+ * $Date: 2002/12/22 18:22:28 $
+ * $Revision: 1.1 $
+ * $State: Exp $
+ * $Author: admin $
  *
  ***************************************************************************/
 
@@ -52,8 +52,6 @@ __BEGIN_DECLS
 
 #ifdef __UNIXLIB_INTERNALS
 /* Direct SWI veneers: */
-extern struct hostent *_gethostbyname (const char *name);
-extern struct hostent *_gethostbyaddr (const char *addr, int len, int type);
 extern int _sclose (int sd);
 extern int _sread (int sd, void *data, int nbyte);
 extern int _swrite (int sd, const void *data, int nbyte);
