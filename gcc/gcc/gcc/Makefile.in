@@ -333,10 +333,6 @@ $(bin_dir)/gcov$(gexesfx): $(gccobjdir)/gcov.o $(gccobjdir)/version.o $(LIBDEPS)
 #	$(LINK) $(LIBS)
 
 
-$(gccobjdir)/gcov-iov: $(gccobjdir)/gcov-iov.o
-	$(LINK) $(gccobjdir)/gcov-iov.o $(LIBS)
-
-
 ifeq (${STAGE},stage2)
 $(info_dir)/gcc:	doc/extend.texi doc/gcc.texi doc/gcov.texi \
 	doc/install.texi doc/invoke.texi doc/md.texi \
@@ -380,8 +376,11 @@ options.c: opts.sh options.h $(lang_opt_files)
 options.h: opts.sh $(lang_opt_files)
 	AWK=awk $(SHELL) opts.sh '$(SHELL) move-if-change' options.c options.h $(lang_opt_files)
 
-gcov-iov.h: gcov-iov.c version.h
-	$(gccobjdir)/gcov-iov > gcov-iov.h
+gcov-iov.h: gcov-iov gcov-iov.c version.h
+	./gcov-iov > gcov-iov.h
+
+gcov-iov: $(gccobjdir)/gcov-iov.o gcov-iov.c
+	$(LINK) $(gccobjdir)/gcov-iov.o $(LIBS)
 
 # Bison object dependencies
 $(gccobjdir)/c-parse.o:	c-parse.c c-parse.c c-parse.in tree-check.h gt-c-parse.h
