@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/pthread/testcancel.c,v $
- * $Date: 2002/12/15 13:16:55 $
- * $Revision: 1.1 $
+ * $Date: 2003/04/28 12:07:02 $
+ * $Revision: 1.2 $
  * $State: Exp $
- * $Author: admin $
+ * $Author: alex $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: testcancel.c,v 1.1 2002/12/15 13:16:55 admin Exp $";
+static const char rcs_id[] = "$Id: testcancel.c,v 1.2 2003/04/28 12:07:02 alex Exp $";
 #endif
 
 /* pthread_testcancel
@@ -26,9 +26,10 @@ static const char rcs_id[] = "$Id: testcancel.c,v 1.1 2002/12/15 13:16:55 admin 
 void
 pthread_testcancel (void)
 {
-  if (__pthread_running_thread->cancelpending)
+  if (__pthread_running_thread->cancelpending && __pthread_worksemaphore == 0)
     {
-      if (__pthread_running_thread->cancelstate == PTHREAD_CANCEL_ENABLE && __pthread_running_thread->state == STATE_RUNNING)
+      if (__pthread_running_thread->cancelstate == PTHREAD_CANCEL_ENABLE
+          && __pthread_running_thread->state == STATE_RUNNING)
         {
 #ifdef PTHREAD_DEBUG
           __os_print("-- pthread_testcancel: thread cancelled\r\n");

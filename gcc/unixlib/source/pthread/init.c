@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/pthread/init.c,v $
- * $Date: 2003/04/06 10:58:41 $
- * $Revision: 1.3 $
+ * $Date: 2003/04/28 12:07:02 $
+ * $Revision: 1.4 $
  * $State: Exp $
  * $Author: alex $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: init.c,v 1.3 2003/04/06 10:58:41 alex Exp $";
+static const char rcs_id[] = "$Id: init.c,v 1.4 2003/04/28 12:07:02 alex Exp $";
 #endif
 
 /* Written by Martin Piper and Alex Waugh */
@@ -19,7 +19,7 @@ static const char rcs_id[] = "$Id: init.c,v 1.3 2003/04/06 10:58:41 alex Exp $";
 #include <stdlib.h>
 #include <pthread.h>
 
-struct __pthread_thread mainthread;
+static struct __pthread_thread mainthread;
 
 /* Called once, at program initialisation */
 void

@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/pthread/create.c,v $
- * $Date: 2003/04/05 12:42:28 $
- * $Revision: 1.2 $
+ * $Date: 2003/04/06 10:58:40 $
+ * $Revision: 1.3 $
  * $State: Exp $
  * $Author: alex $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: create.c,v 1.2 2003/04/05 12:42:28 alex Exp $";
+static const char rcs_id[] = "$Id: create.c,v 1.3 2003/04/06 10:58:40 alex Exp $";
 #endif
 
 /* Thread creation */
@@ -109,6 +109,7 @@ pthread_create (pthread_t *threadin, const pthread_attr_t *attr, void * (*start_
      __pthread_create handles the real starting up of this new
      thread when the context is reached */
   thread->saved_context->r[15] = (int)__pthread_create; /* set pc */
+  thread->saved_context->spsr = 0x00000010; /* USR32 mode, interupts enabled */
 
   thread->start_routine = start_routine;
   thread->arg = arg;
