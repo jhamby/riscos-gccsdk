@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/exec.c,v $
- * $Date: 2004/12/11 14:18:57 $
- * $Revision: 1.16 $
+ * $Date: 2004/12/18 17:45:32 $
+ * $Revision: 1.17 $
  * $State: Exp $
  * $Author: joty $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: exec.c,v 1.16 2004/12/11 14:18:57 joty Exp $";
+static const char rcs_id[] = "$Id: exec.c,v 1.17 2004/12/18 17:45:32 joty Exp $";
 #endif
 
 #include <ctype.h>
@@ -168,8 +168,9 @@ execve (const char *execname, char *const argv[], char *const envp[])
   void (*__exec) (char *);
   char *cli;
   char pathname[MAXPATHLEN];
-  int nasty_hack = 0;
+  int nasty_hack;
   char *null_list = NULL;
+  int scenario;
 
   if (! execname)
     return __set_errno (EINVAL);
@@ -197,8 +198,20 @@ execve (const char *execname, char *const argv[], char *const envp[])
   __debug ("-- execve: process structure");
 #endif
 
-  if (*execname != '*')
+  if (execname[0] == '*' && execname[1] == '\0'
+      && argv[1] != NULL)
+    scenario = 1;
+  else if (!strcmp (execname, "/bin/sh")
+	   && argv[1] != NULL && !strcmp (argv[1], "-c")
+	   && argv[2] != NULL)
+    scenario = 2;
+  else
+    scenario = 0;
+
+  if (scenario == 0)
     {
+      nasty_hack = 0;
+
       /* Convert the program name into a RISC OS format filename.  */
       program_name = __riscosify_std (execname, 0, pathname,
 				      sizeof (pathname), NULL);
@@ -209,20 +222,20 @@ execve (const char *execname, char *const argv[], char *const envp[])
     }
   else
     {
-      /* Watch out ! If we've arrived here from a user call to system(),
-	 the we could find that execname == "*" because on RISC OS
-	 the '*' is equivalent to the SHELL of /bin/bash on Unix.
-	 If this is the case, the we'll probably find the real program
-	 name in argv[1].  */
-      if (execname[1] == '\0')
-	{
-	  char *p = argv[1];
+      const char *p;
 	  char temp[MAXPATHLEN];
-	  x = 0;
-	  while (x < MAXPATHLEN && *p && *p != ' ')
-	    temp[x++] = *p++;
 
-	  if (x == MAXPATHLEN)
+      /* scenario 1 : We've arrived here from a user call to system(),
+	 with execname == "*" because on RISC OS the '*' is equivalent
+	 to the SHELL of /bin/bash on Unix. If this is the case, then
+	 we'll probably find the real program name in argv[1].
+	 scenario 2 : "/bin/sh -c xyz" is called and we will execute this
+	 as "xyz" (i.e. argv[2]).  */
+      p = argv[scenario];
+
+      for (x = 0; x < sizeof(temp) && *p && *p != ' '; /* */)
+	temp[x++] = *p++;
+      if (x == sizeof(temp))
 	    return __set_errno (E2BIG);
 	  temp[x] = '\0';
 
@@ -231,7 +244,6 @@ execve (const char *execname, char *const argv[], char *const envp[])
 	     we need to stop the command line builder sticking quotes
 	     around everything and also not include the program name
 	     twice in the argument vector.
-
 	     So nasty_hack contains the length of the program name
 	     held within argv[1].  We then know (when non-zero) how
 	     many characters to skip, if at all.  */
@@ -248,15 +260,10 @@ execve (const char *execname, char *const argv[], char *const envp[])
 	    return __set_errno (E2BIG);
 	  program_name = pathname;
 	}
-      else
-	{
-	  program_name = execname;
-	}
-    }
 
 #ifdef DEBUG
   __os_print ("-- execve: program_name: "); __os_print (program_name);
-  __os_print ("\r\n");
+  __os_nl ();
 #endif
 
 #if __UNIXLIB_FEATURE_PTHREADS
@@ -281,31 +288,29 @@ execve (const char *execname, char *const argv[], char *const envp[])
 
   /* Calculate the length of the command line.  We need to do this
      because the program that we are about to run might not
-     be a UnixLib compatable binary so it won't know anything about
+     be a UnixLib compatible binary so it won't know anything about
      the child process structure.  */
   cli_length = strlen (program_name) + 1;
-  x = (nasty_hack) ? 1 : 0;
-  for (; argv[x]; x++)
+  for (x = scenario; argv[x] != NULL; ++x)
     {
-      char *p;
+      const char *p;
       int space = 0;
       /* We must add extra characters if the argument contains spaces (wrap
          argument in quotes) and quotes (must add backslash) and
          inverted commas (must add backslash) and control chars
          (change to \xXX).  */
       p = argv[x];
-      if (nasty_hack && x == 1)
+      if (nasty_hack && x == scenario)
 	p += nasty_hack;
-      while (*p)
+      for (/* */; *p; ++p)
         {
           if (isspace (*p))
             space = 1;
-          if ((!nasty_hack || x != 1) && (*p == '\"' || *p == '\''))
+	  if ((!nasty_hack || x != scenario) && (*p == '\"' || *p == '\''))
             cli_length ++;
           if (*p == 127 || *p < 32)
             cli_length +=3;
           cli_length ++;
-	  p++;
         }
 
       /* Account for quotes around argument but only if our hack isn't
@@ -318,7 +323,7 @@ execve (const char *execname, char *const argv[], char *const envp[])
 
 #ifdef DEBUG
   __os_print ("-- execve: cli_length = "); __os_prdec (cli_length);
-  __os_print ("\r\n");
+  __os_nl ();
 #endif
 
   /* This malloc *must not* be in a dynamic area.  */
@@ -338,12 +343,12 @@ execve (const char *execname, char *const argv[], char *const envp[])
 
   /* Copy the rest of the arguments into the cli.  */
   if (argv[0])
-    for (x = 1; argv[x]; x++)
+    for (x = scenario; argv[x] != NULL; ++x)
       {
         char *p = argv[x];
         int contains_space = 0;
 
-	if (nasty_hack && x == 1)
+	if (nasty_hack && x == scenario)
 	  p += nasty_hack;
 
         while (*p != '\0' && ! isspace (*p))
@@ -359,12 +364,12 @@ execve (const char *execname, char *const argv[], char *const envp[])
 	  *command_line ++ = '\"';
 
 	p = argv[x];
-	if (nasty_hack && x == 1)
+	if (nasty_hack && x == scenario)
 	  p += nasty_hack;
-	while (*p)
+	for (/* */; *p; ++p)
 	  {
 	    /* If character is a " or a ' then preceed with a backslash.  */
-	    if ((!nasty_hack || x != 1) && (*p == '\"' || *p == '\''))
+	    if ((!nasty_hack || x != scenario) && (*p == '\"' || *p == '\''))
 	      *command_line ++ = '\\';
 
 	    if (*p == 127 || *p < 32)
@@ -374,8 +379,6 @@ execve (const char *execname, char *const argv[], char *const envp[])
 	      }
 	    else
 	      *command_line ++ = *p;
-
-	    p++;
 	  }
 	if (contains_space)
 	  *command_line ++ = '\"';

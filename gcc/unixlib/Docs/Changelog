@@ -1,3 +1,10 @@
+Wed Dec 22 23:32:12 2004  John Tytgat  <John.Tytgat@aaug.net>
+
+	* source/strsignal.c (strsignal): Add the RISC OS error string to the
+	  return value in case of SIGOSERROR.
+	* source/sys/exec.c (execve): Extended the hack to recognize
+	  "/bin/sh -c" execs.  This solves bug 86.
+
 Sat Dec 25 10:23:30 2004  Peter Naulls  <peter@chocky.org>
 
 	* source/clib/libgen.h, source/misc/dirname.c,
@@ -131,7 +138,7 @@ Sun Nov 28 22:01:02 2004  John Tytgat  <John.Tytgat@aaug.net>
 	  as this shouldn't be needed.
 	* source/clib/stdio.h (getc): Always use the getc() function instead
 	  of using the macro equivalent (bug 122).
-	* source/clib/unixlib/asm_dec.s (NetSWI*): Let all the macro's import
+	* source/clib/unixlib/asm_dec.s (NetSWI*): Let all the macros import
 	  __net_error themselves; Updated their comments; Simplified the
 	  NetSWIsimple(0) even further.
 	* source/clib/unixlib/buildoptions.h (__UNIXLIB_SET_DDEPREFIX): Added.
@@ -146,7 +153,7 @@ Sun Nov 28 22:01:02 2004  John Tytgat  <John.Tytgat@aaug.net>
 	  _writev.s}: Removed IMPORT __net_error_simple_entry.
 	* source/clib/netlib/_net_error.s: Updated comments; Removed
 	  __net_error_simple_entry as direct calling __net_error from
-	  NetSWIsimple(0) macro's is possible; Removed preserve of ip.
+	  NetSWIsimple(0) macros is possible; Removed preserve of ip.
 	* source/scl/{_kernel.s, _kswi_c.s}: _kernel_NONX feature wasn't
 	  working at all.
 	* source/signal/_signal.s: Removed needless IMPORT of
