@@ -1,10 +1,10 @@
 ;----------------------------------------------------------------------------
 ;
-; $Source: $
-; $Date: $
-; $Revision: $
-; $State: $
-; $Author: $
+; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/pthread/_ints.s,v $
+; $Date: 2002/12/15 13:16:55 $
+; $Revision: 1.1 $
+; $State: Exp $
+; $Author: admin $
 ;
 ;----------------------------------------------------------------------------
 
@@ -21,6 +21,7 @@
 	IMPORT	|__pthread_fatal_error|
 	IMPORT	|__pthread_callback_missed|
 	IMPORT	|pthread_yield|
+	IMPORT	|__pthread_callback_semaphore|
 
 	EXPORT	|__pthread_disable_ints|
 	EXPORT	|__pthread_enable_ints|
@@ -110,38 +111,43 @@
 
 
 ; Similar to __pthread_enable_ints, but return to the saved __pthread_return_address
-; Can corrupt a2-a4,ip,lr but NOT a1
+; Can corrupt a3-a4,ip,lr but NOT a1 or a2
 |__pthread_unprotect_unsafe|
-	LDR	a2, =|__pthread_return_address|
-	LDR	lr, [a2]
+	LDR	a4, =|__pthread_return_address|
+	LDR	lr, [a4]
 	[ PARANOID = 1
 	CMP	lr, #0
 	ADREQ	a1, |return_unset|
 	BEQ	|__pthread_fatal_error|
 	MOV	a3, #0
-	STR	a3, [a2]
+	STR	a3, [a4]
 	]
 
-	LDR	a2, =|__pthread_worksemaphore|
+	LDR	a4, =|__pthread_worksemaphore|
 	[ PARANOID = 1
-	LDR	a3, [a2]
+	LDR	a3, [a4]
 	CMP	a3, #1
 	ADRNE	a1, |bad_semaphore|
 	BNE	|__pthread_fatal_error|
 	]
 	MOV	a3, #0
-	STR	a3, [a2]
+	STR	a3, [a4]
 
-	LDR	a2, =|__pthread_callback_missed|
-	LDR	a2, [a2]
-	CMP	a2, #0
+	LDR	a4, =|__pthread_callback_missed|
+	LDR	a4, [a4]
+	CMP	a4, #0
 	return	EQ, pc, lr	;No callback occured while ints were disabled
+
+	LDR	a4, =|__pthread_callback_semaphore|
+	LDR	a4, [a4]
+	CMP	a4, #0
+	return	NE, pc, lr	;Don't yield if we're in the middle of a context switch
 
 	; An callback occured whilst ints were disabled,
 	; so yield to avoid hogging the processor
-	STMFD	sp!, {a1, lr}
+	STMFD	sp!, {a1, a2, lr}
 	BL	|pthread_yield|
-	stackreturn	AL, "a1, pc"
+	stackreturn	AL, "a1, a2, pc"
 
 	[ PARANOID = 1
 |bad_semaphore|

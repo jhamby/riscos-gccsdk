@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/pthread/init.c,v $
- * $Date: 2003/04/05 12:42:28 $
- * $Revision: 1.2 $
+ * $Date: 2003/04/06 10:58:41 $
+ * $Revision: 1.3 $
  * $State: Exp $
  * $Author: alex $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: init.c,v 1.2 2003/04/05 12:42:28 alex Exp $";
+static const char rcs_id[] = "$Id: init.c,v 1.3 2003/04/06 10:58:41 alex Exp $";
 #endif
 
 /* Written by Martin Piper and Alex Waugh */
@@ -46,8 +46,6 @@ __pthread_prog_init (void)
 void
 __pthread_init (void)
 {
-  void *context_stack;
-
   if (__pthread_system_running)
     return;
 
@@ -61,14 +59,6 @@ __pthread_init (void)
   __pthread_running_thread->saved_context = malloc (sizeof (struct __pthread_saved_context));
   if (__pthread_running_thread->saved_context == NULL)
     __pthread_fatal_error ("-- __pthread_init: Unable to start threads (Out of memory)\r\n");
-
-  /* Set up a stack for the context switcher */
-  context_stack = __pthread_new_stack ();
-  if (context_stack == NULL)
-    __pthread_fatal_error ("-- __pthread_init: Unable to start threads (Out of memory)\r\n");
-
-  __pthread_context_stack_sp = (char *)context_stack + PTHREAD_STACK_MIN;
-  __pthread_context_stack_sl = (char *)context_stack + sizeof (struct __stack_chunk) + 512;
 
 #ifdef PTHREAD_DEBUG
   __os_print ("-- __pthread_init: Starting the interupts\r\n");

@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/pthread/cond.c,v $
- * $Date: 2002/12/15 13:16:55 $
- * $Revision: 1.1 $
+ * $Date: 2003/04/05 12:42:28 $
+ * $Revision: 1.2 $
  * $State: Exp $
- * $Author: admin $
+ * $Author: alex $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: cond.c,v 1.1 2002/12/15 13:16:55 admin Exp $";
+static const char rcs_id[] = "$Id: cond.c,v 1.2 2003/04/05 12:42:28 alex Exp $";
 #endif
 
 /* Condition variables */
@@ -55,7 +55,8 @@ pthread_cond_wait (pthread_cond_t *cond, pthread_mutex_t *mutex)
 
 /* Wait for a condition variable to be signalled, with a timeout */
 int
-pthread_cond_timedwait (pthread_cond_t *cond, pthread_mutex_t *mutex, const struct timespec *abstime)
+pthread_cond_timedwait (pthread_cond_t *cond, pthread_mutex_t *mutex,
+                        const struct timespec *abstime)
 {
   pthread_t thread;
 
@@ -67,7 +68,9 @@ pthread_cond_timedwait (pthread_cond_t *cond, pthread_mutex_t *mutex, const stru
 
   __pthread_disable_ints ();
 
-  __pthread_lock_unlock (mutex,0); /* This call will not return an error unless mutex is NULL, which we've already checked for */
+  /* This call will not return an error unless mutex is NULL, which we've
+     already checked for */
+  __pthread_lock_unlock (mutex,0);
 
   __pthread_running_thread->cond = cond;
   __pthread_running_thread->nextwait = NULL;
@@ -85,11 +88,13 @@ pthread_cond_timedwait (pthread_cond_t *cond, pthread_mutex_t *mutex, const stru
       __pthread_running_thread->state = STATE_COND_TIMED_WAIT;
 
       /* A bit crude, but... */
-      diff = (100 * (abstime->tv_sec - time (NULL))) + (abstime->tv_nsec / 1000000);
+      diff = (100 * (abstime->tv_sec - time (NULL)))
+             + (abstime->tv_nsec / 1000000);
       __pthread_running_thread->condtimeout = clock () + diff;
     }
 
-  /* Add this thread to the linked list of threads that are waiting on this condition var */
+  /* Add this thread to the linked list of threads that are waiting on
+     this condition var */
   thread = cond->waiting;
   if (thread == NULL)
     {

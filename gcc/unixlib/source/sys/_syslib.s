@@ -1,10 +1,10 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/_syslib.s,v $
-; $Date: 2003/04/05 12:16:34 $
-; $Revision: 1.13 $
+; $Date: 2003/04/21 10:48:45 $
+; $Revision: 1.14 $
 ; $State: Exp $
-; $Author: alex $
+; $Author: peter $
 ;
 ;----------------------------------------------------------------------------
 
@@ -72,6 +72,9 @@ EXTREMELY_PARANOID	*	0	; Should we check that the entire stack chunk chain is va
 	IMPORT  |__pthread_system_running| ;variable (pthread/_context.s)
 	IMPORT  |__pthread_disable_ints|   ;ASM function (pthread/_ints.s)
 	IMPORT  |__pthread_enable_ints|    ;ASM function (pthread/_ints.s)
+	IMPORT  |__executing_signalhandler|;variable (signal/_signal.s)
+	IMPORT  |__signalhandler_sp|       ;variable (signal/_signal.s)
+	IMPORT  |__signalhandler_sl|       ;variable (signal/_signal.s)
 
 	IMPORT	|_main|
 	IMPORT	|__dynamic_no_da|, WEAK
@@ -135,7 +138,14 @@ EXTREMELY_PARANOID	*	0	; Should we check that the entire stack chunk chain is va
 	LDR	sp, [ip, #4]	; __himem
 	; 8 bytes are needed above the initial chunk
 	; for the stackalloc heap
+	; Reserve the top 4K for the signal handler stack
+	LDR	a1, =|__signalhandler_sp|
 	SUB	sp, sp, #8
+	STR	sp, [a1]
+	SUB	sp, sp, #4096
+	LDR	a1, =|__signalhandler_sl|
+	ADD	sl, sp, #512	; The signal handler stack cannot be extended,
+	STR	sl, [a1]	; so we don't need to setup the chunk structure
 	SUB	a1, sp, #4096
 	ADD	sl, a1, #512 + CHUNK_OVERHEAD
 
@@ -643,6 +653,11 @@ stack_overflow_common
 	BNE	stack_corrupt
 	]
 
+	LDR	a1, =|__executing_signalhandler|
+	LDR	a1, [a1]
+	CMP	a1, #0
+	BNE	signalhandler_overflow
+
 	MOV	v3, sp	; Store old sp
 	; We know there is enough stack to call stackalloc or stackfree, so sl just
 	; needs to be set to a value that won't cause a recursive stack overflow
@@ -724,6 +739,13 @@ stack_corrupt_msg
 	ALIGN
 stack_corrupt
 	ADR	a1, stack_corrupt_msg
+	B	__unixlib_fatal
+
+signalhandler_overflow_msg
+	DCB	"***Fatal error: Stack overflow in signal handler***", 13, 10, 0
+	ALIGN
+signalhandler_overflow
+	ADR	a1, signalhandler_overflow_msg
 	B	__unixlib_fatal
 
 	[ EXTREMELY_PARANOID = 1

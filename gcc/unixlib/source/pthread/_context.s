@@ -1,8 +1,8 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/pthread/_context.s,v $
-; $Date: 2003/04/05 12:42:28 $
-; $Revision: 1.3 $
+; $Date: 2003/04/06 10:58:40 $
+; $Revision: 1.4 $
 ; $State: Exp $
 ; $Author: alex $
 ;
@@ -39,6 +39,8 @@
 
 	IMPORT	|__pthread_context_switch|
 	IMPORT	|__pthread_worksemaphore|
+	IMPORT	|__setup_signalhandler_stack|
+	IMPORT	|__executing_signalhandler|
 	IMPORT	|__taskwindow|
 	IMPORT	|__pthread_fatal_error|
 	IMPORT	|__pthread_running_thread|
@@ -52,9 +54,6 @@
 	EXPORT	|__pthread_system_running|
 	EXPORT	|__pthread_callback_semaphore|
 	EXPORT	|__pthread_callback_missed|
-	EXPORT	|__pthread_callback_pending|
-	EXPORT	|__pthread_context_stack_sp|
-	EXPORT	|__pthread_context_stack_sl|
 
 ;
 ; Start a ticker which will set the callback flag every clock tick
@@ -122,19 +121,19 @@
 ; The ticker calls this every clock tick
 ; Called in SVC mode with IRQs disabled
 |call_every|
-	STMFD	sp!, {a1, a2, lr}
-	LDR	a2, =|__pthread_callback_semaphore|
-	LDR	a1, [a2]
-	CMP	a1, #1	; Check we are not already in the middle of a context switch callback
-	LDMNEFD	sp!, {a1, a2, pc}
-	MOV	a1, #0
-	STR	a1, [a2]
+	STMFD	sp!, {a1, lr}
+	LDR	a1, =|__pthread_callback_semaphore|
+	LDR	a1, [a1]
+	CMP	a1, #0	; Check we are not already in the middle of a context switch callback
+	LDMNEFD	sp!, {a1, pc}
 
-	MOV	a1, #1
-	LDR	a2, =|__pthread_callback_pending|
-	STR	a1, [a2]	; Record that we are expecting a callback
+	LDR	a1, =|__pthread_worksemaphore|
+	LDR	a1, [a1]
+	CMP	a1, #0
+	LDMNEFD	sp!, {a1, pc}	; In a critical region, so don't switch threads
+
 	SWI	XOS_SetCallBack	; Set the OS callback flag. Not much we can do if this fails
-	LDMFD	sp!, {a1, a2, pc}
+	LDMFD	sp!, {a1, pc}
 
 
 ; This is called from __h_cback in signal/_signal.s when the OS is returning to USR mode
@@ -142,26 +141,27 @@
 ; Called in SVC or IRQ mode with IRQs disabled
 	EXPORT	|__pthread_callback|
 |__pthread_callback|
+	; Setup a stack for the context switcher
+	BL	|__setup_signalhandler_stack|
+
+	LDR	a1, =|__pthread_callback_semaphore|
+	LDR	a2, [a1]
+	CMP	a2, #0
+	BNE	|skip_contextswitch|	; Check we are not already in the middle of a context switch callback
+	MOV	a2, #1
+	STR	a2, [a1]	; Set the semaphore
+
 	LDR	a1, =|__pthread_worksemaphore|
 	LDR	a1, [a1]
 	CMP	a1, #0
 	BNE	|skip_contextswitch|	; In a critical region, so don't switch threads
 
-	[ {CONFIG} = 26
-	TEQP	pc, #USR_Mode	; Switch to user mode, IRQs on
-	|
-	MRS	a1, CPSR
-	BIC	a1, a1, #&8F	; Switch to user mode, IRQs on
-	MSR	CPSR_c, a1
-	]
-	MOV	a1, a1
-
-; Save regs to thread's save area
+	; Save regs to thread's save area
 	LDR	a1, =|__pthread_running_thread|
 	LDR	a1, [a1]
 	LDR	a1, [a1, #__PTHREAD_CONTEXT_OFFSET]	; __pthread_running_thread->saved_context
 
-; Copy integer regs
+	; Copy integer regs
 	LDR	a2, =|__cbreg|
 	LDMIA	a2!, {a3, a4, v1, v2, v3, v4, v5, v6}
 	STMIA	a1!, {a3, a4, v1, v2, v3, v4, v5, v6}
@@ -175,7 +175,13 @@
 	ADD	a1, a1, #4
 	]
 
-; Save floating point regs
+	; We have to copy the integer regs before switching IRQs
+	; back on, so they don't get overwritten by another callback,
+	; but the floating point instructions should only be called
+	; from user mode
+	CHGMODE	a3, USR_Mode
+
+	; Save floating point regs
 	LDR	a4, =|__fpflag|
 	LDR	a4, [a4]
 	CMP	a4, #0
@@ -194,19 +200,12 @@
 	SFM	f4, 4, [a1], #48
 	]
 	RFS	a2	; Read floating status
-	STR	a2, [a1], #12
+	STR	a2, [a1]
 no_fp1
-
-; Setup a stack for the context switcher
-	LDR	sp, =|__pthread_context_stack_sp|
-	LDR	sp, [sp]
-	LDR	sl, =|__pthread_context_stack_sl|
-	LDR	sl, [sl]
-	MOV	fp, #0	; No frame pointer
 
 	BL	|__pthread_context_switch|	; Call the scheduler to switch to another thread
 
-; Now reload the registers from the new thread's save area
+	; Now reload the registers from the new thread's save area
 	LDR	a1, =|__pthread_running_thread|
 	LDR	a1, [a1]
 	LDR	a2, [a1, #__PTHREAD_CONTEXT_OFFSET]	; __pthread_running_thread->saved_context
@@ -229,12 +228,11 @@ no_fp1
 	LFM	f0, 4, [a2], #48
 	LFM	f4, 4, [a2], #48
 	]
-	LDR	a1, [a2], #12
+	LDR	a1, [a2]
 	WFS	a1	; Write floating status
 no_fp2
 
 	SWI	XOS_EnterOS	; Back to supervisor mode
-	MOV	a1, a1
 
 	LDR	a3, =|__pthread_callback_missed|	; Indicate that this context switch was successful
 	MOV	a1, #0
@@ -245,18 +243,15 @@ no_fp2
 	LDR	a1, [a1, #__PTHREAD_CONTEXT_OFFSET]	; __pthread_running_thread->saved_context
 
 |callback_return|	; a1 = address of regs to load
-	[ {CONFIG} = 26
-	TEQP	pc, #IFlag+SVC_Mode	; Force SVC mode, IRQs off
-	|
-	MRS	a2, CPSR
-	BIC	a2, a2, #&0F
-	ORR	a2, a2, #&83 ;SVC Mode, IRQs off
-	MSR	CPSR_c, a2
-	]
-	MOV	a1, a1
+	CHGMODE	a2, SVC_Mode+IFlag	; Force SVC mode, IRQs off
+
+	LDR	a2, =|__executing_signalhandler|
+	LDR	a3, [a2]
+	SUB	a3, a3, #1
+	STR	a3, [a2]
 
 	LDR	a2, =|__pthread_callback_semaphore|
-	MOV	a3, #1
+	MOV	a3, #0
 	STR	a3, [a2]
 
 	MOV	r14, a1
@@ -305,25 +300,17 @@ no_fp2
 
 
 	AREA |C$data|, DATA
-; Stack pointer and stack limit to use for the context switcher
-|__pthread_context_stack_sp|
-	DCD	0
-|__pthread_context_stack_sl|
-	DCD	0
 
 |ticker_started| ; Have we registered the callevery ticker
 	DCD	0
 
 |__pthread_callback_semaphore|	; Prevent a callback being set whilst servicing another callback
-	DCD	1
+	DCD	0
 
 |__pthread_system_running|	; Global initialisation flag
 	DCD	0
 
 |__pthread_callback_missed|	; Non zero if a callback occured when context switching was temporarily disabled
-	DCD	0
-
-|__pthread_callback_pending|	; Non zero if the pthread code has requested a callback
 	DCD	0
 
  END

@@ -1,10 +1,10 @@
 ;----------------------------------------------------------------------------
 ;
-; $Source: $
-; $Date: $
-; $Revision: $
-; $State: $
-; $Author: $
+; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/pthread/_yield.s,v $
+; $Date: 2002/12/15 13:16:55 $
+; $Revision: 1.1 $
+; $State: Exp $
+; $Author: admin $
 ;
 ;----------------------------------------------------------------------------
 
@@ -18,7 +18,8 @@
 	IMPORT |__pthread_callback_semaphore|
 	IMPORT |__pthread_system_running|
 	IMPORT |__pthread_worksemaphore|
-	IMPORT |__pthread_callback_pending|
+	IMPORT |__pthread_callback|
+	IMPORT |__cbreg|
 
 	EXPORT |pthread_yield|
 
@@ -49,23 +50,25 @@
 	ADRNE	a1, failmessage
 	BLNE	|__pthread_fatal_error|
 
-	; Set the semaphore to prevent anyone else setting a callback untill this one has completed
-	LDR	a1, =|__pthread_callback_semaphore|
-	MOV	a2, #0
-	swp_arm2	a3, a2, a1, a3
-	CMP	a3, #1
-	BNE	skip_callback	; Don't set the callback if someone else already has (this shouldn't ever occur)
+	MRS	a3, CPSR	; Get a USR mode, IRQs enabled CPSR
+	; Change to SVC mode, IRQs disabled to ensure the regs don't get
+	; overwitten by a real callback
+	SWI	XOS_EnterOS
+	CHGMODE	a4, SVC_Mode+IFlag
+	; Save regs to callback save area
+	LDR	a1, =|__cbreg|
+	ADD	a1, a1, #15*4
+	STMDB	a1, {r4-r14}^
+	ADR	a2, callback_return	;USR mode, IRQs enabled if in a 26bit mode
+	STR	a2, [a1]
+	STR	a3, [a1, #4]	; Save CPSR
 
-	; Record that we are expecting a callback
-	MOV	a1, #1
-	LDR	a2, =|__pthread_callback_pending|
-	STR	a1, [a2]
-	SWI	XOS_SetCallBack	; Set the OS callback flag. Not much we can do if this fails
+	; Branch directly to the context switcher.
+	; It will return by loading the registers from __cbreg
+	B	__pthread_callback
 
-skip_callback
-	MOV	a1, #0
-	MOV	a2, #1
-	SWI	XOS_Byte	; Force a callback
+callback_return
+
 	[ {CONFIG} = 26
 	LDMDB	fp, {fp, sp, pc}^
 	|

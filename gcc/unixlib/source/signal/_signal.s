@@ -1,17 +1,17 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/signal/_signal.s,v $
-; $Date: 2002/12/15 13:16:55 $
-; $Revision: 1.7 $
+; $Date: 2003/04/21 10:48:45 $
+; $Revision: 1.8 $
 ; $State: Exp $
-; $Author: admin $
+; $Author: peter $
 ;
 ;----------------------------------------------------------------------------
 
 ; This file handles all the hairy exceptions that can occur when a
 ; program runs. This includes hardware exceptions like data abort and
 ; software exceptions like errors. It also handles callbacks, which are
-; used to raise some execptions and by timers.
+; used to raise some exceptions and by timers.
 ;
 ; The code is written for compactness rather than speed since it is
 ; executed under exceptional circumstances. This means we branch more
@@ -28,6 +28,7 @@
 	IMPORT	|__pthread_enable_ints|
 	IMPORT	|__pthread_callback_pending|
 	IMPORT	|__pthread_running_thread|
+	IMPORT	|_exit|
 
 
 ;-----------------------------------------------------------------------
@@ -38,29 +39,39 @@
 ; On exit:
 ;	All registers preserved
 ; Use:
-;	Raise a signal while preserving all registers, providing the signal
-;	number is non-zero. An APCS stack frame is established before
-;	calling raise() so that __backtrace can print the registers when
-;	it backtracks to this function.
+;	Change to USR mode and raise a signal while preserving all registers,
+;	providing the signal number is non-zero. We can't make any assumptions
+;	about the state of the USR mode stack, so set up our own.
 
 	NAME	__raise
 |__raise|
 	CMP	a1, #0
 	MOVEQ	pc, lr
-	STMFD	sp, {a1,a2,a3,a4,v1,v2,v3,v4,v5,v6,sl,fp,ip,sp,lr,pc}
-	SUB	sp, sp, #64
-	SUB	ip, pc, #4
-	MOV	a4, lr
-	ADD	a3, sp, #64
 
-	STMFD	sp!, {a2, a3, a4, ip}	; create signal frame
-	ADD	fp, sp, #12
-	MOV	v1, sp
-	MOV	a2, a1
+	STMFD	sp!, {lr}
+	SUB	sp, sp, #15*4
+	STMIA	sp, {a1,a2,a3,a4,v1,v2,v3,v4,v5,v6,sl,fp,ip,sp,lr}^
+	MOV	a1, a1
+
+	MOV	v1, a1
+	BL	__setup_signalhandler_stack
+
+	CHGMODE	a2, USR_Mode
+	MOV	a2, v1
 	MOV	a1, #0
 	BL	|__unixlib_raise_signal|
-	ADD	sp, v1, #16		; skip signal frame
-	LDMFD	sp, {a1,a2,a3,a4,v1,v2,v3,v4,v5,v6,sl,fp,ip,sp,pc}
+	SWI	XOS_EnterOS
+
+	LDR	a1, =|__executing_signalhandler|
+	LDR	a2, [a1]
+	SUB	a2, a2, #1
+	STR	a2, [a1]
+
+	LDMIA	sp, {a1,a2,a3,a4,v1,v2,v3,v4,v5,v6,sl,fp,ip,sp,lr}^
+	MOV	a1, a1
+	ADD	sp, sp, #15*4
+	LDMIA	sp!, {pc}
+
 
 ;-----------------------------------------------------------------------
 ; void __seterr (const _kernel_oserror *err)
@@ -172,7 +183,7 @@
 	MOV	a1, #SIGILL
 	SUB	lr, lr, #13*4		; adjust base register back
 	STR	a1, |__cba1|
-	B	|__h_cback|
+	B	|__h_cback_common|
 
 ;-----------------------------------------------------------------------
 ; Address exception handler
@@ -191,7 +202,7 @@
 	MOV	a1, #SIGBUS
 	SUB	lr, lr, #13*4		; adjust base register back
 	STR	a1, |__cba1|
-	B	|__h_cback|
+	B	|__h_cback_common|
 
 ;-----------------------------------------------------------------------
 ; Prefetch abort handler
@@ -210,7 +221,7 @@
 	MOV	a1, #SIGSEGV
 	SUB	lr, lr,#13*4		; adjust base register back
 	STR	a1, |__cba1|
-	B	|__h_cback|
+	B	|__h_cback_common|
 
 ;-----------------------------------------------------------------------
 ; Data abort handler
@@ -256,7 +267,7 @@
 	STMIA	lr, {sp, lr}^		; store banked registers
 	MOV	a1, #SIGSEGV
 	STR	a1, |__cba1|
-	B	|__h_cback|
+	B	|__h_cback_common|
 
 
 ;-----------------------------------------------------------------------
@@ -306,19 +317,11 @@
 	EXPORT	|__h_error|
 	NAME	"*** UnixLib error handler ***"
 |__h_error|
-	; Entered in USR mode. Setup an APCS stack frame
-	; so we can get a proper stack backtrace in case anything
-	; goes horribly wrong.
-
-	STMFD	sp!, {a1-pc} ; Don't really want to store sp modified
-
-	MOV	ip, sp
-	STMFD	sp!, {a1, a2, a3, a4, fp, ip, lr, pc}
-
-	SUB	fp, ip, #4
-
-	LDR	a1, =|__ul_errfp|     ; Save error FP backtrace
-	STR	fp, [a1]
+	MOV	v1, fp	; Save some USR regs. There is no guarantee that these
+	MOV	v2, sp	; contain anything of use, but they seem to be the USR
+	MOV	v3, lr	; regs at the time of the error.
+	SWI	XOS_EnterOS	; Change to SVC mode so we don't get any
+				; callbacks while we are setting up the stack
 
 	[ __FEATURE_PTHREADS = 1
 	LDR	a1, =|__pthread_system_running|
@@ -326,6 +329,17 @@
 	CMP	a1, #0
 	BLNE	|__pthread_disable_ints|
 	]
+
+	BL	|__setup_signalhandler_stack|
+	CHGMODE	a1, USR_Mode	; Back to USR mode now we have a stack
+
+	ADR	v4,|__h_error|+12	; Point at handler name
+	STMFD	sp!, {v1, v2, v3, v4}	; Setup an APCS stack frame so we can
+	ADD	fp, sp, #12		; get a proper stack backtrace in case
+					; anything goes horribly wrong.
+
+	LDR	a1, =|__ul_errfp|	; Save error FP backtrace
+	STR	v1, [a1]
 
 	; Set errno to EOPSYS
 	MOV	a2, #EOPSYS
@@ -338,8 +352,7 @@
 	LDR	a1, [a1]
 	ADD	a1, a1, #__PTHREAD_ERRBUF_OFFSET
 	LDR	a2, =|__ul_errbuf_errblock|
-	LDR	a3, =|__ul_errbuf__size|
-	LDR	a3, [a3]
+	MOV	a3, #|__ul_errbuf__size|
 	BL	|memcpy|
 	]
 
@@ -358,14 +371,8 @@
 	MOV	a1, #0
 	BL	|__unixlib_raise_signal|
 
-	[ __FEATURE_PTHREADS = 1
-	LDR	a1, =|__pthread_system_running|
-	LDR	a1, [a1]
-	CMP	a1, #0
-	BLNE	|__pthread_enable_ints|
-	]
-
-	LDMEA	fp, {a1, a2, a3, a4, fp, sp, pc}
+	MOV	a1, #EXIT_FAILURE
+	B	exit	; There is nowhere to go if the signal handler returns
 
 unrecoverable_error
 	; Bit 31-was set, therefore it was a hardware error.
@@ -390,30 +397,24 @@ unrecoverable_error
 	MOVNE	a2, #SIGEMT	;  A RISC OS exception.
 	MOV	a1, #0
 
-	LDR	a3, =|__ul_errbuf|
-	LDR	a3, [a3]
-	STR	a3, [sp, #7*4]       ; Store error PC
-	STR	a3, [sp, #(8+15)*4]  ; Store error PC
-
-	; Create APCS stack for error handler
-
-	ADR	v4, |__h_error|+12
-	MOV	v3, lr
-	ADD	v2, sp, #8*4
-	MOV	v1, fp
-	STMFD	sp!, {v1-v4}
-	ADD	fp, sp, #12
+;	LDR	a3, =|__ul_errbuf|
+;	LDR	a3, [a3]
+;	STR	a3, [sp, #7*4]       ; Store error PC
+;	STR	a3, [sp, #(8+15)*4]  ; Store error PC
+;
+;	; Create APCS stack for error handler
+;
+;	ADR	v4, |__h_error|+12
+;	MOV	v3, lr
+;	ADD	v2, sp, #8*4
+;	MOV	v1, fp
+;	STMFD	sp!, {v1-v4}
+;	ADD	fp, sp, #12
 
 	BL	|__unixlib_raise_signal|
 
-	[ __FEATURE_PTHREADS = 1
-	LDR	a1, =|__pthread_system_running|
-	LDR	a1, [a1]
-	CMP	a1, #0
-	BLNE	|__pthread_enable_ints|
-	]
-
-	LDMEA	fp, {a1, a2, a3, a4, fp, sp, pc}
+	MOV	a1, #EXIT_FAILURE
+	B	exit	; There is nowhere to go if the signal handler returns
 
 unrecoverable_error_msg
 	DCB	13, 10, "Unrecoverable error received:", 13, 10, "  ", 0
@@ -481,6 +482,12 @@ Internet_Event	EQU	19
 
 	; Convert the internet event into a suitable signal for raising
 	CMP	a2, #1 ; Out-of-band data has arrived
+
+	; Set the internet event flag
+	LDR	ip, |__cbflg|
+	ORREQ	ip, ip, #2
+	STR	ip,|__cbflg|
+
 	MOVEQ	ip, #SIGURG
 	STREQ	ip, |__cba1|
 	MOVEQ	ip, #1 ; Callback set if R12 = 1
@@ -511,7 +518,7 @@ Internet_Event	EQU	19
 	MOV	a1, #SIGSYS
 	SUB	lr, lr, #13*4		; adjust base register back
 	STR	a1, |__cba1|
-	B	|__h_cback|
+	B	|__h_cback_common|
 
 ;-----------------------------------------------------------------------
 ; Upcall handler (1-291).
@@ -525,96 +532,131 @@ Internet_Event	EQU	19
 ; restored to their original values and return to caller, preserving
 ; registers.
 ;
+; SUL calls __env_riscos_and_wimpslot directly
 
-UpCall_NewApplication	EQU	256
-
-	IMPORT	|__env_riscos|
-	EXPORT	|__h_upcall|
-	NAME	__h_upcall
-|__h_upcall|
-	; Check for the application starting UpCall
-	CMP	a1, #UpCall_NewApplication
-	MOVNE	pc, lr
-	B	|__env_riscos|
+;-----------------------------------------------------------------------
+; Callback handler.
+; Entered in SVC or IRQ mode, IRQs disabled.
+; __h_cback_commom is called directly from other handlers.
+; On entry:
+;
+; On exit:
+;	All registers should be loaded from the register save area
 
 	IMPORT	|__pthread_callback|
 	EXPORT	|__h_cback|
 	NAME	__h_cback
 |__h_cback|
 	[ __FEATURE_PTHREADS = 1
-	; Check if the pthreads code was expecting a callback
-
-	LDR	a1, =|__pthread_callback_pending|
-	LDR	a2, [a1]
-	CMP	a2, #0
-	MOVNE	a2, #0
-	STRNE	a2, [a1]
-	BNE	|__pthread_callback|
-	; We aren't expecting a callback, so prevent any further callbacks then handle this one
+	LDR	a1, |__cbflg|
+	TST	a1, #3 ; Check escape and internet flags
+	BNE	|__h_cback_common|
 	LDR	a1, =|__pthread_system_running|
 	LDR	a1, [a1]
 	CMP	a1, #0
-	BL	|__pthread_disable_ints|
+	BNE	|__pthread_callback|
+	; Fall through to __h_cback_common
 	]
 
-        MSR	CPSR_c, #IFlag32 ; USR mode IntOff (irq off, fiq on)
-	; The USR mode registers r0-r15 are extracted from the callback
-	; register block while IRQs are disabled. The registers are then
-	; saved on the USR mode stack while ensuring that the USR sp is
-	; valid by not pointing above saved data. So, load the registers,
-	; allocate room on the stack and then store the original USR
-	; registers. This requires special treatment for sp and pc because
-	; they are naturally affected by the following code.
-	ADR	a1,|__cbreg|		; No access to banked registers
-	LDMIA	a1,{a1,a2,a3,a4,v1,v2,v3,v4,v5,v6,sl,fp,ip,sp,lr}
-	; Stack all the registers for __backtrace (if it is called).
-	; Cannot use writeback at this point on sp
-	STMFD	sp,{a1,a2,a3,a4,v1,v2,v3,v4,v5,v6,sl,fp,ip,sp,lr,pc}
-	; sp still points above list of 16 registers.
-	LDR	a4,|__cbreg|+15*4
-	STR	a4,[sp,#-4]		; saved USR pc overwrites pc on stack
-	SUB	sp, sp, #16 * 4
+|__h_cback_common|
+	[ __FEATURE_PTHREADS = 1
+	LDR	a1, =|__pthread_worksemaphore|
+	LDR	a2, [a1]
+	ADD	a2, a2, #1
+	STR	a2, [a1]
+	]
 
-	; If bit 1 of __cbflg is set then don't re-execute the instruction
-	; that caused the problem.   XXX FIXME:	 This is currently unused,
-	; but I suspect it should be used by something.
-	LDR	a1,|__cbflg|
-	TST	a1, #2			; check __cbflg bit 1
-	SUBNE	a4,a4,#4
+	BL	|__setup_signalhandler_stack|
 
-	LDR	a1, =|__ul_errfp|     ; Save error FP backtrace
-	STR	fp, [a1]
-
-	; Create an APCS-compilant signal stack frame
-	ADR	v1,|__h_error|+12       ; point at handler name for backtrace
-	ADD	a2,sp,#8*4		; saved USR sp
-	MOV	a1,fp
-	STMFD	sp!,{a1,a2,a3,v1}	; create signal frame
-
-	ADD	fp,sp,#12
-	SWI	XOS_IntOn
+	CHGMODE	a1, USR_Mode+IFlag
+	; The USR mode registers r0-r15 and CPSR are extracted from the
+	; callback register block while irqs are disabled. The registers
+	; are then saved on the USR mode signal handler stack.
+	ADR	a1,|__cbreg|+8*4
+	LDMIA	a1,{a2,a3,a4,v1,v2,v3,v4,v5}
+	STMFD	sp!,{a2,a3,a4,v1,v2,v3,v4,v5}
+	LDMDB	a1,{a2,a3,a4,v1,v2,v3,v4,v5}
+	STMFD	sp!,{a2,a3,a4,v1,v2,v3,v4,v5}
+	LDR	a2, [a1, #8*4]
+	STMFD	sp!,{a2}
 
 	; Check for an escape condition
 	LDR	a1,|__cbflg|		; check __cbflg bit 0
 	TST	a1,#1
+	BIC	a1, a1, #2		; clear the internet event flag bit
+	STR	a1,|__cbflg|
 	; There was an escape condition.  Clear it.
 	MOVNE	a1,#&7e
 	SWINE	XOS_Byte		; This calls our escape handler
 
+	; Create an APCS-compilant signal stack frame
+	ADR	a4,|__h_cback|+12	; point at handler name for backtrace
+	LDR	a3, [sp, #14*4+4]	; saved USR lr
+	LDR	a2, [sp, #13*4+4]	; saved USR sp
+	LDR	a1, [sp, #11*4+4]	; saved USR fp
+	STMFD	sp!,{a1,a2,a3,a4}	; create signal frame
+	ADD	fp,sp,#12
+
+	LDR	v1, =|__ul_errfp|	; Save error FP backtrace
+	STR	a1, [v1]
+
 	MOV	a1, #0
 	LDR	a2,|__cba1|
-	MOV	v1,sp
+
+	; Raise the signal in USR mode with IRQs enabled
+	SWI	XOS_IntOn
+
 	BL	|__unixlib_raise_signal|
 
+	; Disable IRQs again while updating semaphores
+	SWI	XOS_IntOff
+
 	[ __FEATURE_PTHREADS = 1
-	LDR	a1, =|__pthread_system_running|
-	LDR	a1, [a1]
-	CMP	a1, #0
-	BLNE	|__pthread_enable_ints|
+	IMPORT	|__pthread_worksemaphore|
+	LDR	a1, =|__pthread_worksemaphore|
+	LDR	a2, [a1]
+	SUB	a2, a2, #1
+	STR	a2, [a1]
 	]
 
-	ADD	sp,v1,#16		; skip signal frame
-	LDMFD	sp,{a1,a2,a3,a4,v1,v2,v3,v4,v5,v6,sl,fp,ip,sp,lr,pc}
+	LDR	a1, =|__executing_signalhandler|
+	LDR	a2, [a1]
+	SUB	a2, a2, #1
+	STR	a2, [a1]
+
+	ADD	a1, sp, #16	; Skip signal frame
+	ADD	sp, sp, #16+17*4
+	SWI	XOS_EnterOS	; We need to be in SVC mode so reenbling IRQs
+				; is atomic with returning to USR mode,
+				; otherwise USR sp could be overwitten by
+				; another callback
+	MOV	lr, a1
+	LDR	a1, [lr], #4	; Get user PSR
+	MSR	SPSR_cxsf, a1	; Put it into SPSR_SVC/IRQ
+	LDMIA	lr,{a1,a2,a3,a4,v1,v2,v3,v4,v5,v6,sl,fp,ip,sp,lr}^
+	MOV	a1, a1
+	LDR	lr, [lr, #15*4]	; Load the old PC value
+	MOVS	pc, lr		; Return (Valid for 26 and 32bit modes)
+
+
+	; Setup a USR mode stack for the signal handler and pthread
+	; context switcher. Should be called in SVC or IRQ mode.
+	; We cope with recursive signals by only setting up the stack
+	; if we're not already in a signal handler
+	EXPORT	|__setup_signalhandler_stack|
+|__setup_signalhandler_stack|
+	LDR	a1, =|__executing_signalhandler|
+	LDR	a2, [a1]
+	CMP	a2, #0
+	ADD	a2, a2, #1
+	STR	a2, [a1]
+	LDR	a1, =|__signalhandler_sl|
+	LDR	sl, [a1]
+	LDR	a1, =|__signalhandler_sp|
+	MOV	fp, #0
+	LDMEQIA	a1, {sp}^
+	MOV	a1, a1
+	return	AL, pc, lr
 
 	; User registers are preserved in here for the callback execution.
 	EXPORT	|__cbreg|
@@ -623,9 +665,7 @@ UpCall_NewApplication	EQU	256
 |abortpc|       %       12
 
 	; bit 0 Escape condition flag
-	; bit 1 no re-execute inst. flag
-	; bit 2 set if we are executing a callback.  This is to prevent
-	;       re-entrancy.
+	; bit 1 Internet event flag
 |__cbflg|
 	DCD	0
 
@@ -638,12 +678,6 @@ UpCall_NewApplication	EQU	256
 	EXPORT	|__h_exit|
 	NAME	__h_exit
 |__h_exit|
-	TEQ	r0,r0			; Set Z
-	TEQ	pc,pc			; EQ if 32-bit mode
-	MSREQ	CPSR_c, #&50		; USR mode IntOff
-	ORRNE	lr,pc,#&0c000000	; USR mode IntOff
-	MOVNES	pc,lr
-	MOV	a1,a1
 	MOV	a1,#EXIT_FAILURE
 	B	|exit|
 
@@ -663,22 +697,18 @@ UpCall_NewApplication	EQU	256
 	NAME	__h_sigalrm
 |__h_sigalrm|
 	STMFD	sp!, {a1, a2, a3, lr}
-	MSR	CPSR_c, #USR32_mode ; Enter user mode
-	MOV	a1, a1
-
-	STMFD	sp!, {lr}
 	; Raise the SIGALRM signal
 	MOV	a1, #SIGALRM
 	BL	|__raise|
 	; Have we previously setup a CallEvery handler
 	LDR	a1, |__h_sigalrm_sema|
 	CMP	a1, #1
-	BEQ	itimer_exit
+	LDMEQFD	sp!, {a1, a2, a3, pc}
 	; r12->it_interval = 0 secs and 0 usecs then exit
 	LDMIA	ip, {a1, a2}
 	CMP	a1, #0
 	CMPEQ	a2, #0
-	BEQ	itimer_exit
+	LDMEQFD	sp!, {a1, a2, a3, pc}
 	; Calculate delay in csecs between successive calls
 	MOV	a3, #100
 	MLA	a1, a3, a1, a2
@@ -690,10 +720,6 @@ UpCall_NewApplication	EQU	256
 	; Set semaphore to say we have a CallEvery already set up
 	MOV	a1, #1
 	STR	a1, |__h_sigalrm_sema|
-itimer_exit
-	; Common exit used by the three internal timer handlers.
-	LDMFD	sp!, {lr}
-	SWI	XOS_EnterOS
 	LDMFD	sp!, {a1, a2, a3, pc}
 
 
@@ -718,19 +744,15 @@ itimer_exit
 	NAME	__h_sigvtalrm
 |__h_sigvtalrm|
 	STMFD	sp!, {a1, a2, a3, lr}
-	MSR	CPSR_c, #USR32_mode  ; Enter user mode
-	MOV	a1, a1
-
-	STMFD	sp!, {lr}
 	MOV	a1, #SIGVTALRM	;  No access to banked registers
 	BL	|__raise|
 	LDR	a1, |__h_sigvtalrm_sema|
 	CMP	a1, #1
-	BEQ	itimer_exit
+	LDMEQFD	sp!, {a1, a2, a3, pc}
 	LDMIA	ip, {a1, a2}
 	CMP	a1, #0
 	CMPEQ	a2, #0
-	BEQ	itimer_exit
+	LDMEQFD	sp!, {a1, a2, a3, pc}
 	MOV	a3, #100
 	MLA	a1, a3, a1, a2
 	ADD	a1, a1, #1
@@ -739,7 +761,7 @@ itimer_exit
 	SWI	XOS_CallEvery
 	MOV	a1, #1
 	STR	a1, |__h_sigvtalrm_sema|
-	B	itimer_exit
+	LDMFD	sp!, {a1, a2, a3, pc}
 
 	EXPORT	|__h_sigvtalrm_init|
 	NAME	__h_sigvtalrm_init
@@ -763,19 +785,15 @@ itimer_exit
 	NAME	__h_sigprof
 |__h_sigprof|
 	STMFD	sp!, {a1, a2, a3, lr}
-	MSR	CPSR_c, #USR32_mode  ; Enter user mode
-	MOV	a1, a1
-
-	STMFD	sp!, {lr}
 	MOV	a1, #SIGPROF	; No access to banked registers
 	BL	|__raise|
 	LDR	a1, |__h_sigprof_sema|
 	CMP	a1, #1
-	BEQ	itimer_exit
+	LDMEQFD	sp!, {a1, a2, a3, pc}
 	LDMIA	ip, {a1, a2}
 	CMP	a1, #0
 	CMPEQ	a2, #0
-	BEQ	itimer_exit
+	LDMEQFD	sp!, {a1, a2, a3, pc}
 	MOV	a3, #100
 	MLA	a1, a3, a1, a2
 	ADD	a1, a1, #1
@@ -784,7 +802,7 @@ itimer_exit
 	SWI	XOS_CallEvery
 	MOV	a1, #1
 	STR	a1, |__h_sigprof_sema|
-	B	itimer_exit
+	LDMFD	sp!, {a1, a2, a3, pc}
 
 	EXPORT	|__h_sigprof_init|
 	NAME	__h_sigprof_init
@@ -799,6 +817,18 @@ itimer_exit
 	EXPORT	|__h_sigprof_sema|
 |__h_sigprof_sema|
 	DCD	0
+
+	AREA	|C$$data|, DATA
+
+	EXPORT	|__executing_signalhandler|
+	EXPORT	|__signalhandler_sp|
+	EXPORT	|__signalhandler_sl|
+|__executing_signalhandler|
+	DCD	0	; Non-zero if we are currently executing a signal handler
+|__signalhandler_sl|
+	DCD	0	; Stack limit for signal handlers
+|__signalhandler_sp|
+	DCD	0	; Stack pointer for signal handlers
 
 	AREA	|C$$zidata|, DATA, NOINIT
 

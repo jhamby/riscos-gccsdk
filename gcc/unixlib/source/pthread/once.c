@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source: $
- * $Date: $
- * $Revision: $
- * $State: $
- * $Author: $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/pthread/once.c,v $
+ * $Date: 2002/12/15 13:16:55 $
+ * $Revision: 1.1 $
+ * $State: Exp $
+ * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: $";
+static const char rcs_id[] = "$Id: once.c,v 1.1 2002/12/15 13:16:55 admin Exp $";
 #endif
 
 /* Written by Alex Waugh */
@@ -29,7 +29,7 @@ __pthread_once_cleanup (void *arg)
 }
 
 /* Ensure a specified function is called exactly once
-   We need a mutex so that once one call to pthread_once
+   We need a mutex so that only one call to pthread_once
    can proceed at any one time, and we can't have ints
    disabled during the init_routine call.
    If the init_routine is cancelled then the effect should

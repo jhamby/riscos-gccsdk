@@ -1,8 +1,8 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/unixlib/asm_dec.s,v $
-; $Date: 2003/04/21 07:39:38 $
-; $Revision: 1.9 $
+; $Date: 2003/04/21 10:48:45 $
+; $Revision: 1.10 $
 ; $State: Exp $
 ; $Author: peter $
 ;
@@ -273,6 +273,24 @@ IFlag32		EQU	&00000080
 	SWI	XOS_IntOn
 	LDMFD	sp!, {lr}
 	]
+
+	MEND
+
+	; Macro to change processor modes and interrupt flags
+	; Works in 26bit or 32bit modes, on all architectures
+	; Use e.g. CHGMODE a1, SVC_Mode+IFlag
+	MACRO
+	CHGMODE	$scratch, $mode
+	TEQ	a1, a1	; Set Z
+	TEQ	pc, pc	; EQ if 32-bit mode
+	TEQNEP	pc, #$mode
+	MRSEQ	$scratch, CPSR	; Acts a NOP for TEQP
+	BICEQ	$scratch, $scratch, #&cf	; Preserve 32bit mode bit
+	[ $mode <> 0
+	ORREQ	$scratch, $scratch, #(($mode) :AND: &f) + (($mode) :SHR: 20)
+	]
+	MSREQ	CPSR_c, $scratch
+	MOV	a1, a1	; Avoid StrongARM MSR bug
 
 	MEND
 

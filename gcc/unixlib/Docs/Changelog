@@ -1,8 +1,30 @@
+Mon Apr 28 13:05:24 2003  Alex Waugh  <alex@alexwaugh.com>
+
+	* clib/pthread.h (__pthread_context_stack_sp,
+	  __pthread_context_stack_sl): Remove.
+	* clib/unixlib/asm_dec.s: Add CHGMODE macro to simplify changing
+	  processor modes.
+	* pthread/_ints.s (__pthread_unprotect_unsafe): Preserve a2, don't
+	  yield if we are in the middle of a context switch.
+	* pthread/_yield.s (pthread_yield): Improve reliability by calling
+	  the context switcher directly rather than setting a callback.
+	* pthread/cond.c: Formatting.
+	* pthread/init.c (__pthread_init): Don't setup a stack for context
+	  switcher (now uses signal handler stack).
+	* pthread/lock.c: Fix typos.
+	* pthread/once.c: Fix typo.
+	* pthread/testcancel.c: Fix line endings in debug code.
+	* signal/_signal.s, pthread/_context.s: Use a dedicated stack
+	  for all signal handlers and pthread context switcher.
+	  Make pthreads more tolerant of extra or missing callbacks.
+	  Restore CPSR on exit from a callback.
+	* sys/_syslib.s: Initialise signal handler stack.
+
 Sun Apr 27 13:31:44 2003  John Tytgat <John.Tytgat@aaug.net>
 
 	* source/unix/chdir.c: Code failed when chdir() was done for a
 	  subdirectory in the CSD.
-	  
+
 Sat Apr 26 11:36:00 2003  Peter Naulls <peter@chocky.org>
 	* source/signal/signal.c, source/signal/post.c:
 	  Add _GNU_SOURCE define, to allow use of sighandler_t.

@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/pthread/lock.c,v $
- * $Date: 2002/12/15 13:16:55 $
- * $Revision: 1.1 $
+ * $Date: 2003/04/05 12:42:28 $
+ * $Revision: 1.2 $
  * $State: Exp $
- * $Author: admin $
+ * $Author: alex $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: lock.c,v 1.1 2002/12/15 13:16:55 admin Exp $";
+static const char rcs_id[] = "$Id: lock.c,v 1.2 2003/04/05 12:42:28 alex Exp $";
 #endif
 
 /* Common routines shared by the mutex, rwlock and cond functions */
@@ -244,12 +244,12 @@ __pthread_lock_unlock (pthread_mutex_t *mutex, int yield)
         {
           if (thread == __pthread_running_thread)
             {
-              __pthread_fatal_error ("-- __pthread_locak_unlock: Unlocking mutex that current thread is already blocked on");
+              __pthread_fatal_error ("-- __pthread_lock_unlock: Unlocking mutex that current thread is already blocked on");
             }
 
           if (thread->mutex != mutex)
             {
-              __pthread_fatal_error ("-- __pthread_locak_unlock: Blocking thread in wrong mutex list");
+              __pthread_fatal_error ("-- __pthread_lock_unlock: Blocking thread in wrong mutex list");
             }
 
           if (thread->mutextype == LOCK_WRITE || thread->mutextype == LOCK_MUTEX)
