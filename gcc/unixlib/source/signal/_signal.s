@@ -1,10 +1,10 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/signal/_signal.s,v $
-; $Date: 2003/06/23 20:33:03 $
-; $Revision: 1.15 $
+; $Date: 2004/02/23 16:07:29 $
+; $Revision: 1.16 $
 ; $State: Exp $
-; $Author: joty $
+; $Author: peter $
 ;
 ;----------------------------------------------------------------------------
 
@@ -550,10 +550,25 @@ Internet_Event	EQU	19
 ;	All registers should be loaded from the register save area
 
 	IMPORT	|__pthread_callback|
+	IMPORT	|__base|
+	IMPORT	|__real_himem|
 	EXPORT	|__h_cback|
 	NAME	__h_cback
 |__h_cback|
 	[ __FEATURE_PTHREADS = 1
+	; Check that the return PC value is within our wimpslot.
+	; If it isn't, then we don't want to do a context switch
+	; so return straight away.
+	LDR	a1,|__cbreg|+15*4
+	LDR	a2, =|__base|
+	LDR	a2, [a2]
+	CMP	a1, a2
+	BLO	return_quickly
+	LDR	a2, =|__real_himem|
+	LDR	a2, [a2]
+	CMP	a1, a2
+	BHI	return_quickly
+
 	LDR	a1, |__cbflg|
 	TST	a1, #3 ; Check escape and internet flags
 	BNE	|__h_cback_common|
@@ -561,7 +576,16 @@ Internet_Event	EQU	19
 	LDR	a1, [a1]
 	CMP	a1, #0
 	BNE	|__pthread_callback|
-	; Fall through to __h_cback_common
+	B	|__h_cback_common|
+
+return_quickly
+	ADR	lr, |__cbreg|
+	LDR	a1, [lr, #16*4]
+	MSR	SPSR_cxsf, a1
+	LDMIA	lr, {a1-lr}^
+	MOV	a1, a1
+	LDR	lr, [lr, #15*4]
+	MOVS	pc, lr
 	]
 
 |__h_cback_common|

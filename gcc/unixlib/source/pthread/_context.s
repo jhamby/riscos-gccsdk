@@ -1,8 +1,8 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/pthread/_context.s,v $
-; $Date: 2003/06/23 20:33:03 $
-; $Revision: 1.7 $
+; $Date: 2003/11/23 20:26:45 $
+; $Revision: 1.8 $
 ; $State: Exp $
 ; $Author: joty $
 ;
@@ -46,6 +46,8 @@
 	IMPORT	|__pthread_running_thread|
 	IMPORT	|__pthread_num_running_threads|
 	IMPORT	|__cbreg|
+	IMPORT	|__upcall_handler_addr|
+	IMPORT	|__sharedunixlibrary_key|
 
 	EXPORT	|__pthread_start_ticker|
 	EXPORT	|__pthread_stop_ticker|
@@ -195,19 +197,42 @@ stop_ticker_core
 ; Called in SVC mode with IRQs disabled
 	NAME	pthread_call_every
 |pthread_call_every|
-	STMFD	sp!, {a1, lr}
+	STMFD	sp!, {a1-a4, lr}
+
+	; First check that our upcall handler is paged in. If it is not
+	; then it is likely that the taskwindow module is in the process
+	; of paging us out/in so setting a callback would be a bad idea.
+	; As the upcall handler is within SUL then we know nothing else
+	; can have a handler at the same address except other UnixLib
+	; programs. We can distinguish between these with the SUL key.
+	MOV	a1, #16
+	MOV	a2, #0
+	MOV	a3, #0
+	MOV	a4, #0
+	SWI	XOS_ChangeEnvironment
+	BVS	skip_callback
+	LDR	a1, =|__upcall_handler_addr|
+	LDR	a1, [a1]
+	TEQ	a1, a2
+	BNE	skip_callback	; Not sul's upcall handler
+	LDR	a1, =|__sharedunixlibrary_key|
+	LDR	a1, [a1]
+	TEQ	a1, a3
+	BNE	skip_callback	; Not our sul key
+
 	LDR	a1, =|__pthread_callback_semaphore|
 	LDR	a1, [a1]
 	TEQ	a1, #0	; Check we are not already in the middle of a context switch callback
-	LDMNEFD	sp!, {a1, pc}
+	BNE	skip_callback
 
 	LDR	a1, =|__pthread_worksemaphore|
 	LDR	a1, [a1]
 	TEQ	a1, #0
-	LDMNEFD	sp!, {a1, pc}	; In a critical region, so don't switch threads
+	BNE	skip_callback	; In a critical region, so don't switch threads
 
 	SWI	XOS_SetCallBack	; Set the OS callback flag. Not much we can do if this fails
-	LDMFD	sp!, {a1, pc}
+skip_callback
+	LDMFD	sp!, {a1-a4, pc}
 
 
 ; This is called from __h_cback in signal/_signal.s when the OS is returning

@@ -1,3 +1,11 @@
+Wed Mar 24 22:22:01 2004  Alex Waugh  <alex@alexwaugh.com>
+
+	* source/pthread/_context.s (pthread_call_every): Check that our
+	  environment handlers are in place before setting a callback.
+	* source/signal/_signal.s (__h_cback): Check that the return PC is
+	  within the wimpslot.
+	* source/sys/_syslib.s (__upcall_handler_addr): New variable.
+
 Wed Mar 17 20:00:14 2004  John Tytgat  <John.Tytgat@aaug.net>
 
 	* !Help: Consisting spelling & notation.
@@ -25,7 +33,7 @@ Sat Mar 06 13:05:58 2004  Graham Shaw  <gdshaw@sagitta.demon.co.uk>
 	* source/sys/exec.c (execve): Restore wimpslot and himem to
 	  previous values before executing the command. Prevents a program
 	  exec()ed from a vfork()/exec()ed child process from overwriting
-	  the original parent. 
+	  the original parent.
 	* source/sys/_exec.s (__exec_cli): New function.
 	* source/sys/_syslib.s (__env_wimpslot): Separate out from
 	  __env_riscos_and_wimpslot.

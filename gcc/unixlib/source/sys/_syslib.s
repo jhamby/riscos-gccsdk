@@ -1,10 +1,10 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/_syslib.s,v $
-; $Date: 2003/12/22 21:35:03 $
-; $Revision: 1.23 $
+; $Date: 2004/03/06 13:24:43 $
+; $Revision: 1.24 $
 ; $State: Exp $
-; $Author: joty $
+; $Author: alex $
 ;
 ;----------------------------------------------------------------------------
 
@@ -592,6 +592,8 @@ t06
 	SWI	XSharedUnixLibrary_RegisterUpCall
 	LDR	r0, =|__sharedunixlibrary_key|
 	STR	r2, [r0]
+	LDR	r0, =|__upcall_handler_addr|
+	STR	r1, [r0]
 	MOV	r0, #16
 	SWI	XOS_ChangeEnvironment
 
@@ -619,6 +621,10 @@ handlers
 
 	EXPORT	|__sharedunixlibrary_key|
 |__sharedunixlibrary_key|
+	DCD	0
+
+	EXPORT	|__upcall_handler_addr|
+|__upcall_handler_addr|
 	DCD	0
 
 	EXPORT	|__stackchunk_magic_number|
