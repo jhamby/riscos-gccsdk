@@ -1,3 +1,9 @@
+Sun Jan 30 16:04:32 2005  Alex Waugh  <alex@alexwaugh.com>
+
+	* source/unix/pipe.c, source/unix/dev.c, source/clib/unixlib/unix.h:
+	  Remove linked list of all open pipes, as the same functionality can
+	  be achived simply by setting the O_UNLINKED flag on the pipe.
+
 Sat Jan 29 17:23:04 2005  Alex Waugh  <alex@alexwaugh.com>
 
 	* source/pthread/context.c (__pthread_context_switch): Remove thread

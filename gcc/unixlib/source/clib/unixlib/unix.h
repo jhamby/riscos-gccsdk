@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/unixlib/unix.h,v $
- * $Date: 2005/01/22 00:09:53 $
- * $Revision: 1.20 $
+ * $Date: 2005/01/23 19:39:58 $
+ * $Revision: 1.21 $
  * $State: Exp $
- * $Author: alex $
+ * $Author: joty $
  *
  * UNIX is a registered trademark of AT&T Bell Laboratories
  *
@@ -128,15 +128,6 @@ struct proc
 };
 
 extern struct proc *__u;	/* current process */
-
-struct pipe
-{
-  struct __unixlib_fd *p[2];
-  char *file;
-  struct pipe *next;
-};
-
-extern struct pipe *__pipe;	/* list of currently active pipes */
 
 
 extern int __funcall_error (const char *, int, unsigned int);

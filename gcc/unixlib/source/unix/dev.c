@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/dev.c,v $
- * $Date: 2004/12/11 14:18:57 $
- * $Revision: 1.25 $
+ * $Date: 2004/12/23 21:10:08 $
+ * $Revision: 1.26 $
  * $State: Exp $
- * $Author: joty $
+ * $Author: peter $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: dev.c,v 1.25 2004/12/11 14:18:57 joty Exp $";
+static const char rcs_id[] = "$Id: dev.c,v 1.26 2004/12/23 21:10:08 peter Exp $";
 #endif
 
 /* #define DEBUG */
@@ -590,7 +590,6 @@ __fsfstat (int fd, struct stat *buf)
 }
 
 #if __UNIXLIB_FEATURE_PIPEDEV
-struct pipe *__pipe = NULL;
 
 void *
 __pipeopen (struct __unixlib_fd *file_desc, const char *file, int mode)
@@ -601,36 +600,7 @@ __pipeopen (struct __unixlib_fd *file_desc, const char *file, int mode)
 int
 __pipeclose (struct __unixlib_fd *file_desc)
 {
-  struct pipe *cpipe = __pipe, *prev_pipe = NULL;
-  _kernel_oserror *err = NULL;
-  char path[MAXPATHLEN];
-
-  while (cpipe)
-    {
-      if (cpipe->p[0] == file_desc || cpipe->p[1] == file_desc)
-	break;
-      prev_pipe = cpipe;
-      cpipe = cpipe->next;
-    }
-  if (!cpipe)
-    return __set_errno (EBADF);
-  if (prev_pipe)
-    prev_pipe->next = cpipe->next;
-  else
-    __pipe = cpipe->next;
-  __fsclose (file_desc);
-
-  if (__riscosify_std (cpipe->file, 0, path, sizeof (path), NULL))
-    {
-      if ((err = __os_fsctrl (27, path, 0, 0x1a2)))
-        __seterr (err);
-    }
-  else
-    err = (void *) 1; /* Conversion failed.  */
-
-  free (cpipe->file);
-  free (cpipe);
-  return err ? -1 : 0;
+  return __fsclose (file_desc);
 }
 
 int

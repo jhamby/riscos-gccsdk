@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/pipe.c,v $
- * $Date: 2003/04/05 09:33:57 $
- * $Revision: 1.5 $
+ * $Date: 2004/10/17 16:24:45 $
+ * $Revision: 1.6 $
  * $State: Exp $
- * $Author: alex $
+ * $Author: joty $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: pipe.c,v 1.5 2003/04/05 09:33:57 alex Exp $";
+static const char rcs_id[] = "$Id: pipe.c,v 1.6 2004/10/17 16:24:45 joty Exp $";
 #endif
 
 #include <stdlib.h>
@@ -30,7 +30,6 @@ int
 pipe (int *p)
 {
 #if __UNIXLIB_FEATURE_PIPEDEV
-  struct pipe *pi;
   struct __unixlib_fd *file_desc_0, *file_desc_1;
   int fd0, fd1;
   char file[32];
@@ -75,7 +74,7 @@ pipe (int *p)
   }
 
   file_desc_0->fflag = O_RDWR | O_CREAT | O_TRUNC | O_PIPE;
-  file_desc_0->dflag = 0;
+  file_desc_0->dflag = file_desc_1->dflag = 0;
 
   {
     int handle;
@@ -106,32 +105,10 @@ pipe (int *p)
 
   /* Set one file descriptor for read only and the other
      for write only.  */
-  file_desc_0->fflag = O_RDONLY | O_PIPE;
-  file_desc_1->fflag = O_WRONLY | O_PIPE;
+  file_desc_0->fflag = O_RDONLY | O_UNLINKED | O_PIPE;
+  file_desc_1->fflag = O_WRONLY | O_UNLINKED | O_PIPE;
 
   file_desc_0->pid = file_desc_1->pid = __u->pid;
-
-  pi = malloc (sizeof (struct pipe));
-  if (pi == NULL)
-    {
-      close (fd0);
-      close (fd1);
-      return -1;
-    }
-
-  pi->p[0] = file_desc_0;
-  pi->p[1] = file_desc_1;
-
-  pi->file = strdup (file);
-  if (pi->file == NULL)
-    {
-      close (fd0);
-      close (fd1);
-      free (pi);
-      return -1;
-    }
-  pi->next = __pipe;
-  __pipe = pi;
 
   p[0] = fd0;
   p[1] = fd1;
