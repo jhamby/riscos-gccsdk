@@ -39,10 +39,9 @@ Additional help along the way has been provided by Nick Clark and
 John Tytgat. Peter Naulls and Alex Waugh contributed significantly to
 create 4.0 which features 32-bit compliancy and pthread support.
 
-UnixLib is covered with various licenses but freely usable for
-non-commercial programs. For commercial use, and usage of parts of the
-source code, please contact the UnixLib developers. In most cases there
-will be no charges or restrictions. 
+UnixLib is covered with various licenses, the most significant of which
+is the Lesser GNU Public License. For more details see the file
+!UnixLib.Docs.Copyright
 
 
 Installation
