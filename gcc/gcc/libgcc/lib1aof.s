@@ -1951,29 +1951,36 @@ temp_lr	RN	2
 /* ;sc	RN	1
 ;next_fp	RN	12 */
 
-	/* On entry, a1 is the stack pointer value that we are aiming to
-	   unwind to.  */
-	EXPORT	|__unwind_function|
-	IMPORT	|__os_prhex|
-|__unwind_function|
+	/* void __unwind_function_all (void *stack_pointer)  */
+	/* Unwind the function call stack until it matches 'stack_pointer'.  */
+	EXPORT	|__unwind_function_all|
+|__unwind_function_all|
 	LDR	a1, [a1, #-4]
 	LDR	a1, [a1, #4]
+
+	/* LDR	a1, [a1, #0] */
 
 	LDR	a2, |__unwind_buf|
 	STR	a1, [a2, #0]
 	STR	lr, [a2, #4]
 	MOV	a4, lr
-|__unwind_function_many.00|
+|__unwind_function_all.00|
 	LDR	a2, |__unwind_buf|
 	LDR	a1, [a2, #0]
+	/* Call __unwind_function for each stack frame that we wish
+	   to unwind.  Then simply compare the updated 'sp' with our
+	   desired 'stack_pointer' to find a match.  Upon matching,
+	   we then know we've unwound enough.  */
 	CMP	a1, sp
 	LDREQ	a4, [a2, #4]
 	RETURNc(eq, pc, a4)
-	BL	|__unwind_function_one|
-	B	|__unwind_function_many.00|
+	BL	|__unwind_function|
+	B	|__unwind_function_all.00|
 
-	EXPORT	|__unwind_function_one|
-|__unwind_function_one|
+	/* void __unwind_function (void)
+	   This function will unwind a function stack frame by one level.  */
+	EXPORT	|__unwind_function|
+|__unwind_function|
 	MOV	temp_lr, lr
 	LDR	a1, [fp, #-12]
 	CMP	a1, #0
@@ -2002,7 +2009,7 @@ temp_lr	RN	2
 	LDMGEEA fp, {fp, sp, lr} /* unwind stack one level and exit */
 	RETURNc(ge, pc, temp_lr)
 |__unwind_function.shared.c.library|
-	; Shared C Library style stack chunk
+	/* Shared C Library style stack chunk  */
 	LDR	uf_t1, [sc, #8] /* sc->sc_prev */
 	CMP	uf_t1, #0
 	BLEQ	|abort|		/* no previous stack chunk */
@@ -2021,6 +2028,8 @@ temp_lr	RN	2
 	ADD	sl, sc, #560
 	RETURN(pc, temp_lr)
 
+	/* Pointer to a temporary buffer for storing procedure return
+	   address and desired stack pointer.  */
 |__unwind_buf|
 	DCD	unwind_buf
 

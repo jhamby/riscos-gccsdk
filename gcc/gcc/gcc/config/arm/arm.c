@@ -8081,10 +8081,6 @@ int
 arm_can_eliminate (from, to)
      int from, to;
 {
-  /* This should never happen, but it does.  */
-  /* if (! optimize)
-     return 0; */
-
 #ifdef TARGET_RISCOSAOF
   /* We can eliminate ARGP to STACKP if no alloca, no stack checks needed
      and frame not needed.  */
@@ -8631,6 +8627,9 @@ arm_expand_prologue ()
 	}
     }
 
+  frame_size = -(arm_get_frame_size ()
+		 + current_function_outgoing_args_size);
+
   if (arm_apcs_frame_needed ())
    {
      /* NAB++ */
@@ -8650,6 +8649,34 @@ arm_expand_prologue ()
       insn = GEN_INT (-(4 + args_to_push + fp_offset));
       insn = emit_insn (gen_addsi3 (fp_rtx, ip_rtx, insn));
       RTX_FRAME_RELATED_P (insn) = 1;
+
+#ifdef TARGET_RISCOSAOF
+      /* Explicit stack checks.  */
+      if (TARGET_APCS_STACK)
+	{
+	  rtx sl_reg = gen_rtx_REG (GET_MODE (stack_pointer_rtx), 10);
+
+	  if (frame_size <= -256)
+	    {
+	      rtx stkovf = gen_rtx_SYMBOL_REF (Pmode, ARM_STKOVF_SPLIT_BIG);
+	      insn = emit_insn (gen_addsi3 (ip_rtx, stack_pointer_rtx,
+					    GEN_INT (frame_size)));
+	      RTX_FRAME_RELATED_P (insn) = 1;
+	      insn = emit_insn (gen_rt_stkovf (ip_rtx, sl_reg, stkovf));
+	      /* Create barrier to prevent real stack adjustment from being
+	         scheduled before call to stack checker.  */
+	      emit_insn (gen_blockage ());
+	    }
+	  else
+	    {
+	      rtx stkovf = gen_rtx_SYMBOL_REF (Pmode, ARM_STKOVF_SPLIT_SMALL);
+	      
+	      insn = emit_insn (gen_rt_stkovf (stack_pointer_rtx,
+					       sl_reg, stkovf));
+	    }
+	  RTX_FRAME_RELATED_P (insn) = 1;
+	}
+#endif
       
       if (IS_NESTED (func_type))
 	{
@@ -8668,34 +8695,6 @@ arm_expand_prologue ()
 	  emit_insn (gen_prologue_use (ip_rtx));
 	}
     }
-
-  frame_size = -(arm_get_frame_size ()
-		 + current_function_outgoing_args_size);
-
-#ifdef TARGET_RISCOSAOF
-  /* Explicit stack checks.  */
-  if (TARGET_APCS_STACK)
-    {
-      rtx sl_reg = gen_rtx_REG (GET_MODE (stack_pointer_rtx), 10);
-      
-      if (frame_size >= 256)
-	{
-	  rtx stkovf = gen_rtx_SYMBOL_REF (Pmode, ARM_STKOVF_SPLIT_BIG);
-	  insn = emit_insn (gen_addsi3 (ip_rtx, stack_pointer_rtx,
-					GEN_INT (frame_size)));
-	  RTX_FRAME_RELATED_P (insn) = 1;
-	  insn = emit_insn (gen_rt_stkovf (ip_rtx, sl_reg, stkovf));
-	}
-      else
-	{
-	  rtx stkovf = gen_rtx_SYMBOL_REF (Pmode, ARM_STKOVF_SPLIT_SMALL);
-	  
-	  insn = emit_insn (gen_rt_stkovf (stack_pointer_rtx,
-					   sl_reg, stkovf));
-	}
-      RTX_FRAME_RELATED_P (insn) = 1;
-    }
-#endif
 
   if (frame_size != 0)
     {

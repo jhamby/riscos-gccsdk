@@ -9243,7 +9243,7 @@
   "TARGET_ARM && TARGET_APCS_STACK"
 {
   emit_library_call (gen_rtx_SYMBOL_REF (Pmode,
-                                         \"__unwind_function\"),
+                                         \"__unwind_function_all\"),
                      LCT_NORMAL, VOIDmode, 1,
 		     copy_to_reg (XEXP (operands[1], 0)), Pmode);
   DONE;
@@ -9300,6 +9300,13 @@
   "bl%?\\t___arm_alloca_alloc"
 [(set_attr "conds" "clob")
  (set_attr "length" "4")])
+
+;(define_insn "call_no_clobber"
+;  [(unspec:SI [(match_operand 0 "" "")] UNSPEC_CALL)
+;   (clobber (reg:SI LR_REGNUM))]
+;  ""
+;  "bl%?\\t%a0"
+;[(set_attr "length" "4")])
 
 (define_insn "rt_stkovf"
   [(unspec:SI [(match_operand:SI 0 "s_register_operand" "r")

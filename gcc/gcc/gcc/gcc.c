@@ -793,6 +793,7 @@ static struct user_specs *user_specs_head, *user_specs_tail;
   || !strcmp (STR, "isystem") || !strcmp (STR, "-param") \
   || !strcmp (STR, "specs") \
   || !strcmp (STR, "icrossdirafter") /* NAB++ */ \
+  || !strcmp (STR, "icrossdirsystem") /* NAB++ */ \
   || !strcmp (STR, "MF") || !strcmp (STR, "MT") || !strcmp (STR, "MQ"))
 
 #ifndef WORD_SWITCH_TAKES_ARG
@@ -969,6 +970,7 @@ static const struct option_map option_map[] =
    {"--include-directory-after", "-idirafter", "a"},
    /* NAB++ */
    {"--include-cross-directory-after", "-icrossdirafter", "a"},
+   {"--include-cross-directory-system", "-icrossdirsystem", "a"},
    /* NAB-- */
    {"--include-prefix", "-iprefix", "a"},
    {"--include-with-prefix", "-iwithprefix", "a"},
