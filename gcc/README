@@ -1,4 +1,4 @@
-The RISC OS Software Development Kit [GCC 3.3.3 pre-release 1]
+The RISC OS Software Development Kit [GCCSDK 3.3.3 pre-release 2]
 ====================================
 
 This rather large package is a collection of software that I use regularly
@@ -62,12 +62,18 @@ into zipfiles whenever it sees the ,xxx suffix.
 Create installation directory structure
   $ make setup
 
-Build it.  This will take about 1 hour 30 mins on a Pentium II-266MHz.
+To build the full compiler package, including native compilers for execution
+on RISC OS, just type:
   $ make
+
+If, instead, you just want a cross-compiler, then type:
+  $ make build-cross
 
 Optionally, you can create the RISC OS GCC compiler zip packages using
 this command.
   $ make riscos-pkg
+
+Expect the building of the full package to take around 2 hours.
 
 
 Using it
