@@ -245,6 +245,7 @@ gcc-libs-stg1:
 	$(MAKE) -C gcc fastjar "TRG=$(trg20)" "STAGE=stage1"
 
 gcc-libs-stg2:
+	$(MAKE) -C gcc zlib "TRG=$(trg20)" $(cfl20) "STAGE=stage2"
 	$(MAKE) -C gcc fastjar "TRG=$(trg20)" "STAGE=stage2"
 	#$(MAKE) -C gcc libjava "TRG=$(trg30)" $(cfl30) "STAGE=stage2" "lib_incl_dir=$(libscl_incl_dir)"
 	$(MAKE) -C gcc libgcc "TRG=$(trg20)" $(cfl20) "STAGE=stage2"
@@ -255,7 +256,6 @@ gcc-libs-stg2:
 	$(MAKE) -C gcc libstdc "TRG=$(trg30)" $(cfl30) "STAGE=stage2" "lib_incl_dir=$(libscl_incl_dir)"
 	$(MAKE) -C gcc libsupc++ "TRG=$(trg20)" $(cfl20) "STAGE=stage2"
 	$(MAKE) -C gcc libsupc++ "TRG=$(trg30)" $(cfl30) "STAGE=stage2"
-	$(MAKE) -C gcc zlib "TRG=$(trg20)" $(cfl20) "STAGE=stage2"
 
 riscos-dist:
 	$(MAKE) -C riscos-dist install
