@@ -34,7 +34,6 @@ _Unwind_RaiseException_Phase2(struct _Unwind_Exception *exc,
 			      struct _Unwind_Context *context)
 {
   _Unwind_Reason_Code code;
-  printf ("RaiseException_Phase2\n");
 
   while (1)
     {
@@ -80,8 +79,6 @@ _Unwind_RaiseException(struct _Unwind_Exception *exc)
 {
   struct _Unwind_Context this_context, cur_context;
   _Unwind_Reason_Code code;
-
-  printf ("In Unwind_RaiseExceptio\n");
 
   /* Set up this_context to describe the current stack frame.  */
   uw_init_context (&this_context);
@@ -131,7 +128,6 @@ _Unwind_RaiseException(struct _Unwind_Exception *exc)
   if (code != _URC_INSTALL_CONTEXT)
     return code;
 
-  printf ("install context\n");
   uw_install_context (&this_context, &cur_context);
 }
 
