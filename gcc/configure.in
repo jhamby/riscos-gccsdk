@@ -161,18 +161,22 @@ changequote(,)dnl
 changequote([,])dnl
 	cpu_type="I386"
 	;;
+  mips-*)
+        cpu_type="MIPS"
+        ;;
 esac
 
 # Determine operating system
 case "$host" in
   *freebsd*)
 	os_type="FREEBSD"
-	host_overrides="config/freebsd.mk"
 	;;
   *linux*)
 	os_type="LINUX"
-	host_overrides="config/linux.mk"
 	;;
+  *irix*)
+        os_type="IRIX"
+        ;;
 esac
 
 
