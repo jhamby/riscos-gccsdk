@@ -7,7 +7,7 @@
 #include "help_cpu.h"
 #include "error.h"
 
-static int mask[] =
+static const int mask[] =
 {
   0x000000ff, 0xc000003f, 0xf000000f, 0xfc000003,
   0xff000000, 0x3fc00000, 0x0ff00000, 0x03fc0000,

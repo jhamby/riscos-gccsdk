@@ -33,7 +33,7 @@ struct reg_id
 WORD 
 getCpuReg (void)
 {
-  static struct reg_id cpu_regs[] =
+  static const struct reg_id cpu_regs[] =
   {
     "r0", 0, 2, "r1", 1, 2, "r2", 2, 2, "r3", 3, 2,
     "r4", 4, 2, "r5", 5, 2, "r6", 6, 2, "r7", 7, 2,
@@ -79,7 +79,7 @@ WORD
 getFpuReg (void)
 {
   /* NB since len is fixed at 2, we don't actually use the length */
-  static struct reg_id cpu_regs[8] =
+  static const struct reg_id cpu_regs[8] =
   {"f0", 0, 2, "f1", 1, 2, "f2", 2, 2, "f3", 3, 2,
    "f4", 4, 2, "f5", 5, 2, "f6", 6, 2, "f7", 7, 2};
 

@@ -13,7 +13,7 @@ hashstr (char *s, int maxn, int hashs)
   register int h;
   register unsigned char *p;
   register int i;
-  static int T[] =
+  static const int T[] =
   {
     1, 87, 49, 12, 176, 178, 102, 166, 121, 193, 6, 84, 249, 230, 44, 163,
     14, 197, 213, 181, 161, 85, 218, 80, 64, 239, 24, 226, 236, 142, 38, 200,
