@@ -1513,11 +1513,24 @@ add_library_file (const char *library)
 {
   llist *list = libraries;
 
+  /* Ignore -lm, -lc and -lpthread */
   if (strcmp (library, "m") == 0 || strcmp (library, "c") == 0 ||
       strcmp (library, "pthread") == 0 || strcmp (library, "dl") == 0)
     {
       if (tlink_verbose >= 2)
-	printf ("Library lib%s was specified. Ignoring it\n", library);
+        printf ("Library lib%s was specified. Ignoring it\n", library);
+      return;
+    }
+
+  /* Substitute -lX11 with -lCX11 and -lDesk (ChoX11) */
+
+  if (getenv ("TLINK_CX11") && strcmp (library, "X11") == 0)
+    {
+      if (tlink_verbose >= 2)
+        printf ("Substituting ChoX11 library\n", library);
+
+      add_library_file("CX11");
+      add_library_file("Desk");
       return;
     }
 
