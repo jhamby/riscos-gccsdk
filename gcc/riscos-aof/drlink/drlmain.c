@@ -78,8 +78,7 @@ static bool scan_cmdline(void);
 */
 int main(int argc, char *argv[]) {
   time_t startime;
-  int elapsed;
-  
+
   errors = 0;
   if (startup()) {
     startime = clock();
@@ -89,7 +88,7 @@ int main(int argc, char *argv[]) {
       link_program();
     }
     if (opt_verbose || opt_info) {
-      elapsed = clock()-startime;
+      int elapsed = (clock()-startime) / (CLOCKS_PER_SEC / 100);
       printf("Drlink: Link %s with %d warning%s and %d error%s in %d.%02d seconds\n",
        (errors==0 ? "completed" : "failed"), warnings, (warnings==1 ? "" : "s"),
        errors, (errors==1 ? "" : "s"), elapsed/100, elapsed%100);
