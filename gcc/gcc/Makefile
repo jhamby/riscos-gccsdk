@@ -17,13 +17,23 @@ all:	gcc
 .PHONY: libstdc
 .PHONY: libio
 .PHONY: libsupc++
-.PHONY: libjava
 
 gcc:
 	mkdir -p $(gccpath) $(gccpath)/ada $(gccpath)/cp $(gccpath)/f77 \
 	$(gccpath)/gpc $(gccpath)/objc $(gccpath)/java $(gccpath)/config/arm
 	$(MAKE) -C gcc "STAGE=$(STAGE)"
 
-fastjar libgcc libgpc libf2c libstdc libio libsupc++ libjava zlib:
+fastjar libgcc libgpc libf2c libstdc libio libsupc++ zlib:
+	mkdir -p $(libpath)/$(STAGE)/$(TRG)
+	$(MAKE) -C $@ "STAGE=$(STAGE)"
+
+libjava/.rules_class: libjava/Makefile
+	$(MAKE) -C libjava class_deps GEN="gen"
+
+libjava/.rules_headers: libjava/Makefile
+	$(MAKE) -C libjava header_deps GEN="gen"
+
+
+libjava: libjava/.rules_class libjava/.rules_headers
 	mkdir -p $(libpath)/$(STAGE)/$(TRG)
 	$(MAKE) -C $@ "STAGE=$(STAGE)"

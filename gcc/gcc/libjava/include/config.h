@@ -73,7 +73,7 @@
 #define HAVE_MKTIME 1
 
 /* Define if using POSIX threads on Linux.  */
-#define LINUX_THREADS 1
+#undef LINUX_THREADS
 
 /* Define if you have the `gmtime_r' function.  */
 #define HAVE_GMTIME_R 1
@@ -89,13 +89,12 @@
 #define HAVE_IN_ADDR_T 1
 
 /* Define if inet6 structures are defined in netinet/in.h.  */
-#define HAVE_INET6 1
-
+#undef HAVE_INET6
 /* Define if struct ip_mreq is defined in netinet/in.h.  */
-#define HAVE_STRUCT_IP_MREQ 1
+#undef HAVE_STRUCT_IP_MREQ
 
 /* Define if struct ipv6_mreq is defined in netinet/in.h.  */
-#define HAVE_STRUCT_IPV6_MREQ 1
+#undef HAVE_STRUCT_IPV6_MREQ
 
 /* Define it socklen_t typedef is in sys/socket.h.  */
 #define HAVE_SOCKLEN_T 1
@@ -158,17 +157,16 @@
 /* #undef DISABLE_MAIN_ARGS */
 
 /* Define if you have /proc/self/exe */
-#define HAVE_PROC_SELF_EXE 1
+#undef HAVE_PROC_SELF_EXE
 
- 
 /* Define if you have dladdr() */
-#define HAVE_DLADDR 1
+#undef HAVE_DLADDR
 
 /* Define if getuid() and friends are missing.  */
 /* #undef NO_GETUID */
 
 /* Define if libltdl is in use.  */
-#define USE_LTDL 1
+#undef USE_LTDL
 
 /* Define if g++ has a bug preventing us from inlining math routines.  */
 /* #undef __NO_MATH_INLINES */
@@ -177,7 +175,7 @@
 #define ENABLE_JVMPI 1
 
 /* Define if your platform has a working backtrace() function.  */
-#define HAVE_BACKTRACE 1
+#undef HAVE_BACKTRACE
 
 /* Define if your platform has the global _timezone variable.  */
 /* #undef HAVE_UNDERSCORE_TIMEZONE */
@@ -255,7 +253,7 @@
 #define HAVE_MKDIR 1
 
 /* Define if you have the nl_langinfo function.  */
-#define HAVE_NL_LANGINFO 1
+#undef HAVE_NL_LANGINFO
 
 /* Define if you have the open function.  */
 #define HAVE_OPEN 1
@@ -285,7 +283,7 @@
 #define HAVE_RMDIR 1
 
 /* Define if you have the sched_yield function.  */
-#define HAVE_SCHED_YIELD 1
+#undef HAVE_SCHED_YIELD
 
 /* Define if you have the select function.  */
 #define HAVE_SELECT 1
@@ -327,10 +325,10 @@
 #define HAVE_DIRENT_H 1
 
 /* Define if you have the <dlfcn.h> header file.  */
-#define HAVE_DLFCN_H 1
+#undef HAVE_DLFCN_H
 
 /* Define if you have the <execinfo.h> header file.  */
-#define HAVE_EXECINFO_H 1
+#undef HAVE_EXECINFO_H
 
 /* Define if you have the <fcntl.h> header file.  */
 #define HAVE_FCNTL_H 1
@@ -339,7 +337,7 @@
 #define HAVE_INTTYPES_H 1
 
 /* Define if you have the <langinfo.h> header file.  */
-#define HAVE_LANGINFO_H 1
+#undef HAVE_LANGINFO_H
 
 /* Define if you have the <locale.h> header file.  */
 #define HAVE_LOCALE_H 1
@@ -393,7 +391,7 @@
 #define VERSION "0.0.7"
 
 /* Define if the compiler is configured for setjmp/longjmp exceptions. */
-/* #undef SJLJ_EXCEPTIONS */
+#define SJLJ_EXCEPTIONS 1
 
 /* Indicate that linker is not able to 8-byte align static data */
 /* #undef JV_LINKER_CANNOT_8BYTE_ALIGN_STATICS */
@@ -408,10 +406,10 @@
 #define JV_HASH_SYNCHRONIZATION 1
 
 /* Define if you have the iconv() function. */
-#define HAVE_ICONV 1
+#undef HAVE_ICONV
 
 /* Define as const if the declaration of iconv() needs const. */
-#define ICONV_CONST 
+#undef ICONV_CONST 
 
 /* Define if your <locale.h> file defines LC_MESSAGES. */
 #define HAVE_LC_MESSAGES 1
@@ -423,7 +421,7 @@
 /* #undef HAVE_STRUCT_HOSTENT_DATA */
 
 /* Define if dlopen is available */
-#define HAVE_DLOPEN 1
+#undef HAVE_DLOPEN
 
 /* The number of bytes in type void * */
 #define SIZEOF_VOID_P 4
