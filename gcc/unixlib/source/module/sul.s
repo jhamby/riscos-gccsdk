@@ -1,10 +1,10 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/module/sul.s,v $
-; $Date: 2001/12/20 09:47:30 $
-; $Revision: 1.1.2.2 $
+; $Date: 2003/04/06 14:19:07 $
+; $Revision: 1.3 $
 ; $State: Exp $
-; $Author: admin $
+; $Author: peter $
 ;
 ;----------------------------------------------------------------------------
 
@@ -159,11 +159,10 @@ ListHead     EQU   12      ; Pointer to head of list
 	MOV     r4, r2
 
 	MOV     r0, #6
-	MOV     r3, #16           
+	MOV     r3, #16
 	SWI     XOS_Module         ; Claim memory to use
 
-	LDMVSFD sp!, {r2, r3, lr}  ; Return to caller if error
-	ORRVSS  pc, lr, #VFlag     ; Return error
+	LDMVSFD sp!, {r2, r3, pc}  ; Return to caller if error
 
 	; result in R2, return to caller at end
 	LDR     r0, [r12, #ListNext]  ; Get head of list
@@ -197,10 +196,15 @@ ListHead     EQU   12      ; Pointer to head of list
 	BL      |delink|
 	LDMFD   sp!, {lr}
 	CMP     r2, #0
-	ADREQ   r0, error_unknown - module_start ; Unable to find key
-	ORREQS  pc, lr, #VFlag                   ; Return error
+	MOVNE   pc, lr
 
-	MOV    pc, lr
+	ADR     r0, error_unknown - module_start ; Unable to find key
+	TEQ     r0, r0
+	TEQ     pc, pc
+	ORRNES  pc, lr, #VFlag                   ; Return error (26bit)
+	MSR     CPSR_f, #VFlag
+	MOV     pc, lr                           ; Return error (32bit)
+
 
 	; Delink the handler
 	;
@@ -293,13 +297,18 @@ ListHead     EQU   12      ; Pointer to head of list
 	LDR     r0, [r12, #ListNext]
 	CMP     r0, #0                          ; Is head of list set?
 
-	ADRNE   r0, error_active - module_start ; If so, set error and
-	                                        ; disallow module finalisation
-	ADDNE   sp, sp, #4
-	LDMNEFD sp!, {lr}
-	ORRNES  pc, lr, #VFlag
+	LDMEQFD sp!, {r0, pc}                   ; No, so allow normal finalisation
 
-	LDMFD   sp!, {r0, pc}
+	ADR     r0, error_active - module_start ; If so, set error and
+	                                        ; disallow module finalisation
+	ADD     sp, sp, #4
+	LDMFD   sp!, {lr}
+	TEQ     r0, r0
+	TEQ     pc, pc
+	ORRNES  pc, lr, #VFlag                   ; Return error (26bit)
+	MSR     CPSR_f, #VFlag
+	MOV     pc, lr                           ; Return error (32bit)
+
 
 	END
 

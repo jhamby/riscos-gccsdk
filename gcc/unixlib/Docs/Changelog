@@ -1,3 +1,7 @@
+Sun Jun  1 18:20:15 2003  Alex Waugh  <alex@alexwaugh.com>
+
+	* module/sul.s: Fix non 32bit SWI returns.
+
 Mon May 26 19:47:04 2003  Peter Naulls <peter@chocky.org>
 	* clib/wchar.h: __mbrtowc and __mbrlen don't exist - avoid
 	  inline mbrlen.
