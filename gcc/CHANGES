@@ -1,6 +1,14 @@
 Summary of Changes
 ==================
 
+28 Dec 2000
+-----------
+
+* Minor build fixes.
+* Make appropriate changes to autoconf so that we can build the gccsdk
+  on different processors.
+* Fixed six reported Fortran 77 bugs.
+
 27 Dec 2000
 -----------
 
