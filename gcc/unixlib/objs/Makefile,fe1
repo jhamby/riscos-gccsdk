@@ -1,10 +1,10 @@
-# Project:   UnixLib 4.0
+# Project:   GCCSDK UnixLib
 
-# $Source: /usr/local/cvsroot/gccsdk/unixlib/objs/Makefile,fe1,v $
-# $Date: 2003/04/21 16:04:01 $
-# $Revision: 1.11 $
-# $State: Exp $
-# $Author: peter $
+# $Source$
+# $Date$
+# $Revision$
+# $State$
+# $Author$
 
 CCfeatures =
 Predefs = -D__UNIXLIB_INTERNALS
