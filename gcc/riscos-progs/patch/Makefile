@@ -2,7 +2,7 @@
 # Written by Nick Burrett <nick@dsvr.net>
 
 INCLUDES = -I. -I ../../include
-CROSS_CFLAGS += -DHAVE_CONFIG_H
+CROSS_CFLAGS += -DHAVE_CONFIG_H -Ded_PROGRAM=\"ed\"
 
 $(objdir)/riscos-progs/patch/%.o: %.c
 	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c $< $(INCLUDES)
