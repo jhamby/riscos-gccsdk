@@ -5,7 +5,7 @@
 CC_S = $(CROSS_CC) -xassembler-with-cpp
 INCLUDES = -I. -I../../include -I../gcc -I../gcc/config
 CROSS_CFLAGS += -D$(targetsystem)
-CROSS_CFLAGS += -DIN_GCC -DHAVE_CONFIG_H -DIN_LIBGCC2 -D__GCC_FLOAT_NOT_NEEDED
+CROSS_CFLAGS += -DIN_GCC -DHAVE_CONFIG_H -DIN_LIBGCC2 -D__GCC_FLOAT_NOT_NEEDED -DDONT_USE_BUILTIN_SETJMP
 
 FPBIT_FLAGS=-DFINE_GRAINED_LIBRARIES -I. -I../../include -I../gcc -I../gcc/config
 
