@@ -145,14 +145,13 @@ static void reloc_aofarlist(arealist *ap) {
   arealist *firstarea;
   newhead *hp;
 
-
   firstarea = NIL;
   while (ap!=NIL) {
-    unsigned int areabase;
+    unsigned int areabase = 0
+
     if (ap->arbase!=firstarea) {	/* Area name differs from last one */
       firstarea = ap->arbase;
       newareacount+=1;
-      areabase = 0;
       if ((hp = allocmem(sizeof(newhead)))==NIL) error("Fatal: Out of memory in 'reloc_aofarlist'");
       hp->headhash = firstarea->arhash;
       hp->headname = firstarea->arname;
