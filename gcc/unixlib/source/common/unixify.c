@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/common/unixify.c,v $
- * $Date: 2004/02/07 18:09:18 $
- * $Revision: 1.7 $
+ * $Date: 2004/09/07 14:05:11 $
+ * $Revision: 1.8 $
  * $State: Exp $
- * $Author: alex $
+ * $Author: joty $
  *
  ***************************************************************************/
 
@@ -15,9 +15,218 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include <swis.h>
+#include <stdio.h>
+
+/* #define DEBUG */
+
+static int
+add_filetype (char *buffer, char *out, char *out_end, int filetype, int unixify_flags)
+{
+  int ft_extension_needed = 1;
+
+  if (!(unixify_flags & __RISCOSIFY_FILETYPE_NOT_SET))
+    {
+      const char *fn_extension;
+
+      /* Check if we don't have a *filename* extension which already maps
+	 via MimeMap to the filetype 'filetype'.  If so, no need to
+	 add the RISC OS filetype again using *filetype* extension.  */
+      for (fn_extension = out - 1;
+	   fn_extension != buffer
+	   && *fn_extension != '/' && *fn_extension != '.';
+	   --fn_extension)
+	;
+      if (*fn_extension == '.')
+	{
+	  _kernel_swi_regs regs;
+
+	  /* We have a filename extension at 'fn_extension'.  */
+	  regs.r[0] = MMM_TYPE_DOT_EXTN; /* Input extension */
+	  regs.r[1] = (int)fn_extension;
+	  regs.r[2] = MMM_TYPE_RISCOS; /* Output extension */
+
+	  /* When there is no MimeMap error and the filetype returned
+	     matches 'filetype', we don't want filetype extension.  */
+	  if (! _kernel_swi (MimeMap_Translate, &regs, &regs)
+	      && regs.r[3] == filetype)
+	    ft_extension_needed = 0;
+	}
+    }
+
+  if (ft_extension_needed)
+    {
+      /* We need to add filetype ",xyz".  */
+      if ((out + 4) >= out_end)
+	return 0;
+
+      *out++ = ',';
+      *out++ = "0123456789abcdef"[(filetype >> 8) & 0xf];
+      *out++ = "0123456789abcdef"[(filetype >> 4) & 0xf];
+      *out++ = "0123456789abcdef"[(filetype >> 0) & 0xf];
+      *out = '\0';
+    }
+
+  return 1;  
+}
+
+
+static int
+get_directory_name (const char *input, char *output)
+{
+  const char *t = 0;
+
+  if (*input == '\0')
+    return 0;
+
+  /* RISC OS directory names are delimited by a '.'.
+     We must check for a few Unix styles though.  */
+  t = strchr (input, '.');
+  if (t != NULL)
+    {
+      if (input[0] == '.')
+	{
+	  if (input[1] == '\0')        /* current directory, end of path */
+	    t = 0;
+	  else if (input[1] == '/')    /* current directory, not end of path */
+	    t = input + 1;
+	  else if (input[1] == '.')
+	   {
+	     if (input[2] == '\0')     /* parent directory, end of path */
+	       t = 0;
+	     else if (input[2] == '/') /* parent directory, not end of path */
+	       t = input + 2;
+	   }
+	}
+    }
+
+  if (t)
+  {
+    strncpy (output, input, t - input);
+    output[t - input] = '\0';
+    return 1;
+  }
+  else
+  {
+  /* If we reach here, we have four possibilities:
+     1. fname
+     2. directory/fname
+     3. .
+     4. ..
+     none of which need any conversion. No.1 has both compatible with
+     RISC OS and Unix, and nos. 2-4 are already in Unix form.  */
+    strcpy (output, input);
+    return 0;
+  }
+}
+
+static char *
+add_directory_name (char *o, const char *i)
+{
+#ifdef DEBUG
+  printf ("add_dir_name: i = '%s'\n", i);
+#endif
+
+  /* Root directory ($) can be ignored since output is only a '/'.
+     The backslash is automatically output at the end of the string.  */
+  if (i[1] == '\0')
+    {
+      switch (i[0])
+	{
+	case '$':
+	  /* Do nothing for the root directory becuase a '/' is
+	     automatically added at the end.  */
+	  break;
+	case '^':
+	  /* Parent directory. In Unix this is '../' */
+	  *o++ = '.';
+	  *o++ = '.';
+	  break;
+	case '@':
+	case '.':
+	  /* Currently selected directory. In Unix this is './' */
+	  *o++ = '.';
+	  break;
+	case '%':
+	  /* The library directory.  In Unix this is '/lib'.  */
+	  *o++ = '/';
+	  *o++ = 'l';
+	  *o++ = 'i';
+	  *o++ = 'b';
+	  break;
+	default:
+	  /* Cope with one letter directories.  */
+	  *o++ = i[0];
+	  break;
+	}
+    }
+  else
+    {
+      strcpy (o, i);
+      o += strlen (i);
+    }
+  /* Look out for the :^ and :/ constructs.  */
+  if (o[-2] == ':' && o[-1] == '^')
+  {
+    o[-1] = '/';
+    *o++ = '.';
+    *o++ = '.';
+  }
+  if (o[-2] == ':' && o[-1] == '/')
+    *o++ = '.';
+  else
+    *o++ = '/';
+
+  *o++ = '\0';
+  return o - 1;
+}
+
+
+static char *
+add_directory_and_prefix (char *output, char *dir, const char *prefix)
+{
+  /* Output in the form: 'dir.prefix' */
+  strcpy (output, dir);
+  output += strlen (dir);
+  *output++ = '.';
+  strcpy (output, prefix);
+  output += strlen (prefix);
+  *output++ = '\0';
+  return output - 1;
+}
+
+
+static int
+is_prefix (const char *name)
+{
+  const char *t1;
+  int x = 0;
+  /* If there is more than one dot left in the filename, then this
+     cannot be the prefix.  */
+  if ((t1 = strchr (name, '.')) != strrchr (name, '.'))
+    return 0;
+
+  if (t1 == NULL)
+    t1 = name + strlen(name);
+
+  return __sfixfind(name, t1 - name) == NULL ? 0 : 1;
+}
+
+
+static int
+one_dot (const char *name)
+{
+  int x = 0;
+
+  while (*name)
+    if (*name++ == '.')
+      x++;
+  return (x == 1) ? 1 : 0;
+}
+
 
 /* Call __unixify with __riscosify_flags as the unixify_flags.  */
-char *__unixify_std (const char *name, char *buffer, size_t buflen,
+char *
+__unixify_std (const char *name, char *buffer, size_t buflen,
 		     int filetype)
 {
   return __unixify (name, __get_riscosify_control (), buffer, buflen,
@@ -32,10 +241,12 @@ char *
 __unixify (const char *ro_path, int unixify_flags, char *buffer,
 	   size_t buf_len, int filetype)
 {
+  char tempbuf[256];
   char *out_end, *out;
-  char current;
-  int can_be_discname;
+  char *temp;
+  int flag = 0, skip;
   const char *const in_buf = buffer; /* = NULL if we malloc the buffer.  */
+  const char *input;
 
   if (buffer == NULL)
     {
@@ -62,256 +273,151 @@ __unixify (const char *ro_path, int unixify_flags, char *buffer,
       return (char *) memcpy (buffer, ro_path, len + 1);
     }
 
-  /* buf_len > 0 and buffer != NULL.  */
+  input = ro_path;
   out = buffer;
+  buffer[0] = '\0';
   out_end = buffer + buf_len;
 
-  *out = '/';
-
-  /* Path names and disc names.
-     Filing system names are alphanumeric or '_'
-     Experimentation suggests path names may only be alphanumeric or '_'.
-     Note, we do not attempt to handle -fs- type pathnames, since the
-     use of them is virtually deprecated (see PRM 2-11).  */
-  if (isalnum (current = *ro_path) || current == '_')
+  /* Fast case. Look for a `.', `..' or `/'.  */
+  if (ro_path[0] == '.' && ro_path[1] == '\0')
     {
-      const char *in0;
-      char next;
+      *out++ = '.';
+      *out = '\0';
+      return out;
+    }
 
-      in0 = ro_path;
-      while (isalnum (next = *++in0) || next == '_')
-	;
+  if (ro_path[0] == '.' && ro_path[1] == '.' && ro_path[2] == '\0')
+    {
+      *out++ = '.';
+      *out++ = '.';
+      *out = '\0';
+      return out;
+    }
 
-      /* Skip special fields in the pathname. These start with '#' and can
-	 contain **anything** except ':'.  */
-      if (next == '#')
-	while ((next = *++in0) != '\0' && next != ':')
-	  ;
+  if (ro_path[0] == '.' && ro_path[1] == '.' &&
+      ro_path[2] == '/' && ro_path[3] == '\0')
+    {
+      *out++ = '.';
+      *out++ = '.';
+      *out = '\0';
+      return out;
+    }
 
-      if (next == ':')
-	{
-	  /* It's a path.  */
-	  size_t pathlen = in0 + 1 - ro_path;
+  if (ro_path[0] == '/' && ro_path[1] == '\0')
+    {
+      *out++ = '/';
+      *out = '\0';
+      return out;
+    }
 
-	  if (pathlen >= buf_len)  /* >= (1 char less) due to leading '/'.  */
-	    goto buf_overflow;
+  if (ro_path[0] == '.' && ro_path[1] == '/' && ro_path[2] == '\0')
+    {
+      *out++ = '.';
+      *out = '\0';
+      return out;
+    }
 
-	  out++; /* Use that '/' already there.  */
-	  memcpy (out, ro_path, pathlen);
-	  ro_path += pathlen;
-	  out += pathlen;
-	  current = *ro_path;
-	  can_be_discname = 1;
-	}
-      else
-	can_be_discname = 0;
+  /* If we take a file name like:
+     IDEFS::HD.$.Work.gcc.gcc-272.config.arm.c.rname
+     we would like to convert it to:
+     /IDEFS::HD.$/Work/gcc/gcc-272/config/arm/rname.c
+
+     Firstly try and locate a '.$'. Anything before this just specifies
+     a file system.  */
+  temp = strstr (ro_path, ".$");
+  if (temp != NULL)
+    {
+      /* We've found a '.$' */
+      if (*input != '/')
+        *out++ = '/';
+      temp+= 2;
+      while (input != temp)
+	*out++ = *input++;
+      /* Copy across the '.$' */
+      *out++ = '/';
+      input++;
     }
   else
-    can_be_discname = 1;
-
-  /* A comment describing what we are doing here would be nice.
-     current == ':' => we've got fsname::something.  */
-  if (can_be_discname && current == ':')
     {
-      if (buffer == out)
-	out++; /* Use that '/' already there.  */
-
-      while (current && current != '.')
+      temp = strchr (ro_path, ':');
+      if (temp)
 	{
-	  /* I don't think that riscosify is symetrical yet
-	     discnames containing '/' will confuse it.  */
-
-	  if (current == '/')
-	    current = '.';
-
-	  if (out < out_end)
-	    *out++ = current;
-
-	  current = *++ro_path;
-	}
-
-      /* out = buf_len means we are exactly full
-	 out > buf_len means a bug!  */
-      if (out >= out_end)
-	goto buf_overflow;
-
-      if (current == '.')
-	{
-	  *out++ = '/';
-	  ro_path++;
-	}
-    }
-
-  /* At this point we either have
-     /fs:
-     /fs::disc/
-     /:disc/
-
-     (ie nothing)
-     and we are pointing at not-a-'.' (possibly '\0').  */
-
-  while ((current = *ro_path) != '\0' && out < out_end)
-    {
-      const char next = ro_path[1];
-
-      if (next == '.' || next == '\0')
-	{
-	  switch (current)
-	    {
-	    case '$':
-	    case '%':
-	    case '&':
-	    case '\\':
-	      if (buffer == out)
-		out++; /* Use that '/' already there.  */
-
-	      if (out < out_end)
-		*out++ = current;
-	      ro_path++;
-
-	      if (next == '.')
-		{
-		  if (out < out_end)
-		    *out++ = '/';
-		  ro_path++;
-		}
-	      continue;
-
-	    case '^':
-	      if (out < out_end)
-		*out++ = '.';
-	      /* Drop through...  */
-
-	    case '@':
-	      if (out < out_end)
-		*out++ = '.';
-	      ro_path++;
-
-	      if (next == '.')
-		{
-		  if (out < out_end)
-		    *out++ = '/';
-		  ro_path++;
-		}
-	      continue;
-	    }
-	}
-      /* End of checks for $ ^ @  */
-
-      /* Copy until end of name or end of directory ('.').  */
-      while (current != '\0' && current != '.')
-	{
-	  if (out < out_end)
-	    *out++ = __filename_char_map[(unsigned char) current];
-
-	  current = *++ro_path;
-	}
-
-      if (current == '.')
-	{
-	  if (out < out_end)
+	  /* Add a / to the start to remove any ambiguity when converting back
+	     to RISC OS format */
+	  if (*ro_path != '/')
 	    *out++ = '/';
-	  ++ro_path;
 	}
     }
 
-  if (out < out_end)
+  while ((skip = get_directory_name (input, tempbuf)))
     {
-      *out = '\0';
-
-      /* Do suffix swapping, if needed.  */
-      if ((unixify_flags & __RISCOSIFY_NO_REVERSE_SUFFIX) == 0)
+#ifdef DEBUG
+      printf ("input = '%s', tempbuf = '%s'\n", input, tempbuf);
+#endif
+      if (one_dot (input))
 	{
-	  char *after_suffix;
+	  char name[256];
 
-	  /* Skip leafname.  */
-	  for (after_suffix = out - 1;
-	       after_suffix > buffer && *after_suffix != '/';
-	       --after_suffix)
-	    ;
-	  if (after_suffix > buffer && *after_suffix == '/')
+	  /* We've processed enough of the filename to be left with the
+	     following combinations:
+	     1. fname.prefix  e.g. fred.c
+	     2. prefix.fname  e.g. c.fred
+	     3. fname.nonprefix  e.g. fred.jim  */
+	  input += strlen (tempbuf) + 1;
+	  get_directory_name (input, name);
+
+	  if (is_prefix (name))
 	    {
-	      char *before_suffix;
-
-	      for (before_suffix = after_suffix - 1;
-		   before_suffix > buffer && *before_suffix != '/';
-		   --before_suffix)
-		;
-
-	      if (before_suffix == buffer || *before_suffix++ == '/')
-		{
-		  /* before_suffix is "c/file"
-		     after_suffix is "/file"  */
-		  *after_suffix = '\0'; /* temporary.  */
-		  if (__sfixfind (before_suffix, after_suffix - before_suffix))
-		    {
-		      /* We need to do reverse suffix swapping.  */
-		      char suffix[32];
-
-		      memcpy (suffix, before_suffix,
-			      after_suffix - before_suffix + 1);
-		      strcpy (before_suffix, after_suffix + 1);
-		      before_suffix[out - after_suffix - 1] = '.';
-		      strcpy (before_suffix + (out - after_suffix - 1) + 1,
-			      suffix);
-		    }
-		  else
-		    *after_suffix = '/';
-		}
+	      /* Method 1.
+	         name contains the prefix.
+	         tempbuf contains the filename.  */
+	      out = add_directory_and_prefix (out, tempbuf, name);
 	    }
+	  else if (is_prefix (tempbuf))
+	    {
+	      /* Method 2.
+	         tempbuf contains the prefix.
+	         name contains the filename.  */
+	      /* printf ("input = '%s', t = '%s', t1 = '%s'\n", input, t, t1); */
+	      out = add_directory_and_prefix (out, name, tempbuf);
+	    }
+	  else
+	    {
+	      /* Method 3. No prefixes in the filename.
+	         tempbuf contains the first section.
+	         name contains the last bit.  */
+	      out = add_directory_name (out, tempbuf);
+	      out = add_directory_name (out, name);
+	      /* Remove the final backslash automatically added in by
+	         add_directory_name.  */
+	      out[-1] = '\0';
+	    }
+	  flag = 1;
 	}
-
-      /* Do filetype extension, if needed.  */
-      if ((unixify_flags & __RISCOSIFY_FILETYPE_EXT) != 0
-	  && filetype != __RISCOSIFY_FILETYPE_NOTSPECIFIED)
+      else
 	{
-	  int ft_extension_needed = 1;
-
-	  if (!(unixify_flags & __RISCOSIFY_FILETYPE_NOT_SET))
-	    {
-	      const char *fn_extension;
-
-	      /* Check if we don't have a *filename* extension which already maps
-		 via MimeMap to the filetype 'filetype'.  If so, no need to
-		 add the RISC OS filetype again using *filetype* extension.  */
-	      for (fn_extension = out - 1;
-		   fn_extension != buffer
-		   && *fn_extension != '/' && *fn_extension != '.';
-		   --fn_extension)
-		;
-	      if (*fn_extension == '.')
-		{
-		  _kernel_swi_regs regs;
-
-		  /* We have a filename extension at 'fn_extension'.  */
-		  regs.r[0] = MMM_TYPE_DOT_EXTN; /* Input extension */
-		  regs.r[1] = (int)fn_extension;
-		  regs.r[2] = MMM_TYPE_RISCOS; /* Output extension */
-
-		  /* When there is no MimeMap error and the filetype returned
-		     matches 'filetype', we don't want filetype extension.  */
-		  if (! _kernel_swi (MimeMap_Translate, &regs, &regs)
-		      && regs.r[3] == filetype)
-		    ft_extension_needed = 0;
-		}
-	    }
-
-	  if (ft_extension_needed)
-	    {
-	      /* We need to add filetype ",xyz".  */
-	      if ((out + 4) >= out_end)
-		goto buf_overflow;
-
-	      *out++ = ',';
-	      *out++ = "0123456789abcdef"[(filetype >> 8) & 0xf];
-	      *out++ = "0123456789abcdef"[(filetype >> 4) & 0xf];
-	      *out++ = "0123456789abcdef"[(filetype >> 0) & 0xf];
-	      *out = '\0';
-	    }
+	  out = add_directory_name (out, tempbuf);
+	  /* Add 1 to get past dot.  */
+	  input += strlen (tempbuf) + 1;
 	}
-
-      return buffer;
     }
+#ifdef DEBUG
+  printf ("final i = '%s', tempbuf = '%s'\n", input, tempbuf);
+#endif
+
+  if (!flag)
+    {
+      strcpy (out, tempbuf);
+    }
+#ifdef TEST
+  printf ("input = '%s'\noutput = '%s'\n", ro_path, buffer);
+#endif
+
+   /* Do filetype extension, if needed.  */
+  if ((unixify_flags & __RISCOSIFY_FILETYPE_EXT) == 0 ||
+       filetype == __RISCOSIFY_FILETYPE_NOTSPECIFIED ||
+       add_filetype(buffer, out, out_end, filetype, unixify_flags))
+    return buffer;
 
 buf_overflow:
   /* Free the buffer if we allocated it, though buffer overflow should not
