@@ -25,6 +25,7 @@ Boston, MA 02111-1307, USA.  */
    define CROSS_COMPILE.  */
 
 #include "sdk-config.h"
+#define _GNU_SOURCE
 #include <stdio.h>
 #include <stdarg.h>
 #include <stddef.h>
@@ -50,7 +51,7 @@ Boston, MA 02111-1307, USA.  */
 #include "demangle.h"
 #include "getopt.h"
 
-#define LD_VERSION "2.21"
+#define LD_VERSION "2.22"
 #define LD_DATE __DATE__
 
 #ifndef __GNUC__
@@ -1663,10 +1664,15 @@ static void add_output_file (const char *fname)
 #if defined(CROSS_COMPILE) && defined(ENABLE_FILETYPE_FF8)
   char tmp[256];
 
+  /* If asked for, append a filetype to the RISC OS executable in the
+     format of ,xxx.  Network mounts, will automatically remove the
+     ,xxx suffix and replace it with proper filetype information.  */
   strcpy (tmp, fname);
-  strcat (tmp, ",ff8");
+  /* If the filetype suffix already exists then don't add it again.  */
+  if (strcmp (tmp - 4, ",ff8"))
+    strcat (tmp, ",ff8");
 #else
-  char *tmp = fname;
+  const char *tmp = fname;
 #endif
   if (tlink_verbose >= 4)
     printf ("adding output file %s\n", tmp);
