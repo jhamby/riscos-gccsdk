@@ -25,6 +25,7 @@ packages installed on your system, with at *least* these software revisions.
 	gcc		version 2.91
 	gperf		version 2.7.2
 	sed		version 2.05
+	makeinfo	version 4.2
 
 Installation
 ------------
