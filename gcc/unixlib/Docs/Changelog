@@ -1,3 +1,8 @@
+Sat Jan 22 00:06:21 2005  Alex Waugh  <alex@alexwaugh.com>
+
+	* source/clib/unixlib/unix.h (_PROCMAGIC): Change magic number as a
+	  temporary workaround for bug#137
+
 Sun Jan 16 18:25:33 2005  Alex Waugh  <alex@alexwaugh.com>
 
 	* source/unix/unix.c (find_redirection_type): Don't treat <

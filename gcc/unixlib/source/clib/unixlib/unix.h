@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/unixlib/unix.h,v $
- * $Date: 2004/10/12 08:32:38 $
- * $Revision: 1.18 $
+ * $Date: 2004/10/17 16:24:44 $
+ * $Revision: 1.19 $
  * $State: Exp $
- * $Author: peter $
+ * $Author: joty $
  *
  * UNIX is a registered trademark of AT&T Bell Laboratories
  *
@@ -88,7 +88,8 @@ struct __child_process
 /* UnixLib 3.7c.19970803 == 0xfedcfa61.  */
 /* UnixLib 3.7c.19980504 == 0xfedcfa62.  */
 /* UnixLib 4.0.20040113 == 0xfedcfa63.  */
-#define _PROCMAGIC 0xfedcfa63
+/* UnixLib 4.0.20050122 == 0xfedcfa64.  */
+#define _PROCMAGIC 0xfedcfa64
 
 struct proc
 {
