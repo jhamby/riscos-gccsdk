@@ -3157,7 +3157,7 @@ enum tree_dump_index
 /* Bit masks to control tree dumping. Not all values are applicable to
    all tree dumps. Add new ones at the end. When you define new
    values, extend the DUMP_OPTIONS array in tree-dump.c */
-#define TDF_ADDRESS	(1 << 0)	/* dump node addresses */
+#define TDF_ADDRESS	(1 << 0)	/* dump node addresseq */
 #define TDF_SLIM	(1 << 1)	/* don't go wild following links */
 
 typedef struct dump_info *dump_info_p;
