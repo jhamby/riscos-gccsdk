@@ -87,6 +87,12 @@ directory for those headers, simply define the variable:
   $ export DESKLIB_PATH=/home/riscos/lib/include/desklib
 
 
+Bug reporting
+-------------
+
+Please use the bug-tracking system at http://bugs.hard-mofo.dsvr.net.
+
+
 GCCSDK package contents
 -----------------------
 
