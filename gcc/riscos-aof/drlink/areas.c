@@ -497,6 +497,8 @@ static arealist *add_newarea(filelist *fp, areaentry *aep, unsigned int atattr, 
     debugsize+=aep->arsize;
   }
   else if ((atattr & ATT_CODE)!=0) {		/* Code areas */
+    got_32bitapcs = got_32bitapcs || ((atattr & ATT_32BIT)!=0);
+    got_26bitapcs = got_26bitapcs || ((atattr & ATT_32BIT)==0);
     if ((atattr & ATT_RDONLY)!=0) {
       insert_area(&rocodelist, &rocodelast, ap);
     }
@@ -874,7 +876,7 @@ void check_strongrefs(filelist *fp) {
 ** located. It returns a pointer to the 'arealist' entry of that area or
 ** 'NIL' if it cannot find the area
 */
-arealist *find_area(char *np) {
+arealist *find_area(const char *np) {
   arealist *ap;
   areasrchlist *sp;
   int hashval;
@@ -1237,7 +1239,7 @@ void relocate_areas(void) {
 ** relocation
 */
 static void flag_badreloc(unsigned int *relplace, const char *type) {
-  error("Error: Relocated (%s) value is out of range at offset 0x%x in area '%s in file '%s'",
+  error("Error: Relocated (%s) value is out of range at offset 0x%x in area '%s' in file '%s'",
    type, relplace-areastart, current_area->arname, current_file->chfilename);
 }
 

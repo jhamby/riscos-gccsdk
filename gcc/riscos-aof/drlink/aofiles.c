@@ -360,7 +360,7 @@ static void write_index(unsigned int ctype, unsigned int offset, unsigned int si
 */
 static void start_aofile(void) {
   chunkheader header;
-  idfn_size = align(strlen(IDFNSTRING)+strlen(VERSION)+sizeof(char));
+  idfn_size = align(strlen(IDFNSTRING)+strlen(DL_VERSION)+sizeof(char));
   imagesize = sizeof(chunkheader)+MAXCHUNKS*sizeof(chunkindex)+
    head_size+idfn_size+area_size+symt_size+strt_size;
   open_image();
@@ -437,7 +437,7 @@ static void create_objidfn(void) {
   unsigned int buffer[25];
   for (n = 0; n<25; n++) buffer[n] = 0;
   strcpy(COERCE(&buffer, char *), IDFNSTRING);
-  strcat(COERCE(&buffer, char *), VERSION);
+  strcat(COERCE(&buffer, char *), DL_VERSION);
   write_image(&buffer, idfn_size);
   idfn_start = file_offset;
   file_offset+=idfn_size;

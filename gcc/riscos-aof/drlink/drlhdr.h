@@ -18,9 +18,9 @@
 #endif
 
 #ifdef TARGET_RISCOS
-#define VERSION "0.39  02/03/02"
+#define DL_VERSION "0.39  02/03/02"
 #else
-#define VERSION "0.3.9  02/03/02  [GCCSDK build]"
+#define DL_VERSION "0.3.9  02/03/02  [GCCSDK build]"
 #endif
 
 /*
@@ -65,6 +65,8 @@ extern bool
   low_memory,		/* TRUE if memory is running low */
   aofv3flag,		/* TRUE if any AOF files use AOF version 3 */
   got_oldlibs,		/* TRUE if an old-style library has been read */
+  got_26bitapcs,	/* TRUE if any code area complies to a 26 bit APCS */
+  got_32bitapcs,	/* TRUE if any code area complies to a 32 bit APCS */
   opt_verbose,		/* TRUE if linker is putting out progress messages */
   opt_quiet,		/* TRUE if linker is not printing non-error messages */
   opt_info,		/* TRUE if printing summary at end of link */

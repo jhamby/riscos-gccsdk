@@ -25,12 +25,12 @@ typedef enum {NOTYPE, AIF, AOF, ALF, BIN, RMOD, RELOC} image;	/* Linker output f
 typedef enum {NOWT, AOFILE, LIBRARY, OLDLIB} fileinfo;	/* Type of file currently being read */
 
 typedef struct linkfiles {		/* AOF File to be included in link */
-  char *linkname;			/* Name of a file to link */
+  const char *linkname;			/* Name of a file to link */
   struct linkfiles *linknext;		/* Pointer to next file in link list */
 } linkfiles;
 
 typedef struct debugfiles {		/* Name of file whose debugging info is to be kept */
-  char *dbgname;			/* Name of file where debug is wanted */
+  const char *dbgname;			/* Name of file where debug is wanted */
   int dbghash;				/* Hashed version of name */
   bool dbgread;				/* TRUE if file was loaded */
   struct debugfiles *dbgnext;		/* Pointer to next file */

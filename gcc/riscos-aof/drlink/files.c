@@ -143,12 +143,12 @@ static unsigned int
 ** The function returns 'TRUE' if this was possible, otherwise it returns
 ** FALSE. This function is specific to RISCOS
 */
-static bool rearrange(char *filename) {
+static bool rearrange(const char *filename) {
   int len;
   char *toaddr, *fromaddr;
   len = strlen(filename);
   if (len<3) return FALSE;
-  toaddr = filename+len-1;	/* Point at last char in name */
+  toaddr = (char *)filename+len-1;	/* Point at last char in name */
   if (*(toaddr-1)=='.' && tolower(*toaddr)=='o') {
     fromaddr = toaddr-2;
     while (fromaddr>=filename && *fromaddr!='.' && *fromaddr!=':') {
@@ -185,7 +185,7 @@ static int find_size(FILE *file) {
 ** been opened yet. -1 is returned if the file cannot be found
 ** otherwise its size
 */
-int find_filesize(char *name) {
+int find_filesize(const char *name) {
   int size;
   FILE *thefile;
   thefile = fopen(name, "rb");
@@ -244,7 +244,7 @@ static fileinfo find_filetype(void) {
 ** This function is used when it is necessary to read the file's chunk
 ** header without bringing the whole file into memory
 */
-fileinfo examine_file(char *filename) {
+fileinfo examine_file(const char *filename) {
   FILE *libfile;
   unsigned int filesize, n;
   size_t count;
@@ -314,7 +314,7 @@ fileinfo examine_file(char *filename) {
 ** 'open_object' opens an AOF file. It returns 'TRUE' if this was
 ** okay otherwise it returns 'FALSE'.
 */
-bool open_object(char *filename) {
+bool open_object(const char *filename) {
   objectfile = fopen(filename, "rb");
   object_open = objectfile!=NIL;
   if (object_open) strcpy(objectname, filename);
@@ -333,7 +333,7 @@ void close_object(void) {
 ** 'need_debug' checks to see if debug information should be kept
 ** or generated for the file 'name'. It returns 'TRUE' if it should
 */
-static bool need_debug(char *name, int hashval) {
+static bool need_debug(const char *name, int hashval) {
   debugfiles *p;
   p = debugflist;
 #ifdef IGNORE_CASE
@@ -349,7 +349,7 @@ static bool need_debug(char *name, int hashval) {
 ** 'addto_filelist' adds a file to the file list, returning a pointer
 ** to the file's entry in the file list or nil if it failed
 */
-static filelist *addto_filelist(char *fname, unsigned int fsize) {
+static filelist *addto_filelist(const char *fname, unsigned int fsize) {
   filelist *p;
   char *cp;
   int i, hashval;
@@ -390,7 +390,7 @@ static filelist *addto_filelist(char *fname, unsigned int fsize) {
 ** 'addto_debuglist' adds the file name passed to it to the list of
 ** files where debug information is to be kept and/or generated.
 */
-void addto_debuglist(char *name) {
+void addto_debuglist(const char *name) {
   debugfiles *p;
   if ((p = allocmem(sizeof(debugfiles)))==NIL) {
     error("Fatal: Out of memory in 'addto_debuglist'");
@@ -479,7 +479,7 @@ static bool scan_chunkhdr(filelist *fp) {
 ** the file and then reads the entire file into memory returning either
 ** the size of the file if it is read successfully or -1 if it fails.
 */
-static int read_file(char *filename) {
+static int read_file(const char *filename) {
   int filesize;
   FILE *objfile;
   size_t count;
@@ -539,7 +539,7 @@ static int read_file(char *filename) {
 ** The proc returns 'TRUE' if all this worked otherwise it
 ** returns 'FALSE'
 */
-static bool process_file(char *filename, unsigned int filesize) {
+static bool process_file(const char *filename, unsigned int filesize) {
   filelist *fp;
   bool ok;
   ok = FALSE;
@@ -568,7 +568,7 @@ static bool process_file(char *filename, unsigned int filesize) {
 ** 'unread' checks the the file passed to it has not already
 ** been loaded. It returns 'TRUE' if it has not.
 */
-static bool unread(char *filename) {
+static bool unread(const char *filename) {
   unsigned int hashval;
   filelist *fp;
   fp = aofilelist;
@@ -651,7 +651,7 @@ static int match_files(char dirname[], char leafname[]) {
 ** returns it broken down into a directory name and a leaf name
 ** in the arrays 'dirname' and 'leafname' respectively
 */
-static void split_names(char *filename, char dirname[], char leafname[]) {
+static void split_names(const char *filename, char dirname[], char leafname[]) {
   char *p, *leafstart, *dirstart;
   int len;
   len = strlen(filename)-1;	/* Get offset of last char */
@@ -674,7 +674,7 @@ static void split_names(char *filename, char dirname[], char leafname[]) {
 ** 'wildcarded' returns TRUE if the filename pointed at by 'p'
 ** contains wildcards
 */
-static bool wildcarded(char *p) {
+static bool wildcarded(const char *p) {
   while (*p>' ' && strchr(WILDCARDS, *p)==NIL) p++;
   return *p>' ';
 }
@@ -688,7 +688,7 @@ static bool wildcarded(char *p) {
 ** but adds it to the library list. AOF files and old-style libraries
 ** are still read in.
 */
-bool get_files(char *filename) {
+bool get_files(const char *filename) {
   int count, i, filesize;
   char *dp, *p;
   bool ok;
@@ -805,7 +805,7 @@ void tidy_files(void) {
 ** The function returns 'TRUE' if the file was read otherwise it
 ** returns FALSE.
 */
-static bool load_textfile(char* filename, char **where, int *size) {
+static bool load_textfile(const char* filename, char **where, int *size) {
   unsigned int fsize;
   char *p;
   FILE *textfile;
@@ -840,7 +840,7 @@ static bool load_textfile(char* filename, char **where, int *size) {
 ** 'command line' pointers at it so that 'command line' parameters
 ** can be taken from the 'via' file.
 */
-bool load_viafile(char *vianame) {
+bool load_viafile(const char *vianame) {
   char *vp;
   int size;
   inviafile = load_textfile(vianame, &vp, &size);
@@ -858,7 +858,7 @@ bool load_viafile(char *vianame) {
 ** 'load_editfile' loads a file of link edit commands into memory.
 ** It return 'TRUE' is this went okay, otherwise it returns FALSE
 */
-bool load_editfile(char *name) {
+bool load_editfile(const char *name) {
   char *ep;
   int size;
   bool ok;
@@ -1218,16 +1218,14 @@ void open_symbol(void) {
 */
 void write_symbol(symtentry *sp) {
   int len;
-  char *printname;
   arealist *ap;
-  printname = sp->symtname;
-  len = strlen(printname)+8;
+  len = strlen(sp->symtname)+8;
   if (opt_acornmap) {
     if (opt_revmap) {
-      fprintf(symbolfile, "%06x  %s", sp->symtvalue-addroffset, printname);
+      fprintf(symbolfile, "%06x  %s", sp->symtvalue-addroffset, sp->symtname);
     }
     else {
-      fprintf(symbolfile, "%-25s %06x", printname, sp->symtvalue-addroffset);
+      fprintf(symbolfile, "%-25s %06x", sp->symtname, sp->symtvalue-addroffset);
     }
     check_write();
     if ((sp->symtattr & SYM_ABSVAL)==0 && sp->symtarea.areaptr!=NIL) {	/* A relocatable symbol */
@@ -1239,7 +1237,7 @@ void write_symbol(symtentry *sp) {
     check_write();
   }
   else {
-    fprintf(symbolfile, "%06x %s ", sp->symtvalue-addroffset, printname);
+    fprintf(symbolfile, "%06x %s ", sp->symtvalue-addroffset, sp->symtname);
     check_write();
     linewidth+=(len<=FIELDWIDTH ? 1 : 2);
     if (linewidth>=3) {
@@ -1271,7 +1269,7 @@ void open_mapfile(void) {
 ** 'write_mapfile' is called to write a line to the area map file
 ** and to ensure the I/O was clean
 */
-void write_mapfile(char *text) {
+void write_mapfile(const char *text) {
   size_t count;
   count = fwrite(text, sizeof(char), strlen(text), mapfile);
   if (count!=strlen(text)) {

@@ -22,8 +22,10 @@
 #define BRELOC_OFFSET 0x04		/* Offsey in header to BL to self-relocation code */
 #define PCMODIFIER 8			/* Adjustment for PC-relative instructions for PC */
 
-#define STRONGBIT 0x80			/* Bit to signify code is StrongARM compatible */
+#define STRONGBIT 0x80000000		/* Bit to signify code is StrongARM compatible */
 #define DBG_SOURCE 2			/* Source-level debug info present */
+
+#define ADDRESS_32BIT 0x00000020	/* 32-bit address mode */
 
 unsigned int bincode [] = {
   0xEA000000    /*  B       &00000000  Branch to entry point */
@@ -205,10 +207,7 @@ typedef struct {
   unsigned int aif_debugtype;		/* Debug info type flag */
   unsigned int aif_imagebase;		/* Address of image base */
   unsigned int aif_workspace;		/* Relocatable image workspace size */
-  unsigned char aif_addrflag1;		/* First address mode flag byte */
-  unsigned char aif_addrflag2;		/* Second address mode flag byte */
-  unsigned char aif_addrflag3;		/* Third address mode flag byte */
-  unsigned char aif_amode;		/* 26/32 bit address mode byte */
+  unsigned int aif_amode;		/* 26/32 bit address mode and flags */
   unsigned int aif_data;		/* Address of image data base */
 } aifheader;
 
@@ -225,8 +224,9 @@ void setup_aifhdr(unsigned int *code, unsigned int startaddr) {
   base->aif_debugsize = debugsize;
   if (debugsize>0) base->aif_debugtype = DBG_SOURCE;
   base->aif_workspace = workspace;
+  if (got_32bitapcs && !got_26bitapcs) base->aif_amode=ADDRESS_32BIT;       
   if (opt_strongarm) {	/* Set 'code is StrongARM compatible' flag in flag byte 1 */
-    base->aif_addrflag1|=STRONGBIT;
+    base->aif_amode|=STRONGBIT;
   }
   base->aif_entrypoint+=(startaddr-imagebase-BRENTRY_OFFSET-PCMODIFIER)>>2;
   if (zisize==0) {	/* No zero-init area. Change zero-init BL to NOOP */

@@ -192,6 +192,6 @@ bool got_errors(void) {
 ** 'announce' is called to say which version of the linker is in use
 */
 void announce(void) {
-  error("Drlink AOF Linker  Version %s", VERSION);
+  error("Drlink AOF Linker  Version %s", DL_VERSION);
 }
 

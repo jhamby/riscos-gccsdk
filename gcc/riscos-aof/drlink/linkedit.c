@@ -26,8 +26,9 @@ editcmd
   *refedit_list,			/* List of references to change */
   *new_entry;				/* Replacement entry point */
 
+const char
+  *editname;				/* Name of edit file */
 char
-  *editname,				/* Name of edit file */
   *editptr,				/* Pointer into link edit file buffer */
   *editendptr;				/* Pointer to end of link edit buffer */
 

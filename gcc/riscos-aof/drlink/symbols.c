@@ -591,7 +591,7 @@ symbol *search_common(symbol *wantedsym) {
 ** block and returns a pointer to the symbol table for the common
 ** block if found or 'nil'
 */
-symbol *find_common(char *name) {
+symbol *find_common(const char *name) {
   symbol dummysym;
   symtentry dummysymt;
   dummysym.symhash = hash(name);

@@ -81,7 +81,7 @@ static chunkindex *find_chunkentry(unsigned int index) {
 ** the '-lib' parameter are handled here. Libraries that have
 ** not been read into memory have 'libase' set to NIL.
 */
-bool addto_liblist(char *name, unsigned int *filebase, unsigned int filesize) {
+bool addto_liblist(const char *name, unsigned int *filebase, unsigned int filesize) {
   libheader *lp;
   char *cp;
   int n;
@@ -402,7 +402,7 @@ bool load_member(libentry *lp, filelist *inwhat, symbol *forwhat) {
 ** adds every member in it to the file list. The proc returns
 ** 'TRUE' if this worked otherwise it returns 'FALSE'
 */
-bool load_wholelib(char *libname, unsigned int filesize) {
+bool load_wholelib(const char *libname, unsigned int filesize) {
   int n, chunkcount;
   chunkindex *cp;
   chunkhdr *chp;
