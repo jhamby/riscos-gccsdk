@@ -182,7 +182,12 @@ main (int argc, char **argv)
       else if (IS_ARG ("-nolocal", "-nl"))
 	local = 0;
       else if (IS_ARG ("-objasm", "-obj"))
-	objasm = 1;		/* used as index in lex.c */
+	{
+	  /* Used as index in lex.c.  */
+	  objasm = 1;
+	  /* Treats '@' as current storage location; instead of comment.  */
+	  gcc_backend = 0;
+	}
       else if (IS_ARG ("-upper", "-up"))
 	uc++;
       else if (IS_ARG ("-pedantic", "-p"))
