@@ -8220,12 +8220,12 @@ arm_compute_initial_elimination_offset (from, to)
 
 #ifdef TARGET_RISCOSAOF
   if (from == ARG_POINTER_REGNUM || to == ARG_POINTER_REGNUM)
-    {
-      if (from == FRAME_POINTER_REGNUM)
-	return 0 - (local_vars + outgoing_args + stack_frame + call_saved_registers);
-      else
-	return local_vars + outgoing_args + stack_frame + call_saved_registers;
-    }
+    return local_vars + outgoing_args + call_saved_registers;
+
+  if (from == FRAME_POINTER_REGNUM && to == STACK_POINTER_REGNUM)
+    return 0;
+
+  abort ();
 #else
   /* OK, now we have enough information to compute the distances.
      There must be an entry in these switch tables for each pair
