@@ -40,15 +40,11 @@ Boston, MA 02111-1307, USA.  */
 #include <sys/wait.h>
 #include <sys/types.h>
 
-#ifndef CROSS_COMPILE
-#include <unixlib/local.h>
-#endif
-
 #include "obstack.h"
 #include "demangle.h"
 #include "getopt.h"
 
-#define LD_VERSION "2.22"
+#define LD_VERSION "2.30"
 #define LD_DATE __DATE__
 
 #ifndef __GNUC__
