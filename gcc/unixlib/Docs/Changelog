@@ -1,3 +1,9 @@
+Tue Apr  5 22:30:34 2005 Peter Naulls <peter@chocky.org>
+
+	* source/string/_memset.s: Fixed version of Adrian's memset.
+	* source/clib/unixlib/dev.h, source/unix/custom.c,
+	  source/unix/dev/c: Custom device handling.
+
 Tue Apr  5 22:09:32 2005  Alex Waugh  <alex@alexwaugh.com>
 
 	* source/termios/tcdrain.c (tcdrain): Remove ioctls that have

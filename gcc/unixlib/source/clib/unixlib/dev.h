@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/unixlib/dev.h,v $
- * $Date: 2004/12/23 21:10:07 $
- * $Revision: 1.11 $
+ * $Date: 2005/03/04 20:59:05 $
+ * $Revision: 1.12 $
  * $State: Exp $
- * $Author: peter $
+ * $Author: alex $
  *
  ***************************************************************************/
 
@@ -39,8 +39,9 @@ __BEGIN_DECLS
 #define DEV_ZERO	5	/* /dev/zero           */
 #define DEV_RANDOM	6	/* /dev/random         */
 #define DEV_DSP		7	/* /dev/dsp            */
+#define DEV_CUSTOM	8	/* Custom FD behaviour */
 
-#define NDEV		8
+#define NDEV		9
 
 /* Call a device function, ensuring we don't refer to an invalid device */
 #define dev_funcall(type, func, args) __funcall ((*(__dev[(type) < NDEV ? (type) : DEV_NULL].func)), args)
@@ -124,6 +125,17 @@ extern int __dspclose (struct __unixlib_fd *__fd);
 extern int __dspwrite (struct __unixlib_fd *__fd, const void *__data, int __nbyte);
 extern __off_t __dsplseek (struct __unixlib_fd *__fd, __off_t __lpos, int __whence);
 extern int __dspioctl (struct __unixlib_fd *__fd, unsigned long __request, void *__arg);
+
+/* /dev/custom support */
+extern void *__customopen (struct __unixlib_fd *__fd, const char *file, int __mode);
+extern int __customclose (struct __unixlib_fd *__fd);
+extern int __customread (struct __unixlib_fd *__fd, void *__data, int __nbyte);
+extern int __customwrite (struct __unixlib_fd *__fd, const void *__data, int __nbyte);
+extern __off_t __customlseek (struct __unixlib_fd *__fd, __off_t __lpos, int __whence);
+extern int __customioctl (struct __unixlib_fd *__fd, unsigned long __request, void *__arg);
+extern int __customselect (struct __unixlib_fd *__fd, int __fd1, fd_set *__read, fd_set *__write, fd_set *__except);
+extern int __customstat (const char *filename, struct stat *buf);
+extern int __customfstat (int fd, struct stat *buf);
 
 __END_DECLS
 

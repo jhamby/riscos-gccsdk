@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/dev.c,v $
- * $Date: 2005/03/31 11:33:14 $
- * $Revision: 1.30 $
+ * $Date: 2005/04/01 16:08:12 $
+ * $Revision: 1.31 $
  * $State: Exp $
- * $Author: nick $
+ * $Author: peter $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: dev.c,v 1.30 2005/03/31 11:33:14 nick Exp $";
+static const char rcs_id[] = "$Id: dev.c,v 1.31 2005/04/01 16:08:12 peter Exp $";
 #endif
 
 /* #define DEBUG */
@@ -67,7 +67,11 @@ const struct dev __dev[NDEV] =
 
   /* DEV_DSP */
   {__dspopen, __dspclose, __nullread, __dspwrite,
-    __dsplseek, __dspioctl, __nullselect, __nullstat, __nullfstat }
+    __dsplseek, __dspioctl, __nullselect, __nullstat, __nullfstat },
+
+  /* DEV_CUSTOM */
+  {__customopen, __customclose, __customread, __customwrite,
+    __customlseek, __customioctl, __customselect, __customstat, __customfstat }
 };
 
 /* Map of special device names to device types.  */
@@ -95,6 +99,7 @@ static const struct sfile __sfile[] =
   {"random", DEV_RANDOM},
   {"urandom", DEV_RANDOM},
   {"dsp", DEV_DSP},
+  {"custom", DEV_CUSTOM},
 /*   {"pipe", DEV_PIPE}, does open on /dev/pipe make sense ?  */
 /*   {"socket", DEV_SOCKET}, does open on /dev/socket make sense ?  */
   {NULL, DEV_RISCOS} /* table terminator */

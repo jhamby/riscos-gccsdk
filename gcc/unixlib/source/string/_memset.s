@@ -1,92 +1,116 @@
 ;----------------------------------------------------------------------------
 ;
-; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/_memset.s,v $
-; $Date: 2005/01/03 22:55:13 $
-; $Revision: 1.2 $
+; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/string/_memset.s,v $
+; $Date: 2005/04/04 12:01:15 $
+; $Revision: 1.1 $
 ; $State: Exp $
-; $Author: joty $
+; $Author: peter $
 ;
 ;----------------------------------------------------------------------------
 
-; This is based upon code from the GNU C library and carries the following
-; notice:
+; Fast memset Contriubted by Adrian Lees
 
-;  Copyright (C) 1998 Free Software Foundation, Inc.
-;  This file is part of the GNU C Library.
-;  Contributed by Philip Blundell <philb@gnu.org>
-;
-;  The GNU C Library is free software; you can redistribute it and/or
-;  modify it under the terms of the GNU Lesser General Public
-;  License as published by the Free Software Foundation; either
-;  version 2.1 of the License, or (at your option) any later version.
-;
-;  The GNU C Library is distributed in the hope that it will be useful,
-;  but WITHOUT ANY WARRANTY; without even the implied warranty of
-;  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-;  Lesser General Public License for more details.
-;
-;  You should have received a copy of the GNU Lesser General Public
-;  License along with the GNU C Library; if not, write to the Free
-;  Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-;  02111-1307 USA.
-
-
-; void *memset (dstpp, c, len)
 
 	GET	clib/unixlib/asm_dec.s
 
-	AREA	|C$$code|,CODE,READONLY
+	AREA	|C$$code|, CODE, READONLY
 
-	EXPORT	|memset|
-	EXPORT  |bzero|
+        ALIGN 32 ; For cache alignment of the code
+
+        EXPORT |memset|
+        EXPORT |bzero|
+
 |bzero|
-        mov     a3, a2
-        mov     a2, #0 
+	MOV	a3,a2
+	MOV	a2,#0
+
+; Fill a block of memory
+;
+; entry	a1 -> destination buffer
+;	a2 =  char used to fill buffer
+;	a3 =  nof chars to be written
+; exit	a1 -> destination buffer
 
 |memset|
-	mov	a4, a1
-	cmp	a3, #8		; at least 8 bytes to do?
-	blt	%fa2
-	orr	a2, a2, a2, lsl #8
-	orr	a2, a2, a2, lsl #16
-1
-	tst	a4, #3		; aligned yet?
-	strneb	a2, [a4], #1
-	subne	a3, a3, #1
-	bne	%ba1
-	mov	ip, a2
-1
-	cmp	a3, #8		; 8 bytes still to do?
-	blt	%fa2
-	stmia	a4!, {a2, ip}
-	sub	a3, a3, #8
-	cmp	a3, #8		; 8 bytes still to do?
-	blt	%fa2
-	stmia	a4!, {a2, ip}
-	sub	a3, a3, #8
-	cmp	a3, #8		; 8 bytes still to do?
-	blt	%fa2
-	stmia	a4!, {a2, ip}
-	sub	a3, a3, #8
-	cmp	a3, #8		; 8 bytes still to do?
-	stmgeia	a4!, {a2, ip}
-	subge	a3, a3, #8
-	bge	%ba1
-2
-	movs	a3, a3		; anything left?
-        moveq   pc, lr          ; nope
+	AND	a2,a2,#&FF
+	MOV	a4,a1
+	ORR	a2,a2,a2,LSL #8
+	ANDS	ip,a1,#3
+	ORR	a2,a2,a2,LSL #16
+	BNE	mset_unaligned
 
-	rsb	a3, a3, #7
-	add	pc, pc, a3, lsl #2
-	mov	r0, r0
-	strb	a2, [a4], #1
-	strb	a2, [a4], #1
-	strb	a2, [a4], #1
-	strb	a2, [a4], #1
-	strb	a2, [a4], #1
-	strb	a2, [a4], #1
-	strb	a2, [a4], #1
-        mov     pc, lr
+|mset_aligned|
+	CMP	a3,#64
+	BLO	mset16_lp
+
+|mset64_lp|
+	SUBS	a3,a3,#64
+	STRHS	a2,[a4],#4
+	STRHS	a2,[a4],#4
+	STRHS	a2,[a4],#4
+	STRHS	a2,[a4],#4
+	STRHS	a2,[a4],#4
+	STRHS	a2,[a4],#4
+	STRHS	a2,[a4],#4
+	STRHS	a2,[a4],#4
+	STRHS	a2,[a4],#4
+	STRHS	a2,[a4],#4
+	STRHS	a2,[a4],#4
+	STRHS	a2,[a4],#4
+	STRHS	a2,[a4],#4
+	STRHS	a2,[a4],#4
+	STRHS	a2,[a4],#4
+	STRHS	a2,[a4],#4
+	BHI	mset64_lp
+	ADDLO	a3,a3,#64
+
+|mset16_lp|
+	SUBS	a3,a3,#16
+	STRHS	a2,[a4],#4
+	STRHS	a2,[a4],#4
+	STRHS	a2,[a4],#4
+	STRHS	a2,[a4],#4
+	BHI	mset16_lp
+	ADDLO	a3,a3,#16
+
+	;at most 15 bytes left
+
+	SUBS	a3,a3,#4
+	STRHS	a2,[a4],#4
+	SUBHSS	a3,a3,#4
+	STRHS	a2,[a4],#4
+	SUBHSS	a3,a3,#4
+	STRHS	a2,[a4],#4
+	ADDLO	a3,a3,#4
+
+	;at most 3 bytes left
+
+	SUBS	a3,a3,#1
+	STRHSB	a2,[a4],#1
+	SUBHSS	a3,a3,#1
+	STRHSB	a2,[a4],#1
+	SUBHSS	a3,a3,#1
+	STRHSB	a2,[a4],#1
+	MOV	pc,lr
+
+|mset_unaligned|
+	RSB	ip,ip,#4	;nof bytes til word aligned
+	CMP	ip,a3
+	MOVHI	ip,a3		;but don't overrun
+
+	SUBS	ip,ip,#1
+	SUBHS	a3,a3,#1
+	STRHSB	a2,[a4],#1
+	SUBHSS	ip,ip,#1
+	SUBHS	a3,a3,#1
+	STRHSB	a2,[a4],#1
+	SUBHSS	ip,ip,#1
+	SUBHS	a3,a3,#1
+	STRHSB	a2,[a4],#1
+
+	TEQ	a3,#0		;finished already?
+	MOVEQ	pc,lr
+	B	mset_aligned
 
         END
 
