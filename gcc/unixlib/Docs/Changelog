@@ -1,3 +1,12 @@
+Tue Oct  5 16:24:01 2004  Peter Naulls  <peter@chocky.org>
+
+	* source/clib/swis.h, source/locale/iconv.c: Update to sync with
+	  John-Mark Bell's changes.
+	* source/clib/netdb.h: Further improve visibility of macros
+	  for unsupported functions.
+	* source/unix/unix.c: Improve comment.
+	* Docs/ReadMe: Update iconv URL.
+
 Fri Sep 24 00:09:00 2004  John Tytgat  <John.Tytgat@aaug.net>
 
 	* objs/Makefile.in: Predefined _GNU_SOURCE as quick fix for Norcroft
@@ -6,7 +15,8 @@ Fri Sep 24 00:09:00 2004  John Tytgat  <John.Tytgat@aaug.net>
 	  _GNU_SOURCE defined.
 	* source/clib/sys/debug.h (__debug): Added comment what __debug is
 	  doing.
-	* source/clib/unixlib/sigstate.h (valid_address): constify its parameters
+	* source/clib/unixlib/sigstate.h (valid_address): constify its
+	  parameters
 	* source/signal/post.c (valid_address): Likewise.
 	* source/clib/unixlib/unix.h: Minor comment updating.
 	* source/scl/_koscli.s: Likewise.

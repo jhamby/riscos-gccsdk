@@ -1,8 +1,8 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/netdb.h,v $
- * $Date: 2004/06/12 08:59:47 $
- * $Revision: 1.6 $
+ * $Date: 2004/09/17 18:39:51 $
+ * $Revision: 1.7 $
  * $State: Exp $
  * $Author: peter $
  *
@@ -469,6 +469,7 @@ struct gaicb
   int __unused[5];
 };
 
+#if 0
 /* Lookup mode.  */
 #  define GAI_WAIT	0
 #  define GAI_NOWAIT	1
@@ -504,6 +505,7 @@ struct gaicb
 #  define EAI_ALLDONE	  -103	/* All requests done.  */
 #  define EAI_INTR	  -104	/* Interrupted by a signal.  */
 # endif
+#endif
 
 # define NI_MAXHOST      1025
 # define NI_MAXSERV      32

@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source: $
- * $Date: $
- * $Revision: $
- * $State: $
- * $Author: $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/locale/iconv.c,v $
+ * $Date: 2004/09/23 22:16:39 $
+ * $Revision: 1.2 $
+ * $State: Exp $
+ * $Author: joty $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: $";
+static const char rcs_id[] = "$Id: iconv.c,v 1.2 2004/09/23 22:16:39 joty Exp $";
 #endif
 
 #include <stdlib.h>
@@ -17,6 +17,45 @@ static const char rcs_id[] = "$Id: $";
 #include <swis.h>
 #include <iconv.h>
 #include <unixlib/os.h>
+#include <errno.h>
+
+#define ERROR_BASE 0x81b900
+
+#define ICONV_NOMEM (ERROR_BASE+0)
+#define ICONV_INVAL (ERROR_BASE+1)
+#define ICONV_2BIG  (ERROR_BASE+2)
+#define ICONV_ILSEQ (ERROR_BASE+3)
+
+
+static int iconv_error(_kernel_oserror *err)
+{
+  __seterr (err);
+
+  switch (err->errnum) {
+    case ICONV_NOMEM:
+      errno = ENOMEM;
+      break;
+
+    case ICONV_INVAL:
+      errno = EINVAL;
+      break;
+
+    case ICONV_2BIG:
+      errno = E2BIG;
+      break;
+
+    case ICONV_ILSEQ:
+      errno = EILSEQ;
+      break;
+
+    default:
+      errno = EINVAL;
+      break;
+   }
+
+  return -1;
+}
+
 
 iconv_t iconv_open(const char *tocode, const char *fromcode)
 {
@@ -27,8 +66,7 @@ iconv_t iconv_open(const char *tocode, const char *fromcode)
       || (err = __os_cli("RMEnsure Iconv 0.01 Error iconv support requires the Iconv module 0.01 or newer")) != NULL
       || (err = _swix(Iconv_Open, _INR(0,1) | _OUT(0), tocode, fromcode, &ret)) != NULL)
     {
-      __seterr (err);
-      return (iconv_t)(-1);
+      return (iconv_t)iconv_error(err);
     }
 
   return ret;
@@ -44,8 +82,7 @@ size_t iconv(iconv_t cd, char **inbuf, size_t *inbytesleft, char **outbuf,
   err = _swix(Iconv_Iconv, _INR(0,4) | _OUT(0), cd, inbuf, inbytesleft, outbuf, outbytesleft, &ret);
   if (err)
     {
-      __seterr (err);
-      return (size_t)(-1);
+      return (size_t)iconv_error(err);
     }
 
   return ret;
@@ -60,8 +97,7 @@ int iconv_close(iconv_t cd)
   err = _swix(Iconv_Close, _IN(0) | _OUT(0), cd, &ret);
   if (err)
     {
-      __seterr (err);
-      return -1;
+      return iconv_error(err);
     }
 
   return ret;

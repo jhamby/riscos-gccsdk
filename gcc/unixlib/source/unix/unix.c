@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/unix.c,v $
- * $Date: 2004/09/07 14:05:11 $
- * $Revision: 1.25 $
+ * $Date: 2004/09/23 22:16:39 $
+ * $Revision: 1.26 $
  * $State: Exp $
  * $Author: joty $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: unix.c,v 1.25 2004/09/07 14:05:11 joty Exp $";
+static const char rcs_id[] = "$Id: unix.c,v 1.26 2004/09/23 22:16:39 joty Exp $";
 #endif
 
 #include <stdio.h>
@@ -166,7 +166,7 @@ void __unixinit (void)
       __stdioinit ();
 
       /* When the DDEUtils module is loaded, we can support chdir() without
-         RISC OS' CSD being changed. When not loaded, chdir() will work by
+         the RISC OS CSD being changed. When not loaded, chdir() will work by
          changing CSD for all processes.
 
          IMPORTANT NOTE: because of bugs in DDEUtils' path processing

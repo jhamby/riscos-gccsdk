@@ -1,8 +1,8 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/swis.h,v $
- * $Date: 2004/09/07 17:49:40 $
- * $Revision: 1.8 $
+ * $Date: 2004/09/12 08:25:52 $
+ * $Revision: 1.9 $
  * $State: Exp $
  * $Author: peter $
  *
@@ -723,8 +723,8 @@ __END_DECLS
 #define CryptRandom_Block              0x051983
 #define CryptRandom_Word               0x051984
 
-#define Iconv_Open                     0x0c0680
-#define Iconv_Iconv                    0x0c0681
-#define Iconv_Close                    0x0c0682
+#define Iconv_Open                     0x057540
+#define Iconv_Iconv                    0x057541
+#define Iconv_Close                    0x057542
 
 #endif
