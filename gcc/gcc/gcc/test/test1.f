@@ -1,0 +1,30 @@
+C     PROGRAM STATEMENT
+      PROGRAM EX1
+C     PROGRAM TO FIND THE SUM, LARGEST, SMALLEST AND RANGE OF 100 INPUT
+C     REAL NUMBERS
+C
+C     TYPE DECLARATIONS
+      IMPLICIT LOGICAL (A-Z)
+      INTEGER I
+      REAL X, SUM, BIG, SMALL, RANGE
+C
+C     EXECUTABLE STATEMENTS
+      READ *, X
+      SUM = X
+      BIG = X
+      SMALL = X
+      DO 10 I=2,10
+            READ *, X
+            IF (X.GT.BIG) THEN
+               BIG = X
+            ELSEIF (X.LT.SMALL) THEN
+               SMALL = X
+            ENDIF
+            SUM = SUM + X
+10     CONTINUE
+       RANGE = BIG - SMALL
+       PRINT *, 'THE SUM IS ', SUM, ', THE LARGEST IS ', BIG,
+     1       'THE SMALLEST IS ', SMALL, ' AND THE RANGE IS ', RANGE
+C
+C     END STATEMENT
+      END

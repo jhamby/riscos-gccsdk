@@ -1,0 +1,174 @@
+This is a rough, partial guide to what I have changed / improved / corrected
+in UnixLib3.6c to get it to work for GCC / G++
+
+Thanks go to the various people who have supplied various bug-fixes,
+especially Alun Jones, even if he does report problems, just after I make
+changes that make it harder to locate the bugs.
+
+Please note that ReadMe36c is slightly out of date, and you should ignore
+references to the !Boot and !alias files.
+
+Installation for GCC
+====================
+
+For GCC to work with Unixlib, two variable need to be set up. These are
+Unix$path amd UnixFS$/tmp. Unix$Path shpuld point to the clib directory,
+with a trailing dot. UnixFS$/tmp should point to your scrap directory. This
+can be done by putting similar to to the following lines into your boot
+sequence.
+
+*set Unix$Path ADFS::IDEDisc4.$.Usr.Develop.UnixLib36d.clib.
+*set UnixFS$/tmp <Wimp$ScrapDir>
+
+gcc changes
+===========
+
+All header files have had appropriate checks for C/C++ compilation, so that
+C function names are not mangled when compiling C++ sources.
+
+Number of atexit functions that can be registered has been increased to 33,
+so that global C++ destructors can be called
+
+Allow for command lines of upto 1K bytes in length, as gcc can generate
+command lines of greater than 255 bytes.
+
+Increase size of print buffers to 4K, as otherwise the c code generators
+dont generate correct code.
+
+__uname(): for ncc compatability, we need to truncate filename of greater
+than 10 characters, rather than dropping vowels.
+
+Add startup code so that C++ global constructors are called at program
+startup.
+
+Incompatibilities between what GCC expects the type of error variables, and
+what UnixLib declares them as.
+
+Bugs
+====
+
+If SIGSTAK is raised, an infinite loop is entered, as signal checks the
+stack and raises a SIGSTAK signal. Also the stack backtrace is improved
+
+strncmp(): zero length strings were treated as 1 byte long.
+
+memcmp(): problems with identical blocks of memory not being properly
+compared.
+
+strchr(): could not find '\0' in a string.
+
+__tmpnam(): bug that resulted in general corruption
+
+getcwd(): corrupted the PSD. Also uses OS_Args 7 and Prefix$Dir if they can
+be used.
+
+dirent(): now works with more than one open directory
+
+stat(): Now works for Image directories.
+
+_wr#chk functions have the wrong start address for checking the address.
+
+If Unix$tty is set, UnixLib corrupts the heap, by trying to free part of the
+code!
+
+General
+=======
+
+To aid debuging, the assembler routines have had their names embeded in the
+code.
+
+DRLink
+======
+
+There is a bug in DRLink that results in the offset of the entry point to be
+ignored, so I have moved the entry code to the start of the AREA.
+
+Header files
+============
+
+All files have had appropriate 'extern "C"' statements added to prevent the
+C++ compiler mangling function names.
+
+Minor problem of include files using include "" rather than <>.
+
+alloca.h: GCC insists on using its own, internal version of alloca() if it
+can. This does not work under RISC-OS, therefore I have arrenged that GCC
+wont recognise alloca().
+
+assert.h: Minor problem with K&R and ANSI C preprocesor.
+
+dirent.h: 'struct direct' renamed to 'struct dirent'
+
+errno.h: sys_nerr changed from 'const int' to 'int' - due to
+incompatabilities with GCC declaration. errno changed to __errno and errno
+#defined as __errno.
+
+pwd.h: removed non STDC declarations of some functions.
+
+stdarg.h: ensure that varargs.h / stdargs.h don't clash.
+
+stdio.h: increase size of output buffer from 1K to 4K
+
+stdlib.h: increase maximum number of atexit function that can be registered,
+as C++ needs one.
+
+termcap.h: remove non-ANSI declarations.
+
+unistd.h: added bits for preventing __uname() for packing filenames
+
+sys/fcntl.h include fcntl.h
+
+sys/file.h: GCC insists on including this.
+
+sys/param.h: bits for DDE command line.
+
+sys/syslib.h: bits for C++ startup code.
+
+sys.tty.h: include termio.h if not included.
+
+-----------------------------------------------------------------------------
+
+Makefile: obvious
+
+-----------------------------------------------------------------------------
+
+src.c.atexit: changes to allow 33 atexit() functions.
+
+src.c.memcmp: correct bug in memcmp()
+
+src.c.strcmp(): correct bug in strncmp(), which prevents 0 length strings
+comparing correctly.
+
+stdio.c.print: increase print buffer to 4K.
+
+stdio.c.debug: add bit to shut up cc.
+
+sys.c.errlist: change sys_nerr from 'const int' to 'int'
+
+sys.c.exec: add code to use DDE utils if needed.
+
+sys.c.signal: turn off stack checking, as otherwise a SIGSTAK causes an
+infinite loop. Improve stack backtrace.
+
+sys.c.sysclib: C++ initialisation code. Also set __uname() non-pack facility.
+
+sys.c.vfork: code for DDE commandline.
+
+Assembler code: add debuging info - routine names to all assembler sources.
+
+src.sys.s._signal: rename errno to __errno
+
+src.sys.s.__syslib: Move entry code to start of AREA, as drlink ignores the
+offset value specified in the ENTRYPOINT field. add point to base of r/w
+area. Set up dont pack indicator for __uname(). add bits for C++
+constructors. Change _wr#chk to correctly check start address. set up
+__rwbase for write checking.
+
+src.unix.c.dirent: rename struct direct to struct dirent.
+
+src.unix.c.getcwd / getwd: function getwd() changed to getcwd(), which seems correct.
+
+src.unix.c.uname: if file name is > 10 chars, dont pack if requested.
+
+src.unix.c.unix: use DDE utils if required. Correct bug that corrupts heap
+if Unix$tty is set.

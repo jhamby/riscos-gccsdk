@@ -1,0 +1,97 @@
+/****************************************************************************
+ *
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/glob.h,v $
+ * $Date: 2000/07/15 14:52:11 $
+ * $Revision: 1.1.1.1 $
+ * $State: Exp $
+ * $Author: nick $
+ *
+ ***************************************************************************/
+
+#ifndef __GLOB_H
+#define __GLOB_H 1
+
+#undef __ptr_t
+#define __ptr_t void *
+
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
+/* Bits set in the 'flags' argument to `glob'.  */
+#define	GLOB_ERR	(1 << 0)/* Return on read errors.  */
+#define	GLOB_MARK	(1 << 1)/* Append a slash to each name.  */
+#define	GLOB_NOSORT	(1 << 2)/* Don't sort the names.  */
+#define	GLOB_DOOFFS	(1 << 3)/* Insert PGLOB->gl_offs NULLs.  */
+#define	GLOB_NOCHECK	(1 << 4)/* If nothing matches, return the pattern.  */
+#define	GLOB_APPEND	(1 << 5)/* Append to results of a previous call.  */
+#define	GLOB_NOESCAPE	(1 << 6)/* Backslashes don't quote metacharacters.  */
+#define	GLOB_PERIOD	(1 << 7)/* Leading `.' can be matched by metachars.  */
+#define	__GLOB_FLAGS	(GLOB_ERR|GLOB_MARK|GLOB_NOSORT|GLOB_DOOFFS| \
+			 GLOB_NOESCAPE|GLOB_NOCHECK|GLOB_APPEND|     \
+			 GLOB_PERIOD|GLOB_ALTDIRFUNC|GLOB_BRACE|     \
+			 GLOB_NOMAGIC|GLOB_TILDE)
+
+/* GNU and BSD extensions to the glob function.  */
+#define	GLOB_MAGCHAR	(1 << 8)/* Set in gl_flags if any metachars seen.  */
+#define GLOB_ALTDIRFUNC	(1 << 9)/* Use gl_opendir et al functions.  */
+#define GLOB_BRACE	(1 << 10)/* Expand "{a,b}" to "a" "b".  */
+#define GLOB_NOMAGIC	(1 << 11)/* If no magic chars, return the pattern.  */
+#define GLOB_TILDE	(1 << 12)/* Expand ~user and ~ to home directories.  */
+#define GLOB_QUOTE (1 << 13) /* \ inhibits any meaning the following char has */
+
+/* Error returns from `glob'.  */
+#define	GLOB_NOSPACE	1	/* Ran out of memory.  */
+#define	GLOB_ABEND	2	/* Read error.  */
+#define	GLOB_NOMATCH	3	/* No matches found.  */
+
+/* Need the definition of struct stat.  */
+#ifdef __GNUC__
+struct stat;
+#else
+/* We should not do this, but Norcroft C complains about duplicate
+   definitions. */
+#ifndef __SYS_STAT_H
+#include <sys/stat.h>
+#endif
+#endif /* !__GNUC__ */
+
+/* Structure describing a globbing run.  */
+typedef struct
+  {
+    /* Count of paths matched by the pattern.  */
+    int gl_pathc;
+    /* List of matched pathnames.  */
+    char **gl_pathv;
+    /* Slots to reserve in `gl_pathv'.  */
+    int gl_offs;
+    /* Set to FLAGS, maybe | GLOB_MAGCHAR.  */
+    int gl_flags;
+    /* Number of matches in current invoc. of glob */
+    int gl_matchc;
+
+    /* If the GLOB_ALTDIRFUNC flag is set, the following functions
+       are used instead of the normal file access functions.  */
+    void (*gl_closedir) (void *);
+    struct dirent *(*gl_readdir) (void *);
+    __ptr_t (*gl_opendir) (const char *);
+    int (*gl_lstat) (const char *, struct stat *);
+    int (*gl_stat) (const char *, struct stat *);
+    int (*gl_errfunc) (const char *, int);
+  } glob_t;
+
+/* Do glob searching for 'pattern'. Results will be placed in 'pglob'.
+   'errfunc' is called upon error.  Returns zero on success.  */
+extern int glob (const char *__pattern, int __flags,
+		 int (*__errfunc) (const char *, int),
+		 glob_t *__pglob);
+
+/* Free storage allocated in 'pglob' by a previous call to glob.  */
+extern void globfree (glob_t *__pglob);
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif

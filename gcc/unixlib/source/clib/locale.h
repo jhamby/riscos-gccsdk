@@ -1,0 +1,111 @@
+/****************************************************************************
+ *
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/locale.h,v $
+ * $Date: 2000/07/15 14:52:11 $
+ * $Revision: 1.1.1.1 $
+ * $State: Exp $
+ * $Author: nick $
+ *
+ ***************************************************************************/
+
+/* ANSI Standard 4.4: Localisation <locale.h> */
+
+#ifndef	__LOCALE_H
+#define	__LOCALE_H 1
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/* Locale information types.
+   If you change these values, then you better fix setlocale().  */
+
+/* String collation (functions 'strcoll' and 'strxfrm').  */
+#define LC_COLLATE 0
+/* Classification and conversion of characters, multibyte and
+   wide characters.  */
+#define LC_CTYPE 1
+/* Formatting of monetary values.  */
+#define LC_MONETARY 2
+/* Formatting of numeric values that are not monetary. */
+#define LC_NUMERIC 3
+/* Formatting of data and time values.  */
+#define LC_TIME 4
+/* Entire locale.  */
+#define LC_ALL 5
+
+/* Sets the current locale for category 'category' to 'locale'.
+
+   If 'category' is 'LC_ALL', this specifies the locale for
+   all purposes. The other possible values of 'category' specify
+   an individual purpose.  */
+extern char *setlocale (int __category, const char *__locale);
+
+struct lconv
+{
+  /* Decimal-point separators used in formatting non-monetary quantities.  */
+  char *decimal_point;
+  /* Separators used to delimit groups of digits to the left of the
+     decimal point in formatting non-monetary quantities.  */
+  char *thousands_sep;
+  /* A string that specifies how to group the digits to the left
+     of the decimal point for non-monetary quantities.  */
+  char *grouping;
+  /* The international currency symbol for the selected locale.  */
+  char *int_curr_symbol;
+  /* The local currency symbol for the selected locale.  */
+  char *currency_symbol;
+  /* Decimal-point separators used in formatting monetary quantities.  */
+  char *mon_decimal_point;
+  /* Separators used to delimit groups of digits to the left of the
+     decimal point in formatting monetary quantities.  */
+  char *mon_thousands_sep;
+  /* A string that specifies how to group the digits to the left
+     of the decimal point for monetary quantities.  */
+  char *mon_grouping;
+  /* String used to indicate positive (or zero) monetary quantities.  */
+  char *positive_sign;
+  /* String used to indicate negative monetary quantities.  */
+  char *negative_sign;
+  /* Small integers indicating how many fractional digits should
+     be displayed in a monetary value in international (int_frac_digits)
+     and local formats (frac_digits).  */
+  char int_frac_digits;
+  char frac_digits;
+  /* Set to 1 is the 'currency_symbol' string should precede the
+     value of a monetary amount, 0 if the string should follow the value.  */
+  char p_cs_precedes;
+  /* Set to 1 if a space should appear between the 'currency_symbol'
+     string and the amount, 0 if no space should appear.  */
+  char p_sep_by_space;
+  /* Set to 1 is the 'currency_symbol' string should precede the
+     value of a monetary amount, 0 if the string should follow the value.  */
+  char n_cs_precedes;
+  /* Set to 1 if a space should appear between the 'currency_symbol'
+     string and the amount, 0 if no space should appear.  */
+  char n_sep_by_space;
+  /* Indicate how to position the sign for non-negative monetary quantities.  */
+  char p_sign_posn;
+  /* Indicate how to position the sign for negative monetary quantities.  */
+  char n_sign_posn;
+};
+
+/* Set the lconv structure with the current locale settings.  */
+extern struct lconv *localeconv(void);
+
+#ifdef __UNIXLIB_INTERNALS
+/* Territory number for each locale.  C locale is -1.  */
+extern int __locale_territory[LC_ALL + 1];
+
+/* Set to 1 is setlocale has been called since the last call to
+   localeconv. localeconv uses this flag to cache the lconv structure.  */
+extern int __setlocale_called;
+
+extern void __build_ctype_tables (int __territory);
+#endif
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif

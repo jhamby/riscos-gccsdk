@@ -1,0 +1,23 @@
+| Obey file for building gcc using the host computer's compiler and
+| run-time library
+Set UnixFS$sfix "c:cc:c++:h:i:o:s:m:f:y:in:rpo:p:pas:ph:gpi:gpc"
+Set Compilers$Path adfs::gcc.$.compilers.
+Set UnixFS$/tmp RAM::RamDisc0.$
+
+Set GCC$Dir <Obey$Dir>
+
+| Set the return code limit high, because UnixLib can return values
+| within this range.
+Set Sys$RCLimit 65536
+
+Set make$heap ""
+Set gcc$heap ""
+Set g++$heap ""
+Set cc1$heap ""
+Set cc1plus$heap ""
+Set cpp$heap ""
+Set drlink$heap ""
+
+| Open up the directory, ready for work.
+Dir <GCC$Dir>
+Filer_OpenDir <GCC$Dir>

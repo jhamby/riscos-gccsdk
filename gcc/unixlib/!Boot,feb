@@ -1,0 +1,2 @@
+IF "<Unix$Path>" = "" then set Unix$Path <Obey$Dir>.source.Clib.
+IconSprites <obey$Dir>.!Sprites

@@ -1,0 +1,87 @@
+				UnixLib 3.8
+				~~~~~~~~~~~
+
+The following details some of the more noticable changes that have
+been made to UnixLib since version 3.7b.
+
+* NetLib code has been tested and works. It is no longer an option to
+  leave out this code.
+
+* 'printf' and 'scanf' have been ported from BSD 4.3. 'printf' output is
+  now ANSI conformat and floating point numbers are correctly rounded
+  and very accurate. 'scanf' now supports scan-sets.
+
+* 'strtod' has been ported from BSD 4.3. It is a very accurate
+  implementation.
+
+* 'stpcpy', 'stpncpy' are new functions. These copy a string and return a
+  pointer to the terminating null character.
+
+* Character Localisation (locale) has been implemented and uses the
+  Territory Manager for the underlying features. Functions include
+  'localeconv', 'setlocale', 'strcoll' and 'strxfrm'.
+
+* The time functions have been re-written. These now use the Territory
+  Manager for underlying support, as well as being integrated with the
+  locale support. Daylight saving time is now supported and POSIX features
+  have been added to 'strftime'.
+
+* The ctype functions now support locale.
+
+* Math support has been extended to provide most of the features of libm.
+  New functions include 'cbrt', 'erf', 'expm1', 'fmod', 'ilogb', 'j0',
+  'j1', 'jn', 'lgamma', 'log1p', 'logb', 'nextafter', 'remainder',
+  'rem_pio2', 'rint', 'scalbn', 'significand', 'isinf', 'isnan',
+  'finite', 'copysign'.  Existing math functions now produce answers
+  accurate to 1 unit in the last place.
+
+* Standard input/output has been re-written. A restriction of the number of
+  stdio streams that can be opened has been removed. The new limit is
+  memory, the underlying operating system (RISC OS) and the number of
+  file descriptors available.  Many bugs have been fixed.
+
+* The code behind the implemention of file descriptors has been largely
+  re-written.  Currently, the maximum number of file descriptors that
+  can be opened is set at 64, but it is easy to extend this to millions.
+  Many bugs have been fixed.
+
+* The directory reading functions have been re-written.  The number of
+  directories that can be opened using 'opendir' is now limited by memory.
+
+* New POSIX features have been added: 'fnmatch', 'getopt', 'getsubopt',
+  'glob' and 'uname'.
+
+* Command line parsing has been improved. Filenames of the form
+  '<test$dir>.fred' are no longer interpreted as redirecting standard input
+  to read from the file 'test$dir>.fred'.
+
+* The mmap associated function calls have been implemented for RISC OS
+  users that have dynamic area support.
+
+* Malloc has been updated to Doug Lea's latest version. This will use
+  mmap for large allocations (on RISC OS versions that support it).
+
+* 'strtol', 'strtoul' are now accurate
+
+* fcrypt has been added.
+
+* The majority of functions provided by the SharedCLibrary header file
+  kernel.h have been implemented.
+  
+* 'getenv' has been re-written. Environment variables are now correctly
+  passed to the child process.
+
+* Extra safeguards have been added to prevent the stack backtrace from
+  crashing.
+
+* The header file termio.h has been replaced by the POSIX standard version
+  termios.h.
+
+* Filename translation can be turned on or off at run-time by setting a
+  system variable.
+
+* Added and implemented complex.h and fenv.h.
+
+* Removed 1024 character command line restriction.
+
+* Improved command line argument parser.

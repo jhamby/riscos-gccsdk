@@ -1,0 +1,90 @@
+/****************************************************************************
+ *
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/resource/getrusage.c,v $
+ * $Date: 2000/07/15 14:52:28 $
+ * $Revision: 1.1.1.1 $
+ * $State: Exp $
+ * $Author: nick $
+ *
+ * Written by Nick Burrett, 18 Feb 1996.
+ ***************************************************************************/
+
+#ifdef EMBED_RCSID
+static const char rcs_id[] = "$Id: getrusage.c,v 1.1.1.1 2000/07/15 14:52:28 nick Exp $";
+#endif
+
+#include <sys/resource.h>
+#include <sys/unix.h>
+#include <errno.h>
+#include <time.h>
+
+/* Return resource usage information on process indicated by WHO
+   and put it in *USAGE.  Returns 0 for success, -1 for failure.  */
+int
+getrusage (enum __rusage_who who, struct rusage *usage)
+{
+  int time;
+
+  if (who != RUSAGE_SELF && who != RUSAGE_CHILDREN)
+    {
+      errno = EINVAL;
+      return -1;
+    }
+
+  if (usage == 0)
+    return -1;
+
+  time = (int) clock ();
+  /* Since clock () returns all time the current program has been
+     running for, we shall not bother with the ru_stime structure.  */
+  /* Time spend executing user instructions.  */
+  usage->ru_utime.tv_sec = time / 100;
+  /* Separate the centiseconds from the seconds and then convert
+     to microseconds.  */
+  usage->ru_utime.tv_usec = (time - ((int) (time / 100) * 100)) * 10000;
+  /* Time spend in operating system code on behalf of 'who'.  */
+  usage->ru_stime.tv_sec = 0;
+  usage->ru_stime.tv_usec = 0;
+  /* The maximum residet set size used, in kilobytes i.e. the
+     maximum number of kilobytes that 'who' used in real memory
+     simultaneously.  */
+  usage->ru_maxrss = 0;
+  /* Amount of memory used by text that was shared with other
+     processes. Expressed in kilobytes * ticks of execution.  */
+  usage->ru_ixrss = 0;
+  /* The amount of unshared memory used in data.
+     Expressed as above.  */
+  usage->ru_idrss = 0;
+  /* The amount of unshared memory used in stack space.
+     Expressed as above.  */
+  usage->ru_isrss = 0;
+  /* The number of page faults which were serviced without
+     requiring any I/O.  */
+  usage->ru_minflt = 0;
+  /* The number of page faults which were serviced by doing I/O.  */
+  usage->ru_majflt = 0;
+  /* The number of times 'who' was swapped entirely out of main
+     memory.  */
+  usage->ru_nswap = 0;
+  /* The number of times the file system had to read from the disk
+     on behalf of 'who'.  */
+  usage->ru_inblock = __u->usage.ru_inblock;
+  /* The number of times the file system had to write to the disk
+     on behalf of 'who'.  */
+  usage->ru_oublock = __u->usage.ru_oublock;
+  /* Number of IPC messages sent.  */
+  usage->ru_msgsnd = 0;
+  /* Number of IPC messages received.  */
+  usage->ru_msgrcv = 0;
+  /* Number of signals received.  */
+  usage->ru_nsignals = __u->usage.ru_nsignals;
+  /* Number of times 'who' voluntarily invoked a context switch
+     (usually to wait for some service).  */
+  usage->ru_nvcsw = 0;
+  /* The number of times an involuntary context switch took place
+     (because the time slice expired, or another process of higher
+     priority became runnable).  */
+  usage->ru_nivcsw = 0;
+
+  return 0;
+}

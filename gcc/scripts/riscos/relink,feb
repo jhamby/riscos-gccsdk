@@ -1,0 +1,26 @@
+*dir $.arm-riscos-aof.unixlib.apcs26.hard.arch2.unixlib
+*libfile -c $.ulib common.o.* complex.o.* gcccompat.o.* locale.o.* math.o.* math-asm.o.* netlib.o.* pwd.o.* resource.o.* scl.o.* stdio.o.* signal.o.* sys.o.* termios.o.* time.o.* unix.o.* o.*
+
+*dir $.arm-riscos-aof.gcc-2_95_2.gcc.cpp
+*drlink -o $.bin.arm-riscos-aof.2_95_2.cpp o.* ^.config.arm.o.rname ^.config.arm.o.riscos_fix ^.config.arm.o.riscos ^.o.prefix $.arm-riscos-aof.libiberty.libiberty gccpkg:bin.arm-riscos.2_95_2.o.libgcc ^.o.version $.ulib
+
+*dir $.arm-riscos-aof.gcc-2_95_2.gcc
+*drlink -o $.bin.gcc o.gcc o.gccspec o.version config.arm.o.riscos_fix config.arm.o.rname o.prefix $.arm-riscos-aof.libiberty.libiberty gccpkg:bin.arm-riscos.2_95_2.o.libgcc $.ulib
+
+*dir $.arm-riscos-aof.gcc-2_95_2.gcc
+*drlink -o $.bin.arm-riscos-aof.2_95_2.cc1 -via $.scripts.cc1-via gccpkg:bin.arm-riscos.2_95_2.o.libgcc $.ulib
+*drlink -o $.bin.arm-riscos-aof.2_95_2.cc1plus -via $.scripts.cc1plus-via gccpkg:bin.arm-riscos.2_95_2.o.libgcc $.ulib
+
+*dir rafs::gccsrc.$.arm-riscos-aof.riscos-aof.ld
+*drlink -o $.bin.arm-riscos-aof.2_95_2.ld o.* $.arm-riscos-aof.libiberty.libiberty gccpkg:bin.arm-riscos.2_95_2.o.libgcc $.ulib
+
+*dir rafs::gccsrc.$.arm-riscos-aof.riscos-aof.drlink
+*drlink -o $.bin.arm-riscos-aof.2_95_2.drlink o.* $.arm-riscos-aof.libiberty.libiberty gccpkg:bin.arm-riscos.2_95_2.o.libgcc $.ulib
+
+*dir rafs::gccsrc.$.arm-riscos-aof.riscos-aof.as
+*drlink -o $.bin.arm-riscos-aof.2_95_2.as o.* $.arm-riscos-aof.libiberty.libiberty gccpkg:bin.arm-riscos.2_95_2.o.libgcc $.ulib
+
+*dir rafs::gccsrc.$.arm-riscos-aof.riscos.make
+*drlink -o $.bin.make o.* $.arm-riscos-aof.libiberty.libiberty gccpkg:bin.arm-riscos.2_95_2.o.libgcc $.ulib -rescan
+
+*dir $

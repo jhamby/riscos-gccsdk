@@ -1,0 +1,262 @@
+/****************************************************************************
+ *
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/vfork.c,v $
+ * $Date: 2000/07/15 14:52:33 $
+ * $Revision: 1.1.1.1 $
+ * $State: Exp $
+ * $Author: nick $
+ *
+ ***************************************************************************/
+
+#ifdef EMBED_RCSID
+static const char rcs_id[] = "$Id: vfork.c,v 1.1.1.1 2000/07/15 14:52:33 nick Exp $";
+#endif
+
+#include <errno.h>
+#include <string.h>
+#include <stdlib.h>
+#include <setjmp.h>
+#include <limits.h>
+#include <signal.h>
+
+#include <time.h>
+
+#include <termios.h>
+#include <unistd.h>
+
+#include <sys/resource.h>
+#include <sys/unix.h>
+#include <sys/syslib.h>
+#include <sys/param.h>
+#include <sys/debug.h>
+#include <sys/wait.h>
+#include <sys/swis.h>
+
+/* #define DEBUG */
+
+#ifdef DEBUG
+#include <stdio.h>
+#endif
+
+static void free_process (struct proc *p)
+{
+  int x;
+
+  if (p == NULL)
+    return;
+
+  /* Free any parts of the process structure that we've just created.  */
+  if (p->argv)
+    {
+      for (x = 0; x < p->argc; x++)
+	if (p->argv[x])
+	  free (p->argv[x]);
+      free (p->argv);
+    }
+
+  if (p->envp)
+    {
+      for (x = 0; x < p->envc; x++)
+	if (p->envp[x])
+	  free (p->envp[x]);
+      free (p->envp);
+    }
+
+  free (p);
+}
+
+/* vfork is similar to fork.
+
+   fork makes a complete copy of the calling process's address space
+   and allows both the parent and child to execute independently.
+   vfork does not make this copy.
+
+   A child process created with vfork shares its parent's address
+   space until it calls exit or one of the exec functions. In the
+   meantime, the parent process suspends execution.  */
+int *
+__vfork (void)
+{
+  struct proc *child;
+  int x /*, regs[10] */;
+
+#ifdef DEBUG
+  __debug ("vfork: parent process structure");
+#endif
+
+  /* Allocate memory for the new child process structure.  */
+  child = malloc (sizeof (struct proc));
+  if (child == NULL)  /* No memory.  */
+    goto nomem;
+
+  /* Initialise structure.  */
+  memset (child, 0, sizeof (struct proc));
+
+  /* Create a process ID.  It is cheaper to call clock() than os_swi.  */
+  /* os_swi (OS_ReadMonotonicTime, regs); */
+  child->ppid = __u->pid;  /* Get parent process's ID.  */
+  child->pid = clock (); /* regs[0]; */  /* Child process ID.  */
+
+  /* Make sure child's PID is not the same as the parents.  */
+  if (child->pid == __u->pid)
+    child->pid ++;
+
+  /* Keep a pointer to the parent process structure.  */
+  child->pproc = __u;
+
+  /* Give the child process the same priorities as the parent process.  */
+  child->ppri = __u->ppri;
+  child->gpri = __u->gpri;
+  child->upri = __u->upri;
+
+  /* A child process always inherits the signals blocked by the
+     parent process.  */
+  child->sigstate.blocked = __u->sigstate.blocked;
+  child->status.tty_type = TTY_CON;
+
+  /* Make a copy of the command line arguments.  */
+  if (__u->argc)
+    {
+      child->argv = (char **) malloc ((__u->argc + 1) * sizeof (char *));
+      if (child->argv == NULL)
+        goto nomem;
+      /* Copy entries from the environment and argument vectors.  */
+      for (x = 0; x < __u->argc; x++)
+        child->argv[x] = strdup (__u->argv[x]);
+    }
+
+  /* Copy environment vector.  */
+  if (__u->envc)
+    {
+      child->envp = (char **) malloc ((__u->envc + 1) * sizeof (char *));
+      if (child->envp == NULL)
+        goto nomem;
+      for (x = 0; x < __u->envc; x++)
+        child->envp[x] = strdup (__u->envp[x]);
+    }
+
+  child->argc = __u->argc;
+  child->envc = __u->envc;
+
+  /* Copy resource usage of the parent process.  */
+  child->usage = __u->usage;
+
+  /* I am a child process and I have a parent.  How nice.  */
+  child->status.has_parent = 1;
+
+  /* Copy file descriptors.  */
+  for (x = 0; x < MAXFD; x++)
+    child->fd[x] = __u->fd[x];
+
+  /* Copy process resource limits.  */
+  for (x = 0; x < RLIMIT_NLIMITS; x++)
+    child->limit[x] = __u->limit[x];
+
+  /* Copy tty.  */
+  child->tty = __u->tty;
+
+  child->__magic = _PROCMAGIC;
+
+  /* As a process, we now stop executing. The following line will
+     make us become the process we've just spawned (ie. the child
+     process).  */
+  __u = child;
+
+#ifdef DEBUG
+  __debug ("vfork: new child process structure");
+#endif
+
+  /* This will now return back to vfork(), with register a1 pointing
+     to a jmpbuf which will then be setup by setjmp().  */
+  return child->vreg;
+
+nomem:
+  free_process (child);
+  /* Ensure errno is ENOMEM in case free causes it to be set.  */
+  (void) __set_errno (ENOMEM);
+  return 0;
+}
+
+int *
+__vexit (int e)
+{
+  struct proc *p = __u;
+  int x;
+
+#if __FEATURE_ITIMERS
+  /* Stop any interval timers, just in case.  */
+  __stop_itimers ();
+#endif
+
+  /* Store the return code, then analyze it, setting various
+     bits in the process's status.
+
+     The exit code:
+	if bit 7 == 0
+	   bits 0..6 = normal exit code
+	else
+	  {
+	     bits 0..5 = signal number that terminated the process.
+	     bit 6 == 1 if process core dumped
+	  }
+  */
+
+  if (e & (1 << 7))
+    {
+      /* Process terminated with a signal.  */
+      p->status.return_code = 0;
+      p->status.signal_exit = 1;
+      p->status.signal = e & 0x7f;
+      p->status.core_dump = (e & (1 << 6)) ? 1 : 0;
+    }
+  else
+    {
+      p->status.return_code = e & 0x7f;
+      p->status.core_dump = 0;
+      p->status.signal_exit = 0;
+    }
+
+#ifdef DEBUG
+  __debug ("__vexit: child process structure");
+  os_print ("__vexit() e = "); os_prdec (e); os_print ("\r\n");
+  os_print ("return code:"); os_prdec (p->status.return_code); os_print ("\r\n");
+  os_print ("signal exit:"); os_prdec (p->status.signal_exit); os_print ("\r\n");
+  os_print ("signal:"); os_prdec (p->status.signal); os_print ("\r\n");
+  os_print ("core dumped:"); os_prdec (p->status.core_dump); os_print ("\r\n");
+#endif
+
+  /* Close the file descriptors we used.  */
+  for (x = 0; x < MAXFD; x++)
+    if (p->fd[x].__magic == _FDMAGIC)
+      close (x);
+
+#ifdef DEBUG
+  os_print ("__vexit: child died, now becoming parent process\r\n");
+#endif
+  /* Become the parent process.  */
+  __u = p->pproc;
+  /* Copy some parts of the old child process structure.  */
+  __u->child[0].pid = p->pid;
+  __u->child[0].uid = p->uid;
+  __u->child[0].gid = p->gid;
+  __u->child[0].ppri = p->ppri;
+  __u->child[0].upri = p->upri;
+  __u->child[0].gpri = p->gpri;
+  __u->child[0].usage = p->usage;
+  __u->child[0].status = p->status;
+
+  for (x = 0; x < __JMP_BUF_SIZE; x++)
+    __u->child[0].vreg[x] = p->vreg[x];
+  __u->child[0].vreg[13] = p->pid;
+
+  /* Free memory allocated to the child process.  */
+  free_process (p);
+
+#ifdef DEBUG
+  __debug ("__vexit: parent process structure");
+#endif
+  /* Raise SIGCHLD because the child process has now terminated
+     or stopped.  The default action is to ignore this.  */
+  raise (SIGCHLD);
+  return __u->child[0].vreg;
+}

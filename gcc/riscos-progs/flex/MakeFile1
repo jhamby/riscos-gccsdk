@@ -1,0 +1,246 @@
+cc=gcc
+cflags=-mthrowback -mamu -O2 -I.
+link=drlink -o
+bison=^.bison.bison
+
+.SUFFIXES:	.o .c
+.c.o:
+	$(cc) -o $@ -c $< $(cflags)
+
+OBJS = o.parse o.ccl o.dfa o.ecs o.gen o.initscan \
+	o.main o.misc o.nfa o.skel o.sym o.tblcmp o.yylex
+	
+LIBFL_OBJS = o.libmain o.libyywrap
+
+all: flex libfl
+
+flex:	$(OBJS)
+	gcc -o $@ $(OBJS)
+
+libfl:	$(LIBFL_OBJS)
+	makealf -o $@ $(LIBFL_OBJS)
+
+clean:
+	-wipe o.* fv~r~c
+
+parse.h parse.c: y.parse
+	$(BISON) -d parse.y -o parse.c
+
+# Dynamic dependencies:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+o.parse:	c.parse
+o.parse:	h.flexdef
+o.parse:	Unix:h.stdio
+o.parse:	Unix:unixlib.h.features
+o.parse:	Unix:unixlib.h.types
+o.parse:	Unix:h.stddef
+o.parse:	Unix:h.ctype
+o.parse:	h.config
+o.parse:	Unix:h.string
+o.parse:	Unix:sys.h.types
+o.parse:	Unix:h.time
+o.parse:	Unix:h.malloc
+o.parse:	Unix:h.stdlib
+o.parse:	Unix:h.alloca
+
+o.ccl:	c.ccl
+o.ccl:	h.flexdef
+o.ccl:	Unix:h.stdio
+o.ccl:	Unix:unixlib.h.features
+o.ccl:	Unix:unixlib.h.types
+o.ccl:	Unix:h.stddef
+o.ccl:	Unix:h.ctype
+o.ccl:	h.config
+o.ccl:	Unix:h.string
+o.ccl:	Unix:sys.h.types
+o.ccl:	Unix:h.time
+o.ccl:	Unix:h.malloc
+o.ccl:	Unix:h.stdlib
+o.ccl:	Unix:h.alloca
+
+o.dfa:	c.dfa
+o.dfa:	h.flexdef
+o.dfa:	Unix:h.stdio
+o.dfa:	Unix:unixlib.h.features
+o.dfa:	Unix:unixlib.h.types
+o.dfa:	Unix:h.stddef
+o.dfa:	Unix:h.ctype
+o.dfa:	h.config
+o.dfa:	Unix:h.string
+o.dfa:	Unix:sys.h.types
+o.dfa:	Unix:h.time
+o.dfa:	Unix:h.malloc
+o.dfa:	Unix:h.stdlib
+o.dfa:	Unix:h.alloca
+
+o.ecs:	c.ecs
+o.ecs:	h.flexdef
+o.ecs:	Unix:h.stdio
+o.ecs:	Unix:unixlib.h.features
+o.ecs:	Unix:unixlib.h.types
+o.ecs:	Unix:h.stddef
+o.ecs:	Unix:h.ctype
+o.ecs:	h.config
+o.ecs:	Unix:h.string
+o.ecs:	Unix:sys.h.types
+o.ecs:	Unix:h.time
+o.ecs:	Unix:h.malloc
+o.ecs:	Unix:h.stdlib
+o.ecs:	Unix:h.alloca
+
+o.gen:	c.gen
+o.gen:	h.flexdef
+o.gen:	Unix:h.stdio
+o.gen:	Unix:unixlib.h.features
+o.gen:	Unix:unixlib.h.types
+o.gen:	Unix:h.stddef
+o.gen:	Unix:h.ctype
+o.gen:	h.config
+o.gen:	Unix:h.string
+o.gen:	Unix:sys.h.types
+o.gen:	Unix:h.time
+o.gen:	Unix:h.malloc
+o.gen:	Unix:h.stdlib
+o.gen:	Unix:h.alloca
+
+o.initscan:	c.initscan
+o.initscan:	Unix:h.stdio
+o.initscan:	Unix:unixlib.h.features
+o.initscan:	Unix:unixlib.h.types
+o.initscan:	Unix:h.stddef
+o.initscan:	h.flexdef
+o.initscan:	Unix:h.ctype
+o.initscan:	h.config
+o.initscan:	Unix:h.string
+o.initscan:	Unix:sys.h.types
+o.initscan:	Unix:h.time
+o.initscan:	Unix:h.malloc
+o.initscan:	Unix:h.stdlib
+o.initscan:	Unix:h.alloca
+o.initscan:	h.parse
+
+o.main:	c.main
+o.main:	h.flexdef
+o.main:	Unix:h.stdio
+o.main:	Unix:unixlib.h.features
+o.main:	Unix:unixlib.h.types
+o.main:	Unix:h.stddef
+o.main:	Unix:h.ctype
+o.main:	h.config
+o.main:	Unix:h.string
+o.main:	Unix:sys.h.types
+o.main:	Unix:h.time
+o.main:	Unix:h.malloc
+o.main:	Unix:h.stdlib
+o.main:	Unix:h.alloca
+o.main:	h.version
+
+o.misc:	c.misc
+o.misc:	h.flexdef
+o.misc:	Unix:h.stdio
+o.misc:	Unix:unixlib.h.features
+o.misc:	Unix:unixlib.h.types
+o.misc:	Unix:h.stddef
+o.misc:	Unix:h.ctype
+o.misc:	h.config
+o.misc:	Unix:h.string
+o.misc:	Unix:sys.h.types
+o.misc:	Unix:h.time
+o.misc:	Unix:h.malloc
+o.misc:	Unix:h.stdlib
+o.misc:	Unix:h.alloca
+
+o.nfa:	c.nfa
+o.nfa:	h.flexdef
+o.nfa:	Unix:h.stdio
+o.nfa:	Unix:unixlib.h.features
+o.nfa:	Unix:unixlib.h.types
+o.nfa:	Unix:h.stddef
+o.nfa:	Unix:h.ctype
+o.nfa:	h.config
+o.nfa:	Unix:h.string
+o.nfa:	Unix:sys.h.types
+o.nfa:	Unix:h.time
+o.nfa:	Unix:h.malloc
+o.nfa:	Unix:h.stdlib
+o.nfa:	Unix:h.alloca
+
+o.skel:	c.skel
+o.skel:	h.flexdef
+o.skel:	Unix:h.stdio
+o.skel:	Unix:unixlib.h.features
+o.skel:	Unix:unixlib.h.types
+o.skel:	Unix:h.stddef
+o.skel:	Unix:h.ctype
+o.skel:	h.config
+o.skel:	Unix:h.string
+o.skel:	Unix:sys.h.types
+o.skel:	Unix:h.time
+o.skel:	Unix:h.malloc
+o.skel:	Unix:h.stdlib
+o.skel:	Unix:h.alloca
+
+o.sym:	c.sym
+o.sym:	h.flexdef
+o.sym:	Unix:h.stdio
+o.sym:	Unix:unixlib.h.features
+o.sym:	Unix:unixlib.h.types
+o.sym:	Unix:h.stddef
+o.sym:	Unix:h.ctype
+o.sym:	h.config
+o.sym:	Unix:h.string
+o.sym:	Unix:sys.h.types
+o.sym:	Unix:h.time
+o.sym:	Unix:h.malloc
+o.sym:	Unix:h.stdlib
+o.sym:	Unix:h.alloca
+
+o.tblcmp:	c.tblcmp
+o.tblcmp:	h.flexdef
+o.tblcmp:	Unix:h.stdio
+o.tblcmp:	Unix:unixlib.h.features
+o.tblcmp:	Unix:unixlib.h.types
+o.tblcmp:	Unix:h.stddef
+o.tblcmp:	Unix:h.ctype
+o.tblcmp:	h.config
+o.tblcmp:	Unix:h.string
+o.tblcmp:	Unix:sys.h.types
+o.tblcmp:	Unix:h.time
+o.tblcmp:	Unix:h.malloc
+o.tblcmp:	Unix:h.stdlib
+o.tblcmp:	Unix:h.alloca
+
+o.yylex:	c.yylex
+o.yylex:	Unix:h.ctype
+o.yylex:	h.flexdef
+o.yylex:	Unix:h.stdio
+o.yylex:	Unix:unixlib.h.features
+o.yylex:	Unix:unixlib.h.types
+o.yylex:	Unix:h.stddef
+o.yylex:	h.config
+o.yylex:	Unix:h.string
+o.yylex:	Unix:sys.h.types
+o.yylex:	Unix:h.time
+o.yylex:	Unix:h.malloc
+o.yylex:	Unix:h.stdlib
+o.yylex:	Unix:h.alloca
+o.yylex:	h.parse
+
+o.libmain:	c.libmain
+
+o.libyywrap:	c.libyywrap
+

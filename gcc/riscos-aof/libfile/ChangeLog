@@ -1,0 +1,22 @@
+Fri Dec  4 21:21:02 1998  Nick Burrett  <nick.burrett@btinternet.com>
+
+	* Librarian.cc (run): Add -x option.
+	(usage): Display -x option usage.
+	* Librarian.h (enum Action): Add ActionExtractAll.
+
+	* Library.cc (extractMembers, [UNIX]): Support UNIX directory
+	separators.
+
+Sat Nov 28 20:51:49 1998  Nick Burrett  <nick.burrett@btinternet.com>
+
+	* Buffer.cc (save, [UNIX]): Use stdio to perform save operation.
+	(load, [UNIX]): Use stdio to perform load operation.
+	* Chunk.cc (createPath, [UNIX]): Use standard C library alternatives
+	for RISC OS functions.
+	* LibData.cc (save, [UNIX]): Don't set load/exec address.
+	* LibFile_o.cc (readTimeStamp, [UNIX]): Temporarily set time stamps
+	to 0.
+	* LibTimeBas.cc (OS_File, [UNIX]): Don't declare.
+	* Path.cc (getMatchingFiles, [UNIX]): Use glob to match wildcarded
+	files.
+

@@ -1,0 +1,22 @@
+I have been trying a number of f77 sources with the g77 provided with
+GCC2.96, and not having much luck.
+There have been a number of problems, mostly related to character strings and
+writing to files. When it comes to isolating the problem in a nice succinct
+piece of sample code, the problems have become rather elusive.
+The example included is the first which I feel i can reasonably pass on as
+is. Most of the others are very big programs and I think it is probably best
+if I can reproduce the problem in a small bit of code which demonstrates it
+without confusing the issue with vast numbers of variables etc.
+The program genrd/f misbehaves, in that it doesn't write all that it should
+to the output file (unit 1, "fname").
+All that is written is the string in the char desc.
+I have added a write to unit 6 (stdout), which echos to the screen what is
+expected to be written to the file.
+The source, less the two writes to unit 6, has been compiling and executing
+as expected, without dramas for some years, using the MIPS f77 compiler for
+IRIX.
+I will keep working away at trying to get some demo code which exhibits soem
+of the other problems I have encountered with other f77 source.
+
+Terry Duell
+23 Aug 99

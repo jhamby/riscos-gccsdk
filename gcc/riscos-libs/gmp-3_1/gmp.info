@@ -1,0 +1,96 @@
+This is gmp.info, produced by makeinfo version 4.0 from gmp.texi.
+
+INFO-DIR-SECTION GNU libraries
+START-INFO-DIR-ENTRY
+* gmp: (gmp).                   GNU Multiple Precision Arithmetic Library.
+END-INFO-DIR-ENTRY
+
+   This file documents GNU MP, a library for arbitrary-precision
+arithmetic.
+
+   Copyright (C) 1991, 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000
+Free Software Foundation, Inc.
+
+   Permission is granted to make and distribute verbatim copies of this
+manual provided the copyright notice and this permission notice are
+preserved on all copies.
+
+   Permission is granted to copy and distribute modified versions of
+this manual under the conditions for verbatim copying, provided that
+the entire resulting derived work is distributed under the terms of a
+permission notice identical to this one.
+
+   Permission is granted to copy and distribute translations of this
+manual into another language, under the above conditions for modified
+versions, except that this permission notice may be stated in a
+translation approved by the Foundation.
+
+
+Indirect:
+gmp.info-1: 1054
+gmp.info-2: 50601
+gmp.info-3: 91805
+gmp.info-4: 137209
+
+Tag Table:
+(Indirect)
+Node: Top1054
+Node: Copying2238
+Node: Introduction to GMP3939
+Node: Installing GMP6052
+Node: Build Options6741
+Node: ABI and ISA12870
+Node: Notes for Package Builds16067
+Node: Notes for Particular Systems17457
+Node: Known Build Problems19424
+Node: GMP Basics22224
+Node: Nomenclature and Types23118
+Node: Function Classes24156
+Node: GMP Variable Conventions25629
+Node: GMP and Reentrancy29238
+Node: Useful Macros and Constants30222
+Node: Compatibility with older versions30825
+Node: Getting the Latest Version of GMP31674
+Node: Reporting Bugs32080
+Node: Integer Functions34134
+Node: Initializing Integers34849
+Node: Assigning Integers36961
+Node: Simultaneous Integer Init & Assign38816
+Node: Converting Integers40432
+Node: Integer Arithmetic42535
+Node: Integer Division43770
+Node: Integer Exponentiation50601
+Node: Integer Roots51295
+Node: Number Theoretic Functions52517
+Node: Integer Comparisons56297
+Node: Integer Logic and Bit Fiddling57476
+Node: I/O of Integers59747
+Node: Integer Random Numbers62221
+Node: Miscellaneous Integer Functions64829
+Node: Rational Number Functions66439
+Node: Initializing Rationals67717
+Node: Rational Arithmetic68988
+Node: Comparing Rationals69951
+Node: Applying Integer Functions71234
+Node: I/O of Rationals72037
+Node: Miscellaneous Rational Functions72997
+Node: Floating-point Functions75136
+Node: Initializing Floats77026
+Node: Assigning Floats79830
+Node: Simultaneous Float Init & Assign82008
+Node: Converting Floats83527
+Node: Float Arithmetic85227
+Node: Float Comparison87247
+Node: I/O of Floats88273
+Node: Miscellaneous Float Functions90391
+Node: Low-level Functions91805
+Node: Random Number Functions109638
+Node: Random State Initialization111916
+Node: BSD Compatible Functions115593
+Node: Custom Allocation120047
+Node: Contributors122401
+Node: References125726
+Node: Concept Index127698
+Node: Function Index137209
+
+End Tag Table

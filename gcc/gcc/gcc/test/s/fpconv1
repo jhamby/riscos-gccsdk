@@ -1,0 +1,159 @@
+r0	RN	0
+r1	RN	1
+mant1	RN	0
+xp1	RN	1
+
+fractlo	RN	2
+fracthi	RN	3
+exponent	RN	14
+
+lo	RN	2
+hi	RN	3
+ip	RN	12
+sp	RN	13
+r14	RN	14
+lr	RN	14
+pc	RN	15
+
+	AREA	|C$$code|, CODE, READONLY
+
+	EXPORT	fp_sfix_32bit
+	; Convert single precision float to 32-bit int.
+fp_sfix_32bit
+	cmp	r0, #0
+	moveqs	pc, r14
+
+	mov	xp1, r0, lsr #23 ; Extract the exponent
+	bic	mant1, r0, xp1, lsl #23 ; Clear exponent from mantissa
+	orr	mant1, mant1, #1<<23 ; add implicit bit
+
+	tst	xp1, #1<<8  ; Is sign bit set
+	rsbne	mant1, mant1, #0 ; yes; negate mantissa
+
+	bic	xp1, xp1, #1<<8 ; clear sign bit, leaving exponent
+
+	; number is represented as 1.mantissa x 2^exponent-127
+	subs	xp1, xp1, #127 ; remove bias (127) from exponent
+	movmi	r0, #0 ; if exponent negative then not representable
+	movmis	pc, r14 ; as an integer
+
+	; the mantissa is 23 bits wide. assume we are representing the
+	; number as mantissa x 2^23, then we may need to shift left
+	; or right.
+	rsbs	xp1, xp1, #23
+	movpl	mant1, mant1, asr xp1
+
+	rsbmi	xp1, xp1, #0 ; exponent was larger than 23
+	movmi	mant1, mant1, asl xp1
+	movs	pc, r14
+
+	EXPORT	fp_sfix_64bit
+	; Convert single precision float to 64-bit int
+fp_sfix_64bit
+	cmp	r0, #0
+	moveq	r1, #0
+	moveqs	pc, r14
+
+	mov	xp1, r0, lsr #23 ; Extract the exponent
+	bic	mant1, r0, xp1, lsl #23 ; Clear exponent from mantissa
+	orr	mant1, mant1, #1<<23 ; add implicit bit
+
+	tst	xp1, #1<<8  ; Is sign bit set
+	rsbne	mant1, mant1, #0 ; yes; negate mantissa
+
+	bic	xp1, xp1, #1<<8 ; clear sign bit, leaving exponent
+
+	; number is represented as 1.mantissa x 2^exponent-127
+	subs	xp1, xp1, #127 ; remove bias from exponent
+	movmi	r0, #0 ; if exponent negative then not representable
+	movmi	r1, #0
+	movmis	pc, r14 ; as an integer
+
+	; the mantissa is 23 bits wide. assume we are representing the
+	; number as mantissa x 2^23, then we may need to shift left
+	; or right.
+	rsbs	xp1, xp1, #23
+	movpl	mant1, mant1, asr xp1
+	movpl	r1, #0
+	movpls	pc, r14
+
+	rsb	xp1, xp1, #0 ; exponent was larger than 23
+
+	; perform 64-bit shift
+        rsbs	ip, xp1, #32
+	rsble	ip, ip, #0 ; shift >= 32 bits
+	movle	r1, mant1, asl ip
+	movle	r0, #0
+
+	;movgt	hi, hi, lsl xp1 ; shift <= 31 bits
+	movgt	hi, mant1, lsr ip
+	;orrgt	hi, hi, mant1, lsr ip
+	movgt	r0, mant1, asl xp1
+	movgt	r1, hi
+	movs	pc, r14
+
+
+	EXPORT	fp_dfix_64bit
+	; Convert double precision float to 64-bit int
+fp_dfix_64bit
+	cmp	r0, #0
+	cmpeq	r1, #0
+	moveqs	pc, r14
+
+	stmfd	sp!, {lr}
+	; r0 = first word
+	; r1 = second word
+
+	mov	exponent, r0, lsr #20 ; Extract the exponent
+	bic	fracthi, r0, exponent, lsl #20 ; clear exponent from fraction
+	orr	fracthi, fracthi, #1<<20 ; add implicit bit
+
+	tst	exponent, #1<<11  ; Is sign bit set
+	moveq	fractlo, r1 ; ... no
+	beq	dfix1
+
+	; negate mantissa
+	rsbs	fractlo, r1, #0
+	rsc	fracthi, fracthi, #0
+
+dfix1
+	bic	exponent, exponent, #1<<11 ; clear sign bit, leaving exponent
+
+	; number is represented as 1.mantissa x 2^exponent-1023
+	sub	exponent, exponent, #1024 ; remove bias from exponent
+	adds	exponent, exponent, #1
+	movmi	r0, #0 ; if exponent negative then not representable
+	movmi	r1, #0
+	ldmmifd	sp!, {pc}^ ; as an integer
+
+	; the mantissa is 52 bits wide. assume we are representing the
+	; number as mantissa x 2^52, then we may need to shift left
+	; or right.
+	rsbs	exponent, exponent, #52
+	bmi	dfix_shift_left
+
+	rsbs	ip, exponent, #32
+	rsble	ip, ip, #0
+	movle	r0, fracthi, asr ip
+	movle	r1, fracthi, asr #31
+
+	movgt	r0, fractlo, lsr exponent
+	orrgt	r0, r0, fracthi, asl ip
+	movgt	r1, fracthi, asr exponent
+	ldmfd	sp!, {pc}^
+
+dfix_shift_left
+	rsb	exponent, exponent, #0 ; exponent was larger than 23
+
+	; perform 64-bit shift
+        rsbs	ip, exponent, #32
+	rsble	ip, ip, #0 ; shift >= 32 bits
+	movle	r1, fractlo, asl ip
+	movle	r0, #0
+
+	movgt	r1, fracthi, lsl exponent ; shift <= 31 bits
+	orrgt	r1, r1, fractlo, lsr ip
+	movgt	r0, fractlo, asl exponent
+
+	ldmfd	sp!, {pc}^
+

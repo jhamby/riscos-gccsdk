@@ -1,0 +1,36 @@
+Hello,
+Here is the source code for Drlink. Everything you need is here.
+It is set up to compile for use under RISCOS. Apart from modifying
+a couple of '#define's, the code runs unchanged under RISCOS,
+RiscBSD and Linux.
+ 
+The file 'internals' gives some detail of the code.
+ 
+Just to repeat the conditions under which I am letting
+you have ther source:
+
+1) I, that is, Dave Daniels, retain the copyright to Drlink.
+
+2) You cannot pass a copy of the source code of Drlink to anyone
+   except for people actively involved in porting GNU software to
+   RISCOS. The same restriction applies to them.
+
+3) You can distribute modified executable versions of Drlink 
+   with the GNU compilers as long as they are marked as such.
+
+4) Drlink is not to be distributed under the GNU Public
+   License (GPL). I believe that the GPL says that that any
+   software that uses components that are subject to the GPL
+   must themselves be distributed under the GPL. I believe
+   this means that it must be supplied in source form.
+   
+5) You must let me have copies of any changed versions of the
+   source code.
+
+If you have any questions or anything, please do not hesitate to
+ask me.
+
+Dave Daniels
+
+
+

@@ -1,0 +1,66 @@
+Mon Jan 25 20:31:53 1999  Nick Burrett  <nick.burrett@btinternet.com>
+
+	* armswi.c (process_command_line): Return an error if the
+	file cannot be found.
+	(swi, case OS_CLI): Pass X bit flag to process_command_line.
+
+	* armswi.c (MIN_HANDLE, MAX_HANDLE): For debugging purposes,
+	specify the bounds for file handles in the file handles array.
+	(swi): Use them.
+
+Sun Jan 24 21:15:06 1999  Nick Burrett  <nick.burrett@btinternet.com>
+
+	* armswi.c (swi, case OS_SetVarVal): Correctly set environment
+	variable for integer variables. Support literal strings.
+	(swi, case OS_Find): Re-initialise file handle after closing.
+	(process_command_line): Handle an OS_CLI command line with no
+	arguments. Properly strip leading '/' from command line.
+
+Sun Jan 24 18:40:02 1999  Nick Burrett  <nick.burrett@btinternet.com>
+
+	* armswi.c (c_error): New function.
+	(swi, case OS_FSControl): Add reason code 25 (rename).
+	Add reason code 0 (chdir).
+	(swi, case OS_File): Add reason code 6 (delete a named object).
+	Add error status result to reason code 8.
+	Add reason code 4 (write catalogue information).
+	(set_protection): New function.
+	(get_protection): New function.
+	(get_riscos_file_details): New function.
+	(riscos_object_detail): New struct.
+	(swi, case OS_GBPB): Add reason codes 6, 9, 10, 11 and 12.
+	(swi, case OS_Args): Add reason code 7.
+	(terminate_emulator): Output statistics only if DEBUG is defined.
+	(swi, case OS_BPut): Set error if fputc returns EOF.
+	(swi, case OS_BGet): Set C flag if r0 == EOF.
+	(swi, case OS_GBPB): Flag an error if fseek fails.
+	(ticker_event): New struct.
+	(os_state): New struct.
+	(swi, case OS_CallAfter): Support SWI.
+	(swi, case OS_CallEvery): Support SWI.
+	(swi, case OS_RemoveTickerEvent): Support SWI.
+
+	(environment, escape_state, escape_key): Move into struct os_state.
+	(dde_cmd_line, dde_cmd_line_size, file_handles): Likewise.
+	(territory_table, territory_trans): Likewise.
+	(ENVH_*): New defines.
+	(everywhere): Use new process structure.
+
+	* armemu.c (main): Print title message only if DEBUG is defined.
+	(emulator): Count instruction use only if DEBUG is defined.
+
+Sun Jan  3 17:28:31 1999  Nick Burrett  <nick.burrett@btinternet.com>
+
+	* armdebug.c (showins): Call new disassembler.
+	* arm-opc.h: New file.
+	* arm-dis.c: New file.
+	* armdisas.c: Removed.
+	* armdebug-new.c: New file. Debug routines for new CPU emulation.
+	* armemu-new.c: New file. Developmental CPU emulation.
+	* Makefile: Update.
+
+	* armhdr.h: Support new CPU emulation.
+	* armswi.c (swi): Clear V bit on entry. Set V bit upon undefined SWI.
+	Add SWI OS_ValidateAddress.
+	
+

@@ -1,0 +1,900 @@
+# Project:   UnixLib 3.8
+
+# $Source: /usr/local/cvsroot/gccsdk/unixlib/objs/Makefile,fe1,v $
+# $Date: 2000/07/15 14:52:07 $
+# $Revision: 1.1.1.1 $
+# $State: Exp $
+# $Author: nick $
+
+CCfeatures =
+
+# Misc macros
+# XX = commamd
+# XXflags = general flags
+# XXdflags = debugging flags
+# XXrflags = release flags.
+
+# Compiler
+#CC = run adfs::gcc.$.compilers.cc506
+#CCdflags = 
+#CCrflags =
+#CCflags = -depend !Depend -throwback -fcah -JUnixHdr: -wda -wp $(CCrflags)
+Predefs = -D__UNIXLIB_INTERNALS
+
+# GCC compiler. Comment out if you are using Acorn C
+CC = gcc
+CCdflags = -pedantic -Wall -Wno-long-long
+CCrflags =
+CCflags = -O2 -mpoke-function-name -mthrowback $(CCdflags) $(CCfeatures)
+
+# Acorn Objasm Assembler. Comment out if you are using 'as'.
+#AS = objasm $(ObjAsmflags)
+#ASflags = -Stamp -quit -CloseExec
+#ASdflags =
+#ASrflags =
+#ASflags = -throwback -depend !Depend -I UnixHdr: $(ASdflags)
+
+# as Assembler. Comment out if you are using Acorn Objasm.
+AS = gcc
+ASflags = -c
+ASdflags =
+ASrflags = -I UnixHdr:
+
+# Libfile, etc
+#AR = libfile
+#ARflags = -c
+AR = makealf
+ARflags =
+
+# Linker
+LD = drlink
+LDflags =  -debi -d -v
+
+#VPATH = <UnixSrc$Dir>
+VPATH = ^.source
+.SUFFIXES: .o .c .s
+
+.c.o:;	$(CC) $(CCflags) $(Predefs) -c -o $@ "$<"
+.c.s:;	$(CC) $(CCflags) $(Predefs) -S -o $@ "$<"
+.s.o:;	$(AS) $(ASflags) -o $@ $<
+#.s.o:;	$(AS) $(ASflags) -To $@ -From $<
+
+COMPLEX = complex.o.cabs complex.o.cacos complex.o.cacosh complex.o.carg \
+	complex.o.casin complex.o.casinh complex.o.catan complex.o.catanh \
+	complex.o.ccos complex.o.ccosh complex.o.cexp complex.o.cimag \
+	complex.o.clog complex.o.clog10 complex.o.conj complex.o.cpow \
+	complex.o.cproj complex.o.creal complex.o.csin complex.o.csinh \
+	complex.o.csqrt complex.o.ctan complex.o.ctanh
+
+MATH =	math.o.acosh math.o.asinh math.o.atanh math.o.cbrt math.o.drem \
+	math.o.erf math.o.expm1 math.o.fpclassify math.o.fma \
+	math.o.fmax math.o.fmin math.o.fdim \
+	math.o.fmod math.o.frexp math.o.huge_val math.o.ilogb \
+	math.o.j0 math.o.j1 math.o.jn math.o.k_cos math.o.k_rem_pio2 \
+	math.o.k_sin math.o.lrint math.o.llrint math.o.log2 \
+	math.o.lgamma math.o.lgamma_r math.o.log1p math.o.logb \
+	math.o.modf math.o.nextafter math.o.nearbyint math.o.remainder \
+	math.o.rem_pio2 math.o.remquo math.o.rint math.o.scalbn \
+	math.o.significan math.o.trunc math.o.exp math.o.exp2 math.o.exp10 \
+	math.o.t_exp math.o.round math.o.lround math.o.llround
+
+MATH_ASM = math-asm.o._acos math-asm.o._asin math-asm.o._atan \
+	math-asm.o._atan2 math-asm.o._ceil math-asm.o._copysign \
+	math-asm.o._cos math-asm.o._cosh math-asm.o._exp \
+	math-asm.o._fabs math-asm.o._finite math-asm.o._floor \
+	math-asm.o._fclrexcpt math-asm.o._fegetenv math-asm.o._fegetrnd \
+	math-asm.o._feholdexc math-asm.o._fesetenv math-asm.o._fesetroun \
+	math-asm.o._fraiseexc math-asm.o._fsetexcpt math-asm.o._ftstexcpt \
+	math-asm.o._hypot math-asm.o._isinf math-asm.o._isnan \
+	math-asm.o._ldexp math-asm.o._log math-asm.o._log10 \
+	math-asm.o._pow math-asm.o._signbit math-asm.o._sin math-asm.o._sinh \
+	math-asm.o._sqrt math-asm.o._tan math-asm.o._tanh math-asm.o._sincos
+
+OBJS =	o.abort o.abs o.alloc o.assert o.atexit o.bsearch o.ctype \
+	o.ctypeproc o.div o.errno o.fcrypt o.index o.memccpy o.memchr \
+	o.memcmp o.memcpy o.memset o.psignal o.qsort o.rand \
+	o.stpcpy o.stpncpy o.strcat o.strchr o.strcmp o.strcpy o.strcspn \
+	o.strdup o.strichr o.stricmp o.strlen o.strncat o.strncmp \
+	o.strncpy o.strnicmp o.strpbrk o.strrchr o.strrichr o.strsep \
+	o.strsignal o.strspn o.strstr o.strtod \
+	o.strtok o.strtok_r o.strtol o.strtoul o.system o.termcap
+
+COMMON = common.o.attrib common.o.cvttime common.o.exist \
+	common.o.fdname common.o.funcallerr common.o.riscosify \
+	common.o.riscosifyc common.o.serial common.o.sockvalid \
+	common.o.stat common.o.uname common.o.unixify
+
+COMMON_ASM =	common.o._exist
+
+GCCCOMPAT_ASM = gcccompat.o._udivdi3 gcccompat.o._umoddi3 \
+	gcccompat.o._divdi3 gcccompat.o._moddi3
+
+LOCALE = locale.o.ctypetable locale.o.localeconv locale.o.setlocale \
+	locale.o.strcoll locale.o.strxfrm locale.o.territory
+
+NETLIB = netlib.o.accept netlib.o.bind netlib.o.connect \
+	netlib.o.getpeernam netlib.o.getsocknam netlib.o.getsockopt \
+	netlib.o.h_errno netlib.o.host netlib.o.inet_addr \
+	netlib.o.inet_aton netlib.o.inet_lnaof netlib.o.inet_mkad \
+	netlib.o.inet_netof netlib.o.inet_netwo netlib.o.inet_ntoa \
+	netlib.o.ntop netlib.o.listen netlib.o.net netlib.o.proto \
+	netlib.o.pton netlib.o.readline netlib.o.recv netlib.o.recvfrom \
+	netlib.o.recvmsg netlib.o.send netlib.o.sendmsg netlib.o.sendto \
+	netlib.o.serv netlib.o.setsockopt netlib.o.shutdown netlib.o.socket
+
+NETLIB_ASM = netlib.o.htonl netlib.o.htons netlib.o.ntohl netlib.o.ntohs \
+	netlib.o._accept netlib.o._bind netlib.o._connect \
+	netlib.o._getpeerna netlib.o._getsockna netlib.o._getsockop \
+	netlib.o._gettsize netlib.o._hostbyadd netlib.o._hostbynam \
+	netlib.o._listen netlib.o._net_error netlib.o._readv netlib.o._recv \
+	netlib.o._recvfrom \
+	netlib.o._recvmsg netlib.o._sclose netlib.o._select netlib.o._send \
+	netlib.o._sendmsg netlib.o._sendto netlib.o._sendtosm \
+	netlib.o._setsockop netlib.o._shutdown netlib.o._sioctl \
+	netlib.o._socket netlib.o._sockstat netlib.o._sread \
+	netlib.o._swrite netlib.o._writev
+
+PWD =	pwd.o.fgetpwent pwd.o.fgetpwentr pwd.o.getlogin pwd.o.getpw \
+	pwd.o.getpwent pwd.o.getpwnam pwd.o.getpwnam_r pwd.o.getpwuid \
+	pwd.o.getpwuid_r pwd.o.putpwent pwd.o.pwdread
+
+RESOURCE =	resource.o.getegid resource.o.geteuid resource.o.getgid \
+	resource.o.getpgrp resource.o.getpid resource.o.getppid \
+	resource.o.getprior resource.o.getrlimit resource.o.getrusage \
+	resource.o.getuid resource.o.initialise resource.o.seteuid \
+	resource.o.setgid resource.o.setpgid resource.o.setpgrp \
+	resource.o.setprior resource.o.setrlimit resource.o.setuid \
+	resource.o.ulimit
+
+SIGNAL =	signal.o.init signal.o.kill signal.o.pause \
+	signal.o.post signal.o.raise signal.o.setup signal.o.sigaction \
+	signal.o.sigaddset signal.o.sigaltstk signal.o.sigblock \
+	signal.o.sigdelset signal.o.siginfo signal.o.sigismembe \
+	signal.o.signal signal.o.signame signal.o.sigpause \
+	signal.o.sigpending signal.o.sigprocmsk signal.o.sigsetmask \
+	signal.o.sigsets signal.o.sigstack signal.o.sigsuspend \
+	signal.o.sigwakeup signal.o.sleep
+
+SIGNAL_ASM =	signal.o.sigexec signal.o._coredump signal.o._signal
+
+
+STDIO =	stdio.o.clearerr stdio.o.fclose stdio.o.feof stdio.o.ferror \
+	stdio.o.fflush stdio.o.fgets stdio.o.filbuf stdio.o.fileno \
+	stdio.o.flsbuf stdio.o.fopen stdio.o.fpos stdio.o.fputs \
+	stdio.o.fread stdio.o.freopen stdio.o.fwrite stdio.o.getc \
+	stdio.o.getdelim stdio.o.gets stdio.o.getw stdio.o.newstream \
+	stdio.o.perror stdio.o.popen stdio.o.printf \
+	stdio.o.putc stdio.o.puts stdio.o.putw stdio.o.remove \
+	stdio.o.rename stdio.o.scanf stdio.o.setbuf \
+	stdio.o.stdio stdio.o.tmpfile stdio.o.ungetc
+
+STDIO_ASM =	stdio.o._printf
+
+SCL_ASM = scl.o._kcurskch scl.o._kernel scl.o._kgetenv scl.o._kosargs \
+	scl.o._kosbget scl.o._kosbput scl.o._kosbyte scl.o._koscli \
+	scl.o._kosfile scl.o._kosfind scl.o._kosgbpb scl.o._kosrdch \
+	scl.o._kosword scl.o._koswrch scl.o._ksetenv scl.o._kswi_c
+
+SYS =	sys.o.alarm sys.o.brk sys.o.child sys.o.debug sys.o.errlist \
+	sys.o.exec sys.o.execl sys.o.execle sys.o.execlp sys.o.execv \
+	sys.o.execvp sys.o.mman sys.o.os sys.o.sigsetjmp sys.o.syslib \
+	sys.o.vfork
+
+SYS_ASM =	sys.o._address sys.o._alloca sys.o._divsi3 sys.o._divtest \
+	sys.o._exec sys.o._jmp sys.o._mem sys.o._mman sys.o._modsi3 sys.o._os \
+	sys.o._profile sys.o._sigjmp sys.o._sdiv sys.o._sdiv10 sys.o._smod \
+	sys.o._syslib sys.o._udiv sys.o._udiv10 sys.o._udivsi3 sys.o._umod \
+	sys.o._umodsi3 sys.o._vfork
+
+TIME =	time.o.adjtime time.o.asctime time.o.broken time.o.calendconv \
+	time.o.ctime time.o.difftime time.o.ftime time.o.getitmr \
+	time.o.gettod time.o.gmtime time.o.localtime time.o.mktime \
+	time.o.setitmr time.o.settod time.o.stdtime time.o.strftime \
+	time.o.time time.o.times time.o.tzset time.o.utimes
+
+TERMIOS =	 termios.o.cfgetispee termios.o.cfgetospee \
+	termios.o.cfsetispee termios.o.cfsetospee termios.o.ctermid \
+	termios.o.gtty termios.o.stty termios.o.tcdrain termios.o.tcflow \
+	termios.o.tcflush termios.o.tcgetattr termios.o.tcgetpgrp \
+	termios.o.tcsendbrk termios.o.tcsetattr termios.o.tcsetpgrp
+
+TIME_ASM =	time.o._clock
+
+UNIX =	unix.o.access unix.o.alphasort unix.o.chdir unix.o.chmod \
+	unix.o.chown unix.o.close unix.o.creat unix.o.getdtables unix.o.dev \
+	unix.o.dirent unix.o.dup unix.o.dup2 unix.o.fchmod unix.o.fchown \
+	unix.o.features unix.o.fnmatch unix.o.fcntl unix.o.fstat \
+	unix.o.getcwd unix.o.getdomain unix.o.getenv unix.o.gethostnam \
+	unix.o.getopt unix.o.getsubopt unix.o.glob unix.o.ioctl \
+	unix.o.isatty unix.o.ispipe unix.o.link unix.o.lseek unix.o.lstat \
+	unix.o.mkdir unix.o.nice unix.o.open unix.o.pathconf unix.o.pipe \
+	unix.o.poll unix.o.proc unix.o.pselect unix.o.putenv unix.o.read \
+	unix.o.readv unix.o.reopen unix.o.rmdir unix.o.select unix.o.setenv \
+	unix.o.stat unix.o.sync unix.o.sysconf unix.o.truncate unix.o.tty \
+	unix.o.umask unix.o.uname unix.o.unix unix.o.unlink unix.o.utime \
+	unix.o.wait unix.o.wait3 unix.o.wait4 unix.o.waitpid unix.o.write \
+	unix.o.writev
+
+UNIX_ASM = unix.o.getpagesiz
+
+WCHAR = wchar.o.btowc wchar.o.mblen wchar.o.mbrlen wchar.o.mbrtowc \
+	wchar.o.mbsinit wchar.o.mbsnrtowcs wchar.o.mbsrtowcs \
+	wchar.o.mbstowcs wchar.o.mbtowc wchar.o.wcpcpy \
+	wchar.o.wcpncpy wchar.o.wcrtomb wchar.o.wcscat \
+	wchar.o.wcschr wchar.o.wcscmp wchar.o.wcscoll wchar.o.wcscpy \
+	wchar.o.wcscspn wchar.o.wcsdup wchar.o.wcslen wchar.o.wcsncat \
+	wchar.o.wcsncmp wchar.o.wcsncpy wchar.o.wcsnrtombs \
+	wchar.o.wcspbrk wchar.o.wcsrchr wchar.o.wcsrtombs \
+	wchar.o.wcsspn wchar.o.wcsstr \
+	wchar.o.wcstok  wchar.o.wcstombs \
+	wchar.o.wcswidth wchar.o.wcsxfrm wchar.o.wctob wchar.o.wctomb \
+	wchar.o.wcwidth wchar.o.wmemchr wchar.o.wmemcmp wchar.o.wmemcpy \
+	wchar.o.wmemmove wchar.o.wmemset
+
+# wchar.o.wcstol wchar.o.wcstoul wchar.o.wcstoq wchar.o.wcstouq
+#  wchar.o.wcstold wchar.o.wcstod wchar.o.wcstof
+
+STAMP =	!Stamp common.!Stamp complex.!Stamp gcccompat.!Stamp \
+	locale.!Stamp math.!Stamp math-asm.!Stamp \
+	netlib.!Stamp pwd.!Stamp resource.!Stamp signal.!Stamp \
+	scl.!Stamp stdio.!Stamp sys.!Stamp termios.!Stamp time.!Stamp \
+	unix.!Stamp wchar.!Stamp
+
+# Final targets:
+UnixLib:   $(STAMP)
+	$(AR) $(ARflags) -o $@ o.* common.o.* complex.o.* gcccompat.o.* \
+	locale.o.* math.o.* math-asm.o.* netlib.o.* pwd.o.* resource.o.* \
+	scl.o.* signal.o.* stdio.o.* sys.o.* termios.o.* time.o.* unix.o.* \
+	wchar.o.*
+
+test:	test.link
+
+objs:	$(STAMP)
+
+# This bit is here because I have a slight compatability problem with
+# assemblers, and for release, the assembler needs to be run on the A5000,
+# rather then the RiscPC. Thank god for Access
+
+asm:	$(NETLIB_ASM) $(SCL_ASM) $(SYS_ASM) $(SIGNAL_ASM) $(UNIX_ASM)
+	$(STDIO_ASM) $(MATH_ASM) $(GCCCOMPAT_ASM) $(COMMON_ASM) $(TIME_ASM)
+	|
+
+install:	<UnixHdr$Dir>.o.UnixLib
+
+<UnixHdr$Dir>.o.UnixLib:	UnixLib
+	copy @.UnixLib <UnixHdr$Dir>.o.UnixLib fv~c
+
+clean:
+	-wipe o.* fv~r~c
+	-remove !stamp
+	-wipe common.o.* fv~r~c
+	-remove common.!Stamp
+	-wipe complex.o.* fv~r~c
+	-remove complex.!Stamp
+	-wipe gcccompat.o.* gv~r~c
+	-remove gcccompat.!Stamp
+	-wipe locale.o.* fv~r~c
+	-remove locale.!Stamp
+	-wipe math.o.* fv~r~c
+	-remove math.!stamp
+	-wipe math-asm.o.* fv~r~c
+	-remove math-asm.!stamp
+	-wipe netlib.o.* fv~r~c
+	-remove netlib.!stamp
+	-wipe pwd.o.* fv~r~c
+	-remove pwd.!stamp
+	-wipe resource.o.* fv~r~c
+	-remove resource.!stamp
+	-wipe scl.o.* fv~r~c
+	-remove scl.!stamp
+	-wipe signal.o.* fv~r~c
+	-remove signal.!stamp
+	-wipe stdio.o.* fv~r~c
+	-remove stdio.!stamp
+	-wipe sys.o.* fv~r~c
+	-remove sys.!stamp
+	-wipe termios.o.* fv~r~c
+	-remove termios.!stamp
+	-wipe test.o.* fv~r~c
+	-wipe time.o.* fv~r~c
+	-remove time.!stamp
+	-wipe unix.o.* fv~r~c
+	-remove unix.!stamp
+	-wipe wchar.o.* fv~r~c
+	-remove wchar.!stamp
+	-remove UnixLib
+
+suffixes:	UnixLib test.o.suffixes
+	$(link) test.o.suffixes UnixLib
+
+# Second level targets - all the objects.
+!Stamp:	$(OBJS)
+	-remove !Stamp
+	-create !Stamp 0
+
+complex.!Stamp:	$(COMPLEX)
+	-remove complex.!Stamp
+	-create complex.!Stamp
+
+common.!Stamp:	$(COMMON) $(COMMON_ASM)
+	-remove common.!Stamp
+	-create common.!Stamp
+
+gcccompat.!Stamp:	$(GCCCOMPAT_ASM)
+	-remove gcccompat.!Stamp
+	-create gcccompat.!Stamp
+
+locale.!Stamp:	$(LOCALE)
+	-remove locale.!Stamp
+	-create locale.!Stamp
+
+math.!Stamp:	$(MATH)
+	-remove math.!Stamp
+	-create math.!Stamp 0
+
+math-asm.!Stamp:	$(MATH_ASM)
+	-remove math-asm.!Stamp
+	-create math-asm.!Stamp 0
+
+netlib.!Stamp:	$(NETLIB) $(NETLIB_ASM)
+	-remove netlib.!Stamp
+	-create netlib.!Stamp 0
+
+pwd.!Stamp:	$(PWD)
+	-remove pwd.!Stamp
+	-create pwd.!Stamp 0
+
+resource.!Stamp:	$(RESOURCE)
+	-remove resource.!Stamp
+	-create resource.!Stamp 0
+
+scl.!Stamp:	$(SCL_ASM)
+	-remove scl.!Stamp
+	-create scl.!Stamp 0
+
+signal.!Stamp:	$(SIGNAL) $(SIGNAL_ASM)
+	-remove signal.!Stamp
+	-create signal.!Stamp 0
+
+stdio.!Stamp:	$(STDIO) $(STDIO_ASM)
+	-remove stdio.!Stamp
+	-create stdio.!Stamp 0
+
+sys.!Stamp:	$(SYS) $(SYS_ASM)
+	-remove sys.!Stamp
+	-create sys.!Stamp 0
+
+termios.!Stamp:	$(TERMIOS)
+	-remove termios.!Stamp
+	-create termios.!Stamp 0
+
+time.!Stamp:	$(TIME) $(TIME_ASM)
+	-remove time.!Stamp
+	-create time.!Stamp 0
+
+unix.!Stamp:	$(UNIX) $(UNIX_ASM)
+	-remove unix.!Stamp
+	-create unix.!Stamp 0
+
+wchar.!Stamp:	$(WCHAR)
+	-remove wchar.!Stamp
+	-create wchar.!Stamp 0
+
+test.link:	test.o.link unixlib
+	$(LD) $(LDflags) -o test.link test.o.link unixlib
+
+# Static dependencies:
+o.abort:		c.abort
+o.abs:			c.abs
+o.alloc:		c.alloc
+o.assert:		c.assert
+o.atexit:		c.atexit
+o.bsearch:		c.bsearch
+o.ctype:		c.ctype
+o.ctypeproc:		c.ctypeproc
+o.div:			c.div
+o.dtoa:			c.dtoa
+o.errno:		c.errno
+o.fcrypt:		c.fcrypt
+o.index:		c.index
+o.memchr:		c.memchr
+o.memcmp:		c.memcmp
+o.memcpy:		c.memcpy
+o.memset:		c.memset
+o.psignal:		c.psignal
+o.qsort:		c.qsort
+o.rand:			c.rand
+o.stpcpy:		c.stpcpy
+o.stpncpy:		c.stpncpy
+o.strcat:		c.strcat
+o.strchr:		c.strchr
+o.strcmp:		c.strcmp
+o.strcpy:		c.strcpy
+o.strcspn:		c.strcspn
+o.strdup:		c.strdup
+o.strichr:		c.strichr
+o.stricmp:		c.stricmp
+o.strlen:		c.strlen
+o.strncat:		c.strncat
+o.strncmp:		c.strncmp
+o.strncpy:		c.strncpy
+o.strnicmp:		c.strnicmp
+o.strpbrk:		c.strpbrk
+o.strrchr:		c.strrchr
+o.strrichr:		c.strrichr
+o.strsep:		c.strsep
+o.strsignal:		c.strsignal
+o.strspn:		c.strspn
+o.strstr:		c.strstr
+o.strtod:		c.strtod
+o.strtok:		c.strtok
+o.strtok_r:		c.strtok_r
+o.strtol:		c.strtol
+o.strtoul:		c.strtoul
+o.system:		c.system
+o.termcap:		c.termcap
+
+common.o.attrib:	common.c.attrib
+common.o.cvttime:	common.c.cvttime
+common.o.exist:		common.c.exist
+common.o.fdname:	common.c.fdname
+common.o.funcallerr:	common.c.funcallerr
+common.o.riscosify:	common.c.riscosify
+common.o.riscosifyc:	common.c.riscosifyc
+common.o.serial:	common.c.serial
+common.o.sockvalid:	common.c.sockvalid
+common.o.stat:		common.c.stat
+common.o.uname:		common.c.uname
+common.o.unixify:	common.c.unixify
+common.o._exist:	common.s._exist
+
+complex.o.cabs:		complex.c.cabs
+complex.o.cacos:	complex.c.cacos
+complex.o.cacosh:	complex.c.cacosh
+complex.o.carg:		complex.c.carg
+complex.o.casin:	complex.c.casin
+complex.o.casinh:	complex.c.casinh
+complex.o.catan:	complex.c.catan
+complex.o.catanh:	complex.c.catanh
+complex.o.ccos:		complex.c.ccos
+complex.o.ccosh:	complex.c.ccosh
+complex.o.cexp:		complex.c.cexp
+complex.o.cimag:	complex.c.cimag
+complex.o.clog:		complex.c.clog
+complex.o.clog10:	complex.c.clog10
+complex.o.conj:		complex.c.conj
+complex.o.cpow:		complex.c.cpow
+complex.o.cproj:	complex.c.cproj
+complex.o.creal:	complex.c.creal
+complex.o.csin:		complex.c.csin
+complex.o.csinh:	complex.c.csinh
+complex.o.csqrt:	complex.c.csqrt
+complex.o.ctan:		complex.c.ctan
+complex.o.ctanh:	complex.c.ctanh
+
+gcccompat.o._udivdi3:	gcccompat.s._udivdi3
+gcccompat.o._umoddi3:	gcccompat.s._umoddi3
+gcccompat.o._divdi3:	gcccompat.s._divdi3
+gcccompat.o._moddi3:	gcccompat.s._moddi3
+
+locale.o.ctypetable:	locale.c.ctypetable
+locale.o.localeconv:	locale.c.localeconv
+locale.o.setlocale:	locale.c.setlocale
+locale.o.strcoll:	locale.c.strcoll
+locale.o.strxfrm:	locale.c.strxfrm
+locale.o.territory:	locale.c.territory
+
+math.o.acosh:		math.c.acosh
+math.o.asinh:		math.c.asinh
+math.o.atanh:		math.c.atanh
+math.o.cbrt:		math.c.cbrt
+math.o.drem:		math.c.drem
+math.o.erf:		math.c.erf
+math.o.expm1:		math.c.expm1
+math.o.fdim:		math.c.fdim
+math.o.fmod:		math.c.fmod
+math.o.fma:		math.c.fma
+math.o.fmax:		math.c.fmax
+math.o.fmin:		math.c.fmin
+math.o.frexp:		math.c.frexp
+math.o.huge_val:	math.c.huge_val
+math.o.ilogb:		math.c.ilogb
+math.o.j0:		math.c.j0
+math.o.j1:		math.c.j1
+math.o.jn:		math.c.jn
+math.o.k_cos:		math.c.k_cos
+math.o.k_rem_pio2:	math.c.k_rem_pio2
+math.o.k_sin:		math.c.k_sin
+math.o.lgamma:		math.c.lgamma
+math.o.lgamma_r:	math.c.lgamma_r
+math.o.llrint:		math.c.llrint
+math.o.lrint:		math.c.lrint
+math.o.log1p:		math.c.log1p
+math.o.log2:		math.c.log2
+math.o.logb:		math.c.logb
+math.o.modf:		math.c.modf
+math.o.nearbyint:	math.c.nearbyint
+math.o.nextafter:	math.c.nextafter
+math.o.remainder:	math.c.remainder
+math.o.rem_pio2:	math.c.rem_pio2
+math.o.remquo:		math.c.remquo
+math.o.rint:		math.c.rint
+math.o.scalbn:		math.c.scalbn
+math.o.significan:	math.c.significan
+math.o.trunc:		math.c.trunc
+math-asm.o._acos:		math-asm.s._acos
+math-asm.o._asin:		math-asm.s._asin
+math-asm.o._atan:		math-asm.s._atan
+math-asm.o._atan2:		math-asm.s._atan2
+math-asm.o._ceil:		math-asm.s._ceil
+math-asm.o._copysign:		math-asm.s._copysign
+math-asm.o._cos:		math-asm.s._cos
+math-asm.o._cosh:		math-asm.s._cosh
+math-asm.o._exp:		math-asm.s._exp
+math-asm.o._fabs:		math-asm.s._fabs
+math-asm.o._finite:		math-asm.s._finite
+math-asm.o._floor:		math-asm.s._floor
+math-asm.o._fclrexcpt:		math-asm.s._fclrexcpt
+math-asm.o._fegetenv:		math-asm.s._fegetenv
+math-asm.o._fegetrnd:		math-asm.s._fegetrnd
+math-asm.o._feholdexc:		math-asm.s._feholdexc
+math-asm.o._fesetenv:		math-asm.s._fesetenv
+math-asm.o._fesetroun:		math-asm.s._fesetroun
+math-asm.o._fraiseexc:		math-asm.s._fraiseexc
+math-asm.o._fsetexcpt:		math-asm.s._fsetexcpt
+math-asm.o._ftstexcpt:		math-asm.s._ftstexcpt
+math-asm.o._hypot:		math-asm.s._hypot
+math-asm.o._isinf:		math-asm.s._isinf
+math-asm.o._isnan:		math-asm.s._isnan
+math-asm.o._ldexp:		math-asm.s._ldexp
+math-asm.o._log:		math-asm.s._log
+math-asm.o._log10:		math-asm.s._log10
+math-asm.o._modf1:		math-asm.s._modf1
+math-asm.o._pow:		math-asm.s._pow
+math-asm.o._sin:		math-asm.s._sin
+math-asm.o._sincos:		math-asm.s._sincos
+math-asm.o._sinh:		math-asm.s._sinh
+math-asm.o._sqrt:		math-asm.s._sqrt
+math-asm.o._tan:		math-asm.s._tan
+math-asm.o._tanh:		math-asm.s._tanh
+
+netlib.o.accept:	netlib.c.accept
+netlib.o.bind:		netlib.c.bind
+netlib.o.connect:	netlib.c.connect
+netlib.o.getpeernam:	netlib.c.getpeernam
+netlib.o.getsocknam:	netlib.c.getsocknam
+netlib.o.getsockopt:	netlib.c.getsockopt
+netlib.o.host:		netlib.c.host
+netlib.o.h_errno:	netlib.c.h_errno
+netlib.o.inet_addr:	netlib.c.inet_addr
+netlib.o.inet_aton:	netlib.c.inet_aton
+netlib.o.inet_lnaof:	netlib.c.inet_lnaof
+netlib.o.inet_mkad:	netlib.c.inet_mkad
+netlib.o.inet_netof:	netlib.c.inet_netof
+netlib.o.inet_netwo:	netlib.c.inet_netwo
+netlib.o.inet_ntoa:	netlib.c.inet_ntoa
+netlib.o.listen:	netlib.c.listen
+netlib.o.net:		netlib.c.net
+netlib.o.ntop:		netlib.c.ntop
+netlib.o.proto:		netlib.c.proto
+netlib.o.pton:		netlib.c.pton
+netlib.o.readline:	netlib.c.readline
+netlib.o.recv:		netlib.c.recv
+netlib.o.recvfrom:	netlib.c.recvfrom
+netlib.o.recvmsg:	netlib.c.recvmsg
+netlib.o.send:		netlib.c.send
+netlib.o.sendmsg:	netlib.c.sendmsg
+netlib.o.sendto:	netlib.c.sendto
+netlib.o.serv:		netlib.c.serv
+netlib.o.setsockopt:	netlib.c.setsockopt
+netlib.o.shutdown:	netlib.c.shutdown
+netlib.o.socket:	netlib.c.socket
+netlib.o.htonl:		netlib.s.htonl <UnixHdr$Dir>.unixlib.s.asm_dec
+netlib.o.htons:		netlib.s.htons <UnixHdr$Dir>.unixlib.s.asm_dec
+netlib.o.ntohs:		netlib.s.ntohs <UnixHdr$Dir>.unixlib.s.asm_dec
+netlib.o._accept:	netlib.s._accept <UnixHdr$Dir>.unixlib.s.asm_dec
+netlib.o._bind:		netlib.s._bind <UnixHdr$Dir>.unixlib.s.asm_dec
+netlib.o._connect:	netlib.s._connect <UnixHdr$Dir>.unixlib.s.asm_dec
+netlib.o._getpeerna:	netlib.s._getpeerna <UnixHdr$Dir>.unixlib.s.asm_dec
+netlib.o._getsockna:	netlib.s._getsockna <UnixHdr$Dir>.unixlib.s.asm_dec
+netlib.o._getsockop:	netlib.s._getsockop <UnixHdr$Dir>.unixlib.s.asm_dec
+netlib.o._gettsize:	netlib.s._gettsize <UnixHdr$Dir>.unixlib.s.asm_dec
+netlib.o._hostbyadd:	netlib.s._hostbyadd <UnixHdr$Dir>.unixlib.s.asm_dec
+netlib.o._hostbynam:	netlib.s._hostbynam <UnixHdr$Dir>.unixlib.s.asm_dec
+netlib.o._listen:	netlib.s._listen <UnixHdr$Dir>.unixlib.s.asm_dec
+netlib.o._net_error:	netlib.s._net_error <UnixHdr$Dir>.unixlib.s.asm_dec
+netlib.o._readv:	netlib.s._readv <UnixHdr$Dir>.unixlib.s.asm_dec
+netlib.o._recv:		netlib.s._recv <UnixHdr$Dir>.unixlib.s.asm_dec
+netlib.o._recvfrom:	netlib.s._recvfrom <UnixHdr$Dir>.unixlib.s.asm_dec
+netlib.o._recvmsg:	netlib.s._recvmsg <UnixHdr$Dir>.unixlib.s.asm_dec
+netlib.o._sclose:	netlib.s._sclose <UnixHdr$Dir>.unixlib.s.asm_dec
+netlib.o._select:	netlib.s._select <UnixHdr$Dir>.unixlib.s.asm_dec
+netlib.o._send:		netlib.s._send <UnixHdr$Dir>.unixlib.s.asm_dec
+netlib.o._sendmsg:	netlib.s._sendmsg <UnixHdr$Dir>.unixlib.s.asm_dec
+netlib.o._sendto:	netlib.s._sendto <UnixHdr$Dir>.unixlib.s.asm_dec
+netlib.o._sendtosm:	netlib.s._sendtosm <UnixHdr$Dir>.unixlib.s.asm_dec
+netlib.o._setsockop:	netlib.s._setsockop <UnixHdr$Dir>.unixlib.s.asm_dec
+netlib.o._shutdown:	netlib.s._shutdown <UnixHdr$Dir>.unixlib.s.asm_dec
+netlib.o._sioctl:	netlib.s._sioctl <UnixHdr$Dir>.unixlib.s.asm_dec
+netlib.o._socket:	netlib.s._socket <UnixHdr$Dir>.unixlib.s.asm_dec
+netlib.o._sockstat:	netlib.s._sockstat <UnixHdr$Dir>.unixlib.s.asm_dec
+netlib.o._sread:	netlib.s._sread <UnixHdr$Dir>.unixlib.s.asm_dec
+netlib.o._swrite:	netlib.s._swrite <UnixHdr$Dir>.unixlib.s.asm_dec
+netlib.o._writev:	netlib.s._writev <UnixHdr$Dir>.unixlib.s.asm_dec
+
+pwd.o.fgetpwent:	pwd.c.fgetpwent
+pwd.o.fgetpwentr:	pwd.c.fgetpwentr
+pwd.o.getlogin:		pwd.c.getlogin
+pwd.o.getpw:		pwd.c.getpw
+pwd.o.getpwent:		pwd.c.getpwent
+pwd.o.getpwnam:		pwd.c.getpwnam
+pwd.o.getpwnam_r:	pwd.c.getpwnam_r
+pwd.o.getpwuid:		pwd.c.getpwuid
+pwd.o.getpwuid_r:	pwd.c.getpwuid_r
+pwd.o.putpwent:		pwd.c.putpwent
+pwd.o.pwdread:		pwd.c.pwdread
+
+resource.o.getegid:	resource.c.getegid
+resource.o.geteuid:	resource.c.geteuid
+resource.o.getgid:	resource.c.getgid
+resource.o.getpgrp:	resource.c.getpgrp
+resource.o.getpid:	resource.c.getpid
+resource.o.getppid:	resource.c.getppid
+resource.o.getprior:	resource.c.getprior
+resource.o.getrlimit:	resource.c.getrlimit
+resource.o.getrusage:	resource.c.getrusage
+resource.o.getuid:	resource.c.getuid
+resource.o.initialise:	resource.c.initialise
+resource.o.seteuid:	resource.c.seteuid
+resource.o.setgid:	resource.c.setgid
+resource.o.setpgid:	resource.c.setpgid
+resource.o.setpgrp:	resource.c.setpgrp
+resource.o.setprior:	resource.c.setprior
+resource.o.setrlimit:	resource.c.setrlimit
+resource.o.setuid:	resource.c.setuid
+resource.o.ulimit:	resource.c.ulimit
+
+scl.o._kcurskch:	scl.s._kcurskch <UnixHdr$Dir>.unixlib.s.asm_dec
+scl.o._kernel:		scl.s._kernel <UnixHdr$Dir>.unixlib.s.asm_dec
+scl.o._kgetenv:		scl.s._kgetenv <UnixHdr$Dir>.unixlib.s.asm_dec
+scl.o._kosargs:		scl.s._kosargs <UnixHdr$Dir>.unixlib.s.asm_dec
+scl.o._kosbget:		scl.s._kosbget <UnixHdr$Dir>.unixlib.s.asm_dec
+scl.o._kosbput:		scl.s._kosbput <UnixHdr$Dir>.unixlib.s.asm_dec
+scl.o._kosbyte:		scl.s._kosbyte <UnixHdr$Dir>.unixlib.s.asm_dec
+scl.o._koscli:		scl.s._koscli <UnixHdr$Dir>.unixlib.s.asm_dec
+scl.o._kosfile:		scl.s._kosfile <UnixHdr$Dir>.unixlib.s.asm_dec
+scl.o._kosfind:		scl.s._kosfind <UnixHdr$Dir>.unixlib.s.asm_dec
+scl.o._kosgbpb:		scl.s._kosgbpb <UnixHdr$Dir>.unixlib.s.asm_dec
+scl.o._kosrdch:		scl.s._kosrdch <UnixHdr$Dir>.unixlib.s.asm_dec
+scl.o._kosword:		scl.s._kosword <UnixHdr$Dir>.unixlib.s.asm_dec
+scl.o._koswrch:		scl.s._koswrch <UnixHdr$Dir>.unixlib.s.asm_dec
+scl.o._ksetenv:		scl.s._ksetenv <UnixHdr$Dir>.unixlib.s.asm_dec
+scl.o._kswi_c:		scl.s._kswi_c <UnixHdr$Dir>.unixlib.s.asm_dec
+scl.o._memchk:		scl.s._memchk <UnixHdr$Dir>.unixlib.s.asm_dec
+
+signal.o.coredump:	signal.c.coredump
+signal.o.init:		signal.c.init
+signal.o.kill:		signal.c.kill
+signal.o.pause:		signal.c.pause
+signal.o.post:		signal.c.post
+signal.o.raise:		signal.c.raise
+signal.o.setup:		signal.c.setup
+signal.o.sigaction:	signal.c.sigaction
+signal.o.sigaddset:	signal.c.sigaddset
+signal.o.sigaltstk:	signal.c.sigaltstk
+signal.o.sigblock:	signal.c.sigblock
+signal.o.sigdelset:	signal.c.sigdelset
+signal.o.siginfo:	signal.c.siginfo
+signal.o.sigismembe:	signal.c.sigismembe
+signal.o.signal:	signal.c.signal
+signal.o.signame:	signal.c.signame
+signal.o.sigpause:	signal.c.sigpause
+signal.o.sigpending:	signal.c.sigpending
+signal.o.sigprocmsk:	signal.c.sigprocmsk
+signal.o.sigsetmask:	signal.c.sigsetmask
+signal.o.sigsets:	signal.c.sigsets
+signal.o.sigstack:	signal.c.sigstack
+signal.o.sigsuspend:	signal.c.sigsuspend
+signal.o.sigwakeup:	signal.c.sigwakeup
+signal.o.sleep:		signal.c.sleep
+signal.o.sigexec:	signal.s.sigexec <UnixHdr$Dir>.unixlib.s.asm_dec
+signal.o._coredump:	signal.s._coredump <UnixHdr$Dir>.unixlib.s.asm_dec
+signal.o._signal:	signal.s._signal <UnixHdr$Dir>.unixlib.s.asm_dec
+
+stdio.o.clearerr:	stdio.c.clearerr
+stdio.o.fclose:		stdio.c.fclose
+stdio.o.feof:		stdio.c.feof
+stdio.o.ferror:		stdio.c.ferror
+stdio.o.fflush:		stdio.c.fflush
+stdio.o.fgets:		stdio.c.fgets
+stdio.o.filbuf:		stdio.c.filbuf
+stdio.o.fileno:		stdio.c.fileno
+stdio.o.flsbuf:		stdio.c.flsbuf
+stdio.o.fopen:		stdio.c.fopen
+stdio.o.fpos:		stdio.c.fpos
+stdio.o.fputs:		stdio.c.fputs
+stdio.o.fread:		stdio.c.fread
+stdio.o.freopen:	stdio.c.freopen
+stdio.o.fwrite:		stdio.c.fwrite
+stdio.o.getc:		stdio.c.getc
+stdio.o.getdelim:	stdio.c.getdelim
+stdio.o.gets:		stdio.c.gets
+stdio.o.getw:		stdio.c.getw
+stdio.o.newstream:	stdio.c.newstream
+stdio.o.perror:		stdio.c.perror
+stdio.o.popen:		stdio.c.popen
+stdio.o.print:		stdio.c.print
+stdio.o.printf:		stdio.c.printf
+stdio.o.putc:		stdio.c.putc
+stdio.o.puts:		stdio.c.puts
+stdio.o.putw:		stdio.c.putw
+stdio.o.remove:		stdio.c.remove
+stdio.o.rename:		stdio.c.rename
+stdio.o.scan:		stdio.c.scan
+stdio.o.scanf:		stdio.c.scanf
+stdio.o.setbuf:		stdio.c.setbuf
+stdio.o.stdio:		stdio.c.stdio
+stdio.o.tmpfile:	stdio.c.tmpfile
+stdio.o.ungetc:		stdio.c.ungetc
+stdio.o._printf:	stdio.s._printf <UnixHdr$Dir>.unixlib.s.asm_dec
+
+sys.o.alarm:		sys.c.alarm
+sys.o.brk:		sys.c.brk
+sys.o.child:		sys.c.child
+sys.o.debug:		sys.c.debug
+sys.o.errlist:		sys.c.errlist
+sys.o.exec:		sys.c.exec
+sys.o.execl:		sys.c.execl
+sys.o.execle:		sys.c.execle
+sys.o.execlp:		sys.c.execlp
+sys.o.execv:		sys.c.execv
+sys.o.execvp:		sys.c.execvp
+sys.o.mman:		sys.c.mman
+sys.o.os:		sys.c.os
+sys.o.sigsetjmp:	sys.c.sigsetjmp
+sys.o.syslib:		sys.c.syslib
+sys.o.vfork:		sys.c.vfork
+sys.o._alloca:		sys.s._alloca <UnixHdr$Dir>.unixlib.s.asm_dec
+sys.o._exec:		sys.s._exec <UnixHdr$Dir>.unixlib.s.asm_dec
+sys.o._mem:		sys.s._mem <UnixHdr$Dir>.unixlib.s.asm_dec
+sys.o._mman:		sys.s._mman <UnixHdr$Dir>.unixlib.s.asm_dec
+sys.o._os:		sys.s._os <UnixHdr$Dir>.unixlib.s.asm_dec
+sys.o._jmp:		sys.s._jmp <UnixHdr$Dir>.unixlib.s.asm_dec
+sys.o._sigjmp:		sys.s._sigjmp <UnixHdr$Dir>.unixlib.s.asm_dec
+sys.o._syslib:		sys.s._syslib <UnixHdr$Dir>.unixlib.s.asm_dec
+sys.o._vfork:		sys.s._vfork <UnixHdr$Dir>.unixlib.s.asm_dec
+
+test.o.suffixes:	test.c.suffixes
+
+time.o.adjtime:		time.c.adjtime
+time.o.asctime:		time.c.asctime
+time.o.broken:		time.c.broken
+time.o.calendconv:	time.c.calendconv
+time.o.ctime:		time.c.ctime
+time.o.difftime:	time.c.difftime
+time.o.ftime:		time.c.ftime
+time.o.getitmr:		time.c.getitmr
+time.o.gettod:		time.c.gettod
+time.o.gmtime:		time.c.gmtime
+time.o.localtime:	time.c.localtime
+time.o.mktime:		time.c.mktime
+time.o.setitmr:		time.c.setitmr
+time.o.settod:		time.c.settod
+time.o.stdtime:		time.c.stdtime
+time.o.strftime:	time.c.strftime
+time.o.time:		time.c.time
+time.o.times:		time.c.times
+time.o.tzset:		time.c.tzset
+time.o.utimes:		time.c.utimes
+time.o._clock:		time.s._clock <UnixHdr$Dir>.unixlib.s.asm_dec
+
+unix.o.access:		unix.c.access
+unix.o.alphasort:	unix.c.alphasort
+unix.o.chdir:		unix.c.chdir
+unix.o.chmod:		unix.c.chmod
+unix.o.chown:		unix.c.chown
+unix.o.close:		unix.c.close
+unix.o.creat:		unix.c.creat
+unix.o.dev:		unix.c.dev
+unix.o.dirent:		unix.c.dirent
+unix.o.dup:		unix.c.dup
+unix.o.dup2:		unix.c.dup2
+unix.o.fchmod:		unix.c.fchmod
+unix.o.fchown:		unix.c.fchown
+unix.o.features:	unix.c.features
+unix.o.fnmatch:		unix.c.fnmatch
+unix.o.fcntl:		unix.c.fcntl
+unix.o.fstat:		unix.c.fstat
+unix.o.getdomain:	unix.c.getdomain
+unix.o.getenv:		unix.c.getenv
+unix.o.getdtables:	unix.c.getdtables
+unix.o.gethostnam:	unix.c.gethostnam
+unix.o.getcwd:		unix.c.getcwd
+unix.o.getsubopt:	unix.c.getsubopt
+unix.o.ioctl:		unix.c.ioctl
+unix.o.isatty:		unix.c.isatty
+unix.o.ispipe:		unix.c.ispipe
+unix.o.link:		unix.c.link
+unix.o.lseek:		unix.c.lseek
+unix.o.lstat:		unix.c.lstat
+unix.o.mkdir:		unix.c.mkdir
+unix.o.nice:		unix.c.nice
+unix.o.open:		unix.c.open
+unix.o.pathconf:	unix.c.pathconf
+unix.o.pipe:		unix.c.pipe
+unix.o.poll:		unix.c.poll
+unix.o.proc:		unix.c.proc
+unix.o.pselect:		unix.c.poll
+unix.o.putenv:		unix.c.putenv
+unix.o.read:		unix.c.read
+unix.o.readv:		unix.c.readv
+unix.o.reopen:		unix.c.reopen
+unix.o.rmdir:		unix.c.rmdir
+unix.o.select:		unix.c.select
+unix.o.setenv:		unix.c.setenv
+unix.o.stat:		unix.c.stat
+unix.o.sync:		unix.c.sync
+unix.o.sysconf:		unix.c.sysconf
+unix.o.truncate:	unix.c.truncate
+unix.o.tty:		unix.c.tty
+unix.o.umask:		unix.c.umask
+unix.o.uname:		unix.c.uname
+unix.o.unix:		unix.c.unix
+unix.o.unlink:		unix.c.unlink
+unix.o.utime:		unix.c.utime
+unix.o.wait:		unix.c.wait
+unix.o.wait3:		unix.c.wait3
+unix.o.wait4:		unix.c.wait4
+unix.o.waitpid:		unix.c.waitpid
+unix.o.write:		unix.c.write
+unix.o.writev:		unix.c.writev
+unix.o.getpagesiz:	unix.s.getpagesiz <UnixHdr$Dir>.unixlib.s.asm_dec
+
+wchar.o.btowc:		wchar.c.btowc
+wchar.o.mblen:		wchar.c.mblen
+wchar.o.mbrlen:		wchar.c.mbrlen
+wchar.o.mbrtowc:	wchar.c.mbrtowc
+wchar.o.mbsinit:	wchar.c.mbsinit
+wchar.o.mbsnrtowcs:	wchar.c.mbsnrtowcs
+wchar.o.mbsrtowcs:	wchar.c.mbsrtowcs
+wchar.o.mbstowcs:	wchar.c.mbstowcs
+wchar.o.mbtowc:		wchar.c.mbtowc
+wchar.o.wcpcpy:		wchar.c.wcpcpy
+wchar.o.wcpncpy:	wchar.c.wcpncpy
+wchar.o.wcrtomb:	wchar.c.wcrtomb
+wchar.o.wcscat:		wchar.c.wcscat
+wchar.o.wcschr:		wchar.c.wcschr
+wchar.o.wcscmp:		wchar.c.wcscmp
+wchar.o.wcscoll:	wchar.c.wcscoll
+wchar.o.wcscpy:		wchar.c.wcscpy
+wchar.o.wcscspn:	wchar.c.wcscspn
+wchar.o.wcsdup:		wchar.c.wcsdup
+wchar.o.wcslen:		wchar.c.wcslen
+wchar.o.wcsncat:	wchar.c.wcsncat
+wchar.o.wcsncmp:	wchar.c.wcsncmp
+wchar.o.wcsncpy:	wchar.c.wcsncpy
+wchar.o.wcsnrtombs:	wchar.c.wcsnrtombs
+wchar.o.wcspbrk:	wchar.c.wcspbrk
+wchar.o.wcsrchr:	wchar.c.wcsrchr
+wchar.o.wcsrtombs:	wchar.c.wcsrtombs
+wchar.o.wcsspn:		wchar.c.wcsspn
+wchar.o.wcsstr:		wchar.c.wcsstr
+wchar.o.wcstod:		wchar.c.wcstod
+wchar.o.wcstof:		wchar.c.wcstof
+wchar.o.wcstok:		wchar.c.wcstok
+wchar.o.wcstol:		wchar.c.wcstol
+wchar.o.wcstold:	wchar.c.wcstold
+wchar.o.wcstombs:	wchar.c.wcstombs
+wchar.o.wcstoq:		wchar.c.wcstoq
+wchar.o.wcstoul:	wchar.c.wcstoul
+wchar.o.wcstouq:	wchar.c.wcstouq
+wchar.o.wcswidth:	wchar.c.wcswidth
+wchar.o.wcsxfrm:	wchar.c.wcsxfrm
+wchar.o.wctob:		wchar.c.wctob
+wchar.o.wctomb:		wchar.c.wctomb
+wchar.o.wcwidth:	wchar.c.wcwidth
+wchar.o.wmemchr:	wchar.c.wmemchr
+wchar.o.wmemcmp:	wchar.c.wmemcmp
+wchar.o.wmemcpy:	wchar.c.wmemcpy
+wchar.o.wmemmove:	wchar.c.wmemmove
+wchar.o.wmemset:	wchar.c.wmemset

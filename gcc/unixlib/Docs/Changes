@@ -1,0 +1,50 @@
+$Source: /usr/local/cvsroot/gccsdk/unixlib/Docs/Changes,v $
+$Date: 2000/07/15 14:52:07 $
+$Revision: 1.1.1.1 $
+$State: Exp $
+
+----------------------------------------------------------------------------
+
+CL0039 15 September 1997
+------------------------
+
+More bug fixes rather than anything new :-(
+
+Nick B's new _kernel_* functions had some return codes wrong or lost the
+_kernel_oserror whenit was needed as the return value. _kernel_getenv
+and _kernel_setenv have been re-written to meet their specification.
+This is good, because the SCL's versions don't.
+
+Minor changes to stdio/setbuf.c and sys/exec.c.
+
+----------------------------------------------------------------------------
+
+CL0037 14 September 1997
+------------------------
+
+I've modified Nick Clark's last change which introduced Stewart Brodie's
+SWI veneer for socket code. I would like to know exactly what Stewart
+has to say here regarding which versions of Acorn's stack go horribly
+wrong and under what circumstances.
+
+Anyway, the new macro NetSWI replaces CallSWI because it is only of use
+for the networking code and not a general SWI wrapper which CallSWI
+might have suggested. Further, it is slightly more efficient and
+preserves all flags from the socket swi. Anyone know why Stewart put a
+no-op after SWI XOS_EnterOS ?
+
+I've also tidied up net error processing by using __net_error which now
+saves the kernel_oserror too.
+
+Finally, setting FIOSLEEPTW on a socket is done in socket.c where it
+allows _socket.s to become much tidier. As you can see if you look at
+the comment there, I'm not convinced this should be automatically
+enabled for all new sockets. I suspect Nick Clark added it, but Stewart
+Brodie says in c.s.a.programmer
+
+   "It is definitely not a good idea to do this, since some of the
+networking SWI calls made by the taskwindow'ed application may not be
+re-entract.  NFS SWIs are a particular problem here."
+
+Comments ?
+

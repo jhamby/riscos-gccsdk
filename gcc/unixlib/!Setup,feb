@@ -1,0 +1,4 @@
+Set UnixSrc$Dir  <Obey$dir>.source
+Set UnixSrc$Path <UnixSrc$Dir>.
+Set UnixHdr$Dir  <UnixSrc$Dir>.clib
+Set UnixHdr$Path <UnixHdr$Dir>.

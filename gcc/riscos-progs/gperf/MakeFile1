@@ -1,0 +1,201 @@
+cc=gcc
+EGCS=$.release.gcc
+cflags=-mthrowback -mamu -O2 -I@ -I$(EGCS).include
+link=drlink -o
+
+.SUFFIXES:	.o .cc
+.cc.o:
+	$(cc) -o $@ -c $< $(cflags)
+
+OBJS = 	o.bool-array o.gen-perf o.hash o.hash-table o.iterator \
+	o.key-list o.list-node o.main o.new o.options \
+	o.read-line o.trace o.vectors o.version
+
+gperf:	$(OBJS)
+	gcc -o $@ $(OBJS)
+
+getopt.o:	$(EGCS).libiberty.c.getopt
+	$(CC) -o $@ -c $(EGCS).libiberty.c.getopt $(CFLAGS)
+getopt1.o:	$(EGCS).libiberty.c.getopt1
+	$(CC) -o $@ -c $(EGCS).libiberty.c.getopt1 $(CFLAGS)
+
+clean:
+	-wipe o.* fv~r~c
+
+# Dynamic dependencies:
+o.trace:	cc.trace
+o.trace:	h.trace
+o.trace:	Unix:h.stdio
+o.trace:	Unix:unixlib.h.features
+o.trace:	Unix:unixlib.h.types
+o.trace:	Unix:h.stddef
+
+o.vectors:	cc.vectors
+o.vectors:	h.vectors
+
+
+
+o.iterator:	cc.iterator
+o.iterator:	h.iterator
+o.iterator:	gccpkg:lib.gcc-lib.arm-riscos.2_95_1.include.g++-3.h.stream
+o.iterator:	gccpkg:lib.gcc-lib.arm-riscos.2_95_1.include.g++-3.h.iostream
+o.iterator:	gccpkg:lib.gcc-lib.arm-riscos.2_95_1.include.g++-3.h.streambuf
+o.iterator:	gccpkg:lib.gcc-lib.arm-riscos.2_95_1.include.g++-3.h.libio
+o.iterator:	gccpkg:lib.gcc-lib.arm-riscos.2_95_1.include.h._G_config
+o.iterator:	Unix:h.ctype
+o.iterator:	h.trace
+
+
+
+
+o.new:	cc.new
+o.new:	h.config
+o.new:	Unix:h.stdio
+o.new:	Unix:unixlib.h.features
+o.new:	Unix:unixlib.h.types
+o.new:	Unix:h.stddef
+o.new:	Unix:h.stdlib
+o.new:	Unix:h.alloca
+o.new:	h.trace
+
+
+
+
+o.hash:	cc.hash
+o.hash:	@.h.hash
+
+
+o.bool-array:	cc.bool-array
+o.bool-array:	h.bool-array
+o.bool-array:	h.trace
+o.bool-array:	Unix:h.stdio
+o.bool-array:	Unix:unixlib.h.features
+o.bool-array:	Unix:unixlib.h.types
+o.bool-array:	Unix:h.stddef
+o.bool-array:	Unix:h.string
+o.bool-array:	h.options
+o.bool-array:	@.icc.options
+o.bool-array:	icc.bool-array//
+
+o.gen-perf:	cc.gen-perf
+o.gen-perf:	Unix:h.stdio
+o.gen-perf:	Unix:unixlib.h.features
+o.gen-perf:	Unix:unixlib.h.types
+o.gen-perf:	Unix:h.stddef
+o.gen-perf:	Unix:h.stdlib
+o.gen-perf:	Unix:h.alloca
+o.gen-perf:	Unix:h.time
+o.gen-perf:	h.options
+o.gen-perf:	h.trace
+o.gen-perf:	@.icc.options
+o.gen-perf:	h.gen-perf
+o.gen-perf:	h.key-list
+o.gen-perf:	h.list-node
+o.gen-perf:	h.vectors
+o.gen-perf:	h.read-line
+o.gen-perf:	@.icc.read-line
+o.gen-perf:	h.bool-array
+o.gen-perf:	Unix:h.string
+o.gen-perf:	icc.bool-array//
+
+o.hash-table:	cc.hash-table
+o.hash-table:	h.hash-table
+o.hash-table:	h.list-node
+o.hash-table:	h.vectors
+o.hash-table:	Unix:h.stdio
+o.hash-table:	Unix:unixlib.h.features
+o.hash-table:	Unix:unixlib.h.types
+o.hash-table:	Unix:h.stddef
+o.hash-table:	Unix:h.string
+o.hash-table:	@.h.hash
+o.hash-table:	h.options
+o.hash-table:	h.trace
+o.hash-table:	@.icc.options
+
+o.key-list:	cc.key-list
+o.key-list:	Unix:h.stdio
+o.key-list:	Unix:unixlib.h.features
+o.key-list:	Unix:unixlib.h.types
+o.key-list:	Unix:h.stddef
+o.key-list:	Unix:h.string
+o.key-list:	Unix:h.stdlib
+o.key-list:	Unix:h.alloca
+o.key-list:	gccpkg:lib.gcc-lib.arm-riscos.2_95_1.include.h.assert
+o.key-list:	Unix:h.limits
+o.key-list:	h.options
+o.key-list:	h.trace
+o.key-list:	@.icc.options
+o.key-list:	h.read-line
+o.key-list:	@.icc.read-line
+o.key-list:	h.hash-table
+o.key-list:	h.list-node
+o.key-list:	h.vectors
+o.key-list:	h.key-list
+o.key-list:	h.version
+
+o.list-node:	cc.list-node
+o.list-node:	h.list-node
+o.list-node:	h.vectors
+o.list-node:	Unix:h.stdio
+o.list-node:	Unix:unixlib.h.features
+o.list-node:	Unix:unixlib.h.types
+o.list-node:	Unix:h.stddef
+o.list-node:	Unix:h.stdlib
+o.list-node:	Unix:h.alloca
+o.list-node:	h.options
+o.list-node:	h.trace
+o.list-node:	@.icc.options
+
+o.main:	cc.main
+o.main:	h.config
+o.main:	Unix:sys.h.types
+o.main:	Unix:unixlib.h.types
+o.main:	Unix:h.time
+o.main:	Unix:h.stddef
+o.main:	Unix:h.stdio
+o.main:	Unix:unixlib.h.features
+o.main:	h.options
+o.main:	h.trace
+o.main:	@.icc.options
+o.main:	h.gen-perf
+o.main:	h.key-list
+o.main:	h.list-node
+o.main:	h.vectors
+o.main:	h.read-line
+o.main:	@.icc.read-line
+o.main:	h.bool-array
+o.main:	Unix:h.string
+o.main:	icc.bool-array//
+
+o.options:	cc.options
+o.options:	Unix:h.stdio
+o.options:	Unix:unixlib.h.features
+o.options:	Unix:unixlib.h.types
+o.options:	Unix:h.stddef
+o.options:	Unix:h.stdlib
+o.options:	Unix:h.alloca
+o.options:	Unix:h.string
+o.options:	$.release.gcc.include.h.getopt
+o.options:	h.options
+o.options:	h.trace
+o.options:	@.icc.options
+o.options:	h.iterator
+o.options:	h.vectors
+o.options:	h.version
+
+o.read-line:	cc.read-line
+o.read-line:	h.read-line
+o.read-line:	Unix:h.stdio
+o.read-line:	Unix:unixlib.h.features
+o.read-line:	Unix:unixlib.h.types
+o.read-line:	Unix:h.stddef
+o.read-line:	h.trace
+o.read-line:	@.icc.read-line
+o.read-line:	Unix:h.stdlib
+o.read-line:	Unix:h.alloca
+o.read-line:	Unix:h.string
+o.read-line:	h.options
+o.read-line:	@.icc.options
+
+o.version:	cc.version
+

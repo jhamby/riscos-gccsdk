@@ -1,0 +1,21 @@
+		UnixLib 3.7b
+		~~~~~~~~~~~~
+
+There have been quite a few changes between UnixLib 3.7a and UnixLib 3.7b,
+nearly all of which have been done by Nick Burrett, and Peter Burwood.
+Frankly speaking, I have very little idea what these changes are, but they
+are essential for GCC and GNAT.
+
+NetLib
+~~~~~~
+
+This version of UnixLib also includes the source for an interface to the IP
+stack under RISC OS. This was supplied by Sergio Monesi.
+
+The code is totally untested, although it does compile.
+
+To build the Netlib code, copy '!Setup' and 'Makefile' from 'objs' to
+'netlib', add 'netlib.!Stamp' to the STAMP variable, and add 'netlib.o.*' to
+the libfile command line
+
+Finally, double-click on '!Setup' and run the Makefile.

@@ -1,0 +1,2647 @@
+# Makefile for GNU F77 compiler runtime.
+
+# Toolflags:
+GCC = gcc -O2 -mamu
+GCC_AS = gcc -xassembler-with-cpp -c
+
+INCLUDE = -I@ -I@.libi77 -I@.libf77
+Predefs = -DHAVE_CONFIG_H -DSkip_f2c_Undefs -DSTDC_HEADERS=1 -D_POSIX_SOURCE=1 -DHAVE_TEMPNAM=1 -DNON_ANSI_RW_MODES=1 -DNO_EOF_CHAR_CHECK=1 -DRETSIGTYPE=void -DIEEE_drem=1 -DNON_UNIX_STDIO=1 -DAllow_TYQUAD
+
+.SUFFIXES:	.o .c .s
+
+.c.o:;	$(GCC) -o $@ -c $< $(INCLUDE) $(Predefs)
+.c.s:;	$(GCC) -o $@ -S $< $(INCLUDE) $(Predefs)
+.s.o:;  $(GCC_AS) -o $@ -c $<
+
+
+MISC =	libF77.o.F77_aloc libF77.o.Version libF77.o.main libF77.o.s_rnge \
+	libF77.o.abort_ libF77.o.getarg_ libF77.o.iargc_ libF77.o.getenv_ \
+	libF77.o.signal_ libF77.o.s_stop libF77.o.s_paus libF77.o.system_ \
+	libF77.o.cabs libF77.o.derf_ libF77.o.derfc_ libF77.o.erf_ \
+	libF77.o.erfc_  libF77.o.sig_die libF77.o.exit_ \
+	libF77.o.setarg libF77.o.setsig libF77.o.dtime_ libF77.o.etime_
+
+POW =	libF77.o.pow_ci libF77.o.pow_dd libF77.o.pow_di libF77.o.pow_hh \
+	libF77.o.pow_ii libF77.o.pow_ri libF77.o.pow_zi libF77.o.pow_zz \
+	libF77.o.pow_qq
+
+CX =	libF77.o.c_abs libF77.o.c_cos libF77.o.c_div libF77.o.c_exp \
+	libF77.o.c_log libF77.o.c_sin libF77.o.c_sqrt
+
+DCX =	libF77.o.z_abs libF77.o.z_cos libF77.o.z_div libF77.o.z_exp \
+	libF77.o.z_log libF77.o.z_sin libF77.o.z_sqrt
+
+REAL =	libF77.o.r_abs libF77.o.r_acos libF77.o.r_asin libF77.o.r_atan \
+	libF77.o.r_atn2 libF77.o.r_cnjg libF77.o.r_cos libF77.o.r_cosh \
+	libF77.o.r_dim libF77.o.r_exp libF77.o.r_imag libF77.o.r_int \
+	libF77.o.r_lg10 libF77.o.r_log libF77.o.r_mod libF77.o.r_nint \
+	libF77.o.r_sign libF77.o.r_sin libF77.o.r_sinh libF77.o.r_sqrt \
+	libF77.o.r_tan libF77.o.r_tanh
+
+DBL =	libF77.o.d_abs libF77.o.d_acos libF77.o.d_asin libF77.o.d_atan \
+	libF77.o.d_atn2 libF77.o.d_cnjg libF77.o.d_cos libF77.o.d_cosh \
+	libF77.o.d_dim libF77.o.d_exp libF77.o.d_imag libF77.o.d_int \
+	libF77.o.d_lg10 libF77.o.d_log libF77.o.d_mod libF77.o.d_nint \
+	libF77.o.d_prod libF77.o.d_sign libF77.o.d_sin libF77.o.d_sinh \
+	libF77.o.d_sqrt libF77.o.d_tan libF77.o.d_tanh
+
+INT =	libF77.o.i_abs libF77.o.i_dim libF77.o.i_dnnt libF77.o.i_indx \
+	libF77.o.i_len libF77.o.i_mod libF77.o.i_nint libF77.o.i_sign
+
+HALF =	libF77.o.h_abs libF77.o.h_dim libF77.o.h_dnnt libF77.o.h_indx \
+	libF77.o.h_len libF77.o.h_mod  libF77.o.h_nint libF77.o.h_sign
+
+CMP =	libF77.o.l_ge libF77.o.l_gt libF77.o.l_le libF77.o.l_lt \
+	libF77.o.hl_ge libF77.o.hl_gt libF77.o.hl_le libF77.o.hl_lt
+
+EFL =	libF77.o.ef1asc_ libF77.o.ef1cmc_
+
+CHAR =	libF77.o.s_cat libF77.o.s_cmp libF77.o.s_copy
+
+F90BIT = libF77.o.lbitbits libF77.o.lbitshft libF77.o.qbitbits \
+	libF77.o.qbitshft
+
+FOBJ = $(MISC) $(POW) $(CX) $(DCX) $(REAL) $(DBL) $(INT) $(HALF) $(CMP) \
+ $(EFL) $(CHAR) $(F90BIT)
+
+IOBJ =	libI77.o.Version libI77.o.backspace libI77.o.close libI77.o.dfe \
+	libI77.o.dolio libI77.o.due libI77.o.endfile libI77.o.err \
+	libI77.o.fmt libI77.o.fmtlib libI77.o.iio libI77.o.ilnw \
+	libI77.o.inquire libI77.o.lread libI77.o.lwrite libI77.o.open \
+	libI77.o.rdfmt libI77.o.rewind libI77.o.rsfe libI77.o.rsli \
+	libI77.o.rsne libI77.o.sfe libI77.o.sue libI77.o.typesize \
+	libI77.o.uio libI77.o.util libI77.o.wref libI77.o.wrtfmt \
+	libI77.o.wsfe libI77.o.wsle libI77.o.wsne libI77.o.xwsne \
+	libI77.o.ftell_
+
+UOBJ =  libU77.o.Version libU77.o.gerror_ libU77.o.perror_ libU77.o.ierrno_ \
+	libU77.o.itime_ libU77.o.time_ libU77.o.unlink_ libU77.o.fnum_ \
+	libU77.o.getpid_ libU77.o.getuid_ libU77.o.getgid_ libU77.o.kill_ \
+	libU77.o.rand_ libU77.o.srand_ libU77.o.irand_ libU77.o.sleep_ \
+	libU77.o.idate_ libU77.o.ctime_ libU77.o.etime_ libU77.o.dtime_ \
+	libU77.o.isatty_ libU77.o.ltime_ libU77.o.fstat_ libU77.o.stat_ \
+	libU77.o.lstat_ libU77.o.access_ libU77.o.link_ libU77.o.getlog_ \
+	libU77.o.ttynam_ libU77.o.getcwd_ libU77.o.vxttime_ \
+	libU77.o.vxtidate_ libU77.o.gmtime_ libU77.o.fdate_ libU77.o.secnds_ \
+	libU77.o.bes libU77.o.dbes libU77.o.chdir_ libU77.o.chmod_ \
+	libU77.o.lnblnk_ libU77.o.hostnm_ libU77.o.rename_ libU77.o.fgetc_ \
+	libU77.o.fputc_ libU77.o.umask_ libU77.o.sys_clock_ libU77.o.date_ \
+	libU77.o.second_ libU77.o.flush1_ libU77.o.alarm_ libU77.o.mclock_ \
+	libU77.o.symlnk_ libU77.o.datetime_
+
+F2CEXT = o.abort o.derf o.derfc o.ef1asc o.ef1cmc o.erf o.erfc o.exit \
+	o.getarg o.getenv o.iargc o.signal o.flush o.ftell \
+	o.fseek o.access o.besj0 o.besj1 o.besjn o.besy0 o.besy1 \
+	o.besyn o.chdir o.chmod o.ctime o.date o.dbesj0 o.dbesj1 \
+	o.dbesjn o.dbesy0 o.dbesy1 o.dbesyn o.dtime o.etime o.fdate \
+	o.fgetc o.fget o.flush1 o.fnum o.fputc o.fput o.fstat o.gerror
+
+F2CEXT2 = f2cext.o.getcwd f2cext.o.getgid f2cext.o.getlog \
+	f2cext.o.getpid f2cext.o.getuid f2cext.o.gmtime \
+	f2cext.o.hostnm f2cext.o.idate f2cext.o.ierrno \
+	f2cext.o.irand f2cext.o.isatty f2cext.o.itime f2cext.o.kill \
+	f2cext.o.link f2cext.o.lnblnk f2cext.o.lstat f2cext.o.ltime \
+	f2cext.o.mclock f2cext.o.perror f2cext.o.rand f2cext.o.rename \
+	f2cext.o.secnds f2cext.o.second f2cext.o.sleep f2cext.o.srand \
+	f2cext.o.stat f2cext.o.symlnk f2cext.o.sclock f2cext.o.system \
+	f2cext.o.time f2cext.o.ttynam f2cext.o.umask f2cext.o.unlink \
+	f2cext.o.vxtidt f2cext.o.vxttim f2cext.o.alarm
+
+all: <GCC$dir>.lib.gcc.o.libg2c
+
+<GCC$dir>.lib.gcc.o.libg2c:	$(FOBJ) $(IOBJ) $(UOBJ) $(F2CEXT) $(F2CEXT2)
+	makealf -o $@ libf77.o.* libi77.o.* libu77.o.* o.* f2cext.o.*
+
+clean:
+	-wipe o.* fv~r~c
+	-wipe f2cext.o.* fv~r~c
+	-wipe libf77.o.* fv~r~c
+	-wipe libF77.o.* fv~r~c
+	-wipe libi77.o.* fv~r~c
+	-wipe libu77.o.* fv~r~c
+
+# The f2cext.c thang
+
+o.abort: c.f2cext
+	$(GCC) -o $@ -c c.f2cext $(INCLUDE) $(Predefs) -DLabort
+
+o.derf: c.f2cext
+	$(GCC) -o $@ -c c.f2cext $(INCLUDE) $(Predefs) -DLderf
+
+o.derfc: c.f2cext
+	$(GCC) -o $@ -c c.f2cext $(INCLUDE) $(Predefs) -DLderfc
+
+o.ef1asc: c.f2cext
+	$(GCC) -o $@ -c c.f2cext $(INCLUDE) $(Predefs) -DLef1asc
+
+o.ef1cmc: c.f2cext
+	$(GCC) -o $@ -c c.f2cext $(INCLUDE) $(Predefs) -DLef1cmc
+
+o.erf: c.f2cext
+	$(GCC) -o $@ -c c.f2cext $(INCLUDE) $(Predefs) -DLerf
+
+o.erfc: c.f2cext
+	$(GCC) -o $@ -c c.f2cext $(INCLUDE) $(Predefs) -DLerfc
+
+o.exit: c.f2cext
+	$(GCC) -o $@ -c c.f2cext $(INCLUDE) $(Predefs) -DLexit
+
+o.getarg: c.f2cext
+	$(GCC) -o $@ -c c.f2cext $(INCLUDE) $(Predefs) -DLgetarg
+
+o.getenv: c.f2cext
+	$(GCC) -o $@ -c c.f2cext $(INCLUDE) $(Predefs) -DLgetenv
+
+o.iargc: c.f2cext
+	$(GCC) -o $@ -c c.f2cext $(INCLUDE) $(Predefs) -DLiargc
+
+o.signal: c.f2cext
+	$(GCC) -o $@ -c c.f2cext $(INCLUDE) $(Predefs) -DLsignal
+
+o.flush: c.f2cext
+	$(GCC) -o $@ -c c.f2cext $(INCLUDE) $(Predefs) -DLflush
+
+o.ftell: c.f2cext
+	$(GCC) -o $@ -c c.f2cext $(INCLUDE) $(Predefs) -DLftell
+
+o.fseek: c.f2cext
+	$(GCC) -o $@ -c c.f2cext $(INCLUDE) $(Predefs) -DLfseek
+
+o.access: c.f2cext
+	$(GCC) -o $@ -c c.f2cext $(INCLUDE) $(Predefs) -DLaccess
+
+o.besj0: c.f2cext
+	$(GCC) -o $@ -c c.f2cext $(INCLUDE) $(Predefs) -DLbesj0
+
+o.besj1: c.f2cext
+	$(GCC) -o $@ -c c.f2cext $(INCLUDE) $(Predefs) -DLbesj1
+
+o.besjn: c.f2cext
+	$(GCC) -o $@ -c c.f2cext $(INCLUDE) $(Predefs) -DLbesjn
+
+o.besy0: c.f2cext
+	$(GCC) -o $@ -c c.f2cext $(INCLUDE) $(Predefs) -DLbesy0
+
+o.besy1: c.f2cext
+	$(GCC) -o $@ -c c.f2cext $(INCLUDE) $(Predefs) -DLbesy1
+
+o.besyn: c.f2cext
+	$(GCC) -o $@ -c c.f2cext $(INCLUDE) $(Predefs) -DLbesyn
+
+o.chdir: c.f2cext
+	$(GCC) -o $@ -c c.f2cext $(INCLUDE) $(Predefs) -DLchdir
+
+o.chmod: c.f2cext
+	$(GCC) -o $@ -c c.f2cext $(INCLUDE) $(Predefs) -DLchmod
+
+o.ctime: c.f2cext
+	$(GCC) -o $@ -c c.f2cext $(INCLUDE) $(Predefs) -DLctime
+
+o.date: c.f2cext
+	$(GCC) -o $@ -c c.f2cext $(INCLUDE) $(Predefs) -DLdate
+
+o.dbesj0: c.f2cext
+	$(GCC) -o $@ -c c.f2cext $(INCLUDE) $(Predefs) -DLdbesj0
+
+o.dbesj1: c.f2cext
+	$(GCC) -o $@ -c c.f2cext $(INCLUDE) $(Predefs) -DLdbesj1
+
+o.dbesjn: c.f2cext
+	$(GCC) -o $@ -c c.f2cext $(INCLUDE) $(Predefs) -DLdbesjn
+
+o.dbesy0: c.f2cext
+	$(GCC) -o $@ -c c.f2cext $(INCLUDE) $(Predefs) -DLdbesy0
+
+o.dbesy1: c.f2cext
+	$(GCC) -o $@ -c c.f2cext $(INCLUDE) $(Predefs) -DLdbesy1
+
+o.dbesyn: c.f2cext
+	$(GCC) -o $@ -c c.f2cext $(INCLUDE) $(Predefs) -DLdbesyn
+
+o.dtime: c.f2cext
+	$(GCC) -o $@ -c c.f2cext $(INCLUDE) $(Predefs) -DLdtime
+
+o.etime: c.f2cext
+	$(GCC) -o $@ -c c.f2cext $(INCLUDE) $(Predefs) -DLetime
+
+o.fdate: c.f2cext
+	$(GCC) -o $@ -c c.f2cext $(INCLUDE) $(Predefs) -DLfdate
+
+o.fgetc: c.f2cext
+	$(GCC) -o $@ -c c.f2cext $(INCLUDE) $(Predefs) -DLfgetc
+
+o.fget: c.f2cext
+	$(GCC) -o $@ -c c.f2cext $(INCLUDE) $(Predefs) -DLfget
+
+o.flush1: c.f2cext
+	$(GCC) -o $@ -c c.f2cext $(INCLUDE) $(Predefs) -DLflush1
+
+o.fnum: c.f2cext
+	$(GCC) -o $@ -c c.f2cext $(INCLUDE) $(Predefs) -DLfnum
+
+o.fputc: c.f2cext
+	$(GCC) -o $@ -c c.f2cext $(INCLUDE) $(Predefs) -DLfputc
+
+o.fput: c.f2cext
+	$(GCC) -o $@ -c c.f2cext $(INCLUDE) $(Predefs) -DLfput
+
+o.fstat: c.f2cext
+	$(GCC) -o $@ -c c.f2cext $(INCLUDE) $(Predefs) -DLfstat
+
+o.gerror: c.f2cext
+	$(GCC) -o $@ -c c.f2cext $(INCLUDE) $(Predefs) -DLgerror
+
+f2cext.o.getcwd: c.f2cext
+	$(GCC) -o $@ -c c.f2cext $(INCLUDE) $(Predefs) -DLgetcwd
+
+f2cext.o.getgid: c.f2cext
+	$(GCC) -o $@ -c c.f2cext $(INCLUDE) $(Predefs) -DLgetgid
+
+f2cext.o.getlog: c.f2cext
+	$(GCC) -o $@ -c c.f2cext $(INCLUDE) $(Predefs) -DLgetlog
+
+f2cext.o.getpid: c.f2cext
+	$(GCC) -o $@ -c c.f2cext $(INCLUDE) $(Predefs) -DLgetpid
+
+f2cext.o.getuid: c.f2cext
+	$(GCC) -o $@ -c c.f2cext $(INCLUDE) $(Predefs) -DLgetuid
+
+f2cext.o.gmtime: c.f2cext
+	$(GCC) -o $@ -c c.f2cext $(INCLUDE) $(Predefs) -DLgmtime
+
+f2cext.o.hostnm: c.f2cext
+	$(GCC) -o $@ -c c.f2cext $(INCLUDE) $(Predefs) -DLhostnm
+
+f2cext.o.idate: c.f2cext
+	$(GCC) -o $@ -c c.f2cext $(INCLUDE) $(Predefs) -DLidate
+
+f2cext.o.ierrno: c.f2cext
+	$(GCC) -o $@ -c c.f2cext $(INCLUDE) $(Predefs) -DLierrno
+
+f2cext.o.irand: c.f2cext
+	$(GCC) -o $@ -c c.f2cext $(INCLUDE) $(Predefs) -DLirand
+
+f2cext.o.isatty: c.f2cext
+	$(GCC) -o $@ -c c.f2cext $(INCLUDE) $(Predefs) -DLisatty
+
+f2cext.o.itime: c.f2cext
+	$(GCC) -o $@ -c c.f2cext $(INCLUDE) $(Predefs) -DLitime
+
+f2cext.o.kill: c.f2cext
+	$(GCC) -o $@ -c c.f2cext $(INCLUDE) $(Predefs) -DLkill
+
+f2cext.o.link: c.f2cext
+	$(GCC) -o $@ -c c.f2cext $(INCLUDE) $(Predefs) -DLlink
+
+f2cext.o.lnblnk: c.f2cext
+	$(GCC) -o $@ -c c.f2cext $(INCLUDE) $(Predefs) -DLlnblnk
+
+f2cext.o.lstat: c.f2cext
+	$(GCC) -o $@ -c c.f2cext $(INCLUDE) $(Predefs) -DLlstat
+
+f2cext.o.ltime: c.f2cext
+	$(GCC) -o $@ -c c.f2cext $(INCLUDE) $(Predefs) -DLltime
+
+f2cext.o.mclock: c.f2cext
+	$(GCC) -o $@ -c c.f2cext $(INCLUDE) $(Predefs) -DLmclock
+
+f2cext.o.perror: c.f2cext
+	$(GCC) -o $@ -c c.f2cext $(INCLUDE) $(Predefs) -DLperror
+
+f2cext.o.rand: c.f2cext
+	$(GCC) -o $@ -c c.f2cext $(INCLUDE) $(Predefs) -DLrand
+
+f2cext.o.rename: c.f2cext
+	$(GCC) -o $@ -c c.f2cext $(INCLUDE) $(Predefs) -DLrename
+
+f2cext.o.secnds: c.f2cext
+	$(GCC) -o $@ -c c.f2cext $(INCLUDE) $(Predefs) -DLsecnds
+
+f2cext.o.second: c.f2cext
+	$(GCC) -o $@ -c c.f2cext $(INCLUDE) $(Predefs) -DLsecond
+
+f2cext.o.sleep: c.f2cext
+	$(GCC) -o $@ -c c.f2cext $(INCLUDE) $(Predefs) -DLsleep
+
+f2cext.o.srand: c.f2cext
+	$(GCC) -o $@ -c c.f2cext $(INCLUDE) $(Predefs) -DLsrand
+
+f2cext.o.stat: c.f2cext
+	$(GCC) -o $@ -c c.f2cext $(INCLUDE) $(Predefs) -DLstat
+
+f2cext.o.symlnk: c.f2cext
+	$(GCC) -o $@ -c c.f2cext $(INCLUDE) $(Predefs) -DLsymlnk
+
+f2cext.o.system: c.f2cext
+	$(GCC) -o $@ -c c.f2cext $(INCLUDE) $(Predefs) -DLsystem
+
+f2cext.o.sclock: c.f2cext
+	$(GCC) -o $@ -c c.f2cext $(INCLUDE) $(Predefs) -DLsclock
+
+f2cext.o.time: c.f2cext
+	$(GCC) -o $@ -c c.f2cext $(INCLUDE) $(Predefs) -DLtime
+
+f2cext.o.ttynam: c.f2cext
+	$(GCC) -o $@ -c c.f2cext $(INCLUDE) $(Predefs) -DLttynam
+
+f2cext.o.umask: c.f2cext
+	$(GCC) -o $@ -c c.f2cext $(INCLUDE) $(Predefs) -DLumask
+
+f2cext.o.unlink: c.f2cext
+	$(GCC) -o $@ -c c.f2cext $(INCLUDE) $(Predefs) -DLunlink
+
+f2cext.o.vxtidt: c.f2cext
+	$(GCC) -o $@ -c c.f2cext $(INCLUDE) $(Predefs) -DLvxtidt
+
+f2cext.o.vxttim: c.f2cext
+	$(GCC) -o $@ -c c.f2cext $(INCLUDE) $(Predefs) -DLvxttim
+
+f2cext.o.alarm: c.f2cext
+	$(GCC) -o $@ -c c.f2cext $(INCLUDE) $(Predefs) -DLalarm
+
+######
+
+# Dynamic dependencies:
+
+libF77.o.c_div:	libF77.c.c_div
+libF77.o.c_div:	@.h.f2c
+libF77.o.c_div:	@.h.g2c
+
+
+
+
+
+libF77.o.z_abs:	libF77.c.z_abs
+libF77.o.z_abs:	@.h.f2c
+libF77.o.z_abs:	@.h.g2c
+
+
+libF77.o.z_div:	libF77.c.z_div
+libF77.o.z_div:	@.h.f2c
+libF77.o.z_div:	@.h.g2c
+
+
+
+
+
+libF77.o.r_abs:	libF77.c.r_abs
+libF77.o.r_abs:	@.h.f2c
+libF77.o.r_abs:	@.h.g2c
+
+
+
+
+
+libF77.o.r_cnjg:	libF77.c.r_cnjg
+libF77.o.r_cnjg:	@.h.f2c
+libF77.o.r_cnjg:	@.h.g2c
+
+
+
+libF77.o.r_dim:	libF77.c.r_dim
+libF77.o.r_dim:	@.h.f2c
+libF77.o.r_dim:	@.h.g2c
+
+
+libF77.o.r_imag:	libF77.c.r_imag
+libF77.o.r_imag:	@.h.f2c
+libF77.o.r_imag:	@.h.g2c
+
+
+
+
+libF77.o.r_mod:	libF77.c.r_mod
+libF77.o.r_mod:	@.h.f2c
+libF77.o.r_mod:	@.h.g2c
+
+
+libF77.o.r_sign:	libF77.c.r_sign
+libF77.o.r_sign:	@.h.f2c
+libF77.o.r_sign:	@.h.g2c
+
+
+
+
+
+
+libF77.o.d_abs:	libF77.c.d_abs
+libF77.o.d_abs:	@.h.f2c
+libF77.o.d_abs:	@.h.g2c
+
+
+
+
+
+libF77.o.d_cnjg:	libF77.c.d_cnjg
+libF77.o.d_cnjg:	@.h.f2c
+libF77.o.d_cnjg:	@.h.g2c
+
+
+
+libF77.o.d_dim:	libF77.c.d_dim
+libF77.o.d_dim:	@.h.f2c
+libF77.o.d_dim:	@.h.g2c
+
+
+libF77.o.d_imag:	libF77.c.d_imag
+libF77.o.d_imag:	@.h.f2c
+libF77.o.d_imag:	@.h.g2c
+
+
+
+
+libF77.o.d_mod:	libF77.c.d_mod
+libF77.o.d_mod:	@.h.f2c
+libF77.o.d_mod:	@.h.g2c
+
+
+libF77.o.d_prod:	libF77.c.d_prod
+libF77.o.d_prod:	@.h.f2c
+libF77.o.d_prod:	@.h.g2c
+
+libF77.o.d_sign:	libF77.c.d_sign
+libF77.o.d_sign:	@.h.f2c
+libF77.o.d_sign:	@.h.g2c
+
+
+
+
+
+
+libF77.o.i_abs:	libF77.c.i_abs
+libF77.o.i_abs:	@.h.f2c
+libF77.o.i_abs:	@.h.g2c
+
+libF77.o.i_dim:	libF77.c.i_dim
+libF77.o.i_dim:	@.h.f2c
+libF77.o.i_dim:	@.h.g2c
+
+
+libF77.o.i_indx:	libF77.c.i_indx
+libF77.o.i_indx:	@.h.f2c
+libF77.o.i_indx:	@.h.g2c
+
+libF77.o.i_len:	libF77.c.i_len
+libF77.o.i_len:	@.h.f2c
+libF77.o.i_len:	@.h.g2c
+
+libF77.o.i_mod:	libF77.c.i_mod
+libF77.o.i_mod:	@.h.f2c
+libF77.o.i_mod:	@.h.g2c
+
+
+libF77.o.i_sign:	libF77.c.i_sign
+libF77.o.i_sign:	@.h.f2c
+libF77.o.i_sign:	@.h.g2c
+
+libF77.o.h_abs:	libF77.c.h_abs
+libF77.o.h_abs:	@.h.f2c
+libF77.o.h_abs:	@.h.g2c
+
+libF77.o.h_dim:	libF77.c.h_dim
+libF77.o.h_dim:	@.h.f2c
+libF77.o.h_dim:	@.h.g2c
+
+
+libF77.o.h_indx:	libF77.c.h_indx
+libF77.o.h_indx:	@.h.f2c
+libF77.o.h_indx:	@.h.g2c
+
+libF77.o.h_len:	libF77.c.h_len
+libF77.o.h_len:	@.h.f2c
+libF77.o.h_len:	@.h.g2c
+
+libF77.o.h_mod:	libF77.c.h_mod
+libF77.o.h_mod:	@.h.f2c
+libF77.o.h_mod:	@.h.g2c
+
+
+libF77.o.h_sign:	libF77.c.h_sign
+libF77.o.h_sign:	@.h.f2c
+libF77.o.h_sign:	@.h.g2c
+
+libF77.o.l_ge:	libF77.c.l_ge
+libF77.o.l_ge:	@.h.f2c
+libF77.o.l_ge:	@.h.g2c
+
+libF77.o.l_gt:	libF77.c.l_gt
+libF77.o.l_gt:	@.h.f2c
+libF77.o.l_gt:	@.h.g2c
+
+libF77.o.l_le:	libF77.c.l_le
+libF77.o.l_le:	@.h.f2c
+libF77.o.l_le:	@.h.g2c
+
+libF77.o.l_lt:	libF77.c.l_lt
+libF77.o.l_lt:	@.h.f2c
+libF77.o.l_lt:	@.h.g2c
+
+libF77.o.hl_ge:	libF77.c.hl_ge
+libF77.o.hl_ge:	@.h.f2c
+libF77.o.hl_ge:	@.h.g2c
+
+libF77.o.hl_gt:	libF77.c.hl_gt
+libF77.o.hl_gt:	@.h.f2c
+libF77.o.hl_gt:	@.h.g2c
+
+libF77.o.hl_le:	libF77.c.hl_le
+libF77.o.hl_le:	@.h.f2c
+libF77.o.hl_le:	@.h.g2c
+
+libF77.o.hl_lt:	libF77.c.hl_lt
+libF77.o.hl_lt:	@.h.f2c
+libF77.o.hl_lt:	@.h.g2c
+
+libF77.o.ef1asc_:	libF77.c.ef1asc_
+libF77.o.ef1asc_:	@.h.f2c
+libF77.o.ef1asc_:	@.h.g2c
+
+libF77.o.ef1cmc_:	libF77.c.ef1cmc_
+libF77.o.ef1cmc_:	@.h.f2c
+libF77.o.ef1cmc_:	@.h.g2c
+
+
+
+
+libF77.o.lbitbits:	libF77.c.lbitbits
+libF77.o.lbitbits:	@.h.f2c
+libF77.o.lbitbits:	@.h.g2c
+
+libF77.o.lbitshft:	libF77.c.lbitshft
+libF77.o.lbitshft:	@.h.f2c
+libF77.o.lbitshft:	@.h.g2c
+
+libF77.o.qbitbits:	libF77.c.qbitbits
+libF77.o.qbitbits:	@.h.f2c
+libF77.o.qbitbits:	@.h.g2c
+
+libF77.o.qbitshft:	libF77.c.qbitshft
+libF77.o.qbitshft:	@.h.f2c
+libF77.o.qbitshft:	@.h.g2c
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+libU77.o.gerror_:	libU77.c.gerror_
+libU77.o.gerror_:	libU77.h.config
+libU77.o.gerror_:	Unix:h.errno
+libU77.o.gerror_:	Unix:h.stddef
+libU77.o.gerror_:	Unix:h.string
+libU77.o.gerror_:	@.h.f2c
+libU77.o.gerror_:	@.h.g2c
+
+
+libU77.o.ierrno_:	libU77.c.ierrno_
+libU77.o.ierrno_:	libU77.h.config
+libU77.o.ierrno_:	Unix:h.errno
+libU77.o.ierrno_:	@.h.f2c
+libU77.o.ierrno_:	@.h.g2c
+
+
+
+libU77.o.unlink_:	libU77.c.unlink_
+libU77.o.unlink_:	libU77.h.config
+libU77.o.unlink_:	Unix:h.stdlib
+libU77.o.unlink_:	Unix:h.stddef
+libU77.o.unlink_:	Unix:h.alloca
+libU77.o.unlink_:	Unix:h.unistd
+libU77.o.unlink_:	Unix:unixlib.h.types
+libU77.o.unlink_:	Unix:h.errno
+libU77.o.unlink_:	Unix:sys.h.param
+libU77.o.unlink_:	Unix:h.limits
+libU77.o.unlink_:	@.h.f2c
+libU77.o.unlink_:	@.h.g2c
+
+
+libU77.o.getpid_:	libU77.c.getpid_
+libU77.o.getpid_:	libU77.h.config
+libU77.o.getpid_:	Unix:h.unistd
+libU77.o.getpid_:	Unix:unixlib.h.types
+libU77.o.getpid_:	Unix:h.stddef
+libU77.o.getpid_:	Unix:sys.h.types
+libU77.o.getpid_:	Unix:h.time
+libU77.o.getpid_:	@.h.f2c
+libU77.o.getpid_:	@.h.g2c
+
+libU77.o.getuid_:	libU77.c.getuid_
+libU77.o.getuid_:	libU77.h.config
+libU77.o.getuid_:	Unix:h.unistd
+libU77.o.getuid_:	Unix:unixlib.h.types
+libU77.o.getuid_:	Unix:h.stddef
+libU77.o.getuid_:	Unix:sys.h.types
+libU77.o.getuid_:	Unix:h.time
+libU77.o.getuid_:	Unix:h.errno
+libU77.o.getuid_:	@.h.f2c
+libU77.o.getuid_:	@.h.g2c
+
+libU77.o.getgid_:	libU77.c.getgid_
+libU77.o.getgid_:	libU77.h.config
+libU77.o.getgid_:	Unix:h.unistd
+libU77.o.getgid_:	Unix:unixlib.h.types
+libU77.o.getgid_:	Unix:h.stddef
+libU77.o.getgid_:	Unix:sys.h.types
+libU77.o.getgid_:	Unix:h.time
+libU77.o.getgid_:	Unix:h.errno
+libU77.o.getgid_:	@.h.f2c
+libU77.o.getgid_:	@.h.g2c
+
+libU77.o.kill_:	libU77.c.kill_
+libU77.o.kill_:	libU77.h.config
+libU77.o.kill_:	Unix:sys.h.types
+libU77.o.kill_:	Unix:unixlib.h.types
+libU77.o.kill_:	Unix:h.time
+libU77.o.kill_:	Unix:h.stddef
+libU77.o.kill_:	Unix:h.signal
+libU77.o.kill_:	Unix:h.errno
+libU77.o.kill_:	@.h.f2c
+libU77.o.kill_:	@.h.g2c
+
+libU77.o.rand_:	libU77.c.rand_
+libU77.o.rand_:	libU77.h.config
+libU77.o.rand_:	Unix:h.stdlib
+libU77.o.rand_:	Unix:h.stddef
+libU77.o.rand_:	Unix:h.alloca
+libU77.o.rand_:	@.h.f2c
+libU77.o.rand_:	@.h.g2c
+
+libU77.o.srand_:	libU77.c.srand_
+libU77.o.srand_:	libU77.h.config
+libU77.o.srand_:	Unix:h.stdlib
+libU77.o.srand_:	Unix:h.stddef
+libU77.o.srand_:	Unix:h.alloca
+libU77.o.srand_:	@.h.f2c
+libU77.o.srand_:	@.h.g2c
+
+libU77.o.irand_:	libU77.c.irand_
+libU77.o.irand_:	libU77.h.config
+libU77.o.irand_:	Unix:h.stdlib
+libU77.o.irand_:	Unix:h.stddef
+libU77.o.irand_:	Unix:h.alloca
+libU77.o.irand_:	@.h.f2c
+libU77.o.irand_:	@.h.g2c
+
+libU77.o.sleep_:	libU77.c.sleep_
+libU77.o.sleep_:	libU77.h.config
+libU77.o.sleep_:	Unix:h.unistd
+libU77.o.sleep_:	Unix:unixlib.h.types
+libU77.o.sleep_:	Unix:h.stddef
+libU77.o.sleep_:	@.h.f2c
+libU77.o.sleep_:	@.h.g2c
+
+
+libU77.o.ctime_:	libU77.c.ctime_
+libU77.o.ctime_:	libU77.h.config
+libU77.o.ctime_:	Unix:sys.h.time
+libU77.o.ctime_:	Unix:h.time
+libU77.o.ctime_:	Unix:h.stddef
+libU77.o.ctime_:	Unix:unixlib.h.types
+libU77.o.ctime_:	Unix:h.string
+libU77.o.ctime_:	@.h.f2c
+libU77.o.ctime_:	@.h.g2c
+
+libU77.o.etime_:	libU77.c.etime_
+libU77.o.etime_:	libU77.h.config
+libU77.o.etime_:	Unix:h.unistd
+libU77.o.etime_:	Unix:unixlib.h.types
+libU77.o.etime_:	Unix:h.stddef
+libU77.o.etime_:	Unix:sys.h.types
+libU77.o.etime_:	Unix:h.time
+libU77.o.etime_:	Unix:sys.h.times
+libU77.o.etime_:	Unix:sys.h.param
+libU77.o.etime_:	Unix:h.limits
+libU77.o.etime_:	Unix:sys.h.time
+libU77.o.etime_:	Unix:sys.h.resource
+libU77.o.etime_:	Unix:h.errno
+libU77.o.etime_:	@.h.f2c
+libU77.o.etime_:	@.h.g2c
+
+libU77.o.dtime_:	libU77.c.dtime_
+libU77.o.dtime_:	libU77.h.config
+libU77.o.dtime_:	Unix:h.unistd
+libU77.o.dtime_:	Unix:unixlib.h.types
+libU77.o.dtime_:	Unix:h.stddef
+libU77.o.dtime_:	Unix:sys.h.types
+libU77.o.dtime_:	Unix:h.time
+libU77.o.dtime_:	Unix:sys.h.times
+libU77.o.dtime_:	Unix:sys.h.param
+libU77.o.dtime_:	Unix:h.limits
+libU77.o.dtime_:	Unix:sys.h.time
+libU77.o.dtime_:	Unix:sys.h.resource
+libU77.o.dtime_:	Unix:h.errno
+libU77.o.dtime_:	@.h.f2c
+libU77.o.dtime_:	@.h.g2c
+
+
+libU77.o.ltime_:	libU77.c.ltime_
+libU77.o.ltime_:	libU77.h.config
+libU77.o.ltime_:	Unix:sys.h.time
+libU77.o.ltime_:	Unix:h.time
+libU77.o.ltime_:	Unix:h.stddef
+libU77.o.ltime_:	Unix:unixlib.h.types
+libU77.o.ltime_:	@.h.f2c
+libU77.o.ltime_:	@.h.g2c
+
+libU77.o.fstat_:	libU77.c.fstat_
+libU77.o.fstat_:	libU77.h.config
+libU77.o.fstat_:	@.h.f2c
+libU77.o.fstat_:	@.h.g2c
+libU77.o.fstat_:	Unix:sys.h.types
+libU77.o.fstat_:	Unix:unixlib.h.types
+libU77.o.fstat_:	Unix:h.time
+libU77.o.fstat_:	Unix:h.stddef
+libU77.o.fstat_:	Unix:sys.h.stat
+
+
+
+libU77.o.access_:	libU77.c.access_
+libU77.o.access_:	libU77.h.config
+libU77.o.access_:	Unix:h.unistd
+libU77.o.access_:	Unix:unixlib.h.types
+libU77.o.access_:	Unix:h.stddef
+libU77.o.access_:	Unix:h.stdlib
+libU77.o.access_:	Unix:h.alloca
+libU77.o.access_:	Unix:h.errno
+libU77.o.access_:	Unix:h.limits
+libU77.o.access_:	@.h.f2c
+libU77.o.access_:	@.h.g2c
+
+libU77.o.link_:	libU77.c.link_
+libU77.o.link_:	libU77.h.config
+libU77.o.link_:	Unix:h.stdlib
+libU77.o.link_:	Unix:h.stddef
+libU77.o.link_:	Unix:h.alloca
+libU77.o.link_:	Unix:h.unistd
+libU77.o.link_:	Unix:unixlib.h.types
+libU77.o.link_:	Unix:h.errno
+libU77.o.link_:	Unix:sys.h.param
+libU77.o.link_:	Unix:h.limits
+libU77.o.link_:	@.h.f2c
+libU77.o.link_:	@.h.g2c
+
+
+
+
+
+
+libU77.o.gmtime_:	libU77.c.gmtime_
+libU77.o.gmtime_:	libU77.h.config
+libU77.o.gmtime_:	Unix:sys.h.time
+libU77.o.gmtime_:	Unix:h.time
+libU77.o.gmtime_:	Unix:h.stddef
+libU77.o.gmtime_:	Unix:unixlib.h.types
+libU77.o.gmtime_:	@.h.f2c
+libU77.o.gmtime_:	@.h.g2c
+
+
+
+libU77.o.bes:	libU77.c.bes
+
+libU77.o.dbes:	libU77.c.dbes
+
+libU77.o.chdir_:	libU77.c.chdir_
+libU77.o.chdir_:	libU77.h.config
+libU77.o.chdir_:	Unix:h.unistd
+libU77.o.chdir_:	Unix:unixlib.h.types
+libU77.o.chdir_:	Unix:h.stddef
+libU77.o.chdir_:	Unix:h.stdlib
+libU77.o.chdir_:	Unix:h.alloca
+libU77.o.chdir_:	Unix:h.errno
+libU77.o.chdir_:	@.h.f2c
+libU77.o.chdir_:	@.h.g2c
+
+libU77.o.chmod_:	libU77.c.chmod_
+libU77.o.chmod_:	libU77.h.config
+libU77.o.chmod_:	Unix:h.unistd
+libU77.o.chmod_:	Unix:unixlib.h.types
+libU77.o.chmod_:	Unix:h.stddef
+libU77.o.chmod_:	Unix:h.stdlib
+libU77.o.chmod_:	Unix:h.alloca
+libU77.o.chmod_:	Unix:h.string
+libU77.o.chmod_:	@.h.f2c
+libU77.o.chmod_:	@.h.g2c
+
+libU77.o.lnblnk_:	libU77.c.lnblnk_
+libU77.o.lnblnk_:	@.h.f2c
+libU77.o.lnblnk_:	@.h.g2c
+
+libU77.o.hostnm_:	libU77.c.hostnm_
+libU77.o.hostnm_:	libU77.h.config
+libU77.o.hostnm_:	Unix:h.string
+libU77.o.hostnm_:	Unix:h.stddef
+libU77.o.hostnm_:	Unix:h.unistd
+libU77.o.hostnm_:	Unix:unixlib.h.types
+libU77.o.hostnm_:	Unix:h.errno
+libU77.o.hostnm_:	@.h.f2c
+libU77.o.hostnm_:	@.h.g2c
+
+
+
+
+libU77.o.umask_:	libU77.c.umask_
+libU77.o.umask_:	libU77.h.config
+libU77.o.umask_:	Unix:sys.h.types
+libU77.o.umask_:	Unix:unixlib.h.types
+libU77.o.umask_:	Unix:h.time
+libU77.o.umask_:	Unix:h.stddef
+libU77.o.umask_:	Unix:sys.h.stat
+libU77.o.umask_:	@.h.f2c
+libU77.o.umask_:	@.h.g2c
+
+libU77.o.sys_clock_:	libU77.c.sys_clock_
+libU77.o.sys_clock_:	libU77.h.config
+libU77.o.sys_clock_:	Unix:sys.h.time
+libU77.o.sys_clock_:	Unix:h.time
+libU77.o.sys_clock_:	Unix:h.stddef
+libU77.o.sys_clock_:	Unix:unixlib.h.types
+libU77.o.sys_clock_:	Unix:sys.h.times
+libU77.o.sys_clock_:	Unix:h.limits
+libU77.o.sys_clock_:	Unix:h.unistd
+libU77.o.sys_clock_:	Unix:h.errno
+libU77.o.sys_clock_:	@.h.f2c
+libU77.o.sys_clock_:	@.h.g2c
+
+libU77.o.date_:	libU77.c.date_
+libU77.o.date_:	@.h.f2c
+libU77.o.date_:	@.h.g2c
+
+libU77.o.second_:	libU77.c.second_
+libU77.o.second_:	@.h.f2c
+libU77.o.second_:	@.h.g2c
+
+
+libU77.o.alarm_:	libU77.c.alarm_
+libU77.o.alarm_:	libU77.h.config
+libU77.o.alarm_:	Unix:h.unistd
+libU77.o.alarm_:	Unix:unixlib.h.types
+libU77.o.alarm_:	Unix:h.stddef
+libU77.o.alarm_:	Unix:h.errno
+libU77.o.alarm_:	@.h.f2c
+libU77.o.alarm_:	@.h.g2c
+libU77.o.alarm_:	Unix:h.signal
+
+libU77.o.mclock_:	libU77.c.mclock_
+libU77.o.mclock_:	libU77.h.config
+libU77.o.mclock_:	Unix:sys.h.time
+libU77.o.mclock_:	Unix:h.time
+libU77.o.mclock_:	Unix:h.stddef
+libU77.o.mclock_:	Unix:unixlib.h.types
+libU77.o.mclock_:	@.h.f2c
+libU77.o.mclock_:	@.h.g2c
+
+libU77.o.symlnk_:	libU77.c.symlnk_
+libU77.o.symlnk_:	libU77.h.config
+libU77.o.symlnk_:	Unix:h.stdlib
+libU77.o.symlnk_:	Unix:h.stddef
+libU77.o.symlnk_:	Unix:h.alloca
+libU77.o.symlnk_:	Unix:h.unistd
+libU77.o.symlnk_:	Unix:unixlib.h.types
+libU77.o.symlnk_:	Unix:h.errno
+libU77.o.symlnk_:	Unix:sys.h.param
+libU77.o.symlnk_:	Unix:h.limits
+libU77.o.symlnk_:	@.h.f2c
+libU77.o.symlnk_:	@.h.g2c
+
+
+o.f2cext:	c.f2cext
+o.f2cext:	@.h.f2c
+o.f2cext:	@.h.g2c
+
+o.f2cext:	c.f2cext
+o.f2cext:	@.h.f2c
+o.f2cext:	@.h.g2c
+
+o.f2cext:	c.f2cext
+o.f2cext:	@.h.f2c
+o.f2cext:	@.h.g2c
+
+o.f2cext:	c.f2cext
+o.f2cext:	@.h.f2c
+o.f2cext:	@.h.g2c
+
+o.f2cext:	c.f2cext
+o.f2cext:	@.h.f2c
+o.f2cext:	@.h.g2c
+
+o.f2cext:	c.f2cext
+o.f2cext:	@.h.f2c
+o.f2cext:	@.h.g2c
+
+o.f2cext:	c.f2cext
+o.f2cext:	@.h.f2c
+o.f2cext:	@.h.g2c
+
+o.f2cext:	c.f2cext
+o.f2cext:	@.h.f2c
+o.f2cext:	@.h.g2c
+
+o.f2cext:	c.f2cext
+o.f2cext:	@.h.f2c
+o.f2cext:	@.h.g2c
+
+o.f2cext:	c.f2cext
+o.f2cext:	@.h.f2c
+o.f2cext:	@.h.g2c
+
+o.f2cext:	c.f2cext
+o.f2cext:	@.h.f2c
+o.f2cext:	@.h.g2c
+
+o.f2cext:	c.f2cext
+o.f2cext:	@.h.f2c
+o.f2cext:	@.h.g2c
+
+o.f2cext:	c.f2cext
+o.f2cext:	@.h.f2c
+o.f2cext:	@.h.g2c
+
+o.f2cext:	c.f2cext
+o.f2cext:	@.h.f2c
+o.f2cext:	@.h.g2c
+
+o.f2cext:	c.f2cext
+o.f2cext:	@.h.f2c
+o.f2cext:	@.h.g2c
+
+o.f2cext:	c.f2cext
+o.f2cext:	@.h.f2c
+o.f2cext:	@.h.g2c
+
+o.f2cext:	c.f2cext
+o.f2cext:	@.h.f2c
+o.f2cext:	@.h.g2c
+
+o.f2cext:	c.f2cext
+o.f2cext:	@.h.f2c
+o.f2cext:	@.h.g2c
+
+o.f2cext:	c.f2cext
+o.f2cext:	@.h.f2c
+o.f2cext:	@.h.g2c
+
+o.f2cext:	c.f2cext
+o.f2cext:	@.h.f2c
+o.f2cext:	@.h.g2c
+
+o.f2cext:	c.f2cext
+o.f2cext:	@.h.f2c
+o.f2cext:	@.h.g2c
+
+o.f2cext:	c.f2cext
+o.f2cext:	@.h.f2c
+o.f2cext:	@.h.g2c
+
+o.f2cext:	c.f2cext
+o.f2cext:	@.h.f2c
+o.f2cext:	@.h.g2c
+
+o.f2cext:	c.f2cext
+o.f2cext:	@.h.f2c
+o.f2cext:	@.h.g2c
+
+o.f2cext:	c.f2cext
+o.f2cext:	@.h.f2c
+o.f2cext:	@.h.g2c
+
+o.f2cext:	c.f2cext
+o.f2cext:	@.h.f2c
+o.f2cext:	@.h.g2c
+
+o.f2cext:	c.f2cext
+o.f2cext:	@.h.f2c
+o.f2cext:	@.h.g2c
+
+o.f2cext:	c.f2cext
+o.f2cext:	@.h.f2c
+o.f2cext:	@.h.g2c
+
+o.f2cext:	c.f2cext
+o.f2cext:	@.h.f2c
+o.f2cext:	@.h.g2c
+
+o.f2cext:	c.f2cext
+o.f2cext:	@.h.f2c
+o.f2cext:	@.h.g2c
+
+o.f2cext:	c.f2cext
+o.f2cext:	@.h.f2c
+o.f2cext:	@.h.g2c
+
+o.f2cext:	c.f2cext
+o.f2cext:	@.h.f2c
+o.f2cext:	@.h.g2c
+
+o.f2cext:	c.f2cext
+o.f2cext:	@.h.f2c
+o.f2cext:	@.h.g2c
+
+o.f2cext:	c.f2cext
+o.f2cext:	@.h.f2c
+o.f2cext:	@.h.g2c
+
+o.f2cext:	c.f2cext
+o.f2cext:	@.h.f2c
+o.f2cext:	@.h.g2c
+
+o.f2cext:	c.f2cext
+o.f2cext:	@.h.f2c
+o.f2cext:	@.h.g2c
+
+o.f2cext:	c.f2cext
+o.f2cext:	@.h.f2c
+o.f2cext:	@.h.g2c
+
+o.f2cext:	c.f2cext
+o.f2cext:	@.h.f2c
+o.f2cext:	@.h.g2c
+
+o.f2cext:	c.f2cext
+o.f2cext:	@.h.f2c
+o.f2cext:	@.h.g2c
+
+o.f2cext:	c.f2cext
+o.f2cext:	@.h.f2c
+o.f2cext:	@.h.g2c
+
+o.f2cext:	c.f2cext
+o.f2cext:	@.h.f2c
+o.f2cext:	@.h.g2c
+
+o.f2cext:	c.f2cext
+o.f2cext:	@.h.f2c
+o.f2cext:	@.h.g2c
+
+o.f2cext:	c.f2cext
+o.f2cext:	@.h.f2c
+o.f2cext:	@.h.g2c
+
+o.f2cext:	c.f2cext
+o.f2cext:	@.h.f2c
+o.f2cext:	@.h.g2c
+
+o.f2cext:	c.f2cext
+o.f2cext:	@.h.f2c
+o.f2cext:	@.h.g2c
+
+o.f2cext:	c.f2cext
+o.f2cext:	@.h.f2c
+o.f2cext:	@.h.g2c
+
+o.f2cext:	c.f2cext
+o.f2cext:	@.h.f2c
+o.f2cext:	@.h.g2c
+
+o.f2cext:	c.f2cext
+o.f2cext:	@.h.f2c
+o.f2cext:	@.h.g2c
+
+o.f2cext:	c.f2cext
+o.f2cext:	@.h.f2c
+o.f2cext:	@.h.g2c
+
+o.f2cext:	c.f2cext
+o.f2cext:	@.h.f2c
+o.f2cext:	@.h.g2c
+
+o.f2cext:	c.f2cext
+o.f2cext:	@.h.f2c
+o.f2cext:	@.h.g2c
+
+o.f2cext:	c.f2cext
+o.f2cext:	@.h.f2c
+o.f2cext:	@.h.g2c
+
+o.f2cext:	c.f2cext
+o.f2cext:	@.h.f2c
+o.f2cext:	@.h.g2c
+
+o.f2cext:	c.f2cext
+o.f2cext:	@.h.f2c
+o.f2cext:	@.h.g2c
+
+o.f2cext:	c.f2cext
+o.f2cext:	@.h.f2c
+o.f2cext:	@.h.g2c
+
+o.f2cext:	c.f2cext
+o.f2cext:	@.h.f2c
+o.f2cext:	@.h.g2c
+
+o.f2cext:	c.f2cext
+o.f2cext:	@.h.f2c
+o.f2cext:	@.h.g2c
+
+o.f2cext:	c.f2cext
+o.f2cext:	@.h.f2c
+o.f2cext:	@.h.g2c
+
+o.f2cext:	c.f2cext
+o.f2cext:	@.h.f2c
+o.f2cext:	@.h.g2c
+
+o.f2cext:	c.f2cext
+o.f2cext:	@.h.f2c
+o.f2cext:	@.h.g2c
+
+o.f2cext:	c.f2cext
+o.f2cext:	@.h.f2c
+o.f2cext:	@.h.g2c
+
+o.f2cext:	c.f2cext
+o.f2cext:	@.h.f2c
+o.f2cext:	@.h.g2c
+
+o.f2cext:	c.f2cext
+o.f2cext:	@.h.f2c
+o.f2cext:	@.h.g2c
+
+o.f2cext:	c.f2cext
+o.f2cext:	@.h.f2c
+o.f2cext:	@.h.g2c
+
+o.f2cext:	c.f2cext
+o.f2cext:	@.h.f2c
+o.f2cext:	@.h.g2c
+
+o.f2cext:	c.f2cext
+o.f2cext:	@.h.f2c
+o.f2cext:	@.h.g2c
+
+o.f2cext:	c.f2cext
+o.f2cext:	@.h.f2c
+o.f2cext:	@.h.g2c
+
+o.f2cext:	c.f2cext
+o.f2cext:	@.h.f2c
+o.f2cext:	@.h.g2c
+
+o.f2cext:	c.f2cext
+o.f2cext:	@.h.f2c
+o.f2cext:	@.h.g2c
+
+o.f2cext:	c.f2cext
+o.f2cext:	@.h.f2c
+o.f2cext:	@.h.g2c
+
+o.f2cext:	c.f2cext
+o.f2cext:	@.h.f2c
+o.f2cext:	@.h.g2c
+
+o.f2cext:	c.f2cext
+o.f2cext:	@.h.f2c
+o.f2cext:	@.h.g2c
+
+o.f2cext:	c.f2cext
+o.f2cext:	@.h.f2c
+o.f2cext:	@.h.g2c
+
+o.f2cext:	c.f2cext
+o.f2cext:	@.h.f2c
+o.f2cext:	@.h.g2c
+
+o.f2cext:	c.f2cext
+o.f2cext:	@.h.f2c
+o.f2cext:	@.h.g2c
+
+o.f2cext:	c.f2cext
+o.f2cext:	@.h.f2c
+o.f2cext:	@.h.g2c
+
+o.f2cext:	c.f2cext
+o.f2cext:	@.h.f2c
+o.f2cext:	@.h.g2c
+
+o.f2cext:	c.f2cext
+o.f2cext:	@.h.f2c
+o.f2cext:	@.h.g2c
+
+o.f2cext:	c.f2cext
+o.f2cext:	@.h.f2c
+o.f2cext:	@.h.g2c
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+libF77.o.c_exp:	libF77.c.c_exp
+libF77.o.c_exp:	@.h.f2c
+libF77.o.c_exp:	@.h.g2c
+libF77.o.c_exp:	Unix:h.math
+libF77.o.c_exp:	Unix:machine.h.huge_val
+libF77.o.c_exp:	Unix:machine.h.nan
+libF77.o.c_exp:	Unix:unixlib.h.types
+
+libF77.o.c_log:	libF77.c.c_log
+libF77.o.c_log:	@.h.f2c
+libF77.o.c_log:	@.h.g2c
+libF77.o.c_log:	Unix:h.math
+libF77.o.c_log:	Unix:machine.h.huge_val
+libF77.o.c_log:	Unix:machine.h.nan
+libF77.o.c_log:	Unix:unixlib.h.types
+
+libF77.o.c_sin:	libF77.c.c_sin
+libF77.o.c_sin:	@.h.f2c
+libF77.o.c_sin:	@.h.g2c
+libF77.o.c_sin:	Unix:h.math
+libF77.o.c_sin:	Unix:machine.h.huge_val
+libF77.o.c_sin:	Unix:machine.h.nan
+libF77.o.c_sin:	Unix:unixlib.h.types
+
+libF77.o.c_sqrt:	libF77.c.c_sqrt
+libF77.o.c_sqrt:	@.h.f2c
+libF77.o.c_sqrt:	@.h.g2c
+libF77.o.c_sqrt:	Unix:h.math
+libF77.o.c_sqrt:	Unix:machine.h.huge_val
+libF77.o.c_sqrt:	Unix:machine.h.nan
+libF77.o.c_sqrt:	Unix:unixlib.h.types
+
+libF77.o.z_cos:	libF77.c.z_cos
+libF77.o.z_cos:	@.h.f2c
+libF77.o.z_cos:	@.h.g2c
+libF77.o.z_cos:	Unix:h.math
+libF77.o.z_cos:	Unix:machine.h.huge_val
+libF77.o.z_cos:	Unix:machine.h.nan
+libF77.o.z_cos:	Unix:unixlib.h.types
+
+libF77.o.z_exp:	libF77.c.z_exp
+libF77.o.z_exp:	@.h.f2c
+libF77.o.z_exp:	@.h.g2c
+libF77.o.z_exp:	Unix:h.math
+libF77.o.z_exp:	Unix:machine.h.huge_val
+libF77.o.z_exp:	Unix:machine.h.nan
+libF77.o.z_exp:	Unix:unixlib.h.types
+
+libF77.o.z_log:	libF77.c.z_log
+libF77.o.z_log:	@.h.f2c
+libF77.o.z_log:	@.h.g2c
+libF77.o.z_log:	Unix:h.math
+libF77.o.z_log:	Unix:machine.h.huge_val
+libF77.o.z_log:	Unix:machine.h.nan
+libF77.o.z_log:	Unix:unixlib.h.types
+
+libF77.o.z_sin:	libF77.c.z_sin
+libF77.o.z_sin:	@.h.f2c
+libF77.o.z_sin:	@.h.g2c
+libF77.o.z_sin:	Unix:h.math
+libF77.o.z_sin:	Unix:machine.h.huge_val
+libF77.o.z_sin:	Unix:machine.h.nan
+libF77.o.z_sin:	Unix:unixlib.h.types
+
+libF77.o.z_sqrt:	libF77.c.z_sqrt
+libF77.o.z_sqrt:	@.h.f2c
+libF77.o.z_sqrt:	@.h.g2c
+libF77.o.z_sqrt:	Unix:h.math
+libF77.o.z_sqrt:	Unix:machine.h.huge_val
+libF77.o.z_sqrt:	Unix:machine.h.nan
+libF77.o.z_sqrt:	Unix:unixlib.h.types
+
+libF77.o.r_acos:	libF77.c.r_acos
+libF77.o.r_acos:	@.h.f2c
+libF77.o.r_acos:	@.h.g2c
+libF77.o.r_acos:	Unix:h.math
+libF77.o.r_acos:	Unix:machine.h.huge_val
+libF77.o.r_acos:	Unix:machine.h.nan
+libF77.o.r_acos:	Unix:unixlib.h.types
+
+libF77.o.r_asin:	libF77.c.r_asin
+libF77.o.r_asin:	@.h.f2c
+libF77.o.r_asin:	@.h.g2c
+libF77.o.r_asin:	Unix:h.math
+libF77.o.r_asin:	Unix:machine.h.huge_val
+libF77.o.r_asin:	Unix:machine.h.nan
+libF77.o.r_asin:	Unix:unixlib.h.types
+
+libF77.o.r_atan:	libF77.c.r_atan
+libF77.o.r_atan:	@.h.f2c
+libF77.o.r_atan:	@.h.g2c
+libF77.o.r_atan:	Unix:h.math
+libF77.o.r_atan:	Unix:machine.h.huge_val
+libF77.o.r_atan:	Unix:machine.h.nan
+libF77.o.r_atan:	Unix:unixlib.h.types
+
+libF77.o.r_atn2:	libF77.c.r_atn2
+libF77.o.r_atn2:	@.h.f2c
+libF77.o.r_atn2:	@.h.g2c
+libF77.o.r_atn2:	Unix:h.math
+libF77.o.r_atn2:	Unix:machine.h.huge_val
+libF77.o.r_atn2:	Unix:machine.h.nan
+libF77.o.r_atn2:	Unix:unixlib.h.types
+
+libF77.o.r_cos:	libF77.c.r_cos
+libF77.o.r_cos:	@.h.f2c
+libF77.o.r_cos:	@.h.g2c
+libF77.o.r_cos:	Unix:h.math
+libF77.o.r_cos:	Unix:machine.h.huge_val
+libF77.o.r_cos:	Unix:machine.h.nan
+libF77.o.r_cos:	Unix:unixlib.h.types
+
+libF77.o.r_cosh:	libF77.c.r_cosh
+libF77.o.r_cosh:	@.h.f2c
+libF77.o.r_cosh:	@.h.g2c
+libF77.o.r_cosh:	Unix:h.math
+libF77.o.r_cosh:	Unix:machine.h.huge_val
+libF77.o.r_cosh:	Unix:machine.h.nan
+libF77.o.r_cosh:	Unix:unixlib.h.types
+
+libF77.o.r_exp:	libF77.c.r_exp
+libF77.o.r_exp:	@.h.f2c
+libF77.o.r_exp:	@.h.g2c
+libF77.o.r_exp:	Unix:h.math
+libF77.o.r_exp:	Unix:machine.h.huge_val
+libF77.o.r_exp:	Unix:machine.h.nan
+libF77.o.r_exp:	Unix:unixlib.h.types
+
+libF77.o.r_int:	libF77.c.r_int
+libF77.o.r_int:	@.h.f2c
+libF77.o.r_int:	@.h.g2c
+libF77.o.r_int:	Unix:h.math
+libF77.o.r_int:	Unix:machine.h.huge_val
+libF77.o.r_int:	Unix:machine.h.nan
+libF77.o.r_int:	Unix:unixlib.h.types
+
+libF77.o.r_lg10:	libF77.c.r_lg10
+libF77.o.r_lg10:	@.h.f2c
+libF77.o.r_lg10:	@.h.g2c
+libF77.o.r_lg10:	Unix:h.math
+libF77.o.r_lg10:	Unix:machine.h.huge_val
+libF77.o.r_lg10:	Unix:machine.h.nan
+libF77.o.r_lg10:	Unix:unixlib.h.types
+
+libF77.o.r_log:	libF77.c.r_log
+libF77.o.r_log:	@.h.f2c
+libF77.o.r_log:	@.h.g2c
+libF77.o.r_log:	Unix:h.math
+libF77.o.r_log:	Unix:machine.h.huge_val
+libF77.o.r_log:	Unix:machine.h.nan
+libF77.o.r_log:	Unix:unixlib.h.types
+
+libF77.o.r_nint:	libF77.c.r_nint
+libF77.o.r_nint:	@.h.f2c
+libF77.o.r_nint:	@.h.g2c
+libF77.o.r_nint:	Unix:h.math
+libF77.o.r_nint:	Unix:machine.h.huge_val
+libF77.o.r_nint:	Unix:machine.h.nan
+libF77.o.r_nint:	Unix:unixlib.h.types
+
+libF77.o.r_sin:	libF77.c.r_sin
+libF77.o.r_sin:	@.h.f2c
+libF77.o.r_sin:	@.h.g2c
+libF77.o.r_sin:	Unix:h.math
+libF77.o.r_sin:	Unix:machine.h.huge_val
+libF77.o.r_sin:	Unix:machine.h.nan
+libF77.o.r_sin:	Unix:unixlib.h.types
+
+libF77.o.r_sinh:	libF77.c.r_sinh
+libF77.o.r_sinh:	@.h.f2c
+libF77.o.r_sinh:	@.h.g2c
+libF77.o.r_sinh:	Unix:h.math
+libF77.o.r_sinh:	Unix:machine.h.huge_val
+libF77.o.r_sinh:	Unix:machine.h.nan
+libF77.o.r_sinh:	Unix:unixlib.h.types
+
+libF77.o.r_sqrt:	libF77.c.r_sqrt
+libF77.o.r_sqrt:	@.h.f2c
+libF77.o.r_sqrt:	@.h.g2c
+libF77.o.r_sqrt:	Unix:h.math
+libF77.o.r_sqrt:	Unix:machine.h.huge_val
+libF77.o.r_sqrt:	Unix:machine.h.nan
+libF77.o.r_sqrt:	Unix:unixlib.h.types
+
+libF77.o.r_tan:	libF77.c.r_tan
+libF77.o.r_tan:	@.h.f2c
+libF77.o.r_tan:	@.h.g2c
+libF77.o.r_tan:	Unix:h.math
+libF77.o.r_tan:	Unix:machine.h.huge_val
+libF77.o.r_tan:	Unix:machine.h.nan
+libF77.o.r_tan:	Unix:unixlib.h.types
+
+libF77.o.r_tanh:	libF77.c.r_tanh
+libF77.o.r_tanh:	@.h.f2c
+libF77.o.r_tanh:	@.h.g2c
+libF77.o.r_tanh:	Unix:h.math
+libF77.o.r_tanh:	Unix:machine.h.huge_val
+libF77.o.r_tanh:	Unix:machine.h.nan
+libF77.o.r_tanh:	Unix:unixlib.h.types
+
+libF77.o.d_acos:	libF77.c.d_acos
+libF77.o.d_acos:	@.h.f2c
+libF77.o.d_acos:	@.h.g2c
+libF77.o.d_acos:	Unix:h.math
+libF77.o.d_acos:	Unix:machine.h.huge_val
+libF77.o.d_acos:	Unix:machine.h.nan
+libF77.o.d_acos:	Unix:unixlib.h.types
+
+libF77.o.d_asin:	libF77.c.d_asin
+libF77.o.d_asin:	@.h.f2c
+libF77.o.d_asin:	@.h.g2c
+libF77.o.d_asin:	Unix:h.math
+libF77.o.d_asin:	Unix:machine.h.huge_val
+libF77.o.d_asin:	Unix:machine.h.nan
+libF77.o.d_asin:	Unix:unixlib.h.types
+
+libF77.o.d_atan:	libF77.c.d_atan
+libF77.o.d_atan:	@.h.f2c
+libF77.o.d_atan:	@.h.g2c
+libF77.o.d_atan:	Unix:h.math
+libF77.o.d_atan:	Unix:machine.h.huge_val
+libF77.o.d_atan:	Unix:machine.h.nan
+libF77.o.d_atan:	Unix:unixlib.h.types
+
+libF77.o.d_atn2:	libF77.c.d_atn2
+libF77.o.d_atn2:	@.h.f2c
+libF77.o.d_atn2:	@.h.g2c
+libF77.o.d_atn2:	Unix:h.math
+libF77.o.d_atn2:	Unix:machine.h.huge_val
+libF77.o.d_atn2:	Unix:machine.h.nan
+libF77.o.d_atn2:	Unix:unixlib.h.types
+
+libF77.o.d_cos:	libF77.c.d_cos
+libF77.o.d_cos:	@.h.f2c
+libF77.o.d_cos:	@.h.g2c
+libF77.o.d_cos:	Unix:h.math
+libF77.o.d_cos:	Unix:machine.h.huge_val
+libF77.o.d_cos:	Unix:machine.h.nan
+libF77.o.d_cos:	Unix:unixlib.h.types
+
+libF77.o.d_cosh:	libF77.c.d_cosh
+libF77.o.d_cosh:	@.h.f2c
+libF77.o.d_cosh:	@.h.g2c
+libF77.o.d_cosh:	Unix:h.math
+libF77.o.d_cosh:	Unix:machine.h.huge_val
+libF77.o.d_cosh:	Unix:machine.h.nan
+libF77.o.d_cosh:	Unix:unixlib.h.types
+
+libF77.o.d_exp:	libF77.c.d_exp
+libF77.o.d_exp:	@.h.f2c
+libF77.o.d_exp:	@.h.g2c
+libF77.o.d_exp:	Unix:h.math
+libF77.o.d_exp:	Unix:machine.h.huge_val
+libF77.o.d_exp:	Unix:machine.h.nan
+libF77.o.d_exp:	Unix:unixlib.h.types
+
+libF77.o.d_int:	libF77.c.d_int
+libF77.o.d_int:	@.h.f2c
+libF77.o.d_int:	@.h.g2c
+libF77.o.d_int:	Unix:h.math
+libF77.o.d_int:	Unix:machine.h.huge_val
+libF77.o.d_int:	Unix:machine.h.nan
+libF77.o.d_int:	Unix:unixlib.h.types
+
+libF77.o.d_lg10:	libF77.c.d_lg10
+libF77.o.d_lg10:	@.h.f2c
+libF77.o.d_lg10:	@.h.g2c
+libF77.o.d_lg10:	Unix:h.math
+libF77.o.d_lg10:	Unix:machine.h.huge_val
+libF77.o.d_lg10:	Unix:machine.h.nan
+libF77.o.d_lg10:	Unix:unixlib.h.types
+
+libF77.o.d_log:	libF77.c.d_log
+libF77.o.d_log:	@.h.f2c
+libF77.o.d_log:	@.h.g2c
+libF77.o.d_log:	Unix:h.math
+libF77.o.d_log:	Unix:machine.h.huge_val
+libF77.o.d_log:	Unix:machine.h.nan
+libF77.o.d_log:	Unix:unixlib.h.types
+
+libF77.o.d_nint:	libF77.c.d_nint
+libF77.o.d_nint:	@.h.f2c
+libF77.o.d_nint:	@.h.g2c
+libF77.o.d_nint:	Unix:h.math
+libF77.o.d_nint:	Unix:machine.h.huge_val
+libF77.o.d_nint:	Unix:machine.h.nan
+libF77.o.d_nint:	Unix:unixlib.h.types
+
+libF77.o.d_sin:	libF77.c.d_sin
+libF77.o.d_sin:	@.h.f2c
+libF77.o.d_sin:	@.h.g2c
+libF77.o.d_sin:	Unix:h.math
+libF77.o.d_sin:	Unix:machine.h.huge_val
+libF77.o.d_sin:	Unix:machine.h.nan
+libF77.o.d_sin:	Unix:unixlib.h.types
+
+libF77.o.d_sinh:	libF77.c.d_sinh
+libF77.o.d_sinh:	@.h.f2c
+libF77.o.d_sinh:	@.h.g2c
+libF77.o.d_sinh:	Unix:h.math
+libF77.o.d_sinh:	Unix:machine.h.huge_val
+libF77.o.d_sinh:	Unix:machine.h.nan
+libF77.o.d_sinh:	Unix:unixlib.h.types
+
+libF77.o.d_sqrt:	libF77.c.d_sqrt
+libF77.o.d_sqrt:	@.h.f2c
+libF77.o.d_sqrt:	@.h.g2c
+libF77.o.d_sqrt:	Unix:h.math
+libF77.o.d_sqrt:	Unix:machine.h.huge_val
+libF77.o.d_sqrt:	Unix:machine.h.nan
+libF77.o.d_sqrt:	Unix:unixlib.h.types
+
+libF77.o.d_tan:	libF77.c.d_tan
+libF77.o.d_tan:	@.h.f2c
+libF77.o.d_tan:	@.h.g2c
+libF77.o.d_tan:	Unix:h.math
+libF77.o.d_tan:	Unix:machine.h.huge_val
+libF77.o.d_tan:	Unix:machine.h.nan
+libF77.o.d_tan:	Unix:unixlib.h.types
+
+libF77.o.d_tanh:	libF77.c.d_tanh
+libF77.o.d_tanh:	@.h.f2c
+libF77.o.d_tanh:	@.h.g2c
+libF77.o.d_tanh:	Unix:h.math
+libF77.o.d_tanh:	Unix:machine.h.huge_val
+libF77.o.d_tanh:	Unix:machine.h.nan
+libF77.o.d_tanh:	Unix:unixlib.h.types
+
+libF77.o.i_dnnt:	libF77.c.i_dnnt
+libF77.o.i_dnnt:	@.h.f2c
+libF77.o.i_dnnt:	@.h.g2c
+libF77.o.i_dnnt:	Unix:h.math
+libF77.o.i_dnnt:	Unix:machine.h.huge_val
+libF77.o.i_dnnt:	Unix:machine.h.nan
+libF77.o.i_dnnt:	Unix:unixlib.h.types
+
+libF77.o.i_nint:	libF77.c.i_nint
+libF77.o.i_nint:	@.h.f2c
+libF77.o.i_nint:	@.h.g2c
+libF77.o.i_nint:	Unix:h.math
+libF77.o.i_nint:	Unix:machine.h.huge_val
+libF77.o.i_nint:	Unix:machine.h.nan
+libF77.o.i_nint:	Unix:unixlib.h.types
+
+libF77.o.h_dnnt:	libF77.c.h_dnnt
+libF77.o.h_dnnt:	@.h.f2c
+libF77.o.h_dnnt:	@.h.g2c
+libF77.o.h_dnnt:	Unix:h.math
+libF77.o.h_dnnt:	Unix:machine.h.huge_val
+libF77.o.h_dnnt:	Unix:machine.h.nan
+libF77.o.h_dnnt:	Unix:unixlib.h.types
+
+libF77.o.h_nint:	libF77.c.h_nint
+libF77.o.h_nint:	@.h.f2c
+libF77.o.h_nint:	@.h.g2c
+libF77.o.h_nint:	Unix:h.math
+libF77.o.h_nint:	Unix:machine.h.huge_val
+libF77.o.h_nint:	Unix:machine.h.nan
+libF77.o.h_nint:	Unix:unixlib.h.types
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+libU77.o.Version:	libU77.c.Version
+libU77.o.Version:	Unix:h.stdio
+libU77.o.Version:	Unix:unixlib.h.features
+libU77.o.Version:	Unix:unixlib.h.types
+libU77.o.Version:	Unix:h.stddef
+
+libU77.o.perror_:	libU77.c.perror_
+libU77.o.perror_:	libU77.h.config
+libU77.o.perror_:	Unix:h.stdio
+libU77.o.perror_:	Unix:unixlib.h.features
+libU77.o.perror_:	Unix:unixlib.h.types
+libU77.o.perror_:	Unix:h.stddef
+libU77.o.perror_:	Unix:h.errno
+libU77.o.perror_:	Unix:h.string
+libU77.o.perror_:	@.h.f2c
+libU77.o.perror_:	@.h.g2c
+
+libU77.o.itime_:	libU77.c.itime_
+libU77.o.itime_:	libU77.h.config
+libU77.o.itime_:	Unix:h.stdio
+libU77.o.itime_:	Unix:unixlib.h.features
+libU77.o.itime_:	Unix:unixlib.h.types
+libU77.o.itime_:	Unix:h.stddef
+libU77.o.itime_:	Unix:sys.h.time
+libU77.o.itime_:	Unix:h.time
+libU77.o.itime_:	@.h.f2c
+libU77.o.itime_:	@.h.g2c
+
+libU77.o.time_:	libU77.c.time_
+libU77.o.time_:	libU77.h.config
+libU77.o.time_:	Unix:h.stdio
+libU77.o.time_:	Unix:unixlib.h.features
+libU77.o.time_:	Unix:unixlib.h.types
+libU77.o.time_:	Unix:h.stddef
+libU77.o.time_:	Unix:sys.h.time
+libU77.o.time_:	Unix:h.time
+libU77.o.time_:	@.h.f2c
+libU77.o.time_:	@.h.g2c
+
+libU77.o.fnum_:	libU77.c.fnum_
+libU77.o.fnum_:	libU77.h.config
+libU77.o.fnum_:	@.h.f2c
+libU77.o.fnum_:	@.h.g2c
+libU77.o.fnum_:	libi77.h.fio
+libU77.o.fnum_:	Unix:h.stdio
+libU77.o.fnum_:	Unix:unixlib.h.features
+libU77.o.fnum_:	Unix:unixlib.h.types
+libU77.o.fnum_:	Unix:h.stddef
+libU77.o.fnum_:	Unix:h.errno
+libU77.o.fnum_:	Unix:h.string
+
+libU77.o.idate_:	libU77.c.idate_
+libU77.o.idate_:	libU77.h.config
+libU77.o.idate_:	Unix:h.stdio
+libU77.o.idate_:	Unix:unixlib.h.features
+libU77.o.idate_:	Unix:unixlib.h.types
+libU77.o.idate_:	Unix:h.stddef
+libU77.o.idate_:	Unix:sys.h.time
+libU77.o.idate_:	Unix:h.time
+libU77.o.idate_:	@.h.f2c
+libU77.o.idate_:	@.h.g2c
+
+libU77.o.isatty_:	libU77.c.isatty_
+libU77.o.isatty_:	libU77.h.config
+libU77.o.isatty_:	Unix:h.unistd
+libU77.o.isatty_:	Unix:unixlib.h.types
+libU77.o.isatty_:	Unix:h.stddef
+libU77.o.isatty_:	@.h.f2c
+libU77.o.isatty_:	@.h.g2c
+libU77.o.isatty_:	libi77.h.fio
+libU77.o.isatty_:	Unix:h.stdio
+libU77.o.isatty_:	Unix:unixlib.h.features
+libU77.o.isatty_:	Unix:h.errno
+libU77.o.isatty_:	Unix:h.string
+
+libU77.o.stat_:	libU77.c.stat_
+libU77.o.stat_:	libU77.h.config
+libU77.o.stat_:	Unix:h.stdio
+libU77.o.stat_:	Unix:unixlib.h.features
+libU77.o.stat_:	Unix:unixlib.h.types
+libU77.o.stat_:	Unix:h.stddef
+libU77.o.stat_:	Unix:h.stdlib
+libU77.o.stat_:	Unix:h.alloca
+libU77.o.stat_:	Unix:sys.h.types
+libU77.o.stat_:	Unix:h.time
+libU77.o.stat_:	Unix:sys.h.stat
+libU77.o.stat_:	@.h.f2c
+libU77.o.stat_:	@.h.g2c
+
+libU77.o.lstat_:	libU77.c.lstat_
+libU77.o.lstat_:	libU77.h.config
+libU77.o.lstat_:	Unix:h.stdio
+libU77.o.lstat_:	Unix:unixlib.h.features
+libU77.o.lstat_:	Unix:unixlib.h.types
+libU77.o.lstat_:	Unix:h.stddef
+libU77.o.lstat_:	Unix:h.stdlib
+libU77.o.lstat_:	Unix:h.alloca
+libU77.o.lstat_:	Unix:sys.h.types
+libU77.o.lstat_:	Unix:h.time
+libU77.o.lstat_:	Unix:sys.h.stat
+libU77.o.lstat_:	Unix:h.errno
+libU77.o.lstat_:	@.h.f2c
+libU77.o.lstat_:	@.h.g2c
+
+libU77.o.getlog_:	libU77.c.getlog_
+libU77.o.getlog_:	libU77.h.config
+libU77.o.getlog_:	Unix:sys.h.types
+libU77.o.getlog_:	Unix:unixlib.h.types
+libU77.o.getlog_:	Unix:h.time
+libU77.o.getlog_:	Unix:h.stddef
+libU77.o.getlog_:	Unix:h.stdlib
+libU77.o.getlog_:	Unix:h.alloca
+libU77.o.getlog_:	Unix:h.stdio
+libU77.o.getlog_:	Unix:unixlib.h.features
+libU77.o.getlog_:	Unix:h.unistd
+libU77.o.getlog_:	Unix:h.string
+libU77.o.getlog_:	Unix:h.errno
+libU77.o.getlog_:	@.h.f2c
+libU77.o.getlog_:	@.h.g2c
+
+libU77.o.ttynam_:	libU77.c.ttynam_
+libU77.o.ttynam_:	libU77.h.config
+libU77.o.ttynam_:	Unix:sys.h.types
+libU77.o.ttynam_:	Unix:unixlib.h.types
+libU77.o.ttynam_:	Unix:h.time
+libU77.o.ttynam_:	Unix:h.stddef
+libU77.o.ttynam_:	Unix:h.stdlib
+libU77.o.ttynam_:	Unix:h.alloca
+libU77.o.ttynam_:	Unix:h.unistd
+libU77.o.ttynam_:	Unix:h.stdio
+libU77.o.ttynam_:	Unix:unixlib.h.features
+libU77.o.ttynam_:	Unix:h.string
+libU77.o.ttynam_:	Unix:h.errno
+libU77.o.ttynam_:	@.h.f2c
+libU77.o.ttynam_:	@.h.g2c
+
+libU77.o.getcwd_:	libU77.c.getcwd_
+libU77.o.getcwd_:	libU77.h.config
+libU77.o.getcwd_:	Unix:h.errno
+libU77.o.getcwd_:	Unix:h.string
+libU77.o.getcwd_:	Unix:h.stddef
+libU77.o.getcwd_:	Unix:h.stdio
+libU77.o.getcwd_:	Unix:unixlib.h.features
+libU77.o.getcwd_:	Unix:unixlib.h.types
+libU77.o.getcwd_:	@.h.f2c
+libU77.o.getcwd_:	@.h.g2c
+libU77.o.getcwd_:	Unix:h.unistd
+
+libU77.o.vxttime_:	libU77.c.vxttime_
+libU77.o.vxttime_:	libU77.h.config
+libU77.o.vxttime_:	Unix:h.stdio
+libU77.o.vxttime_:	Unix:unixlib.h.features
+libU77.o.vxttime_:	Unix:unixlib.h.types
+libU77.o.vxttime_:	Unix:h.stddef
+libU77.o.vxttime_:	Unix:sys.h.time
+libU77.o.vxttime_:	Unix:h.time
+libU77.o.vxttime_:	Unix:h.string
+libU77.o.vxttime_:	@.h.f2c
+libU77.o.vxttime_:	@.h.g2c
+
+libU77.o.vxtidate_:	libU77.c.vxtidate_
+libU77.o.vxtidate_:	libU77.h.config
+libU77.o.vxtidate_:	Unix:h.stdio
+libU77.o.vxtidate_:	Unix:unixlib.h.features
+libU77.o.vxtidate_:	Unix:unixlib.h.types
+libU77.o.vxtidate_:	Unix:h.stddef
+libU77.o.vxtidate_:	Unix:sys.h.time
+libU77.o.vxtidate_:	Unix:h.time
+libU77.o.vxtidate_:	@.h.f2c
+libU77.o.vxtidate_:	@.h.g2c
+
+libU77.o.fdate_:	libU77.c.fdate_
+libU77.o.fdate_:	libU77.h.config
+libU77.o.fdate_:	Unix:h.stdio
+libU77.o.fdate_:	Unix:unixlib.h.features
+libU77.o.fdate_:	Unix:unixlib.h.types
+libU77.o.fdate_:	Unix:h.stddef
+libU77.o.fdate_:	Unix:sys.h.time
+libU77.o.fdate_:	Unix:h.time
+libU77.o.fdate_:	Unix:h.string
+libU77.o.fdate_:	@.h.f2c
+libU77.o.fdate_:	@.h.g2c
+
+libU77.o.secnds_:	libU77.c.secnds_
+libU77.o.secnds_:	libU77.h.config
+libU77.o.secnds_:	Unix:h.stdio
+libU77.o.secnds_:	Unix:unixlib.h.features
+libU77.o.secnds_:	Unix:unixlib.h.types
+libU77.o.secnds_:	Unix:h.stddef
+libU77.o.secnds_:	Unix:sys.h.time
+libU77.o.secnds_:	Unix:h.time
+libU77.o.secnds_:	Unix:sys.h.types
+libU77.o.secnds_:	@.h.f2c
+libU77.o.secnds_:	@.h.g2c
+
+libU77.o.rename_:	libU77.c.rename_
+libU77.o.rename_:	libU77.h.config
+libU77.o.rename_:	Unix:h.unistd
+libU77.o.rename_:	Unix:unixlib.h.types
+libU77.o.rename_:	Unix:h.stddef
+libU77.o.rename_:	Unix:h.stdlib
+libU77.o.rename_:	Unix:h.alloca
+libU77.o.rename_:	Unix:h.stdio
+libU77.o.rename_:	Unix:unixlib.h.features
+libU77.o.rename_:	Unix:h.errno
+libU77.o.rename_:	@.h.f2c
+libU77.o.rename_:	@.h.g2c
+
+libU77.o.fgetc_:	libU77.c.fgetc_
+libU77.o.fgetc_:	libU77.h.config
+libU77.o.fgetc_:	Unix:h.stdio
+libU77.o.fgetc_:	Unix:unixlib.h.features
+libU77.o.fgetc_:	Unix:unixlib.h.types
+libU77.o.fgetc_:	Unix:h.stddef
+libU77.o.fgetc_:	@.h.f2c
+libU77.o.fgetc_:	@.h.g2c
+libU77.o.fgetc_:	libi77.h.fio
+libU77.o.fgetc_:	Unix:h.errno
+libU77.o.fgetc_:	Unix:h.string
+
+libU77.o.fputc_:	libU77.c.fputc_
+libU77.o.fputc_:	libU77.h.config
+libU77.o.fputc_:	Unix:h.stdio
+libU77.o.fputc_:	Unix:unixlib.h.features
+libU77.o.fputc_:	Unix:unixlib.h.types
+libU77.o.fputc_:	Unix:h.stddef
+libU77.o.fputc_:	@.h.f2c
+libU77.o.fputc_:	@.h.g2c
+libU77.o.fputc_:	libi77.h.fio
+libU77.o.fputc_:	Unix:h.errno
+libU77.o.fputc_:	Unix:h.string
+
+libU77.o.flush1_:	libU77.c.flush1_
+libU77.o.flush1_:	libU77.h.config
+libU77.o.flush1_:	Unix:h.stdio
+libU77.o.flush1_:	Unix:unixlib.h.features
+libU77.o.flush1_:	Unix:unixlib.h.types
+libU77.o.flush1_:	Unix:h.stddef
+libU77.o.flush1_:	@.h.f2c
+libU77.o.flush1_:	@.h.g2c
+libU77.o.flush1_:	libi77.h.fio
+libU77.o.flush1_:	Unix:h.errno
+libU77.o.flush1_:	Unix:h.string
+
+libU77.o.datetime_:	libU77.c.datetime_
+libU77.o.datetime_:	libU77.h.config
+libU77.o.datetime_:	Unix:h.stdio
+libU77.o.datetime_:	Unix:unixlib.h.features
+libU77.o.datetime_:	Unix:unixlib.h.types
+libU77.o.datetime_:	Unix:h.stddef
+libU77.o.datetime_:	Unix:sys.h.time
+libU77.o.datetime_:	Unix:h.time
+libU77.o.datetime_:	@.h.f2c
+libU77.o.datetime_:	@.h.g2c
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+libF77.o.F77_aloc:	libF77.c.F77_aloc
+libF77.o.F77_aloc:	@.h.f2c
+libF77.o.F77_aloc:	@.h.g2c
+libF77.o.F77_aloc:	Unix:h.stdio
+libF77.o.F77_aloc:	Unix:unixlib.h.features
+libF77.o.F77_aloc:	Unix:unixlib.h.types
+libF77.o.F77_aloc:	Unix:h.stddef
+libF77.o.F77_aloc:	Unix:h.stdlib
+libF77.o.F77_aloc:	Unix:h.alloca
+
+libF77.o.Version:	libF77.c.Version
+libF77.o.Version:	Unix:h.stdio
+libF77.o.Version:	Unix:unixlib.h.features
+libF77.o.Version:	Unix:unixlib.h.types
+libF77.o.Version:	Unix:h.stddef
+
+libF77.o.main:	libF77.c.main
+libF77.o.main:	Unix:h.stdio
+libF77.o.main:	Unix:unixlib.h.features
+libF77.o.main:	Unix:unixlib.h.types
+libF77.o.main:	Unix:h.stddef
+libF77.o.main:	libF77.h.signal1
+libF77.o.main:	Unix:h.signal
+libF77.o.main:	Unix:h.stdlib
+libF77.o.main:	Unix:h.alloca
+
+
+libF77.o.abort_:	libF77.c.abort_
+libF77.o.abort_:	Unix:h.stdio
+libF77.o.abort_:	Unix:unixlib.h.features
+libF77.o.abort_:	Unix:unixlib.h.types
+libF77.o.abort_:	Unix:h.stddef
+libF77.o.abort_:	@.h.f2c
+libF77.o.abort_:	@.h.g2c
+
+libF77.o.getarg_:	libF77.c.getarg_
+libF77.o.getarg_:	@.h.f2c
+libF77.o.getarg_:	@.h.g2c
+
+libF77.o.iargc_:	libF77.c.iargc_
+libF77.o.iargc_:	@.h.f2c
+libF77.o.iargc_:	@.h.g2c
+
+libF77.o.getenv_:	libF77.c.getenv_
+libF77.o.getenv_:	@.h.f2c
+libF77.o.getenv_:	@.h.g2c
+libF77.o.getenv_:	Unix:h.stdlib
+libF77.o.getenv_:	Unix:h.stddef
+libF77.o.getenv_:	Unix:h.alloca
+libF77.o.getenv_:	Unix:h.string
+
+libF77.o.signal_:	libF77.c.signal_
+libF77.o.signal_:	@.h.f2c
+libF77.o.signal_:	@.h.g2c
+libF77.o.signal_:	libF77.h.signal1
+libF77.o.signal_:	Unix:h.signal
+libF77.o.signal_:	Unix:unixlib.h.types
+libF77.o.signal_:	Unix:h.stddef
+
+
+
+libF77.o.system_:	libF77.c.system_
+libF77.o.system_:	@.h.f2c
+libF77.o.system_:	@.h.g2c
+libF77.o.system_:	Unix:h.stdlib
+libF77.o.system_:	Unix:h.stddef
+libF77.o.system_:	Unix:h.alloca
+
+libF77.o.cabs:	libF77.c.cabs
+libF77.o.cabs:	Unix:h.math
+libF77.o.cabs:	Unix:machine.h.huge_val
+libF77.o.cabs:	Unix:machine.h.nan
+libF77.o.cabs:	Unix:unixlib.h.types
+
+libF77.o.derf_:	libF77.c.derf_
+libF77.o.derf_:	@.h.f2c
+libF77.o.derf_:	@.h.g2c
+
+libF77.o.derfc_:	libF77.c.derfc_
+libF77.o.derfc_:	@.h.f2c
+libF77.o.derfc_:	@.h.g2c
+
+libF77.o.erf_:	libF77.c.erf_
+libF77.o.erf_:	@.h.f2c
+libF77.o.erf_:	@.h.g2c
+
+libF77.o.erfc_:	libF77.c.erfc_
+libF77.o.erfc_:	@.h.f2c
+libF77.o.erfc_:	@.h.g2c
+
+libF77.o.sig_die:	libF77.c.sig_die
+libF77.o.sig_die:	Unix:h.stdio
+libF77.o.sig_die:	Unix:unixlib.h.features
+libF77.o.sig_die:	Unix:unixlib.h.types
+libF77.o.sig_die:	Unix:h.stddef
+libF77.o.sig_die:	Unix:h.signal
+libF77.o.sig_die:	Unix:h.stdlib
+libF77.o.sig_die:	Unix:h.alloca
+
+libF77.o.exit_:	libF77.c.exit_
+libF77.o.exit_:	@.h.f2c
+libF77.o.exit_:	@.h.g2c
+libF77.o.exit_:	Unix:h.stdlib
+libF77.o.exit_:	Unix:h.stddef
+libF77.o.exit_:	Unix:h.alloca
+
+libF77.o.setarg:	libF77.c.setarg
+libF77.o.setarg:	Unix:h.stdlib
+libF77.o.setarg:	Unix:h.stddef
+libF77.o.setarg:	Unix:h.alloca
+
+libF77.o.setsig:	libF77.c.setsig
+libF77.o.setsig:	Unix:h.stdio
+libF77.o.setsig:	Unix:unixlib.h.features
+libF77.o.setsig:	Unix:unixlib.h.types
+libF77.o.setsig:	Unix:h.stddef
+libF77.o.setsig:	libF77.h.signal1
+libF77.o.setsig:	Unix:h.signal
+libF77.o.setsig:	Unix:h.stdlib
+libF77.o.setsig:	Unix:h.alloca
+
+libF77.o.pow_ci:	libF77.c.pow_ci
+libF77.o.pow_ci:	@.h.f2c
+libF77.o.pow_ci:	@.h.g2c
+
+libF77.o.pow_dd:	libF77.c.pow_dd
+libF77.o.pow_dd:	@.h.f2c
+libF77.o.pow_dd:	@.h.g2c
+libF77.o.pow_dd:	Unix:h.math
+libF77.o.pow_dd:	Unix:machine.h.huge_val
+libF77.o.pow_dd:	Unix:machine.h.nan
+libF77.o.pow_dd:	Unix:unixlib.h.types
+
+libF77.o.pow_di:	libF77.c.pow_di
+libF77.o.pow_di:	@.h.f2c
+libF77.o.pow_di:	@.h.g2c
+
+libF77.o.pow_hh:	libF77.c.pow_hh
+libF77.o.pow_hh:	@.h.f2c
+libF77.o.pow_hh:	@.h.g2c
+
+libF77.o.pow_ii:	libF77.c.pow_ii
+libF77.o.pow_ii:	@.h.f2c
+libF77.o.pow_ii:	@.h.g2c
+
+libF77.o.pow_ri:	libF77.c.pow_ri
+libF77.o.pow_ri:	@.h.f2c
+libF77.o.pow_ri:	@.h.g2c
+
+libF77.o.pow_zi:	libF77.c.pow_zi
+libF77.o.pow_zi:	@.h.f2c
+libF77.o.pow_zi:	@.h.g2c
+
+libF77.o.pow_zz:	libF77.c.pow_zz
+libF77.o.pow_zz:	@.h.f2c
+libF77.o.pow_zz:	@.h.g2c
+libF77.o.pow_zz:	Unix:h.math
+libF77.o.pow_zz:	Unix:machine.h.huge_val
+libF77.o.pow_zz:	Unix:machine.h.nan
+libF77.o.pow_zz:	Unix:unixlib.h.types
+
+libF77.o.pow_qq:	libF77.c.pow_qq
+libF77.o.pow_qq:	@.h.f2c
+libF77.o.pow_qq:	@.h.g2c
+
+libF77.o.c_abs:	libF77.c.c_abs
+libF77.o.c_abs:	@.h.f2c
+libF77.o.c_abs:	@.h.g2c
+
+libF77.o.c_cos:	libF77.c.c_cos
+libF77.o.c_cos:	@.h.f2c
+libF77.o.c_cos:	@.h.g2c
+libF77.o.c_cos:	Unix:h.math
+libF77.o.c_cos:	Unix:machine.h.huge_val
+libF77.o.c_cos:	Unix:machine.h.nan
+libF77.o.c_cos:	Unix:unixlib.h.types
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+libI77.o.Version:	libI77.c.Version
+libI77.o.Version:	Unix:h.stdio
+libI77.o.Version:	Unix:unixlib.h.features
+libI77.o.Version:	Unix:unixlib.h.types
+libI77.o.Version:	Unix:h.stddef
+
+libI77.o.backspace:	libI77.c.backspace
+libI77.o.backspace:	Unix:sys.h.types
+libI77.o.backspace:	Unix:unixlib.h.types
+libI77.o.backspace:	Unix:h.time
+libI77.o.backspace:	Unix:h.stddef
+libI77.o.backspace:	@.h.f2c
+libI77.o.backspace:	@.h.g2c
+libI77.o.backspace:	libI77.h.fio
+libI77.o.backspace:	Unix:h.stdio
+libI77.o.backspace:	Unix:unixlib.h.features
+libI77.o.backspace:	Unix:h.errno
+libI77.o.backspace:	Unix:h.string
+
+libI77.o.close:	libI77.c.close
+libI77.o.close:	@.h.f2c
+libI77.o.close:	@.h.g2c
+libI77.o.close:	libI77.h.fio
+libI77.o.close:	Unix:h.stdio
+libI77.o.close:	Unix:unixlib.h.features
+libI77.o.close:	Unix:unixlib.h.types
+libI77.o.close:	Unix:h.stddef
+libI77.o.close:	Unix:h.errno
+libI77.o.close:	Unix:h.string
+libI77.o.close:	Unix:h.stdlib
+libI77.o.close:	Unix:h.alloca
+
+
+libI77.o.dolio:	libI77.c.dolio
+libI77.o.dolio:	@.h.f2c
+libI77.o.dolio:	@.h.g2c
+
+libI77.o.due:	libI77.c.due
+libI77.o.due:	@.h.f2c
+libI77.o.due:	@.h.g2c
+libI77.o.due:	libI77.h.fio
+libI77.o.due:	Unix:h.stdio
+libI77.o.due:	Unix:unixlib.h.features
+libI77.o.due:	Unix:unixlib.h.types
+libI77.o.due:	Unix:h.stddef
+libI77.o.due:	Unix:h.errno
+libI77.o.due:	Unix:h.string
+
+libI77.o.endfile:	libI77.c.endfile
+libI77.o.endfile:	@.h.f2c
+libI77.o.endfile:	@.h.g2c
+libI77.o.endfile:	libI77.h.fio
+libI77.o.endfile:	Unix:h.stdio
+libI77.o.endfile:	Unix:unixlib.h.features
+libI77.o.endfile:	Unix:unixlib.h.types
+libI77.o.endfile:	Unix:h.stddef
+libI77.o.endfile:	Unix:h.errno
+libI77.o.endfile:	Unix:h.string
+libI77.o.endfile:	Unix:h.stdlib
+libI77.o.endfile:	Unix:h.alloca
+
+
+
+libI77.o.fmtlib:	libI77.c.fmtlib
+libI77.o.fmtlib:	@.h.f2c
+libI77.o.fmtlib:	@.h.g2c
+
+
+libI77.o.ilnw:	libI77.c.ilnw
+libI77.o.ilnw:	@.h.f2c
+libI77.o.ilnw:	@.h.g2c
+libI77.o.ilnw:	libI77.h.fio
+libI77.o.ilnw:	Unix:h.stdio
+libI77.o.ilnw:	Unix:unixlib.h.features
+libI77.o.ilnw:	Unix:unixlib.h.types
+libI77.o.ilnw:	Unix:h.stddef
+libI77.o.ilnw:	Unix:h.errno
+libI77.o.ilnw:	Unix:h.string
+libI77.o.ilnw:	libI77.h.lio
+
+
+
+
+libI77.o.open:	libI77.c.open
+libI77.o.open:	@.h.f2c
+libI77.o.open:	@.h.g2c
+libI77.o.open:	libI77.h.fio
+libI77.o.open:	Unix:h.stdio
+libI77.o.open:	Unix:unixlib.h.features
+libI77.o.open:	Unix:unixlib.h.types
+libI77.o.open:	Unix:h.stddef
+libI77.o.open:	Unix:h.errno
+libI77.o.open:	Unix:h.string
+libI77.o.open:	Unix:h.unistd
+libI77.o.open:	Unix:h.stdlib
+libI77.o.open:	Unix:h.alloca
+
+
+libI77.o.rewind:	libI77.c.rewind
+libI77.o.rewind:	@.h.f2c
+libI77.o.rewind:	@.h.g2c
+libI77.o.rewind:	libI77.h.fio
+libI77.o.rewind:	Unix:h.stdio
+libI77.o.rewind:	Unix:unixlib.h.features
+libI77.o.rewind:	Unix:unixlib.h.types
+libI77.o.rewind:	Unix:h.stddef
+libI77.o.rewind:	Unix:h.errno
+libI77.o.rewind:	Unix:h.string
+
+
+
+libI77.o.rsne:	libI77.c.rsne
+libI77.o.rsne:	@.h.f2c
+libI77.o.rsne:	@.h.g2c
+libI77.o.rsne:	libI77.h.fio
+libI77.o.rsne:	Unix:h.stdio
+libI77.o.rsne:	Unix:unixlib.h.features
+libI77.o.rsne:	Unix:unixlib.h.types
+libI77.o.rsne:	Unix:h.stddef
+libI77.o.rsne:	Unix:h.errno
+libI77.o.rsne:	Unix:h.string
+libI77.o.rsne:	libI77.h.lio
+libI77.o.rsne:	Unix:h.stdlib
+libI77.o.rsne:	Unix:h.alloca
+
+libI77.o.sfe:	libI77.c.sfe
+libI77.o.sfe:	@.h.f2c
+libI77.o.sfe:	@.h.g2c
+libI77.o.sfe:	libI77.h.fio
+libI77.o.sfe:	Unix:h.stdio
+libI77.o.sfe:	Unix:unixlib.h.features
+libI77.o.sfe:	Unix:unixlib.h.types
+libI77.o.sfe:	Unix:h.stddef
+libI77.o.sfe:	Unix:h.errno
+libI77.o.sfe:	Unix:h.string
+
+libI77.o.sue:	libI77.c.sue
+libI77.o.sue:	@.h.f2c
+libI77.o.sue:	@.h.g2c
+libI77.o.sue:	libI77.h.fio
+libI77.o.sue:	Unix:h.stdio
+libI77.o.sue:	Unix:unixlib.h.features
+libI77.o.sue:	Unix:unixlib.h.types
+libI77.o.sue:	Unix:h.stddef
+libI77.o.sue:	Unix:h.errno
+libI77.o.sue:	Unix:h.string
+
+libI77.o.typesize:	libI77.c.typesize
+libI77.o.typesize:	@.h.f2c
+libI77.o.typesize:	@.h.g2c
+
+libI77.o.uio:	libI77.c.uio
+libI77.o.uio:	@.h.f2c
+libI77.o.uio:	@.h.g2c
+libI77.o.uio:	libI77.h.fio
+libI77.o.uio:	Unix:h.stdio
+libI77.o.uio:	Unix:unixlib.h.features
+libI77.o.uio:	Unix:unixlib.h.types
+libI77.o.uio:	Unix:h.stddef
+libI77.o.uio:	Unix:h.errno
+libI77.o.uio:	Unix:h.string
+libI77.o.uio:	Unix:sys.h.types
+libI77.o.uio:	Unix:h.time
+
+libI77.o.util:	libI77.c.util
+libI77.o.util:	@.h.f2c
+libI77.o.util:	@.h.g2c
+libI77.o.util:	libI77.h.fio
+libI77.o.util:	Unix:h.stdio
+libI77.o.util:	Unix:unixlib.h.features
+libI77.o.util:	Unix:unixlib.h.types
+libI77.o.util:	Unix:h.stddef
+libI77.o.util:	Unix:h.errno
+libI77.o.util:	Unix:h.string
+
+
+
+
+
+libI77.o.wsne:	libI77.c.wsne
+libI77.o.wsne:	@.h.f2c
+libI77.o.wsne:	@.h.g2c
+libI77.o.wsne:	libI77.h.fio
+libI77.o.wsne:	Unix:h.stdio
+libI77.o.wsne:	Unix:unixlib.h.features
+libI77.o.wsne:	Unix:unixlib.h.types
+libI77.o.wsne:	Unix:h.stddef
+libI77.o.wsne:	Unix:h.errno
+libI77.o.wsne:	Unix:h.string
+libI77.o.wsne:	libI77.h.lio
+
+
+libI77.o.ftell_:	libI77.c.ftell_
+libI77.o.ftell_:	@.h.f2c
+libI77.o.ftell_:	@.h.g2c
+libI77.o.ftell_:	libI77.h.fio
+libI77.o.ftell_:	Unix:h.stdio
+libI77.o.ftell_:	Unix:unixlib.h.features
+libI77.o.ftell_:	Unix:unixlib.h.types
+libI77.o.ftell_:	Unix:h.stddef
+libI77.o.ftell_:	Unix:h.errno
+libI77.o.ftell_:	Unix:h.string
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+libI77.o.dfe:	libI77.c.dfe
+libI77.o.dfe:	@.h.f2c
+libI77.o.dfe:	@.h.g2c
+libI77.o.dfe:	libI77.h.fio
+libI77.o.dfe:	Unix:h.stdio
+libI77.o.dfe:	Unix:unixlib.h.features
+libI77.o.dfe:	Unix:unixlib.h.types
+libI77.o.dfe:	Unix:h.stddef
+libI77.o.dfe:	Unix:h.errno
+libI77.o.dfe:	Unix:h.string
+libI77.o.dfe:	libI77.h.fmt
+
+libI77.o.err:	libI77.c.err
+libI77.o.err:	@.h.f2c
+libI77.o.err:	@.h.g2c
+libI77.o.err:	Unix:h.stdlib
+libI77.o.err:	Unix:h.stddef
+libI77.o.err:	Unix:h.alloca
+libI77.o.err:	libI77.h.fio
+libI77.o.err:	Unix:h.stdio
+libI77.o.err:	Unix:unixlib.h.features
+libI77.o.err:	Unix:unixlib.h.types
+libI77.o.err:	Unix:h.errno
+libI77.o.err:	Unix:h.string
+libI77.o.err:	libI77.h.fmt
+
+
+libI77.o.iio:	libI77.c.iio
+libI77.o.iio:	@.h.f2c
+libI77.o.iio:	@.h.g2c
+libI77.o.iio:	libI77.h.fio
+libI77.o.iio:	Unix:h.stdio
+libI77.o.iio:	Unix:unixlib.h.features
+libI77.o.iio:	Unix:unixlib.h.types
+libI77.o.iio:	Unix:h.stddef
+libI77.o.iio:	Unix:h.errno
+libI77.o.iio:	Unix:h.string
+libI77.o.iio:	libI77.h.fmt
+
+libI77.o.lread:	libI77.c.lread
+libI77.o.lread:	Unix:h.ctype
+libI77.o.lread:	@.h.f2c
+libI77.o.lread:	@.h.g2c
+libI77.o.lread:	libI77.h.fio
+libI77.o.lread:	Unix:h.stdio
+libI77.o.lread:	Unix:unixlib.h.features
+libI77.o.lread:	Unix:unixlib.h.types
+libI77.o.lread:	Unix:h.stddef
+libI77.o.lread:	Unix:h.errno
+libI77.o.lread:	Unix:h.string
+libI77.o.lread:	Unix:h.stdlib
+libI77.o.lread:	Unix:h.alloca
+libI77.o.lread:	libI77.h.fmt
+libI77.o.lread:	libI77.h.lio
+libI77.o.lread:	libI77.h.fp
+
+libI77.o.lwrite:	libI77.c.lwrite
+libI77.o.lwrite:	@.h.f2c
+libI77.o.lwrite:	@.h.g2c
+libI77.o.lwrite:	libI77.h.fio
+libI77.o.lwrite:	Unix:h.stdio
+libI77.o.lwrite:	Unix:unixlib.h.features
+libI77.o.lwrite:	Unix:unixlib.h.types
+libI77.o.lwrite:	Unix:h.stddef
+libI77.o.lwrite:	Unix:h.errno
+libI77.o.lwrite:	Unix:h.string
+libI77.o.lwrite:	libI77.h.fmt
+libI77.o.lwrite:	libI77.h.lio
+
+libI77.o.rdfmt:	libI77.c.rdfmt
+libI77.o.rdfmt:	Unix:h.ctype
+libI77.o.rdfmt:	@.h.f2c
+libI77.o.rdfmt:	@.h.g2c
+libI77.o.rdfmt:	libI77.h.fio
+libI77.o.rdfmt:	Unix:h.stdio
+libI77.o.rdfmt:	Unix:unixlib.h.features
+libI77.o.rdfmt:	Unix:unixlib.h.types
+libI77.o.rdfmt:	Unix:h.stddef
+libI77.o.rdfmt:	Unix:h.errno
+libI77.o.rdfmt:	Unix:h.string
+libI77.o.rdfmt:	Unix:h.stdlib
+libI77.o.rdfmt:	Unix:h.alloca
+libI77.o.rdfmt:	libI77.h.fmt
+libI77.o.rdfmt:	libI77.h.fp
+
+libI77.o.rsfe:	libI77.c.rsfe
+libI77.o.rsfe:	@.h.f2c
+libI77.o.rsfe:	@.h.g2c
+libI77.o.rsfe:	libI77.h.fio
+libI77.o.rsfe:	Unix:h.stdio
+libI77.o.rsfe:	Unix:unixlib.h.features
+libI77.o.rsfe:	Unix:unixlib.h.types
+libI77.o.rsfe:	Unix:h.stddef
+libI77.o.rsfe:	Unix:h.errno
+libI77.o.rsfe:	Unix:h.string
+libI77.o.rsfe:	libI77.h.fmt
+
+libI77.o.rsli:	libI77.c.rsli
+libI77.o.rsli:	@.h.f2c
+libI77.o.rsli:	@.h.g2c
+libI77.o.rsli:	libI77.h.fio
+libI77.o.rsli:	Unix:h.stdio
+libI77.o.rsli:	Unix:unixlib.h.features
+libI77.o.rsli:	Unix:unixlib.h.types
+libI77.o.rsli:	Unix:h.stddef
+libI77.o.rsli:	Unix:h.errno
+libI77.o.rsli:	Unix:h.string
+libI77.o.rsli:	libI77.h.lio
+libI77.o.rsli:	libI77.h.fmt
+
+libI77.o.wref:	libI77.c.wref
+libI77.o.wref:	@.h.f2c
+libI77.o.wref:	@.h.g2c
+libI77.o.wref:	libI77.h.fio
+libI77.o.wref:	Unix:h.stdio
+libI77.o.wref:	Unix:unixlib.h.features
+libI77.o.wref:	Unix:unixlib.h.types
+libI77.o.wref:	Unix:h.stddef
+libI77.o.wref:	Unix:h.errno
+libI77.o.wref:	Unix:h.string
+libI77.o.wref:	Unix:h.ctype
+libI77.o.wref:	Unix:h.stdlib
+libI77.o.wref:	Unix:h.alloca
+libI77.o.wref:	libI77.h.fmt
+libI77.o.wref:	libI77.h.fp
+
+libI77.o.wsfe:	libI77.c.wsfe
+libI77.o.wsfe:	@.h.f2c
+libI77.o.wsfe:	@.h.g2c
+libI77.o.wsfe:	libI77.h.fio
+libI77.o.wsfe:	Unix:h.stdio
+libI77.o.wsfe:	Unix:unixlib.h.features
+libI77.o.wsfe:	Unix:unixlib.h.types
+libI77.o.wsfe:	Unix:h.stddef
+libI77.o.wsfe:	Unix:h.errno
+libI77.o.wsfe:	Unix:h.string
+libI77.o.wsfe:	libI77.h.fmt
+
+libI77.o.wsle:	libI77.c.wsle
+libI77.o.wsle:	@.h.f2c
+libI77.o.wsle:	@.h.g2c
+libI77.o.wsle:	libI77.h.fio
+libI77.o.wsle:	Unix:h.stdio
+libI77.o.wsle:	Unix:unixlib.h.features
+libI77.o.wsle:	Unix:unixlib.h.types
+libI77.o.wsle:	Unix:h.stddef
+libI77.o.wsle:	Unix:h.errno
+libI77.o.wsle:	Unix:h.string
+libI77.o.wsle:	libI77.h.fmt
+libI77.o.wsle:	libI77.h.lio
+
+libI77.o.xwsne:	libI77.c.xwsne
+libI77.o.xwsne:	@.h.f2c
+libI77.o.xwsne:	@.h.g2c
+libI77.o.xwsne:	libI77.h.fio
+libI77.o.xwsne:	Unix:h.stdio
+libI77.o.xwsne:	Unix:unixlib.h.features
+libI77.o.xwsne:	Unix:unixlib.h.types
+libI77.o.xwsne:	Unix:h.stddef
+libI77.o.xwsne:	Unix:h.errno
+libI77.o.xwsne:	Unix:h.string
+libI77.o.xwsne:	libI77.h.lio
+libI77.o.xwsne:	libI77.h.fmt
+
+
+
+
+
+
+
+libI77.o.inquire:	libI77.c.inquire
+libI77.o.inquire:	@.h.f2c
+libI77.o.inquire:	@.h.g2c
+libI77.o.inquire:	libI77.h.fio
+libI77.o.inquire:	Unix:h.stdio
+libI77.o.inquire:	Unix:unixlib.h.features
+libI77.o.inquire:	Unix:unixlib.h.types
+libI77.o.inquire:	Unix:h.stddef
+libI77.o.inquire:	Unix:h.errno
+libI77.o.inquire:	Unix:h.string
+
+libF77.o.s_rnge:	libF77.c.s_rnge
+libF77.o.s_rnge:	Unix:h.stdio
+libF77.o.s_rnge:	Unix:unixlib.h.features
+libF77.o.s_rnge:	Unix:unixlib.h.types
+libF77.o.s_rnge:	Unix:h.stddef
+libF77.o.s_rnge:	@.h.f2c
+libF77.o.s_rnge:	@.h.g2c
+
+libF77.o.s_stop:	libF77.c.s_stop
+libF77.o.s_stop:	Unix:h.stdio
+libF77.o.s_stop:	Unix:unixlib.h.features
+libF77.o.s_stop:	Unix:unixlib.h.types
+libF77.o.s_stop:	Unix:h.stddef
+libF77.o.s_stop:	@.h.f2c
+libF77.o.s_stop:	@.h.g2c
+libF77.o.s_stop:	Unix:h.stdlib
+libF77.o.s_stop:	Unix:h.alloca
+
+libF77.o.s_paus:	libF77.c.s_paus
+libF77.o.s_paus:	Unix:h.stdio
+libF77.o.s_paus:	Unix:unixlib.h.features
+libF77.o.s_paus:	Unix:unixlib.h.types
+libF77.o.s_paus:	Unix:h.stddef
+libF77.o.s_paus:	@.h.f2c
+libF77.o.s_paus:	@.h.g2c
+libF77.o.s_paus:	libF77.h.signal1
+libF77.o.s_paus:	Unix:h.signal
+libF77.o.s_paus:	Unix:h.stdlib
+libF77.o.s_paus:	Unix:h.alloca
+
+libF77.o.dtime_:	libF77.c.dtime_
+libF77.o.dtime_:	Unix:h.time
+libF77.o.dtime_:	Unix:h.stddef
+libF77.o.dtime_:	Unix:unixlib.h.types
+libF77.o.dtime_:	Unix:sys.h.types
+libF77.o.dtime_:	Unix:sys.h.times
+
+libF77.o.etime_:	libF77.c.etime_
+libF77.o.etime_:	Unix:h.time
+libF77.o.etime_:	Unix:h.stddef
+libF77.o.etime_:	Unix:unixlib.h.types
+libF77.o.etime_:	Unix:sys.h.types
+libF77.o.etime_:	Unix:sys.h.times
+
+libF77.o.s_cat:	libF77.c.s_cat
+libF77.o.s_cat:	@.h.f2c
+libF77.o.s_cat:	@.h.g2c
+libF77.o.s_cat:	Unix:h.stdio
+libF77.o.s_cat:	Unix:unixlib.h.features
+libF77.o.s_cat:	Unix:unixlib.h.types
+libF77.o.s_cat:	Unix:h.stddef
+libF77.o.s_cat:	Unix:h.stdlib
+libF77.o.s_cat:	Unix:h.alloca
+libF77.o.s_cat:	Unix:h.string
+
+libF77.o.s_cmp:	libF77.c.s_cmp
+libF77.o.s_cmp:	@.h.f2c
+libF77.o.s_cmp:	@.h.g2c
+
+libF77.o.s_copy:	libF77.c.s_copy
+libF77.o.s_copy:	@.h.f2c
+libF77.o.s_copy:	@.h.g2c
+
+libI77.o.fmt:	libI77.c.fmt
+libI77.o.fmt:	@.h.f2c
+libI77.o.fmt:	@.h.g2c
+libI77.o.fmt:	libI77.h.fio
+libI77.o.fmt:	Unix:h.stdio
+libI77.o.fmt:	Unix:unixlib.h.features
+libI77.o.fmt:	Unix:unixlib.h.types
+libI77.o.fmt:	Unix:h.stddef
+libI77.o.fmt:	Unix:h.errno
+libI77.o.fmt:	Unix:h.string
+libI77.o.fmt:	libI77.h.fmt
+
+libI77.o.wrtfmt:	libI77.c.wrtfmt
+libI77.o.wrtfmt:	@.h.f2c
+libI77.o.wrtfmt:	@.h.g2c
+libI77.o.wrtfmt:	libI77.h.fio
+libI77.o.wrtfmt:	Unix:h.stdio
+libI77.o.wrtfmt:	Unix:unixlib.h.features
+libI77.o.wrtfmt:	Unix:unixlib.h.types
+libI77.o.wrtfmt:	Unix:h.stddef
+libI77.o.wrtfmt:	Unix:h.errno
+libI77.o.wrtfmt:	Unix:h.string
+libI77.o.wrtfmt:	libI77.h.fmt
+

@@ -1,0 +1,60 @@
+(C) Bernhard Walter, 18. September 1998
+
+LibFile
+Freeware
+
+Distribute freely
+Use at your own risk
+
+------------------------------------------------
+
+About
+-----
+
+This is the free version of LibFile.
+
+Libfile is an archiver tool for building libraries
+from AOF files that can be passed to link/ld.
+It is a free replacement for the libfile program provided
+with Acorn's C/C++ and is intended to be a supplement to
+the gcc package.
+
+I have been using it for several weeks and it does very well.
+If you should come across any problems please tell me and I
+will correct them as soon as possible.
+
+To make the use of LibFile easier and more understandable its
+behaviour differs from the original tool in the following cases:
+
+- A file that is added to a library keeps its original timestamp
+  and is restored to this when it is extracted.
+  
+- A library always has a symbol table that is kept up to date
+  on every operation, simply ignoring non-AOF files.
+  There is no need for the option -o anymore.
+  If you want to add a symbol table to an existing library use
+  'LibFile -c <library file>'.
+  
+- LibFile always creates all directories that are included in a
+  filename when the file is extracted.
+
+- Extracted files are always set to type 0xFFD (Data), since there
+  is no filetype information in the library.
+  (Don't know what the original LibFile does)
+
+
+Ultra-short introduction
+------------------------
+
+The command for creating a simple library is:
+
+LibFile -c library file1 file2 file3 ...
+
+Use LibFile -? for a short summary of available options.
+
+
+Sources
+-------
+
+LibFile was written in C++ with the excellent gcc for RISC OS,
+all sources are included in this package.

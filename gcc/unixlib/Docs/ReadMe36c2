@@ -1,0 +1,361 @@
+
+			     W A R N I N G
+
+The release of this document establishes public prior use of the name
+"ARMix" as referred to in this document. This document in it's entirety
+is (c) Copyright 1993 H.Rogers, all rights reserved. UNIX is a registered
+trademark of AT&T Corporation, Unix Systems Laboratories.
+
+
+			      N O T I C E
+
+UnixLib v3.6c will be the _last_ release of UnixLib. UnixLib functionality
+will shortly be replaced by ARMix - a POSIX kernel extension to RiscOS
+with associated libraries. ARMix will provide virtual memory, preemptive
+scheduling, windowed terminals, full POSIX process and file management,
+BSD network library support, and support for an eventual port of the BSD
+filesystem. ARMix is scheduled for Alpha release in May 1993. Please
+contact the address at the end of this document for more information.
+
+This version is being released as a stop gap measure to provide UnixLib
+users with some bugfixes. Do not base long term development on UnixLib
+any longer - it will shortly be obsolete and is no longer actively supported
+by the author. In particular code written for ARMix already providing
+superior functionality to UnixLib includes an interrupt driven POSIX compliant
+terminal driver with dynamically loadable hardware support modules, POSIX
+compliant RiscOS 3.10 filesystem interface, POSIX/BSD process management
+and signals, and a virtual memory system. The design of ARMix is completed -
+the work remaining is comparatively routine coding. UnixLib is very non
+compliant with POSIX - ARMix is written from scratch to be 100% POSIX
+compliant.
+
+			H.Rogers	14/2/1993
+
+
+
+			UnixLib v3.6c (29/8/1992)
+
+This is a complete replacement ANSI compliant C library for use
+with Acorn RiscOS ANSI C Release 3.0/3.1A/3.1B/4.0. It incorporates a
+subset of the UNIX system call interface and some common System V and
+4.3 BSD C libraries. There is *no* Acorn software in this library - take
+note Acorn! ;-)
+
+Recent changes to UnixLib are documented towards the end of this file.
+
+Directories marked '#' below contain proprietary source code. Source code
+in these directories is Copyright 1990/1991/1992 H.Rogers and XFM Software,
+and may only be distributed or modified in connection with UnixLib
+development. All other use or distribution is strictly prohibited.
+This entire paragraph and the list of directories below must be present
+in a file called "ReadMe" in a prominent place on all media used to
+distribute the aforementioned source code or derivations thereof. Failure
+to comply with the above requirements is breach of copyright and other
+international laws.
+
+
+	!Alias		      * Alias file (see "ReadMe")
+	!Boot			!Boot for UnixLib maintenance
+	clib		      * Library directory
+	clib.h		      * UnixLib ANSI header files
+	clib.o		      * UnixLib directory
+	clib.o.unixlib	      * UnixLib itself
+	clib.sys.h	      * UnixLib specific header files
+	etc		      * UnixLib version of /etc
+	ReadMe		      * Documentation for UnixLib - this file
+	src			Source code
+	src.ReadMe		Documentation for source code
+	src.o			UnixLib portable object code
+	src.c		      # UnixLib portable source code
+	src.stdio.o		UnixLib stdio object code
+	src.stdio.c	      # UnixLib stdio source code
+	src.unix.c		UnixLib UNIX emulation source code
+	src.unix.o		UnixLib UNIX emulation object code
+	src.sys.c		UnixLib RiscOS related source code
+	src.sys.s		UnixLib RiscOS related source code (ARM code)
+	src.sys.o		UnixLib RiscOS related object code
+	test			UnixLib test programs
+	test.ReadMe		Documentation for test programs
+
+
+Asterisked files/directories are those that are necessary to compile
+programs with UnixLib. If you are installing UnixLib onto a hard disk you
+are advised not to change the organization of the directory tree other than
+to move etc into the root directory, since updates will be issued with
+this structure.
+
+!Alias *must* be executed before using this library. It contains necessary
+command line aliases that need to be set for the C compiler to work correctly
+with UnixLib. Comments in the file explain it. RTFM to see what the command
+line arg.s do. !Alias can of course be inserted into any other command file.
+
+!Boot contains !Alias, and also sets up other aliases to facilitate
+maintenance of UnixLib. These are documented within the !Boot file.
+
+All the header files, etc. are completely different from the Acorn
+equivalents. You *must* have the entire clib directory completely separate
+from any Acorn code or header files. If you do not have it called 'clib' in
+the root directory you may need to modify !Alias.
+
+Csh style command line redirection is now inbuilt to UnixLib. UnixLib programs
+that are invoked direct from OS_CLI scan the command line for redirections at
+the same time as performing argument processing. UnixLib programs invoked as
+children of other UnixLib programs inherit the parent's file descriptor set
+(as in UNIX), and therefore do not perform this scanning. Redirection
+directives that are supported are: ">", ">>", ">&", ">>&", "<".
+
+There are environment variables specific to UnixLib programs; some are new to
+v3.6c and others have had their names changed:
+
+	Unix$uid: If set, then it's value is used to set the UNIX uid.
+
+	Unix$tty: controls which terminal file programs use - if unset or set
+to "/dev/console" or "/dev/tty" then the console (Archimedes keyboard/screen)
+is assumed; if set to "/dev/rs423" then the RS423 port is used. Other names
+may be allocated in future for multiple serial I/O ports, Econet, etc. Note
+that these names may be used by UnixLib programs to open the corresponding
+devices.
+
+All user settable environment variables particular to UnixLib are prefixed
+with Unix$ or UnixFS$. However certain state information internal to UnixLib
+is stored in variables prefixed with UnixLib$ - such variables should be
+ignored and not altered or deleted. UnixLib$dir (set by the !Alias command
+file in this distribution) is only used when compiling with UnixLib, and does
+not need to be set for UnixLib compiled programs to run.
+
+The standard UNIX environment variables which control the behaviour of some
+of the C libraries are as normal - SHELL, TERM, TERMCAP, etc. Note that
+system() ignores the requirement for a shell if SHELL is unset, but calls
+SHELL with the '-c' option (as per UNIX) is it is set. I.e. if you have GNU
+bash in adfs::4.$.library you should set SHELL to "adfs::4.$.library.bash".
+
+
+	Filename conversion:
+
+Programs compiled using UnixLib now intelligently scan pathnames (complex
+filenames consisting of components delimited by '/') and work out for
+themselves whether a RiscOS or UNIX initial component is being used. With
+very few exceptions existing RiscOS and UNIX applications will work
+without alteration.
+
+Filename suffix translation can now be customised. The variable UnixFS$sfix
+can be set to a colon separated value list of filename suffixes that are to
+be aliased to RiscOS subdirectories. If it is unset the default list is
+"a:c:f:h:i:l:o:p:s:y". I.e. "hero.c" gets translated to "c.hero".
+
+UNIX style pathnames can now contain RiscOS style components:
+
+	/adfs::4/etc/passwd
+	adfs::4/etc/passwd
+	/adfs::4.etc.passwd
+	adfs::4.etc/passwd	all translate to:	adfs::4.$.etc.passwd
+
+	<UnixLib$Dir>/clib/o
+	<UnixLib$Dir>.clib/o	all translate to:	<UnixLib$Dir>.clib.o
+
+	<UnixLib$Dir>/clib.o	translates to:		<UnixLib$Dir>.o.clib
+
+	/<UnixLib$Dir>/clib.o	translates to:		$.<UnixLib$Dir>.o.clib
+
+	/SCSIFS::$/tmp/<Temp>	translates to:		SCSIFS::$.tmp.<Temp>
+
+	$/clib
+	$.clib
+	/$.clib
+	/clib			all translate to:	$.clib
+
+	@/clib
+	@.clib			both translate to:	@.clib
+
+	clib			translates to:		clib
+
+	ThisIsVeryLong##	translates to:		ThsIsVryLn
+
+
+	If there exists a directory called $.src.ulib.src.unix then:
+
+	/src.ulib/src.unix/uname.c
+
+	will translate to:
+
+	$.src.ulib.src.unix.c.uname
+
+	otherwise it will translate to:
+
+	$.src/ulib.src/unix.c.uname
+
+
+Pathnames referring to UNIX devices (of the form "/dev/xxx") are treated
+specially and refer to appropriate devices. Unrecognised devices are
+translated to "xxx:". Current recognised devices are "/dev/tty",
+"/dev/console", "/dev/rs423" and "/dev/null".
+
+Variables of the form UnixFS$/xxx are used to alias UNIX pathnames commencing
+"/xxx", "/usr/xxx" or "/var/xxx". I.e. UnixFS$/etc controls the translation
+of "/etc", "/usr/etc" and "/var/etc". The files in "etc" on the distribution
+disk should be present in this directory. If you have a hard disk, just one
+copy of "etc" should be present on the hard disk, and UnixFS$/etc should be
+set to something like "adfs::4.$.etc".
+
+In a similar way, UnixFS$/tmp, UnixFS$/bin and UnixFS$/usr can be used to
+alias "/tmp", "/bin", and "/usr". Note however that UnixFS$/bin will be
+consulted to translate "/usr/bin" before UnixFS$/usr is consulted to
+translate "/usr". A pathname commencing "/xxx" where UnixFS$/xxx is unset
+defaults to "$.xxx". A pathname commencing "/usr/xxx" where UnixFS$/xxx is
+unset and UnixFS$/usr is unset defaults to "$.usr.xxx".
+
+"/tmp" and "/usr/tmp" are used by UnixLib programs for temporary files.
+UnixFS$/tmp should be set to a suitable directory, preferably on a hard disk.
+
+"/bin" and "/usr/bin" are expected by some UNIX software to contain standard
+UNIX utilities (ls, cat, sh, etc.). If necessary, UnixFS$/bin should be set
+to a directory containing UNIX utility programs.
+
+"/pipe" is used to store temporary files for the pipe() system call.
+Preferably UnixFS$/pipe should be set to a directory on a hard disk or RAM
+disk for decent throughput.
+
+	Filename conversion - details:
+
+A pathname consists of a series of components delimited by '/'. If a component
+consists of a string like "dir.file", "dir.dir.file", etc. then the converter
+checks that "dir" (or "dir.dir" in the second example) exists. If it does
+then the component is considered to be a native RiscOS component and remains
+untranslated.
+
+Any component starting with a RiscOS variable reference like "<Var>",
+"<Var>.Path" or "<Var>Path" is untranslated.
+
+Any _initial_ component matching the following patterns remains untranslated:
+
+	* A component commencing with a RiscOS filesystem and media specifier
+("FS::Media.Path")
+	* A component commencing with a RiscOS media specifier (":Media.Path")
+	* A component commencing with a RiscOS filesystem specifier ("FS:Path")
+	* A component commencing with the root, current, library, upper,
+user-root, or previous directories ("$.Path", "@.Path", "%.Path", "^.Path",
+"&.Path", or "\.Path")
+
+Initial components not matching these patterns will then be checked as
+described above, using the "UnixFS$/*" environment variables.
+
+All translated components are checked for filename suffix processing as
+described above, using the "UnixFS$sfix" environment variable. Translated
+components are also intelligently truncated to 10 characters in length if
+necessary, firstly by removing vowels other than the first character, then by
+forcible truncation of any excess. I.e. "ReadMe_First.c" gets translated
+to "c.RdMe_First".
+
+
+Look at the header files for detailed technical information. "sys/syslib.h",
+"sys/unix.h", "sys/dev.h", and "sys/tty.h" deal with library specific stuff.
+"sys/os.h" provides a RiscOS interface. "sys/param.h" only defines MAXPATHLEN
+and MAXHOSTNAMELEN - some code may expect more from it. Note that all the
+ANSI prototypes for the system calls are in "unistd.h". The prototypes for
+the termcap library are in "termcap.h" (which is not a standard file).
+
+
+Summary of changes from earlier versions, and some notable features of v3.6c:
+
+	* scanf() has been debugged (from v3.6b).
+	* The execve() system call has been further recoded. The return
+values of child processes are now correctly returned to the parent via
+wait(), and system() returns with this value or -1 on error.
+	* The handler for unknown SWIs is no longer activated - the WIMP
+generates spurious unknown X bit-set SWIs which halted UnixLib programs
+running under TaskWindow.
+	* The TIOCGWINSZ & TIOCSWINSZ ioctl()s are implemented, allowing
+UNIX programs to get and set the text & graphics window sizes. The termcap
+library has been updated to use these ioctl()s and has also been given
+a builtin termcap entry for "acorn0" which is used when /etc/termcap cannot
+be found.
+	* alloca() is now properly implemented and cooperates with setjmp()
+and longjmp() which have also been recoded.
+	* __uname() (UNIX -> RiscOS filenaming) has been recoded from 3.6b.
+It now works 99% of the time both with existing RiscOS applications and
+UNIX applications by 'intelligently' assessing whether a pathname is RiscOS
+or UNIX. The exact pattern matching process is detailed above.
+	* The file descriptor tables (both UNIX & stdio) have been increased
+to allow up to 64 open files (256 open files would imply overlarge tables -
+e.g. 10k for the UNIX FD table).
+	* x$remainder() & x$uremainder() are provided for backwards
+compatibility with old Release 3 compilers.
+	* Csh style command line redirection is supported and argv[0] is no
+longer scanned.
+	* The escape character is no longer altered by UnixLib. ioctl() now
+correctly reads & updates the escape character and status.
+	* UnixLib programs now work properly with !DDT - all writeable data
+and self modifying code segments in UnixLib are in AOF writeable areas.
+	* execl(), execve(), etc. are provided, and in conjunction with
+vfork() allow multiple levels of process stacking.
+	* system() has been debugged.
+	* getenv() no longer increases memory allocation every time it's
+called.
+	* vfork() is provided. Check the UNIX manual page for vfork() *before*
+compiling programs that call fork(). fork() is #defined to vfork() in
+"sys/unix.h". The porting effort required for process related code is
+substantially reduced by the provision of vfork(), but it's not completely
+eliminated. Don't expect things to work if you rely on vfork() as a total
+replacement for fork().
+	* pipe() is provided. Multiple pipes may be in existence at once.
+	* popen() is provided (both "r" and "w" types).
+	* memcpy() and memset() have been recoded and improved.
+	* time() & mktime() have been debugged.
+	* access() has been debugged.
+	* errno is now volatile int, and timezone is int.
+	* The direct/dirent portable directory routines have been recoded
+to cope with long filenames.
+	* mktemp() & mkstemp() are now provided as part of stdio, and have
+been debugged. Prototypes are in <stdio.h>.
+	* Various stdio related bugs have been ironed out (including those
+present in v3.4). Output is properly line buffered.
+	* The termcap library has been touched up - the old 'cd' capability
+in the acorn0 and acorn12 entries in /etc/termcap has been removed since
+termcap is not allowed to output '\n' or '\r'.
+	* stricmp(), strnicmp() and strichr() have been added (case insensitive versions). Also strdup().
+	* Signal handling has been improved (again). RiscOS errors generate
+SIGERR, and RiscOS hardware errors generate SIGEMT. SIGEMT is also raised on
+stack overflow. SIGSTAK no longer exists. Clib 3.75 has SIGSTAK and SIGOSERROR
+instead of SIGEMT and SIGERR respectively. UnixLib properly traps and can
+return from *all* signals.
+	* The command line is scanned in SVC mode, so memory page 0 can be set
+ReadOnly to trap dereferences of null pointers.
+	* All #defines of the form #define xxx xxx have been altered so
+Release 4.0 doesn't choke on them in -pcc mode.
+	* link() is now provided; it renames files. The majority of uses
+of link() (renaming, etc.) work with this arrangement.
+	* The stdio and vfork libraries are linked in using "weak links" -
+this means that code that doesn't use stdio won't get linked in with it, and
+the same for vfork(). The minimum executable size has been reduced to 24k.
+	* The RiscOS interface has been extended - see "sys/os.h". You can
+pass a null pointer to OS functions that store result registers in integer
+arrays, in which case no results are stored. E.g. os_swi(n,0) calls SWI n and
+assumes it doesn't require arguments. os_print() is useful for debugging
+messages as it guarantees output - note you must use OS newlines with this
+i.e. "\r\n" not just "\n" as in UNIX.
+	* The tty driver has been further debugged and improved, including
+provision of the RS423 interface. The tty driver no longer reinitialises
+the RS423 interface or the keyboard - it just inherits the current status.
+	* An exit handler is now installed, so e.g. os_cli("quit") will
+do the right thing and exit nicely.
+	* alarm() & SIGALRM are provided.
+	* malloc(), etc. have been substantially improved.
+	* Internal UnixLib I/O has been rewritten and improved. Using Unix$tty
+you can make UnixLib programs accept a variety of devices as the controlling
+terminal.
+	* open() now timestamps written files.
+	* getcwd() is provided - the prototype char *getcwd(void) is in
+"sys/unix.h". getcwd() returns a UNIX style name with the FS/drive in the
+initial component. E.g. "/adfs::UnixLib3_4/clib". This may cause problems
+with some programs which expect to be able to scan the returned string
+as if it were a native RiscOS pathname.
+	* ioctl() correctly updates the RS423 port with all appropriate
+baud rates, parity, word size, etc. as defined in "termio.h"
+
+
+Please report all bugs to me, and any suggestions for improvement.
+
+I can be contacted at:
+
+Mail:	Apt. #512, Lion Mansion, Motoki 1-2-11, Kawasaki-shi, Tokyo 210, Japan
+Email:	rogersh@fsj.co.jp

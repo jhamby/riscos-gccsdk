@@ -1,0 +1,313 @@
+flags=-O -mthrowback -DHAVE_CONFIG_H -I@
+
+.SUFFIXES:	.o .c .s
+.c.o:;	gcc -o $*.o -c $*.c $(flags)
+.c.s:;	gcc -o $*.s -S $*.c $(flags)
+
+all:	touch mkdir rm rmdir mv cp
+
+touch:	o.touch o.error o.argmatch o.getdate o.posixtm o.safe-read \
+	closeout.o
+	gcc -o $@ o.touch o.error o.argmatch o.getdate o.posixtm o.safe-read \
+	closeout.o
+
+mkdir:	o.mkdir o.error o.modechange o.makepath o.save-cwd \
+	xgetcwd.o stripslash.o xmalloc.o closeout.o
+	gcc -o $@ mkdir.o error.o modechange.o makepath.o \
+	save-cwd.o xgetcwd.o stripslash.o xmalloc.o closeout.o
+
+rm:	rm.o remove.o obstack.o hash.o closeout.o xmalloc.o stripslash.o \
+	save-cwd.o basename.o yesno.o xgetcwd.o error.o rpmatch.o \
+	euidaccess.o regex.o
+	gcc -o $@ rm.o remove.o obstack.o hash.o closeout.o xmalloc.o \
+	stripslash.o save-cwd.o basename.o yesno.o xgetcwd.o error.o \
+	rpmatch.o euidaccess.o regex.o
+
+rmdir:	rmdir.o remove.o obstack.o hash.o closeout.o xmalloc.o stripslash.o \
+	save-cwd.o basename.o yesno.o xgetcwd.o error.o rpmatch.o \
+	euidaccess.o regex.o
+	gcc -o $@ rmdir.o remove.o obstack.o hash.o closeout.o xmalloc.o \
+	stripslash.o save-cwd.o basename.o yesno.o xgetcwd.o error.o \
+	rpmatch.o euidaccess.o regex.o
+
+mv:	mv.o copy.o path-concat.o backupfile.o cp-hash.o savedir.o \
+	xmalloc.o yesno.o closeout.o basename.o argmatch.o rpmatch.o \
+	euidaccess.o regex.o remove.o hash.o obstack.o save-cwd.o error.o \
+	xgetcwd.o full-write.o isdir.o addext.o
+	gcc -o $@ mv.o copy.o path-concat.o backupfile.o cp-hash.o savedir.o \
+	xmalloc.o yesno.o closeout.o basename.o argmatch.o rpmatch.o \
+	euidaccess.o regex.o remove.o hash.o obstack.o save-cwd.o error.o \
+	xgetcwd.o full-write.o isdir.o addext.o
+
+cp:	cp.o copy.o path-concat.o backupfile.o cp-hash.o savedir.o \
+	xmalloc.o yesno.o closeout.o basename.o argmatch.o rpmatch.o \
+	euidaccess.o regex.o remove.o hash.o obstack.o save-cwd.o error.o \
+	xgetcwd.o full-write.o isdir.o addext.o stripslash.o dirname.o \
+	xstrdup.o
+	gcc -o $@ cp.o copy.o path-concat.o backupfile.o cp-hash.o savedir.o \
+	xmalloc.o yesno.o closeout.o basename.o argmatch.o rpmatch.o \
+	euidaccess.o regex.o remove.o hash.o obstack.o save-cwd.o error.o \
+	xgetcwd.o full-write.o isdir.o addext.o stripslash.o dirname.o \
+	xstrdup.o
+
+# Dynamic dependencies:
+o.getopt:	c.getopt
+o.getopt:	h.config
+o.getopt:	Unix:h.stdio
+o.getopt:	Unix:unixlib.h.features
+o.getopt:	Unix:unixlib.h.types
+o.getopt:	Unix:h.stddef
+o.getopt:	h.getopt
+o.getopt1:	c.getopt1
+o.getopt1:	h.config
+o.getopt1:	h.getopt
+o.getopt1:	Unix:h.stdio
+o.getopt1:	Unix:unixlib.h.features
+o.getopt1:	Unix:unixlib.h.types
+o.getopt1:	Unix:h.stddef
+o.mkdir:	c.mkdir
+o.mkdir:	h.config
+o.mkdir:	Unix:h.stdio
+o.mkdir:	Unix:unixlib.h.features
+o.mkdir:	Unix:unixlib.h.types
+o.mkdir:	Unix:h.stddef
+o.mkdir:	h.getopt
+o.mkdir:	Unix:sys.h.types
+o.mkdir:	Unix:h.time
+o.mkdir:	h.system
+o.mkdir:	Unix:sys.h.stat
+o.mkdir:	Unix:sys.h.param
+o.mkdir:	Unix:h.limits
+o.mkdir:	Unix:h.unistd
+o.mkdir:	Unix:h.limits
+o.mkdir:	h.pathmax
+o.mkdir:	Unix:h.unistd
+o.mkdir:	Unix:h.limits
+o.mkdir:	Unix:h.time
+o.mkdir:	Unix:h.utime
+o.mkdir:	Unix:h.string
+o.mkdir:	Unix:h.errno
+o.mkdir:	Unix:h.fcntl
+o.mkdir:	Unix:h.dirent
+o.mkdir:	h.sys2
+o.mkdir:	Unix:h.alloca
+o.mkdir:	Unix:h.ctype
+o.mkdir:	h.xalloc
+o.mkdir:	h.modechange
+o.mkdir:	h.makepath
+o.mkdir:	h.closeout
+o.mkdir:	h.error
+o.error:	c.error
+o.error:	h.config
+o.error:	Unix:h.stdio
+o.error:	Unix:unixlib.h.features
+o.error:	Unix:unixlib.h.types
+o.error:	Unix:h.stddef
+o.error:	Unix:h.stdarg
+o.error:	Unix:h.stdlib
+o.error:	Unix:h.alloca
+o.error:	Unix:h.string
+o.error:	h.error
+o.modechange:	c.modechange
+o.modechange:	h.config
+o.modechange:	Unix:sys.h.types
+o.modechange:	Unix:unixlib.h.types
+o.modechange:	Unix:h.time
+o.modechange:	Unix:h.stddef
+o.modechange:	Unix:sys.h.stat
+o.modechange:	h.modechange
+o.modechange:	Unix:h.stdlib
+o.modechange:	Unix:h.alloca
+o.makepath:	c.makepath
+o.makepath:	h.config
+o.makepath:	Unix:h.alloca
+o.makepath:	Unix:h.stddef
+o.makepath:	Unix:h.stdio
+o.makepath:	Unix:unixlib.h.features
+o.makepath:	Unix:unixlib.h.types
+o.makepath:	Unix:sys.h.types
+o.makepath:	Unix:h.time
+o.makepath:	Unix:sys.h.stat
+o.makepath:	Unix:h.unistd
+o.makepath:	Unix:h.stdlib
+o.makepath:	Unix:h.errno
+o.makepath:	Unix:h.string
+o.makepath:	h.save-cwd
+o.makepath:	h.makepath
+o.makepath:	h.error
+o.save-cwd:	c.save-cwd
+o.save-cwd:	h.config
+o.save-cwd:	Unix:h.stdio
+o.save-cwd:	Unix:unixlib.h.features
+o.save-cwd:	Unix:unixlib.h.types
+o.save-cwd:	Unix:h.stddef
+o.save-cwd:	Unix:h.stdlib
+o.save-cwd:	Unix:h.alloca
+o.save-cwd:	Unix:h.unistd
+o.save-cwd:	Unix:h.fcntl
+o.save-cwd:	Unix:h.errno
+o.save-cwd:	h.save-cwd
+o.save-cwd:	h.error
+o.xgetcwd:	c.xgetcwd
+o.xgetcwd:	h.config
+o.xgetcwd:	Unix:h.stdio
+o.xgetcwd:	Unix:unixlib.h.features
+o.xgetcwd:	Unix:unixlib.h.types
+o.xgetcwd:	Unix:h.stddef
+o.xgetcwd:	Unix:h.errno
+o.xgetcwd:	Unix:sys.h.types
+o.xgetcwd:	Unix:h.time
+o.xgetcwd:	h.pathmax
+o.xgetcwd:	Unix:h.unistd
+o.xgetcwd:	Unix:h.limits
+o.stripslash:	c.stripslash
+o.stripslash:	h.config
+o.stripslash:	Unix:h.string
+o.stripslash:	Unix:h.stddef
+o.xmalloc:	c.xmalloc
+o.xmalloc:	h.config
+o.xmalloc:	Unix:sys.h.types
+o.xmalloc:	Unix:unixlib.h.types
+o.xmalloc:	Unix:h.time
+o.xmalloc:	Unix:h.stddef
+o.xmalloc:	Unix:h.stdlib
+o.xmalloc:	Unix:h.alloca
+o.xmalloc:	h.error
+o.xmalloc:	h.xalloc
+o.argmatch:	c.argmatch
+o.argmatch:	h.config
+o.argmatch:	h.argmatch
+o.argmatch:	Unix:sys.h.types
+o.argmatch:	Unix:unixlib.h.types
+o.argmatch:	Unix:h.time
+o.argmatch:	Unix:h.stddef
+o.argmatch:	Unix:h.stdio
+o.argmatch:	Unix:unixlib.h.features
+o.argmatch:	Unix:h.string
+o.getdate:	c.getdate
+o.getdate:	h.config
+o.getdate:	Unix:h.stdio
+o.getdate:	Unix:unixlib.h.features
+o.getdate:	Unix:unixlib.h.types
+o.getdate:	Unix:h.stddef
+o.getdate:	Unix:h.ctype
+o.getdate:	Unix:h.string
+o.getdate:	Unix:h.stdio
+o.getdate:	Unix:h.alloca
+o.getdate:	h.getdate
+o.getdate:	h.config
+o.getdate:	Unix:sys.h.types
+o.getdate:	Unix:h.time
+o.getdate:	Unix:sys.h.time
+o.getdate:	Unix:h.time
+o.posixtm:	c.posixtm
+o.posixtm:	h.config
+o.posixtm:	Unix:h.stdio
+o.posixtm:	Unix:unixlib.h.features
+o.posixtm:	Unix:unixlib.h.types
+o.posixtm:	Unix:h.stddef
+o.posixtm:	Unix:sys.h.types
+o.posixtm:	Unix:h.time
+o.posixtm:	Unix:h.string
+o.posixtm:	Unix:h.time
+o.posixtm:	h.posixtm
+o.closeout:	c.closeout
+o.closeout:	h.config
+o.closeout:	Unix:h.errno
+o.closeout:	Unix:h.stdio
+o.closeout:	Unix:unixlib.h.features
+o.closeout:	Unix:unixlib.h.types
+o.closeout:	Unix:h.stddef
+o.closeout:	h.closeout
+o.closeout:	h.error
+o.touch:	c.touch
+o.touch:	h.config
+o.touch:	Unix:h.stdio
+o.touch:	Unix:unixlib.h.features
+o.touch:	Unix:unixlib.h.types
+o.touch:	Unix:h.stddef
+o.touch:	h.getopt
+o.touch:	Unix:sys.h.types
+o.touch:	Unix:h.time
+o.touch:	h.system
+o.touch:	Unix:sys.h.stat
+o.touch:	Unix:sys.h.param
+o.touch:	Unix:h.limits
+o.touch:	Unix:h.unistd
+o.touch:	Unix:h.limits
+o.touch:	h.pathmax
+o.touch:	Unix:h.unistd
+o.touch:	Unix:h.limits
+o.touch:	Unix:h.time
+o.touch:	Unix:h.utime
+o.touch:	Unix:h.string
+o.touch:	Unix:h.errno
+o.touch:	Unix:h.fcntl
+o.touch:	Unix:h.dirent
+o.touch:	h.sys2
+o.touch:	Unix:h.alloca
+o.touch:	Unix:h.ctype
+o.touch:	h.xalloc
+o.touch:	h.closeout
+o.touch:	h.error
+o.touch:	h.argmatch
+o.touch:	h.getdate
+o.touch:	h.config
+o.touch:	Unix:sys.h.types
+o.touch:	Unix:sys.h.time
+o.touch:	Unix:h.time
+o.touch:	h.safe-read
+o.touch:	h.posixtm
+o.safe-read:	c.safe-read
+o.safe-read:	h.config
+o.safe-read:	Unix:sys.h.types
+o.safe-read:	Unix:unixlib.h.types
+o.safe-read:	Unix:h.time
+o.safe-read:	Unix:h.stddef
+o.safe-read:	Unix:h.unistd
+o.safe-read:	Unix:h.errno
+o.safe-read:	h.safe-read
+o.rmdir:	c.rmdir
+o.rmdir:	h.config
+o.rmdir:	Unix:h.stdio
+o.rmdir:	Unix:unixlib.h.features
+o.rmdir:	Unix:unixlib.h.types
+o.rmdir:	Unix:h.stddef
+o.rmdir:	h.getopt
+o.rmdir:	Unix:sys.h.types
+o.rmdir:	Unix:h.time
+o.rmdir:	h.system
+o.rmdir:	Unix:sys.h.stat
+o.rmdir:	Unix:sys.h.param
+o.rmdir:	Unix:h.limits
+o.rmdir:	Unix:h.unistd
+o.rmdir:	Unix:h.limits
+o.rmdir:	h.pathmax
+o.rmdir:	Unix:h.unistd
+o.rmdir:	Unix:h.limits
+o.rmdir:	Unix:h.time
+o.rmdir:	Unix:h.utime
+o.rmdir:	Unix:h.string
+o.rmdir:	Unix:h.errno
+o.rmdir:	Unix:h.fcntl
+o.rmdir:	Unix:h.dirent
+o.rmdir:	h.sys2
+o.rmdir:	Unix:h.alloca
+o.rmdir:	Unix:h.ctype
+o.rmdir:	h.xalloc
+o.rmdir:	h.closeout
+o.rmdir:	h.error
+o.obstack:	c.obstack
+o.obstack:	h.obstack
+o.obstack:	Unix:h.stddef
+o.obstack:	Unix:h.stdio
+o.obstack:	Unix:unixlib.h.features
+o.obstack:	Unix:unixlib.h.types
+o.hash:	c.hash
+o.hash:	h.config
+o.hash:	Unix:h.stdio
+o.hash:	Unix:unixlib.h.features
+o.hash:	Unix:unixlib.h.types
+o.hash:	Unix:h.stddef
+o.hash:	Unix:h.assert
+o.hash:	h.hash

@@ -1,0 +1,33 @@
+                        Changes in UnixLib 3.6e
+                        ~~~~~~~~~~~~~~~~~~~~~~~
+
+
+1)      Correction to cope with negative width specifications in printf
+        statements.
+
+2)      Bits to shut the compiler up.
+
+3)      Extra debugging data (internal).
+
+4)      The uname function has been improved to allow for long filenames,
+        and filenames with the format 'fred:jim.h'.
+
+5)      The return code from fork()/exec() is now correctly read.
+
+6)      The atan2() function now works better.
+
+7)      Special functions required by C v5 have been added.
+
+8)      The read/write check functions now check for correct word alignment.
+
+9)      A check for the RISC OS version has been removed, as it caused
+        problems for !Virtual.
+
+10)     UnixLib now recognises Images as directories.
+
+11)     The times() function has been added.
+
+12)     If the /tmp directory is not specified, UnixLib now defaults to
+        <Wimp$ScrapDir>.
+
+13)     Problems with deleting locked files and directories cleared.

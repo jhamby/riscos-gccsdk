@@ -1,0 +1,22 @@
+                                   UnixLib
+                                   =======
+
+Run-time features
+~~~~~~~~~~~~~~~~~
+
+Certain features of UnixLib can be enabled/disabled by defining environment
+variables. These can be applied to all UnixLib based applications running
+on the system, or to specific programs.
+
+To set globally use
+  *Set UnixEnv$<features>
+
+to set per-program use
+  *Set UnixEnv$<program name>$<features>
+
+The list of recognised features are:
+
+1. nonametrans
+
+   If set, all file paths and filenames will be used verbatim i.e. without
+   the usual Unix to RISC OS conversions.

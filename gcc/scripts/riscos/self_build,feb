@@ -1,0 +1,64 @@
+| Obey file for building gcc using the binaries and binaries built
+| at the same time.
+Set Compilers$Path adfs::gcc.$.compilers.
+|set UnixFS$/tmp adfs::gcc.$.tmp
+Set UnixFS$/tmp RAM::RamDisc0.$
+Set GCC$Dir <Obey$Dir>
+
+| Search path used for the compiler binaries
+If "<GCCbin$Path>" = "" Then Set Run$Path <Run$Path>,GCCbin:
+Set GCCbin$Path <GCC$Dir>.bin.
+
+| Search path used for the compiler binaries
+Set GCCpkg$Path <GCC$Dir>.
+Set GCCsys$Path <GCC$Dir>.^.
+Set GCClcl$Path <GCC$Dir>.^.local.
+
+| Search paths used for the GCC runtime library and various
+| C++ runtime libraries.
+Set GCC$Path <GCC$Dir>.lib.gcc.
+Set GPP$Path <GCC$Dir>.lib.gpp.
+
+| Search path used for GCC sources. Check the develop directory
+| in preference to the master directory.
+Set GCCsrc$Path <GCC$Dir>.
+
+| Set the return code limit high, because UnixLib can return values
+| within this range.
+Set Sys$RCLimit 65536
+
+| Setup the UnixLib temporary directory
+if "<UnixFS$/tmp>" = "" then Set UnixFS$/tmp <Wimp$ScrapDir>.
+
+| Setup extended command line support
+RMEnsure DDEUtils 1.50 RMLoad System:Modules.ddeutils
+
+set make$heap ""
+set gcc$heap ""
+set g++$heap ""
+set gpc$heap ""
+set cc1$heap ""
+set cc1plus$heap ""
+set cpp$heap ""
+set drlink$heap ""
+
+Set Unix$Path <Obey$Dir>.unixlib.source.clib.
+Set UnixSrc$Dir  <Obey$dir>.unixlib.source
+Set UnixSrc$Path <UnixSrc$Dir>.
+Set UnixHdr$Dir  <UnixSrc$Dir>.clib
+Set UnixHdr$Path <UnixHdr$Dir>.
+
+| Ensure correct filename translation for a variety of prefixes
+Set UnixEnv$gcc$sfix "f:for:F:def:fpp:cc:cxx:cpp:c++:C:ii:rpo:ads:adb:ada:c:m:h:i:s:S:ali:adc:xrb:xrs:l:o:p:pas:ph:gpi:y"
+Set UnixEnv$cc1$sfix <UnixEnv$gcc$sfix>
+Set UnixEnv$cc1plus$sfix <UnixEnv$gcc$sfix>
+Set UnixEnv$cpp$sfix <UnixEnv$gcc$sfix>
+Set UnixEnv$g++$sfix <UnixEnv$gcc$sfix>
+Set UnixEnv$g77$sfix <UnixEnv$gcc$sfix>
+Set UnixEnv$f771$sfix <UnixEnv$gcc$sfix>
+Set UnixEnv$gcov$sfix <UnixEnv$gcc$sfix>
+Set UnixEnv$as$sfix "h:S:s:o"
+
+| Open up the directory, ready for work.
+Dir <GCC$Dir>
+Filer_OpenDir <GCC$Dir>
