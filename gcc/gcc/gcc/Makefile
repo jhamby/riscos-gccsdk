@@ -5,7 +5,7 @@
 # Defs for the host compiler
 # HOST_CC is a version of CC where optimisations are not turned off
 HOST_CC = gcc -O2 $(OPTS) -D$(hostsystem)
-HOST_INCLUDES = -I./ -I./include -I./config
+HOST_INCLUDES = -I./ -I../../include -I./config
 HOST_PREDEFS = -DIN_GCC -DHAVE_CONFIG_H
 
 # Defs for GCC
@@ -751,7 +751,7 @@ $(gccobjdir)/c-convert.o: c-convert.c
 $(gccobjdir)/c-decl.o: c-decl.c
 $(gccobjdir)/c-iterate.o: c-iterate.c
 $(gccobjdir)/c-lang.o: c-lang.c
-$(gccobjdir)/c-lex.o: c-lex.c
+$(gccobjdir)/c-lex.o: c-lex.c rtl.h genrtl.h
 $(gccobjdir)/c-parse.o: c-parse.c
 $(gccobjdir)/c-pragma.o: c-pragma.c
 $(gccobjdir)/c-typeck.o: c-typeck.c
@@ -807,7 +807,7 @@ $(gccobjdir)/rtl.o: rtl.c
 $(gccobjdir)/rtlanal.o: rtlanal.c
 $(gccobjdir)/sbitmap.o: sbitmap.c
 $(gccobjdir)/sched.o: sched.c
-$(gccobjdir)/stmt.o: stmt.c
+$(gccobjdir)/stmt.o: stmt.c insn-config.h
 $(gccobjdir)/stor-layout.o: stor-layout.c
 $(gccobjdir)/stupid.o: stupid.c
 $(gccobjdir)/tlink.o: tlink.c
@@ -941,7 +941,6 @@ $(gccobjdir)/gen/rtlanal.o: gen/rtlanal.c
 
 $(gccobjdir)/insn-attrtab.o: insn-attrtab.c
 $(gccobjdir)/insn-emit.o: insn-emit.c
-$(gccobjdir)/insn-extra.o: insn-extra.c
 $(gccobjdir)/insn-extract.o: insn-extract.c
 $(gccobjdir)/insn-opinit.o: insn-opinit.c
 $(gccobjdir)/insn-output.o: insn-output.c
