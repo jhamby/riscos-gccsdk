@@ -6,6 +6,8 @@ Summary of Changes
 
 * Exception handling fixes for Libfile and a suggested change from Peter
   Teichmann fixes a GCC 2.95 and later incompatibility.
+* Initial work on supporting big-endian hosts.  A port to MIPS/IRIX 6.2
+  has been part completed.
 
 29 Jan 2001
 -----------
