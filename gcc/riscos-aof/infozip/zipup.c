@@ -245,6 +245,14 @@ int set_extra_field_forriscos(z, z_utim)
 
     ftype = strtol(cptr+1, NULL, 16); /* read the ,xxx as hex filetype */
   }
+  else
+  {
+    /* When there is no given filetype, but there is a full stop in the name,
+       then it is better to let the unzip utility in RISC OS do a MimeMap lookup
+       instead, and therefore do nothing here */
+    if (strchr(z->iname, '.'))
+      return ZE_OK;
+  }
 
   z->extra=(char *)malloc(EF_SPARK_TOTALSIZE);
   if (z->extra==NULL) {
