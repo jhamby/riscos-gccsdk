@@ -1,7 +1,0 @@
-gcc -v cc.bug -o bug -O2 -Ilibio: -Llibio: -liostream
-gcc -v cc.tFile -o tFile -O2 -Ilibio: -Llibio: -liostream
-gcc -v cc.hounddog -o hounddog -O2 -Ilibio: -Llibio: -liostream
-gcc -v cc.putbackdog -o putbackdog -O2 -Ilibio: -Llibio: -liostream
-gcc -v cc.tiomanip -o tiomanip -O2 -Ilibio: -Llibio: -liostream
-gcc -v cc.tiomisc -o tiomisc -O2 -Ilibio: -Llibio: -liostream
-gcc -v cc.tstdiomisc -o tstdiomisc -O2 -Ilibio: -Llibio: -liostream
