@@ -30,7 +30,7 @@
   /* must be exported & defined, or imported and referenced */
 int (SYMBOL_OUTPUT) (const Symbol *);	/* typedef it */
 
-static Symbol *symbolTabel[SYMBOL_TABELSIZE];
+static Symbol *symbolTable[SYMBOL_TABLESIZE];
 
 static Symbol *
 symbolNew (int len, const char *str)
@@ -72,7 +72,7 @@ EqSymLex (Symbol * str, Lex * lx)
 Symbol *
 symbolAdd (Lex l)
 {
-  Symbol **isearch = &symbolTabel[l.LexId.hash];
+  Symbol **isearch = &symbolTable[l.LexId.hash];
   if (l.tag != LexId)
     error (ErrorSerious, FALSE, "Internal symbolAdd: non-ID");
   while (*isearch)
@@ -115,7 +115,7 @@ symbolGet (Lex l)
     {
       if (l.tag == LexNone)
 	{
-	  isearch = &symbolTabel[0];
+	  isearch = &symbolTable[0];
 	  while (*isearch)
 	    isearch = &((*isearch)->next);
 	  *isearch = symbolNew (7, "|Dummy|");
@@ -125,7 +125,7 @@ symbolGet (Lex l)
     }
   else
     {
-      isearch = &symbolTabel[l.LexId.hash];
+      isearch = &symbolTable[l.LexId.hash];
       while (*isearch)
 	{
 	  if (EqSymLex (*isearch, &l))
@@ -143,7 +143,7 @@ symbolFind (Lex l)
   Symbol **isearch;
   if (l.tag != LexId)
     return NULL;
-  isearch = &symbolTabel[l.LexId.hash];
+  isearch = &symbolTable[l.LexId.hash];
   while (*isearch)
     {
       if (EqSymLex (*isearch, &l))
@@ -153,7 +153,7 @@ symbolFind (Lex l)
   return NULL;
 }
 
-static int stringtabelsize = -1;
+static int stringtablesize = -1;
 
 int
 symbolFix (void)		/* Returns number of symbols */
@@ -166,9 +166,9 @@ symbolFix (void)		/* Returns number of symbols */
   const char *file;
   long int lineno;
 
-  for (i = 0; i < SYMBOL_TABELSIZE; i++)
+  for (i = 0; i < SYMBOL_TABLESIZE; i++)
     {
-      for (sym = symbolTabel[i]; sym; sym = sym->next)
+      for (sym = symbolTable[i]; sym; sym = sym->next)
 	{
 	  if (sym->type == SYMBOL_AREA)
 	    {
@@ -213,16 +213,16 @@ symbolFix (void)		/* Returns number of symbols */
 	    }
 	}
     }
-  stringtabelsize = strsize;
+  stringtablesize = strsize;
   return nosym;
 }
 
 int
 symbolStringSize (void)
 {
-  if (stringtabelsize < 0)
+  if (stringtablesize < 0)
     error (ErrorSerious, FALSE, "Internal symbolStringSize: bad string table size");
-  return stringtabelsize;
+  return stringtablesize;
 }
 
 void
@@ -231,8 +231,8 @@ symbolStringOutput (FILE * outfile)	/* Count already output */
   int i;
   Symbol *sym;
 
-  for (i = 0; i < SYMBOL_TABELSIZE; i++)
-    for (sym = symbolTabel[i]; sym; sym = sym->next)
+  for (i = 0; i < SYMBOL_TABLESIZE; i++)
+    for (sym = symbolTable[i]; sym; sym = sym->next)
       {
 /*printf("%-40s  %3i %8X %8X %8X\n",sym->str,sym->used,sym->type,sym->value.Tag.t,sym->value.Tag.v); */
 	if (SYMBOL_OUTPUT (sym) /*(sym)->used >= 0 */  || sym->type == SYMBOL_AREA)
@@ -256,8 +256,8 @@ symbolSymbolOutput (FILE * outfile)
   int v = 0;
   AofSymbol asym;
 
-  for (i = 0; i < SYMBOL_TABELSIZE; i++)
-    for (sym = symbolTabel[i]; sym; sym = sym->next)
+  for (i = 0; i < SYMBOL_TABLESIZE; i++)
+    for (sym = symbolTable[i]; sym; sym = sym->next)
       if (sym->type != SYMBOL_AREA && SYMBOL_OUTPUT (sym) /*sym->used >= 0 */ )
 	{
 	  asym.Name = sym->offset;
