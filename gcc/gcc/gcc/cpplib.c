@@ -649,6 +649,30 @@ parse_include (pfile)
       return NULL;
     }
 
+  /* NAB++ */
+#ifdef CROSS_COMPILE
+  {
+    unsigned char *token_mem;
+    unsigned char tmp[1024];
+    int tmp_len;
+    extern char *riscos_to_unix (const char *, char *);
+    
+    riscos_to_unix (header->val.str.text, tmp);
+    tmp_len = strlen (tmp);
+    
+    if (strcmp (header->val.str.text, tmp) != 0)
+      {
+	token_mem = _cpp_unaligned_alloc (pfile, tmp_len + 1);
+	memcpy (token_mem, tmp, tmp_len);
+	token_mem[tmp_len] = '\0';
+	
+	header->val.str.text = token_mem;
+	header->val.str.len = tmp_len;
+      }
+  }
+#endif
+  /* NAB-- */
+
   return header;
 }
 

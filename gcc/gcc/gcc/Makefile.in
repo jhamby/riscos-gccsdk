@@ -1,5 +1,5 @@
 # Makefile for the GNU Compiler Collection for ARM/RISC OS
-# Copyright (c) 1997, 1998, 1999, 2000, 2001, 2002, 2003 Nick Burrett
+# Copyright (c) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004 Nick Burrett
 # Written by Nick Burrett <nick@dsvr.net>
 
 # Defs for the host compiler
@@ -45,7 +45,7 @@ export GNATCC GNATBIND
 LIBDEPS = $(gccobjdir)/prefix.o
 
 ifeq (${STAGE},stage1)
-RISCOS_OBJS=
+RISCOS_OBJS = $(gccobjdir)/config/arm/rname.o
 else
 RISCOS_OBJS = $(gccobjdir)/config/arm/rname.o $(gccobjdir)/config/arm/riscos.o
 endif
