@@ -121,7 +121,7 @@ long atol();
 #endif /* NO_PROTO */
 
 #ifndef NO_MKTEMP
-char *mktemp();
+char *mktemp(char *);
 #endif /* !NO_MKTEMP */
 
 /*

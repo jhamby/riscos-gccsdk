@@ -448,7 +448,7 @@ unsigned char *zmbsrchr(str, c)
 
 #ifndef UTIL
 
-extern char *getenv();
+extern char *getenv(const char *);
 
 /*****************************************************************
  | envargs - add default options from environment to command line
@@ -465,8 +465,8 @@ extern char *getenv();
 void envargs(Pargc, Pargv, envstr, envstr2)
     int *Pargc;
     char ***Pargv;
-    char *envstr;
-    char *envstr2;
+    const char *envstr;
+    const char *envstr2;
 {
     char *envptr;                     /* value returned by getenv */
     char *bufptr;                     /* copy of env info */

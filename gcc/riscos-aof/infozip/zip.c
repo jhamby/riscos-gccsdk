@@ -232,7 +232,7 @@ int e;                  /* exit code */
 
 void ziperr(c, h)
 int c;                  /* error code from the ZE_ class */
-char *h;                /* message about how it happened */
+const char *h;                /* message about how it happened */
 /* Issue a message for the error, clean up files and memory, and exit. */
 {
 #ifndef WINDLL
@@ -306,7 +306,7 @@ char *h;                /* message about how it happened */
 
 
 void error(h)
-  char *h;
+  const char *h;
 /* Internal error, should never happen */
 {
   ziperr(ZE_LOGIC, h);
@@ -332,7 +332,7 @@ int s;                  /* signal number (ignored) */
 #endif /* !MACOS && !WINDLL */
 
 void zipwarn(a, b)
-char *a, *b;            /* message strings juxtaposed in output */
+const char *a, *b;            /* message strings juxtaposed in output */
 /* Print a warning message to stderr and return. */
 {
   if (noisy) fprintf(stderr, "\tzip warning: %s%s\n", a, b);

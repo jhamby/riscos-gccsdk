@@ -259,7 +259,7 @@ extern int decomma;             /* Convert ,xxx filename to RISC OS filetype inf
 extern int method;              /* Restriction on compression method */
 
 extern int dosify;              /* Make new entries look like MSDOS */
-extern char *special;           /* Don't compress special suffixes */
+extern const char *special;     /* Don't compress special suffixes */
 extern int verbose;             /* Report oddities in zip file structure */
 extern int fix;                 /* Fix the zip file */
 extern int adjust;              /* Adjust the unzipsfx'd zip file */
@@ -362,12 +362,12 @@ extern int aflag;
 #ifdef CMS_MVS
 extern int bflag;
 #endif /* CMS_MVS */
-void zipwarn  OF((char *, char *));
-void ziperr   OF((int, char *));
+void zipwarn  OF((const char *, const char *));
+void ziperr   OF((int, const char *));
 #ifdef UTIL
 #  define error(msg)    ziperr(ZE_LOGIC, msg)
 #else
-   void error OF((char *));
+   void error OF((const char *));
 #  ifdef VMSCLI
      void help OF((void));
 #  endif
@@ -410,11 +410,11 @@ int zipcopy OF((struct zlist far *, FILE *, FILE *));
 #ifndef UTIL
    char *getnam OF((char *, FILE *));
    struct flist far *fexpel OF((struct flist far *));
-   char *last OF((char *, int));
+   const char *last OF((const char *, int));
    char *msname OF((char *));
    int check_dup OF((void));
    int filter OF((char *, int));
-   int newname OF((char *, int, int));
+   int newname OF((const char *, int, int));
 #endif /* !UTIL */
 #if (!defined(UTIL) || defined(W32_STATROOT_FIX))
    time_t dos2unixtime OF((ulg));
@@ -447,11 +447,11 @@ int fcopy OF((FILE *, FILE *, ulg));
         /* in system dependent fileio code (<system>.c) */
 #ifndef UTIL
 #  ifdef PROCNAME
-     int wild OF((char *));
+     int wild OF((const char *));
 #  endif
    char *in2ex OF((char *));
-   char *ex2in OF((char *, int, int *));
-   int procname OF((char *, int));
+   char *ex2in OF((const char *, int, int *));
+   int procname OF((const char *, int));
    void stamp OF((char *, ulg));
    ulg filetime OF((char *, ulg *, long *, iztimes *));
 #if !(defined(VMS) && defined(VMS_PK_EXTRA))
@@ -492,7 +492,7 @@ char *str_oem_to_iso    OF((char *dst, ZCONST char *src));
 
 zvoid far **search OF((ZCONST zvoid *, ZCONST zvoid far **, extent,
                        int (*)(ZCONST zvoid *, ZCONST zvoid far *)));
-void envargs       OF((int *, char ***, char *, char *));
+void envargs       OF((int *, char ***, const char *, const char *));
 void expand_args   OF((int *, char ***));
 
 #ifndef USE_ZLIB

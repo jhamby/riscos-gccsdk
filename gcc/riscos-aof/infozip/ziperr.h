@@ -39,7 +39,7 @@
 
 #ifdef GLOBALS
 /* Error messages for the ziperr() function in the zip programs */
-char *errors[ZE_MAXERR] = {
+const char *errors[ZE_MAXERR] = {
 /*  1 */  "",
 /*  2 */  "Unexpected end of zip file",
 /*  3 */  "Zip file structure invalid",

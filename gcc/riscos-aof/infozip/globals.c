@@ -59,15 +59,15 @@ int extra_fields = 1;   /* 0=do not create extra fields */
 #ifndef RISCOS
 #ifndef QDOS
 #ifndef TANDEM
-char *special = ".Z:.zip:.zoo:.arc:.lzh:.arj"; /* List of special suffixes */
+const char *special = ".Z:.zip:.zoo:.arc:.lzh:.arj"; /* List of special suffixes */
 #else /* TANDEM */
-char *special = " Z: zip: zoo: arc: lzh: arj"; /* List of special suffixes */
+const char *special = " Z: zip: zoo: arc: lzh: arj"; /* List of special suffixes */
 #endif
 #else /* QDOS */
-char *special = "_Z:_zip:_zoo:_arc:_lzh:_arj"; /* List of special suffixes */
+const char *special = "_Z:_zip:_zoo:_arc:_lzh:_arj"; /* List of special suffixes */
 #endif
 #else /* RISCOS */
-char *special = "DDC:D96:68E";
+const char *special = "DDC:D96:68E";
 #endif /* ?RISCOS */
 char *key = NULL;       /* Scramble password if scrambling */
 char *tempath = NULL;   /* Path for temporary files */

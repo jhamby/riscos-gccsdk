@@ -103,7 +103,7 @@ DIR *d;                 /* directory stream to read from */
 }
 
 int procname(n, caseflag)
-char *n;                /* name to process */
+const char *n;          /* name to process */
 int caseflag;           /* true to force case-sensitive match */
 /* Process a name or sh expression to operate on (or exclude).  Return
    an error code in the ZE_ class. */
@@ -203,14 +203,15 @@ int caseflag;           /* true to force case-sensitive match */
 }
 
 char *ex2in(x, isdir, pdosflag)
-char *x;                /* external file name */
+const char *x;          /* external file name */
 int isdir;              /* input: x is a directory */
 int *pdosflag;          /* output: force MSDOS file attributes? */
 /* Convert the external file name to a zip file name, returning the malloc'ed
    string or NULL if not enough memory. */
 {
-  char *n;              /* internal file name (malloc'ed) */
-  char *t = NULL;       /* shortened name */
+  char *n;                    /* internal file name (malloc'ed) */
+  const char *cn;
+  const char *t = NULL;       /* shortened name */
   int dosflag;
 
   dosflag = dosify;  /* default for non-DOS and non-OS/2 */
@@ -218,16 +219,16 @@ int *pdosflag;          /* output: force MSDOS file attributes? */
   /* Find starting point in name before doing malloc */
   /* Strip "//host/share/" part of a UNC name */
   if (!strncmp(x,"//",2) && (x[2] != '\0' && x[2] != '/')) {
-    n = x + 2;
-    while (*n != '\0' && *n != '/')
-      n++;              /* strip host name */
-    if (*n != '\0') {
-      n++;
-      while (*n != '\0' && *n != '/')
-        n++;            /* strip `share' name */
+    cn = x + 2;
+    while (*cn != '\0' && *cn != '/')
+      cn++;              /* strip host name */
+    if (*cn != '\0') {
+      cn++;
+      while (*cn != '\0' && *cn != '/')
+        cn++;            /* strip `share' name */
     }
-    if (*n != '\0')
-      t = n + 1;
+    if (*cn != '\0')
+      t = cn + 1;
   } else
       t = x;
   while (*t == '/')

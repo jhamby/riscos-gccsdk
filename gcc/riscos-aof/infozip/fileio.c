@@ -138,8 +138,8 @@ ZCONST zvoid *a, *b;          /* pointers to pointers to found entries */
 }
 
 
-char *last(p, c)
-char *p;                /* sequence of path components */
+const char *last(p, c)
+const char *p;          /* sequence of path components */
 int c;                  /* path components separator character */
 /* Return a pointer to the start of the last path component. For a directory
  * name terminated by the character in c, the return value is an empty string.
@@ -316,7 +316,7 @@ int filter(name, casesensitive)
 }
 
 int newname(name, isdir, casesensitive)
-char *name;             /* name to add (or exclude) */
+const char *name;       /* name to add (or exclude) */
 int  isdir;             /* true for a directory */
 int  casesensitive;     /* true for case-sensitive matching */
 /* Add (or exclude) the name of an existing disk file.  Return an error

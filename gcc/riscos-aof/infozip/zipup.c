@@ -40,9 +40,12 @@
 
 /* Local functions */
 #ifndef RISCOS
-   local int suffixes OF((char *, char *));
+   local int suffixes OF((char *, const char *));
 #else
    local int filetypes OF((char *, char *));
+#endif
+#ifdef FORRISCOS
+   local int set_extra_field_forriscos OF((struct zlist far *z, iztimes *z_utim));
 #endif
 local unsigned file_read OF((char *buf, unsigned size));
 #ifdef USE_ZLIB
@@ -127,11 +130,11 @@ ulg m;               /* n is the original size, m is the new size */
 
 local int suffixes(a, s)
 char *a;                /* name to check suffix of */
-char *s;                /* list of suffixes separated by : or ; */
+const char *s;          /* list of suffixes separated by : or ; */
 /* Return true if a ends in any of the suffixes in the list s. */
 {
   int m;                /* true if suffix matches so far */
-  char *p;              /* pointer into special */
+  const char *p;        /* pointer into special */
   char *q;              /* pointer into name a */
 
 #ifdef QDOS
@@ -233,7 +236,7 @@ int set_extra_field_forriscos(z, z_utim)
 
   cptr=strrchr(z->iname, (int) ',');
   if (cptr)
-    if ((cptr - z->iname) != (strlen(z->iname)-4))
+    if ((cptr - z->iname) != (int)(strlen(z->iname)-4))
       cptr = NULL;  /* There was a comma, but it wasn't a ,xxx at the end! */
       
   if (cptr)
