@@ -1236,9 +1236,9 @@ void relocate_areas(void) {
 ** 'flag_badreloc' is called to print an error message about a bad
 ** relocation
 */
-static void flag_badreloc(unsigned int *relplace) {
-  error("Error: Relocated value is out of range at offset 0x%x in area '%s' in file '%s'",
-   relplace-areastart, current_area->arname, current_file->chfilename);
+static void flag_badreloc(unsigned int *relplace, const char *type) {
+  error("Error: Relocated (%s) value is out of range at offset 0x%x in area '%s in file '%s'",
+   type, relplace-areastart, current_area->arname, current_file->chfilename);
 }
 
 /*
@@ -1284,7 +1284,7 @@ static void fixup_adr(unsigned int *relplace, int inscount, unsigned int relvalu
     addr = addr & ~BYTE_MASK;
     relstart++;
   } while (relstart!=relplace);
-  if (addr!=0) flag_badreloc(relbase);
+  if (addr!=0) flag_badreloc(relbase, "ADR");
 }
 
 /*
@@ -1304,7 +1304,7 @@ static void fixup_additive(unsigned int *relplace, unsigned int reltype, unsigne
     if ((reltype & FTMASK)==0) {	/* Byte relocation */
       data = *(COERCE(relplace, char*))+relvalue;
       if (data>BYTEHIGH) {
-        flag_badreloc(relplace);
+        flag_badreloc(relplace, "Byte");
       }
       else {
         *(COERCE(relplace, char*)) = data;
@@ -1313,7 +1313,7 @@ static void fixup_additive(unsigned int *relplace, unsigned int reltype, unsigne
     else {	/* Half word  relocation */
       data = *(COERCE(relplace, char*))+(*(COERCE(relplace, char*)+1)<<8)+relvalue;
       if (data>HALFHIGH) {
-        flag_badreloc(relplace);
+        flag_badreloc(relplace, "Halfword");
       }
       else {
         *(COERCE(relplace, char*)) = data&0xFF;
@@ -1332,7 +1332,7 @@ static void fixup_additive(unsigned int *relplace, unsigned int reltype, unsigne
       if ((inst & IN_POSOFF)==0) addr = -addr;
       addr = addr+relvalue;
       if (addr<=-MAX_OFFSET || addr>=MAX_OFFSET) {
-        flag_badreloc(relplace);
+        flag_badreloc(relplace, "LDR/STR");
       }
       else {
         *relplace = (inst & LDST_MASK) | (addr<0 ? -addr : addr | IN_POSOFF);
@@ -1372,7 +1372,7 @@ static bool fixup_pcrelative(unsigned int *relplace, reloctype reltype, int relv
     if ((inst & IN_POSOFF)==0) addr = -addr;
     addr = addr+relvalue-current_area->arplace;
     if (addr<=-MAX_OFFSET || addr>=MAX_OFFSET) {
-      flag_badreloc(relplace);
+      flag_badreloc(relplace, "PC relative");
     }
     else {
       *relplace = (inst & LDST_MASK) | (addr<0 ? -addr : addr | IN_POSOFF);
@@ -1740,7 +1740,7 @@ static void alter_area_offset(relocation *rp) {
       if ((inst & IN_POSOFF)==0) addr = -addr;
       addr = addr-current_area->arplace;	/* Subtract offset within 'super area' of area from inst offset */
       if (addr<=-MAX_OFFSET || addr>=MAX_OFFSET) {
-        flag_badreloc(relplace);
+        flag_badreloc(relplace, "Area Offset");
       }
       else {
         *relplace = (inst & LDST_MASK) | (addr<0 ? -addr : addr | IN_POSOFF);
@@ -1842,7 +1842,7 @@ static bool alter_type2_offset(relocation *rp) {
     if ((inst & IN_POSOFF)==0) addr = -addr;
     addr = addr+relvalue-current_area->arplace;
     if (addr<=-MAX_OFFSET || addr>=MAX_OFFSET) {
-      flag_badreloc(relplace);
+      flag_badreloc(relplace, "Type 2 PC offset");
     }
     else {
       *relplace = (inst & LDST_MASK) | (addr<0 ? -addr : addr | IN_POSOFF);
