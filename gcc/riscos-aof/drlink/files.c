@@ -238,6 +238,27 @@ static fileinfo find_filetype(void) {
 }
 
 /*
+** Convert endian of a given number of words
+*/
+#if !defined(__riscos__) && defined(WORDS_BIGENDIAN)
+static void convert_endian(void *words, int size) {
+  int *values = words;
+
+  while (size-- > 0) {
+    int value = *values;
+
+    *values =  (value >> 24) |
+             ((value >> 8) & 0xff00)   |
+             ((value << 8) & 0xff0000) |
+              (value << 24);
+    values++;
+  }
+}
+#else
+#define convert_endian(words, size)
+#endif
+
+/*
 ** 'examine_file' is called to check that the file passed to it is an
 ** AOF file or ALF library. It returns the type of the file if it was
 ** successfully validated, or NOWT if something is wrong with it.
@@ -263,6 +284,7 @@ fileinfo examine_file(const char *filename) {
   }
   filesize = find_size(libfile);
   count = fread(&libheader, sizeof(chunkheader), 1, libfile);
+  convert_endian(&libheader, sizeof(chunkheader) / 4);
   if (count!=1) {	    /* Didn't read one chunkheader */
     error("Error: Cannot read '%s'", filename);
     fclose(libfile);
@@ -280,6 +302,7 @@ fileinfo examine_file(const char *filename) {
     return NOWT;
   }
   count = fread(&index, sizeof(chunkindex), 1, libfile);
+  convert_endian(&index, sizeof(chunkindex) / 4);
   if (count!=1) {
     error("Error: Cannot read '%s'", filename);
     fclose(libfile);
@@ -297,6 +320,7 @@ fileinfo examine_file(const char *filename) {
       }
       else {
         count = fread(&index, sizeof(chunkindex), 1, libfile);
+        convert_endian(&index, sizeof(chunkheader) / 4);
         if (count!=1) {
           error("Error: Cannot read '%s'", filename);
           filetype = NOWT;
@@ -432,6 +456,7 @@ static bool scan_chunkhdr(filelist *fp) {
   unsigned int start, size;
   chunkindex *cp;
   cp = chunkhdrbase;
+  convert_endian(cp, sizeof(chunkheader) / 4);
   for (i = 1; i<=chunkcount; i++) {
     start = cp->chunkoffset;
     size = cp->chunksize;
@@ -1007,7 +1032,7 @@ bool read_libchunkhdr(libheader *lp) {
 void open_image(void) {
 #ifdef TARGET_RISCOS
   unsigned int filetype;
-  int riscosifyc = __riscosify_control;
+  int __riscosify_control;
   _kernel_swi_regs regs;
   _kernel_oserror *swierror;
   switch(imagetype) {
@@ -1032,7 +1057,6 @@ void open_image(void) {
   /* We're dealing with a RISC OS format output name, passed from ld */
   __riscosify_control = __RISCOSIFY_NO_PROCESS;
   imagefile = fopen(imagename, "rb+");
-  __riscosify_control = riscosifyc;
 #else
   imagefile = fopen(imagename, "wb");
 #endif

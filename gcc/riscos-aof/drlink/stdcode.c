@@ -19,7 +19,7 @@
 #define NOOP 0xE1A00000			/* No-op instruction - MOV R0,R0 */
 
 #define BRENTRY_OFFSET 0x0C		/* Offset in header of BL to entry point */
-#define BRELOC_OFFSET 0x04		/* Offsey in header to BL to self-relocation code */
+#define BRELOC_OFFSET 0x04		/* Offset in header to BL to self-relocation code */
 #define PCMODIFIER 8			/* Adjustment for PC-relative instructions for PC */
 
 #define STRONGBIT 0x80000000		/* Bit to signify code is StrongARM compatible */
