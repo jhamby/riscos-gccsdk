@@ -1,3 +1,8 @@
+Tue Jul 24 17:11:43 2001  Nick Burrett  <nick@dsvr.net>
+
+	* time/strftime.c (strftime): Call tzset -- reverts John Tytgat's
+	change of 08-Nov-2000.
+
 Mon Jul 23 16:30:46 2001  Peter Teichmann <teich-p@Rcs1.urz.tu-dresden.de>
 
 	* time.h (struct tm): Change tm_zone to char*.

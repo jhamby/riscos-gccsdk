@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/time/c/strftime,v $
- * $Date: 2000/11/08 10:22:57 $
- * $Revision: 1.4 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/time/strftime.c,v $
+ * $Date: 2001/01/29 15:10:22 $
+ * $Revision: 1.2 $
  * $State: Exp $
  * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: strftime,v 1.4 2000/11/08 10:22:57 admin Exp $";
+static const char rcs_id[] = "$Id: strftime.c,v 1.2 2001/01/29 15:10:22 admin Exp $";
 #endif
 
 /* UnixLib port by Nick Burrett, 13 July 1997.  */
@@ -54,6 +54,9 @@ strftime (char *s, const size_t maxsize, const char *format, const struct tm *t)
 {
   char *p;
   char riscos_time[6];
+
+  /* According to POSIX.1 every call to stftime implies a call to tzset.  */
+  tzset ();
 
   __cvt_broken_time (t, riscos_time);
   p = fmt (((format == NULL) ? "%c" : format), t, s, s + maxsize, riscos_time);
