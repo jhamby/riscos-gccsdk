@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/setjmp.h,v $
- * $Date: 2004/04/15 22:21:02 $
- * $Revision: 1.8 $
+ * $Date: 2004/05/10 10:58:55 $
+ * $Revision: 1.9 $
  * $State: Exp $
- * $Author: alex $
+ * $Author: peter $
  *
  ***************************************************************************/
 
@@ -44,6 +44,11 @@ extern int setjmp (jmp_buf __env) __THROW;
    setjmp will return 1. */
 extern void longjmp (jmp_buf __env, int __val)
      __THROW __attribute__ ((__noreturn__));
+
+/* We are in 4.3 BSD-compatibility mode in which `setjmp'
+   saves the signal mask like `sigsetjmp (ENV, 1)'.  We have to
+   define a macro since ISO C says `setjmp' is one.  */
+# define setjmp(env)	setjmp (env)
 
 /* POSIX details.  */
 

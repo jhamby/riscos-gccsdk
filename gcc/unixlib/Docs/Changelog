@@ -1,8 +1,11 @@
+Mon May 10 13:52:40 2004  Peter Naulls  <peter@chocky.org>
+
+	* clib/setjmp.h: Reinstate setjmp macro so it doesn't cause problems.
+
 Mon May 10 11:59:58 2004  Peter Naulls  <peter@chocky.org>
 
 	* clib/netdb.h: Disable unimplemented functions.
-	* clib/setjmp.h: Remove setjmp macro - it causes problems with C++,
-	  and doesn't appear in glibc in any case.
+	* clib/setjmp.h: Remove setjmp macro - it causes problems with C++.
 	* clib/stdlib.h: Remove ato* macros which cause problems with C++,
 	and replace with inline fucntions from glibc headers.  Also change
 	other declarations as per glibc.
