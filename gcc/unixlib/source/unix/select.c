@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/select.c,v $
- * $Date: 2004/12/03 11:37:51 $
- * $Revision: 1.8 $
+ * $Date: 2004/12/04 22:15:04 $
+ * $Revision: 1.9 $
  * $State: Exp $
- * $Author: peter $
+ * $Author: joty $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: select.c,v 1.8 2004/12/03 11:37:51 peter Exp $";
+static const char rcs_id[] = "$Id: select.c,v 1.9 2004/12/04 22:15:04 joty Exp $";
 #endif
 
 /* netlib/socket.c: Written by Peter Burwood, July 1997  */
@@ -123,7 +123,7 @@ __return_fd_set (int nfds, fd_set *iset, const fd_set *oset)
               int fd = words * WORD_BITS + bits;
               int sock_fd = (int)__u->fd[fd].handle;
 
-               if (!FD_ISSET (sock_fd, oset))
+               if (__u->fd[fd].device == DEV_SOCKET && !FD_ISSET (sock_fd, oset))
                  FD_CLR (fd, iset);
             }
         }

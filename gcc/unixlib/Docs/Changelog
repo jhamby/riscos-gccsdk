@@ -1,3 +1,8 @@
+Wed Feb 9 23:13:58 2005  Alex Waugh  <alex@alexwaugh.com>
+
+	* source/unix/select.c (__return_fd_set): Only clear fds that are
+	  sockets.
+
 Wed Feb 9 21:09:05 2005  Alex Waugh  <alex@alexwaugh.com>
 
 	* source/clib/pthread.h, source/clib/signal.h,
