@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/dev.c,v $
- * $Date: 2004/10/23 17:23:36 $
- * $Revision: 1.22 $
+ * $Date: 2004/12/02 14:49:24 $
+ * $Revision: 1.23 $
  * $State: Exp $
- * $Author: joty $
+ * $Author: peter $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: dev.c,v 1.22 2004/10/23 17:23:36 joty Exp $";
+static const char rcs_id[] = "$Id: dev.c,v 1.23 2004/12/02 14:49:24 peter Exp $";
 #endif
 
 /* #define DEBUG */
@@ -338,17 +338,22 @@ __fsopen (struct __unixlib_fd *file_desc, const char *filename, int mode)
 
     if (fflag & O_CREAT)
       {
-        __os_fclose(fd);
-
         mode &= ~(__u->umask & 0777);
         regs[5] = __set_protection (mode);
   
         /* Write the object attributes.  */
-        if ((err = __os_file (0x04, file, regs)))
-          goto os_err;
+        if (__os_file (0x04, file, regs))
+          {
+            /* Now try closing it first if that failed */
+            __os_fclose(fd);
 
-        if ((err = __os_fopen(openmode, file, &fd)))
-          goto os_err;
+            regs[5] = __set_protection (mode);
+            if ((err = __os_file (0x04, file, regs)))
+              goto os_err;
+
+            if ((err = __os_fopen(openmode, file, &fd)))
+              goto os_err;
+          }
       }
   }
 

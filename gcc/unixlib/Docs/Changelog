@@ -1,3 +1,8 @@
+Wed Dec  8 16:11:55 2004  Peter Naulls  <peter@chocky.org>
+
+	* source/unix/dev.c (__fsopen): Only close the file if
+	  attribute setting whilst the file is open fails.
+
 Tue Dec  7 22:54:45 2004  Alex Waugh  <alex@alexwaugh.com>
 
 	* source/stdio/fflush.c (fflush): Don't return an error if a read
