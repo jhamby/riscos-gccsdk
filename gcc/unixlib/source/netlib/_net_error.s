@@ -1,10 +1,10 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/netlib/_net_error.s,v $
-; $Date: 2002/09/24 21:02:37 $
-; $Revision: 1.3 $
+; $Date: 2003/04/21 10:48:45 $
+; $Revision: 1.4 $
 ; $State: Exp $
-; $Author: admin $
+; $Author: peter $
 ;
 ;----------------------------------------------------------------------------
 
@@ -40,8 +40,8 @@
 	BL	|__seterr|	   ; save error for last_oserror
 	LDMFD	sp!, {a1, ip, lr}
 	LDR	a1, [a1, #0]       ; get real errno from oserror
-	ADD     a1, a1, #0xff      ; RISC OS 5 correctly returns error numbers
-	                           ; in Internet error block.  
+	AND     a1, a1, #0xff      ; RISC OS 5 correctly returns error numbers
+	                           ; in Internet error block.
 	__set_errno	a1, a2
 	return	AL, pc, lr
 

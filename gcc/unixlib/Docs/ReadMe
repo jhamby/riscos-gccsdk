@@ -20,3 +20,14 @@ The list of recognised features are:
 
    If set, all file paths and filenames will be used verbatim i.e. without
    the usual Unix to RISC OS conversions.
+
+
+Compile-time features
+~~~~~~~~~~~~~~~~~~~~~
+
+We try to restrict the number of compile-time features so that one
+binary release of UnixLib can satisfy most programmers.  These
+features, together with a short explanation, are defined in
+at the bottom of source.clib.unixlib.h.features.  Note that these
+feature settings are also reflected in the source.clib.unixlib.s.asm_dec
+file and should be kept in sync at all times.

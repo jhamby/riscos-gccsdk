@@ -1,36 +1,37 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/dev.c,v $
- * $Date: 2003/04/06 14:19:07 $
- * $Revision: 1.11 $
+ * $Date: 2003/04/12 11:31:39 $
+ * $Revision: 1.12 $
  * $State: Exp $
- * $Author: peter $
+ * $Author: alex $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: dev.c,v 1.11 2003/04/06 14:19:07 peter Exp $";
+static const char rcs_id[] = "$Id: dev.c,v 1.12 2003/04/12 11:31:39 alex Exp $";
 #endif
 
 /* #define DEBUG */
 #define _GNU_SOURCE
-#include <errno.h>
-#include <string.h>
-#include <stdlib.h>
-#include <fcntl.h>
-#include <unistd.h>
+#include <ctype.h>
 #include <dirent.h>
-#include <unixlib/unix.h>
-#include <sys/param.h>
-#include <unixlib/dev.h>
-#include <unixlib/os.h>
+#include <errno.h>
+#include <fcntl.h>
 #include <netdb.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/param.h>
+#include <sys/select.h>
 #include <sys/stat.h>
 #include <swis.h>
-#include <sys/select.h>
+#include <unistd.h>
+#include <unixlib/dev.h>
+#include <unixlib/os.h>
 #include <unixlib/local.h>
 #include <unixlib/features.h>
 #include <unixlib/swiparams.h>
+#include <unixlib/unix.h>
 
 #define IGNORE(x) {(void) x;}
 
@@ -794,7 +795,6 @@ __nullselect (struct __unixlib_fd *file_descriptor, int fd,
 int
 __nullstat (const char *filename, struct stat *buf)
 {
-  int regs[6];
   IGNORE (filename);
 
   buf->st_ino = 0;
@@ -809,7 +809,6 @@ __nullstat (const char *filename, struct stat *buf)
 int
 __nullfstat (int fd, struct stat *buf)
 {
-  int regs[6];
   struct __unixlib_fd *file_desc;
   int fflag;
   __mode_t mode = 0;

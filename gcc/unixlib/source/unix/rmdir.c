@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/rmdir.c,v $
- * $Date: 2002/02/14 15:56:39 $
- * $Revision: 1.3 $
+ * $Date: 2003/04/12 11:31:39 $
+ * $Revision: 1.4 $
  * $State: Exp $
- * $Author: admin $
+ * $Author: alex $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: rmdir.c,v 1.3 2002/02/14 15:56:39 admin Exp $";
+static const char rcs_id[] = "$Id: rmdir.c,v 1.4 2003/04/12 11:31:39 alex Exp $";
 #endif
 
 #include <errno.h>
@@ -26,12 +26,12 @@ int
 rmdir (const char *ux_directory)
 {
   char directory[_POSIX_PATH_MAX];
-  int regs[10], filetype, objtype, attr;
+  int regs[10], objtype, attr;
   _kernel_oserror *err;
   char scratch_buf[NAME_MAX];
 
   if (__object_get_attrs (ux_directory, directory, sizeof (directory),
-                          &objtype, &filetype, NULL, NULL, NULL, &attr))
+                          &objtype, NULL, NULL, NULL, NULL, &attr))
     return -1;
 
   /* Images and directories have bit 1 set. Clear implies file.  */

@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/unlink.c,v $
- * $Date: 2003/01/29 18:46:02 $
- * $Revision: 1.4 $
+ * $Date: 2003/04/12 11:31:39 $
+ * $Revision: 1.5 $
  * $State: Exp $
- * $Author: admin $
+ * $Author: alex $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: unlink.c,v 1.4 2003/01/29 18:46:02 admin Exp $";
+static const char rcs_id[] = "$Id: unlink.c,v 1.5 2003/04/12 11:31:39 alex Exp $";
 #endif
 
 #include <errno.h>
@@ -47,12 +47,12 @@ __unlinksuffix (char *file)
 int
 unlink (const char *ux_file)
 {
-  int regs[10], ftype, objtype, attr;
+  int regs[10], objtype, attr;
   _kernel_oserror *err;
   char file[_POSIX_PATH_MAX];
 
   if (__object_get_attrs (ux_file, file, sizeof (file),
-                          &objtype, &ftype, NULL, NULL, NULL, &attr))
+                          &objtype, NULL, NULL, NULL, NULL, &attr))
     return -1;
 
   if (objtype == 2 || (! __feature_imagefs_is_file && objtype == 3)) /* Directory/Image FS.  */

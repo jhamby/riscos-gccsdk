@@ -1,3 +1,18 @@
+Tue May 14 00:01:05 2003  John Tytgat <John.Tytgat@aaug.net>
+
+	* netlib/_accept.s, netlib/_getpeerna.s, netlib/_getsockna.s,
+	  netlib/_recvfrom.s, netlib/_recvmsg.s, netlib/_sendmsg.s:
+	  Readded COMPAT_INET4 macros undoing Peter's change at 21 Apr 2003.
+	* netlib/_net_error.s: typo spoiled the error numbers returned from the
+	  Internet SWI calls.
+	* unix/dev.c: Remove unused variables.  Added #include <ctype.h>.
+	* unix/mkdir.c: Remove unused variable.
+	* unix/rmdir.c: Likewise.
+	* unix/unlink.c: Likewise.
+	* unix/utime.c: Wrote corrupted RISC OS filetype.
+	* !Help: Updated.
+	* Docs/ReadMe: Added "Compile-time features" section.
+
 Tue May 13 22:46:38 2003  Alex Waugh  <alex@alexwaugh.com>
 
 	* math-asm/_acosf.s: Keep sp valid at all times.

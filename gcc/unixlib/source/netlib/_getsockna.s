@@ -1,8 +1,8 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/netlib/_getsockna.s,v $
-; $Date: 2002/12/22 18:22:29 $
-; $Revision: 1.4 $
+; $Date: 2002/07/19 13:12:30 $
+; $Revision: 1.2.2.1 $
 ; $State: Exp $
 ; $Author: admin $
 ;
@@ -17,5 +17,10 @@
 	EXPORT	|_getsockname|
 	NAME	_getsockname
 |_getsockname|
+	[ COMPAT_INET4 = 1
 	NetSWIsimple0	XSocket_Getsockname
+	|
+	NetSWIsimple0	XSocket_Getsockname_1
+	]
+
 	END
