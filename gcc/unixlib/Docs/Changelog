@@ -1,3 +1,13 @@
+Sun Jan  5 12:44:20 2002  Alex Waugh  <alex@alexwaugh.com>
+
+	* common/riscosify.c:
+	"./foo.c" now translates to "@.c.foo" rather than "c.foo"
+	Better handling of . and .. at beginning and ends of filenames, and
+	things like "./.."
+	Removes ,xyz when the filename is just a leafname.
+	Interprets ".svn/text-base/malloc.c.svn-base" as unix format
+	not RISC OS format.
+
 Sun Jan  5 12:41:31 2002  Alex Waugh  <alex@alexwaugh.com>
 
 	Make UnixLib thread-safe.
