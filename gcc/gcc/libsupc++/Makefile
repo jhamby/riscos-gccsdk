@@ -3,7 +3,7 @@
 #
 
 INCLUDES = -I. -I../gcc -I../libstdc/include -I../libstdc/include/arm-riscos-aof
-supcobjdir=$(objdir)/gcc-$(VERSION)/libsupc++/$(TRG)
+supcobjdir=$(objdir)/gcc-$(VERSION)/libsupc++/$(STAGE)/$(TRG)
 
 CROSS_CXXFLAGS += -D_GNU_SOURCE
 
