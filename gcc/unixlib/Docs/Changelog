@@ -1,3 +1,9 @@
+Sat Apr 26 11:36:00 2003  Peter Naulls <peter@chocky.org>
+	* source/signal/signal.c, source/signal/post.c:
+	  Add _GNU_SOURCE define, to allow use of sighandler_t.
+	* source/strtod.c: Add an explicit atof function (as well
+	  as the existing #define)
+
 Fri Apr 25 15:14:29 2003  Peter Naulls <peter@chocky.org>
 	* clib/sys/cdefs.h: Added, from a patch by John T.  Didn't create
 	  the needless misc directory in use with that, however.
