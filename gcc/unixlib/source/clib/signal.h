@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/signal.h,v $
- * $Date: 2004/04/12 13:03:37 $
- * $Revision: 1.8 $
+ * $Date: 2004/08/16 21:01:26 $
+ * $Revision: 1.9 $
  * $State: Exp $
- * $Author: nick $
+ * $Author: joty $
  *
  ***************************************************************************/
 
@@ -14,7 +14,7 @@
 #define __SIGNAL_H
 
 #ifndef __UNIXLIB_FEATURES_H
-#include <unixlib/features.h>
+#include <features.h>
 #endif
 
 #ifndef __UNIXLIB_TYPES_H
@@ -285,12 +285,12 @@ struct sigvec
 
 extern int sigvec (int __sig, const struct sigvec *__vec,
 		   struct sigvec *__ovec) __THROW;
+#endif
 
 /* If interrupt is nonzero, make signal sig interrupt system calls
    (causing them to fail with EINTR); if interrupt is zero, make
    system calls be restarted after signal sig.  */
 extern int siginterrupt (int __sig, int __interrupt) __THROW;
-#endif
 
 /* Signal stack structure (BSD style).  */
 struct sigstack

@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/time/mktime.c,v $
- * $Date: 2001/09/04 16:32:04 $
- * $Revision: 1.3.2.2 $
+ * $Date: 2002/02/14 15:56:38 $
+ * $Revision: 1.4 $
  * $State: Exp $
  * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: mktime.c,v 1.3.2.2 2001/09/04 16:32:04 admin Exp $";
+static const char rcs_id[] = "$Id: mktime.c,v 1.4 2002/02/14 15:56:38 admin Exp $";
 #endif
 
 /* Territory time support, written by Nick Burrett on 13 July 1997.  */
@@ -42,4 +42,10 @@ mktime (struct tm *brokentime)
   brokentime->tm_isdst = daylight;
 
   return __cvt_riscos_time (riscos_time[1], riscos_time[0]);
+}
+
+time_t
+timelocal (struct tm *tm)
+{
+  return mktime (tm);
 }

@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/locale/iconv.c,v $
- * $Date: 2004/09/23 22:16:39 $
- * $Revision: 1.2 $
+ * $Date: 2004/10/05 15:24:37 $
+ * $Revision: 1.3 $
  * $State: Exp $
- * $Author: joty $
+ * $Author: peter $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: iconv.c,v 1.2 2004/09/23 22:16:39 joty Exp $";
+static const char rcs_id[] = "$Id: iconv.c,v 1.3 2004/10/05 15:24:37 peter Exp $";
 #endif
 
 #include <stdlib.h>
@@ -17,7 +17,6 @@ static const char rcs_id[] = "$Id: iconv.c,v 1.2 2004/09/23 22:16:39 joty Exp $"
 #include <swis.h>
 #include <iconv.h>
 #include <unixlib/os.h>
-#include <errno.h>
 
 #define ERROR_BASE 0x81b900
 

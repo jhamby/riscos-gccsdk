@@ -1,3 +1,17 @@
+Fri Oct  8 12:56:32 2004  Peter Naulls  <peter@chocky.org>
+
+	* source/clib/signal.h, source/signal/signal.c: Stub siginterrupt
+	* source/clib/time.h, source/time/mktime.c, source/time/dysize.c,
+	  source/time/timegm.c: Add support for mktime, timelocal, dysize.
+	* source/clib/features.h, source/clib/unixlib/features.h:
+	  Move features.h to same location as glibc. Make unixlib/features.h
+	  include former for time being.
+	* source/clib/sys/mount.h, source/sys/mount.c: Stub mount.h
+	  functionality.
+	* source/common/riscosify.c: Modify to work with libscl too.
+	* source/unix/fnmatch.c: Update functionality.
+	* source/locale/iconv.c: Work with Norcroft properly.
+
 Tue Oct  5 16:24:01 2004  Peter Naulls  <peter@chocky.org>
 
 	* source/clib/swis.h, source/locale/iconv.c: Update to sync with

@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/time.h,v $
- * $Date: 2004/04/12 13:03:37 $
- * $Revision: 1.10 $
+ * $Date: 2004/04/15 22:21:02 $
+ * $Revision: 1.11 $
  * $State: Exp $
- * $Author: nick $
+ * $Author: alex $
  *
  ***************************************************************************/
 
@@ -165,6 +165,26 @@ extern int timezone;
 
 /* Nonzero if daylight savings time rules apply.  */
 extern int daylight;
+
+/* Nonzero if YEAR is a leap year (every 4 years,
+   except every 100th isn't, and every 400th is).  */
+# define __isleap(year) \
+  ((year) % 4 == 0 && ((year) % 100 != 0 || (year) % 400 == 0))
+
+# ifdef __USE_MISC
+/* Miscellaneous functions many Unices inherited from the public domain
+   localtime package.  These are included only for compatibility.  */
+
+/* Like `mktime', but for TP represents Universal Time, not local time.  */
+extern time_t timegm (struct tm *__tp) __THROW;
+
+/* Another name for `mktime'.  */
+extern time_t timelocal (struct tm *__tp) __THROW;
+
+/* Return the number of days in YEAR.  */
+extern int dysize (int __year) __THROW  __attribute__ ((__const__));
+# endif
+
 
 /* POSIX extensions.  */
 

@@ -1,28 +1,51 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/common/riscosify.c,v $
- * $Date: 2004/02/07 18:09:18 $
- * $Revision: 1.13 $
+ * $Date: 2004/08/08 11:32:41 $
+ * $Revision: 1.14 $
  * $State: Exp $
- * $Author: alex $
+ * $Author: peter $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: riscosify.c,v 1.13 2004/02/07 18:09:18 alex Exp $";
+static const char rcs_id[] = "$Id: riscosify.c,v 1.14 2004/08/08 11:32:41 peter Exp $";
 #endif
 
 /* #define DEBUG */ 
 
-#include <stdio.h>
-#include <string.h>
+#ifdef __TARGET_SCL__
+
+#define __RISCOSIFY
+
+#define MAXPATHLEN 256
+
+#define MMM_TYPE_RISCOS               0
+#define MMM_TYPE_RISCOS_STRING        1
+#define MMM_TYPE_MIME                 2
+#define MMM_TYPE_DOT_EXTN             3
+
+#define OSFILE_READCATINFO_NOPATH   17
+
+extern const char __filename_char_map[256];
+
+#define stricmp strcmp
+
+#else
+
 #include <unixlib/local.h>
 #include <unixlib/unix.h>
 #include <unixlib/os.h>
+#include <unixlib/swiparams.h>
+
+#endif
+
+#include <stdio.h>
+#include <string.h>
+
 #include <swis.h>
 #include <stdlib.h>
 #include <ctype.h>
-#include <unixlib/swiparams.h>
 
 #ifndef __GNUC__
 #define __inline__ /**/
@@ -96,31 +119,31 @@ void
 __sdirinit (void)
 {
   int i, j;
-  int regs[10];
+  _kernel_swi_regs regs;
   char buf[MAXPATHLEN];
 
-  regs[1] = (int) buf;
-  regs[3] = 0;
+  regs.r[1] = (int) buf;
+  regs.r[3] = 0;
 
   for (i = 0; i < MAXSDIR; i++)
     {
       char *str;
 
       /* Use #* so "UnixFS$/" is not matched.  */
-      regs[0] = (int) "UnixFS$/#*";
+      regs.r[0] = (int) "UnixFS$/#*";
       /* Two less than buf size so can zero terminate below and add '.'.  */
-      regs[2] = sizeof (buf) - 2;
-      regs[4] = 3;
+      regs.r[2] = sizeof (buf) - 2;
+      regs.r[4] = 3;
 
       /* OS_ReadVarVal fails when no more values found, so exit loop. */
-      if (__os_swi (OS_ReadVarVal, regs) != NULL)
+      if (_kernel_swi (OS_ReadVarVal, &regs, &regs) != NULL)
 	break;
 
-      str = buf + regs[2];
+      str = buf + regs.r[2];
       *str = '\0';
 
       /* Save name and value.  */
-      str = strdup ((char *) regs[3] + sizeof ("UnixFS$"));
+      str = strdup ((char *) regs.r[3] + sizeof ("UnixFS$"));
       if (str == NULL)
 	break;
       __sdir[i].name = str;
@@ -530,17 +553,22 @@ translate_or_null (int create_dir, int flags,
 
       if (create_dir)
         {
-          int regs[6];
+          _kernel_swi_regs regs;
 
           /* Terminate the output buffer */
           *out = '\0';
 
+          regs.r[0] = OSFILE_READCATINFO_NOPATH;
+          regs.r[1] = (int)buffer;
+
           /* Create the directory if it doesn't exist.  */
-          if (! __os_file (OSFILE_READCATINFO_NOPATH, buffer, regs)
-              && ! regs[0])
+          if (! _kernel_swi(OS_File, &regs, &regs)
+              && ! regs.r[0])
             {
-              regs[4] = 0;   /* Default number of entries in dir.  */
-              __os_file (8, buffer, regs);
+              regs.r[0] = 8;
+              regs.r[1] = (int)buffer;
+              regs.r[4] = 0;   /* Default number of entries in dir.  */
+              _kernel_swi(OS_File, &regs, &regs);
             }
         }
 
@@ -1250,6 +1278,25 @@ __riscosify (const char *name, int create_dir,
   /* Not reached */
   return NULL;
 }
+
+
+#ifdef __TARGET_SCL__
+
+char *
+__riscosify_scl(const char *name, int create_dir)
+{
+  static char buffer1[MAXPATHLEN];
+  static char buffer2[MAXPATHLEN];
+  static int current = 0;
+
+  /* Swap between two static buffers to allow the rename call to work */
+  current = 1 - current;
+
+  __riscosify (name, create_dir, __get_riscosify_control(), current ? buffer1 : buffer2, sizeof(buffer1), NULL);
+}
+
+#endif
+
 
 /* This table has
    '/' and '.' transposed
