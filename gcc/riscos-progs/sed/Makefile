@@ -23,7 +23,6 @@ $(bin_dir)/sed$(exesfx):	$(OBJS)
 $(objdir)/riscos-progs/sed/compile.o: compile.c
 $(objdir)/riscos-progs/sed/execute.o: execute.c
 $(objdir)/riscos-progs/sed/fmt.o: fmt.c
-$(objdir)/riscos-progs/sed/obstack.o: obstack.c obstack.h
 $(objdir)/riscos-progs/sed/regex.o: regex.c regex.h regex_.h
 $(objdir)/riscos-progs/sed/sed.o: sed.c sed.h
 $(objdir)/riscos-progs/sed/strverscmp.o: strverscmp.c strverscmp.h
