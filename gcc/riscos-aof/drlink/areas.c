@@ -222,6 +222,7 @@ static unsigned int decode_armconst(unsigned int value) {
 static arealist *check_commondef(filelist *fp, areaentry *aep, unsigned int atattr) {
   char *nameptr;
   arealist *ap;
+  symbol *sp;
   int hashval, count;
   unsigned int *p1, *p2;
   nameptr = strtbase+aep->areaname;
@@ -232,8 +233,13 @@ static arealist *check_commondef(filelist *fp, areaentry *aep, unsigned int atat
   else {	/* Data area */
     ap = ((atattr & ATT_RDONLY)!=0 ? rodatalist : rwdatalist);
   }
-  while (ap!=NIL && (hashval!=ap->arhash || strcmp(nameptr, ap->arname)!=0)) ap = ap->arflink;
+  while (ap!=NIL && (hashval!=ap->arhash || strcmp(nameptr, ap->arname)!=0))
+    ap = ap->arflink;
+
   if (ap==NIL) return NIL;	/* Common block is unknown */
+
+  //printf ("ap=%08x, thisarea=%08x\n", ap, thisarea);
+
   if (ap->aratattr!=atattr) {	/* Known common area. Check attributes are the same */
     error("Warning: Attributes of common area '%s' in '%s' conflict with those in '%s'",
      nameptr, fp->chfilename, ap->arfileptr->chfilename);
@@ -245,9 +251,16 @@ static arealist *check_commondef(filelist *fp, areaentry *aep, unsigned int atat
     return NIL;
   }
   else {
-    count = ap->arobjsize;	/* Verify areas' contents are the same */
+    //int x;
+    count = ap->arobjsize >> 2;	/* Verify areas' contents are the same */
     p1 = ap->arobjdata;
-    p2 = fp->objareaptr;
+    //p2 = fp->objareaptr;
+    p2 = thisarea;
+    //printf ("count=%d, p1=%08x, p2=%08x, name=%s\n", count, p1, p2, nameptr);
+
+    //for (x = 0; x < count; x++)
+    //printf ("x=%d, p1=%08x, p2=%08x\n", x, p1[x], p2[x]);
+
     while (count>0 && *p1==*p2) {
       p2++;
       p1++;
@@ -697,6 +710,7 @@ bool scan_head(filelist *fp) {
   headend = aep+count;
   areablock = allocmem(count*sizeof(arealist));	/* Allocate block to hold arealist entries for file */
   if (areablock==NIL) error("Fatal: Out of memory in 'scan_head' reading '%s'", fp->chfilename);
+
   for (areaco = 0; areaco<count && ok; areaco++) {
     if (aep->areaname>strtsize) {
       error("Error: Area name offset in area %d in '%s' is too big", areaco+1, fp->chfilename);
@@ -763,6 +777,7 @@ bool scan_head(filelist *fp) {
         if (ap!=NIL) {		/* Known common area: free storage used by new version */
           add_srchlist(ap);
           freemem(thisarea, aep->arsize+aep->arelocs*RELOCSIZE);
+          thisarea = COERCE(COERCE(thisarea, char *)+aep->arsize+aep->arelocs*RELOCSIZE, unsigned int *);
         }
       }
       if (ap==NIL) {	/* Not a known common block or new area found */
