@@ -1,18 +1,18 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/common/riscosify.c,v $
- * $Date: 2003/06/16 23:09:08 $
- * $Revision: 1.10 $
+ * $Date: 2003/10/06 19:00:00 $
+ * $Revision: 1.11 $
  * $State: Exp $
  * $Author: joty $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: riscosify.c,v 1.10 2003/06/16 23:09:08 joty Exp $";
+static const char rcs_id[] = "$Id: riscosify.c,v 1.11 2003/10/06 19:00:00 joty Exp $";
 #endif
 
-/* #define DEBUG */
+/* #define DEBUG */ 
 
 #include <stdio.h>
 #include <string.h>
@@ -552,7 +552,7 @@ translate_or_null (int create_dir, int flags,
 
       *out++ = '.';
 
-      while (leaf_len--)
+      while (leaf_len-- > 0)
         *out++ = __filename_char_map[(unsigned char)*last_slash++];
     }
 
