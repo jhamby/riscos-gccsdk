@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/unixlib/unix.h,v $
- * $Date: 2004/10/17 16:24:44 $
- * $Revision: 1.19 $
+ * $Date: 2005/01/22 00:09:53 $
+ * $Revision: 1.20 $
  * $State: Exp $
- * $Author: joty $
+ * $Author: alex $
  *
  * UNIX is a registered trademark of AT&T Bell Laboratories
  *
@@ -266,6 +266,10 @@ extern int __intenv (const char *__name);
 
 /* Remove NAME from the OS environment. Returns -1 on failure or not found.  */
 extern int __remenv_from_os (const char *__name);
+
+/* Get the leaf name from the command line used to run the program
+   or returns __program_name if defined.  */
+extern char *get_program_name (const char *cli, char *fname_buf, size_t fname_buf_len);
 
 /* Set runtime features according to system variables.  */
 extern void __runtime_features (const char *__cmdline);

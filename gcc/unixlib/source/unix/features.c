@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/features.c,v $
- * $Date: 2003/12/22 21:35:03 $
- * $Revision: 1.8 $
+ * $Date: 2004/08/08 12:50:41 $
+ * $Revision: 1.9 $
  * $State: Exp $
- * $Author: joty $
+ * $Author: peter $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: features.c,v 1.8 2003/12/22 21:35:03 joty Exp $";
+static const char rcs_id[] = "$Id: features.c,v 1.9 2004/08/08 12:50:41 peter Exp $";
 #endif
 
 /* #define DEBUG 1 */
@@ -17,16 +17,25 @@ static const char rcs_id[] = "$Id: features.c,v 1.8 2003/12/22 21:35:03 joty Exp
 #include <string.h>
 #include <unixlib/unix.h>
 #include <unixlib/local.h>
+#include <unixlib/os.h>
 
 static const char __sfix_default[] = "a:c:cc:f:h:i:ii:l:o:p:s:y";
 
-static char *get_program_name (const char *cli, char *fname_buf, size_t fname_buf_len);
-
-/* Get the leaf name from the command line used to run the program.  */
-static char *get_program_name (const char *cli, char *fname_buf, size_t fname_buf_len)
+char *get_program_name (const char *cli, char *fname_buf, size_t fname_buf_len)
 {
-  char *out = fname_buf;
+  char *out;
   const char *start, *end;
+
+  if (fname_buf_len == 0)
+    return NULL;
+
+  /* Did the user specify the program name ?  */
+  if (___program_name != NULL)
+    {
+      strncpy (fname_buf, *___program_name, fname_buf_len);
+      fname_buf[fname_buf_len - 1] = '\0';
+      return fname_buf;
+    }
 
   /* Skip any initial whitespace.  */
   while (*cli == ' ')
@@ -45,8 +54,9 @@ static char *get_program_name (const char *cli, char *fname_buf, size_t fname_bu
     }
   end = cli;
 
-  /* Copy the program name into 'out'.  It's bounds should now be
+  /* Copy the program name into 'out'.  Its bounds should now be
      marked out by 'start' and 'end'.  */
+  out = fname_buf;
   while (--fname_buf_len && start != end)
     *out++ = *start++;
 

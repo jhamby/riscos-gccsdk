@@ -1,10 +1,10 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/_syslib.s,v $
-; $Date: 2004/12/23 21:10:08 $
-; $Revision: 1.35 $
+; $Date: 2005/01/05 23:15:10 $
+; $Revision: 1.36 $
 ; $State: Exp $
-; $Author: peter $
+; $Author: joty $
 ;
 ;----------------------------------------------------------------------------
 
@@ -51,6 +51,8 @@ CHUNK_RETURN	*	20	; Return address after freeing this chunk
 
 CHUNK_OVERHEAD	*	24	; Size of chunk header
 
+MAX_DA_NAME_SIZE	* 32
+
 	AREA	|C$$code|, CODE, READONLY
 
 	IMPORT  |__unixinit|            ;C function (unix/unix.c)
@@ -78,6 +80,7 @@ CHUNK_OVERHEAD	*	24	; Size of chunk header
 	IMPORT  |__signalhandler_sl|       ;variable (signal/_signal.s)
 
 	IMPORT	|_main|
+	IMPORT	|__program_name|, WEAK
 	IMPORT	|__dynamic_no_da|, WEAK
 	IMPORT	|__dynamic_da_name|, WEAK
 	IMPORT	|__dynamic_da_max_size|, WEAK
@@ -245,47 +248,49 @@ CHUNK_OVERHEAD	*	24	; Size of chunk header
 	MOV	v6, #0
 	B	da_found
 
-
 no_old_area
-	; Area name is program name + "$Heap"
-	LDR	a1, [ip, #0]	; __cli
+	; Area name is <program name> + "$Heap".  Figure now out what
+	; <program name> is.
+	LDR	a1, |___program_name|
+	TEQ	a1, #0
+	LDREQ	a1, [ip, #0]	; __cli
+	LDRNE	a1, [a1, #0]	; __program_name
 	MOV	a2, a1
 	; Search for space or end of cli string
 t01
 	LDRB	a3, [a1], #1
+	TEQ	a3, #"."
+	MOVEQ	a2, a1
+	TEQ	a3, #":"
+	MOVEQ	a2, a1
 	CMP	a3, #" "
 	BGT	t01
 	SUB	a1, a1, #1	; back up to point at terminator char
 
-	; Use a maximum of 10 characters from the program name
-	LDR	v4, =dynamic_area_name_end
+	; Use a maximum of (dynamic_area_name_end - dynamic_area_name_begin)
+	; characters from the program name
+	LDR	v1, =dynamic_area_name_end
 	MOV	a3, #0
-	STRB	a3, [v4, #5]	; Terminate the $Heap
+	STRB	a3, [v1, #5]	; Terminate the $Heap
 
-	SUB	a4, a1, #10
-	CMP	a4, a2
-	MOVHI	a2, a4
-	; a2 = max (a2, a4) - ie
-	; 10 chars from end of name if length name > 10
-	; else start of name
+	SUB	a4, a1, a2
+	CMP	a4, #MAX_DA_NAME_SIZE
+	SUBCS	v4, v1, #MAX_DA_NAME_SIZE
+	SUBCC	v4, v1, a4
 
-	; So, descending copy from a1 to v5
-	; limit is a2, terminate early if we find "." or ":"
+	MOV	a3, v4
 t02
-	LDRB	a4, [a1, #-1]!
-	CMP	a4, #"."
-	CMPNE	a4, #':'
-	STRNEB	a4, [v4, #-1]!
-	BEQ	t03		; Not sure if some very slick conditionals
-	CMP	a1, a2		; can eliminate that branch
-	BHI	t02		; limit not yet reached
-t03
+	LDRB	a4, [a2], #1
+	STRB	a4, [a3], #1
+	CMP	a3, v1
+	BCC	t02
+	; v4 => OS variable to check if Heap or DA needs to be used.
 
 	; Allow the user the option of setting their own name for the
 	; dynamic area used as a heap.   If the variable __dynamic_da_name
-	; exists, then it must be a char pointer (not an array) to an
+	; exists, then it must be a const char pointer (not an array) to an
 	; alternate name.  DAs are always used in this case, and there's
-	; no need to set a $heap variable.
+	; no need to set a $Heap variable.
 
 	; The main use of this is when the binary is called !RunImage.
 	; e.g.:  const char *__dynamic_da_name = "Nettle Heap";
@@ -305,6 +310,7 @@ t03
 	BGE	no_dynamic_area
 	MOV	v5, v4
 
+	; v5 => DA area name
 t07
 	; Default max size for DA is 32MB
 	MOV	v2, #32*1024*1024
@@ -324,10 +330,11 @@ t07
 	MOV	a4, #0
 	SWI	XOS_ReadVarVal	; Read value of progname$HeapMax
 	BVS	t08
-	TEQ	v1, #1	; Should be a number variable
+	TEQ	v1, #1		; Should be a number variable
 	LDREQ	v2, [sp], #4
 	MOVEQ	v2, v2, LSL#20	; Convert MB into bytes
 
+	; v2 = size of DA area
 t08
 	LDR	a1, =dynamic_area_name_end
 	MOV	a3, #0
@@ -440,6 +447,9 @@ no_dynamic_area
 env
 	DCB	"UnixLib$env", 0
 	ALIGN
+	EXPORT	|___program_name|
+|___program_name|
+	DCD	|__program_name|
 
 	; Can only be used to report fatal errors under certain conditions.
 	; Be sure that at this point the UnixLib environment handlers
@@ -767,8 +777,9 @@ stack_overflow_common
 	]
 
 	MOV	v3, sp	; Store old sp
-	; We know there is enough stack to call stackalloc or stackfree, so sl just
-	; needs to be set to a value that won't cause a recursive stack overflow
+	; We know there is enough stack to call stackalloc or stackfree, so
+	; sl just needs to be set to a value that won't cause a recursive
+	; stack overflow
 	SUB	sl, sp, #512
 
 	LDR	a1, [v2, #CHUNK_NEXT]
@@ -1116,7 +1127,8 @@ __unixlib_fatal_got_msg
 
 dynamic_deletion
 	DCD	0
-	DCB	"XXXXXXXXXX"
+dynamic_area_name_begin
+	%	MAX_DA_NAME_SIZE
 dynamic_area_name_end
 	DCB	"$HeapMax", 0
 	ALIGN

@@ -23,6 +23,9 @@ To set globally use:
 To set per-program use:
   *Set UnixEnv$<program name>$<features>
 
+The <program name> is specified by the __program_name variable when
+defined (this is a WEAK symbol) or by the leaf name of argv[0] otherwise.
+
 The list of recognised features are:
 
 1. nonametrans
@@ -96,16 +99,22 @@ following two are defined :
   *Set UnixFS$/pipe <Wimp$ScrapDir>
 
 
-<programname>$Heap
+<program name>$Heap
 Causes the heap to be placed in a dynamic area instead of the Wimpslot. Does
 not have to have any specific value. Can be overridden by the __dynamic_no_da
-weak variable. eg. *Set my_program$Heap ""
+weak variable. A maximum of 32 characters are taken for <program name>.
 
-<programname>$HeapMax
+E.g. :
+  *Set my_program$Heap ""
+
+<program name>$HeapMax
 Specifies the maximum size (in MB) to use when creating a dynamic area for
 the heap. When not defined, it defaults to 32MB or the value specified
-by the __dynamic_da_max_size weak variable.
-eg. *SetEval my_program$HeapMax 64
+by the __dynamic_da_max_size weak variable. A maximum of 32 characters are
+taken for <program name>.
+
+E.g. :
+  *SetEval my_program$HeapMax 64
 
 UnixLib$env / UnixLib$pcnt
 These are environment variables used by UnixLib internally and should
@@ -165,7 +174,7 @@ area name will be <program name> + "$Heap".
 Header file: <unixlib/features.h>.
 Specifies the maximum size to use when creating a dynamic area for
 the heap. When not defined, it defaults to 32MB. Can be overridden by
-the programname$HeapMax variable.
+the <program name>$HeapMax variable.
 
 
 Compile-time features
@@ -289,9 +298,11 @@ of the lack of a shared library system on RISC OS.  In this version,
 iconv support is in an external module, and UnixLib provides a C interface
 to call this.  It should act much like the inbuilt iconv support in GLIBC.
 
-The iconv module is currently available from:
+The latest version of the iconv module is currently available from:
 
-  <URL:http://moose.mine.nu:6888/iconv002.zip>
+  <URL:http://moose.mine.nu:6888/iconv_latest.zip>
+
+At the time of writing, the latest version is 0.03.
 
 
 /dev/(u)random support

@@ -1,10 +1,10 @@
 /****************************************************************************
  *
- * $Source: $
- * $Date: $
- * $Revision: $
- * $State: $
- * $Author: $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/features.h,v $
+ * $Date: 2004/10/17 16:24:43 $
+ * $Revision: 1.2 $
+ * $State: Exp $
+ * $Author: joty $
  *
  ***************************************************************************/
 
@@ -394,7 +394,15 @@ extern int __get_feature_imagefs_is_file (void);
 extern void __set_feature_imagefs_is_file (int __feature_imagefs_is_file_value);
 #endif
 
+/* NULL if user didn't specify __program_name; non-NULL otherwise and then
+   equal to ptr to __program_name.  */
+extern const char **___program_name;
+
 #endif  /* __UNIXLIB_INTERNALS */
+
+/* When defined, specifies the <program name> part of the UnixLib OS
+   variables.  Otherwise, the leaf filename part of argv[0] is used.  */
+extern const char *__program_name; /* Note: this is a weak symbol.  */
 
 /* When defined, the memory pool will be created in the WimpSlot area
    instead of a dynamic area (on RISC OS versions supporting dynamic

@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/fenv.h,v $
- * $Date: 2004/04/12 13:03:37 $
- * $Revision: 1.4 $
+ * $Date: 2004/10/17 16:24:43 $
+ * $Revision: 1.5 $
  * $State: Exp $
- * $Author: nick $
+ * $Author: joty $
  *
  ***************************************************************************/
 
@@ -36,7 +36,9 @@ __BEGIN_DECLS
 	(FE_INVALID | FE_DIVBYZERO | FE_OVERFLOW | FE_UNDERFLOW)
 
 /* The ARM FPU only supports round-to-nearest.  The other rounding modes
-   have to be encoded in the instruction.  */
+   have to be encoded in the instruction and can't be read nor set
+   using fegetround() and fesetround().  Therefore FE_DOWNWARD,
+   FE_TOWARDZERO and FE_UPWARD are not defined.  */
 #define FE_TONEAREST 0
 
 /* Type representing exception flags. */

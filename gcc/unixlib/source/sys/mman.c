@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/mman.c,v $
- * $Date: 2003/04/28 21:04:36 $
- * $Revision: 1.4 $
+ * $Date: 2004/09/07 14:05:11 $
+ * $Revision: 1.5 $
  * $State: Exp $
- * $Author: alex $
+ * $Author: joty $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: mman.c,v 1.4 2003/04/28 21:04:36 alex Exp $";
+static const char rcs_id[] = "$Id: mman.c,v 1.5 2004/09/07 14:05:11 joty Exp $";
 #endif
 
 /* Definitions for BSD-style memory management.  Generic/4.4 BSD version.  */
@@ -163,24 +163,18 @@ mmap (caddr_t addr, size_t len, int prot, int flags, int fd, off_t offset)
      is useful though to separate the areas from the more general purpose
      heap.  */
   {
-    char *s, namebuf[10+sizeof("$HeapX")];
-    s = __u->argv[0] + strlen (__u->argv[0]);
-    do {
-      --s;
-    } while (*s != '.' && *s != ':' && s >= __u->argv[0]);
-    namebuf[0] = '\0';
-    strncat (namebuf, s+1, 10);
-    strcat (namebuf, "$HeapX");
-    regs[8] = (int)namebuf;
+    char namebuf[128];
+    regs[8] = (int)get_program_name(__u->argv[0], namebuf, sizeof(namebuf) - sizeof(" MMap"));
+    strcat(namebuf, " MMap");
 
     if (__os_swi (OS_DynamicArea, regs))
       return (caddr_t) __set_errno (ENOMEM);
   }
 
   mmaps[i].number = regs[1];
-  mmaps[i].addr	  = (caddr_t)regs[3];
-  mmaps[i].len	  = len;
-  mmaps[i].prot	  = prot;
+  mmaps[i].addr   = (caddr_t)regs[3];
+  mmaps[i].len    = len;
+  mmaps[i].prot   = prot;
 
   return (mmaps[i].addr);
 }
@@ -324,7 +318,7 @@ mremap (caddr_t addr, size_t old_len, size_t new_len, int may_move)
       if (new_addr == (caddr_t)-1)
 	{
 	  /* If mmap failed, then keep the old area.  */
-	  mmaps[i].addr	  = addr;
+	  mmaps[i].addr   = addr;
 	  mmaps[i].number = old_area;
 	  return ((caddr_t)-1);
 	}

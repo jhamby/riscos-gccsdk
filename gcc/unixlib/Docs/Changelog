@@ -1,3 +1,17 @@
+Sun Jan 23 20:27:33 2005  John Tytgat  <John.Tytgat@aaug.net>
+
+	* Docs/ReadMe: Added more info on what <program name> really is; Changed
+	  iconv URL into a version independant link.
+	* source/clib/features.h: Added prototypes for ___program_name (internal)
+	  and __program_name (WEAK public symbol).
+	* source/clib/fenv.h: Updated comment for FE_TONEAREST.
+	* source/clib/unixlib/unix.h: Made get_program_name() available.
+	* source/sys/_longlong.s: Updated comments.
+	* source/sys/_syslib.s: Support for __program_name (up to 32 chars).
+	* source/sys/mman.c: DA name is <program name> + " MMap". This addresses
+	  bug #138.
+	* source/unix/features.c (get_program_name): Support for __program_name.
+
 Sat Jan 22 00:06:21 2005  Alex Waugh  <alex@alexwaugh.com>
 
 	* source/clib/unixlib/unix.h (_PROCMAGIC): Change magic number as a

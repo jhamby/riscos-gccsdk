@@ -1,8 +1,8 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/_longlong.s,v $
-; $Date: 2004/10/17 16:24:44 $
-; $Revision: 1.4 $
+; $Date: 2005/01/03 22:55:13 $
+; $Revision: 1.5 $
 ; $State: Exp $
 ; $Author: joty $
 ;
@@ -179,7 +179,7 @@
 	RSB	a2, a3, a2, ASR#32
 	MOV	pc, lr
 
-	; int64_t _ll_mul(int64_t a, int32_t b)
+	; int64_t _ll_mulls(int64_t a, int32_t b)
 	;  { return a * (int64_t)b; }
 	EXPORT	|_ll_mulls|
 	NAME	_ll_mul
@@ -228,8 +228,8 @@
 	LDMFD	sp!, {v1-v3, pc}
 	]
 
-	; int64_t _ll_mul(int64_t a, uint32_t b)
-	;  { return a * (int64_t)b; }
+	; int64_t _ll_mullu(int64_t a, uint32_t b)
+	;  { return a * (uint64_t)b; }
 	;                               a2         a1
 	;  x                                       a3
 	; -------------------------------------------
