@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/unix.c,v $
- * $Date: 2004/01/14 23:17:00 $
- * $Revision: 1.20 $
+ * $Date: 2004/03/17 20:00:51 $
+ * $Revision: 1.21 $
  * $State: Exp $
  * $Author: joty $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: unix.c,v 1.20 2004/01/14 23:17:00 joty Exp $";
+static const char rcs_id[] = "$Id: unix.c,v 1.21 2004/03/17 20:00:51 joty Exp $";
 #endif
 
 #include <stdio.h>
@@ -120,11 +120,23 @@ __hexstrtochar (const char *nptr)
 
 extern char *__cli;
 
-/* Initialise the UnixLib world.  */
+/* Initialise the UnixLib world.  Create a new process structure, initialise
+   the UnixLib library and parse command line arguments.
+   This function is called by __main () in sys.s._syslib.  */
 void __unixinit (void)
 {
   int __cli_size, cli_size, regs[10];
   char *cli;
+
+  /* The global variable __u is a pointer to the process structure of
+     the current process i.e. the one that would be executing this function.
+     If the value of __u is NULL, or at least points to a non-existant
+     UnixLib process structure, then we make the assumption that this
+     process is a parent process.
+
+     If the value of __u is not NULL, then we know that UnixLib$env points
+     to a valid process structure which should mean that we are a child
+     process of another UnixLib application.  */
 
 #ifdef DEBUG
   __os_print ("-- __unixinit: __u = "); __os_prhex ((unsigned int) __u);
@@ -162,6 +174,8 @@ void __unixinit (void)
     }
   else
     {
+      /* We are a child process of an another UnixLib application.  */
+
 #if __FEATURE_PTHREADS
       /* Initialise the pthread system */
       __pthread_prog_init ();
@@ -188,7 +202,8 @@ void __unixinit (void)
       *environ = NULL;
     }
 
-  /* Get command line.  */
+  /* Get command line.  __cli's pointing to the command line block returned
+     by OS_GetEnv in __main ().  */
   __cli_size = strlen (__cli);
 
 #ifdef DEBUG
@@ -196,7 +211,10 @@ void __unixinit (void)
   __os_print (__cli); __os_print ("\r\n");
 #endif
 
-  /* Get extra command line from DDEUtils.  */
+  /* Since the command line limit of RISC OS is only 255 characters,
+     extra data can be passed through a DDEUtils buffer setup by the calling
+     application.  If such command line information exists, then obtain
+     it and append it to our existing command line.  */
   if (__os_swi (DDEUtils_GetCLSize, regs) != NULL)
     regs[0] = 0;
 
@@ -224,7 +242,8 @@ void __unixinit (void)
   if (cli == NULL)
     __unixlib_fatal ("command line too long (not enough memory)");
 
-  /* Find any environment variables.  */
+  /* Find any environment variables that may influence parts of UnixLib's
+     decision making.  */
   __runtime_features (cli);
 
 #ifdef DEBUG
@@ -239,8 +258,9 @@ void __unixinit (void)
 
   /* When the DDEUtils module is loaded, we can support chdir() without
      RISC OS' CSD being changed. When not loaded, chdir() will work by
-     changing CSD for all processes.  */
-  /* IMPORTANT NOTE: because of bugs in DDEUtils' path processing
+     changing CSD for all processes.
+
+     IMPORTANT NOTE: because of bugs in DDEUtils' path processing
      we don't set DDEUtils_Prefix at the beginning of each process.
      Symptoms of these bugs are "ADFS::HardDisc4.$ is a directory" RISC OS
      error when Font_FindFont is done for a font not yet in the font cache.
@@ -326,9 +346,13 @@ _exit (int return_code)
 {
   int status;
 
+  /* __u should always have a defined value.  */
+  if (! __u)
+    __unixlib_fatal ("_exit() called with non-process structure");
+
   /* Reset the DDEUtils' Prefix variable.  Only when we're really
      terminating this RISC OS process.  */
-  if (__u == NULL || !__u->status.has_parent || ___vret == NULL)
+  if (__u->dde_prefix)
     {
       int regs[10];
 
@@ -340,8 +364,7 @@ _exit (int return_code)
     }
 
   /* Interval timers must be stopped.  */
-  if (__u != NULL)
-    __stop_itimers ();
+  __stop_itimers ();
 
   /* pthread timers must be stopped */
   if (__pthread_system_running)
@@ -366,7 +389,7 @@ _exit (int return_code)
     }
 
   /* If we aren't a child process then we can just exit the system.  */
-  if (!__u || !__u->status.has_parent || !___vret)
+  if (!__u->status.has_parent || !___vret)
     {
       struct __unixlib_fd *fd = __u->fd;
       int i;
