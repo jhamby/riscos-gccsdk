@@ -27,6 +27,11 @@ all:	mkdirs $(TBIN)/$(TRG)/libscl.o
 mkdirs:
 	mkdir -p $(objdir)/libscl/$(TRG) $(TBIN)/$(TRG)
 
+install_headers:
+	mkdir -p $(cross_include_dir)/libscl $(cross_include_dir)/libscl/sys
+	cp *.h $(cross_include_dir)/libscl
+	cp sys/*.h $(cross_include_dir)/libscl/sys
+
 $(TBIN)/$(TRG)/libscl.o:	$(LIBC)
 	$(standard_exec_prefix)/libfile -c $@ $(LIBC)
 

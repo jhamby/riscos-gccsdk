@@ -329,7 +329,6 @@ SIGNAL_ASM =	$(libunixobj)/signal/sigexec.o \
 	$(libunixobj)/signal/_coredump.o \
 	$(libunixobj)/signal/_signal.o
 
-
 STDIO = $(libunixobj)/stdio/clearerr.o \
 	$(libunixobj)/stdio/fclose.o \
 	$(libunixobj)/stdio/feof.o \
@@ -581,6 +580,19 @@ ASM_OBJS = $(MATH_ASM) $(COMMON_ASM) $(GCCCOMPAT_ASM) $(NETLIB_ASM) \
 	$(UNIX_ASM)
 
 all:	$(TBIN)/$(TRG)/unixlib.o
+
+install_headers:
+	mkdir -p $(cross_include_dir)/unixlib \
+	$(cross_include_dir)/unixlib/arpa \
+	$(cross_include_dir)/unixlib/machine \
+	$(cross_include_dir)/unixlib/netinet $(cross_include_dir)/unixlib/sys \
+	$(cross_include_dir)/unixlib/unixlib
+	cp clib/*.h $(cross_include_dir)/unixlib
+	cp clib/arpa/*.h $(cross_include_dir)/unixlib/arpa
+	cp clib/machine/*.h $(cross_include_dir)/unixlib/machine
+	cp clib/netinet/*.h $(cross_include_dir)/unixlib/netinet
+	cp clib/sys/*.h $(cross_include_dir)/unixlib/sys
+	cp clib/unixlib/*.h $(cross_include_dir)/unixlib/unixlib
 
 $(TBIN)/$(TRG)/unixlib.o:	$(C_OBJS) $(ASM_OBJS)
 	$(standard_exec_prefix)/libfile -c $@ $(C_OBJS) $(ASM_OBJS)

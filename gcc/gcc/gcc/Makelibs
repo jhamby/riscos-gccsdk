@@ -104,11 +104,19 @@ GPP_LIB = $(libgccobjdir)/tinfo.o \
 
 all:	$(TBIN)/$(TRG)/libgcc.o
 
+install_headers:
+	cp -f ginclude/iso646.h $(gcc_include_dir)
+	#cp -f ginclude/proto.h $(gcc_include_dir)
+	cp -f ginclude/stdarg.h $(gcc_include_dir)
+	cp -f ginclude/varargs.h $(gcc_include_dir)
+	#cp ginclude/_G_config.h $(gcc_include_dir)
+	#cp ginclude/assert.h $(gcc_include_dir)
+
 $(TBIN)/$(TRG)/libgcc.o: $(GPP_LIB) $(GCC_LIB_ULIB) $(GCC_LIB_COMMON) $(FP_BIT_DOUBLE) $(FP_BIT_SINGLE)
 	$(standard_exec_prefix)/libfile -c $@ $(GPP_LIB) $(GCC_LIB_ULIB) $(GCC_LIB_COMMON) $(FP_BIT_DOUBLE) $(FP_BIT_SINGLE)
 
 
-#######################################################################################
+############################################################################
 
 # GCC standard run-time libraries
 $(libgccobjdir)/getopt.o:	../../libiberty/getopt.c

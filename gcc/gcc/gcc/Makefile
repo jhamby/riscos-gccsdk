@@ -45,7 +45,6 @@ f77: $(gccobjdir)/f77/fini $(BIN)/g77 $(TBIN)/f771
 pascal:	$(TBIN)/gpc1 $(TBIN)/gpcpp
 java: $(TBIN)/gcjh $(TBIN)/jvgenmain $(TBIN)/jcf-dump $(TBIN)/jv-scan $(TBIN)/jc1
 
-
 LIBDEPS = $(gccobjdir)/prefix.o
 
 ifeq (${crosscompile},no)
@@ -102,19 +101,19 @@ OBJS =	$(gccobjdir)/print-tree.o \
 	$(gccobjdir)/reload.o \
 	$(gccobjdir)/reload1.o \
 	$(gccobjdir)/caller-save.o \
-	$(gccobjdir)/insn/insn-peep.o \
+	$(gccobjdir)/insn-peep.o \
 	$(gccobjdir)/reorg.o \
 	$(gccobjdir)/sched.o \
 	$(gccobjdir)/final.o \
 	$(gccobjdir)/recog.o \
 	$(gccobjdir)/reg-stack.o \
-	$(gccobjdir)/insn/insn-opinit.o \
-	$(gccobjdir)/insn/insn-recog.o \
-	$(gccobjdir)/insn/insn-extract.o \
-	$(gccobjdir)/insn/insn-output.o \
-	$(gccobjdir)/insn/insn-emit.o \
+	$(gccobjdir)/insn-opinit.o \
+	$(gccobjdir)/insn-recog.o \
+	$(gccobjdir)/insn-extract.o \
+	$(gccobjdir)/insn-output.o \
+	$(gccobjdir)/insn-emit.o \
 	$(gccobjdir)/profile.o \
-	$(gccobjdir)/insn/insn-attrtab.o \
+	$(gccobjdir)/insn-attrtab.o \
 	$(gccobjdir)/aux-output.o \
 	$(gccobjdir)/getpwd.o \
 	$(gccobjdir)/lcm.o \
@@ -307,7 +306,7 @@ $(BIN)/gcc:	$(gccobjdir)/gcc.o $(gccobjdir)/gccspec.o \
 	$(LINK) $(gccobjdir)/gcc.o $(gccobjdir)/gccspec.o \
 	$(gccobjdir)/version.o $(RISC_OBJS) \
 	$(gccobjdir)/config/arm/rname.o $(LIBDEPS) $(LIBS)
-        
+
 $(TBIN)/cc1: $(C_OBJS) $(OBJS) $(OBJS1) $(RISCOS_OBJS)
 	$(LINK) $(C_OBJS) $(OBJS) $(OBJS1) $(RISCOS_OBJS) $(LIBS)
 
@@ -376,7 +375,7 @@ $(TBIN)/jvgenmain: $(JVGENMAIN_OBJS)
 $(TBIN)/gcjh: $(GCJH_OBJS)
 	$(LINK) $(GCJH_OBJS) $(LIBDEPS) $(LIBS)
 
-#######################################################################################
+##############################################################################
 
 
 # Make Bison sources
@@ -416,7 +415,7 @@ $(gccobjdir)/c-parse.o:	c-parse.c c-parse.c c-parse.in
 $(gccobjdir)/cexp.o:	cexp.c cexp.y
 $(gccobjdir)/cp/parse.o:	cp/parse.c cp/parse.y
 
-#######################################################################################
+##############################################################################
 
 # Derived files. Created from config/arm/md
 
@@ -425,9 +424,9 @@ GENOBJS = $(gccobjdir)/gen/obstack.o $(gccobjdir)/gen/rtl.o \
 	$(gccobjdir)/bitmap.o
 
 gen-derived:	insn-config.h insn-flags.h insn-codes.h \
-	insn/insn-emit.c insn/insn-recog.c insn/insn-extract.c \
-	insn/insn-opinit.c insn/insn-output.c insn/insn-peep.c \
-        insn-attr.h insn/insn-attrtab.c genrtl.c genrtl.h
+	insn-emit.c insn-recog.c insn-extract.c \
+	insn-opinit.c insn-output.c insn-peep.c \
+        insn-attr.h insn-attrtab.c genrtl.c genrtl.h
 
 gen-prog:	$(gccobjdir)/gen/genemit $(gccobjdir)/gen/genoutput \
 	$(gccobjdir)/gen/genrecog $(gccobjdir)/gen/genextract \
@@ -542,25 +541,25 @@ insn-attr.h:	$(MD) gen/genattr
 tree-check.h:	gen/gencheck tree.def
 	$(gccobjdir)/gen/gencheck >tree-check.h
 
-insn/insn-emit.c:	$(MD) $(gccobjdir)/gen/genemit
+insn-emit.c:	$(MD) $(gccobjdir)/gen/genemit
 	$(gccobjdir)/gen/genemit $(MD) >$@
-insn/insn-recog.c:	$(MD) $(gccobjdir)/gen/genrecog
+insn-recog.c:	$(MD) $(gccobjdir)/gen/genrecog
 	$(gccobjdir)/gen/genrecog $(MD) >$@
-insn/insn-extract.c:	$(MD) $(gccobjdir)/gen/genextract
+insn-extract.c:	$(MD) $(gccobjdir)/gen/genextract
 	$(gccobjdir)/gen/genextract $(MD) >$@
-insn/insn-opinit.c:	$(MD) $(gccobjdir)/gen/genopinit
+insn-opinit.c:	$(MD) $(gccobjdir)/gen/genopinit
 	$(gccobjdir)/gen/genopinit $(MD) >$@
-insn/insn-output.c:	$(MD) $(gccobjdir)/gen/genoutput
+insn-output.c:	$(MD) $(gccobjdir)/gen/genoutput
 	$(gccobjdir)/gen/genoutput $(MD) >$@
-insn/insn-peep.c:	$(MD) $(gccobjdir)/gen/genpeep
+insn-peep.c:	$(MD) $(gccobjdir)/gen/genpeep
 	$(gccobjdir)/gen/genpeep $(MD) >$@
-insn/insn-attrtab.c:	$(MD) $(gccobjdir)/gen/genattrtab
+insn-attrtab.c:	$(MD) $(gccobjdir)/gen/genattrtab
 	$(gccobjdir)/gen/genattrtab $(MD) >$@
 
 genrtl.c genrtl.h:	$(gccobjdir)/gen/gengenrtl
 	$(gccobjdir)/gen/gengenrtl genrtl.h genrtl.c
 
-#######################################################################################
+#############################################################################
 
 # Fortran 77 make sources
 
@@ -587,7 +586,7 @@ f77/str-op.h f77/str-op.j:	f77/fin/str-op $(gccobjdir)/f77/fini
 f77/str-ot.h f77/str-ot.j:	f77/fin/str-ot $(gccobjdir)/f77/fini
 		$(gccobjdir)/f77/fini f77/fin/str-ot f77/str-ot.j f77/str-ot.h
 
-#######################################################################################
+##############################################################################
 
 $(gccobjdir)/cplus-dem.o: cplus-dem.c
 	$(CC) $(INCLUDES) -o $@ -c cplus-dem.c -DMAIN
@@ -920,14 +919,14 @@ $(gccobjdir)/gen/print-rtl.o: gen/print-rtl.c
 $(gccobjdir)/gen/rtl.o: gen/rtl.c
 $(gccobjdir)/gen/rtlanal.o: gen/rtlanal.c 
 
-$(gccobjdir)/insn/insn-attrtab.o: insn/insn-attrtab.c
-$(gccobjdir)/insn/insn-emit.o: insn/insn-emit.c
-$(gccobjdir)/insn/insn-extra.o: insn/insn-extra.c
-$(gccobjdir)/insn/insn-extract.o: insn/insn-extract.c
-$(gccobjdir)/insn/insn-opinit.o: insn/insn-opinit.c
-$(gccobjdir)/insn/insn-output.o: insn/insn-output.c
-$(gccobjdir)/insn/insn-peep.o: insn/insn-peep.c
-$(gccobjdir)/insn/insn-recog.o: insn/insn-recog.c 
+$(gccobjdir)/insn-attrtab.o: insn-attrtab.c
+$(gccobjdir)/insn-emit.o: insn-emit.c
+$(gccobjdir)/insn-extra.o: insn-extra.c
+$(gccobjdir)/insn-extract.o: insn-extract.c
+$(gccobjdir)/insn-opinit.o: insn-opinit.c
+$(gccobjdir)/insn-output.o: insn-output.c
+$(gccobjdir)/insn-peep.o: insn-peep.c
+$(gccobjdir)/insn-recog.o: insn-recog.c 
 
 $(gccobjdir)/config/arm/arm.o: config/arm/arm.c
 $(gccobjdir)/config/arm/riscos.o: config/arm/riscos.c

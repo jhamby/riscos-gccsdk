@@ -9,6 +9,9 @@ all:	unixlib
 
 upath=$(objdir)/$@/$(TRG)
 
+install_headers:
+	$(MAKE) -C source install_headers
+
 unixlib:
 	mkdir -p $(upath)/o $(upath)/complex/o $(upath)/math/o $(upath)/math-asm/o
 	mkdir -p $(upath)/common/o $(upath)/gcccompat/o $(upath)/locale/o
