@@ -9,7 +9,7 @@ CROSS_CFLAGS += -DIN_GCC -DHAVE_CONFIG_H -DIN_LIBGCC2 -D__GCC_FLOAT_NOT_NEEDED
 
 FPBIT_FLAGS=-DFINE_GRAINED_LIBRARIES -I. -I../../include -I../gcc -I../gcc/config
 
-libobjdir=$(objdir)/gcc-$(VERSION)/libgcc/$(TRG)
+libobjdir=$(objdir)/gcc-$(VERSION)/libgcc/$(STAGE)/$(TRG)
 
 LIB2ADDEH = $(libobjdir)/unwind-dw2.o \
 	$(libobjdir)/unwind-dw2-fde.o \
@@ -176,17 +176,17 @@ $(libobjdir)/fixunssfsi.o:	libgcc2.c
 $(libobjdir)/fixdfdi.o: libgcc2.c
 	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c libgcc2.c $(INCLUDES) -DL_fixdfdi
 
-$(libobjdir)/fixunssfdi.o: libgcc2.c
-	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c libgcc2.c $(INCLUDES) -DL_fixunssfdi
+#$(libobjdir)/fixunssfdi.o: libgcc2.c
+#	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c libgcc2.c $(INCLUDES) -DL_fixunssfdi
 
-$(libobjdir)/fixsfdi.o: libgcc2.c
-	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c libgcc2.c $(INCLUDES) -DL_fixsfdi
+#$(libobjdir)/fixsfdi.o: libgcc2.c
+#	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c libgcc2.c $(INCLUDES) -DL_fixsfdi
 
 $(libobjdir)/fixxfdi.o: libgcc2.c
 	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c libgcc2.c $(INCLUDES) -DL_fixxfdi
 
-$(libobjdir)/fixunsxfdi.o: libgcc2.c
-	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c libgcc2.c $(INCLUDES) -DL_fixunsxfdi
+#$(libobjdir)/fixunsxfdi.o: libgcc2.c
+#	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c libgcc2.c $(INCLUDES) -DL_fixunsxfdi
 
 $(libobjdir)/floatdixf.o: libgcc2.c
 	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c libgcc2.c $(INCLUDES) -DL_floatdixf
