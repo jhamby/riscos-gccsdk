@@ -43,7 +43,7 @@ ab_package() {
 
 
 AB_CONFIG=$AB_GCCENV/ro-config
-AB_MAKE=$AB_GCCENV/ro-make
+export AB_MAKE=$AB_GCCENV/ro-make
 
 if [ "$AB_PACKONLY" == "yes" ] ; then
 
@@ -79,7 +79,7 @@ else
    apt-get source $AB_PACKAGE
  fi
  
- AB_FULLNAME=$(find -mindepth 1 -maxdepth 1 -type d | grep -v unpack | cut --bytes 3-)
+ AB_FULLNAME=$(find -mindepth 1 -maxdepth 1 -type d | grep -v unpack | grep -v package | cut --bytes 3-)
  
  # Run any preprocess script to unpack it in any special way
  if [ -e $AB_HOME/$AB_PACKAGEDIR/preprocess ] ; then
