@@ -1,3 +1,10 @@
+Tue Jan  4 00:30:47 2005  Peter Naulls  <peter@chocky.org>
+
+	* source/regex.c: Removed.
+	* source/regexp/COPYRIGHT, source/regexp/regerror.c,
+	  source/regexp/regexp.c, source/regexp/regmagic.h,
+	  source/regexp/regsub.s: Added: Alterntate regex implementation.
+
 Mon Jan  3 23:33:47 2005  John Tytgat  <John.Tytgat@aaug.net>
 
 	* source/clib/sys/types.h: Define int64_t and u_int64_t for Norcroft
@@ -4243,7 +4250,7 @@ Fri Jul 24 10:40:07 1998 CL0076
 Nicholas Clark <nick@unfortu.net>
 
 	* signal/_signal.s: Removed two gramatically incorrect "'"s spotted
-	by Peter Nauls.
+	by Peter Naulls.
 	* sys/os.h: RISC OS not RiscOS in comment.
 	* sys/dev.h: Likewise.
 	* sys/syslib.h: Likewise.
