@@ -18,7 +18,7 @@ f0	FN	0
 fixsfdi
 	cmp	r0, #0
 	moveq	r1, #0
-	moveqs	pc, r14
+	moveq	pc, r14
 
 	mov	r2, r0, lsr #23 ; Extract the exponent
 	bic	r0, r0, r2, lsl #23 ; Clear exponent from mantissa
@@ -33,7 +33,7 @@ fixsfdi
 	subs	r2, r2, #127 ; remove bias from exponent
 	movmi	r0, #0 ; if exponent negative then not representable
 	movmi	r1, #0
-	movmis	pc, r14 ; as an integer
+	movmi	pc, r14 ; as an integer
 
 	; the mantissa is 23 bits wide. assume we are representing the
 	; number as mantissa x 2^23, then we may need to shift left
@@ -41,7 +41,7 @@ fixsfdi
 	rsbs	r2, r2, #23
 	movpl	r0, r0, asr r2
 	movpl	r1, #0
-	movpls	pc, r14
+	movpl	pc, r14
 
 	rsb	r2, r2, #0 ; exponent was larger than 23
 
@@ -52,7 +52,7 @@ fixsfdi
 	movle	r0, #0
 	movgt	r1, r0, lsr ip
 	movgt	r0, r0, asl r2
-	movs	pc, r14
+	mov	pc, r14
 
 
 	EXPORT	fixunssfdi
@@ -60,7 +60,7 @@ fixsfdi
 fixunssfdi
 	cmp	r0, #0
 	moveq	r1, #0
-	moveqs	pc, r14
+	moveq	pc, r14
 
 	mov	r2, r0, lsr #23 ; Extract the exponent
 	bic	r0, r0, r2, lsl #23 ; Clear exponent from mantissa
@@ -71,7 +71,7 @@ fixunssfdi
 	subs	r2, r2, #127 ; remove bias from exponent
 	movmi	r0, #0 ; if exponent negative then not representable
 	movmi	r1, #0
-	movmis	pc, r14 ; as an integer
+	movmi	pc, r14 ; as an integer
 
 	; the mantissa is 23 bits wide. assume we are representing the
 	; number as mantissa x 2^23, then we may need to shift left
@@ -79,7 +79,7 @@ fixunssfdi
 	rsbs	r2, r2, #23
 	movpl	r0, r0, lsr r2
 	movpl	r1, #0
-	movpls	pc, r14
+	movpl	pc, r14
 
 	rsb	r2, r2, #0 ; exponent was larger than 23
 
@@ -90,7 +90,7 @@ fixunssfdi
 	movle	r0, #0
 	movgt	r1, r0, lsr ip
 	movgt	r0, r0, asl r2
-	movs	pc, r14
+	mov	pc, r14
 
 	EXPORT	fixdfdi
 fixdfdi
@@ -98,10 +98,10 @@ fixdfdi
 	mov	r2, r0, lsr #31
 	tst	r2, #1
 	bl	fixunsdfdi
-	ldmeqfd	sp!, {pc}^
+	ldmeqfd	sp!, {pc}
 	rsbs	r0, r0, #0
 	rsc	r1, r1, #0
-	ldmfd	sp!, {pc}^
+	ldmfd	sp!, {pc}
 
 	EXPORT	fixunsdfdi
 	; Convert double precision float to 64-bit int
@@ -109,7 +109,7 @@ fixunsdfdi
 	; Check fast case, incoming integer == 0
 	cmp	r0, #0
 	cmpeq	r1, #0
-	moveqs	pc, r14
+	moveq	pc, r14
 
 	; r0 = first word
 	; r1 = second word
@@ -124,7 +124,7 @@ fixunsdfdi
 	adds	r12, r12, #1
 	movmi	r0, #0 ; if exponent negative then not representable
 	movmi	r1, #0 ; as an integer
-	movmis	pc, lr
+	movmi	pc, lr
 
 	; at this point: r0 = exponent
 	; r1 = second word (bottom 32-bits of fraction)
@@ -140,7 +140,7 @@ fixunsdfdi
 	movgt	r0, r1, lsr r12  ; low >>= exponent
 	orrgt	r0, r0, r2, lsl r3 ; low |= high << r3
 	movgt	r1, r2, lsr r12
-	movs	pc, lr
+	mov	pc, lr
 
 fixunsdfdi_shl
 	rsb	r12, r12, #0 ; exponent was larger than 52
@@ -153,7 +153,7 @@ fixunsdfdi_shl
 	movgt	r2, r2, lsl r12 ; shift <= 31 bits
 	movgt	r0, r1, asl r12
 	orrgt	r1, r2, r1, lsr r3
-	movs	pc, lr
+	mov	pc, lr
 
 	; Convert 32-bit integer to 32-bit float
 	EXPORT	_fltsisf
@@ -192,7 +192,7 @@ fltsisf_norm
 	orr	r0, r0, r3, lsr #8
 	str	r0, [sp, #-4]
 	ldfs	f0, [sp, #-4]
-	movs	pc, lr
+	mov	pc, lr
 
 	; Convert 64-bit integer to 64-bit float
 	EXPORT	_fltdidf
@@ -204,7 +204,7 @@ _fltdisf
 	cmp	r0, #0
 	cmpeq	r1, #0
 	mvfeqd	f0, #0.0
-	moveqs	pc, lr
+	moveq	pc, lr
 
 	tst	r1, #1<<31
 	moveq	r2, r0	; bottom word
@@ -258,4 +258,4 @@ fltdidf_norm_fin
 	str	r0, [sp, #-8]
 	str	r1, [sp, #-4]
 	ldfd	f0, [sp, #-8]
-	movs	pc, lr
+	mov	pc, lr
