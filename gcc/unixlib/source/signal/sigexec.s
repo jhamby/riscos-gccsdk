@@ -1,8 +1,8 @@
 ;----------------------------------------------------------------------------
 ;
-; $Source: /usr/local/cvsroot/unixlib/source/signal/s/sigexec,v $
-; $Date: 2000/12/21 15:09:13 $
-; $Revision: 1.6 $
+; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/signal/sigexec.s,v $
+; $Date: 2001/01/29 15:10:21 $
+; $Revision: 1.2 $
 ; $State: Exp $
 ; $Author: admin $
 ;
@@ -81,27 +81,6 @@
 	LDMFD	sp!, {a3, a4, v1, v2, v3, v4, v5, v6, sl, fp, ip, pc}^
 	|
 	LDMFD	sp!, {a3, a4, v1, v2, v3, v4, v5, v6, sl, fp, ip, pc}
-	]
-
-	EXPORT	|__unixlib_exec_sig_interrupt|
-	IMPORT	raise
-        ; Execute a signal handler on the current stack. This would be
-	; used where the operating system has caused the signal
-|__unixlib_exec_sig_interrupt|
-	STMFD	sp!, {a2, a3, a4, v1, v2, v3, v4, v5, v6, sl, fp, ip, lr}
-	; Preserve sp
-	MOV	v1, sp
-	; Pretend to have a fresh stack frame
-	MOV	fp, #0
-	; Pad the stack chunk limit in case we run out of room.
-	SUB	sl, sp, #512
-	; Raise the signal
-	BL	raise
-	MOV	sp, v1
-	[	APCS32 = "no"
-	LDMFD	sp!, {a2, a3, a4, v1, v2, v3, v4, v5, v6, sl, fp, ip, pc}^
-	|
-	LDMFD	sp!, {a2, a3, a4, v1, v2, v3, v4, v5, v6, sl, fp, ip, pc}
 	]
 
 	END

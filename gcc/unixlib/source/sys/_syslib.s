@@ -1,8 +1,8 @@
 ;----------------------------------------------------------------------------
 ;
-; $Source: /usr/local/cvsroot/unixlib/source/sys/s/_syslib,v $
-; $Date: 2000/12/21 15:09:13 $
-; $Revision: 1.25 $
+; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/_syslib.s,v $
+; $Date: 2001/01/29 15:10:21 $
+; $Revision: 1.2 $
 ; $State: Exp $
 ; $Author: admin $
 ;
@@ -22,6 +22,9 @@ NO_CALLASWI * 1
 
 	EXPORT	|__main|
 
+sigstk
+	DCD	|__sigstk|
+	
 	ENTRY
 |__main|
 	SWI	XOS_GetEnv
@@ -30,8 +33,22 @@ NO_CALLASWI * 1
 	BIC	a2, a2, #&ff
 	BIC	a2, a2, #&f00
 	]
-	MOV	sp, a2		; Stack = top of RAM
-	SUB	sl, sp, #2048	; Limit is 2K below.
+	; The stack is allocated at the top of RAM.  We cannot place it
+	; in a dynamic area because GCC might generate trampolines.
+	; Trampolines (for the un-initiated) are little code fragments that
+	; execute in stack space.
+	MOV	sp, a2
+	; For simplicity, the first X bytes of stack is reserved for the
+	; signal callback stack.
+	ADR	a2, sigstk
+	STR	sp, [a2, #0]
+	LDR	a2, =|__sigstksize|
+
+	; Application stack starts here.
+	BIC	a2, a2, #&03	;  Round to a 4 byte boundary.
+	SUB	sp, sp, a2
+	; Set default application stack limit to 2Kbytes below top of stack
+	SUB	sl, sp, #2048
 
 	LDR	v6, =|__cli|
 	; __cli = a1 (pointer to command line)
@@ -446,7 +463,9 @@ dynamic_area_name_end
 	EXPORT	|__fpflag|
 	EXPORT	|__taskwindow|  ; non-zero if executing in a TaskWindow
 	EXPORT	|__wimpprogram| ; non-zero if executing as a Wimp program
-
+	EXPORT	|__sigstk|	; stack for callback signals
+	EXPORT	|__sigstksize|	; size of callback signal stack
+	
 	; Altering this structure will require fixing __main.
 |__cli|		DCD	0				; offset = 0
 |__himem|	DCD	0				; offset = 4
@@ -463,5 +482,7 @@ dynamic_area_name_end
 |__fpflag|	DCD	0				; offset = 52
 |__taskwindow|	DCD	0				; offset = 56
 |__wimpprogram|	DCD	0				; offset = 60
+|__sigstk|	DCD	0				; offset = 64
+|__sigstksize|	DCD	4096				; offset = 68
 
 	END

@@ -1,3 +1,18 @@
+Thu May  3 07:14:49 2001  Peter Naulls  <peter@erble.freeserve.co.uk>
+			  Nick Burrett  <nick@dsvr.net>
+
+	* signal/_signal.s (callback_signal): Use a semaphore to evade
+	re-entrancy problems.  We cannot be certain about the size or
+	state of the USR stack, so provide our own.  Merge the functionality
+	of __unixlib_exec_sig_interrupt into here.
+	(__h_event): Preserve flags on exit.
+	(__h_cback, __cbflg): Clarify.
+	* signal/sigexec.s (__unixlib_exec_sig_interrupt): Delete function.
+	* sys/_syslib.s (__main): Reserve __sigstksize bytes for the
+	callback_signal stack.
+	(__sigstk): Define.
+	(__sigstksize): Define.  Set default stack size of 4096 bytes.
+
 Tue Jan  2 10:20:30 2001  Nick Burrett  <nick.burrett@btinternet.com>
 
 	* signal/coredump.c: Delete file.

@@ -1,8 +1,8 @@
 ;----------------------------------------------------------------------------
 ;
-; $Source: /usr/local/cvsroot/unixlib/source/signal/s/_signal,v $
-; $Date: 2000/12/21 15:09:13 $
-; $Revision: 1.13 $
+; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/signal/_signal.s,v $
+; $Date: 2001/01/29 15:10:20 $
+; $Revision: 1.2 $
 ; $State: Exp $
 ; $Author: admin $
 ;
@@ -249,28 +249,61 @@ lb2	DCD	&FF000000 + lb2 - lb1
 	; flag and setting a callback.
 
 	; Check for the escape condition
-	TST	r11,#64
-	MOVEQS	pc,lr
-	MOV	ip,#SIGINT
-	STR	ip,|__cba1|
-	MOV	ip,#1			; set CallBack
+	TST	r11, #64
+	MOVEQS	pc, lr
+	MOV	ip, #SIGINT
+	STR	ip, |__cba1|
+	; Set the escape condition flag
+	LDR	ip, |__cbflg|
+	ORR	ip, ip, #1		; set CallBack
 	STR	ip,|__cbflg|		; set __cbflg bit 0
-	MOVS	pc,lr
+	MOVS	pc, lr
 
 callback_signal
-	; Entered in SVC mode
-	STMFD	sp!, {a1, a2, a3, a4, lr}
+	; Entered in SVC mode.  r12 contains the signal number to be
+	; raised.
+	STMFD	sp!, {r0-r12, lr}
+	; Check we're not already in a callback.  Prevents re-entrancy
+	; issues.
+	ADR	a1, |__cbflg|
+	LDR	a2, [a1, #0]
+	TST	a2, #4		; __cbflg bit 2
+	LDMEQFD	sp!, {r0-r12, pc}^
+	ORR	a2, a2, #4	;  set that we are now in a callback
+	STR	a2, [a1, #0]
 	; Change to USR mode
 	TEQP	pc, #0
 	MOV	a1, a1
-	; Raise the signal
+
+	; Preserve the old stack
+	MOV	v1, sp
+
+	; Signal number
 	MOV	a1, r12
-	STMFD	sp!, {lr}
-	BL	|__unixlib_exec_sig_interrupt|
-	LDMFD	sp!, {lr}
+
+	; Setup signal stack, with a fresh APCS-compliant stack frame
+	; Don't assume anything about the stack state in USR mode.  Use
+	; our own instead.
+	LDR	sp, =|__sigstk|
+	LDR	sl, =|__sigstksize|
+	SUB	sl, sp, sl
+	MOV	fp, #0
+
+	; Raise the signal
+	BL	raise
+
+	; Restore the old stack
+	MOV	sp, v1
+	
 	; Go back into SVC mode and return.
 	SWI	OS_EnterOS
-	LDMFD	sp!, {a1, a2, a3, a4, pc}^
+
+	; We are no longer processing a callback
+	ADR	a1, __cbflg
+	LDR	a2, [a1, #0]
+	BIC	a2, a2, #4
+	STR	a2, [a1, #0]
+	LDMFD	sp!, {r0-r12, pc}^
 
 	EXPORT	|__h_event|
 |__h_event|
@@ -284,7 +317,7 @@ callback_signal
 	MOVEQ	a2, #SIGURG
 	SWIEQ	XOS_AddCallBack
 
-	LDMFD	sp!, {pc}
+	LDMFD	sp!, {pc}^
 
 	EXPORT	|__h_sigsys|
 |__h_sigsys|
@@ -313,22 +346,28 @@ callback_signal
 
 	EXPORT	|__h_cback|
 |__h_cback|
-	ORR	lr,pc,#&0c000000	; USR mode IntOff
-	MOVS	pc,lr
-;	MOV	a1,a1	neither a1 nor pc are banked registers.
-	ADR	a1,|__cbreg|		; load USR reg.s
-	LDMIA	a1,{a1,a2,a3,a4,v1,v2,v3,v4,v5,v6,sl,fp,ip,sp,lr}
-; Cannot use writeback at this point on sp
+	ORR	lr, pc, #&0c000000	; USR mode IntOff
+	MOVS	pc, lr
+
+	; Load USR regs.  These would previously have been saved by
+	; the likes of __h_sigill, __h_sigbus etc.
+	ADR	a1, |__cbreg|
+	LDMIA	a1, {a1,a2,a3,a4,v1,v2,v3,v4,v5,v6,sl,fp,ip,sp,lr}
+	; Cannot use writeback at this point on sp
 	STMFD	sp,{a1,a2,a3,a4,v1,v2,v3,v4,v5,v6,sl,fp,ip,sp,lr,pc}
-; sp still points above list of 16 registers.
+	; sp still points above list of 16 registers.
 	LDR	a4,|__cbreg|+60
 	STR	a4,[sp,#-4]		; saved USR pc overwrites pc on stack
 	SUB	sp, sp, #64
 
+	; If bit 1 of __cbflg is set then don't re-execute the instruction
+	; that caused the problem.   XXX FIXME:	 This is currently unused,
+	; but I suspect it should be used by something.
 	LDR	a1,|__cbflg|
-	ANDS	a1,a1,#2		; check __cbflg bit 1
+	TST	a1, #2			; check __cbflg bit 1
 	SUBNE	a4,a4,#4
 
+	; Create an APCS-compilant signal stack frame
 	MOV	a3,lr			; saved USR lr
 	ADD	a2,sp,#64		; saved USR sp
 	ORR	a1,fp,#&80000000	; saved USR fp | 0x80000000
@@ -336,15 +375,18 @@ callback_signal
 	ADD	fp,sp,#12
 	SWI	XOS_IntOn
 
+	; Check for an escape condition
 	LDR	a1,|__cbflg|		; check __cbflg bit 0
-	ANDS	a1,a1,#1
+	TST	a1,#1
 	BEQ	|__h_cback_l1|
 
-	MOV	a1,#&7c			; clear Escape condition
+	; There was an escape condition.  Clear it.
+	MOV	a1,#&7c
 	SWI	XOS_Byte
 
 |__h_cback_l1|
-	MOV	a1,#0
+	LDR	a1,|__cbflg|
+	BIC	a1,a1,#1
 	STR	a1,|__cbflg|
 	LDR	a1,|__cba1|
 	MOV	v1,sp
@@ -353,11 +395,13 @@ callback_signal
 	LDMFD	sp,{a1,a2,a3,a4,v1,v2,v3,v4,v5,v6,sl,fp,ip,sp,lr,pc}^
 
 	EXPORT	|__cbreg|
-|__cbreg|
-	%	64
+	; User registers are preserved in here for the callback execution.
+|__cbreg|	%	64
 
-		; bit 0 Escape condition flag
-		; bit 1 no re-execute inst. flag
+	; bit 0 Escape condition flag
+	; bit 1 no re-execute inst. flag
+	; bit 2 set if we are executing a callback.  This is to prevent
+	;       re-entrancy.
 |__cbflg|
 	DCD	0
 
@@ -375,8 +419,7 @@ callback_signal
 	MOV	a1,#EXIT_SUCCESS
 	B	|_exit|
 
-; Interval timer handler for ITIMER_REAL
-
+	; Interval timer handler for ITIMER_REAL
 	EXPORT	|__h_sigalrm|
 |__h_sigalrm|	ROUT
 	STMFD	sp!, {a1, a2, a3, lr}
@@ -427,8 +470,7 @@ callback_signal
 	DCD	0
 
 
-; Interval timer handler for ITIMER_VIRTUAL
-
+	; Interval timer handler for ITIMER_VIRTUAL
 	EXPORT	|__h_sigvtalrm|
 |__h_sigvtalrm|
 	STMFD	sp!, {a1, a2, a3, lr}
@@ -467,9 +509,7 @@ callback_signal
 |__h_sigvtalrm_sema|
 	DCD	0
 
-; Interval timer handler for ITIMER_PROF
-
-
+	; Interval timer handler for ITIMER_PROF
 	EXPORT	|__h_sigprof|
 |__h_sigprof|
 	STMFD	sp!, {a1, a2, a3, lr}
