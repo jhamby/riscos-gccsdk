@@ -308,3 +308,6 @@ install_source:
 
 clean:
 	find arm-riscos-aof -type f | xargs rm
+
+bin-clean:
+	find $(ro_gccpkg) -type f | grep ,ff8 | xargs rm
