@@ -365,12 +365,12 @@ const_section ()							\
 
 #ifdef CROSS_COMPILE
 #define CPP_SPEC "%(cpp_cpu_arch) %(cpp_apcs_pc) %(cpp_float) \
-        -D__JMP_BUF_SIZE=24"
+        -D__JMP_BUF_SIZE=25"
 #else
 #define CPP_SPEC "%(cpp_cpu_arch) %(cpp_apcs_pc) %(cpp_float) \
 	%{mamu:-MD !Depend} \
 	%{!mstubs:-idirafter Unix:} %{mstubs:-idirafter C:} \
-	-D__JMP_BUF_SIZE=24 %{mstubs:-D__TARGET_SCL__}"
+	-D__JMP_BUF_SIZE=25 %{mstubs:-D__TARGET_SCL__}"
 #endif
 
 /* Options to pass to the linker.  */
