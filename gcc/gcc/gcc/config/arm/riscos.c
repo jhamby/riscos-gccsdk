@@ -70,7 +70,7 @@ arm_throwback_start (void)
 {
   int regs[10];
 
-  if (!os_swi (DDEUtils_ThrowbackStart, regs))
+  if (!__os_swi (DDEUtils_ThrowbackStart, regs))
     {
       atexit (arm_throwback_finish);
       arm_throwback_started = 1;
@@ -90,7 +90,7 @@ arm_throwback_new_file (fname)
 
   regs[0] = THROWBACK_REASON_PROCESSING;
   regs[2] = (int)fname;
-  if (os_swi (DDEUtils_ThrowbackSend, regs))
+  if (__os_swi (DDEUtils_ThrowbackSend, regs))
     arm_throwback_started = -1;
 }
 
@@ -113,7 +113,7 @@ arm_throwback_error (fname, level, line_number, error)
   regs[3] = line_number;
   regs[4] = (level == THROWBACK_INFORMATION) ? 0 : level;
   regs[5] = (int)error;
-  if (os_swi (DDEUtils_ThrowbackSend, regs))
+  if (__os_swi (DDEUtils_ThrowbackSend, regs))
     arm_throwback_started = -1;
 }
 
@@ -124,7 +124,7 @@ arm_throwback_finish (void)
   int regs[10];
 
   if (arm_throwback_started > 0)
-    os_swi (DDEUtils_ThrowbackEnd, regs);
+    __os_swi (DDEUtils_ThrowbackEnd, regs);
   arm_throwback_started = 0;
 }
 
@@ -154,7 +154,7 @@ riscos_canonicalise_filename (char *sname)
   regs[3] = 0;
   regs[4] = 0;
   regs[5] = 0;
-  if (!os_swi (OS_FSControl, regs) && regs[5] < 0)
+  if (!__os_swi (OS_FSControl, regs) && regs[5] < 0)
     {
       if ((arm_error_file = realloc (arm_error_file, 1 - regs[5])) != NULL)
         {
@@ -165,7 +165,7 @@ riscos_canonicalise_filename (char *sname)
           regs[3] = 0;
           regs[4] = 0;
           regs[5] = 1 - regs[5];
-          if (!os_swi (OS_FSControl, regs) && regs[5] == 1)
+          if (!__os_swi (OS_FSControl, regs) && regs[5] == 1)
             return arm_error_file;
         }
     }
