@@ -450,7 +450,7 @@ import:
 	cp -a $(glibcpp_srcdir)/config/io/basic_file_stdio.cc ./basic_file.cc
 	cp -a $(glibcpp_srcdir)/config/locale/generic/c_locale.cc ./c++locale.cc
 	cp -a $(glibcpp_srcdir)/config/locale/generic/collate_members.cc ./collate.cc
-	cp -a $(glibcpp_srcdir)/config/locale/generic/ctype_members.cc ./ctype.cc
+	#cp -a $(glibcpp_srcdir)/config/locale/generic/ctype_members.cc ./ctype.cc
 	cp -a $(glibcpp_srcdir)/config/locale/generic/messages_members.cc ./messages.cc
 	cp -a $(glibcpp_srcdir)/config/locale/generic/monetary_members.cc ./monetary.cc
 	cp -a $(glibcpp_srcdir)/config/locale/generic/numeric_members.cc ./numeric.cc
