@@ -23,6 +23,8 @@ GCCPKG = $(pkg)/\!Run,feb \
 	$(pkg)/bin/gcov$(exesfx) \
 	$(pkg)/bin/libfile$(exesfx) \
 	$(pkg)/bin/nm$(exesfx) \
+	$(pkg)/bin/rink$(exesfx) \
+	$(pkg)/bin/rinkptr$(exesfx) \
 	$(bindir)/as$(exesfx) \
 	$(bindir)/cpp$(exesfx) \
 	$(bindir)/ld$(exesfx) \
@@ -93,6 +95,7 @@ UTILSPKG = $(pkg)/bin/bison$(exesfx) \
 	$(pkg)/docs/grep \
 	$(pkg)/docs/gperf \
 	$(pkg)/docs/make \
+	$(pkg)/docs/rink \
 	$(pkg)/docs/sed \
 	$(bindir)/apcs32/arch3/unixlib/o/libfl \
 	$(bindir)/apcs32/arch3/unixlib/o/libiberty \
@@ -150,7 +153,7 @@ install:
 	cp ../libscl/Sprites,ff9 $(ro_libsclpkg)/\!Sprites,ff9
 	cp ../libscl/Sprites22,ff9 $(ro_libsclpkg)/\!Sprites22,ff9
 
-# Build the seperate RISC OS GCC zip packages
+# Build the separate RISC OS GCC zip packages
 package:
 	( cd $(ro_gccpkg)/../ ; \
 	rm -f $(ro_zippkg)/gcc.zip; \
