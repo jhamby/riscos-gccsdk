@@ -1,4 +1,0 @@
-*dir $.arm-riscos-aof.unixlib.apcs26.hard.arch2.unixlib
-*libfile -c $.ulib common.o.* complex.o.* gcccompat.o.* locale.o.* math.o.* math-asm.o.* netlib.o.* pwd.o.* resource.o.* scl.o.* stdio.o.* signal.o.* sys.o.* termios.o.* time.o.* unix.o.* o.*
-
-*dir $
