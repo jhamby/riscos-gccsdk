@@ -101,7 +101,8 @@ extern int getpw (__uid_t __uid, char *__buf);
 
 #ifdef __UNIXLIB_INTERNALS
 /* UnixLib pwd implementation function.  */
-extern struct passwd *__pwdread (FILE *, struct passwd *);
+extern struct passwd *__pwdread (FILE *__stream, struct passwd *__ppwd,
+				 char *__buf, size_t __buflen);
 
 /* Default values for passwd struct. */
 extern struct passwd *__pwddefault (void);

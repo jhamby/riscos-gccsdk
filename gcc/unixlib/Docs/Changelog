@@ -1,3 +1,8 @@
+Tue Jan 21 18:03:28 2003  Nick Burrett  <nick@dsvr.net>
+
+	* grp.h (__grpread): Add buf and buflen arguments to prototype.
+	* pwd.h (__pwdread): Likewise.
+
 Tue Jan 21 17:56:18 2003  Alex Waugh  <alex@alexwaugh.com>
 
 	Thread safety patches

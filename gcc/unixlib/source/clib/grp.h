@@ -1,10 +1,10 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/grp.h,v $
- * $Date: 2002/02/14 15:56:33 $
- * $Revision: 1.2 $
- * $State: Exp $
- * $Author: admin $
+ * $Source$
+ * $Date$
+ * $Revision$
+ * $State$
+ * $Author$
  *
  ***************************************************************************/
 
@@ -88,7 +88,8 @@ extern int initgroups (const char *__name, gid_t __basegid);
 
 #ifdef __UNIXLIB_INTERNALS
 /* UnixLib group implementation function.  */
-extern struct group *__grpread (FILE *, struct group *);
+extern struct group *__grpread (FILE *__stream, struct group *__grp,
+				char *__buf, size_t __buflen);
 #endif
 
 __END_DECLS
