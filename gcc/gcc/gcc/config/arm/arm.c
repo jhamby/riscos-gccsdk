@@ -13164,7 +13164,8 @@ arm_asm_output_labelref (FILE *stream, const char *name)
 
 /* NAB++ */
 #ifdef AOF_ASSEMBLER
-  fputc ('|', stream);
+  if (name[0] != '|')
+    fputc ('|', stream);
 #endif
 /* NAB-- */
 
@@ -13175,7 +13176,8 @@ arm_asm_output_labelref (FILE *stream, const char *name)
 
 /* NAB++ */
 #ifdef AOF_ASSEMBLER
-  fputc ('|', stream);
+  if (name[0] != '|')
+    fputc ('|', stream);
 #endif
 /* NAB-- */
 }
