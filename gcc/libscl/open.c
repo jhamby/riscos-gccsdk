@@ -23,7 +23,7 @@ int open (const char *filename, int oflag, ...)
   else
     mode = 0777;
 
-  filename = __uname (filename, oflag);
+  filename = __riscosify_scl (filename, oflag);
 
   if ((err = os_file (0x05, filename, regs)) != NULL)
     {

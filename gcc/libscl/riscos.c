@@ -5,7 +5,7 @@
 
 #include <errno.h>
 
-#define __UNAME
+#define __RISCOSIFY
 #include <stdio.h>
 #include <stdarg.h>
 #include <string.h>
@@ -69,7 +69,7 @@ int open (char *filename, int oflag, ...)
   else
     mode = 0777;
 
-  filename = __uname (filename, oflag & (O_CREAT | O_OMASK));
+  filename = __riscosify_scl (filename, oflag & (O_CREAT | O_OMASK));
 
   if ((err = os_file (0x05, filename, regs)) != NULL)
     {

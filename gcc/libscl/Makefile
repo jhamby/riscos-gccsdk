@@ -9,6 +9,7 @@ CROSS_CFLAGS += -mlibscl
 INCLUDES = -isystem .
 
 libsclobj=$(objdir)/libscl/$(TRG)
+libunixobj=$(objdir)/unixlib/$(TRG_UL)
 
 $(libsclobj)/%.o: %.c
 	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c $< $(INCLUDES) $(CFL)
@@ -87,9 +88,10 @@ MATH = 	$(libsclobj)/math/acosf.o \
 	$(libsclobj)/math/tanhl.o \
 	$(libsclobj)/math/tanl.o
 
-LIBC = $(libsclobj)/unistd.o \
+LIBC =  $(libsclobj)/unistd.o \
 	$(libsclobj)/stubs.o \
-	$(libsclobj)/uname.o
+	$(libsclobj)/riscosify.o \
+	$(libunixobj)/common/_riscosify.o 
 
 all:	mkdirs \
 	$(ux_gcc_bin_dir)/$(TRG)/libscl.o \
@@ -117,10 +119,12 @@ install_headers:
 $(ux_gcc_bin_dir)/$(TRG)/libscl.o $(ro_gcc_bin_dir)/$(TRG)/o/libscl $(ro_libsclpkg)/o/stubs: $(LIBC) $(STDLIB) $(STRING) $(MATH) $(COMPAT) $(STDIO) $(TIME)
 	$(CROSS_AR) $(CROSS_AR_FLAGS) $@ $(LIBC) $(STDLIB) $(STRING) $(MATH) $(COMPAT) $(STDIO) $(TIME)
 
+$(libsclobj)/riscosify.o: ../unixlib/source/common/riscosify.c
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c $< $(INCLUDES) $(CFL)
+
 $(libsclobj)/unistd.o: unistd.c unistd.h
 $(libsclobj)/fcntl.o: fcntl.c fcntl.h
 $(libsclobj)/stubs.o: stubs.s
-$(libsclobj)/uname.o: uname.c
 
 $(libsclobj)/gcc-compat/divdi3.o: gcc-compat/divdi3.s
 $(libsclobj)/gcc-compat/moddi3.o: gcc-compat/moddi3.s

@@ -54,16 +54,16 @@ Filename translation for the Shared C Library
 ---------------------------------------------
              
 The Shared C Library does not benefit from UnixLib's filename translation
-code. However, defining the symbol __UNAME before you include stdio.h will
+code. However, defining the symbol __RISCOSIFY before you include stdio.h will
 cause remove(), rename(), fopen() and freopen() to use the UnixLib filename
 translation code on the filenames supplied as arguments to those functions.
 
 See the GCC and UnixLib documentation for instructions on how to use the
-filename translation code, especially the fancy options. Much information is
-given in the source, uname.c, provided, which is a hacked version of that
-supplied with UnixLib.
+filename translation code, especially the fancy options.
 
-Thanks go to Reuben Thomas for the effort here.
+The origial version of this using the old 'uname' funtions was done by
+Reuben Thomas, and updated by Peter Naulls to use the modern 'riscosify'
+code in Unixlib.
 
 
 Known problems with the filename translation code

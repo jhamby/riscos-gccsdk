@@ -3,7 +3,7 @@
    For use with the GNU compilers and the SharedCLibrary.
    Copyright (c) 1997, 1998, 1999, 2003, 2004 Nick Burrett.
 
-   To use filename translation, define __UNAME.  */
+   To use filename translation, define __RISCOSIFY.  */
 
 #ifndef __STDIO_H
 #define __STDIO_H
@@ -90,16 +90,16 @@ extern FILE __iob[];
 /* Delete file 'filename'.  */
 extern int remove (const char *__filename);
 
-#ifdef __UNAME
-#define remove(f) (remove(__uname(f)))
+#ifdef __RISCOSIFY
+#define remove(f) (remove(__riscosify_scl(f, 0)))
 #endif
 
 /* Rename a file called 'oldname' to 'newname'. If rename fails
    it returns -1.  */
 extern int rename (const char *__oldname, const char *__newname);
 
-#ifdef __UNAME
-#define rename(f, g) (rename(__uname(f), __uname(g)))
+#ifdef __RISCOSIFY
+#define rename(f, g) (rename(__riscosify_scl(f), __riscosify_scl(g, 1)))
 #endif
 
 /* Create a temporary binary file for updade mode, as if calling
@@ -127,8 +127,8 @@ extern int fflush (FILE *__stream);
    to the stream.  */
 extern FILE *fopen (const char *__filename, const char *__opentype);
 
-#ifdef __UNAME
-#define fopen(f, t) (fopen(__uname(f), t))
+#ifdef __RISCOSIFY
+#define fopen(f, t) (fopen(__riscosify_scl(f, 1), t))
 #endif
 
 /* Close the stream 'stream', ignoring any errors. Then 'filename'
@@ -138,8 +138,8 @@ extern FILE *fopen (const char *__filename, const char *__opentype);
 extern FILE *freopen (const char *__filename, const char *__opentype,
 		      FILE *__stream);
 
-#ifdef __UNAME
-#define freopen(f, t, s) (freopen(__uname(f), t, s))
+#ifdef __RISCOSIFY
+#define freopen(f, t, s) (freopen(__riscosify_scl(f, 1), t, s))
 #endif
 
 
@@ -400,8 +400,28 @@ extern void perror (const char *__message);
 
 /* Extensions to the SharedCLibrary.  */
 
-#ifdef __UNAME
-extern char *__uname (char *name);
+#ifdef __RISCOSIFY
+
+#define __RISCOSIFY_STRICT_UNIX_SPECS   0x0001
+#define __RISCOSIFY_NO_PROCESS		0x0040
+#define __RISCOSIFY_NO_SUFFIX		0x0100
+#define __RISCOSIFY_DONT_CHECK_DIR	0x0200
+#define __RISCOSIFY_CHECK_DIR_IS_SUFFIX	0x0400
+#define __RISCOSIFY_NO_REVERSE_SUFFIX	0x0800
+#define __RISCOSIFY_FILETYPE_EXT    	0x1000
+#define __RISCOSIFY_FILETYPE_FFF_EXT	0x2000
+#define __RISCOSIFY_FILETYPE_NOT_SET    0x4000
+#define __RISCOSIFY_MASK                0x7F41
+#define __RISCOSIFY_FILETYPE_NOTFOUND   -1
+#define __RISCOSIFY_FILETYPE_NOTSPECIFIED -1
+
+extern char *__riscosify_scl (const char *name, int __create_dir);
+
+extern char *__riscosify (const char *__name, int __create_dir,
+			  int __riscosify_flags,
+			  char *__buffer, size_t __buf_len,
+			  int *__filetype);
+
 #endif
 
 /* Return the system file descriptor for stream.  */

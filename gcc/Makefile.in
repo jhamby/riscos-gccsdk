@@ -235,7 +235,7 @@ riscos-elf:
 # to do this (CFL1) brain damage.
 c-libs: unixlib/Makefile unixlib/source/Makefile unixlib/source/object-list unixlib/objs/Makefile,fe1
 	$(MAKE) -C unixlib "TRG=$(trg20)" $(cfl20)
-	$(MAKE) -C libscl "TRG=$(trg30)" $(cfl30)
+	$(MAKE) -C libscl "TRG=$(trg30)" "TRG_UL=$(trg20)" $(cfl30)
 
 riscos-libs:
 	$(MAKE) -C $@ "TRG=$(trg20)" $(cfl20)

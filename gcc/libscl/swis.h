@@ -4,6 +4,7 @@
 #ifndef __SWIS_H
 #define __SWIS_H
 
+#include <kernel.h>
 
 #ifdef __cplusplus
 extern "C"
@@ -663,5 +664,7 @@ extern _kernel_oserror *_swix (int swi_no, unsigned int, ...);
 #define Internet_ReadErrorMessage      0x04a243
 
 #define OmniNFS_OmniOp                 0x04a480
+
+#define MimeMap_Translate              0x050b00
 
 #endif
