@@ -9,6 +9,10 @@ RISC OS GCC release 3.3.3 pre-release 1 (released XX XXXXXX 2004)
 
 * gcc, unixlib, libscl: Default build is now APCS-32.
 
+* gcc: C++ and Fortran applications can now be compiled to use the
+  SharedCLibrary (libscl) as an alternative to UnixLib.  UnixLib
+  remains the default target C run-time library.
+
 * unixlib: Stack model changed from UNIX-style linear stacks
   to RISC OS SharedCLibrary style chunked stacks.  This allows
   for automatic WimpSlot extension.
