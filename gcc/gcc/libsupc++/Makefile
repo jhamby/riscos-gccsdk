@@ -49,6 +49,17 @@ $(ux_gcc_bin_dir)/$(TRG)/libsupc++.o: $(OBJS)
 $(ro_gcc_bin_dir)/$(TRG)/o/libsupc++: $(OBJS)
 	$(CROSS_AR) $(CROSS_AR_FLAGS) $@ $(OBJS)
 
+
+glibcpp_srcdir = /home/nick/riscos/gcc-3.3/libstdc++-v3/libsupc++
+
+import:
+	# Merge header files
+	cp -a ${glibcpp_srcdir}/*.cc ./
+	cp -a ${glibcpp_srcdir}/*.h ./
+	cp -a ${glibcpp_srcdir}/new ./
+	cp -a ${glibcpp_srcdir}/typeinfo ./
+	cp -a ${glibcpp_srcdir}/exception ./
+
 $(supcobjdir)/del_op.o: del_op.cc
 $(supcobjdir)/del_opnt.o: del_opnt.cc
 $(supcobjdir)/del_opv.o: del_opv.cc
