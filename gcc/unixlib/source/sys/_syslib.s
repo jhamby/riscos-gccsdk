@@ -1,8 +1,8 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/_syslib.s,v $
-; $Date: 2004/10/23 17:23:36 $
-; $Revision: 1.32 $
+; $Date: 2004/11/28 21:31:34 $
+; $Revision: 1.33 $
 ; $State: Exp $
 ; $Author: joty $
 ;
@@ -1042,6 +1042,7 @@ no_chunk_to_free
 
 	; Globally used panic button.
 	; void __unixlib_fatal(const char *message)
+	; Protects itself from recursive calling.
 	IMPORT	|strerror|
 	IMPORT	|__os_nl|
 	IMPORT	|__os_print|

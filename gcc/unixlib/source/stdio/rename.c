@@ -1,28 +1,30 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/stdio/rename.c,v $
- * $Date: 2003/04/13 16:21:02 $
- * $Revision: 1.5 $
+ * $Date: 2003/06/16 23:09:08 $
+ * $Revision: 1.6 $
  * $State: Exp $
- * $Author: alex $
+ * $Author: joty $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: rename.c,v 1.5 2003/04/13 16:21:02 alex Exp $";
+static const char rcs_id[] = "$Id: rename.c,v 1.6 2003/06/16 23:09:08 joty Exp $";
 #endif
 
-#include <stdio.h>
-#include <string.h>
 #include <ctype.h>
 #include <errno.h>
+#include <pthread.h>
 #include <unistd.h>
-#include <unixlib/os.h>
-#include <swis.h>
+#include <stdio.h>
+#include <string.h>
 #include <sys/stat.h>
 #include <sys/param.h>
+#include <swis.h>
+
 #include <unixlib/local.h>
-#include <pthread.h>
+#include <unixlib/os.h>
+#include <unixlib/swiparams.h>
 
 int
 rename (const char *old_name, const char *new_name)
@@ -100,7 +102,7 @@ rename (const char *old_name, const char *new_name)
 	  if (__isdir_raw (nfile))
 	    return __set_errno (EISDIR);
 	  /* We can't use unlink() as it might delete the suffix dir */
-	  __os_file (6, nfile, regs);
+	  __os_file (OSFILE_DELETENAMEDOBJECT, nfile, regs);
 	}
     }
 

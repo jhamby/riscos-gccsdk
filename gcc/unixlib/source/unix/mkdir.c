@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/mkdir.c,v $
- * $Date: 2003/05/13 22:59:47 $
- * $Revision: 1.5 $
+ * $Date: 2003/10/06 19:00:01 $
+ * $Revision: 1.6 $
  * $State: Exp $
  * $Author: joty $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: mkdir.c,v 1.5 2003/05/13 22:59:47 joty Exp $";
+static const char rcs_id[] = "$Id: mkdir.c,v 1.6 2003/10/06 19:00:01 joty Exp $";
 #endif
 
 #include <errno.h>
@@ -50,7 +50,7 @@ mkdir (const char *ux_path, __mode_t mode)
 
   /* Create the directory, with default number of entries per directory.  */
   regs[4] = 0;
-  err = __os_file (8, path, regs);
+  err = __os_file (OSFILE_CREATEDIRECTORY, path, regs);
   if (err)
     {
       __seterr (err);
@@ -59,7 +59,7 @@ mkdir (const char *ux_path, __mode_t mode)
 
   /* Set the file access permission bits.  */
   regs[5] = __set_protection (mode);
-  err = __os_file (4, path, regs);
+  err = __os_file (OSFILE_WRITECATINFO_ATTR, path, regs);
   if (err)
     {
       __seterr (err);

@@ -1,3 +1,29 @@
+Sat Dec 11 15:02:57 2004  John Tytgat  <John.Tytgat@aaug.net>
+
+	* source/clib/unixlib/swiparams.h: Added OSFILE_WRITECATINFO_ALL,
+	  OSFILE_DELETENAMEDOBJECT, OSFILE_CREATEDIRECTORY,
+	  OSFILE_CREATEEMPTYFILE_FILETYPE; Consult the __UNIXLIB_USEFILEPATH
+	  value instead of checking on its existence (which is now always the
+	  case).
+	* source/stdio/rename.c: Using new OSFILE_* constants.
+	* source/unix/chmod.c: Likewise.
+	* source/unix/{dev.c, fchmod.c, mkdir.c, unlink.c, utime.c}: Likewise.
+	* source/pthread/{context.c, create.c, error.c, exit.c):
+	  __os_print("\r\n") -> __os_nl()
+	* source/signal/post.c: Likewise.
+	* source/stdio/{flsbuf.c, fopen.c, fpos.c, fwrite.c, newstream.c,
+	  unix.c}: Likewise.
+	* source/sys/{brk.c, debug.c, exec.c, execvp.c, statckalloc.c, vfork,c}:
+	  Likewise.
+	* source/unix/{dev.c, dirent.c, getenv.c, open.c, stat.c, unix.c}:
+	  Likewise.
+	* souce/sys/_syslib.s (__unixlib_fatal): Added useful reminder as
+	  comment.
+	* source/unix/unix.c: Fill RISC OS error buffer before calling
+	  __unixlib_fatal(); When __UNIXLIB_SET_DDEPREFIX is defined, always set
+	  DDEPrefix to its value at startup; Added malloc()/realloc() return
+	  value check.
+
 Wed Dec  8 16:11:55 2004  Peter Naulls  <peter@chocky.org>
 
 	* source/unix/dev.c (__fsopen): Only close the file if

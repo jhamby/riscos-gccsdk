@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/stdio/fopen.c,v $
- * $Date: 2003/04/13 16:21:02 $
- * $Revision: 1.4 $
+ * $Date: 2004/09/07 14:05:11 $
+ * $Revision: 1.5 $
  * $State: Exp $
- * $Author: alex $
+ * $Author: joty $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: fopen.c,v 1.4 2003/04/13 16:21:02 alex Exp $";
+static const char rcs_id[] = "$Id: fopen.c,v 1.5 2004/09/07 14:05:11 joty Exp $";
 #endif
 
 /* #define DEBUG */
@@ -82,7 +82,7 @@ fopen (const char *filename, const char *mode)
     fd = open (filename, file_mode);
 
 #ifdef DEBUG
-  __os_print ("fd="); __os_prdec (fd); __os_print ("\r\n");
+  __os_print ("fd="); __os_prdec (fd); __os_nl ();
 #endif
 
   if (fd < 0)

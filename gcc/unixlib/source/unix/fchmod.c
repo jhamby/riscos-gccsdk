@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/fchmod.c,v $
- * $Date: 2002/02/14 15:56:38 $
- * $Revision: 1.3 $
+ * $Date: 2003/04/05 09:33:56 $
+ * $Revision: 1.4 $
  * $State: Exp $
- * $Author: admin $
+ * $Author: alex $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: fchmod.c,v 1.3 2002/02/14 15:56:38 admin Exp $";
+static const char rcs_id[] = "$Id: fchmod.c,v 1.4 2003/04/05 09:33:56 alex Exp $";
 #endif
 
 #include <errno.h>
@@ -33,7 +33,7 @@ int fchmod (int fd, mode_t mode)
   char name[_POSIX_NAME_MAX];
 
   PTHREAD_UNSAFE
-  
+
   if (BADF (fd))
     return __set_errno (EBADF);
 
@@ -48,7 +48,7 @@ int fchmod (int fd, mode_t mode)
 
   /* Set the file access permission bits.  */
   regs[5] = __set_protection (mode);
-  err = __os_file (4, name, regs);
+  err = __os_file (OSFILE_WRITECATINFO_ATTR, name, regs);
   if (err)
     {
       __seterr (err);

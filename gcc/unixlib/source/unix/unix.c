@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/unix.c,v $
- * $Date: 2004/11/28 21:31:35 $
- * $Revision: 1.30 $
+ * $Date: 2004/12/02 14:49:24 $
+ * $Revision: 1.31 $
  * $State: Exp $
- * $Author: joty $
+ * $Author: peter $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: unix.c,v 1.30 2004/11/28 21:31:35 joty Exp $";
+static const char rcs_id[] = "$Id: unix.c,v 1.31 2004/12/02 14:49:24 peter Exp $";
 #endif
 
 #include <stdio.h>
@@ -35,6 +35,7 @@ static const char rcs_id[] = "$Id: unix.c,v 1.30 2004/11/28 21:31:35 joty Exp $"
 #include <unixlib/os.h>
 #include <unixlib/unix.h>
 #include <unixlib/sigstate.h>
+#include <unixlib/swiparams.h>
 
 /* #define DEBUG 1 */
 
@@ -135,7 +136,7 @@ void __unixinit (void)
     {
       __os_print (", __u->magic="); __os_prhex ((unsigned int) __u->__magic);
     }
-  __os_print ("\r\n");
+  __os_nl ();
 #endif
 
   if (__u == NULL
@@ -148,10 +149,10 @@ void __unixinit (void)
       /* We are a new process.  */
 
       /* Create a process structure if no parent exists or the one
-         pointed to by UnixLib$env is invalid.  */
+	 pointed to by UnixLib$env is invalid.  */
       __u = create_process_structure ();
       if (__u == NULL)
-        __unixlib_fatal ("cannot allocate memory for process structure");
+	__unixlib_fatal ("cannot allocate memory for process structure");
       initialise_process_structure (__u);
 #if __UNIXLIB_FEATURE_PTHREADS
       /* Initialise the pthread system */
@@ -166,23 +167,23 @@ void __unixinit (void)
       __stdioinit ();
 
       /* When the DDEUtils module is loaded, we can support chdir() without
-         the RISC OS CSD being changed. When not loaded, chdir() will work by
-         changing CSD for all processes.
+	 the RISC OS CSD being changed. When not loaded, chdir() will work by
+	 changing CSD for all processes.
 
-         IMPORTANT NOTE: because of bugs in DDEUtils' path processing
-         we don't set DDEUtils_Prefix at the beginning of each process.
-         Symptoms of these bugs are "ADFS::HardDisc4.$ is a directory"
-         RISC OS error when Font_FindFont is done for a font not yet in
-         the font cache.
-         These problems are known to be solved in RISC OS Adjust 1.  */
+	 IMPORTANT NOTE: because of bugs in DDEUtils' path processing
+	 we don't set DDEUtils_Prefix at the beginning of each process.
+	 Symptoms of these bugs are "ADFS::HardDisc4.$ is a directory"
+	 RISC OS error when Font_FindFont is done for a font not yet in
+	 the font cache.
+	 These problems are known to be solved in RISC OS Adjust 1.  */
 #if __UNIXLIB_SET_DDEPREFIX == 0
       __u->dde_prefix = __get_dde_prefix ();
 #else
       if ((__u->dde_prefix = __get_dde_prefix ()) == NULL)
-        {
-          regs[0] = (int)"@";
-          (void) __os_swi (DDEUtils_Prefix, regs);
-        }
+	{
+	  regs[0] = (int)"@";
+	  (void) __os_swi (DDEUtils_Prefix, regs);
+	}
 #endif
     }
   else
@@ -191,7 +192,7 @@ void __unixinit (void)
 
       /* Sanity check */
       if (!__u->status.has_parent)
-        __unixlib_fatal ("child process doesn't seem to have a parent");
+	__unixlib_fatal ("child process doesn't seem to have a parent");
 
 #if __UNIXLIB_FEATURE_PTHREADS
       /* Initialise the pthread system */
@@ -204,10 +205,10 @@ void __unixinit (void)
       __stdioinit ();
 
       /* Don't touch __u->dde_prefix as it already holds a valid ptr to
-         DDEUtils' Prefix value at this point.  */
+	 DDEUtils' Prefix value at this point.  */
 
       /* Inherit environ from parent.  This is our copy, to do with as we
-         like except for freeing.  */
+	 like except for freeing.  */
       environ = __u->envp;
     }
 
@@ -227,7 +228,7 @@ void __unixinit (void)
 
 #ifdef DEBUG
   __os_print ("-- __unixinit: getting cli: __unixlib_cli = ");
-  __os_print (__unixlib_cli); __os_print ("\r\n");
+  __os_print (__unixlib_cli); __os_nl ();
 #endif
 
   /* Since the command line limit of RISC OS is only 255 characters,
@@ -244,13 +245,18 @@ void __unixinit (void)
       memcpy (cli, __unixlib_cli, __cli_size);
       cli[__cli_size] = '\0';
       if (__cli_size < cli_size)
-        {
-          /* Append DDEUtils command line.  */
-          cli[__cli_size] = ' ';
-          regs[0] = (int) cli + __cli_size + 1;
-          if (__os_swi (DDEUtils_GetCl, regs) != NULL)
-            __unixlib_fatal ("cant get command line");
-        }
+	{
+	  _kernel_oserror *err;
+
+	  /* Append DDEUtils command line.  */
+	  cli[__cli_size] = ' ';
+	  regs[0] = (int) cli + __cli_size + 1;
+	  if ((err = __os_swi (DDEUtils_GetCl, regs)) != NULL)
+	    {
+	      __seterr (err);
+	      __unixlib_fatal ("cant get command line");
+	    }
+	}
     }
 
   /* Set command line length to zero otherwise the next process
@@ -267,7 +273,7 @@ void __unixinit (void)
 
 #ifdef DEBUG
   __os_print ("-- __unixinit: create argv: cli_size = ");
-  __os_prdec (cli_size); __os_print ("\r\n");
+  __os_prdec (cli_size); __os_nl ();
 #endif
   /* Parse the command line, looking for I/O redirection.  */
   get_io_redir (cli);
@@ -336,7 +342,8 @@ void _Exit (int status)
 }
 
 /* Final process termination. 'return_code' is a 16-bit
-   encoded quantity as defined by <sys/wait.h>.  */
+   encoded quantity as defined by <sys/wait.h>.
+   Also called via __unixlib_fatal() so don't assume too much.  */
 void
 _exit (int return_code)
 {
@@ -375,7 +382,11 @@ _exit (int return_code)
   /* Reset the DDEUtils' Prefix variable to the value at startup and
      free the DDEUtils' Prefix storage.  We do not do this as a child
      because the parent will reset the Prefix value.  */
+#if __UNIXLIB_SET_DDEPREFIX == 0
   if (!__u->status.has_parent && __u->dde_prefix)
+#else
+  if (!__u->status.has_parent)
+#endif
     {
       int regs[10];
 
@@ -391,14 +402,14 @@ _exit (int return_code)
       int i;
 
       for (i = 0; i < MAXFD; i++)
-        if (fd[i].__magic == _FDMAGIC)
-          close (i);
+	if (fd[i].__magic == _FDMAGIC)
+	  close (i);
     }
 
 #ifdef DEBUG
   __os_print ("_exit(): Setting return code = ");
   __os_prhex (return_code);
-  __os_print ("\r\n");
+  __os_nl ();
 #endif
 
   /* OS_Exit with return value 'r'.  This function never returns.
@@ -425,11 +436,11 @@ __alloc_file_descriptor (void)
     if (fd[i].__magic != _FDMAGIC)
       {
 #ifdef DEBUG
-        __os_print ("__alloc_file_descriptor: found free descriptor ");
-        __os_prhex (i);
-        __os_nl ();
+	__os_print ("__alloc_file_descriptor: found free descriptor ");
+	__os_prhex (i);
+	__os_nl ();
 #endif
-        return i;
+	return i;
       }
 
   /* Set errno to indicate the unavailability of file handles.  */
@@ -547,11 +558,11 @@ check_fd_redirection (const char *filename, unsigned int fd_to_replace)
 	__badr ();
 
       if (dup_fd != fd_to_replace)
-        {
-          /* Duplicate the file descriptor.  */
-          __u->fd[fd_to_replace] = __u->fd[dup_fd];
-          __u->fd[fd_to_replace].dflag = 0;
-        }
+	{
+	  /* Duplicate the file descriptor.  */
+	  __u->fd[fd_to_replace] = __u->fd[dup_fd];
+	  __u->fd[fd_to_replace].dflag = 0;
+	}
     }
   else
     __badr ();
@@ -608,7 +619,7 @@ static void check_io_redir (const char *p, int fd, int mode)
 
 #ifdef DEBUG
   __os_print ("-- check_io_redir: redirecting fd ");
-  __os_prdec (fd); __os_print ("\r\n");
+  __os_prdec (fd); __os_nl ();
 #endif
 
   /* Skip any whitespace that precedes the filename e.g '< filename'.  */
@@ -622,8 +633,8 @@ static void check_io_redir (const char *p, int fd, int mode)
   fn[space - p] = '\0';
 #ifdef DEBUG
   __os_print ("-- check_io_redir: filename = '");
-  __os_print (fn); __os_print (", mode = ");
-  __os_prhex (mode) ; __os_print ("'\r\n");
+  __os_print (fn); __os_print ("', mode = ");
+  __os_prhex (mode) ; __os_nl ();
 #endif
 
   /* Check the >& construct.  */
@@ -633,19 +644,19 @@ static void check_io_redir (const char *p, int fd, int mode)
     {
       /* Close the file descriptor, if it was defined and open.  */
       if (!BADF (fd))
-        __close (fd);
+	__close (fd);
 
       fd = __open (fd, ptr, mode, 0666);
       if (fd < 0)
-        {
-           char failure[300];
+	{
+	   char failure[300];
 
-           sprintf (failure, "cannot open %s for I/O redirection", ptr);
-           __unixlib_fatal (failure);
-        }
+	   sprintf (failure, "cannot open %s for I/O redirection", ptr);
+	   __unixlib_fatal (failure);
+	}
 
       if (((mode & O_WRONLY) || (mode & O_RDWR)) && ! (mode & O_TRUNC))
-        /* Seek to the end of the file, because we are appending.  */
+	/* Seek to the end of the file, because we are appending.  */
 	lseek (fd, 0, SEEK_END);
     }
 }
@@ -676,7 +687,7 @@ static void get_io_redir (const char *cli)
   while ((p = find_redirection_type (p, '>')) != NULL)
     {
       if (p[-1] != '<')
-        {
+	{
 	  /* p might point to:
 	     1. >
 	     2. >>
@@ -698,7 +709,7 @@ static void get_io_redir (const char *cli)
 	      else
 		check_io_redir (p, STDOUT_FILENO, mode | O_TRUNC);
 	    }
-        }
+	}
       p++;
     }
 }
@@ -710,10 +721,10 @@ verify_redirection (const char *redir)
 {
   int x;
 
-#if 0 /*def DEBUG*/
+#ifdef DEBUG
   __os_print ("-- verify_redirection: ");
   __os_print (redir);
-  __os_print ("\r\n");
+  __os_nl ();
 #endif
 
   /* So we've found a re-direction operator.  We must watch out
@@ -764,15 +775,15 @@ verify_redirection (const char *redir)
 
       /* Check for a construct like <<spec$dir>.file.  or for `<>'  */
       if (redir[1] == '<' || redir[1] == '>')
-        return 1;
+	return 1;
 
       while (*t && *t != ' ' && *t != '>')
-        t++;
+	t++;
 
       /* If there's no right chevron on the rest of the cli, then we
 	 must have a proper re-direction operator.  */
       if (*t == '\0' || *t == ' ')
-        return 1;
+	return 1;
 
       /* It was a RISC OS filename.  */
       return 0;
@@ -800,22 +811,22 @@ find_redirection_type (const char *cmdline, char redirection_type)
     {
       /* Look for redirection operator `redirection_type'.  */
       while (*cmdline && *cmdline != redirection_type)
-        cmdline++;
+	cmdline++;
 
       if (*cmdline == '\0')
-        /* Operator `redirection_type' doesn't exist.  */
+	/* Operator `redirection_type' doesn't exist.  */
     	return NULL;
       else
-        {
+	{
 	  /* Cope with "2> foobar" */
 	  while (isdigit (cmdline[-1]))
 	    cmdline --;
 
-          if (verify_redirection (cmdline))
-            return cmdline;
-          /* Skip a character otherwise we loop on <foo$bar>.  */
-          cmdline ++;
-        }
+	  if (verify_redirection (cmdline))
+	    return cmdline;
+	  /* Skip a character otherwise we loop on <foo$bar>.  */
+	  cmdline ++;
+	}
     }
 }
 
@@ -834,6 +845,8 @@ convert_command_line (struct proc *process, const char *cli, int cli_size)
 
   argc = 0;
   argv = (char **) malloc ((argc + 2) * sizeof (char *));
+  if (temp == NULL || argv == NULL)
+    __unixlib_fatal ("cannot allocate memory for main() parameters");
   while (*cli)
     {
       /* Skip any white space.  */
@@ -896,20 +909,20 @@ convert_command_line (struct proc *process, const char *cli, int cli_size)
 	    {
 	      /* Escape character.  */
 	      switch (*++cli)
-	        {
-	        case '\0':
-	          break;
+		{
+		case '\0':
+		  break;
 
-	        case 'x':
-	          if (cli[1] == '\0' || cli[2] == '\0')
-	            break;
+		case 'x':
+		  if (cli[1] == '\0' || cli[2] == '\0')
+		    break;
 
-	          *p++ = __hexstrtochar (cli + 1);
-	          cli += 3;
-	          break;
-	        default:
-	          *p++ = *cli++;
-	        }
+		  *p++ = __hexstrtochar (cli + 1);
+		  cli += 3;
+		  break;
+		default:
+		  *p++ = *cli++;
+		}
 	    }
 	  else if (*cli == '\"')
 	    {
@@ -925,20 +938,20 @@ convert_command_line (struct proc *process, const char *cli, int cli_size)
 		  if (*cli == '\\')
 		    {
 		      switch (*++cli)
-		        {
-		        case '\0':
-		          break;
+			{
+			case '\0':
+			  break;
 
-		        case 'x':
-		          if (cli[1] == '\0' || cli[2] == '\0')
-		            break;
+			case 'x':
+			  if (cli[1] == '\0' || cli[2] == '\0')
+			    break;
 
-		          *p++ = __hexstrtochar (cli + 1);
-		          cli += 3;
-		          break;
-		        default:
-		          *p++ = *cli++;
-		        }
+			  *p++ = __hexstrtochar (cli + 1);
+			  cli += 3;
+			  break;
+			default:
+			  *p++ = *cli++;
+			}
 		    }
 		  else
 		    *p++ = *cli++;
@@ -949,20 +962,21 @@ convert_command_line (struct proc *process, const char *cli, int cli_size)
 	    }
 	  else if (*cli == '\'' && isspace(cli[-1]))
 	    {
-	      /* The argument is contained within single quotes. We also hackily check for
-	         a space before it - this avoids problems with filenames with apostrophes in them.  */
+	      /* The argument is contained within single quotes. We also
+		 hackily check for a space before it - this avoids problems
+		 with filenames with apostrophes in them.  */
 	      cli++;
 	      while (*cli != '\0' && *cli != '\'')
-	        {
-	          if (cli[0] == '\\' && cli[1] == 'x' && cli[2] && cli[3])
-	            {
-	              /* Sort out escape sequences that are added by UnixLib */
-	              *p++ = __hexstrtochar (cli + 2);
-	              cli += 4;
-	            }
-	          else
-	            *p++ = *cli++;
-	        }
+		{
+		  if (cli[0] == '\\' && cli[1] == 'x' && cli[2] && cli[3])
+		    {
+		      /* Sort out escape sequences that are added by UnixLib */
+		      *p++ = __hexstrtochar (cli + 2);
+		      cli += 4;
+		    }
+		  else
+		    *p++ = *cli++;
+		}
 	      /* If we've finished on the single quote mark, then skip it.  */
 	      if (*cli == '\'')
 		cli++;
@@ -973,19 +987,22 @@ convert_command_line (struct proc *process, const char *cli, int cli_size)
 
       *p = '\0';
       /* We have now reached a space delimiter.  Add the argument to
-         the argv list, if one was actually made.  */
+	 the argv list, if one was actually made.  */
       if (p != temp)
-        {
-          argc ++;
-          argv = (char **) realloc (argv, (argc + 1) * sizeof (char *));
-          argv[argc - 1] = strdup (temp);
-        }
+	{
+	  argc ++;
+	  argv = (char **) realloc (argv, (argc + 1) * sizeof (char *));
+	  argv[argc - 1] = strdup (temp);
+	  if (argv == NULL || argv[argc - 1] == NULL)
+	    __unixlib_fatal ("cannot allocate memory for main() parameters");
+	}
   }
 
   /* Set the last item to NULL */
   argv[argc] = NULL;
 
   free (temp);
+
   process->argc = argc;
   process->argv = argv;
 

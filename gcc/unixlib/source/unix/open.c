@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/open.c,v $
- * $Date: 2003/04/05 09:33:57 $
- * $Revision: 1.5 $
+ * $Date: 2004/09/06 08:40:47 $
+ * $Revision: 1.6 $
  * $State: Exp $
- * $Author: alex $
+ * $Author: peter $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: open.c,v 1.5 2003/04/05 09:33:57 alex Exp $";
+static const char rcs_id[] = "$Id: open.c,v 1.6 2004/09/06 08:40:47 peter Exp $";
 #endif
 
 #include <stdarg.h>
@@ -93,7 +93,7 @@ open (const char *file, int oflag, ...)
 #ifdef DEBUG
   __os_print ("open(): file = ");
   __os_print (file);
-  __os_print ("\r\n");
+  __os_nl ();
 #endif
 
   if (oflag & O_CREAT)

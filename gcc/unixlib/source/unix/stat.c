@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/stat.c,v $
- * $Date: 2004/09/06 08:40:47 $
- * $Revision: 1.6 $
+ * $Date: 2004/09/17 18:39:57 $
+ * $Revision: 1.7 $
  * $State: Exp $
  * $Author: peter $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: stat.c,v 1.6 2004/09/06 08:40:47 peter Exp $";
+static const char rcs_id[] = "$Id: stat.c,v 1.7 2004/09/17 18:39:57 peter Exp $";
 #endif
 
 #include <errno.h>
@@ -35,7 +35,7 @@ stat (const char *filename, struct stat *buf)
 #ifdef DEBUG
   __os_print ("stat(): file = ");
   __os_print (filename);
-  __os_print ("\r\n");
+  __os_nl ();
 #endif
 
   /* Perform a special check for devices.  */

@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/dirent.c,v $
- * $Date: 2003/10/06 19:00:01 $
- * $Revision: 1.8 $
+ * $Date: 2004/02/07 18:09:19 $
+ * $Revision: 1.9 $
  * $State: Exp $
- * $Author: joty $
+ * $Author: alex $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: dirent.c,v 1.8 2003/10/06 19:00:01 joty Exp $";
+static const char rcs_id[] = "$Id: dirent.c,v 1.9 2004/02/07 18:09:19 alex Exp $";
 #endif
 
 /* #define DEBUG */
@@ -197,7 +197,7 @@ opendir (const char *ux_name)
   __os_print ("opendir: ux_name="); __os_print (ux_name);
   __os_print (", ro name="); __os_print (name);
   __os_print (", iletype=0x"); __os_prhex (filetype);
-  __os_print ("\r\n");
+  __os_nl ();
 #endif
   if (filetype != __RISCOSIFY_FILETYPE_NOTFOUND)
     {

@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/exec.c,v $
- * $Date: 2004/09/23 22:16:39 $
- * $Revision: 1.14 $
+ * $Date: 2004/10/17 16:24:44 $
+ * $Revision: 1.15 $
  * $State: Exp $
  * $Author: joty $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: exec.c,v 1.14 2004/09/23 22:16:39 joty Exp $";
+static const char rcs_id[] = "$Id: exec.c,v 1.15 2004/10/17 16:24:44 joty Exp $";
 #endif
 
 #include <ctype.h>
@@ -187,13 +187,13 @@ execve (const char *execname, char *const argv[], char *const envp[])
   while (argv[++x])
     {
       __os_print ("      argv["); __os_prdec (x); __os_print ("]: ");
-      __os_print (argv[x]); __os_print ("\r\n");
+      __os_print (argv[x]); __os_nl ();
     }
   x = -1;
   while (envp[++x])
     {
       __os_print ("      envp["); __os_prdec (x); __os_print ("]: ");
-      __os_print (envp[x]); __os_print ("\r\n");
+      __os_print (envp[x]); __os_nl ();
     }
 
   __debug ("-- execve: process structure");
@@ -386,7 +386,7 @@ execve (const char *execname, char *const argv[], char *const envp[])
   command_line[-1] = '\0';
 
 #ifdef DEBUG
-  __os_print ("-- execve: cli: "); __os_print (cli); __os_print ("\r\n");
+  __os_print ("-- execve: cli: "); __os_print (cli); __os_nl ();
 #endif
 
   /* This `if' will never return.  */

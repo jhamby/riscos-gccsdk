@@ -1,8 +1,8 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/brk.c,v $
- * $Date: 2003/11/21 14:38:33 $
- * $Revision: 1.6 $
+ * $Date: 2004/06/12 08:59:49 $
+ * $Revision: 1.7 $
  * $State: Exp $
  * $Author: peter $
  *
@@ -41,7 +41,7 @@
 /* sys/brk.c: Complete rewrite by Peter Burwood, June 1997  */
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: brk.c,v 1.6 2003/11/21 14:38:33 peter Exp $";
+static const char rcs_id[] = "$Id: brk.c,v 1.7 2004/06/12 08:59:49 peter Exp $";
 #endif
 
 #include <string.h>
@@ -79,10 +79,10 @@ __internal_brk (void *addr, int internalcall)
   addr = align (addr);
 
 #ifdef DEBUG
-  __os_print ("-- brk: addr = ");    __os_prhex ((int)addr);    __os_print ("\r\n");
-  __os_print ("-- brk: __image_rw_lomem = "); __os_prhex ((int)__image_rw_lomem); __os_print ("\r\n");
-  __os_print ("-- brk: __unixlib_break = "); __os_prhex ((int)__unixlib_break); __os_print ("\r\n");
-  __os_print ("-- brk: __unixlib_stack = "); __os_prhex ((int)__unixlib_stack); __os_print ("\r\n");
+  __os_print ("-- brk: addr = "); __os_prhex ((int)addr); __os_nl ();
+  __os_print ("-- brk: __image_rw_lomem = "); __os_prhex ((int)__image_rw_lomem); __os_nl ();
+  __os_print ("-- brk: __unixlib_break = "); __os_prhex ((int)__unixlib_break); __os_nl ();
+  __os_print ("-- brk: __unixlib_stack = "); __os_prhex ((int)__unixlib_stack); __os_nl ();
 #endif
 
   /* Check new limit isn't below minimum brk limit, i.e., __image_rw_lomem.
@@ -194,7 +194,7 @@ __internal_brk (void *addr, int internalcall)
 }
 
 int
-brk (void *addr) 
+brk (void *addr)
 {
   PTHREAD_UNSAFE
 
@@ -233,7 +233,7 @@ __internal_sbrk (int incr)
 
 #ifdef DEBUG
   __os_print ("-- __internal_sbrk: incr = ");
-  __os_prdec (incr); __os_print ("\r\n");
+  __os_prdec (incr); __os_nl ();
 #endif
 
   if (incr < 0)

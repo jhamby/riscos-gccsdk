@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/getenv.c,v $
- * $Date: 2003/04/05 09:33:57 $
- * $Revision: 1.4 $
+ * $Date: 2004/01/06 00:17:37 $
+ * $Revision: 1.5 $
  * $State: Exp $
- * $Author: alex $
+ * $Author: joty $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: getenv.c,v 1.4 2003/04/05 09:33:57 alex Exp $";
+static const char rcs_id[] = "$Id: getenv.c,v 1.5 2004/01/06 00:17:37 joty Exp $";
 #endif
 
 #include <errno.h>
@@ -256,7 +256,7 @@ __chkenv (const char *name)
 #ifdef DEBUG
   __os_print ("-- chkenv: name='"); __os_print (name);
   __os_print ("', environ="); __os_prhex ((int) environ);
-  __os_print ("\r\n");
+  __os_nl ();
 #endif
 
   if (environ != NULL)
@@ -286,7 +286,7 @@ __addenv (const char *name, const char *value, int replace, int add_to_os)
   __os_print ("', value='"); __os_print (value);
   __os_print ("', environ="); __os_prhex ((int) environ);
   __os_print ("', __last_environ="); __os_prhex ((int) __last_environ);
-  __os_print ("\r\n");
+  __os_nl ();
 #endif
 
   /* Search environment for old value.  */

@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/utime.c,v $
- * $Date: 2003/04/12 11:31:39 $
- * $Revision: 1.4 $
+ * $Date: 2003/05/13 22:59:47 $
+ * $Revision: 1.5 $
  * $State: Exp $
- * $Author: alex $
+ * $Author: joty $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: utime.c,v 1.4 2003/04/12 11:31:39 alex Exp $";
+static const char rcs_id[] = "$Id: utime.c,v 1.5 2003/05/13 22:59:47 joty Exp $";
 #endif
 
 #include <errno.h>
@@ -43,7 +43,7 @@ utime (const char *ux_filename, const struct utimbuf *times)
   regs[2] = ((ftype & 0xfffU) << 8) | 0xfff00000U | high;
   regs[3] = (int) low;
   regs[5] = attr;
-  err = __os_file (1, filename, regs);
+  err = __os_file (OSFILE_WRITECATINFO_ALL, filename, regs);
   if (err)
     {
       __seterr (err);

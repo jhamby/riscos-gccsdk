@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/pthread/create.c,v $
- * $Date: 2003/05/26 17:27:07 $
- * $Revision: 1.4 $
+ * $Date: 2003/11/23 20:26:45 $
+ * $Revision: 1.5 $
  * $State: Exp $
- * $Author: alex $
+ * $Author: joty $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: create.c,v 1.4 2003/05/26 17:27:07 alex Exp $";
+static const char rcs_id[] = "$Id: create.c,v 1.5 2003/11/23 20:26:45 joty Exp $";
 #endif
 
 /* Thread creation */
@@ -32,7 +32,7 @@ __pthread_create (pthread_t thread)
 #ifdef PTHREAD_DEBUG
   __os_print ("-- __pthread_create: About to start thread ");
   __os_prhex ((int) thread);
-  __os_print ("\r\n");
+  __os_nl ();
 #endif
 
   /* Go into the thread properly */

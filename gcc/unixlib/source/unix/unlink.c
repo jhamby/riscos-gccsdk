@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/unlink.c,v $
- * $Date: 2003/08/15 13:56:31 $
- * $Revision: 1.7 $
+ * $Date: 2004/02/07 18:09:19 $
+ * $Revision: 1.8 $
  * $State: Exp $
- * $Author: joty $
+ * $Author: alex $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: unlink.c,v 1.7 2003/08/15 13:56:31 joty Exp $";
+static const char rcs_id[] = "$Id: unlink.c,v 1.8 2004/02/07 18:09:19 alex Exp $";
 #endif
 
 #include <errno.h>
@@ -43,7 +43,7 @@ __unlinksuffix (char *file)
 
       if (!(__get_riscosify_control () & __RISCOSIFY_NO_SUFFIX)
           && __sfixfind (dot, strlen (dot)))
-        __os_file (6, file, regs); /* This will only delete empty directories */
+        __os_file (OSFILE_DELETENAMEDOBJECT, file, regs); /* This will only delete empty directories */
     }
 }
 
@@ -66,7 +66,7 @@ unlink (const char *ux_file)
     return __set_errno (EACCES);
 
   /* Try to zap the file.  */
-  err = __os_file (6, file, regs);
+  err = __os_file (OSFILE_DELETENAMEDOBJECT, file, regs);
   if (err)
     {
       /* Should check for EROFS but this would involve

@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/signal/post.c,v $
- * $Date: 2004/09/23 22:16:39 $
- * $Revision: 1.15 $
+ * $Date: 2004/11/28 21:31:34 $
+ * $Revision: 1.16 $
  * $State: Exp $
  * $Author: joty $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: post.c,v 1.15 2004/09/23 22:16:39 joty Exp $";
+static const char rcs_id[] = "$Id: post.c,v 1.16 2004/11/28 21:31:34 joty Exp $";
 #endif
 
 /* signal.c.post: Written by Nick Burrett, 27 August 1996.  */
@@ -44,7 +44,7 @@ sigsetup (struct unixlib_sigstate *ss, sighandler_t handler,
 #ifdef DEBUG
   __os_print ("sigsetup: signo = ");
   __os_prdec (signo); __os_print (", handler = "); __os_prhex ((int) handler);
-  __os_print ("\r\n");
+  __os_nl ();
 #endif
   system_stack = ((ss->signalstack.ss_flags & SA_DISABLE)
 		  || ss->signalstack.ss_size == 0
@@ -59,7 +59,7 @@ sigsetup (struct unixlib_sigstate *ss, sighandler_t handler,
       __os_print ("   ss_size = "); __os_prdec ((int) ss->signalstack.ss_size);
       __os_print (", ss_sp = "); __os_prdec ((int) ss->signalstack.ss_sp);
       __os_print (", ss_flags = "); __os_prdec ((int) ss->signalstack.ss_flags);
-      __os_print ("\r\n");
+      __os_nl ();
 #endif
       return 1;
     }
@@ -309,7 +309,7 @@ post_signal:
       handler = ss->actions[signo].sa_handler;
 #ifdef DEBUG
       __os_print ("post_signal: handler = ");
-      __os_prhex ((int) handler); __os_print ("\r\n");
+      __os_prhex ((int) handler); __os_nl ();
 #endif
 
       if (handler == SIG_DFL)
@@ -497,7 +497,7 @@ post_pending:
   __os_print ("post_signal: Deliver pending signals\r\n");
   __os_print ("  pending 0x"); __os_prhex((int)ss->pending);
   __os_print (", blocked 0x"); __os_prhex((int)ss->blocked);
-  __os_print ("\r\n");
+  __os_nl ();
 #endif
   if (!__u->stopped && (pending = ss->pending & ~ss->blocked))
     {
@@ -523,9 +523,9 @@ __unixlib_raise_signal (struct unixlib_sigstate *ss, int signo)
   PTHREAD_UNSAFE
 
 #ifdef DEBUG
-  __os_print("\n\r__unixlib_raise_signal: state is 0x");
+  __os_print("\r\n__unixlib_raise_signal: state is 0x");
   __os_prhex ((int)ss); __os_print(", signo is ");
-  __os_prdec (signo); __os_print ("\r\n");
+  __os_prdec (signo); __os_nl ();
 #endif
   if (ss == NULL)
     ss = &__u->sigstate;
@@ -545,7 +545,7 @@ __unixlib_raise_signal (struct unixlib_sigstate *ss, int signo)
 #ifdef DEBUG
   else
     {
-      __os_print ("\n\r__unixlib_raise_signal: signal ");
+      __os_print ("\r\n__unixlib_raise_signal: signal ");
       __os_print (sys_siglist[signo]);
       __os_print (" is pending for delivery\r\n");
     }

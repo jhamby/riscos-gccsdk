@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/stackalloc.c,v $
- * $Date: 2004/06/12 08:59:49 $
- * $Revision: 1.3 $
+ * $Date: 2004/10/17 16:24:44 $
+ * $Revision: 1.4 $
  * $State: Exp $
- * $Author: peter $
+ * $Author: joty $
  *
  ***************************************************************************/
 
@@ -29,7 +29,7 @@
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: stackalloc.c,v 1.3 2004/06/12 08:59:49 peter Exp $";
+static const char rcs_id[] = "$Id: stackalloc.c,v 1.4 2004/10/17 16:24:44 joty Exp $";
 #endif
 
 #include <stddef.h>
@@ -129,7 +129,7 @@ __stackalloc_incr_wimpslot (int incr)
   regs[1] = -1;
 #ifdef DEBUG
   __os_print ("-- __stackalloc_incr_wimpslot: attempting to increase wimpslot to ");
-  __os_prhex(regs[0]); __os_print("\r\n");
+  __os_prhex(regs[0]); __os_nl ();
 #endif
   if (__os_swi (Wimp_SlotSize, regs))
     {
@@ -141,7 +141,7 @@ __stackalloc_incr_wimpslot (int incr)
 #ifdef DEBUG
   else
     {
-      __os_print ("-- __stackalloc_incr_wimpslot: increased wimpslot to "); __os_prhex(regs[0]); __os_print("\r\n");
+      __os_print ("-- __stackalloc_incr_wimpslot: increased wimpslot to "); __os_prhex(regs[0]); __os_nl ();
     }
 #endif
 
@@ -241,11 +241,11 @@ __stackalloc_incr_downwards (int blocksneeded)
 
 #ifdef DEBUG
   __os_print ("-- __stackalloc_incr_downwards: incr = ");
-  __os_prhex (incr); __os_print ("\r\n");
+  __os_prhex (incr); __os_nl ();
   __os_print ("-- __stackalloc_incr_downwards: __unixlib_stack = ");
-  __os_prhex ((int)__unixlib_stack); __os_print ("\r\n");
+  __os_prhex ((int)__unixlib_stack); __os_nl ();
   __os_print ("-- __stackalloc_incr_downwards: __unixlib_stack_limit = ");
-  __os_prhex ((int)__unixlib_stack_limit); __os_print ("\r\n");
+  __os_prhex ((int)__unixlib_stack_limit); __os_nl ();
 #endif
 
   if (new__stack >= __unixlib_stack_limit)
@@ -306,7 +306,7 @@ __stackalloc_trim (void)
 
 #ifdef DEBUG
   __os_print ("-- __stackalloc_trim: __unixlib_stack = ");
-  __os_prhex ((int)__unixlib_stack); __os_print ("\r\n");
+  __os_prhex ((int)__unixlib_stack); __os_nl ();
 #endif
 
 #if __UNIXLIB_FEATURE_PTHREADS
@@ -331,11 +331,11 @@ __stackalloc_init (void)
 
 #ifdef DEBUG
   __os_print ("-- __stackalloc_init: __unixlib_stack      = ");
-  __os_prhex ((int)__unixlib_stack); __os_print ("\r\n");
+  __os_prhex ((int)__unixlib_stack); __os_nl ();
   __os_print ("-- __stackalloc_init: __image_rw_himem      = ");
-  __os_prhex ((int)__image_rw_himem); __os_print ("\r\n");
+  __os_prhex ((int)__image_rw_himem); __os_nl ();
   __os_print ("-- __stackalloc_init: __unixlib_real_himem = ");
-  __os_prhex ((int)__unixlib_real_himem); __os_print ("\r\n");
+  __os_prhex ((int)__unixlib_real_himem); __os_nl ();
 #endif
 
   /* Record the value of himem when the initial stack chunk was setup */
@@ -377,14 +377,14 @@ __stackalloc (size_t size)
 #endif
 
 #ifdef DEBUG
-  __os_print ("-- __stackalloc: size = "); __os_prhex (size); __os_print ("\r\n");
+  __os_print ("-- __stackalloc: size = "); __os_prhex (size); __os_nl ();
 #endif
   /* Convert size into number of blocks */
   blocksneeded = size + BLOCK_DATA_SIZE - 1;
   blocksneeded &= ~(BLOCK_DATA_SIZE - 1);
   blocksneeded /= BLOCK_DATA_SIZE; /* BLOCK_DATA_SIZE should be a power of two so this should optimise to a shift */
 #ifdef DEBUG
-  __os_print ("-- __stackalloc: blocksneeded = "); __os_prhex (blocksneeded); __os_print ("\r\n");
+  __os_print ("-- __stackalloc: blocksneeded = "); __os_prhex (blocksneeded); __os_nl ();
 #endif
 
   /* Search through freelist to find the first smallest block that is large enough for this request*/
@@ -463,7 +463,7 @@ __stackalloc (size_t size)
 
   returnptr = ((char*)blocktoalloc) + offsetof (struct block, contents.allocated);
 #ifdef DEBUG
-  __os_print ("-- __stackalloc: returning "); __os_prhex ((int)returnptr); __os_print ("\r\n");
+  __os_print ("-- __stackalloc: returning "); __os_prhex ((int)returnptr); __os_nl ();
 #endif
 
 #if __UNIXLIB_FEATURE_PTHREADS
@@ -490,7 +490,7 @@ __stackfree (void *ptr)
 #endif
 
 #ifdef DEBUG
-  __os_print ("-- __stackfree: ptr = "); __os_prhex ((int)ptr); __os_print ("\r\n");
+  __os_print ("-- __stackfree: ptr = "); __os_prhex ((int)ptr); __os_nl ();
 #endif
 
   /* Find start of block this ptr refers to */
@@ -502,7 +502,7 @@ __stackfree (void *ptr)
     {
       /* Block below this is not free, so we need to add this block to the freelist */
 #ifdef DEBUG
-      __os_print("-- __stackfree: adding to free list"); __os_print ("\r\n");
+      __os_print("-- __stackfree: adding to free list"); __os_nl ();
 #endif
       startblock = blocktofree;
       startblock->contents.free.numconsecutiveblocks = 0;
@@ -513,7 +513,7 @@ __stackfree (void *ptr)
     {
       /* Block below this is free, so we can coalesce with it and hence don't need
          to add this block to the freelist */
-      __os_print ("-- __stackfree: coalescing with lower block"); __os_print ("\r\n");
+      __os_print ("-- __stackfree: coalescing with lower block"); __os_nl ();
     }
 #endif
 
@@ -526,7 +526,7 @@ __stackfree (void *ptr)
          This block has already been added to the freelist,
          so we need to remove the nextblock from the freelist */
 #ifdef DEBUG
-      __os_print ("-- __stackfree: coalescing with higher block"); __os_print ("\r\n");
+      __os_print ("-- __stackfree: coalescing with higher block"); __os_nl ();
 #endif
       REMOVE_FROM_FREELIST (nextblock);
       startblock->contents.free.numconsecutiveblocks += nextblock->contents.free.numconsecutiveblocks;

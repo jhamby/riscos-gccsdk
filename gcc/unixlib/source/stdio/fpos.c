@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/stdio/fpos.c,v $
- * $Date: 2003/04/06 14:19:07 $
- * $Revision: 1.5 $
+ * $Date: 2003/04/13 16:21:02 $
+ * $Revision: 1.6 $
  * $State: Exp $
- * $Author: peter $
+ * $Author: alex $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: fpos.c,v 1.5 2003/04/06 14:19:07 peter Exp $";
+static const char rcs_id[] = "$Id: fpos.c,v 1.6 2003/04/13 16:21:02 alex Exp $";
 #endif
 
 /* #define DEBUG */
@@ -110,7 +110,7 @@ fseek (FILE * stream, long offset, int w)
 #ifdef DEBUG
   __os_print ("fseek("); __os_prdec (stream->fd);
   __os_print ("): newpos="); __os_prdec (stream->__offset);
-  __os_print ("\r\n");
+  __os_nl ();
 #endif
 
   /* Set the input counter to zero so we will read in
@@ -161,7 +161,7 @@ ftell (FILE *stream)
       __os_print ("offset="); __os_prdec (stream->__offset);
       __os_print (", i_cnt="); __os_prdec (stream->i_cnt);
       __os_print (", pushed_back="); __os_prdec (stream->__pushedback);
-      __os_print ("\r\n");
+      __os_nl ();
 #endif
       return (stream->__offset - ( (stream->__pushedback)
 				 ? (long) stream->__pushedi_cnt + 1
@@ -173,7 +173,7 @@ ftell (FILE *stream)
 #ifdef DEBUG
       __os_print ("offset="); __os_prdec (stream->__offset);
       __os_print (", o_ptr-o_base="); __os_prdec (stream->o_ptr-stream->o_base);
-      __os_print ("\r\n");
+      __os_nl ();
 #endif
       return (stream->__offset + (long) (stream->o_ptr - stream->o_base));
     }

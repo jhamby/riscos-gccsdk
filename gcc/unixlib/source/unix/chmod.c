@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/chmod.c,v $
- * $Date: 2003/04/12 11:31:39 $
- * $Revision: 1.4 $
+ * $Date: 2003/06/07 02:30:22 $
+ * $Revision: 1.5 $
  * $State: Exp $
- * $Author: alex $
+ * $Author: joty $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: chmod.c,v 1.4 2003/04/12 11:31:39 alex Exp $";
+static const char rcs_id[] = "$Id: chmod.c,v 1.5 2003/06/07 02:30:22 joty Exp $";
 #endif
 
 #include <errno.h>
@@ -36,7 +36,7 @@ chmod (const char *ux_file, mode_t mode)
 
   /* Set the file access permission bits.  */
   regs[5] = __set_protection (mode);
-  err = __os_file (4, file, regs);
+  err = __os_file (OSFILE_WRITECATINFO_ATTR, file, regs);
   if (err)
     {
       __seterr (err);

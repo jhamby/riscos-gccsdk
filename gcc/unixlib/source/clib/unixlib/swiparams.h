@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/unixlib/swiparams.h,v $
- * $Date: 2003/04/12 11:31:39 $
- * $Revision: 1.4 $
+ * $Date: 2004/10/17 16:24:44 $
+ * $Revision: 1.5 $
  * $State: Exp $
- * $Author: alex $
+ * $Author: joty $
  *
  ***************************************************************************/
 
@@ -15,13 +15,18 @@
 
 /* Limited set of SWI parameters needed in UnixLib itself */
 
-#define OSFILE_READCATINFO_FILEPATH  5
-#define OSFILE_READCATINFO_PATH     13
-#define OSFILE_READCATINFO_PATHVAR  15
-#define OSFILE_READCATINFO_NOPATH   17
+#define OSFILE_READCATINFO_FILEPATH	5
+#define OSFILE_READCATINFO_PATH		13
+#define OSFILE_READCATINFO_PATHVAR	15
+#define OSFILE_READCATINFO_NOPATH	17
 
-#define OSFILE_WRITECATINFO_ATTR     4
-#define OSFILE_WRITECATINFO_FILETYPE 18
+#define OSFILE_WRITECATINFO_ALL		1
+#define OSFILE_WRITECATINFO_ATTR	4
+#define OSFILE_WRITECATINFO_FILETYPE	18
+
+#define OSFILE_DELETENAMEDOBJECT	6
+#define OSFILE_CREATEDIRECTORY		8
+#define OSFILE_CREATEEMPTYFILE_FILETYPE	11
 
 #define OSFIND_OPEN_OPENIN            (4<<4)
 #define OSFIND_OPEN_OPENOUT           (8<<4)
@@ -33,7 +38,7 @@
 #define OSFIND_OPEN_ERRORIFABSENT     8
 #define OSFIND_OPEN_ERRORIFDIR	      4
 
-#ifdef __UNIXLIB_USEFILEPATH
+#if __UNIXLIB_USEFILEPATH > 0
 #define OSFILE_READCATINFO (OSFILE_READCATINFO_FILEPATH)
 #define OSFILE_OPENIN	   (OSFIND_OPEN_OPENIN | OSFIND_OPEN_NOPATH)
 #define OSFILE_OPENOUT	   (OSFIND_OPEN_OPENOUT | OSFIND_OPEN_NOPATH)

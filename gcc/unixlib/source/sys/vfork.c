@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/vfork.c,v $
- * $Date: 2004/09/08 16:12:41 $
- * $Revision: 1.9 $
+ * $Date: 2004/10/17 16:24:44 $
+ * $Revision: 1.10 $
  * $State: Exp $
  * $Author: joty $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: vfork.c,v 1.9 2004/09/08 16:12:41 joty Exp $";
+static const char rcs_id[] = "$Id: vfork.c,v 1.10 2004/10/17 16:24:44 joty Exp $";
 #endif
 
 #include <errno.h>
@@ -224,11 +224,11 @@ __vexit (int e)
 
 #ifdef DEBUG
   __debug ("__vexit: child process structure");
-  __os_print ("__vexit() e = "); __os_prdec (e); __os_print ("\r\n");
-  __os_print ("return code:"); __os_prdec (p->status.return_code); __os_print ("\r\n");
-  __os_print ("signal exit:"); __os_prdec (p->status.signal_exit); __os_print ("\r\n");
-  __os_print ("signal:"); __os_prdec (p->status.signal); __os_print ("\r\n");
-  __os_print ("core dumped:"); __os_prdec (p->status.core_dump); __os_print ("\r\n");
+  __os_print ("__vexit() e = "); __os_prdec (e); __os_nl ();
+  __os_print ("return code:"); __os_prdec (p->status.return_code); __os_nl ();
+  __os_print ("signal exit:"); __os_prdec (p->status.signal_exit); __os_nl ();
+  __os_print ("signal:"); __os_prdec (p->status.signal); __os_nl ();
+  __os_print ("core dumped:"); __os_prdec (p->status.core_dump); __os_nl ();
 #endif
 
   /* Close the file descriptors we used.  */

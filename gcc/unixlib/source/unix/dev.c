@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/dev.c,v $
- * $Date: 2004/12/02 14:49:24 $
- * $Revision: 1.23 $
+ * $Date: 2004/12/08 16:15:42 $
+ * $Revision: 1.24 $
  * $State: Exp $
  * $Author: peter $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: dev.c,v 1.23 2004/12/02 14:49:24 peter Exp $";
+static const char rcs_id[] = "$Id: dev.c,v 1.24 2004/12/08 16:15:42 peter Exp $";
 #endif
 
 /* #define DEBUG */
@@ -259,7 +259,7 @@ __fsopen (struct __unixlib_fd *file_desc, const char *filename, int mode)
 	 difference between text and binary files. */
       regs[2] = (sftype == __RISCOSIFY_FILETYPE_NOTFOUND) ? 0xfff : sftype;
       regs[4] = regs[5] = 0;
-      if ((err = __os_file (0x0b, file, regs)))
+      if ((err = __os_file (OSFILE_CREATEEMPTYFILE_FILETYPE, file, regs)))
 	{
 	  /* Could not create.  Cannot assume component of name does not
 	     exist, as errors such as "directory full" end up here.  */
@@ -303,18 +303,19 @@ __fsopen (struct __unixlib_fd *file_desc, const char *filename, int mode)
       err = __os_fopen (openmode = OSFILE_OPENOUT, file, &fd);
     else
       {
-        if ((fflag & O_ACCMODE) == O_RDWR)
-	  err = __os_fopen (openmode = OSFILE_OPENUP, file, &fd);
-        else if ((fflag & O_ACCMODE) == O_WRONLY)
-	  err = __os_fopen (openmode = OSFILE_OPENUP, file, &fd);
-        else if ((fflag & O_ACCMODE) == O_RDONLY)
-	  {
+        switch (fflag & O_ACCMODE)
+          {
+          case O_RDWR:
+          case O_WRONLY:
+	    err = __os_fopen (openmode = OSFILE_OPENUP, file, &fd);
+	    break;
+          case O_RDONLY:
 	    if (file_desc->dflag & FILE_ISDIR)
 	      {
 	        DIR *dir;
 #ifdef DEBUG
 	        __os_print ("-- open directory (read only): file=");
-	        __os_print (file); __os_print ("\r\n");
+	        __os_print (file); __os_nl ();
 #endif
 
 	        dir = opendir (file);
@@ -322,14 +323,15 @@ __fsopen (struct __unixlib_fd *file_desc, const char *filename, int mode)
 	      }
 	    else
 	      err = __os_fopen (openmode = OSFILE_OPENIN, file, &fd);
+	    break;
+          default:
+	    return (void *) __set_errno (EINVAL);
 	  }
-        else
-	  return (void *) __set_errno (EINVAL);
       }
 
     if (err)
       goto os_err;
-  
+
     /* Now set the protection. This must be done after the file is opened,
        so that the file can be created for writing but set to read only.
        RCS needs to do that.  However, ShareFS objects to having file
@@ -340,15 +342,15 @@ __fsopen (struct __unixlib_fd *file_desc, const char *filename, int mode)
       {
         mode &= ~(__u->umask & 0777);
         regs[5] = __set_protection (mode);
-  
+
         /* Write the object attributes.  */
-        if (__os_file (0x04, file, regs))
+        if (__os_file (OSFILE_WRITECATINFO_ATTR, file, regs))
           {
             /* Now try closing it first if that failed */
             __os_fclose(fd);
 
             regs[5] = __set_protection (mode);
-            if ((err = __os_file (0x04, file, regs)))
+            if ((err = __os_file (OSFILE_WRITECATINFO_ATTR, file, regs)))
               goto os_err;
 
             if ((err = __os_fopen(openmode, file, &fd)))
@@ -402,7 +404,7 @@ __fsclose (struct __unixlib_fd *file_desc)
   err = __os_fclose ((int) file_desc->handle);
   if (! err && buffer)
     {
-      err = __os_file (0x06, buffer, regs); /* Delete file.  */
+      err = __os_file (OSFILE_DELETENAMEDOBJECT, buffer, regs);
       /* Delete the suffix swap dir if it is now empty */
       __unlinksuffix (buffer); /* buffer is corrupted by this call */
     }
