@@ -14,7 +14,8 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Make; see the file COPYING.  If not, write to
-the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
+the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+Boston, MA 02111-1307, USA.  */
 
 #include "make.h"
 #include "dep.h"
@@ -22,6 +23,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include "job.h"
 #include "commands.h"
 #include "variable.h"
+#include "rule.h"
 #ifdef WINDOWS32
 #include "pathstuff.h"
 #endif
@@ -57,13 +59,14 @@ static struct variable *lookup_variable_in_set PARAMS ((char *name,
    that it should be recursively re-expanded.  */
 
 struct variable *
-define_variable_in_set (name, length, value, origin, recursive, set)
+define_variable_in_set (name, length, value, origin, recursive, set, flocp)
      char *name;
      unsigned int length;
      char *value;
      enum variable_origin origin;
      int recursive;
      struct variable_set *set;
+     const struct floc *flocp;
 {
   register unsigned int i;
   register unsigned int hashval;
@@ -76,7 +79,7 @@ define_variable_in_set (name, length, value, origin, recursive, set)
 
   for (v = set->table[hashval]; v != 0; v = v->next)
     if (*v->name == *name
-	&& !strncmp (v->name + 1, name + 1, length - 1)
+	&& strneq (v->name + 1, name + 1, length - 1)
 	&& v->name[length] == '\0')
       break;
 
@@ -97,7 +100,11 @@ define_variable_in_set (name, length, value, origin, recursive, set)
 	{
 	  if (v->value != 0)
 	    free (v->value);
-	  v->value = savestring (value, strlen (value));
+	  v->value = xstrdup (value);
+          if (flocp != 0)
+            v->fileinfo = *flocp;
+          else
+            v->fileinfo.filenm = 0;
 	  v->origin = origin;
 	  v->recursive = recursive;
 	}
@@ -108,50 +115,31 @@ define_variable_in_set (name, length, value, origin, recursive, set)
 
   v = (struct variable *) xmalloc (sizeof (struct variable));
   v->name = savestring (name, length);
-  v->value = savestring (value, strlen (value));
+  v->value = xstrdup (value);
+  if (flocp != 0)
+    v->fileinfo = *flocp;
+  else
+    v->fileinfo.filenm = 0;
   v->origin = origin;
   v->recursive = recursive;
   v->expanding = 0;
   v->per_target = 0;
+  v->append = 0;
   v->export = v_default;
   v->next = set->table[hashval];
   set->table[hashval] = v;
   return v;
 }
-
-/* Define a variable in the current variable set.  */
-
-struct variable *
-define_variable (name, length, value, origin, recursive)
-     char *name;
-     unsigned int length;
-     char *value;
-     enum variable_origin origin;
-     int recursive;
-{
-  return define_variable_in_set (name, length, value, origin, recursive,
-				 current_variable_set_list->set);
-}
-
-/* Define a variable in FILE's variable set.  */
-
-struct variable *
-define_variable_for_file (name, length, value, origin, recursive, file)
-     char *name;
-     unsigned int length;
-     char *value;
-     enum variable_origin origin;
-     int recursive;
-     struct file *file;
-{
-  return define_variable_in_set (name, length, value, origin, recursive,
-				 file->variables->set);
-}
 
 /* Lookup a variable whose name is a string starting at NAME
    and with LENGTH chars.  NAME need not be null-terminated.
    Returns address of the `struct variable' containing all info
-   on the variable, or nil if no such variable is defined.  */
+   on the variable, or nil if no such variable is defined.
+
+   If we find a variable which is in the process of being expanded,
+   try to find one further up the set_list chain.  If we don't find
+   one that isn't being expanded, return a pointer to whatever we
+   _did_ find.  */
 
 struct variable *
 lookup_variable (name, length)
@@ -159,6 +147,7 @@ lookup_variable (name, length)
      unsigned int length;
 {
   register struct variable_set_list *setlist;
+  struct variable *firstv = 0;
 
   register unsigned int i;
   register unsigned int rawhash = 0;
@@ -173,14 +162,87 @@ lookup_variable (name, length)
       register unsigned int hashval = rawhash % set->buckets;
       register struct variable *v;
 
+      /* Look through this set list.  */
       for (v = set->table[hashval]; v != 0; v = v->next)
 	if (*v->name == *name
-	    && !strncmp (v->name + 1, name + 1, length - 1)
-	    && v->name[length] == 0)
-	  return v;
+	    && strneq (v->name + 1, name + 1, length - 1)
+	    && v->name[length] == '\0')
+          break;
+
+      /* If we didn't find anything, go to the next set list.  */
+      if (!v)
+        continue;
+
+      /* If it's not being expanded already, we're done.  */
+      if (!v->expanding)
+        return v;
+
+      /* It is, so try to find another one.  If this is the first one we've
+         seen, keep a pointer in case we don't find anything else.  */
+      if (!firstv)
+        firstv = v;
     }
 
-  return 0;
+#ifdef VMS
+  /* since we don't read envp[] on startup, try to get the
+     variable via getenv() here.  */
+  if (!firstv)
+    {
+      char *vname = alloca (length + 1);
+      char *value;
+      strncpy (vname, name, length);
+      vname[length] = 0;
+      value = getenv (vname);
+      if (value != 0)
+	{
+	  char *sptr;
+	  int scnt;
+
+	  sptr = value;
+	  scnt = 0;
+
+          if (listp)
+            *listp = current_variable_set_list;
+
+	  while ((sptr = strchr (sptr, '$')))
+	    {
+	      scnt++;
+	      sptr++;
+	    }
+
+	  if (scnt > 0)
+	    {
+	      char *nvalue;
+	      char *nptr;
+
+	      nvalue = alloca (length + scnt + 1);
+	      sptr = value;
+	      nptr = nvalue;
+
+	      while (*sptr)
+		{
+		  if (*sptr == '$')
+		    {
+		      *nptr++ = '$';
+		      *nptr++ = '$';
+		    }
+		  else
+		    {
+		      *nptr++ = *sptr;
+		    }
+		  sptr++;
+		}
+
+	      return define_variable (vname, length, nvalue, o_env, 1);
+
+	    }
+
+	  return define_variable (vname, length, value, o_env, 1);
+	}
+    }
+#endif /* VMS */
+
+  return firstv;
 }
 
 /* Lookup a variable whose name is a string starting at NAME
@@ -204,7 +266,7 @@ lookup_variable_in_set (name, length, set)
 
   for (v = set->table[hash]; v != 0; v = v->next)
     if (*v->name == *name
-        && !strncmp (v->name + 1, name + 1, length - 1)
+        && strneq (v->name + 1, name + 1, length - 1)
         && v->name[length] == 0)
       return v;
 
@@ -213,13 +275,17 @@ lookup_variable_in_set (name, length, set)
 
 /* Initialize FILE's variable set list.  If FILE already has a variable set
    list, the topmost variable set is left intact, but the the rest of the
-   chain is replaced with FILE->parent's setlist.  */
+   chain is replaced with FILE->parent's setlist.  If we're READing a
+   makefile, don't do the pattern variable search now, since the pattern
+   variable might not have been defined yet.  */
 
 void
-initialize_file_variables (file)
+initialize_file_variables (file, reading)
      struct file *file;
+     int reading;
 {
   register struct variable_set_list *l = file->variables;
+
   if (l == 0)
     {
       l = (struct variable_set_list *)
@@ -237,9 +303,34 @@ initialize_file_variables (file)
     l->next = &global_setlist;
   else
     {
-      if (file->parent->variables == 0)
-	initialize_file_variables (file->parent);
+      initialize_file_variables (file->parent, reading);
       l->next = file->parent->variables;
+    }
+
+  /* If we're not reading makefiles and we haven't looked yet, see if
+     we can find a pattern variable.  */
+
+  if (!reading && !file->pat_searched)
+    {
+      struct pattern_var *p = lookup_pattern_var (file->name);
+
+      file->pat_searched = 1;
+      if (p != 0)
+        {
+          /* If we found one, insert it between the current target's
+             variables and the next set, whatever it is.  */
+          file->pat_variables = (struct variable_set_list *)
+            xmalloc (sizeof (struct variable_set_list));
+          file->pat_variables->set = p->vars->set;
+        }
+    }
+
+  /* If we have a pattern variable match, set it up.  */
+
+  if (file->pat_variables != 0)
+    {
+      file->pat_variables->next = l->next;
+      l->next = file->pat_variables;
     }
 }
 
@@ -265,6 +356,8 @@ pop_variable_scope ()
 	  next = v->next;
 
 	  free (v->name);
+	  if (v->value)
+	    free (v->value);
 	  free ((char *) v);
 	}
     }
@@ -443,7 +536,7 @@ define_automatic_variables ()
     {
       free (v->value);
       v->origin = o_file;
-      v->value = savestring (default_shell, strlen (default_shell));
+      v->value = xstrdup (default_shell);
     }
 #endif
 
@@ -454,6 +547,15 @@ define_automatic_variables ()
   /* Define the magic D and F variables in terms of
      the automatic variables they are variations of.  */
 
+#ifdef VMS
+  define_variable ("@D", 2, "$(dir $@)", o_automatic, 1);
+  define_variable ("%D", 2, "$(dir $%)", o_automatic, 1);
+  define_variable ("*D", 2, "$(dir $*)", o_automatic, 1);
+  define_variable ("<D", 2, "$(dir $<)", o_automatic, 1);
+  define_variable ("?D", 2, "$(dir $?)", o_automatic, 1);
+  define_variable ("^D", 2, "$(dir $^)", o_automatic, 1);
+  define_variable ("+D", 2, "$(dir $+)", o_automatic, 1);
+#else
   define_variable ("@D", 2, "$(patsubst %/,%,$(dir $@))", o_automatic, 1);
   define_variable ("%D", 2, "$(patsubst %/,%,$(dir $%))", o_automatic, 1);
   define_variable ("*D", 2, "$(patsubst %/,%,$(dir $*))", o_automatic, 1);
@@ -461,6 +563,7 @@ define_automatic_variables ()
   define_variable ("?D", 2, "$(patsubst %/,%,$(dir $?))", o_automatic, 1);
   define_variable ("^D", 2, "$(patsubst %/,%,$(dir $^))", o_automatic, 1);
   define_variable ("+D", 2, "$(patsubst %/,%,$(dir $+))", o_automatic, 1);
+#endif
   define_variable ("@F", 2, "$(notdir $@)", o_automatic, 1);
   define_variable ("%F", 2, "$(notdir $%)", o_automatic, 1);
   define_variable ("*F", 2, "$(notdir $*)", o_automatic, 1);
@@ -676,11 +779,11 @@ target_environment (file)
    returned.  */
 
 struct variable *
-try_variable_definition (filename, lineno, line, origin)
-     char *filename;
-     unsigned int lineno;
+try_variable_definition (flocp, line, origin, target_var)
+     const struct floc *flocp;
      char *line;
      enum variable_origin origin;
+     int target_var;
 {
   register int c;
   register char *p = line;
@@ -688,8 +791,9 @@ try_variable_definition (filename, lineno, line, origin)
   register char *end;
   enum { f_bogus,
          f_simple, f_recursive, f_append, f_conditional } flavor = f_bogus;
-  char *name, *expanded_name, *value;
+  char *name, *expanded_name, *value, *alloc_value=NULL;
   struct variable *v;
+  int append = 0;
 
   while (1)
     {
@@ -755,7 +859,7 @@ try_variable_definition (filename, lineno, line, origin)
     }
 
   beg = next_token (line);
-  while (end > beg && isblank (end[-1]))
+  while (end > beg && isblank ((unsigned char)end[-1]))
     --end;
   p = next_token (p);
 
@@ -766,7 +870,7 @@ try_variable_definition (filename, lineno, line, origin)
   expanded_name = allocated_variable_expand (name);
 
   if (expanded_name[0] == '\0')
-    makefile_fatal (filename, lineno, "empty variable name");
+    fatal (flocp, _("empty variable name"));
 
   /* Calculate the variable's new value in VALUE.  */
 
@@ -776,8 +880,11 @@ try_variable_definition (filename, lineno, line, origin)
       /* Should not be possible.  */
       abort ();
     case f_simple:
-      /* A simple variable definition "var := value".  Expand the value.  */
-      value = variable_expand (p);
+      /* A simple variable definition "var := value".  Expand the value.
+         We have to allocate memory since otherwise it'll clobber the
+	 variable buffer, and we may still need that if we're looking at a
+         target-specific variable.  */
+      value = alloc_value = allocated_variable_expand (p);
       break;
     case f_conditional:
       /* A conditional variable definition "var ?= value".
@@ -788,6 +895,7 @@ try_variable_definition (filename, lineno, line, origin)
           free(expanded_name);
           return v;
         }
+      flavor = f_recursive;
       /* FALLTHROUGH */
     case f_recursive:
       /* A recursive variable definition "var = value".
@@ -795,6 +903,16 @@ try_variable_definition (filename, lineno, line, origin)
       value = p;
       break;
     case f_append:
+      /* If we have += but we're in a target variable context, defer the
+         append until the context expansion.  */
+      if (target_var)
+        {
+          append = 1;
+          flavor = f_recursive;
+          value = p;
+          break;
+        }
+
       /* An appending variable definition "var += value".
 	 Extract the old value and append the new one.  */
       v = lookup_variable (expanded_name, strlen (expanded_name));
@@ -818,8 +936,10 @@ try_variable_definition (filename, lineno, line, origin)
 	  else
 	    /* The previous definition of the variable was simple.
 	       The new value comes from the old value, which was expanded
-	       when it was set; and from the expanded new value.  */
-	    p = variable_expand (p);
+	       when it was set; and from the expanded new value.  Allocate
+               memory for the expansion as we may still need the rest of the
+               buffer if we're looking at a target-specific variable.  */
+	    p = alloc_value = allocated_variable_expand (p);
 
 	  oldlen = strlen (v->value);
 	  newlen = strlen (p);
@@ -844,7 +964,7 @@ try_variable_definition (filename, lineno, line, origin)
      you have bash.exe installed as d:/unix/bash.exe, and d:/unix is on
      your $PATH, then SHELL=/usr/local/bin/bash will have the effect of
      defining SHELL to be "d:/unix/bash.exe".  */
-  if (origin == o_file
+  if ((origin == o_file || origin == o_override)
       && strcmp (expanded_name, "SHELL") == 0)
     {
       char shellpath[PATH_MAX];
@@ -860,8 +980,9 @@ try_variable_definition (filename, lineno, line, origin)
 	      if (*p == '\\')
 		*p = '/';
 	    }
-	  v = define_variable (expanded_name, strlen (expanded_name),
-			       shellpath, origin, flavor == f_recursive);
+	  v = define_variable_loc (expanded_name, strlen (expanded_name),
+                                   shellpath, origin, flavor == f_recursive,
+                                   flocp);
 	}
       else
 	{
@@ -871,8 +992,8 @@ try_variable_definition (filename, lineno, line, origin)
 	  char *fake_env[2];
 	  size_t pathlen = 0;
 
-	  shellbase = rindex (value, '/');
-	  bslash = rindex (value, '\\');
+	  shellbase = strrchr (value, '/');
+	  bslash = strrchr (value, '\\');
 	  if (!shellbase || bslash > shellbase)
 	    shellbase = bslash;
 	  if (!shellbase && value[1] == ':')
@@ -900,8 +1021,9 @@ try_variable_definition (filename, lineno, line, origin)
 		  if (*p == '\\')
 		    *p = '/';
 		}
-	      v = define_variable (expanded_name, strlen (expanded_name),
-				   shellpath, origin, flavor == f_recursive);
+	      v = define_variable_loc (expanded_name, strlen (expanded_name),
+                                       shellpath, origin,
+                                       flavor == f_recursive, flocp);
 	    }
 	  else
 	    v = lookup_variable (expanded_name, strlen (expanded_name));
@@ -912,7 +1034,7 @@ try_variable_definition (filename, lineno, line, origin)
   else
 #endif /* __MSDOS__ */
 #ifdef WINDOWS32
-  if (origin == o_file
+  if ((origin == o_file || origin == o_override)
       && strcmp (expanded_name, "SHELL") == 0) {
     extern char* default_shell;
 
@@ -922,16 +1044,21 @@ try_variable_definition (filename, lineno, line, origin)
      * set new value for SHELL variable.
 	 */
     if (find_and_set_default_shell(value)) {
-       v = define_variable (expanded_name, strlen (expanded_name),
-                            default_shell, origin, flavor == f_recursive);
+       v = define_variable_loc (expanded_name, strlen (expanded_name),
+                                default_shell, origin, flavor == f_recursive,
+                                flocp);
        no_default_sh_exe = 0;
     }
   } else
 #endif
 
-  v = define_variable (expanded_name, strlen (expanded_name),
-		       value, origin, flavor == f_recursive);
+  v = define_variable_loc (expanded_name, strlen (expanded_name), value,
+                           origin, flavor == f_recursive, flocp);
 
+  v->append = append;
+
+  if (alloc_value)
+    free (alloc_value);
   free (expanded_name);
 
   return v;
@@ -944,48 +1071,50 @@ print_variable (v, prefix)
      register struct variable *v;
      char *prefix;
 {
-  char *origin;
+  const char *origin;
 
   switch (v->origin)
     {
     case o_default:
-      origin = "default";
+      origin = _("default");
       break;
     case o_env:
-      origin = "environment";
+      origin = _("environment");
       break;
     case o_file:
-      origin = "makefile";
+      origin = _("makefile");
       break;
     case o_env_override:
-      origin = "environment under -e";
+      origin = _("environment under -e");
       break;
     case o_command:
-      origin = "command line";
+      origin = _("command line");
       break;
     case o_override:
-      origin = "`override' directive";
+      origin = _("`override' directive");
       break;
     case o_automatic:
-      origin = "automatic";
+      origin = _("automatic");
       break;
     case o_invalid:
     default:
       abort ();
-      break;
     }
-  printf ("# %s\n", origin);
-
+  fputs ("# ", stdout);
+  fputs (origin, stdout);
+  if (v->fileinfo.filenm)
+    printf (" (from `%s', line %lu)", v->fileinfo.filenm, v->fileinfo.lineno);
+  putchar ('\n');
   fputs (prefix, stdout);
 
   /* Is this a `define'?  */
-  if (v->recursive && index (v->value, '\n') != 0)
+  if (v->recursive && strchr (v->value, '\n') != 0)
     printf ("define %s\n%s\nendef\n", v->name, v->value);
   else
     {
       register char *p;
 
-      printf ("%s %s= ", v->name, v->recursive ? "" : ":");
+      printf ("%s %s= ", v->name, v->recursive ? v->append ? "+" : "" : ":");
 
       /* Check if the value is just whitespace.  */
       p = next_token (v->value);
@@ -1035,21 +1164,21 @@ print_variable_set (set, prefix)
     }
 
   if (nvariables == 0)
-    puts ("# No variables.");
+    puts (_("# No variables."));
   else
     {
-      printf ("# %u variables in %u hash buckets.\n",
+      printf (_("# %u variables in %u hash buckets.\n"),
 	      nvariables, set->buckets);
 #ifndef	NO_FLOAT
-      printf ("# average of %.1f variables per bucket, \
-max %u in one bucket.\n",
+      printf (_("# average of %.1f variables per bucket, \
+max %u in one bucket.\n"),
 	      (double) nvariables / (double) set->buckets,
 	      per_bucket);
 #else
       {
 	int f = (nvariables * 1000 + 5) / set->buckets;
-	printf ("# average of %d.%d variables per bucket, \
-max %u in one bucket.\n",
+	printf (_("# average of %d.%d variables per bucket, \
+max %u in one bucket.\n"),
 	      f/10, f%10,
 	      per_bucket);
       }
@@ -1063,7 +1192,7 @@ max %u in one bucket.\n",
 void
 print_variable_data_base ()
 {
-  puts ("\n# Variables\n");
+  puts (_("\n# Variables\n"));
 
   print_variable_set (&global_variable_set, "");
 }

@@ -19,26 +19,30 @@ int Path::isRelativePath(const BString &a_path)
   // user root directory
   if (a_path.suchen("~") != -1)
     return 0;
-
+  
   // library directory
   if (a_path.suchen("/usr/lib") != -1)
     return 0;
 #else
- // is a filing system given?
- if(a_path.suchen(":") != -1)
- 	return 0;
-
- // root directory
- if(a_path.suchen("$") != -1)
- 	return 0;
-
- // user root directory
- if(a_path.suchen("&") != -1)
- 	return 0;
-
- // library directory
- if(a_path.suchen("%") != -1)
- 	return 0;
+  // is a filing system given?
+  if(a_path.suchen(":") != -1)
+    return 0;
+  
+  // root directory
+  if(a_path.suchen("$") != -1)
+    return 0;
+  
+  // user root directory
+  if(a_path.suchen("&") != -1)
+    return 0;
+  
+  // library directory
+  if(a_path.suchen("%") != -1)
+    return 0;
+  
+  // current directory
+  if(a_path.suchen("@") != -1)
+    return 0;
 #endif
 
  return 1;
@@ -118,28 +122,32 @@ int Path::getNextFile(const BString &a_wildName, BString &a_fileName, int &a_sta
  int regs[7];
  char buffer[1000];
 
- regs[0] = 10;
- regs[1] = (int) path();
- regs[2] = (int) buffer;
- regs[3] = 1;
- regs[4] = a_start;
- regs[5] = 1000;
- regs[6] = (int) file();
+ do
+   {
+     regs[0] = 10;
+     regs[1] = (int) path();
+     regs[2] = (int) buffer;
+     regs[3] = 1;
+     regs[4] = a_start;
+     regs[5] = 1000;
+     regs[6] = (int) file();
 
- // See PRMs
- OS_GBPB(regs);
+     // See PRMs
+     OS_GBPB(regs);
 
- a_start = regs[4];
- int type = *((int *) (buffer + 16));
+     a_start = regs[4];
+   } while (a_start != -1 && regs[3] == 0);
+
  if(a_start == -1)
- 	return 0;
+   return 0;
 
- BString full = BString(buffer + 20);
+ int type = *((int *) (buffer + 16));
+  BString full = BString(buffer + 20);
  if(path == "")
- 	a_fileName = full;
+   a_fileName = full;
  else
-	 a_fileName = path + DIRECTORY_SEPERATOR + full;
-
+   a_fileName = path + DIRECTORY_SEPERATOR + full;
+ 
  return type;
 }
 #endif

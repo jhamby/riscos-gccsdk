@@ -1,22 +1,22 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/unix/c/mkdir,v $
- * $Date: 2000/06/10 12:59:43 $
- * $Revision: 1.11 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/mkdir.c,v $
+ * $Date: 2001/09/04 16:32:04 $
+ * $Revision: 1.2.2.1 $
  * $State: Exp $
  * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: mkdir,v 1.11 2000/06/10 12:59:43 admin Exp $";
+static const char rcs_id[] = "$Id: mkdir.c,v 1.2.2.1 2001/09/04 16:32:04 admin Exp $";
 #endif
 
 #include <errno.h>
 #include <limits.h>
 #include <unistd.h>
 
-#include <sys/os.h>
+#include <unixlib/os.h>
 #include <sys/stat.h>
 
 #include <unixlib/local.h>
@@ -39,13 +39,13 @@ mkdir (const char *ux_path, __mode_t mode)
     return __set_errno (ENOTDIR);
 
   /* Fail if the directory already exists.  */
-  if (os_file (OSFILE_READCATINFO_NOPATH, path, regs) == NULL
+  if (__os_file (OSFILE_READCATINFO_NOPATH, path, regs) == NULL
       && regs[0] != 0)
     return __set_errno (EEXIST);
 
   /* Create the directory, with default number of entries per directory.  */
   regs[4] = 0;
-  err = os_file (8, path, regs);
+  err = __os_file (8, path, regs);
   if (err)
     {
       __seterr (err);
@@ -54,7 +54,7 @@ mkdir (const char *ux_path, __mode_t mode)
 
   /* Set the file access permission bits.  */
   regs[5] = __set_protection (mode);
-  err = os_file (4, path, regs);
+  err = __os_file (4, path, regs);
   if (err)
     {
       __seterr (err);

@@ -1,8 +1,8 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/common/c/unixify,v $
- * $Date: 2000/07/03 11:20:10 $
- * $Revision: 1.7 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/common/unixify.c,v $
+ * $Date: 2001/08/16 09:08:25 $
+ * $Revision: 1.2.2.1 $
  * $State: Exp $
  * $Author: admin $
  *
@@ -42,6 +42,12 @@ __unixify (const char *ro_path, int unixify_flags, char *buffer,
   if (buffer == NULL)
     {
       buf_len = strlen (ro_path) + 2;
+
+      /* Allow for the ,xyz filetype extension.  */
+      if ((unixify_flags & __RISCOSIFY_FILETYPE_EXT) != 0
+          && filetype != __RISCOSIFY_FILETYPE_NOTSPECIFIED)
+        buf_len += 4;
+      
       if ((buffer = malloc (buf_len)) == NULL)
 	return NULL;
     }

@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/signal/c/sigprocmsk,v $
- * $Date: 2000/06/03 14:46:10 $
- * $Revision: 1.11 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/signal/sigprocmsk.c,v $
+ * $Date: 2001/09/04 16:32:04 $
+ * $Revision: 1.2.2.1 $
  * $State: Exp $
  * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: sigprocmsk,v 1.11 2000/06/03 14:46:10 admin Exp $";
+static const char rcs_id[] = "$Id: sigprocmsk.c,v 1.2.2.1 2001/09/04 16:32:04 admin Exp $";
 #endif
 
 /* signal.c.sigprocmsk: Implementation of the POSIX signal function
@@ -19,12 +19,12 @@ static const char rcs_id[] = "$Id: sigprocmsk,v 1.11 2000/06/03 14:46:10 admin E
 
 #include <errno.h>
 #include <signal.h>
-#include <sys/unix.h>
+#include <unixlib/unix.h>
 
 /* #define DEBUG */
 
 #ifdef DEBUG
-#include <sys/os.h>
+#include <unixlib/os.h>
 #endif
 
 /* If SET is not NULL, modify the current set of blocked signals
@@ -56,13 +56,13 @@ sigprocmask (int how, const sigset_t * nset, sigset_t * oset)
   mask = (unsigned int) set;
 
 #ifdef DEBUG
-  os_print ("sigprocmask: how = "); os_prdec (how);
-  os_print (", mask = "); os_prhex (mask); os_print ("\r\n");
+  __os_print ("sigprocmask: how = "); __os_prdec (how);
+  __os_print (", mask = "); __os_prhex (mask); __os_print ("\r\n");
 #endif
   if (how == SIG_BLOCK)
     {
 #ifdef DEBUG
-      os_print ("sigprocmask: SIG_BLOCK\r\n");
+      __os_print ("sigprocmask: SIG_BLOCK\r\n");
 #endif
       /* This will always block more signals,
          so we don't have to worry about delivering
@@ -72,7 +72,7 @@ sigprocmask (int how, const sigset_t * nset, sigset_t * oset)
   else if (how == SIG_UNBLOCK)
     {
 #ifdef DEBUG
-      os_print ("sigprocmask: SIG_UNBLOCK\r\n");
+      __os_print ("sigprocmask: SIG_UNBLOCK\r\n");
 #endif
       __u->sigstate.blocked &= ~mask;
       /* Cause delivery of some pending signals.  */
@@ -81,7 +81,7 @@ sigprocmask (int how, const sigset_t * nset, sigset_t * oset)
   else if (how == SIG_SETMASK)
     {
 #ifdef DEBUG
-      os_print ("sigprocmask: SIG_SETMASK\r\n");
+      __os_print ("sigprocmask: SIG_SETMASK\r\n");
 #endif
       __u->sigstate.blocked = mask;
       /* The new mask might have unblocked a few signals so try and
@@ -91,7 +91,7 @@ sigprocmask (int how, const sigset_t * nset, sigset_t * oset)
   else
     {
 #ifdef DEBUG
-      os_print ("sigprocmask: invalid\r\n");
+      __os_print ("sigprocmask: invalid\r\n");
 #endif
       return __set_errno (EINVAL);
     }

@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/signal/c/sigpending,v $
- * $Date: 1997/10/09 20:00:30 $
- * $Revision: 1.6 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/signal/sigpending.c,v $
+ * $Date: 2001/09/04 16:32:04 $
+ * $Revision: 1.2.2.1 $
  * $State: Exp $
- * $Author: unixlib $
+ * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: sigpending,v 1.6 1997/10/09 20:00:30 unixlib Exp $";
+static const char rcs_id[] = "$Id: sigpending.c,v 1.2.2.1 2001/09/04 16:32:04 admin Exp $";
 #endif
 
 /* signal.c.sigpending.
@@ -18,7 +18,7 @@ static const char rcs_id[] = "$Id: sigpending,v 1.6 1997/10/09 20:00:30 unixlib 
 #include <errno.h>
 #include <stddef.h>
 #include <signal.h>
-#include <sys/unix.h>
+#include <unixlib/unix.h>
 
 int
 sigpending (sigset_t * set)

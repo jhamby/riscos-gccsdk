@@ -1,8 +1,8 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/clib/h/stdint,v $
- * $Date: 2000/01/12 16:55:06 $
- * $Revision: 1.1 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/stdint.h,v $
+ * $Date: 2002/02/07 10:19:30 $
+ * $Revision: 1.2.2.2 $
  * $State: Exp $
  * $Author: admin $
  *
@@ -10,10 +10,6 @@
 
 #ifndef __STDINT_H
 #define __STDINT_H 1
-
-#ifndef __STDDEF_H
-#include <stddef.h>
-#endif
 
 /* Exact integral types.  */
 
@@ -24,14 +20,16 @@
 typedef signed char int8_t;
 typedef short int int16_t;
 typedef int int32_t;
+__extension__
 typedef long long int int64_t;
-#endif
 
 /* Unsigned.  */
 typedef unsigned char uint8_t;
 typedef unsigned short int uint16_t;
 typedef unsigned int uint32_t;
+__extension__
 typedef unsigned long long int uint64_t;
+#endif
 
 
 /* Small types.  */
@@ -40,12 +38,14 @@ typedef unsigned long long int uint64_t;
 typedef signed char int_least8_t;
 typedef short int int_least16_t;
 typedef int int_least32_t;
+__extension__
 typedef long long int int_least64_t;
 
 /* Unsigned.  */
 typedef unsigned char uint_least8_t;
 typedef unsigned short int uint_least16_t;
 typedef unsigned int uint_least32_t;
+__extension__
 typedef unsigned long long int uint_least64_t;
 
 
@@ -55,26 +55,30 @@ typedef unsigned long long int uint_least64_t;
 typedef signed char int_fast8_t;
 typedef int int_fast16_t;
 typedef int int_fast32_t;
+__extension__
 typedef long long int int_fast64_t;
 
 /* Unsigned.  */
 typedef unsigned char uint_fast8_t;
 typedef unsigned int uint_fast16_t;
 typedef unsigned int uint_fast32_t;
+__extension__
 typedef unsigned long long int uint_fast64_t;
 
 
 /* Types for `void *' pointers.  */
-#ifndef intptr_t
+#ifndef __intptr_t_defined
+#define __intptr_t_defined
 typedef int intptr_t;
-#define intptr_t intptr_t
-#endif
 typedef unsigned int uintptr_t;
+#endif
 
 
 #ifdef __GNUC__
 /* Largest integral types.  */
+__extension__
 typedef long long int intmax_t;
+__extension__
 typedef unsigned long long int uintmax_t;
 #else
 /* Largest integral types.  */

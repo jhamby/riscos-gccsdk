@@ -14,10 +14,44 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Make; see the file COPYING.  If not, write to
-the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
+the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+Boston, MA 02111-1307, USA.  */
 
 #include "make.h"
 #include "dep.h"
+#include "debug.h"
+
+/* Variadic functions.  We go through contortions to allow proper function
+   prototypes for both ANSI and pre-ANSI C compilers, and also for those
+   which support stdarg.h vs. varargs.h, and finally those which have
+   vfprintf(), etc. and those who have _doprnt... or nothing.
+
+   This fancy stuff all came from GNU fileutils, except for the VA_PRINTF and
+   VA_END macros used here since we have multiple print functions.  */
+
+#if HAVE_VPRINTF || HAVE_DOPRNT
+# define HAVE_STDVARARGS 1
+# if __STDC__
+#  include <stdarg.h>
+#  define VA_START(args, lastarg) va_start(args, lastarg)
+# else
+#  include <varargs.h>
+#  define VA_START(args, lastarg) va_start(args)
+# endif
+# if HAVE_VPRINTF
+#  define VA_PRINTF(fp, lastarg, args) vfprintf((fp), (lastarg), (args))
+# else
+#  define VA_PRINTF(fp, lastarg, args) _doprnt((lastarg), (args), (fp))
+# endif
+# define VA_END(args) va_end(args)
+#else
+/* # undef HAVE_STDVARARGS */
+# define va_alist a1, a2, a3, a4, a5, a6, a7, a8
+# define va_dcl char *a1, *a2, *a3, *a4, *a5, *a6, *a7, *a8;
+# define VA_START(args, lastarg)
+# define VA_PRINTF(fp, lastarg, args) fprintf((fp), (lastarg), va_alist)
+# define VA_END(args)
+#endif
 
 
 /* Compare strings *S1 and *S2.
@@ -25,12 +59,15 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
    zero if they are equal.  */
 
 int
-alpha_compare (s1, s2)
-     char **s1, **s2;
+alpha_compare (v1, v2)
+     const void *v1, *v2;
 {
-  if (**s1 != **s2)
-    return **s1 - **s2;
-  return strcmp (*s1, *s2);
+  const char *s1 = *((char **)v1);
+  const char *s2 = *((char **)v2);
+
+  if (*s1 != *s2)
+    return *s1 - *s2;
+  return strcmp (s1, s2);
 }
 
 /* Discard each backslash-newline combination from LINE.
@@ -45,7 +82,7 @@ collapse_continuations (line)
   register int backslash;
   register unsigned int bs_write;
 
-  in = index (line, '\n');
+  in = strchr (line, '\n');
   if (in == 0)
     return;
 
@@ -84,7 +121,7 @@ collapse_continuations (line)
       if (backslash)
 	{
 	  in = next_token (in);
-	  while (out > line && isblank (out[-1]))
+	  while (out > line && isblank ((unsigned char)out[-1]))
 	    --out;
 	  *out++ = ' ';
 	}
@@ -132,7 +169,7 @@ remove_comments (line)
     *comment = '\0';
 }
 
-/* Print N spaces (used by DEBUGPR for target-depth).  */
+/* Print N spaces (used in debug for target-depth).  */
 
 void
 print_spaces (n)
@@ -173,13 +210,22 @@ concat (s1, s2, s3)
 /* Print a message on stdout.  */
 
 void
-message (prefix, s1, s2, s3, s4, s5, s6)
+#if __STDC__ && HAVE_STDVARARGS
+message (int prefix, const char *fmt, ...)
+#else
+message (prefix, fmt, va_alist)
      int prefix;
-     char *s1, *s2, *s3, *s4, *s5, *s6;
+     const char *fmt;
+     va_dcl
+#endif
 {
+#if HAVE_STDVARARGS
+  va_list args;
+#endif
+
   log_working_directory (1);
 
-  if (s1 != 0)
+  if (fmt != 0)
     {
       if (prefix)
 	{
@@ -188,79 +234,78 @@ message (prefix, s1, s2, s3, s4, s5, s6)
 	  else
 	    printf ("%s[%u]: ", program, makelevel);
 	}
-      printf (s1, s2, s3, s4, s5, s6);
+      VA_START (args, fmt);
+      VA_PRINTF (stdout, fmt, args);
+      VA_END (args);
       putchar ('\n');
     }
 
   fflush (stdout);
 }
 
-/* Print an error message and exit.  */
-
-/* VARARGS1 */
-void
-fatal (s1, s2, s3, s4, s5, s6)
-     char *s1, *s2, *s3, *s4, *s5, *s6;
-{
-  log_working_directory (1);
-
-  if (makelevel == 0)
-    fprintf (stderr, "%s: *** ", program);
-  else
-    fprintf (stderr, "%s[%u]: *** ", program, makelevel);
-  fprintf (stderr, s1, s2, s3, s4, s5, s6);
-  fputs (".  Stop.\n", stderr);
-
-  die (2);
-}
-
-/* Print error message.  `s1' is printf control string, `s2' is arg for it. */
-
-/* VARARGS1 */
+/* Print an error message.  */
 
 void
-error (s1, s2, s3, s4, s5, s6)
-     char *s1, *s2, *s3, *s4, *s5, *s6;
+#if __STDC__ && HAVE_STDVARARGS
+error (const struct floc *flocp, const char *fmt, ...)
+#else
+error (flocp, fmt, va_alist)
+     const struct floc *flocp;
+     const char *fmt;
+     va_dcl
+#endif
 {
+#if HAVE_STDVARARGS
+  va_list args;
+#endif
+
   log_working_directory (1);
 
-  if (makelevel == 0)
+  if (flocp && flocp->filenm)
+    fprintf (stderr, "%s:%lu: ", flocp->filenm, flocp->lineno);
+  else if (makelevel == 0)
     fprintf (stderr, "%s: ", program);
   else
     fprintf (stderr, "%s[%u]: ", program, makelevel);
-  fprintf (stderr, s1, s2, s3, s4, s5, s6);
+
+  VA_START(args, fmt);
+  VA_PRINTF (stderr, fmt, args);
+  VA_END (args);
+
   putc ('\n', stderr);
   fflush (stderr);
 }
 
-void
-makefile_error (file, lineno, s1, s2, s3, s4, s5, s6)
-     char *file;
-     unsigned int lineno;
-     char *s1, *s2, *s3, *s4, *s5, *s6;
-{
-  log_working_directory (1);
-
-  fprintf (stderr, "%s:%u: ", file, lineno);
-  fprintf (stderr, s1, s2, s3, s4, s5, s6);
-  putc ('\n', stderr);
-  fflush (stderr);
-}
+/* Print an error message and exit.  */
 
 void
-makefile_fatal (file, lineno, s1, s2, s3, s4, s5, s6)
-     char *file;
-     unsigned int lineno;
-     char *s1, *s2, *s3, *s4, *s5, *s6;
+#if __STDC__ && HAVE_STDVARARGS
+fatal (const struct floc *flocp, const char *fmt, ...)
+#else
+fatal (flocp, fmt, va_alist)
+     const struct floc *flocp;
+     const char *fmt;
+     va_dcl
+#endif
 {
-  if (!file)
-    fatal(s1, s2, s3, s4, s5, s6);
+#if HAVE_STDVARARGS
+  va_list args;
+#endif
 
   log_working_directory (1);
 
-  fprintf (stderr, "%s:%u: *** ", file, lineno);
-  fprintf (stderr, s1, s2, s3, s4, s5, s6);
-  fputs (".  Stop.\n", stderr);
+  if (flocp && flocp->filenm)
+    fprintf (stderr, "%s:%lu: *** ", flocp->filenm, flocp->lineno);
+  else if (makelevel == 0)
+    fprintf (stderr, "%s: *** ", program);
+  else
+    fprintf (stderr, "%s[%u]: *** ", program, makelevel);
+
+  VA_START(args, fmt);
+  VA_PRINTF (stderr, fmt, args);
+  VA_END (args);
+
+  fputs (_(".  Stop.\n"), stderr);
 
   die (2);
 }
@@ -282,7 +327,7 @@ strerror (errnum)
   if (errno < sys_nerr)
     return sys_errlist[errnum];
 
-  sprintf (buf, "Unknown error %d", errnum);
+  sprintf (buf, _("Unknown error %d"), errnum);
   return buf;
 }
 #endif
@@ -293,7 +338,7 @@ void
 perror_with_name (str, name)
      char *str, *name;
 {
-  error ("%s%s: %s", str, name, strerror (errno));
+  error (NILF, "%s%s: %s", str, name, strerror (errno));
 }
 
 /* Print an error message from errno and exit.  */
@@ -302,15 +347,19 @@ void
 pfatal_with_name (name)
      char *name;
 {
-  fatal ("%s: %s", name, strerror (errno));
+  fatal (NILF, "%s: %s", name, strerror (errno));
 
   /* NOTREACHED */
 }
 
 /* Like malloc but get fatal error if memory is exhausted.  */
+/* Don't bother if we're using dmalloc; it provides these for us.  */
+
+#ifndef HAVE_DMALLOC_H
 
 #undef xmalloc
 #undef xrealloc
+#undef xstrdup
 
 char *
 xmalloc (size)
@@ -318,7 +367,7 @@ xmalloc (size)
 {
   char *result = (char *) malloc (size);
   if (result == 0)
-    fatal ("virtual memory exhausted");
+    fatal (NILF, _("virtual memory exhausted"));
   return result;
 }
 
@@ -328,15 +377,43 @@ xrealloc (ptr, size)
      char *ptr;
      unsigned int size;
 {
-  char *result = (char *) realloc (ptr, size);
+  char *result;
+
+  /* Some older implementations of realloc() don't conform to ANSI.  */
+  result = ptr ? realloc (ptr, size) : malloc (size);
   if (result == 0)
-    fatal ("virtual memory exhausted");
+    fatal (NILF, _("virtual memory exhausted"));
   return result;
 }
 
+
+char *
+xstrdup (ptr)
+     const char *ptr;
+{
+  char *result;
+
+#ifdef HAVE_STRDUP
+  result = strdup (ptr);
+#else
+  result = (char *) malloc (strlen (ptr) + 1);
+#endif
+
+  if (result == 0)
+    fatal (NILF, _("virtual memory exhausted"));
+
+#ifdef HAVE_STRDUP
+  return result;
+#else
+  return strcpy(result, ptr);
+#endif
+}
+
+#endif  /* HAVE_DMALLOC_H */
+
 char *
 savestring (str, length)
-     char *str;
+     const char *str;
      unsigned int length;
 {
   register char *out = (char *) xmalloc (length + 1);
@@ -352,21 +429,28 @@ savestring (str, length)
 
 char *
 sindex (big, blen, small, slen)
-     char *big;
+     const char *big;
      unsigned int blen;
-     char *small;
+     const char *small;
      unsigned int slen;
 {
-  register unsigned int b;
-
-  if (blen < 1)
+  if (!blen)
     blen = strlen (big);
-  if (slen < 1)
+  if (!slen)
     slen = strlen (small);
 
-  for (b = 0; b < blen; ++b)
-    if (big[b] == *small && !strncmp (&big[b + 1], small + 1, slen - 1))
-      return (&big[b]);
+  if (slen && blen >= slen)
+    {
+      register unsigned int b;
+
+      /* Quit when there's not enough room left for the small string.  */
+      --slen;
+      blen -= slen;
+
+      for (b = 0; b < blen; ++b, ++big)
+        if (*big == *small && strneq (big + 1, small + 1, slen))
+          return (char *)big;
+    }
 
   return 0;
 }
@@ -379,12 +463,12 @@ sindex (big, blen, small, slen)
 
 char *
 lindex (s, limit, c)
-     register char *s, *limit;
+     register const char *s, *limit;
      int c;
 {
   while (s < limit)
     if (*s++ == c)
-      return s - 1;
+      return (char *)(s - 1);
 
   return 0;
 }
@@ -395,7 +479,7 @@ char *
 end_of_token (s)
      char *s;
 {
-  while (*s != '\0' && !isblank (*s))
+  while (*s != '\0' && !isblank ((unsigned char)*s))
     ++s;
   return s;
 }
@@ -412,7 +496,8 @@ end_of_token_w32 (s, stopchar)
   register char *p = s;
   register int backslash = 0;
 
-  while (*p != '\0' && *p != stopchar && (backslash || !isblank (*p)))
+  while (*p != '\0' && *p != stopchar
+	 && (backslash || !isblank ((unsigned char)*p)))
     {
       if (*p++ == '\\')
         {
@@ -439,7 +524,7 @@ next_token (s)
 {
   register char *p = s;
 
-  while (isblank (*p))
+  while (isblank ((unsigned char)*p))
     ++p;
   return p;
 }
@@ -480,7 +565,7 @@ copy_dep_chain (d)
       c = (struct dep *) xmalloc (sizeof (struct dep));
       bcopy ((char *) d, (char *) c, sizeof (struct dep));
       if (c->name != 0)
-	c->name = savestring (c->name, strlen (c->name));
+	c->name = xstrdup (c->name);
       c->next = 0;
       if (firstnew == 0)
 	firstnew = lastnew = c;
@@ -560,14 +645,14 @@ static void
 log_access (flavor)
      char *flavor;
 {
-  if (! debug_flag)
+  if (! ISDB (DB_JOBS))
     return;
 
   /* All the other debugging messages go to stdout,
      but we write this one to stderr because it might be
      run in a child fork whose stdout is piped.  */
 
-  fprintf (stderr, "%s access: user %lu (real %lu), group %lu (real %lu)\n",
+  fprintf (stderr, _("%s access: user %lu (real %lu), group %lu (real %lu)\n"),
 	   flavor, (unsigned long) geteuid (), (unsigned long) getuid (),
            (unsigned long) getegid (), (unsigned long) getgid ());
   fflush (stderr);
@@ -588,7 +673,7 @@ init_access ()
   if (user_uid == -1 || user_gid == -1 || make_uid == -1 || make_gid == -1)
     pfatal_with_name ("get{e}[gu]id");
 
-  log_access ("Initialized");
+  log_access (_("Initialized"));
 
   current_access = make;
 #endif

@@ -1,8 +1,8 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/clib/h/wchar,v $
- * $Date: 2000/06/10 08:57:26 $
- * $Revision: 1.2 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/wchar.h,v $
+ * $Date: 2002/02/07 10:19:30 $
+ * $Revision: 1.2.2.2 $
  * $State: Exp $
  * $Author: admin $
  *
@@ -32,7 +32,6 @@
  */
 
 #ifndef __WCHAR_H
-
 #define __WCHAR_H 1
 
 #ifdef __cplusplus
@@ -45,17 +44,6 @@ extern "C" {
 #define __need_wint_t
 #define __need_NULL
 #include <stddef.h>
-
-/* We try to get wint_t from <stddef.h>, but not all GCC versions define it
-   there.  So define it ourselves if it remains undefined.  */
-#ifndef _WINT_T
-/* Integral type unchanged by default argument promotions that can
-   hold any value corresponding to members of the extended character
-   set, as well as at least one value that does not correspond to any
-   member of the extended character set.  */
-#define _WINT_T
-typedef unsigned int wint_t;
-#endif
 
 
 /* Conversion state information.  */
@@ -243,13 +231,15 @@ extern unsigned long int wcstoul (const wchar_t *__nptr,
 #if defined (__GNUC__)
 /* Convert initial portion of wide string NPTR to `long int'
    representation.  */
-extern long long int wcstoq (const wchar_t *__nptr, wchar_t **__endptr,
-				  int __base);
+__extension__ extern long long int wcstoq (const wchar_t *__nptr,
+					   wchar_t **__endptr,
+					   int __base);
 
 /* Convert initial portion of wide string NPTR to `unsigned long long int'
    representation.  */
-extern unsigned long long int wcstouq (const wchar_t *__nptr,
-					    wchar_t **__endptr, int __base);
+__extension__ extern unsigned long long int wcstouq (const wchar_t *__nptr,
+						     wchar_t **__endptr,
+						     int __base);
 #endif /* GCC.  */
 
 
@@ -276,9 +266,9 @@ extern inline unsigned long int wcstoul (const wchar_t *__nptr,
 extern inline float wcstof (const wchar_t *__nptr, wchar_t **__endptr)
 { return __wcstof_internal (__nptr, __endptr, 0); }
 extern inline __long_double_t wcstold (const wchar_t *__nptr,
-					 wchar_t **__endptr)
-
-					 { return __wcstold_internal (__nptr, __endptr, 0); }
+				       wchar_t **__endptr)
+     
+{ return __wcstold_internal (__nptr, __endptr, 0); }
 
 
 extern inline long long int wcstoq (const wchar_t *__nptr,

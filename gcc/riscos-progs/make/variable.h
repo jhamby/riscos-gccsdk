@@ -14,7 +14,8 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Make; see the file COPYING.  If not, write to
-the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
+the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+Boston, MA 02111-1307, USA.  */
 
 /* Codes in a variable definition saying where the definition came from.
    Increasing numeric values signify less-overridable definitions.  */
@@ -39,11 +40,14 @@ struct variable
     struct variable *next;	/* Link in the chain.  */
     char *name;			/* Variable name.  */
     char *value;		/* Variable value.  */
+    struct floc fileinfo;       /* Where the variable was defined.  */
     enum variable_origin
       origin ENUM_BITFIELD (3);	/* Variable origin.  */
     unsigned int recursive:1;	/* Gets recursively re-evaluated.  */
     unsigned int expanding:1;	/* Nonzero if currently being expanded.  */
     unsigned int per_target:1;	/* Nonzero if a target-specific variable.  */
+    unsigned int append:1;	/* Nonzero if an appending target-specific
+                                   variable.  */
     enum variable_export
       {
 	v_export,		/* Export this variable.  */
@@ -98,19 +102,36 @@ extern struct variable_set_list *create_new_variable_set PARAMS ((void));
 extern struct variable_set_list *push_new_variable_scope PARAMS ((void));
 extern void pop_variable_scope PARAMS ((void));
 extern void define_automatic_variables PARAMS ((void));
-extern void initialize_file_variables PARAMS ((struct file *file));
+extern void initialize_file_variables PARAMS ((struct file *file, int read));
 extern void print_file_variables PARAMS ((struct file *file));
 extern void print_variable_set PARAMS ((struct variable_set *set, char *prefix));
 extern void merge_variable_set_lists PARAMS ((struct variable_set_list **setlist0, struct variable_set_list *setlist1));
-extern struct variable *try_variable_definition PARAMS ((char *filename, unsigned int lineno, char *line, enum variable_origin origin));
+extern struct variable *try_variable_definition PARAMS ((const struct floc *flocp, char *line, enum variable_origin origin, int target_var));
 
 extern struct variable *lookup_variable PARAMS ((char *name, unsigned int length));
-extern struct variable *define_variable PARAMS ((char *name, unsigned int length, char *value,
-		enum variable_origin origin, int recursive));
-extern struct variable *define_variable_in_set PARAMS ((char *name, unsigned int length,
-		char *value, enum variable_origin origin, int recursive, struct variable_set *set));
-extern struct variable *define_variable_for_file PARAMS ((char *name, unsigned int length,
-		char *value, enum variable_origin origin, int recursive, struct file *file));
+
+extern struct variable *define_variable_in_set
+    PARAMS ((char *name, unsigned int length, char *value,
+             enum variable_origin origin, int recursive,
+             struct variable_set *set, const struct floc *flocp));
+
+/* Define a variable in the current variable set.  */
+
+#define define_variable(n,l,v,o,r) \
+          define_variable_in_set((n),(l),(v),(o),(r),\
+                                 current_variable_set_list->set,NILF)
+
+/* Define a variable with a location in the current variable set.  */
+
+#define define_variable_loc(n,l,v,o,r,f) \
+          define_variable_in_set((n),(l),(v),(o),(r),\
+                                 current_variable_set_list->set,(f))
+
+/* Define a variable in FILE's variable set.  */
+
+#define define_variable_for_file(n,l,v,o,r,f) \
+          define_variable_in_set((n),(l),(v),(o),(r),(f)->variables->set,NILF)
+
 extern char **target_environment PARAMS ((struct file *file));
 
 extern int export_all_variables;

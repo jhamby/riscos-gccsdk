@@ -1,24 +1,24 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/unix/c/truncate,v $
- * $Date: 2000/06/10 12:59:43 $
- * $Revision: 1.9 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/truncate.c,v $
+ * $Date: 2001/09/04 16:32:04 $
+ * $Revision: 1.2.2.1 $
  * $State: Exp $
  * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: truncate,v 1.9 2000/06/10 12:59:43 admin Exp $";
+static const char rcs_id[] = "$Id: truncate.c,v 1.2.2.1 2001/09/04 16:32:04 admin Exp $";
 #endif
 
 #include <errno.h>
 #include <limits.h>
 #include <unistd.h>
 
-#include <sys/dev.h>
-#include <sys/os.h>
-#include <sys/unix.h>
+#include <unixlib/dev.h>
+#include <unixlib/os.h>
+#include <unixlib/unix.h>
 #include <sys/types.h>
 
 #include <unixlib/local.h>
@@ -37,7 +37,7 @@ ftruncate (int fd, off_t length)
   if (file_desc->device != DEV_RISCOS)
     return __set_errno (EOPNOTSUPP);
 
-  err = os_args (3, (int) file_desc->handle, (int) length, NULL);
+  err = __os_args (3, (int) file_desc->handle, (int) length, NULL);
   if (err)
     {
       __seterr (err);
@@ -61,7 +61,7 @@ truncate (const char *ux_file, off_t length)
     return __set_errno (ENAMETOOLONG);
 
   /* Open the file.  */
-  err = os_fopen (0xc0, file, &fd);
+  err = __os_fopen (0xc0, file, &fd);
   if (err)
     {
       __seterr (err);
@@ -69,8 +69,8 @@ truncate (const char *ux_file, off_t length)
     }
 
   /* Truncate and close it.  */
-  err = os_args (3, fd, (int) length, NULL);
-  os_fclose (fd);
+  err = __os_args (3, fd, (int) length, NULL);
+  __os_fclose (fd);
 
   if (err)
     {

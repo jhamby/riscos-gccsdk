@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/sys/c/exec,v $
- * $Date: 2000/08/17 16:16:06 $
- * $Revision: 1.32 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/exec.c,v $
+ * $Date: 2001/09/14 14:01:17 $
+ * $Revision: 1.2.2.9 $
  * $State: Exp $
  * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: exec,v 1.32 2000/08/17 16:16:06 admin Exp $";
+static const char rcs_id[] = "$Id: exec.c,v 1.2.2.9 2001/09/14 14:01:17 admin Exp $";
 #endif
 
 #include <ctype.h>
@@ -21,17 +21,18 @@ static const char rcs_id[] = "$Id: exec,v 1.32 2000/08/17 16:16:06 admin Exp $";
 #include <fcntl.h>
 #include <unistd.h>
 #include <sys/param.h>
-#include <sys/unix.h>
-#include <sys/syslib.h>
-#include <sys/swis.h>
+#include <unixlib/unix.h>
+#include <unixlib/os.h>
+#include <swis.h>
 #include <sys/wait.h>
 #include <unixlib/local.h>
+#include <unixlib/features.h>
 
 /* #define DEBUG 1 */
 
 #ifdef DEBUG
 #include <sys/debug.h>
-#include <sys/os.h>
+#include <unixlib/os.h>
 #include <stdio.h>
 #endif
 
@@ -41,12 +42,12 @@ static const char rcs_id[] = "$Id: exec,v 1.32 2000/08/17 16:16:06 admin Exp $";
 /* type cast version of ushift.  */
 #define ushift2(p,v,c,t) ((p) = (t)__ushift((unsigned char *)p,v,c,"(" #p ")"))
 #define showmove(s,n,p,r) \
-  (os_print(s "("), os_print(n), os_prhex((int)p), os_print(") -> "), \
-   os_prhex((int)r), os_nl())
+  (__os_print(s "("), __os_print(n), __os_prhex((int)p), __os_print(") -> "), \
+   __os_prhex((int)r), __os_nl())
 #undef memcpy
 #define memcpy(d,s,n) \
-  (os_print("memcpy("), os_prhex((int)(d)), os_print(","), os_prhex((int)(s)), \
-   os_print(","), os_prhex((int)(n)), os_print(")"), os_nl(), (memcpy)(d,s,n))
+  (__os_print("memcpy("), __os_prhex((int)(d)), __os_print(","), __os_prhex((int)(s)), \
+   __os_print(","), __os_prhex((int)(n)), __os_print(")"), __os_nl(), (memcpy)(d,s,n))
 
 /* Relocate a pointer.
    `p' - pointer to relocate.
@@ -122,34 +123,35 @@ static int
 set_dde_cli (char *cli)
 {
   int regs[10];
-  char *temp = cli;
+  char *temp;
 
-  if (*temp == '*')		/* skip any leading star and whitespace.  */
-    temp++;
-  while (*temp == ' ')
-    temp++;
-  temp = strchr (temp, ' ');	/* skip program name.  */
+  /* Skip program name.  */
+  temp = cli;
+  while (*temp && *temp != ' ')
+    temp ++;
 
   /* Check that the actual command is not greater than
      RISC OS's maximum path length.  */
-  if (!temp || (temp - cli) >= MAXPATHLEN)
+  if ((temp - cli) >= MAXPATHLEN)
     return __set_errno (E2BIG);
 
   /* Set the command line size within DDE utils.  */
   regs[0] = strlen (temp + 1) + 1;
-  if (os_swi (DDEUtils_SetCLSize, regs))
+  if (__os_swi (DDEUtils_SetCLSize, regs))
     /* We're buggered if DDE utils isn't on this system.  */
     return __set_errno (E2BIG);
 
   regs[0] = (int) temp + 1;
-  os_swi (DDEUtils_SetCL, regs);
+  __os_swi (DDEUtils_SetCL, regs);
+
   *temp = '\0';		/* terminate cli.  */
 #ifdef DEBUG
-  os_print ("DDE utils set up\n\r");
+  __os_print ("DDE utils set up\n\r");
 #endif
   return 0;
 }
 
+/* Also referenced in sys/_exec.s.  */
 _kernel_oserror *__exerr;
 
 /* Execute program `execname' and pass command line arguments `argv'
@@ -163,26 +165,26 @@ execve (const char *execname, char **argv, char **envp)
   char *command_line;
   void (*__exec) (char *);
   char *cli;
-  char pathname[MAXPATHLEN];	/* There is scope to merge this buffer with
-				   cli. I don't feel brave enough */
+  char pathname[MAXPATHLEN];
+  int nasty_hack = 0;
 
   if (! execname || ! argv || ! envp)
     return __set_errno (EINVAL);
 
 #ifdef DEBUG
-  os_print ("-- execve: function arguments\r\n");
-  os_print ("      execname: "); os_print (execname); os_print ("\r\n");
+  __os_print ("-- execve: function arguments\r\n");
+  __os_print ("      execname: '"); __os_print (execname); __os_print ("'\r\n");
   x = -1;
   while (argv[++x])
     {
-      os_print ("      argv["); os_prdec (x); os_print ("]: ");
-      os_print (argv[x]); os_print ("\r\n");
+      __os_print ("      argv["); __os_prdec (x); __os_print ("]: ");
+      __os_print (argv[x]); __os_print ("\r\n");
     }
   x = -1;
   while (envp[++x])
     {
-      os_print ("      envp["); os_prdec (x); os_print ("]: ");
-      os_print (envp[x]); os_print ("\r\n");
+      __os_print ("      envp["); __os_prdec (x); __os_print ("]: ");
+      __os_print (envp[x]); __os_print ("\r\n");
     }
 
   __debug ("-- execve: process structure");
@@ -196,14 +198,59 @@ execve (const char *execname, char **argv, char **envp)
       if (program_name == NULL)
 	return __set_errno (E2BIG);
 
-      cli_length = program_name - pathname + 1;	/* strlen + 1 */
       program_name = pathname;		/* This is copied into cli + 1 */
     }
   else
     {
-      program_name = execname;
-      cli_length = strlen (program_name) + 1;
+      /* Watch out ! If we've arrived here from a user call to system(),
+	 the we could find that execname == "*" because on RISC OS
+	 the '*' is equivalent to the SHELL of /bin/bash on Unix.
+	 If this is the case, the we'll probably find the real program
+	 name in argv[1].  */
+      if (execname[1] == '\0')
+	{
+	  char *p = argv[1];
+	  char temp[MAXPATHLEN];
+	  x = 0;
+	  while (x < MAXPATHLEN && *p && *p != ' ')
+	    temp[x++] = *p++;
+
+	  if (x == MAXPATHLEN)
+	    return __set_errno (E2BIG);
+	  temp[x] = '\0';
+
+	  /* Ah. The nasty hack.  Comes into everything somewhere.
+	     Since argv[1] contains our program name and all arguments,
+	     we need to stop the command line builder sticking quotes
+	     around everything and also not include the program name
+	     twice in the argument vector.
+
+	     So nasty_hack contains the length of the program name
+	     held within argv[1].  We then know (when non-zero) how
+	     many characters to skip, if at all.  */
+	  nasty_hack = x;
+
+#ifdef DEBUG
+	  __os_print ("-- execve: pathname: '");
+	  __os_print (temp); __os_print ("'\r\n");
+#endif
+
+	  program_name = __riscosify_std (temp, 0, pathname,
+					  sizeof (pathname), NULL);
+	  if (program_name == NULL)
+	    return __set_errno (E2BIG);
+	  program_name = pathname;
+	}
+      else
+	{
+	  program_name = execname;
+	}
     }
+
+#ifdef DEBUG
+  __os_print ("-- execve: program_name: "); __os_print (program_name);
+  __os_print ("\r\n");
+#endif
 
 #if __FEATURE_ITIMERS
   /* Stop any interval timers that might be running.  Technically
@@ -212,37 +259,46 @@ execve (const char *execname, char **argv, char **envp)
 #endif
 
 #ifdef DEBUG
-  os_print ("-- execve: building command line\r\n");
+  __os_print ("-- execve: building command line\r\n");
 #endif
 
   /* Calculate the length of the command line.  We need to do this
      because the program that we are about to run might not
      be a UnixLib compatable binary so it won't know anything about
      the child process structure.  */
-  cli_length = 0;
-  for (x = 0; argv[x]; x++)
+  cli_length = strlen (program_name) + 1;
+  x = (nasty_hack) ? 1 : 0;
+  for (; argv[x]; x++)
     {
       char *p;
       int space = 0;
       /* We must add extra characters if the argument contains spaces (wrap
          argument in quotes) and quotes (must add backslash) and
          inverted commas (must add backslash).  */
-      for (p = argv[x]; *p; p++)
+      p = argv[x];
+      if (nasty_hack && x == 1)
+	p += nasty_hack;
+      while (*p)
         {
           if (isspace (*p))
             space = 1;
           if (*p == '\"' || *p == '\'')
             cli_length ++;
           cli_length ++;
+	  p++;
         }
-      if (space)
-        cli_length += 2; /* Account for quotes around argument.  */
+
+      /* Account for quotes around argument but only if our hack isn't
+         in place.  */
+      if (space && ! nasty_hack)
+        cli_length += 2;
+
       cli_length ++;
     }
 
 #ifdef DEBUG
-  os_print ("-- execve: cli_length = "); os_prdec (cli_length);
-  os_print ("\r\n");
+  __os_print ("-- execve: cli_length = "); __os_prdec (cli_length);
+  __os_print ("\r\n");
 #endif
 
   /* Hmmm.  This malloc *must not* be in a dynamic area.  */
@@ -250,42 +306,48 @@ execve (const char *execname, char **argv, char **envp)
   if (cli == NULL)
     return __set_errno (ENOMEM);
 
-#ifdef DEBUG
-  os_print ("-- execve: here 2\r\n");
-#endif
-
   /* Copy program name into cli and terminate with a space, ready for below.
      Should trim leading space between '*' and command in name.  */
   command_line = cli;
   while (*program_name == '*' || *program_name == ' ')
     program_name ++;
+
   command_line = stpcpy (command_line, program_name);
   *command_line ++ = ' ';
 
-#ifdef DEBUG
-  os_print ("-- execve: here 3\r\n");
-#endif
   /* Copy the rest of the arguments into the cli.  */
   if (argv[0])
     for (x = 1; argv[x]; x++)
       {
         char *p = argv[x];
         int contains_space = 0;
+
+	if (nasty_hack && x == 1)
+	  p += nasty_hack;
+
         while (*p != '\0' && ! isspace (*p))
           p++;
-        if (*p)
+
+	/* Don't enclose arguments in additional quotes if our nasty hack
+	   is in place.  */
+        if (! nasty_hack && *p)
           contains_space = 1;
 
         /* Add quotes, if argument contains a space.  */
 	if (contains_space)
 	  *command_line ++ = '\"';
-        for (p = argv[x]; *p; p++)
-          {
+
+	p = argv[x];
+	if (nasty_hack && x == 1)
+	  p += nasty_hack;
+	while (*p)
+	  {
             /* If character is a " or a ' then preceed with a backslash.  */
             if (*p == '\"' || *p == '\'')
               *command_line ++ = '\\';
             *command_line ++ = *p;
-          }
+	    p++;
+	  }
         if (contains_space)
           *command_line ++ = '\"';
         *command_line ++ = ' ';
@@ -293,17 +355,24 @@ execve (const char *execname, char **argv, char **envp)
   command_line[-1] = '\0';
 
 #ifdef DEBUG
-  os_print ("-- execve: cli: "); os_print (cli); os_print ("\r\n");
+  __os_print ("-- execve: cli: "); __os_print (cli); __os_print ("\r\n");
 #endif
 
   /* This `if' will never return.  */
   if (! process->status.has_parent)
     {
 #ifdef DEBUG
-      os_print ("-- execve: take a shortcut (not a child process)\r\n");
+      __os_print ("-- execve: take a shortcut (not a child process)\r\n");
 #endif
       /* Shutdown unix. This is literally the point of no return.  */
-      __reset ();
+      __stop_itimers ();
+      for (x = 0; x < MAXFD; x++)
+	if (process->fd[x].__magic == _FDMAGIC)
+	  close (x);
+
+      /* Restore the RISC OS environment handlers.  This breaks us out
+	 of the UnixLib world.  */
+      __env_riscos ();
 
       /* If the cli is >= MAXPATHLEN, we will need the aid of DDE utils.  */
       if (strlen (cli) >= MAXPATHLEN && set_dde_cli (cli) < 0)
@@ -319,7 +388,7 @@ execve (const char *execname, char **argv, char **envp)
 	}
 
       /* Pass the command to os_cli (which never returns).  */
-      os_cli (cli);
+      __os_cli (cli);
 
       /* If we've called a RISC OS builtin then we can return here.
          If we haven't then something ugly must have happened.  There
@@ -328,7 +397,7 @@ execve (const char *execname, char **argv, char **envp)
 	 int regs[10];
 
 	 regs[0] = 0;
-	 os_swi (DDEUtils_SetCLSize, regs);
+	 __os_swi (DDEUtils_SetCLSize, regs);
       }
       __exit_no_code ();
       /* NOTREACHED */
@@ -336,7 +405,7 @@ execve (const char *execname, char **argv, char **envp)
 
   /* If we arrive here, we have a parent process.  */
 #ifdef DEBUG
-  os_print ("-- execve: copy argv and envp (we are a child proc)\r\n");
+  __os_print ("-- execve: copy argv and envp (we are a child proc)\r\n");
 #endif
   /* We enter here if exec was called after a vfork, which is
      usually the case.  */
@@ -346,8 +415,8 @@ execve (const char *execname, char **argv, char **envp)
      However, we do create the process's environment vectors.
      From now on, this is the point of no return.  */
 #ifdef DEBUG
-  os_print ("-- execve: proc->envp="); os_prhex ((int) process->envp); os_nl ();
-  os_print ("-- execve: proc->argv="); os_prhex ((int) process->argv); os_nl ();
+  __os_print ("-- execve: proc->envp="); __os_prhex ((int) process->envp); __os_nl ();
+  __os_print ("-- execve: proc->argv="); __os_prhex ((int) process->argv); __os_nl ();
 #endif
 
   if (process->envp)
@@ -365,14 +434,20 @@ execve (const char *execname, char **argv, char **envp)
       free (process->argv);
     }
 
+#ifdef DEBUG
+  __os_print ("-- execve: re-create proc->envp and proc->argv\r\n");
+#endif
+
   /* Count new environment variable vector length.  */
-  for (x = 0; envp[x]; x++)
+  x = -1;
+  while (envp[++x])
     ;
+
   process->envc = x;
   if (process->envc)
     {
       /* Make a copy of the command line arguments.  */
-      process->envp = (char **) malloc ((process->envc + 2)
+      process->envp = (char **) malloc ((process->envc + 1)
       	       	       	    	       	* sizeof (char *));
       if (process->envp == NULL)
         __exit_no_code ();
@@ -391,6 +466,11 @@ execve (const char *execname, char **argv, char **envp)
   process->argc = 0;
   process->argv = NULL;
 
+#ifdef DEBUG
+  __os_print ("-- execve: proc->envc="); __os_prhex ((int) process->envc); __os_nl();
+  __os_print ("-- execve: proc->argc="); __os_prhex ((int) process->argc); __os_nl();
+#endif
+
   /* If the cli is >= MAXPATHLEN, we will need the aid of DDE utils.  */
   if (strlen (cli) >= MAXPATHLEN && set_dde_cli (cli) < 0)
     return -1;
@@ -399,16 +479,16 @@ execve (const char *execname, char **argv, char **envp)
      in the new process image, unless they have the 'FD_CLOEXEC'
      flag set.  O_EXECCL is an alias for FD_CLOEXEC.  */
   for (x = 0; x < MAXFD; x++)
-    if (process->fd[x].dflag & O_EXECCL)
+    if (process->fd[x].__magic == _FDMAGIC && process->fd[x].dflag & O_EXECCL)
       close (x);
 
   process->status.has_parent = 0;
 
 #ifdef DEBUG
   __debug ("-- execve: process after new argv and envp setup");
-  os_print ("__rwlimit: "); os_prhex ((unsigned int) __rwlimit); os_nl ();
-  os_print ("__stack_limit: "); os_prhex ((unsigned int) __stack_limit);
-  os_nl ();
+  __os_print ("__rwlimit: "); __os_prhex ((unsigned int) __rwlimit); __os_nl ();
+  __os_print ("__stack_limit: "); __os_prhex ((unsigned int) __stack_limit);
+  __os_nl ();
 #endif
 
   /* Force a malloc trim to reduce memory usage.  malloc() must not be
@@ -436,17 +516,20 @@ execve (const char *execname, char **argv, char **envp)
     return __set_errno (ENOMEM);
 
 #ifdef DEBUG
-  os_print ("__exlen: "); os_prhex ((unsigned int) __exlen);
-  os_print ("__codeshift: "); os_prhex ((unsigned int) __codeshift);
-  os_print ("__exshift: "); os_prhex ((unsigned int) __exshift);
-  os_nl ();
+  __os_print ("__exlen: "); __os_prhex ((unsigned int) __exlen);
+  __os_print ("__codeshift: "); __os_prhex ((unsigned int) __codeshift);
+  __os_print ("__exshift: "); __os_prhex ((unsigned int) __exshift);
+  __os_nl ();
 #endif
 
-  /* Remove environment handlers.  */
-  __restore_calling_environment_handlers ();
+  /* Restore the original RISC OS environment handlers.  We need to do
+     this because we will be physically changing location in RAM.  RISC OS
+     will then have a set of invalid environment pointers which would
+     break things if something goes wrong from this stage onwards.  */
+  __env_riscos ();
 
 #ifdef DEBUG
-  os_print ("-- execve: environment handlers restored\r\n");
+  __os_print ("-- execve: environment handlers restored\r\n");
 #endif
 
   /* Shift __u pointers if necessary.  */
@@ -461,10 +544,9 @@ execve (const char *execname, char **argv, char **envp)
 
 	 Pointers located between __lomem and __break (i.e. the data
 	 section of a program) will be relocated using 'variable'.  */
-      for (i = 0; i <= process->envc; i++)
+      ushift (process->envp, variable, code);
+      for (i = 0; i < process->envc; i++)
 	ushift (process->envp[i], variable, code);
-      if (process->envp)
-        ushift (process->envp, variable, code);
       for (i = 0; i < MAXTTY; i++)
 	{
 	  if (process->tty[i].out)
@@ -477,13 +559,6 @@ execve (const char *execname, char **argv, char **envp)
 	    ushift2 (process->tty[i].init, variable, code, int (*)(void));
 	  if (process->tty[i].flush)
 	    ushift2 (process->tty[i].flush, variable, code, int (*)(void));
-
-#ifndef __TTY_STATIC_BUFS
-	  if (process->tty[i].del)
-	    ushift (process->tty[i].del, variable, code);
-	  if (process->tty[i].buf)
-	    ushift (process->tty[i].buf, variable, code);
-#endif
 	  if (process->tty[i].ptr)
 	    ushift (process->tty[i].ptr, variable, code);
 	}
@@ -505,7 +580,7 @@ execve (const char *execname, char **argv, char **envp)
     regs[2] = 4;
     regs[3] = 0;
     regs[4] = 1;
-    os_swi (OS_SetVarVal, regs);
+    __os_swi (OS_SetVarVal, regs);
   }
 
   /* copy up m/code routine and heap */
@@ -520,7 +595,7 @@ execve (const char *execname, char **argv, char **envp)
       regs[0] = 1;
       regs[1] = (int) __exec;
       regs[2] = regs[1] + __exlen - 4;
-      os_swi (OS_SynchroniseCodeAreas, regs);
+      __os_swi (OS_SynchroniseCodeAreas, regs);
     }
   if (__exshift)
     memcpy ((char *) __lomem + __exshift, (char *) __lomem,
@@ -528,7 +603,7 @@ execve (const char *execname, char **argv, char **envp)
 
   /* Finally call the program.  */
 #ifdef DEBUG
-  os_print ("-- execve: about to call:"); os_print (cli); os_nl ();
+  __os_print ("-- execve: about to call:"); __os_print (cli); __os_nl ();
 #endif
   __funcall ((*__exec), (cli));
   /* This is never reached.  */
@@ -538,7 +613,6 @@ execve (const char *execname, char **argv, char **envp)
 void
 __exret (void)
 {
-  struct env *environment;
   int i;
 
   /* Shift heap and __u pointers back down.  */
@@ -565,27 +639,24 @@ __exret (void)
 	    dshift2 (process->tty[i].init, variable, code, int (*)(void));
 	  if (process->tty[i].flush)
 	    dshift2 (process->tty[i].flush, variable, code, int (*)(void));
-
-#ifndef __TTY_STATIC_BUFS
-	  if (process->tty[i].del)
-	    dshift (process->tty[i].del, variable, code);
-	  if (process->tty[i].buf)
-	    dshift (process->tty[i].buf, variable, code);
-#endif
 	  if (process->tty[i].ptr)
 	    dshift (process->tty[i].ptr, variable, code);
 	}
-      if (process->envp)
-        dshift (process->envp, variable, code);
-      for (i = 0; i <= process->envc; i++)
+      
+      dshift (process->envp, variable, code);
+      for (i = 0; i < process->envc; i++)
 	dshift (process->envp[i], variable, code);
+      process->argc = 0;
       process->argv = NULL;
     }
 
-  /* Reinstall environment handlers.  */
-  environment = __c_environment;
-  for (i = 0; i < __ENVIRONMENT_HANDLERS; i++)
-    __write_environment_handler (i, environment->handlers + i);
+  /* Read the current RISC OS environment handlers.  We probably don't need
+     to do this because they should be exactly the same as when we read them
+     at UnixLib initialisation time.  */
+  __env_read ();
+
+  /* Install the UnixLib environment handlers.  */
+  __env_unixlib ();
   __remenv_from_os ("UnixLib$env");
 
 #ifdef DEBUG
@@ -603,7 +674,7 @@ __exret (void)
     i = __intenv ("Sys$ReturnCode");
 
 #ifdef DEBUG
-  os_print ("-- __exret: return code="); os_prdec (i); os_nl ();
+  __os_print ("-- __exret: return code="); __os_prdec (i); __os_nl ();
 #endif
 
   if (___vret)

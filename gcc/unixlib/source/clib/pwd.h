@@ -1,10 +1,10 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/clib/h/pwd,v $
- * $Date: 1998/01/29 21:15:09 $
- * $Revision: 1.6 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/pwd.h,v $
+ * $Date: 2001/09/14 14:01:17 $
+ * $Revision: 1.2.2.1 $
  * $State: Exp $
- * $Author: unixlib $
+ * $Author: admin $
  *
  ***************************************************************************/
 
@@ -17,35 +17,37 @@
 #include <unixlib/types.h>
 #endif
 
-#ifndef __STDDEF_H
+#define __need_size_t
 #include <stddef.h>
+
+#define __need_FILE
+#include <stdio.h>
+
+#if !defined __gid_t_defined
+typedef __gid_t gid_t;
+#define __gid_t_defined
+#endif
+
+#if !defined __uid_t_defined
+typedef __uid_t uid_t;
+#define __uid_t_defined
 #endif
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#ifndef __FILE_declared
-#define __FILE_declared 1
-typedef struct __iobuf FILE;
-#endif
 
 struct passwd
 {
-  /* Username.  */
-  char	*pw_name;
-  /* Password.  */
-  char	*pw_passwd;
-  /* User ID.  */
-  __uid_t pw_uid;
-  /* Group ID.  */
-  __gid_t pw_gid;
-  /* Real name.  */
-  char	*pw_gecos;
-  /* Home directory.  */
-  char	*pw_dir;
-  /* Shell program.  */
-  char	*pw_shell;
+  char	*pw_name;  /* Username.  */
+  char	*pw_passwd;  /* Password.  */
+  __uid_t pw_uid;  /* User ID.  */
+  __gid_t pw_gid;  /* Group ID.  */
+  char	*pw_gecos;  /* Real name.  */
+  char	*pw_dir;  /* Home directory.  */
+  char	*pw_shell;  /* Shell program.  */
+
 };
 
 /* System V functions.  */
@@ -61,41 +63,45 @@ extern struct passwd *getpwent (void);
 
 /* Read an entry from the password-file stream, opening it if
    necessary (re-entrant version).  */
-extern int getpwent_r (struct passwd *result_buf, char *buffer,
-		       size_t buflen, struct passwd **result);
+extern int getpwent_r (struct passwd *__result_buf, char *__buffer,
+		       size_t __buflen, struct passwd **__result);
 
 /* Read an entry from stream.  */
-extern struct passwd *fgetpwent (FILE *stream);
+extern struct passwd *fgetpwent (FILE *__stream);
 
 /* Read an entry from stream (re-entrant version).  */
-extern int fgetpwent_r (FILE *stream, struct passwd *result_buf, char *buffer,
-			size_t buflen, struct passwd **result);
+extern int fgetpwent_r (FILE *__stream, struct passwd *__result_buf,
+			char *__buffer, size_t __buflen,
+			struct passwd **__result);
 
-extern int putpwent (const struct passwd *p, FILE *stream);
+extern int putpwent (const struct passwd *__p, FILE *__stream);
 
 /* POSIX functions.  */
 
 /* Search for an entry with a matching user ID.  */
-extern struct passwd *getpwuid (__uid_t uid);
+extern struct passwd *getpwuid (__uid_t __uid);
 
 /* Search for an entry with a matching user ID (re-entrant version).  */
-extern int getpwuid_r (__uid_t uid, struct passwd *resbuf, char *buffer,
-		       size_t buflen, struct passwd **result);
+extern int getpwuid_r (__uid_t __uid, struct passwd *__resbuf, char *__buffer,
+		       size_t __buflen, struct passwd **__result);
 
 /* Search for an entry with a matching username.  */
-extern struct passwd *getpwnam (const char *name);
+extern struct passwd *getpwnam (const char *__name);
 
 /* Search for an entry with a matching username (re-entrant version).  */
-extern int getpwnam_r (const char *name, struct passwd *result_buf,
-		       char *buffer, size_t buflen, struct passwd **result);
+extern int getpwnam_r (const char *__name, struct passwd *__result_buf,
+		       char *__buffer, size_t __buflen,
+		       struct passwd **__result);
 
 
 /* Re-construct the password-file line for the given uid in the
    given buffer.  */
-extern int getpw (__uid_t uid, char *buf);
+extern int getpw (__uid_t __uid, char *__buf);
 
+#ifdef __UNIXLIB_INTERNALS
 /* UnixLib pwd implementation function.  */
 extern struct passwd *__pwdread (FILE *, struct passwd *);
+#endif
 
 #ifdef __cplusplus
 }

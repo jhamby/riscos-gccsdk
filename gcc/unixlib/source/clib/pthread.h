@@ -1,0 +1,2 @@
+/* pthread.h is not implemented.
+   This is a placeholder so that the header conformance tests can check signal.h.  */

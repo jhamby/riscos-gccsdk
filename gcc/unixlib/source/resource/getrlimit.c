@@ -1,21 +1,20 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/resource/c/getrlimit,v $
- * $Date: 1997/10/09 20:00:26 $
- * $Revision: 1.5 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/resource/getrlimit.c,v $
+ * $Date: 2001/09/04 16:32:04 $
+ * $Revision: 1.2.2.2 $
  * $State: Exp $
- * $Author: unixlib $
+ * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: getrlimit,v 1.5 1997/10/09 20:00:26 unixlib Exp $";
+static const char rcs_id[] = "$Id: getrlimit.c,v 1.2.2.2 2001/09/04 16:32:04 admin Exp $";
 #endif
 
-#include <sys/syslib.h>
 #include <sys/resource.h>
-#include <sys/os.h>
-#include <sys/unix.h>
+#include <unixlib/os.h>
+#include <unixlib/unix.h>
 #include <errno.h>
 #include <stdio.h>
 

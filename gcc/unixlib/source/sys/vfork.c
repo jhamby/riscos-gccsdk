@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/sys/c/vfork,v $
- * $Date: 2000/08/17 16:16:06 $
- * $Revision: 1.17 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/vfork.c,v $
+ * $Date: 2001/09/11 14:16:00 $
+ * $Revision: 1.2.2.8 $
  * $State: Exp $
  * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: vfork,v 1.17 2000/08/17 16:16:06 admin Exp $";
+static const char rcs_id[] = "$Id: vfork.c,v 1.2.2.8 2001/09/11 14:16:00 admin Exp $";
 #endif
 
 #include <errno.h>
@@ -25,14 +25,15 @@ static const char rcs_id[] = "$Id: vfork,v 1.17 2000/08/17 16:16:06 admin Exp $"
 #include <unistd.h>
 
 #include <sys/resource.h>
-#include <sys/unix.h>
-#include <sys/syslib.h>
+#include <unixlib/unix.h>
 #include <sys/param.h>
 #include <sys/debug.h>
 #include <sys/wait.h>
-#include <sys/swis.h>
+#include <unixlib/os.h>
+#include <swis.h>
+#include <unixlib/features.h>
 
-/* #define DEBUG */
+/* #define DEBUG 1 */
 
 #ifdef DEBUG
 #include <stdio.h>
@@ -78,7 +79,7 @@ int *
 __vfork (void)
 {
   struct proc *child;
-  int x /*, regs[10] */;
+  int x;
 
 #ifdef DEBUG
   __debug ("vfork: parent process structure");
@@ -92,10 +93,9 @@ __vfork (void)
   /* Initialise structure.  */
   memset (child, 0, sizeof (struct proc));
 
-  /* Create a process ID.  It is cheaper to call clock() than os_swi.  */
-  /* os_swi (OS_ReadMonotonicTime, regs); */
+  /* Create a process ID.  It is cheaper to call clock() than __os_swi.  */
   child->ppid = __u->pid;  /* Get parent process's ID.  */
-  child->pid = clock (); /* regs[0]; */  /* Child process ID.  */
+  child->pid = (pid_t) clock ();  /* Child process ID.  */
 
   /* Make sure child's PID is not the same as the parents.  */
   if (child->pid == __u->pid)
@@ -123,6 +123,7 @@ __vfork (void)
       /* Copy entries from the environment and argument vectors.  */
       for (x = 0; x < __u->argc; x++)
         child->argv[x] = strdup (__u->argv[x]);
+      child->argc = __u->argc;
     }
 
   /* Copy environment vector.  */
@@ -133,10 +134,8 @@ __vfork (void)
         goto nomem;
       for (x = 0; x < __u->envc; x++)
         child->envp[x] = strdup (__u->envp[x]);
+      child->envc = __u->envc;
     }
-
-  child->argc = __u->argc;
-  child->envc = __u->envc;
 
   /* Copy resource usage of the parent process.  */
   child->usage = __u->usage;
@@ -218,11 +217,11 @@ __vexit (int e)
 
 #ifdef DEBUG
   __debug ("__vexit: child process structure");
-  os_print ("__vexit() e = "); os_prdec (e); os_print ("\r\n");
-  os_print ("return code:"); os_prdec (p->status.return_code); os_print ("\r\n");
-  os_print ("signal exit:"); os_prdec (p->status.signal_exit); os_print ("\r\n");
-  os_print ("signal:"); os_prdec (p->status.signal); os_print ("\r\n");
-  os_print ("core dumped:"); os_prdec (p->status.core_dump); os_print ("\r\n");
+  __os_print ("__vexit() e = "); __os_prdec (e); __os_print ("\r\n");
+  __os_print ("return code:"); __os_prdec (p->status.return_code); __os_print ("\r\n");
+  __os_print ("signal exit:"); __os_prdec (p->status.signal_exit); __os_print ("\r\n");
+  __os_print ("signal:"); __os_prdec (p->status.signal); __os_print ("\r\n");
+  __os_print ("core dumped:"); __os_prdec (p->status.core_dump); __os_print ("\r\n");
 #endif
 
   /* Close the file descriptors we used.  */
@@ -231,7 +230,7 @@ __vexit (int e)
       close (x);
 
 #ifdef DEBUG
-  os_print ("__vexit: child died, now becoming parent process\r\n");
+  __os_print ("__vexit: child died, now becoming parent process\r\n");
 #endif
   /* Become the parent process.  */
   __u = p->pproc;
@@ -257,6 +256,12 @@ __vexit (int e)
 #endif
   /* Raise SIGCHLD because the child process has now terminated
      or stopped.  The default action is to ignore this.  */
+#ifdef DEBUG
+  __os_print ("__vexit: raising SIGCHLD\r\n");
+#endif
   raise (SIGCHLD);
+#ifdef DEBUG
+  __os_print ("__vexit: raising SIGCHLD completed\r\n");
+#endif
   return __u->child[0].vreg;
 }

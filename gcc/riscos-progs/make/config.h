@@ -57,6 +57,8 @@
 /* Define if you support file names longer than 14 characters.  */
 #undef HAVE_LONG_FILE_NAMES
 
+#define LOCALEDIR ""
+
 /* Define if you have a working `mmap' system call.  */
 #define HAVE_MMAP 1
 
@@ -172,7 +174,7 @@
 #define PACKAGE "GNU make"
 
 /* Version of this package (needed by automake) */
-#define VERSION "3.77"
+#define VERSION "3.79.1"
 
 /* Define to the name of the SCCS `get' command.  */
 #define SCCS_GET "sccsget"
@@ -284,6 +286,8 @@
 
 /* Define if you have the <unistd.h> header file.  */
 #define HAVE_UNISTD_H 1
+
+#define HAVE_INTTYPES_H 1
 
 /* Define if you have the dgc library (-ldgc).  */
 #undef HAVE_LIBDGC

@@ -1,21 +1,21 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/unix/c/features,v $
- * $Date: 2000/08/17 16:16:07 $
- * $Revision: 1.3 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/features.c,v $
+ * $Date: 2001/09/11 14:16:00 $
+ * $Revision: 1.2.2.2 $
  * $State: Exp $
  * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: features,v 1.3 2000/08/17 16:16:07 admin Exp $";
+static const char rcs_id[] = "$Id: features.c,v 1.2.2.2 2001/09/11 14:16:00 admin Exp $";
 #endif
 
 /* #define DEBUG 1 */
 
 #include <string.h>
-#include <sys/unix.h>
+#include <unixlib/unix.h>
 #include <unixlib/local.h>
 
 /* Get the leaf name from the command line used to run the program.  */
@@ -76,22 +76,20 @@ static char *env (const char *program_name, const char *variable,
   ptr = stpcpy (ptr, variable);
 
 #ifdef DEBUG
-  os_print ("features.c (env): Looking for '"); os_print (envvar);
-  os_print ("'.");
+  __os_print ("features.c (env): Looking for '"); __os_print (envvar);
+  __os_print ("'.");
 #endif
 
   result = __getenv_from_os (envvar, buffer, bufsiz);
 
 #ifdef DEBUG
-  os_print ((result) ? "Found\r\n" : "Not found\r\n");
+  __os_print ((result) ? "Found\r\n" : "Not found\r\n");
 #endif
   return result;
 }
 
 /* Allow string to be writable by not making const.  */
 static char __sfix_default[] = "a:c:cc:f:h:i:ii:l:o:p:s:y";
-extern void __sfixinit (const char *list);
-extern void __sdirinit (void);
 
 /* We have to be careful with the string processing because not enough
    of UnixLib will have been initialised to use more powerful functions.  */

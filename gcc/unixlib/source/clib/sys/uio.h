@@ -1,22 +1,22 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/clib/sys/h/uio,v $
- * $Date: 1997/10/15 22:27:44 $
- * $Revision: 1.3 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/sys/uio.h,v $
+ * $Date: 2001/09/14 14:01:17 $
+ * $Revision: 1.2.2.1 $
  * $State: Exp $
- * $Author: unixlib $
+ * $Author: admin $
  *
  ***************************************************************************/
 
 #ifndef __SYS_UIO_H
 #define __SYS_UIO_H 1
 
-#ifndef __STDDEF_H
-#include <stddef.h>
-#endif
 #ifndef __UNIXLIB_TYPES_H
 #include <unixlib/types.h>
 #endif
+
+#define __need_size_t
+#include <stdarg.h>
 
 #ifdef __cplusplus
 extern "C" {

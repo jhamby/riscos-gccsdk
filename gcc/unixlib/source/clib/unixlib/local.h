@@ -1,8 +1,8 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/clib/unixlib/h/local,v $
- * $Date: 2001/01/02 10:23:49 $
- * $Revision: 1.17 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/unixlib/local.h,v $
+ * $Date: 2001/09/14 14:01:17 $
+ * $Revision: 1.2.2.3 $
  * $State: Exp $
  * $Author: admin $
  *
@@ -14,21 +14,17 @@
 #ifndef __UNIXLIB_LOCAL_H
 #define __UNIXLIB_LOCAL_H 1
 
-#ifndef __STDDEF_H
-#include <stddef.h>
-#endif
-
 #ifdef __UNIXLIB_INTERNALS
 
 #ifndef __UNIXLIB_TYPES_H
 #include <unixlib/types.h>
 #endif
 
-/* Prevent inclusion of <stdio.h>.  */
-#ifndef __FILE_declared
-#define __FILE_declared 1
-typedef struct __iobuf FILE;
-#endif
+#define __need_size_t
+#include <stddef.h>
+
+#define __need_FILE
+#include <stdio.h>
 
 #endif /* __UNIXLIB_INTERNALS */
 
@@ -43,7 +39,7 @@ extern "C" {
 extern __ino_t __get_file_ino (const char *__directory,
 			       const char *__filename);
 
-/* Return the converted to canonicalised RISCOS filename, or NULL on
+/* Return the converted to canonicalised RISC OS filename, or NULL on
    failure.  */
 extern char * __fd_to_name (int __riscos_fd, char *__buf, size_t __buflen);
 
@@ -100,12 +96,8 @@ extern char *__net_readline (FILE *__file, char *__buffer, int __length);
 /* Initialise unix file name translation.  */
 extern void __riscosify_init (void);
 
-#if 0
-extern int __sfixadd_l (const char *__sfix, ...);
-extern int __sfixadd_v (const char *const *__sfixes);
-extern int __sfixdel_l (const char *__sfix, ...);
-extern int __sfixdel_v (const char *const *__sfixes);
-#endif
+extern void __sfixinit (const char *list);
+extern void __sdirinit (void);
 
 /* Search special suffix list for __sfix (zero char terminated).  Returns
    NULL if suffix isn't to be used for suffix swapping, ptr to suffix
@@ -178,7 +170,7 @@ extern int __riscosify_control;
 
 /* Convert Unix filenames/pathnames to Risc OS format creating the final
    directory if necessary and CREATE_DIR is non-zero.
-   Pass Risc OS pathnames through unchanged.
+   Pass RISC OS pathnames through unchanged.
    Returns pointer to terminating '\0' in buffer,
    or NULL if there was a problem.  */
 extern char *__riscosify (const char *__name, int __create_dir,

@@ -1,8 +1,8 @@
 ;----------------------------------------------------------------------------
 ;
-; $Source: /usr/local/cvsroot/unixlib/source/scl/s/_memchk,v $
-; $Date: 2000/12/21 15:09:13 $
-; $Revision: 1.2 $
+; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/scl/_memchk.s,v $
+; $Date: 2001/09/11 13:05:55 $
+; $Revision: 1.2.2.1 $
 ; $State: Exp $
 ; $Author: admin $
 ;
@@ -10,7 +10,7 @@
 
 	GET	clib/unixlib/asm_dec.s
 
-	AREA	|C$code|, CODE, READONLY
+	AREA	|C$$code|, CODE, READONLY
 
 	EXPORT	|_rd1chk|
 	EXPORT	|_rd2chk|

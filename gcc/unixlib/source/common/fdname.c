@@ -1,21 +1,21 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/common/c/fdname,v $
- * $Date: 1997/10/19 21:50:50 $
- * $Revision: 1.3 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/common/fdname.c,v $
+ * $Date: 2001/09/04 16:32:04 $
+ * $Revision: 1.2.2.2 $
  * $State: Exp $
- * $Author: unixlib $
+ * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: fdname,v 1.3 1997/10/19 21:50:50 unixlib Exp $";
+static const char rcs_id[] = "$Id: fdname.c,v 1.2.2.2 2001/09/04 16:32:04 admin Exp $";
 #endif
 
 #include <stdlib.h>
 #include <unixlib/local.h>
-#include <sys/os.h>
-#include <sys/swis.h>
+#include <unixlib/os.h>
+#include <swis.h>
 #include <errno.h>
 
 /* Return canonicalised RISCOS filename corresponding to a RISC OS file
@@ -46,7 +46,7 @@ __fd_to_name (int riscos_fd, char *buf, size_t buflen)
       regs[2] = 0;
       regs[5] = 0;
 
-      err = os_swi (OS_Args, regs);
+      err = __os_swi (OS_Args, regs);
       if (err)
 	__seterr (err);		/* Do not return here, fall through.  */
       else
@@ -62,7 +62,7 @@ __fd_to_name (int riscos_fd, char *buf, size_t buflen)
   regs[2] = (int) buf;
 
   /* Finally, get the filename into the buffer.  */
-  if (buf != NULL && (err = os_swi (OS_Args, regs)) != NULL)
+  if (buf != NULL && (err = __os_swi (OS_Args, regs)) != NULL)
     {
       __seterr (err);
       if (buflen == 0)

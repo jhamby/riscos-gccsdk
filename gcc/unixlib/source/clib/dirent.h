@@ -1,8 +1,8 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/clib/h/dirent,v $
- * $Date: 2000/06/10 12:59:43 $
- * $Revision: 1.11 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/dirent.h,v $
+ * $Date: 2002/02/07 10:29:19 $
+ * $Revision: 1.2.2.2 $
  * $State: Exp $
  * $Author: admin $
  *
@@ -16,25 +16,18 @@
 #ifndef __UNIXLIB_FEATURES_H
 #include <unixlib/features.h>
 #endif
-#ifndef __STDDEF_H
+
+
+#define __need_size_t
 #include <stddef.h>
-#endif
+
 #ifndef __UNIXLIB_TYPES_H
 #include <unixlib/types.h>
-#endif
-#ifndef __SYS_PARAM_H
-#include <sys/param.h>
 #endif
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-/* MAXNAMELEN is the BSD name for what POSIX calls NAME_MAX.  */
-
-/* Don't assume ADFS filename restrictions.
-   Keep in sync with <limits.h>, _POSIX_NAME_MAX.  */
-#define MAXNAMLEN	MAXPATHLEN
 
 /* This isn't really how ADFS stores files in a directory, but
    since no I/O is permitted on directories anyway this doesn't
@@ -45,7 +38,10 @@ struct dirent
   __ino_t	d_fileno;		/* file number of entry */
   size_t	d_namlen;		/* length of d_name */
   unsigned char d_type;			/* file type, possibly unknown */
-  char		d_name[MAXNAMLEN];	/* name */
+
+  /* FIXME:  Should be a macro constant, but causing difficulties
+     with namespace at the moment.  */
+  char		d_name[256];	/* name */
 };
 
 /* For backwards compatibility with BSD.  */
@@ -141,18 +137,20 @@ extern void rewinddir (DIR *__dirp);
 extern int closedir (DIR *__dirp);
 
 /* Function to compare two `struct dirent's alphabetically.  */
-extern int alphasort (const ptr_t __a, const ptr_t __b);
+extern int alphasort (const struct dirent **__a, const struct dirent ** __b);
 
-#if 0
 /* Scan the directory dir, calling 'select' on each directory entry.
    Entries for which 'select' returns nonzero are individually malloc'd,
    sorted using qsort with 'cmp', and collected in a malloc'd array in
    *namelist.  Returns the number of entries selected, or -1 on error.  */
+
 extern int scandir (const char *__dir,
 		    struct dirent ***__namelist,
-		    int (*__select) (struct dirent *),
-		    int (*__cmp) (const ptr_t, const ptr_t));
+		    int (*__select)(const struct dirent *),
+		    int (*__cmp)(const struct dirent **,
+				 const struct dirent **));
 
+#if 0
 /* Read directory entries from fd into buf, reading at most nbytes.
    Reading starts at offset *basep, and *basep is updated with the new
    position after reading.  Returns the number of bytes read; zero when at

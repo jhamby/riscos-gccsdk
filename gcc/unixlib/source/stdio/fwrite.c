@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/stdio/c/fwrite,v $
- * $Date: 1999/09/21 10:39:16 $
- * $Revision: 1.9 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/stdio/fwrite.c,v $
+ * $Date: 2001/09/04 16:32:04 $
+ * $Revision: 1.2.2.1 $
  * $State: Exp $
  * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: fwrite,v 1.9 1999/09/21 10:39:16 admin Exp $";
+static const char rcs_id[] = "$Id: fwrite.c,v 1.2.2.1 2001/09/04 16:32:04 admin Exp $";
 #endif
 
 /* #define DEBUG */
@@ -21,7 +21,7 @@ static const char rcs_id[] = "$Id: fwrite,v 1.9 1999/09/21 10:39:16 admin Exp $"
 #include <unistd.h>
 
 #ifdef DEBUG
-#include <sys/os.h>
+#include <unixlib/os.h>
 #endif
 
 __STDIOLIB__
@@ -48,8 +48,8 @@ fwrite (const void *data, size_t size, size_t count, FILE *stream)
     return (size_t)0;
 
 #ifdef DEBUG
-  os_print ("fwrite("); os_prdec (stream->fd);
-  os_print ("): to_write="); os_prdec (to_write);
+  __os_print ("fwrite("); __os_prdec (stream->fd);
+  __os_print ("): to_write="); __os_prdec (to_write);
 #endif
 
   if (stream->o_base != NULL)
@@ -58,7 +58,7 @@ fwrite (const void *data, size_t size, size_t count, FILE *stream)
       if (to_write > stream->o_cnt)
 	{
 #ifdef DEBUG
-	  os_print (", direct write\r\n");
+	  __os_print (", direct write\r\n");
 #endif
 	  /* We have lots of data to output. First flush the buffer,
 	     then just write the rest out.  */
@@ -84,7 +84,7 @@ fwrite (const void *data, size_t size, size_t count, FILE *stream)
 	  /* The data is small enough to place in the output
 	     buffer.  */
 #ifdef DEBUG
-	  os_print (", buffering");
+	  __os_print (", buffering");
 #endif
 	  bytes = to_write;
 	  if (to_write >= 16)
@@ -110,20 +110,20 @@ fwrite (const void *data, size_t size, size_t count, FILE *stream)
 	  if (stream->__linebuf && stream->o_ptr[-1] == '\n')
 	    {
 #ifdef DEBUG
-	      os_print (", flushing\r\n");
+	      __os_print (", flushing\r\n");
 #endif
 	      __flsbuf (-1, stream);
 	    }
 #ifdef DEBUG
           else
-            os_print ("\r\n");
+            __os_print ("\r\n");
 #endif
 	}
     }
   else
     {
 #ifdef DEBUG
-      os_print (", unbuffered write\r\n");
+      __os_print (", unbuffered write\r\n");
 #endif
       /* Optimisations appropriate for an unbuffered file.
 	 We don't have to worry about all that buffer crap :-) */

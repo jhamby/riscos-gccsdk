@@ -1,10 +1,10 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/clib/unixlib/h/types,v $
- * $Date: 1997/12/17 22:02:53 $
- * $Revision: 1.7 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/unixlib/types.h,v $
+ * $Date: 2002/02/07 10:19:30 $
+ * $Revision: 1.2.2.2 $
  * $State: Exp $
- * $Author: unixlib $
+ * $Author: admin $
  *
  ***************************************************************************/
 
@@ -14,6 +14,9 @@
 #ifndef __UNIXLIB_TYPES_H
 #define __UNIXLIB_TYPES_H 1
 
+#define __need_size_t
+#include <stddef.h>
+
 /* Convenience types.  */
 typedef unsigned char __u_char;
 typedef unsigned short __u_short;
@@ -21,7 +24,9 @@ typedef unsigned int __u_int;
 typedef unsigned long __u_long;
 
 #ifdef __GNUC__
+__extension__
 typedef unsigned long long int __u_quad_t;
+__extension__
 typedef long long int __quad_t;
 typedef __quad_t *__qaddr_t;
 #else
@@ -45,12 +50,17 @@ typedef long int __off_t;	/* Type of file sizes and offsets.  */
 typedef int __pid_t;		/* Type of process identifications.  */
 typedef int __ssize_t;		/* Type of a byte count, or error.  */
 typedef __u_quad_t __fsid_t;	/* Type of file system IDs.  */
-
+typedef __u_long __rlim_t;	/* Type of resource counts.  */
 typedef long int __daddr_t;	/* The type of a disk address.  */
 typedef char *__caddr_t;
 typedef unsigned int __time_t;  /* Calendar time.  */
 typedef long int __clock_t;	/* Clock ticks.  */
+typedef int __clockid_t;	/* Used in clock/timer functions.  */
+typedef unsigned int __useconds_t;
+typedef long int __suseconds_t;
+typedef int __timer_t;		/* Timer ID returned by timer_create.  */
 typedef long int __swblk_t;	/* Type of a swap block maybe?  */
+typedef __u_int __id_t;		/* General type for ID.  */
 
 /* An unsigned type used to represent the various bit masks for
    terminal flags.  */
@@ -86,27 +96,34 @@ typedef	unsigned int __u_int32_t;
 typedef int __sig_atomic_t;
 typedef unsigned long __sigset_t;
 
-/* fd_set for select.  */
+/* Type to represent block size.  */
+typedef long int __blksize_t;
 
-/* Number of descriptors that can fit in an `fd_set'.  */
-#define	__FD_SETSIZE	256
+/* Types from the Large File Support interface.  */
 
-/* It's easier to assume 8-bit bytes than to get CHAR_BIT.  */
-#define	__NFDBITS	(sizeof (unsigned long int) * 8)
-#define	__FDELT(d)	((d) / __NFDBITS)
-#define	__FDMASK(d)	(1ul << ((d) % __NFDBITS))
+/* Type to count number os disk blocks.  */
+typedef long int __blkcnt_t;
+typedef __quad_t __blkcnt64_t;
 
-typedef struct
-  {
-    /* Some braindead old software uses this member name.  */
-    unsigned long int fds_bits[(__FD_SETSIZE + (__NFDBITS - 1)) / __NFDBITS];
-  } __fd_set;
+/* Type to count file system blocks.  */
+typedef __u_long __fsblkcnt_t;
+typedef __u_quad_t __fsblkcnt64_t;
 
-typedef unsigned long int __fd_mask;
+/* Type to count file system inodes.  */
+typedef __u_long __fsfilcnt_t;
+typedef __u_quad_t __fsfilcnt64_t;
 
-#define	__FD_ZERO(set) ((void) memset (set, 0, sizeof (*(set))))
-#define	__FD_SET(d, set)	((set)->fds_bits[__FDELT(d)] |= __FDMASK(d))
-#define	__FD_CLR(d, set)	((set)->fds_bits[__FDELT(d)] &= ~__FDMASK(d))
-#define	__FD_ISSET(d, set)	((set)->fds_bits[__FDELT(d)] & __FDMASK(d))
+/* Type of file serial numbers.  */
+typedef __u_quad_t __ino64_t;
 
-#endif
+/* Used in XTI.  */
+typedef long int __t_scalar_t;
+typedef unsigned long int __t_uscalar_t;
+
+/* Duplicates info from stdint.h but this is used in unistd.h.  */
+typedef int __intptr_t;
+
+/* Duplicate info from sys/socket.h.  */
+typedef unsigned int __socklen_t;
+
+#endif /* __UNIXLIB_TYPES_H */

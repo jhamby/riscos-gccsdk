@@ -9,7 +9,7 @@ manual.
 
 I can be contacted at :
 
-	unixlib-chief@hard-mofo.dsvr.net
+	unixlib@hard-mofo.dsvr.net
 
 Aternatively, the UnixLib home page is
 http://hard-mofo.dsvr.net/unixlib, and this should be checked for
@@ -24,7 +24,7 @@ Installation is quite simple:
 1) Copy the !UnixLib directory to an appropriate location on your hard disc,
 and ensure that !UnixLib.!Boot is run during the boot up process.
 
-2) If you have a verison of RiscOS earlier than 3.7, copy the module
+2) If you have a verison of RISC OS earlier than 3.7, copy the module
 CallAWSI.CallASWI to System:modules.
 
 UnixLib and GCC

@@ -1,20 +1,20 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/unix/c/putenv,v $
- * $Date: 1997/10/09 20:00:52 $
- * $Revision: 1.8 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/putenv.c,v $
+ * $Date: 2001/09/04 16:32:04 $
+ * $Revision: 1.2.2.1 $
  * $State: Exp $
- * $Author: unixlib $
+ * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: putenv,v 1.8 1997/10/09 20:00:52 unixlib Exp $";
+static const char rcs_id[] = "$Id: putenv.c,v 1.2.2.1 2001/09/04 16:32:04 admin Exp $";
 #endif
 
 #include <stdlib.h>
 #include <string.h>
-#include <sys/unix.h>
+#include <unixlib/unix.h>
 
 /* Put STRING, which is of the form "NAME=VALUE", in the environment.
    If there is no '=' in STRING, then remove it from the environment.  */

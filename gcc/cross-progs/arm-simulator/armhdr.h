@@ -160,6 +160,32 @@ extern BYTE HUGE *bmem;
 
 extern WORD *arm_regs[4][16];
 
+struct os_state
+{
+  /* RISC OS environment variables.  */
+  volatile WORD environment[18][3];
+
+  /* Keyboard escape key handler.  */
+  int escape_state;
+  int escape_key;
+
+  /* DDEUtils command line extension emulation.  */
+  void *dde_cmd_line;
+  int dde_cmd_line_size;
+
+  /* RISC OS file handles.  */
+  WORD file_handles[2048];
+
+  /* A singularly linked list of tickers for OS_CallAfter and OS_CallEvery.  */
+  struct ticker_event *tickers;
+
+  /* For locale support.  */
+  unsigned int territory_table[9][9];
+  unsigned char territory_trans[2][256];
+};
+
+extern struct os_state *process;
+
 extern int num_of_one_bits[256];
 extern char *program_command_line;
 

@@ -2,7 +2,7 @@
 
    The simple Hello World application.  */
 
-#include <iostream.h>
+#include <iostream>
 
 int main (void)
 {

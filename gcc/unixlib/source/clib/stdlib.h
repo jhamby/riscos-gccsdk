@@ -1,8 +1,8 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/clib/h/stdlib,v $
- * $Date: 2000/01/12 16:55:06 $
- * $Revision: 1.12 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/stdlib.h,v $
+ * $Date: 2002/02/07 10:19:30 $
+ * $Revision: 1.2.2.3 $
  * $State: Exp $
  * $Author: admin $
  *
@@ -13,9 +13,10 @@
 #ifndef __STDLIB_H
 #define __STDLIB_H
 
-#ifndef __STDDEF_H
+#define __need_size_t
+#define __need_wchar_t
+#define __need_NULL
 #include <stddef.h>
-#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -25,7 +26,7 @@ extern "C" {
 #undef  __attribute__
 #define __attribute__(x) /* Ignore */
 #endif
-
+  
 /* Returned by `div'.  */
 typedef struct
   {
@@ -39,6 +40,16 @@ typedef struct
     long int quot;	/* Quotient.  */
     long int rem;	/* Remainder.  */
   } ldiv_t;
+
+#ifdef __GNUC__
+/* Returned by `lldiv'.  */
+__extension__
+typedef struct
+  {
+    long long int quot;	/* Quotient.  */
+    long long int rem;	/* Remainder.  */
+  } lldiv_t;
+#endif
 
 /* The largest number rand will return (same as INT_MAX).  */
 #define	RAND_MAX	2147483647
@@ -83,6 +94,9 @@ extern int putenv (const char *__string);
 /* Execute the given line via the CLI.  */
 extern int system (const char *__command);
 
+/* Canonicalise a filename */
+extern char *realpath (const char *__file_name, char *__resolved_name);
+
 #ifdef __UNIXLIB_INTERNALS
 
 /* Definitions for the atexit array of functions that are to be
@@ -115,8 +129,6 @@ extern void *valloc (size_t __bytes);
 /* src.c.alloc thinks these are in stdio.h, but that feels wrong ... */
 extern void *memalign (size_t __alignment, size_t __bytes);
 extern void cfree (void *__mem);
-extern size_t malloc_usable_size (void* __mem);
-extern void malloc_stats (void);
 extern int malloc_trim (size_t);
 
 /* Return a random integer between 0 and 2^31 (System V interface).  */
@@ -151,6 +163,10 @@ extern long int	labs (long int __x) __attribute__ ((__const__));
 /* Return numerator divided by denominator.  */
 extern div_t div (int __numer, int __denom) __attribute__ ((__const__));
 extern ldiv_t ldiv (long __numer, long __denom) __attribute__ ((__const__));
+#ifdef __GNUC__
+__extension__
+extern lldiv_t lldiv (long long __numer, long long __denom) __attribute__ ((__const__));
+#endif
 
 /* Convert a string to a floating point number.  */
 extern double atof (const char *__string);
@@ -176,9 +192,11 @@ extern unsigned long strtoul (const char *__nptr,
 
 #ifdef __GNUC__
 /* Convert a string to a 64-bit integer.  */
+__extension__
 extern long long strtoll (const char *__nptr, char **__endptr, int __base);
 
 /* Convert a string to an unsigned 64-bit integer.  */
+__extension__
 extern unsigned long long strtoull (const char *__nptr,
 				    char **__endptr, int __base);
 #endif
@@ -186,7 +204,7 @@ extern unsigned long long strtoull (const char *__nptr,
 /* Do a binary search for 'key' in 'base', which consists of
    'nmemb' elements of 'size' bytes each, using 'compare' to
    perform the comparisons.  */
-extern void *bsearch (const void *__ker, const void *__base,
+extern void *bsearch (const void *__key, const void *__base,
 		      size_t __nmemb, size_t __size,
 		      int (*__compare)(const void *, const void *));
 

@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/stdio/c/fclose,v $
- * $Date: 1999/09/21 10:39:16 $
- * $Revision: 1.9 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/stdio/fclose.c,v $
+ * $Date: 2001/09/04 16:32:04 $
+ * $Revision: 1.2.2.1 $
  * $State: Exp $
  * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: fclose,v 1.9 1999/09/21 10:39:16 admin Exp $";
+static const char rcs_id[] = "$Id: fclose.c,v 1.2.2.1 2001/09/04 16:32:04 admin Exp $";
 #endif
 
 /* #define DEBUG */
@@ -20,7 +20,7 @@ static const char rcs_id[] = "$Id: fclose,v 1.9 1999/09/21 10:39:16 admin Exp $"
 #include <unistd.h>
 
 #ifdef DEBUG
-#include <sys/os.h>
+#include <unixlib/os.h>
 #endif
 
 #include <fcntl.h>
@@ -54,14 +54,14 @@ fclose (FILE * stream)
     }
 
 #ifdef DEBUG
-  os_print ("fclose("); os_prdec (stream->fd); os_print ("): ");
+  __os_print ("fclose("); __os_prdec (stream->fd); __os_print ("): ");
 #endif
 
   /* Only flush writable streams.  */
   if (stream->__mode.__write && __flsbuf (EOF, stream) == EOF)
     {
 #ifdef DEBUG
-      os_print ("EOF\r\n");
+      __os_print ("EOF\r\n");
 #endif
       return EOF;
     }

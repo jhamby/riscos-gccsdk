@@ -5,12 +5,16 @@ cdir <obey$dir>.objs.complex
 cdir <obey$dir>.objs.complex.o
 cdir <obey$dir>.objs.gcccompat
 cdir <obey$dir>.objs.gcccompat.o
+cdir <obey$dir>.objs.grp
+cdir <obey$dir>.objs.grp.o
 cdir <obey$dir>.objs.locale
 cdir <obey$dir>.objs.locale.o
 cdir <obey$dir>.objs.math
 cdir <obey$dir>.objs.math.o
 cdir <obey$dir>.objs.math-asm
 cdir <obey$dir>.objs.math-asm.o
+cdir <obey$dir>.objs.module
+cdir <obey$dir>.objs.module.o
 cdir <obey$dir>.objs.netlib
 cdir <obey$dir>.objs.netlib.o
 cdir <obey$dir>.objs.pwd
@@ -23,6 +27,8 @@ cdir <obey$dir>.objs.signal
 cdir <obey$dir>.objs.signal.o
 cdir <obey$dir>.objs.stdio
 cdir <obey$dir>.objs.stdio.o
+cdir <obey$dir>.objs.stdlib
+cdir <obey$dir>.objs.stdlib.o
 cdir <obey$dir>.objs.string
 cdir <obey$dir>.objs.string.o
 cdir <obey$dir>.objs.sys

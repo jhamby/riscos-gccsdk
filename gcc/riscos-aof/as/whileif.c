@@ -18,7 +18,6 @@
 #include "input.h"
 #include "lex.h"
 #include "expr.h"
-#include "strdup.h"
 #include "value.h"
 #include "os.h"
 

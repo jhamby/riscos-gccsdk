@@ -16,7 +16,6 @@
 #include <inttypes.h>
 #endif
 
-#include "strdup.h"
 #include "input.h"
 #include "output.h"
 #include "error.h"

@@ -1,8 +1,8 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/_alloca.s,v $
-; $Date: 2001/01/29 15:10:21 $
-; $Revision: 1.2 $
+; $Date: 2001/09/11 13:05:55 $
+; $Revision: 1.3.2.1 $
 ; $State: Exp $
 ; $Author: admin $
 ;
@@ -88,11 +88,11 @@ alloca		; just in case
 	B	abort		; never returns
 
 
-	AREA	|C$$data|, DATA
+	AREA	|C$$zidata|, DATA, NOINIT
 
 	EXPORT  |__alloca_list|
 |__alloca_list|
-	DCD	0
+	%	4
 
 	END
 

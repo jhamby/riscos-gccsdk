@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/stdio/c/fpos,v $
- * $Date: 1999/09/21 10:39:16 $
- * $Revision: 1.9 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/stdio/fpos.c,v $
+ * $Date: 2001/09/04 16:32:04 $
+ * $Revision: 1.2.2.1 $
  * $State: Exp $
  * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: fpos,v 1.9 1999/09/21 10:39:16 admin Exp $";
+static const char rcs_id[] = "$Id: fpos.c,v 1.2.2.1 2001/09/04 16:32:04 admin Exp $";
 #endif
 
 /* #define DEBUG */
@@ -20,7 +20,7 @@ static const char rcs_id[] = "$Id: fpos,v 1.9 1999/09/21 10:39:16 admin Exp $";
 #include <unistd.h>
 
 #ifdef DEBUG
-#include <sys/os.h>
+#include <unixlib/os.h>
 #endif
 
 __STDIOLIB__
@@ -97,9 +97,9 @@ fseek (FILE * stream, long offset, int w)
   stream->__offset = (fpos_t) result;
 
 #ifdef DEBUG
-  os_print ("fseek("); os_prdec (stream->fd);
-  os_print ("): newpos="); os_prdec (stream->__offset);
-  os_print ("\r\n");
+  __os_print ("fseek("); __os_prdec (stream->fd);
+  __os_print ("): newpos="); __os_prdec (stream->__offset);
+  __os_print ("\r\n");
 #endif
 
   /* Set the input counter to zero so we will read in
@@ -133,16 +133,16 @@ ftell (FILE *stream)
     __flsbuf (EOF, stream);
 
 #ifdef DEBUG
-  os_print ("ftell("); os_prdec (stream->fd); os_print ("): ");
+  __os_print ("ftell("); __os_prdec (stream->fd); __os_print ("): ");
 #endif
 
   if (stream->i_base)
     {
 #ifdef DEBUG
-      os_print ("offset="); os_prdec (stream->__offset);
-      os_print (", i_cnt="); os_prdec (stream->i_cnt);
-      os_print (", pushed_back="); os_prdec (stream->__pushedback);
-      os_print ("\r\n");
+      __os_print ("offset="); __os_prdec (stream->__offset);
+      __os_print (", i_cnt="); __os_prdec (stream->i_cnt);
+      __os_print (", pushed_back="); __os_prdec (stream->__pushedback);
+      __os_print ("\r\n");
 #endif
       return (stream->__offset - ( (stream->__pushedback)
 				 ? (long) stream->__pushedi_cnt + 1
@@ -152,9 +152,9 @@ ftell (FILE *stream)
   if (stream->o_base)
     {
 #ifdef DEBUG
-      os_print ("offset="); os_prdec (stream->__offset);
-      os_print (", o_ptr-o_base="); os_prdec (stream->o_ptr-stream->o_base);
-      os_print ("\r\n");
+      __os_print ("offset="); __os_prdec (stream->__offset);
+      __os_print (", o_ptr-o_base="); __os_prdec (stream->o_ptr-stream->o_base);
+      __os_print ("\r\n");
 #endif
       return (stream->__offset + (long) (stream->o_ptr - stream->o_base));
     }

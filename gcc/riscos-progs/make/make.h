@@ -1,5 +1,5 @@
 /* Miscellaneous global declarations and portability cruft for GNU Make.
-Copyright (C) 1988,89,90,91,92,93,94,95,96,97 Free Software Foundation, Inc.
+Copyright (C) 1988,89,90,91,92,93,94,95,96,97,99 Free Software Foundation, Inc.
 This file is part of GNU Make.
 
 GNU Make is free software; you can redistribute it and/or modify
@@ -14,7 +14,8 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Make; see the file COPYING.  If not, write to
-the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
+the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+Boston, MA 02111-1307, USA.  */
 
 /* AIX requires this to be the first thing in the file.  */
 #if defined (_AIX) && !defined (__GNUC__)
@@ -25,27 +26,62 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
    using -I. -I$srcdir will use ./config.h rather than $srcdir/config.h
    (which it would do because make.h was found in $srcdir).  */
 #include <config.h>
-#undef	HAVE_CONFIG_H
-#define HAVE_CONFIG_H
+#undef  HAVE_CONFIG_H
+#define HAVE_CONFIG_H 1
 
 
 /* Use prototypes if available.  */
 #if defined (__cplusplus) || (defined (__STDC__) && __STDC__)
-#undef  PARAMS
-#define PARAMS(protos)  protos
+# undef  PARAMS
+# define PARAMS(protos)  protos
 #else /* Not C++ or ANSI C.  */
-#undef  PARAMS
-#define PARAMS(protos)  ()
+# undef  PARAMS
+# define PARAMS(protos)  ()
 #endif /* C++ or ANSI C.  */
 
+/* Specify we want GNU source code.  This must be defined before any
+   system headers are included.  */
 
-#ifdef	CRAY
-/* This must happen before #include <signal.h> so
-   that the declaration therein is changed.  */
-#define	signal	bsdsignal
+#define _GNU_SOURCE 1
+
+/* Include libintl.h, if it was found: we don't even look for it unless we
+   want to use the system's gettext().  If not, use the included gettext.h.  */
+
+#ifdef HAVE_LIBINTL_H
+# include <libintl.h>
+# ifdef HAVE_LOCALE_H
+#  include <locale.h>
+# endif
+#else
+# include "gettext.h"
 #endif
 
-#define _GNU_SOURCE
+#ifndef gettext_noop
+/* For automatic extraction of messages sometimes no real translation is
+   needed.  Instead the string itself is the result.  */
+# define gettext_noop(Str) (Str)
+#endif
+
+#define _(Text)     gettext (Text)
+#define N_(Text)    gettext_noop (Text)
+
+
+#if !HAVE_SETLOCALE
+# define setlocale(Category, Locale) /* empty */
+#endif
+
+
+#ifdef  CRAY
+/* This must happen before #include <signal.h> so
+   that the declaration therein is changed.  */
+# define signal bsdsignal
+#endif
+
+/* If we're compiling for the dmalloc debugger, turn off string inlining.  */
+#if defined(HAVE_DMALLOC_H) && defined(__GNUC__)
+# define __NO_STRING_INLINES
+#endif
+
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <signal.h>
@@ -55,90 +91,92 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 /* SCO 3.2 "devsys 4.2" has a prototype for `ftime' in <time.h> that bombs
    unless <sys/timeb.h> has been included first.  Does every system have a
    <sys/timeb.h>?  If any does not, configure should check for it.  */
-#include <sys/timeb.h>
+# include <sys/timeb.h>
 #endif
-#include <time.h>
+
+#if TIME_WITH_SYS_TIME
+# include <sys/time.h>
+# include <time.h>
+#else
+# if HAVE_SYS_TIME_H
+#  include <sys/time.h>
+# else
+#  include <time.h>
+# endif
+#endif
+
 #include <errno.h>
 
-#ifndef	errno
+#ifndef errno
 extern int errno;
 #endif
 
-#ifndef	isblank
-#define	isblank(c)	((c) == ' ' || (c) == '\t')
+/* A shortcut for EINTR checking.  Note you should be careful when negating
+   this!  That might not mean what you want if EINTR is not available.  */
+#ifdef EINTR
+# define EINTR_SET (errno == EINTR)
+#else
+# define EINTR_SET (0)
 #endif
 
-#ifdef	HAVE_UNISTD_H
-#include <unistd.h>
+#ifndef isblank
+# define isblank(c)     ((c) == ' ' || (c) == '\t')
+#endif
+
+#ifdef  HAVE_UNISTD_H
+# include <unistd.h>
 /* Ultrix's unistd.h always defines _POSIX_VERSION, but you only get
    POSIX.1 behavior with `cc -YPOSIX', which predefines POSIX itself!  */
-#if defined (_POSIX_VERSION) && !defined (ultrix) && !defined (VMS)
-#define	POSIX
-#endif
+# if defined (_POSIX_VERSION) && !defined (ultrix) && !defined (VMS)
+#  define POSIX 1
+# endif
 #endif
 
 /* Some systems define _POSIX_VERSION but are not really POSIX.1.  */
 #if (defined (butterfly) || defined (__arm) || (defined (__mips) && defined (_SYSTYPE_SVR3)) || (defined (sequent) && defined (i386)))
-#undef POSIX
+# undef POSIX
 #endif
 
 #if !defined (POSIX) && defined (_AIX) && defined (_POSIX_SOURCE)
-#define POSIX
+# define POSIX 1
 #endif
 
-#if defined (HAVE_SYS_SIGLIST) && !defined (SYS_SIGLIST_DECLARED)
-extern char *sys_siglist[];
+#ifndef RETSIGTYPE
+# define RETSIGTYPE     void
 #endif
 
-#if !defined (HAVE_SYS_SIGLIST) || !defined (HAVE_STRSIGNAL)
-#include "signame.h"
+#ifndef sigmask
+# define sigmask(sig)   (1 << ((sig) - 1))
 #endif
 
-/* Some systems do not define NSIG in <signal.h>.  */
-#ifndef	NSIG
-#ifdef	_NSIG
-#define	NSIG	_NSIG
-#else
-#define	NSIG	32
+#ifdef  HAVE_LIMITS_H
+# include <limits.h>
 #endif
+#ifdef  HAVE_SYS_PARAM_H
+# include <sys/param.h>
 #endif
 
-#ifndef	RETSIGTYPE
-#define	RETSIGTYPE	void
+#ifndef PATH_MAX
+# ifndef POSIX
+#  define PATH_MAX      MAXPATHLEN
+# endif
 #endif
-
-#ifndef	sigmask
-#define	sigmask(sig)	(1 << ((sig) - 1))
-#endif
-
-#ifdef	HAVE_LIMITS_H
-#include <limits.h>
-#endif
-#ifdef	HAVE_SYS_PARAM_H
-#include <sys/param.h>
-#endif
-
-#ifndef	PATH_MAX
-#ifndef	POSIX
-#define	PATH_MAX	MAXPATHLEN
-#endif	/* Not POSIX.  */
-#endif	/* No PATH_MAX.  */
 #ifndef MAXPATHLEN
-#define MAXPATHLEN 1024
-#endif	/* No MAXPATHLEN.  */
+# define MAXPATHLEN 1024
+#endif
 
-#ifdef	PATH_MAX
-#define	GET_PATH_MAX	PATH_MAX
-#define	PATH_VAR(var)	char var[PATH_MAX]
+#ifdef  PATH_MAX
+# define GET_PATH_MAX   PATH_MAX
+# define PATH_VAR(var)  char var[PATH_MAX]
 #else
-#define	NEED_GET_PATH_MAX
+# define NEED_GET_PATH_MAX 1
+# define GET_PATH_MAX   (get_path_max ())
+# define PATH_VAR(var)  char *var = (char *) alloca (GET_PATH_MAX)
 extern unsigned int get_path_max PARAMS ((void));
-#define	GET_PATH_MAX	(get_path_max ())
-#define	PATH_VAR(var)	char *var = (char *) alloca (GET_PATH_MAX)
 #endif
 
 #ifndef CHAR_BIT
-#define CHAR_BIT 8
+# define CHAR_BIT 8
 #endif
 
 /* Nonzero if the integer type T is signed.  */
@@ -150,171 +188,200 @@ extern unsigned int get_path_max PARAMS ((void));
   (! INTEGER_TYPE_SIGNED (t) ? (t) 0 : ~ (t) 0 << (sizeof (t) * CHAR_BIT - 1))
 #define INTEGER_TYPE_MAXIMUM(t) (~ (t) 0 - INTEGER_TYPE_MINIMUM (t))
 
-#ifdef	STAT_MACROS_BROKEN
-#ifdef	S_ISREG
-#undef	S_ISREG
+#ifndef CHAR_MAX
+# define CHAR_MAX INTEGER_TYPE_MAXIMUM (char)
 #endif
-#ifdef	S_ISDIR
-#undef	S_ISDIR
-#endif
-#endif	/* STAT_MACROS_BROKEN.  */
 
-#ifndef	S_ISREG
-#define	S_ISREG(mode)	(((mode) & S_IFMT) == S_IFREG)
+#ifdef STAT_MACROS_BROKEN
+# ifdef S_ISREG
+#  undef S_ISREG
+# endif
+# ifdef S_ISDIR
+#  undef S_ISDIR
+# endif
+#endif  /* STAT_MACROS_BROKEN.  */
+
+#ifndef S_ISREG
+# define S_ISREG(mode)  (((mode) & S_IFMT) == S_IFREG)
 #endif
-#ifndef	S_ISDIR
-#define	S_ISDIR(mode)	(((mode) & S_IFMT) == S_IFDIR)
+#ifndef S_ISDIR
+# define S_ISDIR(mode)  (((mode) & S_IFMT) == S_IFDIR)
 #endif
 
 #ifdef VMS
-#include <stdio.h>
-#include <types.h>
-#include <unixlib.h>
-#include <unixio.h>
-#include <errno.h>
-#include <perror.h>
+# include <types.h>
+# include <unixlib.h>
+# include <unixio.h>
+# include <perror.h>
 #endif
 
-#if	(defined (STDC_HEADERS) || defined (__GNU_LIBRARY__) || defined(VMS))
-#include <stdlib.h>
-#include <string.h>
-#define	ANSI_STRING
-#else	/* No standard headers.  */
-
-#ifdef HAVE_STRING_H
-#include <string.h>
-#define	ANSI_STRING
-#else
-#include <strings.h>
-#endif
-#ifdef	HAVE_MEMORY_H
-#include <memory.h>
+#ifndef __attribute__
+/* This feature is available in gcc versions 2.5 and later.  */
+# if __GNUC__ < 2 || (__GNUC__ == 2 && __GNUC_MINOR__ < 5) || __STRICT_ANSI__
+#  define __attribute__(x)
+# endif
+/* The __-protected variants of `format' and `printf' attributes
+   are accepted by gcc versions 2.6.4 (effectively 2.7) and later.  */
+# if __GNUC__ < 2 || (__GNUC__ == 2 && __GNUC_MINOR__ < 7)
+#  define __format__ format
+#  define __printf__ printf
+# endif
 #endif
 
+#if defined (STDC_HEADERS) || defined (__GNU_LIBRARY__)
+# include <stdlib.h>
+# include <string.h>
+# define ANSI_STRING 1
+#else   /* No standard headers.  */
+# ifdef HAVE_STRING_H
+#  include <string.h>
+#  define ANSI_STRING 1
+# else
+#  include <strings.h>
+# endif
+# ifdef HAVE_MEMORY_H
+#  include <memory.h>
+# endif
+# ifdef HAVE_STDLIB_H
+#  include <stdlib.h>
+# else
 extern char *malloc PARAMS ((int));
 extern char *realloc PARAMS ((char *, int));
 extern void free PARAMS ((char *));
 
-extern void abort PARAMS ((void));
-extern void exit PARAMS ((int));
+extern void abort PARAMS ((void)) __attribute__ ((noreturn));
+extern void exit PARAMS ((int)) __attribute__ ((noreturn));
+# endif /* HAVE_STDLIB_H.  */
 
-#endif	/* Standard headers.  */
+#endif /* Standard headers.  */
 
-#ifdef	ANSI_STRING
+#ifdef  ANSI_STRING
 
-#ifndef	index
-#define	index(s, c)	strchr((s), (c))
-#endif
-#ifndef	rindex
-#define	rindex(s, c)	strrchr((s), (c))
-#endif
+# ifndef bcmp
+#  define bcmp(s1, s2, n)   memcmp ((s1), (s2), (n))
+# endif
+# ifndef bzero
+#  define bzero(s, n)       memset ((s), 0, (n))
+# endif
+# if defined(HAVE_MEMMOVE) && !defined(bcopy)
+#  define bcopy(s, d, n)    memmove ((d), (s), (n))
+# endif
 
-#ifndef	bcmp
-#define bcmp(s1, s2, n)	memcmp ((s1), (s2), (n))
-#endif
-#ifndef	bzero
-#define bzero(s, n)	memset ((s), 0, (n))
-#endif
-#if defined(HAVE_MEMMOVE) && !defined(bcopy)
-#define bcopy(s, d, n)	memmove ((d), (s), (n))
-#endif
+#else   /* Not ANSI_STRING.  */
 
-#else	/* Not ANSI_STRING.  */
+# ifndef HAVE_STRCHR
+#  define strchr(s, c)      index((s), (c))
+#  define strrchr(s, c)     rindex((s), (c))
+# endif
 
-#ifndef	bcmp
-extern int bcmp ();
+# ifndef bcmp
+extern int bcmp PARAMS ((const char *, const char *, int));
+# endif
+# ifndef bzero
+extern void bzero PARAMS ((char *, int));
 #endif
-#ifndef	bzero
-extern void bzero ();
-#endif
-#ifndef	bcopy
-extern void bcopy ();
-#endif
+# ifndef bcopy
+extern void bcopy PARAMS ((const char *b1, char *b2, int));
+# endif
 
-#endif	/* ANSI_STRING.  */
-#undef	ANSI_STRING
+#endif  /* ANSI_STRING.  */
+#undef  ANSI_STRING
 
 /* SCO Xenix has a buggy macro definition in <string.h>.  */
-#undef	strerror
+#undef  strerror
 
 #if !defined(ANSI_STRING) && !defined(__DECC)
 extern char *strerror PARAMS ((int errnum));
 #endif
 
-#ifndef __attribute__
-# if __GNUC__ < 2 || (__GNUC__ == 2 && __GNUC_MINOR__ < 5)
-#  define __attribute__(x)
-# endif
-#endif
-
-#ifdef	__GNUC__
-#undef	alloca
-#define	alloca(n)	__builtin_alloca (n)
-#else	/* Not GCC.  */
-#ifdef	HAVE_ALLOCA_H
-#include <alloca.h>
-#else	/* Not HAVE_ALLOCA_H.  */
-#ifndef	_AIX
+#ifdef __GNUC__
+# undef alloca
+# define alloca(n)      __builtin_alloca (n)
+#else   /* Not GCC.  */
+# ifdef HAVE_ALLOCA_H
+#  include <alloca.h>
+# else /* Not HAVE_ALLOCA_H.  */
+#  ifndef _AIX
 extern char *alloca ();
-#endif	/* Not AIX.  */
-#endif	/* HAVE_ALLOCA_H.  */
-#endif	/* GCC.  */
+#  endif /* Not AIX.  */
+# endif /* HAVE_ALLOCA_H.  */
+#endif /* GCC.  */
 
-#ifndef	iAPX286
-#define streq(a, b) \
-  ((a) == (b) || \
-   (*(a) == *(b) && (*(a) == '\0' || !strcmp ((a) + 1, (b) + 1))))
-#ifdef HAVE_CASE_INSENSITIVE_FS
-#define strieq(a, b) \
-  ((a) == (b) || \
-   (tolower(*(a)) == tolower(*(b)) && (*(a) == '\0' || !strcmpi ((a) + 1, (b) + 1))))
-#else
-#define strieq(a, b) \
-  ((a) == (b) || \
-   (*(a) == *(b) && (*(a) == '\0' || !strcmp ((a) + 1, (b) + 1))))
+#if HAVE_INTTYPES_H
+# include <inttypes.h>
 #endif
+#define FILE_TIMESTAMP uintmax_t
+
+/* ISDIGIT offers the following features:
+   - Its arg may be any int or unsigned int; it need not be an unsigned char.
+   - It's guaranteed to evaluate its argument exactly once.
+      NOTE!  Make relies on this behavior, don't change it!
+   - It's typically faster.
+   Posix 1003.2-1992 section 2.5.2.1 page 50 lines 1556-1558 says that
+   only '0' through '9' are digits.  Prefer ISDIGIT to isdigit() unless
+   it's important to use the locale's definition of `digit' even when the
+   host does not conform to Posix.  */
+#define ISDIGIT(c) ((unsigned) (c) - '0' <= 9)
+
+#ifndef iAPX286
+# define streq(a, b) \
+   ((a) == (b) || \
+    (*(a) == *(b) && (*(a) == '\0' || !strcmp ((a) + 1, (b) + 1))))
+# ifdef HAVE_CASE_INSENSITIVE_FS
+/* This is only used on Windows/DOS platforms, so we assume strcmpi().  */
+#  define strieq(a, b) \
+    ((a) == (b) \
+     || (tolower((unsigned char)*(a)) == tolower((unsigned char)*(b)) \
+         && (*(a) == '\0' || !strcmpi ((a) + 1, (b) + 1))))
+# else
+#  define strieq(a, b) streq(a, b)
+# endif
 #else
 /* Buggy compiler can't handle this.  */
-#define streq(a, b) (strcmp ((a), (b)) == 0)
-#define strieq(a, b) (strcmp ((a), (b)) == 0)
+# define streq(a, b) (strcmp ((a), (b)) == 0)
+# define strieq(a, b) (strcmp ((a), (b)) == 0)
+#endif
+#define strneq(a, b, l) (strncmp ((a), (b), (l)) == 0)
+#ifdef  VMS
+extern int strcmpi (const char *,const char *);
 #endif
 
 /* Add to VAR the hashing value of C, one character in a name.  */
-#define	HASH(var, c) \
+#define HASH(var, c) \
   ((var += (c)), (var = ((var) << 7) + ((var) >> 20)))
 #ifdef HAVE_CASE_INSENSITIVE_FS /* Fold filenames */
-#define HASHI(var, c) \
-  ((var += tolower((c))), (var = ((var) << 7) + ((var) >> 20)))
+# define HASHI(var, c) \
+   ((var += tolower((unsigned char)(c))), (var = ((var) << 7) + ((var) >> 20)))
 #else
-#define HASHI(var, c) HASH(var,c)
+# define HASHI(var, c) HASH(var,c)
 #endif
 
 #if defined(__GNUC__) || defined(ENUM_BITFIELDS)
-#define	ENUM_BITFIELD(bits)	:bits
+# define ENUM_BITFIELD(bits)    :bits
 #else
-#define	ENUM_BITFIELD(bits)
+# define ENUM_BITFIELD(bits)
 #endif
 
 #if defined(__MSDOS__) || defined(WINDOWS32)
-#define PATH_SEPARATOR_CHAR ';'
+# define PATH_SEPARATOR_CHAR ';'
 #else
-#if defined(VMS)
-#define PATH_SEPARATOR_CHAR ','
-#else
-#define PATH_SEPARATOR_CHAR ':'
-#endif
+# if defined(VMS)
+#  define PATH_SEPARATOR_CHAR ','
+# else
+#  define PATH_SEPARATOR_CHAR ':'
+# endif
 #endif
 
 #ifdef WINDOWS32
-#include <fcntl.h>
-#include <malloc.h>
-#define pipe(p) _pipe(p, 512, O_BINARY)
-#define kill(pid,sig) w32_kill(pid,sig)
+# include <fcntl.h>
+# include <malloc.h>
+# define pipe(p) _pipe(p, 512, O_BINARY)
+# define kill(pid,sig) w32_kill(pid,sig)
 
 extern void sync_Path_environment(void);
 extern int kill(int pid, int sig);
 extern int safe_stat(char *file, struct stat *sb);
-extern char *end_of_token_w32();
+extern char *end_of_token_w32(char *s, char stopchar);
 extern int find_and_set_default_shell(char *token);
 
 /* indicates whether or not we have Bourne shell */
@@ -323,72 +390,84 @@ extern int no_default_sh_exe;
 /* is default_shell unixy? */
 extern int unixy_shell;
 #endif  /* WINDOWS32 */
-
-extern void die () __attribute__ ((noreturn));
-extern void message ();
-extern void fatal () __attribute__ ((noreturn));
-extern void error ();
-extern void log_working_directory ();
-extern void makefile_error ();
-extern void makefile_fatal () __attribute__ ((noreturn));
-extern void pfatal_with_name () __attribute__ ((noreturn));
-extern void perror_with_name ();
-extern char *savestring ();
-extern char *concat ();
-extern char *xmalloc ();
-extern char *xrealloc ();
-extern char *find_next_token ();
-extern char *next_token ();
-extern char *end_of_token ();
-extern void collapse_continuations ();
-extern void remove_comments ();
-extern char *sindex ();
-extern char *lindex ();
-extern int alpha_compare ();
-extern void print_spaces ();
-extern struct dep *copy_dep_chain ();
-extern char *find_char_unquote ();
-extern char *find_percent ();
 
-#ifndef	NO_ARCHIVES
-extern int ar_name ();
-extern void ar_parse_name ();
-extern int ar_touch ();
-extern time_t ar_member_date ();
+struct floc
+  {
+    char *filenm;
+    unsigned long lineno;
+  };
+#define NILF ((struct floc *)0)
+
+
+/* Fancy processing for variadic functions in both ANSI and pre-ANSI
+   compilers.  */
+#if defined __STDC__ && __STDC__
+extern void message (int prefix, const char *fmt, ...)
+                     __attribute__ ((__format__ (__printf__, 2, 3)));
+extern void error (const struct floc *flocp, const char *fmt, ...)
+                   __attribute__ ((__format__ (__printf__, 2, 3)));
+extern void fatal (const struct floc *flocp, const char *fmt, ...)
+                   __attribute__ ((noreturn, __format__ (__printf__, 2, 3)));
+#else
+extern void message ();
+extern void error ();
+extern void fatal ();
 #endif
 
-extern void dir_load ();
-extern int dir_file_exists_p ();
-extern int file_exists_p ();
-extern int file_impossible_p ();
-extern void file_impossible ();
-extern char *dir_name ();
+extern void die PARAMS ((int)) __attribute__ ((noreturn));
+extern void log_working_directory PARAMS ((int));
+extern void pfatal_with_name PARAMS ((char *)) __attribute__ ((noreturn));
+extern void perror_with_name PARAMS ((char *, char *));
+extern char *savestring PARAMS ((const char *, unsigned int));
+extern char *concat PARAMS ((char *, char *, char *));
+extern char *xmalloc PARAMS ((unsigned int));
+extern char *xrealloc PARAMS ((char *, unsigned int));
+extern char *xstrdup PARAMS ((const char *));
+extern char *find_next_token PARAMS ((char **, unsigned int *));
+extern char *next_token PARAMS ((char *));
+extern char *end_of_token PARAMS ((char *));
+extern void collapse_continuations PARAMS ((char *));
+extern void remove_comments PARAMS((char *));
+extern char *sindex PARAMS ((const char *, unsigned int, \
+                             const char *, unsigned int));
+extern char *lindex PARAMS ((const char *, const char *, int));
+extern int alpha_compare PARAMS ((const void *, const void *));
+extern void print_spaces PARAMS ((unsigned int));
+extern char *find_char_unquote PARAMS ((char *, char *, int));
+extern char *find_percent PARAMS ((char *));
+extern FILE *open_tmpfile PARAMS ((char **, const char *));
 
-extern void define_default_variables ();
-extern void set_default_suffixes ();
-extern void install_default_suffix_rules ();
-extern void install_default_implicit_rules ();
-extern void count_implicit_rule_limits ();
-extern void convert_to_pattern ();
-extern void create_pattern_rule ();
+#ifndef NO_ARCHIVES
+extern int ar_name PARAMS ((char *));
+extern void ar_parse_name PARAMS ((char *, char **, char **));
+extern int ar_touch PARAMS ((char *));
+extern time_t ar_member_date PARAMS ((char *));
+#endif
 
-extern void build_vpath_lists ();
-extern void construct_vpath_list ();
-extern int vpath_search ();
-extern int gpath_search ();
+extern int dir_file_exists_p PARAMS ((char *, char *));
+extern int file_exists_p PARAMS ((char *));
+extern int file_impossible_p PARAMS ((char *));
+extern void file_impossible PARAMS ((char *));
+extern char *dir_name PARAMS ((char *));
 
-extern void construct_include_path ();
-extern void uniquize_deps ();
+extern void define_default_variables PARAMS ((void));
+extern void set_default_suffixes PARAMS ((void));
+extern void install_default_suffix_rules PARAMS ((void));
+extern void install_default_implicit_rules PARAMS ((void));
 
-extern int update_goal_chain ();
-extern void notice_finished_file ();
+extern void build_vpath_lists PARAMS ((void));
+extern void construct_vpath_list PARAMS ((char *pattern, char *dirpath));
+extern int vpath_search PARAMS ((char **file, FILE_TIMESTAMP *mtime_ptr));
+extern int gpath_search PARAMS ((char *file, int len));
 
-extern void user_access ();
-extern void make_access ();
-extern void child_access ();
+extern void construct_include_path PARAMS ((char **arg_dirs));
 
-#ifdef	HAVE_VFORK_H
-#include <vfork.h>
+extern void user_access PARAMS ((void));
+extern void make_access PARAMS ((void));
+extern void child_access PARAMS ((void));
+
+#ifdef  HAVE_VFORK_H
+# include <vfork.h>
 #endif
 
 /* We omit these declarations on non-POSIX systems which define _POSIX_VERSION,
@@ -397,38 +476,38 @@ extern void child_access ();
 #if !defined (__GNU_LIBRARY__) && !defined (POSIX) && !defined (_POSIX_VERSION) && !defined(WINDOWS32)
 
 extern long int atol ();
-#ifndef VMS
+# ifndef VMS
 extern long int lseek ();
-#endif
+# endif
 
-#endif	/* Not GNU C library or POSIX.  */
+#endif  /* Not GNU C library or POSIX.  */
 
-#ifdef	HAVE_GETCWD
+#ifdef  HAVE_GETCWD
+# if !defined(VMS) && !defined(__DECC)
 extern char *getcwd ();
-#ifdef VMS
-extern char *getwd PARAMS ((char *));
 #endif
 #else
 extern char *getwd ();
-#define	getcwd(buf, len)	getwd (buf)
+# define getcwd(buf, len)       getwd (buf)
 #endif
+
+extern const struct floc *reading_file;
 
 extern char **environ;
 
-extern char *reading_filename;
-extern unsigned int *reading_lineno_ptr;
-
 extern int just_print_flag, silent_flag, ignore_errors_flag, keep_going_flag;
-extern int debug_flag, print_data_base_flag, question_flag, touch_flag;
-extern int env_overrides, no_builtin_rules_flag, print_version_flag;
-extern int print_directory_flag, warn_undefined_variables_flag;
-extern int posix_pedantic;
+extern int print_data_base_flag, question_flag, touch_flag;
+extern int env_overrides, no_builtin_rules_flag, no_builtin_variables_flag;
+extern int print_version_flag, print_directory_flag;
+extern int warn_undefined_variables_flag, posix_pedantic, not_parallel;
 extern int clock_skew_detected;
 
 /* can we run commands via 'sh -c xxx' or must we use batch files? */
 extern int batch_mode_shell;
 
 extern unsigned int job_slots;
+extern int job_fds[2];
+extern int job_rfd;
 #ifndef NO_FLOAT
 extern double max_load_average;
 #else
@@ -445,9 +524,12 @@ extern unsigned int commands_started;
 extern int handling_fatal_signal;
 
 
-#define DEBUGPR(msg) \
-  do if (debug_flag) { print_spaces (depth); printf (msg, file->name); \
-		       fflush (stdout); } while (0)
+#ifndef MIN
+#define MIN(_a,_b) ((_a)<(_b)?(_a):(_b))
+#endif
+#ifndef MAX
+#define MAX(_a,_b) ((_a)>(_b)?(_a):(_b))
+#endif
 
 #ifdef VMS
 # ifndef EXIT_FAILURE
@@ -471,3 +553,8 @@ extern int handling_fatal_signal;
 # endif
 #endif
 
+/* Set up heap debugging library dmalloc.  */
+
+#ifdef HAVE_DMALLOC_H
+#include <dmalloc.h>
+#endif

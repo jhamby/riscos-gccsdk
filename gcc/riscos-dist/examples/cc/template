@@ -1,6 +1,6 @@
 /* Template repository demonstration.  */
 
-#include <stdio.h>
+#include <cstdio>
 
 template<class T> class stack {
   T* v;

@@ -1,8 +1,8 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/sys/c/brk,v $
- * $Date: 2000/08/17 16:16:06 $
- * $Revision: 1.9 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/brk.c,v $
+ * $Date: 2001/09/04 16:32:04 $
+ * $Revision: 1.2.2.3 $
  * $State: Exp $
  * $Author: admin $
  *
@@ -38,7 +38,7 @@
 /* sys/brk.c: Complete rewrite by Peter Burwood, June 1997  */
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: brk,v 1.9 2000/08/17 16:16:06 admin Exp $";
+static const char rcs_id[] = "$Id: brk.c,v 1.2.2.3 2001/09/04 16:32:04 admin Exp $";
 #endif
 
 #include <string.h>
@@ -46,15 +46,15 @@ static const char rcs_id[] = "$Id: brk,v 1.9 2000/08/17 16:16:06 admin Exp $";
 #include <unistd.h>
 
 #include <sys/resource.h>
-#include <sys/syslib.h>
-#include <sys/swis.h>
+#include <unixlib/os.h>
+#include <swis.h>
 #include <sys/types.h>
-#include <sys/unix.h>
+#include <unixlib/unix.h>
 
 /* #define DEBUG */
 
 #ifdef DEBUG
-#include <sys/os.h>
+#include <unixlib/os.h>
 #endif
 
 #define align(x) ((void *)(((unsigned int)(x) + 3) & ~3))
@@ -68,10 +68,10 @@ brk (void *addr)
   addr = align (addr);
 
 #ifdef DEBUG
-  os_print ("-- brk: addr = "); os_prhex (addr); os_print ("\r\n");
-  os_print ("-- brk: __lomem = "); os_prhex (__lomem); os_print ("\r\n");
-  os_print ("-- brk: __break = "); os_prhex (__break); os_print ("\r\n");
-  os_print ("-- brk: __stack = "); os_prhex (__stack); os_print ("\r\n");
+  __os_print ("-- brk: addr = "); __os_prhex (addr); __os_print ("\r\n");
+  __os_print ("-- brk: __lomem = "); __os_prhex (__lomem); __os_print ("\r\n");
+  __os_print ("-- brk: __break = "); __os_prhex (__break); __os_print ("\r\n");
+  __os_print ("-- brk: __stack = "); __os_prhex (__stack); __os_print ("\r\n");
 #endif
 
   /* Check new limit isn't below minimum brk limit, i.e., __lomem.
@@ -95,9 +95,9 @@ brk (void *addr)
 	  if ((u_char *) addr - (u_char *) __lomem > __u->limit[RLIMIT_DATA].rlim_cur)
 	    {
 #ifdef DEBUG
-       	      os_print ("-- brk: addr - __lomem > RLIMIT_DATA (");
-       	      os_prhex (__u->limit[RLIMIT_DATA].rlim_cur);
-	      os_print (")\r\n");
+       	      __os_print ("-- brk: addr - __lomem > RLIMIT_DATA (");
+       	      __os_prhex (__u->limit[RLIMIT_DATA].rlim_cur);
+	      __os_print (")\r\n");
 #endif
 	      /* Need to increase the resource limit.  */
 	      return __set_errno (ENOMEM);
@@ -118,10 +118,10 @@ brk (void *addr)
 	     calls.  This is done because OS_ChangeDynamicArea can be expensive,
 	     so smaller [s]brk increments will fit inside __real_break.  */
 	  regs[1] = (regs[1] + 32767) & ~32767;
-	  if (os_swi (OS_ChangeDynamicArea, regs))
+	  if (__os_swi (OS_ChangeDynamicArea, regs))
 	    {
 #ifdef DEBUG
-       	      os_print ("-- brk: OS_ChangeDynamicArea failed\r\n");
+       	      __os_print ("-- brk: OS_ChangeDynamicArea failed\r\n");
 #endif
 	      /* Failed to allocate the memory, so return an error.  */
 	      return __set_errno (ENOMEM);
@@ -144,11 +144,11 @@ brk (void *addr)
 	  if (regs[1] > 0)
 	    {
 	      regs[1] = -regs[1];
-	      /* Ignore any error from os_swi, since it can happen with a
+	      /* Ignore any error from __os_swi, since it can happen with a
 		 request to reduce the size of the area which is only partially
 		 satisfied.  Either way, regs[1] should have the +ve amount of
 		 memory returned to the system.  */
-	      os_swi (OS_ChangeDynamicArea, regs);
+	      __os_swi (OS_ChangeDynamicArea, regs);
 	      __real_break = (u_char *) __real_break - (unsigned int) regs[1];
 	    }
 	}
@@ -160,7 +160,7 @@ brk (void *addr)
       if (addr > __stack)
         {
 #ifdef DEBUG
-           os_print ("-- brk: addr > __stack\r\n");
+           __os_print ("-- brk: addr > __stack\r\n");
 #endif
 	   return __set_errno (ENOMEM);
         }
@@ -179,7 +179,7 @@ sbrk (int incr)
   void *oldbrk = __break;
 
 #ifdef DEBUG
-  os_print ("-- sbrk: incr = "); os_prdec (incr); os_print ("\r\n");
+  __os_print ("-- sbrk: incr = "); __os_prdec (incr); __os_print ("\r\n");
 #endif
 
   if (incr != 0 && brk ((u_char *) oldbrk + incr) < 0)

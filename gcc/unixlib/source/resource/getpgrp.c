@@ -1,19 +1,19 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/resource/c/getpgrp,v $
- * $Date: 1997/10/08 12:48:12 $
- * $Revision: 1.1 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/resource/getpgrp.c,v $
+ * $Date: 2001/09/04 16:32:04 $
+ * $Revision: 1.2.2.1 $
  * $State: Exp $
- * $Author: unixlib $
+ * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: getpgrp,v 1.1 1997/10/08 12:48:12 unixlib Exp $";
+static const char rcs_id[] = "$Id: getpgrp.c,v 1.2.2.1 2001/09/04 16:32:04 admin Exp $";
 #endif
 
 #include <unistd.h>
-#include <sys/unix.h>
+#include <unixlib/unix.h>
 
 __pid_t
 getpgrp (void)

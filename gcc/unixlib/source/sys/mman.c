@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/sys/c/mman,v $
- * $Date: 1997/12/17 22:27:08 $
- * $Revision: 1.5 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/mman.c,v $
+ * $Date: 2001/09/04 16:32:04 $
+ * $Revision: 1.2.2.3 $
  * $State: Exp $
- * $Author: unixlib $
+ * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: mman,v 1.5 1997/12/17 22:27:08 unixlib Exp $";
+static const char rcs_id[] = "$Id: mman.c,v 1.2.2.3 2001/09/04 16:32:04 admin Exp $";
 #endif
 
 /* Definitions for BSD-style memory management.  Generic/4.4 BSD version.  */
@@ -23,12 +23,11 @@ static const char rcs_id[] = "$Id: mman,v 1.5 1997/12/17 22:27:08 unixlib Exp $"
 */
 
 #include <sys/mman.h>
-#include <sys/os.h>
-#include <sys/syslib.h>
+#include <unixlib/os.h>
 #include <sys/types.h>
-#include <sys/swis.h>
+#include <swis.h>
 #include <unistd.h>
-#include <sys/unix.h>
+#include <unixlib/unix.h>
 #include <string.h>
 #include <errno.h>
 
@@ -169,7 +168,7 @@ mmap (caddr_t addr, size_t len, int prot, int flags, int fd, off_t offset)
     strcat (namebuf, "$HeapX");
     regs[8] = (int)namebuf;
 
-    if (os_swi (OS_DynamicArea, regs))
+    if (__os_swi (OS_DynamicArea, regs))
       return (caddr_t) __set_errno (ENOMEM);
   }
 
@@ -207,7 +206,7 @@ munmap (caddr_t addr, size_t len)
   regs[1] = mmaps[i].number;
   mmaps[i].addr = 0;
   mmaps[i].number = -1;
-  err = os_swi (OS_DynamicArea, regs);
+  err = __os_swi (OS_DynamicArea, regs);
   if (err)
     {
       /* Failed to delete area.  */
@@ -291,7 +290,7 @@ mremap (caddr_t addr, size_t old_len, size_t new_len, int may_move)
   if (regs[1] == 0)
     return addr;
 
-  err = os_swi (OS_ChangeDynamicArea, regs);
+  err = __os_swi (OS_ChangeDynamicArea, regs);
   if (err)
     {
       /* If we were trying to reduce the mmap size and that failed, then
@@ -324,7 +323,7 @@ mremap (caddr_t addr, size_t old_len, size_t new_len, int may_move)
       __mmap_page_copy (new_addr, addr, old_len);
       regs[0] = 1;
       regs[1] = old_area;
-      err = os_swi (OS_DynamicArea, regs);
+      err = __os_swi (OS_DynamicArea, regs);
       /* Record any error, which may be due to the deletion of the
 	 old area failing. We also soldier on, since we did manage
 	 to remap the memory.  */

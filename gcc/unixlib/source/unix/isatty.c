@@ -1,21 +1,21 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/unix/c/isatty,v $
- * $Date: 1997/10/19 21:50:54 $
- * $Revision: 1.7 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/isatty.c,v $
+ * $Date: 2001/09/04 16:32:04 $
+ * $Revision: 1.2.2.1 $
  * $State: Exp $
- * $Author: unixlib $
+ * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: isatty,v 1.7 1997/10/19 21:50:54 unixlib Exp $";
+static const char rcs_id[] = "$Id: isatty.c,v 1.2.2.1 2001/09/04 16:32:04 admin Exp $";
 #endif
 
 #include <errno.h>
 #include <unistd.h>
-#include <sys/dev.h>
-#include <sys/unix.h>
+#include <unixlib/dev.h>
+#include <unixlib/unix.h>
 #include <unixlib/fd.h>
 
 /* Return 1 if fd is a tty.  */

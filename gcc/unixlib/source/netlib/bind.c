@@ -1,19 +1,19 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/netlib/c/bind,v $
- * $Date: 1997/10/09 20:00:16 $
- * $Revision: 1.6 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/netlib/bind.c,v $
+ * $Date: 2001/09/04 16:32:04 $
+ * $Revision: 1.2.2.1 $
  * $State: Exp $
- * $Author: unixlib $
+ * $Author: admin $
  *
  * (c) Copyright 1995 Sergio Monesi
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: bind,v 1.6 1997/10/09 20:00:16 unixlib Exp $";
+static const char rcs_id[] = "$Id: bind.c,v 1.2.2.1 2001/09/04 16:32:04 admin Exp $";
 #endif
 
-#include <sys/unix.h>
+#include <unixlib/unix.h>
 #include <sys/socket.h>
 #include <unixlib/fd.h>
 #include <unixlib/local.h>

@@ -1,8 +1,8 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/clib/h/math,v $
- * $Date: 2000/06/03 14:28:30 $
- * $Revision: 1.11 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/math.h,v $
+ * $Date: 2002/02/07 10:19:30 $
+ * $Revision: 1.2.2.3 $
  * $State: Exp $
  * $Author: admin $
  *
@@ -38,158 +38,178 @@ extern "C" {
 /* Trigonometric functions.  */
 
 /* Arc cosine of x.  */
-extern double acos (double x) __attribute__ ((__const__));
+extern double acos (double __x) __attribute__ ((__const__));
 
 /* Arc sine of x.  */
-extern double asin (double x) __attribute__ ((__const__));
+extern double asin (double __x) __attribute__ ((__const__));
 
 /* Arc tangent of x.  */
-extern double atan (double x) __attribute__ ((__const__));
+extern double atan (double __x) __attribute__ ((__const__));
 
 /* Arc tangent of y/x.  */
-extern double atan2 (double y,double x) __attribute__ ((__const__));
+extern double atan2 (double __y,double __x) __attribute__ ((__const__));
 
 /* Cosine of x.  */
-extern double cos (double x) __attribute__ ((__const__));
+extern double cos (double __x) __attribute__ ((__const__));
 
 /* Sine of x.  */
-extern double sin (double x) __attribute__ ((__const__));
+extern double sin (double __x) __attribute__ ((__const__));
 
 /* Tangent of x.  */
-extern double tan (double x) __attribute__ ((__const__));
+extern double tan (double __x) __attribute__ ((__const__));
 
 /* Hyperbolic functions.  */
 
 /* Hyperbolic cosine of x.  */
-extern double cosh (double x) __attribute__ ((__const__));
+extern double cosh (double __x) __attribute__ ((__const__));
 
 /* Hyperbolic sine of x.  */
-extern double sinh (double x) __attribute__ ((__const__));
+extern double sinh (double __x) __attribute__ ((__const__));
 
 /* Hyperbolic tangent of x.  */
-extern double tanh (double x) __attribute__ ((__const__));
+extern double tanh (double __x) __attribute__ ((__const__));
 
 /* Hyperbolic arc cosine of x.  */
-extern double acosh (double x) __attribute__ ((__const__));
+extern double acosh (double __x) __attribute__ ((__const__));
 
 /* Hyperbolic arc sine of x.  */
-extern double asinh (double x) __attribute__ ((__const__));
+extern double asinh (double __x) __attribute__ ((__const__));
 
 /* Hyperbolic arc tangent of x.  */
-extern double atanh (double x) __attribute__ ((__const__));
+extern double atanh (double __x) __attribute__ ((__const__));
 
 /* Exponential and logarithmic functions.  */
 
-/* Exponentional function of x.  */
-extern double exp (double x) __attribute__ ((__const__));
+/* Exponentional function of x (2 ^ e).  */
+extern double exp (double __x) __attribute__ ((__const__));
+
+/* Exponentional function of x (2 ^ x).  */
+extern double exp2 (double __x) __attribute__ ((__const__));
+
+/* Exponentional function of x (10 ^ x).  */
+extern double exp10 (double __x) __attribute__ ((__const__));
 
 /* Break value into a normalized fracton and an integral power of 2.  */
-extern double frexp (double value, int *exp);
+extern double frexp (double value, int *__exp);
 
 /* x times (two to the exp power).  */
-extern double ldexp (double x, int exp) __attribute__ ((__const__));
+extern double ldexp (double __x, int __exp) __attribute__ ((__const__));
 /* scalb is the BSD name for ldexp.  */
-extern double scalb (double x, int exp) __attribute__ ((__const__));
+extern double scalb (double __x, int __exp) __attribute__ ((__const__));
 
 /* Natural logarithm of x.  */
-extern double log (double x) __attribute__ ((__const__));
+extern double log (double __x) __attribute__ ((__const__));
 
 /* Base-ten logarithm of x.  */
-extern double log10 (double x) __attribute__ ((__const__));
+extern double log10 (double __x) __attribute__ ((__const__));
 
 /* Break value into integral and fractional parts.  */
-extern double modf (double value, double *iprt);
+extern double modf (double __value, double *__iprt);
 
 /* Power functions.  */
 
 /* Return x to the y power.  */
-extern double pow (double x, double y) __attribute__ ((__const__));
+extern double pow (double __x, double __y) __attribute__ ((__const__));
 
 /* Return the square root of x.  */
-extern double sqrt (double x) __attribute__ ((__const__));
+extern double sqrt (double __x) __attribute__ ((__const__));
 
 /* Nearest integer, absolute value, and remainder functions.  */
 
 /* Smallest integral value not less than X.  */
-extern double ceil (double x) __attribute__ ((__const__));
+extern double ceil (double __x) __attribute__ ((__const__));
 
 /* Absolute value of X.  */
-extern double fabs (double x) __attribute__ ((__const__));
+extern double fabs (double __x) __attribute__ ((__const__));
 
 /* Largest integer not greater than X.  */
-extern double floor (double x) __attribute__ ((__const__));
+extern double floor (double __x) __attribute__ ((__const__));
+
+/* Nearest integer to X, away from 0 as a double.  */
+extern double round (double __x) __attribute__ ((__const__));
+
+/* Nearest integer to X, away from 0 as a long int.  */
+extern long lround (double __x) __attribute__ ((__const__));
+
+#ifdef __GNUC__
+/* Nearest integer to X, away from 0 as a long long.  */
+extern long long llround (double __x) __attribute__ ((__const__));
+#endif
 
 /* Floating-point modulo remainder of X/Y.  */
-extern double fmod (double x, double y) __attribute__ ((__const__));
+extern double fmod (double __x, double __y) __attribute__ ((__const__));
 
 /* Hypotenuese of x and y.  */
-extern double hypot (double x, double y) __attribute__ ((__const__));
+extern double hypot (double __x, double __y) __attribute__ ((__const__));
 
 /* (Exponent of x) minus 1.  */
-extern double expm1 (double x) __attribute__ ((__const__));
+extern double expm1 (double __x) __attribute__ ((__const__));
 
 /* Natural logarithm of (x plus 1).  */
-extern double log1p (double x) __attribute__ ((__const__));
+extern double log1p (double __x) __attribute__ ((__const__));
 
 /* Return 1 if x is infinite, else 0. */
-extern int isinf (double x) __attribute__ ((__const__));
+extern int isinf (double __x) __attribute__ ((__const__));
 
 /* Return 1 if x is Not A Number, else 0.  */
-extern int isnan (double x) __attribute__ ((__const__));
+extern int isnan (double __x) __attribute__ ((__const__));
 
 /* Return cube root of x. */
-extern double cbrt (double x) __attribute__ ((__const__));
+extern double cbrt (double __x) __attribute__ ((__const__));
 
 /* Return 1 is x is finite, else 0.  */
-extern int finite (double x) __attribute__ ((__const__));
+extern int finite (double __x) __attribute__ ((__const__));
 
 /* Return a value with magnitude of x and with the sign bit of y.  */
-extern double copysign (double x, double y) __attribute__ ((__const__));
+extern double copysign (double __x, double __y) __attribute__ ((__const__));
 
 /* Return the next machine floating-point number of x in the
    direction toward y.  */
-extern double nextafter (double x, double y) __attribute__ ((__const__));
+extern double nextafter (double __x, double __y) __attribute__ ((__const__));
 
 /* Return x rounded to integral value according to the prevailing
    rounding mode.  */
-extern double rint (double x) __attribute__ ((__const__));
+extern double rint (double __x) __attribute__ ((__const__));
 
 /* Return x*(2^n) computed by exponent manipulation rather than
    by actually performing an exponentiation or a multiplication.  */
-extern double scalbn (double x, int n) __attribute__ ((__const__));
+extern double scalbn (double __x, int __n) __attribute__ ((__const__));
 
 /* Return x rounded toward +inf to integral value. */
-extern double ceil (double x) __attribute__ ((__const__));
+extern double ceil (double __x) __attribute__ ((__const__));
 
 /* Return x rounded toward -inf to integral value.  */
-extern double floor (double x) __attribute__ ((__const__));
+extern double floor (double __x) __attribute__ ((__const__));
+
+/* Return remainder of dividing x by y.  */
+extern double drem (double __x, double __y) __attribute__ ((__const__));
 
 /* Returns x REM p = x - [x/p]*p as if in infinite precise arithmetic,
    where [x/p] is the (infinite bit) integet nearest x/p (in half way
    case choose the even one).  */
-extern double remainder (double x, double p) __attribute__ ((__const__));
+extern double remainder (double __x, double __p) __attribute__ ((__const__));
 
 /* Return the binary exponent of non-zero x.
    ilogb(0) = 0x80000001
    ilogb(inf/NaN) = 0x7fffffff */
-extern int ilogb (double x) __attribute__ ((__const__));
+extern int ilogb (double __x) __attribute__ ((__const__));
 
 /* IEEE 754 logb. Use ilogb instead.  */
-extern double logb (double x) __attribute__ ((__const__));
+extern double logb (double __x) __attribute__ ((__const__));
 
-extern double significand (double x) __attribute__ ((__const__));
+extern double significand (double __x) __attribute__ ((__const__));
 
 /* Bessel function of the first and second kinds of order zero.  */
-extern double j0 (double x) __attribute__ ((__const__));
-extern double y0 (double x) __attribute__ ((__const__));
+extern double j0 (double __x) __attribute__ ((__const__));
+extern double y0 (double __x) __attribute__ ((__const__));
 
 /* Bessel function of the first and second kinds of order one.  */
-extern double j1 (double x) __attribute__ ((__const__));
-extern double y1 (double x) __attribute__ ((__const__));
+extern double j1 (double __x) __attribute__ ((__const__));
+extern double y1 (double __x) __attribute__ ((__const__));
 
 /* Bessel function of the first and second kinds of order n.  */
-extern double jn (int n, double x) __attribute__ ((__const__));
-extern double yn (int n, double x) __attribute__ ((__const__));
+extern double jn (int __n, double __x) __attribute__ ((__const__));
+extern double yn (int __n, double __x) __attribute__ ((__const__));
 
 /*                           x
                       2      |\
@@ -199,30 +219,32 @@ extern double yn (int n, double x) __attribute__ ((__const__));
 
        erfc(x) =  1-erf(x)
 */
-extern double erf (double x) __attribute__ ((__const__));
-extern double erfc (double x) __attribute__ ((__const__));
+extern double erf (double __x) __attribute__ ((__const__));
+extern double erfc (double __x) __attribute__ ((__const__));
 
 #ifdef __UNIXLIB_INTERNALS
 /* Internal function used by rem_pio2().  */
-extern int __kernel_rem_pio2 (double *x, double *y,
-			      int e0, int nx, int prec,
-			      const __int32_t *ipio2);
+extern int __kernel_rem_pio2 (double *__x, double *__y,
+			      int __e0, int __nx, int __prec,
+			      const __int32_t *__ipio2);
 #endif
 
 /* Return the remainder of x rem pi/2 in y[0] + y[1].  */
-extern __int32_t rem_pio2 (double x, double *y);
+extern __int32_t rem_pio2 (double __x, double *__y);
 
 /* Gamma function.  */
-extern double gamma (double x);
-extern double lgamma (double x);
+extern double gamma (double __x);
+extern double lgamma (double __x);
 /* Reentrant version of the logarithm of the Gamma function.  */
-extern double lgamma_r (double x, int *signgamp);
+extern double lgamma_r (double __x, int *__signgamp);
 extern int signgam;
 
 #ifdef __UNIXLIB_INTERNALS
 /* Internals used by lgamma().  */
-extern double __kernel_sin (double x, double y, int iy) __attribute__ ((__const__));
-extern double __kernel_cos (double x, double y) __attribute__ ((__const__));
+extern double __kernel_sin (double __x, double __y,
+			    int __iy) __attribute__ ((__const__));
+extern double __kernel_cos (double __x,
+			    double __y) __attribute__ ((__const__));
 #endif
 
 /* BSD useful constants.  */
@@ -267,7 +289,7 @@ extern double __kernel_cos (double x, double y) __attribute__ ((__const__));
 #define FP_SUBNORMAL 3
 #define FP_NORMAL 4
 
-extern int fpclassify (double x)  __attribute__ ((__const__));
+extern int fpclassify (double __x)  __attribute__ ((__const__));
 
 /* Values returned by ilogb for 0 and NaN respectively.  */
 #define FP_ILOGB0 0x80000000
@@ -299,41 +321,42 @@ extern int fpclassify (double x)  __attribute__ ((__const__));
  (fpclassify (x) == FP_NAN || fpclassify(y) == FP_NAN)
 
 /* Return (x*y) + z.  */
-extern double fma (double x, double y, double z) __attribute__ ((__const__));
+extern double fma (double __x, double __y,
+		   double __z) __attribute__ ((__const__));
 
 /* Return the value of smaller magnitude.  */
-extern double fmin (double x, double y) __attribute__ ((__const__));
+extern double fmin (double __x, double __y) __attribute__ ((__const__));
 
 /* Return the value of greater magnitude.  */
-extern double fmax (double x, double y) __attribute__ ((__const__));
+extern double fmax (double __x, double __y) __attribute__ ((__const__));
 
 /* Return the difference between x and y.  */
-extern double fdim (double x, double y) __attribute__ ((__const__));
+extern double fdim (double __x, double __y) __attribute__ ((__const__));
 
 /* Compute base-2 logarithm of x.  */
-extern double log2 (double x) __attribute__ ((__const__));
+extern double log2 (double __x) __attribute__ ((__const__));
 
 /* Round x to the nearest integral.  */
-extern long int lrint (double x) __attribute__ ((__const__));
+extern long int lrint (double __x) __attribute__ ((__const__));
 #ifdef __GNUC__
-extern long long int llrint (double x) __attribute__ ((__const__));
+extern long long int llrint (double __x) __attribute__ ((__const__));
 #endif
 
 /* Round x to integral value.  */
-extern double nearbyint (double x) __attribute__ ((__const__));
+extern double nearbyint (double __x) __attribute__ ((__const__));
 
 /* Round x to integral value, but not to integral larger than x.  */
-extern double trunc (double x) __attribute__ ((__const__));
+extern double trunc (double __x) __attribute__ ((__const__));
 
 /* Compute remainder of X and Y and put in *QUO a value with sign of x/y
    and magnitude congruent `mod 2^n' to the magnitude of the integral
    quotient x/y, with n >= 3.  */
-extern double remquo (double x, double y, int *quo);
+extern double remquo (double __x, double __y, int *__quo);
 
-extern int signbit (double x) __attribute__ ((__const__));
+extern int signbit (double __x) __attribute__ ((__const__));
 
 #ifdef __UNIXLIB_INTERNALS
-extern void __sincos (double x, double *sinx, double *cosx);
+extern void __sincos (double __x, double *__sinx, double *__cosx);
 #endif
 
 #ifdef __cplusplus

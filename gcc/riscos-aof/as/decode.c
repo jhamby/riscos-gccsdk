@@ -769,7 +769,7 @@ decode (Lex * label)
       {
 	int l;			/* Is it a macro call? */
 	char *c;
-	Macro *m;
+	Macro *m = NULL;
 	if (macro)
 	  {
 	    inputRollback ();

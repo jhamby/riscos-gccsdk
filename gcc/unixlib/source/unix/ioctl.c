@@ -1,23 +1,22 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/unix/c/ioctl,v $
- * $Date: 1997/12/17 22:27:09 $
- * $Revision: 1.7 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/ioctl.c,v $
+ * $Date: 2001/09/04 16:32:04 $
+ * $Revision: 1.2.2.2 $
  * $State: Exp $
- * $Author: unixlib $
+ * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: ioctl,v 1.7 1997/12/17 22:27:09 unixlib Exp $";
+static const char rcs_id[] = "$Id: ioctl.c,v 1.2.2.2 2001/09/04 16:32:04 admin Exp $";
 #endif
 
 #include <errno.h>
 
 #include <sys/ioctl.h>
-#include <sys/syslib.h>
-#include <sys/unix.h>
-#include <sys/dev.h>
+#include <unixlib/unix.h>
+#include <unixlib/dev.h>
 
 int
 ioctl (int fd, int request, void *arg)

@@ -1,8 +1,8 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/signal/sigexec.s,v $
-; $Date: 2001/01/29 15:10:21 $
-; $Revision: 1.2 $
+; $Date: 2001/09/05 16:28:57 $
+; $Revision: 1.3.2.2 $
 ; $State: Exp $
 ; $Author: admin $
 ;
@@ -27,7 +27,7 @@
 	MOV	a1, a2
 	MOV	lr, pc
 	MOV	pc, a3
-	[	APCS32 = "no"
+	[ {CONFIG} = 26
 	LDMEA	fp, {v1, v2, v3, v4, v5, v6, fp, sp, pc}^
 	|
 	LDMEA	fp, {v1, v2, v3, v4, v5, v6, fp, sp, pc}
@@ -52,7 +52,7 @@
 	MOV	lr, pc
 	MOV	pc, a3
 	MOV	sp, v1
-	[	APCS32 = "no"
+	[ {CONFIG} = 26
 	LDMFD	sp!, {a3, a4, v1, v2, v3, v4, v5, v6, sl, fp, ip, pc}^
 	|
 	LDMFD	sp!, {a3, a4, v1, v2, v3, v4, v5, v6, sl, fp, ip, pc}
@@ -77,7 +77,7 @@
 	MOV	lr, pc
 	MOV	pc, a2
 	MOV	sp, v1
-	[	APCS32 = "no"
+	[ {CONFIG} = 26
 	LDMFD	sp!, {a3, a4, v1, v2, v3, v4, v5, v6, sl, fp, ip, pc}^
 	|
 	LDMFD	sp!, {a3, a4, v1, v2, v3, v4, v5, v6, sl, fp, ip, pc}

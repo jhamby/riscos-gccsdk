@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/c/strtol,v $
- * $Date: 1997/10/09 19:59:43 $
- * $Revision: 1.7 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/strtol.c,v $
+ * $Date: 2002/02/11 13:16:40 $
+ * $Revision: 1.2.2.1 $
  * $State: Exp $
- * $Author: unixlib $
+ * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: strtol,v 1.7 1997/10/09 19:59:43 unixlib Exp $";
+static const char rcs_id[] = "$Id: strtol.c,v 1.2.2.1 2002/02/11 13:16:40 admin Exp $";
 #endif
 
 #include <ctype.h>
@@ -81,6 +81,9 @@ strtol (const char *nptr, char **end, int base)
 	base = 10;
     }
 
+  /* Save the pointer so we can check later if anything happened.  */
+  save = s;
+
   cutoff = ULONG_MAX / (unsigned long) base;
   cutlim = ULONG_MAX % (unsigned long) base;
 
@@ -115,7 +118,7 @@ strtol (const char *nptr, char **end, int base)
 	  if ((save - nptr) >= 2 && toupper (save[-1]) == 'X' && save[-2] == '0')
 	    *end = (char *) &save[-1];
 	  else
-	    *end = (char *) s;
+	    *end = (char *) nptr;
 	}
       return 0;
     }

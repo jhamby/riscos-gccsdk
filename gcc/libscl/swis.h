@@ -1,7 +1,34 @@
 /* swis.h. SWI support header file for C libraries.  */
 
+
 #ifndef __SWIS_H
 #define __SWIS_H
+
+
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
+extern int _swi (int swi_no, unsigned int, ...);
+
+extern _kernel_oserror *_swix (int swi_no, unsigned int, ...);
+
+#ifdef __cplusplus
+}
+#endif
+
+#define _FLAGS     0x10 /*use with _RETURN() or _OUT()*/
+#define _IN(i)     (1U << (i))
+#define _INR(i,j)  (~0 << (i) ^ ~0 << ((j) + 1))
+#define _OUT(i)    ((i) != _FLAGS? (1U << (31 - (i))): 1U << 21)
+#define _OUTR(i,j) (~0U >> (i) ^ ~0U >> ((j) + 1))
+#define _BLOCK(i)  (1U << 11 | (unsigned) (i) << 12)
+#define _RETURN(i) ((i) != _FLAGS? (unsigned) (i) << 16: 0xFU << 16)
+#define _C         (1U << 29)
+#define _Z         (1U << 30)
+#define _N         (1U << 31)
+
 
 #define XOS_Bit                        0x020000
 

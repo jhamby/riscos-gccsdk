@@ -14,7 +14,7 @@
 #include "input.h"
 #include "decode.h"
 
-extern int objasm;		/* c.main */
+extern int apcs_32bit, objasm;		/* c.main */
 
 #define FINISH_STR(string,Op,Pri) \
   if(notinput(string)) goto illegal; \
@@ -155,6 +155,11 @@ lexAcornPrim (Lex * lex)
 {
   switch (inputGetLower ())
     {
+    case 'c':
+      FINISH_STR_PRIM ("onfig}");
+      lex->tag = LexInt;
+      lex->LexInt.value = apcs_32bit ? 32 : 26;
+      return 1;
     case 'f':
       FINISH_STR_PRIM ("alse}");
       lex->tag = LexBool;

@@ -1,10 +1,10 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/clib/sys/h/types,v $
- * $Date: 1997/12/17 22:02:53 $
- * $Revision: 1.10 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/sys/types.h,v $
+ * $Date: 2001/09/14 14:01:17 $
+ * $Revision: 1.2.2.2 $
  * $State: Exp $
- * $Author: unixlib $
+ * $Author: admin $
  *
  ***************************************************************************/
 
@@ -17,47 +17,125 @@
 #include <unixlib/types.h>
 #endif
 
-#define u_char __u_char
-#define u_short __u_short
-#define u_int __u_int
-#define u_long __u_long
-#define quad_t __quad_t
-#define u_quad_t __u_quad_t
-#define	fsid_t __fsid_t
+typedef __u_char u_char;
+typedef __u_short u_short;
+typedef __u_int u_int;
+typedef __u_long u_long;
+typedef __quad_t quad_t;
+typedef __u_quad_t u_quad_t;
+typedef __fsid_t fsid_t;
 
-#define dev_t __dev_t
-#define gid_t __gid_t
-#define ino_t __ino_t
-#define mode_t __mode_t
-#define nlink_t __nlink_t
-#define off_t __off_t
-#define pid_t __pid_t
-#define uid_t __uid_t
-#ifndef	ssize_t
-#define	ssize_t	__ssize_t
+#ifndef __dev_t_defined
+typedef __dev_t dev_t;
+#define __dev_t_defined
 #endif
 
-#define daddr_t __daddr_t
-#define caddr_t __caddr_t
-#define tcflag_t __tcflag_t
-#define cc_t __cc_t
-#define speed_t __speed_t
+#ifndef __gid_t_defined
+typedef __gid_t gid_t;
+#define __gid_t_defined
+#endif
 
-#ifndef __TIME_H
+#ifndef __ino_t_defined
+typedef __ino_t ino_t;
+#define __ino_t_defined
+#endif
+
+#ifndef __mode_t_defined
+typedef __mode_t mode_t;
+#define __mode_t_defined
+#endif
+
+#ifndef __nlink_t_defined
+typedef __nlink_t nlink_t;
+#define __nlink_t_defined
+#endif
+
+#ifndef __off_t_defined
+typedef __off_t off_t;
+#define __off_t_defined
+#endif
+
+#ifndef __pid_t_defined
+typedef __pid_t pid_t;
+#define __pid_t_defined
+#endif
+
+#ifndef __uid_t_defined
+typedef __uid_t uid_t;
+#define __uid_t_defined
+#endif
+
+#ifndef __id_t_defined
+typedef __id_t id_t;
+#define __id_t_defined
+#endif
+
+#ifndef __ssize_t_defined
+typedef __ssize_t ssize_t;
+#define __ssize_t_defined
+#endif
+
+typedef __daddr_t daddr_t;
+typedef __caddr_t caddr_t;
+
+#define __need_clock_t
+#define __need_time_t
+#define __need_timer_t
+#define __need_clockid_t
 #include <time.h>
-#endif
 
-#ifndef __STDDEF_H
+#define __need_size_t
 #include <stddef.h>
-#endif
 
 /* These size-specific names are used by some of the inet code.  */
 
-#define int32_t __int32_t
-#define int16_t __int16_t
-#define int8_t __int8_t
-#define u_int32_t __u_int32_t
-#define u_int16_t __u_int16_t
-#define u_int8_t __u_int8_t
+#ifndef __int8_t_defined
+#define __int8_t_defined
+typedef __int32_t int32_t;
+typedef __int16_t int16_t;
+typedef __int8_t int8_t;
+typedef __u_int32_t u_int32_t;
+typedef __u_int16_t u_int16_t;
+typedef __u_int8_t u_int8_t;
+#endif
+
+#ifndef __useconds_t_defined
+typedef __useconds_t useconds_t;
+#define __useconds_t_defined
+#endif
+
+#ifndef __suseconds_t_defined
+typedef __suseconds_t suseconds_t;
+#define __suseconds_t_defined
+#endif
+
+
+#if !defined __blksize_t_defined
+typedef __blksize_t blksize_t;
+#define __blksize_t_defined
+#endif
+
+#ifndef __blkcnt_t_defined
+/* Type to count number of disk blocks.  */
+typedef __blkcnt_t blkcnt_t;
+#define __blkcnt_t_defined
+#endif
+
+#ifndef __fsblkcnt_t_defined
+/* Type to count file system blocks.  */
+typedef __fsblkcnt_t fsblkcnt_t;
+#define __fsblkcnt_t_defined
+#endif
+
+#ifndef __fsfilcnt_t_defined
+/* Type to count file system inodes.  */
+typedef __fsfilcnt_t fsfilcnt_t;
+#define __fsfilcnt_t_defined
+#endif
+
+/* For BSD.  */
+#ifndef __MACHINE_ENDIAN_H
+#include <machine/endian.h>
+#endif
 
 #endif

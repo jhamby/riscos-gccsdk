@@ -62,12 +62,8 @@ CanonicalisePath (const char *path1)
   int size;
   char *buffer;
 #ifdef UNIXLIB
-#if 0
-  char *path = __uname (path, 0);
-#else
   char path[1024];
-  __riscosify (path, 0, __RISCOSIFY_DONT_TRUNCATE, path, sizeof (path), NULL);
-#endif
+  __riscosify (path1, 0, __RISCOSIFY_DONT_TRUNCATE, path, sizeof (path), NULL);
 #else
   char *path = uname (path1, dde);
 #endif
@@ -120,7 +116,7 @@ CanonicaliseFile (const FILE * fh)
 static char filename[1024];
 
 char *
-CanonicaliseFile (const FILE * fh)
+CanonicaliseFile (FILE * fh)
 /* There's probably an easier way to look up the filename associated with a
  * given handle which doesn't rely on the proc filesystem... */
 {

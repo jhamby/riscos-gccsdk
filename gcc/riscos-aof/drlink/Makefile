@@ -16,37 +16,42 @@ drlinkobjdir = $(objdir)/riscos-aof/drlink/$(STAGE)
 $(drlinkobjdir)/%.o: %.c
 	$(CC) $(CFLAGS) -o $@ -c $< $(INCLUDES)
 
-OBJS =	$(drlinkobjdir)/Aoffiles.o \
-	$(drlinkobjdir)/Areas.o \
-	$(drlinkobjdir)/C++names.o \
-	$(drlinkobjdir)/Debug.o \
-	$(drlinkobjdir)/Drlmain.o \
-	$(drlinkobjdir)/Files.o \
-	$(drlinkobjdir)/Heap.o \
-	$(drlinkobjdir)/Libraries.o \
-	$(drlinkobjdir)/Linkdebug.o \
-	$(drlinkobjdir)/Linkedit.o \
-	$(drlinkobjdir)/Linkfiles.o \
-	$(drlinkobjdir)/Messages.o \
-	$(drlinkobjdir)/Stdcode.o \
-	$(drlinkobjdir)/Symbols.o
+OBJS =	$(drlinkobjdir)/aoffiles.o \
+	$(drlinkobjdir)/areas.o \
+	$(drlinkobjdir)/cppnames.o \
+	$(drlinkobjdir)/debug.o \
+	$(drlinkobjdir)/drlmain.o \
+	$(drlinkobjdir)/files.o \
+	$(drlinkobjdir)/heap.o \
+	$(drlinkobjdir)/libraries.o \
+	$(drlinkobjdir)/linkdebug.o \
+	$(drlinkobjdir)/linkedit.o \
+	$(drlinkobjdir)/linkfiles.o \
+	$(drlinkobjdir)/messages.o \
+	$(drlinkobjdir)/stdcode.o \
+	$(drlinkobjdir)/symbols.o
+
+ifeq (${STAGE},stage2)
+	DEPS += $(gcc_bin_dir)/$(TRG)/o/unixlib
+endif
+
 
 all:	$(bin_dir)/drlink$(exesfx)
 
-$(bin_dir)/drlink$(exesfx): $(OBJS)
+$(bin_dir)/drlink$(exesfx): $(OBJS) $(DEPS)
 	$(CC) -o $@ $(OBJS)
 
-$(drlinkobjdir)/Aoffiles.o: Aoffiles.c
-$(drlinkobjdir)/Areas.o: Areas.c
-$(drlinkobjdir)/C++names.o: C++names.c
-$(drlinkobjdir)/Debug.o: Debug.c
-$(drlinkobjdir)/Drlmain.o: Drlmain.c
-$(drlinkobjdir)/Files.o: Files.c
-$(drlinkobjdir)/Heap.o: Heap.c
-$(drlinkobjdir)/Libraries.o: Libraries.c
-$(drlinkobjdir)/Linkdebug.o: Linkdebug.c
-$(drlinkobjdir)/Linkedit.o: Linkedit.c
-$(drlinkobjdir)/Linkfiles.o: Linkfiles.c
-$(drlinkobjdir)/Messages.o: Messages.c
-$(drlinkobjdir)/Stdcode.o: Stdcode.c
-$(drlinkobjdir)/Symbols.o: Symbols.c
+$(drlinkobjdir)/aoffiles.o: aoffiles.c
+$(drlinkobjdir)/areas.o: areas.c
+$(drlinkobjdir)/cppnames.o: cppnames.c
+$(drlinkobjdir)/debug.o: debug.c
+$(drlinkobjdir)/drlmain.o: drlmain.c
+$(drlinkobjdir)/files.o: files.c
+$(drlinkobjdir)/heap.o: heap.c
+$(drlinkobjdir)/libraries.o: libraries.c
+$(drlinkobjdir)/linkdebug.o: linkdebug.c
+$(drlinkobjdir)/linkedit.o: linkedit.c
+$(drlinkobjdir)/linkfiles.o: linkfiles.c
+$(drlinkobjdir)/messages.o: messages.c
+$(drlinkobjdir)/stdcode.o: stdcode.c
+$(drlinkobjdir)/symbols.o: symbols.c

@@ -56,5 +56,6 @@ char *(CanonicalisePath) (const char *path);
 #endif /* __riscos */
 
 char *CanonicaliseFile (const FILE * path);
+char *strndup (const char *, int len);
 
 #endif

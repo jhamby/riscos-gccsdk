@@ -45,7 +45,7 @@ public:
 
 #include "trace.h"
 #define INLINE inline
-#include "icc/read-line"
+#include "read-line.icc"
 #undef INLINE
 
 #endif

@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/netlib/c/host,v $
- * $Date: 1997/10/09 20:00:18 $
- * $Revision: 1.5 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/netlib/host.c,v $
+ * $Date: 2002/02/07 10:19:31 $
+ * $Revision: 1.2.2.1 $
  * $State: Exp $
- * $Author: unixlib $
+ * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: host,v 1.5 1997/10/09 20:00:18 unixlib Exp $";
+static const char rcs_id[] = "$Id: host.c,v 1.2.2.1 2002/02/07 10:19:31 admin Exp $";
 #endif
 
 #include <stdio.h>
@@ -119,7 +119,8 @@ __gethostent ()
   host.h_addr_list[0] = malloc (sizeof (struct in_addr));
   host.h_addr_list[1] = NULL;
   element = strtok (line, " \t");
-  ((struct in_addr *) (host.h_addr_list[0]))->s_addr = inet_addr (element);
+  ((struct in_addr *)(void *)(host.h_addr_list[0]))->s_addr =
+    inet_addr (element);
 
   /* Extract the offical hostname from the line */
   element = strtok (NULL, " \t");

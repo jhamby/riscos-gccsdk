@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/pwd/c/pwdread,v $
- * $Date: 1997/10/09 20:00:25 $
- * $Revision: 1.5 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/pwd/pwdread.c,v $
+ * $Date: 2001/09/11 13:32:33 $
+ * $Revision: 1.2.2.1 $
  * $State: Exp $
- * $Author: unixlib $
+ * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: pwdread,v 1.5 1997/10/09 20:00:25 unixlib Exp $";
+static const char rcs_id[] = "$Id: pwdread.c,v 1.2.2.1 2001/09/11 13:32:33 admin Exp $";
 #endif
 
 /* pwd.c.pwdread. Internal password-file reading functions.
@@ -46,7 +46,7 @@ p_pdecode (char *line, struct passwd *passwd)
 {
   char *lp;
 
-  if (!line || !passwd)
+  if (! line || ! passwd)
     return;
 
   lp = line;
@@ -64,10 +64,11 @@ p_pdecode (char *line, struct passwd *passwd)
 struct passwd *
 __pwdread (FILE * stream, struct passwd *ppwd)
 {
-  char buf[256], *bp;
+  static char buf[256];
+  char *bp;
 
   if (stream == NULL)
-    return 0;
+    return NULL;
 
   /* Get a line, skipping past comment lines.  */
   do
@@ -82,7 +83,7 @@ __pwdread (FILE * stream, struct passwd *ppwd)
   while (*bp)
     bp++;
   if (*--bp != '\n')
-    return 0;
+    return NULL;
   *bp = 0;
 
   /* Decode the line.  */

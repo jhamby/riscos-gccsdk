@@ -1,33 +1,35 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/unix/c/unix,v $
- * $Date: 2000/08/17 16:16:07 $
- * $Revision: 1.33 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/unix.c,v $
+ * $Date: 2002/01/31 14:32:04 $
+ * $Revision: 1.2.2.8 $
  * $State: Exp $
  * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: unix,v 1.33 2000/08/17 16:16:07 admin Exp $";
+static const char rcs_id[] = "$Id: unix.c,v 1.2.2.8 2002/01/31 14:32:04 admin Exp $";
 #endif
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
 #include <ctype.h>
 #include <limits.h>
+#include <locale.h>
 
 #include <unistd.h>
 #include <fcntl.h>
 #include <termios.h>
 #include <time.h>
 
-#include <sys/os.h>
-#include <sys/unix.h>
-#include <sys/syslib.h>
+#include <unixlib/os.h>
+#include <unixlib/unix.h>
 #include <sys/param.h>
-#include <sys/swis.h>
+#include <swis.h>
+#include <sys/wait.h>
 
 #include <unixlib/fd.h>
 #include <unixlib/local.h>
@@ -42,6 +44,9 @@ static const char rcs_id[] = "$Id: unix,v 1.33 2000/08/17 16:16:07 admin Exp $";
 #undef attribute
 #define attribute(x) /* ignore */
 #endif
+
+void (*__atexit_function_array[__MAX_ATEXIT_FUNCTION_COUNT]) (void);
+int __atexit_function_count = 0;
 
 static void initialise_process_structure (struct proc *process);
 static struct proc *create_process_structure (void);
@@ -58,12 +63,12 @@ static int convert_command_line (struct proc *process, const char *cli,
 
 static void __badr (void) __attribute__ ((__noreturn__));
 
-/* Initialize the signal code.  If declared in sys/syslib.h
-   then we'd have to drag in a lot of headers.  */
-extern void __unixlib_signal_initialise (struct proc *__p);
+/* This is the only file that need ever reference main()
+   so to prevent possible compiler errors from sources that
+   might include <unixlib/unix.h> we will have the main()
+   declaration here.  */
+extern int main (int argc, char *argv[], char **environ);
 
-/* Resource limit initialisation */
-extern void __resource_initialise (struct proc *__p);
 
 /* Globally used panic button.  */
 void
@@ -71,9 +76,9 @@ __unixlib_fatal (const char *message)
 {
   if (message == NULL)
     message = sys_errlist[errno];
-  os_nl ();
-  os_print (message);
-  os_nl ();
+  __os_nl ();
+  __os_print (message);
+  __os_nl ();
   _exit (1);
 }
 
@@ -106,30 +111,27 @@ __decstrtoui (const char *nptr, char **end)
   return result;
 }
 
+extern char *__cli;
 
 /* Initialise the UnixLib world.  */
 void __unixinit (void)
 {
   int i, __cli_size, cli_size = 0, newproc = 0, regs[10];
   char *cli = NULL;
-  extern char *__cli;
 
-  __u = (struct proc *) __intenv ("UnixLib$env");
 #ifdef DEBUG
-  os_print ("-- __unixinit: __u = "); os_prhex ((unsigned int) __u);
+  __os_print ("-- __unixinit: __u = "); __os_prhex ((unsigned int) __u);
   if (__u)
     {
-      os_print (", __u->magic="); os_prhex ((unsigned int) __u->__magic);
+      __os_print (", __u->magic="); __os_prhex ((unsigned int) __u->__magic);
     }
-  os_print ("\r\n");
+  __os_print ("\r\n");
 #endif
-  if (__u != NULL)
-    __remenv_from_os ("UnixLib$env");
 
   if (__u == NULL || __u->__magic != _PROCMAGIC)
     {
 #ifdef DEBUG
-      os_print ("-- __unixinit: new process\r\n");
+      __os_print ("-- __unixinit: new process\r\n");
 #endif
 
       /* Flag that we are a new process.  */
@@ -142,20 +144,19 @@ void __unixinit (void)
       initialise_process_structure (__u);
       __resource_initialise (__u);
       __unixlib_signal_initialise (__u);
+      /* Initialise ctype tables to the C locale.  */
+      __build_ctype_tables (-2);
       /* Define and initialise the Unix I/O.  */
       initialise_unix_io (__u);
-
-      /* FIXME, copy environ from parent. Consider setting
-         last_environ here if malloc'ing */
-      environ = malloc (sizeof (char *));
-      if (environ == NULL)
-	__unixlib_fatal (NULL);
-      *environ = NULL;
+      __stdioinit ();
     }
   else
     {
       __resource_initialise (__u);
       __unixlib_signal_initialise (__u);
+      /* Initialise ctype tables to the C locale.  */
+      __build_ctype_tables (-2);
+      __stdioinit ();
 
       /* Inherit environ from parent.  This is our copy, to do with as we
          like except for freeing.  */
@@ -163,16 +164,27 @@ void __unixinit (void)
         environ = __u->envp;
    }
 
+  if (! environ)
+    {
+      /* If we are a new process, then we are building a new environment
+	 table here.  We can also arrive here if we are a child process
+	 and the parent process had nothing in its environment to pass on.  */
+      environ = malloc (sizeof (char *));
+      if (environ == NULL)
+	__unixlib_fatal (NULL);
+      *environ = NULL;
+    }
+
   /* Get command line.  */
   __cli_size = strlen (__cli);
 
 #ifdef DEBUG
-  os_print ("-- __unixinit: getting cli: __cli = ");
-  os_print (__cli); os_print ("\r\n");
+  __os_print ("-- __unixinit: getting cli: __cli = ");
+  __os_print (__cli); __os_print ("\r\n");
 #endif
 
   /* Get extra command line from DDEUtils.  */
-  if (os_swi (DDEUtils_GetCLSize, regs))
+  if (__os_swi (DDEUtils_GetCLSize, regs))
     regs[0] = 0;
 
   cli_size = __cli_size + regs[0];
@@ -186,14 +198,14 @@ void __unixinit (void)
           /* Append DDEUtils command line.  */
           cli[__cli_size] = ' ';
           regs[0] = (int) cli + __cli_size + 1;
-          os_swi (DDEUtils_GetCl, regs);
+          __os_swi (DDEUtils_GetCl, regs);
         }
     }
 
   /* Set command line length to zero otherwise the next process
      will also get it.  */
   regs[0] = 0;
-  os_swi (DDEUtils_SetCLSize, regs);
+  __os_swi (DDEUtils_SetCLSize, regs);
 
   if (cli == NULL)
     __unixlib_fatal ("command line too long (not enough memory)");
@@ -202,8 +214,8 @@ void __unixinit (void)
   __runtime_features (cli);
 
 #ifdef DEBUG
-  os_print ("-- __unixinit: create argv: cli_size = ");
-  os_prdec (cli_size); os_print ("\r\n");
+  __os_print ("-- __unixinit: create argv: cli_size = ");
+  __os_prdec (cli_size); __os_print ("\r\n");
 #endif
   /* Parse the command line, looking for I/O redirection.  */
   get_io_redir (cli);
@@ -218,33 +230,103 @@ void __unixinit (void)
 #ifdef DEBUG
   __debug ("__unixinit: process creation complete");
 #endif
+
+}
+
+void _main (void)
+{
+  /* Enter the user's program. For compatibility with Unix systems,
+     pass the 'environ' variable as a third argument.  */
+  main (__u->argc, __u->argv, environ);
 }
 
 void
-__unixexit (void)
+exit (int status)
 {
   int i;
-  struct __unixlib_fd *fd;
 
-#if __FEATURE_ITIMERS
-  /* Stop any interval timers that might be running.  */
-  __stop_itimers ();
-#endif
+  /* Execute atexit functions in the reverse order of their
+     registration.  */
+  i = __atexit_function_count;
+  while (i)
+    {
+      i--;
+      __funcall ((*__atexit_function_array[i]), ());
+    }
+
+  /* Close all open streams, write out buffered output data and
+     delete tmpfile() temporary files.  */
+  __stdioexit ();
+
+  /* Only return codes between 0 and 127 are valid.  128 to 255 are
+     reserved for the run-time library internals.  */
+  status = status & 0x7f;
+
+  _exit (__W_EXITCODE (status, 0));
+}
+
+/* Final process termination. 'return_code' is a 16-bit
+   encoded quantity as defined by <sys/wait.h>.  */
+void
+_exit (int return_code)
+{
+  int status;
+
+  /* Interval timers must be stopped.  */
+  if (__u)
+    __stop_itimers ();
+
+  /* Convert the 16-bit return code into an 8-bit equivalent
+     for compatibility with RISC OS.  See sys.c.vfork for
+     further information.  */
+  if (WIFSIGNALED (return_code))
+    {
+      status = WTERMSIG (return_code);
+      status |= (1 << 7);
+      if (WCOREDUMP (return_code))
+	status |= (1 << 6);
+    }
+  else
+    {
+      status = WEXITSTATUS (return_code);
+    }
+
+  /* If we aren't a child process then we can just exit the system.  */
+  if (!__u || !__u->status.has_parent || !___vret)
+    {
+      struct __unixlib_fd *fd = __u->fd;
+      int i;
+
+      /* Close all file descriptors.  */
+      if (fd)
+	for (i = 0; i < MAXFD; i++)
+	  if (fd[i].__magic == _FDMAGIC)
+	    close (i);
+
+      /* We're going back to the RISC OS world.  */
+      __env_riscos ();
 
 #ifdef DEBUG
-  __debug ("__unixexit: closing file descriptors");
+      __os_print ("_exit(): Setting return code = ");
+      __os_prhex (return_code);
+      __os_print ("\r\n");
 #endif
-/*  os_print ("__unixexit()\n\r");
-   __display_redirection(); */
 
-  fd = __u->fd;
+      /* OS_Exit with return value 'r'.  This function never returns.  */
+      __exit (status);
+    }
 
-  /* Close all file descriptors.  */
-  if (fd)
-    for (i = 0; i < MAXFD; i++)
-      if (fd[i].__magic == _FDMAGIC)
-	close (i);
+  /* Due to the change to clock(), this is currently complete crap.  */
+
+#ifdef DEBUG
+  __os_print ("_exit(): calling ___vret with return code = ");
+  __os_prhex (return_code);
+  __os_print ("\r\n");
+#endif
+
+  __vret (status);
 }
+
 
 int
 __alloc_file_descriptor (void)
@@ -260,9 +342,9 @@ __alloc_file_descriptor (void)
     if (fd[i].__magic != _FDMAGIC)
       {
 #ifdef DEBUG
-        os_print ("__alloc_file_descriptor: found free descriptor ");
-        os_prhex (i);
-        os_nl ();
+        __os_print ("__alloc_file_descriptor: found free descriptor ");
+        __os_prhex (i);
+        __os_nl ();
 #endif
         return i;
       }
@@ -271,7 +353,6 @@ __alloc_file_descriptor (void)
   return __set_errno (EMFILE);
 }
 
-#if __FEATURE_ITIMERS
 void
 __stop_itimers (void)
 {
@@ -279,7 +360,7 @@ __stop_itimers (void)
 
   /* Interval timers are not implemented in task windows nor in WIMP
      programs so we don't need to stop them.   Note that when
-     __taskwindow == 1 => __wimpprogram == 1 but not necessairy vice-
+     __taskwindow == 1 => __wimpprogram == 1 but not necessarily vice-
      versa so the test on __wimpprogram is enough.  */
   if (__wimpprogram)
     return;
@@ -293,7 +374,6 @@ __stop_itimers (void)
   setitimer (ITIMER_VIRTUAL, &new_timer, 0);
   setitimer (ITIMER_PROF, &new_timer, 0);
 }
-#endif
 
 static void
 initialise_process_structure (struct proc *process)
@@ -328,18 +408,6 @@ create_process_structure (void)
   if (p->tty == NULL)
     return NULL;
 
-#ifndef __TTY_STATIC_BUFS
-  /* While not strictly necessary to allocate the del buffer here,
-     it helps when we need to print a fatal message due to lack
-     of memory during a later part of the initialisation of Unixlib.  */
-  for (i = 0; i < MAXTTY; i++)
-    {
-      p->tty[i].del = malloc (_POSIX_PATH_MAX);
-      if (p->tty[i].del == NULL)
-        return NULL;
-    }
-#endif
-
   /* Set the magic word for our new process structure. We will use
      this when checking the validity of the pointer specified by
      UnixLib$env.  */
@@ -352,7 +420,7 @@ static void
 initialise_unix_io (struct proc *process)
 {
   int i;
-  char *tty;
+  const char *tty;
 
   /* Set all file descriptors to unallocated status.  */
   for (i = 0; i < MAXFD; i++)
@@ -462,8 +530,8 @@ static void check_io_redir (const char *p, int fd, int mode)
     fd = get_fd_redirection (p);
 
 #ifdef DEBUG
-  os_print ("-- check_io_redir: redirecting fd ");
-  os_prdec (fd); os_print ("\r\n");
+  __os_print ("-- check_io_redir: redirecting fd ");
+  __os_prdec (fd); __os_print ("\r\n");
 #endif
 
   /* Skip any whitespace that precedes the filename e.g '< filename'.  */
@@ -476,8 +544,8 @@ static void check_io_redir (const char *p, int fd, int mode)
   /* Zero terminate the filename.  */
   fn[space - p] = '\0';
 #ifdef DEBUG
-  os_print ("-- check_io_redir: filename = '");
-  os_print (fn); os_print ("'\r\n");
+  __os_print ("-- check_io_redir: filename = '");
+  __os_print (fn); __os_print ("'\r\n");
 #endif
 
   /* Check the >& construct.  */
@@ -491,7 +559,12 @@ static void check_io_redir (const char *p, int fd, int mode)
 
       fd = __open (fd, ptr, mode, 0666);
       if (fd < 0)
-	 __unixlib_fatal (NULL);
+        {
+           char failure[300];
+
+           sprintf (failure, "cannot open %s for I/O redirection", ptr);
+           __unixlib_fatal (failure);
+        }
 
       if (((mode & O_WRONLY) || (mode & O_RDWR)) && ! (mode & O_TRUNC))
         /* Seek to the end of the file, because we are appending.  */
@@ -506,7 +579,7 @@ static void get_io_redir (const char *cli)
 
   /* By default, we redirect file descriptor 0 (stdin).  */
 #ifdef DEBUG
-  os_print ("-- get_io_redir: checking <\r\n");
+  __os_print ("-- get_io_redir: checking <\r\n");
 #endif
   while ((p = find_redirection_type (p, '<')))
     {
@@ -520,7 +593,7 @@ static void get_io_redir (const char *cli)
   /* By default, we redirect file descriptor 1 (stdout).  */
   mode = O_WRONLY | O_CREAT;
 #ifdef DEBUG
-  os_print ("-- get_io_redir: checking >\r\n");
+  __os_print ("-- get_io_redir: checking >\r\n");
 #endif
   while ((p = find_redirection_type (p, '>')))
     {
@@ -541,9 +614,9 @@ static int
 verify_redirection (const char *redir)
 {
 #if 0 /*def DEBUG*/
-  os_print ("-- verify_redirection: ");
-  os_print (redir);
-  os_print ("\r\n");
+  __os_print ("-- verify_redirection: ");
+  __os_print (redir);
+  __os_print ("\r\n");
 #endif
 
   /* So we've found a re-direction operator.  We must watch out
@@ -603,7 +676,7 @@ verify_redirection (const char *redir)
      is a space before this chevron, then it *must* be referring
      to a re-direction operator.
 
-     An array index of -1 is safe here, becuase its impossible for
+     An array index of -1 is safe here, because it is impossible for
      a right chevron to appear at the start of the command line
      (unless you are the idiot who regularly uses > for a filename). */
   if (redir[0] == '>' && redir[-1] == ' ')
@@ -645,10 +718,10 @@ convert_command_line (struct proc *process, const char *cli, int cli_size)
 
   /* A temporary buffer for the command line arguments, holds a
      particular argument prior to it being added to the argv array.  */
-  temp = (char *) malloc (cli_size);
+  temp = (char *) malloc (cli_size + 1);
 
   argc = 0;
-  argv = (char **) malloc ((argc + 1) * sizeof (char *));
+  argv = (char **) malloc ((argc + 2) * sizeof (char *));
   while (*cli)
     {
       /* Skip any white space.  */
@@ -756,13 +829,13 @@ convert_command_line (struct proc *process, const char *cli, int cli_size)
       if (p != temp)
         {
           argc ++;
-          if (argv == NULL)
-            argv = (char **) malloc (sizeof (char *));
-          else
-            argv = (char **) realloc (argv, argc * sizeof (char *));
+          argv = (char **) realloc (argv, (argc + 1) * sizeof (char *));
           argv[argc - 1] = strdup (temp);
         }
   }
+
+  /* Set the last item to NULL */
+  argv[argc] = NULL;
 
   free (temp);
   process->argc = argc;

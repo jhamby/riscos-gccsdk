@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/unix/c/dirent,v $
- * $Date: 2000/06/10 12:59:43 $
- * $Revision: 1.20 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/dirent.c,v $
+ * $Date: 2002/02/07 10:29:19 $
+ * $Revision: 1.2.2.4 $
  * $State: Exp $
  * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: dirent,v 1.20 2000/06/10 12:59:43 admin Exp $";
+static const char rcs_id[] = "$Id: dirent.c,v 1.2.2.4 2002/02/07 10:29:19 admin Exp $";
 #endif
 
 /* #define DEBUG */
@@ -23,11 +23,10 @@ static const char rcs_id[] = "$Id: dirent,v 1.20 2000/06/10 12:59:43 admin Exp $
 #include <unistd.h>
 #include <ctype.h>
 
-#include <sys/unix.h>
-#include <sys/syslib.h>
-#include <sys/os.h>
+#include <unixlib/unix.h>
+#include <unixlib/os.h>
 #include <sys/types.h>
-#include <sys/swis.h>
+#include <swis.h>
 
 #include <unixlib/local.h>
 
@@ -110,7 +109,7 @@ newstream (const char *name, __off_t offset)
   regs[0] = 37;
   regs[1] = (int) name;
   regs[2] = regs[3] = regs[4] = regs[5] = 0;
-  err = os_swi (OS_FSControl, regs);
+  err = __os_swi (OS_FSControl, regs);
   if (err)
     {
       __seterr (err);
@@ -128,7 +127,7 @@ newstream (const char *name, __off_t offset)
   regs[2] = (int) stream->dd_name_can;
   regs[3] = regs[4] = 0;
   regs[5] = 1 - regs[5];
-  err = os_swi (OS_FSControl, regs);
+  err = __os_swi (OS_FSControl, regs);
   if (err != NULL || regs[5] != 1)
     {
       __seterr (err);
@@ -184,10 +183,10 @@ opendir (const char *ux_name)
     }
 
 #ifdef DEBUG
-  os_print ("opendir: ux_name="); os_print (ux_name);
-  os_print (", ro name="); os_print (name);
-  os_print (", iletype=0x"); os_prhex (filetype);
-  os_print ("\r\n");
+  __os_print ("opendir: ux_name="); __os_print (ux_name);
+  __os_print (", ro name="); __os_print (name);
+  __os_print (", iletype=0x"); __os_prhex (filetype);
+  __os_print ("\r\n");
 #endif
   if (filetype != __RISCOSIFY_FILETYPE_NOTFOUND)
     {
@@ -376,7 +375,7 @@ readdir_r (DIR *stream, struct dirent *entry, struct dirent **result)
             regs[4] = (int) stream->gbpb_off;
             regs[6] = 0;                    /* Match all names */
 
-            err = os_swi (OS_GBPB, regs);
+            err = __os_swi (OS_GBPB, regs);
             if (err)
               {
                 __seterr (err);
@@ -658,3 +657,78 @@ closedir (DIR *stream)
 
   return result;
 }
+
+
+int
+scandir (const char *dir, struct dirent ***namelist,
+            int (*select)(const struct dirent *),
+            int (*cmp)(const struct dirent **, const struct dirent **))
+{
+    DIR *dp;
+    struct dirent **v = NULL;
+    size_t vsize = 0, i;
+    struct dirent *d;
+    int save;
+
+    dp = opendir(dir);
+    if (dp == NULL)
+        return -1;
+
+    save = errno;
+    __set_errno(0);
+
+    i = 0;
+    while ((d = readdir(dp)) != NULL)
+        if (select == NULL || (*select)(d))
+        {
+            struct dirent *vnew;
+            size_t dsize;
+
+            /* Ignore errors from select or readdir */
+            __set_errno(0);
+
+            if (i == vsize)
+            {
+                struct dirent **new;
+                if (vsize == 0)
+                    vsize = 10;
+                else
+                    vsize *= 2;
+                new = (struct dirent **) realloc(v, vsize * sizeof(*v));
+                if (new == NULL)
+                    break;
+                v = new;
+            }
+
+            /* FIXME: this 256 should be a macro, but see comments in dirent.h */
+            dsize = &d->d_name[256] - (char *) d;
+            vnew = (struct dirent *) malloc(dsize);
+            if (vnew == NULL)
+                break;
+
+            v[i++] = (struct dirent *) memcpy(vnew, d, dsize);
+        }
+
+    if (errno != 0)
+    {
+        save = errno;
+        (void) closedir(dp);
+
+        while (i > 0)
+            free(v[--i]);
+        free(v);
+
+        __set_errno (save);
+        return -1;
+    }
+
+    (void) closedir(dp);
+    __set_errno(save);
+
+    /* Sort the list if we have a comparison function to sort with.  */
+    if (cmp != NULL)
+        qsort(v, i, sizeof(*v),(int (*)(const void *,const void *))cmp);
+    *namelist = v;
+    return i;
+}
+

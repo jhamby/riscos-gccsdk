@@ -26,7 +26,7 @@ foreach $hdr (@header_list) {
 
   # Get filename without suffix
   $basename = $hdr;
-  $basename =~ s/\..$//;
+  $basename =~ s/\..+$//;
 
   mkdir ("$ropath/$destdir/$sfx", 0755) if (! -d "$ropath/$destdir/$sfx");
 

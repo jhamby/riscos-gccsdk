@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/stdio/c/newstream,v $
- * $Date: 2000/01/12 16:52:26 $
- * $Revision: 1.6 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/stdio/newstream.c,v $
+ * $Date: 2001/09/04 16:32:04 $
+ * $Revision: 1.2.2.1 $
  * $State: Exp $
  * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: newstream,v 1.6 2000/01/12 16:52:26 admin Exp $";
+static const char rcs_id[] = "$Id: newstream.c,v 1.2.2.1 2001/09/04 16:32:04 admin Exp $";
 #endif
 
 #include <errno.h>
@@ -65,9 +65,9 @@ __stream_init (int fd, FILE *stream)
   stream->fd = fd;
 
 #ifdef DEBUG
-  os_print ("stream_init(): fd = ");
-  os_prhex (fd);
-  os_print ("\r\n");
+  __os_print ("stream_init(): fd = ");
+  __os_prhex (fd);
+  __os_print ("\r\n");
 #endif
 
   /* By default a stream is opened with no buffers.  */

@@ -14,7 +14,8 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Make; see the file COPYING.  If not, write to
-the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
+the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+Boston, MA 02111-1307, USA.  */
 
 /* Structure used for pattern rules.  */
 
@@ -62,3 +63,10 @@ extern void install_pattern_rule PARAMS ((struct pspec *p, int terminal));
 extern int new_pattern_rule PARAMS ((struct rule *rule, int override));
 extern struct pattern_var *create_pattern_var PARAMS ((char *target, char *suffix));
 extern struct pattern_var *lookup_pattern_var PARAMS ((char *target));
+extern void count_implicit_rule_limits PARAMS ((void));
+extern void convert_to_pattern PARAMS ((void));
+extern void create_pattern_rule PARAMS ((char **targets,
+                                         char **target_percents, int terminal,
+                                         struct dep *deps,
+                                         struct commands *commands,
+                                         int override));

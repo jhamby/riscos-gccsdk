@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/time/tzset.c,v $
- * $Date: 2001/01/29 15:10:22 $
- * $Revision: 1.2 $
+ * $Date: 2001/09/04 16:32:04 $
+ * $Revision: 1.3.2.2 $
  * $State: Exp $
  * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: tzset.c,v 1.2 2001/01/29 15:10:22 admin Exp $";
+static const char rcs_id[] = "$Id: tzset.c,v 1.3.2.2 2001/09/04 16:32:04 admin Exp $";
 #endif
 
 /* Territory time support, written by Nick Burrett on 12 July 1997.  */
@@ -20,8 +20,8 @@ static const char rcs_id[] = "$Id: tzset.c,v 1.2 2001/01/29 15:10:22 admin Exp $
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/os.h>
-#include <sys/swis.h>
+#include <unixlib/os.h>
+#include <swis.h>
 
 /* The default timezones.  */
 static char __tzname[2][8] = { "GMT", "BST" };
@@ -40,7 +40,7 @@ tzset (void)
   /* Use current territory.  */
   regs[0] = __locale_territory[LC_TIME];
   /* Get timezone information.  */
-  os_swi (Territory_ReadTimeZones, regs);
+  __os_swi (Territory_ReadTimeZones, regs);
   /* regs[0] contains a pointer to the name of the standard time zone.
      regs[1] contains a pointer to the name of the daylight saving time.
       We copy these strings to be safe if their location should change. */
@@ -55,7 +55,7 @@ tzset (void)
 
   /* To determine if we are in DST, we need to read the offset of the
      current time zone and compare against the non-DST version.  */
-  os_swi (Territory_ReadCurrentTimeZone, regs);
+  __os_swi (Territory_ReadCurrentTimeZone, regs);
   daylight = (nondstoffset == regs[1]) ? 0 : 1;
 
   timezone = -(regs[1] / 100);

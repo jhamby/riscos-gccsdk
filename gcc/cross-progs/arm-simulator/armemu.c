@@ -36,6 +36,9 @@ int PCwrite;
 WORD HUGE *wmem;
 BYTE HUGE *bmem;
 
+WORD watch_points[32768];
+int watchp;
+
 jmp_buf exception;
 
 WORD *arm_regs[4][16] =
@@ -106,7 +109,17 @@ wwmem (register WORD a, register WORD b)
 {
   /* if ((a) < (RAM >> 2)) */
   if (a < (MEMSIZE >> 2))
-    wmem[a] = SWAPWORD (b);
+    {
+      int x;
+      for (x = 0; x < watchp; x++)
+	if (watch_points[x] && watch_points[x] == (a << 2))
+	  {
+	    printf ("-- watch point0 %08x hit (changing %08x to %08x\n",
+		    (a << 2), wmem[a], SWAPWORD (b));
+	    showins ();
+	  }
+      wmem[a] = SWAPWORD (b);
+    }
   else
     {
       if ((a << 2) > 0x3ffffff)
@@ -121,7 +134,18 @@ wbmem (register WORD a, register WORD b)
 {
   /* if (a < RAM) */
   if (a < MEMSIZE)
-    bmem[a] = b;
+    {
+      int x;
+      for (x = 0; x < watchp; x++)
+	if (watch_points[x] && watch_points[x] == (a & ~0x3))
+	  {
+	    printf ("-- watch point1 %08x hit (changing %02x to %02x\n",
+		    a, bmem[a], SWAPWORD (b));
+	    showins ();
+	  }
+
+      bmem[a] = b;
+    }
   else
     {
       if ((a << 2) > 0x3ffffff)
@@ -1197,10 +1221,27 @@ emulator (void)
   switch (vector)
     {
     case VECTOR_UNDEFINED_INSTRUCTION:
+      *arm_regs[SVC_MODE][14] = addPC (r15, -4);
+      printf ("exception (UNDEF) r15 = %08x\n", vector,  r15);
+      r15 = (r15 & 0xfc000003) | vector | SVC_MODE | I_BIT;
+      PCwrite = TRUE;
+      break;
+
     case VECTOR_SOFTWARE_INTERRUPT:
+      *arm_regs[SVC_MODE][14] = addPC (r15, -4);
+      printf ("exception (SWI) r15 = %08x\n", vector,  r15);
+      PCwrite = TRUE;
+      if (process->environment[12][0])
+	{
+	  r15 = (r15 & 0xfc000003) | process->environment[12][0] | SVC_MODE;
+	}
+      else
+	r15 = (r15 & 0xfc000003) | vector | SVC_MODE | I_BIT;
+      break;
+
     case VECTOR_ABORT_PREFETCH:
       *arm_regs[SVC_MODE][14] = addPC (r15, -4);
-      printf ("exception: %d r15 = %08x\n", vector,  r15);
+      printf ("exception (ABORT PRE) r15 = %08x\n", vector,  r15);
       r15 = (r15 & 0xfc000003) | vector | SVC_MODE | I_BIT;
       PCwrite = TRUE;
       break;
@@ -1208,21 +1249,21 @@ emulator (void)
     case VECTOR_ABORT_DATA:
     case VECTOR_ADDRESS_EXCEPTION:
       *arm_regs[SVC_MODE][14] = r15;
-      printf ("exception: %d r15 = %08x\n", vector,  r15);
+      printf ("exception (ADDREXCEP) r15 = %08x\n", vector,  r15);
       r15 = (r15 & 0xfc000003) | vector | SVC_MODE | I_BIT;
       PCwrite = TRUE;
       break;
 
     case VECTOR_IRQ:
       *arm_regs[IRQ_MODE][14] = addPC (r15, -4);
-      printf ("exception: %d r15 = %08x\n", vector,  r15);
+      printf ("exception (IRQ) r15 = %08x\n", vector,  r15);
       r15 = (r15 & 0xfc000003) | vector | IRQ_MODE | I_BIT;
       PCwrite = TRUE;
       break;
 
     case VECTOR_FIQ:
       *arm_regs[FIQ_MODE][14] = addPC (r15, -4);
-      printf ("exception: %d r15 = %08x\n", vector,  r15);
+      printf ("exception (FIQ) r15 = %08x\n", vector,  r15);
       r15 = (r15 & 0xfc000003) | vector | FIQ_MODE | F_BIT | I_BIT;
       PCwrite = TRUE;
       break;
@@ -1253,6 +1294,8 @@ emulator (void)
 
       if (cond == 14 || conditie[cond] ())
 	{
+	  if (total_instructions >= 561230000)
+	    showins ();
 	  main_decode[((ins & 0x0f000000) >> 22) |
 		      ((ins & 0x00000080) >> 6) |
 		      ((ins & 0x00000010) >> 4)] (ins);
@@ -1407,6 +1450,7 @@ main (int argc, char *argv[])
 
   total_instructions = 0;
   execution_start = clock ();
+  watchp = 0;
 
   if (argc == 4)
     debugger ();

@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/unix/c/chdir,v $
- * $Date: 2000/06/10 12:59:43 $
- * $Revision: 1.12 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/chdir.c,v $
+ * $Date: 2001/09/04 16:32:04 $
+ * $Revision: 1.2.2.2 $
  * $State: Exp $
  * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: chdir,v 1.12 2000/06/10 12:59:43 admin Exp $";
+static const char rcs_id[] = "$Id: chdir.c,v 1.2.2.2 2001/09/04 16:32:04 admin Exp $";
 #endif
 
 #include <errno.h>
@@ -18,9 +18,9 @@ static const char rcs_id[] = "$Id: chdir,v 1.12 2000/06/10 12:59:43 admin Exp $"
 #include <string.h>
 #include <unistd.h>
 
-#include <sys/os.h>
-#include <sys/swis.h>
-#include <sys/unix.h>
+#include <unixlib/os.h>
+#include <swis.h>
+#include <unixlib/unix.h>
 
 #include <unixlib/local.h>
 
@@ -68,7 +68,7 @@ chdir (const char *ux_path)
           free(prefix_path);
 
           regs[0] = (int) path;
-          err = os_swi (DDEUtils_Prefix, regs);
+          err = __os_swi (DDEUtils_Prefix, regs);
 
           if (! err)
             return 0;
@@ -95,11 +95,11 @@ chdir (const char *ux_path)
               regs[3] = regs[4] = 0;
               regs[5] = sizeof (canon_path);
 
-              err = os_swi (OS_FSControl, regs);
+              err = __os_swi (OS_FSControl, regs);
               if (!err)
                 {
                   regs[0] = (int) canon_path;
-                  err = os_swi (DDEUtils_Prefix, regs);
+                  err = __os_swi (DDEUtils_Prefix, regs);
                 }
               free (full_path);
 
@@ -117,7 +117,7 @@ chdir (const char *ux_path)
     }
 
   /* No Prefix$Dir, so just change directory with OS_FSControl 0.  */
-  err = os_fsctrl (0, path, 0, 0);
+  err = __os_fsctrl (0, path, 0, 0);
   if (err)
     {
       __seterr (err);

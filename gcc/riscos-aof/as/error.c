@@ -269,10 +269,10 @@ errorLine (long int lineno, const char *file,
 	   ErrorTag e, BOOL c, const char *format,...)
 {
   char *str;
-  int t;
   va_list ap;
 
 #ifdef __riscos
+  int t;
   switch (e)
     {
     case ErrorInfo:

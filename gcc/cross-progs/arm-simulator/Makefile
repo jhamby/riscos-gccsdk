@@ -16,7 +16,7 @@ OBJS = $(objdir)/riscos-progs/arm-simulator/armemu.o \
 all:	$(bin_dir)/armemu
 
 $(bin_dir)/armemu: $(OBJS)
-	$(CC) -o $@ $(OBJS)
+	$(CC) -o $@ $(OBJS) -L$(objdir)/libiberty/$(STAGE) -liberty
 
 $(objdir)/riscos-progs/arm-simulator/armemu.o: armhdr.h armfpe.h
 $(objdir)/riscos-progs/arm-simulator/armswi.o: armhdr.h armswis.h

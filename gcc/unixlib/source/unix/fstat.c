@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/unix/c/fstat,v $
- * $Date: 2000/11/08 10:22:57 $
- * $Revision: 1.5 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/fstat.c,v $
+ * $Date: 2001/09/04 16:32:04 $
+ * $Revision: 1.2.2.1 $
  * $State: Exp $
  * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: fstat,v 1.5 2000/11/08 10:22:57 admin Exp $";
+static const char rcs_id[] = "$Id: fstat.c,v 1.2.2.1 2001/09/04 16:32:04 admin Exp $";
 #endif
 
 #include <errno.h>
@@ -17,10 +17,10 @@ static const char rcs_id[] = "$Id: fstat,v 1.5 2000/11/08 10:22:57 admin Exp $";
 #include <stdlib.h>
 #include <dirent.h>
 
-#include <sys/dev.h>
-#include <sys/os.h>
+#include <unixlib/dev.h>
+#include <unixlib/os.h>
 #include <sys/stat.h>
-#include <sys/unix.h>
+#include <unixlib/unix.h>
 
 #include <unixlib/local.h>
 #include <unixlib/swiparams.h>
@@ -53,7 +53,7 @@ fstat (int fd, struct stat *buf)
 	return __set_errno (EBADF);
 
       /* Get vital file statistics and use File$Path.  */
-      err = os_file (OSFILE_READCATINFO, buffer, regs);
+      err = __os_file (OSFILE_READCATINFO, buffer, regs);
       if (err)
 	{
 	  __seterr (err);

@@ -13,10 +13,13 @@ install_headers:
 	$(MAKE) -C source install_headers
 
 unixlib:
-	mkdir -p $(upath)/o $(upath)/complex/o $(upath)/math/o $(upath)/math-asm/o
+	mkdir -p $(upath)/o $(upath)/complex/o $(upath)/grp/o
+	mkdir -p $(upath)/math/o $(upath)/math-asm/o $(upath)/signal/o
 	mkdir -p $(upath)/common/o $(upath)/gcccompat/o $(upath)/locale/o
-	mkdir -p $(upath)/netlib/o $(upath)/pwd/o $(upath)/resource/o $(upath)/signal/o
-	mkdir -p $(upath)/stdio/o $(upath)/scl/o $(upath)/sys/o $(upath)/time/o
+	mkdir -p $(upath)/netlib/o $(upath)/pwd/o $(upath)/resource/o
+	mkdir -p $(upath)/stdio/o $(upath)/stdlib/o $(upath)/scl/o
+	mkdir -p $(upath)/string/o $(upath)/sys/o $(upath)/time/o
 	mkdir -p $(upath)/termios/o $(upath)/unix/o $(upath)/wchar/o
+	mkdir -p $(upath)/module/o
 	$(MAKE) -C source
 

@@ -57,7 +57,7 @@ extern double exp (double __x) __attribute__ ((__const__));
 /* Break value into a normalized fraction and an integral power of 2.  */
 extern double frexp (double __value, int *__exp);
 /* x times (two to the exp power).  */
-extern double ldexp (double __x, int exp) __attribute__ ((__const__));
+extern double ldexp (double __x, int __exp) __attribute__ ((__const__));
 /* Natural logarithm of x.  */
 extern double log (double __x) __attribute__ ((__const__));
 /* Base-ten logarithm of x.  */

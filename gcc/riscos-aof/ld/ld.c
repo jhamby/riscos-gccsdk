@@ -42,8 +42,6 @@ Boston, MA 02111-1307, USA.  */
 #include <sys/types.h>
 
 #ifndef CROSS_COMPILE
-#include <sys/os.h>
-#include <sys/swis.h>
 #include <unixlib/local.h>
 #endif
 
@@ -217,7 +215,7 @@ main (int argc, char *argv[])
 #ifdef STANDARD_EXEC_PREFIX
   requested_linker = STANDARD_EXEC_PREFIX "drlink";
 #else
-  requested_linked = "drlink";
+  requested_linker = "drlink";
 #endif
 #else /* CROSS_COMPILE */
   requested_linker = getenv ("GCC$Linker");
@@ -707,7 +705,13 @@ tlink_execute (char *prog, char **argv, char *redir, char *viafile)
 
   if (argv[0])
     {
+#ifdef CROSS_COMPILE
       s = stpcpy (command, argv[0]);
+#else
+      temp = __riscosify (argv[0], 0, __RISCOSIFY_DONT_TRUNCATE,
+			  filename, sizeof (filename), NULL);
+      s = stpcpy (command, filename);
+#endif
       if (tlink_verbose >= 5)
 	fprintf (stderr, "*%s", argv[0]);
     }
@@ -856,13 +860,18 @@ tlink_execute (char *prog, char **argv, char *redir, char *viafile)
   else if (pid < (pid_t) 0)
     /* The fork failed.  */
     system_result = -1;
-  else if (waitpid (pid, &system_result, 0) != pid)
-    system_result = -1;
+  else
+    {
+      /* Parent process.  */
+      if (waitpid (pid, &system_result, 0) != pid)
+	system_result = -1;
+    }
 #else
   system_result = system (command);
 #endif
 
-  unlink (viafile);
+  if (tlink_verbose < 15)
+    unlink (viafile);
   free (command);
 
   return system_result;
@@ -1300,10 +1309,13 @@ do_tlink (char *linker, char **ld_argv, args *object_lst)
     }
 
   dump_file (ldout);
-  unlink (ldout);
+
+  if (tlink_verbose < 15)
+    unlink (ldout);
   if (exit_code)
     {
-      ld_error ("program %s returned exit status %d", linker, exit_code);
+      ld_error ("program %s returned exit status %d: %s", linker,
+		exit_code, (exit_code == 33) ? strerror (errno) : "");
       exit (exit_code);
     }
 }
@@ -1447,7 +1459,7 @@ static void ldhelp (void)
 
   out ("The following Drlink linker commands are recognised:");
   out ("  -acornmap, -area[map] <file>, -aif, -aof, -bin, -case");
-  out ("  -leave[weak], -map, -no[unused], -output, -qui[et]");
+  out ("  -leave[weak], -map, -m[odule], -no[unused], -output, -qui[et]");
   out ("  -res[can], -throwback, -via <file>, -verbose\n");
 
 #ifndef CROSS_COMPILE
@@ -1683,7 +1695,7 @@ static void add_output_file (const char *fname)
   strcpy (tmp, fname);
   len = strlen (tmp);
   /* If the filetype suffix already exists then don't add it again.  */
-  if (len < 4 || (strcmp (tmp + len - 4, ",ff8") && len < 252))
+  if (len < 4 || (tmp[len - 4] != ',' && len < 252))
     strcat (tmp, ",ff8");
 #else
   const char *tmp = fname;
@@ -1740,6 +1752,7 @@ parse_args (int argc, char **argv)
 #define OPTION_AOF			160
 #define OPTION_BIN			161
 #define OPTION_QUIET			162
+#define OPTION_MODULE			163
 
   static struct option longopts[] = {
     {"acornmap", no_argument, NULL, OPTION_MAP},
@@ -1753,6 +1766,7 @@ parse_args (int argc, char **argv)
     {"leave", no_argument, NULL, OPTION_LEAVEWEAK},
     {"leaveweak", no_argument, NULL, OPTION_LEAVEWEAK},
     {"map", no_argument, NULL, OPTION_MAP},
+    {"module", no_argument, NULL, OPTION_MODULE},
     {"no", no_argument, NULL, OPTION_NOUNUSED},
     {"nounused", no_argument, NULL, OPTION_NOUNUSED},
     {"nounusedareas", no_argument, NULL, OPTION_NOUNUSED},
@@ -1818,6 +1832,9 @@ parse_args (int argc, char **argv)
 	  break;
 	case OPTION_MAP:
 	  add_option ("-map");
+	  break;
+	case OPTION_MODULE:
+	  add_option ("-module");
 	  break;
 	case OPTION_NOUNUSED:
 	  add_option ("-nounused");

@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/time/mktime.c,v $
- * $Date: 2001/01/29 15:10:22 $
- * $Revision: 1.2 $
+ * $Date: 2001/09/04 16:32:04 $
+ * $Revision: 1.3.2.2 $
  * $State: Exp $
  * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: mktime.c,v 1.2 2001/01/29 15:10:22 admin Exp $";
+static const char rcs_id[] = "$Id: mktime.c,v 1.3.2.2 2001/09/04 16:32:04 admin Exp $";
 #endif
 
 /* Territory time support, written by Nick Burrett on 13 July 1997.  */
@@ -17,8 +17,8 @@ static const char rcs_id[] = "$Id: mktime.c,v 1.2 2001/01/29 15:10:22 admin Exp 
 #include <locale.h>
 #include <time.h>
 #include <string.h>
-#include <sys/os.h>
-#include <sys/swis.h>
+#include <unixlib/os.h>
+#include <swis.h>
 #include <unixlib/local.h>
 
 time_t
@@ -34,7 +34,7 @@ mktime (struct tm *brokentime)
   regs[0] = __locale_territory[LC_TIME];
   regs[1] = (int) riscos_time;
   regs[2] = (int) brokentime;
-  os_swi (Territory_ConvertTimeToOrdinals, regs);
+  __os_swi (Territory_ConvertTimeToOrdinals, regs);
 
   /* Set correct timezone information in brokentime structure.  */
   brokentime->tm_gmtoff = daylight * 3600 - timezone;

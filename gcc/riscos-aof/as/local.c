@@ -10,7 +10,6 @@
 #include <inttypes.h>
 #endif
 
-#include "strdup.h"
 #include "local.h"
 #include "error.h"
 #include "asm.h"

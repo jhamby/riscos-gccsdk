@@ -14,15 +14,18 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Make; see the file COPYING.  If not, write to
-the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
+the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+Boston, MA 02111-1307, USA.  */
 
 #include "make.h"
+
+#include <assert.h>
+
 #include "dep.h"
 #include "filedef.h"
 #include "job.h"
 #include "commands.h"
 #include "variable.h"
-#include <assert.h>
 
 
 /* Hash table of files the makefile knows how to make.  */
@@ -32,10 +35,8 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #endif
 static struct file *files[FILE_BUCKETS];
 
-/* Number of files with the `intermediate' flag set.  */
-
-unsigned int num_intermediates = 0;
-
+/* Whether or not .SECONDARY with no prerequisites was given.  */
+static int all_secondary = 0;
 
 /* Access the hash table of all file records.
    lookup_file  given a name, return the struct file * for that name,
@@ -49,22 +50,23 @@ lookup_file (name)
   register struct file *f;
   register char *n;
   register unsigned int hashval;
-#ifdef VMS
+#if defined(VMS) && !defined(WANT_CASE_SENSITIVE_TARGETS)
   register char *lname, *ln;
 #endif
 
-  if (*name == '\0')
-    abort ();
+  assert (*name != '\0');
 
   /* This is also done in parse_file_seq, so this is redundant
      for names read from makefiles.  It is here for names passed
      on the command line.  */
 #ifdef VMS
+# ifndef WANT_CASE_SENSITIVE_TARGETS
   lname = (char *)malloc(strlen(name) + 1);
   for (n=name, ln=lname; *n != '\0'; ++n, ++ln)
-    *ln = isupper(*n) ? tolower(*n) : *n;
+    *ln = isupper((unsigned char)*n) ? tolower((unsigned char)*n) : *n;
   *ln = '\0';
   name = lname;
+# endif
 
   while (name[0] == '[' && name[1] == ']' && name[2] != '\0')
       name += 2;
@@ -98,13 +100,13 @@ lookup_file (name)
     {
       if (strieq (f->hname, name))
 	{
-#ifdef VMS
+#if defined(VMS) && !defined(WANT_CASE_SENSITIVE_TARGETS)
 	  free (lname);
 #endif
 	  return f;
 	}
     }
-#ifdef VMS
+#if defined(VMS) && !defined(WANT_CASE_SENSITIVE_TARGETS)
   free (lname);
 #endif
   return 0;
@@ -117,23 +119,24 @@ enter_file (name)
   register struct file *f, *new;
   register char *n;
   register unsigned int hashval;
-#ifdef VMS
+#if defined(VMS) && !defined(WANT_CASE_SENSITIVE_TARGETS)
   char *lname, *ln;
 #endif
 
-  if (*name == '\0')
-    abort ();
+  assert (*name != '\0');
 
-#ifdef VMS
+#if defined(VMS) && !defined(WANT_CASE_SENSITIVE_TARGETS)
   lname = (char *)malloc (strlen (name) + 1);
   for (n = name, ln = lname; *n != '\0'; ++n, ++ln)
     {
-      if (isupper(*n))
-	*ln = tolower(*n);
+      if (isupper((unsigned char)*n))
+	*ln = tolower((unsigned char)*n);
       else
 	*ln = *n;
     }
   *ln = 0;
+  /* Creates a possible leak, old value of name is unreachable, but I
+     currently don't know how to fix it. */
   name = lname;
 #endif
 
@@ -148,7 +151,7 @@ enter_file (name)
 
   if (f != 0 && !f->double_colon)
     {
-#ifdef VMS
+#if defined(VMS) && !defined(WANT_CASE_SENSITIVE_TARGETS)
       free(lname);
 #endif
       return f;
@@ -243,8 +246,9 @@ file_hash_enter (file, name, oldhash, oldname)
     if (strieq (oldfile->hname, name))
       break;
 
-  /* If the old file is the same as the new file, something's wrong.  */
-  assert (oldfile != file);
+  /* If the old file is the same as the new file, never mind.  */
+  if (oldfile == file)
+    return;
 
   if (oldhash != 0 && (newbucket != oldbucket || oldfile != 0))
     {
@@ -294,24 +298,24 @@ file_hash_enter (file, name, oldhash, oldname)
 	      /* We have two sets of commands.  We will go with the
 		 one given in the rule explicitly mentioning this name,
 		 but give a message to let the user know what's going on.  */
-	      if (oldfile->cmds->filename != 0)
-		makefile_error (file->cmds->filename, file->cmds->lineno,
-				"Commands were specified for \
-file `%s' at %s:%u,",
-				oldname, oldfile->cmds->filename,
-				oldfile->cmds->lineno);
+	      if (oldfile->cmds->fileinfo.filenm != 0)
+                error (&file->cmds->fileinfo,
+                                _("Commands were specified for \
+file `%s' at %s:%lu,"),
+                                oldname, oldfile->cmds->fileinfo.filenm,
+                                oldfile->cmds->fileinfo.lineno);
 	      else
-		makefile_error (file->cmds->filename, file->cmds->lineno,
-				"Commands for file `%s' were found by \
-implicit rule search,",
+		error (&file->cmds->fileinfo,
+				_("Commands for file `%s' were found by \
+implicit rule search,"),
 				oldname);
-	      makefile_error (file->cmds->filename, file->cmds->lineno,
-			      "but `%s' is now considered the same file \
-as `%s'.",
+	      error (&file->cmds->fileinfo,
+			      _("but `%s' is now considered the same file \
+as `%s'."),
 			      oldname, name);
-	      makefile_error (file->cmds->filename, file->cmds->lineno,
-			      "Commands for `%s' will be ignored \
-in favor of those for `%s'.",
+	      error (&file->cmds->fileinfo,
+			      _("Commands for `%s' will be ignored \
+in favor of those for `%s'."),
 			      name, oldname);
 	    }
 	}
@@ -331,12 +335,12 @@ in favor of those for `%s'.",
       merge_variable_set_lists (&oldfile->variables, file->variables);
 
       if (oldfile->double_colon && file->is_target && !file->double_colon)
-	fatal ("can't rename single-colon `%s' to double-colon `%s'",
+	fatal (NILF, _("can't rename single-colon `%s' to double-colon `%s'"),
 	       oldname, name);
       if (!oldfile->double_colon  && file->double_colon)
 	{
 	  if (oldfile->is_target)
-	    fatal ("can't rename double-colon `%s' to single-colon `%s'",
+	    fatal (NILF, _("can't rename double-colon `%s' to single-colon `%s'"),
 		   oldname, name);
 	  else
 	    oldfile->double_colon = file->double_colon;
@@ -345,6 +349,8 @@ in favor of those for `%s'.",
       if (file->last_mtime > oldfile->last_mtime)
 	/* %%% Kludge so -W wins on a file that gets vpathized.  */
 	oldfile->last_mtime = file->last_mtime;
+
+      oldfile->mtime_before_update = file->mtime_before_update;
 
 #define MERGE(field) oldfile->field |= file->field
       MERGE (precious);
@@ -374,8 +380,10 @@ remove_intermediates (sig)
   register struct file *f;
   char doneany;
 
-  if (question_flag || touch_flag)
+  /* If there's no way we will ever remove anything anyway, punt early.  */
+  if (question_flag || touch_flag || all_secondary)
     return;
+
   if (sig && just_print_flag)
     return;
 
@@ -383,14 +391,14 @@ remove_intermediates (sig)
   for (i = 0; i < FILE_BUCKETS; ++i)
     for (f = files[i]; f != 0; f = f->next)
       if (f->intermediate && (f->dontcare || !f->precious)
-	  && !f->secondary)
+	  && !f->secondary && !f->cmd_target)
 	{
 	  int status;
 	  if (f->update_status == -1)
 	    /* If nothing would have created this file yet,
 	       don't print an "rm" command for it.  */
             continue;
- 	  else if (just_print_flag)
+ 	  if (just_print_flag)
   	    status = 0;
 	  else
 	    {
@@ -401,7 +409,7 @@ remove_intermediates (sig)
 	  if (!f->dontcare)
 	    {
 	      if (sig)
-		error ("*** Deleting intermediate file `%s'", f->name);
+		error (NILF, _("*** Deleting intermediate file `%s'"), f->name);
 	      else if (!silent_flag)
 		{
 		  if (! doneany)
@@ -465,7 +473,8 @@ snap_deps ()
 	{
 	  /* Mark this file as phony and nonexistent.  */
 	  f2->phony = 1;
-	  f2->last_mtime = (time_t) -1;
+	  f2->last_mtime = NONEXISTENT_MTIME;
+	  f2->mtime_before_update = NONEXISTENT_MTIME;
 	}
 
   for (f = lookup_file (".INTERMEDIATE"); f != 0; f = f->prev)
@@ -488,19 +497,12 @@ snap_deps ()
 	 but unlike real intermediate files,
 	 these are not deleted after make finishes.  */
       if (f->deps)
-	{
-	  for (d = f->deps; d != 0; d = d->next)
-	    for (f2 = d->file; f2 != 0; f2 = f2->prev)
-	      f2->intermediate = f2->secondary = 1;
-	}
+        for (d = f->deps; d != 0; d = d->next)
+          for (f2 = d->file; f2 != 0; f2 = f2->prev)
+            f2->intermediate = f2->secondary = 1;
       /* .SECONDARY with no deps listed marks *all* files that way.  */
       else
-	{
-	  int i;
-	  for (i = 0; i < FILE_BUCKETS; i++)
-	    for (f2 = files[i]; f2; f2= f2->next)
-	      f2->intermediate = f2->secondary = 1;
-	}
+        all_secondary = 1;
     }
 
   f = lookup_file (".EXPORT_ALL_VARIABLES");
@@ -532,6 +534,10 @@ snap_deps ()
   f = lookup_file (".POSIX");
   if (f != 0 && f->is_target)
     posix_pedantic = 1;
+
+  f = lookup_file (".NOTPARALLEL");
+  if (f != 0 && f->is_target)
+    not_parallel = 1;
 }
 
 /* Set the `command_state' member of FILE and all its `also_make's.  */
@@ -549,6 +555,107 @@ set_command_state (file, state)
     d->file->command_state = state;
 }
 
+/* Convert an external file timestamp to internal form.  */
+
+FILE_TIMESTAMP
+file_timestamp_cons (fname, s, ns)
+     char const *fname;
+     time_t s;
+     int ns;
+{
+  int offset = ORDINARY_MTIME_MIN + (FILE_TIMESTAMP_HI_RES ? ns : 0);
+  FILE_TIMESTAMP product = (FILE_TIMESTAMP) s << FILE_TIMESTAMP_LO_BITS;
+  FILE_TIMESTAMP ts = product + offset;
+
+  if (! (s <= FILE_TIMESTAMP_S (ORDINARY_MTIME_MAX)
+	 && product <= ts && ts <= ORDINARY_MTIME_MAX))
+    {
+      char buf[FILE_TIMESTAMP_PRINT_LEN_BOUND + 1];
+      ts = s <= OLD_MTIME ? ORDINARY_MTIME_MIN : ORDINARY_MTIME_MAX;
+      file_timestamp_sprintf (buf, ts);
+      error (NILF, _("%s: Timestamp out of range; substituting %s"),
+	     fname ? fname : _("Current time"), buf);
+    }
+
+  return ts;
+}
+
+/* Get and print file timestamps.  */
+
+FILE_TIMESTAMP
+file_timestamp_now ()
+{
+  time_t s;
+  int ns;
+
+  /* Don't bother with high-resolution clocks if file timestamps have
+     only one-second resolution.  The code below should work, but it's
+     not worth the hassle of debugging it on hosts where it fails.  */
+  if (FILE_TIMESTAMP_HI_RES)
+    {
+#if HAVE_CLOCK_GETTIME && defined CLOCK_REALTIME
+      {
+	struct timespec timespec;
+	if (clock_gettime (CLOCK_REALTIME, &timespec) == 0)
+	  {
+	    s = timespec.tv_sec;
+	    ns = timespec.tv_nsec;
+	    goto got_time;
+	  }
+      }
+#endif
+#if HAVE_GETTIMEOFDAY
+      {
+	struct timeval timeval;
+	if (gettimeofday (&timeval, 0) == 0)
+	  {
+	    s = timeval.tv_sec;
+	    ns = timeval.tv_usec * 1000;
+	    goto got_time;
+	  }
+      }
+#endif
+    }
+
+  s = time ((time_t *) 0);
+  ns = 0;
+
+ got_time:
+  return file_timestamp_cons (0, s, ns);
+}
+
+void
+file_timestamp_sprintf (p, ts)
+     char *p;
+     FILE_TIMESTAMP ts;
+{
+  time_t t = FILE_TIMESTAMP_S (ts);
+  struct tm *tm = localtime (&t);
+
+  if (tm)
+    sprintf (p, "%04d-%02d-%02d %02d:%02d:%02d",
+	     tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday,
+	     tm->tm_hour, tm->tm_min, tm->tm_sec);
+  else if (t < 0)
+    sprintf (p, "%ld", (long) t);
+  else
+    sprintf (p, "%lu", (unsigned long) t);
+  p += strlen (p);
+
+  /* Append nanoseconds as a fraction, but remove trailing zeros.
+     We don't know the actual timestamp resolution, since clock_getres
+     applies only to local times, whereas this timestamp might come
+     from a remote filesystem.  So removing trailing zeros is the
+     best guess that we can do.  */
+  sprintf (p, ".%09ld", (long) FILE_TIMESTAMP_NS (ts));
+  p += strlen (p) - 1;
+  while (*p == '0')
+    p--;
+  p += *p != '.';
+
+  *p = '\0';
+}
+
 /* Print the data base of files.  */
 
 static void
@@ -559,7 +666,7 @@ print_file (f)
 
   putchar ('\n');
   if (!f->is_target)
-    puts ("# Not a target:");
+    puts (_("# Not a target:"));
   printf ("%s:%s", f->name, f->double_colon ? ":" : "");
 
   for (d = f->deps; d != 0; d = d->next)
@@ -567,42 +674,48 @@ print_file (f)
   putchar ('\n');
 
   if (f->precious)
-    puts ("#  Precious file (dependency of .PRECIOUS).");
+    puts (_("#  Precious file (prerequisite of .PRECIOUS)."));
   if (f->phony)
-    puts ("#  Phony target (dependency of .PHONY).");
+    puts (_("#  Phony target (prerequisite of .PHONY)."));
   if (f->cmd_target)
-    puts ("#  Command-line target.");
+    puts (_("#  Command-line target."));
   if (f->dontcare)
-    puts ("#  A default or MAKEFILES makefile.");
-  printf ("#  Implicit rule search has%s been done.\n",
-	  f->tried_implicit ? "" : " not");
+    puts (_("#  A default or MAKEFILES makefile."));
+  puts (f->tried_implicit
+        ? _("#  Implicit rule search has been done.")
+        : _("#  Implicit rule search has not been done."));
   if (f->stem != 0)
-    printf ("#  Implicit/static pattern stem: `%s'\n", f->stem);
+    printf (_("#  Implicit/static pattern stem: `%s'\n"), f->stem);
   if (f->intermediate)
-    puts ("#  File is an intermediate dependency.");
+    puts (_("#  File is an intermediate prerequisite."));
   if (f->also_make != 0)
     {
-      fputs ("#  Also makes:", stdout);
+      fputs (_("#  Also makes:"), stdout);
       for (d = f->also_make; d != 0; d = d->next)
 	printf (" %s", dep_name (d));
       putchar ('\n');
     }
-  if (f->last_mtime == (time_t) 0)
-    puts ("#  Modification time never checked.");
-  else if (f->last_mtime == (time_t) -1)
-    puts ("#  File does not exist.");
+  if (f->last_mtime == UNKNOWN_MTIME)
+    puts (_("#  Modification time never checked."));
+  else if (f->last_mtime == NONEXISTENT_MTIME)
+    puts (_("#  File does not exist."));
+  else if (f->last_mtime == OLD_MTIME)
+    puts (_("#  File is very old."));
   else
-    printf ("#  Last modified %.24s (%ld)\n",
-	    ctime (&f->last_mtime), (long int) f->last_mtime);
-  printf ("#  File has%s been updated.\n",
-	  f->updated ? "" : " not");
+    {
+      char buf[FILE_TIMESTAMP_PRINT_LEN_BOUND + 1];
+      file_timestamp_sprintf (buf, f->last_mtime);
+      printf (_("#  Last modified %s\n"), buf);
+    }
+  puts (f->updated
+        ? _("#  File has been updated.") : _("#  File has not been updated."));
   switch (f->command_state)
     {
     case cs_running:
-      puts ("#  Commands currently running (THIS IS A BUG).");
+      puts (_("#  Commands currently running (THIS IS A BUG)."));
       break;
     case cs_deps_running:
-      puts ("#  Dependencies commands running (THIS IS A BUG).");
+      puts (_("#  Dependencies commands running (THIS IS A BUG)."));
       break;
     case cs_not_started:
     case cs_finished:
@@ -611,24 +724,24 @@ print_file (f)
 	case -1:
 	  break;
 	case 0:
-	  puts ("#  Successfully updated.");
+	  puts (_("#  Successfully updated."));
 	  break;
 	case 1:
 	  assert (question_flag);
-	  puts ("#  Needs to be updated (-q is set).");
+	  puts (_("#  Needs to be updated (-q is set)."));
 	  break;
 	case 2:
-	  puts ("#  Failed to be updated.");
+	  puts (_("#  Failed to be updated."));
 	  break;
 	default:
-	  puts ("#  Invalid value in `update_status' member!");
+	  puts (_("#  Invalid value in `update_status' member!"));
 	  fflush (stdout);
 	  fflush (stderr);
 	  abort ();
 	}
       break;
     default:
-      puts ("#  Invalid value in `command_state' member!");
+      puts (_("#  Invalid value in `command_state' member!"));
       fflush (stdout);
       fflush (stderr);
       abort ();
@@ -647,7 +760,7 @@ print_file_data_base ()
   register unsigned int i, nfiles, per_bucket;
   register struct file *file;
 
-  puts ("\n# Files");
+  puts (_("\n# Files"));
 
   per_bucket = nfiles = 0;
   for (i = 0; i < FILE_BUCKETS; ++i)
@@ -670,12 +783,12 @@ print_file_data_base ()
     }
 
   if (nfiles == 0)
-    puts ("\n# No files.");
+    puts (_("\n# No files."));
   else
     {
-      printf ("\n# %u files in %u hash buckets.\n", nfiles, FILE_BUCKETS);
+      printf (_("\n# %u files in %u hash buckets.\n"), nfiles, FILE_BUCKETS);
 #ifndef	NO_FLOAT
-      printf ("# average %.3f files per bucket, max %u files in one bucket.\n",
+      printf (_("# average %.3f files per bucket, max %u files in one bucket.\n"),
 	      ((double) nfiles) / ((double) FILE_BUCKETS), per_bucket);
 #endif
     }

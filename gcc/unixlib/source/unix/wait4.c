@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/unix/c/wait4,v $
- * $Date: 1997/10/19 21:51:00 $
- * $Revision: 1.8 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/wait4.c,v $
+ * $Date: 2001/09/04 16:32:04 $
+ * $Revision: 1.2.2.1 $
  * $State: Exp $
- * $Author: unixlib $
+ * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: wait4,v 1.8 1997/10/19 21:51:00 unixlib Exp $";
+static const char rcs_id[] = "$Id: wait4.c,v 1.2.2.1 2001/09/04 16:32:04 admin Exp $";
 #endif
 
 #include <errno.h>
@@ -17,7 +17,7 @@ static const char rcs_id[] = "$Id: wait4,v 1.8 1997/10/19 21:51:00 unixlib Exp $
 
 #include <sys/resource.h>
 #include <sys/types.h>
-#include <sys/unix.h>
+#include <unixlib/unix.h>
 #include <sys/wait.h>
 
 /* If usage is not null, wait4 returns usage figures for the child

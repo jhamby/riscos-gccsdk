@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/stdio/c/freopen,v $
- * $Date: 2000/01/12 16:52:26 $
- * $Revision: 1.6 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/stdio/freopen.c,v $
+ * $Date: 2001/09/04 16:32:04 $
+ * $Revision: 1.2.2.1 $
  * $State: Exp $
  * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: freopen,v 1.6 2000/01/12 16:52:26 admin Exp $";
+static const char rcs_id[] = "$Id: freopen.c,v 1.2.2.1 2001/09/04 16:32:04 admin Exp $";
 #endif
 
 /* #define DEBUG */
@@ -23,7 +23,7 @@ static const char rcs_id[] = "$Id: freopen,v 1.6 2000/01/12 16:52:26 admin Exp $
 #include <sys/stat.h>
 #include <unixlib/local.h>
 #ifdef DEBUG
-#include <sys/os.h>
+#include <unixlib/os.h>
 #endif
 
 __STDIOLIB__
@@ -50,10 +50,10 @@ freopen (const char *filename, const char *mode, FILE *stream)
     }
 
 #ifdef DEBUG
-  os_print ("freopen(file="); os_print (filename);
-  os_print (",mode="); os_print (mode);
-  os_print (",fd="); os_prdec (stream->fd);
-  os_print (")\r\n");
+  __os_print ("freopen(file="); __os_print (filename);
+  __os_print (",mode="); __os_print (mode);
+  __os_print (",fd="); __os_prdec (stream->fd);
+  __os_print (")\r\n");
 #endif
 
   m = __getmode (mode);

@@ -15,7 +15,6 @@
 #include "macros.h"
 #include "input.h"
 #include "error.h"
-#include "strdup.h"
 #include <string.h>
 #include <stdlib.h>
 #include <ctype.h>

@@ -1,6 +1,5 @@
 /* SWI driver for the ARM/RISC OS simulation environment.
-
-   (c) Copyright 1998, 1999, 2000 Nick Burrett.  */
+   (c) Copyright 1998, 1999, 2000, 2001 Nick Burrett.  */
 
 
 #include <ctype.h>
@@ -19,6 +18,9 @@
 #include "armswis.h"
 
 #define ENV_EXIT 0xffee0001
+
+extern WORD watch_points[];
+extern int watchp;
 
 struct riscos_object_detail
 {
@@ -66,29 +68,7 @@ struct ticker_event
 #define ENVH_CAO 15
 #define ENVH_UPCALL 16
 
-struct os_state
-{
-  /* RISC OS environment variables.  */
-  volatile WORD environment[18][3];
-
-  /* Keyboard escape key handler.  */
-  int escape_state;
-  int escape_key;
-
-  /* DDEUtils command line extension emulation.  */
-  void *dde_cmd_line;
-  int dde_cmd_line_size;
-
-  /* RISC OS file handles.  */
-  WORD file_handles[2048];
-
-  /* A singularly linked list of tickers for OS_CallAfter and OS_CallEvery.  */
-  struct ticker_event *tickers;
-
-  /* For locale support.  */
-  unsigned int territory_table[9][9];
-  unsigned char territory_trans[2][256];
-} *process;
+struct os_state *process;
 
 #define MIN_HANDLE 1500
 #define MAX_HANDLE 1540
@@ -2068,6 +2048,17 @@ swi (register WORD ins)
       r(0) = RAM - 0x8000;
       break;
 
+    case Wimp_ReadSysInfo:
+      if (r(0) == 0) /* Number of active tasks.  */
+	r(0) = 0; /* Program hasn't called Wimp_Initialise.  */
+      else if (r(0) == 1) /* Current WIMP mode.  */
+	r(0) = 15;
+      else if (r(0) == 3) /* Current environment.  */
+	r(0) = 0; /* We always say we are in commands (ShellCLI) mode.  */
+      else if (r(0) == 4) /* Text direction.  */
+	r(0) = 0; /* Left to right text entry.  */
+      break;
+
     case FPEmulator_Version:
       r (0) = 399;
       break;
@@ -2279,6 +2270,25 @@ swi (register WORD ins)
       else if (r(0) > 0)
 	r15 |= (1 << C_SHFT);
       break;
+
+    case 0x80000: /* Set a memory watch point.  */
+      /* On entry: r0 = address of memory to watch.  */
+      if (watchp >= 32767)
+	printf ("watch points exceeded\n");
+      else
+	watch_points[watchp++] = r(0) & ~0x3;
+      break;
+
+    case 0x80001: /* Unset a memory watch point.  */
+      /* On entry: r0 = address of memory to no longer watch.  */
+      {
+	int x;
+	for (x = 0; x < watchp; x++)
+	  if (watch_points[x] == (r(0) & ~0x3))
+	    watch_points[x] = 0;
+      }
+      break;
+
 
     default:
       printf ("\nUNDEFINED SWI &%08lX AT ADDRESS &%08lX\n", num,

@@ -14,7 +14,8 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Make; see the file COPYING.  If not, write to
-the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
+the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+Boston, MA 02111-1307, USA.  */
 
 #include "make.h"
 #include "filedef.h"
@@ -48,7 +49,7 @@ static struct vpath *general_vpath;
 
 static struct vpath *gpaths;
 
-static int selective_vpath_search PARAMS ((struct vpath *path, char **file, time_t *mtime_ptr));
+static int selective_vpath_search PARAMS ((struct vpath *path, char **file, FILE_TIMESTAMP *mtime_ptr));
 
 /* Reverse the chain of selective VPATH lists so they
    will be searched in the order given in the makefiles
@@ -168,7 +169,7 @@ construct_vpath_list (pattern, dirpath)
 
   if (pattern != 0)
     {
-      pattern = savestring (pattern, strlen (pattern));
+      pattern = xstrdup (pattern);
       percent = find_percent (pattern);
     }
 
@@ -221,7 +222,7 @@ construct_vpath_list (pattern, dirpath)
   maxelem = 2;
   p = dirpath;
   while (*p != '\0')
-    if (*p++ == PATH_SEPARATOR_CHAR || isblank (*p))
+    if (*p++ == PATH_SEPARATOR_CHAR || isblank ((unsigned char)*p))
       ++maxelem;
 
   vpath = (char **) xmalloc (maxelem * sizeof (char *));
@@ -229,7 +230,7 @@ construct_vpath_list (pattern, dirpath)
 
   /* Skip over any initial separators and blanks.  */
   p = dirpath;
-  while (*p == PATH_SEPARATOR_CHAR || isblank (*p))
+  while (*p == PATH_SEPARATOR_CHAR || isblank ((unsigned char)*p))
     ++p;
 
   elem = 0;
@@ -240,7 +241,8 @@ construct_vpath_list (pattern, dirpath)
 
       /* Find the end of this entry.  */
       v = p;
-      while (*p != '\0' && *p != PATH_SEPARATOR_CHAR && !isblank (*p))
+      while (*p != '\0' && *p != PATH_SEPARATOR_CHAR
+	     && !isblank ((unsigned char)*p))
 	++p;
 
       len = p - v;
@@ -273,7 +275,7 @@ construct_vpath_list (pattern, dirpath)
 	}
 
       /* Skip over separators and blanks between entries.  */
-      while (*p == PATH_SEPARATOR_CHAR || isblank (*p))
+      while (*p == PATH_SEPARATOR_CHAR || isblank ((unsigned char)*p))
 	++p;
     }
 
@@ -323,7 +325,7 @@ gpath_search (file, len)
 
   if (gpaths && (len <= gpaths->maxlen))
     for (gp = gpaths->searchpath; *gp != NULL; ++gp)
-      if (!strncmp(*gp, file, len) && (*gp)[len] == '\0')
+      if (strneq (*gp, file, len) && (*gp)[len] == '\0')
         return 1;
 
   return 0;
@@ -338,7 +340,7 @@ gpath_search (file, len)
 int
 vpath_search (file, mtime_ptr)
      char **file;
-     time_t *mtime_ptr;
+     FILE_TIMESTAMP *mtime_ptr;
 {
   register struct vpath *v;
 
@@ -376,7 +378,7 @@ static int
 selective_vpath_search (path, file, mtime_ptr)
      struct vpath *path;
      char **file;
-     time_t *mtime_ptr;
+     FILE_TIMESTAMP *mtime_ptr;
 {
   int not_target;
   char *name, *n;
@@ -401,11 +403,11 @@ selective_vpath_search (path, file, mtime_ptr)
      NAME_DPLEN gets the length of the prefix; FILENAME gets the
      pointer to the name-within-directory and FLEN is its length.  */
 
-  n = rindex (*file, '/');
+  n = strrchr (*file, '/');
 #if defined (WINDOWS32) || defined (__MSDOS__)
   /* We need the rightmost slash or backslash.  */
   {
-    char *bslash = rindex(*file, '\\');
+    char *bslash = strrchr(*file, '\\');
     if (!n || bslash > n)
       n = bslash;
   }
@@ -523,8 +525,10 @@ selective_vpath_search (path, file, mtime_ptr)
 	      if (mtime_ptr != 0)
 		/* Store the modtime into *MTIME_PTR for the caller.
 		   If we have had no need to stat the file here,
-		   we record a zero modtime to indicate this.  */
-		*mtime_ptr = exists_in_cache ? st.st_mtime : (time_t) 0;
+		   we record UNKNOWN_MTIME to indicate this.  */
+		*mtime_ptr = (exists_in_cache
+			      ? FILE_TIMESTAMP_STAT_MODTIME (name, st)
+			      : UNKNOWN_MTIME);
 
 	      free (name);
 	      return 1;
@@ -546,7 +550,7 @@ print_vpath_data_base ()
   register unsigned int nvpaths;
   register struct vpath *v;
 
-  puts ("\n# VPATH Search Paths\n");
+  puts (_("\n# VPATH Search Paths\n"));
 
   nvpaths = 0;
   for (v = vpaths; v != 0; v = v->next)
@@ -563,18 +567,18 @@ print_vpath_data_base ()
     }
 
   if (vpaths == 0)
-    puts ("# No `vpath' search paths.");
+    puts (_("# No `vpath' search paths."));
   else
-    printf ("\n# %u `vpath' search paths.\n", nvpaths);
+    printf (_("\n# %u `vpath' search paths.\n"), nvpaths);
 
   if (general_vpath == 0)
-    puts ("\n# No general (`VPATH' variable) search path.");
+    puts (_("\n# No general (`VPATH' variable) search path."));
   else
     {
       register char **path = general_vpath->searchpath;
       register unsigned int i;
 
-      fputs ("\n# General (`VPATH' variable) search path:\n# ", stdout);
+      fputs (_("\n# General (`VPATH' variable) search path:\n# "), stdout);
 
       for (i = 0; path[i] != 0; ++i)
 	printf ("%s%c", path[i],

@@ -15,14 +15,6 @@
 
 #include "uname.h"
 
-#ifndef UNIXLIB
-#if !(defined(CROSS_COMPILE) && defined(USG))
-#if !defined(__GNUC_MINOR__) || __GNUC__<2 || __GNUC_MINOR__<7
-extern char *strdup (char *);
-#endif
-#endif
-#endif
-
 extern int dde;
 
 #define INCDIRMAX  10
@@ -117,11 +109,11 @@ getInclude (const char *filename, const char *mode)
 	sprintf (incpath, "%s%c%s", incdir[i], DIR, file);
 #ifdef CROSS_COMPILE
 	if (access (incpath, F_OK) == 0)
-	  return (fopen (incpath, mode));
+	  return fopen (incpath, mode);
 #else
 	if ((fp = fopen (incpath, mode)) != 0)
 	  return fp;
 #endif
       }
-  return (NULL);
+  return NULL;
 }

@@ -1,21 +1,21 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/locale/c/strxfrm,v $
- * $Date: 1997/10/09 20:00:03 $
- * $Revision: 1.2 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/locale/strxfrm.c,v $
+ * $Date: 2001/09/04 16:32:04 $
+ * $Revision: 1.2.2.2 $
  * $State: Exp $
- * $Author: unixlib $
+ * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: strxfrm,v 1.2 1997/10/09 20:00:03 unixlib Exp $";
+static const char rcs_id[] = "$Id: strxfrm.c,v 1.2.2.2 2001/09/04 16:32:04 admin Exp $";
 #endif
 
 #include <locale.h>
 #include <string.h>
-#include <sys/os.h>
-#include <sys/swis.h>
+#include <unixlib/os.h>
+#include <swis.h>
 
 size_t
 strxfrm (char *to, const char *from, size_t size)
@@ -27,6 +27,6 @@ strxfrm (char *to, const char *from, size_t size)
   regs[2] = (int)from;
   regs[3] = size;
 
-  os_swi (Territory_TransformString, regs);
+  __os_swi (Territory_TransformString, regs);
   return regs[0];
 }

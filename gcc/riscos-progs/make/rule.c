@@ -1,5 +1,5 @@
 /* Pattern and suffix rule internals for GNU Make.
-Copyright (C) 1988, 1989, 1990, 1991, 1992, 1993 Free Software Foundation, Inc.
+Copyright (C) 1988,89,90,91,92,93, 1998 Free Software Foundation, Inc.
 This file is part of GNU Make.
 
 GNU Make is free software; you can redistribute it and/or modify
@@ -14,7 +14,8 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Make; see the file COPYING.  If not, write to
-the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
+the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+Boston, MA 02111-1307, USA.  */
 
 #include "make.h"
 #include "dep.h"
@@ -107,11 +108,15 @@ count_implicit_rule_limits ()
 	  unsigned int len = strlen (dep->name);
 
 #ifdef VMS
-	  char *p = rindex (dep->name, ']');
+	  char *p = strrchr (dep->name, ']');
+          char *p2;
+          if (p == 0)
+            p = strrchr (dep->name, ':');
+          p2 = p != 0 ? strchr (dep->name, '%') : 0;
 #else
-	  char *p = rindex (dep->name, '/');
+	  char *p = strrchr (dep->name, '/');
+	  char *p2 = p != 0 ? strchr (dep->name, '%') : 0;
 #endif
-	  char *p2 = p != 0 ? index (dep->name, '%') : 0;
 	  ndeps++;
 
 	  if (len > max_pattern_dep_length)
@@ -139,7 +144,7 @@ count_implicit_rule_limits ()
 
 	      dep->changed = !dir_file_exists_p (name, "");
 #ifdef VMS
-	      if (dep->changed && *name == ']')
+              if (dep->changed && strchr (name, ':') != 0)
 #else
 	      if (dep->changed && *name == '/')
 #endif
@@ -333,27 +338,29 @@ new_pattern_rule (rule, override)
 	      if (!streq (dep_name (d), dep_name (d2)))
 		break;
 	    if (d == 0 && d2 == 0)
-	      /* All the dependencies matched.  */
-	      if (override)
-		{
-		  /* Remove the old rule.  */
-		  freerule (r, lastrule);
-		  /* Install the new one.  */
-		  if (pattern_rules == 0)
-		    pattern_rules = rule;
-		  else
-		    last_pattern_rule->next = rule;
-		  last_pattern_rule = rule;
+	      {
+		/* All the dependencies matched.  */
+		if (override)
+		  {
+		    /* Remove the old rule.  */
+		    freerule (r, lastrule);
+		    /* Install the new one.  */
+		    if (pattern_rules == 0)
+		      pattern_rules = rule;
+		    else
+		      last_pattern_rule->next = rule;
+		    last_pattern_rule = rule;
 
-		  /* We got one.  Stop looking.  */
-		  goto matched;
-		}
-	      else
-		{
-		  /* The old rule stays intact.  Destroy the new one.  */
-		  freerule (rule, (struct rule *) 0);
-		  return 0;
-		}
+		    /* We got one.  Stop looking.  */
+		    goto matched;
+		  }
+		else
+		  {
+		    /* The old rule stays intact.  Destroy the new one.  */
+		    freerule (rule, (struct rule *) 0);
+		    return 0;
+		  }
+	      }
 	  }
       }
 
@@ -416,11 +423,11 @@ install_pattern_rule (p, terminal)
     {
       r->terminal = terminal;
       r->cmds = (struct commands *) xmalloc (sizeof (struct commands));
-      r->cmds->filename = 0;
-      r->cmds->lineno = 0;
+      r->cmds->fileinfo.filenm = 0;
+      r->cmds->fileinfo.lineno = 0;
       /* These will all be string literals, but we malloc space for them
 	 anyway because somebody might want to free them later.  */
-      r->cmds->commands = savestring (p->commands, strlen (p->commands));
+      r->cmds->commands = xstrdup (p->commands);
       r->cmds->command_lines = 0;
     }
 }
@@ -436,9 +443,22 @@ freerule (rule, lastrule)
 {
   struct rule *next = rule->next;
   register unsigned int i;
+  register struct dep *dep;
 
   for (i = 0; rule->targets[i] != 0; ++i)
     free (rule->targets[i]);
+
+  dep = rule->deps;
+  while (dep)
+    {
+      struct dep *t;
+
+      t = dep->next;
+      /* We might leak dep->name here, but I'm not sure how to fix this: I
+         think that pointer might be shared (e.g., in the file hash?)  */
+      free ((char *) dep);
+      dep = t;
+    }
 
   free ((char *) rule->targets);
   free ((char *) rule->suffixes);
@@ -583,16 +603,16 @@ lookup_pattern_var (target)
       stemlen = targlen - p->len + 1;
 
       /* Compare the text in the pattern before the stem, if any.  */
-      if (stem > target && strncmp (p->target, target, stem - target))
+      if (stem > target && !strneq (p->target, target, stem - target))
         continue;
 
       /* Compare the text in the pattern after the stem, if any.
-         We could test simply use streq, but this way we compare the
+         We could test simply using streq, but this way we compare the
          first two characters immediately.  This saves time in the very
          common case where the first character matches because it is a
          period.  */
       if (*p->suffix == stem[stemlen]
-          && (*p->suffix == '\0'|| streq (&p->suffix[1], &stem[stemlen+1])))
+          && (*p->suffix == '\0' || streq (&p->suffix[1], &stem[stemlen+1])))
         break;
     }
 
@@ -648,10 +668,10 @@ print_rule_data_base ()
     }
 
   if (rules == 0)
-    puts ("\n# No implicit rules.");
+    puts (_("\n# No implicit rules."));
   else
     {
-      printf ("\n# %u implicit rules, %u", rules, terminal);
+      printf (_("\n# %u implicit rules, %u"), rules, terminal);
 #ifndef	NO_FLOAT
       printf (" (%.1f%%)", (double) terminal / (double) rules * 100.0);
 #else
@@ -660,14 +680,19 @@ print_rule_data_base ()
 	printf (" (%d.%d%%)", f/10, f%10);
       }
 #endif
-      puts (" terminal.");
+      puts (_(" terminal."));
     }
 
   if (num_pattern_rules != rules)
-    fatal ("BUG: num_pattern_rules wrong!  %u != %u",
-	   num_pattern_rules, rules);
+    {
+      /* This can happen if a fatal error was detected while reading the
+         makefiles and thus count_implicit_rule_limits wasn't called yet.  */
+      if (num_pattern_rules != 0)
+        fatal (NILF, _("BUG: num_pattern_rules wrong!  %u != %u"),
+               num_pattern_rules, rules);
+    }
 
-  puts ("\n# Pattern-specific variable values");
+  puts (_("\n# Pattern-specific variable values"));
 
   {
     struct pattern_var *p;
@@ -682,10 +707,10 @@ print_rule_data_base ()
       }
 
     if (rules == 0)
-      puts ("\n# No pattern-specific variable values.");
+      puts (_("\n# No pattern-specific variable values."));
     else
       {
-        printf ("\n# %u pattern-specific variable values", rules);
+        printf (_("\n# %u pattern-specific variable values"), rules);
       }
   }
 }

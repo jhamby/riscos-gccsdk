@@ -14,6 +14,7 @@ ensure that a large enough wimpslot has been allocated. Please refer to the
 IMPORTANT NOTE 2: If ypu have received this copy of GCC from a CD, then it is
 likely there is a more up-to-date version obtainable from elsewhere.
 
+IMPORTANT NOTE 3: GCC requires a minimum of 8Mb RAM.
 
 The RISC OS GNU Compiler Collection consists of a generic front end program
 `gcc' that provides a consistent interface to the compilers themselves.
@@ -111,10 +112,10 @@ To compile to the object form, use the -c switch. i.e.
 will compile and assemble 'c.file' to 'o.file'.
 
 To compile the same files but using the SharedCLibrary as the target
-run-time library instead of UnixLib, add the switch '-mstubs' to the
+run-time library instead of UnixLib, add the switch '-mlibscl' to the
 command line. For example:
 
-  gcc c.hellow -mstubs
+  gcc c.hellow -mlibscl
 
 will compile and link the c.hellow source file, using header files
 from the SharedCLibrary, and linking against the library C:o.stubs.
@@ -191,13 +192,16 @@ RISC OS specific options
    Error throwbacks will only occur when the DDEUtils module has previously
    been loaded.
 
- -mstubs
-   compiles to target SharedCLibrary and tells the linker to link with
-   the file C:o.stubs instead of UnixLib.
+ -mlibscl
+   build and link source code against the SharedCLibrary headers and
+   library files.
 
  -munixlib
-   tell the linker to target UnixLib instead of the SharedCLibrary. The
-   linker will attempt to link with the file Unix:o.unixlib.
+   build and link source code against the UnixLib headers and library
+   files. 
+
+   -mlibscl and -munixlib are mutually exclusive.  -munixlib is the
+   default.
 
  -mamu
    Generate the file !Depend which contains a list of all the source
@@ -270,15 +274,18 @@ Predefines
 
 The following preprocessor constants are defined by GCC:
    'arm', '__arm__', 'riscos', '__riscos__',
-   '__GNUC_MINOR__', '__GNUC_MAJOR__', '__JMP_BUF_SIZE'
+   '__GNUC__', '__GNUC_MAJOR__', '__JMP_BUF_SIZE'
 
 To implement dynamic allocations within a function, it is necessary to add
 an extra field to jmpbuf. Fortunately the setjmp.h header files recognise
 __JMP_BUF_SIZE and can alter their jmpbuf array appropriately.
 
-When targetting the SharedCLibrary (i.e. -mstubs switch is supplied on
+When targetting the SharedCLibrary (i.e. -mlibscl switch is supplied on
 gcc command line) then an additional preprocessor constant is defined,
 namely `__TARGET_SCL__'.
+
+The use of 'arm' and 'riscos' are deprecated and will be removed in
+later releases of GCC.
 
 Search paths
 ------------
@@ -292,7 +299,7 @@ specified order.
 <varargs.h>, <assert.h>, <stdarg.h>
 -----------------------------------
 
-GCC supplies it's own versions of these header files since they are not
+GCC supplies its own versions of these header files since they are not
 compatible with the headers supplied with Acorn C and UnixLib.  However,
 this feature is invisible to the user.
 
@@ -306,27 +313,11 @@ users with small memory machines can use Clares' Virtualise to provide a
 working virtual memory envionment for them. See the section *Dynamic Areas*
 below.
 
-Users of older machines, the Archimedes and A5000, can use the program
-!Virtual. Currently the version is 0.37 and there exists a few small problems
-with running GCC compilers (or any UnixLib 3.7a and later programs)
-under this environment.
-
-UnixLib 3.7a has been heavily modified and uses some unsupported SWI calls
-notably, XOS_RemoveTickerEvent, an XOS_Byte call and OS_PlatformFeatures.
-Until a later version of !Virtual is released, it is safe to answer 'Y' to
-all the questions related to Unknown SWIs.
-
-Users of !Virtual can disregard the information contained within the
-specific compiler documentation concerning wimp slot size. Under the
-virtual memory environment, the wimp slot will need to be set to a size
-approximately 32K greater than the largest binary likely to be executed, the
-compiler. For example, if the size of cc1 is 700K, then setting the wimp slot
-to 732K should ensure that a successful compilation can be made.
-
-It should be noted that the greater amount of wimp slot that can be given
-to a virtual memory task, a smaller number of page swaps will be needed and
-a significant improvement in compile times will result.
-
+Users of older machines, the Archimedes and A5000, with less than 8Mb RAM
+will not be able to use this software.  In previous releases it was possible
+to use !Virtual to work around the physical RAM limitations of the machine,
+however UnixLib was significantly extended and outgrew the environment
+that !Virtual provided.
 
 Dynamic areas
 -------------
@@ -442,8 +433,6 @@ compilers. Possible solutions are provided for the known problems.
 
   b) If you are not running on a RiscPC then increase WimpSlot to a much
      larger value.
-     
-     You can try using !Virtual.
 
 6. A source file is correctly compiled and linked. The resultant executable
    'hellow' is placed in the current directory. However, when I try and
@@ -551,19 +540,6 @@ Indent (C source code formatter):
 Sed (batch stream editor):
   ftp://ftp.demon.co.uk/pub/archimedes/gnu/sed.spk
 
-!Virtual (virtual memory for early Archimedes, A5000 and before):
-  ftp://micros.hensa.ac.uk/micros/arch/riscos/a/a277/a277.arc
-
-
-Mirrors of hensa/micros
------------------------
-
-Imperial College:
- ftp://src.doc.ic.ac.uk/computing/systems/archimedes/collections/hensa/riscos/
-
-Demon Internet Services
- ftp://ftp.demon.co.uk/pub/mirrors/hensa/micros/arch/riscos/
-
 
 Distribution patches
 --------------------
@@ -610,51 +586,16 @@ The main GCC compiler sources can be obtained from the sites listed described
 below. Sources are approximately 10Mb compressed, 47Mb uncompressed.
 
 
-Contacting Nick Burrett
------------------------
+Contacting the author
+----------------------
 
-I can only be contacted by e-mail at nick@dsvr.net
+A mailing list has been setup for discussions on GCC, including development
+work.  To join it, send mail to majordomo@hard-mofo.dsvr.net and put
+`subscribe gcc' as the only item of text in the message body.
 
 
 Location of the main GCC sources
 --------------------------------
 
-The official GCC website is at http://gcc.gnu.org
-
-  Most GNU software is packed using the GNU `gzip' compression program.
-  Source code is available on most sites distributing GNU software.
-
-  For information on how to order GNU software on tape, floppy or cd-rom, or
-  printed GNU manuals, check the file etc/ORDERS in the GNU Emacs
-  distribution, ftp the file /pub/gnu/GNUinfo/ORDERS on prep, or
-  e-mail a request to: gnu@prep.ai.mit.edu 
-
-  By ordering your GNU software from the FSF, you help us continue to
-  develop more free software.  Media revenues are our primary source of
-  support.  Donations to FSF are deductible on US tax returns.
-
-  thanx -gnu@prep.ai.mit.edu
-
-        ASIA: ftp.cs.titech.ac.jp, utsun.s.u-tokyo.ac.jp:/ftpsync/prep,
-  cair-archive.kaist.ac.kr:/pub/gnu, ftp.nectec.or.th:/pub/mirrors/gnu
-        AUSTRALIA: archie.au:/gnu (archie.oz or archie.oz.au for ACSnet)
-        AFRICA: ftp.sun.ac.za:/pub/gnu
-        MIDDLE-EAST: ftp.technion.ac.il:/pub/unsupported/gnu
-        EUROPE: irisa.irisa.fr:/pub/gnu, ftp.univ-lyon1.fr:pub/gnu,
-  ftp.mcc.ac.uk, unix.hensa.ac.uk:/mirrors/uunet/systems/gnu,
-  src.doc.ic.ac.uk:/gnu, ftp.ieunet.ie:pub/gnu, ftp.eunet.ch,
-  nic.switch.ch:/mirror/gnu, ftp.informatik.rwth-aachen.de:/pub/gnu,
-  ftp.informatik.tu-muenchen.de, ftp.win.tue.nl:/pub/gnu, ftp.nl.net,
-  ftp.etsimo.uniovi.es:/pub/gnu ftp.funet.fi:/pub/gnu, ftp.denet.dk,
-  ftp.stacken.kth.se, isy.liu.se, ftp.luth.se:/pub/unix/gnu,
-  ftp.sunet.se:/pub/gnu, archive.eu.net
-        SOUTH AMERICA: ftp.inf.utfsm.cl:/pub/gnu, ftp.unicamp.br:/pub/gnu
-        WESTERN CANADA: ftp.cs.ubc.ca:/mirror2/gnu
-        USA: wuarchive.wustl.edu:/systems/gnu, labrea.stanford.edu,
-  ftp.digex.net:/pub/gnu, ftp.kpc.com:/pub/mirror/gnu,
-  f.ms.uky.edu:/pub3/gnu,
-  jaguar.utah.edu:/gnustuff, ftp.hawaii.edu:/mirrors/gnu,
-  uiarchive.cso.uiuc.edu:/pub/gnu, ftp.cs.columbia.edu:/archives/gnu/prep,
-  col.hp.com:/mirrors/gnu, gatekeeper.dec.com:/pub/GNU,
-  ftp.uu.net:/systems/gnu
-
+The official GCC website is http://gcc.gnu.org
+The official GNU website is http://www.gnu.org

@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/stdio/c/fopen,v $
- * $Date: 2000/01/12 16:52:26 $
- * $Revision: 1.13 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/stdio/fopen.c,v $
+ * $Date: 2001/09/04 16:32:04 $
+ * $Revision: 1.2.2.1 $
  * $State: Exp $
  * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: fopen,v 1.13 2000/01/12 16:52:26 admin Exp $";
+static const char rcs_id[] = "$Id: fopen.c,v 1.2.2.1 2001/09/04 16:32:04 admin Exp $";
 #endif
 
 /* #define DEBUG */
@@ -21,10 +21,10 @@ static const char rcs_id[] = "$Id: fopen,v 1.13 2000/01/12 16:52:26 admin Exp $"
 #include <fcntl.h>
 #include <string.h>
 #include <sys/stat.h>
-#include <sys/unix.h>
+#include <unixlib/unix.h>
 
 #ifdef DEBUG
-#include <sys/os.h>
+#include <unixlib/os.h>
 #endif
 
 __STDIOLIB__
@@ -44,8 +44,8 @@ fopen (const char *filename, const char *mode)
     }
 
 #ifdef DEBUG
-  os_print ("fopen(fname="); os_print (filename);
-  os_print (", mode="); os_print (mode); os_print ("): ");
+  __os_print ("fopen(fname="); __os_print (filename);
+  __os_print (", mode="); __os_print (mode); __os_print ("): ");
 #endif
 
   m = __getmode (mode);
@@ -79,7 +79,7 @@ fopen (const char *filename, const char *mode)
     fd = open (filename, file_mode);
 
 #ifdef DEBUG
-  os_print ("fd="); os_prdec (fd); os_print ("\r\n");
+  __os_print ("fd="); __os_prdec (fd); __os_print ("\r\n");
 #endif
 
   if (fd < 0)
@@ -96,15 +96,15 @@ fdopen (int fd, const char *mode)
   int dflags;
 
 #ifdef DEBUG
-  os_print ("fdopen (fd="); os_prdec (fd);
-  os_print (",mode="); os_print (mode); os_print (")\r\n");
+  __os_print ("fdopen (fd="); __os_prdec (fd);
+  __os_print (",mode="); __os_print (mode); __os_print (")\r\n");
 #endif
   m = __getmode (mode);
   if (! m.__read && ! m.__write)
     return NULL;
 
 #ifdef DEBUG
-  os_print ("fdopen: here1\r\n");
+  __os_print ("fdopen: here1\r\n");
 #endif
   /* Verify the FD is valid and allows the access 'mode' specifies.  */
   dflags = __u->fd[fd].fflag; /* dflags = fcntl (fd, F_GETFL); */
@@ -112,7 +112,7 @@ fdopen (int fd, const char *mode)
     return NULL;
 
 #ifdef DEBUG
-  os_print ("fdopen: here2\r\n");
+  __os_print ("fdopen: here2\r\n");
 #endif
 
   /* Check the access mode.  */
@@ -132,7 +132,7 @@ fdopen (int fd, const char *mode)
     return NULL;
 
 #ifdef DEBUG
-  os_print ("fdopen: here3\r\n");
+  __os_print ("fdopen: here3\r\n");
 #endif
 
   stream->__mode = m;

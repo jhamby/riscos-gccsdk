@@ -12,7 +12,6 @@ int dummy = 0;
 
 #include "kernel.h"
 #include "os.h"
-#include "strdup.h"
 
 #define EXTRA(x) ((x)<<1)	/* Reserve double space */
 

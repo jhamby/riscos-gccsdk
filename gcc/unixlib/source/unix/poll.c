@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/unix/c/poll,v $
- * $Date: 1997/10/10 19:38:57 $
- * $Revision: 1.1 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/poll.c,v $
+ * $Date: 2001/09/14 14:01:17 $
+ * $Revision: 1.2.2.1 $
  * $State: Exp $
- * $Author: unixlib $
+ * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: poll,v 1.1 1997/10/10 19:38:57 unixlib Exp $";
+static const char rcs_id[] = "$Id: poll.c,v 1.2.2.1 2001/09/14 14:01:17 admin Exp $";
 #endif
 
 #include <string.h>
@@ -25,7 +25,7 @@ static const char rcs_id[] = "$Id: poll,v 1.1 1997/10/10 19:38:57 unixlib Exp $"
    or -1 for errors.  */
 
 int
-poll (struct pollfd *fds, unsigned long nfds, int timeout)
+poll (struct pollfd *fds, nfds_t nfds, int timeout)
 {
   struct timeval tv;
   fd_set rset, wset, xset;

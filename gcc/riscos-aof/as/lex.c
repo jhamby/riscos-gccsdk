@@ -19,7 +19,6 @@
 #include "input.h"
 #include "hash.h"
 #include "symbol.h"
-#include "strdup.h"
 #include "area.h"
 
 extern int gcc_backend;
@@ -160,6 +159,12 @@ static char *
 lexReadLocal (int *len, int *label)
 {
   char *name;
+  if (!isdigit (inputLook ()))
+    {
+      error (ErrorSerious, TRUE, "Missing local label number");
+
+      return 0;
+    }
   *label = inputGet () - '0';
   if (isdigit (inputLook ()))
     *label = (*label * 10) + (inputGet () - '0');
@@ -178,18 +183,29 @@ static Lex
 lexMakeLocal (int dir)
 {
   int label, len;
-  signed int i;
+  int i = 0;
   Lex result;
   char *name, id[1024];
   result.tag = LexNone;
   name = lexReadLocal (&len, &label);
   if (!name)
     return result;
-  i = rout_lblno[label] + dir;
-  if (i < 0)
+  switch (dir)
     {
-      error (ErrorError, FALSE, "Missing local label (bwd) with ID %02i", label);
-      return result;
+    case -1:
+      if ((i = rout_lblno[label] - 1) < 0)
+	{
+	  error (ErrorError, FALSE, "Missing local label (bwd) with ID %02i", label);
+	  return result;
+	}
+      break;
+    case 0:
+      if ((i = rout_lblno[label] - 1) < 0)
+        i++;
+      break;
+    case 1:
+      i = rout_lblno[label];
+      break;
     }
   sprintf (id, localFormat, (int) areaCurrent, label, i, rout_id);
   result.LexId.str = strdup (id);
@@ -433,28 +449,35 @@ lexGetPrim (void)
       break;
     case '%':
       {
-	char c = inputGetLower ();
-	switch (c)
+	int dir;
+	switch (inputLookLower ())
 	  {
 	  case 'f':
-	    if (inputLookLower () != 't')
-	      error (ErrorWarning, TRUE, "Missing 't' in local label name");
-	    else
-	      inputSkip ();
-	    return lexMakeLocal (0);
-	  case 'b':
-	    if (inputLookLower () != 't')
-	      error (ErrorWarning, TRUE, "Missing 't' in local label name");
-	    else
-	      inputSkip ();
-	    return lexMakeLocal (-1);
-	  }
-	if (isdigit (c))
-	  while (isdigit (inputLook ()))
 	    inputSkip ();
-	error (ErrorSerious, TRUE, isdigit (c)
-	       ? "Branch to nearest local label not implemented"
-	       : "Missing local label number");
+	    dir = 1;
+	    break;
+	  case 'b':
+	    inputSkip ();
+	    dir = -1;
+	    break;
+	  default:
+	    dir = 0;
+	    break;
+	  }
+	switch (inputLookLower ())
+	  {
+	  case 't':
+	    inputSkip ();
+	    error (ErrorWarning, TRUE, "Ignored 't' in local label name");
+	    break;
+	  case 'a':
+	    inputSkip ();
+	    break;
+	  default:
+	    error (ErrorWarning, TRUE, "Assumed 'a' in local label name");
+	    break;
+	  }
+	return lexMakeLocal (dir);
       }
       break;
     case '{':

@@ -6,12 +6,12 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 #include "global.h"
 #include "eval.h"
 #include "help_eval.h"
 #include "error.h"
 #include "include.h"
-#include "strdup.h"
 
 #ifndef SEEK_END
 #define SEEK_END 2

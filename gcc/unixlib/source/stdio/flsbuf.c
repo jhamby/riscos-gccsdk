@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/stdio/c/flsbuf,v $
- * $Date: 1999/09/21 10:39:16 $
- * $Revision: 1.9 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/stdio/flsbuf.c,v $
+ * $Date: 2002/01/15 13:21:19 $
+ * $Revision: 1.2.2.2 $
  * $State: Exp $
  * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: flsbuf,v 1.9 1999/09/21 10:39:16 admin Exp $";
+static const char rcs_id[] = "$Id: flsbuf.c,v 1.2.2.2 2002/01/15 13:21:19 admin Exp $";
 #endif
 
 /* #define DEBUG */
@@ -21,7 +21,7 @@ static const char rcs_id[] = "$Id: flsbuf,v 1.9 1999/09/21 10:39:16 admin Exp $"
 #include <fcntl.h>
 
 #ifdef DEBUG
-#include <sys/os.h>
+#include <unixlib/os.h>
 #endif
 
 __STDIOLIB__
@@ -33,17 +33,11 @@ __flsbuf (int c, FILE *stream)
 {
   unsigned char *buffer;
 
-  if (!__validfp (stream) || !stream->__mode.__write)
-    {
-      (void) __set_errno (EINVAL);
-      return EOF;
-    }
-
   if (ferror (stream))
     return EOF;
 
 #ifdef DEBUG
-  os_print ("__flsbuf("); os_prdec (stream->fd); os_print ("): ");
+  __os_print ("__flsbuf("); __os_prdec (stream->fd); __os_print ("): ");
 #endif
 
   if (stream->__pushedback)
@@ -59,7 +53,7 @@ __flsbuf (int c, FILE *stream)
 
       to_write = stream->o_ptr - stream->o_base;
 #ifdef DEBUG
-      os_print ("to_write="); os_prdec (to_write); os_print ("\r\n");
+      __os_print ("to_write="); __os_prdec (to_write); __os_print ("\r\n");
 #endif
       /* Skip write if 0 characters to write. Keeps perl happy, consistent
          with BSD.  */
@@ -76,7 +70,7 @@ __flsbuf (int c, FILE *stream)
 #ifdef DEBUG
   else
     {
-      os_print ("\r\n");
+      __os_print ("\r\n");
     }
 #endif
 
@@ -90,7 +84,7 @@ __flsbuf (int c, FILE *stream)
       stream->__error = 1;
       return EOF;
     }
-  stream->__offset += 1;
+  stream->__offset ++;
 
   return c;
 }

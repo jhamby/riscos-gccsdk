@@ -97,7 +97,8 @@ areaGrow (Area * area, int mingrow)
   while (inc > mingrow && !areaImage (area, area->imagesize + inc))
     inc /= 2;
   if (inc <= mingrow && !areaImage (area, area->imagesize + mingrow))
-    error (ErrorSerious, FALSE, "Internal areaGrow: out of memory, minsize = %d", mingrow);
+    error (ErrorSerious, FALSE,
+	   "Internal areaGrow: out of memory, minsize = %d", mingrow);
 }
 
 void
@@ -131,9 +132,7 @@ c_entry (void)
 	}
     }
   else
-    {
-      error (ErrorError, FALSE, "No area selected before ENTRY");
-    }
+    error (ErrorError, FALSE, "No area selected before ENTRY");
 }
 
 
@@ -219,19 +218,11 @@ c_area (void)
   int newtype = 0;
   int c;
 
-  if (apcs_32bit)
-    newtype |= AREA_32BITAPCS;
-  if (apcs_fpv3)
-    newtype |= AREA_EXTFPSET;
   sym = symbolGet (lexGetId ());
   if (sym->type & SYMBOL_DEFINED)
-    {
-      error (ErrorError, TRUE, "Redefinition of label to area %s", sym->str);
-    }
+    error (ErrorError, TRUE, "Redefinition of label to area %s", sym->str);
   else if (sym->type == SYMBOL_AREA)
-    {
-      oldtype = sym->area.info->type;
-    }
+    oldtype = sym->area.info->type;
   else
     {
       sym->type = SYMBOL_AREA;
@@ -277,6 +268,16 @@ c_area (void)
       skipblanks ();
     }
   inputUnGet (c);
+
+  if (newtype & AREA_CODE)
+    {
+      /* 32-bit and FPv3 flags should only be set on CODE areas.  */
+      if (apcs_32bit)
+	newtype |= AREA_32BITAPCS;
+      if (apcs_fpv3)
+	newtype |= AREA_EXTFPSET;
+    }
+
   if ((newtype & AREA_READONLY) && (newtype & AREA_UDATA))
     error (ErrorError, TRUE, "Attributes READONLY and NOINIT are mutually exclusive");
 

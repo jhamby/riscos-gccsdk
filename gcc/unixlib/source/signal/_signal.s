@@ -1,359 +1,475 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/signal/_signal.s,v $
-; $Date: 2001/05/03 06:25:32 $
-; $Revision: 1.3 $
+; $Date: 2001/10/02 10:16:45 $
+; $Revision: 1.4.2.9 $
 ; $State: Exp $
 ; $Author: admin $
 ;
 ;----------------------------------------------------------------------------
 
+; This file handles all the hairy exceptions that can occur when a
+; program runs. This includes hardware exceptions like data abort and
+; software exceptions like errors. It also handles callbacks, which are
+; used to raise some execptions and by timers.
+;
+; The code is written for compactness rather than speed since it is
+; executed under exceptional circumstances. This means we branch more
+; to common code rather than having long sequences of conditionally
+; executed instructions.
+
 	GET	clib/unixlib/asm_dec.s
 
-	AREA	|C$$code|,CODE,READONLY
+	AREA	|C$$code|, CODE, READONLY
 
-	IMPORT	raise
-	IMPORT	|errno|
+	IMPORT	errno
 	IMPORT	sys_errlist
+	IMPORT	|__unixlib_raise_signal|
+
+;-----------------------------------------------------------------------
+; static void __raise (int signo)
+;
+; On entry:
+;	a1 = signal number
+; On exit:
+;	All registers preserved
+; Use:
+;	Raise a signal while preserving all registers, providing the signal
+;	number is non-zero. An APCS stack frame is established before
+;	calling raise() so that __backtrace can print the registers when
+;	it backtracks to this function.
 
 |__raise|
-	CMP	a1,#0
-	MOVEQS	pc,lr
-	STMFD	sp,{a1,a2,a3,a4,v1,v2,v3,v4,v5,v6,sl,fp,ip,sp,lr,pc}
-	SUB	sp,sp,#64
-	SUB	ip,pc,#4
-	MOV	a4,lr
-	ADD	a3,sp,#64
-	ORR	a2,fp,#&80000000	; for __backtrace()
-	STMFD	sp!,{a2,a3,a4,ip}	; create signal frame
-	ADD	fp,sp,#12
-	MOV	v1,sp
-	BL	|raise|
-	ADD	sp,v1,#16		; skip signal frame
-	LDMFD	sp,{a1,a2,a3,a4,v1,v2,v3,v4,v5,v6,sl,fp,ip,sp,pc}^
+	CMP	a1, #0
+	MOVEQS	pc, lr
+	STMFD	sp, {a1,a2,a3,a4,v1,v2,v3,v4,v5,v6,sl,fp,ip,sp,lr,pc}
+	SUB	sp, sp, #64
+	SUB	ip, pc, #4
+	MOV	a4, lr
+	ADD	a3, sp, #64
+	ORR	a2, fp, #&80000000	; for __backtrace()
+	STMFD	sp!, {a2, a3, a4, ip}	; create signal frame
+	ADD	fp, sp, #12
+	MOV	v1, sp
+	MOV	a2, a1
+	MOV	a1, #0
+	BL	|__unixlib_raise_signal|
+	ADD	sp, v1, #16		; skip signal frame
+	LDMFD	sp, {a1,a2,a3,a4,v1,v2,v3,v4,v5,v6,sl,fp,ip,sp,pc}^
 
+;-----------------------------------------------------------------------
+; void __seterr (const _kernel_oserror *err)
+; On entry:
+;	a1 = err
+; On exit:
+;	APCS compliant. a1-a4, ip corrupted.
+;
+; Set UnixLib's errno to EOPSYS and copy the error from err to UnixLib's
+; error buffer. UnixLib's sys_errlist[EOPSYS] already points to this
+; buffer, so there is no need to update sys_errlist.
+;
+	EXPORT	|__seterr|
+|__seterr|
+	TEQ	a1, #0			; quick exit when no error
+	MOVEQS	pc, lr
 
+	STMFD	sp!, {v1-v5,lr}		; Stack working registers
+	LDR	a2, =|errno|		; Set errno = EOPSYS
+	MOV	a3, #EOPSYS
+	STR	a3, [a2, #0]
 
-	AREA	|C$$wrcode|,CODE
+	; Copy the error to UnixLib's buffer.
+	LDR     a2, =|__ul_errbuf_errblock|
+	MOV	a3, #|__ul_errbuf__size|
+|__seterr.00|
+	LDMIA	a1!, {a4, v1-v5, ip, lr}
+	STMIA	a2!, {a4, v1-v5, ip, lr}
+	SUBS	a3, a3, #8*4
+	BNE	|__seterr.00|
 
+	MOV	a1, #0			; ensure zero-terminated.
+	STRB	a1, [a2, #-1]
+
+	LDMFD	sp!, {v1-v5, pc}^	
+
+;-----------------------------------------------------------------------
+; _kernel_oserror *_kernel_last_oserror (void)
+; On exit:
+;	APCS compliant. a1, a2 corrupted.
+; 
+; Provide access to the last operating system error.  This is a
+; SharedCLibrary compatibility function.  It appears in here because
+; it is associated with the __seterr function above.  It is also not
+; very big.
+;
+	EXPORT	|_kernel_last_oserror|
+|_kernel_last_oserror|
+	LDR	a1, =|__ul_errbuf_errblock|
+	LDR	a2, [a1, #0]
+	CMP	a2, #0
+	MOVNES	pc, lr
+	MOV	a1, #0
+	MOV	pc, lr
+	
+	; The following code is in a writable area because we need access to
+	; the callback register save area without corrupting any registers
+	; or needing to stack any registers. Thus, the callback register
+	; save area must be within the reach of PC offset addressing.
+	AREA	|C$$wrcode|, CODE
+
+;-----------------------------------------------------------------------
+; The hardware exception handlers (PRM 1-111).
+;
+; We are interested in some hardware exceptions and convert them into
+; software signals which are propagated back to the program via raise().
+; The hardware exceptions of interest are:
+;
+;	Undefined instruction		raise (SIGILL)
+;	Prefetch abort			raise (SIGSEGV)
+;	Data abort			raise (SIGSEGV)
+;	Address exception		raise (SIGBUS)
+;
+; These handlers branch to the common callback handler code after saving
+; the exception PC (from R14) in the callback register save area,
+; putting the signal number in R14, changing to USR mode and then
+; raising the appropriate signal. The old code used to save all the
+; registers in the callback register save area, but we do not do that
+; since it is unnecessary.
+
+;-----------------------------------------------------------------------
+; Undefined instruction handler
+; Entered in SVC mode
+; On entry:
+;	lr = address of instruction 1 word after the undefined instruction.
+;
 	EXPORT	|__h_sigill|
 |__h_sigill|
-	STR	lr,|__cbreg|+60
-	ADR	lr,|__cbreg|
-	STMIA	lr!,{a1-ip}		; store non-banked registers
-	STMIA	lr,{sp,lr}^		; store banked registers
-	MOV	a1,#SIGILL
-	SUB	lr,lr,#13*4		; adjust base register back
-	STR	a1,|__cba1|
+	STR	lr, |__cbreg|+60
+	ADR	lr, |__cbreg|
+	STMIA	lr!, {a1-ip}		; store non-banked registers
+	STMIA	lr, {sp, lr}^		; store banked registers
+	MOV	a1, #SIGILL
+	SUB	lr, lr, #13*4		; adjust base register back
+	STR	a1, |__cba1|
 	B	|__h_cback|
 
+;-----------------------------------------------------------------------
+; Address exception handler
+; Entered in SVC mode
+; On entry:
+;	lr = address of instruction 1 word after the address exception.
+;
 	EXPORT	|__h_sigbus|
 |__h_sigbus|
-	SUB	lr,lr,#4
-	STR	lr,|__cbreg|+60
-	ADR	lr,|__cbreg|
-	STMIA	lr!,{a1-ip}		; store non-banked registers
-	STMIA	lr,{sp,lr}^		; store banked registers
-	MOV	a1,#SIGBUS
-	SUB	lr,lr,#13*4		; adjust base register back
-	STR	a1,|__cba1|
+	SUB	lr, lr, #4
+	STR	lr, |__cbreg|+60
+	ADR	lr, |__cbreg|
+	STMIA	lr!, {a1-ip}		; store non-banked registers
+	STMIA	lr, {sp, lr}^		; store banked registers
+	MOV	a1, #SIGBUS
+	SUB	lr, lr, #13*4		; adjust base register back
+	STR	a1, |__cba1|
 	B	|__h_cback|
 
-	; __h_sigsegv0 is for aborts during instruction prefetches
+;-----------------------------------------------------------------------
+; Prefetch abort handler
+; Entered in SVC mode
+; On entry:
+;	lr = address of instruction 1 word after the aborted instruction.
+;
 	EXPORT	|__h_sigsegv0|
 |__h_sigsegv0|
-	SUB	lr,lr,#4
-	STR	lr,|__cbreg|+60
-	ADR	lr,|__cbreg|
-	STMIA	lr!,{a1-ip}		; store non-banked registers
-	STMIA	lr,{sp,lr}^		; store banked registers
-	MOV	a1,#SIGSEGV
-	SUB	lr,lr,#13*4		; adjust base register back
-	STR	a1,|__cba1|
+	SUB	lr, lr, #4
+	STR	lr, |__cbreg|+60
+	ADR	lr, |__cbreg|
+	STMIA	lr!, {a1-ip}		; store non-banked registers
+	STMIA	lr, {sp, lr}^		; store banked registers
+	MOV	a1, #SIGSEGV
+	SUB	lr, lr,#13*4		; adjust base register back
+	STR	a1, |__cba1|
 	B	|__h_cback|
 
-
-	; __h_sigsegv1 is for aborts during data access
+;-----------------------------------------------------------------------
+; Data abort handler
+; Entered in SVC mode
+; On entry:
+;	lr = address of instruction 2 words after the aborted instruction.
+;
+; We could try and be extremely clever and work out the cause of the
+; data abort and fixup the possibly modified base register. However, it
+; is really of dubious value and certainly a lot of effort for something
+; unlikely to be noticed by the user. Note, to fixup the base register
+; we need to:
+;
+;   . know whether the ARM is configured to early or late aborts. This
+;     requires determing the processor type (trickier with ARM 2) and
+;     then using something like a co-processor instruction.
+;
+;   . decode the instruction and determine what, if any, fixup to the
+;     base register is required.
+;
+;   . protect against a nested data abort.
+;
+;   . possibly handle a SVC mode data abort.
+;
+;   . update this code whenever a new ARM standard is released.
+;
+;   . do the bits I've forgotten about.
+;
+; It's all rather pointless since RO is not a virtual memory OS and the
+; OS should be fixing up the base register before calling us. Further,
+; other than printing out the correct value for the base register, we
+; cannot continue executing the program, so the signal handler is not
+; expected to return.
+; Finally, the SCL does not bother, so why should we ?
 	EXPORT	|__h_sigsegv1|
 |__h_sigsegv1|
-	SUB	lr,lr,#8
-	STR	lr,|__cbreg|+60
-	ADR	lr,|__cbreg|
-	STMIA	lr!,{a1-ip}		; store non-banked registers
-	STMIA	lr,{sp,lr}^		; store banked registers
-
-	LDR	r0, |__cbreg|+60	; Swap this with previous for StrongARM?
-	; SUB	lr,lr,#13*4		; adjust base register back
-	BIC	r0, r0, #&fc000003
-	LDR	r1, [r0, #0]		; get the instruction
-	; Get the contents of the base register. We know it must be a
-	; load/store data instruction because only that type of instruction
-	; can cause this abort.
+	SUB	lr, lr, #8
+	STR	lr, |__cbreg|+60
 	ADR	lr, |__cbreg|
-	AND	r2, r1, #&f0000
-	LDR	r3, [lr, r2, LSR #14]
-	; If bit 26 is set, we have a LDR/STR, otherwise a LDM/STM
-	TST	r1, #(1:SHL:26)
-	BNE	|__h_sigsegv1.ldr.str|
-	; If the instruction didn't have writeback, there is no need
-	; to correct the base register. We will just raise the signal.
-	TST	r1, #(1:SHL:21)
-	MOVEQ	a1, #SIGSEGV
-	STREQ	a1, |__cba1|
-	BEQ	|__h_cback|
-
-	; Bit 23 is the direction. From the register list bitmask,
-	; calculate the number of registers saved so we may correct
-	; the base register.
-	TST	r1, #(1:SHL:23)
-	MOVEQ	r6, #-4
-	MOVNE	r6, #4
-	MOV	r4, #0
-	MOV	r5, r1, LSL #16
-|__h_sigsegv1.count.regs|
-	MOVS	r5, r5, LSL #1
-	ADDCS	r4, r4, r6
-	BNE	|__h_sigsegv1.count.regs|
-	; Subtract the bytes transferred off the base register.
-	SUB	r3, r3, r4
-	STR	r3, [lr, r2, LSR #14]
-	MOV	a1,#SIGSEGV
-	STR	a1,|__cba1|
-	B	|__h_cback|
-
-|__h_sigsegv1.ldr.str|
-	; If the instruction has pre-indexed addressing, the base register
-	; does not need to be corrected because it is the true address
-	; that caused the data abort.
-	TST	r1, #(1:SHL:24)
-	MOVEQ	a1, #SIGSEGV
-	STREQ	a1, |__cba1|
-	BEQ	|__h_cback|
-
-	; Post indexed addressing.
-
-	; Separate the offset field.
-	MOV	r4, r1, LSL #20
-	MOV	r4, r4, LSR #20
-	; If we have an immediate offset, things are very simple
-	TST	r1, #(1:SHL:25)
-	BEQ	|__h_sigsegv1.immediate.offset|
-	; Get the value of the offset register (Rm)
-	AND	r5, r4, #15
-	LDR	r5, [lr, r5, LSL #2]
-
-	; Perform close inspection of the register shift amount. LDR/STR does
-	; not have register specific shift amount. Get the shift type into r6.
-	AND	r6, r4, #96
-	MOVS	r6, r6, LSR #5
-	CMPNE	r6, #3
-	BNE	|__h_sigsegv1.others|
-
-	MOV	r7, r4, LSR #7
-	; logical shift left
-	CMP	r6, #0
-	MOVEQ	r4, r5, LSL r7
-	BEQ	|__h_sigsegv1.immediate.offset|
-
-	; rotate right with extend
-	LDR	r4, |__cbreg|+60
-	TEQ	pc, r4, LSL #3 ; Get the aborted C flag
-	MOV	r4, r5, RRX
-	B	|__h_sigsegv1.immediate.offset|
-
-|__h_sigsegv1.others|
-	MOVS	r7, r4, LSR #7
-	ORREQ	r7, r7, #32
-
-	; logical shift right
-	CMP	r6, #1
-	MOVEQ	r4, r5, LSR r7
-	; arithmetic shift right
-	CMP	r6, #2
-	MOVEQ	r4, r5, ASR r7
-	; rotate right
-	CMP	r6, #3
-	MOVEQ	r4, r5, ROR r7
-
-|__h_sigsegv1.immediate.offset|
-	; Do we have a positive or negative offset
-	TST	r1, #(1:SHL:23)
-	SUBEQ	r3, r3, r4
-	ADDNE	r3, r3, r4
+	STMIA	lr!, {a1-ip}		; store non-banked registers
+	STMIA	lr, {sp, lr}^		; store banked registers
 	MOV	a1, #SIGSEGV
 	STR	a1, |__cba1|
 	B	|__h_cback|
 
 
-	EXPORT	|__h_errbuf|
-|__h_errbuf|
-	DCD	0
+;-----------------------------------------------------------------------
+; The software handlers (PRM 1-288).
+;
+; We are interested in some software exceptions and convert them into
+; software signals which are propagated back to the program via raise().
+; Some software exceptions require that the raise() call is via a
+; callback, because the exception occurs in non USR mode.
+; The software exceptions of interest are:
+;
+;	Error		raise (SIGERR | SIGEMT | SIGFPE)
+;	Escape		raise (SIGINT)
+;	Event		on Internet event, raise (SIGIO | SIGURG | SIGPIPE)
+;	Exit		see sys/syslib.s
+;	Unused SWI	raise (SIGSYS)
+;	UpCall		restore handlers on UpCall 256
+;	CallBack	raise a deferred signal
+;
 
+
+;-----------------------------------------------------------------------
+; Error handler (1-289).
+; Entered in USR mode.
+; On entry:
+;	a1 = pointer to [pc, error number, zero term. error string]
+; On exit:
+;	Undefined.
+;
+; Set UnixLib's errno to EOPSYS and raise one of SIGERR, SIGFPE or SIGEMT.
+;
+; Decode the error number and raise an appropriate signal.
+; PRM 1-43 states that bit 31, if set, implies that the error was
+; a serious error, usually a hardware exception or a floating point
+; exception, from which it was not possible to sensibly return
+; with V set. In such cases different error ranges are used:
+;
+;	&80000000 - &800000FF		Machine exceptions
+;	&80000100 - &800001FF		CoProcessor exceptions
+;	&80000200 - &800002FF		Floating Point exceptions
+;	&80000300 - &800003FF		Econet exceptions
+;
+; For these classes of exceptions, we map Floating Point exceptions
+; to SIGFPE and all others to SIGEMT.
+; For non-serious errors, bit 31 = 0, raise SIGERR.
+;
 	EXPORT	|__h_error|
 lb1	DCB	"*** UnixLib error handler ***", 0
 	ALIGN
 lb2	DCD	&FF000000 + lb2 - lb1
 |__h_error|
 	; Entered in USR mode. Setup an APCS stack frame
-	; so we can get a proper stack backtrace incase anything
+	; so we can get a proper stack backtrace in case anything
 	; goes horribly wrong.
 	MOV	ip, sp
 	STMFD	sp!, {a1, a2, a3, a4, fp, ip, lr, pc}
 	SUB	fp, ip, #4
 
-	; errno = EOPSYS
+	; Set errno to EOPSYS
 	LDR	a1, =|errno|
 	MOV	a2, #EOPSYS
 	STR	a2, [a1, #0]
-	; sys_errlist = error string
-	LDR	a3, |__h_errbuf|
+	
+	; sys_errlist[EOPSYS] = __ul_errbuf_errblock+4
 	LDR	a1, =sys_errlist
-	ADD	a2, a3, #8
+	LDR	a3, =|__ul_errbuf_errblock|
+	ADD	a2, a3, #4
 	STR	a2, [a1, #(EOPSYS:SHL:2)]
 
 	; Check the error number. Its value will determine the
 	; appropriate signal to call.
-	LDR	a2, [a3, #4]
-	; Check for a serious error.
-	TST	a2, #&80000000
-	MOVEQ	a1, #SIGERR
-	BLEQ	raise
+	LDR	a3, [a3, #0]
+
+	; Check bit 31 of the error number.  If it is set, then it
+	; indicates a serious error, usually a hardware exception e.g.
+	; a page-fault or a floating point exception.
+	TST	a3, #&80000000
+	; Bit 31 was not set so raise a RISC OS error.
+	MOVEQ	a2, #SIGERR
+	MOVEQ	a1, #0
+	BLEQ	|__unixlib_raise_signal|
 	LDMEQEA	fp, {a1, a2, a3, a4, fp, sp, pc}^
 
+	; Bit 31-was set, therefore it was a hardware error.
+	
 	; Print the error
-	ADR	a1, |__h_error_msg|
+	ADR	a1, unrecoverable_error_msg
 	SWI	XOS_Write0
-	ADD	a1, a3, #8
+	MOV	a1, a2		; Write out __ul_errbuf_errblock+4
 	SWI	XOS_Write0
 	SWI	XOS_NewLine
 
-	; Raise a signal
-	BIC	a2, a2, #&80000000
-	MOV	a2, a2, LSR #8
-	AND	a2, a2, #&FF
-	CMP	a2,#&02
-	MOVEQ	a1,#SIGFPE
-	MOVNE	a1,#SIGEMT
-	BL	raise
+	; Test the type of hardware error.  We currently aren't doing
+	; much other than saying it was a Floating Point Exception
+	; or something else.
+	; For compatability with ISO C99 we should decode the FP exception
+	; more accurately.
+	BIC	a3, a3, #&80000000
+	MOV	a3, a3, LSR #8
+	AND	a3, a3, #&FF
+	CMP	a3, #&02
+	MOVEQ	a2, #SIGFPE	;  A floating point exception
+	MOVNE	a2, #SIGEMT	;  A RISC OS exception.
+	MOV	a1, #0
+	BL	|__unixlib_raise_signal|
 	LDMEA	fp, {a1, a2, a3, a4, fp, sp, pc}^
 
-|__h_error_msg|
+unrecoverable_error_msg
 	DCB	13, 10, "Unrecoverable error received:", 13, 10, "  ", 0
 
-	; This function is called when an Escape condition is detected
-
+;-----------------------------------------------------------------------
+; Escape handler (1-290).
+; Entered in IRQ mode.
+; On entry:
+;	r11/fp = bit 6 set, implies escape condition.
+;	r12/ip = pointer to workspace, if set up - should never be 1.
+;	r13/sp = a full, descending stack pointer
+; On exit:
+;	ip = 1 means set callback flag
+;	All other registers undefined
+;
+; This handler is called when an Escape condition is detected.
+; Be quick by just clearing the escape flag and setting a callback,
+; by settting r12 = 1 on exit, to raise SIGINT.
+; FIXME. What action must we take to guard against recursive escapes and
+; race conditions ?
+;
 	EXPORT	|__h_sigint|
 |__h_sigint|
 	; Entered in IRQ mode. Be quick by just clearing the escape
 	; flag and setting a callback.
-
-	; Check for the escape condition
-	TST	r11, #64
-	MOVEQS	pc, lr
-	MOV	ip, #SIGINT
-	STR	ip, |__cba1|
+	TST	r11, #64		; bit 6
+	MOVNE	ip, #SIGINT
+	STRNE	ip, |__cba1|
 	; Set the escape condition flag
 	LDR	ip, |__cbflg|
-	ORR	ip, ip, #1		; set CallBack
-	STR	ip,|__cbflg|		; set __cbflg bit 0
+	ORRNE	ip, ip, #1		; set CallBack
+	BICEQ	ip, ip, #1		; clear CallBack
+	STR	ip,|__cbflg|		; set/clear __cbflg bit 0
+
+	MOVEQ	ip, #0
+	MOVNE	ip, #1
 	MOVS	pc, lr
 
-	IMPORT	|__sigstk|
-	IMPORT	|__sigstksize|
-callback_signal
-	; Entered in SVC mode.  r12 contains the signal number to be
-	; raised.
-	STMFD	sp!, {r0-r12, lr}
-	; Check we're not already in a callback.  Prevents re-entrancy
-	; issues.
-	ADR	a1, |__cbflg|
-	LDR	a2, [a1, #0]
-	TST	a2, #4		; __cbflg bit 2
-	LDMEQFD	sp!, {r0-r12, pc}^
-	ORR	a2, a2, #4	;  set that we are now in a callback
-	STR	a2, [a1, #0]
-	; Change to USR mode
-	TEQP	pc, #0
-	MOV	a1, a1
+;-----------------------------------------------------------------------
+; Event handler (1-290).
+; Entered in either SVC *or* IRQ mode, called from EventV.
+; On entry:
+;	a1 = event reason code
+;	a2... parameters according to event code
+;	ip = pointer to workspace, if set up - should never be 1
+;	sp = full descending stack
+; On exit:
+;	ip = 1 means set the callback flag
+;	All other registers undefined
+;
+; We catch Internet events and decode the sub-event into a signal which
+; is raised via a callback to the user program.
+; All other events are ignored.
+;
 
-	; Preserve the old stack
-	MOV	v1, sp
-
-	; Signal number
-	MOV	a1, r12
-
-	; Setup signal stack, with a fresh APCS-compliant stack frame
-	; Don't assume anything about the stack state in USR mode.  Use
-	; our own instead.
-	LDR	sp, =|__sigstk|
-	LDR	sl, =|__sigstksize|
-	SUB	sl, sp, sl
-	MOV	fp, #0
-
-	; Raise the signal
-	BL	raise
-
-	; Restore the old stack
-	MOV	sp, v1
-	
-	; Go back into SVC mode and return.
-	SWI	OS_EnterOS
-
-	; We are no longer processing a callback
-	ADR	a1, __cbflg
-	LDR	a2, [a1, #0]
-	BIC	a2, a2, #4
-	STR	a2, [a1, #0]
-	LDMFD	sp!, {r0-r12, pc}^
+Internet_Event	EQU	19
 
 	EXPORT	|__h_event|
 |__h_event|
 	; Check for the event 'Internet event'.
-	CMP	a1, #19
+	TEQ	a1, #Internet_Event
 	MOVNES	pc, lr
-	STMFD	sp!, {lr}
+
 	; Convert the internet event into a suitable signal for raising
 	CMP	a2, #1 ; Out-of-band data has arrived
-	ADREQ	a1, callback_signal
-	MOVEQ	a2, #SIGURG
-	SWIEQ	XOS_AddCallBack
+	MOVEQ	ip, #SIGURG
+	STREQ	ip, |__cba1|
+	MOVEQ	ip, #1 ; Callback set if R12 = 1
+	MOVS	pc, lr
 
-	LDMFD	sp!, {pc}^
-
+;-----------------------------------------------------------------------
+; Unused SWI handler (1-291).
+; Entered in SVC mode, IRQ state is same state as caller (so undefined).
+; Called from UKSWIV (1-95).
+; On entry:
+;	r11/fp = SWI number (Bit 17 (the X bit) clear)
+;	r13/sp = SVC stack pointer
+;	r14/lr = user PC with V cleared
+; On exit:
+;	r10/sl, r11/fp, r12/ip can be corrupted.
+;	No other details known.
+;
+; raise SIGSYS via callback.
+; Should return a `No such SWI' error ?
+;
 	EXPORT	|__h_sigsys|
 |__h_sigsys|
-	ADR	ip,|__cbreg|
-	STMIA	ip,{lr}
-	MOV	ip,#SIGSYS
-	STR	ip,|__cba1|
-	ORR	ip,pc,#3		; SVC mode
-	TEQP	ip,#0
-	MOV	a1,a1
-	STMFD	sp!,{lr}
-	SWI	XOS_SetCallBack
-	LDMFD	sp!,{lr}
-	ADR	ip,|__cbreg|
-	LDMIA	ip,{pc}^
+	STR	lr, |__cbreg|+60
+	ADR	lr, |__cbreg|
+	STMIA	lr!, {a1-ip}		; store non-banked registers
+	STMIA	lr, {sp, lr}^		; store banked registers
+	MOV	a1, #SIGSYS
+	SUB	lr, lr, #13*4		; adjust base register back
+	STR	a1, |__cba1|
+	B	|__h_cback|
+
+;-----------------------------------------------------------------------
+; Upcall handler (1-291).
+; Entered in SVC mode, called from UpCallV.
+; On entry:
+;	r12/ip = pointer to workspace
+; On exit:
+;	All registers preserved
+; 
+; When UpCall_NewApplication is received, then all handlers should be
+; restored to their original values and return to caller, preserving
+; registers.
+;
+	
+UpCall_NewApplication	EQU	256
 
 	EXPORT	|__h_upcall|
-	IMPORT	|__restore_calling_environment_handlers|
+	IMPORT	|__env_riscos|
 |__h_upcall|
 	; Check for the application starting UpCall
-	CMP	a1, #256
+	CMP	a1, #UpCall_NewApplication
 	MOVNES	pc, lr
-	STMFD	sp!, {a1, a2, a3, a4, lr}
-	BL	|__restore_calling_environment_handlers|
-	LDMFD	sp!, {a1, a2, a3, a4, pc}^
+	B	|__env_riscos|
 
 	EXPORT	|__h_cback|
 |__h_cback|
-	ORR	lr, pc, #&0c000000	; USR mode IntOff
-	MOVS	pc, lr
-
-	; Load USR regs.  These would previously have been saved by
-	; the likes of __h_sigill, __h_sigbus etc.
-	ADR	a1, |__cbreg|
-	LDMIA	a1, {a1,a2,a3,a4,v1,v2,v3,v4,v5,v6,sl,fp,ip,sp,lr}
+	TEQP	pc, #IFlag	; USR mode IntOff (irq off, fiq on)
+	; The USR mode registers r0-r15 are extracted from the callback
+	; register block while irqs are disabled. The registers are then
+	; saved on the USR mode stack while ensuring that the USR sp is
+	; valid by not pointing above saved data. So, load the registers,
+	; allocate room on the stack and then store the original USR
+	; registers. This requires special treatment for sp and pc because
+	; they are naturally affected by the following code.
+	ADR	a1,|__cbreg|		; No access to banked registers
+	LDMIA	a1,{a1,a2,a3,a4,v1,v2,v3,v4,v5,v6,sl,fp,ip,sp,lr}
+	; Stack all the registers for __backtrace (if it is called).
 	; Cannot use writeback at this point on sp
 	STMFD	sp,{a1,a2,a3,a4,v1,v2,v3,v4,v5,v6,sl,fp,ip,sp,lr,pc}
 	; sp still points above list of 16 registers.
@@ -379,19 +495,14 @@ callback_signal
 	; Check for an escape condition
 	LDR	a1,|__cbflg|		; check __cbflg bit 0
 	TST	a1,#1
-	BEQ	|__h_cback_l1|
-
 	; There was an escape condition.  Clear it.
-	MOV	a1,#&7c
-	SWI	XOS_Byte
+	MOVNE	a1,#&7e
+	SWINE	XOS_Byte		; This calls our escape handler
 
-|__h_cback_l1|
-	LDR	a1,|__cbflg|
-	BIC	a1,a1,#1
-	STR	a1,|__cbflg|
-	LDR	a1,|__cba1|
+	MOV	a1, #0
+	LDR	a2,|__cba1|
 	MOV	v1,sp
-	BL	|raise|
+	BL	|__unixlib_raise_signal|
 	ADD	sp,v1,#16		; skip signal frame
 	LDMFD	sp,{a1,a2,a3,a4,v1,v2,v3,v4,v5,v6,sl,fp,ip,sp,lr,pc}^
 
@@ -409,9 +520,9 @@ callback_signal
 |__cba1|
 	DCD	0
 
-
+; Exit handler
+; Called in USR mode
 	IMPORT	|_exit|
-
 	EXPORT	|__h_exit|
 |__h_exit|
 	ORR	lr,pc,#&0c000000	; USR mode IntOff
@@ -420,9 +531,20 @@ callback_signal
 	MOV	a1,#EXIT_SUCCESS
 	B	|_exit|
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;
+; The various timer handlers. We know that these can only be invoked
+; from an application that is not a taskwindow application, since the
+; code that calls OS_CallAfter checks that we are not in a taskwindow.
+; We also have a check for when we are a WIMP application.
+
+; Interval timer handler for ITIMER_REAL
+; On entry R12 = pointer to interval timerval
+; Preserve all registers
+
 	; Interval timer handler for ITIMER_REAL
 	EXPORT	|__h_sigalrm|
-|__h_sigalrm|	ROUT
+|__h_sigalrm|
 	STMFD	sp!, {a1, a2, a3, lr}
 	; Enter user mode
 	TEQP	pc, #0
@@ -434,12 +556,12 @@ callback_signal
 	; Have we previously setup a CallEvery handler
 	LDR	a1, |__h_sigalrm_sema|
 	CMP	a1, #1
-	BEQ	%F00
+	BEQ	itimer_exit
 	; r12->it_interval = 0 secs and 0 usecs then exit
 	LDMIA	ip, {a1, a2}
 	CMP	a1, #0
 	CMPEQ	a2, #0
-	BEQ	%F00
+	BEQ	itimer_exit
 	; Calculate delay in csecs between successive calls
 	MOV	a3, #100
 	MLA	a1, a3, a1, a2
@@ -451,7 +573,8 @@ callback_signal
 	; Set semaphore to say we have a CallEvery already set up
 	MOV	a1, #1
 	STR	a1, |__h_sigalrm_sema|
-00
+itimer_exit
+	; Common exit used by the three internal timer handlers.
 	LDMFD	sp!, {lr}
 	SWI	XOS_EnterOS
 	LDMFD	sp!, {a1, a2, a3, pc}
@@ -463,30 +586,31 @@ callback_signal
 	ADR	a1, |__h_sigalrm|
 	MOV	a2, r12
 	SWI	XOS_AddCallBack
-	LDMFD	sp!, {a1, a2, pc}
+	LDMFD	sp!, {a1, a2, pc} ;  return without restoring PSR
 
 	EXPORT	|__h_sigalrm_sema|
-	; Set to one to prevent multiple CallEvery's being set up.
+	; Set to one to prevent multiple CallEverys being set up.
 |__h_sigalrm_sema|
 	DCD	0
 
-
-	; Interval timer handler for ITIMER_VIRTUAL
+; Interval timer handler for ITIMER_VIRTUAL
+; On entry R12 = pointer to interval timerval
+; Preserve all registers
 	EXPORT	|__h_sigvtalrm|
 |__h_sigvtalrm|
 	STMFD	sp!, {a1, a2, a3, lr}
-	TEQP	pc, #0
+	TEQP	pc, #0		;  Enter user mode
 	MOV	a1, a1
 	STMFD	sp!, {lr}
-	MOV	a1, #SIGVTALRM
+	MOV	a1, #SIGVTALRM	;  No access to banked registers
 	BL	|__raise|
 	LDR	a1, |__h_sigvtalrm_sema|
 	CMP	a1, #1
-	BEQ	%B00
+	BEQ	itimer_exit
 	LDMIA	ip, {a1, a2}
 	CMP	a1, #0
 	CMPEQ	a2, #0
-	BEQ	%B00
+	BEQ	itimer_exit
 	MOV	a3, #100
 	MLA	a1, a3, a1, a2
 	ADD	a1, a1, #1
@@ -495,7 +619,7 @@ callback_signal
 	SWI	XOS_CallEvery
 	MOV	a1, #1
 	STR	a1, |__h_sigvtalrm_sema|
-	B	%B00
+	B	itimer_exit
 
 	EXPORT	|__h_sigvtalrm_init|
 |__h_sigvtalrm_init|
@@ -503,29 +627,31 @@ callback_signal
 	ADR	a1, |__h_sigvtalrm|
 	MOV	a2, r12
 	SWI	XOS_AddCallBack
-	LDMFD	sp!, {a1, a2, pc}
+	LDMFD	sp!, {a1, a2, pc} ;  return without restoring PSR
 
 	EXPORT	|__h_sigvtalrm_sema|
-	; Set to one to prevent multiple CallEvery's being set up.
+	; Set to one to prevent multiple CallEverys being set up.
 |__h_sigvtalrm_sema|
 	DCD	0
 
-	; Interval timer handler for ITIMER_PROF
+; Interval timer handler for ITIMER_PROF
+; On entry R12 = pointer to interval timerval
+; Preserve all registers
 	EXPORT	|__h_sigprof|
 |__h_sigprof|
 	STMFD	sp!, {a1, a2, a3, lr}
-	TEQP	pc, #0
+	TEQP	pc, #0		; Enter user mode
 	MOV	a1, a1
 	STMFD	sp!, {lr}
-	MOV	a1, #SIGPROF
+	MOV	a1, #SIGPROF	; No access to banked registers
 	BL	|__raise|
 	LDR	a1, |__h_sigprof_sema|
 	CMP	a1, #1
-	BEQ	%B00
+	BEQ	itimer_exit
 	LDMIA	ip, {a1, a2}
 	CMP	a1, #0
 	CMPEQ	a2, #0
-	BEQ	%B00
+	BEQ	itimer_exit
 	MOV	a3, #100
 	MLA	a1, a3, a1, a2
 	ADD	a1, a1, #1
@@ -534,7 +660,7 @@ callback_signal
 	SWI	XOS_CallEvery
 	MOV	a1, #1
 	STR	a1, |__h_sigprof_sema|
-	B	%B00
+	B	itimer_exit
 
 	EXPORT	|__h_sigprof_init|
 |__h_sigprof_init|
@@ -542,12 +668,31 @@ callback_signal
 	ADR	a1, |__h_sigprof|
 	MOV	a2, r12
 	SWI	XOS_AddCallBack
-	LDMFD	sp!, {a1, a2, pc}
+	LDMFD	sp!, {a1, a2, pc} ;  return without restoring PSR
 
 	EXPORT	|__h_sigprof_sema|
 	; Set to one to prevent multiple CallEverys being set up.
 |__h_sigprof_sema|
 	DCD	0
 
+	AREA	|C$$zidata|, DATA, NOINIT
+
+;-----------------------------------------------------------------------
+; UnixLib's error buffer.
+; Note, sys_errlist[EOPSYS] points to this buffer at __ul_errbuf.
+;
+; According to 1-289 the error handler must provide an error buffer of
+; size 256 bytes, the address of which should be set along with the
+; handler address.  This is wrong, it actually requires a 260 byte
+; buffer, for the error PC and the normal 256 byte RISC OS error
+; block.
+;
+	EXPORT  |__ul_errbuf|
+|__ul_errbuf|
+	%	4	; PC when error occurred
+|__ul_errbuf_errblock|
+	%	4	; Error number provided with the error
+	%	252	; Error string, zero terminated
+|__ul_errbuf__size|	EQU	{PC} - |__ul_errbuf_errblock|
 
 	END

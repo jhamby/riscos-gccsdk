@@ -124,6 +124,7 @@ outputInit (char *outfile)
 	temp[-1] = 'o';
 #endif /* UNIXLIB */
 #endif /* CROSS_COMPILE */
+
       if ((objfile = fopen (outname, "wb")) == NULL)
 	{
 #if defined(UNIXLIB) || defined(CROSS_COMPILE)

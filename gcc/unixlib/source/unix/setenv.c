@@ -1,23 +1,23 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/unix/c/setenv,v $
- * $Date: 1997/10/19 21:50:58 $
- * $Revision: 1.3 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/setenv.c,v $
+ * $Date: 2001/09/04 16:32:04 $
+ * $Revision: 1.2.2.2 $
  * $State: Exp $
- * $Author: unixlib $
+ * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: setenv,v 1.3 1997/10/19 21:50:58 unixlib Exp $";
+static const char rcs_id[] = "$Id: setenv.c,v 1.2.2.2 2001/09/04 16:32:04 admin Exp $";
 #endif
 
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include <sys/os.h>
-#include <sys/unix.h>
-#include <sys/swis.h>
+#include <unixlib/os.h>
+#include <unixlib/unix.h>
+#include <swis.h>
 
 int
 setenv (const char *name, const char *value, int replace)

@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/unix/c/select,v $
- * $Date: 1999/02/07 20:52:57 $
- * $Revision: 1.4 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/select.c,v $
+ * $Date: 2001/09/14 14:01:17 $
+ * $Revision: 1.2.2.5 $
  * $State: Exp $
- * $Author: unixlib $
+ * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: select,v 1.4 1999/02/07 20:52:57 unixlib Exp $";
+static const char rcs_id[] = "$Id: select.c,v 1.2.2.5 2001/09/14 14:01:17 admin Exp $";
 #endif
 
 /* netlib/socket.c: Written by Peter Burwood, July 1997  */
@@ -18,11 +18,10 @@ static const char rcs_id[] = "$Id: select,v 1.4 1999/02/07 20:52:57 unixlib Exp 
 #include <string.h>
 #include <time.h>
 #include <sys/select.h>
-#include <sys/unix.h>
-#include <sys/dev.h>
-#include <sys/swis.h>
-#include <sys/os.h>
-#include <sys/syslib.h>
+#include <unixlib/unix.h>
+#include <unixlib/dev.h>
+#include <unixlib/os.h>
+#include <swis.h>
 #include <sys/time.h>
 #include <unixlib/local.h>
 #include <unixlib/types.h>
@@ -135,11 +134,12 @@ select (int nfds, fd_set *readfds, fd_set *writefds,
     }
 
   /* Limit number of bits to check rather than returning an error.  */
-  if (nfds > __FD_SETSIZE)
-    nfds = __FD_SETSIZE;
+  if (nfds > FD_SETSIZE)
+    nfds = FD_SETSIZE;
 
 #ifdef DEBUG
   dump_fd_set (nfds, readfds, stderr);
+  dump_fd_set (nfds, writefds, stderr);
 #endif
 
   /* Convert the individual fdsets and set highest*/
@@ -198,12 +198,12 @@ select (int nfds, fd_set *readfds, fd_set *writefds,
 	  if (read_p || write_p || except_p)
 	    {
 #ifdef DEBUG
-	      os_print ("/");
+	      __os_print ("/");
 #endif
 	      result = __funcall ((*(__dev[file_desc->device].select)),
 				  (file_desc, fd, read_p, write_p, except_p));
 #ifdef DEBUG
-	      os_print ("\\");
+	      __os_print ("\\");
 #endif
 	      if (result < 0)
 		return -1;
@@ -213,7 +213,7 @@ select (int nfds, fd_set *readfds, fd_set *writefds,
 	}
 
 #ifdef DEBUG
-      os_nl();
+      __os_nl();
 #endif
 
       /* Copy these so that we don't corrupt the orginals.  */
@@ -250,7 +250,7 @@ select (int nfds, fd_set *readfds, fd_set *writefds,
       if (live_fds)
 	{
 #ifdef DEBUG
-	  os_print ("Select is live\n\r");
+	  __os_print ("Select is live\n\r");
 #endif
 	  break;	/* Something is live. Break and return.  */
 	}
@@ -263,7 +263,7 @@ select (int nfds, fd_set *readfds, fd_set *writefds,
 	  if (remain < 0)
 	    {
 #ifdef DEBUG
-	      os_print ("Select timeout\n\r");
+	      __os_print ("Select timeout\n\r");
 #endif
 	      /* Timeout.  */
 	      timeout->tv_sec = timeout->tv_usec = 0;
@@ -275,21 +275,21 @@ select (int nfds, fd_set *readfds, fd_set *writefds,
 #ifdef DEBUG
       else
 	{
-	  os_print ("No timeout\n\r");
+	  __os_print ("No timeout\n\r");
 	}
-      os_print ("Loop\n\r");
+      __os_print ("Loop\n\r");
 #endif
 
       if (__taskwindow)
 	{
 	  int regs[10];
 
-	  regs[0] = 6;	/* Sleep.  */
-	  regs[1] = 8;	/* Poll word is memory location 8
-			   This is the SWI handler, so should
-			   never be zero.  */
+	  regs[0] = 6; /* Taskwindow sleep.  */
+	  /* Yield.  This is the recommended value for taskwindow
+	     sleeping with no poll word.  */
+	  regs[1] = 0;
 
-	  os_swi (OS_UpCall, regs);
+	  __os_swi (OS_UpCall, regs);
 	}
     }
 

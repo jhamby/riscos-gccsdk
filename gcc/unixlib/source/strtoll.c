@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/c/strtoll,v $
- * $Date: 2000/01/12 16:55:06 $
- * $Revision: 1.1 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/strtoll.c,v $
+ * $Date: 2002/02/11 13:16:40 $
+ * $Revision: 1.2.2.1 $
  * $State: Exp $
  * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: strtoll,v 1.1 2000/01/12 16:55:06 admin Exp $";
+static const char rcs_id[] = "$Id: strtoll.c,v 1.2.2.1 2002/02/11 13:16:40 admin Exp $";
 #endif
 
 #include <ctype.h>
@@ -67,6 +67,9 @@ strtoll (const char *nptr, char **end, int base)
 	base = 10;
     }
 
+  /* Save the pointer so we can check later if anything happened.  */
+  save = s;
+
   cutoff = ULONG_LONG_MAX / (unsigned long) base;
   cutlim = ULONG_LONG_MAX % (unsigned long) base;
 
@@ -101,7 +104,7 @@ strtoll (const char *nptr, char **end, int base)
 	  if ((save - nptr) >= 2 && toupper (save[-1]) == 'X' && save[-2] == '0')
 	    *end = (char *) &save[-1];
 	  else
-	    *end = (char *) s;
+	    *end = (char *) nptr;
 	}
       return 0;
     }

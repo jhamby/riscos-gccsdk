@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/signal/c/sleep,v $
- * $Date: 2000/07/03 11:32:44 $
- * $Revision: 1.9 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/signal/sleep.c,v $
+ * $Date: 2001/09/11 13:40:57 $
+ * $Revision: 1.2.2.3 $
  * $State: Exp $
  * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: sleep,v 1.9 2000/07/03 11:32:44 admin Exp $";
+static const char rcs_id[] = "$Id: sleep.c,v 1.2.2.3 2001/09/11 13:40:57 admin Exp $";
 #endif
 
 /* signal.c.sleep: Written by Nick Burrett, 6 October 1996.  */
@@ -18,7 +18,7 @@ static const char rcs_id[] = "$Id: sleep,v 1.9 2000/07/03 11:32:44 admin Exp $";
 #include <time.h>
 #include <unistd.h>
 #include <errno.h>
-#include <sys/syslib.h>
+#include <unixlib/unix.h>
 
 /* SIGALRM signal handler for `sleep'.  This does nothing but return,
    but SIG_IGN isn't supposed to break `pause'.  */
@@ -70,8 +70,8 @@ sleep (unsigned int seconds)
   remaining = alarm (seconds);
 
 #ifdef DEBUG
-  os_print ("sleep: Set up an alarm for "); os_prdec (seconds);
-  os_print (" seconds\r\n");
+  __os_print ("sleep: Set up an alarm for "); __os_prdec (seconds);
+  __os_print (" seconds\r\n");
 #endif
 
   if (remaining > 0 && remaining < seconds)
@@ -81,12 +81,12 @@ sleep (unsigned int seconds)
       sigaction (SIGALRM, &oact, (struct sigaction *) NULL);
       alarm (remaining);	/* Restore sooner alarm.  */
 #ifdef DEBUG
-      os_print ("sleep: A user alarm existed. Wait ");
-      os_prdec (remaining); os_print (" secs for that instead\r\n");
+      __os_print ("sleep: A user alarm existed. Wait ");
+      __os_prdec (remaining); __os_print (" secs for that instead\r\n");
 #endif
       sigsuspend (&oset);	/* Wait for it to go off.  */
 #ifdef DEBUG
-      os_print ("sleep: Alarm has gone off. Continuing with execution\r\n");
+      __os_print ("sleep: Alarm has gone off. Continuing with execution\r\n");
 #endif
       after = time ((time_t *) NULL);
     }
@@ -96,11 +96,11 @@ sleep (unsigned int seconds)
          (which had better not block SIGALRM),
          and wait for a signal to arrive.  */
 #ifdef DEBUG
-      os_print ("sleep: Waiting for the alarm\r\n");
+      __os_print ("sleep: Waiting for the alarm\r\n");
 #endif
       sigsuspend (&oset);
 #ifdef DEBUG
-      os_print ("sleep: Alarm has gone off. Continuing with execution\r\n");
+      __os_print ("sleep: Alarm has gone off. Continuing with execution\r\n");
 #endif
       after = time ((time_t *) NULL);
 
@@ -124,4 +124,10 @@ sleep (unsigned int seconds)
   (void) __set_errno (save);
 
   return slept > seconds ? 0 : seconds - slept;
+}
+
+unsigned int
+usleep (unsigned int usec)
+{
+  return sleep ((usec + 999) / 1000);
 }

@@ -1,19 +1,19 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/resource/c/setgid,v $
- * $Date: 1997/10/08 12:48:13 $
- * $Revision: 1.1 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/resource/setgid.c,v $
+ * $Date: 2001/09/04 16:32:04 $
+ * $Revision: 1.2.2.1 $
  * $State: Exp $
- * $Author: unixlib $
+ * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: setgid,v 1.1 1997/10/08 12:48:13 unixlib Exp $";
+static const char rcs_id[] = "$Id: setgid.c,v 1.2.2.1 2001/09/04 16:32:04 admin Exp $";
 #endif
 
 #include <unistd.h>
-#include <sys/unix.h>
+#include <unixlib/unix.h>
 
 /* Set the real and effective group ID of the process to gid.  */
 

@@ -1,22 +1,22 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/signal/c/raise,v $
- * $Date: 1997/10/09 20:00:28 $
- * $Revision: 1.6 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/signal/raise.c,v $
+ * $Date: 2001/09/04 16:32:04 $
+ * $Revision: 1.2.2.1 $
  * $State: Exp $
- * $Author: unixlib $
+ * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: raise,v 1.6 1997/10/09 20:00:28 unixlib Exp $";
+static const char rcs_id[] = "$Id: raise.c,v 1.2.2.1 2001/09/04 16:32:04 admin Exp $";
 #endif
 
 /* Written by Nick Burrett, 26 August 1996.  */
 
 #include <errno.h>
 #include <signal.h>
-#include <sys/unix.h>
+#include <unixlib/unix.h>
 #include <unixlib/sigstate.h>
 
 int

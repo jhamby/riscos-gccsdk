@@ -1,76 +1,28 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/clib/sys/h/resource,v $
- * $Date: 1997/10/09 19:59:56 $
- * $Revision: 1.6 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/sys/resource.h,v $
+ * $Date: 2001/09/14 14:01:17 $
+ * $Revision: 1.2.2.1 $
  * $State: Exp $
- * $Author: unixlib $
+ * $Author: admin $
  *
  ***************************************************************************/
 
 #ifndef	__SYS_RESOURCE_H
-#define	__SYS_RESOURCE_H 1
 
-/* Needed for the definition of struct timeval.  */
-#ifndef __SYS_TIME_H
+#if !defined __need_rusage
+#define __SYS_RESOURCE_H
+#endif
+
+#ifndef __UNIXLIB_TYPES_H
+#include <unixlib/types.h>
+#endif
+
+#define __need_timeval
 #include <sys/time.h>
-#endif
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-enum __rlimit_resource {
-RLIMIT_CPU,
-RLIMIT_FSIZE,
-RLIMIT_CORE,
-RLIMIT_DATA,
-RLIMIT_STACK,
-RLIMIT_RSS,
-RLIMIT_MEMLOCK,
-RLIMIT_NPROC,
-RLIMIT_NOFILE,
-RLIMIT_OFILE = RLIMIT_NOFILE,
-RLIMIT_NLIMITS
-};
-
-
-struct rlimit
-  {
-    /* The current (soft) limit.  */
-    int rlim_cur;
-    /* The hard limit.  */
-    int rlim_max;
-  };
-
-/* Value used to indicate that there is no limit.  */
-#define RLIM_INFINITY 0x7fffffff
-
-/* Put the soft and hard limits for RESOURCE in *RLIMITS.
-   Returns 0 if successful, -1 if not (and sets errno).  */
-extern int getrlimit (enum __rlimit_resource, struct rlimit *);
-
-/* Set the soft and hard limits for RESOURCE to *RLIMITS.
-   Only the super-user can increase hard limits.
-   Return 0 if successful, -1 if not (and sets errno).  */
-
-extern int setrlimit (enum __rlimit_resource, const struct rlimit *);
-
-/* Whose usage statistics do you want?  */
-enum __rusage_who
-/* The macro definitions are necessary because some programs want
-   to test for operating system features with #ifdef RUSAGE_SELF.
-   In ANSI C the reflexive definition is a no-op.  */
-  {
-    /* The calling process.  */
-    RUSAGE_SELF = 0,
-#define	RUSAGE_SELF	RUSAGE_SELF
-    /* All of its terminated child processes.  */
-    RUSAGE_CHILDREN = -1
-#define	RUSAGE_CHILDREN	RUSAGE_CHILDREN
-  };
-
-
+#if !defined __rusage_defined && (defined __SYS_RESOURCE_H || defined __need_rusage)
+#define __rusage_defined
 /* Structure which says how much of each resource has been used.  */
 struct rusage
   {
@@ -113,6 +65,66 @@ struct rusage
        became runnable or the current process used up its time slice.  */
     int ru_nivcsw;
   };
+#endif
+#undef __need_rusage
+
+#ifdef __SYS_RESOURCE_H
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+typedef __rlim_t rlim_t;
+
+enum __rlimit_resource
+  {
+    RLIMIT_CPU,
+    RLIMIT_FSIZE,
+    RLIMIT_CORE,
+    RLIMIT_DATA,
+    RLIMIT_STACK,
+    RLIMIT_RSS,
+    RLIMIT_MEMLOCK,
+    RLIMIT_NPROC,
+    RLIMIT_NOFILE,
+    RLIMIT_OFILE = RLIMIT_NOFILE,
+    RLIMIT_NLIMITS
+  };
+
+struct rlimit
+  {
+    /* The current (soft) limit.  */
+    int rlim_cur;
+    /* The hard limit.  */
+    int rlim_max;
+  };
+
+/* Value used to indicate that there is no limit.  */
+#define RLIM_INFINITY 0x7fffffff
+
+/* Put the soft and hard limits for RESOURCE in *RLIMITS.
+   Returns 0 if successful, -1 if not (and sets errno).  */
+extern int getrlimit (enum __rlimit_resource, struct rlimit *);
+
+/* Set the soft and hard limits for RESOURCE to *RLIMITS.
+   Only the super-user can increase hard limits.
+   Return 0 if successful, -1 if not (and sets errno).  */
+
+extern int setrlimit (enum __rlimit_resource, const struct rlimit *);
+
+/* Whose usage statistics do you want?  */
+enum __rusage_who
+/* The macro definitions are necessary because some programs want
+   to test for operating system features with #ifdef RUSAGE_SELF.
+   In ANSI C the reflexive definition is a no-op.  */
+  {
+    /* The calling process.  */
+    RUSAGE_SELF = 0,
+#define	RUSAGE_SELF	RUSAGE_SELF
+    /* All of its terminated child processes.  */
+    RUSAGE_CHILDREN = -1
+#define	RUSAGE_CHILDREN	RUSAGE_CHILDREN
+  };
 
 /* Return resource usage information on a process.  */
 extern int getrusage (enum __rusage_who, struct rusage *);
@@ -146,10 +158,11 @@ extern int getpriority (enum __priority_which, int);
 extern int setpriority (enum __priority_which, int, int);
 
 /* Alter the priority of the current process by 'increment'.  */
-extern int nice (int increment);
+extern int nice (int __increment);
 
 #ifdef __cplusplus
 	}
 #endif
 
 #endif /* resource.h  */
+#endif /* ! __SYS_RESOURCE_H */

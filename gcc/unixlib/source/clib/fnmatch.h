@@ -1,10 +1,10 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/clib/h/fnmatch,v $
- * $Date: 1997/10/09 19:59:46 $
- * $Revision: 1.2 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/fnmatch.h,v $
+ * $Date: 2001/09/14 14:01:17 $
+ * $Revision: 1.2.2.1 $
  * $State: Exp $
- * $Author: unixlib $
+ * $Author: admin $
  *
  ***************************************************************************/
 
@@ -31,7 +31,7 @@ extern "C" {
 
 /* Match 'string' against the filename pattern 'pattern',
    returning zero if it matches, FNM_NOMATCH if not.  */
-extern int fnmatch (const char *pattern, const char *string, int flags);
+extern int fnmatch (const char *__pattern, const char *__string, int __flags);
 
 #ifdef __cplusplus
 }

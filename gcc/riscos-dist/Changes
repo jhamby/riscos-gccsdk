@@ -1,3 +1,46 @@
+RISC OS GCC release 2.95.4  (released 20 December 2001)
+==========================
+
+* unixlib: Allow for program independent sfix settings.
+
+* unixlib: Remove restriction on the maximum length of a command line.
+
+* unixlib: Add wchar.h, inttypes.h, stdint.h and supporting functions.
+
+* unixlib: Support `,xyz' RISC OS file type extensions.
+
+* unixlib: Fix longstanding bug that causes programs to hard-lock a
+  computer whilst using the network stack.
+
+* unixlib: Support for DoggySoft's Syslog module.
+
+* unixlib: Header file re-arrangements so that UnixLib can be used
+  as a drop-in compile time replacement for the SharedCLibrary.
+
+* gcc: Remove weak symbol use that was enabled in pre-release 3.
+
+* gcc: Changed compiler executable directory from arm-riscos to
+  arm-acorn-riscos.
+
+* gcc: Minor code generation optimisation for small C++ functions.
+
+* gcc: Bug fix in Unix filename translation.  Pathnames starting with
+  `../../something' would be translated to '../../'.
+
+* gcc: By default the libraries and headers for UnixLib and SharedCLib
+  are integrated into the distribution.  GCC therefore no longer relies
+  on the Unix$Path and C$Path variables.  During the link stage, it is
+  recommended that the GCC command is used, rather than calling drlink
+  directly.
+
+* gcc: The option specifying that source code should be built and linked
+  against the SharedCLibrary rather than UnixLib has changed from the
+  rather uninformative -mstubs to -mlibscl.
+
+* as: Better support for local labels.
+
+* gcc: Upgraded to version 2.95.4.
+
 RISC OS GCC pre-release 3a  (released 23 November 1999)
 ==========================
 

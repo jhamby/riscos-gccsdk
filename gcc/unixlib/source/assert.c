@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/c/assert,v $
- * $Date: 1997/10/08 16:37:44 $
- * $Revision: 1.4 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/assert.c,v $
+ * $Date: 2001/08/09 07:48:03 $
+ * $Revision: 1.2.2.1 $
  * $State: Exp $
- * $Author: unixlib $
+ * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: assert,v 1.4 1997/10/08 16:37:44 unixlib Exp $";
+static const char rcs_id[] = "$Id: assert.c,v 1.2.2.1 2001/08/09 07:48:03 admin Exp $";
 #endif
 
 #include <stdio.h>
@@ -20,7 +20,7 @@ static const char rcs_id[] = "$Id: assert,v 1.4 1997/10/08 16:37:44 unixlib Exp 
       foo.c, line 1234: bar: Assertion failed: a == b
    Then call abort().  */
 void
-__assert_fail (char *exp, const char *file, int line, const char *function)
+__assert_fail (const char *exp, const char *file, int line, const char *function)
 {
   fprintf (stderr, "\n\"%s\", line %d: %s%sAssertion failed: %s\n",
   	   file, line,

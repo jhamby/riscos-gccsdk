@@ -1,10 +1,10 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/clib/h/assert,v $
- * $Date: 1997/12/17 22:27:06 $
- * $Revision: 1.6 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/assert.h,v $
+ * $Date: 2002/02/07 10:19:30 $
+ * $Revision: 1.2.2.2 $
  * $State: Exp $
- * $Author: unixlib $
+ * $Author: admin $
  *
  ***************************************************************************/
 
@@ -26,9 +26,9 @@
 extern "C" {
 #endif
 
-extern void assert (int) __attribute__ ((__noreturn__));
+extern void assert (int);
 
-extern void __assert_fail (char *__message,
+extern void __assert_fail (const char *__message,
 			   const char *__file,
 			   int __line,
 			   const char *__function) __attribute__ ((__noreturn__));

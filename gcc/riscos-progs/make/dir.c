@@ -14,13 +14,17 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Make; see the file COPYING.  If not, write to
-the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
+the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+Boston, MA 02111-1307, USA.  */
 
 #include "make.h"
 
 #ifdef	HAVE_DIRENT_H
 # include <dirent.h>
 # define NAMLEN(dirent) strlen((dirent)->d_name)
+# ifdef VMS
+extern char *vmsify PARAMS ((char *name, int type));
+# endif
 #else
 # define dirent direct
 # define NAMLEN(dirent) (dirent)->d_namlen
@@ -40,18 +44,18 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 /* In GNU systems, <dirent.h> defines this macro for us.  */
 #ifdef _D_NAMLEN
-#undef NAMLEN
-#define NAMLEN(d) _D_NAMLEN(d)
+# undef NAMLEN
+# define NAMLEN(d) _D_NAMLEN(d)
 #endif
 
-#if (defined (POSIX) || defined (WINDOWS32)) && !defined (__GNU_LIBRARY__)
+#if (defined (POSIX) || defined (VMS) || defined (WINDOWS32)) && !defined (__GNU_LIBRARY__)
 /* Posix does not require that the d_ino field be present, and some
    systems do not provide it. */
-#define REAL_DIR_ENTRY(dp) 1
-#define FAKE_DIR_ENTRY(dp)
+# define REAL_DIR_ENTRY(dp) 1
+# define FAKE_DIR_ENTRY(dp)
 #else
-#define REAL_DIR_ENTRY(dp) (dp->d_ino != 0)
-#define FAKE_DIR_ENTRY(dp) (dp->d_ino = 1)
+# define REAL_DIR_ENTRY(dp) (dp->d_ino != 0)
+# define FAKE_DIR_ENTRY(dp) (dp->d_ino = 1)
 #endif /* POSIX */
 
 #ifdef __MSDOS__
@@ -83,7 +87,7 @@ dosify (filename)
 
   /* First, transform the name part.  */
   for (i = 0; *filename != '\0' && i < 8 && *filename != '.'; ++i)
-    *df++ = tolower (*filename++);
+    *df++ = tolower ((unsigned char)*filename++);
 
   /* Now skip to the next dot.  */
   while (*filename != '\0' && *filename != '.')
@@ -92,7 +96,7 @@ dosify (filename)
     {
       *df++ = *filename++;
       for (i = 0; *filename != '\0' && i < 3 && *filename != '.'; ++i)
-	*df++ = tolower (*filename++);
+	*df++ = tolower ((unsigned char)*filename++);
     }
 
   /* Look for more dots.  */
@@ -134,7 +138,7 @@ downcase (filename)
   /* First, transform the name part.  */
   for (i = 0; *filename != '\0'; ++i)
   {
-    *df++ = tolower (*filename);
+    *df++ = tolower ((unsigned char)*filename);
     ++filename;
   }
 
@@ -155,7 +159,8 @@ vms_hash (name)
 
   while (*name)
     {
-      h = (h << 4) + *name++;
+      h = (h << 4) + (isupper (*name) ? tolower (*name) : *name);
+      name++;
       g = h & 0xf0000000;
       if (g)
 	{
@@ -291,6 +296,7 @@ find_directory (name)
   register unsigned int hash = 0;
   register char *p;
   register struct directory *dir;
+  int r;
 #ifdef WINDOWS32
   char* w32_path;
   char  fs_label[BUFSIZ];
@@ -328,12 +334,28 @@ find_directory (name)
       /* The directory is not in the name hash table.
 	 Find its device and inode numbers, and look it up by them.  */
 
-#ifdef VMS
-      if (vmsstat_dir (name, &st) < 0)
-#else
-      if (stat (name, &st) < 0)
+#ifdef WINDOWS32
+      /* Remove any trailing '\'.  Windows32 stat fails even on valid
+         directories if they end in '\'. */
+      if (p[-1] == '\\')
+        p[-1] = '\0';
 #endif
-	{
+
+#ifdef VMS
+      r = vmsstat_dir (name, &st);
+#else
+      r = stat (name, &st);
+#endif
+
+#ifdef WINDOWS32
+      /* Put back the trailing '\'.  If we don't, we're permanently
+         truncating the value!  */
+      if (p[-1] == '\0')
+        p[-1] = '\\';
+#endif
+
+      if (r < 0)
+        {
 	/* Couldn't stat the directory.  Mark this by
 	   setting the `contents' member to a nil pointer.  */
 	  dir->contents = 0;
@@ -348,14 +370,14 @@ find_directory (name)
           w32_path = w32ify(name, 1);
           hash = ((unsigned int) st.st_dev << 16) | (unsigned int) st.st_ctime;
 #else
-#ifdef VMS
-	hash = ((unsigned int) st.st_dev << 16)
-		| ((unsigned int) st.st_ino[0]
-		+ (unsigned int) st.st_ino[1]
-		+ (unsigned int) st.st_ino[2]);
-#else
+# ifdef VMS
+          hash = (((unsigned int) st.st_dev << 16)
+                  | ((unsigned int) st.st_ino[0]
+                     + (unsigned int) st.st_ino[1]
+                     + (unsigned int) st.st_ino[2]));
+# else
 	  hash = ((unsigned int) st.st_dev << 16) | (unsigned int) st.st_ino;
-#endif
+# endif
 #endif
 	  hash %= DIRECTORY_BUCKETS;
 
@@ -364,13 +386,14 @@ find_directory (name)
             if (strieq(dc->path_key, w32_path))
 #else
 	    if (dc->dev == st.st_dev
-#ifdef VMS
+# ifdef VMS
 		&& dc->ino[0] == st.st_ino[0]
 		&& dc->ino[1] == st.st_ino[1]
-		&& dc->ino[2] == st.st_ino[2])
-#else
-		 && dc->ino == st.st_ino)
-#endif
+		&& dc->ino[2] == st.st_ino[2]
+# else
+                && dc->ino == st.st_ino
+# endif
+                )
 #endif /* WINDOWS32 */
 	      break;
 
@@ -384,7 +407,7 @@ find_directory (name)
 	      /* Enter it in the contents hash table.  */
 	      dc->dev = st.st_dev;
 #ifdef WINDOWS32
-              dc->path_key = strdup(w32_path);
+              dc->path_key = xstrdup(w32_path);
               dc->mtime = st.st_mtime;
 
               /*
@@ -405,24 +428,22 @@ find_directory (name)
               else
                 dc->fs_flags = FS_UNKNOWN;
 #else
-#ifdef VMS
+# ifdef VMS
 	      dc->ino[0] = st.st_ino[0];
 	      dc->ino[1] = st.st_ino[1];
 	      dc->ino[2] = st.st_ino[2];
-#else
+# else
 	      dc->ino = st.st_ino;
-#endif
+# endif
 #endif /* WINDOWS32 */
 	      dc->next = directories_contents[hash];
 	      directories_contents[hash] = dc;
 
 	      dc->dirstream = opendir (name);
 	      if (dc->dirstream == 0)
-		{
-		/* Couldn't open the directory.  Mark this by
-		   setting the `files' member to a nil pointer.  */
-		  dc->files = 0;
-		}
+                /* Couldn't open the directory.  Mark this by
+                   setting the `files' member to a nil pointer.  */
+                dc->files = 0;
 	      else
 		{
 		  /* Allocate an array of buckets for files and zero it.  */
@@ -545,6 +566,14 @@ dir_contents_file_exists_p (dir, filename)
       unsigned int len;
       register unsigned int i;
 
+#if defined(VMS) && defined(HAVE_DIRENT_H)
+      /* In VMS we get file versions too, which have to be stripped off */
+      {
+        char *p = strrchr (d->d_name, ';');
+        if (p)
+          *p = '\0';
+      }
+#endif
       if (!REAL_DIR_ENTRY (d))
 	continue;
 
@@ -627,16 +656,18 @@ file_exists_p (name)
 #endif
 
 #ifdef VMS
-  dirend = rindex (name, ']');
+  dirend = strrchr (name, ']');
+  if (dirend == 0)
+    dirend = strrchr (name, ':');
   dirend++;
   if (dirend == (char *)1)
     return dir_file_exists_p ("[]", name);
 #else /* !VMS */
-  dirend = rindex (name, '/');
+  dirend = strrchr (name, '/');
 #if defined (WINDOWS32) || defined (__MSDOS__)
   /* Forward and backslashes might be mixed.  We need the rightmost one.  */
   {
-    char *bslash = rindex(name, '\\');
+    char *bslash = strrchr(name, '\\');
     if (!dirend || bslash > dirend)
       dirend = bslash;
     /* The case of "d:file".  */
@@ -685,16 +716,18 @@ file_impossible (filename)
   register struct dirfile *new;
 
 #ifdef VMS
-  dirend = rindex (p, ']');
+  dirend = strrchr (p, ']');
+  if (dirend == 0)
+    dirend = strrchr (p, ':');
   dirend++;
   if (dirend == (char *)1)
     dir = find_directory ("[]");
 #else
-  dirend = rindex (p, '/');
+  dirend = strrchr (p, '/');
 #if defined (WINDOWS32) || defined (__MSDOS__)
   /* Forward and backslashes might be mixed.  We need the rightmost one.  */
   {
-    char *bslash = rindex(p, '\\');
+    char *bslash = strrchr(p, '\\');
     if (!dirend || bslash > dirend)
       dirend = bslash;
     /* The case of "d:file".  */
@@ -771,7 +804,7 @@ file_impossible (filename)
   new = (struct dirfile *) xmalloc (sizeof (struct dirfile));
   new->next = dir->contents->files[hash];
   dir->contents->files[hash] = new;
-  new->name = savestring (filename, strlen (filename));
+  new->name = xstrdup (filename);
   new->impossible = 1;
 }
 
@@ -788,15 +821,15 @@ file_impossible_p (filename)
   register struct dirfile *next;
 
 #ifdef VMS
-  dirend = rindex (filename, ']');
+  dirend = strrchr (filename, ']');
   if (dirend == 0)
     dir = find_directory ("[]")->contents;
 #else
-  dirend = rindex (filename, '/');
+  dirend = strrchr (filename, '/');
 #if defined (WINDOWS32) || defined (__MSDOS__)
   /* Forward and backslashes might be mixed.  We need the rightmost one.  */
   {
-    char *bslash = rindex(filename, '\\');
+    char *bslash = strrchr(filename, '\\');
     if (!dirend || bslash > dirend)
       dirend = bslash;
     /* The case of "d:file".  */
@@ -876,7 +909,7 @@ print_dir_data_base ()
   register unsigned int i, dirs, files, impossible;
   register struct directory *dir;
 
-  puts ("\n# Directories\n");
+  puts (_("\n# Directories\n"));
 
   dirs = files = impossible = 0;
   for (i = 0; i < DIRECTORY_BUCKETS; ++i)
@@ -884,19 +917,19 @@ print_dir_data_base ()
       {
 	++dirs;
 	if (dir->contents == 0)
-	  printf ("# %s: could not be stat'd.\n", dir->name);
+	  printf (_("# %s: could not be stat'd.\n"), dir->name);
 	else if (dir->contents->files == 0)
 #ifdef WINDOWS32
-          printf ("# %s (key %s, mtime %d): could not be opened.\n",
+          printf (_("# %s (key %s, mtime %d): could not be opened.\n"),
                   dir->name, dir->contents->path_key,dir->contents->mtime);
 #else  /* WINDOWS32 */
 #ifdef VMS
-	  printf ("# %s (device %d, inode [%d,%d,%d]): could not be opened.\n",
+	  printf (_("# %s (device %d, inode [%d,%d,%d]): could not be opened.\n"),
 		  dir->name, dir->contents->dev,
 		  dir->contents->ino[0], dir->contents->ino[1],
 		  dir->contents->ino[2]);
 #else
-	  printf ("# %s (device %ld, inode %ld): could not be opened.\n",
+	  printf (_("# %s (device %ld, inode %ld): could not be opened.\n"),
 		  dir->name, (long int) dir->contents->dev,
 		  (long int) dir->contents->ino);
 #endif
@@ -913,34 +946,34 @@ print_dir_data_base ()
 		else
 		  ++f;
 #ifdef WINDOWS32
-            printf ("# %s (key %s, mtime %d): ",
+            printf (_("# %s (key %s, mtime %d): "),
                     dir->name, dir->contents->path_key, dir->contents->mtime);
 #else  /* WINDOWS32 */
 #ifdef VMS
-	    printf ("# %s (device %d, inode [%d,%d,%d]): ",
+	    printf (_("# %s (device %d, inode [%d,%d,%d]): "),
 		    dir->name, dir->contents->dev,
 			dir->contents->ino[0], dir->contents->ino[1],
 			dir->contents->ino[2]);
 #else
-	    printf ("# %s (device %ld, inode %ld): ",
+	    printf (_("# %s (device %ld, inode %ld): "),
 		    dir->name,
                     (long)dir->contents->dev, (long)dir->contents->ino);
 #endif
 #endif /* WINDOWS32 */
 	    if (f == 0)
-	      fputs ("No", stdout);
+	      fputs (_("No"), stdout);
 	    else
 	      printf ("%u", f);
-	    fputs (" files, ", stdout);
+	    fputs (_(" files, "), stdout);
 	    if (im == 0)
-	      fputs ("no", stdout);
+	      fputs (_("no"), stdout);
 	    else
 	      printf ("%u", im);
-	    fputs (" impossibilities", stdout);
+	    fputs (_(" impossibilities"), stdout);
 	    if (dir->contents->dirstream == 0)
 	      puts (".");
 	    else
-	      puts (" so far.");
+	      puts (_(" so far."));
 	    files += f;
 	    impossible += im;
 	  }
@@ -948,15 +981,15 @@ print_dir_data_base ()
 
   fputs ("\n# ", stdout);
   if (files == 0)
-    fputs ("No", stdout);
+    fputs (_("No"), stdout);
   else
     printf ("%u", files);
-  fputs (" files, ", stdout);
+  fputs (_(" files, "), stdout);
   if (impossible == 0)
-    fputs ("no", stdout);
+    fputs (_("no"), stdout);
   else
     printf ("%u", impossible);
-  printf (" impossibilities in %u directories.\n", dirs);
+  printf (_(" impossibilities in %u directories.\n"), dirs);
 }
 
 /* Hooks for globbing.  */
@@ -1036,6 +1069,9 @@ read_dirstream (stream)
 #ifdef _DIRENT_HAVE_D_NAMLEN
 	      d->d_namlen = len - 1;
 #endif
+#ifdef _DIRENT_HAVE_D_TYPE
+	      d->d_type = DT_UNKNOWN;
+#endif
 	      memcpy (d->d_name, df->name, len);
 	      return d;
 	    }
@@ -1056,17 +1092,33 @@ ansi_free(p)
       free(p);
 }
 
+/* On 64 bit ReliantUNIX (5.44 and above) in LFS mode, stat() is actually a
+ * macro for stat64().  If stat is a macro, make a local wrapper function to
+ * invoke it.
+ */
+#ifndef stat
+# ifndef VMS
+extern int stat ();
+# endif
+# define local_stat stat
+#else
+static int local_stat (path, buf)
+    char *path;
+    struct stat *buf;
+{
+  return stat (path, buf);
+}
+#endif
+
 void
 dir_setup_glob (gl)
      glob_t *gl;
 {
-  extern int stat ();
-
   /* Bogus sunos4 compiler complains (!) about & before functions.  */
   gl->gl_opendir = open_dirstream;
   gl->gl_readdir = read_dirstream;
   gl->gl_closedir = ansi_free;
-  gl->gl_stat = stat;
+  gl->gl_stat = local_stat;
   /* We don't bother setting gl_lstat, since glob never calls it.
      The slot is only there for compatibility with 4.4 BSD.  */
 }

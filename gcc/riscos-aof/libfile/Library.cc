@@ -50,7 +50,7 @@ void Library::build()
  m_data.putInt(members);
 
  // Number of used chunks
- m_data.putInt(members);
+ m_data.putInt(members - 1);
 
  // Get current timestamp
  m_time->set();
@@ -264,7 +264,7 @@ void Library::extractMembers(const List<BString> &a_wildMembers, const BString &
  	 			fullPath = *member;
 
  	 		// Save file
- 	 		cerr << "Pfad: " << fullPath << endl;
+ 	 		// cerr << "Pfad: " << fullPath << endl;
  	 		data->createPath(fullPath);
  	 		data->save(fullPath, dirEntry->m_time);
  	 	}

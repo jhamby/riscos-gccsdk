@@ -1,8 +1,8 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/_os.s,v $
-; $Date: 2001/01/29 15:10:21 $
-; $Revision: 1.2 $
+; $Date: 2001/09/04 16:32:04 $
+; $Revision: 1.3.2.2 $
 ; $State: Exp $
 ; $Author: admin $
 ;
@@ -12,8 +12,8 @@
 
 	AREA	|C$$code|, CODE, READONLY
 
-	EXPORT	os_console
-os_console
+	EXPORT	|__os_console|
+|__os_console|
 	; Set operating system output stream to the console only
 	MOV	a1, #3
 	MOV	a2, #0
@@ -22,22 +22,22 @@ os_console
 	MVNVS	a1, #0
 	return	AL, pc, lr
 
-	EXPORT	os_vdu
-os_vdu
+	EXPORT	|__os_vdu|
+|__os_vdu|
 	SWI	XOS_WriteC
 	return	VC, pc, lr
 	MVN	a1, #0
 	return	AL, pc, lr
 
-	EXPORT	os_get
-os_get
+	EXPORT	|__os_get|
+|__os_get|
 	SWI	XOS_ReadC
 	return	VC, pc, lr
 	MVN	a1, #0
 	return	AL, pc, lr
 
-	EXPORT	os_inkey
-os_inkey
+	EXPORT	|__os_inkey|
+|__os_inkey|
 	MOV	ip, a1
 	MOV	a1, #&81
 	AND	a2, ip, #&ff
@@ -50,8 +50,8 @@ os_inkey
 	MVNNE	a1, #0
 	return	AL, pc, lr
 
-	EXPORT	os_keyflush
-os_keyflush
+	EXPORT	|__os_keyflush|
+|__os_keyflush|
 	MOV	a1, #21
 	MOV	a2, #0
 	MOV	a3, #0
@@ -60,8 +60,8 @@ os_keyflush
 	MVNVS	a1, #0
 	return	AL, pc, lr
 
-	EXPORT	os_423
-os_423
+	EXPORT	|__os_423|
+|__os_423|
 	; Enable serial port and keyboard for input
 	MOV	a1, #2
 	MOV	a2, #2
@@ -76,8 +76,8 @@ os_423_l1
 	MVNVS	a1, #0
 	return	AL, pc, lr
 
-	EXPORT	os_423vdu
-os_423vdu
+	EXPORT	|__os_423vdu|
+|__os_423vdu|
 	MOV	a2, a1
 	MOV	a1, #3
 	SWI	XOS_SerialOp
@@ -86,8 +86,8 @@ os_423vdu
 	MVNVS	a1, #0
 	return	AL, pc, lr
 
-	EXPORT	os_423get
-os_423get
+	EXPORT	|__os_423get|
+|__os_423get|
 	MOV	a1, #4
 os_423get_l1
 	SWI	XOS_SerialOp
@@ -96,8 +96,8 @@ os_423get_l1
 	MVNVS	a1, #0
 	return	AL, pc, lr
 
-	EXPORT	os_423inkey
-os_423inkey
+	EXPORT	|__os_423inkey|
+|__os_423inkey|
 	MOV	a4, a1
 	SWI	XOS_ReadMonotonicTime
 	ADD	a4, a4, a1
@@ -115,8 +115,8 @@ os_423inkey_l2
 	MVNVS	a1, #0
 	return	AL, pc, lr
 
-	EXPORT	os_423flush
-os_423flush
+	EXPORT	|__os_423flush|
+|__os_423flush|
 	MOV	a1, #21
 	MOV	a2, #1
 	MOV	a3, #0
@@ -125,8 +125,8 @@ os_423flush
 	MVNVS	a1, #0
 	return	AL, pc, lr
 
-	EXPORT	os_423break
-os_423break
+	EXPORT	|__os_423break|
+|__os_423break|
 	MOV	a2, a1
 	MOV	a1, #2
 	SWI	XOS_SerialOp
@@ -134,24 +134,24 @@ os_423break
 	MVNVS	a1, #0
 	return	AL, pc, lr
 
-	EXPORT	os_byte
-os_byte
+	EXPORT	|__os_byte|
+|__os_byte|
 	MOVS	ip, a4
 	SWI	XOS_Byte
 	STMNEIA ip, {a1, a2, a3}
 	MOVVC	a1, #0
 	return	AL, pc, lr
 
-	EXPORT	os_word
-os_word
+	EXPORT	|__os_word|
+|__os_word|
 	SWI	XOS_Word
 	MOVVC	a1, #0
 	return	AL, pc, lr
 
-	EXPORT	os_prhex
+	EXPORT	|__os_prhex|
 	DCB	"    "
-os_prhex
-	LDR	a3, os_prhex - 4
+|__os_prhex|
+	LDR	a3, |__os_prhex| - 4
 	MOV	a2, a3
 	STMFD	sp!, {a2, a3}	; fill buffer with 8 spaces
 	ADD	a3, sp, #8
@@ -173,40 +173,34 @@ os_prhex_l1
 
 	; Print out a 32-bit number (passed in a1) as a signed
 	; decimal quantity
-	EXPORT	os_prdec
-os_prdec
+	EXPORT	|__os_prdec|
+|__os_prdec|
 	MOV	a3, #16		; allocate a temporary buffer of 16 bytes
 	SUB	a2, sp, a3
 	SWI	XOS_ConvertInteger4
 	SWI	XOS_Write0
 	return	AL, pc, lr
 
-	EXPORT	os_print
-os_print
+	EXPORT	|__os_print|
+|__os_print|
 	SWI	XOS_Write0
 	MOVVC	a1, #0
 	return	AL, pc, lr
 
-	EXPORT	os_write
-os_write
-	SWI	XOS_WriteN
-	MOVVC	a1, #0
-	return	AL, pc, lr
-
-	EXPORT	os_nl
-os_nl
+	EXPORT	|__os_nl|
+|__os_nl|
 	SWI	XOS_NewLine
 	MOVVC	a1, #0
 	return	AL, pc, lr
 
-	EXPORT	os_cli
-os_cli
+	EXPORT	|__os_cli|
+|__os_cli|
 	SWI	XOS_CLI
 	MOVVC	a1, #0
 	return	AL, pc, lr
 
-	EXPORT	os_file
-os_file
+	EXPORT	|__os_file|
+|__os_file|
 	STMFD	sp!, {v1, v2, lr}
 	CMP	a3, #0
 	ADDNE	ip, a3, #8
@@ -217,24 +211,24 @@ os_file
 	MOVVC	a1, #0
 	stackreturn	AL, "v1, v2, pc"
 
-	EXPORT	os_fopen
-os_fopen
+	EXPORT	|__os_fopen|
+|__os_fopen|
 	MOV	ip, a3
 	SWI	XOS_Find
 	STR	a1, [ip]
 	MOVVC	a1, #0
 	return	AL, pc, lr
 
-	EXPORT	os_fclose
-os_fclose
+	EXPORT	|__os_fclose|
+|__os_fclose|
 	MOV	a2, a1
 	MOV	a1, #0
 	SWI	XOS_Find
 	MOVVC	a1, #0
 	return	AL, pc, lr
 
-	EXPORT	os_fread
-os_fread
+	EXPORT	|__os_fread|
+|__os_fread|
 	STMFD	sp!, {v1, lr}
 	MOVS	ip, a4
 	MOV	a4, a3
@@ -246,8 +240,8 @@ os_fread
 	MOVVC	a1, #0
 	stackreturn	AL, "v1, pc"
 
-	EXPORT	os_fwrite
-os_fwrite
+	EXPORT	|__os_fwrite|
+|__os_fwrite|
 	STMFD	sp!, {v1, lr}
 	MOVS	ip, a4
 	MOV	a4, a3
@@ -259,22 +253,22 @@ os_fwrite
 	MOVVC	a1, #0
 	stackreturn	AL, "v1, pc"
 
-	EXPORT	os_args
-os_args
+	EXPORT	|__os_args|
+|__os_args|
 	MOVS	ip, a4
 	SWI	XOS_Args
 	STMNEIA ip, {a1, a2, a3}
 	MOVVC	a1, #0
 	return	AL, pc, lr
 
-	EXPORT	os_fsctrl
-os_fsctrl
+	EXPORT	|__os_fsctrl|
+|__os_fsctrl|
 	SWI	XOS_FSControl
 	MOVVC	a1, #0
 	return	AL, pc, lr
 
-	EXPORT	os_swi
-os_swi
+	EXPORT	|__os_swi|
+|__os_swi|
 	STMFD	sp!, {a2, v1, v2, v3, v4, v5, v6, lr}
 	ORR	ip, a1, #&20000		; X bit
 	TEQ	a2, #0

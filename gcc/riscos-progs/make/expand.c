@@ -14,9 +14,13 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Make; see the file COPYING.  If not, write to
-the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
+the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+Boston, MA 02111-1307, USA.  */
 
 #include "make.h"
+
+#include <assert.h>
+
 #include "filedef.h"
 #include "job.h"
 #include "commands.h"
@@ -88,6 +92,8 @@ initialize_variable_output ()
 
 /* Recursively expand V.  The returned string is malloc'd.  */
 
+static char *allocated_variable_append PARAMS ((struct variable *v));
+
 char *
 recursively_expand (v)
      register struct variable *v;
@@ -95,20 +101,16 @@ recursively_expand (v)
   char *value;
 
   if (v->expanding)
-    {
-      /* Expanding V causes infinite recursion.  Lose.  */
-      if (reading_filename == 0)
-	fatal ("Recursive variable `%s' references itself (eventually)",
-	       v->name);
-      else
-	makefile_fatal
-	  (reading_filename, *reading_lineno_ptr,
-	   "Recursive variable `%s' references itself (eventually)",
-	   v->name);
-    }
+    /* Expanding V causes infinite recursion.  Lose.  */
+    fatal (reading_file,
+           _("Recursive variable `%s' references itself (eventually)"),
+           v->name);
 
   v->expanding = 1;
-  value = allocated_variable_expand (v->value);
+  if (v->append)
+    value = allocated_variable_append (v);
+  else
+    value = allocated_variable_expand (v->value);
   v->expanding = 0;
 
   return value;
@@ -125,14 +127,8 @@ warn_undefined (name, length)
      unsigned int length;
 {
   if (warn_undefined_variables_flag)
-    {
-      static const char warnmsg[] = "warning: undefined variable `%.*s'";
-      if (reading_filename != 0)
-	makefile_error (reading_filename, *reading_lineno_ptr,
-			warnmsg, length, name);
-      else
-	error (warnmsg, length, name);
-    }
+    error (reading_file,
+           _("warning: undefined variable `%.*s'"), (int)length, name);
 }
 
 /* Expand a simple reference to variable NAME, which is LENGTH chars long.  */
@@ -146,18 +142,23 @@ reference_variable (o, name, length)
      char *name;
      unsigned int length;
 {
-  register struct variable *v = lookup_variable (name, length);
+  register struct variable *v;
+  char *value;
+
+  v = lookup_variable (name, length);
 
   if (v == 0)
     warn_undefined (name, length);
 
-  if (v != 0 && *v->value != '\0')
-    {
-      char *value = (v->recursive ? recursively_expand (v) : v->value);
-      o = variable_buffer_output (o, value, strlen (value));
-      if (v->recursive)
-	free (value);
-    }
+  if (v == 0 || *v->value == '\0')
+    return o;
+
+  value = (v->recursive ? recursively_expand (v) : v->value);
+
+  o = variable_buffer_output (o, value, strlen (value));
+
+  if (v->recursive)
+    free (value);
 
   return o;
 }
@@ -201,7 +202,7 @@ variable_expand_string (line, string, length)
          variable output buffer, and skip them.  Uninteresting chars end
 	 at the next $ or the end of the input.  */
 
-      p1 = index (p, '$');
+      p1 = strchr (p, '$');
 
       o = variable_buffer_output (o, p, p1 != 0 ? p1 - p : strlen (p) + 1);
 
@@ -241,16 +242,10 @@ variable_expand_string (line, string, length)
 	    /* Is there a variable reference inside the parens or braces?
 	       If so, expand it before expanding the entire reference.  */
 
-	    end = index (beg, closeparen);
+	    end = strchr (beg, closeparen);
 	    if (end == 0)
-	      {
-		/* Unterminated variable reference.  */
-		if (reading_filename != 0)
-		  makefile_fatal (reading_filename, *reading_lineno_ptr,
-				  "unterminated variable reference");
-		else
-		  fatal ("unterminated variable reference");
-	      }
+              /* Unterminated variable reference.  */
+              fatal (reading_file, _("unterminated variable reference"));
 	    p1 = lindex (beg, end, '$');
 	    if (p1 != 0)
 	      {
@@ -271,7 +266,7 @@ variable_expand_string (line, string, length)
 		  {
 		    beg = expand_argument (beg, p); /* Expand the name.  */
 		    free_beg = 1; /* Remember to free BEG when finished.  */
-		    end = index (beg, '\0');
+		    end = strchr (beg, '\0');
 		  }
 	      }
 	    else
@@ -291,7 +286,7 @@ variable_expand_string (line, string, length)
 		char *subst_beg, *subst_end, *replace_beg, *replace_end;
 
 		subst_beg = colon + 1;
-		subst_end = index (subst_beg, '=');
+		subst_end = strchr (subst_beg, '=');
 		if (subst_end == 0)
 		  /* There is no = in sight.  Punt on the substitution
 		     reference and treat this as a variable name containing
@@ -373,7 +368,7 @@ variable_expand_string (line, string, length)
 	  break;
 
 	default:
-	  if (isblank (p[-1]))
+	  if (isblank ((unsigned char)p[-1]))
 	    break;
 
 	  /* A $ followed by a random char is a variable reference:
@@ -417,7 +412,7 @@ char *
 variable_expand (line)
      char *line;
 {
-  return variable_expand_string(NULL, line, -1);
+  return variable_expand_string(NULL, line, (long)-1);
 }
 
 /* Expand an argument for an expansion function.
@@ -432,7 +427,10 @@ expand_argument (str, end)
 {
   char *tmp;
 
-  if (*end == '\0')
+  if (str == end)
+    return xstrdup("");
+
+  if (!end || *end == '\0')
     tmp = str;
   else
     {
@@ -453,36 +451,72 @@ variable_expand_for_file (line, file)
      register struct file *file;
 {
   char *result;
-  struct variable_set_list *save, *fnext;
+  struct variable_set_list *save;
 
   if (file == 0)
     return variable_expand (line);
 
   save = current_variable_set_list;
   current_variable_set_list = file->variables;
-  reading_filename = file->cmds->filename;
-  reading_lineno_ptr = &file->cmds->lineno;
-  fnext = file->variables->next;
-  /* See if there's a pattern-specific variable struct for this target.  */
-  if (!file->pat_searched)
-    {
-      file->patvar = lookup_pattern_var(file->name);
-      file->pat_searched = 1;
-    }
-  if (file->patvar != 0)
-    {
-      file->patvar->vars->next = fnext;
-      file->variables->next = file->patvar->vars;
-    }
+  if (file->cmds && file->cmds->fileinfo.filenm)
+    reading_file = &file->cmds->fileinfo;
+  else
+    reading_file = 0;
   result = variable_expand (line);
   current_variable_set_list = save;
-  reading_filename = 0;
-  reading_lineno_ptr = 0;
-  file->variables->next = fnext;
+  reading_file = 0;
 
   return result;
 }
 
+/* Like allocated_variable_expand, but we first expand this variable in the
+    context of the next variable set, then we append the expanded value.  */
+
+static char *
+allocated_variable_append (v)
+     struct variable *v;
+{
+  struct variable_set_list *save;
+  int len = strlen (v->name);
+  char *var = alloca (len + 4);
+  char *value;
+
+  char *obuf = variable_buffer;
+  unsigned int olen = variable_buffer_length;
+
+  variable_buffer = 0;
+
+  assert(current_variable_set_list->next != 0);
+  save = current_variable_set_list;
+  current_variable_set_list = current_variable_set_list->next;
+
+  var[0] = '$';
+  var[1] = '(';
+  strcpy (&var[2], v->name);
+  var[len+2] = ')';
+  var[len+3] = '\0';
+
+  value = variable_expand_for_file (var, 0);
+
+  current_variable_set_list = save;
+
+  value += strlen (value);
+  value = variable_buffer_output (value, " ", 1);
+  value = variable_expand_string (value, v->value, (long)-1);
+
+  value = variable_buffer;
+
+#if 0
+  /* Waste a little memory and save time.  */
+  value = xrealloc (value, strlen (value))
+#endif
+
+  variable_buffer = obuf;
+  variable_buffer_length = olen;
+
+  return value;
+}
+
 /* Like variable_expand_for_file, but the returned string is malloc'd.
    This function is called a lot.  It wants to be efficient.  */
 

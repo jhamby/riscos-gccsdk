@@ -1,8 +1,8 @@
 ;----------------------------------------------------------------------------
 ;
-; $Source: /usr/local/cvsroot/unixlib/source/sys/s/_jmp,v $
-; $Date: 2000/12/21 15:09:13 $
-; $Revision: 1.11 $
+; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/_jmp.s,v $
+; $Date: 2001/09/05 16:28:57 $
+; $Revision: 1.2.2.2 $
 ; $State: Exp $
 ; $Author: admin $
 ;
@@ -33,14 +33,14 @@ setjmp
 	LDR	a4, [a4]
 	CMP	a4, #0
 	ADDEQ	a1, a1, #48
+	[ {CONFIG} = 26
 	BEQ	|__setjmp_l1|
-	[	ARMFPE = "3"
-	SFM	f4, 4, [a1], #12
-	|
 	STFE	f4, [a1], #12
 	STFE	f5, [a1], #12
 	STFE	f6, [a1], #12
 	STFE	f7, [a1], #12
+	|
+	SFMNE	f4, 4, [a1], #48
 	]
 |__setjmp_l1|
 	; warning!!!!
@@ -88,14 +88,14 @@ longjmp
 	LDR	a4, [a4]
 	CMP	a4, #0
 	ADDEQ	v1, v1, #48
+	[ {CONFIG} = 26
 	BEQ	|__longjmp_l1|
-	[	ARMFPE = "3"
-	LFM	f4, 4, [v1], #12
-	|	
 	LDFE	f4, [v1], #12
 	LDFE	f5, [v1], #12
 	LDFE	f6, [v1], #12
 	LDFE	f7, [v1], #12
+	|	
+	LFMNE	f4, 4, [v1], #48
 	]
 |__longjmp_l1|
 	MOVS	a1, a2
@@ -108,7 +108,7 @@ longjmp
 	; once by using this position in the jmp_buf as the return
 	; value for vret!!!!
 	STR	a1, [v1]
-	[	APCS32 = "no"
+	[ {CONFIG} = 26
 	LDMIA	v1, {a1, v1, v2, v3, v4, v5, v6, fp, sp, pc}^
 	|
 	LDMIA	v1, {a2, v1, v2, v3, v4, v5, v6, fp, sp, pc}

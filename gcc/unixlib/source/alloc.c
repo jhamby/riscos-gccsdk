@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/c/alloc,v $
- * $Date: 2000/08/17 16:16:06 $
- * $Revision: 1.9 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/alloc.c,v $
+ * $Date: 2002/02/07 10:19:30 $
+ * $Revision: 1.2.2.2 $
  * $State: Exp $
  * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: alloc,v 1.9 2000/08/17 16:16:06 admin Exp $: alloc,v 1.4 1996/12/29 21:47:10 unixlib Exp $";
+static const char rcs_id[] = "$Id: alloc.c,v 1.2.2.2 2002/02/07 10:19:30 admin Exp $: alloc,v 1.4 1996/12/29 21:47:10 unixlib Exp $";
 #endif
 
 /* #define DEBUG 1 */
@@ -940,7 +940,7 @@ Void_t* cALLOc(size_t, size_t);
 void    cfree(Void_t*);
 int     malloc_trim(size_t);
 size_t  malloc_usable_size(Void_t*);
-void    malloc_stats();
+void    malloc_stats(void);
 int     mALLOPt(int, int);
 struct mallinfo mALLINFo(void);
 #else
@@ -1288,7 +1288,7 @@ nextchunk-> +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 /* conversion from malloc headers to user pointers, and back */
 
 #define chunk2mem(p)   ((Void_t*)((char*)(p) + 2*SIZE_SZ))
-#define mem2chunk(mem) ((mchunkptr)((char*)(mem) - 2*SIZE_SZ))
+#define mem2chunk(mem) ((mchunkptr)(void*)((char*)(mem) - 2*SIZE_SZ))
 
 /* pad request bytes into a usable size */
 
@@ -1324,17 +1324,18 @@ nextchunk-> +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
 /* Ptr to next physical malloc_chunk. */
 
-#define next_chunk(p) ((mchunkptr)( ((char*)(p)) + ((p)->size & ~PREV_INUSE) ))
+#define next_chunk(p) \
+  ((mchunkptr)(void*)( ((char*)(p)) + ((p)->size & ~PREV_INUSE) ))
 
 /* Ptr to previous physical malloc_chunk */
 
 #define prev_chunk(p)\
-   ((mchunkptr)( ((char*)(p)) - ((p)->prev_size) ))
+   ((mchunkptr)(void *)( ((char*)(p)) - ((p)->prev_size) ))
 
 
 /* Treat space at ptr + offset as a chunk */
 
-#define chunk_at_offset(p, s)  ((mchunkptr)(((char*)(p)) + (s)))
+#define chunk_at_offset(p, s)  ((mchunkptr)(void*)(((char*)(p)) + (s)))
 
 
 
@@ -1346,7 +1347,7 @@ nextchunk-> +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 /* extract p's inuse bit */
 
 #define inuse(p)\
-((((mchunkptr)(((char*)(p))+((p)->size & ~PREV_INUSE)))->size) & PREV_INUSE)
+((((mchunkptr)(void*)(((char*)(p))+((p)->size & ~PREV_INUSE)))->size) & PREV_INUSE)
 
 /* extract inuse bit of previous chunk */
 
@@ -1359,21 +1360,23 @@ nextchunk-> +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 /* set/clear chunk as in use without otherwise disturbing */
 
 #define set_inuse(p)\
-((mchunkptr)(((char*)(p)) + ((p)->size & ~PREV_INUSE)))->size |= PREV_INUSE
+  ((mchunkptr)(void*)(((char*)(p)) + \
+  ((p)->size & ~PREV_INUSE)))->size |= PREV_INUSE
 
 #define clear_inuse(p)\
-((mchunkptr)(((char*)(p)) + ((p)->size & ~PREV_INUSE)))->size &= ~(PREV_INUSE)
+  ((mchunkptr)(void*)(((char*)(p)) + \
+  ((p)->size & ~PREV_INUSE)))->size &= ~(PREV_INUSE)
 
 /* check/set/clear inuse bits in known places */
 
 #define inuse_bit_at_offset(p, s)\
- (((mchunkptr)(((char*)(p)) + (s)))->size & PREV_INUSE)
+ (((mchunkptr)(void*)(((char*)(p)) + (s)))->size & PREV_INUSE)
 
 #define set_inuse_bit_at_offset(p, s)\
- (((mchunkptr)(((char*)(p)) + (s)))->size |= PREV_INUSE)
+ (((mchunkptr)(void*)(((char*)(p)) + (s)))->size |= PREV_INUSE)
 
 #define clear_inuse_bit_at_offset(p, s)\
- (((mchunkptr)(((char*)(p)) + (s)))->size &= ~(PREV_INUSE))
+ (((mchunkptr)(void*)(((char*)(p)) + (s)))->size &= ~(PREV_INUSE))
 
 
 
@@ -1396,7 +1399,8 @@ nextchunk-> +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
 /* Set size at footer (only when chunk is not in use) */
 
-#define set_foot(p, s)   (((mchunkptr)((char*)(p) + (s)))->prev_size = (s))
+#define set_foot(p, s)  \
+   (((mchunkptr)(void*)((char*)(p) + (s)))->prev_size = (s))
 
 
 
@@ -1442,9 +1446,9 @@ typedef struct malloc_chunk* mbinptr;
 
 /* access macros */
 
-#define bin_at(i)      ((mbinptr)((char*)&(av_[2*(i) + 2]) - 2*SIZE_SZ))
-#define next_bin(b)    ((mbinptr)((char*)(b) + 2 * sizeof(mbinptr)))
-#define prev_bin(b)    ((mbinptr)((char*)(b) - 2 * sizeof(mbinptr)))
+#define bin_at(i)      ((mbinptr)(void*)((char*)&(av_[2*(i) + 2]) - 2*SIZE_SZ))
+#define next_bin(b)    ((mbinptr)(void*)((char*)(b) + 2 * sizeof(mbinptr)))
+#define prev_bin(b)    ((mbinptr)(void*)((char*)(b) - 2 * sizeof(mbinptr)))
 
 /*
    The first 2 bins are never indexed. The corresponding av_ cells are instead
@@ -1906,7 +1910,7 @@ static mchunkptr mremap_chunk(p, new_size) mchunkptr p; size_t new_size;
 
   if (cp == (char *)-1) return 0;
 
-  p = (mchunkptr)(cp + offset);
+  p = (mchunkptr)(void *)(cp + offset);
 
   assert(aligned_OK(chunk2mem(p)));
 
@@ -2002,7 +2006,7 @@ static void malloc_extend_top(nb) INTERNAL_SIZE_T nb;
 
     sbrked_mem += correction;
 
-    top = (mchunkptr)brk;
+    top = (mchunkptr)(void *)brk;
     top_size = new_brk - brk + correction;
     set_head(top, top_size | PREV_INUSE);
 
@@ -2781,7 +2785,7 @@ Void_t* mEMALIGn(alignment, bytes) size_t alignment; size_t bytes;
     brk = (char*)mem2chunk(((unsigned long)(m + alignment - 1)) & -alignment);
     if ((long)(brk - (char*)(p)) < MINSIZE) brk = brk + alignment;
 
-    newp = (mchunkptr)brk;
+    newp = (mchunkptr)(void *)brk;
     leadsize = brk - (char*)(p);
     newsize = chunksize(p) - leadsize;
 
@@ -3015,6 +3019,12 @@ int malloc_trim(pad) size_t pad;
 
 
 
+
+/* NAB: I have removed this functions as I don't think they are
+   useful on RIS COS.  */
+#if 0
+
+
 /*
   malloc_usable_size:
 
@@ -3047,9 +3057,6 @@ size_t malloc_usable_size(mem) Void_t* mem;
     return chunksize(p) - 2*SIZE_SZ;
   }
 }
-
-
-
 
 /* Utility to update current_mallinfo for malloc_stats and mallinfo() */
 
@@ -3090,8 +3097,6 @@ static void malloc_update_mallinfo()
   current_mallinfo.keepcost = chunksize(top);
 
 }
-
-
 
 /*
 
@@ -3136,8 +3141,6 @@ struct mallinfo mALLINFo()
 }
 
 
-
-
 /*
   mallopt:
 
@@ -3176,6 +3179,8 @@ int mALLOPt(param_number, value) int param_number; int value;
       return 0;
   }
 }
+
+#endif
 
 /*
 

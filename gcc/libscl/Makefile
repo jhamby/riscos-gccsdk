@@ -1,5 +1,5 @@
 # Makefile for the SharedCLibrary stubs
-# Copyright (c) 2000 Nick Burrett
+# Copyright (c) 2000, 2001 Nick Burrett
 # Written by Nick Burrett <nick@dsvr.net>
 #
 # This file is part of the RISC OS GCCSDK
@@ -12,7 +12,7 @@ $(objdir)/libscl/$(TRG)/%.o: %.c
 	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c $< $(INCLUDES) $(CFL)
 
 $(objdir)/libscl/$(TRG)/%.o: %.s
-	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c $<
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c $< $(CFL)
 
 LIBC = $(objdir)/libscl/$(TRG)/unistd.o \
 	$(objdir)/libscl/$(TRG)/stubs.o \
@@ -29,7 +29,7 @@ mkdirs:
 
 install_headers:
 	$(insthdr) . "*.h" libscl $(ux_gccpkg)/$(gn_cross_include_dir) $(ro_gccpkg)/$(gn_cross_include_dir)
-	$(insthdr) sys "*.h" libscl $(ux_gccpkg)/$(gn_cross_include_dir) $(ro_gccpkg)/$(gn_cross_include_dir)
+	$(insthdr) sys "*.h" libscl/sys $(ux_gccpkg)/$(gn_cross_include_dir) $(ro_gccpkg)/$(gn_cross_include_dir)
 
 $(ux_gcc_bin_dir)/$(TRG)/libscl.o:	$(LIBC)
 	$(CROSS_AR) $(CROSS_AR_FLAGS) $@ $(LIBC)

@@ -1,10 +1,10 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/clib/h/termios,v $
- * $Date: 1998/06/25 22:12:31 $
- * $Revision: 1.5 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/termios.h,v $
+ * $Date: 2001/09/14 14:01:17 $
+ * $Revision: 1.2.2.2 $
  * $State: Exp $
- * $Author: unixlib $
+ * $Author: admin $
  *
  ***************************************************************************/
 
@@ -23,9 +23,12 @@ extern "C" {
 
 /* Get the system-dependent definitions of `struct termios', `tcflag_t',
    `cc_t', `speed_t', and all the macros specifying the flag bits.  */
+typedef __speed_t speed_t;
+typedef __tcflag_t tcflag_t;
+typedef __cc_t cc_t;
+
 /* These macros are also defined in some ioctls.h files (with numerically
    identical values), but this serves to shut up cpp's complaining. */
-
 #ifdef MDMBUF
 #undef MDMBUF
 #endif
@@ -55,8 +58,7 @@ extern "C" {
    `tcflag_t', `cc_t', `speed_t' and the `TC*' constants appropriately.  */
 
 
-
-/* Input modes.  */
+/* Input flags - software input processing.  */
 #define	IGNBRK	(1 << 0)	/* Ignore break condition.  */
 #define	BRKINT	(1 << 1)	/* Signal interrupt on break.  */
 #define	IGNPAR	(1 << 2)	/* Ignore characters with parity errors.  */
@@ -71,13 +73,16 @@ extern "C" {
 #define	IXANY	(1 << 11)	/* Any character will restart after stop.  */
 #define	IMAXBEL	(1 << 13)	/* Ring bell when input queue is full.  */
 
-/* Output modes.  */
+/* Output modes - software output proecssing.  */
 #define	OPOST	(1 << 0)	/* Perform output processing.  */
 #define	ONLCR	(1 << 1)	/* Map NL to CR-NL on output.  */
 #define	OXTABS	(1 << 2)	/* Expand tabs to spaces.  */
-#define	ONOEOT	(1 << 8)	/* Discard EOT (^D) on output.  */
+#define	ONOEOT	(1 << 3)	/* Discard EOT (^D) on output.  */
+#define OCRNL	(1 << 4)	/* Map CR to NL on output.  */
+#define ONOCR	(1 << 5)	/* No CR output at column 0.  */
+#define ONLRET	(1 << 6)	/* NL performs CR function.  */
 
-/* Control modes.  */
+/* Control flags - hardware control of terminal. */
 #define	CIGNORE	(1 << 0)	/* Ignore these control flags.  */
 #define	CSIZE	(CS5|CS6|CS7|CS8)	/* Number of bits per byte (mask).  */
 #define	CS5	0		/* 5 bits per byte.  */
@@ -92,56 +97,62 @@ extern "C" {
 #define	CLOCAL	(1 << 15)	/* Ignore modem status lines.  */
 #define	CCTS_OFLOW	(1 << 16)	/* CTS flow control of output.  */
 #define	CRTS_IFLOW	(1 << 17)	/* RTS flow control of input.  */
+#define CDTR_IFLOW	(1 << 18)	/* DTR flow control of input.  */
+#define CDSR_OFLOW	(1 << 19)	/* DSR flow control of output.  */
+#define CCAR_OFLOW	(1 << 20)	/* DCD flow control of output.  */
 #define	MDMBUF		(1 << 20)	/* Carrier flow control of output.  */
 
 /* Local modes.  */
-#define	ECHOKE	(1 << 0)	/* Visual erase for KILL.  */
-#define	_ECHOE	(1 << 1)	/* Visual erase for ERASE.  */
-#define	ECHOE	_ECHOE
-#define	_ECHOK	(1 << 2)	/* Echo NL after KILL.  */
-#define	ECHOK	_ECHOK
-#define	_ECHO	(1 << 3)	/* Enable echo.  */
-#define	ECHO	_ECHO
-#define	_ECHONL	(1 << 4)	/* Echo NL even if ECHO is off.  */
-#define	ECHONL	_ECHONL
-#define	ECHOPRT	(1 << 5)	/* Hardcopy visual erase.  */
-#define	ECHOCTL	(1 << 6)	/* Echo control characters as ^X.  */
-#define	_ISIG	(1 << 7)	/* Enable signals.  */
-#define	ISIG	_ISIG
-#define	_ICANON	(1 << 8)	/* Do erase and kill processing.  */
-#define	ICANON	_ICANON
-#define	ALTWERASE (1 << 9)	/* Alternate WERASE algorithm.  */
-#define	_IEXTEN	(1 << 10)	/* Enable DISCARD and LNEXT.  */
-#define	IEXTEN	_IEXTEN
-#define	EXTPROC	(1 << 11)	/* External processing.  */
-#define	_TOSTOP	(1 << 22)	/* Send SIGTTOU for background output.  */
-#define	TOSTOP	_TOSTOP
-#define	FLUSHO	(1 << 23)	/* Output being flushed (state).  */
-#define	NOKERNINFO (1 << 25)	/* Disable VSTATUS.  */
-#define	PENDIN	(1 << 29)	/* Retype pending input (state).  */
-#define	_NOFLSH	(1 << 31)	/* Disable flush after interrupt.  */
-#define	NOFLSH	_NOFLSH
+#ifndef _POSIX_SOURCE
+#define ECHOKE          0x00000001      /* visual erase for line kill */
+#endif  /*_POSIX_SOURCE */
+#define ECHOE           0x00000002      /* visually erase chars */
+#define ECHOK           0x00000004      /* echo NL after line kill */
+#define ECHO            0x00000008      /* enable echoing */
+#define ECHONL          0x00000010      /* echo NL even if ECHO is off */
+#ifndef _POSIX_SOURCE
+#define ECHOPRT         0x00000020      /* visual erase mode for hardcopy */
+#define ECHOCTL         0x00000040      /* echo control chars as ^(Char) */
+#endif  /*_POSIX_SOURCE */
+#define ISIG            0x00000080      /* enable signals INTR, QUIT, [D]SUSP */
+#define ICANON          0x00000100      /* canonicalize input lines */
+#ifndef _POSIX_SOURCE
+#define ALTWERASE       0x00000200      /* use alternate WERASE algorithm */
+#endif  /*_POSIX_SOURCE */
+#define IEXTEN          0x00000400      /* enable DISCARD and LNEXT */
+#define EXTPROC         0x00000800      /* external processing */
+#define TOSTOP          0x00400000      /* stop background jobs from output */
+#ifndef _POSIX_SOURCE
+#define FLUSHO          0x00800000      /* output being flushed (state) */
+#define NOKERNINFO      0x02000000      /* no kernel output from VSTATUS */
+#define PENDIN          0x20000000      /* XXX retype pending input (state) */
+#endif  /*_POSIX_SOURCE */
+#define NOFLSH          0x80000000      /* don't flush after interrupt */
 
-/* Control characters.  */
-#define	VEOF	0		/* End-of-file character [ICANON].  */
-#define	VEOL	1		/* End-of-line character [ICANON].  */
-#define	VEOL2	2		/* Second EOL character [ICANON].  */
-#define	VERASE	3		/* Erase character [ICANON].  */
-#define	VWERASE	4		/* Word-erase character [ICANON].  */
-#define	VKILL	5		/* Kill-line character [ICANON].  */
-#define	VREPRINT 6		/* Reprint-line character [ICANON].  */
-#define	VINTR	8		/* Interrupt character [ISIG].  */
-#define	VQUIT	9		/* Quit character [ISIG].  */
-#define	VSUSP	10		/* Suspend character [ISIG].  */
-#define	VDSUSP	11		/* Delayed suspend character [ISIG].  */
-#define	VSTART	12		/* Start (X-ON) character [IXON, IXOFF].  */
-#define	VSTOP	13		/* Stop (X-OFF) character [IXON, IXOFF].  */
-#define	VLNEXT	14		/* Literal-next character [IEXTEN].  */
-#define	VDISCARD 15		/* Discard character [IEXTEN].  */
-#define	VMIN	16		/* Minimum number of bytes read at once [!ICANON].  */
-#define	VTIME	17		/* Time-out value (tenths of a second) [!ICANON].  */
-#define	VSTATUS	18		/* Status character [ICANON].  */
-#define	NCCS	20		/* Value duplicated in <hurd/tioctl.defs>.  */
+/* Special control characters.  These are indexes into the c_cc[]
+   character array.  The [xxx] is the flag that enables this
+   control character.  */
+#define	VEOF	0	/* End-of-file character [ICANON].  */
+#define	VEOL	1	/* End-of-line character [ICANON].  */
+#define	VEOL2	2	/* Second EOL character [ICANON].  */
+#define	VERASE	3	/* Erase character [ICANON].  */
+#define	VWERASE	4	/* Word-erase character [ICANON].  */
+#define	VKILL	5	/* Kill-line character [ICANON].  */
+#define	VREPRINT 6	/* Reprint-line character [ICANON].  */
+#define VERASE2 7	/* Erase character [ICANON].  */
+
+#define	VINTR	8	/* Interrupt character [ISIG].  */
+#define	VQUIT	9	/* Quit character [ISIG].  */
+#define	VSUSP	10	/* Suspend character [ISIG].  */
+#define	VDSUSP	11	/* Delayed suspend character [ISIG].  */
+#define	VSTART	12	/* Start (X-ON) character [IXON, IXOFF].  */
+#define	VSTOP	13	/* Stop (X-OFF) character [IXON, IXOFF].  */
+#define	VLNEXT	14	/* Literal-next character [IEXTEN].  */
+#define	VDISCARD 15	/* Discard character [IEXTEN].  */
+#define	VMIN	16	/* Minimum number of bytes read at once [!ICANON].  */
+#define	VTIME	17	/* Time-out value (tenths of a second) [!ICANON].  */
+#define	VSTATUS	18	/* Status character [ICANON].  */
+#define	NCCS	20	/* Value duplicated in <hurd/tioctl.defs>.  */
 
 /* Input and output baud rates.  */
 #define	B0	0		/* Hang up.  */
@@ -160,6 +171,14 @@ extern "C" {
 #define	B9600	9600		/* 9600 baud.  */
 #define	B19200	19200		/* 19200 baud.  */
 #define	B38400	38400		/* 38400 baud.  */
+
+#define B7200   7200
+#define B14400  14400
+#define B28800  28800
+#define B57600  57600
+#define B76800  76800
+#define B115200 115200
+#define B230400 230400
 #define	EXTA	19200
 #define	EXTB	38400
 
@@ -226,22 +245,22 @@ extern "C" {
 struct termios
 {
   /* Input modes.  */
-  __tcflag_t c_iflag;
+  tcflag_t c_iflag;
 
   /* Output modes.  */
-  __tcflag_t c_oflag;
+  tcflag_t c_oflag;
 
   /* Control modes.  */
-  __tcflag_t c_cflag;
+  tcflag_t c_cflag;
 
   /* Local modes.  */
-  __tcflag_t c_lflag;
+  tcflag_t c_lflag;
 
   /* Control characters.  */
-  __cc_t c_cc[NCCS];
+  cc_t c_cc[NCCS];
 
   /* Input and output baud rates.  */
-  __speed_t __ispeed, __ospeed;
+  speed_t __ispeed, __ospeed;
 };
 
 /* Return the output baud rate stored in *TERMIOS_P.  */
@@ -265,7 +284,7 @@ extern int tcgetattr (int __fd, struct termios *__termios_p);
 /* Set the state of FD to *TERMIOS_P.
    Values for OPTIONAL_ACTIONS (TCSA*) are in <termbits.h>.  */
 extern int tcsetattr (int __fd, int __optional_actions,
-			   const struct termios *__termios_p);
+		      const struct termios *__termios_p);
 
 
 /* Set *TERMIOS_P to indicate raw mode.  */

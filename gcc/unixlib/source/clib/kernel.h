@@ -1,8 +1,8 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/kernel.h,v $
- * $Date: 2001/01/29 15:10:19 $
- * $Revision: 1.2 $
+ * $Date: 2001/08/08 18:42:55 $
+ * $Revision: 1.3.2.1 $
  * $State: Exp $
  * $Author: admin $
  *
@@ -47,7 +47,7 @@ typedef struct stack_chunk
   unsigned long sc_mark;
   struct stack_chunk *sc_next, *sc_prev;
   unsigned long sc_size;
-  int (*sc_deallocate) ();
+  int (*sc_deallocate) (void);
 } _kernel_stack_chunk;
 
 extern int _kernel_fpavailable (void);

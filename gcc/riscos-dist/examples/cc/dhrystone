@@ -313,7 +313,7 @@ ways, as listed at the top of each
 #include <sys/times.h>
 #endif
 #ifdef TIME
-#include <time.h>
+#include <ctime>
 #endif
 
 /* define the granularity of your times(2) function (when used) */
@@ -329,7 +329,7 @@ ways, as listed at the top of each
 
 
 #ifdef	NOSTRUCTASSIGN
-#include <string.h>
+#include <cstring>
 #define	structassign(d, s)	memcpy(&(d), &(s), sizeof(d))
 #else
 #define	structassign(d, s)	d = s

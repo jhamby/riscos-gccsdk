@@ -1,25 +1,24 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/unix/c/close,v $
- * $Date: 1997/10/10 19:38:57 $
- * $Revision: 1.7 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/close.c,v $
+ * $Date: 2001/09/04 16:32:04 $
+ * $Revision: 1.2.2.2 $
  * $State: Exp $
- * $Author: unixlib $
+ * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: close,v 1.7 1997/10/10 19:38:57 unixlib Exp $";
+static const char rcs_id[] = "$Id: close.c,v 1.2.2.2 2001/09/04 16:32:04 admin Exp $";
 #endif
 
 #include <errno.h>
 #include <fcntl.h>
 
-#include <sys/syslib.h>
 #include <sys/types.h>
-#include <sys/unix.h>
-#include <sys/dev.h>
-#include <sys/os.h>
+#include <unixlib/unix.h>
+#include <unixlib/dev.h>
+#include <unixlib/os.h>
 #include <unistd.h>
 
 #include <unixlib/fd.h>
@@ -55,15 +54,15 @@ int __close (int fd)
       if (file_desc->pid == __u->pid)
 	{
 #ifdef DEBUG
-	  os_print (", closing\r\n");
+	  __os_print (", closing\r\n");
 #endif
 	  x = __funcall ((*(__dev[file_desc->device].close)), (file_desc));
 	  if (x == -1)
 	    {
 #ifdef DEBUG
-	      os_print ("         Failed!: ");
-	      os_print (_kernel_last_oserror()->errmess);
-	      os_nl();
+	      __os_print ("         Failed!: ");
+	      __os_print (_kernel_last_oserror()->errmess);
+	      __os_nl();
 #endif
 	      return -1;
 	    }
@@ -72,7 +71,7 @@ int __close (int fd)
 #ifdef DEBUG
     else
       {
-	os_print (", duplicate\r\n");
+	__os_print (", duplicate\r\n");
       }
 #endif
   /* Invalidate this file descriptor.  */
@@ -85,14 +84,14 @@ int
 close (int fd)
 {
 #ifdef DEBUG
-  os_print ("close(): fd = ");
-  os_prhex (fd);
+  __os_print ("close(): fd = ");
+  __os_prhex (fd);
 #endif
 
   if (BADF (fd))
     {
 #ifdef DEBUG
-      os_print (" - bad file descriptor\r\n");
+      __os_print (" - bad file descriptor\r\n");
       __write_corefile(1);
 #endif
       return __set_errno (EBADF);

@@ -1,24 +1,24 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/unix/c/getenv,v $
- * $Date: 2000/08/17 16:16:07 $
- * $Revision: 1.15 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/getenv.c,v $
+ * $Date: 2001/09/04 16:32:04 $
+ * $Revision: 1.2.2.2 $
  * $State: Exp $
  * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: getenv,v 1.15 2000/08/17 16:16:07 admin Exp $";
+static const char rcs_id[] = "$Id: getenv.c,v 1.2.2.2 2001/09/04 16:32:04 admin Exp $";
 #endif
 
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include <sys/os.h>
-#include <sys/unix.h>
-#include <sys/swis.h>
+#include <unixlib/os.h>
+#include <unixlib/unix.h>
+#include <swis.h>
 
 /* #define DEBUG 1 */
 
@@ -97,7 +97,7 @@ __addenv_unix_to_os (const char *string)
   regs[2] = strlen (equal + 1);
   regs[3] = 0;
   regs[4] = 0;
-  err = os_swi (OS_SetVarVal, regs);
+  err = __os_swi (OS_SetVarVal, regs);
   free (buf);
   if (err)
     {
@@ -120,7 +120,7 @@ __remenv_from_os (const char *name)
   regs[3] = 0;
   regs[4] = 0;
   /* Do not set the errno if the variable was not found. */
-  err = os_swi (OS_SetVarVal, regs);
+  err = __os_swi (OS_SetVarVal, regs);
   return (err ? -1 : 0);
 }
 
@@ -149,7 +149,7 @@ __getenv_from_os (const char *name, char *buf, size_t buflen)
       regs[2] = -1;
       regs[3] = 0;
       regs[4] = 0;
-      os_swi (OS_ReadVarVal, regs);
+      __os_swi (OS_ReadVarVal, regs);
       buflen = -regs[2];	/* equivalent to ~regs[2] + 1;  */
       /* We cannot find the length of environment variables which are macro
 	 expanded, so we need to loop until buffer is large enough to hold
@@ -164,7 +164,7 @@ __getenv_from_os (const char *name, char *buf, size_t buflen)
 	  regs[2] = buflen - 1;
 	  regs[3] = 0;
 	  regs[4] = 3;
-	  err = os_swi (OS_ReadVarVal, regs);
+	  err = __os_swi (OS_ReadVarVal, regs);
 	  if (!err)
 	    {
 	      /* Zero terminate and return trimmed buffer.  */
@@ -203,7 +203,7 @@ __getenv_from_os (const char *name, char *buf, size_t buflen)
       regs[2] = buflen - 1;
       regs[3] = 0;
       regs[4] = 3;
-      err = os_swi (OS_ReadVarVal, regs);
+      err = __os_swi (OS_ReadVarVal, regs);
       if (err)
 	{
 	  /* Do not set the errno if the variable was not found. */
@@ -251,9 +251,9 @@ __chkenv (const char *name)
   char **ep;
 
 #ifdef DEBUG
-  os_print ("-- chkenv: name='"); os_print (name);
-  os_print ("', environ="); os_prhex ((int) environ);
-  os_print ("\r\n");
+  __os_print ("-- chkenv: name='"); __os_print (name);
+  __os_print ("', environ="); __os_prhex ((int) environ);
+  __os_print ("\r\n");
 #endif
 
   if (environ != NULL)
@@ -277,11 +277,11 @@ __addenv (const char *name, const char *value, int replace, int add_to_os)
   const size_t valuelen = strlen (value) + 1;
 
 #ifdef DEBUG
-  os_print ("-- addenv: name='"); os_print (name);
-  os_print ("', value='"); os_print (value);
-  os_print ("', environ="); os_prhex ((int) environ);
-  os_print ("', __last_environ="); os_prhex ((int) __last_environ);
-  os_print ("\r\n");
+  __os_print ("-- addenv: name='"); __os_print (name);
+  __os_print ("', value='"); __os_print (value);
+  __os_print ("', environ="); __os_prhex ((int) environ);
+  __os_print ("', __last_environ="); __os_prhex ((int) __last_environ);
+  __os_print ("\r\n");
 #endif
 
   /* Search environment for old value.  */

@@ -1,8 +1,8 @@
 ;----------------------------------------------------------------------------
 ;
-; $Source: /usr/local/cvsroot/unixlib/source/sys/s/_sdiv,v $
-; $Date: 2000/12/21 15:09:13 $
-; $Revision: 1.3 $
+; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/_sdiv.s,v $
+; $Date: 2001/09/11 13:05:55 $
+; $Revision: 1.2.2.1 $
 ; $State: Exp $
 ; $Author: admin $
 ;
@@ -13,7 +13,7 @@
 divisor RN 0
 dividend RN 1
 
-	AREA	|C$code|, CODE, READONLY
+	AREA	|C$$code|, CODE, READONLY
 
 	EXPORT	|_kernel_sdiv|
 	EXPORT	|x$divide|

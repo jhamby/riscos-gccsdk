@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/stdio/c/tmpfile,v $
- * $Date: 2000/01/12 16:52:26 $
- * $Revision: 1.12 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/stdio/tmpfile.c,v $
+ * $Date: 2002/01/31 15:53:16 $
+ * $Revision: 1.2.2.3 $
  * $State: Exp $
  * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: tmpfile,v 1.12 2000/01/12 16:52:26 admin Exp $";
+static const char rcs_id[] = "$Id: tmpfile.c,v 1.2.2.3 2002/01/31 15:53:16 admin Exp $";
 #endif
 
 #include <string.h>
@@ -22,7 +22,7 @@ static const char rcs_id[] = "$Id: tmpfile,v 1.12 2000/01/12 16:52:26 admin Exp 
 #include <unistd.h>
 
 #include <unixlib/local.h>
-#include <sys/unix.h>
+#include <unixlib/unix.h>
 
 __STDIOLIB__
 
@@ -36,8 +36,12 @@ static char *
 generate_temporary_filename (char *buf, const char *dir,
 			     const char *file_template)
 {
-  register char *s = buf;
+  char *s = buf;
   unsigned long idx;
+  const int maxidx = (sizeof (letters) - 1) * (sizeof (letters) - 1)
+    * (sizeof (letters) - 1) * (sizeof (letters) - 1)
+    * (sizeof (letters) - 1) * (sizeof (letters) - 1);
+  int loop = 0;
 
   /* Create a pathname, include 'dir' if not null. */
   if (dir)
@@ -57,16 +61,17 @@ generate_temporary_filename (char *buf, const char *dir,
       return NULL;
     }
 
-  idx = 1;
+  idx = __time[0] % maxidx;
   while (1)
     {
-      if (idx >= ((sizeof (letters) - 1) * (sizeof (letters) - 1)
-		  * (sizeof (letters) - 1) * (sizeof (letters) - 1)
-		  * (sizeof (letters) - 1) * (sizeof (letters) - 1)))
+      if (idx >= maxidx)
 	{
-	  /* Couldn't create a suitable temporary filename.  */
-	  break;
+	  idx = 1;
+	  loop ++;
 	}
+      if (loop >= 2)
+	/* Couldn't create a suitable temporary filename.  */
+	break;
 
       s[0] = letters[idx % (sizeof (letters) - 1)];
       s[1] = letters[(idx / (sizeof (letters) - 1)) % (sizeof (letters) - 1)];
@@ -109,10 +114,8 @@ tmpfile (void)
   else
     {
 #if 1
+      /* Inline the fcntl call.  */
       __u->fd[result->fd].fflag |= O_UNLINKED;
-      fclose (result);
-      unlink (name);
-      result = NULL;
 #else
       /* This should never fail. */
       if (fcntl (result->fd, F_SETUNL, 1))

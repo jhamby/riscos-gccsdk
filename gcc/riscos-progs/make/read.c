@@ -14,24 +14,23 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Make; see the file COPYING.  If not, write to
-the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
+the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+Boston, MA 02111-1307, USA.  */
+
+#include "make.h"
 
 #include <assert.h>
 
-#include "make.h"
+#include <glob.h>
+
 #include "dep.h"
 #include "filedef.h"
 #include "job.h"
 #include "commands.h"
 #include "variable.h"
 #include "rule.h"
+#include "debug.h"
 
-/* This is POSIX.2, but most systems using -DPOSIX probably don't have it.  */
-#ifdef	HAVE_GLOB_H
-#include <glob.h>
-#else
-#include "glob/glob.h"
-#endif
 
 #ifndef WINDOWS32
 #ifndef _AMIGA
@@ -119,26 +118,27 @@ static unsigned int max_incl_len;
 /* The filename and pointer to line number of the
    makefile currently being read in.  */
 
-char *reading_filename;
-unsigned int *reading_lineno_ptr;
+const struct floc *reading_file;
 
 /* The chain of makefiles read by read_makefile.  */
 
 static struct dep *read_makefiles = 0;
 
 static int read_makefile PARAMS ((char *filename, int flags));
-static unsigned int readline PARAMS ((struct linebuffer *linebuffer, FILE *stream,
-			char *filename, unsigned int lineno));
-static unsigned int do_define PARAMS ((char *name, unsigned int namelen, enum variable_origin origin,
-			unsigned int lineno, FILE *infile, char *filename));
-static int conditional_line PARAMS ((char *line, char *filename, unsigned int lineno));
+static unsigned long readline PARAMS ((struct linebuffer *linebuffer,
+                                       FILE *stream, const struct floc *flocp));
+static void do_define PARAMS ((char *name, unsigned int namelen,
+                               enum variable_origin origin, FILE *infile,
+                               struct floc *flocp));
+static int conditional_line PARAMS ((char *line, const struct floc *flocp));
 static void record_files PARAMS ((struct nameseq *filenames, char *pattern, char *pattern_percent,
 			struct dep *deps, unsigned int cmds_started, char *commands,
-			unsigned int commands_idx, int two_colon, char *filename,
-			unsigned int lineno, int set_default));
+			unsigned int commands_idx, int two_colon,
+			const struct floc *flocp, int set_default));
 static void record_target_var PARAMS ((struct nameseq *filenames, char *defn,
-                        int two_colon, enum variable_origin origin,
-                        char *filename, unsigned int lineno));
+                                       int two_colon,
+                                       enum variable_origin origin,
+                                       const struct floc *flocp));
 static enum make_word_type get_next_mword PARAMS ((char *buffer, char *delim,
                         char **startp, unsigned int *length));
 
@@ -150,8 +150,7 @@ read_all_makefiles (makefiles)
 {
   unsigned int num_makefiles = 0;
 
-  if (debug_flag)
-    puts ("Reading makefiles...");
+  DB (DB_BASIC, (_("Reading makefiles...\n")));
 
   /* If there's a non-null variable MAKEFILES, its value is a list of
      files to read first thing.  But don't let it prevent reading the
@@ -180,8 +179,10 @@ read_all_makefiles (makefiles)
       {
 	if (*p != '\0')
 	  *p++ = '\0';
-	(void) read_makefile (name,
-			      RM_NO_DEFAULT_GOAL | RM_INCLUDED | RM_DONTCARE);
+        name = xstrdup (name);
+	if (read_makefile (name,
+                           RM_NO_DEFAULT_GOAL|RM_INCLUDED|RM_DONTCARE) < 2)
+          free (name);
       }
 
     free (value);
@@ -270,7 +271,9 @@ read_all_makefiles (makefiles)
 
    FILENAME is added to the `read_makefiles' chain.
 
-   Returns 1 if a file was found and read, 0 if not.  */
+   Returns 0 if a file was not found or not read.
+   Returns 1 if FILENAME was found and read.
+   Returns 2 if FILENAME was read, and we kept a reference (don't free it).  */
 
 static int
 read_makefile (filename, flags)
@@ -282,19 +285,19 @@ read_makefile (filename, flags)
   register FILE *infile;
   struct linebuffer lb;
   unsigned int commands_len = 200;
-  char *commands = (char *) xmalloc (200);
+  char *commands;
   unsigned int commands_idx = 0;
-  unsigned int cmds_started;
+  unsigned int cmds_started, tgts_started;
   char *p;
   char *p2;
   int len, reading_target;
   int ignoring = 0, in_ignored_define = 0;
   int no_targets = 0;		/* Set when reading a rule without targets.  */
+  struct floc fileinfo;
   char *passed_filename = filename;
 
   struct nameseq *filenames = 0;
   struct dep *deps;
-  unsigned int lineno = 1;
   unsigned int nlines = 0;
   int two_colon = 0;
   char *pattern = 0, *pattern_percent;
@@ -308,29 +311,36 @@ read_makefile (filename, flags)
   do									      \
     { 									      \
       if (filenames != 0)						      \
-	record_files (filenames, pattern, pattern_percent, deps,	      \
-		      cmds_started, commands, commands_idx,		      \
-		      two_colon, filename, lineno,			      \
-		      !(flags & RM_NO_DEFAULT_GOAL));		     	      \
+        {                                                                     \
+	  struct floc fi;                                                     \
+	  fi.filenm = fileinfo.filenm;                                        \
+	  fi.lineno = tgts_started;                                           \
+	  record_files (filenames, pattern, pattern_percent, deps,            \
+                        cmds_started, commands, commands_idx, two_colon,      \
+                        &fi, !(flags & RM_NO_DEFAULT_GOAL));                  \
+        }                                                                     \
       filenames = 0;							      \
       commands_idx = 0;							      \
       if (pattern) { free(pattern); pattern = 0; }                            \
     } while (0)
 
-  pattern_percent = 0;
-  cmds_started = lineno;
+  fileinfo.filenm = filename;
+  fileinfo.lineno = 1;
 
-  if (debug_flag)
+  pattern_percent = 0;
+  cmds_started = tgts_started = fileinfo.lineno;
+
+  if (ISDB (DB_VERBOSE))
     {
-      printf ("Reading makefile `%s'", filename);
+      printf (_("Reading makefile `%s'"), fileinfo.filenm);
       if (flags & RM_NO_DEFAULT_GOAL)
-	printf (" (no default goal)");
+	printf (_(" (no default goal)"));
       if (flags & RM_INCLUDED)
-	printf (" (search path)");
+	printf (_(" (search path)"));
       if (flags & RM_DONTCARE)
-	printf (" (don't care)");
+	printf (_(" (don't care)"));
       if (flags & RM_NO_TILDE)
-	printf (" (no ~ expansion)");
+	printf (_(" (no ~ expansion)"));
       puts ("...");
     }
 
@@ -377,7 +387,7 @@ read_makefile (filename, flags)
   deps->file = lookup_file (filename);
   if (deps->file == 0)
     {
-      deps->file = enter_file (savestring (filename, strlen (filename)));
+      deps->file = enter_file (xstrdup (filename));
       if (flags & RM_DONTCARE)
 	deps->file->dontcare = 1;
     }
@@ -398,8 +408,7 @@ read_makefile (filename, flags)
       return 0;
     }
 
-  reading_filename = filename;
-  reading_lineno_ptr = &lineno;
+  reading_file = &fileinfo;
 
   /* Loop over lines in the file.
      The strategy is to accumulate target names in FILENAMES, dependencies
@@ -407,11 +416,12 @@ read_makefile (filename, flags)
      when the start of the next rule (or eof) is encountered.  */
 
   initbuffer (&lb);
+  commands = xmalloc (200);
 
   while (!feof (infile))
     {
-      lineno += nlines;
-      nlines = readline (&lb, infile, filename, lineno);
+      fileinfo.lineno += nlines;
+      nlines = readline (&lb, infile, &fileinfo);
 
       /* Check for a shell command line first.
 	 If it is not one, we can stop treating tab specially.  */
@@ -437,7 +447,7 @@ read_makefile (filename, flags)
 	      /* Append this command line to the line being accumulated.  */
 	      p = lb.buffer;
 	      if (commands_idx == 0)
-		cmds_started = lineno;
+		cmds_started = fileinfo.lineno;
 	      len = strlen (p);
 	      if (len + 1 + commands_idx > commands_len)
 		{
@@ -467,9 +477,9 @@ read_makefile (filename, flags)
       remove_comments (collapsed);
 
       /* Compare a word, both length and contents. */
-#define	word1eq(s, l) 	(len == l && !strncmp (s, p, l))
+#define	word1eq(s, l) 	(len == l && strneq (s, p, l))
       p = collapsed;
-      while (isspace (*p))
+      while (isspace ((unsigned char)*p))
 	++p;
       if (*p == '\0')
 	/* This line is completely empty.  */
@@ -479,7 +489,7 @@ read_makefile (filename, flags)
        * ":" here since we compare tokens by length (so "export" will never
        * be equal to "export:").
        */
-      for (p2 = p+1; *p2 != '\0' && !isspace(*p2); ++p2)
+      for (p2 = p+1; *p2 != '\0' && !isspace ((unsigned char)*p2); ++p2)
         {}
       len = p2 - p;
 
@@ -487,7 +497,7 @@ read_makefile (filename, flags)
          since it can't be a preprocessor token--this allows targets named
          `ifdef', `export', etc. */
       reading_target = 0;
-      while (isspace (*p2))
+      while (isspace ((unsigned char)*p2))
         ++p2;
       if (*p2 == '\0')
         p2 = NULL;
@@ -506,12 +516,11 @@ read_makefile (filename, flags)
 	      || word1eq ("ifeq", 4) || word1eq ("ifneq", 5)
 	      || word1eq ("else", 4) || word1eq ("endif", 5)))
 	{
-	  int i = conditional_line (p, filename, lineno);
+	  int i = conditional_line (p, &fileinfo);
 	  if (i >= 0)
 	    ignoring = i;
 	  else
-	    makefile_fatal (filename, lineno,
-			    "invalid syntax in conditional");
+	    fatal (&fileinfo, _("invalid syntax in conditional"));
 	  continue;
 	}
 
@@ -520,7 +529,7 @@ read_makefile (filename, flags)
 	  if (in_ignored_define)
 	    in_ignored_define = 0;
 	  else
-	    makefile_fatal (filename, lineno, "extraneous `endef'");
+	    fatal (&fileinfo, _("extraneous `endef'"));
 	  continue;
 	}
 
@@ -531,15 +540,17 @@ read_makefile (filename, flags)
 	  else
 	    {
 	      p2 = next_token (p + 6);
+              if (*p2 == '\0')
+                fatal (&fileinfo, _("empty variable name"));
+
 	      /* Let the variable name be the whole rest of the line,
 		 with trailing blanks stripped (comments have already been
 		 removed), so it could be a complex variable/function
 		 reference that might contain blanks.  */
-	      p = index (p2, '\0');
-	      while (isblank (p[-1]))
+	      p = strchr (p2, '\0');
+	      while (isblank ((unsigned char)p[-1]))
 		--p;
-	      lineno = do_define (p2, p - p2, o_file,
-				  lineno, infile, filename);
+	      do_define (p2, p - p2, o_file, infile, &fileinfo);
 	    }
 	  continue;
 	}
@@ -547,30 +558,32 @@ read_makefile (filename, flags)
       if (word1eq ("override", 8))
         {
 	  p2 = next_token (p + 8);
-	  if (p2 == 0)
-	    makefile_error (filename, lineno, "empty `override' directive");
-	  if (!strncmp (p2, "define", 6) && (isblank (p2[6]) || p2[6] == '\0'))
+	  if (*p2 == '\0')
+	    error (&fileinfo, _("empty `override' directive"));
+	  if (strneq (p2, "define", 6)
+	      && (isblank ((unsigned char)p2[6]) || p2[6] == '\0'))
 	    {
 	      if (ignoring)
 		in_ignored_define = 1;
 	      else
 		{
 		  p2 = next_token (p2 + 6);
+                  if (*p2 == '\0')
+                    fatal (&fileinfo, _("empty variable name"));
+
 		  /* Let the variable name be the whole rest of the line,
 		     with trailing blanks stripped (comments have already been
 		     removed), so it could be a complex variable/function
 		     reference that might contain blanks.  */
-		  p = index (p2, '\0');
-		  while (isblank (p[-1]))
+		  p = strchr (p2, '\0');
+		  while (isblank ((unsigned char)p[-1]))
 		    --p;
-		  lineno = do_define (p2, p - p2, o_override,
-				      lineno, infile, filename);
+		  do_define (p2, p - p2, o_override, infile, &fileinfo);
 		}
 	    }
 	  else if (!ignoring
-		   && !try_variable_definition (filename, lineno,
-						p2, o_override))
-	    makefile_error (filename, lineno, "empty `override' directive");
+		   && !try_variable_definition (&fileinfo, p2, o_override, 0))
+	    error (&fileinfo, _("invalid `override' directive"));
 
 	  continue;
 	}
@@ -587,7 +600,7 @@ read_makefile (filename, flags)
 	  p2 = next_token (p + 6);
 	  if (*p2 == '\0')
 	    export_all_variables = 1;
-	  v = try_variable_definition (filename, lineno, p2, o_file);
+	  v = try_variable_definition (&fileinfo, p2, o_file, 0);
 	  if (v != 0)
 	    v->export = v_export;
 	  else
@@ -598,7 +611,7 @@ read_makefile (filename, flags)
 		{
 		  v = lookup_variable (p, len);
 		  if (v == 0)
-		    v = define_variable (p, len, "", o_file, 0);
+		    v = define_variable_loc (p, len, "", o_file, 0, &fileinfo);
 		  v->export = v_export;
 		}
 	    }
@@ -615,7 +628,7 @@ read_makefile (filename, flags)
 	    {
 	      v = lookup_variable (p, len);
 	      if (v == 0)
-		v = define_variable (p, len, "", o_file, 0);
+		v = define_variable_loc (p, len, "", o_file, 0, &fileinfo);
 	      v->export = v_noexport;
 	    }
 	}
@@ -653,9 +666,8 @@ read_makefile (filename, flags)
 	  p = allocated_variable_expand (next_token (p + (noerror ? 8 : 7)));
 	  if (*p == '\0')
 	    {
-	      makefile_error (filename, lineno,
-			      "no file name for `%sinclude'",
-			      noerror ? "-" : "");
+	      error (&fileinfo,
+                     _("no file name for `%sinclude'"), noerror ? "-" : "");
 	      continue;
 	    }
 
@@ -682,15 +694,19 @@ read_makefile (filename, flags)
 	    {
 	      struct nameseq *next = files->next;
 	      char *name = files->name;
+              int r;
+
 	      free ((char *)files);
 	      files = next;
 
-	      if (! read_makefile (name, (RM_INCLUDED | RM_NO_TILDE
-					  | (noerror ? RM_DONTCARE : 0)))
-		  && ! noerror)
-		makefile_error (filename, lineno,
-				"%s: %s", name, strerror (errno));
-              free(name);
+              r = read_makefile (name, (RM_INCLUDED | RM_NO_TILDE
+                                        | (noerror ? RM_DONTCARE : 0)));
+	      if (!r)
+                {
+                  if (!noerror)
+                    error (&fileinfo, "%s: %s", name, strerror (errno));
+                  free (name);
+                }
 	    }
 
 	  /* Free any space allocated by conditional_line.  */
@@ -701,17 +717,16 @@ read_makefile (filename, flags)
 
 	  /* Restore state.  */
 	  conditionals = save;
-	  reading_filename = filename;
-	  reading_lineno_ptr = &lineno;
+	  reading_file = &fileinfo;
 	}
 #undef	word1eq
-      else if (try_variable_definition (filename, lineno, p, o_file))
+      else if (try_variable_definition (&fileinfo, p, o_file, 0))
 	/* This line has been dealt with.  */
 	;
       else if (lb.buffer[0] == '\t')
 	{
 	  p = collapsed;	/* Ignore comments.  */
-	  while (isblank (*p))
+	  while (isblank ((unsigned char)*p))
 	    ++p;
 	  if (*p == '\0')
 	    /* The line is completely blank; that is harmless.  */
@@ -720,8 +735,7 @@ read_makefile (filename, flags)
 	     because there was no preceding target, and the line
 	     might have been usable as a variable definition.
 	     But now it is definitely lossage.  */
-	  makefile_fatal (filename, lineno,
-			  "commands commence before first target");
+	  fatal(&fileinfo, _("commands commence before first target"));
 	}
       else
 	{
@@ -737,12 +751,14 @@ read_makefile (filename, flags)
 
           enum make_word_type wtype;
           enum variable_origin v_origin;
-          char *cmdleft, *lb_next;
+          char *cmdleft, *semip, *lb_next;
           unsigned int len, plen = 0;
+          char *colonp;
 
 	  /* Record the previous rule.  */
 
 	  record_waiting_files ();
+          tgts_started = fileinfo.lineno;
 
 	  /* Search the line for an unquoted ; that is not after an
              unquoted #.  */
@@ -756,6 +772,7 @@ read_makefile (filename, flags)
 	  else if (cmdleft != 0)
 	    /* Found one.  Cut the line short there before expanding it.  */
 	    *(cmdleft++) = '\0';
+          semip = cmdleft;
 
 	  collapse_continuations (lb.buffer);
 
@@ -768,12 +785,10 @@ read_makefile (filename, flags)
             {
             case w_eol:
               if (cmdleft != 0)
-                makefile_fatal (filename, lineno,
-                                "missing rule before commands");
-              else
-                /* This line contained a variable reference that
-                   expanded to nothing but whitespace.  */
-                continue;
+                fatal(&fileinfo, _("missing rule before commands"));
+              /* This line contained something but turned out to be nothing
+                 but whitespace (a comment?).  */
+              continue;
 
             case w_colon:
             case w_dcolon:
@@ -789,8 +804,6 @@ read_makefile (filename, flags)
           p2 = variable_expand_string(NULL, lb_next, len);
           while (1)
             {
-              char *colonp;
-
               lb_next += len;
               if (cmdleft == 0)
                 {
@@ -815,7 +828,7 @@ read_makefile (filename, flags)
                          entirely consistent, since we do an unconditional
                          expand below once we know we don't have a
                          target-specific variable. */
-                      (void)variable_expand_string(pend, lb_next, -1);
+                      (void)variable_expand_string(pend, lb_next, (long)-1);
                       lb_next += strlen(lb_next);
                       p2 = variable_buffer + p2_off;
                       cmdleft = variable_buffer + cmd_off + 1;
@@ -825,12 +838,12 @@ read_makefile (filename, flags)
               colonp = find_char_unquote(p2, ":", 0);
 #if defined(__MSDOS__) || defined(WINDOWS32)
 	      /* The drive spec brain-damage strikes again...  */
-	      /* FIXME: is whitespace the only possible separator of words
-		 in this context?  If not, the `isspace' test below will
-		 need to be changed into a call to `index'.  */
+	      /* Note that the only separators of targets in this context
+		 are whitespace and a left paren.  If others are possible,
+		 they should be added to the string in the call to index.  */
 	      while (colonp && (colonp[1] == '/' || colonp[1] == '\\') &&
-		     colonp > p2 && isalpha(colonp[-1]) &&
-		     (colonp == p2 + 1 || isspace(colonp[-2])))
+		     colonp > p2 && isalpha ((unsigned char)colonp[-1]) &&
+		     (colonp == p2 + 1 || strchr (" \t(", colonp[-2]) != 0))
 		colonp = find_char_unquote(colonp + 1, ":", 0);
 #endif
               if (colonp != 0)
@@ -838,7 +851,7 @@ read_makefile (filename, flags)
 
               wtype = get_next_mword(lb_next, NULL, &lb_next, &len);
               if (wtype == w_eol)
-                makefile_fatal (filename, lineno, "missing separator");
+                break;
 
               p2 += strlen(p2);
               *(p2++) = ' ';
@@ -850,10 +863,28 @@ read_makefile (filename, flags)
 
 	  p2 = next_token (variable_buffer);
 
-	  filenames = multi_glob (parse_file_seq (&p2, ':',
+          /* If the word we're looking at is EOL, see if there's _anything_
+             on the line.  If not, a variable expanded to nothing, so ignore
+             it.  If so, we can't parse this line so punt.  */
+          if (wtype == w_eol)
+            {
+              if (*p2 != '\0')
+                /* There's no need to be ivory-tower about this: check for
+                   one of the most common bugs found in makefiles...  */
+                fatal (&fileinfo, _("missing separator%s"),
+                       !strneq(lb.buffer, "        ", 8) ? ""
+                       : _(" (did you mean TAB instead of 8 spaces?)"));
+              continue;
+            }
+
+          /* Make the colon the end-of-string so we know where to stop
+             looking for targets.  */
+          *colonp = '\0';
+	  filenames = multi_glob (parse_file_seq (&p2, '\0',
 						  sizeof (struct nameseq),
 						  1),
 				  sizeof (struct nameseq));
+          *p2 = ':';
 
           if (!filenames)
             {
@@ -863,7 +894,7 @@ read_makefile (filename, flags)
               continue;
             }
           /* This should never be possible; we handled it above.  */
-	  assert(*p2 != '\0');
+	  assert (*p2 != '\0');
           ++p2;
 
 	  /* Is this a one-colon or two-colon entry?  */
@@ -878,26 +909,39 @@ read_makefile (filename, flags)
           if (*lb_next != '\0')
             {
               unsigned int l = p2 - variable_buffer;
-              plen = strlen(p2);
-              (void)variable_buffer_output(p2+plen,
-                                           lb_next, strlen(lb_next)+1);
+              plen = strlen (p2);
+              (void) variable_buffer_output (p2+plen,
+                                             lb_next, strlen (lb_next)+1);
               p2 = variable_buffer + l;
             }
-          wtype = get_next_mword(p2, NULL, &p, &len);
+
+          /* See if it's an "override" keyword; if so see if what comes after
+             it looks like a variable definition.  */
+
+          wtype = get_next_mword (p2, NULL, &p, &len);
+
           v_origin = o_file;
-          if (wtype == w_static && (len == (sizeof("override")-1)
-                                    && !strncmp(p, "override", len)))
+          if (wtype == w_static && (len == (sizeof ("override")-1)
+                                    && strneq (p, "override", len)))
             {
               v_origin = o_override;
-              (void)get_next_mword(p+len, NULL, &p, &len);
+              wtype = get_next_mword (p+len, NULL, &p, &len);
             }
-          else if (wtype != w_eol)
-            wtype = get_next_mword(p+len, NULL, NULL, NULL);
 
-          if (wtype == w_varassign || v_origin == o_override)
+          if (wtype != w_eol)
+            wtype = get_next_mword (p+len, NULL, NULL, NULL);
+
+          if (wtype == w_varassign)
             {
-              record_target_var(filenames, p, two_colon, v_origin,
-                                filename, lineno);
+              /* If there was a semicolon found, add it back, plus anything
+                 after it.  */
+              if (semip)
+                {
+                  *(--semip) = ';';
+                  variable_buffer_output (p2 + strlen (p2),
+                                          semip, strlen (semip)+1);
+                }
+              record_target_var (filenames, p, two_colon, v_origin, &fileinfo);
               filenames = 0;
               continue;
             }
@@ -913,7 +957,7 @@ read_makefile (filename, flags)
           if (*lb_next != '\0')
             {
               unsigned int l = p2 - variable_buffer;
-              (void)variable_expand_string(p2 + plen, lb_next, -1);
+              (void) variable_expand_string (p2 + plen, lb_next, (long)-1);
               p2 = variable_buffer + l;
 
               /* Look for a semicolon in the expanded line.  */
@@ -926,7 +970,7 @@ read_makefile (filename, flags)
             }
 
 	  /* Is this a static pattern rule: `target: %targ: %dep; ...'?  */
-	  p = index (p2, ':');
+	  p = strchr (p2, ':');
 	  while (p != 0 && p[-1] == '\\')
 	    {
 	      register char *q = &p[-1];
@@ -934,7 +978,7 @@ read_makefile (filename, flags)
 	      while (*q-- == '\\')
 		backslash = !backslash;
 	      if (backslash)
-		p = index (p + 1, ':');
+		p = strchr (p + 1, ':');
 	      else
 		break;
 	    }
@@ -951,7 +995,8 @@ read_makefile (filename, flags)
 	    The rule is that it's only a target, if there are TWO :'s
 	    OR a space around the :.
 	  */
-	  if (p && !(isspace(p[1]) || !p[1] || isspace(p[-1])))
+	  if (p && !(isspace ((unsigned char)p[1]) || !p[1]
+                     || isspace ((unsigned char)p[-1])))
 	    p = 0;
 #endif
 #if defined (WINDOWS32) || defined (__MSDOS__)
@@ -959,8 +1004,9 @@ read_makefile (filename, flags)
             check_again = 0;
             /* For MSDOS and WINDOWS32, skip a "C:\..." or a "C:/..." */
             if (p != 0 && (p[1] == '\\' || p[1] == '/') &&
-		isalpha(p[-1]) && (p == p2 + 1 || index(" \t:", p[-2]) != 0)) {
-              p = index(p + 1, ':');
+		isalpha ((unsigned char)p[-1]) &&
+		(p == p2 + 1 || strchr (" \t:(", p[-2]) != 0)) {
+              p = strchr (p + 1, ':');
               check_again = 1;
             }
           } while (check_again);
@@ -971,14 +1017,13 @@ read_makefile (filename, flags)
 	      target = parse_file_seq (&p2, ':', sizeof (struct nameseq), 1);
 	      ++p2;
 	      if (target == 0)
-		makefile_fatal (filename, lineno, "missing target pattern");
+		fatal (&fileinfo, _("missing target pattern"));
 	      else if (target->next != 0)
-		makefile_fatal (filename, lineno, "multiple target patterns");
+		fatal (&fileinfo, _("multiple target patterns"));
 	      pattern = target->name;
 	      pattern_percent = find_percent (pattern);
 	      if (pattern_percent == 0)
-		makefile_fatal (filename, lineno,
-				"target pattern contains no `%%'");
+		fatal (&fileinfo, _("target pattern contains no `%%'"));
               free((char *)target);
 	    }
 	  else
@@ -995,7 +1040,7 @@ read_makefile (filename, flags)
 	      /* Semicolon means rest of line is a command.  */
 	      unsigned int len = strlen (cmdleft);
 
-	      cmds_started = lineno;
+	      cmds_started = fileinfo.lineno;
 
 	      /* Add this command line to the buffer.  */
 	      if (len + 2 > commands_len)
@@ -1019,7 +1064,7 @@ read_makefile (filename, flags)
     }
 
   if (conditionals->if_cmds)
-    makefile_fatal (filename, lineno, "missing `endif'");
+    fatal (&fileinfo, _("missing `endif'"));
 
   /* At eof, record the last rule.  */
   record_waiting_files ();
@@ -1028,8 +1073,7 @@ read_makefile (filename, flags)
   free ((char *) commands);
   fclose (infile);
 
-  reading_filename = 0;
-  reading_lineno_ptr = 0;
+  reading_file = 0;
 
   return 1;
 }
@@ -1040,14 +1084,13 @@ read_makefile (filename, flags)
    LINENO, INFILE and FILENAME refer to the makefile being read.
    The value returned is LINENO, updated for lines read here.  */
 
-static unsigned int
-do_define (name, namelen, origin, lineno, infile, filename)
+static void
+do_define (name, namelen, origin, infile, flocp)
      char *name;
      unsigned int namelen;
      enum variable_origin origin;
-     unsigned int lineno;
      FILE *infile;
-     char *filename;
+     struct floc *flocp;
 {
   struct linebuffer lb;
   unsigned int nlines = 0;
@@ -1067,30 +1110,30 @@ do_define (name, namelen, origin, lineno, infile, filename)
     {
       unsigned int len;
 
-      lineno += nlines;
-      nlines = readline (&lb, infile, filename, lineno);
+      flocp->lineno += nlines;
+      nlines = readline (&lb, infile, flocp);
 
       collapse_continuations (lb.buffer);
 
       p = next_token (lb.buffer);
       len = strlen (p);
-      if ((len == 5 || (len > 5 && isblank (p[5])))
-          && !strncmp (p, "endef", 5))
+      if ((len == 5 || (len > 5 && isblank ((unsigned char)p[5])))
+          && strneq (p, "endef", 5))
 	{
 	  p += 5;
 	  remove_comments (p);
 	  if (*next_token (p) != '\0')
-	    makefile_error (filename, lineno,
-			    "Extraneous text after `endef' directive");
+	    error (flocp, _("Extraneous text after `endef' directive"));
 	  /* Define the variable.  */
 	  if (idx == 0)
 	    definition[0] = '\0';
 	  else
 	    definition[idx - 1] = '\0';
-	  (void) define_variable (var, strlen (var), definition, origin, 1);
+	  (void) define_variable_loc (var, strlen (var), definition, origin,
+                                      1, flocp);
 	  free (definition);
 	  freebuffer (&lb);
-	  return (lineno + nlines);
+	  return;
 	}
       else
 	{
@@ -1110,10 +1153,10 @@ do_define (name, namelen, origin, lineno, infile, filename)
     }
 
   /* No `endef'!!  */
-  makefile_fatal (filename, lineno, "missing `endef', unterminated `define'");
+  fatal (flocp, _("missing `endef', unterminated `define'"));
 
   /* NOTREACHED */
-  return 0;
+  return;
 }
 
 /* Interpret conditional commands "ifdef", "ifndef", "ifeq",
@@ -1128,10 +1171,9 @@ do_define (name, namelen, origin, lineno, infile, filename)
    1 if following text should be ignored.  */
 
 static int
-conditional_line (line, filename, lineno)
+conditional_line (line, flocp)
      char *line;
-     char *filename;
-     unsigned int lineno;
+     const struct floc *flocp;
 {
   int notdef;
   char *cmdname;
@@ -1165,17 +1207,15 @@ conditional_line (line, filename, lineno)
   if (*cmdname == 'e')
     {
       if (*line != '\0')
-	makefile_error (filename, lineno,
-			"Extraneous text after `%s' directive",
-			cmdname);
+	error (flocp, _("Extraneous text after `%s' directive"), cmdname);
       /* "Else" or "endif".  */
       if (conditionals->if_cmds == 0)
-	makefile_fatal (filename, lineno, "extraneous `%s'", cmdname);
+	fatal (flocp, _("extraneous `%s'"), cmdname);
       /* NOTDEF indicates an `endif' command.  */
       if (notdef)
 	--conditionals->if_cmds;
       else if (conditionals->seen_else[conditionals->if_cmds - 1])
-	makefile_fatal (filename, lineno, "only one `else' per conditional");
+	fatal (flocp, _("only one `else' per conditional"));
       else
 	{
 	  /* Toggle the state of ignorance.  */
@@ -1269,7 +1309,7 @@ conditional_line (line, filename, lineno)
 	{
 	  /* Strip blanks after the first string.  */
 	  char *p = line++;
-	  while (isblank (p[-1]))
+	  while (isblank ((unsigned char)p[-1]))
 	    --p;
 	  *p = '\0';
 	}
@@ -1301,10 +1341,12 @@ conditional_line (line, filename, lineno)
 	      if (*line == '(')
 		++count;
 	      else if (*line == ')')
-		if (count <= 0)
-		  break;
-		else
-		  --count;
+		{
+		  if (count <= 0)
+		    break;
+		  else
+		    --count;
+		}
 	    }
 	}
       else
@@ -1321,9 +1363,7 @@ conditional_line (line, filename, lineno)
       *line = '\0';
       line = next_token (++line);
       if (*line != '\0')
-	makefile_error (filename, lineno,
-			"Extraneous text after `%s' directive",
-			cmdname);
+	error (flocp, _("Extraneous text after `%s' directive"), cmdname);
 
       s2 = variable_expand (s2);
       conditionals->ignoring[conditionals->if_cmds - 1]
@@ -1384,18 +1424,20 @@ uniquize_deps (chain)
    variable value list.  */
 
 static void
-record_target_var (filenames, defn, two_colon, origin, filename, lineno)
+record_target_var (filenames, defn, two_colon, origin, flocp)
      struct nameseq *filenames;
      char *defn;
      int two_colon;
      enum variable_origin origin;
-     char *filename;
-     unsigned int lineno;
+     const struct floc *flocp;
 {
   struct nameseq *nextf;
   struct variable_set_list *global;
 
   global = current_variable_set_list;
+
+  /* If the variable is an append version, store that but treat it as a
+     normal recursive variable.  */
 
   for (; filenames != 0; filenames = nextf)
     {
@@ -1426,17 +1468,16 @@ record_target_var (filenames, defn, two_colon, origin, filename, lineno)
 
           /* Get a file reference for this file, and initialize it.  */
           f = enter_file (name);
-          initialize_file_variables (f);
+          initialize_file_variables (f, 1);
           vlist = f->variables;
           fname = f->name;
         }
 
       /* Make the new variable context current and define the variable.  */
       current_variable_set_list = vlist;
-      v = try_variable_definition(filename, lineno, defn, origin);
+      v = try_variable_definition (flocp, defn, origin, 1);
       if (!v)
-        makefile_error(filename, lineno,
-                       "Malformed per-target variable definition");
+        error (flocp, _("Malformed per-target variable definition"));
       v->per_target = 1;
 
       /* If it's not an override, check to see if there was a command-line
@@ -1447,10 +1488,10 @@ record_target_var (filenames, defn, two_colon, origin, filename, lineno)
           int len = strlen(v->name);
 
           current_variable_set_list = global;
-          gv = lookup_variable(v->name, len);
+          gv = lookup_variable (v->name, len);
           if (gv && (gv->origin == o_env_override || gv->origin == o_command))
-            define_variable_in_set(v->name, len, gv->value, gv->origin,
-                                     gv->recursive, vlist->set);
+            define_variable_in_set (v->name, len, gv->value, gv->origin,
+                                    gv->recursive, vlist->set, flocp);
         }
 
       /* Free name if not needed further.  */
@@ -1474,7 +1515,7 @@ record_target_var (filenames, defn, two_colon, origin, filename, lineno)
 
 static void
 record_files (filenames, pattern, pattern_percent, deps, cmds_started,
-	      commands, commands_idx, two_colon, filename, lineno, set_default)
+	      commands, commands_idx, two_colon, flocp, set_default)
      struct nameseq *filenames;
      char *pattern, *pattern_percent;
      struct dep *deps;
@@ -1482,8 +1523,7 @@ record_files (filenames, pattern, pattern_percent, deps, cmds_started,
      char *commands;
      unsigned int commands_idx;
      int two_colon;
-     char *filename;
-     unsigned int lineno;
+     const struct floc *flocp;
      int set_default;
 {
   struct nameseq *nextf;
@@ -1495,8 +1535,8 @@ record_files (filenames, pattern, pattern_percent, deps, cmds_started,
   if (commands_idx > 0)
     {
       cmds = (struct commands *) xmalloc (sizeof (struct commands));
-      cmds->filename = filename;
-      cmds->lineno = cmds_started;
+      cmds->fileinfo.filenm = flocp->filenm;
+      cmds->fileinfo.lineno = cmds_started;
       cmds->commands = savestring (commands, commands_idx);
       cmds->command_lines = 0;
     }
@@ -1513,17 +1553,16 @@ record_files (filenames, pattern, pattern_percent, deps, cmds_started,
       char *implicit_percent;
 
       nextf = filenames->next;
-      free ((char *) filenames);
+      free (filenames);
 
       implicit_percent = find_percent (name);
       implicit |= implicit_percent != 0;
 
       if (implicit && pattern != 0)
-	makefile_fatal (filename, lineno,
-			"mixed implicit and static pattern rules");
+	fatal (flocp, _("mixed implicit and static pattern rules"));
 
       if (implicit && implicit_percent == 0)
-	makefile_fatal (filename, lineno, "mixed implicit and normal rules");
+	fatal (flocp, _("mixed implicit and normal rules"));
 
       if (implicit)
 	{
@@ -1555,37 +1594,44 @@ record_files (filenames, pattern, pattern_percent, deps, cmds_started,
       this = nextf != 0 ? copy_dep_chain (deps) : deps;
 
       if (pattern != 0)
-	/* If this is an extended static rule:
-	   `targets: target%pattern: dep%pattern; cmds',
-	   translate each dependency pattern into a plain filename
-	   using the target pattern and this target's name.  */
-	if (!pattern_matches (pattern, pattern_percent, name))
-	  {
-	    /* Give a warning if the rule is meaningless.  */
-	    makefile_error (filename, lineno,
-			    "target `%s' doesn't match the target pattern",
-			    name);
-	    this = 0;
-	  }
-	else
-	  {
-	    /* We use patsubst_expand to do the work of translating
-	       the target pattern, the target's name and the dependencies'
-	       patterns into plain dependency names.  */
-	    char *buffer = variable_expand ("");
+	{
+	  /* If this is an extended static rule:
+	     `targets: target%pattern: dep%pattern; cmds',
+	     translate each dependency pattern into a plain filename
+	     using the target pattern and this target's name.  */
+	  if (!pattern_matches (pattern, pattern_percent, name))
+	    {
+	      /* Give a warning if the rule is meaningless.  */
+	      error (flocp,
+		     _("target `%s' doesn't match the target pattern"), name);
+	      this = 0;
+	    }
+	  else
+	    {
+	      /* We use patsubst_expand to do the work of translating
+		 the target pattern, the target's name and the dependencies'
+		 patterns into plain dependency names.  */
+	      char *buffer = variable_expand ("");
 
-	    for (d = this; d != 0; d = d->next)
-	      {
-		char *o;
-		char *percent = find_percent (d->name);
-		if (percent == 0)
-		  continue;
-		o = patsubst_expand (buffer, name, pattern, d->name,
-				     pattern_percent, percent);
-		free (d->name);
-		d->name = savestring (buffer, o - buffer);
-	      }
-	  }
+	      for (d = this; d != 0; d = d->next)
+		{
+		  char *o;
+		  char *percent = find_percent (d->name);
+		  if (percent == 0)
+		    continue;
+		  o = patsubst_expand (buffer, name, pattern, d->name,
+				       pattern_percent, percent);
+                  /* If the name expanded to the empty string, that's
+                     illegal.  */
+                  if (o == buffer)
+                    fatal (flocp,
+                           _("target `%s' leaves prerequisite pattern empty"),
+                           name);
+		  free (d->name);
+		  d->name = savestring (buffer, o - buffer);
+		}
+	    }
+	}
 
       if (!two_colon)
 	{
@@ -1594,29 +1640,27 @@ record_files (filenames, pattern, pattern_percent, deps, cmds_started,
 	  f = enter_file (name);
 
 	  if (f->double_colon)
-	    makefile_fatal (filename, lineno,
-			    "target file `%s' has both : and :: entries",
-			    f->name);
+	    fatal (flocp,
+                   _("target file `%s' has both : and :: entries"), f->name);
 
 	  /* If CMDS == F->CMDS, this target was listed in this rule
 	     more than once.  Just give a warning since this is harmless.  */
 	  if (cmds != 0 && cmds == f->cmds)
-	    makefile_error
-	      (filename, lineno,
-	       "target `%s' given more than once in the same rule.",
-	       f->name);
+	    error (flocp,
+                   _("target `%s' given more than once in the same rule."),
+                   f->name);
 
 	  /* Check for two single-colon entries both with commands.
 	     Check is_target so that we don't lose on files such as .c.o
 	     whose commands were preinitialized.  */
 	  else if (cmds != 0 && f->cmds != 0 && f->is_target)
 	    {
-	      makefile_error (cmds->filename, cmds->lineno,
-			      "warning: overriding commands for target `%s'",
-			      f->name);
-	      makefile_error (f->cmds->filename, f->cmds->lineno,
-			      "warning: ignoring old commands for target `%s'",
-			      f->name);
+	      error (&cmds->fileinfo,
+                     _("warning: overriding commands for target `%s'"),
+                     f->name);
+	      error (&f->cmds->fileinfo,
+                     _("warning: ignoring old commands for target `%s'"),
+                     f->name);
 	    }
 
 	  f->is_target = 1;
@@ -1696,9 +1740,8 @@ record_files (filenames, pattern, pattern_percent, deps, cmds_started,
 	  /* Check for both : and :: rules.  Check is_target so
 	     we don't lose on default suffix rules or makefiles.  */
 	  if (f != 0 && f->is_target && !f->double_colon)
-	    makefile_fatal (filename, lineno,
-			    "target file `%s' has both : and :: entries",
-			    f->name);
+	    fatal (flocp,
+                   _("target file `%s' has both : and :: entries"), f->name);
 	  f = enter_file (name);
 	  /* If there was an existing entry and it was a double-colon
 	     entry, enter_file will have returned a new one, making it the
@@ -1724,9 +1767,9 @@ record_files (filenames, pattern, pattern_percent, deps, cmds_started,
       /* See if this is first target seen whose name does
 	 not start with a `.', unless it contains a slash.  */
       if (default_goal_file == 0 && set_default
-	  && (*name != '.' || index (name, '/') != 0
-#ifdef __MSDOS__
-			   || index (name, '\\') != 0
+	  && (*name != '.' || strchr (name, '/') != 0
+#if defined(__MSDOS__) || defined(WINDOWS32)
+			   || strchr (name, '\\') != 0
 #endif
 	      ))
 	{
@@ -1746,7 +1789,7 @@ record_files (filenames, pattern, pattern_percent, deps, cmds_started,
 	      for (d2 = suffix_file->deps; d2 != 0; d2 = d2->next)
 		{
 		  register unsigned int len = strlen (dep_name (d2));
-		  if (strncmp (name, dep_name (d2), len))
+		  if (!strneq (name, dep_name (d2), len))
 		    continue;
 		  if (streq (name + len, dep_name (d)))
 		    {
@@ -1789,8 +1832,8 @@ find_char_unquote (string, stopchars, blank)
 
   while (1)
     {
-      while (*p != '\0' && index (stopchars, *p) == 0
-	     && (!blank || !isblank (*p)))
+      while (*p != '\0' && strchr (stopchars, *p) == 0
+	     && (!blank || !isblank ((unsigned char)*p)))
 	++p;
       if (*p == '\0')
 	break;
@@ -1888,8 +1931,9 @@ parse_file_seq (stringp, stopchar, size, strip)
 	*p =' ';
 #endif
 #ifdef _AMIGA
-      if (stopchar == ':' && p && *p == ':' &&
-	!(isspace(p[1]) || !p[1] || isspace(p[-1])))
+      if (stopchar == ':' && p && *p == ':'
+          && !(isspace ((unsigned char)p[1]) || !p[1]
+               || isspace ((unsigned char)p[-1])))
       {
 	p = find_char_unquote (p+1, stopchars, 1);
       }
@@ -1900,8 +1944,8 @@ parse_file_seq (stringp, stopchar, size, strip)
        Note that tokens separated by spaces should be treated as separate
        tokens since make doesn't allow path names with spaces */
     if (stopchar == ':')
-      while (p != 0 && !isspace(*p) &&
-             (p[1] == '\\' || p[1] == '/') && isalpha (p[-1]))
+      while (p != 0 && !isspace ((unsigned char)*p) &&
+             (p[1] == '\\' || p[1] == '/') && isalpha ((unsigned char)p[-1]))
         p = find_char_unquote (p + 1, stopchars, 1);
 #endif
       if (p == 0)
@@ -1942,7 +1986,7 @@ parse_file_seq (stringp, stopchar, size, strip)
  * Savestring called because q may be read-only string constant.
  */
 	{
-	  char *qbase = savestring(q, strlen(q));
+	  char *qbase = xstrdup (q);
 	  char *pbase = qbase + (p-q);
 	  char *q1 = qbase;
 	  char *q2 = q1;
@@ -1983,14 +2027,14 @@ parse_file_seq (stringp, stopchar, size, strip)
   while (new1 != 0)
     if (new1->name[0] != '('	/* Don't catch "(%)" and suchlike.  */
 	&& new1->name[strlen (new1->name) - 1] == ')'
-	&& index (new1->name, '(') == 0)
+	&& strchr (new1->name, '(') == 0)
       {
 	/* NEW1 ends with a `)' but does not contain a `('.
 	   Look back for an elt with an opening `(' but no closing `)'.  */
 
 	struct nameseq *n = new1->next, *lastn = new1;
 	char *paren = 0;
-	while (n != 0 && (paren = index (n->name, '(')) == 0)
+	while (n != 0 && (paren = strchr (n->name, '(')) == 0)
 	  {
 	    lastn = n;
 	    n = n->next;
@@ -2089,12 +2133,11 @@ parse_file_seq (stringp, stopchar, size, strip)
    Return the number of actual lines read (> 1 if hacked continuation lines).
  */
 
-static unsigned int
-readline (linebuffer, stream, filename, lineno)
+static unsigned long
+readline (linebuffer, stream, flocp)
      struct linebuffer *linebuffer;
      FILE *stream;
-     char *filename;
-     unsigned int lineno;
+     const struct floc *flocp;
 {
   char *buffer = linebuffer->buffer;
   register char *p = linebuffer->buffer;
@@ -2116,8 +2159,7 @@ readline (linebuffer, stream, filename, lineno)
 	     lossage strikes again!  (xmkmf puts NULs in its makefiles.)
 	     There is nothing really to be done; we synthesize a newline so
 	     the following line doesn't appear to be part of this line.  */
-	  makefile_error (filename, lineno,
-			  "warning: NUL character seen; rest of line ignored");
+	  error (flocp, _("warning: NUL character seen; rest of line ignored"));
 	  p[0] = '\n';
 	  len = 1;
 	}
@@ -2138,6 +2180,17 @@ readline (linebuffer, stream, filename, lineno)
 	}
 
       ++nlines;
+
+#if !defined(WINDOWS32) && !defined(__MSDOS__)
+      /* Check to see if the line was really ended with CRLF; if so ignore
+         the CR.  */
+      if (len > 1 && p[-2] == '\r')
+        {
+          --len;
+          --p;
+          p[-1] = '\n';
+        }
+#endif
 
       if (len == 1 && p > buffer)
 	/* P is pointing at a newline and it's the beginning of
@@ -2177,7 +2230,7 @@ readline (linebuffer, stream, filename, lineno)
     }
 
   if (ferror (stream))
-    pfatal_with_name (filename);
+    pfatal_with_name (flocp->filenm);
 
   return nlines;
 }
@@ -2213,7 +2266,7 @@ get_next_mword (buffer, delim, startp, length)
   char c;
 
   /* Skip any leading whitespace.  */
-  while (isblank(*p))
+  while (isblank ((unsigned char)*p))
     ++p;
 
   beg = p;
@@ -2262,7 +2315,7 @@ get_next_mword (buffer, delim, startp, length)
         }
 
     default:
-      if (delim && index(delim, c))
+      if (delim && strchr (delim, c))
         wtype = w_static;
       break;
     }
@@ -2296,8 +2349,12 @@ get_next_mword (buffer, delim, startp, length)
 
         case ':':
 #if defined(__MSDOS__) || defined(WINDOWS32)
-	  /* A word CAN include a colon in its drive spec.  */
-	  if (!(p - beg == 2 && (*p == '/' || *p == '\\') && isalpha (*beg)))
+	  /* A word CAN include a colon in its drive spec.  The drive
+	     spec is allowed either at the beginning of a word, or as part
+	     of the archive member name, like in "libfoo.a(d:/foo/bar.o)".  */
+	  if (!(p - beg >= 2
+		&& (*p == '/' || *p == '\\') && isalpha ((unsigned char)p[-2])
+		&& (p - beg == 2 || p[-3] == '(')))
 #endif
 	  goto done_word;
 
@@ -2339,6 +2396,7 @@ get_next_mword (buffer, delim, startp, length)
         case '\\':
           switch (*p)
             {
+            case ':':
             case ';':
             case '=':
             case '\\':
@@ -2348,7 +2406,7 @@ get_next_mword (buffer, delim, startp, length)
           break;
 
         default:
-          if (delim && index(delim, c))
+          if (delim && strchr (delim, c))
             goto done_word;
           break;
         }
@@ -2519,14 +2577,14 @@ tilde_expand (name)
   else
     {
       struct passwd *pwent;
-      char *userend = index (name + 1, '/');
+      char *userend = strchr (name + 1, '/');
       if (userend != 0)
 	*userend = '\0';
       pwent = getpwnam (name + 1);
       if (pwent != 0)
 	{
 	  if (userend == 0)
-	    return savestring (pwent->pw_dir, strlen (pwent->pw_dir));
+	    return xstrdup (pwent->pw_dir);
 	  else
 	    return concat (pwent->pw_dir, "/", userend + 1);
 	}
@@ -2644,8 +2702,7 @@ multi_glob (chain, size)
 #endif /* !NO_ARCHIVES */
 		  {
 		    struct nameseq *elt = (struct nameseq *) xmalloc (size);
-		    elt->name = savestring (gl.gl_pathv[i],
-					    strlen (gl.gl_pathv[i]));
+		    elt->name = xstrdup (gl.gl_pathv[i]);
 		    elt->next = new;
 		    new = elt;
 		  }
@@ -2657,7 +2714,7 @@ multi_glob (chain, size)
 	  }
 
 	case GLOB_NOSPACE:
-	  fatal ("virtual memory exhausted");
+	  fatal (NILF, _("virtual memory exhausted"));
 	  break;
 
 	default:

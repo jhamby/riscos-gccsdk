@@ -356,7 +356,7 @@ m_swp (WORD cc)
     }
   else
     error (ErrorError, TRUE, "Inserting missing '['");
-  ir |= LHS_MUL (getCpuReg ());
+  ir |= DST_MUL (getCpuReg ());
   skipblanks ();
   if (inputLook () == ']')
     {

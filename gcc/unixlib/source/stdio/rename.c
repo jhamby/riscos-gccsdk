@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/stdio/c/rename,v $
- * $Date: 2000/06/10 12:59:43 $
- * $Revision: 1.13 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/stdio/rename.c,v $
+ * $Date: 2001/09/04 16:32:04 $
+ * $Revision: 1.2.2.2 $
  * $State: Exp $
  * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: rename,v 1.13 2000/06/10 12:59:43 admin Exp $";
+static const char rcs_id[] = "$Id: rename.c,v 1.2.2.2 2001/09/04 16:32:04 admin Exp $";
 #endif
 
 #include <stdio.h>
@@ -17,8 +17,8 @@ static const char rcs_id[] = "$Id: rename,v 1.13 2000/06/10 12:59:43 admin Exp $
 #include <ctype.h>
 #include <errno.h>
 #include <unistd.h>
-#include <sys/os.h>
-#include <sys/swis.h>
+#include <unixlib/os.h>
+#include <swis.h>
 #include <sys/stat.h>
 #include <sys/param.h>
 #include <unixlib/local.h>
@@ -79,7 +79,7 @@ rename (const char *old_name, const char *new_name)
 	      regs[1] = (int) nfile;
 
 	      /* Attempt to delete the directory.  */
-	      err = os_swi (OS_File, regs);
+	      err = __os_swi (OS_File, regs);
 	      if (err)
 		return __set_errno (ENOTEMPTY);
 	    }
@@ -108,7 +108,7 @@ rename (const char *old_name, const char *new_name)
   regs[0] = 25;
   regs[1] = (int)ofile;
   regs[2] = (int)nfile;
-  err = os_swi (OS_FSControl, regs);
+  err = __os_swi (OS_FSControl, regs);
   if (err)
     {
       if (err->errnum == 176)
@@ -126,7 +126,7 @@ try_filetyping:
       regs[0] = 18;
       regs[1] = (int) nfile;
       regs[2] = nftype_a;
-      err = os_swi (OS_File, regs);
+      err = __os_swi (OS_File, regs);
       if (err)
         {
           __seterr (err);

@@ -1,22 +1,22 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/unix/c/unlink,v $
- * $Date: 2000/06/10 12:59:43 $
- * $Revision: 1.12 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/unlink.c,v $
+ * $Date: 2001/09/04 16:32:04 $
+ * $Revision: 1.2.2.1 $
  * $State: Exp $
  * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: unlink,v 1.12 2000/06/10 12:59:43 admin Exp $";
+static const char rcs_id[] = "$Id: unlink.c,v 1.2.2.1 2001/09/04 16:32:04 admin Exp $";
 #endif
 
 #include <errno.h>
 #include <limits.h>
 #include <unistd.h>
 
-#include <sys/os.h>
+#include <unixlib/os.h>
 #include <unixlib/local.h>
 #include <unixlib/swiparams.h>
 
@@ -39,7 +39,7 @@ unlink (const char *ux_file)
 
   /* Get file's catalogue entry (unfortunately uses wildcards.
      Still, shouldn't be a major problem).  */
-  err = os_file (OSFILE_READCATINFO_NOPATH, file, regs);
+  err = __os_file (OSFILE_READCATINFO_NOPATH, file, regs);
   if (err)
     {
       __seterr (err);
@@ -66,7 +66,7 @@ unlink (const char *ux_file)
     return __set_errno (EACCES);
 
   /* Try to zap the file.  */
-  err = os_file (6, file, regs);
+  err = __os_file (6, file, regs);
   if (err)
     {
       /* Should check for EROFS but this would involve

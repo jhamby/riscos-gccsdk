@@ -364,7 +364,7 @@ template <class T> class List : public List_Base
  	{
  	 int i;
  	 for(i=0;i<m_size;i++)
- 	 	delete(m_data[i]);
+ 	 	delete (T*) (m_data[i]);
  	 if(m_data) free(m_data);
  	 m_size=0;
  	 m_data=NULL;

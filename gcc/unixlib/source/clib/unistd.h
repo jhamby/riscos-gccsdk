@@ -1,10 +1,10 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/clib/h/unistd,v $
- * $Date: 1998/01/29 21:15:09 $
- * $Revision: 1.15 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/unistd.h,v $
+ * $Date: 2002/01/31 16:19:53 $
+ * $Revision: 1.2.2.5 $
  * $State: Exp $
- * $Author: unixlib $
+ * $Author: admin $
  *
  ***************************************************************************/
 
@@ -86,9 +86,52 @@ extern "C" {
 #define	STDOUT_FILENO	1	/* Standard output.  */
 #define	STDERR_FILENO	2	/* Standard error output.  */
 
-#ifndef __STDDEF_H
-#include <stddef.h>
+#ifndef __ssize_t_defined
+typedef __ssize_t ssize_t;
+#define __ssize_t_defined
 #endif
+
+#define __need_size_t
+#define __need_NULL
+#include <stddef.h>
+
+/* The Single Unix specification says that some more types are
+   available here.  */
+#ifndef __gid_t_defined
+typedef __gid_t gid_t;
+#define __gid_t_defined
+#endif
+
+#ifndef __uid_t_defined
+typedef __uid_t uid_t;
+#define __uid_t_defined
+#endif
+
+#ifndef __off_t_defined
+typedef __off_t off_t;
+#define __off_t_defined
+#endif
+
+#ifndef __useconds_t_defined
+typedef __useconds_t useconds_t;
+#define __useconds_t_defined
+#endif
+
+#ifndef __pid_t_defined
+typedef __pid_t pid_t;
+#define __pid_t_defined
+#endif
+
+#ifndef __intptr_t_defined
+typedef __intptr_t intptr_t;
+#define __intptr_t_defined
+#endif
+
+#ifndef __socklen_t_defined
+typedef __socklen_t socklen_t;
+#define __socklen_t_defined
+#endif
+
 
 /* Values for the second argument to access.  */
 
@@ -141,8 +184,18 @@ extern int pipe (int __pipedes[2]);
 /* Schedule an alarm.  */
 extern unsigned int alarm (unsigned int __seconds);
 
-/* Make the process sleep for 'seconds' seconds.  */
+/* Make the process sleep for '__seconds' seconds, or until a signal arrives
+   and is not ignored.  The function returns the number of seconds less
+   than '__seconds' which it actually slept (zero if it slept the full time).
+   If a signal handler does a `longjmp' or modifies the handling of the
+   SIGALRM signal while inside `sleep' call, the handling of the SIGALRM
+   signal afterwards is undefined.  There is no return value to indicate
+   error, but if `sleep' returns '__seconds', it probably didn't work.  */
 extern unsigned int sleep (unsigned int __seconds);
+ 
+/* Make the process sleep for '__usec' microseconds, or until a signal
+   arrives that is not blocked or ignored.  */
+extern unsigned int usleep (unsigned int __usec);
 
 /* Suspend the process until a signal arrives.  */
 extern int pause (void);
@@ -178,15 +231,19 @@ extern int execve (const char *__path, char **__argv, char **__envp);
 
 /* Execute PATH with arguments ARGV and environment from `environ'.  */
 extern int execv (const char *__path, char **__argv);
+
 /* Execute PATH with all arguments after PATH until a NULL pointer,
    and the argument after that for environment.  */
 extern int execle (const char *__path, const char *__arg, ...);
+
 /* Execute PATH with all arguments after PATH until
    a NULL pointer and environment from `environ'.  */
 extern int execl (const char *__path, const char *__arg, ...);
+
 /* Execute FILE, searching in the `PATH' environment variable if it contains
    no slashes, with arguments ARGV and environment from `environ'.  */
 extern int execvp (const char *__file, char **__argv);
+
 /* Execute FILE, searching in the `PATH' environment variable if
    it contains no slashes, with all arguments after FILE until a
    NULL pointer and environment from `environ'.  */
@@ -320,6 +377,12 @@ extern int ispipe (int __fd);
 /* Make a link to from named to.  */
 extern int link (const char *__from, const char *__to);
 
+/* Make a symbolic to from named to.  */
+extern int symlink (const char *__from, const char *__to);
+
+/* Read vaue of a symbolic link.  */
+extern int readlink (const char *__path, char *__buf, size_t __butsiz);
+
 /* Remove the line name.  */
 extern int unlink (const char *__name);
 
@@ -331,11 +394,14 @@ extern int rmdir (const char *__path);
 /* Return the login name of the user.  */
 extern char *getlogin (void);
 
-#if 0
 /* Set the foreground process group ID of FD set PGRP_ID.  */
 extern int tcsetpgrp (int __fd, __pid_t __pgrp_id);
 
+/* Return the foreground process group ID of FD.  */
+extern __pid_t tcgetpgrp (int __fd);
 
+
+#if 0
 /* Set the login name returned by `getlogin'.  */
 extern int setlogin (const char *__name);
 
@@ -449,27 +515,8 @@ enum
 /* Get the value of the string-valued system variable NAME.  */
 extern size_t confstr (int __name, char *__buf, size_t __len);
 
-/* Process the arguments in ARGV (ARGC of them, minus
-   the program name) for options given in OPTS.
-
-   If `opterr' is zero, no messages are generated
-   for invalid options; it defaults to 1.
-   `optind' is the current index into ARGV.
-   `optarg' is the argument corresponding to the current option.
-   Return the option character from OPTS just read.
-   Return -1 when there are no more options.
-   For unrecognized options, or options missing arguments,
-   `optopt' is set to the option letter, and '?' is returned.
-
-   The OPTS string is a list of characters which are recognized option
-   letters, optionally followed by colons, specifying that that letter
-   takes an argument, to be placed in `optarg'.
-
-   The argument `--' causes premature termination of argument scanning,
-   explicitly telling `getopt' that there are no more options. */
-extern int getopt (int __argc, char *const *__argv, const char *__opts);
-extern int opterr, optind, optopt, optreset;
-extern char *optarg;
+#define __need_getopt
+#include <getopt.h>
 
 #ifdef __cplusplus
 	}

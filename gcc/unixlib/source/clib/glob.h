@@ -1,10 +1,10 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/clib/h/glob,v $
- * $Date: 1997/10/19 20:29:41 $
- * $Revision: 1.4 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/glob.h,v $
+ * $Date: 2001/09/14 14:01:17 $
+ * $Revision: 1.2.2.1 $
  * $State: Exp $
- * $Author: unixlib $
+ * $Author: admin $
  *
  ***************************************************************************/
 
@@ -43,8 +43,10 @@ extern "C"
 
 /* Error returns from `glob'.  */
 #define	GLOB_NOSPACE	1	/* Ran out of memory.  */
+#define GLOB_ABORTED	2	/* Read error.  */
 #define	GLOB_ABEND	2	/* Read error.  */
 #define	GLOB_NOMATCH	3	/* No matches found.  */
+#define GLOB_NOSYS	4	/* Not implemented.  */
 
 /* Need the definition of struct stat.  */
 #ifdef __GNUC__

@@ -1,20 +1,20 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/resource/c/setprior,v $
- * $Date: 1997/10/09 20:00:26 $
- * $Revision: 1.5 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/resource/setprior.c,v $
+ * $Date: 2001/09/04 16:32:04 $
+ * $Revision: 1.2.2.1 $
  * $State: Exp $
- * $Author: unixlib $
+ * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: setprior,v 1.5 1997/10/09 20:00:26 unixlib Exp $";
+static const char rcs_id[] = "$Id: setprior.c,v 1.2.2.1 2001/09/04 16:32:04 admin Exp $";
 #endif
 
 #include <errno.h>
 #include <sys/resource.h>
-#include <sys/unix.h>
+#include <unixlib/unix.h>
 #include <limits.h>
 
 /* A return value of zero indicates success.  */

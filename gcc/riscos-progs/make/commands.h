@@ -14,15 +14,15 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Make; see the file COPYING.  If not, write to
-the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
+the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+Boston, MA 02111-1307, USA.  */
 
 /* Structure that gives the commands to make a file
    and information about where these commands came from.  */
 
 struct commands
   {
-    char *filename;		/* File that contains commands.  */
-    unsigned int lineno;	/* Line number in file.  */
+    struct floc fileinfo;	/* Where commands were defined.  */
     char *commands;		/* Commands text.  */
     unsigned int ncommand_lines;/* Number of command lines.  */
     char **command_lines;	/* Commands chopped up into lines.  */

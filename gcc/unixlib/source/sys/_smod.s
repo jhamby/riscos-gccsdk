@@ -1,8 +1,8 @@
 ;----------------------------------------------------------------------------
 ;
-; $Source: /usr/local/cvsroot/unixlib/source/sys/s/_smod,v $
-; $Date: 2000/12/21 15:09:13 $
-; $Revision: 1.3 $
+; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/_smod.s,v $
+; $Date: 2001/09/11 13:05:55 $
+; $Revision: 1.2.2.1 $
 ; $State: Exp $
 ; $Author: admin $
 ;
@@ -13,7 +13,7 @@
 dividend RN 1
 divisor RN 0
 
-	AREA	|C$code|, CODE, READONLY
+	AREA	|C$$code|, CODE, READONLY
 
 	EXPORT	|x$remainder|
 	EXPORT	|_kernel_srem|

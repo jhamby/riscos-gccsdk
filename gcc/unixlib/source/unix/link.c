@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/unix/c/link,v $
- * $Date: 1997/10/19 21:50:57 $
- * $Revision: 1.8 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/link.c,v $
+ * $Date: 2002/01/31 14:32:04 $
+ * $Revision: 1.2.2.1 $
  * $State: Exp $
- * $Author: unixlib $
+ * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: link,v 1.8 1997/10/19 21:50:57 unixlib Exp $";
+static const char rcs_id[] = "$Id: link.c,v 1.2.2.1 2002/01/31 14:32:04 admin Exp $";
 #endif
 
 #include <errno.h>
@@ -20,6 +20,25 @@ link (const char *origfile, const char *newfile)
 {
   origfile = origfile;
   newfile = newfile;
+
+  return __set_errno (ENOSYS);
+}
+
+int
+symlink (const char *origfile, const char *newfile)
+{
+  origfile = origfile;
+  newfile = newfile;
+
+  return __set_errno (ENOSYS);
+}
+
+int
+readlink (const char *path, char *buf, size_t bufsiz)
+{
+  path = path;
+  buf = buf;
+  bufsiz = bufsiz;
 
   return __set_errno (ENOSYS);
 }

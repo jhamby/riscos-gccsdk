@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/c/ctypeproc,v $
- * $Date: 1997/10/08 12:48:08 $
- * $Revision: 1.1 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/ctypeproc.c,v $
+ * $Date: 2001/09/14 14:01:17 $
+ * $Revision: 1.2.2.1 $
  * $State: Exp $
- * $Author: unixlib $
+ * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: ctypeproc,v 1.1 1997/10/08 12:48:08 unixlib Exp $";
+static const char rcs_id[] = "$Id: ctypeproc.c,v 1.2.2.1 2001/09/14 14:01:17 admin Exp $";
 #endif
 
 #include <ctype.h>
@@ -30,6 +30,18 @@ int
 (toupper) (int c)
 {
   return toupper (c);
+}
+
+int
+(_tolower) (int c)
+{
+  return _tolower (c);
+}
+
+int
+(_toupper) (int c)
+{
+  return _toupper (c);
 }
 
 int

@@ -43,7 +43,7 @@ extern os_error	*os_args (int,int,int,int * /* 3 reg */ );
 #define os_fsctrl __os_fsctrl
 extern os_error	*os_fsctrl (int,char *,char *,int);
 
-extern void __seterr(os_error *);	/* flag RiscOS error to UNIX */
+extern void __seterr(os_error *);	/* flag RISC OS error to UNIX */
 
 #ifdef __cplusplus
 	}

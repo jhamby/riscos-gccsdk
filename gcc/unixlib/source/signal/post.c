@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/signal/c/post,v $
- * $Date: 2000/06/03 14:46:10 $
- * $Revision: 1.12 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/signal/post.c,v $
+ * $Date: 2001/09/06 14:52:00 $
+ * $Revision: 1.2.2.3 $
  * $State: Exp $
  * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: post,v 1.12 2000/06/03 14:46:10 admin Exp $";
+static const char rcs_id[] = "$Id: post.c,v 1.2.2.3 2001/09/06 14:52:00 admin Exp $";
 #endif
 
 /* signal.c.post: Written by Nick Burrett, 27 August 1996.  */
@@ -20,30 +20,102 @@ static const char rcs_id[] = "$Id: post,v 1.12 2000/06/03 14:46:10 admin Exp $";
 #include <sys/wait.h>
 #include <unistd.h>
 
-#include <sys/os.h>
-#include <sys/unix.h>
+#include <unixlib/os.h>
+#include <unixlib/unix.h>
 #include <unixlib/sigstate.h>
 
-/* #define DEBUG */
+/* #define DEBUG 1 */
 
-void
-__unixlib_default_sigaction (struct unixlib_sigstate *ss)
+/* This function chooses a suitable execution environment
+   for the signal handler and calls the appropriate function
+   to perform the job.
+
+   Return 0 on sucess, 1 on fail.  */
+static int
+sigsetup (struct unixlib_sigstate *ss, sighandler_t handler,
+	  int signo, int flags)
 {
-  int signo;
+  int system_stack;
 
-  sigemptyset (&ss->actions[0].sa_mask);
-  ss->actions[0].sa_flags = SA_RESTART;
-  ss->actions[0].sa_handler = SIG_DFL;
+#ifdef DEBUG
+  __os_print ("sigsetup: signo = ");
+  __os_prdec (signo); __os_print (", handler = "); __os_prhex ((int) handler);
+  __os_print ("\r\n");
+#endif
+  system_stack = ((ss->signalstack.ss_flags & SA_DISABLE)
+		  || ss->signalstack.ss_size == 0
+		  || ss->signalstack.ss_sp == 0) ? 1 : 0;
 
-  /* Set all signals to their defaults.  */
-  for (signo = 1; signo < NSIG; ++signo)
-    ss->actions[signo] = ss->actions[0];
+  /* The user has requested to execute the signal on a sigstack
+     but it can only be executed on the system stack. Return failure.  */
+  if ((flags & SA_ONSTACK) && system_stack)
+    {
+#ifdef DEBUG
+      __os_print ("sigsetup: bad system stack\r\n");
+      __os_print ("   ss_size = "); __os_prdec ((int) ss->signalstack.ss_size);
+      __os_print (", ss_sp = "); __os_prdec ((int) ss->signalstack.ss_sp);
+      __os_print (", ss_flags = "); __os_prdec ((int) ss->signalstack.ss_flags);
+      __os_print ("\r\n");
+#endif
+      return 1;
+    }
+
+  /* If the SA_DISABLE flag is set, we will not execute
+     this signal on a signal stack.
+
+     Look out for problems where the stack pointer is zero or the
+     stack size is zero.  */
+  if (system_stack)
+    {
+#ifdef DEBUG
+      __os_print (" unixlib_setup_sighandler: executing off normal stack\r\n");
+#endif
+      __unixlib_exec_sig (handler, signo);
+      return 0;
+    }
+
+  /* Specify that the signal stack is currently in use.  */
+  ss->signalstack.ss_flags |= SA_ONSTACK;
+
+  /* If ss_size == -1, then this sigaltstack was the result of
+     a BSD sigstack conversion. Run the BSD alternative signal
+     executor.  */
+  if (ss->signalstack.ss_size == -1)
+    {
+#ifdef DEBUG
+      __os_print (" unixlib_setup_sighandler: executing off BSD stack\r\n");
+#endif
+      __unixlib_exec_sigstack_bsd (ss->signalstack.ss_sp, handler, signo);
+    }
+  else
+    {
+#ifdef DEBUG
+      __os_print (" unixlib_setup_sighandler: executing off POSIX stack\r\n");
+#endif
+      __unixlib_exec_sigstack (ss->signalstack.ss_sp, ss->signalstack.ss_size,
+			       handler, signo);
+    }
+  /* Say that the signal stack is no longer in use.  */
+  ss->signalstack.ss_flags &= ~SA_ONSTACK;
+
+  return 0;
 }
 
 
-void
-__unixlib_internal_post_signal (struct unixlib_sigstate *ss, int signo)
+static void
+post_signal (struct unixlib_sigstate *ss, int signo)
 {
+  static const unsigned int stop_signals = sigmask (SIGTTIN)
+    | sigmask (SIGTTOU) | sigmask (SIGSTOP) | sigmask (SIGTSTP);
+
+  static const unsigned int ignore_signals = sigmask (SIGCONT)
+    | sigmask (SIGIO) | sigmask (SIGURG) | sigmask (SIGCHLD)
+    | sigmask (SIGWINCH);
+  
+  static const unsigned int core_signals = sigmask (SIGQUIT) | sigmask (SIGILL)
+    | sigmask (SIGTRAP) | sigmask (SIGIOT) | sigmask (SIGEMT)
+    | sigmask (SIGFPE)	| sigmask (SIGBUS) | sigmask (SIGSEGV)
+    | sigmask (SIGSYS);
   enum
   {
     stop, ignore, core, term, handle
@@ -59,18 +131,17 @@ __unixlib_internal_post_signal (struct unixlib_sigstate *ss, int signo)
 
 post_signal:
 #ifdef DEBUG
-  os_print ("__unixlib_internal_post_signal: sigstate = ");
-  os_prhex ((int) ss); os_print (", signo = ");
-  os_prdec (signo); os_print ("\r\n");
+  __os_print ("post_signal: sigstate = ");
+  __os_prhex ((int) ss); __os_print (", signo = ");
+  __os_prdec (signo); __os_print ("\r\n");
 #endif
-
-  signal_mask = sigmask (signo);
 
   /* Increment the number of signals this process has received.  */
   __u->usage.ru_nsignals++;
 
   handler = SIG_DFL;
   ss_suspended = 0;
+  signal_mask = sigmask (signo);
 
   if (handler != SIG_DFL)
     /* Run the preemption-provided handler.  */
@@ -81,53 +152,35 @@ post_signal:
 
       handler = ss->actions[signo].sa_handler;
 #ifdef DEBUG
-      os_print ("__unixlib_internal_post_signal: handler = ");
-      os_prhex ((int) handler); os_print ("\r\n");
+      __os_print ("post_signal: handler = ");
+      __os_prhex ((int) handler); __os_print ("\r\n");
 #endif
 
       if (handler == SIG_DFL)
         {
-	  /* Figure out the default action for this signal.  */
-	  __sigset_t mask;
-
 	  /* Unrecognised signals will cause process termination.  */
 	  act = term;
 
 	  /* Check for signals that will stop a process.  */
-	  mask = sigmask (SIGTTIN) | sigmask (SIGTTOU)
-	        | sigmask (SIGSTOP) | sigmask (SIGTSTP);
-	  if (signal_mask & mask)
+	  if (signal_mask & stop_signals)
 	    act = stop;
-	  else
+	  /* Check signals that can be otherwise ignored.  */
+	  else if (signal_mask & ignore_signals)
+	    act = ignore;
+	  /* Fatal signals that will cause a core dump.  */
+	  else if (signal_mask & core_signals)
+	    act = core;
+	  else if (signo == SIGINFO)
 	    {
-	      /* Check signals that can be otherwise ignored.  */
-	      mask = sigmask (SIGCONT) | sigmask (SIGIO) | sigmask (SIGURG)
-		    | sigmask (SIGCHLD) | sigmask (SIGWINCH);
-	      if (signal_mask & mask)
-	        act = ignore;
-	      else
+	      if (__u->pgrp == __u->pid)
 		{
-		  /* Fatal signals that will cause a core dump.  */
-		  mask = sigmask (SIGQUIT) | sigmask (SIGILL)
-			| sigmask (SIGTRAP) | sigmask (SIGIOT)
-			| sigmask (SIGEMT) | sigmask (SIGFPE)
-			| sigmask (SIGBUS) | sigmask (SIGSEGV)
-			| sigmask (SIGSYS);
-		  if (signal_mask & mask)
-		    act = core;
-		  else if (signo == SIGINFO)
-		    {
-		      if (__u->pgrp == __u->pid)
-			{
-			  /* We provide a default handler for SIGINFO since
-			     there is no user-specified handler.  */
-			  act = handle;
-			  handler = __unixlib_siginfo_handler;
-			}
-		      else
-			act = ignore;
-		    }
+		  /* We provide a default handler for SIGINFO since
+		     there is no user-specified handler.  */
+		  act = handle;
+		  handler = __unixlib_siginfo_handler;
 		}
+	      else
+		act = ignore;
 	    }
 	}
       else if (handler == SIG_IGN)
@@ -135,8 +188,7 @@ post_signal:
       else
 	act = handle;
 
-      if (signal_mask & (sigmask (SIGTTIN) | sigmask (SIGTTOU)
-			 | sigmask (SIGSTOP) | sigmask (SIGTSTP)))
+      if (signal_mask & stop_signals)
 	/* Stop signals clear a pending SIGCONT even if they
 	   are handled or ignored (but not if preempted).  */
 	sigdelset (&ss->pending, SIGCONT);
@@ -144,10 +196,7 @@ post_signal:
 	{
 	  /* Even if handled or ignored (but not preempted),
 	     SIGCONT clears stop signals and resumes the process.  */
-	  sigdelset (&ss->pending, SIGTTIN);
-	  sigdelset (&ss->pending, SIGTTOU);
-	  sigdelset (&ss->pending, SIGSTOP);
-	  sigdelset (&ss->pending, SIGTSTP);
+	  ss->pending &= ~stop_signals;
 	  /* Resume all our children.  */
 	  ss_suspended = 1;
 	  __u->status.stopped = 0;
@@ -155,8 +204,8 @@ post_signal:
     }
 
 #ifdef DEBUG
-  os_print ("__unixlib_internal_post_signal: act = ");
-  os_prdec (act); os_print ("\r\n");
+  __os_print ("post_signal: act = ");
+  __os_prdec (act); __os_print ("\r\n");
 #endif
 
   if (__u->orphaned && act == stop &&
@@ -182,20 +231,17 @@ post_signal:
     {
     case stop:
 #ifdef DEBUG
-      os_print ("__unixlib_internal_post_signal: stop\r\n");
+      __os_print ("post_signal: stop\r\n");
 #endif
-      if (!__u->status.stopped)
-	{
-	  /* Stop all our threads, and mark ourselves stopped.  */
-	  __u->status.stopped = 1;
-	}
+      /* Stop all our threads, and mark ourselves stopped.  */
+      __u->status.stopped = 1;
       /* Wake up sigsuspend. */
       __u->sleeping = 0; /* inline version of sigwakeup() */
       break;
 
     case ignore:
 #ifdef DEBUG
-      os_print ("__unixlib_internal_post_signal: ignore\r\n");
+      __os_print ("post_signal: ignore\r\n");
 #endif
       /* Nobody cares about this signal.  */
       break;
@@ -210,7 +256,7 @@ post_signal:
 	/* Do a core dump if desired. Only set the wait status bit saying
 	   we in fact dumped core if the operation was actually successful.  */
 #ifdef DEBUG
-	os_print ("__unixlib_internal_post_signal: term/core\r\n");
+	__os_print ("post_signal: term/core\r\n");
 #endif
 	if (act == term)
 	  __write_termination (signo);
@@ -229,7 +275,7 @@ post_signal:
 	sigset_t blocked;
 	int flags;
 #ifdef DEBUG
-	os_print ("__unixlib_internal_post_signal: handle\r\n");
+	__os_print ("post_signal: handle\r\n");
 #endif
 	/* We're going to handle this signal now, so remove it from
 	   the pending list.  */
@@ -237,7 +283,7 @@ post_signal:
 
 	/* Block SIGNO and requested signals while running the handler.  */
 	blocked = ss->blocked;
-	ss->blocked |= sigmask (signo) | ss->actions[signo].sa_mask;
+	ss->blocked |= signal_mask | ss->actions[signo].sa_mask;
 	flags = ss->actions[signo].sa_flags;
 	/* Re-instate the default signal handler.  We do this before executing
 	   the signal handler because a new handler might be setup whilst
@@ -248,7 +294,7 @@ post_signal:
 
 	/* Call the function to set the thread up to run the signal
 	   handler, and preserve its old context.  */
-	if (__unixlib_setup_sighandler (ss, handler, signo, flags))
+	if (sigsetup (ss, handler, signo, flags))
 	  {
 	    /* We got a fault setting up the stack frame for the handler.
 	       Nothing to do but die.  */
@@ -269,7 +315,7 @@ post_signal:
 
 post_pending:
 #ifdef DEBUG
-  os_print ("__unixlib_internal_post_signal: Deliver pending signals\r\n");
+  __os_print ("post_signal: Deliver pending signals\r\n");
 #endif
   if (!__u->stopped && (pending = ss->pending & ~ss->blocked))
     {
@@ -283,7 +329,7 @@ post_pending:
 
   ss->currently_handling = 0;
 #ifdef DEBUG
-  os_print ("__unixlib_internal_post_signal: pending signals delivered\r\n");
+  __os_print ("post_signal: pending signals delivered\r\n");
 #endif
   /* No more signals pending.  */
   __u->sleeping = 0; /* inline version of sigwakeup (); */
@@ -305,14 +351,14 @@ __unixlib_raise_signal (struct unixlib_sigstate *ss, int signo)
     {
       /* Post the signal if we are not already handling a signal.  */
       ss->currently_handling = 1;
-      __unixlib_internal_post_signal (ss, signo);
+      post_signal (ss, signo);
     }
 #ifdef DEBUG
   else
     {
-      os_print ("\n\r__unixlib_raise_signal: signal ");
-      os_print (sys_siglist[signo]);
-      os_print (" is pending for delivery\r\n");
+      __os_print ("\n\r__unixlib_raise_signal: signal ");
+      __os_print (sys_siglist[signo]);
+      __os_print (" is pending for delivery\r\n");
     }
 #endif
 }

@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/termios/c/tcsetattr,v $
- * $Date: 1998/06/25 21:35:31 $
- * $Revision: 1.2 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/termios/tcsetattr.c,v $
+ * $Date: 2002/01/12 16:06:57 $
+ * $Revision: 1.2.2.3 $
  * $State: Exp $
- * $Author: unixlib $
+ * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: tcsetattr,v 1.2 1998/06/25 21:35:31 unixlib Exp $";
+static const char rcs_id[] = "$Id: tcsetattr.c,v 1.2.2.3 2002/01/12 16:06:57 admin Exp $";
 #endif
 
 #include <errno.h>
@@ -17,8 +17,9 @@ static const char rcs_id[] = "$Id: tcsetattr,v 1.2 1998/06/25 21:35:31 unixlib E
 #include <termios.h>
 #include <sys/ioctl.h>
 #include <sys/types.h>
+#include <unixlib/unix.h>
 
-const speed_t __bsd_speeds[] =
+const speed_t __bsd_speeds[16] =
   {
     0,
     50,
@@ -64,7 +65,7 @@ tcsetattr (int fd, int optional_actions, const struct termios *termios_p)
   if (termios_p == NULL)
     return __set_errno (EINVAL);
 
-  switch (optional_actions)
+  switch (optional_actions & ~TCSASOFT)
     {
     case TCSANOW:
       break;
@@ -80,7 +81,7 @@ tcsetattr (int fd, int optional_actions, const struct termios *termios_p)
       return __set_errno (EINVAL);
     }
 
-  buf.sg_ispeed = buf.sg_ospeed = -1;
+  buf.sg_ispeed = buf.sg_ospeed = (char) -1;
   for (i = 0; i <= sizeof (__bsd_speeds) / sizeof (__bsd_speeds[0]); ++i)
     {
       if (__bsd_speeds[i] == termios_p->__ispeed)
@@ -100,7 +101,7 @@ tcsetattr (int fd, int optional_actions, const struct termios *termios_p)
   else
     local &= ~LPASS8;
 #endif
-  if (termios_p->c_lflag & _NOFLSH)
+  if (termios_p->c_lflag & NOFLSH)
     local |= LNOFLSH;
   else
     local &= ~LNOFLSH;
@@ -135,7 +136,7 @@ tcsetattr (int fd, int optional_actions, const struct termios *termios_p)
   else
     buf.sg_flags |= EVENP;
 
-  if (termios_p->c_lflag & _ECHO)
+  if (termios_p->c_lflag & ECHO)
     buf.sg_flags |= ECHO;
   else
     buf.sg_flags &= ~ECHO;
@@ -147,7 +148,7 @@ tcsetattr (int fd, int optional_actions, const struct termios *termios_p)
     local |= LCRTKIL;
   else
     local &= ~LCRTKIL;
-  if (termios_p->c_lflag & _TOSTOP)
+  if (termios_p->c_lflag & TOSTOP)
     local |= LTOSTOP;
   else
     local &= ~LTOSTOP;

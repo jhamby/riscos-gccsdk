@@ -107,7 +107,7 @@ symbolAdd (Lex l)
 Symbol *
 symbolGet (Lex l)
 {
-  Symbol **isearch;
+  Symbol **isearch = NULL;
   if (l.tag != LexId)
     {
       if (l.tag == LexNone)
@@ -250,7 +250,7 @@ symbolSymbolOutput (FILE * outfile)
   int i;
   Symbol *sym;
   Value value;
-  int v;
+  int v = 0;
   AofSymbol asym;
 
   for (i = 0; i < SYMBOL_TABELSIZE; i++)

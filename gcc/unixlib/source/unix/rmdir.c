@@ -1,23 +1,23 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/unix/c/rmdir,v $
- * $Date: 2000/06/10 12:59:43 $
- * $Revision: 1.11 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/rmdir.c,v $
+ * $Date: 2001/09/04 16:32:04 $
+ * $Revision: 1.2.2.2 $
  * $State: Exp $
  * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: rmdir,v 1.11 2000/06/10 12:59:43 admin Exp $";
+static const char rcs_id[] = "$Id: rmdir.c,v 1.2.2.2 2001/09/04 16:32:04 admin Exp $";
 #endif
 
 #include <errno.h>
 #include <limits.h>
 #include <unistd.h>
 
-#include <sys/os.h>
-#include <sys/swis.h>
+#include <unixlib/os.h>
+#include <swis.h>
 
 #include <unixlib/local.h>
 #include <unixlib/swiparams.h>
@@ -38,7 +38,7 @@ rmdir (const char *ux_directory)
     return __set_errno (ENAMETOOLONG);
 
   /* Does the directory exist ?  */
-  if (os_file (OSFILE_READCATINFO_NOPATH, directory, regs) || regs[0] == 0)
+  if (__os_file (OSFILE_READCATINFO_NOPATH, directory, regs) || regs[0] == 0)
     return __set_errno (ENOENT);
 
   /* Images and directories have bit 1 set. Clear implies file.  */
@@ -62,7 +62,7 @@ rmdir (const char *ux_directory)
       regs[5] = sizeof (scratch_buf);
       regs[6] = 0;	/* Match anything.  */
 
-      err = os_swi (OS_GBPB, regs);
+      err = __os_swi (OS_GBPB, regs);
       if (err)
 	{
 	  /* Oh shit. Let's pretend that it's not empty.  */
@@ -76,7 +76,7 @@ rmdir (const char *ux_directory)
 
   /* The directory must be empty to get here, so delete it.  */
   regs[0] = 6;
-  if (os_swi (OS_File, regs) == NULL)
+  if (__os_swi (OS_File, regs) == NULL)
     return 0;
 
   /* Hmm, can't delete it, it's not locked, it is empty => read only fs.  */

@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/stdio/c/printf,v $
- * $Date: 1997/10/09 20:00:35 $
- * $Revision: 1.7 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/stdio/printf.c,v $
+ * $Date: 2002/02/11 13:11:31 $
+ * $Revision: 1.2.2.3 $
  * $State: Exp $
- * $Author: unixlib $
+ * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: printf,v 1.7 1997/10/09 20:00:35 unixlib Exp $";
+static const char rcs_id[] = "$Id: printf.c,v 1.2.2.3 2002/02/11 13:11:31 admin Exp $";
 #endif
 
 /*-
@@ -53,7 +53,7 @@ static const char rcs_id[] = "$Id: printf,v 1.7 1997/10/09 20:00:35 unixlib Exp 
 static char sccsid[] = "@(#)vfprintf.c	8.1 (Berkeley) 6/4/93";
 #endif
 static const char rcsid[] =
-		"$Id: printf,v 1.7 1997/10/09 20:00:35 unixlib Exp $";
+		"$Id: printf.c,v 1.2.2.3 2002/02/11 13:11:31 admin Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 /*
@@ -68,8 +68,9 @@ static const char rcsid[] =
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
+#include <strings.h>
 #include <stdarg.h>
+#include <wchar.h>
 
 
 /* Define FLOATING_POINT to get floating point. */
@@ -77,6 +78,36 @@ static const char rcsid[] =
 
 static void __find_arguments (const char *, va_list, void ***);
 static int __grow_type_table (int, unsigned char **, int *);
+static int vfprintfsub(FILE *fp, size_t max, const char *fmt0, va_list ap);
+
+
+static size_t out_char(int c, FILE *fp, size_t limit)
+{
+    /* write a char to the output stream iff enough space */
+    if (limit > 0)
+    {
+        limit--;
+        fputc(c, fp);
+    }
+
+    return limit;
+}
+
+
+static size_t out_write(const void *ptr, size_t size, size_t nobj, FILE *fp, size_t limit)
+{
+    /* write a set of items iff enough space */
+    if (limit >= size * nobj)
+    {
+        fwrite(ptr, size, nobj, fp);
+        return limit - (size * nobj);
+    }
+
+    /* write out as many as we can and stop all further output */
+    fwrite(ptr, size, (limit / size), fp);
+    return 0;
+}
+
 
 
 /*
@@ -217,7 +248,7 @@ static int exponent (char *, int, int);
 
 #endif /* FLOATING_POINT */
 
-#define STATIC_ARG_TBL_SIZE 8           /* Size of static argument table. */
+#define STATIC_ARG_TBL_SIZE 8		/* Size of static argument table. */
 
 /*
  * Flags used during conversion.
@@ -231,6 +262,9 @@ static int exponent (char *, int, int);
 #define	SHORTINT	0x040		/* short integer */
 #define	ZEROPAD		0x080		/* zero (as opposed to blank) pad */
 #define FPT		0x100		/* Floating point number */
+#define WIDESTRING	0x200		/* Wide string */
+#define WCHAR		0x400		/* Wide character */
+#define STOP            0x800           /* reached buffer limit inside a multibyte character */
 
 /*
  * Choose PADSIZE to trade efficiency vs. size.  If larger printf
@@ -243,13 +277,13 @@ static char const blanks[PADSIZE] =
 static char const zeroes[PADSIZE] =
 {'0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0'};
 
-static void
-pad_file (FILE * fp, char pad, int count)
+static size_t
+pad_file (FILE * fp, char pad, int count, size_t limit)
 {
   char padbuf[PADSIZE];
   const char *padptr;
   int i;
-  size_t w;
+/*   size_t w; */
 
   if (pad == ' ')
     padptr = blanks;
@@ -261,14 +295,17 @@ pad_file (FILE * fp, char pad, int count)
       padptr = padbuf;
     }
   for (i = count; i >= PADSIZE; i -= PADSIZE)
-    w = fwrite (padptr, sizeof (char), PADSIZE, fp);
+    limit = out_write(padptr, sizeof (char), PADSIZE, fp, limit);
 
   if (i > 0)
-    w = fwrite (padptr, sizeof (char), i, fp);
+    limit = out_write(padptr, sizeof (char), i, fp, limit);
+
+  return limit;
 }
 
-int
-vfprintf(FILE *fp, const char *fmt0, va_list ap)
+
+static int
+vfprintfsub(FILE *fp, size_t max, const char *fmt0, va_list ap)
 {
 	register char *fmt;	/* format string */
 	register int ch;	/* character from fmt */
@@ -289,27 +326,28 @@ vfprintf(FILE *fp, const char *fmt0, va_list ap)
 #endif
 	u_long	ulval;		/* integer arguments %[diouxX] */
 	u_quad_t uqval;		/* %q integers */
+	wchar_t *wcharval;	/* wide string argument */
+	wint_t wintval;		/* wide character argument */
 	int base;		/* base for [diouxX] conversion */
 	int dprec;		/* a copy of prec if [diouxX], 0 otherwise */
 	int realsz;		/* field size expanded by dprec, sign, etc */
 	int size;		/* size of converted field or string */
 	char *xdigs;		/* digits for [xX] conversion */
 	char buf[BUF];		/* space for %c, %[diouxX], %[eEfgG] */
-	char ox[2];		/* space for 0x hex-prefix */
-        void **argtable;        /* args, built due to positional arg */
-        void *statargtable [STATIC_ARG_TBL_SIZE];
-        int nextarg;            /* 1-based argument index */
-        va_list orgap;          /* original argument pointer */
+	void **argtable;	/* args, built due to positional arg */
+	void *statargtable [STATIC_ARG_TBL_SIZE];
+	int nextarg;		/* 1-based argument index */
+	va_list orgap;		/* original argument pointer */
 
 
-        /*
-         * Get the argument indexed by nextarg.   If the argument table is
-         * built, use it to get the argument.  If its not, get the next
-         * argument (and arguments must be gotten sequentially).
-         */
+	/*
+	 * Get the argument indexed by nextarg.	  If the argument table is
+	 * built, use it to get the argument.  If its not, get the next
+	 * argument (and arguments must be gotten sequentially).
+	 */
 #define GETARG(type) \
-        ((argtable != NULL) ? *((type*)(argtable[nextarg++])) : \
-            (nextarg++, va_arg(ap, type)))
+	((argtable != NULL) ? *((type*)(argtable[nextarg++])) : \
+	    (nextarg++, va_arg(ap, type)))
 
 	/*
 	 * To extend shorts properly, we need both signed and unsigned
@@ -324,30 +362,30 @@ vfprintf(FILE *fp, const char *fmt0, va_list ap)
 	    flags&SHORTINT ? (u_long)(u_short)GETARG(int) : \
 	    (u_long)GETARG(u_int))
 
-        /*
-         * Get * arguments, including the form *nn$.  Preserve the nextarg
-         * that the argument can be gotten once the type is determined.
-         */
+	/*
+	 * Get * arguments, including the form *nn$.  Preserve the nextarg
+	 * that the argument can be gotten once the type is determined.
+	 */
 #define GETASTER(val) \
-        n2 = 0; \
-        cp = fmt; \
-        while (is_digit(*cp)) { \
-                n2 = 10 * n2 + to_digit(*cp); \
-                cp++; \
-        } \
-        if (*cp == '$') { \
-            	int hold = nextarg; \
-                if (argtable == NULL) { \
-                        argtable = statargtable; \
-                        __find_arguments (fmt0, orgap, &argtable); \
-                } \
-                nextarg = n2; \
-                val = GETARG (int); \
-                nextarg = hold; \
-                fmt = ++cp; \
-        } else { \
+	n2 = 0; \
+	cp = fmt; \
+	while (is_digit(*cp)) { \
+		n2 = 10 * n2 + to_digit(*cp); \
+		cp++; \
+	} \
+	if (*cp == '$') { \
+		int hold = nextarg; \
+		if (argtable == NULL) { \
+			argtable = statargtable; \
+			__find_arguments (fmt0, orgap, &argtable); \
+		} \
+		nextarg = n2; \
 		val = GETARG (int); \
-        }
+		nextarg = hold; \
+		fmt = ++cp; \
+	} else { \
+		val = GETARG (int); \
+	}
 
 
 	/* sorry, fprintf(read_only_file, "") returns EOF, not 0 */
@@ -356,9 +394,9 @@ vfprintf(FILE *fp, const char *fmt0, va_list ap)
 	}
 
 	fmt = (char *)fmt0;
-        argtable = NULL;
-        nextarg = 1;
-        orgap = ap;
+	argtable = NULL;
+	nextarg = 1;
+	orgap = ap;
 	ret = 0;
 
 	/*
@@ -368,7 +406,7 @@ vfprintf(FILE *fp, const char *fmt0, va_list ap)
 		for (cp = fmt; (ch = *fmt) != '\0' && ch != '%'; fmt++)
 			/* void */;
 		if ((n = fmt - cp) != 0) {
-			fwrite (cp, sizeof (char), n, fp);
+			max = out_write(cp, sizeof (char), n, fp, max);
 			ret += n;
 		}
 		if (ch == '\0')
@@ -443,13 +481,13 @@ reswitch:	switch (ch) {
 			} while (is_digit(ch));
 			if (ch == '$') {
 				nextarg = n;
-                        	if (argtable == NULL) {
-                                	argtable = statargtable;
-                                	__find_arguments (fmt0, orgap,
+				if (argtable == NULL) {
+					argtable = statargtable;
+					__find_arguments (fmt0, orgap,
 						&argtable);
 				}
 				goto rflag;
-                        }
+			}
 			width = n;
 			goto reswitch;
 #ifdef FLOATING_POINT
@@ -467,10 +505,28 @@ reswitch:	switch (ch) {
 			flags |= QUADINT;
 			goto rflag;
 		case 'c':
-			*(cp = buf) = GETARG(int);
-			size = 1;
-			sign = '\0';
-			break;
+			if (flags & LONGINT)
+			        goto longchar;
+			else {
+			        *(cp = buf) = GETARG(int);
+				size = 1;
+				sign = '\0';
+				break;
+			}
+		case 'C':
+longchar:		flags = (flags & ~LONGINT) | WCHAR;
+			{
+       				char temp[MB_CUR_MAX];
+				mbstate_t ps = {0,0};
+
+				wintval = GETARG(wint_t);
+				size    = wcrtomb(temp, wintval, &ps);
+				if (size == -1 || size > max) {
+				        /* invalid character - write nothing? */
+				        size = 0;
+				        flags |= STOP;
+				}
+			}
 		case 'D':
 			flags |= LONGINT;
 			/*FALLTHROUGH*/
@@ -597,26 +653,64 @@ fp_begin:		if (prec == -1)
 			ch = 'x';
 			goto nosign;
 		case 's':
-			if ((cp = GETARG(char *)) == NULL)
-				cp = "(null)";
-			if (prec >= 0) {
-				/*
-				 * can't use strlen; can only look for the
-				 * NUL in the first `prec' characters, and
-				 * strlen() will go further.
-				 */
-				char *p = memchr(cp, 0, (size_t)prec);
+			if (flags & LONGINT)
+			    goto longstr;
+			else {
+				if ((cp = GETARG(char *)) == NULL)
+					cp = "(null)";
+				if (prec >= 0) {
+					/*
+					* can't use strlen; can only look for the
+					* NUL in the first `prec' characters, and
+					* strlen() will go further.
+					*/
+					char *p = memchr(cp, 0, (size_t)prec);
 
-				if (p != NULL) {
-					size = p - cp;
-					if (size > prec)
+					if (p != NULL) {
+						size = p - cp;
+						if (size > prec)
+							size = prec;
+					} else
 						size = prec;
 				} else
-					size = prec;
-			} else
-				size = strlen(cp);
+					size = strlen(cp);
+			}
 			sign = '\0';
 			break;
+longstr:	case 'S':
+                        {
+				/*
+				* long string. We need to know the length of the /output/
+				* in bytes so we can pad on the left. This means converting
+				* each character here and again when we actually print it :(
+				*/
+				char temp[MB_CUR_MAX];
+				mbstate_t ps = {0,0};
+				size_t n;
+				wchar_t *p;
+				unsigned int limit;
+
+				flags = (flags & ~LONGINT) | WIDESTRING;
+				if ((wcharval = GETARG(wchar_t *)) == NULL)
+					wcharval = L"(null)";
+
+                                limit = ((unsigned int)prec < max) ? prec : max;
+				p     = wcharval;
+				size  = 0;
+
+				while ((1)) {
+					if (*p == L'\0')
+						break;
+					n = wcrtomb(temp, *p++, &ps);
+					if (n < 0 || size + n > limit)
+						break;
+					size += n;
+				}
+				if (size + n > limit)
+				        flags |= STOP; /* no more room */
+				/* now size contains the number of bytes we'll output. */
+                        }
+                        break;
 		case 'U':
 			flags |= LONGINT;
 			/*FALLTHROUGH*/
@@ -716,86 +810,113 @@ number:			if ((dprec = prec) >= 0)
 
 		/* right-adjusting blank padding */
 		if ((flags & (LADJUST|ZEROPAD)) == 0)
-			pad_file (fp, ' ', width - realsz);
+			max = pad_file (fp, ' ', width - realsz, max);
 
 		/* prefix */
 		if (sign) {
-			fputc (sign, fp);
+			max = out_char (sign, fp, max);
 		} else if (flags & HEXPREFIX) {
-			fputc ('0', fp);
-			fputc (ch, fp);
+			max = out_char ('0', fp, max);
+			max = out_char (ch, fp, max);
 		}
 
 		/* right-adjusting zero padding */
 		if ((flags & (LADJUST|ZEROPAD)) == ZEROPAD)
-			pad_file (fp, '0', width - realsz);
+			max = pad_file (fp, '0', width - realsz, max);
 
 		/* leading zeroes from decimal precision */
-		pad_file (fp, '0', dprec - size);
+		max = pad_file (fp, '0', dprec - size, max);
 
 		/* the string or number proper */
 #ifdef FLOATING_POINT
-		if ((flags & FPT) == 0) {
-			fwrite (cp, sizeof (char), size, fp);
-		} else {	/* glue together f_p fragments */
+		if (flags & FPT) {
+		/* glue together f_p fragments */
 			if (ch >= 'f') {	/* 'f' or 'g' */
 				if (_double == 0) {
 					/* kludge for __dtoa irregularity */
 					if (expt >= ndig &&
 					    (flags & ALT) == 0) {
-						fputc ('0', fp);
+						max = out_char ('0', fp, max);
 					} else {
-						fputc ('0', fp);
-						fputc ('.', fp);
-						pad_file (fp, '0', ndig - 1);
+						max = out_char ('0', fp, max);
+						max = out_char ('.', fp, max);
+						max = pad_file (fp, '0', ndig - 1, max);
 					}
 				} else if (expt <= 0) {
-				        fputc ('0', fp);
-				        fputc ('.', fp);
-					pad_file (fp, '0', -expt);
-					fwrite (cp, sizeof (char), ndig, fp);
+					max = out_char ('0', fp, max);
+					max = out_char ('.', fp, max);
+					max = pad_file (fp, '0', -expt, max);
+					max = out_write(cp, sizeof (char), ndig, fp, max);
 				} else if (expt >= ndig) {
-					fwrite (cp, sizeof (char), ndig, fp);
-					pad_file (fp, '0', expt - ndig);
+					max = out_write(cp, sizeof (char), ndig, fp, max);
+					max = pad_file (fp, '0', expt - ndig, max);
 					if (flags & ALT)
-					  fputc ('.', fp);
+					  max = out_char ('.', fp, max);
 				} else {
-				        fwrite (cp, sizeof (char), expt, fp);
+					max = out_write(cp, sizeof (char), expt, fp, max);
 					cp += expt;
-					fputc ('.', fp);
-					fwrite (cp, sizeof (char), ndig-expt, fp);
+					max = out_char ('.', fp, max);
+					max = out_write(cp, sizeof (char), ndig-expt, fp, max);
 				}
 			} else {	/* 'e' or 'E' */
 				if (ndig > 1 || flags & ALT) {
-				   	fputc (*cp++, fp);
-				   	fputc ('.', fp);
+					max = out_char (*cp++, fp, max);
+					max = out_char ('.', fp, max);
 					if (_double) {
-					        fwrite (cp, sizeof (char), ndig-1, fp);
+						max = out_write(cp, sizeof (char), ndig-1, fp, max);
 					} else	/* 0.[0..] */
 						/* __dtoa irregularity */
-						pad_file (fp, '0', ndig - 1);
+						max = pad_file (fp, '0', ndig - 1, max);
 				} else	/* XeYYY */
-					fputc (*cp, fp);
-				fwrite (expstr, sizeof (char), expsize, fp);
+					max = out_char (*cp, fp, max);
+				max = out_write(expstr, sizeof (char), expsize, fp, max);
 			}
+		} else {
+#endif
+			if (flags & WIDESTRING) {
+				char temp[MB_CUR_MAX];
+				mbstate_t ps = {0,0};
+				size_t n;
+
+				while (size > 0) {
+					n = wcrtomb(temp, *wcharval++, &ps);
+					if (n == -1)
+						break;
+					max = out_write(temp, sizeof (char), n, fp, max);
+					size -= n;
+				}
+			} else if (flags & WCHAR) {
+				char temp[MB_CUR_MAX];
+				mbstate_t ps = {0,0};
+				size_t n;
+
+				n = wcrtomb(temp, wintval, &ps);
+				if (n != -1)
+					max = out_write(temp, sizeof (char), n, fp, max);
+			} else
+				max = out_write(cp, sizeof (char), size, fp, max);
+#ifdef FLOATING_POINT
 		}
-#else
-		fwrite (cp, sizeof (char), size, fp);
 #endif
 		/* left-adjusting padding (always blank) */
 		if (flags & LADJUST)
-			pad_file (fp, ' ', width - realsz);
+			max = pad_file (fp, ' ', width - realsz, max);
 
 		/* finally, adjust ret */
 		ret += width > realsz ? width : realsz;
 
+                if (max < 1 || (flags & STOP))
+                {
+                    ret = EOF;
+                    break;
+                }
 	}
 done:
 	if (ferror(fp))
 		ret = EOF;
 
-        if ((argtable != NULL) && (argtable != statargtable))
-                free (argtable);
+	if ((argtable != NULL) && (argtable != statargtable))
+		free (argtable);
 	return (ret);
 	/* NOTREACHED */
 }
@@ -820,6 +941,8 @@ done:
 #define T_LONG_DOUBLE	14
 #define TP_CHAR		15
 #define TP_VOID		16
+#define TP_WCHAR	17
+#define T_WCHAR		18
 
 /*
  * Find all arguments when a positional parameter is encountered.  Returns a
@@ -948,8 +1071,14 @@ reswitch:	switch (ch) {
 			flags |= QUADINT;
 			goto rflag;
 		case 'c':
-			ADDTYPE(T_INT);
+			if (flags & LONGINT)
+				ADDTYPE(T_WCHAR);
+			else
+		                ADDTYPE(T_INT);
 			break;
+		case 'C':
+		        ADDTYPE(T_WCHAR);
+		        break;
 		case 'D':
 			flags |= LONGINT;
 			/*FALLTHROUGH*/
@@ -1004,8 +1133,14 @@ reswitch:	switch (ch) {
 		case 'p':
 			ADDTYPE(TP_VOID);
 			break;
+		case 'S':
+		        ADDTYPE(TP_WCHAR);
+		        break;
 		case 's':
-			ADDTYPE(TP_CHAR);
+                        if (flags & LONGINT)
+                                ADDTYPE(TP_WCHAR);
+                        else
+		        	ADDTYPE(TP_CHAR);
 			break;
 		case 'U':
 			flags |= LONGINT;
@@ -1098,6 +1233,12 @@ done:
 			break;
 		    case TP_VOID:
 			(void) va_arg (ap, void *);
+			break;
+		    case TP_WCHAR:
+			(void) va_arg (ap, wchar_t *);
+			break;
+		    case T_WCHAR:
+			(void) va_arg (ap, wint_t);
 			break;
 		}
 	}
@@ -1206,8 +1347,16 @@ exponent(char *p0, int exp, int fmtch)
 }
 #endif /* FLOATING_POINT */
 
+
 int
-vsprintf (char *buf, const char *format, va_list ap)
+vfprintf(FILE *fp, const char *fmt0, va_list ap)
+{
+    return vfprintfsub(fp, 2147483647, fmt0, ap);
+}
+
+
+int
+vsnprintf (char *buf, size_t limit, const char *format, va_list ap)
 {
   FILE f[1];
   int ret;
@@ -1223,13 +1372,35 @@ vsprintf (char *buf, const char *format, va_list ap)
   f->fd = -1;
   f->__magic = _IOMAGIC;
 
-  ret = vfprintf (f, format, ap);
-  putc ('\0', f);
+  ret = vfprintfsub(f, limit - 1, format, ap);
+  putc ('\0', f); /* safe because we passed limit-1 above */
   return ret;
 }
 
+
 int
-sprintf (char *buf, const char *format,...)
+vsprintf(char *buf, const char *format, va_list ap)
+{
+    return vsnprintf(buf, 2147483647, format, ap);
+}
+
+
+int
+snprintf(char *buf, size_t limit, const char *format, ...)
+{
+  va_list ap;
+  register int r;
+
+  va_start (ap, format);
+  r = vsnprintf (buf, limit, format, ap);
+  va_end (ap);
+
+  return (r);
+}
+
+
+int
+sprintf (char *buf, const char *format, ...)
 {
   va_list ap;
   register int r;
@@ -1272,3 +1443,4 @@ printf (const char *format,...)
 
   return (r);
 }
+

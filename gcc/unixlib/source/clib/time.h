@@ -1,24 +1,79 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/time.h,v $
- * $Date: 2001/01/29 15:10:19 $
- * $Revision: 1.2 $
+ * $Date: 2001/09/14 14:01:17 $
+ * $Revision: 1.3.2.1 $
  * $State: Exp $
  * $Author: admin $
  *
  ***************************************************************************/
 
-/* ANSI Standard 4.12: Date and Time <time.h>.  */
+/* ISO C99 Standard: 7.23 Date and Time <time.h>.  */
 
 #ifndef __TIME_H
-#define __TIME_H
 
-#ifndef __STDDEF_H
+#if (! defined __need_time_t && ! defined __need_clock_t \
+    && ! defined __need_timespec && ! defined __need_clockid_t \
+    && ! defined __need_timer_t)
+#define __TIME_H
+#endif
+
+#ifdef __TIME_H
+#define __need_size_t
+#define __need_NULL
 #include <stddef.h>
-#endif
-#ifndef __UNIXLIB_TYPES_H
+#endif /* __TIME_H */
+
+
+#if !defined __clock_t_defined && (defined __TIME_H || defined __need_clock_t)
+#define __clock_t_defined 1
 #include <unixlib/types.h>
+typedef __clock_t clock_t;  /* Data type used to represent clock ticks.  */
 #endif
+#undef __need_clock_t
+
+#if !defined __clockid_t_defined && (defined __TIME_H || defined __need_clockid_t)
+#define __clockid_t_defined 1
+#include <unixlib/types.h>
+typedef __clockid_t clockid_t;  /* Data type used to represent clock ticks.  */
+#endif
+#undef __need_clockid_t
+
+#if !defined __time_t_defined && (defined __TIME_H || defined __need_time_t)
+#define __time_t_defined 1
+#include <unixlib/types.h>
+/* The data type used to represent calendar time. It represents
+   the number of seconds elapsed since 00:00:00 on 1 January, 1970
+   Universal Time Coordinated.  */
+typedef __time_t time_t;
+#endif
+#undef __need_time_t
+
+#if !defined __timer_t_defined && (defined __TIME_H || defined __need_timer_t)
+#define __timer_t_defined 1
+#include <unixlib/types.h>
+/* The data type used to represent calendar time. It represents
+   the number of seconds elapsed since 00:00:00 on 1 January, 1970
+   Universal Time Coordinated.  */
+typedef __timer_t timer_t;
+#endif
+#undef __need_timer_t
+
+#if !defined __timespec_defined && (defined __TIME_H || defined __need_timespec)
+#define __timespec_defined 1
+
+/* POSIX.1b structure for a time value.  This is like a `struct timeval' but
+   has nanoseconds instead of microseconds.  */
+struct timespec
+{
+  long int tv_sec;  /* Seconds.  */
+  long int tv_nsec; /* Nanoseconds.  */
+};
+#endif
+#undef __need_timespec
+
+
+#ifdef __TIME_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -29,14 +84,6 @@ extern "C" {
 
 /* Obsolete name for CLOCKS_PER_SEC.  */
 #define CLK_TCK CLOCKS_PER_SEC
-
-/* Data type used to represent clock ticks.  */
-typedef __clock_t clock_t;
-
-/* The data type used to represent calendar time. It represents
-   the number of seconds elapsed since 00:00:00 on 1 January, 1970
-   Universal Time Coordinated.  */
-typedef __time_t time_t;
 
 /* Return the elapsed processor time.  */
 extern clock_t clock (void);
@@ -97,6 +144,7 @@ extern size_t strftime (char *__s, size_t __size, const char *__format,
    in seconds west of UTC. The time is not adjusted for daylight
    saving and the sign is the reverse of tm_gmtoff.  */
 extern int timezone;
+
 /* Nonzero if daylight savings time rules apply.  */
 extern int daylight;
 
@@ -115,17 +163,19 @@ extern char *tzname[];
 extern struct tm __tz[1];
 
 /* Convert broken time to 5-byte RISC OS time.  */
-extern void __cvt_broken_time (const struct tm *__brokentime, char *__riscos_time);
+extern void __cvt_broken_time (const struct tm *__brokentime,
+			       char *__riscos_time);
 
 /* Common function for localtime() and gmtime().  */
 extern struct tm *__calendar_convert (int __swinum, const time_t *__tp);
 
 /* Common function for ctime() and asctime().  */
 extern char *__standard_time (const char *__riscos_time);
-#endif
+#endif /* __UNIXLIB_INTERNALS */
 
 #ifdef __cplusplus
 	}
 #endif
 
+#endif /* __TIME_H */
 #endif

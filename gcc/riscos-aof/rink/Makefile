@@ -22,8 +22,12 @@ $(rinkobjdir)/%.o: %.s
 
 EXTRACTSYM = $(rinkobjdir)/extractsym.o
 
+ifeq (${STAGE},stage2)
+	DEPS += $(gcc_bin_dir)/$(TRG)/o/unixlib
+endif
+
 all:	$(bin_dir)/rink$(exesfx) $(bin_dir)/extractsym$(exesfx) \
-	$(bin_dir)/rinkptr$(exesfx)
+	$(bin_dir)/rinkptr$(exesfx) $(OBJS) $(DEPS)
 
 $(bin_dir)/extractsym$(exesfx):	$(rinkobjdir)/extractsym.o
 	$(CC) -o $@ $(rinkobjdir)/extractsym.o

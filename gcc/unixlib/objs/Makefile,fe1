@@ -1,25 +1,30 @@
-# Project:   UnixLib 3.8
+# Project:   UnixLib 4.0
 
 # $Source: /usr/local/cvsroot/gccsdk/unixlib/objs/Makefile,fe1,v $
-# $Date: 2000/11/08 09:38:59 $
-# $Revision: 1.1.1.1 $
+# $Date: 2001/10/04 12:50:46 $
+# $Revision: 1.2.2.6 $
 # $State: Exp $
 # $Author: admin $
 
 CCfeatures =
+Predefs = -D__UNIXLIB_INTERNALS
 
 # Misc macros
 # XX = commamd
 # XXflags = general flags
 # XXdflags = debugging flags
-# XXrflags = release flags.
+# XXrflags = release flags
+# XXapcsflags = APCS selection flags
 
 # Compiler
-#CC = run adfs::gcc.$.compilers.cc506
-#CCdflags = 
+#CC = cc
+#CCdflags = -g
 #CCrflags =
-#CCflags = -depend !Depend -throwback -fcah -JUnixHdr: -wda -wp $(CCrflags)
-Predefs = -D__UNIXLIB_INTERNALS
+## APCS selection :
+##   - APCS-R build : -APCS 3/26bit/fpe2
+##   - APCS-32 build : -APCS 3/32bit/fpe3
+#CCapcsflags = -APCS 3/26bit/fpe2
+#CCflags = -depend !Depend -throwback -fcah -JUnixHdr: -wda -wp $(CCdflags) $(Capcsflags)
 
 # GCC compiler. Comment out if you are using Acorn C
 CC = gcc
@@ -28,11 +33,15 @@ CCrflags =
 CCflags = -O2 -mpoke-function-name -mthrowback $(CCdflags) $(CCfeatures)
 
 # Acorn Objasm Assembler. Comment out if you are using 'as'.
-#AS = objasm $(ObjAsmflags)
+#AS = objasm
 #ASflags = -Stamp -quit -CloseExec
 #ASdflags =
 #ASrflags =
-#ASflags = -throwback -depend !Depend -I UnixHdr: $(ASdflags)
+## APCS selection :
+##   - APCS-R build : -APCS 3/26bit
+##   - APCS-32 build : -APCS 3/32bit
+#ASapcsflags = -APCS 3/26bit
+#ASflags = -throwback -depend !Depend -I UnixHdr:^ $(ASdflags) $(ASapcsflags)
 
 # as Assembler. Comment out if you are using Acorn Objasm.
 AS = gcc
@@ -138,6 +147,10 @@ PWD =	pwd.o.fgetpwent pwd.o.fgetpwentr pwd.o.getlogin pwd.o.getpw \
 	pwd.o.getpwent pwd.o.getpwnam pwd.o.getpwnam_r pwd.o.getpwuid \
 	pwd.o.getpwuid_r pwd.o.putpwent pwd.o.pwdread
 
+GRP =	grp.o.fgetgrent grp.o.fgetgrentr grp.o.getgrent grp.o.getgrgid \
+	grp.o.getgrgid_r grp.o.getgrnam grp.o.getgrnam_r grp.o.getgroups \
+	grp.o.grpread
+
 RESOURCE =	resource.o.getegid resource.o.geteuid resource.o.getgid \
 	resource.o.getpgrp resource.o.getpid resource.o.getppid \
 	resource.o.getprior resource.o.getrlimit resource.o.getrusage \
@@ -147,13 +160,13 @@ RESOURCE =	resource.o.getegid resource.o.geteuid resource.o.getgid \
 	resource.o.ulimit
 
 SIGNAL =	signal.o.init signal.o.kill signal.o.pause \
-	signal.o.post signal.o.raise signal.o.setup signal.o.sigaction \
+	signal.o.post signal.o.raise signal.o.sigaction \
 	signal.o.sigaddset signal.o.sigaltstk signal.o.sigblock \
 	signal.o.sigdelset signal.o.siginfo signal.o.sigismembe \
 	signal.o.signal signal.o.signame signal.o.sigpause \
 	signal.o.sigpending signal.o.sigprocmsk signal.o.sigsetmask \
 	signal.o.sigsets signal.o.sigstack signal.o.sigsuspend \
-	signal.o.sigwakeup signal.o.sleep
+	signal.o.sleep
 
 SIGNAL_ASM =	signal.o.sigexec signal.o._coredump signal.o._signal
 
@@ -170,15 +183,16 @@ STDIO =	stdio.o.clearerr stdio.o.fclose stdio.o.feof stdio.o.ferror \
 
 STDIO_ASM =	stdio.o._printf
 
+STDLIB = stdlib.o.realpath
+
 SCL_ASM = scl.o._kcurskch scl.o._kernel scl.o._kgetenv scl.o._kosargs \
 	scl.o._kosbget scl.o._kosbput scl.o._kosbyte scl.o._koscli \
 	scl.o._kosfile scl.o._kosfind scl.o._kosgbpb scl.o._kosrdch \
 	scl.o._kosword scl.o._koswrch scl.o._ksetenv scl.o._kswi_c
 
-SYS =	sys.o.alarm sys.o.brk sys.o.child sys.o.debug sys.o.errlist \
+SYS =	sys.o.alarm sys.o.brk sys.o.debug sys.o.errlist \
 	sys.o.exec sys.o.execl sys.o.execle sys.o.execlp sys.o.execv \
-	sys.o.execvp sys.o.mman sys.o.os sys.o.sigsetjmp sys.o.syslib \
-	sys.o.vfork
+	sys.o.execvp sys.o.mman sys.o.sigsetjmp sys.o.vfork
 
 SYS_ASM =	sys.o._alloca sys.o._divsi3 sys.o._divtest \
 	sys.o._exec sys.o._jmp sys.o._mem sys.o._mman sys.o._modsi3 sys.o._os \
@@ -235,17 +249,17 @@ WCHAR = wchar.o.btowc wchar.o.mblen wchar.o.mbrlen wchar.o.mbrtowc \
 #  wchar.o.wcstold wchar.o.wcstod wchar.o.wcstof
 
 STAMP =	!Stamp common.!Stamp complex.!Stamp gcccompat.!Stamp \
-	locale.!Stamp math.!Stamp math-asm.!Stamp \
+	grp.!Stamp locale.!Stamp math.!Stamp math-asm.!Stamp \
 	netlib.!Stamp pwd.!Stamp resource.!Stamp signal.!Stamp \
-	scl.!Stamp stdio.!Stamp sys.!Stamp termios.!Stamp time.!Stamp \
-	unix.!Stamp wchar.!Stamp
+	scl.!Stamp stdio.!Stamp stdlib.!Stamp sys.!Stamp \
+	termios.!Stamp time.!Stamp unix.!Stamp wchar.!Stamp
 
 # Final targets:
 UnixLib:   $(STAMP)
 	$(AR) $(ARflags) -o $@ o.* common.o.* complex.o.* gcccompat.o.* \
-	locale.o.* math.o.* math-asm.o.* netlib.o.* pwd.o.* resource.o.* \
-	scl.o.* signal.o.* stdio.o.* sys.o.* termios.o.* time.o.* unix.o.* \
-	wchar.o.*
+	grp.o.* locale.o.* math.o.* math-asm.o.* netlib.o.* pwd.o.* \
+	resource.o.* scl.o.* signal.o.* stdio.o.* stdlib.o.* sys.o.* \
+	termios.o.* time.o.* unix.o.* wchar.o.*
 
 test:	test.link
 
@@ -273,6 +287,8 @@ clean:
 	-remove complex.!Stamp
 	-wipe gcccompat.o.* gv~r~c
 	-remove gcccompat.!Stamp
+	-wipe grp.o.* fv~r~c
+	-remove grp.!stamp
 	-wipe locale.o.* fv~r~c
 	-remove locale.!Stamp
 	-wipe math.o.* fv~r~c
@@ -291,6 +307,8 @@ clean:
 	-remove signal.!stamp
 	-wipe stdio.o.* fv~r~c
 	-remove stdio.!stamp
+	-wipe stdlib.o.* fv~r~c
+	-remove stdlib.!stamp
 	-wipe sys.o.* fv~r~c
 	-remove sys.!stamp
 	-wipe termios.o.* fv~r~c
@@ -323,6 +341,10 @@ common.!Stamp:	$(COMMON) $(COMMON_ASM)
 gcccompat.!Stamp:	$(GCCCOMPAT_ASM)
 	-remove gcccompat.!Stamp
 	-create gcccompat.!Stamp
+
+grp.!Stamp:	$(GRP)
+	-remove grp.!Stamp
+	-create grp.!Stamp 0
 
 locale.!Stamp:	$(LOCALE)
 	-remove locale.!Stamp
@@ -359,6 +381,10 @@ signal.!Stamp:	$(SIGNAL) $(SIGNAL_ASM)
 stdio.!Stamp:	$(STDIO) $(STDIO_ASM)
 	-remove stdio.!Stamp
 	-create stdio.!Stamp 0
+
+stdlib.!Stamp:	$(STDLIB)
+	-remove stdlib.!Stamp
+	-create stdlib.!Stamp 0
 
 sys.!Stamp:	$(SYS) $(SYS_ASM)
 	-remove sys.!Stamp
@@ -634,6 +660,16 @@ pwd.o.getpwuid_r:	pwd.c.getpwuid_r
 pwd.o.putpwent:		pwd.c.putpwent
 pwd.o.pwdread:		pwd.c.pwdread
 
+grp.o.fgetgrent:	grp.c.fgetgrent
+grp.o.fgetgrentr:	grp.c.fgetgrentr
+grp.o.getgrent:		grp.c.getgrent
+grp.o.getgrgid:		grp.c.getgrgid
+grp.o.getgrgid_c:	grp.c.getgrgid_c
+grp.o.getgrnam:		grp.c.getgrnam
+grp.o.getgrnam_r:	grp.c.getgrnam_r
+grp.o.getgroups:	grp.c.getgroups
+grp.o.grpread:		grp.c.grpread
+
 resource.o.getegid:	resource.c.getegid
 resource.o.geteuid:	resource.c.geteuid
 resource.o.getgid:	resource.c.getgid
@@ -738,9 +774,10 @@ stdio.o.tmpfile:	stdio.c.tmpfile
 stdio.o.ungetc:		stdio.c.ungetc
 stdio.o._printf:	stdio.s._printf <UnixHdr$Dir>.unixlib.s.asm_dec
 
+stdlib.o.realpath:	stdlib.c.realpath
+
 sys.o.alarm:		sys.c.alarm
 sys.o.brk:		sys.c.brk
-sys.o.child:		sys.c.child
 sys.o.debug:		sys.c.debug
 sys.o.errlist:		sys.c.errlist
 sys.o.exec:		sys.c.exec
@@ -750,9 +787,7 @@ sys.o.execlp:		sys.c.execlp
 sys.o.execv:		sys.c.execv
 sys.o.execvp:		sys.c.execvp
 sys.o.mman:		sys.c.mman
-sys.o.os:		sys.c.os
 sys.o.sigsetjmp:	sys.c.sigsetjmp
-sys.o.syslib:		sys.c.syslib
 sys.o.vfork:		sys.c.vfork
 sys.o._alloca:		sys.s._alloca <UnixHdr$Dir>.unixlib.s.asm_dec
 sys.o._exec:		sys.s._exec <UnixHdr$Dir>.unixlib.s.asm_dec

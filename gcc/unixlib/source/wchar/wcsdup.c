@@ -1,8 +1,8 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/wchar/c/wcsdup,v $
- * $Date: 2000/06/03 16:53:10 $
- * $Revision: 1.1 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/wchar/wcsdup.c,v $
+ * $Date: 2001/09/11 14:16:00 $
+ * $Revision: 1.2.2.1 $
  * $State: Exp $
  * $Author: admin $
  *
@@ -37,12 +37,12 @@ wcsdup (s)
      const wchar_t *s;
 {
   size_t len = (wcslen (s) + 1) * sizeof (wchar_t);
-  void *new = malloc (len);
+  void *newstr = malloc (len);
 
-  if (new == NULL)
+  if (newstr == NULL)
     return NULL;
 
-  memcpy (new, (void *) s, len);
+  memcpy (newstr, (void *) s, len);
 
-  return (wchar_t *) new;
+  return (wchar_t *) newstr;
 }

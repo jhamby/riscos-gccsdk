@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/signal/c/sigsuspend,v $
- * $Date: 2000/06/03 14:46:10 $
- * $Revision: 1.7 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/signal/sigsuspend.c,v $
+ * $Date: 2001/09/04 16:32:04 $
+ * $Revision: 1.2.2.1 $
  * $State: Exp $
  * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: sigsuspend,v 1.7 2000/06/03 14:46:10 admin Exp $";
+static const char rcs_id[] = "$Id: sigsuspend.c,v 1.2.2.1 2001/09/04 16:32:04 admin Exp $";
 #endif
 
 /* Written by Nick Burrett, 26 Aug 1996.  */
@@ -18,10 +18,10 @@ static const char rcs_id[] = "$Id: sigsuspend,v 1.7 2000/06/03 14:46:10 admin Ex
 #include <signal.h>
 #include <stddef.h>
 #include <unistd.h>
-#include <sys/unix.h>
+#include <unixlib/unix.h>
 
 #ifdef DEBUG
-#include <sys/os.h>
+#include <unixlib/os.h>
 #endif
 
 /* Change the set of blocked signals to SET,
@@ -46,12 +46,12 @@ sigsuspend (const sigset_t * set)
      tasking system so it's not really possible to have a SWI Wimp_Poll
      call here.  */
 #ifdef DEBUG
-  os_print ("sigsuspend: Process suspended. Waiting for a signal.\r\n");
+  __os_print ("sigsuspend: Process suspended. Waiting for a signal.\r\n");
 #endif
   while (__u->sleeping)
     ;
 #ifdef DEBUG
-  os_print ("sigsuspend: Signal received. Process continuing\r\n");
+  __os_print ("sigsuspend: Signal received. Process continuing\r\n");
 #endif
 
   if (sigprocmask (SIG_SETMASK, &oset, (sigset_t *) NULL) < 0)

@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/locale/c/setlocale,v $
- * $Date: 1997/10/08 12:48:10 $
- * $Revision: 1.6 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/locale/setlocale.c,v $
+ * $Date: 2001/09/04 16:32:04 $
+ * $Revision: 1.2.2.2 $
  * $State: Exp $
- * $Author: unixlib $
+ * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: setlocale,v 1.6 1997/10/08 12:48:10 unixlib Exp $";
+static const char rcs_id[] = "$Id: setlocale.c,v 1.2.2.2 2001/09/04 16:32:04 admin Exp $";
 #endif
 
 /* Locale support. Written by Nick Burrett, 20 July 1997.  */
@@ -19,8 +19,8 @@ static const char rcs_id[] = "$Id: setlocale,v 1.6 1997/10/08 12:48:10 unixlib E
 #include <locale.h>
 #include <string.h>
 #include <stddef.h>
-#include <sys/os.h>
-#include <sys/swis.h>
+#include <unixlib/os.h>
+#include <swis.h>
 
 /* Locale information types. These should correspond to the #defines
    in <locale.h>.  */
@@ -43,7 +43,7 @@ static void territory_name (int territory, char *buffer, int size)
       regs[0] = territory;
       regs[1] = (int)buffer;
       regs[2] = size - 1;
-      os_swi (Territory_NumberToName, regs);
+      __os_swi (Territory_NumberToName, regs);
     }
 }
 
@@ -55,7 +55,7 @@ static int territory_number (const char *locale)
   if (*locale == 0)
     {
       /* Return the current territory number.  */
-      os_swi (Territory_Number, regs);
+      __os_swi (Territory_Number, regs);
       return regs[0];
     }
 
@@ -68,7 +68,7 @@ static int territory_number (const char *locale)
   regs[1] = (int)locale;
   /* If we can't find the locale, then this SWI will return zero
      in regs[0].  */
-  os_swi (Territory_NameToNumber, regs);
+  __os_swi (Territory_NameToNumber, regs);
   return regs[0];
 }
 

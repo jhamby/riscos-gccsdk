@@ -1,7 +1,7 @@
 RISC OS-GCC FAQ
 ===============
 
-Last updated: 01.08.1999, Jochen Scharrlach (jscharrl@ba-stuttgart.de),
+Last updated: 06.08.2001, Jochen Scharrlach (jscharrl@ba-stuttgart.de),
                           Nick Burrett (nick@dsvr.net) and
                           Peter Burwood (pjb@arcangel.dircon.co.uk)
 
@@ -150,7 +150,7 @@ Contents
 
   Official versions above 2.16 should work fine with gcc. DeskLib provides
   many WIMP- and other RISC OS-specific commands, but you'll need to link
-  with (gst)stubs (try -mstubs). As for whether GCC can compile DeskLib,
+  with (gst)stubs (try -mlibscl). As for whether GCC can compile DeskLib,
   this has not been tested.
 
  3.5 OSLib
@@ -260,7 +260,7 @@ Contents
   * -mpoke-function-name
    place the name of the current function before the start of the function
    to allow the post mortem debugger to print a readable backtrace.
-   Using it's opposite will reduce code size by about 3.5% for C code and
+   Using its opposite will reduce code size by about 3.5% for C code and
    about 10% for Ada code. Note, code size reductions are very dependant
    upon function sizes and function names. Reductions for other
    languages are not known, but they will be similar.
@@ -291,9 +291,9 @@ Contents
 
   * -mthrowback
    send errors to a text editor capable of receiving 'throwbacks'.
-  * -mstubs
+  * -mlibscl
    compiles to target SharedCLibrary and tells the linker to link with
-   stubs instead of UnixLib.
+   the SharedCLibrary instead of UnixLib.
   * -munixlib
    tell the linker to target UnixLib instead of the SharedCLibrary
   * -mamu
@@ -336,7 +336,7 @@ Contents
 
  4.7 Using <varargs.h>, <assert.h>, <stdarg.h>
 
-  GCC supplies it's own versions of these header files since they are not
+  GCC supplies its own versions of these header files since they are not
   compatible with the headers supplied with Norcroft C and UnixLib.  However,
   this feature is invisible to the user.
 

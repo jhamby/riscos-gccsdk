@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/unix/c/alphasort,v $
- * $Date: 1997/10/09 20:00:49 $
- * $Revision: 1.5 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/alphasort.c,v $
+ * $Date: 2001/09/14 14:01:17 $
+ * $Revision: 1.2.2.1 $
  * $State: Exp $
- * $Author: unixlib $
+ * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: alphasort,v 1.5 1997/10/09 20:00:49 unixlib Exp $";
+static const char rcs_id[] = "$Id: alphasort.c,v 1.2.2.1 2001/09/14 14:01:17 admin Exp $";
 #endif
 
 /* unix.c.alphasort.
@@ -20,8 +20,7 @@ static const char rcs_id[] = "$Id: alphasort,v 1.5 1997/10/09 20:00:49 unixlib E
 #include <string.h>
 
 int
-alphasort (const ptr_t a, const ptr_t b)
+alphasort (const struct dirent **a, const struct dirent **b)
 {
-  return strcmp (((struct dirent *) a)->d_name,
-		 ((struct dirent *) b)->d_name);
+  return strcmp ((*a)->d_name, (*b)->d_name);
 }

@@ -31,7 +31,7 @@ typedef struct stack_chunk
   unsigned long sc_mark; /* == 0xf60690ff */
   struct stack_chunk *sc_next, *sc_prev;
   unsigned long sc_size;
-  int (*sc_deallocate)();
+  int (*sc_deallocate)(void);
 } _kernel_stack_chunk;
 
 /* Return a pointer to the current stack chunk.  */

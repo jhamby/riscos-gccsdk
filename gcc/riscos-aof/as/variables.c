@@ -29,7 +29,6 @@
 #include "area.h"
 #include "lit.h"
 #include "macros.h"
-#include "strdup.h"
 #include "hash.h"
 #include "symbol.h"
 #include "os.h"
@@ -153,7 +152,7 @@ var_inputSymbol (int *len)
 void 
 c_gbl (ValueTag type, Lex * label)
 {
-  char *ptr;
+  char *ptr = NULL;
   int len = 0;
 
   if (label->tag != LexNone)
@@ -173,7 +172,7 @@ c_gbl (ValueTag type, Lex * label)
 void 
 c_lcl (ValueTag type, Lex * label)
 {
-  char *ptr;
+  char *ptr = NULL;
   int len = 0;
   varPos *p;
   Symbol *sym;

@@ -58,7 +58,7 @@ public:
 #include <string.h>
 #include "options.h"
 #define INLINE inline
-#include "icc/bool-array"
+#include "bool-array.icc"
 #undef INLINE
 
 #endif

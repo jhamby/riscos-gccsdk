@@ -151,7 +151,7 @@ extern Options option;
 
 #include "trace.h"
 #define INLINE inline
-#include "icc/options"
+#include "options.icc"
 #undef INLINE
 
 #endif

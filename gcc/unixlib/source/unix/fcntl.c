@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/unix/c/fcntl,v $
- * $Date: 1997/10/19 21:50:53 $
- * $Revision: 1.9 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/fcntl.c,v $
+ * $Date: 2002/01/12 16:09:28 $
+ * $Revision: 1.2.2.2 $
  * $State: Exp $
- * $Author: unixlib $
+ * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: fcntl,v 1.9 1997/10/19 21:50:53 unixlib Exp $";
+static const char rcs_id[] = "$Id: fcntl.c,v 1.2.2.2 2002/01/12 16:09:28 admin Exp $";
 #endif
 
 #include <errno.h>
@@ -17,7 +17,7 @@ static const char rcs_id[] = "$Id: fcntl,v 1.9 1997/10/19 21:50:53 unixlib Exp $
 #include <stdlib.h>
 #include <stdarg.h>
 #include <unistd.h>
-#include <sys/unix.h>
+#include <unixlib/unix.h>
 #include <unixlib/fd.h>
 
 int
@@ -74,9 +74,14 @@ fcntl (int fd, int cmd, ...)
       return file_desc->fflag;
 
     case F_SETFL:
-      va_start (ap, cmd);
-      file_desc->fflag = va_arg (ap, int);
-      va_end (ap);
+      {
+	int modify = O_APPEND | O_NONBLOCK | O_ASYNC;
+
+	va_start (ap, cmd);
+        file_desc->fflag =
+          (file_desc->fflag & ~modify) | (va_arg (ap, int) & modify);
+	va_end (ap);
+      }
       return 0;
 
     case F_GETUNL:

@@ -1,23 +1,23 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/common/c/serial,v $
- * $Date: 2000/06/10 12:59:43 $
- * $Revision: 1.10 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/common/serial.c,v $
+ * $Date: 2001/09/04 16:32:04 $
+ * $Revision: 1.2.2.2 $
  * $State: Exp $
  * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: serial,v 1.10 2000/06/10 12:59:43 admin Exp $";
+static const char rcs_id[] = "$Id: serial.c,v 1.2.2.2 2001/09/04 16:32:04 admin Exp $";
 #endif
 
 #include <stddef.h>
 #include <string.h>
 #include <limits.h>
 #include <unixlib/local.h>
-#include <sys/os.h>
-#include <sys/swis.h>
+#include <unixlib/os.h>
+#include <swis.h>
 
 /* Generate a file serial number. This should distinguish the file from all
    other files on the same device.  DIRECTORY is either NULL and FILENAME
@@ -75,7 +75,7 @@ __get_file_ino (const char *directory, const char *filename)
   regs[5] = sizeof (pathname);
 
   /* Use canonicalised name if possible, otherwise use the original name.  */
-  if (! os_swi (OS_FSControl, regs))
+  if (! __os_swi (OS_FSControl, regs))
     name = pathname;
 
   ino = 0;

@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/signal/c/signame,v $
- * $Date: 2000/06/03 12:22:55 $
- * $Revision: 1.7 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/signal/signame.c,v $
+ * $Date: 2001/09/06 14:52:00 $
+ * $Revision: 1.2.2.1 $
  * $State: Exp $
  * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: signame,v 1.7 2000/06/03 12:22:55 admin Exp $";
+static const char rcs_id[] = "$Id: signame.c,v 1.2.2.1 2001/09/06 14:52:00 admin Exp $";
 #endif
 
 /* signame.c: Define signals for sys_siglist.  */
@@ -26,14 +26,14 @@ char *sys_siglist[NSIG] =
   "Interrupt"		       /* 2. SIGINT */,
   "Quit"		       /* 3. SIGQUIT */,
   "Illegal Instruction"	       /* 4. SIGILL */,
-  "Trace/breakpoint trap"      /* 5. SIGTRAP */
+  "Trace/breakpoint trap"      /* 5. SIGTRAP */,
   "Aborted"		       /* 6. SIGABRT/SIGIOT */,
   "EMT trap"		       /* 7. SIGEMT */,
   "Floating point exception"   /* 8. SIGFPE */,
   "Killed"		       /* 9. SIGKILL */,
-  "Bus error"		       /* 10. SIGBUS */,
+  "Address Exception"	       /* 10. SIGBUS */,
   "Segmentation fault"	       /* 11. SIGSEGV */,
-  "Bad system call"	       /* 12. SIGSYS */,
+  "Unknown SWI"		       /* 12. SIGSYS */,
   "Broken pipe"		       /* 13. SIGPIPE */,
   "Alarm clock"		       /* 14. SIGALRM */,
   "Terminated"		       /* 15. SIGTERM */,

@@ -1,8 +1,8 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/clib/h/errno,v $
- * $Date: 2000/07/05 15:00:14 $
- * $Revision: 1.9 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/errno.h,v $
+ * $Date: 2001/09/11 16:53:58 $
+ * $Revision: 1.2.2.1 $
  * $State: Exp $
  * $Author: admin $
  *
@@ -25,186 +25,103 @@ extern int errno;
 extern char *sys_errlist[];
 extern int sys_nerr;
 
-/* Operation not permitted.  */
-#define EPERM           1
-/* No such file or directory.  */
-#define ENOENT		2
-/* No such process.  */
-#define ESRCH		3
-/* Interrupted function call. */
-#define EINTR		4
-/* Input/output error.  */
-#define EIO		5
-/* No such device or address (device not configured).  */
-#define ENXIO		6
-/* Argument list too long.  */
-#define E2BIG		7
-/* Invalid executable file format (exec format error). */
-#define ENOEXEC 	8
-/* Bad file descriptor.  */
-#define EBADF		9
-/* There are no child processes.  */
-#define ECHILD		10
-/* Resource deadlock avoided.  */
-#define EDEADLK	     	11
-/* Cannot allocate memory.  */
-#define ENOMEM		12
+#define EPERM           1 /* Operation not permitted.  */
+#define ENOENT		2 /* No such file or directory.  */
+#define ESRCH		3 /* No such process.  */
+#define EINTR		4 /* Interrupted function call. */
+#define EIO		5 /* Input/output error.  */
+#define ENXIO		6 /* No such device or address (device not configured).  */
+#define E2BIG		7 /* Argument list too long.  */
+#define ENOEXEC 	8 /* Invalid executable file format (exec format error). */
+#define EBADF		9 /* Bad file descriptor.  */
+#define ECHILD		10 /* There are no child processes.  */
+#define EAGAIN		11 /* Resource temporarily unavailable.  */
+#define ENOMEM		12 /* Cannot allocate memory.  */
+
 /* Permission denied.
    File permissions do not allow the attempted operation.  */
 #define EACCES		13
-/* Bad address. An invalid pointer was detected.  */
-#define EFAULT		14
-/* Block device required.  */
-#define ENOTBLK 	15
+#define EFAULT		14 /* Bad address. An invalid pointer was detected.  */
+#define ENOTBLK 	15 /* Block device required.  */
+
 /* Device busy. Caused by a system resource that can't be shared
    is already in use.  */
 #define EBUSY		16
-/* File exists.  */
-#define EEXIST		17
-/* Invalid cross-device link.  */
-#define EXDEV		18
-/* Operation not supported by device.  */
-#define ENODEV		19
-/* Not a directory.  */
-#define ENOTDIR 	20
-/* Is a directory.  */
-#define EISDIR		21
-/* Invalid argument.  */
-#define EINVAL		22
-/* Too many open files in system.  */
-#define ENFILE		23
-/* Too many open files.  */
-#define EMFILE		24
-/* Inappropriate ioctl for device.  */
-#define ENOTTY		25
-/* Text file busy.  */
-#define ETXTBSY 	26
-/* File too large.  */
-#define EFBIG		27
-/* No space left on device.  */
-#define ENOSPC		28
-/* Illegal seek.  */
-#define ESPIPE		29
-/* Read-only filing system.  */
-#define EROFS		30
-/* Too many links.  */
-#define EMLINK		31
-/* Broken pipe.  */
-#define EPIPE		32
-/* Domain error.  */
-#define EDOM		33
-/* Range error.  */
-#define ERANGE		34
-/* Operation would block.  */
-#define EWOULDBLOCK	35
-/* Operation now in progress.  */
-#define EINPROGRESS	36
-/* Operation already in progress.  */
-#define EALREADY	37
-/* Socket operation on non-socket.  */
-#define ENOTSOCK	38
-/* Destination address required.  */
-#define EDESTADDRREQ	39
-/* Message too long.  */
-#define EMSGSIZE	40
-/* Protocol wrong type for socket.  */
-#define EPROTOTYPE	41
-/* Option not supported by protocol.  */
-#define ENOPROTOOPT	42
-/* Protocol not supported */
-#define EPROTONOSUPPORT	43
-/* Socket type not supported */
-#define ESOCKTNOSUPPORT	44
-/* Operation not supported */
-#define EOPNOTSUPP	45
-/* Protocol family not supported.  */
-#define EPFNOSUPPORT	46
-/* Address family not supported by protocol family. */
-#define EAFNOSUPPORT	47
-/* Address already in use */
-#define EADDRINUSE	48
-/* Can't assign requested address.  */
-#define EADDRNOTAVAIL	49
-/* Network is down.  */
-#define ENETDOWN	50
-/* Network unreachable */
-#define ENETUNREACH	51
-/* Network dropped connection on reset.  */
-#define ENETRESET  	52
-/* Software caused connection abort.  */
-#define ECONNABORTED	53
-/* Connection reset by peer */
-#define ECONNRESET	54
-/* No buffer space available */
-#define ENOBUFS		55
-/* Socket is already connected */
-#define EISCONN		56
-/* Socked is not connected */
-#define ENOTCONN	57
-/* Can't send after socket shutdown.  */
-#define ESHUTDOWN	58
-/* Too many references: can't splice.  */
-#define ETOOMANYREFS	59
-/* Connection timed out.  */
-#define ETIMEDOUT	60
-/* Connection refused */
-#define ECONNREFUSED	61
-/* Too many levels of symbolic links.  */
-#define ELOOP		62
-/* File name too long.  */
-#define ENAMETOOLONG	63
-/* Host is down.  */
-#define EHOSTDOWN	64
-/* Host unreachable.  */
-#define EHOSTUNREACH	65
-/* Directory not empty.  */
-#define ENOTEMPTY	66
-/* Too many processes.  */
-#define EPROCLIM	67
-/* Too many users.  */
-#define EUSERS		68
-/* Disc quota exceeded.  */
-#define EDQUOT		69
-/* Stale NFS file handle.  */
-#define ESTALE		70
-/* Too many levels of remote in path.  */
-#define EREMOTE		71
-/* RPC struct is bad.  */
-#define EBADRPC		72
-/* RPC version wrong.  */
-#define ERPCMISMATCH	73
-/* RPC program not available.  */
-#define EPROGUNAVAIL	74
-/* RPC program version wrong.  */
-#define EPROGMISMATCH	75
-/* RPC bad procedure for program.  */
-#define EPROCUNAVAIL	76
-/* No locks available.  */
-#define ENOLCK		77
-/* Function not implemented.  */
-#define ENOSYS		78
-/* Inappropriate file type or format.  */
-#define EFTYPE		79
-/* Authentication error.  */
-#define EAUTH		80
-/* Need authenticator.  */
-#define ENEEDAUTH	81
-/* Resource temporarily unavailable.  */
-#define EAGAIN		82
-/* Inappropriate operation for background process.  */
-#define EBACKGROUND	100
-/* Translator died.  */
-#define EDIED		101
-/* A pretty bad error.  */
-#define EGREGIOUS	103
-/* Gratuitous error.  */
-#define EGRATUITOUS	105
+#define EEXIST		17 /* File exists.  */
+#define EXDEV		18 /* Invalid cross-device link.  */
+#define ENODEV		19 /* Operation not supported by device.  */
+#define ENOTDIR 	20 /* Not a directory.  */
+#define EISDIR		21 /* Is a directory.  */
+#define EINVAL		22 /* Invalid argument.  */
+#define ENFILE		23 /* Too many open files in system.  */
+#define EMFILE		24 /* Too many open files.  */
+#define ENOTTY		25 /* Inappropriate ioctl for device.  */
+#define ETXTBSY 	26 /* Text file busy.  */
+#define EFBIG		27 /* File too large.  */
+#define ENOSPC		28 /* No space left on device.  */
+#define ESPIPE		29 /* Illegal seek.  */
+#define EROFS		30 /* Read-only filing system.  */
+#define EMLINK		31 /* Too many links.  */
+#define EPIPE		32 /* Broken pipe.  */
+#define EDOM		33 /* Domain error.  */
+#define ERANGE		34 /* Range error.  */
+#define EWOULDBLOCK	35 /* Operation would block.  */
+#define EINPROGRESS	36 /* Operation now in progress.  */
+#define EALREADY	37 /* Operation already in progress.  */
+#define ENOTSOCK	38 /* Socket operation on non-socket.  */
+#define EDESTADDRREQ	39 /* Destination address required.  */
+#define EMSGSIZE	40 /* Message too long.  */
+#define EPROTOTYPE	41 /* Protocol wrong type for socket.  */
+#define ENOPROTOOPT	42 /* Option not supported by protocol.  */
+#define EPROTONOSUPPORT	43 /* Protocol not supported */
+#define ESOCKTNOSUPPORT	44 /* Socket type not supported */
+#define EOPNOTSUPP	45 /* Operation not supported */
+#define EPFNOSUPPORT	46 /* Protocol family not supported.  */
+#define EAFNOSUPPORT	47 /* Address family not supported by protocol family. */
+#define EADDRINUSE	48 /* Address already in use */
+#define EADDRNOTAVAIL	49 /* Can't assign requested address.  */
+#define ENETDOWN	50 /* Network is down.  */
+#define ENETUNREACH	51 /* Network unreachable */
+#define ENETRESET  	52 /* Network dropped connection on reset.  */
+#define ECONNABORTED	53 /* Software caused connection abort.  */
+#define ECONNRESET	54 /* Connection reset by peer */
+#define ENOBUFS		55 /* No buffer space available */
+#define EISCONN		56 /* Socket is already connected */
+#define ENOTCONN	57 /* Socket is not connected */
+#define ESHUTDOWN	58 /* Can't send after socket shutdown.  */
+#define ETOOMANYREFS	59 /* Too many references: can't splice.  */
+#define ETIMEDOUT	60 /* Connection timed out.  */
+#define ECONNREFUSED	61 /* Connection refused */
+#define EREFUSED	61 /* Acorn Internet name.  */
+#define ELOOP		62 /* Too many levels of symbolic links.  */
+#define ENAMETOOLONG	63 /* File name too long.  */
+#define EHOSTDOWN	64 /* Host is down.  */
+#define EHOSTUNREACH	65 /* Host unreachable.  */
+#define ENOTEMPTY	66 /* Directory not empty.  */
+#define EPROCLIM	67 /* Too many processes.  */
+#define EUSERS		68 /* Too many users.  */
+#define EDQUOT		69 /* Disc quota exceeded.  */
+#define ESTALE		70 /* Stale NFS file handle.  */
+#define EREMOTE		71 /* Too many levels of remote in path.  */
+#define ENOSTR		72 /* Not a stream device.  */
+#define ETIME		73 /* Timer expired.  */
+#define ENOSR		74 /* Out of stream resources.  */
+#define ENOMSG		75 /* No message of desired type.  */
+#define EBADMSG		76 /* Not a data message.  */
+#define EIDRM		77 /* Identifier removed.  */
+#define EDEADLK		78 /* Deadlock situation detected/avoided.  */
+#define ENOLCK		79 /* No record locks available.  */
+#define ELIBVER		82 /* Wrong version of shared library.  */
+#define ELIBACC		83 /* Permission denied (shared library).  */
+#define ELIBLIM		84 /* Shared libraries nested too deeply.  */
+#define ELIBNOENT	85 /* Shared library file not found.  */
+#define ELIBNOEXEC	86 /* Shared library exec format error.  */
+#define ENOSYS		87 /* Function not implemented.  */
 
-/* EOPSYS was originally called EOS but this caused problems.  */
-#define EOPSYS		106
-#define ESIG		107
+#define EOPSYS		88 /* RISC OS operating system error.  */
+#define ESIG		89
 
-#define __SYS_NERR	107
+#define __SYS_NERR	89
 
 /* This macro should be used whenever errno is to be set. This permits
    us to easily make setting the errno call a function if necessary if

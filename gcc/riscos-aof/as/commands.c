@@ -30,7 +30,6 @@
 #include "area.h"
 #include "lit.h"
 #include "macros.h"
-#include "strdup.h"
 #include "hash.h"
 #include "symbol.h"
 #include "local.h"
@@ -389,6 +388,7 @@ c_get (void)
   if (!getfp)
     {
       error (ErrorError, TRUE, "Cannot open file \"%s\"", filename);
+      free (filename);
       return;
     }
   push_file (asmfile);
@@ -396,7 +396,11 @@ c_get (void)
 #ifdef __riscos__
   dependPut (" ", filename, "");
 #endif
+#ifdef CROSS_COMPILE
+  inputName = filename;
+#else
   inputName = CanonicaliseFile (getfp);
+#endif
   asmfile = getfp;
   if (verbose)
     fprintf (stderr, "Including file %s\n", filename);
@@ -437,7 +441,11 @@ c_lnk (void)
   skiprest ();
   inputFinish ();
   inputLineNo = 0;
+#ifdef CROSS_COMPILE
+  inputName = filename;
+#else
   inputName = CanonicaliseFile (lnkfp);
+#endif
   if_depth = 0;
   asmfile = lnkfp;
   if (verbose)

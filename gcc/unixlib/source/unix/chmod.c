@@ -1,22 +1,22 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/unix/c/chmod,v $
- * $Date: 2000/06/10 12:59:43 $
- * $Revision: 1.12 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/chmod.c,v $
+ * $Date: 2001/09/04 16:32:04 $
+ * $Revision: 1.2.2.1 $
  * $State: Exp $
  * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: chmod,v 1.12 2000/06/10 12:59:43 admin Exp $";
+static const char rcs_id[] = "$Id: chmod.c,v 1.2.2.1 2001/09/04 16:32:04 admin Exp $";
 #endif
 
 #include <errno.h>
 #include <limits.h>
 #include <unistd.h>
 
-#include <sys/os.h>
+#include <unixlib/os.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 
@@ -37,7 +37,7 @@ chmod (const char *ux_file, mode_t mode)
     return __set_errno (ENAMETOOLONG);
 
   /* Get catalogue information.  */
-  err = os_file (OSFILE_READCATINFO_NOPATH, file, regs);
+  err = __os_file (OSFILE_READCATINFO_NOPATH, file, regs);
   if (err)
     {
       __seterr (err);
@@ -58,7 +58,7 @@ chmod (const char *ux_file, mode_t mode)
 
   /* Set the file access permission bits.  */
   regs[5] = __set_protection (mode);
-  err = os_file (4, file, regs);
+  err = __os_file (4, file, regs);
   if (err)
     {
       __seterr (err);

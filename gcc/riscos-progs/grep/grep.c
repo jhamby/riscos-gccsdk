@@ -338,7 +338,6 @@ fillbuf (save, stats)
   caddr_t maddr;
 #endif
 
-  fprintf (stderr, "fillbuf: save=%d, bufsalloc=%d\n", save, bufsalloc);
   if (save > bufsalloc)
     {
       char *nubuffer;

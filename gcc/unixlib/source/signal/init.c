@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/signal/c/init,v $
- * $Date: 2000/06/03 14:28:30 $
- * $Revision: 1.9 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/signal/init.c,v $
+ * $Date: 2001/09/06 14:52:00 $
+ * $Revision: 1.2.2.3 $
  * $State: Exp $
  * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: init,v 1.9 2000/06/03 14:28:30 admin Exp $";
+static const char rcs_id[] = "$Id: init.c,v 1.2.2.3 2001/09/06 14:52:00 admin Exp $";
 #endif
 
 /* Initialise the UnixLib stack handlers.
@@ -18,24 +18,31 @@ static const char rcs_id[] = "$Id: init,v 1.9 2000/06/03 14:28:30 admin Exp $";
 #include <stdlib.h>
 #include <signal.h>
 #include <unixlib/sigstate.h>
-#include <sys/unix.h>
-#include <sys/syslib.h>
+#include <unixlib/unix.h>
 #include <unistd.h>
-#include <sys/os.h>
+#include <unixlib/os.h>
 
 void
 __unixlib_signal_initialise (struct proc *p)
 {
+  int signo;
+  struct unixlib_sigstate *ss = &p->sigstate;
+
 #ifdef DEBUG
-  os_print ("__unixlib_signal_initialise\r\n");
+  __os_print ("__unixlib_signal_initialise\r\n");
 #endif
 
   /* Initialise signal handlers.  */
-  __unixlib_default_sigaction (&p->sigstate);
+  sigemptyset (&ss->actions[0].sa_mask);
+  ss->actions[0].sa_flags = SA_RESTART;
+  ss->actions[0].sa_handler = SIG_DFL;
 
-  p->sigstate.currently_handling = 0;
+  /* Set all signals to their defaults.  */
+  for (signo = 1; signo < NSIG; ++signo)
+    ss->actions[signo] = ss->actions[0];
 
-  p->sigstate.signalstack.ss_sp = 0;
-  p->sigstate.signalstack.ss_size = 0;
-  p->sigstate.signalstack.ss_flags = SA_DISABLE;
+  ss->currently_handling = 0;
+  ss->signalstack.ss_sp = 0;
+  ss->signalstack.ss_size = 0;
+  ss->signalstack.ss_flags = SA_DISABLE;
 }

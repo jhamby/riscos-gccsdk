@@ -9,7 +9,6 @@
 #include <ctype.h>
 #include "targetcpu.h"
 #include "error.h"
-#include "strdup.h"
 
 TargetCPU_t targetCPU = UNKNOWN;
 

@@ -1,17 +1,17 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/clib/sys/h/poll,v $
- * $Date: 1997/10/10 19:38:44 $
- * $Revision: 1.1 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/sys/poll.h,v $
+ * $Date: 2001/09/14 14:01:17 $
+ * $Revision: 1.2.2.1 $
  * $State: Exp $
- * $Author: unixlib $
+ * $Author: admin $
  *
  ***************************************************************************/
 
 /* System V poll interface.  */
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: poll,v 1.1 1997/10/10 19:38:44 unixlib Exp $";
+static const char rcs_id[] = "$Id: poll.h,v 1.2.2.1 2001/09/14 14:01:17 admin Exp $";
 #endif
 
 #ifndef __SYS_POLL_H
@@ -21,15 +21,16 @@ static const char rcs_id[] = "$Id: poll,v 1.1 1997/10/10 19:38:44 unixlib Exp $"
 extern "C" {
 #endif
 
+/* Type used for the number of file descriptors.  */
+typedef unsigned long int nfds_t;
+
 /* Data structure describing a polling request.  */
 struct pollfd
   {
-    /* File descriptor to poll.  */
-    int fd;
-    /* Types of events poller cares about.  */
-    short int events;
-    /* Types of events that actually occurred.  */
-    short int revents;
+    int fd;    /* File descriptor to poll.  */
+    short int events;    /* Types of events poller cares about.  */
+    short int revents;    /* Types of events that actually occurred.  */
+
   };
 
 /* Event types that can be polled for.   */
@@ -60,8 +61,7 @@ struct pollfd
    Returns the number of file descriptors with events, zero if timed out,
    or -1 for errors.  */
 
-extern int poll (struct pollfd *__fds, unsigned long int __nfds,
-		 int __timeout);
+extern int poll (struct pollfd *__fds, nfds_t __nfds, int __timeout);
 
 #ifdef __cplusplus
 }

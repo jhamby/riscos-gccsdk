@@ -1,10 +1,10 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/clib/h/ctype,v $
- * $Date: 1997/12/17 22:27:06 $
- * $Revision: 1.7 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/ctype.h,v $
+ * $Date: 2001/09/14 14:01:17 $
+ * $Revision: 1.2.2.1 $
  * $State: Exp $
- * $Author: unixlib $
+ * $Author: admin $
  *
  ***************************************************************************/
 
@@ -87,6 +87,14 @@ extern int toupper (int __c);
 /* Convert c to lower case.  */
 extern int tolower (int __c);
 #define tolower(c) ((int) __ctype_lower[(int) (c)])
+
+/* Convert c to upper case.  */
+extern int _toupper (int __c);
+#define _toupper(c) ((int) __ctype_upper[(int) (c)])
+
+/* Convert c to lower case.  */
+extern int _tolower (int __c);
+#define _tolower(c) ((int) __ctype_lower[(int) (c)])
 
 /* System V extension functions.  */
 

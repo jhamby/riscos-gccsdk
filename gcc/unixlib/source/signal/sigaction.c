@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/signal/c/sigaction,v $
- * $Date: 1997/10/09 20:00:28 $
- * $Revision: 1.6 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/signal/sigaction.c,v $
+ * $Date: 2001/09/04 16:32:04 $
+ * $Revision: 1.2.2.1 $
  * $State: Exp $
- * $Author: unixlib $
+ * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: sigaction,v 1.6 1997/10/09 20:00:28 unixlib Exp $";
+static const char rcs_id[] = "$Id: sigaction.c,v 1.2.2.1 2001/09/04 16:32:04 admin Exp $";
 #endif
 
 /* sigaction.c: Written by Nick Burrett, 31 August 1996.  */
@@ -18,7 +18,7 @@ static const char rcs_id[] = "$Id: sigaction,v 1.6 1997/10/09 20:00:28 unixlib E
 #include <stddef.h>
 #include <signal.h>
 #include <unixlib/sigstate.h>
-#include <sys/unix.h>
+#include <unixlib/unix.h>
 
 /* Set up a new action for the signal 'sig' specified by 'act'.
    The old action is returned in 'oact'.

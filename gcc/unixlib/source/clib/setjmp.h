@@ -1,10 +1,10 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/clib/h/setjmp,v $
- * $Date: 1997/10/09 19:59:47 $
- * $Revision: 1.6 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/setjmp.h,v $
+ * $Date: 2001/09/14 14:01:17 $
+ * $Revision: 1.2.2.1 $
  * $State: Exp $
- * $Author: unixlib $
+ * $Author: admin $
  *
  ***************************************************************************/
 
@@ -45,11 +45,11 @@ typedef int jmp_buf[__JMP_BUF_SIZE];
 #endif
 
 /* Store the current execution state into env.  */
-extern int setjmp (jmp_buf env);
+extern int setjmp (jmp_buf __env);
 /* Jump to the state saved in 'env'. The setjmp call that
    created 'env' will then return 'val'.  If val is zero, then
    setjmp will return 1. */
-extern void longjmp (jmp_buf env, int val) __attribute__ ((__noreturn__));
+extern void longjmp (jmp_buf __env, int __val) __attribute__ ((__noreturn__));
 
 /* POSIX details.  */
 
@@ -67,16 +67,19 @@ typedef struct sigjmp_buf_struct
 /* Similar to setjmp. If save sigs is nonzero, the set of
    blocked signals is saved in state and will be restored
    if a siglongjmp is later performed with this state.  */
-extern int sigsetjmp (sigjmp_buf state, int savesigs);
+extern int sigsetjmp (sigjmp_buf __state, int __savesigs);
 
 /* Jump to the environment saved in env, making the sigsetjmp
    call there return val, or 1 if val is 0.  Restore the signal
    mask if that sigsetjmp call saved it.  */
-extern void siglongjmp (const sigjmp_buf env, int val) __attribute__ ((__noreturn__));
+extern void siglongjmp (const sigjmp_buf __env,
+			int __val) __attribute__ ((__noreturn__));
 
+#ifdef __UNIXLIB_INTERNALS
 /* Internal functions.  */
-extern void __sigsetjmp_helper (sigjmp_buf state, int savesigs);
-extern void __siglongjmp_helper (const sigjmp_buf state, int savesigs);
+extern void __sigsetjmp_helper (sigjmp_buf __state, int __savesigs);
+extern void __siglongjmp_helper (const sigjmp_buf __state, int __savesigs);
+#endif
 
 #ifdef __cplusplus
 	}

@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/time/strftime.c,v $
- * $Date: 2001/01/29 15:10:22 $
- * $Revision: 1.2 $
+ * $Date: 2001/09/04 16:32:04 $
+ * $Revision: 1.3.2.2 $
  * $State: Exp $
  * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: strftime.c,v 1.2 2001/01/29 15:10:22 admin Exp $";
+static const char rcs_id[] = "$Id: strftime.c,v 1.3.2.2 2001/09/04 16:32:04 admin Exp $";
 #endif
 
 /* UnixLib port by Nick Burrett, 13 July 1997.  */
@@ -34,8 +34,8 @@ static const char rcs_id[] = "$Id: strftime.c,v 1.2 2001/01/29 15:10:22 admin Ex
 #include <stdio.h>
 #include <time.h>
 #include <locale.h>
-#include <sys/os.h>
-#include <sys/swis.h>
+#include <unixlib/os.h>
+#include <swis.h>
 
 static char *add (const char *, char *, const char *);
 static char *conv (int, const char *, char *, const char *);
@@ -365,7 +365,7 @@ territory_convert (char *format, const char *time, char *pt, const char *ptlim)
   regs[2] = (int)buffer;
   regs[3] = sizeof (buffer) - 1;
   regs[4] = (int)format;
-  os_swi (Territory_ConvertDateAndTime, regs);
+  __os_swi (Territory_ConvertDateAndTime, regs);
   return add (buffer, pt, ptlim);
 }
 
@@ -379,6 +379,6 @@ territory_standard (int swinum, const char *time, char *pt, const char *ptlim)
   regs[1] = (int)time;
   regs[2] = (int)buffer;
   regs[3] = sizeof (buffer) - 1;
-  os_swi (swinum, regs);
+  __os_swi (swinum, regs);
   return add (buffer, pt, ptlim);
 }
