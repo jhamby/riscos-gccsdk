@@ -34,10 +34,11 @@ Foundation, 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.  */
 #define STANDARD_INCLUDE_COMPONENT 0
 #endif
 
-#ifdef CROSS_COMPILE
-#undef LOCAL_INCLUDE_DIR
-#undef SYSTEM_INCLUDE_DIR
-#undef STANDARD_INCLUDE_DIR
+
+#if defined (CROSS_COMPILE) && !defined (TARGET_SYSTEM_ROOT)
+# undef LOCAL_INCLUDE_DIR
+# undef SYSTEM_INCLUDE_DIR
+# undef STANDARD_INCLUDE_DIR
 #else
 /* NAB++ */
 #ifndef TARGET_RISCOSAOF
@@ -65,11 +66,15 @@ struct default_include
   const int cxx_aware;		/* Includes in this directory don't need to
 				   be wrapped in extern "C" when compiling
 				   C++.  */
+  const int add_sysroot;	/* FNAME should be prefixed by
+				   cpp_SYSROOT.  */
 };
 
 extern const struct default_include cpp_include_defaults[];
 extern const char cpp_GCC_INCLUDE_DIR[];
 extern const size_t cpp_GCC_INCLUDE_DIR_len;
+
+extern const char *cpp_SYSROOT;
 
 /* NAB++ */
 extern const char cpp_CROSS_INCLUDE_DIR[];

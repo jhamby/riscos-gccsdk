@@ -595,7 +595,7 @@ arm_override_options ()
   /* Hack to workaround emit-rtl.c failure.  */
   insn_flags |= FL_LDSCHED;
   /* NAB-- */
-  
+
   /* If tuning has not been specified, tune for whichever processor or
      architecture has been selected.  */
   if (tune_flags == 0)
