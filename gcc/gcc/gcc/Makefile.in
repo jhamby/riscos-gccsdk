@@ -376,11 +376,13 @@ options.c: opts.sh options.h $(lang_opt_files)
 options.h: opts.sh $(lang_opt_files)
 	AWK=awk $(SHELL) opts.sh '$(SHELL) move-if-change' options.c options.h $(lang_opt_files)
 
+ifeq (${STAGE},stage1)
 gcov-iov.h: gcov-iov gcov-iov.c version.h
 	./gcov-iov > gcov-iov.h
 
 gcov-iov: $(gccobjdir)/gcov-iov.o gcov-iov.c
 	$(LINK) $(gccobjdir)/gcov-iov.o $(LIBS)
+endif
 
 # Bison object dependencies
 $(gccobjdir)/c-parse.o:	c-parse.c c-parse.c c-parse.in tree-check.h gt-c-parse.h
