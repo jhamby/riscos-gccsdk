@@ -78,6 +78,7 @@ gn_gplusplus_include_dir=lib/gcc-lib/$(TARGET_NAME)/$(VERSION)/include/g++-3
 gn_cross_include_dir=include
 gn_local_include_dir=local/include
 gn_system_include_dir=sys/include
+gn_share_dir=share
 
 # Used by Makefiles that build libraries/binaries for RISC OS.  These point
 # to the installation directories for cross-host and RISC OS.
@@ -118,7 +119,7 @@ instsrc = @topdir@/scripts/install-source.pl
 export TARGET_NAME objdir hostsystem targetsystem
 export ux_gccpkg ro_gccpkg ro_syspkg ro_zippkg unix_prefix riscos_prefix
 export gn_standard_exec_prefix gn_standard_startfile_prefix
-export gn_gcc_include_dir gn_gplusplus_include_dir
+export gn_gcc_include_dir gn_gplusplus_include_dir gn_share_dir
 export gn_local_include_dir gn_system_include_dir gn_cross_include_dir
 export gn_gcc_bin_dir info_dir exesfx ro_unixlibpkg ro_libsclpkg
 export ux_bin_dir ux_gcc_bin_dir ro_bin_dir ro_gcc_bin_dir
@@ -271,6 +272,7 @@ directories:
 	mkdir -p $(ux_gccpkg)/$(gn_gcc_include_dir)
 	mkdir -p $(ux_gccpkg)/$(gn_gplusplus_include_dir)
 	mkdir -p $(ux_gccpkg)/$(gn_cross_include_dir)
+	mkdir -p $(ux_gccpkg)/$(gn_share_dir)
 
 	mkdir -p $(ro_gccpkg)/$(gn_standard_exec_prefix)
 	mkdir -p $(ro_gccpkg)/$(gn_standard_startfile_prefix)
@@ -278,6 +280,7 @@ directories:
 	mkdir -p $(ro_gccpkg)/$(gn_gcc_include_dir)/h
 	mkdir -p $(ro_gccpkg)/$(gn_gplusplus_include_dir)/h
 	mkdir -p $(ro_gccpkg)/$(gn_cross_include_dir)
+	mkdir -p $(ro_gccpkg)/$(gn_share_dir)/jar
 
 	mkdir -p $(ux_gccpkg)/$(gn_gcc_bin_dir)/$(trg10)
 	mkdir -p $(ux_gccpkg)/$(gn_gcc_bin_dir)/$(trg11)
