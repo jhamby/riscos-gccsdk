@@ -54,6 +54,7 @@ OBJS = $(objtarget)/asprintf.o \
 	$(objtarget)/safe-ctype.o \
 	$(objtarget)/splay-tree.o \
 	$(objtarget)/stpcpy.o \
+	$(objtarget)/strsignal.o \
 	$(objtarget)/vasprintf.o \
 	$(objtarget)/xatexit.o \
 	$(objtarget)/xexit.o \
