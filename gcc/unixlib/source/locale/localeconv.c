@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/locale/localeconv.c,v $
- * $Date: 2003/01/21 17:54:22 $
- * $Revision: 1.5 $
+ * $Date: 2005/03/13 10:06:42 $
+ * $Revision: 1.6 $
  * $State: Exp $
- * $Author: admin $
+ * $Author: alex $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: localeconv.c,v 1.5 2003/01/21 17:54:22 admin Exp $";
+static const char rcs_id[] = "$Id: localeconv.c,v 1.6 2005/03/13 10:06:42 alex Exp $";
 #endif
 
 /* Character localisation support. Written by Nick Burrett, 20 July 1997.  */
@@ -122,19 +122,18 @@ struct lconv *localeconv (void)
   if (numeric == -1)
     {
       /* We're using the 'C' locale.  */
-      if (lc.decimal_point)
-        free (lc.decimal_point);
+      free (lc.decimal_point);
       lc.decimal_point = strdup (".");
-      if (lc.thousands_sep)
-        free (lc.thousands_sep);
+      free (lc.thousands_sep);
       lc.thousands_sep = strdup ("");
-      if (lc.grouping)
-        free (lc.grouping);
+      free (lc.grouping);
       lc.grouping = strdup ("");
     }
   else
     {
+      free (lc.decimal_point);
       lc.decimal_point = strdup ((char *) read_symbol (0, numeric));
+      free (lc.thousands_sep);
       lc.thousands_sep = strdup ((char *) read_symbol (1, numeric));
       read_byte_list (2, &lc.grouping, numeric);
     }
@@ -142,44 +141,43 @@ struct lconv *localeconv (void)
     {
       /* We using the 'C' locale.  Empty strings and CHAR_MAX means
 	 that these fields are unspecified.  */
-      if (lc.mon_decimal_point)
-        free (lc.mon_decimal_point);
+      free (lc.mon_decimal_point);
       lc.mon_decimal_point = strdup ("");
-      if (lc.mon_thousands_sep)
-        free (lc.mon_thousands_sep);
+      free (lc.mon_thousands_sep);
       lc.mon_thousands_sep = strdup ("");
-      if (lc.mon_grouping)
-        free (lc.mon_grouping);
+      free (lc.mon_grouping);
       lc.mon_grouping = strdup ("");
       lc.int_frac_digits = CHAR_MAX;
       lc.frac_digits = CHAR_MAX;
-      if (lc.currency_symbol)
-        free (lc.currency_symbol);
+      free (lc.currency_symbol);
       lc.currency_symbol = strdup ("");
-      if (lc.int_curr_symbol)
-        free (lc.int_curr_symbol);
+      free (lc.int_curr_symbol);
       lc.int_curr_symbol = strdup ("");
       lc.p_cs_precedes = CHAR_MAX;
       lc.n_cs_precedes = CHAR_MAX;
       lc.p_sep_by_space = CHAR_MAX;
       lc.n_sep_by_space = CHAR_MAX;
-      if (lc.positive_sign)
-        free (lc.positive_sign);
+      free (lc.positive_sign);
       lc.positive_sign = strdup ("");
-      if (lc.negative_sign)
-        free (lc.negative_sign);
+      free (lc.negative_sign);
       lc.negative_sign = strdup ("");
       lc.p_sign_posn = CHAR_MAX;
       lc.n_sign_posn = CHAR_MAX;
     }
   else
     {
+      free (lc.int_curr_symbol);
       lc.int_curr_symbol = strdup ((char *)read_symbol (3, monetary));
+      free (lc.currency_symbol);
       lc.currency_symbol = strdup ((char *)read_symbol (4, monetary));
+      free (lc.mon_decimal_point);
       lc.mon_decimal_point = strdup ((char *)read_symbol (5, monetary));
+      free (lc.mon_thousands_sep);
       lc.mon_thousands_sep = strdup ((char *)read_symbol (6, monetary));
       read_byte_list (7, &lc.mon_grouping, monetary);
+      free (lc.positive_sign);
       lc.positive_sign = strdup ((char *)read_symbol (8, monetary));
+      free (lc.negative_sign);
       lc.negative_sign = strdup ((char *)read_symbol (9, monetary));
       lc.int_frac_digits = (char)read_symbol (10, monetary);
       lc.frac_digits = (char)read_symbol (11, monetary);
