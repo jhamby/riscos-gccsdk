@@ -26,6 +26,15 @@
 #endif
 
 
+#ifndef _WINT_T
+/* Integral type unchanged by default argument promotions that can
+   hold any value corresponding to members of the extended character
+   set, as well as at least one value that does not correspond to any
+   member of the extended character set.  */
+# define _WINT_T
+typedef unsigned int wint_t;
+#endif
+
 /* For use as part of glibc (native) or as part of libstdc++ (maybe
    not glibc) */
 #ifndef __c_mbstate_t_defined

@@ -41,6 +41,13 @@ $(ux_gcc_bin_dir)/$(TRG)/libio.o: $(IO_OBJECTS)
 $(ro_gcc_bin_dir)/$(TRG)/o/libio: $(IO_OBJECTS)
 	$(CROSS_AR) $(CROSS_AR_FLAGS) $@ $(IO_OBJECTS)
 
+glibcpp_srcdir = /home/nick/riscos/gcc-3.3/libstdc++-v3/libio
+
+import:
+	# Merge header files
+	cp -a ${glibcpp_srcdir}/*.c ./
+	cp -a ${glibcpp_srcdir}/*.h ./
+
 $(ioobjdir)/filedoalloc.o: filedoalloc.c
 $(ioobjdir)/fileops.o: fileops.c
 $(ioobjdir)/genops.o: genops.c
