@@ -1,3 +1,15 @@
+Fri Nov 21 14:26:31 2003  Peter Naulls  <peter@chocky.org>
+
+	* clib/time.h: Rename parameters inline with glibc, and to
+	  avoid warnings
+	* clib/sys/cdefs.h: Additional declarations inline with glibc
+	* clib/unixlib/features.h: Remove declarations repeated in
+	  cdefs.h
+	* clib/unistd.h: Bring somewhat inline with glibc, and avoid
+	  warnings with brk/sbrk declarations.
+	* sys/brk.c: Change sbrk defintion to match above
+
+
 Wed Nov 19 00:00:01 2003  John Tytgat  <John.Tytgat@aaug.net>
 
 	* source/clib/net/if.h: Commented out declaration of the if_*()

@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/time.h,v $
- * $Date: 2003/06/07 02:30:21 $
- * $Revision: 1.7 $
+ * $Date: 2003/07/29 23:04:27 $
+ * $Revision: 1.8 $
  * $State: Exp $
- * $Author: joty $
+ * $Author: admin $
  *
  ***************************************************************************/
 
@@ -119,7 +119,7 @@ extern char *asctime (const struct tm *__brokentime);
 
 /* Similar to asctime except that the time value is specified
    as a time_t calendar time value.  */
-extern char *ctime (const time_t *__time);
+extern char *ctime (const time_t *__timer);
 
 /* Return the number of seconds elapsed between time1 and time 0
    as a value of type double.  */
@@ -127,20 +127,20 @@ extern double difftime (time_t __time1, time_t __time0);
 
 /* Convert the calendar time 'time' to broken-down time,
    expressed relative to the user's specified time zone. */
-extern struct tm *localtime (const time_t *__time);
+extern struct tm *localtime (const time_t *__timer);
 
 /* Convert the calendar time 'time' to broken-down time,
    expressed relative to the user's specified time zone (re-entrant). */
-extern struct tm *localtime_r (const time_t *__restrict __time,
+extern struct tm *localtime_r (const time_t *__restrict __timer,
 			       struct tm *__restrict resultp);
 
 /* Similar to localtime() but the broken-down time is expressed
    as UTC (GMT) rather than the local time zone.  */
-extern struct tm *gmtime (const time_t *__time);
+extern struct tm *gmtime (const time_t *__timer);
 
 /* Similar to localtime() but the broken-down time is expressed
    as UTC (GMT) rather than the local time zone (re-entrant).  */
-extern struct tm *gmtime_r (const time_t *__restrict __time,
+extern struct tm *gmtime_r (const time_t *__restrict __timer,
 			    struct tm *__restrict resultp);
 
 /* Convert a broken-down time structure to a calendar time

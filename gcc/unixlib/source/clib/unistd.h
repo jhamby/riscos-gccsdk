@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/unistd.h,v $
- * $Date: 2003/06/01 20:47:07 $
- * $Revision: 1.8 $
+ * $Date: 2003/07/29 23:04:27 $
+ * $Revision: 1.9 $
  * $State: Exp $
- * $Author: alex $
+ * $Author: admin $
  *
  ***************************************************************************/
 
@@ -421,33 +421,130 @@ extern int setlogin (const char *__name);
 extern int syscall (int __sysno, ...);
 #endif
 
-#ifndef F_LOCK
-/* `lockf' is a simpler interface to the locking facilities of `fcntl'.
-   LEN is always relative to the current file position.
-   The CMD argument is one of the following.  */
+#if defined __USE_MISC || defined __USE_XOPEN_EXTENDED
 
-#define F_ULOCK 0	/* Unlock a previously locked region.  */
-#define F_LOCK  1	/* Lock a region for exclusive use.  */
-#define F_TLOCK 2	/* Test and lock a region for exclusive use.  */
-#define F_TEST  3	/* Test a region for other processes locks.  */
+/* Set the end of accessible data space (aka "the break") to ADDR.
+   Returns zero on success and -1 for errors (with errno set).  */
+extern int brk (void *__addr) __THROW;
 
-extern int lockf (int __fd, int __cmd, __off_t __len);
-#endif /* Use misc and F_LOCK not already defined.  */
-
-/* BSD extensions.  */
-
-extern int brk (void *__addr) __attribute__ ((deprecated));
-extern void *sbrk (int __incr) __attribute__ ((deprecated));
+/* Increase or decrease the end of accessible data space by DELTA bytes.
+   If successful, returns the address the previous end of data space
+   (i.e. the beginning of the new space, if DELTA > 0);
+   returns (void *) -1 for errors (with errno set).  */
+extern void *sbrk (intptr_t __delta) __THROW;
+#endif
 
 #ifdef __UNIXLIB_INTERNALS
 extern void *__internal_sbrk (int __incr);
 #endif
 
-/* Put the name of the current host in no more than len bytes of name.  */
-extern int gethostname (char *__name, size_t __len);
 
-/* Put the domainname of the current host in no more than len bytes of name.  */
-extern int getdomainname (char *__name, size_t __len);
+#if (defined __USE_MISC || defined __USE_XOPEN_EXTENDED) && !defined F_LOCK
+/* NOTE: These declarations also appear in <fcntl.h>; be sure to keep both
+   files consistent.  Some systems have them there and some here, and some
+   software depends on the macros being defined without including both.  */
+
+/* `lockf' is a simpler interface to the locking facilities of `fcntl'.
+   LEN is always relative to the current file position.
+   The CMD argument is one of the following.
+
+   This function is a cancellation point and therefore not marked with
+   __THROW.  */
+
+# define F_ULOCK 0	/* Unlock a previously locked region.  */
+# define F_LOCK  1	/* Lock a region for exclusive use.  */
+# define F_TLOCK 2	/* Test and lock a region for exclusive use.  */
+# define F_TEST  3	/* Test a region for other processes locks.  */
+
+# ifndef __USE_FILE_OFFSET64
+extern int lockf (int __fd, int __cmd, __off_t __len);
+# else
+#  ifdef __REDIRECT
+extern int __REDIRECT (lockf, (int __fd, int __cmd, __off64_t __len),
+		       lockf64);
+#  else
+#   define lockf lockf64
+#  endif
+# endif
+# ifdef __USE_LARGEFILE64
+extern int lockf64 (int __fd, int __cmd, __off64_t __len);
+# endif
+#endif /* Use misc and F_LOCK not already defined.  */
+
+
+#if defined __USE_BSD || defined __USE_UNIX98
+/* Put the name of the current host in no more than LEN bytes of NAME.
+   The result is null-terminated if LEN is large enough for the full
+   name and the terminator.  */
+extern int gethostname (char *__name, size_t __len) __THROW;
+#endif
+
+
+#if defined __USE_BSD || (defined __USE_XOPEN && !defined __USE_UNIX98)
+/* Set the name of the current host to NAME, which is LEN bytes long.
+   This call is restricted to the super-user.  */
+extern int sethostname (__const char *__name, size_t __len) __THROW;
+
+#if 0
+/* Set the current machine's Internet number to ID.
+   This call is restricted to the super-user.  */
+extern int sethostid (long int __id) __THROW;
+#endif
+
+
+/* Get and set the NIS (aka YP) domain name, if any.
+   Called just like `gethostname' and `sethostname'.
+   The NIS domain name is usually the empty string when not using NIS.  */
+extern int getdomainname (char *__name, size_t __len) __THROW;
+extern int setdomainname (__const char *__name, size_t __len) __THROW;
+
+
+#if 0
+/* Revoke access permissions to all processes currently communicating
+   with the control terminal, and then send a SIGHUP signal to the process
+   group of the control terminal.  */
+extern int vhangup (void) __THROW;
+#endif
+
+#if 0
+/* Revoke the access of all descriptors currently open on FILE.  */
+extern int revoke (__const char *__file) __THROW;
+#endif
+
+
+#if 0
+/* Enable statistical profiling, writing samples of the PC into at most
+   SIZE bytes of SAMPLE_BUFFER; every processor clock tick while profiling
+   is enabled, the system examines the user PC and increments
+   SAMPLE_BUFFER[((PC - OFFSET) / 2) * SCALE / 65536].  If SCALE is zero,
+   disable profiling.  Returns zero on success, -1 on error.  */
+extern int profil (unsigned short int *__sample_buffer, size_t __size,
+		   size_t __offset, unsigned int __scale) __THROW;
+#endif
+
+
+#if 0
+/* Turn accounting on if NAME is an existing file.  The system will then write
+   a record for each process as it terminates, to this file.  If NAME is NULL,
+   turn accounting off.  This call is restricted to the super-user.  */
+extern int acct (__const char *__name) __THROW;
+#endif
+
+
+#if 0
+/* Successive calls return the shells listed in `/etc/shells'.  */
+extern char *getusershell (void) __THROW;
+extern void endusershell (void) __THROW; /* Discard cached info.  */
+extern void setusershell (void) __THROW; /* Rewind and re-read the file.  */
+#endif
+
+
+/* Put the program in the background, and dissociate from the controlling
+   terminal.  If NOCHDIR is zero, do `chdir ("/")'.  If NOCLOSE is zero,
+   redirects stdin, stdout, and stderr to /dev/null.  */
+extern int daemon (int __nochdir, int __noclose) __THROW;
+#endif /* Use BSD || X/Open.  */
+
 
 /* Make all changes done to all files actually appear on disk.  */
 extern int sync (void);
@@ -460,12 +557,6 @@ extern int truncate (const char *__file, __off_t __length);
 
 /* Truncate the file FD is open on to LENGTH bytes.  */
 extern int ftruncate (int __fd, __off_t __length);
-
-/* Set the name of the current host to name, which is len bytes long.  */
-extern int sethostname (const char *__name, size_t __len);
-
-/* Set the domainname of the current host to name, which is len bytes long.  */
-extern int setdomainname (const char *__name, size_t __len);
 
 /* Return the number of bytes in a page.  This is the system's page size,
    which is not necessarily the same as the hardware page size.  */
@@ -484,17 +575,6 @@ extern long int gethostid (void);
 extern int sethostid (long int __id);
 
 
-/* Revoke access permissions to all processes currently communicating
-   with the control terminal, and then send a SIGHUP signal to the process
-   group of the control terminal.  */
-extern int vhangup (void);
-
-
-/* Turn accounting on if NAME is an existing file.  The system will then write
-   a record for each process as it terminates, to this file.  If NAME is NULL,
-   turn accounting off.  This call is restricted to the super-user.  */
-extern int acct (const char *__name);
-
 /* Make the block special device PATH available to the system for swapping.
    This call is restricted to the super-user.  */
 extern int swapon (const char *__path);
@@ -502,20 +582,18 @@ extern int swapon (const char *__path);
 /* Reboot or halt the system.  */
 extern int reboot (int __howto);
 
-
-/* Successive calls return the shells listed in `/etc/shells'.  */
-extern char *getusershell (void);
-extern void endusershell (void); /* Discard cached info.  */
-extern void setusershell (void); /* Rewind and re-read the file.  */
 #endif
 
+#if defined __USE_BSD || (defined __USE_XOPEN && !defined __USE_XOPEN2K)
 /* Make PATH be the root directory (the starting point for absolute paths).
    This call is restricted to the super-user.  */
-extern int chroot (const char *__path);
+extern int chroot (__const char *__path) __THROW;
 
 /* Prompt with PROMPT and read a string from the terminal without echoing.
    Uses /dev/tty if possible; otherwise stderr and stdin.  */
-extern char *getpass (const char *__prompt);
+extern char *getpass (__const char *__prompt);
+#endif /* Use BSD || X/Open.  */
+
 
 /* POSIX 2 extensions.  */
 

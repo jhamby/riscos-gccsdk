@@ -1,8 +1,8 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/brk.c,v $
- * $Date: 2003/04/05 12:16:34 $
- * $Revision: 1.4 $
+ * $Date: 2003/04/28 21:04:36 $
+ * $Revision: 1.5 $
  * $State: Exp $
  * $Author: alex $
  *
@@ -41,7 +41,7 @@
 /* sys/brk.c: Complete rewrite by Peter Burwood, June 1997  */
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: brk.c,v 1.4 2003/04/05 12:16:34 alex Exp $";
+static const char rcs_id[] = "$Id: brk.c,v 1.5 2003/04/28 21:04:36 alex Exp $";
 #endif
 
 #include <string.h>
@@ -194,7 +194,7 @@ __internal_brk (void *addr, int internalcall)
 }
 
 int
-brk (void *addr)
+brk (void *addr) 
 {
   PTHREAD_UNSAFE
 
@@ -204,17 +204,17 @@ brk (void *addr)
 /* External calls to sbrk can only increase __break upto __stack,
    and cannot increase the wimplot as the stack will be in the way. */
 void *
-sbrk (int incr)
+sbrk (intptr_t delta)
 {
   void *oldbrk = __break;
 
   PTHREAD_UNSAFE
 
 #ifdef DEBUG
-  __os_print ("-- sbrk: incr = "); __os_prdec (incr); __os_print ("\r\n");
+  __os_print ("-- sbrk: incr = "); __os_prdec ((int)delta); __os_print ("\r\n");
 #endif
 
-  if (incr != 0 && __internal_brk ((u_char *) oldbrk + incr, 0) < 0)
+  if (delta != NULL && __internal_brk ((u_char *) oldbrk + (int)delta, 0) < 0)
     return ((void *)-1);
 
   return (__dynamic_num == -1 && oldbrk > __stack_limit) ? __stack_limit : oldbrk;

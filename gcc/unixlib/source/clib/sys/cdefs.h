@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/sys/cdefs.h,v $
- * $Date: 2003/04/29 21:16:11 $
- * $Revision: 1.2 $
+ * $Date: 2003/06/07 02:30:22 $
+ * $Revision: 1.3 $
  * $State: Exp $
- * $Author: alex $
+ * $Author: joty $
  *
  ***************************************************************************/
 
@@ -92,7 +92,6 @@
 #define __STRING(x)	#x
 
 /* This is not a typedef so `const __ptr_t' does the right thing.  */
-#undef __ptr_t
 #define __ptr_t void *
 #define __long_double_t  long double
 
@@ -104,6 +103,31 @@
 #else
 # define __BEGIN_DECLS
 # define __END_DECLS
+#endif
+
+
+/* The standard library needs the functions from the ISO C90 standard
+   in the std namespace.  At the same time we want to be safe for
+   future changes and we include the ISO C99 code in the non-standard
+   namespace __c99.  The C++ wrapper header take case of adding the
+   definitions to the global namespace.  */
+#if defined __cplusplus && defined _GLIBCPP_USE_NAMESPACES
+# define __BEGIN_NAMESPACE_STD	namespace std {
+# define __END_NAMESPACE_STD	}
+# define __USING_NAMESPACE_STD(name) using std::name;
+# define __BEGIN_NAMESPACE_C99	namespace __c99 {
+# define __END_NAMESPACE_C99	}
+# define __USING_NAMESPACE_C99(name) using __c99::name;
+#else
+/* For compatibility we do not add the declarations into any
+   namespace.  They will end up in the global namespace which is what
+   old code expects.  */
+# define __BEGIN_NAMESPACE_STD
+# define __END_NAMESPACE_STD
+# define __USING_NAMESPACE_STD(name)
+# define __BEGIN_NAMESPACE_C99
+# define __END_NAMESPACE_C99
+# define __USING_NAMESPACE_C99(name)
 #endif
 
 
@@ -160,7 +184,7 @@
 /* GCC has various useful declarations that can be made with the
    `__attribute__' syntax.  All of the ways we use this do fine if
    they are omitted for compilers that don't understand it. */
-#if !defined __GNUC__ || !__GNUC_PREREQ(2,0)
+#if !defined __GNUC__ || __GNUC__ < 2
 # define __attribute__(xyz)	/* Ignore */
 #endif
 
@@ -187,9 +211,18 @@
    (although this would be possible) since it generates warnings.  */
 #if __GNUC_PREREQ (3,1)
 # define __attribute_used__ __attribute__ ((__used__))
+# define __attribute_noinline__ __attribute__ ((__noinline__))
 #else
 # define __attribute_used__ __attribute__ ((__unused__))
+# define __attribute_noinline__ /* Ignore */
 #endif
+
+/* gcc allows marking deprecated functions.  */
+#if __GNUC_PREREQ (3,2)
+# define __attribute_deprecated__ __attribute__ ((__deprecated__))
+#else
+# define __attribute_deprecated__ /* Ignore */
+#endif                                                                                                                  
 
 /* At some point during the gcc 2.8 development the `format_arg' attribute
    for functions was introduced.  We don't want to use it unconditionally

@@ -1,8 +1,8 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/unixlib/features.h,v $
- * $Date: 2003/08/15 13:56:31 $
- * $Revision: 1.12 $
+ * $Date: 2003/08/18 22:35:36 $
+ * $Revision: 1.13 $
  * $State: Exp $
  * $Author: joty $
  *
@@ -323,232 +323,6 @@
         ((__ULIBC__ << 16) + __ULIBC_MINOR__ >= ((maj) << 16) + (min))
 
 
-/* Some user header file might have defined this before.  */
-#undef	__P
-#undef	__PMT
-
-#ifdef __GNUC__
-
-/* GCC can always grok prototypes.  For C++ programs we add throw()
-   to help it optimize the function calls.  But this works only with
-   gcc 2.8.x and egcs.  */
-# if defined __cplusplus && __GNUC_PREREQ (2,8)
-#  define __THROW	throw ()
-# else
-#  define __THROW
-# endif
-# define __P(args)	args __THROW
-/* This macro will be used for functions which might take C++ callback
-   functions.  */
-# define __PMT(args)	args
-
-#else	/* Not GCC.  */
-
-# define __inline		/* No inline functions.  */
-
-# define __THROW
-# define __P(args)	args
-# define __PMT(args)	args
-
-# define __const	const
-# define __signed	signed
-# define __volatile	volatile
-
-#endif	/* GCC.  */
-
-/* For these things, GCC behaves the ANSI way normally,
-   and the non-ANSI way under -traditional.  */
-
-#define __CONCAT(x,y)	x ## y
-#define __STRING(x)	#x
-
-/* This is not a typedef so `const __ptr_t' does the right thing.  */
-#undef __ptr_t
-#define __ptr_t void *
-#define __long_double_t  long double
-
-
-/* C++ needs to know that types and declarations are C, not C++.  */
-#ifdef	__cplusplus
-# define __BEGIN_DECLS	extern "C" {
-# define __END_DECLS	}
-#else
-# define __BEGIN_DECLS
-# define __END_DECLS
-#endif
-
-/* Support for bounded pointers.  */
-#ifndef __BOUNDED_POINTERS__
-# define __bounded	/* nothing */
-# define __unbounded	/* nothing */
-# define __ptrvalue	/* nothing */
-#endif
-
-
-#ifndef __flexarr
-/* Support for flexible arrays.  */
-# if __GNUC_PREREQ (2,97)
-/* GCC 2.97 supports C99 flexible array members.  */
-#  define __flexarr	[]
-# else
-#  ifdef __GNUC__
-#   define __flexarr	[0]
-#  else
-#   if defined __STDC_VERSION__ && __STDC_VERSION__ >= 199901L
-#    define __flexarr	[]
-#   else
-/* Some other non-C99 compiler.  Approximate with [1].  */
-#    define __flexarr	[1]
-#   endif
-#  endif
-# endif
-#endif
-
-
-/* __asm__ ("xyz") is used throughout the headers to rename functions
-   at the assembly language level.  This is wrapped by the __REDIRECT
-   macro, in order to support compilers that can do this some other
-   way.  When compilers don't support asm-names at all, we have to do
-   preprocessor tricks instead (which don't have exactly the right
-   semantics, but it's the best we can do).
-
-   Example:
-   int __REDIRECT(setpgrp, (__pid_t pid, __pid_t pgrp), setpgid); */
-
-#if defined __GNUC__ && __GNUC_PREREQ(2,0)
-
-# define __REDIRECT(name, proto, alias) name proto __asm__ (__ASMNAME (#alias))
-# define __ASMNAME(cname)  __ASMNAME2 (__USER_LABEL_PREFIX__, cname)
-# define __ASMNAME2(prefix, cname) __STRING (prefix) cname
-
-/*
-#elif __SOME_OTHER_COMPILER__
-
-# define __REDIRECT(name, proto, alias) name proto; \
-	_Pragma("let " #name " = " #alias)
-*/
-#endif
-
-#ifndef __attribute__
-/* GCC has various useful declarations that can be made with the
-   `__attribute__' syntax.  All of the ways we use this do fine if
-   they are omitted for compilers that don't understand it. */
-# if !defined __GNUC__ || !__GNUC_PREREQ(2,0)
-#  define __attribute__(xyz)	/* Ignore */
-# endif
-#endif
-
-#ifndef __attribute_malloc__
-/* At some point during the gcc 2.96 development the `malloc' attribute
-   for functions was introduced.  We don't want to use it unconditionally
-   (although this would be possible) since it generates warnings.  */
-# if __GNUC_PREREQ (2,96)
-#  define __attribute_malloc__ __attribute__ ((__malloc__))
-# else
-#  define __attribute_malloc__ /* Ignore */
-# endif
-#endif
-
-#ifndef __attribute_pure__
-/* At some point during the gcc 2.96 development the `pure' attribute
-   for functions was introduced.  We don't want to use it unconditionally
-   (although this would be possible) since it generates warnings.  */
-# if __GNUC_PREREQ (2,96)
-#  define __attribute_pure__ __attribute__ ((__pure__))
-# else
-#  define __attribute_pure__ /* Ignore */
-# endif
-#endif
-
-#ifndef __attribute_used__
-/* At some point during the gcc 3.1 development the `used' attribute
-   for functions was introduced.  We don't want to use it unconditionally
-   (although this would be possible) since it generates warnings.  */
-# if __GNUC_PREREQ (3,1)
-#  define __attribute_used__ __attribute__ ((__used__))
-# else
-#  define __attribute_used__ __attribute__ ((__unused__))
-# endif
-#endif
-
-#ifndef __attribute_format_arg__
-/* At some point during the gcc 2.8 development the `format_arg' attribute
-   for functions was introduced.  We don't want to use it unconditionally
-   (although this would be possible) since it generates warnings.
-   If several `format_arg' attributes are given for the same function, in
-   gcc-3.0 and older, all but the last one are ignored.  In newer gccs,
-   all designated arguments are considered.  */
-# if __GNUC_PREREQ (2,8)
-#  define __attribute_format_arg__(x) __attribute__ ((__format_arg__ (x)))
-# else
-#  define __attribute_format_arg__(x) /* Ignore */
-# endif
-#endif
-
-#ifndef __attribute_format_strfmon__
-/* At some point during the gcc 2.97 development the `strfmon' format
-   attribute for functions was introduced.  We don't want to use it
-   unconditionally (although this would be possible) since it
-   generates warnings.  */
-# if __GNUC_PREREQ (2,97)
-#  define __attribute_format_strfmon__(a,b) \
-   __attribute__ ((__format__ (__strfmon__, a, b)))
-# else
-#  define __attribute_format_strfmon__(a,b) /* Ignore */
-# endif
-#endif
-
-#ifndef __extension__
-/* It is possible to compile containing GCC extensions even if GCC is
-   run in pedantic mode if the uses are carefully marked using the
-   `__extension__' keyword.  But this is not generally available before
-   version 2.8.  */
-# if !__GNUC_PREREQ (2,8)
-#  define __extension__		/* Ignore */
-# endif
-#endif
-
-#ifndef __restrict
-/* __restrict is known in EGCS 1.2 and above. */
-# if !__GNUC_PREREQ (2,92)
-#  define __restrict	/* Ignore */
-# endif
-#endif
-
-#ifndef __restrict_arr
-/* ISO C99 also allows to declare arrays as non-overlapping.  The syntax is
-     array_name[restrict]
-   GCC 3.1 supports this.  */
-# if __GNUC_PREREQ (3,1) && !defined __GNUG__
-#  define __restrict_arr	__restrict
-# else
-#  ifdef __GNUC__
-#   define __restrict_arr	/* Not supported in old GCC.  */
-#  else
-#   if defined __STDC_VERSION__ && __STDC_VERSION__ >= 199901L
-#    define __restrict_arr	restrict
-#   else
-/* Some other non-C99 compiler.  */
-#    define __restrict_arr	/* Not supported.  */
-#   endif
-#  endif
-# endif
-#endif
-
-#ifdef __UNIXLIB_INTERNALS
-/* This comes between the return type and function name in
-   a function definition to make that definition weak.  */
-# define weak_function __attribute__ ((weak))
-# define weak_const_function __attribute__ ((weak, __const__))
-
-/* On some platforms we can make internal function calls (i.e., calls of
-   functions not exported) a bit faster by using a different calling
-   convention.  */
-#ifndef internal_function
-# define internal_function	/* empty */
-#endif
-
-#endif
 
 /* GCC has lots of useful extensions that we can apply to our header
    files.  These aid to improve compile time syntax checking and also
@@ -650,5 +424,9 @@ extern int __dynamic_no_da; /* Note: this is a weak symbol.  */
    be used to specify its name.  When this variable is not defined, the
    dynamic area name will be <program name> + "$Heap".  */
 extern const char *__dynamic_da_name; /* Note: this is a weak symbol.  */
+
+#ifndef __SYS_CDEFS_H
+# include <sys/cdefs.h>
+#endif
 
 #endif
