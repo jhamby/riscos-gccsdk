@@ -18,6 +18,7 @@ Installation
 
 Make sure you've got about 100Mb spare disk space.
 
+$ autoconf ; autoheader
 $ ./configure --prefix=/home/riscos/cross
 
 Create installation directory structure
