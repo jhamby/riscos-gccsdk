@@ -18,7 +18,6 @@ $(drlinkobjdir)/%.o: %.c
 
 OBJS =	$(drlinkobjdir)/aofiles.o \
 	$(drlinkobjdir)/areas.o \
-	$(drlinkobjdir)/c++names.o \
 	$(drlinkobjdir)/debug.o \
 	$(drlinkobjdir)/drlmain.o \
 	$(drlinkobjdir)/files.o \

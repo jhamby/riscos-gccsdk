@@ -337,10 +337,10 @@ static bool add_symbol(symtentry *symtp) {
     }
     if (link_state==LIB_SEARCH)
       error("Error: '%s' in '%s(%s)' duplicates a symbol already read in '%s'",
-       decode_name(name), current_lib->libname, objectname, cp->arfileptr->chfilename);
+       name, current_lib->libname, objectname, cp->arfileptr->chfilename);
     else {
       error("Error: '%s' in '%s' duplicates a symbol already read in '%s'", 
-       decode_name(name), objectname, cp->arfileptr->chfilename);
+       name, objectname, cp->arfileptr->chfilename);
     }
     return FALSE;
   }
@@ -348,7 +348,7 @@ static bool add_symbol(symtentry *symtp) {
     if ((attr & SYM_STRONG)!=0) {	/* New symbol is strong; old one is non-strong */
       if (link_state==LIB_SEARCH) {	/* Avoid possible use of wrong symbol... */
         error("Error: 'Strong' definition of '%s' found in '%s' after non-strong definition has been used",
-         decode_name(name), objectname);
+         name, objectname);
         return FALSE;
       }
       p->symnormal = p->symtptr;
@@ -482,6 +482,14 @@ bool scan_symt(filelist *fp) {
       error("Error: Offset of symbol name in OBJ_SYMT chunk is bad in '%s'", fp->chfilename);
       symtp->symtname = NIL;
       ok = FALSE;
+    }
+    if (strcmp(symtp->symtname+COERCE(strtbase, unsigned int), "$d")==0 ||
+        strcmp(symtp->symtname+COERCE(strtbase, unsigned int), "$a")==0) {
+      /* Convert symbol to absolute to prevent an attempt at relocation */
+      symtp->symtattr = symtp->symtattr | SYM_ABSVAL;
+      /* Ignore these symbols due to possible objasm bug? */
+      symtp++;
+      continue;
     }
     attr = symtp->symtattr;
     if (aofv3flag && (attr & SYM_A3ATTR)!=0) {	/* Reject AOF 3 attributes */
@@ -649,7 +657,7 @@ static void list_unresolved(void) {
     error("Warning: The following symbols are unresolved 'weak' references:");
     mwp = weaklist;
     do {
-      error("    '%s' referenced in '%s'", decode_name(mwp->symname), mwp->filename);
+      error("    '%s' referenced in '%s'", mwp->symname, mwp->filename);
       mwp = mwp->nextsym;
     } while (mwp!=NIL);
   }
@@ -657,7 +665,7 @@ static void list_unresolved(void) {
     error("Error: The following symbols could not be found:");
     mwp = misslist;
     do {
-      error("    '%s' referenced in '%s'", decode_name(mwp->symname), mwp->filename);
+      error("    '%s' referenced in '%s'", mwp->symname, mwp->filename);
       mwp = mwp->nextsym;
     } while (mwp!=NIL);
   }
@@ -828,7 +836,7 @@ static bool check_library(filelist *fp) {
     if (ok && lp!=NIL) {	/* Now link symbol and reference */
       if (sp==NIL) {
         error("Error: Cannot find symbol '%s' in library member '%s(%s)'. Is library corrupt?",
-         decode_name(wp->symtptr->symtname), current_lib->libname, lp->libmember);
+         wp->symtptr->symtname, current_lib->libname, lp->libmember);
       }
       else {
         wstp = wp->symtptr;
@@ -1018,8 +1026,11 @@ void relocate_symbols(void) {
     sp = fp->objsymtptr;
     last = fp->symtcount;
     for (n = 1; n<=last; n++) {
-      if ((sp->symtattr & (SYM_DEFN|SYM_ABSVAL))==SYM_DEFN) {	/* Relocate if not absolute */
-        sp->symtvalue+=sp->symtarea.areaptr->arplace;
+      if (sp->symtarea.areaptr != (void *)4) {
+
+        if ((sp->symtattr & (SYM_DEFN|SYM_ABSVAL))==SYM_DEFN) {	/* Relocate if not absolute */
+          sp->symtvalue+=sp->symtarea.areaptr->arplace;
+        }
       }
       sp++;
     }

@@ -201,7 +201,7 @@ static char *get_text(void) {
 ** 'addto_linklist' adds a file to the list of files to be linked
 ** into the executable image
 */
-static void addto_linklist(char *p) {
+static void addto_linklist(const char *p) {
   linkfiles *lp;
   if ((lp = allocmem(sizeof(linkfiles)))==NIL) error("Fatal: Out of memory in 'addto_linklist'");
   lp->linkname = p;
@@ -742,7 +742,13 @@ static bool scan_cmdline(void) {
   default:
     break;  
   }
-  if (imagename==NIL) imagename = "!RunImage";
+
+  if (imagename==NIL)
+#if defined(CROSS_COMPILE) && defined(ENABLE_FILETYPE_FF8)
+    imagename = "!RunImage,ff8";
+#else
+    imagename = "!RunImage";
+#endif
   opt_verbose = opt_verbose && !opt_quiet;
   return ok;
 }
@@ -761,7 +767,7 @@ int GetCLSize(void) {
   _kernel_oserror *swierror;
   swierror = _kernel_swi(DDEUtils_GetCLSize, &regs, &regs);
   if (swierror!=NIL) {	/* Error - Assume DDEUtils is not loaded */
-    swierror = _kernel_last_oserror();	  /* Loose SWI error logged by C library */
+    swierror = _kernel_last_oserror();	  /* Lose SWI error logged by C library */
     return -1;
   }
   else {

@@ -21,6 +21,7 @@
 #ifdef TARGET_RISCOS
 #include <kernel.h>
 #include <swis.h>
+#include <unixlib/local.h>
 #endif
 
 #ifdef TARGET_RISCOS
@@ -928,7 +929,7 @@ filelist *read_member(libentry *lp, filelist *inwhat, symbol *forwhat) {
   case AOFILE:
     if (opt_verbose) {
       error("Drlink: Reading library member '%s' to resolve '%s' in '%s'",
-       membername, decode_name(forwhat->symtptr->symtname), inwhat->chfilename);
+       membername, forwhat->symtptr->symtname, inwhat->chfilename);
     }
     fp = addto_filelist(membername, lp->libsize);
     if (!scan_chunkhdr(fp)) fp = NIL;
@@ -1006,6 +1007,7 @@ bool read_libchunkhdr(libheader *lp) {
 void open_image(void) {
 #ifdef TARGET_RISCOS
   unsigned int filetype;
+  int riscosifyc = __riscosify_control;
   _kernel_swi_regs regs;
   _kernel_oserror *swierror;
   switch(imagetype) {
@@ -1027,7 +1029,10 @@ void open_image(void) {
   if (swierror!=NIL) {
     error("Fatal: Cannot create image file '%s'", imagename);
   }
+  /* We're dealing with a RISC OS format output name, passed from ld */
+  __riscosify_control = __RISCOSIFY_NO_PROCESS;
   imagefile = fopen(imagename, "rb+");
+  __riscosify_control = riscosifyc;
 #else
   imagefile = fopen(imagename, "wb");
 #endif
@@ -1215,7 +1220,7 @@ void write_symbol(symtentry *sp) {
   int len;
   char *printname;
   arealist *ap;
-  printname = decode_name(sp->symtname);
+  printname = sp->symtname;
   len = strlen(printname)+8;
   if (opt_acornmap) {
     if (opt_revmap) {

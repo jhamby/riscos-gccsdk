@@ -159,8 +159,4 @@ extern void setup_modcode(unsigned int *);
 extern void write_lldtable(void);
 extern bool build_debugtables(void);
 
-/* -- In 'C++names' -- */
-
-extern char *decode_name(const char *);
-
 #endif

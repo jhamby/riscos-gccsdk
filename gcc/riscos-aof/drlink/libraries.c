@@ -220,7 +220,7 @@ static bool add_libsymbol(libheader *fp, unsigned int index, char *name) {
   memname = find_membername(index);
   if (memname==NIL) {
     error("Error: Cannot find LIB_DIRY entry for '%s' in '%s'. Is library corrupt?",
-     decode_name(name), fp->libname);
+     name, fp->libname);
     memname = name;
   }
   if (freeliblist!=NIL) {	/* Allocate entry from free list */
