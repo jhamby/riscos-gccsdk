@@ -5,7 +5,7 @@
 INCLUDES = -I. -I../gcc -I../libstdc/include -I../libstdc/include/arm-riscos-aof
 supcobjdir=$(objdir)/gcc-$(VERSION)/libsupc++/$(STAGE)/$(TRG)
 
-CROSS_CXXFLAGS += -D_GNU_SOURCE
+CROSS_CXXFLAGS += -D_GNU_SOURCE -D_GLIBCPP_SJLJ_EXCEPTIONS -DDONT_USE_BUILTIN_SETJMP
 
 $(supcobjdir)/%.o: %.cc
 	$(CROSS_CXX) $(CROSS_CXXFLAGS) -o $@ -c $< $(INCLUDES) $(CFL)
