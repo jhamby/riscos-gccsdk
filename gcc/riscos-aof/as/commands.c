@@ -405,7 +405,7 @@ c_get (void)
 }
 
 
-void 
+void
 c_lnk (void)
 {
   char *filename, *cptr;

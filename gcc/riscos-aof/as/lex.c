@@ -133,7 +133,14 @@ lexGetId (void)
     }
   else
     {
+#if 0	/* inputUnGet validates operation against input_buff,
+	which we may not be using at this point.
+	*/
       inputUnGet (c);
+#else
+	inputPutBack( c );
+#endif
+
       if (isalpha (c) || c == '.' || c == '_')
 	{
 	  result.tag = LexId;
@@ -331,7 +338,7 @@ lexGetPrim (void)
 	  char *s1, *s2;
 	  int l1;
 	  while (inputLook () == '"')
-	    {			/* cope with "" in strings */
+	    {
 	      inputSkip ();
 	      s1 = inputSymbol (&l1, '"');
 	      if (inputGet () != '"')
@@ -465,13 +472,35 @@ lexGetPrim (void)
 	  {
 	  case 't':
 	    inputSkip ();
+
+	    	if (pedantic)
+		{
+#if 0
+	/* reason for ignoring flag clarified */
 	    error (ErrorWarning, TRUE, "Ignored 't' in local label name");
+#else
+	    error (ErrorWarning, TRUE, "Range qualifiers in local label names are not implemented. " \
+	    				"Ignored 't' in local label name");
+#endif
+		}
 	    break;
 	  case 'a':
 	    inputSkip ();
 	    break;
 	  default:
+	    	if (pedantic)
+		{
+#if 0
+/*	This warning is confusing to the user, as it warns of a deficiency in as.
+	I've re-worded it accordingly.
+	What really needs to be done is for range qualifiers to be implemented.
+*/
 	    error (ErrorWarning, TRUE, "Assumed 'a' in local label name");
+#else
+	    error (ErrorWarning, TRUE, "Range qualifiers in local label names are not implemented. " \
+	    				"'all macro levels' is assumed");
+#endif
+		}
 	    break;
 	  }
 	return lexMakeLocal (dir);
@@ -496,7 +525,7 @@ lexGetPrim (void)
   return result;
 }
 
-Lex 
+Lex
 lexGetBinop (void)
 {
   Lex result;
@@ -660,7 +689,7 @@ lexNextPri ()
 }
 
 
-Lex 
+Lex
 lexTempLabel (char *ptr, int len)
 {
   Lex var;

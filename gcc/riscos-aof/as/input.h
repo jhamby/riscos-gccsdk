@@ -51,6 +51,7 @@ extern char inputGet (void);
 extern char inputGetLower (void);
 extern char inputGetUC (void);
 extern void inputUnGet (char c);
+extern void inputPutBack (char c);
 extern char inputSkipLook (void);
 extern char *inputRest (void);
 extern char *inputLine (void);

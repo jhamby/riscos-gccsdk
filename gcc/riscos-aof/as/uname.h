@@ -4,7 +4,8 @@
  * Copyright © 1992 Niklas Röjemo
  */
 
-#ifdef UNIX
+//#ifdef UNIX
+#if defined CROSS_COMPILE
 #include <sys/param.h>		/* for MAXPATHLEN */
 #include <unistd.h>		/* for access() stuff */
 #define uname(a,b) ((char *)a)

@@ -33,7 +33,7 @@ extern int pedantic;
 
 FILE *asmfile;
 
-static char workBuff[MAX_LINE + 1];
+static char workBuff[MAX_LINE + 1]; /* holds each line from input file */
 char *inputName = NULL;
 
 long int inputLineNo;
@@ -117,6 +117,8 @@ inputGetUC (void)
   return uc ? FLIP (x) : tolower (x);
 }
 
+
+/* return char |c| to |input_buff| at position pointed to by |input_pos| */
 void
 inputUnGet (char c)
 {
@@ -125,6 +127,18 @@ inputUnGet (char c)
   else if (*input_pos || c) {
     printf("char = '%c' \"%s\" \"%s\"\n", c, input_pos, input_buff);
     error (ErrorSerious, FALSE, "Internal inputUnGet: illegal character");
+  }
+}
+
+/* return char |c| to position pointed to by |input_pos| */
+void
+inputPutBack (char c)
+{
+  if (input_pos[-1] == c)
+    input_pos--;
+  else if (*input_pos || c) {
+    printf("char = '%c' \"%s\" \"%s\"\n", c, input_pos, input_buff);
+    error (ErrorSerious, FALSE, "Internal inputPutBack: illegal character");
   }
 }
 
@@ -255,6 +269,21 @@ inputFinish (void)
 
 BOOL inputArgSub (void);
 
+/******************************************************************
+* Read a line from the input file into file global |workBuff|, with some
+*   minimal error checking.
+* Application global |inputLineNo| is incremented for each line read
+*
+* Any empty line and any line starting with '#' is discarded
+*
+* If file global |inputExpand| is not set,
+*   then workBuff is copied into application global |input_buff|.
+*   Application global |input_pos| is a pointer to this.
+*
+* InputArgSub() then performs any required argument substitution
+*
+******************************************************************/
+
 BOOL
 inputNextLine (void)
 {
@@ -311,6 +340,13 @@ ret:
   return inputArgSub ();
 }
 
+/****************************************************************
+* copy the line from |workBuff| to |input_buff|, while performing any
+* substitutions.
+*
+* Retrns TRUE if successful
+*
+****************************************************************/
 
 BOOL
 inputArgSub (void)
@@ -322,16 +358,23 @@ inputArgSub (void)
 
   g = gcc_backend ? '@' : 0;
   input_pos = workBuff;
+
+
+  /* process all characters in the line */
   while (*input_pos && ptr < MAX_LINE)
     {
+      /* copy each input character, until a special symbol is found */
       while (*input_pos && *input_pos != '"' && *input_pos != '\''
              && *input_pos != '|' && *input_pos != '$'
 	     && *input_pos != ';' && (*input_pos != '<' || !objasm)
 	     && *input_pos != g && ptr < MAX_LINE)
 	input_buff[ptr++] = *input_pos++;
 
+      /* process special characters */
       switch (c = *input_pos)
 	{
+
+	/* comment follows; just copy it all */
 	case ';':
 	case '@':
 	  len = strlen (input_pos);
@@ -342,6 +385,10 @@ inputArgSub (void)
 	    }
 	  strcpy (input_buff + ptr, input_pos);
 	  goto finished;
+
+	/* characters enclosed between <...>
+	   Not ObjAsm; I don't know what this means?
+	*/
 	case '<':		/* is it a variable name? */
 	  rb = input_pos;
 	  while (*++rb != 0 && *rb != '>' && *rb > 32);
@@ -351,6 +398,8 @@ inputArgSub (void)
 	      break;
 	    }
 	  c = '>';		/* set delimiter and fall through */
+
+
 	case '|':
 	  do
 	    {
@@ -381,6 +430,9 @@ inputArgSub (void)
 	      input_pos++;
 	    }
 	  break;
+
+	/* Do variable substitution - $
+	*/
 	case '$':
 /*        if (!inputExpand) {
    input_buff[ptr++]='$';
@@ -401,6 +453,8 @@ inputArgSub (void)
 	      input_pos++;
 	      break;
 	    }
+
+	  /* replace symbol by its definition */
 	  label = lexGetId ();
 	  if (label.tag != LexId)
 	    {
@@ -456,6 +510,8 @@ inputArgSub (void)
 		default:
 		  goto unknown;
 		}
+
+		/* substitution complete; copy the rest of the line */
 	      while (*input_pos && ptr < MAX_LINE)
 		input_buff[ptr++] = *input_pos++;
 	      if (ptr >= MAX_LINE)

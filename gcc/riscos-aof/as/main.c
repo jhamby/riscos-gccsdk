@@ -137,6 +137,7 @@ main (int argc, char **argv)
       as_help (ProgName);
       return 0;
     }
+  /* Analyse the command line */
 
   for (argc--; argc; argv++, argc--)
     {
@@ -262,6 +263,8 @@ main (int argc, char **argv)
       else
 	fprintf (stderr, "%s: Illegal flag %s ignored\n", ProgName, *argv);
     }
+
+  /* When the command line has been sorted, get on with the job in hand */
   if (!ObjFileName)
     ObjFileName = SourceFileName;
 
@@ -270,12 +273,17 @@ main (int argc, char **argv)
       fprintf (stderr, "%s: Aborted\n", ProgName);
       inputFinish ();
       outputFinish ();
+      /* set up the environment ... */
     }
   else
     {
       inputInit (SourceFileName);
       errorInit (SourceFileName);
+
+      /* ... do the assembly ... */
       outputInit (ObjFileName);
+
+      /* ... tidy up and write the AOF */
       areaInit ();
       setjmp (asmContinue);
       asm_ ();

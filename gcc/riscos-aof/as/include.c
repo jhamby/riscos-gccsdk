@@ -20,6 +20,8 @@
 extern int dde;
 
 #define INCDIRMAX  10
+//#define DEBUG 1
+
 
 static char *incdir[INCDIRMAX];
 
@@ -57,6 +59,10 @@ addInclude (const char *incpath)
 
 	    if (*(incdir[i] + len) == DIR)
 	      *(incdir[i] + len) = '\0';
+#if (defined DEBUG) && (DEBUG > 0)
+	    fprintf (stderr, "addInclude: added %s\n", incdir[i]);
+#endif
+
 
 	    return (0);
 	  }
@@ -108,6 +114,11 @@ getInclude (const char *filename, const char *mode)
 #endif
 
   for (i = 0; i < INCDIRMAX; i++)
+
+#if (defined DEBUG) && (DEBUG > 0)
+	fprintf( stderr, "getInclude: Searching for %s\n", incpath );
+#endif
+
     if (incdir[i])
       {
 	sprintf (incpath, "%s%c%s", incdir[i], DIR, file);

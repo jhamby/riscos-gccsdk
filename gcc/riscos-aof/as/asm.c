@@ -23,18 +23,27 @@
 #include "asm.h"
 #include "code.h"
 
-
+/******************************************************************
+* Parse the input file, and perform the assembly.
+*
+******************************************************************/
 void
 asm_ (void)
 {
   Lex label;
   Symbol *symbol;
 
+  /* read each line from the input into niput.c:workBuff,
+  ** if inputExpand is true, then expand the input line into  where necessary
+  */
   while (inputNextLine ())
     {
+    	/* ignore blank lines and comments */
       if (inputLook () && !isspace (inputLook ()) && !inputComment ())
 	{
+	  /* Deal with any label */
 	  label = isdigit (inputLook ())? lexGetLocal () : lexGetId ();
+
 	  /* Check for local label here */
 	  skipblanks ();
 	  if (inputLook () == ':')

@@ -63,7 +63,7 @@ CanonicalisePath (const char *path1)
   char *buffer;
 #ifdef UNIXLIB
   char path[1024];
-  __riscosify (path1, 0, __RISCOSIFY_DONT_TRUNCATE, path, sizeof (path), NULL);
+  __riscosify (path1, 0, 0, path, sizeof (path), NULL);
 #else
   char *path = uname (path1, dde);
 #endif
