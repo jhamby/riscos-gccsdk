@@ -38,7 +38,7 @@ endif
 all:	$(bin_dir)/drlink$(exesfx)
 
 $(bin_dir)/drlink$(exesfx): $(OBJS) $(DEPS)
-	$(CC) -g2 -o $@ $(OBJS)
+	$(CC) -o $@ $(OBJS)
 
 $(drlinkobjdir)/aofiles.o: aofiles.c
 $(drlinkobjdir)/areas.o: areas.c
