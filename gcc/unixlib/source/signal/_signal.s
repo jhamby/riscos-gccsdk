@@ -1,8 +1,8 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/signal/_signal.s,v $
-; $Date: 2001/01/29 15:10:20 $
-; $Revision: 1.2 $
+; $Date: 2001/05/03 06:25:32 $
+; $Revision: 1.3 $
 ; $State: Exp $
 ; $Author: admin $
 ;
@@ -189,7 +189,6 @@
 |__h_errbuf|
 	DCD	0
 
-	IMPORT	|__unixlib_exec_sig_interrupt|
 	EXPORT	|__h_error|
 lb1	DCB	"*** UnixLib error handler ***", 0
 	ALIGN
@@ -259,6 +258,8 @@ lb2	DCD	&FF000000 + lb2 - lb1
 	STR	ip,|__cbflg|		; set __cbflg bit 0
 	MOVS	pc, lr
 
+	IMPORT	|__sigstk|
+	IMPORT	|__sigstksize|
 callback_signal
 	; Entered in SVC mode.  r12 contains the signal number to be
 	; raised.
