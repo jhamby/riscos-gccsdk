@@ -22,6 +22,38 @@ The list of recognised features are:
    the usual Unix to RISC OS conversions.
 
 
+Link-time features
+~~~~~~~~~~~~~~~~~~
+
+There are WEAK'ly defined symbols which can be used to control
+certain UnixLib features too.  I.e. those symbols can, but not have to,
+be *defined* outside UnixLib and when they are defined, they will be
+used by the relevant UnixLib functions.
+
+Its intended use is to provoke as less as possible changes in ported
+Unix programs by simply defining an extra RISC OS specific source file
+containing just like e.g. :
+
+---8<---
+#include <unixlib/local.h>
+
+int __feature_imagefs_is_file = 1;
+---8<---
+
+List of current WEAK'ly defined symbols :
+
+1. __riscosify_control
+
+Header file: <unixlib/local.h>, default value 0.
+This symbol will control how riscosify[_std]() processes filenames.
+
+2. __feature_imagefs_is_file
+
+Header file: <unixlib/features.h>, default value 0.
+When non zero, files with filetypes recognized by an active ImageFS will
+be considered as regular files and not as directories.
+
+
 Compile-time features
 ~~~~~~~~~~~~~~~~~~~~~
 

@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/common/stat.c,v $
- * $Date: 2002/09/24 21:02:37 $
- * $Revision: 1.4 $
+ * $Date: 2003/04/12 11:31:39 $
+ * $Revision: 1.5 $
  * $State: Exp $
- * $Author: admin $
+ * $Author: alex $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: stat.c,v 1.4 2002/09/24 21:02:37 admin Exp $";
+static const char rcs_id[] = "$Id: stat.c,v 1.5 2003/04/12 11:31:39 alex Exp $";
 #endif
 
 #include <time.h>
@@ -72,7 +72,7 @@ __stat (int objtype, int loadaddr, int execaddr, int length, int attr, struct st
       case 3: /* Image directory (RISC OS 3 and above).  */
 	/* Get round a filing system bug (as above).  */
 	mode |= S_IRWXU;
-        if (__feature_imagefs_is_file)
+        if (__get_feature_imagefs_is_file ())
 	  {
 	    mode |= S_IFREG;
 	    /* Who said that we were a real Unix dir?  */

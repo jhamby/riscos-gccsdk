@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/unlink.c,v $
- * $Date: 2003/04/12 11:31:39 $
- * $Revision: 1.5 $
+ * $Date: 2003/05/13 22:59:47 $
+ * $Revision: 1.6 $
  * $State: Exp $
- * $Author: alex $
+ * $Author: joty $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: unlink.c,v 1.5 2003/04/12 11:31:39 alex Exp $";
+static const char rcs_id[] = "$Id: unlink.c,v 1.6 2003/05/13 22:59:47 joty Exp $";
 #endif
 
 #include <errno.h>
@@ -55,7 +55,7 @@ unlink (const char *ux_file)
                           &objtype, NULL, NULL, NULL, NULL, &attr))
     return -1;
 
-  if (objtype == 2 || (! __feature_imagefs_is_file && objtype == 3)) /* Directory/Image FS.  */
+  if (objtype == 2 || (objtype == 3 && ! __get_feature_imagefs_is_file ())) /* Directory/Image FS.  */
     return __set_errno (EISDIR);
 
   /* Check for permission to delete the file. Bit 3 set => it is locked.  */

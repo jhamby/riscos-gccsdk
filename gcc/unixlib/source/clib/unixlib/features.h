@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/unixlib/features.h,v $
- * $Date: 2003/05/13 20:54:59 $
- * $Revision: 1.10 $
+ * $Date: 2003/06/07 02:30:22 $
+ * $Revision: 1.11 $
  * $State: Exp $
- * $Author: alex $
+ * $Author: joty $
  *
  ***************************************************************************/
 
@@ -621,6 +621,24 @@
 /* Default to recognising Image filesystems as directories.  Some programs
    may wish to expose them as files for the purpose of compression
    or direct manipulation of the contents.  Set to one in this case.  */
-extern int __feature_imagefs_is_file;
+extern int __feature_imagefs_is_file; /* Node: this is a weak symbol. */
+
+#ifdef __UNIXLIB_INTERNALS
+
+/* Gets the __feature_imagefs_is_file value which can be defined by
+   the global variable __feature_imagefs_is_file in the user program.
+   Returns a copy of __feature_imagefs_is_file_internal (whom its default
+   value is 0) when __feature_imagefs_is_file is not defined.  */
+extern int __get_feature_imagefs_is_file (void);
+#if 0
+/* Currently the code __set_feature_imagefs_is_file commented out because
+   we don't need it in UnixLib internally.  */
+
+/* Sets the __feature_imagefs_is_file value when it's defined.
+   Otherwise __feature_imagefs_is_file_internal gets written.  */
+extern void __set_feature_imagefs_is_file (int __feature_imagefs_is_file_value);
+#endif
+
+#endif  /* __UNIXLIB_INTERNALS */
 
 #endif

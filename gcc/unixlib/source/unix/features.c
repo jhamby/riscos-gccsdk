@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/features.c,v $
- * $Date: 2002/09/24 21:02:38 $
- * $Revision: 1.4 $
+ * $Date: 2003/06/16 23:09:08 $
+ * $Revision: 1.5 $
  * $State: Exp $
- * $Author: admin $
+ * $Author: joty $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: features.c,v 1.4 2002/09/24 21:02:38 admin Exp $";
+static const char rcs_id[] = "$Id: features.c,v 1.5 2003/06/16 23:09:08 joty Exp $";
 #endif
 
 /* #define DEBUG 1 */
@@ -17,8 +17,6 @@ static const char rcs_id[] = "$Id: features.c,v 1.4 2002/09/24 21:02:38 admin Ex
 #include <string.h>
 #include <unixlib/unix.h>
 #include <unixlib/local.h>
-
-int __feature_imagefs_is_file;
 
 /* Get the leaf name from the command line used to run the program.  */
 static char *get_program_name (const char *cli, char *fname_buf)
@@ -115,11 +113,6 @@ void __runtime_features (const char *cli)
   /* Initialise runtime features to their default values before querying
      the environment variables.  */
   __sdirinit (); /* Initialise riscosify.  */
-
-  /* Default to recognising Image filesystems as directories.  Some programs
-     may wish to expose them as files for the purpose of compression
-     or direct manipulation of the contents.  Set to one in this case.  */
-  __feature_imagefs_is_file = 0;
 
   features (NULL);
   features (get_program_name (cli, program_name));

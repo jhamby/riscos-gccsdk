@@ -1,3 +1,15 @@
+Fri Aug 15 16:13:01 2003  John Tytgat  <John.Tytgat@aaug.net>
+
+	* clib/unixlib/features.h: _feature_imagefs_is_file is now a WEAK
+	  symbol. Added routines __get_feature_imagefs_is_file() and
+	  __set_feature_imagefs_is_file() for internal purposes. Default value
+	  is 0. Patch from Stefan Bellon.
+	* common/_exists.s: Likewise.
+	* unix/dev.c: Likewise.
+	* unix/features.c: Likewise.
+	* unix/unlink.c: Likewise.
+	* Docs/ReadMe: Added info on the WEAK'ly defined symbols.
+
 Sun Aug 03 18:14:27 2003  John Tytgat  <John.Tytgat@aaug.net>
   
   	* common/unixify.c (__unixify): filetype extension code will first look
