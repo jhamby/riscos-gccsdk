@@ -8206,7 +8206,13 @@ arm_compute_initial_elimination_offset (from, to)
 
 #ifdef TARGET_RISCOSAOF
   if (from == ARG_POINTER_REGNUM || to == ARG_POINTER_REGNUM)
-    return local_vars + outgoing_args + call_saved_registers;
+    {
+      /*      printf ("eliminate offset: local = %d, outgoing = %d, call_saved = %d, stack_frame = %d, total = %d\n",
+	      local_vars, outgoing_args, call_saved_registers, stack_frame,
+	      local_vars + outgoing_args, + call_saved_registers + stack_frame);*/
+
+      return local_vars + outgoing_args + call_saved_registers + stack_frame - 4;
+    }
 
   if (from == FRAME_POINTER_REGNUM && to == STACK_POINTER_REGNUM)
     return 0;
