@@ -102,7 +102,6 @@ UNIXLIBBINPKG = $(upkg)/\!Boot,feb \
 	$(upkg)/\!Sprites,ff9 \
 	$(upkg)/\!Sprites22,ff9 \
 	$(upkg)/\!Help \
-	$(upkg)/\!MKDir,feb \
 	$(upkg)/Docs \
 	$(upkg)/source/clib
 
@@ -111,7 +110,6 @@ UNIXLIBSRCPKG = $(upkg)/\!Boot,feb \
 	$(upkg)/\!Sprites,ff9 \
 	$(upkg)/\!Sprites22,ff9 \
 	$(upkg)/\!Help \
-	$(upkg)/\!MKDir,feb \
 	$(upkg)/Docs \
 	$(upkg)/objs \
 	$(upkg)/source
@@ -135,7 +133,6 @@ install:
 	cp -pR ../unixlib/objs $(ro_unixlibpkg)
 	cp ../unixlib/Boot,feb $(ro_unixlibpkg)/\!Boot,feb
 	cp ../unixlib/\!Help $(ro_unixlibpkg)/\!Help
-	cp ../unixlib/MKDir,feb $(ro_unixlibpkg)/\!MKDir,feb
 	cp ../unixlib/Run,feb $(ro_unixlibpkg)/\!Run,feb
 	cp ../unixlib/Sprites,ff9 $(ro_unixlibpkg)/\!Sprites,ff9
 	cp ../unixlib/Sprites22,ff9 $(ro_unixlibpkg)/\!Sprites22,ff9
