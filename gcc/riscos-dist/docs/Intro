@@ -6,7 +6,7 @@ This document does not provide an introduction to programming, for that you
 will have to get a text book on the language you are interested in.
 
 IMPORTANT NOTE 1: The GCC compiler binaries are at least 3000K, so you must
-ensure that a large enough wimpslot has been allocated. Please refer to the
+ensure that a large enough Wimpslot has been allocated. Please refer to the
 `Troubleshooting' section later in this document, if you are getting
 `Address exception' and `No writeable memory at this address' errors.
 
@@ -74,7 +74,7 @@ compiler documentation).
 
 To compile a C program just type:
 
-   *gcc c.hellow
+   *gcc hellow.c
 
 This will compile, assemble and link the source 'c.hellow' to produce an
 executable called '!RunImage', which can be run immediately.
@@ -82,32 +82,32 @@ executable called '!RunImage', which can be run immediately.
 Adding the switch '-o' to the command line, it's possible to specify a
 place to store the resultant file:
 
-   *gcc c.hellow -o hellow
+   *gcc hellow.c -o hellow
 
-This will comple, assemble and link the source 'c.hellow' to produce an
+This will comple, assemble and link the source 'hellow.c' to produce an
 executable called 'hellow', which can be run immediately.
 
 It is possible to compile several sources at one go, mixing C sources in
 the same program, using a command line of:
 
-   *gcc c.file1 c.file2 c.file3 c.file4
+   *gcc file1.c file2.c file3.c file4.c
 
 Again, this will compile, assemble and link all the sources to produce the
 '!RunImage' executable.
 
 To compile to the object form, use the -c switch. i.e.
 
-   gcc -c c.file
+   gcc -c file.c
 
-will compile and assemble 'c.file' to 'o.file'.
+will compile and assemble 'file.c' to 'file.o'.
 
 To compile the same files but using the SharedCLibrary as the target
 run-time library instead of UnixLib, add the switch '-mlibscl' to the
 command line. For example:
 
-  gcc c.hellow -mlibscl
+  gcc hellow.c -mlibscl
 
-will compile and link the c.hellow source file, using header files
+will compile and link the hellow.c source file, using header files
 from the SharedCLibrary, and linking against the library C:o.stubs.
 The output file will still be called '!RunImage' and can be run
 in the same way.
@@ -120,18 +120,18 @@ will translate any UNIX filenames into their RISC OS equivalent. For example:
   stdlib.h		is translated to	h.stdlib
 
 but
-  tree.def		is translated to	tree.def
+  tree.def		is translated to	tree/def
 
 For further examples of compilation procedures, please look at `Examples'
 in !gcc.files.
 
-The full GCC manual can be referred to at !gcc.docs.gccuser.
+The full GCC manual can be referred to at !gcc.docs.gcc.
 
 Switches
 --------
 
 This is a list of the simpler, standard switches for GCC. Full details can
-be obtained from the !gcc.docs.gccuser manual. Please see below for the ARM
+be obtained from the !gcc.docs.gcc manual. Please see below for the ARM
 specific switches since these have altered from the original gcc version.
 
 The switches described below are useable with any GNU compiler.
@@ -142,7 +142,7 @@ The switches described below are useable with any GNU compiler.
 -o <file>       put the resulting output into <file>
 -O              apply some optimisations to the output
 -O2             apply full optimisation.
--O3		full optimisation and inline small functions as well.
+-O3             full optimisation and inline small functions as well.
 
 There are some additional ARM specific switches.
 
@@ -265,7 +265,7 @@ Predefines
 ----------
 
 The following preprocessor constants are defined by GCC:
-   'arm', '__arm', '__arm__', 'riscos', '__riscos', '__riscos__', '__aof__'
+   '__arm', '__arm__', '__riscos', '__riscos__', '__aof__'
    '__GNUC__', '__GNUC_MAJOR__', '__JMP_BUF_SIZE'
 
 To implement dynamic allocations within a function, it is necessary to add
@@ -286,20 +286,23 @@ users with small memory machines can use Clares' Virtualise to provide a
 working virtual memory envionment for them. See the section *Dynamic Areas*
 below.
 
-Users of older machines, the Archimedes and A5000, with less than 8Mb RAM
+Users of older machines, the Archimedes and A5000, with less than 8MB RAM
 will not be able to use this software.
 
 Dynamic areas
 -------------
 
+The following information is deprecated, as recent versions of UnixLib
+can extend their own Wimpslot, but it is included for reference.
+
 UnixLib has a facility to use Dynamic Areas, found in RISC OS 3.5
 and above, for the program's heap. The heap is another name for the
 malloc area. The advantages of using a dynamic area for the program's
-heap include :-
+heap include :
 
-   * the WimpSlot of the program can be limited to the code and stack
+   * the Wimpslot of the program can be limited to the code and stack
      requirements of the program. This helps alleviate the cost of RISC
-     OS task switching which slows down dramatically as the WimpSlot
+     OS task switching which slows down dramatically as the Wimpslot
      grows in size.
 
    * Dynamic Areas provide a means of Virtual Memory when used with a
@@ -378,21 +381,7 @@ compilers. Possible solutions are provided for the known problems.
   This is caused by insufficient memory during the linking stage.
   Increase the wimpslot to fix this.
 
-5. The error 'virtual memory exhausted' is returned.
-
-  This is due to a lack of memory and usually occurs during the compilation
-  process.
-  
-  a) If you are running on a RiscPC, make sure that !gcc.!run has been
-     altered for using dynamic areas.
-     
-     If the is already altered, then you might have to reduce the number of
-     applications that are running before using gcc.
-
-  b) If you are not running on a RiscPC then increase WimpSlot to a much
-     larger value.
-
-6. A source file is correctly compiled and linked. The resultant executable
+5. A source file is correctly compiled and linked. The resultant executable
    'hellow' is placed in the current directory. However, when I try and
    run the file I get the error 'No such file or directory'.
    
@@ -413,7 +402,7 @@ Taking the C compiler as an example. Language C source files are stored
 within a directory called 'c'.
 
 Typing
-  *gcc -c c.hello -o o.hello
+  *gcc -c hello.c -o hello.o
 
 will tell gcc to run the C compiler on the source file c.hello. The resultant
 output will be stored in the directory 'o' as hello. Files in 'o' are called
@@ -437,30 +426,30 @@ the program called Harry. Along with each source file is a list of the
 symbols that are defined within that source, and a list of symbols that
 are not defined (i.e. referenced) by that source.
 
-    C source: c.fred
+    C source: fred.c
       Symbols defined: foo, bar, pint
       Symbols referenced: printf, puts, food
     
-    C source: c.bob
+    C source: bob.c
       Symbols defined: fags, beer, food
       Symbols referenced: bar, pint
     
-    C source: c.harry
+    C source: harry.c
       Symbols defined: main
       Symbols referenced: foo
 
-Using gcc to compile c.fred, c.bob, c.harry will produce three AOF files,
-o.fred, o.bob and o.harry.
+Using gcc to compile fred.c, bob.c, harry.c will produce three AOF files,
+fred.o, bob.o and harry.o.
 
-c.harry contains a reference to 'foo' which is defined within c.fred. So
-the Linker must combine o.harry and o.fred to resolve a reference.
+harry.c contains a reference to 'foo' which is defined within c.fred. So
+the Linker must combine harry.o and fred.c to resolve a reference.
 
-c.fred contains a reference to 'printf', 'puts' and 'food'. 'food' is
-defined by c.bob so o.bob will also be combined with o.harry and o.fred
+fred.c contains a reference to 'printf', 'puts' and 'food'. 'food' is
+defined by bob.c so bob.o will also be combined with harry.o and fred.o
 to resolve further references.
 
 'printf' and 'puts' are defined by the C library, therefore the linker will
-need to combine the ALF file with o.harry, o.fred and o.bob to finally
+need to combine the ALF file with harry.o, fred.o and bob.o to finally
 generate an executable.
 
 
@@ -468,7 +457,7 @@ Obtaining compilers
 -------------------
 
 As said earlier, GCC is a compiler front end. The compilers themselves
-can be found at http://hard-mofo.dsvr.net/gcc
+can be found at http://hard-mofo.dsvr.net/gcc/
 
 
 Distribution patches
@@ -478,7 +467,7 @@ From time to time bugs might be fixed in the GCC distribution. To save
 download time involved in uploading/fetching new binaries, patch archives
 will become available from the address:
 
-  http://hard-mofo.dsvr.net/gcc
+  http://hard-mofo.dsvr.net/gcc/
 
 Announcements will be posted to comp.sys.acorn.announce whenever new
 patch archives are uploaded.
