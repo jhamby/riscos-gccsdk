@@ -19,7 +19,7 @@ INCLUDES += -I$(unixlib_incl_dir)
 endif
 
 
-zlibobjdir=$(objdir)/gcc-$(VERSION)/zlib/$(TRG)
+zlibobjdir=$(objdir)/gcc-$(VERSION)/zlib/$(STAGE)/$(TRG)
 
 $(zlibobjdir)/%.o: %.c
 	$(CC) $(CFLAGS) -o $@ -c $< $(INCLUDES)

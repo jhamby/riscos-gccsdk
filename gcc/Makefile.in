@@ -206,10 +206,10 @@ libiberty-stg2:
 	$(MAKE) -C libiberty "STAGE=stage2" "TRG=$(trg10)"
 
 gcc-stg1:
-	$(MAKE) -C gcc "STAGE=stage1"
+	$(MAKE) -C gcc "STAGE=stage1" "TRG=$(trg10)"
 
 gcc-stg2:
-	$(MAKE) -C gcc "STAGE=stage2"
+	$(MAKE) -C gcc "STAGE=stage2" "TRG=$(trg10)"
 
 riscos-aof-stg1:
 	$(MAKE) -C riscos-aof "STAGE=stage1"

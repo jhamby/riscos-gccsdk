@@ -6,7 +6,7 @@
 GCC_AS = $(CC) -xassembler-with-cpp -c
 LINK = $(CC) -o $@
 INCLUDES = -I./ -I../ -I../../../include -I../config -I../../zlib
-LIBS = -L$(objdir)/libiberty/$(STAGE) -liberty -L$(objdir)/gcc-$(VERSION)/zlib/$(STAGE) -lz
+LIBS = -L$(objdir)/libiberty/$(STAGE) -liberty -L$(objdir)/gcc-$(VERSION)/zlib/$(STAGE)/$(TRG) -lz
 
 $(gccobjdir)/java/%.o: %.c
 	$(CC) $(CFLAGS) -o $@ -c $< $(INCLUDES)
