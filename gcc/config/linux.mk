@@ -7,7 +7,7 @@ crosscompile=yes
 
 # Define this to be the version of GCC we are compiling
 VERSION = 2_95_2
-# VERSION = 3_0_0
+#VERSION = 3_0_0
 
 # Uncomment if we are building for ARM/RISC OS with ELF executables
 #TARGET_NAME = arm-riscos-elf
@@ -37,6 +37,7 @@ export local_include_dir system_include_dir cross_include_dir
 export hostsystem gcc_bin_dir
 
 # For the RISC OS gcc compiler
+OPTS = -g
 #OPTS = -mthrowback -mpoke-function-name
 # Crazy ass optimisations that free up another 2 registers.  Doesn't work
 # properly yet.

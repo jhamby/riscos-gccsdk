@@ -1,15 +1,12 @@
-# Change this statement to include the Makefile configuration appropriate
-# to your host system.
-
-# Uncomment if we are hosting on GNU Linux
-include linux.mk
-
-# Uncomment if we are hosting on ARM/RISC OS
-#include riscos.mk
-
+# RISCOS GCCSDK local host configuration.
+# These values are meant to be freely modifiable by the end-user.
 
 # File paths.
 # Set these to whatever you like.
+
+# Tool directory.  All compiler binaries, standard headers and libraries
+# will be installed below this directory.
+gccpkg=/home/riscos/dist
 
 # Path to the root of the source tree
 srcdir=/home/riscos/gccsdk
@@ -22,4 +19,12 @@ objdir=/home/riscos/$(TARGET_NAME)
 # directory structure starting at this path:
 distdir=/home/riscos/dist
 
-export srcdir objdir distdir
+export gccpkg srcdir objdir distdir
+
+
+# Uncomment if we are hosting on GNU Linux
+include linux.mk
+
+# Uncomment if we are hosting on ARM/RISC OS
+#include riscos.mk
+
