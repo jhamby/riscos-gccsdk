@@ -75,8 +75,8 @@ $(info_dir)/bison:	doc/bison.texinfo doc/fdl.texi doc/gpl.texi doc/version.texi
 #scan-gram.c: scan-gram.l
 #	$(FLEX) -t -o$@ scan-gram.l > $@
 
-scan-skel.c: scan-skel.l
-	$(FLEX) -t -o$@ scan-skel.l > $@
+#scan-skel.c: scan-skel.l
+#	$(FLEX) -t -o$@ scan-skel.l > $@
 
 $(bobj)/scan-gram.o: scan-gram.c scan-gram.l
 $(bobj)/scan-skel.o: scan-skel.c scan-skel.l
