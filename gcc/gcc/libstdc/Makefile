@@ -172,6 +172,57 @@ all:	$(TBIN)/$(TRG)/libstdc++.o
 $(TBIN)/$(TRG)/libstdc++.o: $(STR_OBJS) $(COM_FOBJS) $(COM_DOBJS) $(COM_LDOBJS) $(MAIN_OBJS)
 	$(BIN)/libfile -c $@ $(STR_OBJS) $(COM_FOBJS) $(COM_DOBJS) $(COM_LDOBJS) $(MAIN_OBJS)
 
+install_headers:
+	mkdir -p $(gplusplus_include_dir)/std
+	cp stl/*.h $(gplusplus_include_dir)
+	cp stl/algorithm $(gplusplus_include_dir)
+	cp stl/bitset $(gplusplus_include_dir)
+	cp stl/deque $(gplusplus_include_dir)
+	cp stl/functional $(gplusplus_include_dir)
+	cp stl/hash_map $(gplusplus_include_dir)
+	cp stl/hash_set $(gplusplus_include_dir)
+	cp stl/iterator $(gplusplus_include_dir)
+	cp stl/list $(gplusplus_include_dir)
+	cp stl/map $(gplusplus_include_dir)
+	cp stl/memory $(gplusplus_include_dir)
+	cp stl/numeric $(gplusplus_include_dir)
+	cp stl/pthread_alloc $(gplusplus_include_dir)
+	cp stl/queue $(gplusplus_include_dir)
+	cp stl/rope $(gplusplus_include_dir)
+	cp stl/set $(gplusplus_include_dir)
+	cp stl/slist $(gplusplus_include_dir)
+	cp stl/stack $(gplusplus_include_dir)
+	cp stl/utility $(gplusplus_include_dir)
+	cp stl/vector $(gplusplus_include_dir)
+	cp std/*.h $(gplusplus_include_dir)/std
+	cp cassert $(gplusplus_include_dir)
+	cp cctype $(gplusplus_include_dir)
+	cp cerrno $(gplusplus_include_dir)
+	cp cfloat $(gplusplus_include_dir)
+	cp ciso646 $(gplusplus_include_dir)
+	cp climits $(gplusplus_include_dir)
+	cp clocale $(gplusplus_include_dir)
+	cp cmath $(gplusplus_include_dir)
+	cp complex $(gplusplus_include_dir)
+	cp complex.h $(gplusplus_include_dir)
+	cp csetjmp $(gplusplus_include_dir)
+	cp csignal $(gplusplus_include_dir)
+	cp cstdarg $(gplusplus_include_dir)
+	cp cstddef $(gplusplus_include_dir)
+	cp cstdio $(gplusplus_include_dir)
+	cp cstdlib $(gplusplus_include_dir)
+	cp cstring $(gplusplus_include_dir)
+	cp ctime $(gplusplus_include_dir)
+	cp cwchar $(gplusplus_include_dir)
+	cp cwctype $(gplusplus_include_dir)
+	cp fstream $(gplusplus_include_dir)
+	cp iomanip $(gplusplus_include_dir)
+	cp iosfwd $(gplusplus_include_dir)
+	cp iostream $(gplusplus_include_dir)
+	cp stdexcept $(gplusplus_include_dir)
+	cp string $(gplusplus_include_dir)
+	cp strstream $(gplusplus_include_dir)
+	cp valarray $(gplusplus_include_dir)
 
 # String objects
 
@@ -442,7 +493,7 @@ $(stdcobjdir)/dpowci.o: cinst.cc std/complext.cc std/complext.h std/dcomplex.h s
 	$(CC) -DD -DPOWCI cinst.cc -o $@
 $(stdcobjdir)/ldpowci.o: cinst.cc std/complext.cc std/complext.h std/dcomplex.h std/ldcomplex.h
 	$(CC) -DLD -DPOWCI cinst.cc -o $@
-	
+
 $(stdcobjdir)/fpowfc.o: cinst.cc std/complext.cc std/complext.h std/dcomplex.h std/ldcomplex.h
 	$(CC) -DF -DPOWFC cinst.cc -o $@
 $(stdcobjdir)/dpowfc.o: cinst.cc std/complext.cc std/complext.h std/dcomplex.h std/ldcomplex.h

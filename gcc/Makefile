@@ -189,3 +189,5 @@ install_headers:
 	$(MAKE) -C libscl install_headers
 	$(MAKE) -C unixlib install_headers
 	$(MAKE) -C "gcc-$(VERSION)/gcc" -f Makelibs install_headers
+	$(MAKE) -C "gcc-$(VERSION)/libio" install_headers
+	$(MAKE) -C "gcc-$(VERSION)/libstdc" install_headers

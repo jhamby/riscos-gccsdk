@@ -1,5 +1,5 @@
 # Makefile for GNU Libio for the ARM/RISC OS GCC port
-# Copyright (c) 1997-2000 Nick Burrett
+# Copyright (c) 1997, 1998, 1999, 2000 Nick Burrett
 # Written by Nick Burrett <nick@dsvr.net>
 #
 # This file is part of the GNU Compiler Collection
@@ -117,6 +117,9 @@ LIBIOSTREAM_OBJECTS = $(IO_OBJECTS) $(IOSTREAM_OBJECTS) $(OSPRIM_OBJECTS)
 LIBIO_OBJECTS = $(IO_OBJECTS) $(STDIO_WRAP_OBJECTS) $(OSPRIM_OBJECTS) $(STDIO_OBJECTS)
 
 all:	$(TBIN)/$(TRG)/libio.o $(TBIN)/$(TRG)/libiostream.o
+
+install_headers:
+	cp *.h $(gplusplus_include_dir)
 
 $(TBIN)/$(TRG)/libio.o: $(LIBIO_OBJECTS)
 	$(BIN)/libfile -c $@ $(LIBIO_OBJECTS)
