@@ -1,11 +1,33 @@
 Noteworthy changes to the RISC OS GCCSDK
 
-RISC OS GCC release 3.4.1 pre-release 1 (released XX XXXX 2004)
+RISC OS GCC release 3.4.1 release 1 (released 05 October 2004)
 =======================================
 
 * gcc: Updated to version 3.4.1 to make the distribution current and
   bring in speed improvements and better optimisation.  The 3.3 release
   branch was abandoned in favour of this.
+
+* gcc: Default is now to tune for XScale - this will improve performance
+  on StrongARM and XScale processors - the most common ARM processors running
+  RISC OS.
+
+* Many substantial changes and improvements - see docs.ULChanges for the
+  complete list.  Highlights include:
+
+  - Integrated iconv support via an external module.
+  - Much improved handling of child processes, avoiding previous
+    potential aborts.
+  - Miscellaneous pthreads improvements including addition of semaphore
+    support.
+  - Complete set of 64-bit maths functions.
+  - Considerably improved compatibility with glibc headers, easing
+    porting of many programs.
+  - Improved terminal handling.
+  - /dev/dsp support meaning some Unix programs using sound will work
+    without modification.
+  - Further improvements to filename translation.
+  - General improvements to source formatting and comments.        
+
 
 RISC OS GCC release 3.3.3 pre-release 2 (released 18 April 2004)
 =======================================

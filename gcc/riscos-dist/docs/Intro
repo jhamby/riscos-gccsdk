@@ -13,7 +13,7 @@ ensure that a large enough Wimpslot has been allocated. Please refer to the
 IMPORTANT NOTE 2: If ypu have received this copy of GCC from a CD, then it is
 likely there is a more up-to-date version obtainable from elsewhere.
 
-IMPORTANT NOTE 3: GCC requires a minimum of 16Mb RAM.
+IMPORTANT NOTE 3: GCC requires a minimum of 16MB RAM.
 
 The RISC OS GNU Compiler Collection consists of a generic front end program
 `gcc' that provides a consistent interface to the compilers themselves.

@@ -1,4 +1,4 @@
-Welcome to GCC 3.3.3 for RISC OS.
+Welcome to GCC 3.4.1 for RISC OS.
 
 This document covers important notes for new users and existing users alike.
 GCC and Unixlib have undergone many changes, so it's important that you read
@@ -15,14 +15,18 @@ If you're new to GCC:
 
 If you've used GCC before:
 
-- The standard C++ library has been re-written.  Any existing C++ applications
-  and libraries will require re-compiling before interoperability can be
-  achieved.
+- The standard C++ library has been re-written from GCC 2.95.4.  Any existing
+  C++ applications and libraries will require re-compiling before
+  interoperability can be achieved if they were compiled prior to version
+  3.3.3 of GCC.
 
 - The C++ compiler does not specify the 'std' namespace by default.  To use
   functions defined within the standard C++ library you must now either
   explicitly declare 'using namespace std' at the head of your source file, or
   explicitly prepend 'std::' to all function and variable references.
+
+- The file !gcc.Changes lists major changes from the last version.
+  !gcc.docs.Changes has a comprehensive list of changes to Unixlib.
 
 GCCSDK Developers, 2004
 
