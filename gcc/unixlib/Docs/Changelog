@@ -1,10 +1,15 @@
-Mon Apr  4 12:57:46 2005  <peter@chocky.org>
+Mon Apr  4 19:37:26 2005 Peter Naulls <peter@chocky.org>
+
+	* source/string/_memset.s: Revert; Adrian's version seems to have
+	  problems.
+
+Mon Apr  4 12:57:46 2005 Peter Naulls <peter@chocky.org>
 
 	* source/memcpy.c, source/memset.c: Removed - bzero, bcopy
 	  included in assembler.
 	* source/string/_strcpy.s, source/string/_strlen.s: Adrian
 	  says cache alignment may improve performance.
-	* source/sys/_memset: Removed
+	* source/sys/_memset.s: Removed
 	* source/string/_memset.s, source/string/_memcpy.s: Faster
 	  implementations from Adrian Lees.
 	* source/signal/post.c: Experiment with provding disassembly
