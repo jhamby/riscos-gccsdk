@@ -1,17 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/strings.h,v $
- * $Date: 2003/05/06 22:31:54 $
- * $Revision: 1.6 $
+ * $Date: 2004/02/15 19:37:38 $
+ * $Revision: 1.7 $
  * $State: Exp $
- * $Author: alex $
+ * $Author: peter $
  *
  ***************************************************************************/
 
 #ifndef __STRINGS_H
 #define __STRINGS_H 1
-
-#ifdef __USE_BSD
 
 /* We don't need and should not read this file if <string.h> was already
    read. The one exception being that if __USE_BSD isn't defined, then
