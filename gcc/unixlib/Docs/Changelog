@@ -1,3 +1,9 @@
+Sat Jan 29 17:23:04 2005  Alex Waugh  <alex@alexwaugh.com>
+
+	* source/pthread/context.c (__pthread_context_switch): Remove thread
+	  from condition variable list if it times out waiting for the
+	  condition variable.
+
 Mon Jan 24 16:44:19 2005  Peter Naulls  <peter@chocky.org>
 
 	* source/regexp/regex2.h, source/regexp/regfree.c,

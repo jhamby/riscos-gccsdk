@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/pthread/context.c,v $
- * $Date: 2003/04/06 10:58:40 $
- * $Revision: 1.4 $
+ * $Date: 2004/12/11 14:18:57 $
+ * $Revision: 1.5 $
  * $State: Exp $
- * $Author: alex $
+ * $Author: joty $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: context.c,v 1.4 2003/04/06 10:58:40 alex Exp $";
+static const char rcs_id[] = "$Id: context.c,v 1.5 2004/12/11 14:18:57 joty Exp $";
 #endif
 
 /* Context switching/schedulling */
@@ -121,6 +121,23 @@ __pthread_context_switch (void)
             {
               /* Hmm, this will fail if the monotonic timer wraps around */
               __pthread_running_thread->state = STATE_RUNNING;
+
+              /* Remove this thread from the list of threads waiting on the
+                 condition variable */
+              if (__pthread_running_thread->cond->waiting == __pthread_running_thread)
+                {
+                  __pthread_running_thread->cond->waiting = __pthread_running_thread->nextwait;
+                }
+              else
+                {
+                  pthread_t thread = __pthread_running_thread->cond->waiting;
+
+                  while (thread->nextwait && thread->nextwait != __pthread_running_thread)
+                    thread = thread->nextwait;
+
+                  if (thread->nextwait)
+                    thread->nextwait = thread->nextwait->nextwait;
+                }
             }
         }
 #ifdef PTHREAD_DEBUG_CONTEXT
