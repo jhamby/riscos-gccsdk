@@ -244,9 +244,10 @@ c_area (void)
 	newtype |= AREA_UDATA | AREA_INIT;
       else if (!strncmp ("READONLY", attribute.LexId.str, attribute.LexId.len))
 	newtype |= AREA_READONLY | AREA_INIT;
-      else if (!strncmp ("COMMON", attribute.LexId.str, attribute.LexId.len)
-	   || !strncmp ("COMDEF", attribute.LexId.str, attribute.LexId.len))
+      else if (!strncmp ("COMMON", attribute.LexId.str, attribute.LexId.len))
 	newtype |= AREA_COMMONDEF | AREA_COMMONREF | AREA_UDATA | AREA_INIT;
+      else if (!strncmp ("COMDEF", attribute.LexId.str, attribute.LexId.len))
+	newtype |= AREA_COMMONDEF | AREA_INIT;
       else if (!strncmp ("COMREF", attribute.LexId.str, attribute.LexId.len))
 	newtype |= AREA_COMMONREF | AREA_UDATA | AREA_INIT;
       else if (!strncmp ("DEBUG", attribute.LexId.str, attribute.LexId.len))
