@@ -334,7 +334,8 @@ sources = \
         complex_io.cc \
         concept-inst.cc \
         ctype.cc \
-        ext-inst.cc \
+	ctype_members.cc \
+	ext-inst.cc \
         fstream.cc \
         fstream-inst.cc \
         functexcept.cc \
@@ -368,10 +369,12 @@ OBJS =	 \
 	$(libobjdir)/cp-demangle.o \
         $(libobjdir)/c++locale.o \
         $(libobjdir)/codecvt.o \
+	$(libobjdir)/codecvt_members.o \
         $(libobjdir)/collate.o \
         $(libobjdir)/complex_io.o \
         $(libobjdir)/concept-inst.o \
         $(libobjdir)/ctype.o \
+	$(libobjdir)/ctype_members.o \
 	$(libobjdir)/dyn-string.o \
         $(libobjdir)/ext-inst.o \
         $(libobjdir)/fstream.o \
@@ -449,8 +452,9 @@ import:
 	cp -a $(glibcpp_srcdir)/src/*.cc ./
 	cp -a $(glibcpp_srcdir)/config/io/basic_file_stdio.cc ./basic_file.cc
 	cp -a $(glibcpp_srcdir)/config/locale/generic/c_locale.cc ./c++locale.cc
+	cp -a $(glibcpp_srcdir)/config/locale/generic/codecvt_members.cc ./codecvt_members.cc
 	cp -a $(glibcpp_srcdir)/config/locale/generic/collate_members.cc ./collate.cc
-	#cp -a $(glibcpp_srcdir)/config/locale/generic/ctype_members.cc ./ctype.cc
+	cp -a $(glibcpp_srcdir)/config/locale/generic/ctype_members.cc ./ctype_members.cc
 	cp -a $(glibcpp_srcdir)/config/locale/generic/messages_members.cc ./messages.cc
 	cp -a $(glibcpp_srcdir)/config/locale/generic/monetary_members.cc ./monetary.cc
 	cp -a $(glibcpp_srcdir)/config/locale/generic/numeric_members.cc ./numeric.cc
@@ -477,6 +481,7 @@ $(libobjdir)/collate.o: collate.cc
 $(libobjdir)/complex_io.o: complex_io.cc
 $(libobjdir)/concept-inst.o: concept-inst.cc
 $(libobjdir)/ctype.o: ctype.cc
+$(libobjdir)/ctype_members.o: ctype_members.cc
 $(libobjdir)/ext-inst.o: ext-inst.cc
 $(libobjdir)/fstream.o: fstream.cc
 $(libobjdir)/fstream-inst.o: fstream-inst.cc
