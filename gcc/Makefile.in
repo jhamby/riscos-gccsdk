@@ -58,7 +58,7 @@ endif
 
 # Pass these variables through the environment to sub-makes.
 export VERSION TARGET_NAME TARGET_DEFS BIN TBIN
-export CFLAGS AR AR_FLAGS crosscompile
+export CFLAGS CXXFLAGS AR AR_FLAGS crosscompile
 
 all:	crosshost crosstarget
 
