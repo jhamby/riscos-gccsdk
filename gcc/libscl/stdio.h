@@ -99,7 +99,7 @@ extern int remove (const char *__filename);
 extern int rename (const char *__oldname, const char *__newname);
 
 #ifdef __RISCOSIFY
-#define rename(f, g) (rename(__riscosify_scl(f), __riscosify_scl(g, 1)))
+#define rename(f, g) (rename(__riscosify_scl(f, 0), __riscosify_scl(g, 1)))
 #endif
 
 /* Create a temporary binary file for updade mode, as if calling
