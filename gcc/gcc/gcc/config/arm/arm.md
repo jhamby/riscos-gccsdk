@@ -70,6 +70,8 @@
    			; and stack frame generation.  Operand 0 is the
    			; register to "use".
    (UNSPEC_CHECK_ARCH 7); Set CCs to indicate 26-bit or 32-bit mode.
+   (UNSPEC_LONGJMP 8)
+   (UNSPEC_SETJMP 9)
   ]
 )
 
@@ -9139,3 +9141,158 @@
   ""
   "%@ %0 needed for prologue"
 )
+
+;; Implementations for dyamic allocation off the stack.
+
+;; These patterns say how to perform an equivalent to dynamic allocation
+;; off the stack. We use library routines to return malloced memory
+;; then alter the frame pointer so that on function exit, all chunks
+;; will be freed. This system also works for different blocks within a
+;; function.
+
+;; We do not need to worry about the outermost block in a function since
+;; function exit will tidy up all unalloced chunks.
+
+(define_expand "save_stack_function"
+  [(use (const_int 0))]
+  "TARGET_APCS_STACK"
+  "")
+
+(define_expand "restore_stack_function"
+  [(use (const_int 0))]
+  "TARGET_APCS_STACK"
+  "")
+
+;; On entrance to a block, with __builtin_alloca, create a unique key
+;; suitable for the free code.
+
+(define_expand "save_stack_block"
+  [(match_operand:SI 0 "memory_operand" "")
+   (match_operand:SI 1 "s_register_operand" "")]
+  "TARGET_APCS_STACK"
+  "
+{
+  rtx r0_rtx = gen_rtx (REG, SImode, 0);
+  rtx funexp = gen_rtx (SYMBOL_REF, Pmode, \"___arm_alloca_block_init\");
+
+  emit_call_insn (gen_call_value (r0_rtx,
+                                  gen_rtx (MEM, FUNCTION_MODE, funexp),
+                                  const0_rtx,
+				  const0_rtx));
+  emit_move_insn (operands[0], r0_rtx);
+  DONE;
+}")
+
+(define_expand "save_stack_nonlocal"
+  [(match_operand:SI 0 "memory_operand" "")
+   (match_operand:SI 1 "s_register_operand" "")]
+  "TARGET_APCS_STACK"
+  "
+{
+  rtx r0_rtx = gen_rtx (REG, SImode, 0);
+  rtx funexp = gen_rtx (SYMBOL_REF, Pmode, \"___arm_alloca_block_init\");
+
+  emit_call_insn (gen_call_value (r0_rtx,
+                                  gen_rtx (MEM, FUNCTION_MODE, funexp),
+                                  const0_rtx,
+				  const0_rtx));
+  emit_move_insn (operands[0], const0_rtx);
+  DONE;
+}")
+
+
+;; Use the unique key produced earlier to free chunks created under
+;; this key.
+
+(define_expand "restore_stack_block"
+  [(set (match_dup 2) (mem:SI (match_operand:SI 0 "s_register_operand" "")))
+   (set (match_dup 0) (match_operand:SI 1 "s_register_operand" ""))
+   (set (mem:SI (match_dup 0)) (match_dup 2))]
+  "TARGET_APCS_STACK"
+  "
+{
+  rtx r0_rtx = gen_rtx (REG, SImode, 0);
+  rtx funexp = gen_rtx (SYMBOL_REF, Pmode, \"___arm_alloca_block_free\");
+
+  emit_move_insn (r0_rtx, operands[1]);
+  emit_call_insn (gen_call (gen_rtx (MEM, FUNCTION_MODE, funexp),
+			    GEN_INT (4),
+			    const0_rtx));
+  DONE;
+}")
+
+(define_expand "restore_stack_nonlocal"
+  [(match_operand:SI 0 "s_register_operand" "")
+   (match_operand:SI 1 "memory_operand" "")]
+  "TARGET_APCS_STACK"
+  "
+{
+  rtx r0_rtx = gen_rtx (REG, SImode, 0);
+  rtx funexp = gen_rtx (SYMBOL_REF, Pmode, \"___arm_alloca_block_free\");
+
+  emit_move_insn (r0_rtx, operands[1]);
+  emit_call_insn (gen_call (gen_rtx (MEM, FUNCTION_MODE, funexp),
+			    GEN_INT (4),
+			    const0_rtx));
+  DONE;
+}")
+
+;; Call the function that will reserve the necessary amount of memory
+
+(define_expand "allocate_stack"
+  [(set (match_operand:SI 0 "s_register_operand" "=r")
+        (minus:SI (reg:SI 13) (match_operand:SI 1 "reg_or_int_operand" "")))
+   (set (reg:SI 13)
+        (minus:SI (reg:SI 13) (match_dup 1)))
+   (clobber (reg:SI 0))
+   (clobber (reg:SI 14))]
+  "TARGET_APCS_STACK"
+  "
+{
+  rtx r0_rtx = gen_rtx (REG, SImode, 0);
+  rtx funexp = gen_rtx (SYMBOL_REF, Pmode, \"___arm_alloca_alloc\");
+
+  emit_move_insn (r0_rtx, operands[1]);
+  emit_call_insn (gen_call_value (r0_rtx,
+                                  gen_rtx (MEM, FUNCTION_MODE, funexp),
+                                  GEN_INT (4),
+				  const0_rtx));
+  emit_move_insn (operands[0], r0_rtx);
+
+  DONE;
+}")
+
+(define_expand "builtin_longjmp"
+  [(unspec_volatile [(match_operand 0 "s_register_operand" "r")] UNSPEC_LONGJMP)]
+  "TARGET_APCS_STACK"
+  "
+{
+  rtx r0_rtx = gen_rtx (REG, SImode, 0);
+  rtx funexp = gen_rtx (SYMBOL_REF, Pmode, \"___arm_alloca_longjmp\");
+
+  emit_move_insn (r0_rtx, operands[1]);
+  emit_call_insn (gen_call_value (r0_rtx,
+                                  gen_rtx (MEM, FUNCTION_MODE, funexp),
+                                  GEN_INT (4),
+				  const0_rtx));
+
+  DONE;
+}")
+
+(define_expand "builtin_setjmp"
+  [(unspec [(match_operand 0 "s_register_operand" "r")] UNSPEC_SETJMP)]
+  "TARGET_APCS_STACK"
+  "
+{
+  rtx r0_rtx = gen_rtx (REG, SImode, 0);
+  rtx funexp = gen_rtx (SYMBOL_REF, Pmode, \"___arm_alloca_setjmp\");
+
+  emit_move_insn (r0_rtx, operands[1]);
+  emit_call_insn (gen_call_value (r0_rtx,
+                                  gen_rtx (MEM, FUNCTION_MODE, funexp),
+                                  GEN_INT (4),
+				  const0_rtx));
+
+  DONE;
+}")
+
