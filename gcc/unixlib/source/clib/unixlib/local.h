@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/unixlib/local.h,v $
- * $Date: 2003/04/12 11:31:39 $
- * $Revision: 1.5 $
+ * $Date: 2003/04/22 10:59:44 $
+ * $Revision: 1.6 $
  * $State: Exp $
- * $Author: alex $
+ * $Author: peter $
  *
  * This file should eventually contain most / all of the unixlib specific
  * functions.
@@ -60,11 +60,12 @@ extern int __isdir (const char *__dir);
 /* Return nonzero if OBJECT exists as file, dir or image.  */
 extern int __object_exists (const char *__object);
 
-/* Return nonzero if DIR is an existent directory. Don't call __uname */
+/* Return nonzero if DIR is an existent directory.
+   Don't call __riscosify[_std] ().  */
 extern int __isdir_raw (const char *__dir);
 
 /* Return nonzero if OBJECT exists as file, dir or image.
-   Don't call __uname.  */
+   Don't call __riscosify[_std] ().  */
 extern int __object_exists_raw (const char *__object);
 
 /* Convert RISC OS format 5 byte time into Unix format time.
@@ -111,28 +112,23 @@ extern const char __filename_char_map[256];
 
 #endif  /* __UNIXLIB_INTERNALS */
 
-/* This bit map controls how riscosify processes filenames.
+/* This bit map controls how riscosify[_std]() processes filenames.
    Flags value for internal conversions (in this thread?) of UnixLib.
-   The default value is 0.
+   The default value is 0 unless user program overrules this by
+   defining an explicit instance of __riscosify_control of its own.
      Conversion on
-     Don't truncate (hence don't drop vowels)
      Do perform suffix processing
      Don't create suffix dirs (open/rename functions DO create dirs).
-     Don't look at/react on ",xyz" filetype extensions.  */
+     Don't look at/react on ",xyz" filetype extensions.
+     Set filetype according to MimeMap.  */
 
-extern int __riscosify_control;
+extern int __riscosify_control; /* Note: this is a weak symbol.  */
+
+/* Bits 0 - 5 (incl) and 15 - 31 (incl) of __riscosify_control are not
+   allocated.  */
 
 /* Don't actually process filenames, copy verbatim into the output buffer.  */
 #define __RISCOSIFY_NO_PROCESS		0x0040
-
-/* Don't truncate path elements (default), providing buffer is large enough.  */
-#define __RISCOSIFY_DONT_TRUNCATE	0x0000
-/* Truncate at various shorter lengths, suitable for various filing systems.  */
-#define __RISCOSIFY_LONG_TRUNCATE	0x0010	/* 55 - longfiles */
-#define __RISCOSIFY_MEDIUM_TRUNCATE	0x0020	/* 19 - sparkfs is buggy */
-#define __RISCOSIFY_SHORT_TRUNCATE	0x0030	/* 10 - filecore */
-/* Extract above truncate option and map to 0-3.  */
-#define __RISCOSIFY_TRUNCATE_VALUE(flags) ((flags & 0x0030) >> 4)
 
 /* If path element is too long, drop vowels before truncating.  */
 #define __RISCOSIFY_DROP_VOWEL		0x0080
@@ -162,14 +158,14 @@ extern int __riscosify_control;
 /* If the filename has a unix-style extension, look up the extension
    using RISC OS MimeMap SWIs and set a filetype.  If the filetype
    could not be found, use 0xFFF.                                  */
-#define __RISCOSIFY_FILETYPE_SET        0x4000
- 
+#define __RISCOSIFY_FILETYPE_NOT_SET    0x4000
+
 /* Mask of acceptable values. Keep other bits zero. Checks may be made.  */
-#define __RISCOSIFY_MASK               0x7FF0
-  
+#define __RISCOSIFY_MASK                0x7FC0
+
 /* Value indicating that __riscosify[_std] didn't see a filetype extension
    in its argument __name or that it wasn't instructed to look for one.  */
-#define __RISCOSIFY_FILETYPE_NOTFOUND  -1
+#define __RISCOSIFY_FILETYPE_NOTFOUND   -1
 
 /* Value indicating for __unixify that there is no filetype (e.g. a
    directory) even when __RISCOSIFY_FILETYPE_EXT is specified as one of
@@ -190,10 +186,18 @@ extern char *__riscosify_std (const char *__name, int __create_dir,
 			      char *__buffer, size_t __buf_len,
 			      int *__filetype);
 
+#ifdef __UNIXLIB_INTERNALS
+
 /* Gets the __riscosify_control value which can be defined by
    the global variable __riscosify_control in the user program.
-   Returns 0 (= default value) when not defined.  */
+   Returns a copy of __riscosify_control_internal (whom its default
+   value is 0) when __riscosify_control is not defined.  */
 extern int __get_riscosify_control (void);
+/* Sets the __riscosify_control value when it's defined.
+   Otherwise __riscosify_control_internal gets written.  */
+extern void __set_riscosify_control (int __riscosify_flags);
+
+#endif  /* __UNIXLIB_INTERNALS */
 
 /* Convert `__name' into a Unix style pathname and store in `buffer'.
    If buffer is non-null then it is at least buf_len long.  If buffer
@@ -206,51 +210,6 @@ extern char *__unixify (const char *__name, int __unixify_flags,
 extern char *__unixify_std (const char *__name,
        	       	       	    char *__buffer, size_t __buf_len,
        	       	       	    int __filetype);
-
-/* #define __riscosify_std(n,c,b,s) __riscosify (n,c,__riscosify_control,b,s) */
-
-#ifndef __UNIXLIB_OLD_UNAME
-
-#ifdef __UNIXLIB_FAULT_UNAME
-/* This should make finding references *very* easy - spot the compiler
-   errors!  */
-
-extern struct boom *__uname (void);
-extern struct boom *__uname_control;
-extern struct boom *__uname_dont_pack_ptr;
-#endif
-
-#else /* __UNIXLIB_OLD_UNAME */
-
-#if 0
-#define __sfixseg(a) ((__sfixfind (a) ? -1 : 0))
-#endif
-
-/* Convert a Unix format filename to RISC OS format.  If __cflag is
-   non-zero then missing subdirectories are automatically created.  */
-extern char *__uname (const char *__name, int __cflag);
-extern int __uname_control;
-
-/* This bit map controls how uname processes filenames.
-
-   The default value is 6 (__UNAME_DROP_VOWEL | __UNAME_LONG_TRUNC)
-
-   Bit zero: if set then no processing is done at all.
-   Bit one: if unset then truncate each path element to 10 characters.
-   Bit one: if set then the maximum filename length is 55 characters.
-   Bit two: if set then if the path element is too long, drop vowels
-	    before attempting to truncate.  */
-
-#define __UNAME_NO_PROCESS 0x01
-#define __UNAME_LONG_TRUNC 0x02
-#define __UNAME_DROP_VOWEL 0x04
-
-
-/* Just declare __uname_dont_pack to disable vowel dropping.  */
-extern int *__uname_dont_pack_ptr;
-#endif /* __UNIXLIB_OLD_UNAME */
-
-
 
 /* Get an object's filetype, object type, etc and do some common checks.
    Returns nonzero and sets errno on error. Returns riscosified filename

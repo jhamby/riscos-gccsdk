@@ -1,3 +1,25 @@
+Tue Jun 17 00:09:01 2003  John Tytgat <John.Tytgat@aaug.net>
+
+	* source/clib/unixlib/local.h: Removed obsolete uname().  Use
+	  riscosify[_std]() instead.  Removed obsolete *_TRUNCATE bits in
+	  __riscosify_control.  Changed __RISCOSIFY_FILETYPE_SET into
+	  __RISCOSIFY_FILETYPE_NOT_SET so that the current default value
+	  __riscosify_control becomes 0 again.  Hide __get_riscosify_control()
+	  behind __UNIXLIB_INTERNALS.  Defined __set_riscosify_control().
+	* source/common/_riscosify.s: Defined __set_riscosify_control().
+	* source/common/objattr.c: Changed __RISCOSIFY_FILETYPE_SET into
+	  __RISCOSIFY_FILETYPE_NOT_SET.
+	* source/common/riscosify.c: Likewise.
+	* source/common/uname.c: Removed.
+	* source/common/riscosifyc.c: Added comment that __riscosify_control
+	  is a weak symbol.
+	* source/common/serial.c: Changed comment about obsoleted __uname().
+	* source/stdio/rename.c: Likewise.
+	* source/unix/features.c: Removed initialisation of __riscosify_control
+	  as the default value is again 0 in which is initialised in
+	  source/common/riscosifyc.c.  Make use of __set_riscosify_control()
+	  when the "nonametrans" feature is defined.
+
 Mon Jun 16 22:00:01 2003  John Tytgat <John.Tytgat@aaug.net>
 
 	* source/clib/signal.h: Changed SISERR into SISOSERROR in order to

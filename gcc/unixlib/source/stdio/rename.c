@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/stdio/rename.c,v $
- * $Date: 2003/01/29 18:46:02 $
- * $Revision: 1.4 $
+ * $Date: 2003/04/13 16:21:02 $
+ * $Revision: 1.5 $
  * $State: Exp $
- * $Author: admin $
+ * $Author: alex $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: rename.c,v 1.4 2003/01/29 18:46:02 admin Exp $";
+static const char rcs_id[] = "$Id: rename.c,v 1.5 2003/04/13 16:21:02 alex Exp $";
 #endif
 
 #include <stdio.h>
@@ -46,7 +46,7 @@ rename (const char *old_name, const char *new_name)
   if (!__object_exists_raw (ofile))
     return __set_errno (ENOENT);
 
-  /* Let __uname create the directory if necessary. This is so
+  /* Let __riscosify_std () create the directory if necessary. This is so
      rename ("foo", "foo.c") works when "c" does not exist.  */
   if (!__riscosify_std (new_name, 1, nfile, sizeof (nfile), &nftype))
     return __set_errno (ENAMETOOLONG);

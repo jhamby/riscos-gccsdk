@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/common/objattr.c,v $
- * $Date: 2003/04/12 11:31:39 $
- * $Revision: 1.1 $
+ * $Date: 2003/06/07 02:30:22 $
+ * $Revision: 1.2 $
  * $State: Exp $
- * $Author: alex $
+ * $Author: joty $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: objattr.c,v 1.1 2003/04/12 11:31:39 alex Exp $";
+static const char rcs_id[] = "$Id: objattr.c,v 1.2 2003/06/07 02:30:22 joty Exp $";
 #endif
 
 #include <errno.h>
@@ -38,7 +38,7 @@ __object_get_attrs (const char *ux_file, char *buffer, size_t buf_len,
      based on the extension, as this may cause the filetype check later on
      to fail. */
   if (!__riscosify (ux_file, 0,
-                    __get_riscosify_control () & ~__RISCOSIFY_FILETYPE_SET,
+                    __get_riscosify_control () & ~__RISCOSIFY_FILETYPE_NOT_SET,
                     buffer, buf_len, &sftype))
     return __set_errno (ENAMETOOLONG);
 

@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/common/riscosify.c,v $
- * $Date: 2003/04/06 14:19:07 $
- * $Revision: 1.8 $
+ * $Date: 2003/06/07 02:30:22 $
+ * $Revision: 1.9 $
  * $State: Exp $
- * $Author: peter $
+ * $Author: joty $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: riscosify.c,v 1.8 2003/04/06 14:19:07 peter Exp $";
+static const char rcs_id[] = "$Id: riscosify.c,v 1.9 2003/06/07 02:30:22 joty Exp $";
 #endif
 
 /* #define DEBUG */
@@ -91,7 +91,7 @@ static char *copy_or_null (char *to, const char *from, const char *buf_end);
 
 /* For all UnixFS$/#* global environment values, set up a mapping as
    requested by the user to map Unix directories to RISC OS directories.
-   See __uname.  Called from unix/features.c.  */
+   See __riscosify[_std] ().  Called from unix/features.c.  */
 void
 __sdirinit (void)
 {
@@ -462,7 +462,7 @@ translate_or_null (int create_dir, int flags,
 
   /* Use MimeMap to find a filetype to match the filename
      extension.  e.g.  file.html -> 0xfaf */
-  if ((flags & __RISCOSIFY_FILETYPE_SET) &&
+  if (!(flags & __RISCOSIFY_FILETYPE_NOT_SET) &&
       filetype != NULL && last_dot != NULL)
     {
        _kernel_swi_regs regs;
