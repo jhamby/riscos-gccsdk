@@ -10,18 +10,20 @@ gccpath=$(objdir)/gcc-$(VERSION)/$@/$(STAGE)
 all:	gcc
 
 .PHONY: zlib
+.PHONY: fastjar
 .PHONY: gcc
 .PHONY: libgcc
 .PHONY: libf2c
 .PHONY: libstdc
 .PHONY: libio
 .PHONY: libsupc++
+.PHONY: libjava
 
 gcc:
 	mkdir -p $(gccpath) $(gccpath)/ada $(gccpath)/cp $(gccpath)/f77 \
 	$(gccpath)/gpc $(gccpath)/objc $(gccpath)/java $(gccpath)/config/arm
 	$(MAKE) -C gcc "STAGE=$(STAGE)"
 
-libgcc libgpc libf2c libstdc libio libsupc++ zlib:
+fastjar libgcc libgpc libf2c libstdc libio libsupc++ libjava zlib:
 	mkdir -p $(libpath)/$(STAGE)/$(TRG)
 	$(MAKE) -C $@ "STAGE=$(STAGE)"
