@@ -1,3 +1,9 @@
+Sun Jun  1 21:46:05 2003  Alex Waugh  <alex@alexwaugh.com>
+
+	* clib/unistd.h (fchdir): Add decl.
+	* unistd/fchdir.c: New file.
+	* unix/fchown.c: Remove file, it duplicates unistd/fchown.c
+
 Sun Jun  1 18:20:15 2003  Alex Waugh  <alex@alexwaugh.com>
 
 	* module/sul.s: Fix non 32bit SWI returns.

@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/unistd.h,v $
- * $Date: 2003/04/05 12:16:34 $
- * $Revision: 1.6 $
+ * $Date: 2003/04/21 13:20:39 $
+ * $Revision: 1.7 $
  * $State: Exp $
- * $Author: alex $
+ * $Author: peter $
  *
  ***************************************************************************/
 
@@ -211,6 +211,9 @@ extern int fchown (int __fd, __uid_t __owner, __gid_t __group);
 
 /* Change the process's working directory to path.  */
 extern int chdir (const char *__path);
+
+/* Change the process's working directory to the path associated with 'fd'  */
+extern int fchdir (int __fd);
 
 /* Get the pathname of the current working directory.  */
 extern char *getcwd (char *__buf, size_t __size);
