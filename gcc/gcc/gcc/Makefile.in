@@ -228,8 +228,7 @@ $(gccobjdir)/%.o: %.c
 	$(CC) $(CFLAGS) -o $@ -c $< $(INCLUDES)
 
 
-all: c cp f77 objc java
-
+all: c cp f77 objc java docs
 # cp f77 gpc objc java docs
 
 .PHONY: c
@@ -708,6 +707,12 @@ $(gccobjdir)/prefix.o: prefix.c
 
 $(gccobjdir)/toplev.o: toplev.c
 	$(CC) $(CFLAGS) $(INCLUDES) -o $@ -c toplev.c -DTARGET_NAME=\"$(TARGET_NAME)\"
+
+$(gccobjdir)/except.o: except.c
+	$(CC) $(CFLAGS) $(INCLUDES) -o $@ -c except.c -DDONT_USE_BUILTIN_SETJMP -DJMP_BUF_SIZE=27
+
+$(gccobjdir)/optabs.o: optabs.c
+	$(CC) $(CFLAGS) $(INCLUDES) -o $@ -c optabs.c -DDONT_USE_BUILTIN_SETJMP -DJMP_BUF_SIZE=27
 
 $(gccobjdir)/gcc.o: gcc.c
 	$(CC) $(CFLAGS) $(INCLUDES) -o $@ -c gcc.c \
