@@ -42,44 +42,23 @@ const char *idfn_text = MESSAGE;
 #define MAXNAME 256
 static char outname[MAXNAME + 1];
 
-#define BYTE0SHIFT 24
-#define BYTE1SHIFT 16
-#define BYTE2SHIFT 8
-#define BYTE3SHIFT 0
-
 #if !defined(__riscos__) && defined(WORDS_BIGENDIAN)
 /* Convert to ARM byte-sex.  */
 unsigned armword (unsigned val)
 {
-  union
-    {
-      unsigned i;
-      char c[4];
-    }
-  ret;
-
-  ret.c[0] = (val >> BYTE0SHIFT) & 0xff;
-  ret.c[1] = (val >> BYTE1SHIFT) & 0xff;
-  ret.c[2] = (val >> BYTE2SHIFT) & 0xff;
-  ret.c[3] = (val >> BYTE3SHIFT) & 0xff;
-  return (ret.i);
+  return (val >> 24) | 
+         ((val >> 8) & 0xff00)   |
+         ((val << 8) & 0xff0000) |
+          (val << 24);
 }
 
 /* Convert from ARM byte-sex.  */
 unsigned ourword (unsigned val)
 {
-  union
-  {
-    unsigned i;
-    char c[4];
-  }
-  ret;
-
-  ret.c[0] = (val >> BYTE0SHIFT) & 0xff;
-  ret.c[1] = (val >> BYTE1SHIFT) & 0xff;
-  ret.c[2] = (val >> BYTE2SHIFT) & 0xff;
-  ret.c[3] = (val >> BYTE3SHIFT) & 0xff;
-  return (ret.i);
+  return  (val >> 24) |
+         ((val >> 8) & 0xff00)   |
+         ((val << 8) & 0xff0000) | 
+          (val << 24);
 }
 #endif
 
@@ -203,8 +182,8 @@ outputAof (void)
     {
       ap->area.info->norelocs = relocFix (ap);
       if (!(ap->area.info->type & AREA_UDATA))
-	obj_area_size += ourword (FIX (ap->value.ValueInt.i))
-	  + ourword (ap->area.info->norelocs) * sizeof (AofReloc);
+	obj_area_size += FIX (ap->value.ValueInt.i)
+	  + ap->area.info->norelocs * sizeof (AofReloc);
       ap = ap->area.info->next;
     }
 
@@ -251,10 +230,10 @@ outputAof (void)
   ap = areaHead;
   while (ap)
     {
-      aof_entry.Name = ap->offset;
-      aof_entry.Type = ap->area.info->type;
-      aof_entry.Size = FIX (ap->value.ValueInt.i);
-      aof_entry.noRelocations = ap->area.info->norelocs;
+      aof_entry.Name = armword (ap->offset);
+      aof_entry.Type = armword (ap->area.info->type);
+      aof_entry.Size = armword (FIX (ap->value.ValueInt.i));
+      aof_entry.noRelocations = armword(ap->area.info->norelocs);
       if (aof_entry.noRelocations != 0 && aof_entry.Type & AREA_UDATA)
 	errorLine (0, 0, ErrorSerious, FALSE,
 		   "Internal outputAof: relocations in uninitialised area");
@@ -272,6 +251,7 @@ outputAof (void)
       exit (-1);
     }
 /******** Chunk 2 String Table ***********/
+  strt_size = armword(strt_size);
   if (fwrite ((void *) &strt_size, 1, 4, objfile) != sizeof (strt_size))
     {
       errorLine (0, 0, ErrorSerious, FALSE,
@@ -291,9 +271,9 @@ outputAof (void)
     {
       if (!(ap->area.info->type & AREA_UDATA))
 	{
-	  if ((size_t)ourword (FIX (ap->value.ValueInt.i)) !=
+	  if ((size_t)(FIX (ap->value.ValueInt.i)) !=
 	      fwrite ((void *) ap->area.info->image, sizeof (char),
-		      ourword (FIX (ap->value.ValueInt.i)), objfile))
+		      FIX (ap->value.ValueInt.i), objfile))
 	    {
 	      errorLine (0, 0, ErrorSerious, FALSE,
 		"Internal outputAof: error when writing %s image", ap->str);
@@ -304,3 +284,4 @@ outputAof (void)
       ap = ap->area.info->next;
     }
 }
+

@@ -22,6 +22,7 @@
 #include "help_lex.h"
 #include "local.h"
 #include "area.h"
+#include "output.h"
 
 #define SYMBOL_OUTPUT(sym) \
   (((sym)->type & (SYMBOL_EXPORT|SYMBOL_KEEP))>0 && \
@@ -329,6 +330,10 @@ symbolSymbolOutput (FILE * outfile)
 	      asym.Value = 0;
 	      asym.AreaName = 0;
 	    }
+          asym.Name     = armword (asym.Name);
+          asym.Type     = armword (asym.Type);
+          asym.Value    = armword (asym.Value);
+          asym.AreaName = armword(asym.AreaName);
 	  fwrite ((void *) &asym, sizeof (AofSymbol), 1, outfile);
 	}
 }
