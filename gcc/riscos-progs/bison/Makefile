@@ -27,9 +27,9 @@ OBJS = $(objdir)/riscos-progs/bison/allocate.o \
 	$(objdir)/riscos-progs/bison/warshall.o
 
 
-all:	$(bin_dir)/bison
+all:	$(bin_dir)/bison$(exesfx)
 
-$(bin_dir)/bison:	$(OBJS)
+$(bin_dir)/bison$(exesfx):	$(OBJS)
 	$(CROSS_CC) -o $@ $(OBJS)
 
 $(objdir)/riscos-progs/bison/allocate.o: allocate.c

@@ -22,9 +22,9 @@ OBJS = $(objdir)/riscos-progs/patch/addext.o \
 	$(objdir)/riscos-progs/patch/util.o \
 	$(objdir)/riscos-progs/patch/version.o
 
-all:	$(bin_dir)/patch
+all:	$(bin_dir)/patch$(exesfx)
 
-$(bin_dir)/patch:	$(OBJS)
+$(bin_dir)/patch$(exesfx):	$(OBJS)
 	$(CROSS_CC) -o $@ $(OBJS)
 
 $(objdir)/riscos-progs/patch/addext.o: addext.c

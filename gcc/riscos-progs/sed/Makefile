@@ -13,9 +13,9 @@ OBJS = $(objdir)/riscos-progs/sed/compile.o \
 	$(objdir)/riscos-progs/sed/sed.o \
 	$(objdir)/riscos-progs/sed/utils.o
 
-all:	$(bin_dir)/sed
+all:	$(bin_dir)/sed$(exesfx)
 
-$(bin_dir)/sed:	$(OBJS)
+$(bin_dir)/sed$(exesfx):	$(OBJS)
 	$(CROSS_CC) -o $@ $(OBJS)
 
 $(objdir)/riscos-progs/sed/compile.o: compile.c

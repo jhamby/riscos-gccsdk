@@ -21,9 +21,9 @@ OBJS = $(objdir)/riscos-progs/gzip/bits.o \
 	$(objdir)/riscos-progs/gzip/util.o \
 	$(objdir)/riscos-progs/gzip/zip.o
 
-all:	$(bin_dir)/gzip
+all:	$(bin_dir)/gzip$(exesfx)
 
-$(bin_dir)/gzip:	$(OBJS)
+$(bin_dir)/gzip$(exesfx):	$(OBJS)
 	$(CROSS_CC) -o $@ $(OBJS)
 
 $(objdir)/riscos-progs/gzip/bits.o: bits.c

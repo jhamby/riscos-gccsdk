@@ -24,9 +24,9 @@ OBJS = $(objdir)/riscos-progs/flex/parse.o \
 LIBFL_OBJS = $(objdir)/riscos-progs/flex/libmain.o \
 	$(objdir)/riscos-progs/flex/libyywrap.o
 
-all:	$(bin_dir)/flex $(gcc_bin_dir)/$(TRG)/o/libfl
+all:	$(bin_dir)/flex$(exesfx) $(gcc_bin_dir)/$(TRG)/o/libfl
 
-$(bin_dir)/flex:	$(OBJS)
+$(bin_dir)/flex$(exesfx):	$(OBJS)
 	$(CROSS_CC) -o $@ $(OBJS)
 
 $(gcc_bin_dir)/$(TRG)/o/libfl:	$(LIBFL_OBJS)

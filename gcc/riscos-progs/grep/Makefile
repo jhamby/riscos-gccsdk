@@ -16,15 +16,16 @@ OBJS = $(objdir)/riscos-progs/grep/btowc.o \
 	$(objdir)/riscos-progs/grep/savedir.o \
 	$(objdir)/riscos-progs/grep/search.o
 
-all:	$(bin_dir)/grep $(bin_dir)/egrep $(bin_dir)/fgrep
+all:	$(bin_dir)/grep$(exesfx) $(bin_dir)/egrep$(exesfx) \
+	$(bin_dir)/fgrep$(exesfx)
 
-$(bin_dir)/grep:	$(OBJS) $(objdir)/riscos-progs/grep/grepmat.o
+$(bin_dir)/grep$(exesfx):	$(OBJS) $(objdir)/riscos-progs/grep/grepmat.o
 	$(CROSS_CC) -o $@ $(OBJS) $(objdir)/riscos-progs/grep/grepmat.o
 
-$(bin_dir)/egrep:	$(OBJS) $(objdir)/riscos-progs/grep/egrepmat.o
+$(bin_dir)/egrep$(exesfx):	$(OBJS) $(objdir)/riscos-progs/grep/egrepmat.o
 	$(CROSS_CC) -o $@ $(OBJS) $(objdir)/riscos-progs/grep/egrepmat.o
 
-$(bin_dir)/fgrep:	$(OBJS) $(objdir)/riscos-progs/grep/fgrepmat.o
+$(bin_dir)/fgrep$(exesfx):	$(OBJS) $(objdir)/riscos-progs/grep/fgrepmat.o
 	$(CROSS_CC) -o $@ $(OBJS) $(objdir)/riscos-progs/grep/fgrepmat.o
 
 $(objdir)/riscos-progs/grep/grep.o:	grep.c

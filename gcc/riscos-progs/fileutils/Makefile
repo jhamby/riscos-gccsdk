@@ -25,12 +25,12 @@ MKDIR_OBJS = $(objdir)/riscos-progs/fileutils/mkdir.o \
 	$(objdir)/riscos-progs/fileutils/xmalloc.o \
 	$(objdir)/riscos-progs/fileutils/closeout.o
 
-all:	$(bin_dir)/touch $(bin_dir)/mkdir
+all:	$(bin_dir)/touch$(exesfx) $(bin_dir)/mkdir$(exesfx)
 
-$(bin_dir)/touch:	$(TOUCH_OBJS)
+$(bin_dir)/touch$(exesfx):	$(TOUCH_OBJS)
 	$(CROSS_CC) -o $@ $(TOUCH_OBJS) $(LIBIBERTY)
 
-$(bin_dir)/mkdir:	$(MKDIR_OBJS)
+$(bin_dir)/mkdir$(exesfx):	$(MKDIR_OBJS)
 	$(CROSS_CC) -o $@ $(MKDIR_OBJS) $(LIBIBERTY)
 
 $(objdir)/riscos-progs/fileutils/touch.o: touch.c

@@ -29,9 +29,9 @@ OBJS = $(objdir)/riscos-progs/make/ar.o \
 	$(objdir)/riscos-progs/make/version.o \
 	$(objdir)/riscos-progs/make/vpath.o
 
-all:	$(bin_dir)/make
+all:	$(bin_dir)/make$(exesfx)
 
-$(bin_dir)/make:	$(OBJS)
+$(bin_dir)/make$(exesfx):	$(OBJS)
 	$(CROSS_CC) -o $@ $(OBJS)
 
 $(objdir)/riscos-progs/make/ar.o: ar.c

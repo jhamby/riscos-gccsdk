@@ -22,9 +22,9 @@ OBJS = 	$(objdir)/riscos-progs/gperf/bool-array.o \
 	$(objdir)/riscos-progs/gperf/vectors.o \
 	$(objdir)/riscos-progs/gperf/version.o
 
-all:	$(bin_dir)/gperf
+all:	$(bin_dir)/gperf$(exesfx)
 
-$(bin_dir)/gperf:	$(OBJS)
+$(bin_dir)/gperf$(exesfx):	$(OBJS)
 	$(CROSS_CC) -o $@ $(OBJS) -L$(objdir)/libiberty/stage2 -liberty -lio
 
 $(objdir)/riscos-progs/gperf/bool-array.o: bool-array.cc icc/bool-array icc/options

@@ -43,18 +43,19 @@ CMPOBJS = $(objdir)/riscos-progs/diff/cmp.o \
 	$(objdir)/riscos-progs/diff/xmalloc.o \
 	$(objdir)/riscos-progs/diff/version.o
 
-all:	$(bin_dir)/diff $(bin_dir)/diff3 $(bin_dir)/sdiff $(bin_dir)/cmp
+all:	$(bin_dir)/diff$(exesfx) $(bin_dir)/diff3$(exesfx) \
+	$(bin_dir)/sdiff$(exesfx) $(bin_dir)/cmp$(exesfx)
 
-$(bin_dir)/diff:	$(DIFFOBJS)
+$(bin_dir)/diff$(exesfx):	$(DIFFOBJS)
 	$(CROSS_CC) -o $@ $(DIFFOBJS)
 
-$(bin_dir)/diff3:	$(DIFF3OBJS)
+$(bin_dir)/diff3$(exesfx):	$(DIFF3OBJS)
 	$(CROSS_CC) -o $@ $(DIFF3OBJS)
 
-$(bin_dir)/sdiff:	$(SDIFFOBJS)
+$(bin_dir)/sdiff$(exesfx):	$(SDIFFOBJS)
 	$(CROSS_CC) -o $@ $(SDIFFOBJS)
 
-$(bin_dir)/cmp:	$(CMPOBJS)
+$(bin_dir)/cmp$(exesfx):	$(CMPOBJS)
 	$(CROSS_CC) -o $@ $(CMPOBJS)
 
 
