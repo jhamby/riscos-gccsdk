@@ -207,19 +207,19 @@ cfl31="CFL=-mapcs-32 -mcpu=strongarm -mlibscl"
 libiberty-stg1:
 	$(MAKE) -C libiberty "STAGE=stage1"
 
-libiberty-stg2:
+libiberty-stg2: build-cross
 	$(MAKE) -C libiberty "STAGE=stage2" "TRG=$(trg20)"
 
-gcc-stg1:
+gcc-stg1: gcc-libs-stg1
 	$(MAKE) -C gcc "STAGE=stage1" "TRG=$(trg20)"
 
-gcc-stg2:
+gcc-stg2: libiberty-stg2
 	$(MAKE) -C gcc "STAGE=stage2" "TRG=$(trg20)"
 
 riscos-aof-stg1:
 	$(MAKE) -C riscos-aof "STAGE=stage1"
 
-riscos-aof-stg2:
+riscos-aof-stg2: build-cross
 	$(MAKE) -C riscos-aof "STAGE=stage2" "TRG=$(trg20)"
 
 riscos-progs:
@@ -233,18 +233,18 @@ riscos-elf:
 
 # The ballache of having to keep support with Objasm forces us
 # to do this (CFL1) brain damage.
-c-libs: unixlib/Makefile unixlib/source/Makefile unixlib/source/object-list unixlib/objs/Makefile,fe1
+c-libs: gcc-stg1 riscos-aof-stg1 unixlib/Makefile unixlib/source/Makefile unixlib/source/object-list unixlib/objs/Makefile,fe1
 	$(MAKE) -C unixlib "TRG=$(trg20)" $(cfl20)
 	$(MAKE) -C libscl "TRG=$(trg30)" "TRG_UL=$(trg20)" $(cfl30)
 
 riscos-libs:
 	$(MAKE) -C $@ "TRG=$(trg20)" $(cfl20)
 
-gcc-libs-stg1:
+gcc-libs-stg1: libiberty-stg1
 	$(MAKE) -C gcc zlib "TRG=$(trg20)" "STAGE=stage1"
 	$(MAKE) -C gcc fastjar "TRG=$(trg20)" "STAGE=stage1"
 
-gcc-libs-stg2:
+gcc-libs-stg2: gcc-stg1 riscos-aof-stg1
 	$(MAKE) -C gcc libgcc "TRG=$(trg20)" $(cfl20) "STAGE=stage2"
 	$(MAKE) -C gcc libgcc "TRG=$(trg30)" $(cfl30) "STAGE=stage2"
 	$(MAKE) -C gcc libffi "TRG=$(trg20)" $(cfl20) "STAGE=stage2"
@@ -256,14 +256,14 @@ gcc-libs-stg2:
 	$(MAKE) -C gcc libstdc "TRG=$(trg20)" $(cfl20) "STAGE=stage2" "lib_incl_dir=$(unixlib_incl_dir)"
 	$(MAKE) -C gcc libstdc "TRG=$(trg30)" $(cfl30) "STAGE=stage2" "lib_incl_dir=$(libscl_incl_dir)"
 
-gcc-libs-stg2-extra:
+gcc-libs-stg2-extra: libiberty-stg2
 	$(MAKE) -C gcc zlib "TRG=$(trg20)" $(cfl20) "STAGE=stage2"
 	$(MAKE) -C gcc fastjar "TRG=$(trg20)" "STAGE=stage2"
 
-riscos-dist:
+riscos-dist: riscos-libs riscos-progs gcc-stg2 riscos-aof-stg2
 	$(MAKE) -C riscos-dist install
 
-riscos-pkg:
+riscos-pkg: riscos-dist
 	$(MAKE) -C riscos-dist package
 
 # Make sure build and installation directories exist
