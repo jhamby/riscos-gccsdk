@@ -18,7 +18,7 @@ CFLAGS += $(TARGET_DEFS)
 libfileobjdir = $(objdir)/riscos-aof/libfile/$(STAGE)
 
 $(libfileobjdir)/%.o: %.cc
-	$(CXX) $(CXXFLAGS) -o $@ -c $< $(INCLUDES)
+	$(CXX) $(CXXFLAGS) -o $@ -c $< $(INCLUDES) -D_GNU_SOURCE
 
 $(libfileobjdir)/%.o: %.s
 	$(CC) $(CFLAGS) -o $@ -c $<
