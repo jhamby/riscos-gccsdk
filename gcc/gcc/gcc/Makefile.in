@@ -298,6 +298,9 @@ $(info_dir)/cpp:	cpp.texi
 	makeinfo --no-split --number-sections --force cpp.texi -o $@
 endif
 
+install_headers:
+	$(insthdr) ginclude "*.h" . $(ux_gccpkg)/$(gn_gcc_include_dir) $(ro_gccpkg)/$(gn_gcc_include_dir)
+
 ##############################################################################
 
 
