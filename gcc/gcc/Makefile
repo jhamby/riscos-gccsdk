@@ -23,5 +23,5 @@ gcc:
 	$(MAKE) -C gcc "STAGE=$(STAGE)"
 
 libgcc libgpc libf2c libstdc libio libsupc++ zlib:
-	mkdir -p $(libpath)/$(TRG)
-	$(MAKE) -C $@
+	mkdir -p $(libpath)/$(STAGE)/$(TRG)
+	$(MAKE) -C $@ "STAGE=$(STAGE)"

@@ -133,15 +133,15 @@ setup:	directories install_headers install_source
 
 # These dependencies are split to help make get parallel building right.
 build-stg1:	libiberty-stg1
-build-stg2:	build-stg1 riscos-aof-stg1
+build-stg2:	build-stg1 gcc-libs-stg1 riscos-aof-stg1
 build-stg3:	build-stg2 gcc-stg1 cross-progs
 
 # These targets build the libraries and binaries suitable for execution
 # on RISC OS machines only.
-build-stg4:	build-stg3 libiberty-stg2 libgcc unixlib
+build-stg4:	build-stg3 libiberty-stg2 gcc-libs-stg2 unixlib
 build-stg5:	build-stg4 gcc-stg2
-build-stg6:	build-stg5 libscl zlib libstdc libio libsupc++ riscos-aof-stg2
-build-stg7:	build-stg6 libf2c libgpc riscos-libs riscos-progs riscos-dist
+build-stg6:	build-stg5 riscos-aof-stg2
+build-stg7:	build-stg6 riscos-libs riscos-progs riscos-dist
 
 .PHONY: directories
 .PHONY: libgcc
@@ -157,6 +157,8 @@ build-stg7:	build-stg6 libf2c libgpc riscos-libs riscos-progs riscos-dist
 .PHONY: libscl
 .PHONY: gcc-stg1
 .PHONY: gcc-stg2
+.PHONY: gcc-libs-stg1
+.PHONY: gcc-libs-stg2
 .PHONY: libiberty-stg1
 .PHONY: libiberty-stg2
 .PHONY: riscos-aof-stg1
@@ -237,8 +239,23 @@ unixlib:
 riscos-libs:
 	$(MAKE) -C $@ "TRG=$(trg10)" $(cfl10)
 
-libgcc libgpc libio libf2c libstdc libsupc++ zlib:
-	$(MAKE) -C gcc $@ "TRG=$(trg10)" $(cfl10)
+gcc-libs-stg1:
+	$(MAKE) -C gcc libgcc "TRG=$(trg10)" $(cfl10) "STAGE=stage1"
+	#$(MAKE) -C gcc libgpc "TRG=$(trg10)" $(cfl10) "STAGE=stage1"
+	#$(MAKE) -C gcc libio "TRG=$(trg10)" $(cfl10) "STAGE=stage1"
+	$(MAKE) -C gcc libf2c "TRG=$(trg10)" $(cfl10) "STAGE=stage1"
+	$(MAKE) -C gcc libstdc "TRG=$(trg10)" $(cfl10) "STAGE=stage1"
+	$(MAKE) -C gcc libsupc++ "TRG=$(trg10)" $(cfl10) "STAGE=stage1"
+	$(MAKE) -C gcc zlib "TRG=$(trg10)" $(cfl10) "STAGE=stage1"
+
+gcc-libs-stg2:
+	$(MAKE) -C gcc libgcc "TRG=$(trg10)" $(cfl10) "STAGE=stage2"
+	#$(MAKE) -C gcc libgpc "TRG=$(trg10)" $(cfl10) "STAGE=stage2"
+	#$(MAKE) -C gcc libio "TRG=$(trg10)" $(cfl10) "STAGE=stage2"
+	$(MAKE) -C gcc libf2c "TRG=$(trg10)" $(cfl10) "STAGE=stage2"
+	$(MAKE) -C gcc libstdc "TRG=$(trg10)" $(cfl10) "STAGE=stage2"
+	$(MAKE) -C gcc libsupc++ "TRG=$(trg10)" $(cfl10) "STAGE=stage2"
+	$(MAKE) -C gcc zlib "TRG=$(trg10)" $(cfl10) "STAGE=stage2"
 
 riscos-dist:
 	$(MAKE) -C riscos-dist install

@@ -4,7 +4,7 @@
 #
 
 INCLUDES = -I./include -I./include/bits -I./include/arm-riscos-aof -I./include/backward -I../libsupc++
-libobjdir=$(objdir)/gcc-$(VERSION)/libstdc/$(TRG)
+libobjdir=$(objdir)/gcc-$(VERSION)/libstdc/$(STAGE)/$(TRG)
 
 CROSS_CXXFLAGS += -D_GNU_SOURCE -fno-implicit-templates -Wall -Wno-format -W -Wwrite-strings -Winline -fdiagnostics-show-location=once
 
