@@ -1,6 +1,15 @@
 Summary of Changes
 ==================
 
+27 Dec 2000
+-----------
+
+* Add support into the pre-processor for RISC OS filenames that contain
+  path elements.
+* Fix Makefile bug that stopped the Fortran compiler being built.
+* Build the Objective-C and Java compilers.
+* Programs in `riscos-progs' are only build if we are on RISC OS.
+
 22 Dec 2000
 -----------
 
