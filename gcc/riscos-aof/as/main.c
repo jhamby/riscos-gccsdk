@@ -41,14 +41,14 @@ int throwback = 0;
 int dde = 0;
 int autocast = 0;
 int align = 1;
-int gcc_backend = 0;
+int gcc_backend = 1;
 int gas_backend = 0;
 int local = 1;
 int objasm = 0;
 int uc = 0;
-int apcs_32bit = 0;
+int apcs_32bit = 1;
 int apcs_softfloat = 0;
-int apcs_fpv3 = 0;
+int apcs_fpv3 = 1;
 
 char *ProgName;
 char *ObjFileName;
@@ -72,7 +72,6 @@ as_help (char *progname)
 	   "-throwback  -tb   Throwback errors to a text editor\n"
 	   "-autocast   -ac   Enable casting from integer to float\n"
 	   "-target     -t    Target ARM CPU (ARM2...SA110)\n"
-	   "-gcc              Predefine register numbers for GCC\n"
 	   "-gas              Support some GNU GAS keywords\n"
 	   "-noalign    -na   Don't auto-align words and halfwords\n"
 	   "-nolocal    -nl   No builtin LOCAL support\n"
@@ -82,8 +81,10 @@ as_help (char *progname)
 	   "-version    -ver  Display the version number\n"
 	   "-From asmfile     Source assembler file (Objasm compatibility)\n"
 	   "-To objfile       Destination AOF file (Objasm compatibility)\n"
-	   "-apcs32           32-bit APCS AREAs\n"
-	   "-apcsfpv3         Use floating point v3 AREAs (SFM, LFM)\n"
+	   "-apcs26           26-bit APCS AREAs\n"
+	   "-apcs32           32-bit APCS AREAs (default)\n"
+	   "-apcsfpv2         Use floating point v2 AREAs\n"
+	   "-apcsfpv3         Use floating point v3 AREAs (SFM, LFM) (default)\n"
 	   "\n",
 	   VERSION, progname);
 }
@@ -189,12 +190,14 @@ main (int argc, char **argv)
 	verbose++;
       else if (IS_ARG ("-fussy", "-f"))
 	fussy++;
+      else if (! strcmp (*argv, "-apcs26"))
+	apcs_32bit = 0;
       else if (! strcmp (*argv, "-apcs32"))
 	apcs_32bit++;
+      else if (! strcmp (*argv, "-apcsfpv2"))
+	apcs_fpv3 = 0;
       else if (! strcmp (*argv, "-apcsfpv3"))
 	apcs_fpv3++;
-      else if (!strcmp (*argv, "-gcc"))
-	gcc_backend++;
       else if (!strcmp (*argv, "-gas"))
 	gas_backend++;
       else if (!strcmp (*argv, "-dde"))
@@ -271,7 +274,7 @@ main (int argc, char **argv)
   else
     {
       inputInit (SourceFileName);
-      errorInit (inputName);
+      errorInit (SourceFileName);
       outputInit (ObjFileName);
       areaInit ();
       setjmp (asmContinue);

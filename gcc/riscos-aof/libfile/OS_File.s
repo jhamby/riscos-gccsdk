@@ -24,6 +24,6 @@ OS_File
 		STR	r4,[r6,#16]
 		STR	r5,[r6,#20]
 		MOVVC	r0, #0
-		LDMFD	sp!,{r4-r6,pc}^
+		LDMFD	sp!,{r4-r6,pc}
 
 		END

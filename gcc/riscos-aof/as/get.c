@@ -21,8 +21,6 @@
 #include "help_cpu.h"
 #include "fix.h"
 
-extern int gcc_backend;
-
 struct reg_id
   {
     const char *name;
@@ -53,11 +51,11 @@ getCpuReg (void)
   if (lexSym.tag == LexNone)
     return 0;
 
-  if (gcc_backend && (lexSym.tag == LexId))
+  if (lexSym.tag == LexId)
     for (loop = 0; loop < sizeof (cpu_regs) / sizeof (struct reg_id); loop++)
       {
 	if ((cpu_regs[loop].len == lexSym.LexId.len) &&
-	 !strncmp (cpu_regs[loop].name, lexSym.LexId.str, lexSym.LexId.len))
+	 !strncasecmp (cpu_regs[loop].name, lexSym.LexId.str, lexSym.LexId.len))
 	  return cpu_regs[loop].reg_no;
       }
 
@@ -91,11 +89,11 @@ getFpuReg (void)
   if (lexSym.tag == LexNone)
     return 0;
 
-  if (gcc_backend && (lexSym.tag == LexId) && (lexSym.LexId.len == 2))
+  if ((lexSym.tag == LexId) && (lexSym.LexId.len == 2))
     for (loop = 0; loop < sizeof (cpu_regs) / sizeof (struct reg_id); loop++)
       {
 	if ((cpu_regs[loop].len == lexSym.LexId.len) &&
-	 !strncmp (cpu_regs[loop].name, lexSym.LexId.str, lexSym.LexId.len))
+	 !strncasecmp (cpu_regs[loop].name, lexSym.LexId.str, lexSym.LexId.len))
 	  return cpu_regs[loop].reg_no;
       }
 

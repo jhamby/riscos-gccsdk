@@ -10,6 +10,6 @@ OS_Word
 		STMFD	sp!,{lr}
 		SWI	&20007
 		MOVVC	r0, #0
-		LDMFD	sp!,{pc}^
+		LDMFD	sp!,{pc}
 
 		END

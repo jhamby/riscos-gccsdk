@@ -12,7 +12,10 @@
 #else
 #ifndef UNIXLIB
 char *uname (const char *name, int PrefixDir);
+#define DIR '.'
+#else
+
+#define DIR '/'
 #endif
 #define MAXPATHLEN 1024
-#define DIR '.'
 #endif
