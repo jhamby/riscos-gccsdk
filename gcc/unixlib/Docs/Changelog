@@ -1,3 +1,8 @@
+Sun Oct 10 17:37:38 2004  Alex Waugh  <alex@alexwaugh.com>
+
+	* source/unix/unix.c: Change default back to not setting
+	  DDEUtils_Prefix
+
 Sat Oct 23 19:00:00 2004  John Tytgat  <John.Tytgat@aaug.net>
 
 	* source/unix/dev.c: RMEnsure CryptRandom 0.12; Removed

@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/unix.c,v $
- * $Date: 2004/10/05 15:24:37 $
- * $Revision: 1.27 $
+ * $Date: 2004/10/17 16:24:45 $
+ * $Revision: 1.28 $
  * $State: Exp $
- * $Author: peter $
+ * $Author: joty $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: unix.c,v 1.27 2004/10/05 15:24:37 peter Exp $";
+static const char rcs_id[] = "$Id: unix.c,v 1.28 2004/10/17 16:24:45 joty Exp $";
 #endif
 
 #include <stdio.h>
@@ -175,7 +175,7 @@ void __unixinit (void)
          RISC OS error when Font_FindFont is done for a font not yet in
          the font cache.
          These problems are known to be solved in RISC OS Adjust 1.  */
-#if 0
+#if 1
       __u->dde_prefix = __get_dde_prefix ();
 #else
       if ((__u->dde_prefix = __get_dde_prefix ()) == NULL)
