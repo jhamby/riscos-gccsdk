@@ -24,7 +24,7 @@ that needs them.
 GCC will also generate calls to C library routines, such as
 @code{memcpy} and @code{memset}, in some cases.  The set of routines
 that GCC may possibly use is documented in @ref{Other
-Builtins,,,@value{fngcc}, Using the GNU Compiler Collection (GCC)}.
+Builtins,,,gcc, Using the GNU Compiler Collection (GCC)}.
 
 These routines take arguments and return values of a specific machine
 mode, not a specific C type.  @xref{Machine Modes}, for an explanation

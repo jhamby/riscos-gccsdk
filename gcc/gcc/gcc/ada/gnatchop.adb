@@ -43,7 +43,7 @@ procedure Gnatchop is
    Config_File_Name : constant String_Access := new String'("gnat.adc");
    --  The name of the file holding the GNAT configuration pragmas
 
-   Gcc : String_Access := new String'("gcc-3.4");
+   Gcc : String_Access := new String'("gcc");
    --  May be modified by switch --GCC=
 
    Gcc_Set : Boolean := False;

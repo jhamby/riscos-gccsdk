@@ -45,7 +45,7 @@ compiling a function definition, the storage used for that function
 definition's compilation is entirely freed, unless it is an inline
 function, or was deferred for some reason (this can occur in
 templates, for example).
-(@pxref{Inline,,An Inline Function is As Fast As a Macro,@value{fngcc},Using the
+(@pxref{Inline,,An Inline Function is As Fast As a Macro,gcc,Using the
 GNU Compiler Collection (GCC)}).
 
 Here is a list of all the passes of the compiler and their source files.
@@ -74,7 +74,7 @@ which define the format of the tree representation.
 C preprocessing, for language front ends, that want or require it, is
 performed by cpplib, which is covered in separate documentation.  In
 particular, the internals are covered in @xref{Top, ,Cpplib internals,
-@value{fncppinternals}, Cpplib Internals}.
+cppinternals, Cpplib Internals}.
 
 The source files to parse C are found in the toplevel directory, and
 by convention are named @file{c-*}.  Some of these are also used by

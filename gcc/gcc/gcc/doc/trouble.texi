@@ -88,7 +88,7 @@ It is now possible to overcome these problems by defining macros such
 as @code{REAL_VALUE_TYPE}.  But doing so is a substantial amount of
 work for each target machine.
 @xref{Cross-compilation,,Cross Compilation and Floating Point,
-@value{fngccint}, GNU Compiler Collection (GCC) Internals}.
+gccint, GNU Compiler Collection (GCC) Internals}.
 
 @item
 At present, the program @file{mips-tfile} which adds debug

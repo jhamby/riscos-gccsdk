@@ -441,7 +441,7 @@ do {					\
 do {							\
   register int amount = 1 << (POWER);			\
   if (amount == 2)					\
-    fprintf ((STREAM), "\tALIGN 2\n");			\
+    fprintf ((STREAM), "\tALIGN\n");			\
   else if (amount == 4)					\
     fprintf ((STREAM), "\tALIGN\n");			\
   else							\

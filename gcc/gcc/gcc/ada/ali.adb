@@ -260,7 +260,7 @@ package body ALI is
          Write_Str (" is incorrectly formatted");
          Write_Eol;
          Write_Str
-           ("make sure you are using consistent versions of gcc-3.4/gnatbind");
+           ("make sure you are using consistent versions of gcc/gnatbind");
          Write_Eol;
 
          --  Find start of line

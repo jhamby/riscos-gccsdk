@@ -64,7 +64,7 @@ included in the section entitled ``GNU Free Documentation License''.
 @ifnottex
 @dircategory Programming
 @direntry
-* @value{fngcc}: (@value{fngcc}).                  The GNU Compiler Collection.
+* gcc: (gcc).                  The GNU Compiler Collection.
 @end direntry
 This file documents the use of the GNU compilers.
 @sp 1
@@ -128,7 +128,7 @@ bugs.  It corresponds to GCC version @value{version-GCC}.
 The internals of the GNU compilers, including how to port them to new
 targets and some information about how to write front ends for new
 languages, are documented in a separate manual.  @xref{Top,,
-Introduction, @value{fngccint}, GNU Compiler Collection (GCC) Internals}.
+Introduction, gccint, GNU Compiler Collection (GCC) Internals}.
 
 @menu
 * G++ and GCC::     You can compile C or C++ programs.

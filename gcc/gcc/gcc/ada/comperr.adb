@@ -292,7 +292,7 @@ package body Comperr is
                End_Line;
 
                Write_Str
-                 ("| Include the exact gcc-3.4 or gnatmake command " &
+                 ("| Include the exact gcc or gnatmake command " &
                   "that you entered.");
                End_Line;
 

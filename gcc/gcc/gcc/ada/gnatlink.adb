@@ -123,7 +123,7 @@ procedure Gnatlink is
 
    subtype chars_ptr is System.Address;
 
-   Gcc : String_Access := Program_Name ("gcc-3.4");
+   Gcc : String_Access := Program_Name ("gcc");
 
    Read_Mode  : constant String := "r" & ASCII.Nul;
 
@@ -1287,8 +1287,7 @@ procedure Gnatlink is
       Write_Line ("  -b target  Compile the binder source to run on target");
       Write_Line ("  -Bdir      Load compiler executables from dir");
       Write_Line ("  --GCC=comp Use comp as the compiler");
-      Write_Line ("  --LINK=nam Use 'nam' for the linking rather " &
-                  "than 'gcc-3.4'");
+      Write_Line ("  --LINK=nam Use 'nam' for the linking rather than 'gcc'");
       Write_Eol;
       Write_Line ("  [non-Ada-objects]  list of non Ada object files");
       Write_Line ("  [linker-options]   other options for the linker");

@@ -224,7 +224,7 @@ package body Ch10 is
             else
                Item := First (Config_Pragmas);
                Error_Msg_N
-                 ("cannot compile configuration pragmas with gcc-3.4", Item);
+                 ("cannot compile configuration pragmas with gcc", Item);
                Error_Msg_N
                  ("use gnatchop -c to process configuration pragmas!", Item);
                raise Unrecoverable_Error;

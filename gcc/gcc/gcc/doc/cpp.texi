@@ -54,7 +54,7 @@ This manual contains no Invariant Sections.  The Front-Cover Texts are
 @ifinfo
 @dircategory Programming
 @direntry
-* @value{fncpp}: (@value{fncpp}).		       The GNU C preprocessor.
+* Cpp: (cpp).		       The GNU C preprocessor.
 @end direntry
 @end ifinfo
 

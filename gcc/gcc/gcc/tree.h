@@ -22,9 +22,6 @@ Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 #ifndef GCC_TREE_H
 #define GCC_TREE_H
 
-
-/* @@ PATCHED FOR GPC @@ */
-
 #include "machmode.h"
 #include "version.h"
 #include "input.h"
@@ -2466,14 +2463,6 @@ extern unsigned int maximum_field_alignment;
 
 /* If nonzero, the alignment of a bitstring or (power-)set value, in bits.  */
 extern unsigned int set_alignment;
-#ifdef GPC
-
-/* The word size of a bitstring or (power-)set value, in bits.  */
-extern unsigned int set_word_size;
-
-/* If non-zero, bits in (power-)sets start with the highest bit.  */
-extern unsigned int set_words_big_endian;
-#endif /* GPC */
 
 /* Concatenate two lists (chains of TREE_LIST nodes) X and Y
    by making the last node in X point to Y.
@@ -2993,6 +2982,7 @@ enum tls_model decl_tls_model (tree);
 extern void resolve_unique_section (tree, int, int);
 extern void mark_referenced (tree);
 extern void notice_global_symbol (tree);
+extern void process_pending_assemble_output_defs (void);
 
 /* In stmt.c */
 extern void emit_nop (void);

@@ -182,7 +182,6 @@ Boston, MA 02111-1307, USA.  */
       }									\
   } while (0)
 
-#ifdef __i386__
 /* Used by crtstuff.c to initialize the base of data-relative relocations.
    These are GOT relative on x86, so return the pic register.  */
 #ifdef __PIC__
@@ -201,7 +200,6 @@ Boston, MA 02111-1307, USA.  */
 	      offset being off by one.  */				\
 	   "addl\t$_GLOBAL_OFFSET_TABLE_+[.-.LPR%=],%0"			\
 	   : "=d"(BASE))
-#endif
 #endif
 
 #undef NEED_INDICATE_EXEC_STACK
