@@ -1,3 +1,7 @@
+Sun Jan 18 16:08:06 2004  Alex Waugh  <alex@alexwaugh.com>
+
+	* source/netlib/socketpair.c: Fix syntax error.
+
 Thu Jan 15 00:18:59 2004  John Tytgat  <John.Tytgat@aaug.net>
 
 	* Setup,feb: Removed.

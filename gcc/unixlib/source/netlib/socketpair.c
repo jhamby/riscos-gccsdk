@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/netlib/socketpair.c,v $
- * $Date: 2003/12/29 19:02:39 $
- * $Revision: 1.4 $
+ * $Date: 2004/01/14 23:16:59 $
+ * $Revision: 1.5 $
  * $State: Exp $
- * $Author: peter $
+ * $Author: joty $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: socketpair.c,v 1.4 2003/12/29 19:02:39 peter Exp $";
+static const char rcs_id[] = "$Id: socketpair.c,v 1.5 2004/01/14 23:16:59 joty Exp $";
 #endif
 
 #include <sys/types.h>
@@ -21,7 +21,7 @@ static const char rcs_id[] = "$Id: socketpair.c,v 1.4 2003/12/29 19:02:39 peter 
 #include <unistd.h>
 
 int
-socketpair (int af, int type, int protocol, int fd[2)
+socketpair (int af, int type, int protocol, int fd[2])
 {
   int listen_socket;
   struct sockaddr_in s_in[2];
