@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/alloc.c,v $
- * $Date: 2002/12/15 13:16:55 $
- * $Revision: 1.5 $
+ * $Date: 2003/04/05 12:16:34 $
+ * $Revision: 1.6 $
  * $State: Exp $
- * $Author: admin $
+ * $Author: alex $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: alloc.c,v 1.5 2002/12/15 13:16:55 admin Exp $";
+static const char rcs_id[] = "$Id: alloc.c,v 1.6 2003/04/05 12:16:34 alex Exp $";
 #endif
 
 /* #define DEBUG 1 */
@@ -52,7 +52,7 @@ static const char rcs_id[] = "$Id: alloc.c,v 1.5 2002/12/15 13:16:55 admin Exp $
 
 */
 
-#ifdef __riscos__
+#ifdef __riscos
 
 #if !defined(__GNUC__)
 #define RISCOS_CCBUG
@@ -398,7 +398,7 @@ extern "C" {
 /* #define  LACKS_SYS_PARAM_H */
 
 
-#if defined(DEBUG) || !defined(__riscos__)
+#if defined(DEBUG) || !defined(__riscos)
 #include <stdio.h>    /* needed for malloc_stats */
 #endif
 #include <errno.h>    /* needed for optional MALLOC_FAILURE_ACTION */
@@ -4729,7 +4729,7 @@ int mTRIm(pad) size_t pad;
 
 /* NAB: I have removed these functions as I don't think they are
    useful on RISC OS.  */
-#ifndef __riscos__
+#ifndef __riscos
 
 /*
   ------------------------- malloc_usable_size -------------------------
