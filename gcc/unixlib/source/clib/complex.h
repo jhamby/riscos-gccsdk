@@ -1,8 +1,8 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/complex.h,v $
- * $Date: 2001/09/21 16:14:01 $
- * $Revision: 1.2.2.3 $
+ * $Date: 2002/02/14 15:56:33 $
+ * $Revision: 1.3 $
  * $State: Exp $
  * $Author: admin $
  *
@@ -22,7 +22,7 @@ __BEGIN_DECLS
 #define complex _Complex
 
 /* Narrowest imaginary unit.  */
-#define _Complex_I	(1.0iF)
+#define _Complex_I	(__extension__ 1.0iF)
 #else
 /* Acorn C doesn't support complex numbers.
    Define enough macros to allow compilation to continue even though

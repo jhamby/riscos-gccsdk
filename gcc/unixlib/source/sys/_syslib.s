@@ -1,8 +1,8 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/_syslib.s,v $
-; $Date: 2003/05/11 18:20:01 $
-; $Revision: 1.19 $
+; $Date: 2003/06/23 20:33:04 $
+; $Revision: 1.20 $
 ; $State: Exp $
 ; $Author: joty $
 ;
@@ -183,7 +183,7 @@ EXTREMELY_PARANOID	*	0	; Should we check that the entire stack chunk chain is va
 
 	MOV	ip, v1		; Restore ip.
 
-	LDR	a1, =|rmensure|
+	LDR	a1, =|rmensure| 
 	SWI	XOS_CLI
 	MOVVS	a1, #NO_SUL
 	BVS	exit_with_error

@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/string.h,v $
- * $Date: 2003/05/06 22:31:54 $
- * $Revision: 1.7 $
+ * $Date: 2003/06/07 02:30:21 $
+ * $Revision: 1.8 $
  * $State: Exp $
- * $Author: alex $
+ * $Author: joty $
  *
  ***************************************************************************/
 
@@ -24,7 +24,8 @@
 __BEGIN_DECLS
 
 /* Copy n bytes from src to dest.  */
-extern void *memcpy (void * __dest, const void * __src, size_t __n);
+extern void *memcpy (void *__restrict __dest, const void *__restrict __src,
+		     size_t __n);
 
 /* Copy n bytes from src to dest, guaranteeing correct
    behaviour for overlapping data.  */
@@ -43,16 +44,18 @@ extern void *__rawmemchr (__const void *__s, int __c)
      __attribute_pure__;
 
 /* Copy src to dest. */
-extern char *strcpy (char *__dest, const char *__src);
+extern char *strcpy (char *__restrict __dest, const char *__restrict __src);
 
 /* Copy no more than n chars of src to dest.  */
-extern char *strncpy (char *__dest, const char *__src, size_t __n);
+extern char *strncpy (char *__restrict __dest, const char *__restrict __src,
+		      size_t __n);
 
 /* Append src onto dest.  */
-extern char *strcat (char *__dest, const char *__src);
+extern char *strcat (char *__restrict __dest, const char *__restrict __src);
 
 /* Append no more than n chars from src to dest. */
-extern char *strncat (char *__dest, const char *__src, size_t __n);
+extern char *strncat (char *__restrict __dest, const char *__restrict __src,
+		      size_t __n);
 
 /* Compare s1 and s2.  */
 extern int strcmp (const char *__s1, const char *__s2);
@@ -62,8 +65,10 @@ extern int strncmp (const char *__s1, const char *__s2, size_t __n);
 
 /* Compare two strings according to the locale's collating rules */
 extern int strcoll (const char *__s1, const char *__s2);
+
 /* Transform a string according to the locale's collating rules */
-extern size_t strxfrm (char *__to, const char *__from, size_t __size);
+extern size_t strxfrm (char *__restrict __to, const char *__restrict __from,
+		       size_t __size);
 
 /* Find the first occurrence of c in s. */
 extern char *strchr (const char *__s, int __c);
@@ -86,7 +91,7 @@ extern char *strpbrk (const char *__s, const char *__accept);
 extern char *strstr (const char *__s, const char *__s1);
 
 /* Divide s into tokens separated by chars in delim.  */
-extern char *strtok (char *__s, const char *__delim);
+extern char *strtok (char *__restrict __s, const char *__restrict __delim);
 
 /* Re-entrant version of strtok.  */
 extern char *strtok_r (char *__s, const char *__delim, char **__save_ptr);
@@ -110,11 +115,12 @@ extern char *strrichr (const char *, int);
 
 /* Copy src to dest return a pointer to the terminating null
    character of dest.  */
-extern char *stpcpy (char *__dest, const char *__src);
+extern char *stpcpy (char *__restrict __dest, const char *__restrict __src);
 
 /* Copy no more than n chars of src to dest. Return a pointer
    to the terminating null character of dest. */
-extern char *stpncpy (char *__dest, const char *__src, size_t __n);
+extern char *stpncpy (char *__restrict __dest, const char *__restrict __src,
+		      size_t __n);
 
 
 /* BSD enhancements.  */
@@ -129,7 +135,8 @@ extern char *strdup (const char *__s);
 
 /* Return the next DELIM-delimited token from *STRINGP,
    terminating it with a '\0', and update *STRINGP to point past it.  */
-extern char *strsep (char **__stringp, const char *__delim);
+extern char *strsep (char **__restrict __stringp,
+		     const char *__restrict __delim);
 
 /* GNU enhancements.  */
 

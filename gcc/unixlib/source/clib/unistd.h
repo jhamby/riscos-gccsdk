@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/unistd.h,v $
- * $Date: 2003/04/21 13:20:39 $
- * $Revision: 1.7 $
+ * $Date: 2003/06/01 20:47:07 $
+ * $Revision: 1.8 $
  * $State: Exp $
- * $Author: peter $
+ * $Author: alex $
  *
  ***************************************************************************/
 
@@ -386,7 +386,8 @@ extern int link (const char *__from, const char *__to);
 extern int symlink (const char *__from, const char *__to);
 
 /* Read vaue of a symbolic link.  */
-extern int readlink (const char *__path, char *__buf, size_t __butsiz);
+extern int readlink (const char *__restrict __path, char *__restrict __buf,
+		     size_t __butsiz);
 
 /* Remove the line name.  */
 extern int unlink (const char *__name);
@@ -533,7 +534,8 @@ extern size_t confstr (int __name, char *__buf, size_t __len);
    FROM and copy the result to TO.  The value of TO must not be in the
    range [FROM - N + 1, FROM - 1].  If N is odd the first byte in FROM
    is without partner.  */
-extern void swab (const void * __from, void * __to, ssize_t __n);
+extern void swab (const void *__restrict  __from, void *__restrict  __to,
+		  ssize_t __n);
 #endif
 
 #define __need_getopt

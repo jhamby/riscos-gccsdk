@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/stdlib.h,v $
- * $Date: 2002/11/26 21:52:07 $
- * $Revision: 1.5 $
+ * $Date: 2003/04/25 00:04:48 $
+ * $Revision: 1.6 $
  * $State: Exp $
- * $Author: admin $
+ * $Author: joty $
  *
  ***************************************************************************/
 
@@ -185,25 +185,30 @@ extern long long atoll (const char *__string);
 
 
 /* Convert a string to a floating point number.  */
-extern double strtod (const char *__string, char **__end);
-extern float strtof (const char *__string, char **__end);
-extern long double strtold (const char *__string, char **__end);
+extern double strtod (const char *__restrict __string,
+		      char **__restrict __end);
+extern float strtof (const char *__restrict __string,
+		     char **__restrict __end);
+extern long double strtold (const char *__restrict __string,
+			    char **__restrict __end);
 
 /* Convert a string to a long integer.  */
-extern long strtol (const char *__nptr, char **__endptr, int __base);
+extern long strtol (const char *__restrict __nptr,
+		    char **__restrict __endptr, int __base);
 
 /* Convert a string to an unsigned long integer.  */
-extern unsigned long strtoul (const char *__nptr,
-			      char **__endptr, int __base);
+extern unsigned long strtoul (const char *__restrict __nptr,
+			      char **__restrict __endptr, int __base);
 
 /* Convert a string to a 64-bit integer.  */
 __extension__
-extern long long strtoll (const char *__nptr, char **__endptr, int __base);
+extern long long strtoll (const char *__restrict __nptr,
+			  char **__restrict __endptr, int __base);
 
 /* Convert a string to an unsigned 64-bit integer.  */
 __extension__
-extern unsigned long long strtoull (const char *__nptr,
-				    char **__endptr, int __base);
+extern unsigned long long strtoull (const char *__restrict __nptr,
+				    char **__restrict __endptr, int __base);
 
 /* Do a binary search for 'key' in 'base', which consists of
    'nmemb' elements of 'size' bytes each, using 'compare' to

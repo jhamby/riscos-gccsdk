@@ -1,10 +1,10 @@
 /****************************************************************************
  *
- * $Source$
- * $Date$
- * $Revision$
- * $State$
- * $Author$
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/sys/syslog.h,v $
+ * $Date: 2002/09/24 21:02:37 $
+ * $Revision: 1.4 $
+ * $State: Exp $
+ * $Author: admin $
  *
  ***************************************************************************/
 
@@ -191,8 +191,11 @@ __BEGIN_DECLS
 extern void closelog (void);
 extern void openlog (const char *, int, int);
 extern int setlogmask (int);
-extern void syslog (int, const char *, ...);
-extern void vsyslog (int, const char *, va_list);
+extern void syslog (int, const char *, ...)
+     __attribute__ ((__format__ (__printf__, 2, 3)));
+
+extern void vsyslog (int, const char *, __gnuc_va_list)
+     __attribute__ ((__format__ (__printf__, 2, 0)));
 
 __END_DECLS
 

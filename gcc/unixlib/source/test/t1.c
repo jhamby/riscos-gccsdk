@@ -11,7 +11,7 @@ int main (int argc, char *argv[], char *env[])
   cmdline = (char *) malloc (65536);
   sprintf (cmdline, "t2 make -C libio \"VERSION=2_95_2\" \"BOB=-march -mcpu -munixlib\"");
 
-#if 0
+#if 1
   strcpy (cmdline, "t2 ");
   v = (rand () % 14) + 1;
   for (x = 3; x < 65500; x++)

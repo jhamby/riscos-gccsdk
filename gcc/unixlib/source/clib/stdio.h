@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/stdio.h,v $
- * $Date: 2003/04/06 14:19:07 $
- * $Revision: 1.6 $
+ * $Date: 2003/04/13 16:21:01 $
+ * $Revision: 1.7 $
  * $State: Exp $
- * $Author: peter $
+ * $Author: alex $
  *
  ***************************************************************************/
 
@@ -30,7 +30,8 @@ typedef struct __iobuf FILE;
 
 #ifdef __STDIO_H
 
-typedef char *__va_list;
+#define __need___va_list
+#include <stdarg.h>
 
 __BEGIN_DECLS
 
@@ -181,13 +182,17 @@ extern void clearerr (FILE *__stream);
 extern void perror (const char *__s);
 
 /* Open a file and create a new stream for it.  */
-extern FILE *fopen (const char *__filename, const char *__mode);
+extern FILE *fopen (const char *__restrict __filename,
+		    const char *__restrict __mode);
+
 /* Open a file, replacing an existing stream with it.  */
-extern FILE *freopen (const char *__filename, const char *__mode,
+extern FILE *freopen (const char *__restrict __filename,
+		      const char *__restrict __mode,
        	     	      FILE *__stream);
 
 /* Close stream, or all streams if stream is null.  */
 extern int fclose (FILE *__stream);
+
 /* Flush stream, or all streams if stream is null.  */
 extern int fflush (FILE *__stream);
 
@@ -201,11 +206,13 @@ extern size_t fwrite (const void *__ptr, size_t __size,
 
 /* If buf is null, make stream unbuffered.
    If not null, use buffer buf of size BUFSIZ.  */
-extern void setbuf (FILE *__stream, char *__buf);
+extern void setbuf (FILE *__restrict __stream, char *__restrict __buf);
+
 /* Make stream use buffering mode 'mode'.
    If buf is not NULL, use n bytes of it for buffering;
    else allocate an internal buffer n bytes long.  */
-extern int setvbuf (FILE *__stream, char *__buf, int __modes, size_t __n);
+extern int setvbuf (FILE *__restrict __stream, char *__restrict __buf,
+		    int __modes, size_t __n);
 
 /* Push a character back onto the input buffer of stream.  */
 extern int ungetc (int __c, FILE *__stream);
@@ -250,13 +257,15 @@ extern int fputc (int __c, FILE *__stream);
 extern int putchar (int __c);
 
 /* Get a newline-terminated string of finite length from stream.  */
-extern char *fgets (char *__s, size_t __n, FILE *__stream);
+extern char *fgets (char *____s, size_t __n, FILE *__stream);
 #define fgets_unlocked fgets
+
 /* Get a newline-terminated string from stdin, removing the newline.  */
 extern char *gets (char *__s);
 
 /* Write a string to stream.  */
-extern int fputs (const char *__s, FILE *__stream);
+extern int fputs (const char *__restrict __s, FILE *__restrict __stream);
+
 /* Write a string, followed by a newline, to stdout.  */
 extern int puts (const char *__s);
 
@@ -266,14 +275,21 @@ extern int puts (const char *__s);
 
 /* Write formatted output to s from argument list arg.  limit is the
    maximum number of characters to produce.  */
-extern int vsnprintf (char *__s, size_t __limit, const char *__format,
-		      __va_list __arg);
+extern int vsnprintf (char *__restrict __s, size_t __limit,
+		      const char *__restrict __format,
+		      __gnuc_va_list __arg)
+     __attribute__ ((__format__ (__printf__, 3, 0)));
+
 /* Write formatted output to s from argument list arg.  */
-extern int vsprintf (char *__s, const char *__format, __va_list __arg);
+extern int vsprintf (char *__restrict __s,
+		     const char *__restrict __format, __gnuc_va_list __arg);
+
 /* Write formatted output to stream from arg list arg.  */
-extern int vfprintf (FILE *__stream, const char *__format, __va_list __arg);
+extern int vfprintf (FILE *__restrict __stream,
+		     const char *__restrict __format, __gnuc_va_list __arg);
+
 /* Write formatted output to stdio from arg list arg.  */
-extern int vprintf (const char *__format, __va_list __arg);
+extern int vprintf (const char *__restrict __format, __gnuc_va_list __arg);
 
 #ifndef __GNUC__
 #pragma -v1
@@ -281,38 +297,57 @@ extern int vprintf (const char *__format, __va_list __arg);
 
 /* Write formatted output to s.  limit is the maximum number of characters
    to produce.  */
-extern int snprintf (char *__s, size_t __limit, const char *__format, ...);
+extern int snprintf (char *__restrict __s, size_t __limit,
+		     const char *__restrict __format, ...)
+     __attribute__ ((__format__ (__printf__, 3, 4)));
+
 /* Write formatted output to s.  */
-extern int sprintf (char *__s, const char *__format, ...);
+extern int sprintf (char *__restrict __s,
+		    const char *__restrict __format, ...);
+
 /* Write formatted output to stream.  */
-extern int fprintf (FILE *__stream, const char *__format, ...);
+extern int fprintf (FILE *__restrict __stream,
+		    const char *__restrict __format, ...);
+
 /* Write formatted output to stdout.  */
-extern int printf (const char *__format, ...);
+extern int printf (const char *__restrict __format, ...);
 
 #ifndef __GNUC__
 #pragma -v2
 #endif
 
 /* Read formatted input from s.  */
-extern int sscanf (const char *__s, const char *__format, ...);
+extern int sscanf (const char *__restrict __s,
+		   const char *__restrict __format, ...);
+
 /* Read formatted input from stream.  */
-extern int fscanf (FILE *__stream, const char *__format, ...);
+extern int fscanf (FILE *__restrict __stream,
+		   const char *__restrict __format, ...);
+
 /* Read formatted input from stdin.  */
-extern int scanf (const char *__format, ...);
+extern int scanf (const char *__restrict __format, ...);
 
 #ifndef __GNUC__
 #pragma -v0
 #endif
 
 /* Read formatted input from stdin into argument list arg.  */
-extern int vscanf (const char *__format, __va_list __ap);
+extern int vscanf (const char *__restrict __format, __gnuc_va_list __ap)
+     __attribute__ ((__format__ (__scanf__, 1, 0)));
+
 /* Read formatted input from stream into argument list arg.  */
-extern int vfscanf (FILE *__stream, const char *__format, __va_list __ap);
+extern int vfscanf (FILE *__restrict __stream,
+		    const char *__restrict __format, __gnuc_va_list __ap)
+     __attribute__ ((__format__ (__scanf__, 2, 0)));
+
 /* Read formatted input from 's' into argument list arg.  */
-extern int vsscanf (const char *__s, const char *__format, __va_list __ap);
+extern int vsscanf (const char *__restrict __s,
+		    const char *__restrict __format, __gnuc_va_list __ap)
+     __attribute__ ((__format__ (__scanf__, 2, 0)));
 
 /* How long an array of chars must be to be passed to tmpnam.  */
 #define L_tmpnam	255
+
 /* The minimum number of unique filenames generated by tmpnam.  */
 #define TMP_MAX 	217672836
 
@@ -335,6 +370,7 @@ extern char *tempnam (const char *__dir, const char *__prefix);
 
 /* Generate a unique temporary file name for temp.  */
 extern char *mktemp(char *__temp);
+
 /* As for mktemp but returns an open file descriptor on the file.  */
 extern int mkstemp(char *__temp);
 
@@ -353,7 +389,8 @@ extern int putw (int __w, FILE *__stream);
 
 /* If BUF is NULL, make STREAM unbuffered.
    Else make it use SIZE bytes of BUF for buffering.  */
-extern void setbuffer (FILE *__stream, char *__buf, size_t __size);
+extern void setbuffer (FILE *__restrict __stream, char *__restrict __buf,
+		       size_t __size);
 
 /* Make STREAM line-buffered.  */
 extern void setlinebuf (FILE *__stream);
@@ -393,12 +430,14 @@ extern int pclose (FILE *__stream);
 #ifdef __USE_GNU
 /* Read an entire line from stream (upto newline), storing the text in
    a buffer and storing the buffer address in *lineptr.  */
-extern __ssize_t getline (char **__lineptr, size_t *__n, FILE *__stream);
+extern __ssize_t getline (char **__restrict __lineptr,
+			  size_t *__restrict __n, FILE *__restrict __stream);
 
 /* Similar to getline except that the line terminator doesn't
    have to be a newline.  */
-extern __ssize_t getdelim (char **__lineptr, size_t *__n,
-       		 	   int __delimiter, FILE *__stream);
+extern __ssize_t getdelim (char **__restrict __lineptr,
+			   size_t *__restrict __n,
+       		 	   int __delimiter, FILE *__restrict __stream);
 #endif
 
 #if defined __USE_XOPEN && !defined __USE_XOPEN2K && !defined __USE_GNU

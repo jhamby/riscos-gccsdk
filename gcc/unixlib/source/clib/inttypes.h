@@ -1,8 +1,8 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/inttypes.h,v $
- * $Date: 2002/09/24 21:02:36 $
- * $Revision: 1.4 $
+ * $Date: 2002/11/26 21:52:07 $
+ * $Revision: 1.5 $
  * $State: Exp $
  * $Author: admin $
  *
@@ -249,21 +249,21 @@ typedef struct
 } imaxdiv_t;
 
 /* Like `strtol' but convert to `intmax_t'.  */
-extern intmax_t strtoimax (const char *__nptr,
-			   char **__endptr, int __base);
+extern intmax_t strtoimax (const char *__restrict __nptr,
+			   char **__restrict __endptr, int __base);
 
 /* Like `strtoul' but convert to `uintmax_t'.  */
-extern uintmax_t strtoumax (const char * __nptr,
-			    char ** __endptr, int __base);
+extern uintmax_t strtoumax (const char *__restrict __nptr,
+			    char **__restrict __endptr, int __base);
 
 #if 0
 /* Like `wcstol' but convert to `intmax_t'.  */
-extern intmax_t wcstoimax (const wchar_t * __nptr,
-			   wchar_t **__endptr, int __base);
+extern intmax_t wcstoimax (const wchar_t *__restrict __nptr,
+			   wchar_t **__restrict __endptr, int __base);
 
 /* Like `wcstoul' but convert to `uintmax_t'.  */
-extern uintmax_t wcstoumax (const wchar_t *__nptr,
-			    wchar_t **__endptr, int __base);
+extern uintmax_t wcstoumax (const wchar_t *__restrict __nptr,
+			    wchar_t **__restrict __endptr, int __base);
 #endif
 
 __END_DECLS

@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/time.h,v $
- * $Date: 2002/12/13 11:07:59 $
- * $Revision: 1.6 $
+ * $Date: 2003/06/07 02:30:21 $
+ * $Revision: 1.7 $
  * $State: Exp $
- * $Author: admin $
+ * $Author: joty $
  *
  ***************************************************************************/
 
@@ -131,7 +131,8 @@ extern struct tm *localtime (const time_t *__time);
 
 /* Convert the calendar time 'time' to broken-down time,
    expressed relative to the user's specified time zone (re-entrant). */
-extern struct tm *localtime_r (const time_t *__time, struct tm *resultp);
+extern struct tm *localtime_r (const time_t *__restrict __time,
+			       struct tm *__restrict resultp);
 
 /* Similar to localtime() but the broken-down time is expressed
    as UTC (GMT) rather than the local time zone.  */
@@ -139,7 +140,8 @@ extern struct tm *gmtime (const time_t *__time);
 
 /* Similar to localtime() but the broken-down time is expressed
    as UTC (GMT) rather than the local time zone (re-entrant).  */
-extern struct tm *gmtime_r (const time_t *__time, struct tm *resultp);
+extern struct tm *gmtime_r (const time_t *__restrict __time,
+			    struct tm *__restrict resultp);
 
 /* Convert a broken-down time structure to a calendar time
    representation.  */
@@ -148,8 +150,9 @@ extern time_t mktime (struct tm *__brokentime);
 /* Place characters into the 's' as controlled by the 'format'.
    'format' is specialised for printing components of 'brokentime'
    according to the locale currently specified for time conversion.  */
-extern size_t strftime (char *__s, size_t __size, const char *__format,
-       	      	        const struct tm *__brokentime);
+extern size_t strftime (char *__restrict __s, size_t __size,
+			const char *__restrict __format,
+       	      	        const struct tm *__restrict __brokentime);
 
 
 /* System V compatibility.  */

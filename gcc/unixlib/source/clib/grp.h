@@ -1,10 +1,10 @@
 /****************************************************************************
  *
- * $Source$
- * $Date$
- * $Revision$
- * $State$
- * $Author$
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/grp.h,v $
+ * $Date: 2003/01/21 18:01:25 $
+ * $Revision: 1.4 $
+ * $State: Exp $
+ * $Author: admin $
  *
  ***************************************************************************/
 
@@ -51,16 +51,18 @@ extern struct group *getgrent (void);
 
 /* Read an entry from the password-file stream, opening it if
    necessary (re-entrant version).  */
-extern int getgrent_r (struct group *__result_buf, char *__buffer,
-		       size_t __buflen, struct group **__result);
+extern int getgrent_r (struct group *__restrict __result_buf,
+		       char *__restrict __buffer, size_t __buflen,
+		       struct group **__restrict __result);
 
 /* Read an entry from stream.  */
 extern struct group *fgetgrent (FILE *__stream);
 
 /* Read an entry from stream (re-entrant version).  */
-extern int fgetgrent_r (FILE *__stream, struct group *__result_buf,
-			char *__buffer, size_t __buflen,
-			struct group **__result);
+extern int fgetgrent_r (FILE *__restrict __stream,
+			struct group *__restrict __result_buf,
+			char *__restrict __buffer, size_t __buflen,
+			struct group **__restrict __result);
 
 /* Search for an entry with a matching group ID.  */
 extern struct group *getgrgid (gid_t __gid);
@@ -73,9 +75,10 @@ extern int getgrgid_r (gid_t __gid, struct group *__resbuf, char *__buffer,
 extern struct group *getgrnam (const char *__name);
 
 /* Search for an entry with a matching group name (re-entrant version).  */
-extern int getgrnam_r (const char *__name, struct group *__result_buf,
-		       char *__buffer, size_t __buflen,
-		       struct group **__result);
+extern int getgrnam_r (const char *__restrict __name,
+		       struct group *__restrict __result_buf,
+		       char *__restrict __buffer, size_t __buflen,
+		       struct group **__restrict __result);
 
 /* Get a list of all supplementary groups this user is in */
 extern int getgroups (int __gidsetlen, gid_t *__gidset);

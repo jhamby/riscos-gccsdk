@@ -1,10 +1,10 @@
 /****************************************************************************
  *
- * $Source$
- * $Date$
- * $Revision$
- * $State$
- * $Author$
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/dirent.h,v $
+ * $Date: 2002/12/22 18:22:28 $
+ * $Revision: 1.5 $
+ * $State: Exp $
+ * $Author: admin $
  *
  ***************************************************************************/
 
@@ -117,8 +117,9 @@ extern DIR *opendir (const char *__name);
 extern struct dirent *readdir (DIR *__dirp);
 
 /* Reentrant version of readdir.  */
-extern int readdir_r (DIR *__dirp, struct dirent *__entry,
-		      struct dirent **__result);
+extern int readdir_r (DIR *__restrict __dirp,
+		      struct dirent *__restrict __entry,
+		      struct dirent **__restrict __result);
 
 /* Return the current position of dirp.  */
 extern __off_t telldir (DIR *__dirp);
@@ -141,8 +142,8 @@ extern int alphasort (const struct dirent **__a, const struct dirent ** __b);
    sorted using qsort with 'cmp', and collected in a malloc'd array in
    *namelist.  Returns the number of entries selected, or -1 on error.  */
 
-extern int scandir (const char *__dir,
-		    struct dirent ***__namelist,
+extern int scandir (const char *__restrict __dir,
+		    struct dirent ***__restrict __namelist,
 		    int (*__select)(const struct dirent *),
 		    int (*__cmp)(const struct dirent **,
 				 const struct dirent **));
@@ -152,8 +153,8 @@ extern int scandir (const char *__dir,
    Reading starts at offset *basep, and *basep is updated with the new
    position after reading.  Returns the number of bytes read; zero when at
    end of directory; or -1 for errors.  */
-extern ssize_t getdirentries (int __fd, char *__buf,
-			      size_t __nbytes, __off_t *__basep);
+extern ssize_t getdirentries (int __fd, char *__restrict __buf,
+			      size_t __nbytes, __off_t *__restrict __basep);
 #endif
 
 __END_DECLS

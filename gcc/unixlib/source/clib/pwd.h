@@ -1,10 +1,10 @@
 /****************************************************************************
  *
- * $Source$
- * $Date$
- * $Revision$
- * $State$
- * $Author$
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/pwd.h,v $
+ * $Date: 2003/01/21 18:01:25 $
+ * $Revision: 1.5 $
+ * $State: Exp $
+ * $Author: admin $
  *
  ***************************************************************************/
 
@@ -64,18 +64,21 @@ extern struct passwd *getpwent (void);
 
 /* Read an entry from the password-file stream, opening it if
    necessary (re-entrant version).  */
-extern int getpwent_r (struct passwd *__result_buf, char *__buffer,
-		       size_t __buflen, struct passwd **__result);
+extern int getpwent_r (struct passwd *__restrict __result_buf,
+		       char *__restrict __buffer, size_t __buflen,
+		       struct passwd **__restrict __result);
 
 /* Read an entry from stream.  */
 extern struct passwd *fgetpwent (FILE *__stream);
 
 /* Read an entry from stream (re-entrant version).  */
-extern int fgetpwent_r (FILE *__stream, struct passwd *__result_buf,
-			char *__buffer, size_t __buflen,
-			struct passwd **__result);
+extern int fgetpwent_r (FILE *__restrict __stream,
+			struct passwd *__restrict __result_buf,
+			char *__restrict __buffer, size_t __buflen,
+			struct passwd **__restrict __result);
 
-extern int putpwent (const struct passwd *__p, FILE *__stream);
+extern int putpwent (const struct passwd *__restrict __p,
+		     FILE *__restrict __stream);
 
 /* POSIX functions.  */
 
@@ -83,16 +86,18 @@ extern int putpwent (const struct passwd *__p, FILE *__stream);
 extern struct passwd *getpwuid (__uid_t __uid);
 
 /* Search for an entry with a matching user ID (re-entrant version).  */
-extern int getpwuid_r (__uid_t __uid, struct passwd *__resbuf, char *__buffer,
-		       size_t __buflen, struct passwd **__result);
+extern int getpwuid_r (__uid_t __uid, struct passwd *__restrict __resbuf,
+		       char *__restrict __buffer,
+		       size_t __buflen, struct passwd **__restrict __result);
 
 /* Search for an entry with a matching username.  */
 extern struct passwd *getpwnam (const char *__name);
 
 /* Search for an entry with a matching username (re-entrant version).  */
-extern int getpwnam_r (const char *__name, struct passwd *__result_buf,
-		       char *__buffer, size_t __buflen,
-		       struct passwd **__result);
+extern int getpwnam_r (const char *__restrict __name,
+		       struct passwd *__restrict __result_buf,
+		       char *__restrict __buffer, size_t __buflen,
+		       struct passwd **__restrict __result);
 
 
 /* Re-construct the password-file line for the given uid in the

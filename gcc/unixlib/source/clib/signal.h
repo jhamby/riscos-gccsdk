@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/signal.h,v $
- * $Date: 2003/04/25 14:15:26 $
- * $Revision: 1.5 $
+ * $Date: 2003/06/16 21:00:32 $
+ * $Revision: 1.6 $
  * $State: Exp $
- * $Author: peter $
+ * $Author: joty $
  *
  ***************************************************************************/
 
@@ -245,14 +245,15 @@ extern int sigismember (const __sigset_t *__set, int __signo);
 #endif  /* __UNIXLIB_INTERNALS */
 
 /* Get and/or change the set of blocked signals.  */
-extern int sigprocmask (int __how, const __sigset_t *__set, __sigset_t *__oldset);
+extern int sigprocmask (int __how, const __sigset_t *__restrict __set,
+			__sigset_t *__oldset);
 
 /* Change the set of blocked signals,
    wait until a signal arrives, and restore the set of blocked signals.  */
 extern int sigsuspend (const __sigset_t *__set);
 
 /* Get and/or set the action for signal sig.  */
-extern int sigaction (int __sig, const struct sigaction *__act,
+extern int sigaction (int __sig, const struct sigaction *__restrict __act,
 		      struct sigaction *__oldact);
 
 /* Put in set all signals that are blocked and waiting to be delivered.  */

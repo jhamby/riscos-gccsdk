@@ -1,24 +1,32 @@
 /****************************************************************************
  *
- * $Source$
- * $Date$
- * $Revision$
- * $State$
- * $Author$
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/stdarg.h,v $
+ * $Date: 2002/09/24 21:02:36 $
+ * $Revision: 1.4 $
+ * $State: Exp $
+ * $Author: admin $
  *
  ***************************************************************************/
 
-#ifndef __STDARG_H
-#define __STDARG_H
-#define __VARARGS_H
+#ifdef __GNUC__
+/* If we're GCC, then we really don't want to be using this file.
+   Luckily this only occurs when building the SDK.  */
+#include_next <stdarg.h>
 
-#ifndef __UNIXLIB_FEATURES_H
-#include <unixlib/features.h>
+#else /* ! __GNUC__ */
+
+#ifndef __STDARG_H
+#ifndef __need___va_list
+#define __STDARG_H
+#endif
+#undef __need___va_list
+
+#ifndef __GNUC_VA_LIST
+#define __GNUC_VA_LIST
+typedef char * __gnuc_va_list;
 #endif
 
-__BEGIN_DECLS
-
-typedef char *va_list;
+#ifdef __STDARG_H
 
 #define va_align(x)	(((x) + (sizeof(int) - 1)) & (~(sizeof(int) - 1)))
 
@@ -29,6 +37,13 @@ typedef char *va_list;
 #define va_end(a)	((void)((a) = (char *)-1))
 #define va_copy(dest, src) (dest) = (src)
 
-__END_DECLS
+#endif /* __STDARG_H */
 
-#endif
+#ifndef _VA_LIST_
+typedef __gnuc_va_list va_list;
+#define _VA_LIST_
+#endif /* __va_list__ */
+
+#endif /* _VA_LIST_ */
+
+#endif /* __GNUC__ */

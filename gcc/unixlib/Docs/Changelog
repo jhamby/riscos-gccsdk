@@ -1,3 +1,39 @@
+Wed Jul 30 00:03:42 2003  Nick Burrett  <nick@dsvr.net>
+
+	* stdarg.h: Force GCC to use its own internal header.
+	(__gnuc_va_list): Define for all other target types.
+
+	* varargs.h: Header is now obsolete.  Add #error lines; remove
+	all other code.
+
+	* stdio.h (fopen, freopen, fputs): Add __restrict pointer qualifier.
+	(vsprintf, vfprintf, vprintf): Likewise.  Use __gnuc_va_list.
+	(sprintf, fprintf, printf, sscanf, fscanf, scanf): Likewise.
+	(vsnprintf): Likewise.  Add GCC __format__ attributes.
+	(snprintf, vscanf, vfscanf, vsscanf): Likewise.
+
+	* sys/syslog.h (syslog): Add GCC __format__ attribute.
+	(vsyslog): Likewise.  Use __gnuc_va_list.
+
+	* assert.c (__assert_fail): FIx compiler warning.
+
+	* alloca.h: Get only the definition of size_t.
+	* complex.h (_Complex_I): Add __extension__.
+
+	* dirent.h: Add __restrict pointer qualifier to functions.
+	* glob.h: Likewise.
+	* grp.h: Likewise.
+	* inttypes.h: Likewise.
+	* pthread.h: Likewise.
+	* pwd.h: Likewise.
+	* regex.h: Likewise.
+	* signal.h: Likewise.
+	* stdio.h: Likewise.
+	* stdlib.h: Likewise.
+	* string.h: Likewise.
+	* time.h: Likewise.
+	* unistd.h: Likewise.
+
 Mon Jun 23 21:10:01 2003  John Tytgat <John.Tytgat@aaug.net>
 
 	* MKDir,fe1: Removed objs.clib & objs.clib.o directory creation.
@@ -27,6 +63,7 @@ Mon Jun 23 21:10:01 2003  John Tytgat <John.Tytgat@aaug.net>
 	  explicit stack setup.
 
 Mon Jun 23 10:31:08 2003  Peter Naulls <peter@chocky.org>
+
 	* source/unix/fcntl.c: Patches missed from 2.95 trunk.
 	  Fix use of O_EXECCL flag, and add F_SETOWN stub.
 

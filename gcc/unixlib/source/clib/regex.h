@@ -473,23 +473,19 @@ extern char *re_comp _RE_ARGS ((const char *));
 extern int re_exec _RE_ARGS ((const char *));
 
 /* POSIX compatibility.  */
-extern int regcomp _RE_ARGS ((regex_t *preg, const char *pattern, int cflags));
+extern int regcomp _RE_ARGS ((regex_t *__restrict preg,
+			      const char *__restrict pattern, int cflags));
 extern int regexec
-  _RE_ARGS ((const regex_t *preg, const char *string, size_t nmatch,
-             regmatch_t pmatch[], int eflags));
+  _RE_ARGS ((const regex_t *__restrict preg,
+	     const char *__restrict string, size_t nmatch,
+             regmatch_t pmatch[__restrict], int eflags));
+
 extern size_t regerror
   _RE_ARGS ((int errcode, const regex_t *preg, char *errbuf,
              size_t errbuf_size));
+
 extern void regfree _RE_ARGS ((regex_t *preg));
 
 __END_DECLS
 
 #endif /* not __REGEXP_LIBRARY_H__ */
-
-/*
-Local variables:
-make-backup-files: t
-version-control: t
-trim-versions-without-asking: nil
-End:
-*/

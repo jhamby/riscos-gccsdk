@@ -1,10 +1,10 @@
 /****************************************************************************
  *
- * $Source$
- * $Date$
- * $Revision$
- * $State$
- * $Author$
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/glob.h,v $
+ * $Date: 2002/09/24 21:02:36 $
+ * $Revision: 1.4 $
+ * $State: Exp $
+ * $Author: admin $
  *
  ***************************************************************************/
 
@@ -79,16 +79,16 @@ typedef struct
     void (*gl_closedir) (void *);
     struct dirent *(*gl_readdir) (void *);
     __ptr_t (*gl_opendir) (const char *);
-    int (*gl_lstat) (const char *, struct stat *);
-    int (*gl_stat) (const char *, struct stat *);
+    int (*gl_lstat) (const char *__restrict, struct stat *__restrict);
+    int (*gl_stat) (const char *__restrict, struct stat *__restrict);
     int (*gl_errfunc) (const char *, int);
   } glob_t;
 
 /* Do glob searching for 'pattern'. Results will be placed in 'pglob'.
    'errfunc' is called upon error.  Returns zero on success.  */
-extern int glob (const char *__pattern, int __flags,
+extern int glob (const char *__restrict __pattern, int __flags,
 		 int (*__errfunc) (const char *, int),
-		 glob_t *__pglob);
+		 glob_t *__restrict __pglob);
 
 /* Free storage allocated in 'pglob' by a previous call to glob.  */
 extern void globfree (glob_t *__pglob);
