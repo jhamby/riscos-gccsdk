@@ -3,15 +3,22 @@ Noteworthy changes to the RISC OS GCCSDK
 RISC OS GCC release 3.3.3 pre-release 2 (released XX XXXXX 2004)
 =======================================
 
-* make: Upgrade to version 3.80
+* diffutils: Upgrade to version 2.8.1.  Add documentation.
 
-* grep: Upgrade to version 2.5
+* flex: Upgrade to version 2.5.31.  Add documentation.
 
-* diffutils: Upgrade to version 2.8.1
+* grep: Upgrade to version 2.5.  Add documentation.
 
-* patch: Upgrade to version 2.5.4
+* gperf: Add documentation.
 
-* sed: Upgrade to version 4.0.9
+* make: Upgrade to version 3.80.  Add documentation.
+
+* patch: Upgrade to version 2.5.4.
+
+* sed: Upgrade to version 4.0.9.  Add documentation.
+
+* gcc: Fix accidental commit that prevented error messages for compiled
+  files from being displayed.
 
 RISC OS GCC release 3.3.3 pre-release 1 (released 20 March 2004)
 =======================================
