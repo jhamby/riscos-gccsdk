@@ -6,6 +6,7 @@
 INCLUDES = -I../libsupc++
 libobjdir=$(objdir)/gcc-$(VERSION)/libjava
 JFLAGS=--encoding=UTF-8 -C -classpath '' -bootclasspath . -d $(libobjdir)
+ZIP=$(ux_bin_dir)/fastjar
 
 $(libobjdir)/%.class: %.java
 	$(CROSS_GCJ) -c $< $(JFLAGS)
@@ -18,7 +19,8 @@ bin_dir = $(ro_bin_dir)
 gcc_bin_dir = $(ro_gcc_bin_dir)
 endif
 
-all:	$(ux_gcc_bin_dir)/libgcj.jar
+all:	$(ux_gccpkg)/$(gn_share_dir)/libgcj.jar $(ro_gccpkg)/$(gn_share_dir)/jar/libgcj
+
 
 lib_org_w3c_dom_la_SOURCES = $(libobjdir)/org/w3c/dom/Attr.class \
 $(libobjdir)/org/w3c/dom/CDATASection.class \
@@ -2035,11 +2037,13 @@ all_java_class_files = $(all_java_source_files)
 
 ## ################################################################
 
-#$(ux_gcc_bin_dir)/$(TRG)/libjava.o: $(java_source_files)
-#	$(CROSS_AR) $(CROSS_AR_FLAGS) $@ $(java_source_files)
+$(ux_gccpkg)/$(gn_share_dir)/libgcj.jar: $(all_java_class_files)
+	$(ZIP) -cf $@ -C $(libobjdir) gnu -C $(libobjdir) java -C $(libobjdir) javax -C $(libobjdir) org
 
-$(ux_gcc_bin_dir)/libgcj.jar: $(all_java_class_files)
-	$(ZIP) $(all_java_class_files)
+$(ro_gccpkg)/$(gn_share_dir)/jar/libgcj: $(all_java_class_files)
+	$(ZIP) -cf $@ -C $(libobjdir) gnu -C $(libobjdir) java -C $(libobjdir) javax -C $(libobjdir) org
+
+## ################################################################
 
 $(libobjdir)/gnu/awt/gtk/GtkButtonPeer.class: gnu/awt/gtk/GtkButtonPeer.java
 $(libobjdir)/gnu/awt/gtk/GtkComponentPeer.class: gnu/awt/gtk/GtkComponentPeer.java
