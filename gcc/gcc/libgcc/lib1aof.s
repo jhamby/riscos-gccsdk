@@ -1461,7 +1461,7 @@ gbaa_t3		RN	12
 	/* Allocating nothing ? Then just return. */
 	CMP	a1, #0
 	RETURNc(eq, pc, lr)
-	STMFD	sp!, {a1, a2, a3, a4, fp, ip, lr}
+	STMFD	sp!, {r1-r12, lr}
 	ADD	a1, a1, #chunk_size
 	BL	|malloc|
 
@@ -1497,7 +1497,7 @@ gbaa_t3		RN	12
 	STR	buffer, [arm_alloca_a, #list_off]
 	STRNE	gbaa_t3, [fp, #-4]
 	ADD	buffer, buffer, #16
-	LDMFD	sp!, {a1, a2, a3, a4, fp, ip, pc}RETCOND
+	LDMFD	sp!, {r1-r12, pc}RETCOND
 
 |dynamic_alloca_error|
 	DCB	"Not enough free memory for dynamic alloca", 13, 10
@@ -1609,7 +1609,7 @@ all_allocations_freed	RN	6
 	ALIGN	4
 	EXPORT	|___arm_alloca_block_init|
 |___arm_alloca_block_init|
-	STMFD	sp!, {a2, lr}
+	STMFD	sp!, {a1, a2, lr}
 	[ __FEATURE_PTHREADS = 1
 	LDR	arm_alloca_a, =|__pthread_running_thread|
 	LDR	arm_alloca_a, [arm_alloca_a]
@@ -1620,7 +1620,7 @@ all_allocations_freed	RN	6
 	LDR	a1, [arm_alloca_a, #level_off]
 	ADD	a1, a1, #1
 	STR	a1, [arm_alloca_a, #level_off]
-	LDMFD	sp!, {a2, pc}RETCOND
+	LDMFD	sp!, {a1, a2, pc}RETCOND
 
 	/* -----------------------------------------------------------------
 	   ___arm_alloca_setjmp
