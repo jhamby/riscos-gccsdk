@@ -1,0 +1,12 @@
+
+Notes on my test program:
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+files beginning with 'test' in the c directory are my test files. they might
+give you some clues as to what I'm on about.
+
+test should be compiled and linked with o.pointerblk and o.rink_rtsys
+
+test1 - 3 should be compiled and rinked together with the header described
+in the file 'headerDesc'.
+

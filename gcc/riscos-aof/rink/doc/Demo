@@ -1,0 +1,25 @@
+
+Notes on the demo program supplied
+rink documentation, (c) Ben Summers 1995
+
+
+The demo program is a simple program written in C which loads two segments
+and calls some functions in them. It shows how data and functions in the main
+program can be accessed by the segments.
+
+You require Acorn C v5 to make this program. Ensure you've installed rink,
+copy the demo directory out of the archive and double click on !Make within
+it. It should refuse to run if you attempt to run it from the distribution
+archive. The language tools cc, link and amu are required to make the demo
+program.
+
+The variable C$Path should be set up to include the directory which contains
+o.stubs - the !Boot program installed by Acorn C should set this up for you.
+
+Once it has been made without error, double click !Run to run it.
+
+
+The demonstration program caches pointers to functions in the segments in a
+common structure. This is the recommended method, although you could also
+call a function using rink_fn suitably casted.
+

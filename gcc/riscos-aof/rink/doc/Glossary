@@ -1,0 +1,43 @@
+
+Glossary of terms used
+rink documentation, (c) Ben Summers 1995
+
+
+Segment      A chunk of code which is loaded into the main program, and is
+             linked into the main program when it is loaded.
+
+Links file   A compact file listing the necessary links which the rink run
+             time system needs to perform when it loads the segement.
+
+Parent       The main program which calls the loaded segments.
+
+Header description file
+             The file which describes the header a segment gets. You should
+             only need one of these for all the segments.
+
+named function
+             A function withing the segment which has a name attached to it
+             rather than being accessed by a number.
+
+rink         The title of this system.
+
+rink run time system
+             The code linked into the parent to load and unload segments
+             and to provide pointers to segment functions.
+
+rink         The program which links AOF files to produce segments and
+             links files.
+
+rinkptr      The program which creates an AOF file to create the pointer
+             block and outputs a map of this for rink.
+
+extractsym   A program to extract symbols from AOF and ALF (library) files
+             to help produce pointer blocks maps.
+             
+pointer block
+             A block of pointers to symbols in the main program created
+             by rinkptr from a pointer block map. This block tells the
+             run time system where all the functions are in your program
+             so it can link to them.
+
+

@@ -1,0 +1,100 @@
+rink documentation
+(c) Ben Summers 1994
+
+This file contains an overview of the rink system.
+
+
+
+What is rink, and what it useful for?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+It's easiest to explain rink using an example. If you have a program which
+imports and displays graphics (or needs to convert files of any format into
+an internal one) it's not too effecient to have all the necessary conversion
+code in the program complied in. As the typical user will only want to
+convert a small proportion of the availiable formats, it would be better if
+only the necessary code could be loaded in.
+
+This is a good example of what rink is good for. The format loaders will all
+have the same program interface, probably a call to set up and then a call
+to convert a file, and output the same data. The calling program doesn't
+have to be aware of what kind of file is being converted because the
+outputted data is always in the same format.
+
+It also has the advantage that it's very easy to write and distribute new
+loaders as the main program doesn't have to know anything about the new
+loader, only about it's interface. It also allows third partys to produce
+loaders without access to your sources.
+
+Overlays perform a similar function to rink by only loading code which is
+necessary, but aren't as flexiable. Some programs will benifit from rink,
+some will benifit from overlays.
+
+Relocatable modules are another example of the sort of thing rink is good at.
+The calling program, the OS, doesn't know exactly what they do, but does
+know how to call them as they all have a standard interface. Of course, RMs
+are mainly written in ARM code, and facilities exist to write them in C, but
+they do give the right sort of idea about the possible uses of rink.
+
+
+rink segements can also contain a number of named functions which can be
+enumerated and then called by the parent program. For example, this might be
+useful for language extensions or as a more flexiable overlay system.
+
+
+Definitions
+~~~~~~~~~~~
+
+Segment      A chunk of code which is loaded into the main program, and is
+             linked into the main program when it is loaded.
+
+Links file   A compact file listing the necessary links which the rink run
+             time system needs to perform when it loads the segement.
+
+Parent       The main program which calls the loaded segments.
+
+Child function
+             A function within the segment which is called by the parent.
+
+named function
+             A function withing the segment which has a name attached to it.
+
+rink         The title of this system.
+
+rink run time system
+             The code linked into the parent to load and unload segments
+             and to call child functions.
+
+rink         The program which links AOF files to produce segments and
+             links files.
+
+mkptrmap     The program which creates an AOF file to create the pointer
+             block and outputs a map of this for rink.
+
+
+
+How does rink work?
+~~~~~~~~~~~~~~~~~~
+
+rink takes AOF files, and partically links them together with the aid of
+link, and then links areas within the code segment. Finally, it outputs the
+code and a compact links file which describes all the links rink was unable
+to perform as they refer to external symbols (functions and variables within
+the parent). The code file contains a header which tells the run time system
+where the child functions are within the code file and how many arguments
+these expect.
+
+The rink run time system is linked into the parent. As well as a veneer to
+call the functions in the segement, it contains code to load and link
+segments and to unload them when the parent is finished with it.
+
+References to symbols in the parent are refered to by an index into a block
+of pointers. A program is provided to automatically generate an AOF file to
+create this table from a list of symbols and C header files. It also
+generates a map of this table which the main rink program uses to locate
+symbols within the table.
+
+
+
+
+

@@ -1,0 +1,41 @@
+
+Describes the contents of the rink documentation files
+rink documentation, (c) Ben Summers 1995
+
+
+!Overview
+~~~~~~~~~
+An overview of the rink system. Please read this first.
+
+
+Glossary
+~~~~~~~~
+A glossary of the terms used in the documentation.
+
+
+Install
+~~~~~~~
+How to install rink.
+
+
+!Index
+~~~~~~
+This file.
+
+
+Parent
+~~~~~~
+Details of how to call segments from the parent, and how to make a pointer
+block.
+
+
+Segment
+~~~~~~~
+Details of how to write a segment.
+
+
+Demo
+~~~~
+Some notes on the demonstration program provided.
+
+

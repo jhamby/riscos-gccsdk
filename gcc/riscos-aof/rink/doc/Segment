@@ -1,0 +1,100 @@
+
+How to write a rink segment
+rink documentation, (c) Ben Summers 1995
+
+
+Writing a code segment
+~~~~~~~~~~~~~~~~~~~~~~
+Write your code as you would a standard C file, and compile it with the same
+compiler options as the rest of your program. You can write the segment in as
+many seperate files as you like. You can also include AOF files written in
+ARM code, such as produced by objasm, or AOF files from any other APCS
+compilant language compiler.
+
+The only thing different is that the AOF files produced by the compilers are
+linked together using rink rather than link, and you need to provide certain
+other files.
+
+
+
+Running rink
+~~~~~~~~~~~~
+rink is the rink linker. It has the command line syntax
+
+   rink -o <segment> -l <links> -h <header description> -m <map file>
+       -a <list of AOF files to link...> [-v|-vv]
+
+The flags and switches can be in any order.
+
+<segment> is the file name of the output segment. <links> is the file name
+of the output links file. <header description> is the name of the file which
+describes the segment header. It's format is described below. <map file> is
+the pointer block map file - see the file Docs.Parent for details of how to
+create it.
+
+-a is followed by the list of all the AOF files you want to link together to
+create the segment. You can include as many as you like, but there must be
+at least one.
+
+The switch -v causes rink to output more information on what it's doing, and
+-vv causes it to also output a textual table listing all the run time links
+in the links file.
+
+During the process of creating the segment rink creates the temporary file
+'o.rinkXscrap' (containing the output of the inital link -aof stage). This
+file is deleted after the file has been succesfully rinked.
+
+
+The header description file
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+This file contains all the information rink needs to make the segment header.
+It contains five entries, in any order. All except 'named_entries' must be
+present.
+
+id:<id name>
+
+The id of the segment. This is the first part of the block used to check the
+loaded segments. You should use a 8 character string to uniquely identify
+your application. It must be exactly 8 characters, or rink will fault it.
+
+main_version:<number>
+
+The version of the parent application.
+
+code_version:<number>
+
+The version of the segment.
+
+
+The parent program supplies the run time system with a similar list of
+values. A segment will only be loaded if the id matches exactly, and the main
+version number of the segment is less than or equal to that of the parent
+program. The code version is ignored.
+
+
+The functions to include in the header are given with entries:
+
+entries:
+<fn_name0>
+<fn_name1>
+...
+<fn_nameN>
+//
+
+'//' terminates the list
+
+If you call the functions the same thing in each segment, you only need
+create one header description file for all the segments in your project.
+
+
+Named functions are given with named_entries:
+
+named_entries:
+<fn_name0>
+<fn_name1>
+...
+<fn_nameN>
+//
+
+This entry is optional. If it is not included, a named function header will
+not be included in the segment.
