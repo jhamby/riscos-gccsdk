@@ -32,7 +32,7 @@ export AB_NOFETCH
 set -a
 
 # Autobuilder home
-AB_HOME=/usr/src/autobuild
+AB_HOME=/usr/src/autobuilder
 AB_OUTPUT=/var/www/info/unix/downloads/
 
 # GCCSDK Scripts

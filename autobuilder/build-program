@@ -25,9 +25,6 @@ AB_ARFLAGS=
 
 
 H=$AB_HOME/$AB_PACKAGEDIR
-S=$PWD
-
-rm -rf $D
 
 
 addzip() {
@@ -51,6 +48,7 @@ if [ "$AB_PACKONLY" == "yes" ] ; then
 
  AB_DIR=.
  D=$AB_DIR/package
+ S=$PWD
 
  if [ -e $AB_HOME/$AB_PACKAGEDIR/preprocess ] ; then
   . $AB_HOME/$AB_PACKAGEDIR/preprocess
@@ -63,6 +61,7 @@ else
  # Build directory
  AB_DIR=$AB_TMPDIR/$AB_PACKAGE
  D=$AB_DIR/package
+ echo D=$D
 
  # Remove old dir and create new one
  [ "$AB_DEBUG" == "yes" ] || [ "$AB_NOFETCH" == "yes" ] || rm -rf $AB_DIR
@@ -151,7 +150,8 @@ else
  if [ -e $AB_HOME/$AB_PACKAGEDIR/post-configure ] ; then
    . $AB_HOME/$AB_PACKAGEDIR/post-configure
  fi
- 
+
+ S=$PWD
  
  echo "Autobuilder - Running make command: $AB_MAKE"
  
