@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/dev.c,v $
- * $Date: 2005/03/04 20:59:06 $
- * $Revision: 1.28 $
+ * $Date: 2005/03/19 11:58:06 $
+ * $Revision: 1.29 $
  * $State: Exp $
  * $Author: alex $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: dev.c,v 1.28 2005/03/04 20:59:06 alex Exp $";
+static const char rcs_id[] = "$Id: dev.c,v 1.29 2005/03/19 11:58:06 alex Exp $";
 #endif
 
 /* #define DEBUG */
@@ -201,29 +201,20 @@ __fsopen (struct __unixlib_fd *file_desc, const char *filename, int mode)
          NOTE: This is an ugly hack to make opening non-existent files
 	 for reading on PipeFS work.  We should handle PipeFS though
          a proper device ioctl.  */
-      char *temp;
+
+      /* We don't need the full filename, just need to check that the first
+	 few characters begin with 'pipe'.  */
+      char temp[16];
+
       regs[0] = 37;
       regs[1] = (int) filename;
-      regs[2] = 0;
+      regs[2] = (int) temp;
       regs[3] = 0;
       regs[4] = 0;
-      regs[5] = 0;
+      regs[5] = sizeof (temp);
       __os_swi (OS_FSControl, regs);
-      temp = malloc (1 - regs[5]);
-      if (temp)
-	{
-	  regs[0] = 37;
-	  regs[1] = (int) filename;
-	  regs[2] = (int) temp;
-	  regs[3] = 0;
-	  regs[4] = 0;
-	  regs[5] = 1 - regs[5];
-	  __os_swi (OS_FSControl, regs);
-	} else
-	  temp = (char *) filename;
 
-      if (! (strlen (temp) > 5
-	     && tolower (temp[0]) == 'p'
+      if (! (tolower (temp[0]) == 'p'
 	     && tolower (temp[1]) == 'i'
 	     && tolower (temp[2]) == 'p'
 	     && tolower (temp[3]) == 'e'
@@ -238,8 +229,6 @@ __fsopen (struct __unixlib_fd *file_desc, const char *filename, int mode)
 	      return (void *) __set_errno (ENOENT);
 	    }
         }
-      if (temp)
-        free(temp);
     }
 
   if (fflag & O_CREAT)
