@@ -81,6 +81,7 @@ void link_program(void) {
       link_state = RELOCATE;
       if (opt_verbose) error("Drlink: Relocating program...");
       relocate_areas();
+      printf("Relocate areas: %d\n", (clock()-timer) / CLOCKS_PER_SEC);
       relocate_symbols();
       printf("Relocate symbols: %d\n", (clock()-timer) / CLOCKS_PER_SEC);
       timer = clock();

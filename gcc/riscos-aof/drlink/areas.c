@@ -123,9 +123,9 @@ typedef struct areasrchlist {
 #define RNRD_MASK 0xFF000	/* Mask to extract registers Rn and Rd from instructions */
 #define LOW2_MASK 3		/* Mask for low-order two bits of word */
 
-#define BIT23SIGN 0x800000
+#define BIT23SIGN   0x00800000
 #define BIT24EXTEND 0xFF000000
-#define BIT15SIGN 0x8000
+#define BIT15SIGN   0x00008000
 #define BIT16EXTEND 0xFFFF0000
 
 static unsigned int
@@ -167,7 +167,8 @@ typedef struct arealimits {
     int areahash;		/* Hashed area name */
     symtentry *areabase;	/* Pointer to SYMT entry of area's 'base' symbol */
     symtentry *arealimit;	/* Pointer to SYMT entry of area's 'limit' symbol */
-    struct arealimits *areaflink;	/* Pointer to next area limit pair */
+    struct arealimits *left;
+    struct arealimits *right;
   } arealimits;
 
 static arealimits *arlimlist;
@@ -238,15 +239,15 @@ static arealist *check_commondef(filelist *fp, areaentry *aep, unsigned int atat
     ap = ((atattr & ATT_RDONLY)!=0 ? rodatalist : rwdatalist);
   }
 
-  while (ap != NIL && hashval != ap->arhash) {
+  while (ap != NIL/* && hashval != ap->arhash*/) {
     int compres = strcmp(nameptr, ap->arname);
 
     if (compres == 0)
       break;
-    if (compres < 0)
-      ap = ap->left;
-    else
+    if (compres > 0)
       ap = ap->right;
+    else
+      ap = ap->left;
   }
 
   if (ap == NIL) return NIL;	/* Common block is unknown */
@@ -469,6 +470,8 @@ static void insert_area(arealist **list, arealist **lastentry, arealist *newarea
        name, newarea->arfileptr->chfilename);
     }
     else {
+      arealimits **insert;
+
       lp->areaname = name;
       lp->areahash = hash(name);
       if (imagetype!=AOF) {
@@ -478,8 +481,20 @@ static void insert_area(arealist **list, arealist **lastentry, arealist *newarea
       else {	/* Do not want base/limit pair when creating AOF file */
         lp->areabase = lp->arealimit = NIL;
       }
-      lp->areaflink = arlimlist;
-      arlimlist = lp;
+      lp->left = lp->right = NIL;
+
+      insert = &arlimlist;
+
+      while (*insert) {
+        int compval = strcmp(name, (*insert)->areaname);
+
+        if (compval > 0) {
+          insert = &(*insert)->right;
+        } else {
+          insert = &(*insert)->left;
+        }
+      }
+      *insert = lp;
     }
   }
 }
@@ -1137,10 +1152,23 @@ static void fillin_limits(arealist *firstarea, arealist *lastarea) {
   arealimits *p;
   int hashval;
   const char *name;
+
   hashval = firstarea->arhash;
   name = firstarea->arname;
   p = arlimlist;
-  while (p!=NIL && (hashval!=p->areahash || strcmp(name, p->areaname)!=0)) p = p->areaflink;
+
+  while (p != NIL) {
+    int compval = strcmp(name, p->areaname);
+
+    if (compval == 0)
+      break;
+    if (compval > 0) {
+      p = p->right;
+    } else {
+      p = p->left;
+    }
+  }
+
   if (p==NIL) error("Fatal: Possible linker error in 'fillin_limits'");
   p->areabase->symtarea.areaptr = firstarea;
   p->areabase->symtvalue = firstarea->arplace;
@@ -1206,12 +1234,12 @@ static void calc_place_tree(arealist *p, arealist **firstarea, arealist **lastar
   if (p != NIL) {
     calc_place_tree(p->left, firstarea, lastarea, lastbase);
 
-    if (p->arefcount>0) {
+    if (p->arefcount > 0) {
       if (*firstarea == NIL) {	/* First ref to this area name */
         *firstarea = *lastarea = p;
         *lastbase = p->arbase;
       }
-      else if (*lastbase==p->arbase) {	/* Same name as last entry */
+      else if (*lastbase == p->arbase) {	/* Same name as last entry */
         *lastarea = p;
       }
       else {	/* New area name */
@@ -1219,11 +1247,12 @@ static void calc_place_tree(arealist *p, arealist **firstarea, arealist **lastar
         *firstarea = *lastarea = p;
         *lastbase = p->arbase;
       }
-      align = (1<<p->aralign)-1;	/* Align area address as necessary */
+      
+      align = (1 << p->aralign) - 1;	/* Align area address as necessary */
       areapc = (areapc+align) & ~align;
       p->arplace = areapc;
-      if (p->arsymbol!=NIL) define_symbol(p->arsymbol, areapc);
-      areapc+=p->arobjsize;
+      if (p->arsymbol != NIL) define_symbol(p->arsymbol, areapc);
+      areapc += p->arobjsize;
     }
 
     calc_place_tree(p->right, firstarea, lastarea, lastbase);
@@ -1251,6 +1280,7 @@ static void calc_place(arealist *p) {
 void relocate_areas(void) {
   unsigned int initpc, oldpc, baseaddr;
   segtype wantedtype;
+
   if (opt_codebase) {	/* Non-standard base-of-code used */
     progbase = baseaddr = codebase;
   }
