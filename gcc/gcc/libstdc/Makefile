@@ -366,12 +366,14 @@ sources = \
 
 OBJS =	$(libobjdir)/basic_file.o \
 	$(libobjdir)/bitset.o \
+	$(libobjdir)/cp-demangle.o \
         $(libobjdir)/c++locale.o \
         $(libobjdir)/codecvt.o \
         $(libobjdir)/collate.o \
         $(libobjdir)/complex_io.o \
         $(libobjdir)/concept-inst.o \
         $(libobjdir)/ctype.o \
+	$(libobjdir)/dyn-string.o \
         $(libobjdir)/ext-inst.o \
         $(libobjdir)/fstream.o \
         $(libobjdir)/fstream-inst.o \
@@ -459,6 +461,13 @@ import:
 	# Merge libsupc directory
 	#cp -a $(glibcpp_srcdir)/libsupc++/*.cc ./
 	#cp -a $(glibcpp_srcdir)/libsupc++/*.h ./
+
+$(libobjdir)/cp-demangle.o: ../../libiberty/cp-demangle.c ../../include/demangle.h
+	$(CROSS_CC) $(CROSS_CCFLAGS) -o $@ -c $< -I ../../include $(CFL) -DIN_GLIBCPP_V3
+
+$(libobjdir)/dyn-string.o: ../../libiberty/dyn-string.c ../../include/dyn-string.h
+	$(CROSS_CC) $(CROSS_CCFLAGS) -o $@ -c $< -I ../../include $(CFL) -DIN_GLIBCPP_V3
+
 
 $(libobjdir)/bitset.o: bitset.cc
 $(libobjdir)/c++locate.o: c++locate.cc

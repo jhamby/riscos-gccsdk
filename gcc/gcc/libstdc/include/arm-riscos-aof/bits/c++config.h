@@ -87,10 +87,12 @@ libstdc++-v3/include/bits/c++config before full recompilation of the library.
 /* config.h.in.  Generated automatically from configure.in by autoheader.  */
 
 /* Define if you have a working `mmap' system call.  */
-#define _GLIBCPP_HAVE_MMAP 1
+// #define _GLIBCPP_HAVE_MMAP 1
+#undef _GLIBCPP_HAVE_MMAP
 
 // Define if GCC supports weak symbols.
-#define _GLIBCPP_SUPPORTS_WEAK __GXX_WEAK__
+// #define _GLIBCPP_SUPPORTS_WEAK __GXX_WEAK__
+#undef _GLIBCPP_SUPPORTS_WEAK
 
 // Define if gthr-default.h exists (meaning that threading support is enabled).
 #define _GLIBCPP_HAVE_GTHR_DEFAULT 1
@@ -105,7 +107,7 @@ libstdc++-v3/include/bits/c++config before full recompilation of the library.
 #undef _GLIBCPP_USE_WCHAR_T
 
 // Define if using setrlimit to limit memory usage during 'make check'.
-#define _GLIBCPP_MEM_LIMITS 1
+#undef _GLIBCPP_MEM_LIMITS
 
 // Define to use concept checking code from the boost libraries.
 /* #undef _GLIBCPP_CONCEPT_CHECKS */
@@ -774,7 +776,7 @@ libstdc++-v3/include/bits/c++config before full recompilation of the library.
 /* #undef _GLIBCPP_HAVE_FP_H */
 
 /* Define if you have the <gconv.h> header file.  */
-#define _GLIBCPP_HAVE_GCONV_H 1
+// #define _GLIBCPP_HAVE_GCONV_H 1
 
 /* Define if you have the <ieeefp.h> header file.  */
 /* #undef _GLIBCPP_HAVE_IEEEFP_H */
@@ -786,7 +788,7 @@ libstdc++-v3/include/bits/c++config before full recompilation of the library.
 #define _GLIBCPP_HAVE_LOCALE_H 1
 
 /* Define if you have the <machine/endian.h> header file.  */
-/* #undef _GLIBCPP_HAVE_MACHINE_ENDIAN_H */
+#define _GLIBCPP_HAVE_MACHINE_ENDIAN_H 1
 
 /* Define if you have the <machine/param.h> header file.  */
 /* #undef _GLIBCPP_HAVE_MACHINE_PARAM_H */
@@ -810,7 +812,7 @@ libstdc++-v3/include/bits/c++config before full recompilation of the library.
 #define _GLIBCPP_HAVE_SYS_RESOURCE_H 1
 
 /* Define if you have the <sys/stat.h> header file.  */
-/* #undef _GLIBCPP_HAVE_SYS_STAT_H */
+#define _GLIBCPP_HAVE_SYS_STAT_H 1
 
 /* Define if you have the <sys/time.h> header file.  */
 #define _GLIBCPP_HAVE_SYS_TIME_H 1
@@ -843,16 +845,16 @@ libstdc++-v3/include/bits/c++config before full recompilation of the library.
 #define _GLIBCPP_HAVE_SIGSETJMP 1
 
 /* Only used in build directory testsuite_hooks.h. */
-#define _GLIBCPP_HAVE_MEMLIMIT_DATA 1
+// #define _GLIBCPP_HAVE_MEMLIMIT_DATA 1
 
 /* Only used in build directory testsuite_hooks.h. */
-#define _GLIBCPP_HAVE_MEMLIMIT_RSS 1
+// #define _GLIBCPP_HAVE_MEMLIMIT_RSS 1
 
 /* Only used in build directory testsuite_hooks.h. */
-#define _GLIBCPP_HAVE_MEMLIMIT_VMEM 0
+// #define _GLIBCPP_HAVE_MEMLIMIT_VMEM 0
 
 /* Only used in build directory testsuite_hooks.h. */
-#define _GLIBCPP_HAVE_MEMLIMIT_AS 1
+// #define _GLIBCPP_HAVE_MEMLIMIT_AS 1
 
 //
 // Systems that have certain non-standard functions prefixed with an
