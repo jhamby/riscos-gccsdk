@@ -5,3 +5,9 @@ AB_PRECONF=:
 
 AB_MAKE="$AB_MAKE bzip2"
 
+
+ab_package() {
+  mkdir -p $D/manual
+  cp -av $S/*.html $S/README $D/manual/
+  cp $S/bzip2,ff8 $S/LICENSE $D
+}
