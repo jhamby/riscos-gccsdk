@@ -308,8 +308,8 @@ initialize_for_inline (tree fndecl)
 	parmdecl_map[REGNO (p)] = parms;
       else if (GET_CODE (p) == CONCAT)
 	{
-	  rtx preal = gen_realpart (GET_MODE (XEXP (p, 0)), p);
-	  rtx pimag = gen_imagpart (GET_MODE (preal), p);
+	  rtx preal = XEXP (p, 0);
+	  rtx pimag = XEXP (p, 1);
 
 	  if (GET_CODE (preal) == REG)
 	    parmdecl_map[REGNO (preal)] = parms;
@@ -958,12 +958,12 @@ expand_inline_function (tree fndecl, tree parms, rtx target, int ignore,
 	}
       else if (GET_CODE (loc) == REG)
 	process_reg_param (map, loc, copy);
-      else if (GET_CODE (loc) == CONCAT)
+      else if (GET_CODE (loc) == CONCAT && GET_CODE (copy) == CONCAT)
 	{
-	  rtx locreal = gen_realpart (GET_MODE (XEXP (loc, 0)), loc);
-	  rtx locimag = gen_imagpart (GET_MODE (XEXP (loc, 0)), loc);
-	  rtx copyreal = gen_realpart (GET_MODE (locreal), copy);
-	  rtx copyimag = gen_imagpart (GET_MODE (locimag), copy);
+	  rtx locreal = XEXP (loc, 0);
+	  rtx locimag = XEXP (loc, 1);
+	  rtx copyreal = XEXP (copy, 0);
+	  rtx copyimag = XEXP (copy, 1);
 
 	  process_reg_param (map, locreal, copyreal);
 	  process_reg_param (map, locimag, copyimag);
@@ -1340,30 +1340,6 @@ copy_insn_list (rtx insns, struct inline_remap *map, rtx static_chain_value)
   for (insn = insns; insn; insn = NEXT_INSN (insn))
     {
       rtx copy, pattern, set;
-
-#ifdef GPC
-      /* CALL_PLACEHOLDERs within inline functions seem to cause
-         trouble in Pascal (fjf709.pas). References to formal
-         parameters of the inline function might get confused. So
-         replace the CALL_PLACEHOLDER by the normal calling code
-         here, at the cost of avoiding this particular combination
-         of optimizations (inlining and tail recursion/sibling
-         calls) -- though I'm not actually sure if it should be done
-         at all; the C frontend also seems to do only inlining in a
-         similar situation, and this might be good enough already.
-
-         I don't understand all the backend does here, and I'm not
-         even sure if the real bug is in the fontend or backend, or
-         whether this is a fix or a work-around ... -- Frank */
-      if (GET_CODE (insn) == CALL_INSN
-          && GET_CODE (PATTERN (insn)) == CALL_PLACEHOLDER)
-        {
-          rtx tmp = PREV_INSN (insn);
-          replace_call_placeholder (insn, sibcall_use_normal);
-          insn = tmp;
-          continue;
-        }
-#endif
 
       map->orig_asm_operands_vector = 0;
 

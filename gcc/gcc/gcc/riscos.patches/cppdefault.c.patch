@@ -1,5 +1,5 @@
 --- /home/nick/riscos/masters/gcc-3.4/gcc/cppdefault.c	2003-03-01 14:31:12.000000000 +0000
-+++ cppdefault.c	2004-06-18 16:27:15.393099480 +0100
++++ cppdefault.c	2004-06-18 16:27:15.000000000 +0100
 @@ -38,8 +38,12 @@ Foundation, 59 Temple Place - Suite 330,
  # undef SYSTEM_INCLUDE_DIR
  # undef STANDARD_INCLUDE_DIR

@@ -1,5 +1,5 @@
---- /home/nick/riscos/masters/gcc-3.4/gcc/c-opts.c	2004-02-18 00:09:03.000000000 +0000
-+++ c-opts.c	2004-06-18 16:27:10.522839872 +0100
+--- /home/nick/riscos/masters/gcc-3.4/gcc/c-opts.c	2004-12-03 10:48:37.000000000 +0000
++++ c-opts.c	2004-12-03 15:34:52.725219464 +0000
 @@ -151,6 +151,7 @@ c_common_missing_argument (const char *o
        break;
  
@@ -8,7 +8,7 @@
      case OPT_idirafter:
      case OPT_isysroot:
      case OPT_isystem:
-@@ -929,6 +930,26 @@ c_common_handle_option (size_t scode, co
+@@ -937,6 +938,26 @@ c_common_handle_option (size_t scode, co
        add_path (xstrdup (arg), AFTER, 0);
        break;
  

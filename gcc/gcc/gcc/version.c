@@ -5,7 +5,7 @@
    please modify this string to indicate that, e.g. by putting your
    organization's name in parentheses at the end of the string.  */
 
-const char version_string[] = "3.4.4 20041113 (prerelease) (RISC OS)";
+const char version_string[] = "3.4.4 20041203 (prerelease)";
 
 /* This is the location of the online document giving instructions for
    reporting bugs.  If you distribute a modified version of GCC,
@@ -14,9 +14,4 @@ const char version_string[] = "3.4.4 20041113 (prerelease) (RISC OS)";
    forward us bugs reported to you, if you determine that they are
    not bugs in your modifications.)  */
 
-#ifdef GPC
-const char bug_report_url[] = "<URL:http://www.gnu-pascal.de/todo.html>";
-#else
 const char bug_report_url[] = "<URL:http://gcc.gnu.org/bugs.html>";
-#endif
-const char debian_bug_report_url[] = "<URL:file:///usr/share/doc/gcc-3.4/README.Bugs>";

@@ -1,6 +1,6 @@
---- /home/nick/riscos/masters/gcc-3.4/gcc/reload1.c	2004-05-03 15:24:07.000000000 +0100
-+++ reload1.c	2004-06-18 16:27:39.907372744 +0100
-@@ -3458,6 +3458,7 @@ init_elim_table (void)
+--- /home/nick/riscos/masters/gcc-3.4/gcc/reload1.c	2004-12-03 10:48:42.000000000 +0000
++++ reload1.c	2004-12-03 15:34:09.850737376 +0000
+@@ -3468,6 +3468,7 @@ init_elim_table (void)
    /* Does this function require a frame pointer?  */
  
    frame_pointer_needed = (! flag_omit_frame_pointer
@@ -8,7 +8,7 @@
  			  /* ?? If EXIT_IGNORE_STACK is set, we will not save
  			     and restore sp for alloca.  So we can't eliminate
  			     the frame pointer in that case.  At some point,
-@@ -3465,6 +3466,7 @@ init_elim_table (void)
+@@ -3475,6 +3476,7 @@ init_elim_table (void)
  			     sp-adjusting insns for this case.  */
  			  || (current_function_calls_alloca
  			      && EXIT_IGNORE_STACK)

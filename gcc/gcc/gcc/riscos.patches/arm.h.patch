@@ -1,5 +1,5 @@
---- /home/nick/riscos/masters/gcc-3.4/gcc/config/arm/arm.h	2004-03-09 02:59:54.000000000 +0000
-+++ config/arm/arm.h	2004-06-18 15:11:02.168335320 +0100
+--- /home/nick/riscos/masters/gcc-3.4/gcc/config/arm/arm.h	2004-12-03 10:49:20.000000000 +0000
++++ config/arm/arm.h	2004-12-03 14:27:53.429245328 +0000
 @@ -1100,13 +1100,17 @@ extern const char * structure_size_strin
  #define ARM_HARD_FRAME_POINTER_REGNUM	11
  #define THUMB_HARD_FRAME_POINTER_REGNUM	 7
@@ -55,18 +55,27 @@
  
  /* Return number of consecutive hard regs needed starting at reg REGNO
     to hold something of mode MODE.
-@@ -1159,8 +1176,8 @@ extern const char * structure_size_strin
+@@ -1156,12 +1173,17 @@ extern const char * structure_size_strin
+ 
+    On the ARM regs are UNITS_PER_WORD bits wide; FPA regs can hold any FP
+    mode.  */
++#ifdef TARGET_RISCOSAOF
++#define HARD_REGNO_NREGS(REGNO, MODE)  	\
++  ((TARGET_ARM && REGNO >= FIRST_ARM_FP_REGNUM)	? 1 : ARM_NUM_REGS (MODE))
++#else
  #define HARD_REGNO_NREGS(REGNO, MODE)  	\
    ((TARGET_ARM 				\
      && REGNO >= FIRST_ARM_FP_REGNUM	\
 -    && REGNO != FRAME_POINTER_REGNUM	\
 -    && REGNO != ARG_POINTER_REGNUM)	\
-+    && (! TARGET_APCS_STACK && REGNO != FRAME_POINTER_REGNUM)	\
-+    && (! TARGET_APCS_STACK && REGNO != ARG_POINTER_REGNUM))	\
++    && REGNO != FRAME_POINTER_REGNUM)	\
++    && REGNO != ARG_POINTER_REGNUM))	\
     ? 1 : ARM_NUM_REGS (MODE))
++#endif
  
  /* Return true if REGNO is suitable for holding a quantity of type MODE.  */
-@@ -1554,13 +1571,21 @@ enum reg_class
+ #define HARD_REGNO_MODE_OK(REGNO, MODE)					\
+@@ -1554,13 +1576,21 @@ enum reg_class
     is at the high-address end of the local variables;
     that is, each additional local variable allocated
     goes at a more negative offset in the frame.  */
@@ -88,7 +97,7 @@
  
  /* If we generate an insn to push BYTES bytes,
     this says how many the stack pointer really advances by.  */
-@@ -1685,6 +1710,12 @@ typedef struct machine_function GTY(())
+@@ -1685,6 +1715,12 @@ typedef struct machine_function GTY(())
    /* Records if sibcalls are blocked because an argument
       register is needed to preserve stack alignment.  */
    int sibcall_blocked;
@@ -101,7 +110,7 @@
  }
  machine_function;
  
-@@ -1882,6 +1913,11 @@ typedef struct
+@@ -1882,6 +1918,11 @@ typedef struct
     pointer.  Note we have to use {ARM|THUMB}_HARD_FRAME_POINTER_REGNUM
     because the definition of HARD_FRAME_POINTER_REGNUM is not a constant.  */
  
@@ -113,7 +122,7 @@
  #define ELIMINABLE_REGS						\
  {{ ARG_POINTER_REGNUM,        STACK_POINTER_REGNUM            },\
   { ARG_POINTER_REGNUM,        FRAME_POINTER_REGNUM            },\
-@@ -1890,21 +1926,11 @@ typedef struct
+@@ -1890,21 +1931,11 @@ typedef struct
   { FRAME_POINTER_REGNUM,      STACK_POINTER_REGNUM            },\
   { FRAME_POINTER_REGNUM,      ARM_HARD_FRAME_POINTER_REGNUM   },\
   { FRAME_POINTER_REGNUM,      THUMB_HARD_FRAME_POINTER_REGNUM }}
@@ -138,7 +147,7 @@
  
  #define THUMB_REG_PUSHED_P(reg)					\
    (regs_ever_live [reg]						\
-@@ -2064,8 +2090,8 @@ typedef struct
+@@ -2064,8 +2095,8 @@ typedef struct
  /*   On the ARM, don't allow the pc to be used.  */
  #define ARM_REGNO_OK_FOR_BASE_P(REGNO)			\
    (TEST_REGNO (REGNO, <, PC_REGNUM)			\
@@ -149,7 +158,7 @@
  
  #define THUMB_REGNO_MODE_OK_FOR_BASE_P(REGNO, MODE)		\
    (TEST_REGNO (REGNO, <=, LAST_LO_REGNUM)			\
-@@ -2168,8 +2194,8 @@ typedef struct
+@@ -2168,8 +2199,8 @@ typedef struct
  #define ARM_REG_OK_FOR_BASE_P(X)		\
    (REGNO (X) <= LAST_ARM_REGNUM			\
     || REGNO (X) >= FIRST_PSEUDO_REGISTER	\
@@ -160,7 +169,7 @@
  
  #define THUMB_REG_MODE_OK_FOR_BASE_P(X, MODE)	\
    (REGNO (X) <= LAST_LO_REGNUM			\
-@@ -2635,6 +2661,17 @@ extern int making_const_table;
+@@ -2635,6 +2666,17 @@ extern int making_const_table;
  	asm_fprintf (STREAM, "%r", 					\
  		     REGNO (XEXP (XEXP (X, 1), 1)));			\
      }									\

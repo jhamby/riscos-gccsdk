@@ -1,5 +1,5 @@
 --- /home/nick/riscos/masters/gcc-3.4/gcc/gcc.h	2003-07-06 07:15:35.000000000 +0100
-+++ gcc.h	2004-06-18 16:27:29.222997016 +0100
++++ gcc.h	2004-06-18 16:27:29.000000000 +0100
 @@ -50,6 +50,8 @@ struct spec_function
    || !strcmp (STR, "iwithprefix") || !strcmp (STR, "iwithprefixbefore") \
    || !strcmp (STR, "isystem") || !strcmp (STR, "-param") \
