@@ -246,8 +246,13 @@ static arealist *check_commondef(filelist *fp, areaentry *aep, unsigned int atat
     return NIL;		/* This area will be added to the area list as a normal area */
   }
   if (aep->arsize!=ap->arobjsize) {
-    error("Error: Size of common area '%s' in '%s' differs from definition in '%s' (%d != %d)",
-     nameptr, fp->chfilename, ap->arfileptr->chfilename, aep->arsize, ap->arobjsize);
+    /* hack: error() only allows 4 params */
+    char buffer[256];
+
+    sprintf(buffer, "(%d != %d)", aep->arsize, ap->arobjsize);
+
+    error("Error: Size of common area '%s' in '%s' differs from definition in '%s' %s)",
+     nameptr, fp->chfilename, ap->arfileptr->chfilename, buffer);
     return NIL;
   }
 

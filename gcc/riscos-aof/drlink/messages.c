@@ -52,7 +52,7 @@ static bool start_throwback(const char *filename) {
   _kernel_oserror *swierror;
   swierror = _kernel_swi(DDEUtils_ThrowbackStart, &regs, &regs);
   if (swierror!=NIL) {
-    swierror = _kernel_last_oserror();	/* Loose SWI error just logged */
+    swierror = _kernel_last_oserror();	/* Lose SWI error just logged */
     opt_throw = FALSE;
     error("Warning: 'Throwback' is not available. Option ignored");
     return FALSE;
@@ -64,7 +64,7 @@ static bool start_throwback(const char *filename) {
   if (swierror!=NIL) {
     opt_throw = FALSE;
     error("Error: Error occured sending 'throwback' message: %s", &swierror->errmess);
-    swierror = _kernel_last_oserror();	/* Loose SWI error just logged */
+    swierror = _kernel_last_oserror();	/* Lose SWI error just logged */
     return FALSE;
   }
   return TRUE;
@@ -79,7 +79,7 @@ void end_throwback(void) {
   opt_throw = FALSE;
   swierror = _kernel_swi(DDEUtils_ThrowbackEnd, &regs, &regs);
   if (swierror!=NIL) {
-    swierror = _kernel_last_oserror();	/* Loose SWI error just logged */
+    swierror = _kernel_last_oserror();	/* Lose SWI error just logged */
     error("Error: Error occured trying to end 'throwback' session: %s", &swierror->errmess);
   }
 }
@@ -122,7 +122,7 @@ static void throwback_message(char *text) {
   if (swierror!=NIL) {
     opt_throw = FALSE;
     error("Error: Error occured sending 'throwback' message: %s", &swierror->errmess);
-    swierror = _kernel_last_oserror();	/* Loose SWI error just logged */
+    swierror = _kernel_last_oserror();	/* Lose SWI error just logged */
     printf(text);
   }
 }

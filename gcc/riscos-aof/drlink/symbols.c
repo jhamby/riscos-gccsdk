@@ -511,7 +511,7 @@ bool scan_symt(filelist *fp) {
       add_externref(symtp);
     }
     else if (attr==(SYM_EXTERN|SYM_ABSVAL)) {	/* Dodgy ARM linker trick... */
-      symtp->symtattr-=SYM_ABSVAL;		/* Loose 'absolute' attribute bit */
+      symtp->symtattr-=SYM_ABSVAL;		/* Lose 'absolute' attribute bit */
       add_externref(symtp);
     }
     else {
