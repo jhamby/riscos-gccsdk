@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/stdio.h,v $
- * $Date: 2003/07/29 23:04:27 $
- * $Revision: 1.8 $
+ * $Date: 2004/04/12 13:03:37 $
+ * $Revision: 1.9 $
  * $State: Exp $
- * $Author: admin $
+ * $Author: nick $
  *
  ***************************************************************************/
 
@@ -279,7 +279,7 @@ extern int puts (const char *__s) __THROW;
 extern int vsnprintf (char *__restrict __s, size_t __limit,
 		      const char *__restrict __format,
 		      __gnuc_va_list __arg)
-     __attribute__ ((__format__ (__printf__, 3, 0))) __THROW;
+     __THROW __attribute__ ((__format__ (__printf__, 3, 0)));
 
 /* Write formatted output to s from argument list arg.  */
 extern int vsprintf (char *__restrict __s,
@@ -303,7 +303,7 @@ extern int vprintf (const char *__restrict __format, __gnuc_va_list __arg)
    to produce.  */
 extern int snprintf (char *__restrict __s, size_t __limit,
 		     const char *__restrict __format, ...)
-     __attribute__ ((__format__ (__printf__, 3, 4))) __THROW;
+     __THROW __attribute__ ((__format__ (__printf__, 3, 4)));
 
 /* Write formatted output to s.  */
 extern int sprintf (char *__restrict __s,
@@ -337,17 +337,17 @@ extern int scanf (const char *__restrict __format, ...) __THROW;
 
 /* Read formatted input from stdin into argument list arg.  */
 extern int vscanf (const char *__restrict __format, __gnuc_va_list __ap)
-     __attribute__ ((__format__ (__scanf__, 1, 0))) __THROW;
+     __THROW __attribute__ ((__format__ (__scanf__, 1, 0)));
 
 /* Read formatted input from stream into argument list arg.  */
 extern int vfscanf (FILE *__restrict __stream,
 		    const char *__restrict __format, __gnuc_va_list __ap)
-     __attribute__ ((__format__ (__scanf__, 2, 0))) __THROW;
+     __THROW __attribute__ ((__format__ (__scanf__, 2, 0)));
 
 /* Read formatted input from 's' into argument list arg.  */
 extern int vsscanf (const char *__restrict __s,
 		    const char *__restrict __format, __gnuc_va_list __ap)
-     __attribute__ ((__format__ (__scanf__, 2, 0))) __THROW;
+     __THROW __attribute__ ((__format__ (__scanf__, 2, 0)));
 
 /* How long an array of chars must be to be passed to tmpnam.  */
 #define L_tmpnam	255
@@ -371,7 +371,7 @@ extern char *tmpnam_r (char *__s) __THROW;
 /* Return a pointer to a malloc'ed unique temporary filename, including
    pathname.  */
 extern char *tempnam (const char *__dir, const char *__prefix)
-     __attribute_malloc__ __THROW;
+     __THROW __attribute_malloc__;
 
 /* Generate a unique temporary file name for temp.  */
 extern char *mktemp(char *__temp) __THROW;

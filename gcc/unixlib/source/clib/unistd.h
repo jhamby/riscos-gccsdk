@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/unistd.h,v $
- * $Date: 2003/11/21 14:38:33 $
- * $Revision: 1.10 $
+ * $Date: 2004/04/12 13:03:37 $
+ * $Revision: 1.11 $
  * $State: Exp $
- * $Author: peter $
+ * $Author: nick $
  *
  ***************************************************************************/
 
@@ -259,7 +259,7 @@ extern int execvp (const char *__file, char *const __argv[]) __THROW;
 extern int execlp (const char *__file, const char *__arg, ...) __THROW;
 
 /* Terminate program execution with the low-order 8 bits of status.  */
-extern void _exit (int __status) __attribute__ ((__noreturn__)) __THROW;
+extern void _exit (int __status) __THROW __attribute__ ((__noreturn__));
 
 /* Values for the NAME argument to `pathconf' and `fpathconf'.  */
 enum

@@ -1,3 +1,9 @@
+Thu Apr 15 23:09:30 2004  Alex Waugh  <alex@alexwaugh.com>
+
+	* assert.h: __THROW should appear before any __attribute__.
+	* math.h, setjmp.h, stdio.h, stdlib.h, string.h: Likewise.
+	* time.h, unistd.h: Likewise.
+
 Mon Apr 12 14:02:24 2004  Nick Burrett  <nick@dsvr.net>
 
 	* alloca.h: Add GCC-specific small optimiser hints to function
@@ -11,7 +17,7 @@ Mon Apr 12 14:02:24 2004  Nick Burrett  <nick@dsvr.net>
 Mon Apr 12 10:37:35 2004  Nick Burrett  <nick@dsvr.net>
 
 	* unix/unix.c (_exit): Set DDEUtils Prefix when parent process
-	exits.  Add an assertion failure if __u is NULL. 
+	exits.  Add an assertion failure if __u is NULL.
 	(__unixinit): Add more explanatory comments.
 
 Sat Apr 10 11:23:16 2004  Nick Burrett  <nick@dsvr.net>
@@ -380,7 +386,7 @@ Tue Aug 19 00:34:27 2003  John Tytgat  <John.Tytgat@aaug.net>
 	* unix/features.c: Made __sfix_default non writable; get_program_name()
 	  no longer corrupts fname_buf for very long program names.
 	* common/riscosifyc.c: Removed.  It shouldn't be necessary.
-	  
+	
 Fri Aug 15 16:13:01 2003  John Tytgat  <John.Tytgat@aaug.net>
 
 	* clib/unixlib/features.h: _feature_imagefs_is_file is now a WEAK
@@ -394,7 +400,7 @@ Fri Aug 15 16:13:01 2003  John Tytgat  <John.Tytgat@aaug.net>
 	* Docs/ReadMe: Added info on the WEAK'ly defined symbols.
 
 Sun Aug 03 18:14:27 2003  John Tytgat  <John.Tytgat@aaug.net>
-  
+
   	* common/unixify.c (__unixify): filetype extension code will first look
   	if the filetype can't be derived from the filename extension
 	& MimeMap.  If so, then there won't be a filetype extension added to
@@ -1527,7 +1533,7 @@ Wed Nov 13 11:58:00 2002  Peter Naulls  <peter@chocky.org>
 	* netlib/recvfrom.c: Likewise.
 	* netlib/setsockopt.c: Likewise.
 
-	* stdio/popen.c (pclose): Correct type usage. 
+	* stdio/popen.c (pclose): Correct type usage.
 	* sys/execl.c (execl): Likewise.
 
 	* unix/dev.c (__piperead): Fix pipe code to actually work.
@@ -1974,17 +1980,17 @@ Sat Mar 30 10:00:52 2002  Alex Waugh  <alex@alexwaugh.com>
 
 Sat Mar 30 10:00:52 2002  John Tytgat  <John.Tytgat@aaug.net>
 
-	* unistd.h (ualarm): Declare. 
-	(usleep): return type is now 'int'. 
+	* unistd.h (ualarm): Declare.
+	(usleep): return type is now 'int'.
 	* signal/sleep.c: Added GNU LGPL.
 	(sleep_int): Created, this gets	used by `sleep' and `usleep'.
-	`usleep' works now with a 1/100th sec resolution instead of 1 sec. 
+	`usleep' works now with a 1/100th sec resolution instead of 1 sec.
 	* sys/alarm.c: Added GNU LGPL.
 	(alarm): Synced implementation with GNU C Lib.
-	(ualarm): Added. 
-	* time/setitmr.c (setitimer): Changed invalid parameter test 
+	(ualarm): Added.
+	* time/setitmr.c (setitimer): Changed invalid parameter test
 
-	* unixlib/features.h: Clean up Norcroft compiler warnings. 
+	* unixlib/features.h: Clean up Norcroft compiler warnings.
 
 Sat Mar 30 09:37:00 2002  Theo Markettos  <theo@markettos.org.uk>
 
@@ -2427,7 +2433,7 @@ Sun Sep  2 11:25:00 2001  Nick Burrett  <nick.burrett@btinternet.com>
 Sun Sep  2 11:18:36 2001  Christian Ludlam <chris@recoil.org>
 
 	* stdio/printf.c (out_char): New function.
-	(out_write): New function.ls 
+	(out_write): New function.ls
 	(WIDESTRING): Define.
 	(WCHAR): Define.
 	(STOP): Define.
@@ -3138,9 +3144,9 @@ Wed Jan 12 16:50:51 2000  Nick Burrett  <nick.burrett@btinternet.com>
 	(__pipewrite): Likewise.
 	(__pipeclose): Likewise.
 	(__fsclose): Likewise.
-	 
+	
 	* sys/unix.h (__unixlib_fatal): Add GCC's __noreturn__ attribute.
-	 
+	
 	* sys/brk.c (brk): Inline getrlimit call.
 	
 	* stdio/freopen.c (freopen): Check validity of `mode' here.
@@ -3335,7 +3341,7 @@ Fri Sep 24 16:38:35 1999  Nick Burrett  <nick.burrett@btinternet.com>
 	* dirent.h (__validdir): Likewise.
  	* stdio/newstream.c (__newstream): Replace `__validfp' check with an
  	inline version.
- 
+
 	* sys/syslib.c (_exit): Remove `COMPLETE_CRAP' code.
 
 	* sys/vfork.c (__vexit): Call `__stop_itimers' only if
@@ -3769,7 +3775,7 @@ Nick Burrett  <nick.burrett@btinternet.com>
 
 	* unix/tty.c (__ttyioctl): Re-written, ready to provide more support
 	for tty ioctls.
-	(__ttyioctl, case TIOCEXCL): Do nothing. 
+	(__ttyioctl, case TIOCEXCL): Do nothing.
 	(__ttyioctl, case TIOCNXCL): Likewise.
 	(__ttyioctl, case TIOCFLUSH): Flush input/output buffers.
 	
@@ -3915,7 +3921,7 @@ Peter Burwood  <pjb@arcangel.dircon.co.uk>
 	item from array.
 
 	* unix/tty.c: (MAX_INPUT): #if used to check value is valid.
-	(__ttyicanon): Swapped tty and file_desc argument position and callers. 
+	(__ttyicanon): Swapped tty and file_desc argument position and callers.
 	(__ttyiraw): Likewise.
 	(__ttywrite): Remove unnecessary isupper.
 	(__ttyinput): Likewise.
@@ -4575,7 +4581,7 @@ Nicholas Clark  <nickc@liv.ac.uk>
 	* unix/open.c: Likewise.
 	* unix/stat.c: Likewise.
 	* unix/mkdir.c: Likewise. Use __set_errno.
-	* unix/rmdir.c: Likewise. 
+	* unix/rmdir.c: Likewise.
 	* unix/truncate.c: Likewise.
 	* unix/unlink.c: Likewise.
 	* unix/utime.c: Likewise.
@@ -4610,7 +4616,7 @@ Peter Burwood  <pjb@arcangel.dircon.co.uk>
 	* sys/syslib.c: (_exit): Do not set Sys$ReturnCode since __exit does it.
 
 	* sys/vfork.c: Initialisation and freeing of child's envp and envb.
-	Use monotonic clock to generate process id (this will change). 
+	Use monotonic clock to generate process id (this will change).
 
 	* unix/chdir.c: Rewritten to use and change Prefix$Dir when it has
 	been set. Use new __getenv_from_os.
@@ -4673,7 +4679,7 @@ Nick Burrett  <nick.burrett@btinternet.com>
 	* clib/signal.h: Define macro versions of sigaddset, sigdelset,
 	sigismember. Prefix all variable names with '__'.
 
-	* signal/sigismember.c: #undef sigismember 
+	* signal/sigismember.c: #undef sigismember
 	* signal/sigdelset.c: #undef sigdelset
 	* signal/sigaddset.c: #undef sigdelset
 	* signal/sigsets.c: #undef sigemptyset, sigfillset, sigmask
@@ -4768,14 +4774,14 @@ Nicholas Clark  <nickc@liv.ac.uk>
 	
 	  Ultrix setlocale(..., "") fails if there are no environment
 	  variables from which to get a locale name.
-	  
+	
 	  implication: most Unixes accept "" without complaint.
-	  
+	
 	* clib/unixlib/local.h: __attribute to __attrib
 
 	* time/c.calendconv: Fixed 3 off-by-ones in __tz
 	  Check the SWI with Mon 1st Jan 1900.
-	  
+	
 	* time/c.gmtime: gmtoff == 0 whether localtime on daylight saving!
 
 Sat Jul 26 17:03:30 1997 CL0019

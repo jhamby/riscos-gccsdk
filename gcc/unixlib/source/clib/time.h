@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/time.h,v $
- * $Date: 2003/11/21 14:38:33 $
- * $Revision: 1.9 $
+ * $Date: 2004/04/12 13:03:37 $
+ * $Revision: 1.10 $
  * $State: Exp $
- * $Author: peter $
+ * $Author: nick $
  *
  ***************************************************************************/
 
@@ -124,7 +124,7 @@ extern char *ctime (const time_t *__timer) __THROW;
 /* Return the number of seconds elapsed between time1 and time 0
    as a value of type double.  */
 extern double difftime (time_t __time1, time_t __time0)
-     __attribute__ ((__const__)) __THROW;
+     __THROW __attribute__ ((__const__));
 
 /* Convert the calendar time 'time' to broken-down time,
    expressed relative to the user's specified time zone. */

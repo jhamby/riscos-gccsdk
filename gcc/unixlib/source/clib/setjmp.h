@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/setjmp.h,v $
- * $Date: 2003/06/23 20:33:03 $
- * $Revision: 1.6 $
+ * $Date: 2004/04/12 13:03:37 $
+ * $Revision: 1.7 $
  * $State: Exp $
- * $Author: joty $
+ * $Author: nick $
  *
  ***************************************************************************/
 
@@ -49,7 +49,7 @@ extern int setjmp (jmp_buf __env) __THROW;
    created 'env' will then return 'val'.  If val is zero, then
    setjmp will return 1. */
 extern void longjmp (jmp_buf __env, int __val)
-     __attribute__ ((__noreturn__)) __THROW;
+     __THROW __attribute__ ((__noreturn__));
 
 /* POSIX details.  */
 
@@ -74,7 +74,7 @@ extern int sigsetjmp (sigjmp_buf __state, int __savesigs) __THROW;
    call there return val, or 1 if val is 0.  Restore the signal
    mask if that sigsetjmp call saved it.  */
 extern void siglongjmp (const sigjmp_buf __env,
-			int __val) __attribute__ ((__noreturn__)) __THROW;
+			int __val) __THROW __attribute__ ((__noreturn__));
 
 #ifdef __UNIXLIB_INTERNALS
 /* Internal functions.  */

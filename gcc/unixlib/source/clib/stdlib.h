@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/stdlib.h,v $
- * $Date: 2004/02/15 19:37:38 $
- * $Revision: 1.8 $
+ * $Date: 2004/04/12 13:03:37 $
+ * $Revision: 1.9 $
  * $State: Exp $
- * $Author: peter $
+ * $Author: nick $
  *
  ***************************************************************************/
 
@@ -115,24 +115,24 @@ extern int __atexit_function_count;
 /* Allocate nmemb elements of size bytes each. Initialise
    all members to zero.  */
 extern void *calloc (size_t __nmemb, size_t __size)
-     __attribute_malloc__  __THROW;
+     __THROW  __attribute_malloc__;
 
 /* Free a block allocated by malloc, calloc or realloc.  */
 extern void free (void *__ptr) __THROW;
 
 /* Allocate __size bytes of memory.  */
-extern void *malloc (size_t __size) __attribute_malloc__ __THROW;
+extern void *malloc (size_t __size) __THROW __attribute_malloc__;
 
 /* Re-allocate the previously malloc'd block, ptr, making the
    new block size bytes.  */
-extern void *realloc (void *__ptr, size_t __size) __attribute_malloc__ __THROW;
+extern void *realloc (void *__ptr, size_t __size) __THROW __attribute_malloc__;
 
 /* Allocate size bytes on a page boundary. The storage cannot be freed.  */
-extern void *valloc (size_t __bytes) __attribute_malloc__ __THROW;
+extern void *valloc (size_t __bytes) __THROW __attribute_malloc__;
 
 /* src.c.alloc thinks these are in stdio.h, but that feels wrong ... */
 extern void *memalign (size_t __alignment,
-		       size_t __bytes) __attribute_malloc__ __THROW;
+		       size_t __bytes) __THROW __attribute_malloc__;
 extern void cfree (void *__mem) __THROW;
 extern int malloc_trim (size_t) __THROW;
 
@@ -160,35 +160,35 @@ extern char *initstate (unsigned int __seed, char *__statebuf,
 extern char *setstate (char *__statebuf) __THROW;
 
 /* Return the absolute value of x.  */
-extern int abs (int __x) __attribute__ ((__const__)) __THROW;
-extern long int	labs (long int __x) __attribute__ ((__const__)) __THROW;
+extern int abs (int __x) __THROW __attribute__ ((__const__));
+extern long int	labs (long int __x) __THROW __attribute__ ((__const__));
 
 /* Return numerator divided by denominator.  */
 extern div_t div (int __numer, int __denom)
-     __attribute__ ((__const__)) __THROW;
+     __THROW __attribute__ ((__const__));
 extern ldiv_t ldiv (long __numer, long __denom)
-     __attribute__ ((__const__)) __THROW;
+     __THROW __attribute__ ((__const__));
 #ifdef __GNUC__
 __extension__
 extern lldiv_t lldiv (long long __numer, long long __denom)
-     __attribute__ ((__const__)) __THROW;
+     __THROW __attribute__ ((__const__));
 #endif
 
 /* Convert a string to a floating point number.  */
-extern double atof (const char *__string) __attribute_pure__ __THROW;
+extern double atof (const char *__string) __THROW __attribute_pure__;
 #define atof(s) strtod(s, (char **)NULL)
 
 /* Convert a string to an integer.  */
-extern int atoi (const char *__string) __attribute_pure__ __THROW;
+extern int atoi (const char *__string) __THROW __attribute_pure__;
 #define atoi(s) ((int)strtol(s, (char **) NULL, 10))
 
 /* Convert a string to a long integer.  */
-extern long atol (const char *__string) __attribute_pure__ __THROW;
+extern long atol (const char *__string) __THROW __attribute_pure__;
 #define atol(s) strtol(s, (char **) NULL, 10)
 
 /* Convert a string to a 64-bit long integer.  */
 __extension__ extern long long atoll (const char *__string)
-     __attribute_pure__ __THROW;
+     __THROW __attribute_pure__;
 #define atoll(s) strtoll(s, (char **) NULL, 10)
 
 

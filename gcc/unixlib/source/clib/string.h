@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/string.h,v $
- * $Date: 2004/02/15 19:37:38 $
- * $Revision: 1.10 $
+ * $Date: 2004/04/12 13:03:37 $
+ * $Revision: 1.11 $
  * $State: Exp $
- * $Author: peter $
+ * $Author: nick $
  *
  ***************************************************************************/
 
@@ -36,14 +36,14 @@ extern void *memset (void *__s, int __c, size_t __n) __THROW;
 
 /* Compare n bytes of s1 and s2.  */
 extern int memcmp (const void *__s1, const void *__s2, size_t __n)
-     __attribute_pure__ __THROW;
+     __THROW __attribute_pure__;
 
 /* Search n bytes of s for c.  */
 extern void *memchr (const void *__s, int __c, size_t __n)
-     __attribute_pure__ __THROW;
+     __THROW __attribute_pure__;
 
 extern void *__rawmemchr (__const void *__s, int __c)
-     __attribute_pure__ __THROW;
+     __THROW __attribute_pure__;
 
 /* Copy src to dest. */
 extern char *strcpy (char *__restrict __dest, const char *__restrict __src)
@@ -63,43 +63,43 @@ extern char *strncat (char *__restrict __dest, const char *__restrict __src,
 
 /* Compare s1 and s2.  */
 extern int strcmp (const char *__s1, const char *__s2)
-     __attribute_pure__ __THROW;
+     __THROW __attribute_pure__;
 
 /* Compare n chars of s1 and s2.  */
 extern int strncmp (const char *__s1, const char *__s2, size_t __n)
-     __attribute_pure__ __THROW;
+     __THROW __attribute_pure__;
 
 /* Compare two strings according to the locale's collating rules */
 extern int strcoll (const char *__s1, const char *__s2)
-     __attribute_pure__ __THROW;
+     __THROW __attribute_pure__;
 
 /* Transform a string according to the locale's collating rules */
 extern size_t strxfrm (char *__restrict __to, const char *__restrict __from,
 		       size_t __size) __THROW;
 
 /* Find the first occurrence of c in s. */
-extern char *strchr (const char *__s, int __c) __attribute_pure__ __THROW;
+extern char *strchr (const char *__s, int __c) __THROW __attribute_pure__;
 
 /* Find the last occurrence of c in s.  */
-extern char *strrchr (const char *__s, int __c) __attribute_pure__ __THROW;
+extern char *strrchr (const char *__s, int __c) __THROW __attribute_pure__;
 
 /* Return the length of the initial segment of s that consists
    entirely of chars in accept.  */
 extern size_t strspn (const char *__s, const char *__accept)
-     __attribute_pure__ __THROW;
+     __THROW __attribute_pure__;
 
 /* Return the length of the initial segment of s that consists
    entirely of chars not in reject.  */
 extern size_t strcspn (const char *__s, const char *__reject)
-     __attribute_pure__ __THROW;
+     __THROW __attribute_pure__;
 
 /* Find the first occurence in s of any char in accept.  */
 extern char *strpbrk (const char *__s, const char *__accept)
-     __attribute_pure__ __THROW;
+     __THROW __attribute_pure__;
 
 /* Find the first occurrence of s in s1.  */
 extern char *strstr (const char *__s, const char *__s1)
-     __attribute_pure__ __THROW;
+     __THROW __attribute_pure__;
 
 /* Divide s into tokens separated by chars in delim.  */
 extern char *strtok (char *__restrict __s, const char *__restrict __delim)
@@ -110,7 +110,7 @@ extern char *strtok_r (char *__s, const char *__delim, char **__save_ptr)
      __THROW;
 
 /* Return the length of s. */
-extern size_t strlen (const char *__s) __attribute_pure__ __THROW;
+extern size_t strlen (const char *__s) __THROW __attribute_pure__;
 
 /* Find the length of STRING, but scan at most MAXLEN characters.
    If no '\0' terminator is found in that many characters, return MAXLEN.  */
@@ -146,7 +146,7 @@ extern void *memccpy (void *__dest, const void *__src, int __c, size_t __n)
      __THROW;
 
 /* Duplicate s, returning an identical malloc'd string.  */
-extern char *strdup (const char *__s) __attribute_malloc__ __THROW;
+extern char *strdup (const char *__s) __THROW __attribute_malloc__;
 
 /* Return the next DELIM-delimited token from *STRINGP,
    terminating it with a '\0', and update *STRINGP to point past it.  */

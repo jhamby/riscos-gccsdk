@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/math.h,v $
- * $Date: 2004/02/23 16:07:29 $
- * $Revision: 1.8 $
+ * $Date: 2004/04/12 13:03:37 $
+ * $Revision: 1.9 $
  * $State: Exp $
- * $Author: peter $
+ * $Author: nick $
  *
  ***************************************************************************/
 
@@ -35,80 +35,80 @@ __BEGIN_DECLS
 /* Trigonometric functions.  */
 
 /* Arc cosine of x.  */
-extern double acos (double __x) __attribute__ ((__const__)) __THROW;
-extern float acosf (float __x) __attribute__ ((__const__)) __THROW;
-extern long double acosl (long double __x) __attribute__ ((__const__)) __THROW;
+extern double acos (double __x) __THROW __attribute__ ((__const__));
+extern float acosf (float __x) __THROW __attribute__ ((__const__));
+extern long double acosl (long double __x) __THROW __attribute__ ((__const__));
 
 /* Arc sine of x.  */
-extern double asin (double __x) __attribute__ ((__const__)) __THROW;
-extern float asinf (float __x) __attribute__ ((__const__)) __THROW;
-extern long double asinl (long double __x) __attribute__ ((__const__)) __THROW;
+extern double asin (double __x) __THROW __attribute__ ((__const__));
+extern float asinf (float __x) __THROW __attribute__ ((__const__));
+extern long double asinl (long double __x) __THROW __attribute__ ((__const__));
 
 /* Arc tangent of x.  */
-extern double atan (double __x) __attribute__ ((__const__)) __THROW;
-extern float atanf (float __x) __attribute__ ((__const__)) __THROW;
-extern long double atanl (long double __x) __attribute__ ((__const__)) __THROW;
+extern double atan (double __x) __THROW __attribute__ ((__const__));
+extern float atanf (float __x) __THROW __attribute__ ((__const__));
+extern long double atanl (long double __x) __THROW __attribute__ ((__const__));
 
 /* Arc tangent of y/x.  */
 extern double atan2 (double __y, double __x)
-     __attribute__ ((__const__)) __THROW;
-extern float atan2f (float __y, float __x) __attribute__ ((__const__)) __THROW;
+     __THROW __attribute__ ((__const__));
+extern float atan2f (float __y, float __x) __THROW __attribute__ ((__const__));
 extern long double atan2l (long double __y, long double __x)
-     __attribute__ ((__const__)) __THROW;
+     __THROW __attribute__ ((__const__));
 
 /* Cosine of x.  */
-extern double cos (double __x) __attribute__ ((__const__)) __THROW;
-extern float cosf (float __x) __attribute__ ((__const__)) __THROW;
-extern long double cosl (long double __x) __attribute__ ((__const__)) __THROW;
+extern double cos (double __x) __THROW __attribute__ ((__const__));
+extern float cosf (float __x) __THROW __attribute__ ((__const__));
+extern long double cosl (long double __x) __THROW __attribute__ ((__const__));
 
 /* Sine of x.  */
-extern double sin (double __x) __attribute__ ((__const__)) __THROW;
-extern float sinf (float __x) __attribute__ ((__const__)) __THROW;
-extern long double sinl (long double __x) __attribute__ ((__const__)) __THROW;
+extern double sin (double __x) __THROW __attribute__ ((__const__));
+extern float sinf (float __x) __THROW __attribute__ ((__const__));
+extern long double sinl (long double __x) __THROW __attribute__ ((__const__));
 
 /* Tangent of x.  */
-extern double tan (double __x) __attribute__ ((__const__)) __THROW;
-extern float tanf (float __x) __attribute__ ((__const__)) __THROW;
-extern long double tanl (long double __x) __attribute__ ((__const__)) __THROW;
+extern double tan (double __x) __THROW __attribute__ ((__const__));
+extern float tanf (float __x) __THROW __attribute__ ((__const__));
+extern long double tanl (long double __x) __THROW __attribute__ ((__const__));
 
 /* Hyperbolic functions.  */
 
 /* Hyperbolic cosine of x.  */
-extern double cosh (double __x) __attribute__ ((__const__)) __THROW;
-extern float coshf (float __x) __attribute__ ((__const__)) __THROW;
-extern long double coshl (long double __x) __attribute__ ((__const__)) __THROW;
+extern double cosh (double __x) __THROW __attribute__ ((__const__));
+extern float coshf (float __x) __THROW __attribute__ ((__const__));
+extern long double coshl (long double __x) __THROW __attribute__ ((__const__));
 
 /* Hyperbolic sine of x.  */
-extern double sinh (double __x) __attribute__ ((__const__)) __THROW;
-extern float sinhf (float __x) __attribute__ ((__const__)) __THROW;
-extern long double sinhl (long double __x) __attribute__ ((__const__)) __THROW;
+extern double sinh (double __x) __THROW __attribute__ ((__const__));
+extern float sinhf (float __x) __THROW __attribute__ ((__const__));
+extern long double sinhl (long double __x) __THROW __attribute__ ((__const__));
 
 /* Hyperbolic tangent of x.  */
-extern double tanh (double __x) __attribute__ ((__const__)) __THROW;
-extern float tanhf (float __x) __attribute__ ((__const__)) __THROW;
-extern long double tanhl (long double __x) __attribute__ ((__const__)) __THROW;
+extern double tanh (double __x) __THROW __attribute__ ((__const__));
+extern float tanhf (float __x) __THROW __attribute__ ((__const__));
+extern long double tanhl (long double __x) __THROW __attribute__ ((__const__));
 
 /* Hyperbolic arc cosine of x.  */
-extern double acosh (double __x) __attribute__ ((__const__)) __THROW;
+extern double acosh (double __x) __THROW __attribute__ ((__const__));
 
 /* Hyperbolic arc sine of x.  */
-extern double asinh (double __x) __attribute__ ((__const__)) __THROW;
+extern double asinh (double __x) __THROW __attribute__ ((__const__));
 
 /* Hyperbolic arc tangent of x.  */
-extern double atanh (double __x) __attribute__ ((__const__)) __THROW;
+extern double atanh (double __x) __THROW __attribute__ ((__const__));
 
 /* Exponential and logarithmic functions.  */
 
 /* Exponentional function of x (2 ^ e).  */
-extern double exp (double __x) __attribute__ ((__const__)) __THROW;
-extern float expf (float __x) __attribute__ ((__const__)) __THROW;
-extern long double expl (long double __x) __attribute__ ((__const__)) __THROW;
+extern double exp (double __x) __THROW __attribute__ ((__const__));
+extern float expf (float __x) __THROW __attribute__ ((__const__));
+extern long double expl (long double __x) __THROW __attribute__ ((__const__));
 
 /* Exponentional function of x (2 ^ x).  */
-extern double exp2 (double __x) __attribute__ ((__const__)) __THROW;
+extern double exp2 (double __x) __THROW __attribute__ ((__const__));
 
 /* Exponentional function of x (10 ^ x).  */
-extern double exp10 (double __x) __attribute__ ((__const__)) __THROW;
+extern double exp10 (double __x) __THROW __attribute__ ((__const__));
 
 /* Break value into a normalized fracton and an integral power of 2.  */
 extern double frexp (double value, int *__exp);
@@ -117,25 +117,25 @@ extern long double frexpl (long double value, int *__exp);
 
 /* x times (two to the exp power).  */
 extern double ldexp (double __x, int __exp)
-     __attribute__ ((__const__)) __THROW;
-extern float ldexpf (float __x, int __exp) __attribute__ ((__const__)) __THROW;
+     __THROW __attribute__ ((__const__));
+extern float ldexpf (float __x, int __exp) __THROW __attribute__ ((__const__));
 extern long double ldexpl (long __x, int __exp)
-     __attribute__ ((__const__)) __THROW;
+     __THROW __attribute__ ((__const__));
 
 /* scalb is the BSD name for ldexp.  */
 extern double scalb (double __x, int __exp)
-     __attribute__ ((__const__)) __THROW;
+     __THROW __attribute__ ((__const__));
 
 /* Natural logarithm of x.  */
-extern double log (double __x) __attribute__ ((__const__)) __THROW;
-extern float logf (float __x) __attribute__ ((__const__)) __THROW;
-extern long double logl (long double __x) __attribute__ ((__const__)) __THROW;
+extern double log (double __x) __THROW __attribute__ ((__const__));
+extern float logf (float __x) __THROW __attribute__ ((__const__));
+extern long double logl (long double __x) __THROW __attribute__ ((__const__));
 
 /* Base-ten logarithm of x.  */
-extern double log10 (double __x) __attribute__ ((__const__)) __THROW;
-extern float log10f (float __x) __attribute__ ((__const__)) __THROW;
+extern double log10 (double __x) __THROW __attribute__ ((__const__));
+extern float log10f (float __x) __THROW __attribute__ ((__const__));
 extern long double log10l (long double __x)
-     __attribute__ ((__const__)) __THROW;
+     __THROW __attribute__ ((__const__));
 
 /* Break value into integral and fractional parts.  */
 extern double modf (double __value, double *__iprt);
@@ -145,127 +145,127 @@ extern long double modfl (long double __value, long double *__iprt);
 /* Power functions.  */
 
 /* Return x to the y power.  */
-extern double pow (double __x, double __y) __attribute__ ((__const__)) __THROW;
-extern float powf (float __x, float __y) __attribute__ ((__const__)) __THROW;
+extern double pow (double __x, double __y) __THROW __attribute__ ((__const__));
+extern float powf (float __x, float __y) __THROW __attribute__ ((__const__));
 extern long double powl (long double __x,
-			 long double __y) __attribute__ ((__const__)) __THROW;
+			 long double __y) __THROW __attribute__ ((__const__));
 
 /* Return the square root of x.  */
-extern double sqrt (double __x) __attribute__ ((__const__)) __THROW;
+extern double sqrt (double __x) __THROW __attribute__ ((__const__));
 
 /* Nearest integer, absolute value, and remainder functions.  */
 
 /* Smallest integral value not less than X.  */
-extern double ceil (double __x) __attribute__ ((__const__)) __THROW;
-extern float ceilf (float __x) __attribute__ ((__const__)) __THROW;
-extern long double ceill (long double __x) __attribute__ ((__const__)) __THROW;
+extern double ceil (double __x) __THROW __attribute__ ((__const__));
+extern float ceilf (float __x) __THROW __attribute__ ((__const__));
+extern long double ceill (long double __x) __THROW __attribute__ ((__const__));
 
 /* Absolute value of X.  */
-extern double fabs (double __x) __attribute__ ((__const__)) __THROW;
+extern double fabs (double __x) __THROW __attribute__ ((__const__));
 
 /* Largest integer not greater than X.  */
-extern double floor (double __x) __attribute__ ((__const__)) __THROW;
-extern float floorf (float __x) __attribute__ ((__const__)) __THROW;
+extern double floor (double __x) __THROW __attribute__ ((__const__));
+extern float floorf (float __x) __THROW __attribute__ ((__const__));
 extern long double floorl (long double __x)
-     __attribute__ ((__const__)) __THROW;
+     __THROW __attribute__ ((__const__));
 
 /* Nearest integer to X, away from 0 as a double.  */
-extern double round (double __x) __attribute__ ((__const__)) __THROW;
+extern double round (double __x) __THROW __attribute__ ((__const__));
 
 /* Nearest integer to X, away from 0 as a long int.  */
-extern long lround (double __x) __attribute__ ((__const__)) __THROW;
+extern long lround (double __x) __THROW __attribute__ ((__const__));
 
 #ifdef __GNUC__
 /* Nearest integer to X, away from 0 as a long long.  */
 __extension__
-extern long long llround (double __x) __attribute__ ((__const__)) __THROW;
+extern long long llround (double __x) __THROW __attribute__ ((__const__));
 #endif
 
 /* Floating-point modulo remainder of X/Y.  */
 extern double fmod (double __x, double __y)
-     __attribute__ ((__const__)) __THROW;
-extern float fmodf (float __x, float __y) __attribute__ ((__const__)) __THROW;
+     __THROW __attribute__ ((__const__));
+extern float fmodf (float __x, float __y) __THROW __attribute__ ((__const__));
 extern long double fmodl (long double __x,
-			  long double __y) __attribute__ ((__const__)) __THROW;
+			  long double __y) __THROW __attribute__ ((__const__));
 
 /* Hypotenuese of x and y.  */
 extern double hypot (double __x, double __y)
-     __attribute__ ((__const__)) __THROW;
+     __THROW __attribute__ ((__const__));
 
 /* (Exponent of x) minus 1.  */
-extern double expm1 (double __x) __attribute__ ((__const__)) __THROW;
+extern double expm1 (double __x) __THROW __attribute__ ((__const__));
 
 /* Natural logarithm of (x plus 1).  */
-extern double log1p (double __x) __attribute__ ((__const__)) __THROW;
+extern double log1p (double __x) __THROW __attribute__ ((__const__));
 
 /* Return 1 if x is infinite, else 0. */
-extern int isinf (double __x) __attribute__ ((__const__)) __THROW;
+extern int isinf (double __x) __THROW __attribute__ ((__const__));
 
 /* Return 1 if x is Not A Number, else 0.  */
-extern int isnan (double __x) __attribute__ ((__const__)) __THROW;
+extern int isnan (double __x) __THROW __attribute__ ((__const__));
 
 /* Return cube root of x. */
-extern double cbrt (double __x) __attribute__ ((__const__)) __THROW;
+extern double cbrt (double __x) __THROW __attribute__ ((__const__));
 
 /* Return 1 is x is finite, else 0.  */
-extern int finite (double __x) __attribute__ ((__const__)) __THROW;
+extern int finite (double __x) __THROW __attribute__ ((__const__));
 
 /* Return a value with magnitude of x and with the sign bit of y.  */
 extern double copysign (double __x, double __y)
-     __attribute__ ((__const__)) __THROW;
+     __THROW __attribute__ ((__const__));
 
 /* Return the next machine floating-point number of x in the
    direction toward y.  */
 extern double nextafter (double __x, double __y)
-     __attribute__ ((__const__)) __THROW;
+     __THROW __attribute__ ((__const__));
 
 /* Return x rounded to integral value according to the prevailing
    rounding mode.  */
-extern double rint (double __x) __attribute__ ((__const__)) __THROW;
+extern double rint (double __x) __THROW __attribute__ ((__const__));
 
 /* Return x*(2^n) computed by exponent manipulation rather than
    by actually performing an exponentiation or a multiplication.  */
-extern double scalbn (double __x, int __n) __attribute__ ((__const__)) __THROW;
+extern double scalbn (double __x, int __n) __THROW __attribute__ ((__const__));
 
 /* Return x rounded toward +inf to integral value. */
-extern double ceil (double __x) __attribute__ ((__const__)) __THROW;
+extern double ceil (double __x) __THROW __attribute__ ((__const__));
 
 /* Return x rounded toward -inf to integral value.  */
-extern double floor (double __x) __attribute__ ((__const__)) __THROW;
+extern double floor (double __x) __THROW __attribute__ ((__const__));
 
 /* Return remainder of dividing x by y.  */
 extern double drem (double __x, double __y)
-     __attribute__ ((__const__)) __THROW;
+     __THROW __attribute__ ((__const__));
 
 /* Returns x REM p = x - [x/p]*p as if in infinite precise arithmetic,
    where [x/p] is the (infinite bit) integet nearest x/p (in half way
    case choose the even one).  */
 extern double remainder (double __x, double __p)
-     __attribute__ ((__const__)) __THROW;
+     __THROW __attribute__ ((__const__));
 
 /* Return the binary exponent of non-zero x.
    ilogb(0) = 0x80000001
    ilogb(inf/NaN) = 0x7fffffff */
-extern int ilogb (double __x) __attribute__ ((__const__)) __THROW;
+extern int ilogb (double __x) __THROW __attribute__ ((__const__));
 
 /* IEEE 754 logb. Use ilogb instead.  */
-extern double logb (double __x) __attribute__ ((__const__)) __THROW;
+extern double logb (double __x) __THROW __attribute__ ((__const__));
 
-extern double significand (double __x) __attribute__ ((__const__)) __THROW;
+extern double significand (double __x) __THROW __attribute__ ((__const__));
 
 #ifndef __UNIXLIB_INTERNALS
 /* Bessel function of the first and second kinds of order zero.  */
-extern double j0 (double __x) __attribute__ ((__const__)) __THROW;
-extern double y0 (double __x) __attribute__ ((__const__)) __THROW;
+extern double j0 (double __x) __THROW __attribute__ ((__const__));
+extern double y0 (double __x) __THROW __attribute__ ((__const__));
 #endif
 
 /* Bessel function of the first and second kinds of order one.  */
-extern double j1 (double __x) __attribute__ ((__const__)) __THROW;
-extern double y1 (double __x) __attribute__ ((__const__)) __THROW;
+extern double j1 (double __x) __THROW __attribute__ ((__const__));
+extern double y1 (double __x) __THROW __attribute__ ((__const__));
 
 /* Bessel function of the first and second kinds of order n.  */
-extern double jn (int __n, double __x) __attribute__ ((__const__)) __THROW;
-extern double yn (int __n, double __x) __attribute__ ((__const__)) __THROW;
+extern double jn (int __n, double __x) __THROW __attribute__ ((__const__));
+extern double yn (int __n, double __x) __THROW __attribute__ ((__const__));
 
 /*                           x
                       2      |\
@@ -275,8 +275,8 @@ extern double yn (int __n, double __x) __attribute__ ((__const__)) __THROW;
 
        erfc(x) =  1-erf(x)
 */
-extern double erf (double __x) __attribute__ ((__const__)) __THROW;
-extern double erfc (double __x) __attribute__ ((__const__)) __THROW;
+extern double erf (double __x) __THROW __attribute__ ((__const__));
+extern double erfc (double __x) __THROW __attribute__ ((__const__));
 
 #ifdef __UNIXLIB_INTERNALS
 /* Internal function used by rem_pio2().  */
@@ -298,9 +298,9 @@ extern int signgam;
 #ifdef __UNIXLIB_INTERNALS
 /* Internals used by lgamma().  */
 extern double __kernel_sin (double __x, double __y,
-			    int __iy) __attribute__ ((__const__)) __THROW;
+			    int __iy) __THROW __attribute__ ((__const__));
 extern double __kernel_cos (double __x,
-			    double __y) __attribute__ ((__const__)) __THROW;
+			    double __y) __THROW __attribute__ ((__const__));
 #endif
 
 /* BSD useful constants.  */
@@ -345,7 +345,7 @@ extern double __kernel_cos (double __x,
 #define FP_SUBNORMAL 3
 #define FP_NORMAL 4
 
-extern int fpclassify (double __x)  __attribute__ ((__const__)) __THROW;
+extern int fpclassify (double __x)  __THROW __attribute__ ((__const__));
 
 /* Values returned by ilogb for 0 and NaN respectively.  */
 #define FP_ILOGB0 0x80000000
@@ -378,48 +378,48 @@ extern int fpclassify (double __x)  __attribute__ ((__const__)) __THROW;
 
 /* Return (x*y) + z.  */
 extern double fma (double __x, double __y,
-		   double __z) __attribute__ ((__const__)) __THROW;
+		   double __z) __THROW __attribute__ ((__const__));
 
 /* Return the value of smaller magnitude.  */
 extern double fmin (double __x, double __y)
-     __attribute__ ((__const__)) __THROW;
+     __THROW __attribute__ ((__const__));
 
 /* Return the value of greater magnitude.  */
 extern double fmax (double __x, double __y)
-     __attribute__ ((__const__)) __THROW;
+     __THROW __attribute__ ((__const__));
 
 /* Return the difference between x and y.  */
 extern double fdim (double __x, double __y)
-     __attribute__ ((__const__)) __THROW;
+     __THROW __attribute__ ((__const__));
 
 /* Compute base-2 logarithm of x.  */
-extern double log2 (double __x) __attribute__ ((__const__)) __THROW;
+extern double log2 (double __x) __THROW __attribute__ ((__const__));
 
 /* Round x to the nearest integral.  */
-extern long int lrint (double __x) __attribute__ ((__const__)) __THROW;
+extern long int lrint (double __x) __THROW __attribute__ ((__const__));
 #ifdef __GNUC__
 __extension__
-extern long long int llrint (double __x) __attribute__ ((__const__)) __THROW;
+extern long long int llrint (double __x) __THROW __attribute__ ((__const__));
 #endif
 
-extern long int lrintf (float __x) __attribute__ ((__const__)) __THROW;
+extern long int lrintf (float __x) __THROW __attribute__ ((__const__));
 #ifdef __GNUC__
 __extension__
-extern long long int llrintf (float __x) __attribute__ ((__const__)) __THROW;
+extern long long int llrintf (float __x) __THROW __attribute__ ((__const__));
 #endif
 
 /* Round x to integral value.  */
-extern double nearbyint (double __x) __attribute__ ((__const__)) __THROW;
+extern double nearbyint (double __x) __THROW __attribute__ ((__const__));
 
 /* Round x to integral value, but not to integral larger than x.  */
-extern double trunc (double __x) __attribute__ ((__const__)) __THROW;
+extern double trunc (double __x) __THROW __attribute__ ((__const__));
 
 /* Compute remainder of X and Y and put in *QUO a value with sign of x/y
    and magnitude congruent `mod 2^n' to the magnitude of the integral
    quotient x/y, with n >= 3.  */
 extern double remquo (double __x, double __y, int *__quo) __THROW;
 
-extern int signbit (double __x) __attribute__ ((__const__)) __THROW;
+extern int signbit (double __x) __THROW __attribute__ ((__const__));
 
 #ifdef __UNIXLIB_INTERNALS
 extern void __sincos (double __x, double *__sinx, double *__cosx) __THROW;
