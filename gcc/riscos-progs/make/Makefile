@@ -1,9 +1,11 @@
-INCLUDES = -I./
-CFLAGS = -O2 $(OPTS) $(TARGET_DEFS) -DHAVE_CONFIG_H
-CC = $(standard_exec_prefix)/gcc $(CFLAGS)
+# Makefile for GNU make - a build management tool
+# Written by Nick Burrett <nick@dsvr.net>
+
+INCLUDES = -I.
+CROSS_CFLAGS += -DHAVE_CONFIG_H
 
 $(objdir)/riscos-progs/make/%.o: %.c
-	$(CC) -o $@ -c $< $(INCLUDES)
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c $< $(INCLUDES)
 
 OBJS = $(objdir)/riscos-progs/make/ar.o \
 	$(objdir)/riscos-progs/make/arscan.o \
@@ -27,10 +29,10 @@ OBJS = $(objdir)/riscos-progs/make/ar.o \
 	$(objdir)/riscos-progs/make/version.o \
 	$(objdir)/riscos-progs/make/vpath.o
 
-all:	$(BIN)/make
+all:	$(bin_dir)/make
 
-$(BIN)/make:	$(OBJS) $(TBIN)/$(TRG)/unixlib.o 
-	$(standard_exec_prefix)/gcc -o $@ $(OBJS)
+$(bin_dir)/make:	$(OBJS)
+	$(CROSS_CC) -o $@ $(OBJS)
 
 $(objdir)/riscos-progs/make/ar.o: ar.c
 $(objdir)/riscos-progs/make/arscan.o: arscan.c

@@ -19,48 +19,96 @@ sharedstatedir=@sharedstatedir@
 srcdir=@srcdir@
 sysconfdir=@sysconfdir@
 
-CC=@CC@
-CXX=@CXX@
-CFLAGS=@CFLAGS@
-CXXFLAGS=@CXXFLAGS@
-
 TARGET_NAME=@target_name@
 TARGET_DEFS=@target_defs@
-gccpkg=@prefix@
-distdir=@prefix@
+
+# The native C and C++ compiler on the host computer
+CC=@CC@
+CXX=@CXX@
+CFLAGS=@CFLAGS@ $(TARGET_DEFS)
+CXXFLAGS=@CXXFLAGS@ $(TARGET_DEFS)
+
+# Installation directory of Unix binaries i.e. the stage 1 compiler.
+ux_gccpkg=@prefix@
+
+# Installation directory of RISC OS binaries i.e. the stage 2 compiler.
+ro_gccpkg = @with_riscos_dist@
+
+# Installation directory of RISC OS distribution packaged as zip files.
+ro_zippkg = @with_riscos_pkg@
+
+# Working directory where object files are stored
 objdir=@topdir@/$(TARGET_NAME)
 
-# Used in the GCC Makefiles
+# Used in the GCC Makefiles and configuration files use these
 hostsystem=@host_system@
+targetsystem=HOST_ARM_RISCOS
 
+# GCC compiler version that we are going to build.
+VERSION = 2_95_2
 
-# set inserts variable overrides after the following line
-####host definitions
-@host_overrides@
-####
+# Define the installation base directory.  These don't determine the actual
+# stored location of files, rather they are the hard-coded values that
+# the gcc driver and pre-processor use to find the binaries and default
+# headers
+unix_prefix=$(ux_gccpkg)/
+riscos_prefix=gccpkg:
 
-export TARGET_NAME TARGET_DEFS gccpkg distdir objdir hostsystem
+# Generic installation directories
+# For building the gcc and cpp binaries, unix_prefix or riscos_prefix
+# are prepended to these paths.
+# For installing the software, ux_gccpkg or ro_gccpkg are prepended to
+# these paths.
+gn_standard_exec_prefix=bin/
+gn_gcc_bin_dir=bin/$(TARGET_NAME)/$(VERSION)
+gn_standard_startfile_prefix=startup/
+gn_gcc_include_dir=lib/gcc-lib/$(TARGET_NAME)/$(VERSION)/include
+gn_gplusplus_include_dir=lib/gcc-lib/$(TARGET_NAME)/$(VERSION)/include/g++-3
+gn_cross_include_dir=include
+gn_local_include_dir=local/include
+gn_system_include_dir=sys/include
 
-# Path to where we place non-target specific compiled binaries
-BIN = $(distdir)/bin
+# Used by Makefiles that build libraries/binaries for RISC OS.  These point
+# to the installation directories for cross-host and RISC OS.
+ux_bin_dir = $(ux_gccpkg)/$(gn_standard_exec_prefix)
+ux_gcc_bin_dir = $(ux_gccpkg)/$(gn_gcc_bin_dir)
+ro_bin_dir = $(ro_gccpkg)/$(gn_standard_exec_prefix)
+ro_gcc_bin_dir = $(ro_gccpkg)/$(gn_gcc_bin_dir)
+info_dir = $(ro_gccpkg)/docs
 
-# Path to the location target specific compiled binaries.
-TBIN = $(distdir)/bin/$(TARGET_NAME)/$(VERSION)
+# After we have build the stage 1 cross-compiler, then we can use these
+# to build the cross-libraries and cross-tools
+CROSS_CC=$(ux_gccpkg)/$(gn_standard_exec_prefix)/gcc
+CROSS_CXX=$(ux_gccpkg)/$(gn_standard_exec_prefix)/g++
+CROSS_CFLAGS=-O2 $(TARGET_DEFS)
+CROSS_CXXFLAGS=-O2 $(TARGET_DEFS)
 
-ifeq ($(crosscompile),yes)
-TARGET_DEFS += -DCROSS_COMPILE
+# Name of the host computers archiver.  This is only used to build
+# libiberty or linking against the cross-compiler.
 AR = ar
-AR_FLAGS = -c
-else
-AR = libfile
-AR_FLAGS = -c
-endif
+AR_FLAGS = -rc
 
-# Pass these variables through the environment to sub-makes.
-export VERSION TARGET_NAME TARGET_DEFS BIN TBIN
-export CFLAGS CXXFLAGS AR AR_FLAGS crosscompile
+# Name of the RISC OS archiver.  Used to build all RISC OS libraries.
+CROSS_AR = $(ux_gccpkg)/$(gn_standard_exec_prefix)/libfile
+CROSS_AR_FLAGS = -c
 
-all:	crosshost crosstarget
+insthdr = @topdir@/scripts/install-headers.pl
+
+# Place variables in the environment.  This saves us having to pass
+# the variables to sub-makes on the command line.
+export TARGET_NAME objdir hostsystem targetsystem
+export ux_gccpkg ro_gccpkg unix_prefix riscos_prefix
+export gn_standard_exec_prefix gn_standard_startfile_prefix
+export gn_gcc_include_dir gn_gplusplus_include_dir
+export gn_local_include_dir gn_system_include_dir gn_cross_include_dir
+export gn_gcc_bin_dir info_dir
+export ux_bin_dir ux_gcc_bin_dir ro_bin_dir ro_gcc_bin_dir
+export CROSS_CC CROSS_CXX CROSS_CFLAGS CROSS_CXXFLAGS
+export CROSS_AR CROSS_AR_FLAGS
+export VERSION TARGET_NAME CFLAGS CXXFLAGS AR AR_FLAGS
+export insthdr
+
+all:	build-stg1 build-stg2
 
 # Setup build and installation directories.  Install run-time library
 # headers
@@ -70,96 +118,82 @@ setup:	directories install_headers
 # i.e. under Linux this will build the GCC cross-compiler, cross-assembler
 # and cross-linker.  Under RISC OS this will build the compiler, assembler
 # and linker natively
-crosshost:	libiberty riscos-aof gcc
-
-ifeq ($(crosscompile),yes)
-riscoshost:	cross-progs
-else
-# We don't build these for on the cross compiler because the host probably
-# has the tools anyway.  They get built as RISC OS binaries, so it would
-# be pointless.
-riscoshost:	riscos-progs
-endif
+build-stg1:	libiberty-stg1 riscos-aof-stg1 gcc-stg1 cross-progs
 
 # These targets build the libraries and binaries suitable for execution
 # on RISC OS machines only.
-crosstarget:	libgcc unixlib libscl libio libstdc libf2c libgpc riscos-libs riscoshost
+build-stg2:	libiberty-stg2 libgcc unixlib gcc-stg2 \
+	libscl libio libstdc riscos-aof-stg2 libf2c libgpc riscos-libs \
+	riscos-progs riscos-dist
 
 .PHONY: directories
 .PHONY: libgcc
 .PHONY: libgpc
 .PHONY: unixlib
-.PHONY: libscl
-.PHONY: libiberty
 .PHONY: riscos-progs
 .PHONY: riscos-libs
-.PHONY: riscos-aof
 .PHONY: riscos-elf
-.PHONY: gcc
 .PHONY: cross-progs
+.PHONY: riscos-dist
+
+.PHONY: libscl
+.PHONY: gcc-stg1
+.PHONY: gcc-stg2
+.PHONY: libiberty-stg1
+.PHONY: libiberty-stg2
+.PHONY: riscos-aof-stg1
+.PHONY: riscos-aof-stg2
+
 
 # Target (trgXX) and compiler flags (cflXX) definitions.  The XX must
 # match for both trg and cfl in all calls to sub-make processes.  We
 # write them like this because it makes the rest of the makefile easy
 # to read.
-trg10="TRG=apcs26/hard/arch2/unixlib"
-trg11="TRG=apcs26/hard/arch3/unixlib"
-trg12="TRG=apcs26/hard/arch4/unixlib"
-trg13="TRG=apcs26/soft/arch2/unixlib"
-trg14="TRG=apcs26/soft/arch3/unixlib"
-trg15="TRG=apcs26/soft/arch4/unixlib"
+trg10=apcs26/unixlib
+trg11=apcs26/libscl
 
-trg20="TRG=apcs32/hard/arch3/unixlib"
-trg21="TRG=apcs32/hard/arch4/unixlib"
-trg22="TRG=apcs32/soft/arch3/unixlib"
-trg23="TRG=apcs32/soft/arch4/unixlib"
+trg20=apcs32/arch3/unixlib
+trg21=apcs32/arch4/unixlib
 
-trg30="TRG=apcs26/hard/arch2/libscl"
-trg31="TRG=apcs26/hard/arch3/libscl"
-trg32="TRG=apcs26/hard/arch4/libscl"
+trg30=apcs32/arch3/libscl
+trg31=apcs32/arch4/libscl
 
-trg40="TRG=apcs32/hard/arch3/libscl"
-trg41="TRG=apcs32/hard/arch4/libscl"
+cfl10="CFL=-mapcs-26 -mcpu=arm2 -munixlib"
+cfl11="CFL=-mapcs-26 -mcpu=arm2 -mlibscl"
 
-cfl10="CFL=-mapcs-26 -mno-apcs-float -mcpu=arm2 -munixlib"
-cfl11="CFL=-mapcs-26 -mno-apcs-float -mcpu=arm6 -munixlib"
-cfl12="CFL=-mapcs-26 -mno-apcs-float -mcpu=strongarm -munixlib"
-cfl13="CFL=-mapcs-26 -mno-apcs-float -mcpu=arm2 -munixlib -msoft-float"
-cfl14="CFL=-mapcs-26 -mno-apcs-float -mcpu=arm6 -munixlib -msoft-float"
-cfl15="CFL=-mapcs-26 -mno-apcs-float -mcpu=strongarm -munixlib -msoft-float"
+cfl20="CFL=-mapcs-32 -mcpu=arm6 -munixlib"
+cfl21="CFL=-mapcs-32 -mcpu=strongarm -munixlib"
 
-cfl20="CFL=-mapcs-32 -mno-apcs-float -mcpu=arm6 -munixlib"
-cfl21="CFL=-mapcs-32 -mno-apcs-float -mcpu=strongarm -munixlib"
-cfl22="CFL=-mapcs-32 -mno-apcs-float -mcpu=arm6 -munixlib -msoft-float"
-cfl23="CFL=-mapcs-32 -mno-apcs-float -mcpu=strongarm -munixlib -msoft-float"
+cfl30="CFL=-mapcs-32 -mcpu=arm6 -mlibscl"
+cfl31="CFL=-mapcs-32 -mcpu=strongarm -mlibscl"
 
-cfl30="CFL=-mapcs-26 -mno-apcs-float -mcpu=arm2 -mlibscl"
-cfl31="CFL=-mapcs-26 -mno-apcs-float -mcpu=arm6 -mlibscl"
-cfl32="CFL=-mapcs-26 -mno-apcs-float -mcpu=strongarm -mlibscl"
+libiberty-stg1:
+	$(MAKE) -C libiberty "STAGE=stage1"
 
-cfl40="CFL=-mapcs-32 -mno-apcs-float -mcpu=arm6 -mlibscl"
-cfl41="CFL=-mapcs-32 -mno-apcs-float -mcpu=strongarm -mlibscl"
+libiberty-stg2:
+	$(MAKE) -C libiberty "STAGE=stage2" "TRG=$(trg10)"
 
+gcc-stg1:
+	$(MAKE) -C "gcc-$(VERSION)" "STAGE=stage1"
+
+gcc-stg2:
+	$(MAKE) -C "gcc-$(VERSION)" "STAGE=stage2"
+
+riscos-aof-stg1:
+	$(MAKE) -C riscos-aof "STAGE=stage1"
+
+riscos-aof-stg2:
+	$(MAKE) -C riscos-aof "STAGE=stage2"
 
 
 libscl:
-	$(MAKE) -C libscl $(trg30) $(cfl30)
-
-libiberty:
-	$(MAKE) -C libiberty "TRG=native"
-
-gcc:
-	$(MAKE) -C "gcc-$(VERSION)"
+	$(MAKE) -C libscl "TRG=$(trg11)" $(cfl11)
 
 riscos-progs:
-	$(MAKE) -C libiberty $(trg10) $(cfl10)
-	$(MAKE) -C riscos-progs $(trg10) $(cfl10)
+	$(MAKE) -C riscos-progs "TRG=$(trg10)" $(cfl10)
 
 cross-progs:
 	$(MAKE) -C cross-progs
-
-riscos-aof:
-	$(MAKE) -C riscos-aof
 
 riscos-elf:
 	$(MAKE) -C riscos-elf
@@ -167,70 +201,54 @@ riscos-elf:
 # The ballache of having to keep support with Objasm forces us
 # to do this (CFL1) brain damage.
 unixlib:
-	$(MAKE) -C $@ $(trg10) $(cfl10) "CFL1=-Wa,-DAPCS32=no -Wa,-DARMFPE=2"
-	$(MAKE) -C $@ $(trg11) $(cfl11) "CFL1=-Wa,-DAPCS32=no -Wa,-DARMFPE=3"
-	$(MAKE) -C $@ $(trg12) $(cfl12) "CFL1=-Wa,-DAPCS32=no -Wa,-DARMFPE=3"
-	$(MAKE) -C $@ $(trg13) $(cfl13) "CFL1=-Wa,-DAPCS32=no -Wa,-DARMFPE=2"
-	$(MAKE) -C $@ $(trg14) $(cfl14) "CFL1=-Wa,-DAPCS32=no -Wa,-DARMFPE=3"
-	$(MAKE) -C $@ $(trg15) $(cfl15) "CFL1=-Wa,-DAPCS32=no -Wa,-DARMFPE=3"
-
-	$(MAKE) -C $@ $(trg20) $(cfl20) "CFL1=-Wa,-DAPCS32=yes -Wa,-DARMFPE=3"
-	$(MAKE) -C $@ $(trg21) $(cfl21) "CFL1=-Wa,-DAPCS32=yes -Wa,-DARMFPE=3"
-	$(MAKE) -C $@ $(trg22) $(cfl22) "CFL1=-Wa,-DAPCS32=yes -Wa,-DARMFPE=3"
-	$(MAKE) -C $@ $(trg23) $(cfl23) "CFL1=-Wa,-DAPCS32=yes -Wa,-DARMFPE=3"
+	$(MAKE) -C $@ "TRG=$(trg10)" $(cfl10) "CFL1=-Wa,-DAPCS32=no -Wa,-DARMFPE=2"
 
 riscos-libs:
-	$(MAKE) -C $@ $(trg10) $(cfl10)
-	$(MAKE) -C $@ $(trg11) $(cfl11)
-	#$(MAKE) -C $@ $(trg12) $(cfl12)
-	$(MAKE) -C $@ $(trg13) $(cfl13)
-	$(MAKE) -C $@ $(trg14) $(cfl14)
-	#$(MAKE) -C $@ $(trg15) $(cfl15)
-
-	$(MAKE) -C $@ $(trg20) $(cfl20)
-	#$(MAKE) -C $@ $(trg21) $(cfl21)
-	$(MAKE) -C $@ $(trg22) $(cfl22)
-	#$(MAKE) -C $@ $(trg23) $(cfl23)
+	$(MAKE) -C $@ "TRG=$(trg10)" $(cfl10)
 
 libgcc:
-	$(MAKE) -C "gcc-$(VERSION)" $@ $(trg10) $(cfl10)
-	$(MAKE) -C "gcc-$(VERSION)" $@ $(trg11) $(cfl11)
-	$(MAKE) -C "gcc-$(VERSION)" $@ $(trg12) $(cfl12)
-	$(MAKE) -C "gcc-$(VERSION)" $@ $(trg13) $(cfl13)
-	$(MAKE) -C "gcc-$(VERSION)" $@ $(trg14) $(cfl14)
-	$(MAKE) -C "gcc-$(VERSION)" $@ $(trg15) $(cfl15)
-
-	$(MAKE) -C "gcc-$(VERSION)" $@ $(trg20) $(cfl20)
-	$(MAKE) -C "gcc-$(VERSION)" $@ $(trg21) $(cfl21)
-	$(MAKE) -C "gcc-$(VERSION)" $@ $(trg22) $(cfl22)
-	$(MAKE) -C "gcc-$(VERSION)" $@ $(trg23) $(cfl23)
-
-	$(MAKE) -C "gcc-$(VERSION)" $@ $(trg30) $(cfl30)
-	$(MAKE) -C "gcc-$(VERSION)" $@ $(trg31) $(cfl31)
-	$(MAKE) -C "gcc-$(VERSION)" $@ $(trg32) $(cfl32)
+	$(MAKE) -C "gcc-$(VERSION)" $@ "TRG=$(trg10)" $(cfl10)
 
 libgpc libio libf2c libstdc:
-	$(MAKE) -C "gcc-$(VERSION)" $@ $(trg10) $(cfl10)
-	$(MAKE) -C "gcc-$(VERSION)" $@ $(trg11) $(cfl11)
-	$(MAKE) -C "gcc-$(VERSION)" $@ $(trg12) $(cfl12)
-	$(MAKE) -C "gcc-$(VERSION)" $@ $(trg13) $(cfl13)
-	$(MAKE) -C "gcc-$(VERSION)" $@ $(trg14) $(cfl14)
-	$(MAKE) -C "gcc-$(VERSION)" $@ $(trg15) $(cfl15)
+	$(MAKE) -C "gcc-$(VERSION)" $@ "TRG=$(trg10)" $(cfl10)
 
-	$(MAKE) -C "gcc-$(VERSION)" $@ $(trg20) $(cfl20)
-	$(MAKE) -C "gcc-$(VERSION)" $@ $(trg21) $(cfl21)
-	$(MAKE) -C "gcc-$(VERSION)" $@ $(trg22) $(cfl22)
-	$(MAKE) -C "gcc-$(VERSION)" $@ $(trg23) $(cfl23)
+riscos-dist:
+	$(MAKE) -C riscos-dist install
+
+riscos-pkg:
+	$(MAKE) -C riscos-dist package
 
 # Make sure build and installation directories exist
 directories:
-	mkdir -p $(gccpkg)
-	mkdir -p $(standard_exec_prefix)
-	mkdir -p $(standard_startfile_prefix)
-	mkdir -p $(gcc_include_dir)
-	mkdir -p $(gcc_bin_dir)
-	mkdir -p $(gplusplus_include_dir)
-	mkdir -p $(cross_include_dir)
+	mkdir -p $(ux_gccpkg)/$(gn_standard_exec_prefix)
+	mkdir -p $(ux_gccpkg)/$(gn_standard_startfile_prefix)
+	mkdir -p $(ux_gccpkg)/$(gn_gcc_bin_dir)
+	mkdir -p $(ux_gccpkg)/$(gn_gcc_include_dir)
+	mkdir -p $(ux_gccpkg)/$(gn_gplusplus_include_dir)
+	mkdir -p $(ux_gccpkg)/$(gn_cross_include_dir)
+
+	mkdir -p $(ro_gccpkg)/$(gn_standard_exec_prefix)
+	mkdir -p $(ro_gccpkg)/$(gn_standard_startfile_prefix)
+	mkdir -p $(ro_gccpkg)/$(gn_gcc_bin_dir)
+	mkdir -p $(ro_gccpkg)/$(gn_gcc_include_dir)/h
+	mkdir -p $(ro_gccpkg)/$(gn_gplusplus_include_dir)/h
+	mkdir -p $(ro_gccpkg)/$(gn_cross_include_dir)/h
+
+	mkdir -p $(ux_gccpkg)/$(gn_gcc_bin_dir)/$(trg10)
+	mkdir -p $(ux_gccpkg)/$(gn_gcc_bin_dir)/$(trg11)
+	mkdir -p $(ux_gccpkg)/$(gn_gcc_bin_dir)/$(trg20)
+	mkdir -p $(ux_gccpkg)/$(gn_gcc_bin_dir)/$(trg21)
+	mkdir -p $(ux_gccpkg)/$(gn_gcc_bin_dir)/$(trg30)
+	mkdir -p $(ux_gccpkg)/$(gn_gcc_bin_dir)/$(trg31)
+
+	mkdir -p $(ro_gccpkg)/$(gn_gcc_bin_dir)/$(trg10)/o
+	mkdir -p $(ro_gccpkg)/$(gn_gcc_bin_dir)/$(trg11)/o
+	mkdir -p $(ro_gccpkg)/$(gn_gcc_bin_dir)/$(trg20)/o
+	mkdir -p $(ro_gccpkg)/$(gn_gcc_bin_dir)/$(trg21)/o
+	mkdir -p $(ro_gccpkg)/$(gn_gcc_bin_dir)/$(trg30)/o
+	mkdir -p $(ro_gccpkg)/$(gn_gcc_bin_dir)/$(trg31)/o
+
+	mkdir -p $(info_dir)
 	mkdir -p $(objdir)
 
 # Install header files for our standard C run-time libraries.

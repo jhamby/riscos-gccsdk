@@ -1,9 +1,11 @@
+# Makefile for GNU bison
+# Written by Nick Burrett <nick@dsvr.net>
+
 INCLUDES = -I.
-CFLAGS = -O2 $(OPTS) $(TARGET_DEFS) -DHAVE_CONFIG_H
-CC = $(standard_exec_prefix)/gcc $(CFLAGS)
+CROSS_CFLAGS += -DHAVE_CONFIG_H
 
 $(objdir)/riscos-progs/bison/%.o: %.c
-	$(CC) -o $@ -c $< $(INCLUDES)
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c $< $(INCLUDES)
 
 OBJS = $(objdir)/riscos-progs/bison/allocate.o \
 	$(objdir)/riscos-progs/bison/closure.o \
@@ -25,10 +27,10 @@ OBJS = $(objdir)/riscos-progs/bison/allocate.o \
 	$(objdir)/riscos-progs/bison/warshall.o
 
 
-all:	$(BIN)/bison
+all:	$(bin_dir)/bison
 
-$(BIN)/bison:	$(OBJS) $(TBIN)/$(TRG)/unixlib.o
-	$(standard_exec_prefix)/gcc -o $@ $(OBJS)
+$(bin_dir)/bison:	$(OBJS)
+	$(CROSS_CC) -o $@ $(OBJS)
 
 $(objdir)/riscos-progs/bison/allocate.o: allocate.c
 $(objdir)/riscos-progs/bison/closure.o: closure.c

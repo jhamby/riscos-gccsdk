@@ -1,84 +1,40 @@
-# Makefile for the GNU Compiler Collection for ARM/RISC OS
-# Copyright (c) 1997-2000 Nick Burrett
+# Makefile for the GNU C++ compiler for ARM/RISC OS
+# Copyright (c) 1997, 1998, 1999, 2000 Nick Burrett
 # Written by Nick Burrett <nick@dsvr.net>
 
-# Defs for the host compiler
-# HOST_CC is a version of CC where optimisations are not turned off
-HOST_CC = gcc -O2 $(OPTS)
-HOST_INCLUDES = -I./ -I./include -I./config
-HOST_PREDEFS = -DIN_GCC -DHAVE_CONFIG_H
-
 # Defs for GCC
-CC = gcc $(CFLAGS)
-CFLAGS = -O2 $(OPTS) -DIN_GCC -DHAVE_CONFIG_H $(TARGET_DEFS)
-GCC_AS = gcc -xassembler-with-cpp -c
+LINK = $(CC) -o $@
+INCLUDES = -I./ -I../ -I../../../include -I../config
+LIBS = -L$(objdir)/libiberty/$(STAGE) -liberty
 
-ifeq (${crosscompile},no)
-LINK = gcc -Wl,-rescan -o $@
-else
-LINK = gcc -o $@
-endif
+$(gccobjdir)/cp/%.o: %.c
+	$(CC) $(CFLAGS) -o $@ -c $< $(INCLUDES)
 
-#INCLUDES = -I@ -Iinclude -Idef -Iconfig -Icp -If -If/j -If/def -Ip -Ijava
-INCLUDES = -I./ -I../../include -I./config -I./cp -I./f77 -I./gpc -I./java
-LIBS = -L$(objdir)/libiberty -liberty
-BISON = $(BIN)/bison
-BISONFLAGS =
-CC = gcc $(CFLAGS)
+all: cpp
 
-gccobjdir = $(objdir)/gcc-$(VERSION)/gcc
+.PHONY: cpp
 
-$(gccobjdir)/%.o: %.c
-	$(CC) -o $@ -c $< $(INCLUDES)
-
-
-all:	$(BIN)/gcc $(TBIN)/cpp $(TBIN)/cc1 $(TBIN)/cc1plus \
-	$(BIN)/g++ $(BIN)/gcov $(BIN)/fini $(BIN)/g77 \
-	$(TBIN)/f771
-
-# Pascal: $(TBIN)/gpc1
-# Java:  $(TBIN)/gcjh $(TBIN)/jvgenmain $(TBIN)/jcf-dump $(TBIN)/jv-scan $(TBIN)/jc1
-
-################################################################################
+cpp: $(gcc_bin_dir)/cc1plus $(bin_dir)/g++
 
 LIBDEPS = $(gccobjdir)/prefix.o
 
-ifeq (${crosscompile},no)
-RISC_OBJS = $(gccobjdir)/config/arm/riscos_fix.o
-RISCOS_OBJS = $(RISC_OBJS) $(gccobjdir)/config/arm/riscos.o
-else
+ifeq (${STAGE},stage1)
 RISC_OBJS=
 RISCOS_OBJS=
+else
+RISC_OBJS = $(gccobjdir)/config/arm/riscos_fix.o
+RISCOS_OBJS = $(RISC_OBJS) $(gccobjdir)/config/arm/riscos.o
 endif
 
-# Language-specific object files for C
-C_OBJS = $(gccobjdir)/c-parse.o \
-	$(gccobjdir)/c-lang.o \
-	$(gccobjdir)/c-lex.o \
-	$(gccobjdir)/c-pragma.o \
-	$(gccobjdir)/c-decl.o \
-	$(gccobjdir)/c-typeck.o \
-	$(gccobjdir)/c-convert.o \
-	$(gccobjdir)/c-aux-info.o \
-	$(gccobjdir)/c-common.o \
-	$(gccobjdir)/c-iterate.o
 
 # Language-independent object files
-
-OBJS =	$(gccobjdir)/version.o \
-	$(gccobjdir)/tree.o \
-	$(gccobjdir)/print-tree.o \
-	$(gccobjdir)/stor-layout.o \
-	$(gccobjdir)/fold-const.o \
+OBJS =	$(gccobjdir)/print-tree.o \
 	$(gccobjdir)/genrtl.o \
-	$(gccobjdir)/function.o \
 	$(gccobjdir)/stmt.o \
 	$(gccobjdir)/except.o \
-	$(gccobjdir)/expr.o \
 	$(gccobjdir)/calls.o \
 	$(gccobjdir)/expmed.o \
 	$(gccobjdir)/explow.o \
-	$(gccobjdir)/optabs.o \
 	$(gccobjdir)/varasm.o \
 	$(gccobjdir)/rtl.o \
 	$(gccobjdir)/print-rtl.o \
@@ -104,24 +60,21 @@ OBJS =	$(gccobjdir)/version.o \
 	$(gccobjdir)/reload.o \
 	$(gccobjdir)/reload1.o \
 	$(gccobjdir)/caller-save.o \
-	$(gccobjdir)/insn/insn-peep.o \
+	$(gccobjdir)/insn-peep.o \
 	$(gccobjdir)/reorg.o \
 	$(gccobjdir)/sched.o \
 	$(gccobjdir)/final.o \
 	$(gccobjdir)/recog.o \
 	$(gccobjdir)/reg-stack.o \
-	$(gccobjdir)/dbxout.o \
-	$(gccobjdir)/insn/insn-opinit.o \
-	$(gccobjdir)/insn/insn-recog.o \
-	$(gccobjdir)/insn/insn-extract.o \
-	$(gccobjdir)/insn/insn-output.o \
-	$(gccobjdir)/insn/insn-emit.o \
+	$(gccobjdir)/insn-opinit.o \
+	$(gccobjdir)/insn-recog.o \
+	$(gccobjdir)/insn-extract.o \
+	$(gccobjdir)/insn-output.o \
+	$(gccobjdir)/insn-emit.o \
 	$(gccobjdir)/profile.o \
-	$(gccobjdir)/insn/insn-attrtab.o \
+	$(gccobjdir)/insn-attrtab.o \
 	$(gccobjdir)/aux-output.o \
 	$(gccobjdir)/getpwd.o \
-	$(gccobjdir)/convert.o \
-	$(gccobjdir)/toplev.o \
 	$(gccobjdir)/lcm.o \
 	$(gccobjdir)/gcse.o \
 	$(gccobjdir)/sbitmap.o \
@@ -129,8 +82,18 @@ OBJS =	$(gccobjdir)/version.o \
 	$(gccobjdir)/graph.o \
 	$(gccobjdir)/hash.o
 
-# C++ specific files
+OBJS1 = $(gccobjdir)/convert.o \
+	$(gccobjdir)/expr.o \
+	$(gccobjdir)/fold-const.o \
+	$(gccobjdir)/function.o \
+	$(gccobjdir)/dbxout.o \
+	$(gccobjdir)/optabs.o \
+	$(gccobjdir)/stor-layout.o \
+	$(gccobjdir)/toplev.o \
+	$(gccobjdir)/tree.o \
+	$(gccobjdir)/version.o
 
+# C++ specific files
 C++OBJS = $(gccobjdir)/cp/call.o \
 	$(gccobjdir)/cp/class.o \
 	$(gccobjdir)/cp/cvt.o \
@@ -158,59 +121,73 @@ C++OBJS = $(gccobjdir)/cp/call.o \
 	$(gccobjdir)/cp/typeck2.o \
 	$(gccobjdir)/cp/xref.o
 
-# The real targets
-$(TBIN)/cc1plus: $(C++OBJS) $(OBJS) $(gccobjdir)/c-common.o \
+
+$(gcc_bin_dir)/cc1plus: $(C++OBJS) $(OBJS) $(OBJS1) $(gccobjdir)/c-common.o \
 	$(gccobjdir)/c-pragma.o $(RISCOS_OBJS) $(LIBDEPS)
-	$(LINK) $(C++OBJS) $(OBJS) $(gccobjdir)/c-common.o \
+	$(LINK) $(C++OBJS) $(OBJS) $(OBJS1) $(gccobjdir)/c-common.o \
 	$(gccobjdir)/c-pragma.o $(RISCOS_OBJS) $(LIBDEPS) $(LIBS)
 
-#$(BIN)/demangle: $(LIBIBERTY)
-#	$(LINK) $(LIBS)
-
-$(BIN)/g++: $(gccobjdir)/cp/g++.o $(gccobjdir)/cp/g++spec.o \
+$(bin_dir)/g++: $(gccobjdir)/cp/g++.o $(gccobjdir)/cp/g++spec.o \
 	$(gccobjdir)/version.o \
 	$(gccobjdir)/config/arm/rname.o $(RISC_OBJS) $(LIBDEPS)
-	$(LINK) $(gccobjdir)/cp/g++.o $(gccobjdir)/g++spec.o \
+	$(LINK) $(gccobjdir)/cp/g++.o $(gccobjdir)/cp/g++spec.o \
 	$(gccobjdir)/version.o \
 	$(gccobjdir)/config/arm/rname.o $(RISC_OBJS) $(LIBDEPS) $(LIBS)
 
+
+##############################################################################
+
+
+# Make Bison sources
 # Bison sources
+# There's no point having a suffix thing for these becuase
+# they're all built differently.
+
 parse.c: parse.y
 	bison -d parse.y -o parse.c
-	grep "^#define[ 	]*YYEMPTY" cp/parse.c >>cp/parse.h
+	grep "^#define[ 	]*YYEMPTY" parse.c >>parse.h
 
-# Perfect hash function generation stuff
-hash.h: gxx.gperf
+
+hash.h: gperf/gxx
 	gperf -p -j1 -g -o -t -N is_reserved_word -k1,4,$$,7 <gxx.gperf >hash.h
 
-# Bison object dependencies
 $(gccobjdir)/cp/parse.o:	parse.c parse.y
 
-$(gccobjdir)/cp/call.o: cp/call.c
-$(gccobjdir)/cp/class.o: cp/class.c
-$(gccobjdir)/cp/cvt.o: cp/cvt.c
-$(gccobjdir)/cp/decl.o: cp/decl.c
-$(gccobjdir)/cp/decl2.o: cp/decl2.c
-$(gccobjdir)/cp/errfn.o: cp/errfn.c
-$(gccobjdir)/cp/error.o: cp/error.c
-$(gccobjdir)/cp/except.o: cp/except.c
-$(gccobjdir)/cp/expr.o: cp/expr.c
-$(gccobjdir)/cp/friend.o: cp/friend.c
-$(gccobjdir)/cp/g++spec.o: cp/g++spec.c
-$(gccobjdir)/cp/init.o: cp/init.c
-$(gccobjdir)/cp/input.o: cp/input.c
-$(gccobjdir)/cp/lex.o: cp/lex.c
-$(gccobjdir)/cp/method.o: cp/method.c
-$(gccobjdir)/cp/parse.o: cp/parse.c
-$(gccobjdir)/cp/pt.o: cp/pt.c
-$(gccobjdir)/cp/ptree.o: cp/ptree.c
-$(gccobjdir)/cp/repo.o: cp/repo.c
-$(gccobjdir)/cp/rtti.o: cp/rtti.c
-$(gccobjdir)/cp/search.o: cp/search.c
-$(gccobjdir)/cp/semantics.o: cp/semantics.c
-$(gccobjdir)/cp/sig.o: cp/sig.c
-$(gccobjdir)/cp/spew.o: cp/spew.c
-$(gccobjdir)/cp/tree.o: cp/tree.c
-$(gccobjdir)/cp/typeck.o: cp/typeck.c
-$(gccobjdir)/cp/typeck2.o: cp/typeck2.c
-$(gccobjdir)/cp/xref.o: cp/xref.c 
+$(gccobjdir)/cp/g++.o: ../gcc.c
+	$(CC) $(CFLAGS) $(INCLUDES) -o $@ -c ../gcc.c \
+	-DDEFAULT_TARGET_VERSION=\"$(VERSION)\" \
+	-DDEFAULT_TARGET_MACHINE=\"$(TARGET_NAME)\" -DLANG_SPECIFIC_DRIVER \
+	-DSTANDARD_STARTFILE_PREFIX=\"$(prefix)$(gn_standard_startfile_prefix)\" \
+	-DSTANDARD_EXEC_PREFIX=\"$(prefix)$(gn_standard_exec_prefix)\"
+
+
+# Dependencies
+$(gccobjdir)/cp/call.o: call.c
+$(gccobjdir)/cp/class.o: class.c
+$(gccobjdir)/cp/cvt.o: cvt.c
+$(gccobjdir)/cp/decl.o: decl.c
+$(gccobjdir)/cp/decl2.o: decl2.c
+$(gccobjdir)/cp/errfn.o: errfn.c
+$(gccobjdir)/cp/error.o: error.c
+$(gccobjdir)/cp/except.o: except.c
+$(gccobjdir)/cp/expr.o: expr.c
+$(gccobjdir)/cp/friend.o: friend.c
+$(gccobjdir)/cp/g++spec.o: g++spec.c
+$(gccobjdir)/cp/init.o: init.c
+$(gccobjdir)/cp/input.o: input.c
+$(gccobjdir)/cp/lex.o: lex.c
+$(gccobjdir)/cp/method.o: method.c
+$(gccobjdir)/cp/parse.o: parse.c
+$(gccobjdir)/cp/pt.o: pt.c
+$(gccobjdir)/cp/ptree.o: ptree.c
+$(gccobjdir)/cp/repo.o: repo.c
+$(gccobjdir)/cp/rtti.o: rtti.c
+$(gccobjdir)/cp/search.o: search.c
+$(gccobjdir)/cp/semantics.o: semantics.c
+$(gccobjdir)/cp/sig.o: sig.c
+$(gccobjdir)/cp/spew.o: spew.c
+$(gccobjdir)/cp/tree.o: tree.c
+$(gccobjdir)/cp/typeck.o: typeck.c
+$(gccobjdir)/cp/typeck2.o: typeck2.c
+$(gccobjdir)/cp/xref.o: xref.c 
+

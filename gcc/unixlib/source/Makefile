@@ -6,17 +6,16 @@
 #
 
 # Defs for GCC
-CC = $(standard_exec_prefix)/gcc $(CFLAGS)
-CFLAGS = -O2 $(OPTS) $(TARGET_DEFS) -D__UNIXLIB_INTERNALS -pedantic -Wall -Wno-long-long
+CROSS_CFLAGS += -D__UNIXLIB_INTERNALS -pedantic -Wall -Wno-long-long
 INCLUDES = -isystem clib
 
 libunixobj=$(objdir)/unixlib/$(TRG)
 
 $(libunixobj)/%.o: %.c
-	$(CC) -o $@ -c $< $(INCLUDES) $(CFL)
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c $< $(INCLUDES) $(CFL)
 
 $(libunixobj)/%.o: %.s
-	$(CC) -o $@ -c $< $(CFL1)
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c $< $(CFL1)
 
 COMPLEX = $(libunixobj)/complex/cabs.o \
 	$(libunixobj)/complex/cacos.o \
@@ -579,23 +578,21 @@ ASM_OBJS = $(MATH_ASM) $(COMMON_ASM) $(GCCCOMPAT_ASM) $(NETLIB_ASM) \
 	$(SIGNAL_ASM) $(STDIO_ASM) $(SCL_ASM) $(SYS_ASM) $(TIME_ASM) \
 	$(UNIX_ASM)
 
-all:	$(TBIN)/$(TRG)/unixlib.o
+all:	$(ux_gcc_bin_dir)/$(TRG)/unixlib.o $(ro_gcc_bin_dir)/$(TRG)/o/unixlib
 
 install_headers:
-	mkdir -p $(cross_include_dir)/unixlib \
-	$(cross_include_dir)/unixlib/arpa \
-	$(cross_include_dir)/unixlib/machine \
-	$(cross_include_dir)/unixlib/netinet $(cross_include_dir)/unixlib/sys \
-	$(cross_include_dir)/unixlib/unixlib
-	cp clib/*.h $(cross_include_dir)/unixlib
-	cp clib/arpa/*.h $(cross_include_dir)/unixlib/arpa
-	cp clib/machine/*.h $(cross_include_dir)/unixlib/machine
-	cp clib/netinet/*.h $(cross_include_dir)/unixlib/netinet
-	cp clib/sys/*.h $(cross_include_dir)/unixlib/sys
-	cp clib/unixlib/*.h $(cross_include_dir)/unixlib/unixlib
+	$(insthdr) clib "*.h" unixlib $(ux_gccpkg)/$(gn_cross_include_dir) $(ro_gccpkg)/$(gn_cross_include_dir)
+	$(insthdr) clib/arpa "*.h" unixlib/arpa $(ux_gccpkg)/$(gn_cross_include_dir) $(ro_gccpkg)/$(gn_cross_include_dir)
+	$(insthdr) clib/machine "*.h" unixlib/machine $(ux_gccpkg)/$(gn_cross_include_dir) $(ro_gccpkg)/$(gn_cross_include_dir)
+	$(insthdr) clib/netinet "*.h" unixlib/netinet $(ux_gccpkg)/$(gn_cross_include_dir) $(ro_gccpkg)/$(gn_cross_include_dir)
+	$(insthdr) clib/sys "*.h" unixlib/sys $(ux_gccpkg)/$(gn_cross_include_dir) $(ro_gccpkg)/$(gn_cross_include_dir)
+	$(insthdr) clib/unixlib "*.[hs]" unixlib/unixlib $(ux_gccpkg)/$(gn_cross_include_dir) $(ro_gccpkg)/$(gn_cross_include_dir)
 
-$(TBIN)/$(TRG)/unixlib.o:	$(C_OBJS) $(ASM_OBJS)
-	$(standard_exec_prefix)/libfile -c $@ $(C_OBJS) $(ASM_OBJS)
+$(ux_gcc_bin_dir)/$(TRG)/unixlib.o:	$(C_OBJS) $(ASM_OBJS)
+	$(CROSS_AR) $(CROSS_AR_FLAGS) $@ $(C_OBJS) $(ASM_OBJS)
+
+$(ro_gcc_bin_dir)/$(TRG)/o/unixlib:	$(C_OBJS) $(ASM_OBJS)
+	$(CROSS_AR) $(CROSS_AR_FLAGS) $@ $(C_OBJS) $(ASM_OBJS)
 
 # Static dependencies:
 $(libunixobj)/abort.o: abort.c
@@ -654,7 +651,7 @@ $(libunixobj)/common/cvttime.o: common/cvttime.c
 $(libunixobj)/common/exist.o: common/exist.c
 $(libunixobj)/common/fdname.o: common/fdname.c
 $(libunixobj)/common/funcallerr.o: common/funcallerr.c
-$(libunixobj)/ommon/riscosify.o: common/riscosify.c
+$(libunixobj)/common/riscosify.o: common/riscosify.c
 $(libunixobj)/common/riscosifyc.o: common/riscosifyc.c
 $(libunixobj)/common/serial.o: common/serial.c
 $(libunixobj)/common/sockvalid.o: common/sockvalid.c

@@ -1,9 +1,11 @@
+# Makefile for GNU grep
+# Written by Nick Burrett <nick@dsvr.net>
+
 INCLUDES = -I.
-CFLAGS = -O2 $(OPTS) $(TARGET_DEFS) -DHAVE_CONFIG_H -D_PTR_T
-CC = $(standard_exec_prefix)/gcc $(CFLAGS)
+CROSS_CFLAGS += -DHAVE_CONFIG_H -D_PTR_T
 
 $(objdir)/riscos-progs/grep/%.o: %.c
-	$(CC) -o $@ -c $< $(INCLUDES)
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c $< $(INCLUDES)
 
 OBJS = $(objdir)/riscos-progs/grep/btowc.o \
 	$(objdir)/riscos-progs/grep/dfa.o \
@@ -14,16 +16,16 @@ OBJS = $(objdir)/riscos-progs/grep/btowc.o \
 	$(objdir)/riscos-progs/grep/savedir.o \
 	$(objdir)/riscos-progs/grep/search.o
 
-all:	$(BIN)/grep $(BIN)/egrep $(BIN)/fgrep
+all:	$(bin_dir)/grep $(bin_dir)/egrep $(bin_dir)/fgrep
 
-$(BIN)/grep:	$(OBJS) $(objdir)/riscos-progs/grep/grepmat.o $(TBIN)/$(TRG)/unixlib.o
-	$(standard_exec_prefix)/gcc -o $@ $(OBJS) $(objdir)/riscos-progs/grep/grepmat.o
+$(bin_dir)/grep:	$(OBJS) $(objdir)/riscos-progs/grep/grepmat.o
+	$(CROSS_CC) -o $@ $(OBJS) $(objdir)/riscos-progs/grep/grepmat.o
 
-$(BIN)/egrep:	$(OBJS) $(objdir)/riscos-progs/grep/egrepmat.o $(TBIN)/$(TRG)/unixlib.o
-	$(standard_exec_prefix)/gcc -o $@ $(OBJS) $(objdir)/riscos-progs/grep/egrepmat.o
+$(bin_dir)/egrep:	$(OBJS) $(objdir)/riscos-progs/grep/egrepmat.o
+	$(CROSS_CC) -o $@ $(OBJS) $(objdir)/riscos-progs/grep/egrepmat.o
 
-$(BIN)/fgrep:	$(OBJS) $(objdir)/riscos-progs/grep/fgrepmat.o $(TBIN)/$(TRG)/unixlib.o
-	$(standard_exec_prefix)/gcc -o $@ $(OBJS) $(objdir)/riscos-progs/grep/fgrepmat.o
+$(bin_dir)/fgrep:	$(OBJS) $(objdir)/riscos-progs/grep/fgrepmat.o
+	$(CROSS_CC) -o $@ $(OBJS) $(objdir)/riscos-progs/grep/fgrepmat.o
 
 $(objdir)/riscos-progs/grep/grep.o:	grep.c
 $(objdir)/riscos-progs/grep/btowc.o:	btowc.c

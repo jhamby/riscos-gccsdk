@@ -5,21 +5,14 @@
 # This file is part of the GNU Compiler Collection
 #
 
-OPTS = -mthrowback -mpoke-function-name
-#OPTS = -mthrowback -mno-apcs-frame -mno-apcs-stack-check -muse-arg-pointer
-
-# Defs for GCC
-CC = $(standard_exec_prefix)/gcc $(CFLAGS)
-CFLAGS = -O2 $(OPTS) -DIN_GCC -DHAVE_CONFIG_H $(TARGET_DEFS)
 INCLUDES = -I. -I../include
-
 ioobjdir=$(objdir)/gcc-$(VERSION)/libio/$(TRG)
 
 $(ioobjdir)/%.o: %.c
-	$(CC) -o $@ -c $< $(INCLUDES) $(CFL)
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c $< $(INCLUDES) $(CFL)
 
 $(ioobjdir)/%.o: %.cc
-	$(CC) -o $@ -c $< $(INCLUDES) $(CFL)
+	$(CROSS_CXX) $(CROSS_CXXFLAGS) -o $@ -c $< $(INCLUDES) $(CFL)
 
 IO_OBJECTS = $(ioobjdir)/filedoalloc.o \
 	$(ioobjdir)/floatconv.o \
@@ -116,17 +109,25 @@ OSPRIM_OBJECTS = $(ioobjdir)/ioprims.o \
 LIBIOSTREAM_OBJECTS = $(IO_OBJECTS) $(IOSTREAM_OBJECTS) $(OSPRIM_OBJECTS)
 LIBIO_OBJECTS = $(IO_OBJECTS) $(STDIO_WRAP_OBJECTS) $(OSPRIM_OBJECTS) $(STDIO_OBJECTS)
 
-all:	$(TBIN)/$(TRG)/libio.o $(TBIN)/$(TRG)/libiostream.o
+all:	$(ux_gcc_bin_dir)/$(TRG)/libio.o \
+	$(ux_gcc_bin_dir)/$(TRG)/libiostream.o \
+	$(ro_gcc_bin_dir)/$(TRG)/o/libio \
+	$(ro_gcc_bin_dir)/$(TRG)/o/libiostream
 
 install_headers:
-	cp *.h $(gplusplus_include_dir)
+	$(insthdr) . "*.h" . $(ux_gccpkg)/$(gn_gplusplus_include_dir) $(ro_gccpkg)/$(gn_gplusplus_include_dir)
 
-$(TBIN)/$(TRG)/libio.o: $(LIBIO_OBJECTS)
-	$(BIN)/libfile -c $@ $(LIBIO_OBJECTS)
+$(ux_gcc_bin_dir)/$(TRG)/libio.o: $(LIBIO_OBJECTS)
+	$(CROSS_AR) $(CROSS_AR_FLAGS) $@ $(LIBIO_OBJECTS)
 
-$(TBIN)/$(TRG)/libiostream.o: $(LIBIOSTREAM_OBJECTS)
-	$(BIN)/libfile -c $@ $(LIBIOSTREAM_OBJECTS)
+$(ro_gcc_bin_dir)/$(TRG)/o/libio: $(LIBIO_OBJECTS)
+	$(CROSS_AR) $(CROSS_AR_FLAGS) $@ $(LIBIO_OBJECTS)
 
+$(ux_gcc_bin_dir)/$(TRG)/libiostream.o: $(LIBIOSTREAM_OBJECTS)
+	$(CROSS_AR) $(CROSS_AR_FLAGS) $@ $(LIBIOSTREAM_OBJECTS)
+
+$(ro_gcc_bin_dir)/$(TRG)/o/libiostream: $(LIBIOSTREAM_OBJECTS)
+	$(CROSS_AR) $(CROSS_AR_FLAGS) $@ $(LIBIOSTREAM_OBJECTS)
 
 $(ioobjdir)/cleanup.o: cleanup.c
 $(ioobjdir)/filedoalloc.o: filedoalloc.c

@@ -16,24 +16,43 @@ ARM/RISC OS that is easily portable to other Unix-like operating systems.
 Installation
 ------------
 
-Make sure you've got about 100Mb spare disk space.
+Make sure you've got about 150Mb spare disk space and a spare couple of
+hours.  It is recommended that you install GCCSDK has a non-root user.
+The makefiles are still under development.  If something does go wrong
+then at least your system directory structure will still be preserved. 
 
-$ autoconf ; autoheader
-$ ./configure --prefix=/home/riscos/cross
+Generate the configure script:
+  $ autoconf ; autoheader
+
+Configure it.  The package creates two main installations.  The first,
+is a Unix-based cross-compiler for targetting RISC OS which will be
+installed under the directory specified with the `--prefix' option. 
+The second, is a complete GCC compiler toolset built to run natively on
+RISC OS and will be installed under the directory specified with
+the `--with-riscos-dist' option.  Finally, `--with-riscos-pkg' points
+to a directory where distributable zip files of the RISC OS GCC toolset
+will be created.  These should then be suitable for unpacking on a RISC OS
+computer to make a working compiler.
+  $ ./configure --prefix=/home/riscos/cross \
+	--with-riscos-dist=/home/riscos/riscos-dist
+	--with-riscos-pkg=/home/riscos/riscos-pkg
 
 Create installation directory structure
-$ make setup
+  $ make setup
 
 Build it.  This will take about 1 hour 30 mins on a Pentium II-266MHz.
-$ make
+  $ make
 
+Optionally, you can create the RISC OS GCC compiler zip packages using
+this command. Note, this currently does not work properly.
+  $ make riscos-pkg
 
 
 Using it
 --------
 
-For Unix users.  You need to add the bin directory to your PATH and this
-will depend on the path you gave to `prefix' on the configure command line.
+Once build, you need only add /home/riscos/cross/bin to your PATH
+variable.  Then use it as you would the GCC compiler normally.
 
 
 RISC OS filename compatibility issues for the cross-compiler
@@ -52,3 +71,45 @@ DESKLIB_PATH.  So you could install the DeskLib header files in a place
 such as /home/riscos/libs/include/desklib.  To get GCC to search in that
 directory for those headers, simply define the variable:
   $ export DESKLIB_PATH=/home/riscos/lib/include/desklib
+
+
+GCCSDK package contents
+-----------------------
+
+The cross-compiler contains the following tools:
+
+  Language compilers for C, C++, Fortran 77 and Pascal.
+
+   armemu - a RISC OS emulator.  It consists of a ARM emulator and an
+	    implementation of several RISC OS SWIs in order to get a
+	    very small number of RISC OS applications running on Unix.
+
+   drlink - Dave Daniels RISC OS AOF linker.
+  libfile - a RISC OS ALF builder.
+     gcov - a test coverage program
+   libscl - C library headers and stubs for linking with the SharedCLibrary.
+  unixlib - A C library with BSD, System V and POSIX library extensions.
+  rink, rinkptr, extractsym - components of Ben Summers run-time linker
+
+
+The RISC OS distribution contains the following tools:
+
+  Language compilers for C, C++, Fortran 77 and Pascal.
+
+   drlink - Dave Daniels RISC OS AOF linker.
+  libfile - a RISC OS ALF builder.
+     gcov - a test coverage program
+   libscl - C library headers and stubs for linking with the SharedCLibrary.
+  unixlib - A C library with BSD, System V and POSIX library extensions.
+    bison - A YACC implementation.
+     flex - A lexical analyser.
+     grep - A patten matcher
+    gperf - A perfect hash generator
+     gzip - A file compression utility
+     make - A make utility
+    mkdir - A port of the Unix directory creator.
+    patch - A program that can patch files when supplied with the output
+	    of diff.
+      sed - A batch stream editor
+    touch - A port of the Unix touch command for changing file timestamps.
+  rink, rinkptr, extractsym - components of Ben Summers run-time linker.

@@ -10,31 +10,26 @@
 # that require routines from this library.
 #
 
-# Defs for GCC
+ifeq (${STAGE},stage1)
+bin_dir = $(ux_bin_dir)
+gcc_bin_dir = $(ux_gcc_bin_dir)
+else
+bin_dir = $(ro_bin_dir)
+gcc_bin_dir = $(ro_gcc_bin_dir)
+CC = $(CROSS_CC)
+CFLAGS = $(CROSS_CFLAGS)
+endif
+
 CFLAGS += -DIN_GCC -DHAVE_CONFIG_H $(TARGET_DEFS)
 INCLUDES = -I. -I../include
 
-ifeq ($(TRG), native)
-
-# Building libiberty for the host binaries
-libname=libiberty
-ifeq ($(crosscompile),yes)
-libname=libiberty.a
-endif
-objtarget=$(objdir)/libiberty
-else
-
-# Building to target RISC OS
-CC = $(standard_exec_prefix)/gcc
-objtarget=$(objdir)/libiberty/$(TRG)
-endif
-
+objtarget = $(objdir)/libiberty/$(STAGE)
 
 $(objtarget)/%.o: %.c
 	$(CC) $(CFLAGS) -o $@ -c $< $(INCLUDES)
 
 
-LIBIBERTY = $(objtarget)/choose-temp.o $(objtarget)/cplus-dem.o \
+OBJS = $(objtarget)/choose-temp.o $(objtarget)/cplus-dem.o \
 	$(objtarget)/getopt.o $(objtarget)/getopt1.o \
 	$(objtarget)/obstack.o $(objtarget)/mkstemps.o \
 	$(objtarget)/pexecute.o $(objtarget)/splay-tree.o \
@@ -44,22 +39,26 @@ LIBIBERTY = $(objtarget)/choose-temp.o $(objtarget)/cplus-dem.o \
 
 .PHONY: mkdirs
 
-ifeq ($(TRG), native)
-all:	mkdirs $(objdir)/libiberty/$(libname)
+
+ifeq (${STAGE},stage1)
+all:	mkdirs $(objtarget)/libiberty.a
 
 mkdirs:
-	mkdir -p $(objdir)/libiberty
+	mkdir -p $(objtarget)
 
-$(objdir)/libiberty/$(libname): $(LIBIBERTY)
-	$(AR) $(ARFLAGS) $@ $(LIBIBERTY)
+$(objtarget)/libiberty.a: $(OBJS)
+	$(AR) $(AR_FLAGS) $@ $(OBJS)
 else
-all:	mkdirs $(TBIN)/$(TRG)/libiberty.o
+all:	mkdirs $(gcc_bin_dir)/$(TRG)/o/libiberty $(objtarget)/libiberty.o
 
 mkdirs:
-	mkdir -p $(objtarget) $(TBIN)/$(TRG)
+	mkdir -p $(objtarget)
 
-$(TBIN)/$(TRG)/libiberty.o: $(LIBIBERTY)
-	$(standard_exec_prefix)/libfile -c $@ $(LIBIBERTY)
+$(objtarget)/libiberty.o: $(OBJS)
+	$(CROSS_AR) $(CROSS_AR_FLAGS) $@ $(OBJS)
+
+$(gcc_bin_dir)/$(TRG)/o/libiberty: $(OBJS)
+	$(CROSS_AR) $(CROSS_AR_FLAGS) $@ $(OBJS)
 endif
 
 $(objtarget)/choose-temp.o: choose-temp.c

@@ -1,9 +1,11 @@
-INCLUDES = -I./
-CFLAGS = -O2 $(OPTS) $(TARGET_DEFS) -DHAVE_CONFIG_H
-CC = $(standard_exec_prefix)/gcc $(CFLAGS)
+# Makefile for GNU patch
+# Written by Nick Burrett <nick@dsvr.net>
+
+INCLUDES = -I.
+CROSS_CFLAGS += -DHAVE_CONFIG_H
 
 $(objdir)/riscos-progs/patch/%.o: %.c
-	$(CC) -o $@ -c $< $(INCLUDES)
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c $< $(INCLUDES)
 
 OBJS = $(objdir)/riscos-progs/patch/addext.o \
 	$(objdir)/riscos-progs/patch/argmatch.o \
@@ -20,10 +22,10 @@ OBJS = $(objdir)/riscos-progs/patch/addext.o \
 	$(objdir)/riscos-progs/patch/util.o \
 	$(objdir)/riscos-progs/patch/version.o
 
-all:	$(BIN)/patch
+all:	$(bin_dir)/patch
 
-$(BIN)/patch:	$(OBJS) $(TBIN)/$(TRG)/unixlib.o
-	$(standard_exec_prefix)/gcc -o $@ $(OBJS)
+$(bin_dir)/patch:	$(OBJS)
+	$(CROSS_CC) -o $@ $(OBJS)
 
 $(objdir)/riscos-progs/patch/addext.o: addext.c
 $(objdir)/riscos-progs/patch/argmatch.o: argmatch.c

@@ -4,7 +4,7 @@
 #include "auto-host.h"
 #include "gansidecl.h"
 
-#ifdef HOST_ARM_ACORN_RISCOS
+#ifdef HOST_ARM_RISCOS
 #include "config/arm/xm-riscos.h"
 #elif HOST_ARM_LINUX
 #include "config/arm/xm-linux.h"

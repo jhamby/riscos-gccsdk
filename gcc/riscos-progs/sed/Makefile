@@ -1,9 +1,11 @@
+# Makefile for GNU sed
+# Written by Nick Burrett <nick@dsvr.net>
+
 INCLUDES = -I.
-CFLAGS = -O2 $(OPTS) $(TARGET_DEFS) -DHAVE_CONFIG_H
-CC = $(standard_exec_prefix)/gcc $(CFLAGS)
+CROSS_CFLAGS += -DHAVE_CONFIG_H
 
 $(objdir)/riscos-progs/sed/%.o: %.c
-	$(CC) -o $@ -c $< $(INCLUDES)
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c $< $(INCLUDES)
 
 OBJS = $(objdir)/riscos-progs/sed/compile.o \
 	$(objdir)/riscos-progs/sed/execute.o \
@@ -11,10 +13,10 @@ OBJS = $(objdir)/riscos-progs/sed/compile.o \
 	$(objdir)/riscos-progs/sed/sed.o \
 	$(objdir)/riscos-progs/sed/utils.o
 
-all:	$(BIN)/sed
+all:	$(bin_dir)/sed
 
-$(BIN)/sed:	$(OBJS) $(TBIN)/$(TRG)/unixlib.o
-	$(standard_exec_prefix)/gcc -o $@ $(OBJS)
+$(bin_dir)/sed:	$(OBJS)
+	$(CROSS_CC) -o $@ $(OBJS)
 
 $(objdir)/riscos-progs/sed/compile.o: compile.c
 $(objdir)/riscos-progs/sed/execute.o: execute.c

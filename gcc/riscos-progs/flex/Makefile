@@ -1,9 +1,11 @@
+# Makefile for GNU flex - a lexical analyser
+# Written by Nick Burrett <nick@dsvr.net>
+
 INCLUDES = -I.
-CFLAGS = -O2 $(OPTS) $(TARGET_DEFS) -DHAVE_CONFIG_H
-CC = $(standard_exec_prefix)/gcc $(CFLAGS)
+CROSS_CFLAGS += -DHAVE_CONFIG_H
 
 $(objdir)/riscos-progs/flex/%.o: %.c
-	$(CC) -o $@ -c $< $(INCLUDES)
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c $< $(INCLUDES)
 
 OBJS = $(objdir)/riscos-progs/flex/parse.o \
 	$(objdir)/riscos-progs/flex/ccl.o \
@@ -22,13 +24,13 @@ OBJS = $(objdir)/riscos-progs/flex/parse.o \
 LIBFL_OBJS = $(objdir)/riscos-progs/flex/libmain.o \
 	$(objdir)/riscos-progs/flex/libyywrap.o
 
-all:	$(BIN)/flex $(TBIN)/$(TRG)/libfl.o
+all:	$(bin_dir)/flex $(gcc_bin_dir)/$(TRG)/o/libfl
 
-$(BIN)/flex:	$(OBJS) $(TBIN)/$(TRG)/unixlib.o
-	$(standard_exec_prefix)/gcc -o $@ $(OBJS)
+$(bin_dir)/flex:	$(OBJS)
+	$(CROSS_CC) -o $@ $(OBJS)
 
-$(TBIN)/$(TRG)/libfl.o:	$(LIBFL_OBJS)
-	$(BIN)/libfile -c $@ $(LIBFL_OBJS)
+$(gcc_bin_dir)/$(TRG)/o/libfl:	$(LIBFL_OBJS)
+	$(CROSS_AR) $(CROSS_AR_FLAGS) $@ $(LIBFL_OBJS)
 
 parse.h parse.c: parse.y
 	bison -d parse.y -o parse.c

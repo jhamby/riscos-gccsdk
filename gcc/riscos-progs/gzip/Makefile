@@ -1,9 +1,10 @@
+# Makefile for GNU gzip - a file compression utility
+# Written by Nick Burrett <nick@dsvr.net>
+
 INCLUDES = -I.
-CFLAGS = -O2 $(OPTS) $(TARGET_DEFS)
-CC = $(standard_exec_prefix)/gcc $(CFLAGS)
 
 $(objdir)/riscos-progs/gzip/%.o: %.c
-	$(CC) -o $@ -c $< $(INCLUDES)
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c $< $(INCLUDES)
 
 OBJS = $(objdir)/riscos-progs/gzip/bits.o \
 	$(objdir)/riscos-progs/gzip/crypt.o \
@@ -20,10 +21,10 @@ OBJS = $(objdir)/riscos-progs/gzip/bits.o \
 	$(objdir)/riscos-progs/gzip/util.o \
 	$(objdir)/riscos-progs/gzip/zip.o
 
-all:	$(BIN)/gzip
+all:	$(bin_dir)/gzip
 
-$(BIN)/gzip:	$(OBJS) $(TBIN)/$(TRG)/unixlib.o
-	$(standard_exec_prefix)/gcc -o $@ $(OBJS)
+$(bin_dir)/gzip:	$(OBJS)
+	$(CROSS_CC) -o $@ $(OBJS)
 
 $(objdir)/riscos-progs/gzip/bits.o: bits.c
 $(objdir)/riscos-progs/gzip/crypt.o: crypt.c

@@ -1,20 +1,17 @@
 # Makefile for GNU Multiprecision Library
 # Written by Nick Burrett <nick@dsvr.net>
 #
-# This file is part of the RISC OS GCC SDK
+# This file is part of the RISC OS GCCSDK
 #
-OPTS = -mthrowback -mpoke-function-name
-CC = $(standard_exec_prefix)/gcc $(CFLAGS)
-CFLAGS = -O2 $(OPTS) -DHAVE_CONFIG_H $(TARGET_DEFS)
+CROSS_CFLAGS += -DHAVE_CONFIG_H $(TARGET_DEFS)
 INCLUDES = -I.
-
 gmpobjdir=$(objdir)/riscos-libs/gmp/$(TRG)
 
 $(gmpobjdir)/%.o: %.c
-	$(CC) -o $@ -c $< $(INCLUDES) $(CFL)
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c $< $(INCLUDES) $(CFL)
 
 $(gmpobjdir)/%.o: %.s
-	$(CC) -o $@ -c $<
+	$(CROSS_CC) -o $@ -c $<
 
 MPF_OBJECTS = $(gmpobjdir)/mpf/init.o \
 	$(gmpobjdir)/mpf/init2.o \
@@ -279,7 +276,9 @@ MPFR_OBJECTS = $(gmpobjdir)/mpfr/add.o \
 	$(gmpobjdir)/mpfr/print_rnd_mode.o
 
 
-all:	mkdirs $(TBIN)/$(TRG)/libmp.o
+all:	mkdirs \
+	$(ux_gcc_bin_dir)/$(TRG)/libmp.o \
+	$(ro_gcc_bin_dir)/$(TRG)/o/libmp
 
 .PHONY:	mkdirs
 
@@ -288,8 +287,15 @@ mkdirs:
 	mkdir -p $(gmpobjdir)/mpq $(gmpobjdir)/mpz $(gmpobjdir)/mpf
 
 # MPBSD_OBJECTS MPN_OBJECTS
-$(TBIN)/$(TRG)/libmp.o:	$(MPF_OBJECTS) $(MPZ_OBJECTS) $(MPQ_OBJECTS) $(MPFR_OBJECTS) 
-	$(BIN)/libfile -c $@ $(MPF_OBJECTS) $(MPZ_OBJECTS) $(MPQ_OBJECTS) $(MPFR_OBJECTS)
+$(ux_gcc_bin_dir)/$(TRG)/libmp.o:	$(MPF_OBJECTS) $(MPZ_OBJECTS) \
+	$(MPQ_OBJECTS) $(MPFR_OBJECTS) 
+	$(CROSS_AR) $(CROSS_AR_FLAGS) $@ $(MPF_OBJECTS) $(MPZ_OBJECTS) \
+	$(MPQ_OBJECTS) $(MPFR_OBJECTS)
+
+$(ro_gcc_bin_dir)/$(TRG)/o/libmp:	$(MPF_OBJECTS) $(MPZ_OBJECTS) \
+	$(MPQ_OBJECTS) $(MPFR_OBJECTS) 
+	$(CROSS_AR) $(CROSS_AR_FLAGS) $@ $(MPF_OBJECTS) $(MPZ_OBJECTS) \
+	$(MPQ_OBJECTS) $(MPFR_OBJECTS)
 
 
 $(gmpobjdir)/mpf/init.o: mpf/init.c

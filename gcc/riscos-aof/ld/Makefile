@@ -1,18 +1,31 @@
-INCLUDES = -I. -I../../ -I../../include
-CFLAGS += $(TARGET_DEFS) -DHAVE_CONFIG_H
+# Makefile for LD - frontend to DRLINK
+# Written by Nick Burrett <nick@dsvr.net>
 
-$(objdir)/riscos-aof/ld/%.o: %.c
+ifeq (${STAGE},stage1)
+prefix = $(unix_prefix)
+CFLAGS += -DCROSS_COMPILE
+else
+prefix = $(riscos_prefix)
+CC = $(CROSS_CC)
+CFLAGS = $(CROSS_CFLAGS)
+endif
+
+INCLUDES = -I. -I../../ -I../../include
+CFLAGS += -DHAVE_CONFIG_H
+
+ldobjdir = $(objdir)/riscos-aof/ld/$(STAGE)
+
+$(ldobjdir)/%.o: %.c
 	$(CC) $(CFLAGS) -o $@ -c $< $(INCLUDES)
 
-OBJS = $(objdir)/riscos-aof/ld/ld.o \
-	$(objdir)/riscos-aof/ld/rname.o
+OBJS = $(ldobjdir)/ld.o $(ldobjdir)/rname.o
 
-all:	$(TBIN)/ld
+all:	$(gcc_bin_dir)/ld
 
-$(TBIN)/ld:	$(OBJS)
-	$(CC) -o $@ $(OBJS) -L$(objdir)/libiberty -liberty
+$(gcc_bin_dir)/ld:	$(OBJS)
+	$(CC) -o $@ $(OBJS) -L$(objdir)/libiberty/$(STAGE) -liberty
 
-$(objdir)/riscos-aof/ld/ld.o: ld.c
-	$(CC) $(CFLAGS) -o $@ -c ld.c $(INCLUDES) -DSTANDARD_EXEC_PREFIX=\"$(standard_exec_prefix)\"
+$(ldobjdir)/ld.o: ld.c
+	$(CC) $(CFLAGS) -o $@ -c ld.c $(INCLUDES) -DSTANDARD_EXEC_PREFIX=\"$(prefix)$(gn_standard_exec_prefix)\"
 
-$(objdir)/riscos-aof/ld/rname.o: rname.c
+$(ldobjdir)/rname.o: rname.c

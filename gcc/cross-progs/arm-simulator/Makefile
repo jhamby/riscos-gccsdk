@@ -1,9 +1,11 @@
+# Makefile for the ARM simulator
+# Written by Nick Burrett <nick@dsvr.net>
+
 INCLUDES=-I.
-CFLAGS=-O2 -g -DP_LINUX -fomit-frame-pointer -I. -DHAVE_CONFIG_H #-DDEBUG
-CC=gcc $(CFLAGS)
+CFLAGS=-O2 -g -DP_LINUX -fomit-frame-pointer -I. -DHAVE_CONFIG_H -DDEBUG
 
 $(objdir)/riscos-progs/arm-simulator/%.o: %.c
-	$(CC) -o $@ -c $< $(INCLUDES)
+	$(CC) $(CFLAGS) -o $@ -c $< $(INCLUDES)
 
 OBJS = $(objdir)/riscos-progs/arm-simulator/armemu.o \
 	$(objdir)/riscos-progs/arm-simulator/arm-dis.o \
@@ -11,10 +13,10 @@ OBJS = $(objdir)/riscos-progs/arm-simulator/armemu.o \
 	$(objdir)/riscos-progs/arm-simulator/armswi.o \
 	$(objdir)/riscos-progs/arm-simulator/armdebug.o
 
-all:	$(BIN)/armemu
+all:	$(bin_dir)/armemu
 
-$(BIN)/armemu: $(OBJS)
-	gcc -o $@ $(OBJS)
+$(bin_dir)/armemu: $(OBJS)
+	$(CC) -o $@ $(OBJS)
 
 $(objdir)/riscos-progs/arm-simulator/armemu.o: armhdr.h armfpe.h
 $(objdir)/riscos-progs/arm-simulator/armswi.o: armhdr.h armswis.h

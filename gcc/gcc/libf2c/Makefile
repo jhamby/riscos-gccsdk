@@ -1,16 +1,10 @@
 # Makefile for GNU F77 compiler runtime for ARM/RISC OS
-# Copyright (c) 1997-2000 Nick Burrett
+# Copyright (c) 1997, 1998, 1999, 2000 Nick Burrett
 # Written by Nick Burrett <nick@dsvr.net>
 #
 # This file is part of the GNU Compiler Collection
 #
 
-OPTS = -mthrowback -mpoke-function-name
-#OPTS = -mthrowback -mno-apcs-frame -mno-apcs-stack-check -muse-arg-pointer
-
-# Defs for GCC
-CC = $(standard_exec_prefix)/gcc $(CFLAGS)
-CFLAGS = -O2 $(OPTS) -DIN_GCC -DHAVE_CONFIG_H $(TARGET_DEFS)
 INCLUDES = -I. -I./libi77 -I./libf77
 Predefs = -DHAVE_CONFIG_H -DSkip_f2c_Undefs -DSTDC_HEADERS=1 -D_POSIX_SOURCE=1 -DHAVE_TEMPNAM=1 -DNON_ANSI_RW_MODES=1 -DNO_EOF_CHAR_CHECK=1 -DRETSIGTYPE=void -DIEEE_drem=1 -DNON_UNIX_STDIO=1 -DAllow_TYQUAD
 
@@ -20,11 +14,11 @@ i77objdir=$(objdir)/gcc-$(VERSION)/libf2c/libi77/$(TRG)
 u77objdir=$(objdir)/gcc-$(VERSION)/libf2c/libu77/$(TRG)
 
 $(f77objdir)/%.o: libf77/%.c
-	$(CC) -o $@ -c $< $(INCLUDES) $(Predefs) $(CFL)
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c $< $(INCLUDES) $(Predefs)
 $(i77objdir)/%.o: libi77/%.c
-	$(CC) -o $@ -c $< $(INCLUDES) $(Predefs) $(CFL)
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c $< $(INCLUDES) $(Predefs)
 $(u77objdir)/%.o: libu77/%.c
-	$(CC) -o $@ -c $< $(INCLUDES) $(Predefs) $(CFL)
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c $< $(INCLUDES) $(Predefs)
 
 MISC =	$(f77objdir)/F77_aloc.o \
 	$(f77objdir)/Version.o \
@@ -334,254 +328,258 @@ F2CEXT2 = $(f2cobjdir)/getcwd.o \
 	$(f2cobjdir)/vxttim.o \
 	$(f2cobjdir)/alarm.o
 
-all:	mkdirs $(TBIN)/$(TRG)/libg2c.o
+all:	mkdirs \
+	$(ux_gcc_bin_dir)/$(TRG)/libg2c.o $(ro_gcc_bin_dir)/$(TRG)/o/libg2c
 
 .PHONY: mkdirs
 
 mkdirs:
 	mkdir -p $(f2cobjdir) $(u77objdir) $(i77objdir) $(f77objdir)
 
-$(TBIN)/$(TRG)/libg2c.o:	$(FOBJ) $(IOBJ) $(UOBJ) $(F2CEXT) $(F2CEXT2)
-	$(BIN)/libfile -c $@ $(FOBJ) $(IOBJ) $(UOBJ) $(F2CEXT) $(F2CEXT2)
+$(ux_gcc_bin_dir)/$(TRG)/libg2c.o:	$(FOBJ) $(IOBJ) $(UOBJ) $(F2CEXT) $(F2CEXT2)
+	$(CROSS_AR) $(CROSS_AR_FLAGS) $@ $(FOBJ) $(IOBJ) $(UOBJ) $(F2CEXT) $(F2CEXT2)
+
+$(ro_gcc_bin_dir)/$(TRG)/o/libg2c:	$(FOBJ) $(IOBJ) $(UOBJ) $(F2CEXT) $(F2CEXT2)
+	$(CROSS_AR) $(CROSS_AR_FLAGS) $@ $(FOBJ) $(IOBJ) $(UOBJ) $(F2CEXT) $(F2CEXT2)
 
 # The f2cext.c thang
 
 $(f2cobjdir)/abort.o:	f2cext.c
-	$(CC) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLabort
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLabort
 
 $(f2cobjdir)/derf.o:	f2cext.c
-	$(CC) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLderf
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLderf
 
 $(f2cobjdir)/derfc.o:	f2cext.c
-	$(CC) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLderfc
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLderfc
 
 $(f2cobjdir)/ef1asc.o:	f2cext.c
-	$(CC) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLef1asc
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLef1asc
 
 $(f2cobjdir)/ef1cmc.o:	f2cext.c
-	$(CC) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLef1cmc
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLef1cmc
 
 $(f2cobjdir)/erf.o:	f2cext.c
-	$(CC) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLerf
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLerf
 
 $(f2cobjdir)/erfc.o:	f2cext.c
-	$(CC) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLerfc
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLerfc
 
 $(f2cobjdir)/exit.o:	f2cext.c
-	$(CC) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLexit
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLexit
 
 $(f2cobjdir)/getarg.o:	f2cext.c
-	$(CC) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLgetarg
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLgetarg
 
 $(f2cobjdir)/getenv.o:	f2cext.c
-	$(CC) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLgetenv
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLgetenv
 
 $(f2cobjdir)/iargc.o:	f2cext.c
-	$(CC) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLiargc
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLiargc
 
 $(f2cobjdir)/signal.o:	f2cext.c
-	$(CC) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLsignal
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLsignal
 
 $(f2cobjdir)/flush.o:	f2cext.c
-	$(CC) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLflush
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLflush
 
 $(f2cobjdir)/ftell.o:	f2cext.c
-	$(CC) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLftell
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLftell
 
 $(f2cobjdir)/fseek.o:	f2cext.c
-	$(CC) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLfseek
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLfseek
 
 $(f2cobjdir)/access.o:	f2cext.c
-	$(CC) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLaccess
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLaccess
 
 $(f2cobjdir)/besj0.o:	f2cext.c
-	$(CC) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLbesj0
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLbesj0
 
 $(f2cobjdir)/besj1.o:	f2cext.c
-	$(CC) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLbesj1
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLbesj1
 
 $(f2cobjdir)/besjn.o:	f2cext.c
-	$(CC) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLbesjn
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLbesjn
 
 $(f2cobjdir)/besy0.o:	f2cext.c
-	$(CC) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLbesy0
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLbesy0
 
 $(f2cobjdir)/besy1.o:	f2cext.c
-	$(CC) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLbesy1
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLbesy1
 
 $(f2cobjdir)/besyn.o:	f2cext.c
-	$(CC) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLbesyn
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLbesyn
 
 $(f2cobjdir)/chdir.o:	f2cext.c
-	$(CC) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLchdir
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLchdir
 
 $(f2cobjdir)/chmod.o:	f2cext.c
-	$(CC) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLchmod
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLchmod
 
 $(f2cobjdir)/ctime.o:	f2cext.c
-	$(CC) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLctime
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLctime
 
 $(f2cobjdir)/date.o:	f2cext.c
-	$(CC) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLdate
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLdate
 
 $(f2cobjdir)/dbesj0.o:	f2cext.c
-	$(CC) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLdbesj0
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLdbesj0
 
 $(f2cobjdir)/dbesj1.o:	f2cext.c
-	$(CC) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLdbesj1
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLdbesj1
 
 $(f2cobjdir)/dbesjn.o:	f2cext.c
-	$(CC) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLdbesjn
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLdbesjn
 
 $(f2cobjdir)/dbesy0.o:	f2cext.c
-	$(CC) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLdbesy0
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLdbesy0
 
 $(f2cobjdir)/dbesy1.o:	f2cext.c
-	$(CC) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLdbesy1
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLdbesy1
 
 $(f2cobjdir)/dbesyn.o:	f2cext.c
-	$(CC) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLdbesyn
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLdbesyn
 
 $(f2cobjdir)/dtime.o:	f2cext.c
-	$(CC) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLdtime
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLdtime
 
 $(f2cobjdir)/etime.o:	f2cext.c
-	$(CC) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLetime
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLetime
 
 $(f2cobjdir)/fdate.o:	f2cext.c
-	$(CC) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLfdate
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLfdate
 
 $(f2cobjdir)/fgetc.o:	f2cext.c
-	$(CC) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLfgetc
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLfgetc
 
 $(f2cobjdir)/fget.o:	f2cext.c
-	$(CC) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLfget
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLfget
 
 $(f2cobjdir)/flush1.o:	f2cext.c
-	$(CC) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLflush1
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLflush1
 
 $(f2cobjdir)/fnum.o:	f2cext.c
-	$(CC) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLfnum
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLfnum
 
 $(f2cobjdir)/fputc.o:	f2cext.c
-	$(CC) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLfputc
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLfputc
 
 $(f2cobjdir)/fput.o:	f2cext.c
-	$(CC) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLfput
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLfput
 
 $(f2cobjdir)/fstat.o:	f2cext.c
-	$(CC) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLfstat
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLfstat
 
 $(f2cobjdir)/gerror.o:	f2cext.c
-	$(CC) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLgerror
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLgerror
 
 $(f2cobjdir)/getcwd.o:	f2cext.c
-	$(CC) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLgetcwd
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLgetcwd
 
 $(f2cobjdir)/getgid.o:	f2cext.c
-	$(CC) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLgetgid
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLgetgid
 
 $(f2cobjdir)/getlog.o:	f2cext.c
-	$(CC) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLgetlog
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLgetlog
 
 $(f2cobjdir)/getpid.o:	f2cext.c
-	$(CC) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLgetpid
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLgetpid
 
 $(f2cobjdir)/getuid.o:	f2cext.c
-	$(CC) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLgetuid
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLgetuid
 
 $(f2cobjdir)/gmtime.o:	f2cext.c
-	$(CC) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLgmtime
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLgmtime
 
 $(f2cobjdir)/hostnm.o:	f2cext.c
-	$(CC) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLhostnm
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLhostnm
 
 $(f2cobjdir)/idate.o:	f2cext.c
-	$(CC) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLidate
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLidate
 
 $(f2cobjdir)/ierrno.o:	f2cext.c
-	$(CC) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLierrno
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLierrno
 
 $(f2cobjdir)/irand.o:	f2cext.c
-	$(CC) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLirand
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLirand
 
 $(f2cobjdir)/isatty.o:	f2cext.c
-	$(CC) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLisatty
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLisatty
 
 $(f2cobjdir)/itime.o:	f2cext.c
-	$(CC) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLitime
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLitime
 
 $(f2cobjdir)/kill.o:	f2cext.c
-	$(CC) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLkill
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLkill
 
 $(f2cobjdir)/link.o:	f2cext.c
-	$(CC) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLlink
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLlink
 
 $(f2cobjdir)/lnblnk.o:	f2cext.c
-	$(CC) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLlnblnk
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLlnblnk
 
 $(f2cobjdir)/lstat.o:	f2cext.c
-	$(CC) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLlstat
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLlstat
 
 $(f2cobjdir)/ltime.o:	f2cext.c
-	$(CC) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLltime
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLltime
 
 $(f2cobjdir)/mclock.o:	f2cext.c
-	$(CC) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLmclock
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLmclock
 
 $(f2cobjdir)/perror.o:	f2cext.c
-	$(CC) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLperror
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLperror
 
 $(f2cobjdir)/rand.o:	f2cext.c
-	$(CC) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLrand
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLrand
 
 $(f2cobjdir)/rename.o:	f2cext.c
-	$(CC) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLrename
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLrename
 
 $(f2cobjdir)/secnds.o:	f2cext.c
-	$(CC) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLsecnds
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLsecnds
 
 $(f2cobjdir)/second.o:	f2cext.c
-	$(CC) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLsecond
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLsecond
 
 $(f2cobjdir)/sleep.o:	f2cext.c
-	$(CC) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLsleep
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLsleep
 
 $(f2cobjdir)/srand.o:	f2cext.c
-	$(CC) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLsrand
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLsrand
 
 $(f2cobjdir)/stat.o:	f2cext.c
-	$(CC) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLstat
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLstat
 
 $(f2cobjdir)/symlnk.o:	f2cext.c
-	$(CC) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLsymlnk
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLsymlnk
 
 $(f2cobjdir)/system.o:	f2cext.c
-	$(CC) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLsystem
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLsystem
 
 $(f2cobjdir)/sclock.o:	f2cext.c
-	$(CC) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLsclock
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLsclock
 
 $(f2cobjdir)/time.o:	f2cext.c
-	$(CC) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLtime
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLtime
 
 $(f2cobjdir)/ttynam.o:	f2cext.c
-	$(CC) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLttynam
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLttynam
 
 $(f2cobjdir)/umask.o:	f2cext.c
-	$(CC) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLumask
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLumask
 
 $(f2cobjdir)/unlink.o:	f2cext.c
-	$(CC) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLunlink
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLunlink
 
 $(f2cobjdir)/vxtidt.o:	f2cext.c
-	$(CC) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLvxtidt
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLvxtidt
 
 $(f2cobjdir)/vxttim.o:	f2cext.c
-	$(CC) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLvxttim
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLvxttim
 
 $(f2cobjdir)/alarm.o:	f2cext.c
-	$(CC) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLalarm
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c f2cext.c $(INCLUDES) $(CFL) $(Predefs) -DLalarm
 
 
 $(f77objdir)/abort_.o: libf77/abort_.c

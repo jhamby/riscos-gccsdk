@@ -128,10 +128,22 @@ GCC_NEED_DECLARATIONS(getrlimit setrlimit, [
 ])
 
 
+dnl Additional configure command line parameters
+AC_ARG_WITH(riscos-dist,
+	[  --with-riscos-dist=DIR    path to RISC OS distribution install dir])
+test "$with_riscos_dist" = yes && with_riscos_dist = $prefix/riscos-dist
+test "$with_riscos_dist" = default && with_riscos_dist = $prefix/riscos-dist
+test "$with_riscos_dist" = "" && with_riscos_dist = $prefix/riscos-dist
+
+AC_ARG_WITH(riscos-pkg,
+	[  --with-riscos-pkg=DIR    path to RISC OS distribution package])
+test "$with_riscos_pkg" = yes && with_riscos_pkg = $prefix/riscos-pkg
+test "$with_riscos_pkg" = default && with_riscos_pkg = $prefix/riscos-pkg
+test "$with_riscos_pkg" = "" && with_riscos_pkg = $prefix/riscos-pkg
+
+
 dnl Checks for library functions
-
 echo Targeting for host $host
-
 # Get CPU info
 case "$host" in
   arm*-*)
@@ -163,6 +175,8 @@ host_system="HOST_${cpu_type}_${os_type}"
 AC_SUBST(target_name)
 AC_SUBST(target_defs)
 AC_SUBST(host_system)
+AC_SUBST(with_riscos_dist)
+AC_SUBST(with_riscos_pkg)
 
 # Get an absolute path to the GCCSDK top-level source directory
 holddir=`pwd`
@@ -170,7 +184,6 @@ cd $srcdir
 topdir=`pwd`
 cd $holddir
 
-AC_SUBST_FILE(host_overrides)
 AC_SUBST(topdir)
 AC_PROG_MAKE_SET
 AC_OUTPUT([Makefile])

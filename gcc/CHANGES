@@ -1,6 +1,21 @@
 Summary of Changes
 ==================
 
+01 Jan 2001
+-----------
+
+* Huge makefile overhaul.  We now build two versions of gcc.  One is
+  a cross-compiler, the other is a complete RISC OS distribution.
+* Added original RISC OS documentation and distribution files.  This
+  is all contained within riscos-dist.
+* Added documentation for gcc, g77 and gpc.
+* Bugfix to UnixLib's memcpy function that practically broke all
+  cross-compiled applications.
+* Simplified GCC's multilib options.
+* Import Ben Summers' run-time linker (rink) into the source tree under
+  riscos-aof.  Enough code has been fixed to get the tools compiling,
+  but it hasn't been tested.
+
 28 Dec 2000
 -----------
 

@@ -3,14 +3,24 @@
 
 export TLIB
 
-all:	as drlink ld libfile
+ifeq (${STAGE},stage1)
+bin_dir=$(ux_gccpkg)/$(gn_standard_exec_prefix)
+gcc_bin_dir=$(ux_gccpkg)/$(gn_gcc_bin_dir)
+else
+bin_dir=$(ro_gccpkg)/$(gn_standard_exec_prefix)
+gcc_bin_dir=$(ro_gccpkg)/$(gn_gcc_bin_dir)
+endif
+
+export bin_dir gcc_bin_dir
+
+all:	as drlink ld libfile rink
 
 .PHONY: as
 .PHONY: drlink
 .PHONY: ld
 .PHONY: libfile
+.PHONY: rink
 
-as drlink ld libfile:
-	mkdir -p $(objdir)/riscos-aof/$@
-	$(MAKE) -C $@
-
+as drlink ld libfile rink:
+	mkdir -p $(objdir)/riscos-aof/$@/$(STAGE)
+	$(MAKE) -C $@ "STAGE=$(STAGE)"

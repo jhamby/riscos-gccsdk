@@ -4,6 +4,9 @@
 # Passed in by top-level Makefile.  TRG is a path name for the 
 export TRG
 
+libpath=$(objdir)/gcc-$(VERSION)/$@
+gccpath=$(objdir)/gcc-$(VERSION)/$@/$(STAGE)
+
 all:	gcc
 
 .PHONY: gcc
@@ -13,19 +16,16 @@ all:	gcc
 .PHONY: libstdc
 .PHONY: libgpc
 
-gccpath=$(objdir)/gcc-$(VERSION)/$@
-
 gcc:
 	mkdir -p $(gccpath) $(gccpath)/cp $(gccpath)/cpp $(gccpath)/f77 \
 	$(gccpath)/gpc $(gccpath)/objc $(gccpath)/java $(gccpath)/config/arm \
 	$(gccpath)/gen $(gccpath)/insn
-	$(MAKE) -C gcc
+	$(MAKE) -C gcc "STAGE=$(STAGE)"
 
 libgcc:
-	mkdir -p $(gccpath)/$(TRG) $(TBIN)/$(TRG)
-	$(MAKE) -C gcc -f Makelibs
+	mkdir -p $(libpath)/$(TRG)
+	$(MAKE) -C gcc -f Makelibs "STAGE=$(STAGE)"
 
 libgpc libio libf2c libstdc:
-	mkdir -p $(gccpath)/$(TRG)
+	mkdir -p $(libpath)/$(TRG)
 	$(MAKE) -C $@
-

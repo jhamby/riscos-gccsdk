@@ -9,5 +9,5 @@ all:	gmp
 .PHONY: gmp
 
 gmp:
-	$(MAKE) -C "gmp-3_1"
+	$(MAKE) -C "gmp-3_1" "STAGE=$(STAGE)"
 

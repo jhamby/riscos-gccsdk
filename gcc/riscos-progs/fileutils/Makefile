@@ -1,9 +1,11 @@
+# Makefile for GNU fileutils
+# Written by Nick Burrett <nick@dsvr.net>
+
 INCLUDES = -I.
-CFLAGS = -O2 $(OPTS) $(TARGET_DEFS) -DHAVE_CONFIG_H
-CC = $(standard_exec_prefix)/gcc $(CFLAGS)
+CROSS_CFLAGS += -DHAVE_CONFIG_H
 
 $(objdir)/riscos-progs/fileutils/%.o: %.c
-	$(CC) -o $@ -c $< $(INCLUDES)
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c $< $(INCLUDES)
 
 TOUCH_OBJS = $(objdir)/riscos-progs/fileutils/touch.o \
 	$(objdir)/riscos-progs/fileutils/error.o \
@@ -23,13 +25,13 @@ MKDIR_OBJS = $(objdir)/riscos-progs/fileutils/mkdir.o \
 	$(objdir)/riscos-progs/fileutils/xmalloc.o \
 	$(objdir)/riscos-progs/fileutils/closeout.o
 
-all:	$(BIN)/touch $(BIN)/mkdir
+all:	$(bin_dir)/touch $(bin_dir)/mkdir
 
-$(BIN)/touch:	$(TOUCH_OBJS) $(TBIN)/$(TRG)/unixlib.o $(TBIN)/$(TRG)/libiberty.o
-	$(standard_exec_prefix)/gcc -o $@ $(TOUCH_OBJS) $(TBIN)/$(TRG)/libiberty.o
+$(bin_dir)/touch:	$(TOUCH_OBJS)
+	$(CROSS_CC) -o $@ $(TOUCH_OBJS) $(LIBIBERTY)
 
-$(BIN)/mkdir:	$(MKDIR_OBJS) $(TBIN)/$(TRG)/unixlib.o $(TBIN)/$(TRG)/libiberty.o
-	$(standard_exec_prefix)/gcc -o $@ $(MKDIR_OBJS) $(TBIN)/$(TRG)/libiberty.o
+$(bin_dir)/mkdir:	$(MKDIR_OBJS)
+	$(CROSS_CC) -o $@ $(MKDIR_OBJS) $(LIBIBERTY)
 
 $(objdir)/riscos-progs/fileutils/touch.o: touch.c
 $(objdir)/riscos-progs/fileutils/error.o: error.c

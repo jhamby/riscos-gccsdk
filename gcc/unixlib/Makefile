@@ -18,6 +18,5 @@ unixlib:
 	mkdir -p $(upath)/netlib/o $(upath)/pwd/o $(upath)/resource/o $(upath)/signal/o
 	mkdir -p $(upath)/stdio/o $(upath)/scl/o $(upath)/sys/o $(upath)/time/o
 	mkdir -p $(upath)/termios/o $(upath)/unix/o $(upath)/wchar/o
-	mkdir -p $(TBIN)/$(TRG)
 	$(MAKE) -C source
 
