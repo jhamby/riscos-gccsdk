@@ -152,7 +152,7 @@ parse.c parse.h: parse.y
 	bison -d parse.y -o parse.c
 
 hash.h: gpc.gperf
-	gperf -p -j1 -G -o -t -N is_reserved_word -k1,2,$$ <gpc.gperf >hash.h
+	gperf -p -j1 -G -o -t -N is_reserved_word -k1,2,$$ <gpc.gperf > $@
 
 ##############################################################################
 
