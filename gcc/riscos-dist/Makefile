@@ -68,7 +68,10 @@ JAVAPKG = $(bindir)/jc1$(exesfx) \
 	$(pkg)/bin/jv-scan$(exesfx) \
 	$(bindir)/jvgenmain$(exesfx) \
 	$(pkg)/bin/gcjh$(exesfx) \
-	$(pkg)/bin/gcj$(exesfx)
+	$(pkg)/bin/gcj$(exesfx) \
+	$(pkg)/share/jar/libgcj \
+	$(bindir)/apcs32/arch3/unixlib/o/libffi \
+	$(bindir)/apcs32/arch3/unixlib/o/libgcj
 
 UTILSPKG = $(pkg)/bin/bison$(exesfx) \
 	$(pkg)/bin/cmp$(exesfx) \
