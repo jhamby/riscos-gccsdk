@@ -6,6 +6,13 @@ installparams=
 hasff8=0
 dest=
 
+if [ "$1" == "cp" ] ; then
+  command=/bin/cp
+  shift
+else
+  command=/usr/bin/install
+fi
+
 for param in $@ ; do
   installparams="$installparams $dest"
 
@@ -49,16 +56,16 @@ if [ -z "$RO_PKG" ] ; then
 
   # Only install files in bin|include|lib|X11R6 in /home/riscos/env
   
-  if echo "$dest" | grep -E "/env/bin|/env/include|/env/lib|/etc/etc|/env/X11R6" >/dev/null ; then
-    /usr/bin/install $installparams $dest
-  
-  else
-    if echo "$dest" | grep "/home/riscos/env" > /dev/null; then
-      echo "RISC OS Cross installer: Not installing non bin/include/lib/X11R6 files"
-    else
-      /usr/bin/install $installparams $dest
-    fi
-  fi
+#  if echo "$dest" | grep -E "/env/bin|/env/include|/env/lib|/etc/etc|/env/X11R6" >/dev/null ; then
+#    exec $command $installparams $dest
+#
+#  else
+#    if echo "$dest" | grep "/home/riscos/env" > /dev/null; then
+#      echo "RISC OS Cross installer: Not installing non bin/include/lib/X11R6 files"
+#    else
+      exec $command $installparams $dest
+#    fi
+#  fi
 
 else
   # Install for RISC OS headers and libraries
@@ -66,6 +73,6 @@ else
   if echo "$dest" | grep -E "/env/lib|env/include" >/dev/null ; then
     dest=$(echo $dest | sed s#/home/riscos/env/#$AB_DIR/package/#)
     echo "RO Install: $installparams $dest"
-    /usr/bin/install $installparams $dest
+    exec $command $installparams $dest
   fi
 fi
