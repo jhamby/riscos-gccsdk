@@ -6,6 +6,8 @@
 
 #ifdef HOST_ARM_ACORN_RISCOS
 #include "config/arm/xm-riscos.h"
+#elif HOST_ARM_LINUX
+#include "config/arm/xm-linux.h"
 #elif HOST_I386_LINUX
 #include "config/i386/xm-linux.h"
 #elif HOST_I386_FREEBSD
