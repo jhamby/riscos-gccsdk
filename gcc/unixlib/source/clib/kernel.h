@@ -1,15 +1,16 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/kernel.h,v $
- * $Date: 2004/10/17 16:24:43 $
- * $Revision: 1.8 $
+ * $Date: 2004/10/23 17:23:36 $
+ * $Revision: 1.9 $
  * $State: Exp $
  * $Author: joty $
  *
  * This file is intended to provide an interface between UnixLib and
- * DeskLib, for the few _kernel calls that it uses. Any simularity between
- * this and the Norcroft kernel.h file is probably due to having to use
- * identical structs.
+ * programs and/or libraries initially developed using Norcroft headers
+ * (in particular its kernel.h header).
+ * Any simularity between this and the Norcroft kernel.h file is probably
+ * due to having to use identical structs.
  *
  ***************************************************************************/
 
@@ -158,6 +159,11 @@ _kernel_sdiv10 (int __dividend) __THROW __attribute__ ((__const__));
 
 /* Return a pointer to the current stack chunk.  */
 extern _kernel_stack_chunk *_kernel_current_stack_chunk (void) __THROW;
+
+/* Allocate and free blocks of memory for automatic storage, i.e.
+   associated with the current stack frame.  */
+extern void *__rt_allocauto(unsigned int __size) __THROW;
+extern void __rt_freeauto(void *__autostorage) __THROW;
 
 __END_DECLS
 

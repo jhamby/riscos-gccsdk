@@ -1,10 +1,10 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/_alloca.s,v $
-; $Date: 2004/06/12 08:59:49 $
-; $Revision: 1.10 $
+; $Date: 2004/10/17 16:24:44 $
+; $Revision: 1.11 $
 ; $State: Exp $
-; $Author: peter $
+; $Author: joty $
 ;
 ;----------------------------------------------------------------------------
 
@@ -17,10 +17,25 @@
 	IMPORT  |__image_ro_base|
 	IMPORT  abort
 
+	; __rt_allocauto and __rt_freeauto are for Norcroft users only
+	; and to be used to allocate and free blocks of memory for
+	; automatic storage, i.e. associated with the current stack
+	; frame.  The current Norcroft implementation seems to be
+	; that these are aliases for malloc()/free().  I think it is
+	; prefered to have them here implemented as alloca() and nop.
+
+	; void __rt_freeauto(void *__autostorage)
+	EXPORT	|__rt_freeauto|
+|__rt_freeauto|
+	MOV	pc, lr
+
+	; void *__rt_allocauto(unsigned int __size)
 	EXPORT  |__alloca|
-	EXPORT  alloca
+	EXPORT  |alloca|
+	EXPORT	|__rt_allocauto|
 	NAME	__alloca
-alloca		; just in case
+|alloca|		; just in case
+|__rt_allocauto|
 |__alloca|
 	TEQ	a1, #0
 	MOVEQ	pc, lr

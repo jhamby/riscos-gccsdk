@@ -1,3 +1,12 @@
+Mon Mar 28 15:56:14 2005  John Tytgat  <John.Tytgat@aaug.net>
+
+	* source/clib/kernel.h: Better describe its intention; Added prototypes
+	  __rt_allocauto() and __rt_freeauto().
+	* source/signal/post.c: Added ptr to int cast avoiding Norcroft compiler
+	  error.
+	* source/sys/_alloca.s: Exported __rt_allocauto() and __rt_freeauto()
+	  as aliases for alloca() and nop.  For Norcroft users.
+
 Sat Mar 26 23:32:09 2005  Alex Waugh  <alex@alexwaugh.com>
 
 	* source/signal/post.c (post_signal): Open a command window if the

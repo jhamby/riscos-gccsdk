@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/signal/post.c,v $
- * $Date: 2005/03/04 20:59:06 $
- * $Revision: 1.18 $
+ * $Date: 2005/03/26 23:36:50 $
+ * $Revision: 1.19 $
  * $State: Exp $
  * $Author: alex $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: post.c,v 1.18 2005/03/04 20:59:06 alex Exp $";
+static const char rcs_id[] = "$Id: post.c,v 1.19 2005/03/26 23:36:50 alex Exp $";
 #endif
 
 /* signal.c.post: Written by Nick Burrett, 27 August 1996.  */
@@ -432,7 +432,7 @@ post_signal:
 
 	if (__taskhandle && !__taskwindow && isatty (fileno (stderr)))
 	  {
-	    regs[0] = __u->argv[0];
+	    regs[0] = (int)__u->argv[0];
 	    __os_swi (Wimp_CommandWindow, regs);
 	  }
 
