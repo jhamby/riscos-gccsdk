@@ -55,7 +55,8 @@ LIB = \
 
 all:	dirs \
 	$(bin_dir)/diff$(exesfx) $(bin_dir)/diff3$(exesfx) \
-	$(bin_dir)/sdiff$(exesfx) $(bin_dir)/cmp$(exesfx)
+	$(bin_dir)/sdiff$(exesfx) $(bin_dir)/cmp$(exesfx) \
+	$(info_dir)/diff
 
 dirs:
 	mkdir -p $(dobj) $(dobj)/lib
@@ -72,4 +73,5 @@ $(bin_dir)/sdiff$(exesfx):	$(SDIFFOBJS) $(LIB)
 $(bin_dir)/cmp$(exesfx):	$(CMPOBJS) $(LIB)
 	$(CROSS_CC) -o $@ $(CMPOBJS) $(LIB)
 
-
+$(info_dir)/diff:	doc/diff.texi doc/fdl.texi doc/version.texi
+	makeinfo --no-split --number-sections doc/diff.texi -o $@ -I doc
