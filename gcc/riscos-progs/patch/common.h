@@ -1,26 +1,24 @@
 /* common definitions for `patch' */
 
-/* $Id: common.h,v 1.1.1.1 2000/07/15 14:51:55 nick Exp $ */
+/* $Id: common.h,v 1.20 1999/08/30 06:20:08 eggert Exp $ */
 
-/*
-Copyright 1986, 1988 Larry Wall
-Copyright 1990, 1991, 1992, 1993, 1997 Free Software Foundation, Inc.
+/* Copyright 1986, 1988 Larry Wall
+   Copyright 1990, 1991-1993, 1997-1998, 1999 Free Software Foundation, Inc.
 
-This program is free software; you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 2, or (at your option)
-any later version.
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 2, or (at your option)
+   any later version.
 
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-See the GNU General Public License for more details.
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+   See the GNU General Public License for more details.
 
-You should have received a copy of the GNU General Public License
-along with this program; see the file COPYING.
-If not, write to the Free Software Foundation,
-59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-*/
+   You should have received a copy of the GNU General Public License
+   along with this program; see the file COPYING.
+   If not, write to the Free Software Foundation,
+   59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.  */
 
 #ifndef DEBUGGING
 #define DEBUGGING 1
@@ -33,11 +31,6 @@ If not, write to the Free Software Foundation,
 # define volatile
 # endif
 #endif
-
-/* Enable support for fseeko and ftello on hosts
-   where it is available but is turned off by default.
-   This must be defined before any system file is included.  */
-#define _LARGEFILE_SOURCE 1
 
 #include <config.h>
 
@@ -84,11 +77,33 @@ If not, write to the Free Software Foundation,
 #if HAVE_LIMITS_H
 # include <limits.h>
 #endif
+#ifndef CHAR_BIT
+#define CHAR_BIT 8
+#endif
+/* The extra casts work around common compiler bugs,
+   e.g. Cray C 5.0.3.0 time_t.  */
+#define TYPE_SIGNED(t) ((t) -1 < (t) 0)
+#define TYPE_MINIMUM(t) ((t) (TYPE_SIGNED (t) \
+			      ? (t) (~ (t) 0 << (sizeof (t) * CHAR_BIT - 1)) \
+			      : (t) 0))
+#define TYPE_MAXIMUM(t) ((t) ((t) ~ (t) 0 - TYPE_MINIMUM (t)))
+#ifndef CHAR_MAX
+#define CHAR_MAX TYPE_MAXIMUM (char)
+#endif
 #ifndef INT_MAX
-#define INT_MAX 2147483647
+#define INT_MAX TYPE_MAXIMUM (int)
 #endif
 #ifndef LONG_MIN
-#define LONG_MIN (-1-2147483647L)
+#define LONG_MIN TYPE_MINIMUM (long)
+#endif
+
+#if HAVE_INTTYPES_H
+# include <inttypes.h>
+#endif
+#ifndef SIZE_MAX
+/* On some nonstandard hosts, size_t is signed,
+   so SIZE_MAX != (size_t) -1.  */
+#define SIZE_MAX TYPE_MAXIMUM (size_t)
 #endif
 
 #include <ctype.h>
@@ -137,7 +152,7 @@ If not, write to the Free Software Foundation,
 /* typedefs */
 
 typedef int bool;			/* must promote to itself */
-typedef long LINENUM;			/* must be signed */
+typedef off_t LINENUM;			/* must be signed */
 
 /* globals */
 
@@ -159,9 +174,13 @@ XTERN bool posixly_correct;
 XTERN char const *origprae;
 XTERN char const *origbase;
 
-XTERN char const * volatile TMPOUTNAME;
 XTERN char const * volatile TMPINNAME;
+XTERN char const * volatile TMPOUTNAME;
 XTERN char const * volatile TMPPATNAME;
+
+XTERN int volatile TMPINNAME_needs_removal;
+XTERN int volatile TMPOUTNAME_needs_removal;
+XTERN int volatile TMPPATNAME_needs_removal;
 
 #ifdef DEBUGGING
 XTERN int debug;
@@ -212,7 +231,6 @@ XTERN char *revision;			/* prerequisite revision, if any */
 # endif
 #endif
 
-GENERIC_OBJECT *xmalloc PARAMS ((size_t));
 void fatal_exit PARAMS ((int)) __attribute__ ((noreturn));
 
 #include <errno.h>
@@ -233,7 +251,6 @@ GENERIC_OBJECT *memchr ();
 #if STDC_HEADERS
 # include <stdlib.h>
 #else
-long atol ();
 char *getenv ();
 GENERIC_OBJECT *malloc ();
 GENERIC_OBJECT *realloc ();
@@ -241,9 +258,10 @@ GENERIC_OBJECT *realloc ();
 
 #if HAVE_UNISTD_H
 # include <unistd.h>
-#endif
-#ifndef lseek
-off_t lseek ();
+#else
+# ifndef lseek
+   off_t lseek ();
+# endif
 #endif
 #ifndef SEEK_SET
 #define SEEK_SET 0
@@ -257,7 +275,7 @@ off_t lseek ();
 #ifndef STDERR_FILENO
 #define STDERR_FILENO 2
 #endif
-#if _LFS_LARGEFILE
+#if HAVE_FSEEKO
   typedef off_t file_offset;
 # define file_seek fseeko
 # define file_tell ftello
@@ -287,6 +305,9 @@ off_t lseek ();
 #endif
 #ifndef O_CREAT
 #define O_CREAT 0
+#endif
+#ifndef O_EXCL
+#define O_EXCL 0
 #endif
 #ifndef O_TRUNC
 #define O_TRUNC 0
