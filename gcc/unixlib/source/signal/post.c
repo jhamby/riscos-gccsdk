@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/signal/post.c,v $
- * $Date: 2005/03/28 14:58:03 $
- * $Revision: 1.20 $
+ * $Date: 2005/03/31 09:32:23 $
+ * $Revision: 1.21 $
  * $State: Exp $
- * $Author: joty $
+ * $Author: nick $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: post.c,v 1.20 2005/03/28 14:58:03 joty Exp $";
+static const char rcs_id[] = "$Id: post.c,v 1.21 2005/03/31 09:32:23 nick Exp $";
 #endif
 
 /* signal.c.post: Written by Nick Burrett, 27 August 1996.  */
@@ -565,12 +565,6 @@ __unixlib_raise_signal (struct unixlib_sigstate *ss, int signo)
     }
 
   if (__u != NULL && ! __valid_address (&__u[0], &__u[1]))
-    {
-      err = "UnixLib process structure is corrupt.";
-      goto error;
-    }
-
-  if (__u->__magic != _PROCMAGIC)
     {
       err = "UnixLib process structure is corrupt.";
       goto error;
