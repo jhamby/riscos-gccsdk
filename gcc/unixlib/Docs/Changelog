@@ -1,3 +1,15 @@
+Thu Sep  9 13:54:55 2004  Peter Naulls  <peter@chocky.org>
+
+	* source/clib/unixlib/dev.h, source/unix/dev.c: Add __dsplseek
+	* source/sound/dsp.c: Implement __dsplseek, rearrange for
+	  NULL parameter checking.  Close and reopen device if playback
+	  values are changed.
+	* source/termios/tcgetattr.c: Fix getting of VMIN/VTIME
+	* source/termios/tcsetattr.c: Fix setting of VMIN/VTIME
+	* source/unix/ioctl.c: NULL arguments to ioctl are ok.
+	* source/unix/tty.c: Implement usage of VTIME, correct setting/usage
+	  of VMIN. 
+
 Wed Sep  8 18:04:02 2004  John Tytgat  <John.Tytgat@aaug.net>
 
 	* objs/.cvsignore: Added sound directory.

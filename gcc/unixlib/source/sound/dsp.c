@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sound/dsp.c,v $
- * $Date: 2004/09/08 09:15:54 $
- * $Revision: 1.2 $
+ * $Date: 2004/09/08 16:12:41 $
+ * $Revision: 1.3 $
  * $State: Exp $
- * $Author: peter $
+ * $Author: joty $
  *
  ***************************************************************************/
 
@@ -23,16 +23,26 @@
 #include <unixlib/dev.h>
 #include <unixlib/swiparams.h>
 
-
 #define IGNORE(x) {(void) x;}
 
 
 #define BUFFER_SIZE 512
 #define FRAGMENTS   4
 
-static _kernel_oserror *set_defaults(int channels, int format, int size, int frequency)
+static _kernel_oserror *set_defaults(struct __unixlib_fd *fd, int channels, int format, int size, int frequency)
 {
   _kernel_swi_regs regs;
+  _kernel_oserror *err;
+
+  /* DRender: has to be closed and reopened to set these values */
+
+  if (fd->handle)
+    __dspclose(fd);
+
+  /* Set to fill with zero when out of data */
+  regs.r[0] = 1;
+  regs.r[1] = ~1;
+  _kernel_swi(DigitalRenderer_StreamFlags, &regs, &regs);
 
   regs.r[0] = channels;
   regs.r[1] = format;
@@ -41,29 +51,31 @@ static _kernel_oserror *set_defaults(int channels, int format, int size, int fre
   regs.r[4] = 43;
   regs.r[5] = frequency;
 
-  return _kernel_swi(DigitalRenderer_SetDefaults, &regs, &regs);
+  if ((err = _kernel_swi(DigitalRenderer_SetDefaults, &regs, &regs)) ||
+      (err = __os_fopen (OSFILE_OPENOUT, "DRender:", (void *)&fd->handle)))
+    return err;
+
+  return NULL;
 }
 
 
-void *__dspopen (struct __unixlib_fd *file_desc, const char *file, int mode)
+void *__dspopen (struct __unixlib_fd *fd, const char *file, int mode)
 {
   int handle;
   _kernel_oserror *err;
 
-  IGNORE(file_desc);
   IGNORE(file);
   IGNORE(mode);
 
   __os_cli("RMEnsure DigitalRenderer 0.51 RMload System:Modules.DRenderer");
   if ((err = __os_cli("RMEnsure DigitalRenderer 0.51 Error XYZ")) != NULL
-      || (err = set_defaults(2, 2, BUFFER_SIZE, 44100)) != NULL
-      || (err = __os_fopen (OSFILE_OPENOUT, "DRender:", &handle)) != NULL)
+      || (err = set_defaults(fd, 2, 2, BUFFER_SIZE, 44100)) != NULL)
     {
       __seterr (err);
       return (void *) -1;
     }
 
-  return (void *)handle;
+  return (void *)fd->handle;
 }
 
 
@@ -75,22 +87,36 @@ int __dspclose (struct __unixlib_fd *fd)
 }
 
 
+__off_t __dsplseek (struct __unixlib_fd *fd, __off_t lpos, int whence)
+{
+   /* Do nothing, just so programs don't complain */
+
+  IGNORE(fd);
+  IGNORE(lpos);
+  IGNORE(whence);
+
+  return 0;
+}
+
+
 int __dspioctl (struct __unixlib_fd *fd, unsigned long request, void *arg)
 {
-  IGNORE(fd);
+  request &= 0xffff;
 
-  switch (request & 0xffff)
+  /* Do nothing */
+  if (request == (SNDCTL_DSP_RESET & 0xffff) || request == (SNDCTL_DSP_SYNC & 0xffff))
+    return 0;
+
+  if (!arg)
+    return __set_errno (EINVAL);
+
+  switch (request)
     {
-      case SNDCTL_DSP_RESET & 0xffff:
-      case SNDCTL_DSP_SYNC & 0xffff:
-        /* Do nothing for now */
-        return 0;
-
       case SNDCTL_DSP_SPEED & 0xffff:
         {
           int speed = *((int *)arg);
 
-          if (!set_defaults(0, 0, 0, speed))
+          if (!set_defaults(fd, 0, 0, 0, speed))
             return 0;
         }
 
@@ -100,7 +126,7 @@ int __dspioctl (struct __unixlib_fd *fd, unsigned long request, void *arg)
 
           /* DigitalRenderer supports 8-bit ulaw and 16-bit signed linear */
           if (format & (AFMT_MU_LAW | AFMT_S16_LE))
-            if (!set_defaults(0, (format == AFMT_MU_LAW) ? 1 : 2, 0, 0))
+            if (!set_defaults(fd, 0, (format == AFMT_MU_LAW) ? 1 : 2, 0, 0))
               return 0;
         }
 
@@ -108,7 +134,7 @@ int __dspioctl (struct __unixlib_fd *fd, unsigned long request, void *arg)
         {
           int format = *((int *)arg);
 
-          if (!set_defaults((format == 1) ? 2 : 1, 0, 0, 0))
+          if (!set_defaults(fd, (format == 1) ? 2 : 1, 0, 0, 0))
             return 0;
         }
 
@@ -116,7 +142,7 @@ int __dspioctl (struct __unixlib_fd *fd, unsigned long request, void *arg)
         {
           int channels = *((int *)arg);
 
-          if (!set_defaults(channels, 0, 0, 0))
+          if (!set_defaults(fd, channels, 0, 0, 0))
             return 0;
         }
 

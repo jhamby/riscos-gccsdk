@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/tty.c,v $
- * $Date: 2004/01/02 23:33:59 $
- * $Revision: 1.12 $
+ * $Date: 2004/09/07 14:05:11 $
+ * $Revision: 1.13 $
  * $State: Exp $
  * $Author: joty $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: tty.c,v 1.12 2004/01/02 23:33:59 joty Exp $";
+static const char rcs_id[] = "$Id: tty.c,v 1.13 2004/09/07 14:05:11 joty Exp $";
 #endif
 
 /* System V tty device driver for RISC OS.  */
@@ -37,6 +37,7 @@ static const char rcs_id[] = "$Id: tty.c,v 1.12 2004/01/02 23:33:59 joty Exp $";
 #include <unixlib/features.h>
 #include <unixlib/fd.h>
 #include <pthread.h>
+#include <time.h>
 
 #define IGNORE(x) x = x
 
@@ -638,6 +639,8 @@ __ttyiraw (const struct __unixlib_fd *file_desc, void *buf, int nbyte,
   const tcflag_t lflag = tty->t->c_lflag;
   const cc_t * const cc = tty->t->c_cc;
   unsigned int vm, vt;
+  clock_t start = clock();
+  int first = 1;
 
 #define F_NSCAN		000001
 
@@ -648,16 +651,22 @@ __ttyiraw (const struct __unixlib_fd *file_desc, void *buf, int nbyte,
   else
     {
       vm = (cc[VMIN] && cc[VTIME]) ? 1 : cc[VMIN];
-      vt = cc[VTIME] * 10;
+      vt = cc[VTIME] * CLOCKS_PER_SEC / 10;
     }
-  if (cc[VMIN] && !cc[VTIME])
+
+  if (!cc[VMIN] || !cc[VTIME])
     nbyte = vm, nflag |= F_NSCAN;
 
   ttybuf = buf;
   i = 0;
 
-  while (i < nbyte)
+  while (i < nbyte || first)
     {
+      if (first)
+        first = 0;
+      else
+        if (vt && clock() > start + vt) return i;
+
       if (tty->lookahead >= 0)
 	{
 	  c = tty->lookahead;
@@ -671,7 +680,7 @@ __ttyiraw (const struct __unixlib_fd *file_desc, void *buf, int nbyte,
 
 	      if (c < 0)
 	        {
-	          if (__taskwindow)
+	          if (__taskwindow && nbyte)
 	            {
                       _kernel_swi_regs regs;
 
@@ -692,7 +701,8 @@ __ttyiraw (const struct __unixlib_fd *file_desc, void *buf, int nbyte,
 	      c = __funcall ((*(tty->in)), ());
 	    }
 	}
-      if (c == '\r' && iflag & IGNCR)
+
+      if (c == '\r' && (iflag & IGNCR))
 	continue;
       c = __ttyinput (c, iflag);
       if (lflag & ISIG)
@@ -710,6 +720,7 @@ __ttyiraw (const struct __unixlib_fd *file_desc, void *buf, int nbyte,
 	}
       __ttyecho (tty, c, oflag, lflag);
       ttybuf[i++] = c;
+      start = clock();
     }
 
   return i;
@@ -909,6 +920,9 @@ __ttyioctl (struct __unixlib_fd *file_desc, unsigned long request, void *arg)
   int type = (int) file_desc->handle;
   struct tty *tty = __u->tty + type;
 
+  if (!arg)
+    return __set_errno (EINVAL);
+
   switch (request)
     {
     case TIOCMODG: /* Get modem control state.  */
@@ -1069,12 +1083,6 @@ __ttyioctl (struct __unixlib_fd *file_desc, unsigned long request, void *arg)
             term->c_iflag = 0;
             term->c_lflag &= ~(ISIG | ICANON);
           }
-
-	if (!(term->c_lflag & ICANON))
-	  {
-            term->c_cc[VMIN] = 1;
-            term->c_cc[VTIME] = 0;
-          }
       }
       return 0;
       break;
@@ -1168,9 +1176,6 @@ __ttyioctl (struct __unixlib_fd *file_desc, unsigned long request, void *arg)
       break;
     case TIOCDRAIN: /* Wait till output drained.  */
       break;
-    default:
-      return __set_errno (EINVAL);
-
     }
 
   return __set_errno (EINVAL);

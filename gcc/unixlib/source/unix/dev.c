@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/dev.c,v $
- * $Date: 2004/05/03 17:37:07 $
- * $Revision: 1.18 $
+ * $Date: 2004/09/07 17:49:40 $
+ * $Revision: 1.19 $
  * $State: Exp $
  * $Author: peter $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: dev.c,v 1.18 2004/05/03 17:37:07 peter Exp $";
+static const char rcs_id[] = "$Id: dev.c,v 1.19 2004/09/07 17:49:40 peter Exp $";
 #endif
 
 /* #define DEBUG */
@@ -87,7 +87,7 @@ struct dev __dev[NDEV] =
     __nulllseek, __nullioctl, __nullselect, __nullstat, __nullfstat },
   /* DEV_DSP */
   {__dspopen, __dspclose, __nullread, __fswrite,
-    __nulllseek, __dspioctl, __nullselect, __nullstat, __nullfstat }
+    __dsplseek, __dspioctl, __nullselect, __nullstat, __nullfstat }
 };
 
 /* Map of special device names to device types.  */

@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/termios/tcgetattr.c,v $
- * $Date: 2003/04/05 09:33:56 $
- * $Revision: 1.4 $
+ * $Date: 2004/01/02 23:33:59 $
+ * $Revision: 1.5 $
  * $State: Exp $
- * $Author: alex $
+ * $Author: joty $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: tcgetattr.c,v 1.4 2003/04/05 09:33:56 alex Exp $";
+static const char rcs_id[] = "$Id: tcgetattr.c,v 1.5 2004/01/02 23:33:59 joty Exp $";
 #endif
 
 #include <stdio.h>
@@ -117,8 +117,16 @@ tcgetattr (int fd, struct termios *termios_p)
   termios_p->c_cc[VSTART] = tchars.t_startc;
   termios_p->c_cc[VSTOP] = tchars.t_stopc;
   termios_p->c_cc[VSUSP] = ltchars.t_suspc;
-  termios_p->c_cc[VMIN] = -1;
-  termios_p->c_cc[VTIME] = -1;
+
+  {
+    struct __unixlib_fd *file_desc = &__u->fd[fd];
+    struct tty *tty;
+
+    tty = __u->tty + (int) file_desc->handle;
+
+    termios_p->c_cc[VMIN]  = tty->t->c_cc[VMIN];
+    termios_p->c_cc[VTIME] = tty->t->c_cc[VTIME];
+  }
 
   return 0;
 }

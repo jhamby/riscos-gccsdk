@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/ioctl.c,v $
- * $Date: 2003/04/05 09:33:57 $
- * $Revision: 1.4 $
+ * $Date: 2003/10/26 13:34:34 $
+ * $Revision: 1.5 $
  * $State: Exp $
- * $Author: alex $
+ * $Author: joty $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: ioctl.c,v 1.4 2003/04/05 09:33:57 alex Exp $";
+static const char rcs_id[] = "$Id: ioctl.c,v 1.5 2003/10/26 13:34:34 joty Exp $";
 #endif
 
 #include <errno.h>
@@ -25,9 +25,6 @@ ioctl (int fd, unsigned long request, void *arg)
   struct __unixlib_fd *file_desc;
 
   PTHREAD_UNSAFE
-
-  if (!arg)
-    return __set_errno (EINVAL);
 
   if (BADF (fd))
     return __set_errno (EBADF);
