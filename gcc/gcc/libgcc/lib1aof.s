@@ -307,165 +307,207 @@ XOS_SynchroniseCodeAreas	EQU	&00006E + X_Bit
 	EXPORT	|__fixsfdi|
 	/* Convert single precision float to 64-bit int */
 |__fixsfdi|
-	cmp	r0, #0
-	moveq	r1, #0
+	mov	r3, r0, lsr #31 /* r3=sign bit */
+	mov	r2, r0, lsr #23 /* r2=exponent */
+	bic	r0, r0, r2, lsl #23 /* r0=fraction */
+	ands	r2, r2, #255 /* Clear sign bit from exponent, and check for an exponent of 0 */
+
+	moveq	r0, #0 /* If the exponent was 0, return 0 */
+	moveq	r1, #0 /* (Handles cases where fraction == 0 and so number=0, or fraction != 0 and so number=0.fraction*2^-126 (i.e. very small indeed)) */
 	RETURNc(eq, pc, lr)
 
-	mov	r2, r0, lsr #23 /* Extract the exponent */
-	ands	r2, r2, #&ff
-	bic	r0, r0, r2, lsl #23 /* Clear exponent from mantissa */
-	orrne	r0, r0, #1<<23 /* add implicit bit */
+	cmp	r2, #189 /* Maximum exponent we can allow is 62, since 2^63 would overflow into the sign slot and result in -1. Tracing that back results in an r2 of 62+127 = 189 */
+	bgt	fixsfdi_big
 
-	tst	r2, #1<<8  /* Is sign bit set */
-	rsbne	r0, r0, #0 /* yes; negate mantissa */
+	/* Else exponent >0 and <190, so treat as 1.fraction*2^(exponent-127) */
+	orr	r1, r0, #&800000 /* Add the implicit 1 to the fraction */
+	subs	r2, r2, #127+23 /* Adjust exponent to give us hiw far we need to shift */
 
-	bic	r2, r2, #1<<8 /* clear sign bit, leaving exponent */
+	/* Calculate the low word */
+	movge	r0, r1, lsl r2
+	rsblt	r2, r2, #0
+	movlt	r0, r1, lsr r2
+	rsblt	r2, r2, #0
 
-	subs	r2, r2, #150 /* remove bias from exponent */
-	movlt	r0, r0, asr r2
-	movlt	r1, #0
-	RETURNc(lt, pc, lr)
+	/* Calculate the high word */
+	subs	r2, r2, #32
+	movge	r1, r1, lsl r2
+	rsblt	r2, r2, #0
+	movlt	r1, r1, lsr r2
 
-	rsb	r2, r2, #0
-
-	/* perform 64-bit shift */
-        rsbs	ip, r2, #32
-	rsble	ip, ip, #0 /* shift >= 32 bits */
-	movle	r1, r0, asl ip
-	movle	r0, #0
-	movgt	r1, r0, lsr ip
-	movgt	r0, r0, asl r2
+	/* Check sign */
+	cmp	r3, #0
+	moveq	pc, r14 /* Return if positive */
+	rsbs	r0, r0, #0 /* Or negate */
+	rsc	r1, r1, #0
 	RETURN(pc, lr)
 
-
-	/* number is represented as 1.mantissa x 2^exponent-127 */
-	subs	r2, r2, #127 /* remove bias from exponent */
-	movmi	r0, #0 /* if exponent negative then not representable */
-	movmi	r1, #0
-	RETURNc(mi, pc, lr) /* as an integer */
-
-	/* the mantissa is 23 bits wide. assume we are representing the */
-	/* number as mantissa x 2^23, then we may need to shift left */
-	/* or right. */
-	rsbs	r2, r2, #23
-	movpl	r0, r0, asr r2
-	movpl	r1, #0
-	RETURNc(pl, pc, lr)
-
-	rsb	r2, r2, #0 /* exponent was larger than 23 */
-
-	/* perform 64-bit shift */
-        rsbs	ip, r2, #32
-	rsble	ip, ip, #0 /* shift >= 32 bits */
-	movle	r1, r0, asl ip
-	movle	r0, #0
-	movgt	r1, r0, lsr ip
-	movgt	r0, r0, asl r2
+fixsfdi_big /* For big numbers, including infinity */
+	cmp	r3, #0
+	mvneq	r0, #0
+	mvneq	r1, #&80000000 /* +infinity */
+	movne	r0, #0
+	movne	r1, #&80000000 /* -infinity */
 	RETURN(pc, lr)
 #endif
 
 #ifdef L_fixunssfdi
 	EXPORT	|__fixunssfdi|
-	/* Convert single precision float to 64-bit int */
+	/* Convert single precision float to unsigned 64-bit int */
 |__fixunssfdi|
-	cmp	r0, #0
-	moveq	r1, #0
+	mov	r2, r0, lsr #23 /* r2=exponent */
+	bic	r0, r0, r2, lsl #23 /* r0=fraction */
+
+	movs	r1, r2, lsl #23 /* Check for sign=1 or exponent=0 */
+	movle	r0, #0 /* ...in which case return 0 */
+	movle	r1, #0
+	RETURNc(le, pc, lr)
+
+	cmp	r2, #190 /* Maximum exponent we can allow is 63, since 2^64 would overflow. Tracing that back results in an r2 of 63+127 = 190 */
+	mvngt	r0, #0
+	mvngt	r1, #0 /* +infinity */
+	RETURNc(gt, pc, lr)
+
+	/* Else exponent >0 and <191, so treat as 1.fraction*2^(exponent-127) */
+	orr	r1, r0, #&800000 /* Add the implicit 1 to the fraction */
+	subs	r2, r2, #127+23 /* Adjust exponent to give us hiw far we need to shift */
+
+	/* Calculate the low word */
+	movge	r0, r1, lsl r2
+	rsblt	r2, r2, #0
+	movlt	r0, r1, lsr r2
+	rsblt	r2, r2, #0
+
+	/* Calculate the high word */
+	subs	r2, r2, #32
+	movge	r1, r1, lsl r2
+	rsblt	r2, r2, #0
+	movlt	r1, r1, lsr r2
+
+	RETURN(pc, lr)
+#endif
+
+#ifdef L_fixdfdi
+	EXPORT |__fixdfdi|
+	/* Convert double precision float to 64-bit int */
+|__fixdfdi|
+	mov	r3, r0, lsr #31 /* r3=sign bit */
+	mov	r2, r0, lsr #20 /* r2=exponent */
+	bic	r0, r0, r2, lsl #20 /* r0=fraction */
+	bics	r2, r2, #&800 /* Clear sign bit from exponent and check for exponent of 0 */
+
+	moveq	r0, #0 /* If the exponent was 0, return 0 */
+	moveq	r1, #0 /* (Handles cases where fraction == 0 and so number=0, or fraction != 0 and so number=0.fraction*2^-1022 (i.e. very small indeed)) */
 	RETURNc(eq, pc, lr)
 
-	mov	r2, r0, lsr #23 /* Extract the exponent */
-	bic	r0, r0, r2, lsl #23 /* Clear exponent from mantissa */
-	orr	r0, r0, #1<<23 /* add implicit bit */
-	bic	r2, r2, #1<<8 /* clear sign bit, leaving exponent */
+	sub	r2, r2, #1024 /* Adjust exponent (really this should be 1023, but that'd take two instructions) */
+	cmp	r2, #61 /* Maximum exponent we can allow is 62, since 2^63 would overflow into the sign slot and result in -1 */
+	bgt	fixdfdi_big
 
-	/* number is represented as 1.mantissa x 2^exponent-127 */
-	subs	r2, r2, #127 /* remove bias from exponent */
-	movmi	r0, #0 /* if exponent negative then not representable */
-	movmi	r1, #0
-	RETURNc(mi, pc, lr) /* as an integer */
+	/* Else exponent is in range */
+	subs	r2, r2, #19+32 /* Adjust again so that the 1 bit will lie in bit 0 of r0 */
+	orr	r0, r0, #&100000 /* Add the 1 bit */
+	bge	fixdfdi_left /* Need to shift left */
 
-	/* the mantissa is 23 bits wide. assume we are representing the */
-	/* number as mantissa x 2^23, then we may need to shift left */
-	/* or right. */
-	rsbs	r2, r2, #23
-	movpl	r0, r0, lsr r2
-	movpl	r1, #0
-	RETURNc(pl, pc, lr)
+	/* Else shift right */
+	rsb	r2, r2, #0
+	mov	r1, r1, lsr r2 /* Shift lower word */
+	/* Now add overlapping bits from upper word */
+	rsbs	r2, r2, #32
+	orrge	r1, r1, r0, lsl r2
+	rsblt	r2, r2, #0
+	orrlt	r1, r1, r0, lsr r2
+	rsblt	r2, r2, #0
+	rsb	r2, r2, #32
+	mov	r2, r0, lsr r2 /* And shift upper word (And start a word swap using r2 as temp, since r1 and r0 are currently the wrong way round) */
 
-	rsb	r2, r2, #0 /* exponent was larger than 23 */
+	/* return */
+	cmp	r3, #0 /* Negative? */
+	moveq	r0, r1 /* Finish word swap */
+	moveq	r1, r2
+	moveq	pc, lr
+	rsbs	r0, r1, #0
+	rsc	r1, r2, #0
+	RETURN(pc, lr)
 
-	/* perform 64-bit shift */
-        rsbs	ip, r2, #32
-	rsble	ip, ip, #0 /* shift >= 32 bits */
-	movle	r1, r0, asl ip
-	movle	r0, #0
-	movgt	r1, r0, lsr ip
-	movgt	r0, r0, asl r2
+fixdfdi_left
+	mov	r0, r0, lsl r2 /* Shift upper word */
+	/* now add overlapping bits from lower word */
+	rsb	r2, r2, #32
+	orr	r0, r0, r1, lsr r2
+	rsb	r2, r2, #32
+	mov	r2, r1, lsl r2 /* shift lower word */
+
+	/* return */
+	cmp	r3, #0 /* Negative? */
+	moveq	r1, r0 /* complete word order swap started above */
+	moveq	r0, r2
+	moveq	pc, lr
+	rsbs	r2, r2, #0
+	rsc	r1, r0, #0
+	mov	r0, r2
+	RETURN(pc, lr)
+
+fixdfdi_big /* For big numbers, including infinity */
+	cmp	r3, #0
+	mvneq	r0, #0
+	mvneq	r1, #&80000000 /* +infinity */
+	movne	r0, #0
+	movne	r1, #&80000000 /* -infinity */
 	RETURN(pc, lr)
 #endif
 
 #ifdef L_fixunsdfdi
-	EXPORT |__fixdfdi|
 	EXPORT |__fixunsdfdi|
-
-|__fixdfdi|
-	stmfd	sp!, {r14}
-	mov	r2, r0, lsr #31
-	tst	r2, #1
-	bl	|__fixunsdfdi|
-	ldmeqfd	sp!, {pc}RETCOND
-	rsbs	r0, r0, #0
-	rsc	r1, r1, #0
-	ldmfd	sp!, {pc}RETCOND
-
-	/* Convert double precision float to 64-bit int */
+	/* Convert double precision float to unsigned 64-bit int */
 |__fixunsdfdi|
-	/* Check fast case, incoming integer == 0 */
-	cmp	r0, #0
-	cmpeq	r1, #0
-	RETURNc(eq, pc, lr)
+	mov	r2, r0, lsr #20 /* r2=exponent */
+	bic	r0, r0, r2, lsl #20 /* r0=fraction */
 
-	/* r0 = first word */
-	/* r1 = second word */
+	movs	r3, r2, lsl #20 /* Check for sign=1 or exponent=0 */
+	movle	r0, #0 /* ...in which case return 0 */
+	movle	r1, #0
+	RETURNc(le, pc, lr)
 
-	mov	r3, r0, lsr #20 /* Extract the exponent */
-	bic	r2, r0, r3, lsl #20 /* clear exponent from fraction */
-	orr	r2, r2, #1<<20 /* add implicit bit */
-	bic	r12, r3, #1<<11 /* clear sign bit, leaving exponent */
+	sub	r2, r2, #1024 /* Adjust exponent (really this should be 1023, but that'd take two instructions) */
+	cmp	r2, #62 /* Maximum exponent we can allow is 63, since 2^64 would overflow */
+	mvngt	r0, #0
+	mvngt	r1, #0 /* +infinity */
+	RETURNc(gt, pc, lr)
 
-	/* number is represented as 1.mantissa x 2^exponent-1023 */
-	sub	r12, r12, #1024 /* remove bias from exponent */
-	adds	r12, r12, #1
-	movmi	r0, #0 /* if exponent negative then not representable */
-	movmi	r1, #0 /* as an integer */
-	RETURNc(mi, pc, lr)
+	/* Else exponent is in range */
+	subs	r2, r2, #19+32 /* Adjust again so that the 1 bit will lie in bit 0 of r0 */
+	orr	r0, r0, #&100000 /* Add the 1 bit */
+	bge	fixunsdfdi_left /* Need to shift left */
 
-	/* at this point: r0 = exponent */
-	/* r1 = second word (bottom 32-bits of fraction) */
-	/* r2 = first word (top 20-bits of fraction) */
+	/* Else shift right */
+	rsb	r2, r2, #0
+	mov	r1, r1, lsr r2 /* Shift lower word */
+	/* Now add overlapping bits from upper word */
+	rsbs	r2, r2, #32
+	orrge	r1, r1, r0, lsl r2
+	rsblt	r2, r2, #0
+	orrlt	r1, r1, r0, lsr r2
+	rsblt	r2, r2, #0
+	rsb	r2, r2, #32
+	mov	r2, r0, lsr r2 /* And shift upper word */
 
-	rsbs	r12, r12, #52
-	bmi	fixunsdfdi_shl
-
-	rsbs	r3, r12, #32  /* r3 = 32 - shift */
-	rsble	r3, r3, #0
-	movle	r0, r2, lsr r3 /* low = high >> -bm */
-	movle	r1, #0	 	/* high = 0 */
-	movgt	r0, r1, lsr r12  /* low >>= exponent */
-	orrgt	r0, r0, r2, lsl r3 /* low |= high << r3 */
-	movgt	r1, r2, lsr r12
+	/* return (completing word order swap started above) */
+	mov	r0, r1
+	mov	r1, r2
 	RETURN(pc, lr)
 
-fixunsdfdi_shl
-	rsb	r12, r12, #0 /* exponent was larger than 52 */
+fixunsdfdi_left
+	mov	r0, r0, lsl r2 /* Shift upper word */
+	/* now add overlapping bits from lower word */
+	rsb	r2, r2, #32
+	orr	r0, r0, r1, lsr r2
+	rsb	r2, r2, #32
+	mov	r2, r1, lsl r2 /* shift lower word */
 
-	/* perform 64-bit shift */
-        rsbs	r3, r12, #32
-	rsble	r3, r3, #0 /* shift >= 32 bits */
-	movle	r1, r1, asl r3
-	movle	r0, #0
-	movgt	r2, r2, lsl r12 /* shift <= 31 bits */
-	movgt	r0, r1, asl r12
-	orrgt	r1, r2, r1, lsr r3
+	/* return (completing word order swap started above) */
+	mov	r1, r0
+	mov	r0, r2
 	RETURN(pc, lr)
 #endif
 
@@ -561,13 +603,14 @@ fixunsdfdi_shl
 	mvfeqd	f0, #0.0
 	RETURNc(eq, pc, lr)
 
-	tst	r1, #1<<31
-	moveq	r2, r0	/* bottom word */
-	moveq	r3, r1	/* top word */
-	moveq	r0, #0  /* first word of IEEE result */
-	rsbne	r2, r0, #0 /* negate fraction */
-	rsbne	r3, r1, #0
-	movne	r0, #1<<31  /* first word of IEEE result (with sign bit) */
+	movs	r3, r1 /* check sign and copy top word */
+	movge	r2, r0 /* bottom word */
+	movge	r0, #0 /* first word of IEEE result */
+	bge	fltdidf_pos
+	rsbs	r2, r0, #0 /* make positive if negative */
+	rsc	r3, r1, #0
+	mov	r0, #1<<31 /* first word of IEEE result (with sign bit) */
+fltdidf_pos
 
 	cmp	r3, #0 /* if top word if 0 then we'll use the bottom word */
 	movne	r12, #64 /* exponent */
