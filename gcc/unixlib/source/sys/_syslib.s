@@ -1,8 +1,8 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/_syslib.s,v $
-; $Date: 2003/04/05 09:13:00 $
-; $Revision: 1.12 $
+; $Date: 2003/04/05 12:16:34 $
+; $Revision: 1.13 $
 ; $State: Exp $
 ; $Author: alex $
 ;
@@ -104,6 +104,10 @@ EXTREMELY_PARANOID	*	0	; Should we check that the entire stack chunk chain is va
 	LDMIA	a3, {a1, a2}	; Get time
 	STR	a1, [ip, #8]	; __time (low word)
 	STR	a2, [ip, #12]	; __time (high word)
+
+	MVNS	a1, #0          ; ensure a flag is set
+	TEQ	pc, pc          ; EQ if in 32-bit mode, NE if 26-bit
+	STREQ   a1, [ip, #76]   ; *** HACK HACK for objasm: was "[__32bit - struct_base]"   ; __32bit
 
 	MOV	a1, #14	; Read appspace value
 	MOV	a2, #0
@@ -527,7 +531,7 @@ t05
 	ADD	v1, v1, #1
 	CMP	v1, #17
 	BLT	t05
-	LDMFD	sp!, {a1, a2, a3, a4, v1, v2, pc}^
+	LDMFD	sp!, {a1, a2, a3, a4, v1, v2, pc}
 
 	IMPORT	|__ul_errbuf|
 	; Install the Unixlib environment handlers
@@ -560,7 +564,7 @@ t06
 	SWI	XOS_ChangeEnvironment
 
 	SWI	XOS_IntOn
-	LDMFD	sp!, {a1, a2, a3, a4, v1, v2, pc}^
+	LDMFD	sp!, {a1, a2, a3, a4, v1, v2, pc}
 
 handlers
 	DCD	0		; Memory limit
@@ -946,6 +950,7 @@ dynamic_area_name_end
 	EXPORT	|__dynamic_num|
 	EXPORT	|__u|		; pointer to proc structure
 	EXPORT	|__real_himem|
+	EXPORT	|__32bit|	; non-zero if executing in 32-bit mode
 
 	; Altering this structure will require fixing __main.
 struct_base
@@ -972,5 +977,7 @@ struct_base
 |__dynamic_num|	DCD	-1				; offset = 64
 |__u|		DCD	0				; offset = 68
 |__real_himem|	DCD	0				; offset = 72
+
+|__32bit|	DCD	0				; offset = 76
 
 	END

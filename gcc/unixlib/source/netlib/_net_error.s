@@ -1,8 +1,8 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/netlib/_net_error.s,v $
-; $Date: 2001/01/29 15:10:20 $
-; $Revision: 1.2 $
+; $Date: 2002/09/24 21:02:37 $
+; $Revision: 1.3 $
 ; $State: Exp $
 ; $Author: admin $
 ;
@@ -35,11 +35,13 @@
 	EXPORT	|__net_error|
 	NAME	__net_error
 |__net_error|
-	STMFD	sp!, {a1, ip, lr}	; preserve ip (for when called as subroutine
-				; by NetSWI)
-	BL	|__seterr|	; save error for last_oserror
+	STMFD	sp!, {a1, ip, lr}  ; preserve ip (for when called as subroutine
+				   ; by NetSWI)
+	BL	|__seterr|	   ; save error for last_oserror
 	LDMFD	sp!, {a1, ip, lr}
-	LDR	a1, [a1, #0]		; get real errno from oserror
+	LDR	a1, [a1, #0]       ; get real errno from oserror
+	ADD     a1, a1, #0xff      ; RISC OS 5 correctly returns error numbers
+	                           ; in Internet error block.  
 	__set_errno	a1, a2
 	return	AL, pc, lr
 

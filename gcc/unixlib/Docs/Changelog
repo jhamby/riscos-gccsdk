@@ -1,3 +1,16 @@
+Mon Apr 21 08:40:33  2003 Peter Naulls <peter@chocky.org>
+	* objs/Makefile,fe1: Change APCS flags to 32-bit
+	* clib/unixlib/asm_dec.s: Extra definitions for 32-bit,
+	  make networking macros 32-bit.
+	* netlib/_accept.s, netlib/_getpeerna.s, netlib/_getsockna.s,
+	  netlib/_recvfrom.s, netlib/_recvmsg.s, netlib/_sendmsg.s:
+          Remove unused macro silliness
+	* netlib/_net_error.s: 32-bit
+	* netlib/serv.c: Fix typo
+	* signal/_coredump.s, signal/_signal.s, signal/post.c:
+	  32-bit, move much of the handling into C for ease of maintainence.
+	* sys/_swi.s, sys/_syslib: 32-bit
+
 Sat Apr 13 17:20:43 2003  Alex Waugh  <alex@alexwaugh.com>
 
 	* clib/stdio.h: Thread safety patches.

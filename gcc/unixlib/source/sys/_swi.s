@@ -1,8 +1,8 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/_swi.s,v $
-; $Date: 2002/02/14 15:56:37 $
-; $Revision: 1.2 $
+; $Date: 2002/07/19 13:12:30 $
+; $Revision: 1.1.2.3 $
 ; $State: Exp $
 ; $Author: admin $
 ;
@@ -71,16 +71,11 @@
 	ADR	r12,|_swi_x|		;Point to X entry point
 	ORR	r9,r0,#&20000		;Set the X bit on the SWI
 	LDR	r0,|_swihack|		;Point to SWI calling routine
-	B	|_swi_main|		;Skip onwards to main code
-
 
 	; --- First job is to set up the call address ---
 
 |_swi_main|
-	MOV	r14,pc			;Get the current CPU flags
-	AND	r14,r14,#&0C000003	;Leave interrupts and mode
-	ORR	r12,r12,r14		;Set the return address
-	ORR	r14,r0,r14		;And the call address
+	MOV	r14,r0			;
 	SUB	sp,sp,#8		;Make a hole in the stack
 	STMFD	sp!,{r9-r12,r14}	;Save r10-r12 and pc (fake)
 
@@ -121,7 +116,7 @@
 	STMIA	r14,{r10,r12}		;Save important context
 	TST	r10,#&800		;Do we have a block argument?
 	BNE	|_swi_block|		;Yes -- sort out out-of-line
-	LDMFD	sp!,{r10-r12,r14,pc}^	;And call the routine
+	LDMFD	sp!,{r10-r12,r14,pc}	;And call the routine
 
 		; --- X-type return ---
 
@@ -182,7 +177,7 @@
 	; Same style as the input parameters, with early exits
 	; placed conveniently.
 |_swi_output|
-	MOV	r11,pc			;Get the CPU flags
+	MRS	r11, CPSR		;Get the CPU flags
 
 	TST	r10,#&FF000000		;Are there any output args?
 	TSTEQ	r10,#&00E00000
@@ -226,7 +221,7 @@ swiout00
 swiout10
 	LDMFD	sp!,{r0,r4-r12,r14}
 	ADD	sp,sp,#8
-	MOVS	pc,r14
+	MOV	pc,r14
 
 	; --- Handle block arguments ---
 	;
@@ -255,39 +250,39 @@ swibl00	MOVS	r11,r11,LSL #2		;Shift into C and N flags
 	; to play with above, which helps.
 
 	MOV	r0,r14
-	LDMFD	sp!,{r10-r12,r14,pc}^
+	LDMFD	sp!,{r10-r12,r14,pc}
 	MOV	r1,r14
-	LDMFD	sp!,{r10-r12,r14,pc}^
+	LDMFD	sp!,{r10-r12,r14,pc}
 	MOV	r2,r14
-	LDMFD	sp!,{r10-r12,r14,pc}^
+	LDMFD	sp!,{r10-r12,r14,pc}
 	MOV	r3,r14
-	LDMFD	sp!,{r10-r12,r14,pc}^
+	LDMFD	sp!,{r10-r12,r14,pc}
 	MOV	r4,r14
-	LDMFD	sp!,{r10-r12,r14,pc}^
+	LDMFD	sp!,{r10-r12,r14,pc}
 	MOV	r5,r14
-	LDMFD	sp!,{r10-r12,r14,pc}^
+	LDMFD	sp!,{r10-r12,r14,pc}
 	MOV	r6,r14
-	LDMFD	sp!,{r10-r12,r14,pc}^
+	LDMFD	sp!,{r10-r12,r14,pc}
 	MOV	r7,r14
-	LDMFD	sp!,{r10-r12,r14,pc}^
+	LDMFD	sp!,{r10-r12,r14,pc}
 	MOV	r8,r14
-	LDMFD	sp!,{r10-r12,r14,pc}^
+	LDMFD	sp!,{r10-r12,r14,pc}
 	MOV	r9,r14
-	LDMFD	sp!,{r10-r12,r14,pc}^
+	LDMFD	sp!,{r10-r12,r14,pc}
 
 	; --- For safety, handle daft values of the parameter ---
 
-	LDMFD	sp!,{r10-r12,r14,pc}^
+	LDMFD	sp!,{r10-r12,r14,pc}
 	DCB	"daft"
-	LDMFD	sp!,{r10-r12,r14,pc}^
+	LDMFD	sp!,{r10-r12,r14,pc}
 	DCB	"daft"
-	LDMFD	sp!,{r10-r12,r14,pc}^
+	LDMFD	sp!,{r10-r12,r14,pc}
 	DCB	"daft"
-	LDMFD	sp!,{r10-r12,r14,pc}^
+	LDMFD	sp!,{r10-r12,r14,pc}
 	DCB	"daft"
-	LDMFD	sp!,{r10-r12,r14,pc}^
+	LDMFD	sp!,{r10-r12,r14,pc}
 	DCB	"daft"
-	LDMFD	sp!,{r10-r12,r14,pc}^
+	LDMFD	sp!,{r10-r12,r14,pc}
 	DCB	"daft"
 
 |_swihack|
@@ -302,8 +297,7 @@ swibl00	MOVS	r11,r11,LSL #2		;Shift into C and N flags
 	ADRVC	r0,|_swihack_call|	;If SWI there, call directly
 	ADRVS	r0,|_swihack_build|	;Otherwise build the call
 	STR	r0,|_swihack|		;Store the value away
-	LDMFD	r13!,{r0,r1,r14}	;Restore the registers
-	TEQP	r14,#0			;Reset flags from r14
+	LDMFD	r13!,{r0,r1, r14}	;Restore the registers
 	LDR	pc,|_swihack|		;And snap the pointer
 
 	; --- Dispatch to OS_CallASWI ---

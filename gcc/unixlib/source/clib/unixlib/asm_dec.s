@@ -1,10 +1,10 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/unixlib/asm_dec.s,v $
-; $Date: 2003/04/05 12:16:34 $
-; $Revision: 1.8 $
+; $Date: 2003/04/21 07:39:38 $
+; $Revision: 1.9 $
 ; $State: Exp $
-; $Author: alex $
+; $Author: peter $
 ;
 ; Declare registers and SWIs we will be calling.
 ;
@@ -179,33 +179,34 @@ IFlag32		EQU	&00000080
 	MACRO
 	NetSWI	$swiname
 
-	[	"$ModuleCode" <> "yes"
-	MOV	ip, pc			; PC+PSR
-	EOR	ip, ip, #SVC_Mode	; current mode EOR SVC_Mode
-	SWI	XOS_EnterOS		; enter SVC mode
-	]
+        ; Not really required, and not 32-bit
+;	[	"$ModuleCode" <> "yes"
+;	MOV	ip, pc			; PC+PSR
+;	EOR	ip, ip, #SVC_Mode	; current mode EOR SVC_Mode
+;	SWI	XOS_EnterOS		; enter SVC mode
+;	]
 
 	SWI	$swiname
 
 	BLVS	|__net_error|		; Call net error still in SVC
-	[	"$ModuleCode" <> "yes"
-	TEQP	ip, pc			; restore mode, corrupting flags
-	MOV	a1, a1			; no-op to prevent contention
-	]
+;	[	"$ModuleCode" <> "yes"
+;	TEQP	ip, pc			; restore mode, corrupting flags
+;	MOV	a1, a1			; no-op to prevent contention
+;	]
 
 	MEND
 
 	MACRO
 	NetSWIsimple	$swiname
 
-	MOV	ip, lr			; Save mode, flags, return address
-	[	"$ModuleCode" <> "yes"
-	SWI	XOS_EnterOS		; enter SVC mode
-	]
+	MOV	ip, lr			; Save mode, return address
+;	[	"$ModuleCode" <> "yes"
+;	SWI	XOS_EnterOS		; enter SVC mode
+;	]
 
 	SWI	$swiname
 
-	MOVVCS	pc, ip			; return, restore mode, flags
+	MOVVC	pc, ip			; return, restore mode, flags
 	B	|__net_error_simple_entry|
 	; branch to error routine still in SVC mode, with return in ip
 
@@ -216,20 +217,20 @@ IFlag32		EQU	&00000080
 	MACRO
 	NetSWI0	$swiname
 
-	[	"$ModuleCode" <> "yes"
-	MOV	ip, pc			; PC+PSR
-	EOR	ip, ip, #SVC_Mode	; current mode EOR SVC_Mode
-	SWI	XOS_EnterOS		; enter SVC mode
-	]
+;	[	"$ModuleCode" <> "yes"
+;	MOV	ip, pc			; PC+PSR
+;	EOR	ip, ip, #SVC_Mode	; current mode EOR SVC_Mode
+;	SWI	XOS_EnterOS		; enter SVC mode
+;	]
 
 	SWI	$swiname
 	MOVVC	a1, #0
 
 	BLVS	|__net_error|		; Call net error still in SVC
-	[	"$ModuleCode" <> "yes"
-	TEQP	ip, pc			; restore mode, corrupting flags
-	MOV	a1, a1			; no-op to prevent contention
-	]
+;	[	"$ModuleCode" <> "yes"
+;	TEQP	ip, pc			; restore mode, corrupting flags
+;	MOV	a1, a1			; no-op to prevent contention
+;	]
 
 	MEND
 
@@ -239,22 +240,24 @@ IFlag32		EQU	&00000080
 	NetSWIsimple0	$swiname
 
 	MOV	ip, lr			; Save mode, flags, return adrress
-	[	"$ModuleCode" <> "yes"
-	SWI	XOS_EnterOS		; enter SVC mode
-	]
+;	[	"$ModuleCode" <> "yes"
+;	SWI	XOS_EnterOS		; enter SVC mode
+;	]
 
 	SWI	$swiname
 	MOVVC	a1, #0
 
-	MOVVCS	pc, ip			; return, restore mode, flags
+	MOVVC	pc, ip			; return, restore mode, flags
 	B	|__net_error_simple_entry|
 	; branch to error routine still in SVC mode, with return in ip
 
 	MEND
 
 	; Macro to implement SWP instruction
-	; srcreg and dstreg can be the same register, provided scratch is a different register
-	; if srcreg and dstreg are different registers then scratch can be the same as dstreg
+	; srcreg and dstreg can be the same register, provided scratch is a
+	; different register.
+	; If srcreg and dstreg are different registers then scratch can be the
+	; same as dstreg
 	MACRO
 	swp_arm2	$dstreg, $srcreg, $addr, $scratch
 	[ __SWP_ARM2 = 0

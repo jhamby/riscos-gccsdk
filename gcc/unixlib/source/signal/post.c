@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/signal/post.c,v $
- * $Date: 2002/02/14 15:56:36 $
- * $Revision: 1.3 $
+ * $Date: 2002/12/15 13:16:55 $
+ * $Revision: 1.4 $
  * $State: Exp $
  * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: post.c,v 1.3 2002/02/14 15:56:36 admin Exp $";
+static const char rcs_id[] = "$Id: post.c,v 1.4 2002/12/15 13:16:55 admin Exp $";
 #endif
 
 /* signal.c.post: Written by Nick Burrett, 27 August 1996.  */
@@ -19,6 +19,7 @@ static const char rcs_id[] = "$Id: post.c,v 1.3 2002/02/14 15:56:36 admin Exp $"
 #include <stdio.h>
 #include <sys/wait.h>
 #include <unistd.h>
+#include <swis.h>
 
 #include <unixlib/os.h>
 #include <unixlib/unix.h>
@@ -82,7 +83,7 @@ sigsetup (struct unixlib_sigstate *ss, sighandler_t handler,
   /* If ss_size == -1, then this sigaltstack was the result of
      a BSD sigstack conversion. Run the BSD alternative signal
      executor.  */
-  if (ss->signalstack.ss_size == -1)
+  if ((int)ss->signalstack.ss_size == -1)
     {
 #ifdef DEBUG
       __os_print (" unixlib_setup_sighandler: executing off BSD stack\r\n");
@@ -101,6 +102,141 @@ sigsetup (struct unixlib_sigstate *ss, sighandler_t handler,
   ss->signalstack.ss_flags &= ~SA_ONSTACK;
 
   return 0;
+}
+
+
+int *__backtrace_getfp(void);
+extern int __calling_environment[17][3];
+extern int * __ul_errfp;
+extern int __ul_errbuf, __cbreg[17];
+
+static int valid_address(int *lower, int *upper)
+{
+  int flags;
+
+  return !(_swix(OS_ValidateAddress,
+         _INR(0,1) | _OUT(_FLAGS), lower, upper, &flags) || (flags & _C) != 0);
+}
+
+
+static int
+write_backtrace (int signo)
+{
+  int handler;
+  int features;
+  int *fp = __backtrace_getfp(), *oldfp = NULL;
+  int regs[10];
+
+  /* The ASM version did originally disable environment handlers
+     but this seems to cause problems */
+
+  fprintf(stderr, "\nFatal signal received: %s\n"
+                  "A stack backtrace will now follow ...)\n",
+                  sys_siglist[signo]);
+
+  fputs("stack backtrace:\n\n", stderr);
+
+  if (_swix(OS_PlatformFeatures, _IN(0) | _OUT(0), 0, &features))
+    features = 0;
+
+  while (fp)
+    {
+      int *pc;
+
+      /* Check that FP is different */
+      if (fp == oldfp)
+        {
+          fprintf(stderr, "fp unchanged at %x\n", (int)fp);
+          break;
+        }
+
+      /* Validate FP address */
+      if (!valid_address(fp - 3, fp))
+        {
+           fprintf(stderr, "Stack frame has gone out of bounds "
+                           "with address %x\n", (int)fp - 12);
+           break;
+        }
+
+      if (__32bit)
+        pc = (int *)(fp[0] & 0xfffffffc);
+      else
+        pc = (int *)(fp[0] & 0x03fffffc);
+
+      if (!(features & 0x8))
+        pc += 1;
+
+      if (!valid_address(pc, pc))
+        {
+           fprintf(stderr, "Invalid pc address %x\n", (int)pc);
+           break;
+        }
+
+     fprintf(stderr, " pc: %8x sp: %8x ", (int)pc, fp[-2]);
+
+      if (!valid_address(pc - 7, pc - 3))
+        {
+          fputs("[invalid address]\n", stderr);
+        }
+      else
+        {
+          int address;
+          const char *name = NULL;
+
+          for (address = -3; address > -8; address--)
+            {
+              if ((pc[address] & 0xffffff00) == 0xff000000)
+                {
+                  name = (char *)(pc + address) - (pc[address] & 0xff);
+                  break;
+                }
+            }
+
+            if (!name)
+              fputs(" ?()\n", stderr);
+            else
+              fprintf(stderr, " %s()\n", name);
+
+        }
+
+      oldfp = fp;
+      fp = (int *)fp[-3];
+
+      if (fp == __ul_errfp)
+        {
+          int reg;
+          const char *rname[16] =
+            { "a1", "a2", "a3", "a4", "v1", "v2", "v3", "v4",
+              "v5", "v6", "sl", "fp", "ip", "sp", "lr", "pc" };
+
+          fputs("\nRegister dump:\n", stderr);
+
+          for (reg = 0; reg < 16; reg++)
+            {
+              if ( valid_address(oldfp + reg + 1, oldfp + reg + 1))
+                {
+                  if ((reg & 0x3) == 0)
+                    fputs("\n", stderr);
+
+                  fprintf(stderr, " %s: %8x", rname[reg], oldfp[reg + 1]);
+                }
+              else
+                {
+                  fputs("bad addr", stderr);
+                  break;
+                }
+            }
+            fprintf(stderr, "\n\n\n");
+        }
+
+
+     }
+
+  fputs("\n", stderr);
+
+  /* And reenable environment handlers here */
+
+  return 1;
 }
 
 
@@ -263,6 +399,10 @@ post_signal:
 	if (act == term)
 	  __write_termination (signo);
 	else if (act == core && __write_corefile (signo))
+	  {
+	    __write_termination (signo);
+          }
+	else if (act == core && write_backtrace (signo))
 	  status |= WCOREFLAG;
 
 	/* Die, returning information about how we died.  */

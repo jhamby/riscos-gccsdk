@@ -1,10 +1,10 @@
 ;----------------------------------------------------------------------------
 ;
-; $Source$
-; $Date$
-; $Revision$
-; $State$
-; $Author$
+; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/signal/_coredump.s,v $
+; $Date: 2002/09/24 21:02:37 $
+; $Revision: 1.4 $
+; $State: Exp $
+; $Author: admin $
 ;
 ;----------------------------------------------------------------------------
 
@@ -33,35 +33,28 @@ sys_siglist_ptr
 	EXPORT	|__write_corefile|
 	NAME	__write_corefile
 |__write_corefile|
-	LDR	a2, sys_siglist_ptr
-	MOV	ip, lr
-	LDR	a1, [a2, a1, LSL #2]
-	SWI	XOS_WriteS
-	DCB	10, 13, "Fatal signal received: ", 0
+	MOV	a1, fp
+	B	__backtrace
+
+
+	IMPORT	|__stderr|
+
+__stderr_ptr
+	DCD	__stderr
+
+__backtrace_stack
+	DCB	"stack backtrace:", 10, 10, 0
 	ALIGN
-	SWIVC	XOS_Write0
-	SWI	XOS_WriteS
-	DCB	10, 13, "A stack backtrace will now follow ...", 10, 13, 0
-	ALIGN
-;	B	__core
 	MOV	lr, ip
 
-; Do not assume sl or usr_sp valid at this point
-; uses a1-a4, ip, lr, pc
-; preserves v1-v6, sl, fp, sp
-; does not touch v1-v3, sl, fp, sp
-; runs in USR or SVC mode
-; hence APCS compliant
-
-	EXPORT	|__core|
-	NAME	__core
-|__core|
-	MOV	a1, fp
-;
-; B __backtrace
-;
 
 	IMPORT |__calling_environment|
+
+	EXPORT |__backtrace_getfp|
+|__backtrace_getfp|
+	MOV	a1, fp
+	MOV	pc, lr
+
 
 NUM_ENV_HANDLERS * 17
 
@@ -89,9 +82,9 @@ backtrace_remove_loop
 	SUBS	a1, a1, #1
 	BGE	backtrace_remove_loop
 
-	SWI	XOS_WriteS
-	DCB	13, "stack backtrace:", 10, 13, 10, 0
-	ALIGN
+	LDR	a1, __backtrace_stack
+	LDR	a2, __stderr_ptr
+	LDR	a2, [a2]
 
 	; a1 = -1 after loop
 	MOV	a1, #0
@@ -165,7 +158,7 @@ backtrace_register_dump
 	DCB	10, 13, 10, "Register dump:", 10, 13, 0
 	ALIGN
 	MOV	v4, v6	; store old fp
-;	Acchieve this by moving loop counter increment to before LDR
+;	Achieve this by moving loop counter increment to before LDR
 ;	ADD	v6, v6, #4
 	MOV	a4, #0
 

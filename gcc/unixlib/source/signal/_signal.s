@@ -1,8 +1,8 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/signal/_signal.s,v $
-; $Date: 2002/09/24 21:02:37 $
-; $Revision: 1.6 $
+; $Date: 2002/12/15 13:16:55 $
+; $Revision: 1.7 $
 ; $State: Exp $
 ; $Author: admin $
 ;
@@ -43,15 +43,16 @@
 ;	calling raise() so that __backtrace can print the registers when
 ;	it backtracks to this function.
 
+	NAME	__raise
 |__raise|
 	CMP	a1, #0
-	MOVEQS	pc, lr
+	MOVEQ	pc, lr
 	STMFD	sp, {a1,a2,a3,a4,v1,v2,v3,v4,v5,v6,sl,fp,ip,sp,lr,pc}
 	SUB	sp, sp, #64
 	SUB	ip, pc, #4
 	MOV	a4, lr
 	ADD	a3, sp, #64
-	ORR	a2, fp, #&80000000	; for __backtrace()
+
 	STMFD	sp!, {a2, a3, a4, ip}	; create signal frame
 	ADD	fp, sp, #12
 	MOV	v1, sp
@@ -59,7 +60,7 @@
 	MOV	a1, #0
 	BL	|__unixlib_raise_signal|
 	ADD	sp, v1, #16		; skip signal frame
-	LDMFD	sp, {a1,a2,a3,a4,v1,v2,v3,v4,v5,v6,sl,fp,ip,sp,pc}^
+	LDMFD	sp, {a1,a2,a3,a4,v1,v2,v3,v4,v5,v6,sl,fp,ip,sp,pc}
 
 ;-----------------------------------------------------------------------
 ; void __seterr (const _kernel_oserror *err)
@@ -75,7 +76,7 @@
 	NAME	__seterr
 |__seterr|
 	TEQ	a1, #0			; quick exit when no error
-	MOVEQS	pc, lr
+	MOVEQ	pc, lr
 
 	STMFD	sp!, {v1-v5,lr}		; Stack working registers
 	MOV	a3, #EOPSYS
@@ -100,7 +101,7 @@
 	MOV	a1, #0			; ensure zero-terminated.
 	STRB	a1, [a2, #-1]
 
-	LDMFD	sp!, {v1-v5, pc}^
+	LDMFD	sp!, {v1-v5, pc}
 
 ;-----------------------------------------------------------------------
 ; _kernel_oserror *_kernel_last_oserror (void)
@@ -124,7 +125,7 @@
 	]
 	LDR	a2, [a1, #0]
 	CMP	a2, #0
-	MOVNES	pc, lr
+	MOVNE	pc, lr
 	MOV	a1, #0
 	MOV	pc, lr
 
@@ -164,7 +165,7 @@
 	EXPORT	|__h_sigill|
 	NAME	__h_sigill
 |__h_sigill|
-	STR	lr, |__cbreg|+60
+	STR	lr, |__cbreg|+15*4
 	ADR	lr, |__cbreg|
 	STMIA	lr!, {a1-ip}		; store non-banked registers
 	STMIA	lr, {sp, lr}^		; store banked registers
@@ -183,7 +184,7 @@
 	NAME	__h_sigbus
 |__h_sigbus|
 	SUB	lr, lr, #4
-	STR	lr, |__cbreg|+60
+	STR	lr, |__cbreg|+15*4
 	ADR	lr, |__cbreg|
 	STMIA	lr!, {a1-ip}		; store non-banked registers
 	STMIA	lr, {sp, lr}^		; store banked registers
@@ -202,7 +203,7 @@
 	NAME	__h_sigsegv0
 |__h_sigsegv0|
 	SUB	lr, lr, #4
-	STR	lr, |__cbreg|+60
+	STR	lr, |__cbreg|+15*4
 	ADR	lr, |__cbreg|
 	STMIA	lr!, {a1-ip}		; store non-banked registers
 	STMIA	lr, {sp, lr}^		; store banked registers
@@ -248,7 +249,8 @@
 	NAME	__h_sigsegv1
 |__h_sigsegv1|
 	SUB	lr, lr, #8
-	STR	lr, |__cbreg|+60
+	STR	lr, |__cbreg|+15*4
+	STR     lr, |abortpc|+4
 	ADR	lr, |__cbreg|
 	STMIA	lr!, {a1-ip}		; store non-banked registers
 	STMIA	lr, {sp, lr}^		; store banked registers
@@ -307,9 +309,16 @@
 	; Entered in USR mode. Setup an APCS stack frame
 	; so we can get a proper stack backtrace in case anything
 	; goes horribly wrong.
+
+	STMFD	sp!, {a1-pc} ; Don't really want to store sp modified
+
 	MOV	ip, sp
 	STMFD	sp!, {a1, a2, a3, a4, fp, ip, lr, pc}
+
 	SUB	fp, ip, #4
+
+	LDR	a1, =|__ul_errfp|     ; Save error FP backtrace
+	STR	fp, [a1]
 
 	[ __FEATURE_PTHREADS = 1
 	LDR	a1, =|__pthread_system_running|
@@ -356,7 +365,7 @@
 	BLNE	|__pthread_enable_ints|
 	]
 
-	LDMEA	fp, {a1, a2, a3, a4, fp, sp, pc}^
+	LDMEA	fp, {a1, a2, a3, a4, fp, sp, pc}
 
 unrecoverable_error
 	; Bit 31-was set, therefore it was a hardware error.
@@ -380,6 +389,21 @@ unrecoverable_error
 	MOVEQ	a2, #SIGFPE	;  A floating point exception
 	MOVNE	a2, #SIGEMT	;  A RISC OS exception.
 	MOV	a1, #0
+
+	LDR	a3, =|__ul_errbuf|
+	LDR	a3, [a3]
+	STR	a3, [sp, #7*4]       ; Store error PC
+	STR	a3, [sp, #(8+15)*4]  ; Store error PC
+
+	; Create APCS stack for error handler
+
+	ADR	v4, |__h_error|+12
+	MOV	v3, lr
+	ADD	v2, sp, #8*4
+	MOV	v1, fp
+	STMFD	sp!, {v1-v4}
+	ADD	fp, sp, #12
+
 	BL	|__unixlib_raise_signal|
 
 	[ __FEATURE_PTHREADS = 1
@@ -389,7 +413,7 @@ unrecoverable_error
 	BLNE	|__pthread_enable_ints|
 	]
 
-	LDMEA	fp, {a1, a2, a3, a4, fp, sp, pc}^
+	LDMEA	fp, {a1, a2, a3, a4, fp, sp, pc}
 
 unrecoverable_error_msg
 	DCB	13, 10, "Unrecoverable error received:", 13, 10, "  ", 0
@@ -427,7 +451,7 @@ unrecoverable_error_msg
 
 	MOVEQ	ip, #0
 	MOVNE	ip, #1
-	MOVS	pc, lr
+	MOV	pc, lr
 
 ;-----------------------------------------------------------------------
 ; Event handler (1-290).
@@ -453,14 +477,14 @@ Internet_Event	EQU	19
 |__h_event|
 	; Check for the event 'Internet event'.
 	TEQ	a1, #Internet_Event
-	MOVNES	pc, lr
+	MOVNE	pc, lr
 
 	; Convert the internet event into a suitable signal for raising
 	CMP	a2, #1 ; Out-of-band data has arrived
 	MOVEQ	ip, #SIGURG
 	STREQ	ip, |__cba1|
 	MOVEQ	ip, #1 ; Callback set if R12 = 1
-	MOVS	pc, lr
+	MOV	pc, lr
 
 ;-----------------------------------------------------------------------
 ; Unused SWI handler (1-291).
@@ -480,7 +504,7 @@ Internet_Event	EQU	19
 	EXPORT	|__h_sigsys|
 	NAME	__h_sigsys
 |__h_sigsys|
-	STR	lr, |__cbreg|+60
+	STR	lr, |__cbreg|+15*4
 	ADR	lr, |__cbreg|
 	STMIA	lr!, {a1-ip}		; store non-banked registers
 	STMIA	lr, {sp, lr}^		; store banked registers
@@ -510,7 +534,7 @@ UpCall_NewApplication	EQU	256
 |__h_upcall|
 	; Check for the application starting UpCall
 	CMP	a1, #UpCall_NewApplication
-	MOVNES	pc, lr
+	MOVNE	pc, lr
 	B	|__env_riscos|
 
 	IMPORT	|__pthread_callback|
@@ -533,9 +557,9 @@ UpCall_NewApplication	EQU	256
 	BL	|__pthread_disable_ints|
 	]
 
-	TEQP	pc, #IFlag	; USR mode IntOff (irq off, fiq on)
+        MSR	CPSR_c, #IFlag32 ; USR mode IntOff (irq off, fiq on)
 	; The USR mode registers r0-r15 are extracted from the callback
-	; register block while irqs are disabled. The registers are then
+	; register block while IRQs are disabled. The registers are then
 	; saved on the USR mode stack while ensuring that the USR sp is
 	; valid by not pointing above saved data. So, load the registers,
 	; allocate room on the stack and then store the original USR
@@ -547,9 +571,9 @@ UpCall_NewApplication	EQU	256
 	; Cannot use writeback at this point on sp
 	STMFD	sp,{a1,a2,a3,a4,v1,v2,v3,v4,v5,v6,sl,fp,ip,sp,lr,pc}
 	; sp still points above list of 16 registers.
-	LDR	a4,|__cbreg|+60
+	LDR	a4,|__cbreg|+15*4
 	STR	a4,[sp,#-4]		; saved USR pc overwrites pc on stack
-	SUB	sp, sp, #64
+	SUB	sp, sp, #16 * 4
 
 	; If bit 1 of __cbflg is set then don't re-execute the instruction
 	; that caused the problem.   XXX FIXME:	 This is currently unused,
@@ -558,11 +582,15 @@ UpCall_NewApplication	EQU	256
 	TST	a1, #2			; check __cbflg bit 1
 	SUBNE	a4,a4,#4
 
+	LDR	a1, =|__ul_errfp|     ; Save error FP backtrace
+	STR	fp, [a1]
+
 	; Create an APCS-compilant signal stack frame
-	MOV	a3,lr			; saved USR lr
-	ADD	a2,sp,#64		; saved USR sp
-	ORR	a1,fp,#&80000000	; saved USR fp | 0x80000000
-	STMFD	sp!,{a1,a2,a3,a4}	; create signal frame
+	ADR	v1,|__h_error|+12       ; point at handler name for backtrace
+	ADD	a2,sp,#8*4		; saved USR sp
+	MOV	a1,fp
+	STMFD	sp!,{a1,a2,a3,v1}	; create signal frame
+
 	ADD	fp,sp,#12
 	SWI	XOS_IntOn
 
@@ -586,11 +614,13 @@ UpCall_NewApplication	EQU	256
 	]
 
 	ADD	sp,v1,#16		; skip signal frame
-	LDMFD	sp,{a1,a2,a3,a4,v1,v2,v3,v4,v5,v6,sl,fp,ip,sp,lr,pc}^
+	LDMFD	sp,{a1,a2,a3,a4,v1,v2,v3,v4,v5,v6,sl,fp,ip,sp,lr,pc}
 
 	; User registers are preserved in here for the callback execution.
 	EXPORT	|__cbreg|
-|__cbreg|	%	64
+|__cbreg|	%	4 * 17; R0-R15 and CPSR in 32-bit mode
+        EXPORT  |abortpc|
+|abortpc|       %       12
 
 	; bit 0 Escape condition flag
 	; bit 1 no re-execute inst. flag
@@ -604,15 +634,18 @@ UpCall_NewApplication	EQU	256
 
 ; Exit handler
 ; Called in USR mode
-	IMPORT	|_exit|
+	IMPORT	|exit|
 	EXPORT	|__h_exit|
 	NAME	__h_exit
 |__h_exit|
-	ORR	lr,pc,#&0c000000	; USR mode IntOff
-	MOVS	pc,lr
+	TEQ	r0,r0			; Set Z
+	TEQ	pc,pc			; EQ if 32-bit mode
+	MSREQ	CPSR_c, #&50		; USR mode IntOff
+	ORRNE	lr,pc,#&0c000000	; USR mode IntOff
+	MOVNES	pc,lr
 	MOV	a1,a1
-	MOV	a1,#EXIT_SUCCESS
-	B	|_exit|
+	MOV	a1,#EXIT_FAILURE
+	B	|exit|
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
@@ -630,9 +663,9 @@ UpCall_NewApplication	EQU	256
 	NAME	__h_sigalrm
 |__h_sigalrm|
 	STMFD	sp!, {a1, a2, a3, lr}
-	; Enter user mode
-	TEQP	pc, #0
+	MSR	CPSR_c, #USR32_mode ; Enter user mode
 	MOV	a1, a1
+
 	STMFD	sp!, {lr}
 	; Raise the SIGALRM signal
 	MOV	a1, #SIGALRM
@@ -685,8 +718,9 @@ itimer_exit
 	NAME	__h_sigvtalrm
 |__h_sigvtalrm|
 	STMFD	sp!, {a1, a2, a3, lr}
-	TEQP	pc, #0		;  Enter user mode
+	MSR	CPSR_c, #USR32_mode  ; Enter user mode
 	MOV	a1, a1
+
 	STMFD	sp!, {lr}
 	MOV	a1, #SIGVTALRM	;  No access to banked registers
 	BL	|__raise|
@@ -729,8 +763,9 @@ itimer_exit
 	NAME	__h_sigprof
 |__h_sigprof|
 	STMFD	sp!, {a1, a2, a3, lr}
-	TEQP	pc, #0		; Enter user mode
+	MSR	CPSR_c, #USR32_mode  ; Enter user mode
 	MOV	a1, a1
+
 	STMFD	sp!, {lr}
 	MOV	a1, #SIGPROF	; No access to banked registers
 	BL	|__raise|
@@ -778,6 +813,10 @@ itimer_exit
 ; buffer, for the error PC and the normal 256 byte RISC OS error
 ; block.
 ;
+       EXPORT  |__ul_errfp|
+|__ul_errfp|
+	DCD	0
+
 	EXPORT  |__ul_errbuf|
 |__ul_errbuf|
 	%	4	; PC when error occurred
