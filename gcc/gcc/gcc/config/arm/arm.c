@@ -150,6 +150,7 @@ static void aof_dump_imports (FILE *);
 static void aof_dump_pic_table (FILE *);
 static void aof_file_start (void);
 static void aof_file_end (void);
+static void arm_aof_asm_named_section (const char *, unsigned int);
 #endif
 
 
@@ -13377,6 +13378,36 @@ aof_file_end (void)
     aof_dump_pic_table (asm_out_file);
   aof_dump_imports (asm_out_file);
   fputs ("\tEND\n", asm_out_file);
+}
+
+/* Switch to an arbitrary section NAME with attributes as specified
+   by FLAGS.  ALIGN specifies any known alignment requirements for
+   the section; 0 if the default should be used.
+
+   Differs from the default elf version only in the prefix character
+   used before the section type.  */
+
+static void
+arm_aof_asm_named_section (const char *name, unsigned int flags)
+{
+  char flagchars[10], *f = flagchars;
+
+  fprintf (asm_out_file, "\tAREA\t|C$$%s|", name);
+
+  if (flags & SECTION_DEBUG)
+    fprintf (asm_out_file, ", DEBUG");
+  if (!(flags & SECTION_WRITE))
+    fprintf (asm_out_file, ", READONLY");
+  if (flags & SECTION_CODE)
+    fprintf (asm_out_file, ", CODE");
+  else
+    fprintf (asm_out_file, ", DATA");
+  if (flags & SECTION_BSS)
+    fprintf (asm_out_file, ", NOINIT");
+  if (flags & SECTION_LINKONCE)
+    fprintf (asm_out_file, ", COMDEF, LINKONCE");
+
+  putc ('\n', asm_out_file);
 }
 #endif /* AOF_ASSEMBLER */
 

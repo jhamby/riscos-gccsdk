@@ -169,6 +169,13 @@ Boston, MA 02111-1307, USA.  */
 #define READONLY_DATA_SECTION_ASM_OP aof_rodata_section ()
 #define BSS_SECTION_ASM_OP "\tAREA\t|C$$data|, DATA"
 
+
+/* NAB test */
+#define SUPPORTS_ONE_ONLY 1
+
+#define EH_FRAME_IN_DATA_SECTION 1
+#define EH_FRAME_SECTION_NAME ".eh_frame"
+
 /* This code handle the constructor/destructor tables required for C++.
    It relies on a feature in the AOF linker that sorts areas in the object
    file into alphabetical order.  In the gcc library, we have two areas for
@@ -177,6 +184,9 @@ Boston, MA 02111-1307, USA.  */
    tables.  Easy !  */
 #define CTORS_SECTION_ASM_OP "\tAREA\t|C$$gnu_ctorsvec2|, DATA, READONLY"
 #define DTORS_SECTION_ASM_OP "\tAREA\t|C$$gnu_dtorsvec2|, DATA, READONLY"
+
+#undef  TARGET_ASM_NAMED_SECTION
+#define TARGET_ASM_NAMED_SECTION  arm_aof_asm_named_section
 
 #define EXTRA_SECTIONS in_zero_init, in_common
 
@@ -191,7 +201,7 @@ zero_init_section ()						\
   static int zero_init_count = 1;				\
   if (in_section != in_zero_init)				\
     {								\
-      fprintf (asm_out_file, "\tAREA |C$$zidata%d|,NOINIT\n",	\
+      fprintf (asm_out_file, "\tAREA\t|C$$zidata%d|, NOINIT\n",	\
 	       zero_init_count++);				\
       in_section = in_zero_init;				\
     }								\
