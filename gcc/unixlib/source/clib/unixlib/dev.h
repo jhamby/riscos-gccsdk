@@ -1,10 +1,10 @@
 /****************************************************************************
  *
- * $Source$
- * $Date$
- * $Revision$
- * $State$
- * $Author$
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/unixlib/dev.h,v $
+ * $Date: 2003/01/21 17:48:32 $
+ * $Revision: 1.4 $
+ * $State: Exp $
+ * $Author: admin $
  *
  ***************************************************************************/
 
@@ -49,7 +49,8 @@ struct dev
   int (*read) (struct __unixlib_fd *__fd, void *__data, int __nbyte);
   int (*write) (struct __unixlib_fd *__fd, const void *__data, int __nbyte);
   __off_t (*lseek) (struct __unixlib_fd *__fd, __off_t __lpos, int __whence);
-  int (*ioctl) (struct __unixlib_fd *__fd, int __request, void *__arg);
+  int (*ioctl) (struct __unixlib_fd *__fd, unsigned long __request,
+                void *__arg);
   int (*select)(struct __unixlib_fd *__fd, int __fd1, fd_set *__read,
 		fd_set *__write, fd_set *__except);
   int (*stat) (const char *filename, struct stat *buf);
@@ -69,7 +70,8 @@ extern int __fswrite (struct __unixlib_fd *__fd, const void *__data,
 extern __off_t __fslseek (struct __unixlib_fd *__fd, __off_t __lpos,
 			  int __whence);
 #ifdef __UNIXLIB_NO_COMMON_DEV
-extern int __fsioctl (struct __unixlib_fd *__fd, int __request, void *__arg);
+extern int __fsioctl (struct __unixlib_fd *__fd, unsigned long __request,
+                      void *__arg);
 extern int __fsselect (struct __unixlib_fd *__fd, int __fd1,
 		       fd_set *__read, fd_set *__write,
 		       fd_set *__except);
@@ -89,7 +91,7 @@ extern __off_t __ttylseek    (struct __unixlib_fd *__fd,
 			      __off_t __lpos, int __whence);
 #endif
 extern int __ttyioctl	     (struct __unixlib_fd *__fd,
-			      int __request, void *__arg);
+			      unsigned long __request, void *__arg);
 extern int __ttyselect	     (struct __unixlib_fd *__fdriptor,
 			      int __fd1, fd_set *__read,
 			      fd_set *__write, fd_set *__except);
@@ -105,7 +107,7 @@ extern int __pipewrite	     (struct __unixlib_fd *__fd,
 extern __off_t __pipelseek   (struct __unixlib_fd *__fd,
 			      __off_t __lpos, int __whence);
 extern int __pipeioctl	     (struct __unixlib_fd *__fd,
-			      int __request, void *__arg);
+			      unsigned long __request, void *__arg);
 #endif
 extern int __pipeselect	     (struct __unixlib_fd *__fdriptor,
 			      int __fd1, fd_set *__read,
@@ -122,7 +124,7 @@ extern int __nullwrite	     (struct __unixlib_fd *__fd,
 extern __off_t __nulllseek   (struct __unixlib_fd *__fd,
 			      __off_t __lpos, int __whence);
 extern int __nullioctl	     (struct __unixlib_fd *__fd,
-			      int __request, void *__arg);
+			      unsigned long __request, void *__arg);
 extern int __nullselect	     (struct __unixlib_fd *__fdriptor,
 			      int __fd1, fd_set *__read,
 			      fd_set *__write, fd_set *__except);
@@ -142,7 +144,7 @@ extern __off_t __socklseek   (struct __unixlib_fd *__fd,
 			      __off_t __lpos, int __whence);
 #endif
 extern int __sockioctl	     (struct __unixlib_fd *__fd,
-			      int __request, void *__arg);
+			      unsigned long __request, void *__arg);
 extern int __sockselect	     (struct __unixlib_fd *__fdriptor,
 			      int __fd1, fd_set *__read,
 			      fd_set *__write, fd_set *__except);
@@ -153,7 +155,7 @@ extern __off_t __commonlseek (struct __unixlib_fd *__fd,
 			      __off_t __lpos, int __whence);
 /* Return EINVAL */
 extern int __commonioctl     (struct __unixlib_fd *__fd,
-			      int __request, void *__arg);
+			      unsigned long __request, void *__arg);
 /* Return ready to read, ready to write, no execptional conditions */
 extern int __commonselect    (struct __unixlib_fd *__fdriptor,
 			      int __fd, fd_set *__read,

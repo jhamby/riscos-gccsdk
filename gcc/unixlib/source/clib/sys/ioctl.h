@@ -1,10 +1,10 @@
 /****************************************************************************
  *
- * $Source$
- * $Date$
- * $Revision$
- * $State$
- * $Author$
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/sys/ioctl.h,v $
+ * $Date: 2002/09/24 21:02:37 $
+ * $Revision: 1.4 $
+ * $State: Exp $
+ * $Author: admin $
  *
  ***************************************************************************/
 
@@ -13,8 +13,8 @@
  *      The Regents of the University of California.  All rights reserved.
  * (c) UNIX System Laboratories, Inc.
  * All or some portions of this file are derived from material licensed
- * to the University of California by American Telephone and Telegraph    
- * Co. or Unix System Laboratories, Inc. and are reproduced herein with 
+ * to the University of California by American Telephone and Telegraph
+ * Co. or Unix System Laboratories, Inc. and are reproduced herein with
  * the permission of UNIX System Laboratories, Inc.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,15 +29,15 @@
  *    must display the following acknowledgement:
  *      This product includes software developed by the University of
  *      California, Berkeley and its contributors.
- * 4. Neither the name of the University nor the names of its contributors   
+ * 4. Neither the name of the University nor the names of its contributors
  *    may be used to endorse or promote products derived from this software
  *    without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE  
- * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL  
+ * ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
  * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
  * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
  * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
@@ -112,7 +112,7 @@ __BEGIN_DECLS
  */
 
 /*
- * Window/terminal size structure.  This information is stored by the kernel 
+ * Window/terminal size structure.  This information is stored by the kernel
  * in order to provide a consistent interface, but is not used by the kernel.
  */
 struct winsize
@@ -243,38 +243,73 @@ struct ttysize
 
 #define SIOCADDRT        _IOW('r', 10, struct ortentry) /* add route */
 #define SIOCDELRT        _IOW('r', 11, struct ortentry) /* delete route */
+#define SIOCSETRTINFO   _IOWR('r', 12, struct fullrtentry) /* change aux info */
+#define SIOCGETRTINFO   _IOWR('r', 13, struct fullrtentry) /* read aux info */
+#define SIOCGETVIFINF   _IOWR('r', 14, struct vif_conf)   /* read m/c vifs  */
 #define SIOCGETVIFCNT   _IOWR('r', 15, struct sioc_vif_req)/* get vif pkt cnt */
 #define SIOCGETSGCNT    _IOWR('r', 16, struct sioc_sg_req) /* get s,g pkt cnt */
 
 #define SIOCSIFADDR      _IOW('i', 12, struct ifreq)    /* set ifnet address */
-#define OSIOCGIFADDR    _IOWR('i', 13, struct ifreq)    /* get ifnet address */
-#define SIOCGIFADDR     _IOWR('i', 33, struct ifreq)    /* get ifnet address */
+#ifdef COMPAT_INET4
+#define SIOCGIFADDR     _IOWR('i', 13, struct ifreq)    /* get ifnet address */
+#define NSIOCGIFADDR    _IOWR('i', 99, struct nifreq)   /* get ifnet address */
+#else
+#define OSIOCGIFADDR    _IOWR('i', 13, struct oifreq)   /* get ifnet address */
+#define SIOCGIFADDR     _IOWR('i', 99, struct ifreq)    /* get ifnet address */
+#endif
 #define SIOCSIFDSTADDR   _IOW('i', 14, struct ifreq)    /* set p-p address */
-#define OSIOCGIFDSTADDR _IOWR('i', 15, struct ifreq)    /* get p-p address */
-#define SIOCGIFDSTADDR  _IOWR('i', 34, struct ifreq)    /* get p-p address */
+#ifdef COMPAT_INET4
+#define SIOCGIFDSTADDR  _IOWR('i', 15, struct ifreq)    /* get p-p address */
+#define NSIOCGIFDSTADDR _IOWR('i', 98, struct nifreq)   /* get p-p address */
+#else
+#define OSIOCGIFDSTADDR _IOWR('i', 15, struct oifreq)   /* get p-p address */
+#define SIOCGIFDSTADDR  _IOWR('i', 98, struct ifreq)    /* get p-p address */
+#endif
 #define SIOCSIFFLAGS     _IOW('i', 16, struct ifreq)    /* set ifnet flags */
 #define SIOCGIFFLAGS    _IOWR('i', 17, struct ifreq)    /* get ifnet flags */
-#define OSIOCGIFBRDADDR _IOWR('i', 18, struct ifreq)    /* get broadcast addr */
-#define SIOCGIFBRDADDR  _IOWR('i', 35, struct ifreq)    /* get broadcast addr */
+#ifdef COMPAT_INET4
+#define SIOCGIFBRDADDR  _IOWR('i', 18, struct ifreq)    /* get broadcast addr */
+#define NSIOCGIFBRDADDR _IOWR('i', 97, struct nifreq)   /* get broadcast addr */
+#else
+#define OSIOCGIFBRDADDR _IOWR('i', 18, struct oifreq)   /* get broadcast addr */
+#define SIOCGIFBRDADDR  _IOWR('i', 97, struct ifreq)    /* get broadcast addr */
+#endif
 #define SIOCSIFBRDADDR   _IOW('i', 19, struct ifreq)    /* set broadcast addr */
-#define OSIOCGIFCONF    _IOWR('i', 20, struct ifconf)   /* get ifnet list */
-#define SIOCGIFCONF     _IOWR('i', 36, struct ifconf)   /* get ifnet list */
-#define OSIOCGIFNETMASK _IOWR('i', 21, struct ifreq)    /* get net addr mask */
-#define SIOCGIFNETMASK  _IOWR('i', 37, struct ifreq)    /* get net addr mask */
+#ifdef COMPAT_INET4
+#define SIOCGIFCONF     _IOWR('i', 20, struct ifconf)   /* get ifnet list */
+#define NSIOCGIFCONF    _IOWR('i', 96, struct nifconf)  /* get ifnet list */
+#define SIOCGIFNETMASK  _IOWR('i', 21, struct ifreq)    /* get net addr mask */
+#define NSIOCGIFNETMASK _IOWR('i', 95, struct nifreq)   /* get net addr mask */
+#else
+#define OSIOCGIFCONF    _IOWR('i', 20, struct oifconf)  /* get ifnet list */
+#define SIOCGIFCONF     _IOWR('i', 96, struct ifconf)   /* get ifnet list */
+#define OSIOCGIFNETMASK _IOWR('i', 21, struct oifreq)   /* get net addr mask */
+#define SIOCGIFNETMASK  _IOWR('i', 95, struct ifreq)    /* get net addr mask */
+#endif
 #define SIOCSIFNETMASK   _IOW('i', 22, struct ifreq)    /* set net addr mask */
 #define SIOCGIFMETRIC   _IOWR('i', 23, struct ifreq)    /* get IF metric */
 #define SIOCSIFMETRIC    _IOW('i', 24, struct ifreq)    /* set IF metric */
-#define SIOCDIFADDR      _IOW('i', 25, struct ifreq)    /* delete IF addr */
-#define SIOCAIFADDR      _IOW('i', 26, struct ifaliasreq)/* add/chg IF alias */
+#define SIOCDIFADDR      _IOW('i', 94, struct ifreq)    /* delete IF addr */
+#define SIOCAIFADDR      _IOW('i', 93, struct ifaliasreq)/* add/chg IF alias */
 
-#define SIOCALIFADDR    _IOW('i', 27, struct if_laddrreq) /* add IF addr */
-#define SIOCGLIFADDR    _IOWR('i', 28, struct if_laddrreq) /* get IF addr */
-#define SIOCDLIFADDR    _IOW('i', 29, struct if_laddrreq) /* delete IF addr */
+#ifdef __riscos
+#define SIOCGWHOIAMR    _IOWR('i', 25, struct ifreq)    /* get IP adr via REVARP */
+#define SIOCGWHOIAMB    _IOWR('i', 26, struct ifreq)    /* get IP adr via BOOTP */
+#define SIOCGWHOIAMRB   _IOWR('i', 27, struct ifreq)    /* get IP adr via REVARP or BOOTP */
+#define SIOCGWHOIAMM    _IOWR('i', 28, struct ifreq)    /* get net addr mask via ICMP */
+#define SIOCGWHOIAMMNS  _IOWR('i', 29, struct ifreq)    /* get net addr via MNS Rarp */
+#define SIOCSWHOTHEYARE  _IOW('i', 34, struct ifreq)    /* broadcast MNS Rarp replies */
+#define SIOCGTCPIDLE     _IOR('i', 35, int)             /* get tcp_keepidle */
+#define SIOCSTCPIDLE     _IOW('i', 36, int)             /* set tcp_keepidle */
+#define SIOCGTCPCNT      _IOR('i', 37, int)             /* get tcp_keepcnt */
+#define SIOCSTCPCNT      _IOW('i', 38, int)             /* set tcp_keepcnt */
+#define SIOCGWHOIAMD    _IOWR('i', 41, struct ifdhcpreq)/* send DHCP messages */
+#endif
 
 #define SIOCADDMULTI     _IOW('i', 49, struct ifreq)    /* add m'cast addr */
 #define SIOCDELMULTI     _IOW('i', 50, struct ifreq)    /* del m'cast addr */
-#define SIOCGIFMTU      _IOWR('i', 51, struct ifreq)    /* get IF mtu */
-#define SIOCSIFMTU       _IOW('i', 52, struct ifreq)    /* set IF mtu */
+#define SIOCGIFMTU      _IOWR('i', 39, struct ifreq)    /* get IF mtu */
+#define SIOCSIFMTU       _IOW('i', 40, struct ifreq)    /* set IF mtu */
 #define SIOCGIFPHYS     _IOWR('i', 53, struct ifreq)    /* get IF wire */
 #define SIOCSIFPHYS      _IOW('i', 54, struct ifreq)    /* set IF wire */
 #define SIOCSIFMEDIA    _IOWR('i', 55, struct ifreq)    /* set net media */
@@ -431,17 +466,17 @@ struct sgttyb
 /* Union for generic ioctl() argument handling.  */
 union ioctl_arg
 {
-  char *cparg;		/* Pointer to character */
-  char carg;		/* Character */
-  int  *iparg;		/* Pointer to integer */
-  int  iarg;		/* Integer */
-  long *lparg;		/* Pointer to long */
-  long larg;		/* Long */
+  char *cparg;          /* Pointer to character */
+  char carg;            /* Character */
+  int  *iparg;          /* Pointer to integer */
+  int  iarg;            /* Integer */
+  long *lparg;          /* Pointer to long */
+  long larg;            /* Long */
 };
 
 /* Perform the I/O control operation specified by 'request' on 'fd'.
    -1 usually indicates an error.  */
-extern int ioctl (int __fd, int __request, void *arg);
+extern int ioctl (int __fd, unsigned long __request, void *arg);
 
 __END_DECLS
 

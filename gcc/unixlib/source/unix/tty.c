@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/tty.c,v $
- * $Date: 2003/04/05 09:33:57 $
- * $Revision: 1.8 $
+ * $Date: 2003/04/06 14:19:07 $
+ * $Revision: 1.9 $
  * $State: Exp $
- * $Author: alex $
+ * $Author: peter $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: tty.c,v 1.8 2003/04/05 09:33:57 alex Exp $";
+static const char rcs_id[] = "$Id: tty.c,v 1.9 2003/04/06 14:19:07 peter Exp $";
 #endif
 
 /* System V tty device driver for RISC OS.  */
@@ -494,19 +494,19 @@ ret:
 	  if (nflag & F_NDELAY)
 	    {
 	      c = __funcall ((*(tty->scan)), (0));
-	      
+
 	      if (c < 0)
 		{
 	          if (__taskwindow)
 	            {
                       _kernel_swi_regs regs;
-		      
+
                       regs.r[0] = 6; /* Taskwindow sleep.  */
                       regs.r[1] = 0; /* Just yield.  */
-		      
+
                       _kernel_swi(OS_UpCall, &regs, &regs);
 		    }
-		  
+
 	          goto eol;
 		}
             }
@@ -670,19 +670,19 @@ __ttyiraw (const struct __unixlib_fd *file_desc, void *buf, int nbyte,
 	  if (nflag & F_NSCAN)
             {
 	      c = __funcall ((*(tty->scan)), (0));
-	      
+
 	      if (c < 0)
 	        {
 	          if (__taskwindow)
 	            {
                       _kernel_swi_regs regs;
-		      
+
                       regs.r[0] = 6; /* Taskwindow sleep. */
                       regs.r[1] = 0; /* Just yield.  */
-		      
+
                       _kernel_swi(OS_UpCall, &regs, &regs);
                     }
-		  
+
 	          if (i >= vm)
 	            return i;
 	          else
@@ -865,6 +865,8 @@ __ttycr (struct tty *tty, tcflag_t oflag)
   if ((oflag & (OPOST | OCRNL)) == (OPOST | OCRNL))
     __funcall ((*(tty->out)), ('\n'));
   else if ((oflag & (OPOST | ONOCR)) != (OPOST | ONOCR))
+#else
+  IGNORE (oflag);
 #endif
   __funcall ((*(tty->out)), ('\r'));
 }
@@ -904,7 +906,7 @@ __ttylseek (struct __unixlib_fd *file_desc, off_t lpos, int whence)
 
 /* Return zero on success. Any other value on failure.  */
 int
-__ttyioctl (struct __unixlib_fd *file_desc, int request, void *arg)
+__ttyioctl (struct __unixlib_fd *file_desc, unsigned long request, void *arg)
 {
   int type = (int) file_desc->handle;
   struct tty *tty = __u->tty + type;
@@ -1054,10 +1056,10 @@ __ttyioctl (struct __unixlib_fd *file_desc, int request, void *arg)
 	    term->c_iflag = 0;
             term->c_lflag &= ~ICANON;
           }
-	
+
 	if (flags & ECHO)
 	  term->c_lflag |= ECHO | ECHOE | ECHOK | ECHOCTL | ECHOKE | IEXTEN;
-	
+
 	if (flags & CRMOD)
 	  term->c_oflag |= OPOST | ONLCR;
 
@@ -1066,7 +1068,7 @@ __ttyioctl (struct __unixlib_fd *file_desc, int request, void *arg)
             term->c_iflag = 0;
             term->c_lflag &= ~(ISIG | ICANON);
           }
-	
+
 	if (!(term->c_lflag & ICANON))
 	  {
             term->c_cc[VMIN] = 1;

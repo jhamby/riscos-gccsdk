@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/bits/netdb.h,v $
- * $Date: 2002/12/22 18:22:28 $
- * $Revision: 1.1 $
+ * $Date: 2003/04/05 23:56:08 $
+ * $Revision: 1.2 $
  * $State: Exp $
- * $Author: admin $
+ * $Author: joty $
  *
  ***************************************************************************/
 
@@ -55,7 +55,7 @@ __BEGIN_DECLS
 extern int _sclose (int sd);
 extern int _sread (int sd, void *data, int nbyte);
 extern int _swrite (int sd, const void *data, int nbyte);
-extern int _sioctl (int sd, int request, void *arg);
+extern int _sioctl (int sd, unsigned long request, void *arg);
 #endif
 
 __END_DECLS

@@ -1,4 +1,25 @@
+Sun Oct 26 14:15:00 2003  John Tytgat  <John.Tytgat@aaug.net>
+
+	* objs/Makefile.in: Added rule to build SharedULib.  Also default
+	  "All" rule will copy UnixLib into <UnixHdr$Dir>.UnixLib.
+	* objs/.cvsignore: Added SharedULib,ffa.
+	* source/clib/bits/netdb.h: Changed type of 'request' param fo ioctl
+	  call from 'int' to 'unsigned long'.
+	* source/clib/sys/netdb.h: Likewise.
+	* source/clib/unixlib/dev.h: Likewise.
+	* source/unix/dev.c: Likewise.
+	* source/unix/ioctl.c: Likewise.
+	* source/unix/tty.c: Likewise.  Avoided Norcroft compiler warning
+	  too.
+	* source/clib/sys/ioctl.h: Sync'ed with information in RISCOS Ltd.'s
+	  StubsG ioctl.h file.  Added further compatibility with
+	  COMPAT_INET4.
+	* source/unix/unix.c: Setup DDEUtils_Prefix with "@" so that chdir()
+	  calls don't change RISC OS' CSD.  When DDEUtils module is not
+	  loaded, RISC OS' CSD will change.  Suggestion by Stefan Bellon.
+
 Tue Oct 21 20:26:20 2003  David Marston  <david@illudium.org.uk>
+
 	* module/sul.s: Fix 32-bit behaviour
 
 Sun Oct 12 22:16:01 2003  John Tytgat  <John.Tytgat@aaug.net>

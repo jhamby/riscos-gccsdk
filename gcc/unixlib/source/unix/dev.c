@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/dev.c,v $
- * $Date: 2003/10/06 19:00:01 $
- * $Revision: 1.15 $
+ * $Date: 2003/10/12 21:23:27 $
+ * $Revision: 1.16 $
  * $State: Exp $
  * $Author: joty $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: dev.c,v 1.15 2003/10/06 19:00:01 joty Exp $";
+static const char rcs_id[] = "$Id: dev.c,v 1.16 2003/10/12 21:23:27 joty Exp $";
 #endif
 
 /* #define DEBUG */
@@ -170,7 +170,8 @@ __commonlseek (struct __unixlib_fd *file_desc, __off_t lpos, int whence)
 }
 
 int
-__commonioctl (struct __unixlib_fd *file_desc, int request, void *arg)
+__commonioctl (struct __unixlib_fd *file_desc, unsigned long request,
+               void *arg)
 {
   IGNORE (request);
   IGNORE (arg);
@@ -529,7 +530,7 @@ __fslseek (struct __unixlib_fd *file_desc, __off_t lpos, int whence)
 
 #ifdef __UNIXLIB_NO_COMMON_DEV
 int
-__fsioctl (struct __unixlib_fd *file_desc, int request, void *arg)
+__fsioctl (struct __unixlib_fd *file_desc, unsigned long request, void *arg)
 {
   IGNORE (request);
   IGNORE (arg);
@@ -734,7 +735,8 @@ __pipelseek (struct __unixlib_fd *file_desc, __off_t lpos, int whence)
 }
 
 int
-__pipeioctl (struct __unixlib_fd *file_desc, int request, void *arg)
+__pipeioctl (struct __unixlib_fd *file_desc, unsigned long request,
+             void *arg)
 {
   IGNORE (request);
   IGNORE (arg);
@@ -827,7 +829,8 @@ __nulllseek (struct __unixlib_fd *file_desc, __off_t lpos, int whence)
 }
 
 int
-__nullioctl (struct __unixlib_fd *file_desc, int request, void *arg)
+__nullioctl (struct __unixlib_fd *file_desc, unsigned long request,
+             void *arg)
 {
   IGNORE (request);
   IGNORE (arg);
@@ -935,7 +938,8 @@ __socklseek (struct __unixlib_fd *file_desc, __off_t lpos, int whence)
 #endif
 
 int
-__sockioctl (struct __unixlib_fd *file_desc, int request, void *arg)
+__sockioctl (struct __unixlib_fd *file_desc, unsigned long request,
+             void *arg)
 {
   return _sioctl ((int)file_desc->handle, request, arg);
 }

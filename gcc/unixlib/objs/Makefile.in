@@ -1,8 +1,8 @@
 # Project:   GCCSDK UnixLib
 
 # $Source: /usr/local/cvsroot/gccsdk/unixlib/objs/Makefile.in,v $
-# $Date: 2003/08/18 22:35:35 $
-# $Revision: 1.3 $
+# $Date: 2003/09/18 21:41:53 $
+# $Revision: 1.4 $
 # $State: Exp $
 # $Author: joty $
 
@@ -55,6 +55,14 @@ ARflags = -c
 #AR = makealf
 #ARflags =
 
+# Acorn linker :
+LINKflags = -RMF
+LINK = link
+
+# DrLink linker.  Comment out if you are using Acorn linker.
+# LINKflags = -RMF
+# LINK = drlink
+
 VPATH = ^.source
 .SUFFIXES: .o .c .s
 .INIT:
@@ -70,11 +78,14 @@ VPATH = ^.source
 OBJS = \
 
 # Final targets:
+All:	<UnixHdr$Dir>.o.UnixLib SharedULib
+
+SharedULib: module.o.sul
+	$(LINK) $(LINKflags) -o $@ module.o.*
+
 UnixLib: $(OBJS)
 	$(AR) $(ARflags) -o $@ \
 	o.* \
-
-install:	<UnixHdr$Dir>.o.UnixLib
 
 <UnixHdr$Dir>.o.UnixLib:	UnixLib
 	copy @.UnixLib <UnixHdr$Dir>.o.UnixLib fv~c
@@ -83,7 +94,7 @@ clean:
 	-wipe o.* fv~r~c
 	-wipe module.o.* fv~r~c
 	-remove UnixLib
-
+	-remove SharedULib
 
 # Static dependencies:
 

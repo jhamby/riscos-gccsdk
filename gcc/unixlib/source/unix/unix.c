@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/unix.c,v $
- * $Date: 2003/07/29 23:04:28 $
- * $Revision: 1.12 $
+ * $Date: 2003/08/03 16:32:13 $
+ * $Revision: 1.13 $
  * $State: Exp $
- * $Author: admin $
+ * $Author: joty $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: unix.c,v 1.12 2003/07/29 23:04:28 admin Exp $";
+static const char rcs_id[] = "$Id: unix.c,v 1.13 2003/08/03 16:32:13 joty Exp $";
 #endif
 
 #include <stdio.h>
@@ -213,14 +213,14 @@ void __unixinit (void)
           /* Append DDEUtils command line.  */
           cli[__cli_size] = ' ';
           regs[0] = (int) cli + __cli_size + 1;
-          __os_swi (DDEUtils_GetCl, regs);
+          (void) __os_swi (DDEUtils_GetCl, regs);
         }
     }
 
   /* Set command line length to zero otherwise the next process
      will also get it.  */
   regs[0] = 0;
-  __os_swi (DDEUtils_SetCLSize, regs);
+  (void) __os_swi (DDEUtils_SetCLSize, regs);
 
   if (cli == NULL)
     __unixlib_fatal ("command line too long (not enough memory)");
@@ -238,6 +238,12 @@ void __unixinit (void)
   convert_command_line (__u, cli, cli_size);
   free (cli);
 
+  /* When the DDEUtils module is loaded, we can support chdir() without
+     RISC OS' CSD being changed. When not loaded, chdir() will work by
+     changing CSD for all processes.  */
+  regs[0] = (int)"@";
+  (void) __os_swi (DDEUtils_Prefix, regs);
+
   i = __intenv ("Unix$uid");
   if (i != 0)
     __u->uid = __u->euid = i;
@@ -245,7 +251,6 @@ void __unixinit (void)
 #ifdef DEBUG
   __debug ("__unixinit: process creation complete");
 #endif
-
 }
 
 void _main (void)
@@ -313,6 +318,11 @@ void
 _exit (int return_code)
 {
   int status;
+  int regs[10];
+
+  /* Reset the DDE Utils' Prefix variable.  */
+  regs[0] = 0;
+  (void) __os_swi (DDEUtils_SetCLSize, regs);
 
   /* Interval timers must be stopped.  */
   if (__u)

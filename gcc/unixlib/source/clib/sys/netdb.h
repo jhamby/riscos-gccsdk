@@ -1,8 +1,8 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/sys/netdb.h,v $
- * $Date: 2001/01/29 15:10:19 $
- * $Revision: 1.2 $
+ * $Date: 2002/09/24 21:02:37 $
+ * $Revision: 1.3 $
  * $State: Exp $
  * $Author: admin $
  *
@@ -26,7 +26,7 @@ extern struct hostent *_gethostbyaddr (const char *addr, int len, int type);
 extern int _sclose (int sd);
 extern int _sread (int sd, void *data, int nbyte);
 extern int _swrite (int sd, const void *data, int nbyte);
-extern int _sioctl (int sd, int request, void *arg);
+extern int _sioctl (int sd, unsigned long request, void *arg);
 
 __END_DECLS
 
