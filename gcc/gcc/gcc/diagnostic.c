@@ -1293,14 +1293,19 @@ diagnostic_report_diagnostic (context, diagnostic)
       output_format (&context->buffer, &diagnostic->message);
       (*diagnostic_finalizer (context)) (context, diagnostic);
 
-#if 0 && defined(ERROR_THROWBACK)
+#ifdef ERROR_THROWBACK
       {
-	const char *text = output_finalize_message (&context->buffer);
+	const char *text;
+
+	output_prefixing_rule (&context->buffer) = DIAGNOSTICS_SHOW_PREFIX_NEVER;
+	output_line_cutoff (&context->buffer) = 0;
+	output_format (&context->buffer, &diagnostic->message);
+
+	text = output_finalize_message (&context->buffer);
 	ERROR_THROWBACK (diagnostic->location.file,
 			 diagnostic->location.line,
 			 (diagnostic->kind == DK_WARNING) ? "warning" : NULL,
 			 text);
-	/* output_clear_message_text (context->buffer); */
       }
 #endif
       output_flush (&context->buffer);
