@@ -121,7 +121,7 @@ regardless of how it itself was compiled.
 @item profiledbootstrap
 Builds a compiler with profiling feedback information.  For more
 information, see
-@ref{Building,,Building with profile feedback,gccinstall,Installing GCC}.
+@ref{Building,,Building with profile feedback,@value{fngccinstall},Installing GCC}.
 This is actually a target in the top-level directory, which then
 recurses into the @file{gcc} subdirectory multiple times.
 
