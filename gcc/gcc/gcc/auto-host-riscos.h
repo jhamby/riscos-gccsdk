@@ -14,7 +14,7 @@
 #define HAVE_PRINTF_PTR 1
 
 #define PACKAGE "gcc"
-#define VERSION "3.3.0"
+#define VERSION "3.3.3"
 
 /* Define if you want expensive run-time checks. */
 /* #undef ENABLE_CHECKING */
