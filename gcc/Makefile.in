@@ -32,10 +32,13 @@ CXXFLAGS=@CXXFLAGS@ $(TARGET_DEFS)
 ux_gccpkg=@prefix@
 
 # Installation directory of RISC OS binaries i.e. the stage 2 compiler.
-ro_gccpkg = @with_riscos_dist@
+ro_gccpkg=@with_riscos_dist@
 
 # Installation directory of RISC OS distribution packaged as zip files.
-ro_zippkg = @with_riscos_pkg@
+ro_zippkg=@with_riscos_pkg@
+
+# Suffix applied to executables (usually changed with --enable-filetype-ff8)
+exesfx=@exesfx@
 
 # Working directory where object files are stored
 objdir=@topdir@/$(TARGET_NAME)
@@ -97,11 +100,11 @@ insthdr = @topdir@/scripts/install-headers.pl
 # Place variables in the environment.  This saves us having to pass
 # the variables to sub-makes on the command line.
 export TARGET_NAME objdir hostsystem targetsystem
-export ux_gccpkg ro_gccpkg unix_prefix riscos_prefix
+export ux_gccpkg ro_gccpkg ro_zippkg unix_prefix riscos_prefix
 export gn_standard_exec_prefix gn_standard_startfile_prefix
 export gn_gcc_include_dir gn_gplusplus_include_dir
 export gn_local_include_dir gn_system_include_dir gn_cross_include_dir
-export gn_gcc_bin_dir info_dir
+export gn_gcc_bin_dir info_dir exesfx
 export ux_bin_dir ux_gcc_bin_dir ro_bin_dir ro_gcc_bin_dir
 export CROSS_CC CROSS_CXX CROSS_CFLAGS CROSS_CXXFLAGS
 export CROSS_AR CROSS_AR_FLAGS
@@ -250,6 +253,7 @@ directories:
 
 	mkdir -p $(info_dir)
 	mkdir -p $(objdir)
+	mkdir -p $(ro_zippkg)
 
 # Install header files for our standard C run-time libraries.
 install_headers:
