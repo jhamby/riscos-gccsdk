@@ -23,6 +23,7 @@ AB_ZIPNAME=
 AB_README=ReadMe
 AB_ARFLAGS=
 
+export TLINK_CX11=
 
 H=$AB_HOME/$AB_PACKAGEDIR
 
@@ -61,13 +62,17 @@ else
  # Build directory
  AB_DIR=$AB_TMPDIR/$AB_PACKAGE
  D=$AB_DIR/package
- echo D=$D
 
  # Remove old dir and create new one
  [ "$AB_DEBUG" == "yes" ] || [ "$AB_NOFETCH" == "yes" ] || rm -rf $AB_DIR
  mkdir -p $AB_DIR
  cd $AB_DIR
- 
+
+ if [ -e $AB_HOME/$AB_PACKAGEDIR/alias ] ; then
+  AB_ZIPNAME=$AB_PACKAGE
+  . $AB_HOME/$AB_PACKAGEDIR/alias
+ fi
+
  if [ "$AB_NOFETCH" != "yes" ] ; then
    # Fetch the source
    echo "Autobuilder: Fetching source for $AB_PACKAGE"
@@ -111,6 +116,8 @@ else
  else
    cd $AB_FULLNAME
  fi
+ 
+ S=$PWD
  
  # Get the version number
  AB_PVERSION=$(echo $AB_FULLNAME | sed s/$AB_PACKAGE-//)
@@ -182,7 +189,12 @@ else
    else
      eval $AB_MAKE $AB_INSTALLTARGET || true
    fi
-   RO_PKG=$AB_FULLNAME /home/riscos/env/ro-libpack
+
+   if [ "$AB_ZIPNAME" != "" ] ; then
+     RO_PKG=$(echo $AB_FULLNAME | sed s#"$AB_PACKAGE"#"$AB_ZIPNAME"#) /home/riscos/env/ro-libpack
+   else
+     RO_PKG=$AB_FULLNAME /home/riscos/env/ro-libpack
+   fi
  fi
  
 
@@ -217,7 +229,7 @@ if [ "$AB_NOPACKAGE" == "" ] ; then
    else
      AB_ZIP=$AB_PACKAGE.zip
    fi
- 
+
  else
    if [ "$AB_ZIPNAME" != "" ] ; then
      echo "Autobuilder: Packaging as $AB_ZIPNAME"
