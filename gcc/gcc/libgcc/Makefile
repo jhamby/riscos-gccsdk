@@ -32,7 +32,6 @@ LIB2FUNCS_1 = $(libobjdir)/muldi3.o \
 	$(libobjdir)/ashldi3.o \
 	$(libobjdir)/ashrdi3.o \
 	$(libobjdir)/ffsdi2.o \
-	$(libobjdir)/clz.o \
 	$(libobjdir)/cmpdi2.o \
 	$(libobjdir)/ucmpdi2.o \
 	$(libobjdir)/floatdidf.o \
@@ -73,7 +72,22 @@ LIB2FUNCS_2 = $(libobjdir)/floatdixf.o \
 	$(libobjdir)/negvdi2.o \
 	$(libobjdir)/ctors.o
 
-IEEE754 = $(libobjdir)/fixunsdfsi.o
+IEEE754 = $(libobjdir)/fixunsdfsi.o \
+	$(libobjdir)/negdf2.o \
+	$(libobjdir)/addsubdf3.o \
+	$(libobjdir)/muldivdf3.o \
+	$(libobjdir)/cmpdf2.o \
+	$(libobjdir)/unorddf2.o \
+	$(libobjdir)/fixdfsi.o \
+	$(libobjdir)/fixunsdfsi.o \
+	$(libobjdir)/truncdfsf2.o \
+	$(libobjdir)/negsf2.o \
+	$(libobjdir)/addsubsf3.o \
+	$(libobjdir)/muldivsf3.o \
+	$(libobjdir)/cmpsf2.o \
+	$(libobjdir)/unordsf2.o \
+	$(libobjdir)/fixsfsi.o \
+	$(libobjdir)/fixunssfsi.o
 
 
 LIB2FUNCS_ST = $(libobjdir)/eprintf.o \
@@ -135,7 +149,7 @@ FP_BIT_SINGLE = $(libobjdir)/pack_sf.o \
 
 all:	$(ux_gcc_bin_dir)/$(TRG)/libgcc.o $(ro_gcc_bin_dir)/$(TRG)/o/libgcc
 
-LIBGCC_OBJS = $(COMMON) $(LIB2FUNCS_1) $(LIB2FUNCS_2) \
+LIBGCC_OBJS = $(COMMON) $(LIB2FUNCS_1) $(LIB2FUNCS_2) $(IEEE754) \
 	$(LIB2FUNCS_EXTRA) $(FP_BIT_DOUBLE) $(FP_BIT_SINGLE) $(LIB2ADDEH)
 
 $(ux_gcc_bin_dir)/$(TRG)/libgcc.o: $(LIBGCC_OBJS)
@@ -144,10 +158,10 @@ $(ux_gcc_bin_dir)/$(TRG)/libgcc.o: $(LIBGCC_OBJS)
 $(ro_gcc_bin_dir)/$(TRG)/o/libgcc: $(LIBGCC_OBJS)
 	$(CROSS_AR) $(CROSS_AR_FLAGS) $@ $(LIBGCC_OBJS)
 
-ieee754-df-aof.S:	ieee754-df.S
+ieee754-df-aof.S:	ieee754-df.S aof-convert.pl
 	./aof-convert.pl $< $@
 
-ieee754-sf-aof.S:	ieee754-sf.S
+ieee754-sf-aof.S:	ieee754-sf.S aof-convert.pl
 	./aof-convert.pl $< $@
 
 ############################################################################
@@ -187,15 +201,9 @@ $(libobjdir)/negdi2.o:	libgcc2.c
 $(libobjdir)/ffsdi2.o:	libgcc2.c
 	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c libgcc2.c $(INCLUDES) -DL_ffsdi2
 
-$(libobjdir)/clz.o:	libgcc2.c
-	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c libgcc2.c $(INCLUDES) -DL_clz
 
 $(libobjdir)/floatdisf.o:	libgcc2.c
 	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c libgcc2.c $(INCLUDES) -DL_floatdisf
-
-
-$(libobjdir)/fixunssfsi.o:	libgcc2.c
-	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c libgcc2.c $(INCLUDES) -DL_fixunssfsi
 
 $(libobjdir)/fixdfdi.o: libgcc2.c
 	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c libgcc2.c $(INCLUDES) -DL_fixdfdi
@@ -320,6 +328,20 @@ $(libobjdir)/fixunssfsi.o: ieee754-sf-aof.S
 	$(CC_S) -c $< -o $@ -DL_fixunssfsi
 
 
+# 32-bit integer division routines
+$(libobjdir)/modsi3.o:	lib1funcs-aof.S
+	$(CC_S) -c $< -o $@ -DL_modsi3
+
+$(libobjdir)/umodsi3.o:	lib1funcs-aof.S
+	$(CC_S) -c $< -o $@ -DL_umodsi3
+
+$(libobjdir)/divsi3.o:	lib1funcs-aof.S
+	$(CC_S) -c $< -o $@ -DL_divsi3
+
+$(libobjdir)/udivsi3.o:	lib1funcs-aof.S
+	$(CC_S) -c $< -o $@ -DL_udivsi3
+
+
 # Exception handling
 $(libobjdir)/unwind-dw2.o: ../gcc/unwind-dw2.c $(LIB2ADDEHDEP)
 	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c ../gcc/unwind-dw2.c $(INCLUDES)
@@ -353,14 +375,6 @@ $(libobjdir)/cmpdi2.o:	lib1aof.s
 	$(CC_S) -c lib1aof.s -o $@ -DL_cmpdi2
 $(libobjdir)/ucmpdi2.o:	lib1aof.s
 	$(CC_S) -c lib1aof.s -o $@ -DL_ucmpdi2
-$(libobjdir)/modsi3.o:	lib1aof.s
-	$(CC_S) -c lib1aof.s -o $@ -DL_modsi3
-$(libobjdir)/umodsi3.o:	lib1aof.s
-	$(CC_S) -c lib1aof.s -o $@ -DL_umodsi3
-$(libobjdir)/divsi3.o:	lib1aof.s
-	$(CC_S) -c lib1aof.s -o $@ -DL_divsi3
-$(libobjdir)/udivsi3.o:	lib1aof.s
-	$(CC_S) -c lib1aof.s -o $@ -DL_udivsi3
 $(libobjdir)/moddi3.o:	lib1aof.s
 	$(CC_S) -c lib1aof.s -o $@ -DL_moddi3
 $(libobjdir)/umoddi3.o:	lib1aof.s

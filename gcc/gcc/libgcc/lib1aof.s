@@ -1,5 +1,5 @@
 /* libgcc1 and libgcc2 routines for ARM cpu (AOF format)
- Copyright (C) 1998, 2000 Free Software Foundation, Inc.
+ Copyright (C) 1998, 2000, 2004 Free Software Foundation, Inc.
  Contributed by Nick Burrett (nick.burrett@btinternet.com)
  and Peter Burwood (pjb@arcangel.dircon.co.uk)
 
@@ -254,50 +254,6 @@ XOS_SynchroniseCodeAreas	EQU	&00006E + X_Bit
 	RSBS	a1, v2, #0 /* low */
 	RSC	a2, v3, #0 /* high */
 	LDMFD	sp!, {v2, v3, v4, v6, pc}RETCOND
-#endif
-
-#ifdef L_divsi3
-	EXPORT |__divsi3|
-	EXPORT |__divmodsi4|
-	IMPORT |__div0|
-
-|__divsi3|
-|__divmodsi4|
-	MOVS	a4, a2
-	BEQ	|__div0|	/* divide by zero.  */
-	AND	a3, a1, #&80000000
-	EOR	ip, a4, a1
-	ORR	a3, a3, ip, LSR #1
-	RSBMI	a4, a4, #0
-	MOVS	a2, a1
-	RSBMI	a2, a2, #0
-	MOV	ip, a4
-
-	CMP	ip, a2, LSR #16
-	MOVLS	ip, ip, LSL #16
-	CMP	ip, a2, LSR #8
-	MOVLS	ip, ip, LSL #8
-	CMP	ip, a2, LSR #4
-	MOVLS	ip, ip, LSL #4
-	CMP	ip, a2, LSR #2
-	MOVLS	ip, ip, LSL #2
-	CMP	ip, a2, LSR #1
-	MOVLS	ip, ip, LSL #1
-
-	MOV	a1, #0
-|__divsi3.divloop|
-	CMP	a2, ip
-	SUBCS	a2, a2, ip
-	ADC	a1, a1, a1
-	MOV	ip, ip, LSR #1
-	CMP	ip, a4
-	BCS	|__divsi3.divloop|
-	TST	a3,  #&40000000
-	RSBNE	a1, a1, #0
-	/* This line is for __divmodsi4 only */
-	TST	a3,  #&80000000
-	RSBNE	a2, a2, #0
-	RETURN(pc, lr)
 #endif
 
 #ifdef L_ffs
@@ -772,42 +728,6 @@ fltdidf_norm_fin
 	LDMFD	sp!, {v2, v3, v4, v6, pc}RETCOND
 #endif
 
-#ifdef L_modsi3
-	EXPORT |__modsi3|
-	IMPORT |__div0|
-
-	/* a1 = (a1 / a2) remainder a2
-   	   returns remainder in a1 */
-
-|__modsi3|
-	ANDS	ip, a1, #&80000000
-	RSBMI	a1, a1, #0
-	MOVS	a2, a2
-	BEQ	|__div0|	/* divide by zero.  */
-	RSBMI	a2, a2, #0
-	MOV	a3, a2
-
-	CMP	a3, a1, LSR #16
-	MOVLS	a3, a3, LSL #16
-	CMP	a3, a1, LSR #8
-	MOVLS	a3, a3, LSL #8
-	CMP	a3, a1, LSR #4
-	MOVLS	a3, a3, LSL #4
-	CMP	a3, a1, LSR #2
-	MOVLS	a3, a3, LSL #2
-	CMP	a3, a1, LSR #1
-	MOVLS	a3, a3, LSL #1
-
-|__modsi3.divloop|
-	CMP	a1, a3
-	SUBCS	a1, a1, a3
-	MOV	a3, a3, LSR #1
-	CMP	a3, a2
-	BCS	|__modsi3.divloop|
-	TST	ip, #&80000000
-	RSBNE	a1, a1, #0
-	RETURN(pc, lr)
-#endif
 
 #ifdef L_muldi3
 	EXPORT |__muldi3|
@@ -901,49 +821,6 @@ fltdidf_norm_fin
 	LDMFD	sp!, {v2, v3, v4, pc}RETCOND
 #endif
 
-#ifdef L_udivsi3
-	EXPORT |__udivsi3|
-	EXPORT |__udivmodsi4|
-	IMPORT |__div0|
-
-/* a1 = (a1 / a2) remainder a2
-   returns quotient in a1
-   returns remainder in a2
-
-   a1 = numerator
-   a2 = denominator
-   a1 = quotient
-   a2 = remainder
-   ip = temporary store  */
-
-|__udivsi3|
-|__udivmodsi4|
-        MOV     a3, a1
-        MOVS    ip, a2
-	BEQ	|__div0|   /* divide by zero.  */
-
-        CMP     ip, a3, LSR #16
-        MOVLS   ip, ip, LSL #16
-        CMP     ip, a3, LSR #8
-        MOVLS   ip, ip, LSL #8
-        CMP     ip, a3, LSR #4
-        MOVLS   ip, ip, LSL #4
-        CMP     ip, a3, LSR #2
-        MOVLS   ip, ip, LSL #2
-        CMP     ip, a3, LSR #1
-        MOVLS   ip, ip, LSL #1
-
-        MOV     a1, #0
-|__udivsi3.divloop|
-	CMP     a3, ip
-        SUBCS   a3, a3, ip
-        ADC     a1, a1, a1
-        MOV     ip, ip, LSR #1
-        CMP     ip, a2
-        BCS     |__udivsi3.divloop|
-	MOV	a2, a3
-	RETURN(pc, lr)
-#endif
 
 #ifdef L_umoddi3
 	EXPORT |__umoddi3|
@@ -991,43 +868,6 @@ fltdidf_norm_fin
 	LDMFD	sp!, {v2, v3, v4, pc}RETCOND
 #endif
 
-#ifdef L_umodsi3
-	EXPORT |__umodsi3|
-	IMPORT |__div0|
-
-/* a1 = (a1 / a2) remainder a2
-   returns remainder in a1
-
-   a1 = numerator
-   a2 = denominator
-   a1 = remainder
-   a3 = temporary store */
-
-
-|__umodsi3|
-        MOVS    a3, a2
-	BEQ	|__div0|   /* divide by zero  */
-
-        CMP     a3, a1, LSR #16
-        MOVLS   a3, a3, LSL #16
-        CMP     a3, a1, LSR #8
-        MOVLS   a3, a3, LSL #8
-        CMP     a3, a1, LSR #4
-        MOVLS   a3, a3, LSL #4
-        CMP     a3, a1, LSR #2
-        MOVLS   a3, a3, LSL #2
-        CMP     a3, a1, LSR #1
-        MOVLS   a3, a3, LSL #1
-
-|__umodsi3.divloop|
-	CMP     a1, a3
-        SUBCS   a1, a1, a3
-        MOV     a3, a3, LSR #1
-        CMP     a3, a2
-        BCS     |__umodsi3.divloop|
-	MOV	a1, a1
-	RETURN(pc, lr)
-#endif
 
 #ifdef L_div0
 	/* Division by zero handler for RISC OS.  */
