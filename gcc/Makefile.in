@@ -241,7 +241,7 @@ riscos-libs:
 	$(MAKE) -C $@ "TRG=$(trg10)" $(cfl10)
 
 gcc-libs-stg1:
-	$(MAKE) -C gcc libgcc "TRG=$(trg10)" "STAGE=stage1"
+	#$(MAKE) -C gcc libgcc "TRG=$(trg10)" "STAGE=stage1"
 	$(MAKE) -C gcc zlib "TRG=$(trg10)" "STAGE=stage1"
 
 gcc-libs-stg2:
