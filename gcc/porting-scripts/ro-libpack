@@ -9,6 +9,10 @@ if [ -z "$RO_PKG" ] ; then
   exit 1
 fi
 
+if [ -z "$AB_MAKE" ] ; then
+  AB_MAKE=/home/riscos/env/ro-make
+fi
+
 if [ -z "$AB_INSTALLTARGET" ] ; then
   AB_INSTALLTARGET=install
 fi
@@ -17,7 +21,7 @@ mkdir -p $AB_DIR/package/include/
 mkdir -p $AB_DIR/package/lib/pkgconfig/
 
 echo "Running install target: $AB_INSTALLTARGET" 
-/home/riscos/env/ro-make $AB_INSTALLTARGET
+eval $AB_MAKE $AB_INSTALLTARGET
 
 cd $AB_DIR/package
 
