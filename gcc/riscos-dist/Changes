@@ -1,6 +1,6 @@
 Noteworthy changes to the RISC OS GCCSDK
 
-RISC OS GCC release 3.3.3 pre-release 2 (released XX XXXXX 2004)
+RISC OS GCC release 3.3.3 pre-release 2 (released 18 April 2004)
 =======================================
 
 * diffutils: Upgrade to version 2.8.1.  Add documentation.
