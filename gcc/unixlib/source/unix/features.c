@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/features.c,v $
- * $Date: 2003/08/15 13:56:31 $
- * $Revision: 1.6 $
+ * $Date: 2003/08/18 22:35:36 $
+ * $Revision: 1.7 $
  * $State: Exp $
  * $Author: joty $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: features.c,v 1.6 2003/08/15 13:56:31 joty Exp $";
+static const char rcs_id[] = "$Id: features.c,v 1.7 2003/08/18 22:35:36 joty Exp $";
 #endif
 
 /* #define DEBUG 1 */
@@ -99,12 +99,23 @@ static void features (const char *progname)
   char varbuf[256];
   char *ptr;
 
+  /* Feature "nonametrans".  */
   ptr = env (progname, "nonametrans", varbuf, sizeof (varbuf) - 1);
   if (ptr != NULL)
     __set_riscosify_control(__RISCOSIFY_NO_PROCESS);
 
+  /* Feature "sfix".  */
   ptr = env (progname, "sfix", varbuf, sizeof (varbuf) - 1);
   __sfixinit (ptr ? ptr : __sfix_default);
+
+  /* Feature "uid".  */
+  ptr = env (progname, "uid", varbuf, sizeof (varbuf) - 1);
+  if (ptr != NULL)
+    {
+      unsigned int uid = __decstrtoui(ptr, NULL);
+
+    __u->uid = __u->euid = (uid_t)uid;
+    }
 }
 
 void __runtime_features (const char *cli)

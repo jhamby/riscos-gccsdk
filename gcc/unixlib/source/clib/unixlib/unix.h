@@ -1,8 +1,8 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/unixlib/unix.h,v $
- * $Date: 2003/06/23 20:33:03 $
- * $Revision: 1.7 $
+ * $Date: 2003/11/23 20:26:44 $
+ * $Revision: 1.8 $
  * $State: Exp $
  * $Author: joty $
  *
@@ -269,7 +269,8 @@ extern int __remenv_from_os (const char *__name);
 /* Set runtime features according to system variables.  */
 extern void __runtime_features (const char *__cmdline);
 
-/* Print an error and exit the process.  */
+/* Print an error and exit the process. When MESSAGE is NULL, the printed
+   error message is based on the current errno value.  */
 extern void
 __unixlib_fatal (const char *__message) __attribute__ ((__noreturn__));
 

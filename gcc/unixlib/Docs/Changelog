@@ -1,3 +1,16 @@
+Mon Dec 22 21:29:50  John Tytgat  <John.Tytgat@aaug.net>
+
+	* Docs/ReadMe: Documented the new uid feature.
+	* source/clib/unixlib/unix.h (__unixlib_fatal): Documented the NULL
+	  parameter behaviour.
+	* source/sys/_syslib.s (__unixlib_fatal): Calling with NULL parameter
+	  works again.
+	* source/unix/features.c (features): Added uid feature (was formally
+	  known as Unix$tty).
+	* source/unix/unix.c (__unixinit): More informative __unixlib_fatal()
+	  error messages; moved Unix$uid support to features.c; removed Unix$tty
+	  support (use command line redirection).
+
 Sun Dec 21 12:21:56 2003  Stefan Bellon  <sbellon@sbellon.de>
 
 	* crypt/crypt_util.c (setkey_r): Add cast to fix Norcroft compilation.
@@ -206,7 +219,7 @@ Wed Jul 30 00:03:42 2003  Nick Burrett  <nick@dsvr.net>
 	* sys/syslog.h (syslog): Add GCC __format__ attribute.
 	(vsyslog): Likewise.  Use __gnuc_va_list.
 
-	* assert.c (__assert_fail): FIx compiler warning.
+	* assert.c (__assert_fail): Fix compiler warning.
 
 	* alloca.h: Get only the definition of size_t.
 	* complex.h (_Complex_I): Add __extension__.

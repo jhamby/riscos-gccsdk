@@ -1,10 +1,10 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/_syslib.s,v $
-; $Date: 2003/07/29 23:04:27 $
-; $Revision: 1.21 $
+; $Date: 2003/11/23 20:26:45 $
+; $Revision: 1.22 $
 ; $State: Exp $
-; $Author: admin $
+; $Author: joty $
 ;
 ;----------------------------------------------------------------------------
 
@@ -951,6 +951,7 @@ no_chunk_to_free
 	BNE	__unixlib_fatal_got_msg
 	__get_errno	v1, a1
 	BL	strerror
+	MOV	v1, a1
 __unixlib_fatal_got_msg
 	BL	__os_nl
 	MOV	a1, v1

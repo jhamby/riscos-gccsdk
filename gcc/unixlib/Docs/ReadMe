@@ -58,6 +58,11 @@ The list of recognised features are:
    mentioned above unless __RISCOSIFY_NO_SUFFIX is specified in the
    __riscosify_flags variable or __riscosify()'s flags parameter.
 
+3. uid
+
+   Default: 1
+   If set, then its value is used to set the UNIX uid and euid values.
+
 
 Link-time features
 ~~~~~~~~~~~~~~~~~~

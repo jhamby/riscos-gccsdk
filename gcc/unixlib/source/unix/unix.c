@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/unix.c,v $
- * $Date: 2003/11/01 20:42:19 $
- * $Revision: 1.15 $
+ * $Date: 2003/11/23 20:26:45 $
+ * $Revision: 1.16 $
  * $State: Exp $
  * $Author: joty $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: unix.c,v 1.15 2003/11/01 20:42:19 joty Exp $";
+static const char rcs_id[] = "$Id: unix.c,v 1.16 2003/11/23 20:26:45 joty Exp $";
 #endif
 
 #include <stdio.h>
@@ -186,7 +186,7 @@ void __unixinit (void)
 	 and the parent process had nothing in its environment to pass on.  */
       environ = malloc (sizeof (char *));
       if (environ == NULL)
-	__unixlib_fatal (NULL);
+	__unixlib_fatal ("cannot allocate memory for environment structure");
       *environ = NULL;
     }
 
@@ -244,10 +244,6 @@ void __unixinit (void)
   regs[0] = (int)"@";
   (void) __os_swi (DDEUtils_Prefix, regs);
 
-  i = __intenv ("Unix$uid");
-  if (i != 0)
-    __u->uid = __u->euid = i;
-
 #ifdef DEBUG
   __debug ("__unixinit: process creation complete");
 #endif
@@ -267,7 +263,7 @@ void _main (void)
     ;
   snapshot_environ = (char **) malloc((env_var_index + 1) * sizeof (char *));
   if (snapshot_environ == NULL)
-    __unixlib_fatal (NULL);
+    __unixlib_fatal ("cannot allocate memory for snapshot environment structure");
   while (env_var_index >= 0)
     {
       snapshot_environ[env_var_index] = environ[env_var_index];
@@ -478,18 +474,10 @@ static void
 initialise_unix_io (struct proc *process)
 {
   int i;
-  const char *tty;
 
   /* Set all file descriptors to unallocated status.  */
   for (i = 0; i < MAXFD; i++)
     process->fd[i].__magic = 0;
-
-  /* Set the default tty for standard input (stdin), standard output (stdout)
-     and standard error (stderr).  Use the filename given by Unix$tty (if
-     defined), otherwise default to /dev/tty.  */
-  tty = __getenv ("Unix$tty", 0);
-  if (tty == NULL)
-    tty = "/dev/tty";
 
   /* These are guaranteed to be the first files opened. stdin, stdout
      and stderr will receive file descriptor numbers 0, 1 and 2
@@ -497,9 +485,9 @@ initialise_unix_io (struct proc *process)
 
   /* Open a file descriptor for reading from the tty (stdin)
      and writing to the tty (stdout).  */
-  if (__open (STDIN_FILENO, tty, O_RDONLY, 0777) < 0
-      || __open (STDOUT_FILENO, tty, O_WRONLY | O_CREAT, 0666) < 0)
-    __unixlib_fatal (NULL);
+  if (__open (STDIN_FILENO, "/dev/tty", O_RDONLY, 0777) < 0
+      || __open (STDOUT_FILENO, "/dev/tty", O_WRONLY | O_CREAT, 0666) < 0)
+    __unixlib_fatal ("cannot open stdin/stdout/stderr");
 
   /* Duplicate the file descriptor for stdout, to create a suitable
      file descriptor for stderr.  */
