@@ -386,50 +386,74 @@ extern int matherr (struct exception *__exc);
 
 /* Return nonzero value if X is greater than Y.  */
 # ifndef isgreater
-#  define isgreater(x, y) \
+#  ifdef __GNUC__
+#   define isgreater(x, y) \
   (__extension__							      \
    ({ __typeof__(x) __x = (x); __typeof__(y) __y = (y);			      \
       !isunordered (__x, __y) && __x > __y; }))
+#  else
+#   define isgreater(x, y) ((x) __greater (y))
+#  endif
 # endif
 
 /* Return nonzero value if X is greater than or equal to Y.  */
 # ifndef isgreaterequal
-#  define isgreaterequal(x, y) \
+#  ifdef __GNUC__
+#   define isgreaterequal(x, y) \
   (__extension__							      \
    ({ __typeof__(x) __x = (x); __typeof__(y) __y = (y);			      \
       !isunordered (__x, __y) && __x >= __y; }))
+#  else
+#   define isgreaterequal(x, y) ((x) __greaterequal (y))
+#  endif
 # endif
 
 /* Return nonzero value if X is less than Y.  */
 # ifndef isless
-#  define isless(x, y) \
+#  ifdef __GNUC__
+#   define isless(x, y) \
   (__extension__							      \
    ({ __typeof__(x) __x = (x); __typeof__(y) __y = (y);			      \
       !isunordered (__x, __y) && __x < __y; }))
+#  else
+#   define isless(x, y) ((x) __less (y))
+#  endif
 # endif
 
 /* Return nonzero value if X is less than or equal to Y.  */
 # ifndef islessequal
-#  define islessequal(x, y) \
+#  ifdef __GNUC__
+#   define islessequal(x, y) \
   (__extension__							      \
    ({ __typeof__(x) __x = (x); __typeof__(y) __y = (y);			      \
       !isunordered (__x, __y) && __x <= __y; }))
+#  else
+#   define islessequal(x, y) ((x) __lessequal (y))
+#  endif
 # endif
 
 /* Return nonzero value if either X is less than Y or Y is less than X.  */
 # ifndef islessgreater
-#  define islessgreater(x, y) \
+#  ifdef __GNUC__
+#   define islessgreater(x, y) \
   (__extension__							      \
    ({ __typeof__(x) __x = (x); __typeof__(y) __y = (y);			      \
       !isunordered (__x, __y) && (__x < __y || __y < __x); }))
+#  else
+#   define islessgreater(x, y) ((x) __lessgreater (y))
+#  endif
 # endif
 
 /* Return nonzero value if arguments are unordered.  */
 # ifndef isunordered
-#  define isunordered(u, v) \
+#  ifdef __GNUC__
+#   define isunordered(u, v) \
   (__extension__							      \
    ({ __typeof__(u) __u = (u); __typeof__(v) __v = (v);			      \
       fpclassify (__u) == FP_NAN || fpclassify (__v) == FP_NAN; }))
+#  else
+#   define isunordered(u, v) ((x) __unordered (y))
+#  endif
 # endif
 
 #endif
@@ -440,6 +464,8 @@ extern double __kernel_sin (double __x, double __y,
 			    int __iy) __THROW __attribute__ ((__const__));
 extern double __kernel_cos (double __x,
 			    double __y) __THROW __attribute__ ((__const__));
+extern void __sincos (double __x, double *__sinx,
+		      double *__cosx) __THROW __attribute__ ((__const__));
 
 /* Internal function used by rem_pio2().  */
 #include <unixlib/types.h>

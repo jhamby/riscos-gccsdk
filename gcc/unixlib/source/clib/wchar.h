@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/wchar.h,v $
- * $Date: 2002/09/24 21:02:37 $
- * $Revision: 1.4 $
+ * $Date: 2003/05/26 18:53:34 $
+ * $Revision: 1.5 $
  * $State: Exp $
- * $Author: admin $
+ * $Author: peter $
  *
  ***************************************************************************/
 
@@ -55,8 +55,11 @@ typedef struct
   wint_t value;		/* Value so far.  */
 } mbstate_t;
 
-#define WCHAR_MIN ((wchar_t) 0)
-#define WCHAR_MAX (~WCHAR_MIN)
+#ifndef WCHAR_MIN
+/* These constants might also be defined in <stdint.h> */
+# define WCHAR_MIN	(-2147483647-1)
+# define WCHAR_MAX	(2147483647)
+#endif
 
 #ifndef WEOF
 # define WEOF (0xffffffffu)
@@ -271,7 +274,7 @@ extern inline float wcstof (const wchar_t *__nptr, wchar_t **__endptr)
 { return __wcstof_internal (__nptr, __endptr, 0); }
 extern inline __long_double_t wcstold (const wchar_t *__nptr,
 				       wchar_t **__endptr)
-     
+
 { return __wcstold_internal (__nptr, __endptr, 0); }
 
 

@@ -1,8 +1,8 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/unixlib/asm_dec.s,v $
-; $Date: 2003/06/23 20:33:03 $
-; $Revision: 1.13 $
+; $Date: 2003/11/23 20:26:44 $
+; $Revision: 1.14 $
 ; $State: Exp $
 ; $Author: joty $
 ;
@@ -291,6 +291,7 @@ EXIT_FAILURE	EQU	1
 TRUE	EQU	1
 FALSE	EQU	0
 
+	;Keep the signal list in sync with <signal.h> contents.
 SIGHUP	EQU	1	;   hangup
 SIGINT	EQU	2	;   terminal interrupt
 SIGQUIT EQU	3	; * ^\ from terminal

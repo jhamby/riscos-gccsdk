@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/sys/time.h,v $
- * $Date: 2002/09/24 21:02:37 $
- * $Revision: 1.4 $
+ * $Date: 2004/04/17 10:51:15 $
+ * $Revision: 1.5 $
  * $State: Exp $
- * $Author: admin $
+ * $Author: nick $
  *
  ***************************************************************************/
 
@@ -17,7 +17,7 @@
 #endif
 
 #if !defined __timeval_defined && defined __need_timeval
-#define __timeval_defined
+#define __timeval_defined 1
 #include <unixlib/types.h>
 /* A time value that is accurate to the nearest
    microsecond but also has a range of years.  */

@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/limits.h,v $
- * $Date: 2001/01/29 15:10:19 $
- * $Revision: 1.2 $
+ * $Date: 2004/01/06 00:17:36 $
+ * $Revision: 1.3 $
  * $State: Exp $
- * $Author: admin $
+ * $Author: joty $
  *
  ***************************************************************************/
 
@@ -158,6 +158,7 @@
 /* The maximum number of repeated occurrences of a regular expression
    permitted when using the interval notation `\{M,N\}'.  */
 #define	_POSIX2_RE_DUP_MAX	255
-#define RE_DUP_MAX _POSIX2_RE_DUP_MAX
+/* This value is defined like this in regex.h.  */
+#define	RE_DUP_MAX	(0x7fff)
 
 #endif

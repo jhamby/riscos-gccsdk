@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/errno.h,v $
- * $Date: 2004/05/18 20:49:23 $
- * $Revision: 1.10 $
+ * $Date: 2004/06/18 18:23:33 $
+ * $Revision: 1.11 $
  * $State: Exp $
- * $Author: joty $
+ * $Author: nick $
  *
  ***************************************************************************/
 
@@ -13,14 +13,14 @@
 #ifndef __ERRNO_H
 #define __ERRNO_H
 
-#define EPERM           1 /* Operation not permitted.  */
+#define EPERM		1 /* Operation not permitted.  */
 #define ENOENT		2 /* No such file or directory.  */
 #define ESRCH		3 /* No such process.  */
 #define EINTR		4 /* Interrupted function call. */
 #define EIO		5 /* Input/output error.  */
 #define ENXIO		6 /* No such device or address (device not configured).  */
 #define E2BIG		7 /* Argument list too long.  */
-#define ENOEXEC 	8 /* Invalid executable file format (exec format error). */
+#define ENOEXEC		8 /* Invalid executable file format (exec format error). */
 #define EBADF		9 /* Bad file descriptor.  */
 #define ECHILD		10 /* There are no child processes.  */
 #define EAGAIN		11 /* Resource temporarily unavailable.  */
@@ -30,7 +30,7 @@
    File permissions do not allow the attempted operation.  */
 #define EACCES		13
 #define EFAULT		14 /* Bad address. An invalid pointer was detected.  */
-#define ENOTBLK 	15 /* Block device required.  */
+#define ENOTBLK		15 /* Block device required.  */
 
 /* Device busy. Caused by a system resource that can't be shared
    is already in use.  */

@@ -1,10 +1,10 @@
 # Project:   GCCSDK UnixLib
 
 # $Source: /usr/local/cvsroot/gccsdk/unixlib/objs/Makefile.in,v $
-# $Date: 2004/01/14 23:16:58 $
-# $Revision: 1.6 $
+# $Date: 2004/03/02 20:26:46 $
+# $Revision: 1.7 $
 # $State: Exp $
-# $Author: joty $
+# $Author: nick $
 
 CCfeatures =
 Predefs = -D__UNIXLIB_INTERNALS
@@ -70,8 +70,8 @@ VPATH = ^.source
 	@cdir module
 	@cdir module.o
 
-.c.o:;	$(CC) $(CCflags) $(Predefs) -c -o $@ "$<"
-.c.s:;	$(CC) $(CCflags) $(Predefs) -S -o $@ "$<"
+.c.o:;	$(CC) $(CCflags) $(Predefs) -c -o $@ $<
+.c.s:;	$(CC) $(CCflags) $(Predefs) -S -o $@ $<
 .s.o:;	$(AS) $(ASflags) -o $@ $<
 #.s.o:;	$(AS) $(ASflags) -To $@ -From $<
 

@@ -1,8 +1,8 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/clib/sys/h/param,v $
- * $Date: 2000/06/03 14:28:30 $
- * $Revision: 1.7 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/sys/param.h,v $
+ * $Date: 2001/01/29 15:10:19 $
+ * $Revision: 1.2 $
  * $State: Exp $
  * $Author: admin $
  *
@@ -23,6 +23,8 @@
 /*
  * Maximum length of a hostname
  */
-#define MAXHOSTNAMELEN 256
+#ifndef MAXHOSTNAMELEN
+#  define MAXHOSTNAMELEN 256
+#endif
 
 #endif

@@ -1,4 +1,23 @@
+Mon Aug 16 21:10:06 2004  John Tytgat  <John.Tytgat@aaug.net>
+
+	* gen-makefies.pl: Create source.clib.o directory for Norcroft case.
+	* objs/Makefile.in: Remove useless quotes for the .c.o and .c.s rules.
+	* source/clib/errno.h: TABing.
+	* source/clib/signal.h: Likewise.
+	* source/clib/limits.h: Defined RE_DUP_MAX as 0x7fff instead of
+	  _POSIX2_RE_DUP_MAX (same definition as in regex.h).
+	* source/clib/math.h: Norcroft compatibility; Added __sincos()
+	  declaration.
+	* source/clib/wchar.h: Definition of WCHAR_MIN/WCHAR_MAX was not
+	  the same as in stdint.h.
+	* source/clib/sys/param.h: Conditional define of MAXHOSTNAMELEN.
+	* source/clib/sys/time.h: "#define __timeval_defined" -> "#define
+	  __timeval_defined 1".
+	* souce/clib/unixlib/asm_dec.s: Added advise concerning signal list
+	  definition.
+
 Sun Aug  8 12:57:59 2004  Graham Shaw  <gdshaw@sagitta.demon.co.uk>
+
 	* source/unix/features.c: Make environment variables work
 	  as advertised.
 
@@ -52,7 +71,6 @@ Sat Jun 12 09:36:14 2004  Peter Naulls  <peter@chocky.org>
 	  source/sys/exec.c, source/sys/stackalloc.c, source/unix/unix.c:
 	  Rename __base, __lomem, __himem, and other unixlib internal
 	  values delcared in unix.h as per discussion GCCSDK mailing list. 
-
 
 Sun Jun  6 13:22:36 2004  John Tytgat  <John.Tytgat@aaug.net>
 

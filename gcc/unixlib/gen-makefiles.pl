@@ -2,10 +2,10 @@
 # Create various Unixlib Makefiles
 #
 # $Source: /usr/local/cvsroot/gccsdk/unixlib/gen-makefiles.pl,v $
-# $Date: 2004/01/14 23:16:57 $
-# $Revision: 1.4 $
+# $Date: 2004/03/02 20:26:45 $
+# $Revision: 1.5 $
 # $State: Exp $
-# $Author: joty $
+# $Author: nick $
 
 use Getopt::Long;
 
@@ -245,6 +245,7 @@ while (<NORCROFTIN>) {
       print NORCROFT "	\@cdir ".riscosify($dir)."\n";
       print NORCROFT "	\@cdir ".riscosify($dir).".o\n";
     }
+    print NORCROFT "	\@cdir ^.source.clib.o\n";
   }
   if (/^OBJS = \\$/) {
     foreach $obj (@objs) {
