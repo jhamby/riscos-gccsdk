@@ -1,8 +1,0 @@
-@c Generated automatically from version.h
-@c DO NOT CHANGE THIS FILE MANUALLY!
-
-@set GPCRelease 20001218
-@set GPCversion version 20001218
-@set GPCVersion version 20001218
-@set GCCversion version 2.95.x
-@set GCCVersion version 2.95.x
