@@ -144,15 +144,13 @@ build-stg3:	build-stg2 gcc-stg1 cross-progs
 
 # These targets build the libraries and binaries suitable for execution
 # on RISC OS machines only.
-build-stg4:	build-stg3 libiberty-stg2 gcc-libs-stg2 unixlib
+build-stg4:	build-stg3 libiberty-stg2 gcc-libs-stg2 c-libs
 build-stg5:	build-stg4 gcc-stg2
 build-stg6:	build-stg5 riscos-aof-stg2
 build-stg7:	build-stg6 riscos-libs riscos-progs riscos-dist
 
 .PHONY: directories
-.PHONY: libgcc
-.PHONY: libgpc
-.PHONY: unixlib
+.PHONY: c-libs
 .PHONY: riscos-progs
 .PHONY: riscos-libs
 .PHONY: riscos-elf
@@ -233,8 +231,9 @@ riscos-elf:
 
 # The ballache of having to keep support with Objasm forces us
 # to do this (CFL1) brain damage.
-unixlib:
-	$(MAKE) -C $@ "TRG=$(trg10)" $(cfl10)
+c-libs:
+	$(MAKE) -C unixlib "TRG=$(trg10)" $(cfl10)
+	$(MAKE) -C libscl "TRG=$(trg11)" $(cfl11)
 
 riscos-libs:
 	$(MAKE) -C $@ "TRG=$(trg10)" $(cfl10)
