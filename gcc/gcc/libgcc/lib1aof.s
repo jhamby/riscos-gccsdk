@@ -923,6 +923,12 @@ fltdidf_norm_fin
 
 	AREA	|C$$gnu_dtorsvec4|, DATA, READONLY
 	DCD	0
+
+	AREA	|C$$.ehframe|, DATA, READONLY
+	EXPORT  |__EH_FRAME_BEGIN__|
+|__EH_FRAME_BEGIN__|
+	DCD	0
+	
 #endif
 
 #ifdef L_builtin_next_arg
