@@ -1,3 +1,12 @@
+Mon Aug 16 22:31:00 2004  John Tytgat  <John.Tytgat@aaug.net>
+
+	* source/gcccompat/_divdi3.s: Return useful remainder in a3 & a4.
+	* source/gcccompat/_udivdi3.s: Likewise.
+	* source/gcccompat/_moddi3.s: Updated comment.
+	* source/gcccompat/_umoddi3.s: Likewise.
+	* source/sys/_longlong.s: Defined _ll_udiv, _ll_urdv, _ll_sdiv and
+	  _ll_srdv.
+
 Mon Aug 16 21:10:06 2004  John Tytgat  <John.Tytgat@aaug.net>
 
 	* gen-makefies.pl: Create source.clib.o directory for Norcroft case.

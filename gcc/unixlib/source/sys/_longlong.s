@@ -1,10 +1,10 @@
 ;----------------------------------------------------------------------------
 ;
-; $Source: $
-; $Date: $
-; $Revision: $
-; $State: $
-; $Author: $
+; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/_longlong.s,v $
+; $Date: 2003/04/21 16:04:01 $
+; $Revision: 1.1 $
+; $State: Exp $
+; $Author: peter $
 ;
 ;----------------------------------------------------------------------------
 
@@ -341,20 +341,23 @@ MULLSupported	SETL	{TRUE}
 	B	|_ll_mul|
 	]
 
-; *** FIXME ***
-;	; uint64_t _ll_udiv(uint64_t a, uint64_t b)
-;	;  { return a / b; }
-;	; Remainder in a2,a3
-;	EXPORT	|_ll_udiv|
-;	NAME	_ll_udiv
-;|_ll_udiv|
+	; uint64_t _ll_udiv(uint64_t a, uint64_t b)
+	;  { return a / b; }
+	; Result in a1,a2; remainder in a2,a3
+	EXPORT	|_ll_udiv|
+	IMPORT	|__udivdi3|
+	NAME	_ll_udiv
+|_ll_udiv|
+	B	|__udivdi3|
 
-; *** FIXME ***
-;	; uint64_t _ll_urdv(uint64_t a, uint64_t b)
-;	;  { return a % b; }
-;	EXPORT	|_ll_urdv|
-;	NAME	_ll_urdv
-;|_ll_urdv|
+	; uint64_t _ll_urdv(uint64_t a, uint64_t b)
+	;  { return a % b; }
+	; Result in a1,a2.
+	EXPORT	|_ll_urdv|
+	IMPORT	|__umoddi3|
+	NAME	_ll_urdv
+|_ll_urdv|
+	B	|__umoddi3|
 
 	; uint64_t _ll_udiv10(uint64_t a)
 	;  { return a / 10ULL; }
@@ -410,20 +413,23 @@ MULLSupported	SETL	{TRUE}
 	ADC	a2, a2, #0
 	stackreturn	AL, "pc"
 
-; *** FIXME ***
-;	; int64_t _ll_sdiv(int64_t a, int64_t b)
-;	;  { return a / b; }
-;	; Remainder in a2,a3
-;	EXPORT	|_ll_sdiv|
-;	NAME	_ll_sdiv
-;|_ll_sdiv|
+	; int64_t _ll_sdiv(int64_t a, int64_t b)
+	;  { return a / b; }
+	; Result in a1,a2; remainder in a2,a3
+	EXPORT	|_ll_sdiv|
+	IMPORT	|__divdi3|
+	NAME	_ll_sdiv
+|_ll_sdiv|
+	B	|__divdi3|
 
-; *** FIXME ***
-;	; int64_t _ll_srdv(int64_t a, int64_t b)
-;	;  { return a % b; }
-;	EXPORT	|_ll_srdv|
-;	NAME	_ll_srdv
-;|_ll_srdv|
+	; int64_t _ll_srdv(int64_t a, int64_t b)
+	;  { return a % b; }
+	; Result in a1,a2.
+	EXPORT	|_ll_srdv|
+	IMPORT	|__moddi3|
+	NAME	_ll_srdv
+|_ll_srdv|
+	B	|__moddi3|
 
 	; int64_t _ll_sdiv10(int64_t a)
 	;  { return a / 10LL; }

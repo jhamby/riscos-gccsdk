@@ -1,8 +1,8 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/gcccompat/_divdi3.s,v $
-; $Date: 2001/01/29 15:10:19 $
-; $Revision: 1.2 $
+; $Date: 2002/09/24 21:02:37 $
+; $Revision: 1.3 $
 ; $State: Exp $
 ; $Author: admin $
 ;
@@ -16,9 +16,9 @@
 
 	AREA	|C$$code|, CODE, READONLY
 
-	; (a1, a2) ; (a3, a4)
-	; result in v2 and v3
-	; remainder in v4 and ip
+	; (a1, a2) / (a3, a4)
+	; result in a1 and a2
+   	; remainder in a3 and a4
 	EXPORT |__divdi3|
 	NAME	__divdi3
 |__divdi3|
@@ -96,13 +96,22 @@
 	MOV	a3, a3, RRX ; low
 	SUBS	lr, lr, #1
 	BGE	|__divdi3.division|
+
 	; result
 	MOVS	v6, v6, LSL#2
-	MOVCC	a1, v2
-	MOVCC	a2, v3
-	stackreturn	CC, "v2, v3, v4, v6, pc"
+	BCS	|__divdi3.L02|
+
+	MOV	a1, v2
+	MOV	a2, v3
+	MOV	a3, v4
+	MOV	a4, ip
+	stackreturn	AL, "v2, v3, v4, v6, pc"
+
+|__divdi3.L02|
 	RSBS	a1, v2, #0 ; low
 	RSC	a2, v3, #0 ; high
+	RSBS	a3, v4, #0 ; low
+	RSC	a4, ip, #0 ; high
 	stackreturn	AL, "v2, v3, v4, v6, pc"
 
 	END
