@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/errlist.c,v $
- * $Date: 2003/01/05 12:36:35 $
- * $Revision: 1.6 $
+ * $Date: 2003/06/07 02:30:22 $
+ * $Revision: 1.7 $
  * $State: Exp $
- * $Author: admin $
+ * $Author: joty $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: errlist.c,v 1.6 2003/01/05 12:36:35 admin Exp $";
+static const char rcs_id[] = "$Id: errlist.c,v 1.7 2003/06/07 02:30:22 joty Exp $";
 #endif
 
 #include <string.h>
@@ -133,7 +133,7 @@ strerror (register int errnum)
 #if __FEATURE_PTHREADS
       return __pthread_running_thread->errbuf.errmess;
 #else
-      return __ul_errbuf + 8;
+      return __ul_errbuf.errmess;
 #endif
     }
 

@@ -1,10 +1,10 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/_jmp.s,v $
-; $Date: 2002/12/15 13:16:55 $
-; $Revision: 1.5 $
+; $Date: 2003/04/29 19:38:49 $
+; $Revision: 1.6 $
 ; $State: Exp $
-; $Author: admin $
+; $Author: alex $
 ;
 ;----------------------------------------------------------------------------
 
@@ -16,6 +16,17 @@
 	IMPORT	free
 	IMPORT	|_exit|
 	IMPORT	|__trim_stack|
+
+	; jmp_buf layout :
+	;   +  0 ( 4) : contents __alloca_list
+	;   +  4 (48) : f4, f5, f6, f7 on entry of setjmp()
+	;   + 52 ( 4) : child process
+	;   + 56 (24) : v1, v2, v3, v4, v5, v6 on entry of setjmp()
+	;   + 80 ( 4) : sl
+	;   + 84 ( 4) : fp
+	;   + 88 ( 4) : sp
+	;   + 92 ( 4) : lr
+	; = 96 bytes (= __JMP_BUF_SIZE * sizeof(int))
 
 	EXPORT	setjmp
 	NAME	setjmp
@@ -34,7 +45,7 @@ setjmp
 	]
 	STR	a4, [a1], #4
 
-	SFM	f4, 4, [a1], #48
+	SFM	f4, 4, [a1], #4*12
 	; warning!!!!
 	; even though a1 does not need to be saved, this position in
 	; the jmp_buf is used when a child process returns via vret
@@ -68,11 +79,11 @@ longjmp
 	MOV	v1, a1
 	MOV	v2, a2
 	CMPNE	v3, v4
-
 	BEQ	|__longjmp_l3|
+
 |__longjmp_l2|
 	MOVS	a1, v3
-	LDRNE	v3, [v3]			; StrongARM order
+	LDRNE	v3, [v3]		; StrongARM order
 	BEQ	|__longjmp_fatal|	; oh fuck!, the list has run out
 	; update pointers in loop.
 	; must be done here in case free indirectly calls longjmp
@@ -81,10 +92,11 @@ longjmp
 	BL	free
 	CMP	v3, v4
 	BNE	|__longjmp_l2|
+
 |__longjmp_l3|
 	; Find the old stack pointer, and free any chunks
-	LDR	sl, [v1, #76]
-	LDR	sp, [v1, #84]
+	LDR	sl, [v1, #80 - 4]
+	LDR	sp, [v1, #88 - 4]
 	BL	|__trim_stack|
 
 	LFM	f4, 4, [v1], #48

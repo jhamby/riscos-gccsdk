@@ -1,3 +1,14 @@
+Fri Jun 20 00:50:01 2003  John Tytgat <John.Tytgat@aaug.net>
+
+	* source/clib/errno.h (__ul_errbuf): Not a char* but a struct
+	  definition.
+	* source/signal/_signal.s (_kernel_last_oserror): Small optimisation.
+	* source/signal/post.c: Removed the non used extern definitions.
+	* source/sys/_jmp.s: Added some comments.
+	* source/sys/_os.s (__os_prdec): Stack ptr needs to be decreased
+	  during the complete routine call.
+	* source/sys/errlist.c: Using struct __ul_errbuf member.
+
 Tue Jun 17 20:45:01 2003  John Tytgat <John.Tytgat@aaug.net>
 
 	* source/clib/unixlib/local.h: Removed obsolete __RISCOSIFY_DROP_VOWEL.

@@ -1,10 +1,10 @@
 /****************************************************************************
  *
- * $Source$
- * $Date$
- * $Revision$
- * $State$
- * $Author$
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/errno.h,v $
+ * $Date: 2003/01/05 12:36:35 $
+ * $Revision: 1.7 $
+ * $State: Exp $
+ * $Author: admin $
  *
  ***************************************************************************/
 
@@ -29,7 +29,11 @@ extern int errno;
 
 extern const char *sys_errlist[];
 extern int sys_nerr;
-extern char *__ul_errbuf;
+extern struct {
+  void *pc;
+  int errnum;
+  char errmess[252];
+  } __ul_errbuf;
 
 #define EPERM           1 /* Operation not permitted.  */
 #define ENOENT		2 /* No such file or directory.  */

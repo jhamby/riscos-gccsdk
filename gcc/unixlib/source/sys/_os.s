@@ -1,8 +1,8 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/_os.s,v $
-; $Date: 2003/04/28 22:44:03 $
-; $Revision: 1.6 $
+; $Date: 2003/05/11 21:05:44 $
+; $Revision: 1.7 $
 ; $State: Exp $
 ; $Author: alex $
 ;
@@ -194,10 +194,13 @@ os_prhex_l1
 	EXPORT	|__os_prdec|
 	NAME	__os_prdec
 |__os_prdec|
-	MOV	a3, #16		; allocate a temporary buffer of 16 bytes
-	SUB	a2, sp, a3
+	SUB	sp, sp, #16	; allocate a temporary buffer of 16 bytes
+	MOV	a2, sp
+	MOV	a3, #16
 	SWI	XOS_ConvertInteger4
-	SWI	XOS_Write0
+	SWIVC	XOS_Write0
+	ADD	sp, sp, #16
+	MOVVC	a1, #0
 	return	AL, pc, lr
 
 	EXPORT	|__os_print|

@@ -1,8 +1,8 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/signal/_signal.s,v $
-; $Date: 2003/05/11 18:20:01 $
-; $Revision: 1.12 $
+; $Date: 2003/06/16 21:00:33 $
+; $Revision: 1.13 $
 ; $State: Exp $
 ; $Author: joty $
 ;
@@ -55,7 +55,7 @@
 	MOV	a1, a1
 
 	MOV	v1, a1
-	BL	__setup_signalhandler_stack
+	BL	|__setup_signalhandler_stack|
 
 	[ __FEATURE_PTHREADS = 1
 	BL	|__pthread_disable_ints|
@@ -138,15 +138,14 @@
 |_kernel_last_oserror|
 	[ __FEATURE_PTHREADS = 1
 	LDR	a1, =|__pthread_running_thread|
-	LDR	a1, [a1]
-	ADD	a1, a1, #__PTHREAD_ERRBUF_OFFSET
+	LDR	a1, [a1, #0]
+	LDR	a2, [a1, #__PTHREAD_ERRBUF_OFFSET]!
 	|
 	LDR	a1, =|__ul_errbuf_errblock|
-	]
 	LDR	a2, [a1, #0]
-	CMP	a2, #0
-	MOVNE	pc, lr
-	MOV	a1, #0
+	]
+	TEQ	a2, #0
+	MOVEQ	a1, #0
 	MOV	pc, lr
 
 	; The following code is in a writable area because we need access to
@@ -330,6 +329,7 @@
 	MOV	v1, fp	; Save some USR regs. There is no guarantee that these
 	MOV	v2, sp	; contain anything of use, but they seem to be the USR
 	MOV	v3, lr	; regs at the time of the error.
+|__h_error_entry|
 	SWI	XOS_EnterOS	; Change to SVC mode so we don't get any
 				; callbacks while we are setting up the stack
 
@@ -343,7 +343,7 @@
 	BL	|__setup_signalhandler_stack|
 	CHGMODE	a1, USR_Mode	; Back to USR mode now we have a stack
 
-	ADR	v4,|__h_error|+12	; Point at handler name
+	ADR	v4, |__h_error_entry|	; Point at handler name
 	STMFD	sp!, {v1, v2, v3, v4}	; Setup an APCS stack frame so we can
 	ADD	fp, sp, #12		; get a proper stack backtrace in case
 					; anything goes horribly wrong.

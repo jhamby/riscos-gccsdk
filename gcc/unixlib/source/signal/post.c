@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/signal/post.c,v $
- * $Date: 2003/04/28 21:04:36 $
- * $Revision: 1.7 $
+ * $Date: 2003/06/07 02:30:22 $
+ * $Revision: 1.8 $
  * $State: Exp $
- * $Author: alex $
+ * $Author: joty $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: post.c,v 1.7 2003/04/28 21:04:36 alex Exp $";
+static const char rcs_id[] = "$Id: post.c,v 1.8 2003/06/07 02:30:22 joty Exp $";
 #endif
 
 /* signal.c.post: Written by Nick Burrett, 27 August 1996.  */
@@ -110,7 +110,6 @@ sigsetup (struct unixlib_sigstate *ss, sighandler_t handler,
 int *__backtrace_getfp(void);
 extern int __calling_environment[17][3];
 extern int * __ul_errfp;
-extern int __ul_errbuf, __cbreg[17];
 
 static int valid_address(int *lower, int *upper)
 {
