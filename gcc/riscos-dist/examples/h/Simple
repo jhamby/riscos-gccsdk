@@ -1,0 +1,11 @@
+#include <objc/Object.h>
+
+@interface simple: Object
+{
+  int value;
+}
+
+-init: (int) x;
+-print;
+
+@end

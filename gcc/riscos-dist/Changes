@@ -1,0 +1,73 @@
+RISC OS GCC pre-release 3a  (released 23 November 1999)
+==========================
+
+* Integer division will now raise a SIGFPE upon division
+  by zero
+
+* Front-end programs g77 and g++ had not been built since the
+  upgrade to 2.95.2 and were looking for the compilers in
+  directory 2_95_1.
+  
+* The !run file incorrectly set the pathname for the /tmp
+  directory.
+
+RISC OS GCC pre-release 3  (released 19 November 1999)
+=========================
+
+These are the user visible changes since pre-release 2.
+
+* Updated to GCC 2.95.2
+
+* C++: The Standard Template Library headers have been moved from
+  their own sub-directory (stl) to their parent directory.
+
+* Fix errors in the conversion of float/double and long doubles
+  to 64-bit integers. These functions have been re-coded to not
+  use floating-point instructions.
+
+* as: The assembler incorrectly compiled a post-indexed LDR/STR
+  as a pre-indexed LDR/STR.
+
+* as: Incorrect filename translation was causing AOF files
+  named o.s_temp to be written out as o.o_temp
+
+* unixlib: Bug fixes in UnixLib's strsep and strtoul functions.
+  Implemented C9X headers, fenv.h and complex.h. Added many new
+  math functions.
+
+RISC OS GCC pre-release 2  (released 23 September 1999)
+=========================
+
+This file details the user visible changes since pre-release 1.
+
+* Separate libgcc runtime library for targetting the SharedCLibrary
+called libgcc_sh.
+
+* Exception handling bug fix.
+
+* Transparent suffix swapping performed by UnixLib is now private
+to the GCC compilers and utilities (set by UnixFS$<progname>$sfix)
+
+* Directory structure has been reorganised. Binaries and
+supporting libraries are now in version specific directories so
+it will be possible to have multiple gcc installations and select
+an appropriate compiler by it's version number (see `gcc -V').
+
+* C++ support libraries libio and libstdc++ are now integrated
+into the main !gcc tree, rather than being separate directories.
+Hence it is no longer a requirement to add -Ilibio: and -Ilibstdc:
+to the gcc command line, likewise with -Llibio: and -Llibstdc:
+on the linker command line, however you still will need to add
+-lstdc++ and -liostream.
+
+* The C++ libraries should now be compatible with the long
+file name feature of RISC OS 4. This shouldn't affect users of
+filing systems that support only 10 characters i.e. ADFS, IDEFS
+and SCSIFS on RISC OS 3.
+
+* The example programs originally located in !gcc.files have been
+moved out of the !gcc directory. Running !gcc will no longer
+change the currently selected directory.
+
+* Documentation update to reflect directory structure changes.
+Added a clear note regarding the memory usage of gcc.

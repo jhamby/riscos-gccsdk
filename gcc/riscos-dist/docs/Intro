@@ -1,0 +1,660 @@
+Introduction to GCC for RISC OS
+===============================
+
+This is a short introduction to GCC, the GNU Compiler Collection or RISC OS.
+This document does not provide an introduction to programming, for that you
+will have to get a text book on the language you are interested in.
+
+
+IMPORTANT NOTE 1: The GCC compiler binaries are at least 1800K, so you must
+ensure that a large enough wimpslot has been allocated. Please refer to the
+`Troubleshooting' section later in this document, if you are getting
+`Address exception' and `No writeable memory at this address' errors.
+
+IMPORTANT NOTE 2: If ypu have received this copy of GCC from a CD, then it is
+likely there is a more up-to-date version obtainable from elsewhere.
+
+
+The RISC OS GNU Compiler Collection consists of a generic front end program
+`gcc' that provides a consistent interface to the compilers themselves.
+Currently compilers are supported for the languages C, C++ and Fortran.
+
+GCC is covered by the FSF General Public License (see the files docs.COPYING
+and docs.COPYINGLIB for details).
+
+This port of GCC is © Copyright 1996, 1997, 1998, 1999, 2000, 2001 Nick Burrett
+
+As with all GNU programs, THERE IS NO WARRANTY OF ANY SORT
+
+The standard RISC OS distribution contains GCC and supporting binaries
+allowing you to start developing applications straight away. So you get
+a C compiler, a C++ compiler, an AOF linker, an AOF assembler, the UnixLib
+C runtime library and headers and stubs for the SharedCLibrary (as found in
+the RISC OS ROMS). 
+
+Thanks go to various people for the help and assistance that they have
+given me. Notably:
+
+Peter Burwood for bug fixes, enhancements, testing, suggestions and more...
+Niklas RÖjemo and Darren Salt for the assembler 'as'
+Simon Callan, Nick Clark and Peter Burwood for UnixLib.
+Cy Brooker for the DDEUtilsCy module.
+
+The RISC OS GCC project would not have been released without the donation
+of a StrongARM RiscPC, coordinated by Steffen Huber.
+
+Installation
+------------
+
+To install GCC, copy the contents of this archive onto your hard disc.
+Other compilers can be installed by copying the contents of their
+archives into the same directory as where you install GCC - RISC OS will
+automatically combine the !gcc directories together. Running !gcc will
+setup Run$Path to automatically search for the compiler tools.
+
+As compilers are installed, sub-directories named according to the language
+they support will be placed within !gcc.docs. These sub-directories will
+contain specific information for the language compiler, including its
+usage and environment requirements.
+
+GCC uses a linker front end, LD. This will search for both drlink and link
+on the current Run$Path and in that order.
+
+This completes installation, and GCC may be used simply by typing
+'gcc' at the CLI prompt.
+
+
+Simple compilations
+-------------------
+
+This assumes you have actually installed a compiler and are using UnixLib
+as the run-time library. Please note that the instructions below are generic
+and the ideas presented can be applied to all GNU compilers. The usage of
+C source files is merely for example purposes.
+
+Source files are stored in the standard ASCII text format and kept in a
+directory that is relevant for the language of your program. For example,
+C programs are stored in directory 'c' and C++ programs are stored in 'cc'.
+
+For simple use, all that is needed is to set up a command line prompt and
+ensure there is enough free memory to run the compiler (details of memory
+requirements vary between compilers and can be found in the specific
+compiler documentation).
+
+To compile a C program just type:
+
+   *gcc c.hellow
+
+This will compile, assemble and link the source 'c.hellow' to produce an
+executable called '!RunImage', which can be run immediately.
+
+Adding the switch '-o' to the command line, it's possible to specify a
+place to store the resultant file:
+
+   *gcc c.hellow -o hellow
+
+This will comple, assemble and link the source 'c.hellow' to produce an
+executable called 'hellow', which can be run immediately.
+
+It is possible to compile several sources at one go, mixing C sources in
+the same program, using a command line of:
+
+   *gcc c.file1 c.file2 c.file3 c.file4
+
+Again, this will compile, assemble and link all the sources to produce the
+'!RunImage' executable.
+
+To compile to the object form, use the -c switch. i.e.
+
+   gcc -c c.file
+
+will compile and assemble 'c.file' to 'o.file'.
+
+To compile the same files but using the SharedCLibrary as the target
+run-time library instead of UnixLib, add the switch '-mstubs' to the
+command line. For example:
+
+  gcc c.hellow -mstubs
+
+will compile and link the c.hellow source file, using header files
+from the SharedCLibrary, and linking against the library C:o.stubs.
+The output file will still be called '!RunImage' and can be run
+in the same way.
+
+Support has been provided for both RISC OS and UNIX format filenames. GCC
+will translate any UNIX filenames into their RISC OS equivalent. For example:
+
+  ../include/stdio.h	is translated to	^.include.h.stdio
+  /work/gcc/hello.c	is translated to	$.work.gcc.c.hello
+  stdlib.h		is translated to	h.stdlib
+
+but
+  tree.def		is translated to	tree.def
+
+For further examples of compilation procedures, please look at `Examples'
+in !gcc.files.
+
+The full GCC manual can be referred to at !gcc.docs.gccuser.
+
+Switches
+--------
+
+This is a list of the simpler, standard switches for GCC. Full details can
+be obtained from the !gcc.docs.gccuser manual. Please see below for the ARM
+specific switches since these have altered from the original gcc version.
+
+The switches described below are useable with any GNU compiler.
+
+-c              compile and assemble the source to the object file
+-S              compile the source to assembler code
+-E              preprocess the source file
+-o <file>       put the resulting output into <file>
+-O              apply some optimisations to the output
+-O2             apply full optimisation.
+-O3		full optimisation and inline small functions as well.
+
+There are some additional ARM specific switches.
+
+ -mapcs, -mapcs-frame
+   target for ARM Procedure Call Standard stack frames.
+
+ -mpoke-function-name
+   place the name of the current function before the start of the function
+   to allow the post mortem debugger to print a readable backtrace.
+   This option is disabled by default.
+   Turing this option on can increase code size by about 3.5% for C programs
+   and as much as 10% for C++. However, it should be noted that the
+   performance of the generated application will not be slower. It is useful
+   to turn this option on when developing applications as it can lead to a
+   clear indication of where a program is failing.
+
+ -mfpe
+   prevents instruction scheduling of floating point instructions since it
+   increases compile time and the benefits acheived make no difference
+   through the FPE.
+
+ -mapcs-32
+   target the APCS-32 bit standard. Condition flags are assumed to be
+   corrupted by function calls in this mode. This option is not very
+   useful under RISC OS.
+
+ -mapcs-stack-check
+   provide explicit stack checking on entry to each function which allocates
+   temporary variables on the stack.  This option is enabled by default.
+   Disabling this option will reduce the function prologue overhead by
+   3-5 instructions.
+
+RISC OS specific options
+
+ -mthrowback
+   send errors to a text editor capable of receiving 'throwbacks'.
+   Error throwbacks will only occur when the DDEUtils module has previously
+   been loaded.
+
+ -mstubs
+   compiles to target SharedCLibrary and tells the linker to link with
+   the file C:o.stubs instead of UnixLib.
+
+ -munixlib
+   tell the linker to target UnixLib instead of the SharedCLibrary. The
+   linker will attempt to link with the file Unix:o.unixlib.
+
+ -mamu
+   Generate the file !Depend which contains a list of all the source
+   files that the produced object depends on. This is intended for use
+   with Acorn's Make Utility (AMU), which edits the makefile to include
+   these after the '# Dynamic Dependencies' line.
+
+
+LD
+--
+
+LD is a front end program that converts the linker command line as generated
+by gcc to a format recognised by Drlink and Link. LD also attempts to
+convert Unix format names to RISC OS format. The option recognised are:
+
+ -L<dir>
+   This specifies a directory/path that LD is to use when searching
+   for libraries. <dir> must be either a path (i.e gcc:, etc), or it
+   must be a valid Unix/RISC OS directory name, ending in either '/'
+   or '.'. Directories are searched in the order that they are
+   specified.
+
+ -l<file>
+   This specifies the name of a library file which LD will search the
+   library directories for. This may either be a complete filename (i.e
+   C:o.stubs) or just the leaf name, in which case, LD will search
+   though the specified library directories for the file o.lib<file>
+   and o.<file> if the former isn't found.
+
+ -o <file>
+   This specifies the filename to which the resultant executable will
+   be stored.
+
+ -via <file>
+   <file> contains a list of object files to be included in the link process.
+
+ -version
+   Print the version number of 'ld'.
+
+ -help
+   Display a brief summary of LD and its command line arguments.
+
+
+The following Drlink linker commands are recognised:
+  -acornmap, -area[map] <file>, -aif, -aof, -bin, -case,
+  -leave[weak], -map, -no[unused], -output, -res[can],
+  -throwback, -via <file>, -verbose
+
+The following Acorn Link linker commands are recognised:
+  -aif, -aof, -bin, -map, -via <file>, -nounused[areas], -verbose
+
+Unrecognised commands are flagged as an error and LD will not perform the
+link process. Characters with square brackets are optional.
+
+The sequence '-Lgcc: -LC: -lgcc -lstubs' will cause LD to look for the files
+gcc:o.libgcc, gcc:o.gcc, c:o.libgcc, c:o.gcc, gcc:o.libstubs, gcc:o.stubs,
+c:o.libstubs and c:o.stubs, taking the first gcc and stubs files that it finds.
+
+Linker options can be passed from GCC to link using -Wl and -XLinker options.
+
+The linker must be in the default Run$Path, as LD does not handle the -B
+command. Please note that it is best to define GCC$Linker in the !gcc.!run
+file to point to the linker you want to use. e.g.
+  Set GCC$Linker "link"
+will make LD use the program 'link' for linking.
+
+
+Predefines
+----------
+
+The following preprocessor constants are defined by GCC:
+   'arm', '__arm__', 'riscos', '__riscos__',
+   '__GNUC_MINOR__', '__GNUC_MAJOR__', '__JMP_BUF_SIZE'
+
+To implement dynamic allocations within a function, it is necessary to add
+an extra field to jmpbuf. Fortunately the setjmp.h header files recognise
+__JMP_BUF_SIZE and can alter their jmpbuf array appropriately.
+
+When targetting the SharedCLibrary (i.e. -mstubs switch is supplied on
+gcc command line) then an additional preprocessor constant is defined,
+namely `__TARGET_SCL__'.
+
+Search paths
+------------
+
+The default search paths for GCC are as follows and searched in the
+specified order.
+   GCC$Path        GCC specific include files.
+   Unix$Path       Unixlib header files.
+
+
+<varargs.h>, <assert.h>, <stdarg.h>
+-----------------------------------
+
+GCC supplies it's own versions of these header files since they are not
+compatible with the headers supplied with Acorn C and UnixLib.  However,
+this feature is invisible to the user.
+
+
+GCC and Virtual Memory
+----------------------
+
+GNU compilers use a lot of memory and nothing can be done about that. For
+the Risc PC, UnixLib has been modified to make use of dynamic areas. So
+users with small memory machines can use Clares' Virtualise to provide a
+working virtual memory envionment for them. See the section *Dynamic Areas*
+below.
+
+Users of older machines, the Archimedes and A5000, can use the program
+!Virtual. Currently the version is 0.37 and there exists a few small problems
+with running GCC compilers (or any UnixLib 3.7a and later programs)
+under this environment.
+
+UnixLib 3.7a has been heavily modified and uses some unsupported SWI calls
+notably, XOS_RemoveTickerEvent, an XOS_Byte call and OS_PlatformFeatures.
+Until a later version of !Virtual is released, it is safe to answer 'Y' to
+all the questions related to Unknown SWIs.
+
+Users of !Virtual can disregard the information contained within the
+specific compiler documentation concerning wimp slot size. Under the
+virtual memory environment, the wimp slot will need to be set to a size
+approximately 32K greater than the largest binary likely to be executed, the
+compiler. For example, if the size of cc1 is 700K, then setting the wimp slot
+to 732K should ensure that a successful compilation can be made.
+
+It should be noted that the greater amount of wimp slot that can be given
+to a virtual memory task, a smaller number of page swaps will be needed and
+a significant improvement in compile times will result.
+
+
+Dynamic areas
+-------------
+
+Peter Burwood has modified UnixLib to use dynamic areas on the Risc PC and
+these modifications have been included in UnixLib 3.7a. This section applies
+to all GNU compilers supplied by either Nick Burrett, Peter Burwood or
+(hopefully) anyone else providing they have used UnixLib 3.7a or later. A
+description of using dynamic areas is included with UnixLib 3.7a and some
+of it is duplicated here:
+
+UnixLib 3.7a has a facility to use Dynamic Areas, found in RISC OS 3.5
+and above, for the program's heap. The heap is another name for the
+malloc area. The advantages of using a dynamic area for the program's
+heap include :-
+
+   * the WimpSlot of the program can be limited to the code and stack
+     requirements of the program. This helps alleviate the cost of RISC
+     OS task switching which slows down dramatically as the WimpSlot
+     grows in size.
+
+   * Dynamic Areas provide a means of Virtual Memory when used with a
+     product such as Virtualise[1]. Virtual Memory allows programs to
+     use more data space than is available with just physical memory.
+
+If any problems are encountered with the implementation or use of the
+dynamic area UnixLib heap then please contact Peter Burwood via e-mail at
+daheap@arcangel.dircon.co.uk. Please do not contact Peter with general
+UnixLib problems, but see the UnixLib ReadMe file for a contact address.
+
+Basically, use
+
+  *Set GCC$Heap ""
+
+to enable dynamic areas for the compiler and
+
+  *UnSet GCC$Heap
+
+to disable dynamic areas for the compiler.
+
+Before running a program set the wimpslot in the normal way, but it only
+needs to be large enough to hold the sum of the largest executables that
+can be run concurrently. e.g., with gcc, use the unsqueezed size of gcc
+plus cc1. When running from a command line amu remember to allow
+additional space for the amu executable and amu's workspace (though this
+is tricky to estimate!).
+
+If other programs that form part of a compiler are run directly from the
+command line, e.g., gnatmake, then separate environment variables must
+be set to allow these programs to use dynamic areas for the program's
+heap. So, with gnatmake,
+
+   *Set gnatmake$heap ""
+
+As a user, you should not really need to worry about these details as the
+!gcc.!run file already contains the relevant lines. Please read the !run
+file if you are a Risc PC user, since some lines will need to be uncommented.
+
+[1] Virtualise is a commercial product available from Clares. Peter Burwood
+has no connection with Clares or the Virtualise product other than being a
+user of Virtualise. If other similar products become available then UnixLib
+should work transparently since the UnixLib startup code does not use
+any Virtualise features.
+
+
+Troubleshooting
+---------------
+
+Here are describled some common problems users have with gcc and the GNU
+compilers. Possible solutions are provided for the known problems.
+
+1. The compiler fails to compile anything but no error message is reported.
+
+  This is usually caused by a lack of memory. To see how far through
+  compilation a file has gone, try compiling with the '-v' flag. '-v' gives
+  verbose output and will show the programs gcc is executing.
+  
+  A lack of memory will be shown up by an almost instantaneous return from
+  any program executed. If this happens, try increasing the wimpslot,
+  using *wimpslot -min nnnK, where nnn is as follows:
+
+      3000K or more for GNU C, Objective-C, C++, Fortran and Pascal.
+      6000K or more for GNAT Ada.
+  
+  When the compiler runs out of memory during compilation, an error
+  'virtual memory exhausted' is usually reported.
+
+2. Abort on data transfer errors are displayed during compilation
+
+  Insufficient memory has been allocated to the program. Increase
+  the wimpslot.
+
+3. The error 'No writable memory at this address' is returned.
+
+  This is caused by insufficient memory memory and can be fixed by
+  increasing the wimpslot to similar values as above.
+
+4. ld fatal error: drlink returned exit status 12
+
+  This is caused by insufficient memory during the linking stage.
+  Increase the wimpslot to fix this.
+
+5. The error 'virtual memory exhausted' is returned.
+
+  This is due to a lack of memory and usually occurs during the compilation
+  process.
+  
+  a) If you are running on a RiscPC, make sure that !gcc.!run has been
+     altered for using dynamic areas.
+     
+     If the is already altered, then you might have to reduce the number of
+     applications that are running before using gcc.
+
+  b) If you are not running on a RiscPC then increase WimpSlot to a much
+     larger value.
+     
+     You can try using !Virtual.
+
+6. A source file is correctly compiled and linked. The resultant executable
+   'hellow' is placed in the current directory. However, when I try and
+   run the file I get the error 'No such file or directory'.
+   
+   This and many other obsure errors are caused by linking source files
+   against run-time libraries that are incompatible with the StrongARM
+   processor. An example would be UnixLib 3.7a.
+   
+   StrongARM compatibility wasn't introduced to UnixLib until version 3.7b.
+
+
+AOF files, Libraries, Linkers etc.
+----------------------------------
+
+The following is a brief introduction to the world of compiling source
+code, object files and linking.
+
+Taking the C compiler as an example. Language C source files are stored
+within a directory called 'c'.
+
+Typing
+  *gcc -c c.hello -o o.hello
+
+will tell gcc to run the C compiler on the source file c.hello. The resultant
+output will be stored in the directory 'o' as hello. Files in 'o' are called
+Acorn Object Format (AOF) files.
+
+During multistage compilation (i.e. where a program is made up from several
+source files), the compiler will compile one file at a time and this will
+produce several AOF files.
+
+Each source file might contain references to variables and functions that are
+not defined within its own scope. For an executable to be created, these
+references must be resolved and that is the purpose of the Linker.
+
+The Linker takes AOF files and attempts to resolve references between them.
+Not all references are defined within AOF files, some (like printf) are
+defined within libraries - called Acorn Library Format (ALF) files. So the
+Linker will also look at ALF files to match unresolved symbols.
+
+For example, below is a list of C source files that will be compiled to make
+the program called Harry. Along with each source file is a list of the
+symbols that are defined within that source, and a list of symbols that
+are not defined (i.e. referenced) by that source.
+
+    C source: c.fred
+      Symbols defined: foo, bar, pint
+      Symbols referenced: printf, puts, food
+    
+    C source: c.bob
+      Symbols defined: fags, beer, food
+      Symbols referenced: bar, pint
+    
+    C source: c.harry
+      Symbols defined: main
+      Symbols referenced: foo
+
+Using gcc to compile c.fred, c.bob, c.harry will produce three AOF files,
+o.fred, o.bob and o.harry.
+
+c.harry contains a reference to 'foo' which is defined within c.fred. So
+the Linker must combine o.harry and o.fred to resolve a reference.
+
+c.fred contains a reference to 'printf', 'puts' and 'food'. 'food' is
+defined by c.bob so o.bob will also be combined with o.harry and o.fred
+to resolve further references.
+
+'printf' and 'puts' are defined by the C library, therefore the linker will
+need to combine the ALF file with o.harry, o.fred and o.bob to finally
+generate an executable.
+
+
+Obtaining compilers
+-------------------
+
+As said earlier, GCC is a compiler front end. The compilers themselves
+can be found at http://hard-mofo.dsvr.net/gcc
+
+
+Other compiler related utilities
+--------------------------------
+
+Listed below is a small set of utilities you might find a useful
+complement to the GNU compilers.
+
+Drlink (an AOF linker):
+  ftp://micros.hensa.ac.uk/micros/arch/riscos/b/b071/drlink.arc
+
+UnixLib (a C library emulating BSD, System V and POSIX functions):
+  http://hard-mofo.dsvr.net/unixlib
+
+Bison (a yacc parser):
+  ftp://ftp.demon.co.uk/pub/archimedes/gnu/bison124.spk
+
+Diffutils (file difference and patch programs):
+  ftp://ftp.demon.co.uk/pub/archimedes/gnu/diffdist.spk
+
+Flex (a lexical analyser: Unix Lex equivalent):
+  ftp://ftp.demon.co.uk/pub/archimedes/gnu/flex252.spk
+
+Indent (C source code formatter):
+  ftp://ftp.demon.co.uk/pub/archimedes/gnu/indent.spk
+
+Sed (batch stream editor):
+  ftp://ftp.demon.co.uk/pub/archimedes/gnu/sed.spk
+
+!Virtual (virtual memory for early Archimedes, A5000 and before):
+  ftp://micros.hensa.ac.uk/micros/arch/riscos/a/a277/a277.arc
+
+
+Mirrors of hensa/micros
+-----------------------
+
+Imperial College:
+ ftp://src.doc.ic.ac.uk/computing/systems/archimedes/collections/hensa/riscos/
+
+Demon Internet Services
+ ftp://ftp.demon.co.uk/pub/mirrors/hensa/micros/arch/riscos/
+
+
+Distribution patches
+--------------------
+
+From time to time bugs might be fixed in the GCC distribution. To save
+download time involved in uploading/fetching new binaries, patch archives
+will become available from the address:
+
+  http://hard-mofo.dsvr.net/gcc
+
+Announcements will be posted to comp.sys.acorn.announce whenever new
+patch archives are uploaded.
+
+
+Porting compilers
+-----------------
+
+The above compilers are all called front ends. They provide a mechanism
+for translating the relevant source code format (C, C++, Fortran etc.) into
+relevant information for the back-end. The back-end converts this information
+into a register transfer language and performs most of the optimisation
+techniques. This register transfer language is then applied to a processor
+back-end which will apply further optimisation (processor specific) and then
+output assembler instructions.  The compiler backend can support many
+different processors and operating systems, ARM and RISC OS are just two of
+them.
+
+The job of actually porting new compilers has been made very easy due to the
+hard work of the compiler development teams. Nick Burrett wrote the RISC OS
+port of the ARM processor backend with a little help from Peter Burwood.
+Simon Callan, Nick Burrett, Nick Clark and Peter Burwood wrote UnixLib
+without which the job of porting the compiler would probably never have
+surfaced.
+
+The actual ARM backend used to create the RISC OS port is, for the moment,
+unavailable on mainstream release in the GCC distribution. The alterations
+made to make the compilers work under RISC OS are very involved, but
+procedures are slowly underway to merge changes. Fortunately, the ARM
+backend for RISC OS is only going to be of interest to any future language
+compiler porters. If anybody wishes to port a new compiler then they should
+talk to Nick Burrett who will then send the changes through on request.
+
+The main GCC compiler sources can be obtained from the sites listed described
+below. Sources are approximately 10Mb compressed, 47Mb uncompressed.
+
+
+Contacting Nick Burrett
+-----------------------
+
+I can only be contacted by e-mail at nick@dsvr.net
+
+
+Location of the main GCC sources
+--------------------------------
+
+The official GCC website is at http://gcc.gnu.org
+
+  Most GNU software is packed using the GNU `gzip' compression program.
+  Source code is available on most sites distributing GNU software.
+
+  For information on how to order GNU software on tape, floppy or cd-rom, or
+  printed GNU manuals, check the file etc/ORDERS in the GNU Emacs
+  distribution, ftp the file /pub/gnu/GNUinfo/ORDERS on prep, or
+  e-mail a request to: gnu@prep.ai.mit.edu 
+
+  By ordering your GNU software from the FSF, you help us continue to
+  develop more free software.  Media revenues are our primary source of
+  support.  Donations to FSF are deductible on US tax returns.
+
+  thanx -gnu@prep.ai.mit.edu
+
+        ASIA: ftp.cs.titech.ac.jp, utsun.s.u-tokyo.ac.jp:/ftpsync/prep,
+  cair-archive.kaist.ac.kr:/pub/gnu, ftp.nectec.or.th:/pub/mirrors/gnu
+        AUSTRALIA: archie.au:/gnu (archie.oz or archie.oz.au for ACSnet)
+        AFRICA: ftp.sun.ac.za:/pub/gnu
+        MIDDLE-EAST: ftp.technion.ac.il:/pub/unsupported/gnu
+        EUROPE: irisa.irisa.fr:/pub/gnu, ftp.univ-lyon1.fr:pub/gnu,
+  ftp.mcc.ac.uk, unix.hensa.ac.uk:/mirrors/uunet/systems/gnu,
+  src.doc.ic.ac.uk:/gnu, ftp.ieunet.ie:pub/gnu, ftp.eunet.ch,
+  nic.switch.ch:/mirror/gnu, ftp.informatik.rwth-aachen.de:/pub/gnu,
+  ftp.informatik.tu-muenchen.de, ftp.win.tue.nl:/pub/gnu, ftp.nl.net,
+  ftp.etsimo.uniovi.es:/pub/gnu ftp.funet.fi:/pub/gnu, ftp.denet.dk,
+  ftp.stacken.kth.se, isy.liu.se, ftp.luth.se:/pub/unix/gnu,
+  ftp.sunet.se:/pub/gnu, archive.eu.net
+        SOUTH AMERICA: ftp.inf.utfsm.cl:/pub/gnu, ftp.unicamp.br:/pub/gnu
+        WESTERN CANADA: ftp.cs.ubc.ca:/mirror2/gnu
+        USA: wuarchive.wustl.edu:/systems/gnu, labrea.stanford.edu,
+  ftp.digex.net:/pub/gnu, ftp.kpc.com:/pub/mirror/gnu,
+  f.ms.uky.edu:/pub3/gnu,
+  jaguar.utah.edu:/gnustuff, ftp.hawaii.edu:/mirrors/gnu,
+  uiarchive.cso.uiuc.edu:/pub/gnu, ftp.cs.columbia.edu:/archives/gnu/prep,
+  col.hp.com:/mirrors/gnu, gatekeeper.dec.com:/pub/GNU,
+  ftp.uu.net:/systems/gnu
+

@@ -1,0 +1,29 @@
+#include <stdio.h>
+#include "simple.h"
+
+@implementation simple
+{
+  int value;
+}
+
+- init: (int) x
+{
+  [super init];
+  value = x;
+  return self;
+}
+
+- print
+{
+  printf("%d\n", value);
+  return self;
+}
+
+@end
+
+int main(int argc, char **argv)
+{
+  id t = [[simple alloc] init: 7];
+  [t print];
+  return 0;
+}

@@ -1,0 +1,79 @@
+| !Run file for the GNU compilers
+| (c) Copyright Nick Burrett, 1996-1999
+| Version 1.07 (17 November 1999)
+
+Set GCC$Dir <Obey$Dir>
+
+| Search path used for the compiler binaries
+If "<GCCbin$Path>" = "" Then Set Run$Path <Run$Path>,GCCbin:
+Set GCCbin$Path <GCC$Dir>.bin.
+
+| Search path used for the compiler headers and libraries.
+Set GCCpkg$Path <GCC$Dir>.
+Set GCCsys$Path <GCC$Dir>.sys.
+Set GCClcl$Path <GCC$Dir>.local.
+
+| Set the return code limit. Unixlib encodes information within this range
+Set Sys$RCLimit 65536
+
+| Place to store temporary files
+If "<UnixFS$/tmp>" = "" Then Set UnixFS$/tmp <Wimp$ScrapDir>
+
+| Our preferred linker. This will be searched for through the standard
+| search path Acorn's link program is an alternative
+Set GCC$Linker "drlink"
+
+| Ensure correct filename translation for a variety of prefixes
+Set UnixFS$gcc$sfix "f:for:F:fpp:cc:cxx:cpp:c++:C:ii:rpo:ads:adb:ada:c:m:h:i:s:S:ali:adc:xrb:xrs:l:o:p:pas:ph:gpi:gpc:y"
+Set UnixFS$cc1$sfix <UnixFS$gcc$sfix>
+Set UnixFS$cc1plus$sfix <UnixFS$gcc$sfix>
+Set UnixFS$cpp$sfix <UnixFS$gcc$sfix>
+Set UnixFS$g++$sfix <UnixFS$gcc$sfix>
+Set UnixFS$g77$sfix <UnixFS$gcc$sfix>
+Set UnixFS$f771$sfix <UnixFS$gcc$sfix>
+Set UnixFS$gcov$sfix <UnixFS$gcc$sfix>
+Set UnixFS$as$sfix "h:S:s:o"
+
+| Set search paths for the Ada run time library files
+Set GNATada$Path <GCC$Dir>.adainc.
+Set GNATInc$Path gnatada:1.,gnatada:2.,gnatada:3.,gnatada:4.,gnatada:5.,gnatada:6.,gnatada:7.
+Set GNATlib$Path gcc:adalib.1.,gcc:adalib.2.,gcc:adalib.3.,gcc:adalib.4.,gcc:adalib.5.,gcc:adalib.6.,gcc:adalib.7.
+
+| Set search path for gnatbl
+SetMacro Path <Run$Path>
+
+| Set aliases for controlling UnixLib heap for dynamic areas
+| See the documentation about UnixLib and dynamic areas.
+
+| Uncomment these if you have a RiscPC and wish to use dynamic areas
+Set gcc$heap ""
+
+| For GNAT Ada
+Set gnatbind$heap ""
+Set gnatbl$heap ""
+Set gnatchop$heap ""
+Set gnatf$heap ""
+Set gnatmake$heap ""
+
+| For Fortran 77
+Set g77$heap ""
+
+| For C++
+Set g++$heap ""
+
+| For Pascal
+Set gpc$heap ""
+
+| For the assembler
+Set as$heap ""
+
+| Used for extended command lines
+| Initially, we look in !System for the DDEUtils module supplied by Acorn
+| If not present, then we will load the DDEUtilsCy version.
+RMEnsure DDEUtils 0.02 Run <GCC$Dir>.Support.DDEUtilsCy.IFExist System:Modules.DDEUtils Then RMLoad System:Modules.DDEUtils
+RMEnsure DDEUtils 0.01 RMRun <GCC$Dir>.Support.DDEUtilsCy.DDEUtilsCy
+RMEnsure DDEUtils 0.01 %Obey -c <GCC$Dir>.Support.DDEUtilsCy.InitDDECy
+
+RMEnsure UtilityModule 3.10 Obey
+| Details specific to RISC OS 3.10 and above
+RMEnsure UtilityModule 3.70 RMEnsure CallASWI 0.01 RMLoad System:Modules.CallASWI

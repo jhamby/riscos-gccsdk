@@ -1,0 +1,50 @@
+/*
+ * You may freely copy, distribute and reuse the code in this example.
+ * NeXT disclaims any warranty of any kind, expressed or implied, as to its
+ * fitness for any particular use.
+ */
+
+
+
+	/* always import the superclass .h file!! We could do this in our .m file,
+		but since we ALWAYS need to do it, we take care of it here and forget
+		about it */
+#include <objc/Object.h>
+
+
+@interface Fishie:Object
+
+	/* instance variables of the Fish class */
+{
+	int size;		/* the current size of the Fish */
+	int hLoc, vLoc;	/* horizontal and vertical position of fish */
+	BOOL isHappy;	/* is our fish happy or not? */
+}
+
+
+	/* methods of the Fish class */
+
+	/* here are some general methods like read, write, init, etc;
+	we're LAZY, so we only implement init at this time (boo!) */
+- init;
+
+	/* here are some methods which return the value of the appropriate
+		instance var */
+- (int) size;
+- (int) hLoc;
+- (int) vLoc;
+- (BOOL) isHappy;
+
+	/* here are some methods which change the values of some instance
+		vars */
+- setSize:(int) val;
+- setHLoc:(int) val;
+- setVLoc:(int) val;
+- setIsHappy:(BOOL) val;
+
+	/* here are some special-purpose methods */
+- swim;
+- incHBy:(int) val;		/* increment/decrement horizontal pos */
+- incVBy:(int) val;
+
+@end

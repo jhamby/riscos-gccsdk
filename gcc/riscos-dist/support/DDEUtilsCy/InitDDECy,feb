@@ -1,0 +1,8 @@
+| This initialises system variables for DDEUtils usage
+|
+RMEnsure DDEUtils 0.02 Obey
+If "<File$Type_FD3>"=""       Then Set Set File$Type_FD3 DebImage
+If "<Alias$@RunType_FD3>"=""  Then Set Alias$@RunType_FD3 DebugAIF %%*0
+If "<Alias$@LoadType_FD3>"="" Then Set Alias$@LoadType_FD3 Load %%0 8000
+If "<File$Type_FE1>"=""       Then Set File$Type_FE1 Makefile
+If "<Alias$@RunType_FE1>"=""  Then Set Alias$@RunType_FE1 DDE:!Make %%*0

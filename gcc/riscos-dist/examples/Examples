@@ -1,0 +1,120 @@
+RISC OS GCC example applications
+================================
+
+The following example programs are designed to demonstrate the basics
+of the C and C++ languages and help the user understand the GCC compilers.
+For each program, there is a list of the necessary command lines for how
+to compile, link and run the program.
+
+
+hellow
+------
+
+The standard C program.
+
+Source: 	c.hellow
+Compile using: 	gcc c.hellow -o hellow
+Run using: 	hellow
+
+
+ackermann
+---------
+
+A benchmark program, used to indicate the coding efficiency of procedures.
+Also illustrates how to receive arguments passed on the command line.
+
+Source:		c.ackermann
+Compile using:	gcc c.ackermann -o ackermann
+Run using:	ackermann 3 4
+
+Try using different numbers instead of 3 and 4.
+
+
+Dhrystone 2.1
+-------------
+
+Used as the standard integer benchmark. This program consists of two
+source files which will need linking together. The best solution is to
+compile each file separately, for which the resultant Acorn Object Format
+files will be placed in the 'o' directory, and then link with the necessary
+libraries to create an executable.
+
+Source:		c.dhry_1, c.dhry_2, h.dhry_2
+
+Compile using:	gcc -c c.dhry_1
+		gcc -c c.dhry_2
+
+Link using:	drlink -o dhry o.dhry_1 o.dhry_2 gcc:o.libgcc unix:o.unixlib
+
+Run using:	dhry
+
+When prompted for the number of iterations, use any number in the range
+10000 to 200000.  It might be worth adding the command line option '-O2'
+when compiling to measure the difference achieved between no optimisation
+and full optimisation.
+
+
+helloworld
+---------
+
+The standard C++ program. The application requires linking against the
+iostream libraries - we specify this with the `-liostream' option.
+
+Source: 	cc.helloworld
+Compile using: 	gcc cc.helloworld -o helloworld -liostream
+Run using: 	helloworld
+
+
+Dhrystone 2.1
+-------------
+
+This is a C++ derivative of the standard integer benchmark.
+You will probably need 4500K of WimpSlot on a non-RISC PC machine to
+compile this.
+
+Source:		cc.dhrystone, h.Int, h.Char
+
+Compile using:	gcc cc.dhrystone -o dhrystone -O2 -DQUICK
+
+Run using:	dhrystone
+
+When prompted for the number of iterations, use any number in the range
+10000 to 200000.
+
+There are several derivatives of this program that can be activated
+by adding certain command line options to gcc:
+
+
+To get standard integers and characters
+compile using:	gcc cc.dhrystone -o dhrystone -DBUILTIN
+
+To use function calls instead of inlined function calls
+compile using:	gcc cc.dhrystone -o dhrystone -DCALLS
+
+To make all class members virtual
+compile using:	gcc cc.dhrystone -o dhrystone -DVIRT
+
+To use call-by-value, not by-reference
+compile using:	gcc cc.dhrystone -o dhrystone -DBYVAL
+
+To eliminate mixed mode functions that avoid constructors
+compile using:	gcc cc.dhrystone -o dhrystone -DCONVERT
+
+To eliminate the use of named return values
+compile using:	gcc cc.dhrystone -o dhrystone -DNO_NRV
+
+To get one pointer per object padding:
+compile using:	gcc cc.dhrystone -o dhrystone -DFAKEVPTR
+
+To make =, +=, etc. return *this, not void
+compile using:	gcc cc.dhrystone -o dhrystone -DRETREF
+
+
+template
+--------
+
+Demonstrates the instantiation of templates.
+
+Source: 	cc.template
+Compile using: 	gcc cc.template -o template
+Run using: 	template
