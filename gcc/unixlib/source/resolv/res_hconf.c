@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/resolv/res_hconf.c,v $
- * $Date: 2002/12/22 18:22:29 $
- * $Revision: 1.1 $
+ * $Date: 2003/04/28 21:04:36 $
+ * $Revision: 1.2 $
  * $State: Exp $
- * $Author: admin $
+ * $Author: alex $
  *
  ***************************************************************************/
 
@@ -441,7 +441,7 @@ static struct netaddr
 } *ifaddrs;
 
 /* We need to protect the dynamic buffer handling.  */
-__libc_lock_define_initialized (static, lock);
+__libc_lock_define_initialized (static, lock)
 
 /* Reorder addresses returned in a hostent such that the first address
    is an address on the local subnet, if there is such an address.

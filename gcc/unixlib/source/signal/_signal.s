@@ -1,8 +1,8 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/signal/_signal.s,v $
-; $Date: 2003/04/28 12:07:02 $
-; $Revision: 1.9 $
+; $Date: 2003/04/28 21:04:36 $
+; $Revision: 1.10 $
 ; $State: Exp $
 ; $Author: alex $
 ;
@@ -28,6 +28,8 @@
 	IMPORT	|__pthread_enable_ints|
 	IMPORT	|__pthread_callback_pending|
 	IMPORT	|__pthread_running_thread|
+	IMPORT	|__pthread_worksemaphore|
+	IMPORT	|exit|
 	IMPORT	|_exit|
 
 
@@ -620,7 +622,6 @@ Internet_Event	EQU	19
 	SWI	XOS_IntOff
 
 	[ __FEATURE_PTHREADS = 1
-	IMPORT	|__pthread_worksemaphore|
 	LDR	a1, =|__pthread_worksemaphore|
 	LDR	a2, [a1]
 	SUB	a2, a2, #1
@@ -682,7 +683,6 @@ Internet_Event	EQU	19
 
 ; Exit handler
 ; Called in USR mode
-	IMPORT	|exit|
 	EXPORT	|__h_exit|
 	NAME	__h_exit
 |__h_exit|

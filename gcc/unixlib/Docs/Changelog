@@ -1,3 +1,8 @@
+Sat May  3 12:20:14 2003  Alex Waugh  <alex@alexwaugh.com>
+
+	* signal/_signal.s: Move IMPORTs earlier in file for objasm.
+	* resolv/res_hconf.c: Remove unneeded ;
+
 Tue Apr 29 22:14:12 2003  Alex Waugh  <alex@alexwaugh.com>
 
 	* unixlib/features.h: Don't pollute the userland namespace
