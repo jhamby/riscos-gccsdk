@@ -1,5 +1,5 @@
 # Top-level Makefile for the GNU Compiler Collection for ARM/RISC OS
-# Copyright (c) 2000, 2001, 2002 Nick Burrett
+# Copyright (c) 2000, 2001, 2002, 2003 Nick Burrett
 # Written by Nick Burrett <nick@dsvr.net>
 
 # Tell GNU make 3.79 not to run this directory in parallel.
@@ -101,7 +101,6 @@ CROSS_CXXFLAGS=-O2 $(TARGET_DEFS) -mpoke-function-name
 # libiberty or linking against the cross-compiler.
 AR = ar
 AR_FLAGS = -rc
-
 
 # Name of the RISC OS archiver.  Used to build all RISC OS libraries.
 CROSS_AR = $(ux_gccpkg)/$(gn_standard_exec_prefix)/libfile
@@ -245,8 +244,6 @@ gcc-libs-stg1:
 gcc-libs-stg2:
 	$(MAKE) -C gcc libgcc "TRG=$(trg20)" $(cfl20) "STAGE=stage2"
 	$(MAKE) -C gcc libgcc "TRG=$(trg30)" $(cfl30) "STAGE=stage2"
-	#$(MAKE) -C gcc libgpc "TRG=$(trg20)" $(cfl20) "STAGE=stage2"
-	#$(MAKE) -C gcc libio "TRG=$(trg20)" $(cfl20) "STAGE=stage2"
 	$(MAKE) -C gcc libf2c "TRG=$(trg20)" $(cfl20) "STAGE=stage2"
 	$(MAKE) -C gcc libstdc "TRG=$(trg20)" $(cfl20) "STAGE=stage2"
 	$(MAKE) -C gcc libsupc++ "TRG=$(trg20)" $(cfl20) "STAGE=stage2"
