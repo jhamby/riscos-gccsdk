@@ -1,5 +1,5 @@
 /* Handle exceptions for GNU compiler for the Java(TM) language.
-   Copyright (C) 1997, 1998, 1999 Free Software Foundation, Inc.
+   Copyright (C) 1997, 1998, 1999, 2000 Free Software Foundation, Inc.
 
 This file is part of GNU CC.
 
@@ -31,13 +31,18 @@ The Free Software Foundation is independent of Sun Microsystems, Inc.  */
 #include "javaop.h"
 #include "java-opcodes.h"
 #include "jcf.h"
+#include "function.h"
 #include "except.h"
 #include "java-except.h"
-#include "eh-common.h"
 #include "toplev.h"
 
-static void expand_start_java_handler PROTO ((struct eh_range *));
-static void expand_end_java_handler PROTO ((struct eh_range *));
+static void expand_start_java_handler PARAMS ((struct eh_range *));
+static void expand_end_java_handler PARAMS ((struct eh_range *));
+static struct eh_range *find_handler_in_range PARAMS ((int, struct eh_range *,
+						      struct eh_range *));
+static void link_handler PARAMS ((struct eh_range *, struct eh_range *));
+static void check_start_handlers PARAMS ((struct eh_range *, int));
+static void free_eh_ranges PARAMS ((struct eh_range *range));
 
 extern struct obstack permanent_obstack;
 
@@ -56,6 +61,14 @@ static struct eh_range *cache_next_child;
 /* A dummy range that represents the entire method. */
 
 struct eh_range whole_range;
+
+#if defined(DEBUG_JAVA_BINDING_LEVELS)
+int binding_depth;
+int is_class_level;
+int current_pc;
+extern void indent ();
+
+#endif
 
 /* Search for the most specific eh_range containing PC.
    Assume PC is within RANGE.
@@ -118,7 +131,7 @@ link_handler (range, outer)
 
   if (range->start_pc == outer->start_pc && range->end_pc == outer->end_pc)
     {
-      outer->handlers = chainon (range->handlers, outer->handlers);
+      outer->handlers = chainon (outer->handlers, range->handlers);
       return;
     }
 
@@ -143,7 +156,7 @@ link_handler (range, outer)
   if (range->start_pc < outer->start_pc || range->end_pc > outer->end_pc)
     {
       struct eh_range *h
-	= (struct eh_range *) oballoc (sizeof (struct eh_range));
+	= (struct eh_range *) xmalloc (sizeof (struct eh_range));
       if (range->start_pc < outer->start_pc)
 	{
 	  h->start_pc = range->start_pc;
@@ -208,26 +221,34 @@ handle_nested_ranges ()
     }
 }
 
+/* Free RANGE as well as its children and siblings.  */
+
+static void
+free_eh_ranges (range)
+     struct eh_range *range;
+{
+  while (range) 
+    {
+      struct eh_range *next = range->next_sibling;
+      free_eh_ranges (range->first_child);
+      if (range != &whole_range)
+	free (range);
+      range = next;
+    }
+}
 
 /* Called to re-initialize the exception machinery for a new method. */
 
 void
 method_init_exceptions ()
 {
+  free_eh_ranges (&whole_range);
   whole_range.start_pc = 0;
   whole_range.end_pc = DECL_CODE_LENGTH (current_function_decl) + 1;
   whole_range.outer = NULL;
   whole_range.first_child = NULL;
   whole_range.next_sibling = NULL;
   cache_range_start = 0xFFFFFF;
-  java_set_exception_lang_code ();
-}
-
-void
-java_set_exception_lang_code ()
-{
-  set_exception_lang_code (EH_LANG_Java);
-  set_exception_version_code (1);
 }
 
 /* Add an exception range.  If we already have an exception range
@@ -266,13 +287,14 @@ add_handler (start_pc, end_pc, handler, type)
       prev = ptr;
     }
 
-  h = (struct eh_range *) oballoc (sizeof (struct eh_range));
+  h = (struct eh_range *) xmalloc (sizeof (struct eh_range));
   h->start_pc = start_pc;
   h->end_pc = end_pc;
   h->first_child = NULL;
   h->outer = NULL;
   h->handlers = build_tree_list (type, handler);
   h->next_sibling = NULL;
+  h->expanded = 0;
 
   if (prev == NULL)
     whole_range.first_child = h;
@@ -284,8 +306,14 @@ add_handler (start_pc, end_pc, handler, type)
 /* if there are any handlers for this range, issue start of region */
 static void
 expand_start_java_handler (range)
-  struct eh_range *range ATTRIBUTE_UNUSED;
+  struct eh_range *range;
 {
+#if defined(DEBUG_JAVA_BINDING_LEVELS)
+  indent ();
+  fprintf (stderr, "expand start handler pc %d --> %d\n",
+	   current_pc, range->end_pc);
+#endif /* defined(DEBUG_JAVA_BINDING_LEVELS) */
+  range->expanded = 1;
   expand_eh_region_start ();
 }
 
@@ -301,9 +329,8 @@ prepare_eh_table_type (type)
    * c) a pointer to the Utf8Const name of the class, plus one
    * (which yields a value with low-order bit 1). */
 
-  push_obstacks (&permanent_obstack, &permanent_obstack);
   if (type == NULL_TREE)
-    exp = null_pointer_node;
+    exp = NULL_TREE;
   else if (is_compiled_class (type))
     exp = build_class_ref (type);
   else
@@ -311,25 +338,50 @@ prepare_eh_table_type (type)
 		(PLUS_EXPR, ptr_type_node,
 		 build_utf8_ref (build_internal_class_name (type)),
 		 size_one_node));
-  pop_obstacks ();
   return exp;
 }
 
-/* if there are any handlers for this range, isssue end of range,
+
+/* Build a reference to the jthrowable object being carried in the
+   exception header.  */
+
+tree
+build_exception_object_ref (type)
+     tree type;
+{
+  tree obj;
+
+  /* Java only passes object via pointer and doesn't require adjusting.
+     The java object is immediately before the generic exception header.  */
+  obj = build (EXC_PTR_EXPR, build_pointer_type (type));
+  obj = build (MINUS_EXPR, TREE_TYPE (obj), obj,
+	       TYPE_SIZE_UNIT (TREE_TYPE (obj)));
+  obj = build1 (INDIRECT_REF, type, obj);
+
+  return obj;
+}
+
+/* If there are any handlers for this range, isssue end of range,
    and then all handler blocks */
 static void
 expand_end_java_handler (range)
      struct eh_range *range;
-{
+{  
   tree handler = range->handlers;
+  force_poplevels (range->start_pc);
   expand_start_all_catch ();
   for ( ; handler != NULL_TREE; handler = TREE_CHAIN (handler))
     {
-      start_catch_handler (prepare_eh_table_type (TREE_PURPOSE (handler)));
-      /* Push the thrown object on the top of the stack */
+      expand_start_catch (TREE_PURPOSE (handler));
       expand_goto (TREE_VALUE (handler));
+      expand_end_catch ();
     }
   expand_end_all_catch ();
+#if defined(DEBUG_JAVA_BINDING_LEVELS)
+  indent ();
+  fprintf (stderr, "expand end handler pc %d <-- %d\n",
+	   current_pc, range->start_pc);
+#endif /* defined(DEBUG_JAVA_BINDING_LEVELS) */
 }
 
 /* Recursive helper routine for maybe_start_handlers. */
@@ -342,63 +394,50 @@ check_start_handlers (range, pc)
   if (range != NULL_EH_RANGE && range->start_pc == pc)
     {
       check_start_handlers (range->outer, pc);
-      expand_start_java_handler (range);
+      if (!range->expanded)
+	expand_start_java_handler (range);
     }
 }
 
-struct eh_range *current_range;
 
-/* Emit any start-of-try-range start at PC. */
+static struct eh_range *current_range;
+
+/* Emit any start-of-try-range starting at start_pc and ending after
+   end_pc. */
 
 void
-maybe_start_try (pc)
-     int pc;
+maybe_start_try (start_pc, end_pc)
+     int start_pc;
+     int end_pc;
 {
+  struct eh_range *range;
   if (! doing_eh (1))
     return;
 
-  current_range = find_handler (pc);
-  check_start_handlers (current_range, pc);
+  range = find_handler (start_pc);
+  while (range != NULL_EH_RANGE && range->start_pc == start_pc
+	 && range->end_pc < end_pc)
+    range = range->outer;
+	 
+  current_range = range;
+  check_start_handlers (range, start_pc);
 }
 
-/* Emit any end-of-try-range end at PC. */
+/* Emit any end-of-try-range ending at end_pc and starting before
+   start_pc. */
 
 void
-maybe_end_try (pc)
-     int pc;
+maybe_end_try (start_pc, end_pc)
+     int start_pc;
+     int end_pc;
 {
   if (! doing_eh (1))
     return;
 
-  while (current_range != NULL_EH_RANGE && current_range->end_pc <= pc)
+  while (current_range != NULL_EH_RANGE && current_range->end_pc <= end_pc
+	 && current_range->start_pc >= start_pc)
     {
       expand_end_java_handler (current_range);
       current_range = current_range->outer;
     }
-}
-
-/* Emit the handler labels and their code */
-
-void
-emit_handlers ()
-{
-  if (catch_clauses)
-    {
-      rtx funcend = gen_label_rtx ();
-      emit_jump (funcend);
-
-      emit_insns (catch_clauses);
-      expand_leftover_cleanups ();
-
-      emit_label (funcend);
-    }
-}
-
-/* Resume executing at the statement immediately after the end of an
-   exception region. */
-
-void
-expand_resume_after_catch ()
-{
-  expand_goto (top_label_entry (&caught_return_label_stack));
 }

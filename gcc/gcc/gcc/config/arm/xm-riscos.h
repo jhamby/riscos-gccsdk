@@ -57,4 +57,3 @@ extern void arm_gnat_error_throwback ();
 /* Maths operation domain error number, EDOM.  For CLib it is 1.  */
 #define TARGET_EDOM 33
 
-#include <arm/xm-arm.h>

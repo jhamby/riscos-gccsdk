@@ -1,5 +1,5 @@
 /* Utility routines for finding and reading Java(TM) .class files.
-   Copyright (C) 1996, 97-98, 1999  Free Software Foundation, Inc.
+   Copyright (C) 1996, 1997, 1998, 1999, 2000  Free Software Foundation, Inc.
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -27,7 +27,10 @@ The Free Software Foundation is independent of Sun Microsystems, Inc.  */
 
 #include "jcf.h"
 #include "tree.h"
+#include "toplev.h"
 #include "java-tree.h"
+
+#include "zlib.h"
 
 /* DOS brain-damage */
 #ifndef O_BINARY
@@ -87,7 +90,7 @@ DEFUN(jcf_filbuf_from_stdio, (jcf, count),
 
 #include "zipfile.h"
 
-struct ZipFileCache *SeenZipFiles = NULL;
+struct ZipFile *SeenZipFiles = NULL;
 
 /* Open a zip file with the given name, and cache directory and file
    descriptor.  If the file is missing, treat it as an empty archive.
@@ -98,29 +101,29 @@ ZipFile *
 DEFUN(opendir_in_zip, (zipfile, is_system),
       const char *zipfile AND int is_system)
 {
-  struct ZipFileCache* zipf;
+  struct ZipFile* zipf;
   char magic [4];
   int fd;
   for (zipf = SeenZipFiles;  zipf != NULL;  zipf = zipf->next)
     {
       if (strcmp (zipf->name, zipfile) == 0)
-	return &zipf->z;
+	return zipf;
     }
 
-  zipf = ALLOC (sizeof (struct ZipFileCache) + strlen (zipfile) + 1);
+  zipf = ALLOC (sizeof (struct ZipFile) + strlen (zipfile) + 1);
   zipf->next = SeenZipFiles;
   zipf->name = (char*)(zipf+1);
   strcpy (zipf->name, zipfile);
   SeenZipFiles = zipf;
   fd = open (zipfile, O_RDONLY | O_BINARY);
-  zipf->z.fd = fd;
+  zipf->fd = fd;
   if (fd < 0)
     {
       /* A missing zip file is not considered an error.
        We may want to re-consider that.  FIXME. */
-      zipf->z.count = 0;
-      zipf->z.dir_size = 0;
-      zipf->z.central_directory = NULL;
+      zipf->count = 0;
+      zipf->dir_size = 0;
+      zipf->central_directory = NULL;
     }
   else
     {
@@ -128,10 +131,10 @@ DEFUN(opendir_in_zip, (zipfile, is_system),
       if (read (fd, magic, 4) != 4 || GET_u4 (magic) != (JCF_u4)ZIPMAGIC)
 	return NULL;
       lseek (fd, 0L, SEEK_SET);
-      if (read_zip_archive (&zipf->z) != 0)
+      if (read_zip_archive (zipf) != 0)
 	return NULL;
     }
-  return &zipf->z;
+  return zipf;
 }
 
 /* Returns:
@@ -164,27 +167,70 @@ DEFUN(open_in_zip, (jcf, zipfile, zipmember, is_system),
 	  strncmp (ZIPDIR_FILENAME (zipd), zipmember, len) == 0)
 	{
 	  JCF_ZERO (jcf);
-	  jcf->buffer = ALLOC (zipd->size);
-	  jcf->buffer_end = jcf->buffer + zipd->size;
-	  jcf->read_ptr = jcf->buffer;
-	  jcf->read_end = jcf->buffer_end;
-	  jcf->filbuf = jcf_unexpected_eof;
-	  jcf->filename = strdup (zipfile);
-	  jcf->classname = strdup (zipmember);
-	  jcf->zipd = (void *)zipd;
-	  if (lseek (zipf->fd, zipd->filestart, 0) < 0
-	      || read (zipf->fd, jcf->buffer, zipd->size) != zipd->size)
-	    return -2;
-	  return 0;
+
+	  jcf->filename = xstrdup (zipfile);
+	  jcf->classname = xstrdup (zipmember);
+	  return read_zip_member(jcf, zipd, zipf);
 	}
     }
   return -1;
 }
 
+/* Read data from zip archive member. */
+
+int
+DEFUN(read_zip_member, (jcf, zipd, zipf),
+      JCF *jcf AND  ZipDirectory *zipd AND ZipFile *zipf)
+{
+	  jcf->filbuf = jcf_unexpected_eof;
+	  jcf->zipd = (void *)zipd;
+
+	  if (zipd->compression_method == Z_NO_COMPRESSION)
+	    {
+	      jcf->buffer = ALLOC (zipd->size);
+	      jcf->buffer_end = jcf->buffer + zipd->size;
+	      jcf->read_ptr = jcf->buffer;
+	      jcf->read_end = jcf->buffer_end;
+	      if (lseek (zipf->fd, zipd->filestart, 0) < 0
+		  || read (zipf->fd, jcf->buffer, zipd->size) != (long) zipd->size)
+	        return -2;
+	    }
+	  else
+	    {
+	      char *buffer;
+	      z_stream d_stream; /* decompression stream */
+	      d_stream.zalloc = (alloc_func) 0;
+	      d_stream.zfree = (free_func) 0;
+	      d_stream.opaque = (voidpf) 0;
+
+	      jcf->buffer = ALLOC (zipd->uncompressed_size);
+	      d_stream.next_out = jcf->buffer;
+	      d_stream.avail_out = zipd->uncompressed_size;
+	      jcf->buffer_end = jcf->buffer + zipd->uncompressed_size;
+	      jcf->read_ptr = jcf->buffer;
+	      jcf->read_end = jcf->buffer_end;
+	      buffer = ALLOC (zipd->size);
+	      d_stream.next_in = buffer;
+	      d_stream.avail_in = zipd->size;
+	      if (lseek (zipf->fd, zipd->filestart, 0) < 0
+		  || read (zipf->fd, buffer, zipd->size) != (long) zipd->size)
+		return -2;
+	      /* Handle NO_HEADER using undocumented zlib feature.
+                 This is a very common hack.  */
+	      inflateInit2 (&d_stream, -MAX_WBITS);
+	      inflate (&d_stream, Z_NO_FLUSH);
+	      inflateEnd (&d_stream);
+	      FREE (buffer);
+	    }
+
+	  return 0;
+}
+
 #if JCF_USE_STDIO
-char*
+const char *
 DEFUN(open_class, (filename, jcf, stream, dep_name),
-      char *filename AND JCF *jcf AND FILE* stream AND const char *dep_name)
+      const char *filename AND JCF *jcf AND FILE* stream
+      AND const char *dep_name)
 {
   if (jcf)
     {
@@ -196,6 +242,7 @@ DEFUN(open_class, (filename, jcf, stream, dep_name),
       jcf->read_ptr = NULL;
       jcf->read_end = NULL;
       jcf->read_state = stream;
+      jcf->filename = filename;
       jcf->filbuf = jcf_filbuf_from_stdio;
     }
   else
@@ -203,9 +250,9 @@ DEFUN(open_class, (filename, jcf, stream, dep_name),
   return filename;
 }
 #else
-char*
+const char *
 DEFUN(open_class, (filename, jcf, fd, dep_name),
-      char *filename AND JCF *jcf AND int fd AND const char *dep_name)
+      const char *filename AND JCF *jcf AND int fd AND const char *dep_name)
 {
   if (jcf)
     {
@@ -240,7 +287,7 @@ DEFUN(open_class, (filename, jcf, fd, dep_name),
 #endif
 
 
-char *
+const char *
 DEFUN(find_classfile, (filename, jcf, dep_name),
       char *filename AND JCF *jcf AND const char *dep_name)
 {
@@ -262,7 +309,7 @@ DEFUN(find_classfile, (filename, jcf, dep_name),
    failure.  If JCF != NULL, it is suitably initialized.
    SOURCE_OK is true if we should also look for .java file. */
 
-char *
+const char *
 DEFUN(find_class, (classname, classname_length, jcf, source_ok),
       const char *classname AND int classname_length AND JCF *jcf AND int source_ok)
 
@@ -282,15 +329,15 @@ DEFUN(find_class, (classname, classname_length, jcf, source_ok),
      null pointer when we're copying it below.  */
   int buflen = jcf_path_max_len () + classname_length + 10;
   char *buffer = (char *) ALLOC (buflen);
-  bzero (buffer, buflen);
+  memset (buffer, 0, buflen);
 
   java_buffer = (char *) alloca (buflen);
 
-  jcf->java_source = jcf->outofsynch = 0;
+  jcf->java_source = 0;
 
   for (entry = jcf_path_start (); entry != NULL; entry = jcf_path_next (entry))
     {
-      char *path_name = jcf_path_name (entry);
+      const char *path_name = jcf_path_name (entry);
       if (class != 0)
 	{
 	  int dir_len;
@@ -352,8 +399,17 @@ DEFUN(find_class, (classname, classname_length, jcf, source_ok),
 	}
     }
 
-  if (! java && ! class && java_buf.st_mtime >= class_buf.st_mtime)
-    jcf->outofsynch = 1;
+  /* We preferably pick a class file if we have a chance. If the source
+     file is newer than the class file, we issue a warning and parse the
+     source file instead.
+     There should be a flag to allow people have the class file picked
+     up no matter what. FIXME. */
+  if (! java && ! class && java_buf.st_mtime > class_buf.st_mtime)
+    {
+      if (flag_newer)
+	warning ("source file for class `%s' is newer than its matching class file.  Source file `%s' used instead", classname, java_buffer);
+      class = -1;
+    }
 
   if (! java)
     dep_file = java_buffer;
@@ -382,7 +438,10 @@ DEFUN(find_class, (classname, classname_length, jcf, source_ok),
 #else
   if (!class)
     {
-      SOURCE_FRONTEND_DEBUG (("Trying %s", buffer));
+      SOURCE_FRONTEND_DEBUG ((stderr, "[Class selected: %s]\n",
+			      classname+classname_length-
+			      (classname_length <= 30 ? 
+			       classname_length : 30)));
       fd = open (buffer, O_RDONLY | O_BINARY);
       if (fd >= 0)
 	goto found;
@@ -391,7 +450,10 @@ DEFUN(find_class, (classname, classname_length, jcf, source_ok),
   if (!java)
     {
       strcpy (buffer, java_buffer);
-      SOURCE_FRONTEND_DEBUG (("Trying %s", buffer));
+      SOURCE_FRONTEND_DEBUG ((stderr, "[Source selected: %s]\n",
+			      classname+classname_length-
+			      (classname_length <= 30 ? 
+			       classname_length : 30)));
       fd = open (buffer, O_RDONLY);
       if (fd >= 0)
 	{
@@ -414,14 +476,12 @@ DEFUN(find_class, (classname, classname_length, jcf, source_ok),
     {
       JCF_ZERO (jcf);		/* JCF_FINISH relies on this */
       jcf->java_source = 1;
-      jcf->filename = (char *) strdup (buffer);
+      jcf->filename = xstrdup (buffer);
       close (fd);		/* We use STDIO for source file */
     }
   else
-    buffer = open_class (buffer, jcf, fd, dep_file);
-  jcf->classname = (char *) ALLOC (classname_length + 1);
-  strncpy (jcf->classname, classname, classname_length + 1);
-  jcf->classname = (char *) strdup (classname);
+    buffer = (char *) open_class (buffer, jcf, fd, dep_file);
+  jcf->classname = xstrdup (classname);
   return buffer;
 #endif
 }
@@ -482,18 +542,24 @@ DEFUN(jcf_print_utf8_replace, (stream, str, length, in_char, out_char),
       FILE *stream AND const unsigned char *str AND int length
       AND int in_char AND int out_char)
 {
-
-  int i;/* FIXME - actually handle Unicode! */
-  for (i = 0; i < length; i++)
+  const unsigned char *limit = str + length;
+  while (str < limit)
     {
-      int ch = str[i];
+      int ch = UTF8_GET (str, limit);
+      if (ch < 0)
+	{
+	  fprintf (stream, "\\<invalid>");
+	  return;
+	}
       jcf_print_char (stream, ch == in_char ? out_char : ch);
     }
 }
 
 /* Check that all the cross-references in the constant pool are
    valid.  Returns 0 on success.
-   Otherwise, returns the index of the (first) invalid entry. */
+   Otherwise, returns the index of the (first) invalid entry.
+   Only checks internal consistency, but does not check that
+   any classes, fields, or methods are valid.*/
 
 int
 DEFUN(verify_constant_pool, (jcf),
@@ -559,7 +625,7 @@ DEFUN(format_uint, (buffer, value, base),
   /* Note this code does not pretend to be optimized. */
   do {
     int digit = value % base;
-    static char digit_chars[] = "0123456789abcdefghijklmnopqrstuvwxyz";
+    static const char digit_chars[] = "0123456789abcdefghijklmnopqrstuvwxyz";
     *--buf_ptr = digit_chars[digit];
     value /= base;
   } while (value != 0);

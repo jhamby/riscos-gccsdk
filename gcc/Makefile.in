@@ -32,7 +32,8 @@ CXXFLAGS=@CXXFLAGS@ $(TARGET_DEFS)
 ux_gccpkg=@prefix@
 
 # Installation directory of RISC OS binaries i.e. the stage 2 compiler.
-ro_gccpkg=@with_riscos_dist@
+ro_gccpkg=@with_riscos_dist@/!gcc
+ro_syspkg=@with_riscos_dist@/!System
 
 # Installation directory of RISC OS distribution packaged as zip files.
 ro_zippkg=@with_riscos_pkg@
@@ -48,7 +49,7 @@ hostsystem=@host_system@
 targetsystem=HOST_ARM_RISCOS
 
 # GCC compiler version that we are going to build.
-VERSION = 2_95_2
+VERSION = 3_1_0
 
 # Define the installation base directory.  These don't determine the actual
 # stored location of files, rather they are the hard-coded values that
@@ -78,13 +79,15 @@ ux_gcc_bin_dir = $(ux_gccpkg)/$(gn_gcc_bin_dir)
 ro_bin_dir = $(ro_gccpkg)/$(gn_standard_exec_prefix)
 ro_gcc_bin_dir = $(ro_gccpkg)/$(gn_gcc_bin_dir)
 info_dir = $(ro_gccpkg)/docs
+unixlib_incl_dir = @topdir@/unixlib/source/clib
+libscl_incl_dir = @topdir@/libscl
 
 # After we have build the stage 1 cross-compiler, then we can use these
 # to build the cross-libraries and cross-tools
 CROSS_CC=$(ux_gccpkg)/$(gn_standard_exec_prefix)/gcc
 CROSS_CXX=$(ux_gccpkg)/$(gn_standard_exec_prefix)/g++
-CROSS_CFLAGS=-O2 $(TARGET_DEFS)
-CROSS_CXXFLAGS=-O2 $(TARGET_DEFS)
+CROSS_CFLAGS=-O2 $(TARGET_DEFS) -mpoke-function-name
+CROSS_CXXFLAGS=-O2 $(TARGET_DEFS) -mpoke-function-name
 
 # Name of the host computers archiver.  This is only used to build
 # libiberty or linking against the cross-compiler.
@@ -100,19 +103,21 @@ insthdr = @topdir@/scripts/install-headers.pl
 # Place variables in the environment.  This saves us having to pass
 # the variables to sub-makes on the command line.
 export TARGET_NAME objdir hostsystem targetsystem
-export ux_gccpkg ro_gccpkg ro_zippkg unix_prefix riscos_prefix
+export ux_gccpkg ro_gccpkg ro_syspkg ro_zippkg unix_prefix riscos_prefix
 export gn_standard_exec_prefix gn_standard_startfile_prefix
 export gn_gcc_include_dir gn_gplusplus_include_dir
 export gn_local_include_dir gn_system_include_dir gn_cross_include_dir
 export gn_gcc_bin_dir info_dir exesfx
 export ux_bin_dir ux_gcc_bin_dir ro_bin_dir ro_gcc_bin_dir
+export unixlib_incl_dir libscl_incl_dir
 export CC CXX
 export CROSS_CC CROSS_CXX CROSS_CFLAGS CROSS_CXXFLAGS
 export CROSS_AR CROSS_AR_FLAGS
 export VERSION TARGET_NAME CFLAGS CXXFLAGS AR AR_FLAGS
 export insthdr
 
-all:	build-stg1 build-stg2
+all:	build-stg1 build-stg2 build-stg3 build-stg4 build-stg5 build-stg6 \
+	build-stg7
 
 # Setup build and installation directories.  Install run-time library
 # headers
@@ -122,13 +127,18 @@ setup:	directories install_headers
 # i.e. under Linux this will build the GCC cross-compiler, cross-assembler
 # and cross-linker.  Under RISC OS this will build the compiler, assembler
 # and linker natively
-build-stg1:	libiberty-stg1 riscos-aof-stg1 gcc-stg1 cross-progs
+
+# These dependencies are split to help make get parallel building right.
+build-stg1:	libiberty-stg1
+build-stg2:	build-stg1 riscos-aof-stg1
+build-stg3:	build-stg2 gcc-stg1 cross-progs
 
 # These targets build the libraries and binaries suitable for execution
 # on RISC OS machines only.
-build-stg2:	libiberty-stg2 libgcc unixlib gcc-stg2 \
-	libscl libio libstdc riscos-aof-stg2 libf2c libgpc riscos-libs \
-	riscos-progs riscos-dist
+build-stg4:	build-stg3 libiberty-stg2 libgcc unixlib
+build-stg5:	build-stg4 gcc-stg2
+build-stg6:	build-stg5 libscl libio libstdc riscos-aof-stg2
+build-stg7:	build-stg6 libf2c libgpc riscos-libs riscos-progs riscos-dist
 
 .PHONY: directories
 .PHONY: libgcc
@@ -148,6 +158,13 @@ build-stg2:	libiberty-stg2 libgcc unixlib gcc-stg2 \
 .PHONY: riscos-aof-stg1
 .PHONY: riscos-aof-stg2
 
+.PHONY: build-stg1
+.PHONY: build-stg2
+.PHONY: build-stg3
+.PHONY: build-stg4
+.PHONY: build-stg5
+.PHONY: build-stg6
+.PHONY: build-stg7
 
 # Target (trgXX) and compiler flags (cflXX) definitions.  The XX must
 # match for both trg and cfl in all calls to sub-make processes.  We
@@ -164,6 +181,8 @@ trg31=apcs32/arch4/libscl
 
 cfl10="CFL=-mapcs-26 -mcpu=arm2 -munixlib"
 cfl11="CFL=-mapcs-26 -mcpu=arm2 -mlibscl"
+
+cfl15="CFL=-mapcs-32 -mcpu=arm6 -mlibscl"
 
 cfl20="CFL=-mapcs-32 -mcpu=arm6 -munixlib"
 cfl21="CFL=-mapcs-32 -mcpu=strongarm -munixlib"
@@ -187,17 +206,18 @@ riscos-aof-stg1:
 	$(MAKE) -C riscos-aof "STAGE=stage1"
 
 riscos-aof-stg2:
-	$(MAKE) -C riscos-aof "STAGE=stage2"
-
+	$(MAKE) -C riscos-aof "STAGE=stage2" "TRG=$(trg10)"
 
 libscl:
 	$(MAKE) -C libscl "TRG=$(trg11)" $(cfl11)
+	$(MAKE) -C libscl "TRG=$(trg30)" $(cfl30)
+	$(MAKE) -C libscl "TRG=$(trg31)" $(cfl31)
 
 riscos-progs:
 	$(MAKE) -C riscos-progs "TRG=$(trg10)" $(cfl10)
 
 cross-progs:
-	$(MAKE) -C cross-progs
+	$(MAKE) -C cross-progs "STAGE=stage1"
 
 riscos-elf:
 	$(MAKE) -C riscos-elf
@@ -205,13 +225,14 @@ riscos-elf:
 # The ballache of having to keep support with Objasm forces us
 # to do this (CFL1) brain damage.
 unixlib:
-	$(MAKE) -C $@ "TRG=$(trg10)" $(cfl10) "CFL1=-Wa,-DAPCS32=no -Wa,-DARMFPE=2"
+	$(MAKE) -C $@ "TRG=$(trg10)" $(cfl10)
 
 riscos-libs:
 	$(MAKE) -C $@ "TRG=$(trg10)" $(cfl10)
 
 libgcc:
 	$(MAKE) -C gcc $@ "TRG=$(trg10)" $(cfl10)
+	$(MAKE) -C gcc $@ "TRG=$(trg11)" $(cfl11)
 
 libgpc libio libf2c libstdc:
 	$(MAKE) -C gcc $@ "TRG=$(trg10)" $(cfl10)
@@ -236,7 +257,7 @@ directories:
 	mkdir -p $(ro_gccpkg)/$(gn_gcc_bin_dir)
 	mkdir -p $(ro_gccpkg)/$(gn_gcc_include_dir)/h
 	mkdir -p $(ro_gccpkg)/$(gn_gplusplus_include_dir)/h
-	mkdir -p $(ro_gccpkg)/$(gn_cross_include_dir)/h
+	mkdir -p $(ro_gccpkg)/$(gn_cross_include_dir)
 
 	mkdir -p $(ux_gccpkg)/$(gn_gcc_bin_dir)/$(trg10)
 	mkdir -p $(ux_gccpkg)/$(gn_gcc_bin_dir)/$(trg11)
@@ -247,11 +268,13 @@ directories:
 
 	mkdir -p $(ro_gccpkg)/$(gn_gcc_bin_dir)/$(trg10)/o
 	mkdir -p $(ro_gccpkg)/$(gn_gcc_bin_dir)/$(trg11)/o
+	mkdir -p $(ro_gccpkg)/$(gn_gcc_bin_dir)/$(trg15)/o
 	mkdir -p $(ro_gccpkg)/$(gn_gcc_bin_dir)/$(trg20)/o
 	mkdir -p $(ro_gccpkg)/$(gn_gcc_bin_dir)/$(trg21)/o
 	mkdir -p $(ro_gccpkg)/$(gn_gcc_bin_dir)/$(trg30)/o
 	mkdir -p $(ro_gccpkg)/$(gn_gcc_bin_dir)/$(trg31)/o
 
+	mkdir -p @with_riscos_dist@/!System/Modules
 	mkdir -p $(info_dir)
 	mkdir -p $(objdir)
 	mkdir -p $(ro_zippkg)

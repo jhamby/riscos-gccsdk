@@ -26,9 +26,10 @@
    byte first (like Motorola and SPARC, unlike Intel and VAX).  */
 /* #undef WORDS_BIGENDIAN */
 
-/* #undef PACKAGE */
-/* #undef VERSION */
+#define PACKAGE "gcc"
+#define VERSION "3.1.0"
 #define HAVE_CPP_STRINGIFY 1
+#define STRING_WITH_STRINGS 1
 
 /* Define if you have the atoll function.  */
 #define HAVE_ATOLL 1
@@ -53,6 +54,9 @@
 
 /* Define if you have the fputs_unlocked function.  */
 #define HAVE_FPUTS_UNLOCKED 1
+
+/* Define if you have the getpagesize function.  */
+#define HAVE_GETPAGESIZE 1
 
 /* Define if you have the getrlimit function.  */
 #define HAVE_GETRLIMIT 1
@@ -101,6 +105,9 @@
 
 /* Define if you have the sysconf function.  */
 #define HAVE_SYSCONF 1
+
+/* Define if you have the vprintf function.  */
+#define HAVE_VPRINTF 1
 
 /* Define if you have the <endian.h> header file.  */
 #define HAVE_ENDIAN_H 1
@@ -161,3 +168,79 @@
 
 /* Define if you have the <vfork.h> header file.  */
 /* #undef HAVE_VFORK_H */
+
+/* Define if you have a working <stdbool.h> header file. */
+#define HAVE_STDBOOL_H 1
+
+/* Define if you can safely include both <string.h> and <strings.h>. */
+#define STRING_WITH_STRINGS 1
+
+/* Define if mmap can get us zeroed pages from /dev/zero. */
+#define HAVE_MMAP_DEV_ZERO 1
+
+/* Define if mmap can get us zeroed pages using MAP_ANON(YMOUS). */
+#define HAVE_MMAP_ANON 1
+
+/* Define if read-only mmap of a plain file works. */
+#define HAVE_MMAP_FILE 1
+
+/* Define to 1 if we found this declaration otherwise define to 0. */
+#define HAVE_DECL_GETRLIMIT 1
+
+/* Define to 1 if we found this declaration otherwise define to 0. */
+#define HAVE_DECL_SETRLIMIT 1
+
+/* Define to 1 if we found this declaration otherwise define to 0. */
+#define HAVE_DECL_GETRUSAGE 1
+
+/* Define to 1 if we found this declaration otherwise define to 0. */
+#define HAVE_DECL_TIMES 0
+
+/* Define if <sys/times.h> defines struct tms. */
+#define HAVE_STRUCT_TMS 1
+
+/* Define if <time.h> defines clock_t. */
+#define HAVE_CLOCK_T 1
+
+/* Define if your compiler understands volatile. */
+#define HAVE_VOLATILE 1
+
+/* Define if your compiler supports the `long double' type. */
+#define HAVE_LONG_DOUBLE 1
+
+/* Define if your compiler supports the `long long' type. */
+#define HAVE_LONG_LONG 1
+
+/* Define if your compiler supports the `__int64' type. */
+/* #undef HAVE___INT64 */
+
+/* Define if the `_Bool' type is built-in. */
+#define HAVE__BOOL 1
+
+/* The number of bytes in type short */
+#define SIZEOF_SHORT 2
+
+/* The number of bytes in type int */
+#define SIZEOF_INT 4
+
+/* The number of bytes in type long */
+#define SIZEOF_LONG 4
+
+/* The number of bytes in type long long */
+#define SIZEOF_LONG_LONG 8
+
+/* The number of bytes in type __int64 */
+/* #undef SIZEOF___INT64 */
+
+
+/* Bison unconditionally undefines `const' if neither `__STDC__' nor
+   __cplusplus are defined.  That's a problem since we use `const' in
+   the GCC headers, and the resulting bison code is therefore type
+   unsafe.  Thus, we must match the bison behavior here.  */
+
+#ifndef __STDC__
+#ifndef __cplusplus
+/* #undef const */
+#define const
+#endif
+#endif

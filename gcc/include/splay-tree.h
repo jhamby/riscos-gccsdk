@@ -1,21 +1,21 @@
 /* A splay-tree datatype.  
-   Copyright (C) 1998 Free Software Foundation, Inc.
+   Copyright 1998, 1999, 2000 Free Software Foundation, Inc.
    Contributed by Mark Mitchell (mark@markmitchell.com).
 
-This file is part of GNU CC.
+This file is part of GCC.
    
-GNU CC is free software; you can redistribute it and/or modify it
+GCC is free software; you can redistribute it and/or modify it
 under the terms of the GNU General Public License as published by
 the Free Software Foundation; either version 2, or (at your option)
 any later version.
 
-GNU CC is distributed in the hope that it will be useful, but
+GCC is distributed in the hope that it will be useful, but
 WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU CC; see the file COPYING.  If not, write to
+along with GCC; see the file COPYING.  If not, write to
 the Free Software Foundation, 59 Temple Place - Suite 330,
 Boston, MA 02111-1307, USA.  */
 
@@ -44,7 +44,7 @@ typedef unsigned long int splay_tree_key;
 typedef unsigned long int splay_tree_value;
 
 /* Forward declaration for a node in the tree.  */
-typedef struct splay_tree_node *splay_tree_node;
+typedef struct splay_tree_node_s *splay_tree_node;
 
 /* The type of a function which compares two splay-tree keys.  The
    function should return values as for qsort.  */
@@ -62,7 +62,7 @@ typedef void (*splay_tree_delete_value_fn) PARAMS((splay_tree_value));
 typedef int (*splay_tree_foreach_fn) PARAMS((splay_tree_node, void*));
 
 /* The nodes in the splay tree.  */
-struct splay_tree_node
+struct splay_tree_node_s
 {
   /* The key.  */
   splay_tree_key key;
@@ -76,7 +76,7 @@ struct splay_tree_node
 };
 
 /* The splay tree itself.  */
-typedef struct splay_tree
+typedef struct splay_tree_s
 {
   /* The root of the tree.  */
   splay_tree_node root;
@@ -95,12 +95,25 @@ extern splay_tree splay_tree_new        PARAMS((splay_tree_compare_fn,
 					        splay_tree_delete_key_fn,
 					        splay_tree_delete_value_fn));
 extern void splay_tree_delete           PARAMS((splay_tree));
-extern void splay_tree_insert           PARAMS((splay_tree,
+extern splay_tree_node splay_tree_insert          
+		                        PARAMS((splay_tree,
 					        splay_tree_key,
 					        splay_tree_value));
+extern void splay_tree_remove		PARAMS((splay_tree,
+						splay_tree_key));
 extern splay_tree_node splay_tree_lookup   
                                         PARAMS((splay_tree,
 					        splay_tree_key));
+extern splay_tree_node splay_tree_predecessor
+                                        PARAMS((splay_tree,
+						splay_tree_key));
+extern splay_tree_node splay_tree_successor
+                                        PARAMS((splay_tree,
+						splay_tree_key));
+extern splay_tree_node splay_tree_max
+                                        PARAMS((splay_tree));
+extern splay_tree_node splay_tree_min
+                                        PARAMS((splay_tree));
 extern int splay_tree_foreach           PARAMS((splay_tree,
 					        splay_tree_foreach_fn,
 					        void*));

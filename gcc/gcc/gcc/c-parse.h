@@ -1,5 +1,5 @@
 typedef union {long itype; tree ttype; enum tree_code code;
-	char *filename; int lineno; int ends_in_label; } YYSTYPE;
+	const char *filename; int lineno; } YYSTYPE;
 #define	IDENTIFIER	257
 #define	TYPENAME	258
 #define	SCSPEC	259
@@ -32,33 +32,38 @@ typedef union {long itype; tree ttype; enum tree_code code;
 #define	LABEL	286
 #define	REALPART	287
 #define	IMAGPART	288
-#define	ASSIGN	289
-#define	OROR	290
-#define	ANDAND	291
-#define	EQCOMPARE	292
-#define	ARITHCOMPARE	293
-#define	LSHIFT	294
-#define	RSHIFT	295
-#define	UNARY	296
-#define	PLUSPLUS	297
-#define	MINUSMINUS	298
-#define	HYPERUNARY	299
-#define	POINTSAT	300
-#define	INTERFACE	301
-#define	IMPLEMENTATION	302
-#define	END	303
-#define	SELECTOR	304
-#define	DEFS	305
-#define	ENCODE	306
-#define	CLASSNAME	307
-#define	PUBLIC	308
-#define	PRIVATE	309
-#define	PROTECTED	310
-#define	PROTOCOL	311
-#define	OBJECTNAME	312
-#define	CLASS	313
-#define	ALIAS	314
-#define	OBJC_STRING	315
+#define	VA_ARG	289
+#define	PTR_VALUE	290
+#define	PTR_BASE	291
+#define	PTR_EXTENT	292
+#define	STRING_FUNC_NAME	293
+#define	VAR_FUNC_NAME	294
+#define	ASSIGN	295
+#define	OROR	296
+#define	ANDAND	297
+#define	EQCOMPARE	298
+#define	ARITHCOMPARE	299
+#define	LSHIFT	300
+#define	RSHIFT	301
+#define	UNARY	302
+#define	PLUSPLUS	303
+#define	MINUSMINUS	304
+#define	HYPERUNARY	305
+#define	POINTSAT	306
+#define	INTERFACE	307
+#define	IMPLEMENTATION	308
+#define	END	309
+#define	SELECTOR	310
+#define	DEFS	311
+#define	ENCODE	312
+#define	CLASSNAME	313
+#define	PUBLIC	314
+#define	PRIVATE	315
+#define	PROTECTED	316
+#define	PROTOCOL	317
+#define	OBJECTNAME	318
+#define	CLASS	319
+#define	ALIAS	320
 
 
 extern YYSTYPE yylval;

@@ -1,5 +1,5 @@
 /* Parser grammar for quick source code scan of Java(TM) language programs.
-   Copyright (C) 1998, 1999 Free Software Foundation, Inc.
+   Copyright (C) 1998, 1999, 2000 Free Software Foundation, Inc.
    Contributed by Alexandre Petit-Bianco (apbianco@cygnus.com)
 
 This file is part of GNU CC.
@@ -64,7 +64,10 @@ static int absorber;
 
 /* Keep track of the current class name and package name.  */
 static char *current_class;
-static char *package_name;
+static const char *package_name;
+
+/* Keep track of the current inner class qualifier. */
+static int current_class_length;
 
 /* Keep track of whether things have be listed before.  */
 static int previous_output;
@@ -72,14 +75,20 @@ static int previous_output;
 /* Record modifier uses  */
 static int modifier_value;
 
-/* Keep track of number of bracket pairs after a variable declarator
+/* Record (almost) cyclomatic complexity.  */
+static int complexity; 
+
+/* Keeps track of number of bracket pairs after a variable declarator
    id.  */
 static int bracket_count; 
 
+/* Numbers anonymous classes */
+static int anonymous_count;
+
 /* Record a method declaration  */
 struct method_declarator {
-  char *method_name;
-  char *args;
+  const char *method_name;
+  const char *args;
 };
 #define NEW_METHOD_DECLARATOR(D,N,A)					     \
 {									     \
@@ -90,8 +99,12 @@ struct method_declarator {
 }
 
 /* Two actions for this grammar */
-static void report_class_declaration PROTO ((char *));
-static void report_main_declaration PROTO ((struct method_declarator *));
+static void report_class_declaration PARAMS ((const char *));
+static void report_main_declaration PARAMS ((struct method_declarator *));
+static void push_class_context PARAMS ((const char *));
+static void pop_class_context PARAMS ((void));
+
+void report PARAMS ((void)); 
 
 #include "lex.h"
 #include "parse.h"
@@ -102,6 +115,10 @@ static void report_main_declaration PROTO ((struct method_declarator *));
   struct method_declarator *declarator;
   int value;			/* For modifiers */
 }
+
+%{
+#include "lex.c"
+%}
 
 %pure_parser
 
@@ -128,6 +145,7 @@ static void report_main_declaration PROTO ((struct method_declarator *));
 %token   STATIC_TK       FINAL_TK           SYNCHRONIZED_TK
 %token   VOLATILE_TK     TRANSIENT_TK       NATIVE_TK
 %token   PAD_TK          ABSTRACT_TK        MODIFIER_TK
+%token   STRICT_TK
 
 /* Keep those two in order, too */
 %token   DECR_TK INCR_TK
@@ -224,20 +242,15 @@ interface_type:
 ;
 
 array_type:
-	primitive_type OSB_TK CSB_TK
-|	name OSB_TK CSB_TK
+	primitive_type dims
 		{
-		  char *n = xmalloc (strlen ($1)+2);
-		  n [0] = '[';
-		  strcpy (n+1, $1);
-		  $$ = n;
+	          while (bracket_count-- > 0) 
+		    $$ = concat ("[", $1, NULL);
 		}
-|	array_type OSB_TK CSB_TK
-		{	
-		  char *n = xmalloc (strlen ($1)+2);
-		  n [0] = '[';
-		  strcpy (n+1, $1);
-		  $$ = n;
+|	name dims
+		{
+	          while (bracket_count-- > 0) 
+		    $$ = concat ("[", $1, NULL);
 		}
 ;
 
@@ -254,9 +267,7 @@ simple_name:
 qualified_name:
 	name DOT_TK identifier
 		{ 
-		  char *n = xmalloc (strlen ($1)+strlen ($3)+2);
-		  sprintf (n, "%s.%s", $1, $3);
-		  $$ = n;
+		  $$ = concat ($1, ".", $3, NULL);
 		}
 ;
 
@@ -306,7 +317,7 @@ type_import_on_demand_declaration:
 type_declaration:
 	class_declaration
 |	interface_declaration
-|	SC_TK
+|	empty_statement
 ;
 
 /* 19.7 Shortened from the original:
@@ -361,7 +372,9 @@ interface_type_list:
 
 class_body:
 	OCB_TK CCB_TK
+		{ pop_class_context (); }
 |	OCB_TK class_body_declarations CCB_TK
+		{ pop_class_context (); }
 ;
 
 class_body_declarations:
@@ -381,6 +394,7 @@ class_member_declaration:
 |	method_declaration
 |	class_declaration	/* Added, JDK1.1 inner classes */
 |	interface_declaration	/* Added, JDK1.1 inner classes */
+|	empty_statement
 ;
 
 /* 19.8.2 Productions from 8.3: Field Declarations  */
@@ -452,9 +466,7 @@ formal_parameter_list:
 	formal_parameter
 |	formal_parameter_list C_TK formal_parameter
 		{
-		  char *n = xmalloc (strlen ($1)+strlen($3)+2);
-		  sprintf (n, "%s,%s", $1, $3);
-		  $$ = n;
+		  $$ = concat ($1, ",", $3, NULL);
 		}
 ;
 
@@ -503,14 +515,12 @@ class_type_list:
 
 method_body:
 	block
-|	block SC_TK
 |	SC_TK
 ;
 
 /* 19.8.4 Productions from 8.5: Static Initializers  */
 static_initializer:
 	static block
-|	static block SC_TK	/* Shouldn't be here. FIXME */
 ;
 
 static:				/* Test lval.sub_token here */
@@ -570,14 +580,18 @@ this_or_super:			/* Added, simplifies error diagnostics */
 /* 19.9 Productions from 9: Interfaces  */
 /* 19.9.1 Productions from 9.1: Interfaces Declarations  */
 interface_declaration:
-	INTERFACE_TK identifier	interface_body
+	INTERFACE_TK identifier
 		{ report_class_declaration ($2); modifier_value = 0; }
-|	modifiers INTERFACE_TK identifier interface_body
+	interface_body
+|	modifiers INTERFACE_TK identifier
 		{ report_class_declaration ($3); modifier_value = 0; }
-|	INTERFACE_TK identifier extends_interfaces interface_body
+	interface_body
+|	INTERFACE_TK identifier extends_interfaces
 		{ report_class_declaration ($2); modifier_value = 0; }
-|	modifiers INTERFACE_TK identifier extends_interfaces interface_body
+	interface_body
+|	modifiers INTERFACE_TK identifier extends_interfaces
 		{ report_class_declaration ($3); modifier_value = 0; }
+	interface_body
 ;
 
 extends_interfaces:
@@ -587,7 +601,9 @@ extends_interfaces:
 
 interface_body:
 	OCB_TK CCB_TK
+		{ pop_class_context (); }
 |	OCB_TK interface_member_declarations CCB_TK
+		{ pop_class_context (); }
 ;
 
 interface_member_declarations:
@@ -716,15 +732,17 @@ statement_expression:
 ;
 
 if_then_statement:
-	IF_TK OP_TK expression CP_TK statement
+	IF_TK OP_TK expression CP_TK statement { ++complexity; }
 ;
 
 if_then_else_statement:
 	IF_TK OP_TK expression CP_TK statement_nsi ELSE_TK statement
+	{ ++complexity; }
 ;
 
 if_then_else_statement_nsi:
 	IF_TK OP_TK expression CP_TK statement_nsi ELSE_TK statement_nsi
+	{ ++complexity; }
 ;
 
 switch_statement:
@@ -744,7 +762,7 @@ switch_block_statement_groups:
 ;
 
 switch_block_statement_group:
-	switch_labels block_statements
+	switch_labels block_statements { ++complexity; }
 ;
 
 
@@ -759,7 +777,7 @@ switch_label:
 ;
 
 while_expression:
-	WHILE_TK OP_TK expression CP_TK
+	WHILE_TK OP_TK expression CP_TK { ++complexity; }
 ;
 
 while_statement:
@@ -776,6 +794,7 @@ do_statement_begin:
 
 do_statement: 
 	do_statement_begin statement WHILE_TK OP_TK expression CP_TK SC_TK
+	{ ++complexity; }
 ;
 
 for_statement:
@@ -793,7 +812,7 @@ for_header:
 ;
 
 for_begin:
-	for_header for_init
+	for_header for_init { ++complexity; }
 ;
 for_init:			/* Can be empty */
 |	statement_expression_list
@@ -814,9 +833,11 @@ break_statement:
 |	BREAK_TK identifier SC_TK
 ;
 
+/* `continue' with a label is considered for complexity but ordinary
+   continue is not.  */
 continue_statement:
 	CONTINUE_TK SC_TK
-|       CONTINUE_TK identifier SC_TK
+	|       CONTINUE_TK identifier SC_TK { ++complexity; }
 ;
 
 return_statement:
@@ -825,7 +846,7 @@ return_statement:
 ;
 
 throw_statement:
-	THROW_TK expression SC_TK
+	THROW_TK expression SC_TK { ++complexity; }
 ;
 
 synchronized_statement:
@@ -850,11 +871,11 @@ catches:
 ;
 
 catch_clause:
-	CATCH_TK OP_TK formal_parameter CP_TK block
+	CATCH_TK OP_TK formal_parameter CP_TK block { ++complexity; }
 ;
 
 finally:
-	FINALLY_TK block
+	FINALLY_TK block { ++complexity; }
 ;
 
 /* 19.12 Production from 15: Expressions  */
@@ -871,14 +892,7 @@ primary_no_new_array:
 |	field_access
 |	method_invocation
 |	array_access
-	/* type DOT_TK CLASS_TK doens't work. So we split the rule
-	   'type' into its components. Missing is something for array,
-	   which will complete the reference_type part. FIXME */
-|	name DOT_TK CLASS_TK	       /* Added, JDK1.1 class literals */
-		{ USE_ABSORBER; }
-|	primitive_type DOT_TK CLASS_TK /* Added, JDK1.1 class literals */
-		{ USE_ABSORBER; }
-|	VOID_TK DOT_TK CLASS_TK	       /* Added, JDK1.1 class literals */
+|	type_literals
         /* Added, JDK1.1 inner classes. Documentation is wrong
            refering to a 'ClassName' (class_name) rule that doesn't
            exist. Used name instead.  */
@@ -886,21 +900,34 @@ primary_no_new_array:
 		{ USE_ABSORBER; }
 ;
 
+type_literals:
+	name DOT_TK CLASS_TK
+		{ USE_ABSORBER; }
+|	array_type DOT_TK CLASS_TK
+		{ USE_ABSORBER; }
+|	primitive_type DOT_TK CLASS_TK
+		{ USE_ABSORBER; }
+|	VOID_TK DOT_TK CLASS_TK
+		{ USE_ABSORBER; }
+;
+
 class_instance_creation_expression:
 	NEW_TK class_type OP_TK argument_list CP_TK
 |	NEW_TK class_type OP_TK CP_TK
-        /* Added, JDK1.1 inner classes but modified to use
-           'class_type' instead of 'TypeName' (type_name) mentionned
-           in the documentation but doesn't exist. */
-|	NEW_TK class_type OP_TK argument_list CP_TK class_body
-|	NEW_TK class_type OP_TK CP_TK class_body         
-        /* Added, JDK1.1 inner classes, modified to use name or
-	   primary instead of primary solely which couldn't work in
-	   all situations.  */
+|	anonymous_class_creation
 |	something_dot_new identifier OP_TK CP_TK
 |	something_dot_new identifier OP_TK CP_TK class_body
 |	something_dot_new identifier OP_TK argument_list CP_TK
 |	something_dot_new identifier OP_TK argument_list CP_TK class_body
+;
+
+anonymous_class_creation:
+	NEW_TK class_type OP_TK CP_TK
+		{ report_class_declaration (NULL); }
+	class_body         
+|	NEW_TK class_type OP_TK argument_list CP_TK
+		{ report_class_declaration (NULL); }
+	class_body
 ;
 
 something_dot_new:		/* Added, not part of the specs. */
@@ -937,7 +964,9 @@ dim_expr:
 
 dims:				
 	OSB_TK CSB_TK
+		{ bracket_count = 1; }
 |	dims OSB_TK CSB_TK
+		{ bracket_count++; }
 ;
 
 field_access:
@@ -945,15 +974,18 @@ field_access:
 |	SUPER_TK DOT_TK identifier
 ;
 
+/* We include method invocation in the complexity measure on the
+   theory that most method calls are virtual and therefore involve a
+   decision point.  */
 method_invocation:
 	name OP_TK CP_TK
-		{ USE_ABSORBER; }
+		{ USE_ABSORBER; ++complexity; }
 |	name OP_TK argument_list CP_TK
-		{ USE_ABSORBER; }
-|	primary DOT_TK identifier OP_TK CP_TK
-|	primary DOT_TK identifier OP_TK argument_list CP_TK
-|	SUPER_TK DOT_TK identifier OP_TK CP_TK
-|	SUPER_TK DOT_TK identifier OP_TK argument_list CP_TK
+		{ USE_ABSORBER; ++complexity; }
+|	primary DOT_TK identifier OP_TK CP_TK { ++complexity; }
+|	primary DOT_TK identifier OP_TK argument_list CP_TK { ++complexity; }
+|	SUPER_TK DOT_TK identifier OP_TK CP_TK { ++complexity; }
+|	SUPER_TK DOT_TK identifier OP_TK argument_list CP_TK { ++complexity; }
 ;
 
 array_access:
@@ -1061,16 +1093,19 @@ inclusive_or_expression:
 conditional_and_expression:
 	inclusive_or_expression
 |	conditional_and_expression BOOL_AND_TK inclusive_or_expression
+	{ ++complexity; }
 ;
 
 conditional_or_expression:
 	conditional_and_expression
 |	conditional_or_expression BOOL_OR_TK conditional_and_expression
+	{ ++complexity; }
 ;
 
 conditional_expression:		/* Error handling here is weak */
 	conditional_or_expression
 |	conditional_or_expression REL_QM_TK expression REL_CL_TK conditional_expression
+	{ ++complexity; }
 ;
 
 assignment_expression:
@@ -1104,29 +1139,85 @@ constant_expression:
 
 %%
 
-#include "lex.c"
-
 /* Create a new parser context */
 
 void
 java_push_parser_context ()
 {
   struct parser_ctxt *new = 
-    (struct parser_ctxt *)xmalloc(sizeof (struct parser_ctxt));
+    (struct parser_ctxt *) xcalloc (1, sizeof (struct parser_ctxt));
 
-  bzero ((PTR) new, sizeof (struct parser_ctxt));
   new->next = ctxp;
   ctxp = new;
 }  
+
+static void
+push_class_context (name)
+    const char *name;
+{
+  /* If we already have CURRENT_CLASS set, we're in an inter
+     class. Mangle its name. */
+  if (current_class)
+    {
+      const char *p;
+      char anonymous [3];
+      int additional_length;
+      
+      /* NAME set to NULL indicates an anonymous class, which are named by
+	 numbering them. */
+      if (!name)
+	{
+	  sprintf (anonymous, "%d", ++anonymous_count);
+	  p = anonymous;
+	}
+      else
+	p = name;
+      
+      additional_length = strlen (p)+1; /* +1 for `$' */
+      current_class = xrealloc (current_class, 
+				current_class_length + additional_length + 1);
+      current_class [current_class_length] = '$';
+      strcpy (&current_class [current_class_length+1], p);
+      current_class_length += additional_length;
+    }
+  else
+    {
+      if (!name)
+	return;
+      current_class_length = strlen (name);
+      current_class = xmalloc (current_class_length+1);
+      strcpy (current_class, name);
+    }
+}
+
+static void
+pop_class_context ()
+{
+  /* Go back to the last `$' and cut. */
+  while (--current_class_length > 0
+        && current_class [current_class_length] != '$')
+    ;
+  if (current_class_length)
+    {
+      current_class = xrealloc (current_class, current_class_length+1);
+      current_class [current_class_length] = '\0';
+    }
+  else
+    {
+      current_class = NULL;
+      anonymous_count = 0;
+    }
+}
 
 /* Actions defined here */
 
 static void
 report_class_declaration (name)
-     char * name;
+     const char * name;
 {
   extern int flag_dump_class, flag_list_filename;
 
+  push_class_context (name);
   if (flag_dump_class)
     {
       if (!previous_output)
@@ -1137,12 +1228,10 @@ report_class_declaration (name)
 	}
 	
       if (package_name)
-	fprintf (out, "%s.%s ", package_name, name);
+	fprintf (out, "%s.%s ", package_name, current_class);
       else
-	fprintf (out, "%s ", name);
+	fprintf (out, "%s ", current_class);
     }
-      
-  current_class = name;
 }
 
 static void
@@ -1165,10 +1254,18 @@ report_main_declaration (declarator)
 	  if (package_name)
 	    fprintf (out, "%s.%s ", package_name, current_class);
 	  else
-	    fprintf (out, current_class);
+	    fprintf (out, "%s", current_class);
 	  previous_output = 1;
 	}
     }
+}
+
+void
+report ()
+{
+  extern int flag_complexity;
+  if (flag_complexity)
+    fprintf (out, "%s %d\n", input_filename, complexity);
 }
 
 /* Reset global status used by the report functions.  */
@@ -1176,22 +1273,15 @@ report_main_declaration (declarator)
 void reset_report ()
 {
   previous_output = 0;
-  current_class = package_name = NULL;
+  package_name = NULL;
+  current_class = NULL;
+  complexity = 0;
 }
 
 void
 yyerror (msg)
-     char *msg ATTRIBUTE_UNUSED;
+     const char *msg ATTRIBUTE_UNUSED;
 {
-}
-
-char *
-xstrdup (s)
-     const char *s;
-{
-  char *ret;
-
-  ret = xmalloc (strlen (s) + 1);
-  strcpy (ret, s);
-  return ret;
+  fprintf (stderr, "%s: %d: %s\n", input_filename, lineno, msg);
+  exit (1);
 }

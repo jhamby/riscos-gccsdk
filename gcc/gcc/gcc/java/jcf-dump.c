@@ -1,7 +1,7 @@
 /* Program to dump out a Java(TM) .class file.
    Functionally similar to Sun's javap.
 
-   Copyright (C) 1996, 1997, 1998, 1999 Free Software Foundation, Inc.
+   Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -53,6 +53,10 @@ The Free Software Foundation is independent of Sun Microsystems, Inc.  */
 #include "tree.h"
 #include "java-tree.h"
 
+#include "version.h"
+
+#include <getopt.h>
+
 /* Outout file. */
 FILE *out;
 /* Name of output file, if NULL if stdout. */
@@ -67,6 +71,10 @@ int flag_print_fields = 1;
 int flag_print_methods = 1;
 int flag_print_attributes = 1;
 
+/* When non zero, warn when source file is newer than matching class
+   file.  */
+int flag_newer = 1;
+
 /* Print names of classes that have a "main" method. */
 int flag_print_main = 0;
 
@@ -78,16 +86,21 @@ int class_access_flags = 0;
 /* Print in format similar to javap.  VERY IMCOMPLETE. */
 int flag_javap_compatible = 0;
 
-static int print_access_flags PROTO ((FILE *, uint16, char));
-static void print_constant_terse PROTO ((FILE*, JCF*, int, int));
-static void print_constant PROTO ((FILE *, JCF *, int, int));
-static void print_constant_ref PROTO ((FILE *, JCF *, int));
-static void disassemble_method PROTO ((JCF*, unsigned char *, int));
-static void print_name PROTO ((FILE*, JCF*, int));
-static void print_signature PROTO ((FILE*, JCF*, int, int));
-static int utf8_equal_string PROTO ((struct JCF*, int, const char *));
-static int usage PROTO ((void));
-static void process_class PROTO ((struct JCF *));
+static void print_access_flags PARAMS ((FILE *, uint16, char));
+static void print_constant_terse PARAMS ((FILE*, JCF*, int, int));
+static void print_constant PARAMS ((FILE *, JCF *, int, int));
+static void print_constant_ref PARAMS ((FILE *, JCF *, int));
+static void disassemble_method PARAMS ((JCF*, const unsigned char *, int));
+static void print_name PARAMS ((FILE*, JCF*, int));
+static void print_signature PARAMS ((FILE*, JCF*, int, int));
+static int utf8_equal_string PARAMS ((struct JCF*, int, const char *));
+static void usage PARAMS ((void)) ATTRIBUTE_NORETURN;
+static void help PARAMS ((void)) ATTRIBUTE_NORETURN;
+static void version PARAMS ((void)) ATTRIBUTE_NORETURN;
+static void process_class PARAMS ((struct JCF *));
+static void print_constant_pool PARAMS ((struct JCF *));
+static void print_exception_table PARAMS ((struct JCF *,
+					  const unsigned char *entries, int));
 
 #define PRINT_SIGNATURE_RESULT_ONLY 1
 #define PRINT_SIGNATURE_ARGS_ONLY 2
@@ -285,6 +298,38 @@ DEFUN(utf8_equal_string, (jcf, index, value),
   else \
     JCF_SKIP (jcf, 4 * n); }
 
+#define HANDLE_INNERCLASSES_ATTRIBUTE(COUNT)				    \
+{ int n = (COUNT);							    \
+  COMMON_HANDLE_ATTRIBUTE(jcf, attribute_name, attribute_length);	    \
+  while (n--)								    \
+    {									    \
+      uint16 inner_class_info_index = JCF_readu2 (jcf);			    \
+      uint16 outer_class_info_index = JCF_readu2 (jcf);			    \
+      uint16 inner_name_index = JCF_readu2 (jcf);			    \
+      uint16 inner_class_access_flags = JCF_readu2 (jcf);		    \
+									    \
+      if (flag_print_class_info)					    \
+	{								    \
+	  fprintf (out, "\n  class: ");					    \
+	  if (flag_print_constant_pool)					    \
+	    fprintf (out, "%d=", inner_class_info_index);		    \
+	  print_constant_terse (out, jcf,				    \
+				inner_class_info_index, CONSTANT_Class);    \
+	  fprintf (out, " (%d=", inner_name_index);			    \
+	  print_constant_terse (out, jcf, inner_name_index, CONSTANT_Utf8); \
+	  fprintf (out, "), access flags: 0x%x", inner_class_access_flags); \
+	  print_access_flags (out, inner_class_access_flags, 'c');	    \
+	  fprintf (out, ", outer class: ");				    \
+	  if (flag_print_constant_pool)					    \
+	    fprintf (out, "%d=", outer_class_info_index);		    \
+	  print_constant_terse (out, jcf,				    \
+				outer_class_info_index, CONSTANT_Class);    \
+	}								    \
+    }									    \
+      if (flag_print_class_info)					    \
+	fputc ('\n', out);						    \
+}
+
 #define PROCESS_OTHER_ATTRIBUTE(JCF, INDEX, LENGTH) \
 { COMMON_HANDLE_ATTRIBUTE(JCF, INDEX, LENGTH); \
   fputc ('\n', out); JCF_SKIP (JCF, LENGTH); }
@@ -311,7 +356,7 @@ DEFUN(print_constant_ref, (stream, jcf, index),
    The CONTEXT is one of 'c' (class flags), 'f' (field flags),
    or 'm' (method flags). */
 
-static int
+static void
 DEFUN (print_access_flags, (stream, flags, context),
        FILE *stream AND uint16 flags AND char context)
 {
@@ -383,7 +428,12 @@ DEFUN(print_constant, (out, jcf, index, verbosity),
     case CONSTANT_Class:
       n = JPOOL_USHORT1 (jcf, index);
       if (verbosity > 0)
-	fprintf (out, verbosity > 1 ? "Class name: %d=" : "Class ", n);
+	{
+	  if (verbosity > 1)
+	    fprintf (out, "Class name: %d=", n);
+	  else
+	    fprintf (out, "Class ");
+	}
       if (! CPOOL_INDEX_IN_RANGE (&jcf->cpool, n))
 	fprintf (out, "<out of range>");
       else if (verbosity < 2 && JPOOL_TAG (jcf, n) == CONSTANT_Utf8)
@@ -409,8 +459,10 @@ DEFUN(print_constant, (out, jcf, index, verbosity),
 	else if (verbosity > 0)
 	    fprintf (out, "%s ", str);
 	print_constant_terse (out, jcf, tclass, CONSTANT_Class);
-	fprintf (out, verbosity < 2 ? "." : " name_and_type: %d=<",
-		 name_and_type);
+	if (verbosity < 2)
+	  fprintf (out, ".");
+	else
+	  fprintf (out, " name_and_type: %d=<", name_and_type);
 	print_constant_terse (out, jcf, name_and_type, CONSTANT_NameAndType);
 	if (verbosity == 2)
 	  fputc ('>', out);
@@ -419,7 +471,12 @@ DEFUN(print_constant, (out, jcf, index, verbosity),
     case CONSTANT_String:
       j = JPOOL_USHORT1 (jcf, index);
       if (verbosity > 0)
-	fprintf (out, verbosity > 1 ? "String %d=" : "String ", j);
+	{
+	  if (verbosity > 1)
+	    fprintf (out, "String %d=", j);
+	  else
+	    fprintf (out, "String ");
+	}
       print_constant_terse (out, jcf, j, CONSTANT_Utf8);
       break;
     case CONSTANT_Integer:
@@ -447,7 +504,7 @@ DEFUN(print_constant, (out, jcf, index, verbosity),
     case CONSTANT_Float:
       {
 	jfloat fnum = JPOOL_FLOAT (jcf, index);
-	fprintf (out, "%s%.10g", verbosity > 1 ? "Float " : "", (double) fnum);
+	fprintf (out, "%s%.10g", verbosity > 0 ? "Float " : "", (double) fnum);
 	if (verbosity > 1)
 	  fprintf (out, ", bits = 0x%08lx", (long) (* (int32 *) &fnum));
 	break;
@@ -455,7 +512,7 @@ DEFUN(print_constant, (out, jcf, index, verbosity),
     case CONSTANT_Double:
       {
 	jdouble dnum = JPOOL_DOUBLE (jcf, index);
-	fprintf (out, "%s%.20g", verbosity > 1 ? "Double " : "", dnum);
+	fprintf (out, "%s%.20g", verbosity > 0 ? "Double " : "", dnum);
 	if (verbosity > 1)
 	  {
 	    int32 hi, lo;
@@ -470,8 +527,12 @@ DEFUN(print_constant, (out, jcf, index, verbosity),
 	uint16 name = JPOOL_USHORT1 (jcf, index);
 	uint16 sig = JPOOL_USHORT2 (jcf, index);
 	if (verbosity > 0)
-	  fprintf (out, verbosity > 1 ? "%s name: %d=" : "%s ",
-		   "NameAndType", name);
+	  {
+	    if (verbosity > 1)
+	      fprintf (out, "NameAndType name: %d=", name);
+	    else
+	      fprintf (out, "NameAndType ");
+	  }
 	print_name (out, jcf, name);
 	if (verbosity <= 1)
 	  fputc (' ', out);
@@ -482,7 +543,7 @@ DEFUN(print_constant, (out, jcf, index, verbosity),
       break;
     case CONSTANT_Utf8:
       {
-	register unsigned char *str = JPOOL_UTF_DATA (jcf, index);
+	register const unsigned char *str = JPOOL_UTF_DATA (jcf, index);
 	int length = JPOOL_UTF_LENGTH (jcf, index);
 	if (verbosity > 0)
 	  { /* Print as 8-bit bytes. */
@@ -503,7 +564,7 @@ DEFUN(print_constant, (out, jcf, index, verbosity),
     }
 }
 
-void
+static void
 DEFUN(print_constant_pool, (jcf),
       JCF *jcf)
 {
@@ -630,13 +691,13 @@ DEFUN(print_signature, (stream, jcf, signature_index, int options),
 
 static void
 DEFUN(print_exception_table, (jcf, entries, count),
-      JCF *jcf AND unsigned char *entries AND int count)
+      JCF *jcf AND const unsigned char *entries AND int count)
 {
   /* Print exception table. */
   int i = count;
   if (i > 0)
     {
-      unsigned char *ptr = entries;
+      const unsigned char *ptr = entries;
       fprintf (out, "Exceptions (count: %d):\n", i);
       for (; --i >= 0;  ptr+= 8)
 	{
@@ -659,13 +720,6 @@ DEFUN(print_exception_table, (jcf, entries, count),
 }
 
 #include "jcf-reader.c"
-
-static int
-DEFUN (usage, (), )
-{
-  fprintf (stderr, "Usage: jcf-dump [-o outputfile] [-c] classname\n");
-  exit(1);
-}
 
 static void
 DEFUN(process_class, (jcf),
@@ -713,58 +767,143 @@ DEFUN(process_class, (jcf),
   jcf->filename = NULL;
 }
 
+
+
+/* This is used to mark options with no short value.  */
+#define LONG_OPT(Num)  ((Num) + 128)
+
+#define OPT_classpath LONG_OPT (0)
+#define OPT_CLASSPATH LONG_OPT (1)
+#define OPT_HELP      LONG_OPT (2)
+#define OPT_VERSION   LONG_OPT (3)
+#define OPT_JAVAP     LONG_OPT (4)
+
+static const struct option options[] =
+{
+  { "classpath", required_argument, NULL, OPT_classpath },
+  { "CLASSPATH", required_argument, NULL, OPT_CLASSPATH },
+  { "help",      no_argument,       NULL, OPT_HELP },
+  { "verbose",   no_argument,       NULL, 'v' },
+  { "version",   no_argument,       NULL, OPT_VERSION },
+  { "javap",     no_argument,       NULL, OPT_JAVAP },
+  { "print-main", no_argument,      &flag_print_main, 1 },
+  { NULL,        no_argument,       NULL, 0 }
+};
+
+static void
+usage ()
+{
+  fprintf (stderr, "Try `jcf-dump --help' for more information.\n");
+  exit (1);
+}
+
+static void
+help ()
+{
+  printf ("Usage: jcf-dump [OPTION]... CLASS...\n\n");
+  printf ("Display contents of a class file in readable form.\n\n");
+  printf ("  -c                      Disassemble method bodies\n");
+  printf ("  --javap                 Generate output in `javap' format\n");
+  printf ("\n");
+  printf ("  --classpath PATH        Set path to find .class files\n");
+  printf ("  --CLASSPATH PATH        Set path to find .class files\n");
+  printf ("  -IDIR                   Append directory to class path\n");
+  printf ("  -o FILE                 Set output file name\n");
+  printf ("\n");
+  printf ("  --help                  Print this help, then exit\n");
+  printf ("  --version               Print version number, then exit\n");
+  printf ("  -v, --verbose           Print extra information while running\n");
+  printf ("\n");
+  printf ("For bug reporting instructions, please see:\n");
+  printf ("%s.\n", GCCBUGURL);
+  exit (0);
+}
+
+static void
+version ()
+{
+  printf ("jcf-dump (GCC) %s\n\n", version_string);
+  printf ("Copyright (C) 2002 Free Software Foundation, Inc.\n");
+  printf ("This is free software; see the source for copying conditions.  There is NO\n");
+  printf ("warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n\n");
+  exit (0);
+}
+
 int
 DEFUN(main, (argc, argv),
       int argc AND char** argv)
 {
   JCF jcf[1];
-  int argi;
+  int argi, opt;
+
   if (argc <= 1)
-    usage ();
+    {
+      fprintf (stderr, "jcf-dump: no classes specified\n");
+      usage ();
+    }
 
   jcf_path_init ();
 
-  for (argi = 1; argi < argc; argi++)
+  /* We use getopt_long_only to allow single `-' long options.  For
+     some of our options this is more natural.  */
+  while ((opt = getopt_long_only (argc, argv, "o:I:vc", options, NULL)) != -1)
     {
-      char *arg = argv[argi];
-
-      if (arg[0] != '-' || ! strcmp (arg, "--"))
-	break;
-
-      /* Just let all arguments be given in either "-" or "--" form.  */
-      if (arg[1] == '-')
-	++arg;
-
-      if (strcmp (arg, "-o") == 0 && argi + 1 < argc)
-	output_file = argv[++argi];
-      else if (strcmp (arg, "-classpath") == 0 && argi + 1 < argc)
-	jcf_path_classpath_arg (argv[++argi]);
-      else if (strcmp (arg, "-CLASSPATH") == 0 && argi + 1 < argc)
-	jcf_path_CLASSPATH_arg (argv[++argi]);
-      else if (strncmp (arg, "-I", 2) == 0)
-	jcf_path_include_arg (arg + 2);
-      else if (strcmp (arg, "-verbose") == 0)
-	verbose++;
-      else if (strcmp (arg, "-print-main") == 0)
-	flag_print_main++;
-      else if (strcmp (arg, "-c") == 0)
-	flag_disassemble_methods++;
-      else if (strcmp (arg, "-javap") == 0)
+      switch (opt)
 	{
+	case 0:
+	  /* Already handled.  */
+	  break;
+
+        case 'o':
+	  output_file = optarg;
+	  break;
+
+	case 'I':
+	  jcf_path_include_arg (optarg);
+	  break;
+
+	case 'v':
+	  verbose++;
+	  break;
+
+	case 'c':
+	  flag_disassemble_methods = 1;
+	  break;
+
+	case OPT_classpath:
+	  jcf_path_classpath_arg (optarg);
+	  break;
+
+	case OPT_CLASSPATH:
+	  jcf_path_CLASSPATH_arg (optarg);
+	  break;
+
+	case OPT_HELP:
+	  help ();
+	  break;
+
+	case OPT_VERSION:
+	  version ();
+	  break;
+
+	case OPT_JAVAP:
 	  flag_javap_compatible++;
 	  flag_print_constant_pool = 0;
-	}
-      else
-	{
-	  fprintf (stderr, "%s: illegal argument\n", argv[argi]);
-	  exit (FATAL_EXIT_CODE);
+	  flag_print_attributes = 0;
+	  break;
+
+	default:
+	  usage ();
 	}
     }
 
-  if (argi == argc)
-    usage ();
+  if (optind == argc)
+    {
+      fprintf (stderr, "jcf-dump: no classes specified\n");
+      usage ();
+    }
 
-  jcf_path_seal ();
+  jcf_path_seal (verbose);
 
   if (flag_print_main)
     {
@@ -778,16 +917,16 @@ DEFUN(main, (argc, argv),
   if (output_file)
     {
       out = fopen (output_file, "w");
-      if (out)
+      if (! out)
 	{
 	  fprintf (stderr, "Cannot open '%s' for output.\n", output_file);
-	  exit (FATAL_EXIT_CODE);
+	  return FATAL_EXIT_CODE;
 	}
     }
   else
     out = stdout;
 
-  if (argi >= argc)
+  if (optind >= argc)
     {
       fprintf (out, "Reading .class from <standard input>.\n");
 #if JCF_USE_STDIO
@@ -799,16 +938,16 @@ DEFUN(main, (argc, argv),
     }
   else
     {
-      for (; argi < argc; argi++)
+      for (argi = optind; argi < argc; argi++)
 	{
 	  char *arg = argv[argi];
-	  char* class_filename = find_class (arg, strlen (arg), jcf, 0);
+	  const char *class_filename = find_class (arg, strlen (arg), jcf, 0);
 	  if (class_filename == NULL)
 	    class_filename = find_classfile (arg, jcf, NULL);
 	  if (class_filename == NULL)
 	    {
 	      perror ("Could not find class");
-	      exit (FATAL_EXIT_CODE);
+	      return FATAL_EXIT_CODE;
 	    }
 	  JCF_FILL (jcf, 4);
 	  if (GET_u4 (jcf->read_ptr) == ZIPMAGIC)
@@ -816,7 +955,7 @@ DEFUN(main, (argc, argv),
 	      long compressed_size, member_size;
 	      int compression_method, filename_length, extra_length;
 	      int general_purpose_bits;
-	      char *filename;
+	      const char *filename;
 	      int total_length;
 	      if (flag_print_class_info)
 		fprintf (out, "Reading classes from archive %s.\n",
@@ -831,7 +970,7 @@ DEFUN(main, (argc, argv),
 		  if (magic != 0x04034b50) /* ZIPMAGIC (little-endian) */
 		    {
 		      fprintf (stderr, "bad format of .zip/.jar archive\n");
-		      exit (FATAL_EXIT_CODE);
+		      return FATAL_EXIT_CODE;
 		    }
 		  JCF_FILL (jcf, 26);
 		  JCF_SKIP (jcf, 2);
@@ -905,12 +1044,14 @@ DEFUN(main, (argc, argv),
 	}
     }
 
-  exit (SUCCESS_EXIT_CODE);
+  return SUCCESS_EXIT_CODE;
 }
+
+
 
 static void
 DEFUN(disassemble_method, (jcf, byte_ops, len),
-      JCF* jcf AND unsigned char *byte_ops AND int len)
+      JCF* jcf AND const unsigned char *byte_ops AND int len)
 {
 #undef AND /* Causes problems with opcodes for iand and land. */
 #undef PTR
@@ -999,19 +1140,17 @@ DEFUN(disassemble_method, (jcf, byte_ops, len),
 #define ARRAY_NEW(TYPE) ARRAY_NEW_##TYPE
 #define ARRAY_NEW_NUM \
  INT_temp = IMMEDIATE_u1; \
- { char *str; \
-  switch (INT_temp) {  \
-    case  4: str = "boolean"; break; \
-    case  5: str = "char"; break; \
-    case  6: str = "float"; break; \
-    case  7: str = "double"; break; \
-    case  8: str = "byte"; break; \
-    case  9: str = "short"; break; \
-    case 10: str = "int"; break; \
-    case 11: str = "long"; break; \
-    default: str = "<unknown type code %d>"; break; \
-  } \
-  fputc (' ', out); fprintf (out, str, INT_temp); }
+ { switch ((int) INT_temp) {  \
+    case  4: fputs (" boolean", out); break; \
+    case  5: fputs (" char", out); break; \
+    case  6: fputs (" float", out); break; \
+    case  7: fputs (" double", out); break; \
+    case  8: fputs (" byte", out); break; \
+    case  9: fputs (" short", out); break; \
+    case 10: fputs (" int", out); break; \
+    case 11: fputs (" long", out); break; \
+    default: fprintf (out, " <unknown type code %ld>", (long)INT_temp); break;\
+  } }
 
 #define ARRAY_NEW_PTR  \
   fputc (' ', out); print_constant_ref (out, jcf, IMMEDIATE_u2);
@@ -1064,7 +1203,7 @@ DEFUN(disassemble_method, (jcf, byte_ops, len),
 #define SPECIAL_IINC(OPERAND_TYPE) \
   i = saw_wide ? IMMEDIATE_u2 : IMMEDIATE_u1; \
   fprintf (out, " %d", i); \
-  INT_temp = saw_wide ? IMMEDIATE_s2 : IMMEDIATE_s1; \
+  i = saw_wide ? IMMEDIATE_s2 : IMMEDIATE_s1; \
   saw_wide = 0; \
   fprintf (out, " %d", i)
 

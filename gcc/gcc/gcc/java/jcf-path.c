@@ -1,6 +1,6 @@
 /* Handle CLASSPATH, -classpath, and path searching.
 
-   Copyright (C) 1998, 1999  Free Software Foundation, Inc.
+   Copyright (C) 1998, 1999, 2000, 2001  Free Software Foundation, Inc.
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -43,6 +43,10 @@ The Free Software Foundation is independent of Sun Microsystems, Inc.  */
 #define DIR_SEPARATOR '/'
 #endif
 
+#ifndef DIR_UP
+#define DIR_UP ".."
+#endif
+
 
 
 /* Possible flag values.  */
@@ -58,9 +62,14 @@ struct entry
   struct entry *next;
 };
 
+static void free_entry PARAMS ((struct entry **));
+static void append_entry PARAMS ((struct entry **, struct entry *));
+static void add_entry PARAMS ((struct entry **, const char *, int));
+static void add_path PARAMS ((struct entry **, const char *, int));
+
 /* We support several different ways to set the class path.
 
-   built-in system directory (only libgcj.zip)
+   built-in system directory (only libgcj.jar)
    CLASSPATH environment variable
    -CLASSPATH overrides CLASSPATH
    -classpath option - overrides CLASSPATH, -CLASSPATH, and built-in
@@ -130,7 +139,7 @@ append_entry (entp, ent)
 static void
 add_entry (entp, filename, is_system)
      struct entry **entp;
-     char *filename;
+     const char *filename;
      int is_system;
 {
   int len;
@@ -146,7 +155,7 @@ add_entry (entp, filename, is_system)
     {
       n->flags |= FLAG_ZIP;
       /* If the user uses -classpath then he'll have to include
-	 libgcj.zip in the value.  We check for this in a simplistic
+	 libgcj.jar in the value.  We check for this in a simplistic
 	 way.  Symlinks will fool this test.  This is only used for
 	 -MM and -MMD, so it probably isn't terribly important.  */
       if (! strcmp (filename, LIBGCJ_ZIP_FILE))
@@ -162,11 +171,11 @@ add_entry (entp, filename, is_system)
       strcpy (f2, filename);
       f2[len] = DIR_SEPARATOR;
       f2[len + 1] = '\0';
-      n->name = strdup (f2);
+      n->name = xstrdup (f2);
       ++len;
     }
   else
-    n->name = strdup (filename);
+    n->name = xstrdup (filename);
 
   if (len > longest_path)
     longest_path = len;
@@ -177,10 +186,10 @@ add_entry (entp, filename, is_system)
 static void
 add_path (entp, cp, is_system)
      struct entry **entp;
-     char *cp;
+     const char *cp;
      int is_system;
 {
-  char *startp, *endp;
+  const char *startp, *endp;
 
   if (cp)
     {
@@ -218,9 +227,58 @@ void
 jcf_path_init ()
 {
   char *cp;
+  char *try, sep[2];
+  struct stat stat_b;
+  int found = 0, len;
 
   add_entry (&sys_dirs, ".", 0);
-  add_entry (&sys_dirs, LIBGCJ_ZIP_FILE, 1);
+
+  sep[0] = DIR_SEPARATOR;
+  sep[1] = '\0';
+
+  GET_ENV_PATH_LIST (cp, "GCC_EXEC_PREFIX");
+  if (cp)
+    {
+      try = alloca (strlen (cp) + 50);
+      /* The exec prefix can be something like
+	 /usr/local/bin/../lib/gcc-lib/.  We want to change this
+	 into a pointer to the share directory.  We support two
+	 configurations: one where prefix and exec-prefix are the
+	 same, and one where exec-prefix is `prefix/SOMETHING'.  */
+      strcpy (try, cp);
+      strcat (try, DIR_UP);
+      strcat (try, sep);
+      strcat (try, DIR_UP);
+      strcat (try, sep);
+      len = strlen (try);
+
+      strcpy (try + len, "share");
+      strcat (try, sep);
+      strcat (try, "libgcj.jar");
+      if (! stat (try, &stat_b))
+	{
+	  add_entry (&sys_dirs, try, 1);
+	  found = 1;
+	}
+      else
+	{
+	  strcpy (try + len, DIR_UP);
+	  strcat (try, sep);
+	  strcat (try, "share");
+	  strcat (try, sep);
+	  strcat (try, "libgcj.jar");
+	  if (! stat (try, &stat_b))
+	    {
+	      add_entry (&sys_dirs, try, 1);
+	      found = 1;
+	    }
+	}
+    }
+  if (! found)
+    {
+      /* Desperation: use the installed one.  */
+      add_entry (&sys_dirs, LIBGCJ_ZIP_FILE, 1);
+    }
 
   GET_ENV_PATH_LIST (cp, "CLASSPATH");
   add_path (&classpath_env, cp, 0);
@@ -229,7 +287,7 @@ jcf_path_init ()
 /* Call this when -classpath is seen on the command line.  */
 void
 jcf_path_classpath_arg (path)
-     char *path;
+     const char *path;
 {
   free_entry (&classpath_l);
   add_path (&classpath_l, path, 0);
@@ -238,7 +296,7 @@ jcf_path_classpath_arg (path)
 /* Call this when -CLASSPATH is seen on the command line.  */
 void
 jcf_path_CLASSPATH_arg (path)
-     char *path;
+     const char *path;
 {
   free_entry (&classpath_u);
   add_path (&classpath_u, path, 0);
@@ -247,15 +305,17 @@ jcf_path_CLASSPATH_arg (path)
 /* Call this when -I is seen on the command line.  */
 void
 jcf_path_include_arg (path)
-     char *path;
+     const char *path;
 {
   add_entry (&include_dirs, path, 0);
 }
 
 /* We `seal' the path by linking everything into one big list.  Then
-   we provide a way to iterate through the sealed list.  */
+   we provide a way to iterate through the sealed list.  If PRINT is
+   true then we print the final class path to stderr.  */
 void
-jcf_path_seal ()
+jcf_path_seal (print)
+     int print;
 {
   int do_system = 1;
   struct entry *secondary;
@@ -293,6 +353,21 @@ jcf_path_seal ()
     }
   else
     free_entry (&sys_dirs);
+
+  if (print)
+    {
+      struct entry *ent;
+      fprintf (stderr, "Class path starts here:\n");
+      for (ent = sealed; ent; ent = ent->next)
+	{
+	  fprintf (stderr, "    %s", ent->name);
+	  if ((ent->flags & FLAG_SYSTEM))
+	    fprintf (stderr, " (system)");
+	  if ((ent->flags & FLAG_ZIP))
+	    fprintf (stderr, " (zip)");
+	  fprintf (stderr, "\n");
+	}
+    }
 }
 
 void *

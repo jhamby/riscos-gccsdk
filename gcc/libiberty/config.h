@@ -181,6 +181,8 @@
 /* Define if you have the tmpnam function.  */
 #define HAVE_TMPNAM 1
 
+#define HAVE_LIMITS_H 1
+
 /* Define if you have the vasprintf function.  */
 #undef HAVE_VASPRINTF
 
@@ -210,6 +212,8 @@
 
 /* Define if you have the <sys/param.h> header file.  */
 #define HAVE_SYS_PARAM_H 1
+
+#define HAVE_SYS_STAT_H 1
 
 /* Define if you have the <sys/resource.h> header file.  */
 #define HAVE_SYS_RESOURCE_H 1

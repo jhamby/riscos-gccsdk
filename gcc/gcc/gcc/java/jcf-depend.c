@@ -1,6 +1,6 @@
 /* Functions for handling dependency tracking when reading .class files.
 
-   Copyright (C) 1998  Free Software Foundation, Inc.
+   Copyright (C) 1998, 1999, 2000, 2001  Free Software Foundation, Inc.
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -25,6 +25,7 @@ The Free Software Foundation is independent of Sun Microsystems, Inc.  */
 
 #include "config.h"
 #include "system.h"
+#include "mkdeps.h"
 
 #include <assert.h>
 
@@ -32,22 +33,8 @@ The Free Software Foundation is independent of Sun Microsystems, Inc.  */
 
 
 
-/* We keep a linked list of all the files we've already read.  */
-struct entry
-{
-  char *file;
-  struct entry *next;
-};
-
-/* List of files.  */
-static struct entry *dependencies = NULL;
-
-/* Name of targets.  We support multiple targets when writing .class
-   files.  */
-static struct entry *targets = NULL;
-
-/* Number of columns in output.  */
-#define MAX_OUTPUT_COLUMNS 72
+/* The dependency structure used for this invocation.  */
+struct deps *dependencies;
 
 /* The output file, or NULL if we aren't doing dependency tracking.  */
 static FILE *dep_out = NULL;
@@ -55,73 +42,47 @@ static FILE *dep_out = NULL;
 /* Nonzero if system files should be added.  */
 static int system_files;
 
+/* Nonzero if we are dumping out dummy dependencies.  */
+static int print_dummies;
+
 
-
-/* Helper to free an entry list.  */
-static void
-free_entry (entp)
-     struct entry **entp;
-{
-  struct entry *ent, *next;
-
-  for (ent = *entp; ent != NULL; ent = next)
-    {
-      next = ent->next;
-      free (ent->file);
-      free (ent);
-    }
-  *entp = NULL;
-}
-
-/* Helper to add to entry list.  */
-static void
-add_entry (entp, name)
-     struct entry **entp;
-     char *name;
-{
-  struct entry *ent;
-
-  for (ent = *entp; ent != NULL; ent = ent->next)
-    if (! strcmp (ent->file, name))
-      return;
-
-  ent = (struct entry *) malloc (sizeof (struct entry));
-  ent->file = strdup (name);
-  ent->next = *entp;
-  *entp = ent;
-}
 
 /* Call this to reset the dependency module.  This is required if
    multiple dependency files are being generated from a single tool
-   invocation.  */
+   invocation.  FIXME: we should change our API or just completely use
+   the one in mkdeps.h.  */
 void
 jcf_dependency_reset ()
 {
-  free_entry (&dependencies);
-  free_entry (&targets);
-
   if (dep_out != NULL)
     {
       if (dep_out != stdout)
 	fclose (dep_out);
       dep_out = NULL;
     }
+
+  if (dependencies != NULL)
+    {
+      deps_free (dependencies);
+      dependencies = NULL;
+    }
 }
 
 void
 jcf_dependency_set_target (name)
-     char *name;
+     const char *name;
 {
-  free_entry (&targets);
-  if (name != NULL)
-    add_entry (&targets, name);
+  /* We just handle this the same as an `add_target'.  */
+  if (dependencies != NULL && name != NULL)
+    deps_add_target (dependencies, name, 1);
 }
 
 void
 jcf_dependency_add_target (name)
-     char *name;
+     const char *name;
 {
-  add_entry (&targets, name);
+  if (dependencies != NULL)
+    deps_add_target (dependencies, name, 1);
 }
 
 void
@@ -142,124 +103,41 @@ jcf_dependency_add_file (filename, system_p)
      const char *filename;
      int system_p;
 {
+  if (! dependencies)
+    return;
+
   /* Just omit system files.  */
   if (system_p && ! system_files)
     return;
 
-  add_entry (&dependencies, filename);
+  deps_add_dep (dependencies, filename);
 }
 
 void
 jcf_dependency_init (system_p)
      int system_p;
 {
+  assert (! dependencies);
   system_files = system_p;
+  dependencies = deps_init ();
 }
 
-/* FIXME: this is taken almost directly from cccp.c.  Such duplication
-   is bad.  */
-static char *
-munge (filename)
-     char *filename;
+void
+jcf_dependency_print_dummies ()
 {
-  static char *buffer = NULL;
-  static int buflen = 0;
-
-  int len = 2 * strlen (filename) + 1;
-  char *p, *dst;
-
-  if (buflen < len)
-    {
-      buflen = len;
-      if (buffer == NULL)
-	buffer = malloc (buflen);
-      else
-	buffer = realloc (buffer, buflen);
-    }
-
-  dst = buffer;
-  for (p = filename; *p; ++p)
-    {
-      switch (*p)
-	{
-	case ' ':
-	case '\t':
-	  {
-	    /* GNU make uses a weird quoting scheme for white space.
-	       A space or tab preceded by 2N+1 backslashes represents
-	       N backslashes followed by space; a space or tab
-	       preceded by 2N backslashes represents N backslashes at
-	       the end of a file name; and backslashes in other
-	       contexts should not be doubled.  */
-	    char *q;
-	    for (q = p - 1; filename < q && q[-1] == '\\';  q--)
-	      *dst++ = '\\';
-	  }
-	  *dst++ = '\\';
-	  goto ordinary_char;
-
-	case '$':
-	  *dst++ = '$';
-	  /* Fall through.  This can mishandle things like "$(" but
-	     there's no easy fix.  */
-	default:
-	ordinary_char:
-	  /* This can mishandle characters in the string "\0\n%*?[\\~";
-	     exactly which chars are mishandled depends on the `make' version.
-	     We know of no portable solution for this;
-	     even GNU make 3.76.1 doesn't solve the problem entirely.
-	     (Also, '\0' is mishandled due to our calling conventions.)  */
-	  *dst++ = *p;
-	  break;
-	}
-    }
-
-  *dst++ = '\0';
-  return buffer;
-}
-
-/* Helper to print list of files.  */
-static int
-print_ents (ent, column)
-     struct entry *ent;
-     int column;
-{
-  int first = 1;
-
-  for (; ent != NULL; ent = ent->next)
-    {
-      char *depname = munge (ent->file);
-      int len = strlen (depname);
-
-      if (column + len + 2 > MAX_OUTPUT_COLUMNS)
-	{
-	  fprintf (dep_out, " \\\n ");
-	  column = 1;
-	}
-
-      if (! first)
-	fputs (" ", dep_out);
-      fputs (depname, dep_out);
-      first = 0;
-      column += len + 1;
-    }
-
-  return column;
+  print_dummies = 1;
 }
 
 void
 jcf_dependency_write ()
 {
-  int column = 0;
-
   if (! dep_out)
     return;
 
-  assert (targets);
-  column = print_ents (targets, 0);
-  fputs (" : ", dep_out);
+  assert (dependencies);
 
-  print_ents (dependencies, column);
-  fputs ("\n", dep_out);
+  deps_write (dependencies, dep_out, 72);
+  if (print_dummies)
+    deps_phony_targets (dependencies, dep_out);
   fflush (dep_out);
 }

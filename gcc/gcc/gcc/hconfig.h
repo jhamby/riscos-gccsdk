@@ -1,33 +1,55 @@
-/* config.h */
-
-#ifdef IN_GCC
+/* hconfig.h */
 
 #ifdef HOST_ARM_RISCOS
 #include "auto-host-riscos.h"
 #else
 #include "auto-host.h"
 #endif
-#include "gansidecl.h"
+
+#ifdef IN_GCC
+/* Provide three core typedefs used by everything, if we are compiling
+   GCC.  These used to be found in rtl.h and tree.h, but this is no
+   longer practical.  Providing these here rather that system.h allows
+   the typedefs to be used everywhere within GCC. */
+struct rtx_def;
+typedef struct rtx_def *rtx;
+struct rtvec_def;
+typedef struct rtvec_def *rtvec;
+union tree_node;
+typedef union tree_node *tree;
+#endif
+
+
+#ifdef IN_GCC
+#include "ansidecl.h"
+#include "config/arm/xm-riscos.h"
+#include "config/arm/riscos-aof.h"
+#include "config/arm/arm.h"
+
+#if 0
 
 #ifdef HOST_ARM_RISCOS
 #include "config/arm/xm-riscos.h"
 #elif HOST_ARM_LINUX
 #include "config/arm/xm-linux.h"
-#elif HOST_I386_CYGWIN
-#include "config/i386/xm-cygwin.h"
+#elif HOST_I386_LINUX
+#include "config/i386/i386.h"
+#include "config/i386/linux.h"
 #elif HOST_I386_FREEBSD
 #include "config/i386/xm-freebsd.h"
-#elif HOST_I386_LINUX
-#include "config/i386/xm-linux.h"
 #elif HOST_MIPS_IRIX
 #include "config/mips/xm-iris6.h"
 #endif
 
-#include "hwint.h"
-#endif
+#endif /* 0 */
+
+#endif /* IN_GCC */
+
+
 #ifndef HAVE_ATEXIT
 #define HAVE_ATEXIT
 #endif
 #ifndef POSIX
 #define POSIX
 #endif
+

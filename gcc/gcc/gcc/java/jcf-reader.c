@@ -2,7 +2,7 @@
    It is not stand-alone:  It depends on tons of macros, and the
    intent is you #include this file after you've defined the macros.
 
-   Copyright (C) 1996  Free Software Foundation, Inc.
+   Copyright (C) 1996, 1997, 1998, 1999, 2000  Free Software Foundation, Inc.
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -26,7 +26,84 @@ The Free Software Foundation is independent of Sun Microsystems, Inc.  */
 #include "jcf.h"
 #include "zipfile.h"
 
-int
+static int get_attribute PARAMS ((JCF *));
+static int jcf_parse_preamble PARAMS ((JCF *));
+static int jcf_parse_constant_pool PARAMS ((JCF *));
+static void jcf_parse_class PARAMS ((JCF *));
+static int jcf_parse_fields PARAMS ((JCF *));
+static int jcf_parse_one_method PARAMS ((JCF *));
+static int jcf_parse_methods PARAMS ((JCF *));
+static int jcf_parse_final_attributes PARAMS ((JCF *));
+#ifdef NEED_PEEK_ATTRIBUTE
+static int peek_attribute PARAMS ((JCF *, int, const char *, int));
+#endif
+#ifdef NEED_SKIP_ATTRIBUTE
+static void skip_attribute PARAMS ((JCF *, int));
+#endif
+
+/* Go through all available attribute (ATTRIBUTE_NUMER) and try to
+   identify PEEKED_NAME.  Return 1 if PEEKED_NAME was found, 0
+   otherwise. JCF is restored to its initial position before
+   returning.  */
+
+#ifdef NEED_PEEK_ATTRIBUTE	/* Not everyone uses this function */
+static int
+peek_attribute (jcf, attribute_number, peeked_name, peeked_name_length)
+      JCF *jcf;
+      int attribute_number;
+      const char *peeked_name;
+      int peeked_name_length;
+{
+  int to_return = 0;
+  long absolute_offset = (long)JCF_TELL (jcf);
+  int i;
+
+  for (i = 0; !to_return && i < attribute_number; i++)
+    {
+      uint16 attribute_name = (JCF_FILL (jcf, 6), JCF_readu2 (jcf));
+      uint32 attribute_length = JCF_readu4 (jcf);
+      int name_length;
+      const unsigned char *name_data; 
+
+      JCF_FILL (jcf, (long) attribute_length);
+      if (attribute_name <= 0 || attribute_name >= JPOOL_SIZE(jcf)
+	  || JPOOL_TAG (jcf, attribute_name) != CONSTANT_Utf8)
+	continue;
+
+      name_length = JPOOL_UTF_LENGTH (jcf, attribute_name);
+      name_data = JPOOL_UTF_DATA (jcf, attribute_name);
+
+      if (name_length == peeked_name_length 
+	  && ! memcmp (name_data, peeked_name, peeked_name_length)) 
+	{
+	  to_return = 1; 
+	  break;
+	}
+      
+      JCF_SKIP (jcf, attribute_length);
+    }
+
+  JCF_SEEK (jcf, absolute_offset);
+  return to_return;
+}
+#endif
+
+#ifdef NEED_SKIP_ATTRIBUTE	/* Not everyone uses this function */
+static void
+skip_attribute (jcf, number_of_attribute)
+     JCF *jcf;
+     int number_of_attribute;
+{
+  while (number_of_attribute--)
+    {
+      JCF_FILL (jcf, 6);
+      (void) JCF_readu2 (jcf);
+      JCF_SKIP (jcf, JCF_readu4 (jcf));
+    }
+}
+#endif
+
+static int
 DEFUN(get_attribute, (jcf),
       JCF *jcf)
 {
@@ -34,7 +111,7 @@ DEFUN(get_attribute, (jcf),
   uint32 attribute_length = JCF_readu4 (jcf);
   uint32 start_pos = JCF_TELL(jcf);
   int name_length;
-  unsigned char *name_data;
+  const unsigned char *name_data;
   JCF_FILL (jcf, (long) attribute_length);
   if (attribute_name <= 0 || attribute_name >= JPOOL_SIZE(jcf))
     return -2;
@@ -42,6 +119,9 @@ DEFUN(get_attribute, (jcf),
     return -2;
   name_length = JPOOL_UTF_LENGTH (jcf, attribute_name);
   name_data = JPOOL_UTF_DATA (jcf, attribute_name);
+
+#define MATCH_ATTRIBUTE(S) \
+  (name_length == sizeof (S)-1 && memcmp (name_data, S, sizeof (S)-1) == 0)
 
 #ifdef IGNORE_ATTRIBUTE
    if (IGNORE_ATTRIBUTE (jcf, attribute_name, attribute_length))
@@ -51,7 +131,7 @@ DEFUN(get_attribute, (jcf),
    else
 #endif
 #ifdef HANDLE_SOURCEFILE
-  if (name_length == 10 && memcmp (name_data, "SourceFile", 10) == 0)
+  if (MATCH_ATTRIBUTE ("SourceFile"))
     {
       uint16 sourcefile_index = JCF_readu2 (jcf);
       HANDLE_SOURCEFILE(sourcefile_index);
@@ -59,7 +139,7 @@ DEFUN(get_attribute, (jcf),
   else
 #endif
 #ifdef HANDLE_CONSTANTVALUE
-  if (name_length == 13 && memcmp (name_data, "ConstantValue", 13) == 0)
+  if (MATCH_ATTRIBUTE ("ConstantValue"))
     {
       uint16 constantvalue_index = JCF_readu2 (jcf);
       if (constantvalue_index <= 0 || constantvalue_index >= JPOOL_SIZE(jcf))
@@ -69,7 +149,7 @@ DEFUN(get_attribute, (jcf),
   else
 #endif
 #ifdef HANDLE_CODE_ATTRIBUTE
-  if (name_length == 4 && memcmp (name_data, "Code", 4) == 0)
+  if (MATCH_ATTRIBUTE ("Code"))
     {
       uint16 j;
       uint16 max_stack ATTRIBUTE_UNUSED = JCF_readu2 (jcf);
@@ -98,7 +178,7 @@ DEFUN(get_attribute, (jcf),
   else
 #endif /* HANDLE_CODE_ATTRIBUTE */
 #ifdef HANDLE_EXCEPTIONS_ATTRIBUTE
-  if (name_length == 10 && memcmp (name_data, "Exceptions", 10) == 0)
+  if (MATCH_ATTRIBUTE ("Exceptions"))
     {
       uint16 count = JCF_readu2 (jcf);
       HANDLE_EXCEPTIONS_ATTRIBUTE (count);
@@ -106,7 +186,7 @@ DEFUN(get_attribute, (jcf),
   else
 #endif
 #ifdef HANDLE_LINENUMBERTABLE_ATTRIBUTE
-  if (name_length == 15 && memcmp (name_data, "LineNumberTable", 15) == 0)
+  if (MATCH_ATTRIBUTE ("LineNumberTable"))
     {
       uint16 count = JCF_readu2 (jcf);
       HANDLE_LINENUMBERTABLE_ATTRIBUTE (count);
@@ -114,10 +194,32 @@ DEFUN(get_attribute, (jcf),
   else
 #endif
 #ifdef HANDLE_LOCALVARIABLETABLE_ATTRIBUTE
-  if (name_length == 18 && memcmp (name_data, "LocalVariableTable", 18) == 0)
+  if (MATCH_ATTRIBUTE ("LocalVariableTable"))
     {
       uint16 count = JCF_readu2 (jcf);
       HANDLE_LOCALVARIABLETABLE_ATTRIBUTE (count);
+    }
+  else
+#endif
+#ifdef HANDLE_INNERCLASSES_ATTRIBUTE
+  if (MATCH_ATTRIBUTE ("InnerClasses"))
+    {
+      uint16 count = JCF_readu2 (jcf);
+      HANDLE_INNERCLASSES_ATTRIBUTE (count);
+    }
+  else
+#endif
+#ifdef HANDLE_SYNTHETIC_ATTRIBUTE
+  if (MATCH_ATTRIBUTE ("Synthetic"))
+    {
+      HANDLE_SYNTHETIC_ATTRIBUTE ();
+    }
+  else
+#endif
+#ifdef HANDLE_GCJCOMPILED_ATTRIBUTE
+  if (MATCH_ATTRIBUTE ("gnu.gcj.gcj-compiled"))
+    {
+      HANDLE_GCJCOMPILED_ATTRIBUTE ();
     }
   else
 #endif
@@ -134,7 +236,7 @@ DEFUN(get_attribute, (jcf),
 }
 
 /* Read and handle the pre-amble. */
-int
+static int
 DEFUN(jcf_parse_preamble, (jcf),
       JCF* jcf)
 {
@@ -155,7 +257,7 @@ DEFUN(jcf_parse_preamble, (jcf),
    Return 0 if OK.
    Return -2 if a bad cross-reference (index of other constant) was seen.
 */
-int
+static int
 DEFUN(jcf_parse_constant_pool, (jcf),
       JCF* jcf)
 {
@@ -221,7 +323,7 @@ DEFUN(jcf_parse_constant_pool, (jcf),
 
 /* Read various class flags and numbers. */
 
-void
+static void
 DEFUN(jcf_parse_class, (jcf),
       JCF* jcf)
 {
@@ -250,7 +352,7 @@ DEFUN(jcf_parse_class, (jcf),
 }
 
 /* Read fields. */
-int
+static int
 DEFUN(jcf_parse_fields, (jcf),
       JCF* jcf)
 {
@@ -270,7 +372,7 @@ DEFUN(jcf_parse_fields, (jcf),
       uint16 attribute_count = JCF_readu2 (jcf);
 #ifdef HANDLE_START_FIELD
       HANDLE_START_FIELD (access_flags, name_index, signature_index,
-		    attribute_count);
+			  attribute_count);
 #endif
       for (j = 0; j < attribute_count; j++)
 	{
@@ -290,7 +392,7 @@ DEFUN(jcf_parse_fields, (jcf),
 
 /* Read methods. */
 
-int
+static int
 DEFUN(jcf_parse_one_method, (jcf),
       JCF* jcf)
 {
@@ -314,7 +416,7 @@ DEFUN(jcf_parse_one_method, (jcf),
   return 0;
 }
 
-int
+static int
 DEFUN(jcf_parse_methods, (jcf),
       JCF* jcf)
 {
@@ -338,7 +440,7 @@ DEFUN(jcf_parse_methods, (jcf),
 }
 
 /* Read attributes. */
-int
+static int
 DEFUN(jcf_parse_final_attributes, (jcf),
       JCF *jcf)
 {

@@ -3,9 +3,11 @@
 # Written by Nick Burrett <nick@dsvr.net>
 
 CC_S = $(CROSS_CC) -xassembler-with-cpp
-INCLUDES = -I. -I../../include -I./include -I./config -I./cp
+INCLUDES = -I. -I../../include -I./include -I./config
 CROSS_CFLAGS += -D$(targetsystem)
 CROSS_CFLAGS += -DIN_GCC -DHAVE_CONFIG_H -DIN_LIBGCC2 -D__GCC_FLOAT_NOT_NEEDED
+
+FPBIT_FLAGS=-DFINE_GRAINED_LIBRARIES -I. -I../../include -I./config
 
 libgccobjdir=$(objdir)/gcc-$(VERSION)/libgcc/$(TRG)
 
@@ -87,32 +89,19 @@ FP_BIT_SINGLE = $(libgccobjdir)/pack_sf.o \
 	$(libgccobjdir)/sf_to_df.o
 
 
-GPP_LIB = $(libgccobjdir)/tinfo.o \
-	$(libgccobjdir)/tinfo2.o \
-	$(libgccobjdir)/new.o \
-	$(libgccobjdir)/opnew.o \
-	$(libgccobjdir)/opnewnt.o \
-	$(libgccobjdir)/opvnew.o \
-	$(libgccobjdir)/opvnewnt.o \
-	$(libgccobjdir)/opdel.o \
-	$(libgccobjdir)/opdelnt.o \
-	$(libgccobjdir)/opvdel.o \
-	$(libgccobjdir)/opvdelnt.o \
-	$(libgccobjdir)/exception.o
-
 all:	$(ux_gcc_bin_dir)/$(TRG)/libgcc.o $(ro_gcc_bin_dir)/$(TRG)/o/libgcc
 
 install_headers:
 	$(insthdr) ginclude "*.h" . $(ux_gccpkg)/$(gn_gcc_include_dir) $(ro_gccpkg)/$(gn_gcc_include_dir)
 
-$(ux_gcc_bin_dir)/$(TRG)/libgcc.o: $(GPP_LIB) $(GCC_LIB_ULIB) \
+$(ux_gcc_bin_dir)/$(TRG)/libgcc.o: $(GCC_LIB_ULIB) \
 	$(GCC_LIB_COMMON) $(FP_BIT_DOUBLE) $(FP_BIT_SINGLE)
-	$(CROSS_AR) $(CROSS_AR_FLAGS) -c $@ $(GPP_LIB) $(GCC_LIB_ULIB) \
+	$(CROSS_AR) $(CROSS_AR_FLAGS) -c $@ $(GCC_LIB_ULIB) \
 	$(GCC_LIB_COMMON) $(FP_BIT_DOUBLE) $(FP_BIT_SINGLE)
 
-$(ro_gcc_bin_dir)/$(TRG)/o/libgcc: $(GPP_LIB) $(GCC_LIB_ULIB) \
+$(ro_gcc_bin_dir)/$(TRG)/o/libgcc: $(GCC_LIB_ULIB) \
 	$(GCC_LIB_COMMON) $(FP_BIT_DOUBLE) $(FP_BIT_SINGLE)
-	$(CROSS_AR) $(CROSS_AR_FLAGS) -c $@ $(GPP_LIB) $(GCC_LIB_ULIB) \
+	$(CROSS_AR) $(CROSS_AR_FLAGS) -c $@ $(GCC_LIB_ULIB) \
 	$(GCC_LIB_COMMON) $(FP_BIT_DOUBLE) $(FP_BIT_SINGLE)
 
 ############################################################################
@@ -126,50 +115,31 @@ $(libgccobjdir)/getopt1.o:	../../libiberty/getopt1.c
 
 $(libgccobjdir)/dummy.o:	libgcc2.c
 	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c libgcc2.c $(INCLUDES) -DL__dummy
+
 $(libgccobjdir)/gcc_bcmp.o:	libgcc2.c
 	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c libgcc2.c $(INCLUDES) -DL__gcc_bcmp
 
 $(libgccobjdir)/eh.o:	libgcc2.c
 	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c libgcc2.c $(INCLUDES) -DL_eh -DDONT_USE_BUILTIN_SETJMP
+
 $(libgccobjdir)/eprintf.o:	libgcc2.c
 	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c libgcc2.c $(INCLUDES) -DL_eprintf
+
 $(libgccobjdir)/pure.o:	libgcc2.c
 	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c libgcc2.c $(INCLUDES) -DL_pure
+
 $(libgccobjdir)/main.o:	libgcc2.c
 	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c libgcc2.c $(INCLUDES) -DL__main -DCTOR_LISTS_DEFINED_EXTERNALLY
+
 $(libgccobjdir)/bb.o:	libgcc2.c
 	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c libgcc2.c $(INCLUDES) -DL_bb
-$(libgccobjdir)/div0.o:	config/arm/lib1aof.s
-	$(CC_S) -c config/arm/lib1aof.s -o $@ -DL_div0
 
-# C++ language-support library pieces for libgcc
-$(libgccobjdir)/tinfo.o:	cp/tinfo.cc
-	$(CROSS_CXX) -o $@ -c cp/tinfo.cc -I./cp/inc $(INCLUDES)
-$(libgccobjdir)/tinfo2.o:	cp/tinfo2.cc
-	$(CROSS_CXX) -o $@ -c cp/tinfo2.cc -I./cp/inc $(INCLUDES)
-$(libgccobjdir)/exception.o:	cp/exception.cc
-	$(CROSS_CXX) -o $@ -c cp/exception.cc -I./cp/inc $(INCLUDES) -fexceptions
-$(libgccobjdir)/new.o:	cp/new.cc
-	$(CROSS_CXX) -o $@ -c cp/new.cc -I./cp/inc $(INCLUDES)
-$(libgccobjdir)/opnew.o:	cp/new1.cc
-	$(CROSS_CXX) -o $@ -c cp/new1.cc -I./cp/inc $(INCLUDES) -DL_op_new -fexceptions
-$(libgccobjdir)/opnewnt.o:	cp/new1.cc
-	$(CROSS_CXX) -o $@ -c cp/new1.cc -I./cp/inc $(INCLUDES) -DL_op_newnt -fexceptions
-$(libgccobjdir)/opvnew.o:	cp/new2.cc
-	$(CROSS_CXX) -o $@ -c cp/new2.cc -I./cp/inc $(INCLUDES) -DL_op_vnew
-$(libgccobjdir)/opvnewnt.o:	cp/new2.cc
-	$(CROSS_CXX) -o $@ -c cp/new2.cc -I./cp/inc $(INCLUDES) -DL_op_vnewnt
-$(libgccobjdir)/opdel.o:	cp/new2.cc
-	$(CROSS_CXX) -o $@ -c cp/new2.cc -I./cp/inc $(INCLUDES) -DL_op_delete
-$(libgccobjdir)/opdelnt.o:	cp/new2.cc
-	$(CROSS_CXX) -o $@ -c cp/new2.cc -I./cp/inc $(INCLUDES) -DL_op_delnt
-$(libgccobjdir)/opvdel.o:	cp/new2.cc
-	$(CROSS_CXX) -o $@ -c cp/new2.cc -I./cp/inc $(INCLUDES) -DL_op_vdel
-$(libgccobjdir)/opvdelnt.o:	cp/new2.cc
-	$(CROSS_CXX) -o $@ -c cp/new2.cc -I./cp/inc $(INCLUDES) -DL_op_vdelnt
+
 
 # Assembler versions of certain library functions
 
+$(libgccobjdir)/div0.o:	config/arm/lib1aof.s
+	$(CC_S) -c config/arm/lib1aof.s -o $@ -DL_div0
 $(libgccobjdir)/dynamic.o:	config/arm/lib1aof.s
 	$(CC_S) -c config/arm/lib1aof.s -o $@ -DL_arm_alloca
 $(libgccobjdir)/clricache.o:	config/arm/lib1aof.s
@@ -227,82 +197,82 @@ $(libgccobjdir)/nextarg.o:	config/arm/lib1aof.s
 
 # fp-bit library (double precision)
 $(libgccobjdir)/pack_df.o:	config/fp-bit.c
-	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c config/fp-bit.c -DFINE_GRAINED_LIBRARIES -DL_pack_df
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c config/fp-bit.c $(FPBIT_FLAGS) -DL_pack_df
 $(libgccobjdir)/unpack_df.o:	config/fp-bit.c
-	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c config/fp-bit.c -DFINE_GRAINED_LIBRARIES -DL_unpack_df
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c config/fp-bit.c $(FPBIT_FLAGS) -DL_unpack_df
 $(libgccobjdir)/addsub_df.o:	config/fp-bit.c
-	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c config/fp-bit.c -DFINE_GRAINED_LIBRARIES -DL_addsub_df
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c config/fp-bit.c $(FPBIT_FLAGS) -DL_addsub_df
 $(libgccobjdir)/mul_df.o:	config/fp-bit.c
-	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c config/fp-bit.c -DFINE_GRAINED_LIBRARIES -DL_mul_df
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c config/fp-bit.c $(FPBIT_FLAGS) -DL_mul_df
 $(libgccobjdir)/div_df.o:	config/fp-bit.c
-	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c config/fp-bit.c -DFINE_GRAINED_LIBRARIES -DL_div_df
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c config/fp-bit.c $(FPBIT_FLAGS) -DL_div_df
 $(libgccobjdir)/fpcmp_p_df.o:	config/fp-bit.c
-	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c config/fp-bit.c -DFINE_GRAINED_LIBRARIES -DL_fpcmp_parts_df
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c config/fp-bit.c $(FPBIT_FLAGS) -DL_fpcmp_parts_df
 $(libgccobjdir)/compare_df.o:	config/fp-bit.c
-	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c config/fp-bit.c -DFINE_GRAINED_LIBRARIES -DL_compare_df
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c config/fp-bit.c $(FPBIT_FLAGS) -DL_compare_df
 $(libgccobjdir)/eq_df.o:	config/fp-bit.c
-	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c config/fp-bit.c -DFINE_GRAINED_LIBRARIES -DL_eq_df
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c config/fp-bit.c $(FPBIT_FLAGS) -DL_eq_df
 $(libgccobjdir)/ne_df.o:	config/fp-bit.c
-	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c config/fp-bit.c -DFINE_GRAINED_LIBRARIES -DL_ne_df
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c config/fp-bit.c $(FPBIT_FLAGS) -DL_ne_df
 $(libgccobjdir)/gt_df.o:	config/fp-bit.c
-	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c config/fp-bit.c -DFINE_GRAINED_LIBRARIES -DL_gt_df
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c config/fp-bit.c $(FPBIT_FLAGS) -DL_gt_df
 $(libgccobjdir)/ge_df.o:	config/fp-bit.c
-	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c config/fp-bit.c -DFINE_GRAINED_LIBRARIES -DL_ge_df
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c config/fp-bit.c $(FPBIT_FLAGS) -DL_ge_df
 $(libgccobjdir)/lt_df.o:	config/fp-bit.c
-	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c config/fp-bit.c -DFINE_GRAINED_LIBRARIES -DL_lt_df
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c config/fp-bit.c $(FPBIT_FLAGS) -DL_lt_df
 $(libgccobjdir)/le_df.o:	config/fp-bit.c
-	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c config/fp-bit.c -DFINE_GRAINED_LIBRARIES -DL_le_df
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c config/fp-bit.c $(FPBIT_FLAGS) -DL_le_df
 $(libgccobjdir)/si_to_df.o:	config/fp-bit.c
-	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c config/fp-bit.c -DFINE_GRAINED_LIBRARIES -DL_si_to_df
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c config/fp-bit.c $(FPBIT_FLAGS) -DL_si_to_df
 $(libgccobjdir)/df_to_si.o:	config/fp-bit.c
-	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c config/fp-bit.c -DFINE_GRAINED_LIBRARIES -DL_df_to_si
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c config/fp-bit.c $(FPBIT_FLAGS) -DL_df_to_si
 $(libgccobjdir)/df_to_usi.o:	config/fp-bit.c
-	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c config/fp-bit.c -DFINE_GRAINED_LIBRARIES -DL_df_to_usi
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c config/fp-bit.c $(FPBIT_FLAGS) -DL_df_to_usi
 $(libgccobjdir)/negate_df.o:	config/fp-bit.c
-	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c config/fp-bit.c -DFINE_GRAINED_LIBRARIES -DL_negate_df
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c config/fp-bit.c $(FPBIT_FLAGS) -DL_negate_df
 $(libgccobjdir)/make_df.o:	config/fp-bit.c
-	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c config/fp-bit.c -DFINE_GRAINED_LIBRARIES -DL_make_df
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c config/fp-bit.c $(FPBIT_FLAGS) -DL_make_df
 
 
 # fplib (single precision)
 $(libgccobjdir)/pack_sf.o:	config/fp-bit.c
-	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c config/fp-bit.c -DFLOAT -DFINE_GRAINED_LIBRARIES -DL_pack_sf
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c config/fp-bit.c -DFLOAT $(FPBIT_FLAGS) -DL_pack_sf
 $(libgccobjdir)/unpack_sf.o:	config/fp-bit.c
-	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c config/fp-bit.c -DFLOAT -DFINE_GRAINED_LIBRARIES -DL_unpack_sf
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c config/fp-bit.c -DFLOAT $(FPBIT_FLAGS) -DL_unpack_sf
 $(libgccobjdir)/addsub_sf.o:	config/fp-bit.c
-	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c config/fp-bit.c -DFLOAT -DFINE_GRAINED_LIBRARIES -DL_addsub_sf
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c config/fp-bit.c -DFLOAT $(FPBIT_FLAGS) -DL_addsub_sf
 $(libgccobjdir)/mul_sf.o:	config/fp-bit.c
-	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c config/fp-bit.c -DFLOAT -DFINE_GRAINED_LIBRARIES -DL_mul_sf
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c config/fp-bit.c -DFLOAT $(FPBIT_FLAGS) -DL_mul_sf
 $(libgccobjdir)/div_sf.o:	config/fp-bit.c
-	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c config/fp-bit.c -DFLOAT -DFINE_GRAINED_LIBRARIES -DL_div_sf
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c config/fp-bit.c -DFLOAT $(FPBIT_FLAGS) -DL_div_sf
 $(libgccobjdir)/fpcmp_p_sf.o:	config/fp-bit.c
-	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c config/fp-bit.c -DFLOAT -DFINE_GRAINED_LIBRARIES -DL_fpcmp_parts_sf
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c config/fp-bit.c -DFLOAT $(FPBIT_FLAGS) -DL_fpcmp_parts_sf
 $(libgccobjdir)/compare_sf.o:	config/fp-bit.c
-	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c config/fp-bit.c -DFLOAT -DFINE_GRAINED_LIBRARIES -DL_compare_sf
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c config/fp-bit.c -DFLOAT $(FPBIT_FLAGS) -DL_compare_sf
 $(libgccobjdir)/eq_sf.o:	config/fp-bit.c
-	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c config/fp-bit.c -DFLOAT -DFINE_GRAINED_LIBRARIES -DL_eq_sf
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c config/fp-bit.c -DFLOAT $(FPBIT_FLAGS) -DL_eq_sf
 $(libgccobjdir)/ne_sf.o:	config/fp-bit.c
-	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c config/fp-bit.c -DFLOAT -DFINE_GRAINED_LIBRARIES -DL_ne_sf
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c config/fp-bit.c -DFLOAT $(FPBIT_FLAGS) -DL_ne_sf
 $(libgccobjdir)/gt_sf.o:	config/fp-bit.c
-	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c config/fp-bit.c -DFLOAT -DFINE_GRAINED_LIBRARIES -DL_gt_sf
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c config/fp-bit.c -DFLOAT $(FPBIT_FLAGS) -DL_gt_sf
 $(libgccobjdir)/ge_sf.o:	config/fp-bit.c
-	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c config/fp-bit.c -DFLOAT -DFINE_GRAINED_LIBRARIES -DL_ge_sf
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c config/fp-bit.c -DFLOAT $(FPBIT_FLAGS) -DL_ge_sf
 $(libgccobjdir)/lt_sf.o:	config/fp-bit.c
-	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c config/fp-bit.c -DFLOAT -DFINE_GRAINED_LIBRARIES -DL_lt_sf
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c config/fp-bit.c -DFLOAT $(FPBIT_FLAGS) -DL_lt_sf
 $(libgccobjdir)/le_sf.o:	config/fp-bit.c
-	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c config/fp-bit.c -DFLOAT -DFINE_GRAINED_LIBRARIES -DL_le_sf
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c config/fp-bit.c -DFLOAT $(FPBIT_FLAGS) -DL_le_sf
 $(libgccobjdir)/si_to_sf.o:	config/fp-bit.c
-	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c config/fp-bit.c -DFLOAT -DFINE_GRAINED_LIBRARIES -DL_si_to_sf
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c config/fp-bit.c -DFLOAT $(FPBIT_FLAGS) -DL_si_to_sf
 $(libgccobjdir)/sf_to_si.o:	config/fp-bit.c
-	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c config/fp-bit.c -DFLOAT -DFINE_GRAINED_LIBRARIES -DL_sf_to_si
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c config/fp-bit.c -DFLOAT $(FPBIT_FLAGS) -DL_sf_to_si
 $(libgccobjdir)/sf_to_usi.o:	config/fp-bit.c
-	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c config/fp-bit.c -DFLOAT -DFINE_GRAINED_LIBRARIES -DL_sf_to_usi
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c config/fp-bit.c -DFLOAT $(FPBIT_FLAGS) -DL_sf_to_usi
 $(libgccobjdir)/negate_sf.o:	config/fp-bit.c
-	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c config/fp-bit.c -DFLOAT -DFINE_GRAINED_LIBRARIES -DL_negate_sf
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c config/fp-bit.c -DFLOAT $(FPBIT_FLAGS) -DL_negate_sf
 $(libgccobjdir)/make_sf.o:	config/fp-bit.c
-	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c config/fp-bit.c -DFLOAT -DFINE_GRAINED_LIBRARIES -DL_make_sf
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c config/fp-bit.c -DFLOAT $(FPBIT_FLAGS) -DL_make_sf
 
 $(libgccobjdir)/df_to_sf.o:	config/fp-bit.c
-	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c config/fp-bit.c -DFINE_GRAINED_LIBRARIES -DL_df_to_sf
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c config/fp-bit.c $(FPBIT_FLAGS) -DL_df_to_sf
 $(libgccobjdir)/sf_to_df.o:	config/fp-bit.c
-	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c config/fp-bit.c -DFLOAT -DFINE_GRAINED_LIBRARIES -DL_sf_to_df
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c config/fp-bit.c -DFLOAT $(FPBIT_FLAGS) -DL_sf_to_df

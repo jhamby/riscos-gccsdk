@@ -1,6 +1,6 @@
 /* Utility macros to read Java(TM) .class files and byte codes.
 
-   Copyright (C) 1996, 97-98, 1999 Free Software Foundation, Inc.
+   Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001 Free Software Foundation, Inc.
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -23,8 +23,8 @@ The Free Software Foundation is independent of Sun Microsystems, Inc.  */
 
 /* Written by Per Bothner <bothner@cygnus.com>, February 1996. */
 
-#ifndef JCF_H
-#define JCF_H
+#ifndef GCC_JCF_H
+#define GCC_JCF_H
 #include "javaop.h"
 #ifndef DEFUN
 #if defined (__STDC__)
@@ -38,11 +38,11 @@ The Free Software Foundation is independent of Sun Microsystems, Inc.  */
 #endif
 #endif /* !DEFUN */
 
-#ifndef PROTO
+#ifndef PARAMS
 #if defined (__STDC__)
-#define PROTO(paramlist)    paramlist
+#define PARAMS (paramlist)    paramlist
 #else
-#define PROTO(paramlist)    ()
+#define PARAMS (paramlist)    ()
 #endif
 #endif
 
@@ -53,8 +53,8 @@ The Free Software Foundation is independent of Sun Microsystems, Inc.  */
 #define JCF_u2 unsigned short
 #endif
 
-#define ALLOC (void*)malloc
-#define REALLOC (void*)realloc
+#define ALLOC xmalloc
+#define REALLOC xrealloc
 #ifndef FREE
 #define FREE(PTR) free(PTR)
 #endif
@@ -63,12 +63,8 @@ The Free Software Foundation is independent of Sun Microsystems, Inc.  */
 #define JCF_word JCF_u4
 #endif
 
-#define JCF_ZIP    1
-#define JCF_CLASS  2
-#define JCF_SOURCE 3
-
 struct JCF;
-typedef int (*jcf_filbuf_t) PROTO ((struct JCF*, int needed));
+typedef int (*jcf_filbuf_t) PARAMS ((struct JCF*, int needed));
 
 typedef struct CPool {
   /* Available number of elements in the constants array, before it
@@ -83,6 +79,8 @@ typedef struct CPool {
   jword*	data;
 } CPool;
 
+struct ZipDirectory;
+
 /* JCF encapsulates the state of reading a Java Class File. */
 
 typedef struct JCF {
@@ -90,20 +88,20 @@ typedef struct JCF {
   unsigned char *buffer_end;
   unsigned char *read_ptr;
   unsigned char *read_end;
-  int seen_in_zip;
-  int java_source;
-  int  outofsynch;		/* Found a class file out of synch
-				   with the matching source file. */
-  long zip_offset;    
+  int java_source : 1;
+  int right_zip : 1;
+  int finished : 1;
   jcf_filbuf_t filbuf;
   void *read_state;
-  char *filename;
-  char *classname;
-  void *zipd;			/* Directory entry where it was found */
+  const char *filename;
+  const char *classname;
+  struct ZipDirectory *zipd;	/* Directory entry where it was found */
   JCF_u2 access_flags, this_class, super_class;
   CPool cpool;
 } JCF;
 /*typedef JCF*  JCF_FILE;*/
+
+#define JCF_SEEN_IN_ZIP(JCF) ((JCF)->zipd != NULL)
 
 /* The CPOOL macros take a (pointer to a) CPool.
    The JPOOL macros take a (pointer to a) JCF.
@@ -133,7 +131,7 @@ typedef struct JCF {
 #define JPOOL_UTF_DATA(JCF, INDEX) \
   ((JCF)->buffer+JPOOL_UINT(JCF, INDEX)+2)
 #endif
-#define JPOOL_INT(JCF, INDEX) ((jint) JPOOL_UINT (JCF, INDEX))
+#define JPOOL_INT(JCF, INDEX) (WORD_TO_INT(JPOOL_UINT (JCF, INDEX)))
 #define JPOOL_FLOAT(JCF, INDEX) WORD_TO_FLOAT (JPOOL_UINT (JCF, INDEX))
 
 #define CPOOL_INDEX_IN_RANGE(CPOOL, INDEX) \
@@ -146,8 +144,9 @@ typedef struct JCF {
 #define JCF_FINISH(JCF) { \
   CPOOL_FINISH(&(JCF)->cpool); \
   if ((JCF)->buffer) FREE ((JCF)->buffer); \
-  if ((JCF)->filename) FREE ((JCF)->filename); \
-  if ((JCF)->classname) FREE ((JCF)->classname); }
+  if ((JCF)->filename) FREE ((char *) (JCF)->filename); \
+  if ((JCF)->classname) FREE ((char *) (JCF)->classname); \
+  (JCF)->finished = 1; }
   
 #define CPOOL_INIT(CPOOL) \
   ((CPOOL)->capacity = 0, (CPOOL)->count = 0, (CPOOL)->tags = 0, (CPOOL)->data = 0)
@@ -157,7 +156,8 @@ typedef struct JCF {
 #define JCF_ZERO(JCF)  \
   ((JCF)->buffer = (JCF)->buffer_end = (JCF)->read_ptr = (JCF)->read_end = 0,\
    (JCF)->read_state = 0, (JCF)->filename = (JCF)->classname = 0, \
-   CPOOL_INIT(&(JCF)->cpool), (JCF)->java_source = 0)
+   CPOOL_INIT(&(JCF)->cpool), (JCF)->java_source = 0, (JCF)->zipd = 0, \
+   (JCF)->finished = 0)
 
 /* Given that PTR points to a 2-byte unsigned integer in network
    (big-endian) byte-order, return that integer. */
@@ -208,6 +208,8 @@ typedef struct JCF {
 #define ACC_INTERFACE 0x0200
 #define ACC_ABSTRACT 0x0400
 
+#define ACC_VISIBILITY (ACC_PUBLIC | ACC_PRIVATE | ACC_PROTECTED)
+
 #define CONSTANT_Class 7
 #define CONSTANT_Fieldref 9
 #define CONSTANT_Methodref 10
@@ -223,16 +225,15 @@ typedef struct JCF {
 
 #define DEFAULT_CLASS_PATH "."
 
-extern char *find_class PROTO ((const char *, int, JCF*, int));
-extern char *find_classfile PROTO ((char *, JCF*, const char *));
-extern int jcf_filbuf_from_stdio PROTO ((JCF *jcf, int count));
-extern void jcf_out_of_synch PROTO((JCF *));
-extern int jcf_unexpected_eof PROTO ((JCF*, int));
+extern const char *find_class PARAMS ((const char *, int, JCF*, int));
+extern const char *find_classfile PARAMS ((char *, JCF*, const char *));
+extern int jcf_filbuf_from_stdio PARAMS ((JCF *jcf, int count));
+extern int jcf_unexpected_eof PARAMS ((JCF*, int)) ATTRIBUTE_NORETURN;
 
 /* Extract a character from a Java-style Utf8 string.
  * PTR points to the current character.
  * LIMIT points to the end of the Utf8 string.
- * PTR is incremented to point after the character thta gets returns.
+ * PTR is incremented to point after the character that gets returned.
  * On an error, -1 is returned. */
 #define UTF8_GET(PTR, LIMIT) \
   ((PTR) >= (LIMIT) ? -1 \
@@ -258,25 +259,26 @@ extern int quiet_flag;
 #endif
 
 /* Declarations for dependency code.  */
-extern void jcf_dependency_reset PROTO ((void));
-extern void jcf_dependency_set_target PROTO ((char *));
-extern void jcf_dependency_add_target PROTO ((char *));
-extern void jcf_dependency_set_dep_file PROTO ((const char *));
-extern void jcf_dependency_add_file PROTO ((const char *, int));
-extern void jcf_dependency_write PROTO ((void));
-extern void jcf_dependency_init PROTO ((int));
+extern void jcf_dependency_reset PARAMS ((void));
+extern void jcf_dependency_set_target PARAMS ((const char *));
+extern void jcf_dependency_add_target PARAMS ((const char *));
+extern void jcf_dependency_set_dep_file PARAMS ((const char *));
+extern void jcf_dependency_add_file PARAMS ((const char *, int));
+extern void jcf_dependency_write PARAMS ((void));
+extern void jcf_dependency_init PARAMS ((int));
+extern void jcf_dependency_print_dummies PARAMS ((void));
 
 /* Declarations for path handling code.  */
-extern void jcf_path_init PROTO ((void));
-extern void jcf_path_classpath_arg PROTO ((char *));
-extern void jcf_path_CLASSPATH_arg PROTO ((char *));
-extern void jcf_path_include_arg PROTO ((char *));
-extern void jcf_path_seal PROTO ((void));
-extern void *jcf_path_start PROTO ((void));
-extern void *jcf_path_next PROTO ((void *));
-extern char *jcf_path_name PROTO ((void *));
-extern int jcf_path_is_zipfile PROTO ((void *));
-extern int jcf_path_is_system PROTO ((void *));
-extern int jcf_path_max_len PROTO ((void));
+extern void jcf_path_init PARAMS ((void));
+extern void jcf_path_classpath_arg PARAMS ((const char *));
+extern void jcf_path_CLASSPATH_arg PARAMS ((const char *));
+extern void jcf_path_include_arg PARAMS ((const char *));
+extern void jcf_path_seal PARAMS ((int));
+extern void *jcf_path_start PARAMS ((void));
+extern void *jcf_path_next PARAMS ((void *));
+extern char *jcf_path_name PARAMS ((void *));
+extern int jcf_path_is_zipfile PARAMS ((void *));
+extern int jcf_path_is_system PARAMS ((void *));
+extern int jcf_path_max_len PARAMS ((void));
 
-#endif
+#endif /* ! GCC_JCF_H */

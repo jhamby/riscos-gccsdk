@@ -1,13 +1,14 @@
 # Generated automatically from Makefile.in by configure.
 # Makefile for the GNU Compiler Collection for ARM/RISC OS
-# Copyright (c) 1997, 1998, 1999, 2000 Nick Burrett
+# Copyright (c) 1997, 1998, 1999, 2000, 2001 Nick Burrett
 # Written by Nick Burrett <nick@dsvr.net>
 
 # Defs for the host compiler
 # HOST_CC is a version of CC where optimisations are not turned off
-HOST_CC = $(CC) -O2 $(OPTS) -D$(hostsystem)
+HOST_CC = $(CC) -g -O2 $(OPTS) -D$(hostsystem)
 HOST_INCLUDES = -I./ -I../../include -I./config
-HOST_PREDEFS = -DIN_GCC -DHAVE_CONFIG_H
+HOST_PREDEFS = -DIN_GCC -DHAVE_CONFIG_H -DGENERATOR_FILE -DTARGET_RISCOSAOF
+INCLUDES = -I./ -I../../include -I./config
 
 ifeq (${STAGE},stage1)
 prefix = $(unix_prefix)
@@ -22,43 +23,19 @@ CFLAGS = $(CROSS_CFLAGS) -D$(targetsystem)
 bin_dir = $(ro_bin_dir)
 gcc_bin_dir = $(ro_gcc_bin_dir)
 gexesfx = $(exesfx)
+AR = $(CROSS_AR)
+AR_FLAGS = $(CROSS_AR_FLAGS)
+INCLUDES += -I$(unixlib_incl_dir)
 endif
 
 # Defs for GCC
 CFLAGS += -DIN_GCC -DHAVE_CONFIG_H
 GCC_AS = $(CC) -xassembler-with-cpp -c
 LINK = $(CC) -o $@
-INCLUDES = -I./ -I../../include -I./config
 LIBS = -L$(objdir)/libiberty/$(STAGE) -liberty
 gccobjdir = $(objdir)/gcc-$(VERSION)/gcc/$(STAGE)
 
 export prefix CC CXX CFLAGS bin_dir gcc_bin_dir gccobjdir gexesfx
-
-
-$(gccobjdir)/%.o: %.c
-	$(CC) $(CFLAGS) -o $@ -c $< $(INCLUDES)
-
-all: c cp f77 gpc objc java docs
-
-.PHONY: c
-.PHONY: cp
-.PHONY: f77
-.PHONY: gpc
-.PHONY: objc
-.PHONY: java
-.PHONY: docs
-
-c: $(bin_dir)/gcc$(gexesfx) $(gcc_bin_dir)/cpp$(gexesfx) \
-   $(gcc_bin_dir)/cc1$(gexesfx) $(bin_dir)/gcov$(gexesfx)
-
-cp f77 gpc objc java:
-	$(MAKE) -C $@
-
-ifeq (${STAGE},stage1)
-docs:
-else
-docs:	$(info_dir)/gcc $(info_dir)/cpp
-endif
 
 LIBDEPS = $(gccobjdir)/prefix.o
 
@@ -70,9 +47,11 @@ RISC_OBJS = $(gccobjdir)/config/arm/riscos_fix.o
 RISCOS_OBJS = $(RISC_OBJS) $(gccobjdir)/config/arm/riscos.o
 endif
 
-# Language-specific object files for C
-C_OBJS = $(gccobjdir)/c-parse.o \
-	$(gccobjdir)/c-lang.o \
+
+# Language-specific object files for C and Objective C
+C_AND_OBJC_OBJS = \
+	$(gccobjdir)/attribs.o \
+	$(gccobjdir)/c-errors.o \
 	$(gccobjdir)/c-lex.o \
 	$(gccobjdir)/c-pragma.o \
 	$(gccobjdir)/c-decl.o \
@@ -80,98 +59,192 @@ C_OBJS = $(gccobjdir)/c-parse.o \
 	$(gccobjdir)/c-convert.o \
 	$(gccobjdir)/c-aux-info.o \
 	$(gccobjdir)/c-common.o \
-	$(gccobjdir)/c-iterate.o
+	$(gccobjdir)/c-format.o \
+	$(gccobjdir)/c-semantics.o \
+	$(gccobjdir)/c-objc-common.o \
+	$(gccobjdir)/libcpp.a
+
+# Language-specific object files for C
+C_OBJS = $(gccobjdir)/c-parse.o \
+	$(gccobjdir)/c-lang.o \
+	$(C_AND_OBJC_OBJS)
 
 # Language-independent object files
-
-OBJS =	$(gccobjdir)/print-tree.o \
-	$(gccobjdir)/genrtl.o \
-	$(gccobjdir)/stmt.o \
-	$(gccobjdir)/except.o \
-	$(gccobjdir)/calls.o \
-	$(gccobjdir)/expmed.o \
-	$(gccobjdir)/explow.o \
-	$(gccobjdir)/varasm.o \
-	$(gccobjdir)/rtl.o \
-	$(gccobjdir)/print-rtl.o \
-	$(gccobjdir)/rtlanal.o \
-	$(gccobjdir)/emit-rtl.o \
-	$(gccobjdir)/real.o \
-	$(gccobjdir)/regmove.o \
+OBJS =	$(gccobjdir)/alias.o \
+	$(gccobjdir)/bb-reorder.o \
 	$(gccobjdir)/bitmap.o \
-	$(gccobjdir)/alias.o \
-	$(gccobjdir)/integrate.o \
-	$(gccobjdir)/dyn-string.o \
-	$(gccobjdir)/dwarf2out.o \
-	$(gccobjdir)/jump.o \
-	$(gccobjdir)/cse.o \
-	$(gccobjdir)/loop.o \
-	$(gccobjdir)/unroll.o \
-	$(gccobjdir)/flow.o \
-	$(gccobjdir)/stupid.o \
-	$(gccobjdir)/combine.o \
-	$(gccobjdir)/regclass.o \
-	$(gccobjdir)/local-alloc.o \
-	$(gccobjdir)/global.o \
-	$(gccobjdir)/reload.o \
-	$(gccobjdir)/reload1.o \
+	$(gccobjdir)/builtins.o \
 	$(gccobjdir)/caller-save.o \
-	$(gccobjdir)/insn-peep.o \
-	$(gccobjdir)/reorg.o \
-	$(gccobjdir)/sched.o \
-	$(gccobjdir)/final.o \
-	$(gccobjdir)/recog.o \
-	$(gccobjdir)/reg-stack.o \
-	$(gccobjdir)/insn-opinit.o \
-	$(gccobjdir)/insn-recog.o \
-	$(gccobjdir)/insn-extract.o \
-	$(gccobjdir)/insn-output.o \
-	$(gccobjdir)/insn-emit.o \
-	$(gccobjdir)/profile.o \
-	$(gccobjdir)/insn-attrtab.o \
-	$(gccobjdir)/aux-output.o \
-	$(gccobjdir)/getpwd.o \
-	$(gccobjdir)/lcm.o \
-	$(gccobjdir)/gcse.o \
-	$(gccobjdir)/sbitmap.o \
-	$(gccobjdir)/varray.o \
-	$(gccobjdir)/graph.o \
-	$(gccobjdir)/hash.o
-
-OBJS1 = $(gccobjdir)/convert.o \
+	$(gccobjdir)/calls.o \
+	$(gccobjdir)/cfg.o \
+	$(gccobjdir)/cfganal.o \
+	$(gccobjdir)/cfgbuild.o \
+	$(gccobjdir)/cfgcleanup.o \
+	$(gccobjdir)/cfglayout.o \
+	$(gccobjdir)/cfgloop.o \
+	$(gccobjdir)/cfgrtl.o \
+	$(gccobjdir)/combine.o \
+	$(gccobjdir)/conflict.o \
+	$(gccobjdir)/convert.o \
+	$(gccobjdir)/cse.o \
+	$(gccobjdir)/cselib.o \
+	$(gccobjdir)/dbxout.o \
+	$(gccobjdir)/debug.o \
+	$(gccobjdir)/dependence.o \
+	$(gccobjdir)/df.o \
+	$(gccobjdir)/diagnostic.o \
+	$(gccobjdir)/doloop.o \
+	$(gccobjdir)/dominance.o \
+	$(gccobjdir)/dwarf2asm.o \
+	$(gccobjdir)/dwarf2out.o \
+	$(gccobjdir)/dwarfout.o \
+	$(gccobjdir)/emit-rtl.o \
+	$(gccobjdir)/except.o \
+	$(gccobjdir)/explow.o \
+	$(gccobjdir)/expmed.o \
 	$(gccobjdir)/expr.o \
+	$(gccobjdir)/final.o \
+	$(gccobjdir)/flow.o \
 	$(gccobjdir)/fold-const.o \
 	$(gccobjdir)/function.o \
-	$(gccobjdir)/dbxout.o \
+	$(gccobjdir)/gcse.o \
+	$(gccobjdir)/genrtl.o \
+	$(gccobjdir)/ggc-common.o \
+	$(gccobjdir)/global.o \
+	$(gccobjdir)/graph.o \
+	$(gccobjdir)/haifa-sched.o \
+	$(gccobjdir)/hash.o \
+	$(gccobjdir)/hashtable.o \
+	$(gccobjdir)/ifcvt.o \
+	$(gccobjdir)/insn-attrtab.o \
+	$(gccobjdir)/insn-emit.o \
+	$(gccobjdir)/insn-extract.o \
+	$(gccobjdir)/insn-opinit.o \
+	$(gccobjdir)/insn-output.o \
+	$(gccobjdir)/insn-peep.o \
+	$(gccobjdir)/insn-recog.o \
+	$(gccobjdir)/integrate.o \
+	$(gccobjdir)/jump.o \
+	$(gccobjdir)/langhooks.o \
+	$(gccobjdir)/lcm.o \
+	$(gccobjdir)/lists.o \
+	$(gccobjdir)/local-alloc.o \
+	$(gccobjdir)/loop.o \
+	$(gccobjdir)/mbchar.o \
 	$(gccobjdir)/optabs.o \
+	$(gccobjdir)/params.o \
+	$(gccobjdir)/predict.o \
+	$(gccobjdir)/print-rtl.o \
+	$(gccobjdir)/print-tree.o \
+	$(gccobjdir)/profile.o \
+	$(gccobjdir)/real.o \
+	$(gccobjdir)/recog.o \
+	$(gccobjdir)/reg-stack.o \
+	$(gccobjdir)/regclass.o \
+	$(gccobjdir)/regmove.o \
+	$(gccobjdir)/regrename.o \
+	$(gccobjdir)/reload.o \
+	$(gccobjdir)/reload1.o \
+	$(gccobjdir)/reorg.o \
+	$(gccobjdir)/resource.o \
+	$(gccobjdir)/rtl.o \
+	$(gccobjdir)/rtlanal.o \
+	$(gccobjdir)/rtl-error.o \
+	$(gccobjdir)/sbitmap.o \
+	$(gccobjdir)/sched-deps.o \
+	$(gccobjdir)/sched-ebb.o \
+	$(gccobjdir)/sched-rgn.o \
+	$(gccobjdir)/sched-vis.o \
+	$(gccobjdir)/sdbout.o \
+	$(gccobjdir)/sibcall.o \
+	$(gccobjdir)/simplify-rtx.o \
+	$(gccobjdir)/ssa.o \
+	$(gccobjdir)/ssa-ccp.o \
+	$(gccobjdir)/ssa-dce.o \
+	$(gccobjdir)/stmt.o \
 	$(gccobjdir)/stor-layout.o \
+	$(gccobjdir)/stringpool.o \
+	$(gccobjdir)/timevar.o \
 	$(gccobjdir)/toplev.o \
 	$(gccobjdir)/tree.o \
-	$(gccobjdir)/version.o
+	$(gccobjdir)/tree-dump.o \
+	$(gccobjdir)/tree-inline.o \
+	$(gccobjdir)/unroll.o \
+	$(gccobjdir)/varasm.o \
+	$(gccobjdir)/varray.o \
+	$(gccobjdir)/version.o \
+	$(gccobjdir)/xcoffout.o \
+	$(gccobjdir)/ggc-simple.o \
+	$(gccobjdir)/arm.o
 
-CPPLIB_OBJS = $(gccobjdir)/cpp/cpperror.o \
-	$(gccobjdir)/cpp/cppexp.o \
-	$(gccobjdir)/cpp/cpphash.o \
-	$(gccobjdir)/cpp/cpplib.o \
-	$(gccobjdir)/cpp/cppspec.o \
-	$(gccobjdir)/cpp/cppulp.o \
-	$(gccobjdir)/cpp/cppinit.o \
-	$(gccobjdir)/cpp/cppfiles.o
+#	$(gccobjdir)/intl.o \
 
-CPP_OBJS = $(CPPLIB_OBJS) \
-	$(gccobjdir)/cpp/cppalloc.o \
-	$(gccobjdir)/cpp/cppmain.o \
+BACKEND = $(gccobjdir)/main.o $(gccobjdir)/libbackend.a
+
+LIBCPP_OBJS = 	$(gccobjdir)/cppdefault.o \
+	$(gccobjdir)/cpperror.o \
+	$(gccobjdir)/cppexp.o \
+	$(gccobjdir)/cppfiles.o \
+	$(gccobjdir)/cpphash.o \
+	$(gccobjdir)/cppinit.o \
+	$(gccobjdir)/cpplib.o \
+	$(gccobjdir)/cpplex.o \
+	$(gccobjdir)/cppmacro.o \
+	$(gccobjdir)/cppspec.o \
+	$(gccobjdir)/hashtable.o \
+	$(gccobjdir)/line-map.o \
+	$(gccobjdir)/mkdeps.o \
+	$(gccobjdir)/prefix.o \
+	$(gccobjdir)/version.o \
 	$(gccobjdir)/mbchar.o
-
 
 # GEN files are listed separately, so they can be built before doing parallel
 # makes for cc1 or cc1plus.  Otherwise sequent parallel make attempts to load
 # them before rtl.o is compiled.
 GEN = genemit gengenrtl genoutput genrecog genextract genflags \
-	gencodes genconfig genpeep gencheck
+	gencodes genconfig genpeep gencheck genpreds genconstants
+
+export BACKEND RISCOS_OBJS LIBS LIBDEPS
+
+
+$(gccobjdir)/%.o: %.c
+	$(CC) $(CFLAGS) -o $@ -c $< $(INCLUDES)
+
+
+all: c cp ada
+
+# cp f77 gpc objc java docs
+
+.PHONY: c
+.PHONY: cp
+.PHONY: ada
+.PHONY: f77
+.PHONY: gpc
+.PHONY: objc
+.PHONY: java
+.PHONY: docs
+
+c: $(bin_dir)/gcc$(gexesfx) $(gcc_bin_dir)/cpp0$(gexesfx) \
+   $(gcc_bin_dir)/cc1$(gexesfx) $(bin_dir)/gcov$(gexesfx)
+
+ada cp f77 gpc objc java:
+	$(MAKE) -C $@
+
+
+ifeq (${STAGE},stage1)
+docs:
+else
+docs:	$(info_dir)/gcc $(info_dir)/cpp
+endif
+
+
+$(gccobjdir)/libbackend.a: $(OBJS)
+	$(AR) $(AR_FLAGS) $@ $(OBJS)
+
+$(gccobjdir)/libcpp.a:	$(LIBCPP_OBJS)
+	$(AR) $(AR_FLAGS) $@ $(LIBCPP_OBJS)
 
 # The real targets
-
 $(bin_dir)/gcc$(gexesfx): $(gccobjdir)/gcc.o $(gccobjdir)/gccspec.o \
 	$(gccobjdir)/version.o $(RISC_OBJS) \
 	$(gccobjdir)/config/arm/rname.o $(LIBDEPS)
@@ -179,18 +252,16 @@ $(bin_dir)/gcc$(gexesfx): $(gccobjdir)/gcc.o $(gccobjdir)/gccspec.o \
 	$(gccobjdir)/version.o $(RISC_OBJS) \
 	$(gccobjdir)/config/arm/rname.o $(LIBDEPS) $(LIBS)
 
-$(gcc_bin_dir)/cc1$(gexesfx): $(C_OBJS) $(OBJS) $(OBJS1) $(RISCOS_OBJS)
-	$(LINK) $(C_OBJS) $(OBJS) $(OBJS1) $(RISCOS_OBJS) $(LIBS)
+$(gcc_bin_dir)/cc1$(gexesfx): $(C_OBJS) $(BACKEND) $(RISCOS_OBJS)
+	$(LINK) $(C_OBJS) $(BACKEND) $(RISCOS_OBJS) $(LIBS)
 
-$(gcc_bin_dir)/cpp$(gexesfx): $(CPP_OBJS) $(gccobjdir)/version.o \
-	$(gccobjdir)/config/arm/rname.o \
-	$(RISCOS_OBJS) $(LIBDEPS)
-	$(LINK) $(CPP_OBJS) $(gccobjdir)/version.o \
-	$(gccobjdir)/config/arm/rname.o \
-	$(RISCOS_OBJS) $(LIBDEPS) $(LIBS)
+$(gcc_bin_dir)/cpp0$(gexesfx): $(gccobjdir)/cppmain.o \
+	$(gccobjdir)/libcpp.a $(gccobjdir)/config/arm/rname.o
+	$(LINK) $(gccobjdir)/cppmain.o $(gccobjdir)/libcpp.a \
+	$(gccobjdir)/config/arm/rname.o $(LIBS)
 
-$(bin_dir)/gcov$(gexesfx): $(gccobjdir)/gcov.o $(LIBDEPS)
-	$(LINK) $(gccobjdir)/gcov.o $(LIBDEPS) $(LIBS)
+$(bin_dir)/gcov$(gexesfx): $(gccobjdir)/gcov.o $(gccobjdir)/version.o $(LIBDEPS)
+	$(LINK) $(gccobjdir)/gcov.o $(gccobjdir)/version.o $(LIBDEPS) $(LIBS)
 
 #$(bin_dir)/demangle: $(LIBIBERTY)
 #	$(LINK) $(LIBS)
@@ -211,7 +282,7 @@ endif
 # Make Bison sources
 
 c-parse.y:	c-parse.in
-	sed -e "/^ifobjc$/,/^end ifobjc$/d" -e "/^ifc$/d" -e "/^end ifc$/d" $? > c-parse.y
+	sed -e "/^ifobjc$$/,/^end ifobjc$$/d" -e "/^ifc$$/d" -e "/^end ifc$$/d" $? > c-parse.y
 
 # Bison sources
 # There's no point having a suffix thing for these becuase
@@ -229,7 +300,7 @@ c-parse.c: c-parse.y
 #	gperf -p -j1 -i 1 -g -o -t -G -N is_reserved_word -k1,3,$$ <gperf.c-parse >h.c-gperf
 
 # Bison object dependencies
-$(gccobjdir)/c-parse.o:	c-parse.c c-parse.c c-parse.in
+$(gccobjdir)/c-parse.o:	c-parse.c c-parse.c c-parse.in tree-check.h
 $(gccobjdir)/cexp.o:	cexp.c cexp.y
 
 ##############################################################################
@@ -237,145 +308,212 @@ $(gccobjdir)/cexp.o:	cexp.c cexp.y
 ifeq (${STAGE},stage1)
 # Derived files. Created from config/arm/md
 
-MD = config/arm/md
-GENOBJS = $(gccobjdir)/gen/obstack.o $(gccobjdir)/gen/rtl.o \
-	$(gccobjdir)/bitmap.o
+MD = config/arm/arm.md
+GENOBJS = $(gccobjdir)/_obstack.o $(gccobjdir)/_rtl.o \
+	$(gccobjdir)/_bitmap.o $(gccobjdir)/ggc-none.o \
+	$(gccobjdir)/_errors.o $(gccobjdir)/gensupport.o
+
+HOST_RTL =	$(gccobjdir)/_rtl.o \
+	$(gccobjdir)/_read-rtl.o \
+	$(gccobjdir)/_bitmap.o \
+	$(gccobjdir)/_ggc-none.o \
+	$(gccobjdir)/gensupport.o \
+	$(gccobjdir)/_hashtab.o \
+	$(gccobjdir)/_safe-ctype.o
+
+HOST_PRINT = $(gccobjdir)/print-rtl.o
+
+HOST_ERRORS = $(gccobjdir)/errors.o
 
 gen-derived:	insn-config.h insn-flags.h insn-codes.h \
 	insn-emit.c insn-recog.c insn-extract.c \
 	insn-opinit.c insn-output.c insn-peep.c \
-        insn-attr.h insn-attrtab.c genrtl.c genrtl.h
+        insn-attr.h insn-attrtab.c genrtl.c genrtl.h tm-preds.h
 
-gen-prog:	$(gccobjdir)/gen/genemit $(gccobjdir)/gen/genoutput \
-	$(gccobjdir)/gen/genrecog $(gccobjdir)/gen/genextract \
-	$(gccobjdir)/gen/genflags $(gccobjdir)/gen/gencodes \
-	$(gccobjdir)/gen/genconfig $(gccobjdir)/gen/genpeep \
-	$(gccobjdir)/gen/gengenrtl $(gccobjdir)/gen/gencheck
+gen-prog:	$(gccobjdir)/genemit $(gccobjdir)/genoutput \
+	$(gccobjdir)/genrecog $(gccobjdir)/genextract \
+	$(gccobjdir)/genflags $(gccobjdir)/gencodes \
+	$(gccobjdir)/genconfig $(gccobjdir)/genpeep \
+	$(gccobjdir)/genconstants $(gccobjdir)/gengenrtl \
+	$(gccobjdir)/gencheck $(gccobjdir)/genpreds
 
 # Stuff to make generate files to generate insn-*.[ch] files.
 
 # Our gen versions are subtly different. We include hconfig.h instead
 # of config.h.
 
+$(gccobjdir)/bitmap.c:	bitmap.c
+	sed -e "s/config[.]h/hconfig.h/" bitmap.c >$@
+$(gccobjdir)/_bitmap.o:  $(gccobjdir)/bitmap.c
+	$(HOST_CC) -c $(gccobjdir)/bitmap.c -o $@ $(HOST_INCLUDES) $(HOST_PREDEFS)
 
-$(gccobjdir)/gen/obstack.c:	../../libiberty/obstack.c
+$(gccobjdir)/errors.c:	errors.c
+	sed -e "s/config[.]h/hconfig.h/" errors.c >$@
+$(gccobjdir)/_errors.o:  $(gccobjdir)/errors.c
+	$(HOST_CC) -c $(gccobjdir)/errors.c -o $@ $(HOST_INCLUDES) $(HOST_PREDEFS)
+
+$(gccobjdir)/ggc-none.c:	ggc-none.c
+	sed -e "s/config[.]h/hconfig.h/" ggc-none.c >$@
+$(gccobjdir)/_ggc-none.o:  $(gccobjdir)/ggc-none.c
+	$(HOST_CC) -c $(gccobjdir)/ggc-none.c -o $@ $(HOST_INCLUDES) $(HOST_PREDEFS)
+
+$(gccobjdir)/obstack.c:	../../libiberty/obstack.c
 	sed -e "s/config[.]h/hconfig.h/" ../../libiberty/obstack.c >$@
-$(gccobjdir)/gen/obstack.o:  $(gccobjdir)/gen/obstack.c
-	$(HOST_CC) -c $(gccobjdir)/gen/obstack.c -o $@ $(HOST_INCLUDES) $(HOST_PREDEFS)
+$(gccobjdir)/_obstack.o:  $(gccobjdir)/obstack.c
+	$(HOST_CC) -c $(gccobjdir)/obstack.c -o $@ $(HOST_INCLUDES) $(HOST_PREDEFS)
 
-$(gccobjdir)/gen/rtl.c:	rtl.c
+$(gccobjdir)/rtl.c:	rtl.c
 	sed -e "s/config[.]h/hconfig.h/" rtl.c >$@
-$(gccobjdir)/gen/rtl.o:	$(gccobjdir)/gen/rtl.c 
-	$(HOST_CC) -c $(gccobjdir)/gen/rtl.c -o $@ $(HOST_INCLUDES) $(HOST_PREDEFS)
+$(gccobjdir)/_rtl.o:	$(gccobjdir)/rtl.c 
+	$(HOST_CC) -c $(gccobjdir)/rtl.c -o $@ $(HOST_INCLUDES) $(HOST_PREDEFS)
 
-$(gccobjdir)/gen/print-rtl.c:	print-rtl.c
+$(gccobjdir)/print-rtl.c:	print-rtl.c
 	sed -e "s/config[.]h/hconfig.h/" print-rtl.c >$@
-$(gccobjdir)/gen/print-rtl.o:	$(gccobjdir)/gen/print-rtl.c
-	$(HOST_CC) -c $(gccobjdir)/gen/print-rtl.c -o $@ $(HOST_INCLUDES) $(HOST_PREDEFS)
+$(gccobjdir)/_print-rtl.o:	$(gccobjdir)/print-rtl.c
+	$(HOST_CC) -c $(gccobjdir)/print-rtl.c -o $@ $(HOST_INCLUDES) $(HOST_PREDEFS)
 
-$(gccobjdir)/gen/rtlanal.c:	rtlanal.c
-	sed -e "s/config[.]h/hconfig.h/" rtlanal.c >$@
-$(gccobjdir)/gen/rtlanal.o:	$(gccobjdir)/gen/rtlanal.c
-	$(HOST_CC) -c $(gccobjdir)/gen/rtlanal.c -o $@ $(HOST_INCLUDES) $(HOST_PREDEFS)
+$(gccobjdir)/_read-rtl.o:	read-rtl.c
+	$(HOST_CC) -c read-rtl.c -o $@ $(HOST_INCLUDES) $(HOST_PREDEFS)
 
+$(gccobjdir)/_hashtab.o:	../../libiberty/hashtab.c
+	$(HOST_CC) -c ../../libiberty/hashtab.c -o $@ $(HOST_INCLUDES) $(HOST_PREDEFS)
 
-
-$(gccobjdir)/gen/genattr.o:	gen/genattr.c
-	$(HOST_CC) -c gen/genattr.c -o $@ $(HOST_INCLUDES) $(HOST_PREDEFS)
-
-$(gccobjdir)/gen/genattrtab.o:	gen/genattrtab.c
-	$(HOST_CC) -c gen/genattrtab.c -o $@ $(HOST_INCLUDES) $(HOST_PREDEFS)
-
-$(gccobjdir)/gen/gencheck.o:	gen/gencheck.c tree.def
-	$(HOST_CC) -c gen/gencheck.c -o $@ $(HOST_INCLUDES) $(HOST_PREDEFS)
-
-$(gccobjdir)/gen/genemit.o:	gen/genemit.c
-	$(HOST_CC) -c gen/genemit.c -o $@ $(HOST_INCLUDES) $(HOST_PREDEFS)
-
-$(gccobjdir)/gen/gengenrtl.o:	gen/gengenrtl.c
-	$(HOST_CC) -c gen/gengenrtl.c -o $@ $(HOST_INCLUDES) $(HOST_PREDEFS)
-
-$(gccobjdir)/gen/genoutput.o:	gen/genoutput.c
-	$(HOST_CC) -c gen/genoutput.c -o $@ $(HOST_INCLUDES) $(HOST_PREDEFS)
-
-$(gccobjdir)/gen/genopinit.o:	gen/genopinit.c
-	$(HOST_CC) -c gen/genopinit.c -o $@ $(HOST_INCLUDES) $(HOST_PREDEFS)
-
-$(gccobjdir)/gen/genrecog.o:	gen/genrecog.c
-	$(HOST_CC) -c gen/genrecog.c -o $@ $(HOST_INCLUDES) $(HOST_PREDEFS)
-
-$(gccobjdir)/gen/genextract.o:	gen/genextract.c
-	$(HOST_CC) -c gen/genextract.c -o $@ $(HOST_INCLUDES) $(HOST_PREDEFS)
-
-$(gccobjdir)/gen/genflags.o:	gen/genflags.c
-	$(HOST_CC) -c gen/genflags.c -o $@ $(HOST_INCLUDES) $(HOST_PREDEFS)
-
-$(gccobjdir)/gen/gencodes.o:	gen/gencodes.c
-	$(HOST_CC) -c gen/gencodes.c -o $@ $(HOST_INCLUDES) $(HOST_PREDEFS)
-
-$(gccobjdir)/gen/genconfig.o:	gen/genconfig.c
-	$(HOST_CC) -c gen/genconfig.c -o $@ $(HOST_INCLUDES) $(HOST_PREDEFS)
-
-$(gccobjdir)/gen/genpeep.o:	gen/genpeep.c
-	$(HOST_CC) -c gen/genpeep.c -o $@ $(HOST_INCLUDES) $(HOST_PREDEFS)
+$(gccobjdir)/_safe-ctype.o:	../../libiberty/safe-ctype.c
+	$(HOST_CC) -c ../../libiberty/safe-ctype.c -o $@ $(HOST_INCLUDES) $(HOST_PREDEFS)
 
 
-$(gccobjdir)/gen/genattr:	$(gccobjdir)/gen/genattr.o $(GENOBJS)
-	$(LINK) $(gccobjdir)/gen/genattr.o $(GENOBJS) $(LIBS)
-$(gccobjdir)/gen/genattrtab:	$(gccobjdir)/gen/genattrtab.o $(GENOBJS) $(gccobjdir)/gen/rtlanal.o
-	$(LINK) $(gccobjdir)/gen/genattrtab.o $(GENOBJS) $(gccobjdir)/gen/rtlanal.o $(LIBS)
-$(gccobjdir)/gen/gencheck:	$(gccobjdir)/gen/gencheck.o tree.def
-	$(LINK) $(gccobjdir)/gen/gencheck.o $(LIBS)
-$(gccobjdir)/gen/genemit:	$(gccobjdir)/gen/genemit.o $(GENOBJS)
-	$(LINK) $(gccobjdir)/gen/genemit.o $(GENOBJS) $(LIBS)
-$(gccobjdir)/gen/gengenrtl:	$(gccobjdir)/gen/gengenrtl.o $(gccobjdir)/gen/obstack.o
-	$(LINK) $(gccobjdir)/gen/gengenrtl.o $(gccobjdir)/gen/obstack.o $(LIBS)
-$(gccobjdir)/gen/genoutput:	 $(gccobjdir)/gen/genoutput.o $(GENOBJS)
-	$(LINK) $(gccobjdir)/gen/genoutput.o $(GENOBJS) $(LIBS)
-$(gccobjdir)/gen/genopinit:	 $(gccobjdir)/gen/genopinit.o $(GENOBJS)
-	$(LINK) $(gccobjdir)/gen/genopinit.o $(GENOBJS) $(LIBS)
-$(gccobjdir)/gen/genrecog:	  $(gccobjdir)/gen/genrecog.o $(GENOBJS) $(gccobjdir)/gen/print-rtl.o
-	$(LINK) $(gccobjdir)/gen/genrecog.o $(GENOBJS) $(gccobjdir)/gen/print-rtl.o $(LIBS)
-$(gccobjdir)/gen/genextract:	$(gccobjdir)/gen/genextract.o $(GENOBJS) insn-config.h
-	$(LINK) $(gccobjdir)/gen/genextract.o $(GENOBJS) $(LIBS)
-$(gccobjdir)/gen/genflags:	  $(gccobjdir)/gen/genflags.o $(GENOBJS)
-	$(LINK) $(gccobjdir)/gen/genflags.o $(GENOBJS) $(LIBS)
-$(gccobjdir)/gen/gencodes:	  $(gccobjdir)/gen/gencodes.o $(GENOBJS)
-	$(LINK) $(gccobjdir)/gen/gencodes.o $(GENOBJS) $(LIBS)
-$(gccobjdir)/gen/genconfig:	 $(gccobjdir)/gen/genconfig.o $(GENOBJS) genrtl.h
-	$(LINK) $(gccobjdir)/gen/genconfig.o $(GENOBJS) $(LIBS)
-$(gccobjdir)/gen/genpeep:	   $(gccobjdir)/gen/genpeep.o $(GENOBJS)
-	$(LINK) $(gccobjdir)/gen/genpeep.o $(GENOBJS) $(LIBS)
 
 
-insn-config.h:	$(MD) $(gccobjdir)/gen/genconfig
-	$(gccobjdir)/gen/genconfig $(MD) >$@
-insn-flags.h:	$(MD) gen/genflags
-	$(gccobjdir)/gen/genflags $(MD) >$@
-insn-codes.h:	$(MD) gen/gencodes
-	$(gccobjdir)/gen/gencodes $(MD) >$@
-insn-attr.h:	$(MD) gen/genattr
-	$(gccobjdir)/gen/genattr $(MD) >$@
-tree-check.h:	gen/gencheck tree.def
-	$(gccobjdir)/gen/gencheck >tree-check.h
+$(gccobjdir)/genattr.o:	genattr.c
+	$(HOST_CC) -c genattr.c -o $@ $(HOST_INCLUDES) $(HOST_PREDEFS)
 
-insn-emit.c:	$(MD) $(gccobjdir)/gen/genemit
-	$(gccobjdir)/gen/genemit $(MD) >$@
-insn-recog.c:	$(MD) $(gccobjdir)/gen/genrecog
-	$(gccobjdir)/gen/genrecog $(MD) >$@
-insn-extract.c:	$(MD) $(gccobjdir)/gen/genextract
-	$(gccobjdir)/gen/genextract $(MD) >$@
-insn-opinit.c:	$(MD) $(gccobjdir)/gen/genopinit
-	$(gccobjdir)/gen/genopinit $(MD) >$@
-insn-output.c:	$(MD) $(gccobjdir)/gen/genoutput
-	$(gccobjdir)/gen/genoutput $(MD) >$@
-insn-peep.c:	$(MD) $(gccobjdir)/gen/genpeep
-	$(gccobjdir)/gen/genpeep $(MD) >$@
-insn-attrtab.c:	$(MD) $(gccobjdir)/gen/genattrtab
-	$(gccobjdir)/gen/genattrtab $(MD) >$@
+$(gccobjdir)/genattrtab.o:	genattrtab.c
+	$(HOST_CC) -c genattrtab.c -o $@ $(HOST_INCLUDES) $(HOST_PREDEFS)
 
-genrtl.c genrtl.h:	$(gccobjdir)/gen/gengenrtl
-	$(gccobjdir)/gen/gengenrtl genrtl.h genrtl.c
+$(gccobjdir)/gencheck.o:	gencheck.c tree.def
+	$(HOST_CC) -c gencheck.c -o $@ $(HOST_INCLUDES) $(HOST_PREDEFS)
+
+$(gccobjdir)/genconstants.o: genconstants.c
+	$(HOST_CC) -c genconstants.c -o $@ $(HOST_INCLUDES) $(HOST_PREDEFS)
+
+$(gccobjdir)/genemit.o:	genemit.c
+	$(HOST_CC) -c genemit.c -o $@ $(HOST_INCLUDES) $(HOST_PREDEFS)
+
+$(gccobjdir)/gengenrtl.o:	gengenrtl.c
+	$(HOST_CC) -c gengenrtl.c -o $@ $(HOST_INCLUDES) $(HOST_PREDEFS)
+
+$(gccobjdir)/genoutput.o:	genoutput.c
+	$(HOST_CC) -c genoutput.c -o $@ $(HOST_INCLUDES) $(HOST_PREDEFS)
+
+$(gccobjdir)/genopinit.o:	genopinit.c
+	$(HOST_CC) -c genopinit.c -o $@ $(HOST_INCLUDES) $(HOST_PREDEFS)
+
+$(gccobjdir)/genrecog.o:	genrecog.c
+	$(HOST_CC) -c genrecog.c -o $@ $(HOST_INCLUDES) $(HOST_PREDEFS)
+
+$(gccobjdir)/genextract.o:	genextract.c
+	$(HOST_CC) -c genextract.c -o $@ $(HOST_INCLUDES) $(HOST_PREDEFS)
+
+$(gccobjdir)/genflags.o:	genflags.c
+	$(HOST_CC) -c genflags.c -o $@ $(HOST_INCLUDES) $(HOST_PREDEFS)
+
+$(gccobjdir)/gencodes.o:	gencodes.c rtl.h genrtl.h
+	$(HOST_CC) -c gencodes.c -o $@ $(HOST_INCLUDES) $(HOST_PREDEFS)
+
+$(gccobjdir)/genconfig.o:	genconfig.c
+	$(HOST_CC) -c genconfig.c -o $@ $(HOST_INCLUDES) $(HOST_PREDEFS)
+
+$(gccobjdir)/genpeep.o:	genpeep.c
+	$(HOST_CC) -c genpeep.c -o $@ $(HOST_INCLUDES) $(HOST_PREDEFS)
+
+$(gccobjdir)/gensupport.o:	gensupport.c
+	$(HOST_CC) -c gensupport.c -o $@ $(HOST_INCLUDES) $(HOST_PREDEFS)
+
+$(gccobjdir)/genpreds.o:	genpreds.c
+	$(HOST_CC) -c genpreds.c -o $@ $(HOST_INCLUDES) $(HOST_PREDEFS)
+
+$(gccobjdir)/genattr:	$(gccobjdir)/genattr.o $(HOST_RTL) $(HOST_PRINT) $(HOST_ERRORS)
+	$(LINK) $(gccobjdir)/genattr.o $(HOST_RTL) $(HOST_PRINT) $(HOST_ERRORS) $(LIBS)
+
+$(gccobjdir)/genattrtab:	$(gccobjdir)/genattrtab.o $(HOST_RTL) $(HOST_PRINT) $(HOST_ERRORS)
+	$(LINK) $(gccobjdir)/genattrtab.o $(HOST_RTL) $(HOST_PRINT) $(HOST_ERRORS) $(LIBS)
+
+$(gccobjdir)/gencheck:	$(gccobjdir)/gencheck.o tree.def
+	$(LINK) $(gccobjdir)/gencheck.o $(LIBS)
+
+$(gccobjdir)/gencodes:	  $(gccobjdir)/gencodes.o $(HOST_RTL) $(HOST_PRINT) $(HOST_ERRORS)
+	$(LINK) $(gccobjdir)/gencodes.o $(HOST_RTL) $(HOST_PRINT) $(HOST_ERRORS) $(LIBS)
+
+$(gccobjdir)/genconstants:	  $(gccobjdir)/genconstants.o $(HOST_RTL) $(HOST_PRINT) $(HOST_ERRORS)
+	$(LINK) $(gccobjdir)/genconstants.o $(HOST_RTL) $(HOST_ERRORS) $(LIBS)
+
+$(gccobjdir)/genconfig:	 $(gccobjdir)/genconfig.o genrtl.h $(HOST_RTL) $(HOST_PRINT) $(HOST_ERRORS)
+	$(LINK) $(gccobjdir)/genconfig.o $(HOST_RTL) $(HOST_PRINT) $(HOST_ERRORS) $(LIBS)
+
+$(gccobjdir)/genemit:	$(gccobjdir)/genemit.o $(HOST_RTL) $(HOST_PRINT) $(HOST_ERRORS)
+	$(LINK) $(gccobjdir)/genemit.o $(HOST_RTL) $(HOST_PRINT) $(HOST_ERRORS) $(LIBS)
+
+$(gccobjdir)/genextract:	$(gccobjdir)/genextract.o $(HOST_RTL) $(HOST_PRINT) $(HOST_ERRORS) insn-config.h
+	$(LINK) $(gccobjdir)/genextract.o $(HOST_RTL) $(HOST_PRINT) $(HOST_ERRORS) $(LIBS)
+
+$(gccobjdir)/genflags:	  $(gccobjdir)/genflags.o $(HOST_RTL) $(HOST_PRINT) $(HOST_ERRORS)
+	$(LINK) $(gccobjdir)/genflags.o $(HOST_RTL) $(HOST_PRINT) $(HOST_ERRORS) $(LIBS)
+
+
+$(gccobjdir)/gengenrtl:	$(gccobjdir)/gengenrtl.o $(gccobjdir)/_obstack.o
+	$(LINK) $(gccobjdir)/gengenrtl.o $(gccobjdir)/_obstack.o $(LIBS)
+
+$(gccobjdir)/genoutput:	 $(gccobjdir)/genoutput.o $(HOST_RTL) $(HOST_PRINT) $(HOST_ERRORS)
+	$(LINK) $(gccobjdir)/genoutput.o $(HOST_RTL) $(HOST_PRINT) $(HOST_ERRORS) $(LIBS)
+
+$(gccobjdir)/genopinit:	 $(gccobjdir)/genopinit.o $(HOST_RTL) $(HOST_PRINT) $(HOST_ERRORS)
+	$(LINK) $(gccobjdir)/genopinit.o $(HOST_RTL) $(HOST_PRINT) $(HOST_ERRORS) $(LIBS)
+
+$(gccobjdir)/genrecog:	  $(gccobjdir)/genrecog.o $(HOST_RTL) $(HOST_PRINT) $(HOST_ERRORS)
+	$(LINK) $(gccobjdir)/genrecog.o $(HOST_RTL) $(HOST_PRINT) $(HOST_ERRORS) $(LIBS)
+
+$(gccobjdir)/genpeep:	   $(gccobjdir)/genpeep.o $(HOST_RTL) $(HOST_PRINT) $(HOST_ERRORS)
+	$(LINK) $(gccobjdir)/genpeep.o $(HOST_RTL) $(HOST_PRINT) $(HOST_ERRORS) $(LIBS)
+
+$(gccobjdir)/genpreds:	$(gccobjdir)/genpreds.c $(HOST_RTL) $(HOST_PRINT) $(HOST_ERRORS)
+	$(LINK) $(gccobjdir)/genpreds.o $(HOST_RTL) $(HOST_PRINT) $(HOST_ERRORS) $(LIBS)
+
+insn-config.h:	$(MD) $(gccobjdir)/genconfig
+	$(gccobjdir)/genconfig $(MD) >$@
+insn-flags.h:	$(MD) $(gccobjdir)/genflags
+	$(gccobjdir)/genflags $(MD) >$@
+insn-codes.h:	$(MD) $(gccobjdir)/gencodes
+	$(gccobjdir)/gencodes $(MD) >$@
+insn-constants.h:	$(MD) $(gccobjdir)/genconstants
+	$(gccobjdir)/genconstants $(MD) >$@
+insn-attr.h:	$(MD) $(gccobjdir)/genattr
+	$(gccobjdir)/genattr $(MD) >$@
+tree-check.h:	$(gccobjdir)/gencheck tree.def
+	$(gccobjdir)/gencheck >tree-check.h
+
+insn-emit.c:	$(MD) $(gccobjdir)/genemit
+	$(gccobjdir)/genemit $(MD) >$@
+insn-recog.c:	$(MD) $(gccobjdir)/genrecog
+	$(gccobjdir)/genrecog $(MD) >$@
+insn-extract.c:	$(MD) $(gccobjdir)/genextract
+	$(gccobjdir)/genextract $(MD) >$@
+insn-opinit.c:	$(MD) $(gccobjdir)/genopinit
+	$(gccobjdir)/genopinit $(MD) >$@
+insn-output.c:	$(MD) $(gccobjdir)/genoutput
+	$(gccobjdir)/genoutput $(MD) >$@
+insn-peep.c:	$(MD) $(gccobjdir)/genpeep
+	$(gccobjdir)/genpeep $(MD) >$@
+insn-attrtab.c:	$(MD) $(gccobjdir)/genattrtab
+	$(gccobjdir)/genattrtab $(MD) >$@
+
+genrtl.c:	$(gccobjdir)/gengenrtl
+	$(gccobjdir)/gengenrtl >$@
+
+genrtl.h:	$(gccobjdir)/gengenrtl
+	$(gccobjdir)/gengenrtl -h >$@
+
+tmp-preds.h:	$(gccobjdir)/genpreds
+	$(gccobjdir)/genpreds >$@
 endif
 
 ##############################################################################
@@ -402,8 +540,8 @@ $(gccobjdir)/gcc.o: gcc.c
 	-DSTANDARD_STARTFILE_PREFIX=\"$(prefix)$(gn_standard_startfile_prefix)\" \
 	-DSTANDARD_EXEC_PREFIX=\"$(prefix)$(gn_standard_exec_prefix)\"
 
-$(gccobjdir)/cpp/cppinit.o: cpp/cppinit.c
-	$(CC) $(CFLAGS) $(INCLUDES) -o $@ -c cpp/cppinit.c \
+$(gccobjdir)/cppdefault.o: cppdefault.c
+	$(CC) $(CFLAGS) $(INCLUDES) -o $@ -c cppdefault.c \
 	-DGCC_INCLUDE_DIR=\"$(prefix)$(gn_gcc_include_dir)\" \
 	-DGPLUSPLUS_INCLUDE_DIR=\"$(prefix)$(gn_gplusplus_include_dir)\" \
 	-DLOCAL_INCLUDE_DIR=\"$(prefix)$(gn_local_include_dir)\" \
@@ -412,24 +550,28 @@ $(gccobjdir)/cpp/cppinit.o: cpp/cppinit.c
 
 # Dependencies
 $(gccobjdir)/alias.o: alias.c
-$(gccobjdir)/aux-output.o: aux-output.c
-$(gccobjdir)/bitmap.o: bitmap.c
-$(gccobjdir)/c-aux-info.o: c-aux-info.c
-$(gccobjdir)/c-common.o: c-common.c
-$(gccobjdir)/c-convert.o: c-convert.c
-$(gccobjdir)/c-decl.o: c-decl.c
-$(gccobjdir)/c-iterate.o: c-iterate.c
-$(gccobjdir)/c-lang.o: c-lang.c
-$(gccobjdir)/c-lex.o: c-lex.c rtl.h genrtl.h
-$(gccobjdir)/c-parse.o: c-parse.c
-$(gccobjdir)/c-pragma.o: c-pragma.c
-$(gccobjdir)/c-typeck.o: c-typeck.c
+$(gccobjdir)/arm.o: config/arm/arm.c config.h system.h rtl.h tree.h \
+	regs.h hard-reg-set.h real.h insn-config.h conditions.h \
+	output.h insn-attr.h flags.h reload.h function.h expr.h toplev.h \
+	recog.h ggc.h except.h c-pragma.h tm_p.h
+	$(CC) $(CFLAGS) -o $@ -c $< $(INCLUDES)
+
+$(gccobjdir)/bb-reorder.o: bb-reorder.c insn-config.h
+$(gccobjdir)/bitmap.o: bitmap.c insn-codes.h insn-flags.h
+$(gccobjdir)/builtins.o: builtins.c
 $(gccobjdir)/caller-save.o: caller-save.c
 $(gccobjdir)/calls.o: calls.c
-$(gccobjdir)/combine.o: combine.c
+$(gccobjdir)/combine.o: combine.c insn-attr.h
+$(gccobjdir)/conflict.o: conflict.c
 $(gccobjdir)/convert.o: convert.c
 $(gccobjdir)/cse.o: cse.c
 $(gccobjdir)/dbxout.o: dbxout.c
+$(gccobjdir)/debug.o: debug.c debug.h
+$(gccobjdir)/dependence.o: dependence.c
+$(gccobjdir)/df.o: df.c
+$(gccobjdir)/diagnostic.o: diagnostic.c
+$(gccobjdir)/doloop.o: doloop.c
+$(gccobjdir)/dominance.o: dominance.c
 $(gccobjdir)/dwarf2out.o: dwarf2out.c
 $(gccobjdir)/dyn-string.o: dyn-string.c
 $(gccobjdir)/emit-rtl.o: emit-rtl.c
@@ -441,25 +583,27 @@ $(gccobjdir)/final.o: final.c
 $(gccobjdir)/flow.o: flow.c
 $(gccobjdir)/fold-const.o: fold-const.c
 $(gccobjdir)/function.o: function.c
-$(gccobjdir)/gcc.o: gcc.c
-$(gccobjdir)/gccspec.o: gccspec.c
-$(gccobjdir)/gcov.o: gcov.c
 $(gccobjdir)/gcse.o: gcse.c
 $(gccobjdir)/genrtl.o: genrtl.c
-$(gccobjdir)/getpwd.o: getpwd.c
+$(gccobjdir)/ggc-common.o: ggc-common.c
+$(gccobjdir)/ggc-simple.o: ggc-simple.c
 $(gccobjdir)/global.o: global.c
 $(gccobjdir)/graph.o: graph.c
 $(gccobjdir)/haifa-sched.o: haifa-sched.c
 $(gccobjdir)/hash.o: hash.c
+$(gccobjdir)/hashtable.o: hashtable.c hashtable.h
+$(gccobjdir)/ifcvt.o: ifcvt.c
 $(gccobjdir)/integrate.o: integrate.c
 $(gccobjdir)/jump.o: jump.c
 $(gccobjdir)/lcm.o: lcm.c
-$(gccobjdir)/libgcc2.o: libgcc2.c
+$(gccobjdir)/langhooks.o: langhooks.c
+$(gccobjdir)/lists.o: lists.c
 $(gccobjdir)/local-alloc.o: local-alloc.c
 $(gccobjdir)/loop.o: loop.c
 $(gccobjdir)/mbchar.o: mbchar.c
 $(gccobjdir)/optabs.o: optabs.c
-$(gccobjdir)/prefix.o: prefix.c
+$(gccobjdir)/params.o: params.c
+$(gccobjdir)/predict.o: predict.c
 $(gccobjdir)/print-rtl.o: print-rtl.c
 $(gccobjdir)/print-tree.o: print-tree.c
 $(gccobjdir)/profile.o: profile.c
@@ -475,11 +619,19 @@ $(gccobjdir)/resource.o: resource.c
 $(gccobjdir)/rtl.o: rtl.c
 $(gccobjdir)/rtlanal.o: rtlanal.c
 $(gccobjdir)/sbitmap.o: sbitmap.c
-$(gccobjdir)/sched.o: sched.c
+$(gccobjdir)/sched-deps.o: sched-deps.c
+$(gccobjdir)/sched-ebb.o: sched-ebb.c
+$(gccobjdir)/sched-rgn.o: sched-rgn.c
+$(gccobjdir)/sched-vis.o: sched-vis.c
+$(gccobjdir)/sibcall.o: sibcall.c
+$(gccobjdir)/simplify-rtx.o: simplify-rtx.c
+$(gccobjdir)/ssa.o: ssa.c
+$(gccobjdir)/ssa-ccp.o: ssa-ccp.c
+$(gccobjdir)/ssa-dce.o: ssa-dce.c
 $(gccobjdir)/stmt.o: stmt.c insn-config.h
 $(gccobjdir)/stor-layout.o: stor-layout.c
-$(gccobjdir)/stupid.o: stupid.c
-$(gccobjdir)/tlink.o: tlink.c
+$(gccobjdir)/string-pool.o: stringpool.c
+$(gccobjdir)/timevar.o: timevar.c
 $(gccobjdir)/toplev.o: toplev.c
 $(gccobjdir)/tree.o: tree.c
 $(gccobjdir)/unroll.o: unroll.c
@@ -487,23 +639,43 @@ $(gccobjdir)/varasm.o: varasm.c
 $(gccobjdir)/varray.o: varray.c
 $(gccobjdir)/version.o: version.c
 
-$(gccobjdir)/gen/genattr.o: gen/genattr.c
-$(gccobjdir)/gen/genattrtab.o: gen/genattrtab.c
-$(gccobjdir)/gen/gencheck.o: gen/gencheck.c
-$(gccobjdir)/gen/gencodes.o: gen/gencodes.c
-$(gccobjdir)/gen/genconfig.o: gen/genconfig.c
-$(gccobjdir)/gen/genemit.o: gen/genemit.c
-$(gccobjdir)/gen/genextract.o: gen/genextract.c
-$(gccobjdir)/gen/genflags.o: gen/genflags.c
-$(gccobjdir)/gen/gengenrtl.o: gen/gengenrtl.c
-$(gccobjdir)/gen/genopinit.o: gen/genopinit.c
-$(gccobjdir)/gen/genoutput.o: gen/genoutput.c
-$(gccobjdir)/gen/genpeep.o: gen/genpeep.c
-$(gccobjdir)/gen/genrecog.o: gen/genrecog.c
-$(gccobjdir)/gen/obstack.o: gen/obstack.c
-$(gccobjdir)/gen/print-rtl.o: gen/print-rtl.c
-$(gccobjdir)/gen/rtl.o: gen/rtl.c
-$(gccobjdir)/gen/rtlanal.o: gen/rtlanal.c 
+$(gccobjdir)/c-aux-info.o: c-aux-info.c
+$(gccobjdir)/c-common.o: c-common.c
+$(gccobjdir)/c-convert.o: c-convert.c
+$(gccobjdir)/c-decl.o: c-decl.c
+$(gccobjdir)/c-iterate.o: c-iterate.c
+$(gccobjdir)/c-lang.o: c-lang.c
+$(gccobjdir)/c-lex.o: c-lex.c rtl.h genrtl.h
+$(gccobjdir)/c-parse.o: c-parse.c
+$(gccobjdir)/c-pragma.o: c-pragma.c
+$(gccobjdir)/c-typeck.o: c-typeck.c
+
+$(gccobjdir)/gcc.o: gcc.c config.h insn-codes.h insn-flags.h multilib.h insn-constants.h
+$(gccobjdir)/gccspec.o: gccspec.c
+$(gccobjdir)/gcov.o: gcov.c
+
+$(gccobjdir)/getpwd.o: getpwd.c
+$(gccobjdir)/libgcc2.o: libgcc2.c
+$(gccobjdir)/prefix.o: prefix.c
+
+$(gccobjdir)/genattr.o: genattr.c
+$(gccobjdir)/genattrtab.o: genattrtab.c
+$(gccobjdir)/gencheck.o: gencheck.c
+$(gccobjdir)/gencodes.o: gencodes.c
+$(gccobjdir)/genconfig.o: genconfig.c
+$(gccobjdir)/genconstants.o: genconstants.c
+$(gccobjdir)/genemit.o: genemit.c
+$(gccobjdir)/genextract.o: genextract.c
+$(gccobjdir)/genflags.o: genflags.c
+$(gccobjdir)/gengenrtl.o: gengenrtl.c
+$(gccobjdir)/genopinit.o: genopinit.c
+$(gccobjdir)/genoutput.o: genoutput.c
+$(gccobjdir)/genpeep.o: genpeep.c
+$(gccobjdir)/genrecog.o: genrecog.c
+$(gccobjdir)/_obstack.o: $(gccobjdir)/obstack.c
+$(gccobjdir)/_print-rtl.o: $(gccobjdir)/print-rtl.c
+$(gccobjdir)/_rtl.o: $(gccobjdir)/rtl.c
+$(gccobjdir)/_rtlanal.o: $(gccobjdir)/rtlanal.c 
 
 $(gccobjdir)/insn-attrtab.o: insn-attrtab.c
 $(gccobjdir)/insn-emit.o: insn-emit.c
@@ -513,18 +685,17 @@ $(gccobjdir)/insn-output.o: insn-output.c
 $(gccobjdir)/insn-peep.o: insn-peep.c
 $(gccobjdir)/insn-recog.o: insn-recog.c 
 
-$(gccobjdir)/config/arm/arm.o: config/arm/arm.c
 $(gccobjdir)/config/arm/riscos.o: config/arm/riscos.c
 $(gccobjdir)/config/arm/riscos_fix.o: config/arm/riscos_fix.c
 $(gccobjdir)/config/arm/rname.o: config/arm/rname.c 
 
-$(gccobjdir)/cpp/cppalloc.o: cpp/cppalloc.c
-$(gccobjdir)/cpp/cpperror.o: cpp/cpperror.c
-$(gccobjdir)/cpp/cppexp.o: cpp/cppexp.c
-$(gccobjdir)/cpp/cppfiles.o: cpp/cppfiles.c
-$(gccobjdir)/cpp/cpphash.o: cpp/cpphash.c
-$(gccobjdir)/cpp/cppinit.o: cpp/cppinit.c
-$(gccobjdir)/cpp/cpplib.o: cpp/cpplib.c
-$(gccobjdir)/cpp/cppmain.o: cpp/cppmain.c
-$(gccobjdir)/cpp/cppspec.o: cpp/cppspec.c
-$(gccobjdir)/cpp/cppulp.o: cpp/cppulp.c 
+$(gccobjdir)/cpperror.o: cpperror.c
+$(gccobjdir)/cppexp.o: cppexp.c
+$(gccobjdir)/cppfiles.o: cppfiles.c
+$(gccobjdir)/cpphash.o: cpphash.c
+$(gccobjdir)/cpplib.o: cpplib.c
+$(gccobjdir)/cpplex.o: cpplex.c
+$(gccobjdir)/cppmacro.o: cppmacro.c
+$(gccobjdir)/cppmain.o: cppmain.c
+$(gccobjdir)/cppspec.o: cppspec.c
+

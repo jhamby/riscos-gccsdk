@@ -2,7 +2,7 @@
    This extracts a member from a .zip file, but does not handle
    uncompression (since that is not needed for classes.zip).
 
-   Copyright (C) 1996, 97-98, 1999  Free Software Foundation, Inc.
+   Copyright (C) 1996, 1997, 1998, 1999, 2000  Free Software Foundation, Inc.
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -207,11 +207,19 @@ typedef unsigned long     ulg;  /*  predefined on some systems) & match zip  */
 
 
 /***********************/
+/* Prototypes          */
+/***********************/
+
+static ush makeword PARAMS ((const uch *));
+static ulg makelong PARAMS ((const uch *));
+static long find_zip_file_start PARAMS ((int fd, long offset));
+
+/***********************/
 /* Function makeword() */
 /***********************/
 
 static ush makeword(b)
-    uch *b;
+    const uch *b;
 {
     /*
      * Convert Intel style 'short' integer to non-Intel non-16-bit
@@ -226,7 +234,7 @@ static ush makeword(b)
 /***********************/
 
 static ulg makelong(sig)
-    uch *sig;
+    const uch *sig;
 {
     /*
      * Convert intel style 'long' variable to non-Intel non-16-bit
@@ -236,6 +244,32 @@ static ulg makelong(sig)
         + (((ulg)sig[2]) << 16)
         + (((ulg)sig[1]) << 8)
         + ((ulg)sig[0]);
+}
+
+/* Examine file's header in zip file and return the offset of the
+   start of the actual data.  Return -1 on error.  OFFSET is the
+   offset from the beginning of the zip file of the file's header.  */
+static long
+find_zip_file_start (fd, offset)
+     int fd;
+     long offset;
+{
+  int filename_length, extra_field_length;
+  unsigned char buffer[LREC_SIZE + 4];
+
+  if (lseek (fd, offset, SEEK_SET) < 0)
+    return -1;
+
+  if (read (fd, buffer, LREC_SIZE + 4) != LREC_SIZE + 4)
+    return -1;
+
+  if (buffer[0] != 'P' || strncmp (&buffer[1], LOCAL_HDR_SIG, 3))
+    return -1;
+
+  filename_length = makeword (&buffer[4 + L_FILENAME_LENGTH]);
+  extra_field_length = makeword (&buffer[4 + L_EXTRA_FIELD_LENGTH]);
+
+  return offset + (4 + LREC_SIZE) + filename_length + extra_field_length;
 }
 
 int
@@ -255,7 +289,7 @@ read_zip_archive (zipf)
     return -2;
   zipf->count = makeword(&buffer[TOTAL_ENTRIES_CENTRAL_DIR]);
   zipf->dir_size = makelong(&buffer[SIZE_CENTRAL_DIRECTORY]);
-#define ALLOC malloc
+#define ALLOC xmalloc
   /* Allocate 1 more to allow appending '\0' to last filename. */
   zipf->central_directory = ALLOC (zipf->dir_size+1);
   if (lseek (zipf->fd, -(zipf->dir_size+ECREC_SIZE+4), SEEK_CUR) < 0)
@@ -284,27 +318,27 @@ read_zip_archive (zipf)
   for (i = 0; i < zipf->count; i++)
     {
       ZipDirectory *zipd = (ZipDirectory*)(dir_ptr + dir_last_pad);
+      int compression_method = (int) dir_ptr[4+C_COMPRESSION_METHOD];
+      long size = makelong (&dir_ptr[4+C_COMPRESSED_SIZE]);
       long uncompressed_size = makelong (&dir_ptr[4+C_UNCOMPRESSED_SIZE]);
       long filename_length = makeword (&dir_ptr[4+C_FILENAME_LENGTH]);
       long extra_field_length = makeword (&dir_ptr[4+C_EXTRA_FIELD_LENGTH]);
-      long file_comment_length = makeword (&dir_ptr[4+C_FILE_COMMENT_LENGTH]);
+      long file_offset = makelong (&dir_ptr[4+C_RELATIVE_OFFSET_LOCAL_HEADER]);
       int unpadded_direntry_length;
       if ((dir_ptr-zipf->central_directory)+filename_length+CREC_SIZE+4>zipf->dir_size)
 	return -1;
 
       zipd->filename_length = filename_length;
-      zipd->size = uncompressed_size;
+      zipd->compression_method = compression_method;
+      zipd->size = size;
+      zipd->uncompressed_size = uncompressed_size;
+      zipd->zipf = zipf;
 #ifdef __GNUC__
 #define DIR_ALIGN __alignof__(ZipDirectory)
 #else
 #define DIR_ALIGN sizeof(long)
 #endif
-      zipd->filestart = makelong (&dir_ptr[4+C_RELATIVE_OFFSET_LOCAL_HEADER])
-	  + (LREC_SIZE+4) + filename_length + file_comment_length +
-	  + (extra_field_length ? extra_field_length+4 : 0);
-      /* About the last term of the expression above. Should the same
-	 apply if file_comment_length is not zero ?  I've never seen
-	 the comment field uses so far. FIXME.  */
+      zipd->filestart = find_zip_file_start (zipf->fd, file_offset);
       zipd->filename_offset = CREC_SIZE+4 - dir_last_pad;
       unpadded_direntry_length 
 	  = zipd->filename_offset + zipd->filename_length + extra_field_length;

@@ -26,46 +26,6 @@ Boston, MA 02111-1307, USA.  */
 #ifndef CROSS_COMPILE
 /* Structure format: directory name, for C++ only, C++ aware.  */
 
-/* ***** These five defines should be in the Makefile ***** */
-
-#ifndef DEFAULT_TARGET_MACHINE
-#define DEFAULT_TARGET_MACHINE "arm-riscos-aof"
-#endif
-
-#ifndef DEFAULT_TARGET_VERSION
-#define DEFAULT_TARGET_VERSION "2_95_2"
-#endif
-
-/* Default prefix to try when searching for startup files.  */
-#ifndef STANDARD_STARTFILE_PREFIX
-#define STANDARD_STARTFILE_PREFIX "startup/"
-#endif
-
-/* Default prefix to try when searching for compiler executable files.  */
-#ifndef STANDARD_EXEC_PREFIX
-#define STANDARD_EXEC_PREFIX "gccpkg:bin/"
-#endif
-
-#ifndef GCC_INCLUDE_DIR
-#define GCC_INCLUDE_DIR "gccpkg:lib/gcc-lib/arm-riscos-aof/2_95_2/include"
-#endif
-
-#ifndef GPLUSPLUS_INCLUDE_DIR
-#define GPLUSPLUS_INCLUDE_DIR "gccpkg:lib/gcc-lib/arm-riscos-aof/2_95_2/include/g++-3"
-#endif
-
-#ifndef LOCAL_INCLUDE_DIR
-#define LOCAL_INCLUDE_DIR "gcclcl:include"
-#endif
-
-#ifndef SYSTEM_INCLUDE_DIR
-#define SYSTEM_INCLUDE_DIR "gccsys:include"
-#endif
-
-#ifndef TARGET_NAME
-#define TARGET_NAME "arm-riscos-aof"
-#endif
-
 #define INCLUDE_DEFAULTS			\
 {						\
   { GPLUSPLUS_INCLUDE_DIR, "G++", 1, 1},	\
@@ -87,8 +47,6 @@ Boston, MA 02111-1307, USA.  */
 /* Stack overflow checking functions.  */
 #define ARM_STKOVF_SPLIT_SMALL "__rt_stkovf_split_small"
 #define ARM_STKOVF_SPLIT_BIG "__rt_stkovf_split_big"
-
-
 
 /* Run-time Target Specification.  */
 
@@ -240,7 +198,7 @@ Boston, MA 02111-1307, USA.  */
 /* A C string constant that tells the GNU CC driver program options to
    pass to CPP.  It can also specify how to translate options you give
    to GNU CC into options for GNU CC to pass to the CPP.  */
-#undef CPP_SPEC
+#undef SUBTARGET_CPP_SPEC
 
 /* Options to pass to the linker.  */
 #undef LINK_SPEC
@@ -257,8 +215,7 @@ Boston, MA 02111-1307, USA.  */
    stubs.  */
 #define LIB_SPEC "%{!nostdlib:%{!mlibscl:-lunixlib}%{mlibscl:-lscl}}"
 
-#define CPP_SPEC "%(cpp_cpu_arch) %(cpp_apcs_pc) %(cpp_float) \
-        -D__JMP_BUF_SIZE=24 %{mlibscl:-D__TARGET_SCL__} \
+#define SUBTARGET_CPP_SPEC "-D__JMP_BUF_SIZE=24 %{mlibscl:-D__TARGET_SCL__} \
 	%{mlibscl:-icrossdirafter /libscl} \
 	%{!mlibscl:-icrossdirafter /unixlib}"
 
@@ -271,16 +228,13 @@ Boston, MA 02111-1307, USA.  */
 
 #define LIBGCC_SPEC "%{!nostdlib:-lgcc}"
 
-#define CPP_SPEC "%(cpp_cpu_arch) %(cpp_apcs_pc) %(cpp_float) \
-	%{mamu:-MD !Depend} \
+#define SUBTARGET_CPP_SPEC "%{mamu:-MD !Depend} \
 	%{!mlibscl:-idirafter Unix:} %{mlibscl:-idirafter C:} \
 	-D__JMP_BUF_SIZE=24 %{mlibscl:-D__TARGET_SCL__}"
 
 #endif /* CROSS_COMPILE */
 
 #undef CPP_PREDEFINES
-#define CPP_PREDEFINES  \
-	"-Darm -Driscos -Asystem(riscos) -Acpu(arm) -Amachine(acorn)"
 
 /* Options to pass through to the assembler.  */
 #undef ASM_SPEC
@@ -317,12 +271,6 @@ Boston, MA 02111-1307, USA.  */
 /* This is how we tell the assembler that a symbol is weak.  */
 #undef ASM_WEAKEN_LABEL
 
-/* Define if the architecture is an Acorn RiscPC or Archimedes. The
-   RiscPC cannot support the half-word load/store instructions introduced
-   by the StrongARM.  */
-#undef ARM_ARCH_RISCPC
-#define ARM_ARCH_RISCPC 1
-
 #undef DOLLARS_IN_IDENTIFIERS
 #define DOLLARS_IN_IDENTIFIERS 0
   
@@ -335,5 +283,35 @@ Boston, MA 02111-1307, USA.  */
 #undef DBX_DEBUGGING_INFO
 #endif
 
-/* #define DWARF2_DEBUGGING_INFO
-#define PREFERRED_DEBUGGING_TYPE DWARF2_DEBUG */
+#ifdef DWARF2_DEBUGGING_INFO
+#undef DWARF2_DEBUGGING_INFO
+#endif
+
+#define DBX_REGISTER_NUMBER(REGNO) (REGNO)
+
+#undef INITIALIZE_TRAMPOLINE
+#undef CLEAR_INSN_CACHE
+
+/* Emit RTL insns to initialize the variable parts of a trampoline.
+   FNADDR is an RTX for the address of the function's pure code.
+   CXT is an RTX for the static chain value for the function.  */
+#define INITIALIZE_TRAMPOLINE(TRAMP, FNADDR, CXT)		      \
+{								      \
+  rtx end_addr;                                                       \
+                                                                      \
+  emit_move_insn (gen_rtx_MEM (SImode, plus_constant ((TRAMP), 8)),   \
+                (CXT));                                               \
+  emit_move_insn (gen_rtx_MEM (SImode, plus_constant ((TRAMP), 12)),  \
+                (FNADDR));                                            \
+  /* Flush the instruction cache.  */                                 \
+  end_addr = memory_address (SImode, plus_constant ((TRAMP), 16));    \
+  emit_library_call (gen_rtx (SYMBOL_REF, Pmode, "__clear_icache"),   \
+                   0, VOIDmode, 2,                                    \
+                   memory_address (SImode, (TRAMP)), Pmode,           \
+                   end_addr, Pmode);                                  \
+}
+  
+/* A C expression used to clear the instruction cache from address
+   BEG to address END.  */
+#define CLEAR_INSN_CACHE(BEG, END) __clear_icache (BEG, END)
+

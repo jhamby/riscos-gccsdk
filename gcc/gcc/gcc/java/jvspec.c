@@ -1,6 +1,6 @@
- /* Specific flags and argument handling of the front-end of the 
+/* Specific flags and argument handling of the front-end of the 
    GNU compiler for the Java(TM) language.
-   Copyright (C) 1996, 1997, 1998, 1999 Free Software Foundation, Inc.
+   Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001 Free Software Foundation, Inc.
 
 This file is part of GNU CC.
 
@@ -24,10 +24,8 @@ of Sun Microsystems, Inc. in the United States and other countries.
 The Free Software Foundation is independent of Sun Microsystems, Inc.  */
 
 #include "config.h"
-
 #include "system.h"
-
-#include "gansidecl.h"
+#include "gcc.h"
 
 /* Name of spec file.  */
 #define SPEC_FILE "libgcj.spec"
@@ -40,35 +38,48 @@ The Free Software Foundation is independent of Sun Microsystems, Inc.  */
 #define JAVA_FILE_ARG	(1<<3)
 /* True if this arg is a .class input file name. */
 #define CLASS_FILE_ARG	(1<<4)
+/* True if this arg is a .zip or .jar input file name. */
+#define ZIP_FILE_ARG	(1<<5)
+/* True if this arg is @FILE - where FILE contains a list of filenames. */
+#define INDIRECT_FILE_ARG (1<<6)
+/* True if this arg is a resource file.  */
+#define RESOURCE_FILE_ARG (1<<7)
 
-extern int do_spec		PROTO((char *));
-extern char *input_filename;
-extern size_t input_filename_length;
+static char *find_spec_file	PARAMS ((const char *));
 
-char *main_class_name = NULL;
+static const char *main_class_name = NULL;
 int lang_specific_extra_outfiles = 0;
 
-/* Once we have the proper support in jc1 (and gcc.c) working,
-   set COMBINE_INPUTS to one.  This enables combining multiple *.java
-   and *.class input files to be passed to a single jc1 invocation. */
-#define COMBINE_INPUTS 0
+/* True if we should add -shared-libgcc to the command-line.  */
+int shared_libgcc = 1;
 
-char jvgenmain_spec[] =
-  "jvgenmain %i %{!pipe:%umain.i} |\n\
-   cc1 %{!pipe:%Umain.i} %1 \
+static const char jvgenmain_spec[] =
+  "jvgenmain %{D*} %b %{!pipe:%u.i} |\n\
+   cc1 %{!pipe:%U.i} %1 \
 		   %{!Q:-quiet} -dumpbase %b.c %{d*} %{m*} %{a*}\
 		   %{g*} %{O*} \
-		   %{v:-version} %{pg:-p} %{p} %{f*}\
+		   %{v:-version} %{pg:-p} %{p}\
+		   %{<fbounds-check} %{<fno-bounds-check}\
+		   %{<fassume-compiled} %{<fno-assume-compiled}\
+                   %{<fcompile-resource*}\
+		   %{<femit-class-file} %{<femit-class-files} %{<fencoding*}\
+		   %{<fuse-boehm-gc} %{<fhash-synchronization} %{<fjni}\
+		   %{<findirect-dispatch} \
+		   %{<fclasspath*} %{<fCLASSPATH*} %{<foutput-class-dir}\
+		   %{<fuse-divide-subroutine} %{<fno-use-divide-subroutine}\
+		   %{<fcheck-references} %{<fno-check-references}\
+		   %{<ffilelist-file}\
+		   %{f*} -fdollars-in-identifiers\
 		   %{aux-info*}\
 		   %{pg:%{fomit-frame-pointer:%e-pg and -fomit-frame-pointer are incompatible}}\
-		   %{S:%W{o*}%{!o*:-o %b.s}}%{!S:-o %{|!pipe:%Umain.s}} |\n\
-              %{!S:as %a %Y -o %d%w%umain%O %{!pipe:%Umain.s} %A\n }";
+		   %{S:%W{o*}%{!o*:-o %b.s}}%{!S:-o %{|!pipe:%g.s}} |\n\
+              %{!S:as %a %Y -o %d%w%u%O %{!pipe:%g.s} %A\n }";
 
 /* Return full path name of spec file if it is in DIR, or NULL if
    not.  */
 static char *
 find_spec_file (dir)
-     char *dir;
+     const char *dir;
 {
   char *spec;
   int x;
@@ -88,10 +99,9 @@ find_spec_file (dir)
 }
 
 void
-lang_specific_driver (fn, in_argc, in_argv, in_added_libraries)
-     void (*fn)();
+lang_specific_driver (in_argc, in_argv, in_added_libraries)
      int *in_argc;
-     char ***in_argv;
+     const char *const **in_argv;
      int *in_added_libraries;
 {
   int i, j;
@@ -99,11 +109,12 @@ lang_specific_driver (fn, in_argc, in_argv, in_added_libraries)
   /* If non-zero, the user gave us the `-v' flag.  */ 
   int saw_verbose_flag = 0;
 
+  int saw_save_temps = 0;
+
   /* This will be 0 if we encounter a situation where we should not
      link in libgcj.  */
   int library = 1;
 
-#if COMBINE_INPUTS
   /* This will be 1 if multiple input files (.class and/or .java)
      should be passed to a single jc1 invocation. */
   int combine_inputs = 0;
@@ -111,61 +122,63 @@ lang_specific_driver (fn, in_argc, in_argv, in_added_libraries)
   /* Index of last .java or .class argument. */
   int last_input_index;
 
-  /* A buffer containing the concatenation of the inputs files
-     (e.g. "foo.java&bar.class&baz.class"). if combine_inputs. */
-  char* combined_inputs_buffer;
-
-  /* Next available location in combined_inputs_buffer. */
-  int combined_inputs_pos;
-
   /* Number of .java and .class source file arguments seen. */
   int java_files_count = 0;
   int class_files_count = 0;
+  /* Number of .zip or .jar file arguments seen. */
+  int zip_files_count = 0;
+  /* Number of '@FILES' arguments seen. */
+  int indirect_files_count = 0;
 
-  /* Cumulative length of the  .java and .class source file names. */
-  int java_files_length = 0;
-  int class_files_length = 0;
-#endif
+  /* Name of file containing list of files to compile. */
+  char *filelist_filename = 0;
+
+  FILE *filelist_file = 0;
 
   /* The number of arguments being added to what's in argv, other than
-     libraries.  We use this to track the number of times we've inserted
-     -xc++/-xnone.  */
+     libraries.  */
   int added = 2;
 
   /* Used to track options that take arguments, so we don't go wrapping
      those with -xc++/-xnone.  */
-  char *quote = NULL;
+  const char *quote = NULL;
 
   /* The new argument list will be contained in this.  */
-  char **arglist;
+  const char **arglist;
 
   /* Non-zero if we saw a `-xfoo' language specification on the
      command line.  Used to avoid adding our own -xc++ if the user
      already gave a language for the file.  */
   int saw_speclang = 0;
 
+#if 0
   /* "-lm" or "-lmath" if it appears on the command line.  */
-  char *saw_math ATTRIBUTE_UNUSED = 0;
+  const char *saw_math ATTRIBUTE_UNUSED = 0;
 
   /* "-lc" if it appears on the command line.  */
-  char *saw_libc ATTRIBUTE_UNUSED = 0;
+  const char *saw_libc ATTRIBUTE_UNUSED = 0;
 
   /* "-lgcjgc" if it appears on the command line.  */
-  char *saw_gc ATTRIBUTE_UNUSED = 0;
+  const char *saw_gc ATTRIBUTE_UNUSED = 0;
 
   /* Saw `-l' option for the thread library.  */
-  char *saw_threadlib ATTRIBUTE_UNUSED = 0;
+  const char *saw_threadlib ATTRIBUTE_UNUSED = 0;
 
   /* Saw `-lgcj' on command line.  */
   int saw_libgcj ATTRIBUTE_UNUSED = 0;
+#endif
 
-  /* Saw -C or -o option, respectively. */
+  /* Saw -R, -C or -o options, respectively. */
+  int saw_R = 0;
   int saw_C = 0;
   int saw_o = 0;
 
   /* Saw some -O* or -g* option, respectively. */
   int saw_O = 0;
   int saw_g = 0;
+
+  /* Saw a `-D' option.  */
+  int saw_D = 0;
 
   /* An array used to flag each argument that needs a bit set for
      LANGSPEC, MATHLIB, WITHLIBC, or GCLIB.  */
@@ -175,7 +188,7 @@ lang_specific_driver (fn, in_argc, in_argv, in_added_libraries)
   int argc;
 
   /* The argument list.  */
-  char **argv;
+  const char *const *argv;
 
   /* The number of libraries added in.  */
   int added_libraries;
@@ -186,6 +199,9 @@ lang_specific_driver (fn, in_argc, in_argv, in_added_libraries)
   /* Non-zero if linking is supposed to happen.  */
   int will_link = 1;
 
+  /* Non-zero if we want to find the spec file.  */
+  int want_spec_file = 1;
+
   /* The argument we use to specify the spec file.  */
   char *spec_file = NULL;
 
@@ -193,8 +209,7 @@ lang_specific_driver (fn, in_argc, in_argv, in_added_libraries)
   argv = *in_argv;
   added_libraries = *in_added_libraries;
 
-  args = (int *) xmalloc (argc * sizeof (int));
-  bzero ((char *) args, argc * sizeof (int));
+  args = (int *) xcalloc (argc, sizeof (int));
 
   for (i = 1; i < argc; i++)
     {
@@ -224,7 +239,7 @@ lang_specific_driver (fn, in_argc, in_argv, in_added_libraries)
 	      added--;
 	    }
 	  else if (strcmp (argv[i], "-fhelp") == 0)
-	    will_link = 0;
+	    want_spec_file = 0;
 	  else if (strcmp (argv[i], "-v") == 0)
 	    {
 	      saw_verbose_flag = 1;
@@ -240,21 +255,33 @@ lang_specific_driver (fn, in_argc, in_argv, in_added_libraries)
 	  else if (strcmp (argv[i], "-C") == 0)
 	    {
 	      saw_C = 1;
-#if COMBINE_INPUTS
-	      combine_inputs = 1;
-#endif
+	      want_spec_file = 0;
 	      if (library != 0)
 		added -= 2;
 	      library = 0;
 	      will_link = 0;
 	    }
+	  else if (strcmp (argv[i], "-R") == 0)
+	    {
+	      saw_R = 1;
+	      quote = argv[i];
+	      want_spec_file = 0;
+	      if (library != 0)
+		added -= 2;
+	      library = 0;
+	      will_link = 0;
+	    }
+	  else if (argv[i][1] == 'D')
+	    saw_D = 1;
 	  else if (argv[i][1] == 'g')
 	    saw_g = 1;
 	  else if (argv[i][1] == 'O')
 	    saw_O = 1;
-	  else if (((argv[i][2] == '\0'
-		     && (char *)strchr ("bBVDUoeTuIYmLiA", argv[i][1]) != NULL)
-		    || strcmp (argv[i], "-Tdata") == 0))
+	  else if ((argv[i][2] == '\0'
+		    && (char *)strchr ("bBVDUoeTuIYmLiA", argv[i][1]) != NULL)
+		   || strcmp (argv[i], "-Tdata") == 0
+		   || strcmp (argv[i], "-MT") == 0
+		   || strcmp (argv[i], "-MF") == 0)
 	    {
 	      if (strcmp (argv[i], "-o") == 0)
 		saw_o = 1;
@@ -288,19 +315,23 @@ lang_specific_driver (fn, in_argc, in_argv, in_added_libraries)
 	  else if (strcmp (argv[i], "-fsyntax-only") == 0
 		   || strcmp (argv[i], "--syntax-only") == 0)
 	    {
+	      want_spec_file = 0;
 	      library = 0;
 	      will_link = 0;
 	      continue;
 	    }
+          else if (strcmp (argv[i], "-save-temps") == 0)
+	    saw_save_temps = 1;
+          else if (strcmp (argv[i], "-static-libgcc") == 0
+                   || strcmp (argv[i], "-static") == 0)
+	    shared_libgcc = 0;
 	  else
 	    /* Pass other options through.  */
 	    continue;
 	}
       else
 	{
-#if COMBINE_INPUTS
 	  int len; 
-#endif
 
 	  if (saw_speclang)
 	    {
@@ -308,60 +339,89 @@ lang_specific_driver (fn, in_argc, in_argv, in_added_libraries)
 	      continue;
 	    }
 
-#if COMBINE_INPUTS
+	  if (saw_R)
+	    {
+	      args[i] |= RESOURCE_FILE_ARG;
+	      last_input_index = i;
+	      added += 2;  /* for -xjava and -xnone */
+	    }
+
+	  if (argv[i][0] == '@')
+	    {
+	      args[i] |= INDIRECT_FILE_ARG;
+	      indirect_files_count++;
+	      added += 2;  /* for -xjava and -xnone */
+	    }
+
 	  len = strlen (argv[i]);
 	  if (len > 5 && strcmp (argv[i] + len - 5, ".java") == 0)
 	    {
 	      args[i] |= JAVA_FILE_ARG;
 	      java_files_count++;
-	      java_files_length += len;
 	      last_input_index = i;
 	    }
 	  if (len > 6 && strcmp (argv[i] + len - 6, ".class") == 0)
 	    {
 	      args[i] |= CLASS_FILE_ARG;
 	      class_files_count++;
-	      class_files_length += len;
 	      last_input_index = i;
 	    }
-#endif
+	  if (len > 4
+	      && (strcmp (argv[i] + len - 4, ".zip") == 0
+		  || strcmp (argv[i] + len - 4, ".jar") == 0))
+	    {
+	      args[i] |= ZIP_FILE_ARG;
+	      zip_files_count++;
+	      last_input_index = i;
+	    }
 	}
     }
 
   if (quote)
-    (*fn) ("argument to `%s' missing\n", quote);
+    fatal ("argument to `%s' missing\n", quote);
+
+  if (saw_D && ! main_class_name)
+    fatal ("can't specify `-D' without `--main'\n");
 
   num_args = argc + added;
+  if (saw_R)
+    {
+      if (! saw_o)
+	fatal ("-R requires -o");
+    }
   if (saw_C)
     {
       num_args += 3;
-#if COMBINE_INPUTS
-      class_files_length = 0;
-      num_args -= class_files_count;
+      if (class_files_count + zip_files_count > 0)
+	{
+	  error ("warning: already-compiled .class files ignored with -C"); 
+	  num_args -= class_files_count + zip_files_count;
+	  class_files_count = 0;
+	  zip_files_count = 0;
+	}
       num_args += 2;  /* For -o NONE. */
-#endif
       if (saw_o)
-	(*fn) ("cannot specify both -C and -o");
+	fatal ("cannot specify both -C and -o");
     }
-#if COMBINE_INPUTS
-  if (saw_o && java_files_count + (saw_C ? 0 : class_files_count) > 1)
+  if ((saw_o && java_files_count + class_files_count + zip_files_count > 1)
+      || (saw_C && java_files_count > 1)
+      || (indirect_files_count > 0
+	  && java_files_count + class_files_count + zip_files_count > 0))
     combine_inputs = 1;
 
   if (combine_inputs)
     {
-      int len = java_files_length + java_files_count - 1;
-      num_args -= java_files_count;
-      num_args++;  /* Add one for the combined arg. */
-      if (class_files_length > 0)
-	{
-	  len += class_files_length + class_files_count - 1;
-	  num_args -= class_files_count;
-	}
-      combined_inputs_buffer = (char*) xmalloc (len);
-      combined_inputs_pos = 0;
+      filelist_filename = make_temp_file ("jx");
+      if (filelist_filename == NULL)
+	fatal ("cannot create temporary file");
+      record_temp_file (filelist_filename, ! saw_save_temps, 0);
+      filelist_file = fopen (filelist_filename, "w");
+      if (filelist_file == NULL)
+	pfatal_with_name (filelist_filename);
+      num_args -= java_files_count + class_files_count + zip_files_count;
+      num_args += 2;  /* for the combined arg and "-xjava" */
     }
   /* If we know we don't have to do anything, bail now.  */
-#endif
 #if 0
   if (! added && ! library && main_class_name == NULL && ! saw_C)
     {
@@ -376,87 +436,115 @@ lang_specific_driver (fn, in_argc, in_argv, in_added_libraries)
     }
   if (saw_g + saw_O == 0)
     num_args++;
-  if (will_link)
-    num_args++;
-  arglist = (char **) xmalloc ((num_args + 1) * sizeof (char *));
+  num_args++;
 
-  for (i = 0, j = 0; i < argc; i++, j++)
+  if (combine_inputs || indirect_files_count > 0)
+    num_args += 1; /* for "-ffilelist-file" */
+  if (combine_inputs && indirect_files_count > 0)
+    fatal("using both @FILE with multiple files not implemented");
+
+  /* There's no point adding -shared-libgcc if we don't have a shared
+     libgcc.  */
+#ifndef ENABLE_SHARED_LIBGCC
+  shared_libgcc = 0;
+#endif  
+  
+  num_args += shared_libgcc;
+
+  arglist = (const char **) xmalloc ((num_args + 1) * sizeof (char *));
+  j = 0;
+
+  for (i = 0; i < argc; i++, j++)
     {
       arglist[j] = argv[i];
 
       if ((args[i] & PARAM_ARG) || i == 0)
 	continue;
 
+      if ((args[i] & RESOURCE_FILE_ARG) != 0)
+	{
+	  arglist[j++] = "-xjava";
+	  arglist[j++] = argv[i];
+	  arglist[j] = "-xnone";
+	}
+
+      if (strcmp (argv[i], "-R") == 0)
+	{
+	  arglist[j] = concat ("-fcompile-resource=",
+			       *argv[i+1] == '/' ? "" : "/",
+			       argv[i+1], NULL);
+	  i++;
+	  continue;
+	}
+
       if (strcmp (argv[i], "-classpath") == 0
 	  || strcmp (argv[i], "-CLASSPATH") == 0)
 	{
-	  char* patharg
-	    = (char*) xmalloc (strlen (argv[i]) + strlen (argv[i+1]) + 3);
-	  sprintf (patharg, "-f%s=%s", argv[i]+1, argv[i+1]);
-	  arglist[j] = patharg;
+	  arglist[j] = concat ("-f", argv[i]+1, "=", argv[i+1], NULL);
 	  i++;
 	  continue;
 	}
 
       if (strcmp (argv[i], "-d") == 0)
 	{
-	  char *patharg = (char *) xmalloc (sizeof ("-foutput-class-dir=")
-					    + strlen (argv[i + 1]) + 1);
-	  sprintf (patharg, "-foutput-class-dir=%s", argv[i + 1]);
-	  arglist[j] = patharg;
+	  arglist[j] = concat ("-foutput-class-dir=", argv[i + 1], NULL);
 	  ++i;
 	  continue;
 	}
 
-      if (will_link && spec_file == NULL && strncmp (argv[i], "-L", 2) == 0)
+      if (spec_file == NULL && strncmp (argv[i], "-L", 2) == 0)
 	spec_file = find_spec_file (argv[i] + 2);
 
       if (strncmp (argv[i], "-fmain=", 7) == 0)
 	{
 	  if (! will_link)
-	    (*fn) ("cannot specify `main' class when not linking");
+	    fatal ("cannot specify `main' class when not linking");
 	  --j;
 	  continue;
 	}
 
-      if ((args[i] & CLASS_FILE_ARG) && saw_C)
+      if ((args[i] & INDIRECT_FILE_ARG) != 0)
+	{
+	  arglist[j++] = "-xjava";
+	  arglist[j++] = argv[i]+1;  /* Drop '@'. */
+	  arglist[j] = "-xnone";
+	}
+
+      if ((args[i] & (CLASS_FILE_ARG|ZIP_FILE_ARG)) && saw_C)
 	{
 	  --j;
 	  continue;
 	}
 
-#if COMBINE_INPUTS
-      if (combine_inputs && (args[i] & (CLASS_FILE_ARG|JAVA_FILE_ARG)) != 0)
+      if (combine_inputs
+	  && (args[i] & (CLASS_FILE_ARG|JAVA_FILE_ARG|ZIP_FILE_ARG)) != 0)
 	{
-	  if (combined_inputs_pos > 0)
-	    combined_inputs_buffer[combined_inputs_pos++] = '&';
-	  strcpy (&combined_inputs_buffer[combined_inputs_pos], argv[i]);
-	  combined_inputs_pos += strlen (argv[i]);
+	  fputs (argv[i], filelist_file);
+	  fputc ('\n', filelist_file);
 	  --j;
 	  continue;
 	}
-#endif
   }
 
-#if COMBINE_INPUTS
+  if (combine_inputs || indirect_files_count > 0)
+    arglist[j++] = "-ffilelist-file";
+
   if (combine_inputs)
     {
-      combined_inputs_buffer[combined_inputs_pos] = '\0';
-#if 0
-      if (! saw_C)
-#endif
-      arglist[j++] = combined_inputs_buffer;
+      if (fclose (filelist_file))
+	pfatal_with_name (filelist_filename);
+      arglist[j++] = "-xjava";
+      arglist[j++] = filelist_filename;
     }
-#endif
 
   /* If we saw no -O or -g option, default to -g1, for javac compatibility. */
   if (saw_g + saw_O == 0)
     arglist[j++] = "-g1";
 
-  /* Read the specs file corresponding to libgcj, but only if linking.
+  /* Read the specs file corresponding to libgcj.
      If we didn't find the spec file on the -L path, then we hope it
      is somewhere in the standard install areas.  */
-  if (will_link)
+  if (want_spec_file)
     arglist[j++] = spec_file == NULL ? "-specs=libgcj.spec" : spec_file;
 
   if (saw_C)
@@ -464,11 +552,12 @@ lang_specific_driver (fn, in_argc, in_argv, in_added_libraries)
       arglist[j++] = "-fsyntax-only";
       arglist[j++] = "-femit-class-files";
       arglist[j++] = "-S";
-#if COMBINE_INPUTS
       arglist[j++] = "-o";
       arglist[j++] = "NONE";
-#endif
     }
+  
+  if (shared_libgcc)
+    arglist[j++] = "-shared-libgcc";
 
   arglist[j] = NULL;
 
@@ -480,9 +569,29 @@ lang_specific_driver (fn, in_argc, in_argv, in_added_libraries)
 int
 lang_specific_pre_link ()
 {
+  int err;
   if (main_class_name == NULL)
     return 0;
-  input_filename = main_class_name;
-  input_filename_length = strlen (main_class_name);
-  return do_spec (jvgenmain_spec);
+  /* Append `main' to make the filename unique and allow
+
+	gcj --main=hello -save-temps hello.java
+
+     to work.  jvgenmain needs to strip this `main' to arrive at the correct
+     class name.  Append dummy `.c' that can be stripped by set_input so %b
+     is correct.  */ 
+  set_input (concat (main_class_name, "main.c", NULL));
+  err = do_spec (jvgenmain_spec);
+  if (err == 0)
+    {
+      /* Shift the outfiles array so the generated main comes first.
+	 This is important when linking against (non-shared) libraries,
+	 since otherwise we risk (a) nothing getting linked or
+	 (b) 'main' getting picked up from a library. */
+      int i = n_infiles;
+      const char *generated = outfiles[i];
+      while (--i >= 0)
+	outfiles[i + 1] = outfiles[i];
+      outfiles[0] = generated;
+    }
+  return err;
 }

@@ -17,9 +17,8 @@ all:	gcc
 .PHONY: libgpc
 
 gcc:
-	mkdir -p $(gccpath) $(gccpath)/cp $(gccpath)/cpp $(gccpath)/f77 \
-	$(gccpath)/gpc $(gccpath)/objc $(gccpath)/java $(gccpath)/config/arm \
-	$(gccpath)/gen $(gccpath)/insn
+	mkdir -p $(gccpath) $(gccpath)/cp $(gccpath)/f77 \
+	$(gccpath)/gpc $(gccpath)/objc $(gccpath)/java $(gccpath)/config/arm
 	$(MAKE) -C gcc "STAGE=$(STAGE)"
 
 libgcc:

@@ -1,5 +1,5 @@
 /* Handle the constant pool of the Java(TM) Virtual Machine.
-   Copyright (C) 1997 Free Software Foundation, Inc.
+   Copyright (C) 1997, 1998, 1999, 2000, 2001 Free Software Foundation, Inc.
 
 This file is part of GNU CC.
 
@@ -27,14 +27,15 @@ The Free Software Foundation is independent of Sun Microsystems, Inc.  */
 #include "tree.h"
 #include "java-tree.h"
 #include "toplev.h"
+#include "ggc.h"
 
 extern struct obstack permanent_obstack;
 
-static void set_constant_entry PROTO ((CPool *, int, int, jword));
-static int find_class_or_string_constant PROTO ((CPool *, int, tree));
-static int find_name_and_type_constant PROTO ((CPool *, tree, tree));
-static tree get_tag_node PROTO ((int));
-static tree build_constant_data_ref PROTO ((void));
+static void set_constant_entry PARAMS ((CPool *, int, int, jword));
+static int find_class_or_string_constant PARAMS ((CPool *, int, tree));
+static int find_name_and_type_constant PARAMS ((CPool *, tree, tree));
+static tree get_tag_node PARAMS ((int));
+static tree build_constant_data_ref PARAMS ((void));
 
 /* Set the INDEX'th constant in CPOOL to have the given TAG and VALUE. */
 
@@ -196,12 +197,21 @@ find_methodref_index (cpool, decl)
      CPool *cpool;
      tree decl;
 {
-  tree mclass = DECL_CONTEXT (decl);
+  return find_methodref_with_class_index (cpool, decl, DECL_CONTEXT (decl));
+}
+
+int
+find_methodref_with_class_index (cpool, decl, mclass)
+     CPool *cpool;
+     tree decl;
+     tree mclass;
+{
   int class_index = find_class_constant (cpool, mclass);
   tree name = DECL_CONSTRUCTOR_P (decl) ? init_identifier_node
     : DECL_NAME (decl);
-  int name_type_index
-    = find_name_and_type_constant (cpool, name, TREE_TYPE (decl));
+  int name_type_index;
+  name_type_index = 
+      find_name_and_type_constant (cpool, name, TREE_TYPE (decl));
   return find_constant1 (cpool,
 			 CLASS_INTERFACE (TYPE_NAME (mclass))
 			 ? CONSTANT_InterfaceMethodref
@@ -212,7 +222,7 @@ find_methodref_index (cpool, decl)
 #define PUT1(X)  (*ptr++ = (X))
 #define PUT2(X)  (PUT1((X) >> 8), PUT1(X))
 #define PUT4(X)  (PUT2((X) >> 16), PUT2(X))
-#define PUTN(P, N)  (bcopy(P, ptr, N), ptr += (N))
+#define PUTN(P, N)  (memcpy(ptr, (P), (N)), ptr += (N))
 
 /* Give the number of bytes needed in a .class file for the CPOOL
    constant pool.  Includes the 2-byte constant_pool_count. */
@@ -266,10 +276,10 @@ count_constant_pool_bytes (cpool)
 void
 write_constant_pool (cpool, buffer, length)
      CPool *cpool;
-     unsigned char* buffer;
+     unsigned char *buffer;
      int length;
 {
-  unsigned char* ptr = buffer;
+  unsigned char *ptr = buffer;
   int i = 1;
   jword *datap = &cpool->data[1];
   PUT2 (cpool->count);
@@ -309,29 +319,30 @@ write_constant_pool (cpool, buffer, length)
 	  break;
 	}
     }
+
   if (ptr != buffer + length)
-    fatal("internal error - incorrect constant pool");
+    abort ();
 }
 
 CPool *outgoing_cpool;
-
-/* If non-NULL, an ADDR_EXPR referencing a VAR_DECL containing
-   the constant data array for the current class. */
-tree current_constant_pool_data_ref;
-
-/* A Cache for build_int_2 (CONSTANT_XXX, 0). */
-static tree tag_nodes[13];
 
 static tree
 get_tag_node (tag)
      int tag;
 {
-  if (tag_nodes[tag] == NULL_TREE)
+  /* A Cache for build_int_2 (CONSTANT_XXX, 0). */
+  static tree tag_nodes[13];
+  static int initialized_p;
+
+  /* Register the TAG_NODES with the garbage collector.  */
+  if (!initialized_p)
     {
-      push_obstacks (&permanent_obstack, &permanent_obstack);
-      tag_nodes[tag] = build_int_2 (tag, 0);
-      pop_obstacks ();
+      ggc_add_tree_root (tag_nodes, 13);
+      initialized_p = 1;
     }
+
+  if (tag_nodes[tag] == NULL_TREE)
+    tag_nodes[tag] = build_int_2 (tag, 0);
   return tag_nodes[tag];
 }
 
@@ -387,18 +398,19 @@ alloc_class_constant (clas)
 static tree
 build_constant_data_ref ()
 {
-  if (current_constant_pool_data_ref == NULL_TREE)
+  if (TYPE_CPOOL_DATA_REF (current_class))
+    current_constant_pool_data_ref = TYPE_CPOOL_DATA_REF (current_class);
+
+  else if (current_constant_pool_data_ref == NULL_TREE)
     {
       tree decl;
       tree decl_name = mangled_classname ("_CD_", current_class);
-      push_obstacks (&permanent_obstack, &permanent_obstack);
       decl = build_decl (VAR_DECL, decl_name,
 			 build_array_type (ptr_type_node,
 					   one_elt_array_domain_type));
       TREE_STATIC (decl) = 1;
-      make_decl_rtl (decl, NULL, 1);
-      pop_obstacks ();
-      current_constant_pool_data_ref
+      make_decl_rtl (decl, NULL);
+      TYPE_CPOOL_DATA_REF (current_class) = current_constant_pool_data_ref
 	= build1 (ADDR_EXPR, ptr_type_node, decl);
     }
   return current_constant_pool_data_ref;
@@ -454,7 +466,8 @@ build_constants_constructor ()
       DECL_INITIAL (data_decl) = build (CONSTRUCTOR, TREE_TYPE (data_decl),
 					NULL_TREE, data_list);
       DECL_SIZE (data_decl) = TYPE_SIZE (TREE_TYPE (data_decl));
-      rest_of_decl_compilation (data_decl, (char*) 0, 1, 0);
+      DECL_SIZE_UNIT (data_decl) = TYPE_SIZE_UNIT (TREE_TYPE (data_decl));
+      rest_of_decl_compilation (data_decl, (char *) 0, 1, 0);
       data_value = build_address_of (data_decl);
 
       tags_type = build_array_type (unsigned_byte_type_node, index_type);

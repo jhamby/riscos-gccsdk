@@ -2,7 +2,7 @@
    Written by Nick Burrett <nick@dsvr.net.  */
 
 #if 1
-static char *multilib_raw[] = {
+static const char *const multilib_raw[] = {
   "apcs26/unixlib !mlibscl !mapcs-32;",
   "apcs26/libscl mlibscl !mapcs-32;",
 
@@ -16,7 +16,7 @@ static char *multilib_raw[] = {
 #endif
 
 #if 0
-static char *multilib_raw[] = {
+static const char *const multilib_raw[] = {
   "apcs26/soft/arch2/unixlib msoft-float !mlibscl !mapcs-32 !archv3 !archv4;",
   "apcs26/hard/arch2/unixlib !msoft-float !mlibscl !mapcs-32 !archv3 !archv4;",
   "apcs26/soft/arch3/unixlib msoft-float !mlibscl !mapcs-32 archv3 !archv4;",
@@ -42,7 +42,7 @@ static char *multilib_raw[] = {
 };
 #endif
 
-static char *multilib_matches_raw[] = {
+static const char *const multilib_matches_raw[] = {
 "msoft-float msoft-float;",
 "mlibscl mlibscl;",
 "mcpu=arm6 archv3;",
@@ -59,15 +59,8 @@ static char *multilib_matches_raw[] = {
 NULL
 };
 
-static char *multilib_extra = "";
+static const char *multilib_extra = "";
 
-#if 0
-static char *multilib_raw[] = {
-". ;",
+static const char *const multilib_exclusions_raw[] = {
 NULL
 };
-
-static char *multilib_matches_raw[] = {
-NULL
-};
-#endif

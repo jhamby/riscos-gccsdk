@@ -1,5 +1,12 @@
-/* auto-host.h.  Generated automatically by configure.  */
-/* config.in.  Generated automatically from configure.in by autoheader.  */
+/* auto-host-riscos.h.
+   Handwritten by Nick Burrett <nick@dsvr.net>
+
+   This file is based on the functionality provided by UnixLib
+   elsewhere within the GCCSDK source tree.   It applies to the
+   creation of the stage 2 compiler i.e. the one that actually
+   runs on RISC OS.  */
+
+
 /* Define if you can safely include both <string.h> and <strings.h>.  */
 #define STRING_WITH_STRINGS 1
 
@@ -7,7 +14,7 @@
 #define HAVE_PRINTF_PTR 1
 
 #define PACKAGE "gcc"
-#define VERSION "2.95.2"
+#define VERSION "3.1.0"
 
 /* Define if you want expensive run-time checks. */
 /* #undef ENABLE_CHECKING */
@@ -31,65 +38,6 @@
    emitting at the beginning of your section */
 /* #undef HAVE_GAS_SUBSECTION_ORDERING */
 
-/* Define if you have a working <inttypes.h> header file.  */
-/* #undef HAVE_INTTYPES_H */
-
-/* Whether malloc must be declared even if <stdlib.h> is included.  */
-/* #undef NEED_DECLARATION_MALLOC */
-
-/* Whether realloc must be declared even if <stdlib.h> is included.  */
-/* #undef NEED_DECLARATION_REALLOC */
-
-/* Whether calloc must be declared even if <stdlib.h> is included.  */
-/* #undef NEED_DECLARATION_CALLOC */
-
-/* Whether free must be declared even if <stdlib.h> is included.  */
-/* #undef NEED_DECLARATION_FREE */
-
-/* Whether bcopy must be declared even if <string.h> is included.  */
-/* #undef NEED_DECLARATION_BCOPY */
-
-/* Whether bcmp must be declared even if <string.h> is included.  */
-/* #undef NEED_DECLARATION_BCMP */
-
-/* Whether bzero must be declared even if <string.h> is included.  */
-/* #undef NEED_DECLARATION_BZERO */
-
-/* Whether index must be declared even if <string.h> is included.  */
-/* #undef NEED_DECLARATION_INDEX */
-
-/* Whether rindex must be declared even if <string.h> is included.  */
-/* #undef NEED_DECLARATION_RINDEX */
-
-/* Whether getenv must be declared even if <stdlib.h> is included.  */
-/* #undef NEED_DECLARATION_GETENV */
-
-/* Whether atol must be declared even if <stdlib.h> is included.  */
-/* #undef NEED_DECLARATION_ATOL */
-
-/* Whether sbrk must be declared even if <stdlib.h> is included.  */
-/* #undef NEED_DECLARATION_SBRK */
-
-/* Whether abort must be declared even if <stdlib.h> is included.  */
-/* #undef NEED_DECLARATION_ABORT */
-
-/* Whether strerror must be declared even if <string.h> is included.  */
-/* #undef NEED_DECLARATION_STRERROR */
-
-/* Whether strsignal must be declared even if <string.h> is included.  */
-/* #undef NEED_DECLARATION_STRSIGNAL */
-
-/* Whether getcwd must be declared even if <unistd.h> is included.  */
-/* #undef NEED_DECLARATION_GETCWD */
-
-/* Whether getwd must be declared even if <unistd.h> is included.  */
-/* #undef NEED_DECLARATION_GETWD */
-
-/* Whether getrlimit must be declared even if <sys/resource.h> is included.  */
-/* #undef NEED_DECLARATION_GETRLIMIT */
-
-/* Whether setrlimit must be declared even if <sys/resource.h> is included.  */
-/* #undef NEED_DECLARATION_SETRLIMIT */
 
 /* Define if you want expensive run-time checks. */
 /* #undef ENABLE_CHECKING */
@@ -155,6 +103,9 @@
 /* Define if you have the getrlimit function.  */
 #define HAVE_GETRLIMIT 1
 
+/* Define if you have the getrusage function.  */
+#define HAVE_GETRUSAGE 1
+
 /* Define if you have the gettimeofday function.  */
 #define HAVE_GETTIMEOFDAY 1
 
@@ -182,6 +133,9 @@
 /* Define if you have the setrlimit function.  */
 #define HAVE_SETRLIMIT 1
 
+/* Define if you have the stpcpy function.  */
+#define HAVE_STPCPY 1
+
 /* Define if you have the strchr function.  */
 #define HAVE_STRCHR 1
 
@@ -194,23 +148,41 @@
 /* Define if you have the strsignal function.  */
 #define HAVE_STRSIGNAL 1
 
+/* Define if you have the strstr function.  */
+#define HAVE_STRSTR 1
+
 /* Define if you have the strtoul function.  */
 #define HAVE_STRTOUL 1
 
 /* Define if you have the sysconf function.  */
 #define HAVE_SYSCONF 1
 
+/* Define if you have the vprintf function.  */
+#define HAVE_VPRINTF 1
+
+/* Define if you have the <endian.h> header file.  */
+#define HAVE_ENDIAN_H 1
+
 /* Define if you have the <fcntl.h> header file.  */
 #define HAVE_FCNTL_H 1
 
+/* Define if you have the <inttypes.h> header file.  */
+#define HAVE_INTTYPES_H 1
+
 /* Define if you have the <limits.h> header file.  */
 #define HAVE_LIMITS_H 1
+
+/* Define if you have the <machine/endian.h> header file.  */
+#define HAVE_MACHINE_ENDIAN_H
 
 /* Define if you have the <stab.h> header file.  */
 /* #define HAVE_STAB_H 1 */
 
 /* Define if you have the <stddef.h> header file.  */
 #define HAVE_STDDEF_H 1
+
+/* Define if you have the <stdint.h> header file.  */
+#define HAVE_STDINT_H 1
 
 /* Define if you have the <stdlib.h> header file.  */
 #define HAVE_STDLIB_H 1
@@ -239,8 +211,116 @@
 /* Define if you have the <sys/times.h> header file.  */
 #define HAVE_SYS_TIMES_H 1
 
+/* Define if you have <sys/wait.h> that is POSIX.1 compatible.  */
+#define HAVE_SYS_WAIT_H 1
+
 /* Define if you have the <time.h> header file.  */
 #define HAVE_TIME_H 1
 
 /* Define if you have the <unistd.h> header file.  */
 #define HAVE_UNISTD_H 1
+
+/* Define to 1 if we found this declaration otherwise define to 0. */
+#define HAVE_DECL_GETENV 1
+
+/* Define to 1 if we found this declaration otherwise define to 0. */
+#define HAVE_DECL_ATOL 1
+
+/* Define to 1 if we found this declaration otherwise define to 0. */
+#define HAVE_DECL_SBRK 1
+
+/* Define to 1 if we found this declaration otherwise define to 0. */
+#define HAVE_DECL_ABORT 1
+
+/* Define to 1 if we found this declaration otherwise define to 0. */
+#define HAVE_DECL_ATOF 1
+
+/* Define to 1 if we found this declaration otherwise define to 0. */
+#define HAVE_DECL_GETCWD 1
+
+/* Define to 1 if we found this declaration otherwise define to 0. */
+#define HAVE_DECL_GETWD 1
+
+/* Define to 1 if we found this declaration otherwise define to 0. */
+#define HAVE_DECL_STRSIGNAL 0
+
+/* Define to 1 if we found this declaration otherwise define to 0. */
+#define HAVE_DECL_PUTC_UNLOCKED 1
+
+/* Define to 1 if we found this declaration otherwise define to 0. */
+#define HAVE_DECL_FPUTS_UNLOCKED 0
+
+/* Define to 1 if we found this declaration otherwise define to 0. */
+#define HAVE_DECL_STRSTR 1
+
+/* Define to 1 if we found this declaration otherwise define to 0. */
+#define HAVE_DECL_ENVIRON 0
+
+/* Define to 1 if we found this declaration otherwise define to 0. */
+#define HAVE_DECL_MALLOC 1
+
+/* Define to 1 if we found this declaration otherwise define to 0. */
+#define HAVE_DECL_REALLOC 1
+
+/* Define to 1 if we found this declaration otherwise define to 0. */
+#define HAVE_DECL_CALLOC 1
+
+/* Define to 1 if we found this declaration otherwise define to 0. */
+#define HAVE_DECL_FREE 1
+
+/* Define to 1 if we found this declaration otherwise define to 0. */
+#define HAVE_DECL_BASENAME 1
+
+/* Define to 1 if we found this declaration otherwise define to 0. */
+#define HAVE_DECL_GETOPT 1
+
+/* Define to 1 if we found this declaration otherwise define to 0. */
+#define HAVE_DECL_CLOCK 1
+
+/* Define to 1 if we found this declaration otherwise define to 0. */
+#define HAVE_DECL_GETRLIMIT 1
+
+/* Define to 1 if we found this declaration otherwise define to 0. */
+#define HAVE_DECL_SETRLIMIT 1
+
+/* Define to 1 if we found this declaration otherwise define to 0. */
+#define HAVE_DECL_GETRUSAGE 1
+
+/* Define if <sys/times.h> defines struct tms. */
+#define HAVE_STRUCT_TMS 1
+
+/* Define if <time.h> defines clock_t. */
+#define HAVE_CLOCK_T 1
+
+/* Define if host mkdir takes a single argument. */
+/* #undef MKDIR_TAKES_ONE_ARG */
+
+/* Define if your compiler understands volatile. */
+#define HAVE_VOLATILE 1
+
+/* Define if your compiler supports the `long long' type. */
+#define HAVE_LONG_LONG 1
+
+/* Define if your compiler supports the `__int64' type. */
+/* #undef HAVE___INT64 */
+
+/* The number of bytes in type short */
+#define SIZEOF_SHORT 2
+
+/* The number of bytes in type int */
+#define SIZEOF_INT 4
+
+/* The number of bytes in type long */
+#define SIZEOF_LONG 4
+
+/* The number of bytes in type long long */
+#define SIZEOF_LONG_LONG 8
+
+/* Define to 1 if you want to enable namespaces (-fhonor-std) by default. */
+#define ENABLE_STD_NAMESPACE 1
+
+/* Define 0/1 to force the choice for exception handling model. */
+#define CONFIG_SJLJ_EXCEPTIONS 1
+
+/* Define if the host execution character set is EBCDIC. */
+/* #undef HOST_EBCDIC */

@@ -1,5 +1,5 @@
 /* Program to generate "main" a Java(TM) class containing a main method.
-   Copyright (C) 1998 Free Software Foundation, Inc.
+   Copyright (C) 1998, 1999, 2000, 2001 Free Software Foundation, Inc.
 
 This file is part of GNU CC.
 
@@ -27,37 +27,14 @@ The Free Software Foundation is independent of Sun Microsystems, Inc.  */
 #include "config.h"
 #include "system.h"
 #include "obstack.h"
-#include "gansidecl.h"
 #include "jcf.h"
 #include "tree.h"
 #include "java-tree.h"
 
-const char main_method_prefix[] = "main__";
-const char main_method_suffix[] = "Pt6JArray1ZPQ34java4lang6String";
-const char class_mangling_prefix[] = "_CL_";
+static char * do_mangle_classname PARAMS ((const char *string));
 
-struct obstack name_obstack;
-
-extern void error			PVPROTO ((const char *, ...))
-  ATTRIBUTE_PRINTF_1;
-
-void
-error VPROTO((const char *msgid, ...))
-{
-#ifndef ANSI_PROTOTYPES
-  const char *msgid;
-#endif
-  va_list ap;
- 
-  VA_START (ap, msgid);
- 
-#ifndef ANSI_PROTOTYPES
-  msgid = va_arg (ap, const char *);
-#endif
- 
-  vfprintf (stderr, msgid, ap);
-  va_end (ap);
-}
+struct obstack  name_obstack;
+struct obstack *mangle_obstack = &name_obstack;
 
 void
 gcc_obstack_init (obstack)
@@ -75,69 +52,128 @@ gcc_obstack_init (obstack)
 #define OBSTACK_CHUNK_FREE free
 #endif
   _obstack_begin (obstack, OBSTACK_CHUNK_SIZE, 0,
-		  (void *(*) ()) OBSTACK_CHUNK_ALLOC,
-		  (void (*) ()) OBSTACK_CHUNK_FREE);
+		  (void *(*) PARAMS ((long))) OBSTACK_CHUNK_ALLOC,
+		  (void (*) PARAMS ((void *))) OBSTACK_CHUNK_FREE);
+}
+
+static void usage (const char *) ATTRIBUTE_NORETURN;
+
+static void
+usage (const char *name)
+{
+  fprintf (stderr, "Usage: %s [OPTIONS]... CLASSNAMEmain [OUTFILE]\n", name);
+  exit (1);
 }
 
 int
-main (int argc, const char **argv)
+main (int argc, char **argv)
 {
-  const char *classname;
+  char *classname, *p;
   FILE *stream;
-  char *mangled_classname;
+  const char *mangled_classname;
+  int i, last_arg;
 
-  if (argc < 2 || argc > 3)
+  if (argc < 2)
+    usage (argv[0]);
+
+  for (i = 1; i < argc; ++i)
     {
-      fprintf (stderr, "Usage: %s CLASSNAME [OUTFILE]\n", argv[0]);
-      exit(-1);
+      if (! strncmp (argv[i], "-D", 2))
+	{
+	  /* Handled later.  */
+	}
+      else
+	break;
     }
 
-  classname = argv[1];
+  if (i < argc - 2 || i == argc)
+    usage (argv[0]);
+  last_arg = i;
 
-  gcc_obstack_init (&name_obstack);
-  append_gpp_mangled_classtype (&name_obstack, classname);
-  obstack_1grow (&name_obstack, '\0');
-  mangled_classname = obstack_finish (&name_obstack);
+  classname = argv[i];
 
-  if (argc > 2 && strcmp (argv[2], "-") != 0)
+  /* gcj always appends `main' to classname.  We need to strip this here.  */
+  p = strrchr (classname, 'm');
+  if (p == NULL || p == classname || strcmp (p, "main") != 0)
+    usage (argv[0]);
+  else
+    *p = '\0';
+
+  gcc_obstack_init (mangle_obstack);
+  mangled_classname = do_mangle_classname (classname);
+
+  if (i < argc - 1 && strcmp (argv[i + 1], "-") != 0)
     {
-      const char *outfile = argv[2];
+      const char *outfile = argv[i + 1];
       stream = fopen (outfile, "w");
       if (stream == NULL)
 	{
 	  fprintf (stderr, "%s: Cannot open output file: %s\n",
 		   argv[0], outfile);
-	  exit (-1);
+	  exit (1);
 	}
     }
   else
     stream = stdout;
-  fprintf (stream, "extern struct Class %s%s;\n",
-	   class_mangling_prefix, mangled_classname);
+
+  /* At this point every element of ARGV from 1 to LAST_ARG is a `-D'
+     option.  Process them appropriately.  */
+  fprintf (stream, "extern const char **_Jv_Compiler_Properties;\n");
+  fprintf (stream, "static const char *props[] =\n{\n");
+  for (i = 1; i < last_arg; ++i)
+    {
+      const char *p;
+      fprintf (stream, "  \"");
+      for (p = &argv[i][2]; *p; ++p)
+	{
+	  if (! ISPRINT (*p))
+	    fprintf (stream, "\\%o", *p);
+	  else if (*p == '\\' || *p == '"')
+	    fprintf (stream, "\\%c", *p);
+	  else
+	    putc (*p, stream);
+	}
+      fprintf (stream, "\",\n");
+    }
+  fprintf (stream, "  0\n};\n\n");
+
+  fprintf (stream, "extern int %s;\n", mangled_classname);
   fprintf (stream, "int main (int argc, const char **argv)\n");
   fprintf (stream, "{\n");
-  fprintf (stream, "   JvRunMain (&%s%s, argc, argv);\n",
-	   class_mangling_prefix, mangled_classname);
+  fprintf (stream, "   _Jv_Compiler_Properties = props;\n");
+  fprintf (stream, "   JvRunMain (&%s, argc, argv);\n", mangled_classname);
   fprintf (stream, "}\n");
   if (stream != stdout && fclose (stream) != 0)
     {
       fprintf (stderr, "%s: Failed to close output file %s\n",
 	       argv[0], argv[2]);
-      exit (-1);
+      exit (1);
     }
   return 0;
 }
 
-PTR
-xmalloc (size)
-  size_t size;
+
+static char *
+do_mangle_classname (string)
+     const char *string;
 {
-  register PTR val = (PTR) malloc (size);
- 
-  if (val == 0)
+  const char *ptr;
+  int count = 0;
+
+  obstack_grow (&name_obstack, "_ZN", 3);
+
+  for (ptr = string; *ptr; ptr++ )
     {
-      fprintf(stderr, "jvgenmain: virtual memory exhausted");
-      exit(FATAL_EXIT_CODE);
+      if (ptr[0] == '.')
+	{
+	  append_gpp_mangled_name (&ptr [-count], count);
+	  count = 0;
+	}
+      else
+	count++;
     }
-  return val;
+  append_gpp_mangled_name (&ptr [-count], count);
+  obstack_grow (mangle_obstack, "6class$E", 8);
+  obstack_1grow (mangle_obstack, '\0');
+  return obstack_finish (mangle_obstack);
 }

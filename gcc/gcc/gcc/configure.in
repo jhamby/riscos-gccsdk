@@ -9,7 +9,7 @@ AC_ARG_PROGRAM
 
 dnl Global version variable
 PACKAGE=gcc
-VERSION="2.95.2"
+VERSION="3.1.0"
 AC_SUBST(PACKAGE)
 AC_SUBST(VERSION)
 AC_DEFINE_UNQUOTED(PACKAGE, "$PACKAGE")
@@ -45,7 +45,8 @@ dnl Checks for header files
 AC_HEADER_STDC
 AC_HEADER_SYS_WAIT
 AC_HEADER_TIME
-GCC_HEADER_STRING
+gcc_AC_HEADER_STDBOOL
+gcc_AC_HEADER_STRING
 AC_CHECK_HEADERS(stdint.h inttypes.h endian.h machine/endian.h)
 AC_CHECK_HEADERS(vfork.h fcntl.h limits.h stab.h stddef.h stdlib.h)
 AC_CHECK_HEADERS(string.h strings.h sys/file.h sys/param.h sys/resource.h)
@@ -61,6 +62,9 @@ AC_CHECK_FUNCS(vprintf)
 AC_DECL_SYS_SIGLIST
 
 AC_FUNC_VFORK
+AC_FUNC_MMAP_ANYWHERE
+AC_FUNC_MMAP_FILE
+
 
 dnl See whether we need a declaration for a function.
 dnl GCC_NEED_DECLARATION(FUNCTION [, EXTRA-HEADER-FILES])
@@ -118,11 +122,66 @@ GCC_NEED_DECLARATIONS(malloc realloc calloc free bcopy bzero bcmp \
         index rindex getenv atol sbrk abort atof strerror getcwd getwd \
         strsignal putc_unlocked fputs_unlocked strstr)
 
-GCC_NEED_DECLARATIONS(getrlimit setrlimit, [
-#include <sys/types.h>
+
+gcc_AC_CHECK_DECLS(getrlimit setrlimit getrusage, , ,[
+#include "ansidecl.h"
+#include "system.h"
 #ifdef HAVE_SYS_RESOURCE_H
 #include <sys/resource.h>
 #endif
 ])
+
+gcc_AC_CHECK_DECLS(times, , ,[
+#include "ansidecl.h"
+#include "system.h"
+#ifdef HAVE_SYS_TIMES_H
+#include <sys/times.h>
+#endif
+])
+
+# More time-related stuff.
+AC_CACHE_CHECK(for struct tms, ac_cv_struct_tms, [
+AC_TRY_COMPILE([
+#include "ansidecl.h"
+#include "system.h"
+#ifdef HAVE_SYS_TIMES_H
+#include <sys/times.h>
+#endif
+], [struct tms tms;], ac_cv_struct_tms=yes, ac_cv_struct_tms=no)])
+if test $ac_cv_struct_tms = yes; then
+  AC_DEFINE(HAVE_STRUCT_TMS, 1,
+  [Define if <sys/times.h> defines struct tms.])
+fi
+
+# use gcc_cv_* here because this doesn't match the behavior of AC_CHECK_TYPE.
+# revisit after autoconf 2.50.
+AC_CACHE_CHECK(for clock_t, gcc_cv_type_clock_t, [
+AC_TRY_COMPILE([
+#include "ansidecl.h"
+#include "system.h"
+], [clock_t x;], gcc_cv_type_clock_t=yes, gcc_cv_type_clock_t=no)])
+if test $gcc_cv_type_clock_t = yes; then
+  AC_DEFINE(HAVE_CLOCK_T, 1,
+  [Define if <time.h> defines clock_t.])
+fi
+
+
+
+gcc_AC_C_VOLATILE
+
+gcc_AC_C_LONG_DOUBLE
+gcc_AC_C_LONG_LONG
+gcc_AC_C__BOOL
+
+# sizeof(char) is 1 by definition.
+gcc_AC_COMPILE_CHECK_SIZEOF(short)
+gcc_AC_COMPILE_CHECK_SIZEOF(int)
+gcc_AC_COMPILE_CHECK_SIZEOF(long)
+if test $ac_cv_c_long_long = yes; then
+  gcc_AC_COMPILE_CHECK_SIZEOF(long long)
+fi
+if test $ac_cv_c___int64 = yes; then
+  gcc_AC_COMPILE_CHECK_SIZEOF(__int64)
+fi
 
 AC_OUTPUT([Makefile])

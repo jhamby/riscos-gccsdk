@@ -9,7 +9,7 @@ AC_ARG_PROGRAM
 
 dnl Global version variable
 PACKAGE=GCCSDK
-VERSION="2.95.2"
+VERSION="3.1.0"
 AC_SUBST(PACKAGE)
 AC_SUBST(VERSION)
 AC_DEFINE_UNQUOTED(PACKAGE, "$PACKAGE")
@@ -108,6 +108,9 @@ esac
 case "$host" in
   *freebsd*)
 	os_type="FREEBSD"
+	;;
+  *openbsd*)
+	os_type="OPENBSD"
 	;;
   *linux*)
 	os_type="LINUX"

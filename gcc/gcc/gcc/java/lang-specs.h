@@ -1,5 +1,5 @@
 /* Definitions for specs for the GNU compiler for the Java(TM) language.
-   Copyright (C) 1996, 1998, 1999 Free Software Foundation, Inc.
+   Copyright (C) 1996, 1998, 1999, 2000, 2001 Free Software Foundation, Inc.
 
 This file is part of GNU CC.
 
@@ -25,19 +25,16 @@ The Free Software Foundation is independent of Sun Microsystems, Inc.  */
 /* This is the contribution to the `default_compilers' array in gcc.c for
    Java.  */
 
-  {".java",   {"@java"} },
-  {".class",  {"@java"} },
-  {".zip",    {"@java"} },
-  {".jar",    {"@java"} },
+  {".java",   "@java" , 0},
+  {".class",  "@java" , 0},
+  {".zip",    "@java" , 0},
+  {".jar",    "@java" , 0},
   {"@java",
-   {"%{!E:jc1 %i %1 %{!Q:-quiet} %{d*} %{m*} %{a}\
-		    %{g*} %{O*} %{W*} %{w} %{pedantic*} %{ansi}\
-		    %{traditional} %{v:-version} %{pg:-p} %{p}\
-		    %{f*} %{+e*} %{aux-info*} %{Qn:-fno-ident}\
-                    %{I*}\
-		    %{MD} %{MMD} %{M} %{MM}\
-		    %{pg:%{fomit-frame-pointer:%e-pg and -fomit-frame-pointer are incompatible}}\
-		    %{S:%W{o*}%{!o*:-o %b.s}}%{!S:-o %{|!pipe:%g.s}} |\n\
-            %{!S:as %a %Y\
-		    %{c:%W{o*}%{!o*:-o %w%b%O}}%{!c:-o %d%w%u%O}\
-		    %{!pipe:%g.s} %A\n }}"}},
+   "%{fjni:%{femit-class-files:%e-fjni and -femit-class-files are incompatible}}\
+    %{fjni:%{femit-class-file:%e-fjni and -femit-class-file are incompatible}}\
+    %{femit-class-file:%{!fsyntax-only:%e-femit-class-file should used along with -fsyntax-only}}\
+    %{femit-class-files:%{!fsyntax-only:%e-femit-class-file should used along with -fsyntax-only}}\
+    %{!E:jc1 %i %(jc1) %(cc1_options) %{+e*} %{I*}\
+             %{MD} %{MMD} %{M} %{MM} %{MA} %{MT*} %{MF*}\
+             %{!fsyntax-only:%(invoke_as)}}", 0},
+

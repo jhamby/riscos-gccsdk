@@ -23,8 +23,8 @@ The Free Software Foundation is independent of Sun Microsystems, Inc.  */
 
 /* Written by Per Bothner <bothner@cygnus.com>, February 1996. */
 
-#ifndef JAVAOP_H
-#define JAVAOP_H
+#ifndef GCC_JAVAOP_H
+#define GCC_JAVAOP_H
 
 typedef	unsigned char	uint8;
 #ifndef int16
@@ -98,7 +98,7 @@ union Word {
 #endif
 #ifndef IMMEDIATE_s4
 #define IMMEDIATE_s4 (PC+=4, CHECK_PC_IN_RANGE(PC), \
-  ((jint)((BCODE[PC-4] << 24) | (BCODE[PC-3] << 16) \
+  (WORD_TO_INT((BCODE[PC-4] << 24) | (BCODE[PC-3] << 16) \
          | (BCODE[PC-2] << 8) | (BCODE[PC-1]))))
 #endif
 
@@ -107,6 +107,19 @@ WORD_TO_FLOAT(jword w)
 { union Word wu;
   wu.i = w;
   return wu.f;
+} 
+
+/* Sign extend w.  If the host on which this cross-compiler runs uses
+   a 64-bit type for jword the appropriate sign extension is
+   performed; if it's a 32-bit type the arithmetic does nothing but is
+   harmless.  */
+static inline jint
+WORD_TO_INT(jword w)
+{
+  jint n = w & 0xffffffff; /* Mask lower 32 bits.  */
+  n ^= (jint)1 << 31;
+  n -= (jint)1 << 31; /* Sign extend lower 32 bits to upper.  */
+  return n;
 } 
 
 static inline jlong
@@ -124,7 +137,11 @@ union DWord {
 static inline jdouble
 WORDS_TO_DOUBLE(jword hi, jword lo)
 { union DWord wu;
+#if (1 == HOST_FLOAT_WORDS_BIG_ENDIAN)
+  wu.l = WORDS_TO_LONG(lo, hi);
+#else
   wu.l = WORDS_TO_LONG(hi, lo);
+#endif
   return wu.d;
 } 
 
@@ -138,4 +155,4 @@ WORDS_TO_DOUBLE(jword hi, jword lo)
    : ((PREFIX_CHAR) & 0x10) == 0 ? 3 \
    : ((PREFIX_CHAR) & 0x08) == 0 ? 4 : 5)
 
-#endif /* !JAVAOP_H */
+#endif /* ! GCC_JAVAOP_H */
