@@ -1,3 +1,15 @@
+Thu Mar 31 10:25:40 2005  Nick Burrett  <nick@sqrt.co.uk>
+
+	* unixlib/sigstate.h (__valid_address): Prepend '__' as this is
+	a globally defined function.  Set args to 'void *' to reduce
+	explicit-casting in source.
+	(__write_backtrace): Add prototype.
+	* signal/post.c (__valid_address): Adjust accordingly.
+	(__write_backtrace): Make global.
+	(__unixlib_raise_signal): Stablise signal handling in unpredictable
+	situations, or die when we find parts of the environment are
+	in a bad state.
+
 Wed Mar 30 22:37:44 2005  Alex Waugh  <alex@alexwaugh.com>
 
 	* source/unix/tty.c (__ttyicanon): Restore the previous escape

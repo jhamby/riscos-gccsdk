@@ -1,8 +1,8 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/unixlib/sigstate.h,v $
- * $Date: 2004/10/17 16:24:44 $
- * $Revision: 1.8 $
+ * $Date: 2004/11/28 21:31:34 $
+ * $Revision: 1.9 $
  * $State: Exp $
  * $Author: joty $
  *
@@ -66,7 +66,11 @@ extern void __unixlib_default_sigaction (struct unixlib_sigstate *);
 
 /* Returns non-zero value when address range __lower - __upper (excl) is
    a valid address range.  */
-extern int valid_address (const int *__lower, const int *__upper);
+extern int __valid_address (const void *__lower, const void *__upper);
+
+/* Write a stack backtrace direct to the terminal.  A meaningful signal
+   number can be supplied as 'signo'.  */
+extern void __write_backtrace (int signo);
 
 /* SIGALRM handler.  */
 extern void __h_sigalrm_init (void);

@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/signal/post.c,v $
- * $Date: 2005/03/26 23:36:50 $
- * $Revision: 1.19 $
+ * $Date: 2005/03/28 14:58:03 $
+ * $Revision: 1.20 $
  * $State: Exp $
- * $Author: alex $
+ * $Author: joty $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: post.c,v 1.19 2005/03/26 23:36:50 alex Exp $";
+static const char rcs_id[] = "$Id: post.c,v 1.20 2005/03/28 14:58:03 joty Exp $";
 #endif
 
 /* signal.c.post: Written by Nick Burrett, 27 August 1996.  */
@@ -109,7 +109,7 @@ sigsetup (struct unixlib_sigstate *ss, sighandler_t handler,
 /* Returns non-zero value when address range <lower> - <upper> (excl) is
    a valid address range.  */
 int
-valid_address (const int *lower, const int *upper)
+__valid_address (const void *lower, const void *upper)
 {
   int flags;
 
@@ -125,8 +125,8 @@ write_termination (int signo)
 }
 
 
-static void
-write_backtrace (int signo)
+void
+__write_backtrace (int signo)
 {
   int features;
   int *fp = __backtrace_getfp(), *oldfp = NULL;
@@ -156,7 +156,7 @@ write_backtrace (int signo)
 	}
 
       /* Validate FP address.  */
-      if (!valid_address(fp - 3, fp))
+      if (!__valid_address(fp - 3, fp))
 	{
 	  fprintf(stderr, "Stack frame has gone out of bounds "
 			  "with address %x\n", (int)fp - 12);
@@ -171,7 +171,7 @@ write_backtrace (int signo)
       if (!(features & 0x8))
 	pc += 1;
 
-      if (!valid_address(pc, pc))
+      if (!__valid_address(pc, pc))
 	{
 	  fprintf(stderr, "Invalid pc address %x\n", (int)pc);
 	  break;
@@ -183,10 +183,11 @@ write_backtrace (int signo)
       else
 	lr = (int *)(fp[-1] & 0x03fffffc);
 
-      fprintf(stderr, "  (%8x) pc: %8x lr: %8x sp: %8x ", (int)fp, (int)pc, (int)lr, fp[-2]);
+      fprintf(stderr, "  (%8x) pc: %8x lr: %8x sp: %8x ",
+	      (int)fp, (int)pc, (int)lr, fp[-2]);
 
       /* Retrieve function name.  */
-      if (!valid_address(pc - 7, pc))
+      if (!__valid_address(pc - 7, pc))
 	{
 	  fputs("[invalid address]\n", stderr);
 	}
@@ -206,7 +207,7 @@ write_backtrace (int signo)
 
 	  /* Function name sanity check.  */
 	  if (name != NULL
-	      && (!valid_address((const int *)name, (const int *)(name + 256))
+	      && (!__valid_address(name, (name + 256))
 		  || strnlen(name, 256) == 256))
 	    name = NULL;
 
@@ -229,7 +230,7 @@ write_backtrace (int signo)
 	  /* At &oldfp[1] = cpsr, a1-a4, v1-v6, sl, fp, ip, sp, lr, pc */
 	  fprintf(stderr, "\n  Register dump at %p:\n", &oldfp[1]);
 
-	  if (valid_address(oldfp, oldfp + 17))
+	  if (__valid_address(oldfp, oldfp + 17))
 	    {
 	    for (reg = 0; reg < 16; reg++)
 	      {
@@ -459,7 +460,7 @@ post_signal:
 	  }
 	else if (act == core)
 	  {
-	    write_backtrace (signo);
+	    __write_backtrace (signo);
 	    status |= WCOREFLAG;
 	  }
 
@@ -541,6 +542,8 @@ post_pending:
 void
 __unixlib_raise_signal (struct unixlib_sigstate *ss, int signo)
 {
+  const char *err;
+
   PTHREAD_UNSAFE
 
 #ifdef DEBUG
@@ -548,8 +551,39 @@ __unixlib_raise_signal (struct unixlib_sigstate *ss, int signo)
   __os_prhex ((int)ss); __os_print(", signo is ");
   __os_prdec (signo); __os_nl ();
 #endif
+
+  /* When signals are raised, we could be in any state imaginable.  Be
+     extra careful and verify the basic UnixLib ingredients before
+     delivery.
+
+     It is unlikely that we can recover from errors here, so print an
+     error message and die.  */
+  if (__u == NULL)
+    {
+      err = "UnixLib process structure is non-existant.";
+      goto error;
+    }
+
+  if (__u != NULL && ! __valid_address (&__u[0], &__u[1]))
+    {
+      err = "UnixLib process structure is corrupt.";
+      goto error;
+    }
+
+  if (__u->__magic != _PROCMAGIC)
+    {
+      err = "UnixLib process structure is corrupt.";
+      goto error;
+    }
+
   if (ss == NULL)
     ss = &__u->sigstate;
+
+  if (ss == NULL)
+    {
+      err = "UnixLib process structure is corrupt.";
+      goto error;
+    }
 
   /* Mark signo as pending to be delivered.  */
   if (signo != 0)
@@ -563,12 +597,28 @@ __unixlib_raise_signal (struct unixlib_sigstate *ss, int signo)
       ss->currently_handling = 1;
       post_signal (ss, signo);
     }
-#ifdef DEBUG
   else
     {
+      /* We could be looping on a segfault.  Something bad may have
+	 happened.  So we better report an error and exit fast.  */
+      if (signo == SIGSEGV)
+	{
+	  err = "UnixLib detected recursion of signal SIGSEGV.";
+	  goto error;
+	}
+
+#ifdef DEBUG
       __os_print ("\r\n__unixlib_raise_signal: signal ");
       __os_print (sys_siglist[signo]);
       __os_print (" is pending for delivery\r\n");
-    }
 #endif
+    }
+
+  return;
+ error:
+  __os_nl ();
+  __os_print (err);
+  __os_print ("  Exiting.");
+  __os_nl ();
+  _exit (W_EXITCODE (0, signo));
 }
