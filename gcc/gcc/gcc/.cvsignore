@@ -5,6 +5,7 @@ auto-host.h.in
 autom4te.cache
 c-parse.c
 c-parse.h
+c-parse.y
 config.log
 config.status
 configure
