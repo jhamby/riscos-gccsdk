@@ -229,6 +229,84 @@ m_str (WORD cc)
 }
 
 
+void
+m_pld (void)
+{
+  int op, ir = 0xf450f000 | PRE_FLAG | UP_FLAG;
+
+  cpuWarn (XSCALE);
+
+  skipblanks();
+
+  if (inputGet () != '[')
+    error (ErrorError, TRUE, "Expected '[' after PLD instruction");
+
+  skipblanks();
+  op = getCpuReg (); /* Base register */
+  ir |= LHS_OP (op);
+  skipblanks();
+
+  if (inputLook () == ']')
+    {
+      inputSkip();
+      skipblanks();
+    }
+  else
+   {
+     skipblanks();
+     if (inputGet () != ',')
+       error (ErrorError, TRUE, "Expected ',' or ']' in PLD instruction");
+
+     skipblanks();
+
+     if (inputLook () == '+')
+       {
+         inputSkip ();
+         skipblanks ();
+       }
+     else if (inputLook () == '-')
+       {
+         inputSkip ();
+         skipblanks ();
+         ir &= ~UP_FLAG;
+       }
+
+     if (inputLook () == '#')
+       {
+         Value offset;
+
+         inputSkip ();
+         exprBuild ();
+         offset = exprEval (ValueInt | ValueCode);
+
+         switch (offset.Tag.t)
+           {
+           case ValueInt:
+           case ValueAddr:
+             ir = fixCpuOffset (inputLineNo, ir, offset.ValueInt.i);
+             break;
+           default:
+             error (ErrorError, TRUE, "Illegal offset expression");
+             break;
+           }
+       }
+     else
+       {
+         ir = getRhs(TRUE, TRUE, ir) | REG_FLAG;
+       }
+
+       if (inputLook () == ']')
+         {
+           inputSkip ();
+           skipblanks ();
+         }
+       else
+         error (ErrorError, TRUE, "Expected closing ]");
+   }
+   putIns(ir);
+}
+
+
 static void
 dstreglist (WORD ir)
 {

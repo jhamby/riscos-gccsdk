@@ -534,6 +534,8 @@ decode (Lex * label)
     case 'p':
       switch (inputGetUC ())
 	{
+	case 'l':
+	  C_FINISH_STR ("d", m_pld);	/* pld */
 	case 'o':
 	  switch (inputGetUC ())
 	    {

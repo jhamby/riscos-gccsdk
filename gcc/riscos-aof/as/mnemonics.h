@@ -52,6 +52,7 @@ void m_mul (WORD cc);
 void m_mvf (WORD cc);
 void m_mvn (WORD cc);
 void m_orr (WORD cc);
+void m_pld (void);
 void m_pol (WORD cc);
 void m_pow (WORD cc);
 void m_rdf (WORD cc);
