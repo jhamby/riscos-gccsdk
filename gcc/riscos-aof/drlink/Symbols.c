@@ -1,1340 +1,323 @@
-/*
-** Drlink AOF Linker
-**
-** Copyright © David Daniels 1993, 1994, 1995, 1996, 1997, 1998.
-** All rights reserved.
-**
-** This module contains the functions concerned with manipulating the
-** various symbol tables
+/* COBF by BB -- 'Symbols.c' obfuscated at Fri Dec 22 16:52:42 2000
 */
-
-#include <stdlib.h>
-#include <string.h>
-#include <ctype.h>
-#include "Drlhdr.h"
-#include "Chunkhdr.h"
-#include "Symbolhdr.h"
-#include "Edithdr.h"
-#include "Procdefs.h"
-
-/* Variables referenced from other files */
-
-symbol *globalsyms[MAXGLOBALS];	/* Global symbol table */
-
-symbol
-  *image_robase,		/* Symbol table entries of pre-defined symbols */
-  *image_rwbase,
-  *image_zibase,
-  *image_rolimit,
-  *image_rwlimit,
-  *image_zilimit,
-  *image_codebase,		/* Old symbols used by Fortran 77 */
-  *image_codelimit,
-  *image_database,
-  *image_datalimit,
-  *reloc_code;
-
-libtable *current_libsyms; 	/* Pointer to current library symbol table */
-libheader *current_lib;		/* Pointer to libheader entry for library being searched */
-
-symtentry
-  *current_symtbase,		/* Start of OBJ_SYMT chunk in current file containing references */
-  *current_symtend;		/* End of OBJ_SYMT chunk in current file */
-
-unsigned int
-  totalsymbols,			/* Total number of symbols defined in program */
-  numwanted,			/* Number of symbols currently wanted */
-  numfound,			/* Number of symbols found this library pass */
-  lldsize;			/* Space required for names in low-level debug table */
-
-/* Private declarations */
-
-typedef struct missing {
-  char *symname, *filename;	/* Symbol not found and the file that referenced it */
-  struct missing *nextsym;	/* Next missing symbol */
-} missing;
-
-static symbol *commonsyms[MAXCOMMON];	/* Common Block symbol table */
-
-static symbol
-  *symblock,			/* Memory to hold symbol entries for file when reading file */
-  *wantedlist;			/* 'Wanted symbols' list in current file */
-
-static filelist *current_file;	/* File list entry for file being processed */
-static symtable *current_table;	/* Pointer to local symbol table of current file */
-static editcmd
-  *current_symedit,		/* Pointer to symbol edits for current file */
-  *current_refedit;		/* Pointer to reference edits for current file */
-
-/*
-** 'stricmp' performs a comparison of two null-terminated character
-** strings ignoring the case of the letters
-*/
-int stricmp(const char *str1, const char *str2) {
-  while (*str1 && tolower(*str1)==tolower(*str2)) {
-    str1++;
-    str2++;
-  }
-  return *str1-*str2;
-}
-
-/*
-** 'hash' returns a hash value for the character string passed to it.
-** The character is OR'ed with 0x20 to do a quick and dirty
-** conversion to lower case because we need to ignore the case of
-** any letters. I suppose it would be better to use 'tolower' but
-** it's only a hashing function.
-*/
-int hash(char *name) {
-  int total;
-  total = 0;
-  while (*name!=0) {
-    total = total*5^(*name | 0x20);
-    name++;
-  }
-  return total;
-}
-
-/*
-** 'isrelocatable' is called to determine if a relocation refers to
-** something that itself is relocatable. References to areas are
-** relocatable but references to symbols can be absolute.
-*/
-bool isrelocatable(relocation *rp) {
-  unsigned int symtindex, reltype;
-  symtentry *sp;
-  bool istype2;
-  reltype = rp->reltypesym;
-  istype2 = (reltype & REL_TYPE2)!=0;
-  if (istype2) {
-    reltype = get_type2_type(reltype);
-  }
-  else {
-    reltype = get_type1_type(reltype);
-  }
-  if ((reltype & REL_SYM)==0) {	/* Simple area reference */
-    return TRUE;
-  }
-  if (istype2) {
-    symtindex = get_type2_index(rp->reltypesym);
-  }
-  else {
-    symtindex = get_type1_index(rp->reltypesym);
-  }
-  sp = symtbase+symtindex;
-  if ((sp->symtattr & SYM_WEAKREF)!=0) {	/* Reference to a weak external */
-    return FALSE;
-  }
-  else {
-    if ((sp->symtattr & SYM_DEFN)==0) {		/* Reference to external symbol */
-      sp = sp->symtarea.symdefptr;
-    }
-  }
-  return (sp->symtattr & SYM_ABSVAL)==0;
-}
-
-/*
-** 'check_edits' is called to see if there are any edits for the
-** current file and to set up pointers to the edits if there are
-*/
-static void check_edits(void) {
-  editcmd *ep;
-  int hashval;
-  current_symedit = NIL;
-  current_refedit = NIL;
-  hashval = current_file->chfilehash;
-  if (symedit_count>0) {	/* Symbol edits exist */
-    ep = symedit_list;
-    while (ep!=NIL && hashval>ep->edtfnhash) ep = ep->edtnext;
-    if (ep!=NIL && hashval==ep->edtfnhash && stricmp(current_file->chfilename, ep->edtfile)==0) {
-      current_symedit = ep;
-    }
-  }
-  if (refedit_count>0) {	/* Reference edits exist */
-    ep = refedit_list;
-    while (ep!=NIL && hashval>ep->edtfnhash) ep = ep->edtnext;
-    if (ep!=NIL && hashval==ep->edtfnhash && stricmp(current_file->chfilename, ep->edtfile)==0) {
-      current_refedit = ep;
-    }
-  }
-}
-
-/*
-** 'check_symedit' is called to check if the symbol passed
-** to it has to be edited and if so to carry out that edit.
-** Note that multiple edits on one symbol are allowed, so
-** that, for example, a symbol can be renamed and made local
-** or global at the same time.
-*/
-static void check_symedit(symtentry *symtp) {
-  int fnhashval, syhashval;
-  editcmd *ep;
-  char *symname;
-  symname = symtp->symtname;
-  fnhashval = current_file->chfilehash;
-  syhashval = hash(symname);
-  ep = current_symedit;
-  while (ep!=NIL && ep->edtfnhash==fnhashval) {
-    if (ep->edtsyhash==syhashval &&
-     ((!opt_case && strcmp(ep->edtold, symname)==0)
-      || (opt_case && stricmp(ep->edtold, symname)==0))) {	/* Found symbol */
-      symedit_count-=1;
-      ep->edtdone = TRUE;
-      switch (ep->edtoper) {
-      case EDT_RENAME:
-        current_file->edited = TRUE;
-        symtp->symtname = ep->edtnew;
-        if (opt_verbose) {
-          error("Warning: Symbol '%s' in '%s' renamed as '%s'", ep->edtold, ep->edtfile, ep->edtnew);
-        }
-        break;
-      case EDT_HIDE:
-        if ((symtp->symtattr & SYM_SCOPE)==SYM_GLOBAL) {	/* Global symbol */
-          symtp->symtattr = symtp->symtattr-(SYM_GLOBAL-SYM_LOCAL);
-          if (opt_verbose) {
-            error("Warning: Symbol '%s' in '%s' now marked as 'local'", ep->edtold, ep->edtfile);
-          }
-        }
-        else {
-          error("Warning: Symbol '%s' in '%s' is already a 'local' symbol", symtp->symtname, ep->edtfile);
-        }
-        break;
-      case EDT_REVEAL:
-        if ((symtp->symtattr & SYM_SCOPE)==SYM_LOCAL) {		/* Local symbol */
-          symtp->symtattr = symtp->symtattr+(SYM_GLOBAL-SYM_LOCAL);
-          if (opt_verbose) {
-            error("Warning: Symbol '%s' in '%s' now marked as 'global'", ep->edtold, ep->edtfile);
-          }
-        }
-        else {
-          error("Warning: Symbol '%s' in '%s' is already a 'global' symbol", symtp->symtname, ep->edtfile);
-        }
-      }
-    }
-    ep = ep->edtnext;
-  }
-}
-
-/*
-** 'check_refedit' is called to check if the symbol reference
-** passed to it has to be changed and if so to change it
-*/
-static void check_refedit(symtentry *symtp) {
-  int syhashval, fnhashval;
-  editcmd *ep;
-  char *symname;
-  symname = symtp->symtname;
-  fnhashval = current_file->chfilehash;
-  syhashval = hash(symname);
-  ep = current_refedit;
-  while (ep!=NIL && ep->edtfnhash==fnhashval) {
-    if (ep->edtsyhash==syhashval &&
-     ((!opt_case && strcmp(ep->edtold, symname)==0)
-     || (opt_case && stricmp(ep->edtold, symname)==0))) {	/* Found symbol */
-      refedit_count-=1;
-      ep->edtdone = TRUE;
-      current_file->edited = TRUE;
-      symtp->symtname = ep->edtnew;
-      if (opt_verbose) {
-        error("Warning: Symbol reference '%s' in '%s' changed to '%s'", ep->edtold, ep->edtfile, ep->edtnew);
-      }
-    }
-    ep = ep->edtnext;
-  }
-}
-
-/*
-** 'add_symbol' adds a symbol to one of the symbol tables. It returns
-** 'TRUE' if the new entry was created successfully or FALSE if the
-** call failed. It checks for duplicate entries and flags any it finds.
-** It is possible for there to be two occurences of a symbol, one
-** ordinary one and one with the 'strong' attribute set. 'symtptr'
-** points at the 'strong' definition if one is found (as this will
-** be the one most widely used). 'symnormal' points at the non-strong
-** definition when there are two versions, else it is nil. At present,
-** however, the case where a strong symbol that duplicates a non-strong
-** one is detected whilst scanning libraries cannot be handled. The
-** strong version will be used in preference to the non-strong one when
-** future external references are dealt with, almost certainly leading
-** to errors in the link. (To fix this properly would require the linker
-** to scan the OBJ_SYMT chunk of every entry in every library for
-** every symbol *just in case* there is a strong version. This would slow
-** things down horribly.) Another case to check for is duplicated symbols
-** in code and data common areas. In this case, the second and subsequent
-** symbol definitions have to be ignored. This can be dealt with as the
-** area containing each symbol will be the same (the OBJ_HEAD
-** processing takes care of this) so it is just a matter of checking
-** the 'area' pointers and if they are the same quietly ignoring the
-** symbol.
-**
-** If there are duplicate entries then, for a local' table entry, this
-** means there is something wrong with the OBJ_SYMT chunk but for a
-** 'global' symbol then it is just a simple case (of the same symbol
-** appearing in more than one file.
-**
-** There is a kludge in here to handle something the C compiler does
-** in its AOF files. It generates local symbols that are not associated
-** with any area. If one of these is found, the symbol is converted
-** to an absolute value. This would be okay, except that, in certain
-** cases, the C compiler also generates relocations for the symbol as
-** well, which means the relocation code has to be kludged to handle
-** them too...
-*/
-static bool add_symbol(symtentry *symtp) {
-  symbol *p;
-  symbol **table;
-  int hashval, attr;
-  char *name;
-  arealist *ap;
-  symtp->symtname = symtp->symtname+COERCE(strtbase, unsigned int);
-  if (current_symedit!=NIL) check_symedit(symtp);
-  name = symtp->symtname;
-  hashval = hash(name);
-  attr = symtp->symtattr & SYM_ATMASK;
-  if ((attr & SYM_ABSVAL)==0) {	/* Symbol is not an absolute value. Find its area */
-    ap = find_area(strtbase+symtp->symtarea.areaname);
-    if (ap==NIL) {	/* Dodgy C symbol reference to unknown area */
-      symtp->symtattr = symtp->symtattr | SYM_ABSVAL;	/* Convert symbol to absolute */
-    }
-  }
-  else {
-    ap = NIL;
-  }
-  symtp->symtarea.areaptr = ap;
-  if ((attr & SYM_SCOPE)==SYM_LOCAL) {
-    table = &(*current_table)[hashval & LOCALMASK];
-  }
-  else {
-    table = &globalsyms[hashval & GLOBALMASK];
-  }
-  if (current_file->keepdebug) lldsize+=strlen(name)+sizeof(char);
-  p = *table;
-  if (opt_case) {
-    while (p!=NIL && (hashval!=p->symhash || stricmp(name, p->symtptr->symtname)!=0)) p = p->symflink;
-  }
-  else {
-    while (p!=NIL && (hashval!=p->symhash || strcmp(name, p->symtptr->symtname)!=0)) p = p->symflink;
-  }
-  if (p==NIL) {  /* Entry not found */
-    p = symblock;
-    symblock++;
-    p->symhash = hashval;
-    p->symtptr = symtp;
-    p->symnormal = NIL;
-    p->symflink = *table;
-    *table = p;
-  }
-  else if ((p->symtptr->symtattr & SYM_STRONG)==(attr & SYM_STRONG)) {	/* Duplicate symbol */
-    if (p->symtptr->symtarea.areaptr!=symtp->symtarea.areaptr) {	/* Not common def either */
-      if (link_state==LIB_SEARCH) {
-        error("Error: '%s' in '%s(%s)' duplicates a symbol already read",
-         decode_name(name), current_lib->libname, objectname);
-      }
-      else {
-        error("Error: '%s' in '%s' duplicates a symbol already read", decode_name(name), objectname);
-      }
-      return FALSE;
-    }
-  }
-  else {	/* New symbol of different 'strength' to existing definition */
-    if ((attr & SYM_STRONG)!=0) {	/* New symbol is strong; old one is non-strong */
-      if (link_state==LIB_SEARCH) {	/* Avoid possible use of wrong symbol... */
-        error("Error: 'Strong' definition of '%s' found in '%s' after non-strong definition has been used",
-         decode_name(name), objectname);
-        return FALSE;
-      }
-      p->symnormal = p->symtptr;
-      p->symtptr = symtp;
-    }
-    else {	/* Old symbol is strong; new one is non-strong */
-      p->symnormal = symtp;
-    }
-  }
-  return TRUE;
-}
-
-/*
-** 'add_externref' adds an externally defined symbol to a file's
-** 'wanted symbols' list, returning 'TRUE' if this was successful.
-** Memory for the symbol is taken from the block allocated for
-** symbols in the file being processed.
-*/
-static void add_externref(symtentry *symtp) {
-  symbol *sp;
-  char *name;
-  symtp->symtname = symtp->symtname+COERCE(strtbase, unsigned int);
-  if (current_refedit!=NIL) check_refedit(symtp);
-  name = symtp->symtname;
-  sp = symblock;
-  symblock++;
-  sp->symhash = hash(name);
-  sp->symtptr = symtp;
-  sp->symnormal = NIL;
-  sp->symflink = wantedlist;
-  wantedlist = sp;
-  numwanted+=1;		/* Bump up count of wanted symbols */
-}
-
-/*
-** 'create_externref' creates dummy OBJ_SYMT and symbol entries for
-** the symbol passed to it. It is used when dealing with strong
-** symbols.
-**
-** External references created by this routine are dealt with in the
-** same way as normal references. They are added to the current AOF
-** AOF file's 'wanted' list. 'resolve' will come across these in the
-** normal way, but will find that the symbol definition lies within
-** the same module as the reference (although the OBJ_SYMT external
-** reference is not: it only checks the whereabouts of the
-** definition. If there is a non-strong definition, then there is no
-** problem. If none, the library search code has to deal with the
-** reference.
-*/
-symbol *create_externref(symtentry *stp) {
-  symbol *sp;
-  symtentry *newstp;
-  char *name;
-  sp = allocmem(sizeof(symbol));
-  newstp = allocmem(sizeof(symtentry));
-  if (sp==NIL || newstp==NIL) error("Fatal: Out of memory in 'create_externref'");
-  name = stp->symtname;
-  newstp->symtname = name;
-  newstp->symtattr = SYM_EXTERN;
-  newstp->symtvalue = 0;
-  newstp->symtarea.symdefptr = NIL;
-  sp->symhash = hash(name);
-  sp->symtptr = newstp;
-  sp->symnormal = NIL;
-  sp->symflink = wantedlist;
-  wantedlist = sp;
-  numwanted+=1;
-  return sp;
-}
-
-/*
-** 'add_commonref' is called when a symbol has the 'common reference' bit
-** set to check if a common block whose name matches that of the symbol
-** exists and if not to create it. The reference to the common block
-** is resolved at this time as well, so, although the 'external ref'
-** bit is set, the symbol is not added to the 'wanted symbols' list.
-** One slightly iffy things the code does is to set the size of the
-** common block to zero after creating the common block to stop the
-** resolution code using the size of the common block as an offset (the
-** words 'bug fix' and 'hack' come to mind here).
-*/
-static void add_commonref(symtentry *stp) {
-  char *name;
-  symbol *sp;
-  stp->symtname = stp->symtname+COERCE(strtbase, unsigned int);
-  if (current_refedit!=NIL) check_refedit(stp);
-  name = stp->symtname;
-  sp = symblock;
-  symblock++;
-  sp->symhash = hash(name);
-  sp->symtptr = stp;
-  sp->symnormal = NIL;
-  sp->symflink = NIL;
-  stp->symtarea.symdefptr = make_commonarea(sp);
-  stp->symtvalue = 0;
-}
-
-/*
-** 'scan_symt' is called to add the symbols in the OBJ_SYMT chunk to
-** the different symbol tables. It adds symbol definitions to the
-** symbol tables and external references to a linked list of references
-** for the file. Note that memory to hold all the SYMT entries is
-** allocated at the start for reasons of efficiency and in a vain
-** attempt to make the linker go as fast as ARM's. The proc returns
-** 'TRUE' if this all worked okay otherwise it returns FALSE.
-**
-** There is a kludge in here to handle a problem with partially-linked
-** AOF files produced by version 5 of the ARM linker. It creates
-** external references with the 'absolute' attribute bit set. This is
-** meaningless for a reference, so the code clears it. The code to
-** handle relocations goes wrong otherwise.
-*/
-bool scan_symt(filelist *fp) {
-  int i, symcount, attr;
-  symtentry *symtp;
-  bool ok, addok, gotstrong;
-  unsigned int strtsize;
-  symcount = fp->symtcount;
-  symblock = allocmem(symcount*sizeof(symbol));
-  if (symblock==NIL) error("Fatal: Out of memory in 'scan_symt' reading file '%s'", objectname);
-  current_file = fp;
-  current_table = &fp->localsyms;
-  check_edits();	/* Are there any link edits for this file? */
-  symtp = fp->objsymtptr;
-  strtsize = fp->objstrtsize;
-  wantedlist = NIL;
-  gotstrong = FALSE;
-  addok = ok = TRUE;
-  for (i = 1;  i<=symcount && ok; i++) {
-    if (COERCE(symtp->symtname, unsigned int)>=strtsize) {
-      error("Error: Offset of symbol name in OBJ_SYMT chunk is bad in '%s'", fp->chfilename);
-      symtp->symtname = NIL;
-      ok = FALSE;
-    }
-    attr = symtp->symtattr;
-    if (aofv3flag && (attr & SYM_A3ATTR)!=0) {	/* Reject AOF 3 attributes */
-      error("Error: Symbol '%s' in '%s' has unsupported AOF symbol attributes",
-       symtp->symtname+COERCE(strtbase, unsigned int), fp->chfilename);
-      ok = FALSE;
-    }
-    attr = attr & SYM_ATMASK;
-    if ((attr & SYM_DEFN)!=0) {	/* Add symbol defintion to symbol table */
-      addok = addok && add_symbol(symtp);
-      gotstrong = gotstrong || (attr & SYM_STRONG)!=0;
-      totalsymbols+=1;
-    }
-    else if (attr==(SYM_COMMON|SYM_EXTERN)) {	/* Reference to a common block */
-      add_commonref(symtp);
-    }
-    else if (attr==SYM_EXTERN) {	/* Reference to an external symbol */
-      add_externref(symtp);
-    }
-    else if (attr==(SYM_EXTERN|SYM_ABSVAL)) {	/* Dodgy ARM linker trick... */
-      symtp->symtattr-=SYM_ABSVAL;		/* Loose 'absolute' attribute bit */
-      add_externref(symtp);
-    }
-    else {
-      error("Error: OBJ_SYMT attribute value (0x%x) of symbol '%s' in '%s' is bad. Is file corrupt?",
-       attr, COERCE(strtbase, unsigned int)+symtp->symtname, fp->chfilename);
-      ok = FALSE;
-    }
-    symtp++;
-  }
-  if (gotstrong) check_strongrefs(fp);	/* Special processing for strong symbols */
-  fp->symtries.wantedsyms = wantedlist;
-  return ok && addok;
-}
-
-/*
-** 'search_global' is a custom routine for searching the global symbol table as
-** quickly as possible
-*/
-static symbol *search_global(symbol *wantedsym) {
-  symbol *p;
-  char *name;
-  int hashval;
-  hashval = wantedsym->symhash;
-  if ((p = globalsyms[hashval & GLOBALMASK])==NIL) return NIL;
-  name = wantedsym->symtptr->symtname;
-  if (opt_case || (wantedsym->symtptr->symtattr & SYM_IGNCASE)!=0) {	/* Ignore case of symbols */
-    while (p!=NIL && (p->symhash!=hashval || stricmp(name, p->symtptr->symtname)!=0)) p = p->symflink;
-  }
-  else {
-    while (p!=NIL && (p->symhash!=hashval || strcmp(name, p->symtptr->symtname)!=0)) p = p->symflink;
-  }
-  return p;
-}
-
-/*
-** 'search_local' searches the current local symbol table for the required
-** symbol, returning a pointer to its entry if found or nil if not.
-*/
-static symbol *search_local(symbol *wantedsym) {
-  symbol *p;
-  char *name;
-  int hashval;
-  hashval = wantedsym->symhash;
-  if ((p = (*current_table)[hashval & LOCALMASK])==NIL) return NIL;
-  name = wantedsym->symtptr->symtname;
-  if (opt_case || (wantedsym->symtptr->symtattr & SYM_IGNCASE)!=0) {	/* Ignore case of symbols */
-    while (p!=NIL && (p->symhash!=hashval || stricmp(name, p->symtptr->symtname)!=0)) p = p->symflink;
-  }
-  else {
-    while (p!=NIL && (p->symhash!=hashval || strcmp(name, p->symtptr->symtname)!=0)) p = p->symflink;
-  }
-  return p;
-}
-
-/*
-** 'search_common' searches the common block symbol table for the required
-** symbol, returning a pointer to its entry if found or nil if not.
-*/
-symbol *search_common(symbol *wantedsym) {
-  symbol *p;
-  char *name;
-  int hashval;
-  hashval = wantedsym->symhash;
-  if ((p = commonsyms[hashval & COMMONMASK])==NIL) return NIL;
-  name = wantedsym->symtptr->symtname;
-  if (opt_case || (wantedsym->symtptr->symtattr & SYM_IGNCASE)!=0) {
-    while (p!=NIL && (p->symhash!=hashval || stricmp(name, p->symtptr->symtname)!=0)) p = p->symflink;
-  }
-  else {
-    while (p!=NIL && (p->symhash!=hashval || strcmp(name, p->symtptr->symtname)!=0)) p = p->symflink;
-  }
-  return p;
-}
-
-/*
-** 'find_common' is called to look for the common block 'name'. It
-** has to create a dummy 'symbol' and 'symt' entry for the common
-** block and returns a pointer to the symbol table for the common
-** block if found or 'nil'
-*/
-symbol *find_common(char *name) {
-  symbol dummysym;
-  symtentry dummysymt;
-  dummysym.symhash = hash(name);
-  dummysym.symtptr = &dummysymt;
-  dummysymt.symtname = name;
-  dummysymt.symtattr = 0;
-  return search_common(&dummysym);
-}
-
-/*
-** 'add_unresolved' adds a symbol to one of the missing symbol
-** lists if there is no reference to it already there
-*/
-static void add_unresolved(missing **list, symbol *sp, filelist *fp) {
-  missing *mp;
-  char *sname;
-  mp = *list;
-  sname = sp->symtptr->symtname;
-  if (opt_case || (sp->symtptr->symtattr & SYM_IGNCASE)!=0) {
-    while (mp!=NIL && stricmp(sname, mp->symname)!=0) mp = mp->nextsym;
-  }
-  else {
-    while (mp!=NIL && strcmp(sname, mp->symname)!=0) mp = mp->nextsym;
-  }
-  if (mp==NIL) {	/* New unresolved or weak symbol */
-    if ((mp = allocmem(sizeof(missing)))==NIL) error("Fatal: Out of memory in 'add_unresolved'");
-    mp->symname = sname;
-    mp->filename = fp->chfilename;
-    mp->nextsym = *list;
-    *list = mp;
-  }
-}
-
-/*
-** 'list_unresolved' is called when one or more symbol references are
-** left unresolved to build up lists of missing symbols and unresolved
-** weak external references. It is permissible to leave weak symbols
-** unresolved, although the linker prints out a list of them at the
-** end.
-*/
-static void list_unresolved(void) {
-  filelist *fp;
-  symbol *sp;
-  missing *misslist, *weaklist, *mwp;
-  misslist = NIL;
-  weaklist = NIL;
-  fp = aofilelist;
-  do {
-    sp = fp->symtries.wantedsyms;
-    while (sp!=NIL) {
-      if ((sp->symtptr->symtattr & SYM_WEAKREF)!=0) { /* No problem if weak external ref */
-        add_unresolved(&weaklist, sp, fp);
-        numwanted-=1;
-      }
-      else {
-        add_unresolved(&misslist, sp, fp);
-      }
-      sp = sp->symflink;
-    }
-    fp = fp->nextfile;
-  } while (fp!=NIL);
-  if (weaklist!=NIL && (opt_verbose || opt_info)) {
-    error("Warning: The following symbols are unresolved 'weak' references:");
-    mwp = weaklist;
-    do {
-      error("    '%s' referenced in '%s'", decode_name(mwp->symname), mwp->filename);
-      mwp = mwp->nextsym;
-    } while (mwp!=NIL);
-  }
-  if (misslist!=NIL) {
-    error("Error: The following symbols could not be found:");
-    mwp = misslist;
-    do {
-      error("    '%s' referenced in '%s'", decode_name(mwp->symname), mwp->filename);
-      mwp = mwp->nextsym;
-    } while (mwp!=NIL);
-  }
-}
-
-/*
-** 'search_lib' seaches the current library's symbol table for
-** the symbol 'wantedsym'. If it is found, the function returns
-** a pointer to the library symbol table entry, otherwise it
-** returns 'nil'.
-*/
-static libentry *search_lib(symbol *wantedsym) {
-  libentry *lp;
-  char *name;
-  int hashval;
-  hashval = wantedsym->symhash;
-  name = wantedsym->symtptr->symtname;
-  if ((lp = (*current_libsyms)[hashval&LIBEMASK])==NIL) return NIL;
-  if (opt_case || (wantedsym->symtptr->symtattr & SYM_IGNCASE)!=0) {
-    while (lp!=NIL && (lp->libhash!=hashval || stricmp(name, lp->libname)!=0)) lp = lp->libflink;
-  }
-  else {
-    while (lp!=NIL && (lp->libhash!=hashval || strcmp(name, lp->libname)!=0)) lp = lp->libflink;
-  }
-  return lp;
-}
-
-/*
-** 'get_nextlib' returns a pointer to the next entry in the hash chain that
-** matches the one passed to it
-*/
-static libentry *get_nextlib(libentry *lp) {
-  int hashval;
-  char *name;
-  hashval = lp->libhash;
-  name = lp->libname;
-  while (lp!=NIL && (lp->libhash!=hashval || strcmp(name, lp->libname)!=0)) lp = lp->libflink;
-  return lp;
-}
-
-/*
-** 'remove_entry' deletes an entry from a file's wanted list
-*/
-static void remove_entry(filelist *fp, symbol *lastwp, symbol *wp) {
-  if (lastwp==NIL) {
-    fp->symtries.wantedsyms = wp->symflink;
-  }
-  else {
-    lastwp->symflink = wp->symflink;
-  }
-  freemem(wp, sizeof(symbol));
-  numwanted-=1;
-}
-
-/*
-** 'check_library' is called to go through a file's 'wanted' list and loads
-** any library members that satisfy any of the external references in the
-** 'wanted' list. It returns 'TRUE' if this was achieved successfully
-** otherwise it returns 'FALSE'. Note that it is necessary to check the
-** global symbol table before searching the library to see if the reference
-** can be satisfied by a library member now in memory.
-**
-** The search process is complicated is the presence of strong symbols.
-** Cases to consider:
-** a) A non-strong definition exists and the library module contains
-**    a strong one
-** b) A strong definition exists and the library module contains a
-**    non-strong one.
-**
-** a) cannot be dealt with unless the linker is rewritten. All references
-**    will have been resolved to the non-strong definition before the
-**    strong definition was found and the information to enable the
-**    linker to go back and correct the references will have been
-**    discarded. (Put out a warning message about this? Will it ever
-**    happen?)
-** b) At this point, the module containing the reference and the definition
-**    have to be different. If the module that contains the strong definition
-**    is the one that contains the reference, the non-strong definition should
-**    be used otherwise the strong one is the one to employ.
-**
-** If opt_leaveweak is enabled, weak symbol references that would lead to
-** a library module being loaded are ignored. If a library member that
-** satisfies the reference is already in memory, it is still used. This
-** could lead to some confusion as it is possible that a later reference
-** could load a module that would resolve the original weak ref. Unless
-** '-rescan' is used, that original ref will remain unresolved. OTOH, if
-** the module is already in memory, it will be resolved. To put it another
-** way, whether or not a weak reference is resolved depends on the order
-** in which the non-weak and weak references are encountered...
-*/
-static bool check_library(filelist *fp) {
-  symbol *sp, *wp, *lastwp, *nextwp;
-  libentry *lp;
-  symtentry *wstp;	/* OBJ_SYMT entry of external reference */
-  bool ok;
-  current_symtbase = fp->objsymtptr;	/* For detecting 'strong symbol' refs */
-  current_symtend = fp->objsymtptr+fp->objsymtsize;	/* These point at module containing ref */
-  ok = TRUE;
-  wp = fp->symtries.wantedsyms;
-  lastwp = NIL;
-  ok = TRUE;
-  do {
-    nextwp = wp->symflink;
-/*
-** First, check if the symbol is now available. It is possible that a
-** library member now loaded contains the symbol that is required here.
-** If so, we should use this symbol rather than search the library
-** again. A complication, as ever, is the possibility of a strong
-** symbol...
-*/
-    sp = search_global(wp);	/* Is symbol now available? */
-    if (sp!=NIL) {		/* Yes */
-/*
-** At this point, a module that contains a symbol definition is in
-** memory. There are two possibilities to deal with here:
-** a)  The symbol definition is strong and is located in the module
-**     whose external references are being processed.
-** b)  The symbol definition is non-strong
-**
-** In case (a), the symbol is not the one to use. We have to search the
-** library for the symbol and, as the module being processed is the one
-** with the strong definition, we have to find a non-strong version.
-** of course, if the strong symbol came from this library, the search
-** mechanism will find it first, so we have to ignore that entry and
-** find another...
-** In case (b), there is no problem. This is the definition to use
-*/
-      if ((sp->symtptr->symtattr & SYM_STRONG)!=0 &&
-       sp->symtptr>=current_symtbase && sp->symtptr<current_symtend && sp->symnormal==NIL) {
-        lp = search_lib(wp);
-        if (lp!=NIL && isloaded(lp)) {	/* Found symbol in library. Has member been loaded? */
-          lp = get_nextlib(lp);		/* If yes, look for another version */
-          if (isloaded(lp)) lp = NIL;
-        }
-        if (lp==NIL) {	/* No suitable entry found */
-          lastwp = wp;	/* Move 'last still in list' ptr to current entry */
-        }
-        else {
-          numfound+=1;
-          ok = load_member(lp, fp, wp);	/* Not in memory, so load it */
-        }
-      }
-      else {	/* Non-strong or strong and non-strong def'n known */
-        numfound+=1;
-        lp = COERCE(sp, libentry*);		/* This is just so that lp!=nil */
-      }
-    }
-    else if ((wp->symtptr->symtattr & SYM_WEAKREF)!=0 && opt_leaveweak) {	/* Ignore if weak external */
-      lp = NIL;
-    }
-    else {	/* Symbol is not available yet. Search library */
-      lp = search_lib(wp);
-      if (lp==NIL) {	/* Entry not found */
-        lastwp = wp;	/* Move 'last still in list' ptr to current entry */
-      }
-      else {
-        numfound+=1;
-/*
-** Load member. The member containing the ref has to be different to the
-** one containing the definition, so there are no problems with strong
-** definitions and references in the same modules meaning we've got the
-** wrong module
-*/
-        ok = load_member(lp, fp, wp);
-        sp = search_global(wp);
-      }
-    }
-    if (ok && lp!=NIL) {	/* Now link symbol and reference */
-      if (sp==NIL) {
-        error("Error: Cannot find symbol '%s' in library member '%s(%s)'. Is library corrupt?",
-         decode_name(wp->symtptr->symtname), current_lib->libname, lp->libmember);
-      }
-      else {
-        wstp = wp->symtptr;
-        if (sp->symnormal!=NIL && sp->symtptr>=current_symtbase && sp->symtptr<current_symtend) {
-          wstp->symtarea.symdefptr = sp->symnormal;
-        }
-        else {	/* Only one def or strong def in another module */
-          wstp->symtarea.symdefptr = sp->symtptr;
-        }
-        if ((wstp->symtattr & SYM_WEAKREF)!=0) {	/* Resolving a weak ref? */
-          wstp->symtattr-=SYM_WEAKREF;
-        }
-      }
-      remove_entry(fp, lastwp, wp);
-    }
-    wp = nextwp;
-  } while (wp!=NIL && ok);
-  return ok;
-}
-
-/*
-** 'resolve_refs' is called to try to resolve a file's external symbols
-** references using the local, global and common symbol tables. It also
-** takes care of strong and non-strong references. This is a bit messy
-** so an explanation might be useful for future reference.
-**
-** In the file being processed, if both a strong and a non-strong
-** definition of a symbol exists, the non-strong one is used. In all
-** other cases the strong definition is the one employed. The presence of
-** two versions of the symbol is indicated by the value of 'symnormal'.
-** If it is 'nil' then only one definition exists (strong or non-strong;
-** it does not matter which). If not 'nil', then two definitions exists
-** and 'symnormal' points at the SYMT entry of the non-strong definition.
-** The routine detects whether or not the strong definition of the symbol
-** is in the current file by comparing the address of that symbol's SYMT
-** entry against the base and end address of the current file's OBJ_SYMT
-** chunk.
-**
-** A complication is that when resolving a symbol reference in the same
-** module as its definition, if the definition is a strong definition, it
-** cannot be assumed it will be the correct one as a non-strong definition
-** might pop up later during the library scans. To allow for this, the
-** symbol resolution has to be defered until the 'last pass' when invented
-** symbols are dealt with.
-*/
-void resolve_refs(filelist *fp) {
-  symbol *sp, *wp, *lastwp, *nextwp;
-  symtentry *wstp, *stp;
-  current_table = &fp->localsyms;
-  current_symtbase = fp->objsymtptr;	/* For detecting 'strong symbol' refs */
-  current_symtend = fp->objsymtptr+fp->objsymtsize;
-  wp = fp->symtries.wantedsyms;
-  lastwp = NIL;
-  while (wp!=NIL) {
-    nextwp = wp->symflink;
-    sp = search_local(wp);
-    if (sp==NIL) {
-      sp = search_global(wp);
-      if (sp==NIL) sp = search_common(wp);
-    }
-    if (sp==NIL) {	/* Entry not found */
-      lastwp = wp;	/* Move 'last still in list' ptr to current entry */
-    }
-    else { /* Symbol found */
-      wstp = wp->symtptr;	/* Point at SYMT entry for the external ref */
-      stp = sp->symtptr;	/* Point at first SYMT entry for definition of symbol */
-      if (stp>=current_symtbase && stp<=current_symtend) {	/* Is ref in same module as def'n? */
-        if (sp->symnormal!=NIL) {			/* Non-strong def'n exists - use that */
-          wstp->symtarea.symdefptr = sp->symnormal;	/* Point at non-strong definition's SYMT entry */
-        }
-        else if ((stp->symtattr & SYM_STRONG)==0) {	/* Non-strong symbol */
-          wstp->symtarea.symdefptr = stp;
-        }
-        else {	/* Strong def'n: do not resolve at this time */
-          lastwp = wp;		/* Move 'last still in list' ptr to current entry */
-          sp = NIL;		/* Pretend symbol was not found */
-        }
-      }
-      else {	/* Symbol def'n is elsewhere */
-        wstp->symtarea.symdefptr = stp;		/* Point at strong or only definition's SYMT entry */
-      }
-      if (sp!=NIL) {
-        remove_entry(fp, lastwp, wp);
-        if ((wstp->symtattr & SYM_WEAKREF)!=0) {  /* Resolving a weak ref? */
-          wstp->symtattr -=SYM_WEAKREF;
-        }
-      }
-    }
-    wp = nextwp;
-  }
-}
-
-/*
-** 'resolve' is the main function called when trying to resolve
-** symbol references. This process is carried out in three stages.
-** The first step is to go through all the files in the file
-** list and try to resolve symbols between them. If there are
-** any unresolved symbols after this, the routine then goes
-** through the libraries to find the symbols. Library members that
-** satisfy references are loaded immediately and any references they
-** contain that can be resolved from the loaded AOF files are
-** handled there and then. The files are added to the file list
-** anyway, so searching the current library 'comes out in the
-** wash'. If the '-rescan' option is used, it continues to search
-** the libraries until all references have been satisfied or it
-** cannot find them in any library. If a partially-linked AOF
-** file is to be created, the symbol resolution step ends here.
-** If any other type of image is being created, The final step is
-** to search the global symbol table again. This is necessary to
-** deal with strong symbols and because global symbols such as
-** 'wibble$$Base' can be invented as a side effect of loading
-** library members. If there is a reference somewhere to a
-** yet-to-be-invented symbol, the library search mechanism will not
-** find it.
-**
-** One thing to note is how multiple scans of libraries are handled.
-** What happens is that the library list is turned into a circular
-** list and the code just keeps going around the ring until either
-** all references have been satisfied or all the libraries have
-** been searched for a particular symbol.
-*/
-bool resolve(void) {
-  filelist *fp;
-  libheader *lp, *lastlp;
-  bool ok;
-  link_state = AOF_SEARCH;
-  fp = aofilelist;
-  if (fp==NIL) error("Fatal: There is nothing to link!");
-  if (opt_verbose) error("Drlink: Resolving symbol references (%d to find)...", numwanted);
-  while (fp!=NIL) {	/* Resolve symbol references between AOF files */
-    if (fp->symtries.wantedsyms!=NIL) resolve_refs(fp);
-    fp = fp->nextfile;
-  }
-/* Now search the libraries */
-  link_state = LIB_SEARCH;
-  opt_rescan = opt_rescan && liblist!=liblast;
-  if (opt_rescan && liblist!=NIL) liblast->libflink = liblist;	/* Make library list circular */
-  lp = liblist;
-  ok = TRUE;
-  lastlp = NIL;
-  numfound = 0;
-  while (lp!=NIL && numwanted!=0 && lp!=lastlp && ok) {
-    numfound = 0;
-    if (opt_verbose) {
-      error("Drlink: Searching library '%s' to resolve symbol references (%d to find)...",
-       lp->libname, numwanted);
-    }
-    ok = open_library(lp);
-    fp = aofilelist;
-    while (fp!=NIL && numwanted!=0 && ok) {
-      if (fp->symtries.wantedsyms!=NIL) ok = check_library(fp);
-      fp = fp->nextfile;
-    }
-    if (numfound!=0) lastlp = lp;
-    close_library(lp);
-    lp = lp->libflink;
-  }
-  free_libmem();
-  if (imagetype==AOF) {		/* Quick way out for partially-linked AOF files */
-    if (opt_verbose) {
-      error("Drlink: %d reference(s) left unresolved in partially-linked AOF file", numwanted);
-    }
-    numwanted = 0;
-  }
-  else {
-/* Now check for invented entries and unresolved strong symbols */
-    fp = aofilelist;
-    while (fp!=NIL && numwanted!=0) {
-      if (fp->symtries.wantedsyms!=NIL) resolve_refs(fp);
-      fp = fp->nextfile;
-    }
-    if (numwanted>0 && !got_errors()) list_unresolved();
-  }
-  return numwanted==0;
-}
-
-/*
-** 'relocate_symbols' goes through the OBJ_SYMT chunk of each
-** AOF file and relocates each entry in it.
-*/
-void relocate_symbols(void) {
-  filelist *fp;
-  symtentry *sp;
-  int n, last;
-  fp = aofilelist;
-  do {
-    sp = fp->objsymtptr;
-    last = fp->symtcount;
-    for (n = 1; n<=last; n++) {
-      if ((sp->symtattr & (SYM_DEFN|SYM_ABSVAL))==SYM_DEFN) {	/* Relocate if not absolute */
-        sp->symtvalue+=sp->symtarea.areaptr->arplace;
-      }
-      sp++;
-    }
-    fp = fp->nextfile;
-  } while (fp!=NIL);
-}
-
-/*
-** 'define_symbol' is used to set the given symbol to the supplied value
-*/
-void define_symbol(symbol *sp, unsigned int value) {
-  sp->symtptr->symtvalue = value;
-}
-
-/*
-** 'make_symbol' creates entries in the either the global symbol table
-** or the common block table for pre-defined linker symbols and other
-** special entries. The table used is controlled by whether the 'common'
-** attribute is set or not. Note that this is a bit kludgy in that the
-** 'common' symbol attribute denotes a reference to a common block and
-** not a common block definition! Another point to note that entries
-** are marked as being relocatable although they are not relocated by
-** the linker at all.
-*/
-symbol *make_symbol(char *name, unsigned int attributes) {
-  unsigned int hashval;
-  symbol *sp;
-  symtentry *stp;
-  sp = allocmem(sizeof(symbol));
-  stp = allocmem(sizeof(symtentry));
-  if (sp==NIL || stp==NIL) error("Fatal: Out of memory in 'make_symbol'");
-  hashval = hash(name);
-  stp->symtname = name;
-  stp->symtattr = attributes | SYM_LINKDEF;
-  stp->symtvalue = 0;
-  stp->symtarea.areaptr = NIL;
-  sp->symhash = hashval;
-  sp->symtptr = stp;
-  sp->symnormal = NIL;
-  if ((attributes & SYM_COMMON)==0) {	/* Put in global table */
-    sp->symflink = globalsyms[hashval & GLOBALMASK];
-    globalsyms[hashval & GLOBALMASK] = sp;
-  }
-  else {	/* Put in common block table */
-    sp->symflink = commonsyms[hashval & COMMONMASK];
-    commonsyms[hashval & COMMONMASK] = sp;
-  }
-  totalsymbols+=1;
-  return sp;
-}
-
-/*
-** 'new_symbol' is called to create a symbol that will be added to the
-** low-level debugging tables
-*/
-static symbol *new_symbol(char *name) {
-  if (opt_keepdebug) lldsize+=strlen(name)+sizeof(char);
-  return make_symbol(name, SYM_GLOBAL);
-}
-
-/*
-** 'find_areasymbol' is called to try to find a globally defined symbol
-** from the area 'ap'. It returns a pointer to a name or NIL if it
-** cannot find anything
-*/
-char *find_areasymbol(arealist *ap) {
-  symtentry *sp;
-  filelist *fp;
-  char *anp;
-  unsigned int symcount, n;
-  anp = ap->arname;
-  fp = ap->arfileptr;
-  sp = fp->objsymtptr;
-  symcount = fp->symtcount;
-  for (n = 1; n<=symcount && (sp->symtarea.areaptr!=ap || (sp->symtattr&SYM_SCOPE)!=SYM_GLOBAL); n++) sp++;
-  if (n<=symcount) {
-    return sp->symtname;
-  }
-  else {
-    return NIL;
-  }
-}
-
-/*
-** 'find_nonstrong' is called to locate a non-strong version of the
-** symbol passed to it, returning a pointer to the OBJ_SYMT entry
-** of the non-strong symbol. This is needed to deal with strong
-** symbols, when a relocation refers to the *definition* of a strong
-** symbol in the file in which the strong symbol was defined. The
-** relocation has to refer to the non-strong version, which would
-** have been dragged in by the symbol resolution code.
-*/
-symtentry *find_nonstrong(symtentry *stp) {
-  symbol dummysym;
-  symtentry dummysymt;
-  char *name;
-  symbol *sp;
-  name = stp->symtname;
-  dummysym.symhash = hash(name);
-  dummysym.symtptr = &dummysymt;
-  dummysymt.symtname = name;
-  dummysymt.symtattr = 0;
-  sp = search_global(&dummysym);
-  if (sp==NIL) error("Fatal: Could not find non-strong version of symbol '%s' in 'find_nonstrong'", name);
-  return sp->symnormal;
-}
-
-/* The next few functions deal with the creation of the symbol listing */
-
-static symtentry **symbinfotable;
-static unsigned int symbcount;
-
-/*
-** 'build_symblist' builds a list of the symbols in the executable
-** image. This is later sorted into address order and printed
-*/
-static void build_symblist(void) {
-  filelist *fp;
-  symtentry *sp;
-  symtentry **sip;
-  unsigned int n, count;
-  symbcount = 0;
-  fp = aofilelist;
-  sip = symbinfotable;
-  do {
-    sp = fp->objsymtptr;
-    count = fp->symtcount;
-    for (n = 1; n<=count; n++) {
-      if ((sp->symtattr & (SYM_ABSVAL|SYM_DEFN))==SYM_DEFN && strcmp(sp->symtname, "__codeseg")!=0) {
-        if ((sp->symtattr & SYM_ABSVAL)!=0 || (sp->symtarea.areaptr!=NIL && sp->symtarea.areaptr->arefcount!=0)) {
-          *sip = sp;
-          sip++;
-          symbcount+=1;
-        }
-      }
-      sp++;
-    }
-    fp = fp->nextfile;
-  } while (fp!=NIL);
-  if (imagetype!=AOF) {	/* These symbols will not exist in a partially-linked file */
-    *sip = image_robase->symtptr;
-    sip++;
-    *sip = image_rolimit->symtptr;
-    sip++;
-    *sip = image_rwbase->symtptr;
-    sip++;
-    *sip = image_rwlimit->symtptr;
-    sip++;
-    *sip = image_zibase->symtptr;
-    sip++;
-    *sip = image_zilimit->symtptr;
-    sip++;
-    symbcount+=6;
-    if (got_oldlibs) {	/* Include symbols for old-style libraries */
-      *sip = image_codebase->symtptr;
-      sip++;
-      *sip = image_codelimit->symtptr;
-      sip++;
-      *sip = image_database->symtptr;
-      sip++;
-      *sip = image_datalimit->symtptr;
-      sip++;
-      symbcount+=4;
-    }
-  }
-}
-
-static void print_symblist(void) {
-  symtentry **sip;
-  unsigned int n;
-  sip = symbinfotable;
-  for (n = 1; n<=symbcount; n++) {
-    write_symbol(*sip);
-    sip++;
-  }
-}
-
-/*
-** 'symtcmp' compares the values of the two symbols passed to it
-*/
-int symtcmp(const void *first, const void *second) {
-  if (((*COERCE(first, symtentry **)))->symtvalue<((*COERCE(second, symtentry **)))->symtvalue) return -1;
-  if (((*COERCE(first, symtentry **)))->symtvalue>((*COERCE(second, symtentry **)))->symtvalue) return 1;
-  return 0;
-}
-
-/*
-** 'print_symbols' is called to print a listing of the symbols found
-** in the image file. These are listed by file.
-*/
-void print_symbols(void) {
-  if ((symbinfotable = allocmem(totalsymbols*sizeof(symtentry *)))==NIL) {
-    error("Error: Cannot create symbol listing");
-    return;
-  }
-  open_symbol();
-  build_symblist();
-  qsort(symbinfotable, symbcount, sizeof(symtentry *), symtcmp);
-  print_symblist();
-  close_symbol();
-}
-
-/*
-** The next few functions deal with the processing needed for
-** constructor and destructor lists generated by the Acorn C++
-** compiler
-*/
-
-#define LINKNAME "__link"
-#define HEADNAME "__head"
-
-/*
-** 'build_cdlist' builds the constructor-destructor linked list
-** that C++ programs contain. These are denoted by a local symbol in
-** each AOF file with the name of '__link'. '__head' points at the
-** first entry in the list.
-*/
-void build_cdlist(void) {
-  symbol tempsym;
-  symtentry tempsymt;
-  unsigned int lastlink, offset;
-  symbol *sp;
-  symtentry *stp;
-  arealist *ap;
-  filelist *fp;
-  tempsym.symhash = hash(LINKNAME);
-  tempsym.symtptr = &tempsymt;
-  tempsymt.symtname = LINKNAME;
-  fp = aofilelist;
-  lastlink = 0;
-  if (opt_verbose) error("Drlink: Performing C++ specific operations...");
-  while (fp!=NIL) {
-    if (fp->chfilesize!=0) {	/* file size = 0 means filelist entry is a dummy one */
-      current_table = &fp->localsyms;
-      if ((sp = search_local(&tempsym))!=NIL) {
-        stp = sp->symtptr;
-        ap = stp->symtarea.areaptr;
-        offset = stp->symtvalue-ap->arplace;	/* Offset within area of __link */
-        *(ap->arobjdata+offset) = lastlink;	/* ???? */
-        lastlink = stp->symtvalue;
-      }
-    }
-    fp = fp->nextfile;
-  }
-  tempsym.symhash = hash(HEADNAME);
-  tempsym.symtptr = &tempsymt;
-  tempsymt.symtname = HEADNAME;
-  sp = search_global(&tempsym);
-  if (sp!=NIL) {	/* Just to prevent embarrassing problems if this is not really C++ */
-    stp = sp->symtptr;
-    ap = stp->symtarea.areaptr;
-    offset = stp->symtvalue-ap->arplace;	/* Offset within area of __head */
-    *(ap->arobjdata+offset) = lastlink;		/* ???? */
-  }
-}
-
-/*
-** 'find_cdareas' is called to mark all areas that contain constructors
-** or destructors as 'not deletable'
-*/
-void find_cdareas(void) {
-  symbol tempsym;
-  symtentry tempsymt;
-  symbol *sp;
-  filelist *fp;
-  tempsym.symhash = hash(LINKNAME);
-  tempsym.symtptr = &tempsymt;
-  tempsymt.symtname = LINKNAME;
-  fp = aofilelist;
-  while (fp!=NIL) {
-    if (fp->chfilesize!=0) {	/* file size = 0 means filelist entry is a dummy one */
-      current_table = &fp->localsyms;
-      if ((sp = search_local(&tempsym))!=NIL) {	/* File contains a constructor/destructor */
-        mark_area(sp->symtptr->symtarea.areaptr);
-      }
-    }
-    fp = fp->nextfile;
-  }
-  tempsym.symhash = hash(HEADNAME);
-  tempsym.symtptr = &tempsymt;
-  tempsymt.symtname = HEADNAME;
-  sp = search_global(&tempsym);
-  if (sp!=NIL) {	/* Just to prevent embarrassing problems if this is not really C++ */
-    mark_area(sp->symtptr->symtarea.areaptr);
-  }
-}
-
-/*
-** 'init_symbols' is called at the start of the link to initialise
-** the global symbol table and other stuff to do with symbols
-*/
-void init_symbols(void) {
-  int i;
-  for (i = 0; i<MAXGLOBALS; i++) globalsyms[i] = NIL;
-  for (i = 0; i<MAXCOMMON; i++) commonsyms[i] = NIL;
-  wantedlist = NIL;
-  totalsymbols = numwanted = lldsize = 0;
-}
-
-/*
-** 'create_linksyms' is called to add the standard linker
-** symbols to the symbol table, unless the image file being
-** created is a partially-linked AOF file in which case
-** the symbols have to be left out as it is important that
-** references to them are not resolved at this stage
-*/
-void create_linksyms(void) {
-  if (imagetype!=AOF) {
-    image_robase = new_symbol("Image$$RO$$Base");
-    image_rolimit = new_symbol("Image$$RO$$Limit");
-    image_rwbase = new_symbol("Image$$RW$$Base");
-    image_rwlimit = new_symbol("Image$$RW$$Limit");
-    image_zibase = new_symbol("Image$$ZI$$Base");
-    image_zilimit = new_symbol("Image$$ZI$$Limit");
-    image_codebase = new_symbol("Image$$CodeBase");
-    image_codelimit = new_symbol("Image$$CodeLimit");
-    image_database = new_symbol("Image$$DataBase");
-    image_datalimit = new_symbol("Image$$DataLimit");
-    reloc_code = new_symbol("__RelocCode");
-  }
-  else {
-    image_robase = image_rolimit = image_rwbase = image_rwlimit = NIL;
-    image_zibase = image_zilimit = reloc_code = NIL;
-    image_codebase = image_codelimit = image_database = image_datalimit = NIL;
-  }
-}
+#include<stdlib.h>
+#include<string.h>
+#include<ctype.h>
+#include"cobf.h"
+i l50{l365,l327,l396,l312,l394,l383}l132;i e g;a c l276,l142;a g l187
+,l238,l162,l259,l77,l269,l262,l335,l168,l280,l273,l270,l249,l297,l220
+,l171,l243,l298,l329,l184,l208,l302,l137,l257,l290,l288,l282;a l132
+l164;i h l62{d c l84;d c l157;d c l141;d c l198;l81{d c l343;h n*l332
+;d c l379;}l85;}l62;i h l74{d c l313;d c l278;d c l340;d c l353;d c
+l326;d c l347;}l74;i h l79{l74 l167;l62 l64;}l79;i h l54{h n*l299;c
+l63;h l54*l281;}l54;i h n{c l201;e*l67;h n*l99;h n*l85;h s*l75;d c
+l106;d c l213;d c*l156;d c l69;h l42*l161;d c l143;d c l61;h l*l159;c
+l63;h l54*l149;h n*l82;}n;i l50{l325,l357,l351,l342}l128;a n*l93, *
+l97, *l94, *l103, *l130, *l134;a d c l217,l179,l286,l242,l266;a n*
+l144;a d c l229;i h o{e*l43;d c l38;d c l53;l81{d c l84;h n*l73;h o*
+l111;}l45;}o;i h l{c l83;h o*l31;h o*l135;h l*l96;}l;i l*l129[32];i h
+l42{d c l152;d c l66;}l42;i h l28{c l254;e*l48;e*l224;d c l263;d c
+l256;h l28*l80;}l28;i l28*l78[128];i h y{e*l48;d c*l177;d c l272;g
+l289;g l428;l78 l225;h y*l80;}y;i d c l118[1];a l*l212[256];a l*l176,
+ *l188, *l205, *l191, *l185, *l202, *l250, *l248, *l244, *l251, *l246
+;a l78*l300;a y*l169;a o*l204, *l203;a d c l230,l123,l227,l194;i h{d c
+l277;d c l314;d c l160;}l68;i h{d c l166;d c l215;d c l189;d c l173;}
+l41;i h{l68 l58;l41 l258;}l199;a l41*l172;a d c l107;a o*l108;a d c*
+l231, *l247;a e*l151;a d c l255,l219,l235,l295;i l50{l617,l543,l573,
+l569,l588,l597}l491;i h l158{l491 l590;g l556;e*l442;c l455;e*l436;c
+l616;e*l519;h l158*l443;}l158;a l158*l517, *l503, *l536;a e*l574, *
+l513, *l504;a c l477,l476;
+#include"uncobf.h"
+#include<stdio.h>
+#include"cobf.h"
+i l50{l301,l283,l153,l437,l234,l147,l233}l131;i l50{l148,l175,l183,
+l236}l114;i h l52{e*l345;h l52*l303;}l52;i h l51{e*l308;c l341;g l305
+;h l51*l322;}l51;i h s{e*l39;d c l279;d c l186;g l285;g l424;g l319;g
+l294;h l79*l216;d c l309;d c*l200;d c l317;h o*l92;d c l284;e*l291;d c
+l287;d c l268;d c l127;l129 l218;l81{l*l145;l118*l356;}l136;l*l401;h s
+ *l121;}s;a l131 l56;a s*l112, *l306;a y*l146, *l271;a l68 l58;a l253
+ *l150, *l207, *l119, *l239;a e*l240, *l245, *l117;a g l222,l261,l264
+,l155;a e l101[500];a d c l321,l126,l190,l174,l195;a d c*l91;a l52*
+l252, *l293;a l51*l228;a e*l197, *l180, *l323;a c l163(c l105);a g
+l368(b);a b*l59(d c);a b l178(b* ,d c);a b l330(b);a b l359(b);a b
+l397(b);a g l307(s* );a b l382(b);a b l361(b);a b l377(b);a g l430(e*
+);a c l310(e* );a g l311(e* ,c,c,b* );a g l453(b);a b l419(e* );a b
+l400(b);a g l384(e* );a g l373(e* );a g l336(e* );a b l392(b);a g l363
+(y* );a l114 l296(e* );a s*l422(l28* ,s* ,l* );a g l429(l41* );a b
+l367(b);a b l334(b);a b l98(b* ,c);a b l381(e* );a b l414(c);a b l338
+(b);a b l417(d c);a b l461(b);a b l410(b);a b l385(o* );a b l420(b);a
+b l418(b);a b l260(e* );a b l415(b);a b l416(b);a g l265(e* ,d c* ,d c
+);a g l451(y* );a g l434(y* );a b l393(y* );a g l358(l28* ,s* ,l* );a
+g l387(e* ,d c);a g l339(l28* );a g l423(b);a b l371(b);a g l360(b);a
+b l354(b);a b u(e* ,...);a g l304(b);a b l374(b);a c l221(c);a c l196
+(c);a c l182(c);a c l154(c);a b l426(s* );a g l386(s* );a o*l388(l* );
+a n*l427(e* );a b l433(b);a b l399(b);a b l404(b);a b l364(b);a g l395
+(b);a g l372(b);a b l292(n* );a b l425(b);a b l316(b);a b l328(b);a b
+l448(b);a b l350(b);a c l140(l120 e* ,l120 e* );a l*l275(e* ,d c);a b
+l421(b);a l*l406(o* );a b l412(b);a g l450(b);a g l391(s* );a b l320(
+s* );a g l370(b);a b l337(b);a b l138(l* ,d c);a c l70(e* );a e*l403(
+n* );a o*l209(o* );a l*l324(l* );a l*l366(e* );a g l390(l42* );a b
+l402(b);a b l376(b);a b l344(b);a b l460(b);a g l398(b);a g l378(b);a
+b l389(b);a d c l407(n* );a b l375(b);a b l331(l128,d c* * ,d c* );a b
+l409(d c* ,d c);a b l411(d c* ,d c);a b l369(d c* );a b l413(b);a g
+l408(b);a e*l181(e* );l*l212[256];l*l176, *l188, *l205, *l191, *l185,
+ *l202, *l250, *l248, *l244, *l251, *l246;l78*l300;y*l169;o*l204, *
+l203;d c l230,l123,l227,l194;i h l544{e*l214, *l57;h l544*l599;}l544;
+w l*l636[32];w l*l493, *l511;w s*l116;w l129*l535;w l158*l640, *l595;
+c l140(l120 e*l621,l120 e*l674){l26( *l621&&l545( *l621)==l545( *l674
+)){l621++;l674++;}q*l621- *l674;}c l70(e*l27){c l652;l652=0;l26( *l27
+!=0){l652=l652*5^( *l27|0x20);l27++;}q l652;}g l390(l42*l33){d c l449
+,l47;o*m;g l726;l47=l33->l66;l726=(l47&0x80000000)!=0;f(l726){l47=
+l182(l47);}r{l47=l221(l47);}f((l47&0x08)==0){q 1;}f(l726){l449=l154(
+l33->l66);}r{l449=l196(l33->l66);}m=l108+l449;f((m->l38&0x10)!=0){q 0
+;}r{f((m->l38&0x01)==0){m=m->l45.l111;}}q(m->l38&0x04)==0;}w b l961(b
+){l158*l44;c l35;l640=0;l595=0;l35=l116->l279;f(l477>0){l44=l517;l26(
+l44!=0&&l35>l44->l455)l44=l44->l443;f(l44!=0&&l35==l44->l455&&l140(
+l116->l39,l44->l442)==0){l640=l44;}}f(l476>0){l44=l503;l26(l44!=0&&
+l35>l44->l455)l44=l44->l443;f(l44!=0&&l35==l44->l455&&l140(l116->l39,
+l44->l442)==0){l595=l44;}}}w b l972(o*l65){c l603,l591;l158*l44;e*
+l214;l214=l65->l43;l603=l116->l279;l591=l70(l214);l44=l640;l26(l44!=0
+&&l44->l455==l603){f(l44->l616==l591&&((!l137&&l193(l44->l436,l214)==
+0)||(l137&&l140(l44->l436,l214)==0))){l477-=1;l44->l556=1;l170(l44->
+l590){l29 l543:l116->l319=1;l65->l43=l44->l519;f(l77){u("\x57\x61\x72"
+"\x6e\x69\x6e\x67\x3a\x20\x53\x79\x6d\x62\x6f\x6c\x20\x27\x25\x73\x27"
+"\x20\x69\x6e\x20\x27\x25\x73\x27\x20\x72\x65\x6e\x61\x6d\x65\x64\x20"
+"\x61\x73\x20\x27\x25\x73\x27",l44->l436,l44->l442,l44->l519);}l34;
+l29 l569:f((l65->l38&0x03)==0x03){l65->l38=l65->l38-(0x03-0x01);f(l77
+){u("\x57\x61\x72\x6e\x69\x6e\x67\x3a\x20\x53\x79\x6d\x62\x6f\x6c\x20"
+"\x27\x25\x73\x27\x20\x69\x6e\x20\x27\x25\x73\x27\x20\x6e\x6f\x77\x20"
+"\x6d\x61\x72\x6b\x65\x64\x20\x61\x73\x20\x27\x6c\x6f\x63\x61\x6c\x27"
+,l44->l436,l44->l442);}}r{u("\x57\x61\x72\x6e\x69\x6e\x67\x3a\x20\x53"
+"\x79\x6d\x62\x6f\x6c\x20\x27\x25\x73\x27\x20\x69\x6e\x20\x27\x25\x73"
+"\x27\x20\x69\x73\x20\x61\x6c\x72\x65\x61\x64\x79\x20\x61\x20\x27\x6c"
+"\x6f\x63\x61\x6c\x27\x20\x73\x79\x6d\x62\x6f\x6c",l65->l43,l44->l442
+);}l34;l29 l588:f((l65->l38&0x03)==0x01){l65->l38=l65->l38+(0x03-0x01
+);f(l77){u("\x57\x61\x72\x6e\x69\x6e\x67\x3a\x20\x53\x79\x6d\x62\x6f"
+"\x6c\x20\x27\x25\x73\x27\x20\x69\x6e\x20\x27\x25\x73\x27\x20\x6e\x6f"
+"\x77\x20\x6d\x61\x72\x6b\x65\x64\x20\x61\x73\x20\x27\x67\x6c\x6f\x62"
+"\x61\x6c\x27",l44->l436,l44->l442);}}r{u("\x57\x61\x72\x6e\x69\x6e"
+"\x67\x3a\x20\x53\x79\x6d\x62\x6f\x6c\x20\x27\x25\x73\x27\x20\x69\x6e"
+"\x20\x27\x25\x73\x27\x20\x69\x73\x20\x61\x6c\x72\x65\x61\x64\x79\x20"
+"\x61\x20\x27\x67\x6c\x6f\x62\x61\x6c\x27\x20\x73\x79\x6d\x62\x6f\x6c"
+,l65->l43,l44->l442);}}}l44=l44->l443;}}w b l869(o*l65){c l591,l603;
+l158*l44;e*l214;l214=l65->l43;l603=l116->l279;l591=l70(l214);l44=l595
+;l26(l44!=0&&l44->l455==l603){f(l44->l616==l591&&((!l137&&l193(l44->
+l436,l214)==0)||(l137&&l140(l44->l436,l214)==0))){l476-=1;l44->l556=1
+;l116->l319=1;l65->l43=l44->l519;f(l77){u("\x57\x61\x72\x6e\x69\x6e"
+"\x67\x3a\x20\x53\x79\x6d\x62\x6f\x6c\x20\x72\x65\x66\x65\x72\x65\x6e"
+"\x63\x65\x20\x27\x25\x73\x27\x20\x69\x6e\x20\x27\x25\x73\x27\x20\x63"
+"\x68\x61\x6e\x67\x65\x64\x20\x74\x6f\x20\x27\x25\x73\x27",l44->l436,
+l44->l442,l44->l519);}}l44=l44->l443;}}w g l953(o*l65){l*k;l* *l454;c
+l35,l115;e*l27;n*j;l65->l43=l65->l43+(d c)(l151);f(l640!=0)l972(l65);
+l27=l65->l43;l35=l70(l27);l115=l65->l38&0x067;f((l115&0x04)==0){j=
+l427(l151+l65->l45.l84);f(j==0){l65->l38=l65->l38|0x04;}}r{j=0;}l65->
+l45.l73=j;f((l115&0x03)==0x01){l454=&( *l535)[l35&(32-1)];}r{l454=&
+l212[l35&(256-1)];}f(l116->l285)l194+=l210(l27)+z(e);k= *l454;f(l137){
+l26(k!=0&&(l35!=k->l83||l140(l27,k->l31->l43)!=0))k=k->l96;}r{l26(k!=
+0&&(l35!=k->l83||l193(l27,k->l31->l43)!=0))k=k->l96;}f(k==0){k=l493;
+l493++;k->l83=l35;k->l31=l65;k->l135=0;k->l96= *l454; *l454=k;}r f((k
+->l31->l38&0x20)==(l115&0x20)){f(k->l31->l45.l73!=l65->l45.l73){f(
+l164==l312){u("\x45\x72\x72\x6f\x72\x3a\x20\x27\x25\x73\x27\x20\x69"
+"\x6e\x20\x27\x25\x73\x28\x25\x73\x29\x27\x20\x64\x75\x70\x6c\x69\x63"
+"\x61\x74\x65\x73\x20\x61\x20\x73\x79\x6d\x62\x6f\x6c\x20\x61\x6c\x72"
+"\x65\x61\x64\x79\x20\x72\x65\x61\x64",l181(l27),l169->l48,l101);}r{u
+("\x45\x72\x72\x6f\x72\x3a\x20\x27\x25\x73\x27\x20\x69\x6e\x20\x27"
+"\x25\x73\x27\x20\x64\x75\x70\x6c\x69\x63\x61\x74\x65\x73\x20\x61\x20"
+"\x73\x79\x6d\x62\x6f\x6c\x20\x61\x6c\x72\x65\x61\x64\x79\x20\x72\x65"
+"\x61\x64",l181(l27),l101);}q 0;}}r{f((l115&0x20)!=0){f(l164==l312){u
+("\x45\x72\x72\x6f\x72\x3a\x20\x27\x53\x74\x72\x6f\x6e\x67\x27\x20"
+"\x64\x65\x66\x69\x6e\x69\x74\x69\x6f\x6e\x20\x6f\x66\x20\x27\x25\x73"
+"\x27\x20\x66\x6f\x75\x6e\x64\x20\x69\x6e\x20\x27\x25\x73\x27\x20\x61"
+"\x66\x74\x65\x72\x20\x6e\x6f\x6e\x2d\x73\x74\x72\x6f\x6e\x67\x20\x64"
+"\x65\x66\x69\x6e\x69\x74\x69\x6f\x6e\x20\x68\x61\x73\x20\x62\x65\x65"
+"\x6e\x20\x75\x73\x65\x64",l181(l27),l101);q 0;}k->l135=k->l31;k->l31
+=l65;}r{k->l135=l65;}}q 1;}w b l831(o*l65){l*m;e*l27;l65->l43=l65->
+l43+(d c)(l151);f(l595!=0)l869(l65);l27=l65->l43;m=l493;l493++;m->l83
+=l70(l27);m->l31=l65;m->l135=0;m->l96=l511;l511=m;l123+=1;}l*l406(o*
+l55){l*m;o*l518;e*l27;m=l59(z(l));l518=l59(z(o));f(m==0||l518==0)u(""
+"\x46\x61\x74\x61\x6c\x3a\x20\x4f\x75\x74\x20\x6f\x66\x20\x6d\x65\x6d"
+"\x6f\x72\x79\x20\x69\x6e\x20\x27\x63\x72\x65\x61\x74\x65\x5f\x65\x78"
+"\x74\x65\x72\x6e\x72\x65\x66\x27");l27=l55->l43;l518->l43=l27;l518->
+l38=0x02;l518->l53=0;l518->l45.l111=0;m->l83=l70(l27);m->l31=l518;m->
+l135=0;m->l96=l511;l511=m;l123+=1;q m;}w b l935(o*l55){e*l27;l*m;l55
+->l43=l55->l43+(d c)(l151);f(l595!=0)l869(l55);l27=l55->l43;m=l493;
+l493++;m->l83=l70(l27);m->l31=l55;m->l135=0;m->l96=0;l55->l45.l111=
+l388(m);l55->l53=0;}g l391(s*p){c l87,l505,l115;o*l65;g v,l668,l623;d
+c l219;l505=p->l127;l493=l59(l505*z(l));f(l493==0)u("\x46\x61\x74\x61"
+"\x6c\x3a\x20\x4f\x75\x74\x20\x6f\x66\x20\x6d\x65\x6d\x6f\x72\x79\x20"
+"\x69\x6e\x20\x27\x73\x63\x61\x6e\x5f\x73\x79\x6d\x74\x27\x20\x72\x65"
+"\x61\x64\x69\x6e\x67\x20\x66\x69\x6c\x65\x20\x27\x25\x73\x27",l101);
+l116=p;l535=&p->l218;l961();l65=p->l92;l219=p->l287;l511=0;l623=0;
+l668=v=1;l88(l87=1;l87<=l505&&v;l87++){f((d c)(l65->l43)>=l219){u(""
+"\x45\x72\x72\x6f\x72\x3a\x20\x4f\x66\x66\x73\x65\x74\x20\x6f\x66\x20"
+"\x73\x79\x6d\x62\x6f\x6c\x20\x6e\x61\x6d\x65\x20\x69\x6e\x20\x4f\x42"
+"\x4a\x5f\x53\x59\x4d\x54\x20\x63\x68\x75\x6e\x6b\x20\x69\x73\x20\x62"
+"\x61\x64\x20\x69\x6e\x20\x27\x25\x73\x27",p->l39);l65->l43=0;v=0;}
+l115=l65->l38;f(l162&&(l115&0x700)!=0){u("\x45\x72\x72\x6f\x72\x3a"
+"\x20\x53\x79\x6d\x62\x6f\x6c\x20\x27\x25\x73\x27\x20\x69\x6e\x20\x27"
+"\x25\x73\x27\x20\x68\x61\x73\x20\x75\x6e\x73\x75\x70\x70\x6f\x72\x74"
+"\x65\x64\x20\x41\x4f\x46\x20\x73\x79\x6d\x62\x6f\x6c\x20\x61\x74\x74"
+"\x72\x69\x62\x75\x74\x65\x73",l65->l43+(d c)(l151),p->l39);v=0;}l115
+=l115&0x067;f((l115&0x01)!=0){l668=l668&&l953(l65);l623=l623||(l115&
+0x20)!=0;l230+=1;}r f(l115==(0x40|0x02)){l935(l65);}r f(l115==0x02){
+l831(l65);}r f(l115==(0x02|0x04)){l65->l38-=0x04;l831(l65);}r{u("\x45"
+"\x72\x72\x6f\x72\x3a\x20\x4f\x42\x4a\x5f\x53\x59\x4d\x54\x20\x61\x74"
+"\x74\x72\x69\x62\x75\x74\x65\x20\x76\x61\x6c\x75\x65\x20\x28\x30\x78"
+"\x25\x78\x29\x20\x6f\x66\x20\x73\x79\x6d\x62\x6f\x6c\x20\x27\x25\x73"
+"\x27\x20\x69\x6e\x20\x27\x25\x73\x27\x20\x69\x73\x20\x62\x61\x64\x2e"
+"\x20\x49\x73\x20\x66\x69\x6c\x65\x20\x63\x6f\x72\x72\x75\x70\x74\x3f"
+,l115,(d c)(l151)+l65->l43,p->l39);v=0;}l65++;}f(l623)l426(p);p->l136
+.l145=l511;q v&&l668;}w l*l532(l*l318){l*k;e*l27;c l35;l35=l318->l83;
+f((k=l212[l35&(256-1)])==0)q 0;l27=l318->l31->l43;f(l137||(l318->l31
+->l38&0x08)!=0){l26(k!=0&&(k->l83!=l35||l140(l27,k->l31->l43)!=0))k=k
+->l96;}r{l26(k!=0&&(k->l83!=l35||l193(l27,k->l31->l43)!=0))k=k->l96;}
+q k;}w l*l727(l*l318){l*k;e*l27;c l35;l35=l318->l83;f((k=( *l535)[l35
+&(32-1)])==0)q 0;l27=l318->l31->l43;f(l137||(l318->l31->l38&0x08)!=0){
+l26(k!=0&&(k->l83!=l35||l140(l27,k->l31->l43)!=0))k=k->l96;}r{l26(k!=
+0&&(k->l83!=l35||l193(l27,k->l31->l43)!=0))k=k->l96;}q k;}l*l324(l*
+l318){l*k;e*l27;c l35;l35=l318->l83;f((k=l636[l35&(32-1)])==0)q 0;l27
+=l318->l31->l43;f(l137||(l318->l31->l38&0x08)!=0){l26(k!=0&&(k->l83!=
+l35||l140(l27,k->l31->l43)!=0))k=k->l96;}r{l26(k!=0&&(k->l83!=l35||
+l193(l27,k->l31->l43)!=0))k=k->l96;}q k;}l*l366(e*l27){l l521;o l514;
+l521.l83=l70(l27);l521.l31=&l514;l514.l43=l27;l514.l38=0;q l324(&l521
+);}w b l751(l544* *l36,l*m,s*p){l544*l72;e*l663;l72= *l36;l663=m->l31
+->l43;f(l137||(m->l31->l38&0x08)!=0){l26(l72!=0&&l140(l663,l72->l214)!=
+0)l72=l72->l599;}r{l26(l72!=0&&l193(l663,l72->l214)!=0)l72=l72->l599;
+}f(l72==0){f((l72=l59(z(l544)))==0)u("\x46\x61\x74\x61\x6c\x3a\x20"
+"\x4f\x75\x74\x20\x6f\x66\x20\x6d\x65\x6d\x6f\x72\x79\x20\x69\x6e\x20"
+"\x27\x61\x64\x64\x5f\x75\x6e\x72\x65\x73\x6f\x6c\x76\x65\x64\x27");
+l72->l214=l663;l72->l57=p->l39;l72->l599= *l36; *l36=l72;}}w b l896(b
+){s*p;l*m;l544*l635, *l619, *l447;l635=0;l619=0;p=l112;l211{m=p->l136
+.l145;l26(m!=0){f((m->l31->l38&0x10)!=0){l751(&l619,m,p);l123-=1;}r{
+l751(&l635,m,p);}m=m->l96;}p=p->l121;}l26(p!=0);f(l619!=0&&(l77||l262
+)){u("\x57\x61\x72\x6e\x69\x6e\x67\x3a\x20\x54\x68\x65\x20\x66\x6f"
+"\x6c\x6c\x6f\x77\x69\x6e\x67\x20\x73\x79\x6d\x62\x6f\x6c\x73\x20\x61"
+"\x72\x65\x20\x75\x6e\x72\x65\x73\x6f\x6c\x76\x65\x64\x20\x27\x77\x65"
+"\x61\x6b\x27\x20\x72\x65\x66\x65\x72\x65\x6e\x63\x65\x73\x3a");l447=
+l619;l211{u("\x20\x20\x20\x20\x27\x25\x73\x27\x20\x72\x65\x66\x65\x72"
+"\x65\x6e\x63\x65\x64\x20\x69\x6e\x20\x27\x25\x73\x27",l181(l447->
+l214),l447->l57);l447=l447->l599;}l26(l447!=0);}f(l635!=0){u("\x45"
+"\x72\x72\x6f\x72\x3a\x20\x54\x68\x65\x20\x66\x6f\x6c\x6c\x6f\x77\x69"
+"\x6e\x67\x20\x73\x79\x6d\x62\x6f\x6c\x73\x20\x63\x6f\x75\x6c\x64\x20"
+"\x6e\x6f\x74\x20\x62\x65\x20\x66\x6f\x75\x6e\x64\x3a");l447=l635;
+l211{u("\x20\x20\x20\x20\x27\x25\x73\x27\x20\x72\x65\x66\x65\x72\x65"
+"\x6e\x63\x65\x64\x20\x69\x6e\x20\x27\x25\x73\x27",l181(l447->l214),
+l447->l57);l447=l447->l599;}l26(l447!=0);}}w l28*l802(l*l318){l28*t;e
+ *l27;c l35;l35=l318->l83;l27=l318->l31->l43;f((t=( *l300)[l35&(128-1
+)])==0)q 0;f(l137||(l318->l31->l38&0x08)!=0){l26(t!=0&&(t->l254!=l35
+||l140(l27,t->l48)!=0))t=t->l80;}r{l26(t!=0&&(t->l254!=l35||l193(l27,
+t->l48)!=0))t=t->l80;}q t;}w l28*l894(l28*t){c l35;e*l27;l35=t->l254;
+l27=t->l48;l26(t!=0&&(t->l254!=l35||l193(l27,t->l48)!=0))t=t->l80;q t
+;}w b l757(s*p,l*l435,l*l100){f(l435==0){p->l136.l145=l100->l96;}r{
+l435->l96=l100->l96;}l178(l100,z(l));l123-=1;}w g l996(s*p){l*m, *
+l100, *l435, *l612;l28*t;o*l439;g v;l204=p->l92;l203=p->l92+p->l284;v
+=1;l100=p->l136.l145;l435=0;v=1;l211{l612=l100->l96;m=l532(l100);f(m
+!=0){f((m->l31->l38&0x20)!=0&&m->l31>=l204&&m->l31<l203&&m->l135==0){
+t=l802(l100);f(t!=0&&l339(t)){t=l894(t);f(l339(t))t=0;}f(t==0){l435=
+l100;}r{l227+=1;v=l358(t,p,l100);}}r{l227+=1;t=(l28* )(m);}}r f((l100
+->l31->l38&0x10)!=0&&l298){t=0;}r{t=l802(l100);f(t==0){l435=l100;}r{
+l227+=1;v=l358(t,p,l100);m=l532(l100);}}f(v&&t!=0){f(m==0){u("\x45"
+"\x72\x72\x6f\x72\x3a\x20\x43\x61\x6e\x6e\x6f\x74\x20\x66\x69\x6e\x64"
+"\x20\x73\x79\x6d\x62\x6f\x6c\x20\x27\x25\x73\x27\x20\x69\x6e\x20\x6c"
+"\x69\x62\x72\x61\x72\x79\x20\x6d\x65\x6d\x62\x65\x72\x20\x27\x25\x73"
+"\x28\x25\x73\x29\x27\x2e\x20\x49\x73\x20\x6c\x69\x62\x72\x61\x72\x79"
+"\x20\x63\x6f\x72\x72\x75\x70\x74\x3f",l181(l100->l31->l43),l169->l48
+,t->l224);}r{l439=l100->l31;f(m->l135!=0&&m->l31>=l204&&m->l31<l203){
+l439->l45.l111=m->l135;}r{l439->l45.l111=m->l31;}f((l439->l38&0x10)!=
+0){l439->l38-=0x10;}}l757(p,l435,l100);}l100=l612;}l26(l100!=0&&v);q v
+;}b l320(s*p){l*m, *l100, *l435, *l612;o*l439, *l55;l535=&p->l218;
+l204=p->l92;l203=p->l92+p->l284;l100=p->l136.l145;l435=0;l26(l100!=0){
+l612=l100->l96;m=l727(l100);f(m==0){m=l532(l100);f(m==0)m=l324(l100);
+}f(m==0){l435=l100;}r{l439=l100->l31;l55=m->l31;f(l55>=l204&&l55<=
+l203){f(m->l135!=0){l439->l45.l111=m->l135;}r f((l55->l38&0x20)==0){
+l439->l45.l111=l55;}r{l435=l100;m=0;}}r{l439->l45.l111=l55;}f(m!=0){
+l757(p,l435,l100);f((l439->l38&0x10)!=0){l439->l38-=0x10;}}}l100=l612
+;}}g l370(b){s*p;y*t, *l718;g v;l164=l396;p=l112;f(p==0)u("\x46\x61"
+"\x74\x61\x6c\x3a\x20\x54\x68\x65\x72\x65\x20\x69\x73\x20\x6e\x6f\x74"
+"\x68\x69\x6e\x67\x20\x74\x6f\x20\x6c\x69\x6e\x6b\x21");f(l77)u("\x44"
+"\x72\x6c\x69\x6e\x6b\x3a\x20\x52\x65\x73\x6f\x6c\x76\x69\x6e\x67\x20"
+"\x73\x79\x6d\x62\x6f\x6c\x20\x72\x65\x66\x65\x72\x65\x6e\x63\x65\x73"
+"\x20\x28\x25\x64\x20\x74\x6f\x20\x66\x69\x6e\x64\x29\x2e\x2e\x2e",
+l123);l26(p!=0){f(p->l136.l145!=0)l320(p);p=p->l121;}l164=l312;l220=
+l220&&l146!=l271;f(l220&&l146!=0)l271->l80=l146;t=l146;v=1;l718=0;
+l227=0;l26(t!=0&&l123!=0&&t!=l718&&v){l227=0;f(l77){u("\x44\x72\x6c"
+"\x69\x6e\x6b\x3a\x20\x53\x65\x61\x72\x63\x68\x69\x6e\x67\x20\x6c\x69"
+"\x62\x72\x61\x72\x79\x20\x27\x25\x73\x27\x20\x74\x6f\x20\x72\x65\x73"
+"\x6f\x6c\x76\x65\x20\x73\x79\x6d\x62\x6f\x6c\x20\x72\x65\x66\x65\x72"
+"\x65\x6e\x63\x65\x73\x20\x28\x25\x64\x20\x74\x6f\x20\x66\x69\x6e\x64"
+"\x29\x2e\x2e\x2e",t->l48,l123);}v=l434(t);p=l112;l26(p!=0&&l123!=0&&
+v){f(p->l136.l145!=0)v=l996(p);p=p->l121;}f(l227!=0)l718=t;l393(t);t=
+t->l80;}l371();f(l56==l153){f(l77){u("\x44\x72\x6c\x69\x6e\x6b\x3a"
+"\x20\x25\x64\x20\x72\x65\x66\x65\x72\x65\x6e\x63\x65\x28\x73\x29\x20"
+"\x6c\x65\x66\x74\x20\x75\x6e\x72\x65\x73\x6f\x6c\x76\x65\x64\x20\x69"
+"\x6e\x20\x70\x61\x72\x74\x69\x61\x6c\x6c\x79\x2d\x6c\x69\x6e\x6b\x65"
+"\x64\x20\x41\x4f\x46\x20\x66\x69\x6c\x65",l123);}l123=0;}r{p=l112;
+l26(p!=0&&l123!=0){f(p->l136.l145!=0)l320(p);p=p->l121;}f(l123>0&&!
+l304())l896();}q l123==0;}b l337(b){s*p;o*m;c x,l839;p=l112;l211{m=p
+->l92;l839=p->l127;l88(x=1;x<=l839;x++){f((m->l38&(0x01|0x04))==0x01){
+m->l53+=m->l45.l73->l61;}m++;}p=p->l121;}l26(p!=0);}b l138(l*m,d c
+l105){m->l31->l53=l105;}l*l275(e*l27,d c l157){d c l35;l*m;o*l55;m=
+l59(z(l));l55=l59(z(o));f(m==0||l55==0)u("\x46\x61\x74\x61\x6c\x3a"
+"\x20\x4f\x75\x74\x20\x6f\x66\x20\x6d\x65\x6d\x6f\x72\x79\x20\x69\x6e"
+"\x20\x27\x6d\x61\x6b\x65\x5f\x73\x79\x6d\x62\x6f\x6c\x27");l35=l70(
+l27);l55->l43=l27;l55->l38=l157|0x80000000;l55->l53=0;l55->l45.l73=0;
+m->l83=l35;m->l31=l55;m->l135=0;f((l157&0x40)==0){m->l96=l212[l35&(
+256-1)];l212[l35&(256-1)]=m;}r{m->l96=l636[l35&(32-1)];l636[l35&(32-1
+)]=m;}l230+=1;q m;}w l*l459(e*l27){f(l243)l194+=l210(l27)+z(e);q l275
+(l27,0x03);}e*l403(n*j){o*m;s*p;e*l968;d c l505,x;l968=j->l67;p=j->
+l75;m=p->l92;l505=p->l127;l88(x=1;x<=l505&&(m->l45.l73!=j||(m->l38&
+0x03)!=0x03);x++)m++;f(x<=l505){q m->l43;}r{q 0;}}o*l209(o*l55){l l521
+;o l514;e*l27;l*m;l27=l55->l43;l521.l83=l70(l27);l521.l31=&l514;l514.
+l43=l27;l514.l38=0;m=l532(&l521);f(m==0)u("\x46\x61\x74\x61\x6c\x3a"
+"\x20\x43\x6f\x75\x6c\x64\x20\x6e\x6f\x74\x20\x66\x69\x6e\x64\x20\x6e"
+"\x6f\x6e\x2d\x73\x74\x72\x6f\x6e\x67\x20\x76\x65\x72\x73\x69\x6f\x6e"
+"\x20\x6f\x66\x20\x73\x79\x6d\x62\x6f\x6c\x20\x27\x25\x73\x27\x20\x69"
+"\x6e\x20\x27\x66\x69\x6e\x64\x5f\x6e\x6f\x6e\x73\x74\x72\x6f\x6e\x67"
+"\x27",l27);q m->l135;}w o* *l625;w d c l542;w b l939(b){s*p;o*m;o* *
+l125;d c x,l46;l542=0;p=l112;l125=l625;l211{m=p->l92;l46=p->l127;l88(
+x=1;x<=l46;x++){f((m->l38&(0x04|0x01))==0x01&&l193(m->l43,"\x5f\x5f"
+"\x63\x6f\x64\x65\x73\x65\x67")!=0){f((m->l38&0x04)!=0||(m->l45.l73!=
+0&&m->l45.l73->l63!=0)){ *l125=m;l125++;l542+=1;}}m++;}p=p->l121;}l26
+(p!=0);f(l56!=l153){ *l125=l176->l31;l125++; *l125=l191->l31;l125++; *
+l125=l188->l31;l125++; *l125=l185->l31;l125++; *l125=l205->l31;l125++
+; *l125=l202->l31;l125++;l542+=6;f(l259){ *l125=l250->l31;l125++; *
+l125=l248->l31;l125++; *l125=l244->l31;l125++; *l125=l251->l31;l125++
+;l542+=4;}}}w b l925(b){o* *l125;d c x;l125=l625;l88(x=1;x<=l542;x++){
+l385( *l125);l125++;}}c l883(l120 b*l441,l120 b*l867){f((( * (o* * )(
+l441)))->l53<(( * (o* * )(l867)))->l53)q-1;f((( * (o* * )(l441)))->
+l53>(( * (o* * )(l867)))->l53)q 1;q 0;}b l344(b){f((l625=l59(l230*z(o
+ * )))==0){u("\x45\x72\x72\x6f\x72\x3a\x20\x43\x61\x6e\x6e\x6f\x74"
+"\x20\x63\x72\x65\x61\x74\x65\x20\x73\x79\x6d\x62\x6f\x6c\x20\x6c\x69"
+"\x73\x74\x69\x6e\x67");q;}l410();l939();l1016(l625,l542,z(o* ),l883);
+l925();l420();}b l402(b){l l405;o l479;d c l627,l86;l*m;o*l55;n*j;s*p
+;l405.l83=l70("\x5f\x5f\x6c\x69\x6e\x6b");l405.l31=&l479;l479.l43=""
+"\x5f\x5f\x6c\x69\x6e\x6b";p=l112;l627=0;f(l77)u("\x44\x72\x6c\x69"
+"\x6e\x6b\x3a\x20\x50\x65\x72\x66\x6f\x72\x6d\x69\x6e\x67\x20\x43\x2b"
+"\x2b\x20\x73\x70\x65\x63\x69\x66\x69\x63\x20\x6f\x70\x65\x72\x61\x74"
+"\x69\x6f\x6e\x73\x2e\x2e\x2e");l26(p!=0){f(p->l186!=0){l535=&p->l218
+;f((m=l727(&l405))!=0){l55=m->l31;j=l55->l45.l73;l86=l55->l53-j->l61;
+ * (j->l156+l86)=l627;l627=l55->l53;}}p=p->l121;}l405.l83=l70("\x5f"
+"\x5f\x68\x65\x61\x64");l405.l31=&l479;l479.l43="\x5f\x5f\x68\x65\x61"
+"\x64";m=l532(&l405);f(m!=0){l55=m->l31;j=l55->l45.l73;l86=l55->l53-j
+->l61; * (j->l156+l86)=l627;}}b l376(b){l l405;o l479;l*m;s*p;l405.
+l83=l70("\x5f\x5f\x6c\x69\x6e\x6b");l405.l31=&l479;l479.l43="\x5f\x5f"
+"\x6c\x69\x6e\x6b";p=l112;l26(p!=0){f(p->l186!=0){l535=&p->l218;f((m=
+l727(&l405))!=0){l292(m->l31->l45.l73);}}p=p->l121;}l405.l83=l70(""
+"\x5f\x5f\x68\x65\x61\x64");l405.l31=&l479;l479.l43="\x5f\x5f\x68\x65"
+"\x61\x64";m=l532(&l405);f(m!=0){l292(m->l31->l45.l73);}}b l412(b){c
+l87;l88(l87=0;l87<256;l87++)l212[l87]=0;l88(l87=0;l87<32;l87++)l636[
+l87]=0;l511=0;l230=l123=l194=0;}b l421(b){f(l56!=l153){l176=l459(""
+"\x49\x6d\x61\x67\x65\x24\x24\x52\x4f\x24\x24\x42\x61\x73\x65");l191=
+l459("\x49\x6d\x61\x67\x65\x24\x24\x52\x4f\x24\x24\x4c\x69\x6d\x69"
+"\x74");l188=l459("\x49\x6d\x61\x67\x65\x24\x24\x52\x57\x24\x24\x42"
+"\x61\x73\x65");l185=l459("\x49\x6d\x61\x67\x65\x24\x24\x52\x57\x24"
+"\x24\x4c\x69\x6d\x69\x74");l205=l459("\x49\x6d\x61\x67\x65\x24\x24"
+"\x5a\x49\x24\x24\x42\x61\x73\x65");l202=l459("\x49\x6d\x61\x67\x65"
+"\x24\x24\x5a\x49\x24\x24\x4c\x69\x6d\x69\x74");l250=l459("\x49\x6d"
+"\x61\x67\x65\x24\x24\x43\x6f\x64\x65\x42\x61\x73\x65");l248=l459(""
+"\x49\x6d\x61\x67\x65\x24\x24\x43\x6f\x64\x65\x4c\x69\x6d\x69\x74");
+l244=l459("\x49\x6d\x61\x67\x65\x24\x24\x44\x61\x74\x61\x42\x61\x73"
+"\x65");l251=l459("\x49\x6d\x61\x67\x65\x24\x24\x44\x61\x74\x61\x4c"
+"\x69\x6d\x69\x74");l246=l459("\x5f\x5f\x52\x65\x6c\x6f\x63\x43\x6f"
+"\x64\x65");}r{l176=l191=l188=l185=0;l205=l202=l246=0;l250=l248=l244=
+l251=0;}}

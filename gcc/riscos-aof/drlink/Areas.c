@@ -1,2204 +1,539 @@
-/*
-** Drlink AOF Linker - AOF Area handling
-**
-** Copyright © David Daniels 1993, 1994, 1995, 1996, 1997, 1998.
-** All rights reserved.
-**
-** This file contains the functions involved with manipulating
-** the AOF file OBJ_AREA chunks. It also contains all the
-** relocation code
-*/
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include "Drlhdr.h"
-#include "Areahdr.h"
-#include "Filehdr.h"
-#include "Chunkhdr.h"
-#include "Procdefs.h"
-
-#ifdef TARGET_RISCOS
-#include <kernel.h>
-#ifdef TARGET_UNIXLIB
-#include <sys/swis.h>
-#else
-#include <swis.h>
-#endif
-#endif
-
-/* Variables referenced from other files */
-
-arealist
-  *rocodelist,			/* Pointer to R/O code list */
-  *rwcodelist,			/* Pointer to R/W code list */
-  *rodatalist,			/* Pointer to R/O data list */
-  *rwdatalist,			/* Pointer to R/W data list */
-  *zidatalist,			/* Pointer to zero-initialised (R/W) data list */
-  *debuglist;			/* Pointer to debug list (R/O) */
-
-unsigned int
-  workspace,			/* Size of relocatable image workspace */
-  progbase,			/* Address of start of program */
-  codebase,			/* Start-of-code address */
-  database,			/* Start-of-R/W data address */
-  relocaddr;			/* Address of relocation code in image */
-
-/** Image file entry point */
-
-arealist *entryarea;		/* Pointer to area containing entry point */
-unsigned int entryoffset;	/* Offset within area of entry point */
-
-/* Private declarations */
-
-typedef enum {TYPE_1, TYPE_2} reloctype;
-
-/*
-** 'relaction' is used when dealing with partially-linked AOF files. It says what
-** can be done to the relocations in the original AOF files, that is, whether they
-** can be resolved at this point, whether they are impossible and so on.
-*/
-typedef enum {
-  NOTPOSS,		/* Relocation not possible */
-  IGNORE,		/* Ignore relocation */
-  POSSIBLE,		/* Relocation can be finished in its entirety */
-  TYPE2_SA,		/* Relocate but extra type-2 symbol additive relocation needed */
-  TYPE2_SP,		/* Relocate but extra type-2 symbol PC-relative relocation needed */
-  TYPE2_AA,		/* Relocate but extra type-2 area additive relocation needed */
-  TYPE2_AP,		/* Relocate but extra type-2 area PC-relative relocation needed */
-  TYPE2_RP		/* Relocation not possible but offset in instruction must be altered */
-} relaction;
-
-/*
-** 'areasrchlist' defines an entry in a symbol table of area names used
-** when reading in the AOF files. It is used to speed up searching for a
-** symbol's area.
-*/
-typedef struct areasrchlist {
-  arealist *srcarea;		/* Pointer to area's list entry */
-  int srchash;			/* Area's hashed name */
-  struct areasrchlist *srcflink;	/* Next in search list */
-} areasrchlist;
-
-#define GCCAREA "C$$gnu"	/* Area names starting with this cannot be deleted */
-#define GCCAREALEN (strlen(GCCAREA))	/* Length of name */
-
-#define MAXSRCH 32		/* Size of area search table (must be a power of 2) */
-#define SRCHMASK (MAXSRCH-1)	/* Mask for area search table */
-#define RELOCSIZE 8		/* Size of a relocation entry in bytes in OBJ_AREA chunk */
-#define ABSBASE 0x8000		/* Address of start of program code when loaded */
-
-#ifdef TARGET_RISCOS
-#define DEFAULTSIZE 0x8000	/* Default page size (32K to allow for pre-RiscPC machines) */
-#else
-#define DEFAULTSIZE 0x1000	/* Default page size (4K to confuse matters) */
-#endif
-
-/* The following constants are all used in the relocation code */
-
-#define TYPE1_MASK 0xFFFF	/* Mask to extract symbol's OBJ_SYMT index from type-1 relocation */
-#define TYPE2_MASK 0xFFFFFF	/* Mask to extract symbol's OBJ_SYMT index from type-2 relocation */
-#define TYPE1_SHIFT 16		/* Register shift to extract type-1 relocation type code */
-#define TYPE2_SHIFT 24		/* Register shift to extract type-2 relocation type code */
-#define BYTEHIGH 0xFF		/* Highest value allowed in byte relocation */
-#define HALFHIGH 0xFFFF		/* Highest value allowed in halfword relocation */
-#define PCMODIFIER 8		/* Adjustment for PC-relative instructions for PC */
-#define INSTMASK 0xE000000	/* Mask to identify instruction type */
-#define IN_LDRSTR 0x4000000	/* Single data transfer - LDR Rx,[Ry,#n] */
-#define IN_DATAPRO 0x2000000	/* Data processing (with 'immediate' bit set) */
-#define IN_BRANCH 0xA000000	/* Branch or branch with link */
-#define IN_OFFMASK 0xFFF	/* Mask to extract offset from LDR/STR */
-#define MAX_OFFSET 0x1000	/* Maximum offset in LDR/STR */
-#define IN_POSOFF 0x00800000	/* +ve offset bit mask (= 1 = +ve, = 0 = -ve) */
-#define IN_ADDSUB 0x03E00000 	/* Mask to extract opcode from arithmetic instruction */
-#define INST_ADD  0x02800000	/* ADD instruction */
-#define INST_SUB  0x02400000	/* SUB instruction */
-#define ADSB_MASK 0xFE1FF000	/* Mask for ADD/SUB instructions */
-#define LDST_MASK 0xFF7FF000	/* Mask for LDR/STR instruction */
-#define BR_MASK 0xFF000000	/* Branch instruction mask */
-#define BROFF_MASK 0xFFFFFF	/* Branch offset mask */
-#define SHIFT_MASK 0xF		/* Mask to extract shift bits from encoded constant */
-#define SHIFT_SHIFT 8		/* Number of bits to shift shift bits in encoded constant */
-#define NIBBLE_MASK 0xF		/* Mask to extract low four bits of a value */
-#define BYTE_MASK 0xFF		/* Mask to extract a byte */
-#define DEST_MASK 0xF000	/* Mask to extract the destination register in instructions */
-#define RNRD_MASK 0xFF000	/* Mask to extract registers Rn and Rd from instructions */
-#define LOW2_MASK 3		/* Mask for low-order two bits of word */
-
-#define BIT23SIGN 0x800000
-#define BIT24EXTEND 0xFF000000
-#define BIT15SIGN 0x8000
-#define BIT16EXTEND 0xFFFF0000
-
-static unsigned int
-  current_objsize,		/* Size of area containing current relocations */
-  totalrelocs,			/* Total number of word additive relocations */
-  symbolcount,			/* Count of symbols in OBJ_SYMT chunk */
-  unused,			/* Number of unused areas */
-  areapc,			/* Value of program counter at start of area */
-  areatop;			/* Offset of end of last area */
-
-static arealist *current_area;	/* Ptr to area list entry being worked on */
-static filelist *current_file;	/* Ptr to file list entry of file being worked on */
-
-static unsigned int
-  *areastart,			/* Ptr to area being worked on */
-  *headercode,			/* Ptr to AIF header to be added to executable image */
-  *thisarea;			/* Pointer to arealist entry for area being processed */
-
-static int entryareanum;	/* Number of area containing program entry point */
-
-static bool
-  gotcodearea,			/* TRUE if the first code area has been found */
-  noheader;			/* TRUE if the program does not have a header on it */
-
-static arealist
-  *rocodelast,			/* Pointer to last R/O code entry added */
-  *rwcodelast,			/* Pointer to last R/W code entry added */
-  *rodatalast,			/* Pointer to last R/O data entry added */
-  *rwdatalast,			/* Pointer to last R/W data entry added */
-  *zidatalast,			/* Pointer to last ZI data entry added */
-  *debuglast,			/* Pointer to last debug list (R/O) added */
-
-  *firstarea,			/* Pointer to first area entry in OBJ_HEAD */
-  *defaultarea,			/* Default entry point if no entry point given */
-  *areablock;			/* Memory allocated to hold arealist structures */
-
-typedef struct arealimits {
-    char *areaname;		/* Ptr to name of area */
-    int areahash;		/* Hashed area name */
-    symtentry *areabase;	/* Pointer to SYMT entry of area's 'base' symbol */
-    symtentry *arealimit;	/* Pointer to SYMT entry of area's 'limit' symbol */
-    struct arealimits *areaflink;	/* Pointer to next area limit pair */
-  } arealimits;
-
-static arealimits *arlimlist;
-
-static areasrchlist *areatable[MAXSRCH];	/* Area symbol table */
-
-/*
-** 'extend24' sign extends the 24-bit value passed to it to 32 bits
-*/
-static unsigned int extend24(unsigned int x) {
-  if ((x & BIT23SIGN)!=0) x = x | BIT24EXTEND;
-  return  x;
-}
-
-/*
-** 'decode_armconst' converts the constant value coded in an ARM
-** arithmetic instruction passed to it to its proper value,
-** returning that  value. It effectively does a 'rotate right' of
-** the value held in the low eight bits of the instruction by two
-** times the value stored in bits nine to twelve.
-*/
-static unsigned int decode_armconst(unsigned int value) {
-  unsigned int shift, low2bits;
-  shift = (value>>SHIFT_SHIFT) & SHIFT_MASK;	/* Extract no. of bits by which to shift value */
-  value = value & BYTE_MASK;		/* Extract unshifted value */
-  while (shift!=0) {
-    low2bits = value & LOW2_MASK;
-    value = value>>2 | low2bits<<30;
-    shift-=1;
-  }
-  return value;
-}
-
-/*
-** 'check_commondef' is called when a code or data area has the 'common
-** definition' bit set. This is only used for AOF V3 object code files.
-** The function checks to see if an area of the same name already
-** exists in the relevant area list. It assumes there will be only one
-** occurence at most, with the 'common definition' bit set. If the first
-** area does not have this attribute then the linker complains. (Whether
-** or not all areas with the same name should have the same attributes is
-** not specified in the AOF docs but it makes sense to me that they should
-** be.)
-** The function returns either a pointer to the arealist entry if an area
-** of that name already exists or 'nil' if it is a new area or an error
-** occurs.
-**
-** Note that these areas do not appear in the common block symbol table
-** as they are not seen as common blocks as such: they are instances
-** of the same code or the same data across several AOF files where only
-** one instance is to be kept in the image file. The 'common definition'
-** attribute is being used to mark these areas.
-*/
-static arealist *check_commondef(filelist *fp, areaentry *aep, unsigned int atattr) {
-  char *nameptr;
-  arealist *ap;
-  int hashval, count;
-  unsigned int *p1, *p2;
-  nameptr = strtbase+aep->areaname;
-  hashval = hash(nameptr);
-  if ((atattr & ATT_CODE)!=0) {		/* Figure out which list to check */
-    ap = ((atattr & ATT_RDONLY)!=0 ? rocodelist : rwcodelist);
-  }
-  else {	/* Data area */
-    ap = ((atattr & ATT_RDONLY)!=0 ? rodatalist : rwdatalist);
-  }
-  while (ap!=NIL && (hashval!=ap->arhash || strcmp(nameptr, ap->arname)!=0)) ap = ap->arflink;
-  if (ap==NIL) return NIL;	/* Common block is unknown */
-  if (ap->aratattr!=atattr) {	/* Known common area. Check attributes are the same */
-    error("Warning: Attributes of common area '%s' in '%s' conflict with those in '%s'",
-     nameptr, fp->chfilename, ap->arfileptr->chfilename);
-    return NIL;		/* This area will be added to the area list as a normal area */
-  }
-  if (aep->arsize!=ap->arobjsize) {
-    error("Error: Size of common area '%s' in '%s' differs from definition in '%s'",
-     nameptr, fp->chfilename, ap->arfileptr->chfilename);
-    return NIL;
-  }
-  else {
-    count = ap->arobjsize;	/* Verify areas' contents are the same */
-    p1 = ap->arobjdata;
-    p2 = fp->objareaptr;
-    while (count>0 && *p1==*p2) {
-      p2++;
-      p1++;
-      count-=1;
-    }
-    if (count>0) {	/* Area contents do not match */
-      error("Error: Contents of common area '%s' in '%s' differ from those in '%s'",
-       nameptr, fp->chfilename, ap->arfileptr->chfilename);
-      return NIL;
-    }
-  }
-  return ap;
-}
-
-/*
-** 'check_commonref' is called if the area is a common block reference or
-** a definition with the 'no data' attribute. If the common block refers to
-** one previously encountered, it returns a pointer to its area list entry
-** after updating the size and/or attributes otherwise it returns 'nil'
-**
-** Note that under AOF V3, it is possible to have multiple definitions
-** of a common block and not just a single one as in AOF V2. If a
-** program being linked contains nothing but AOF V2 files then this
-** restriction is maintained; otherwise the AOF V3 rule applies.
-*/
-static arealist *check_commonref(filelist *fp, areaentry *aep, unsigned int atattr) {
-  char *nameptr;
-  symbol *sp;
-  arealist *ap;
-  unsigned int newsize;
-  nameptr = strtbase+aep->areaname;
-  sp = find_common(nameptr);
-  if (sp==NIL) return NIL;	/* Symbol not in table - Unknown common block */
-  ap = sp->symtptr->symtarea.areaptr;
-  newsize = aep->arsize;
-  if ((atattr & ATT_COMDEF)!=0) {		/* This ref is a definition */
-    if ((ap->aratattr & ATT_COMDEF)!=0) {		/* Previous ref was definition also */
-      if (aofv3flag) {	/* AOF V3 rules apply */
-        if (newsize!=ap->arobjsize) {
-          error("Error: Size of Common Block '%s' in '%s' differs from its definition in '%s'",
-           nameptr, fp->chfilename, ap->arfileptr->chfilename);
-        }
-      }
-      else {	/* AOF V2 - Cannot have two definitions of a common block */
-        error("Error: There is already a definition (in '%s') of Common Block '%s' in '%s'",
-         ap->arfileptr->chfilename, nameptr, fp->chfilename);
-      }
-    }
-    else if (newsize<ap->arobjsize) {	/* Definition of previously referenced common block */
-      error("Error: Reference to Common Block '%s' in '%s' is larger than defined size in '%s'",
-       nameptr, ap->arfileptr->chfilename, fp->chfilename);
-    }
-    ap->aratattr = ap->aratattr | ATT_COMDEF;
-    ap->arobjsize = newsize;
-  }
-  else if (aep->arsize>ap->arobjsize) {		/* Common block reference */
-    if ((ap->aratattr & ATT_COMDEF)!=0) {	/* Previous ref was definition */
-      error("Error: Reference to Common Block '%s' in '%s' is larger than defined size in '%s'",
-       nameptr, fp->chfilename, ap->arfileptr->chfilename);
-    }
-  }
-  else {
-    ap->arobjsize = newsize;
-  }
-  return ap;
-}
-
-static char *make_name(char *s1, char *s2) {
-  char *p;
-  if ((p = allocmem(strlen(s1)+strlen(s2)+sizeof(char)))==NIL) {
-    error("Fatal: Out of memory in 'make_name'");
-  }
-  else {
-    strcpy(p, s1);
-    strcat(p, s2);
-  }
-  return p;
-}
-
-/*
-** 'list_attributes' lists the area attributes of the area passed to it
-*/
-static void list_attributes(arealist *ap) {
-  char text[MSGBUFLEN];
-  unsigned int attr, count, n;
-  struct {unsigned int atmask; char *atname;} attributes[] = {
-    {ATT_ABSOL,  "Absolute"},
-    {ATT_CODE,   "Code"}   ,
-    {ATT_COMDEF, "Common definition"},
-    {ATT_COMMON, "Common reference"},
-    {ATT_NOINIT, "Zero-initialised"},
-    {ATT_RDONLY, "Read only"},
-    {ATT_POSIND, "Position independent"},
-    {ATT_SYMBOL, "Debugging tables"},
-    {ATT_32BIT,  "32-bit APCS"},
-    {ATT_REENT,  "Reentrant code"},
-    {ATT_EXTFP,  "Extended FP instructions"},
-    {ATT_NOSTAK, "No stack checking code"},
-    {ATT_BASED,  "Based area"},
-    {ATT_STUBS,  "Shared library stub data"},
-    {0,          "*"}
-  };
-
-  attr = ap->aratattr;
-  count = 0;
-  sprintf(text, "    %s:  ", ap->arfileptr->chfilename);
-  for (n = 0; *(attributes[n].atname)!='*'; n++) {
-    if ((attr & attributes[n].atmask)!=0) {
-      if (count!=0) strcat(text, ", ");
-      strcat(text, attributes[n].atname);
-      count++;
-    }
-  }
-  error(text);
-}
-
-/*
-** 'insert_area' inserts the area entry passed to it in the correct
-** place (alphabetical order) in the area list passed to the routine.
-** If there are duplicate names, these are added so that they appear
-** in the order in which they were defined
-**
-** This code is very messy as it has to handle the case where there
-** are a lot of areas with similar names, for example, C$$Code_123,
-** C$$Code_124, C$$Code_125 and so on. As the entire area list has
-** to be searched to find where to insert the new entry, this can
-** be very time consuming, so two tricks are used to speed up the
-** code. Firstly, the field 'arlast' is used to provide a link from
-** the first area with a certain name to the last area with the same
-** name, so that, for example, if there are twenty areas called
-** 'C$$Code', the search will check the first and then skip the rest.
-** The second trick is the use of 'lastentry'. This points at the
-** last area entry **added** to a list (and not the last entry as
-** used elsewhere). Using this, if the area name is greater than
-** the last one added, the search will start partway down the
-** list instead of at the beginning. In the case above, it gives
-** immediately the place where the new area will be inserted.
-*/
-static void insert_area(arealist **list, arealist **lastentry, arealist *newarea) {
-  int compres, lastres;
-  arealist *ap, *lastarea;
-  char *name;
-  arealimits *lp;
-  lastarea = NIL;
-  name = newarea->arname;
-  lastres = compres = 1;
-  ap = *lastentry;
-  if (ap!=NIL && strcmp(name, ap->arname)<0) ap = *list;
-  while (ap!=NIL && (compres = strcmp(name, ap->arname))>=0) {
-    lastres = compres;
-    if (ap->arlast!=NIL) ap = ap->arlast;	/* Skip areas with same name */
-    lastarea = ap;
-    ap = ap->arflink;
-  }
-  if (lastarea==NIL) {  /* List is empty or inserting new first entry */
-    newarea->arflink = ap;
-    *list = newarea;
-  }
-  else {
-    newarea->arflink = lastarea->arflink;
-    lastarea->arflink = newarea;
-  }
-  if (lastres==0) {	/* Name already in list. Propagate base pointer */
-    if (newarea->aratattr!=lastarea->aratattr || newarea->aralign!=lastarea->aralign) {		/* Check attributes are the same */
-      error("Warning: Attributes of area '%s' in '%s' conflict with those in '%s'",
-       name, newarea->arfileptr->chfilename, lastarea->arfileptr->chfilename);
-      list_attributes(newarea);
-      list_attributes(lastarea);
-    }
-    newarea->arbase = lastarea->arbase;
-    lastarea->arbase->arlast = newarea;
-  }
-  else {	/* New area name. Add to base/limit list and symbol table */
-    newarea->arbase = newarea;
-    lp = allocmem(sizeof(arealimits));
-    if (lp==NIL) {
-      error("Fatal: Out of memory in 'insert_area' handling area '%s' in file '%s'",
-       name, newarea->arfileptr->chfilename);
-    }
-    else {
-      lp->areaname = name;
-      lp->areahash = hash(name);
-      if (imagetype!=AOF) {
-        lp->areabase = make_symbol(make_name(name, "$$Base"), SYM_GLOBAL)->symtptr;
-        lp->arealimit = make_symbol(make_name(name, "$$Limit"), SYM_GLOBAL)->symtptr;
-      }
-      else {	/* Do not want base/limit pair when creating AOF file */
-        lp->areabase = lp->arealimit = NIL;
-      }
-      lp->areaflink = arlimlist;
-      arlimlist = lp;
-    }
-  }
-  *lastentry = newarea->arbase;
-}
-
-/*
-** 'keep_area' is called to check if the area 'ap' should be
-** marked as 'non-deleteable' and therefore should not be removed
-** when weeding out unreferenced areas. At present this only
-** affects some GCC-specific areas
-*/
-static bool keep_area(arealist *ap) {
-  return opt_gccareas && strncmp(ap->arname, GCCAREA, GCCAREALEN)==0;
-}
-
-/*
-** 'add_newarea' creates a new area structure and adds it to the relevant
-** area list. It returns a pointer to the entry if it was successfully
-** created or nil
-*/
-static arealist *add_newarea(filelist *fp, areaentry *aep, unsigned int atattr, unsigned int alattr) {
-  arealist *ap;
-  symtentry *sp;
-  ap = areablock;		/* Take memory for entry from block allocated for all areas in file */
-  areablock++;
-  ap->arname = strtbase+aep->areaname;
-  ap->arhash = hash(ap->arname);
-  ap->arfileptr = fp;
-  ap->aratattr = atattr;
-  ap->aralign = alattr;
-  ap->arobjsize = aep->arsize;
-  ap->arobjdata = thisarea;
-  if ((atattr & ATT_NOINIT)==0) thisarea = COERCE(COERCE(thisarea, char *)+aep->arsize, unsigned int *);
-  ap->areldata = COERCE(thisarea, relocation*);
-  ap->arnumrelocs = aep->arelocs;
-  thisarea = COERCE(COERCE(thisarea, char *)+aep->arelocs*RELOCSIZE, unsigned int *);
-  if (!opt_nounused || keep_area(ap)) {
-    ap->arefcount = 1;
-  }
-  else {
-    ap->arefcount = 0;
-  }
-  ap->areflist = NIL;
-  if (aofv3flag && (atattr & ATT_ABSOL)!=0) {	/* AOF 3 absolute address area */
-    ap->arplace = aep->arlast.araddress;
-  }
-  else {
-    ap->arplace = 0;
-  }
-  ap->arsymbol = NIL;
-  ap->arflink = NIL;
-  ap->arlast = NIL;
-  if ((atattr & ATT_SYMBOL)!=0) {		/* Debugging info area */
-    ap->arefcount = 1;		/* Debug areas are never deleted */
-    insert_area(&debuglist, &debuglast, ap);
-    debugsize+=aep->arsize;
-  }
-  else if ((atattr & ATT_CODE)!=0) {		/* Code areas */
-    if ((atattr & ATT_RDONLY)!=0) {
-      insert_area(&rocodelist, &rocodelast, ap);
-    }
-    else {
-      insert_area(&rwcodelist, &rwcodelast, ap);
-    }
-  }
-  else if ((atattr & ATT_COMMON)!=0 || ((atattr & ATT_COMDEF)!=0 && (atattr & ATT_NOINIT)!=0)) {	/* Common block ref */
-    if (imagetype!=AOF) {	/* Do not want symbol created when linking partially-linked AOF file */
-      ap->arsymbol = make_symbol(ap->arname, SYM_COMMON);
-      sp = ap->arsymbol->symtptr;	/* Fill in 'area' field of cb's SYMT entry */
-      sp->symtattr = SYM_GLOBAL;	/* Watch this!!! Change attributes as symbol has area */
-      sp->symtarea.areaptr = ap;
-    }
-    insert_area(&zidatalist, &zidatalast, ap);
-  }
-  else if ((atattr & ATT_RDONLY)!=0) {	/* Data area with R/O bit set */
-    insert_area(&rodatalist, &rodatalast, ap);
-  }
-  else if ((atattr & ATT_NOINIT)==0) {		/* Data with R/O and 'zeroinit' bits clear */
-    insert_area(&rwdatalist, &rwdatalast, ap);
-  }
-  else if ((atattr & ATT_NOINIT)!=0) {	/* Data with 'zeroinit' bit set */
-    insert_area(&zidatalist, &zidatalast, ap);
-  }
-  else {
-    error("Error: Illegal 'area' attribute value 0x%06x found in '%s'", atattr, fp->chfilename);
-    return NIL;
-  }
-  if (!gotcodearea && (atattr & ATT_CODE)!=0) {
-    gotcodearea = TRUE;
-    defaultarea = ap;
-  }
-  return ap;
-}
-
-/*
-** 'add_commonarea' is called to create an arealist structure for a common
-** block that is referenced only by an entry in the OBJ_SYMT chunk with the
-** 'common' attribute set. It returns a pointer to the structure created
-*/
-static arealist *add_commonarea(char *name, unsigned int size) {
-  arealist *ap;
-  ap = allocmem(sizeof(arealist));
-  if (ap==NIL) error("Fatal: Out of memory in 'add_commonarea'");
-  ap->arname = name;
-  ap->arhash = hash(name);
-  ap->arfileptr = current_file;
-  ap->aratattr = ATT_COMMON | ATT_NOINIT;
-  ap->aralign = DEFALIGN;
-  ap->arobjsize = size;
-  ap->arobjdata = NIL;
-  ap->areldata = NIL;
-  ap->arnumrelocs = 0;
-  ap->arefcount = (opt_nounused ? 0 : 1);
-  ap->areflist = NIL;
-  ap->arplace = 0;
-  ap->arsymbol = NIL;
-  ap->arflink = NIL;
-  ap->arlast = NIL;
-  return ap;
-}
-
-/*
-** 'make_commonarea' is called when a symbol with the 'common' attribute is
-** found in the OBJ_SYMT chunk of a file. It checks to see if the common
-** block is known and if so just checks the size. If not known, it add it
-** to the common block list. The function returns a pointer to the symbol
-** table entry for the common block definition
-*/
-symtentry *make_commonarea(symbol *sp) {
-  unsigned int size;
-  symbol *cbsp;
-  symtentry *stp;
-  arealist *ap;
-  stp = sp->symtptr;
-  size = stp->symtvalue;
-  cbsp = search_common(sp);
-  if (cbsp==NIL) {	/* Common block is not known */
-    ap = add_commonarea(stp->symtname, size);
-    ap->arsymbol = make_symbol(ap->arname, SYM_COMMON);
-    stp = ap->arsymbol->symtptr;	/* Point at dummy SYMT entry for CB definition */
-    stp->symtarea.areaptr = ap;
-    if (imagetype!=AOF) {	/* Only add area to list if not partially-linked AOF file */
-      insert_area(&zidatalist, &zidatalast, ap);
-    }
-  }
-  else {	/* Known common block */
-    stp = cbsp->symtptr;
-    ap = stp->symtarea.areaptr;
-    if ((ap->aratattr & ATT_COMDEF)!=0) {	/* Common block size set by a 'definition' entry */
-      if (size>ap->arobjsize) {
-        error("Size of reference to Common Block '%s' in '%s' is greater than its defined value",
-         sp->symtptr->symtname, current_file->chfilename);
-      }
-    }
-    else {	/* Size not set */
-      if (size>ap->arobjsize) ap->arobjsize = size;
-    }
-  }
-  return stp;
-}
-
-/*
-** 'add_srchlist' adds the area entry passed to it to the
-** area search table
-*/
-static void add_srchlist(arealist *ap) {
-  int hashval;
-  areasrchlist *sp;
-  if ((sp = allocmem(sizeof(areasrchlist)))==NIL) {
-    error("Fatal: Out of memory in 'add_srchlist'");
-  }
-  sp->srcarea = ap;
-  sp->srchash = hashval = ap->arhash;
-  sp->srcflink = areatable[hashval & SRCHMASK];
-  areatable[hashval & SRCHMASK] = sp;
-}
-
-/*
-** 'free_srchlist' returns the memory used by the area search list
-** to the heap
-*/
-void free_srchlist(void) {
-  int i;
-  areasrchlist *sp, *nextsp;
-  for (i = 0; i<MAXSRCH; i++) {
-    sp = areatable[i];
-    while (sp!=NIL) {
-      nextsp = sp->srcflink;
-      freemem(sp, sizeof(areasrchlist));
-      sp = nextsp;
-    }
-  }
-}
-
-/*
-** 'scan_head' is called to scan through the OBJ_HEAD chunk and add
-** entries from it to the various area linked lists. It returns 'true'
-** if this was accomplished otherwise it returns 'false'. Note that
-** memory is allocated to hold all the 'arealist' entries that will
-** be generated for efficiency. Note also the 'clever' way of handling
-** the area containing an entry point.
-**
-** Zero-length areas in the OBJ_AREA chunk are ignored. This has to be
-** included to get round what looks like a bug in partially-linked AOF
-** files produced by the Acorn linker as it creates zero-length areas
-** with invalid area attributes.
-**
-** Another fudge is the check for the 'AL' attribute value. The AOF
-** version 2 definition says this should always be set to two but
-** the Acorn assembler, Objasm, sets it to zero in entries for debug
-** tables. The code complains if it is greater than two in AOF V2
-** files
-*/
-bool scan_head(filelist *fp) {
-  arealist *ap;		/* Points at arealist entry created for entry being checked */
-  objheadhdr *ahp;	/* Points at OBJ_HEAD chunk of file */
-  areaentry
-   *aep,			/* Points at OBJ_HEAD entry being checked */
-   *headend;		/* Points at end of OBJ_HEAD chunk */
-  int count, areaco;
-  unsigned int totalsize, areasize, strtsize, atattr, alattr;
-  bool ok;
-  for (count = 0; count<MAXSRCH; count++) areatable[count] = NIL;
-  current_file = fp;
-  ok = TRUE;
-  ahp = fp->objheadptr;
-  if (ahp->areaheader.oftype!=OBJFILETYPE) {
-    error("Error: '%s' does not appear to be an AOF file (type=%x)", fp->chfilename, ahp->areaheader.oftype);
-    return FALSE;
-  }
-  fp->aofv3 = ahp->areaheader.aofversion>=AOFVER3;	/* Got an AOF version 3.1 file */
-  aofv3flag = aofv3flag || fp->aofv3;
-  if (ahp->areaheader.aofversion>AOFVERSION) {
-    error("Error: The version of AOF used in '%s' (%d.%02d) is not supported",
-     fp->chfilename, ahp->areaheader.aofversion/100, ahp->areaheader.aofversion%100);
-    return FALSE;	/* This line was commented out for some reason... */
-  }
-  count = ahp->areaheader.numareas;
-  if (sizeof(aofheader)+count*sizeof(areaentry)>fp->objheadsize) {
-    error("Error: Area count in 'OBJ_HEAD' chunk in '%s' is too large. Is file corrupt?", fp->chfilename);
-    return FALSE;
-  }
-  fp->areacount = count;
-  fp->symtcount = ahp->areaheader.numsymbols;
-  entryareanum = ahp->areaheader.eparea-1;  /* -1 as 'areaco' goes from 0, not 1 */
-  if (entryareanum>=0) entryoffset = ahp->areaheader.epoffset;
-  ok = TRUE;
-  totalsize = 0;
-  firstarea = NIL;
-  thisarea = fp->objareaptr;
-  areasize = fp->objareasize;
-  strtsize = fp->objstrtsize;
-  aep = &ahp->firstarea;
-  headend = aep+count;
-  areablock = allocmem(count*sizeof(arealist));	/* Allocate block to hold arealist entries for file */
-  if (areablock==NIL) error("Fatal: Out of memory in 'scan_head' reading '%s'", fp->chfilename);
-  for (areaco = 0; areaco<count && ok; areaco++) {
-    if (aep->areaname>strtsize) {
-      error("Error: Area name offset in area %d in '%s' is too big", areaco+1, fp->chfilename);
-      ok = FALSE;
-    }
-    atattr = aep->attributes>>8;
-    alattr = aep->attributes & 0xFF;
-    if (!aofv3flag && alattr>ALBYTE) {	/* Check 'al' byte */
-      error("Error: Found bad 'al' attribute byte in area %d in '%s'", areaco+1, fp->chfilename);
-      ok = FALSE;
-    }
-    else if (aofv3flag) {		/* Checks for 'al' byte in AOF 3 */
-      if (alattr<DEFALIGN || alattr>MAXV3AL) {
-        error("Error: Area alignment value in area %d in '%s' is outside range 2 to 32", areaco+1, fp->chfilename);
-        ok = FALSE;
-      }
-    }
-    if (aofv3flag && (atattr & ATT_UNSUPP)!=0) {	/* Reject unsupported AOF 3 area attributes */
-      error("Error: Area %d of '%s' contains unsupported area attributes (%06x)",
-       areaco+1, fp->chfilename, atattr & ATT_UNSUPP);
-      ok = FALSE;
-    }
-    if ((atattr & ATT_SYMBOL)!=0) {	/* Debugging area */
-      if ((atattr & ATT_BADSYM)!=0) {	/* Check only legal symbol attributes */
-        error("Error: Area %d of '%s' has illegal 'area' attributes (0x%06x)", areaco+1, fp->chfilename, atattr);
-        ok = FALSE;
-      }
-    }
-    else if ((atattr & ATT_CODE)!=0) {	/* code area */
-      if ((atattr & ATT_BADCODE)!=0) {	/* Check only legal code attributes */
-        error("Error: Area %d of '%s' has illegal 'area' attributes (0x%06x)", areaco+1, fp->chfilename, atattr);
-        ok = FALSE;
-      }
-    }
-    else {		/* Data area */
-      if ((atattr & ATT_BADATA)!=0) {	/* Check only legal data attributes */
-        error("Error: Area %d of '%s' has illegal 'area' attributes (0x%06x)", areaco+1, fp->chfilename, atattr);
-        ok = FALSE;
-      }
-    }
-    if ((atattr & ATT_NOINIT)==0) {	/* Area is present in AOF file */
-      totalsize+=aep->arsize;
-      if (totalsize>areasize) {
-        error("Error: Size of area %d in 'OBJ_AREA' chunk in '%s' is too big", areaco+1, fp->chfilename);
-        ok = FALSE;
-      }
-    }
-    totalsize+=aep->arelocs*RELOCSIZE;
-    if (totalsize>areasize) {
-      error("Error: Number of relocations in area %d in '%s' is bad", areaco+1, fp->chfilename);
-      ok = FALSE;
-    }
-    if (!fp->aofv3 && aep->arlast.arzero!=0) {		/* AOF 2 check only */
-      error("Error: Last word of definition of area %d in '%s' is not zero", areaco+1, fp->chfilename);
-      ok = FALSE;
-    }
-    if (ok) {
-      ap = NIL;
-      if ((atattr & ATT_COMMON)!=0 || atattr==(ATT_COMDEF|ATT_NOINIT)) {	/* Extra checks for common blocks */
-        ap = check_commonref(fp, aep, atattr);
-      }
-      else if ((atattr & ATT_COMDEF)!=0) {	/* Common definition with code or data */
-        ap = check_commondef(fp, aep, atattr);
-        if (ap!=NIL) {		/* Known common area: free storage used by new version */
-          add_srchlist(ap);
-          freemem(thisarea, aep->arsize+aep->arelocs*RELOCSIZE);
-        }
-      }
-      if (ap==NIL) {	/* Not a known common block or new area found */
-        if ((atattr & ATT_SYMBOL)==0 || fp->keepdebug) {	/* Area or new common block */
-          ap = add_newarea(fp, aep, atattr, alattr);
-          ok = ap!=NIL;
-        }
-        else { /* Debug info when info not needed */
-          freemem(thisarea, aep->arsize+aep->arelocs*RELOCSIZE);
-          thisarea = COERCE(COERCE(thisarea, char *)+aep->arsize+aep->arelocs*RELOCSIZE, unsigned int *);
-        }
-      }
-    }
-    if (ok) {
-      if (ap!=NIL) {
-	aep->arlast.arlptr = ap;
-	add_srchlist(ap);
-	if (firstarea==NIL) firstarea = ap;
-      }
-      if (areaco==entryareanum) {
-	if (entryarea!=NIL) {
-	  error("Error: Program has multiple entry points");
-	}
-	else {
-	  if ((atattr & ATT_CODE)==0) {
-	    error("Warning: Entry point for program in '%s' is in a data area, not code", fp->chfilename);
-	  }
-	  entryarea = ap;
-	}
-      }
-    }
-    aep++;
-  }
-  return ok;
-}
-
-/*
-** 'get_type1_type' returns the relocation type information from a
-** type 1 relocation
-*/
-int get_type1_type(int reltype) {
-  return reltype>>TYPE1_SHIFT;
-}
-
-/*
-** 'get_type1_index' returns the index of a symbol's entry in the
-** OBJ_SYMT chunk from a type 1 relocation
-*/
-int get_type1_index(int reltype) {
-  return reltype & TYPE1_MASK;
-}
-
-/*
-** 'get_type2_type' returns the relocation type information from a
-** type 2 relocation
-*/
-int get_type2_type(int reltype) {
-  return reltype>>TYPE2_SHIFT;
-}
-
-/*
-** 'get_type2_index' returns the index of a symbol's entry in the
-** OBJ_SYMT chunk or an area's index in the OBJ_HEAD chunk from a
-** type 2 relocation
-*/
-int get_type2_index(int reltype) {
-  return reltype & TYPE2_MASK;
-}
-
-/*
-** 'check_strongrefs' is called if an AOF file contains any strong symbol
-** definitions. It checks through all of the relocations in the file to
-** see if there are any references to those symbols. If so, then it has to
-** create 'external reference' OBJ_SYMT entries for those relocations so
-** that the symbol resolution code can set up links to the correct symbols
-*/
-void check_strongrefs(filelist *fp) {
-  areaentry *ap;		/* Points at entry in OBJ_HEAD chunk */
-  relocation *rp;		/* Points at entry in relocation part of OBJ_AREA chunk */
-  symtentry *stp;		/* Points at entry in OBJ_SYMT chunk */
-  symbol *sp;
-  int refcount, i, j, reltype;
-  refcount = 0;
-  ap = &fp->objheadptr->firstarea;
-  rp = COERCE(fp->objareaptr, relocation*);
-  for (i = 1; i<=fp->areacount; i++) {
-    rp = COERCE(COERCE(rp, char *)+ap->arsize, relocation *);	/* Point at start of relocations */
-    for (j = 1; j<=ap->arelocs; j++) {
-      reltype = rp->reltypesym;
-      stp = NIL;
-      if ((reltype & REL_TYPE2)==0) {	/* Got a type-1 relocation */
-        if ((get_type1_type(reltype) & (REL_SYM|REL_PC))!=0) {	/* Symbol relocation */
-          stp = fp->objsymtptr+(get_type1_index(reltype));
-        }
-      }
-      else {
-        if ((get_type2_type(reltype) & REL_SYM)!=0) {
-          stp = fp->objsymtptr+(get_type2_index(reltype));
-        }
-      }
-      if (stp!=NIL && (stp->symtattr & SYM_STRONGDEF)==SYM_STRONGDEF) {
-        refcount++;
-        sp = create_externref(stp);
-      }
-      rp++;
-    }
-    ap++;
-  }
-}
-
-/*
-** 'find_area' is called to locate the area in which the area name 'np' is
-** located. It returns a pointer to the 'arealist' entry of that area or
-** 'NIL' if it cannot find the area
-*/
-arealist *find_area(char *np) {
-  arealist *ap;
-  areasrchlist *sp;
-  int hashval;
-  hashval = hash(np);
-  sp = areatable[hashval & SRCHMASK];
-  while (sp!=NIL && (hashval!=sp->srchash || strcmp(sp->srcarea->arname, np)!=0)) sp = sp->srcflink;
-  if (sp!=NIL) {
-    ap = sp->srcarea;
-  }
-  else {
-    if (opt_verbose) error("Warning: Found reference to non-existent area '%s'. Default used", np);
-    ap = NIL;
-  }
-  return ap;
-}
-
-/*
-** 'get_area' is called to return the area list entry for the area with
-** area index 'index'. It is used when handling type-2 relocations
-*/
-static arealist *get_area(unsigned int index) {
-  areaentry *temp;
-  temp = &current_file->objheadptr->firstarea;
-  return (temp+index)->arlast.arlptr;
-}
-
-/*
-** 'decr_refcount' goes through an area's list of referenced areas and
-** decrements the reference count for that area. If the count goes to
-** zero then that area is not referenced and so the routine calls
-** itself recursively to go through all the areas that that one
-** references to decrement their use counts and so on
-*/
-static void decr_refcount(arearef *rp) {
-  arealist *ap;
-  while (rp!=NIL) {
-    ap = rp->arefarea;
-    if ((ap->arefcount-=rp->arefcount)==0) {
-      decr_refcount(ap->areflist);
-      ap->areflist = NIL;	/* So that mark_unused does not do them again */
-    }
-    rp = rp->arefnext;
-  }
-}
-
-/*
-** 'find_unused' goes through an area list and weeds out all the
-** unreferenced areas.
-*/
-static void mark_unused(arealist *ap) {
-  while (ap!=NIL) {
-    if (ap->arefcount==0) {
-      unused++;
-      decr_refcount(ap->areflist);
-      ap->areflist = NIL;
-    }
-    ap = ap->arflink;
-  }
-}
-
-/*
-** 'add_arearef' adds to reference to area 'to' from area 'from' and
-** bumps up the reference count in area 'to'. If a symbol is
-** absolute or one of the linker predefined symbols, it is not
-** included.
-*/
-static void add_arearef(arealist *fromarea, arealist *toarea) {
-  arearef *rp;
-  if (fromarea!=toarea) {	/* Don't want refs to this area */
-    rp = fromarea->areflist;
-    while (rp!=NIL && rp->arefarea!=toarea) { /* First ref to this area? */
-      rp = rp->arefnext;
-    }
-    if (rp!=NIL) {	/* Already seen this area */
-      rp->arefcount+=1;
-    }
-    else {	/* new area ref */
-      rp = allocmem(sizeof(arearef));
-      if (rp==NIL) {
-        error("Fatal: Out of memory in 'add_arearef'");
-      }
-      else {
-        rp->arefarea = toarea;
-        rp->arefcount = 1;
-        rp->arefnext = fromarea->areflist;
-        fromarea->areflist = rp;
-      }
-    }
-    toarea->arefcount+=1;
-  }
-}
-
-/*
-** 'add_symref' adds reference 'symtindex' from area 'from' to
-** the count of references to area containing the symbol. If
-** a symbol is absolute or one of the linker predefined symbols,
-** it is not included.
-*/
-static void add_symref(arealist *fromarea, int symtindex) {
-  symtentry *sp;
-  sp = symtbase+symtindex;
-  if ((sp->symtattr & (SYM_WEAKREF|SYM_DEFN))==0) {		/* Was an external ref */
-    sp = sp->symtarea.symdefptr;
-  }
-  else if ((sp->symtattr & SYM_STRONGDEF)==SYM_STRONGDEF) {	/* Direct reference to strong symbol */
-    sp = find_nonstrong(sp);
-  }
-  if ((sp->symtattr & (SYM_LINKDEF|SYM_ABSVAL|SYM_WEAKREF))!=0) {	/* Symbol is absolute, predefined or weak external */
-    return;
-  }
-  add_arearef(fromarea, sp->symtarea.areaptr);
-}
-
-/*
-** 'find_arearefs' is used to determine which areas are referenced
-** from other areas in one area list. It works this out from the
-** relocation data for each area.
-** There are two cases to consider, symbol references and area
-** references. In a type-1 relocation, only symbol references have
-** to be considered as area (interal) relocation always refer to the
-** area containing the reference and we are not interested in these.
-** In a type-2 relocation, the area referenced can be a different
-** area, so both cases do have to be considered. Furthermore, with
-** type-2 relocations, the relocation can be either PC-relative
-** or additive. Of course, an area reference can refer to the same
-** area as the one containing the relocation but add_arearef will
-** weed out such relocations.
-*/
-static void find_arearefs(arealist *ap) {
-  int n, numrelocs, reltype, relword;
-  relocation *rp;
-  while (ap!=NIL) {
-    numrelocs = ap->arnumrelocs;
-    if (numrelocs!=0) {
-      current_file = ap->arfileptr;
-      symtbase = ap->arfileptr->objsymtptr;
-      symbolcount = ap->arfileptr->symtcount;
-      rp = ap->areldata;
-      for (n = 1; n<=numrelocs; n++) {
-        relword = rp->reltypesym;
-        if ((relword & REL_TYPE2)==0) {		/* Type-1 relocation */
-          reltype = get_type1_type(relword);
-          if ((reltype & (REL_SYM|REL_PC))!=0) add_symref(ap, get_type1_index(relword));
-        }
-        else {	/* Type-2 relocation */
-          reltype = get_type2_type(relword);
-          if ((reltype & REL_SYM)!=0) {		/* Symbol */
-            add_symref(ap, get_type2_index(relword));
-          }
-          else {  /* Area */
-            add_arearef(ap, get_area(get_type2_index(relword)));
-          }
-        }
-        rp++;
-      }
-    }
-    ap = ap->arflink;
-  }
-}
-
-/*
-** 'mark_area' is called to mark an area as non-deletable by bumping up
-** its reference count
-*/
-void mark_area(arealist *ap) {
-  ap->arefcount+=1;
-}
-
-/*
-** 'find_unused' is called to find out which areas in the linked
-** program are used and which are not and so can be left out of
-** the image file
-*/
-void find_unused(void) {
-  if (opt_verbose) error("Drlink: Finding unused areas...");
-  mark_area(entryarea);		/* Don't want entry area to disappear */
-  if (imagetype==RMOD) mark_area(rocodelist);	/* or any embarrasing problems with modules */
-  if (opt_cpp) find_cdareas();	/* Or with C++ constructors and destructors */
-  find_arearefs(rocodelist);
-  find_arearefs(rodatalist);
-  find_arearefs(rwcodelist);
-  find_arearefs(rwdatalist);
-  find_arearefs(zidatalist);
-  mark_unused(rocodelist);
-  mark_unused(rodatalist);
-  mark_unused(rwcodelist);
-  mark_unused(rwdatalist);
-  mark_unused(zidatalist);
-}
-
-/*
-** 'fillin_limits' fills in the area pointers and values of the base
-** and limit pair for the given area
-*/
-static void fillin_limits(arealist *firstarea, arealist *lastarea) {
-  arealimits *p;
-  int hashval;
-  char *name;
-  hashval = firstarea->arhash;
-  name = firstarea->arname;
-  p = arlimlist;
-  while (p!=NIL && (hashval!=p->areahash || strcmp(name, p->areaname)!=0)) p = p->areaflink;
-  if (p==NIL) error("Fatal: Possible linker error in 'fillin_limits'");
-  p->areabase->symtarea.areaptr = firstarea;
-  p->areabase->symtvalue = firstarea->arplace;
-  p->arealimit->symtarea.areaptr = lastarea;
-  p->arealimit->symtvalue = lastarea->arplace+lastarea->arobjsize;
-}
-
-/*
-** 'align_page' aligns the end of the last area in the R/O portion of the
-** image on a page boundary. This is for principly for debugging: DDT
-** write-protects R/O areas up to a page boundary. At the moment this
-** is kludged by simply extending the last area in the R/O part to a
-** page boundary: Anything that follows the area will be written to the
-** imagefile as part of the image. There is a chance this could lead to
-** an addressing exception if this takes the area past the end of the
-** wimp slot...
-*/
-static void align_page(void) {
-  arealist *rolist, *lastarea;
-  int pagesize;
-  unsigned int padding;
-#ifdef TARGET_RISCOS
-  _kernel_oserror *swierror;
-  _kernel_swi_regs regs;
-#endif
-  rolist = (rodatalist!=NIL ? rodatalist : rocodelist);
-  if (rolist==NIL) return;	/* No read-only areas to protect */
-  lastarea = NIL;
-  do {
-    lastarea = rolist;
-    rolist = rolist->arflink;
-  } while (rolist!=NIL);
-#ifdef TARGET_RISCOS
-  swierror = _kernel_swi(OS_ReadMemMapInfo, &regs, &regs);
-  if (swierror==NIL) {
-    pagesize = regs.r[0];		/* Page size is returned by SWI in R0 */
-  }
-  else {
-    error("Warning: Could not determine machine's page size. Default of 32K used");
-    pagesize = DEFAULTSIZE;
-  }
-#else
-  pagesize = DEFAULTSIZE;
-#endif
-  padding = ((areapc+pagesize-1) & -pagesize)-areapc;
-  lastarea->arobjsize+=padding;
-  areapc+=padding;
-}
-
-/*
-** 'calc_place' goes through a list of areas and fills in the address in
-** the image file where the area is to be found. If the area has an entry
-** in the symbol table, that is filled in with the value as well. The
-** base/limit pairs for each area are also sorted out here. To make
-** it even more complicated, the routine has to allow for areas that
-** will not be included in the final image file. The last function it
-** carries out is to add the size of the areas to the size of the image
-** file.
-*/
-static void calc_place(arealist *p) {
-  arealist
-    *firstarea,		/* Points to first area with name 'x' */
-    *lastarea,		/* Points to last area with name 'x' */
-    *lastbase;
-  unsigned int align;
-  firstarea = lastarea = lastbase = NIL;
-  while (p!=NIL) {
-    if (p->arefcount>0) {
-      if (firstarea==NIL) {	/* First ref to this area name */
-        firstarea = lastarea = p;
-        lastbase = p->arbase;
-      }
-      else if (lastbase==p->arbase) {	/* Same name as last entry */
-        lastarea = p;
-      }
-      else {	/* New area name */
-        fillin_limits(firstarea, lastarea);
-        firstarea = lastarea = p;
-        lastbase = p->arbase;
-      }
-      align = (1<<p->aralign)-1;	/* Align area address as necessary */
-      areapc = (areapc+align) & ~align;
-      p->arplace = areapc;
-      if (p->arsymbol!=NIL) define_symbol(p->arsymbol, areapc);
-      areapc+=p->arobjsize;
-    }
-    p = p->arflink;
-  }
-  if (firstarea!=NIL) fillin_limits(firstarea, lastarea);
-}
-
-/*
-** 'relocate_areas' is called to work out the relocation constant
-** of each area. It also defines the values of the pre-defined
-** linker symbols and the base/limit pair values for each area.
-*/
-void relocate_areas(void) {
-  unsigned int initpc, oldpc, baseaddr;
-  segtype wantedtype;
-  if (opt_codebase) {	/* Non-standard base-of-code used */
-    progbase = baseaddr = codebase;
-  }
-  else {
-    progbase = baseaddr = ABSBASE;
-  }
-  headersize = 0;
-  if (!noheader) {	/* Executable image has a header on it */
-    if (imagetype==BIN) {
-      wantedtype = HDR_BIN;
-    }
-    else {	/* AIF or relocatable AIF */
-      wantedtype = HDR_AIF;
-    }
-    get_hdrcode(wantedtype, &headercode, &headersize);
-  }
-  areatop = initpc = areapc = baseaddr+headersize;
-  imagesize = headersize;
-  define_symbol(image_robase, areapc);
-  define_symbol(image_codebase, areapc);
-  calc_place(rocodelist);
-  calc_place(rodatalist);
-  if (opt_pagealign) align_page();
-  define_symbol(image_rolimit, areapc);
-  define_symbol(image_codelimit, areapc);
-  if (opt_database) {   /* Non-standard base-of-data used */
-    if (database>=initpc && database<areapc) {
-      error("Warning: Read/write code && data areas overlap read only areas");
-    }
-    if (rwcodelist!=NIL || rwdatalist!=NIL) {
-      error("Warning: Image file contains code or constant data in read/write area and option '-data' has been used");
-    }
-    areapc = database;
-  }
-  define_symbol(image_rwbase, areapc);
-  define_symbol(image_database, areapc);
-  calc_place(rwcodelist);
-  oldpc = areapc;
-  calc_place(debuglist);
-  areapc = oldpc;
-  calc_place(rwdatalist);
-  imagesize = imagesize+areapc-initpc;
-  define_symbol(image_zibase, areapc);
-  if (imagetype==RMOD) define_symbol(reloc_code, areapc);
-  relocaddr = areapc;
-  calc_place(zidatalist);
-  define_symbol(image_zilimit, areapc);
-  define_symbol(image_rwlimit, areapc);
-  define_symbol(image_datalimit, areapc);
-}
-
-/*
-** The next few functions deal with relocations. This section is complex
-** and extreme care should be taken when modifying it
-*/
-
-/*
-** 'flag_badreloc' is called to print an error message about a bad
-** relocation
-*/
-static void flag_badreloc(unsigned int *relplace) {
-  error("Error: Relocated value is out of range at offset 0x%x in area '%s' in file '%s'",
-   relplace-areastart, current_area->arname, current_file->chfilename);
-}
-
-/*
-** 'fixup_adr' is called to relocate 'adr' instructions. Either
-** single instructions or sequences of ADD and SUB can be dealt
-** with by this code.
-*/
-static void fixup_adr(unsigned int *relplace, int inscount, unsigned int relvalue) {
-  unsigned int regrnrd, inst;
-  int addr, shift;
-  unsigned int *relstart, *relbase;
-  bool negative;
-  if (inscount==0) inscount = 0x10000;	/* inscount=0 = do as many instructions as needed */
-  addr = 0;
-  relbase = relstart = relplace;
-  inst = *relplace;
-  regrnrd = inst & DEST_MASK;
-  regrnrd = regrnrd+(regrnrd<<4);	/* Get mask for register Rn and Rd in ADDs and SUBs */
-  do {		/* Extract the encoded offset */
-    if ((inst & IN_ADDSUB)==INST_ADD) {
-      addr+=decode_armconst(inst);
-    }
-    else {
-      addr-=decode_armconst(inst);
-    }
-    relplace++;
-    inst = *relplace;
-    inscount-=1;
-  } while (inscount!=0 && ((inst & IN_ADDSUB)==INST_SUB || (inst & IN_ADDSUB)==INST_ADD) && (inst & RNRD_MASK)==regrnrd);
-  addr+=relvalue;
-  negative = addr<0;
-  if (negative) addr = -addr;
-  shift = 16;
-  do {		/* Encode constant for ARM instruction */
-    if (addr!=0) {
-      while ((addr & LOW2_MASK)==0) {
-        addr = addr>>2;
-        shift-=1;
-      }
-    }
-    inst = (*relstart & ADSB_MASK) | (negative ? INST_SUB : INST_ADD);
-    *relstart = (inst | ((shift & SHIFT_MASK)<<SHIFT_SHIFT)) + (addr & BYTE_MASK);
-    addr = addr & ~BYTE_MASK;
-    relstart++;
-  } while (relstart!=relplace);
-  if (addr!=0) flag_badreloc(relbase);
-}
-
-/*
-** 'fixup_additive' handles additive relocations, including
-** instruction sequences
-*/
-static void fixup_additive(unsigned int *relplace, unsigned int reltype, unsigned int relvalue) {
-  unsigned int data, inst;
-  int addr;
-  switch (reltype & FTMASK) {
-  case REL_BYTE: case REL_HALF:		/* Relocate byte and halfword */
-    if ((reltype & REL_SYM)==0) {
-      error("Error: Found bad relocation type for a byte or halfword field in area '%s' in '%s'",
-       current_area->arname, current_file->chfilename);
-      return;
-    }
-    if ((reltype & FTMASK)==0) {	/* Byte relocation */
-      data = *(COERCE(relplace, char*))+relvalue;
-      if (data>BYTEHIGH) {
-        flag_badreloc(relplace);
-      }
-      else {
-        *(COERCE(relplace, char*)) = data;
-      }
-    }
-    else {	/* Half word  relocation */
-      data = *(COERCE(relplace, char*))+(*(COERCE(relplace, char*)+1)<<8)+relvalue;
-      if (data>HALFHIGH) {
-        flag_badreloc(relplace);
-      }
-      else {
-        *(COERCE(relplace, char*)) = data&0xFF;
-        *(COERCE(relplace, char*)+1) = data>>8;
-      }
-    }
-    break;
-  case REL_WORD:
-    *relplace+=relvalue;
-    totalrelocs+=1;
-    break;
-  case REL_SEQ:	/* Instruction sequence */
-    inst = *relplace;
-    if ((inst & INSTMASK)==IN_LDRSTR) {	/* LDR/STR */
-      addr = inst & IN_OFFMASK;
-      if ((inst & IN_POSOFF)==0) addr = -addr;
-      addr = addr+relvalue;
-      if (addr<=-MAX_OFFSET || addr>=MAX_OFFSET) {
-        flag_badreloc(relplace);
-      }
-      else {
-        *relplace = (inst & LDST_MASK) | (addr<0 ? -addr : addr | IN_POSOFF);
-      }
-    }
-    else if ((inst & INSTMASK)==IN_DATAPRO) {		/* Data processing instruction */
-      fixup_adr(relplace, (reltype & REL_IIMASK)>>REL_IISHIFT, relvalue);
-    }
-    else {	/* Branch instruction. Will this happen? */
-      *relplace = (inst & BR_MASK) | ((((extend24(inst)<<2)+relvalue)>>2) & BROFF_MASK);
-    }
-  }
-}
-
-/*
-** 'fixup_pcrelative' is called to handle PC-relative relocations for both
-** type-1 and type-2 relocations. Note that the code has to be able to
-** cope with relocations in different instruction types and not just branch
-** instructions.
-*/
-static bool fixup_pcrelative(unsigned int *relplace, reloctype reltype, int relvalue) {
-  int addr;
-  unsigned int inst;
-  inst = *relplace;
-  if ((inst & INSTMASK)==IN_BRANCH) {	/* Branch instruction */
-    addr = extend24(inst)<<2;		/* Get address in inst, sign extend & convert to bytes */
-    if (reltype==TYPE_1) {
-      addr = addr+relvalue-current_area->arplace-(COERCE(relplace, char *)-COERCE(areastart, char *))-PCMODIFIER;
-    }
-    else {
-      addr = addr+relvalue-current_area->arplace;
-    }
-    *relplace = (inst & BR_MASK) | ((addr>>2) & BROFF_MASK);
-  }
-  else if ((inst & INSTMASK)==IN_LDRSTR) {	/* LDR/STR */
-    addr = inst & IN_OFFMASK;
-    if ((inst & IN_POSOFF)==0) addr = -addr;
-    addr = addr+relvalue-current_area->arplace;
-    if (addr<=-MAX_OFFSET || addr>=MAX_OFFSET) {
-      flag_badreloc(relplace);
-    }
-    else {
-      *relplace = (inst & LDST_MASK) | (addr<0 ? -addr : addr | IN_POSOFF);
-    }
-  }
-  else {		/* Assume data processing instruction (ADD or SUB) */
-    fixup_adr(relplace, 0, relvalue-current_area->arplace);
-  }
-  return TRUE;
-}
-
-/*
-** 'fixup_type1' is called to handle a type-1 relocation
-*/
-static void fixup_type1(unsigned int reltypesym, unsigned int *relplace) {
-  unsigned int reltype, relvalue, symtindex;
-  symtentry *sp;
-  reltype = get_type1_type(reltypesym);
-  if ((reltype & (REL_SYM|REL_PC))!=0) {  /* Symbol relocation */
-    if ((symtindex = (get_type1_index(reltypesym)))>symbolcount) {
-      error("Error: Found bad OBJ_SYMT index in relocation in area '%s' in '%s'",
-       current_area->arname, current_file->chfilename);
-      return;
-    }
-    sp = symtbase+symtindex;
-    if ((sp->symtattr & SYM_DEFN)!=0) {	/* Nice, easy ref to symbol */
-      if ((sp->symtattr & SYM_STRONG)!=0) {	/* Nasty, horrible ref to strong symbol in this file */
-        sp = find_nonstrong(sp);
-      }
-      relvalue = sp->symtvalue;
-    }
-    else if ((sp->symtattr & (SYM_WEAKREF|SYM_ABSVAL))!=0)	/* Weak external ref or absolute */
-      relvalue = 0;
-    else {	/* Ref to defined external */
-      relvalue = sp->symtarea.symdefptr->symtvalue;
-    }
-  }
-  else {  /* Internal, that is, relative to this area, relocation */
-    relvalue = current_area->arplace;
-  }
-  if ((reltype & REL_PC)!=0) {	/* PC-relative relocation */
-    fixup_pcrelative(relplace, TYPE_1, relvalue);
-  }
-  else {  /* Additive relocation */
-    fixup_additive(relplace, reltype, relvalue);
-  }
-}
-
-/*
-** 'fixup_type2' handles the relocation of a single type-2 relocation
-*/
-static void fixup_type2(unsigned int reltypesym, unsigned int *relplace) {
-  unsigned int reltype, relvalue, symtindex;
-  symtentry *sp;
-  arealist *ap;
-  reltype = get_type2_type(reltypesym);
-  if ((reltype & REL_SYM)!=0) {	/* Symbol relocation */
-    if ((symtindex = (get_type2_index(reltypesym)))>symbolcount) {
-      error("Error: Found bad OBJ_SYMT index in relocation in area '%s' in '%s'",
-       current_area->arname, current_file->chfilename);
-      return;
-    }
-    sp = symtbase+symtindex;
-    if ((sp->symtattr & SYM_DEFN)!=0) {		/* Nice, easy ref to symbol */
-      if ((sp->symtattr & SYM_STRONG)!=0) {	/* Direct reference to strong symbol */
-        sp = find_nonstrong(sp);
-      }
-      relvalue = sp->symtvalue;
-    }
-    else if ((sp->symtattr & (SYM_WEAKREF|SYM_ABSVAL))!=0) {	/* Weak external ref or absolute */
-      relvalue = 0;
-    }
-    else {	/* Ref to defined external */
-      relvalue = sp->symtarea.symdefptr->symtvalue;
-    }
-  }
-  else {	/* Internal, that is, relative to some area, relocation */
-    reltypesym = get_type2_index(reltypesym);
-    if (reltypesym>=current_file->areacount) {
-      error("Error: Type-2 relocation area index too high in area '%s' in '%s'",
-       current_area->arname, current_file->chfilename);
-      return;
-    }
-    if ((reltype & REL_BASED)==0) {		/* Ordinary area relocation */
-      relvalue = get_area(reltypesym)->arplace;
-    }
-    else {	/* Based area relocation */
-      ap = get_area(reltypesym);
-      relvalue = ap->arplace-ap->arbase->arplace;	/* Addr of area - addr of 1st area of this name */
-    }
-  }
-  if ((reltype & REL_PC)!=0) {	/* PC-relative relocation */
-    if ((reltype & REL_BASED)!=0) {	/* PC-relative and based. Defined, but I don't know what it means */
-      error("Error: PC-relative based relocations (found in area '%s' in '%s') are not supported",
-       current_area->arname, current_file->chfilename);
-    }
-    else {
-      fixup_pcrelative(relplace, TYPE_2, relvalue);
-    }
-  }
-  else {  /* Additive relocation */
-    fixup_additive(relplace, reltype, relvalue);
-  }
-}
-
-/*
-** 'relocate_item' handles the relocation of a single item in the
-** OBJ_AREA chunk.
-*/
-static void relocate_item(relocation *rp) {
-  unsigned int offset, relts;
-  unsigned int *relplace;
-  offset = rp->reloffset;
-  if (offset>current_objsize) {
-    error("Error: Bad relocation offset (0x%x) found in area '%s' in '%s'",
-     offset, current_area->arname, current_file->chfilename);
-    return;
-  }
-  relplace = COERCE(COERCE(areastart, char *)+offset, unsigned int *);
-  relts = rp->reltypesym;
-  if ((relts & REL_TYPE2)==0) {
-    fixup_type1(relts, relplace);
-  }
-  else {
-    fixup_type2(relts, relplace);
-  }
-}
-
-/*
-** 'relocate_arealist' is called to deal with all of the relocations
-** in all of the areas listed in the area list passed to it
-*/
-static void relocate_arealist(arealist *ap) {
-  int n, numrelocs;
-  relocation *rp;
-  while (ap!=NIL) {
-    if (ap->arefcount>0 && (numrelocs = ap->arnumrelocs)!=0) {
-      current_area = ap;
-      current_file = ap->arfileptr;
-      current_objsize = ap->arobjsize;
-      symtbase = ap->arfileptr->objsymtptr;
-      symbolcount = ap->arfileptr->symtcount;
-      areastart = ap->arobjdata;
-      rp = ap->areldata;
-      for (n = 1; n<=numrelocs; n++) {
-        relocate_item(rp);
-        rp++;
-      }
-    }
-    ap = ap->arflink;
-  }
-}
-
-/*
-** 'relocate' is called to handle the relocation of the code and
-** data in all the area lists
-*/
-bool relocate(void) {
-  relocate_arealist(rocodelist);
-  relocate_arealist(rodatalist);
-  relocate_arealist(rwcodelist);
-  relocate_arealist(rwdatalist);
-  relocate_arealist(debuglist);
-  return !got_errors();
-}
-
-/*
-** 'check_entryarea' is called to check the program's entry point and to
-** set up a default one if none has been specified
-*/
-void check_entryarea(void) {
-  if (entryarea==NIL) {  /* No entry point specified */
-    entryarea = defaultarea;
-    entryoffset = 0;
-    error("Warning: Program has no entry point. Default of first executable instruction assumed");
-  }
-  noheader = imagetype==RMOD
-             || (imagetype==BIN && entryarea==rocodelist)
-	     || (rodatalist==NIL
-		 && rwcodelist==entryarea
-		 && entryoffset==0)
-             || opt_codebase;
-}
-
-/*
-** 'fillin_header' is called to fill in the executable image's header
-*/
-static void fillin_header(void) {
-  unsigned int startaddr;
-  startaddr = entryarea->arplace+entryoffset;
-  if (imagetype==BIN) {
-    setup_binhdr(headercode, startaddr);
-  }
-  else {
-    setup_aifhdr(headercode, startaddr);
-  }
-}
-
-/*
-** 'write_reloc' is called when dealing with relocatable modules and
-** relocatable AIF images to create the relocation table appended to
-** image files of these types.
-**
-** It goes through the relocation information for one area in one of
-** the area lists and picks out items that will change if the program
-** moves. These are words that address areas or symbols that are not
-** absolute values. In terms of AOF relocation types, these are
-** word-sized additive relocations that are either internal relocations
-** or symbol relocations where the symbol is not absolute. The function
-** builds up a table of the offsets of any relocations that match these
-** criteria within the image file and writes this table to the image file.
-** Note that the table is built using the same memory as that used by
-** the relocation data. This is okay, as the table will always be
-** smaller than the relocation data (relocations are eight bytes
-** long and the table entries are four bytes).
-*/
-#define WORDADDITIVE 0x00020000		/* Type-1 Word additive */
-#define RELMASK 0x00060000
-#define T2WORDADDITIVE 0x82000000	/* Type-2 word additive */
-#define T2RELMASK 0x86000000
-
-static void write_reloc(arealist *ap) {
-  unsigned int n, numrelocs, areaoffset, newsize;
-  relocation *rp;
-  unsigned int *rip;
-  numrelocs = ap->arnumrelocs;
-  rp = ap->areldata;
-  rip = COERCE(rp, unsigned int*);
-  areaoffset = ap->arplace-progbase;
-  symtbase = ap->arfileptr->objsymtptr;
-  newsize = 0;
-  for (n = 1; n<=numrelocs; n++) {
-    if (((rp->reltypesym & RELMASK)==WORDADDITIVE || (rp->reltypesym & T2RELMASK)==T2WORDADDITIVE)
-     && isrelocatable(rp)) {
-      *rip = areaoffset+rp->reloffset;
-      rip++;
-      newsize+=sizeof(unsigned int);
-    }
-    rp++;
-  }
-  if (newsize!=0) {	/* Got some relocations */
-    write_image(ap->areldata, newsize);
-  }
-}
-
-/*
-** 'write_areareloc' builds and writes the relocation information for
-** each area in the area list passed to it
-*/
-void write_areareloc(arealist *ap) {
-  while (ap!=NIL) {
-    if (ap->arnumrelocs!=0) write_reloc(ap);
-    ap = ap->arflink;
-  }
-}
-
-/*
-** 'write_relocinfo' is called to add to the image file the relocation
-** code and tables for relocatable programs and modules
-*/
-static void write_relocinfo(void) {
-  unsigned int *relocode;
-  unsigned int relocsize, relocend;
-  struct {unsigned int reloc_offset, robase_offset;} lastbit;
-  get_hdrcode((imagetype==RELOC ? HDR_RELOC : HDR_RMOD), &relocode, &relocsize);
-  if (imagetype==RMOD) setup_modcode(relocode);
-  write_image(relocode, relocsize);
-  write_areareloc(rocodelist);
-  write_areareloc(rodatalist);
-  write_areareloc(rwcodelist);
-  write_areareloc(rwdatalist);
-  if (imagetype==RMOD) {   /* Write last two offsets required */
-    relocend = reloc_code->symtptr->symtvalue+relocsize-2*sizeof(unsigned int)-progbase;
-    lastbit.reloc_offset = relocend;
-    lastbit.robase_offset = relocend+sizeof(unsigned int);
-    write_image(&lastbit, sizeof(lastbit));
-  }
-  relocsize = 0xFFFFFFFF;   /* End marker */
-  write_image(&relocsize, sizeof(unsigned int));
-}
-
-/*
-** The next group of functions are concerned with relocations
-** when creating a partially-linked AOF file. This lot really
-** are nasty!
-*/
-
-/*
-** 'alter_area_offset' is called to change the offset within an
-** instruction (or word of data) used in a type-2 relocation.
-*/
-static void alter_area_offset(relocation *rp) {
-  unsigned int inst, reltype, offset;
-  int addr;
-  unsigned int *relplace;
-  offset = rp->reloffset;
-  if (offset>current_area->arobjsize) {
-    error("Error: Bad relocation offset (0x%x) found in area '%s' in '%s'",
-     offset, current_area->arname, current_file->chfilename);
-    return;
-  }
-  reltype = get_type2_type(rp->reltypesym);	/* Assume type-2 relocation */
-  relplace = COERCE(COERCE(areastart, char *)+offset, unsigned int *);
-  inst = *relplace;
-  if ((reltype & FTMASK)==REL_SEQ) {	/* Relocate instructions */
-    if ((inst & INSTMASK)==IN_LDRSTR) {	/* LDR/STR */
-      addr = inst & IN_OFFMASK;
-      if ((inst & IN_POSOFF)==0) addr = -addr;
-      addr = addr-current_area->arplace;	/* Subtract offset within 'super area' of area from inst offset */
-      if (addr<=-MAX_OFFSET || addr>=MAX_OFFSET) {
-        flag_badreloc(relplace);
-      }
-      else {
-        *relplace = (inst & LDST_MASK) | (addr<0 ? -addr : (addr | IN_POSOFF));
-      }
-    }
-    else if ((inst & INSTMASK)==IN_DATAPRO) {		/* Data processing instruction */
-      fixup_adr(relplace, (reltype & REL_IIMASK)>>REL_IISHIFT, -current_area->arplace);
-    }
-    else {
-      *relplace = (inst & BR_MASK) | ((((extend24(inst)<<2)-current_area->arplace)>>2) & BROFF_MASK);
-    }
-  }
-  else {	/* Data */
-    *relplace = inst-current_area->arplace;
-  }
-}
-
-/*
-** 'alter_type1_offset' is called to modify the area offset within a
-** branch of branch with link instruction referenced by a type-1
-** relocation, the only type of instruction to which PC-relative
-** relocations can be applied using type-1. The instruction is
-** modified to the value it would take if branching to the address
-** *as if the address was defined in the area containing the
-** reference*.
-*/
-static bool alter_type1_offset(relocation *rp) {
-  unsigned int offset;
-  unsigned int *relplace;
-  symtentry *sp;
-  int addr;
-  offset = rp->reloffset;
-  if (offset>current_area->arobjsize) {
-    error("Error: Bad relocation offset (0x%x) found in area '%s' in '%s'",
-     offset, current_area->arname, current_file->chfilename);
-    return FALSE;
-  }
-  relplace = COERCE(COERCE(areastart, char *)+offset, unsigned int *);
-  sp = symtbase+(get_type1_index(rp->reltypesym));
-  if ((sp->symtattr & SYM_DEFN)==0) { /* Reference to another SYMT entry */
-    sp = sp->symtarea.symdefptr;
-  }
-  else if ((sp->symtattr & SYM_STRONGDEF)==SYM_STRONGDEF) {	/* Direct reference to strong symbol */
-    sp = find_nonstrong(sp);
-  }
-  addr = sp->symtvalue+(extend24(*relplace)<<2);
-  addr = addr-offset-current_area->arplace-PCMODIFIER;
-  *relplace = (*relplace & BR_MASK) | ((addr>>2) & BROFF_MASK);
-  return TRUE;
-}
-
-/*
-** 'alter_type2_offset' is called to modify the address part of instructions
-** referenced by type-2 PC-relative relocations. Note that any type of
-** instruction can be the target of such a relocation and that there are
-** two classes of relocation, area and symbol, to be dealt with as well.
-**
-** In the case of a type-2 relocation, the address part of the instruction
-** is modified to, as it were, move it to the start of the area. It is
-** possible that in the link process, an area has been added to the area
-** list before the area containing the relocation where the names of the
-** areas are the same. In the partially-linked file, the areas will have
-** been coalesced into one and the new area will precede the one containing
-** the relocation. As a result, the offset in the instruction will be wrong
-** and it is necessary to compensate for the new area in the address part
-** of the instruction.
-*/
-static bool alter_type2_offset(relocation *rp) {
-  unsigned int inst, offset, typesym;
-  unsigned int *relplace;
-  symtentry *sp;
-  int addr, relvalue;
-  offset = rp->reloffset;
-  if (offset>current_area->arobjsize) {
-    error("Error: Bad relocation offset (0x%x) found in area '%s' in '%s'",
-     offset, current_area->arname, current_file->chfilename);
-    return FALSE;
-  }
-  typesym = rp->reltypesym;
-  relplace = COERCE(COERCE(areastart, char *)+offset, unsigned int *);
-  inst = *relplace;
-  addr = get_type2_index(typesym);		/* Extract symbol or area number */
-  typesym = get_type2_type(typesym);
-  if ((typesym & REL_SYM)!=0) {		/* Symbol reference */
-    sp = symtbase+addr;
-    if ((sp->symtattr & SYM_DEFN)==0) {		/* Reference to another SYMT entry */
-      sp = sp->symtarea.symdefptr;
-    }
-    else if ((sp->symtattr & SYM_STRONGDEF)==SYM_STRONGDEF) {	/* Direct reference to strong symbol */
-      sp = find_nonstrong(sp);
-    }
-    relvalue = sp->symtvalue;
-  }
-  else {		/* Area reference */
-    relvalue = get_area(addr)->arplace;
-  }
-  if ((inst & INSTMASK)==IN_LDRSTR) {	/* LDR/STR */
-    addr = inst & IN_OFFMASK;
-    if ((inst & IN_POSOFF)==0) addr = -addr;
-    addr = addr+relvalue-current_area->arplace;
-    if (addr<=-MAX_OFFSET || addr>=MAX_OFFSET) {
-      flag_badreloc(relplace);
-    }
-    else {
-      *relplace = (inst & LDST_MASK) | (addr<0 ? -addr : addr | IN_POSOFF);
-    }
-  }
-  else if ((inst & INSTMASK)==IN_DATAPRO) {		/* Data processing instruction */
-    fixup_adr(relplace, (typesym & REL_IIMASK)>>REL_IISHIFT, relvalue-current_area->arplace);
-  }
-  else {
-    *relplace = (inst & BR_MASK) | ((((extend24(inst)<<2)+relvalue-current_area->arplace)>>2) & BROFF_MASK);
-  }
-  return TRUE;
-}
-
-/*
-** 'decode_reloc' determines whether the relocation passed
-** to it can be carried out at this stage or not. It also
-** works out if a further relocation will be needed and if
-** so, the type of relocation.
-** If the relocation is additive and refers to a symbol whose
-** value is known, it can be carried out but a further type-2
-** internal relocation must be generated as well. PC-relative
-** relocations within the same 'super area' can be dealt with
-** with no further action required later. PC-relative
-** relocation between different areas can be handled but an
-** extra type-2 relocation has to be created.
-**
-** There is a slight kludge here needed to handle AOF files
-** generated by the C compiler, where it attempts to relocate
-** a symbol in a non-existent area. If there were no references
-** to the symbol we would not have to bother, but there are...
-*/
-static relaction decode_reloc(relocation *rp) {
-  unsigned int typesym, sid;
-  symtentry *sp;
-  bool istype1;
-  typesym = rp->reltypesym;
-  istype1 = (typesym & REL_TYPE2)==0;
-  if (istype1) {	/* Type 1 relocation */
-    sid = get_type1_index(typesym);
-    typesym = get_type1_type(typesym);
-  }
-  else {	/* Type 2 relocation */
-    sid = get_type2_index(typesym);
-    typesym = get_type2_type(typesym);
-  }
-  if ((typesym & REL_SYM)!=0 || (istype1 && (typesym & REL_PC)!=0)) {	/* Symbol relocation */
-    sp = symtbase+sid;
-    if ((sp->symtattr & SYM_DEFN)==0) {	/* External reference */
-      sp = sp->symtarea.symdefptr;
-      if (sp==NIL || (sp->symtattr & SYM_COMMON)!=0) {	/* Not defined or ref to common block */
-        if (istype1 || (typesym & REL_PC)==0) {	/* Type 1 or additive */
-          return NOTPOSS;	/* Can't be done at this stage */
-        }
-        else {	/* Update instruction, PC-rel */
-          return TYPE2_RP;
-        }
-      }
-    }
-    else if ((sp->symtattr & SYM_STRONGDEF)==SYM_STRONGDEF) {	/* Direct reference to strong symbol */
-      sp = find_nonstrong(sp);
-    }
-    if ((sp->symtattr & SYM_ABSVAL)!=0) {	/* Absolute value? */
-      return IGNORE;
-    }
-/*
-** Here, the symbol referenced is known. There are four cases to consider:
-** a)  PC-relative relocation, ref and symbol in same area
-** b)  PC-relative relocation, ref and symbol in different areas
-** c)  Additive relocation, ref and symbol in same area
-** b)  Additive relocation, ref and symbol in different areas
-**
-** a) is the easiest and the relocation can be sorted out completely.
-** b) The relocation can be partly resolved but a type-2 area, PC-rel
-**    relocation is needed as well.
-** c) The offset of the symbol within its area can be filled in, but a
-**    type-2 internal relocation will need to be created
-** d) The offset of the symbol within its area can be filled in, but a
-**    type-2 internal relocation will need to be created
-*/
-    if ((typesym & REL_PC)!=0) {	/* PC-relative */
-      if (sp->symtarea.areaptr->arbase==current_area->arbase) {	/* Same area, no problems */
-        return POSSIBLE;	/* Can be done now */
-      }
-      else {  /* Different areas */
-        return TYPE2_AP;	/* Need type-2 area PC-relative relocation */
-      }
-    }
-    else {  /* Additive - Can do, but need a type-2 area additive reloc as well */
-      return TYPE2_AA;		/* Need type-2 area additive relocation */
-    }
-  }
-  else {  /* Internal relocation but excluding type-1 PC-rel */
-/*
-** Internal relocations, that is, ones that involve the addresses of
-** areas rather than symbols, are easier to handle. There are four
-** cases to consider:
-** a) PC-relative, ref area and target area the same
-** b) PC-relative, ref area and target area different
-** c) Additive, ref area and target area the same
-** d) Additive, ref area and target area are different
-*/
-    if ((typesym & REL_PC)!=0) {	/* PC-relative */
-      return TYPE2_AP;		/* Type-2 area PC-relative */
-    }
-    else {
-      return TYPE2_AA;		/* Type-2 area additive */
-    }
-  }
-}
-
-/*
-** 'alter_reloc' is called to turn the relocation passed to it into a
-** suitable type-2 relocation.
-*/
-static void alter_reloc(relocation *rp, relaction t2type) {
-  unsigned int flags, sid;
-  bool istype1;
-  symtentry *sp;
-  arealist *ap;
-  flags = rp->reltypesym;
-  istype1 = (flags & REL_TYPE2)==0;
-  if (istype1) {
-    sid = get_type1_index(flags);
-    flags = get_type1_type(flags);
-  }
-  else {
-    sid = get_type2_index(flags);
-    flags = get_type2_type(flags);
-  }
-  if ((flags & REL_SYM)!=0 || (istype1 && (flags & REL_PC)!=0)) {	/* Got a symbol reference */
-    sp = symtbase+sid;
-    if ((sp->symtattr & SYM_DEFN)==0) {
-      sp = sp->symtarea.symdefptr;
-    }
-    else if ((sp->symtattr & SYM_STRONGDEF)==SYM_STRONGDEF) {	/* Direct reference to strong symbol */
-      sp = find_nonstrong(sp);
-    }
-    ap = sp->symtarea.areaptr;
-  }
-  else if (istype1) {	/* Got a type-1 area reference */
-    ap = current_area;
-  }
-  else {	/* Got a type-2 area reference */
-    ap = get_area(sid);
-  }
-  sid = find_areaindex(ap);
-  switch (t2type) {
-  case TYPE2_SA: /* Symbol, additive */
-    flags = flags & REL_AOFMASK;
-    break;
-  case TYPE2_SP: /* Symbol, PC-rel  */
-    flags = flags & (REL_AOFMASK | REL_SYM);
-    break;
-  case TYPE2_AA: /* Area, additive */
-    flags = flags & REL_AOFMASK;
-    break;
-  case TYPE2_AP: /* Area, PC-rel */
-    flags = flags & (REL_AOFMASK | REL_PC);
-  }
-  rp->reltypesym = flags<<24 | REL_TYPE2 | sid;
-}
-
-/*
-** 'fixup_reloclist' goes through the list of external reference
-** relocations and resolves any that can be handled at this stage.
-*/
-static void fixup_reloclist(arealist *ap) {
-  int n, numrelocs;
-  relocation *rp;
-  relaction reltype;
-  bool ok;
-  ok = TRUE;
-  while (ap!=NIL && ok) {
-    if (ap->arefcount>0 && (numrelocs = ap->arnumrelocs)!=0) {
-      current_area = ap;
-      current_file = ap->arfileptr;
-      current_objsize = ap->arobjsize;
-      symtbase = ap->arfileptr->objsymtptr;
-      symbolcount = ap->arfileptr->symtcount;
-      areastart = ap->arobjdata;
-      rp = ap->areldata;
-      ok = TRUE;
-      for (n = 1; ok && n<=numrelocs; n++) {
-        reltype = decode_reloc(rp);
-        switch (reltype) {
-        case IGNORE:	/* Throw away relocation */
-          rp->reloffset = ALLFS;
-          break;
-        case NOTPOSS:	/* Cannot do relocation */
-          break;
-        case POSSIBLE:	/* Relocate and that's all that's needed */
-          relocate_item(rp);
-          rp->reloffset = ALLFS;
-          break;
-        case TYPE2_AA:	/* Relocate and create a type-2 area additive as well */
-          relocate_item(rp);
-          alter_reloc(rp, reltype);
-          break;
-        case TYPE2_AP:	/* Relocate and create a type-2 area PC-relative as well */
-          if ((rp->reltypesym & REL_TYPE2)==0) {
-            ok = alter_type1_offset(rp);
-          }
-          else {
-            ok = alter_type2_offset(rp);
-          }
-          if (ok) alter_reloc(rp, reltype);
-          break;
-        case TYPE2_RP:	/* Cannot do relocation, but modify offset in instruction */
-          alter_area_offset(rp);
-        }
-        rp++;
-      }
-    }
-    ap = ap->arflink;
-  }
-}
-
-/*
-** 'fixup_relocs' is called to try to handle relocations
-** as far as it is possible to resolve them at this stage
-*/
-bool fixup_relocs(void) {
-  fixup_reloclist(rocodelist);
-  fixup_reloclist(rodatalist);
-  fixup_reloclist(rwcodelist);
-  fixup_reloclist(rwdatalist);
-  fixup_reloclist(debuglist);
-  return !got_errors();
-}
-
-/*
-** The following functions are used to create the image file
-*/
-
-/*
-** 'write_areas' dumps the areas in one list to the image file.
-** Note that, if the area to be written to file has to be aligned
-** on anything other than a word boundary, this routine also
-** pads the image file with the required number of zeroes
-** There is no error checking as the only errors at this stage
-** cause the linker to give up on the spot.
-*/
-static void write_areas(arealist *ap) {
-  int fillsize;
-  while (ap!=NIL) {
-    if (ap->arefcount>0 && ap->arobjsize>0) {
-      if (ap->aralign!=DEFALIGN) {	/* Area has a funny alignment */
-        fillsize = ap->arplace-areatop;
-        if (fillsize!=0) write_zeroes(fillsize);
-      }
-      write_image(ap->arobjdata, ap->arobjsize);
-      areatop = COERCE(ap->arplace+ap->arobjsize, unsigned int);
-    }
-    ap = ap->arflink;
-  }
-}
-
-/*
-** 'create_image' writes the final executable image file to disk
-*/
-void create_image(void) {
-  link_state = CREATE_IMAGE;
-  if (opt_verbose) error("Drlink: Creating executable file '%s'", imagename);
-  if (imagetype==RELOC || imagetype==RMOD) imagesize+=totalrelocs*sizeof(unsigned int);
-  open_image();
-  if (headercode!=NIL) {
-    fillin_header();
-    write_image(headercode, headersize);
-  }
-  write_areas(rocodelist);
-  write_areas(rodatalist);
-  write_areas(rwcodelist);
-  write_areas(rwdatalist);
-  if (opt_keepdebug) {
-    write_areas(debuglist);
-    write_lldtable();
-  }
-  if (imagetype==RELOC || imagetype==RMOD) write_relocinfo();
-  close_image();
-}
-
-/*
-** 'print_arealist' is called to list the areas in an image file of a
-** particular type, that is, read-only code, read/write code and so forth
-*/
-static void print_arealist(char *areaclass, arealist *ap) {
-  unsigned int offset;
-  char text[MSGBUFLEN];
-  offset = (imagetype==RMOD ? progbase : 0);
-  while (ap!=NIL) {
-    if (ap->arefcount>0 && ap->arobjsize>0) {
-      sprintf(text, "%-6x  %-6x  %s %s from %s\n",
-       ap->arplace-offset, ap->arobjsize, areaclass, ap->arname, ap->arfileptr->chfilename);
-      if (map_open) {
-        write_mapfile(text);
-      }
-      else {
-        printf(text);
-      }
-    }
-    ap = ap->arflink;
-  }
-}
-
-/*
-** 'print_areamap' is used to produce the area map at the end of the link if
-** one has been requested via the '-map' option
-*/
-void print_areamap(void) {
-  char text[500];
-  sprintf(text, "Area map of image file '%s':\n\nStart   Size    Type      Name\n", imagename);
-  if (map_open) {
-    write_mapfile(text);
-  }
-  else {
-    printf(text);
-  }
-  print_arealist("R/O code ", rocodelist);
-  print_arealist("R/O data ", rodatalist);
-  print_arealist("R/W code ", rwcodelist);
-  print_arealist("R/W data ", rwdatalist);
-  print_arealist("Zero-init", zidatalist);
-  print_arealist("Debug    ", debuglist);
-}
-
-/*
-** 'list_unused' is called to list the areas that have been removed
-** from the image file as there were no references to them
-*/
-static void list_unused(arealist *ap, bool findsymbol) {
-  char *symname;
-  char text[MSGBUFLEN];
-  while (ap!=NIL) {
-    if (ap->arefcount==0) {
-      symname = (findsymbol ? find_areasymbol(ap) : NIL);
-      if (symname!=NIL) {
-        sprintf(text, "    '%s' (%s) from %s", ap->arname, symname, ap->arfileptr->chfilename);
-      }
-      else {
-        sprintf(text, "    '%s' from %s", ap->arname, ap->arfileptr->chfilename);
-      }
-      if (map_open) {
-        sprintf(&text[strlen(text)], " (%x bytes)\n", ap->arobjsize);
-        write_mapfile(text);
-      }
-      else {
-        error(text);
-      }
-    }
-    ap = ap->arflink;
-  }
-}
-
-/*
-** 'print_unusedlist' is called to list the areas that were removed
-** from the image file
-*/
-void print_unusedlist(void) {
-  char text[64];
-  if (unused==0) {
-    if (map_open) {
-      sprintf(text, "\nNo areas were omitted from the image file\n");
-      write_mapfile(text);
-    }
-    return;
-  }
-  if (map_open) {
-    sprintf(text, "\nThe following areas were omitted from the image file:\n");
-    write_mapfile(text);
-  }
-  else {
-    error("Drlink: The following areas were omitted from the image file:", text);
-  }
-  list_unused(rocodelist, TRUE);
-  list_unused(rodatalist, FALSE);
-  list_unused(rwcodelist, TRUE);
-  list_unused(rwdatalist, FALSE);
-  list_unused(zidatalist, FALSE);
-}
-
-/*
-** 'print_mapfile' is called to write the area map to a file
-*/
-void print_mapfile(void) {
-  open_mapfile();
-  print_areamap();
-  if (opt_nounused) print_unusedlist();
-  close_mapfile();
-}
-
-/*
-** 'init_areas' is called to initialise the area linked lists and other
-** bits and pieces relating to areas
-*/
-void init_areas(void) {
-  rocodelist = rwcodelist = rodatalist = rwdatalist = zidatalist = debuglist = NIL;
-  rocodelast = rwcodelast = rodatalast = rwdatalast = zidatalast = debuglast = NIL;
-  aofv3flag = FALSE;
-  entryarea = NIL;
-  gotcodearea = FALSE;
-  unused = 0;
-  totalrelocs = 0;
-  relocaddr = 0;
-  workspace = 0;
-  headercode = NIL;
-  arlimlist = NIL;
-  codebase = database = 0;
-  progbase = areapc = ABSBASE;
-}
+/* COBF by BB -- 'Areas.c' obfuscated at Fri Dec 22 16:52:41 2000
+*/
+#include<stdio.h>
+#include<stdlib.h>
+#include<string.h>
+#include"cobf.h"
+i l50{l365,l327,l396,l312,l394,l383}l132;i e g;a c l276,l142;a g l187
+,l238,l162,l259,l77,l269,l262,l335,l168,l280,l273,l270,l249,l297,l220
+,l171,l243,l298,l329,l184,l208,l302,l137,l257,l290,l288,l282;a l132
+l164;i h l62{d c l84;d c l157;d c l141;d c l198;l81{d c l343;h n*l332
+;d c l379;}l85;}l62;i h l74{d c l313;d c l278;d c l340;d c l353;d c
+l326;d c l347;}l74;i h l79{l74 l167;l62 l64;}l79;i h l54{h n*l299;c
+l63;h l54*l281;}l54;i h n{c l201;e*l67;h n*l99;h n*l85;h s*l75;d c
+l106;d c l213;d c*l156;d c l69;h l42*l161;d c l143;d c l61;h l*l159;c
+l63;h l54*l149;h n*l82;}n;i l50{l325,l357,l351,l342}l128;a n*l93, *
+l97, *l94, *l103, *l130, *l134;a d c l217,l179,l286,l242,l266;a n*
+l144;a d c l229;
+i h o{e*l43;d c l38;d c l53;l81{d c l84;h n*l73;h o*l111;}l45;}o;i h l
+{c l83;h o*l31;h o*l135;h l*l96;}l;i l*l129[32];i h l42{d c l152;d c
+l66;}l42;i h l28{c l254;e*l48;e*l224;d c l263;d c l256;h l28*l80;}l28
+;i l28*l78[128];i h y{e*l48;d c*l177;d c l272;g l289;g l428;l78 l225;
+h y*l80;}y;i d c l118[1];a l*l212[256];a l*l176, *l188, *l205, *l191,
+ *l185, *l202, *l250, *l248, *l244, *l251, *l246;a l78*l300;a y*l169;
+a o*l204, *l203;a d c l230,l123,l227,l194;i h{d c l277;d c l314;d c
+l160;}l68;i h{d c l166;d c l215;d c l189;d c l173;}l41;i h{l68 l58;
+l41 l258;}l199;a l41*l172;a d c l107;a o*l108;a d c*l231, *l247;a e*
+l151;a d c l255,l219,l235,l295;i l50{l301,l283,l153,l437,l234,l147,
+l233}l131;i l50{l148,l175,l183,l236}l114;i h l52{e*l345;h l52*l303;}
+l52;i h l51{e*l308;c l341;g l305;h l51*l322;}l51;i h s{e*l39;d c l279
+;d c l186;g l285;g l424;g l319;g l294;h l79*l216;d c l309;d c*l200;d c
+l317;h o*l92;d c l284;e*l291;d c l287;d c l268;d c l127;l129 l218;l81
+{l*l145;l118*l356;}l136;l*l401;h s*l121;}s;a l131 l56;a s*l112, *l306
+;a y*l146, *l271;a l68 l58;a l253*l150, *l207, *l119, *l239;a e*l240,
+ *l245, *l117;a g l222,l261,l264,l155;a e l101[500];a d c l321,l126,
+l190,l174,l195;a d c*l91;a l52*l252, *l293;a l51*l228;a e*l197, *l180
+, *l323;a c l163(c l105);a g l368(b);a b*l59(d c);a b l178(b* ,d c);a
+b l330(b);a b l359(b);a b l397(b);a g l307(s* );a b l382(b);a b l361(
+b);a b l377(b);a g l430(e* );a c l310(e* );a g l311(e* ,c,c,b* );a g
+l453(b);a b l419(e* );a b l400(b);a g l384(e* );a g l373(e* );a g l336
+(e* );a b l392(b);a g l363(y* );a l114 l296(e* );a s*l422(l28* ,s* ,l
+ * );a g l429(l41* );a b l367(b);a b l334(b);a b l98(b* ,c);a b l381(
+e* );a b l414(c);a b l338(b);a b l417(d c);a b l461(b);a b l410(b);a b
+l385(o* );a b l420(b);a b l418(b);a b l260(e* );a b l415(b);a b l416(
+b);a g l265(e* ,d c* ,d c);a g l451(y* );a g l434(y* );a b l393(y* );
+a g l358(l28* ,s* ,l* );a g l387(e* ,d c);a g l339(l28* );a g l423(b);
+a b l371(b);a g l360(b);a b l354(b);a b u(e* ,...);a g l304(b);a b
+l374(b);a c l221(c);a c l196(c);a c l182(c);a c l154(c);a b l426(s* );
+a g l386(s* );a o*l388(l* );a n*l427(e* );a b l433(b);a b l399(b);a b
+l404(b);a b l364(b);a g l395(b);a g l372(b);a b l292(n* );a b l425(b);
+a b l316(b);a b l328(b);a b l448(b);a b l350(b);a c l140(l120 e* ,
+l120 e* );a l*l275(e* ,d c);a b l421(b);a l*l406(o* );a b l412(b);a g
+l450(b);a g l391(s* );a b l320(s* );a g l370(b);a b l337(b);a b l138(
+l* ,d c);a c l70(e* );a e*l403(n* );a o*l209(o* );a l*l324(l* );a l*
+l366(e* );a g l390(l42* );a b l402(b);a b l376(b);a b l344(b);a b l460
+(b);a g l398(b);a g l378(b);a b l389(b);a d c l407(n* );a b l375(b);a
+b l331(l128,d c* * ,d c* );a b l409(d c* ,d c);a b l411(d c* ,d c);a b
+l369(d c* );a b l413(b);a g l408(b);a e*l181(e* );n*l93, *l97, *l94, *
+l103, *l130, *l134;d c l217,l179,l286,l242,l266;n*l144;d c l229;i l50
+{l810,l938}l975;i l50{l791,l776,l858,l900,l902,l645,l642,l790}l747;i h
+l495{n*l697;c l805;h l495*l689;}l495;w d c l739,l725,l604,l714,l124,
+l733;w n*l109;w s*l116;w d c*l490, *l530, *l452;w c l691;w g l743,
+l825;w n*l811, *l830, *l775, *l813, *l669, *l783, *l64, *l778, *l618;
+i h l529{e*l84;c l823;o*l478;o*l651;h l529*l806;}l529;w l529*l653;w
+l495*l592[32];w d c l578(d c l497){f((l497&0x800000)!=0)l497=l497|
+0xFF000000;q l497;}w d c l804(d c l105){d c l507,l800;l507=(l105>>8)&
+0xF;l105=l105&0xFF;l26(l507!=0){l800=l105&3;l105=l105>>2|l800<<30;
+l507-=1;}q l105;}w n*l904(s*p,l62*l89,d c l76){e*l431;n*j;c l35,l46;d
+c*l554, *l559;l431=l151+l89->l84;l35=l70(l431);f((l76&0x02)!=0){j=((
+l76&0x20)!=0?l93:l97);}r{j=((l76&0x20)!=0?l94:l103);}l26(j!=0&&(l35!=
+j->l201||l193(l431,j->l67)!=0))j=j->l82;f(j==0)q 0;f(j->l106!=l76){u(""
+"\x57\x61\x72\x6e\x69\x6e\x67\x3a\x20\x41\x74\x74\x72\x69\x62\x75\x74"
+"\x65\x73\x20\x6f\x66\x20\x63\x6f\x6d\x6d\x6f\x6e\x20\x61\x72\x65\x61"
+"\x20\x27\x25\x73\x27\x20\x69\x6e\x20\x27\x25\x73\x27\x20\x63\x6f\x6e"
+"\x66\x6c\x69\x63\x74\x20\x77\x69\x74\x68\x20\x74\x68\x6f\x73\x65\x20"
+"\x69\x6e\x20\x27\x25\x73\x27",l431,p->l39,j->l75->l39);q 0;}f(l89->
+l141!=j->l69){u("\x45\x72\x72\x6f\x72\x3a\x20\x53\x69\x7a\x65\x20\x6f"
+"\x66\x20\x63\x6f\x6d\x6d\x6f\x6e\x20\x61\x72\x65\x61\x20\x27\x25\x73"
+"\x27\x20\x69\x6e\x20\x27\x25\x73\x27\x20\x64\x69\x66\x66\x65\x72\x73"
+"\x20\x66\x72\x6f\x6d\x20\x64\x65\x66\x69\x6e\x69\x74\x69\x6f\x6e\x20"
+"\x69\x6e\x20\x27\x25\x73\x27",l431,p->l39,j->l75->l39);q 0;}r{l46=j
+->l69;l554=j->l156;l559=p->l200;l26(l46>0&& *l554== *l559){l559++;
+l554++;l46-=1;}f(l46>0){u("\x45\x72\x72\x6f\x72\x3a\x20\x43\x6f\x6e"
+"\x74\x65\x6e\x74\x73\x20\x6f\x66\x20\x63\x6f\x6d\x6d\x6f\x6e\x20\x61"
+"\x72\x65\x61\x20\x27\x25\x73\x27\x20\x69\x6e\x20\x27\x25\x73\x27\x20"
+"\x64\x69\x66\x66\x65\x72\x20\x66\x72\x6f\x6d\x20\x74\x68\x6f\x73\x65"
+"\x20\x69\x6e\x20\x27\x25\x73\x27",l431,p->l39,j->l75->l39);q 0;}}q j
+;}w n*l997(s*p,l62*l89,d c l76){e*l431;l*m;n*j;d c l466;l431=l151+l89
+->l84;m=l366(l431);f(m==0)q 0;j=m->l31->l45.l73;l466=l89->l141;f((l76
+&0x04)!=0){f((j->l106&0x04)!=0){f(l162){f(l466!=j->l69){u("\x45\x72"
+"\x72\x6f\x72\x3a\x20\x53\x69\x7a\x65\x20\x6f\x66\x20\x43\x6f\x6d\x6d"
+"\x6f\x6e\x20\x42\x6c\x6f\x63\x6b\x20\x27\x25\x73\x27\x20\x69\x6e\x20"
+"\x27\x25\x73\x27\x20\x64\x69\x66\x66\x65\x72\x73\x20\x66\x72\x6f\x6d"
+"\x20\x69\x74\x73\x20\x64\x65\x66\x69\x6e\x69\x74\x69\x6f\x6e\x20\x69"
+"\x6e\x20\x27\x25\x73\x27",l431,p->l39,j->l75->l39);}}r{u("\x45\x72"
+"\x72\x6f\x72\x3a\x20\x54\x68\x65\x72\x65\x20\x69\x73\x20\x61\x6c\x72"
+"\x65\x61\x64\x79\x20\x61\x20\x64\x65\x66\x69\x6e\x69\x74\x69\x6f\x6e"
+"\x20\x28\x69\x6e\x20\x27\x25\x73\x27\x29\x20\x6f\x66\x20\x43\x6f\x6d"
+"\x6d\x6f\x6e\x20\x42\x6c\x6f\x63\x6b\x20\x27\x25\x73\x27\x20\x69\x6e"
+"\x20\x27\x25\x73\x27",j->l75->l39,l431,p->l39);}}r f(l466<j->l69){u(""
+"\x45\x72\x72\x6f\x72\x3a\x20\x52\x65\x66\x65\x72\x65\x6e\x63\x65\x20"
+"\x74\x6f\x20\x43\x6f\x6d\x6d\x6f\x6e\x20\x42\x6c\x6f\x63\x6b\x20\x27"
+"\x25\x73\x27\x20\x69\x6e\x20\x27\x25\x73\x27\x20\x69\x73\x20\x6c\x61"
+"\x72\x67\x65\x72\x20\x74\x68\x61\x6e\x20\x64\x65\x66\x69\x6e\x65\x64"
+"\x20\x73\x69\x7a\x65\x20\x69\x6e\x20\x27\x25\x73\x27",l431,j->l75->
+l39,p->l39);}j->l106=j->l106|0x04;j->l69=l466;}r f(l89->l141>j->l69){
+f((j->l106&0x04)!=0){u("\x45\x72\x72\x6f\x72\x3a\x20\x52\x65\x66\x65"
+"\x72\x65\x6e\x63\x65\x20\x74\x6f\x20\x43\x6f\x6d\x6d\x6f\x6e\x20\x42"
+"\x6c\x6f\x63\x6b\x20\x27\x25\x73\x27\x20\x69\x6e\x20\x27\x25\x73\x27"
+"\x20\x69\x73\x20\x6c\x61\x72\x67\x65\x72\x20\x74\x68\x61\x6e\x20\x64"
+"\x65\x66\x69\x6e\x65\x64\x20\x73\x69\x7a\x65\x20\x69\x6e\x20\x27\x25"
+"\x73\x27",l431,p->l39,j->l75->l39);}}r{j->l69=l466;}q j;}w e*l863(e*
+l781,e*l770){e*k;f((k=l59(l210(l781)+l210(l770)+z(e)))==0){u("\x46"
+"\x61\x74\x61\x6c\x3a\x20\x4f\x75\x74\x20\x6f\x66\x20\x6d\x65\x6d\x6f"
+"\x72\x79\x20\x69\x6e\x20\x27\x6d\x61\x6b\x65\x5f\x6e\x61\x6d\x65\x27"
+);}r{l346(k,l781);l550(k,l770);}q k;}w b l758(n*j){e l95[2000];d c
+l115,l46,x;h{d c l934;e*l848;}l157[]={{0x00001,"\x41\x62\x73\x6f\x6c"
+"\x75\x74\x65"},{0x02,"\x43\x6f\x64\x65"},{0x04,"\x43\x6f\x6d\x6d\x6f"
+"\x6e\x20\x64\x65\x66\x69\x6e\x69\x74\x69\x6f\x6e"},{0x08,"\x43\x6f"
+"\x6d\x6d\x6f\x6e\x20\x72\x65\x66\x65\x72\x65\x6e\x63\x65"},{0x10,""
+"\x5a\x65\x72\x6f\x2d\x69\x6e\x69\x74\x69\x61\x6c\x69\x73\x65\x64"},{
+0x20,"\x52\x65\x61\x64\x20\x6f\x6e\x6c\x79"},{0x00040,"\x50\x6f\x73"
+"\x69\x74\x69\x6f\x6e\x20\x69\x6e\x64\x65\x70\x65\x6e\x64\x65\x6e\x74"
+},{0x80,"\x44\x65\x62\x75\x67\x67\x69\x6e\x67\x20\x74\x61\x62\x6c\x65"
+"\x73"},{0x00100,"\x33\x32\x2d\x62\x69\x74\x20\x41\x50\x43\x53"},{
+0x00200,"\x52\x65\x65\x6e\x74\x72\x61\x6e\x74\x20\x63\x6f\x64\x65"},{
+0x00400,"\x45\x78\x74\x65\x6e\x64\x65\x64\x20\x46\x50\x20\x69\x6e\x73"
+"\x74\x72\x75\x63\x74\x69\x6f\x6e\x73"},{0x00800,"\x4e\x6f\x20\x73"
+"\x74\x61\x63\x6b\x20\x63\x68\x65\x63\x6b\x69\x6e\x67\x20\x63\x6f\x64"
+"\x65"},{0x01000,"\x42\x61\x73\x65\x64\x20\x61\x72\x65\x61"},{0x02000
+,"\x53\x68\x61\x72\x65\x64\x20\x6c\x69\x62\x72\x61\x72\x79\x20\x73"
+"\x74\x75\x62\x20\x64\x61\x74\x61"},{0,"\x2a"}};l115=j->l106;l46=0;
+l508(l95,"\x20\x20\x20\x20\x25\x73\x3a\x20\x20",j->l75->l39);l88(x=0;
+ * (l157[x].l848)!='*';x++){f((l115&l157[x].l934)!=0){f(l46!=0)l550(
+l95,"\x2c\x20");l550(l95,l157[x].l848);l46++;}}u(l95);}w b l494(n* *
+l36,n* *l793,n*l315){c l708,l701;n*j, *l133;e*l27;l529*t;l133=0;l27=
+l315->l67;l701=l708=1;j= *l793;f(j!=0&&l193(l27,j->l67)<0)j= *l36;l26
+(j!=0&&(l708=l193(l27,j->l67))>=0){l701=l708;f(j->l85!=0)j=j->l85;
+l133=j;j=j->l82;}f(l133==0){l315->l82=j; *l36=l315;}r{l315->l82=l133
+->l82;l133->l82=l315;}f(l701==0){f(l315->l106!=l133->l106||l315->l213
+!=l133->l213){u("\x57\x61\x72\x6e\x69\x6e\x67\x3a\x20\x41\x74\x74\x72"
+"\x69\x62\x75\x74\x65\x73\x20\x6f\x66\x20\x61\x72\x65\x61\x20\x27\x25"
+"\x73\x27\x20\x69\x6e\x20\x27\x25\x73\x27\x20\x63\x6f\x6e\x66\x6c\x69"
+"\x63\x74\x20\x77\x69\x74\x68\x20\x74\x68\x6f\x73\x65\x20\x69\x6e\x20"
+"\x27\x25\x73\x27",l27,l315->l75->l39,l133->l75->l39);l758(l315);l758
+(l133);}l315->l99=l133->l99;l133->l99->l85=l315;}r{l315->l99=l315;t=
+l59(z(l529));f(t==0){u("\x46\x61\x74\x61\x6c\x3a\x20\x4f\x75\x74\x20"
+"\x6f\x66\x20\x6d\x65\x6d\x6f\x72\x79\x20\x69\x6e\x20\x27\x69\x6e\x73"
+"\x65\x72\x74\x5f\x61\x72\x65\x61\x27\x20\x68\x61\x6e\x64\x6c\x69\x6e"
+"\x67\x20\x61\x72\x65\x61\x20\x27\x25\x73\x27\x20\x69\x6e\x20\x66\x69"
+"\x6c\x65\x20\x27\x25\x73\x27",l27,l315->l75->l39);}r{t->l84=l27;t->
+l823=l70(l27);f(l56!=l153){t->l478=l275(l863(l27,"\x24\x24\x42\x61"
+"\x73\x65"),0x03)->l31;t->l651=l275(l863(l27,"\x24\x24\x4c\x69\x6d"
+"\x69\x74"),0x03)->l31;}r{t->l478=t->l651=0;}t->l806=l653;l653=t;}} *
+l793=l315->l99;}w g l985(n*j){q l290&&l754(j->l67,"\x43\x24\x24\x67"
+"\x6e\x75",(l210("\x43\x24\x24\x67\x6e\x75")))==0;}w n*l995(s*p,l62*
+l89,d c l76,d c l522){n*j;o*m;j=l618;l618++;j->l67=l151+l89->l84;j->
+l201=l70(j->l67);j->l75=p;j->l106=l76;j->l213=l522;j->l69=l89->l141;j
+->l156=l452;f((l76&0x10)==0)l452=(d c* )((e* )(l452)+l89->l141);j->
+l161=(l42* )(l452);j->l143=l89->l198;l452=(d c* )((e* )(l452)+l89->
+l198*8);f(!l168||l985(j)){j->l63=1;}r{j->l63=0;}j->l149=0;f(l162&&(
+l76&0x00001)!=0){j->l61=l89->l85.l379;}r{j->l61=0;}j->l159=0;j->l82=0
+;j->l85=0;f((l76&0x80)!=0){j->l63=1;l494(&l134,&l783,j);l174+=l89->
+l141;}r f((l76&0x02)!=0){f((l76&0x20)!=0){l494(&l93,&l811,j);}r{l494(
+&l97,&l830,j);}}r f((l76&0x08)!=0||((l76&0x04)!=0&&(l76&0x10)!=0)){f(
+l56!=l153){j->l159=l275(j->l67,0x40);m=j->l159->l31;m->l38=0x03;m->
+l45.l73=j;}l494(&l130,&l669,j);}r f((l76&0x20)!=0){l494(&l94,&l775,j);
+}r f((l76&0x10)==0){l494(&l103,&l813,j);}r f((l76&0x10)!=0){l494(&
+l130,&l669,j);}r{u("\x45\x72\x72\x6f\x72\x3a\x20\x49\x6c\x6c\x65\x67"
+"\x61\x6c\x20\x27\x61\x72\x65\x61\x27\x20\x61\x74\x74\x72\x69\x62\x75"
+"\x74\x65\x20\x76\x61\x6c\x75\x65\x20\x30\x78\x25\x30\x36\x78\x20\x66"
+"\x6f\x75\x6e\x64\x20\x69\x6e\x20\x27\x25\x73\x27",l76,p->l39);q 0;}f
+(!l743&&(l76&0x02)!=0){l743=1;l778=j;}q j;}w n*l952(e*l27,d c l32){n*
+j;j=l59(z(n));f(j==0)u("\x46\x61\x74\x61\x6c\x3a\x20\x4f\x75\x74\x20"
+"\x6f\x66\x20\x6d\x65\x6d\x6f\x72\x79\x20\x69\x6e\x20\x27\x61\x64\x64"
+"\x5f\x63\x6f\x6d\x6d\x6f\x6e\x61\x72\x65\x61\x27");j->l67=l27;j->
+l201=l70(l27);j->l75=l116;j->l106=0x08|0x10;j->l213=2;j->l69=l32;j->
+l156=0;j->l161=0;j->l143=0;j->l63=(l168?0:1);j->l149=0;j->l61=0;j->
+l159=0;j->l82=0;j->l85=0;q j;}o*l388(l*m){d c l32;l*l712;o*l55;n*j;
+l55=m->l31;l32=l55->l53;l712=l324(m);f(l712==0){j=l952(l55->l43,l32);
+j->l159=l275(j->l67,0x40);l55=j->l159->l31;l55->l45.l73=j;f(l56!=l153
+){l494(&l130,&l669,j);}}r{l55=l712->l31;j=l55->l45.l73;f((j->l106&
+0x04)!=0){f(l32>j->l69){u("\x53\x69\x7a\x65\x20\x6f\x66\x20\x72\x65"
+"\x66\x65\x72\x65\x6e\x63\x65\x20\x74\x6f\x20\x43\x6f\x6d\x6d\x6f\x6e"
+"\x20\x42\x6c\x6f\x63\x6b\x20\x27\x25\x73\x27\x20\x69\x6e\x20\x27\x25"
+"\x73\x27\x20\x69\x73\x20\x67\x72\x65\x61\x74\x65\x72\x20\x74\x68\x61"
+"\x6e\x20\x69\x74\x73\x20\x64\x65\x66\x69\x6e\x65\x64\x20\x76\x61\x6c"
+"\x75\x65",m->l31->l43,l116->l39);}}r{f(l32>j->l69)j->l69=l32;}}q l55
+;}w b l826(n*j){c l35;l495*m;f((m=l59(z(l495)))==0){u("\x46\x61\x74"
+"\x61\x6c\x3a\x20\x4f\x75\x74\x20\x6f\x66\x20\x6d\x65\x6d\x6f\x72\x79"
+"\x20\x69\x6e\x20\x27\x61\x64\x64\x5f\x73\x72\x63\x68\x6c\x69\x73\x74"
+"\x27");}m->l697=j;m->l805=l35=j->l201;m->l689=l592[l35&(32-1)];l592[
+l35&(32-1)]=m;}b l433(b){c l87;l495*m, *l873;l88(l87=0;l87<32;l87++){
+m=l592[l87];l26(m!=0){l873=m->l689;l178(m,z(l495));m=l873;}}}g l386(s
+ *p){n*j;l79*l445;l62*l89, *l891;c l46,l349;d c l610,l432,l219,l76,
+l522;g v;l88(l46=0;l46<32;l46++)l592[l46]=0;l116=p;v=1;l445=p->l216;f
+(l445->l167.l313!=0xC5E2D080){u("\x45\x72\x72\x6f\x72\x3a\x20\x27\x25"
+"\x73\x27\x20\x64\x6f\x65\x73\x20\x6e\x6f\x74\x20\x61\x70\x70\x65\x61"
+"\x72\x20\x74\x6f\x20\x62\x65\x20\x61\x6e\x20\x41\x4f\x46\x20\x66\x69"
+"\x6c\x65\x20\x28\x74\x79\x70\x65\x3d\x25\x78\x29",p->l39,l445->l167.
+l313);q 0;}p->l294=l445->l167.l278>=300;l162=l162||p->l294;f(l445->
+l167.l278>311){u("\x45\x72\x72\x6f\x72\x3a\x20\x54\x68\x65\x20\x76"
+"\x65\x72\x73\x69\x6f\x6e\x20\x6f\x66\x20\x41\x4f\x46\x20\x75\x73\x65"
+"\x64\x20\x69\x6e\x20\x27\x25\x73\x27\x20\x28\x25\x64\x2e\x25\x30\x32"
+"\x64\x29\x20\x69\x73\x20\x6e\x6f\x74\x20\x73\x75\x70\x70\x6f\x72\x74"
+"\x65\x64",p->l39,l445->l167.l278/100,l445->l167.l278%100);q 0;}l46=
+l445->l167.l340;f(z(l74)+l46*z(l62)>p->l309){u("\x45\x72\x72\x6f\x72"
+"\x3a\x20\x41\x72\x65\x61\x20\x63\x6f\x75\x6e\x74\x20\x69\x6e\x20\x27"
+"\x4f\x42\x4a\x5f\x48\x45\x41\x44\x27\x20\x63\x68\x75\x6e\x6b\x20\x69"
+"\x6e\x20\x27\x25\x73\x27\x20\x69\x73\x20\x74\x6f\x6f\x20\x6c\x61\x72"
+"\x67\x65\x2e\x20\x49\x73\x20\x66\x69\x6c\x65\x20\x63\x6f\x72\x72\x75"
+"\x70\x74\x3f",p->l39);q 0;}p->l268=l46;p->l127=l445->l167.l353;l691=
+l445->l167.l326-1;f(l691>=0)l229=l445->l167.l347;v=1;l610=0;l64=0;
+l452=p->l200;l432=p->l317;l219=p->l287;l89=&l445->l64;l891=l89+l46;
+l618=l59(l46*z(n));f(l618==0)u("\x46\x61\x74\x61\x6c\x3a\x20\x4f\x75"
+"\x74\x20\x6f\x66\x20\x6d\x65\x6d\x6f\x72\x79\x20\x69\x6e\x20\x27\x73"
+"\x63\x61\x6e\x5f\x68\x65\x61\x64\x27\x20\x72\x65\x61\x64\x69\x6e\x67"
+"\x20\x27\x25\x73\x27",p->l39);l88(l349=0;l349<l46&&v;l349++){f(l89->
+l84>l219){u("\x45\x72\x72\x6f\x72\x3a\x20\x41\x72\x65\x61\x20\x6e\x61"
+"\x6d\x65\x20\x6f\x66\x66\x73\x65\x74\x20\x69\x6e\x20\x61\x72\x65\x61"
+"\x20\x25\x64\x20\x69\x6e\x20\x27\x25\x73\x27\x20\x69\x73\x20\x74\x6f"
+"\x6f\x20\x62\x69\x67",l349+1,p->l39);v=0;}l76=l89->l157>>8;l522=l89
+->l157&0xFF;f(!l162&&l522>2){u("\x45\x72\x72\x6f\x72\x3a\x20\x46\x6f"
+"\x75\x6e\x64\x20\x62\x61\x64\x20\x27\x61\x6c\x27\x20\x61\x74\x74\x72"
+"\x69\x62\x75\x74\x65\x20\x62\x79\x74\x65\x20\x69\x6e\x20\x61\x72\x65"
+"\x61\x20\x25\x64\x20\x69\x6e\x20\x27\x25\x73\x27",l349+1,p->l39);v=0
+;}r f(l162){f(l522<2||l522>32){u("\x45\x72\x72\x6f\x72\x3a\x20\x41"
+"\x72\x65\x61\x20\x61\x6c\x69\x67\x6e\x6d\x65\x6e\x74\x20\x76\x61\x6c"
+"\x75\x65\x20\x69\x6e\x20\x61\x72\x65\x61\x20\x25\x64\x20\x69\x6e\x20"
+"\x27\x25\x73\x27\x20\x69\x73\x20\x6f\x75\x74\x73\x69\x64\x65\x20\x72"
+"\x61\x6e\x67\x65\x20\x32\x20\x74\x6f\x20\x33\x32",l349+1,p->l39);v=0
+;}}f(l162&&(l76&0x02001)!=0){u("\x45\x72\x72\x6f\x72\x3a\x20\x41\x72"
+"\x65\x61\x20\x25\x64\x20\x6f\x66\x20\x27\x25\x73\x27\x20\x63\x6f\x6e"
+"\x74\x61\x69\x6e\x73\x20\x75\x6e\x73\x75\x70\x70\x6f\x72\x74\x65\x64"
+"\x20\x61\x72\x65\x61\x20\x61\x74\x74\x72\x69\x62\x75\x74\x65\x73\x20"
+"\x28\x25\x30\x36\x78\x29",l349+1,p->l39,l76&0x02001);v=0;}f((l76&
+0x80)!=0){f((l76&0xFF05D)!=0){u("\x45\x72\x72\x6f\x72\x3a\x20\x41\x72"
+"\x65\x61\x20\x25\x64\x20\x6f\x66\x20\x27\x25\x73\x27\x20\x68\x61\x73"
+"\x20\x69\x6c\x6c\x65\x67\x61\x6c\x20\x27\x61\x72\x65\x61\x27\x20\x61"
+"\x74\x74\x72\x69\x62\x75\x74\x65\x73\x20\x28\x30\x78\x25\x30\x36\x78"
+"\x29",l349+1,p->l39,l76);v=0;}}r f((l76&0x02)!=0){f((l76&0xFF090)!=0
+){u("\x45\x72\x72\x6f\x72\x3a\x20\x41\x72\x65\x61\x20\x25\x64\x20\x6f"
+"\x66\x20\x27\x25\x73\x27\x20\x68\x61\x73\x20\x69\x6c\x6c\x65\x67\x61"
+"\x6c\x20\x27\x61\x72\x65\x61\x27\x20\x61\x74\x74\x72\x69\x62\x75\x74"
+"\x65\x73\x20\x28\x30\x78\x25\x30\x36\x78\x29",l349+1,p->l39,l76);v=0
+;}}r{f((l76&0x0CF80)!=0){u("\x45\x72\x72\x6f\x72\x3a\x20\x41\x72\x65"
+"\x61\x20\x25\x64\x20\x6f\x66\x20\x27\x25\x73\x27\x20\x68\x61\x73\x20"
+"\x69\x6c\x6c\x65\x67\x61\x6c\x20\x27\x61\x72\x65\x61\x27\x20\x61\x74"
+"\x74\x72\x69\x62\x75\x74\x65\x73\x20\x28\x30\x78\x25\x30\x36\x78\x29"
+,l349+1,p->l39,l76);v=0;}}f((l76&0x10)==0){l610+=l89->l141;f(l610>
+l432){u("\x45\x72\x72\x6f\x72\x3a\x20\x53\x69\x7a\x65\x20\x6f\x66\x20"
+"\x61\x72\x65\x61\x20\x25\x64\x20\x69\x6e\x20\x27\x4f\x42\x4a\x5f\x41"
+"\x52\x45\x41\x27\x20\x63\x68\x75\x6e\x6b\x20\x69\x6e\x20\x27\x25\x73"
+"\x27\x20\x69\x73\x20\x74\x6f\x6f\x20\x62\x69\x67",l349+1,p->l39);v=0
+;}}l610+=l89->l198*8;f(l610>l432){u("\x45\x72\x72\x6f\x72\x3a\x20\x4e"
+"\x75\x6d\x62\x65\x72\x20\x6f\x66\x20\x72\x65\x6c\x6f\x63\x61\x74\x69"
+"\x6f\x6e\x73\x20\x69\x6e\x20\x61\x72\x65\x61\x20\x25\x64\x20\x69\x6e"
+"\x20\x27\x25\x73\x27\x20\x69\x73\x20\x62\x61\x64",l349+1,p->l39);v=0
+;}f(!p->l294&&l89->l85.l343!=0){u("\x45\x72\x72\x6f\x72\x3a\x20\x4c"
+"\x61\x73\x74\x20\x77\x6f\x72\x64\x20\x6f\x66\x20\x64\x65\x66\x69\x6e"
+"\x69\x74\x69\x6f\x6e\x20\x6f\x66\x20\x61\x72\x65\x61\x20\x25\x64\x20"
+"\x69\x6e\x20\x27\x25\x73\x27\x20\x69\x73\x20\x6e\x6f\x74\x20\x7a\x65"
+"\x72\x6f",l349+1,p->l39);v=0;}f(v){j=0;f((l76&0x08)!=0||l76==(0x04|
+0x10)){j=l997(p,l89,l76);}r f((l76&0x04)!=0){j=l904(p,l89,l76);f(j!=0
+){l826(j);l178(l452,l89->l141+l89->l198*8);}}f(j==0){f((l76&0x80)==0
+||p->l285){j=l995(p,l89,l76,l522);v=j!=0;}r{l178(l452,l89->l141+l89->
+l198*8);l452=(d c* )((e* )(l452)+l89->l141+l89->l198*8);}}}f(v){f(j!=
+0){l89->l85.l332=j;l826(j);f(l64==0)l64=j;}f(l349==l691){f(l144!=0){u
+("\x45\x72\x72\x6f\x72\x3a\x20\x50\x72\x6f\x67\x72\x61\x6d\x20\x68"
+"\x61\x73\x20\x6d\x75\x6c\x74\x69\x70\x6c\x65\x20\x65\x6e\x74\x72\x79"
+"\x20\x70\x6f\x69\x6e\x74\x73");}r{f((l76&0x02)==0){u("\x57\x61\x72"
+"\x6e\x69\x6e\x67\x3a\x20\x45\x6e\x74\x72\x79\x20\x70\x6f\x69\x6e\x74"
+"\x20\x66\x6f\x72\x20\x70\x72\x6f\x67\x72\x61\x6d\x20\x69\x6e\x20\x27"
+"\x25\x73\x27\x20\x69\x73\x20\x69\x6e\x20\x61\x20\x64\x61\x74\x61\x20"
+"\x61\x72\x65\x61\x2c\x20\x6e\x6f\x74\x20\x63\x6f\x64\x65",p->l39);}
+l144=j;}}}l89++;}q v;}c l221(c l47){q l47>>16;}c l196(c l47){q l47&
+0xFFFF;}c l182(c l47){q l47>>24;}c l154(c l47){q l47&0xFFFFFF;}b l426
+(s*p){l62*j;l42*l33;o*l55;l*m;c l812,l87,l688,l47;l812=0;j=&p->l216->
+l64;l33=(l42* )(p->l200);l88(l87=1;l87<=p->l268;l87++){l33=(l42* )((e
+ * )(l33)+j->l141);l88(l688=1;l688<=j->l198;l688++){l47=l33->l66;l55=
+0;f((l47&0x80000000)==0){f((l221(l47)&(0x08|0x04))!=0){l55=p->l92+(
+l196(l47));}}r{f((l182(l47)&0x08)!=0){l55=p->l92+(l154(l47));}}f(l55
+!=0&&(l55->l38&(0x01|0x20))==(0x01|0x20)){l812++;m=l406(l55);}l33++;}
+j++;}}n*l427(e*l110){n*j;l495*m;c l35;l35=l70(l110);m=l592[l35&(32-1)]
+;l26(m!=0&&(l35!=m->l805||l193(m->l697->l67,l110)!=0))m=m->l689;f(m!=
+0){j=m->l697;}r{f(l77)u("\x57\x61\x72\x6e\x69\x6e\x67\x3a\x20\x46\x6f"
+"\x75\x6e\x64\x20\x72\x65\x66\x65\x72\x65\x6e\x63\x65\x20\x74\x6f\x20"
+"\x6e\x6f\x6e\x2d\x65\x78\x69\x73\x74\x65\x6e\x74\x20\x61\x72\x65\x61"
+"\x20\x27\x25\x73\x27\x2e\x20\x44\x65\x66\x61\x75\x6c\x74\x20\x75\x73"
+"\x65\x64",l110);j=0;}q j;}w n*l596(d c l223){l62*l483;l483=&l116->
+l216->l64;q(l483+l223)->l85.l332;}w b l796(l54*l33){n*j;l26(l33!=0){j
+=l33->l299;f((j->l63-=l33->l63)==0){l796(j->l149);j->l149=0;}l33=l33
+->l281;}}w b l589(n*j){l26(j!=0){f(j->l63==0){l714++;l796(j->l149);j
+->l149=0;}j=j->l82;}}w b l763(n*l540,n*l662){l54*l33;f(l540!=l662){
+l33=l540->l149;l26(l33!=0&&l33->l299!=l662){l33=l33->l281;}f(l33!=0){
+l33->l63+=1;}r{l33=l59(z(l54));f(l33==0){u("\x46\x61\x74\x61\x6c\x3a"
+"\x20\x4f\x75\x74\x20\x6f\x66\x20\x6d\x65\x6d\x6f\x72\x79\x20\x69\x6e"
+"\x20\x27\x61\x64\x64\x5f\x61\x72\x65\x61\x72\x65\x66\x27");}r{l33->
+l299=l662;l33->l63=1;l33->l281=l540->l149;l540->l149=l33;}}l662->l63
++=1;}}w b l792(n*l540,c l449){o*m;m=l108+l449;f((m->l38&(0x10|0x01))==
+0){m=m->l45.l111;}r f((m->l38&(0x01|0x20))==(0x01|0x20)){m=l209(m);}f
+((m->l38&(0x80000000|0x04|0x10))!=0){q;}l763(l540,m->l45.l73);}w b
+l562(n*j){c x,l440,l47,l516;l42*l33;l26(j!=0){l440=j->l143;f(l440!=0){
+l116=j->l75;l108=j->l75->l92;l604=j->l75->l127;l33=j->l161;l88(x=1;x
+<=l440;x++){l516=l33->l66;f((l516&0x80000000)==0){l47=l221(l516);f((
+l47&(0x08|0x04))!=0)l792(j,l196(l516));}r{l47=l182(l516);f((l47&0x08)!=
+0){l792(j,l154(l516));}r{l763(j,l596(l154(l516)));}}l33++;}}j=j->l82;
+}}b l292(n*j){j->l63+=1;}b l399(b){f(l77)u("\x44\x72\x6c\x69\x6e\x6b"
+"\x3a\x20\x46\x69\x6e\x64\x69\x6e\x67\x20\x75\x6e\x75\x73\x65\x64\x20"
+"\x61\x72\x65\x61\x73\x2e\x2e\x2e");l292(l144);f(l56==l147)l292(l93);
+f(l257)l376();l562(l93);l562(l94);l562(l97);l562(l103);l562(l130);
+l589(l93);l589(l94);l589(l97);l589(l103);l589(l130);}w b l822(n*l64,n
+ *l133){l529*k;c l35;e*l27;l35=l64->l201;l27=l64->l67;k=l653;l26(k!=0
+&&(l35!=k->l823||l193(l27,k->l84)!=0))k=k->l806;f(k==0)u("\x46\x61"
+"\x74\x61\x6c\x3a\x20\x50\x6f\x73\x73\x69\x62\x6c\x65\x20\x6c\x69\x6e"
+"\x6b\x65\x72\x20\x65\x72\x72\x6f\x72\x20\x69\x6e\x20\x27\x66\x69\x6c"
+"\x6c\x69\x6e\x5f\x6c\x69\x6d\x69\x74\x73\x27");k->l478->l45.l73=l64;
+k->l478->l53=l64->l61;k->l651->l45.l73=l133;k->l651->l53=l133->l61+
+l133->l69;}w b l887(b){n*l560, *l133;c l702;d c l699;l560=(l94!=0?l94
+:l93);f(l560==0)q;l133=0;l211{l133=l560;l560=l560->l82;}l26(l560!=0);
+l702=0x1000;l699=((l124+l702-1)&-l702)-l124;l133->l69+=l699;l124+=
+l699;}w b l547(n*k){n*l64, *l133, *l626;d c l163;l64=l133=l626=0;l26(
+k!=0){f(k->l63>0){f(l64==0){l64=l133=k;l626=k->l99;}r f(l626==k->l99){
+l133=k;}r{l822(l64,l133);l64=l133=k;l626=k->l99;}l163=(1<<k->l213)-1;
+l124=(l124+l163)&~l163;k->l61=l124;f(k->l159!=0)l138(k->l159,l124);
+l124+=k->l69;}k=k->l82;}f(l64!=0)l822(l64,l133);}b l364(b){d c l711,
+l777,l740;l128 l722;f(l184){l179=l740=l286;}r{l179=l740=0x8000;}l190=
+0;f(!l825){f(l56==l234){l722=l325;}r{l722=l357;}l331(l722,&l530,&l190
+);}l733=l711=l124=l740+l190;l195=l190;l138(l176,l124);l138(l250,l124);
+l547(l93);l547(l94);f(l288)l887();l138(l191,l124);l138(l248,l124);f(
+l208){f(l242>=l711&&l242<l124){u("\x57\x61\x72\x6e\x69\x6e\x67\x3a"
+"\x20\x52\x65\x61\x64\x2f\x77\x72\x69\x74\x65\x20\x63\x6f\x64\x65\x20"
+"\x26\x26\x20\x64\x61\x74\x61\x20\x61\x72\x65\x61\x73\x20\x6f\x76\x65"
+"\x72\x6c\x61\x70\x20\x72\x65\x61\x64\x20\x6f\x6e\x6c\x79\x20\x61\x72"
+"\x65\x61\x73");}f(l97!=0||l103!=0){u("\x57\x61\x72\x6e\x69\x6e\x67"
+"\x3a\x20\x49\x6d\x61\x67\x65\x20\x66\x69\x6c\x65\x20\x63\x6f\x6e\x74"
+"\x61\x69\x6e\x73\x20\x63\x6f\x64\x65\x20\x6f\x72\x20\x63\x6f\x6e\x73"
+"\x74\x61\x6e\x74\x20\x64\x61\x74\x61\x20\x69\x6e\x20\x72\x65\x61\x64"
+"\x2f\x77\x72\x69\x74\x65\x20\x61\x72\x65\x61\x20\x61\x6e\x64\x20\x6f"
+"\x70\x74\x69\x6f\x6e\x20\x27\x2d\x64\x61\x74\x61\x27\x20\x68\x61\x73"
+"\x20\x62\x65\x65\x6e\x20\x75\x73\x65\x64");}l124=l242;}l138(l188,
+l124);l138(l244,l124);l547(l97);l777=l124;l547(l134);l124=l777;l547(
+l103);l195=l195+l124-l711;l138(l205,l124);f(l56==l147)l138(l246,l124);
+l266=l124;l547(l130);l138(l202,l124);l138(l185,l124);l138(l251,l124);
+}w b l509(d c*l49){u("\x45\x72\x72\x6f\x72\x3a\x20\x52\x65\x6c\x6f"
+"\x63\x61\x74\x65\x64\x20\x76\x61\x6c\x75\x65\x20\x69\x73\x20\x6f\x75"
+"\x74\x20\x6f\x66\x20\x72\x61\x6e\x67\x65\x20\x61\x74\x20\x6f\x66\x66"
+"\x73\x65\x74\x20\x30\x78\x25\x78\x20\x69\x6e\x20\x61\x72\x65\x61\x20"
+"\x27\x25\x73\x27\x20\x69\x6e\x20\x66\x69\x6c\x65\x20\x27\x25\x73\x27"
+,l49-l490,l109->l67,l116->l39);}w b l665(d c*l49,c l632,d c l90){d c
+l586,l60;c l40,l507;d c*l576, *l833;g l698;f(l632==0)l632=0x10000;l40
+=0;l833=l576=l49;l60= *l49;l586=l60&0xF000;l586=l586+(l586<<4);l211{f
+((l60&0x03E00000)==0x02800000){l40+=l804(l60);}r{l40-=l804(l60);}l49
+++;l60= *l49;l632-=1;}l26(l632!=0&&((l60&0x03E00000)==0x02400000||(
+l60&0x03E00000)==0x02800000)&&(l60&0xFF000)==l586);l40+=l90;l698=l40<
+0;f(l698)l40=-l40;l507=16;l211{f(l40!=0){l26((l40&3)==0){l40=l40>>2;
+l507-=1;}}l60=( *l576&0xFE1FF000)|(l698?0x02400000:0x02800000); *l576
+=(l60|((l507&0xF)<<8))+(l40&0xFF);l40=l40&~0xFF;l576++;}l26(l576!=l49
+);f(l40!=0)l509(l833);}w b l798(d c*l49,d c l47,d c l90){d c l501,l60
+;c l40;l170(l47&0x03){l29 0x00:l29 0x01:f((l47&0x08)==0){u("\x45\x72"
+"\x72\x6f\x72\x3a\x20\x46\x6f\x75\x6e\x64\x20\x62\x61\x64\x20\x72\x65"
+"\x6c\x6f\x63\x61\x74\x69\x6f\x6e\x20\x74\x79\x70\x65\x20\x66\x6f\x72"
+"\x20\x61\x20\x62\x79\x74\x65\x20\x6f\x72\x20\x68\x61\x6c\x66\x77\x6f"
+"\x72\x64\x20\x66\x69\x65\x6c\x64\x20\x69\x6e\x20\x61\x72\x65\x61\x20"
+"\x27\x25\x73\x27\x20\x69\x6e\x20\x27\x25\x73\x27",l109->l67,l116->
+l39);q;}f((l47&0x03)==0){l501= * ((e* )(l49))+l90;f(l501>0xFF){l509(
+l49);}r{ * ((e* )(l49))=l501;}}r{l501= * ((e* )(l49))+( * ((e* )(l49)+
+1)<<8)+l90;f(l501>0xFFFF){l509(l49);}r{ * ((e* )(l49))=l501&0xFF; * (
+(e* )(l49)+1)=l501>>8;}}l34;l29 0x02: *l49+=l90;l725+=1;l34;l29 0x03:
+l60= *l49;f((l60&0xE000000)==0x4000000){l40=l60&0xFFF;f((l60&
+0x00800000)==0)l40=-l40;l40=l40+l90;f(l40<=-0x1000||l40>=0x1000){l509
+(l49);}r{ *l49=(l60&0xFF7FF000)|(l40<0?-l40:l40|0x00800000);}}r f((
+l60&0xE000000)==0x2000000){l665(l49,(l47&0x60)>>5,l90);}r{ *l49=(l60&
+0xFF000000)|((((l578(l60)<<2)+l90)>>2)&0xFFFFFF);}}}w g l820(d c*l49,
+l975 l47,c l90){c l40;d c l60;l60= *l49;f((l60&0xE000000)==0xA000000){
+l40=l578(l60)<<2;f(l47==l810){l40=l40+l90-l109->l61-((e* )(l49)-(e* )(
+l490))-8;}r{l40=l40+l90-l109->l61;} *l49=(l60&0xFF000000)|((l40>>2)&
+0xFFFFFF);}r f((l60&0xE000000)==0x4000000){l40=l60&0xFFF;f((l60&
+0x00800000)==0)l40=-l40;l40=l40+l90-l109->l61;f(l40<=-0x1000||l40>=
+0x1000){l509(l49);}r{ *l49=(l60&0xFF7FF000)|(l40<0?-l40:l40|
+0x00800000);}}r{l665(l49,0,l90-l109->l61);}q 1;}w b l913(d c l66,d c*
+l49){d c l47,l90,l449;o*m;l47=l221(l66);f((l47&(0x08|0x04))!=0){f((
+l449=(l196(l66)))>l604){u("\x45\x72\x72\x6f\x72\x3a\x20\x46\x6f\x75"
+"\x6e\x64\x20\x62\x61\x64\x20\x4f\x42\x4a\x5f\x53\x59\x4d\x54\x20\x69"
+"\x6e\x64\x65\x78\x20\x69\x6e\x20\x72\x65\x6c\x6f\x63\x61\x74\x69\x6f"
+"\x6e\x20\x69\x6e\x20\x61\x72\x65\x61\x20\x27\x25\x73\x27\x20\x69\x6e"
+"\x20\x27\x25\x73\x27",l109->l67,l116->l39);q;}m=l108+l449;f((m->l38&
+0x01)!=0){f((m->l38&0x20)!=0){m=l209(m);}l90=m->l53;}r f((m->l38&(
+0x10|0x04))!=0)l90=0;r{l90=m->l45.l111->l53;}}r{l90=l109->l61;}f((l47
+&0x04)!=0){l820(l49,l810,l90);}r{l798(l49,l47,l90);}}w b l941(d c l66
+,d c*l49){d c l47,l90,l449;o*m;n*j;l47=l182(l66);f((l47&0x08)!=0){f((
+l449=(l154(l66)))>l604){u("\x45\x72\x72\x6f\x72\x3a\x20\x46\x6f\x75"
+"\x6e\x64\x20\x62\x61\x64\x20\x4f\x42\x4a\x5f\x53\x59\x4d\x54\x20\x69"
+"\x6e\x64\x65\x78\x20\x69\x6e\x20\x72\x65\x6c\x6f\x63\x61\x74\x69\x6f"
+"\x6e\x20\x69\x6e\x20\x61\x72\x65\x61\x20\x27\x25\x73\x27\x20\x69\x6e"
+"\x20\x27\x25\x73\x27",l109->l67,l116->l39);q;}m=l108+l449;f((m->l38&
+0x01)!=0){f((m->l38&0x20)!=0){m=l209(m);}l90=m->l53;}r f((m->l38&(
+0x10|0x04))!=0){l90=0;}r{l90=m->l45.l111->l53;}}r{l66=l154(l66);f(l66
+>=l116->l268){u("\x45\x72\x72\x6f\x72\x3a\x20\x54\x79\x70\x65\x2d\x32"
+"\x20\x72\x65\x6c\x6f\x63\x61\x74\x69\x6f\x6e\x20\x61\x72\x65\x61\x20"
+"\x69\x6e\x64\x65\x78\x20\x74\x6f\x6f\x20\x68\x69\x67\x68\x20\x69\x6e"
+"\x20\x61\x72\x65\x61\x20\x27\x25\x73\x27\x20\x69\x6e\x20\x27\x25\x73"
+"\x27",l109->l67,l116->l39);q;}f((l47&0x10)==0){l90=l596(l66)->l61;}r
+{j=l596(l66);l90=j->l61-j->l99->l61;}}f((l47&0x04)!=0){f((l47&0x10)!=
+0){u("\x45\x72\x72\x6f\x72\x3a\x20\x50\x43\x2d\x72\x65\x6c\x61\x74"
+"\x69\x76\x65\x20\x62\x61\x73\x65\x64\x20\x72\x65\x6c\x6f\x63\x61\x74"
+"\x69\x6f\x6e\x73\x20\x28\x66\x6f\x75\x6e\x64\x20\x69\x6e\x20\x61\x72"
+"\x65\x61\x20\x27\x25\x73\x27\x20\x69\x6e\x20\x27\x25\x73\x27\x29\x20"
+"\x61\x72\x65\x20\x6e\x6f\x74\x20\x73\x75\x70\x70\x6f\x72\x74\x65\x64"
+,l109->l67,l116->l39);}r{l820(l49,l938,l90);}}r{l798(l49,l47,l90);}}w
+b l703(l42*l33){d c l86,l661;d c*l49;l86=l33->l152;f(l86>l739){u(""
+"\x45\x72\x72\x6f\x72\x3a\x20\x42\x61\x64\x20\x72\x65\x6c\x6f\x63\x61"
+"\x74\x69\x6f\x6e\x20\x6f\x66\x66\x73\x65\x74\x20\x28\x30\x78\x25\x78"
+"\x29\x20\x66\x6f\x75\x6e\x64\x20\x69\x6e\x20\x61\x72\x65\x61\x20\x27"
+"\x25\x73\x27\x20\x69\x6e\x20\x27\x25\x73\x27",l86,l109->l67,l116->
+l39);q;}l49=(d c* )((e* )(l490)+l86);l661=l33->l66;f((l661&0x80000000
+)==0){l913(l661,l49);}r{l941(l661,l49);}}w b l585(n*j){c x,l440;l42*
+l33;l26(j!=0){f(j->l63>0&&(l440=j->l143)!=0){l109=j;l116=j->l75;l739=
+j->l69;l108=j->l75->l92;l604=j->l75->l127;l490=j->l156;l33=j->l161;
+l88(x=1;x<=l440;x++){l703(l33);l33++;}}j=j->l82;}}g l395(b){l585(l93);
+l585(l94);l585(l97);l585(l103);l585(l134);q!l304();}b l404(b){f(l144
+==0){l144=l778;l229=0;u("\x57\x61\x72\x6e\x69\x6e\x67\x3a\x20\x50\x72"
+"\x6f\x67\x72\x61\x6d\x20\x68\x61\x73\x20\x6e\x6f\x20\x65\x6e\x74\x72"
+"\x79\x20\x70\x6f\x69\x6e\x74\x2e\x20\x44\x65\x66\x61\x75\x6c\x74\x20"
+"\x6f\x66\x20\x66\x69\x72\x73\x74\x20\x65\x78\x65\x63\x75\x74\x61\x62"
+"\x6c\x65\x20\x69\x6e\x73\x74\x72\x75\x63\x74\x69\x6f\x6e\x20\x61\x73"
+"\x73\x75\x6d\x65\x64");}l825=l56==l147||(l56==l234&&l144==l93)||(l94
+==0&&l97==l144&&l229==0)||l184;}w b l931(b){d c l520;l520=l144->l61+
+l229;f(l56==l234){l409(l530,l520);}r{l411(l530,l520);}}w b l947(n*j){
+d c x,l440,l787,l466;l42*l33;d c*l741;l440=j->l143;l33=j->l161;l741=(
+d c* )(l33);l787=j->l61-l179;l108=j->l75->l92;l466=0;l88(x=1;x<=l440;
+x++){f(((l33->l66&0x00060000)==0x00020000||(l33->l66&0x86000000)==
+0x82000000)&&l390(l33)){ *l741=l787+l33->l152;l741++;l466+=z(d c);}
+l33++;}f(l466!=0){l98(j->l161,l466);}}b l650(n*j){l26(j!=0){f(j->l143
+!=0)l947(j);j=j->l82;}}w b l893(b){d c*l525;d c l600,l735;h{d c l906,
+l905;}l655;l331((l56==l233?l342:l351),&l525,&l600);f(l56==l147)l369(
+l525);l98(l525,l600);l650(l93);l650(l94);l650(l97);l650(l103);f(l56==
+l147){l735=l246->l31->l53+l600-2*z(d c)-l179;l655.l906=l735;l655.l905
+=l735+z(d c);l98(&l655,z(l655));}l600=0xFFFFFFFF;l98(&l600,z(d c));}w
+b l958(l42*l33){d c l60,l47,l86;c l40;d c*l49;l86=l33->l152;f(l86>
+l109->l69){u("\x45\x72\x72\x6f\x72\x3a\x20\x42\x61\x64\x20\x72\x65"
+"\x6c\x6f\x63\x61\x74\x69\x6f\x6e\x20\x6f\x66\x66\x73\x65\x74\x20\x28"
+"\x30\x78\x25\x78\x29\x20\x66\x6f\x75\x6e\x64\x20\x69\x6e\x20\x61\x72"
+"\x65\x61\x20\x27\x25\x73\x27\x20\x69\x6e\x20\x27\x25\x73\x27",l86,
+l109->l67,l116->l39);q;}l47=l182(l33->l66);l49=(d c* )((e* )(l490)+
+l86);l60= *l49;f((l47&0x03)==0x03){f((l60&0xE000000)==0x4000000){l40=
+l60&0xFFF;f((l60&0x00800000)==0)l40=-l40;l40=l40-l109->l61;f(l40<=-
+0x1000||l40>=0x1000){l509(l49);}r{ *l49=(l60&0xFF7FF000)|(l40<0?-l40:
+(l40|0x00800000));}}r f((l60&0xE000000)==0x2000000){l665(l49,(l47&
+0x60)>>5,-l109->l61);}r{ *l49=(l60&0xFF000000)|((((l578(l60)<<2)-l109
+->l61)>>2)&0xFFFFFF);}}r{ *l49=l60-l109->l61;}}w g l955(l42*l33){d c
+l86;d c*l49;o*m;c l40;l86=l33->l152;f(l86>l109->l69){u("\x45\x72\x72"
+"\x6f\x72\x3a\x20\x42\x61\x64\x20\x72\x65\x6c\x6f\x63\x61\x74\x69\x6f"
+"\x6e\x20\x6f\x66\x66\x73\x65\x74\x20\x28\x30\x78\x25\x78\x29\x20\x66"
+"\x6f\x75\x6e\x64\x20\x69\x6e\x20\x61\x72\x65\x61\x20\x27\x25\x73\x27"
+"\x20\x69\x6e\x20\x27\x25\x73\x27",l86,l109->l67,l116->l39);q 0;}l49=
+(d c* )((e* )(l490)+l86);m=l108+(l196(l33->l66));f((m->l38&0x01)==0){
+m=m->l45.l111;}r f((m->l38&(0x01|0x20))==(0x01|0x20)){m=l209(m);}l40=
+m->l53+(l578( *l49)<<2);l40=l40-l86-l109->l61-8; *l49=( *l49&
+0xFF000000)|((l40>>2)&0xFFFFFF);q 1;}w g l892(l42*l33){d c l60,l86,
+l122;d c*l49;o*m;c l40,l90;l86=l33->l152;f(l86>l109->l69){u("\x45\x72"
+"\x72\x6f\x72\x3a\x20\x42\x61\x64\x20\x72\x65\x6c\x6f\x63\x61\x74\x69"
+"\x6f\x6e\x20\x6f\x66\x66\x73\x65\x74\x20\x28\x30\x78\x25\x78\x29\x20"
+"\x66\x6f\x75\x6e\x64\x20\x69\x6e\x20\x61\x72\x65\x61\x20\x27\x25\x73"
+"\x27\x20\x69\x6e\x20\x27\x25\x73\x27",l86,l109->l67,l116->l39);q 0;}
+l122=l33->l66;l49=(d c* )((e* )(l490)+l86);l60= *l49;l40=l154(l122);
+l122=l182(l122);f((l122&0x08)!=0){m=l108+l40;f((m->l38&0x01)==0){m=m
+->l45.l111;}r f((m->l38&(0x01|0x20))==(0x01|0x20)){m=l209(m);}l90=m->
+l53;}r{l90=l596(l40)->l61;}f((l60&0xE000000)==0x4000000){l40=l60&
+0xFFF;f((l60&0x00800000)==0)l40=-l40;l40=l40+l90-l109->l61;f(l40<=-
+0x1000||l40>=0x1000){l509(l49);}r{ *l49=(l60&0xFF7FF000)|(l40<0?-l40:
+l40|0x00800000);}}r f((l60&0xE000000)==0x2000000){l665(l49,(l122&0x60
+)>>5,l90-l109->l61);}r{ *l49=(l60&0xFF000000)|((((l578(l60)<<2)+l90-
+l109->l61)>>2)&0xFFFFFF);}q 1;}w l747 l898(l42*l33){d c l122,l463;o*m
+;g l473;l122=l33->l66;l473=(l122&0x80000000)==0;f(l473){l463=l196(
+l122);l122=l221(l122);}r{l463=l154(l122);l122=l182(l122);}f((l122&
+0x08)!=0||(l473&&(l122&0x04)!=0)){m=l108+l463;f((m->l38&0x01)==0){m=m
+->l45.l111;f(m==0||(m->l38&0x40)!=0){f(l473||(l122&0x04)==0){q l791;}
+r{q l790;}}}r f((m->l38&(0x01|0x20))==(0x01|0x20)){m=l209(m);}f((m->
+l38&0x04)!=0){q l776;}f((l122&0x04)!=0){f(m->l45.l73->l99==l109->l99){
+q l858;}r{q l642;}}r{q l645;}}r{f((l122&0x04)!=0){q l642;}r{q l645;}}
+}w b l771(l42*l33,l747 l901){d c l226,l463;g l473;o*m;n*j;l226=l33->
+l66;l473=(l226&0x80000000)==0;f(l473){l463=l196(l226);l226=l221(l226);
+}r{l463=l154(l226);l226=l182(l226);}f((l226&0x08)!=0||(l473&&(l226&
+0x04)!=0)){m=l108+l463;f((m->l38&0x01)==0){m=m->l45.l111;}r f((m->l38
+&(0x01|0x20))==(0x01|0x20)){m=l209(m);}j=m->l45.l73;}r f(l473){j=l109
+;}r{j=l596(l463);}l463=l407(j);l170(l901){l29 l900:l226=l226&0x73;l34
+;l29 l902:l226=l226&(0x73|0x08);l34;l29 l645:l226=l226&0x73;l34;l29
+l642:l226=l226&(0x73|0x04);}l33->l66=l226<<24|0x80000000|l463;}w b
+l571(n*j){c x,l440;l42*l33;l747 l47;g v;v=1;l26(j!=0&&v){f(j->l63>0&&
+(l440=j->l143)!=0){l109=j;l116=j->l75;l739=j->l69;l108=j->l75->l92;
+l604=j->l75->l127;l490=j->l156;l33=j->l161;v=1;l88(x=1;v&&x<=l440;x++
+){l47=l898(l33);l170(l47){l29 l776:l33->l152=0xFFFFFFFF;l34;l29 l791:
+l34;l29 l858:l703(l33);l33->l152=0xFFFFFFFF;l34;l29 l645:l703(l33);
+l771(l33,l47);l34;l29 l642:f((l33->l66&0x80000000)==0){v=l955(l33);}r
+{v=l892(l33);}f(v)l771(l33,l47);l34;l29 l790:l958(l33);}l33++;}}j=j->
+l82;}}g l372(b){l571(l93);l571(l94);l571(l97);l571(l103);l571(l134);q
+!l304();}w b l611(n*j){c l700;l26(j!=0){f(j->l63>0&&j->l69>0){f(j->
+l213!=2){l700=j->l61-l733;f(l700!=0)l414(l700);}l98(j->l156,j->l69);
+l733=(d c)(j->l61+j->l69);}j=j->l82;}}b l425(b){l164=l383;f(l77)u(""
+"\x44\x72\x6c\x69\x6e\x6b\x3a\x20\x43\x72\x65\x61\x74\x69\x6e\x67\x20"
+"\x65\x78\x65\x63\x75\x74\x61\x62\x6c\x65\x20\x66\x69\x6c\x65\x20\x27"
+"\x25\x73\x27",l117);f(l56==l233||l56==l147)l195+=l725*z(d c);l334();
+f(l530!=0){l931();l98(l530,l190);}l611(l93);l611(l94);l611(l97);l611(
+l103);f(l243){l611(l134);l413();}f(l56==l233||l56==l147)l893();l338();
+}w b l526(e*l983,n*j){d c l86;e l95[2000];l86=(l56==l147?l179:0);l26(
+j!=0){f(j->l63>0&&j->l69>0){l508(l95,"\x25\x2d\x36\x78\x20\x20\x25"
+"\x2d\x36\x78\x20\x20\x25\x73\x20\x25\x73\x20\x66\x72\x6f\x6d\x20\x25"
+"\x73\n",j->l61-l86,j->l69,l983,j->l67,j->l75->l39);f(l155){l260(l95);
+}r{l37(l95);}}j=j->l82;}}b l316(b){e l95[500];l508(l95,"\x41\x72\x65"
+"\x61\x20\x6d\x61\x70\x20\x6f\x66\x20\x69\x6d\x61\x67\x65\x20\x66\x69"
+"\x6c\x65\x20\x27\x25\x73\x27\x3a\n\n\x53\x74\x61\x72\x74\x20\x20\x20"
+"\x53\x69\x7a\x65\x20\x20\x20\x20\x54\x79\x70\x65\x20\x20\x20\x20\x20"
+"\x20\x4e\x61\x6d\x65\n",l117);f(l155){l260(l95);}r{l37(l95);}l526(""
+"\x52\x2f\x4f\x20\x63\x6f\x64\x65\x20",l93);l526("\x52\x2f\x4f\x20"
+"\x64\x61\x74\x61\x20",l94);l526("\x52\x2f\x57\x20\x63\x6f\x64\x65"
+"\x20",l97);l526("\x52\x2f\x57\x20\x64\x61\x74\x61\x20",l103);l526(""
+"\x5a\x65\x72\x6f\x2d\x69\x6e\x69\x74",l130);l526("\x44\x65\x62\x75"
+"\x67\x20\x20\x20\x20",l134);}w b l609(n*j,g l936){e*l214;e l95[2000]
+;l26(j!=0){f(j->l63==0){l214=(l936?l403(j):0);f(l214!=0){l508(l95,""
+"\x20\x20\x20\x20\x27\x25\x73\x27\x20\x28\x25\x73\x29\x20\x66\x72\x6f"
+"\x6d\x20\x25\x73",j->l67,l214,j->l75->l39);}r{l508(l95,"\x20\x20\x20"
+"\x20\x27\x25\x73\x27\x20\x66\x72\x6f\x6d\x20\x25\x73",j->l67,j->l75
+->l39);}f(l155){l508(&l95[l210(l95)],"\x20\x28\x25\x78\x20\x62\x79"
+"\x74\x65\x73\x29\n",j->l69);l260(l95);}r{u(l95);}}j=j->l82;}}b l328(
+b){e l95[64];f(l714==0){f(l155){l508(l95,"\n\x4e\x6f\x20\x61\x72\x65"
+"\x61\x73\x20\x77\x65\x72\x65\x20\x6f\x6d\x69\x74\x74\x65\x64\x20\x66"
+"\x72\x6f\x6d\x20\x74\x68\x65\x20\x69\x6d\x61\x67\x65\x20\x66\x69\x6c"
+"\x65\n");l260(l95);}q;}f(l155){l508(l95,"\n\x54\x68\x65\x20\x66\x6f"
+"\x6c\x6c\x6f\x77\x69\x6e\x67\x20\x61\x72\x65\x61\x73\x20\x77\x65\x72"
+"\x65\x20\x6f\x6d\x69\x74\x74\x65\x64\x20\x66\x72\x6f\x6d\x20\x74\x68"
+"\x65\x20\x69\x6d\x61\x67\x65\x20\x66\x69\x6c\x65\x3a\n");l260(l95);}
+r{u("\x44\x72\x6c\x69\x6e\x6b\x3a\x20\x54\x68\x65\x20\x66\x6f\x6c\x6c"
+"\x6f\x77\x69\x6e\x67\x20\x61\x72\x65\x61\x73\x20\x77\x65\x72\x65\x20"
+"\x6f\x6d\x69\x74\x74\x65\x64\x20\x66\x72\x6f\x6d\x20\x74\x68\x65\x20"
+"\x69\x6d\x61\x67\x65\x20\x66\x69\x6c\x65\x3a",l95);}l609(l93,1);l609
+(l94,0);l609(l97,1);l609(l103,0);l609(l130,0);}b l350(b){l418();l316(
+);f(l168)l328();l415();}b l374(b){l93=l97=l94=l103=l130=l134=0;l811=
+l830=l775=l813=l669=l783=0;l162=0;l144=0;l743=0;l714=0;l725=0;l266=0;
+l217=0;l530=0;l653=0;l286=l242=0;l179=l124=0x8000;}

@@ -1,193 +1,66 @@
-/*
-** Drlink AOF Linker
-**
-** Copyright © David Daniels 1993, 1994, 1995, 1996, 1997, 1998.
-** All rights reserved.
-**
-** This module contains the procedures called to produce error
-** messages. Under RISCOS, they can be sent to either the screen
-** or a 'Throwback' window
+/* COBF by BB -- 'Messages.c' obfuscated at Fri Dec 22 16:52:42 2000
 */
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdarg.h>
-#include "Drlhdr.h"
-#include "Filehdr.h"
-#include "Procdefs.h"
-
-#ifdef TARGET_RISCOS
-#include <kernel.h>
-#endif
-
-/* Private declarations */
-
-#ifdef TARGET_RISCOS
-
-static int last_level;
-static bool first_error;
-
-#define DDEUtils_ThrowbackStart 0x42587
-#define DDEUtils_ThrowbackSend 0x42588
-#define DDEUtils_ThrowbackEnd 0x42589
-
-#define Throwback_ReasonProcessing 0
-#define Throwback_ReasonErrorDetails 1
-
-/* Throwback error levels */
-
-#define  WARNING 0
-#define  ERROR 1
-#define  FATAL 2
-
-#define  DUMMYLINE 1
-
-/*
-** 'start_throwback' is called to start a throwback session
-*/
-void start_throwback(void) {
-  _kernel_swi_regs regs;
-  _kernel_oserror *swierror;
-  swierror = _kernel_swi(DDEUtils_ThrowbackStart, &regs, &regs);
-  if (swierror!=NIL) {
-    swierror = _kernel_last_oserror();	/* Loose SWI error just logged */
-    opt_throw = FALSE;
-    error("Warning: 'Throwback' is not available. Option ignored");
-  }
-  first_error = TRUE;
-  last_level = 0;
-}
-
-/*
-** 'end_throwback' is called to end a throwback session
-*/
-void end_throwback(void) {
-  _kernel_swi_regs regs;
-  _kernel_oserror *swierror;
-  opt_throw = FALSE;
-  swierror = _kernel_swi(DDEUtils_ThrowbackEnd, &regs, &regs);
-  if (swierror!=NIL) {
-    swierror = _kernel_last_oserror();	/* Loose SWI error just logged */
-    error("Error: Error occured trying to end 'throwback' session: %s", &swierror->errmess);
-  }
-}
-
-/*
-** 'throwback_message' is called to display an error message in a
-** 'throwback' window
-*/
-static void throwback_message(char *text) {
-  int errlevel;
-  char *filename;
-  _kernel_oserror *swierror;
-  _kernel_swi_regs regs;
-  filename = imagename;
-  if (filename==NIL) filename = "!RunImage";
-  if (first_error) {	/* First error - Register file with Throwback */
-    first_error = FALSE;
-    regs.r[0] = Throwback_ReasonProcessing;
-    regs.r[2] = COERCE(filename, int);
-    swierror = _kernel_swi(DDEUtils_ThrowbackSend, &regs, &regs);
-    if (swierror!=NIL) {
-      opt_throw = FALSE;
-      error("Error: Error occured sending 'throwback' message: %s", &swierror->errmess);
-      swierror = _kernel_last_oserror();	/* Loose SWI error just logged */
-      return;
-    }
-  }
-  switch (*text) {	/* Decide on message type according to first char of error */
-  case ' ':
-    errlevel = last_level;
-    break;
-  case 'E':
-    errlevel = ERROR;
-    break;
-  case 'F':
-    errlevel = FATAL;
-    break;
-  default:
-    errlevel = WARNING;
-  }
-  last_level = errlevel;
-  regs.r[0] = Throwback_ReasonErrorDetails;
-  regs.r[2] = COERCE(filename, int);
-  regs.r[3] = DUMMYLINE;
-  regs.r[4] = errlevel;
-  regs.r[5] = COERCE(text, int);
-  swierror = _kernel_swi(DDEUtils_ThrowbackSend, &regs, &regs);
-  if (swierror!=NIL) {
-    opt_throw = FALSE;
-    error("Error: Error occured sending 'throwback' message: %s", &swierror->errmess);
-    swierror = _kernel_last_oserror();	/* Loose SWI error just logged */
-    printf(text);
-  }
-}
-
-#endif
-
-/*
-** 'error' is called when a linker error has been detected to print
-** an error message. The vast majority of messages ar printed this
-** way. Many information messages are simply "printf'ed", but all
-** warning, error and fatal messages are handled by 'error'. The
-** severity of the error is determined buy looking at the first
-** character of the message, that is, whether it is 'W' (warning),
-** 'E' (error) or 'F' (fatal). Anything else is an informational
-** message (they usually start with 'D' or a blank). If
-** the 'throwback' option is used, error messages are sent to a
-** 'throwback' window otherwise they are just printed.
-*/
-void error(char *msg, ...) {
-  char *p1, *p2, *p3, *p4;
-  va_list parms;
-  va_start(parms, msg);
-  p1 = va_arg(parms, char *);
-  p2 = va_arg(parms, char *);
-  p3 = va_arg(parms, char *);
-  p4 = va_arg(parms, char *);
-  va_end(parms);
-#ifdef TARGET_RISCOS
-  if (opt_throw && (*msg==' ' || *msg=='W' || *msg=='E' ||  *msg=='F')) {
-    char text[MSGBUFLEN];
-    sprintf(text, msg, p1, p2, p3, p4);
-    throwback_message(text);
-  }
-  else {
-    printf(msg, p1, p2, p3, p4);
-    printf("\n");
-  }
-#else
-  printf(msg, p1, p2, p3, p4);
-  printf("\n");
-#endif
-  switch (*msg) {
-  case 'W':
-    warnings+=1;
-    break;
-  case 'E':
-    errors+=1;
-    break;
-  case 'F':
-    tidy_files();
-    release_heap();
-#ifdef TARGET_RISCOS
-    if (opt_throw) end_throwback();
-#endif
-    exit(EXIT_FATAL);
-  }
-}
-
-/*
-** 'got_errors' is called to see if any errors have occured during the link
-*/
-bool got_errors(void) {
-  return errors>0;
-}
-
-/*
-** 'announce' is called to say which version of the linker is in use
-*/
-void announce(void) {
-  error("Drlink AOF Linker  Version %s", VERSION);
-}
-
+#include<stdio.h>
+#include<stdlib.h>
+#include<stdarg.h>
+#include"cobf.h"
+i l50{l365,l327,l396,l312,l394,l383}l132;i e g;a c l276,l142;a g l187
+,l238,l162,l259,l77,l269,l262,l335,l168,l280,l273,l270,l249,l297,l220
+,l171,l243,l298,l329,l184,l208,l302,l137,l257,l290,l288,l282;a l132
+l164;
+i h l62{d c l84;d c l157;d c l141;d c l198;l81{d c l343;h n*l332;d c
+l379;}l85;}l62;i h l74{d c l313;d c l278;d c l340;d c l353;d c l326;d
+c l347;}l74;i h l79{l74 l167;l62 l64;}l79;i h l54{h n*l299;c l63;h l54
+ *l281;}l54;i h n{c l201;e*l67;h n*l99;h n*l85;h s*l75;d c l106;d c
+l213;d c*l156;d c l69;h l42*l161;d c l143;d c l61;h l*l159;c l63;h l54
+ *l149;h n*l82;}n;i l50{l325,l357,l351,l342}l128;a n*l93, *l97, *l94,
+ *l103, *l130, *l134;a d c l217,l179,l286,l242,l266;a n*l144;a d c
+l229;i h o{e*l43;d c l38;d c l53;l81{d c l84;h n*l73;h o*l111;}l45;}o
+;i h l{c l83;h o*l31;h o*l135;h l*l96;}l;i l*l129[32];i h l42{d c l152
+;d c l66;}l42;i h l28{c l254;e*l48;e*l224;d c l263;d c l256;h l28*l80
+;}l28;i l28*l78[128];i h y{e*l48;d c*l177;d c l272;g l289;g l428;l78
+l225;h y*l80;}y;i d c l118[1];a l*l212[256];a l*l176, *l188, *l205, *
+l191, *l185, *l202, *l250, *l248, *l244, *l251, *l246;a l78*l300;a y*
+l169;a o*l204, *l203;a d c l230,l123,l227,l194;i h{d c l277;d c l314;
+d c l160;}l68;i h{d c l166;d c l215;d c l189;d c l173;}l41;i h{l68 l58
+;l41 l258;}l199;a l41*l172;a d c l107;a o*l108;a d c*l231, *l247;a e*
+l151;a d c l255,l219,l235,l295;i l50{l301,l283,l153,l437,l234,l147,
+l233}l131;i l50{l148,l175,l183,l236}l114;i h l52{e*l345;h l52*l303;}
+l52;i h l51{e*l308;c l341;g l305;h l51*l322;}l51;i h s{e*l39;d c l279
+;d c l186;g l285;g l424;g l319;g l294;h l79*l216;d c l309;d c*l200;d c
+l317;h o*l92;d c l284;e*l291;d c l287;d c l268;d c l127;l129 l218;l81
+{l*l145;l118*l356;}l136;l*l401;h s*l121;}s;a l131 l56;a s*l112, *l306
+;a y*l146, *l271;a l68 l58;a l253*l150, *l207, *l119, *l239;a e*l240,
+ *l245, *l117;a g l222,l261,l264,l155;a e l101[500];a d c l321,l126,
+l190,l174,l195;a d c*l91;a l52*l252, *l293;a l51*l228;a e*l197, *l180
+, *l323;a c l163(c l105);a g l368(b);a b*l59(d c);a b l178(b* ,d c);a
+b l330(b);a b l359(b);a b l397(b);a g l307(s* );a b l382(b);a b l361(
+b);a b l377(b);a g l430(e* );a c l310(e* );a g l311(e* ,c,c,b* );a g
+l453(b);a b l419(e* );a b l400(b);a g l384(e* );a g l373(e* );a g l336
+(e* );a b l392(b);a g l363(y* );a l114 l296(e* );a s*l422(l28* ,s* ,l
+ * );a g l429(l41* );a b l367(b);a b l334(b);a b l98(b* ,c);a b l381(
+e* );a b l414(c);a b l338(b);a b l417(d c);a b l461(b);a b l410(b);a b
+l385(o* );a b l420(b);a b l418(b);a b l260(e* );a b l415(b);a b l416(
+b);a g l265(e* ,d c* ,d c);a g l451(y* );a g l434(y* );a b l393(y* );
+a g l358(l28* ,s* ,l* );a g l387(e* ,d c);a g l339(l28* );a g l423(b);
+a b l371(b);a g l360(b);a b l354(b);a b u(e* ,...);a g l304(b);a b
+l374(b);a c l221(c);a c l196(c);a c l182(c);a c l154(c);a b l426(s* );
+a g l386(s* );a o*l388(l* );a n*l427(e* );a b l433(b);a b l399(b);a b
+l404(b);a b l364(b);a g l395(b);a g l372(b);a b l292(n* );a b l425(b);
+a b l316(b);a b l328(b);a b l448(b);a b l350(b);a c l140(l120 e* ,
+l120 e* );a l*l275(e* ,d c);a b l421(b);a l*l406(o* );a b l412(b);a g
+l450(b);a g l391(s* );a b l320(s* );a g l370(b);a b l337(b);a b l138(
+l* ,d c);a c l70(e* );a e*l403(n* );a o*l209(o* );a l*l324(l* );a l*
+l366(e* );a g l390(l42* );a b l402(b);a b l376(b);a b l344(b);a b l460
+(b);a g l398(b);a g l378(b);a b l389(b);a d c l407(n* );a b l375(b);a
+b l331(l128,d c* * ,d c* );a b l409(d c* ,d c);a b l411(d c* ,d c);a b
+l369(d c* );a b l413(b);a g l408(b);a e*l181(e* );b u(e*l472,...){e*
+l554, *l559, *l795, *l794;l1006 l549;l1018(l549,l472);l554=l716(l549,
+e* );l559=l716(l549,e* );l795=l716(l549,e* );l794=l716(l549,e* );
+l1019(l549);l37(l472,l554,l559,l795,l794);l37("\n");l170( *l472){l29
+'W':l276+=1;l34;l29'E':l142+=1;l34;l29'F':l367();l330();l1020(16);}}g
+l304(b){q l142>0;}b l354(b){u("\x44\x72\x6c\x69\x6e\x6b\x20\x41\x4f"
+"\x46\x20\x4c\x69\x6e\x6b\x65\x72\x20\x20\x56\x65\x72\x73\x69\x6f\x6e"
+"\x20\x25\x73","\x30\x2e\x33\x2e\x34\x20\x20\x30\x37\x2f\x30\x32\x2f"
+"\x39\x38\x20\x20\x28\x4c\x69\x6e\x75\x78\x2f\x4e\x65\x74\x42\x53\x44"
+"\x29");}

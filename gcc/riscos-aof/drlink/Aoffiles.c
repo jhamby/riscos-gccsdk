@@ -1,546 +1,144 @@
-/*
-** Drlink AOF linker - AOF File creation
-**
-** Copyright © David Daniels 1993, 1994, 1995, 1996, 1997, 1998.
-** All rights reserved.
-**
-** This module contains the routines concerned with the creation
-** of a partially-linked AOF file
-**
-** The linker creates AOF version 2 AOF files in that it puts
-** (or more accurately, leaves) type-1 relocations in the AOF
-** file it creates. This could be fixed, but the code is
-** horrible enough as it is.
+/* COBF by BB -- 'Aoffiles.c' obfuscated at Fri Dec 22 16:52:41 2000
 */
-
-#include <stdio.h>
-#include <string.h>
-#include "Drlhdr.h"
-#include "Filehdr.h"
-#include "Areahdr.h"
-#include "Chunkhdr.h"
-#include "Procdefs.h"
-
-/* Private declarations */
-
-typedef struct newhead {
-  int headhash;				/* Hashed version of area name */
-  char *headname;			/* Pointer to name of area */
-  unsigned int headattr;		/* Area's attributes */
-  struct newhead *headflink;		/* Next area in list */
-} newhead;
-
-typedef struct newsymt {
-  int newhash;				/* Symbol's hash value */
-  symtentry *newsymtptr;		/* Pointer to old OBJ_SYMT entry */
-  unsigned int newindex;		/* New OBJ_SYMT index */
-  struct newsymt *newnext;		/* Next entry in order of creation */
-  struct newsymt *newflink;		/* Next entry in list */
- } newsymt;
-
-typedef struct strtentry {
-  char *strtname;			/* Pointer to name */
-  int strthash;				/* Name's hash value */
-  unsigned int strtoffset;		/* Name's offset within the OBJ_STRT chunk */
-  struct strtentry *strtnext;		/* Next entry in order of creation */
-  struct strtentry *strtflink;		/* Next name in list */
-} strtentry;
-
-#define STRTENTRIES 16			/* Number of STRT hash chains (Must be power of 2) */
-#define STRTMASK (STRTENTRIES-1)
-
-#define MAXCHUNKS 5			/* Space in chunk header */
-#define NUMCHUNKS 5			/* Entries used in chunk header */
-
-static unsigned int
-  newsymcount,				/* Initial value of new SYMT index in each AOF file */
-  newareacount,				/* Number of areas in new AOF file */
-
-  file_offset,				/* Current offset in file */
-  newentryarea,				/* Area number of entry point */
-  head_start, head_size,		/* Start and size of OBJ_HEAD */
-  area_start, area_size,		/* Start and size of OBJ_AREA */
-  idfn_start, idfn_size,		/* Start and size of OBJ_IDFN */
-  symt_start, symt_size,		/* Start and size of OBJ_SYMT */
-  strt_start, strt_size;		/* Start and size of OBJ_STRT */
-
-static strtentry *strtable[STRTENTRIES];
-static strtentry *strtlist, *strtlast;
-
-static newsymt *newsymtable[MAXGLOBALS];
-static newsymt *symtlist, *symtlast;
-
-static newhead *headlist, *headlast;
-
-#define IDFNSTRING "Drlink AOF Linker Version "
-
-/*
-** 'init_aofile' initialises things concerning the AOF file
-*/
-void init_aofile(void) {
-  int n;
-  head_start = head_size = 0;
-  area_start = area_size = 0;
-  idfn_start = idfn_size = 0;
-  symt_start = symt_size = 0;
-  strt_start = 0;
-  file_offset = 0;
-  newsymcount = 0;
-  newareacount = 0;
-  newentryarea = 0;
-  strtlist = strtlast = NIL;
-  symtlist = symtlast = NIL;
-  headlist = headlast = NIL;
-  for (n = 0; n<STRTENTRIES; n++) strtable[n] = NIL;
-  strt_size = sizeof(unsigned int);
-  for (n = 0; n<MAXGLOBALS; n++) newsymtable[n] = NIL;
-}
-
-/*
-** 'addto_strt' adds a name to the OBJ_STRT chunk if it is not already
-** present, returning the offset of the entry.
-** Note that the STRT strings are linked in two ways. Firstly, they
-** are kept in the usual hash table to speed up searching and, secondly,
-** they are linked together in the order they are created for when
-** the actual OBJ_STRT is built.
-*/
-static unsigned int addto_strt(char *name) {
-  strtentry *p;
-  int hashval;
-  hashval = hash(name);
-  p = strtable[hashval & STRTMASK];
-  while (p!=NIL && (hashval!=p->strthash || strcmp(name, p->strtname)!=0)) p = p->strtflink;
-  if (p==NIL) {		/* New name. Create STRT entry for it */
-    if ((p = allocmem(sizeof(strtentry)))==NIL) error("Fatal: Out of memory in 'addto_strt'");
-    p->strtname = name;
-    p->strthash = hashval;
-    p->strtoffset = strt_size;
-    p->strtnext = NIL;
-    p->strtflink = strtable[hashval & STRTMASK];
-    strtable[hashval & STRTMASK] = p;
-    if (strtlast==NIL) {
-      strtlist = p;
-    }
-    else {
-      strtlast->strtnext = p;
-    }
-    strtlast = p;
-    strt_size+=strlen(name)+sizeof(char);
-  }
-  return p->strtoffset;
-}
-
-/*
-** 'reloc_aofarlist' goes through the list of areas passed to it
-** and calculates where each area will be in the 'super areas' in
-** the final AOF file. 'arplace' is set to the offset within the
-** area. This value is added later to the value of all non-absolute
-** symbols in the OBJ_SYMT chunk that lie in these areas. It also
-** builds a linked list of the new areas used to determine the
-** areas' index in the OBJ_HEAD chunk. The routine also modifies
-** the entry point area and offset if there is an entry point in
-** the AOF files to be included
-*/
-static void reloc_aofarlist(arealist *ap) {
-  arealist *firstarea;
-  newhead *hp;
-
-  firstarea = NIL;
-  while (ap!=NIL) {
-    unsigned int areabase;
-    if (ap->arbase!=firstarea) {	/* Area name differs from last one */
-      firstarea = ap->arbase;
-      newareacount+=1;
-      areabase = 0;
-      if ((hp = allocmem(sizeof(newhead)))==NIL) error("Fatal: Out of memory in 'reloc_aofarlist'");
-      hp->headhash = firstarea->arhash;
-      hp->headname = firstarea->arname;
-      hp->headattr = firstarea->aratattr;
-      hp->headflink = NIL;
-      if (headlast==NIL) {
-        headlist = hp;
-      }
-      else {
-        headlast->headflink = hp;
-      }
-      headlast = hp;
-
-      ap->arplace = areabase;
-      if (ap==entryarea) {	/* Note new entry area if necessary */
-	newentryarea = newareacount;
-	entryoffset+=areabase;
-      }
-      areabase+=ap->arobjsize;
-    }
-    ap = ap->arflink;
-  }
-}
-
-/*
-** 'reloc_aofareas' goes through the area lists and merging
-** and recalculating the sizes of areas with the same name.
-** It also calculates the size of the new OBJ_HEAD chunk as
-** this is known at this point.
-*/
-static void reloc_aofareas() {
-  reloc_aofarlist(rocodelist);
-  reloc_aofarlist(rodatalist);
-  reloc_aofarlist(rwcodelist);
-  reloc_aofarlist(rwdatalist);
-  reloc_aofarlist(zidatalist);
-  reloc_aofarlist(debuglist);
-  head_size = sizeof(aofheader)+newareacount*sizeof(areaentry);
-}
-
-/*
-** 'find_areaindex' finds the area index of the area passed to
-** it in the OBJ_HEAD chunk of the new AOF file
-*/
-unsigned int find_areaindex(arealist *ap) {
-  newhead *hp;
-  unsigned int index;
-  int hash;
-  char *name;
-  unsigned int attr;
-  name = ap->arname;
-  attr = ap->aratattr;
-  hash = ap->arhash;
-  hp = headlist;
-  index = 0;
-  while (hp!=NIL && (attr!=hp->headattr || hash!=hp->headhash || strcmp(name,hp->headname)!=0)) {
-    hp = hp->headflink;
-    index+=1;
-  }
-  if (hp==NIL) error("Fatal: Could not find area '%s' in 'find_areaindex'", name);
-  return index;
-}
-
-/*
-** 'compact_reloclist' is called to modify the relocation info
-** for each area, changing the offset of each relocation to
-** its new offset in the 'super area', changing the SYMT index
-** of each relocation to its new value and compressing the
-** relocation data to get rid of any relocations that have
-** been carried out, that is, PC-relative ones within the
-** 'super area'.
-*/
-static void compact_reloclist(arealist *ap) {
-  relocation *oldrp, *newrp;
-  unsigned int n, oldcount, newcount, offset, typesym, reltype;
-  indextable *newindex;
-  while (ap!=NIL) {
-    newindex = ap->arfileptr->symtries.symtlookup;
-    newrp = oldrp = ap->areldata;
-    oldcount = ap->arnumrelocs;
-    newcount = 0;
-    offset = ap->arplace;
-    for (n = 1; n<=oldcount; n++) {
-      if (oldrp->reloffset!=ALLFS) {	/* Relocation that still needs doing */
-        newrp->reloffset = oldrp->reloffset+offset;
-        typesym = oldrp->reltypesym;
-        if ((typesym & REL_TYPE2)==0) {	/* Type 1 relocation (16 bit SYMT index) */
-          reltype = get_type1_type(typesym);
-          if ((reltype & (REL_PC|REL_SYM))!=0) {
-            newrp->reltypesym = (reltype<<16)+*newindex[get_type1_index(typesym)];
-          }
-          else {
-            newrp->reltypesym = oldrp->reltypesym;
-          }
-        }
-        else {	/* Type 2 relocation (24 bit SYMT index) */
-          reltype = get_type2_type(typesym);
-          if ((reltype & REL_SYM)!=0) {
-            newrp->reltypesym = (reltype<<24)+*newindex[get_type2_index(typesym)];
-          }
-          else {
-            newrp->reltypesym = oldrp->reltypesym;
-          }
-        }
-        newrp++;
-        newcount+=1;
-      }
-      oldrp++;
-    }
-    ap->arnumrelocs = newcount;
-    if ((ap->aratattr & ATT_NOINIT)==0) {	/* Area will appear in AOF file */
-      area_size+=ap->arobjsize+newcount*sizeof(relocation);
-    }
-    ap = ap->arflink;
-  }
-}
-
-/*
-** 'compact_relocs' is called to modify the relocation info in all of
-** the areas in the AOF file
-*/
-static void compact_relocs(void) {
-  compact_reloclist(rocodelist);
-  compact_reloclist(rodatalist);
-  compact_reloclist(rwcodelist);
-  compact_reloclist(rwdatalist);
-  compact_reloclist(debuglist);
-}
-
-/*
-** 'build_symt' is called to compact the OBJ_SYMT of all the
-** OBJ_SYMT chunks in the AOF file list by weeding out all the
-** 'dead' entries, that is, external references that have been
-** resolved and local variables. It creates tables for each
-** file giving the mapping of old SYMT indexes to new ones. At
-** the end, 'newsymcount' contains the number of SYMT entries the
-** new AOF file will contain. The function also calculates the size
-** of the new OBJ_SYMT chunk
-*/
-static void build_symt(void) {
-  unsigned int oldcount, newcount, n, attr;
-  indextable *indexlookup;
-  symtentry *newsp, *oldsp;
-  filelist *fp;
-  newsymcount = 0;
-  fp = aofilelist;
-  do {
-    if (fp->chfilesize!=0) {	/* Not a dummy entry in the list */
-      oldcount = fp->symtcount;
-      if ((indexlookup = allocmem(oldcount*sizeof(unsigned int)))==NIL) {
-        error("Fatal: Out of memory in 'build_symt'");
-      }
-      oldsp = newsp = fp->objsymtptr;
-      newcount = 0;
-      for (n = 1; n<=oldcount; n++) {
-        attr = oldsp->symtattr;
-        if ((attr & SYM_COMMON)!=0) {	/* Ref to common block: convert back to unresolved ref */
-/* Fetch length from CB definition's area's entry */
-          oldsp->symtvalue = oldsp->symtarea.symdefptr->symtarea.areaptr->arobjsize;
-          oldsp->symtarea.symdefptr = NIL;
-        }
-        if ((attr & SYM_SCOPE)==SYM_LOCAL || ((attr & SYM_DEFN)==0 && oldsp->symtarea.symdefptr!=NIL)) {
-/* Entry not needed */
-          *indexlookup[n-1] = ALLFS;
-        }
-        else {
-          *newsp = *oldsp;
-          newsp->symtname = COERCE(addto_strt(newsp->symtname), char *);
-          if ((attr & (SYM_DEFN|SYM_ABSVAL))==SYM_DEFN) {	/* Def'n of symbol */
-            newsp->symtarea.areaname = addto_strt(newsp->symtarea.areaptr->arname);
-          }
-          else {
-            newsp->symtarea.areaname = 0;
-          }
-          *indexlookup[n-1] = newsymcount+newcount;
-          newcount+=1;
-          newsp++;
-        }
-        oldsp++;
-      }
-      fp->symtcount = newcount;
-      fp->symtries.symtlookup = indexlookup;
-      newsymcount+=newcount;
-    }
-    fp = fp->nextfile;
-  } while (fp!=NIL);
-  symt_size = newsymcount*sizeof(symtentry);
-}
-
-/*
-** 'write_index' is called to create an entry in the AOF file's
-** chunk header
-*/
-static void write_index(unsigned int ctype, unsigned int offset, unsigned int size) {
-  chunkindex indexentry;
-  indexentry.chunkclass = OBJ_XXXX;
-  indexentry.chunktype = ctype;
-  indexentry.chunkoffset = offset;
-  indexentry.chunksize = size;
-  write_image(&indexentry, sizeof(chunkindex));
-}
-
-/*
-** 'start_aofile' is called to create the AOF file itself and
-** to set up the initial version of the chunk file header
-*/
-static void start_aofile(void) {
-  chunkheader header;
-  idfn_size = align(strlen(IDFNSTRING)+strlen(VERSION)+sizeof(char));
-  imagesize = sizeof(chunkheader)+MAXCHUNKS*sizeof(chunkindex)+
-   head_size+idfn_size+area_size+symt_size+strt_size;
-  open_image();
-  header.chunkfileid = CHUNKFILE;
-  header.maxchunks = header.numchunks = MAXCHUNKS;
-  write_image(&header, sizeof(header));
-  write_index(OBJ_HEAD, 0, 0);
-  write_index(OBJ_IDFN, 0, 0);
-  write_index(OBJ_AREA, 0, 0);
-  write_index(OBJ_SYMT, 0, 0);
-  write_index(OBJ_STRT, 0, 0);
-  file_offset = sizeof(chunkheader)+MAXCHUNKS*sizeof(chunkindex);
-}
-
-/*
-** 'write_objhead' creates the entries for the new OBJ_HEAD chunk
-** from a particular area list, writing them directly to the AOF
-** file
-*/
-static void write_objhead(arealist *ap) {
-  arealist *firstarea;
-  unsigned int relco, areasize;
-  areaentry entry;
-  if (ap==NIL) return;
-  firstarea = ap->arbase;
-  do {
-    areasize = relco = 0;
-    while (ap!=NIL && ap->arbase==firstarea) {
-      areasize+=ap->arobjsize;
-      relco+=ap->arnumrelocs;
-      ap = ap->arflink;
-    }
-    entry.areaname = addto_strt(firstarea->arname);
-    entry.attributes = (firstarea->aratattr<<8)+firstarea->aralign;
-    entry.arsize = areasize;
-    entry.arelocs = relco;
-    entry.arlast.arzero = 0;
-    write_image(&entry, sizeof(entry));
-    if (ap!=NIL) firstarea = ap->arbase;
-  } while (ap!=NIL);
-}
-
-/*
-** 'create_objhead' creates the new OBJ_HEAD chunk to describe all
-** the new areas
-*/
-static void create_objhead(void) {
-  aofheader header;
-  header.oftype = OBJFILETYPE;
-  header.aofversion = AOFVER2;
-  header.numareas = newareacount;
-  header.numsymbols = newsymcount;
-  header.eparea = newentryarea;
-  header.epoffset = entryoffset;
-  write_image(&header, sizeof(aofheader));
-  write_objhead(rocodelist);
-  write_objhead(rodatalist);
-  write_objhead(rwcodelist);
-  write_objhead(rwdatalist);
-  write_objhead(zidatalist);
-  write_objhead(debuglist);
-  head_start = file_offset;
-  file_offset+=head_size;
-}
-
-/*
-** 'create_objidfn' is called to create the OBJ_IDFN chunk.
-** Note that hack where the string is copied to a buffer
-** to ensure that it is word aligned for 'write_image' to
-** play with under RISCOS
-*/
-static void create_objidfn(void) {
-  int n;
-  unsigned int buffer[25];
-  for (n = 0; n<25; n++) buffer[n] = 0;
-  strcpy(COERCE(&buffer, char *), IDFNSTRING);
-  strcat(COERCE(&buffer, char *), VERSION);
-  write_image(&buffer, idfn_size);
-  idfn_start = file_offset;
-  file_offset+=idfn_size;
-}
-
-/*
-** 'write_objarea' writes out the code and data areas in the list
-** passed to it. It goes through the list writing out all the
-** areas with the same name and then going back to write out
-** all the relocation data associated with those areas.
-*/
-static void write_objarea(arealist *ap) {
-  arealist *first, *newfirst;
-  if (ap==NIL) return;
-  first = ap->arbase;
-  do {
-    while (ap!=NIL && ap->arbase==first) {
-      write_image(ap->arobjdata, ap->arobjsize);
-      ap = ap->arflink;
-    }
-    newfirst = (ap!=NIL ? ap->arbase : NIL);
-    while (first!=NIL && first!=newfirst) {
-      write_image(first->areldata, first->arnumrelocs*sizeof(relocation));
-      first = first->arflink;
-    }
-    first = newfirst;
-  } while (ap!=NIL);
-}
-
-/*
-** 'create_objarea' is the biggie. It creates the OBJ_AREA chunk
-** in the AOF file
-*/
-static void create_objarea(void) {
-  write_objarea(rocodelist);
-  write_objarea(rodatalist);
-  write_objarea(rwcodelist);
-  write_objarea(rwdatalist);
-  write_objarea(debuglist);
-  area_start = file_offset;
-  file_offset+=area_size;
-}
-
-/*
-** 'create_objsymt' is called to create the AOF file's OBJ_SYMT
-** chunk
-*/
-static void create_objsymt(void) {
-  filelist *fp;
-  fp = aofilelist;
-  do {
-    if (fp->chfilesize!=0) write_image(fp->objsymtptr, fp->symtcount*sizeof(symtentry));
-    fp = fp->nextfile;
-  } while (fp!=NIL);
-  symt_start = file_offset;
-  file_offset+=symt_size;
-}
-
-/*
-** 'create_objstrt' is called to create the AOF file's OBJ_STRT
-** chunk
-*/
-static void create_objstrt(void) {
-  strtentry *p;
-  p = strtlist;
-  write_image(&strt_size, sizeof(unsigned int));
-  while (p!=NIL) {
-    write_string(p->strtname);
-    p = p->strtnext;
-  }
-  strt_start = file_offset;
-  file_offset+=strt_size;
-}
-
-/*
-** 'finish_aof' is called to complete the AOF file. It resets
-** the file pointer to the start of the chunk index and then
-** fills in the index
-*/
-static void finish_aofile(void) {
-  reset_image(sizeof(chunkheader));
-  write_index(OBJ_HEAD, head_start, head_size);
-  write_index(OBJ_IDFN, idfn_start, idfn_size);
-  write_index(OBJ_AREA, area_start, area_size);
-  write_index(OBJ_SYMT, symt_start, symt_size);
-  write_index(OBJ_STRT, strt_start, strt_size);
-  close_image();
-}
-
-void create_aofile(void) {
-  init_aofile();
-  reloc_aofareas();
-  relocate_symbols();
-  if (!fixup_relocs()) return;
-  build_symt();
-  compact_relocs();
-  if (opt_verbose) error("Drlink: Creating partially-linked AOF file '%s'...", imagename);
-  start_aofile();
-  create_objidfn();
-  create_objhead();
-  create_objarea();
-  create_objsymt();
-  create_objstrt();
-  finish_aofile();
-}
-
+#include<stdio.h>
+#include<string.h>
+#include"cobf.h"
+i l50{l365,l327,l396,l312,l394,l383}l132;i e g;a c l276,l142;a g l187
+,l238,l162,l259,l77,l269,l262,l335,l168,l280,l273,l270,l249,l297,l220
+,l171,l243,l298,l329,l184,l208,l302,l137,l257,l290,l288,l282;a l132
+l164;
+i h l62{d c l84;d c l157;d c l141;d c l198;l81{d c l343;h n*l332;d c
+l379;}l85;}l62;i h l74{d c l313;d c l278;d c l340;d c l353;d c l326;d
+c l347;}l74;i h l79{l74 l167;l62 l64;}l79;i h l54{h n*l299;c l63;h l54
+ *l281;}l54;i h n{c l201;e*l67;h n*l99;h n*l85;h s*l75;d c l106;d c
+l213;d c*l156;d c l69;h l42*l161;d c l143;d c l61;h l*l159;c l63;h l54
+ *l149;h n*l82;}n;i l50{l325,l357,l351,l342}l128;a n*l93, *l97, *l94,
+ *l103, *l130, *l134;a d c l217,l179,l286,l242,l266;a n*l144;a d c
+l229;i h o{e*l43;d c l38;d c l53;l81{d c l84;h n*l73;h o*l111;}l45;}o
+;i h l{c l83;h o*l31;h o*l135;h l*l96;}l;i l*l129[32];i h l42{d c l152
+;d c l66;}l42;i h l28{c l254;e*l48;e*l224;d c l263;d c l256;h l28*l80
+;}l28;i l28*l78[128];i h y{e*l48;d c*l177;d c l272;g l289;g l428;l78
+l225;h y*l80;}y;i d c l118[1];a l*l212[256];a l*l176, *l188, *l205, *
+l191, *l185, *l202, *l250, *l248, *l244, *l251, *l246;a l78*l300;a y*
+l169;a o*l204, *l203;a d c l230,l123,l227,l194;i h{d c l277;d c l314;
+d c l160;}l68;i h{d c l166;d c l215;d c l189;d c l173;}l41;i h{l68 l58
+;l41 l258;}l199;a l41*l172;a d c l107;a o*l108;a d c*l231, *l247;a e*
+l151;a d c l255,l219,l235,l295;i l50{l301,l283,l153,l437,l234,l147,
+l233}l131;i l50{l148,l175,l183,l236}l114;i h l52{e*l345;h l52*l303;}
+l52;i h l51{e*l308;c l341;g l305;h l51*l322;}l51;i h s{e*l39;d c l279
+;d c l186;g l285;g l424;g l319;g l294;h l79*l216;d c l309;d c*l200;d c
+l317;h o*l92;d c l284;e*l291;d c l287;d c l268;d c l127;l129 l218;l81
+{l*l145;l118*l356;}l136;l*l401;h s*l121;}s;a l131 l56;a s*l112, *l306
+;a y*l146, *l271;a l68 l58;a l253*l150, *l207, *l119, *l239;a e*l240,
+ *l245, *l117;a g l222,l261,l264,l155;a e l101[500];a d c l321,l126,
+l190,l174,l195;a d c*l91;a l52*l252, *l293;a l51*l228;a e*l197, *l180
+, *l323;a c l163(c l105);a g l368(b);a b*l59(d c);a b l178(b* ,d c);a
+b l330(b);a b l359(b);a b l397(b);a g l307(s* );a b l382(b);a b l361(
+b);a b l377(b);a g l430(e* );a c l310(e* );a g l311(e* ,c,c,b* );a g
+l453(b);a b l419(e* );a b l400(b);a g l384(e* );a g l373(e* );a g l336
+(e* );a b l392(b);a g l363(y* );a l114 l296(e* );a s*l422(l28* ,s* ,l
+ * );a g l429(l41* );a b l367(b);a b l334(b);a b l98(b* ,c);a b l381(
+e* );a b l414(c);a b l338(b);a b l417(d c);a b l461(b);a b l410(b);a b
+l385(o* );a b l420(b);a b l418(b);a b l260(e* );a b l415(b);a b l416(
+b);a g l265(e* ,d c* ,d c);a g l451(y* );a g l434(y* );a b l393(y* );
+a g l358(l28* ,s* ,l* );a g l387(e* ,d c);a g l339(l28* );a g l423(b);
+a b l371(b);a g l360(b);a b l354(b);a b u(e* ,...);a g l304(b);a b
+l374(b);a c l221(c);a c l196(c);a c l182(c);a c l154(c);a b l426(s* );
+a g l386(s* );a o*l388(l* );a n*l427(e* );a b l433(b);a b l399(b);a b
+l404(b);a b l364(b);a g l395(b);a g l372(b);a b l292(n* );a b l425(b);
+a b l316(b);a b l328(b);a b l448(b);a b l350(b);a c l140(l120 e* ,
+l120 e* );a l*l275(e* ,d c);a b l421(b);a l*l406(o* );a b l412(b);a g
+l450(b);a g l391(s* );a b l320(s* );a g l370(b);a b l337(b);a b l138(
+l* ,d c);a c l70(e* );a e*l403(n* );a o*l209(o* );a l*l324(l* );a l*
+l366(e* );a g l390(l42* );a b l402(b);a b l376(b);a b l344(b);a b l460
+(b);a g l398(b);a g l378(b);a b l389(b);a d c l407(n* );a b l375(b);a
+b l331(l128,d c* * ,d c* );a b l409(d c* ,d c);a b l411(d c* ,d c);a b
+l369(d c* );a b l413(b);a g l408(b);a e*l181(e* );i h l531{c l767;e*
+l875;d c l769;h l531*l704;}l531;i h l561{c l1014;o*l1010;d c l644;h
+l561*l666;h l561*l1004;}l561;i h l492{e*l738;c l750;d c l808;h l492*
+l730;h l492*l835;}l492;w d c l553,l598,l446,l723,l694,l575,l724,l615,
+l745,l534,l672,l577,l736,l510;w l492*l670[16];w l492*l742, *l648;w
+l561*l957[256];w l561*l933, *l897;w l531*l683, *l667;b l918(b){c x;
+l694=l575=0;l724=l615=0;l745=l534=0;l672=l577=0;l736=0;l446=0;l553=0;
+l598=0;l723=0;l742=l648=0;l933=l897=0;l683=l667=0;l88(x=0;x<16;x++)l670
+[x]=0;l510=z(d c);l88(x=0;x<256;x++)l957[x]=0;}w d c l678(e*l27){l492
+ *k;c l35;l35=l70(l27);k=l670[l35&(16-1)];l26(k!=0&&(l35!=k->l750||
+l193(l27,k->l738)!=0))k=k->l835;f(k==0){f((k=l59(z(l492)))==0)u("\x46"
+"\x61\x74\x61\x6c\x3a\x20\x4f\x75\x74\x20\x6f\x66\x20\x6d\x65\x6d\x6f"
+"\x72\x79\x20\x69\x6e\x20\x27\x61\x64\x64\x74\x6f\x5f\x73\x74\x72\x74"
+"\x27");k->l738=l27;k->l750=l35;k->l808=l510;k->l730=0;k->l835=l670[
+l35&(16-1)];l670[l35&(16-1)]=k;f(l648==0){l742=k;}r{l648->l730=k;}
+l648=k;l510+=l210(l27)+z(e);}q k->l808;}w b l537(n*j){n*l64;l531*l113
+;l64=0;l26(j!=0){d c l478;f(j->l99!=l64){l64=j->l99;l598+=1;l478=0;f(
+(l113=l59(z(l531)))==0)u("\x46\x61\x74\x61\x6c\x3a\x20\x4f\x75\x74"
+"\x20\x6f\x66\x20\x6d\x65\x6d\x6f\x72\x79\x20\x69\x6e\x20\x27\x72\x65"
+"\x6c\x6f\x63\x5f\x61\x6f\x66\x61\x72\x6c\x69\x73\x74\x27");l113->
+l767=l64->l201;l113->l875=l64->l67;l113->l769=l64->l106;l113->l704=0;
+f(l667==0){l683=l113;}r{l667->l704=l113;}l667=l113;j->l61=l478;f(j==
+l144){l723=l598;l229+=l478;}l478+=j->l69;}j=j->l82;}}w b l979(){l537(
+l93);l537(l94);l537(l97);l537(l103);l537(l130);l537(l134);l575=z(l74)+
+l598*z(l62);}d c l407(n*j){l531*l113;d c l223;c l70;e*l27;d c l115;
+l27=j->l67;l115=j->l106;l70=j->l201;l113=l683;l223=0;l26(l113!=0&&(
+l115!=l113->l769||l70!=l113->l767||l193(l27,l113->l875)!=0)){l113=
+l113->l704;l223+=1;}f(l113==0)u("\x46\x61\x74\x61\x6c\x3a\x20\x43\x6f"
+"\x75\x6c\x64\x20\x6e\x6f\x74\x20\x66\x69\x6e\x64\x20\x61\x72\x65\x61"
+"\x20\x27\x25\x73\x27\x20\x69\x6e\x20\x27\x66\x69\x6e\x64\x5f\x61\x72"
+"\x65\x61\x69\x6e\x64\x65\x78\x27",l27);q l223;}w b l583(n*j){l42*
+l506, *l499;d c x,l539,l464,l86,l122,l47;l118*l644;l26(j!=0){l644=j->
+l75->l136.l356;l499=l506=j->l161;l539=j->l143;l464=0;l86=j->l61;l88(x
+=1;x<=l539;x++){f(l506->l152!=0xFFFFFFFF){l499->l152=l506->l152+l86;
+l122=l506->l66;f((l122&0x80000000)==0){l47=l221(l122);f((l47&(0x04|
+0x08))!=0){l499->l66=(l47<<16)+ *l644[l196(l122)];}r{l499->l66=l506->
+l66;}}r{l47=l182(l122);f((l47&0x08)!=0){l499->l66=(l47<<24)+ *l644[
+l154(l122)];}r{l499->l66=l506->l66;}}l499++;l464+=1;}l506++;}j->l143=
+l464;f((j->l106&0x10)==0){l615+=j->l69+l464*z(l42);}j=j->l82;}}w b
+l940(b){l583(l93);l583(l94);l583(l97);l583(l103);l583(l134);}w b l917
+(b){d c l539,l464,x,l115;l118*l639;o*l498, *l489;s*p;l553=0;p=l112;
+l211{f(p->l186!=0){l539=p->l127;f((l639=l59(l539*z(d c)))==0){u("\x46"
+"\x61\x74\x61\x6c\x3a\x20\x4f\x75\x74\x20\x6f\x66\x20\x6d\x65\x6d\x6f"
+"\x72\x79\x20\x69\x6e\x20\x27\x62\x75\x69\x6c\x64\x5f\x73\x79\x6d\x74"
+"\x27");}l489=l498=p->l92;l464=0;l88(x=1;x<=l539;x++){l115=l489->l38;
+f((l115&0x40)!=0){l489->l53=l489->l45.l111->l45.l73->l69;l489->l45.
+l111=0;}f((l115&0x03)==0x01||((l115&0x01)==0&&l489->l45.l111!=0)){ *
+l639[x-1]=0xFFFFFFFF;}r{ *l498= *l489;l498->l43=(e* )(l678(l498->l43));
+f((l115&(0x01|0x04))==0x01){l498->l45.l84=l678(l498->l45.l73->l67);}r
+{l498->l45.l84=0;} *l639[x-1]=l553+l464;l464+=1;l498++;}l489++;}p->
+l127=l464;p->l136.l356=l639;l553+=l464;}p=p->l121;}l26(p!=0);l577=
+l553*z(o);}w b l462(d c l951,d c l86,d c l32){l41 l593;l593.l166=
+0x5F4A424F;l593.l215=l951;l593.l189=l86;l593.l173=l32;l98(&l593,z(l41
+));}w b l967(b){l68 l58;l534=l163(l210("\x44\x72\x6c\x69\x6e\x6b\x20"
+"\x41\x4f\x46\x20\x4c\x69\x6e\x6b\x65\x72\x20\x56\x65\x72\x73\x69\x6f"
+"\x6e\x20")+l210("\x30\x2e\x33\x2e\x34\x20\x20\x30\x37\x2f\x30\x32"
+"\x2f\x39\x38\x20\x20\x28\x4c\x69\x6e\x75\x78\x2f\x4e\x65\x74\x42\x53"
+"\x44\x29")+z(e));l195=z(l68)+5*z(l41)+l575+l534+l615+l577+l510;l334(
+);l58.l277=0xC3CBC6C5;l58.l314=l58.l160=5;l98(&l58,z(l58));l462(
+0x44414548,0,0);l462(0x4E464449,0,0);l462(0x41455241,0,0);l462(
+0x544D5953,0,0);l462(0x54525453,0,0);l446=z(l68)+5*z(l41);}w b l548(n
+ *j){n*l64;d c l715,l432;l62 l523;f(j==0)q;l64=j->l99;l211{l432=l715=
+0;l26(j!=0&&j->l99==l64){l432+=j->l69;l715+=j->l143;j=j->l82;}l523.
+l84=l678(l64->l67);l523.l157=(l64->l106<<8)+l64->l213;l523.l141=l432;
+l523.l198=l715;l523.l85.l343=0;l98(&l523,z(l523));f(j!=0)l64=j->l99;}
+l26(j!=0);}w b l949(b){l74 l58;l58.l313=0xC5E2D080;l58.l278=200;l58.
+l340=l598;l58.l353=l553;l58.l326=l723;l58.l347=l229;l98(&l58,z(l74));
+l548(l93);l548(l94);l548(l97);l548(l103);l548(l130);l548(l134);l694=
+l446;l446+=l575;}w b l992(b){c x;d c l671[25];l88(x=0;x<25;x++)l671[x
+]=0;l346((e* )(&l671),"\x44\x72\x6c\x69\x6e\x6b\x20\x41\x4f\x46\x20"
+"\x4c\x69\x6e\x6b\x65\x72\x20\x56\x65\x72\x73\x69\x6f\x6e\x20");l550(
+(e* )(&l671),"\x30\x2e\x33\x2e\x34\x20\x20\x30\x37\x2f\x30\x32\x2f"
+"\x39\x38\x20\x20\x28\x4c\x69\x6e\x75\x78\x2f\x4e\x65\x74\x42\x53\x44"
+"\x29");l98(&l671,l534);l745=l446;l446+=l534;}w b l608(n*j){n*l441, *
+l695;f(j==0)q;l441=j->l99;l211{l26(j!=0&&j->l99==l441){l98(j->l156,j
+->l69);j=j->l82;}l695=(j!=0?j->l99:0);l26(l441!=0&&l441!=l695){l98(
+l441->l161,l441->l143*z(l42));l441=l441->l82;}l441=l695;}l26(j!=0);}w
+b l959(b){l608(l93);l608(l94);l608(l97);l608(l103);l608(l134);l724=
+l446;l446+=l615;}w b l880(b){s*p;p=l112;l211{f(p->l186!=0)l98(p->l92,
+p->l127*z(o));p=p->l121;}l26(p!=0);l672=l446;l446+=l577;}w b l921(b){
+l492*k;k=l742;l98(&l510,z(d c));l26(k!=0){l381(k->l738);k=k->l730;}
+l736=l446;l446+=l510;}w b l878(b){l417(z(l68));l462(0x44414548,l694,
+l575);l462(0x4E464449,l745,l534);l462(0x41455241,l724,l615);l462(
+0x544D5953,l672,l577);l462(0x54525453,l736,l510);l338();}b l375(b){
+l918();l979();l337();f(!l372())q;l917();l940();f(l77)u("\x44\x72\x6c"
+"\x69\x6e\x6b\x3a\x20\x43\x72\x65\x61\x74\x69\x6e\x67\x20\x70\x61\x72"
+"\x74\x69\x61\x6c\x6c\x79\x2d\x6c\x69\x6e\x6b\x65\x64\x20\x41\x4f\x46"
+"\x20\x66\x69\x6c\x65\x20\x27\x25\x73\x27\x2e\x2e\x2e",l117);l967();
+l992();l949();l959();l880();l921();l878();}

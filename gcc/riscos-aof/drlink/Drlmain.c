@@ -1,887 +1,380 @@
-/*
-** Drlink AOF linker
-**
-** Copyright © David Daniels 1993, 1994, 1995, 1996, 1997, 1998.
-** All rights reserved.
-**
-** This is the main module of the linker. It deals with the
-** processing of the command line and any options
+/* COBF by BB -- 'Drlmain.c' obfuscated at Fri Dec 22 16:52:42 2000
 */
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <ctype.h>
-#include <time.h>
-#include "Drlhdr.h"
-#include "Filehdr.h"
-#include "Procdefs.h"
-
-#ifdef TARGET_RISCOS
-#include <kernel.h>
-#endif
-
-/* Variables referenced by other modules */
-
-int
-  warnings,		/* Number of warning messages put out by linker */
-  errors;		/* Number of error messages put out by linker */
-
-bool
-  inviafile,		/* TRUE if taking commands from 'via' file */
-  low_memory,		/* TRUE if memory is running low */
-  aofv3flag,		/* TRUE if any AOF files use AOF version 3 */
-  got_oldlibs,		/* TRUE if an old-style library has been read */
-  opt_verbose,		/* TRUE if linker is putting out progress messages */
-  opt_quiet,		/* TRUE if linker is not printing non-error messages */
-  opt_info,		/* TRUE if printing summary at end of link */
-  opt_throw,		/* TRUE if using throwback */
-  opt_nounused,		/* TRUE if leaving out unreferenced areas */
-  opt_areamap,		/* TRUE if linker will produce an area map */
-  opt_mapfile,		/* TRUE if linker will produce an area map file */
-  opt_symbols,		/* TRUE if linker will produce a symbol list */
-  opt_acornmap,		/* TRUE if generating symbol listing in Acorn format */
-  opt_revmap,		/* TRUE if listing symbols <addr> <name> */
-  opt_rescan,		/* TRUE if scanning libraries more than once */
-  opt_debug,		/* TRUE if linker will include all debug tables */
-  opt_keepdebug,	/* TRUE if keeping only some debug tables */
-  opt_leaveweak,	/* TRUE if not resolving weak externals using libraries */
-  opt_debimage,		/* TRUE if creating 'DebImage' file instead of 'Absolute' */
-  opt_codebase,		/* TRUE if a non-standard value the code base address is given */
-  opt_database,		/* TRUE if a non-standard value for the R/W data base address is given */
-  opt_dump,     	/* TRUE if a dump of linker structures is needed */
-  opt_case,		/* TRUE if linker will ignore symbol case */
-  opt_cpp,		/* TRUE if linking a C++ program */
-  opt_gccareas,		/* TRUE if not touching special GCC areas in 'nounused' processing */
-  opt_pagealign,	/* TRUE if aligning start of R/W areas on page boundary */
-  opt_strongarm;	/* TRUE if handling StrongARM-specific stuff */
-
-linker_state link_state; /* Says what the linker is doing */
-
-/* Private declarations */
-
-static char
-  *cmdbuffer,		/* Pointer to buffer holding command line */
-  *cmdbufend;		/* Pointer to end of command line buffer */
-
-/* Forward references */
-
-static bool startup(void);
-static bool copy_cmdline(int, char *[]);
-static bool scan_cmdline(void);
-
-/*
-** This is where it all begins...
-*/
-int main(int argc, char *argv[]) {
-  time_t startime;
-  int elapsed;
-
-  errors = 0;
-  if (startup()) {
-    startime = clock();
-    copy_cmdline(argc, argv);
-    if (scan_cmdline()) {
-      if (!opt_quiet) announce();
-      link_program();
-    }
-    if (opt_verbose || opt_info) {
-      elapsed = clock()-startime;
-      printf("Drlink: Link %s with %d warning%s and %d error%s in %d.%02d seconds\n",
-       (errors==0 ? "completed" : "failed"), warnings, (warnings==1 ? "" : "s"),
-       errors, (errors==1 ? "" : "s"), elapsed/100, elapsed%100);
-      print_heapstats();
-    }
-    else if (errors>0) {
-      printf("Drlink: Link failed with %d error%s\n", errors, (errors==1 ? "" : "s"));
-    }
-    release_heap();
-  }
-  return (errors==0 ? EXIT_OK : EXIT_ERROR);
-}
-
-static void print_help(void) {
-  announce();
-  printf("\n'Drlink' is a linker for object files in Acorn's AOF format. It\n");
-  printf("carries out the same function as the Acorn linker, 'link', but it\n");
-  printf("is not a replacement for 'link' as it omits some of that program's\n");
-  printf("features such as the ability to create image files with overlays.\n");
-  printf("\nThe command syntax is:\n\n");
-  printf("  drlink <options> <list of files to include in linked program>\n\n");
-  printf("Options recognised are:\n\n");
-  printf("  -aco[rnmap]  Produce symbol listing in format similar to that of 'link'\n");
-  printf("  -ai[f]       Produce an AIF image file (default)\n");
-  printf("  -ao[f]       Produce a partially-linked AOF file\n");
-  printf("  -area[map] <file> Write list of areas in image file to <file>\n");
-  printf("  -b[ase] <address> Start read only part of image at <address>\n");
-  printf("  -bi[n]       Produce a plain binary image file\n");
-  printf("  -c++         Carry out extra linker actions needed by C++ programs\n");
-  printf("  -c[ase]      Ignore the case of symbols where searching for them\n");
-  printf("  -da[ta] <address> Start read/write part of image at <address>\n");
-#ifdef TARGET_RISCOS
-  printf("  -debi[mage]  Set filetype of image file with debug info to 'DebImage'\n");
-#endif
-  printf("  -d[ebug]     Include debugging information in the image file\n");
-  printf("  -e[dit] <file> Take link edit commands from <file>\n");
-  printf("  -gcc         Do not remove GCC-specific areas when '-nounused' used\n");
-  printf("  -h[elp]      Print this help information\n");
-  printf("  -keep[debug] <list> Keep debug info for files in <list> only\n");
-  printf("  -leave[weak] Do not attempt to resolve weak externals using libraries\n");
-  printf("  -lib <list>  Do not load libraries in <list> into memory\n");
-  printf("  -map         Print a list of areas in the image file\n");
-  printf("  -m[odule]    Create a relocatable module\n");
-  printf("  -no[unused]  Leave unreferenced areas out of the image file\n");
-  printf("  -o[utput] <file> Write executable image to file <file>\n");
-  printf("  -pag[ealign] Align end of read-only areas on page boundary\n");
-  printf("  -qui[et]     Do not print any messages except error messages\n");
-  printf("  -r[elocatable] Create a relocatable AIF image file\n");
-  printf("  -res[can]    Scan libraries more than once to find symbols\n");
-  printf("  -rev[map]    Produce symbol listing in order <addr> <symbol>\n");
-  printf("  -rm[f]       Create a relocatable module\n");
-  printf("  -s[ymbols] <file> Write list of symbols in image to <file>\n");
-#ifdef TARGET_RISCOS
-  printf("  -t[hrowback] Send warning and error messages to throwback window\n");
-#endif
-  printf("  -v[erbose]   Print messages as the link progresses\n");
-  printf("  -via <file>  Continue taking link parameters from file <file>\n");
-  printf("  -w[orkspace] <size> Set relocatable image workspace to <size> bytes\n");
-  printf("  -x[ref]      Print a list of references between areas (ignored)\n\n");
-  printf("Note that the following 'link' options, although recognised, have\n");
-  printf("not been implemented and will be flagged as an error: dbug, entry\n");
-  printf("and overlay.\n");
-}
-
-/*
-** 'get_text' returns a pointer to the next 'word' in the command
-** line or 'via' file, adding a null to the end of the word and
-** converting it to lower case if it starts with a '-'. It returns
-** 'NIL' if at the end of the command line buffer
-*/
-static char *get_text(void) {
-  char terminator;
-  char *cp, *start;
-  bool option;
-  cp = cvptr;
-  while (cp!=cvptrend && *cp<=' ' && *cp!=NULLCHAR) cp++;
-  if (cp==cvptrend || *cp==NULLCHAR) {	/* At end of cmdline or 'via' file */
-    if (inviafile) {	/* End of 'via' file */
-      cp = cvptr = lastcvptr;	/* Go back to command line */
-      cvptrend = cmdbufend;
-      inviafile = FALSE;
-      return get_text();
-    }
-    return NIL;
-  }
-  option = *cp=='-';
-  if (*cp=='"') {	/* Something in quotes */
-    terminator = '"';
-    cp++;
-  }
-  else {
-    terminator = ' ';
-  }
-  start = cp;
-  do {
-    if (option) *cp = tolower(*cp);
-    cp++;
-  } while (cp!=cvptrend && ((terminator=='"' && *cp!='"') || (terminator==' ' && *cp>' ')));
-  if (terminator=='"' && cp==cvptrend) {	/* " missing */
-    error("Error: Unmatched '\"' found");
-    cvptr = cp;
-    return NIL;
-  }
-  *cp = NULLCHAR;
-  if (cp!=cvptrend) cp++;	/* Skip 'null' just added */
-  cvptr = cp;
-  return start;
-}
-
-/*
-** 'addto_linklist' adds a file to the list of files to be linked
-** into the executable image
-*/
-static void addto_linklist(char *p) {
-  linkfiles *lp;
-  if ((lp = allocmem(sizeof(linkfiles)))==NIL) error("Fatal: Out of memory in 'addto_linklist'");
-  lp->linkname = p;
-  lp->linknext = NIL;
-  if (linklist==NIL) {
-    linklist = lp;
-  }
-  else {
-    linklast->linknext = lp;
-  }
-  linklast = lp;
-}
-
-static char *skip_blanks(char *p) {
-  while (isspace(*p)) p++;
-  return p;
-}
-
-char *fnstart, *fnend;		/* Start and end of a filename */
-
-/*
-** 'extract_name' is called to find the next name in the string
-** pointed at by 'np'. It returns 'TRUE' if a name was found
-** otherwise it returns 'FALSE'. 'fnstart' points at the start
-** of the string. If this is NIL, the end of the string has been
-** reached. The routine adds a null after a name to mark its end.
-** Names can be separated by blanks or commas
-*/
-static bool extract_name(char *np) {
-  char ch;
-  np = skip_blanks(np);
-  fnstart = np;
-  ch = *np;
-  if (ch==NULLCHAR) {	/* End of string */
-    fnstart = NIL;
-    return TRUE;
-  }
-  while (ch!=NULLCHAR && ch!=',' && ch!=' ') {
-    np++;
-    ch = *np;
-  }
-  if (np==fnstart) return FALSE;	/* No text found */
-  if (ch==',' || ch==' ') {	/* Another name to follow */
-    *np = NULLCHAR;
-    np++;
-  }
-  fnend = np;
-  return TRUE;
-}
-
-/*
-** 'get_libraries' is called to verify that the list of libraries
-** passed to it exist and adds them to the library list. Note that
-** any 'old style' libraries or AOF files found in the list are
-** added to the list of files to be loaded in the normal way.
-*/
-static bool get_libraries(char *lp) {
-  bool ok;
-  do {
-    ok = extract_name(lp);
-    if (!ok) {
-      error("Error: Badly formed library list found after option '-lib'");
-      return FALSE;
-    }
-    else if (fnstart!=NIL) {
-      switch (examine_file(fnstart)) {
-      case NOWT:
-        return FALSE;
-      case LIBRARY:
-        addto_liblist(fnstart, NIL, find_filesize(fnstart));
-        break;
-      case AOFILE: case OLDLIB:
-        addto_linklist(fnstart);
-      }
-    }
-    lp = fnend;
-  } while (fnstart!=NIL);
-  return TRUE;
-}
-
-/*
-** 'get_debugfiles' adds the files listed to the list of files
-** where debug information is to be kept.
-*/
-static bool get_debugfiles(char *lp) {
-  bool ok;
-  do {
-    ok = extract_name(lp);
-    if (!ok) {
-      error("Error: Badly formed file list found after option '-keepdebug'");
-      return FALSE;
-    }
-    if (fnstart!=NIL) addto_debuglist(fnstart);
-    lp = fnend;
-  } while (fnstart!=NIL);
-  return TRUE;
-}
-
-static bool onetype(void) {
-  if (imagetype!=NOTYPE) error("Error: More than one image type specified");
-  return imagetype==NOTYPE;
-}
-
-int align(int x) {
-  return (x<0 ? x & ALIGNMASK : (x+3) & ALIGNMASK);
-}
-
-/*
-** 'get_number' is called to assemble a numeric parameter
-*/
-static bool get_number(char *p, unsigned int *value) {
-  unsigned int size, radix;
-  int digit;
-  char *startp, ch;
-  bool ok;
-  size = 0;
-  radix = 10;
-  ch = *p;
-  if (ch=='&') {
-    radix = 16;
-  }
-  else if (ch=='0') {
-    p++;
-    if (tolower(*p)=='x') radix = 16;
-  }
-  if (radix==16) p++;	/* Skip '&' or '0x' */
-  startp = p;
-  ch = tolower(*p);
-  ok = TRUE;
-  while (ok && ch!=NULLCHAR && ch!='m' && ch!='k') {
-    if (radix==16 && ch>='a') {
-     digit = ch-('a'-10);
-    }
-    else {
-      digit = ch-'0';
-    }
-    if (digit<0 || (radix==10 && digit>9) || (radix==16 && digit>15)) {
-      ok = FALSE;
-    }
-    else {
-      size = size*radix+digit;
-    }
-    p++;
-    ch = tolower(*p);
-  }
-  ok = ok && p!=startp;
-  if (ch!=NULLCHAR) {	/* Make sure number is formed properly */
-    ok = *(p+1)==NULLCHAR;
-    if (ch=='k') {	/* Followed by 'k' - Size is in 'kilo' */
-      if (size<4194304) {
-        size = size*1024;
-      }
-      else {
-        ok = FALSE;
-      }
-    }
-    else {	/* Followed by 'm' - Size is in 'mega' */
-      if (size<4096) {
-        size = size*(1024*1024);
-      }
-      else {
-        ok = FALSE;
-      }
-    }
-  }
-  *value = size;
-  return ok;
-}
-
-/*
-** 'get_option' is called to identify and act on each option on the
-** command line. It recognises all the valid 'link' options although
-** not all of them are supported by Drlink. It flags unsupported
-** options as errors.
-*/
-static bool get_option(char *tp) {
-  typedef enum {
-    NOSUPPORT, IGNORED, OPT_ACORNMAP, OPT_AIF, OPT_AOF, OPT_BASE,
-    OPT_BIN, OPT_BUFFER, OPT_CASE, OPT_CPLUS, OPT_DATA, OPT_DEBIMAGE,
-    OPT_DEBUG, OPT_DUMP, OPT_EDIT, OPT_GCCAREAS, OPT_HELP, OPT_INFO,
-    OPT_KEEP, OPT_LEAVEWEAK, OPT_LIB, OPT_MAP, OPT_MAPFILE, OPT_NOUNUSED,
-    OPT_OUTPUT, OPT_PAGE, OPT_QUIET, OPT_RELOC, OPT_RESCAN, OPT_REVMAP,
-    OPT_RMOD, OPT_STRONG, OPT_SYMBOL, OPT_THROW, OPT_VIA, OPT_VERBOSE,
-    OPT_WORKS
-  } actions;
-
-typedef struct {char *optname; unsigned char optlen; actions optaction;} option;
-
-option optionlist [] = {
-/* areamap */	{"area", 4, OPT_MAPFILE},
-/* aif */	{"ai", 2, OPT_AIF},
-/* aof */	{"ao", 2, OPT_AOF},
-/* acornmap */	{"acornmap", 3, OPT_ACORNMAP},
-/* buffer */	{"buf", 3, OPT_BUFFER},
-/* bin */	{"bi", 2, OPT_BIN},
-/* base */	{"b", 1, OPT_BASE},
-/* C++ */	{"c++", 3, OPT_CPLUS},
-/* case */	{"c", 1, OPT_CASE},
-#ifdef DEBUG
-/* dump */	{"dump", 4, OPT_DUMP},
-#endif
-#ifdef TARGET_RISCOS
-/* debimage */	{"debi", 4, OPT_DEBIMAGE},
-#endif
-/* data */	{"da",2, OPT_DATA},
-/* dbug */	{"db",2, NOSUPPORT},
-/* debug */	{"d", 1, OPT_DEBUG},
-/* entry */	{"en",2, NOSUPPORT},
-/* edit */	{"e", 1, OPT_EDIT},
-/* gcc */	{"gcc", 3, OPT_GCCAREAS},
-/* help */	{"h", 1, OPT_HELP},
-/* info */	{"info", 4, OPT_INFO},
-/* keepdebug */	{"keep", 4, OPT_KEEP},
-/* keeponly */	{"k", 1, OPT_NOUNUSED},
-/* leaveweak */	{"leave", 5, OPT_LEAVEWEAK},
-/* library */	{"lib", 3, OPT_LIB},
-/* map */	{"map", 3, OPT_MAP},
-/* module */	{"m", 1, OPT_RMOD},
-/* nounused */	{"no", 2, OPT_NOUNUSED},
-/* overlay */	{"ov", 2, NOSUPPORT},
-/* output */	{"o", 1, OPT_OUTPUT},
-/* pagealign */ {"pag", 3, OPT_PAGE},
-/* quiet */	{"qui", 3, OPT_QUIET},
-/* rescan */	{"res", 3, OPT_RESCAN},
-/* revmap */	{"rev", 3, OPT_REVMAP},
-/* rmf */	{"rm", 2, OPT_RMOD},
-/* relocatable */ {"r", 1, OPT_RELOC},
-/* strong */	{"str", 3, OPT_STRONG},
-/* symbols */	{"s", 1, OPT_SYMBOL},
-#ifdef TARGET_RISCOS
-/* throwback */	{"t", 1, OPT_THROW},
-#endif
-/* via */	{"via", 3, OPT_VIA},
-/* verbose */	{"v", 1, OPT_VERBOSE},
-/* workspace */	{"w", 1, OPT_WORKS},
-/* xref */	{"x", 1, IGNORED}};
-
-  int n;
-  unsigned int value;
-  bool ok;
-  char *op;
-  ok = TRUE;
-  op = tp;
-  tp++;		/* Skip past '-' at start of option */
-  n = 0;
-  while (n<sizeof(optionlist)/sizeof(option) &&
-   strncmp(tp, optionlist[n].optname, optionlist[n].optlen)!=0) n++;
-  if (n>=sizeof(optionlist)/sizeof(option)) {
-    error("Error: Unrecognised option '%s'", op);
-    return FALSE;
-  }
-  switch (optionlist[n].optaction) {	/* Handle individual options */
-  case OPT_AIF:
-    ok = onetype();
-    imagetype = AIF;
-    break;
-  case OPT_AOF:
-    ok = onetype();
-    imagetype = AOF;
-    break;
-  case OPT_ACORNMAP:
-    opt_acornmap = TRUE;
-    break;
-  case OPT_PAGE:
-    opt_pagealign = TRUE;
-    break;
-  case OPT_BASE:
-    tp = get_text();
-    if (tp!=NIL) {
-      ok = get_number(tp, &value);
-      if (!ok) {
-        error("Error: Bad numeric value supplied after option '%s'", op);
-      }
-      else if (opt_codebase) {
-        error("Error: Code base address already supplied");
-        ok = FALSE;
-      }
-      opt_codebase = TRUE;
-      codebase = align(value);
-    }
-    else {
-      error("Error: No code base address supplied after '%s'", op);
-      ok = FALSE;
-    }
-    break;
-  case OPT_BIN:
-    ok = onetype();
-    imagetype = BIN;
-    break;
-  case OPT_BUFFER:
-    tp = get_text();
-    if (tp!=NIL) {
-      ok = get_number(tp, &buffersize);
-      if (!ok) {
-        error("Error: Bad numeric value supplied after option '%s'", op);
-      }
-      else {
-        buffersize = align(buffersize);
-      }
-    }
-    else {
-      error("Error: No buffer size supplied after '%s'", op);
-      ok = FALSE;
-    }
-    break;
-  case OPT_CASE:
-    opt_case = TRUE;
-    break;
-  case OPT_CPLUS:
-   opt_cpp = TRUE;
-    break;
-  case OPT_DATA:
-    tp = get_text();
-    if (tp!=NIL) {
-      ok = get_number(tp, &value);
-      if (!ok) {
-        error("Error: Bad numeric value supplied after option '%s'", op);
-      }
-      else if (opt_database) {
-        error("Error: Data base address already supplied");
-        ok = FALSE;
-      }
-      opt_database = TRUE;
-      database = align(value);
-    }
-    else {
-      error("Error: No data base address supplied after '%s'", op);
-      ok = FALSE;
-    }
-    break;
-#ifdef TARGET_RISCOS
-  case OPT_DEBIMAGE:
-    opt_debimage = TRUE;
-    break;
-#endif
-  case OPT_DEBUG:
-    opt_keepdebug = opt_debug = TRUE;
-    break;
-  case OPT_DUMP:
-    opt_dump = TRUE;
-    break;
-  case OPT_EDIT:
-    tp = get_text();
-    if (tp!=NIL) {
-      ok = load_editfile(tp) && scan_editfile();
-    }
-    else {
-      error("Error: No filename found after option '%s'", op);
-      ok = FALSE;
-    }
-    break;
-  case OPT_GCCAREAS:
-    opt_gccareas = TRUE;
-    break;
-  case OPT_HELP:
-    print_help();
-    ok = FALSE;
-    break;
-  case OPT_INFO:
-    opt_info = TRUE;
-    break;
-  case OPT_KEEP:
-    tp = get_text();
-    if (tp!=NIL) {
-      ok = get_debugfiles(tp);
-      opt_keepdebug = TRUE;
-    }
-    else {
-      error("Error: No debug file list found after option '%s'", op);
-      ok = FALSE;
-    }
-    break;
-  case OPT_LEAVEWEAK:
-    opt_leaveweak = TRUE;
-    break;
-  case OPT_LIB:
-    tp = get_text();
-    if (tp!=NIL) {
-      ok = get_libraries(tp);
-    }
-    else {
-      error("Error: No library names found after option '%s'", op);
-      ok = FALSE;
-    }
-    break;
-  case OPT_MAP:
-    opt_areamap = TRUE;
-    break;
-  case OPT_MAPFILE:
-    tp = get_text();
-    if (tp!=NIL) {
-      mapfilename = tp;
-      opt_mapfile = TRUE;
-    }
-    else {
-      error("Error: No map file name found after option '%s'", op);
-      ok = FALSE;
-    }
-    break;
-  case OPT_NOUNUSED:
-    opt_nounused = TRUE;
-    break;
-  case OPT_OUTPUT:
-    tp = get_text();
-    if (tp!=NIL) {
-      imagename = tp;
-    }
-    else {
-      ok = FALSE;
-      error("Error: No filename found after option '%s'", op);
-    }
-    break;
-  case OPT_QUIET:
-    opt_quiet = TRUE;
-    break;
-  case OPT_RELOC:
-    if (imagetype>AIF) {
-      error("Error: More than one image type specified");
-      ok = FALSE;
-    }
-    imagetype = RELOC;
-    break;
-  case OPT_RESCAN:
-    opt_rescan = TRUE;
-    break;
-  case OPT_REVMAP:
-    opt_acornmap = opt_revmap = TRUE;
-    break;
-  case OPT_RMOD:
-    ok = onetype();
-    imagetype = RMOD;
-    break;
-  case OPT_STRONG:
-    opt_strongarm = TRUE;
-    break;
-  case OPT_SYMBOL:
-    tp = get_text();
-    if (tp!=NIL) {
-      symbolname = tp;
-      opt_symbols = TRUE;
-    }
-    else {
-      ok = FALSE;
-      error("Error: No filename found after option '%s'", op);
-    }
-    break;
-#ifdef TARGET_RISCOS
-  case OPT_THROW:
-    if (!opt_throw) {	/* Only try this if throwback not in use */
-      opt_throw = TRUE;
-      start_throwback();
-    }
-    break;
-#endif
-  case OPT_VIA:
-    tp = get_text();
-    if (tp!=NIL) {
-      if (inviafile) {
-        error("Fatal: Nested 'via' files are not allowed");
-      }
-      else {
-        ok = load_viafile(tp);
-      }
-    }
-    else {
-      ok = FALSE;
-      error("Error: No filename found after option '%s'", op);
-    }
-    break;
-  case OPT_VERBOSE:
-    opt_verbose = TRUE;
-    break;
-  case OPT_WORKS:
-    tp = get_text();
-    if (tp!=NIL) {
-      ok = get_number(tp, &workspace);
-      if (!ok) {
-        error("Error: Bad numeric value supplied after option '%s'", op);
-      }
-      else {
-        workspace = align(workspace);
-      }
-    }
-    else {
-      error("Error: No workspace size supplied after '%s'", op);
-      ok = FALSE;
-    }
-    break;
-  case IGNORED:
-    error("Warning: 'link' option '%s' is not supported and is ignored", op);
-    break;
-  case NOSUPPORT:
-    error("Fatal: 'link' option '%s' is not supported", op);
-  }
-  return ok;
-}
-
-/*
-** 'scan_cmdline' scans the command line picking out the files to
-** include in linked program and handling the various linker options.
-*/
-static bool scan_cmdline(void) {
-  char *tp;
-  bool ok;
-  ok = TRUE;
-  tp = get_text();
-  while (tp!=NIL && ok) {
-    if (*tp!='-') {	/* A possible victim */
-      addto_linklist(tp);
-    }
-    else {
-      ok = get_option(tp);
-    }
-    tp = get_text();
-  }
-  if (ok) {
-    ok = linklist!=NIL;
-    if (!ok) print_help();
-  }
-  if (imagetype==NOTYPE) imagetype = (opt_codebase ? BIN : AIF);
-  if (imagetype!=RELOC) workspace = 0;
-  if (imagetype!=BIN && (opt_codebase || opt_database)) {
-    opt_codebase = opt_database = FALSE;
-    error("Error: Base address of code or data can only be specified for binary image files");
-    ok = FALSE;
-  }
-  switch (imagetype) {
-  case RMOD:	/* Don't want debug tables in module */
-    if (opt_verbose && opt_debug) error("Warning: Option '-debug' ignored for relocatable modules");
-    opt_debug = FALSE;
-    break;
-  case AOF:
-    if (imagename==NIL) imagename = "aof";
-    opt_nounused = FALSE;
-  }
-  if (imagename==NIL) imagename = "!RunImage";
-  opt_verbose = opt_verbose && !opt_quiet;
-  return ok;
-}
-
-#ifdef TARGET_RISCOS
-
-#define DDEUtils_GetCLSize 0x42583
-#define DDEUtils_GetCL 0x42584
-
-/*
-** 'GetCLSize returns the length of an extended command line if
-** one exists
-*/
-int GetCLSize(void) {
-  _kernel_swi_regs regs;
-  _kernel_oserror *swierror;
-  swierror = _kernel_swi(DDEUtils_GetCLSize, &regs, &regs);
-  if (swierror!=NIL) {	/* Error - Assume DDEUtils is not loaded */
-    swierror = _kernel_last_oserror();	  /* Loose SWI error logged by C library */
-    return -1;
-  }
-  else {
-    return regs.r[0];	/* Otherwise length is returned in R0 */
-  }
-}
-
-/*
-** 'GetCL' returns the contents of the extended command line. No
-** check is made to ensure the DDEUtils module is available: GetCLSize
-** is assumed to have called to do this
-*/
-void GetCL(char *cmdline) {
-  _kernel_swi_regs regs;
-  _kernel_oserror *swierror;
-  regs.r[0] = COERCE(cmdline, int);
-  swierror = _kernel_swi(DDEUtils_GetCL, &regs, &regs);
-}
-
-/*
-** 'copy_cmdline' obtains a copy of the command line for use by the
-** program. If there is an extended command line available (from the
-** DDE utilities) it uses that, otherwise the normal command line is
-** used. The command line text will be modified later.
-**
-** The parsed version of the parameter list is recombined into one
-** character string as then the same code can be used to deal with
-** the normal and extended command lines as well as 'via' files.
-**
-** There are two version of this routine, one specific to RISCOS and
-** the other for anyone else. The RISCOS one comes first
-*/
-static bool copy_cmdline(int argc, char *argv[]) {
-  int n, size;
-  bool extended;
-  size = GetCLSize();
-  extended = size>0;
-  if (!extended) {	/* Extended command line not present. Use ordinary one */
-    if (argc<2) return FALSE;	/* Return if no parameters supplied */
-    size = 0;
-    for (n = 1; n<argc; n++) size+=strlen(argv[n])+sizeof(char);	/* Find length of parameters */
-  }
-  cmdbuffer = allocmem(size+sizeof(char));	/* +1 for possible null at end */
-  if (cmdbuffer==NIL) error("Fatal: Not enough memory to run linker");
-  if (extended) {	/* Copy extended command line */
-    GetCL(cmdbuffer);
-  }
-  else {
-    *cmdbuffer = NULLCHAR;
-    for (n = 1; n<argc; n++) {
-      strcat(cmdbuffer, argv[n]);
-      strcat(cmdbuffer, " ");
-    }
-  }
-  cvptr = cmdbuffer;
-  cvptrend = cmdbufend = cmdbuffer+size;
-  inviafile = FALSE;
-  return TRUE;
-}
-
-#else
-
-/*
-** This is the non-RISCOS version of copy_cmdline. All it does
-** is bolt the command line back together again.
-*/
-static bool copy_cmdline(int argc, char *argv[]) {
-  int n, size;
-  if (argc<2) return FALSE;	/* Return if no parameters supplied */
-  size = 0;
-  for (n = 1; n<argc; n++) size+=strlen(argv[n])+sizeof(char);	/* Find length of parameters */
-  cmdbuffer = allocmem(size+sizeof(char));	/* +1 for possible null at end */
-  if (cmdbuffer==NIL) error("Fatal: Not enough memory to run linker");
-  *cmdbuffer = NULLCHAR;
-  for (n = 1; n<argc; n++) {
-    strcat(cmdbuffer, argv[n]);
-    strcat(cmdbuffer, " ");
-  }
-  cvptr = cmdbuffer;
-  cvptrend = cmdbufend = cmdbuffer+size;
-  inviafile = FALSE;
-  return TRUE;
-}
-
-#endif
-
-/*
-** 'startup' initialises everything at the start of the run. It
-** returns TRUE if the initialisation was successful else it
-** returns FALSE
-*/
-static bool startup(void) {
-  link_state = STARTING;
-  warnings = 0;
-  errors = 0;
-  opt_verbose = FALSE;		/* Don't say what is going on */
-  opt_quiet = FALSE;		/* Do not keep as quiet as a mouse */
-  opt_info = FALSE;		/* Do not print info at end */
-  opt_throw = FALSE;		/* Do not use throwback for error messages */
-  opt_case = FALSE;		/* Do not ignore symbol case */
-  opt_rescan = FALSE;		/* Only scan libraries once */
-  opt_debug = FALSE;		/* Do not include debug info */
-  opt_keepdebug = FALSE;	/* Not even a little bit */
-  opt_leaveweak = FALSE;	/* Resolve weak external refs if possible */
-  opt_debimage = FALSE;		/* Create file with type 'Absolute' */
-  opt_nounused = FALSE;		/* Do not strip out unused areas */
-  opt_cpp = FALSE;		/* Not linking a C++ program */
-  opt_gccareas = FALSE;		/* Not ignoring GCC-specific areas when removing areas */
-  opt_areamap = FALSE;		/* Do not produce a map of areas in the image file */
-  opt_mapfile = FALSE;		/* Do not produce file containing map of areas */
-  opt_symbols = FALSE;		/* Do not produce symbol map */
-  opt_acornmap = FALSE;		/* Not producing symbol map in Acorn format */
-  opt_revmap = FALSE;		/* Not listing symbols <addr> <name> */
-  opt_dump = FALSE;		/* Do not dump linker structures */
-  opt_pagealign = FALSE;	/* Do not align end of R/O areas on page boundary */
-  opt_codebase = FALSE;		/* No value given for start-of-code address */
-  opt_database = FALSE;		/* No value given for start-of-R/W-data address */
-  opt_strongarm = FALSE;	/* Not destined to run on a StrongARM */
-  low_memory = FALSE;		/* Not running short on memory yet */
-  got_oldlibs = FALSE;		/* No old libraries read yet */
-  linklist = linklast = NIL;
-  if (!initheap()) return FALSE;
-  init_files();
-  init_areas();
-  init_symbols();
-  init_edit();
-  init_library();
-  return TRUE;
-}
+#include<stdio.h>
+#include<stdlib.h>
+#include<string.h>
+#include<ctype.h>
+#include<time.h>
+#include"cobf.h"
+i l50{l365,l327,l396,l312,l394,l383}l132;i e g;a c l276,l142;a g l187
+,l238,l162,l259,l77,l269,l262,l335,l168,l280,l273,l270,l249,l297,l220
+,l171,l243,l298,l329,l184,l208,l302,l137,l257,l290,l288,l282;a l132
+l164;
+i h l62{d c l84;d c l157;d c l141;d c l198;l81{d c l343;h n*l332;d c
+l379;}l85;}l62;i h l74{d c l313;d c l278;d c l340;d c l353;d c l326;d
+c l347;}l74;i h l79{l74 l167;l62 l64;}l79;i h l54{h n*l299;c l63;h l54
+ *l281;}l54;i h n{c l201;e*l67;h n*l99;h n*l85;h s*l75;d c l106;d c
+l213;d c*l156;d c l69;h l42*l161;d c l143;d c l61;h l*l159;c l63;h l54
+ *l149;h n*l82;}n;i l50{l325,l357,l351,l342}l128;a n*l93, *l97, *l94,
+ *l103, *l130, *l134;a d c l217,l179,l286,l242,l266;a n*l144;a d c
+l229;i h o{e*l43;d c l38;d c l53;l81{d c l84;h n*l73;h o*l111;}l45;}o
+;i h l{c l83;h o*l31;h o*l135;h l*l96;}l;i l*l129[32];i h l42{d c l152
+;d c l66;}l42;i h l28{c l254;e*l48;e*l224;d c l263;d c l256;h l28*l80
+;}l28;i l28*l78[128];i h y{e*l48;d c*l177;d c l272;g l289;g l428;l78
+l225;h y*l80;}y;i d c l118[1];a l*l212[256];a l*l176, *l188, *l205, *
+l191, *l185, *l202, *l250, *l248, *l244, *l251, *l246;a l78*l300;a y*
+l169;a o*l204, *l203;a d c l230,l123,l227,l194;i h{d c l277;d c l314;
+d c l160;}l68;i h{d c l166;d c l215;d c l189;d c l173;}l41;i h{l68 l58
+;l41 l258;}l199;a l41*l172;a d c l107;a o*l108;a d c*l231, *l247;a e*
+l151;a d c l255,l219,l235,l295;i l50{l301,l283,l153,l437,l234,l147,
+l233}l131;i l50{l148,l175,l183,l236}l114;i h l52{e*l345;h l52*l303;}
+l52;i h l51{e*l308;c l341;g l305;h l51*l322;}l51;i h s{e*l39;d c l279
+;d c l186;g l285;g l424;g l319;g l294;h l79*l216;d c l309;d c*l200;d c
+l317;h o*l92;d c l284;e*l291;d c l287;d c l268;d c l127;l129 l218;l81
+{l*l145;l118*l356;}l136;l*l401;h s*l121;}s;a l131 l56;a s*l112, *l306
+;a y*l146, *l271;a l68 l58;a l253*l150, *l207, *l119, *l239;a e*l240,
+ *l245, *l117;a g l222,l261,l264,l155;a e l101[500];a d c l321,l126,
+l190,l174,l195;a d c*l91;a l52*l252, *l293;a l51*l228;a e*l197, *l180
+, *l323;a c l163(c l105);a g l368(b);a b*l59(d c);a b l178(b* ,d c);a
+b l330(b);a b l359(b);a b l397(b);a g l307(s* );a b l382(b);a b l361(
+b);a b l377(b);a g l430(e* );a c l310(e* );a g l311(e* ,c,c,b* );a g
+l453(b);a b l419(e* );a b l400(b);a g l384(e* );a g l373(e* );a g l336
+(e* );a b l392(b);a g l363(y* );a l114 l296(e* );a s*l422(l28* ,s* ,l
+ * );a g l429(l41* );a b l367(b);a b l334(b);a b l98(b* ,c);a b l381(
+e* );a b l414(c);a b l338(b);a b l417(d c);a b l461(b);a b l410(b);a b
+l385(o* );a b l420(b);a b l418(b);a b l260(e* );a b l415(b);a b l416(
+b);a g l265(e* ,d c* ,d c);a g l451(y* );a g l434(y* );a b l393(y* );
+a g l358(l28* ,s* ,l* );a g l387(e* ,d c);a g l339(l28* );a g l423(b);
+a b l371(b);a g l360(b);a b l354(b);a b u(e* ,...);a g l304(b);a b
+l374(b);a c l221(c);a c l196(c);a c l182(c);a c l154(c);a b l426(s* );
+a g l386(s* );a o*l388(l* );a n*l427(e* );a b l433(b);a b l399(b);a b
+l404(b);a b l364(b);a g l395(b);a g l372(b);a b l292(n* );a b l425(b);
+a b l316(b);a b l328(b);a b l448(b);a b l350(b);a c l140(l120 e* ,
+l120 e* );a l*l275(e* ,d c);a b l421(b);a l*l406(o* );a b l412(b);a g
+l450(b);a g l391(s* );a b l320(s* );a g l370(b);a b l337(b);a b l138(
+l* ,d c);a c l70(e* );a e*l403(n* );a o*l209(o* );a l*l324(l* );a l*
+l366(e* );a g l390(l42* );a b l402(b);a b l376(b);a b l344(b);a b l460
+(b);a g l398(b);a g l378(b);a b l389(b);a d c l407(n* );a b l375(b);a
+b l331(l128,d c* * ,d c* );a b l409(d c* ,d c);a b l411(d c* ,d c);a b
+l369(d c* );a b l413(b);a g l408(b);a e*l181(e* );c l276,l142;g l187,
+l238,l162,l259,l77,l269,l262,l335,l168,l280,l273,l270,l249,l297,l220,
+l171,l243,l298,l329,l184,l208,l302,l137,l257,l290,l288,l282;l132 l164
+;w e*l481, *l677;w g l852(b);w g l843(c,e* []);w g l868(b);c l1015(c
+l570,e*l630[]){l999 l766;c l707;l142=0;f(l852()){l766=l944();l843(
+l570,l630);f(l868()){f(!l269)l354();l397();}f(l77||l262){l707=l944()-
+l766;l37("\x44\x72\x6c\x69\x6e\x6b\x3a\x20\x4c\x69\x6e\x6b\x20\x25"
+"\x73\x20\x77\x69\x74\x68\x20\x25\x64\x20\x77\x61\x72\x6e\x69\x6e\x67"
+"\x25\x73\x20\x61\x6e\x64\x20\x25\x64\x20\x65\x72\x72\x6f\x72\x25\x73"
+"\x20\x69\x6e\x20\x25\x64\x2e\x25\x30\x32\x64\x20\x73\x65\x63\x6f\x6e"
+"\x64\x73\n",(l142==0?"\x63\x6f\x6d\x70\x6c\x65\x74\x65\x64":"\x66"
+"\x61\x69\x6c\x65\x64"),l276,(l276==1?"":"\x73"),l142,(l142==1?"":""
+"\x73"),l707/100,l707%100);l359();}r f(l142>0){l37("\x44\x72\x6c\x69"
+"\x6e\x6b\x3a\x20\x4c\x69\x6e\x6b\x20\x66\x61\x69\x6c\x65\x64\x20\x77"
+"\x69\x74\x68\x20\x25\x64\x20\x65\x72\x72\x6f\x72\x25\x73\n",l142,(
+l142==1?"":"\x73"));}l330();}q(l142==0?0:12);}w b l854(b){l354();l37(""
+"\n\x27\x44\x72\x6c\x69\x6e\x6b\x27\x20\x69\x73\x20\x61\x20\x6c\x69"
+"\x6e\x6b\x65\x72\x20\x66\x6f\x72\x20\x6f\x62\x6a\x65\x63\x74\x20\x66"
+"\x69\x6c\x65\x73\x20\x69\x6e\x20\x41\x63\x6f\x72\x6e\x27\x73\x20\x41"
+"\x4f\x46\x20\x66\x6f\x72\x6d\x61\x74\x2e\x20\x49\x74\n");l37("\x63"
+"\x61\x72\x72\x69\x65\x73\x20\x6f\x75\x74\x20\x74\x68\x65\x20\x73\x61"
+"\x6d\x65\x20\x66\x75\x6e\x63\x74\x69\x6f\x6e\x20\x61\x73\x20\x74\x68"
+"\x65\x20\x41\x63\x6f\x72\x6e\x20\x6c\x69\x6e\x6b\x65\x72\x2c\x20\x27"
+"\x6c\x69\x6e\x6b\x27\x2c\x20\x62\x75\x74\x20\x69\x74\n");l37("\x69"
+"\x73\x20\x6e\x6f\x74\x20\x61\x20\x72\x65\x70\x6c\x61\x63\x65\x6d\x65"
+"\x6e\x74\x20\x66\x6f\x72\x20\x27\x6c\x69\x6e\x6b\x27\x20\x61\x73\x20"
+"\x69\x74\x20\x6f\x6d\x69\x74\x73\x20\x73\x6f\x6d\x65\x20\x6f\x66\x20"
+"\x74\x68\x61\x74\x20\x70\x72\x6f\x67\x72\x61\x6d\x27\x73\n");l37(""
+"\x66\x65\x61\x74\x75\x72\x65\x73\x20\x73\x75\x63\x68\x20\x61\x73\x20"
+"\x74\x68\x65\x20\x61\x62\x69\x6c\x69\x74\x79\x20\x74\x6f\x20\x63\x72"
+"\x65\x61\x74\x65\x20\x69\x6d\x61\x67\x65\x20\x66\x69\x6c\x65\x73\x20"
+"\x77\x69\x74\x68\x20\x6f\x76\x65\x72\x6c\x61\x79\x73\x2e\n");l37(""
+"\n\x54\x68\x65\x20\x63\x6f\x6d\x6d\x61\x6e\x64\x20\x73\x79\x6e\x74"
+"\x61\x78\x20\x69\x73\x3a\n\n");l37("\x20\x20\x64\x72\x6c\x69\x6e\x6b"
+"\x20\x3c\x6f\x70\x74\x69\x6f\x6e\x73\x3e\x20\x3c\x6c\x69\x73\x74\x20"
+"\x6f\x66\x20\x66\x69\x6c\x65\x73\x20\x74\x6f\x20\x69\x6e\x63\x6c\x75"
+"\x64\x65\x20\x69\x6e\x20\x6c\x69\x6e\x6b\x65\x64\x20\x70\x72\x6f\x67"
+"\x72\x61\x6d\x3e\n\n");l37("\x4f\x70\x74\x69\x6f\x6e\x73\x20\x72\x65"
+"\x63\x6f\x67\x6e\x69\x73\x65\x64\x20\x61\x72\x65\x3a\n\n");l37("\x20"
+"\x20\x2d\x61\x63\x6f\x5b\x72\x6e\x6d\x61\x70\x5d\x20\x20\x50\x72\x6f"
+"\x64\x75\x63\x65\x20\x73\x79\x6d\x62\x6f\x6c\x20\x6c\x69\x73\x74\x69"
+"\x6e\x67\x20\x69\x6e\x20\x66\x6f\x72\x6d\x61\x74\x20\x73\x69\x6d\x69"
+"\x6c\x61\x72\x20\x74\x6f\x20\x74\x68\x61\x74\x20\x6f\x66\x20\x27\x6c"
+"\x69\x6e\x6b\x27\n");l37("\x20\x20\x2d\x61\x69\x5b\x66\x5d\x20\x20"
+"\x20\x20\x20\x20\x20\x50\x72\x6f\x64\x75\x63\x65\x20\x61\x6e\x20\x41"
+"\x49\x46\x20\x69\x6d\x61\x67\x65\x20\x66\x69\x6c\x65\x20\x28\x64\x65"
+"\x66\x61\x75\x6c\x74\x29\n");l37("\x20\x20\x2d\x61\x6f\x5b\x66\x5d"
+"\x20\x20\x20\x20\x20\x20\x20\x50\x72\x6f\x64\x75\x63\x65\x20\x61\x20"
+"\x70\x61\x72\x74\x69\x61\x6c\x6c\x79\x2d\x6c\x69\x6e\x6b\x65\x64\x20"
+"\x41\x4f\x46\x20\x66\x69\x6c\x65\n");l37("\x20\x20\x2d\x61\x72\x65"
+"\x61\x5b\x6d\x61\x70\x5d\x20\x3c\x66\x69\x6c\x65\x3e\x20\x57\x72\x69"
+"\x74\x65\x20\x6c\x69\x73\x74\x20\x6f\x66\x20\x61\x72\x65\x61\x73\x20"
+"\x69\x6e\x20\x69\x6d\x61\x67\x65\x20\x66\x69\x6c\x65\x20\x74\x6f\x20"
+"\x3c\x66\x69\x6c\x65\x3e\n");l37("\x20\x20\x2d\x62\x5b\x61\x73\x65"
+"\x5d\x20\x3c\x61\x64\x64\x72\x65\x73\x73\x3e\x20\x53\x74\x61\x72\x74"
+"\x20\x72\x65\x61\x64\x20\x6f\x6e\x6c\x79\x20\x70\x61\x72\x74\x20\x6f"
+"\x66\x20\x69\x6d\x61\x67\x65\x20\x61\x74\x20\x3c\x61\x64\x64\x72\x65"
+"\x73\x73\x3e\n");l37("\x20\x20\x2d\x62\x69\x5b\x6e\x5d\x20\x20\x20"
+"\x20\x20\x20\x20\x50\x72\x6f\x64\x75\x63\x65\x20\x61\x20\x70\x6c\x61"
+"\x69\x6e\x20\x62\x69\x6e\x61\x72\x79\x20\x69\x6d\x61\x67\x65\x20\x66"
+"\x69\x6c\x65\n");l37("\x20\x20\x2d\x63\x2b\x2b\x20\x20\x20\x20\x20"
+"\x20\x20\x20\x20\x43\x61\x72\x72\x79\x20\x6f\x75\x74\x20\x65\x78\x74"
+"\x72\x61\x20\x6c\x69\x6e\x6b\x65\x72\x20\x61\x63\x74\x69\x6f\x6e\x73"
+"\x20\x6e\x65\x65\x64\x65\x64\x20\x62\x79\x20\x43\x2b\x2b\x20\x70\x72"
+"\x6f\x67\x72\x61\x6d\x73\n");l37("\x20\x20\x2d\x63\x5b\x61\x73\x65"
+"\x5d\x20\x20\x20\x20\x20\x20\x49\x67\x6e\x6f\x72\x65\x20\x74\x68\x65"
+"\x20\x63\x61\x73\x65\x20\x6f\x66\x20\x73\x79\x6d\x62\x6f\x6c\x73\x20"
+"\x77\x68\x65\x72\x65\x20\x73\x65\x61\x72\x63\x68\x69\x6e\x67\x20\x66"
+"\x6f\x72\x20\x74\x68\x65\x6d\n");l37("\x20\x20\x2d\x64\x61\x5b\x74"
+"\x61\x5d\x20\x3c\x61\x64\x64\x72\x65\x73\x73\x3e\x20\x53\x74\x61\x72"
+"\x74\x20\x72\x65\x61\x64\x2f\x77\x72\x69\x74\x65\x20\x70\x61\x72\x74"
+"\x20\x6f\x66\x20\x69\x6d\x61\x67\x65\x20\x61\x74\x20\x3c\x61\x64\x64"
+"\x72\x65\x73\x73\x3e\n");l37("\x20\x20\x2d\x64\x5b\x65\x62\x75\x67"
+"\x5d\x20\x20\x20\x20\x20\x49\x6e\x63\x6c\x75\x64\x65\x20\x64\x65\x62"
+"\x75\x67\x67\x69\x6e\x67\x20\x69\x6e\x66\x6f\x72\x6d\x61\x74\x69\x6f"
+"\x6e\x20\x69\x6e\x20\x74\x68\x65\x20\x69\x6d\x61\x67\x65\x20\x66\x69"
+"\x6c\x65\n");l37("\x20\x20\x2d\x65\x5b\x64\x69\x74\x5d\x20\x3c\x66"
+"\x69\x6c\x65\x3e\x20\x54\x61\x6b\x65\x20\x6c\x69\x6e\x6b\x20\x65\x64"
+"\x69\x74\x20\x63\x6f\x6d\x6d\x61\x6e\x64\x73\x20\x66\x72\x6f\x6d\x20"
+"\x3c\x66\x69\x6c\x65\x3e\n");l37("\x20\x20\x2d\x67\x63\x63\x20\x20"
+"\x20\x20\x20\x20\x20\x20\x20\x44\x6f\x20\x6e\x6f\x74\x20\x72\x65\x6d"
+"\x6f\x76\x65\x20\x47\x43\x43\x2d\x73\x70\x65\x63\x69\x66\x69\x63\x20"
+"\x61\x72\x65\x61\x73\x20\x77\x68\x65\x6e\x20\x27\x2d\x6e\x6f\x75\x6e"
+"\x75\x73\x65\x64\x27\x20\x75\x73\x65\x64\n");l37("\x20\x20\x2d\x68"
+"\x5b\x65\x6c\x70\x5d\x20\x20\x20\x20\x20\x20\x50\x72\x69\x6e\x74\x20"
+"\x74\x68\x69\x73\x20\x68\x65\x6c\x70\x20\x69\x6e\x66\x6f\x72\x6d\x61"
+"\x74\x69\x6f\x6e\n");l37("\x20\x20\x2d\x6b\x65\x65\x70\x5b\x64\x65"
+"\x62\x75\x67\x5d\x20\x3c\x6c\x69\x73\x74\x3e\x20\x4b\x65\x65\x70\x20"
+"\x64\x65\x62\x75\x67\x20\x69\x6e\x66\x6f\x20\x66\x6f\x72\x20\x66\x69"
+"\x6c\x65\x73\x20\x69\x6e\x20\x3c\x6c\x69\x73\x74\x3e\x20\x6f\x6e\x6c"
+"\x79\n");l37("\x20\x20\x2d\x6c\x65\x61\x76\x65\x5b\x77\x65\x61\x6b"
+"\x5d\x20\x44\x6f\x20\x6e\x6f\x74\x20\x61\x74\x74\x65\x6d\x70\x74\x20"
+"\x74\x6f\x20\x72\x65\x73\x6f\x6c\x76\x65\x20\x77\x65\x61\x6b\x20\x65"
+"\x78\x74\x65\x72\x6e\x61\x6c\x73\x20\x75\x73\x69\x6e\x67\x20\x6c\x69"
+"\x62\x72\x61\x72\x69\x65\x73\n");l37("\x20\x20\x2d\x6c\x69\x62\x20"
+"\x3c\x6c\x69\x73\x74\x3e\x20\x20\x44\x6f\x20\x6e\x6f\x74\x20\x6c\x6f"
+"\x61\x64\x20\x6c\x69\x62\x72\x61\x72\x69\x65\x73\x20\x69\x6e\x20\x3c"
+"\x6c\x69\x73\x74\x3e\x20\x69\x6e\x74\x6f\x20\x6d\x65\x6d\x6f\x72\x79"
+"\n");l37("\x20\x20\x2d\x6d\x61\x70\x20\x20\x20\x20\x20\x20\x20\x20"
+"\x20\x50\x72\x69\x6e\x74\x20\x61\x20\x6c\x69\x73\x74\x20\x6f\x66\x20"
+"\x61\x72\x65\x61\x73\x20\x69\x6e\x20\x74\x68\x65\x20\x69\x6d\x61\x67"
+"\x65\x20\x66\x69\x6c\x65\n");l37("\x20\x20\x2d\x6d\x5b\x6f\x64\x75"
+"\x6c\x65\x5d\x20\x20\x20\x20\x43\x72\x65\x61\x74\x65\x20\x61\x20\x72"
+"\x65\x6c\x6f\x63\x61\x74\x61\x62\x6c\x65\x20\x6d\x6f\x64\x75\x6c\x65"
+"\n");l37("\x20\x20\x2d\x6e\x6f\x5b\x75\x6e\x75\x73\x65\x64\x5d\x20"
+"\x20\x4c\x65\x61\x76\x65\x20\x75\x6e\x72\x65\x66\x65\x72\x65\x6e\x63"
+"\x65\x64\x20\x61\x72\x65\x61\x73\x20\x6f\x75\x74\x20\x6f\x66\x20\x74"
+"\x68\x65\x20\x69\x6d\x61\x67\x65\x20\x66\x69\x6c\x65\n");l37("\x20"
+"\x20\x2d\x6f\x5b\x75\x74\x70\x75\x74\x5d\x20\x3c\x66\x69\x6c\x65\x3e"
+"\x20\x57\x72\x69\x74\x65\x20\x65\x78\x65\x63\x75\x74\x61\x62\x6c\x65"
+"\x20\x69\x6d\x61\x67\x65\x20\x74\x6f\x20\x66\x69\x6c\x65\x20\x3c\x66"
+"\x69\x6c\x65\x3e\n");l37("\x20\x20\x2d\x70\x61\x67\x5b\x65\x61\x6c"
+"\x69\x67\x6e\x5d\x20\x41\x6c\x69\x67\x6e\x20\x65\x6e\x64\x20\x6f\x66"
+"\x20\x72\x65\x61\x64\x2d\x6f\x6e\x6c\x79\x20\x61\x72\x65\x61\x73\x20"
+"\x6f\x6e\x20\x70\x61\x67\x65\x20\x62\x6f\x75\x6e\x64\x61\x72\x79\n");
+l37("\x20\x20\x2d\x71\x75\x69\x5b\x65\x74\x5d\x20\x20\x20\x20\x20\x44"
+"\x6f\x20\x6e\x6f\x74\x20\x70\x72\x69\x6e\x74\x20\x61\x6e\x79\x20\x6d"
+"\x65\x73\x73\x61\x67\x65\x73\x20\x65\x78\x63\x65\x70\x74\x20\x65\x72"
+"\x72\x6f\x72\x20\x6d\x65\x73\x73\x61\x67\x65\x73\n");l37("\x20\x20"
+"\x2d\x72\x5b\x65\x6c\x6f\x63\x61\x74\x61\x62\x6c\x65\x5d\x20\x43\x72"
+"\x65\x61\x74\x65\x20\x61\x20\x72\x65\x6c\x6f\x63\x61\x74\x61\x62\x6c"
+"\x65\x20\x41\x49\x46\x20\x69\x6d\x61\x67\x65\x20\x66\x69\x6c\x65\n");
+l37("\x20\x20\x2d\x72\x65\x73\x5b\x63\x61\x6e\x5d\x20\x20\x20\x20\x53"
+"\x63\x61\x6e\x20\x6c\x69\x62\x72\x61\x72\x69\x65\x73\x20\x6d\x6f\x72"
+"\x65\x20\x74\x68\x61\x6e\x20\x6f\x6e\x63\x65\x20\x74\x6f\x20\x66\x69"
+"\x6e\x64\x20\x73\x79\x6d\x62\x6f\x6c\x73\n");l37("\x20\x20\x2d\x72"
+"\x65\x76\x5b\x6d\x61\x70\x5d\x20\x20\x20\x20\x50\x72\x6f\x64\x75\x63"
+"\x65\x20\x73\x79\x6d\x62\x6f\x6c\x20\x6c\x69\x73\x74\x69\x6e\x67\x20"
+"\x69\x6e\x20\x6f\x72\x64\x65\x72\x20\x3c\x61\x64\x64\x72\x3e\x20\x3c"
+"\x73\x79\x6d\x62\x6f\x6c\x3e\n");l37("\x20\x20\x2d\x72\x6d\x5b\x66"
+"\x5d\x20\x20\x20\x20\x20\x20\x20\x43\x72\x65\x61\x74\x65\x20\x61\x20"
+"\x72\x65\x6c\x6f\x63\x61\x74\x61\x62\x6c\x65\x20\x6d\x6f\x64\x75\x6c"
+"\x65\n");l37("\x20\x20\x2d\x73\x5b\x79\x6d\x62\x6f\x6c\x73\x5d\x20"
+"\x3c\x66\x69\x6c\x65\x3e\x20\x57\x72\x69\x74\x65\x20\x6c\x69\x73\x74"
+"\x20\x6f\x66\x20\x73\x79\x6d\x62\x6f\x6c\x73\x20\x69\x6e\x20\x69\x6d"
+"\x61\x67\x65\x20\x74\x6f\x20\x3c\x66\x69\x6c\x65\x3e\n");l37("\x20"
+"\x20\x2d\x76\x5b\x65\x72\x62\x6f\x73\x65\x5d\x20\x20\x20\x50\x72\x69"
+"\x6e\x74\x20\x6d\x65\x73\x73\x61\x67\x65\x73\x20\x61\x73\x20\x74\x68"
+"\x65\x20\x6c\x69\x6e\x6b\x20\x70\x72\x6f\x67\x72\x65\x73\x73\x65\x73"
+"\n");l37("\x20\x20\x2d\x76\x69\x61\x20\x3c\x66\x69\x6c\x65\x3e\x20"
+"\x20\x43\x6f\x6e\x74\x69\x6e\x75\x65\x20\x74\x61\x6b\x69\x6e\x67\x20"
+"\x6c\x69\x6e\x6b\x20\x70\x61\x72\x61\x6d\x65\x74\x65\x72\x73\x20\x66"
+"\x72\x6f\x6d\x20\x66\x69\x6c\x65\x20\x3c\x66\x69\x6c\x65\x3e\n");l37
+("\x20\x20\x2d\x77\x5b\x6f\x72\x6b\x73\x70\x61\x63\x65\x5d\x20\x3c"
+"\x73\x69\x7a\x65\x3e\x20\x53\x65\x74\x20\x72\x65\x6c\x6f\x63\x61\x74"
+"\x61\x62\x6c\x65\x20\x69\x6d\x61\x67\x65\x20\x77\x6f\x72\x6b\x73\x70"
+"\x61\x63\x65\x20\x74\x6f\x20\x3c\x73\x69\x7a\x65\x3e\x20\x62\x79\x74"
+"\x65\x73\n");l37("\x20\x20\x2d\x78\x5b\x72\x65\x66\x5d\x20\x20\x20"
+"\x20\x20\x20\x50\x72\x69\x6e\x74\x20\x61\x20\x6c\x69\x73\x74\x20\x6f"
+"\x66\x20\x72\x65\x66\x65\x72\x65\x6e\x63\x65\x73\x20\x62\x65\x74\x77"
+"\x65\x65\x6e\x20\x61\x72\x65\x61\x73\x20\x28\x69\x67\x6e\x6f\x72\x65"
+"\x64\x29\n\n");l37("\x4e\x6f\x74\x65\x20\x74\x68\x61\x74\x20\x74\x68"
+"\x65\x20\x66\x6f\x6c\x6c\x6f\x77\x69\x6e\x67\x20\x27\x6c\x69\x6e\x6b"
+"\x27\x20\x6f\x70\x74\x69\x6f\x6e\x73\x2c\x20\x61\x6c\x74\x68\x6f\x75"
+"\x67\x68\x20\x72\x65\x63\x6f\x67\x6e\x69\x73\x65\x64\x2c\x20\x68\x61"
+"\x76\x65\n");l37("\x6e\x6f\x74\x20\x62\x65\x65\x6e\x20\x69\x6d\x70"
+"\x6c\x65\x6d\x65\x6e\x74\x65\x64\x20\x61\x6e\x64\x20\x77\x69\x6c\x6c"
+"\x20\x62\x65\x20\x66\x6c\x61\x67\x67\x65\x64\x20\x61\x73\x20\x61\x6e"
+"\x20\x65\x72\x72\x6f\x72\x3a\x20\x64\x62\x75\x67\x2c\x20\x65\x6e\x74"
+"\x72\x79\n");l37("\x61\x6e\x64\x20\x6f\x76\x65\x72\x6c\x61\x79\x2e"
+"\n");}w e*l352(b){e l564;e*l30, *l139;g l558;l30=l197;l26(l30!=l180
+&& *l30<=' '&& *l30!=0)l30++;f(l30==l180|| *l30==0){f(l187){l30=l197=
+l323;l180=l677;l187=0;q l352();}q 0;}l558= *l30=='-';f( *l30=='"'){
+l564='"';l30++;}r{l564=' ';}l139=l30;l211{f(l558) *l30=l545( *l30);
+l30++;}l26(l30!=l180&&((l564=='"'&& *l30!='"')||(l564==' '&& *l30>' '
+)));f(l564=='"'&&l30==l180){u("\x45\x72\x72\x6f\x72\x3a\x20\x55\x6e"
+"\x6d\x61\x74\x63\x68\x65\x64\x20\x27\"\x27\x20\x66\x6f\x75\x6e\x64");
+l197=l30;q 0;} *l30=0;f(l30!=l180)l30++;l197=l30;q l139;}w b l853(e*k
+){l52*t;f((t=l59(z(l52)))==0)u("\x46\x61\x74\x61\x6c\x3a\x20\x4f\x75"
+"\x74\x20\x6f\x66\x20\x6d\x65\x6d\x6f\x72\x79\x20\x69\x6e\x20\x27\x61"
+"\x64\x64\x74\x6f\x5f\x6c\x69\x6e\x6b\x6c\x69\x73\x74\x27");t->l345=k
+;t->l303=0;f(l252==0){l252=t;}r{l293->l303=t;}l293=t;}w e*l993(e*k){
+l26(l1003( *k))k++;q k;}e*l444, *l692;w g l759(e*l110){e l104;l110=
+l993(l110);l444=l110;l104= *l110;f(l104==0){l444=0;q 1;}l26(l104!=0&&
+l104!=','&&l104!=' '){l110++;l104= *l110;}f(l110==l444)q 0;f(l104==
+','||l104==' '){ *l110=0;l110++;}l692=l110;q 1;}w g l987(e*t){g v;
+l211{v=l759(t);f(!v){u("\x45\x72\x72\x6f\x72\x3a\x20\x42\x61\x64\x6c"
+"\x79\x20\x66\x6f\x72\x6d\x65\x64\x20\x6c\x69\x62\x72\x61\x72\x79\x20"
+"\x6c\x69\x73\x74\x20\x66\x6f\x75\x6e\x64\x20\x61\x66\x74\x65\x72\x20"
+"\x6f\x70\x74\x69\x6f\x6e\x20\x27\x2d\x6c\x69\x62\x27");q 0;}r f(l444
+!=0){l170(l296(l444)){l29 l148:q 0;l29 l183:l265(l444,0,l310(l444));
+l34;l29 l175:l29 l236:l853(l444);}}t=l692;}l26(l444!=0);q 1;}w g l982
+(e*t){g v;l211{v=l759(t);f(!v){u("\x45\x72\x72\x6f\x72\x3a\x20\x42"
+"\x61\x64\x6c\x79\x20\x66\x6f\x72\x6d\x65\x64\x20\x66\x69\x6c\x65\x20"
+"\x6c\x69\x73\x74\x20\x66\x6f\x75\x6e\x64\x20\x61\x66\x74\x65\x72\x20"
+"\x6f\x70\x74\x69\x6f\x6e\x20\x27\x2d\x6b\x65\x65\x70\x64\x65\x62\x75"
+"\x67\x27");q 0;}f(l444!=0)l419(l444);t=l692;}l26(l444!=0);q 1;}w g
+l656(b){f(l56!=l301)u("\x45\x72\x72\x6f\x72\x3a\x20\x4d\x6f\x72\x65"
+"\x20\x74\x68\x61\x6e\x20\x6f\x6e\x65\x20\x69\x6d\x61\x67\x65\x20\x74"
+"\x79\x70\x65\x20\x73\x70\x65\x63\x69\x66\x69\x65\x64");q l56==l301;}
+c l163(c l497){q(l497<0?l497&(-(z(c))):(l497+3)&(-(z(c))));}w g l643(
+e*k,d c*l105){d c l32,l480;c l555;e*l876,l104;g v;l32=0;l480=10;l104=
+ *k;f(l104=='&'){l480=16;}r f(l104=='0'){k++;f(l545( *k)=='x')l480=16
+;}f(l480==16)k++;l876=k;l104=l545( *k);v=1;l26(v&&l104!=0&&l104!='m'
+&&l104!='k'){f(l480==16&&l104>='a'){l555=l104-('a'-10);}r{l555=l104-
+'0';}f(l555<0||(l480==10&&l555>9)||(l480==16&&l555>15)){v=0;}r{l32=
+l32*l480+l555;}k++;l104=l545( *k);}v=v&&k!=l876;f(l104!=0){v= * (k+1)==
+0;f(l104=='k'){f(l32<4194304){l32=l32*1024;}r{v=0;}}r{f(l32<4096){l32
+=l32* (1024*1024);}r{v=0;}}} *l105=l32;q v;}w g l976(e*l71){i l50{
+l638,l871,l861,l799,l780,l866,l849,l782,l801,l772,l785,l1022,l856,
+l943,l809,l828,l834,l803,l797,l821,l807,l855,l764,l705,l816,l859,l862
+,l786,l819,l865,l706,l850,l870,l1017,l815,l824,l773}l986;i h{e*l899;d
+e l973;l986 l963;}l558;l558 l582[]={{"\x61\x72\x65\x61",4,l764},{""
+"\x61\x69",2,l799},{"\x61\x6f",2,l780},{"\x61\x63\x6f\x72\x6e\x6d\x61"
+"\x70",3,l861},{"\x62\x75\x66",3,l782},{"\x62\x69",2,l849},{"\x62",1,
+l866},{"\x63\x2b\x2b",3,l772},{"\x63",1,l801},{"\x64\x61",2,l785},{""
+"\x64\x62",2,l638},{"\x64",1,l856},{"\x65\x6e",2,l638},{"\x65",1,l809
+},{"\x67\x63\x63",3,l828},{"\x68",1,l834},{"\x69\x6e\x66\x6f",4,l803}
+,{"\x6b\x65\x65\x70",4,l797},{"\x6b",1,l705},{"\x6c\x65\x61\x76\x65",
+5,l821},{"\x6c\x69\x62",3,l807},{"\x6d\x61\x70",3,l855},{"\x6d",1,
+l706},{"\x6e\x6f",2,l705},{"\x6f\x76",2,l638},{"\x6f",1,l816},{"\x70"
+"\x61\x67",3,l859},{"\x71\x75\x69",3,l862},{"\x72\x65\x73",3,l819},{""
+"\x72\x65\x76",3,l865},{"\x72\x6d",2,l706},{"\x72",1,l786},{"\x73\x74"
+"\x72",3,l850},{"\x73",1,l870},{"\x76\x69\x61",3,l815},{"\x76",1,l824
+},{"\x77",1,l773},{"\x78",1,l871}};c x;d c l105;g v;e*l206;v=1;l206=
+l71;l71++;x=0;l26(x<z(l582)/z(l558)&&l754(l71,l582[x].l899,l582[x].
+l973)!=0)x++;f(x>=z(l582)/z(l558)){u("\x45\x72\x72\x6f\x72\x3a\x20"
+"\x55\x6e\x72\x65\x63\x6f\x67\x6e\x69\x73\x65\x64\x20\x6f\x70\x74\x69"
+"\x6f\x6e\x20\x27\x25\x73\x27",l206);q 0;}l170(l582[x].l963){l29 l799
+:v=l656();l56=l283;l34;l29 l780:v=l656();l56=l153;l34;l29 l861:l249=1
+;l34;l29 l859:l288=1;l34;l29 l866:l71=l352();f(l71!=0){v=l643(l71,&
+l105);f(!v){u("\x45\x72\x72\x6f\x72\x3a\x20\x42\x61\x64\x20\x6e\x75"
+"\x6d\x65\x72\x69\x63\x20\x76\x61\x6c\x75\x65\x20\x73\x75\x70\x70\x6c"
+"\x69\x65\x64\x20\x61\x66\x74\x65\x72\x20\x6f\x70\x74\x69\x6f\x6e\x20"
+"\x27\x25\x73\x27",l206);}r f(l184){u("\x45\x72\x72\x6f\x72\x3a\x20"
+"\x43\x6f\x64\x65\x20\x62\x61\x73\x65\x20\x61\x64\x64\x72\x65\x73\x73"
+"\x20\x61\x6c\x72\x65\x61\x64\x79\x20\x73\x75\x70\x70\x6c\x69\x65\x64"
+);v=0;}l184=1;l286=l163(l105);}r{u("\x45\x72\x72\x6f\x72\x3a\x20\x4e"
+"\x6f\x20\x63\x6f\x64\x65\x20\x62\x61\x73\x65\x20\x61\x64\x64\x72\x65"
+"\x73\x73\x20\x73\x75\x70\x70\x6c\x69\x65\x64\x20\x61\x66\x74\x65\x72"
+"\x20\x27\x25\x73\x27",l206);v=0;}l34;l29 l849:v=l656();l56=l234;l34;
+l29 l782:l71=l352();f(l71!=0){v=l643(l71,&l126);f(!v){u("\x45\x72\x72"
+"\x6f\x72\x3a\x20\x42\x61\x64\x20\x6e\x75\x6d\x65\x72\x69\x63\x20\x76"
+"\x61\x6c\x75\x65\x20\x73\x75\x70\x70\x6c\x69\x65\x64\x20\x61\x66\x74"
+"\x65\x72\x20\x6f\x70\x74\x69\x6f\x6e\x20\x27\x25\x73\x27",l206);}r{
+l126=l163(l126);}}r{u("\x45\x72\x72\x6f\x72\x3a\x20\x4e\x6f\x20\x62"
+"\x75\x66\x66\x65\x72\x20\x73\x69\x7a\x65\x20\x73\x75\x70\x70\x6c\x69"
+"\x65\x64\x20\x61\x66\x74\x65\x72\x20\x27\x25\x73\x27",l206);v=0;}l34
+;l29 l801:l137=1;l34;l29 l772:l257=1;l34;l29 l785:l71=l352();f(l71!=0
+){v=l643(l71,&l105);f(!v){u("\x45\x72\x72\x6f\x72\x3a\x20\x42\x61\x64"
+"\x20\x6e\x75\x6d\x65\x72\x69\x63\x20\x76\x61\x6c\x75\x65\x20\x73\x75"
+"\x70\x70\x6c\x69\x65\x64\x20\x61\x66\x74\x65\x72\x20\x6f\x70\x74\x69"
+"\x6f\x6e\x20\x27\x25\x73\x27",l206);}r f(l208){u("\x45\x72\x72\x6f"
+"\x72\x3a\x20\x44\x61\x74\x61\x20\x62\x61\x73\x65\x20\x61\x64\x64\x72"
+"\x65\x73\x73\x20\x61\x6c\x72\x65\x61\x64\x79\x20\x73\x75\x70\x70\x6c"
+"\x69\x65\x64");v=0;}l208=1;l242=l163(l105);}r{u("\x45\x72\x72\x6f"
+"\x72\x3a\x20\x4e\x6f\x20\x64\x61\x74\x61\x20\x62\x61\x73\x65\x20\x61"
+"\x64\x64\x72\x65\x73\x73\x20\x73\x75\x70\x70\x6c\x69\x65\x64\x20\x61"
+"\x66\x74\x65\x72\x20\x27\x25\x73\x27",l206);v=0;}l34;l29 l856:l243=
+l171=1;l34;l29 l943:l302=1;l34;l29 l809:l71=l352();f(l71!=0){v=l373(
+l71)&&l398();}r{u("\x45\x72\x72\x6f\x72\x3a\x20\x4e\x6f\x20\x66\x69"
+"\x6c\x65\x6e\x61\x6d\x65\x20\x66\x6f\x75\x6e\x64\x20\x61\x66\x74\x65"
+"\x72\x20\x6f\x70\x74\x69\x6f\x6e\x20\x27\x25\x73\x27",l206);v=0;}l34
+;l29 l828:l290=1;l34;l29 l834:l854();v=0;l34;l29 l803:l262=1;l34;l29
+l797:l71=l352();f(l71!=0){v=l982(l71);l243=1;}r{u("\x45\x72\x72\x6f"
+"\x72\x3a\x20\x4e\x6f\x20\x64\x65\x62\x75\x67\x20\x66\x69\x6c\x65\x20"
+"\x6c\x69\x73\x74\x20\x66\x6f\x75\x6e\x64\x20\x61\x66\x74\x65\x72\x20"
+"\x6f\x70\x74\x69\x6f\x6e\x20\x27\x25\x73\x27",l206);v=0;}l34;l29 l821
+:l298=1;l34;l29 l807:l71=l352();f(l71!=0){v=l987(l71);}r{u("\x45\x72"
+"\x72\x6f\x72\x3a\x20\x4e\x6f\x20\x6c\x69\x62\x72\x61\x72\x79\x20\x6e"
+"\x61\x6d\x65\x73\x20\x66\x6f\x75\x6e\x64\x20\x61\x66\x74\x65\x72\x20"
+"\x6f\x70\x74\x69\x6f\x6e\x20\x27\x25\x73\x27",l206);v=0;}l34;l29 l855
+:l280=1;l34;l29 l764:l71=l352();f(l71!=0){l245=l71;l273=1;}r{u("\x45"
+"\x72\x72\x6f\x72\x3a\x20\x4e\x6f\x20\x6d\x61\x70\x20\x66\x69\x6c\x65"
+"\x20\x6e\x61\x6d\x65\x20\x66\x6f\x75\x6e\x64\x20\x61\x66\x74\x65\x72"
+"\x20\x6f\x70\x74\x69\x6f\x6e\x20\x27\x25\x73\x27",l206);v=0;}l34;l29
+l705:l168=1;l34;l29 l816:l71=l352();f(l71!=0){l117=l71;}r{v=0;u("\x45"
+"\x72\x72\x6f\x72\x3a\x20\x4e\x6f\x20\x66\x69\x6c\x65\x6e\x61\x6d\x65"
+"\x20\x66\x6f\x75\x6e\x64\x20\x61\x66\x74\x65\x72\x20\x6f\x70\x74\x69"
+"\x6f\x6e\x20\x27\x25\x73\x27",l206);}l34;l29 l862:l269=1;l34;l29 l786
+:f(l56>l283){u("\x45\x72\x72\x6f\x72\x3a\x20\x4d\x6f\x72\x65\x20\x74"
+"\x68\x61\x6e\x20\x6f\x6e\x65\x20\x69\x6d\x61\x67\x65\x20\x74\x79\x70"
+"\x65\x20\x73\x70\x65\x63\x69\x66\x69\x65\x64");v=0;}l56=l233;l34;l29
+l819:l220=1;l34;l29 l865:l249=l297=1;l34;l29 l706:v=l656();l56=l147;
+l34;l29 l850:l282=1;l34;l29 l870:l71=l352();f(l71!=0){l240=l71;l270=1
+;}r{v=0;u("\x45\x72\x72\x6f\x72\x3a\x20\x4e\x6f\x20\x66\x69\x6c\x65"
+"\x6e\x61\x6d\x65\x20\x66\x6f\x75\x6e\x64\x20\x61\x66\x74\x65\x72\x20"
+"\x6f\x70\x74\x69\x6f\x6e\x20\x27\x25\x73\x27",l206);}l34;l29 l815:
+l71=l352();f(l71!=0){f(l187){u("\x46\x61\x74\x61\x6c\x3a\x20\x4e\x65"
+"\x73\x74\x65\x64\x20\x27\x76\x69\x61\x27\x20\x66\x69\x6c\x65\x73\x20"
+"\x61\x72\x65\x20\x6e\x6f\x74\x20\x61\x6c\x6c\x6f\x77\x65\x64");}r{v=
+l384(l71);}}r{v=0;u("\x45\x72\x72\x6f\x72\x3a\x20\x4e\x6f\x20\x66\x69"
+"\x6c\x65\x6e\x61\x6d\x65\x20\x66\x6f\x75\x6e\x64\x20\x61\x66\x74\x65"
+"\x72\x20\x6f\x70\x74\x69\x6f\x6e\x20\x27\x25\x73\x27",l206);}l34;l29
+l824:l77=1;l34;l29 l773:l71=l352();f(l71!=0){v=l643(l71,&l217);f(!v){
+u("\x45\x72\x72\x6f\x72\x3a\x20\x42\x61\x64\x20\x6e\x75\x6d\x65\x72"
+"\x69\x63\x20\x76\x61\x6c\x75\x65\x20\x73\x75\x70\x70\x6c\x69\x65\x64"
+"\x20\x61\x66\x74\x65\x72\x20\x6f\x70\x74\x69\x6f\x6e\x20\x27\x25\x73"
+"\x27",l206);}r{l217=l163(l217);}}r{u("\x45\x72\x72\x6f\x72\x3a\x20"
+"\x4e\x6f\x20\x77\x6f\x72\x6b\x73\x70\x61\x63\x65\x20\x73\x69\x7a\x65"
+"\x20\x73\x75\x70\x70\x6c\x69\x65\x64\x20\x61\x66\x74\x65\x72\x20\x27"
+"\x25\x73\x27",l206);v=0;}l34;l29 l871:u("\x57\x61\x72\x6e\x69\x6e"
+"\x67\x3a\x20\x27\x6c\x69\x6e\x6b\x27\x20\x6f\x70\x74\x69\x6f\x6e\x20"
+"\x27\x25\x73\x27\x20\x69\x73\x20\x6e\x6f\x74\x20\x73\x75\x70\x70\x6f"
+"\x72\x74\x65\x64\x20\x61\x6e\x64\x20\x69\x73\x20\x69\x67\x6e\x6f\x72"
+"\x65\x64",l206);l34;l29 l638:u("\x46\x61\x74\x61\x6c\x3a\x20\x27\x6c"
+"\x69\x6e\x6b\x27\x20\x6f\x70\x74\x69\x6f\x6e\x20\x27\x25\x73\x27\x20"
+"\x69\x73\x20\x6e\x6f\x74\x20\x73\x75\x70\x70\x6f\x72\x74\x65\x64",
+l206);}q v;}w g l868(b){e*l71;g v;v=1;l71=l352();l26(l71!=0&&v){f( *
+l71!='-'){l853(l71);}r{v=l976(l71);}l71=l352();}f(v){v=l252!=0;f(!v)l854
+();}f(l56==l301)l56=(l184?l234:l283);f(l56!=l233)l217=0;f(l56!=l234&&
+(l184||l208)){l184=l208=0;u("\x45\x72\x72\x6f\x72\x3a\x20\x42\x61\x73"
+"\x65\x20\x61\x64\x64\x72\x65\x73\x73\x20\x6f\x66\x20\x63\x6f\x64\x65"
+"\x20\x6f\x72\x20\x64\x61\x74\x61\x20\x63\x61\x6e\x20\x6f\x6e\x6c\x79"
+"\x20\x62\x65\x20\x73\x70\x65\x63\x69\x66\x69\x65\x64\x20\x66\x6f\x72"
+"\x20\x62\x69\x6e\x61\x72\x79\x20\x69\x6d\x61\x67\x65\x20\x66\x69\x6c"
+"\x65\x73");v=0;}l170(l56){l29 l147:f(l77&&l171)u("\x57\x61\x72\x6e"
+"\x69\x6e\x67\x3a\x20\x4f\x70\x74\x69\x6f\x6e\x20\x27\x2d\x64\x65\x62"
+"\x75\x67\x27\x20\x69\x67\x6e\x6f\x72\x65\x64\x20\x66\x6f\x72\x20\x72"
+"\x65\x6c\x6f\x63\x61\x74\x61\x62\x6c\x65\x20\x6d\x6f\x64\x75\x6c\x65"
+"\x73");l171=0;l34;l29 l153:f(l117==0)l117="\x61\x6f\x66";l168=0;}f(
+l117==0)l117="\x21\x52\x75\x6e\x49\x6d\x61\x67\x65";l77=l77&&!l269;q v
+;}w g l843(c l570,e*l630[]){c x,l32;f(l570<2)q 0;l32=0;l88(x=1;x<l570
+;x++)l32+=l210(l630[x])+z(e);l481=l59(l32+z(e));f(l481==0)u("\x46\x61"
+"\x74\x61\x6c\x3a\x20\x4e\x6f\x74\x20\x65\x6e\x6f\x75\x67\x68\x20\x6d"
+"\x65\x6d\x6f\x72\x79\x20\x74\x6f\x20\x72\x75\x6e\x20\x6c\x69\x6e\x6b"
+"\x65\x72"); *l481=0;l88(x=1;x<l570;x++){l550(l481,l630[x]);l550(l481
+,"\x20");}l197=l481;l180=l677=l481+l32;l187=0;q 1;}w g l852(b){l164=
+l365;l276=0;l142=0;l77=0;l269=0;l262=0;l335=0;l137=0;l220=0;l171=0;
+l243=0;l298=0;l329=0;l168=0;l257=0;l290=0;l280=0;l273=0;l270=0;l249=0
+;l297=0;l302=0;l288=0;l184=0;l208=0;l282=0;l238=0;l259=0;l252=l293=0;
+f(!l368())q 0;l382();l374();l412();l389();l416();q 1;}
