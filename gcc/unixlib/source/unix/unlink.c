@@ -1,24 +1,48 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/unlink.c,v $
- * $Date: 2001/09/04 16:32:04 $
- * $Revision: 1.2.2.1 $
- * $State: Exp $
- * $Author: admin $
+ * $Source$
+ * $Date$
+ * $Revision$
+ * $State$
+ * $Author$
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: unlink.c,v 1.2.2.1 2001/09/04 16:32:04 admin Exp $";
+static const char rcs_id[] = "$Id$";
 #endif
 
 #include <errno.h>
 #include <limits.h>
 #include <unistd.h>
+#include <string.h>
 
 #include <unixlib/os.h>
 #include <unixlib/local.h>
 #include <unixlib/swiparams.h>
+
+/* Removes the suffix swap directory if it is empty.
+   The filename passed to it is modified. */
+void
+__unlinksuffix (char *file)
+{
+  char *dot;
+  int regs[10];
+
+  /* Delete the suffix swap dir if it is now empty */
+  dot = strrchr (file, '.');
+  if (dot)
+    {
+      *dot = '\0'; /* Remove leafname */
+
+      while (dot > file && *dot != '.')
+        dot--;
+
+      if (!(__get_riscosify_control () & __RISCOSIFY_NO_SUFFIX)
+          && __sfixfind (*dot == '.' ? dot + 1 : dot))
+        __os_file (6, file, regs); /* This will only delete empty directories */
+    }
+}
 
 int
 unlink (const char *ux_file)
@@ -58,7 +82,7 @@ unlink (const char *ux_file)
       || (sftype != __RISCOSIFY_FILETYPE_NOTFOUND && sftype != aftype))
     return __set_errno (ENOENT);
 
-  if (regs[0] == 2 || regs[0] == 3) /* Directory/Image FS.  */
+  if (regs[0] == 2 || (! __feature_imagefs_is_file && regs[0] == 3)) /* Directory/Image FS.  */ 
     return __set_errno (EISDIR);
 
   /* Check for permission to delete the file. Bit 3 set => it is locked.  */
@@ -74,6 +98,8 @@ unlink (const char *ux_file)
       __seterr (err);
       return -1;
     }
+
+  __unlinksuffix (file);
 
   return 0;
 }

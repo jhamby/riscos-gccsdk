@@ -1,14 +1,16 @@
 ;----------------------------------------------------------------------------
 ;
-; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/common/_exist.s,v $
-; $Date: 2001/01/29 15:10:19 $
-; $Revision: 1.2 $
-; $State: Exp $
-; $Author: admin $
+; $Source$
+; $Date$
+; $Revision$
+; $State$
+; $Author$
 ;
 ;----------------------------------------------------------------------------
 
 	GET	clib/unixlib/asm_dec.s
+
+	IMPORT	|__feature_imagefs_is_file|
 
 	AREA	|C$$code|,CODE,READONLY
 
@@ -23,7 +25,14 @@
 	MOV	a1, #17
 	SWI	XOS_File
 	MOVVS	a1, #0		; Error, so assume not dir
-	ANDVC	a1, a1, #2	; Bit 1 set for dir or image
+	BVS	isdirreturn
+	LDR	a2, =|__feature_imagefs_is_file|
+	LDR	a2, [a2]
+	CMP	a2, #0
+	ANDEQ	a1, a1, #2	; feature imagefs not set, so bit 1 set for dir or image
+	CMPNE	a1, #2		; feature imagefs set, so only real directories
+	MOVNE	a1, #0
+isdirreturn
 	stackreturn	AL, "v1, v2, pc"
 
 ; int __object_exists_raw (const char *object)

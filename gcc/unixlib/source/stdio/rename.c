@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/stdio/rename.c,v $
- * $Date: 2001/09/04 16:32:04 $
- * $Revision: 1.2.2.2 $
- * $State: Exp $
- * $Author: admin $
+ * $Source$
+ * $Date$
+ * $Revision$
+ * $State$
+ * $Author$
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: rename.c,v 1.2.2.2 2001/09/04 16:32:04 admin Exp $";
+static const char rcs_id[] = "$Id$";
 #endif
 
 #include <stdio.h>
@@ -96,7 +96,8 @@ rename (const char *old_name, const char *new_name)
 	{
 	  if (__isdir_raw (nfile))
 	    return __set_errno (EISDIR);
-	  unlink (new_name);
+	  /* We can't use unlink() as it might delete the suffix dir */
+	  __os_file (6, nfile, regs);
 	}
     }
 
@@ -133,6 +134,9 @@ try_filetyping:
           return -1;
         }
     }
+
+  /* Delete the suffix swap dir if it is now empty */
+  __unlinksuffix (ofile); /* ofile is corrupted by this call */
 
   (void) __set_errno (save);
   return 0;

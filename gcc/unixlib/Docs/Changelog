@@ -1,3 +1,14 @@
+Wed Jan 29 18:48:24 2003  Alex Waugh  <alex@alexwaugh.com>
+
+	* unistd.h (__unlinksuffix): Add decl.
+	* common/_exist.s (__isdir_raw): Change result according to
+	setting of __feature_imagefs_is_file.
+	* stdio/rename.c (rename): Delete file, then attempt to delete
+	suffix directory if nothing else exists within it.
+	* unix/dev.c (__fsclose): Likewise.
+	* unix/unlink.c (__unlinksuffix): New function.
+	(unlink): Account for setting of __feature_imagefs_is_file.
+
 Wed Jan 29 18:43:32 2003  Alex Waugh  <alex@alexwaugh.com>
 
 	* unix/dev.c (__randomopen): Attempt to load the CryptRandom

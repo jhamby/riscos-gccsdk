@@ -390,6 +390,12 @@ extern int readlink (const char *__path, char *__buf, size_t __butsiz);
 /* Remove the line name.  */
 extern int unlink (const char *__name);
 
+#ifdef __UNIXLIB_INTERNALS
+/* Removes the suffix swap directory if it is empty.
+   The filename passed to it is corrupted. */
+extern void __unlinksuffix (char *__file);
+#endif
+
 /* Remove the directory path.  */
 extern int rmdir (const char *__path);
 

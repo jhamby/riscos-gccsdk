@@ -390,7 +390,12 @@ __fsclose (struct __unixlib_fd *file_desc)
   /* Close file.  */
   err = __os_fclose ((int) file_desc->handle);
   if (! err && buffer)
-    err = __os_file (0x06, buffer, regs); /* Delete file.  */
+    {
+      err = __os_file (0x06, buffer, regs); /* Delete file.  */
+      /* Delete the suffix swap dir if it is now empty */
+      __unlinksuffix (buffer); /* buffer is corrupted by this call */
+    }
+
   if (buffer)
     free (buffer);
   return (! err) ? 0 : (__seterr (err), -1);
