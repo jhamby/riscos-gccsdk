@@ -1,5 +1,4 @@
 #include <errno.h>
-#include <iostream>
 #include <ctype.h>
 #include "LibDir.h"
 #include "TimeStamp.h"
