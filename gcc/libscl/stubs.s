@@ -223,8 +223,11 @@ __PTHREAD_ALLOCA_OFFSET	EQU	8
 	EXPORT	feof
 	EXPORT	ferror
 	EXPORT	perror
+        EXPORT  |__SIG_IGN|
 	EXPORT	|__ignore_signal_handler|
+        EXPORT  |__SIG_ERR|
 	EXPORT	|__default_signal_handler|
+        EXPORT  |__SIG_DFL|
 	EXPORT	|__error_signal_marker|
 	EXPORT	signal
 	EXPORT	raise
@@ -637,8 +640,11 @@ clib_vectors
 |feof|				MOV	pc,#0
 |ferror|			MOV	pc,#0
 |perror|			MOV	pc,#0
+|__SIG_IGN|
 |__ignore_signal_handler|	MOV	pc,#0
+|__SIG_ERR|
 |__error_signal_marker| 	MOV	pc,#0
+|__SIG_DFL|
 |__default_signal_handler|	MOV	pc,#0
 |signal|			MOV	pc,#0
 |raise| 			MOV	pc,#0
