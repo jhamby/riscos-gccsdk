@@ -9,7 +9,6 @@ HOST_INCLUDES = -I./ -I./include -I./config
 HOST_PREDEFS = -DIN_GCC -DHAVE_CONFIG_H
 
 # Defs for GCC
-CC = gcc $(CFLAGS) 
 CFLAGS = -O2 $(OPTS) -DIN_GCC -DHAVE_CONFIG_H -D$(hostsystem) $(TARGET_DEFS)
 GCC_AS = gcc -xassembler-with-cpp -c
 
@@ -19,31 +18,32 @@ else
 LINK = gcc -o $@
 endif
 
-#INCLUDES = -I@ -Iinclude -Idef -Iconfig -Icp -If -If/j -If/def -Ip -Ijava
-INCLUDES = -I./ -I../../include -I./config -I./cp -I./f77 -I./java
+INCLUDES = -I./ -I../../include -I./config -I./cp -I./f77 -I./java -I./objc
 LIBS = -L$(objdir)/libiberty -liberty
 BISON = $(BIN)/bison
 BISONFLAGS =
-CC = gcc $(CFLAGS)
+CC = gcc -MMD $(CFLAGS)
 
 gccobjdir = $(objdir)/gcc-$(VERSION)/gcc
 
 $(gccobjdir)/%.o: %.c
 	$(CC) -o $@ -c $< $(INCLUDES)
 
-all: c cpp fortran pascal
+all: c cpp fortran77 pascal objc java
 
 .PHONY: c
 .PHONY: cpp
 .PHONY: fortran
 .PHONY: pascal
 .PHONY: java
+.PHONY: objc
 
 c: $(BIN)/gcc $(TBIN)/cpp $(TBIN)/cc1 $(BIN)/gcov
 cpp: $(TBIN)/cc1plus $(BIN)/g++
-f77: $(gccobjdir)/f77/fini $(BIN)/g77 $(TBIN)/f771
+fortran77: $(gccobjdir)/f77/fini $(BIN)/g77 $(TBIN)/f771
 pascal:	$(TBIN)/gpc1 $(TBIN)/gpcpp
 java: $(TBIN)/gcjh $(TBIN)/jvgenmain $(TBIN)/jcf-dump $(TBIN)/jv-scan $(TBIN)/jc1
+objc: $(TBIN)/cc1obj
 
 LIBDEPS = $(gccobjdir)/prefix.o
 
@@ -162,6 +162,17 @@ C++OBJS = $(gccobjdir)/cp/call.o \
 	$(gccobjdir)/cp/typeck2.o \
 	$(gccobjdir)/cp/xref.o
 
+OBJC_OBJS = $(gccobjdir)/objc/objc-parse.o \
+	$(gccobjdir)/objc/objc-act.o \
+	$(gccobjdir)/c-lex.o \
+	$(gccobjdir)/c-pragma.o \
+	$(gccobjdir)/c-decl.o \
+	$(gccobjdir)/c-typeck.o \
+	$(gccobjdir)/c-aux-info.o \
+	$(gccobjdir)/c-convert.o \
+	$(gccobjdir)/c-common.o \
+	$(gccobjdir)/c-iterate.o
+
 CPPLIB_OBJS = $(gccobjdir)/cpp/cpperror.o \
 	$(gccobjdir)/cpp/cppexp.o \
 	$(gccobjdir)/cpp/cpphash.o \
@@ -250,7 +261,7 @@ GPC_OBJS = $(gccobjdir)/c-aux-info.o \
 # GEN files are listed separately, so they can be built before doing parallel
 # makes for cc1 or cc1plus.  Otherwise sequent parallel make attempts to load
 # them before rtl.o is compiled.
-GEN= genemit gengenrtl genoutput genrecog genextract genflags \
+GEN = genemit gengenrtl genoutput genrecog genextract genflags \
 	gencodes genconfig genpeep gencheck
 
 F77_OBJS = $(gccobjdir)/f77/stb.o \
@@ -335,6 +346,9 @@ $(BIN)/g++: $(gccobjdir)/cp/g++.o $(gccobjdir)/cp/g++spec.o \
 	$(gccobjdir)/version.o \
 	$(gccobjdir)/config/arm/rname.o $(RISC_OBJS) $(LIBDEPS) $(LIBS)
 
+$(TBIN)/cc1obj:	$(OBJS) $(OBJS1) $(OBJC_OBJS) $(RISCOS_OBJS) $(LIBDEPS)
+	$(LINK) $(OBJS) $(OBJS1) $(OBJC_OBJS) $(RISCOS_OBJS) $(LIBS)
+
 $(BIN)/g77:	$(gccobjdir)/f77/g77.o $(gccobjdir)/f77/g77spec.o \
 	$(gccobjdir)/version.o \
 	$(gccobjdir)/f77/version.o $(gccobjdir)/config/arm/rname.o \
@@ -398,6 +412,9 @@ cp/parse.c: cp/parse.y
 
 gpc/parse.c gpc/parse.h: gpc/parse.y
 	cd gpc ; bison -d parse.y -o parse.c ; cd ..
+
+objc/objc-parse.c: objc/objc-parse.y
+	cd objc ; bison objc-parse.y -o objc-parse.c ; cd ..
 
 # Perfect hash function generation stuff
 
@@ -829,6 +846,9 @@ $(gccobjdir)/cp/tree.o: cp/tree.c
 $(gccobjdir)/cp/typeck.o: cp/typeck.c
 $(gccobjdir)/cp/typeck2.o: cp/typeck2.c
 $(gccobjdir)/cp/xref.o: cp/xref.c 
+
+$(gccobjdir)/objc/objc-act.c: objc/objc-act.c
+$(gccobjdir)/objc/objc-parse.c: objc/objc-parse.c objc/objc-parse.y
 
 $(gccobjdir)/f77/ansify.o: f77/ansify.c
 $(gccobjdir)/f77/bad.o: f77/bad.c
