@@ -59,7 +59,14 @@ Boston, MA 02111-1307, USA.  */
 #define __attribute__(x) /* Ignore */
 #endif
 
+/* The maximum number of times we shall re-compile a C++ program to
+   instantiate the templates.  With GCC 2.95, I suspect this feature
+   is no-longer required.  */
 #define MAX_ITERATIONS 17
+
+/* Maximum number of command line arguments that our linker supports.
+   FIXME We should remove this feature and support unlimited arguments.  */
+#define MAXARGS 2048
 
 /* Obstack allocation and deallocation routines.  */
 #define obstack_chunk_alloc xmalloc
@@ -226,9 +233,9 @@ main (int argc, char *argv[])
     }
 #endif /* CROSS_COMPILE */
 
-  object_list = (args *)xmalloc (sizeof (args) * ARG_MAX);
+  object_list = (args *)xmalloc (sizeof (args) * MAXARGS);
   object_list[0].arg = (char *)0;
-  command_line = (args *)xmalloc (sizeof (args) * (ARG_MAX >> 2));
+  command_line = (args *)xmalloc (sizeof (args) * (MAXARGS >> 2));
   command_line[0].arg = (char *)0;
 
   object_offset = command_line_offset = 0;
@@ -1502,10 +1509,15 @@ append_arg (args *argv, int *offset, const char *text)
   if (tlink_verbose >= 5)
     printf ("append arg: offset = %d, text = %s\n", *offset, text);
 
-  argv[*offset].arg = (char *)xmalloc (strlen (text) + 1);
-  strcpy (argv[*offset].arg, text);
-  *offset = *offset + 1;
-  argv[*offset].arg = 0;
+  if (*offset >= MAXARGS)
+    printf ("append arg: too many arguments (exceeded %d)\n", MAXARGS);
+  else
+    {
+      argv[*offset].arg = (char *)xmalloc (strlen (text) + 1);
+      strcpy (argv[*offset].arg, text);
+      *offset = *offset + 1;
+      argv[*offset].arg = 0;
+    }
 }
 
 static void
