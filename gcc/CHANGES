@@ -9,6 +9,8 @@ Summary of Changes
 * Fix Makefile bug that stopped the Fortran compiler being built.
 * Build the Objective-C and Java compilers.
 * Programs in `riscos-progs' are only build if we are on RISC OS.
+* Conversion to autoconf for top-level configuration.  This actually
+  makes portability much easier.
 
 22 Dec 2000
 -----------
