@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/dirent.c,v $
- * $Date: 2005/03/20 15:46:02 $
- * $Revision: 1.11 $
+ * $Date: 2005/04/02 21:06:15 $
+ * $Revision: 1.12 $
  * $State: Exp $
  * $Author: alex $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: dirent.c,v 1.11 2005/03/20 15:46:02 alex Exp $";
+static const char rcs_id[] = "$Id: dirent.c,v 1.12 2005/04/02 21:06:15 alex Exp $";
 #endif
 
 /* #define DEBUG */
@@ -176,7 +176,6 @@ opendir (const char *ux_name)
 {
   DIR *stream;
   char name[_POSIX_PATH_MAX];
-  int filetype;
 
   if (ux_name == NULL)
     {
@@ -187,7 +186,7 @@ opendir (const char *ux_name)
   /* We don't want suffix swapping here.  */
   if (!__riscosify (ux_name, 0,
                     __get_riscosify_control() | __RISCOSIFY_NO_SUFFIX,
-                    name, sizeof (name), &filetype))
+                    name, sizeof (name), NULL))
     {
       (void) __set_errno (ENAMETOOLONG);
       return NULL;
@@ -196,14 +195,8 @@ opendir (const char *ux_name)
 #ifdef DEBUG
   __os_print ("opendir: ux_name="); __os_print (ux_name);
   __os_print (", ro name="); __os_print (name);
-  __os_print (", iletype=0x"); __os_prhex (filetype);
   __os_nl ();
 #endif
-  if (filetype != __RISCOSIFY_FILETYPE_NOTFOUND)
-    {
-      (void) __set_errno (ENOTDIR);
-      return NULL;
-    }
 
   switch (__object_exists_raw (name))
     {

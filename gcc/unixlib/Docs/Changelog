@@ -1,3 +1,8 @@
+Wed Apr  6 21:10:21 2005  Alex Waugh  <alex@alexwaugh.com>
+
+	* source/unix/dirent.c (opendir): Remove check on whether
+	  __riscosify returned a filetype.
+
 Tue Apr  5 22:30:34 2005 Peter Naulls <peter@chocky.org>
 
 	* source/string/_memset.s: Fixed version of Adrian's memset.
