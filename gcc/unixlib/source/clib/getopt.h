@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/getopt.h,v $
- * $Date: 2003/05/13 20:54:59 $
- * $Revision: 1.4 $
+ * $Date: 2003/06/23 20:33:03 $
+ * $Revision: 1.5 $
  * $State: Exp $
- * $Author: alex $
+ * $Author: joty $
  *
  ***************************************************************************/
 
@@ -31,17 +31,6 @@
 
 #ifndef __need_getopt
 # define _GETOPT_H 1
-#endif
-
-/* If __GNU_LIBRARY__ is not already defined, either we are being used
-   standalone, or this is the first header included in the source file.
-   If we are being used with glibc, we need to include <features.h>, but
-   that does not exist if we are standalone.  So: if __GNU_LIBRARY__ is
-   not defined, include <ctype.h>, which will pull in <features.h> for us
-   if it's from glibc.  (Why ctype.h?  It's guaranteed to exist and it
-   doesn't flood the namespace with stuff the way some other headers do.)  */
-#if !defined __GNU_LIBRARY__
-# include <ctype.h>
 #endif
 
 #ifdef	__cplusplus
@@ -103,11 +92,7 @@ extern int optopt;
 
 struct option
 {
-# if (defined __STDC__ && __STDC__) || defined __cplusplus
   const char *name;
-# else
-  char *name;
-# endif
   /* has_arg can't be an enum because some compilers complain about
      type mismatches in all the code that assumes it is an int.  */
   int has_arg;
@@ -147,8 +132,6 @@ struct option
    arguments to the option '\0'.  This behavior is specific to the GNU
    `getopt'.  */
 
-#if (defined __STDC__ && __STDC__) || defined __cplusplus
-/* # ifdef __GNU_LIBRARY__ */
 /* Many other libraries have conflicting prototypes for getopt, with
    differences in the consts, in stdlib.h.  To avoid compilation
    errors, only prototype getopt for the GNU C library.  */
@@ -171,15 +154,6 @@ extern int _getopt_internal (int ___argc, char *const *___argv,
 		             const struct option *__longopts, int *__longind,
 			     int __long_only);
 # endif
-#else /* not __STDC__ */
-extern int getopt ();
-# ifndef __need_getopt
-extern int getopt_long ();
-extern int getopt_long_only ();
-
-extern int _getopt_internal ();
-# endif
-#endif /* __STDC__ */
 
 #ifdef	__cplusplus
 }

@@ -1,3 +1,7 @@
+Wed Jan 07 20:58:37 2004  Nick Burrett  <nick@dsvr.net>
+
+	* getopt.h: Prevent inclusion of ctype.h.
+
 Mon Jan 05 23:50:26 2004  John Tytgat  <John.Tytgat@aaug.net>
 
 	* Docs/ReadMe: Added section on "UnixFS$/xxx" environment variables.
