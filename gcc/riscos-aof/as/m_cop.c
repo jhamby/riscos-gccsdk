@@ -26,9 +26,9 @@
 static void
 coprocessor (BOOL CopOnly, int ir, int maxop)	/* cp#,cpop,cpdst,cplhs,cprhs {,info} */
 {
-  /* int cop = CP_NUMBER (getCopNum ()); */
+  int cop = CP_NUMBER (getCopNum ());
 
-  int cop = CP_NUMBER(help_copInt(15,"coprocessor number"));
+  /* int cop = CP_NUMBER(help_copInt(15,"coprocessor number")); */
   if (cop == 1)
     {
       if (pedantic)

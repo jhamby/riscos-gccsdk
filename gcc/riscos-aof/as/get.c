@@ -117,11 +117,29 @@ getFpuReg (void)
 WORD
 getCopReg (void)
 {
+  static const struct reg_id cpu_regs[] =
+  {
+    { "c0", 0, 2 },  { "c1", 1, 2 },   { "c2", 2, 2 },   { "c3", 3, 2 },
+    { "c4", 4, 2 },  { "c5", 5, 2 },   { "c6", 6, 2 },   { "c7", 7, 2 },
+    { "c8", 8, 2 },  { "c9", 9, 2 },   { "c10", 10, 3 }, { "c11", 11, 3 },
+    { "c12", 12, 3 },{ "c13", 13, 3 }, { "c14", 14, 3 }, { "c15", 15, 3 }
+  };
+
+  unsigned int loop;
   Symbol *sym;
   Lex lexSym = lexGetId ();
 
   if (lexSym.tag == LexNone)
     return 0;
+
+  if (lexSym.tag == LexId)
+    for (loop = 0; loop < sizeof (cpu_regs) / sizeof (struct reg_id); loop++)
+      {
+	if ((cpu_regs[loop].len == lexSym.LexId.len) &&
+	 !strncasecmp (cpu_regs[loop].name, lexSym.LexId.str, lexSym.LexId.len))
+	  return cpu_regs[loop].reg_no;
+      }
+
   sym = symbolGet (lexSym);
 
   if (sym->type & SYMBOL_DEFINED && sym->type & SYMBOL_ABSOLUTE)
@@ -139,11 +157,29 @@ getCopReg (void)
 WORD
 getCopNum (void)
 {
+  static const struct reg_id cop_nums[] =
+  {
+    { "p0", 0, 2 },  { "p1", 1, 2 },   { "p2", 2, 2 },   { "p3", 3, 2 },
+    { "p4", 4, 2 },  { "p5", 5, 2 },   { "p6", 6, 2 },   { "p7", 7, 2 },
+    { "p8", 8, 2 },  { "p9", 9, 2 },   { "p10", 10, 3 }, { "p11", 11, 3 },
+    { "p12", 12, 3 },{ "p13", 13, 3 }, { "p14", 14, 3 }, { "p15", 15, 3 }
+  };
+
+  unsigned int loop;
   Symbol *sym;
   Lex lexSym = lexGetId ();
 
   if (lexSym.tag == LexNone)
     return 0;
+
+  if (lexSym.tag == LexId)
+    for (loop = 0; loop < sizeof (cop_nums) / sizeof (struct reg_id); loop++)
+      {
+	if ((cop_nums[loop].len == lexSym.LexId.len) &&
+	 !strncasecmp (cop_nums[loop].name, lexSym.LexId.str, lexSym.LexId.len))
+	  return cop_nums[loop].reg_no;
+      }
+
   sym = symbolGet (lexSym);
 
   if (sym->type & SYMBOL_DEFINED && sym->type & SYMBOL_ABSOLUTE)
