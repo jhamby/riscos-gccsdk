@@ -1436,7 +1436,7 @@ static void ldhelp (void)
   out ("The following Drlink linker commands are recognised:");
   out ("  -acornmap, -area[map] <file>, -aif, -aof, -bin, -case");
   out ("  -leave[weak], -map, -m[odule], -no[unused], -output, -qui[et]");
-  out ("  -res[can], -throwback, -via <file>, -verbose\n");
+  out ("  -res[can], -symbols <file>, -throwback, -via <file>, -verbose\n");
 
 #ifndef CROSS_COMPILE
   out ("The following Acorn Link linker (version 4) commands are recognised:");
@@ -1589,31 +1589,31 @@ static void parse_library (const char *library)
 
           if (pass == 0)
             {
-  
+
               /* Add 'lib' onto the front of each library name. This is what
                 'ld' does anyway.  */
               strcpy (file_name, list->name);
               if (list->name[namelen] != ':' && list->name[namelen] != '.'
                   && list->name[namelen] != '/')
                 strcat (file_name, "/");
-      
+
 #ifdef CROSS_COMPILE
-              strcat (file_name, "lib"); 
-              strcat (file_name, library); 
-              strcat (file_name, ".a"); 
+              strcat (file_name, "lib");
+              strcat (file_name, library);
+              strcat (file_name, ".a");
 #else
-              strcat (file_name, "a/lib"); 
-              strcat (file_name, library); 
+              strcat (file_name, "a/lib");
+              strcat (file_name, library);
 #endif
               if (check_and_add_library (file_name) == 1)
                return;
-       
-              /* Couldn't find lib<name>.a so try lib<name>.o */ 
-              strcpy (file_name, list->name); 
+
+              /* Couldn't find lib<name>.a so try lib<name>.o */
+              strcpy (file_name, list->name);
               if (list->name[namelen] != ':' && list->name[namelen] != '.'
                   && list->name[namelen] != '/')
-                strcat (file_name, "/"); 
-      
+                strcat (file_name, "/");
+
 #ifdef CROSS_COMPILE
               strcat (file_name, "lib");
               strcat (file_name, library);
@@ -1716,7 +1716,7 @@ static void add_output_file (const char *fname)
   append_arg (command_line, &command_line_offset, tmp);
 #if defined(CROSS_COMPILE) && defined(ENABLE_FILETYPE_FF8)
   if (append) filetype_offset = command_line_offset - 1;
-#endif  
+#endif
 }
 
 static void add_option_file (const char *option, const char *fname)
@@ -1765,6 +1765,7 @@ parse_args (int argc, char **argv)
 #define OPTION_BIN			161
 #define OPTION_QUIET			162
 #define OPTION_MODULE			163
+#define OPTION_SYMBOLS			164
 
   static struct option longopts[] = {
     {"acornmap", no_argument, NULL, OPTION_MAP},
@@ -1787,6 +1788,7 @@ parse_args (int argc, char **argv)
     {"quiet", no_argument, NULL, OPTION_QUIET},
     {"res", no_argument, NULL, OPTION_RESCAN},
     {"rescan", no_argument, NULL, OPTION_RESCAN},
+    {"symbols", required_argument, NULL, OPTION_SYMBOLS},
     {"throwback", no_argument, NULL, OPTION_THROWBACK},
     {"verbose", no_argument, NULL, 'V'},
     {"version", no_argument, NULL, 'v'},
@@ -1863,6 +1865,9 @@ parse_args (int argc, char **argv)
 	case OPTION_RESCAN:
 	  add_option ("-rescan");
 	  a |= 2;
+	  break;
+	case OPTION_SYMBOLS:
+	  add_option_file("-symbols", optarg);
 	  break;
 	case OPTION_THROWBACK:
 	  add_option ("-throwback");
