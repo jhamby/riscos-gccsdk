@@ -1,7 +1,7 @@
 /* stdio.h
 
    For use with the GNU compilers and the SharedCLibrary.
-   Copyright (c) 1997, 1998, 1999 Nick Burrett.
+   Copyright (c) 1997, 1998, 1999, 2003, 2004 Nick Burrett.
 
    To use filename translation, define __UNAME.  */
 
@@ -12,24 +12,8 @@
 #include <stddef.h>
 #endif
 
-#if defined(__GNUC__)
-/* va_list for the GCC compiler.  */
-#define __need___va_list
+#define __need__va_list
 #include <stdarg.h>
-
-#elif defined(__LCC__)
-/* va_list for the LCC compiler.  */
-#ifndef _VA_LIST
-#define _VA_LIST
-typedef char *__va_list;
-#endif
-
-#else
-/* Insert a definition of __va_list for your compiler here.
-   Copy the definition of 'va_list' in <stddef.h> but prefix it
-   with two underscores.  Then commend out the #error line below.  */
-#error need definition of __va_list for your compiler
-#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -41,7 +25,7 @@ typedef struct __fpos_t_struct
 {
   unsigned long __lo;
 } fpos_t;
-
+  
 typedef struct __FILE_struct
 {
   unsigned char *__ptr;
@@ -216,6 +200,24 @@ extern int vfprintf (FILE *__restrict __stream,
 /* Write formatted output to stdio from arg list arg.  */
 extern int vprintf (const char *__restrict __format, __gnuc_va_list __arg);
 
+#ifdef __GNUC__
+extern int __gcc_vsnprintf (char *__restrict __s, size_t __limit,
+			    const char *__restrict __format,
+			    __gnuc_va_list *__arg)
+     __attribute__ ((__format__ (__printf__, 3, 0)));
+     extern int __gcc_vsprintf (char *__restrict __s,
+				const char *__restrict __format, __gnuc_va_list *__arg);
+extern int __gcc_vfprintf (FILE *__restrict __stream,
+                     const char *__restrict __format, __gnuc_va_list *__arg);
+extern int __gcc_vprintf (const char *__restrict __format, __gnuc_va_list *__arg);
+
+#define vsnprintf(__s,__limit,__fmt,__ap) \
+	(__gcc_vsnprintf(__s,__limit,__fmt, &__ap))
+#define vsprintf(__s,__fmt,__ap) (__gcc_vsprintf(__s, __fmt, &__ap))
+#define vfprintf(__s,__fmt,__ap) (__gcc_vfprintf(__s, __fmt, &__ap))
+#define vprintf(__fmt,__ap) (__gcc_vprintf(__fmt, &__ap))
+#endif
+
 #ifndef __GNUC__
 #pragma -v1
 #endif
@@ -225,9 +227,9 @@ extern int vprintf (const char *__restrict __format, __gnuc_va_list __arg);
 extern int snprintf (char *__restrict __s, size_t __limit,
                      const char *__restrict __format, ...)
      __attribute__ ((__format__ (__printf__, 3, 4)));
-
-/* Write formatted output to s.  */
-extern int sprintf (char *__restrict __s,
+     
+     /* Write formatted output to s.  */
+     extern int sprintf (char *__restrict __s,
                     const char *__restrict __format, ...);
 
 /* Write formatted output to stream.  */
@@ -269,6 +271,22 @@ extern int vfscanf (FILE *__restrict __stream,
 extern int vsscanf (const char *__restrict __s,
                     const char *__restrict __format, __gnuc_va_list __ap)
      __attribute__ ((__format__ (__scanf__, 2, 0)));
+     
+#ifdef __GNUC__
+extern int __gcc_vscanf (const char *__restrict __format, __gnuc_va_list *__ap)
+     __attribute__ ((__format__ (__scanf__, 1, 0)));
+extern int __gcc_vfscanf (FILE *__restrict __stream,
+			  const char *__restrict __format, __gnuc_va_list *__ap)
+     __attribute__ ((__format__ (__scanf__, 2, 0)));
+extern int __gcc_vsscanf (const char *__restrict __s,
+                    const char *__restrict __format, __gnuc_va_list *__ap)
+     __attribute__ ((__format__ (__scanf__, 2, 0)));
+
+#define vscanf(__fmt,__ap) (__gcc_vscanf(__fmt, &__ap))
+#define vfscanf(__s,__fmt,__ap) (__gcc_vfscanf(__s, __fmt, &__ap))
+#define vsscanf(__s,__fmt,__ap) (__gcc_vsscanf(__s, __fmt, &__ap))
+#endif
+
 
 
 /* Read the next character as an unsigned char from the stream
