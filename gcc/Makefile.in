@@ -160,7 +160,6 @@ build-stg7:	build-stg6 riscos-libs riscos-progs riscos-dist
 .PHONY: riscos-dist
 .PHONY: zlib
 
-.PHONY: libscl
 .PHONY: gcc-stg1
 .PHONY: gcc-stg2
 .PHONY: gcc-libs-stg1
@@ -223,11 +222,6 @@ riscos-aof-stg1:
 riscos-aof-stg2:
 	$(MAKE) -C riscos-aof "STAGE=stage2" "TRG=$(trg10)"
 
-libscl:
-	$(MAKE) -C libscl "TRG=$(trg11)" $(cfl11)
-	$(MAKE) -C libscl "TRG=$(trg30)" $(cfl30)
-	$(MAKE) -C libscl "TRG=$(trg31)" $(cfl31)
-
 riscos-progs:
 	$(MAKE) -C riscos-progs "TRG=$(trg10)" $(cfl10)
 
@@ -246,11 +240,11 @@ riscos-libs:
 	$(MAKE) -C $@ "TRG=$(trg10)" $(cfl10)
 
 gcc-libs-stg1:
-	#$(MAKE) -C gcc libgcc "TRG=$(trg10)" "STAGE=stage1"
 	$(MAKE) -C gcc zlib "TRG=$(trg10)" "STAGE=stage1"
 
 gcc-libs-stg2:
 	$(MAKE) -C gcc libgcc "TRG=$(trg10)" $(cfl10) "STAGE=stage2"
+	$(MAKE) -C gcc libgcc "TRG=$(trg11)" $(cfl11) "STAGE=stage2"
 	#$(MAKE) -C gcc libgpc "TRG=$(trg10)" $(cfl10) "STAGE=stage2"
 	#$(MAKE) -C gcc libio "TRG=$(trg10)" $(cfl10) "STAGE=stage2"
 	$(MAKE) -C gcc libf2c "TRG=$(trg10)" $(cfl10) "STAGE=stage2"
