@@ -1,8 +1,8 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/sys/types.h,v $
- * $Date: 2001/09/14 14:01:17 $
- * $Revision: 1.2.2.2 $
+ * $Date: 2002/02/14 15:56:35 $
+ * $Revision: 1.3 $
  * $State: Exp $
  * $Author: admin $
  *
@@ -53,6 +53,11 @@ typedef __nlink_t nlink_t;
 #ifndef __off_t_defined
 typedef __off_t off_t;
 #define __off_t_defined
+#endif
+
+#ifndef __off64_t_defined
+typedef __off64_t off64_t;
+#define __off64_t_defined
 #endif
 
 #ifndef __pid_t_defined

@@ -1,10 +1,10 @@
 /****************************************************************************
  *
- * $Source$
- * $Date$
- * $Revision$
- * $State$
- * $Author$
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/sys/stat.h,v $
+ * $Date: 2002/09/24 21:02:37 $
+ * $Revision: 1.4 $
+ * $State: Exp $
+ * $Author: admin $
  *
  ***************************************************************************/
 
@@ -200,6 +200,8 @@ extern int mknod (const char *__path, __mode_t __mode, __dev_t __dev);
 
 /* Create a new FIFO named path, with permission bits mode.  */
 extern int mkfifo (const char *__path, __mode_t __mode);
+
+#define stat64 stat
 
 __END_DECLS
 

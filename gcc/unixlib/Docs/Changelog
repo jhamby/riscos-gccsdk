@@ -1,3 +1,11 @@
+Wed Nov 27 19:00:00 2002  Nick Burrett  <nick@dsvr.net>
+
+	64-bit placeholders
+	* unixlib/types.h (__off64_t): Declare.
+	(__fpos64_t): Declare.
+	* sys/types.h: Define __off64_t, if not defined.
+	* sys/stat.h (stat64): Define as 'stat'.
+
 Tue Nov 26 21:46:52 2002  Nick Burrett  <nick@dsvr.net>
 
 	C99 dialect functions.

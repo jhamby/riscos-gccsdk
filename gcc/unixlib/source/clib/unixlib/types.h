@@ -1,8 +1,8 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/unixlib/types.h,v $
- * $Date: 2002/02/07 10:19:30 $
- * $Revision: 1.2.2.2 $
+ * $Date: 2002/02/14 15:56:35 $
+ * $Revision: 1.3 $
  * $State: Exp $
  * $Author: admin $
  *
@@ -125,5 +125,10 @@ typedef int __intptr_t;
 
 /* Duplicate info from sys/socket.h.  */
 typedef unsigned int __socklen_t;
+
+#ifdef __GNUC__
+typedef long long int __off64_t;
+typedef long long int __fpos64_t;
+#endif
 
 #endif /* __UNIXLIB_TYPES_H */
