@@ -1,3 +1,7 @@
+Mon May 26 19:47:04 2003  Peter Naulls <peter@chocky.org>
+	* clib/wchar.h: __mbrtowc and __mbrlen don't exist - avoid
+	  inline mbrlen.
+
 Mon May 26 18:26:03 2003  Alex Waugh  <alex@alexwaugh.com>
 
 	* pthread/create.c (__pthread_create): Initialise the saved SPSR.

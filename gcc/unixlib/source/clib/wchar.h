@@ -1,10 +1,10 @@
 /****************************************************************************
  *
- * $Source$
- * $Date$
- * $Revision$
- * $State$
- * $Author$
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/wchar.h,v $
+ * $Date: 2002/09/24 21:02:37 $
+ * $Revision: 1.4 $
+ * $State: Exp $
+ * $Author: admin $
  *
  ***************************************************************************/
 
@@ -165,10 +165,12 @@ extern size_t wcrtomb (char *__s, wchar_t __wc, mbstate_t *__ps);
 extern size_t __mbrlen (const char *__s, size_t __n, mbstate_t *__ps);
 extern size_t mbrlen (const char *__s, size_t __n, mbstate_t *__ps);
 
+#if 0
 #if defined (__OPTIMIZE__) && defined (__GNUC__)
 /* Define inline function as optimization.  */
 extern __inline size_t mbrlen (const char *s, size_t n, mbstate_t *ps)
 { return ps != NULL ? __mbrtowc (NULL, s, n, ps) : __mbrlen (s, n, NULL); }
+#endif
 #endif
 
 /* Write wide character representation of multibyte character string
