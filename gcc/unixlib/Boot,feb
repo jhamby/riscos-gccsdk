@@ -1,2 +1,2 @@
-If "<Unix$Path>" = "" Then Set Unix$Path <Obey$Dir>.source.clib.
+If "<UnixLib$Path>" = "" Then Set UnixLib$Path <Obey$Dir>.source.clib.
 IconSprites <Obey$Dir>.!Sprites

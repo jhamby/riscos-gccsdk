@@ -1,4 +1,4 @@
-Set Unix$Path <Obey$Dir>.source.clib.
+Set UnixLib$Path <Obey$Dir>.source.clib.
 IconSprites <Obey$Dir>.!Sprites
 RMEnsure UtilityModule 3.70 RMEnsure CallASWI 0.01 RMLoad System:Modules.CallASWI
 RMEnsure UtilityModule 3.10

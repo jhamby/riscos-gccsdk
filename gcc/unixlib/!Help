@@ -94,18 +94,18 @@ By default Norcroft C uses the ANSI library that come with the compiler. To
 use UnixLib, you have to change its behaviour, by using the following
 command switches
 
-        -IUnix: -JUnix: -lUnix:o.UnixLib
+        -IUnixLib: -JUnixLib: -lUnixLib:o.UnixLib
 
 If you are using a seperate link stage, the -l switch is not needed, instead
-you should specifiy Unix:o.UnixLib in the link command line.
+you should specifiy UnixLib:o.UnixLib in the link command line.
 
 If using the DDE frontend '!CC', the following needs to be changed
 
-The 'Include' field should be changed to 'Unix:'
-On the popup menu, the 'Default path' should be set to 'Unix:', while the
-'libraries' should be set to 'Unix:o.UnixLib'.
+The 'Include' field should be changed to 'UnixLib:'
+On the popup menu, the 'Default path' should be set to 'UnixLib:', while the
+'libraries' should be set to 'UnixLib:o.UnixLib'.
 
-For !Link, Unix:o.UnixLib should be specified as one of the files to be
+For !Link, UnixLib:o.UnixLib should be specified as one of the files to be
 linked.
 
 Please note that the math functions defined in complex.h cannot be

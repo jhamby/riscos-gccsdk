@@ -4,16 +4,11 @@
 This directory contains the necessary header files and object file to
 enable programs to use the SharedCLibrary module.
 
-This library is release 1.06 and is Copyright (c) 1997-1999 Nick Burrett
+This library is release 1.10 and is Copyright (c) 1997-2004 Nick Burrett
 
 !Clib is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-
-
-NOTE: THIS VERSION OF !CLIB IS A SNAPSHOT OF A WORK IN PROGRESS TO
-EXTEND THE CAPABILITIES, ALLOWING THE C++ LIBRARIES TO BE COMPILED
-AGAINST IT.
 
 Files
 -----
@@ -40,20 +35,20 @@ Using the SharedCLibrary library
 --------------------------------
 
 For general use, all that is needed is an extra command line option to GCC:
-  -mstubs
+  -mlibscl
 This will force GCC to search the GCC: and C: paths instead of the usual
-GCC: and Unix: paths.
+GCC: and UnixLib: paths.
 
 The library to link against is c:o.stubs
 
 The following commands will compile the file c.hellow:
-  *gcc -c c.hellow -O2 -mstubs
+  *gcc -c c.hellow -O2 -mlibscl
   *drlink -o hellow o.hellow gcc:o.libgcc c:o.stubs
 
 If you use LD, then add '-Lc: -lstubs' to the command line.
 
 Alternatively, let gcc handle the linking as well:
-  *gcc c.hellow -O2 -mstubs -o hellow
+  *gcc c.hellow -O2 -mlibscl -o hellow
 
 Filename translation for the Shared C Library
 ---------------------------------------------
@@ -87,10 +82,3 @@ SharedCLibrary and the CallASWI module
 
 Code linked for execution with the SharedCLibrary will not need to have the
 CallASWI module distributed with it.
-
-
-Contacting me
--------------
-
-If you require help, have found a bug or want some funky Unix C library
-feature added, then please e-mail me at nick@dsvr.net.

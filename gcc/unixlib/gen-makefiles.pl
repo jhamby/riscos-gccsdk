@@ -1,11 +1,11 @@
 #!/usr/bin/perl -w
 # Create various Unixlib Makefiles
 #
-# $Source: $
-# $Date: $
-# $Revision: $
-# $State: $
-# $Author: $
+# $Source: /usr/local/cvsroot/gccsdk/unixlib/gen-makefiles.pl,v $
+# $Date: 2004/01/14 23:16:57 $
+# $Revision: 1.4 $
+# $State: Exp $
+# $Author: joty $
 
 use Getopt::Long;
 
@@ -266,7 +266,7 @@ while (<NORCROFTIN>) {
       my $obj = $src;
       $obj =~ s/[cs]$/o/;
       if ($src =~ m/\.s$/) {
-        print NORCROFT riscosify($obj).": ".riscosify($src)." Unix:unixlib.s.asm_dec\n";
+        print NORCROFT riscosify($obj).": ".riscosify($src)." UnixLib:unixlib.s.asm_dec\n";
       } else {
         print NORCROFT riscosify($obj).": ".riscosify($src)."\n";
       }
