@@ -1,10 +1,10 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/module/sul.s,v $
-; $Date: 2005/03/06 21:53:53 $
-; $Revision: 1.10 $
+; $Date: 2005/03/13 16:35:47 $
+; $Revision: 1.11 $
 ; $State: Exp $
-; $Author: alex $
+; $Author: joty $
 ;
 ;----------------------------------------------------------------------------
 
@@ -1000,8 +1000,9 @@ skip_handler_setup
 	MOV	a3, v4
 	BL	copy_up_parent
 	TEQ	a1, #0
-	ADRNE	a1, error_no_mem - 8
-	BNE	error_handler
+	ADRNE	a1, error_no_mem
+	MOVNE	ip, v2
+	BNE	print_error
 	B	do_exec
 
 no_copy_needed
@@ -1033,12 +1034,13 @@ do_exec
 
 error_handler ; r0 = __proc
 	MOV	ip, a1
+	MOV	a1, #&8000
+	ADD	a1, a1, #8
 
+print_error
 	; The child generated an error. There is not really any way we can
 	; return it to the parent program, but we don't want to lose it so
 	; just print it out.
-	MOV	a1, #&8000
-	ADD	a1, a1, #8
 	SWI	XOS_Write0
 	SWI	XOS_NewLine
 
