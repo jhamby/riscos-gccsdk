@@ -1,4 +1,5 @@
-/* Copyright (C) 1991,93,96,97,99,2000,2002 Free Software Foundation, Inc.
+/* memrchr -- find the last occurrence of a byte in a memory block
+   Copyright (C) 1991, 93, 96, 97, 99, 2000 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
    Based on strlen implementation by Torbjorn Granlund (tege@sics.se),
    with help from Dan Sahlin (dan@sics.se) and
@@ -21,45 +22,51 @@
    Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
    02111-1307 USA.  */
 
+#include <stdlib.h>
+
 #ifdef HAVE_CONFIG_H
-#include <config.h>
+# include <config.h>
 #endif
 
 #undef __ptr_t
-#if defined (__cplusplus) || (defined (__STDC__) && __STDC__)
+#if defined __cplusplus || (defined __STDC__ && __STDC__)
 # define __ptr_t void *
 #else /* Not C++ or ANSI C.  */
 # define __ptr_t char *
 #endif /* C++ or ANSI C.  */
 
-#if defined (_LIBC)
+#if defined _LIBC
 # include <string.h>
 # include <memcopy.h>
-# include <stdlib.h>
 #else
 # define reg_char char
 #endif
 
-#if defined (HAVE_LIMITS_H) || defined (_LIBC)
+#if defined HAVE_LIMITS_H || defined _LIBC
 # include <limits.h>
 #endif
 
 #define LONG_MAX_32_BITS 2147483647
 
 #ifndef LONG_MAX
-#define LONG_MAX LONG_MAX_32_BITS
+# define LONG_MAX LONG_MAX_32_BITS
 #endif
 
 #include <sys/types.h>
 
-#undef memchr
+#undef __memrchr
+#undef memrchr
 
+#ifndef weak_alias
+# define __memrchr memrchr
+#endif
 
-/* Find the first occurrence of C in S.  */
+/* Search no more than N bytes of S for C.  */
 __ptr_t
-__rawmemchr (s, c_in)
+__memrchr (s, c_in, n)
      const __ptr_t s;
      int c_in;
+     size_t n;
 {
   const unsigned char *char_ptr;
   const unsigned long int *longword_ptr;
@@ -68,18 +75,19 @@ __rawmemchr (s, c_in)
 
   c = (unsigned char) c_in;
 
-  /* Handle the first few characters by reading one character at a time.
+  /* Handle the last few characters by reading one character at a time.
      Do this until CHAR_PTR is aligned on a longword boundary.  */
-  for (char_ptr = (const unsigned char *) s;
-       ((unsigned long int) char_ptr & (sizeof (longword) - 1)) != 0;
-       ++char_ptr)
-    if (*char_ptr == c)
+  for (char_ptr = (const unsigned char *) s + n;
+       n > 0 && ((unsigned long int) char_ptr
+		 & (sizeof (longword) - 1)) != 0;
+       --n)
+    if (*--char_ptr == c)
       return (__ptr_t) char_ptr;
 
   /* All these elucidatory comments refer to 4-byte longwords,
      but the theory applies equally well to 8-byte longwords.  */
 
-  longword_ptr = (unsigned long int *) char_ptr;
+  longword_ptr = (const unsigned long int *) char_ptr;
 
   /* Bits 31, 24, 16, and 8 of this number are zero.  Call these bits
      the "holes."  Note that there is a hole just to the left of
@@ -110,7 +118,7 @@ __rawmemchr (s, c_in)
   /* Instead of the traditional loop which tests each character,
      we will test a longword at a time.  The tricky part is testing
      if *any of the four* bytes in the longword in question are zero.  */
-  while (1)
+  while (n >= sizeof (longword))
     {
       /* We tentatively exit the loop if adding MAGIC_BITS to
 	 LONGWORD fails to change any of the hole bits of LONGWORD.
@@ -146,7 +154,7 @@ __rawmemchr (s, c_in)
 	 each of whose bytes is C.  This turns each byte that is C
 	 into a zero.  */
 
-      longword = *longword_ptr++ ^ charmask;
+      longword = *--longword_ptr ^ charmask;
 
       /* Add MAGIC_BITS to LONGWORD.  */
       if ((((longword + magic_bits)
@@ -162,31 +170,41 @@ __rawmemchr (s, c_in)
 	  /* Which of the bytes was C?  If none of them were, it was
 	     a misfire; continue the search.  */
 
-	  const unsigned char *cp = (const unsigned char *) (longword_ptr - 1);
+	  const unsigned char *cp = (const unsigned char *) longword_ptr;
 
-	  if (cp[0] == c)
-	    return (__ptr_t) cp;
-	  if (cp[1] == c)
-	    return (__ptr_t) &cp[1];
-	  if (cp[2] == c)
-	    return (__ptr_t) &cp[2];
-	  if (cp[3] == c)
-	    return (__ptr_t) &cp[3];
 #if LONG_MAX > 2147483647
-	  if (cp[4] == c)
-	    return (__ptr_t) &cp[4];
-	  if (cp[5] == c)
-	    return (__ptr_t) &cp[5];
-	  if (cp[6] == c)
-	    return (__ptr_t) &cp[6];
 	  if (cp[7] == c)
 	    return (__ptr_t) &cp[7];
+	  if (cp[6] == c)
+	    return (__ptr_t) &cp[6];
+	  if (cp[5] == c)
+	    return (__ptr_t) &cp[5];
+	  if (cp[4] == c)
+	    return (__ptr_t) &cp[4];
 #endif
+	  if (cp[3] == c)
+	    return (__ptr_t) &cp[3];
+	  if (cp[2] == c)
+	    return (__ptr_t) &cp[2];
+	  if (cp[1] == c)
+	    return (__ptr_t) &cp[1];
+	  if (cp[0] == c)
+	    return (__ptr_t) cp;
 	}
-    }
-}
-#if 0
-libc_hidden_def (__rawmemchr)
-weak_alias (__rawmemchr, rawmemchr)
-#endif
 
+      n -= sizeof (longword);
+    }
+
+  char_ptr = (const unsigned char *) longword_ptr;
+
+  while (n-- > 0)
+    {
+      if (*--char_ptr == c)
+	return (__ptr_t) char_ptr;
+    }
+
+  return 0;
+}
+#ifdef weak_alias
+weak_alias (__memrchr, memrchr)
+#endif

@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/stdio/printf.c,v $
- * $Date: 2002/12/15 13:16:55 $
- * $Revision: 1.6 $
+ * $Date: 2003/04/13 16:21:02 $
+ * $Revision: 1.7 $
  * $State: Exp $
- * $Author: admin $
+ * $Author: alex $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: printf.c,v 1.6 2002/12/15 13:16:55 admin Exp $";
+static const char rcs_id[] = "$Id: printf.c,v 1.7 2003/04/13 16:21:02 alex Exp $";
 #endif
 
 /*-
@@ -53,7 +53,7 @@ static const char rcs_id[] = "$Id: printf.c,v 1.6 2002/12/15 13:16:55 admin Exp 
 static char sccsid[] = "@(#)vfprintf.c	8.1 (Berkeley) 6/4/93";
 #endif
 static const char rcsid[] =
-		"$Id: printf.c,v 1.6 2002/12/15 13:16:55 admin Exp $";
+		"$Id: printf.c,v 1.7 2003/04/13 16:21:02 alex Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 /*
@@ -1384,6 +1384,13 @@ vsnprintf (char *buf, size_t limit, const char *format, va_list ap)
 
 int
 vsprintf(char *buf, const char *format, va_list ap)
+{
+  return vsnprintf(buf, 2147483647, format, ap);
+}
+
+
+int
+__gcc_vsprintf(char *buf, const char *format, va_list ap)
 {
   return vsnprintf(buf, 2147483647, format, ap);
 }

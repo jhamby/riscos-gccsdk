@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/string.h,v $
- * $Date: 2004/04/15 22:21:02 $
- * $Revision: 1.12 $
+ * $Date: 2004/10/17 16:24:43 $
+ * $Revision: 1.13 $
  * $State: Exp $
- * $Author: alex $
+ * $Author: joty $
  *
  ***************************************************************************/
 
@@ -31,6 +31,7 @@ extern void *memcpy (void *__restrict __dest, const void *__restrict __src,
    behaviour for overlapping data.  */
 extern void *memmove (void *__dest, const void *__src, size_t __n) __THROW;
 
+__BEGIN_NAMESPACE_STD
 /* Set n bytes of s to c.  */
 extern void *memset (void *__s, int __c, size_t __n) __THROW;
 
@@ -41,11 +42,22 @@ extern int memcmp (const void *__s1, const void *__s2, size_t __n)
 /* Search n bytes of s for c.  */
 extern void *memchr (const void *__s, int __c, size_t __n)
      __THROW __attribute_pure__;
+__END_NAMESPACE_STD
 
-extern void *__rawmemchr (__const void *__s, int __c)
-     __THROW __attribute_pure__;
+#ifdef __USE_GNU
+/* Search in S for C.  This is similar to `memchr' but there is no
+   length limit.  */
+extern void *rawmemchr (__const void *__s, int __c) __THROW __attribute_pure__;
 
-/* Copy src to dest. */
+/* Search N bytes of S for the final occurrence of C.  */
+#define __memrchr memrchr
+extern void *memrchr (__const void *__s, int __c, size_t __n)
+      __THROW __attribute_pure__;
+#endif
+
+
+__BEGIN_NAMESPACE_STD
+/* Copy SRC to DEST.  */
 extern char *strcpy (char *__restrict __dest, const char *__restrict __src)
      __THROW;
 
@@ -53,7 +65,7 @@ extern char *strcpy (char *__restrict __dest, const char *__restrict __src)
 extern char *strncpy (char *__restrict __dest, const char *__restrict __src,
 		      size_t __n) __THROW;
 
-/* Append src onto dest.  */
+/* Append SRC onto DEST.  */
 extern char *strcat (char *__restrict __dest, const char *__restrict __src)
      __THROW;
 
@@ -61,21 +73,21 @@ extern char *strcat (char *__restrict __dest, const char *__restrict __src)
 extern char *strncat (char *__restrict __dest, const char *__restrict __src,
 		      size_t __n) __THROW;
 
-/* Compare s1 and s2.  */
-extern int strcmp (const char *__s1, const char *__s2)
+/* Compare S1 and S2.  */
+extern int strcmp (__const char *__s1, __const char *__s2)
+     __THROW __attribute_pure__;
+/* Compare N characters of S1 and S2.  */
+extern int strncmp (__const char *__s1, __const char *__s2, size_t __n)
      __THROW __attribute_pure__;
 
-/* Compare n chars of s1 and s2.  */
-extern int strncmp (const char *__s1, const char *__s2, size_t __n)
+/* Compare the collated forms of S1 and S2.  */
+extern int strcoll (__const char *__s1, __const char *__s2)
      __THROW __attribute_pure__;
+/* Put a transformation of SRC into no more than N bytes of DEST.  */
+extern size_t strxfrm (char *__restrict __dest,
+		       __const char *__restrict __src, size_t __n) __THROW;
+__END_NAMESPACE_STD
 
-/* Compare two strings according to the locale's collating rules */
-extern int strcoll (const char *__s1, const char *__s2)
-     __THROW __attribute_pure__;
-
-/* Transform a string according to the locale's collating rules */
-extern size_t strxfrm (char *__restrict __to, const char *__restrict __from,
-		       size_t __size) __THROW;
 
 /* Find the first occurrence of c in s. */
 extern char *strchr (const char *__s, int __c) __THROW __attribute_pure__;
