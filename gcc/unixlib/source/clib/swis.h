@@ -1,10 +1,10 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/swis.h,v $
- * $Date: 2002/02/14 15:56:34 $
- * $Revision: 1.2 $
- * $State: Exp $
- * $Author: admin $
+ * $Source$
+ * $Date$
+ * $Revision$
+ * $State$
+ * $Author$
  *
  ***************************************************************************/
 
@@ -460,6 +460,15 @@ __END_DECLS
 #define Socket_Writev                  0x041217
 #define Socket_Gettsize                0x041218
 #define Socket_Sendtosm                0x041219
+#define Socket_Sysctl                  0x04121A
+#define Socket_Accept_1                0x04121B
+#define Socket_Recvfrom_1              0x04121C
+#define Socket_Recvmsg_1               0x04121D
+#define Socket_Sendmsg_1               0x04121E
+#define Socket_Getpeername_1           0x04121F
+#define Socket_Getsockname_1           0x041220
+#define Socket_InternalLookup          0x041221
+#define Socket_Version                 0x041222
 
 #define MessageTrans_FileInfo          0x041500
 #define MessageTrans_OpenFile          0x041501

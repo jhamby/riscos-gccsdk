@@ -1,3 +1,166 @@
+Sun Dec 22 18:21:18 2002  John Tytgat <John.Tytgat@aaug.net>
+
+	* MKDir: added resolv & resolv.o
+	* objs/Makefile,fe1: Added resolv/*; Removed netlib.o.ntohl,
+	  netlib.o.ntohs, netlib.o.inet_addr, netlib.o.inet_aton, unix.o.syslog
+	  Renamed netlib.o.htonl to netlib.o._bswap_32, netlib.o.htons to
+	  netlib.o._bswap_16; Added string.o.rawmemchar, string.o.strchrnul,
+	  string.o.strndup, string.o.strnlen, string.o.swab, netlib.o.in6_addr.
+	* source/Makefile: Likewise.
+	* Makefile: added resolv
+
+	* arpa/inet.h: Replaced by version in glibc 2.2.5
+	* arpa/nameser.h: Replaced by version in glibc 2.2.5
+	* arpa/nameser_compat.h: Added (glibc 2.2.5)
+	* arpa/tftp.h: Added (glibc 2.2.5)
+
+	* bits/in.h: Added (glibc 2.2.5)
+	* bits/netdb.h: Added (glibc 2.2.5)
+	* bits/sockaddr: Added (glibc 2.2.5)
+	* bits/socket.h: Added (glibc 2.2.5)
+
+	* byteswap.h: Added (glibc 2.2.5)
+	* dirent.h: Changed __u_int32_t into __uint32_t
+	* net/if.h: Replaced by version in glibc 2.2.5
+	* netdb.h: Replaced by version in glibc 2.2.5
+	* netinet/{in.h,in_systm.h,ip.h,ip_icmp.h,tcp.h,udp.h}:
+	  Replaced by version in glibc 2.2.5
+	* netinet/ip_var.h: Changed #include <sys/bytesorder.h> into
+	  #include <netinet/in.h>.
+	* resolv.h: Added (glibc 2.2.5)
+	* resolv/resolv.h: Added (glibc 2.2.5)
+	* stdio-common/stdio_ext.h: Added (glibc 2.2.5)
+	* stdio_ext.h: Added (glibc 2.2.5)
+	* stdint.h: When __int8_t_defined is defined, this does not
+	  mean that uint8_t, uint16_t, uint32_t and uint64_t are defined (but
+	  u_int8_t, u_int16_t, u_int32_t adn u_int64_t are defined).
+	* string.h: Added GNU calls __rawmemchr(), strndup(),
+	  strnlen() & strchrnul(); When __USE_BSD is defined, declare bcopy(),
+	  bzero(), bcmp(), index(), rindex(), strcasecmp() and strncasecmp().
+	* strings.h: Function calls are BSD functions calls so
+	  wrapped them inside an #ifdef __USE_BSD.
+	* string/byteswap.h: Added (glibc 2.2.5)
+	* sys/bitypes.h: Added (glibc 2.2.5)
+	* sys/byteorder.h: Removed (as htonl(), ntohl(), htons()
+	  and ntohs() are defined in netinet/in.h).
+	* sys/netdb.h: Removed (as the SWI veneers are now defined
+	  in bits/netdb.h)
+	* sys/sysmacros.h: Added (glibc 2.2.5)
+	* sys/uio.h: Changed #include <unixlib/types.h> into
+	  #include <sys/types.h> so that return types of readv() and writev()
+	  are a defined ssize_t (was previously the internal type __ssize_t).
+	* swis.h: Added Internet 5 new SWIs.
+	* unixlib/asm_dec.s: Added COMPAT_INET4 (default off),
+	  added Internet 5 new SWIs.
+	* unixlib/features.h: Added more #define's for Norcroft C
+	  compiler; Removed all sections which are also defined in
+	  misc/sys/cdefs.h;
+	  Defined BSD; Added #undef COMPAT_INET4
+	* unixlib/math.h: Changed __u_int32_t into __uint32_t
+	* unixlib/types.h: Replaced by version in glibc 2.2.5
+	* sys/cdefs.h: Added (glibc 2.2.5)
+	* sys/select.h: 5th param pselect() is 'const struct
+	  timespec *', not 'struct timespec'.  Was also missing 6th param
+	  'const __sigset *'.
+	* math/acosh.c: Changed __u_int32_t into __uint32_t.
+	* math/atanh.c: Likewise.
+	* math/cbrt.c: Likewise.
+	* math/erf.c: Likewise.
+	* math/exprm1.c: Likewise.
+	* math/fmod.c: Likewise.
+	* math/fpclassify.c: Likewise.
+	* math/jn.c: Likewise.
+	* math/llrint.c: Likewise.
+	* math/llround.c: Likewise.
+	* math/log2.c: Likewise.
+	* math/lrint.c: Likewise.
+	* math/lround.c: Likewise.
+	* math/modf.c: Likewise.
+	* math/nearbyint.c: Likewise.
+	* math/nextafter.c: Likewise.
+	* math/remainder.c: Likewise.
+	* math/remquo.c: Likewise.
+	* math/rem_pio2.c: Likewise.
+	* math/rint.c: Likewise.
+	* math/round.c: Likewise.
+	* math/trunc.c: Likewise.
+	* misc/sys/cdefs.h: Added (glibc 2.2.5)
+	* misc/sys/socket.h: Replaced by version in glibc 2.2.5
+	* misc/sys/types.h: Replaced by version in glibc 2.2.5
+	* netlib/accept.c: Type of last parameter of accept() is
+	  socklen_t *, not int *.
+	* netlib/bind.c: Type of last parameter of bind() is socklen_t,
+	  not int. Removed commented out debug line.
+	* netlib/connect.c: Type of last parameter of connect() is
+	  socklen_t, not int. Removed commented out debug line.
+	* netlib/getpeernam.c: Type of last parameter of getpeernam()
+	  is socklen_t *, not int *.
+	* netlib/getsocknam.c: Type of last parameter of getsocknam()
+	  is socklen_t *, not int *.
+	* netlib/getsockopt.c: Type of last parameter of getsockopt()
+	  is socklen_t *, not int *.
+	* netlib/host.c: Return types of sethostent() end endhostent()
+	  are void, not int; First 2 parameters of gethostbyaddr() are const
+	  void * and socklen_t, not const char * and int.
+	* netlib/in6_addr.c: Added (glibc 2.2.5)
+	* netlib/inet_addr.c: Removed (new code at resolv/inet_addr.c)
+	* netlib/inet_aton.c: Likewise.
+	* netlib/inet_lnaof.c: Return type of inet_lnaof() is in_addr_t,
+	  not u_long.
+	* netlib/inet_netof.c: Return type of inet_netof() is in_addr_t,
+	  not u_long.
+	* netlib/inet_netwo.c: Removed #include <sys/byteorder.h>;
+	  Return type of inet_network() is in_addr_t, not u_long.
+	* netlib/inet_mkad.c: Both parameters of inet_makeaddr() are
+	  in_addr_t, not u_long.
+	* netlib/net.c: Return type of setnetent() and endnetent() is
+	  void, not int.  First parameter of getnetbyaddr() is uint32_t, not
+	  long.
+	* netlib/ntohl.s (ntohl): Removed (is implemented as
+	   __bswap_32())
+	* netlib/ntohs.s (ntohs): Removed (is implemented as
+	   __bswap_16())
+	* netlib/ntop.c: Removed #include <sys/byteorder.h>
+	* netlib/proto.c: Return type of setprotoent() and endprotoent()
+	  is void, not int.
+	* netlib/pton.c: Removed #include <sys/byteorder.h>
+	* netlib/recv.c (recv): Third parameter of recv() is
+	  size_t (unsigned int), not int.
+	* netlib/recvfrom.c (recvfrom): Type of third and last parameter
+	  of recvfrom() is size_t and socklen_t (unsigned int) respectively,
+	  not int and int.
+	* netlib/send.c (send): Type of third parameter of send() is
+	  size_t, not int.
+	* netlib/sendto.c (sendto): Type of third and last parameter of
+	  sendto() is size_t and socklen_t (unsigned int) respectively, not int
+	  and int.
+	* netlib/serv.c: Removed #include <sys/byteorder.h>; Return type
+	  of the setservent() and endservent() routines is void, not int.
+	* netlib/setsockopt.c (setsockopt): Last parameter of
+	  setsockopt() is socklen_t (unsigned int), not int.
+	* netlib/socket.c: Changed #include <sys/netdb.h> into #include
+	  <netdb.h>
+	* netlib/_accept.s: Added check for COMPAT_INET4.
+	* netlib/_recvfrom.s: Likewise.
+	* netlib/_recvmsg.s: Likewise.
+	* netlib/_sendmsg.s: Likewise.
+	* netlib/_getpeername.s: Likewise.
+	* netlib/_getsockname.s: Likewise.
+	* netlib/_bswap_32.s (__bswap_32): Added (was the htonl.s
+	  implementation)
+	* netlib/_bswap_16.s (__bswap_16): Added (was the htons.s
+	  implementation)
+	* opensock.c: Added (glibc 2.2.5)
+	* string/strchrnul.c: Added (glibc 2.2.5)
+	* string/strndup.c: Added (glibc 2.2.5)
+	* string/swab.c: Added (glibc 2.2.5)
+	* strsignal.c (strsignal): Changed return type to 'char *'.
+	* unix/dev.c: Changed #include <sys/netdb.h> into #include
+	  <netdb.h>
+	* unix/fcntl.c: Likewise.
+	* unix/pselect.c (pselect): Parameters were wrong.  Based
+	  implementation on glibc 2.2.5.
+
 Sun Dec 15 13:35:02 2002  Alex Waugh  <alex.waugh@arm.com>
 
 	* common/riscosify.c: Re-write.
@@ -2677,7 +2840,7 @@ Nicholas Clark  <nickc@liv.ac.uk>
 
 	* netlib/accept.c: set _FDMAGIC on accepted socket's fd
 
-	* source/clib/sys/select.h: remove const from select prototype
+	* sys/select.h: remove const from select prototype
 	* netlib/select.c: renamed as unix/select.c
 	* unix/select.c: major re-write. Copes with all DEVs. Retruns FD_SETs of
 	live fds. Subtracts time waited from timeout passed

@@ -15,9 +15,7 @@
 #include <unixlib/features.h>
 #endif
 
-#ifndef __UNIXLIB_TYPES_H
-#include <unixlib/types.h>
-#endif
+#include <sys/types.h>
 
 __BEGIN_DECLS
 
@@ -34,12 +32,12 @@ struct iovec
 /* Read data from file descriptor FD, and put the result in the
    buffers described by VECTOR, which is a vector of COUNT `struct iovec's.
    The buffers are filled in the order specified.  */
-extern __ssize_t readv (int __fd, const struct iovec * __vector, int __count);
+extern ssize_t readv (int __fd, const struct iovec * __vector, int __count);
 
 /* Write data pointed by the buffers described by VECTOR, which
    is a vector of COUNT `struct iovec's, to file descriptor FD.
    The data is written in the order specified. */
-extern __ssize_t writev (int __fd, const struct iovec * __vector, int __count);
+extern ssize_t writev (int __fd, const struct iovec * __vector, int __count);
 
 __END_DECLS
 

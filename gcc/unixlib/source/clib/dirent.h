@@ -71,11 +71,11 @@ typedef struct __dir_stream DIR;
 
 typedef struct
 {
-  __u_int32_t load_address;
-  __u_int32_t exec_address;
-  __u_int32_t length;
-  __u_int32_t file_attrib;
-  __u_int32_t obj_type;
+  __uint32_t load_address;
+  __uint32_t exec_address;
+  __uint32_t length;
+  __uint32_t file_attrib;
+  __uint32_t obj_type;
   const char obj_name[1];
 } __os_gbpb_10;
 

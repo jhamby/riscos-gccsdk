@@ -175,6 +175,7 @@ OBJS =	$(libunixobj)/abort.o \
 	$(libunixobj)/memcmp.o \
 	$(libunixobj)/memcpy.o \
 	$(libunixobj)/memset.o \
+	$(libunixobj)/opensock.o \
 	$(libunixobj)/psignal.o \
 	$(libunixobj)/qsort.o \
 	$(libunixobj)/stpcpy.o \
@@ -245,10 +246,9 @@ NETLIB = $(libunixobj)/netlib/accept.o \
 	$(libunixobj)/netlib/getpeernam.o \
 	$(libunixobj)/netlib/getsocknam.o \
 	$(libunixobj)/netlib/getsockopt.o \
-	$(libunixobj)/netlib/h_errno.o \
 	$(libunixobj)/netlib/host.o \
-	$(libunixobj)/netlib/inet_addr.o \
-	$(libunixobj)/netlib/inet_aton.o \
+	$(libunixobj)/netlib/h_errno.o \
+	$(libunixobj)/netlib/in6_addr.o \
 	$(libunixobj)/netlib/inet_lnaof.o \
 	$(libunixobj)/netlib/inet_mkad.o \
 	$(libunixobj)/netlib/inet_netof.o \
@@ -271,12 +271,11 @@ NETLIB = $(libunixobj)/netlib/accept.o \
 	$(libunixobj)/netlib/shutdown.o \
 	$(libunixobj)/netlib/socket.o
 
-NETLIB_ASM = $(libunixobj)/netlib/htonl.o \
-	$(libunixobj)/netlib/htons.o \
-	$(libunixobj)/netlib/ntohl.o \
-	$(libunixobj)/netlib/ntohs.o \
+NETLIB_ASM = \
 	$(libunixobj)/netlib/_accept.o \
 	$(libunixobj)/netlib/_bind.o \
+	$(libunixobj)/netlib/_bswap_16.o \
+	$(libunixobj)/netlib/_bswap_32.o \
 	$(libunixobj)/netlib/_connect.o \
 	$(libunixobj)/netlib/_getpeerna.o \
 	$(libunixobj)/netlib/_getsockna.o \
@@ -359,6 +358,32 @@ GRP =	$(libunixobj)/grp/fgetgrent.o \
 	$(libunixobj)/grp/getgrgid.o \
 	$(libunixobj)/grp/getgrgid_r.o \
 	$(libunixobj)/grp/grpread.o
+
+RESOLV = \
+	$(libunixobj)/resolv/base64.o \
+	$(libunixobj)/resolv/gethnamaddr.o \
+	$(libunixobj)/resolv/herror.o \
+	$(libunixobj)/resolv/inet_addr.o \
+	$(libunixobj)/resolv/inet_neta.o \
+	$(libunixobj)/resolv/inet_net_ntop.o \
+	$(libunixobj)/resolv/inet_net_pton.o \
+	$(libunixobj)/resolv/inet_ntop.o \
+	$(libunixobj)/resolv/inet_pton.o \
+	$(libunixobj)/resolv/nsap_addr.o \
+	$(libunixobj)/resolv/ns_name.o \
+	$(libunixobj)/resolv/ns_netint.o \
+	$(libunixobj)/resolv/ns_parse.o \
+	$(libunixobj)/resolv/ns_print.o \
+	$(libunixobj)/resolv/ns_samedomain.o \
+	$(libunixobj)/resolv/ns_ttl.o \
+	$(libunixobj)/resolv/res_comp.o \
+	$(libunixobj)/resolv/res_data.o \
+	$(libunixobj)/resolv/res_debug.o \
+	$(libunixobj)/resolv/res_hconf.o \
+	$(libunixobj)/resolv/res_init.o \
+	$(libunixobj)/resolv/res_mkquery.o \
+	$(libunixobj)/resolv/res_query.o \
+	$(libunixobj)/resolv/res_send.o
 
 RESOURCE =	$(libunixobj)/resource/getegid.o \
 	$(libunixobj)/resource/geteuid.o \
@@ -458,7 +483,12 @@ STDLIB = $(libunixobj)/stdlib/drand48.o \
 	$(libunixobj)/stdlib/strtof.o \
 	$(libunixobj)/stdlib/strtold.o
 
-STRING	= $(libunixobj)/string/swab.o
+STRING = \
+	$(libunixobj)/string/rawmemchr.o \
+	$(libunixobj)/string/strchrnul.o \
+	$(libunixobj)/string/strndup.o \
+	$(libunixobj)/string/strnlen.o \
+	$(libunixobj)/string/swab.o
 
 SCL_ASM = $(libunixobj)/scl/_kcurskch.o \
 	$(libunixobj)/scl/_kernel.o \
@@ -676,8 +706,9 @@ WCHAR = $(libunixobj)/wchar/btowc.o \
 #  wchar.o.wcstold wchar.o.wcstod wchar.o.wcstof
 
 C_OBJS = $(COMPLEX) $(CRYPT) $(MATH) $(OBJS) $(COMMON) $(LOCALE) $(NETLIB) \
-	$(PTHREAD) $(PWD) $(GRP) $(RESOURCE) $(SIGNAL) $(STAT) $(STDIO) $(STRING) \
-	$(STDLIB) $(SYS) $(TIME) $(TERMIOS) $(UNISTD) $(UNIX) $(WCHAR)
+	$(PTHREAD) $(PWD) $(GRP) $(RESOLV) $(RESOURCE) $(SIGNAL) $(STAT) \
+	$(STDIO) $(STRING) $(STDLIB) $(SYS) $(TIME) $(TERMIOS) $(UNISTD) \
+	$(UNIX) $(WCHAR)
 
 ASM_OBJS = $(MATH_ASM) $(COMMON_ASM) $(GCCCOMPAT_ASM) $(NETLIB_ASM) \
 	$(PTHREAD_ASM) $(SIGNAL_ASM) $(STDIO_ASM) $(SCL_ASM) $(SYS_ASM) \
@@ -694,16 +725,21 @@ $(libunixobj)/sys/stackalloc.o: sys/stackalloc.c
 install_headers:
 	$(insthdr) clib "*.h" unixlib $(ux_gccpkg)/$(gn_cross_include_dir) $(ro_gccpkg)/$(gn_cross_include_dir)
 	$(insthdr) clib/arpa "*.h" unixlib/arpa $(ux_gccpkg)/$(gn_cross_include_dir) $(ro_gccpkg)/$(gn_cross_include_dir)
+	$(insthdr) clib/bits "*.h" unixlib/arpa $(ux_gccpkg)/$(gn_cross_include_dir) $(ro_gccpkg)/$(gn_cross_include_dir)
 	$(insthdr) clib/machine "*.h" unixlib/machine $(ux_gccpkg)/$(gn_cross_include_dir) $(ro_gccpkg)/$(gn_cross_include_dir)
 	$(insthdr) clib/net "*.h" unixlib/net $(ux_gccpkg)/$(gn_cross_include_dir) $(ro_gccpkg)/$(gn_cross_include_dir)
 	$(insthdr) clib/netinet "*.h" unixlib/netinet $(ux_gccpkg)/$(gn_cross_include_dir) $(ro_gccpkg)/$(gn_cross_include_dir)
+	$(insthdr) clib/resolv "*.h" unixlib/arpa $(ux_gccpkg)/$(gn_cross_include_dir) $(ro_gccpkg)/$(gn_cross_include_dir)
+	$(insthdr) clib/rpc "*.h" unixlib/arpa $(ux_gccpkg)/$(gn_cross_include_dir) $(ro_gccpkg)/$(gn_cross_include_dir)
+	$(insthdr) clib/stdio-common "*.h" unixlib/arpa $(ux_gccpkg)/$(gn_cross_include_dir) $(ro_gccpkg)/$(gn_cross_include_dir)
+	$(insthdr) clib/string "*.h" unixlib/arpa $(ux_gccpkg)/$(gn_cross_include_dir) $(ro_gccpkg)/$(gn_cross_include_dir)
 	$(insthdr) clib/sys "*.h" unixlib/sys $(ux_gccpkg)/$(gn_cross_include_dir) $(ro_gccpkg)/$(gn_cross_include_dir)
 	$(insthdr) clib/unixlib "*.[hs]" unixlib/unixlib $(ux_gccpkg)/$(gn_cross_include_dir) $(ro_gccpkg)/$(gn_cross_include_dir)
 
 install_source:
 	$(instsrc) . "*.[chs]" source $(ro_unixlibpkg)
 	for dir in common complex crypt gcccompat grp iconv locale math math-asm \
-		module netlib pwd resource scl signal stat stdio stdlib sys \
+		module netlib pwd resolv resource scl signal stat stdio stdlib sys \
 		 string termios time unistd unix wchar clib clib/arpa \
 		 clib/machine clib/net clib/netinet clib/sys clib/unixlib; do \
 	  $(instsrc) $$dir "*.[chs]" source/$$dir $(ro_unixlibpkg) ; done
@@ -721,6 +757,7 @@ $(ux_gcc_bin_dir)/$(TRG)/unixlib.o $(ro_gcc_bin_dir)/$(TRG)/o/unixlib $(ro_unixl
 	$(CROSS_AR) -i $@ $(PTHREAD)
 	$(CROSS_AR) -i $@ $(PWD)
 	$(CROSS_AR) -i $@ $(GRP)
+	$(CROSS_AR) -i $@ $(RESOLV)
 	$(CROSS_AR) -i $@ $(RESOURCE)
 	$(CROSS_AR) -i $@ $(SIGNAL)
 	$(CROSS_AR) -i $@ $(STAT)
@@ -766,6 +803,7 @@ $(libunixobj)/memcmp.o: memcmp.c
 $(libunixobj)/memcpy.o: memcpy.c
 $(libunixobj)/memccpy.o: memccpy.c
 $(libunixobj)/memset.o: memset.c
+$(libunixobj)/opensock.o: opensock.c
 $(libunixobj)/psignal.o: psignal.c
 $(libunixobj)/qsort.o: qsort.c
 $(libunixobj)/stpcpy.o: stpcpy.c
@@ -974,8 +1012,7 @@ $(libunixobj)/netlib/getsocknam.o: netlib/getsocknam.c
 $(libunixobj)/netlib/getsockopt.o: netlib/getsockopt.c
 $(libunixobj)/netlib/host.o: netlib/host.c
 $(libunixobj)/netlib/h_errno.o: netlib/h_errno.c
-$(libunixobj)/netlib/inet_addr.o: netlib/inet_addr.c
-$(libunixobj)/netlib/inet_aton.o: netlib/inet_aton.c
+$(libunixobj)/netlib/in6_addr.o: netlib/in6_addr.c
 $(libunixobj)/netlib/inet_lnaof.o: netlib/inet_lnaof.c
 $(libunixobj)/netlib/inet_mkad.o: netlib/inet_mkad.c
 $(libunixobj)/netlib/inet_netof.o: netlib/inet_netof.c
@@ -997,12 +1034,10 @@ $(libunixobj)/netlib/serv.o: netlib/serv.c
 $(libunixobj)/netlib/setsockopt.o: netlib/setsockopt.c
 $(libunixobj)/netlib/shutdown.o: netlib/shutdown.c
 $(libunixobj)/netlib/socket.o: netlib/socket.c
-$(libunixobj)/netlib/htonl.o: netlib/htonl.s clib/unixlib/asm_dec.s
-$(libunixobj)/netlib/htons.o: netlib/htons.s clib/unixlib/asm_dec.s
-$(libunixobj)/netlib/ntohs.o: netlib/ntohs.s clib/unixlib/asm_dec.s
-$(libunixobj)/netlib/ntohl.o: netlib/ntohl.s clib/unixlib/asm_dec.s
 $(libunixobj)/netlib/_accept.o: netlib/_accept.s clib/unixlib/asm_dec.s
 $(libunixobj)/netlib/_bind.o: netlib/_bind.s clib/unixlib/asm_dec.s
+$(libunixobj)/netlib/_bswap_16.o: netlib/_bswap_16.s clib/unixlib/asm_dec.s
+$(libunixobj)/netlib/_bswap_32.o: netlib/_bswap_32.s clib/unixlib/asm_dec.s
 $(libunixobj)/netlib/_connect.o: netlib/_connect.s clib/unixlib/asm_dec.s
 $(libunixobj)/netlib/_getpeerna.o: netlib/_getpeerna.s clib/unixlib/asm_dec.s
 $(libunixobj)/netlib/_getsockna.o: netlib/_getsockna.s clib/unixlib/asm_dec.s
@@ -1085,6 +1120,31 @@ $(libunixobj)/grp/getgrnam_r.o: grp/getgrnam_r.c
 $(libunixobj)/grp/getgrgid.o: grp/getgrgid.c
 $(libunixobj)/grp/getgrgid_r.o: grp/getgrgid_r.c
 $(libunixobj)/grp/grpread.o: grp/grpread.c
+
+$(libunixobj)/resolv/base64.o: resolv/base64.c
+$(libunixobj)/resolv/gethnamaddr.o: resolv/gethnamaddr.c
+$(libunixobj)/resolv/herror.o: resolv/herror.c
+$(libunixobj)/resolv/inet_addr.o: resolv/inet_addr.c
+$(libunixobj)/resolv/inet_neta.o: resolv/inet_neta.c
+$(libunixobj)/resolv/inet_net_ntop.o: resolv/inet_net_ntop.c
+$(libunixobj)/resolv/inet_net_pton.o: resolv/inet_net_pton.c
+$(libunixobj)/resolv/inet_ntop.o: resolv/inet_ntop.c
+$(libunixobj)/resolv/inet_pton.o: resolv/inet_pton.c
+$(libunixobj)/resolv/nsap_addr.o: resolv/nsap_addr.c
+$(libunixobj)/resolv/ns_name.o: resolv/ns_name.c
+$(libunixobj)/resolv/ns_netint.o: resolv/ns_netint.c
+$(libunixobj)/resolv/ns_parse.o: resolv/ns_parse.c
+$(libunixobj)/resolv/ns_print.o: resolv/ns_print.c
+$(libunixobj)/resolv/ns_samedomain.o: resolv/ns_samedomain.c
+$(libunixobj)/resolv/ns_ttl.o: resolv/ns_ttl.c
+$(libunixobj)/resolv/res_comp.o: resolv/res_comp.c
+$(libunixobj)/resolv/res_data.o: resolv/res_data.c
+$(libunixobj)/resolv/res_debug.o: resolv/res_debug.c
+$(libunixobj)/resolv/res_hconf.o: resolv/res_hconf.c
+$(libunixobj)/resolv/res_init.o: resolv/res_init.c
+$(libunixobj)/resolv/res_mkquery.o: resolv/res_mkquery.c
+$(libunixobj)/resolv/res_query.o: resolv/res_query.c
+$(libunixobj)/resolv/res_send.o: resolv/res_send.c
 
 $(libunixobj)/resource/getegid.o: resource/getegid.c
 $(libunixobj)/resource/geteuid.o: resource/geteuid.c
@@ -1209,6 +1269,8 @@ $(libunixobj)/stdlib/srand48.o: stdlib/srand48.c
 $(libunixobj)/stdlib/strtof.o: stdlib/strtof.c
 $(libunixobj)/stdlib/strtold.o: stdlib/strtold.c
 
+$(libunixobj)/string/strchrnul.o: string/strchrnul.c
+$(libunixobj)/string/strndup.o: string/strndup.c
 $(libunixobj)/string/swab.o: string/swab.c
 
 $(libunixobj)/sys/alarm.o: sys/alarm.c

@@ -1,10 +1,10 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/math/c/remainder,v $
- * $Date: 1997/10/09 20:00:07 $
- * $Revision: 1.3 $
- * $State: Exp $
- * $Author: unixlib $
+ * $Source$
+ * $Date$
+ * $Revision$
+ * $State$
+ * $Author$
  *
  ***************************************************************************/
 
@@ -44,7 +44,7 @@ double
 remainder (double x, double p)
 {
   __int32_t hx, hp;
-  __u_int32_t sx, lx, lp;
+  __uint32_t sx, lx, lp;
   double p_half;
 
   EXTRACT_WORDS (hx, lx, x);

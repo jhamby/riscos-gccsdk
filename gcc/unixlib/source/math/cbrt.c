@@ -1,10 +1,10 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/math/c/cbrt,v $
- * $Date: 1997/10/09 20:00:04 $
- * $Revision: 1.3 $
- * $State: Exp $
- * $Author: unixlib $
+ * $Source$
+ * $Date$
+ * $Revision$
+ * $State$
+ * $Author$
  *
  ***************************************************************************/
 
@@ -31,7 +31,7 @@ static char rcsid[] = "$NetBSD: s_cbrt.c,v 1.8 1995/05/10 20:46:49 jtc Exp $";
 /* cbrt(x)
  * Return cube root of x
  */
-static const __u_int32_t
+static const __uint32_t
   B1 = 715094163,		/* B1 = (682-0.03306235651)*2**20 */
   B2 = 696219795;		/* B2 = (664-0.03306235651)*2**20 */
 
@@ -47,8 +47,8 @@ cbrt (double x)
 {
   __int32_t hx;
   double r, s, t = 0.0, w;
-  __u_int32_t sign;
-  __u_int32_t high, low;
+  __uint32_t sign;
+  __uint32_t high, low;
 
   GET_HIGH_WORD (hx, x);
   sign = hx & 0x80000000;	/* sign= sign(x) */

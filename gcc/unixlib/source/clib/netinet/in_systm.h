@@ -1,25 +1,57 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/clib/netinet/h/in_systm,v $
- * $Date: 1997/10/09 19:59:52 $
- * $Revision: 1.4 $
- * $State: Exp $
- * $Author: unixlib $
+ * $Source: $
+ * $Date: $
+ * $Revision: $
+ * $State: $
+ * $Author: $
  *
  ***************************************************************************/
 
-#ifndef __NETINET_IN_SYSTM_H
-#define __NETINET_IN_SYSTM_H
+/*
+ * File taken from glibc 2.2.5.
+ * Following changes were made:
+ *  <none>
+ */
 
-#ifndef __UNIXLIB_TYPES_H
-#include <unixlib/types.h>
-#endif
+/* System specific type definitions for networking code.
+   Copyright (C) 1997 Free Software Foundation, Inc.
+   This file is part of the GNU C Library.
+
+   The GNU C Library is free software; you can redistribute it and/or
+   modify it under the terms of the GNU Lesser General Public
+   License as published by the Free Software Foundation; either
+   version 2.1 of the License, or (at your option) any later version.
+
+   The GNU C Library is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+   Lesser General Public License for more details.
+
+   You should have received a copy of the GNU Lesser General Public
+   License along with the GNU C Library; if not, write to the Free
+   Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
+   02111-1307 USA.  */
+
+#ifndef __NETINET_IN_SYSTM_H
+#define __NETINET_IN_SYSTM_H 1
+
+#include <unixlib/features.h>
+#include <sys/types.h>
+
+__BEGIN_DECLS
 
 /*
- * Network data types (these are big endian)
+ * Network order versions of various data types. Unfortunately, BSD
+ * assumes specific sizes for shorts (16 bit) and longs (32 bit) which
+ * don't hold in general. As a consequence, the network order versions
+ * may not reflect the actual size of the native data types.
  */
-typedef __u_short n_short;  /* Short (16 bit word) in net byte order */
-typedef __u_long  n_long;   /* Long (32 bit word) in net byte order */
-typedef __u_long  n_time;   /* Time in ms since midnight UTC in net byte order */
 
-#endif
+typedef u_int16_t n_short;      /* short as received from the net */
+typedef u_int32_t n_long;       /* long as received from the net  */
+typedef u_int32_t n_time;       /* ms since 00:00 GMT, byte rev   */
+
+__END_DECLS
+
+#endif /* netinet/in_systm.h */

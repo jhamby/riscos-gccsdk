@@ -1,10 +1,10 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/math/c/rint,v $
- * $Date: 1997/10/09 20:00:07 $
- * $Revision: 1.3 $
- * $State: Exp $
- * $Author: unixlib $
+ * $Source$
+ * $Date$
+ * $Revision$
+ * $State$
+ * $Author$
  *
  ***************************************************************************/
 
@@ -49,7 +49,7 @@ double
 rint (double x)
 {
   __int32_t i0, j0, sx;
-  __u_int32_t i, i1;
+  __uint32_t i, i1;
   double w, t;
 
   EXTRACT_WORDS (i0, i1, x);
@@ -95,7 +95,7 @@ rint (double x)
     }
   else
     {
-      i = ((__u_int32_t) (0xffffffff)) >> (j0 - 20);
+      i = ((__uint32_t) (0xffffffff)) >> (j0 - 20);
       if ((i1 & i) == 0)
 	return x;		/* x is integral */
       i >>= 1;

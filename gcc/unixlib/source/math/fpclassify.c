@@ -1,10 +1,10 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/math/c/fpclassify,v $
- * $Date: 1999/11/16 13:31:17 $
- * $Revision: 1.1 $
- * $State: Exp $
- * $Author: admin $
+ * $Source$
+ * $Date$
+ * $Revision$
+ * $State$
+ * $Author$
  *
  ***************************************************************************/
 
@@ -14,7 +14,7 @@
 
 int fpclassify (double x)
 {
-  __u_int32_t hx, lx;
+  __uint32_t hx, lx;
   int retval = FP_NORMAL;
 
   EXTRACT_WORDS (hx, lx, x);

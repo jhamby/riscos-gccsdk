@@ -1,10 +1,10 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/clib/unixlib/h/math,v $
- * $Date: 1999/11/16 13:34:50 $
- * $Revision: 1.4 $
- * $State: Exp $
- * $Author: admin $
+ * $Source$
+ * $Date$
+ * $Revision$
+ * $State$
+ * $Author$
  *
  ***************************************************************************/
 
@@ -46,8 +46,8 @@ typedef union
   double value;
   struct
   {
-    __u_int32_t msw;
-    __u_int32_t lsw;
+    __uint32_t msw;
+    __uint32_t lsw;
   } parts;
 } ieee_double_shape_type;
 
@@ -115,7 +115,7 @@ do {								\
 typedef union
 {
   float value;
-  __u_int32_t word;
+  __uint32_t word;
 } ieee_float_shape_type;
 
 /* Get a 32 bit int from a float.  */
@@ -147,8 +147,8 @@ typedef union
     unsigned int exponent:15;
     unsigned int empty:16;
     unsigned int sign:1;
-    __u_int32_t msw;
-    __u_int32_t lsw;
+    __uint32_t msw;
+    __uint32_t lsw;
   } parts;
 } ieee_long_double_shape_type;
 
@@ -225,7 +225,7 @@ extern __inline__ int signbit (double x)
 
 extern __inline__ double copysign (double x, double y)
 {
-  __u_int32_t hx,hy;
+  __uint32_t hx,hy;
 
   GET_HIGH_WORD(hx,x);
   GET_HIGH_WORD(hy,y);
@@ -239,7 +239,7 @@ extern __inline__ int finite (double x)
 
   GET_HIGH_WORD(hx,x);
 
-   return (int) ((__u_int32_t) ((hx & 0x7fffffff) - 0x7ff00000) >> 31);
+   return (int) ((__uint32_t) ((hx & 0x7fffffff) - 0x7ff00000) >> 31);
 }
 
 #endif

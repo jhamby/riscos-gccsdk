@@ -1,10 +1,10 @@
 ;----------------------------------------------------------------------------
 ;
-; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/netlib/_recvmsg.s,v $
-; $Date: 2001/01/29 15:10:20 $
-; $Revision: 1.2 $
-; $State: Exp $
-; $Author: admin $
+; $Source$
+; $Date$
+; $Revision$
+; $State$
+; $Author$
 ;
 ;----------------------------------------------------------------------------
 
@@ -17,6 +17,10 @@
 	EXPORT	|_recvmsg|
 	NAME	_recvmsg
 |_recvmsg|
+	[ COMPAT_INET4 = 1
 	NetSWIsimple	XSocket_Recvmsg
+	|
+	NetSWIsimple	XSocket_Recvmsg_1
+	]
 
 	END

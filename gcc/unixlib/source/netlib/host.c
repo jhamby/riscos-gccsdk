@@ -34,13 +34,13 @@ static int __sethostent (int allowrewind);
 static struct hostent *__gethostent (void);
 
 /* Open and rewind the hosts file.  */
-int
+void
 sethostent (int stayopen)
 {
   /* Record whether the file should be kept open */
   keepopen = stayopen;
 
-  return __sethostent (1);
+  (void) __sethostent (1);
 }
 
 /* Do the real work of opening/rewinding the hosts file.  */
@@ -144,19 +144,15 @@ __gethostent ()
 }
 
 /* Close the hosts file.  */
-int
+void
 endhostent ()
 {
-  int status = 0;
-
   /* If its open, close it */
   if (hostfile)
     {
-      status = fclose (hostfile);
+      (void) fclose (hostfile);
       hostfile = 0;
     }
-
-  return status;
 }
 
 /* Search the hosts file for a given host name.  */
@@ -171,7 +167,7 @@ gethostbyname2 (const char *name, int af)
     return host;
 
   /* Currently we don't make distinctions between the different
-     socket address spaces.   */ 
+     socket address spaces.   */
   if (af != AF_INET)
     return NULL;
 
@@ -213,7 +209,7 @@ gethostbyname (const char *name)
 
 /* Search the hosts file for a given address.  */
 struct hostent *
-gethostbyaddr (const char *addr, int len, int type)
+gethostbyaddr (const void *addr, socklen_t len, int type)
 {
   struct hostent *host;
   char **address;

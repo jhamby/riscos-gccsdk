@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/netlib/c/proto,v $
- * $Date: 1997/10/09 20:00:20 $
- * $Revision: 1.5 $
- * $State: Exp $
- * $Author: unixlib $
+ * $Source$
+ * $Date$
+ * $Revision$
+ * $State$
+ * $Author$
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: proto,v 1.5 1997/10/09 20:00:20 unixlib Exp $";
+static const char rcs_id[] = "$Id$";
 #endif
 
 #include <stdio.h>
@@ -33,13 +33,13 @@ static int __setprotoent (int allowrewind);
 static struct protoent *__getprotoent (void);
 
 /* Open and rewind the protocols file.  */
-int
+void
 setprotoent (int stayopen)
 {
   /* Record whether the file should be kept open */
   keepopen = stayopen;
 
-  return __setprotoent (1);
+  (void) __setprotoent (1);
 }
 
 /* Do the real work of opening/rewinding the protocols file.  */
@@ -136,19 +136,15 @@ __getprotoent ()
 }
 
 /* Close the protocols file.  */
-int
+void
 endprotoent ()
 {
-  int status = 0;
-
   /* If its open, close it */
   if (protofile)
     {
-      status = fclose (protofile);
+      (void) fclose (protofile);
       protofile = 0;
     }
-
-  return status;
 }
 
 /* Search the protocols file for a given protocol name.  */

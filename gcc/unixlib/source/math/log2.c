@@ -1,10 +1,10 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/math/c/log2,v $
- * $Date: 1999/11/16 13:31:17 $
- * $Revision: 1.1 $
- * $State: Exp $
- * $Author: admin $
+ * $Source$
+ * $Date$
+ * $Revision$
+ * $State$
+ * $Author$
  *
  ***************************************************************************/
 
@@ -85,7 +85,7 @@ double log2(double x)
 {
 	double hfsq,f,s,z,R,w,t1,t2,dk;
 	__int32_t k,hx,i,j;
-	__u_int32_t lx;
+	__uint32_t lx;
 
 	EXTRACT_WORDS(hx,lx,x);
 

@@ -244,6 +244,7 @@ extern int putchar (int __c);
 
 /* Get a newline-terminated string of finite length from stream.  */
 extern char *fgets (char *__s, size_t __n, FILE *__stream);
+#define fgets_unlocked fgets
 /* Get a newline-terminated string from stdin, removing the newline.  */
 extern char *gets (char *__s);
 

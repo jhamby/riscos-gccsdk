@@ -1,10 +1,10 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/math/c/round,v $
- * $Date: 1999/11/16 13:31:17 $
- * $Revision: 1.1 $
- * $State: Exp $
- * $Author: admin $
+ * $Source$
+ * $Date$
+ * $Revision$
+ * $State$
+ * $Author$
  *
  ***************************************************************************/
 
@@ -39,7 +39,7 @@ double
 round (double x)
 {
   __int32_t i0, j0;
-  __u_int32_t i1;
+  __uint32_t i1;
 
   EXTRACT_WORDS (i0, i1, x);
   j0 = ((i0 >> 20) & 0x7ff) - 0x3ff;
@@ -57,7 +57,7 @@ round (double x)
 	}
       else
 	{
-	  __u_int32_t i = 0x000fffff >> j0;
+	  __uint32_t i = 0x000fffff >> j0;
 	  if (((i0 & i) | i1) == 0)
 	    /* X is integral.  */
 	    return x;
@@ -80,7 +80,7 @@ round (double x)
     }
   else
     {
-      __u_int32_t i = 0xffffffff >> (j0 - 20);
+      __uint32_t i = 0xffffffff >> (j0 - 20);
       if ((i1 & i) == 0)
 	/* X is integral.  */
 	return x;
@@ -88,7 +88,7 @@ round (double x)
       if (huge + x > 0.0)
 	{
 	  /* Raise inexact if x != 0.  */
-	  __u_int32_t j = i1 + (1 << (51 - j0));
+	  __uint32_t j = i1 + (1 << (51 - j0));
 	  if (j < i1)
 	    i0 += 1;
 	  i1 = j;

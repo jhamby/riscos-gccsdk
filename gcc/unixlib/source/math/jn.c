@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/math/c/jn,v $
- * $Date: 2000/06/10 08:57:26 $
- * $Revision: 1.2 $
- * $State: Exp $
- * $Author: admin $
+ * $Source$
+ * $Date$
+ * $Revision$
+ * $State$
+ * $Author$
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: jn,v 1.2 2000/06/10 08:57:26 admin Exp $";
+static const char rcs_id[] = "$Id$";
 #endif
 
 /* @(#)e_jn.c 5.1 93/09/24 */
@@ -74,7 +74,7 @@ jn (int n, double x)
   EXTRACT_WORDS (hx, lx, x);
   ix = 0x7fffffff & hx;
   /* if J(n,NaN) is NaN */
-  if ((ix | ((__u_int32_t) (lx | -lx)) >> 31) > 0x7ff00000)
+  if ((ix | ((__uint32_t) (lx | -lx)) >> 31) > 0x7ff00000)
     return x + x;
   if (n < 0)
     {
@@ -270,7 +270,7 @@ yn (int n, double x)
   EXTRACT_WORDS (hx, lx, x);
   ix = 0x7fffffff & hx;
   /* if Y(n,NaN) is NaN */
-  if ((ix | ((__u_int32_t) (lx | -lx)) >> 31) > 0x7ff00000)
+  if ((ix | ((__uint32_t) (lx | -lx)) >> 31) > 0x7ff00000)
     return x + x;
   if ((ix | lx) == 0)
     return -one / zero;
@@ -322,7 +322,7 @@ yn (int n, double x)
     }
   else
     {
-      __u_int32_t high;
+      __uint32_t high;
       a = y0 (x);
       b = y1 (x);
       /* quit if b is -inf */

@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/math/c/rem_pio2,v $
- * $Date: 2000/06/10 08:57:26 $
- * $Revision: 1.2 $
- * $State: Exp $
- * $Author: admin $
+ * $Source$
+ * $Date$
+ * $Revision$
+ * $State$
+ * $Author$
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: rem_pio2,v 1.2 2000/06/10 08:57:26 admin Exp $";
+static const char rcs_id[] = "$Id$";
 #endif
 
 /* @(#)e_rem_pio2.c 5.1 93/09/24 */
@@ -90,7 +90,7 @@ rem_pio2 (double x, double *y)
   double z = 0.0, w, t, r, fn;
   double tx[3];
   __int32_t e0, i, j, nx, n, ix, hx;
-  __u_int32_t low;
+  __uint32_t low;
 
   GET_HIGH_WORD (hx, x);	/* high word of x */
   ix = hx & 0x7fffffff;
@@ -148,7 +148,7 @@ rem_pio2 (double x, double *y)
 	}
       else
 	{
-	  __u_int32_t high;
+	  __uint32_t high;
 	  j = ix >> 20;
 	  y[0] = r - w;
 	  GET_HIGH_WORD (high, y[0]);

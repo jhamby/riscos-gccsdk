@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/netlib/c/ntop,v $
- * $Date: 1997/12/17 22:27:07 $
- * $Revision: 1.6 $
- * $State: Exp $
- * $Author: unixlib $
+ * $Source$
+ * $Date$
+ * $Revision$
+ * $State$
+ * $Author$
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: ntop,v 1.6 1997/12/17 22:27:07 unixlib Exp $";
+static const char rcs_id[] = "$Id$";
 #endif
 
 /* Copyright (c) 1996 by Internet Software Consortium.
@@ -30,7 +30,6 @@ static const char rcs_id[] = "$Id: ntop,v 1.6 1997/12/17 22:27:07 unixlib Exp $"
 
 #include <netinet/in.h>
 #include <arpa/inet.h>
-#include <sys/byteorder.h>
 #include <ctype.h>
 #include <arpa/nameser.h>
 #include <string.h>

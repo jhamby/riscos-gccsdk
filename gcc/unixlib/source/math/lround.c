@@ -1,10 +1,10 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/math/c/lround,v $
- * $Date: 1999/11/16 13:31:17 $
- * $Revision: 1.1 $
- * $State: Exp $
- * $Author: admin $
+ * $Source$
+ * $Date$
+ * $Revision$
+ * $State$
+ * $Author$
  *
  ***************************************************************************/
 
@@ -36,7 +36,7 @@ long int
 lround (double x)
 {
   __int32_t j0;
-  __u_int32_t i1, i0;
+  __uint32_t i1, i0;
   long int result;
   int sign;
 
@@ -63,7 +63,7 @@ lround (double x)
 	result = ((long int) i0 << (j0 - 20)) | (i1 << (j0 - 52));
       else
 	{
-	  __u_int32_t j = i1 + (0x80000000 >> (j0 - 20));
+	  __uint32_t j = i1 + (0x80000000 >> (j0 - 20));
 	  if (j < i1)
 	    ++i0;
 

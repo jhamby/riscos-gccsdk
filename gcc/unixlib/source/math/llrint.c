@@ -1,10 +1,10 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/math/c/llrint,v $
- * $Date: 1999/11/18 12:25:13 $
- * $Revision: 1.2 $
- * $State: Exp $
- * $Author: admin $
+ * $Source$
+ * $Date$
+ * $Revision$
+ * $State$
+ * $Author$
  *
  ***************************************************************************/
 
@@ -23,7 +23,7 @@ long long int
 llrint (double x)
 {
   __int32_t j0;
-  __u_int32_t i1, i0;
+  __uint32_t i1, i0;
   long long int result;
   volatile double w;
   double t;

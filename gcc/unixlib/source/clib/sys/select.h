@@ -68,7 +68,8 @@ int select (int __nfds, __fd_set *__readfds, __fd_set *__writefds,
 
 /* Same as pselect but with higher resolution for the timeout.  */
 int pselect (int __nfds, __fd_set *__readfds, __fd_set *__writefds,
-	    __fd_set *__exceptfds, struct timespec *__timeout);
+	    __fd_set *__exceptfds, const struct timespec *__timeout,
+            const __sigset_t *__sigmask);
 
 #ifdef __UNIXLIB_INTERNALS
 /* SWI veneer. Do not use directly.  */

@@ -1,10 +1,10 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/math/c/nextafter,v $
- * $Date: 1997/10/09 20:00:06 $
- * $Revision: 1.3 $
- * $State: Exp $
- * $Author: unixlib $
+ * $Source$
+ * $Date$
+ * $Revision$
+ * $State$
+ * $Author$
  *
  ***************************************************************************/
 
@@ -39,7 +39,7 @@ double
 nextafter (double x, double y)
 {
   __int32_t hx, hy, ix, iy;
-  __u_int32_t lx, ly;
+  __uint32_t lx, ly;
 
   EXTRACT_WORDS (hx, lx, x);
   EXTRACT_WORDS (hy, ly, y);

@@ -24,7 +24,7 @@ static const char rcs_id[] = "$Id$";
 #include <sys/param.h>
 #include <unixlib/dev.h>
 #include <unixlib/os.h>
-#include <sys/netdb.h>
+#include <netdb.h>
 #include <sys/stat.h>
 #include <swis.h>
 #include <sys/select.h>
@@ -188,7 +188,7 @@ __fsopen (struct __unixlib_fd *file_desc, const char *filename, int mode)
 	  __os_swi (OS_FSControl, regs);
 	} else
 	  temp = (char *) filename;
-      
+
       if (! (strlen (temp) > 5
 	     && tolower (temp[0]) == 'p'
 	     && tolower (temp[1]) == 'i'

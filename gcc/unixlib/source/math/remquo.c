@@ -1,10 +1,10 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/math/c/remquo,v $
- * $Date: 1999/11/16 13:31:17 $
- * $Revision: 1.1 $
- * $State: Exp $
- * $Author: admin $
+ * $Source$
+ * $Date$
+ * $Revision$
+ * $State$
+ * $Author$
  *
  ***************************************************************************/
 
@@ -19,7 +19,7 @@ double
 remquo (double x, double y, int *quo)
 {
   __int32_t hx,hy;
-  __u_int32_t sx,lx,ly;
+  __uint32_t sx,lx,ly;
   int cquo, qs;
 
   EXTRACT_WORDS (hx, lx, x);

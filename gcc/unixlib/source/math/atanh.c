@@ -1,10 +1,10 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/math/c/atanh,v $
- * $Date: 1997/10/09 20:00:04 $
- * $Revision: 1.3 $
- * $State: Exp $
- * $Author: unixlib $
+ * $Source$
+ * $Date$
+ * $Revision$
+ * $State$
+ * $Author$
  *
  ***************************************************************************/
 
@@ -54,7 +54,7 @@ atanh (double x)
 {
   double t;
   __int32_t hx, ix;
-  __u_int32_t lx;
+  __uint32_t lx;
 
   EXTRACT_WORDS (hx, lx, x);
   ix = hx & 0x7fffffff;

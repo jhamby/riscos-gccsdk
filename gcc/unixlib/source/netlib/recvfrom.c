@@ -19,7 +19,7 @@ static const char rcs_id[] = "$Id$";
 #include <unixlib/local.h>
 
 int
-recvfrom (int s, void *msg, int len, int flags,
+recvfrom (int s, void *msg, size_t len, int flags,
 	  struct sockaddr *from, socklen_t *fromlen)
 {
   if (__socket_valid (s) == -1)

@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/math/c/erf,v $
- * $Date: 1997/09/07 16:21:52 $
- * $Revision: 1.1 $
- * $State: Exp $
- * $Author: unixlib $
+ * $Source$
+ * $Date$
+ * $Revision$
+ * $State$
+ * $Author$
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: erf,v 1.1 1997/09/07 16:21:52 unixlib Exp $";
+static const char rcs_id[] = "$Id$";
 #endif
 
 /* @(#)s_erf.c 5.1 93/09/24 */
@@ -206,7 +206,7 @@ erf (double x)
   ix = hx & 0x7fffffff;
   if (ix >= 0x7ff00000)
     {				/* erf(nan)=nan */
-      i = ((__u_int32_t) hx >> 31) << 1;
+      i = ((__uint32_t) hx >> 31) << 1;
       return (double) (1 - i) + one / x;	/* erf(+-inf)=+-1 */
     }
 
@@ -276,7 +276,7 @@ erfc (double x)
   if (ix >= 0x7ff00000)
     {				/* erfc(nan)=nan */
       /* erfc(+-inf)=0,2 */
-      return (double) (((__u_int32_t) hx >> 31) << 1) + one / x;
+      return (double) (((__uint32_t) hx >> 31) << 1) + one / x;
     }
 
   if (ix < 0x3feb0000)

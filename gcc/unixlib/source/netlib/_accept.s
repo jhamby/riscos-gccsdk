@@ -1,10 +1,10 @@
 ;----------------------------------------------------------------------------
 ;
-; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/netlib/_accept.s,v $
-; $Date: 2001/01/29 15:10:20 $
-; $Revision: 1.2 $
-; $State: Exp $
-; $Author: admin $
+; $Source$
+; $Date$
+; $Revision$
+; $State$
+; $Author$
 ;
 ;----------------------------------------------------------------------------
 
@@ -17,6 +17,10 @@
 	EXPORT	|_accept|
 	NAME	_accept
 |_accept|
+	[ COMPAT_INET4 = 1
 	NetSWIsimple	XSocket_Accept
+	|
+	NetSWIsimple	XSocket_Accept_1
+	]
 
 	END

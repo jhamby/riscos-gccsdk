@@ -1,26 +1,25 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/netlib/c/inet_netwo,v $
- * $Date: 1997/10/09 20:00:19 $
- * $Revision: 1.5 $
- * $State: Exp $
- * $Author: unixlib $
+ * $Source$
+ * $Date$
+ * $Revision$
+ * $State$
+ * $Author$
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: inet_netwo,v 1.5 1997/10/09 20:00:19 unixlib Exp $";
+static const char rcs_id[] = "$Id$";
 #endif
 
 #include <arpa/inet.h>
 #include <netinet/in.h>
-#include <sys/byteorder.h>
 #include <sys/types.h>
 
 /*
  * Extract a network number in host byte order from a string
  */
-u_long
+in_addr_t
 inet_network (const char *cp)
 {
   struct in_addr net;

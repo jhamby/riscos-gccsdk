@@ -1,10 +1,10 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/string.h,v $
- * $Date: 2002/09/24 21:02:36 $
- * $Revision: 1.4 $
- * $State: Exp $
- * $Author: admin $
+ * $Source$
+ * $Date$
+ * $Revision$
+ * $State$
+ * $Author$
  *
  ***************************************************************************/
 
@@ -38,6 +38,9 @@ extern int memcmp (const void *__s1, const void *__s2, size_t __n);
 
 /* Search n bytes of s for c.  */
 extern void *memchr (const void *__s, int __c, size_t __n);
+
+extern void *__rawmemchr (__const void *__s, int __c)
+     __attribute_pure__;
 
 /* Copy src to dest. */
 extern char *strcpy (char *__dest, const char *__src);
@@ -91,6 +94,11 @@ extern char *strtok_r (char *__s, const char *__delim, char **__save_ptr);
 /* Return the length of s. */
 extern size_t strlen (const char *__s);
 
+/* Find the length of STRING, but scan at most MAXLEN characters.
+   If no '\0' terminator is found in that many characters, return MAXLEN.  */
+extern size_t __strnlen (__const char *__string, size_t __maxlen)
+     __THROW __attribute_pure__;
+
 /* Compare S1 and S2, ignoring case.  */
 extern int stricmp (const char *, const char *);
 
@@ -125,11 +133,68 @@ extern char *strsep (char **__stringp, const char *__delim);
 
 /* GNU enhancements.  */
 
+/* This function is similar to `strdup' but always copies at most
+   __n characters into the newly allocated string.
+
+   If the length of __s is more than __n, then `strndup' copies just
+   the first __n characters and adds a closing null terminator.
+   Otherwise all characters are copied and the string is terminated.
+
+   This function is different to `strncpy' in that it always
+   terminates the destination string.  */
+extern char *strndup (const char *__s, size_t __n) __THROW __attribute_malloc__;
+
+/* This function is similar to `strchr'.  But it returns a pointer to
+   the closing NUL byte in case C is not found in S.  */
+extern char *strchrnul (__const char *__s, int __c) __THROW __attribute_pure__;
+
 /* Return a string describing the meaning of the signal number sig.  */
 extern char *strsignal (int __sig);
 
 /* Return the descriptive error message string for an error code.  */
 extern char *strerror (int __errnum);
+
+#if defined __USE_BSD
+/* Copy N bytes of SRC to DEST (like memmove, but args reversed).  */
+extern void bcopy (__const void *__src, void *__dest, size_t __n) __THROW;
+
+/* Set N bytes of S to 0.  */
+extern void bzero (void *__s, size_t __n) __THROW;
+
+/* Compare N bytes of S1 and S2 (same as memcmp).  */
+extern int bcmp (__const void *__s1, __const void *__s2, size_t __n)
+     __THROW __attribute_pure__;
+
+/* Find the first occurrence of C in S (same as strchr).  */
+extern char *index (__const char *__s, int __c) __THROW __attribute_pure__;
+
+/* Find the last occurrence of C in S (same as strrchr).  */
+extern char *rindex (__const char *__s, int __c) __THROW __attribute_pure__;
+
+#if 0
+/* Return the position of the first bit set in I, or 0 if none are set.
+   The least-significant bit is position 1, the most-significant 32.  */
+extern int ffs (int __i) __THROW __attribute__ ((__const__));
+
+/* The following two functions are non-standard but necessary for non-32 bit
+   platforms.  */
+# ifdef	__USE_GNU
+extern int ffsl (long int __l) __THROW __attribute__ ((__const__));
+#  ifdef __GNUC__
+__extension__ extern int ffsll (long long int __ll)
+     __THROW __attribute__ ((__const__));
+#  endif
+# endif
+#endif
+
+/* Compare S1 and S2, ignoring case.  */
+extern int strcasecmp (__const char *__s1, __const char *__s2)
+     __THROW __attribute_pure__;
+
+/* Compare no more than N chars of S1 and S2, ignoring case.  */
+extern int strncasecmp (__const char *__s1, __const char *__s2, size_t __n)
+     __THROW __attribute_pure__;
+#endif /* Use BSD.  */
 
 /* Re-entrant version of strerror */
 extern int strerror_r (int __errnum, char *__strerrbuf, size_t __buflen);

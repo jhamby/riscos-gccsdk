@@ -26,6 +26,7 @@ typedef __int64 int64_t;
 __extension__
 typedef long long int int64_t;
 #endif
+#endif
 
 /* Unsigned.  */
 typedef unsigned char uint8_t;
@@ -36,7 +37,6 @@ typedef unsigned __int64 uint64_t;
 #else
 __extension__
 typedef unsigned long long int uint64_t;
-#endif
 #endif
 
 

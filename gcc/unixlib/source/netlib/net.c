@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/netlib/c/net,v $
- * $Date: 1997/10/09 20:00:20 $
- * $Revision: 1.5 $
- * $State: Exp $
- * $Author: unixlib $
+ * $Source$
+ * $Date$
+ * $Revision$
+ * $State$
+ * $Author$
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: net,v 1.5 1997/10/09 20:00:20 unixlib Exp $";
+static const char rcs_id[] = "$Id$";
 #endif
 
 #include <stdio.h>
@@ -34,13 +34,13 @@ static int __setnetent (int allowrewind);
 static struct netent *__getnetent (void);
 
 /* Open and rewind the nets file.  */
-int
+void
 setnetent (int stayopen)
 {
   /* Record whether the file should be kept open */
   keepopen = stayopen;
 
-  return __setnetent (1);
+  (void) __setnetent (1);
 }
 
 /* Do the real work of opening/rewinding the nets file.  */
@@ -137,19 +137,15 @@ __getnetent ()
 }
 
 /* Close the nets file.  */
-int
+void
 endnetent ()
 {
-  int status = 0;
-
   /* If its open, close it */
   if (netfile)
     {
-      status = fclose (netfile);
+      (void) fclose (netfile);
       netfile = 0;
     }
-
-  return status;
 }
 
 /* Search the nets file for a given net name.  */
@@ -191,7 +187,7 @@ getnetbyname (const char *name)
 
 /* Search the nets file for a given address.  */
 struct netent *
-getnetbyaddr (long netaddr, int type)
+getnetbyaddr (uint32_t netaddr, int type)
 {
   struct netent *net;
 

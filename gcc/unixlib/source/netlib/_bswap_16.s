@@ -1,10 +1,10 @@
 ;----------------------------------------------------------------------------
 ;
-; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/netlib/ntohs.s,v $
-; $Date: 2001/01/29 15:10:20 $
-; $Revision: 1.2 $
-; $State: Exp $
-; $Author: admin $
+; $Source: $
+; $Date: $
+; $Revision: $
+; $State: $
+; $Author: $
 ;
 ;----------------------------------------------------------------------------
 
@@ -12,9 +12,9 @@
 
 	AREA	|C$$code|,CODE,READONLY
 
-	EXPORT	ntohs
-	NAME	ntohs
-ntohs
+	EXPORT	__bswap_16
+	NAME	__bswap_16
+__bswap_16
 	MOV	r2, #255
 	AND	r1, r2, r0, LSR #8
 	AND	r0, r0, r2

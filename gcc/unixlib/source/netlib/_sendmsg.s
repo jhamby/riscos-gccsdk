@@ -1,10 +1,10 @@
 ;----------------------------------------------------------------------------
 ;
-; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/netlib/_sendmsg.s,v $
-; $Date: 2001/01/29 15:10:20 $
-; $Revision: 1.2 $
-; $State: Exp $
-; $Author: admin $
+; $Source$
+; $Date$
+; $Revision$
+; $State$
+; $Author$
 ;
 ;----------------------------------------------------------------------------
 
@@ -17,6 +17,10 @@
 	EXPORT	|_sendmsg|
 	NAME	_sendmsg
 |_sendmsg|
+	[ COMPAT_INET4 = 1
 	NetSWIsimple	XSocket_Sendmsg
+	|
+	NetSWIsimple	XSocket_Sendmsg_1
+	]
 
 	END

@@ -9,313 +9,260 @@
  ***************************************************************************/
 
 /*
- * Copyright (c) 1982, 1985, 1986, 1988, 1993, 1994
- *	The Regents of the University of California.  All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. All advertising materials mentioning features or use of this software
- *    must display the following acknowledgement:
- *	This product includes software developed by the University of
- *	California, Berkeley and its contributors.
- * 4. Neither the name of the University nor the names of its contributors
- *    may be used to endorse or promote products derived from this software
- *    without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
- * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
- * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
- * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- *
- *	@(#)socket.h	8.4 (Berkeley) 2/21/94
+ * File taken from glibc 2.2.5.
+ * Following changes were made:
+ *  - Changed "#include <features.h>" into "#include <unixlib/features.h>"
+ *  - Added __opensock() internal function definition.
+ *  - Added the prototypes for the SWI veneers.
  */
 
-#ifndef __SYS_SOCKET_H
-#define __SYS_SOCKET_H
+/* Declarations of socket constants, types, and functions.
+   Copyright (C) 1991,92,1994-1999,2000,2001 Free Software Foundation, Inc.
+   This file is part of the GNU C Library.
 
-/* Freenet programmers interface - sys/socket.h - edit by andy 23/5/95 */
+   The GNU C Library is free software; you can redistribute it and/or
+   modify it under the terms of the GNU Lesser General Public
+   License as published by the Free Software Foundation; either
+   version 2.1 of the License, or (at your option) any later version.
 
-#ifndef __UNIXLIB_FEATURES_H
+   The GNU C Library is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+   Lesser General Public License for more details.
+
+   You should have received a copy of the GNU Lesser General Public
+   License along with the GNU C Library; if not, write to the Free
+   Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
+   02111-1307 USA.  */
+
+#ifndef	__SYS_SOCKET_H
+#define	__SYS_SOCKET_H	1
+
 #include <unixlib/features.h>
-#endif
-
-#ifndef __UNIXLIB_TYPES_H
-#include <unixlib/types.h>
-#endif
-
-#ifndef __SYS_UIO_H
-#include <sys/uio.h>
-#endif
-
-#define __need_size_t
-#define __need_NULL
-#include <stddef.h>
-
-#ifndef __socklen_t_defined
-typedef __socklen_t socklen_t;
-#define __socklen_t_defined
-#endif
-
-/* POSIX.1g specifies this type name for the `sa_family' member.  */
-typedef unsigned short int sa_family_t;
 
 __BEGIN_DECLS
 
-/*
- * Definitions related to sockets: types, address families, options.
- */
+#include <sys/uio.h>
+#define	__need_size_t
+#include <stddef.h>
 
-/*
- * Socket types
- */
-#define SOCK_STREAM	1	  /* Stream socket */
-#define SOCK_DGRAM	2	  /* Datagram socket */
-#define SOCK_RAW	3	  /* Raw socket */
-#define	SOCK_RDM	4	  /* reliably-delivered message */
-#define	SOCK_SEQPACKET	5	  /* sequenced packet stream */
 
-/*
- * Address families
- */
-#define	AF_UNSPEC	0		/* unspecified */
-#define	AF_LOCAL	1		/* local to host (pipes, portals) */
-#define	AF_UNIX		AF_LOCAL	/* backward compatibility */
-#define AF_INET	    2	      /* Internet */
-#define	AF_IMPLINK	3		/* arpanet imp addresses */
-#define	AF_PUP		4		/* pup protocols: e.g. BSP */
-#define	AF_CHAOS	5		/* mit CHAOS protocols */
-#define	AF_NS		6		/* XEROX NS protocols */
-#define	AF_ISO		7		/* ISO protocols */
-#define	AF_OSI		AF_ISO
-#define	AF_ECMA		8		/* european computer manufacturers */
-#define	AF_DATAKIT	9		/* datakit protocols */
-#define	AF_CCITT	10		/* CCITT protocols, X.25 etc */
-#define	AF_SNA		11		/* IBM SNA */
-#define AF_DECnet	12		/* DECnet */
-#define AF_DLI		13		/* DEC Direct data link interface */
-#define AF_LAT		14		/* LAT */
-#define	AF_HYLINK	15		/* NSC Hyperchannel */
-#define	AF_APPLETALK	16		/* Apple Talk */
-#define	AF_ROUTE	17		/* Internal Routing Protocol */
-#define	AF_LINK		18		/* Link layer interface */
-#define	pseudo_AF_XTP	19		/* eXpress Transfer Protocol (no AF) */
-#define	AF_COIP		20		/* connection-oriented IP, aka ST II */
-#define	AF_CNT		21		/* Computer Network Technology */
-#define pseudo_AF_RTIP	22		/* Help Identify RTIP packets */
-#define	AF_IPX		23		/* Novell Internet Protocol */
-#define	AF_SIP		24		/* Simple Internet Protocol */
-#define pseudo_AF_PIP	25		/* Help Identify PIP packets */
+/* This operating system-specific header file defines the SOCK_*, PF_*,
+   AF_*, MSG_*, SOL_*, and SO_* constants, and the `struct sockaddr',
+   `struct msghdr', and `struct linger' types.  */
+#include <bits/socket.h>
 
-/*
- * We need to know the IPv6 address family number even on IPv4-only systems.
- * Note that this is NOT a protocol constant, and that if the system has its
- * own AF_INET6, different from ours below, all of BIND's libraries and
- * executables will need to be recompiled after the system <sys/socket.h>
- * has had this type added.  The type number below is correct on most BSD-
- * derived systems for which AF_INET6 is defined.
- */
-#ifndef AF_INET6
-/* SNB: NOTE: This clashes with AF_SIP above.  I've never heard of SIP, and
- * I trust Paul Vixie, so I'm going to leave it in here as 24
- */
-#define AF_INET6	24
+#ifdef __USE_BSD
+/* This is the 4.3 BSD `struct sockaddr' format, which is used as wire
+   format in the grotty old 4.3 `talk' protocol.  */
+struct osockaddr
+  {
+    unsigned short int sa_family;
+    unsigned char sa_data[14];
+  };
 #endif
 
-#define	AF_MAX		26
-
-/*
- * Protocol families
- */
-#define	PF_UNSPEC	AF_UNSPEC
-#define	PF_LOCAL	AF_LOCAL
-#define	PF_UNIX		PF_LOCAL	/* backward compatibility */
-#define PF_INET	    AF_INET   /* Internet */
-#define	PF_IMPLINK	AF_IMPLINK
-#define	PF_PUP		AF_PUP
-#define	PF_CHAOS	AF_CHAOS
-#define	PF_NS		AF_NS
-#define	PF_ISO		AF_ISO
-#define	PF_OSI		AF_ISO
-#define	PF_ECMA		AF_ECMA
-#define	PF_DATAKIT	AF_DATAKIT
-#define	PF_CCITT	AF_CCITT
-#define	PF_SNA		AF_SNA
-#define PF_DECnet	AF_DECnet
-#define PF_DLI		AF_DLI
-#define PF_LAT		AF_LAT
-#define	PF_HYLINK	AF_HYLINK
-#define	PF_APPLETALK	AF_APPLETALK
-#define	PF_ROUTE	AF_ROUTE
-#define	PF_LINK		AF_LINK
-#define	PF_XTP		pseudo_AF_XTP	/* really just proto family, no AF */
-#define	PF_COIP		AF_COIP
-#define	PF_CNT		AF_CNT
-#define	PF_SIP		AF_SIP
-#define	PF_IPX		AF_IPX		/* same format as AF_NS */
-#define PF_RTIP		pseudo_AF_FTIP	/* same format as AF_INET */
-#define PF_PIP		pseudo_AF_PIP
-#define PF_INET6	AF_INET6	/* IPv6 */
-#define	PF_MAX		AF_MAX
-
-/*
- * 4.3 BSD compatibility structure representing socket addresses
- */
-struct sockaddr
+/* The following constants should be used for the second parameter of
+   `shutdown'.  */
+enum
 {
-  __u_short sa_family;	      /* Address family */
-  char	  sa_data[14];	      /* Address data (maximum 14 bytes) */
+  SHUT_RD = 0,		/* No more receptions.  */
+#define SHUT_RD		SHUT_RD
+  SHUT_WR,		/* No more transmissions.  */
+#define SHUT_WR		SHUT_WR
+  SHUT_RDWR		/* No more receptions or transmissions.  */
+#define SHUT_RDWR	SHUT_RDWR
 };
 
-/*
- * Maximum queue length for listen() calls
- */
-#define SOMAXCONN   5
+/* This is the type we use for generic socket address arguments.
 
-/*
- * Message header for sendmsg() and recvmsg() calls - this is a
- * struct definition kept from 4.3 BSD to preserve compatibility
- * with the Acorn TCP/IP suite.
- */
-struct msghdr {
-  __caddr_t    msg_name;	 /* Address (optional) */
-  int	       msg_namelen;	 /* Address size */
-  struct iovec *msg_iov;	 /* Scatter/gather array */
-  int	       msg_iovlen;	 /* Number of elements in msg_iov */
-  __caddr_t    msg_accrights;	 /* Access rights */
-  int	       msg_accrightslen; /* Size of msg_accrights */
-};
+   With GCC 2.7 and later, the funky union causes redeclarations or
+   uses with any of the listed types to be allowed without complaint.
+   G++ 2.7 does not support transparent unions so there we want the
+   old-style declaration, too.  */
+#if defined __cplusplus || !__GNUC_PREREQ (2, 7) || !defined __USE_GNU
+# define __SOCKADDR_ARG		struct sockaddr *__restrict
+# define __CONST_SOCKADDR_ARG	__const struct sockaddr *
+#else
+/* Add more `struct sockaddr_AF' types here as necessary.
+   These are all the ones I found on NetBSD and Linux.  */
+# define __SOCKADDR_ALLTYPES \
+  __SOCKADDR_ONETYPE (sockaddr) \
+  __SOCKADDR_ONETYPE (sockaddr_at) \
+  __SOCKADDR_ONETYPE (sockaddr_ax25) \
+  __SOCKADDR_ONETYPE (sockaddr_dl) \
+  __SOCKADDR_ONETYPE (sockaddr_eon) \
+  __SOCKADDR_ONETYPE (sockaddr_in) \
+  __SOCKADDR_ONETYPE (sockaddr_in6) \
+  __SOCKADDR_ONETYPE (sockaddr_inarp) \
+  __SOCKADDR_ONETYPE (sockaddr_ipx) \
+  __SOCKADDR_ONETYPE (sockaddr_iso) \
+  __SOCKADDR_ONETYPE (sockaddr_ns) \
+  __SOCKADDR_ONETYPE (sockaddr_un) \
+  __SOCKADDR_ONETYPE (sockaddr_x25)
 
-/*
- * Flags for data sending/receiving calls
- */
-#define MSG_OOB		0x1	 /* Process out-of-band data */
-#define MSG_PEEK	0x2	 /* Peek at incoming message */
-#define MSG_DONTROUTE	0x4	 /* Send without routing */
-#define	MSG_EOR		0x8	 /* data completes record */
-#define	MSG_TRUNC	0x10	 /* data discarded before delivery */
-#define	MSG_CTRUNC	0x20	 /* control data lost before delivery */
-#define	MSG_WAITALL	0x40	 /* wait for full request or error */
-#define	MSG_DONTWAIT	0x80	 /* this message should be nonblocking */
-/*
- * Maximum size of a scatter/gather array
- */
-#define MSG_MAXIOVLEN 16
+# define __SOCKADDR_ONETYPE(type) struct type *__restrict __##type##__;
+typedef union { __SOCKADDR_ALLTYPES
+	      } __SOCKADDR_ARG __attribute__ ((__transparent_union__));
+# undef __SOCKADDR_ONETYPE
+# define __SOCKADDR_ONETYPE(type) __const struct type *__restrict __##type##__;
+typedef union { __SOCKADDR_ALLTYPES
+	      } __CONST_SOCKADDR_ARG __attribute__ ((__transparent_union__));
+# undef __SOCKADDR_ONETYPE
+#endif
 
-/*
- * Option level for socket level options
- */
-#define SOL_SOCKET    0xffff
 
-/*
- * Available socket level options
- */
-#define SO_DEBUG      0x0001	 /* Turn on debugging */
-#define SO_ACCEPTCONN 0x0002	 /* Socket is listening for connections */
-#define SO_REUSEADDR  0x0004	 /* Allow local reuse of this address */
-#define SO_KEEPALIVE  0x0008	 /* Keep connections alive */
-#define SO_DONTROUTE  0x0010	 /* Bypass routing for this socket */
-#define SO_BROADCAST  0x0020	 /* Allow sending of broadcast messages */
-#define	SO_USELOOPBACK	0x0040	 /* bypass hardware when possible */
-#define SO_LINGER     0x0080	 /* Linger on close if data present */
-#define SO_OOBINLINE  0x0100	 /* Receive OOB data inline */
-#define	SO_REUSEPORT  0x0200	 /* allow local address & port reuse */
+/* Create a new socket of type TYPE in domain DOMAIN, using
+   protocol PROTOCOL.  If PROTOCOL is zero, one is chosen automatically.
+   Returns a file descriptor for the new socket, or -1 for errors.  */
+extern int socket (int __domain, int __type, int __protocol) __THROW;
 
-#define SO_SNDBUF     0x1001	 /* Output buffer size */
-#define SO_RCVBUF     0x1002	 /* Input buffer size */
-#define SO_SNDLOWAT   0x1003	 /* send low-water mark */
-#define SO_RCVLOWAT   0x1004	 /* receive low-water mark */
-#define SO_SNDTIMEO   0x1005	 /* send timeout */
-#define SO_RCVTIMEO   0x1006	 /* receive timeout */
-#define SO_ERROR      0x1007	 /* Get and clear error (read only) */
-#define SO_TYPE	      0x1008	 /* Get socket type (read only) */
+/* Create two new sockets, of type TYPE in domain DOMAIN and using
+   protocol PROTOCOL, which are connected to each other, and put file
+   descriptors for them in FDS[0] and FDS[1].  If PROTOCOL is zero,
+   one will be chosen automatically.  Returns 0 on success, -1 for errors.  */
+extern int socketpair (int __domain, int __type, int __protocol,
+		       int __fds[2]) __THROW;
 
-/*
- * structure used for manipulating SO_LINGER option
- */
-struct linger
-{
-  int l_onoff;			 /* Option on/off toggle */
-  int l_linger;			 /* Time to linger for (in seconds) */
-};
+/* Give the socket FD the local address ADDR (which is LEN bytes long).  */
+extern int bind (int __fd, __CONST_SOCKADDR_ARG __addr, socklen_t __len)
+     __THROW;
 
-/* Create a socket.  */
-extern int socket (int af, int __type, int __protocol);
+/* Put the local address of FD into *ADDR and its length in *LEN.  */
+extern int getsockname (int __fd, __SOCKADDR_ARG __addr,
+			socklen_t *__restrict __len) __THROW;
 
-/* Bind a name to a socket.  */
-extern int bind (int __s, const struct sockaddr *__name, socklen_t namelen);
+/* Open a connection on socket FD to peer at ADDR (which LEN bytes long).
+   For connectionless socket types, just set the default address to send to
+   and the only address from which to accept transmissions.
+   Return 0 on success, -1 for errors.  */
+extern int connect (int __fd, __CONST_SOCKADDR_ARG __addr, socklen_t __len)
+     __THROW;
 
-/* Start listening for connections on a socket.  */
-extern int listen (int __s, int __backlog);
+/* Put the address of the peer connected to socket FD into *ADDR
+   (which is *LEN bytes long), and its actual length into *LEN.  */
+extern int getpeername (int __fd, __SOCKADDR_ARG __addr,
+			socklen_t *__restrict __len) __THROW;
 
-/* Accept a connection on a socket.  */
-extern int accept (int __s, struct sockaddr *__name, socklen_t *__namelen);
 
-/* Make a connection on a socket.  */
-extern int connect (int __s, const struct sockaddr *__name, socklen_t namelen);
+/* Send N bytes of BUF to socket FD.  Returns the number sent or -1.  */
+extern ssize_t send (int __fd, __const void *__buf, size_t __n, int __flags)
+     __THROW;
 
-/* Routines to receive data on a socket. */
-extern int recv (int __s, void *__msg, int __len, int __flags);
-extern int recvfrom (int __s, void *__msg, int __len, int __flags,
-		    struct sockaddr *__from, socklen_t *__fromlen);
-extern int recvmsg (int __s, struct msghdr *__msg, int __flags);
+/* Read N bytes into BUF from socket FD.
+   Returns the number read or -1 for errors.  */
+extern ssize_t recv (int __fd, void *__buf, size_t __n, int __flags)
+     __THROW;
 
-/* Routines to send data from a socket.  */
-extern int send (int __s, const void *__msg, int __len, int __flags);
-extern int sendto (int __s, const void *__msg, int __len, int __flags,
-		   const struct sockaddr *__to, int tolen);
-extern int sendmsg (int __s, const struct msghdr *__msg, int __flags);
+/* Send N bytes of BUF on socket FD to peer at address ADDR (which is
+   ADDR_LEN bytes long).  Returns the number sent, or -1 for errors.  */
+extern ssize_t sendto (int __fd, __const void *__buf, size_t __n,
+		       int __flags, __CONST_SOCKADDR_ARG __addr,
+		       socklen_t __addr_len) __THROW;
 
-/* (Partially) shutdown a socket. Perl needs this. Use Perl. Don't use shutdown. */
-extern int shutdown (int __s, int __how);
+/* Read N bytes into BUF through socket FD.
+   If ADDR is not NULL, fill in *ADDR_LEN bytes of it with tha address of
+   the sender, and store the actual size of the address in *ADDR_LEN.
+   Returns the number of bytes read or -1 for errors.  */
+extern ssize_t recvfrom (int __fd, void *__restrict __buf, size_t __n, int __flags,
+			 __SOCKADDR_ARG __addr, socklen_t *__restrict __addr_len)
+     __THROW;
 
-/* Manipulate socket options.  */
-extern int setsockopt (int __s, int __level, int __optname, const void *__optval, socklen_t optlen);
-extern int getsockopt (int __s, int __level, int __optname, void *__optval, socklen_t *__optlen);
 
-/* Find the names of a socket and its peer.  */
-extern int getsockname (int __s, struct sockaddr *__name, socklen_t *__namelen);
-extern int getpeername (int __s, struct sockaddr *__name, socklen_t *__namelen);
+/* Send a message described MESSAGE on socket FD.
+   Returns the number of bytes sent, or -1 for errors.  */
+extern ssize_t sendmsg (int __fd, __const struct msghdr *__message, int __flags)
+     __THROW;
 
-extern int socketpair(int d, int type, int protocol, int sv[2]);
+/* Receive a message as described by MESSAGE from socket FD.
+   Returns the number of bytes read or -1 for errors.  */
+extern ssize_t recvmsg (int __fd, struct msghdr *__message, int __flags)
+     __THROW;
 
+
+/* Put the current value for socket FD's option OPTNAME at protocol level LEVEL
+   into OPTVAL (which is *OPTLEN bytes long), and set *OPTLEN to the value's
+   actual length.  Returns 0 on success, -1 for errors.  */
+extern int getsockopt (int __fd, int __level, int __optname,
+		       void *__restrict __optval,
+		       socklen_t *__restrict __optlen) __THROW;
+
+/* Set socket FD's option OPTNAME at protocol level LEVEL
+   to *OPTVAL (which is OPTLEN bytes long).
+   Returns 0 on success, -1 for errors.  */
+extern int setsockopt (int __fd, int __level, int __optname,
+		       __const void *__optval, socklen_t __optlen) __THROW;
+
+
+/* Prepare to accept connections on socket FD.
+   N connection requests will be queued before further requests are refused.
+   Returns 0 on success, -1 for errors.  */
+extern int listen (int __fd, int __n) __THROW;
+
+/* Await a connection on socket FD.
+   When a connection arrives, open a new socket to communicate with it,
+   set *ADDR (which is *ADDR_LEN bytes long) to the address of the connecting
+   peer and *ADDR_LEN to the address's actual length, and return the
+   new socket's descriptor, or -1 for errors.  */
+extern int accept (int __fd, __SOCKADDR_ARG __addr,
+		   socklen_t *__restrict __addr_len)
+     __THROW;
+
+/* Shut down all or part of the connection open on socket FD.
+   HOW determines what to shut down:
+     SHUT_RD   = No more receptions;
+     SHUT_WR   = No more transmissions;
+     SHUT_RDWR = No more receptions or transmissions.
+   Returns 0 on success, -1 for errors.  */
+extern int shutdown (int __fd, int __how) __THROW;
+
+
+#ifdef __USE_XOPEN2K
+/* Determine wheter socket is at a out-of-band mark.  */
+extern int sockatmark (int __fd) __THROW;
+#endif
+
+
+#ifdef __USE_MISC
+/* FDTYPE is S_IFSOCK or another S_IF* macro defined in <sys/stat.h>;
+   returns 1 if FD is open on an object of the indicated type, 0 if not,
+   or -1 for errors (setting errno).  */
+extern int isfdtype (int __fd, int __fdtype) __THROW;
+#endif
+
+#ifdef __UNIXLIB_INTERNALS
 /* Direct SWI veneers: */
-extern int _socket (int af, int __type, int __protocol);
-extern int _bind (int __s, const struct sockaddr *__name, socklen_t __namelen);
-extern int _listen (int __s, int __backlog);
-extern int _accept (int __s, struct sockaddr *__name, socklen_t *__namelen);
-extern int _connect (int __s, const struct sockaddr *__name, socklen_t namelen);
+extern int _socket (int __domain, int __type, int __protocol);
+extern int _bind (int __fd, __CONST_SOCKADDR_ARG __addr, socklen_t __len);
+extern int _listen (int __fd, int __n);
+extern int _accept (int __fd, __SOCKADDR_ARG __addr,
+		    socklen_t *__restrict __addr_len);
+extern int _connect (int __fd, __CONST_SOCKADDR_ARG __addr, socklen_t __len);
+extern ssize_t _recv (int __fd, void *__buf, size_t __n, int __flags);
+extern ssize_t _recvfrom (int __fd, void *__restrict __buf, size_t __n, int __flags,
+			  __SOCKADDR_ARG __addr, socklen_t *__restrict __addr_len);
+extern ssize_t _recvmsg (int __fd, struct msghdr *__message, int __flags);
+extern ssize_t _send (int __fd, __const void *__buf, size_t __n, int __flags);
+extern ssize_t _sendto (int __fd, __const void *__buf, size_t __n,
+		        int __flags, __CONST_SOCKADDR_ARG __addr,
+		        socklen_t __addr_len);
+extern ssize_t _sendmsg (int __fd, __const struct msghdr *__message, int __flags);
+extern int _shutdown (int __fd, int __how);
+extern int _setsockopt (int __fd, int __level, int __optname,
+		        __const void *__optval, socklen_t __optlen);
+extern int _getsockopt (int __fd, int __level, int __optname,
+		        void *__restrict __optval,
+		        socklen_t *__restrict __optlen);
+extern int _getsockname (int __fd, __SOCKADDR_ARG __addr,
+			 socklen_t *__restrict __len);
+extern int _getpeername (int __fd, __SOCKADDR_ARG __addr,
+			 socklen_t *__restrict __len);
 
-extern int _recv (int __s, void *__msg, int __len, int __flags);
-extern int _recvfrom (int __s, void *__msg, int __len, int __flags,
-		     struct sockaddr *__from, socklen_t *__fromlen);
-extern int _recvmsg (int __s, struct msghdr *__msg, int __flags);
-
-extern int _send (int __s, const void *__msg, int __len, int __flags);
-extern int _sendto (int __s, const void *__msg, int __len, int __flags,
-		   const struct sockaddr *__to, int __tolen);
-extern int _sendmsg (int __s, const struct msghdr *__msg, int __flags);
-extern int _shutdown (int __s, int __how);
-
-extern int _setsockopt (int __s, int __level, int __optname,
-       	   	        const void *__optval, int __optlen);
-extern int _getsockopt (int __s, int __level, int __optname,
-       	   	        char *__optval, int *__optlen);
-extern int _getsockname (int __s, struct sockaddr *__name, socklen_t *__namelen);
-extern int _getpeername (int __s, struct sockaddr *__name, socklen_t *__namelen);
+/* Return a socket of any type.  The socket can be used in subsequent
+   ioctl calls to talk to the kernel.  */
+extern int __opensock (void) internal_function;
+#endif
 
 __END_DECLS
 
-#endif /* socket.h */
+#endif /* sys/socket.h */

@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/netlib/c/serv,v $
- * $Date: 1997/10/09 20:00:22 $
- * $Revision: 1.5 $
- * $State: Exp $
- * $Author: unixlib $
+ * $Source$
+ * $Date$
+ * $Revision$
+ * $State$
+ * $Author$
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: serv,v 1.5 1997/10/09 20:00:22 unixlib Exp $";
+static const char rcs_id[] = "$Id$";
 #endif
 
 #include <stdio.h>
@@ -18,7 +18,6 @@ static const char rcs_id[] = "$Id: serv,v 1.5 1997/10/09 20:00:22 unixlib Exp $"
 
 #include <netdb.h>
 #include <netinet/in.h>
-#include <sys/byteorder.h>
 #include <sys/socket.h>
 
 #include <unixlib/local.h>
@@ -34,13 +33,13 @@ static int __setservent (int allowrewind);
 static struct servent *__getservent (void);
 
 /* Open and rewind the services file.  */
-int
+void
 setservent (int stayopen)
 {
   /* Record whether the file should be kept open */
   keepopen = stayopen;
 
-  return __setservent (1);
+  (void) __setservent (1);
 }
 
 /* Do the real work of opening/rewinding the services file.  */
@@ -142,19 +141,15 @@ __getservent ()
 }
 
 /* Close the services file.  */
-int
-endservent ()
+void
+endservent (void)
 {
-  int status = 0;
-
   /* If its open, close it */
   if (servfile)
     {
-      status = fclose (servfile);
+      (void) fclose (servfile);
       servfile = 0;
     }
-
-  return status;
 }
 
 /* Search the services file for a given service name.  */

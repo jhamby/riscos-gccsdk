@@ -11,12 +11,13 @@
 #ifndef __STRINGS_H
 #define __STRINGS_H 1
 
-#ifndef __UNIXLIB_FEATURES_H
-#include <unixlib/features.h>
-#endif
+#ifdef __USE_BSD
 
-#define __need_size_t
-#include <stddef.h>
+# ifndef __UNIXLIB_FEATURES_H
+#  include <unixlib/features.h>
+# endif
+# define __need_size_t
+# include <stddef.h>
 
 __BEGIN_DECLS
 
@@ -42,10 +43,11 @@ extern int strcasecmp (const char *__s1, const char *__s2);
 extern int strncasecmp (const char *__s1, const char *__s2, size_t __n);
 
 
-#if 0
+# if 0
 /* Return the position of the first bit set in I, or 0 if none are set.
    The least-significant bit is position 1, the most-significant 32.  */
-extern int ffs (int i);
+extern int ffs (int __i);
+# endif
 #endif
 
 __END_DECLS

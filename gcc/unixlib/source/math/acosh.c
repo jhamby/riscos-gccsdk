@@ -1,10 +1,10 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/math/c/acosh,v $
- * $Date: 1997/10/09 20:00:03 $
- * $Revision: 1.3 $
- * $State: Exp $
- * $Author: unixlib $
+ * $Source$
+ * $Date$
+ * $Revision$
+ * $State$
+ * $Author$
  *
  ***************************************************************************/
 
@@ -50,7 +50,7 @@ acosh (double x)
 {
   double t;
   __int32_t hx;
-  __u_int32_t lx;
+  __uint32_t lx;
 
   EXTRACT_WORDS (hx, lx, x);
   if (hx < 0x3ff00000)

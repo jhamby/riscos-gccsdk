@@ -1,8 +1,8 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/netinet/ip_var.h,v $
- * $Date: 2001/01/29 15:10:19 $
- * $Revision: 1.2 $
+ * $Date: 2002/08/18 15:19:06 $
+ * $Revision: 1.2.2.1 $
  * $State: Exp $
  * $Author: admin $
  *
@@ -20,8 +20,8 @@
 #include <unixlib/types.h>
 #endif
 
-#ifndef __SYS_BYTEORDER_H
-#include <sys/byteorder.h>
+#ifndef _NETINET_IN_H
+#include <netinet/in.h>
 #endif
 
 __BEGIN_DECLS
@@ -61,11 +61,11 @@ struct ipq {
  * Bitfields are necessary for the ARM C compiler in ANSI mode.
  */
 struct	ipasfrag {
-#if BYTE_ORDER == LITTLE_ENDIAN 
+#if BYTE_ORDER == LITTLE_ENDIAN
   __u_int	ip_hl : 4;
   __u_int	ip_v  : 4;
 #endif
-#if BYTE_ORDER == BIG_ENDIAN 
+#if BYTE_ORDER == BIG_ENDIAN
   __u_int	ip_v  : 4;
   __u_int	ip_hl : 4;
 #endif

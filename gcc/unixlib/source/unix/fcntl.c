@@ -17,7 +17,7 @@ static const char rcs_id[] = "$Id$";
 #include <stdlib.h>
 #include <stdarg.h>
 #include <unistd.h>
-#include <sys/netdb.h>
+#include <netdb.h>
 #include <unixlib/unix.h>
 #include <unixlib/fd.h>
 #include <unixlib/dev.h>
@@ -91,7 +91,7 @@ fcntl (int fd, int cmd, ...)
 		 int arg = (newfflag & O_NONBLOCK) ? 1 : 0;
 		 _sioctl((int)file_desc->handle, FIONBIO, &arg);
 	       }
- 
+
              if ((file_desc->fflag ^ newfflag) & O_ASYNC)
 	       {
 		 int arg = (newfflag & O_ASYNC) ? 1 : 0;

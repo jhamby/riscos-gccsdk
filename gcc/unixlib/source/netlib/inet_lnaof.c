@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/netlib/c/inet_lnaof,v $
- * $Date: 1997/10/09 20:00:19 $
- * $Revision: 1.5 $
- * $State: Exp $
- * $Author: unixlib $
+ * $Source$
+ * $Date$
+ * $Revision$
+ * $State$
+ * $Author$
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: inet_lnaof,v 1.5 1997/10/09 20:00:19 unixlib Exp $";
+static const char rcs_id[] = "$Id$";
 #endif
 
 #include <arpa/inet.h>
@@ -19,7 +19,7 @@ static const char rcs_id[] = "$Id: inet_lnaof,v 1.5 1997/10/09 20:00:19 unixlib 
 /*
  * Extract a local network address from an internet address
  */
-u_long
+in_addr_t
 inet_lnaof (struct in_addr in)
 {
   u_long lna;

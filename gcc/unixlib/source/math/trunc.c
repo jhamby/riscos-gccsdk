@@ -1,10 +1,10 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/math/c/trunc,v $
- * $Date: 1999/11/16 13:31:17 $
- * $Revision: 1.1 $
- * $State: Exp $
- * $Author: admin $
+ * $Source$
+ * $Date$
+ * $Revision$
+ * $State$
+ * $Author$
  *
  ***************************************************************************/
 
@@ -16,7 +16,7 @@ double
 trunc (double x)
 {
   __int32_t i0, j0;
-  __u_int32_t i1;
+  __uint32_t i1;
   int sx;
 
   EXTRACT_WORDS (i0, i1, x);

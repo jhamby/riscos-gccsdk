@@ -1,10 +1,10 @@
 ;----------------------------------------------------------------------------
 ;
-; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/unixlib/asm_dec.s,v $
-; $Date: 2002/02/14 15:56:35 $
-; $Revision: 1.3 $
-; $State: Exp $
-; $Author: admin $
+; $Source$
+; $Date$
+; $Revision$
+; $State$
+; $Author$
 ;
 ; Declare registers and SWIs we will be calling.
 ;
@@ -30,6 +30,8 @@ DYNAMIC_AREA	EQU	1
 |__FEATURE_PIPEDEV|	EQU	1
 |__FEATURE_PTHREADS|	EQU	1
 USEFILEPATH		EQU	0
+; For Internet 4 compatibility
+COMPAT_INET4	EQU	0
 
 ; The offset of various members of the __pthread_thread structure
 ; This should be kept in sync with pthread.h and lib1aof.s
@@ -355,7 +357,7 @@ XOS_CallBack			EQU	&000015 + X_Bit
 XOS_EnterOS			EQU	&000016 + X_Bit
 XOS_BreakPt			EQU	&000017 + X_Bit
 XOS_BrealCtrl			EQU	&000018 + X_Bit
- 
+
 XOS_UpdateMEMC			EQU	&00001A + X_Bit
 XOS_SetCallBack			EQU	&00001B + X_Bit
 XOS_Mouse			EQU	&00001C + X_Bit
@@ -417,6 +419,15 @@ Socket_Readv			EQU	&41216
 Socket_Writev			EQU	&41217
 Socket_Gettsize			EQU	&41218
 Socket_Sendtosm			EQU	&41219
+Socket_Sysctl			EQU	&4121A
+Socket_Accept_1			EQU	&4121B
+Socket_Recvfrom_1		EQU	&4121C
+Socket_Recvmsg_1		EQU	&4121D
+Socket_Sendmsg_1		EQU	&4121E
+Socket_Getpeername_1		EQU	&4121F
+Socket_Getsockname_1		EQU	&41220
+Socket_InternalLookup		EQU	&41221
+Socket_Version			EQU	&41222
 
 Internet_GetHostByName		EQU	&46000
 Internet_GetHostByAddr		EQU	&46001
@@ -447,6 +458,15 @@ XSocket_Readv			EQU	Socket_Readv + X_Bit
 XSocket_Writev			EQU	Socket_Writev + X_Bit
 XSocket_Gettsize		EQU	Socket_Gettsize + X_Bit
 XSocket_Sendtosm		EQU	Socket_Sendtosm + X_Bit
+XSocket_Sysctl			EQU	Socket_Sysctl + X_Bit
+XSocket_Accept_1		EQU	Socket_Accept_1 + X_Bit
+XSocket_Recvfrom_1		EQU	Socket_Recvfrom_1 + X_Bit
+XSocket_Recvmsg_1		EQU	Socket_Recvmsg_1 + X_Bit
+XSocket_Sendmsg_1		EQU	Socket_Sendmsg_1 + X_Bit
+XSocket_Getpeername_1		EQU	Socket_Getpeername_1 + X_Bit
+XSocket_Getsockname_1		EQU	Socket_Getsockname_1 + X_Bit
+XSocket_InternalLookup		EQU	Socket_InternalLookup + X_Bit
+XSocket_Version			EQU	Socket_Version + X_Bit
 
 XInternet_GetHostByName		EQU	Internet_GetHostByName + X_Bit
 XInternet_GetHostByAddr		EQU	Internet_GetHostByAddr + X_Bit

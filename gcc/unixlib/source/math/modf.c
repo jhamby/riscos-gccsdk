@@ -1,10 +1,10 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/math/modf.c,v $
- * $Date: 2001/01/29 15:10:19 $
- * $Revision: 1.2 $
- * $State: Exp $
- * $Author: admin $
+ * $Source$
+ * $Date$
+ * $Revision$
+ * $State$
+ * $Author$
  *
  ***************************************************************************/
 
@@ -44,7 +44,7 @@ double
 modf (double x, double *iptr)
 {
   __int32_t i0, i1, j0;
-  __u_int32_t i;
+  __uint32_t i;
   EXTRACT_WORDS (i0, i1, x);
   j0 = ((i0 >> 20) & 0x7ff) - 0x3ff;	/* exponent of x */
   if (j0 < 20)
@@ -59,7 +59,7 @@ modf (double x, double *iptr)
 	  i = (0x000fffff) >> j0;
 	  if (((i0 & i) | i1) == 0)
 	    {			/* x is integral */
-	      __u_int32_t high;
+	      __uint32_t high;
 	      *iptr = x;
 	      GET_HIGH_WORD (high, x);
 	      INSERT_WORDS (x, high & 0x80000000, 0);	/* return +-0 */
@@ -74,7 +74,7 @@ modf (double x, double *iptr)
     }
   else if (j0 > 51)
     {				/* no fraction part */
-      __u_int32_t high;
+      __uint32_t high;
       *iptr = x * one;
       GET_HIGH_WORD (high, x);
       INSERT_WORDS (x, high & 0x80000000, 0);	/* return +-0 */
@@ -82,10 +82,10 @@ modf (double x, double *iptr)
     }
   else
     {				/* fraction part in low x */
-      i = ((__u_int32_t) (0xffffffff)) >> (j0 - 20);
+      i = ((__uint32_t) (0xffffffff)) >> (j0 - 20);
       if ((i1 & i) == 0)
 	{			/* x is integral */
-	  __u_int32_t high;
+	  __uint32_t high;
 	  *iptr = x;
 	  GET_HIGH_WORD (high, x);
 	  INSERT_WORDS (x, high & 0x80000000, 0);	/* return +-0 */
@@ -103,4 +103,3 @@ long double modfl (long double x, long double *iptr)
 {
   return (long double) modf ((double) x, (double *) iptr);
 }
-
