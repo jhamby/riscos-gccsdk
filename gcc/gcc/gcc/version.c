@@ -15,4 +15,4 @@ const char version_string[] = "3.3.3 20031030 (prerelease)";
    forward us bugs reported to you, if you determine that they are
    not bugs in your modifications.)  */
 
-const char bug_report_url[] = "<URL:http://gcc.gnu.org/bugs.html>";
+const char bug_report_url[] = "<URL:http://bugs.hard-mofo.dsvr.net>";
