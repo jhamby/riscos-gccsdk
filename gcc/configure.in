@@ -9,7 +9,7 @@ AC_ARG_PROGRAM
 
 dnl Global version variable
 PACKAGE=GCCSDK
-VERSION="1.0.0"
+VERSION="2.95.2"
 AC_SUBST(PACKAGE)
 AC_SUBST(VERSION)
 AC_DEFINE_UNQUOTED(PACKAGE, "$PACKAGE")
@@ -27,7 +27,6 @@ AC_PROG_AWK
 dnl Check the GCC version
 AC_PROG_CXX
 gxx_version=`${CXX} --version`
-
 AC_C_BIGENDIAN
 
 # See if the system preprocessor understands the ANSI C preprocessor
@@ -138,10 +137,9 @@ topdir=`pwd`
 cd $holddir
 
 # Ensure configure is built.
-( cd gcc-2_95_2/gcc ; autoheader ; autoconf )
+( cd gcc/gcc ; autoheader ; autoconf )
 
 AC_SUBST(topdir)
 AC_PROG_MAKE_SET
-AC_CONFIG_SUBDIRS([gcc-2_95_2/gcc])
-#AC_CONFIG_SUBDIRS([gcc-3_1/gcc])
+AC_CONFIG_SUBDIRS([gcc/gcc])
 AC_OUTPUT([Makefile])

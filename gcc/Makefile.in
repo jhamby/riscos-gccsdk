@@ -1,5 +1,5 @@
 # Top-level Makefile for the GNU Compiler Collection for ARM/RISC OS
-# Copyright (c) 2000 Nick Burrett
+# Copyright (c) 2000, 2001 Nick Burrett
 # Written by Nick Burrett <nick@dsvr.net>
 
 # Set by the configure script
@@ -178,10 +178,10 @@ libiberty-stg2:
 	$(MAKE) -C libiberty "STAGE=stage2" "TRG=$(trg10)"
 
 gcc-stg1:
-	$(MAKE) -C "gcc-$(VERSION)" "STAGE=stage1"
+	$(MAKE) -C gcc "STAGE=stage1"
 
 gcc-stg2:
-	$(MAKE) -C "gcc-$(VERSION)" "STAGE=stage2"
+	$(MAKE) -C gcc "STAGE=stage2"
 
 riscos-aof-stg1:
 	$(MAKE) -C riscos-aof "STAGE=stage1"
@@ -211,10 +211,10 @@ riscos-libs:
 	$(MAKE) -C $@ "TRG=$(trg10)" $(cfl10)
 
 libgcc:
-	$(MAKE) -C "gcc-$(VERSION)" $@ "TRG=$(trg10)" $(cfl10)
+	$(MAKE) -C gcc $@ "TRG=$(trg10)" $(cfl10)
 
 libgpc libio libf2c libstdc:
-	$(MAKE) -C "gcc-$(VERSION)" $@ "TRG=$(trg10)" $(cfl10)
+	$(MAKE) -C gcc $@ "TRG=$(trg10)" $(cfl10)
 
 riscos-dist:
 	$(MAKE) -C riscos-dist install
@@ -260,6 +260,6 @@ directories:
 install_headers:
 	$(MAKE) -C libscl install_headers
 	$(MAKE) -C unixlib install_headers
-	$(MAKE) -C "gcc-$(VERSION)/gcc" -f Makelibs install_headers
-	$(MAKE) -C "gcc-$(VERSION)/libio" install_headers
-	$(MAKE) -C "gcc-$(VERSION)/libstdc" install_headers
+	$(MAKE) -C gcc/gcc -f Makelibs install_headers
+	$(MAKE) -C gcc/libio install_headers
+	$(MAKE) -C gcc/libstdc install_headers
