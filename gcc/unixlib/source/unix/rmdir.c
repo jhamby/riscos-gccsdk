@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/rmdir.c,v $
- * $Date: 2003/04/12 11:31:39 $
- * $Revision: 1.4 $
+ * $Date: 2003/05/13 22:59:47 $
+ * $Revision: 1.5 $
  * $State: Exp $
- * $Author: alex $
+ * $Author: joty $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: rmdir.c,v 1.4 2003/04/12 11:31:39 alex Exp $";
+static const char rcs_id[] = "$Id: rmdir.c,v 1.5 2003/05/13 22:59:47 joty Exp $";
 #endif
 
 #include <errno.h>
@@ -27,11 +27,19 @@ rmdir (const char *ux_directory)
 {
   char directory[_POSIX_PATH_MAX];
   int regs[10], objtype, attr;
-  _kernel_oserror *err;
-  char scratch_buf[NAME_MAX];
+  int riscosify_control, rtrn_get_attrs;
 
-  if (__object_get_attrs (ux_directory, directory, sizeof (directory),
-                          &objtype, NULL, NULL, NULL, NULL, &attr))
+  /* We don't want to do suffix swapping for directory objects.  */
+  riscosify_control = __get_riscosify_control ();
+  __set_riscosify_control (riscosify_control | __RISCOSIFY_NO_SUFFIX);
+
+  rtrn_get_attrs = __object_get_attrs (ux_directory, directory, sizeof (directory),
+                                       &objtype, NULL, NULL, NULL, NULL, &attr);
+
+  /* Restore suffix swapping status.  */
+  __set_riscosify_control (riscosify_control);
+
+  if (rtrn_get_attrs)
     return -1;
 
   /* Images and directories have bit 1 set. Clear implies file.  */
@@ -47,6 +55,9 @@ rmdir (const char *ux_directory)
      due to external constraints imposed by some filing systems (PRM 2-70).  */
   do
     {
+      char scratch_buf[NAME_MAX];
+      _kernel_oserror *err;
+
       regs[0] = 9;
       regs[1] = (int) directory;
       regs[2] = (int) scratch_buf;

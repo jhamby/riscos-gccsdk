@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/common/riscosify.c,v $
- * $Date: 2003/06/07 02:30:22 $
- * $Revision: 1.9 $
+ * $Date: 2003/06/16 23:09:08 $
+ * $Revision: 1.10 $
  * $State: Exp $
  * $Author: joty $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: riscosify.c,v 1.9 2003/06/07 02:30:22 joty Exp $";
+static const char rcs_id[] = "$Id: riscosify.c,v 1.10 2003/06/16 23:09:08 joty Exp $";
 #endif
 
 /* #define DEBUG */
@@ -275,7 +275,8 @@ __sfixfind (const char *sfix)
   return NULL;
 }
 
-/* Copy 'from' to 'to'. Return NULL if buffer overflowed. */
+/* Copy 'from' to 'to'. Return NULL if buffer overflowed, otherwise points
+   to terminating 0 character in 'to' buffer.  */
 static char *
 copy_or_null (char *to, const char *from, const char *buf_end)
 {
@@ -340,9 +341,7 @@ translate_or_null (int create_dir, int flags,
                  *out++ = '@';
                  *out++ = '.';
 
-                 last_slash = in + 1;
                  last_out_slash = out;
-
                }
 
               in += 2;
@@ -385,11 +384,9 @@ translate_or_null (int create_dir, int flags,
                   out = buffer;
                   *out++ = '@';
                   *out = '\0';
-
                 }
               else
                 {
-
                   if (out + 1 > buf_end)
                     return NULL;
 
@@ -517,7 +514,6 @@ translate_or_null (int create_dir, int flags,
     {
       /* Suffix matches, so do suffix swapping */
       int leaf_len;
-      int i;
 
       /* Rewind output buffer to just after the last directory separator copied.
          Could be the start of the buffer if no dir separators encountered */
@@ -556,9 +552,8 @@ translate_or_null (int create_dir, int flags,
 
       *out++ = '.';
 
-      for (i = 0; i < leaf_len; i++)
-        *out++ = last_slash[i];
-
+      while (leaf_len--)
+        *out++ = __filename_char_map[(unsigned char)*last_slash++];
     }
 
   /* Terminate the output */
@@ -607,6 +602,11 @@ guess_or_null (int create_dir, int flags, char *buffer, const char *buf_end,
       orig_out = out;
       orig_in = in;
     }
+
+  /* Need to guess it could be a RISC OS filename ?  */
+  if ((flags & __RISCOSIFY_STRICT_UNIX_SPECS) != 0)
+    return translate_or_null (create_dir, flags, buffer, buf_end, filetype,
+                              orig_out, orig_in, path);
 
   /* Find the last two dots or slashes */
   last = NULL;
@@ -691,9 +691,8 @@ guess_or_null (int create_dir, int flags, char *buffer, const char *buf_end,
 }
 
 
-/* Call __riscosify with __riscosfy_control as the flags.
-   Place adjacent to __riscosify to help with cache hits.  */
-#undef __riscosify_std
+/* Call __riscosify() with __riscosfy_control as the flags.
+   Place adjacent to __riscosify() to help with cache hits.  */
 char *
 __riscosify_std (const char *name, int create_dir,
 		char *buffer, size_t buf_len, int *filetype)
@@ -1295,5 +1294,3 @@ const char __filename_char_map[256] =
    'ð',  'ñ',  'ò',  'ó',  'ô',  'õ',  'ö',  '÷',
    'ø',  'ù',  'ú',  'û',  'ü',  'ý',  'þ',  'ÿ'
 };
-
-

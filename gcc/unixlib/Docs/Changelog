@@ -1,3 +1,19 @@
+Mon Oct 06 20:00:01 2003  John Tytgat  <John.Tytgat@aaug.net>
+
+	* Docs/ReadMe: Added some more info on UnixEnv$<program name>$sfix.
+	* unixlib/local.h: Allocated __RISCOSIFY_STRICT_UNIX_SPECS
+	  __riscosify_control bit to disable the RISC OS filename check in
+	  __riscosify[_std]().
+	* source/common/objattr.c (__object_get_attrs): incorrect dealing with
+	  filetype derived from Unix filename.
+	* source/common/riscosify.c (guess_or_null): Support for
+	  __RISCOSIFY_STRICT_UNIX_SPECS.
+	* source/unix/chdir.c (chdir): Disable suffix swapping for directories.
+	* source/unix/dev.c (__fsstat): Likewise.
+	* source/unix/dirent.c (opendir): Likewise.
+	* source/unix/mkdir.c (mkdir): Likewise.
+	* source/unix/rmdir.c (rmdir): Likewise.
+
 Tue Sep 30 18:38:25 2003  Alex Waugh <alex@alexwaugh.com>
 
 	* alloc.c: Use __riscos rather than __riscos__ to keep Norcroft happy.

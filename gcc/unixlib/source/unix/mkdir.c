@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/mkdir.c,v $
- * $Date: 2003/04/12 11:31:39 $
- * $Revision: 1.4 $
+ * $Date: 2003/05/13 22:59:47 $
+ * $Revision: 1.5 $
  * $State: Exp $
- * $Author: alex $
+ * $Author: joty $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: mkdir.c,v 1.4 2003/04/12 11:31:39 alex Exp $";
+static const char rcs_id[] = "$Id: mkdir.c,v 1.5 2003/05/13 22:59:47 joty Exp $";
 #endif
 
 #include <errno.h>
@@ -28,9 +28,20 @@ mkdir (const char *ux_path, __mode_t mode)
   int regs[6], objtype;
   _kernel_oserror *err;
   char path[_POSIX_PATH_MAX];
+  int riscosify_control, rtrn_get_attrs;
 
-  if (__object_get_attrs (ux_path, path, sizeof (path),
-                          &objtype, NULL, NULL, NULL, NULL, NULL) && errno != ENOENT)
+  /* We don't want to do suffix swapping for directory objects.  */
+  riscosify_control = __get_riscosify_control ();
+  __set_riscosify_control (riscosify_control | __RISCOSIFY_NO_SUFFIX);
+
+  rtrn_get_attrs = __object_get_attrs (ux_path, path, sizeof (path),
+                                       &objtype, NULL, NULL, NULL, NULL, NULL)
+                   && errno != ENOENT;
+
+  /* Restore suffix swapping status.  */
+  __set_riscosify_control (riscosify_control);
+
+  if (rtrn_get_attrs)
     return -1;
 
   /* Fail if the directory already exists.  */

@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/chdir.c,v $
- * $Date: 2003/04/27 11:39:29 $
- * $Revision: 1.5 $
+ * $Date: 2003/05/11 12:49:07 $
+ * $Revision: 1.6 $
  * $State: Exp $
  * $Author: joty $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: chdir.c,v 1.5 2003/04/27 11:39:29 joty Exp $";
+static const char rcs_id[] = "$Id: chdir.c,v 1.6 2003/05/11 12:49:07 joty Exp $";
 #endif
 
 #include <errno.h>
@@ -34,14 +34,24 @@ chdir (const char *ux_path)
   int regs[10], objtype;
   char canon_path[_POSIX_PATH_MAX];
   char path[_POSIX_PATH_MAX];
+  int riscosify_control, rtrn_get_attrs;
 
   /* Filter this trivial case, otherwise we have to take care of this
      case later on (Unix '.' -> '@' in RISC OS).  */
   if (ux_path[0] == '.' && ux_path[1] == '\0')
     return 0;
 
-  if (__object_get_attrs (ux_path, path, sizeof (path),
-                          &objtype, NULL, NULL, NULL, NULL, NULL))
+  /* We don't want to do suffix swapping for directory objects.  */
+  riscosify_control = __get_riscosify_control ();
+  __set_riscosify_control (riscosify_control | __RISCOSIFY_NO_SUFFIX);
+
+  rtrn_get_attrs = __object_get_attrs (ux_path, path, sizeof (path),
+                                       &objtype, NULL, NULL, NULL, NULL, NULL);
+
+  /* Restore suffix swapping status.  */
+  __set_riscosify_control (riscosify_control);
+
+  if (rtrn_get_attrs)
     return -1;
 
   /* We can only change to directories.  */

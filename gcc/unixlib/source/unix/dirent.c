@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/dirent.c,v $
- * $Date: 2003/04/06 20:57:28 $
- * $Revision: 1.6 $
+ * $Date: 2003/08/18 22:35:36 $
+ * $Revision: 1.7 $
  * $State: Exp $
  * $Author: joty $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: dirent.c,v 1.6 2003/04/06 20:57:28 joty Exp $";
+static const char rcs_id[] = "$Id: dirent.c,v 1.7 2003/08/18 22:35:36 joty Exp $";
 #endif
 
 /* #define DEBUG */
@@ -184,7 +184,10 @@ opendir (const char *ux_name)
       return NULL;
     }
 
-  if (!__riscosify_std (ux_name, 0, name, sizeof (name), &filetype))
+  /* We don't want suffix swapping here.  */
+  if (!__riscosify (ux_name, 0,
+                    __get_riscosify_control() | __RISCOSIFY_NO_SUFFIX,
+                    name, sizeof (name), &filetype))
     {
       (void) __set_errno (ENAMETOOLONG);
       return NULL;

@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/dev.c,v $
- * $Date: 2003/05/13 22:59:47 $
- * $Revision: 1.13 $
+ * $Date: 2003/08/15 13:56:31 $
+ * $Revision: 1.14 $
  * $State: Exp $
  * $Author: joty $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: dev.c,v 1.13 2003/05/13 22:59:47 joty Exp $";
+static const char rcs_id[] = "$Id: dev.c,v 1.14 2003/08/15 13:56:31 joty Exp $";
 #endif
 
 /* #define DEBUG */
@@ -177,10 +177,9 @@ __fsopen (struct __unixlib_fd *file_desc, const char *filename, int mode)
   _kernel_oserror *err;
   char *end_of_filename; /* Location useful for CREAT failure tests.  */
 
-  end_of_filename = __riscosify (filename,
-				 fflag & (O_CREAT | O_WRONLY | O_RDWR),
-				 __get_riscosify_control (), file,
-				 sizeof (file) - 2, &sftype);
+  end_of_filename = __riscosify_std (filename,
+				     fflag & (O_CREAT | O_WRONLY | O_RDWR),
+				     file, sizeof (file) - 2, &sftype);
   if (end_of_filename == NULL)
     return (void *) __set_errno (ENAMETOOLONG);
 
@@ -527,13 +526,40 @@ __fsstat (const char *ux_filename, struct stat *buf)
 {
   char filename[_POSIX_PATH_MAX];
   int objtype, load, exec, length, attr;
+  int riscosify_control, rtrn_get_attrs, dir_suffix_check;
 
   if (buf == NULL)
     return __set_errno (EINVAL);
 
-  if (__object_get_attrs (ux_filename, filename, sizeof (filename),
-                          &objtype, NULL, &load, &exec, &length, &attr))
-    return -1;
+  /* When we have suffix swapping defined, the directory names are not
+     suffix swapped so check first without suffix swapping if we can't
+     find a directory.  */
+  if (((riscosify_control = __get_riscosify_control ())
+       & __RISCOSIFY_NO_SUFFIX) == 0)
+    {
+      /* Suffix swapping is setup.  */
+      __set_riscosify_control (riscosify_control | __RISCOSIFY_NO_SUFFIX);
+      dir_suffix_check = 1;
+    }
+  else
+    dir_suffix_check = 0;
+
+  rtrn_get_attrs = __object_get_attrs (ux_filename, filename, sizeof (filename),
+                                       &objtype, NULL, &load, &exec, &length, &attr);
+
+  if (dir_suffix_check)
+    {
+      /* Restore suffix swapping status.  */
+      __set_riscosify_control (riscosify_control);
+    }
+
+  if (rtrn_get_attrs)
+    {
+    if (dir_suffix_check == 0
+        || __object_get_attrs (ux_filename, filename, sizeof (filename),
+                               &objtype, NULL, &load, &exec, &length, &attr))
+      return -1;
+    }
 
   buf->st_ino = __get_file_ino (NULL, filename);
 

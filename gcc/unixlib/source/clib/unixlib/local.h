@@ -1,8 +1,8 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/unixlib/local.h,v $
- * $Date: 2003/06/17 19:46:23 $
- * $Revision: 1.8 $
+ * $Date: 2003/08/18 22:35:36 $
+ * $Revision: 1.9 $
  * $State: Exp $
  * $Author: joty $
  *
@@ -124,13 +124,18 @@ extern const char __filename_char_map[256];
 
 extern int __riscosify_control; /* Note: this is a weak symbol.  */
 
-/* Bits 0 - 5 (incl), 7 and 15 - 31 (incl) of __riscosify_control are not
+/* Bits 1 - 5 (incl), 7 and 15 - 31 (incl) of __riscosify_control are not
    allocated.  */
 
-/* Don't actually process filenames, copy verbatim into the output buffer.  */
+/* When set, __riscosify[_std]() won't try to recognise RISC OS filenames
+   but assume that all filenames are Unix based.  */
+#define __RISCOSIFY_STRICT_UNIX_SPECS   0x0001
+/* Don't actually process filenames, copy verbatim into the output buffer.
+   When set, this has priority over all other bits.  */
 #define __RISCOSIFY_NO_PROCESS		0x0040
 
-/* Disable suffix swapping.  */
+/* Disable suffix swapping (suffix swapping is implicitly disabled for
+   directories).  */
 #define __RISCOSIFY_NO_SUFFIX		0x0100
 
 /* Disable checking if section between two '/'s exists as directory.  */
@@ -158,7 +163,7 @@ extern int __riscosify_control; /* Note: this is a weak symbol.  */
 #define __RISCOSIFY_FILETYPE_NOT_SET    0x4000
 
 /* Mask of acceptable values. Keep other bits zero. Checks may be made.  */
-#define __RISCOSIFY_MASK                0x7F40
+#define __RISCOSIFY_MASK                0x7F41
 
 /* Value indicating that __riscosify[_std] didn't see a filetype extension
    in its argument __name or that it wasn't instructed to look for one.  */
@@ -171,7 +176,8 @@ extern int __riscosify_control; /* Note: this is a weak symbol.  */
 
 /* Convert Unix filenames/pathnames to RISC OS format creating the final
    directory if necessary and CREATE_DIR is non-zero.
-   Pass RISC OS pathnames through unchanged.
+   Pass RISC OS pathnames through unchanged (only when
+   __RISCOSIFY_STRICT_UNIX_SPECS is clear).
    Returns pointer to terminating '\0' in buffer,
    or NULL if there was a problem.  */
 extern char *__riscosify (const char *__name, int __create_dir,
@@ -179,6 +185,8 @@ extern char *__riscosify (const char *__name, int __create_dir,
 			  char *__buffer, size_t __buf_len,
 			  int *__filetype);
 
+/* Calls __riscosify() with __riscosify_flags equal to
+   __riscosify_control.  */
 extern char *__riscosify_std (const char *__name, int __create_dir,
 			      char *__buffer, size_t __buf_len,
 			      int *__filetype);

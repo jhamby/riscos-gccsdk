@@ -44,6 +44,19 @@ The list of recognised features are:
    bit specified in __riscosify_flags of the __riscosify() routine or
    having that bit specified in the WEAK symbol __riscosify_control.
    See <unixlib/local.h> include file for more information.
+   
+   Suffix swapping can also be disabled by defining the
+   UnixEnv$<program name>$sfix environment variable as an empty string :
+   
+     *Set UnixEnv$my_program$sfix ""
+     
+   Note that doing :
+   
+     *UnSet UnixEnv$my_program$sfix
+     
+   will *enable* suffix swapping with the default suffix list
+   mentioned above unless __RISCOSIFY_NO_SUFFIX is specified in the
+   __riscosify_flags variable or __riscosify()'s flags parameter.
 
 
 Link-time features
