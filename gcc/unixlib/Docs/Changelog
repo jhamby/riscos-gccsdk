@@ -1,3 +1,11 @@
+Wed Jan  5 11:33:20 2005  Peter Naulls  <peter@chocky.org>
+
+	* Docs/ReadMe36c1, Docs/ReadMe36c2, Docs/ReadMe36d, Docs/ReadMe36e,
+	  Docs/ReadMe37a, Docs/ReadMe37b, Docs/ReadMe38: Remove - out
+	  of date information.
+	* Docs/Copyright: Draft of new Unixlib copyright statement.
+	* source/clib/regex.h: Matching header file for source.
+
 Tue Jan  4 22:50:42 2005  Alex Waugh  <alex@alexwaugh.com>
 
 	* source/common/unixify.c (add_directory_name): Slashes should be
