@@ -51,13 +51,32 @@ Installation
 Installation is quite simple:
 
 1) Copy the !UnixLib directory to an appropriate location on your hard disc,
-and ensure that !UnixLib.!Boot is run during the boot up process.
+and ensure that !UnixLib.!Boot is run.  Running !UnixLib.!Boot is normally
+done by the Filer when seeing the !UnixLib directory for the first time.
 
-2) If you have a verison of RISC OS earlier than 3.7, copy the module
-CallASWI.CallASWI to System:Modules. Addition info at
+2) If you develop on RISC OS earlier than 3.7, make sure you have the
+CallASWI module installed in your !System directory.  The latest known
+version is 0.03 and can be found at
 <URL:http://www.iyonix.com/32bit/CallASWI.shtml>.
 
-3) The module "SharedUnixLibrary" needs to be copied to System:Modules too.
+3) The module "SharedUnixLibrary" needs to be copied as
+!System.Modules.SharedULib.  In !UnixLib you can find the sources of
+this module.
+
+
+Distributing of UnixLib based programs
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When your program is linked with UnixLib, it needs the "SharedUnixLibrary"
+module so you should provide appropriate installation notes or an
+installation program to install the latest version of this module as
+!System.Modules.SharedULib.
+
+When your program is suited for running on RISC OS version older than 3.7,
+you should also provide an installation note or program to install the
+CallASWI module as !System.Modules.CallASWI.  Or, even better, redirect
+the users to <URL:http://www.iyonix.com/32bit/CallASWI.shtml> for the
+latest known version.
 
 
 UnixLib and GCC
@@ -90,3 +109,5 @@ linked.
 
 Please note that the math functions defined in complex.h cannot be
 used if UnixLib is compiled with Norcroft C.
+
+-EOF-

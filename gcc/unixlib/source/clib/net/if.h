@@ -1,10 +1,10 @@
 /****************************************************************************
  *
- * $Source: $
- * $Date: $
- * $Revision: $
- * $State: $
- * $Author: $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/net/if.h,v $
+ * $Date: 2002/12/22 18:22:28 $
+ * $Revision: 1.3 $
+ * $State: Exp $
+ * $Author: admin $
  *
  ***************************************************************************/
 
@@ -12,6 +12,7 @@
  * File taken from glibc 2.2.5.
  * Following changes were made:
  *  - Changed "#include <features.h>" into "#include <unixlib/features.h>"
+ *  - Commented out the if_*() routines because these are not implemented.
  */
 
 /* net/if.h -- declarations for inquiring about network interfaces
@@ -204,6 +205,7 @@ struct ifconf
 
 __BEGIN_DECLS
 
+#if 0
 /* Convert an interface name to an index, and vice versa.  */
 extern unsigned int if_nametoindex (__const char *__ifname) __THROW;
 extern char *if_indextoname (unsigned int __ifindex, char *__ifname) __THROW;
@@ -213,6 +215,7 @@ extern struct if_nameindex *if_nameindex (void) __THROW;
 
 /* Free the data returned from if_nameindex.  */
 extern void if_freenameindex (struct if_nameindex *__ptr) __THROW;
+#endif
 
 __END_DECLS
 

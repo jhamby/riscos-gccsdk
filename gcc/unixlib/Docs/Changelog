@@ -1,3 +1,16 @@
+Wed Nov 19 00:00:01 2003  John Tytgat  <John.Tytgat@aaug.net>
+
+	* source/clib/net/if.h: Commented out declaration of the if_*()
+	  routines (we don't have them implemented).
+	* Boot: Removed last new-line character.
+	* Run: Likewise.
+	* Setup: Likewise.
+	* !Help: Cleaned up "Installation" section a bit; Provided the
+	  "Distributing of UnixLib based programs" section.
+	* CallASWI.CallASWI,ffa: Removed (see !Help for info on obtaining the
+	  latest version).
+	* CallASWI.ReadMe: Likewise.
+
 Sat Nov 01 21:40:00 2003  John Tytgat  <John.Tytgat@aaug.net>
 
 	* source/unix/unix.c (_exit): Previous fix didn't properly unset
