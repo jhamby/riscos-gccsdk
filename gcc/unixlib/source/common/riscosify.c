@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source$
- * $Date$
- * $Revision$
- * $State$
- * $Author$
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/common/riscosify.c,v $
+ * $Date: 2002/12/13 15:01:59 $
+ * $Revision: 1.5 $
+ * $State: Exp $
+ * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id$";
+static const char rcs_id[] = "$Id: riscosify.c,v 1.5 2002/12/13 15:01:59 admin Exp $";
 #endif
 
 /* #define DEBUG */
@@ -41,7 +41,7 @@ typedef struct
   const struct sdir sdir;
 } __sdir_default_map;
 
-static const char wimp_scrap[] = "<Wimp$ScrapDir>.";
+static const char wimp_scrap[] = "<Wimp$ScrapDir>";
 
 /* /tmp is so common and can't guarantee that $.tmp exists.
    /pipe is used in some programs and can't guarantee that $.pipe exists.  */
@@ -90,7 +90,7 @@ static struct sfix *__sfix[SFIXSIZE] =
 /* Declared at end of file, close to code that accesses it.  */
 static const size_t truncate[4];
 
-static char *copy_or_null (char *to, const char *from, size_t len);
+static char *copy_or_null (char *to, const char *from, const char *buf_end);
 
 /* For all UnixFS$/#* global environment values, set up a mapping as
    requested by the user to map Unix directories to RISC OS directories.
@@ -119,11 +119,7 @@ __sdirinit (void)
       if (__os_swi (OS_ReadVarVal, regs) != NULL)
 	break;
 
-      /* If it ends in ':' it's a path, else add '.'  */
       str = buf + regs[2];
-      if (*str != ':')
-	*str++ = '.';
-
       *str = '\0';
 
       /* Save name and value.  */
@@ -145,7 +141,7 @@ __sdirinit (void)
 
   /* Add default special directories if not specified by user.  */
   for (j = sizeof (def_map) / sizeof (__sdir_default_map) - 1; j; j--)
-    if (def_map[i].defined == 0)
+    if (def_map[j].defined == 0)
       __sdir[i++] = def_map[j].sdir;
 
   /* Terminate list.  */
@@ -230,12 +226,13 @@ enum sdirseg_result
    Returns one of enum sdir_result.  */
 
 static enum sdirseg_result
-sdirseg (const char **in_p, char **out_p, size_t len)
+sdirseg (const char **in_p, char **out_p, const char *buf_end)
 {
   const char *in, *s3;
   char *out = *out_p;
   char ch;
   int j;
+
 
   for (j = 0; j < MAXSDIR; j++)
     {
@@ -249,7 +246,7 @@ sdirseg (const char **in_p, char **out_p, size_t len)
       /* If we're at the end of s3, then the final in++ didn't occur.  */
       if (ch == '\0' && ((ch = *in) == '\0' || ch == '/'))
 	{
-	  out = copy_or_null (out, __sdir[j].riscos_name, len);
+	  out = copy_or_null (out, __sdir[j].riscos_name, buf_end);
 
 	  if (!out)
 	    return sdirseg_buf_to_small;
@@ -281,16 +278,339 @@ __sfixfind (const char *sfix)
   return NULL;
 }
 
-/* stpncpy() but only writes one '\0'. Return NULL if buffer overflowed.  */
+/* Copy 'from' to 'to'. Return NULL if buffer overflowed. */
 static char *
-copy_or_null (char *to, const char *from, size_t len)
+copy_or_null (char *to, const char *from, const char *buf_end)
 {
-  while (len--)
+  while (to <= buf_end)
     if (!(*to++ = *from++))
       return to - 1;
 
   return NULL;
 }
+
+/* Copy from in to out, translating characters as necessary.
+   Also handles ,xyz extensions and suffix swapping.
+   Return NULL if buffer overflowed. */
+static char *
+translate_or_null (int create_dir, int flags,
+                   char *buffer, const char *buf_end, int *filetype,
+                   char *out, const char *in)
+{
+  /* in points to a (possibly partial) unix pathname.
+     If it was absolute, it will have had any leading '/'s stripped, and any
+     RISC OS specific parts will already have been copied */
+
+  const char *last_slash = in; /* The next character after the last '/'
+                                  discovered in the input */
+  char *last_out_slash = out;  /* The position in the output that corresponds
+                                  to last_slash in the input */
+  const char *last_dot = NULL; /* The last '.' found in the input */
+  char *last_out_dot = NULL;   /* The position in the output that corresponds
+                                  to the last '.' found in the input */
+  const char *suffix;
+
+#ifdef DEBUG
+  __os_print ("-- translate_or_null:\r\n");
+  __os_print ("output buffer = '");
+  *out = '\0';
+  __os_print (buffer);
+  __os_print ("'\r\nremaining input = '");
+  __os_print (in);
+  __os_print ("'\r\n");
+#endif
+
+  if (out > buf_end)
+    return NULL;
+
+  while (*in)
+    {
+      switch (*in)
+        {
+        case '.':
+          if (in[1] == '/')
+            {
+              /* Skip any ./ */
+              in += 2;
+              last_slash = in;
+            }
+          else if (in[1] == '.' && in[2] == '/')
+            {
+              /* Change ../ to ^. */
+              in += 3;
+              last_slash = in;
+
+              if (out + 2 > buf_end)
+                return NULL;
+
+              *out++ = '^';
+              *out++ = '.';
+              last_out_slash = out;
+            }
+          else
+            {
+              /* Just a . as part of a filename */
+              last_dot = in++;
+              last_out_dot = out;
+              *out++ = '/';
+
+              if (out > buf_end)
+                return NULL;
+            }
+
+          break;
+
+        case '/':
+          /* Strip out any multiple slashes */
+          while (in[1] == '/')
+            in++;
+
+          last_slash = ++in;
+
+          /* Copy as a '.', unless nothing else has been output yet */
+          if (out != buffer)
+            *out++ = '.';
+
+          last_out_slash = out;
+
+          if (out > buf_end)
+            return NULL;
+
+          break;
+
+        default:
+          /* Translate all other characters as appropriate */
+          *out++ = __filename_char_map[(unsigned char) *in++];
+
+          if (out > buf_end)
+            return NULL;
+
+        }
+    }
+
+  /* If the input ended in /. then remove it.
+     gcc uses filenames like this to ensure the resulting path will be a
+     directory even if the given path is a symbolic link.  */
+  if (out > buffer + 2 && out[-1] == '/' && out[-2] == '.')
+    out -= 2;
+
+#ifdef DEBUG
+  *out = '\0';
+  __os_print ("before ,xyz and suffix checking '");
+  __os_print (buffer);
+  __os_print ("'\r\n");
+#endif
+
+  /* Use MimeMap to find a filetype to match the filename
+     extension.  e.g.  file.html -> 0xfaf */
+  if ((flags & __RISCOSIFY_FILETYPE_SET) &&
+      filetype != NULL && last_dot != NULL)
+    {
+       _kernel_swi_regs regs;
+
+      regs.r[0] = MMM_TYPE_DOT_EXTN; /* Input extension */
+      regs.r[1] = (int)last_dot;
+      regs.r[2] = MMM_TYPE_RISCOS; /* Output filetype */
+
+      /* If there's an error, then the filetype will remain
+         __RISCOSIFY_FILETYPE_NOT_FOUND.  */
+      if (! _kernel_swi (MimeMap_Translate, &regs, &regs))
+        *filetype = regs.r[3];
+    }
+
+  /* Check if we have "blabla,xyz" as filename where `xyz' is a
+     valid 12 bit hex number.  Only perform the check if
+     __RISCOSIFY_FILETYPE_EXT is set and xyz != 0xfff.  However
+     relax the latter condition if __RISCOSIFY_FILETYPE_FFF_EXT is
+     set.  */
+  if (out - last_out_slash > 4 && out[-4] == ','
+      && isxdigit (out[-3])
+      && isxdigit (out[-2])
+      && isxdigit (out[-1])
+      && (flags & __RISCOSIFY_FILETYPE_EXT))
+    {
+      int ftype = 0;
+      int i;
+
+      for (i = -3; i < 0; i++)
+        ftype = (ftype << 4) + ((out[i] <= '9')
+                                ? (out[i] - '0')
+                                : (toupper (out[i]) - 'A' + 10));
+
+      if (filetype != NULL
+          && (ftype != 0xFFF || (flags & __RISCOSIFY_FILETYPE_FFF_EXT)))
+        *filetype = ftype;
+
+      /* Remove the comma and extension from the output */
+      out -= 4;
+    }
+
+  /* Terminate the output */
+  *out = '\0';
+
+  /* See if the leafname suffix matches a known suffix */
+  if (last_out_dot && !(flags & __RISCOSIFY_NO_SUFFIX))
+    suffix = __sfixfind (last_out_dot + 1);
+  else
+    suffix = NULL;
+
+  if (suffix)
+    {
+      /* Suffix matches, so do suffix swapping */
+      int leaf_len;
+      int i;
+
+      /* Rewind output buffer to just after the last directory separator copied.
+         Could be the start of the buffer if no dir separators encountered */
+      out = last_out_slash;
+
+      /* Copy the new suffix */
+      while (*suffix)
+        {
+          *out++ = *suffix++;
+
+          if (out > buf_end)
+            return NULL;
+        }
+
+      if (create_dir)
+        {
+          int regs[6];
+
+          /* Terminate the output buffer */
+          *out = '\0';
+
+          /* Create the directory if it doesn't exist.  */
+          if (! __os_file (OSFILE_READCATINFO_NOPATH, buffer, regs)
+              && ! regs[0])
+            {
+              regs[4] = 0;   /* Default number of entries in dir.  */
+              __os_file (8, buffer, regs);
+            }
+        }
+
+      /* Copy the leafname without suffix */
+      leaf_len = last_out_dot - last_out_slash;
+
+      if (out + leaf_len > buf_end)
+        return NULL;
+
+      *out++ = '.';
+
+      for (i = 0; i < leaf_len; i++)
+        *out++ = last_slash[i];
+
+    }
+
+  /* Terminate the output */
+  *out = '\0';
+
+  return out;
+}
+
+
+/* Guess if filename is RISC OS or unix, then call copy_or_null or
+   translate_or null as appropriate. Used for path vars and relative filenames
+   where we cannot reliably work out what format it is in.
+   If path is nonzero then buffer will already contain a path var, eg gcc:
+   otherwise buffer will contain the chars upto the first dot or slash.
+   Return NULL if buffer overflowed. */
+static char *
+guess_or_null (int create_dir, int flags, char *buffer, const char *buf_end,
+               int *filetype, char *out, const char *in, const char *name,
+               int path)
+{
+  const char *last;
+  const char *orig_in = name;
+  char *orig_out = buffer;
+
+#ifdef DEBUG
+  __os_print ("-- guess_or_null:\r\n");
+  __os_print ("output buffer = '");
+  *out = '\0';
+  __os_print (buffer);
+  __os_print ("'\r\nremaining input = '");
+  __os_print (in);
+  __os_print ("'\r\n");
+#endif
+
+  /* Set orig_* to the bit after the pathvar, if any */
+  if (path)
+    {
+      orig_out = out;
+      orig_in = in;
+    }
+
+  /* Find the first dir separator */
+  while (*in && *in != '.' && *in != '/')
+    {
+      *out++ = *in++;
+
+      if (out > buf_end)
+        return NULL;
+    }
+
+  *out = '\0';
+
+  if (*in == '\0')
+    {
+      /* Just a leafname, and we've already copied it all */
+      return out;
+    }
+
+  if (__sfixfind (orig_out))
+    {
+      /* The first segment is a known suffix */
+      if (*in == '.')
+        {
+          /* c.getopt so it's probably RISC OS */
+          return copy_or_null (out, in, buf_end);
+        }
+      else
+        {
+          /* c/getopt so it's probably unix */
+          return translate_or_null (create_dir, flags, buffer,
+                                    buf_end, filetype, orig_out, orig_in);
+        }
+    }
+
+  /* Find the last dot or slash */
+  last = in;
+  while (*in)
+    {
+      if (*in == '.' || *in == '/')
+        last = in;
+
+      in++;
+    }
+
+  if (*last && __sfixfind (last + 1))
+    {
+      /* The last segment is a known suffix */
+      if (*last == '.')
+        {
+          /* foo/getopt.c so it's probably unix */
+          return translate_or_null (create_dir, flags, buffer, buf_end,
+                                    filetype, orig_out, orig_in);
+        }
+      else
+        {
+          /* foo.getopt/c so it's probably RISC OS */
+          return copy_or_null (orig_out, orig_in, buf_end);
+        }
+    }
+
+  /* No known suffix found at the start or end.
+     Could be RISC OS or unix, and there's no reliable way to tell.
+     If it starts with a path var then assume it's RISC OS format, otherwise
+     unix */
+  if (path)
+    return copy_or_null (orig_out, orig_in, buf_end);
+
+  return translate_or_null (create_dir, flags, buffer, buf_end, filetype,
+                            orig_out, orig_in);
+}
+
 
 /* Call __riscosify with __riscosfy_control as the flags.
    Place adjacent to __riscosify to help with cache hits.  */
@@ -303,29 +623,13 @@ __riscosify_std (const char *name, int create_dir,
   		      buf_len, filetype);
 }
 
-enum can_csd
-{
-  no,
-  doubtful,
-  yes,
-  yes_root
-};
-
-/* Convert Unix filenames/pathnames in NAME to RISC OS format creating the
-   final directory if necessary and CREATE_DIR is non-zero.
-   Pass RISC OS pathnames through unchanged.
-   Returns pointer to terminating '\0' in buffer,
-   or NULL if there was a problem.  */
 char *
 __riscosify (const char *name, int create_dir,
-	     int flags, char *buffer, size_t buf_len, int *filetype)
+             int flags, char *buffer, size_t buf_len, int *filetype)
 {
-  int absolute_path;
-  char current, next;
-  const char *buf_end = buffer + buf_len; /* One char beyond the end.  */
+  const char *buf_end = buffer + buf_len - 1; /* The last char in the buffer. */
+  const char *in = name;
   char *out = buffer;
-  const char *in0;
-  enum can_csd can_csd_etc = no;
 
   /* Check for silly user input and return errors appropriately.  */
   if ((flags & ~__RISCOSIFY_MASK))
@@ -339,6 +643,12 @@ __riscosify (const char *name, int create_dir,
   if (! name || ! buffer || ! buf_len)
     return NULL;
 
+#ifdef DEBUG
+  __os_print ("-- __riscosify: '");
+  __os_print (name);
+  __os_print ("'\r\n");
+#endif
+
   if (filetype != NULL)
     *filetype = __RISCOSIFY_FILETYPE_NOTFOUND;
 
@@ -348,790 +658,514 @@ __riscosify (const char *name, int create_dir,
   /* If the user has specified this flag, then we only need to copy
      the filename to the destination buffer.  */
   if ((flags & __RISCOSIFY_NO_PROCESS) || *name == '\0')
-    return copy_or_null (buffer, name, buf_len);
+    return copy_or_null (buffer, name, buf_end);
 
-  /* Unix absolute paths have a leading slash e.g.
-	/work/!unixlib37/source/common/riscosify.c.
-
-     Any other path type is a relative path e.g.
-	../fred/jim/harry.c
-	./jim/harry.c
-	jim/harry.c  */
-  absolute_path = (name[0] == '/');
-
-  /* Strip off all leading '/'  */
-  while ((current = *name++) == '/')
-    ;
-
-  /* We must be careful when converting Unix filenames into RISC OS.
-     The following filename formats must be accepted and translated
-     appropriately:
-
-	  Unix format			RISC OS format
-       1. /idefs::hd.$/fred/preset.s	idefs::hd.$.fred.s.preset
-       2. c/jimmyhill			c.jimmyhill
-       3. gcc:/getopt.c			gcc:getopt.c
-       4. /lib/something/cc		%.something.cc
-       5. ./././c.cool			c.cool
-       6. ../../../c.cool		^.^.^.c.cool
-       7. ../cool.c			^.c.cool
-       8. <GCC$dir>.cc.smart		<GCC$dir>.cc.smart
-       9. <GCC$dir>.smart.cc		<GCC$Dir>.cc.smart
-      10. /arm/rname.c			$.arm.c.rname
-
-    It is quite acceptable for the user to pass filenames of this
-    format on the command line (or within scripts).  */
-
-  in0 = --name;
-
-  /* Path names and disc names.
-
-     Filing system names are alphanumeric or '_'.  Experimentation suggests
-     path names may only be alphanumeric or '_'.
-
-     Note, we do not attempt to handle -fs- type pathnames, since the
-     use of them is more or less deprecated (see PRM 2-11).  */
-  if (isalnum (current) || current == '_')
+  /* We can tell quite a lot from the first character of the path */
+  switch (*in)
     {
-      /* Move through the filename, looking for the next character that
-	 isn't alphanumeric or an underscore.  Situations where this
-	 might occur are:
-	   1. idefs::		(disc absolute path)
-	   2. nfs#station::	(network absolute path)
-	   3. gcc:		(path variable).  */
-      while (isalnum (next = *++in0) || next == '_')
-	;
+    case '/':
+      /* The directory separator must be a slash. Could be an absolute unix
+         pathname, or a unixified RISC OS path.
 
-      /* Skip special fields in the pathname (i.e. the nfs#station::).
-	 These start with '#' and can contain almost anything except ':'.  */
-      if (next == '#')
-	while ((next = *++in0) != '\0' && next != ':')
-	  ;
+         /idefs::hd/$/fred/preset/s  idefs::hd.$.fred.preset.s
+         /idefs::hd/$/fred/preset.s  idefs::hd.$.fred.s.preset
+         /arm/rname.c                $.arm.c.rname
+         /lib/something/cc           %.something.cc
+         /<GCC$Dir>/config           <GCC$Dir>.config
+         /gcc:/libgcc.o              gcc:o.libgcc
+         /gcc:libgcc.o               gcc:o.libgcc
+         /dev/tty                    tty:
+         /usr/xxx                    xxx
+         /xxx                        xxx */
 
-      if (next == ':')
-	{
-#ifdef DEBUG
-	  __os_print ("Found a `idefs:'\r\n\t\tbefore name = `");
-	  __os_print (name); __os_print ("'\r\n\t\tafter name = `");
-	  __os_print (in0); __os_print ("'\r\n");
-#endif
-	  /* Determine whether we are looking at a file system absolute
-	     path, or a pseudo-filing system generated from a path
-	     variable.  */
-	  can_csd_etc = yes;
-	  /* Probably just found a filing system or path - if below we decide
-	     that we need to check for a full RISC OS pathname, then at this
-	     point we know that
-	     a: it's looking promising.
-	     b: all possibilities (ie '$', '@' etc) are valid.  */
+      in++; /* Skip the '/' */
 
-	  if (in0[1] == ':')
-	    {
-	      in0 += 2;	/* Pass over "::" and copy it to the output buffer.  */
-
-#ifdef DEBUG
-	      __os_print ("Found a `idefs::'\r\n\t\tbefore name = `");
-	      __os_print (name); __os_print ("'\r\n\t\tafter name = `");
-	      __os_print (in0); __os_print ("'\r\n");
-#endif
-	      if ((out + (in0 - name)) > buf_end)
-		return NULL;
-	      memcpy (out, name, in0 - name);
-	      out += in0 - name;
-	      name = in0;
-
-	      /* Move through the disc name, looking for the terminating
-		 '.'.  If the pathname started with a slash then
-		 look out for a terminating slash e.g.
-		    1  "/idefs::hd/work" - starts with a '/' - so must end with
-		       '/'. In this case translate '.' in "discname" to '/'
-
-		    2a "idefs::hd.$/work" - discname is "hd" (no problem)
-		    2b "idefs::hd.$.work" - discname is "hd" (no problem)
-
-		    3a "idefs::hd.work" - disname cannot be "hd" as '.' is not
-		       followed by '$' - keep going to '/'
-		    3b "idefs::hd/work" - only ambiguous case - will it become:
-			     ":hd/work.$.full.path"
-			     ":hd/work/!UnixLib37/Changelog" ?
-		       cannot know - must guess. Current is latter option.  */
-
-
-	      /* ".$" is always recognised as the end of the discname.  */
-	      can_csd_etc = absolute_path ? no		/* Case 1.  */
-					  : doubtful;	/* Assume case 3, but
-		try to figure out whether we have case 2 or 3.  */
-	      while ((next = *in0) && next != '/')
-		{
-		  if (next == '.')
-		    {
-		      if (in0[1] == '$')
-			{
-			  if (can_csd_etc == doubtful)
-			    can_csd_etc = yes_root;
-			    /* Have not passed a previous '.' before meeting
-			       "$.", so is possible full pathname. Whether it
-			       *is* actually followed by '.' will be determined
-			       below.  */
-			  break;
-			}
-		      else
-			can_csd_etc = no;
-			/* Definately not a native full pathname. Case 3.  */
-		    }
-		  in0++;
-		}
-
-	      if (can_csd_etc != yes_root)
-		{
-		  /* Case 1 or 3.
-		     Map '.' to '/' in discname as we go.
-		     Filing systems are [A-Za-z0-9_] which are not translated
-		     by the table.  */
-#ifdef DEBUG
-		  __os_print ("Found a `idefs::hd'\r\n\t\tbefore name = `");
-		  __os_print (name); __os_print ("'\r\n\t\tafter name = `");
-		  __os_print (in0); __os_print ("'\r\n");
-#endif
-		  if ((out + (in0 - name)) >= buf_end)
-		    return NULL;
-		  do
-		    {
-		      *out++ = __filename_char_map[(unsigned char) *name++];
-		    } while (name < in0);
-
-		  /* At this point: *name == / . or \0.  */
-		  if (out >= buf_end)
-		    return NULL;
-		  if (*name == '\0')
-		    *out++ = '\0';
-		  else
-		    {
-		      /* Skip over terminating '/' or '.'
-		         (will only be '.' as part of ".$" found
-		          after a '.').  */
-		      name++;
-		      /* There's a useful side effect here for when we
-			 are looking out for the various RISC OS pathname
-			 symbols ($, % etc) since we can automatically
-			 assume that no characters are going to appear
-			 before these symbols. e.g.
-			  idefs::hd.work.$/work/!unixlib37
-			  idefs::hd/$/work/!unixlib37
-			 name will point to '$'.  */
-		      *out++ = '.';	/* Terminate discname.  */
-		    }
-		}
-	      else
-		{
-		  /* Case 2 - Looks like a full pathname starting
-		     "idefs::hd.$.work"
-
-		     "idefs::hd.@" is invalid
-		     "/idefs::hd.$/work" would be treated as a discname "hd.$"
-		     (case 1) and won't get here.  */
-		  in0++;
-		  /* Include the '.' in what we copy. (eg the one between
-		     "hd" and "work".  */
-
-		  /* Test that there is enough space to hold this filename
-		     segment in the output buffer.  */
-		  if ((out + (in0 - name)) > buf_end)
-		    return NULL;
-
-#ifdef DEBUG
-		  __os_print ("Found a `idefs::hd.'\r\n\t\tbefore name = `");
-		  __os_print (name); __os_print ("'\r\n\t\tafter name = `");
-		  __os_print (in0); __os_print ("'\r\n");
-#endif
-		  /* Copy that segment of the filename into the output
-		     RISC OS filename.  */
-		  memcpy (out, name, in0 - name);
-		  out += in0 - name;
-		  name += in0 - name;
-		}
-#ifdef DEBUG
-	      *out = '\0';
-	      __os_print ("Output buffer is `"); __os_print (buffer);
-	      __os_print ("'\r\nInput buffer is `"); __os_print (name);
-	      __os_print ("'\r\n");
-#endif
-	    }
-	  else
-	    {
-	      /* We could have a filename of one of the following forms:
-		   1. gcc:o.libgcc
-		   2. gcc:/o.libgcc
-		   3. gcc:/o.libgcc
-		   4. gcc:./o.libgcc
-		   5. gcc:../o.libgcc
-		   6. gcc:^.o.libgcc
-
-		 It's quite feasible to precede each of those filenames with
-		 a '/'.  We know if this has happened because absolute_path
-		 will be set.
-
-		 All we care to do here is place the 'gcc:' part of the
-		 filename into the RISC OS translated version.  We'll
-		 also make life easier by removing the '/' if it follows
-		 the colon (cases 2 and 3).  */
-
-	      /* in0 currently points to the ':'.  Increment by one so
-		 the whole 'gcc:' is correctly copied across.  */
-	      in0++;
-
-	      /* Test that there is enough space to hold this filename
-		 segment in the output buffer.  */
-	      if ((out + (in0 - name)) > buf_end)
-		return NULL;
-
-#ifdef DEBUG
-	      __os_print ("Found a `gcc:'\r\n\t\tbefore name = `");
-	      __os_print (name); __os_print ("'\r\n\t\tafter name = `");
-	      __os_print (name + (in0 - name)); __os_print ("'\r\n");
-#endif
-
-	      /* Copy the 'gcc:' segment of the filename into the output
-		 RISC OS filename.  */
-	      memcpy (out, name, in0 - name);
-	      out += in0 - name;
-	      name += in0 - name;
-
-	      /* Skip the slash, since it is useless after a colon. It also
-		 means we can rule out a RISC OS pathname.  */
-	      if (*name == '/')
-		{
-		  name++;
-		  can_csd_etc = no;
-		}
-	    }
-	}
-      else
-	{
-	  /* If we've reached here, the during the filename scan (above)
-	     we have come across a slash or a dot.  Since colons and hashes
-	     are usually part of RISC OS absolute names we can assume that
-	     the filename never contained something like idefs::hd.  Therefore
-	     no action need be taken.  */
-	}
-    }
-
-  /* Check for a filename that looks like:
-       <GCC$Dir>.cc.smart.
-
-     Essentially we blindly copy all characters between the two chevrons.
-     The filename could look like
-       <GCC$Dir>/cc.smart
-       <GCC$Dir>.cc.smart
-       <GCC$Dir>.config
-
-     ok to terminate on the '>' for the first two, as "/cc.smart" will be
-     trapped by the check for suffixes as directories and ".cc.smart fits the
-     rule that there is more than one "." and no "/" so it is assumed to be
-     a RISC OS filename. However "<GCC$Dir>.config" would be translated as
-     "<GCC$Dir>/config", which is very very unlikely to be what was intented.
-     Hence copy a "." if ">." is found. ".cc.smart" will become "cc.smart",
-     which the check routine later will interpret identically with
-     ".cc.smart" (remeber that we've copied across that first ".").  */
-
-  if (current == '<')
-    {
-      /* Skip characters up until the terminating '>'.  */
-      while ((next = *++in0) && next != '>')
-	;
-
-      if (next)
-        in0++;	/* Make sure that we copy the trailing '>' here.  */
-
-      /* Test that there is enough space to hold this filename
-	 segment in the output buffer.  */
-      if ((out + (in0 - name)) > buf_end)
-	return NULL;
-
-#ifdef DEBUG
-      __os_print ("Found a `<'. before name = `");
-      __os_print (name); __os_print ("', after name = `");
-      __os_print (name + (in0 - name)); __os_print ("'\r\n");
-#endif
-      /* Copy the '<GCC$Dir>' segment of the filename into the output
-	 RISC OS filename.  */
-      memcpy (out, name, in0 - name);
-      out += in0 - name;
-      name += in0 - name;
-
-      /* If '>' is follwed by '.' or '/' add a trailing '.' to output name.
-         next still contains the '>' or '\0' that terminated the while()
-         loop.  */
-      if (next && (*in0 == '.' || *in0 == '/'))
+      if (*in == '<')
         {
-          if (out == buf_end)
+          /* Must be a sysvar
+             /<GCC$dir>/something */
+
+          /* Copy everything upto the '>' */
+          do
+            {
+              *out++ = *in++;
+
+              if (out > buf_end)
+                return NULL;
+            }
+          while (*in && *in != '>');
+
+          if (out + 2 > buf_end)
             return NULL;
+
+          if (*in)
+            *out++ = *in++; /* Copy the '>' */
+
+          if (*in == '/')
+            {
+              /* Copy the first '/' as a '.' */
+              *out++ = '.';
+              in++;
+            }
+
+          /* Skip any further '/'s */
+          while (*in == '/')
+            in++;
+
+        }
+      else
+        {
+          /* Not a sysvar */
+
+          /* Copy everything upto the first '.', '/', ':' or '#' */
+          while (*in && *in != ':' && *in != '.' && *in != '/' && *in != '#')
+            {
+              *out++ = *in++;
+
+              if (out > buf_end)
+                return NULL;
+            }
+
+          if (*in == '#')
+            {
+              /* Copy any fileswitch special field (i.e. the nfs#station::)
+                 These start with '#' and can contain almost anything except ':' */
+              while (*in && *in != ':')
+                {
+                  *out++ = *in++;
+
+                  if (out > buf_end)
+                    return NULL;
+                }
+            }
+
+          if (*in == ':')
+            {
+              /* Must be a RISC OS filing system or path variable.
+                 /idefs:: or /gcc: */
+
+              *out++ = *in++; /* Copy the ':' */
+
+              if (out > buf_end)
+                return NULL;
+
+              if (*in == ':')
+                {
+                  /* Must be a filing system
+                     /idefs:: */
+
+                  /* Copy upto the next '/'
+                     /idefs::hd/ */
+                  while (*in && *in != '/')
+                    {
+                      *out++ = *in++;
+
+                      if (out > buf_end)
+                        return NULL;
+                    }
+
+                  if (out + 3 > buf_end)
+                    return NULL;
+
+                  if (in[0] == '/' && in[1] == '$')
+                    {
+                      /* Copy the /$ as  .$ */
+                      *out++ = '.';
+                      *out++ = '$';
+                      in += 2;
+                    }
+
+                  if (*in == '/')
+                    {
+                      /* Copy the / as . */
+                      *out++ = '.';
+                      in++;
+                    }
+
+                  /* Skip any further '/'s */
+                  while (*in == '/')
+                    in++;
+
+                }
+              else if (*in == '/')
+                {
+                  /* Must be a path var followed by a '/'
+                     /gcc:/ */
+
+                  /* Skip any '/'s */
+                  do
+                    {
+                      in++;
+                    }
+                  while (*in == '/');
+
+                }
+              else
+                {
+                  /* Must be a path var
+                     /gcc:something
+                     in already points to the char after the ':', so nothing
+                     else needs copying */
+                }
+            }
+          else
+            {
+              /* Must be an absolute unix path, with no RISC OS specific
+                 parts, so rewind to just after the initial slashes */
+              int matched = 0;
+
+              in = name;
+              while (*in == '/')
+                in++;
+
+              out = buffer;
+
+              /* Check for special paths, starting with /dev  */
+              if (in[0] == 'd' && in[1] == 'e' && in[2] == 'v'
+                  && in[3] == '/' && in[4] != '\0')
+                {
+                  /* Copy to the destination string as {device}:  e.g. /dev/tty
+                     would become tty:.  */
+
+                  out = copy_or_null (out, in + 4, buf_end);
+                  if (out == NULL)
+                    return NULL;
+
+                  *out++ = ':';
+                  *out = '\0';
+                  return out;
+                }
+
+              /* /usr/xxx and /var/xxx. Try matching xxx segment.  */
+              if (((  in[0] == 'u' && in[1] == 's')
+                  || (in[0] == 'v' && in[1] == 'a'))
+                  &&  in[2] == 'r' && in[3] == '/')
+                {
+                  in += 4;
+                  switch (sdirseg (&in, &out, buf_end))
+                    {
+                    case sdirseg_buf_to_small:
+                      return NULL;
+                      break;
+
+                    case sdirseg_match:
+                      matched = 1;
+
+                      /* If the matched segment was a path var then consume
+                         any '/'s in the input to prevent them being copied
+                         as '.'s (so we don't end up with gcc:.foo) */
+                      if (out > buffer && out[-1] == ':')
+                        while (*in == '/')
+                          in++;
+
+                      break;
+
+                    default:
+                      in -= 4;
+                    }
+                }
+
+              if (! matched)
+                {
+                  /* Try matching against a user defined /xxx.  */
+                  switch (sdirseg (&in, &out, buf_end))
+                    {
+                    case sdirseg_buf_to_small:
+                      return NULL;
+                      break;
+
+                    case sdirseg_match:
+                      matched = 1;
+
+                      /* If the matched segment was a path var then consume
+                         any '/'s in the input to prevent them being copied
+                         as '.'s (so we don't end up with gcc:.foo) */
+                      if (out > buffer && out[-1] == ':')
+                        while (*in == '/')
+                          in++;
+
+                      break;
+
+                    case sdirseg_no_match:
+                      break;
+
+                    }
+                }
+
+              if (! matched)
+                {
+                  /* Did not match any user defined paths, so treat it as a
+                     path on the current filing system */
+                  if (out + 2 > buf_end)
+                    return NULL;
+
+                  *out++ = '$';
+                  *out++ = '.';
+                }
+            }
+        }
+
+      /* By this point, all RISC OS specific parts have been copied across and
+         all that remains is something like foo/bar/baz.c */
+      return translate_or_null (create_dir, flags, buffer, buf_end, filetype,
+                                out, in);
+
+      break;
+
+
+    case '$':
+    case '@':
+    case '%':
+    case '\\':
+    case '&':
+    case '^':
+      /* If the path starts with any of these chars then it must be a RISC OS
+         path, although the dot and slashed could still be reversed.
+
+         $.work.!unixlib  $.work.!unixlib
+         $/work/!unixlib  $.work.!unixlib
+         %.cc1            %.cc1
+         @/fred.c         @.c.fred
+         ^.fred           ^.fred */
+
+      *out++ = *in++; /* We know there is at least one space in the buffer */
+
+      /* The next char must be the directory separator */
+      if (*in == '/')
+        {
+          if (out > buf_end)
+            return NULL;
+
+          /* Copy the / as . */
           *out++ = '.';
-#ifdef DEBUG
-          __os_print ("Appended trailing `"); __os_vdu (*in0);
-          __os_print ("' as .\r\n");
-#endif
-          name++;
+          in++;
+
+          /* Skip any further '/'s */
+          while (*in == '/')
+            in++;
+
+          return translate_or_null (create_dir, flags, buffer, buf_end,
+                                    filetype, out, in);
         }
-    }
-
-  /* By the time we've reached here we should have filtered out some
-     very RISC OS specific features i.e.
-	1. idefs::hd.
-	2. net#station::
-	3. gcc:
-	4. <gcc$dir>
-
-     thus ending up with a filename that looks something like:
-	1. fred/preset.s
-	2. c/jimmyhill
-	3. getopt.c
-	4. /lib/something/cc
-	5. ./././c.cool
-	6. ../../../c.cool
-	7. ../cool.c
-	8. cc.smart
-	9. smart.cc
-       10. /arm/rname.c
-       11. $.work.!unixlib37
-       12. %.cc1
-
-     Experimentation reveals that a bare FS/path name can be followed by
-     any one of '$', '@', '%', '\' and '&' whereas a discname may only be
-     followed by '$'.  We can use this to sift out native filenames.  */
-
-  if ((current = *name) && name[1] == '.')
-    {
-      /* something followed by '.' -  */
-      if ((can_csd_etc == yes_root && current == '$')
-	  || (can_csd_etc == yes_root
-	      && (current == '$' || current == '@' || current == '%'
-		  || current == '\\' || current == '&')))
-	{
-	  /* "$." or "@." or "%." or "\\." or "&." means native RISC OS.
-	     Copy it verbatim.  */
-	  return copy_or_null (out, name, buf_end - out);
-	}
-    }
-
-  if (current == '$' || current == '@' || current == '%'
-      || current == '\\' || current == '&')
-    {
-      *out++ = current;
-      *out++ = '.';
-      current = *++name;
-      /* If input filename was something like @.c, then ensure we
-         consume the `.'.  */
-      if (current == '.')
-        current = *++name;
-    }
-
-  next = *(name + 1);
-
-#ifdef DEBUG
-  *out = '\0';
-  __os_print ("Special path check: output buff is `"); __os_print (buffer);
-  __os_print ("', input buff is `"); __os_print (name); __os_print ("'\r\n");
-#endif
-  if (absolute_path)
-    {
-      /* It's an absolute path. Check for special paths, starting with /dev  */
-      if (current == 'd' && name[1] == 'e' && name[2] == 'v' && name[3] == '/'
-	  && name[4] != '\0')
-	{
-	  /* Copy to the destination string as {device}:  e.g. /dev/tty
-	     would become tty:.  */
-
-	  out = copy_or_null (out, name + 4, buf_end - out - 2);
-	  if (out == NULL)
-	    return NULL;
-
-	  *out++ = ':';
-	  *out = '\0';
-	  return out;
-	}
-
-      /* /usr/xxx and /var/xxx. Try matching xxx segment.  */
-      if (((current == 'u' && name[1] == 's')
-	   || (current == 'v' && name[1] == 'a'))
-	  && name[2] == 'r' && name[3] == '/')
-	{
-	  name += 4;
-	  switch (sdirseg (&name, &out, buf_end - out))
-	    {
-	    case sdirseg_buf_to_small:
-	      return NULL;
-
-	    case sdirseg_match:
-	      goto main;
-
-	    default:
-	      name -= 4;
-	    }
-	}
-
-      /* Try matching against a user defined /xxx.  */
-      switch (sdirseg (&name, &out, buf_end - out))
-	{
-	case sdirseg_buf_to_small:
-	  return NULL;
-
-	case sdirseg_match:
-	  goto main;
-
-	case sdirseg_no_match:
-	  if (out == buffer)
-	    {
-	      if (buf_end - out < 2)
-		return NULL;
-	      /* Nothing written yet, "absolute" path.  */
-	      *out++ = '$';
-	      *out++ = '.';
-	    }
-	}
-    }
-  else
-    {
-      /* Relative path.
-	 At this point out == buffer since anything else has jumped to main.
-
-	 If name starts with a dot and the next character is either
-	 non existant or a '/' then we must be specifing the currently
-	 selected directory.  Everything else is dealt with below.  */
-      if (current == '.' && ((next = name[1]) == '/' || next == '\0'))
-	{
-	  if (buf_end - out < 2)
-	    return NULL;
-	  *out++ = '@';
-	  *out++ = '.';
-	  name++;
-	}
-    }
-
-
-#ifdef DEBUG
-  __os_print ("Long route - \r\n");
-#endif
-
-main:
-
-#ifdef DEBUG
-  *out = '\0';
-  __os_print ("entering main loop: output buff is `"); __os_print (buffer);
-  __os_print ("', input buff is `"); __os_print (name); __os_print ("'\r\n");
-#endif
-  /* At this point the output buffer
-     -1: Can't be empty if the input is exhausted
-      0: May be full!
-      1: Contains either
-	 $. @. %. ^. \. &.
-	 Path:
-	 FS::Disc.
-	 Some::Full.$.Pathspec.for.a.special.dir.
-	 Nothing (the input didn't start '/' or with a recognised path: name)
-
-      2: probably isn't '\0' terminated.
-
-     out points to the next location in the buffer to write
-     (if the buffer is full this will be the byte immediately after)
-
-     The input may be exhausted.  */
-
-  /* At this point, we should be left with an input filename that looks
-     like:
-	1. work.!unixlib37.test.c.riscosify
-	2. work/!unixlib37/test/riscosify.c
-	3. bin/as
-
-     We have to make some important assumptions here:
-	1. A filename containing more than one dot and no slashes is
-	   a RISC OS filename.
-	2. A filename containing more than one slash and only one dot is a
-	   Unix filename.
-
-     This assumption falls down on filenames like:
-	gcc-2.7.2.2.tar.gz
-  */
-
-  for (;;)
-    {
-      const char *last_dot, *last_comma;
-      const char *suffix;
-      size_t to_copy;
-      int drop_vowels;
-
-      current = *name++;
-
-      if (current == '/')
-	continue;
-
-      if (current == '\0')
-	{
-	   /* If the input is exhausted blat the last character
-	      (which will be a dot) and exit.  */
-
-	  if (out[-1] == '.')
-	    --out;
-	  else if (out == buf_end)
-	    return NULL;
-	  *out = '\0';
-
-	  /* Return for converted Unix file/path.  */
-	  return out;
-	}
-
-      next = *name;
-
-      if (current == '.')
-	{
-#ifdef DEBUG
-       	  __os_print ("Dot filenames `"); __os_vdu (current);
-       	  __os_print ("' `"); __os_vdu (next); __os_print ("' in `");
-       	  __os_print (name); __os_print ("'\r\n");
-#endif
-
-	  switch (next)
-	    {
-	    case '/':	  /* Just consume ./ */
-	      name++;	  /* and fall through.  */
-	    case '\0':
-	      continue;
-
-	    case '.':
-	      /* Convert ../ to the RISC OS up directory '^.'. */
-	      switch (name[1])
-		{
-		case '/':
-		  name++;  /* and fall through.  */
-		case '\0':
-		  if (buf_end - out < 2)
-		    return NULL;
-		  *out++ = '^';
-		  *out++ = '.';
-		  name++;
-		  continue;
-		}
-	    }
-	}
-
-      /* OK. "Normal" filename
-	 current == name[-1]
-	 next == *name  */
-      last_dot = NULL;
-      last_comma = NULL;
-      drop_vowels = 0;
-      in0 = name;
-
-      /* Locate the last '.' and `,' in what is left of the name.  */
-      while (next != '\0' && next != '/')
-	{
-	  if (next == '.')
-	    last_dot = in0;
-	  else if (next == ',')
-	    last_comma = in0;
-	  next = *++in0;
-	}
-
-      /* Use MimeMap to find a filetype to match the filename
-         extension.  e.g.  file.html -> 0xfaf */
-      if ((flags & __RISCOSIFY_FILETYPE_SET) &&
-          filetype != NULL && last_dot != NULL)
+      else
         {
-           _kernel_swi_regs regs;
-
-          regs.r[0] = MMM_TYPE_DOT_EXTN; /* Input extension */
-          regs.r[1] = (int)last_dot;
-          regs.r[2] = MMM_TYPE_RISCOS; /* Output filetype */
-
-	  /* If there's an error, then the filetype will remain
-	     __RISCOSIFY_FILETYPE_NOT_FOUND.  */
-          if (! _kernel_swi (MimeMap_Translate, &regs, &regs))
-	    *filetype = regs.r[3];
+          return copy_or_null (out, in, buf_end);
         }
 
-      /* Check if we have "blabla,xyz" as filename where `xyz' is a
-         valid 12 bit hex number.  Only perform the check if
-         __RISCOSIFY_FILETYPE_EXT is set and xyz != 0xfff.  However
-         relax the latter condition if __RISCOSIFY_FILETYPE_FFF_EXT is
-         set.  */
-      if (last_comma && next == '\0' && (in0 - last_comma) == 4
-          && isxdigit (last_comma[1])
-          && isxdigit (last_comma[2])
-          && isxdigit (last_comma[3])
-          && (flags & __RISCOSIFY_FILETYPE_EXT))
+      break;
+
+
+    case '<':
+      /* The path must start with a sysvar.
+         <GCC$dir>.cc.smart    <GCC$dir>.cc.smart
+         <GCC$dir>.smart.cc    <GCC$Dir>.smart.cc
+         <GCC$Dir>/cc.smart    <GCC$Dir>.cc/smart
+         <GCC$Dir>/smart.cc    <GCC$Dir>.cc.smart */
+
+      /* Copy everything upto the '>' */
+      do
         {
-          int ftype = 0, cnt;
+          *out++ = *in++;
 
-          for (cnt = 1; cnt < 4; cnt ++)
-            ftype = (ftype << 4) + ((last_comma[cnt] <= '9')
-              	       	     	    ? (last_comma[cnt] - '0')
-              	       	     	    : (toupper (last_comma[cnt])
-              	       	     	       - 'A' + 10));
-
-	  if (filetype != NULL
-	      && (ftype != 0xFFF || (flags & __RISCOSIFY_FILETYPE_FFF_EXT)))
-	    *filetype = ftype;
+          if (out > buf_end)
+            return NULL;
         }
-      else
-        last_comma = NULL;
+      while (*in && *in != '>');
 
-      if (last_dot && !(flags & __RISCOSIFY_NO_SUFFIX))
+      /* Copy the '>' */
+      if (*in)
+        *out++ = *in++;
+
+      if (out > buf_end)
+        return NULL;
+
+      /* The char following the '>' must be the directory separator */
+      if (*in == '/')
         {
-          /* Handle case "/rafs::testcvs/$/myproject/checkout.o,ffd"  */
-          if (last_comma)
-            *((char *) last_comma) = '\0';
-          suffix = __sfixfind (last_dot + 1);
-          if (last_comma)
-            *((char *) last_comma) = ',';
+          /* Copy the / as . */
+          *out++ = '.';
+          in++;
+
+          /* Skip any further '/'s */
+          while (*in == '/')
+            in++;
+
+          return translate_or_null (create_dir, flags, buffer, buf_end,
+                                    filetype, out, in);
         }
       else
-	suffix = NULL;
+        {
+          return copy_or_null (out, in, buf_end);
+        }
 
-      if (suffix)
-	{
-	  out = copy_or_null (out, suffix, buf_end - out - 1);
-	  if (out == NULL)
-	    return NULL;
+      break;
 
-	  if (create_dir)
-	    {
-	      int regs[6];
 
-	      /* Create the directory if it doesn't exist.  */
-	      if (! __os_file (OSFILE_READCATINFO_NOPATH, buffer, regs)
-	          && ! regs[0])
-		{
-		  regs[4] = 0;   /* Default number of entries in dir.  */
-		  __os_file (8, buffer, regs);
-		}
-	    }
+    case '.':
+      /* RISC OS paths never start with a '.'
+         ./././c.cool      c.cool
+         ../../../c.cool   ^.^.^.c.cool
+         ../cool.c         ^.c.cool
+         .plan             /plan
+         ..plan            //plan
+         .                 @
+         ..                ^ */
 
-	  *out++ = '.';
-	}
+      if (in[1] == '\0')
+        {
+          if (out + 1 > buf_end)
+            return NULL;
+
+          *out++ = '@';
+          *out = '\0';
+
+          return out;
+        }
+
+      if (in[1] == '.' && in[2] == '\0')
+        {
+          if (out + 1 > buf_end)
+            return NULL;
+
+          *out++ = '^';
+          *out = '\0';
+
+          return out;
+        }
+
+      return translate_or_null (create_dir, flags, buffer, buf_end, filetype,
+                                out, in);
+
+      break;
+
+
+    default:
+      /* Could be an absolute RISC OS path or a path variable, possibly with
+         '.' and '/' swapped. Otherwise it must be a relative path, but could
+         be either RISC OS or unix, with no easy way to tell.
+
+         idefs::hd.$.fred/c  idefs::hd.$.fred/c
+         idefs::hd/$/fred.c  idefs::hd.$.c.fred
+         gcc:c.getopt        gcc:c.getopt
+         gcc:/getopt.c       gcc:c.getopt
+         fred.c              c.fred
+         c/fred              c.fred
+         c.fred              c.fred
+         gcc:/getopt.c       gcc:getopt.c
+         gcc:o.libgcc        gcc:o.libgcc
+         gcc:/o.libgcc       gcc:o/libgcc
+         foo/bar.s           foo.s.bar
+         foo/bar.php         foo.bar/php
+         gcc-2.7.2.2.tar.gz  gcc-2/7/2/2/tar/gz */
+
+      /* Copy everything upto the first '.', '/', ':' or '#' */
+      while (*in && *in != ':' && *in != '.' && *in != '/' && *in != '#')
+        {
+          *out++ = *in++;
+
+          if (out > buf_end)
+            return NULL;
+        }
+
+      if (*in == '#')
+        {
+          /* Copy any fileswitch special field (i.e. the nfs#station::)
+             These start with '#' and can contain almost anything except ':' */
+          while (*in && *in != ':')
+            {
+              *out++ = *in++;
+
+              if (out > buf_end)
+                return NULL;
+            }
+        }
+
+      if (*in == ':')
+        {
+          /* Must be a RISC OS filing system or path var
+             idefs:: or gcc: */
+
+          *out++ = *in++; /* Copy the ':' */
+          if (out > buf_end)
+            return NULL;
+
+          if (*in == ':')
+            {
+              /* Must be a filing system */
+              while (*in && *in != '.' && *in != '/')
+                {
+                  *out++ = *in++; /* Copy the discname */
+
+                  if (out > buf_end)
+                    return NULL;
+                }
+
+
+              /* Copy the .$ or /$ as .$ */
+              if (in[0] && in[1] == '$')
+                {
+                 /* Add the .$ */
+                 if (out + 2 > buf_end)
+                   return NULL;
+
+                 *out++ = '.';
+                 *out++ = '$';
+                 in += 2;
+                }
+
+              if (*in == '/')
+                {
+                  /* Copy the / as . */
+                  *out++ = '.';
+                  in++;
+
+                  /* Skip any further '/'s */
+                  while (*in == '/')
+                    in++;
+
+                  return translate_or_null (create_dir, flags, buffer, buf_end,
+                                            filetype, out, in);
+                }
+              else
+                {
+                  return copy_or_null (out, in, buf_end);
+                }
+            }
+          else
+            {
+              /* Must be a path var
+                 gcc: */
+              if (*in == '/')
+                {
+                  /* Skip over any '/'s */
+                  while (*in == '/')
+                    in++;
+
+                  return translate_or_null (create_dir, flags, buffer, buf_end,
+                                            filetype, out, in);
+                }
+              else
+                {
+                  /* Have to make a guess if it is RISC OS or unix format */
+                  return guess_or_null (create_dir, flags, buffer, buf_end,
+                                        filetype, out, in, name, 1);
+
+                }
+            }
+        }
       else
-	{
-	  /* At this point in __uname() there is code to check whether
-	     the name to last_dot exists as a directory.
-	     This means that
-	         !Perl/lib/File.pm
-	     maps to either
-		 !Perl.lib.File.pm
-	     or
-		 !Perl.lib.File/pm
-	     depending on whether the directory !Perl.lib.File exists.
-	     [From the choice of filenames above guess who is writing this]
+        {
+          /* Must be a relative path. Could be RISC OS or unix, and there's no
+             reliable way to tell. */
 
-	     IMHO this is naïve:
-	     0: The directory doesn't exist
-	     1: Write the file out as !Perl/lib/File.pm (!Perl.lib.File/pm)
-	     2: Create the directory to house more files
-	     3: Try to read back !Perl/lib/File.pm and it's "not there"
+          return guess_or_null (create_dir, flags, buffer, buf_end, filetype,
+                                out, in, name, 0);
+        }
+    }
 
-	     d'oh.
-
-	     However, its removal may have unexpected results in some
-	     programs (its inclusion has unexpected results in some), hence
-	     it is switchable).  */
-
-	  if (last_dot && !(flags & __RISCOSIFY_DONT_CHECK_DIR))
-	    {
-	      size_t length = last_dot - --name;
-	      /* name now points to first char of interest.
-		 length includes that training '.' (or room for '\0').  */
-	      if (out + length >= buf_end)
-		return NULL;
-
-	      /* Copy everything up to that last '.' to the output buffer.  */
-	      memcpy (out, name++, length);
-	      /* Restore name.  */
-	      out[length] = '\0';
-
-	      if (!(flags & __RISCOSIFY_CHECK_DIR_IS_SUFFIX)
-		  || __sfixfind (out))
-		{
-		  /* Perform check if:
-		     either __RISCOSIFY_CHECK_DIR_IS_SUFFIX is unset
-		     or the name is in the suffix list.  */
-
-		  if (__isdir_raw (buffer))
-		    {
-		      out += length;
-		      name += length;
-		      *out++ = '.';
-		      /* __uname at this point copied the last section
-			 verbatim into the output buffer.
-			 This seems a trifle dodgy - all that is know is that
-			 it contians none of '.' '/' '\0'
-			 By looping from this point we let the next pass deal
-			 with any special characters that may be found.  */
-		      continue;
-		    }
-		}
-	    }
-	  /* Didn't meet the criteria for checking, or directory not
-	     found. */
-	  last_dot = (last_comma != NULL) ? last_comma : in0;
-	}
-
-      /* last_dot is the first character *not* to copy
-	 want name-1 to last_dot-1.  */
-
-      to_copy = truncate[__RISCOSIFY_TRUNCATE_VALUE(flags)];
-
-      name--; /* Copying from name - 1.  */
-      if (to_copy < (size_t) (last_dot - name))
-	drop_vowels = flags & __RISCOSIFY_DROP_VOWEL;
-      else
-	to_copy = last_dot - name;
-
-      if (to_copy < (size_t)(buf_end - out) && !drop_vowels)
-	{
-	  char *dst = out;
-	  out += to_copy;
-	  /* Plenty of space, fast loop, copying at least one char.  */
-	  do
-	    {
-	      to_copy--;
-	      dst[to_copy] = __filename_char_map[(unsigned char) name[to_copy]];
-	    }
-	  while (to_copy);
-	}
-      else
-	{
-	  /* May run out of space, may be dropping vowels.
-	     May be extremely lucky - dropping vowels may not overrun
-	     buffer, whereas simple truncate would.  We do not go for
-	     a simple truncate because calls with different size buffers
-	     would yield different results and that would be very
-	     confusing.  */
-	  do
-	    {
-	      /* We know that there is at least one valid character.  */
-	      if (drop_vowels
-		  && (current == 'a' || current == 'e' || current == 'i'
-		      || current == 'o' || current == 'u'))
-		continue;
-
-	      if (out == buf_end)  /* No room.  */
-		return NULL;
-
-	      to_copy--;
-	      *out++ = __filename_char_map[(unsigned char) current];
-	    }
-	  while (current = *++name, ((name < last_dot) && to_copy));
-	}
-
-      if (out == buf_end)
-	return NULL;
-
-      name = (last_comma != NULL) ? (last_comma + 4) : in0;
-      *out++ = '.';
-      /* At this point "My brain hurts".  */
-    }		/* Loop again.  */
-  /* Never reached */
+  /* Not reached */
+  return NULL;
 }
-
-static const size_t truncate[4] = {INT_MAX, 55, 19, 10};
 
 /* This table has
    '/' and '.' transposed
