@@ -9,7 +9,7 @@
    from the function.  The user must have previously declared
    a suitably sized buffer for the Unix format filename.
 
-   Last modified: 23 December 2000 <nick@dsvr.net>  */
+   Last modified: 27 December 2000 <nick@dsvr.net>  */
 
 #define _GNU_SOURCE
 #include <stdio.h>
@@ -35,6 +35,7 @@ get_directory_name (const char *input, char *output)
   if (*input == '\0')
     return 0;
 
+#ifndef CROSS_COMPILE
   /* RISC OS directory names are delimited by a '.'.
      We must check for a few Unix styles though.  */
   t = strchr (input, '.');
@@ -51,6 +52,7 @@ get_directory_name (const char *input, char *output)
       output[t - input] = '\0';
       return 1;
     }
+#endif
   /* If we reach here, we have two possibilities:
      1. fname
      2. directory/fname
@@ -278,6 +280,7 @@ riscos_to_unix (const char *filename, char *output)
 #ifdef DEBUG
       printf ("i = '%s', tempbuf = '%s'\n", i, tempbuf);
 #endif
+#ifndef CROSS_COMPILE
       if (one_dot (i))
 	{
 	  char name[128];
@@ -319,6 +322,7 @@ riscos_to_unix (const char *filename, char *output)
 	  flag = 1;
 	}
       else
+#endif
 	{
 	  output = add_directory_name (output, tempbuf);
 	  /* Add 1 to get past dot.  */
@@ -364,6 +368,7 @@ int
 main (void)
 {
   char out[256], name[256];
+  test ("machmode.def");
   test ("DeskLib:foobar.h");
   test ("IDEFS::HD.$.Work.gcc.gcc-272.config.arm.c.rname");
   test ("IDEFS::HD.$.Work.gcc.gcc-272.config.arm.for.rname");
