@@ -281,7 +281,7 @@ rm /tmp/out-configure
 
 # Set tool chain variables picked up by configure
 export CC="$DISTCC $RO_BIN/gcc"
-export CPPFLAGS=-I/home/riscos/env/include
+export CPPFLAGS="-isystem /home/riscos/env/include"
 export LDFLAGS="-L/home/riscos/env/lib $AB_LDFLAGS"
 export CXX="$DISTCC $RO_BIN/g++"
 #export CXXLIBS=-liostream
@@ -409,6 +409,7 @@ export ac_cv_no_user_malloc=no
 
 export ac_cv_c_char_unsigned=yes
 export ac_cv_c_bitfields_htol=no
+export ac_cv_c_const=yes
 
 export ac_cv_dev_minor_bits=0
 export ac_cv_dev_minor_noncontig=no
