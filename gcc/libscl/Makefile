@@ -92,6 +92,7 @@ LIBC =  $(libsclobj)/unistd.o \
 	$(libsclobj)/stubs.o \
 	$(libsclobj)/riscosify.o \
 	$(libsclobj)/assert.o \
+	$(libsclobj)/_os.o \
 	$(libunixobj)/common/_riscosify.o 
 
 all:	mkdirs \
@@ -126,6 +127,7 @@ $(libsclobj)/riscosify.o: ../unixlib/source/common/riscosify.c
 $(libsclobj)/unistd.o: unistd.c unistd.h
 $(libsclobj)/fcntl.o: fcntl.c fcntl.h
 $(libsclobj)/stubs.o: stubs.s
+$(libsclobj)/_os.o: _os.s
 
 $(libsclobj)/gcc-compat/divdi3.o: gcc-compat/divdi3.s
 $(libsclobj)/gcc-compat/moddi3.o: gcc-compat/moddi3.s
