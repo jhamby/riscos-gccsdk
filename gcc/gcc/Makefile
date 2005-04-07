@@ -21,6 +21,6 @@ gcc:
 	$(gccpath)/objc $(gccpath)/config/arm
 	$(MAKE) -C gcc "STAGE=$(STAGE)"
 
-libgcc libgpc libf2c libobjc libstdc zlib:
+libgcc libgpc libf2c libobjc libstdc:
 	mkdir -p $(libpath)/$(STAGE)/$(TRG)
 	$(MAKE) -C $@ "STAGE=$(STAGE)"
