@@ -33,7 +33,7 @@ Credits:
 
   Primary Developers
 
-  - Nick Burret - Project Lead, GCC porting, C++ support, AOF tools
+  - Nick Burrett - Project Lead, GCC porting, C++ support, AOF tools
   - Peter Naulls - Unixlib (All areas, especially glibc compatibility),
      release management, AOF tools.
   - John Tytgat - Unixlib (especially process handling, sockets),
@@ -49,5 +49,5 @@ Credits:
 
   Thanks also to all the testers and bug reporters.
 
-GCCSDK Developers, 2004
+GCCSDK Developers, 2005
 
