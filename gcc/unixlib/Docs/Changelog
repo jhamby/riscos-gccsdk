@@ -1,3 +1,8 @@
+Thu Apr  7 19:33:46 2005  Nick Burrett  <nick@sqrt.co.uk>
+
+	* unix/unix.c (convert_command_line): Cope with arguments that
+	are effectively empty strings.
+
 Thu Apr  7 19:31:46 2005  Nick Burrett  <nick@sqrt.co.uk>
 
 	* sys/cdefs.h (__nonnull): Define.

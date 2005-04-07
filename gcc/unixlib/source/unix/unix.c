@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/unix.c,v $
- * $Date: 2005/03/15 22:09:39 $
- * $Revision: 1.38 $
+ * $Date: 2005/03/21 12:14:57 $
+ * $Revision: 1.39 $
  * $State: Exp $
- * $Author: alex $
+ * $Author: peter $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: unix.c,v 1.38 2005/03/15 22:09:39 alex Exp $";
+static const char rcs_id[] = "$Id: unix.c,v 1.39 2005/03/21 12:14:57 peter Exp $";
 #endif
 
 #include <stdio.h>
@@ -331,7 +331,7 @@ void __unixinit (void)
   convert_command_line (__u, cli, cli_size);
   free (cli);
 
-  __unixlib_set_fpstatus(__unixlib_get_fpstatus() & 0xff02ffff);
+  __unixlib_set_fpstatus (__unixlib_get_fpstatus() & 0xff02ffff);
 
 #ifdef DEBUG
   __debug ("__unixinit: process creation complete");
@@ -882,6 +882,10 @@ convert_command_line (struct proc *process, const char *cli, int cli_size)
     __unixlib_fatal ("cannot allocate memory for main() parameters");
   while (*cli)
     {
+      /* Set to 1 if we are storing an empty argument, for example
+	 -classpath ''  */
+      int empty_arg = 0;
+
       /* Skip any white space.  */
       while (isspace (*cli))
 	cli++;
@@ -991,7 +995,11 @@ convert_command_line (struct proc *process, const char *cli, int cli_size)
 		}
 	      /* If we've finished on the quotation mark then skip over it.  */
 	      if (*cli == '\"')
-		cli++;
+		{
+		  if (cli[-1] == '\"')
+		    empty_arg = 1;
+		  cli++;
+		}
 	    }
 	  else if (*cli == '\'' && isspace(cli[-1]))
 	    {
@@ -1012,7 +1020,18 @@ convert_command_line (struct proc *process, const char *cli, int cli_size)
 		}
 	      /* If we've finished on the single quote mark, then skip it.  */
 	      if (*cli == '\'')
-		cli++;
+		{
+		  if (cli[-1] == '\'')
+		    {
+		      /* The argument was given as an empty argument.
+			 A circumstance like this occurs with commands like
+			    -classpath ''
+			 We must therefore store an empty argument.
+		      */
+		      empty_arg = 1;
+		    }
+		  cli++;
+		}
 	    }
 	  else
 	    *p++ = *cli++;
@@ -1021,7 +1040,7 @@ convert_command_line (struct proc *process, const char *cli, int cli_size)
       *p = '\0';
       /* We have now reached a space delimiter.  Add the argument to
 	 the argv list, if one was actually made.  */
-      if (p != temp)
+      if (p != temp || empty_arg)
 	{
 	  argc ++;
 	  argv = (char **) realloc (argv, (argc + 1) * sizeof (char *));
