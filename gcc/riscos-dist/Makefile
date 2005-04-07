@@ -59,22 +59,6 @@ G77PKG = $(pkg)/bin/g77$(exesfx) \
 	$(pkg)/docs/g77 \
 	$(pkg)/docs/g77-readme
 
-GPCPKG = $(pkg)/bin/gpc$(exesfx) \
-	$(bindir)/gpc1$(exesfx) \
-	$(bindir)/gpcpp$(exesfx) \
-	$(bindir)/apcs32/arch3/unixlib/o/libgpc \
-	$(pkg)/docs/gpc
-
-JAVAPKG = $(bindir)/jc1$(exesfx) \
-	$(pkg)/bin/jcf-dump$(exesfx) \
-	$(pkg)/bin/jv-scan$(exesfx) \
-	$(bindir)/jvgenmain$(exesfx) \
-	$(pkg)/bin/gcjh$(exesfx) \
-	$(pkg)/bin/gcj$(exesfx) \
-	$(pkg)/share/jar/libgcj \
-	$(bindir)/apcs32/arch3/unixlib/o/libffi \
-	$(bindir)/apcs32/arch3/unixlib/o/libgcj
-
 UTILSPKG = $(pkg)/bin/bison$(exesfx) \
 	$(pkg)/bin/cmp$(exesfx) \
 	$(pkg)/bin/diff$(exesfx) \
@@ -177,5 +161,3 @@ package:
 	$(ux_bin_dir)/zip -, -9r $(ro_zippkg)/unixlibsrc.zip $(UNIXLIBSRCPKG) ; \
 	$(ux_bin_dir)/zip -, -9r $(ro_zippkg)/libscl.zip $(LIBSCLPKG) ; )
 
-
-	#$(ux_bin_dir)/zip -, -9r $(ro_zippkg)/java.zip $(JAVAPKG) ;
