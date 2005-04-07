@@ -10,31 +10,17 @@ gccpath=$(objdir)/gcc-$(VERSION)/$@/$(STAGE)
 all:	gcc
 
 .PHONY: zlib
-.PHONY: fastjar
 .PHONY: gcc
 .PHONY: libgcc
 .PHONY: libf2c
 .PHONY: libobjc
 .PHONY: libstdc
-.PHONY: libffi
-.PHONY: boehm-gc
 
 gcc:
-	mkdir -p $(gccpath) $(gccpath)/ada $(gccpath)/cp $(gccpath)/f77 \
-	$(gccpath)/gpc $(gccpath)/objc $(gccpath)/java $(gccpath)/config/arm
+	mkdir -p $(gccpath) $(gccpath)/cp $(gccpath)/f77 \
+	$(gccpath)/objc $(gccpath)/config/arm
 	$(MAKE) -C gcc "STAGE=$(STAGE)"
 
-boehm-gc fastjar libgcc libgpc libf2c libobjc libstdc libffi zlib:
-	mkdir -p $(libpath)/$(STAGE)/$(TRG)
-	$(MAKE) -C $@ "STAGE=$(STAGE)"
-
-libjava/.rules_class: libjava/Makefile
-	$(MAKE) -C libjava class_deps GEN="gen"
-
-libjava/.rules_headers: libjava/Makefile
-	$(MAKE) -C libjava header_deps GEN="gen"
-
-
-libjava: libjava/.rules_class libjava/.rules_headers
+libgcc libgpc libf2c libobjc libstdc zlib:
 	mkdir -p $(libpath)/$(STAGE)/$(TRG)
 	$(MAKE) -C $@ "STAGE=$(STAGE)"
