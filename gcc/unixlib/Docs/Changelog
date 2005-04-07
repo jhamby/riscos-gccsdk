@@ -1,3 +1,8 @@
+Thu Apr  7 19:37:19 2005  Nick Burrett  <nick@sqrt.co.uk>
+
+	* common/riscosify.c (__sdirinit): Use __os_swi rather than
+	_kernel_swi.
+
 Thu Apr  7 19:36:09 2005  Nick Burrett  <nick@sqrt.co.uk>
 
 	* sys/_os.s (__os_prhex): Build buffer directly.

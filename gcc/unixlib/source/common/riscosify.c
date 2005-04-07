@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/common/riscosify.c,v $
- * $Date: 2004/12/16 17:10:30 $
- * $Revision: 1.17 $
+ * $Date: 2005/03/20 15:46:00 $
+ * $Revision: 1.18 $
  * $State: Exp $
- * $Author: peter $
+ * $Author: alex $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: riscosify.c,v 1.17 2004/12/16 17:10:30 peter Exp $";
+static const char rcs_id[] = "$Id: riscosify.c,v 1.18 2005/03/20 15:46:00 alex Exp $";
 #endif
 
 /* #define DEBUG */
@@ -123,31 +123,31 @@ void
 __sdirinit (void)
 {
   int i, j;
-  _kernel_swi_regs regs;
+  int regs[10];
   char buf[MAXPATHLEN];
 
-  regs.r[1] = (int) buf;
-  regs.r[3] = 0;
+  regs[1] = (int) buf;
+  regs[3] = 0;
 
   for (i = 0; i < MAXSDIR; i++)
     {
       char *str;
 
       /* Use #* so "UnixFS$/" is not matched.  */
-      regs.r[0] = (int) "UnixFS$/#*";
+      regs[0] = (int) "UnixFS$/#*";
       /* Two less than buf size so can zero terminate below and add '.'.  */
-      regs.r[2] = sizeof (buf) - 2;
-      regs.r[4] = 3;
+      regs[2] = sizeof (buf) - 2;
+      regs[4] = 3;
 
       /* OS_ReadVarVal fails when no more values found, so exit loop. */
-      if (_kernel_swi (OS_ReadVarVal, &regs, &regs) != NULL)
+      if (__os_swi (OS_ReadVarVal, regs) != NULL)
 	break;
 
-      str = buf + regs.r[2];
+      str = buf + regs[2];
       *str = '\0';
 
       /* Save name and value.  */
-      str = strdup ((char *) regs.r[3] + sizeof ("UnixFS$"));
+      str = strdup ((char *) regs[3] + sizeof ("UnixFS$"));
       if (str == NULL)
 	break;
       __sdir[i].name = str;
