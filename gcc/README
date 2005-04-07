@@ -121,10 +121,6 @@ The cross-compiler contains the following tools:
 
   Language compilers for C, C++, Fortran 77 and Pascal.
 
-   armemu - a RISC OS emulator.  It consists of a ARM emulator and an
-	    implementation of several RISC OS SWIs in order to get a
-	    very small number of RISC OS applications running on Unix.
-
    drlink - Dave Daniels' RISC OS AOF linker.
   libfile - a RISC OS ALF builder.
      gcov - a test coverage program
