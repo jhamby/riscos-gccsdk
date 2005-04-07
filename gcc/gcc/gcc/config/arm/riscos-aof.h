@@ -509,8 +509,29 @@ do {							\
 	builtin_define ("__aof__");		\
     } while (0);
 
-/* This is how we tell the assembler that a symbol is weak.  */
+/* This is how we tell the assembler that a symbol is weak.  Though
+   we can specify a symbol as being weak using the method defined below,
+   it doesn't quite work.
+
+   The problem might be that the IMPORT, WEAK appears at the end of the
+   assembler file, rather than at the start.  So the assembler has already
+   encoded the symbol and therefore ignores the IMPORT attribute.
+
+   Something to investigate on a rainy day perhaps.  */
+#if 0
 #undef ASM_WEAKEN_LABEL
+#define ASM_WEAKEN_LABEL(FILE, NAME)    \
+  do                                    \
+    {                                   \
+      fputs ("\tIMPORT\t", (FILE));     \
+      assemble_name ((FILE), (NAME));   \
+      fputs (", WEAK\n", (FILE));       \
+      aof_delete_import ((NAME));	\
+    }                                   \
+  while (0)
+
+#define MAKE_DECL_ONE_ONLY(DECL) (DECL_WEAK (DECL) = 1)
+#endif
 
 #undef DOLLARS_IN_IDENTIFIERS
 #define DOLLARS_IN_IDENTIFIERS 0
