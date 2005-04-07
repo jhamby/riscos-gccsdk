@@ -210,7 +210,7 @@ libiberty-stg1:
 libiberty-stg2: build-cross
 	$(MAKE) -C libiberty "STAGE=stage2" "TRG=$(trg20)"
 
-gcc-stg1: gcc-libs-stg1
+gcc-stg1:
 	$(MAKE) -C gcc "STAGE=stage1" "TRG=$(trg20)"
 
 gcc-stg2: libiberty-stg2
