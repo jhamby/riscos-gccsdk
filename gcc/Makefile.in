@@ -165,12 +165,11 @@ build-cross:	c-libs libiberty-stg1 gcc-libs-stg2 \
 # These targets build the libraries and binaries suitable for execution
 # on RISC OS machines only.
 build-native:	libiberty-stg2 gcc-stg2 riscos-aof-stg2 \
-		riscos-libs riscos-progs riscos-dist
+		riscos-progs riscos-dist
 
 .PHONY: directories
 .PHONY: c-libs
 .PHONY: riscos-progs
-.PHONY: riscos-libs
 .PHONY: riscos-elf
 .PHONY: riscos-dist
 .PHONY: zlib
@@ -238,9 +237,6 @@ c-libs: gcc-stg1 riscos-aof-stg1 unixlib/Makefile unixlib/source/Makefile unixli
 	$(MAKE) -C unixlib "TRG=$(trg20)" $(cfl20)
 	$(MAKE) -C libscl "TRG=$(trg30)" "TRG_UL=$(trg20)" $(cfl30)
 
-riscos-libs:
-	$(MAKE) -C $@ "TRG=$(trg20)" $(cfl20)
-
 gcc-libs-stg2: gcc-stg1 riscos-aof-stg1
 	$(MAKE) -C gcc libgcc "TRG=$(trg20)" $(cfl20) "STAGE=stage2"
 	$(MAKE) -C gcc libgcc "TRG=$(trg30)" $(cfl30) "STAGE=stage2"
@@ -250,7 +246,7 @@ gcc-libs-stg2: gcc-stg1 riscos-aof-stg1
 	$(MAKE) -C gcc libstdc "TRG=$(trg20)" $(cfl20) "STAGE=stage2" "lib_incl_dir=$(unixlib_incl_dir)"
 	$(MAKE) -C gcc libstdc "TRG=$(trg30)" $(cfl30) "STAGE=stage2" "lib_incl_dir=$(libscl_incl_dir)"
 
-riscos-dist: riscos-libs riscos-progs gcc-stg2 riscos-aof-stg2
+riscos-dist: riscos-progs gcc-stg2 riscos-aof-stg2
 	$(MAKE) -C riscos-dist install
 
 riscos-pkg: riscos-dist
