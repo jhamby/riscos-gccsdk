@@ -245,14 +245,11 @@ riscos-libs:
 
 gcc-libs-stg1: libiberty-stg1
 	$(MAKE) -C gcc zlib "TRG=$(trg20)" "STAGE=stage1"
-	$(MAKE) -C gcc fastjar "TRG=$(trg20)" "STAGE=stage1"
 
 gcc-libs-stg2: gcc-stg1 riscos-aof-stg1
 	$(MAKE) -C gcc libgcc "TRG=$(trg20)" $(cfl20) "STAGE=stage2"
 	$(MAKE) -C gcc libgcc "TRG=$(trg30)" $(cfl30) "STAGE=stage2"
 	$(MAKE) -C gcc libffi "TRG=$(trg20)" $(cfl20) "STAGE=stage2"
-	#$(MAKE) -C gcc boehm-gc "TRG=$(trg20)" $(cfl20) "STAGE=stage2"
-	#$(MAKE) -C gcc libjava "TRG=$(trg20)" $(cfl20) "STAGE=stage2" "lib_incl_dir=$(libscl_incl_dir)"
 	$(MAKE) -C gcc libf2c "TRG=$(trg20)" $(cfl20) "STAGE=stage2"
 	$(MAKE) -C gcc libf2c "TRG=$(trg30)" $(cfl30) "STAGE=stage2"
 	$(MAKE) -C gcc libobjc "TRG=$(trg20)" $(cfl20) "STAGE=stage2"
@@ -261,7 +258,6 @@ gcc-libs-stg2: gcc-stg1 riscos-aof-stg1
 
 gcc-libs-stg2-extra: libiberty-stg2
 	$(MAKE) -C gcc zlib "TRG=$(trg20)" $(cfl20) "STAGE=stage2"
-	$(MAKE) -C gcc fastjar "TRG=$(trg20)" "STAGE=stage2"
 
 riscos-dist: riscos-libs riscos-progs gcc-stg2 riscos-aof-stg2
 	$(MAKE) -C riscos-dist install
