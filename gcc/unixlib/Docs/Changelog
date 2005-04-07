@@ -1,3 +1,10 @@
+Thu Apr  7 19:36:09 2005  Nick Burrett  <nick@sqrt.co.uk>
+
+	* sys/_os.s (__os_prhex): Build buffer directly.
+	(__os_setfiletype): New function.
+
+	* sys/os.h (__os_setfiletype): Add prototype.
+
 Thu Apr  7 19:33:46 2005  Nick Burrett  <nick@sqrt.co.uk>
 
 	* unix/unix.c (convert_command_line): Cope with arguments that

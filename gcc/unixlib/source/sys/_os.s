@@ -1,8 +1,8 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/_os.s,v $
-; $Date: 2003/06/19 23:58:25 $
-; $Revision: 1.8 $
+; $Date: 2004/10/17 16:24:44 $
+; $Revision: 1.9 $
 ; $State: Exp $
 ; $Author: joty $
 ;
@@ -160,15 +160,15 @@ os_423inkey_l2
 	MOVVC	a1, #0
 	MOV	pc, lr
 
-os_prhex_data
-	DCB	"    "
-
 	EXPORT	|__os_prhex|
 	NAME	__os_prhex
 |__os_prhex|
-	LDR	a3, os_prhex_data
-	MOV	a2, a3
-	STMFD	sp!, {a2, a3}	; fill buffer with 8 spaces
+	; Make a buffer containing 8 ASCII spaces
+	MOV	a3, #&20
+	ORR	a3, a3, a3, LSL #8
+	ORR	a3, a3, a3, LSL #16
+	STR	a3, [sp, #-4]!
+	STR	a3, [sp, #-4]!
 	ADD	a3, sp, #8
 os_prhex_l1
 	AND	a2, a1, #&f
@@ -300,6 +300,16 @@ os_prhex_l1
 	NAME	__os_fsctrl
 |__os_fsctrl|
 	SWI	XOS_FSControl
+	MOVVC	a1, #0
+	MOV	pc, lr
+
+	EXPORT	|__os_setfiletype|
+	; _kernel_oserror *__os_setfiletype (const char *fname, int filetype)
+|__os_setfiletype|
+	MOV	a3, a2
+	MOV	a2, a1
+	MOV	a1, #18
+	SWI	XOS_File
 	MOVVC	a1, #0
 	MOV	pc, lr
 
