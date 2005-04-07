@@ -1,6 +1,6 @@
 # Makefile for the GNU Compiler Collection for ARM/RISC OS
 # Copyright (c) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004 Nick Burrett
-# Written by Nick Burrett <nick@dsvr.net>
+# Written by Nick Burrett <nick@sqrt.co.uk>
 
 # Defs for the host compiler
 # HOST_CC is a version of CC where optimisations are not turned off
@@ -242,7 +242,7 @@ LIBCPP_OBJS = \
 	$(gccobjdir)/mkdeps.o \
 	$(gccobjdir)/prefix.o
 
-lang_opt_files = ada/lang.opt c.opt common.opt f77/lang.opt java/lang.opt
+lang_opt_files = c.opt common.opt f77/lang.opt 
 
 # GEN files are listed separately, so they can be built before doing parallel
 # makes for cc1 or cc1plus.  Otherwise sequent parallel make attempts to load
@@ -259,15 +259,12 @@ $(gccobjdir)/%.o: %.c
 
 
 all: c cp f77 objc docs  $(softlinks)
-# cp f77 gpc objc java docs
 
 .PHONY: c
 .PHONY: cp
-.PHONY: ada
 .PHONY: f77
 .PHONY: gpc
 .PHONY: objc
-.PHONY: java
 .PHONY: docs
 .PHONY: cc
 .PHONY: c++
@@ -276,7 +273,7 @@ all: c cp f77 objc docs  $(softlinks)
 c: $(bin_dir)/gcc$(gexesfx) $(gcc_bin_dir)/cpp$(gexesfx) \
    $(gcc_bin_dir)/cc1$(gexesfx) $(bin_dir)/gcov$(gexesfx)
 
-ada cp f77 gpc objc java: $(BACKEND)
+cp f77 objc: $(BACKEND)
 	$(MAKE) -C $@
 
 cc:
@@ -470,13 +467,13 @@ GTFILES = $(srcdir)/input.h $(srcdir)/coretypes.h $(srcdir)/cpplib.h \
   $(srcdir)/sdbout.c $(srcdir)/stmt.c $(srcdir)/stor-layout.c \
   $(srcdir)/stringpool.c $(srcdir)/tree.c $(srcdir)/varasm.c \
   $(out_file) \
-   $(srcdir)/ada/ada-tree.h $(srcdir)/ada/gigi.h $(srcdir)/ada/decl.c $(srcdir)/ada/trans.c $(srcdir)/ada/utils.c $(srcdir)/cp/mangle.c $(srcdir)/cp/name-lookup.h $(srcdir)/cp/name-lookup.c $(srcdir)/cp/cp-tree.h $(srcdir)/cp/decl.h $(srcdir)/cp/lex.h $(srcdir)/cp/call.c $(srcdir)/cp/decl.c $(srcdir)/cp/decl2.c $(srcdir)/cp/pt.c $(srcdir)/cp/repo.c $(srcdir)/cp/semantics.c $(srcdir)/cp/tree.c $(srcdir)/cp/parser.c $(srcdir)/cp/method.c $(srcdir)/c-common.c $(srcdir)/c-common.h $(srcdir)/c-pragma.c $(srcdir)/f77/com.c $(srcdir)/f77/com.h $(srcdir)/f77/ste.c $(srcdir)/f77/where.h $(srcdir)/f77/where.c $(srcdir)/f77/lex.c $(srcdir)/java/java-tree.h $(srcdir)/java/jcf.h $(srcdir)/java/lex.h $(srcdir)/java/parse.h $(srcdir)/java/builtins.c $(srcdir)/java/class.c $(srcdir)/java/constants.c $(srcdir)/java/decl.c $(srcdir)/java/expr.c $(srcdir)/java/jcf-parse.c $(srcdir)/java/jcf-write.c $(srcdir)/java/lang.c $(srcdir)/java/mangle.c $(srcdir)/java/parse.y $(srcdir)/java/resource.c $(srcdir)/objc/objc-act.h $(srcdir)/c-parse.in $(srcdir)/c-tree.h $(srcdir)/c-decl.c $(srcdir)/c-objc-common.c $(srcdir)/c-common.c $(srcdir)/c-common.h $(srcdir)/c-pragma.c $(srcdir)/objc/objc-act.c $(srcdir)/c-lang.c $(srcdir)/c-parse.in $(srcdir)/c-tree.h $(srcdir)/c-decl.c $(srcdir)/c-common.c $(srcdir)/c-common.h $(srcdir)/c-pragma.c $(srcdir)/c-objc-common.c
+   $(srcdir)/cp/mangle.c $(srcdir)/cp/name-lookup.h $(srcdir)/cp/name-lookup.c $(srcdir)/cp/cp-tree.h $(srcdir)/cp/decl.h $(srcdir)/cp/lex.h $(srcdir)/cp/call.c $(srcdir)/cp/decl.c $(srcdir)/cp/decl2.c $(srcdir)/cp/pt.c $(srcdir)/cp/repo.c $(srcdir)/cp/semantics.c $(srcdir)/cp/tree.c $(srcdir)/cp/parser.c $(srcdir)/cp/method.c $(srcdir)/c-common.c $(srcdir)/c-common.h $(srcdir)/c-pragma.c $(srcdir)/f77/com.c $(srcdir)/f77/com.h $(srcdir)/f77/ste.c $(srcdir)/f77/where.h $(srcdir)/f77/where.c $(srcdir)/f77/lex.c $(srcdir)/objc/objc-act.h $(srcdir)/c-parse.in $(srcdir)/c-tree.h $(srcdir)/c-decl.c $(srcdir)/c-objc-common.c $(srcdir)/c-common.c $(srcdir)/c-common.h $(srcdir)/c-pragma.c $(srcdir)/objc/objc-act.c $(srcdir)/c-lang.c $(srcdir)/c-parse.in $(srcdir)/c-tree.h $(srcdir)/c-decl.c $(srcdir)/c-common.c $(srcdir)/c-common.h $(srcdir)/c-pragma.c $(srcdir)/c-objc-common.c
 
 
-GTFILES_FILES_LANGS =  ada  ada  ada  ada  ada  cp  cp  cp  cp  cp  cp  cp  cp  cp  cp  cp  cp  cp  cp  cp  cp  cp  cp  f77  f77  f77  f77  f77  f77  java  java  java  java  java  java  java  java  java  java  java  java  java  java  java  objc  objc  objc  objc  objc  objc  objc  objc  objc  c  c  c  c  c  c  c  c
+GTFILES_FILES_LANGS =  cp  cp  cp  cp  cp  cp  cp  cp  cp  cp  cp  cp  cp  cp  cp  cp  cp  cp  f77  f77  f77  f77  f77  f77  objc  objc  objc  objc  objc  objc  objc  objc  objc  c  c  c  c  c  c  c  c
 
-GTFILES_FILES_FILES =  $(srcdir)/ada/ada-tree.h  $(srcdir)/ada/gigi.h  $(srcdir)/ada/decl.c  $(srcdir)/ada/trans.c  $(srcdir)/ada/utils.c  $(srcdir)/cp/mangle.c  $(srcdir)/cp/name-lookup.h  $(srcdir)/cp/name-lookup.c  $(srcdir)/cp/cp-tree.h  $(srcdir)/cp/decl.h  $(srcdir)/cp/lex.h  $(srcdir)/cp/call.c  $(srcdir)/cp/decl.c  $(srcdir)/cp/decl2.c  $(srcdir)/cp/pt.c  $(srcdir)/cp/repo.c  $(srcdir)/cp/semantics.c  $(srcdir)/cp/tree.c  $(srcdir)/cp/parser.c  $(srcdir)/cp/method.c  $(srcdir)/c-common.c  $(srcdir)/c-common.h  $(srcdir)/c-pragma.c  $(srcdir)/f77/com.c  $(srcdir)/f77/com.h  $(srcdir)/f77/ste.c  $(srcdir)/f77/where.h  $(srcdir)/f77/where.c  $(srcdir)/f77/lex.c  $(srcdir)/java/java-tree.h  $(srcdir)/java/jcf.h  $(srcdir)/java/lex.h  $(srcdir)/java/parse.h  $(srcdir)/java/builtins.c  $(srcdir)/java/class.c  $(srcdir)/java/constants.c  $(srcdir)/java/decl.c  $(srcdir)/java/expr.c  $(srcdir)/java/jcf-parse.c  $(srcdir)/java/jcf-write.c  $(srcdir)/java/lang.c  $(srcdir)/java/mangle.c  $(srcdir)/java/parse.y  $(srcdir)/java/resource.c  $(srcdir)/objc/objc-act.h  $(srcdir)/c-parse.in  $(srcdir)/c-tree.h  $(srcdir)/c-decl.c  $(srcdir)/c-objc-common.c  $(srcdir)/c-common.c  $(srcdir)/c-common.h  $(srcdir)/c-pragma.c  $(srcdir)/objc/objc-act.c  $(srcdir)/c-lang.c  $(srcdir)/c-parse.in  $(srcdir)/c-tree.h  $(srcdir)/c-decl.c  $(srcdir)/c-common.c  $(srcdir)/c-common.h  $(srcdir)/c-pragma.c  $(srcdir)/c-objc-common.c
-GTFILES_LANG_DIR_NAMES =  ada cp f77 java objc
+GTFILES_FILES_FILES =  $(srcdir)/cp/mangle.c  $(srcdir)/cp/name-lookup.h  $(srcdir)/cp/name-lookup.c  $(srcdir)/cp/cp-tree.h  $(srcdir)/cp/decl.h  $(srcdir)/cp/lex.h  $(srcdir)/cp/call.c  $(srcdir)/cp/decl.c  $(srcdir)/cp/decl2.c  $(srcdir)/cp/pt.c  $(srcdir)/cp/repo.c  $(srcdir)/cp/semantics.c  $(srcdir)/cp/tree.c  $(srcdir)/cp/parser.c  $(srcdir)/cp/method.c  $(srcdir)/c-common.c  $(srcdir)/c-common.h  $(srcdir)/c-pragma.c  $(srcdir)/f77/com.c  $(srcdir)/f77/com.h  $(srcdir)/f77/ste.c  $(srcdir)/f77/where.h  $(srcdir)/f77/where.c  $(srcdir)/f77/lex.c  $(srcdir)/objc/objc-act.h  $(srcdir)/c-parse.in  $(srcdir)/c-tree.h  $(srcdir)/c-decl.c  $(srcdir)/c-objc-common.c  $(srcdir)/c-common.c  $(srcdir)/c-common.h  $(srcdir)/c-pragma.c  $(srcdir)/objc/objc-act.c  $(srcdir)/c-lang.c  $(srcdir)/c-parse.in  $(srcdir)/c-tree.h  $(srcdir)/c-decl.c  $(srcdir)/c-common.c  $(srcdir)/c-common.h  $(srcdir)/c-pragma.c  $(srcdir)/c-objc-common.c
+GTFILES_LANG_DIR_NAMES =  cp f77 objc
 GTFILES_SRCDIR = ../../gcc
 
 
@@ -500,13 +497,6 @@ gt-f-com.h gt-f-ste.h gtype-f.h : s-gtype; @true
 
 # Objc specific (should be moved to objc makefile)
 gtype-objc.h : s-gtype ; @true
-
-# Java specific
-gt-java-class.h gt-java-constants.h gt-java-decl.h : s-gtype ; @true
-gt-java-expr.h gt-java-jcf-parse.h gt-java-jcf-write.h : s-gtype ; @true
-gt-java-lang.h gt-java-mangle.h gt-java-parse.h : s-gtype ; @true
-gt-java-builtins.h gtype-java.h : s-gtype ; @true
-
 
 s-gtype: $(gccobjdir)/gengtype $(GTFILES)
 	$(gccobjdir)/gengtype
