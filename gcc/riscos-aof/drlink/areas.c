@@ -1341,9 +1341,14 @@ void relocate_areas(void) {
 ** 'flag_badreloc' is called to print an error message about a bad
 ** relocation
 */
-static void flag_badreloc(unsigned int *relplace, const char *type) {
-  error("Error: Relocated (%s) value is out of range at offset 0x%x in area '%s' in file '%s'",
-   type, relplace-areastart, current_area->arname, current_file->chfilename);
+static void flag_badreloc(unsigned int *relplace, const char *type, symtentry *sp) {
+  error("Erorr: Bad relocation in in file '%s'", current_file->chfilename);
+  if (sp)
+    error("Error: Relocated (%s) value is out of range at offset 0x%x in area '%s' for symbol '%s'",
+     type, relplace-areastart, current_area->arname, sp->symtname);
+  else
+    error("Error: Relocated (%s) value is out of range at offset 0x%x in area '%s'",
+     type, relplace-areastart, current_area->arname);
 }
 
 /*
@@ -1351,7 +1356,7 @@ static void flag_badreloc(unsigned int *relplace, const char *type) {
 ** single instructions or sequences of ADD and SUB can be dealt
 ** with by this code.
 */
-static void fixup_adr(unsigned int *relplace, int inscount, unsigned int relvalue) {
+static void fixup_adr(unsigned int *relplace, int inscount, unsigned int relvalue, symtentry *sp) {
   unsigned int regrnrd, inst;
   int addr, shift;
   unsigned int *relstart, *relbase;
@@ -1389,14 +1394,15 @@ static void fixup_adr(unsigned int *relplace, int inscount, unsigned int relvalu
     addr = addr & ~BYTE_MASK;
     relstart++;
   } while (relstart!=relplace);
-  if (addr!=0) flag_badreloc(relbase, "ADR");
+  if (addr!=0) flag_badreloc(relbase, "ADR", sp);
 }
 
 /*
 ** 'fixup_additive' handles additive relocations, including
 ** instruction sequences
 */
-static void fixup_additive(unsigned int *relplace, unsigned int reltype, unsigned int relvalue) {
+static void fixup_additive(unsigned int *relplace, unsigned int reltype, unsigned int relvalue,
+                           symtentry *sp) {
   unsigned int data, inst;
   int addr;
   switch (reltype & FTMASK) {
@@ -1409,7 +1415,7 @@ static void fixup_additive(unsigned int *relplace, unsigned int reltype, unsigne
     if ((reltype & FTMASK)==0) {	/* Byte relocation */
       data = *(COERCE(relplace, char*))+relvalue;
       if (data>BYTEHIGH) {
-        flag_badreloc(relplace, "Byte");
+        flag_badreloc(relplace, "Byte", sp);
       }
       else {
         *(COERCE(relplace, char*)) = data;
@@ -1418,7 +1424,7 @@ static void fixup_additive(unsigned int *relplace, unsigned int reltype, unsigne
     else {	/* Half word  relocation */
       data = *(COERCE(relplace, char*))+(*(COERCE(relplace, char*)+1)<<8)+relvalue;
       if (data>HALFHIGH) {
-        flag_badreloc(relplace, "Halfword");
+        flag_badreloc(relplace, "Halfword", sp);
       }
       else {
         *(COERCE(relplace, char*)) = data&0xFF;
@@ -1437,14 +1443,14 @@ static void fixup_additive(unsigned int *relplace, unsigned int reltype, unsigne
       if ((inst & IN_POSOFF)==0) addr = -addr;
       addr = addr+relvalue;
       if (addr<=-MAX_OFFSET || addr>=MAX_OFFSET) {
-        flag_badreloc(relplace, "LDR/STR");
+        flag_badreloc(relplace, "LDR/STR", sp);
       }
       else {
         *relplace = (inst & LDST_MASK) | (addr<0 ? -addr : addr | IN_POSOFF);
       }
     }
     else if ((inst & INSTMASK)==IN_DATAPRO) {		/* Data processing instruction */
-      fixup_adr(relplace, (reltype & REL_IIMASK)>>REL_IISHIFT, relvalue);
+      fixup_adr(relplace, (reltype & REL_IIMASK)>>REL_IISHIFT, relvalue, sp);
     }
     else {	/* Branch instruction. Will this happen? */
       *relplace = (inst & BR_MASK) | ((((extend24(inst)<<2)+relvalue)>>2) & BROFF_MASK);
@@ -1458,7 +1464,7 @@ static void fixup_additive(unsigned int *relplace, unsigned int reltype, unsigne
 ** cope with relocations in different instruction types and not just branch
 ** instructions.
 */
-static bool fixup_pcrelative(unsigned int *relplace, reloctype reltype, int relvalue) {
+static bool fixup_pcrelative(unsigned int *relplace, reloctype reltype, int relvalue, symtentry *sp) {
   int addr;
   unsigned int inst;
   inst = *relplace;
@@ -1477,14 +1483,14 @@ static bool fixup_pcrelative(unsigned int *relplace, reloctype reltype, int relv
     if ((inst & IN_POSOFF)==0) addr = -addr;
     addr = addr+relvalue-current_area->arplace;
     if (addr<=-MAX_OFFSET || addr>=MAX_OFFSET) {
-      flag_badreloc(relplace, "PC relative");
+      flag_badreloc(relplace, "PC relative", sp);
     }
     else {
       *relplace = (inst & LDST_MASK) | (addr<0 ? -addr : addr | IN_POSOFF);
     }
   }
   else {		/* Assume data processing instruction (ADD or SUB) */
-    fixup_adr(relplace, 0, relvalue-current_area->arplace);
+    fixup_adr(relplace, 0, relvalue-current_area->arplace, sp);
   }
   return TRUE;
 }
@@ -1494,7 +1500,7 @@ static bool fixup_pcrelative(unsigned int *relplace, reloctype reltype, int relv
 */
 static void fixup_type1(unsigned int reltypesym, unsigned int *relplace) {
   unsigned int reltype, relvalue, symtindex;
-  symtentry *sp;
+  symtentry *sp = NULL;
   reltype = get_type1_type(reltypesym);
   if ((reltype & (REL_SYM|REL_PC))!=0) {  /* Symbol relocation */
     if ((symtindex = (get_type1_index(reltypesym)))>symbolcount) {
@@ -1519,10 +1525,10 @@ static void fixup_type1(unsigned int reltypesym, unsigned int *relplace) {
     relvalue = current_area->arplace;
   }
   if ((reltype & REL_PC)!=0) {	/* PC-relative relocation */
-    fixup_pcrelative(relplace, TYPE_1, relvalue);
+    fixup_pcrelative(relplace, TYPE_1, relvalue, sp);
   }
   else {  /* Additive relocation */
-    fixup_additive(relplace, reltype, relvalue);
+    fixup_additive(relplace, reltype, relvalue, sp);
   }
 }
 
@@ -1601,14 +1607,14 @@ static void fixup_type2(unsigned int reltypesym, unsigned int *relplace) {
       }
       if ((sp->symtattr & SYM_LEAF) == 0)
         relvalue+=4; /* Use inter-link entry point */
-      fixup_pcrelative(relplace, TYPE_2, relvalue);
+      fixup_pcrelative(relplace, TYPE_2, relvalue, sp);
     }
     else {
-      fixup_pcrelative(relplace, TYPE_2, relvalue);
+      fixup_pcrelative(relplace, TYPE_2, relvalue, sp);
     }
   }
   else {  /* Additive relocation */
-    fixup_additive(relplace, reltype, relvalue);
+    fixup_additive(relplace, reltype, relvalue, sp);
   }
 }
 
@@ -1851,14 +1857,14 @@ static void alter_area_offset(relocation *rp) {
       if ((inst & IN_POSOFF)==0) addr = -addr;
       addr = addr-current_area->arplace;	/* Subtract offset within 'super area' of area from inst offset */
       if (addr<=-MAX_OFFSET || addr>=MAX_OFFSET) {
-        flag_badreloc(relplace, "Area Offset");
+        flag_badreloc(relplace, "Area Offset", NULL);
       }
       else {
         *relplace = (inst & LDST_MASK) | (addr<0 ? -addr : addr | IN_POSOFF);
       }
     }
     else if ((inst & INSTMASK)==IN_DATAPRO) {		/* Data processing instruction */
-      fixup_adr(relplace, (reltype & REL_IIMASK)>>REL_IISHIFT, -current_area->arplace);
+      fixup_adr(relplace, (reltype & REL_IIMASK)>>REL_IISHIFT, -current_area->arplace, NULL);
     }
     else {
       *relplace = (inst & BR_MASK) | ((((extend24(inst)<<2)-current_area->arplace)>>2) & BROFF_MASK);
@@ -1922,7 +1928,7 @@ static bool alter_type1_offset(relocation *rp) {
 static bool alter_type2_offset(relocation *rp) {
   unsigned int inst, offset, typesym;
   unsigned int *relplace;
-  symtentry *sp;
+  symtentry *sp = NULL;
   int addr, relvalue;
   offset = rp->reloffset;
   if (offset>current_area->arobjsize) {
@@ -1953,14 +1959,14 @@ static bool alter_type2_offset(relocation *rp) {
     if ((inst & IN_POSOFF)==0) addr = -addr;
     addr = addr+relvalue-current_area->arplace;
     if (addr<=-MAX_OFFSET || addr>=MAX_OFFSET) {
-      flag_badreloc(relplace, "Type 2 PC offset");
+      flag_badreloc(relplace, "Type 2 PC offset", sp);
     }
     else {
       *relplace = (inst & LDST_MASK) | (addr<0 ? -addr : addr | IN_POSOFF);
     }
   }
   else if ((inst & INSTMASK)==IN_DATAPRO) {		/* Data processing instruction */
-    fixup_adr(relplace, (typesym & REL_IIMASK)>>REL_IISHIFT, relvalue-current_area->arplace);
+    fixup_adr(relplace, (typesym & REL_IIMASK)>>REL_IISHIFT, relvalue-current_area->arplace, sp);
   }
   else {
     *relplace = (inst & BR_MASK) | ((((extend24(inst)<<2)+relvalue-current_area->arplace)>>2) & BROFF_MASK);
