@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/features.c,v $
- * $Date: 2005/03/04 20:59:06 $
- * $Revision: 1.11 $
+ * $Date: 2005/03/15 22:09:38 $
+ * $Revision: 1.12 $
  * $State: Exp $
  * $Author: alex $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: features.c,v 1.11 2005/03/04 20:59:06 alex Exp $";
+static const char rcs_id[] = "$Id: features.c,v 1.12 2005/03/15 22:09:38 alex Exp $";
 #endif
 
 /* #define DEBUG 1 */
@@ -30,13 +30,23 @@ char *get_program_name (const char *cli, char *fname_buf, size_t fname_buf_len)
     return NULL;
 
   /* Did the user specify the program name ?  */
-  if (___program_name != NULL)
+#ifdef __ELF__
+  /* With ELF/GCC we can use the weak symbol directly.  */
+  if (__program_name)
+    {
+      strncpy (fname_buf, __program_name, fname_buf_len);
+      fname_buf[fname_buf_len - 1] = '\0';
+      return fname_buf;
+    }
+#else
+  /* With AOF, we have to access it indirectly.  */
+  if (___program_name)
     {
       strncpy (fname_buf, *___program_name, fname_buf_len);
       fname_buf[fname_buf_len - 1] = '\0';
       return fname_buf;
     }
-
+#endif
   /* Skip any initial whitespace.  */
   while (*cli == ' ')
     cli++;

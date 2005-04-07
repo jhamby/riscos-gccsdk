@@ -1,3 +1,31 @@
+Thu Apr  7 19:44:29 2005  Nick Burrett  <nick@sqrt.co.uk>
+
+	* features.h (__STDC_ISO_10646__): Don't use C99 comments.
+	(___program_name): Don't define if compiling for ELF.
+	(___dynamic_da_name): Likewise.
+	(__program_name): If compiling for ELF, then add WEAK attribute.
+	(__dynamic_no_da): Likewise.
+	(__dynamic_da_name): Likewise.
+	(__dynamic_da_max_size): Likewise.
+
+	* unixlib/buildoptions.h (__UNIXLIB_ELF): Define, temporarily.
+
+	* sys/_syslib.s (no_dynamic_area): Don't reserve 128 bytes of
+	stack for Objective-C.
+	(___program_name): If compiling for ELF, then don't export.
+	(___dynamic_da_name): Likewise.
+	(___dynamic_da_max_size): Likewise.
+	(___dynamic_no_da): Likewise.
+	(__check_chunk_l2): Use MOV rather than old 'return' MACRO.
+	(__unixlib_fatal_got_msg): Use SWI calls direct.
+	(__robase): Provide ELF alternative.
+	(__unixlib_rwlimit): Likewise.
+	(__rwbase): Likewise.
+
+	* sys/mman.c (__munmap_all): Provide ELF alternative for accessing
+	__dynamic_da_name.
+	* unix/features.c (get_program_name): Similarily for __program_name.
+
 Thu Apr  7 19:37:19 2005  Nick Burrett  <nick@sqrt.co.uk>
 
 	* common/riscosify.c (__sdirinit): Use __os_swi rather than

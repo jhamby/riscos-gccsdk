@@ -1,8 +1,8 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/features.h,v $
- * $Date: 2005/01/23 19:39:58 $
- * $Revision: 1.3 $
+ * $Date: 2005/01/23 20:31:55 $
+ * $Revision: 1.4 $
  * $State: Exp $
  * $Author: joty $
  *
@@ -301,9 +301,10 @@
 #define __STDC_IEC_559__                1
 #define __STDC_IEC_559_COMPLEX__        1
 
+#if 0
 /* wchar_t uses ISO 10646-1 (2nd ed., published 2000-09-15) / Unicode 3.0.  */
 //#define __STDC_ISO_10646__              200009L
-
+#endif
 
 /* Major and minor version number of the UnixLib C library package.  Use
    these macros to test for features in specific releases.  */
@@ -391,33 +392,57 @@ extern int __get_feature_imagefs_is_file (void);
 
 /* Sets the __feature_imagefs_is_file value when it's defined.
    Otherwise __feature_imagefs_is_file_internal gets written.  */
-extern void __set_feature_imagefs_is_file (int __feature_imagefs_is_file_value);
+extern void __set_feature_imagefs_is_file (int __value);
 #endif
 
+#ifndef __ELF__
+
 /* NULL if user didn't specify __program_name; non-NULL otherwise and then
-   its value equals __program_name.  */
+   its value equals __program_name.
+
+   These symbols are only required for compatibility with Norcroft CC
+   and AOF/GCC.  */
 extern const char * const * const ___program_name;
 extern const char * const * const ___dynamic_da_name;
+#endif
 
 #endif  /* __UNIXLIB_INTERNALS */
 
+/* Note that AOF/GCC and Norcroft CC will ignore the WEAK attribute
+   here.  ELF/GCC will correctly handle it and do the right thing.  */
+#ifdef __ELF__
+#define __attribute_weak__ __attribute__ ((__weak__))
+#else
+#define __attribute_weak__ /**/
+#endif
+
 /* When defined, specifies the <program name> part of the UnixLib OS
-   variables.  Otherwise, the leaf filename part of argv[0] is used.  */
-extern const char * const __program_name; /* Note: this is a weak symbol.  */
+   variables.  Otherwise, the leaf filename part of argv[0] is used.
+
+   Note: this is a weak symbol.  */
+extern const char * const __program_name __attribute_weak__;
 
 /* When defined, the memory pool will be created in the WimpSlot area
    instead of a dynamic area (on RISC OS versions supporting dynamic
-   areas). Its value is unimportant.  */
-extern int __dynamic_no_da; /* Note: this is a weak symbol.  */
+   areas). Its value is unimportant.
+
+   Note: this is a weak symbol.  */
+extern int __dynamic_no_da __attribute_weak__;
 
 /* When a dynamic area is created as memory pool, __dynamic_da_name can
    be used to specify its name.  When this variable is not defined, the
-   dynamic area name will be <program name> + "$Heap".  */
-extern const char * const __dynamic_da_name; /* Note: this is a weak symbol.  */
+   dynamic area name will be <program name> + "$Heap".
+
+   Note: this is a weak symbol.  */
+extern const char * const __dynamic_da_name __attribute_weak__;
 
 /* When defined, indicates the maximum size in bytes of the dynamic area
-   used for the heap. If undefined, UnixLib defaults to 32MB */
-extern int __dynamic_da_max_size; /* Note: this is a weak symbol */
+   used for the heap. If undefined, UnixLib defaults to 32MB.
+
+   Note: this is a weak symbol.  */
+extern int __dynamic_da_max_size __attribute_weak__;
+
+#undef __attribute_weak__
 
 #ifndef __SYS_CDEFS_H
 # include <sys/cdefs.h>

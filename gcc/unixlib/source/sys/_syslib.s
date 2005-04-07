@@ -1,10 +1,10 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/_syslib.s,v $
-; $Date: 2005/03/04 20:59:06 $
-; $Revision: 1.39 $
+; $Date: 2005/03/21 12:14:56 $
+; $Revision: 1.40 $
 ; $State: Exp $
-; $Author: alex $
+; $Author: peter $
 ;
 ;----------------------------------------------------------------------------
 
@@ -125,8 +125,9 @@ SUL_MIN_VERSION	EQU	105
 	MOV	a2, #0
 	MOV	a3, #0
 	SWI	XOS_ChangeEnvironment
-	STR	a2, [ip, #72]	; Default value of __unixlib_real_himem is
-				; the size of application space
+	; Default value of __unixlib_real_himem is
+	; the size of application space
+	STR	a2, [ip, #72]
 
 	; For a description of the memory layout of a UnixLib application
 	; see sys/brk.c.
@@ -142,10 +143,9 @@ SUL_MIN_VERSION	EQU	105
 	; The stack is allocated in chunks in the wimpslot, with the first
 	; 4KB chunk immediately below __image_rw_himem.  We cannot place it
 	; in a dynamic area because GCC might generate trampolines.
-	; Trampolines (for the un-initiated) are little code fragments that
-	; execute in stack space.
 
 	LDR	sp, [ip, #4]	; __image_rw_himem
+
 	; 8 bytes are needed above the initial chunk
 	; for the stackalloc heap
 	; Reserve the top 4K for the signal handler stack
@@ -203,7 +203,7 @@ SUL_MIN_VERSION	EQU	105
 	BVS	|__exit_with_error_num|
 
 	; Use of DAs explicitly overridden if __dynamic_no_da is declared
-	LDR	a1, =|__dynamic_no_da|
+	LDR	a1, |___dynamic_no_da|
 	TEQ	a1, #0
 	BNE	no_dynamic_area
 
@@ -282,7 +282,7 @@ t07
 	; Default max size for DA is 32MB
 	MOV	v2, #32*1024*1024
 	; If __dynamic_da_max_size is defined, use its value as the max size
-	LDR	v1, =|__dynamic_da_max_size|
+	LDR	v1, |___dynamic_da_max_size|
 	TEQ	v1, #0
 	LDRNE	v2, [v1]
 
@@ -331,11 +331,6 @@ t08
 
 no_dynamic_area
 	MOV	fp, #0
-
-	; This line is needed for the GNU Objective-C runtime system.
-	; We need a safe 128 bytes of stack space to prevent a program
-	; crashing when the library does a direct copy off the stack.
-	SUB	sp, sp, #128
 
 	; Find out whether we are executing within a TaskWindow or not.
 	MOV	a1, #0
@@ -389,13 +384,18 @@ no_dynamic_area
 	; C programs always terminate by calling exit.
 	B	exit
 
+	; Weak symbols.  We need only export these symbols for Norcroft
+	; compatibility.  For ELF, we don't need to export at all.
+	[ __UNIXLIB_ELF = 0
 	EXPORT	|___program_name|
-|___program_name|
-	DCD	|__program_name|
-
 	EXPORT	|___dynamic_da_name|
-|___dynamic_da_name|
-	DCD	|__dynamic_da_name|
+	EXPORT	|___dynamic_da_max_size|
+	EXPORT	|___dynamic_no_da|
+	]
+|___program_name|		DCD	|__program_name|
+|___dynamic_da_name|		DCD	|__dynamic_da_name|
+|___dynamic_da_max_size|	DCD	|__dynamic_da_max_size|
+|___dynamic_no_da|		DCD	|__dynamic_no_da|
 
 	; Can only be used to report fatal errors under certain conditions.
 	; Be sure that at this point the UnixLib environment handlers
@@ -553,7 +553,6 @@ handlers
 	DCD	0		; Application space
 	DCD	0		; Currently active object
 	DCD	0		; UpCall
-
 
 	; Same as the SCL's magic number, for compatibility in libgcc
 	EXPORT	|__stackchunk_magic_number|
@@ -817,7 +816,7 @@ __check_chunk_l1
 	CMP	v1, a3
 	BCS	stack_corrupt
 __check_chunk_l2
-	return	AL, pc, lr
+	MOV	pc, lr
 	] ; __UNIXLIB_EXTREMELY_PARANOID > 0
 
 
@@ -939,10 +938,10 @@ __unixlib_fatal_cont1
 
 	; a1 => NUL terminated message to print
 __unixlib_fatal_got_msg
-	BL	__os_nl
+	SWI	XOS_NewLine
 	MOV	a1, v1
-	BL	__os_print
-	BL	__os_nl
+	SWI	XOS_Write0
+	SWI	XOS_NewLine
 	MOV	a1, #1
 	BL	_exit
 	; Should never return
@@ -1024,15 +1023,31 @@ struct_base
 |__time|	        DCD	0, 0	; low word, high byte	; offset = 8
 |__unixlib_stack|	DCD	0				; offset = 16
 
-|__robase|	        DCD	|Image$$RO$$Base|		; offset = 20
-|__unixlib_rwlimit|	DCD	|Image$$RW$$Limit|		; offset = 24
+|__robase|
+	[ __UNIXLIB_ELF > 0
+	        DCD	|__executable_start|		; offset = 20
+	|
+	        DCD	|Image$$RO$$Base|		; offset = 20
+	]
+|__unixlib_rwlimit|
+	[ __UNIXLIB_ELF > 0
+		DCD	|__end__|			; offset = 24
+	|
+		DCD	|Image$$RW$$Limit|		; offset = 24
+	]
+
 |__image_ro_base|	DCD	0				; offset = 28
 
 |__image_rw_lomem|	DCD	0				; offset = 32
 |__unixlib_break|	DCD	0				; offset = 36
 |__unixlib_stack_limit|	DCD	0				; offset = 40
 
-|__rwbase|	        DCD	|Image$$RW$$Base|		; offset = 44
+|__rwbase|
+	[ __UNIXLIB_ELF > 0
+		DCD	|__data_start|			; offset = 44
+	|
+	        DCD	|Image$$RW$$Base|		; offset = 44
+	]
 |__unixlib_real_break|  DCD	0				; offset = 48
 |__fpflag|	        DCD	0				; offset = 52
 
@@ -1047,5 +1062,5 @@ struct_base
 
 |__panic_mode|		DCD	0				; offset = 80
 
-|__proc|		DCD	0
+|__proc|		DCD	0				; offset = 84
 	END

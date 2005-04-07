@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/mman.c,v $
- * $Date: 2005/01/23 19:39:57 $
- * $Revision: 1.6 $
+ * $Date: 2005/01/23 20:31:55 $
+ * $Revision: 1.7 $
  * $State: Exp $
  * $Author: joty $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: mman.c,v 1.6 2005/01/23 19:39:57 joty Exp $";
+static const char rcs_id[] = "$Id: mman.c,v 1.7 2005/01/23 20:31:55 joty Exp $";
 #endif
 
 /* Definitions for BSD-style memory management.  Generic/4.4 BSD version.  */
@@ -31,6 +31,7 @@ static const char rcs_id[] = "$Id: mman.c,v 1.6 2005/01/23 19:39:57 joty Exp $";
 #include <string.h>
 #include <errno.h>
 #include <pthread.h>
+
 
 /* could store the number and the next pointer at the beginning or end of the
    mmap'ed area. The end is better for alignment purposes - so also need length
@@ -59,7 +60,6 @@ static size_t page_size = 0;
 #define page_align(len) (((len) + page_size - 1) & ~(page_size - 1));
 
 extern void __mmap_page_copy (caddr_t dst, caddr_t src, int len);
-
 
 /* Free all mmapped memory. This is called from __dynamic_area_exit.  */
 void
@@ -165,12 +165,20 @@ mmap (caddr_t addr, size_t len, int prot, int flags, int fd, off_t offset)
   {
     char namebuf[128];
 
-    if (___dynamic_da_name != NULL)
-      regs[8] = (int)*___dynamic_da_name;
+#ifdef __ELF__
+    /* With ELF/GCC, we can use the weak symbol directly.  */
+    if (__dynamic_da_name)
+      regs[8] = (int) __dynamic_da_name;
+#else
+    /* With AOF, we have to indirectly access the weak symbol.  */
+    if (___dynamic_da_name)
+      regs[8] = (int) *___dynamic_da_name;
+#endif
     else
       {
-        regs[8] = (int)get_program_name(__u->argv[0], namebuf, sizeof(namebuf) - sizeof(" MMap"));
-        strcat(namebuf, " MMap");
+        regs[8] = (int)get_program_name (__u->argv[0], namebuf,
+					 sizeof(namebuf) - sizeof(" MMap"));
+        strcat (namebuf, " MMap");
       }
 
     if (__os_swi (OS_DynamicArea, regs))

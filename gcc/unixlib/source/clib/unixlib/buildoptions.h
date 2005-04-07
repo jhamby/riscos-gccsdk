@@ -24,4 +24,11 @@
   COMMENT /* the same. */
 # define __UNIXLIB_NORCROFT_BUILD	0	/* Set to 1 if we want to use the Norcroft ABI */
 
+  COMMENT /* Here mainly as a placeholder to reduce the porting requirements */
+  COMMENT /* between AOF and ELF variants of the library.  Throughout */
+  COMMENT /* the C sources, we stick to __ELF__, but we can't explicitly */
+  COMMENT /* define that here, because that would class with GCC's  */
+  COMMENT /* definition.  */
+# define __UNIXLIB_ELF	0	/* Set to 1 if we are building for ELF.  */
+
   END
