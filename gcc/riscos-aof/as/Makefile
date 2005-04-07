@@ -1,5 +1,4 @@
 # Makefile for the ARM Object Format assembler - AS
-# Written by Nick Burrett <nick@dsvr.net>
 
 ifeq (${STAGE},stage1)
 CFLAGS += -DCROSS_COMPILE

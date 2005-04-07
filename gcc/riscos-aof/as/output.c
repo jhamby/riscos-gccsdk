@@ -129,6 +129,7 @@ outputFinish (void)
   if (objfile != NULL && objfile != stdout)
     {
       fclose (objfile);
+      objfile = NULL;
 #ifdef __TARGET_SCL__
       /* Set filetype to text */
       {
