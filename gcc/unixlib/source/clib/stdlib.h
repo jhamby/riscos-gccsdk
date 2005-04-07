@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/stdlib.h,v $
- * $Date: 2004/10/12 08:32:38 $
- * $Revision: 1.15 $
+ * $Date: 2005/03/15 22:09:25 $
+ * $Revision: 1.16 $
  * $State: Exp $
- * $Author: peter $
+ * $Author: alex $
  *
  ***************************************************************************/
 
@@ -238,17 +238,17 @@ __END_NAMESPACE_C99
 
 __BEGIN_NAMESPACE_STD
 extern __inline double
-atof (__const char *__nptr) __THROW
+atof (__const char *__nptr)
 {
   return strtod (__nptr, (char **) NULL);
 }
 extern __inline int
-atoi (__const char *__nptr) __THROW
+atoi (__const char *__nptr)
 {
   return (int) strtol (__nptr, (char **) NULL, 10);
 }
 extern __inline long int
-atol (__const char *__nptr) __THROW
+atol (__const char *__nptr)
 {
   return strtol (__nptr, (char **) NULL, 10);
 }
@@ -257,7 +257,7 @@ __END_NAMESPACE_STD
 # if defined __USE_MISC || defined __USE_ISOC99
 __BEGIN_NAMESPACE_C99
 __extension__ extern __inline long long int
-atoll (__const char *__nptr) __THROW
+atoll (__const char *__nptr)
 {
   return strtoll (__nptr, (char **) NULL, 10);
 }

@@ -1,10 +1,10 @@
 /****************************************************************************
  *
- * $Source: $
- * $Date: $
- * $Revision: $
- * $State: $
- * $Author: $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/math/lrintf.c,v $
+ * $Date: 2003/05/18 17:05:17 $
+ * $Revision: 1.1 $
+ * $State: Exp $
+ * $Author: alex $
  *
  ***************************************************************************/
 
@@ -94,5 +94,5 @@ lrintf (float x)
 }
 
 #ifdef weak_alias
-weak_alias (__lrintf, lrintf)
+weak_alias (lrintf, __lrintf)
 #endif

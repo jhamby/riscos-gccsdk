@@ -1,10 +1,10 @@
 /****************************************************************************
  *
- * $Source: $
- * $Date: $
- * $Revision: $
- * $State: $
- * $Author: $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/resolv/inet_addr.c,v $
+ * $Date: 2002/12/22 18:22:29 $
+ * $Revision: 1.1 $
+ * $State: Exp $
+ * $Author: admin $
  *
  ***************************************************************************/
 
@@ -241,5 +241,5 @@ ret_0:
 }
 
 #ifdef weak_alias
-weak_alias (__inet_aton, inet_aton)
+weak_alias (inet_aton, __inet_aton)
 #endif

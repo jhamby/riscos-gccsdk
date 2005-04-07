@@ -1,8 +1,8 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/sys/cdefs.h,v $
- * $Date: 2004/03/17 20:00:50 $
- * $Revision: 1.5 $
+ * $Date: 2004/10/17 16:24:43 $
+ * $Revision: 1.6 $
  * $State: Exp $
  * $Author: joty $
  *
@@ -59,30 +59,35 @@
 
 /* GCC can always grok prototypes.  For C++ programs we add throw()
    to help it optimize the function calls.  But this works only with
-   gcc 2.8.x and egcs.  */
-# if defined __cplusplus && __GNUC_PREREQ (2,8)
-#  define __THROW	throw ()
+   gcc 2.8.x and egcs.  For gcc 3.2 and up we even mark C functions
+   as non-throwing using a function attribute since programs can use
+   the -fexceptions options for C code as well.  */
+# if !defined __cplusplus && __GNUC_PREREQ (3, 3)
+#  define __THROW       __attribute__ ((__nothrow__))
+#  define __NTH(fct)    __attribute__ ((__nothrow__)) fct
 # else
-#  define __THROW
+#  if defined __cplusplus && __GNUC_PREREQ (2,8)
+#   define __THROW      throw ()
+#   define __NTH(fct)   fct throw ()
+#  else
+#   define __THROW
+#   define __NTH(fct)   fct
+#  endif
 # endif
-# define __P(args)	args __THROW
-/* This macro will be used for functions which might take C++ callback
-   functions.  */
-# define __PMT(args)	args
 
-#else	/* Not GCC.  */
+#else   /* Not GCC.  */
 
-# define __inline		/* No inline functions.  */
+# define __inline               /* No inline functions.  */
 
 # define __THROW
-# define __P(args)	args
-# define __PMT(args)	args
+# define __const        const
+# define __signed       signed
+# define __volatile     volatile
 
-# define __const	const
-# define __signed	signed
-# define __volatile	volatile
+#endif  /* GCC.  */
 
-#endif	/* GCC.  */
+# define __P(args)      args
+# define __PMT(args)    args
 
 /* For these things, GCC behaves the ANSI way normally,
    and the non-ANSI way under -traditional.  */
@@ -248,6 +253,14 @@
 # define __attribute_format_strfmon__(a,b) /* Ignore */
 #endif
 
+/* The nonull function attribute allows to mark pointer parameters which
+   must not be NULL.  */
+#if __GNUC_PREREQ (3,3)
+# define __nonnull(params) __attribute__ ((__nonnull__ params))
+#else
+# define __nonnull(params)
+#endif
+
 /* It is possible to compile containing GCC extensions even if GCC is
    run in pedantic mode if the uses are carefully marked using the
    `__extension__' keyword.  But this is not generally available before
@@ -284,6 +297,28 @@
    a function definition to make that definition weak.  */
 # define weak_function __attribute__ ((weak))
 # define weak_const_function __attribute__ ((weak, __const__))
+
+#define strong_alias(name, aliasname) _strong_alias(name, aliasname)
+#define _strong_alias(name, aliasname) \
+  extern __typeof (name) aliasname __attribute__ ((alias (#name)));
+
+#ifdef __ELF__
+#define weak_alias(name, aliasname) _weak_alias(name, aliasname)
+#define _weak_alias(name, aliasname) \
+  extern __typeof (name) aliasname __attribute__ ((weak, alias (#name)));
+#else
+
+/* This is more of a compatibility feature for AOF/GCC so that we can build
+   the same source files as ELF/GCC.  */
+#define weak_alias(name, aliasname) _strong_alias(name, aliasname)
+#endif
+
+/* FIXME.  Provide definitions.  Currently here for source code
+   compatibility.  */
+#define hidden_def(name) /**/
+#define libm_hidden_def(name) /**/
+#define INTDEF(name) /**/
+
 
 /* On some platforms we can make internal function calls (i.e., calls of
    functions not exported) a bit faster by using a different calling

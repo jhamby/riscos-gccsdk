@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/alarm.c,v $
- * $Date: 2002/09/24 21:02:38 $
- * $Revision: 1.3 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/mount.c,v $
+ * $Date: 2004/10/08 11:56:13 $
+ * $Revision: 1.1 $
  * $State: Exp $
- * $Author: admin $
+ * $Author: peter $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: alarm.c,v 1.3 2002/09/24 21:02:38 admin Exp $";
+static const char rcs_id[] = "$Id: mount.c,v 1.1 2004/10/08 11:56:13 peter Exp $";
 #endif
 
 #include <sys/mount.h>
@@ -20,21 +20,21 @@ static const char rcs_id[] = "$Id: alarm.c,v 1.3 2002/09/24 21:02:38 admin Exp $
 extern int
 mount (__const char *__special_file, __const char *__dir,
        __const char *__fstype, unsigned long int __rwflag,
-      __const void *__data) __THROW
+      __const void *__data)
 {
   return __set_errno (ENOSYS);
 }
 
 
 extern int
-umount (__const char *__special_file) __THROW
+umount (__const char *__special_file)
 {
   return __set_errno (ENOSYS);
 }
 
 
 extern int
-umount2 (__const char *__special_file, int __flags) __THROW
+umount2 (__const char *__special_file, int __flags)
 {
   return __set_errno (ENOSYS);
 }

@@ -1,16 +1,16 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/netlib/getpeernam.c,v $
- * $Date: 2004/06/12 08:59:48 $
- * $Revision: 1.6 $
+ * $Date: 2005/03/04 20:59:05 $
+ * $Revision: 1.7 $
  * $State: Exp $
- * $Author: peter $
+ * $Author: alex $
  *
  * (c) Copyright 1995 Sergio Monesi
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: getpeernam.c,v 1.6 2004/06/12 08:59:48 peter Exp $";
+static const char rcs_id[] = "$Id: getpeernam.c,v 1.7 2005/03/04 20:59:05 alex Exp $";
 #endif
 
 #include <unixlib/unix.h>
@@ -20,7 +20,7 @@ static const char rcs_id[] = "$Id: getpeernam.c,v 1.6 2004/06/12 08:59:48 peter 
 #include <pthread.h>
 
 int
-getpeername (int s, __SOCKADDR_ARG name, socklen_t *__restrict namelen) __THROW
+getpeername (int s, __SOCKADDR_ARG name, socklen_t *__restrict namelen)
 {
   PTHREAD_UNSAFE
 

@@ -1,3 +1,25 @@
+Thu Apr  7 19:31:46 2005  Nick Burrett  <nick@sqrt.co.uk>
+
+	* sys/cdefs.h (__nonnull): Define.
+	(__THROW): Update for later GCC releases.
+	(__NTH): Likewise.
+	(strong_alias): Define.
+	(weak_alias): Define.
+	(hidden_def): Define.
+	(libm_hidden_def): Define.
+	(INTDEF): Define.
+	* stdlib.h (atof): Remove __THROW from inline version.
+	(atoi): Likewise.
+	(atol): Likewise.
+	(atoll): Likewise.
+	* math/llrintf.c: Fix weak_alias decl.
+	* math/lrintf.c: Likewise.
+	* resolv/inet_addr.c: Likewise.
+	* netlib/getpeernam.c (getpeername): Remove __THROW from decl.
+	* sys/mount.c (mount): Likewise.
+	(umount): Likewise.
+	(umount2): Likewise.
+
 Wed Apr  6 21:10:21 2005  Alex Waugh  <alex@alexwaugh.com>
 
 	* source/unix/dirent.c (opendir): Remove check on whether
