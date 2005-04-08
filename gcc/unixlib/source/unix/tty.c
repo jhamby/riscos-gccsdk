@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/tty.c,v $
- * $Date: 2005/03/04 20:59:06 $
- * $Revision: 1.18 $
+ * $Date: 2005/03/30 22:16:29 $
+ * $Revision: 1.19 $
  * $State: Exp $
  * $Author: alex $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: tty.c,v 1.18 2005/03/04 20:59:06 alex Exp $";
+static const char rcs_id[] = "$Id: tty.c,v 1.19 2005/03/30 22:16:29 alex Exp $";
 #endif
 
 /* System V tty device driver for RISC OS.  */
@@ -179,38 +179,42 @@ __tty_console_gwinsz (struct winsize *win)
 static void
 __tty_console_swinsz (struct winsize *win)
 {
-  static const int vars[] = {132, 135, 128, 131, 4, 5, -1};
-  int values[(sizeof (vars) - 1) / sizeof (int)];
-  int j;
-  int regs[10];
+  if (!__taskwindow)
+    {
+      static const int vars[] = {132, 135, 128, 131, 4, 5, -1};
+      int values[(sizeof (vars) - 1) / sizeof (int)];
+      int j;
+      int regs[10];
 
-  PTHREAD_UNSAFE
+      PTHREAD_UNSAFE
 
-  regs[0] = (int) vars;
-  regs[1] = (int) values;
-  __os_swi (OS_ReadVduVariables, regs);
-  __os_vdu (28);
-  __os_vdu (values[0]);
-  __os_vdu (values[1] + win->ws_row - 1);
-  __os_vdu (values[0] + win->ws_col - 1);
-  __os_vdu (values[1]);
-  __os_vdu (24);
-  j = values[2];
-  j <<= values[4];
-  __os_vdu (j & 0xff);
-  __os_vdu (j >> 8);
-  j = values[3] - (win->ws_ypixel - 1);
-  j <<= values[5];
-  __os_vdu (j & 0xff);
-  __os_vdu (j >> 8);
-  j = values[2] + win->ws_xpixel - 1;
-  j <<= values[4];
-  __os_vdu (j & 0xff);
-  __os_vdu (j >> 8);
-  j = values[3];
-  j <<= values[5];
-  __os_vdu (j & 0xff);
-  __os_vdu (j >> 8);
+      regs[0] = (int) vars;
+      regs[1] = (int) values;
+      __os_swi (OS_ReadVduVariables, regs);
+      __os_vdu (28);
+      __os_vdu (values[0]);
+      __os_vdu (values[1] + win->ws_row - 1);
+      __os_vdu (values[0] + win->ws_col - 1);
+      __os_vdu (values[1]);
+      __os_vdu (24);
+      j = values[2];
+      j <<= values[4];
+      __os_vdu (j & 0xff);
+      __os_vdu (j >> 8);
+      j = values[3] - (win->ws_ypixel - 1);
+      j <<= values[5];
+      __os_vdu (j & 0xff);
+      __os_vdu (j >> 8);
+      j = values[2] + win->ws_xpixel - 1;
+      j <<= values[4];
+      __os_vdu (j & 0xff);
+      __os_vdu (j >> 8);
+      j = values[3];
+      j <<= values[5];
+      __os_vdu (j & 0xff);
+      __os_vdu (j >> 8);
+    }
+
 #ifdef SIGWINCH
   /* Raise the 'Window size change' signal to notify any applications
      that might be interested.  */
@@ -229,11 +233,15 @@ __tty_console_gterm (struct termios *term)
   /* Get `Interrupt key' and state of `Interrupt key'.  */
   __os_byte (0xdc, 0, 0xff, regs);
   term->c_cc[VINTR] = regs[1];
-  __os_byte (0xe5, 0, 0xff, regs);
-  if (regs[1])
-    term->c_lflag &= ~ISIG; /* Disable signals.  */
-  else
-    term->c_lflag |= ISIG; /* Enable signals.  */
+
+  if (!__escape_disabled)
+    {
+      __os_byte (0xe5, 0, 0xff, regs);
+      if (regs[1])
+        term->c_lflag &= ~ISIG; /* Disable signals.  */
+      else
+        term->c_lflag |= ISIG; /* Enable signals.  */
+    }
 }
 
 /* Set console.  */
@@ -242,13 +250,16 @@ __tty_console_sterm (struct termios *term)
 {
   PTHREAD_UNSAFE
 
-  /* Set `Interrupt key' and state of `Interrupt key'.  */
-  __os_byte (0xdc, term->c_cc[VINTR], 0, NULL);
-  if (term->c_lflag & ISIG)
-    /* Enable signals.  */
-    __os_byte (0xe5, 0, 0, NULL);
-  else
-    __os_byte (0xe5, 0xff, 0, NULL);
+  if (!__escape_disabled)
+    {
+      /* Set `Interrupt key' and state of `Interrupt key'.  */
+      __os_byte (0xdc, term->c_cc[VINTR], 0, NULL);
+      if (term->c_lflag & ISIG)
+        /* Enable signals.  */
+        __os_byte (0xe5, 0, 0, NULL);
+      else
+        __os_byte (0xe5, 0xff, 0, NULL);
+    }
 }
 
 /* Maps the B* #define's to RISC OS OS_Serial BaudRate values.  */

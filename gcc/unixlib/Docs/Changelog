@@ -1,3 +1,14 @@
+Fri Apr  8 23:31:14 2005  Alex Waugh  <alex@alexwaugh.com>
+
+	* source/clib/unixlib/unix.h (__escape_disabled): Define variable.
+	* source/unix/unix.c: Record if the escape key is disabled on
+	  program initialisation.
+	* source/sys/vfork.c: Disable escape on return to parent if necessary.
+	* source/unix/tty.c (__tty_console_gterm, __tty_console_sterm): Don't
+	  alter escape status if it was disabled.
+	  (__tty_console_swinsz): Don't set the text window size when running
+	  in a taskwindow.
+
 Fri Apr  8 20:20:41 2005  Nick Burrett  <nick@sqrt.co.uk>
 
 	* common/attrib.c (__set_protection): When translating,

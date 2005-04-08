@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/unixlib/unix.h,v $
- * $Date: 2005/03/15 22:09:36 $
- * $Revision: 1.24 $
+ * $Date: 2005/03/21 12:14:54 $
+ * $Revision: 1.25 $
  * $State: Exp $
- * $Author: alex $
+ * $Author: peter $
  *
  * UNIX is a registered trademark of AT&T Bell Laboratories
  *
@@ -171,6 +171,8 @@ extern int __taskwindow;
 extern int __taskhandle;
 /* Zero if we are running in 26-bit, non-zero for 32-bit */
 extern int __32bit;
+/* Non-zero if the escape key was disabled on program initialisation */
+extern int __escape_disabled;
 
 extern unsigned int __time[2];	/* start time */
 

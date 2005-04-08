@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/unix.c,v $
- * $Date: 2005/03/21 12:14:57 $
- * $Revision: 1.39 $
+ * $Date: 2005/04/07 18:35:54 $
+ * $Revision: 1.40 $
  * $State: Exp $
- * $Author: peter $
+ * $Author: nick $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: unix.c,v 1.39 2005/03/21 12:14:57 peter Exp $";
+static const char rcs_id[] = "$Id: unix.c,v 1.40 2005/04/07 18:35:54 nick Exp $";
 #endif
 
 #include <stdio.h>
@@ -69,6 +69,8 @@ extern int dsp_exit(void);
 
 static struct proc ___u;
 struct proc *__u = &___u;	/* current process */
+
+int __escape_disabled;
 
 static void
 __badr (void)
@@ -195,6 +197,12 @@ void __unixinit (void)
 #ifdef DEBUG
   __os_print ("-- __unixinit: new process\r\n");
 #endif
+
+  /* Record the initial escape key status. If escape is disabled (as it
+     might be if we are being run as an ANSI task from Nettle) then we
+     want to ensure the tty driver does not reenable it. */
+  __os_byte (0xe5, 0, 0xff, regs);
+  __escape_disabled = regs[1];
 
 #if __UNIXLIB_FEATURE_PTHREADS
   /* Initialise the pthread system */
@@ -452,7 +460,8 @@ _exit (int return_code)
     }
 
   /* Re-enable Escape (in case SIGINT handler fired in ttyicanon) */
-  __os_byte (229, 0, 0, NULL);
+  if (!__escape_disabled)
+    __os_byte (229, 0, 0, NULL);
 
   __free_process (__proc);
   __dynamic_area_exit ();

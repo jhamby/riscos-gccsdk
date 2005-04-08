@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/vfork.c,v $
- * $Date: 2004/12/11 14:18:57 $
- * $Revision: 1.11 $
+ * $Date: 2005/03/04 20:59:06 $
+ * $Revision: 1.12 $
  * $State: Exp $
- * $Author: joty $
+ * $Author: alex $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: vfork.c,v 1.11 2004/12/11 14:18:57 joty Exp $";
+static const char rcs_id[] = "$Id: vfork.c,v 1.12 2005/03/04 20:59:06 alex Exp $";
 #endif
 
 #include <errno.h>
@@ -107,6 +107,10 @@ __fork_post (pid_t pid, int isfork)
           (void) __os_swi (DDEUtils_Prefix, regs);
           free ((void *)dde_prefix);
         }
+
+      /* Disable escape if necessary (in case the child enabled it) */
+      if (__escape_disabled)
+        __os_byte (229, 1, 0, NULL);
 
       if (__pthread_system_running)
         {
