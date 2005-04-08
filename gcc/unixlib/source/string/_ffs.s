@@ -1,10 +1,10 @@
 ;----------------------------------------------------------------------------
 ;
-; $Source: $
-; $Date: $
-; $Revision: $
-; $State: $
-; $Author: $
+; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/string/_ffs.s,v $
+; $Date: 2004/10/17 16:24:44 $
+; $Revision: 1.1 $
+; $State: Exp $
+; $Author: joty $
 ;
 ;----------------------------------------------------------------------------
 
@@ -31,6 +31,10 @@
 	MOVS	a2, a1
 	MOVEQ	pc, r14
 
+	; Invert
+	RSB	a1, a2, #0
+	AND	a2, a2, a1
+	
 	MOVS	ip, a2, LSR#16		;Highest 16 bits set ?
 	MOVEQ	a1, #16
 	MOVEQ	a2, a2, LSL#16

@@ -1,3 +1,7 @@
+Fri Apr  8 20:12:29 2005  Nick Burrett  <nick@sqrt.co.uk>
+
+	* string/_ffs.s (ffs): Be a 'ffs' rather than a 'clz' algorithm.
+
 Fri Apr  8 18:02:00 2005  Nick Burrett  <nick@sqrt.co.uk>
 
 	Improve accuracy of converting IEEE numbers to ASCII, fix
