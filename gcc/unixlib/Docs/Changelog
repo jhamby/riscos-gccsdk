@@ -1,3 +1,9 @@
+Fri Apr  8 20:20:41 2005  Nick Burrett  <nick@sqrt.co.uk>
+
+	* common/attrib.c (__set_protection): When translating,
+	take into account group ownerships.
+	(__get_protection): Likewise.
+
 Fri Apr  8 20:12:29 2005  Nick Burrett  <nick@sqrt.co.uk>
 
 	* string/_ffs.s (ffs): Be a 'ffs' rather than a 'clz' algorithm.
