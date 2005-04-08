@@ -1,8 +1,8 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/stdio.h,v $
- * $Date: 2004/10/23 17:23:36 $
- * $Revision: 1.14 $
+ * $Date: 2004/11/28 21:31:34 $
+ * $Revision: 1.15 $
  * $State: Exp $
  * $Author: joty $
  *
@@ -278,14 +278,19 @@ extern int vsprintf (char *__restrict __s,
 		     const char *__restrict __format, __gnuc_va_list __arg)
      __THROW;
 
-/* Write formatted output to stream from arg list arg.  */
+/* Write formatted output to stream from arg list arg.  This function
+   is a cancellation point.  */
 extern int vfprintf (FILE *__restrict __stream,
-		     const char *__restrict __format, __gnuc_va_list __arg)
-     __THROW;
+		     const char *__restrict __format, __gnuc_va_list __arg);
 
-/* Write formatted output to stdio from arg list arg.  */
-extern int vprintf (const char *__restrict __format, __gnuc_va_list __arg)
-     __THROW;
+/* Write formatted output to stdio from arg list arg.  This function
+   is a cancellation point.  */
+extern int vprintf (const char *__restrict __format, __gnuc_va_list __arg);
+
+/* Write formatted output to s from argument list arg.  */
+extern int vasprintf (char **__restrict __ptr,
+		     const char *__restrict __format, __gnuc_va_list __arg)
+     __THROW __attribute__ ((__format__ (__printf__, 2, 0)));
 
 #ifndef __GNUC__
 #pragma -v1
@@ -301,12 +306,19 @@ extern int snprintf (char *__restrict __s, size_t __limit,
 extern int sprintf (char *__restrict __s,
 		    const char *__restrict __format, ...) __THROW;
 
-/* Write formatted output to stream.  */
-extern int fprintf (FILE *__restrict __stream,
-		    const char *__restrict __format, ...) __THROW;
+/* Write formatted output to s.  */
+extern int asprintf (char **__restrict __ptr,
+		     const char *__restrict __format, ...)
+     __THROW __attribute__ ((__format__ (__printf__, 2, 3)));
 
-/* Write formatted output to stdout.  */
-extern int printf (const char *__restrict __format, ...) __THROW;
+/* Write formatted output to stream.  This function is a cancellation
+   point.  */
+extern int fprintf (FILE *__restrict __stream,
+		    const char *__restrict __format, ...);
+
+/* Write formatted output to stdout.  This function is a cancellation
+   point.  */
+extern int printf (const char *__restrict __format, ...);
 
 #ifndef __GNUC__
 #pragma -v2
@@ -316,9 +328,10 @@ extern int printf (const char *__restrict __format, ...) __THROW;
 extern int sscanf (const char *__restrict __s,
 		   const char *__restrict __format, ...) __THROW;
 
-/* Read formatted input from stream.  */
+/* Read formatted input from stream.  This function is a cancellation
+   point.  */
 extern int fscanf (FILE *__restrict __stream,
-		   const char *__restrict __format, ...) __THROW;
+		   const char *__restrict __format, ...);
 
 /* Read formatted input from stdin.  */
 extern int scanf (const char *__restrict __format, ...) __THROW;
@@ -327,14 +340,16 @@ extern int scanf (const char *__restrict __format, ...) __THROW;
 #pragma -v0
 #endif
 
-/* Read formatted input from stdin into argument list arg.  */
+/* Read formatted input from stdin into argument list arg.  This
+   function is a cancellation point.  */
 extern int vscanf (const char *__restrict __format, __gnuc_va_list __ap)
-     __THROW __attribute__ ((__format__ (__scanf__, 1, 0)));
+     __attribute__ ((__format__ (__scanf__, 1, 0)));
 
-/* Read formatted input from stream into argument list arg.  */
+/* Read formatted input from stream into argument list arg.  This
+   function is a cancellation point.  */
 extern int vfscanf (FILE *__restrict __stream,
 		    const char *__restrict __format, __gnuc_va_list __ap)
-     __THROW __attribute__ ((__format__ (__scanf__, 2, 0)));
+     __attribute__ ((__format__ (__scanf__, 2, 0)));
 
 /* Read formatted input from 's' into argument list arg.  */
 extern int vsscanf (const char *__restrict __s,

@@ -1,3 +1,53 @@
+Fri Apr  8 18:02:00 2005  Nick Burrett  <nick@sqrt.co.uk>
+
+	Improve accuracy of converting IEEE numbers to ASCII, fix
+	many formatting errors in printf and add C99 conformance.
+
+	* gdtoa/{arith.h, fpmath.h, gdtoa.h, gdtoaimp.h}: New files.
+	* gdtoa/{dmisc.c, dtoa.c, g_ddfmt.c, g_dfmt.c}: New files.
+	* gdtoa/{gdtoa.c, gethex.c, g_ffmt.c, g__fmt.c}: New files.
+	* gdtoa/{glue.c, gmisc.c, g_Qfmt.c, g_xfmt.c}: New files.
+	* gdtoa/{g_xLfmt.c, hd_init.c, _hdtoa.c, hexnan.c}: New files.
+	* gdtoa/{_ldtoa.c, misc.c, smisc.c, strtod.c}: New files.
+	* gdtoa/{strtodg.c, strtodI.c, strtof.c, strtoId.c}: New files.
+	* gdtoa/{strtoIdd.c, strtoIf.c, strtoIg.c, strtoIQ.c}: New files.
+	* gdtoa/{strtoIx.c, strtoIxL.c, strtopd.c, strtopdd.c}: New files.
+	* gdtoa/{strtopf.c, strtopQ.c, strtopx.c, strtopxL.c}: New files.
+	* gdtoa/{strtord.c, strtordd.c, strtorf.c, strtorQ.c}: New files.
+	* gdtoa/{strtorx.c, strtorxL.c, sum.c, ulp.c}: New files.
+	* gdtoa/README: New file.
+
+	* strtod.c: Remove file.  Replaced by the gdtoa library.
+	* stdlib/strtof.c: Likewise.
+
+	* stdio/vfprintf.c: New file, taken from FreeBSD libc.
+	* stdio/printf.c (vfprintf): Delete function.
+	* stdio/floatio.h: New file.
+
+	* stdio/fwrite.c (fwrite): Special handling of a file descriptor
+	of -1, for new vfprintf function.
+
+	* stdio/asprintf.c: New file.
+	* stdio/vasprintf.c: New file.
+	* stdio.h (vasprintf): Add prototype.
+	(asprintf): Add prototype.
+
+	* bits/nan.h (NAN): For GCC 3.3 and later, use the builtin.
+	* bits/byteswap.h: Re-enable __bswap_64.
+	* string/byteswap.h (__BYTESWAP_H): Renamed from _BYTESWAP_H for
+	consistency with other header files.
+
+	* stdio.h (vfprintf): Remove __THROW on functions that are
+	cancellation points.
+	(vfprintf): Likewise.
+	(fprintf): Likewise.
+	(printf): Likewise.
+	(fscanf): Likewise.
+	(vscanf): Likewise.
+	(vfscanf): Likewise.
+	* unistd.h (sleep): Likewise.
+	(usleep): Likewise.
+
 Thu Apr  7 19:44:29 2005  Nick Burrett  <nick@sqrt.co.uk>
 
 	* features.h (__STDC_ISO_10646__): Don't use C99 comments.

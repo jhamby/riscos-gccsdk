@@ -1,10 +1,10 @@
 /****************************************************************************
  *
- * $Source: $
- * $Date: $
- * $Revision: $
- * $State: $
- * $Author: $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/bits/byteswap.h,v $
+ * $Date: 2002/12/22 18:22:28 $
+ * $Revision: 1.1 $
+ * $State: Exp $
+ * $Author: admin $
  *
  ***************************************************************************/
 
@@ -62,8 +62,7 @@ extern unsigned short int __bswap_16 (unsigned short int __bsx);
 extern unsigned int __bswap_32 (unsigned int __bsx);
 #endif
 
-#if 0
-#if defined __GNUC__ && __GNUC__ >= 2
+#ifdef __GNUC__
 /* Swap bytes in 64 bit value.  */
 # define __bswap_constant_64(x) \
      ((((x) & 0xff00000000000000ull) >> 56)				      \
@@ -88,7 +87,6 @@ extern unsigned int __bswap_32 (unsigned int __bsx);
 	     __r.__l[1] = __bswap_32 (__w.__l[0]);			      \
 	   }								      \
 	 __r.__ll; }))
-#endif
 #endif
 
 #endif /* _BITS_BYTESWAP_H */

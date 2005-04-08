@@ -21,10 +21,13 @@
 # error "Never use <bits/nan.h> directly; include <math.h> instead."
 #endif
 
-
 /* IEEE Not A Number.  */
 
-#ifdef	__GNUC__
+#if __GNUC_PREREQ(3,3)
+
+# define NAN (__builtin_nanf (""))
+
+#elif defined __GNUC__
 
 # define NAN \
   (__extension__                                                            \

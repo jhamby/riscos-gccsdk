@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/unistd.h,v $
- * $Date: 2005/03/04 20:59:05 $
- * $Revision: 1.15 $
+ * $Date: 2005/03/31 09:38:46 $
+ * $Revision: 1.16 $
  * $State: Exp $
- * $Author: alex $
+ * $Author: nick $
  *
  ***************************************************************************/
 
@@ -199,7 +199,7 @@ extern unsigned int alarm (unsigned int __seconds) __THROW;
    SIGALRM signal while inside `sleep' call, the handling of the SIGALRM
    signal afterwards is undefined.  There is no return value to indicate
    error, but if `sleep' returns '__seconds', it probably didn't work.  */
-extern unsigned int sleep (unsigned int __seconds) __THROW;
+extern unsigned int sleep (unsigned int __seconds);
 
 /* Set an alarm to go off (generating a SIGALRM signal) in VALUE
    microseconds.  If INTERVAL is nonzero, when the alarm goes off, the
@@ -210,7 +210,7 @@ extern __useconds_t ualarm (__useconds_t __useconds,
 
 /* Make the process sleep for '__usec' microseconds, or until a signal
    arrives that is not blocked or ignored.  */
-extern int usleep (__useconds_t __usec) __THROW;
+extern int usleep (__useconds_t __usec);
 
 /* Suspend the process until a signal arrives.  */
 extern int pause (void) __THROW;

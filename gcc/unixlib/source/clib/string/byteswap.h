@@ -1,10 +1,10 @@
 /****************************************************************************
  *
- * $Source: $
- * $Date: $
- * $Revision: $
- * $State: $
- * $Author: $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/string/byteswap.h,v $
+ * $Date: 2002/12/22 18:32:47 $
+ * $Revision: 1.1 $
+ * $State: Exp $
+ * $Author: admin $
  *
  ***************************************************************************/
 
@@ -26,8 +26,8 @@
    Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
    02111-1307 USA.  */
 
-#ifndef _BYTESWAP_H
-#define _BYTESWAP_H	1
+#ifndef __BYTESWAP_H
+#define __BYTESWAP_H	1
 
 /* Get the machine specific, optimized definitions.  */
 #include <bits/byteswap.h>
