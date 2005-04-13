@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/resolv/gethnamaddr.c,v $
- * $Date: 2002/12/22 18:22:29 $
- * $Revision: 1.1 $
+ * $Date: 2003/04/25 00:04:48 $
+ * $Revision: 1.2 $
  * $State: Exp $
- * $Author: admin $
+ * $Author: joty $
  *
  ***************************************************************************/
 
@@ -69,7 +69,7 @@
 
 #if defined(LIBC_SCCS) && !defined(lint)
 static char sccsid[] = "@(#)gethostnamadr.c	8.1 (Berkeley) 6/4/93";
-static char rcsid[] = "$Id: gethnamaddr.c,v 1.1 2002/12/22 18:22:29 admin Exp $";
+static char rcsid[] = "$Id: gethnamaddr.c,v 1.2 2003/04/25 00:04:48 joty Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 #include <sys/types.h>
@@ -85,6 +85,8 @@ static char rcsid[] = "$Id: gethnamaddr.c,v 1.1 2002/12/22 18:22:29 admin Exp $"
 #include <ctype.h>
 #include <errno.h>
 #include <syslog.h>
+
+#define BSD 199103
 
 #define RESOLVSORT
 

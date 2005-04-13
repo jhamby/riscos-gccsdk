@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/common/unixify.c,v $
- * $Date: 2005/03/05 14:46:27 $
- * $Revision: 1.11 $
+ * $Date: 2005/03/20 15:46:00 $
+ * $Revision: 1.12 $
  * $State: Exp $
- * $Author: joty $
+ * $Author: alex $
  *
  ***************************************************************************/
 
@@ -306,7 +306,7 @@ __unixify (const char *ro_path, int unixify_flags, char *buffer,
       if (ro_path[1] == '.')
         {
           if (ro_path[2] == '\0'
-              || ro_path[2] == '/' && ro_path[3] == '\0')
+              || (ro_path[2] == '/' && ro_path[3] == '\0'))
             {
               *out++ = '.';
               *out++ = '.';

@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/features.h,v $
- * $Date: 2005/01/23 20:31:55 $
- * $Revision: 1.4 $
+ * $Date: 2005/04/07 18:46:23 $
+ * $Revision: 1.5 $
  * $State: Exp $
- * $Author: joty $
+ * $Author: nick $
  *
  ***************************************************************************/
 
@@ -157,11 +157,6 @@
 #ifdef __UNIXLIB_INTERNALS
 # define __GNU_LIBRARY__
 #endif
-
-/* A lot of GNU glibc code is depending on this. I don't know if it is
-   a good idea to define this here:  */
-#undef BSD
-#define BSD    199103
 
 /* Always use ISO C things.  */
 #define	__USE_ANSI	1
@@ -325,14 +320,11 @@
 # define __GNUC_PREREQ(maj, min) 0
 #endif
 
-#define __GLIBC_PREREQ(maj, min) \
-	((__GLIBC__ << 16) + __GLIBC_MINOR__ >= ((maj) << 16) + (min))
+#define __ULIBC_PREREQ(maj, min) \
+	((__ULIBC__ << 16) + __ULIBC_MINOR__ >= ((maj) << 16) + (min))
 
 /* Decide whether a compiler supports the long long datatypes.  */
-#if defined __GNUC__ \
-    || (defined __PGI && defined __i386__ ) \
-    || (defined __INTEL_COMPILER && (defined __i386__ || defined __ia64__)) \
-    || (defined __STDC_VERSION__ && __STDC_VERSION__ >= 199901L)
+#if defined __GNUC__
 # define __GLIBC_HAVE_LONG_LONG	1
 #endif
 
@@ -378,8 +370,9 @@ extern int __feature_imagefs_is_file; /* Note: this is a weak symbol.  */
 /* Amount to align the wimpslot or dynamic area. */
 #define __DA_WIMPSLOT_ALIGNMENT (32*1024-1)
 
-/* This is not yet supported by our GCC version but used by glibc 2.2.5.  */
+#ifndef __GNUC__
 #define __builtin_expect(exp, c)  (exp)
+#endif
 
 /* Gets the __feature_imagefs_is_file value which can be defined by
    the global variable __feature_imagefs_is_file in the user program.

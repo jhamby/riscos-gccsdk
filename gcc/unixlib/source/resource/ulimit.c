@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/resource/ulimit.c,v $
- * $Date: 2002/02/14 15:56:36 $
- * $Revision: 1.3 $
+ * $Date: 2004/06/12 08:59:48 $
+ * $Revision: 1.4 $
  * $State: Exp $
- * $Author: admin $
+ * $Author: peter $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: ulimit.c,v 1.3 2002/02/14 15:56:36 admin Exp $";
+static const char rcs_id[] = "$Id: ulimit.c,v 1.4 2004/06/12 08:59:48 peter Exp $";
 #endif
 
 #include <sys/resource.h>
@@ -17,6 +17,7 @@ static const char rcs_id[] = "$Id: ulimit.c,v 1.3 2002/02/14 15:56:36 admin Exp 
 #include <unistd.h>
 #include <errno.h>
 #include <stdio.h>
+#include <ulimit.h>
 
 /* Function depends on CMD:
    1 = Return the limit on the size of a file, in units of 512 bytes.

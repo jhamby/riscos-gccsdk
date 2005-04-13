@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/time/setitmr.c,v $
- * $Date: 2003/04/05 09:33:56 $
- * $Revision: 1.5 $
+ * $Date: 2003/11/23 20:26:45 $
+ * $Revision: 1.6 $
  * $State: Exp $
- * $Author: alex $
+ * $Author: joty $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: setitmr.c,v 1.5 2003/04/05 09:33:56 alex Exp $";
+static const char rcs_id[] = "$Id: setitmr.c,v 1.6 2003/11/23 20:26:45 joty Exp $";
 #endif
 
 #include <stddef.h>
@@ -68,22 +68,22 @@ remove_ticker (ticker address, const struct timeval *old)
 }
 
 static __inline__ int
-add_ticker (const struct timeval *time, ticker address,
+add_ticker (const struct timeval *tv, ticker address,
 	    const struct timeval *newtime)
 {
   int regs[10];
 
-  regs[0] = (int) (time->tv_sec * 100) + (time->tv_usec + 9999) / 10000;
+  regs[0] = (int) (tv->tv_sec * 100) + (tv->tv_usec + 9999) / 10000;
   regs[1] = (int) address;
   regs[2] = (int) newtime;
   return __os_swi (OS_CallAfter, regs) ? -1 : 0;
 }
 
 static int
-check_ticker (const struct timeval *time)
+check_ticker (const struct timeval *tv)
 {
-  return (time->tv_sec > 0 || time->tv_usec > 0) ? 1
-	  : (time->tv_sec == 0 && time->tv_usec == 0) ? 2
+  return (tv->tv_sec > 0 || tv->tv_usec > 0) ? 1
+	  : (tv->tv_sec == 0 && tv->tv_usec == 0) ? 2
 	  : 0;
 }
 

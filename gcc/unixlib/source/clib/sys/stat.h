@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/sys/stat.h,v $
- * $Date: 2004/09/17 18:39:54 $
- * $Revision: 1.9 $
+ * $Date: 2004/10/17 16:24:43 $
+ * $Revision: 1.10 $
  * $State: Exp $
- * $Author: peter $
+ * $Author: joty $
  *
  ***************************************************************************/
 
@@ -89,10 +89,10 @@ struct stat64
   unsigned long int st_mtime_usec;
   __time_t	st_ctime; /* Time of last status change.  */
   unsigned long int st_ctime_usec;
-  unsigned long int st_blksize; /* Optimal block size for I/O.  */
+  __blksize_t	st_blksize; /* Optimal block size for I/O.  */
 #define _STATBUF_ST_BLKSIZE /* Tell code we have this member. */
 /*  unsigned long int st_nblocks; / * Number of 512-byte blocks allocated.  */
-  unsigned long int st_blocks; /* Number of 512-byte blocks allocated.  */
+  __blkcnt_t	st_blocks; /* Number of 512-byte blocks allocated.  */
 };
 
 #define stat stat64
@@ -173,11 +173,23 @@ struct stat64
 /* Return nonzero if the file is a socket.  */
 #define S_ISSOCK(x) (((x) & S_IFSOCK) == S_IFSOCK)
 
-extern int stat (const char *__filename, struct stat *__buf) __THROW;
-extern int lstat (const char *__filename, struct stat *__buf) __THROW;
-extern int lstat64 (const char *__filename, struct stat *__buf) __THROW;
-extern int fstat (int __fd, struct stat *__buf) __THROW;
-extern int fstat64 (int __fd, struct stat *__buf) __THROW;
+extern int stat (const char *__restrict __filename,
+		 struct stat *__restrict __buf)
+     __THROW __nonnull ((1, 2));
+
+extern int fstat (int __fd, struct stat *__buf)
+     __THROW __nonnull ((2));
+
+extern int fstat64 (int __fd, struct stat *__buf)
+     __THROW __nonnull ((2));
+
+#if defined __USE_BSD || defined __USE_XOPEN_EXTENDED
+extern int lstat (const char *__filename, struct stat *__buf)
+     __THROW __nonnull ((1, 2));
+
+extern int lstat64 (const char *__filename,
+		    struct stat *__buf) __THROW __nonnull ((1, 2));
+#endif
 
 #ifdef __UNIXLIB_INTERNALS
 /* We declare __stat here to prevent the inclusion if <sys/stat.h> in
@@ -187,24 +199,32 @@ extern void __stat (int __objtype, int __loadaddr, int __execaddr,
 #endif
 
 /* Set file access permissions for file to mode.  */
-extern int chmod (const char *__file, __mode_t __mode) __THROW;
+extern int chmod (const char *__file, __mode_t __mode)
+     __THROW __nonnull ((1));
 
+#if defined __USE_BSD || defined __USE_XOPEN_EXTENDED
 /* Set file access permissions of the file fd is open on to mode.  */
 extern int fchmod (int __fd, __mode_t __mode) __THROW;
+#endif
 
 /* Set the file creation mask of the current process to mask,
    return the old creation mask.  */
 extern __mode_t umask (__mode_t __mask) __THROW;
 
 /* Create a new directory named path, with permission bits mode.  */
-extern int mkdir (const char *__path, __mode_t __mode) __THROW;
+extern int mkdir (const char *__path, __mode_t __mode)
+     __THROW __nonnull ((1));
 
+#if defined __USE_MISC || defined __USE_BSD || defined __USE_XOPEN_EXTENDED
 /* Create a device file named path, with permission and special bits mode
    and device number dev.  */
-extern int mknod (const char *__path, __mode_t __mode, __dev_t __dev) __THROW;
+extern int mknod (const char *__path, __mode_t __mode, __dev_t __dev)
+     __THROW __nonnull ((1));
+#endif
 
 /* Create a new FIFO named path, with permission bits mode.  */
-extern int mkfifo (const char *__path, __mode_t __mode) __THROW;
+extern int mkfifo (const char *__path, __mode_t __mode)
+     __THROW __nonnull ((1));
 
 __END_DECLS
 

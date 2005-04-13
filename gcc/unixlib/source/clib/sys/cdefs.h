@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/sys/cdefs.h,v $
- * $Date: 2004/10/17 16:24:43 $
- * $Revision: 1.6 $
+ * $Date: 2005/04/07 18:34:11 $
+ * $Revision: 1.7 $
  * $State: Exp $
- * $Author: joty $
+ * $Author: nick $
  *
  ***************************************************************************/
 
@@ -44,13 +44,6 @@
 # include <features.h>
 #endif
 
-/* The GNU libc does not support any K&R compilers or the traditional mode
-   of ISO C compilers anymore.  Check for some of the combinations not
-   anymore supported.  */
-#if defined __GNUC__ && !defined __STDC__
-# error "You need a ISO C conforming compiler to use the glibc headers"
-#endif
-
 /* Some user header file might have defined this before.  */
 #undef	__P
 #undef	__PMT
@@ -80,6 +73,7 @@
 # define __inline               /* No inline functions.  */
 
 # define __THROW
+# define __NTH(fct)	fct
 # define __const        const
 # define __signed       signed
 # define __volatile     volatile
@@ -260,6 +254,20 @@
 #else
 # define __nonnull(params)
 #endif
+
+/* If fortification mode, we warn about unused results of certain
+   function calls which can lead to problems.  */
+#if __GNUC_PREREQ (3,4)
+# define __attribute_warn_unused_result__ \
+   __attribute__ ((__warn_unused_result__))
+# define __wur __attribute_warn_unused_result__
+#else
+# define __attribute_warn_unused_result__ /* empty */
+#endif
+#ifndef __wur
+# define __wur /* Ignore */
+#endif
+
 
 /* It is possible to compile containing GCC extensions even if GCC is
    run in pedantic mode if the uses are carefully marked using the

@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/fcntl.h,v $
- * $Date: 2004/04/21 19:43:19 $
- * $Revision: 1.6 $
+ * $Date: 2004/10/17 16:24:43 $
+ * $Revision: 1.7 $
  * $State: Exp $
- * $Author: alex $
+ * $Author: joty $
  *
  *
  ***************************************************************************/
@@ -184,18 +184,24 @@ struct flock
 
 
 /* Do the file control operation described by CMD on FD.
-   The remaining arguments are interpreted depending on CMD.  */
-extern int fcntl (int fd, int cmd, ...) __THROW;
+   The remaining arguments are interpreted depending on CMD.
+
+   This is a cancellation point.  */
+extern int fcntl (int __fd, int __cmd, ...);
 
 /* Open FILE and return a new file descriptor for it, or -1 on error.
    OFLAG determines the type of access used.  If O_CREAT is on OFLAG,
-   the third argument is taken as a `mode_t', the mode of the created file.  */
-extern int open (const char *file, int oflag, ...) __THROW;
+   the third argument is taken as a `mode_t', the mode of the created file.
+
+   This is a cancellation point.  */
+extern int open (const char *file, int oflag, ...) __nonnull ((1));
 
 /* Create and open FILE, with mode MODE.
    This takes an `int' MODE argument because that is
-   what `mode_t' will be widened to.  */
-extern int creat (const char *file, __mode_t mode) __THROW;
+   what `mode_t' will be widened to.
+
+   This is a cancellation point.  */
+extern int creat (const char *file, __mode_t mode) __nonnull ((1));
 
 #ifndef F_LOCK
 /* These declarations also appear in <unistd.h>; be sure to keep both
@@ -210,7 +216,7 @@ extern int creat (const char *file, __mode_t mode) __THROW;
 #define F_TLOCK 2       /* Test and lock a region for exclusive use.  */
 #define F_TEST  3       /* Test a region for other processes locks.  */
 
-extern int lockf (int fd, int cmd, __off_t len) __THROW;
+extern int lockf (int fd, int cmd, __off_t len);
 #endif
 
 __END_DECLS

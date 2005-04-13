@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/sys/select.h,v $
- * $Date: 2004/04/17 10:51:15 $
- * $Revision: 1.6 $
+ * $Date: 2004/10/17 16:24:43 $
+ * $Revision: 1.7 $
  * $State: Exp $
- * $Author: nick $
+ * $Author: joty $
  *
  ***************************************************************************/
 
@@ -21,37 +21,45 @@
 #include <unixlib/types.h>
 #endif
 
+#define __need_time_t
+#define __need_timespec
+#include <time.h>
+
 #define __need_timeval
 #include <sys/time.h>
 
-#define __need_timespec
-#include <time.h>
+#ifndef __suseconds_t_defined
+typedef __suseconds_t suseconds_t;
+#define __suseconds_t_defined
+#endif
 
 __BEGIN_DECLS
 
 /* Number of descriptors that can fit in an `fd_set'.  */
 #define	FD_SETSIZE	256
 
-/* It's easier to assume 8-bit bytes than to get CHAR_BIT.  */
-#define	NFDBITS	(sizeof (unsigned long int) * 8)
-#define	FDELT(d)	((d) / NFDBITS)
-#define	FDMASK(d)	(1ul << ((d) % NFDBITS))
+typedef long int __fd_mask;
 
-typedef unsigned long int __fd_mask;
+/* It's easier to assume 8-bit bytes than to get CHAR_BIT.  */
+#define	__NFDBITS	(sizeof (__fd_mask) * 8)
+#define	__FDELT(d)	((d) / __NFDBITS)
+#define	__FDMASK(d)	(1 << ((d) % __NFDBITS))
 
 typedef struct
   {
     /* Some braindead old software uses this member name.  */
-    __fd_mask fds_bits[(FD_SETSIZE + (NFDBITS - 1)) / NFDBITS];
+    __fd_mask fds_bits[(FD_SETSIZE + (__NFDBITS - 1)) / __NFDBITS];
   } __fd_set;
 
 #define	FD_ZERO(set) ((void) memset (set, 0, sizeof (*(set))))
-#define	FD_SET(d, set)	((set)->fds_bits[FDELT(d)] |= FDMASK(d))
-#define	FD_CLR(d, set)	((set)->fds_bits[FDELT(d)] &= ~FDMASK(d))
-#define	FD_ISSET(d, set)	((set)->fds_bits[FDELT(d)] & FDMASK(d))
+#define	FD_SET(d, set)	((set)->fds_bits[__FDELT(d)] |= __FDMASK(d))
+#define	FD_CLR(d, set)	((set)->fds_bits[__FDELT(d)] &= ~__FDMASK(d))
+#define	FD_ISSET(d, set)	((set)->fds_bits[__FDELT(d)] & __FDMASK(d))
 
-
+#ifdef __USE_MISC
 typedef __fd_mask fd_mask;
+#endif
+
 typedef __fd_set fd_set;
 
 /* This contains the prototype for select */
@@ -61,20 +69,30 @@ typedef __fd_set fd_set;
    readiness, in WRITEFDS (if not NULL) for write readiness, and in EXCEPTFDS
    (if not NULL) for exceptional conditions.  If TIMEOUT is not NULL, time out
    after waiting the interval specified therein.  Returns the number of ready
-   descriptors, or -1 for errors.  */
+   descriptors, or -1 for errors.
 
-int select (int __nfds, __fd_set *__readfds, __fd_set *__writefds,
-	    __fd_set *__exceptfds, struct timeval *__timeout) __THROW;
+   This function is a cancellation point.  */
+extern int select (int __nfds, __fd_set *__restrict __readfds,
+		   fd_set *__restrict __writefds,
+		   fd_set *__restrict __exceptfds,
+		   struct timeval *__restrict __timeout);
 
-/* Same as pselect but with higher resolution for the timeout.  */
-int pselect (int __nfds, __fd_set *__readfds, __fd_set *__writefds,
-	     __fd_set *__exceptfds, const struct timespec *__timeout,
-	     const __sigset_t *__sigmask) __THROW;
+/* Same as pselect but with higher resolution for the timeout.
+   This function is a cancellation point.  */
+extern int pselect (int __nfds,
+		    fd_set *__restrict __readfds,
+		    fd_set *__restrict __writefds,
+		    fd_set *__restrict __exceptfds,
+		    const struct timespec *__restrict __timeout,
+		    const __sigset_t *__restrict __sigmask);
 
 #ifdef __UNIXLIB_INTERNALS
 /* SWI veneer. Do not use directly.  */
-int _select (int __nfds, __fd_set *__readfds, __fd_set *__writefds,
-	     __fd_set *__exceptfds, const struct timeval *__timeout) __THROW;
+extern int _select (int __nfds,
+		    fd_set *__restrict __readfds,
+		    fd_set *__restrict __writefds,
+		    fd_set *__restrict __exceptfds,
+		    const struct timeval *__restrict __timeout);
 #endif  /* __UNIXLIB_INTERNALS */
 
 __END_DECLS

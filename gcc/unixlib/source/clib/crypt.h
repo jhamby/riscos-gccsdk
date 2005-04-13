@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/crypt.h,v $
- * $Date: 2002/09/24 21:02:36 $
- * $Revision: 1.2 $
+ * $Date: 2004/10/17 16:24:43 $
+ * $Revision: 1.3 $
  * $State: Exp $
- * $Author: admin $
+ * $Author: joty $
  *
  ***************************************************************************/
 
@@ -46,16 +46,20 @@
 __BEGIN_DECLS
 
 /* Encrypt at most 8 characters from KEY using salt to perturb DES.  */
-extern char *crypt (const char *__key, const char *__salt);
-extern char *fcrypt (const char *__key, const char *__salt);
+extern char *crypt (const char *__key, const char *__salt)
+     __THROW __nonnull ((1, 2));
+
+extern char *fcrypt (const char *__key, const char *__salt)
+     __THROW __nonnull ((1, 2));
 
 /* Setup DES tables according KEY.  */
-extern void setkey (const char *__key);
+extern void setkey (const char *__key) __THROW __nonnull ((1));
 
 /* Encrypt data in BLOCK in place if EDFLAG is zero; otherwise decrypt
    block in place.  */
-extern void encrypt (char *__block, int __edflag);
+extern void encrypt (char *__block, int __edflag) __THROW __nonnull ((1));
 
+#ifdef __USE_GNU
 /* Reentrant versions of the functions above.  The additional argument
    points to a structure where the results are placed in.  */
 struct crypt_data
@@ -73,13 +77,17 @@ struct crypt_data
 };
 
 extern char *crypt_r (const char *__key, const char *__salt,
-		      struct crypt_data *__data);
+		      struct crypt_data *__restrict __data)
+     __THROW __nonnull ((1, 2, 3));
 
 extern void setkey_r (const char *__key,
-		      struct crypt_data *__data);
+		      struct crypt_data *__restrict __data)
+     __THROW __nonnull ((1, 2));
 
 extern void encrypt_r (char *__block, int __edflag,
-		       struct crypt_data *__data);
+		       struct crypt_data *__restrict __data)
+     __THROW __nonnull ((1, 3));
+#endif
 
 __END_DECLS
 

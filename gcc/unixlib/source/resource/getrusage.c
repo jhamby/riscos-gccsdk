@@ -1,8 +1,8 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/resource/getrusage.c,v $
- * $Date: 2001/09/04 16:32:04 $
- * $Revision: 1.2.2.1 $
+ * $Date: 2002/02/14 15:56:36 $
+ * $Revision: 1.3 $
  * $State: Exp $
  * $Author: admin $
  *
@@ -10,7 +10,7 @@
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: getrusage.c,v 1.2.2.1 2001/09/04 16:32:04 admin Exp $";
+static const char rcs_id[] = "$Id: getrusage.c,v 1.3 2002/02/14 15:56:36 admin Exp $";
 #endif
 
 #include <sys/resource.h>
@@ -23,7 +23,7 @@ static const char rcs_id[] = "$Id: getrusage.c,v 1.2.2.1 2001/09/04 16:32:04 adm
 int
 getrusage (enum __rusage_who who, struct rusage *usage)
 {
-  int time;
+  int ticks;
 
   if (who != RUSAGE_SELF && who != RUSAGE_CHILDREN)
     {
@@ -34,14 +34,14 @@ getrusage (enum __rusage_who who, struct rusage *usage)
   if (usage == 0)
     return -1;
 
-  time = (int) clock ();
+  ticks = (int) clock ();
   /* Since clock () returns all time the current program has been
      running for, we shall not bother with the ru_stime structure.  */
   /* Time spend executing user instructions.  */
-  usage->ru_utime.tv_sec = time / 100;
+  usage->ru_utime.tv_sec = ticks / 100;
   /* Separate the centiseconds from the seconds and then convert
      to microseconds.  */
-  usage->ru_utime.tv_usec = (time - ((int) (time / 100) * 100)) * 10000;
+  usage->ru_utime.tv_usec = (ticks - ((int) (ticks / 100) * 100)) * 10000;
   /* Time spend in operating system code on behalf of 'who'.  */
   usage->ru_stime.tv_sec = 0;
   usage->ru_stime.tv_usec = 0;

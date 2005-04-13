@@ -1,3 +1,90 @@
+Wed Apr 13 20:17:24 2005  Nick Burrett  <nick@sqrt.co.uk>
+
+	* sys/cdefs.h (__NTH): Declare for non-GCC compilers.
+	(__attribute_warn_unused_result__): Declare.
+	(__wur): Declare (shorthand for above).
+
+	* string.h: Improve namespace and type conformance.
+	Add GCC's 'nonnull' attribute to prototypes.
+	Remove __THROW for any functions that are cancellation points.
+	* sys/stat.h: Likewise.
+	* sys/select.h: Likewise.
+	* sys/resource.h: Likewise.
+	* netdb.h: Likewise.
+	* crypt.h: Likewise.
+	* dirent.h: Likewise.
+	* fcntl.h: Likewise.
+	* setjmp.h: Likewise.
+	* stdio.h: Likewise.
+	* stdlib.h: Likewise.
+	* unistd.h: Likewise.
+
+	* sys/resource.h (ulimit): Remove declaration.
+	(nice): Likewise.
+	* ulimit.h: New file.
+	* unistd.h (nice): Add prototype.
+	* resource/ulimit.c: Include ulimit.h.
+	
+	* alloca.h (alloca): Remove __THROW.  Add GCC variant.
+	* assert.h (assert): Add noreturn attribute.
+	(__ASSERT_CAST): Define with better C++ support.
+	(assert): Use it.
+
+	* ctype.h (isascii): Set visibility for SVID, MISC and XOPEN only.
+
+	* iconv.h: Don't include errno.h.
+	(iconv): Add 'restrict' to certain parameters.
+	* locale/iconv.c: Include errno.h.
+
+	* sys/select.h (__NFDBITS): Rename from NFDBITS.  Define sizeof
+	in terms of variable name, rather than type.
+	(__FDELT): Rename from FDELT.
+	(__FDMASK): Rename from FDMASK.
+	(__fd_set): Fix according to new macro names.
+	(FD_SET): Likewise.
+	(FD_CLR): Likewise.
+	(FD_ISSET): Likewise.
+	(fd_mask): Only define if __USE_MISC.
+	(select): Add C99's 'restrict' qualifier.
+	(pselect): Likewise.
+
+	* sys/stat.h (struct stat): Change the types of 'st_blksize'
+	and 'st_blocks'.
+
+	* sys/time.h (timeradd): Define.
+	(timersub): Define.
+
+	* unix/dirent.c (opendir): Mark as an unsafe cancellation point.
+	(readdir_r): Likewise.
+	(readdir): Likewise.
+	(closedir): Likewise.
+	(scandir): Likewise.
+
+	* features.h (BSD): Undefine.
+	(__builtin_expect): Only undefine for non-GCC compilers.
+	(__GLIBC_PREREQ): Delete macro.
+	(__ULIBC_PREREQ): Define macro.
+	* resolv/gethnamaddr.c (BSD): Define.
+
+	* pthread.h: Make compatible with C++.
+	(pthread_setschedparam): Add prototype.
+	(pthread_getschedparam): Add prototype.
+	(struct __pthread_thread): Add 'param'.
+	* schedparam.c: New file.
+
+	* time/time.c (time): Fix shadow parameter warning.
+	* time/setitmr.c (add_ticker): Likewise.
+	(check_ticker): Likewise.
+	* resource/getrusage.c (getrusage): Likewise.
+	* time/strftime.c (strftime): Likewise.
+	(territory_convert): Adjust prototype to reduce warnings.
+	(territory_standard): Likewise.
+	* signal/post.c (__write_backtrack): Fix printf warnings.
+	* crypt/crypt.c (_ufc_doit_r): Use ANSI-style declarations.
+	* common/unixify.c (__unixify): Add parenthesis to resolve an
+	ambiguity.
+	* bsearch.c (bsearch): Fix warnings.
+
 Fri Apr  8 23:31:14 2005  Alex Waugh  <alex@alexwaugh.com>
 
 	* source/clib/unixlib/unix.h (__escape_disabled): Define variable.

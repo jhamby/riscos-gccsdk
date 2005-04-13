@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/ctype.h,v $
- * $Date: 2004/04/12 13:03:37 $
- * $Revision: 1.5 $
+ * $Date: 2004/10/17 16:24:43 $
+ * $Revision: 1.6 $
  * $State: Exp $
- * $Author: nick $
+ * $Author: joty $
  *
  ***************************************************************************/
 
@@ -98,6 +98,8 @@ extern int _toupper (int __c) __THROW;
 extern int _tolower (int __c) __THROW;
 #define _tolower(c) ((int) __ctype_lower[(int) (c)])
 
+
+#if defined __USE_SVID || defined __USE_MISC || defined __USE_XOPEN
 /* System V extension functions.  */
 
 /* Convert c to an ASCII character.  */
@@ -107,6 +109,7 @@ extern int toascii (int __c) __THROW;
 /* Is c an ASCII character.  */
 extern int isascii (int __c) __THROW;
 #define isascii(c) ((unsigned)(c) <= 0x7f)
+#endif
 
 __END_DECLS
 

@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/sys/resource.h,v $
- * $Date: 2004/09/17 18:39:54 $
- * $Revision: 1.6 $
+ * $Date: 2004/10/17 16:24:43 $
+ * $Revision: 1.7 $
  * $State: Exp $
- * $Author: peter $
+ * $Author: joty $
  *
  ***************************************************************************/
 
@@ -141,15 +141,6 @@ enum __rusage_who
 /* Return resource usage information on a process.  */
 extern int getrusage (enum __rusage_who, struct rusage *) __THROW;
 
-/* Function depends on first parameter.
-   1 = Return the limit on the size of a file, in units of 512 bytes.
-   2 = Set the limit on the size of a file to new limit.  Only the
-       super-user can increase the limit.
-   3 = Return the maximum possible address of the data segment.
-   4 = Return the maximum number of files that the calling process can open.  */
-extern long int ulimit (int, int) __THROW;
-
-
 /* Priority limits.  */
 #define	PRIO_MIN	-20	/* Minimum priority a process can have.  */
 #define	PRIO_MAX	20	/* Maximum priority a process can have.  */
@@ -168,9 +159,6 @@ extern int getpriority (enum __priority_which, int) __THROW;
 
 /* Set the priority of all processes.  */
 extern int setpriority (enum __priority_which, int, int) __THROW;
-
-/* Alter the priority of the current process by 'increment'.  */
-extern int nice (int __increment) __THROW;
 
 __END_DECLS
 

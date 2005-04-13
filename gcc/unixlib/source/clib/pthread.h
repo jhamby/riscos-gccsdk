@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/pthread.h,v $
- * $Date: 2005/02/09 21:13:40 $
- * $Revision: 1.14 $
+ * $Date: 2005/03/21 12:14:53 $
+ * $Revision: 1.15 $
  * $State: Exp $
- * $Author: alex $
+ * $Author: peter $
  *
  ***************************************************************************/
 
@@ -23,6 +23,12 @@
 #include <time.h>
 
 #include <sched.h> /* for struct sched_param */
+
+#ifndef __UNIXLIB_FEATURES
+#include <features.h>
+#endif
+
+__BEGIN_DECLS
 
 #if !defined __pthread_t_defined && (defined __PTHREAD_H || defined __need_pthread_t)
 #define __pthread_t_defined
@@ -46,17 +52,23 @@ enum __pthread_locktype
 /* Mutex/rwlock object */
 struct __pthread_lock
 {
-  unsigned int count;               /* Number of times the current thread has got this lock recursively */
-  enum __pthread_locktype type;     /* Type of lock                                                     */
-  struct __pthread_thread *owner;   /* Thread that currently owns the lock                              */
-  struct __pthread_thread *waiting; /* Linked list of threads that are blocked on this lock             */
-  struct __pthread_lock_attr attr;  /* Attributes of the lock                                           */
+  /* Number of times the current thread has got this lock recursively */
+  unsigned int count;
+  /* Type of lock.  */
+  enum __pthread_locktype type;
+  /* Thread that currently owns the lock.  */
+  struct __pthread_thread *owner;
+  /* Linked list of threads that are blocked on this lock.  */
+  struct __pthread_thread *waiting;
+  /* Attributes of the lock.  */
+  struct __pthread_lock_attr attr;
 };
 
 /* Condition var object */
 struct __pthread_cond
 {
-  struct __pthread_thread *waiting; /* Linked list of threads that are blocked on this condition var */
+  /* Linked list of threads that are blocked on this condition var.  */
+  struct __pthread_thread *waiting;
 };
 
 typedef struct __pthread_lock pthread_mutex_t;
@@ -108,7 +120,8 @@ struct __pthread_thread
 {
   int magic; /* Magic number */
 
-  struct __pthread_saved_context *saved_context; /* Space for registers on the context switch */
+  /* Space for registers on the context switch */
+  struct __pthread_saved_context *saved_context;
 
   int alloca[3]; /* Storage for alloca */
 
@@ -133,24 +146,48 @@ struct __pthread_thread
   void *(*start_routine)(void *); /* Function to call as the new thread */
   void *arg; /* Argument to pass to the start_routine */
 
-  struct __stack_chunk *stack; /* Initial stack chunk allocated to thread */
+  /* Initial stack chunk allocated to thread */
+  struct __stack_chunk *stack;
 
-  struct __pthread_thread *joined; /* Thread that wishes to join with this thread */
+  /* Thread that wishes to join with this thread */
+  struct __pthread_thread *joined;
 
-  struct __pthread_key *keys; /* Linked list of keys associated with this thread */
+  /* Linked list of keys associated with this thread */
+  struct __pthread_key *keys;
 
-  pthread_mutex_t *mutex; /* Mutex that the thread is waiting for */
-  enum __pthread_locktype mutextype; /* Type of mutex that the thread is waiting for */
-  pthread_cond_t *cond; /* Condition var that the thread is waiting for */
-  clock_t condtimeout; /* Timeout value for condition var */
-  struct __pthread_thread *nextwait; /* Next thread that is waiting on the same mutex/condition var */
+  /* Mutex that the thread is waiting for */
+  pthread_mutex_t *mutex;
 
-  struct __pthread_cleanup *cleanupfns; /* Linked list of cleanup functions to call when this thread exits */
+  /* Type of mutex that the thread is waiting for */
+  enum __pthread_locktype mutextype;
 
-  unsigned int cancelstate : 1; /* Cancelability state of this thread (enabled or disabled) */
-  unsigned int canceltype : 1; /* Cancelability type (asynchronous or deferred) */
-  unsigned int cancelpending : 1; /* Should this thread be cancelled when it next reaches a cancellation point */
-  unsigned int detachstate : 1; /* Is the thread detached of can it still be joined to */
+  /* Condition var that the thread is waiting for */
+  pthread_cond_t *cond;
+
+  /* Timeout value for condition var */
+  clock_t condtimeout;
+
+  /* Next thread that is waiting on the same mutex/condition var */
+  struct __pthread_thread *nextwait;
+
+  /* Linked list of cleanup functions to call when this thread exits */
+  struct __pthread_cleanup *cleanupfns;
+
+  /* Scheduling parameters. Currently ignored */
+  struct sched_param param;
+
+  /* Cancelability state of this thread (enabled or disabled) */
+  unsigned int cancelstate : 1;
+
+  /* Cancelability type (asynchronous or deferred) */
+  unsigned int canceltype : 1;
+
+  /* Should this thread be cancelled when it next reaches a
+     cancellation point.  */
+  unsigned int cancelpending : 1;
+
+  /* Is the thread detached of can it still be joined to.  */
+  unsigned int detachstate : 1;
 
   __sigset_t blocked; /* Signal mask for this thread. */
   __sigset_t pending; /* Pending signals for this thread */
@@ -173,19 +210,20 @@ extern pthread_t __pthread_running_thread; /* Currently running thread */
 extern int pthread_create (pthread_t *__restrict thread,
 			   const pthread_attr_t *__restrict attr,
 			   void *(*start_routine) (void *),
-			   void *__restrict arg);
+			   void *__restrict arg) __THROW;
 
 /* Exit from the current thread */
 extern void pthread_exit (void *value_ptr) __attribute__ ((__noreturn__));
 
-/* Wait for another thread to finish and get its exit status */
+/* Wait for another thread to finish and get its exit status.
+   This is a cancellation point.  */
 extern int pthread_join (pthread_t thread, void **value_ptr);
 
 /* Detach a thread so all its memory is freed when it exits */
-extern int pthread_detach (pthread_t thread);
+extern int pthread_detach (pthread_t thread) __THROW;
 
 /* Force a context switch as the current thread has nothing to do */
-extern void pthread_yield (void);
+extern void pthread_yield (void) __THROW;
 
 /* Cancellation */
 
@@ -206,10 +244,13 @@ extern void pthread_yield (void);
 
 /* Set whether the current thread can be cancelled or not */
 extern int pthread_setcancelstate (int state, int *oldstate);
+
 /* Set whether the current thread can be cancelled asynchonously or not */
 extern int pthread_setcanceltype (int type, int *oldtype);
+
 /* Introduce a cancellation point into the current thread */
 extern void pthread_testcancel (void);
+
 /* Cancel a thread */
 extern int pthread_cancel (pthread_t thread);
 
@@ -488,6 +529,14 @@ extern void __pthread_start_ticker (void);
 /* Remove the callevery interrupt */
 extern void __pthread_stop_ticker (void);
 
+extern int pthread_setschedparam (pthread_t __thr, int __policy,
+				  const struct sched_param *__param) __THROW;
+
+extern int pthread_getschedparam (const pthread_t __thr,
+				  int __policy, struct sched_param *__param)
+     __THROW;
+
+
 #ifdef __UNIXLIB_INTERNALS
 
 /* Print lots of general debugging info */
@@ -495,14 +544,11 @@ extern void __pthread_stop_ticker (void);
 /* Print debug info for the context switcher */
 /*#define PTHREAD_DEBUG_CONTEXT*/
 
-#ifndef __UNIXLIB_FEATURES_H
-#include <features.h>
-#endif
-
 /* Magic number to check a pthread_t is valid */
 #define PTHREAD_MAGIC 0x52485450
 
-#define __pthread_invalid(thread) (thread == NULL || thread->magic != PTHREAD_MAGIC)
+#define __pthread_invalid(thread) \
+	(thread == NULL || thread->magic != PTHREAD_MAGIC)
 
 /* Holds data about a thread specific key */
 struct __pthread_key
@@ -611,5 +657,8 @@ extern int __pthread_worksemaphore;
 #endif /* __UNIXLIB_INTERNALS */
 
 #endif /* __PTHREAD_H */
+
+__END_DECLS
+
 #endif /* ! __PTHREAD_H */
 

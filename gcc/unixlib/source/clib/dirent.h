@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/dirent.h,v $
- * $Date: 2004/04/12 13:03:37 $
- * $Revision: 1.8 $
+ * $Date: 2004/10/17 16:24:43 $
+ * $Revision: 1.9 $
  * $State: Exp $
- * $Author: nick $
+ * $Author: joty $
  *
  ***************************************************************************/
 
@@ -105,36 +105,48 @@ struct __dir_stream
 #endif /* __UNIXLIB_INTERNALS */
 
 /* Open a directory stream on name. Return a dir stream on
-   the directory, or NULL if it could not be opened.  */
-extern DIR *opendir (const char *__name) __THROW;
+   the directory, or NULL if it could not be opened.
+
+   This is a cancellation point.  */
+extern DIR *opendir (const char *__name) __nonnull ((1)) __wur;
 
 /* Read a directory entry from dirp.
    Return a pointer to a struct dirent describing the entry,
    or NULL for EOF or error.  The storage returned may be overwritten
-   by a later readdir call on the same DIR stream, or by closedir.  */
-extern struct dirent *readdir (DIR *__dirp) __THROW;
+   by a later readdir call on the same DIR stream, or by closedir.
 
-/* Reentrant version of readdir.  */
+   This is a cancellation point.  */
+extern struct dirent *readdir (DIR *__dirp) __nonnull ((1)) __wur;
+
+/* Reentrant version of readdir.  This is a cancellation point.  */
 extern int readdir_r (DIR *__restrict __dirp,
 		      struct dirent *__restrict __entry,
-		      struct dirent **__restrict __result) __THROW;
+		      struct dirent **__restrict __result)
+     __nonnull ((1, 2, 3));
 
+#if defined __USE_BSD || defined __USE_MISC || defined __USE_XOPEN
 /* Return the current position of dirp.  */
-extern __off_t telldir (DIR *__dirp) __THROW;
+extern __off_t telldir (DIR *__dirp) __THROW __nonnull ((1)) __wur;
 
 /* Seek to position pos on dirp.  */
-extern void seekdir (DIR *__dirp, __off_t __pos) __THROW;
+extern void seekdir (DIR *__dirp, __off_t __pos) __THROW __nonnull ((1));
+#endif
 
 /* Rewind DIRP to the beginning of the directory.  */
-extern void rewinddir (DIR *__dirp) __THROW;
+extern void rewinddir (DIR *__dirp) __THROW __nonnull ((1));
 
 /* Close the directory stream dirp. Return 0 if successful,
-   -1 if not.  */
-extern int closedir (DIR *__dirp) __THROW;
+   -1 if not.
 
+   This is a cancellation point.  */
+extern int closedir (DIR *__dirp) __nonnull ((1));
+
+#if defined __USE_GNU
 /* Function to compare two `struct dirent's alphabetically.  */
 extern int alphasort (const struct dirent **__a,
-		      const struct dirent ** __b) __THROW;
+		      const struct dirent ** __b)
+     __THROW __attribute_pure__ __nonnull ((1, 2));
+#endif
 
 /* Scan the directory dir, calling 'select' on each directory entry.
    Entries for which 'select' returns nonzero are individually malloc'd,
@@ -145,7 +157,8 @@ extern int scandir (const char *__restrict __dir,
 		    struct dirent ***__restrict __namelist,
 		    int (*__select)(const struct dirent *),
 		    int (*__cmp)(const struct dirent **,
-				 const struct dirent **)) __THROW;
+				 const struct dirent **))
+     __nonnull ((1, 2));
 
 #if 0
 /* Read directory entries from fd into buf, reading at most nbytes.
@@ -154,7 +167,8 @@ extern int scandir (const char *__restrict __dir,
    end of directory; or -1 for errors.  */
 extern ssize_t getdirentries (int __fd, char *__restrict __buf,
 			      size_t __nbytes,
-			      __off_t *__restrict __basep) __THROW;
+			      __off_t *__restrict __basep)
+     __THROW __nonnull ((2, 4));
 #endif
 
 __END_DECLS

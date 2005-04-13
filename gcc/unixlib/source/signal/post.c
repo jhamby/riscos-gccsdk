@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/signal/post.c,v $
- * $Date: 2005/03/31 09:53:42 $
- * $Revision: 1.22 $
+ * $Date: 2005/04/04 12:01:15 $
+ * $Revision: 1.23 $
  * $State: Exp $
- * $Author: nick $
+ * $Author: peter $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: post.c,v 1.22 2005/03/31 09:53:42 nick Exp $";
+static const char rcs_id[] = "$Id: post.c,v 1.23 2005/04/04 12:01:15 peter Exp $";
 #endif
 
 /* signal.c.post: Written by Nick Burrett, 27 August 1996.  */
@@ -228,7 +228,7 @@ __write_backtrace (int signo)
 	      "v5", "v6", "sl", "fp", "ip", "sp", "lr", "pc" };
 
 	  /* At &oldfp[1] = cpsr, a1-a4, v1-v6, sl, fp, ip, sp, lr, pc */
-	  fprintf(stderr, "\n  Register dump at %p:\n", &oldfp[1]);
+	  fprintf(stderr, "\n  Register dump at %08x:\n", &oldfp[1]);
 
 	  if (__valid_address(oldfp, oldfp + 17))
 	    {
@@ -265,7 +265,7 @@ __write_backtrace (int signo)
 
                   _swix(Debugger_Disassemble, _INR(0,1) | _OUTR(1,2), *diss, diss, &ins, &length);
 
-                   fprintf(stderr, "\n    %08x    ", diss);
+                   fprintf(stderr, "\n    %08x    ", (unsigned int) diss);
                    fwrite(ins, length, 1, stderr);
                 }
             }
@@ -467,7 +467,7 @@ post_signal:
 
 	if (errbuf_valid)
 	  {
-	    fprintf(stderr, "\nError 0x%x: %s\n  pc: %p\n",
+	    fprintf(stderr, "\nError 0x%x: %s\n  pc: %08x\n",
 			    __ul_errbuf.errnum, __ul_errbuf.errmess,
 			    (int *)__ul_errbuf.pc - 1);
 	  }

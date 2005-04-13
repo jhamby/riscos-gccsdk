@@ -9,7 +9,6 @@
 
 #define __need_size_t
 #include <stddef.h>
-#include <errno.h>
 
 __BEGIN_DECLS
 
@@ -33,7 +32,9 @@ typedef void *iconv_t;
  * returned and errno is set. If errno is set to EINVAL, the implementation
  * does not provide support for conversion between fromcode and tocode.
  */
-extern iconv_t iconv_open(const char *tocode, const char *fromcode);
+
+/* This function is a cancellation point.  */
+extern iconv_t iconv_open (const char *__tocode, const char *__fromcode);
 
 /* Perform character set conversion
  * cd must be a conversion descriptor as allocated by iconv_open.
@@ -75,15 +76,18 @@ extern iconv_t iconv_open(const char *tocode, const char *fromcode);
  * If inbuf or *inbuf and outbuf or *outbuf are NULL, cd is reset to the
  * initial conversion state.
  */
-extern size_t iconv(iconv_t cd, char **inbuf, size_t *inbytesleft,
-		char **outbuf, size_t *outbytesleft);
+extern size_t iconv (iconv_t __cd,
+		     char **__restrict __inbuf,
+		     size_t *__restrict __inbytesleft,
+		     char **__restrict __outbuf,
+		     size_t *__restrict __outbytesleft);
 
 /* Deallocate a conversion descriptor cd.
  * Returns 0 on success, -1 on error and sets errno
- */
-extern int iconv_close(iconv_t cd);
+ 
+ This function is a possible cancellation point.  */
+extern int iconv_close (iconv_t __cd);
 
 __END_DECLS
 
 #endif
-

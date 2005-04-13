@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/bsearch.c,v $
- * $Date: 2001/09/04 16:32:03 $
- * $Revision: 1.2.2.2 $
+ * $Date: 2002/02/14 15:56:33 $
+ * $Revision: 1.3 $
  * $State: Exp $
  * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: bsearch.c,v 1.2.2.2 2001/09/04 16:32:03 admin Exp $";
+static const char rcs_id[] = "$Id: bsearch.c,v 1.3 2002/02/14 15:56:33 admin Exp $";
 #endif
 
 #include <unixlib/unix.h>
@@ -17,24 +17,22 @@ static const char rcs_id[] = "$Id: bsearch.c,v 1.2.2.2 2001/09/04 16:32:03 admin
 #include <stdlib.h>
 
 void *
-bsearch (const void *key, const void *base_, size_t nmemb,
+bsearch (const void *key, const void *base, size_t nmemb,
 	 size_t size, int (*compar) (const void *, const void *))
 
 {
-  char *base, *member;
+  char *member;
   int comparison;
-
-  base = (char *) base_;
 
   while (nmemb)
     {
-      member = base + ((nmemb >> 1) * size);
+      member = (char *) ((size_t) base + ((nmemb >> 1) * size));
       comparison = __funcall ((*compar), (key, member));
       if (comparison == 0)
-	return member;
+	return (void *) member;
       if (comparison > 0)
         {
-	  base = member + size;
+	  base = (const void *) ((size_t) member + size);
 	  nmemb = nmemb - (nmemb >> 1) - 1;
 	}
       else

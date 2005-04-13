@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/time/strftime.c,v $
- * $Date: 2001/09/04 16:32:04 $
- * $Revision: 1.3.2.2 $
+ * $Date: 2002/02/14 15:56:38 $
+ * $Revision: 1.4 $
  * $State: Exp $
  * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: strftime.c,v 1.3.2.2 2001/09/04 16:32:04 admin Exp $";
+static const char rcs_id[] = "$Id: strftime.c,v 1.4 2002/02/14 15:56:38 admin Exp $";
 #endif
 
 /* UnixLib port by Nick Burrett, 13 July 1997.  */
@@ -42,15 +42,16 @@ static char *conv (int, const char *, char *, const char *);
 static char *fmt (const char *, const struct tm *, char *,
        	    	  const char *, const char *);
 static char *secs (const struct tm *, char *, const char *);
-static char *territory_convert (char *format, const char *time, char *pt,
-				const char *ptlim);
-static char *territory_standard (int swinum, const char *time, char *pt,
+static char *territory_convert (const char *format, const char *timep,
+				char *pt, const char *ptlim);
+static char *territory_standard (int swinum, const char *timep, char *pt,
 				const char *ptlim);
 
 #define isleap(y) (((y) % 4) == 0 && (((y) % 100) != 0 || ((y) % 400) == 0))
 
 size_t
-strftime (char *s, const size_t maxsize, const char *format, const struct tm *t)
+strftime (char *s, const size_t maxsize,
+	  const char *format, const struct tm *t)
 {
   char *p;
   char riscos_time[6];
@@ -355,13 +356,14 @@ add (const char *str, char *pt, const char *ptlim)
 }
 
 static char *
-territory_convert (char *format, const char *time, char *pt, const char *ptlim)
+territory_convert (const char *format, const char *timep,
+		   char *pt, const char *ptlim)
 {
   int regs[10];
   char buffer[64];
 
   regs[0] = __locale_territory[LC_TIME];
-  regs[1] = (int)time;
+  regs[1] = (int)timep;
   regs[2] = (int)buffer;
   regs[3] = sizeof (buffer) - 1;
   regs[4] = (int)format;
@@ -370,13 +372,13 @@ territory_convert (char *format, const char *time, char *pt, const char *ptlim)
 }
 
 static char *
-territory_standard (int swinum, const char *time, char *pt, const char *ptlim)
+territory_standard (int swinum, const char *timep, char *pt, const char *ptlim)
 {
   int regs[10];
   char buffer[64];
 
   regs[0] = __locale_territory[LC_TIME];
-  regs[1] = (int)time;
+  regs[1] = (int)timep;
   regs[2] = (int)buffer;
   regs[3] = sizeof (buffer) - 1;
   __os_swi (swinum, regs);

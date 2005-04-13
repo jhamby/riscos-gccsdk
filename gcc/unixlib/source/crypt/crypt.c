@@ -1,8 +1,8 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/crypt/Attic/crypt.c,v $
- * $Date: 2002/08/18 21:22:10 $
- * $Revision: 1.1.2.1 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/crypt/crypt.c,v $
+ * $Date: 2002/11/18 15:38:13 $
+ * $Revision: 1.2 $
  * $State: Exp $
  * $Author: admin $
  *
@@ -52,9 +52,7 @@
 #define SBA(sb, v) (*(long32*)((char*)(sb)+(v)))
 
 void
-_ufc_doit_r(itr, __data, res)
-     ufc_long itr, *res;
-     struct crypt_data * __restrict __data;
+_ufc_doit_r (ufc_long itr, struct crypt_data *__data, ufc_long *res)
 {
   int i;
   long32 s, *k;
@@ -98,9 +96,7 @@ _ufc_doit_r(itr, __data, res)
 #define SBA(sb, v) (*(long64*)((char*)(sb)+(v)))
 
 void
-_ufc_doit_r(itr, __data, res)
-     ufc_long itr, *res;
-     struct crypt_data * __restrict __data;
+_ufc_doit_r (ufc_long itr, struct crypt_data *__data, ufc_long *res)
 {
   int i;
   long64 l, r, s, *k;

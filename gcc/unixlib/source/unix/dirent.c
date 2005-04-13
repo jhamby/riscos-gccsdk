@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/dirent.c,v $
- * $Date: 2005/04/02 21:06:15 $
- * $Revision: 1.12 $
+ * $Date: 2005/04/06 20:19:58 $
+ * $Revision: 1.13 $
  * $State: Exp $
  * $Author: alex $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: dirent.c,v 1.12 2005/04/02 21:06:15 alex Exp $";
+static const char rcs_id[] = "$Id: dirent.c,v 1.13 2005/04/06 20:19:58 alex Exp $";
 #endif
 
 /* #define DEBUG */
@@ -177,6 +177,8 @@ opendir (const char *ux_name)
   DIR *stream;
   char name[_POSIX_PATH_MAX];
 
+  PTHREAD_UNSAFE_CANCELLATION
+
   if (ux_name == NULL)
     {
       (void) __set_errno (EINVAL);
@@ -252,6 +254,8 @@ readdir_r (DIR *stream, struct dirent *entry, struct dirent **result)
   int x = 0, slen;
   char *str;
   const int riscosify_ctl = __get_riscosify_control ();
+
+  PTHREAD_UNSAFE_CANCELLATION
 
   *result = NULL;
 
@@ -592,6 +596,8 @@ readdir (DIR *stream)
 {
   struct dirent *result;
 
+  PTHREAD_UNSAFE_CANCELLATION
+
   if (!__validdir (stream))
     {
       (void) __set_errno (EBADF);
@@ -683,7 +689,9 @@ rewinddir (DIR *stream)
 int
 closedir (DIR *stream)
 {
-    int result;
+  int result;
+
+  PTHREAD_UNSAFE_CANCELLATION
 
   if (!__validdir (stream))
     return __set_errno (EBADF);
@@ -705,23 +713,25 @@ scandir (const char *dir, struct dirent ***namelist,
             int (*select)(const struct dirent *),
             int (*cmp)(const struct dirent **, const struct dirent **))
 {
-    DIR *dp;
-    struct dirent **v = NULL;
-    size_t vsize = 0, i;
-    struct dirent *d;
-    int save;
+  DIR *dp;
+  struct dirent **v = NULL;
+  size_t vsize = 0, i;
+  struct dirent *d;
+  int save;
+  
+  PTHREAD_UNSAFE_CANCELLATION
 
-    dp = opendir(dir);
-    if (dp == NULL)
-        return -1;
+  dp = opendir(dir);
+  if (dp == NULL)
+    return -1;
 
-    save = errno;
-    (void) __set_errno(0);
+  save = errno;
+  (void) __set_errno(0);
 
-    i = 0;
-    while ((d = readdir(dp)) != NULL)
-        if (select == NULL || (*select)(d))
-        {
+  i = 0;
+  while ((d = readdir(dp)) != NULL)
+    if (select == NULL || (*select)(d))
+      {
             struct dirent *vnew;
             size_t dsize;
 
