@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/common/objattr.c,v $
- * $Date: 2003/10/06 19:00:00 $
- * $Revision: 1.4 $
+ * $Date: 2003/12/29 19:02:38 $
+ * $Revision: 1.5 $
  * $State: Exp $
- * $Author: joty $
+ * $Author: peter $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: objattr.c,v 1.4 2003/10/06 19:00:00 joty Exp $";
+static const char rcs_id[] = "$Id: objattr.c,v 1.5 2003/12/29 19:02:38 peter Exp $";
 #endif
 
 #include <errno.h>
@@ -18,7 +18,7 @@ static const char rcs_id[] = "$Id: objattr.c,v 1.4 2003/10/06 19:00:00 joty Exp 
 
 #include <unixlib/os.h>
 #include <unixlib/local.h>
-#include <unixlib/swiparams.h>
+#include <internal/swiparams.h>
 
 /* Get an object's filetype, object type, etc and do some common checks.
    Returns nonzero and sets errno on error. Returns riscosified filename

@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/common/riscosify.c,v $
- * $Date: 2005/03/20 15:46:00 $
- * $Revision: 1.18 $
+ * $Date: 2005/04/07 18:39:08 $
+ * $Revision: 1.19 $
  * $State: Exp $
- * $Author: alex $
+ * $Author: nick $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: riscosify.c,v 1.18 2005/03/20 15:46:00 alex Exp $";
+static const char rcs_id[] = "$Id: riscosify.c,v 1.19 2005/04/07 18:39:08 nick Exp $";
 #endif
 
 /* #define DEBUG */
@@ -39,7 +39,7 @@ extern const char __filename_char_map[256];
 #include <unixlib/local.h>
 #include <unixlib/unix.h>
 #include <unixlib/os.h>
-#include <unixlib/swiparams.h>
+#include <internal/swiparams.h>
 #include <pwd.h>
 
 #endif
@@ -50,10 +50,6 @@ extern const char __filename_char_map[256];
 #include <swis.h>
 #include <stdlib.h>
 #include <ctype.h>
-
-#ifndef __GNUC__
-#define __inline__ /**/
-#endif
 
 /* Special directory list.  */
 struct sdir

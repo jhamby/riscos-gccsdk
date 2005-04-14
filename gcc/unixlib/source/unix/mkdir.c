@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/mkdir.c,v $
- * $Date: 2003/10/06 19:00:01 $
- * $Revision: 1.6 $
+ * $Date: 2004/12/11 14:18:57 $
+ * $Revision: 1.7 $
  * $State: Exp $
  * $Author: joty $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: mkdir.c,v 1.6 2003/10/06 19:00:01 joty Exp $";
+static const char rcs_id[] = "$Id: mkdir.c,v 1.7 2004/12/11 14:18:57 joty Exp $";
 #endif
 
 #include <errno.h>
@@ -20,7 +20,7 @@ static const char rcs_id[] = "$Id: mkdir.c,v 1.6 2003/10/06 19:00:01 joty Exp $"
 #include <sys/stat.h>
 
 #include <unixlib/local.h>
-#include <unixlib/swiparams.h>
+#include <internal/swiparams.h>
 
 int
 mkdir (const char *ux_path, __mode_t mode)

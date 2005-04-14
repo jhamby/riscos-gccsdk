@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/unixlib/unix.h,v $
- * $Date: 2005/04/08 22:37:55 $
- * $Revision: 1.26 $
+ * $Date: 2005/04/14 14:31:13 $
+ * $Revision: 1.27 $
  * $State: Exp $
- * $Author: alex $
+ * $Author: nick $
  *
  * UNIX is a registered trademark of AT&T Bell Laboratories
  *
@@ -26,8 +26,8 @@
 #include <unixlib/sigstate.h>
 #endif
 
-#ifndef __UNIXLIB_TTY_H
-#include <unixlib/tty.h>
+#ifndef __INTERNAL_TTY_H
+#include <internal/tty.h>
 #endif
 #ifndef __SETJMP_H
 #include <setjmp.h>
@@ -271,12 +271,12 @@ extern void __free_stack_chain (void *__ptr);
 extern void *__stackalloc_incr_wimpslot (int __incr);
 
 /* Initialise the UnixLib world.  */
-void __unixinit (void);
+extern void __unixinit (void);
 
 /* Free any remaining memory and file descriptors associated with a process */
-void __free_process(struct __sul_process *process);
+extern void __free_process(struct __sul_process *process);
 
-int _main (void);
+extern int _main (void);
 
 extern pid_t __fork_post (pid_t pid, int isfork);
 extern int __fork_pre (int isfork, void **sul_fork, pid_t *pid);

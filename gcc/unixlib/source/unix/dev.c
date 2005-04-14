@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/dev.c,v $
- * $Date: 2005/04/01 16:08:12 $
- * $Revision: 1.31 $
+ * $Date: 2005/04/05 21:32:16 $
+ * $Revision: 1.32 $
  * $State: Exp $
  * $Author: peter $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: dev.c,v 1.31 2005/04/01 16:08:12 peter Exp $";
+static const char rcs_id[] = "$Id: dev.c,v 1.32 2005/04/05 21:32:16 peter Exp $";
 #endif
 
 /* #define DEBUG */
@@ -29,7 +29,7 @@ static const char rcs_id[] = "$Id: dev.c,v 1.31 2005/04/01 16:08:12 peter Exp $"
 #include <unixlib/dev.h>
 #include <unixlib/os.h>
 #include <unixlib/local.h>
-#include <unixlib/swiparams.h>
+#include <internal/swiparams.h>
 #include <unixlib/unix.h>
 
 #define IGNORE(x) {(void) x;}

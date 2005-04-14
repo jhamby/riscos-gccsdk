@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/rmdir.c,v $
- * $Date: 2003/05/13 22:59:47 $
- * $Revision: 1.5 $
+ * $Date: 2003/10/06 19:00:01 $
+ * $Revision: 1.6 $
  * $State: Exp $
  * $Author: joty $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: rmdir.c,v 1.5 2003/05/13 22:59:47 joty Exp $";
+static const char rcs_id[] = "$Id: rmdir.c,v 1.6 2003/10/06 19:00:01 joty Exp $";
 #endif
 
 #include <errno.h>
@@ -20,7 +20,7 @@ static const char rcs_id[] = "$Id: rmdir.c,v 1.5 2003/05/13 22:59:47 joty Exp $"
 #include <swis.h>
 
 #include <unixlib/local.h>
-#include <unixlib/swiparams.h>
+#include <internal/swiparams.h>
 
 int
 rmdir (const char *ux_directory)
@@ -33,8 +33,10 @@ rmdir (const char *ux_directory)
   riscosify_control = __get_riscosify_control ();
   __set_riscosify_control (riscosify_control | __RISCOSIFY_NO_SUFFIX);
 
-  rtrn_get_attrs = __object_get_attrs (ux_directory, directory, sizeof (directory),
-                                       &objtype, NULL, NULL, NULL, NULL, &attr);
+  rtrn_get_attrs = __object_get_attrs (ux_directory,
+				       directory, sizeof (directory),
+                                       &objtype,
+				       NULL, NULL, NULL, NULL, &attr);
 
   /* Restore suffix swapping status.  */
   __set_riscosify_control (riscosify_control);

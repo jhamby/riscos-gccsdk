@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sound/dsp.c,v $
- * $Date: 2004/12/23 21:10:08 $
- * $Revision: 1.9 $
+ * $Date: 2005/03/04 20:59:06 $
+ * $Revision: 1.10 $
  * $State: Exp $
- * $Author: peter $
+ * $Author: alex $
  *
  ***************************************************************************/
 
@@ -38,7 +38,7 @@
 #include <sys/soundcard.h>
 #include <unixlib/os.h>
 #include <unixlib/dev.h>
-#include <unixlib/swiparams.h>
+#include <internal/swiparams.h>
 #include <pthread.h>
 
 #define IGNORE(x) {(void) x;}

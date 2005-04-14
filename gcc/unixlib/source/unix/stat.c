@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/stat.c,v $
- * $Date: 2004/12/11 14:18:57 $
- * $Revision: 1.8 $
+ * $Date: 2005/03/04 20:59:06 $
+ * $Revision: 1.9 $
  * $State: Exp $
- * $Author: joty $
+ * $Author: alex $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: stat.c,v 1.8 2004/12/11 14:18:57 joty Exp $";
+static const char rcs_id[] = "$Id: stat.c,v 1.9 2005/03/04 20:59:06 alex Exp $";
 #endif
 
 #include <errno.h>
@@ -21,7 +21,7 @@ static const char rcs_id[] = "$Id: stat.c,v 1.8 2004/12/11 14:18:57 joty Exp $";
 #include <sys/stat.h>
 
 #include <unixlib/local.h>
-#include <unixlib/swiparams.h>
+#include <internal/swiparams.h>
 #include <unixlib/unix.h>
 #include <pthread.h>
 

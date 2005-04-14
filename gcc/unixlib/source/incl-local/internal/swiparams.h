@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/unixlib/swiparams.h,v $
- * $Date: 2004/10/17 16:24:44 $
- * $Revision: 1.5 $
+ * $Date: 2004/12/11 14:18:57 $
+ * $Revision: 1.6 $
  * $State: Exp $
  * $Author: joty $
  *
  ***************************************************************************/
 
-#ifndef __UNIXLIB_SWIPARAMS_H
-#define __UNIXLIB_SWIPARAMS_H
+#ifndef __INTERNAL_SWIPARAMS_H
+#define __INTERNAL_SWIPARAMS_H
 
 #ifdef __UNIXLIB_INTERNALS
 

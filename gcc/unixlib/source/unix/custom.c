@@ -1,10 +1,10 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sound/dsp.c,v $
- * $Date: 2005/03/04 20:59:06 $
- * $Revision: 1.10 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/custom.c,v $
+ * $Date: 2005/04/05 21:32:16 $
+ * $Revision: 1.1 $
  * $State: Exp $
- * $Author: alex $
+ * $Author: peter $
  *
  ***************************************************************************/
 
@@ -26,7 +26,7 @@
 #include <fcntl.h>
 #include <unixlib/os.h>
 #include <unixlib/dev.h>
-#include <unixlib/swiparams.h>
+#include <internal/swiparams.h>
 
 #define IGNORE(x) {(void) x;}
 

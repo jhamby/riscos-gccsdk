@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/stdio/rename.c,v $
- * $Date: 2003/06/16 23:09:08 $
- * $Revision: 1.6 $
+ * $Date: 2004/12/11 14:18:57 $
+ * $Revision: 1.7 $
  * $State: Exp $
  * $Author: joty $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: rename.c,v 1.6 2003/06/16 23:09:08 joty Exp $";
+static const char rcs_id[] = "$Id: rename.c,v 1.7 2004/12/11 14:18:57 joty Exp $";
 #endif
 
 #include <ctype.h>
@@ -24,7 +24,7 @@ static const char rcs_id[] = "$Id: rename.c,v 1.6 2003/06/16 23:09:08 joty Exp $
 
 #include <unixlib/local.h>
 #include <unixlib/os.h>
-#include <unixlib/swiparams.h>
+#include <internal/swiparams.h>
 
 int
 rename (const char *old_name, const char *new_name)

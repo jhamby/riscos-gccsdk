@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/unixlib/tty.h,v $
- * $Date: 2004/10/17 16:24:44 $
- * $Revision: 1.4 $
+ * $Date: 2005/03/04 20:59:05 $
+ * $Revision: 1.5 $
  * $State: Exp $
- * $Author: joty $
+ * $Author: alex $
  *
  ***************************************************************************/
 
-#ifndef __UNIXLIB_TTY_H
-#define __UNIXLIB_TTY_H
+#ifndef __INTERNAL_TTY_H
+#define __INTERNAL_TTY_H
 
 #ifndef __UNIXLIB_FEATURES_H
 #include <features.h>

@@ -1,3 +1,32 @@
+Thu Apr 14 16:15:32 2005  Nick Burrett  <nick@sqrt.co.uk>
+
+	* clib/unixlib/swiparams.h: Move file ...
+	* incl-local/internal/swiparams.h: ... here.
+
+	* clib/unixlib/tty.h: Move file ...
+	* incl-local/internal/tty.h: ... here.
+
+	* common/objattr.c: Use new swiparams.h location.
+	* common/riscosify.c: Likewise.
+	* common/unixify.c: Likewise.
+	* sound/dsp.c: Likewise.
+	* stdio/rename.c: Likewise.
+	* unix/chmod.c: Likewise.
+	* unix/custom.c: Likewise.
+	* unix/dev.c: Likewise.
+	* unix/dirent.c: Likewise.
+	* unix/fchmod.c: Likewise.
+	* unix/fstat.c: Likewise.
+	* unix/mkdir.c: Likewise.
+	* unix/rmdir.c: Likewise.
+	* unix/stat.c: Likewise.
+	* unix/unix.c: Likewise.
+	* unix/unlink.c: Likewise.
+	* unix/utime.c: Likewise.
+
+	* unixlib/unix.h: Use new tty.h location.
+	* unix/tty.c: Likewise.
+
 Thu Apr 14 15:26:01 2005  Nick Burrett  <nick@sqrt.co.uk>
 
 	Import an accurate IEEE math library
@@ -651,8 +680,8 @@ Sun Jan 23 21:27:23 2005  John Tytgat  <John.Tytgat@aaug.net>
 
 Sun Jan 23 20:27:33 2005  John Tytgat  <John.Tytgat@aaug.net>
 
-	* Docs/ReadMe: Added more info on what <program name> really is; Changed
-	  iconv URL into a version independant link.
+	* Docs/ReadMe: Added more info on what <program name> really is.
+	Changed iconv URL into a version independent link.
 	* source/clib/features.h: Added prototypes for ___program_name (internal)
 	  and __program_name (WEAK public symbol).
 	* source/clib/fenv.h: Updated comment for FE_TONEAREST.

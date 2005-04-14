@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/utime.c,v $
- * $Date: 2003/05/13 22:59:47 $
- * $Revision: 1.5 $
+ * $Date: 2004/12/11 14:18:57 $
+ * $Revision: 1.6 $
  * $State: Exp $
  * $Author: joty $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: utime.c,v 1.5 2003/05/13 22:59:47 joty Exp $";
+static const char rcs_id[] = "$Id: utime.c,v 1.6 2004/12/11 14:18:57 joty Exp $";
 #endif
 
 #include <errno.h>
@@ -20,7 +20,7 @@ static const char rcs_id[] = "$Id: utime.c,v 1.5 2003/05/13 22:59:47 joty Exp $"
 
 #include <unixlib/os.h>
 #include <unixlib/local.h>
-#include <unixlib/swiparams.h>
+#include <internal/swiparams.h>
 
 int
 utime (const char *ux_filename, const struct utimbuf *times)

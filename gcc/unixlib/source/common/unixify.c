@@ -1,17 +1,17 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/common/unixify.c,v $
- * $Date: 2005/03/20 15:46:00 $
- * $Revision: 1.12 $
+ * $Date: 2005/04/13 19:20:06 $
+ * $Revision: 1.13 $
  * $State: Exp $
- * $Author: alex $
+ * $Author: nick $
  *
  ***************************************************************************/
 
 #include <errno.h>
 #include <string.h>
 #include <unixlib/local.h>
-#include <unixlib/swiparams.h>
+#include <internal/swiparams.h>
 #include <unixlib/os.h>
 #include <stdlib.h>
 #include <ctype.h>

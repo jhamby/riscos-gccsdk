@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/unlink.c,v $
- * $Date: 2004/02/07 18:09:19 $
- * $Revision: 1.8 $
+ * $Date: 2004/12/11 14:18:57 $
+ * $Revision: 1.9 $
  * $State: Exp $
- * $Author: alex $
+ * $Author: joty $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: unlink.c,v 1.8 2004/02/07 18:09:19 alex Exp $";
+static const char rcs_id[] = "$Id: unlink.c,v 1.9 2004/12/11 14:18:57 joty Exp $";
 #endif
 
 #include <errno.h>
@@ -19,7 +19,7 @@ static const char rcs_id[] = "$Id: unlink.c,v 1.8 2004/02/07 18:09:19 alex Exp $
 
 #include <unixlib/os.h>
 #include <unixlib/local.h>
-#include <unixlib/swiparams.h>
+#include <internal/swiparams.h>
 
 /* Removes the suffix swap directory if it is empty.
    The filename passed to it is modified. */
