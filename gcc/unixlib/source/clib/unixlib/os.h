@@ -1,8 +1,8 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/unixlib/os.h,v $
- * $Date: 2005/04/07 18:38:02 $
- * $Revision: 1.6 $
+ * $Date: 2005/04/14 12:13:09 $
+ * $Revision: 1.7 $
  * $State: Exp $
  * $Author: nick $
  *
@@ -50,11 +50,11 @@ extern int __os_423flush (void) __THROW;
 extern int __os_423break (int) __THROW;
 
 extern _kernel_oserror *__os_swi (int swinum, int *regs /* 10 reg */ )
-     __THROW __nonnull ((2)) __wur;
+     __THROW __nonnull ((2));
 
 extern _kernel_oserror *__os_byte (int a, int x, int y,
 				   int *result /* 3 reg */ )
-     __THROW __nonnull ((4)) __wur;
+     __THROW;
 
 extern _kernel_oserror *__os_word (int,void *)
      __THROW __nonnull ((2)) __wur;

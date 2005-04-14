@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/unix.c,v $
- * $Date: 2005/04/07 18:35:54 $
- * $Revision: 1.40 $
+ * $Date: 2005/04/08 22:37:55 $
+ * $Revision: 1.41 $
  * $State: Exp $
- * $Author: nick $
+ * $Author: alex $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: unix.c,v 1.40 2005/04/07 18:35:54 nick Exp $";
+static const char rcs_id[] = "$Id: unix.c,v 1.41 2005/04/08 22:37:55 alex Exp $";
 #endif
 
 #include <stdio.h>
@@ -26,6 +26,8 @@ static const char rcs_id[] = "$Id: unix.c,v 1.40 2005/04/07 18:35:54 nick Exp $"
 #include <swis.h>
 #include <termios.h>
 #include <time.h>
+
+#include <fpu_control.h>
 
 #include <sys/param.h>
 #include <sys/wait.h>
@@ -339,7 +341,11 @@ void __unixinit (void)
   convert_command_line (__u, cli, cli_size);
   free (cli);
 
-  __unixlib_set_fpstatus (__unixlib_get_fpstatus() & 0xff02ffff);
+  /* The libm code requires strict IEEE double precision arithmetic.
+     The compiler generates code assuming that the AC bit is turned on.
+     See fpu_control.h for further information.  */
+  /* _FPU_SETCW (_FPU_IEEE); */
+  _FPU_SETCW (_FPU_DEFAULT);
 
 #ifdef DEBUG
   __debug ("__unixinit: process creation complete");

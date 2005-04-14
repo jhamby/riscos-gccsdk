@@ -2,8 +2,8 @@
 # Create various UnixLib Makefiles
 #
 # $Source: /usr/local/cvsroot/gccsdk/unixlib/gen-makefiles.pl,v $
-# $Date: 2004/10/17 16:24:43 $
-# $Revision: 1.7 $
+# $Date: 2005/01/05 23:10:54 $
+# $Revision: 1.8 $
 # $State: Exp $
 # $Author: joty $
 
@@ -35,6 +35,8 @@ my @srcs;
 my @objs;
 my @hdrs;
 my @hdrdirs;
+my @hdrs_lcl;
+my @hdrdirs_lcl;
 
 # Find all source files
 sub find_files {
@@ -105,14 +107,15 @@ if ($findstubs) {
 # Find all header files in source/clib
 sub find_headers {
   my $dir = $_[0];
+  my $subdir = $_[1];
   my @entries = glob("$dir/*");
   my $entry;
   foreach $entry (@entries) {
-    $entry =~ s/^source\/clib\///;
+    $entry =~ s/^source\/$subdir\///;
     next if $entry =~ m/(CVS)|(.svn)/;
-    if (-d "source/clib/$entry") {
+    if (-d "source/$subdir/$entry") {
       push @hdrdirs, $entry;
-      find_headers("source/clib/$entry");
+      find_headers("source/$subdir/$entry", "$subdir");
     } else {
       if ($entry =~ m/\.[hs]$/) {
         push @hdrs, $entry;
@@ -121,7 +124,27 @@ sub find_headers {
   }
 }
 
-find_headers("source/clib");
+#sub find_headers_lcl {
+#  my $dir = $_[0];
+#  my $subdir = $_[1];
+#  my @entries = glob("$dir/*");
+#  my $entry;
+#  foreach $entry (@entries) {
+#    $entry =~ s/^source\/$subdir\///;
+#    next if $entry =~ m/(CVS)|(.svn)/;
+#    if (-d "source/$subdir/$entry") {
+#      push @hdrdirs_lcl, $entry;
+#      find_headers("source/$subdir/$entry", "$subdir");
+#    } else {
+#      if ($entry =~ m/\.[hs]$/) {
+#        push @hdrs_lcl, $entry;
+#      }
+#    }
+#  }
+#}
+
+find_headers ("source/clib", "clib");
+#find_headers_lcl ("source/incl-local", "incl-local");
 
 
 # Write unixlib/Makefile
@@ -222,7 +245,7 @@ while (<SRCMAKEFILEIN>) {
         if ($dynamicdeps) {
           my $dir = $src;
           $dir =~ s/[^\/]*$//;
-          print SRCMAKEFILE "\$(libunixobj)/$dir".`(cd source; gcc -M -isystem clib -D__UNIXLIB_INTERNALS $src)`;
+          print SRCMAKEFILE "\$(libunixobj)/$dir".`(cd source; gcc -M -isystem clib -I incl-local -D__UNIXLIB_INTERNALS $src)`;
         } else {
           print SRCMAKEFILE "\$(libunixobj)/$obj\: $src\n";
         }

@@ -350,7 +350,6 @@ __MATHDECL_1 (int, __fpclassify,, (_Mdouble_ __value))
 __MATHDECL_1 (int, __signbit,, (_Mdouble_ __value))
      __attribute__ ((__const__));
 
-
 /* Multiply-add function computed as a ternary operation.  */
 __MATHCALL (fma,, (_Mdouble_ __x, _Mdouble_ __y, _Mdouble_ __z));
 __END_NAMESPACE_C99

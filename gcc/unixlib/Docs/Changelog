@@ -1,3 +1,61 @@
+Thu Apr 14 15:26:01 2005  Nick Burrett  <nick@sqrt.co.uk>
+
+	Import an accurate IEEE math library
+	* bits/fenv.h: New file.
+	* bits/huge_valf.h: New file.
+	* bits/huge_vall.h: New file.
+	* bits/huge_val.h: Split into it's constituent parts.
+	* bits/inf.h: New file.
+	* bits/nan.h: Use builtin for GCC 3.3 and later.
+	* bits/cmathcalls.h: Bring in line with new math library.
+	* bits/mathcalls.h: Likewise.
+	* bits/mathdef.h: Likewise.
+	* bits/mathinline.h: Likewise.
+	* fenv.h: Likewise.
+	* math.h: Likewise.
+	* complex.h: Likewise.
+	* fpu_control.h: New file.
+	* ieee754.h: Moved here from machine/ieee754.h.
+	* endian.h: Moved here from machine/endian.h.
+
+	* complex: Delete directory.
+	* math: Delete directory.
+	* math-asm: Delete directory.
+
+	* fenv: New directory.
+	* libm-complex: New directory.
+	* libm-dbl64: New directory.
+	* libm-flt32: New directory.
+	* libm-generic: New directory.
+	* libm-support: New directory.
+
+	* fpu_control.h (__unixlib_get_fpstatus): Moved here from
+	unixlib/unix.h.
+	(__unixlib_set_fpstatus): Likewise.
+	* unixlib/unix.h: Delete above prototypes.
+
+	* incl-local: New directory.  Container for all UnixLib build
+	specific header files.
+	* incl-local/README: New file.
+	* incl-local/math_private.h: New file, for source code compatibility
+	with main libm library.
+	* incl-local/internal/math.h: Renamed from unixlib/math.h
+	and updated for new IEEE math library.
+
+	* Makefile.in (INCLUDES): Use 'incl-local'.
+	(LIBM_FLAGS): Define.
+	(CROSS_CFLAGS): Include LIBM_FLAGS.
+	(WARNINGS): Drop -Wno-long-long.
+	* gen-makefiles.pl (find_headers): Support multiple include dirs.
+	Search 'incl-local' for headers.
+
+	* clib/stdio_ext.h: Delete file.
+	* incl-local/stdio_ext.h: New blank file.
+	* clib/stdio-common/stdio_ext.h: Delete file.
+
+	* unixlib/os.h (__os_swi): Remove __wur.
+	(__os_byte): Remove __nonnull and __wur.
+
 Thu Apr 14 13:12:07 2005  Nick Burrett  <nick@sqrt.co.uk>
 
 	* grp.h: Improve namespace and type conformance.

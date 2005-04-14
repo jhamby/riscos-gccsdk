@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/unixlib/unix.h,v $
- * $Date: 2005/03/21 12:14:54 $
- * $Revision: 1.25 $
+ * $Date: 2005/04/08 22:37:55 $
+ * $Revision: 1.26 $
  * $State: Exp $
- * $Author: peter $
+ * $Author: alex $
  *
  * UNIX is a registered trademark of AT&T Bell Laboratories
  *
@@ -246,10 +246,6 @@ extern void __unixlib_signal_initialise (struct proc *__p);
 
 /* Resource limit initialisation */
 extern void __resource_initialise (struct proc *__p);
-
-/* Floating point status register access */
-extern unsigned int __unixlib_get_fpstatus(void);
-extern void __unixlib_set_fpstatus(unsigned int status);
 
 /* Stack manipulation */
 

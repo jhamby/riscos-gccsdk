@@ -1,22 +1,26 @@
 # Makefile for UnixLib for the ARM/RISC OS GCC port
 # Copyright (c) 2000, 2001 Nick Burrett
-# Written by Nick Burrett <nick@dsvr.net>
+# Copyright (c) 2004, 2005 UnixLib Developers
 #
-# This file is part of the GNU Compiler Collection
+# This file is part of UnixLib
 #
 
 # Defs for GCC
 WARNINGS = -pedantic -Wall -Wundef -Wpointer-arith \
           -Wcast-align -Wwrite-strings -Wstrict-prototypes \
           -Wmissing-prototypes -Wmissing-declarations -Wnested-externs \
-          -Winline -Wno-unused -Wno-long-long -W -Wcast-qual -Wshadow
+          -Winline -Wno-unused -W -Wcast-qual -Wshadow
+
+# IBM MathLib flags.  The ARM FPA represents FP words in big-endian
+# format with the word-order swapped.
+LIBM_FLAGS = -DBIG_ENDI -DHIGH_HALF=0 -DLOW_HALF=1
 
 # C99 mode is required to build UnixLib because the library now contains
 # a lot of C99 features.
-CROSS_CFLAGS += -D__UNIXLIB_INTERNALS $(WARNINGS) -D_GNU_SOURCE=1 -std=c99
+CROSS_CFLAGS += -D__UNIXLIB_INTERNALS $(WARNINGS) -D_GNU_SOURCE=1 -std=c99 \
+	$(LIBM_FLAGS)
 
-#CROSS_CFLAGS += -D__UNIXLIB_INTERNALS -pedantic -Wall -Wno-long-long
-INCLUDES = -isystem clib
+INCLUDES = -isystem clib -I incl-local
 
 libunixobj=$(objdir)/unixlib/$(TRG)
 

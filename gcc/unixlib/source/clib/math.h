@@ -32,9 +32,15 @@ __BEGIN_DECLS
    On all IEEE754 machines, this is +Infinity.  */
 #include <bits/huge_val.h>
 
-/* Get machine-dependent NAN value (returned for some domain errors).  */
 #ifdef	 __USE_ISOC99
+# include <bits/huge_valf.h>
+# include <bits/huge_vall.h>
+
+/* Get machine-dependent NAN value (returned for some domain errors).  */
 # include <bits/nan.h>
+
+/* Get machine-dependent Infinity value.  */
+# include <bits/inf.h>
 #endif
 /* Get general and ISO C99 specific information.  */
 #include <bits/mathdef.h>
@@ -177,9 +183,6 @@ enum
 # define FP_NORMAL FP_NORMAL
   };
 
-extern int fpclassify (double __x)  __THROW __attribute__ ((__const__));
-
-#if 0
 /* Return number of classification appropriate for X.  */
 # ifdef __NO_LONG_DOUBLE_MATH
 #  define fpclassify(x) \
@@ -191,7 +194,6 @@ extern int fpclassify (double __x)  __THROW __attribute__ ((__const__));
       : sizeof (x) == sizeof (double)					      \
       ? __fpclassify (x) : __fpclassifyl (x))
 # endif
-#endif
 
 /* Return nonzero value if sign of X is negative.  */
 # ifdef __NO_LONG_DOUBLE_MATH
@@ -220,7 +222,6 @@ extern int fpclassify (double __x)  __THROW __attribute__ ((__const__));
 /* Return nonzero value if X is neither zero, subnormal, Inf, nor NaN.  */
 # define isnormal(x) (fpclassify (x) == FP_NORMAL)
 
-#if 0
 /* Return nonzero value if X is a NaN.  We could use `fpclassify' but
    we already have this functions `__isnan' and it is faster.  */
 # ifdef __NO_LONG_DOUBLE_MATH
@@ -245,15 +246,6 @@ extern int fpclassify (double __x)  __THROW __attribute__ ((__const__));
       : sizeof (x) == sizeof (double)					      \
       ? __isinf (x) : __isinfl (x))
 # endif
-#endif
-
-/* Return 1 if x is infinite, else 0. */
-extern int isinf (double __x) __THROW __attribute__ ((__const__));
-
-/* Return 1 if x is Not A Number, else 0.  */
-extern int isnan (double __x) __THROW __attribute__ ((__const__));
-
-
 
 /* Bitmasks for the math_errhandling macro.  */
 # define MATH_ERRNO	1	/* errno set by math functions.  */
@@ -456,22 +448,6 @@ extern int matherr (struct exception *__exc);
 #  endif
 # endif
 
-#endif
-
-#ifdef __UNIXLIB_INTERNALS
-/* Internals used by lgamma().  */
-extern double __kernel_sin (double __x, double __y,
-			    int __iy) __THROW __attribute__ ((__const__));
-extern double __kernel_cos (double __x,
-			    double __y) __THROW __attribute__ ((__const__));
-extern void __sincos (double __x, double *__sinx,
-		      double *__cosx) __THROW __attribute__ ((__const__));
-
-/* Internal function used by rem_pio2().  */
-#include <unixlib/types.h>
-extern int __kernel_rem_pio2 (double *__x, double *__y,
-			      int __e0, int __nx, int __prec,
-			      const __int32_t *__ipio2);
 #endif
 
 __END_DECLS
