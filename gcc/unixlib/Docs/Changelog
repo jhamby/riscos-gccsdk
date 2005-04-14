@@ -1,3 +1,7 @@
+Thu Apr 14 23:59:26 2005  John-Mark Bell <jmb202@ecs.soton.ac.uk>
+
+	* endian.h: Update missed file
+
 Thu Apr 14 17:01:30 2005  Nick Burrett  <nick@sqrt.co.uk>
 
 	* search.h: New file.
