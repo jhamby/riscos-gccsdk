@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source$
- * $Date$
- * $Revision$
- * $State$
- * $Author$
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/grp/getgrnam_r.c,v $
+ * $Date: 2003/01/21 17:54:22 $
+ * $Revision: 1.3 $
+ * $State: Exp $
+ * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id$";
+static const char rcs_id[] = "$Id: getgrnam_r.c,v 1.3 2003/01/21 17:54:22 admin Exp $";
 #endif
 
 /* Search for an entry with a matching group name (re-entrant version). */
@@ -19,6 +19,7 @@ static const char rcs_id[] = "$Id$";
 #include <string.h>
 #include <grp.h>
 #include <errno.h>
+#include <pthread.h>
 
 /* Search for an entry with a matching name.  */
 int
@@ -27,6 +28,8 @@ getgrnam_r (const char *name, struct group *result_buf, char *buffer,
 {
   FILE *stream;
   struct group *grp;
+
+  PTHREAD_SAFE_CANCELLATION
 
   if (result_buf == NULL || buffer == NULL)
     return __set_errno (EINVAL);

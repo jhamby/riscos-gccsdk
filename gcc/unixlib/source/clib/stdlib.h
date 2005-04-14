@@ -1,8 +1,8 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/stdlib.h,v $
- * $Date: 2005/04/07 18:34:11 $
- * $Revision: 1.17 $
+ * $Date: 2005/04/13 19:20:05 $
+ * $Revision: 1.18 $
  * $State: Exp $
  * $Author: nick $
  *
@@ -208,8 +208,11 @@ __END_NAMESPACE_STD
 
 #ifdef __USE_ISOC99
 __BEGIN_NAMESPACE_C99
-__extension__
-extern lldiv_t lldiv (long long __numer, long long __denom)
+
+__extension__ extern long long int llabs (long long int __x)
+     __THROW __attribute__ ((__const__)) __wur;
+     
+__extension__ extern lldiv_t lldiv (long long __numer, long long __denom)
      __THROW __attribute__ ((__const__)) __wur;
 __END_NAMESPACE_C99
 #endif
@@ -266,7 +269,7 @@ extern long int strtol (const char *__restrict __nptr,
 extern unsigned long int strtoul (const char *__restrict __nptr,
 				  char **__restrict __endptr, int __base)
      __THROW __nonnull ((1)) __wur;
-__END_NAMESPACE_C99
+__END_NAMESPACE_STD
 
 #if defined __USE_ISOC99 || (defined __GLIBC_HAVE_LONG_LONG && defined __USE_MISC)
 __BEGIN_NAMESPACE_C99

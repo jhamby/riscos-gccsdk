@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/resource/ulimit.c,v $
- * $Date: 2004/06/12 08:59:48 $
- * $Revision: 1.4 $
+ * $Date: 2005/04/13 19:20:06 $
+ * $Revision: 1.5 $
  * $State: Exp $
- * $Author: peter $
+ * $Author: nick $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: ulimit.c,v 1.4 2004/06/12 08:59:48 peter Exp $";
+static const char rcs_id[] = "$Id: ulimit.c,v 1.5 2005/04/13 19:20:06 nick Exp $";
 #endif
 
 #include <sys/resource.h>
@@ -18,6 +18,7 @@ static const char rcs_id[] = "$Id: ulimit.c,v 1.4 2004/06/12 08:59:48 peter Exp 
 #include <errno.h>
 #include <stdio.h>
 #include <ulimit.h>
+#include <stdarg.h>
 
 /* Function depends on CMD:
    1 = Return the limit on the size of a file, in units of 512 bytes.
@@ -27,14 +28,15 @@ static const char rcs_id[] = "$Id: ulimit.c,v 1.4 2004/06/12 08:59:48 peter Exp 
    4 = Return the maximum number of files that the calling process
    can open.
    Returns -1 on errors.  */
-long int
-ulimit (int cmd, int newlimit)
+long int ulimit (int cmd, ...)
 {
   int status;
+  va_list ap;
+  va_start (ap, cmd);
 
   switch (cmd)
     {
-    case 1:
+    case UL_GETFSIZE:
       {
 	/* Get limit on file size.  */
 	struct rlimit fsize;
@@ -46,16 +48,17 @@ ulimit (int cmd, int newlimit)
 	/* Convert from bytes to 512 byte units.  */
 	return ((long int) fsize.rlim_cur) / 512;
       }
-    case 2:
+    case UL_SETFSIZE:
       /* Set limit on file size.  */
       {
 	struct rlimit fsize;
-	fsize.rlim_cur = (int) newlimit *512;
-	fsize.rlim_max = (int) newlimit *512;
+	int newlimit = va_arg (ap, int);
+	fsize.rlim_cur = (int) newlimit * 512;
+	fsize.rlim_max = (int) newlimit * 512;
 
 	return setrlimit (RLIMIT_FSIZE, &fsize);
       }
-    case 3:
+    case __UL_GETMAXBRK:
       /* Get maximum address for `brk'.  This lies between
          __image_rw_lomem and __image_rw_lomem + current limit on address size.  */
       {
@@ -66,7 +69,7 @@ ulimit (int cmd, int newlimit)
 
 	return ((long int) &__image_rw_lomem) + dsize.rlim_cur;
       }
-    case 4:
+    case __UL_GETOPENMAX:
       return FOPEN_MAX;
 
     default:

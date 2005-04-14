@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/sync.c,v $
- * $Date: 2003/04/05 09:33:57 $
- * $Revision: 1.4 $
+ * $Date: 2005/03/04 20:59:06 $
+ * $Revision: 1.5 $
  * $State: Exp $
  * $Author: alex $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: sync.c,v 1.4 2003/04/05 09:33:57 alex Exp $";
+static const char rcs_id[] = "$Id: sync.c,v 1.5 2005/03/04 20:59:06 alex Exp $";
 #endif
 
 #include <errno.h>
@@ -21,29 +21,19 @@ static const char rcs_id[] = "$Id: sync.c,v 1.4 2003/04/05 09:33:57 alex Exp $";
 #include <unixlib/fd.h>
 #include <pthread.h>
 
-int
-sync (void)
+/* This function is always successful.  */
+void sync (void)
 {
-  _kernel_oserror *err;
-
   /* Ensure data has been written to all files on temporary filing system.  */
-  err = __os_args (255, 0, 0, NULL);
-  if (err)
-    {
-      __seterr (err);
-      return -1;
-    }
-
-  return 0;
+  __os_args (255, 0, 0, NULL);
 }
 
-int
-fsync (int fd)
+int fsync (int fd)
 {
   _kernel_oserror *err;
   struct __unixlib_fd *file_desc;
 
-  PTHREAD_UNSAFE
+  PTHREAD_UNSAFE_CANCELLATION
 
   if (BADF (fd))
     return __set_errno (EBADF);

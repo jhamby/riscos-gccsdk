@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/dirent.h,v $
- * $Date: 2004/10/17 16:24:43 $
- * $Revision: 1.9 $
+ * $Date: 2005/04/13 19:20:05 $
+ * $Revision: 1.10 $
  * $State: Exp $
- * $Author: joty $
+ * $Author: nick $
  *
  ***************************************************************************/
 
@@ -28,15 +28,24 @@ __BEGIN_DECLS
 
 #define MAXNAMLEN 255
 
+#ifndef __ino_t_defined
+typedef __ino_t ino_t;
+#define __ino_t_defined
+#endif
+
 /* This isn't really how ADFS stores files in a directory, but
    since no I/O is permitted on directories anyway this doesn't
    really matter.  */
-
 struct dirent
 {
-  __ino_t	d_fileno;		/* file number of entry */
-  size_t	d_namlen;		/* length of d_name */
-  unsigned char d_type;			/* file type, possibly unknown */
+  /* File number of entry.  */
+  ino_t	d_fileno;
+
+  /* Length of d_name.  */
+  size_t d_namlen;
+
+  /* File type, possibly unknown.  */
+  unsigned char d_type;
 
   /* FIXME:  Should be a macro constant, but causing difficulties
      with namespace at the moment.  */
@@ -46,6 +55,7 @@ struct dirent
 /* For backwards compatibility with BSD.  */
 #define d_ino	d_fileno
 
+#ifdef __USE_BSD
 /* BSD file types for d_type.  */
 enum
   {
@@ -63,6 +73,7 @@ enum
    directory types.  */
 #define IFTODT(mode) (((mode) & 0170000) >> 12)
 #define DTTOIF(dirtype) ((dirtype) << 12)
+#endif
 
 typedef struct __dir_stream DIR;
 
@@ -126,10 +137,10 @@ extern int readdir_r (DIR *__restrict __dirp,
 
 #if defined __USE_BSD || defined __USE_MISC || defined __USE_XOPEN
 /* Return the current position of dirp.  */
-extern __off_t telldir (DIR *__dirp) __THROW __nonnull ((1)) __wur;
+extern long int telldir (DIR *__dirp) __THROW __nonnull ((1)) __wur;
 
 /* Seek to position pos on dirp.  */
-extern void seekdir (DIR *__dirp, __off_t __pos) __THROW __nonnull ((1));
+extern void seekdir (DIR *__dirp, long int __pos) __THROW __nonnull ((1));
 #endif
 
 /* Rewind DIRP to the beginning of the directory.  */
@@ -148,17 +159,18 @@ extern int alphasort (const struct dirent **__a,
      __THROW __attribute_pure__ __nonnull ((1, 2));
 #endif
 
+#if defined __USE_BSD || defined __USE_MISC
 /* Scan the directory dir, calling 'select' on each directory entry.
    Entries for which 'select' returns nonzero are individually malloc'd,
    sorted using qsort with 'cmp', and collected in a malloc'd array in
    *namelist.  Returns the number of entries selected, or -1 on error.  */
-
 extern int scandir (const char *__restrict __dir,
 		    struct dirent ***__restrict __namelist,
 		    int (*__select)(const struct dirent *),
 		    int (*__cmp)(const struct dirent **,
 				 const struct dirent **))
      __nonnull ((1, 2));
+#endif
 
 #if 0
 /* Read directory entries from fd into buf, reading at most nbytes.

@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/glob.h,v $
- * $Date: 2004/04/12 13:03:37 $
- * $Revision: 1.6 $
+ * $Date: 2004/10/17 16:24:43 $
+ * $Revision: 1.7 $
  * $State: Exp $
- * $Author: nick $
+ * $Author: joty $
  *
  ***************************************************************************/
 
@@ -14,6 +14,9 @@
 #ifndef __UNIXLIB_FEATURES_H
 #include <features.h>
 #endif
+
+#define __need_size_t
+#include <stddef.h>
 
 #undef __ptr_t
 #define __ptr_t void *
@@ -29,11 +32,8 @@ __BEGIN_DECLS
 #define	GLOB_APPEND	(1 << 5)/* Append to results of a previous call.  */
 #define	GLOB_NOESCAPE	(1 << 6)/* Backslashes don't quote metacharacters.  */
 #define	GLOB_PERIOD	(1 << 7)/* Leading `.' can be matched by metachars.  */
-#define	__GLOB_FLAGS	(GLOB_ERR|GLOB_MARK|GLOB_NOSORT|GLOB_DOOFFS| \
-			 GLOB_NOESCAPE|GLOB_NOCHECK|GLOB_APPEND|     \
-			 GLOB_PERIOD|GLOB_ALTDIRFUNC|GLOB_BRACE|     \
-			 GLOB_NOMAGIC|GLOB_TILDE)
 
+#if !defined __USE_POSIX2 || defined __USE_BSD || defined __USE_GNU
 /* GNU and BSD extensions to the glob function.  */
 #define	GLOB_MAGCHAR	(1 << 8)/* Set in gl_flags if any metachars seen.  */
 #define GLOB_ALTDIRFUNC	(1 << 9)/* Use gl_opendir et al functions.  */
@@ -41,6 +41,15 @@ __BEGIN_DECLS
 #define GLOB_NOMAGIC	(1 << 11)/* If no magic chars, return the pattern.  */
 #define GLOB_TILDE	(1 << 12)/* Expand ~user and ~ to home directories.  */
 #define GLOB_QUOTE (1 << 13) /* \ inhibits any meaning the following char has */
+#define	__GLOB_FLAGS	(GLOB_ERR|GLOB_MARK|GLOB_NOSORT|GLOB_DOOFFS| \
+			 GLOB_NOESCAPE|GLOB_NOCHECK|GLOB_APPEND|     \
+			 GLOB_PERIOD|GLOB_ALTDIRFUNC|GLOB_BRACE|     \
+			 GLOB_NOMAGIC|GLOB_TILDE)
+#else
+#define __GLOB_FLAGS   (GLOB_ERR|GLOB_MARK|GLOB_NOSORT|GLOB_DOOFFS| \
+                        GLOB_NOESCAPE|GLOB_NOCHECK|GLOB_APPEND|     \
+                        GLOB_PERIOD)
+#endif
 
 /* Error returns from `glob'.  */
 #define	GLOB_NOSPACE	1	/* Ran out of memory.  */
@@ -64,11 +73,11 @@ struct stat;
 typedef struct
   {
     /* Count of paths matched by the pattern.  */
-    int gl_pathc;
+    size_t gl_pathc;
     /* List of matched pathnames.  */
     char **gl_pathv;
     /* Slots to reserve in `gl_pathv'.  */
-    int gl_offs;
+    size_t gl_offs;
     /* Set to FLAGS, maybe | GLOB_MAGCHAR.  */
     int gl_flags;
     /* Number of matches in current invoc. of glob */

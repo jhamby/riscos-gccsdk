@@ -1,29 +1,30 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/pwd/c/getpw,v $
- * $Date: 1997/10/09 20:00:25 $
- * $Revision: 1.5 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/pwd/getpw.c,v $
+ * $Date: 2001/01/29 15:10:20 $
+ * $Revision: 1.2 $
  * $State: Exp $
- * $Author: unixlib $
+ * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: getpw,v 1.5 1997/10/09 20:00:25 unixlib Exp $";
+static const char rcs_id[] = "$Id: getpw.c,v 1.2 2001/01/29 15:10:20 admin Exp $";
 #endif
 
 #include <errno.h>
 #include <stdio.h>
 #include <pwd.h>
-
+#include <pthread.h>
 
 /* Re-construct the password-file line for the given uid
    in the given buffer.  This knows the format that the caller
    will expect, but this need not be the format of the password file.  */
-int
-getpw (__uid_t uid, char *buf)
+int getpw (uid_t uid, char *buf)
 {
-  register struct passwd *p;
+  struct passwd *p;
+
+  PTHREAD_UNSAFE_CANCELLATION
 
   if (buf == NULL)
     {

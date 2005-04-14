@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/dirent.c,v $
- * $Date: 2005/04/06 20:19:58 $
- * $Revision: 1.13 $
+ * $Date: 2005/04/13 19:20:06 $
+ * $Revision: 1.14 $
  * $State: Exp $
- * $Author: alex $
+ * $Author: nick $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: dirent.c,v 1.13 2005/04/06 20:19:58 alex Exp $";
+static const char rcs_id[] = "$Id: dirent.c,v 1.14 2005/04/13 19:20:06 nick Exp $";
 #endif
 
 /* #define DEBUG */
@@ -591,12 +591,11 @@ readdir_r (DIR *stream, struct dirent *entry, struct dirent **result)
    of the returned result. Multiple readers on the same DIR stream is not
    reentrant.  */
 
-struct dirent *
-readdir (DIR *stream)
+struct dirent *readdir (DIR *stream)
 {
   struct dirent *result;
 
-  PTHREAD_UNSAFE_CANCELLATION
+  PTHREAD_SAFE_CANCELLATION
 
   if (!__validdir (stream))
     {
@@ -610,8 +609,7 @@ readdir (DIR *stream)
 }
 
 /* Return the file position of the directory stream. */
-off_t
-telldir (DIR *stream)
+long int telldir (DIR *stream)
 {
   if (__validdir (stream))
     {
@@ -626,13 +624,12 @@ telldir (DIR *stream)
 
 /* Set the file position of the directory stream to pos. */
 
-void
-seekdir (DIR *stream, off_t pos)
+void seekdir (DIR *stream, long int pos)
 {
   if (__validdir (stream))
     {
-        __off_t sufpos;
-
+      long int sufpos;
+      
       /* If we were doing a suffix dir enumeration, close the suffix
          stream.  If needed, a new one will be created automatically. */
       if (stream->suffix != NULL)

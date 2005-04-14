@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/unixlib/os.h,v $
- * $Date: 2004/10/23 17:23:36 $
- * $Revision: 1.5 $
+ * $Date: 2005/04/07 18:38:02 $
+ * $Revision: 1.6 $
  * $State: Exp $
- * $Author: joty $
+ * $Author: nick $
  *
  ***************************************************************************/
 
@@ -24,44 +24,72 @@ __BEGIN_DECLS
 #ifdef __UNIXLIB_INTERNALS
 
 /* Setup console I/O.  */
-extern int __os_console (void);
-/* Setup RS423 I/O.  */
-extern int __os_423 (void);
+extern int __os_console (void) __THROW;
 
-extern int __os_vdu (int);
-extern int __os_get (void);
+/* Setup RS423 I/O.  */
+extern int __os_423 (void) __THROW;
+
+extern int __os_vdu (int) __THROW;
+extern int __os_get (void) __THROW;
+
 /* Returns -1 on timeout.  */
-extern int __os_inkey (int);
+extern int __os_inkey (int) __THROW;
+
 /* Flush keyboard buffer.  */
-extern int __os_keyflush (void);
+extern int __os_keyflush (void) __THROW;
 
 /* 423 times are in centiseconds */
+extern int __os_423vdu (int) __THROW;
+extern int __os_423get (void) __THROW;
 
-extern int __os_423vdu (int);
-extern int __os_423get (void);
 /* Returns -1 on timeout.  */
-extern int __os_423inkey (int);
-/* Flush RS423 buffer.  */
-extern int __os_423flush (void);
-extern int __os_423break (int);
+extern int __os_423inkey (int) __THROW;
 
-extern _kernel_oserror *__os_swi (int,int * /* 10 reg */ );
-extern _kernel_oserror *__os_byte (int,int,int,int * /* 3 reg */ );
-extern _kernel_oserror *__os_word (int,void *);
+/* Flush RS423 buffer.  */
+extern int __os_423flush (void) __THROW;
+extern int __os_423break (int) __THROW;
+
+extern _kernel_oserror *__os_swi (int swinum, int *regs /* 10 reg */ )
+     __THROW __nonnull ((2)) __wur;
+
+extern _kernel_oserror *__os_byte (int a, int x, int y,
+				   int *result /* 3 reg */ )
+     __THROW __nonnull ((4)) __wur;
+
+extern _kernel_oserror *__os_word (int,void *)
+     __THROW __nonnull ((2)) __wur;
+
 extern _kernel_oserror *__os_prhex (int); 	/* %8x format hex output */
 extern _kernel_oserror *__os_prdec (int);
-extern _kernel_oserror *__os_print (const char *);
-extern _kernel_oserror *__os_write (const char *,int);
+
+extern _kernel_oserror *__os_print (const char *) __nonnull ((1));
+extern _kernel_oserror *__os_write (const char *,int) __nonnull ((1));
+
 extern _kernel_oserror *__os_nl (void);		/* newline */
-extern _kernel_oserror *__os_cli (const char *);
-extern _kernel_oserror *__os_file (int,const char *,int * /* 6 reg */ );
-extern _kernel_oserror *__os_fopen (int,const char *,int * /* 1 reg */ );
-extern _kernel_oserror *__os_fclose (int);
-extern _kernel_oserror *__os_fread (int,void *,int,int * /* 5 reg */ );
-extern _kernel_oserror *__os_fwrite (int,const void *,int,int * /* 5 reg */ );
-extern _kernel_oserror *__os_args (int,int,int,int * /* 3 reg */ );
-extern _kernel_oserror *__os_fsctrl (int,const char *,char *,int);
-extern _kernel_oserror *__os_setfiletype (const char *fname, int filetype);
+extern _kernel_oserror *__os_cli (const char *) __nonnull ((1));
+
+extern _kernel_oserror *__os_file (int,const char *,int * /* 6 reg */ )
+     __THROW __nonnull ((2, 3)) __wur;
+
+extern _kernel_oserror *__os_fopen (int,const char *,int * /* 1 reg */ )
+     __THROW __nonnull ((2, 3)) __wur;
+
+extern _kernel_oserror *__os_fclose (int) __THROW;
+
+extern _kernel_oserror *__os_fread (int,void *,int,int * /* 5 reg */ )
+     __THROW __nonnull ((2, 4)) __wur;
+
+extern _kernel_oserror *__os_fwrite (int,const void *,int,int * /* 5 reg */ )
+     __THROW __nonnull ((2, 4)) __wur;
+
+extern _kernel_oserror *__os_args (int,int,int,int * /* 3 reg */ )
+     __THROW __nonnull ((4)) __wur;
+
+extern _kernel_oserror *__os_fsctrl (int,const char *,char *,int)
+     __THROW __nonnull ((2, 3)) __wur;
+
+extern _kernel_oserror *__os_setfiletype (const char *fname, int filetype)
+     __THROW __nonnull ((1)) __wur;
 
 /* Flag RISC OS error to UNIX. When NULL is given as parameter, __seterr()
    doesn't do anything. Sets UnixLib's errno to EOPSYS too and takes

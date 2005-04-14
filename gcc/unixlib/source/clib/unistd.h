@@ -1,8 +1,8 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/unistd.h,v $
- * $Date: 2005/04/08 17:01:56 $
- * $Revision: 1.17 $
+ * $Date: 2005/04/13 19:20:06 $
+ * $Revision: 1.18 $
  * $State: Exp $
  * $Author: nick $
  *
@@ -581,10 +581,11 @@ extern int daemon (int __nochdir, int __noclose) __THROW;
 
 
 /* Make all changes done to all files actually appear on disk.  */
-extern int sync (void) __THROW;
+extern void sync (void) __THROW;
 
-/* Make all changes done to FD actually appear on disk.  */
-extern int fsync (int __fd) __THROW;
+/* Make all changes done to FD actually appear on disk.
+   This function is a cancellation point.  */
+extern int fsync (int __fd);
 
 /* Truncate FILE to LENGTH bytes.  */
 extern int truncate (const char *__file, __off_t __length) __THROW;
@@ -594,7 +595,7 @@ extern int ftruncate (int __fd, __off_t __length) __THROW;
 
 /* Return the number of bytes in a page.  This is the system's page size,
    which is not necessarily the same as the hardware page size.  */
-extern size_t getpagesize (void) __THROW;
+extern int getpagesize (void) __THROW __attribute__ ((__const__));
 
 /* Return the maximum number of file descriptors
    the current process could possibly have.  */
@@ -642,6 +643,14 @@ enum
 extern size_t confstr (int __name, char *__buf, size_t __len) __THROW;
 
 #ifdef __USE_XOPEN
+/* Encrypt at most 8 characters from KEY using salt to perturb DES.  */
+extern char *crypt (const char *__key, const char *__salt)
+     __THROW __nonnull ((1, 2));
+
+/* Encrypt data in BLOCK in place if EDFLAG is zero; otherwise decrypt
+   block in place.  */
+extern void encrypt (char *__block, int __edflag) __THROW __nonnull ((1));
+
 /* Swab pairs bytes in the first N bytes of the area pointed to by
    FROM and copy the result to TO.  The value of TO must not be in the
    range [FROM - N + 1, FROM - 1].  If N is odd the first byte in FROM

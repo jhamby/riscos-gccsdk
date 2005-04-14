@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/sys/types.h,v $
- * $Date: 2004/10/12 08:32:38 $
- * $Revision: 1.7 $
+ * $Date: 2005/01/03 22:57:22 $
+ * $Revision: 1.8 $
  * $State: Exp $
- * $Author: peter $
+ * $Author: joty $
  *
  ***************************************************************************/
 
@@ -61,14 +61,6 @@ typedef __fsid_t fsid_t;
 
 typedef __loff_t loff_t;
 
-#ifndef __ino_t_defined
-# ifndef __USE_FILE_OFFSET64
-typedef __ino_t ino_t;
-# else
-typedef __ino64_t ino_t;
-# endif
-# define __ino_t_defined
-#endif
 #if defined __USE_LARGEFILE64 && !defined __ino64_t_defined
 typedef __ino64_t ino64_t;
 # define __ino64_t_defined

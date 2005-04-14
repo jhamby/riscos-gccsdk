@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/locale/iconv.c,v $
- * $Date: 2004/10/23 17:23:36 $
- * $Revision: 1.5 $
+ * $Date: 2005/04/13 19:20:06 $
+ * $Revision: 1.6 $
  * $State: Exp $
- * $Author: joty $
+ * $Author: nick $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: iconv.c,v 1.5 2004/10/23 17:23:36 joty Exp $";
+static const char rcs_id[] = "$Id: iconv.c,v 1.6 2005/04/13 19:20:06 nick Exp $";
 #endif
 
 #include <stdlib.h>
@@ -18,6 +18,7 @@ static const char rcs_id[] = "$Id: iconv.c,v 1.5 2004/10/23 17:23:36 joty Exp $"
 #include <iconv.h>
 #include <errno.h>
 #include <unixlib/os.h>
+#include <pthread.h>
 
 #define ERROR_BASE 0x81b900
 
@@ -27,11 +28,12 @@ static const char rcs_id[] = "$Id: iconv.c,v 1.5 2004/10/23 17:23:36 joty Exp $"
 #define ICONV_ILSEQ (ERROR_BASE+3)
 
 
-static int iconv_error(_kernel_oserror *err)
+static int iconv_error (_kernel_oserror *err)
 {
   __seterr (err);
 
-  switch (err->errnum) {
+  switch (err->errnum)
+    {
     case ICONV_NOMEM:
       errno = ENOMEM;
       break;
@@ -51,54 +53,75 @@ static int iconv_error(_kernel_oserror *err)
     default:
       errno = EINVAL;
       break;
-   }
-
+    }
+  
   return -1;
 }
 
 
-iconv_t iconv_open(const char *tocode, const char *fromcode)
+iconv_t iconv_open (const char *tocode, const char *fromcode)
 {
   iconv_t ret;
   _kernel_oserror *err;
+  int regs[10];
 
-  if ((err = __os_cli("RMEnsure Iconv 0.02 RMload System:Modules.Iconv")) != NULL
-      || (err = __os_cli("RMEnsure Iconv 0.02 Error 16_10F iconv support requires the Iconv module 0.02 or newer")) != NULL
-      || (err = _swix(Iconv_Open, _INR(0,1) | _OUT(0), tocode, fromcode, &ret)) != NULL)
+  PTHREAD_SAFE_CANCELLATION
+
+  err = __os_cli ("RMEnsure Iconv 0.04 RMload System:Modules.Iconv");
+  if (err)
     {
-      return (iconv_t)iconv_error(err);
+      __seterr (err);
+      return (iconv_t) -1;
     }
 
-  return ret;
+  err = __os_cli ("RMEnsure Iconv 0.04 Error 16_10F iconv support requires the Iconv module 0.04 or newer");
+  if (err)
+    {
+      __seterr (err);
+      return (iconv_t) -1;
+    }
+
+  regs[0] = (int) tocode;
+  regs[1] = (int) fromcode;
+  err = __os_swi (Iconv_Open, regs);
+  if (err)
+    return (iconv_t) iconv_error (err);
+
+  return regs[0];
 }
 
 
-size_t iconv(iconv_t cd, char **inbuf, size_t *inbytesleft, char **outbuf,
-           size_t *outbytesleft)
+size_t iconv (iconv_t cd, char **inbuf, size_t *inbytesleft, char **outbuf,
+	      size_t *outbytesleft)
 {
-  size_t ret;
+  int regs[10];
   _kernel_oserror *err;
 
-  err = _swix(Iconv_Iconv, _INR(0,4) | _OUT(0), cd, inbuf, inbytesleft, outbuf, outbytesleft, &ret);
-  if (err)
-    {
-      return (size_t)iconv_error(err);
-    }
+  PTHREAD_SAFE_CANCELLATION
 
-  return ret;
+  regs[0] = (int) cd;
+  regs[1] = (int) inbuf;
+  regs[2] = (int) inbytesleft;
+  regs[3] = (int) outbuf;
+  regs[4] = (int) outbytesleft;
+  err = __os_swi (Iconv_Iconv, regs);
+  if (err)
+    return (size_t) iconv_error (err);
+  return regs[0];
 }
 
 
 int iconv_close(iconv_t cd)
 {
-  int ret;
+  int regs[10];
   _kernel_oserror *err;
 
-  err = _swix(Iconv_Close, _IN(0) | _OUT(0), cd, &ret);
-  if (err)
-    {
-      return iconv_error(err);
-    }
+  PTHREAD_SAFE_CANCELLATION
 
-  return ret;
+  regs[0] = (int) cd;
+  err = __os_swi (Iconv_Close, regs);
+  if (err)
+    return iconv_error (err);
+
+  return regs[0];
 }

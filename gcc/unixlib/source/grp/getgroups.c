@@ -1,18 +1,18 @@
 /****************************************************************************
  *
- * $Source$
- * $Date$
- * $Revision$
- * $State$
- * $Author$
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/grp/getgroups.c,v $
+ * $Date: 2003/01/21 17:54:22 $
+ * $Revision: 1.3 $
+ * $State: Exp $
+ * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id$";
+static const char rcs_id[] = "$Id: getgroups.c,v 1.3 2003/01/21 17:54:22 admin Exp $";
 #endif
 
-/* Supplementary group reading and setting functions */
+/* Supplementary group reading and setting functions.  */
 
 #include <errno.h>
 #include <limits.h>
@@ -23,17 +23,21 @@ static const char rcs_id[] = "$Id$";
 #include <grp.h>
 #include <pthread.h>
 
-#define MAX_GROUPS 10 /* Maximum number of groups initgroups() can handle */
+/* Maximum number of groups initgroups() can handle.  */
+#define MAX_GROUPS 10
 
-static gid_t *g_gidset = NULL; /* List of group IDs the this user is in */
-static int g_ngroups=0; /* number of items in the list */
+/* List of group IDs the this user is in.  */
+static gid_t *g_gidset = NULL;
+
+/* Number of items in the list.  */
+static int g_ngroups = 0;
 
 
-/* Get a list of all supplementary groups this user is in */
+/* Get a list of all supplementary groups this user is in.  */
 int
 getgroups (int gidsetlen, gid_t *gidset)
 {
-  PTHREAD_UNSAFE
+  PTHREAD_UNSAFE_CANCELLATION
 
   if (gidsetlen == 0)
     return g_ngroups;
@@ -44,18 +48,20 @@ getgroups (int gidsetlen, gid_t *gidset)
   if (gidsetlen > g_ngroups)
     gidsetlen = g_ngroups;
 
-  if (gidsetlen > 0) memcpy (gidset, g_gidset, gidsetlen * sizeof (gid_t));
+  if (gidsetlen > 0)
+    memcpy (gidset, g_gidset, gidsetlen * sizeof (gid_t));
   return gidsetlen;
 }
 
 
-/* Set the list of supplementary groups this user is in */
+/* Set the list of supplementary groups this user is in.  */
 int
 setgroups (int ngroups, const gid_t *gidset)
 {
   PTHREAD_UNSAFE
 
-  if (g_gidset) free (g_gidset);
+  if (g_gidset)
+    free (g_gidset);
   g_gidset = NULL;
 
   g_ngroups = ngroups;
@@ -70,7 +76,8 @@ setgroups (int ngroups, const gid_t *gidset)
 }
 
 
-/* Build a list of all groups the user is in, then call setgroups on the list*/
+/* Build a list of all groups the user is in, then call setgroups on the
+   list.  */
 int
 initgroups (const char *name, gid_t basegid)
 {
@@ -78,9 +85,9 @@ initgroups (const char *name, gid_t basegid)
   int ngroups=0;
   gid_t gidset[MAX_GROUPS];
 
-  PTHREAD_UNSAFE
+  PTHREAD_UNSAFE_CANCELLATION
 
-  while ( (grp = getgrent ()) !=NULL)
+  while ((grp = getgrent ()) !=NULL)
     {
       char **mem = grp->gr_mem;
 

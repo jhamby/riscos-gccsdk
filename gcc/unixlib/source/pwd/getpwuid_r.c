@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source$
- * $Date$
- * $Revision$
- * $State$
- * $Author$
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/pwd/getpwuid_r.c,v $
+ * $Date: 2003/01/21 17:54:22 $
+ * $Revision: 1.4 $
+ * $State: Exp $
+ * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id$";
+static const char rcs_id[] = "$Id: getpwuid_r.c,v 1.4 2003/01/21 17:54:22 admin Exp $";
 #endif
 
 /* Search for an entry with a matching user ID (re-entrant version).
@@ -20,6 +20,7 @@ static const char rcs_id[] = "$Id$";
 #include <errno.h>
 #include <pwd.h>
 #include <sys/types.h>
+#include <pthread.h>
 
 int
 getpwuid_r (uid_t uid, struct passwd *resbuf, char *buffer, size_t buflen,
@@ -27,6 +28,8 @@ getpwuid_r (uid_t uid, struct passwd *resbuf, char *buffer, size_t buflen,
 {
   FILE *stream;
   struct passwd *p;
+
+  PTHREAD_SAFE_CANCELLATION
 
   if (resbuf == NULL)
     return __set_errno (EINVAL);

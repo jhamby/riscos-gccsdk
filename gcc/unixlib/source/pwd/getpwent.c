@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source$
- * $Date$
- * $Revision$
- * $State$
- * $Author$
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/pwd/getpwent.c,v $
+ * $Date: 2003/01/21 17:54:22 $
+ * $Revision: 1.3 $
+ * $State: Exp $
+ * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id$";
+static const char rcs_id[] = "$Id: getpwent.c,v 1.3 2003/01/21 17:54:22 admin Exp $";
 #endif
 
 /* Password-file operations.
@@ -18,23 +18,26 @@ static const char rcs_id[] = "$Id$";
 #include <stddef.h>
 #include <stdio.h>
 #include <pwd.h>
+#include <pthread.h>
 
 static FILE *stream = NULL;
 
 /* Rewind the stream.
-   Defined by POSIX as not threadsafe */
+   Defined by POSIX as not threadsafe.  */
 void
 setpwent (void)
 {
+  PTHREAD_UNSAFE_CANCELLATION
   if (stream != NULL)
     rewind (stream);
 }
 
 /* Close the stream.
-   Defined by POSIX as not threadsafe */
+   Defined by POSIX as not threadsafe.  */
 void
 endpwent (void)
 {
+  PTHREAD_UNSAFE_CANCELLATION
   if (stream != NULL)
     {
       fclose (stream);
@@ -43,12 +46,14 @@ endpwent (void)
 }
 
 /* Return one entry from the password file.
-   Defined by POSIX as not threadsafe */
+   Defined by POSIX as not threadsafe.  */
 struct passwd *
 getpwent (void)
 {
   static struct passwd pwd;
   static char buffer[256];
+
+  PTHREAD_UNSAFE_CANCELLATION
 
   /* Open the password file if not already open.  */
   if (stream == NULL)
@@ -65,5 +70,6 @@ int
 getpwent_r (struct passwd *result_buf, char *buffer, size_t buflen,
 	    struct passwd **result)
 {
+  PTHREAD_SAFE_CANCELLATION
   return fgetpwent_r (stream, result_buf, buffer, buflen, result);
 }

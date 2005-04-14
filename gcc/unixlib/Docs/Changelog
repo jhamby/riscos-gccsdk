@@ -1,3 +1,78 @@
+Thu Apr 14 13:12:07 2005  Nick Burrett  <nick@sqrt.co.uk>
+
+	* grp.h: Improve namespace and type conformance.
+	Add GCC's 'nonnull' attribute to prototypes.
+	Remove __THROW for any functions that are cancellation points.
+	* kernel.h: Likewise.
+	* locale.h: Likewise.
+	* nl_types.h: Likewise.
+	* pwd.h: Likewise.
+	* unixlib/os.h: Likewise.
+	* semaphore.h: Likewise.
+
+	* locale/iconv.c (iconv_open): Add PTHREAD_SAFE_CANCELLATION.
+	Use __os_swi rather than _swix.  Specify a minimum module version
+	of 0.04.
+	(iconv): Likewise.
+	(iconv_close): Likewise.
+
+	* grp/fgetgrent.c (fgetgrent): Add PTHREAD_UNSAFE_CANCELLATION.
+	* grp/getgrgid.c (getgrgid): Likewise.
+	* grp/getgrnam.c (getgrnam): Likewise.
+	* grp/fgetgrentr.c (fgetgrentr): Add PTHREAD_SAFE_CANCELLATION.
+	* grp/getgrgid_r.c (getgrgid_r): Likewise.
+	* grp/getgrnam_r.c (getgrnam_r): Likewise.
+	* grp/getgrent.c (getgrent): Add PTHREAD_UNSAFE_CANCELLATION.
+	(setgrent): Likewise.
+	(endgrent): Likewise.
+	(getgrent_r): Mark as a safe cancellation point.
+	* grp/getgroups.c (initgroups): Change to PTHREAD_UNSAFE_CANCELLATION.
+	(getgroups): Likewise.
+	* pwd/fgetpwent.c (fgetpwent): Mark as an unsafe cancellation point.
+	* pwd/getlogin.c (getlogin): Likewise.
+	* pwd/fgetpwentr.c (fgetpwentr): Mark as a safe cancellation point.
+	* pwd/getpwnam_r.c (getpwnam_r): Likewise.
+	* pwd/getpwuid_r.c (getpwuid_r): Likewise.
+	* pwd/getpwent.c (getpwent_r): Likewise.
+	(getpwent): Make as an unsafe cancellation point.
+	(endpwent): Likewise.
+	(setpwent): Likewise.
+	* pwd/getpwnam.c (getpwnam): Likewise.
+	* pwd/getpwuid.c (getpwuid): Likewise.
+	* pwd/putpwent.c (putpwent): Likewise.
+
+	* stdio.h (struct __iobuf): Add 'lock' as a placeholder for
+	multithreaded I/O support.
+	(fgets): Fix definition.
+	* stdio/fgets.c (fgets): Fix function definition.
+
+	* pthread.h (struct __pthread_thread): Rename 'param' to '__param'.
+	Add '__policy'.
+	(pthread_getschedparam): Fix prototype.
+	* pthread/schedparam.c (pthread_getschedparam): Fix function
+	definition and get thread policy.
+	(pthread_setschedparam): Set thread policy.
+
+	* ulimit.h (ulimit): Correct prototype.
+	* resource/ulimit.c (ulimit): Function takes a variable number
+	of args.  Adjust accordingly.
+
+	* unistd.h (sync): Function never returns a result
+	* unix/sync.c (sync): Don't bother with any errors returned
+	by __os_args call.
+	(fsync): Mark that this is a cancellation point.
+
+	* dirent.h (ino_t): Define here.
+	* sys/types.h (ino_t): Remove definition from here.
+
+	* abs.c: Delete file.
+	* stdlib/abs.c: New file.
+	* stdlib/labs.c: New file.
+	* stdlib/llabs.c: New file.
+
+	* pthinit.c: Renamed from init.c for ELF compatibility.
+	* pthsignal.c: Renamed from signal.c for ELF compatibility.
+	
 Wed Apr 13 20:17:24 2005  Nick Burrett  <nick@sqrt.co.uk>
 
 	* sys/cdefs.h (__NTH): Declare for non-GCC compilers.

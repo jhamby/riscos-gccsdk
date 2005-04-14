@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/pwd/c/putpwent,v $
- * $Date: 1997/10/09 20:00:25 $
- * $Revision: 1.5 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/pwd/putpwent.c,v $
+ * $Date: 2001/01/29 15:10:20 $
+ * $Revision: 1.2 $
  * $State: Exp $
- * $Author: unixlib $
+ * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: putpwent,v 1.5 1997/10/09 20:00:25 unixlib Exp $";
+static const char rcs_id[] = "$Id: putpwent.c,v 1.2 2001/01/29 15:10:20 admin Exp $";
 #endif
 
 /* pwd.c.putpwent. Write an entry to stream.
@@ -20,12 +20,14 @@ static const char rcs_id[] = "$Id: putpwent,v 1.5 1997/10/09 20:00:25 unixlib Ex
 #include <errno.h>
 #include <stdio.h>
 #include <pwd.h>
+#include <pthread.h>
 
 /* Write an entry to the given stream.
    This must know the format of the password file.  */
 int
 putpwent (const struct passwd *p, FILE * stream)
 {
+  PTHREAD_UNSAFE_CANCELLATION
   if (p == NULL || stream == NULL)
     {
       errno = EINVAL;

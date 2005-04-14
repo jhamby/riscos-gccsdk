@@ -1,10 +1,10 @@
 /****************************************************************************
  *
- * $Source: $
- * $Date: $
- * $Revision: $
- * $State: $
- * $Author: $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/nl_types.h,v $
+ * $Date: 2004/10/17 16:24:43 $
+ * $Revision: 1.2 $
+ * $State: Exp $
+ * $Author: joty $
  *
  ***************************************************************************/
 
@@ -55,15 +55,17 @@ typedef int nl_item;
 
    This function is a possible cancellation point and therefore not
    marked with __THROW.  */
-extern nl_catd catopen (__const char *__cat_name, int __flag);
+extern nl_catd catopen (const char *__cat_name, int __flag)
+     __nonnull ((1));
 
 /* Return translation with NUMBER in SET of CATALOG; if not found
    return STRING.  */
 extern char *catgets (nl_catd __catalog, int __set, int __number,
-		      __const char *__string) __THROW;
+		      __const char *__string)
+     __THROW __nonnull ((1));
 
 /* Close message CATALOG.  */
-extern int catclose (nl_catd __catalog) __THROW;
+extern int catclose (nl_catd __catalog) __THROW __nonnull ((1));
 
 __END_DECLS
 

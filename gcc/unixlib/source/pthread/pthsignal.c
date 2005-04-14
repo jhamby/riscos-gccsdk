@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/pthread/signal.c,v $
- * $Date: 2002/12/15 13:16:55 $
- * $Revision: 1.1 $
+ * $Date: 2005/02/09 21:13:40 $
+ * $Revision: 1.2 $
  * $State: Exp $
- * $Author: admin $
+ * $Author: alex $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: signal.c,v 1.1 2002/12/15 13:16:55 admin Exp $";
+static const char rcs_id[] = "$Id: signal.c,v 1.2 2005/02/09 21:13:40 alex Exp $";
 #endif
 
 /* Written by Alex Waugh */

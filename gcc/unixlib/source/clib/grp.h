@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/grp.h,v $
- * $Date: 2004/04/12 13:03:37 $
- * $Revision: 1.6 $
+ * $Date: 2004/10/17 16:24:43 $
+ * $Revision: 1.7 $
  * $State: Exp $
- * $Author: nick $
+ * $Author: joty $
  *
  ***************************************************************************/
 
@@ -22,15 +22,17 @@
 #define __need_size_t
 #include <stddef.h>
 
-#if !defined __gid_t_defined
+#if (defined __USE_XOPEN || defined __USE_XOPEN2K) && !defined __gid_t_defined
 typedef __gid_t gid_t;
 #define __gid_t_defined
 #endif
 
 __BEGIN_DECLS
 
+#if defined __USE_SVID || defined __USE_GNU
 #define __need_FILE
 #include <stdio.h>
+#endif
 
 struct group
 {
@@ -40,59 +42,88 @@ struct group
   char **gr_mem; /* Group members.  */
 };
 
-/* Rewind the group-file stream.  */
-extern void setgrent (void) __THROW;
+/* Search for an entry with a matching group ID.
+   This function is a cancellation point.  */
+extern struct group *getgrgid (gid_t __gid) __wur;
 
-/* Close the group-file stream.  */
-extern void endgrent (void) __THROW;
+/* Search for an entry with a matching group name.
+   This function is a cancellation point.  */
+extern struct group *getgrnam (const char *__name) __nonnull ((1)) __wur;
 
-/* Read an entry from the group-file stream, opening it if necessary.  */
-extern struct group *getgrent (void) __THROW;
+#if defined __USE_SVID || defined __USE_BSD || defined __USE_XOPEN_EXTENDED
+/* Rewind the group-file stream.
+   This function is a cancellation point.  */
+extern void setgrent (void);
 
-/* Read an entry from the password-file stream, opening it if
-   necessary (re-entrant version).  */
-extern int getgrent_r (struct group *__restrict __result_buf,
-		       char *__restrict __buffer, size_t __buflen,
-		       struct group **__restrict __result) __THROW;
+/* Close the group-file stream.
+   This function is a cancellation point.  */
+extern void endgrent (void);
 
-/* Read an entry from stream.  */
-extern struct group *fgetgrent (FILE *__stream) __THROW;
+/* Read an entry from the group-file stream, opening it if necessary.
+   This function is a cancellation point.  */
+extern struct group *getgrent (void) __wur;
+#endif
 
-/* Read an entry from stream (re-entrant version).  */
+#ifdef __USE_SVID
+/* Read an entry from stream.  This function is a cancellation point.  */
+extern struct group *fgetgrent (FILE *__stream) __nonnull ((1)) __wur;
+
+/* Read an entry from stream (re-entrant version).
+   This function is a cancellation point.  */
 extern int fgetgrent_r (FILE *__restrict __stream,
 			struct group *__restrict __result_buf,
 			char *__restrict __buffer, size_t __buflen,
-			struct group **__restrict __result) __THROW;
+			struct group **__restrict __result)
+     __nonnull ((1, 3, 5));
+#endif
 
-/* Search for an entry with a matching group ID.  */
-extern struct group *getgrgid (gid_t __gid) __THROW;
+#if defined __USE_POSIX || defined __USE_MISC
 
-/* Search for an entry with a matching group ID (re-entrant version).  */
+#ifdef __USE_GNU
+/* Read an entry from the password-file stream, opening it if
+   necessary (re-entrant version).  This is a cancellation point.  */
+extern int getgrent_r (struct group *__restrict __result_buf,
+		       char *__restrict __buffer, size_t __buflen,
+		       struct group **__restrict __result)
+     __nonnull ((1, 2, 4));
+#endif
+
+
+/* Search for an entry with a matching group ID (re-entrant version).
+   This function is a cancellation point.  */
 extern int getgrgid_r (gid_t __gid, struct group *__resbuf, char *__buffer,
-		       size_t __buflen, struct group **__result) __THROW;
+		       size_t __buflen, struct group **__result)
+     __nonnull ((2, 3, 5));
 
-/* Search for an entry with a matching group name.  */
-extern struct group *getgrnam (const char *__name) __THROW;
-
-/* Search for an entry with a matching group name (re-entrant version).  */
+/* Search for an entry with a matching group name (re-entrant version).
+   This function is a cancellation point.  */
 extern int getgrnam_r (const char *__restrict __name,
 		       struct group *__restrict __result_buf,
 		       char *__restrict __buffer, size_t __buflen,
-		       struct group **__restrict __result) __THROW;
+		       struct group **__restrict __result)
+     __nonnull ((1, 2, 3, 5));
+#endif /* __USE_POSIX || __USE_MISC */
 
-/* Get a list of all supplementary groups this user is in */
-extern int getgroups (int __gidsetlen, gid_t *__gidset) __THROW;
+#ifdef __USE_BSD
+/* Get a list of all supplementary groups this user is in.
+   This function is a cancellation point.  */
+extern int getgroups (int __gidsetlen, gid_t *__gidset) __nonnull ((2));
 
 /* Set the list of supplementary groups this user is in */
-extern int setgroups (int __ngroups, const gid_t *__gidset) __THROW;
+extern int setgroups (int __ngroups, const gid_t *__gidset)
+     __THROW __nonnull ((2));
 
-/* Build a list of all groups the user is in, then call setgroups on the list*/
-extern int initgroups (const char *__name, gid_t __basegid) __THROW;
+/* Build a list of all groups the user is in, then call setgroups on the list.
+   This function is a cancellation point.  */
+extern int initgroups (const char *__name, gid_t __basegid)
+     __nonnull ((1));
+#endif
 
 #ifdef __UNIXLIB_INTERNALS
 /* UnixLib group implementation function.  */
 extern struct group *__grpread (FILE *__stream, struct group *__grp,
-				char *__buf, size_t __buflen) __THROW;
+				char *__buf, size_t __buflen)
+     __nonnull ((1, 2, 3)) __wur;
 #endif
 
 __END_DECLS

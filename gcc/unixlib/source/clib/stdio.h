@@ -1,8 +1,8 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/stdio.h,v $
- * $Date: 2005/04/08 17:01:55 $
- * $Revision: 1.16 $
+ * $Date: 2005/04/13 19:20:05 $
+ * $Revision: 1.17 $
  * $State: Exp $
  * $Author: nick $
  *
@@ -32,6 +32,9 @@ typedef struct __iobuf FILE;
 
 #define __need___va_list
 #include <stdarg.h>
+
+#define __need_pthread_t
+#include <pthread.h>
 
 __BEGIN_DECLS
 
@@ -104,6 +107,7 @@ struct __iobuf
   unsigned int __ispipe:1; /* nonzero if opened by popen */
   unsigned int __string_istream:1; /* nonzero if string input stream */
   int fd; /* File descriptor.  */
+  pthread_mutex_t lock; /* For multi-threaded I/O.  */
   FILE *next; /* next FILE in the linked list */
 };
 
@@ -116,16 +120,17 @@ struct __iobuf
 #define __validfp(stream) (stream != NULL && stream->__magic == _IOMAGIC)
 
 /* Invalidate a stream.  */
-extern void __invalidate (FILE *__stream) __THROW;
+extern void __invalidate (FILE *__stream) __THROW __nonnull ((1));
 
 /* Make a new stream.  */
-extern FILE *__newstream (void) __THROW;
+extern FILE *__newstream (void) __THROW __wur;
 
 /* Initialise a new stream.  */
-extern FILE *__stream_init (int __fd, FILE *__stream) __THROW;
+extern FILE *__stream_init (int __fd, FILE *__stream)
+     __THROW __nonnull ((2)) __wur;
 
 /* Dissect the given mode string into an __io_mode.  */
-extern __io_mode __getmode (const char *__mode) __THROW;
+extern __io_mode __getmode (const char *__mode) __THROW __nonnull ((1));
 
 extern void __stdioinit (void);	/* initialise stdin,stdout & stderr */
 extern void __stdioexit (void);	/* close streams & delete tmpfile() */
@@ -251,18 +256,18 @@ __END_NAMESPACE_STD
 extern int fseeko (FILE *__stream, __off_t __off, int __whence);
 
 /* This function is a cancellation point.  */
-extern __off_t ftello (FILE *__stream);
+extern __off_t ftello (FILE *__stream) __nonnull ((1));
 #endif
 
 __BEGIN_NAMESPACE_STD
 /* This function is a cancellation point.  */
-extern int getc (FILE *__stream);
+extern int getc (FILE *__stream) __nonnull ((1));
 
 /* This function is a cancellation point.  */
-extern int getchar (void) ;
+extern int getchar (void);
 
 /* Read a character from stream.  This function is a cancellation point.   */
-extern int fgetc (FILE *__stream);
+extern int fgetc (FILE *__stream) __nonnull ((1));
 __END_NAMESPACE_STD
 
 
@@ -272,17 +277,15 @@ __END_NAMESPACE_STD
 #if defined __USE_POSIX || defined __USE_MISC
 
 /* These functions are cancellation points.  */
-extern int getc_unlocked (FILE *__stream);
+extern int getc_unlocked (FILE *__stream) __nonnull ((1));
 extern int getchar_unlocked (void);
 
 /* Read a character from stream.  */
 #define getc_unlocked(f) \
 	((--((f)->i_cnt) >= 0 ? *((f)->i_ptr)++ : __filbuf(f)))
 #define getchar_unlocked() getc_unlocked(stdin)
-#endif
 
-#if defined __USE_MISC
-extern int fputc_unlocked (int __c, FILE *__stream);
+extern int fputc_unlocked (int __c, FILE *__stream) __nonnull ((2));
 
 #define putc_unlocked(c, stream) putc(c, stream)
 #endif
@@ -290,27 +293,28 @@ extern int fputc_unlocked (int __c, FILE *__stream);
 __BEGIN_NAMESPACE_STD
 
 /* Write a character to stream.  This function is a cancellation point.  */
-extern int putc (int __c, FILE *__stream);
+extern int putc (int __c, FILE *__stream) __nonnull ((2));
 
 /* Write a character to stream.  This function is a cancellation point.  */
-extern int fputc (int __c, FILE *__stream);
+extern int fputc (int __c, FILE *__stream) __nonnull ((2));
 
 /* Write a character to stdout.  This function is a cancellation point.  */
 extern int putchar (int __c);
 
 /* Get a newline-terminated string of finite length from stream.
    This function is a cancellation point.  */
-extern char *fgets (char *__s, size_t __n, FILE *__stream);
+extern char *fgets (char *__s, int __n, FILE *__stream)
+     __nonnull ((1, 3));
 
 /* Get a newline-terminated string from stdin, removing the newline.  */
 extern char *gets (char *__s);
 
 /* Write a string to stream.  */
 extern int fputs (const char *__restrict __s, FILE *__restrict __stream)
-     __THROW;
+     __THROW __nonnull ((1, 2));
 
 /* Write a string, followed by a newline, to stdout.  */
-extern int puts (const char *__s) __THROW;
+extern int puts (const char *__s) __THROW __nonnull ((1));
 
 __END_NAMESPACE_STD
 

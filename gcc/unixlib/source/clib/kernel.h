@@ -1,8 +1,8 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/kernel.h,v $
- * $Date: 2004/10/23 17:23:36 $
- * $Revision: 1.9 $
+ * $Date: 2005/03/28 14:58:03 $
+ * $Revision: 1.10 $
  * $State: Exp $
  * $Author: joty $
  *
@@ -51,24 +51,27 @@ typedef struct stack_chunk
 extern int _kernel_fpavailable (void) __THROW;
 
 /* Passes argument string to SWI "OS_CLI". */
-extern int _kernel_oscli (const char *__s) __THROW;
+extern int _kernel_oscli (const char *__s) __THROW __nonnull ((1));
 
 #define _kernel_NONX 0x80000000
 /* Call the SWI specified by 'no'. 'in' points to a register block
    for SWI entry. 'out' points to a register block for SWI exit.
    The X bit is set by _kernel_swi unless bit 31 is set.  */
-extern _kernel_oserror *_kernel_swi (int __no, _kernel_swi_regs *__in,
+extern _kernel_oserror *_kernel_swi (int __no,
+				     const _kernel_swi_regs *__in,
 				     _kernel_swi_regs *__out) __THROW;
 
 /* Similar to _kernel_swi but the carry flag status is returned in
    'carry'.  */
-extern _kernel_oserror *
-_kernel_swi_c (int __no, _kernel_swi_regs *__in,
-	       _kernel_swi_regs *__out, int *__carry) __THROW;
+extern _kernel_oserror *_kernel_swi_c (int __no,
+				       const _kernel_swi_regs *__in,
+				       _kernel_swi_regs *__out,
+				       int *__carry)
+     __THROW;
 
 /* Return the last OS error since the last time _kernel_last_oserror
    was called.  Return zero if no errors have occurred.  */
-extern _kernel_oserror *_kernel_last_oserror (void) __THROW;
+extern _kernel_oserror *_kernel_last_oserror (void) __THROW __wur;
 
 /* Perform an OS_Byte operation.
    R1 is returned in the bottom byte, R2 in the second byte,
@@ -91,7 +94,8 @@ extern int _kernel_osbput (int __ch, unsigned __handle) __THROW;
 /* Perform an OS_File operation. The _kernel_osfile_block provides
    values for registers R2-R5.  */
 extern int _kernel_osfile (int __operation, const char *__name,
-			   _kernel_osfile_block *__inout) __THROW;
+			   _kernel_osfile_block *__inout)
+     __THROW __nonnull ((2, 3));
 
 typedef struct
 {
@@ -103,14 +107,17 @@ typedef struct
 
 /* Read/write a number of bytes on file 'handle'. */
 extern int _kernel_osgbpb (int __operation, unsigned __handle,
-			   _kernel_osgbpb_block *__inout) __THROW;
+			   _kernel_osgbpb_block *__inout)
+     __THROW __nonnull ((3));
 
 /* Perform an OS_Word operation.  */
-extern int _kernel_osword (int __operation, int *__data) __THROW;
+extern int _kernel_osword (int __operation, int *__data)
+     __THROW __nonnull ((2));
 
 /* Open or close a file. Open returns a file handle, close just
    indicates success/failure.  */
-extern int _kernel_osfind (int __operation, char *__name) __THROW;
+extern int _kernel_osfind (int __operation, char *__name)
+     __THROW __nonnull ((2));
 
 /* Perform an OS_Args operation. Generally returns the value in R2,
    unless op = 0.  */
@@ -120,50 +127,50 @@ extern int _kernel_osargs (int __operation, unsigned __handle,
 /* Read the value of system variable 'name', placing the
    result in 'buffer'.  */
 extern _kernel_oserror *
-_kernel_getenv (const char *__name, char *__buffer, unsigned __size) __THROW;
+_kernel_getenv (const char *__name, char *__buffer, unsigned __size)
+     __THROW __nonnull ((1, 2)) __wur;
 
 /* Set the system variable 'name' with 'value'. If 'value == 0' then
    'name' is deleted.  */
 extern _kernel_oserror *
-_kernel_setenv (const char *__name, const char *__value) __THROW;
+_kernel_setenv (const char *__name, const char *__value)
+     __THROW __nonnull ((1, 2)) __wur;
 
 /* Unsigned divide and remainder function. Returns the remainder in R1. */
-extern unsigned int
-_kernel_udiv (unsigned int __divisor,
-	      unsigned int __dividend) __THROW __attribute__ ((__const__));
+extern unsigned int _kernel_udiv (unsigned int __divisor,
+				  unsigned int __dividend)
+     __THROW __attribute__ ((__const__)) __wur;
 
 /* Unsigned remainder function.  */
-extern unsigned int
-_kernel_urem (unsigned int __divisor,
-	      unsigned int __dividend) __THROW __attribute__ ((__const__));
+extern unsigned int _kernel_urem (unsigned int __divisor,
+				  unsigned int __dividend)
+     __THROW __attribute__ ((__const__)) __wur;
 
 /* Unsigned divide and remainder function by 10.
    Returns the remainder in R1. */
-extern unsigned int
-_kernel_udiv10 (unsigned int __dividend) __THROW __attribute__ ((__const__));
+extern unsigned int _kernel_udiv10 (unsigned int __dividend)
+     __THROW __attribute__ ((__const__)) __wur;
 
 /* Signed divide and remainder function. Returns the remainder in R1. */
-extern int
-_kernel_sdiv (int __divisor, int __dividend) __THROW
-     __attribute__ ((__const__));
+extern int _kernel_sdiv (int __divisor, int __dividend)
+     __THROW __attribute__ ((__const__)) __wur;
 
 /* Signed remainder function.  */
-extern int
-_kernel_srem (int __divisor, int __dividend) __THROW
-     __attribute__ ((__const__));
+extern int _kernel_srem (int __divisor, int __dividend)
+     __THROW __attribute__ ((__const__)) __wur;
 
 /* Signed divide and remainder function by 10.
    Returns the remainder in R1. */
-extern int
-_kernel_sdiv10 (int __dividend) __THROW __attribute__ ((__const__));
+extern int _kernel_sdiv10 (int __dividend)
+     __THROW __attribute__ ((__const__)) __wur;
 
 /* Return a pointer to the current stack chunk.  */
 extern _kernel_stack_chunk *_kernel_current_stack_chunk (void) __THROW;
 
 /* Allocate and free blocks of memory for automatic storage, i.e.
    associated with the current stack frame.  */
-extern void *__rt_allocauto(unsigned int __size) __THROW;
-extern void __rt_freeauto(void *__autostorage) __THROW;
+extern void *__rt_allocauto (unsigned int __size);
+extern void __rt_freeauto (void *__autostorage);
 
 __END_DECLS
 

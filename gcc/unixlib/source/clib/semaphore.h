@@ -36,9 +36,10 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef _SEMAPHORE_H_
-#define _SEMAPHORE_H_
+#ifndef __SEMAPHORE_H
+#define __SEMAPHORE_H
 
+#define __need_pthread_t
 #include <pthread.h>
 
 /* POSIX 1003.1b semaphores */
@@ -47,16 +48,17 @@ typedef unsigned int semid_t;
 
 struct pthread_queue_t;
 
-typedef	struct {
-	unsigned int	usem_magic;
-
-	semid_t		usem_semid;
-
-	/* Protects data below. */
-	pthread_rwlock_t	usem_interlock;
-
-	struct pthread_queue_t *usem_waiters;
-	unsigned int	usem_count;
+typedef	struct
+{
+  unsigned int	usem_magic;
+  
+  semid_t		usem_semid;
+  
+  /* Protects data below. */
+  pthread_rwlock_t	usem_interlock;
+  
+  struct pthread_queue_t *usem_waiters;
+  unsigned int	usem_count;
 } sem_t;
 
 #define	SEM_FAILED	((sem_t *)0)
@@ -65,15 +67,18 @@ typedef	struct {
 #include <sys/cdefs.h>
 
 __BEGIN_DECLS
-int	 sem_close(sem_t *);
-int	 sem_destroy(sem_t *);
-int	 sem_getvalue(sem_t * __restrict, int * __restrict);
-int	 sem_init(sem_t *, int, unsigned int);
-int	 sem_post(sem_t *);
-int	 sem_trywait(sem_t *);
-int	 sem_unlink(const char *);
-int	 sem_wait(sem_t *);
-sem_t	*sem_open(const char *, int, ...);
+extern int sem_close (sem_t *) __THROW;
+extern int sem_destroy (sem_t *) __THROW;
+extern int sem_getvalue (sem_t * __restrict, int * __restrict) __THROW;
+extern int sem_init (sem_t *, int, unsigned int) __THROW;
+extern int sem_post (sem_t *) __THROW;
+extern int sem_trywait (sem_t *) __THROW;
+extern int sem_unlink (const char *) __THROW;
+
+/* This function is a cancellation point.  */
+extern int sem_wait (sem_t *__sem);
+
+extern sem_t *sem_open (const char *, int, ...) __THROW;
 __END_DECLS
 
 #endif /* !_SEMAPHORE_H_ */

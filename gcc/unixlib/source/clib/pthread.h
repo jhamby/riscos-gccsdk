@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/pthread.h,v $
- * $Date: 2005/03/21 12:14:53 $
- * $Revision: 1.15 $
+ * $Date: 2005/04/13 19:20:05 $
+ * $Revision: 1.16 $
  * $State: Exp $
- * $Author: peter $
+ * $Author: nick $
  *
  ***************************************************************************/
 
@@ -174,7 +174,10 @@ struct __pthread_thread
   struct __pthread_cleanup *cleanupfns;
 
   /* Scheduling parameters. Currently ignored */
-  struct sched_param param;
+  struct sched_param __param;
+
+  /* Scheduling policy.  Currently ignored.  */
+  int __policy;
 
   /* Cancelability state of this thread (enabled or disabled) */
   unsigned int cancelstate : 1;
@@ -529,11 +532,13 @@ extern void __pthread_start_ticker (void);
 /* Remove the callevery interrupt */
 extern void __pthread_stop_ticker (void);
 
-extern int pthread_setschedparam (pthread_t __thr, int __policy,
+extern int pthread_setschedparam (pthread_t __thr,
+				  int __policy,
 				  const struct sched_param *__param) __THROW;
 
-extern int pthread_getschedparam (const pthread_t __thr,
-				  int __policy, struct sched_param *__param)
+extern int pthread_getschedparam (pthread_t __thr,
+				  int *__policy,
+				  struct sched_param *__param)
      __THROW;
 
 

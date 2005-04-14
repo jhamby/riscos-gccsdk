@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/locale.h,v $
- * $Date: 2004/04/12 13:03:37 $
- * $Revision: 1.4 $
+ * $Date: 2004/10/17 16:24:43 $
+ * $Revision: 1.5 $
  * $State: Exp $
- * $Author: nick $
+ * $Author: joty $
  *
  ***************************************************************************/
 
@@ -37,13 +37,6 @@ __BEGIN_DECLS
 #define LC_TIME 5
 /* Entire locale.  */
 #define LC_ALL 6
-
-/* Sets the current locale for category 'category' to 'locale'.
-
-   If 'category' is 'LC_ALL', this specifies the locale for
-   all purposes. The other possible values of 'category' specify
-   an individual purpose.  */
-extern char *setlocale (int __category, const char *__locale) __THROW;
 
 struct lconv
 {
@@ -94,8 +87,19 @@ struct lconv
   char n_sign_posn;
 };
 
+__BEGIN_NAMESPACE_STD
+
+/* Sets the current locale for category 'category' to 'locale'.
+
+   If 'category' is 'LC_ALL', this specifies the locale for
+   all purposes. The other possible values of 'category' specify
+   an individual purpose.  */
+extern char *setlocale (int __category, const char *__locale) __THROW;
+
 /* Set the lconv structure with the current locale settings.  */
 extern struct lconv *localeconv (void) __THROW;
+
+__END_NAMESPACE_STD
 
 #ifdef __UNIXLIB_INTERNALS
 /* Territory number for each locale.  C locale is -1.  */
