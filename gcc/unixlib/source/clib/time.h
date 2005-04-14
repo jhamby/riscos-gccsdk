@@ -1,8 +1,8 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/time.h,v $
- * $Date: 2005/03/31 09:38:46 $
- * $Revision: 1.14 $
+ * $Date: 2005/03/31 11:42:02 $
+ * $Revision: 1.15 $
  * $State: Exp $
  * $Author: nick $
  *
@@ -32,7 +32,9 @@
 #if !defined __clock_t_defined && defined __need_clock_t
 #define __clock_t_defined 1
 #include <unixlib/types.h>
+__BEGIN_NAMESPACE_STD
 typedef __clock_t clock_t;  /* Data type used to represent clock ticks.  */
+__END_NAMESPACE_STD
 #endif
 #undef __need_clock_t
 
@@ -49,7 +51,9 @@ typedef __clockid_t clockid_t;  /* Data type used to represent clock ticks.  */
 /* The data type used to represent calendar time. It represents
    the number of seconds elapsed since 00:00:00 on 1 January, 1970
    Universal Time Coordinated.  */
+__BEGIN_NAMESPACE_STD
 typedef __time_t time_t;
+__END_NAMESPACE_STD
 #endif
 #undef __need_time_t
 
@@ -91,12 +95,14 @@ __BEGIN_DECLS
 /* Obsolete name for CLOCKS_PER_SEC.  */
 #define CLK_TCK CLOCKS_PER_SEC
 
+__BEGIN_NAMESPACE_STD
+
 /* Return the elapsed processor time.  */
-extern clock_t clock (void);
+extern clock_t clock (void) __THROW;
 
 /* Return the current time as a value of type 'time_t'.
    If result is not NULL, the time will also be return in it. */
-extern time_t time (time_t *__result);
+extern time_t time (time_t *__result) __THROW;
 
 struct tm
 {
@@ -126,24 +132,6 @@ extern char *ctime (const time_t *__timer) __THROW;
 extern double difftime (time_t __time1, time_t __time0)
      __THROW __attribute__ ((__const__));
 
-/* Convert the calendar time 'time' to broken-down time,
-   expressed relative to the user's specified time zone. */
-extern struct tm *localtime (const time_t *__timer) __THROW;
-
-/* Convert the calendar time 'time' to broken-down time,
-   expressed relative to the user's specified time zone (re-entrant). */
-extern struct tm *localtime_r (const time_t *__restrict __timer,
-			       struct tm *__restrict resultp) __THROW;
-
-/* Similar to localtime() but the broken-down time is expressed
-   as UTC (GMT) rather than the local time zone.  */
-extern struct tm *gmtime (const time_t *__timer) __THROW;
-
-/* Similar to localtime() but the broken-down time is expressed
-   as UTC (GMT) rather than the local time zone (re-entrant).  */
-extern struct tm *gmtime_r (const time_t *__restrict __timer,
-			    struct tm *__restrict resultp) __THROW;
-
 /* Convert a broken-down time structure to a calendar time
    representation.  */
 extern time_t mktime (struct tm *__brokentime) __THROW;
@@ -154,9 +142,32 @@ extern time_t mktime (struct tm *__brokentime) __THROW;
 extern size_t strftime (char *__restrict __s, size_t __size,
 			const char *__restrict __format,
        	      	        const struct tm *__restrict __brokentime) __THROW;
+/* Convert the calendar time 'time' to broken-down time,
+   expressed relative to the user's specified time zone. */
+extern struct tm *localtime (const time_t *__timer) __THROW;
 
+/* Similar to localtime() but the broken-down time is expressed
+   as UTC (GMT) rather than the local time zone.  */
+extern struct tm *gmtime (const time_t *__timer) __THROW;
+
+__END_NAMESPACE_STD
+
+# if defined __USE_POSIX || defined __USE_MISC
+/* Convert the calendar time 'time' to broken-down time,
+   expressed relative to the user's specified time zone (re-entrant). */
+extern struct tm *localtime_r (const time_t *__restrict __timer,
+			       struct tm *__restrict resultp) __THROW;
+
+/* Similar to localtime() but the broken-down time is expressed
+   as UTC (GMT) rather than the local time zone (re-entrant).  */
+extern struct tm *gmtime_r (const time_t *__restrict __timer,
+			    struct tm *__restrict resultp) __THROW;
+
+#endif
 
 /* C99 Additions.  */
+
+#ifdef __USE_POSIX199309
 
 /* Identifier for system-wide realtime clock.  */
 #define CLOCK_REALTIME 0
@@ -180,11 +191,15 @@ extern int clock_gettime (clockid_t __clk_id, struct timespec *__tp) __THROW;
 /* Set the time of the specified clk_id.  */
 extern int clock_settime (clockid_t __clk_id, const struct timespec *__tp) __THROW;
 
+/* Pause for a number of nanoseconds.
+   This function is a cancellation point.  */
 extern int nanosleep (const struct timespec *__req,
 		      struct timespec *__rem);
+#endif
 
 /* System V compatibility.  */
 
+# if defined __USE_SVID || defined __USE_XOPEN
 /* The difference between UTC and the latest local standard time,
    in seconds west of UTC. The time is not adjusted for daylight
    saving and the sign is the reverse of tm_gmtoff.  */
@@ -192,6 +207,7 @@ extern int timezone;
 
 /* Nonzero if daylight savings time rules apply.  */
 extern int daylight;
+#endif
 
 /* Nonzero if YEAR is a leap year (every 4 years,
    except every 100th isn't, and every 400th is).  */
@@ -215,6 +231,7 @@ extern int dysize (int __year) __THROW  __attribute__ ((__const__));
 
 /* POSIX extensions.  */
 
+#ifdef __USE_POSIX
 /* Initialise the tzname variable with the TimeZone information from
    CMOS.  */
 extern void tzset (void) __THROW;
@@ -223,6 +240,7 @@ extern void tzset (void) __THROW;
    tzname[1] is the name for the time zone when daylight saving time
    is in use.  */
 extern char *tzname[];
+#endif
 
 #ifdef __UNIXLIB_INTERNALS
 extern struct tm __tz[1];

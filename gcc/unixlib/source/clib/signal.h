@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/signal.h,v $
- * $Date: 2004/10/08 11:56:13 $
- * $Revision: 1.10 $
+ * $Date: 2005/02/09 21:13:40 $
+ * $Revision: 1.11 $
  * $State: Exp $
- * $Author: peter $
+ * $Author: alex $
  *
  ***************************************************************************/
 
@@ -156,8 +156,10 @@ extern int sigblock (int __mask) __THROW;
 extern int sigsetmask (int __mask) __THROW;
 
 /* Set the mask of blocked signals to mask, wait for a signal
-   to arrive, and then restore the mask.  */
-extern int sigpause (int __mask) __THROW;
+   to arrive, and then restore the mask.
+
+   This function is a cancellation point.  8/
+extern int sigpause (int __mask);
 
 #define sig_atomic_t __sig_atomic_t
 
@@ -211,11 +213,11 @@ struct sigaction
 /* Currently in an optimised state but this could soon change.  */
 
 /* Clear all signals from set.  */
-extern int sigemptyset (__sigset_t *__set) __THROW;
+extern int sigemptyset (__sigset_t *__set) __THROW __nonnull ((1));
 #define sigemptyset(set) ((*(set) = (__sigset_t) 0), 0)
 
 /* Set all signals in set.  */
-extern int sigfillset (__sigset_t *__set) __THROW;
+extern int sigfillset (__sigset_t *__set) __THROW __nonnull ((1));
 #define sigfillset(set) ((*(set) = ~(__sigset_t) 0), 0)
 
 extern __sigset_t sigmask (int __sig) __THROW;
@@ -223,13 +225,14 @@ extern __sigset_t sigmask (int __sig) __THROW;
 
 
 /* Add signo to set.  */
-extern int sigaddset (__sigset_t *__set, int __signo) __THROW;
+extern int sigaddset (__sigset_t *__set, int __signo) __THROW __nonnull ((1));
 
 /* Remove signo from set.  */
-extern int sigdelset (__sigset_t *__set, int __signo) __THROW;
+extern int sigdelset (__sigset_t *__set, int __signo) __THROW __nonnull ((1));
 
 /* Remove 1 if signo is in set, 0 if not.  */
-extern int sigismember (const __sigset_t *__set, int __signo) __THROW;
+extern int sigismember (const __sigset_t *__set, int __signo)
+     __THROW __nonnull ((1));
 
 #ifdef __UNIXLIB_INTERNALS
 /* Inline versions for UnixLib library only. These are subject to change.  */
@@ -250,8 +253,9 @@ extern int sigprocmask (int __how, const __sigset_t *__restrict __set,
 			__sigset_t *__oldset) __THROW;
 
 /* Change the set of blocked signals,
-   wait until a signal arrives, and restore the set of blocked signals.  */
-extern int sigsuspend (const __sigset_t *__set) __THROW;
+   wait until a signal arrives, and restore the set of blocked signals.
+   This function is a cancellation point.  */
+extern int sigsuspend (const __sigset_t *__set);
 
 /* Get and/or set the action for signal sig.  */
 extern int sigaction (int __sig, const struct sigaction *__restrict __act,
@@ -337,8 +341,9 @@ extern int pthread_kill (pthread_t thread, int sig) __THROW;
 extern int pthread_sigmask (int how, const sigset_t *set,
 			    sigset_t *oset) __THROW;
 
-/* Suspend thread until delivery of a signal */
-extern int sigwait (const sigset_t *__restrict set, int *sig) __THROW;
+/* Suspend thread until delivery of a signal.
+   This function is a cancellation point.  */
+extern int sigwait (const sigset_t *__restrict set, int *sig);
 
 __END_DECLS
 

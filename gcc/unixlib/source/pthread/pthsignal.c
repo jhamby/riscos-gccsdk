@@ -1,15 +1,15 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/pthread/signal.c,v $
- * $Date: 2005/02/09 21:13:40 $
- * $Revision: 1.2 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/pthread/pthsignal.c,v $
+ * $Date: 2005/04/14 12:13:09 $
+ * $Revision: 1.1 $
  * $State: Exp $
- * $Author: alex $
+ * $Author: nick $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: signal.c,v 1.2 2005/02/09 21:13:40 alex Exp $";
+static const char rcs_id[] = "$Id: pthsignal.c,v 1.1 2005/04/14 12:13:09 nick Exp $";
 #endif
 
 /* Written by Alex Waugh */
@@ -41,6 +41,8 @@ sigwait (const sigset_t *set, int *sig)
 {
   sigset_t pending;
   int found;
+
+  PTHREAD_SAFE_CANCELLATION
 
   pthread_mutex_lock (&sigwait_mutex);
 

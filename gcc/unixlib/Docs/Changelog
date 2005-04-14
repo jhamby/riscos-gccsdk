@@ -1,3 +1,18 @@
+Thu Apr 14 17:01:30 2005  Nick Burrett  <nick@sqrt.co.uk>
+
+	* search.h: New file.
+	* search/insremque.c: New file.
+	* search/lsearch.c: New file.
+	* search/hsearch.c: New file.
+	* search/hsearch_r.c: New file.
+	* search/tsearch.c: New file.
+
+	* signal.h: Improve namespace and type conformance.
+	Add GCC's 'nonnull' attribute to prototypes.
+	Remove __THROW for any functions that are cancellation points.
+	* time.h: Likewise.
+	* pthread/pthsignal.c (sigwait): Mark as a safe cancellation point.
+
 Thu Apr 14 16:15:32 2005  Nick Burrett  <nick@sqrt.co.uk>
 
 	* clib/unixlib/swiparams.h: Move file ...
