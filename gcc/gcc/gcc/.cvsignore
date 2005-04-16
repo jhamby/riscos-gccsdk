@@ -1,4 +1,3 @@
-.cvsignore
 Makefile
 auto-host.h
 auto-host.h.in

@@ -302,7 +302,8 @@ unixlib/Makefile: unixlib/Makefile.in unixlib/source/Makefile.in unixlib/Docs/Ch
 	(cd unixlib; ./gen-makefiles.pl --dynamicdeps --stubs --objdir $(objdir)/unixlib/$(trg20))
 
 clean:
-	find arm-riscos-aof -type f | xargs rm
+	find arm-riscos-aof -type f | xargs rm -f
+	cat gcc/gcc/.cvsignore | grep -v Makefile | grep -v ^config | xargs rm -rf
 
 bin-clean:
 	find $(ro_gccpkg) -type f | grep ,ff8 | xargs rm
