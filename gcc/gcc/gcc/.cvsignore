@@ -107,6 +107,7 @@ insn-peep.c
 insn-recog.c
 min-insn-modes.c
 options.c
+options.h
 s-gtype
 tm-preds.h
 tree-check.h
