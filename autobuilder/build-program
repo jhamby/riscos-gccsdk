@@ -52,9 +52,11 @@ if [ "$AB_PACKONLY" == "yes" ] ; then
  S=$PWD
 
  if [ -e $AB_HOME/$AB_PACKAGEDIR/preprocess ] ; then
+  echo "Autobuilder - Calling preprocess"
   . $AB_HOME/$AB_PACKAGEDIR/preprocess
  fi
  
+ echo "Autobuilder - Calling setvars"
  . $AB_HOME/$AB_PACKAGEDIR/setvars
 
 else
@@ -70,12 +72,13 @@ else
 
  if [ -e $AB_HOME/$AB_PACKAGEDIR/alias ] ; then
   AB_ZIPNAME=$AB_PACKAGE
+  echo "Autobuilder - Calling alias"
   . $AB_HOME/$AB_PACKAGEDIR/alias
  fi
 
  if [ "$AB_NOFETCH" != "yes" ] ; then
    # Fetch the source
-   echo "Autobuilder: Fetching source for $AB_PACKAGE"
+   echo "Autobuilder - Fetching source for $AB_PACKAGE"
    apt-get source $AB_PACKAGE
  fi
  
@@ -84,9 +87,9 @@ else
  # Run any preprocess script to unpack it in any special way
  if [ -e $AB_HOME/$AB_PACKAGEDIR/preprocess ] ; then
    cd $AB_FULLNAME
+   echo "Autobuilder - Calling preprocess"
    . $AB_HOME/$AB_PACKAGEDIR/preprocess
- 
- 
+  
  # Check to see if it's tarred up inside
  elif [ -d "$AB_FULLNAME/upstream" ] ; then
  
@@ -133,9 +136,10 @@ else
  # Apply any RISC OS patches
  for AB_PATCH in $(find $AB_HOME/$AB_PACKAGEDIR/ | grep "\.p$") ; do
    echo "Autobuilder - RISC OS patch: $AB_PATCH"
-  patch -p0 -l < $AB_PATCH || [ "$AB_DEBUG" == "yes" ]
+   patch -p0 -l < $AB_PATCH || [ "$AB_DEBUG" == "yes" ]
  done
  
+ echo "Autobuilder - Calling setvars"
  . $AB_HOME/$AB_PACKAGEDIR/setvars
  
  if [ -z "$AB_INSTALLTARGET" ] ; then
@@ -147,14 +151,15 @@ else
  export AB_DIR
  
  if [ -e Imakefile ] ; then
-  echo Autobuilder - Calling xmkmf
+  echo "Autobuilder - Calling xmkmf"
   /home/riscos/env/ro-path /home/riscos/env/X11R6/bin/xmkmf -a
  else
-   echo Autobuilder - Calling configure command: $AB_PRECONF $AB_CONFIG $AB_CONFLAGS
+   echo "Autobuilder - Calling configure command: $AB_PRECONF $AB_CONFIG $AB_CONFLAGS"
    eval $AB_PRECONF $AB_CONFIG $AB_CONFLAGS
  fi
  
  if [ -e $AB_HOME/$AB_PACKAGEDIR/post-configure ] ; then
+   echo "Autobuilder - Calling post-configure"
    . $AB_HOME/$AB_PACKAGEDIR/post-configure
  fi
 
@@ -210,21 +215,21 @@ ab_package
 #if [ "$AB_FILESPATH" == "" ] && \
 #   [ "$AB_FILESNOPATH" == "" ] && \
 #   [ "$AB_FILESNOPATHEVAL" == "" ]  ; then
-# echo "Autobuilder: No files specified to package"
+# echo "Autobuilder - No files specified to package"
 #else
 
 if [ "$AB_NOPACKAGE" == "" ] ; then
 
  if [ "$AB_CATEGORY" == "" ] ; then
-   echo "Autobuilder: No category specified, not packaging"
+   echo "Autobuilder - No category specified, not packaging"
    exit 1
  fi
  
- echo "Autobuilder: Packaging files"
+ echo "Autobuilder - Packaging files"
  if [ "$AB_PACKONLY" == "yes" ] ; then
  
    if [ "$AB_ZIPNAME" != "" ] ; then
-     echo "Autobuilder: Packaging as $AB_ZIPNAME"
+     echo "Autobuilder - Packaging as $AB_ZIPNAME"
      AB_ZIP=$AB_ZIPNAME.zip
    else
      AB_ZIP=$AB_PACKAGE.zip
@@ -232,7 +237,7 @@ if [ "$AB_NOPACKAGE" == "" ] ; then
 
  else
    if [ "$AB_ZIPNAME" != "" ] ; then
-     echo "Autobuilder: Packaging as $AB_ZIPNAME"
+     echo "Autobuilder - Packaging as $AB_ZIPNAME"
      AB_ZIPNAME=$(echo $AB_FULLNAME | sed s#"$AB_PACKAGE"#"$AB_ZIPNAME"#)
  
      AB_ZIP=$AB_DIR/$AB_ZIPNAME-$AB_ROVERSION.zip
@@ -277,5 +282,3 @@ fi
 [ "$AB_PACKONLY" == "yes" ] || [ "$AB_NOFETCH" == "yes" ] || [ "$AB_DEBUG" == "yes" ] || rm -rf $AB_DIR
 
 echo "Autobuilder - package completed"
-
-

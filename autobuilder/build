@@ -43,12 +43,20 @@ if [ -z "$RO_ENV" ] ; then
   RO_ENV=/home/riscos/env
 fi
 AB_GCCENV=$RO_ENV
+if [ ! -d "$AB_GCCENV" ] ; then
+  echo "Autobuilder: directory with porting tools does not exist. \$RO_ENV not defined or /home/riscos/env does not exist."
+  exit 1
+fi
 
 # GCCSDK Binaries
 if [ -z "$RO_BIN" ] ; then
   RO_BIN=/home/riscos/cross/bin
 fi
 AB_GCCBIN=$RO_BIN
+if [ ! -d "$AB_GCCBIN" ] ; then
+  echo "Autobuilder: directory with cross compiling tools does not exist. \$RO_BIN not defined or /home/riscos/cross/bin does not exist."
+  exit 1
+fi
 
 # build location
 AB_TMPDIR=$PWD
@@ -62,6 +70,10 @@ fi
 # If a specific package is named, build that; otherwise everything
 if [ "$AB_PACKAGES" == "" ] ; then
   AB_PACKAGES=$(find -type d)
+  if [ "$AB_PACKAGES" == "" ] ; then
+    echo "Autobuilder: nothing to build ?"
+    exit 1
+  fi
 fi
 
 #rm -f /tmp/ab-success
@@ -106,5 +118,3 @@ for AB_PACKAGEDIR in $AB_PACKAGES ; do
    fi  
  fi
 done
-
-
