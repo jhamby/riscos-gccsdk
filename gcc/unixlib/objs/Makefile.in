@@ -1,13 +1,13 @@
 # Project:   GCCSDK UnixLib
 
 # $Source: /usr/local/cvsroot/gccsdk/unixlib/objs/Makefile.in,v $
-# $Date: 2004/10/17 16:24:43 $
-# $Revision: 1.10 $
+# $Date: 2005/01/05 23:10:54 $
+# $Revision: 1.11 $
 # $State: Exp $
 # $Author: joty $
 
 CCfeatures =
-Predefs = -D__UNIXLIB_INTERNALS
+Predefs = -D__UNIXLIB_INTERNALS -DBIG_ENDI -DHIGH_HALF=0 -DLOW_HALF=1 -D_GNU_SOURCE=1
 
 # Misc macros
 # XX = commamd
@@ -28,13 +28,16 @@ Predefs = -D__UNIXLIB_INTERNALS
 CC = cc
 CCdflags = -g
 CCrflags =
-CCflags = -depend !Depend -throwback -fcah -JUnixLib: -Wdap -D_GNU_SOURCE=1 -ccversion 553 $(CCrflags) -APCS 3/32bit/fpe3
+CCflags = -depend !Depend -throwback -fcah -IUnixlib: -JUnixLib: -I UnixLib:^.incl-local -Wdap -ccversion 553 $(CCrflags) -APCS 3/32bit/fpe3
 
 # GCC compiler. Comment out if you are using Norcroft C (Acorn) compiler.
 #CC = gcc
-#CCdflags = -pedantic -Wall -Wno-long-long
+#CCdflags = -pedantic -Wall -Wundef -Wpointer-arith -Wcast-align \
+#	-Wwrite-strings -Wstrict-prototypes -Wmissing-prototypes \
+#	-Wmissing-declarations -Wnested-externs -Winline -Wno-unused \
+#	-W -Wcast-qual -Wshadow
 #CCrflags =
-#CCflags = -O2 -mpoke-function-name -mthrowback $(CCdflags) $(CCfeatures)
+#CCflags = -O2 -mpoke-function-name -mthrowback -std=c99 $(CCdflags) $(CCfeatures) -isystem UnixLib: -I UnixLib:^.incl-local
 
 # Acorn Objasm Assembler. Comment out if you are using 'as'.
 AS = objasm
