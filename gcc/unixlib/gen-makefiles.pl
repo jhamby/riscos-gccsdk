@@ -2,10 +2,10 @@
 # Create various UnixLib Makefiles
 #
 # $Source: /usr/local/cvsroot/gccsdk/unixlib/gen-makefiles.pl,v $
-# $Date: 2005/01/05 23:10:54 $
-# $Revision: 1.8 $
+# $Date: 2005/04/14 14:31:12 $
+# $Revision: 1.9 $
 # $State: Exp $
-# $Author: joty $
+# $Author: nick $
 
 use Getopt::Long;
 
@@ -49,7 +49,7 @@ sub find_files {
     $entry =~ s/^source\///;
     # Ignore special directories
     next if $entry =~ m/(CVS)|(.svn)/;
-    next if $entry =~ m/^(test)|(clib)|(module)|(conform)/;
+    next if $entry =~ m/^(test)|(clib)|(module)|(conform)|(incl-local)/;
     if (-d "source/$entry") {
       push @dirs, $entry if !($entry =~ m/^(.*\/)?[cosh]$/);
       find_files("source/$entry");
@@ -107,15 +107,14 @@ if ($findstubs) {
 # Find all header files in source/clib
 sub find_headers {
   my $dir = $_[0];
-  my $subdir = $_[1];
   my @entries = glob("$dir/*");
   my $entry;
   foreach $entry (@entries) {
-    $entry =~ s/^source\/$subdir\///;
+    $entry =~ s/^source\/clib\///;
     next if $entry =~ m/(CVS)|(.svn)/;
-    if (-d "source/$subdir/$entry") {
+    if (-d "source/clib/$entry") {
       push @hdrdirs, $entry;
-      find_headers("source/$subdir/$entry", "$subdir");
+      find_headers("source/clib/$entry");
     } else {
       if ($entry =~ m/\.[hs]$/) {
         push @hdrs, $entry;
@@ -124,27 +123,28 @@ sub find_headers {
   }
 }
 
-#sub find_headers_lcl {
-#  my $dir = $_[0];
-#  my $subdir = $_[1];
-#  my @entries = glob("$dir/*");
-#  my $entry;
-#  foreach $entry (@entries) {
-#    $entry =~ s/^source\/$subdir\///;
-#    next if $entry =~ m/(CVS)|(.svn)/;
-#    if (-d "source/$subdir/$entry") {
-#      push @hdrdirs_lcl, $entry;
-#      find_headers("source/$subdir/$entry", "$subdir");
-#    } else {
-#      if ($entry =~ m/\.[hs]$/) {
-#        push @hdrs_lcl, $entry;
-#      }
-#    }
-#  }
-#}
+# Find all header files in source/incl-local
+sub find_headers_lcl {
+  my $dir = $_[0];
+  my $subdir = $_[1];
+  my @entries = glob("$dir/*");
+  my $entry;
+  foreach $entry (@entries) {
+    $entry =~ s/^source\/incl-local\///;
+    next if $entry =~ m/(CVS)|(.svn)/;
+    if (-d "source/incl-local/$entry") {
+      push @hdrdirs_lcl, $entry;
+      find_headers_lcl("source/incl-local/$entry");
+    } else {
+      if ($entry =~ m/\.[hs]$/) {
+        push @hdrs_lcl, $entry;
+      }
+    }
+  }
+}
 
-find_headers ("source/clib", "clib");
-#find_headers_lcl ("source/incl-local", "incl-local");
+find_headers ("source/clib");
+find_headers_lcl ("source/incl-local");
 
 
 # Write unixlib/Makefile
@@ -209,6 +209,11 @@ while (<SRCMAKEFILEIN>) {
       print SRCMAKEFILE "\$(ro_gccpkg)/\$(gn_cross_include_dir)/unixlib/".semiriscosify($hdr)." \\\n";
       print SRCMAKEFILE "\$(ro_unixlibpkg)/source/clib/".semiriscosify($hdr)." \\\n";
     }
+    foreach $hdr (@hdrs_lcl) {
+      print SRCMAKEFILE "\$(ux_gccpkg)/\$(gn_cross_include_dir)/unixlib/$hdr \\\n";
+      print SRCMAKEFILE "\$(ro_gccpkg)/\$(gn_cross_include_dir)/unixlib/".semiriscosify($hdr)." \\\n";
+      print SRCMAKEFILE "\$(ro_unixlibpkg)/source/incl-local/".semiriscosify($hdr)." \\\n";
+    }
     print SRCMAKEFILE "\n";
 
     # Copy all header files to cross include dir and to RISC OS packages
@@ -216,6 +221,14 @@ while (<SRCMAKEFILEIN>) {
       print SRCMAKEFILE "\$(ux_gccpkg)/\$(gn_cross_include_dir)/unixlib/$hdr";
       print SRCMAKEFILE " \$(ro_gccpkg)/\$(gn_cross_include_dir)/unixlib/".semiriscosify($hdr);
       print SRCMAKEFILE " \$(ro_unixlibpkg)/source/clib/".semiriscosify($hdr).": clib/$hdr\n";
+      print SRCMAKEFILE "	mkdir -p \`dirname \$@\`\n";
+      print SRCMAKEFILE "	cp \$< \$@\n\n";
+    }
+
+    foreach $hdr (@hdrs_lcl) {
+      print SRCMAKEFILE "\$(ux_gccpkg)/\$(gn_cross_include_dir)/unixlib/$hdr";
+      print SRCMAKEFILE " \$(ro_gccpkg)/\$(gn_cross_include_dir)/unixlib/".semiriscosify($hdr);
+      print SRCMAKEFILE " \$(ro_unixlibpkg)/source/incl-local/".semiriscosify($hdr).": incl-local/$hdr\n";
       print SRCMAKEFILE "	mkdir -p \`dirname \$@\`\n";
       print SRCMAKEFILE "	cp \$< \$@\n\n";
     }
