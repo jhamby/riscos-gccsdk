@@ -10,6 +10,9 @@ ln -s mksyntax,ff8 mksyntax
 
 AB_MANPAGE=doc/bash.1
 
-AB_FILESNOPATH="bash,ff8 COPYING"
-
 touch configure.in aclocal.m4 stamp-h.in Makefile.in config.status
+
+ab_package () {
+  cp -av $S/bash,ff8 $S/COPYING $D
+}
+
