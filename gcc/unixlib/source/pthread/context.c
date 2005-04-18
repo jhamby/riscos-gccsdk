@@ -1,18 +1,5 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/pthread/context.c,v $
- * $Date: 2005/01/29 17:26:51 $
- * $Revision: 1.6 $
- * $State: Exp $
- * $Author: alex $
- *
- ***************************************************************************/
-
-#ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: context.c,v 1.6 2005/01/29 17:26:51 alex Exp $";
-#endif
-
-/* Context switching/scheduling */
+/* Context switching/scheduling.
+   Copyright (c) 2004, 2005 UnixLib Developers.  */
 
 /* Written by Martin Piper and Alex Waugh */
 
@@ -83,7 +70,8 @@ __pthread_context_switch (void)
   __os_nl ();
 #endif
 
-  __pthread_running_thread->thread_errno = errno;
+  /* For a thread-based 'errno' we don't need this.  */
+  /* __pthread_running_thread->thread_errno = errno; */
   next = __pthread_running_thread->next;
 
   /* Loop around the list looking for a thread that is running */
@@ -133,7 +121,8 @@ __pthread_context_switch (void)
                 {
                   pthread_t thread = __pthread_running_thread->cond->waiting;
 
-                  while (thread->nextwait && thread->nextwait != __pthread_running_thread)
+                  while (thread->nextwait
+			 && thread->nextwait != __pthread_running_thread)
                     thread = thread->nextwait;
 
                   if (thread->nextwait)
@@ -152,9 +141,11 @@ __pthread_context_switch (void)
     }
   while (__pthread_running_thread->state < STATE_RUNNING);
 
-  errno = __pthread_running_thread->thread_errno;
+  /* errno = __pthread_running_thread->thread_errno; */
 
-  if (__pthread_running_thread->cancelpending && __pthread_running_thread->cancelstate == PTHREAD_CANCEL_ENABLE && __pthread_running_thread->canceltype == PTHREAD_CANCEL_ASYNCHRONOUS)
+  if (__pthread_running_thread->cancelpending
+      && __pthread_running_thread->cancelstate == PTHREAD_CANCEL_ENABLE
+      && __pthread_running_thread->canceltype == PTHREAD_CANCEL_ASYNCHRONOUS)
     {
       /* Asynchronously cancel the thread */
       __pthread_running_thread->saved_context->r[15] = (int)pthread_testcancel;

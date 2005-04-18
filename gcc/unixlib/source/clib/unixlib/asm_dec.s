@@ -1,10 +1,10 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/unixlib/asm_dec.s,v $
-; $Date: 2005/03/04 20:59:05 $
-; $Revision: 1.19 $
+; $Date: 2005/04/18 17:04:56 $
+; $Revision: 1.20 $
 ; $State: Exp $
-; $Author: alex $
+; $Author: nick $
 ;
 ; Declare registers and SWIs we will be calling.
 ;
@@ -14,8 +14,7 @@
 ; kept in sync with <sys/syslib.h>, <signal.h> and <errno.h>.
 
 	; Include the UnixLib build options.
-	GET	clib/unixlib/stdsmac.s
-	GET	clib/unixlib/buildoptions.h
+	GET	clib/unixlib/buildoptions.s
 
 ; The offset of various members of the __pthread_thread structure
 ; This should be kept in sync with pthread.h, lib1aof.s, and stubs.s

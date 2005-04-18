@@ -1,8 +1,8 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/errno.h,v $
- * $Date: 2005/04/18 19:28:35 $
- * $Revision: 1.15 $
+ * $Date: 2005/04/18 19:42:30 $
+ * $Revision: 1.16 $
  * $State: Exp $
  * $Author: nick $
  *
@@ -142,7 +142,7 @@ extern int sys_nerr;
    threads ever appear.  We also give a return value so we can use
    return __set_errno () which can allow function tail calling.  */
 
-#ifdef __UNIXLIB_FEATURE_PTHREADS
+#if __UNIXLIB_FEATURE_PTHREADS
 #define __set_errno(val) (__pthread_running_thread->thread_errno = (val), -1)
 #else
 #define __set_errno(val) (errno = (val), -1)

@@ -1,3 +1,15 @@
+Mon Apr 18 22:25:46 2005  Nick Burrett  <nick@sqrt.co.uk>
+
+	* unixlib/stdcmac.h: Delete file.
+	* unixlib/stdsmac.s: Delete file.
+	* unixlib/buildoptions.h: Reformat and remove 'COMMENT' and 'END'.
+	* source/Makefile.in (clib/unixlib/buildoptions.s): New target.
+	* unixlib/asm_dec.s: Use it rather than buildoptions.h
+	* gen-makefiles.pl: For assembler files, depend on buildoptions.s.
+
+	* pthread/context.c (__pthread_context_switch): Don't save/restore
+	global errno between contexts.
+
 Mon Apr 18 20:40:46 2005  Nick Burrett  <nick@sqrt.co.uk>
 
 	* errno.h: Use correct path to features.h.
@@ -92,7 +104,7 @@ Mon Apr 18 18:03:56 2005  Nick Burrett  <nick@sqrt.co.uk>
 	* scl/_kosword.s: Delete file.
 	* sys/_os.s (__os_vdu): Define _kernel_oswrch to the same function.
 	Set return value to zero on success.
-	(__os_word): Simerly for _kernel_osword.
+	(__os_word): Simarly for _kernel_osword.
 	
 Mon Apr 18 14:44:24 2005  Nick Burrett  <nick@sqrt.co.uk>
 

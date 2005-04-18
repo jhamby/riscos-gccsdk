@@ -2,8 +2,8 @@
 # Create various UnixLib Makefiles
 #
 # $Source: /usr/local/cvsroot/gccsdk/unixlib/gen-makefiles.pl,v $
-# $Date: 2005/04/14 14:31:12 $
-# $Revision: 1.9 $
+# $Date: 2005/04/18 19:10:40 $
+# $Revision: 1.10 $
 # $State: Exp $
 # $Author: nick $
 
@@ -253,7 +253,7 @@ while (<SRCMAKEFILEIN>) {
       my $obj = $src;
       $obj =~ s/[cs]$/o/;
       if ($src =~ m/\.s$/) {
-        print SRCMAKEFILE "\$(libunixobj)/$obj\: $src clib/unixlib/asm_dec.s clib/unixlib/buildoptions.h\n";
+        print SRCMAKEFILE "\$(libunixobj)/$obj\: $src clib/unixlib/asm_dec.s clib/unixlib/buildoptions.s\n";
       } else {
         if ($dynamicdeps) {
           my $dir = $src;
