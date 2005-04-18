@@ -1,5 +1,4 @@
 
-AB_DEFINSTALL=yes
 AB_INSTALL=yes
 
 AB_PRECONF="echo | OPTIMIZER=-O2 DIR_MAN=/home/riscos/env/man"
