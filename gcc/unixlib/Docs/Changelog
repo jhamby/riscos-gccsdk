@@ -1,3 +1,10 @@
+Mon Apr 18 12:26:48 2005  Peter Naulls <peter@chocky.org>
+
+	* source/unix/rmdir.c, clib/unixlib/unix.h: Improve language.
+	* clib/unixlib/dev.h, source/unix/custom.c: Add a function to
+	  hide some internal structures from programs trying to override
+	  file descriptor handling. 
+
 Thu Apr 14 23:59:26 2005  John-Mark Bell <jmb202@ecs.soton.ac.uk>
 
 	* endian.h: Update missed file
@@ -52,7 +59,7 @@ Thu Apr 14 15:26:01 2005  Nick Burrett  <nick@sqrt.co.uk>
 	* bits/fenv.h: New file.
 	* bits/huge_valf.h: New file.
 	* bits/huge_vall.h: New file.
-	* bits/huge_val.h: Split into it's constituent parts.
+	* bits/huge_val.h: Split into its constituent parts.
 	* bits/inf.h: New file.
 	* bits/nan.h: Use builtin for GCC 3.3 and later.
 	* bits/cmathcalls.h: Bring in line with new math library.

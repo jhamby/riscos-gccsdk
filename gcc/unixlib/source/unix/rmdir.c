@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/rmdir.c,v $
- * $Date: 2003/10/06 19:00:01 $
- * $Revision: 1.6 $
+ * $Date: 2005/04/14 15:17:23 $
+ * $Revision: 1.7 $
  * $State: Exp $
- * $Author: joty $
+ * $Author: nick $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: rmdir.c,v 1.6 2003/10/06 19:00:01 joty Exp $";
+static const char rcs_id[] = "$Id: rmdir.c,v 1.7 2005/04/14 15:17:23 nick Exp $";
 #endif
 
 #include <errno.h>
@@ -71,7 +71,7 @@ rmdir (const char *ux_directory)
       err = __os_swi (OS_GBPB, regs);
       if (err)
 	{
-	  /* Oh shit. Let's pretend that it's not empty.  */
+	  /* Problem: Let's pretend that it's not empty.  */
 	  __seterr (err);
 	  return __set_errno (ENOTEMPTY);
 	}

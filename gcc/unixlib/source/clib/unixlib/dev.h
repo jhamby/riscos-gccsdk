@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/unixlib/dev.h,v $
- * $Date: 2005/03/04 20:59:05 $
- * $Revision: 1.12 $
+ * $Date: 2005/04/05 21:32:16 $
+ * $Revision: 1.13 $
  * $State: Exp $
- * $Author: alex $
+ * $Author: peter $
  *
  ***************************************************************************/
 
@@ -127,6 +127,9 @@ extern __off_t __dsplseek (struct __unixlib_fd *__fd, __off_t __lpos, int __when
 extern int __dspioctl (struct __unixlib_fd *__fd, unsigned long __request, void *__arg);
 
 /* /dev/custom support */
+
+struct dev *__unixlib_getdev(int fd);
+
 extern void *__customopen (struct __unixlib_fd *__fd, const char *file, int __mode);
 extern int __customclose (struct __unixlib_fd *__fd);
 extern int __customread (struct __unixlib_fd *__fd, void *__data, int __nbyte);

@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/custom.c,v $
- * $Date: 2005/04/05 21:32:16 $
- * $Revision: 1.1 $
+ * $Date: 2005/04/14 15:17:23 $
+ * $Revision: 1.2 $
  * $State: Exp $
- * $Author: peter $
+ * $Author: nick $
  *
  ***************************************************************************/
 
@@ -26,12 +26,23 @@
 #include <fcntl.h>
 #include <unixlib/os.h>
 #include <unixlib/dev.h>
+#include <unixlib/unix.h>
 #include <internal/swiparams.h>
 
 #define IGNORE(x) {(void) x;}
 
 
+/* Return the Unixlib device from a file descriptor.  This allows the overriding to occur */
+struct dev *
+__unixlib_getdev(int fd)
+{
+  struct __unixlib_fd *file_desc;
 
+  file_desc = getfd(fd);
+  if (!file_desc || !file_desc->devicehandle) return NULL;
+
+  return file_desc->devicehandle->handle;
+}
 
 
 void *

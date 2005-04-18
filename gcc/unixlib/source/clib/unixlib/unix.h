@@ -1,8 +1,8 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/unixlib/unix.h,v $
- * $Date: 2005/04/14 14:31:13 $
- * $Revision: 1.27 $
+ * $Date: 2005/04/14 15:17:23 $
+ * $Revision: 1.28 $
  * $State: Exp $
  * $Author: nick $
  *
@@ -64,7 +64,7 @@ struct __process
   unsigned int core_dump : 1;
   /* This process just stopped.  */
   unsigned int stopped : 1;
-  /* This process has exited, but has not been reaped by it's parent.  */
+  /* This process has exited, but has not been reaped by its parent.  */
   unsigned int zombie : 1;
   /* This process has already been reported to wait() whilst it is stopped.   */
   unsigned int reported : 1;
