@@ -1,8 +1,8 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/_syslib.s,v $
-; $Date: 2005/04/07 18:46:23 $
-; $Revision: 1.41 $
+; $Date: 2005/04/18 13:48:04 $
+; $Revision: 1.42 $
 ; $State: Exp $
 ; $Author: nick $
 ;
@@ -998,6 +998,13 @@ dynamic_area_name_end
 	DCB	"$HeapMax", 0
 	ALIGN
 
+	; The global errno variable is only defined when we are not building
+	; with thread support as errno is defined as being thread-local.
+	[ __UNIXLIB_FEATURE_PTHREADS == 0
+	EXPORT	|errno|
+|errno|
+	DCD	0
+	]
 
 	IMPORT	|Image$$RO$$Base|
 	IMPORT	|Image$$RW$$Base|

@@ -1,10 +1,10 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/scl/_kosfile.s,v $
-; $Date: 2002/09/24 21:02:37 $
-; $Revision: 1.3 $
+; $Date: 2004/10/17 16:24:44 $
+; $Revision: 1.4 $
 ; $State: Exp $
-; $Author: admin $
+; $Author: joty $
 ;
 ;----------------------------------------------------------------------------
 
@@ -12,7 +12,7 @@
 
 	AREA	|C$$code|, CODE, READONLY
 
-	IMPORT	|__seterr|
+	IMPORT	|__ul_seterr|
 
 	; _kernel_osfile (int op, char *name, _kernel_osfile_block *inout)
 	EXPORT	|_kernel_osfile|
@@ -25,7 +25,8 @@
 	SWI	XOS_File
 	STMNEIA ip, {a3, a4, v1, v2}
 	LDMVCFD	sp!, {v1-v3, pc}
-	BL	|__seterr|
+	MOV	a2, #1
+	BL	|__ul_seterr|
 	MOV	a1, #-2
 	LDMFD	sp!, {v1-v3, pc}
 

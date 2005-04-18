@@ -1,16 +1,5 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/mman.c,v $
- * $Date: 2005/04/07 18:46:23 $
- * $Revision: 1.8 $
- * $State: Exp $
- * $Author: nick $
- *
- ***************************************************************************/
-
-#ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: mman.c,v 1.8 2005/04/07 18:46:23 nick Exp $";
-#endif
+/* Map or unmap memory.
+   Copyright (c) 1996, 1997, 2005 UnixLib Developers.  */
 
 /* Definitions for BSD-style memory management.  Generic/4.4 BSD version.  */
 /* sys/mman.c: Written by Peter Burwood, 1 November 1996, June 1997  */
@@ -59,13 +48,12 @@ static mmap_info mmaps[MAX_MMAPS] = {
 
 extern void __mmap_page_copy (caddr_t dst, caddr_t src, int len);
 
-/* Free all mmapped memory. This is called from __dynamic_area_exit.  */
+/* Free all mmapped memory.  This is called from __dynamic_area_exit.
+   At that point, the thread system is not running.  */
 void
 __munmap_all (void)
 {
   int i;
-
-  PTHREAD_UNSAFE
 
   for (i = 0; i < MAX_MMAPS; i++)
     {
@@ -219,7 +207,7 @@ munmap (caddr_t addr, size_t len)
   if (err)
     {
       /* Failed to delete area.  */
-      __seterr (err);
+      __ul_seterr (err, 1);
       return -1;
     }
   return 0;
@@ -308,13 +296,13 @@ mremap (caddr_t addr, size_t old_len, size_t new_len, int may_move)
 	 return an error.  */
       if (new_len < old_len)
 	{
-	  __seterr (err);
+	  __ul_seterr (err, 1);
 	  /* Soldier on since we did manage to remap the memory.  */
 	  return addr;
 	}
       if ((may_move & MREMAP_MAYMOVE) == 0)
 	{
-	  __seterr (err); /* XXX Should we return ENOMEM ? */
+	  __ul_seterr (err, 1); /* XXX Should we return ENOMEM ? */
 	  return ((caddr_t)-1);
 	}
       /* Create a new mmap section to replace this section and copy over the
@@ -339,7 +327,7 @@ mremap (caddr_t addr, size_t old_len, size_t new_len, int may_move)
 	 old area failing. We also soldier on, since we did manage
 	 to remap the memory.  */
       if (err)
-	__seterr (err);
+	__ul_seterr (err, 1);
       addr = new_addr;
     }
   return addr;

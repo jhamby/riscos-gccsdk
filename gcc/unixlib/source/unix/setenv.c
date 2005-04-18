@@ -1,16 +1,5 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/setenv.c,v $
- * $Date: 2003/04/05 09:33:57 $
- * $Revision: 1.4 $
- * $State: Exp $
- * $Author: alex $
- *
- ***************************************************************************/
-
-#ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: setenv.c,v 1.4 2003/04/05 09:33:57 alex Exp $";
-#endif
+/* Set Unix-style environment variables.
+   Copyright (c) 2005 UnixLib Developers.  */
 
 #include <stdlib.h>
 #include <string.h>
@@ -50,7 +39,7 @@ __addenv_to_os (const char *name, const char *value, int replace)
   err = __os_swi (OS_SetVarVal, regs);
   if (err)
     {
-      __seterr (err);
+      __ul_seterr (err, 1);
       return -1;
     }
 

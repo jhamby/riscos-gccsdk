@@ -1,16 +1,5 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/gethostnam.c,v $
- * $Date: 2002/02/14 15:56:38 $
- * $Revision: 1.3 $
- * $State: Exp $
- * $Author: admin $
- *
- ***************************************************************************/
-
-#ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: gethostnam.c,v 1.3 2002/02/14 15:56:38 admin Exp $";
-#endif
+/* Get internet hostname for machine.
+   Copyright (c) 2003, 2005 UnixLib Developers.  */
 
 #include <string.h>
 #include <stdlib.h>
@@ -40,7 +29,7 @@ fakehostname (char *name, size_t len)
   err = __os_byte (161, 0, 0, regs);
   if (err)
     {
-      __seterr (err);
+      __ul_seterr (err, 1);
       return -1;
     }
 

@@ -1,10 +1,10 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/scl/_ksetenv.s,v $
-; $Date: 2002/09/24 21:02:37 $
-; $Revision: 1.3 $
+; $Date: 2004/10/17 16:24:44 $
+; $Revision: 1.4 $
 ; $State: Exp $
-; $Author: admin $
+; $Author: joty $
 ;
 ;----------------------------------------------------------------------------
 
@@ -12,7 +12,7 @@
 
 	AREA	|C$$code|, CODE, READONLY
 
-	IMPORT	|__seterr|
+	IMPORT	|__ul_seterr|
 
 	; int _kernel_setenv (const char *name, const char *value)
 	EXPORT	|_kernel_setenv|
@@ -34,7 +34,8 @@
 	LDMVCFD	sp!, {v1, pc}
 
 	MOV	v1, a1
-	BL	|__seterr|
+	MOV	a2, #0
+	BL	|__ul_seterr|
 	MOV	a1, v1
 	LDMFD	sp!, {v1, pc}
 

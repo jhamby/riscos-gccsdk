@@ -1,10 +1,10 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/_os.s,v $
-; $Date: 2004/10/17 16:24:44 $
-; $Revision: 1.9 $
+; $Date: 2005/04/07 18:38:02 $
+; $Revision: 1.10 $
 ; $State: Exp $
-; $Author: joty $
+; $Author: nick $
 ;
 ;----------------------------------------------------------------------------
 
@@ -24,9 +24,12 @@
 	MOV	pc, lr
 
 	EXPORT	|__os_vdu|
+	EXPORT	|_kernel_oswrch|
 	NAME	__os_vdu
 |__os_vdu|
+|_kernel_oswrch|
 	SWI	XOS_WriteC
+	MOVVC	a1, #0
 	MVNVS	a1, #0
 	MOV	pc, lr
 
@@ -154,10 +157,13 @@ os_423inkey_l2
 	MOV	pc, lr
 
 	EXPORT	|__os_word|
+	EXPORT	|_kernel_osword|
 	NAME	__os_word
 |__os_word|
+|_kernel_osword|
 	SWI	XOS_Word
 	MOVVC	a1, #0
+	MVNVS	a1, #0
 	MOV	pc, lr
 
 	EXPORT	|__os_prhex|

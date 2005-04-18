@@ -1,16 +1,5 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/unlink.c,v $
- * $Date: 2004/12/11 14:18:57 $
- * $Revision: 1.9 $
- * $State: Exp $
- * $Author: joty $
- *
- ***************************************************************************/
-
-#ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: unlink.c,v 1.9 2004/12/11 14:18:57 joty Exp $";
-#endif
+/* Delete a file from disk.
+   Copyright (c) 2005 UnixLib Developers.  */
 
 #include <errno.h>
 #include <limits.h>
@@ -43,7 +32,8 @@ __unlinksuffix (char *file)
 
       if (!(__get_riscosify_control () & __RISCOSIFY_NO_SUFFIX)
           && __sfixfind (dot, strlen (dot)))
-        __os_file (OSFILE_DELETENAMEDOBJECT, file, regs); /* This will only delete empty directories */
+	/* This will only delete empty directories */
+        __os_file (OSFILE_DELETENAMEDOBJECT, file, regs);
     }
 }
 
@@ -71,7 +61,7 @@ unlink (const char *ux_file)
     {
       /* Should check for EROFS but this would involve
 	 opening/closing the file.  */
-      __seterr (err);
+      __ul_seterr (err, 1);
       return -1;
     }
 

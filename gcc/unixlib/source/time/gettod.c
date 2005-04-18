@@ -1,16 +1,5 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/time/gettod.c,v $
- * $Date: 2001/01/29 15:10:22 $
- * $Revision: 1.2 $
- * $State: Exp $
- * $Author: admin $
- *
- ***************************************************************************/
-
-#ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: gettod.c,v 1.2 2001/01/29 15:10:22 admin Exp $";
-#endif
+/* Get time.
+   Copyright (c) 2003, 2005 UnixLib Developers.  */
 
 #include <errno.h>
 #include <stdint.h>
@@ -47,7 +36,7 @@ gettimeofday (struct timeval *tv, struct timezone *tz)
 
   if (tv == NULL)
     {
-      errno = EINVAL;
+      __set_errno (EINVAL);
       return -1;
     }
 
@@ -55,7 +44,7 @@ gettimeofday (struct timeval *tv, struct timezone *tz)
   err = __os_word(14, buf);
   if (err)
     {
-      __seterr (err);
+      __ul_seterr (err, 1);
       return -1;
     }
   /* The number of centiseconds that have elapsed between the starts

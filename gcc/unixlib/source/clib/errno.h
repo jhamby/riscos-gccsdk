@@ -1,8 +1,8 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/errno.h,v $
- * $Date: 2004/08/16 21:01:26 $
- * $Revision: 1.12 $
+ * $Date: 2004/11/28 21:31:34 $
+ * $Revision: 1.13 $
  * $State: Exp $
  * $Author: joty $
  *
@@ -112,10 +112,22 @@
 
 #define __SYS_NERR	90
 
-#ifndef errno
+#undef errno
+
+#ifdef __UNIXLIB_FEATURE_PTHREADS
+/* Errno is thread local.  */
+
+#ifndef __pthread_t_defined
+#define __need_pthread_t
+#include <pthread.h>
+#endif
+
+#define errno __pthread_running_thread->thread_errno
+#define __errno __pthread_running_thread->thread_errno
+#else
 extern int errno;
 #define __errno errno
-#endif /* errno */
+#endif
 
 extern const char *sys_errlist[];
 extern int sys_nerr;
@@ -125,7 +137,12 @@ extern int sys_nerr;
    us to easily make setting the errno call a function if necessary if
    threads ever appear.  We also give a return value so we can use
    return __set_errno () which can allow function tail calling.  */
+
+#ifdef __UNIXLIB_FEATURE_PTHREADS
+#define __set_errno(val) (__pthread_running_thread->thread_errno = (val), -1)
+#else
 #define __set_errno(val) (errno = (val), -1)
+#endif
 
 extern struct
 {

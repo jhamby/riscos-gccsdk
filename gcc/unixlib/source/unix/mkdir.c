@@ -1,16 +1,5 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/mkdir.c,v $
- * $Date: 2004/12/11 14:18:57 $
- * $Revision: 1.7 $
- * $State: Exp $
- * $Author: joty $
- *
- ***************************************************************************/
-
-#ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: mkdir.c,v 1.7 2004/12/11 14:18:57 joty Exp $";
-#endif
+/* Make a directory on disk.
+   Copyright (c) 2005 UnixLib Developers.  */
 
 #include <errno.h>
 #include <limits.h>
@@ -53,7 +42,7 @@ mkdir (const char *ux_path, __mode_t mode)
   err = __os_file (OSFILE_CREATEDIRECTORY, path, regs);
   if (err)
     {
-      __seterr (err);
+      __ul_seterr (err, 1);
       return -1;
     }
 
@@ -62,7 +51,7 @@ mkdir (const char *ux_path, __mode_t mode)
   err = __os_file (OSFILE_WRITECATINFO_ATTR, path, regs);
   if (err)
     {
-      __seterr (err);
+      __ul_seterr (err, 1);
       return -1;
     }
 

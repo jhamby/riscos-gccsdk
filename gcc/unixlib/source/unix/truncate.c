@@ -1,16 +1,5 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/truncate.c,v $
- * $Date: 2003/04/05 09:33:57 $
- * $Revision: 1.4 $
- * $State: Exp $
- * $Author: alex $
- *
- ***************************************************************************/
-
-#ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: truncate.c,v 1.4 2003/04/05 09:33:57 alex Exp $";
-#endif
+/* Truncate a file to a specified length.
+   Copyright (c) 2005 UnixLib Developers.  */
 
 #include <errno.h>
 #include <limits.h>
@@ -40,10 +29,11 @@ ftruncate (int fd, off_t length)
   if (file_desc->devicehandle->type != DEV_RISCOS)
     return __set_errno (EOPNOTSUPP);
 
-  err = __os_args (3, (int) file_desc->devicehandle->handle, (int) length, NULL);
+  err = __os_args (3, (int) file_desc->devicehandle->handle,
+		   (int) length, NULL);
   if (err)
     {
-      __seterr (err);
+      __ul_seterr (err, 1);
       return -1;
     }
 
@@ -67,7 +57,7 @@ truncate (const char *ux_file, off_t length)
   err = __os_fopen (0xc0, file, &fd);
   if (err)
     {
-      __seterr (err);
+      __ul_seterr (err, 1);
       return -1;
     }
 
@@ -77,7 +67,7 @@ truncate (const char *ux_file, off_t length)
 
   if (err)
     {
-      __seterr (err);
+      __ul_seterr (err, 1);
       return -1;
     }
 

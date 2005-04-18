@@ -1,16 +1,5 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/dev.c,v $
- * $Date: 2005/04/05 21:32:16 $
- * $Revision: 1.32 $
- * $State: Exp $
- * $Author: peter $
- *
- ***************************************************************************/
-
-#ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: dev.c,v 1.32 2005/04/05 21:32:16 peter Exp $";
-#endif
+/* Low-level device handling.
+   Copyright (c) 2002, 2003, 2004, 2005 UnixLib Developers.  */
 
 /* #define DEBUG */
 
@@ -353,7 +342,7 @@ __fsopen (struct __unixlib_fd *file_desc, const char *filename, int mode)
   return (void *) fd;
 
 os_err:
-  __seterr (err);
+  __ul_seterr (err, 1);
   return (void *) -1;
 }
 
@@ -392,7 +381,7 @@ __fsclose (struct __unixlib_fd *file_desc)
 
   if (buffer)
     free (buffer);
-  return (! err) ? 0 : (__seterr (err), -1);
+  return (! err) ? 0 : (__ul_seterr (err, 1), -1);
 }
 
 int
@@ -409,8 +398,10 @@ __fsread (struct __unixlib_fd *file_desc, void *data, int nbyte)
 	return -1;
       if (!result)
         return -1;
-      memcpy (data, entry.d_name, nbyte < entry.d_namlen ? nbyte : entry.d_namlen);
-      /* FIXME: If the buffer is too small then we will lose the rest of the filename */
+      memcpy (data, entry.d_name,
+	      (nbyte < entry.d_namlen) ? nbyte : entry.d_namlen);
+      /* FIXME: If the buffer is too small then we will lose the
+	 rest of the filename */
       return entry.d_namlen;
     }
   else
@@ -418,9 +409,10 @@ __fsread (struct __unixlib_fd *file_desc, void *data, int nbyte)
       _kernel_oserror *err;
       int regs[5];
 
-      if ((err = __os_fread ((int)file_desc->devicehandle->handle, data, nbyte, regs)))
+      if ((err = __os_fread ((int)file_desc->devicehandle->handle,
+			     data, nbyte, regs)))
 	{
-	  __seterr (err);
+	  __ul_seterr (err, 1);
 	  return -1;
 	}
 
@@ -439,9 +431,10 @@ __fswrite (struct __unixlib_fd *file_desc, const void *data, int nbyte)
   __os_print (", nbyte="); __os_prdec (nbyte); __os_print (")\r\n");
 #endif
 
-  if ((err = __os_fwrite ((int)file_desc->devicehandle->handle, data, nbyte, regs)))
+  if ((err = __os_fwrite ((int)file_desc->devicehandle->handle,
+			  data, nbyte, regs)))
     {
-      __seterr (err);
+      __ul_seterr (err, 1);
       return -1;
     }
 
@@ -479,7 +472,7 @@ __fslseek (struct __unixlib_fd *file_desc, __off_t lpos, int whence)
   else
     return __set_errno (EINVAL);
 
-  return (! err) ? ((__off_t) regs[2]) : (__seterr (err), -1);
+  return (! err) ? ((__off_t) regs[2]) : (__ul_seterr (err, 1), -1);
 }
 
 int
@@ -552,7 +545,7 @@ __fsfstat (int fd, struct stat *buf)
   err = __os_file (OSFILE_READCATINFO, buffer, regs);
   if (err)
     {
-      __seterr (err);
+      __ul_seterr (err, 0);
       free (buffer);
       return __set_errno (EIO);
     }
@@ -566,7 +559,7 @@ __fsfstat (int fd, struct stat *buf)
       err = __os_args (2, (int) file_desc->devicehandle->handle, 0, argsregs);
       if (err)
         {
-          __seterr (err);
+          __ul_seterr (err, 0);
           return __set_errno (EIO);
         }
       regs[4] = argsregs[2];
@@ -857,7 +850,7 @@ __randomopen (struct __unixlib_fd *file_desc, const char *file, int mode)
       if ((err = __os_cli("RMEnsure CryptRandom 0.12 RMLoad System:Modules.CryptRand")) != NULL
           || (err = __os_cli("RMEnsure CryptRandom 0.12 Error 16_10F /dev/random support requires CryptRand 0.12 or newer")) != NULL)
         {
-          __seterr (err);
+          __ul_seterr (err, 1);
           return (void *)-1;
         }
 
@@ -882,7 +875,7 @@ __randomread (struct __unixlib_fd *file_desc, void *data, int nbyte)
   err = __os_swi(CryptRandom_Block, regs);
   if (err)
     {
-      __seterr (err);
+      __ul_seterr (err, 1);
       return -1;
     }
 

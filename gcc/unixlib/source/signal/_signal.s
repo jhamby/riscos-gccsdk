@@ -1,8 +1,8 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/signal/_signal.s,v $
-; $Date: 2004/10/23 17:23:36 $
-; $Revision: 1.24 $
+; $Date: 2004/11/28 21:31:34 $
+; $Revision: 1.25 $
 ; $State: Exp $
 ; $Author: joty $
 ;
@@ -88,25 +88,30 @@
 
 
 ;-----------------------------------------------------------------------
-; void __seterr (const _kernel_oserror *err)
+; void __ul_seterr (const _kernel_oserror *err, int seterrno)
 ; On entry:
 ;	a1 = RISC OS error block
+;	a2 = non-zero if errno should be set,
+;	     zero if errno should not be set
 ; On exit:
 ;	APCS-32 compliant. a1-a4, ip corrupted.
 ;
 ; Set UnixLib's errno to EOPSYS and copy the error from err to UnixLib's
 ; error buffer.
 ;
-	EXPORT	|__seterr|
-	NAME	__seterr
-|__seterr|
+	EXPORT	|__ul_seterr|
+	NAME	__ul_seterr
+|__ul_seterr|
 	TEQ	a1, #0			; quick exit when no error
 	MOVEQ	pc, lr
 
 	STMFD	sp!, {v1-v5, lr}	; Stack working registers
+	CMP	a2, #0
+	BEQ	|seterr01|		; user requested not to set errno
 	MOV	a3, #EOPSYS
 	__set_errno	a3, a2		; Set errno = EOPSYS
 
+|seterr01|
 	[ __UNIXLIB_FEATURE_PTHREADS > 0
 	LDR	a2, =|__pthread_running_thread|
 	LDR	a2, [a2]
@@ -128,11 +133,11 @@
 	STMIA	a2!, {a4, v1-v5, ip, lr}
 
 	MOV	a3, #|__ul_errbuf__size| - 8*4
-|__seterr.00|
+|seterr00|
 	LDMIA	a1!, {a4, v1-v5, ip, lr}
 	STMIA	a2!, {a4, v1-v5, ip, lr}
 	SUBS	a3, a3, #8*4
-	BNE	|__seterr.00|
+	BNE	|seterr00|
 
 	MOV	a1, #0			; ensure zero-terminated.
 	STRB	a1, [a2, #-1]

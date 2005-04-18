@@ -1,16 +1,5 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/utime.c,v $
- * $Date: 2004/12/11 14:18:57 $
- * $Revision: 1.6 $
- * $State: Exp $
- * $Author: joty $
- *
- ***************************************************************************/
-
-#ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: utime.c,v 1.6 2004/12/11 14:18:57 joty Exp $";
-#endif
+/* Change access and/or modification times of an inode.
+   Copyright (c) 2005 UnixLib Developers.  */
 
 #include <errno.h>
 #include <limits.h>
@@ -46,7 +35,7 @@ utime (const char *ux_filename, const struct utimbuf *times)
   err = __os_file (OSFILE_WRITECATINFO_ALL, filename, regs);
   if (err)
     {
-      __seterr (err);
+      __ul_seterr (err, 1);
       return -1;
     }
 

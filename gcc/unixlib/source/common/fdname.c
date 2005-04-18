@@ -1,16 +1,5 @@
-/****************************************************************************
- *
- * $Source$
- * $Date$
- * $Revision$
- * $State$
- * $Author$
- *
- ***************************************************************************/
-
-#ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id$";
-#endif
+/* Return a canonicalised RISC OS filename.
+   Copyright (c) 2003, 2005 UnixLib Developers.  */
 
 #include <stdlib.h>
 #include <unixlib/local.h>
@@ -19,20 +8,18 @@ static const char rcs_id[] = "$Id$";
 #include <errno.h>
 #include <pthread.h>
 
-/* Return canonicalised RISCOS filename corresponding to a RISC OS file
+/* Return canonicalised RISC OS filename corresponding to a RISC OS file
    descriptor RISCOS_FD, or NULL if failed to canonicalise filename. The
    filename is copied into BUF.  If BUF is NULL, then allocate space as
-   necessary. This is an internal function and thus does not set errno
-   since that is the responsibility of the caller.  */
+   necessary.  This is an internal function and thus does not set errno
+   since that is the responsibility of the caller.
 
+   This function is thread safe.  */
 char *
 __fd_to_name (int riscos_fd, char *buf, size_t buflen)
 {
-  int save = errno;
   _kernel_oserror *err;
   int regs[10];
-
-  PTHREAD_UNSAFE
 
   /* Check illegal argument combination.  */
   if (buflen == 0 && buf != NULL)
@@ -51,7 +38,8 @@ __fd_to_name (int riscos_fd, char *buf, size_t buflen)
 
       err = __os_swi (OS_Args, regs);
       if (err)
-	__seterr (err);		/* Do not return here, fall through.  */
+	/* Do not return here, fall through.  */
+	__ul_seterr (err, 0);
       else
 	{
 	  /* regs[5] is now -( length of filename - oldreg[5] ) */
@@ -67,14 +55,11 @@ __fd_to_name (int riscos_fd, char *buf, size_t buflen)
   /* Finally, get the filename into the buffer.  */
   if (buf != NULL && (err = __os_swi (OS_Args, regs)) != NULL)
     {
-      __seterr (err);
+      __ul_seterr (err, 0);
       if (buflen == 0)
 	free (buf);
       buf = NULL;
     }
-
-  /* Restore errno so callers do not get upset.  */
-  (void) __set_errno (save);
 
   return buf;
 }

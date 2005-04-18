@@ -1,16 +1,5 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/getcwd.c,v $
- * $Date: 2003/10/30 23:09:54 $
- * $Revision: 1.5 $
- * $State: Exp $
- * $Author: alex $
- *
- ***************************************************************************/
-
-#ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: getcwd.c,v 1.5 2003/10/30 23:09:54 alex Exp $";
-#endif
+/* Get the current working directory.
+   Copyright (c) 2004, 2005 UnixLib Developers.  */
 
 #include <errno.h>
 #include <limits.h>
@@ -67,7 +56,7 @@ getcwd (char *buffer, size_t size)
     free ((void *)ro_path);
   if (err)
     {
-      __seterr (err);
+      __ul_seterr (err, 1);
       return NULL;
     }
 

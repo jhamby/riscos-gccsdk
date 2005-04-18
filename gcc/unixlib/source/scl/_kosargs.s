@@ -1,10 +1,10 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/scl/_kosargs.s,v $
-; $Date: 2002/09/24 21:02:37 $
-; $Revision: 1.3 $
+; $Date: 2004/10/17 16:24:44 $
+; $Revision: 1.4 $
 ; $State: Exp $
-; $Author: admin $
+; $Author: joty $
 ;
 ;----------------------------------------------------------------------------
 
@@ -12,7 +12,7 @@
 
 	AREA	|C$$code|, CODE, READONLY
 
-	IMPORT	|__seterr|
+	IMPORT	|__ul_seterr|
 
 	; _kernel_osargs (int op, unsigned handle, int arg)
 	EXPORT	|_kernel_osargs|
@@ -26,7 +26,8 @@
 	MOVNE	a1, a3
 	LDMFD	sp!, {pc}
 error
-	BL	|__seterr|
+	MOV	a2, #0
+	BL	|__ul_seterr|
 	MOV	a1, #-2
 	LDMFD	sp!, {pc}
 

@@ -1,16 +1,5 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/chmod.c,v $
- * $Date: 2004/12/11 14:18:57 $
- * $Revision: 1.6 $
- * $State: Exp $
- * $Author: joty $
- *
- ***************************************************************************/
-
-#ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: chmod.c,v 1.6 2004/12/11 14:18:57 joty Exp $";
-#endif
+/* Change permissions of a file.
+   Copyright (c) 2005 UnixLib Developers.  */
 
 #include <errno.h>
 #include <limits.h>
@@ -39,7 +28,7 @@ chmod (const char *ux_file, mode_t mode)
   err = __os_file (OSFILE_WRITECATINFO_ATTR, file, regs);
   if (err)
     {
-      __seterr (err);
+      __ul_seterr (err, 0);
       return __set_errno (EPERM);
     }
 

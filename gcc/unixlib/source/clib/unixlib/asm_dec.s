@@ -1,10 +1,10 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/unixlib/asm_dec.s,v $
-; $Date: 2004/11/28 21:31:34 $
-; $Revision: 1.18 $
+; $Date: 2005/03/04 20:59:05 $
+; $Revision: 1.19 $
 ; $State: Exp $
-; $Author: joty $
+; $Author: alex $
 ;
 ; Declare registers and SWIs we will be calling.
 ;
@@ -117,16 +117,28 @@ IFlag32		EQU	&00000080
 	__set_errno	$val,$Rerrno
 	ASSERT	$val <> $Rerrno
 	IMPORT	|errno|
+	[ __UNIXLIB_FEATURE_PTHREADS > 0
+	LDR	$Rerrno, =|__pthread_running_thread|
+	LDR	$Rerrno, [$Rerrno]
+	STR	$val, [$Rerrno, #__PTHREAD_ERRNO_OFFSET]
+	|
 	LDR	$Rerrno, =|errno|
 	STR	$val, [$Rerrno]
+	]
 	MOV	$val, #-1
 	MEND
 
 	MACRO
 	__get_errno	$val,$Rerrno
 	IMPORT	|errno|
+	[ __UNIXLIB_FEATURE_PTHREADS > 0
+	LDR	$Rerrno, =|__pthread_running_thread|
+	LDR	$Rerrno, [$Rerrno]
+	LDR	$val, [$Rerrno, #__PTHREAD_ERRNO_OFFSET]
+	|
 	LDR	$Rerrno, =|errno|
 	LDR	$val, [$Rerrno]
+	]
 	MEND
 
 	; NetSWI, NetSWIsimple, NetSWI0 and NetSWIsimple0 are macros to call

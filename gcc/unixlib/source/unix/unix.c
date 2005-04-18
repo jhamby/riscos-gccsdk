@@ -1,16 +1,5 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/unix.c,v $
- * $Date: 2005/04/14 14:31:14 $
- * $Revision: 1.42 $
- * $State: Exp $
- * $Author: nick $
- *
- ***************************************************************************/
-
-#ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: unix.c,v 1.42 2005/04/14 14:31:14 nick Exp $";
-#endif
+/* UnixLib process initialisation and finalisation.
+   Copyright (c) 2002, 2003, 2004, 2005 UnixLib Developers.  */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -313,8 +302,7 @@ void __unixinit (void)
 	  regs[0] = (int) cli + __cli_size + 1;
 	  if ((err = __os_swi (DDEUtils_GetCl, regs)) != NULL)
 	    {
-	      __seterr (err);
-	      __unixlib_fatal ("cant get command line");
+	      __unixlib_fatal ("cannot get command line");
 	    }
 	}
     }

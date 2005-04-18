@@ -1,16 +1,5 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/pthread/init.c,v $
- * $Date: 2003/11/23 20:26:45 $
- * $Revision: 1.6 $
- * $State: Exp $
- * $Author: joty $
- *
- ***************************************************************************/
-
-#ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: init.c,v 1.6 2003/11/23 20:26:45 joty Exp $";
-#endif
+/* Pthread initialisation.
+   Copyright (c) 2004, 2005 UnixLib Developers.  */
 
 /* Written by Martin Piper and Alex Waugh */
 
@@ -31,6 +20,8 @@ __pthread_prog_init (void)
 
   /* Create a node for the main program */
   __pthread_running_thread = __pthread_new_node (&mainthread);
+  if (__pthread_running_thread == NULL)
+    __unixlib_fatal ("pthreads initialisation error.");
 
   __pthread_thread_list = __pthread_running_thread;
 

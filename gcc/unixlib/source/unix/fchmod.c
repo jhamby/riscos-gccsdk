@@ -1,16 +1,5 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/fchmod.c,v $
- * $Date: 2005/03/04 20:59:06 $
- * $Revision: 1.7 $
- * $State: Exp $
- * $Author: alex $
- *
- ***************************************************************************/
-
-#ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: fchmod.c,v 1.7 2005/03/04 20:59:06 alex Exp $";
-#endif
+/* Modify file attributes of an open file.
+   Copyright (c) 2005 UnixLib Developers.  */
 
 #include <errno.h>
 #include <limits.h>
@@ -53,7 +42,7 @@ int fchmod (int fd, mode_t mode)
   err = __os_file (OSFILE_WRITECATINFO_ATTR, name, regs);
   if (err)
     {
-      __seterr (err);
+      __ul_seterr (err, 0);
       return __set_errno (EPERM);
     }
 

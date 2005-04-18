@@ -1,3 +1,89 @@
+Mon Apr 18 18:03:56 2005  Nick Burrett  <nick@sqrt.co.uk>
+
+	Make 'errno' thread local.
+	Add option to __seterr to prevent the setting of 'errno',
+	rename to __ul_seterr and update all callers.
+	* signal/_signal.s (__ul_seterr): Renamed from '__seterr'.
+	If 'a2' is non-zero, then do not set errno.
+	Perform NULL-check on __pthread_running_thread.
+	* unixlib/os.h (__ul_seterr): Add seterrno parameter to prototype.
+	* unixlib/asm_dec.s (__set_errno): For thread support, use the
+	local thread errno rather than the global errno.
+	(__get_errno): Likewise.
+	* errno.h (__set_errno): Likewise.
+	* errno.c: Delete file.
+	* sys/_syslib.s (errno): Define when not compiling with thread
+	support.
+
+	* pthread/pthinit.c (__pthread_prog_init): Die if __pthread_new_node
+	fails.
+
+	* gdtoa/gdtoaimp.h (ACQUIRE_DTOA_LOCK): Check __pthread_system_running
+	rather than __pthread_running_thread.
+	(FREE_DTOA_LOCK): Likewise.
+	
+	* common/fdname.c (__fd_to_name): Don't set errno.
+	* common/objattr.c (__object_get_attrs): Likewise.
+	(__object_set_attrs): Likewise.
+	* locale/iconv.c (iconv_error): Likewise.
+	* netlib/_net_error.s (__net_error): Likewise.
+	* unix/chmod.c (chmod): Likewise.
+	* unix/dev.c (__fsfsstat): Likewise.
+	* unix/dirent.c (readdir_r): Likewise.
+	* unix/fchmod.c (fchmod): Likewise.
+	* unix/rmdir.c (rmdir): Likewise.
+
+	* locale/iconv.c (iconv_open): Set errno.
+	* sound/dsp.c (__dspopen): Likewise.
+	(__dspwrite): Likewise.
+	* sys/mman.c (munmap): Likewise.
+	(mremap): Likewise.
+	* time/clk_gettime.c (clock_gettime): Likewise.
+	* time/gettod.c (gettimeofday): Likewise.
+	* time/time.c (time): Likewise.
+	* unix/chdir.c (chdir): Likewise.
+	* unix/dev.c (__fsopen): Likewise.
+	(__fsclose, __fsread, __fswrite, __fslseek): Likewise.
+	(__randomopen, __randomread): Likewise.
+	* unix/dirent.c (newstream): Likewise.
+	* unix/getcwd.c (getcwd): Likewise.
+	* unix/getenv.c (__getenv_from_os): Likewise.
+	* unix/gethostnam.c (fakehostname): Likewise.
+	* unix/mkdir.c (mkdir): Likewise.
+	* unix/setenv.c (__addenv_to_os): Likewise.
+	* unix/sync.c (fsync): Likewise.
+	* unix/truncate.c (ftruncate): Likewise.
+	(truncate): Likewise.
+	* unix/unlink.c (unlink): Likewise.
+	* unix/utime.c (utime): Likewise.
+	* scl/_kswi.s: Likewise.
+	* scl/_ksetenv.s: Likewise.
+	* scl/_kosrdch.s: Likewise.
+	* scl/_kosgbpb.s: Likewise.
+	* scl/_kosfind.s: Likewise.
+	* scl/_kosfile.s: Likewise.
+	* scl/_koscli.s: Likewise.
+	* scl/_kosbyte.s: Likewise.
+	* scl/_kosargs.s: Likewise.
+	* scl/_kgetenv.s: Likewise.
+	* scl/_kernel.s: Likewise.
+	
+	* unix/unix.c (__unixinit): Drop call to '__seterr'.
+	* scl/_kosbput.s: Likewise.
+	* scl/_kosbyte.s: Likewise.
+
+	* unix/rename.c (rename): Set 'errno'.  Don't need to preserve 'errno'
+	across function.
+
+	* sys/mman.c (__munmap_all): Remove PTHREAD_UNSAFE as the thread
+	system should not be running at this time.
+
+	* scl/_koswrch.s: Delete file.
+	* scl/_kosword.s: Delete file.
+	* sys/_os.s (__os_vdu): Define _kernel_oswrch to the same function.
+	Set return value to zero on success.
+	(__os_word): Simerly for _kernel_osword.
+	
 Mon Apr 18 14:44:24 2005  Nick Burrett  <nick@sqrt.co.uk>
 
 	* unix/getpagesiz.s: Delete file.

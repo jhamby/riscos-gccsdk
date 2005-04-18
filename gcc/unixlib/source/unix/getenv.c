@@ -1,16 +1,5 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/getenv.c,v $
- * $Date: 2005/03/15 22:09:40 $
- * $Revision: 1.7 $
- * $State: Exp $
- * $Author: alex $
- *
- ***************************************************************************/
-
-#ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: getenv.c,v 1.7 2005/03/15 22:09:40 alex Exp $";
-#endif
+/* Manipulate Unix-style environment variables.
+   Copyright (c) 2004, 2005 UnixLib Developers.  */
 
 #include <errno.h>
 #include <stdlib.h>
@@ -84,7 +73,8 @@ __getenv_from_os (const char *name, char *buf, size_t buflen, char **call)
 
           if (dollar)
             {
-              if (strncmp (found, __UNIX_ENV_PREFIX, sizeof (__UNIX_ENV_PREFIX) - 1) == 0)
+              if (strncmp (found, __UNIX_ENV_PREFIX,
+			   sizeof (__UNIX_ENV_PREFIX) - 1) == 0)
                 {
                   /* We need to strip the prefix off before adding it to the
                      environment. */
@@ -149,7 +139,7 @@ __getenv_from_os (const char *name, char *buf, size_t buflen, char **call)
       /* The variable isn't a macro and OS_ReadVarVal returned an error.
 	 Do not set the errno if the variable was not found. */
       if (regs[2] != 0)
-	__seterr (err);
+	__ul_seterr (err, 1);
       return NULL;
     }
   else
@@ -165,7 +155,7 @@ __getenv_from_os (const char *name, char *buf, size_t buflen, char **call)
 	{
 	  /* Do not set the errno if the variable was not found. */
 	  if (regs[2] != 0)
-	    __seterr (err);
+	    __ul_seterr (err, 1);
 	  return NULL;
 	}
     }

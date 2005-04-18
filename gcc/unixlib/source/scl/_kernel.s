@@ -1,8 +1,8 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/scl/_kernel.s,v $
-; $Date: 2004/10/17 16:24:44 $
-; $Revision: 1.4 $
+; $Date: 2004/11/28 21:31:34 $
+; $Revision: 1.5 $
 ; $State: Exp $
 ; $Author: joty $
 ;
@@ -30,7 +30,7 @@
 ; code on a StrongARM, so we use OS_CallASWIR12 (as all good boys and
 ; girls should).
 
-	IMPORT	|__seterr|
+	IMPORT	|__ul_seterr|
 
 	; _kernel_oserror *_kernel_swi(int no, _kernel_swi_regs *in,
 	;                              _kernel_swi_regs *out);
@@ -48,7 +48,8 @@
 	MOVVC	a1, #0
 	LDMVCFD	sp!, {a3, v1-v6, pc}
 	MOV	v1, a1
-	BL	|__seterr|
+	MOV	a2, #1
+	BL	|__ul_seterr|
 	MOV	a1, v1
 	LDMFD	sp!, {a3, v1-v6, pc}
 

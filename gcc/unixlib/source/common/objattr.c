@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/common/objattr.c,v $
- * $Date: 2003/12/29 19:02:38 $
- * $Revision: 1.5 $
+ * $Date: 2005/04/14 15:17:23 $
+ * $Revision: 1.6 $
  * $State: Exp $
- * $Author: peter $
+ * $Author: nick $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: objattr.c,v 1.5 2003/12/29 19:02:38 peter Exp $";
+static const char rcs_id[] = "$Id: objattr.c,v 1.6 2005/04/14 15:17:23 nick Exp $";
 #endif
 
 #include <errno.h>
@@ -46,7 +46,7 @@ __object_get_attrs (const char *ux_file, char *buffer, size_t buf_len,
   err = __os_file (OSFILE_READCATINFO_NOPATH, buffer, regs);
   if (err)
     {
-      __seterr (err);
+      __ul_seterr (err, 0);
       return __set_errno (EIO);
     }
 
@@ -108,7 +108,7 @@ __object_set_attrs (const char *ux_file, char *buffer, size_t buf_len,
       err = __os_file (OSFILE_WRITECATINFO_FILETYPE, buffer, regs);
       if (err)
         {
-          __seterr (err);
+          __ul_seterr (err, 0);
           return __set_errno (EIO);
         }
     }
@@ -119,7 +119,7 @@ __object_set_attrs (const char *ux_file, char *buffer, size_t buf_len,
       err = __os_file (OSFILE_WRITECATINFO_ATTR, buffer, regs);
       if (err)
         {
-          __seterr (err);
+          __ul_seterr (err, 0);
           return __set_errno (EIO);
         }
     }

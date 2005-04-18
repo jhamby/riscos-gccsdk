@@ -1,12 +1,5 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/time/asctime.c,v $
- * $Date: 2003/04/05 09:33:56 $
- * $Revision: 1.3 $
- * $State: Exp $
- * $Author: alex $
- *
- ***************************************************************************/
+/* Read clock information.
+   Copyright (c) 2005 UnixLib Developers.  */
 
 #include <errno.h>
 #include <time.h>
@@ -26,7 +19,7 @@ int clock_gettime (clockid_t clk_id, struct timespec *tp)
 	err = __os_word (14, buf);
 	if (err)
 	  {
-	    __seterr (err);
+	    __ul_seterr (err, 1);
 	    return -1;
 	  }
 

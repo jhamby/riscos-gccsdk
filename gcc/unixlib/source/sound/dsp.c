@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sound/dsp.c,v $
- * $Date: 2005/03/04 20:59:06 $
- * $Revision: 1.10 $
+ * $Date: 2005/04/14 15:17:23 $
+ * $Revision: 1.11 $
  * $State: Exp $
- * $Author: alex $
+ * $Author: nick $
  *
  ***************************************************************************/
 
@@ -69,16 +69,18 @@ void dsp_exit(void)
 {
   if (dr_registered)
     {
-       _kernel_swi_regs regs;
-
-       regs.r[0] = 0;
+      _kernel_swi_regs regs;
+      
+      regs.r[0] = 0;
       _kernel_swi(DigitalRenderer_NumBuffers, &regs, &regs);
       _kernel_swi(DigitalRenderer_Deactivate, &regs, &regs);
     }
 }
 
 
-static _kernel_oserror *set_defaults(struct __unixlib_fd *fd, int channels, int format, int frequency, int buffers)
+static _kernel_oserror *set_defaults (struct __unixlib_fd *fd,
+				      int channels, int format,
+				      int frequency, int buffers)
 {
   _kernel_swi_regs regs;
   _kernel_oserror *err;
@@ -87,8 +89,9 @@ static _kernel_oserror *set_defaults(struct __unixlib_fd *fd, int channels, int 
   if (frequency) dr_frequency = frequency;
   if (format)    dr_format    = format;
 
-  /* It seems it's neccessary to remove our handler and readd it to change some
-     values - I think there is a bug in RISC OS 5 regarding this.  */
+  /* It seems it's neccessary to remove our handler and read add it
+     to change some values - I think there is a bug in RISC OS 5
+     regarding this.  */
 
   if (!handler_installed)
     {
@@ -97,7 +100,7 @@ static _kernel_oserror *set_defaults(struct __unixlib_fd *fd, int channels, int 
     }
   else
     {
-     _kernel_swi(DigitalRenderer_Deactivate, &regs, &regs);
+      _kernel_swi(DigitalRenderer_Deactivate, &regs, &regs);
     }
 
   dr_registered = 0;
@@ -105,7 +108,9 @@ static _kernel_oserror *set_defaults(struct __unixlib_fd *fd, int channels, int 
   if (buffers)
     dr_buffers = buffers;
   else
-    dr_buffers = (int)((double)DRENDERER_CSEC_TO_BUFFER / ((double)DRENDERER_BUFFER_SIZE * 100.0 / dr_frequency)) + 1;
+    dr_buffers = (int)((double)DRENDERER_CSEC_TO_BUFFER
+		       / ((double)DRENDERER_BUFFER_SIZE * 100.0
+			  / dr_frequency)) + 1;
 
   regs.r[0] = dr_buffers;
   if ((err = _kernel_swi(DigitalRenderer_NumBuffers, &regs, &regs)))
@@ -126,9 +131,8 @@ static _kernel_oserror *set_defaults(struct __unixlib_fd *fd, int channels, int 
       if ((err = _kernel_swi(DigitalRenderer_Activate16, &regs, &regs)))
         return err;
 
-     if (!_kernel_swi(DigitalRenderer_GetFrequency, &regs, &regs))
-       dr_frequency = regs.r[0];
-
+      if (!_kernel_swi(DigitalRenderer_GetFrequency, &regs, &regs))
+	dr_frequency = regs.r[0];
     }
   else
     {
@@ -141,7 +145,6 @@ static _kernel_oserror *set_defaults(struct __unixlib_fd *fd, int channels, int 
       if ((err = _kernel_swi(DigitalRenderer_Activate, &regs, &regs)))
         return err;
     }
-
 
   dr_registered = 1;
 
@@ -162,7 +165,7 @@ void *__dspopen (struct __unixlib_fd *fd, const char *file, int mode)
       || (err = __os_cli("RMEnsure DigitalRenderer 0.51 Error 16_10F Sound support requires DigitalRenderer 0.51 or newer")) != NULL
       || (err = set_defaults(fd, 2, 2, 44100, 0)) != NULL)
     {
-      __seterr (err);
+      __ul_seterr (err, 1);
       return (void *) -1;
     }
 
@@ -180,7 +183,7 @@ int __dspclose (struct __unixlib_fd *fd)
     regs.r[0] = 0;
     if ((err = _kernel_swi(DigitalRenderer_NumBuffers, &regs, &regs)) ||
         (err = _kernel_swi(DigitalRenderer_Deactivate, &regs, &regs)))
-      __seterr (err);
+      __ul_seterr (err, 1);
     else
       dr_registered = 0;
   }
@@ -209,30 +212,35 @@ int __dspwrite (struct __unixlib_fd *fd, const void *data, int nbyte)
 
   while (left > 0)
     {
-      int towrite = (left < DRENDERER_BUFFER_SIZE) ? left : DRENDERER_BUFFER_SIZE;
+      int towrite = ((left < DRENDERER_BUFFER_SIZE)
+		     ? left : DRENDERER_BUFFER_SIZE);
 
-      do {
-        if ((err = _kernel_swi(DigitalRenderer_StreamStatistics, &regs, &regs)))
-          {
-            __seterr (err);
-            return -1;
-          }
+      do
+	{
+	  if ((err = _kernel_swi (DigitalRenderer_StreamStatistics,
+				  &regs, &regs)))
+	    {
+	      __ul_seterr (err, 1);
+	      return -1;
+	    }
     
-        if (regs.r[0] < dr_buffers)
-          break;
+	  if (regs.r[0] < dr_buffers)
+	    break;
     
-        __pthread_enable_ints();
-        pthread_yield();
-        __pthread_disable_ints();
-      } while (1);
+	  __pthread_enable_ints();
+	  pthread_yield();
+	  __pthread_disable_ints();
+	} while (1);
     
       regs.r[0] = (int)data + nbyte - left;
       regs.r[1] = towrite / dr_channels;
 
-      if ((err = _kernel_swi((dr_format == AFMT_S16_LE) ? DigitalRenderer_Stream16BitSamples : DigitalRenderer_StreamSamples,
-           &regs, &regs)))
+      if ((err = _kernel_swi((dr_format == AFMT_S16_LE)
+			     ? DigitalRenderer_Stream16BitSamples
+			     : DigitalRenderer_StreamSamples,
+			     &regs, &regs)))
         {
-          __seterr (err);
+          __ul_seterr (err, 1);
           return -1;
         }
 
@@ -248,7 +256,8 @@ int __dspioctl (struct __unixlib_fd *fd, unsigned long request, void *arg)
   request &= 0xffff;
 
   /* Do nothing */
-  if (request == (SNDCTL_DSP_RESET & 0xffff) || request == (SNDCTL_DSP_SYNC & 0xffff))
+  if (request == (SNDCTL_DSP_RESET & 0xffff)
+      || request == (SNDCTL_DSP_SYNC & 0xffff))
     return 0;
 
   if (!arg)

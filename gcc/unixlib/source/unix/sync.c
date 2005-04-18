@@ -1,16 +1,5 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/sync.c,v $
- * $Date: 2005/03/04 20:59:06 $
- * $Revision: 1.5 $
- * $State: Exp $
- * $Author: alex $
- *
- ***************************************************************************/
-
-#ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: sync.c,v 1.5 2005/03/04 20:59:06 alex Exp $";
-#endif
+/* Synchronise unwritten data in buffers to disk.
+   Copyright (c) 2004, 2005 UnixLib Developers.  */
 
 #include <errno.h>
 #include <unistd.h>
@@ -43,7 +32,7 @@ int fsync (int fd)
   err = __os_args (255, (int) file_desc->devicehandle->handle, 0, NULL);
   if (err)
     {
-      __seterr (err);
+      __ul_seterr (err, 1);
       return -1;
     }
 

@@ -1,16 +1,5 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/stdio/rename.c,v $
- * $Date: 2004/12/11 14:18:57 $
- * $Revision: 1.7 $
- * $State: Exp $
- * $Author: joty $
- *
- ***************************************************************************/
-
-#ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: rename.c,v 1.7 2004/12/11 14:18:57 joty Exp $";
-#endif
+/* Rename a file.
+   Copyright (c) 2005 UnixLib Developers.  */
 
 #include <ctype.h>
 #include <errno.h>
@@ -29,7 +18,6 @@ static const char rcs_id[] = "$Id: rename.c,v 1.7 2004/12/11 14:18:57 joty Exp $
 int
 rename (const char *old_name, const char *new_name)
 {
-  int save = errno;
   _kernel_oserror *err;
   int regs[10], oftype, oftype_a, nftype, nftype_a;
   char ofile[MAXPATHLEN], nfile[MAXPATHLEN];
@@ -121,7 +109,7 @@ rename (const char *old_name, const char *new_name)
 	/* Error is probably caused by a rename across file systems.  */
 	(void) __set_errno (EXDEV);
       else
-	__seterr (err);
+	__ul_seterr (err, 1);
       return -1;
     }
 
@@ -135,7 +123,7 @@ try_filetyping:
       err = __os_swi (OS_File, regs);
       if (err)
         {
-          __seterr (err);
+          __ul_seterr (err, 1);
           return -1;
         }
     }
@@ -143,6 +131,5 @@ try_filetyping:
   /* Delete the suffix swap dir if it is now empty */
   __unlinksuffix (ofile); /* ofile is corrupted by this call */
 
-  (void) __set_errno (save);
   return 0;
 }

@@ -1,16 +1,5 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/chdir.c,v $
- * $Date: 2003/10/06 19:00:01 $
- * $Revision: 1.7 $
- * $State: Exp $
- * $Author: joty $
- *
- ***************************************************************************/
-
-#ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: chdir.c,v 1.7 2003/10/06 19:00:01 joty Exp $";
-#endif
+/* Change directory.
+   Copyright (c) 2004, 2005 UnixLib Developers.  */
 
 #include <errno.h>
 #include <limits.h>
@@ -78,7 +67,7 @@ chdir (const char *ux_path)
 
           if (! err)
             return 0;
-          __seterr (err);
+          __ul_seterr (err, 1);
         }
       else
         {
@@ -88,12 +77,14 @@ chdir (const char *ux_path)
           /* Use malloc rather than a fixed buffer since path could
              contain parent components (^.), so could be longer than
              _POSIX_PATH_MAX before canonicalisation. */
-          full_path = realloc ((void *)prefix_path, prefix_len + 1 + path_len + 1);
+          full_path = realloc ((void *)prefix_path,
+			       prefix_len + 1 + path_len + 1);
           if (full_path != NULL)
             {
               /* Append 'prefix' with relative path but take care of the
                  RISC OS CSD indicator.  */
-              const char *rel_path = (path[0] == '@' && path[1] == '.') ? path + 2 : path;
+              const char *rel_path = ((path[0] == '@' && path[1] == '.')
+				      ? path + 2 : path);
 
               full_path[prefix_len++] = '.';
               strcpy (full_path + prefix_len, rel_path);
@@ -116,7 +107,7 @@ chdir (const char *ux_path)
 
               if (!err)
                 return 0;
-              __seterr (err);
+              __ul_seterr (err, 1);
             }
           else
             free ((void *)prefix_path);
@@ -131,7 +122,7 @@ chdir (const char *ux_path)
   err = __os_fsctrl (0, path, 0, 0);
   if (err)
     {
-      __seterr (err);
+      __ul_seterr (err, 1);
       return -1;
     }
 

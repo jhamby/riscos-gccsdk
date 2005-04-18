@@ -1,16 +1,5 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/rmdir.c,v $
- * $Date: 2005/04/14 15:17:23 $
- * $Revision: 1.7 $
- * $State: Exp $
- * $Author: nick $
- *
- ***************************************************************************/
-
-#ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: rmdir.c,v 1.7 2005/04/14 15:17:23 nick Exp $";
-#endif
+/* Remove a directory from disk.
+   Copyright (c) 2005 UnixLib Developers.  */
 
 #include <errno.h>
 #include <limits.h>
@@ -72,7 +61,7 @@ rmdir (const char *ux_directory)
       if (err)
 	{
 	  /* Problem: Let's pretend that it's not empty.  */
-	  __seterr (err);
+	  __ul_seterr (err, 0);
 	  return __set_errno (ENOTEMPTY);
 	}
       if (regs[3] > 0)

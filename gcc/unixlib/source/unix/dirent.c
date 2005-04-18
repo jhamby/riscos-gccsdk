@@ -1,16 +1,5 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/dirent.c,v $
- * $Date: 2005/04/14 12:13:09 $
- * $Revision: 1.15 $
- * $State: Exp $
- * $Author: nick $
- *
- ***************************************************************************/
-
-#ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: dirent.c,v 1.15 2005/04/14 12:13:09 nick Exp $";
-#endif
+/* Perform operations on a directory.
+   Copyright (c) 2002, 2003, 2004, 2005 UnixLib Developers.  */
 
 /* #define DEBUG */
 
@@ -120,7 +109,7 @@ newstream (const char *name, __off_t offset)
   err = __os_swi (OS_FSControl, regs);
   if (err)
     {
-      __seterr (err);
+      __ul_seterr (err, 1);
       invalidate (stream);
       return NULL;
     }
@@ -138,7 +127,7 @@ newstream (const char *name, __off_t offset)
   err = __os_swi (OS_FSControl, regs);
   if (err != NULL || regs[5] != 1)
     {
-      __seterr (err);
+      __ul_seterr (err, 1);
       free (stream->dd_name_can);
       invalidate (stream);
       return NULL;
@@ -391,7 +380,7 @@ readdir_r (DIR *stream, struct dirent *entry, struct dirent **result)
             err = __os_swi (OS_GBPB, regs);
             if (err)
               {
-                __seterr (err);
+                __ul_seterr (err, 0);
                 return EIO;
               }
 
@@ -501,13 +490,15 @@ readdir_r (DIR *stream, struct dirent *entry, struct dirent **result)
                         {
                           int regs[10];
 
-                          /* We have a filename extension at 'fn_extension'.  */
+                          /* We have a filename extension
+			     at 'fn_extension'.  */
                           regs[0] = MMM_TYPE_DOT_EXTN; /* Input extension */
                           regs[1] = (int)fn_extension;
                           regs[2] = MMM_TYPE_RISCOS; /* Output extension */
 
-                          /* When there is no MimeMap error and the filetype returned
-                             matches 'filetype', we don't want filetype extension.  */
+                          /* When there is no MimeMap error and the
+			     filetype returned matches 'filetype', we don't
+			     want filetype extension.  */
                           if (! __os_swi (MimeMap_Translate, regs)
                               && regs[3] == filetype)
                             ft_extension_needed = 0;
@@ -729,53 +720,53 @@ scandir (const char *dir, struct dirent ***namelist,
   while ((d = readdir(dp)) != NULL)
     if (select == NULL || (*select)(d))
       {
-            struct dirent *vnew;
-            size_t dsize;
+	struct dirent *vnew;
+	size_t dsize;
 
-            /* Ignore errors from select or readdir */
-            (void) __set_errno(0);
+	/* Ignore errors from select or readdir */
+	(void) __set_errno(0);
 
-            if (i == vsize)
-            {
-                struct dirent **newdir;
-                if (vsize == 0)
-                    vsize = 10;
-                else
-                    vsize *= 2;
-                newdir = (struct dirent **) realloc(v, vsize * sizeof(*v));
-                if (newdir == NULL)
-                    break;
-                v = newdir;
-            }
+	if (i == vsize)
+	  {
+	    struct dirent **newdir;
+	    if (vsize == 0)
+	      vsize = 10;
+	    else
+	      vsize *= 2;
+	    newdir = (struct dirent **) realloc(v, vsize * sizeof(*v));
+	    if (newdir == NULL)
+	      break;
+	    v = newdir;
+	  }
 
-            /* FIXME: this 256 should be a macro, but see comments in dirent.h */
-            dsize = &d->d_name[256] - (char *) d;
-            vnew = (struct dirent *) malloc(dsize);
-            if (vnew == NULL)
-                break;
+	/* FIXME: this 256 should be a macro, but see comments in dirent.h */
+	dsize = &d->d_name[256] - (char *) d;
+	vnew = (struct dirent *) malloc(dsize);
+	if (vnew == NULL)
+	  break;
+	
+	v[i++] = (struct dirent *) memcpy(vnew, d, dsize);
+      }
 
-            v[i++] = (struct dirent *) memcpy(vnew, d, dsize);
-        }
-
-    if (errno != 0)
+  if (errno != 0)
     {
-        save = errno;
-        (void) closedir(dp);
-
-        while (i > 0)
-            free(v[--i]);
-        free(v);
-
-        return __set_errno (save);
+      save = errno;
+      (void) closedir(dp);
+      
+      while (i > 0)
+	free(v[--i]);
+      free(v);
+      
+      return __set_errno (save);
     }
+  
+  (void) closedir(dp);
+  (void) __set_errno(save);
 
-    (void) closedir(dp);
-    (void) __set_errno(save);
-
-    /* Sort the list if we have a comparison function to sort with.  */
-    if (cmp != NULL)
-        qsort(v, i, sizeof(*v),(int (*)(const void *,const void *))cmp);
-    *namelist = v;
-    return i;
+  /* Sort the list if we have a comparison function to sort with.  */
+  if (cmp != NULL)
+    qsort(v, i, sizeof(*v),(int (*)(const void *,const void *))cmp);
+  *namelist = v;
+  return i;
 }
 

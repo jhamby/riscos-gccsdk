@@ -1,10 +1,10 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/scl/_kosbget.s,v $
-; $Date: 2002/09/24 21:02:37 $
-; $Revision: 1.3 $
+; $Date: 2004/10/17 16:24:44 $
+; $Revision: 1.4 $
 ; $State: Exp $
-; $Author: admin $
+; $Author: joty $
 ;
 ;----------------------------------------------------------------------------
 
@@ -12,7 +12,7 @@
 
 	AREA	|C$$code|, CODE, READONLY
 
-	IMPORT	|__seterr|
+	IMPORT	|__ul_seterr|
 
 	; int _kernel_osbget (int handle)
 	EXPORT	|_kernel_osbget|
@@ -24,7 +24,8 @@
 	MOVCS	a1, #-1		; We have EOF. Return -1
 	LDMCSFD	sp!, {pc}
 
-	BL	|__seterr|
+	MOV	a2, #1
+	BL	|__ul_seterr|
 	MOV	a1, #-2		; Error occurred. Return -2
 	LDMFD	sp!, {pc}
 
