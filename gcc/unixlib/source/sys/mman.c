@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/mman.c,v $
- * $Date: 2005/01/23 20:31:55 $
- * $Revision: 1.7 $
+ * $Date: 2005/04/07 18:46:23 $
+ * $Revision: 1.8 $
  * $State: Exp $
- * $Author: joty $
+ * $Author: nick $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: mman.c,v 1.7 2005/01/23 20:31:55 joty Exp $";
+static const char rcs_id[] = "$Id: mman.c,v 1.8 2005/04/07 18:46:23 nick Exp $";
 #endif
 
 /* Definitions for BSD-style memory management.  Generic/4.4 BSD version.  */
@@ -55,9 +55,7 @@ static mmap_info mmaps[MAX_MMAPS] = {
   IMMAP, IMMAP, IMMAP, IMMAP, IMMAP, IMMAP, IMMAP, IMMAP
 };
 
-static size_t page_size = 0;
-
-#define page_align(len) (((len) + page_size - 1) & ~(page_size - 1));
+#define page_align(len) (((len) + __ul_pagesize - 1) & ~(__ul_pagesize - 1));
 
 extern void __mmap_page_copy (caddr_t dst, caddr_t src, int len);
 
@@ -93,10 +91,6 @@ mmap (caddr_t addr, size_t len, int prot, int flags, int fd, off_t offset)
 
   PTHREAD_UNSAFE
 
-  /* Getting the page size is expensive, so only do it once.  */
-  if (page_size == 0)
-    page_size = getpagesize ();
-
   /* We don't support mmap on files yet.  */
   if (fd != -1)
     return (caddr_t) __set_errno (ENOSYS);
@@ -107,7 +101,7 @@ mmap (caddr_t addr, size_t len, int prot, int flags, int fd, off_t offset)
 
   /* We don't support MAP_FIXED.  */
   if (flags & MAP_FIXED)
-    return (caddr_t) __set_errno (((size_t)addr & (page_size - 1)) != 0
+    return (caddr_t) __set_errno (((size_t)addr & (__ul_pagesize - 1)) != 0
 				  ? EINVAL : ENOSYS);
 
   /* We don't support MAP_COPY.  */

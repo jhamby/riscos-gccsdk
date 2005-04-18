@@ -1,16 +1,5 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/alloc.c,v $
- * $Date: 2003/09/30 17:43:47 $
- * $Revision: 1.7 $
- * $State: Exp $
- * $Author: alex $
- *
- ***************************************************************************/
-
-#ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: alloc.c,v 1.7 2003/09/30 17:43:47 alex Exp $";
-#endif
+/* Doug Lea's malloc.
+   Public domain.  */
 
 /* #define DEBUG 1 */
 
@@ -26,9 +15,6 @@ static const char rcs_id[] = "$Id: alloc.c,v 1.7 2003/09/30 17:43:47 alex Exp $"
    a new version of this malloc is obtained from Doug Lea.
    HAVE_MREMAP is 1 rather than the default 0
    MORECORE_CLEARS is 0 rather than the default 1
-   malloc_getpagesize is 4096 rather than calling getpagesize. This reduces the
-   memory usage for small programs that use malloc, but don't require (or can't
-   support) dynamic areas.
 
    See the definitions of these macros for how I have changed them.
 
@@ -52,7 +38,7 @@ static const char rcs_id[] = "$Id: alloc.c,v 1.7 2003/09/30 17:43:47 alex Exp $"
 
 */
 
-#ifdef __riscos
+#include <unixlib/unix.h>
 
 #if !defined(__GNUC__)
 #define RISCOS_CCBUG
@@ -64,11 +50,12 @@ static const char rcs_id[] = "$Id: alloc.c,v 1.7 2003/09/30 17:43:47 alex Exp $"
 #define MMAP_CLEARS 0
 #define MORECORE_CLEARS 0
 
-#define malloc_getpagesize (4096)
+#define malloc_getpagesize __ul_pagesize
 
 #define MORECORE __internal_sbrk
 
-#endif
+/* Support multiple threads.  */
+#define USE_MALLOC_LOCK 1
 
 /*
   This is a version (aka dlmalloc) of malloc/free/realloc written by
@@ -1634,8 +1621,11 @@ static int mALLOC_MUTEx;
 
 static pthread_mutex_t mALLOC_MUTEx = PTHREAD_MUTEX_INITIALIZER;
 
-#define MALLOC_PREACTION   pthread_mutex_lock(&mALLOC_MUTEx)
-#define MALLOC_POSTACTION  pthread_mutex_unlock(&mALLOC_MUTEx)
+#define MALLOC_PREACTION   \
+  __pthread_system_running && pthread_mutex_lock(&mALLOC_MUTEx)
+
+#define MALLOC_POSTACTION  \
+  __pthread_system_running && pthread_mutex_unlock(&mALLOC_MUTEx)
 
 #endif /* USE_MALLOC_LOCK */
 
@@ -1765,6 +1755,7 @@ int public_mTRIm(size_t s) {
   return result;
 }
 
+#if 0
 size_t public_mUSABLe(Void_t* m) {
   size_t result;
   if (MALLOC_PREACTION != 0) {
@@ -1807,6 +1798,7 @@ int public_mALLOPt(int p, int v) {
   }
   return result;
 }
+#endif
 
 #endif
 
@@ -3468,8 +3460,6 @@ Void_t* mALLOc(size_t bytes)
   mchunkptr       fwd;              /* misc temp for linking */
   mchunkptr       bck;              /* misc temp for linking */
 
-  PTHREAD_UNSAFE
-
   /*
     Convert request size to internal form by adding SIZE_SZ bytes
     overhead plus possibly more to obtain necessary alignment and/or
@@ -3814,8 +3804,6 @@ void fREe(mem) Void_t* mem;
   mchunkptr       bck;         /* misc temp for linking */
   mchunkptr       fwd;         /* misc temp for linking */
 
-  PTHREAD_UNSAFE
-
   /* free(0) has no effect */
   if (mem != 0) {
     p = mem2chunk(mem);
@@ -4102,8 +4090,6 @@ Void_t* rEALLOc(oldmem, bytes) Void_t* oldmem; size_t bytes;
   INTERNAL_SIZE_T* s;               /* copy source */
   INTERNAL_SIZE_T* d;               /* copy destination */
 
-  PTHREAD_UNSAFE
-
 #ifdef REALLOC_ZERO_BYTES_FREES
   if (bytes == 0) {
     fREe(oldmem);
@@ -4320,8 +4306,6 @@ Void_t* mEMALIGn(alignment, bytes) size_t alignment; size_t bytes;
   CHUNK_SIZE_T    remainder_size; /* its size */
   INTERNAL_SIZE_T size;
 
-  PTHREAD_UNSAFE
-
   /* If need less alignment than we give anyway, just relay to malloc */
 
   if (alignment <= MALLOC_ALIGNMENT) return mALLOc(bytes);
@@ -4426,8 +4410,6 @@ Void_t* cALLOc(n_elements, elem_size) size_t n_elements; size_t elem_size;
   INTERNAL_SIZE_T* d;
 
   Void_t* mem = mALLOc(n_elements * elem_size);
-
-  PTHREAD_UNSAFE
 
   if (mem != 0) {
     p = mem2chunk(mem);
@@ -4560,8 +4542,6 @@ static Void_t** iALLOc(n_elements, sizes, opts, chunks) size_t n_elements; size_
   INTERNAL_SIZE_T size;
   size_t          i;
 
-  PTHREAD_UNSAFE
-
   /* Ensure initialization */
   if (av->max_fast == 0) malloc_consolidate(av);
 
@@ -4672,9 +4652,6 @@ Void_t* vALLOc(bytes) size_t bytes;
 {
   /* Ensure initialization */
   mstate av = get_malloc_state();
-
-  PTHREAD_UNSAFE
-
   if (av->max_fast == 0) malloc_consolidate(av);
   return mEMALIGn(av->pagesize, bytes);
 }
@@ -4692,8 +4669,6 @@ Void_t* pVALLOc(bytes) size_t bytes;
 {
   mstate av = get_malloc_state();
   size_t pagesz;
-
-  PTHREAD_UNSAFE
 
   /* Ensure initialization */
   if (av->max_fast == 0) malloc_consolidate(av);
@@ -4713,8 +4688,6 @@ int mTRIm(pad) size_t pad;
 #endif
 {
   mstate av = get_malloc_state();
-
-  PTHREAD_UNSAFE
 
   /* Ensure initialization/consolidation */
   malloc_consolidate(av);

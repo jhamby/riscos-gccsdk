@@ -1,3 +1,31 @@
+Mon Apr 18 14:44:24 2005  Nick Burrett  <nick@sqrt.co.uk>
+
+	* unix/getpagesiz.s: Delete file.
+	* unistd/getpagesiz.c: New file.
+	* sys/_syslib.s (__main): Call XOS_ReadMemMapInfo and store the
+	system page size.
+	(__ul_pagesize): Define.
+	* unixlib/unix.h (__ul_pagesize): Declare.
+	* sys/mman.c (page_size): Delete.
+	(page_align): Define in terms of __ul_pagesize.
+	(mmap): Don't call 'getpagesize', use the internal variable directly.
+	* unix/sysconf.c (sysconf): Likewise.
+	* alloc.c (malloc_getpagesize): Use __ul_pagesize.
+
+	Make the malloc functions thread safe.
+	* alloc.c (USE_MALLOC_LOCK): Define.
+	(MALLOC_PREACTION): Check pthread system is running first.
+	(MALLOC_POSTACTION): Likewise.
+	(mALLOc): Delete PTHREAD_UNSAFE.
+	(fREe): Likewise.
+	(rEALLOc): Likewise.
+	(mEMALIGn): Likewise.
+	(cALLOc): Likewise.
+	(iALLOc): Likewise.
+	(vALLOc): Likewise.
+	(pVALLOc): Likewise.
+	(mTRIm): Likewise.
+
 Mon Apr 18 12:26:48 2005  Peter Naulls <peter@chocky.org>
 
 	* source/unix/rmdir.c, clib/unixlib/unix.h: Improve language.

@@ -1,20 +1,5 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/unixlib/source/unix/c/sysconf,v $
- * $Date: 1997/10/19 21:50:58 $
- * $Revision: 1.7 $
- * $State: Exp $
- * $Author: unixlib $
- *
- ***************************************************************************/
-
-#ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: sysconf,v 1.7 1997/10/19 21:50:58 unixlib Exp $";
-#endif
-
-/* unix.c.sysconf. Return system implementation details.
-
-   Written by Nick Burrett, 13 October 1996.  */
+/* Return system implementation details.
+   Copyright (c) 2001, 2005 UnixLib Developers.  */
 
 #include <errno.h>
 #include <limits.h>
@@ -22,6 +7,7 @@ static const char rcs_id[] = "$Id: sysconf,v 1.7 1997/10/19 21:50:58 unixlib Exp
 #include <stddef.h>
 #include <stdio.h>
 #include <time.h>
+#include <unixlib/unix.h>
 
 /* Get the value of the system variable NAME.  */
 long int
@@ -85,7 +71,7 @@ sysconf (int name)
       return _POSIX_VERSION;
 
     case _SC_PAGESIZE:
-      return getpagesize ();
+      return __ul_pagesize;
 
     case _SC_BC_BASE_MAX:
 #ifdef	BC_BASE_MAX

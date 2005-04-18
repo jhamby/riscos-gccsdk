@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/unixlib/unix.h,v $
- * $Date: 2005/04/14 15:17:23 $
- * $Revision: 1.28 $
+ * $Date: 2005/04/18 11:30:48 $
+ * $Revision: 1.29 $
  * $State: Exp $
- * $Author: nick $
+ * $Author: peter $
  *
  * UNIX is a registered trademark of AT&T Bell Laboratories
  *
@@ -188,6 +188,9 @@ extern unsigned int __time[2];	/* start time */
 
 /* FP flag reflecting Floating Point presence or not.  */
 extern int __fpflag;
+
+/* System memory page size.  */
+extern int __ul_pagesize;
 
 /* Stop the interval timers.  */
 extern void __stop_itimers (void);

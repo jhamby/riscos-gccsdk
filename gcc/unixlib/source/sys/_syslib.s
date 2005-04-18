@@ -1,10 +1,10 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/_syslib.s,v $
-; $Date: 2005/03/21 12:14:56 $
-; $Revision: 1.40 $
+; $Date: 2005/04/07 18:46:23 $
+; $Revision: 1.41 $
 ; $State: Exp $
-; $Author: peter $
+; $Author: nick $
 ;
 ;----------------------------------------------------------------------------
 
@@ -347,6 +347,11 @@ no_dynamic_area
 	SWINE	XWimp_ReadSysInfo
 	STR	a1, [ip, #60]	; __taskhandle
 
+	; Cache the system page size as this call can be slow.
+	; Used by getpagesize ().
+	SWI	XOS_ReadMemMapInfo
+	STR	a1, [ip, #88]	; __ul_pagesize
+	
 	; Recognise the Floating Point facility by determining whether
 	; the SWI FPEmulator_Version actually exists (and works).
 	; We insist on having at least version 4.00.
@@ -1013,8 +1018,9 @@ dynamic_area_name_end
 	EXPORT	|__dynamic_num|
 	EXPORT	|__unixlib_real_himem|
 	EXPORT	|__32bit|	; non-zero if executing in 32-bit mode
-	EXPORT	|__panic_mode|		; non-zero when we're panicing.
+	EXPORT	|__panic_mode|	; non-zero when we're panicing.
 	EXPORT	|__proc|
+	EXPORT	|__ul_pagesize|	; system page size
 
 	; Altering this structure will require fixing __main.
 struct_base
@@ -1063,4 +1069,6 @@ struct_base
 |__panic_mode|		DCD	0				; offset = 80
 
 |__proc|		DCD	0				; offset = 84
+|__ul_pagesize|		DCD	0				; offset = 88
+
 	END
