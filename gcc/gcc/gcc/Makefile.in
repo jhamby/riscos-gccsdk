@@ -1,6 +1,6 @@
 # Makefile for the GNU Compiler Collection for ARM/RISC OS
 # Copyright (c) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004 Nick Burrett
-# Written by Nick Burrett <nick@sqrt.co.uk>
+# Copyright (c) 2005 GCCSDK Developers
 
 # Defs for the host compiler
 # HOST_CC is a version of CC where optimisations are not turned off
@@ -490,8 +490,8 @@ gt-stringpool.h gt-langhooks.h : s-gtype ; @true
 
 # C++ specific
 gtype-cp.h gt-cp-call.h gt-cp-decl.h gt-cp-decl2.h : s-gtype; @true
-gt-cp-parse.h gt-cp-pt.h gt-cp-repo.h gt-cp-spew.h : s-gtype; @true
-gt-cp-tree.h gt-cp-mangle.h : s-gtype; @true
+gt-cp-pt.h gt-cp-repo.h gt-cp-parser.h gt-cp-method.h : s-gtype; @true
+gt-cp-tree.h gt-cp-mangle.h gt-cp-name-lookup.h: s-gtype; @true
 
 # G77 specific
 gt-f-com.h gt-f-ste.h gtype-f.h : s-gtype; @true
@@ -776,10 +776,10 @@ $(gccobjdir)/toplev.o: toplev.c
 	$(CC) $(CFLAGS) $(INCLUDES) -o $@ -c toplev.c -DTARGET_NAME=\"$(TARGET_NAME)\"
 
 $(gccobjdir)/except.o: except.c
-	$(CC) $(CFLAGS) $(INCLUDES) -o $@ -c except.c -DDONT_USE_BUILTIN_SETJMP -DJMP_BUF_SIZE=27
+	$(CC) $(CFLAGS) $(INCLUDES) -o $@ -c except.c -DDONT_USE_BUILTIN_SETJMP -DJMP_BUF_SIZE=26
 
 $(gccobjdir)/optabs.o: optabs.c
-	$(CC) $(CFLAGS) $(INCLUDES) -o $@ -c optabs.c -DDONT_USE_BUILTIN_SETJMP -DJMP_BUF_SIZE=27
+	$(CC) $(CFLAGS) $(INCLUDES) -o $@ -c optabs.c -DDONT_USE_BUILTIN_SETJMP -DJMP_BUF_SIZE=26
 
 DRIVER_DEFINES = \
   -DSTANDARD_STARTFILE_PREFIX=\"$(prefix)$(gn_standard_startfile_prefix)\" \
