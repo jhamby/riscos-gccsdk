@@ -288,6 +288,8 @@
 /* Define to 1 if we found this declaration otherwise define to 0. */
 #define HAVE_DECL_GETRUSAGE 1
 
+#define HAVE_DECL_ERRNO 1
+
 /* Define if <sys/times.h> defines struct tms. */
 #define HAVE_STRUCT_TMS 1
 
