@@ -299,7 +299,7 @@ unixlib/Makefile: unixlib/Makefile.in unixlib/source/Makefile.in unixlib/Docs/Ch
 
 clean:
 	find arm-riscos-aof -type f | xargs rm -f
-	(cd gcc/gcc; cat .cvsignore | grep -v Makefile | grep -v ^config | xargs rm -rf)
+	(cd gcc/gcc; cat .cvsignore | grep -v Makefile | grep -v ^config | grep -v auto-host\.h | xargs rm -rf)
 
 bin-clean:
 	find $(ro_gccpkg) -type f | grep ,ff8 | xargs rm
