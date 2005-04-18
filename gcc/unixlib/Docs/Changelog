@@ -1,3 +1,9 @@
+Mon Apr 18 20:40:46 2005  Nick Burrett  <nick@sqrt.co.uk>
+
+	* errno.h: Use correct path to features.h.
+	* features.h: Move the inclusion of unixlib/stdcmac.h and
+	unixlib/buildoptions.h outside of __UNIXLIB_INTERNALS.
+
 Mon Apr 18 20:27:21 2005  Nick Burrett  <nick@sqrt.co.uk>
 
 	* errno.h: Change #ifdef to #if for __UNIXLIB_FEATURE_PTHREADS.

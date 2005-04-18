@@ -1,8 +1,8 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/errno.h,v $
- * $Date: 2005/04/18 17:04:56 $
- * $Revision: 1.14 $
+ * $Date: 2005/04/18 19:28:35 $
+ * $Revision: 1.15 $
  * $State: Exp $
  * $Author: nick $
  *
@@ -14,7 +14,7 @@
 #define __ERRNO_H
 
 #ifndef __UNIXLIB_FEATURES_H
-#include <unixlib/features.h>
+#include <features.h>
 #endif
 
 #define EPERM		1 /* Operation not permitted.  */

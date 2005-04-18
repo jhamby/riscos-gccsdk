@@ -1,8 +1,8 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/features.h,v $
- * $Date: 2005/04/07 18:46:23 $
- * $Revision: 1.5 $
+ * $Date: 2005/04/13 19:20:05 $
+ * $Revision: 1.6 $
  * $State: Exp $
  * $Author: nick $
  *
@@ -361,11 +361,12 @@
    or direct manipulation of the contents.  Set to one in this case.  */
 extern int __feature_imagefs_is_file; /* Note: this is a weak symbol.  */
 
-#ifdef __UNIXLIB_INTERNALS
-
 /* Include the UnixLib build options.  */
 #include <unixlib/stdcmac.h>
 #include <unixlib/buildoptions.h>
+
+#ifdef __UNIXLIB_INTERNALS
+
 
 /* Amount to align the wimpslot or dynamic area. */
 #define __DA_WIMPSLOT_ALIGNMENT (32*1024-1)
