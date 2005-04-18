@@ -1,3 +1,7 @@
+Mon Apr 18 20:27:21 2005  Nick Burrett  <nick@sqrt.co.uk>
+
+	* errno.h: Change #ifdef to #if for __UNIXLIB_FEATURE_PTHREADS.
+
 Mon Apr 18 18:03:56 2005  Nick Burrett  <nick@sqrt.co.uk>
 
 	Make 'errno' thread local.
@@ -14,7 +18,7 @@ Mon Apr 18 18:03:56 2005  Nick Burrett  <nick@sqrt.co.uk>
 	* errno.c: Delete file.
 	* sys/_syslib.s (errno): Define when not compiling with thread
 	support.
-
+	
 	* pthread/pthinit.c (__pthread_prog_init): Die if __pthread_new_node
 	fails.
 

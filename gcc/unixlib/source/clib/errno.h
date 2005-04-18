@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/errno.h,v $
- * $Date: 2004/11/28 21:31:34 $
- * $Revision: 1.13 $
+ * $Date: 2005/04/18 17:04:56 $
+ * $Revision: 1.14 $
  * $State: Exp $
- * $Author: joty $
+ * $Author: nick $
  *
  ***************************************************************************/
 
@@ -12,6 +12,10 @@
 
 #ifndef __ERRNO_H
 #define __ERRNO_H
+
+#ifndef __UNIXLIB_FEATURES_H
+#include <unixlib/features.h>
+#endif
 
 #define EPERM		1 /* Operation not permitted.  */
 #define ENOENT		2 /* No such file or directory.  */
@@ -114,7 +118,7 @@
 
 #undef errno
 
-#ifdef __UNIXLIB_FEATURE_PTHREADS
+#if __UNIXLIB_FEATURE_PTHREADS
 /* Errno is thread local.  */
 
 #ifndef __pthread_t_defined
