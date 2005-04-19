@@ -12,10 +12,6 @@
 
 __BEGIN_DECLS
 
-#ifndef EILSEQ
-#define EILSEQ ENOENT
-#endif
-
 typedef void *iconv_t;
 
 /*
