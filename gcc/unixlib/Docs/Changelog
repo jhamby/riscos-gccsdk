@@ -1,3 +1,14 @@
+Tue Apr 19 19:28:59 2005  Nick Burrett  <nick@sqrt.co.uk>
+	
+	* unixlib/buildoptions.h (__UNIXLIB_ERRNO_THREADED): Define as zero.
+	* pthread/context.c (__pthread_context_switch): When above
+	macro is zero, save the global errno between context switches.
+	* errno.h (errno): Only use the threaded version if
+	__UNIXLIB_FEATURE_PTHREADS and __UNIXLIB_ERRNO_THREADED are
+	non-zero.
+	* sys/_syslib.s (errno): Define if __UNIXLIB_ERRNO_THEADED is
+	non-zero.
+
 Tue Apr 19 09:48:33 2005  Stefan Bellon  <sbellon@sbellon.de>
 
 	* unixlib/asm_dec.s (__set_errno): IMPORT __pthread_running_thread.

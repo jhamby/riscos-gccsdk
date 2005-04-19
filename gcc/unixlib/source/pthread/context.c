@@ -70,8 +70,11 @@ __pthread_context_switch (void)
   __os_nl ();
 #endif
 
+#if ! __UNIXLIB_ERRNO_THREADED
   /* For a thread-based 'errno' we don't need this.  */
-  /* __pthread_running_thread->thread_errno = errno; */
+  __pthread_running_thread->thread_errno = errno;
+#endif
+
   next = __pthread_running_thread->next;
 
   /* Loop around the list looking for a thread that is running */
@@ -141,7 +144,9 @@ __pthread_context_switch (void)
     }
   while (__pthread_running_thread->state < STATE_RUNNING);
 
-  /* errno = __pthread_running_thread->thread_errno; */
+#if ! __UNIXLIB_ERRNO_THREADED
+  errno = __pthread_running_thread->thread_errno;
+#endif
 
   if (__pthread_running_thread->cancelpending
       && __pthread_running_thread->cancelstate == PTHREAD_CANCEL_ENABLE

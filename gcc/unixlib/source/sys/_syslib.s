@@ -1,8 +1,8 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/_syslib.s,v $
-; $Date: 2005/04/18 17:04:57 $
-; $Revision: 1.43 $
+; $Date: 2005/04/19 08:50:36 $
+; $Revision: 1.44 $
 ; $State: Exp $
 ; $Author: nick $
 ;
@@ -1000,7 +1000,7 @@ dynamic_area_name_end
 
 	; The global errno variable is only defined when we are not building
 	; with thread support as errno is defined as being thread-local.
-	[ __UNIXLIB_FEATURE_PTHREADS = 0
+	[ __UNIXLIB_ERRNO_THREADED = 0
 	EXPORT	|errno|
 |errno|
 	DCD	0

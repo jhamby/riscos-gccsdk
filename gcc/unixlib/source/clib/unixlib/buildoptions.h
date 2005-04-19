@@ -48,6 +48,10 @@
 /* Set to 1 if we want support for pthreads. */
 #define __UNIXLIB_FEATURE_PTHREADS	1
 
+/* Set to 1 if we want 'errno' to be per-thread rather than a global */
+/* variable.  */
+#define __UNIXLIB_ERRNO_THREADED	0
+
 /* The APCS-32 ABI in GCC and Norcroft are not 100% */
 /* the same. */
 
