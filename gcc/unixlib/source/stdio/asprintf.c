@@ -2,9 +2,10 @@
    Copyright (c) 2005 UnixLib Developers.  */
 
 #include <stdarg.h>
+#include <stdio.h>
 #include <sys/cdefs.h>
 
-int __asprintf (char **buf, const char *fmt, ...)
+int asprintf (char **buf, const char *fmt, ...)
 {
   va_list ap;
   int r;
@@ -15,4 +16,5 @@ int __asprintf (char **buf, const char *fmt, ...)
 
   return r;
 }
-weak_alias (__asprintf, asprintf)
+/* weak_alias (__asprintf, asprintf) */
+

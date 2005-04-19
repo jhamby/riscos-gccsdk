@@ -1,8 +1,8 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/_syslib.s,v $
-; $Date: 2005/04/18 13:48:04 $
-; $Revision: 1.42 $
+; $Date: 2005/04/18 17:04:57 $
+; $Revision: 1.43 $
 ; $State: Exp $
 ; $Author: nick $
 ;
@@ -351,7 +351,7 @@ no_dynamic_area
 	; Used by getpagesize ().
 	SWI	XOS_ReadMemMapInfo
 	STR	a1, [ip, #88]	; __ul_pagesize
-	
+
 	; Recognise the Floating Point facility by determining whether
 	; the SWI FPEmulator_Version actually exists (and works).
 	; We insist on having at least version 4.00.
@@ -1000,7 +1000,7 @@ dynamic_area_name_end
 
 	; The global errno variable is only defined when we are not building
 	; with thread support as errno is defined as being thread-local.
-	[ __UNIXLIB_FEATURE_PTHREADS == 0
+	[ __UNIXLIB_FEATURE_PTHREADS = 0
 	EXPORT	|errno|
 |errno|
 	DCD	0

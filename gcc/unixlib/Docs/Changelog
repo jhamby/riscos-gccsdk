@@ -1,3 +1,18 @@
+Tue Apr 19 09:48:33 2005  Stefan Bellon  <sbellon@sbellon.de>
+
+	* unixlib/asm_dec.s (__set_errno): IMPORT __pthread_running_thread.
+	(__get_errno): Likewise.
+	* signal.h (sigpause): Fix comment termination typo.
+	* common/riscosify.c (sfix_hash): Use __inline for Norcroft
+	compatibility.
+	* locale/iconv.c: Change ordering of includes.
+	(iconv_open): Add explicit cast to return value.
+	* stdio/asprintf.c: Include stdio.h
+	(asprintf): Renamed from __asprintf.
+	* stdio/vasprintf.c (vasprintf): Renamed from __vasprintf.
+	* sys/_syslib.s (errno): Fix __UNIXLIB_FEATURE_PTHREADS check.
+	* stdlib/atof.c: New file.
+
 Mon Apr 18 22:25:46 2005  Nick Burrett  <nick@sqrt.co.uk>
 
 	* unixlib/stdcmac.h: Delete file.

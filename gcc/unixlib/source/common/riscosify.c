@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/common/riscosify.c,v $
- * $Date: 2005/04/07 18:39:08 $
- * $Revision: 1.19 $
+ * $Date: 2005/04/14 15:17:23 $
+ * $Revision: 1.20 $
  * $State: Exp $
  * $Author: nick $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: riscosify.c,v 1.19 2005/04/07 18:39:08 nick Exp $";
+static const char rcs_id[] = "$Id: riscosify.c,v 1.20 2005/04/14 15:17:23 nick Exp $";
 #endif
 
 /* #define DEBUG */
@@ -169,7 +169,7 @@ __sdirinit (void)
     __sdir[i].name = NULL;
 }
 
-static __inline__ int
+static __inline int
 sfix_hash (const char *suffix)
 {
   return *suffix & (SFIXSIZE - 1);

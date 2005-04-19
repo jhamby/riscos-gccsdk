@@ -24,7 +24,7 @@ Boston, MA 02111-1307, USA.  */
 #include <stdlib.h>
 
 int
-__vasprintf (char **result, const char *format, va_list args)
+vasprintf (char **result, const char *format, va_list args)
 {
   const char *p = format;
   /* Add one to make sure that it is never zero, which might cause malloc
@@ -100,5 +100,5 @@ __vasprintf (char **result, const char *format, va_list args)
   else
     return -1;
 }
-weak_alias (__vasprintf, vasprintf)
+/* weak_alias (__vasprintf, vasprintf) */
 

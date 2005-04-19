@@ -1,8 +1,8 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/unixlib/asm_dec.s,v $
-; $Date: 2005/04/18 17:04:56 $
-; $Revision: 1.20 $
+; $Date: 2005/04/18 21:27:51 $
+; $Revision: 1.21 $
 ; $State: Exp $
 ; $Author: nick $
 ;
@@ -117,6 +117,7 @@ IFlag32		EQU	&00000080
 	ASSERT	$val <> $Rerrno
 	IMPORT	|errno|
 	[ __UNIXLIB_FEATURE_PTHREADS > 0
+	IMPORT	|__pthread_running_thread|
 	LDR	$Rerrno, =|__pthread_running_thread|
 	LDR	$Rerrno, [$Rerrno]
 	STR	$val, [$Rerrno, #__PTHREAD_ERRNO_OFFSET]
@@ -131,6 +132,7 @@ IFlag32		EQU	&00000080
 	__get_errno	$val,$Rerrno
 	IMPORT	|errno|
 	[ __UNIXLIB_FEATURE_PTHREADS > 0
+	IMPORT	|__pthread_running_thread|
 	LDR	$Rerrno, =|__pthread_running_thread|
 	LDR	$Rerrno, [$Rerrno]
 	LDR	$val, [$Rerrno, #__PTHREAD_ERRNO_OFFSET]

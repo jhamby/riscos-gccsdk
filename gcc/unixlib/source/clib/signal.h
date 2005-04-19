@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/signal.h,v $
- * $Date: 2005/02/09 21:13:40 $
- * $Revision: 1.11 $
+ * $Date: 2005/04/14 16:03:55 $
+ * $Revision: 1.12 $
  * $State: Exp $
- * $Author: alex $
+ * $Author: nick $
  *
  ***************************************************************************/
 
@@ -158,7 +158,7 @@ extern int sigsetmask (int __mask) __THROW;
 /* Set the mask of blocked signals to mask, wait for a signal
    to arrive, and then restore the mask.
 
-   This function is a cancellation point.  8/
+   This function is a cancellation point.  */
 extern int sigpause (int __mask);
 
 #define sig_atomic_t __sig_atomic_t

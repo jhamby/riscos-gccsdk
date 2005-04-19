@@ -1,8 +1,16 @@
 common
 complex
 crypt
+fenv
 gcccompat
+gdtoa
 grp
+incl-local
+libm-complex
+libm-dbl64
+libm-flt32
+libm-generic
+libm-support
 locale
 math
 math-asm
@@ -16,6 +24,7 @@ resolv
 resource
 sched
 scl
+search
 signal
 sound
 stat
