@@ -1,3 +1,33 @@
+Wed Apr 20 18:10:04 2005  Nick Burrett  <nick@sqrt.co.uk>
+
+	* stpcpy.c: Move into string subdirectory.
+	* stpncpy.c, strcat.c, strchr.c, strcmp.c, strcspn.c: Likewise.
+	* strdup.c, strichr.c, stricmp.c, strncat.c: Likewise.
+	* strncmp.c, strncpy.c, strnicmp.c, strpbrk.c: Likewise.
+	* strrchr.c, strrichr.c, strsep.c, strsignal.c: Likewise.
+	* strspn.c, strstr.c, strtok.c, strtok_r.c: Likewise.
+	* strtol.c, strtoll.c, index.c, memccpy.c: Likewise.
+	* memchr.c, memcmp.c: Likewise.
+
+	* strtoumax.c: Move into inttypes subdirectory.
+	* strtoimax.c: Likewise.
+
+	* strtol.c: Move into stdlib subdirectory.
+	* strtoll.c, strtoul.c, strtoull.c: Likewise.
+	* abort.c, atexit.c, bsearch.c, div.c, qsort.c: Likewise.
+	* alloc.c, system.c: Likewise.
+
+	* assert.c: Move into assert subdirectory.
+
+	* ctype.c: Move into ctype subdirectory.
+	* ctypeproc.c: Likewise.
+
+	* opensock.c: Move into resolv subdirectory.
+
+	* psignal.c: Move into signal subdirectory.
+
+	* termcap.c: Move into termios subdirectory. 
+
 Wed Apr 20 17:54:40 2005  Nick Burrett  <nick@sqrt.co.uk>
 
 	* stdio/vfprintf.c (__vfprintf): Output of printf("%#.0o", 0)

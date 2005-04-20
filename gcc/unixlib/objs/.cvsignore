@@ -1,11 +1,14 @@
+assert
 common
 complex
 crypt
+ctype
 fenv
 gcccompat
 gdtoa
 grp
 incl-local
+inttypes
 libm-complex
 libm-dbl64
 libm-flt32
