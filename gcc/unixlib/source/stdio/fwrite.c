@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/stdio/fwrite.c,v $
- * $Date: 2004/12/11 14:18:57 $
- * $Revision: 1.6 $
+ * $Date: 2005/04/08 17:01:56 $
+ * $Revision: 1.7 $
  * $State: Exp $
- * $Author: joty $
+ * $Author: nick $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: fwrite.c,v 1.6 2004/12/11 14:18:57 joty Exp $";
+static const char rcs_id[] = "$Id: fwrite.c,v 1.7 2005/04/08 17:01:56 nick Exp $";
 #endif
 
 /* #define DEBUG */
@@ -62,7 +62,11 @@ fwrite (const void *data, size_t size, size_t count, FILE *stream)
 	 circumstance, if we have been requested to write more data than
 	 the buffer contains, truncate it.  */
       if (stream->fd == -1 && to_write > stream->o_cnt)
-	to_write = stream->o_cnt;
+	{
+	  to_write = stream->o_cnt;
+	  if (to_write == 0)
+	    return (size_t) 0;
+	}
 
       /* Optimisations appropriate for a buffered file.  */
       if (to_write > stream->o_cnt)

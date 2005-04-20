@@ -1,3 +1,12 @@
+Wed Apr 20 17:54:40 2005  Nick Burrett  <nick@sqrt.co.uk>
+
+	* stdio/vfprintf.c (__vfprintf): Output of printf("%#.0o", 0)
+	should print 0.
+	* stdio/fwrite.c (fwrite): When handling fd of -1, return early
+	if we have no space in the output buffer.
+	* signal/post.c (__write_backtrace): Account for 26-bit mode
+	when disassembling.
+
 Wed Apr 20 14:15:44 2005  Nick Burrett  <nick@sqrt.co.uk>
 
 	Norcroft compatibility.
