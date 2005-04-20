@@ -21,7 +21,7 @@
 #include <complex.h>
 #include <fenv.h>
 #include <math.h>
-
+#include "math_private.h"
 
 __complex__ double
 __ccos (__complex__ double x)

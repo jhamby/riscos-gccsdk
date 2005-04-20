@@ -1,8 +1,8 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/stdio.h,v $
- * $Date: 2005/04/13 19:20:05 $
- * $Revision: 1.17 $
+ * $Date: 2005/04/14 12:13:09 $
+ * $Revision: 1.18 $
  * $State: Exp $
  * $Author: nick $
  *
@@ -334,9 +334,19 @@ extern int vsprintf (char *__restrict __s,
      __THROW;
 
 /* Write formatted output to stream from arg list arg.  This function
-   is a cancellation point.  */
+   is a cancellation point.  Thread-safe version.  */
 extern int vfprintf (FILE *__restrict __stream,
 		     const char *__restrict __format, __gnuc_va_list __arg);
+
+#ifdef __UNIXLIB_INTERNALS
+/* Write formatted output to stream from arg list arg.  This function
+   is a cancellation point.
+
+   Non thread-safe version.   This function is for UnixLib internal
+   use only.  */
+extern int __vfprintf (FILE *__restrict __stream,
+		       const char *__restrict __format, __gnuc_va_list __arg);
+#endif
 
 /* Write formatted output to stdio from arg list arg.  This function
    is a cancellation point.  */

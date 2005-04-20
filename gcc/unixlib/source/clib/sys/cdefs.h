@@ -1,8 +1,8 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/sys/cdefs.h,v $
- * $Date: 2005/04/07 18:34:11 $
- * $Revision: 1.7 $
+ * $Date: 2005/04/13 19:20:06 $
+ * $Revision: 1.8 $
  * $State: Exp $
  * $Author: nick $
  *
@@ -301,25 +301,32 @@
 #endif
 
 #ifdef __UNIXLIB_INTERNALS
-/* This comes between the return type and function name in
-   a function definition to make that definition weak.  */
-# define weak_function __attribute__ ((weak))
-# define weak_const_function __attribute__ ((weak, __const__))
 
 #define strong_alias(name, aliasname) _strong_alias(name, aliasname)
 #define _strong_alias(name, aliasname) \
   extern __typeof (name) aliasname __attribute__ ((alias (#name)));
 
 #ifdef __ELF__
+
+/* This comes between the return type and function name in
+   a function definition to make that definition weak.  */
+# define weak_function __attribute__ ((weak))
+# define weak_const_function __attribute__ ((weak, __const__))
+
 #define weak_alias(name, aliasname) _weak_alias(name, aliasname)
 #define _weak_alias(name, aliasname) \
   extern __typeof (name) aliasname __attribute__ ((weak, alias (#name)));
+
 #else
+
+# define weak_function /**/
+# define weak_const_function /**/
 
 /* This is more of a compatibility feature for AOF/GCC so that we can build
    the same source files as ELF/GCC.  */
-#define weak_alias(name, aliasname) _strong_alias(name, aliasname)
-#endif
+#define weak_alias(name, aliasname) strong_alias(name, aliasname)
+
+#endif /* __ELF__ */
 
 /* FIXME.  Provide definitions.  Currently here for source code
    compatibility.  */

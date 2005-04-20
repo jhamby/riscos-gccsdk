@@ -1,8 +1,8 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/dirent.h,v $
- * $Date: 2005/04/13 19:20:05 $
- * $Revision: 1.10 $
+ * $Date: 2005/04/14 12:13:09 $
+ * $Revision: 1.11 $
  * $State: Exp $
  * $Author: nick $
  *
@@ -28,9 +28,11 @@ __BEGIN_DECLS
 
 #define MAXNAMLEN 255
 
+#ifdef __USE_XOPEN
 #ifndef __ino_t_defined
 typedef __ino_t ino_t;
 #define __ino_t_defined
+#endif
 #endif
 
 /* This isn't really how ADFS stores files in a directory, but

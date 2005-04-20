@@ -19,7 +19,7 @@
    02111-1307 USA.  */
 
 #include <math.h>
-
+#include "math_private.h"
 
 float
 __fmaxf (float x, float y)

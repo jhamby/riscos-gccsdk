@@ -49,7 +49,9 @@
 #define __UNIXLIB_FEATURE_PTHREADS	1
 
 /* Set to 1 if we want 'errno' to be per-thread rather than a global */
-/* variable.  */
+/* variable.  It is currently inadvisable to set this option as many */
+/* applications rely on 'errno' being a real variable rather than a */
+/* macro.  GCC's builtin math functions also rely on this.  */
 #define __UNIXLIB_ERRNO_THREADED	0
 
 /* The APCS-32 ABI in GCC and Norcroft are not 100% */

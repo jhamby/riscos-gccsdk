@@ -21,7 +21,7 @@
 #include <complex.h>
 #include <fenv.h>
 #include <math.h>
-
+#include "math_private.h"
 
 __complex__ float
 __ccosf (__complex__ float x)

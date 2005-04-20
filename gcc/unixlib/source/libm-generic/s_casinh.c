@@ -20,7 +20,7 @@
 
 #include <complex.h>
 #include <math.h>
-
+#include "math_private.h"
 
 __complex__ double
 __casinh (__complex__ double x)

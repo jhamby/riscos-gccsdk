@@ -1,10 +1,10 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/unixlib/math.h,v $
- * $Date: 2004/06/12 08:59:47 $
- * $Revision: 1.4 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/incl-local/internal/math.h,v $
+ * $Date: 2005/04/14 14:31:13 $
+ * $Revision: 1.1 $
  * $State: Exp $
- * $Author: peter $
+ * $Author: nick $
  *
  ***************************************************************************/
 
@@ -322,6 +322,184 @@ extern double __mpcos1 (double __x);
 extern double __slowexp (double __x);
 extern double __slowpow (double __x, double __y, double __z);
 extern void __docos (double __x, double __dx, double __v[]);
+
+#if defined (__CC_NORCROFT)
+/* The Norcroft compiler doesn't support the idea of symbol aliasing,
+   or at least allowing us to pass such aliases to the assembler.  */
+
+#define __acos acos
+#define __asin asin
+#define __atan atan
+#define __atan2 atan2
+#define __cos cos
+#define __sin sin
+#define __tan tan
+#define __cosh cosh
+#define __sinh sinh
+#define __tanh tanh
+#define __sincos sincos
+#define __acosh acosh
+#define __asinh asinh
+#define __atanh atanh
+#define __exp exp
+#define __frexp frexp
+#define __ldexp ldexp
+#define __log log
+#define __log10 log10
+#define __modf modf
+#define __exp10 exp10
+#define __pow10 pow10
+#define __expm1 expm1
+#define __log1p log1p
+#define __logb logb
+#define __exp2 exp2
+#define __log2 log2
+#define __pow pow
+#define __sqrt sqrt
+#define __hypot hypot
+#define __cbrt cbrt
+#define __ceil ceil
+#define __fabs fabs
+#define __floor floor
+#define __fmod fmod
+#define __isinf isinf
+#define __finite finite
+#define __drem drem
+#define __significand significand
+#define __copysign copysign
+#define __nan nan
+#define __isnan isnan
+#define __j0 j0
+#define __j1 j1
+#define __jn jn
+#define __y0 y0
+#define __y1 y1
+#define __yn yn
+#define __erf erf
+#define __erfc erfc
+#define __lgamma lgamma
+#define __tgamma tgamma
+#define __gamma gamma
+#define __lgamma_r lgamma_r
+#define __rint rint
+#define __nextafter nextafter
+#define __nexttoward nexttoward
+#define __remainder remainder
+#define __scalbn scalbn
+#define __ilogb ilogb
+#define __scalbln scalbln
+#define __nearbyint nearbyint
+#define __round round
+#define __trunc trunc
+#define __remquo remquo
+#define __lrint lrint
+#define __lround lround
+#define __fdim fdim
+#define __fmax fmax
+#define __fmin fmin
+#define __fma fma
+#define __scalb scalb
+
+#define __acosf acosf
+#define __asinf asinf
+#define __atanf atanf
+#define __atan2f atan2f
+#define __cosf cosf
+#define __sinf sinf
+#define __tanf tanf
+#define __coshf coshf
+#define __sinhf sinhf
+#define __tanhf tanhf
+#define __sincosf sincosf
+#define __acoshf acoshf
+#define __asinhf asinhf
+#define __atanhf atanhf
+#define __expf expf
+#define __frexpf frexpf
+#define __ldexpf ldexpf
+#define __logf logf
+#define __log10f log10f
+#define __modff modff
+#define __exp10f exp10f
+#define __pow10f pow10f
+#define __expm1f expm1f
+#define __log1pf log1pf
+#define __logbf logbf
+#define __exp2f exp2f
+#define __log2f log2f
+#define __powf powf
+#define __sqrtf sqrtf
+#define __hypotf hypotf
+#define __cbrtf cbrtf
+#define __ceilf ceilf
+#define __fabsf fabsf
+#define __floorf floorf
+#define __fmodf fmodf
+#define __isinff isinff
+#define __finitef finitef
+#define __dremf dremf
+#define __significandf significandf
+#define __copysignf copysignf
+#define __nanf nanf
+#define __isnanf isnanf
+#define __j0f j0f
+#define __j1f j1f
+#define __jnf jnf
+#define __y0f y0f
+#define __y1f y1f
+#define __ynf ynf
+#define __erff erff
+#define __erfcf erfcf
+#define __lgammaf lgammaf
+#define __tgammaf tgammaf
+#define __gammaf gammaf
+#define __lgammaf_r lgammaf_r
+#define __rintf rintf
+#define __nextafterf nextafterf
+#define __nexttowardf nexttowardf
+#define __remainderf remainderf
+#define __scalbnf scalbnf
+#define __ilogbf ilogbf
+#define __scalblnf scalblnf
+#define __nearbyintf nearbyintf
+#define __roundf roundf
+#define __truncf truncf
+#define __remquof remquof
+#define __lrintf lrintf
+#define __llrintf llrintf
+#define __lroundf lroundf
+#define __llroundf llroundf
+#define __fdimf fdimf
+#define __fmaxf fmaxf
+#define __fminf fminf
+#define __fmaf fmaf
+
+
+#define __cacos cacos
+#define __casin casin
+#define __catan catan
+#define __ccos ccos
+#define __csin csin
+#define __ctan ctan
+#define __cacosh cacosh
+#define __casinh casinh
+#define __catanh catanh
+#define __ccosh ccosh
+#define __csinh csinh
+#define __ctanh ctanh
+#define __cexp cexp
+#define __clog clog
+#define __clog10 clog10
+#define __cpow cpow
+#define __csqrt csqrt
+#define __cabs cabs
+#define __carg carg
+#define __conj conj
+#define __cproj cproj
+#define __cimag cimag
+#define __creal creal
+
+#endif /* __CC_NORCROFT */
 
 __END_DECLS
 

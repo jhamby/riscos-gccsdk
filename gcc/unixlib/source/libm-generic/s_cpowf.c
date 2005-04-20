@@ -20,7 +20,7 @@
 
 #include <complex.h>
 #include <math.h>
-
+#include "math_private.h"
 
 __complex__ float
 __cpowf (__complex__ float x, __complex__ float c)

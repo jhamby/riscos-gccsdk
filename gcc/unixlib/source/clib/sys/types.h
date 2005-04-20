@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/sys/types.h,v $
- * $Date: 2005/01/03 22:57:22 $
- * $Revision: 1.8 $
+ * $Date: 2005/04/14 12:13:09 $
+ * $Revision: 1.9 $
  * $State: Exp $
- * $Author: joty $
+ * $Author: nick $
  *
  ***************************************************************************/
 
@@ -84,6 +84,11 @@ typedef __mode_t mode_t;
 #ifndef __nlink_t_defined
 typedef __nlink_t nlink_t;
 # define __nlink_t_defined
+#endif
+
+#ifndef __ino_t_defined
+typedef __ino_t ino_t;
+#define __ino_t_defined
 #endif
 
 #ifndef __uid_t_defined

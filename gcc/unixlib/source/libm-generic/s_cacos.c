@@ -20,6 +20,7 @@
 
 #include <complex.h>
 #include <math.h>
+#include "math_private.h"
 
 __complex__ double
 __cacos (__complex__ double x)

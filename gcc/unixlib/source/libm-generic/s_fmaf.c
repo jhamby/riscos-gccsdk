@@ -19,6 +19,7 @@
    02111-1307 USA.  */
 
 #include <math.h>
+#include "math_private.h"
 
 float
 __fmaf (float x, float y, float z)

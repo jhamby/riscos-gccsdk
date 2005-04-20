@@ -1,13 +1,5 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/stdio/printf.c,v $
- * $Date: 2003/04/13 16:21:02 $
- * $Revision: 1.7 $
- * $State: Exp $
- * $Author: alex $
- *
- ***************************************************************************/
-
+/* printf interface functions.
+   Copyright (c) 2005 UnixLib Developers.  */
 
 #include <sys/types.h>
 
@@ -22,7 +14,7 @@
 
 
 
-int __vsnprintf (char *buf, size_t limit, const char *format, va_list ap)
+int vsnprintf (char *buf, size_t limit, const char *format, va_list ap)
 {
   FILE f[1];
   int ret;
@@ -45,9 +37,14 @@ int __vsnprintf (char *buf, size_t limit, const char *format, va_list ap)
   f->__linebuf = 0;
   f->__eof = f->__error = 0;
   f->__offset = 0;
+
+  /* This file descriptor value is specially interpreted by 'fwrite'.  */
   f->fd = -1;
+
   f->__magic = _IOMAGIC;
 
+  /* We use the non-multithreaded printf function here as we can
+     already guarantee exclusivity to the FILE structure.  */
   ret = __vfprintf (f, format, ap);
   if (ol > 0)
     putc ('\0', f);
@@ -56,43 +53,43 @@ int __vsnprintf (char *buf, size_t limit, const char *format, va_list ap)
 }
 
 
-int __vsprintf(char *buf, const char *format, va_list ap)
+int vsprintf(char *buf, const char *format, va_list ap)
 {
-  return __vsnprintf (buf, INT_MAX, format, ap);
+  return vsnprintf (buf, INT_MAX, format, ap);
 }
 
 
-int __snprintf(char *buf, size_t limit, const char *format, ...)
-{
-  va_list ap;
-  register int r;
-
-  va_start (ap, format);
-  r = __vsnprintf (buf, limit, format, ap);
-  va_end (ap);
-
-  return (r);
-}
-
-
-int __sprintf (char *buf, const char *format, ...)
+int snprintf(char *buf, size_t limit, const char *format, ...)
 {
   va_list ap;
-  register int r;
+  int r;
 
   va_start (ap, format);
-  r = __vsnprintf (buf, INT_MAX, format, ap);
+  r = vsnprintf (buf, limit, format, ap);
   va_end (ap);
 
-  return (r);
+  return r;
 }
 
-int __vprintf (const char *format, va_list ap)
+
+int sprintf (char *buf, const char *format, ...)
+{
+  va_list ap;
+  int r;
+
+  va_start (ap, format);
+  r = vsnprintf (buf, INT_MAX, format, ap);
+  va_end (ap);
+
+  return r;
+}
+
+int vprintf (const char *format, va_list ap)
 {
   return vfprintf (stdout, format, ap);
 }
 
-int __fprintf (FILE * stream, const char *format,...)
+int fprintf (FILE * stream, const char *format, ...)
 {
   va_list ap;
   int r;
@@ -101,24 +98,25 @@ int __fprintf (FILE * stream, const char *format,...)
   r = vfprintf (stream, format, ap);
   va_end (ap);
 
-  return (r);
+  return r;
 }
 
-int __printf (const char *format,...)
+int printf (const char *format, ...)
 {
   va_list ap;
-  register int r;
+  int r;
 
   va_start (ap, format);
   r = vfprintf (stdout, format, ap);
   va_end (ap);
 
-  return (r);
+  return r;
 }
-weak_alias (__vsnprintf, vsnprintf)
-weak_alias (__vsprintf, vsprintf)
-weak_alias (__snprintf, snprintf)
-weak_alias (__sprintf, sprintf)
-weak_alias (__vprintf, vprintf)
-weak_alias (__fprintf, fprintf)
-weak_alias (__printf, printf)
+
+/* weak_alias (__vsnprintf, vsnprintf)
+   weak_alias (__vsprintf, vsprintf)
+   weak_alias (__snprintf, snprintf)
+   weak_alias (__sprintf, sprintf)
+   weak_alias (__vprintf, vprintf)
+   weak_alias (__fprintf, fprintf)
+   weak_alias (__printf, printf) */

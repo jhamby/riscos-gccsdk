@@ -19,6 +19,7 @@
    02111-1307 USA.  */
 
 #include <math.h>
+#include "math_private.h"
 
 double
 __fdim (double x, double y)

@@ -1,9 +1,51 @@
+Wed Apr 20 14:15:44 2005  Nick Burrett  <nick@sqrt.co.uk>
+
+	Norcroft compatibility.
+	* stdio.h (__vfprintf): Add prototype.
+	* stdio/vfprintf.c (__find_arguments [TP_SIZET]): Use 'size_t'
+	[from Stefan Bellon].
+	* stdio/printf.c (vsnprintf): Remove '__' from function name.
+	(vsprintf, snprintf, sprintf): Likewise.
+	(vprintf, fprintf, printf): Likewise.
+	* internal/math.h: Add macros to remove the double-underscores
+	from function.
+	* libm-generic/s_fma.c: Include math_private.h to pick up this change.
+	* libm-generic/s_fmaf.c: Likewise.
+	* libm-generic/s_fdim.c: Likewise.
+	* libm-generic/s_fdimf.c: Likewise.
+	* libm-generic/s_fmax.c: Likewise.
+	* libm-generic/s_fmaxf.c: Likewise.
+	* libm-generic/s_fmin.c: Likewise.
+	* libm-generic/s_fminf.c: Likewise.
+	* libm-generic/s_cacos.c: Likewise.
+	* libm-generic/s_cacosf.c: Likewise.
+	* libm-generic/s_casin.c: Likewise.
+	* libm-generic/s_casinf.c: Likewise.
+	* libm-generic/s_casinh.c: Likewise.
+	* libm-generic/s_casinhf.c: Likewise.
+	* libm-generic/s_ccos.c: Likewise.
+	* libm-generic/s_ccosf.c: Likewise.
+	* libm-generic/s_cpow.c: Likewise.
+	* libm-generic/s_cpowf.c: Likewise.
+	* libm-generic/s_cproj.c: Likewise.
+	* libm-generic/s_cprojf.c: Likewise.
+	* libm-generic/s_nan.c: Likewise.
+	* libm-generic/s_nanf.c: Likewise.
+	* libm-generic/w_drem.c: Likewise.
+
+	* sys/types.h (ino_t): Define.
+	* dirent.h (ino_t): Only define if __USE_XOPEN.
+
+	* unixlib/buildoptions.h: Add comment to remind us why defining
+	__UNIXLIB_ERRNO_THREADED is a bad idea.
+	
 Tue Apr 19 19:52:29 2005  Nick Burrett  <nick@sqrt.co.uk>
 
 	* iconv.h (EILSEQ): Kill definition.
 	
 Tue Apr 19 19:28:59 2005  Nick Burrett  <nick@sqrt.co.uk>
-	
+
+	Make threaded 'errno' a compile time option.
 	* unixlib/buildoptions.h (__UNIXLIB_ERRNO_THREADED): Define as zero.
 	* pthread/context.c (__pthread_context_switch): When above
 	macro is zero, save the global errno between context switches.
@@ -15,6 +57,7 @@ Tue Apr 19 19:28:59 2005  Nick Burrett  <nick@sqrt.co.uk>
 
 Tue Apr 19 09:48:33 2005  Stefan Bellon  <sbellon@sbellon.de>
 
+	Norcroft compatibility.
 	* unixlib/asm_dec.s (__set_errno): IMPORT __pthread_running_thread.
 	(__get_errno): Likewise.
 	* signal.h (sigpause): Fix comment termination typo.

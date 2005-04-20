@@ -23,6 +23,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ieee754.h>
+#include "math_private.h"
 
 
 float
