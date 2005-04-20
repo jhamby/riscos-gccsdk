@@ -3,7 +3,7 @@
  * Copyright © 1997 Darren Salt
  */
 
-#include "sdk-config.h"
+#include "config.h"
 #include <ctype.h>
 #include <stdlib.h>
 #include <string.h>

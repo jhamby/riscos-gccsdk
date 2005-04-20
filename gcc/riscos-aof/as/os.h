@@ -7,8 +7,7 @@
 #define os_header_included
 
 #include <stdio.h>
-
-#include "sdk-config.h"
+#include "config.h"
 
 #ifdef CROSS_COMPILE
 /* UNIX specific information.  */
@@ -52,13 +51,13 @@ char *(CanonicalisePath) (const char *path);
 #endif /* !CROSS_COMPILE */
 
 #if defined CROSS_COMPILE && !defined (HAVE_STRNDUP)
-char *strndup (const char *str, size_t len);
+extern char *strndup (const char *str, size_t len);
 #endif
 #if defined CROSS_COMPILE && !defined (HAVE_STRDUP)
-char *strdup (const char *str);
+extern char *strdup (const char *str);
 #endif
 #if defined CROSS_COMPILE && !defined (HAVE_STRNCASECMP)
-int strncasecmp(const char *str1, const char *str2, size_t n);
+extern int strncasecmp(const char *str1, const char *str2, size_t n);
 #endif
 
 #endif

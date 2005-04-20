@@ -3,7 +3,7 @@
  * Copyright © 1992 Niklas Röjemo
  */
 
-#include "sdk-config.h"
+#include "config.h"
 #include <setjmp.h>
 #include <stdlib.h>
 #include <stdio.h>

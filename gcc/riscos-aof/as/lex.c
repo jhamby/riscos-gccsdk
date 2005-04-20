@@ -3,7 +3,7 @@
  * Copyright © 1992 Niklas Röjemo
  */
 
-#include "sdk-config.h"
+#include "config.h"
 #include <ctype.h>
 #include <math.h>
 #include <string.h>

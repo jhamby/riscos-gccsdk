@@ -3,7 +3,7 @@
  * Copyright © 1997 Darren Salt
  */
 
-#include "sdk-config.h"
+#include "config.h"
 #ifdef HAVE_STDINT_H
 #include <stdint.h>
 #elif HAVE_INTTYPES_H

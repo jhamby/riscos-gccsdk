@@ -4,7 +4,7 @@
  * Copyright © 2005 GCCSDK Developers
  */
 
-#include "sdk-config.h"
+#include "config.h"
 #include <setjmp.h>
 #include <stdio.h>
 #include <string.h>
