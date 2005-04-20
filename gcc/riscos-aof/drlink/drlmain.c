@@ -16,7 +16,9 @@
 #include "drlhdr.h"
 #include "filehdr.h"
 #include "procdefs.h"
+#ifdef CROSS_COMPILE
 #include "sdk-config.h"
+#endif
 
 #ifdef TARGET_RISCOS
 #include <kernel.h>
