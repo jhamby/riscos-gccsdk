@@ -1,6 +1,6 @@
 # Makefile for the GNU C++ compiler for ARM/RISC OS
 # Copyright (c) 1997, 1998, 1999, 2000, 2004 Nick Burrett
-# Written by Nick Burrett <nick@dsvr.net>
+# Copyright (c) 2005 GCCSDK Developers
 
 # Defs for GCC
 LINK = $(CC) -o $@
@@ -84,7 +84,7 @@ $(bin_dir)/g++$(gexesfx): $(gccobjdir)/cp/g++.o $(gccobjdir)/cp/g++spec.o \
 # they're all built differently.
 
 cfns.h: cfns.gperf
-	$(GPERF) -o -C -E -k 1-6,$ -j1 -D -N libc_name_p < cfns.gperf >$@
+	$(GPERF) -o -C -E -k '1-6,$$' -j1 -D -N 'libc_name_p' -L ANSI-C < cfns.gperf >$@
 
 DRIVER_DEFINES = \
   -DSTANDARD_STARTFILE_PREFIX=\"$(prefix)$(gn_standard_startfile_prefix)\" \
