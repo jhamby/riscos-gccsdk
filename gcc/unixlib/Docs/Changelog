@@ -1,3 +1,17 @@
+Thu Apr 21 16:02:24 2005  Nick Burrett  <nick@sqrt.co.uk>
+
+	* pthread/sem.c (sem_check_validity): New function.
+	(sem_alloc): Delete function; incorporate into sem_init.
+	(sem_init): 'sem' is already allocated memory; use it rather than
+	making our own internal allocation with malloc.
+	(sem_free): No need to free sem structure here.  Make inline.
+	(sem_destroy): Always check for errors using sem_check_validity.
+	(sem_trywait): Likewise.
+	(sem_post): Likewise.
+	(sem_getvalue): Likewise.
+	(sem_wait): Likewise.  Cope with an empty usem_waiters queue.
+	Add PTHREAD_SAFE_CANCELLATION.
+
 Wed Apr 20 18:10:04 2005  Nick Burrett  <nick@sqrt.co.uk>
 
 	* stpcpy.c: Move into string subdirectory.
