@@ -35,9 +35,9 @@
 /******************************************************************/
 #include "endian.h"
 #include "mydefs.h"
-#include "asincos.tbl"
-#include "root.tbl"
-#include "powtwo.tbl"
+#include "tbl_asincos.h"
+#include "tbl_root.h"
+#include "tbl_powtwo.h"
 #include "MathLib.h"
 #include "uasncs.h"
 #include "math_private.h"

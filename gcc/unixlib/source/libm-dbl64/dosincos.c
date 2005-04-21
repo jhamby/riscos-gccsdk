@@ -35,7 +35,7 @@
 
 #include "endian.h"
 #include "mydefs.h"
-#include "sincos.tbl"
+#include "tbl_sincos.h"
 #include "dla.h"
 #include "dosincos.h"
 #include "math_private.h"

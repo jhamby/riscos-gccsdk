@@ -40,7 +40,7 @@
 #include "dla.h"
 #include "mydefs.h"
 #include "MathLib.h"
-#include "upow.tbl"
+#include "tbl_upow.h"
 #include "math_private.h"
 
 

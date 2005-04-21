@@ -37,7 +37,7 @@
 #include "uexp.h"
 #include "mydefs.h"
 #include "MathLib.h"
-#include "uexp.tbl"
+#include "tbl_uexp.h"
 #include "math_private.h"
 
 double __slowexp(double);

@@ -44,7 +44,7 @@ void __mptan(double, mp_no *, int);
 
 double tan(double x) {
 #include "utan.h"
-#include "utan.tbl"
+#include "tbl_utan.h"
 
   int ux,i,n;
   double a,da,a2,b,db,c,dc,c1,cc1,c2,cc2,c3,cc3,fi,ffi,gi,pz,s,sy,

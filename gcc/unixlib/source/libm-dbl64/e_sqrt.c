@@ -37,7 +37,7 @@
 #include "mydefs.h"
 #include "dla.h"
 #include "MathLib.h"
-#include "root.tbl"
+#include "tbl_root.h"
 #include "math_private.h"
 
 /*********************************************************************/

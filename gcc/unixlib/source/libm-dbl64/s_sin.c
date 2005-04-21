@@ -52,7 +52,7 @@
 #include "mydefs.h"
 #include "usncs.h"
 #include "MathLib.h"
-#include "sincos.tbl"
+#include "tbl_sincos.h"
 #include "math_private.h"
 
 static const double

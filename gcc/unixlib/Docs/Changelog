@@ -1,3 +1,22 @@
+Thu Apr 21 16:53:32 2005  Nick Burrett  <nick@sqrt.co.uk>
+
+	Norcroft compatibility.
+	* libm-dbl64/tbl_asincos.h: Renamed from asincos.tbl.
+	* libm-dbl64/tbl_powtwo.h: Renamed from powtwo.tbl
+	* libm-dbl64/tbl_root.h: Renamed from root.tbl
+	* libm-dbl64/tbl_sincos.h: Renamed from sincos.tbl
+	* libm-dbl64/tbl_uatan.h: Renamed from uatan.tbl
+	* libm-dbl64/tbl_uexp.h: Renamed from uexp.tbl
+	* libm-dbl64/tbl_ulog.h: Renamed from ulog.tbl
+	* libm-dbl64/tbl_upow.h: Renamed from upow.tbl
+	* libm-dbl64/tbl_utan.h: Renamed from utan.tbl
+	* libm-dbl64/dosincos.c: Use new filenames.
+	* libm-dbl64/{e_asin.c, e_atan2.c, e_exp.c, e_log.c}: Likewise.
+	* libm-dbl64/{e_pow.c, e_sqrt.c, s_atan.c, s_sin.c}: Likewise.
+	* libm-dbl64/s_tan.c: Likewise.
+
+	* unixlib/buildoptions.s: Commit auto-generated file.
+
 Thu Apr 21 16:02:24 2005  Nick Burrett  <nick@sqrt.co.uk>
 
 	* pthread/sem.c (sem_check_validity): New function.

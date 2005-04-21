@@ -61,7 +61,7 @@ double __ieee754_log(double x) {
   number num;
   mp_no mpx,mpy,mpy1,mpy2,mperr;
 
-#include "ulog.tbl"
+#include "tbl_ulog.h"
 #include "ulog.h"
 
   /* Treating special values of x ( x<=0, x=INF, x=NaN etc.). */

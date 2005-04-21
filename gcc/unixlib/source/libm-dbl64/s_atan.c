@@ -40,7 +40,7 @@
 #include "dla.h"
 #include "mpa.h"
 #include "MathLib.h"
-#include "uatan.tbl"
+#include "tbl_uatan.h"
 #include "atnat.h"
 #include "math.h"
 
