@@ -8,8 +8,8 @@
 
 <h2>Autobuilder Manual</h2>
 
-<p>Copyright 2003, <a href="mailto:peter@chocky.org">Peter Naulls</a>. May not be reproduced without permission.</p>
-<p>Last updated - 26nd February 2003</p>
+<p>Copyright 2003-2005, GCCSDK Developers</a>.</p>
+<p>Last updated - 21st April 2005</p>
 
 <hr>
 
@@ -110,7 +110,17 @@ is successful.  If not, the directory will remain for you to examine the build f
 
  <li>-p Package only.  This is for testing the packaging part of the process.  Note that with this option, the autobuilder is unable to determine the version number, so the resulting zip filename will lack this.
 
- <li>-f Don't try and fetch the sources.  This allows you to unpack the sources yourself, that you've previously fetched.  Sometimes useful for large programs, but this option may get confused if you aren't in the build directory.
+ <li>-f Don't try and fetch the sources.  This allows you to unpack the sources yourself, that you've previously fetched - normally, because you're not on Debian.  To use this, you will need to have a precise setup, because the autobuilder relies on various paths to allow it find things.  Example usage:
+
+  <pre>
+  
+    mkdir libmng
+    cd libmng
+    tar xfvz libmng-1.0.0.tgz
+    (sources now unpacked into libmng-1.0.0 directory)
+    /usr/src/autobuilder/build -v -f libraries/graphics/libmng
+  </pre>
+
 </ul>
 
 
@@ -145,23 +155,7 @@ is successful.  If not, the directory will remain for you to examine the build f
 
 <p>The majority of programs build, but some may occasionally fail (access to Debian mirrors is not 100%), or changes to a new version, or in a dependent library may cause failures which occasionally need to be addressed.</p>
 
-<p>As of 26/02/2003 all programs in the builder have at some point with
-some version been compiled, even if that requires some manual intervention.  The only exception is xconq (which incidentally, wrongly reports a success).</p>
-
-<p>The list of current failures is:</p>
-
-<ul>
- <li>chimera - problems finding symbols in JPEG and PNG libraries
- <li>dillo - upgraded version can't find 'nanosleep' symbol
- <li>gnome-libs - issues with db4 library
- <li>lftp - possibly needs IPv6 disabling
- <li>libqt3 - updated version's build has changed
- <li>openssl - patches no longer apply in new version
- <li>orbit - sys_errlist issues
- <li>xconq - fails to find/build some libraries
-</ul>
-
-<p>Of course, send any fixes or your own program additions so I can build them here, and add them to the autobuilder.</p>
+<p>Please contribute any fixes back to GCCSDK so they can be incorporated.</p>
 
 <p></p>
 
@@ -174,10 +168,6 @@ some version been compiled, even if that requires some manual intervention.  The
 <p>Some programs are built, but not packaged or installed.  This gives a warning at the end of the build.   This may be because it has simply not been done yet.  In some cases, "make install" isn't particular appropriate - in particular, I recommend you avoid it for <i>tk</i>.  Instead, it needs to be installed by a custom setup like <i>tcl</i> is.   This allows us to follow Debian conventions with library locations and so forth.</p>
 
 <p>You need a fast connection for this to be useful.  A feature may be added for "static" building.   This would allow building from archives located on a filesystem.  This might also be useful for programs which have not made it to a Debian package yet.</p>
-
-<p>There are too many hard-wired paths.</p>
-
-<p>For programs linked with -lX11, we might in future generate a second binary with Chox11.  The most effective way of doing this would be to temporarily swap out the libX11.a library.</p>
 
 <p></p>
 
