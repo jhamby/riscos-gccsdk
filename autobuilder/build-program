@@ -62,12 +62,17 @@ if [ "$AB_PACKONLY" == "yes" ] ; then
 else
  
  # Build directory
- AB_DIR=$AB_TMPDIR/$AB_PACKAGE
+ if [ "$AB_NOFETCH" == "yes" ] ; then
+   AB_DIR=$AB_TMPDIR
+ else
+   AB_DIR=$AB_TMPDIR/$AB_PACKAGE
+ fi
+
  D=$AB_DIR/package
 
  # Remove old dir and create new one
  [ "$AB_DEBUG" == "yes" ] || [ "$AB_NOFETCH" == "yes" ] || rm -rf $AB_DIR
- mkdir -p $AB_DIR
+ [ "$AB_NOFETCH" == "yes" ] || mkdir -p $AB_DIR
  cd $AB_DIR
 
  if [ -e $AB_HOME/$AB_PACKAGEDIR/alias ] ; then
@@ -119,7 +124,7 @@ else
  else
    cd $AB_FULLNAME
  fi
- 
+
  S=$PWD
  
  # Get the version number
