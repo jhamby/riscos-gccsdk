@@ -1,8 +1,8 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/dirent.h,v $
- * $Date: 2005/04/14 12:13:09 $
- * $Revision: 1.11 $
+ * $Date: 2005/04/20 13:18:56 $
+ * $Revision: 1.12 $
  * $State: Exp $
  * $Author: nick $
  *
@@ -154,14 +154,12 @@ extern void rewinddir (DIR *__dirp) __THROW __nonnull ((1));
    This is a cancellation point.  */
 extern int closedir (DIR *__dirp) __nonnull ((1));
 
-#if defined __USE_GNU
+#if defined __USE_BSD || defined __USE_MISC
 /* Function to compare two `struct dirent's alphabetically.  */
 extern int alphasort (const struct dirent **__a,
 		      const struct dirent ** __b)
      __THROW __attribute_pure__ __nonnull ((1, 2));
-#endif
 
-#if defined __USE_BSD || defined __USE_MISC
 /* Scan the directory dir, calling 'select' on each directory entry.
    Entries for which 'select' returns nonzero are individually malloc'd,
    sorted using qsort with 'cmp', and collected in a malloc'd array in
