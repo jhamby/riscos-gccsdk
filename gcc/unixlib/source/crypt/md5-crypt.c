@@ -1,8 +1,8 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/crypt/Attic/md5-crypt.c,v $
- * $Date: 2002/08/18 21:22:10 $
- * $Revision: 1.1.2.1 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/crypt/md5-crypt.c,v $
+ * $Date: 2002/11/18 15:38:13 $
+ * $Revision: 1.2 $
  * $State: Exp $
  * $Author: admin $
  *
@@ -57,7 +57,7 @@
 static const char md5_salt_prefix[] = "$1$";
 
 /* Table with characters for base64 transformation.  */
-static const char b64t[64] =
+static const char b64t[65] =
 "./0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
 
@@ -70,11 +70,8 @@ extern char *__md5_crypt (const char *key, const char *salt);
 /* This entry point is equivalent to the `crypt' function in Unix
    libcs.  */
 char *
-__md5_crypt_r (key, salt, buffer, buflen)
-     const char *key;
-     const char *salt;
-     char *buffer;
-     int buflen;
+__md5_crypt_r (const char *key, const char *salt,
+	       char *buffer, int buflen)
 {
   unsigned char alt_result[16]
     __attribute__ ((__aligned__ (__alignof__ (md5_uint32))));
@@ -100,9 +97,9 @@ __md5_crypt_r (key, salt, buffer, buflen)
     {
       char *tmp = (char *) alloca (key_len + __alignof__ (md5_uint32));
       key = copied_key =
-	memcpy (tmp + __alignof__ (md5_uint32)
-		- (tmp - (char *) 0) % __alignof__ (md5_uint32),
-		key, key_len);
+	(char *) memcpy (tmp + __alignof__ (md5_uint32)
+			 - (tmp - (char *) 0) % __alignof__ (md5_uint32),
+			 key, key_len);
       assert ((key - (char *) 0) % __alignof__ (md5_uint32) == 0);
     }
 
@@ -110,9 +107,9 @@ __md5_crypt_r (key, salt, buffer, buflen)
     {
       char *tmp = (char *) alloca (salt_len + __alignof__ (md5_uint32));
       salt = copied_salt =
-	memcpy (tmp + __alignof__ (md5_uint32)
-		- (tmp - (char *) 0) % __alignof__ (md5_uint32),
-		salt, salt_len);
+	(char *) memcpy (tmp + __alignof__ (md5_uint32)
+			 - (tmp - (char *) 0) % __alignof__ (md5_uint32),
+			 salt, salt_len);
       assert ((salt - (char *) 0) % __alignof__ (md5_uint32) == 0);
     }
 
@@ -272,7 +269,7 @@ __md5_crypt (const char *key, const char *salt)
   if (buflen < needed)
     {
       buflen = needed;
-      if ((buffer = realloc (buffer, buflen)) == NULL)
+      if ((buffer = (char *) realloc (buffer, buflen)) == NULL)
 	return NULL;
     }
 

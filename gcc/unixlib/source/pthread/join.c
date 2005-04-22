@@ -1,25 +1,14 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/pthread/join.c,v $
- * $Date: 2002/12/15 13:16:55 $
- * $Revision: 1.1 $
- * $State: Exp $
- * $Author: admin $
- *
- ***************************************************************************/
-
-#ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: join.c,v 1.1 2002/12/15 13:16:55 admin Exp $";
-#endif
-
-/* Written by Martin Piper and Alex Waugh */
+/* Wait for the termination of another thread.
+   Copyright (c) 2003, 2005 UnixLib Devlopers.
+   Written by Martin Piper and Alex Waugh.  */
 
 #include <pthread.h>
 #include <stdlib.h>
 #include <errno.h>
 #include <unixlib/os.h>
+#include <unixlib/unix.h>
 
-/* Wait for the specified thread to finish, and read its exit value */
+/* Wait for the specified thread to finish, and read its exit value.  */
 int
 pthread_join (pthread_t tojoin, void **status)
 {
@@ -66,8 +55,7 @@ pthread_join (pthread_t tojoin, void **status)
           *status = tojoin->ret;
 
         tojoin->magic = 0;
-        free (tojoin);
-
+        __proc->sul_free (__proc->pid, tojoin);
         __pthread_enable_ints ();
         break;
 
@@ -91,7 +79,9 @@ pthread_join (pthread_t tojoin, void **status)
         tojoin->joined = thread;
 
         __pthread_enable_ints ();
-        pthread_yield (); /* Will not return until the other thread has exited */
+
+	/* Will not return until the other thread has exited.  */
+        pthread_yield ();
 
         if (status != NULL)
           *status = __pthread_running_thread->ret;

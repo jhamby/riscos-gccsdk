@@ -1,8 +1,8 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/pthread.h,v $
- * $Date: 2005/04/13 19:20:05 $
- * $Revision: 1.16 $
+ * $Date: 2005/04/14 12:13:09 $
+ * $Revision: 1.17 $
  * $State: Exp $
  * $Author: nick $
  *
@@ -583,8 +583,7 @@ extern int __pthread_num_running_threads; /* Number of threads currently running
 
 /* Called once early in program initialisation */
 extern void __pthread_prog_init (void);
-/* Called once on first call to a pthread function, to initialise the thread system */
-extern void __pthread_init (void);
+
 /* Called if a non recoverable error is detected */
 extern void __pthread_fatal_error (const char *msg);
 

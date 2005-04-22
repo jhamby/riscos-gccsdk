@@ -1,8 +1,8 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/common/unixify.c,v $
- * $Date: 2005/04/13 19:20:06 $
- * $Revision: 1.13 $
+ * $Date: 2005/04/14 15:17:23 $
+ * $Revision: 1.14 $
  * $State: Exp $
  * $Author: nick $
  *
@@ -272,7 +272,7 @@ __unixify (const char *ro_path, int unixify_flags, char *buffer,
 	  && filetype != __RISCOSIFY_FILETYPE_NOTSPECIFIED)
 	buf_len += 4;
 
-      if ((buffer = malloc (buf_len)) == NULL)
+      if ((buffer = (char *) malloc (buf_len)) == NULL)
 	return NULL;
     }
   else if (buf_len == 0)

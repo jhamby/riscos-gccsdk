@@ -3810,7 +3810,6 @@ void fREe(mem) Void_t* mem;
     size = chunksize(p);
 
     check_inuse_chunk(p);
-
     /*
       If eligible, place chunk on a fastbin so it can be found
       and used quickly in malloc.

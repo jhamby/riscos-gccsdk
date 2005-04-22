@@ -1,18 +1,6 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/pthread/exit.c,v $
- * $Date: 2004/12/11 14:18:57 $
- * $Revision: 1.4 $
- * $State: Exp $
- * $Author: joty $
- *
- ***************************************************************************/
-
-#ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: exit.c,v 1.4 2004/12/11 14:18:57 joty Exp $";
-#endif
-
-/* Written by Martin Piper and Alex Waugh */
+/* Terminate the calling thread.
+   Copyright (c) 2003, 2004, 2005 UnixLib Developers.
+   Written by Martin Piper and Alex Waugh.  */
 
 #include <stdlib.h>
 #include <errno.h>
@@ -20,7 +8,8 @@ static const char rcs_id[] = "$Id: exit.c,v 1.4 2004/12/11 14:18:57 joty Exp $";
 #include <pthread.h>
 
 
-/* Exit from the current thread, or exit the entire program if there is only a single thread */
+/* Exit from the current thread, or exit the entire program if there
+   is only a single thread.  */
 void
 pthread_exit (void *status)
 {
@@ -43,8 +32,8 @@ pthread_exit (void *status)
   __pthread_running_thread->state = STATE_CLEANUP;
   __pthread_enable_ints ();
 
-  /* Call thread specific destructors/cleanup handlers */
-  /* Context switching may take place whilst these are running */
+  /* Call thread specific destructors/cleanup handlers.
+     Context switching may take place whilst these are running.  */
   __pthread_cleanup_callhandlers ();
   __pthread_key_calldestructors ();
 
@@ -60,12 +49,19 @@ pthread_exit (void *status)
       thread->ret = status;
       thread->state = STATE_RUNNING;
       __pthread_running_thread->joined = NULL;
-      __pthread_running_thread->detachstate = PTHREAD_CREATE_DETACHED; /* We have joined, so treat the thread as detached */
+
+      /* We have joined, so treat the thread as detached.  */
+      __pthread_running_thread->detachstate = PTHREAD_CREATE_DETACHED;
     }
 
   thread = __pthread_running_thread;
 
+  /* We have to re-enable interrupts because during pthread_exit we
+     potentially can call 'free' to tear-down any memory chunks allocated
+     with 'alloca'.  */
+  __pthread_enable_ints ();
   __pthread_exit ();
+  __pthread_disable_ints ();
 
 #ifdef PTHREAD_DEBUG
   __os_print ("-- pthread_exit: Thread ");
@@ -80,7 +76,7 @@ pthread_exit (void *status)
 #ifdef PTHREAD_DEBUG
       __os_print ("-- pthread_exit: Last or penultimate thread exited, stopping interrupts\r\n");
 #endif
-      /* There is no need for the ticker if there is only one thread left */
+      /* There is no need for the ticker if there is only one thread left.  */
       __pthread_stop_ticker ();
     }
 
@@ -92,7 +88,8 @@ pthread_exit (void *status)
 
       while (1)
         {
-          /* The context switcher will deallocate all storage for this thread when it notices it is idle */
+          /* The context switcher will deallocate all storage for
+	     this thread when it notices it is idle.  */
           thread->state = STATE_IDLE;
           pthread_yield ();
         }

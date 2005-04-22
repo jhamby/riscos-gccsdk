@@ -1,18 +1,6 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/pthread/newnode.c,v $
- * $Date: 2002/12/15 13:16:55 $
- * $Revision: 1.1 $
- * $State: Exp $
- * $Author: admin $
- *
- ***************************************************************************/
-
-#ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: newnode.c,v 1.1 2002/12/15 13:16:55 admin Exp $";
-#endif
-
-/* Written by Martin Piper and Alex Waugh */
+/* Internal thread node creation.
+   Copyright (c) 2004, 2005 UnixLib Developers.
+   Written by Martin Piper and Alex Waugh.  */
 
 #include <stdlib.h>
 #include <errno.h>
@@ -21,15 +9,24 @@ static const char rcs_id[] = "$Id: newnode.c,v 1.1 2002/12/15 13:16:55 admin Exp
 #include <pthread.h>
 
 
-/* Initialise an new thread node to hold all the details of the thread */
-/* If node is NULL, then allocate memory for the node as well */
+/* Initialise an new thread node to hold all the details of the thread.
+   If node is NULL, then allocate memory for the node as well.
+
+   It is important that memory allocated for the new node is done via
+   the SUL malloc routine as race conditions can occur between the
+   userland malloc functions and context.c::__pthread_cleanup_idle.
+
+   The particular instance that inspired this change was a context switch
+   that was occurring during a malloc operation, so malloc's mutex was
+   claimed.  The idle cleanup function was deleting a pthread structure
+   and blocked on the call to 'free'.  */
 pthread_t
 __pthread_new_node (pthread_t node)
 {
-
   if (node == NULL)
     {
-      node = malloc (sizeof (struct __pthread_thread));
+      node = __proc->sul_malloc (__proc->pid,
+				 sizeof (struct __pthread_thread));
       if (node == NULL)
         {
 #ifdef DEBUG_PTHREAD
@@ -38,18 +35,21 @@ __pthread_new_node (pthread_t node)
           return NULL;
         }
 
-      node->saved_context = malloc (sizeof (struct __pthread_saved_context));
+      node->saved_context =
+	__proc->sul_malloc (__proc->pid,
+			    sizeof (struct __pthread_saved_context));
       if (node->saved_context == NULL)
         {
 #ifdef DEBUG_PTHREAD
           __os_print ("-- _pthread_new_node: Unable to allocate thread saved_context\r\n");
 #endif
-          free (node);
+          __proc->sul_free (__proc->pid, node);
           return NULL;
         }
     }
 
-  node->magic = 0; /* Ensure the magic number is invalid until the thread is ready to run */
+  /* Ensure the magic number is invalid until the thread is ready to run.  */
+  node->magic = 0;
   node->alloca[0] = 0;
   node->alloca[1] = 0;
   node->alloca[2] = 0;

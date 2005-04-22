@@ -1,13 +1,5 @@
-;----------------------------------------------------------------------------
-;
-; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/pthread/_yield.s,v $
-; $Date: 2003/11/23 20:26:45 $
-; $Revision: 1.4 $
-; $State: Exp $
-; $Author: joty $
-;
-;----------------------------------------------------------------------------
-
+; Yield processor control to another thread
+; Copyright (c) 2004, 2005 UnixLib Developers
 ; Written by Martin Piper and Alex Waugh
 
 	GET	clib/unixlib/asm_dec.s

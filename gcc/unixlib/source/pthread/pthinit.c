@@ -10,7 +10,7 @@
 
 static struct __pthread_thread mainthread;
 
-/* Called once, at program initialisation */
+/* Called once, at program initialisation.  */
 void
 __pthread_prog_init (void)
 {
@@ -18,39 +18,18 @@ __pthread_prog_init (void)
   __os_print ("-- __pthread_prog_init: Program initialisation\r\n");
 #endif
 
-  /* Create a node for the main program */
+  /* Create a node for the main program.  Calling this function with a
+     valid argument means that we must setup 'saved_context' ourselves.  */
   __pthread_running_thread = __pthread_new_node (&mainthread);
   if (__pthread_running_thread == NULL)
-    __unixlib_fatal ("pthreads initialisation error.");
+    __unixlib_fatal ("pthreads initialisation error: out of memory, increase RMA");
+
+  mainthread.saved_context =
+    __proc->sul_malloc (__proc->pid, sizeof (struct __pthread_saved_context));
+  if (mainthread.saved_context == NULL)
+    __unixlib_fatal ("pthreads initialisation error: out of memory, increase RMA");
 
   __pthread_thread_list = __pthread_running_thread;
-
   __pthread_num_running_threads = 1;
-
-  __pthread_running_thread->magic = PTHREAD_MAGIC;
-}
-
-
-/* Called once, the first time a pthread call is made */
-void
-__pthread_init (void)
-{
-  if (__pthread_system_running)
-    return;
-
-#ifdef PTHREAD_DEBUG
-  __os_print ("-- __pthread_init: Initialising\r\n");
-#endif
-
-  if (__pthread_invalid (__pthread_running_thread))
-    __pthread_fatal_error ("-- __pthread_init: Main thread not initialised\r\n");
-
-  __pthread_running_thread->saved_context = malloc (sizeof (struct __pthread_saved_context));
-  if (__pthread_running_thread->saved_context == NULL)
-    __pthread_fatal_error ("-- __pthread_init: Unable to start threads (Out of memory)\r\n");
-
-#ifdef PTHREAD_DEBUG
-  __os_print ("-- __pthread_init: Starting the interupts\r\n");
-#endif
-  __pthread_system_running = 1;
+  mainthread.magic = PTHREAD_MAGIC;
 }

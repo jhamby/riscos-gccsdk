@@ -44,7 +44,7 @@ __fd_to_name (int riscos_fd, char *buf, size_t buflen)
 	{
 	  /* regs[5] is now -( length of filename - oldreg[5] ) */
 	  regs[5] = 1 - regs[5];
-	  buf = malloc (regs[5]);
+	  buf = (char *) malloc (regs[5]);
 	  /* Set buflen to 0 to enable free () below on error.  */
 	  buflen = 0;
 	}

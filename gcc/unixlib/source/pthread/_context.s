@@ -1,8 +1,8 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/pthread/_context.s,v $
-; $Date: 2005/02/12 13:45:59 $
-; $Revision: 1.12 $
+; $Date: 2005/03/04 20:59:05 $
+; $Revision: 1.13 $
 ; $State: Exp $
 ; $Author: alex $
 ;
@@ -240,28 +240,39 @@ skip_callback
 	LDMFD	sp!, {a1-a4, pc}
 
 
-; This is called from __h_cback in signal/_signal.s when the OS is returning
-; to USR mode
-; Also called directly from pthread_yield
-; Called in SVC or IRQ mode with IRQs disabled
+; This is called from _signal.s::__h_cback and pthread_yield.
+; Entered in SVC or IRQ mode with IRQs disabled.
+
+; The operating system will eventually be returning to USR mode.
 	EXPORT	|__pthread_callback|
 
 	NAME	__pthread_callback
 |__pthread_callback|
-	; Setup a stack for the context switcher
-	BL	|__setup_signalhandler_stack|
-
-	LDR	a1, =|__pthread_callback_semaphore|
-	LDR	a2, [a1]
-	TEQ	a2, #0
-	BNE	|skip_contextswitch|	; Check we are not already in the middle of a context switch callback
-	MOV	a2, #1
-	STR	a2, [a1]	; Set the semaphore
-
+	; If we are in a critical region, do not switch threads and
+	; exit quicky.
 	LDR	a1, =|__pthread_worksemaphore|
 	LDR	a1, [a1]
 	TEQ	a1, #0
-	BNE	|skip_contextswitch|	; In a critical region, so don't switch threads
+	BNE	|skip_contextswitch|
+
+	; If we are already in the middle of a context switch callback,
+	; then quickly exit.
+	LDR	a1, =|__pthread_callback_semaphore|
+	LDR	a2, [a1]
+	TEQ	a2, #0
+	BNE	|skip_contextswitch|
+
+	; Everything checks out, so from now on we're going to change
+	; contexts.
+
+	; Set __pthread_callback_semaphore to ensure that another
+	; context interrupt does not interfere with us during this critical
+	; time.
+	MOV	a2, #1
+	STR	a2, [a1]	; Set the callback_semaphore
+
+	; Setup a stack for the context switcher
+	BL	|__setup_signalhandler_stack|
 
 	; Save regs to thread's save area
 	LDR	a1, =|__pthread_running_thread|
@@ -290,7 +301,8 @@ skip_callback
 	RFS	a2	; Read floating status
 	STR	a2, [a1]
 
-	BL	|__pthread_context_switch|	; Call the scheduler to switch to another thread
+	; Call the scheduler to switch to another thread
+	BL	|__pthread_context_switch|
 
 	; Now reload the registers from the new thread's save area
 	LDR	a1, =|__pthread_running_thread|
@@ -305,27 +317,31 @@ skip_callback
 
 	SWI	XOS_EnterOS	; Back to supervisor mode
 
-	LDR	a3, =|__pthread_callback_missed|	; Indicate that this context switch was successful
+	CHGMODE	a2, SVC_Mode+IFlag	; Force SVC mode, IRQs off
+
+	; Indicate that this context switch was successful
+	LDR	a3, =|__pthread_callback_missed|
 	MOV	a1, #0
 	STR	a1, [a3]
 
-	LDR	a1, =|__pthread_running_thread|
-	LDR	a1, [a1]
-	LDR	a1, [a1, #__PTHREAD_CONTEXT_OFFSET]	; __pthread_running_thread->saved_context
-
-|callback_return|	; a1 = address of regs to load
-	CHGMODE	a2, SVC_Mode+IFlag	; Force SVC mode, IRQs off
-
+	; Indicate that we are no longer in a signal handler, since we
+	; will be returning direct to USR mode and the application itself.
 	LDR	a2, =|__executing_signalhandler|
 	LDR	a3, [a2]
 	SUB	a3, a3, #1
 	STR	a3, [a2]
 
+	; Signify that we are no longer in the middle of a context switch.
 	LDR	a2, =|__pthread_callback_semaphore|
 	MOV	a3, #0
 	STR	a3, [a2]
 
-	MOV	r14, a1
+	; Point to the register save area for the new thread.
+	LDR	r14, =|__pthread_running_thread|
+	LDR	r14, [r14]
+	LDR	r14, [r14, #__PTHREAD_CONTEXT_OFFSET]	; __pthread_running_thread->saved_context
+
+	; Restore thread's registers
 	LDR	a1, [r14, #16*4]	; Get user PSR
 	MSR	SPSR_cxsf, a1		; Put it into SPSR_SVC/IRQ (NOP on ARM2/3, shouldn't have any effect in 26bit mode)
 	LDMIA	r14, {r0-r14}^		; Load USR mode regs
@@ -334,13 +350,27 @@ skip_callback
 	LDR	r14, [r14, #15*4]	; Load the old PC value
 	MOVS	pc, lr			; Return (Valid for 26 and 32bit modes)
 
+
+	; Called because we are fast exiting from the context switcher
+	; because some other context switching operation is already going on,
+	; or because the program indicates that we are in a critical
+	; section.
 |skip_contextswitch|
-	LDR	a3, =|__pthread_callback_missed|	; Indicate that this context switch did not occur
+	; Indicate that this context switch did not occur
+	LDR	a3, =|__pthread_callback_missed|
 	MOV	a1, #1
 	STR	a1, [a3]
 
-	LDR	a1, =|__cbreg|
-	B	|callback_return|
+	; Exiting from the CallBack handler requires us to reload all
+	; registers from the register save area.
+	LDR	r14, =|__cbreg|
+	LDR	a1, [r14, #16*4]	; Get user PSR
+	MSR	SPSR_cxsf, a1		; Put it into SPSR_SVC/IRQ (NOP on ARM2/3, shouldn't have any effect in 26bit mode)
+	LDMIA	r14, {r0-r14}^		; Load USR mode regs
+	MOV	a1, a1
+
+	LDR	r14, [r14, #15*4]	; Load the old PC value
+	MOVS	pc, lr			; Return (Valid for 26 and 32bit modes)
 
 ; entry:
 ;   R0 = save area
@@ -356,19 +386,26 @@ skip_callback
 
 	AREA	|C$data|, DATA
 
-|ticker_started| 		; Have we registered the CallEvery ticker ?
+	; Have we registered the CallEvery ticker ?
+|ticker_started|
 	DCD	0
 
-|filter_installed|		; Have we installed Filter ?
+	; Have we installed Filter ?
+|filter_installed|
 	DCD	0
 
-|__pthread_callback_semaphore|	; Prevent a callback being set whilst servicing another callback
+	; Prevent a callback being set whilst servicing another callback
+|__pthread_callback_semaphore|
 	DCD	0
 
-|__pthread_system_running|	; Global initialisation flag
+	; Global initialisation flag.  Unixlib internally uses this to
+	; test whether or not to use mutexes for locking critical structures.
+|__pthread_system_running|
 	DCD	0
 
-|__pthread_callback_missed|	; Non zero if a callback occured when context switching was temporarily disabled
+	; Non zero if a callback occured when context switching was
+	; temporarily disabled
+|__pthread_callback_missed|
 	DCD	0
 
 	END

@@ -1,8 +1,8 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/features.h,v $
- * $Date: 2005/04/18 19:42:30 $
- * $Revision: 1.7 $
+ * $Date: 2005/04/18 21:27:51 $
+ * $Revision: 1.8 $
  * $State: Exp $
  * $Author: nick $
  *
@@ -330,7 +330,7 @@
 
 /* This is here only because every header file already includes this one.  */
 #ifndef __ASSEMBLER__
-# ifndef _SYS_CDEFS_H
+# ifndef __SYS_CDEFS_H
 #  include <sys/cdefs.h>
 # endif
 

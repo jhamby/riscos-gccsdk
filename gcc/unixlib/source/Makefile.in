@@ -5,11 +5,14 @@
 # This file is part of UnixLib
 #
 
+# These flags exclusively apply to a C compiler
+WARNINGSC = -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations \
+	-Wnested-externs
+
 # Defs for GCC
 WARNINGS = -pedantic -Wall -Wundef -Wpointer-arith \
-          -Wcast-align -Wwrite-strings -Wstrict-prototypes \
-          -Wmissing-prototypes -Wmissing-declarations -Wnested-externs \
-          -Winline -Wno-unused -W -Wcast-qual -Wshadow
+	-Wcast-align -Wwrite-strings -Winline -Wno-unused \
+	-W -Wcast-qual -Wshadow $(WARNINGSC)
 
 # IBM MathLib flags.  The ARM FPA represents FP words in big-endian
 # format with the word-order swapped.

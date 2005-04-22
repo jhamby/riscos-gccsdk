@@ -1,8 +1,8 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/_syslib.s,v $
-; $Date: 2005/04/19 08:50:36 $
-; $Revision: 1.44 $
+; $Date: 2005/04/19 18:30:43 $
+; $Revision: 1.45 $
 ; $State: Exp $
 ; $Author: nick $
 ;
@@ -970,6 +970,17 @@ __unixlib_fatal_got_msg
 	wfs	r0
 	mov	pc, lr
 
+	; int __valid_address (const void *lower, const void *upper)
+	; Return non-zero value when address range <lower> - <upper> (excl)
+	; is a valid address range.
+	EXPORT	|__valid_address|
+|__valid_address|
+	SWI	XOS_ValidateAddress
+	; If the C flag is clear then the address range is OK
+	; If the C flag is set then the address range is not OK.  
+	MOVCC	a1, #1
+	MOVCS	a1, #0
+	MOV	pc, lr
 
 	AREA	|C$$zidata|, DATA, NOINIT
 
@@ -997,14 +1008,6 @@ dynamic_area_name_begin
 dynamic_area_name_end
 	DCB	"$HeapMax", 0
 	ALIGN
-
-	; The global errno variable is only defined when we are not building
-	; with thread support as errno is defined as being thread-local.
-	[ __UNIXLIB_ERRNO_THREADED = 0
-	EXPORT	|errno|
-|errno|
-	DCD	0
-	]
 
 	IMPORT	|Image$$RO$$Base|
 	IMPORT	|Image$$RW$$Base|

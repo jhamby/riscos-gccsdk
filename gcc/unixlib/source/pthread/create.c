@@ -1,20 +1,7 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/pthread/create.c,v $
- * $Date: 2003/11/23 20:26:45 $
- * $Revision: 1.5 $
- * $State: Exp $
- * $Author: joty $
- *
- ***************************************************************************/
+/* Thread creation.
+   Copyright (c) 2004, 2005 UnixLib Developers.
+   Written by Martin Piper and Alex Waugh.  */
 
-#ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: create.c,v 1.5 2003/11/23 20:26:45 joty Exp $";
-#endif
-
-/* Thread creation */
-
-/* Written by Martin Piper and Alex Waugh */
 
 #include <stdlib.h>
 #include <errno.h>
@@ -22,8 +9,8 @@ static const char rcs_id[] = "$Id: create.c,v 1.5 2003/11/23 20:26:45 joty Exp $
 #include <unixlib/unix.h>
 #include <pthread.h>
 
-
-/* __pthread_create is the first thing called when a new thread is switched to */
+/* __pthread_create is the first thing called when a new thread
+   is switched to.  */
 static void
 __pthread_create (pthread_t thread)
 {
@@ -35,7 +22,7 @@ __pthread_create (pthread_t thread)
   __os_nl ();
 #endif
 
-  /* Go into the thread properly */
+  /* Go into the thread properly.  */
   ret = (*thread->start_routine) (thread->arg);
 
 #ifdef PTHREAD_DEBUG
@@ -44,22 +31,24 @@ __pthread_create (pthread_t thread)
   __os_print (" has returned\r\n");
 #endif
 
-  /* A thread returning from its main function is an implicit call to pthread_exit() */
+  /* A thread returning from its main function is an implicit call
+     to pthread_exit().  */
   pthread_exit (ret);  /* This never returns */
 }
 
 int
-pthread_create (pthread_t *threadin, const pthread_attr_t *attr, void * (*start_routine) (void *), void *arg)
+pthread_create (pthread_t *threadin, const pthread_attr_t *attr,
+		void * (*start_routine) (void *), void *arg)
 {
   pthread_t thread;
 
-  if (!__pthread_system_running)
-    __pthread_init ();
+  if (threadin == NULL || start_routine == NULL)
+    return EINVAL;
 
-  if (threadin == NULL)
-    return EINVAL;
-  if (start_routine == NULL)
-    return EINVAL;
+  /* If the pthread subsystem wasn't running before, set the flag to
+     indicate that it should be now.  */
+  if (! __pthread_system_running)
+    __pthread_system_running = 1;
 
   __pthread_disable_ints ();
 
@@ -67,7 +56,8 @@ pthread_create (pthread_t *threadin, const pthread_attr_t *attr, void * (*start_
   __os_print ("-- pthread_create: Starting new thread\r\n");
 #endif
 
-  /* Allocate without actually adding the node into any lists */
+  /* Allocate memory for a new thread, without adding the thread to
+     any lists.  */
   thread = __pthread_new_node (NULL);
 
   if (thread == NULL)
@@ -84,9 +74,9 @@ pthread_create (pthread_t *threadin, const pthread_attr_t *attr, void * (*start_
         __free_stack_chain (thread->stack);
 
       if (thread->saved_context != NULL)
-        free (thread->saved_context);
+        __proc->sul_free (__proc->pid, thread->saved_context);
 
-      free (thread);
+      __proc->sul_free (__proc->pid, thread);
 
 #ifdef PTHREAD_DEBUG
       __os_print ("-- pthread_create: Cannot start any more threads at the moment (no memory)\r\n");
@@ -99,36 +89,48 @@ pthread_create (pthread_t *threadin, const pthread_attr_t *attr, void * (*start_
   if (attr != NULL)
     thread->detachstate = attr->detachstate;
 
-
   __pthread_init_save_area (thread->saved_context);
 
-  thread->saved_context->r[13] = (int)((char *)thread->stack + PTHREAD_STACK_MIN); /* set sp */
-  thread->saved_context->r[10] = (int)((char *)thread->stack + 512 + sizeof (struct __stack_chunk)); /* set sl */
-  thread->saved_context->r[11] = 0; /* set fp */
+  /* Initialise stack frame registers, ready for the first context switch.  */
+
+  /* Set stack-pointer register.  */
+  thread->saved_context->r[13] = (int)((char *)thread->stack
+				       + PTHREAD_STACK_MIN);
+
+  /* Set stack-limit register.  */
+  thread->saved_context->r[10] = (int)((char *)thread->stack
+				       + 512
+				       + sizeof (struct __stack_chunk));
+
+  /* Set the frame pointer to zero.  During stack backtraces, a frame
+     pointer of zero means that this is the top-level stack frame.  */
+  thread->saved_context->r[11] = 0;
+
   thread->saved_context->r[0] = (int)thread; /* set R0 */
-  /* Because this is a thread start call we return instantly.
-     __pthread_create handles the real starting up of this new
-     thread when the context is reached */
-  thread->saved_context->r[15] = (int)__pthread_create; /* set pc */
-  thread->saved_context->spsr = 0x00000010; /* USR32 mode, interupts enabled */
+
+  /* Set the program counter to point to the __pthread_create routine.
+     The first context switch to the new thread will then automatically
+     call the real startup function of the thread.  */
+  thread->saved_context->r[15] = (int)__pthread_create;
+
+  /* Set the program status register to USR32 mode and interrupts enabled.  */
+  thread->saved_context->spsr = 0x00000010;
 
   thread->start_routine = start_routine;
   thread->arg = arg;
 
-  /* Place into start of thread queue */
+  thread->magic = PTHREAD_MAGIC;
+
+  /* Thread structure is now initialised, insert it at the start of the
+     process queue.  */
   thread->next = __pthread_thread_list;
   __pthread_thread_list = thread;
-
-  thread->magic = PTHREAD_MAGIC;
 
   *threadin = thread;
 
   __pthread_num_running_threads++;
-
   __pthread_start_ticker ();
-
   __pthread_enable_ints ();
-
 
   return 0;
 }

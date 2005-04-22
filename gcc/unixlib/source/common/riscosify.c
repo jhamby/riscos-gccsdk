@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/common/riscosify.c,v $
- * $Date: 2005/04/14 15:17:23 $
- * $Revision: 1.20 $
+ * $Date: 2005/04/19 08:50:36 $
+ * $Revision: 1.21 $
  * $State: Exp $
  * $Author: nick $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: riscosify.c,v 1.20 2005/04/14 15:17:23 nick Exp $";
+static const char rcs_id[] = "$Id: riscosify.c,v 1.21 2005/04/19 08:50:36 nick Exp $";
 #endif
 
 /* #define DEBUG */
@@ -212,7 +212,7 @@ __sfixinit (const char *list)
         ;
 
       length = list - start;	/* Includes ':' or '\0'.  */
-      entry = malloc (length + sizeof (struct sfix *));
+      entry = (struct sfix *) malloc (length + sizeof (struct sfix *));
       if (entry == NULL)
 	return;
 

@@ -1,8 +1,8 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/crypt/Attic/crypt-entry.c,v $
- * $Date: 2002/08/18 21:22:10 $
- * $Revision: 1.1.2.1 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/crypt/crypt-entry.c,v $
+ * $Date: 2002/11/18 15:38:12 $
+ * $Revision: 1.2 $
  * $State: Exp $
  * $Author: admin $
  *
@@ -87,10 +87,8 @@ extern struct crypt_data _ufc_foobar;
  */
 
 char *
-crypt_r (key, salt, data)
-     const char *key;
-     const char *salt;
-     struct crypt_data * __restrict data;
+crypt_r (const char *key, const char *salt,
+	 struct crypt_data * __restrict data)
 {
   ufc_long res[4];
   char ktab[9];
@@ -136,9 +134,7 @@ crypt_r (key, salt, data)
  */
 
 char *
-crypt (key, salt)
-     const char *key;
-     const char *salt;
+crypt (const char *key, const char *salt)
 {
 #ifdef _LIBC
   /* Try to find out whether we have to use MD5 encryption replacement.  */
@@ -158,9 +154,7 @@ crypt (key, salt)
 weak_alias (crypt, fcrypt)
 #else
 char *
-fcrypt (key, salt)
-     const char *key;
-     const char *salt;
+fcrypt (const char *key, const char *salt)
 {
   return crypt (key, salt);
 }

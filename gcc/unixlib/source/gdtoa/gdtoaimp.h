@@ -618,7 +618,7 @@ extern void memcpy_D2A ANSI((void*, const void*, size_t));
  extern int match ANSI((CONST char**, char*));
  extern Bigint *mult ANSI((Bigint*, Bigint*));
  extern Bigint *multadd ANSI((Bigint*, int, int));
- extern char *nrv_alloc ANSI((char*, char **, int));
+ extern char *nrv_alloc ANSI((CONST char*, char **, int));
  extern Bigint *pow5mult ANSI((Bigint*, int));
  extern int quorem ANSI((Bigint*, Bigint*));
  extern double ratio ANSI((Bigint*, Bigint*));

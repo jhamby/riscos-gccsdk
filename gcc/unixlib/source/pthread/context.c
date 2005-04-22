@@ -10,7 +10,8 @@
 #include <time.h>
 #include <pthread.h>
 
-/*#define PTHREAD_DEBUG*/
+/* #define PTHREAD_DEBUG */
+/* #define PTHREAD_DEBUG_CONTEXT */
 
 pthread_t __pthread_thread_list = NULL; /* Linked list of all threads */
 pthread_t __pthread_running_thread = NULL; /* Currently running thread */
@@ -18,7 +19,7 @@ pthread_t __pthread_running_thread = NULL; /* Currently running thread */
 int __pthread_num_running_threads = 1; /* Number of threads */
 
 
-/* De-allocates an idle node from the list */
+/* De-allocates an idle node from the list.  */
 static void
 __pthread_cleanup_idle (pthread_t node)
 {
@@ -37,7 +38,7 @@ __pthread_cleanup_idle (pthread_t node)
 
   if (node->saved_context)
     {
-      free (node->saved_context);
+      __proc->sul_free (__proc->pid, node->saved_context);
       node->saved_context = NULL;
     }
 
@@ -47,13 +48,16 @@ __pthread_cleanup_idle (pthread_t node)
       node->stack = NULL;
     }
 
-  /* Free the node if it is detached */
-  /* If not, then we can't do anything until another thread joins with it */
+  /* Free the node if it is detached.  If it is not detached, then we
+     cannot do anything until another thread joins with it.  */
   if (node->detachstate == PTHREAD_CREATE_DETACHED)
     {
       node->magic = 0; /* Invalidate magic number */
-      free (node);
+      __proc->sul_free (__proc->pid, node);
     }
+#ifdef PTHREAD_DEBUG
+  __os_print ("-- __pthread_cleanup_idle: complete\r\n");
+#endif
 }
 
 /* Round robin scheduler */
@@ -77,7 +81,7 @@ __pthread_context_switch (void)
 
   next = __pthread_running_thread->next;
 
-  /* Loop around the list looking for a thread that is running */
+  /* Loop around the list looking for a thread that is running.  */
   do
     {
 #ifdef PTHREAD_DEBUG_CONTEXT
@@ -111,11 +115,11 @@ __pthread_context_switch (void)
           iter = 0; /* Prevent deadlock error ocurring if we are waiting */
           if (clock () > __pthread_running_thread->condtimeout)
             {
-              /* Hmm, this will fail if the monotonic timer wraps around */
+              /* Hmm, this will fail if the monotonic timer wraps around.  */
               __pthread_running_thread->state = STATE_RUNNING;
 
               /* Remove this thread from the list of threads waiting on the
-                 condition variable */
+                 condition variable.  */
               if (__pthread_running_thread->cond->waiting == __pthread_running_thread)
                 {
                   __pthread_running_thread->cond->waiting = __pthread_running_thread->nextwait;
@@ -152,7 +156,7 @@ __pthread_context_switch (void)
       && __pthread_running_thread->cancelstate == PTHREAD_CANCEL_ENABLE
       && __pthread_running_thread->canceltype == PTHREAD_CANCEL_ASYNCHRONOUS)
     {
-      /* Asynchronously cancel the thread */
+      /* Asynchronously cancel the thread.  */
       __pthread_running_thread->saved_context->r[15] = (int)pthread_testcancel;
     }
 

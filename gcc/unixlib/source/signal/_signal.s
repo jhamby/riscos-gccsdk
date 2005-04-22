@@ -1,12 +1,5 @@
-;----------------------------------------------------------------------------
-;
-; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/signal/_signal.s,v $
-; $Date: 2004/11/28 21:31:34 $
-; $Revision: 1.25 $
-; $State: Exp $
-; $Author: joty $
-;
-;----------------------------------------------------------------------------
+; Signal exception handling
+; Copyright (c) 2002, 2003, 2004, 2005 UnixLib Developers
 
 ; This file handles all the hairy exceptions that can occur when a
 ; program runs. This includes hardware exceptions like data abort and
@@ -63,12 +56,12 @@
 	BL	|__pthread_disable_ints|
 	]
 
-	; Drop in USR mode and raises the signal
+	; Drop into USR mode and raise the signal
 	CHGMODE	a2, USR_Mode
 	MOV	a2, v1
 	MOV	a1, #0
 	BL	|__unixlib_raise_signal|
-	; Go back in SVC mode.
+	; Return to SVC mode.
 	SWI	XOS_EnterOS
 
 	[ __UNIXLIB_FEATURE_PTHREADS > 0
@@ -115,6 +108,14 @@
 	[ __UNIXLIB_FEATURE_PTHREADS > 0
 	LDR	a2, =|__pthread_running_thread|
 	LDR	a2, [a2]
+
+        ; If __pthread_running_thread == NULL then something has gone
+        ; wrong during initialisation, or we have an inconsistent build,
+        ; or something has written over UnixLib's memory.  Whichever
+        ; way, we're screwed.  Better report the problem and quit fast.
+        CMP     a2, #0
+        ADREQ   a1, |seterr_fatal|
+        BEQ     |__unixlib_fatal|
 	ADD	a2, a2, #__PTHREAD_ERRBUF_OFFSET
 	|
 	LDR     a2, =|__ul_errbuf_errblock|
@@ -143,6 +144,10 @@
 	STRB	a1, [a2, #-1]
 
 	LDMFD	sp!, {v1-v5, pc}
+
+|seterr_fatal|
+	DCB	"Unixlib inconsistency found: __pthread_running_thread == NULL.  Exiting", 0
+	ALIGN
 
 ;-----------------------------------------------------------------------
 ; _kernel_oserror *_kernel_last_oserror (void)
@@ -754,8 +759,8 @@ return_quickly
 	MRSEQ	a2, CPSR
 	TST	a2, #Mode_Bits
 
-	LDMNEIA	a1, {sp}^ ; Not USR mode
-	LDREQ	sp, [a1]  ; USR mode
+	LDMNEIA	a1, {sp}^	; Not USR mode, set USR sp
+	LDREQ	sp, [a1, #0]	; USR mode
 	MOV	pc, lr
 
 	; User registers are preserved in here for the callback execution.

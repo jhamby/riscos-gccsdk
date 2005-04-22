@@ -1,18 +1,6 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/signal/post.c,v $
- * $Date: 2005/04/13 19:20:06 $
- * $Revision: 1.24 $
- * $State: Exp $
- * $Author: nick $
- *
- ***************************************************************************/
-
-#ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: post.c,v 1.24 2005/04/13 19:20:06 nick Exp $";
-#endif
-
-/* signal.c.post: Written by Nick Burrett, 27 August 1996.  */
+/* Perform delivery of a signal to a process.
+   Copyright (c) 1996, 1997, 2002, 2003, 2004, 2005 UnixLib Developers.
+   Written by Nick Burrett.  */
 
 #include <errno.h>
 #include <pthread.h>
@@ -104,19 +92,6 @@ sigsetup (struct unixlib_sigstate *ss, sighandler_t handler,
 
   return 0;
 }
-
-
-/* Returns non-zero value when address range <lower> - <upper> (excl) is
-   a valid address range.  */
-int
-__valid_address (const void *lower, const void *upper)
-{
-  int flags;
-
-  return !(_swix(OS_ValidateAddress,
-	 _INR(0,1) | _OUT(_FLAGS), lower, upper, &flags) || (flags & _C) != 0);
-}
-
 
 static void
 write_termination (int signo)

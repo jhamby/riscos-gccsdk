@@ -1,3 +1,65 @@
+Fri Apr 22 15:33:14 2005  Nick Burrett  <nick@sqrt.co.uk>
+
+	Norcroft compatibility.
+	* unixlib/asm_dec.s (__get_errno): Change PTHREADS check to
+	__UNIXLIB_ERRNO_THREADED.  Import 'errno' symbol only
+	when ERRNO_THREADED is 0.
+	(__set_errno): Likewise.
+	* sys/_syslib.s (errno): Delete definition as it breaks Norcroft
+	assembler.
+	* stdlib/errno.c: New file.
+
+	* sys/cdefs.h: Provide Norcroft and LCC specific macro definitions.
+	(__SYS_CDEFS_H): Renamed from _SYS_CDEFS_H.
+	* features.h: Use __SYS_CDEFS_H.
+
+	* signal/_signal.s (__seterr): Check __pthread_running_thread
+	is valid and exit fatally if not.
+
+	* signal/post.c (__valid_address): Delete function.  To preserve
+	stack space during signal handling, re-write in assembler.
+	* sys/_syslib.s (__valid_address): New function.
+
+	Fix pthread race conditions and improve commentary.
+	* pthread/_context.s (__pthread_callback): Check that we are
+	actually going to perform a context switch before setting up
+	an otherwise unnecessary signal handler stack.  Turn IRQs off
+	earlier, therefore setting more internal state without the chance
+	of interruption.
+	(skip_contextswitch): Fall through rather than using common code
+	of the old callback_return.
+	* pthread/newnode.c (__pthread_new_node): Use SUL memory functions
+	for allocating space for pthread structure to prevent a race
+	condition between 'free' and __pthread_cleanup_idle.
+	* pthread/contex.c (__pthread_cleanup_idle): Use the SUL memory
+	functions.
+	* pthread/create.c (pthread_create): Don't call __pthread_init.
+	Set __pthread_system_running directly.  Use SUL memory functions.
+	* pthread/detach.c (pthread_detach): Use SUL memory functions.
+	* pthread/exit.c (pthread_exit): Enable interrupts around call
+	to __pthread_exit to prevent possible assertion failure when
+	freeing 'alloca' chains.
+	* pthread/join.c (pthread_join): Use SUL memory functions.
+	* pthread/pthinit.c (__pthread_prog_init): Allocate 'saved_context'
+	memory here.
+	(__pthread_init): Delete function and move useful functionality
+	into __pthread_prog_init.
+	* pthread.h (__pthread_init): Delete prototype.
+	
+	Compilation fixes.
+	* common/fdname.c (__fd_to_name): Add explicit cast for malloc.
+	* common/riscosify.c (__sfixinit): Likewise.
+	* common/unixify.c (__unixify): Likewise.
+	* crypt/crypt-entry.c: Convert function definitions to ISO-C form.
+	* crypt/crypt_util.c: Likewise.
+	(_ufc_clearmem, _ufc_copymem): Ensure we use 'memset' and 'memcpy'
+	rather than slow internal versions.
+	* crypt/md5-crypt.c: Convert function definitions to ISO-C form.
+	(b64t): Fix array size.
+	* crypt/md5.c: Convert function definitions to ISO-C form.
+	* gdtoa/dmisc.c (nrv_alloc): Constify 's'.
+	* gdtoa/gdtoaimp.h (nrv_alloc): Fix prototype accordingly.
+
 Fri Apr 22 09:32:50 2005  Nick Burrett  <nick@sqrt.co.uk>
 
 	* dirent.h (alphasort): Change to BSD and MISC visibility.

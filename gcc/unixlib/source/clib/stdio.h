@@ -1,8 +1,8 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/stdio.h,v $
- * $Date: 2005/04/14 12:13:09 $
- * $Revision: 1.18 $
+ * $Date: 2005/04/20 13:18:56 $
+ * $Revision: 1.19 $
  * $State: Exp $
  * $Author: nick $
  *
@@ -41,6 +41,8 @@ __BEGIN_DECLS
 __BEGIN_NAMESPACE_STD
 typedef __off_t fpos_t;
 __END_NAMESPACE_STD
+
+#define TEMP_FAILURE_RETRY(x) x
 
 /* Maximum number of files that can be open at once.
    Keep in sync with <limits.h>, _POSIX_OPEN_MAX.  */

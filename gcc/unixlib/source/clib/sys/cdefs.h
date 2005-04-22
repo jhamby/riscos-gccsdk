@@ -1,24 +1,7 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/sys/cdefs.h,v $
- * $Date: 2005/04/13 19:20:06 $
- * $Revision: 1.8 $
- * $State: Exp $
- * $Author: nick $
- *
- ***************************************************************************/
+/* Generic system definitions to improve compiler/source compatibility.  */
 
-/*
- * File taken from glibc 2.2.5.
- * Following changes were made:
- *  - Changed _FEATURES_H into __UNIXLIB_FEATURES_H
- *  - Changed test "__GNUC__ >= (or <) 2" into __GNUC_PREREQ() construction
- *    in order to avoid Norcroft C compiler warnings
- *  - Added weak_(const)_function, internal_function definitions from
- *    include/libc-symbols.h
- */
-
-/* Copyright (C) 1992,93,94,95,96,97,98,99,2000,2001 Free Software Foundation, Inc.
+/* Copyright (C) 1992,93,94,95,96,97,98,99,
+   2000,2001 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -36,17 +19,13 @@
    Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
    02111-1307 USA.  */
 
-#ifndef	_SYS_CDEFS_H
-#define	_SYS_CDEFS_H	1
+#ifndef	__SYS_CDEFS_H
+#define	__SYS_CDEFS_H	1
 
 /* We are almost always included from features.h. */
 #ifndef __UNIXLIB_FEATURES_H
 # include <features.h>
 #endif
-
-/* Some user header file might have defined this before.  */
-#undef	__P
-#undef	__PMT
 
 #ifdef __GNUC__
 
@@ -54,12 +33,17 @@
    to help it optimize the function calls.  But this works only with
    gcc 2.8.x and egcs.  For gcc 3.2 and up we even mark C functions
    as non-throwing using a function attribute since programs can use
-   the -fexceptions options for C code as well.  */
+   the -fexceptions options for C code as well.
+
+   If compiling UnixLib with a C++ compiler, we disable the option
+   as it breaks compatibility between function prototype and definition.
+   UnixLib generally isn't compiled with a C++ compiler but the additional
+   type checking can be useful in finding small errors.  */
 # if !defined __cplusplus && __GNUC_PREREQ (3, 3)
 #  define __THROW       __attribute__ ((__nothrow__))
 #  define __NTH(fct)    __attribute__ ((__nothrow__)) fct
 # else
-#  if defined __cplusplus && __GNUC_PREREQ (2,8)
+#  if defined __cplusplus && ! defined (__UNIXLIB_INTERNALS)
 #   define __THROW      throw ()
 #   define __NTH(fct)   fct throw ()
 #  else
@@ -68,24 +52,38 @@
 #  endif
 # endif
 
-#else   /* Not GCC.  */
+#elif defined(__CC_NORCROFT)
+/* The Norcroft compiler supports the __inline keyword.  Allow it
+   to support the GCC variant.  */
+# define __inline__ __inline
 
+# define __const const
+# define __signed signed
+# define __volatile volatile
+# define __THROW
+# define __NTH(fct) fct
+
+#elif defined(__LCC__)
+# define __inline__		/* No inline functions.  */
 # define __inline               /* No inline functions.  */
-
 # define __THROW
 # define __NTH(fct)	fct
 # define __const        const
 # define __signed       signed
 # define __volatile     volatile
 
-#endif  /* GCC.  */
+#else /* Unknown compiler.  */
+#error "Unrecognised/unsupported system compiler."
+#endif
 
-# define __P(args)      args
-# define __PMT(args)    args
+/* Some user header file might have defined this before.  */
+#undef	__P
+#undef	__PMT
+#define __P(args)      args
+#define __PMT(args)    args
 
 /* For these things, GCC behaves the ANSI way normally,
    and the non-ANSI way under -traditional.  */
-
 #define __CONCAT(x,y)	x ## y
 #define __STRING(x)	#x
 
@@ -138,54 +136,22 @@
 
 
 /* Support for flexible arrays.  */
-#if __GNUC_PREREQ (2,97)
-/* GCC 2.97 supports C99 flexible array members.  */
+#if __GNUC__
 # define __flexarr	[]
-#else
-# ifdef __GNUC__
-#  define __flexarr	[0]
+#else /* ! __GNUC__ */
+# if defined __STDC_VERSION__ && __STDC_VERSION__ >= 199901L
+#  define __flexarr	[]
 # else
-#  if defined __STDC_VERSION__ && __STDC_VERSION__ >= 199901L
-#   define __flexarr	[]
-#  else
 /* Some other non-C99 compiler.  Approximate with [1].  */
-#   define __flexarr	[1]
-#  endif
+#  define __flexarr	[1]
 # endif
-#endif
-
-
-/* __asm__ ("xyz") is used throughout the headers to rename functions
-   at the assembly language level.  This is wrapped by the __REDIRECT
-   macro, in order to support compilers that can do this some other
-   way.  When compilers don't support asm-names at all, we have to do
-   preprocessor tricks instead (which don't have exactly the right
-   semantics, but it's the best we can do).
-
-   Example:
-   int __REDIRECT(setpgrp, (__pid_t pid, __pid_t pgrp), setpgid); */
-
-#if defined __GNUC__ && __GNUC_PREREQ(2,0)
-
-# define __REDIRECT(name, proto, alias) name proto __asm__ (__ASMNAME (#alias))
-# define __ASMNAME(cname)  __ASMNAME2 (__USER_LABEL_PREFIX__, cname)
-# define __ASMNAME2(prefix, cname) __STRING (prefix) cname
-
-/*
-#elif __SOME_OTHER_COMPILER__
-
-# define __REDIRECT(name, proto, alias) name proto; \
-	_Pragma("let " #name " = " #alias)
-*/
-#endif
+#endif /* __GNUC__ */
 
 /* GCC has various useful declarations that can be made with the
    `__attribute__' syntax.  All of the ways we use this do fine if
    they are omitted for compilers that don't understand it. */
-#if !defined __GNUC__
-# define __attribute__(xyz)	/* Ignore */
-#elif __GNUC__ < 2
-# define __attribute__(xyz)	/* Ignore */
+#ifndef __GNUC__
+#define __attribute__(xyz)	/* Ignore */
 #endif
 
 /* At some point during the gcc 2.96 development the `malloc' attribute
@@ -302,11 +268,34 @@
 
 #ifdef __UNIXLIB_INTERNALS
 
+#if defined (__CC_NORCROFT) || defined (__LCC__)
+/* The Norcroft and LCC compilers do not have support for any of these
+   symbol modifiers.  To retain source code compatibility, we just
+   define them to evaluate to nothing.  */
+
+#define stong_alias(name, aliasname) /**/
+#define _strong_alias(name, aliasname) /**/
+#define weak_function /**/
+#define weak_const_function /**/
+#define weak_alias(name, aliasname) /**/
+#define _weak_alias(name, aliasname) /**/
+#define hidden_def(name) /**/
+#define libm_hidden_def(name) /**/
+#define INTDEF(name) /**/
+
+#endif /* __CC_NORCROFT || __LCC__ */
+
+#ifdef __GNUC__
+/* The GCC compiler for RISC OS comes in two variants, an AOF compiler
+   and an ELF compiler.  */
+
+/* Both AOF and ELF variants support the aliasing of symbols.  */
 #define strong_alias(name, aliasname) _strong_alias(name, aliasname)
 #define _strong_alias(name, aliasname) \
   extern __typeof (name) aliasname __attribute__ ((alias (#name)));
 
 #ifdef __ELF__
+/* The GCC/ELF compiler has support for everything.  */
 
 /* This comes between the return type and function name in
    a function definition to make that definition weak.  */
@@ -317,7 +306,19 @@
 #define _weak_alias(name, aliasname) \
   extern __typeof (name) aliasname __attribute__ ((weak, alias (#name)));
 
-#else
+/* For the future, we may want to support ELF symbol visibility which will
+   help to reduce the symbol tables of dynamic libraries and speed up
+   dynamic linking.  */
+#define hidden_def(name) /**/
+#define libm_hidden_def(name) /**/
+#define INTDEF(name) /**/
+
+#else /* ! __ELF__ */
+
+/* The GCC/AOF compiler does have a concept of weak symbols, but their
+   application is a little more restricted and harder to work with
+   naturally in the compiler.  We therefore only support weak symbols
+   in hand-crafted assembler.  */
 
 # define weak_function /**/
 # define weak_const_function /**/
@@ -326,14 +327,13 @@
    the same source files as ELF/GCC.  */
 #define weak_alias(name, aliasname) strong_alias(name, aliasname)
 
-#endif /* __ELF__ */
-
-/* FIXME.  Provide definitions.  Currently here for source code
-   compatibility.  */
 #define hidden_def(name) /**/
 #define libm_hidden_def(name) /**/
 #define INTDEF(name) /**/
 
+#endif /* ! __ELF__ */
+
+#endif /* __GNUC__ */
 
 /* On some platforms we can make internal function calls (i.e., calls of
    functions not exported) a bit faster by using a different calling
@@ -342,7 +342,7 @@
 # define internal_function	/* empty */
 #endif
 
-#endif
+#endif /* __UNIXLIB_INTERNALS */
 
 
 #endif	 /* sys/cdefs.h */
