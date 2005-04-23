@@ -3,8 +3,8 @@
 
 ifeq (${STAGE},stage1)
 prefix = $(unix_prefix)
-CFLAGS += -DCROSS_COMPILE
-exesfx = 
+CFLAGS += -DCROSS_COMPILE -DLIBDIR=\"$(ux_gcc_bin_dir)/\"
+exesfx =
 else
 prefix = $(riscos_prefix)
 CC = $(CROSS_CC)

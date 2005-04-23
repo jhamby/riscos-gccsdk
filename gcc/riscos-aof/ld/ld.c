@@ -1023,7 +1023,11 @@ recompile_files (void)
 	fprintf (stderr, "ld: recompiling %s\n", f->main);
 
       /* Change directory, so we can re-compile the source.  */
-      chdir (f->dir);
+      if (chdir (f->dir))
+        {
+          perror("chdir failed");
+          return 0;
+        }
 
       obstack_grow (&temporary_obstack, c_file_name, strlen (c_file_name));
       obstack_1grow (&temporary_obstack, ' ');
@@ -1906,6 +1910,17 @@ parse_args (int argc, char **argv)
           params = next + 1;
         }
     }
+
+#ifdef CROSS_COMPILE
+  if (getenv("TLINK_MEMCHECK"))
+    {
+      fprintf(stderr, "ld: Linking with fortify memory check wrappers\n");
+
+      add_option("-edit");
+      add_option(LIBDIR "apcs32/arch3/unixlib/memory-edit");
+      add_library_file("fortify");
+    }
+#endif
 
   parse_libraries ();
 }
