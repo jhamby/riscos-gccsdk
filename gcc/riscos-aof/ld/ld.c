@@ -1749,6 +1749,7 @@ parse_args (int argc, char **argv)
 
   const char *shortopts = "-c:h::L:l:o:Vv";
   int a = 0;
+  char *extra;
   /* 150 isn't special; it's just an arbitrary non-ASCII char value.  */
 
 #define OPTION_MAP			150
@@ -1889,5 +1890,22 @@ parse_args (int argc, char **argv)
     add_option ("-quiet");
   if (! (a & 2))
     add_option ("-rescan");
+
+  if ((extra = getenv("TLINK_EXTRA")))
+    {
+      char *params = strdup(extra);
+
+      while (params && *params != '\0')
+        {
+          char *next = strchr(params, ' ');
+
+          if (next) *next = '\0';
+          add_option(params);
+
+          if (!next) break;
+          params = next + 1;
+        }
+    }
+
   parse_libraries ();
 }
