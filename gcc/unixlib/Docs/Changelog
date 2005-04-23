@@ -1,3 +1,12 @@
+Sat Apr 23 13:14:00 2005  Nick Burrett  <nick@sqrt.co.uk>
+
+	Norcroft compatibility.
+	* libm-generic/w_lgammal_r.c: Delete file.
+	* libm-generic/e_lgammal_r.c: Delete file.
+	* complex.h: No implementation for Norcroft or LCC compilers.
+	* sys/cdefs.h (__UNIXLIB_NO_COMPLEX): Define for Norcroft and LCC
+	compilers.
+
 Sat Apr 23 11:51:31 2005  Stefan Bellon  <sbellon@sbellon.de>
 
 	Norcroft compatibility.
