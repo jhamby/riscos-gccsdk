@@ -63,6 +63,8 @@
 # define __THROW
 # define __NTH(fct) fct
 
+# define __UNIXLIB_NO_COMPLEX 1
+
 #elif defined(__LCC__)
 # define __inline__		/* No inline functions.  */
 # define __inline               /* No inline functions.  */
@@ -71,6 +73,7 @@
 # define __const        const
 # define __signed       signed
 # define __volatile     volatile
+# define __UNIXLIB_NO_COMPLEX 1
 
 #else /* Unknown compiler.  */
 #error "Unrecognised/unsupported system compiler."
