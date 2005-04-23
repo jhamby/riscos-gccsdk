@@ -1,3 +1,46 @@
+Sat Apr 23 11:42:48 2005  Nick Burrett  <nick@sqrt.co.uk>
+
+	Initial work on accessing internal UnixLib variables through
+	one structure -- __ul_global.  Apply small optimisations
+	based on a common symbol address.
+	* unixlib/asm_dec.s (GBL_*): New definitions.
+	* pthread/_context.s (__pthread_start_ticker): Use new __ul_global
+	structure.
+	(pthread_call_every): Likewise; improve code density.
+	(__pthread_callback): Likewise.
+	(__pthread_callback_semaphore): Delete.
+	(__pthread_system_running): Delete.
+	(__pthread_callback_missed): Delete.
+	* pthread/_ints.s (__pthread_return_address): Delete.
+	(__pthread_worksemaphore): Delete.
+	* pthread/_yield.s (pthread_yield): Use __ul_global structure.
+	* signal/_signal.s (raise): Use __ul_global structure.
+	(__h_cback): Likewise.
+	(__h_cback_common): Likewise.
+	(__setup_signalhandler_stack): Likewise.
+	(__executing_signalhandler): Delete.
+	(__signalhandler_sl): Delete.
+	(__signalhandler_sp): Delete.
+	* pthread/context.c (__pthread_num_running_threads): Delete.
+	* sys/_syslib.s (__main): Use 'GBL_' definitions for referencing
+	__ul_global.
+	(signalhandler_overflow): Likewise.
+	(__unixlib_fatal): Likewise.
+	(_kernel_fpavailable): Likewise.
+	(__upcall_handler_addr): Move into __ul_global structure.
+	(__upcall_handler_r12): Likewise.
+	(__ul_global): Defined.  Renamed from 'struct_base'.
+	(__upcall_handler_addr, __upcall_handler_r12): Define.
+	(__pthread_return_address, __pthread_worksemaphore): Define.
+	(__pthread_callback_semaphore, __pthread_system_running): Define.
+	(__pthread_callback_missed): Define.
+	(__pthread_num_running_threads): Define.
+	(__executing_signalhandler): Define.
+	(__signalhandler_sl, __signalhandler_sp): Define.
+
+	* pthread/atfork.c (pthread_atfork): If called, set
+	__pthread_system_running.
+
 Fri Apr 22 15:33:14 2005  Nick Burrett  <nick@sqrt.co.uk>
 
 	Norcroft compatibility.

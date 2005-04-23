@@ -16,11 +16,12 @@
 	AREA	|C$$code|, CODE, READONLY
 
 	IMPORT	|__unixlib_raise_signal|
-	IMPORT	|__pthread_system_running|
 	IMPORT	|__pthread_disable_ints|
 	IMPORT	|__pthread_enable_ints|
 	IMPORT	|__pthread_running_thread|
 	IMPORT	|__pthread_worksemaphore|
+	IMPORT	|__ul_global|
+	IMPORT	|__unixlib_fatal|
 	IMPORT	|exit|
 
 
@@ -68,10 +69,10 @@
 	BL	|__pthread_enable_ints|
 	]
 
-	LDR	a1, =|__executing_signalhandler|
-	LDR	a2, [a1]
-	SUB	a2, a2, #1
-	STR	a2, [a1]
+	LDR	a2, =|__ul_global|
+	LDR	a1, [a2, #GBL_EXECUTING_SIGNALHANDLER]
+	SUB	a1, a1, #1
+	STR	a1, [a2, #GBL_EXECUTING_SIGNALHANDLER]
 
 	; Restores all USR registers from the SP_SVC stack.
 	LDMIA	sp, {a1, a2, a3, a4, v1, v2, v3, v4, v5, v6, sl, fp, ip, sp, lr}^
@@ -377,8 +378,8 @@
 				; callbacks while we are setting up the stack
 
 	[ __UNIXLIB_FEATURE_PTHREADS > 0
-	LDR	a1, =|__pthread_system_running|
-	LDR	a1, [a1]
+	LDR	a1, =|__ul_global|
+	LDR	a1, [a1, #GBL_PTH_SYSTEM_RUNNING]
 	TEQ	a1, #0
 	BLNE	|__pthread_disable_ints|
 	]
@@ -624,13 +625,12 @@ Internet_Event	EQU	19
 	TEQ	pc, pc
 	BICNE	a1, a1, #&fc000003
 
-	LDR	a2, =|__image_ro_base|
-	LDR	a2, [a2]
+	LDR	a3, =|__ul_global|
+	LDR	a2, [a3, #GBL_IMAGE_RO_BASE]
 	CMP	a1, a2
 	BLO	return_quickly
 
-	LDR	a2, =|__unixlib_real_himem|
-	LDR	a2, [a2]
+	LDR	a2, [a3, #GBL_UNIXLIB_REAL_HIMEM]
 	CMP	a1, a2
 	BHI	return_quickly
 
@@ -638,8 +638,7 @@ Internet_Event	EQU	19
 	TST	a1, #3			; Check escape and internet flags
 	BNE	|__h_cback_common|
 
-	LDR	a1, =|__pthread_system_running|
-	LDR	a1, [a1]
+	LDR	a1, [a3, #GBL_PTH_SYSTEM_RUNNING]
 	TEQ	a1, #0
 	BNE	|__pthread_callback|
 	B	|__h_cback_common|
@@ -656,13 +655,14 @@ return_quickly
 
 |__h_cback_common|
 	[ __UNIXLIB_FEATURE_PTHREADS > 0
-	LDR	a1, =|__pthread_worksemaphore|
-	LDR	a2, [a1]
-	ADD	a2, a2, #1
-	STR	a2, [a1]
+	LDR	a3, =|__ul_global|
+	LDR	a1, [a3, #GBL_PTH_WORKSEMAPHORE]
+	ADD	a1, a1, #1
+	STR	a1, [a3, #GBL_PTH_WORKSEMAPHORE]
 	]
 
 	BL	|__setup_signalhandler_stack|
+
 	; Back to USR mode now we have a stack, but with IRQs disabled.
 	CHGMODE	a1, USR_Mode+IFlag
 
@@ -705,17 +705,16 @@ return_quickly
 	; Disable IRQs again while updating semaphores
 	SWI	XOS_IntOff
 
+	LDR	a3, =|__ul_global|
 	[ __UNIXLIB_FEATURE_PTHREADS > 0
-	LDR	a1, =|__pthread_worksemaphore|
-	LDR	a2, [a1]
-	SUB	a2, a2, #1
-	STR	a2, [a1]
+	LDR	a1, [a3, #GBL_PTH_WORKSEMAPHORE]
+	SUB	a1, a1, #1
+	STR	a1, [a3, #GBL_PTH_WORKSEMAPHORE]
 	]
 
-	LDR	a1, =|__executing_signalhandler|
-	LDR	a2, [a1]
-	SUB	a2, a2, #1
-	STR	a2, [a1]
+	LDR	a1, [a3, #GBL_EXECUTING_SIGNALHANDLER]
+	SUB	a1, a1, #1
+	STR	a1, [a3, #GBL_EXECUTING_SIGNALHANDLER]
 
 	ADD	a1, sp, #16	; Skip signal frame
 	ADD	sp, sp, #16+17*4
@@ -738,22 +737,20 @@ return_quickly
 	; if we're not already in a signal handler
 	EXPORT	|__setup_signalhandler_stack|
 |__setup_signalhandler_stack|
-	LDR	a1, =|__executing_signalhandler|
-	LDR	a2, [a1]
-	TEQ	a2, #0
-	ADD	a2, a2, #1
-	STR	a2, [a1]
+	LDR	a3, =|__ul_global|
+	LDR	a1, [a3, #GBL_EXECUTING_SIGNALHANDLER]
+	TEQ	a1, #0
+	ADD	a1, a1, #1
+	STR	a1, [a3, #GBL_EXECUTING_SIGNALHANDLER]
 
 	;FIXME: we need a sanity check here (based on __UNIXLIB_EXTREMELY_PARANOID ?):
 	;if the signalhandler is already executing, verify that
 	;sl < sp, if not, panic and jump to e.g. __exit.
-	LDR	sl, =|__signalhandler_sl|
-	LDR	sl, [sl]
+	LDR	sl, [a3, #GBL_SIGNALHANDLER_SL]
 	MOV	fp, #0
 	MOVNE	pc, lr
 
-	LDR	a1, =|__signalhandler_sp|
-	TEQ	a1, a1
+	ADD	a1, a3, #GBL_SIGNALHANDLER_SP
 	TEQ	pc, pc
 	MOVNE	a2, pc
 	MRSEQ	a2, CPSR
@@ -930,16 +927,6 @@ return_quickly
 	DCD	0
 
 	AREA	|C$$data|, DATA
-
-	EXPORT	|__executing_signalhandler|
-|__executing_signalhandler|
-	DCD	0	; Non-zero if we are currently executing a signal handler
-	EXPORT	|__signalhandler_sl|
-|__signalhandler_sl|
-	DCD	0	; Stack limit for signal handlers
-	EXPORT	|__signalhandler_sp|
-|__signalhandler_sp|
-	DCD	0	; Stack pointer for signal handlers
 
 ; The fp at the time when __h_cback_common is executed.  This value
 ; will be used during write_backtrace() to know when we can dump the CPSR

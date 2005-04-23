@@ -1,8 +1,8 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/_syslib.s,v $
-; $Date: 2005/04/19 18:30:43 $
-; $Revision: 1.45 $
+; $Date: 2005/04/22 14:38:49 $
+; $Revision: 1.46 $
 ; $State: Exp $
 ; $Author: nick $
 ;
@@ -70,14 +70,10 @@ MAX_DA_NAME_SIZE	* 32
 	IMPORT  |__h_sigint|            ;ASM function (signal/_signal.s)
 	IMPORT  |__h_event|             ;ASM function (signal/_signal.s)
 	IMPORT  |__h_exit|              ;ASM function (signal/_signal.s)
-	IMPORT  |__pthread_system_running| ;variable (pthread/_context.s)
 	IMPORT  |__pthread_disable_ints|   ;ASM function (pthread/_ints.s)
 	IMPORT  |__pthread_enable_ints|    ;ASM function (pthread/_ints.s)
 	IMPORT	|__setup_signalhandler_stack| ;ASM function (signal/_signal.s)
-	IMPORT  |__executing_signalhandler|;variable (signal/_signal.s)
-	IMPORT  |__signalhandler_sp|       ;variable (signal/_signal.s)
-	IMPORT  |__signalhandler_sl|       ;variable (signal/_signal.s)
-
+	
 	IMPORT	|_main|
 	IMPORT	|__program_name|, WEAK
 	IMPORT	|__dynamic_no_da|, WEAK
@@ -108,18 +104,18 @@ SUL_MIN_VERSION	EQU	105
 	; struct_base is the start of our memory environment variables
 	; See the end of this file.  For the initialisation here, we
 	; will always use ip as the base register.
-	LDR	ip, =struct_base
+	LDR	ip, =|__ul_global|
 
-	STR	a1, [ip, #0]	; __unixlib_cli = pointer to command line
-	STR	a2, [ip, #4]	; __image_rw_himem = permitted RAM limit
+	STR	a1, [ip, #GBL_UNIXLIB_CLI]	; __unixlib_cli = pointer to command line
+	STR	a2, [ip, #GBL_IMAGE_RW_HIMEM]	; __image_rw_himem = permitted RAM limit
 
 	LDMIA	a3, {a1, a2}	; Get time
-	STR	a1, [ip, #8]	; __time (low word)
-	STR	a2, [ip, #12]	; __time (high word)
+	STR	a1, [ip, #GBL_TIME_LOW]	; __time (low word)
+	STR	a2, [ip, #GBL_TIME_HIGH]	; __time (high word)
 
 	MVNS	a1, #0          ; ensure a flag is set
 	TEQ	pc, pc          ; EQ if in 32-bit mode, NE if 26-bit
-	STREQ   a1, [ip, #76]   ; __32bit
+	STREQ   a1, [ip, #GBL_32BIT]   ; __32bit
 
 	MOV	a1, #14		; Read appspace value
 	MOV	a2, #0
@@ -127,42 +123,43 @@ SUL_MIN_VERSION	EQU	105
 	SWI	XOS_ChangeEnvironment
 	; Default value of __unixlib_real_himem is
 	; the size of application space
-	STR	a2, [ip, #72]
+	STR	a2, [ip, #GBL_UNIXLIB_REAL_HIMEM]
 
 	; For a description of the memory layout of a UnixLib application
 	; see sys/brk.c.
-	LDR	a1, [ip, #20]	; __robase
-	LDR	a2, [ip, #24]	; __rwlimit
+	LDR	a1, [ip, #GBL_ROBASE]	; __robase
+	LDR	a2, [ip, #GBL_UNIXLIB_RWLIMIT]	; __rwlimit
 
-	STR	a1, [ip, #28]	; __base        = __robase
-	STR	a2, [ip, #32]	; __lomem       = __rwlimit
-	STR	a2, [ip, #36]	; __break       = __rwlimit
-	STR	a2, [ip, #40]	; __stack_limit = __rwlimit
-	STR	a2, [ip, #48]	; __real_break  = __rwlimit
+	STR	a1, [ip, #GBL_IMAGE_RO_BASE]	; __base        = __robase
+	STR	a2, [ip, #GBL_IMAGE_RW_LOMEM]	; __lomem       = __rwlimit
+	STR	a2, [ip, #GBL_UNIXLIB_BREAK]	; __break       = __rwlimit
+	STR	a2, [ip, #GBL_UNIXLIB_STACK_LIMIT]	; __stack_limit = __rwlimit
+	STR	a2, [ip, #GBL_UNIXLIB_REAL_BREAK]	; __real_break  = __rwlimit
 
 	; The stack is allocated in chunks in the wimpslot, with the first
 	; 4KB chunk immediately below __image_rw_himem.  We cannot place it
 	; in a dynamic area because GCC might generate trampolines.
 
-	LDR	sp, [ip, #4]	; __image_rw_himem
+	LDR	sp, [ip, #GBL_IMAGE_RW_HIMEM]	; __image_rw_himem
 
 	; 8 bytes are needed above the initial chunk
 	; for the stackalloc heap
 	; Reserve the top 4K for the signal handler stack
-	LDR	a1, =|__signalhandler_sp|
 	SUB	sp, sp, #8
-	STR	sp, [a1]
+	STR	sp, [ip, #GBL_SIGNALHANDLER_SP]
+	; The signal handler stack cannot be extended, so we don't need to
+	; setup the chunk structure.
 	SUB	sp, sp, #4096
-	LDR	a1, =|__signalhandler_sl|
-	ADD	sl, sp, #512	; The signal handler stack cannot be extended,
-	STR	sl, [a1]	; so we don't need to setup the chunk structure
+	ADD	sl, sp, #512
+	STR	sl, [ip, #GBL_SIGNALHANDLER_SL]
+
 	SUB	a1, sp, #4096
 	ADD	sl, a1, #512 + CHUNK_OVERHEAD
 
 	SUB	a3, a1, #8
 	; __stackalloc_init needs a minimum of 8 bytes below the initial
 	; chunk for its heap - check this doesn't overlap the code section
-	STR	a3, [ip, #16]	; __stack = bottom of stack
+	STR	a3, [ip, #GBL_UNIXLIB_STACK]	; __stack = bottom of stack
 	CMP	a3, a2
 	MOVCC	a1, #ERR_NO_MEMORY
 	BCC	|__exit_with_error_num|	; No room for stack, exit.
@@ -220,7 +217,7 @@ SUL_MIN_VERSION	EQU	105
 	; <program name> is.
 	LDR	a1, |___program_name|
 	TEQ	a1, #0
-	LDREQ	a1, [ip, #0]	; __cli
+	LDREQ	a1, [ip, #GBL_UNIXLIB_CLI]	; __cli
 	LDRNE	a1, [a1, #0]	; __program_name
 	MOV	a2, a1
 	; Search for space or end of cli string
@@ -321,13 +318,13 @@ t08
 	SWI	XOS_DynamicArea
 	BVS	|__exit_with_error_block|	; no DA, report and exit
 	MOV	v6, a3				; setup for deletion at exit
-	STR	a2, [ip, #64]	; __dynamic_num
+	STR	a2, [ip, #GBL_DYNAMIC_NUM]	; __dynamic_num
 
 	; v6 is size left in area, a4 is start offset
 	ADD	a1, v6, a4
-	STR	a4, [ip, #32]	; __lomem = start of dynamic area
-	STR	a1, [ip, #36]	; __break = end of used part of DA
-	STR	a1, [ip, #48]	; __real_break = end of used part of DA
+	STR	a4, [ip, #GBL_IMAGE_RW_LOMEM]	; __lomem = start of dynamic area
+	STR	a1, [ip, #GBL_UNIXLIB_BREAK]	; __break = end of used part of DA
+	STR	a1, [ip, #GBL_UNIXLIB_REAL_BREAK]	; __real_break = end of used part of DA
 
 no_dynamic_area
 	MOV	fp, #0
@@ -336,7 +333,7 @@ no_dynamic_area
 	MOV	a1, #0
 	SWI	XTaskWindow_TaskInfo
 	MOVVS	a1, #0
-	STR	a1, [ip, #56]	; __taskwindow
+	STR	a1, [ip, #GBL_TASKWINDOW]	; __taskwindow
 
 	; Find out whether we are executing as a WIMP program or not.
 	MOV     a1, #3		; Text output mode, or desktop mode ?
@@ -345,19 +342,19 @@ no_dynamic_area
 	TEQ	a1, #0
 	MOVNE	a1, #5		; When desktop mode, get the taskhandle
 	SWINE	XWimp_ReadSysInfo
-	STR	a1, [ip, #60]	; __taskhandle
+	STR	a1, [ip, #GBL_TASKHANDLE]	; __taskhandle
 
 	; Cache the system page size as this call can be slow.
 	; Used by getpagesize ().
 	SWI	XOS_ReadMemMapInfo
-	STR	a1, [ip, #88]	; __ul_pagesize
+	STR	a1, [ip, #GBL_UL_PAGESIZE]	; __ul_pagesize
 
 	; Recognise the Floating Point facility by determining whether
 	; the SWI FPEmulator_Version actually exists (and works).
 	; We insist on having at least version 4.00.
 	SWI	XFPEmulator_Version
 	MOVVS	a1, #0
-	STR	a1, [ip, #52]	; __fpflag
+	STR	a1, [ip, #GBL_FPFLAG]	; __fpflag
 	CMP	a1, #400	; We want 4.00 or above so we can use SFM/LFM
 	MOVCC	a1, #ERR_NO_FPE
 	BCC	|__exit_with_error_num|
@@ -369,12 +366,9 @@ no_dynamic_area
 	; compatible, if not they will return an error
 	SWI	XSharedUnixLibrary_Initialise
 	BVS	|__exit_with_error_block|
-	LDR	a4, =|__proc|
-	STR	a1, [a4]
-	LDR	a4, =|__upcall_handler_addr|
-	STR	a2, [a4]
-	LDR	a4, =|__upcall_handler_r12|
-	STR	a3, [a4]
+	STR	a1, [ip, #GBL_PROC]
+	STR	a2, [ip, #GBL_UPCALL_HANDLER_ADDR]
+	STR	a3, [ip, #GBL_UPCALL_HANDLER_R12]
 
 	; Read the current RISC OS environment handler state
 	BL	|__env_read|
@@ -460,8 +454,8 @@ error_unrecoverable_loop
 
 	BL	|__munmap_all|
 
-	LDR	a2, =|__dynamic_num|
-	LDR	a2, [a2]
+	LDR	a2, =|__ul_global|
+	LDR	a2, [a2, #GBL_DYNAMIC_NUM]
 	MOV	a1, #1
 	CMP	a2, #-1
 	SWINE	XOS_DynamicArea
@@ -529,11 +523,10 @@ t06
 	CMP	v1, #16
 	BCC	t06
 
-	LDR	a2, =|__upcall_handler_addr|
-	LDR	a3, =|__upcall_handler_r12|
+	LDR	a4, =|__ul_global|
 	MOV	a1, #16
-	LDR	a2, [a2]
-	LDR	a3, [a3]
+	LDR	a2, [a4, #GBL_UPCALL_HANDLER_ADDR]
+	LDR	a3, [a4, #GBL_UPCALL_HANDLER_R12]
 	MOV	a4, #0
 	SWI	XOS_ChangeEnvironment
 
@@ -605,8 +598,8 @@ handlers
 	; v1 = extra size needed.
 stack_overflow_common
 	; The signal handler stack chunk can't be extended.
-	LDR	a1, =|__executing_signalhandler|
-	LDR	a1, [a1]
+	LDR	a1, =|__ul_global|
+	LDR	a1, [a1, #GBL_EXECUTING_SIGNALHANDLER]
 	TEQ	a1, #0
 	BNE	signalhandler_overflow
 
@@ -733,13 +726,10 @@ signalhandler_overflow
 	TEQ	a1, #0
 	BLNE	|__pthread_disable_ints|
 	]
-
-	LDR	a2, =|__unixlib_stack|
-	LDR	a2, [a2]			; a2 = __unixlib_stack
-	LDR	a3, =|__image_rw_himem|
-	LDR	a3, [a3]			; a3 = __image_rw_himem
-	LDR	a4, =|__image_ro_base|
-	LDR	a4, [a4]			; a4 = __image_ro_base
+	LDR	a1, =|__ul_global|
+	LDR	a2, [a1, #GBL_UNIXLIB_STACK]
+	LDR	a3, [a1, #GBL_IMAGE_RW_HIMEM]
+	LDR	a4, [a1, #GBL_IMAGE_RO_BASE]
 
 	SUB	a1, sl, #512+CHUNK_OVERHEAD
 __check_stack_l1
@@ -901,19 +891,16 @@ no_chunk_to_free
 	; void __unixlib_fatal(const char *message)
 	; Protects itself from recursive calling.
 	IMPORT	|strerror|
-	IMPORT	|__os_nl|
-	IMPORT	|__os_print|
 	EXPORT	|__unixlib_fatal|
 	NAME	__unixlib_fatal
 |__unixlib_fatal|
 	; We don't want to assume anything about the stack as the stack
 	; corruption detection routines will call this routine in case
 	; something is wrong.
-	LDR	sp, =|__signalhandler_sp|
-	LDR	sp, [sp, #0]
+	LDR	a4, =|__ul_global|
+	LDR	sp, [a4, #GBL_SIGNALHANDLER_SP]
 	MOV	fp, #0
-	LDR	sl, =|__signalhandler_sl|
-	LDR	sl, [sl, #0]
+	LDR	sl, [a4, #GBL_SIGNALHANDLER_SL]
 
 	MOV	ip, sp
 	STMDB	sp!, {v1, fp, ip, lr, pc}
@@ -924,7 +911,7 @@ no_chunk_to_free
 	; we go for a straight OS_Exit scenario.  Anything better we
 	; can do ?
 	MOV	a2, #1
-	LDR	a3, =|__panic_mode|
+	ADD	a3, a4, #GBL_PANIC_MODE
 	swp_arm2 a2, a2, a3
 	TEQ	a2, #0
 	BEQ	__unixlib_fatal_cont1
@@ -956,8 +943,8 @@ __unixlib_fatal_got_msg
 	EXPORT	|_kernel_fpavailable|
 	NAME	_kernel_fpavailable
 |_kernel_fpavailable|
-	LDR	a1, =struct_base
-	LDR	a1, [a1, #52]	; __fpflag
+	LDR	a1, =|__ul_global|
+	LDR	a1, [a1, #GBL_FPFLAG]	; __fpflag
 	MOV	pc, lr
 
 	EXPORT	|__unixlib_get_fpstatus|
@@ -993,13 +980,6 @@ __unixlib_fatal_got_msg
 
 	AREA	|C$$data|, DATA
 
-	EXPORT	|__upcall_handler_addr|
-|__upcall_handler_addr|
-	DCD	0
-	EXPORT	|__upcall_handler_r12|
-|__upcall_handler_r12|
-	DCD	0
-
 	EXPORT	|__dynamic_area_refcount|
 |__dynamic_area_refcount|
 	DCD	1
@@ -1008,6 +988,25 @@ dynamic_area_name_begin
 dynamic_area_name_end
 	DCB	"$HeapMax", 0
 	ALIGN
+
+
+
+
+; Various data section variables can be grouped together under one
+; large structure.  The advantage of this is that functions
+; that reference several elements will only need to obtain the base
+; address of the structure once, therefore reducing the number of
+; load instructions required.
+;
+; The intention is to move virtually all global variables into this
+; structure and patch all assembler and C source files to reference
+; them via __ul_global, thereby allowing us to drop the EXPORT directives
+; below.  If all assembler files are converted, then it would be possible
+; to redefine this structure in C and drop the definitions here.
+;
+; Offsets to elements within the __ul_global structure are maintained in
+; unixlib/asm_dec.s and prefixed 'GBL_'.  If you change this structure
+; you must change that file.
 
 	IMPORT	|Image$$RO$$Base|
 	IMPORT	|Image$$RW$$Base|
@@ -1031,9 +1030,24 @@ dynamic_area_name_end
 	EXPORT	|__panic_mode|	; non-zero when we're panicing.
 	EXPORT	|__proc|
 	EXPORT	|__ul_pagesize|	; system page size
+	EXPORT	|__upcall_handler_addr|
+	EXPORT	|__upcall_handler_r12|
+	EXPORT	|__pthread_return_address|
+	EXPORT	|__pthread_worksemaphore|
+	EXPORT	|__pthread_system_running|
+	EXPORT	|__pthread_callback_semaphore|
+	EXPORT	|__pthread_callback_missed|
+	EXPORT	|__pthread_num_running_threads|
+	EXPORT	|__executing_signalhandler|
+	EXPORT	|__signalhandler_sl|
+	EXPORT	|__signalhandler_sp|
 
+	; This variable refers to the base address of the UnixLib
+	; global structure.
+	EXPORT	|__ul_global|
+|__ul_global|
+	
 	; Altering this structure will require fixing __main.
-struct_base
 |__unixlib_cli|	        DCD	0				; offset = 0
 |__image_rw_himem|	DCD	0				; offset = 4
 |__time|	        DCD	0, 0	; low word, high byte	; offset = 8
@@ -1080,5 +1094,43 @@ struct_base
 
 |__proc|		DCD	0				; offset = 84
 |__ul_pagesize|		DCD	0				; offset = 88
+|__upcall_handler_addr|	DCD	0				; offset = 92
+|__upcall_handler_r12|	DCD	0				; offset = 96
+
+|__pthread_return_address|
+	DCD	0						; offset = 100
+
+|__pthread_worksemaphore|
+	DCD	0						; offset = 104
+
+	; Prevent a callback being set whilst servicing another callback
+|__pthread_callback_semaphore|
+	DCD	0						; offset = 108
+
+	; Global initialisation flag.  Unixlib internally uses this to
+	; test whether or not to use mutexes for locking critical structures.
+|__pthread_system_running|
+	DCD	0						; offset = 112
+
+	; Non zero if a callback occured when context switching was
+	; temporarily disabled
+|__pthread_callback_missed|
+	DCD	0						; offset = 116
+
+	; Number of running threads.
+|__pthread_num_running_threads|
+	DCD	1						; offset = 120
+
+	; Non-zero if we are currently executing a signal handler
+|__executing_signalhandler|
+	DCD	0						; offset = 124
+
+	; Stack limit for signal handlers
+|__signalhandler_sl|
+	DCD	0						; offset = 128
+
+	; Stack pointer for signal handlers
+|__signalhandler_sp|
+	DCD	0						; offset = 132
 
 	END

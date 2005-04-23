@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/pthread/atfork.c,v $
- * $Date: 2002/12/15 13:16:55 $
- * $Revision: 1.1 $
+ * $Date: 2003/04/05 12:42:28 $
+ * $Revision: 1.2 $
  * $State: Exp $
- * $Author: admin $
+ * $Author: alex $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: atfork.c,v 1.1 2002/12/15 13:16:55 admin Exp $";
+static const char rcs_id[] = "$Id: atfork.c,v 1.2 2003/04/05 12:42:28 alex Exp $";
 #endif
 
 /* Written by Alex Waugh */
@@ -28,11 +28,15 @@ struct fork_handlers
 
 static struct fork_handlers *handlers = NULL; /* Linked list of all registered handlers */
 
-/* Register handlers to be called immediatly before and after a fork occurs */
+/* Register handlers to be called immediatly before and after a
+   fork occurs.  */
 int
 pthread_atfork (void (*prepare)(void), void (*parent)(void), void (*child)(void))
 {
   struct fork_handlers *newhandlers;
+
+  if (! __pthread_system_running)
+    __pthread_system_running = 1;
 
   newhandlers = malloc (sizeof (struct fork_handlers));
   if (newhandlers == NULL)

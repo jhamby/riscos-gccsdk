@@ -1,8 +1,8 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/unixlib/asm_dec.s,v $
-; $Date: 2005/04/19 08:50:36 $
-; $Revision: 1.22 $
+; $Date: 2005/04/22 14:38:49 $
+; $Revision: 1.23 $
 ; $State: Exp $
 ; $Author: nick $
 ;
@@ -459,5 +459,46 @@ XSharedUnixLibrary_DeRegisterUpCall	EQU	&55c81 + X_Bit
 XSharedUnixLibrary_SetValue		EQU	&55c82 + X_Bit
 XSharedUnixLibrary_Count		EQU	&55c83 + X_Bit
 XSharedUnixLibrary_Initialise		EQU	&55c84 + X_Bit
+
+
+	; Entries into the __ul_global structure as defined at the
+	; end of sys/_syslib.s.  Change this, then make sure you change
+	; that.
+GBL_UNIXLIB_CLI				EQU	0
+GBL_IMAGE_RW_HIMEM			EQU	4
+GBL_TIME_LOW				EQU	8
+GBL_TIME_HIGH				EQU	12
+GBL_UNIXLIB_STACK			EQU	16
+GBL_ROBASE				EQU	20
+GBL_UNIXLIB_RWLIMIT			EQU	24
+GBL_IMAGE_RO_BASE			EQU	28
+GBL_IMAGE_RW_LOMEM			EQU	32
+GBL_UNIXLIB_BREAK			EQU	36
+GBL_UNIXLIB_STACK_LIMIT			EQU	40
+GBL_RWBASE				EQU	44
+GBL_UNIXLIB_REAL_BREAK			EQU	48
+GBL_FPFLAG				EQU	52
+GBL_TASKWINDOW				EQU	56
+GBL_TASKHANDLE				EQU	60
+GBL_DYNAMIC_NUM				EQU	64
+GBL_OLD_U				EQU	68
+GBL_UNIXLIB_REAL_HIMEM			EQU	72
+GBL_32BIT				EQU	76
+GBL_PANIC_MODE				EQU	80
+GBL_PROC				EQU	84
+GBL_UL_PAGESIZE				EQU	88
+GBL_UPCALL_HANDLER_ADDR			EQU	92
+GBL_UPCALL_HANDLER_R12			EQU	96
+
+GBL_PTH_RETURN_ADDRESS			EQU	100
+GBL_PTH_WORKSEMAPHORE			EQU	104
+GBL_PTH_CALLBACK_SEMAPHORE		EQU	108
+GBL_PTH_SYSTEM_RUNNING			EQU	112
+GBL_PTH_CALLBACK_MISSED			EQU	116
+GBL_PTH_NUM_RUNNING_THREADS		EQU	120
+
+GBL_EXECUTING_SIGNALHANDLER		EQU	124
+GBL_SIGNALHANDLER_SL			EQU	128
+GBL_SIGNALHANDLER_SP			EQU	132
 
 	END

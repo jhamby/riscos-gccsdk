@@ -16,7 +16,7 @@
 #include <unixlib/unix.h>
 #include <unixlib/sigstate.h>
 
-/* #define DEBUG 1 */
+/*#define DEBUG 1*/
 
 /* This function chooses a suitable execution environment
    for the signal handler and calls the appropriate function

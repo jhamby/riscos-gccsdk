@@ -10,14 +10,11 @@
 #include <time.h>
 #include <pthread.h>
 
-/* #define PTHREAD_DEBUG */
-/* #define PTHREAD_DEBUG_CONTEXT */
+/*#define PTHREAD_DEBUG*/
+/*#define PTHREAD_DEBUG_CONTEXT*/
 
 pthread_t __pthread_thread_list = NULL; /* Linked list of all threads */
 pthread_t __pthread_running_thread = NULL; /* Currently running thread */
-
-int __pthread_num_running_threads = 1; /* Number of threads */
-
 
 /* De-allocates an idle node from the list.  */
 static void

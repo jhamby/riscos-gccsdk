@@ -7,11 +7,9 @@
 	AREA	|C$$code|, CODE, READONLY
 
 	IMPORT	|__pthread_fatal_error|
-	IMPORT	|__pthread_callback_semaphore|
-	IMPORT	|__pthread_system_running|
-	IMPORT	|__pthread_worksemaphore|
 	IMPORT	|__pthread_callback|
 	IMPORT	|__cbreg|
+	IMPORT	|__ul_global|
 
 	EXPORT	|pthread_yield|
 
@@ -26,15 +24,14 @@
 	SUB	fp, ip, #4
 
 	; If the thread system isn't running then yielding is pointless
-	LDR	a1, =|__pthread_system_running|
-	LDR	a2, [a1]
-	CMP	a2, #0
+	LDR	a2, =|__ul_global|
+	LDR	a1, [a2, #GBL_PTH_SYSTEM_RUNNING]
+	CMP	a1, #0
 	LDMEQDB	fp, {fp, sp, pc}
 
 	; Check that a context switch can take place
-	LDR	a1, =|__pthread_worksemaphore|
-	LDR	a2, [a1]
-	CMP	a2, #0
+	LDR	a1, [a2, #GBL_PTH_WORKSEMAPHORE]
+	CMP	a1, #0
 	ADRNE	a1, failmessage
 	BLNE	|__pthread_fatal_error|
 

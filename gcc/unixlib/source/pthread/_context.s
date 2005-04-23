@@ -1,10 +1,10 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/pthread/_context.s,v $
-; $Date: 2005/03/04 20:59:05 $
-; $Revision: 1.13 $
+; $Date: 2005/04/22 14:38:49 $
+; $Revision: 1.14 $
 ; $State: Exp $
-; $Author: alex $
+; $Author: nick $
 ;
 ;----------------------------------------------------------------------------
 
@@ -38,24 +38,16 @@
 	AREA	|C$$code|, CODE, READONLY
 
 	IMPORT	|__pthread_context_switch|
-	IMPORT	|__pthread_worksemaphore|
 	IMPORT	|__setup_signalhandler_stack|
 	IMPORT	|__executing_signalhandler|
-	IMPORT	|__taskhandle|
-	IMPORT	|__taskwindow|
 	IMPORT	|__pthread_fatal_error|
-	IMPORT	|__pthread_running_thread|
-	IMPORT	|__pthread_num_running_threads|
 	IMPORT	|__cbreg|
-	IMPORT	|__upcall_handler_addr|
-	IMPORT	|__upcall_handler_r12|
+	IMPORT	|__ul_global|
+	IMPORT	|__pthread_running_thread|
 
 	EXPORT	|__pthread_start_ticker|
 	EXPORT	|__pthread_stop_ticker|
 	EXPORT	|__pthread_init_save_area|
-	EXPORT	|__pthread_system_running|
-	EXPORT	|__pthread_callback_semaphore|
-	EXPORT	|__pthread_callback_missed|
 
 ;
 ; Start a ticker which will set the callback flag every clock tick
@@ -63,15 +55,15 @@
 	NAME	__pthread_start_ticker
 |__pthread_start_ticker|
 	STMFD	sp!, {v1-v2, lr}
+	LDR	a2, =|__ul_global|
+
 	; Don't start until the thread system has been setup
-	LDR	a1, =|__pthread_system_running|
-	LDR	a1, [a1]
+	LDR	a1, [a2, #GBL_PTH_SYSTEM_RUNNING]
 	TEQ	a1, #0
 	LDMEQFD	sp!, {v1-v2, pc}
 
 	; Don't start if there's only one thread running
-	LDR	a1, =|__pthread_num_running_threads|
-	LDR	a1, [a1]
+	LDR	a1, [a2, #GBL_PTH_NUM_RUNNING_THREADS]
 	CMP	a1, #1
 	LDMLEFD	sp!, {v1-v2, pc}
 
@@ -84,10 +76,8 @@
 	; Are we running as WIMP task ?
 	; If we are then we need a filter switching off our ticker when we're
 	; swapped out.
-;	LDR	a1, =|__taskhandle|
-	LDR	a1, =|__taskwindow|
-	LDR	a4, [a1]
-	TEQ	a4, #0
+	LDR	a1, [a2, #GBL_TASKWINDOW]
+	TEQ	a1, #0
 	BEQ	|start_ticker_core|
 
 	; Temporarily disable the filter code as it is not stable.
@@ -165,15 +155,14 @@ filter_name
 |__pthread_stop_ticker|
 	STMFD	sp!, {v1, v2, lr}
 	; Don't bother if thread system is not running
-	LDR	a1, =|__pthread_system_running|
-	LDR	a1, [a1]
+	LDR	a2, =|__ul_global|
+	LDR	a1, [a2, #GBL_PTH_SYSTEM_RUNNING]
 	TEQ	a1, #0
 	LDMEQFD	sp!, {v1, v2, pc}
 
 	; Need to remove the filters ?
-	LDR	a1, =|__taskhandle|
-	LDR	a4, [a1]
-	TEQ	a4, #0
+	LDR	a1, [a2, #GBL_TASKHANDLE]
+	TEQ	a1, #0
 	BEQ	|stop_ticker_core|
 
 	; Remove the filter routines (a4 = WIMP taskhandle) :
@@ -198,8 +187,9 @@ stop_ticker_core
 	LDMFD	sp!, {v1, v2, pc}
 
 
-; The ticker calls this every clock tick
-; Called in SVC mode with IRQs disabled
+; The ticker calls this every clock tick, note that it is every *two*
+; centiseconds.
+; Called in SVC mode with IRQs disabled, all registers must be preserved.
 	NAME	pthread_call_every
 |pthread_call_every|
 	STMFD	sp!, {a1-a4, lr}
@@ -215,30 +205,25 @@ stop_ticker_core
 	MOV	a3, #0
 	MOV	a4, #0
 	SWI	XOS_ChangeEnvironment
-	BVS	skip_callback
-	LDR	a1, =|__upcall_handler_addr|
-	LDR	a1, [a1]
+
+	LDR	a4, =|__ul_global|
+	LDMVSFD	sp!, {a1-a4, pc}
+
+	; If it is not a SUL upcall handler, don't set callback
+	LDR	a1, [a4, #GBL_UPCALL_HANDLER_ADDR]
 	TEQ	a1, a2
-	BNE	skip_callback	; Not sul's upcall handler
-	LDR	a1, =|__upcall_handler_r12|
-	LDR	a1, [a1]
-	TEQ	a1, a3
-	BNE	skip_callback	; Not our sul key
-
-	LDR	a1, =|__pthread_callback_semaphore|
-	LDR	a1, [a1]
-	TEQ	a1, #0	; Check we are not already in the middle of a context switch callback
-	BNE	skip_callback
-
-	LDR	a1, =|__pthread_worksemaphore|
-	LDR	a1, [a1]
-	TEQ	a1, #0
-	BNE	skip_callback	; In a critical region, so don't switch threads
-
-	SWI	XOS_SetCallBack	; Set the OS callback flag. Not much we can do if this fails
-skip_callback
+	; If it is not our SUL key, don't set callback
+	LDREQ	a1, [a4, #GBL_UPCALL_HANDLER_R12]
+	TEQEQ	a1, a3
+	; If we are in the middle of a context-switch callback,
+	; don't set the callback.
+	LDREQ	a1, [a4, #GBL_PTH_CALLBACK_SEMAPHORE]
+	TEQEQ	a1, #0
+	; If we are in a critical section, don't set the callback
+	LDREQ	a1, [a4, #GBL_PTH_WORKSEMAPHORE]
+	TEQEQ	a1, #0
+	SWIEQ	XOS_SetCallBack
 	LDMFD	sp!, {a1-a4, pc}
-
 
 ; This is called from _signal.s::__h_cback and pthread_yield.
 ; Entered in SVC or IRQ mode with IRQs disabled.
@@ -248,18 +233,15 @@ skip_callback
 
 	NAME	__pthread_callback
 |__pthread_callback|
+	LDR	a3, =|__ul_global|
 	; If we are in a critical region, do not switch threads and
 	; exit quicky.
-	LDR	a1, =|__pthread_worksemaphore|
-	LDR	a1, [a1]
+	LDR	a1, [a3, #GBL_PTH_WORKSEMAPHORE]
 	TEQ	a1, #0
-	BNE	|skip_contextswitch|
-
 	; If we are already in the middle of a context switch callback,
 	; then quickly exit.
-	LDR	a1, =|__pthread_callback_semaphore|
-	LDR	a2, [a1]
-	TEQ	a2, #0
+	LDREQ	a1, [a3, #GBL_PTH_CALLBACK_SEMAPHORE]
+	TEQEQ	a1, #0
 	BNE	|skip_contextswitch|
 
 	; Everything checks out, so from now on we're going to change
@@ -268,8 +250,8 @@ skip_callback
 	; Set __pthread_callback_semaphore to ensure that another
 	; context interrupt does not interfere with us during this critical
 	; time.
-	MOV	a2, #1
-	STR	a2, [a1]	; Set the callback_semaphore
+	MOV	a1, #1
+	STR	a1, [a3, #GBL_PTH_CALLBACK_SEMAPHORE]
 
 	; Setup a stack for the context switcher
 	BL	|__setup_signalhandler_stack|
@@ -319,22 +301,20 @@ skip_callback
 
 	CHGMODE	a2, SVC_Mode+IFlag	; Force SVC mode, IRQs off
 
-	; Indicate that this context switch was successful
-	LDR	a3, =|__pthread_callback_missed|
-	MOV	a1, #0
-	STR	a1, [a3]
+	LDR	a2, =|__ul_global|
 
-	; Indicate that we are no longer in a signal handler, since we
-	; will be returning direct to USR mode and the application itself.
-	LDR	a2, =|__executing_signalhandler|
-	LDR	a3, [a2]
-	SUB	a3, a3, #1
-	STR	a3, [a2]
+	; Indicate that this context switch was successful
+	MOV	a1, #0
+	STR	a1, [a2, #GBL_PTH_CALLBACK_MISSED]
 
 	; Signify that we are no longer in the middle of a context switch.
-	LDR	a2, =|__pthread_callback_semaphore|
-	MOV	a3, #0
-	STR	a3, [a2]
+	STR	a1, [a2, #GBL_PTH_CALLBACK_SEMAPHORE]
+	
+	; Indicate that we are no longer in a signal handler, since we
+	; will be returning direct to USR mode and the application itself.
+	LDR	a1, [a2, #GBL_EXECUTING_SIGNALHANDLER]
+	SUB	a1, a1, #1
+	STR	a1, [a2, #GBL_EXECUTING_SIGNALHANDLER]
 
 	; Point to the register save area for the new thread.
 	LDR	r14, =|__pthread_running_thread|
@@ -355,11 +335,12 @@ skip_callback
 	; because some other context switching operation is already going on,
 	; or because the program indicates that we are in a critical
 	; section.
+
+	; On entry, a2 == __ul_global
 |skip_contextswitch|
 	; Indicate that this context switch did not occur
-	LDR	a3, =|__pthread_callback_missed|
 	MOV	a1, #1
-	STR	a1, [a3]
+	STR	a1, [a3, #GBL_PTH_CALLBACK_MISSED]
 
 	; Exiting from the CallBack handler requires us to reload all
 	; registers from the register save area.
@@ -392,20 +373,6 @@ skip_callback
 
 	; Have we installed Filter ?
 |filter_installed|
-	DCD	0
-
-	; Prevent a callback being set whilst servicing another callback
-|__pthread_callback_semaphore|
-	DCD	0
-
-	; Global initialisation flag.  Unixlib internally uses this to
-	; test whether or not to use mutexes for locking critical structures.
-|__pthread_system_running|
-	DCD	0
-
-	; Non zero if a callback occured when context switching was
-	; temporarily disabled
-|__pthread_callback_missed|
 	DCD	0
 
 	END
