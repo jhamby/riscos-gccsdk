@@ -147,7 +147,7 @@ static void check_edits(const char *filename, int hashval) {
 
   if (symedit_count>0) {	/* Symbol edits exist */
     ep = symedit_list;
-    while (ep!=NIL && hashval>ep->edtfnhash) ep = ep->edtnext;
+    while (ep!=NIL && hashval > ep->edtfnhash) ep = ep->edtnext;
 
     if (ep!=NIL && hashval==ep->edtfnhash && stricmp(filename, ep->edtfile)==0) {
       current_symedit = ep;
@@ -172,8 +172,8 @@ static void check_edits(const char *filename, int hashval) {
 static void check_symedit(symtentry *symtp) {
   int fnhashval, syhashval;
   editcmd *ep;
-  const char *symname;
-  symname = symtp->symtname;
+  const char *symname = symtp->symtname;
+  
   fnhashval = current_file->chfilehash;
   syhashval = hash(symname);
   ep = current_symedit;
@@ -358,7 +358,7 @@ static bool add_symbol(symtentry *symtp) {
 
   symtp->symtname = symtp->symtname+COERCE(strtbase, unsigned int);
 
-  if (current_symedit!=NIL) check_symedit(symtp);
+  if (current_symedit != NIL) check_symedit(symtp);
   name = symtp->symtname;
   hashval = hash(name);
   attr = symtp->symtattr & SYM_ATMASK;

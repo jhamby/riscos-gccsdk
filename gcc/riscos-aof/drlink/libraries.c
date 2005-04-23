@@ -239,7 +239,14 @@ static bool add_libsymbol(libheader *fp, unsigned int index, char *name) {
   }
   hashval = hash(name);
 
-  name = check_libedit(memname, name, hashval);
+  {
+    char *newname = check_libedit(memname, name, hashval);
+
+    if (newname != name) {
+      name = newname;
+      hashval = hash(name);
+    }
+  }
 
   hp = find_chunkentry(index);
   lp->libhash   = hashval;
@@ -293,6 +300,7 @@ static bool scan_libsymt(libheader *lp) {
       error("Error: 'OFL_SYMT' entry size in '%s' is too large", lp->libname);
       return FALSE;
     }
+    fprintf(stderr, "scan: %p %p %s\n", sp, symtend, &sp->entryname);
     if (!add_libsymbol(lp, sp->chunkindex, &sp->entryname)) return FALSE;
     sp = COERCE(COERCE(sp, char *)+sp->entrysize, symtentry *);
   }
