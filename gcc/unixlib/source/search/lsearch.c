@@ -33,7 +33,7 @@ lsearch (const void *key, void *base, size_t *nmemb, size_t size,
   if (result == NULL)
     {
       /* Not available.  Insert at the end.  */
-      result = memcpy (base + (*nmemb) * size, key, size);
+      result = memcpy ((unsigned char *) base + (*nmemb) * size, key, size);
       ++(*nmemb);
     }
 
@@ -45,7 +45,7 @@ void *
 lfind (const void *key, const void *base, size_t *nmemb, size_t size,
        __compar_fn_t compar)
 {
-  const void *result = base;
+  const unsigned char *result = (const unsigned char *) base;
   size_t cnt = 0;
 
   while (cnt < *nmemb && (*compar) (key, result) != 0)

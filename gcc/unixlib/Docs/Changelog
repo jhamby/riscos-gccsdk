@@ -1,3 +1,16 @@
+Sat Apr 23 11:51:31 2005  Stefan Bellon  <sbellon@sbellon.de>
+
+	Norcroft compatibility.
+	* time/setitmr.c (__inline): Renamed from __inline__.
+	(__inline__): Delete macro as it is provided in sys/cdefs.h.
+	* stdlib/alloc.c (mUSABLe): Compile out prototype.
+	(mSTATs, mALLOPt, mALLINFo): Likewise.
+	* search/lsearch.c (lfind): Casting fixes.
+	(lsearch): Casting fixes.
+
+	* libm-dbl64/s_nexttoward.c: Delete empty file.
+	* libm-dbl64/{k_cos.c, k_sin.c, s_cos.c, e_acos.c}: Likewise.
+
 Sat Apr 23 11:42:48 2005  Nick Burrett  <nick@sqrt.co.uk>
 
 	Initial work on accessing internal UnixLib variables through

@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/time/setitmr.c,v $
- * $Date: 2003/11/23 20:26:45 $
- * $Revision: 1.6 $
+ * $Date: 2005/04/13 19:20:06 $
+ * $Revision: 1.7 $
  * $State: Exp $
- * $Author: joty $
+ * $Author: nick $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: setitmr.c,v 1.6 2003/11/23 20:26:45 joty Exp $";
+static const char rcs_id[] = "$Id: setitmr.c,v 1.7 2005/04/13 19:20:06 nick Exp $";
 #endif
 
 #include <stddef.h>
@@ -19,10 +19,6 @@ static const char rcs_id[] = "$Id: setitmr.c,v 1.6 2003/11/23 20:26:45 joty Exp 
 #include <sys/time.h>
 #include <unixlib/unix.h>
 #include <pthread.h>
-
-#ifndef __GNUC__
-#define __inline__ /**/
-#endif
 
 /* setitimer provides a mechanism for a process to interrupt itself at
    some future time. This is achieved by setting a timer; when the
@@ -57,7 +53,7 @@ static const char rcs_id[] = "$Id: setitmr.c,v 1.6 2003/11/23 20:26:45 joty Exp 
 
 typedef void (*ticker) (void);
 
-static __inline__ void
+static __inline void
 remove_ticker (ticker address, const struct timeval *old)
 {
   int regs[10];
@@ -67,7 +63,7 @@ remove_ticker (ticker address, const struct timeval *old)
   __os_swi (OS_RemoveTickerEvent, regs);
 }
 
-static __inline__ int
+static __inline int
 add_ticker (const struct timeval *tv, ticker address,
 	    const struct timeval *newtime)
 {

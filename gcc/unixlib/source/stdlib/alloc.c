@@ -1576,10 +1576,12 @@ static Void_t** iCALLOc(size_t, size_t, Void_t**);
 static Void_t** iCOMALLOc(size_t, size_t*, Void_t**);
 static void     cFREe(Void_t*);
 static int      mTRIm(size_t);
+#ifndef __riscos
 static size_t   mUSABLe(Void_t*);
 static void     mSTATs();
 static int      mALLOPt(int, int);
 static struct mallinfo mALLINFo(void);
+#endif
 #else
 static Void_t*  mALLOc();
 static void     fREe();
@@ -1592,10 +1594,12 @@ static Void_t** iCALLOc();
 static Void_t** iCOMALLOc();
 static void     cFREe();
 static int      mTRIm();
+#ifndef __riscos
 static size_t   mUSABLe();
 static void     mSTATs();
 static int      mALLOPt();
 static struct mallinfo mALLINFo();
+#endif
 #endif
 
 /*
