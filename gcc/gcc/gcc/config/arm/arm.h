@@ -999,7 +999,7 @@ extern const char * structure_size_string;
       fixed_regs[PIC_OFFSET_TABLE_REGNUM] = 1;			\
       call_used_regs[PIC_OFFSET_TABLE_REGNUM] = 1;		\
     }								\
-  if (TARGET_APCS_FRAME && TARGET_APCS_STACK)			\
+  if (TARGET_APCS_FRAME || TARGET_APCS_STACK)			\
     {								\
       fixed_regs[10]     = 1;					\
       call_used_regs[10] = 1;					\
