@@ -140,23 +140,23 @@ bool isrelocatable(relocation *rp) {
 ** 'check_edits' is called to see if there are any edits for the
 ** current file and to set up pointers to the edits if there are
 */
-static void check_edits(void) {
+static void check_edits(const char *filename, int hashval) {
   editcmd *ep;
-  int hashval;
   current_symedit = NIL;
   current_refedit = NIL;
-  hashval = current_file->chfilehash;
+
   if (symedit_count>0) {	/* Symbol edits exist */
     ep = symedit_list;
     while (ep!=NIL && hashval>ep->edtfnhash) ep = ep->edtnext;
-    if (ep!=NIL && hashval==ep->edtfnhash && stricmp(current_file->chfilename, ep->edtfile)==0) {
+
+    if (ep!=NIL && hashval==ep->edtfnhash && stricmp(filename, ep->edtfile)==0) {
       current_symedit = ep;
     }
   }
   if (refedit_count>0) {	/* Reference edits exist */
     ep = refedit_list;
     while (ep!=NIL && hashval>ep->edtfnhash) ep = ep->edtnext;
-    if (ep!=NIL && hashval==ep->edtfnhash && stricmp(current_file->chfilename, ep->edtfile)==0) {
+    if (ep!=NIL && hashval==ep->edtfnhash && stricmp(filename, ep->edtfile)==0) {
       current_refedit = ep;
     }
   }
@@ -184,42 +184,87 @@ static void check_symedit(symtentry *symtp) {
       || (opt_case && stricmp(ep->edtold, symname)==0))) {	/* Found symbol */
       symedit_count-=1;
       ep->edtdone = TRUE;
+
       switch (ep->edtoper) {
-      case EDT_RENAME:
-        current_file->edited = TRUE;
-        symtp->symtname = ep->edtnew;
-        if (opt_verbose) {
-          error("Warning: Symbol '%s' in '%s' renamed as '%s'", ep->edtold, ep->edtfile, ep->edtnew);
-        }
-        break;
-      case EDT_HIDE:
-        if ((symtp->symtattr & SYM_SCOPE)==SYM_GLOBAL) {	/* Global symbol */
-          symtp->symtattr = symtp->symtattr-(SYM_GLOBAL-SYM_LOCAL);
+        case EDT_RENAME:
+          current_file->edited = TRUE;
+          symtp->symtname = ep->edtnew;
           if (opt_verbose) {
-            error("Warning: Symbol '%s' in '%s' now marked as 'local'", ep->edtold, ep->edtfile);
+            error("Warning: Symbol '%s' in '%s' renamed as '%s'", ep->edtold, ep->edtfile, ep->edtnew);
           }
-        }
-        else {
-          error("Warning: Symbol '%s' in '%s' is already a 'local' symbol", symtp->symtname, ep->edtfile);
-        }
-        break;
-      case EDT_REVEAL:
-        if ((symtp->symtattr & SYM_SCOPE)==SYM_LOCAL) {		/* Local symbol */
-          symtp->symtattr = symtp->symtattr+(SYM_GLOBAL-SYM_LOCAL);
-          if (opt_verbose) {
-            error("Warning: Symbol '%s' in '%s' now marked as 'global'", ep->edtold, ep->edtfile);
+          break;
+
+        case EDT_HIDE:
+          if ((symtp->symtattr & SYM_SCOPE)==SYM_GLOBAL) {	/* Global symbol */
+            symtp->symtattr = symtp->symtattr-(SYM_GLOBAL-SYM_LOCAL);
+            if (opt_verbose) {
+              error("Warning: Symbol '%s' in '%s' now marked as 'local'", ep->edtold, ep->edtfile);
+            }
           }
-        }
-        else {
-          error("Warning: Symbol '%s' in '%s' is already a 'global' symbol", symtp->symtname, ep->edtfile);
-        }
-      default:
-        break;  
+          else {
+            error("Warning: Symbol '%s' in '%s' is already a 'local' symbol", symtp->symtname, ep->edtfile);
+          }
+          break;
+
+        case EDT_REVEAL:
+          if ((symtp->symtattr & SYM_SCOPE)==SYM_LOCAL) {		/* Local symbol */
+            symtp->symtattr = symtp->symtattr+(SYM_GLOBAL-SYM_LOCAL);
+            if (opt_verbose) {
+              error("Warning: Symbol '%s' in '%s' now marked as 'global'", ep->edtold, ep->edtfile);
+            }
+          }
+          else {
+            error("Warning: Symbol '%s' in '%s' is already a 'global' symbol", symtp->symtname, ep->edtfile);
+          }
+
+        default:
+          break;
       }
     }
     ep = ep->edtnext;
   }
 }
+
+
+/*
+** 'check_libedit' checks if a library entry might be renamed.  This is used to
+** index a library before its symbols are loaded.
+*/
+char *check_libedit(const char *memname, char *symname, int syhashval) {
+  static int fnhashval = 0;
+  editcmd *ep;
+  static const char *current_member = NULL;
+
+  if (!symedit_count) return symname;
+
+  if (current_member != memname) {
+    check_edits(memname, fnhashval = hash(memname));
+    current_member = memname;
+  }
+
+  ep = current_symedit;
+
+  while (ep!=NIL && ep->edtfnhash==fnhashval) {
+    if (ep->edtsyhash==syhashval &&
+     ((!opt_case && strcmp(ep->edtold, symname)==0)
+      || (opt_case && stricmp(ep->edtold, symname)==0))) {	/* Found symbol */
+
+      switch (ep->edtoper) {
+        case EDT_RENAME:
+          if (opt_verbose) {
+            error("Warning: Library reference '%s' in '%s' renamed as '%s'", ep->edtold, ep->edtfile, ep->edtnew);
+          }
+          return ep->edtnew;
+
+        default:
+          break;
+      }
+    }
+    ep = ep->edtnext;
+  }
+  return symname;
+}
+
 
 /*
 ** 'check_refedit' is called to check if the symbol reference
@@ -509,12 +554,12 @@ bool scan_symt(filelist *fp) {
   unsigned int strtsize;
 
   symcount = fp->symtcount;
-  symblock = allocmem(symcount*sizeof(symbol));
+  symblock = allocmem(symcount * sizeof(symbol));
   if (symblock==NIL) error("Fatal: Out of memory in 'scan_symt' reading file '%s'", objectname);
 
   current_file = fp;
   current_table = &fp->localsyms;
-  check_edits();	/* Are there any link edits for this file? */
+  check_edits(current_file->chfilename, current_file->chfilehash);	/* Are there any link edits for this file? */
   symtp = fp->objsymtptr;
   strtsize = fp->objstrtsize;
   wantedlist = NIL;
@@ -909,6 +954,7 @@ static bool check_library_tree(symbol **wp, filelist *fp) {
        sp->symtptr >= current_symtbase && sp->symtptr < current_symtend && sp->symnormal == NIL) {
 
         lp = search_lib(*wp);
+
         if (lp!=NIL && isloaded(lp)) {	/* Found symbol in library. Has member been loaded? */
           lp = get_nextlib(lp);		/* If yes, look for another version */
           if (isloaded(lp)) lp = NIL;
@@ -1149,6 +1195,7 @@ bool resolve(void) {
 
   return numwanted == 0;
 }
+
 
 /*
 ** 'relocate_symbols' goes through the OBJ_SYMT chunk of each

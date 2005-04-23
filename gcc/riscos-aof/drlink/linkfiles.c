@@ -58,9 +58,9 @@ void link_program(void) {
     ok = get_files(lp->linkname);
     lp = lp->linknext;
   } while (lp!=NIL && ok);
-  if (ok) verify_edits();
   printf("Read files: %d\n", (clock()-timer) / CLOCKS_PER_SEC);
   timer = clock();
+  if (ok) verify_edits();
   ok = ok && resolve();
   if (ok) check_debuglist();
   printf("Resolve references: %d\n", (clock()-timer) / CLOCKS_PER_SEC);
@@ -131,8 +131,8 @@ void link_program(void) {
     ok = get_files(lp->linkname);
     lp = lp->linknext;
   } while (lp!=NIL && ok);
-  if (ok) verify_edits();
   ok = ok && resolve();
+  if (ok) verify_edits();
   if (ok) check_debuglist();
   opt_debug = opt_debug || debugflist!=NIL; /* Enable 'debug' if necessary */
   if (ok) {

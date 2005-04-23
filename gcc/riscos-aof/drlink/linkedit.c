@@ -283,11 +283,13 @@ bool scan_editfile(void) {
 */
 static void list_badedits(editcmd *p) {
   const char *opnames [] = {"", "rename", "change", "hide", "reveal", "entry"};
+
   while (p!=NIL) {
     if (!p->edtdone) error("    %s '%s' in '%s'", opnames[p->edtoper], p->edtold, p->edtfile);
     p = p->edtnext;
   }
 }
+
 
 /*
 ** 'verify_edits' is called to ensure that all the edits

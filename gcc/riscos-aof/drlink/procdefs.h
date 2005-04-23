@@ -135,6 +135,8 @@ extern void build_cdlist(void);
 extern void find_cdareas(void);
 extern void print_symbols(void);
 extern void build_symbols(void);
+extern char *check_libedit(const char *, char *, int);
+
 
 /* -- In 'Linkedit' -- */
 

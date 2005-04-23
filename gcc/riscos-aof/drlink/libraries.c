@@ -221,6 +221,7 @@ static bool add_libsymbol(libheader *fp, unsigned int index, char *name) {
   libentry *lp;
   chunkindex *hp;
   int hashval;
+
   memname = find_membername(index);
   if (memname==NIL) {
     error("Error: Cannot find LIB_DIRY entry for '%s' in '%s'. Is library corrupt?",
@@ -237,6 +238,9 @@ static bool add_libsymbol(libheader *fp, unsigned int index, char *name) {
     error("Fatal: Out of memory in 'add_libsymbol' adding '%s'", fp->libname);
   }
   hashval = hash(name);
+
+  name = check_libedit(memname, name, hashval);
+
   hp = find_chunkentry(index);
   lp->libhash   = hashval;
   lp->libname   = name;
@@ -411,8 +415,10 @@ bool load_member(libentry *lp, filelist *inwhat, symbol *forwhat) {
   filelist *fp;
   symtentry *last_symtbase, *last_symtend;
   bool ok;
+
   fp = read_member(lp, inwhat, forwhat);
   ok = fp!=NIL && read_tables(fp);
+
   if (ok) {
     add_loadlist(lp);
     if (fp->symtries.wantedsyms!=NIL) {
