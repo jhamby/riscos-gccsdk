@@ -1,3 +1,8 @@
+Sun Apr 24 22:11:02 2005  Alex Waugh  <alex@alexwaugh.com>
+
+	* unix/unix.c (convert_command_line): Prevent >> type redirections
+	  getting added to argv.
+
 Sun Apr 24 21:24:36 2005  John Tytgat  <John.Tytgat@aaug.net>
 
 	* sys/resource.h (getpriority): Use id_t instead of int.

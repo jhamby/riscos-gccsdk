@@ -916,7 +916,8 @@ convert_command_line (struct proc *process, const char *cli, int cli_size)
 	      /* We have to watch out for stuff like:
 		   1. <> filename
 		   2. < filename
-		   3. > filename.  */
+		   3. > filename
+		   4. >> filename.  */
 
 	      /* Just incrementing cli by one here converts a <> filename
 		 into a > filename.  We're not interested in the re-direction
@@ -924,7 +925,7 @@ convert_command_line (struct proc *process, const char *cli, int cli_size)
 	      while (*cli && isdigit (*cli))
 		cli++;
 
-	      if (cli[0] == '<' && cli[1] == '>')
+	      if ((cli[0] == '<' || cli[0] == '>') && cli[1] == '>')
 		cli++;
 
 	      if (cli[1] == ' ')
