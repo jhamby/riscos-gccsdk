@@ -1,8 +1,8 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/limits.h,v $
- * $Date: 2004/01/06 00:17:36 $
- * $Revision: 1.3 $
+ * $Date: 2004/08/16 21:01:26 $
+ * $Revision: 1.4 $
  * $State: Exp $
  * $Author: joty $
  *
@@ -13,6 +13,9 @@
 #ifndef __LIMITS_H
 #define __LIMITS_H
 
+#ifndef __UNIXLIB_FEATURES_H
+#include <features.h>
+#endif
 
 /* Number of bits in a 'char'.  */
 #define CHAR_BIT	8
@@ -55,16 +58,34 @@
 /* The minimum value that can be represented by a
    'signed long long int'.  */
 #define LONG_LONG_MIN 0x8000000000000000LL
+
 /* The maximum values that can be represented by a
    'signed long long int' and 'unsigned long long int'.  */
 #define LONG_LONG_MAX 0x7fffffffffffffffLL
 #define ULONG_LONG_MAX 0xffffffffffffffffULL
 
+#ifdef __USE_ISOC99
+/* Minimum and maximum that a signed long long int can hold.  */
+#define LLONG_MIN 0x8000000000000000LL
+#define LLONG_MAX 0x7fffffffffffffffLL
+
+/* Maximum value that an unsigned long long int can hold.  */
+#define ULLONG_MAX 0xffffffffffffffffULL
+#endif
+
 #define QUAD_MAX LONG_LONG_MAX
 
+#ifdef __USE_XOPEN
+/* Number of bits in a word of type 'int'.  */
+#define WORD_BIT 32
+
+/* Number of bits in a word of type 'long'.  */
+#define LONG_BIT 32
+#endif
 
 /* POSIX Standard 2.9.2: Minimum Values <limits.h>.  */
 
+#ifdef __USE_POSIX
 /* These are the standard-mandated minimum values.  */
 
 /* Maximum length of arguments to `execve', including environment.  */
@@ -121,10 +142,11 @@
 /* Maximum length of a timezone name (element of `tzname').  */
 #define	_POSIX_TZNAME_MAX	3
 #define TZNAME_MAX _POSIX_TZNAME_MAX
-
+#endif
 
 /* POSIX2 limits.  */
 
+#ifdef __USE_POSIX2
 /* The maximum `ibase' and `obase' values allowed by the `bc' utility.  */
 #define	_POSIX2_BC_BASE_MAX	99
 #define	BC_BASE_MAX	_POSIX2_BC_BASE_MAX
@@ -158,7 +180,9 @@
 /* The maximum number of repeated occurrences of a regular expression
    permitted when using the interval notation `\{M,N\}'.  */
 #define	_POSIX2_RE_DUP_MAX	255
+
 /* This value is defined like this in regex.h.  */
 #define	RE_DUP_MAX	(0x7fff)
+#endif
 
 #endif

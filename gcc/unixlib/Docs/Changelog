@@ -1,3 +1,11 @@
+Sun Apr 24 10:54:22 2005  Nick Burrett  <nick@sqrt.co.uk>
+
+	* stdlib/strtoll.c: Import from FreeBSD, includes bug fixes.
+	* stdlib/strtoull.c: Likewise.
+	* limits.h: Add namespace visibility for _POSIX and _POSIX2 limits.
+	(LLONG_MIN, LLONG_MAX, ULLONG_MAX): New ISO C99 limits.
+	(WORD_BIT, LONG_BIT): New limits, defined for XOPEN.
+
 Sat Apr 23 13:14:00 2005  Nick Burrett  <nick@sqrt.co.uk>
 
 	Norcroft compatibility.
