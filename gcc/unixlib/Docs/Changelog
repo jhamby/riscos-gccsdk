@@ -1,3 +1,7 @@
+Sun Apr 24 21:04:12 2005  Alex Waugh  <alex@alexwaugh.com>
+
+	* common/unixify.c: Fix buffer overflow.
+
 Sun Apr 24 12:34:09 2005  Peter Naulls  <peter@chocky.org>
 
 	* clib/dirent.h, clib/grp.h: Make types used visible by including

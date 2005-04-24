@@ -1,8 +1,8 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/common/unixify.c,v $
- * $Date: 2005/04/14 15:17:23 $
- * $Revision: 1.14 $
+ * $Date: 2005/04/22 14:38:49 $
+ * $Revision: 1.15 $
  * $State: Exp $
  * $Author: nick $
  *
@@ -265,7 +265,15 @@ __unixify (const char *ro_path, int unixify_flags, char *buffer,
 #endif
   if (buffer == NULL)
     {
-      buf_len = strlen (ro_path) + 2;
+      buf_len = strlen (ro_path) + 10;
+      /* FIXME. buf_len is just an estimate. It needs the length of ro_path
+         + 1 for the null terminator
+         + 1 for a leading /
+         + 1 for add_directory_name to add an unecessary trailing /
+         + 3 if the path has a %
+         + 1 for every ^ in the path.
+         The code really needs modifying to check it isn't overflowing the
+         output buffer as it adds characters.  */
 
       /* Allow for the ,xyz filetype extension.  */
       if ((unixify_flags & __RISCOSIFY_FILETYPE_EXT) != 0
