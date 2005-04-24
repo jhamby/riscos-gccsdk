@@ -13,8 +13,9 @@
 /* This function is always successful.  */
 void sync (void)
 {
-  /* Ensure data has been written to all files on temporary filing system.  */
-  __os_args (255, 0, 0, NULL);
+  /* Ensure data has been written to all files on temporary filing
+     system.  */
+  (void) __os_args (255, 0, 0, NULL);
 }
 
 int fsync (int fd)

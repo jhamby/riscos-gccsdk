@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/unixlib/unix.h,v $
- * $Date: 2005/04/18 11:30:48 $
- * $Revision: 1.29 $
+ * $Date: 2005/04/18 13:48:04 $
+ * $Revision: 1.30 $
  * $State: Exp $
- * $Author: peter $
+ * $Author: nick $
  *
  * UNIX is a registered trademark of AT&T Bell Laboratories
  *
@@ -107,9 +107,9 @@ struct __sul_process
   int upri;  /* User process priority.  */
   __mode_t umask;   /* File creation mode mask.  */
   void *file_descriptors;
-  int maxfd;           /* Number of entries in the file_descriptors array */
-  int fdsize;          /* Size of each entry in the file_descriptors array */
-  int fdhandlesize;    /* Size of each fdhandle */
+  unsigned int maxfd;  /* Number of entries in the file_descriptors array */
+  unsigned int fdsize; /* Size of each entry in the file_descriptors array */
+  unsigned int fdhandlesize; /* Size of each fdhandle */
   int tty_type;
   struct tty *console;
   struct tty *rs423;
@@ -118,7 +118,7 @@ struct __sul_process
   struct __sul_process *children;   /* Linked list of all children of this process */
   struct __sul_process *next_child;
   __pid_t (*sul_fork) (__pid_t pid, struct __sul_process **proc, void *stacklimit, void *stack);
-  int environ_size;
+  unsigned int environ_size;
   void (*sul_exec) (__pid_t pid, char *cli, void *stacklimit, void *stack);
   void *(*sul_wimpslot) (__pid_t pid, void *newslot);
 };
@@ -176,16 +176,6 @@ extern int __escape_disabled;
 
 extern unsigned int __time[2];	/* start time */
 
-#define	__OS_ARTHUR	0xA0
-#define	__OS_RISCOS_200	0xA1
-#define	__OS_RISCOS_201	0xA2
-#define	__OS_RISCOS_300	0xA3
-#define	__OS_RISCOS_310	0xA4
-#define	__OS_RISCOS_350	0xA5
-#define	__OS_RISCOS_360	0xA6
-#define	__OS_RISCOS_370	0xA7
-#define	__OS_RISCOS_400	0xA8
-
 /* FP flag reflecting Floating Point presence or not.  */
 extern int __fpflag;
 
@@ -205,7 +195,8 @@ extern void __env_unixlib (void);
 
 /* Return unsigned int from STRING.  END, if non-null, points to character
    after number.  */
-extern unsigned int __decstrtoui (const char *__string, char **__end);
+extern unsigned int __decstrtoui (const char *__string, const char **__end)
+	__nonnull ((1));
 
 /* If this variable is non-null then we allocated the current environment.  */
 extern char **__last_environ;
@@ -224,17 +215,22 @@ extern int __addenv_to_env (char *string, const char *__name,
    as necessary, otherwise BUFLEN is length of supplied buffer.
    If buf is NULL and call is not NULL then an enumeration is taking place.  */
 extern char *__getenv_from_os (const char *__name, char *__buf,
-			       size_t __buflen, char **call);
+			       size_t __buflen, char **call)
+	__nonnull ((1)) __wur;
 
 /* Return the integer value of NAME, from the RISC OS global environment.  */
-extern int __intenv (const char *__name);
+extern int __intenv (const char *__name)
+	__nonnull ((1)) __wur;
 
 /* Get the leaf name from the command line used to run the program
    or returns __program_name if defined.  */
-extern char *get_program_name (const char *cli, char *fname_buf, size_t fname_buf_len);
+extern char *__get_program_name (const char *cli, char *fname_buf,
+                               size_t fname_buf_len)
+	__nonnull ((1, 2)) __wur;
 
 /* Set runtime features according to system variables.  */
-extern void __runtime_features (const char *__cmdline);
+extern void __runtime_features (const char *__cmdline)
+	__nonnull ((1));
 
 /* Print an error and exit the process. When MESSAGE is NULL, the printed
    error message is based on the current errno value.  */
@@ -242,13 +238,16 @@ extern void
 __unixlib_fatal (const char *__message) __attribute__ ((__noreturn__));
 
 /* Atomically increment or decrement a word of memory */
-extern unsigned int __atomic_modify (unsigned int *addr, int incr);
+extern unsigned int __atomic_modify (unsigned int *addr, int incr)
+	__nonnull ((1));
 
 /* Initialize the signal code.  */
-extern void __unixlib_signal_initialise (struct proc *__p);
+extern void __unixlib_signal_initialise (struct proc *__p)
+	__nonnull ((1));
 
 /* Resource limit initialisation */
-extern void __resource_initialise (struct proc *__p);
+extern void __resource_initialise (struct proc *__p)
+	__nonnull ((1));
 
 /* Stack manipulation */
 
@@ -267,17 +266,19 @@ struct __stack_chunk
 };
 
 extern void __stackalloc_init (void);
-extern void *__stackalloc (size_t __size);
+extern void *__stackalloc (size_t __size) __wur;
 extern void __stackfree (void *__ptr);
 extern int __stackalloc_trim (void);
-extern void __free_stack_chain (void *__ptr);
-extern void *__stackalloc_incr_wimpslot (int __incr);
+extern void __free_stack_chain (void *__ptr) __nonnull ((1));
+extern void *__stackalloc_incr_wimpslot (int __incr) __wur;
 
 /* Initialise the UnixLib world.  */
 extern void __unixinit (void);
 
-/* Free any remaining memory and file descriptors associated with a process */
-extern void __free_process(struct __sul_process *process);
+/* Free any remaining memory and file descriptors associated with a
+   process.  */
+extern void __free_process(struct __sul_process *process)
+	__nonnull ((1));
 
 extern int _main (void);
 

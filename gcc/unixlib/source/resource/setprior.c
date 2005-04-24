@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/resource/setprior.c,v $
- * $Date: 2004/06/12 08:59:48 $
- * $Revision: 1.5 $
+ * $Date: 2005/03/04 20:59:06 $
+ * $Revision: 1.6 $
  * $State: Exp $
- * $Author: peter $
+ * $Author: alex $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: setprior.c,v 1.5 2004/06/12 08:59:48 peter Exp $";
+static const char rcs_id[] = "$Id: setprior.c,v 1.6 2005/03/04 20:59:06 alex Exp $";
 #endif
 
 #include <errno.h>
@@ -21,7 +21,7 @@ static const char rcs_id[] = "$Id: setprior.c,v 1.5 2004/06/12 08:59:48 peter Ex
 /* A return value of zero indicates success.  */
 
 int
-setpriority (enum __priority_which which, int who, int prio)
+setpriority (enum __priority_which which, id_t who, int prio)
 {
   struct __sul_process *process = NULL;
 
@@ -48,7 +48,7 @@ setpriority (enum __priority_which which, int who, int prio)
                 process = child;
               break;
             case PRIO_USER:
-              if (child->euid == (unsigned int)who)
+              if (child->euid == who)
                 process = child;
               break;
             default:

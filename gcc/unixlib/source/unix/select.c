@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/select.c,v $
- * $Date: 2005/03/04 20:59:06 $
- * $Revision: 1.11 $
+ * $Date: 2005/03/29 22:47:19 $
+ * $Revision: 1.12 $
  * $State: Exp $
- * $Author: alex $
+ * $Author: peter $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: select.c,v 1.11 2005/03/04 20:59:06 alex Exp $";
+static const char rcs_id[] = "$Id: select.c,v 1.12 2005/03/29 22:47:19 peter Exp $";
 #endif
 
 /* netlib/socket.c: Written by Peter Burwood, July 1997  */
@@ -67,8 +67,9 @@ __convert_fd_set (int nfds, const fd_set *iset, fd_set *oset, int *max_fd)
     {
       int bothset;
 
-      /* Check for bits set in both passed in set to select() and socket fds */
-      bothset = ((int *)iset)[words] & ((int *)&__socket_fd_set)[words];
+      /* Check for bits set in both passed in set to select() and socket
+         fds.  */
+      bothset = ((const int *)iset)[words] & ((int *)&__socket_fd_set)[words];
 
       if (bothset)
         {
@@ -113,7 +114,7 @@ __return_fd_set (int nfds, fd_set *iset, const fd_set *oset)
       int bothset;
 
       /* Only check sockets in the original input set.  */
-      bothset = ((int *)iset)[words] & ((int *)&__socket_fd_set)[words];
+      bothset = ((const int *)iset)[words] & ((int *)&__socket_fd_set)[words];
 
       if (bothset)
         {
@@ -263,12 +264,12 @@ select (int nfds, fd_set *readfds, fd_set *writefds,
               int (*select_func) (struct __unixlib_fd *__fd, int __fd1, fd_set *__read,
                   fd_set *__write, fd_set *__except) =
                   __dev[file_desc->devicehandle->type < NDEV ? file_desc->devicehandle->type : DEV_NULL].select;
-    
+
               read_p   = (readfds && FD_ISSET(fd, readfds)) ?
                 &new_readfds : NULL;
               write_p  = (writefds && FD_ISSET(fd, writefds)) ?
                 &new_writefds : NULL;
-    
+
               if (select_func == __nullselect)
                 {
                   if (read_p)
@@ -286,7 +287,7 @@ select (int nfds, fd_set *readfds, fd_set *writefds,
                 {
                   except_p = (exceptfds && FD_ISSET(fd, exceptfds)) ?
                     &new_exceptfds : NULL;
-    
+
                   if (select_func == __sockselect)
                     {
                       if (read_p)   FD_SET (fd, read_p);
@@ -294,7 +295,7 @@ select (int nfds, fd_set *readfds, fd_set *writefds,
                       if (except_p) FD_SET (fd, except_p);
                       continue;
                     }
-    
+
                   /* Don't bother calling if not interested in this fd.  */
                   if (read_p || write_p || except_p)
                     {

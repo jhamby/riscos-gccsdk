@@ -101,7 +101,7 @@ static const struct rofs2dev __rofs2dev[] =
   {NULL, DEV_RISCOS} /* table terminator */
 };
 
-const dev_t
+dev_t
 __getdevtype (const char *filename)
 {
   const int ro_control = __get_riscosify_control();

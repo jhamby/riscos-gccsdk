@@ -1,8 +1,8 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/unixlib/dev.h,v $
- * $Date: 2005/04/05 21:32:16 $
- * $Revision: 1.13 $
+ * $Date: 2005/04/18 11:30:48 $
+ * $Revision: 1.14 $
  * $State: Exp $
  * $Author: peter $
  *
@@ -57,7 +57,7 @@ struct dev
   int (*ioctl) (struct __unixlib_fd *__fd, unsigned long __request,
 		void *__arg);
   int (*select) (struct __unixlib_fd *__fd, int __fd1, fd_set *__read,
-		fd_set *__write, fd_set *__except);
+		 fd_set *__write, fd_set *__except);
   int (*stat) (const char *filename, struct stat *buf);
   int (*fstat) (int fd, struct stat *buf);
 };
@@ -67,7 +67,7 @@ extern fd_set __socket_fd_set;
 
 extern const struct dev __dev[NDEV];
 
-extern const dev_t __getdevtype (const char *__filename);
+extern dev_t __getdevtype (const char *__filename);
 
 /* RISC OS file system support */
 extern void *__fsopen (struct __unixlib_fd *__fd, const char *__fname, int __mode);

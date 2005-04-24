@@ -147,7 +147,7 @@
 	LDMFD	sp!, {v1-v5, pc}
 
 |seterr_fatal|
-	DCB	"Unixlib inconsistency found: __pthread_running_thread == NULL.  Exiting", 0
+	DCB	"UnixLib inconsistency found: __pthread_running_thread == NULL.  Exiting", 0
 	ALIGN
 
 ;-----------------------------------------------------------------------

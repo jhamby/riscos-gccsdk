@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/debug.c,v $
- * $Date: 2005/03/04 20:59:06 $
- * $Revision: 1.11 $
+ * $Date: 2005/04/02 08:31:33 $
+ * $Revision: 1.12 $
  * $State: Exp $
  * $Author: alex $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: debug.c,v 1.11 2005/03/04 20:59:06 alex Exp $";
+static const char rcs_id[] = "$Id: debug.c,v 1.12 2005/04/02 08:31:33 alex Exp $";
 #endif
 
 #ifndef DEBUG
@@ -44,7 +44,7 @@ __debugval (const char *s, int i)
 void
 __debug (const char *s)
 {
-  int i;
+  unsigned int ui;
 
   PTHREAD_UNSAFE
 
@@ -74,33 +74,40 @@ __debug (const char *s)
   VAL (" argv:", (int) __u->argv);
   NL ();
   if (__u->argv)
-    for (i = 0; i < __u->argc; i++)
-      {
-        VAL ("argv[", (int) (__u->argv + i));
-        VAL (" ", i);
-        VAL (" ]:", (int) __u->argv[i]);
-        __os_print (" ");
-        __os_print (__u->argv[i]);
-        NL ();
-      }
-    for (i = 0; i < __proc->maxfd; i++)
-      if (getfd (i)->devicehandle)
+    {
+      int i;
+
+      for (i = 0; i < __u->argc; i++)
+	{
+	  VAL ("argv[", (int) (__u->argv + i));
+	  VAL (" ", i);
+	  VAL (" ]:", (int) __u->argv[i]);
+	  __os_print (" ");
+	  __os_print (__u->argv[i]);
+	  NL ();
+	}
+    }
+
+  for (ui = 0; ui < __proc->maxfd; ++ui)
+    {
+      if (getfd (ui)->devicehandle)
 	{
 	  char fname[_POSIX_PATH_MAX];
 
-	  VAL ("f[", i);
-	  VAL (" ].handle:", (int) getfd (i)->devicehandle->handle);
+	  VAL ("f[", ui);
+	  VAL (" ].handle:", (int) getfd (ui)->devicehandle->handle);
 	  NL ();
 	  /* Do not change this to an malloc'ing version. execve can call
 	     this function after it knows no more malloc'ing is done.  */
-	  if ((int) getfd (i)->devicehandle->handle != 0 && getfd (i)->devicehandle->type == DEV_RISCOS
-	      && __fd_to_name ((int) getfd (i)->devicehandle->handle, fname, sizeof (fname)))
+	  if ((int) getfd (ui)->devicehandle->handle != 0 && getfd (ui)->devicehandle->type == DEV_RISCOS
+	      && __fd_to_name ((int) getfd (ui)->devicehandle->handle, fname, sizeof (fname)))
 	    {
 	      __os_print ("filename:");
 	      __os_print (fname);
 	      NL ();
 	    }
 	}
+    }
   VAL ("pid:", (int) __proc->pid);
   VAL (" ppid:", (int) __proc->ppid);
   NL ();

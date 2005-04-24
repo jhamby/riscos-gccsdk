@@ -28,7 +28,7 @@
 #include <unixlib/sigstate.h>
 #include <internal/swiparams.h>
 
-/* #define DEBUG 1*/ 
+/* #define DEBUG 1*/
 
 #include <sys/debug.h>
 
@@ -73,7 +73,7 @@ __badr (void)
    This version is limited to base 10, the first character is known to be
    a digit and has less error checking.  */
 unsigned int
-__decstrtoui (const char *nptr, char **end)
+__decstrtoui (const char *nptr, const char **end)
 {
   unsigned int result = 0;
 
@@ -562,8 +562,7 @@ check_fd_redirection (const char *filename, unsigned int fd_to_replace)
 
   if (isdigit (*filename))
     {
-      char *end;
-      unsigned int dup_fd = __decstrtoui (filename, &end);
+      unsigned int dup_fd = __decstrtoui (filename, NULL);
 
       if (dup_fd >= __proc->maxfd)
 	__badr ();

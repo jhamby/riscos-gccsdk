@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/syslog.c,v $
- * $Date: 2003/04/05 09:33:57 $
- * $Revision: 1.6 $
+ * $Date: 2003/06/07 02:30:22 $
+ * $Revision: 1.7 $
  * $State: Exp $
- * $Author: alex $
+ * $Author: joty $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: syslog.c,v 1.6 2003/04/05 09:33:57 alex Exp $";
+static const char rcs_id[] = "$Id: syslog.c,v 1.7 2003/06/07 02:30:22 joty Exp $";
 #endif
 
 /*
@@ -168,8 +168,8 @@ vsyslog (int pri, const char *fmt, va_list ap)
   /* Output to stderr if requested. */
   if (LogStat & LOG_PERROR)
     {
-      write (STDERR_FILENO, stdp, cnt - (stdp - tbuf));
-      write (STDERR_FILENO, (const void *) "\n", 1);
+      (void) write (STDERR_FILENO, stdp, cnt - (stdp - tbuf));
+      (void) write (STDERR_FILENO, (const void *) "\n", 1);
     }
 
   /* Ignore errors, syslog module is probably not loaded */

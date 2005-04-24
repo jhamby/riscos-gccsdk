@@ -1,8 +1,8 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/unixlib/os.h,v $
- * $Date: 2005/04/14 14:31:13 $
- * $Revision: 1.8 $
+ * $Date: 2005/04/18 17:04:56 $
+ * $Revision: 1.9 $
  * $State: Exp $
  * $Author: nick $
  *
@@ -56,37 +56,38 @@ extern _kernel_oserror *__os_byte (int a, int x, int y,
 				   int *result /* 3 reg */ )
      __THROW;
 
-extern _kernel_oserror *__os_word (int,void *)
+extern _kernel_oserror *__os_word (int, void *)
      __THROW __nonnull ((2)) __wur;
 
 extern _kernel_oserror *__os_prhex (int); 	/* %8x format hex output */
 extern _kernel_oserror *__os_prdec (int);
 
 extern _kernel_oserror *__os_print (const char *) __nonnull ((1));
-extern _kernel_oserror *__os_write (const char *,int) __nonnull ((1));
+extern _kernel_oserror *__os_write (const char *, int) __nonnull ((1));
 
 extern _kernel_oserror *__os_nl (void);		/* newline */
 extern _kernel_oserror *__os_cli (const char *) __nonnull ((1));
 
-extern _kernel_oserror *__os_file (int,const char *,int * /* 6 reg */ )
-     __THROW __nonnull ((2, 3)) __wur;
+extern _kernel_oserror *__os_file (int, const char *, int * /* 6 reg */ )
+     __THROW __nonnull ((2)) __wur;
 
-extern _kernel_oserror *__os_fopen (int,const char *,int * /* 1 reg */ )
+extern _kernel_oserror *__os_fopen (int, const char *, int * /* 1 reg */ )
      __THROW __nonnull ((2, 3)) __wur;
 
 extern _kernel_oserror *__os_fclose (int) __THROW;
 
-extern _kernel_oserror *__os_fread (int,void *,int,int * /* 5 reg */ )
-     __THROW __nonnull ((2, 4)) __wur;
+extern _kernel_oserror *__os_fread (int, void *, int, int * /* 5 reg */ )
+     __THROW __nonnull ((2)) __wur;
 
-extern _kernel_oserror *__os_fwrite (int,const void *,int,int * /* 5 reg */ )
-     __THROW __nonnull ((2, 4)) __wur;
+extern _kernel_oserror *__os_fwrite (int, const void *, int,
+                                     int * /* 5 reg */ )
+     __THROW __nonnull ((2)) __wur;
 
-extern _kernel_oserror *__os_args (int,int,int,int * /* 3 reg */ )
-     __THROW __nonnull ((4)) __wur;
+extern _kernel_oserror *__os_args (int, int, int, int * /* 3 reg */ )
+     __THROW __wur;
 
-extern _kernel_oserror *__os_fsctrl (int,const char *,char *,int)
-     __THROW __nonnull ((2, 3)) __wur;
+extern _kernel_oserror *__os_fsctrl (int, const char *, int, int)
+     __THROW __nonnull ((2)) __wur;
 
 extern _kernel_oserror *__os_setfiletype (const char *fname, int filetype)
      __THROW __nonnull ((1)) __wur;
@@ -94,7 +95,8 @@ extern _kernel_oserror *__os_setfiletype (const char *fname, int filetype)
 /* Flag RISC OS error to UNIX and take a copy of the RISC OS error block.
    If 'err' is NULL, no action is taken.
    If 'seterrno' is non-zero, then UnixLib's errno is also set to EOPSYS.  */
-extern void __ul_seterr (const _kernel_oserror *_err, int __seterrno);
+extern void __ul_seterr (const _kernel_oserror *_err, int __seterrno)
+     __THROW __nonnull ((1));
 #endif
 
 __END_DECLS

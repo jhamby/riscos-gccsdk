@@ -90,7 +90,12 @@ rename (const char *old_name, const char *new_name)
 	  if (__isdir_raw (nfile))
 	    return __set_errno (EISDIR);
 	  /* We can't use unlink() as it might delete the suffix dir */
-	  __os_file (OSFILE_DELETENAMEDOBJECT, nfile, regs);
+	  err = __os_file (OSFILE_DELETENAMEDOBJECT, nfile, regs);
+	  if (err)
+	    {
+	      __ul_seterr (err, 1);
+	      return -1;
+	    }
 	}
     }
 

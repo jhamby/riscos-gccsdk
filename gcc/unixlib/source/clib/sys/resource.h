@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/sys/resource.h,v $
- * $Date: 2004/10/17 16:24:43 $
- * $Revision: 1.7 $
+ * $Date: 2005/04/13 19:20:06 $
+ * $Revision: 1.8 $
  * $State: Exp $
- * $Author: joty $
+ * $Author: nick $
  *
  ***************************************************************************/
 
@@ -155,10 +155,10 @@ enum __priority_which
   };
 
 /* Return the highest priority of any process.  */
-extern int getpriority (enum __priority_which, int) __THROW;
+extern int getpriority (enum __priority_which, __id_t __who) __THROW;
 
 /* Set the priority of all processes.  */
-extern int setpriority (enum __priority_which, int, int) __THROW;
+extern int setpriority (enum __priority_which, __id_t __who, int __value) __THROW;
 
 __END_DECLS
 

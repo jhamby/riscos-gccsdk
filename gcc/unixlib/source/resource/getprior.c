@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/resource/getprior.c,v $
- * $Date: 2002/02/14 15:56:36 $
- * $Revision: 1.3 $
+ * $Date: 2005/03/04 20:59:06 $
+ * $Revision: 1.4 $
  * $State: Exp $
- * $Author: admin $
+ * $Author: alex $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: getprior.c,v 1.3 2002/02/14 15:56:36 admin Exp $";
+static const char rcs_id[] = "$Id: getprior.c,v 1.4 2005/03/04 20:59:06 alex Exp $";
 #endif
 
 #include <errno.h>
@@ -22,7 +22,7 @@ static const char rcs_id[] = "$Id: getprior.c,v 1.3 2002/02/14 15:56:36 admin Ex
    or user (as specified by WHO) is used.  A lower priority number means higher
    priority.  Priorities range from PRIO_MIN to PRIO_MAX.  */
 int
-getpriority (enum __priority_which which, int who)
+getpriority (enum __priority_which which, id_t who)
 {
   struct __sul_process *child;
   int ret = -1;

@@ -104,7 +104,7 @@ void
 __write_backtrace (int signo)
 {
   int features;
-  int *fp = __backtrace_getfp(), *oldfp = NULL;
+  unsigned int *fp = __backtrace_getfp(), *oldfp = NULL;
 
   if (_swix(OS_PlatformFeatures, _IN(0) | _OUT(0), 0, &features))
     features = 0;
@@ -126,7 +126,7 @@ __write_backtrace (int signo)
       /* Check that FP is different.  */
       if (fp == oldfp)
 	{
-	  fprintf(stderr, "fp unchanged at %x\n", (int)fp);
+	  fprintf(stderr, "fp unchanged at %x\n", (unsigned int)fp);
 	  break;
 	}
 
@@ -134,7 +134,7 @@ __write_backtrace (int signo)
       if (!__valid_address(fp - 3, fp))
 	{
 	  fprintf(stderr, "Stack frame has gone out of bounds "
-			  "with address %x\n", (int)fp - 12);
+			  "with address %x\n", (unsigned int)fp - 12);
 	  break;
 	}
 
@@ -148,7 +148,7 @@ __write_backtrace (int signo)
 
       if (!__valid_address(pc, pc))
 	{
-	  fprintf(stderr, "Invalid pc address %x\n", (int)pc);
+	  fprintf(stderr, "Invalid pc address %x\n", (unsigned int)pc);
 	  break;
 	}
 
@@ -159,7 +159,8 @@ __write_backtrace (int signo)
 	lr = (unsigned int *)(fp[-1] & 0x03fffffc);
 
       fprintf(stderr, "  (%8x) pc: %8x lr: %8x sp: %8x ",
-	      (int)fp, (int)pc, (int)lr, fp[-2]);
+	      (unsigned int)fp, (unsigned int)pc, (unsigned int)lr,
+	      (unsigned int)fp[-2]);
 
       /* Retrieve function name.  */
       if (!__valid_address(pc - 7, pc))
@@ -182,7 +183,7 @@ __write_backtrace (int signo)
 
 	  /* Function name sanity check.  */
 	  if (name != NULL
-	      && (!__valid_address(name, (name + 256))
+	      && (!__valid_address(name, name + 256)
 		  || strnlen(name, 256) == 256))
 	    name = NULL;
 
@@ -193,7 +194,7 @@ __write_backtrace (int signo)
 	}
 
       oldfp = fp;
-      fp = (int *)fp[-3];
+      fp = (unsigned int *)fp[-3];
 
       if (fp == __ul_callbackfp && fp != NULL)
 	{
@@ -203,7 +204,8 @@ __write_backtrace (int signo)
 	      "v5", "v6", "sl", "fp", "ip", "sp", "lr", "pc" };
 
 	  /* At &oldfp[1] = cpsr, a1-a4, v1-v6, sl, fp, ip, sp, lr, pc */
-	  fprintf(stderr, "\n  Register dump at %08x:\n", &oldfp[1]);
+	  fprintf(stderr, "\n  Register dump at %08x:\n",
+	          (unsigned int)&oldfp[1]);
 
 	  if (__valid_address(oldfp, oldfp + 17))
 	    {
@@ -250,7 +252,7 @@ __write_backtrace (int signo)
             }
           else
            {
-             fprintf(stderr, "[Disassembly not available]"); 
+             fprintf(stderr, "[Disassembly not available]");
            }
 
          fprintf(stderr, "\n\n");
@@ -448,7 +450,7 @@ post_signal:
 	  {
 	    fprintf(stderr, "\nError 0x%x: %s\n  pc: %08x\n",
 			    __ul_errbuf.errnum, __ul_errbuf.errmess,
-			    (int *)__ul_errbuf.pc - 1);
+			    (int)((int *)__ul_errbuf.pc - 1));
 	  }
 	if (signo == SIGFPE)
 	  {

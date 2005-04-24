@@ -1,10 +1,10 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/netlib/_bswap_16.s,v $
-; $Date: 2002/12/22 18:22:29 $
-; $Revision: 1.1 $
+; $Date: 2004/10/17 16:24:44 $
+; $Revision: 1.2 $
 ; $State: Exp $
-; $Author: admin $
+; $Author: joty $
 ;
 ;----------------------------------------------------------------------------
 
@@ -13,8 +13,12 @@
 	AREA	|C$$code|,CODE,READONLY
 
 	EXPORT	__bswap_16
+	EXPORT	htons
+	EXPORT	ntohs
 	NAME	__bswap_16
 __bswap_16
+htons
+ntohs
 	MOV	r2, #255
 	AND	r1, r2, r0, LSR #8
 	AND	r0, r0, r2

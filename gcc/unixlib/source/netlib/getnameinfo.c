@@ -521,8 +521,8 @@ getnameinfo_link(const struct sockaddr *sa, socklen_t salen,
 	case IFT_HIPPI:
 	case IFT_ISO88025:
 	default:
-		return hexname((u_int8_t *)LLADDR(sdl), (size_t)sdl->sdl_alen,
-		    host, hostlen);
+		return hexname((const u_int8_t *)LLADDR(sdl),
+		    (size_t)sdl->sdl_alen, host, hostlen);
 	}
 }
 

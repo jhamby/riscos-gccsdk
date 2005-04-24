@@ -33,7 +33,7 @@ __unlinksuffix (char *file)
       if (!(__get_riscosify_control () & __RISCOSIFY_NO_SUFFIX)
           && __sfixfind (dot, strlen (dot)))
 	/* This will only delete empty directories */
-        __os_file (OSFILE_DELETENAMEDOBJECT, file, regs);
+        (void) __os_file (OSFILE_DELETENAMEDOBJECT, file, regs);
     }
 }
 

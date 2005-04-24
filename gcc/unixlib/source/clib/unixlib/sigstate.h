@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/unixlib/sigstate.h,v $
- * $Date: 2004/11/28 21:31:34 $
- * $Revision: 1.9 $
+ * $Date: 2005/03/31 09:32:23 $
+ * $Revision: 1.10 $
  * $State: Exp $
- * $Author: joty $
+ * $Author: nick $
  *
  ***************************************************************************/
 
@@ -85,12 +85,12 @@ extern void __h_sigprof_init (void);
 extern int __h_sigprof_sema, __h_sigvtalrm_sema, __h_sigalrm_sema;
 
 /* Get the fp at the moment of calling.  */
-extern int *__backtrace_getfp (void);
+extern void *__backtrace_getfp (void);
 
 /* When non-NULL, the fp at the moment __h_cback_common is executed.  This
    means that at __ul_callbackfp + 1, a complete exception snapshot of CPSR
    followed by r0-r16 is located.  */
-extern int * __ul_callbackfp;
+extern unsigned int * __ul_callbackfp;
 
 __END_DECLS
 

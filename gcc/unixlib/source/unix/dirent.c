@@ -36,10 +36,10 @@
    '..' (only be used when we do want unix <-> RISC OS filename
    processing) and hope those values will never be returned from
    OS_GBPB. */
-#define GBPB_FAKE_CURRENTDIR 0x2A0E180B
-#define GBPB_FAKE_PARENTDIR  0x04B63067
-#define GBPB_START_ENUM            0x00000000
-#define GBPB_END_ENUM      0xFFFFFFFF
+#define GBPB_FAKE_CURRENTDIR	0x2A0E180B
+#define GBPB_FAKE_PARENTDIR	0x04B63067
+#define GBPB_START_ENUM		0x00000000
+#define GBPB_END_ENUM		0xFFFFFFFF
 
 /* After preaching the passion, now the hack : when we're going to do
    the reverse suffix swapping, we will have up to two outstanding OS_GBPB
@@ -52,7 +52,7 @@
    to seekdir, will get looked up in a table giving the two internal dir
    offsets.
  */
-#define GBPB_MAX_ENUM      0x00010000
+#define GBPB_MAX_ENUM		0x00010000
 
 static DIR *dir_head = NULL;
 
@@ -146,7 +146,7 @@ newstream (const char *name, __off_t offset)
   stream->gbpb_off = stream->dd_off = offset;
 #ifdef DEBUG
   fprintf (stderr, "Stream 0x%p created : gbpb_off 0x%x and dd_off 0x%x\n",
-  	   stream, stream->gbpb_off, stream->dd_off);
+	   stream, stream->gbpb_off, stream->dd_off);
 #endif
   /* Already done by invalidate() :
   stream->suffix = NULL;
@@ -176,8 +176,8 @@ opendir (const char *ux_name)
 
   /* We don't want suffix swapping here.  */
   if (!__riscosify (ux_name, 0,
-                    __get_riscosify_control() | __RISCOSIFY_NO_SUFFIX,
-                    name, sizeof (name), NULL))
+		    __get_riscosify_control() | __RISCOSIFY_NO_SUFFIX,
+		    name, sizeof (name), NULL))
     {
       (void) __set_errno (ENAMETOOLONG);
       return NULL;
@@ -211,18 +211,18 @@ opendir (const char *ux_name)
       fprintf (stderr, "Suffix handling !\n");
 #endif
       for (i = leafname = name; *i; /* nothing */)
-        if (*i++ == '.')
-          leafname = i;
+	if (*i++ == '.')
+	  leafname = i;
 
 #ifdef DEBUG
       fprintf (stderr, "name 0x%p, leafname 0x%p\n", name, leafname);
       fprintf (stderr, "name '%s', leafname '%s'\n", name, leafname);
 #endif
       if (__sfixfind (leafname, strlen (leafname)))
-        {
-          (void) __set_errno (ENOENT);
-          return NULL;
-        }
+	{
+	  (void) __set_errno (ENOENT);
+	  return NULL;
+	}
     }
 
   /* Get a new DIR stream.  */
@@ -239,8 +239,7 @@ int
 readdir_r (DIR *stream, struct dirent *entry, struct dirent **result)
 {
   _kernel_oserror *err;
-  int regs[10];
-  int x = 0, slen;
+  int slen;
   char *str;
   const int riscosify_ctl = __get_riscosify_control ();
 
@@ -250,7 +249,7 @@ readdir_r (DIR *stream, struct dirent *entry, struct dirent **result)
 
 #ifdef DEBUG
   fprintf (stderr, "readdir_r: stream 0x%p : start user offset 0x%x\n",
-  	   stream, stream->dd_off);
+	   stream, stream->dd_off);
 #endif
 
   if (!__validdir (stream))
@@ -263,85 +262,86 @@ readdir_r (DIR *stream, struct dirent *entry, struct dirent **result)
 
       /* Perhaps we no longer can fetch entries from our suffix dir ? */
       if (stream->suffix->dd_off != GBPB_END_ENUM)
-        {
+	{
 #ifdef DEBUG
-          fprintf (stderr, "doing enum of suffix stream...\n");
+	  fprintf (stderr, "doing enum of suffix stream...\n");
 #endif
-          /* Directories inside RISC OS suffix directories may not
-             come out of a dirent enum. */
-          do
-            {
-              readdir_r (stream->suffix, &stream->suffix->dirent, result);
-            } while ((sresult = *result) != NULL
-              	     && sresult->d_type == DT_DIR);
+	  /* Directories inside RISC OS suffix directories may not
+	     come out of a dirent enum. */
+	  do
+	    {
+	      readdir_r (stream->suffix, &stream->suffix->dirent, result);
+	    } while ((sresult = *result) != NULL
+		     && sresult->d_type == DT_DIR);
 
-          if (sresult != NULL)
-            {
-              char x,y,z;
+	  if (sresult != NULL)
+	    {
+	      char x,y,z;
 #ifdef DEBUG
-              fprintf (stderr, "suffix stream data at 0x%p\n", sresult);
+	      fprintf (stderr, "suffix stream data at 0x%p\n", sresult);
 #endif
-              /* When __RISCOSIFY_FILETYPE_EXT is set in __riscosify_control,
-                 map <filename,xyz> to <filename>.d_name,xyz with xyz a
-                 valid hex number. */
-              if ((riscosify_ctl & __RISCOSIFY_FILETYPE_EXT)
-                  && sresult->d_namlen > sizeof(",xyz")-1
-                  && sresult->d_name[sresult->d_namlen - 4] == ','
-                  && isxdigit (x = sresult->d_name[sresult->d_namlen - 3])
-                  && isxdigit (y = sresult->d_name[sresult->d_namlen - 2])
-                  && isxdigit (z = sresult->d_name[sresult->d_namlen - 1]))
-                {
-                  str = sresult->d_name + sresult->d_namlen - 4;
-                  *str++ = '.';
-                  str = stpcpy (str, stream->dirent.d_name);
-                  *str++ = ',';
-                  *str++ = x;
-                  *str++ = y;
-                  *str++ = z;
-                  *str = '\0';
-                }
-              else
-                {
-                  str = sresult->d_name + sresult->d_namlen;
-                  *str++ = '.';
-                  str = stpcpy (str, stream->dirent.d_name);
-                }
+	      /* When __RISCOSIFY_FILETYPE_EXT is set in __riscosify_control,
+		 map <filename,xyz> to <filename>.d_name,xyz with xyz a
+		 valid hex number. */
+	      if ((riscosify_ctl & __RISCOSIFY_FILETYPE_EXT)
+		  && sresult->d_namlen > sizeof(",xyz")-1
+		  && sresult->d_name[sresult->d_namlen - 4] == ','
+		  && isxdigit (x = sresult->d_name[sresult->d_namlen - 3])
+		  && isxdigit (y = sresult->d_name[sresult->d_namlen - 2])
+		  && isxdigit (z = sresult->d_name[sresult->d_namlen - 1]))
+		{
+		  str = sresult->d_name + sresult->d_namlen - 4;
+		  *str++ = '.';
+		  str = stpcpy (str, stream->dirent.d_name);
+		  *str++ = ',';
+		  *str++ = x;
+		  *str++ = y;
+		  *str++ = z;
+		  *str = '\0';
+		}
+	      else
+		{
+		  str = sresult->d_name + sresult->d_namlen;
+		  *str++ = '.';
+		  str = stpcpy (str, stream->dirent.d_name);
+		}
 
-              sresult->d_namlen = str - sresult->d_name;
-              sresult->d_fileno = __get_file_ino (stream->suffix->dd_name_can,
-              	       	 	    	     	  sresult->d_name);
+	      sresult->d_namlen = str - sresult->d_name;
+	      sresult->d_fileno = __get_file_ino (stream->suffix->dd_name_can,
+						  sresult->d_name);
 
-              return 0;
-            }
-        }
+	      return 0;
+	    }
+	}
 
       /* Suffix dir enumeration done ? */
       if (stream->suffix->dd_off == GBPB_END_ENUM)
-        {
+	{
 #ifdef DEBUG
-          fprintf (stderr, "got last (or no) element from suffix stream\n");
+	  fprintf (stderr, "got last (or no) element from suffix stream\n");
 #endif
-          closedir (stream->suffix);
-          stream->suffix = NULL;
-        }
+	  closedir (stream->suffix);
+	  stream->suffix = NULL;
+	}
 
       /* Continue with enum of the main dir if suffix dir enum didn't
-         return a valid entry */
+	 return a valid entry */
     }
 
 #ifdef DEBUG
   fprintf (stderr,
-  	   "readir_r: stream 0x%p : enum user offset 0x%x, system offset 0x%x\n",
-  	   stream, stream->dd_off, stream->gbpb_off);
+	   "readir_r: stream 0x%p : enum user offset 0x%x, system offset 0x%x\n",
+	   stream, stream->dd_off, stream->gbpb_off);
 #endif
   /* Instead of a more natural switch() statement, we're using cascaded if()
      statements until Norcroft C supports int64 switch() arguments.  */
   if (stream->dd_off == GBPB_FAKE_CURRENTDIR
       || stream->dd_off == GBPB_FAKE_PARENTDIR)
     {
+      int x = 0;
       /* Fake directory '.' or '..' */
       if (stream->dd_off == GBPB_FAKE_PARENTDIR)
-        entry->d_name[x++] = '.'; /* Fake directory '..' */
+	entry->d_name[x++] = '.'; /* Fake directory '..' */
 
       entry->d_name[x++] = '.';
 
@@ -352,8 +352,8 @@ readdir_r (DIR *stream, struct dirent *entry, struct dirent **result)
       entry->d_type = DT_DIR;
 
       stream->dd_off = stream->gbpb_off =
-      	(stream->gbpb_off == GBPB_FAKE_CURRENTDIR)
-      	? GBPB_FAKE_PARENTDIR : GBPB_START_ENUM;
+	(stream->gbpb_off == GBPB_FAKE_CURRENTDIR)
+	? GBPB_FAKE_PARENTDIR : GBPB_START_ENUM;
     }
   else if (stream->dd_off == GBPB_END_ENUM)
     return 0;
@@ -361,166 +361,168 @@ readdir_r (DIR *stream, struct dirent *entry, struct dirent **result)
     {
       /* Does the cache needs a refill ? */
       if (stream->do_read == 0)
-        {
-          /* Read entries from the directory. We loop until we have read at
-             least one entry or we have reached the end of the directory.
-             This is because OS_GBPB is allowed to do nothing due to external
-             constraints imposed by some filing systems (PRM 2-70).  */
-        do
-          {
-            regs[0] = 10;
-            regs[1] = (int) stream->dd_name_can;
-            regs[2] = (int) stream->dir_cache;
-            /* Max entries possible given zero termination of names.  */
-            regs[3] = CACHE_SIZE / (sizeof(__os_gbpb_10) + 1);
-            regs[5] = CACHE_SIZE;
-            regs[4] = (int) stream->gbpb_off;
-            regs[6] = 0;                    /* Match all names */
+	{
+          int regs[10];
+	    /* Read entries from the directory. We loop until we have read at
+	       least one entry or we have reached the end of the directory.
+	       This is because OS_GBPB is allowed to do nothing due to
+	       external constraints imposed by some filing systems
+	       (PRM 2-70).  */
+	  do
+	    {
+	      regs[0] = 10;
+	      regs[1] = (int) stream->dd_name_can;
+	      regs[2] = (int) stream->dir_cache;
+	      /* Max entries possible given zero termination of names.  */
+	      regs[3] = CACHE_SIZE / (sizeof(__os_gbpb_10) + 1);
+	      regs[5] = CACHE_SIZE;
+	      regs[4] = (int) stream->gbpb_off;
+	      regs[6] = 0;		    /* Match all names */
 
-            err = __os_swi (OS_GBPB, regs);
-            if (err)
-              {
-                __ul_seterr (err, 0);
-                return EIO;
-              }
+	      err = __os_swi (OS_GBPB, regs);
+	      if (err)
+	        {
+		  __ul_seterr (err, 0);
+		  return EIO;
+	        }
 
 #ifdef DEBUG
-            fprintf (stderr,
-            	     "Start enum 0x%x, got 0x%x with stop enum 0x%x\n",
-            	     stream->gbpb_off, regs[3], regs[4]);
+	      fprintf (stderr,
+		       "Start enum 0x%x, got 0x%x with stop enum 0x%x\n",
+		       stream->gbpb_off, regs[3], regs[4]);
 #endif
-            if (regs[4] == GBPB_END_ENUM)
-              {
-                if (regs[3] == 0)
-                  {
-                    stream->gbpb_off = stream->dd_off = GBPB_END_ENUM;
-                    return 0;
-                  }
-                }
-            else
-              {
-                /* Check if we have a monotonic unit increase OS_GBPB
-                   offset, if not, we don't do anything. */
-                if (stream->gbpb_off + regs[3] != regs[4])
-                  {
-                    stream->gbpb_off = stream->dd_off = GBPB_END_ENUM;
-                    return 0;
-                  }
+	      if (regs[4] == GBPB_END_ENUM)
+	        {
+		  if (regs[3] == 0)
+		    {
+		      stream->gbpb_off = stream->dd_off = GBPB_END_ENUM;
+		      return 0;
+		    }
+		  }
+	      else
+	        {
+		  /* Check if we have a monotonic unit increase OS_GBPB
+		     offset, if not, we don't do anything. */
+		  if (stream->gbpb_off + regs[3] != regs[4])
+		    {
+		      stream->gbpb_off = stream->dd_off = GBPB_END_ENUM;
+		      return 0;
+		    }
 
-                /* We can't enum more than GBPB_MAX_ENUM-1 objects */
-                if ((unsigned int)regs[4] >= GBPB_MAX_ENUM)
-                  {
-                    regs[3] -= (unsigned int)regs[4] - GBPB_MAX_ENUM;
-                    if (regs[3] <= 0)
-                      {
-                        stream->gbpb_off = stream->dd_off = GBPB_END_ENUM;
-                        return 0;
-                      }
+		  /* We can't enum more than GBPB_MAX_ENUM-1 objects */
+		  if ((unsigned int)regs[4] >= GBPB_MAX_ENUM)
+		    {
+		      regs[3] -= (unsigned int)regs[4] - GBPB_MAX_ENUM;
+		      if (regs[3] <= 0)
+		        {
+			  stream->gbpb_off = stream->dd_off = GBPB_END_ENUM;
+			  return 0;
+		        }
 
-                    regs[4] = (int)GBPB_END_ENUM;
-                  }
-              }
+		      regs[4] = (int)GBPB_END_ENUM;
+		    }
+	        }
 
-            stream->gbpb_off = regs[4];
-          } while (regs[3] == 0);
+	      stream->gbpb_off = regs[4];
+	    } while (regs[3] == 0);
 
-          stream->do_read = regs[3];
-          stream->dir_cache_index = stream->dir_cache;
-        } /* cache refill */
+	  stream->do_read = regs[3];
+	  stream->dir_cache_index = stream->dir_cache;
+	} /* cache refill */
 
       /* Point 'filename' to the correct directory entry.  */
 
 #ifdef DEBUG
       fprintf (stderr, "Raw RO name '%s', entry at 0x%p\n",
-      	       stream->dir_cache_index->obj_name, entry);
+	       stream->dir_cache_index->obj_name, entry);
 #endif
       /* Copy name direct if flag is set.  */
       if (riscosify_ctl & __RISCOSIFY_NO_PROCESS)
-        {
-          str = stpcpy (entry->d_name, stream->dir_cache_index->obj_name);
-          slen = (offsetof (__os_gbpb_10, obj_name)
-               	  + (str - entry->d_name) + 1 + 3) & -4;
-        }
+	{
+	  str = stpcpy (entry->d_name, stream->dir_cache_index->obj_name);
+	  slen = (offsetof (__os_gbpb_10, obj_name)
+		  + (str - entry->d_name) + 1 + 3) & -4;
+	}
       else
-        {
-          const char *from = stream->dir_cache_index->obj_name;
-          const char *end = &entry->d_name[sizeof(entry->d_name) - 1];
-          char ch;
+	{
+	  const char *from = stream->dir_cache_index->obj_name;
+	  const char *end = &entry->d_name[sizeof(entry->d_name) - 1];
+	  char ch;
 
-          /* Convert RISC OS name to Unix format.
-             Map  '/' => '.', '?' => '#'
-             see common.c.riscosify for the table.  */
-          str = entry->d_name;
-          do
-            {
-              ch = *from++;
-              *str++ = __filename_char_map[(unsigned char) ch];
-            } while (ch != '\0' && str <= end);
-          /* Ensure we still have a C zero terminated string.  */
-          *--str = '\0';
+	  /* Convert RISC OS name to Unix format.
+	     Map  '/' => '.', '?' => '#'
+	     see common.c.riscosify for the table.  */
+	  str = entry->d_name;
+	  do
+	    {
+	      ch = *from++;
+	      *str++ = __filename_char_map[(unsigned char) ch];
+	    } while (ch != '\0' && str <= end);
+	  /* Ensure we still have a C zero terminated string.  */
+	  *--str = '\0';
 
-          slen = (offsetof (__os_gbpb_10, obj_name)
-                  + (str - entry->d_name) + 1 + 3) & -4;
+	  slen = (offsetof (__os_gbpb_10, obj_name)
+		  + (str - entry->d_name) + 1 + 3) & -4;
 
-          /* Need to add filetype extension (for straight files or
-             image files if they are treated as files) */
-          if ((riscosify_ctl & __RISCOSIFY_FILETYPE_EXT)
-              && (stream->dir_cache_index->obj_type == 1 ||
-                  (stream->dir_cache_index->obj_type == 3
-                   && __get_feature_imagefs_is_file ()))
-              && (stream->dir_cache_index->load_address & 0xfff00000U) == 0xfff00000U)
-            {
-              int filetype;
+	  /* Need to add filetype extension (for straight files or
+	     image files if they are treated as files) */
+	  if ((riscosify_ctl & __RISCOSIFY_FILETYPE_EXT)
+	      && (stream->dir_cache_index->obj_type == 1 ||
+		  (stream->dir_cache_index->obj_type == 3
+		   && __get_feature_imagefs_is_file ()))
+	      && (stream->dir_cache_index->load_address & 0xfff00000U) == 0xfff00000U)
+	    {
+	      int filetype;
 
-              filetype = (stream->dir_cache_index->load_address >> 8) & 0xfff;
-              if (filetype != 0xfff && str+4 <= end)
-                {
-                  int ft_extension_needed = 1;
+	      filetype = (stream->dir_cache_index->load_address >> 8) & 0xfff;
+	      if (filetype != 0xfff && str+4 <= end)
+		{
+		  int ft_extension_needed = 1;
 
-                  if (!(riscosify_ctl & __RISCOSIFY_FILETYPE_NOT_SET))
-                    {
-                      char *fn_extension;
+		  if (!(riscosify_ctl & __RISCOSIFY_FILETYPE_NOT_SET))
+		    {
+		      char *fn_extension;
 
-                      for (fn_extension = str - 1;
-                           fn_extension != entry->d_name && *fn_extension != '.';
-                           --fn_extension)
-                        ;
+		      for (fn_extension = str - 1;
+			   fn_extension != entry->d_name && *fn_extension != '.';
+			   --fn_extension)
+			;
 
-                      if (*fn_extension == '.')
-                        {
-                          int regs[10];
+		      if (*fn_extension == '.')
+			{
+			  int regs[10];
 
-                          /* We have a filename extension
+			  /* We have a filename extension
 			     at 'fn_extension'.  */
-                          regs[0] = MMM_TYPE_DOT_EXTN; /* Input extension */
-                          regs[1] = (int)fn_extension;
-                          regs[2] = MMM_TYPE_RISCOS; /* Output extension */
+			  regs[0] = MMM_TYPE_DOT_EXTN; /* Input extension */
+			  regs[1] = (int)fn_extension;
+			  regs[2] = MMM_TYPE_RISCOS; /* Output extension */
 
-                          /* When there is no MimeMap error and the
+			  /* When there is no MimeMap error and the
 			     filetype returned matches 'filetype', we don't
 			     want filetype extension.  */
-                          if (! __os_swi (MimeMap_Translate, regs)
-                              && regs[3] == filetype)
-                            ft_extension_needed = 0;
-                        }
-                    }
+			  if (! __os_swi (MimeMap_Translate, regs)
+			      && regs[3] == filetype)
+			    ft_extension_needed = 0;
+			}
+		    }
 
-                  if (ft_extension_needed)
-                    {
-                      *str++ = ',';
-                      *str++ = "0123456789abcdef"[filetype >> 8];
-                      *str++ = "0123456789abcdef"[(filetype >> 4) & 0xf];
-                      *str++ = "0123456789abcdef"[filetype & 0xf];
-                      *str = '\0';
-                    }
-                }
-            }
-        }
+		  if (ft_extension_needed)
+		    {
+		      *str++ = ',';
+		      *str++ = "0123456789abcdef"[filetype >> 8];
+		      *str++ = "0123456789abcdef"[(filetype >> 4) & 0xf];
+		      *str++ = "0123456789abcdef"[filetype & 0xf];
+		      *str = '\0';
+		    }
+		}
+	    }
+	}
 
       entry->d_type = (stream->dir_cache_index->obj_type == 1 ||
-                       (stream->dir_cache_index->obj_type == 3
-                        && __get_feature_imagefs_is_file ()))
-      	       	      ? DT_REG : DT_DIR;
+		       (stream->dir_cache_index->obj_type == 3
+			&& __get_feature_imagefs_is_file ()))
+		      ? DT_REG : DT_DIR;
 
       entry->d_namlen = str - entry->d_name;
       /* 'entry' is now correctly filled in except for the d_fileno field. */
@@ -530,42 +532,42 @@ readdir_r (DIR *stream, struct dirent *entry, struct dirent **result)
       stream->do_read--;
       /* Did the previous OS_GBPB enum indicated the end ? */
       if (stream->do_read == 0 && stream->gbpb_off == GBPB_END_ENUM)
-        stream->dd_off = GBPB_END_ENUM;
+	stream->dd_off = GBPB_END_ENUM;
       else
-        stream->dd_off++;
+	stream->dd_off++;
 
 #ifdef DEBUG
       fprintf (stderr, "reverse suffix %d, obj_type %d, d_name '%s'\n",
-      	       !(riscosify_ctl & __RISCOSIFY_NO_REVERSE_SUFFIX),
-      	       entry->d_type == DT_DIR, entry->d_name);
+	       !(riscosify_ctl & __RISCOSIFY_NO_REVERSE_SUFFIX),
+	       entry->d_type == DT_DIR, entry->d_name);
 #endif
       /* Check for reverse suffix dir swapping */
       if (!(riscosify_ctl & __RISCOSIFY_NO_REVERSE_SUFFIX)
-          && entry->d_type == DT_DIR
-          && __sfixfind (entry->d_name, entry->d_namlen))
-        {
-          char name[_POSIX_PATH_MAX];
-          char *str;
+	  && entry->d_type == DT_DIR
+	  && __sfixfind (entry->d_name, entry->d_namlen))
+	{
+	  char name[_POSIX_PATH_MAX];
+	  char *str;
 
-          str = stpcpy (name, stream->dd_name_can);
-          *str++ = '.';
-          strcpy(str, entry->d_name);
+	  str = stpcpy (name, stream->dd_name_can);
+	  *str++ = '.';
+	  strcpy(str, entry->d_name);
 
-          stream->suffix = newstream (name , stream->dd_suf_off);
-          stream->dd_suf_off = GBPB_START_ENUM;
+	  stream->suffix = newstream (name , stream->dd_suf_off);
+	  stream->dd_suf_off = GBPB_START_ENUM;
 
-          /* Get the first entry in the suffix directory */
+	  /* Get the first entry in the suffix directory */
 #ifdef DEBUG
-          fprintf (stderr, "First entry in suffix dir\n");
+	  fprintf (stderr, "First entry in suffix dir\n");
 #endif
-          readdir_r (stream, entry, result);
+	  readdir_r (stream, entry, result);
 #ifdef DEBUG
-          fprintf (stderr,
-          	   "Result of first entry query in suffix dir : 0x%p\n",
-          	   *result);
+	  fprintf (stderr,
+		   "Result of first entry query in suffix dir : 0x%p\n",
+		   *result);
 #endif
-          return 0;
-        }
+	  return 0;
+	}
     }
 
 
@@ -605,9 +607,9 @@ long int telldir (DIR *stream)
   if (__validdir (stream))
     {
       if (stream->suffix && stream->suffix->dd_off != GBPB_END_ENUM)
-        return (stream->dd_off - 1) + (stream->suffix->dd_off << 16);
+	return (stream->dd_off - 1) + (stream->suffix->dd_off << 16);
       else
-        return stream->dd_off + (stream->dd_suf_off << 16);
+	return stream->dd_off + (stream->dd_suf_off << 16);
     }
   else
     return -1;
@@ -620,27 +622,27 @@ void seekdir (DIR *stream, long int pos)
   if (__validdir (stream))
     {
       long int sufpos;
-      
+
       /* If we were doing a suffix dir enumeration, close the suffix
-         stream.  If needed, a new one will be created automatically. */
+	 stream.  If needed, a new one will be created automatically. */
       if (stream->suffix != NULL)
-        {
-          (void) closedir (stream->suffix);
-          stream->suffix = NULL;
-        }
+	{
+	  (void) closedir (stream->suffix);
+	  stream->suffix = NULL;
+	}
 
       /* Determing if 'pos' contains offset information for the
-         suffix dir enum. */
+	 suffix dir enum. */
       if (pos != GBPB_FAKE_CURRENTDIR
-          && pos != GBPB_FAKE_PARENTDIR
-          && pos != GBPB_END_ENUM
-          && pos >= GBPB_MAX_ENUM)
-        {
-          sufpos = pos >> 16;
-          pos &= GBPB_MAX_ENUM - 1;
-        }
+	  && pos != GBPB_FAKE_PARENTDIR
+	  && pos != GBPB_END_ENUM
+	  && pos >= GBPB_MAX_ENUM)
+	{
+	  sufpos = pos >> 16;
+	  pos &= GBPB_MAX_ENUM - 1;
+	}
       else
-        sufpos = 0;
+	sufpos = 0;
 
       stream->dd_suf_off = sufpos;
       stream->dd_off = stream->gbpb_off = pos;
@@ -658,15 +660,15 @@ rewinddir (DIR *stream)
   if (__validdir (stream))
     {
       if (stream->suffix != NULL)
-        {
-          (void) closedir (stream->suffix);
-          stream->suffix = NULL;
-        }
+	{
+	  (void) closedir (stream->suffix);
+	  stream->suffix = NULL;
+	}
 
       stream->dd_suf_off = GBPB_START_ENUM;
       stream->dd_off = stream->gbpb_off
-      	      = (__get_riscosify_control () & __RISCOSIFY_NO_PROCESS)
-      	      	? GBPB_START_ENUM : GBPB_FAKE_CURRENTDIR;
+	      = (__get_riscosify_control () & __RISCOSIFY_NO_PROCESS)
+		? GBPB_START_ENUM : GBPB_FAKE_CURRENTDIR;
       /* Force a re-cache of the directory entries.  */
       stream->do_read = 0;
     }
@@ -698,15 +700,15 @@ closedir (DIR *stream)
 
 int
 scandir (const char *dir, struct dirent ***namelist,
-            int (*select)(const struct dirent *),
-            int (*cmp)(const struct dirent **, const struct dirent **))
+	    int (*sdselect)(const struct dirent *),
+	    int (*cmp)(const struct dirent **, const struct dirent **))
 {
   DIR *dp;
   struct dirent **v = NULL;
   size_t vsize = 0, i;
   struct dirent *d;
   int save;
-  
+
   PTHREAD_UNSAFE_CANCELLATION
 
   dp = opendir(dir);
@@ -718,7 +720,7 @@ scandir (const char *dir, struct dirent ***namelist,
 
   i = 0;
   while ((d = readdir(dp)) != NULL)
-    if (select == NULL || (*select)(d))
+    if (sdselect == NULL || (*sdselect)(d))
       {
 	struct dirent *vnew;
 	size_t dsize;
@@ -744,7 +746,7 @@ scandir (const char *dir, struct dirent ***namelist,
 	vnew = (struct dirent *) malloc(dsize);
 	if (vnew == NULL)
 	  break;
-	
+
 	v[i++] = (struct dirent *) memcpy(vnew, d, dsize);
       }
 
@@ -752,21 +754,20 @@ scandir (const char *dir, struct dirent ***namelist,
     {
       save = errno;
       (void) closedir(dp);
-      
+
       while (i > 0)
 	free(v[--i]);
       free(v);
-      
+
       return __set_errno (save);
     }
-  
+
   (void) closedir(dp);
   (void) __set_errno(save);
 
   /* Sort the list if we have a comparison function to sort with.  */
   if (cmp != NULL)
-    qsort(v, i, sizeof(*v),(int (*)(const void *,const void *))cmp);
+    qsort(v, i, sizeof(*v), (int (*)(const void *,const void *))cmp);
   *namelist = v;
   return i;
 }
-

@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/custom.c,v $
- * $Date: 2005/04/14 15:17:23 $
- * $Revision: 1.2 $
+ * $Date: 2005/04/18 11:30:48 $
+ * $Revision: 1.3 $
  * $State: Exp $
- * $Author: nick $
+ * $Author: peter $
  *
  ***************************************************************************/
 
@@ -32,7 +32,8 @@
 #define IGNORE(x) {(void) x;}
 
 
-/* Return the Unixlib device from a file descriptor.  This allows the overriding to occur */
+/* Return the UnixLib device from a file descriptor.  This allows the
+   overriding to occur.  */
 struct dev *
 __unixlib_getdev(int fd)
 {

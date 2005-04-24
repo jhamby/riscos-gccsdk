@@ -1,8 +1,8 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/_os.s,v $
-; $Date: 2005/04/07 18:38:02 $
-; $Revision: 1.10 $
+; $Date: 2005/04/18 17:04:57 $
+; $Revision: 1.11 $
 ; $State: Exp $
 ; $Author: nick $
 ;
@@ -236,7 +236,7 @@ os_prhex_l1
 	LDMNEIA a3, {a3, a4, v1, v2}
 	SWI	XOS_File
 	LDMVSFD	sp!, {v1, v2, pc}
-	CMP	ip, #0
+	TEQ	ip, #0
 	STMNEIA ip, {a1, a2, a3, a4, v1, v2}
 	MOV	a1, #0
 	LDMFD	sp!, {v1, v2, pc}
@@ -270,7 +270,7 @@ os_prhex_l1
 	MOV	a1, #4
 	SWI	XOS_GBPB
 	LDMVSFD	sp!, {v1, pc}
-	CMP	ip, #0
+	TEQ	ip, #0
 	STMNEIA	ip, {a1, a2, a3, a4, v1}
 	MOV	a1, #0
 	LDMFD	sp!, {v1, pc}
@@ -286,7 +286,7 @@ os_prhex_l1
 	MOV	a1, #2
 	SWI	XOS_GBPB
 	LDMVSFD	sp!, {v1, pc}
-	CMP	ip, #0
+	TEQ	ip, #0
 	STMNEIA	ip, {a1, a2, a3, a4, v1}
 	MOV	a1, #0
 	LDMFD	sp!, {v1, pc}

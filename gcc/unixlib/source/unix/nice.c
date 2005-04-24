@@ -1,17 +1,18 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/unix/c/nice,v $
- * $Date: 1997/10/09 20:00:52 $
- * $Revision: 1.6 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/nice.c,v $
+ * $Date: 2001/01/29 15:10:22 $
+ * $Revision: 1.2 $
  * $State: Exp $
- * $Author: unixlib $
+ * $Author: admin $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: nice,v 1.6 1997/10/09 20:00:52 unixlib Exp $";
+static const char rcs_id[] = "$Id: nice.c,v 1.2 2001/01/29 15:10:22 admin Exp $";
 #endif
 
+#include <unistd.h>
 #include <sys/resource.h>
 
 int

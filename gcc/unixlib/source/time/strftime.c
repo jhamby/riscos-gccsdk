@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/time/strftime.c,v $
- * $Date: 2002/02/14 15:56:38 $
- * $Revision: 1.4 $
+ * $Date: 2005/04/13 19:20:06 $
+ * $Revision: 1.5 $
  * $State: Exp $
- * $Author: admin $
+ * $Author: nick $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: strftime.c,v 1.4 2002/02/14 15:56:38 admin Exp $";
+static const char rcs_id[] = "$Id: strftime.c,v 1.5 2005/04/13 19:20:06 nick Exp $";
 #endif
 
 /* UnixLib port by Nick Burrett, 13 July 1997.  */
@@ -343,7 +343,7 @@ secs (const struct tm *t, char *pt, const char *ptlim)
   /* Make a copy, mktime(3) modifies the tm struct. */
   tmp = *t;
   s = mktime (&tmp);
-  sprintf (buf, "%d", s);
+  sprintf (buf, "%d", (int)s);
   return add (buf, pt, ptlim);
 }
 

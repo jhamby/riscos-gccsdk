@@ -1,3 +1,57 @@
+Sun Apr 24 21:24:36 2005  John Tytgat  <John.Tytgat@aaug.net>
+
+	* sys/resource.h (getpriority): Use id_t instead of int.
+	(setpriority): Likewise.
+	* resource/getprior.c (getpriority): Likewise.
+	* resource/setprior.c (setpriority): Likewise.
+	* unixlib/dev.h (__getdevtype): const non-ptr return value doesn't
+	make much sense therefore removed const.
+	* unix/dev.c: Likewise.
+	* unixlib/os.h: Relaxed several prototypes concerning __nonnull.
+	* unixlib/sigstate.h (__backtrace_getfp): Return type is now void*
+	instead of int*.
+	(__ul_callbackfp): Changed type from int* to unsigned int*.
+	* unix.h (struct __sul_process): Changed types fo maxfd, fdsize,
+	fdhandlesize and environ_size from int to unsigned int.
+	Removed __OS_ARTHUR & __OS_RISCOS_* defines.
+	(__decstrtoui): Changed constify end parameter.
+	(__intenv): Decorated prototype with __nonnull and/or __wur.
+	(__runtime_features): Likewise.
+	(__atomic_modify): Likewise.
+	(__unixlib_signal_initialise): Likewise.
+	(__resource_initialise): Likewise.
+	(__stackalloc): Likewise.
+	(__free_stack_chain): Likewise.
+	(__stackalloc_incr_wimpslot): Likewise.
+	(__free_process): Likewise.
+	(__get_program_name): Likewise & also renamed from get_program_name.
+	* unix/unix.c (__decstrtoui): Changed constify end parameter.
+	* netlib/htons.s (htons): Removed.
+	* netlib/htonl.s (ntonl): Removed.
+	* netlib/_bswap_16.s: Exported __bswap_16 as htons and ntohs.
+	* netlib/_bswap_32.s: Exported __bswap_32 as htonl and ntohl.
+	* netlib/getnameinfo.c: Compiler warning fixing.
+	* signal/post.c: Likewise.
+	* sys/debug.c: Likewise.
+	* time/strftime.c: Likewise.
+	* unix/dirent.c: Likewise.
+	* unix/select.c: Likewise.
+	* unix/sync.c: Likewise.
+	* unix/syslog.c: Likewise.
+	* unix/tty.c: Likewise.
+	* unix/unlink.c: Likewise.
+	* signal/_coredump.s (__backtrace_fp): Add functionname in object code.
+	* signal/_signal.s: "Unixlib" -> "UnixLib".
+	* sys/_syslib.s: Likewise.
+	* unix/custom.c: Likewise.
+	* stdio/rename.c (rename): Failure to delete destination file is no
+	long ignored.
+	* sys/_os.s: CMP -> TEQ for consistency reasons.
+	* sys/mman.c: Rename get_program_name to __get_program_name.
+	* unix/features.c: Likewise.
+	* unix/getenv.c: 0 -> NULL.
+	* unix/nice.c (nice): Added unistd.h include to get nice() prototype.
+
 Sun Apr 24 21:04:12 2005  Alex Waugh  <alex@alexwaugh.com>
 
 	* common/unixify.c: Fix buffer overflow.

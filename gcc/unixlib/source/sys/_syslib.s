@@ -1,8 +1,8 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/_syslib.s,v $
-; $Date: 2005/04/22 14:38:49 $
-; $Revision: 1.46 $
+; $Date: 2005/04/23 10:44:38 $
+; $Revision: 1.47 $
 ; $State: Exp $
 ; $Author: nick $
 ;
@@ -73,7 +73,7 @@ MAX_DA_NAME_SIZE	* 32
 	IMPORT  |__pthread_disable_ints|   ;ASM function (pthread/_ints.s)
 	IMPORT  |__pthread_enable_ints|    ;ASM function (pthread/_ints.s)
 	IMPORT	|__setup_signalhandler_stack| ;ASM function (signal/_signal.s)
-	
+
 	IMPORT	|_main|
 	IMPORT	|__program_name|, WEAK
 	IMPORT	|__dynamic_no_da|, WEAK
@@ -964,7 +964,7 @@ __unixlib_fatal_got_msg
 |__valid_address|
 	SWI	XOS_ValidateAddress
 	; If the C flag is clear then the address range is OK
-	; If the C flag is set then the address range is not OK.  
+	; If the C flag is set then the address range is not OK.
 	MOVCC	a1, #1
 	MOVCS	a1, #0
 	MOV	pc, lr
@@ -1046,7 +1046,7 @@ dynamic_area_name_end
 	; global structure.
 	EXPORT	|__ul_global|
 |__ul_global|
-	
+
 	; Altering this structure will require fixing __main.
 |__unixlib_cli|	        DCD	0				; offset = 0
 |__image_rw_himem|	DCD	0				; offset = 4
@@ -1107,7 +1107,7 @@ dynamic_area_name_end
 |__pthread_callback_semaphore|
 	DCD	0						; offset = 108
 
-	; Global initialisation flag.  Unixlib internally uses this to
+	; Global initialisation flag.  UnixLib internally uses this to
 	; test whether or not to use mutexes for locking critical structures.
 |__pthread_system_running|
 	DCD	0						; offset = 112

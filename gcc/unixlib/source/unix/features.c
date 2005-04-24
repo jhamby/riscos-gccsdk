@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/features.c,v $
- * $Date: 2005/03/15 22:09:38 $
- * $Revision: 1.12 $
+ * $Date: 2005/04/07 18:46:23 $
+ * $Revision: 1.13 $
  * $State: Exp $
- * $Author: alex $
+ * $Author: nick $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: features.c,v 1.12 2005/03/15 22:09:38 alex Exp $";
+static const char rcs_id[] = "$Id: features.c,v 1.13 2005/04/07 18:46:23 nick Exp $";
 #endif
 
 /* #define DEBUG 1 */
@@ -21,7 +21,7 @@ static const char rcs_id[] = "$Id: features.c,v 1.12 2005/03/15 22:09:38 alex Ex
 
 static const char __sfix_default[] = "a:c:cc:f:h:i:ii:l:o:p:s:y";
 
-char *get_program_name (const char *cli, char *fname_buf, size_t fname_buf_len)
+char *__get_program_name (const char *cli, char *fname_buf, size_t fname_buf_len)
 {
   char *out;
   const char *start, *end;
@@ -160,5 +160,5 @@ void __runtime_features (const char *cli)
   __sdirinit (); /* Initialise riscosify.  */
 
   features (NULL);
-  features (get_program_name (cli, program_name, sizeof (program_name)));
+  features (__get_program_name (cli, program_name, sizeof (program_name)));
 }

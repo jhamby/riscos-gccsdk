@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/tty.c,v $
- * $Date: 2005/04/08 22:37:55 $
- * $Revision: 1.20 $
+ * $Date: 2005/04/14 15:17:23 $
+ * $Revision: 1.21 $
  * $State: Exp $
- * $Author: alex $
+ * $Author: nick $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: tty.c,v 1.20 2005/04/08 22:37:55 alex Exp $";
+static const char rcs_id[] = "$Id: tty.c,v 1.21 2005/04/14 15:17:23 nick Exp $";
 #endif
 
 /* System V tty device driver for RISC OS.  */
@@ -1214,15 +1214,15 @@ __ttyioctl (struct __unixlib_fd *file_desc, unsigned long request, void *arg)
 
 int
 __ttyselect (struct __unixlib_fd *file_desc, int fd,
-	     fd_set *read, fd_set *write, fd_set *except)
+	     fd_set *fdread, fd_set *fdwrite, fd_set *fdexcept)
 {
   struct tty *tty = file_desc->devicehandle->handle;
 
-  if (read)
+  if (fdread)
     {
       /* Canonical mode, and buffer is not empty?  */
       if ((tty->t->c_lflag & ICANON) && (tty->cnt != 0))
-	FD_SET(fd, read);
+	FD_SET(fd, fdread);
       else
 	{
 	  /* If no lookahead, then get some.  */
@@ -1230,20 +1230,20 @@ __ttyselect (struct __unixlib_fd *file_desc, int fd,
 	    tty->lookahead = getfunc (tty).scan (0);
 
 	  if (tty->lookahead >= 0)
-	    FD_SET(fd, read);
+	    FD_SET(fd, fdread);
 	  else
-	    FD_CLR(fd, read);
+	    FD_CLR(fd, fdread);
 	}
     }
 
   /* Assume (maybe wrong) that we can always write to the tty.  */
-  if (write)
-    FD_SET (fd, write);
+  if (fdwrite)
+    FD_SET (fd, fdwrite);
   /* Only exceptional condition is Out-Of-Band data (on sockets).  */
-  if (except)
-    FD_CLR (fd, except);
+  if (fdexcept)
+    FD_CLR (fd, fdexcept);
 
   /* This may not be correct, but it is consistent with Internet 5
      select.  */
-  return ((read && FD_ISSET(fd, read)) ? 1 : 0) + (write ? 1 : 0);
+  return ((fdread && FD_ISSET(fd, fdread)) ? 1 : 0) + (fdwrite ? 1 : 0);
 }

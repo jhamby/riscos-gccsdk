@@ -58,7 +58,7 @@ __getenv_from_os (const char *name, char *buf, size_t buflen, char **call)
         {
           /* We are trying to enumerate everything that needs adding
              to the environment, so filter out variables that we are
-             not interested in. */ 
+             not interested in. */
           char *dollar;
 
           *call = found = (char *)regs[3];
@@ -195,7 +195,7 @@ __intenv (const char *name)
   char intbuf[16];
 
   if (__getenv_from_os (name, intbuf, sizeof (intbuf), NULL) != NULL)
-    return (int) __decstrtoui (intbuf, 0);
+    return (int) __decstrtoui (intbuf, NULL);
   else
     return 0;
 }

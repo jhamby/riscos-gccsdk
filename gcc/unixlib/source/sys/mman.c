@@ -158,7 +158,7 @@ mmap (caddr_t addr, size_t len, int prot, int flags, int fd, off_t offset)
 #endif
     else
       {
-        regs[8] = (int)get_program_name (__u->argv[0], namebuf,
+        regs[8] = (int)__get_program_name (__u->argv[0], namebuf,
 					 sizeof(namebuf) - sizeof(" MMap"));
         strcat (namebuf, " MMap");
       }
