@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/grp.h,v $
- * $Date: 2004/10/17 16:24:43 $
- * $Revision: 1.7 $
+ * $Date: 2005/04/14 12:13:09 $
+ * $Revision: 1.8 $
  * $State: Exp $
- * $Author: joty $
+ * $Author: nick $
  *
  ***************************************************************************/
 
@@ -15,9 +15,7 @@
 #include <features.h>
 #endif
 
-#ifndef __UNIXLIB_TYPES_H
-#include <unixlib/types.h>
-#endif
+#include <sys/types.h>
 
 #define __need_size_t
 #include <stddef.h>

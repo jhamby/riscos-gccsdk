@@ -1,8 +1,8 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/dirent.h,v $
- * $Date: 2005/04/20 13:18:56 $
- * $Revision: 1.12 $
+ * $Date: 2005/04/22 08:45:40 $
+ * $Revision: 1.13 $
  * $State: Exp $
  * $Author: nick $
  *
@@ -20,9 +20,7 @@
 #define __need_size_t
 #include <stddef.h>
 
-#ifndef __UNIXLIB_TYPES_H
-#include <unixlib/types.h>
-#endif
+#include <sys/types.h>
 
 __BEGIN_DECLS
 
