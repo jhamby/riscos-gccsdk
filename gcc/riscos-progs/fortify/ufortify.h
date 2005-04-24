@@ -45,8 +45,12 @@
 /* #define FORTIFY_NO_PERCENT_P */       /* sprintf() doesn't support %p */
 #define FORTIFY_STRDUP             /* if you use non-ANSI strdup() */
 
-#define FORTIFY_LOCK()
-#define FORTIFY_UNLOCK()
+#define FORTIFY_LOCK() \
+  pthread_mutex_lock (&fortify_mutex);
+
+#define FORTIFY_UNLOCK() \
+  pthread_mutex_unlock (&fortify_mutex);
+
 
 #define FORTIFY_DELETE_STACK_SIZE    256
 

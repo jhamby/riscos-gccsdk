@@ -47,10 +47,7 @@
 #include <math.h>
 #include <ctype.h>
 #include <time.h>
-
-
-/* the user's options */
-#include "ufortify.h"
+#include <pthread.h>
 
 /* Prototypes and such */
 #define __FORTIFY_C__
@@ -180,7 +177,10 @@ static unsigned long  st_AllocationLimit  = 0xffffffff;
     static unsigned long  st_TotalDeallocated = 0;
 #endif
 
- 
+/* Mutex required to make Fortify thread-safe.  See FORTIFY_LOCK
+   macro in ufortify.h.  */
+static pthread_mutex_t fortify_mutex = PTHREAD_MUTEX_INITIALIZER;
+
 /* allocators */
 static const char *st_AllocatorName[] =
 {
