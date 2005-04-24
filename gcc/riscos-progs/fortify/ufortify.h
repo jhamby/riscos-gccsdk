@@ -25,8 +25,8 @@
 
 #define FORTIFY_FILL_ON_CORRUPTION             /* Nuke out corrupted memory    */
 
-#define FORTIFY_CHECK_ALL_MEMORY_ON_ALLOCATE  
-#define FORTIFY_CHECK_ALL_MEMORY_ON_DEALLOCATE
+/* #define FORTIFY_CHECK_ALL_MEMORY_ON_ALLOCATE   */
+/* #define FORTIFY_CHECK_ALL_MEMORY_ON_DEALLOCATE */
 /* #define FORTIFY_PARANOID_DEALLOCATE            */
 
 /* #define FORTIFY_WARN_ON_ZERO_MALLOC *//* A debug is issued on a malloc(0) */
