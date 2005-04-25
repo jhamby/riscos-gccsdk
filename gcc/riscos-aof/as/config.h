@@ -11,7 +11,7 @@
 #define ENABLE_FILETYPE_FF8 1
 
 /* Program name */
-#define PACKAGE "GCCSDK"
+#define PACKAGE "AS"
 
 /* Define to the address where bug reports for this package should be sent. */
 #define PACKAGE_BUGREPORT ""
@@ -42,12 +42,12 @@
 #define HAVE_CPP_STRINGIFY 1
 #define HAVE_DECL_SYS_SIGLIST 1
 #define HAVE_ENDIAN_H 1
-#define HAVE_INTTYPES_H 1
 #define HAVE_ISASCII 1
 #define HAVE_STDINT_H 1
 #define HAVE_LIMITS_H 1
 #define HAVE_STDDEF_H 1
 #define HAVE_STDLIB_H 1
+#define HAVE_STDINT_H 1
 #define HAVE_STRCHR 1
 #define HAVE_STRDUP 1
 #define HAVE_STRERROR 1

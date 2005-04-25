@@ -6,7 +6,6 @@ exesfx =
 else
 CC = $(CROSS_CC)
 CFLAGS = $(CROSS_CFLAGS) -mlibscl -D__RISCOSIFY
-
 endif
 
 INCLUDES = -I. -I../../
@@ -14,118 +13,130 @@ CFLAGS += -Wall
 
 asobjdir = $(objdir)/riscos-aof/as/$(STAGE)
 
+all:	$(gcc_bin_dir)/as$(exesfx)
+
+SRCS = area.c \
+	asm.c \
+	code.c \
+	commands.c \
+	decode.c \
+	depend.c \
+	error.c \
+	eval.c \
+	expr.c \
+	filestack.c \
+	fix.c \
+	get.c \
+	hash.c \
+	help_cop.c \
+	help_cpu.c \
+	help_eval.c \
+	help_lex.c \
+	include.c \
+	input.c \
+	lex.c \
+	lexAcorn.c \
+	lit.c \
+	local.c \
+	macros.c \
+	main.c \
+	m_cop.c \
+	m_copmem.c \
+	m_cpu.c \
+	m_cpuctrl.c \
+	m_cpumem.c \
+	m_fpu.c \
+	m_fpumem.c \
+	option.c \
+	output.c \
+	put.c \
+	reloc.c \
+	riscos_c.c \
+	storage.c \
+	strdup.c \
+	symbol.c \
+	targetcpu.c \
+	value.c \
+	variables.c \
+	whileif.c
+
+HDRS = ../../sdk-config.h \
+	aoffile.h \
+	area.h \
+	asm.h \
+	chunkfile.h \
+	code.h \
+	commands.h \
+	config.h \
+	decode.h \
+	depend.h \
+	elf.h \
+	error.h \
+	eval.h \
+	expr.h \
+	filestack.h \
+	fix.h \
+	get.h \
+	global.h \
+	hash.h \
+	help_cop.h \
+	help_cpu.h \
+	help_eval.h \
+	help_lex.h \
+	include.h \
+	input.h \
+	lex.h \
+	lit.h \
+	local.h \
+	macros.h \
+	main.h \
+	m_cpu.h \
+	m_fpu.h \
+	mnemonics.h \
+	option.h \
+	os.h \
+	output.h \
+	put.h \
+	reloc.h \
+	rname.h \
+	storage.h \
+	symbol.h \
+	targetcpu.h \
+	value.h \
+	variables.h \
+	version.h \
+	whileif.h
+
+ifeq (${STAGE},stage1)
+# As we cannot guarantee what the host compiler is, we elect to build
+# the application as seperate module units.
+SRCS +=	rname.c rname2.c
+
+# This funky line tells make to change all '.c' suffixes to '.o' and add
+# '$(asobjdir)/' to each object.
+OBJS = $(addprefix $(asobjdir)/, $(SRCS:.c=.o))
+
 $(asobjdir)/%.o: %.c
 	$(CC) $(CFLAGS) -o $@ -c $< $(INCLUDES)
 
-$(asobjdir)/%.o: %.s
-	$(CC) $(CFLAGS) -o $@ -c $< $(INCLUDES)
-
-OBJS =	$(asobjdir)/area.o \
-	$(asobjdir)/asm.o \
-	$(asobjdir)/code.o \
-	$(asobjdir)/commands.o \
-	$(asobjdir)/decode.o \
-	$(asobjdir)/depend.o \
-	$(asobjdir)/error.o \
-	$(asobjdir)/eval.o \
-	$(asobjdir)/expr.o \
-	$(asobjdir)/filestack.o \
-	$(asobjdir)/fix.o \
-	$(asobjdir)/get.o \
-	$(asobjdir)/hash.o \
-	$(asobjdir)/help_cop.o \
-	$(asobjdir)/help_cpu.o \
-	$(asobjdir)/help_eval.o \
-	$(asobjdir)/help_lex.o \
-	$(asobjdir)/include.o \
-	$(asobjdir)/input.o \
-	$(asobjdir)/lex.o \
-	$(asobjdir)/lexAcorn.o \
-	$(asobjdir)/lit.o \
-	$(asobjdir)/local.o \
-	$(asobjdir)/macros.o \
-	$(asobjdir)/main.o \
-	$(asobjdir)/m_cop.o \
-	$(asobjdir)/m_copmem.o \
-	$(asobjdir)/m_cpu.o \
-	$(asobjdir)/m_cpuctrl.o \
-	$(asobjdir)/m_cpumem.o \
-	$(asobjdir)/m_fpu.o \
-	$(asobjdir)/m_fpumem.o \
-	$(asobjdir)/option.o \
-	$(asobjdir)/output.o \
-	$(asobjdir)/put.o \
-	$(asobjdir)/reloc.o \
-	$(asobjdir)/riscos_c.o \
-	$(asobjdir)/storage.o \
-	$(asobjdir)/strdup.o \
-	$(asobjdir)/symbol.o \
-	$(asobjdir)/targetcpu.o \
-	$(asobjdir)/value.o \
-	$(asobjdir)/variables.o \
-	$(asobjdir)/whileif.o
-
-ifeq (${STAGE},stage1)
-	OBJS +=	$(asobjdir)/rname.o $(asobjdir)/rname2.o
+$(gcc_bin_dir)/as$(exesfx):	$(OBJS)
+	$(CC) $(CFLAGS) -o $@ $(OBJS) -lm -L$(objdir)/libiberty/$(STAGE) -liberty 
 endif
 ifeq (${STAGE},stage2)
-	OBJS += $(asobjdir)/os.o
+# Since we know that we are compiling with GCC 3.4, we can compile the
+# application using inter-module analysis, effectivly building as if all
+# functions are contained within one source file.
 	DEPS += $(gcc_bin_dir)/$(TRG)/o/unixlib
+
+$(asobjdir)/as.o: $(SRCS) $(DEPS) $(HDRS)
+	$(CC) $(CFLAGS) -o $@ -c $(SRCS) $(INCLUDES)
+
+$(gcc_bin_dir)/as$(exesfx):	$(asobjdir)/as.o $(DEPS)
+	$(CC) $(CFLAGS) -o $@ $(asobjdir)/as.o -lm -L$(objdir)/libiberty/$(STAGE) -liberty 
 endif
 
-all:	$(gcc_bin_dir)/as$(exesfx)
 
-$(gcc_bin_dir)/as$(exesfx):	$(OBJS) $(DEPS)
-	$(CC) $(CFLAGS) -o $@ $(OBJS) -lm -L$(objdir)/libiberty/$(STAGE) -liberty 
-
-$(asobjdir)/area.o: area.c
-$(asobjdir)/asm.o: asm.c
-$(asobjdir)/commands.o: commands.c
-$(asobjdir)/depend.o: depend.c
-$(asobjdir)/decode.o: decode.c
-$(asobjdir)/error.o: error.c
-$(asobjdir)/eval.o: eval.c
-$(asobjdir)/expr.o: expr.c
-$(asobjdir)/get.o: get.c
-$(asobjdir)/hash.o: hash.c
-$(asobjdir)/help_cop.o: help_cop.c
-$(asobjdir)/help_cpu.o: help_cpu.c
-$(asobjdir)/input.o: input.c
-$(asobjdir)/lex.o: lex.c
-$(asobjdir)/main.o: main.c
-$(asobjdir)/m_cop.o: m_cop.c
-$(asobjdir)/m_copmem.o: m_copmem.c
-$(asobjdir)/m_cpu.o: m_cpu.c
-$(asobjdir)/m_cpuctrl.o: m_cpuctrl.c
-$(asobjdir)/m_cpumem.o: m_cpumem.c
-$(asobjdir)/m_fpu.o: m_fpu.c
-$(asobjdir)/m_fpumem.o: m_fpumem.c
-$(asobjdir)/option.o: option.c
-$(asobjdir)/output.o: output.c
-$(asobjdir)/put.o: put.c
-$(asobjdir)/symbol.o: symbol.c
-$(asobjdir)/code.o: code.c
-$(asobjdir)/help_eval.o: help_eval.c
-$(asobjdir)/fix.o: fix.c
-$(asobjdir)/reloc.o: reloc.c
-$(asobjdir)/value.o: value.c
-$(asobjdir)/help_lex.o: help_lex.c
-$(asobjdir)/storage.o: storage.c
-$(asobjdir)/riscos_c.o: riscos_c.c
-$(asobjdir)/filestack.o: filestack.c
-$(asobjdir)/include.o: include.c
-$(asobjdir)/lexAcorn.o: lexAcorn.c
-$(asobjdir)/lit.o: lit.c
-$(asobjdir)/rname2.o: rname.c
-$(asobjdir)/rname.o: rname.c
-$(asobjdir)/os.o: os.s
-$(asobjdir)/macros.o: macros.c
-$(asobjdir)/variables.o: variables.c
-$(asobjdir)/whileif.o: whileif.c
-$(asobjdir)/local.o: local.c
-$(asobjdir)/strdup.o: strdup.c
-$(asobjdir)/targetcpu.o: targetcpu.c
-
+ifeq (${STAGE},stage1)
 $(asobjdir)/area.o:  \
  area.c ../../sdk-config.h config.h lex.h global.h hash.h symbol.h value.h \
   commands.h error.h input.h macros.h whileif.h expr.h area.h reloc.h \
@@ -242,7 +253,7 @@ $(asobjdir)/reloc.o:  \
   reloc.h get.h error.h eval.h area.h lit.h option.h input.h macros.h \
   whileif.h aoffile.h fix.h
 $(asobjdir)/riscos_c.o:  \
- riscos_c.c ../../sdk-config.h config.h error.h global.h
+ riscos_c.c ../../sdk-config.h config.h error.h global.h os.h
 $(asobjdir)/storage.o:  \
  storage.c ../../sdk-config.h config.h storage.h value.h global.h symbol.h lex.h \
   get.h input.h macros.h whileif.h expr.h error.h
@@ -266,3 +277,4 @@ $(asobjdir)/variables.o:  \
 $(asobjdir)/whileif.o:  \
  whileif.c ../../sdk-config.h config.h commands.h symbol.h lex.h global.h value.h \
   decode.h error.h input.h macros.h whileif.h expr.h os.h
+endif

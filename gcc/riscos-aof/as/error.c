@@ -66,7 +66,7 @@ errorFinish (void)
 #ifndef CROSS_COMPILE
   if (ThrowbackStarted > 0)
     {
-      os_error *err;
+      _kernel_oserror *err;
       if ((err = ThrowbackEnd ()) != NULL && verbose > 1)
         fprintf (stderr, "ThrowbackEnd error: %s\n", err->errmess);
     }
@@ -99,7 +99,7 @@ TB (int level, long int lineno, const char *error, const char *file)
     ThrowbackStarted = ThrowbackStart ()? -1 : 1;
   if (ThrowbackStarted == 1)
     {
-      os_error *err;
+      _kernel_oserror *err;
 
       if ((err = ThrowbackSendStart (file)) != NULL && verbose > 1)
 	fprintf (stderr, "ThrowbackSendStart error: %s\n", err->errmess);

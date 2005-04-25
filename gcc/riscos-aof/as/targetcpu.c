@@ -3,6 +3,7 @@
  * Copyright © 1997 Darren Salt
  */
 
+#include "config.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -11,6 +12,7 @@
 #include "error.h"
 #include "main.h"
 #include "targetcpu.h"
+#include "os.h"
 
 TargetCPU_t targetCPU = UNKNOWN;
 
@@ -94,7 +96,8 @@ as_target (const char *target)	/* only called from main() */
       fprintf (stderr, "%s: Missing target CPU\n", ProgName);
       return -1;
     }
-  for (n = 0; cpu[n].name != NULL && strncasecmp (target, cpu[n].name, cpu[n].name_len); ++n)
+  for (n = 0; cpu[n].name != NULL
+	 && strncasecmp (target, cpu[n].name, cpu[n].name_len); ++n)
     /* */;
   if (cpu[n].name != NULL)
     targetCPU = cpu[n].type;

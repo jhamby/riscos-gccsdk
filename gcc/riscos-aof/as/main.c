@@ -32,6 +32,9 @@
 #elif HAVE_INTTYPES_H
 #include <inttypes.h>
 #endif
+#ifndef CROSS_COMPILE
+#include <kernel.h>
+#endif
 
 #include "area.h"
 #include "asm.h"
@@ -124,7 +127,6 @@ as_help (void)
 
 
 #ifndef CROSS_COMPILE
-extern int _kernel_setenv (const char *, const char *);
 static char *prefix;
 #endif
 

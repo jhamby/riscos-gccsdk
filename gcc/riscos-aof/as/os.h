@@ -6,7 +6,6 @@
 #ifndef os_header_included
 #define os_header_included
 
-#include <stdio.h>
 #include "config.h"
 
 #ifdef CROSS_COMPILE
@@ -14,28 +13,19 @@
 #define OSCanonicalisePath(a,b,c,d,e) strdup(a)
 #else
 
-/* Acorn/RISC OS specific information.  */
-typedef struct os_error
-{
-  int errnum;
-  char errmess[256];
-}
-os_error;
+#include <kernel.h>
 
-extern char *ErrorFile;
+extern int switonum (const char *swi);
 
-int switonum (const char *swi);
+extern int OSCanonicalisePath (const char *path,
+			       char *buffer, int bufferSize,
+			       char *systemVar, char *defaultPath);
 
-
-int (OSCanonicalisePath) (char *path,
-			  char *buffer, int bufferSize,
-			  char *systemVar, char *defaultPath);
-
-os_error *ThrowbackStart (void);
-os_error *ThrowbackSendStart (const char *filename);
-os_error *ThrowbackSendError (int level, long int lineno, const char *error);
-os_error *ThrowbackEnd (void);
-
+extern _kernel_oserror *ThrowbackStart (void);
+extern _kernel_oserror *ThrowbackSendStart (const char *filename);
+extern _kernel_oserror *ThrowbackSendError (int level, long int lineno,
+					    const char *error);
+extern _kernel_oserror *ThrowbackEnd (void);
 
 #define Throwback_ReasonProcessing	0
 #define Throwback_ReasonErrorDetails	1
@@ -46,17 +36,19 @@ os_error *ThrowbackEnd (void);
 #define ThrowbackError			1
 #define ThrowbackSeriousError		2
 
-char *(CanonicalisePath) (const char *path);
+extern char *CanonicalisePath (const char *path);
 
 #endif /* !CROSS_COMPILE */
 
-#if defined CROSS_COMPILE && !defined (HAVE_STRNDUP)
+#ifndef HAVE_STRNDUP
 extern char *strndup (const char *str, size_t len);
 #endif
-#if defined CROSS_COMPILE && !defined (HAVE_STRDUP)
+
+#ifndef HAVE_STRDUP
 extern char *strdup (const char *str);
 #endif
-#if defined CROSS_COMPILE && !defined (HAVE_STRNCASECMP)
+
+#ifndef HAVE_STRNCASECMP
 extern int strncasecmp(const char *str1, const char *str2, size_t n);
 #endif
 
