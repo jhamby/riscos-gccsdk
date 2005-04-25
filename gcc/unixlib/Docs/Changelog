@@ -1,3 +1,7 @@
+Mon Apr 25 19:28:15 2005  Nick Burrett  <nick@sqrt.co.uk>
+
+	* sys/_mem.s: Delete file.
+
 Mon Apr 25 13:32:29 2005  Stefan Bellon  <sbellon@sbellon.de>
 
 	Norcroft compatibility.
