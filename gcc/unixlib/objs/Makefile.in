@@ -1,10 +1,10 @@
 # Project:   GCCSDK UnixLib
 
 # $Source: /usr/local/cvsroot/gccsdk/unixlib/objs/Makefile.in,v $
-# $Date: 2005/01/05 23:10:54 $
-# $Revision: 1.11 $
+# $Date: 2005/04/18 18:36:26 $
+# $Revision: 1.12 $
 # $State: Exp $
-# $Author: joty $
+# $Author: nick $
 
 CCfeatures =
 Predefs = -D__UNIXLIB_INTERNALS -DBIG_ENDI -DHIGH_HALF=0 -DLOW_HALF=1 -D_GNU_SOURCE=1
@@ -69,7 +69,6 @@ LINK = link
 VPATH = ^.source
 .SUFFIXES: .o .c .s
 .INIT:
-	@cdir o
 	@cdir module
 	@cdir module.o
 
@@ -88,13 +87,11 @@ SharedULib: module.o.sul
 
 UnixLib: $(OBJS)
 	$(AR) $(ARflags) -o $@ \
-	o.* \
 
 UnixLib:o.UnixLib:	UnixLib
 	copy @.UnixLib UnixLib:o.UnixLib fv~c
 
 clean:
-	-wipe o f~vr~c
 	-wipe module f~vr~c
 	-remove UnixLib
 	-remove SharedULib

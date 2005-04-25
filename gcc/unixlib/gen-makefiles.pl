@@ -2,8 +2,8 @@
 # Create various UnixLib Makefiles
 #
 # $Source: /usr/local/cvsroot/gccsdk/unixlib/gen-makefiles.pl,v $
-# $Date: 2005/04/18 19:10:40 $
-# $Revision: 1.10 $
+# $Date: 2005/04/18 21:27:51 $
+# $Revision: 1.11 $
 # $State: Exp $
 # $Author: nick $
 
@@ -293,7 +293,7 @@ while (<NORCROFTIN>) {
       print NORCROFT "	-wipe ".riscosify($dir)." f~vr~c\n";
     }
   }
-  if (/^\to.* \\$/) {
+  if (/^\t\$\(AR\) \$\(ARflags\) -o \$\@ \\$/) {
     foreach $dir (@dirs) {
       print NORCROFT "	".riscosify($dir).".o.* \\\n";
     }
