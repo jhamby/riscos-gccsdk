@@ -12,11 +12,11 @@
 #include "kernel.h"
 
 /* Get O_xxx macros and ensure same as UnixLib, so that libgnat
-   is compatible with Unixlib and stubs. */
+   is compatible with UnixLib and stubs. */
 #include "fcntl.h"
 
 /* Get TCxxx macros and ensure same as UnixLib, so that libgnat
-   is compatible with Unixlib and stubs.  */
+   is compatible with UnixLib and stubs.  */
 #include "termio.h"
 
 #if 0

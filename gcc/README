@@ -155,7 +155,7 @@ The RISC OS distribution contains the following tools:
 FAQ
 ---
 
-Q1. How can I build Unixlib with function names?
+Q1. How can I build UnixLib with function names?
 
 A1. The default is for GCC to not embed function names in the program,
     so backtraces will show ?() for functions.   The following applies
@@ -164,10 +164,13 @@ A1. The default is for GCC to not embed function names in the program,
     In unixlib/source/Makefile, add "-mpoke-function-name" to the
     CROSS_CFLAGS line.
 
-    Delete previous Unixlib objetcs, e.g.:
-       find arm-riscos-aof/unixlib/ -type f | xargs rm
+    Delete previous UnixLib objects:
 
-    Rebuild with make.
+       make clean
+
+    Rebuild with make:
+
+       make
 
     If you want function names in all libraries and RISC OS binaries
     then edit the top-level Makefile.in and set the following lines thus:
@@ -192,14 +195,14 @@ A2. Systems on which it has successfully been built upon include:
 
 -----------------------------------------------------------------------------
 
-Q3. Where does the Unixlib library file end up?
+Q3. Where does the UnixLib library file end up?
 
 A3. It depends on the parameters you pass to configure.  But for the
     RISC OS distribution it could be something like:
-      /usr/home/riscos/riscos-dist/bin/arm-riscos-aof/apcs32/unixlib/o/
+      /home/riscos/riscos-dist/bin/arm-riscos-aof/apcs32/unixlib/o/
 
     For the Unix tree it could be:
-      /usr/home/riscos/riscos-cross/bin/arm-riscos-aof/apcs32/unixlib/unixlib.o
+      /home/riscos/riscos-cross/bin/arm-riscos-aof/apcs32/unixlib/unixlib.o
 
 
 -----------------------------------------------------------------------------

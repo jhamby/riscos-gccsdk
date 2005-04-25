@@ -1,8 +1,8 @@
 # Project:   GCCSDK UnixLib
 
 # $Source: /usr/local/cvsroot/gccsdk/unixlib/objs/Makefile.in,v $
-# $Date: 2005/04/18 18:36:26 $
-# $Revision: 1.12 $
+# $Date: 2005/04/25 18:25:47 $
+# $Revision: 1.13 $
 # $State: Exp $
 # $Author: nick $
 
@@ -28,7 +28,7 @@ Predefs = -D__UNIXLIB_INTERNALS -DBIG_ENDI -DHIGH_HALF=0 -DLOW_HALF=1 -D_GNU_SOU
 CC = cc
 CCdflags = -g
 CCrflags =
-CCflags = -depend !Depend -throwback -fcah -IUnixlib: -JUnixLib: -I UnixLib:^.incl-local -Wdap -ccversion 553 $(CCrflags) -APCS 3/32bit/fpe3
+CCflags = -depend !Depend -throwback -fcah -IUnixLib: -JUnixLib: -I UnixLib:^.incl-local -Wdap -ccversion 553 $(CCrflags) -APCS 3/32bit/fpe3
 
 # GCC compiler. Comment out if you are using Norcroft C (Acorn) compiler.
 #CC = gcc

@@ -1,7 +1,7 @@
 Welcome to GCC 3.4.4 for RISC OS.
 
 This document covers important notes for new users and existing users alike.
-GCC and Unixlib have undergone many changes, so it's important that you read
+GCC and UnixLib have undergone many changes, so it's important that you read
 this document fully.
 
 If you're new to GCC:
@@ -26,7 +26,7 @@ If you've used GCC before:
   explicitly prepend 'std::' to all function and variable references.
 
 - The file !gcc.Changes lists major changes from the last version.
-  !gcc.docs.ULChanges has a comprehensive list of changes to Unixlib.
+  !gcc.docs.ULChanges has a comprehensive list of changes to UnixLib.
 
 
 Credits:
@@ -34,11 +34,11 @@ Credits:
   Primary Developers
 
   - Nick Burrett - Project Lead, GCC porting, C++ support, AOF tools
-  - Peter Naulls - Unixlib (All areas, especially glibc compatibility),
+  - Peter Naulls - UnixLib (All areas, especially glibc compatibility),
      release management, AOF tools.
-  - John Tytgat - Unixlib (especially process handling, sockets),
+  - John Tytgat - UnixLib (especially process handling, sockets),
      Norcroft compatibility.
-  - Alex Waugh - Unixlib (especially signals, pthreads, file handling)
+  - Alex Waugh - UnixLib (especially signals, pthreads, file handling)
   
   The following people have also made contributions over the last two years
 

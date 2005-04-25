@@ -14,7 +14,7 @@ Set GCCpkg$Path <GCC$Dir>.
 Set GCCsys$Path <GCC$Dir>.sys.
 Set GCClcl$Path <GCC$Dir>.local.
 
-| Set the return code limit. Unixlib encodes information within this range
+| Set the return code limit. UnixLib encodes information within this range
 Set Sys$RCLimit 65536
 
 | Place to store temporary files

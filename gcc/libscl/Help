@@ -63,7 +63,7 @@ filename translation code, especially the fancy options.
 
 The origial version of this using the old 'uname' funtions was done by
 Reuben Thomas, and updated by Peter Naulls to use the modern 'riscosify'
-code in Unixlib.
+code in UnixLib.
 
 
 Known problems with the filename translation code
