@@ -1,5 +1,5 @@
 # Makefile for the ARM Object Format linker - DrLink
-# Written by Nick Burrett <nick@dsvr.net>
+# Written by Nick Burrett <nick@sqrt.co.uk>
 
 ifeq (${STAGE},stage1)
 CFLAGS += -DCROSS_COMPILE
@@ -13,32 +13,34 @@ INCLUDES = -I. -I../../
 
 drlinkobjdir = $(objdir)/riscos-aof/drlink/$(STAGE)
 
+all:	$(bin_dir)/drlink$(exesfx)
+
+SRCS =	aofiles.c \
+	areas.c \
+	debug.c \
+	drlmain.c \
+	files.c \
+	heap.c \
+	libraries.c \
+	linkdebug.c \
+	linkedit.c \
+	linkfiles.c \
+	messages.c \
+	stdcode.c \
+	symbols.c
+
+HDRS =	areahdr.h chunkhdr.h debugprocs.h drlhdr.h \
+	edithdr.h filehdr.h procdefs.h symbolhdr.h
+
+ifeq (${STAGE},stage1)
+OBJS = $(addprefix $(drlinkobjdir)/, $(SRCS:.c=.o))
+
 $(drlinkobjdir)/%.o: %.c
 	$(CC) $(CFLAGS) -o $@ -c $< $(INCLUDES)
 
-OBJS =	$(drlinkobjdir)/aofiles.o \
-	$(drlinkobjdir)/areas.o \
-	$(drlinkobjdir)/debug.o \
-	$(drlinkobjdir)/drlmain.o \
-	$(drlinkobjdir)/files.o \
-	$(drlinkobjdir)/heap.o \
-	$(drlinkobjdir)/libraries.o \
-	$(drlinkobjdir)/linkdebug.o \
-	$(drlinkobjdir)/linkedit.o \
-	$(drlinkobjdir)/linkfiles.o \
-	$(drlinkobjdir)/messages.o \
-	$(drlinkobjdir)/stdcode.o \
-	$(drlinkobjdir)/symbols.o
-
-ifeq (${STAGE},stage2)
-	DEPS += $(gcc_bin_dir)/$(TRG)/o/unixlib
-endif
-
-
-all:	$(bin_dir)/drlink$(exesfx)
-
 $(bin_dir)/drlink$(exesfx): $(OBJS) $(DEPS)
 	$(CC) -o $@ $(OBJS)
+
 
 $(drlinkobjdir)/aofiles.o: aofiles.c
 $(drlinkobjdir)/areas.o: areas.c
@@ -54,3 +56,14 @@ $(drlinkobjdir)/linkfiles.o: linkfiles.c
 $(drlinkobjdir)/messages.o: messages.c
 $(drlinkobjdir)/stdcode.o: stdcode.c
 $(drlinkobjdir)/symbols.o: symbols.c
+endif
+
+ifeq (${STAGE},stage2)
+	DEPS += $(gcc_bin_dir)/$(TRG)/o/unixlib
+
+$(drlinkobjdir)/drlink.o:	$(SRCS) $(DEPS) $(HDRS)
+	$(CC) $(CFLAGS) -o $@ -c $(SRCS) $(INCLUDES)
+
+$(bin_dir)/drlink$(exesfx): $(drlinkobjdir)/drlink.o $(DEPS)
+	$(CC) -o $@ $(drlinkobjdir)/drlink.o
+endif
