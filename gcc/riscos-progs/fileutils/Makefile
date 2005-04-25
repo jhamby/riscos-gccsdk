@@ -1,49 +1,27 @@
 # Makefile for GNU fileutils
-# Written by Nick Burrett <nick@dsvr.net>
+# Written by Nick Burrett <nick@sqrt.co.uk>
 
 INCLUDES = -I.
 CROSS_CFLAGS += -DHAVE_CONFIG_H
 
-$(objdir)/riscos-progs/fileutils/%.o: %.c
-	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c $< $(INCLUDES)
+TOUCH_SRCS = touch.c error.c argmatch.c getdate.c posixtm.c \
+	safe-read.c closeout.c
 
-TOUCH_OBJS = $(objdir)/riscos-progs/fileutils/touch.o \
-	$(objdir)/riscos-progs/fileutils/error.o \
-	$(objdir)/riscos-progs/fileutils/argmatch.o \
-	$(objdir)/riscos-progs/fileutils/getdate.o \
-	$(objdir)/riscos-progs/fileutils/posixtm.o \
-	$(objdir)/riscos-progs/fileutils/safe-read.o \
-	$(objdir)/riscos-progs/fileutils/closeout.o
+MKDIR_SRCS = mkdir.c error.c modechange.c makepath.c save-cwd.c \
+	xgetcwd.c stripslash.c xmalloc.c closeout.c
 
-MKDIR_OBJS = $(objdir)/riscos-progs/fileutils/mkdir.o \
-	$(objdir)/riscos-progs/fileutils/error.o \
-	$(objdir)/riscos-progs/fileutils/modechange.o \
-	$(objdir)/riscos-progs/fileutils/makepath.o \
-	$(objdir)/riscos-progs/fileutils/save-cwd.o \
-	$(objdir)/riscos-progs/fileutils/xgetcwd.o \
-	$(objdir)/riscos-progs/fileutils/stripslash.o \
-	$(objdir)/riscos-progs/fileutils/xmalloc.o \
-	$(objdir)/riscos-progs/fileutils/closeout.o
+HDRS = sys2.h
 
 all:	$(bin_dir)/touch$(exesfx) $(bin_dir)/mkdir$(exesfx)
 
-$(bin_dir)/touch$(exesfx):	$(TOUCH_OBJS)
-	$(CROSS_CC) -o $@ $(TOUCH_OBJS) $(LIBIBERTY)
+$(objdir)/riscos-progs/touch.o:  $(TOUCH_SRCS)
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c $(TOUCH_SRCS) $(INCLUDES)
 
-$(bin_dir)/mkdir$(exesfx):	$(MKDIR_OBJS)
-	$(CROSS_CC) -o $@ $(MKDIR_OBJS) $(LIBIBERTY)
+$(objdir)/riscos-progs/mkdir.o:  $(MKDIR_SRCS) $(HDRS)
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c $(MKDIR_SRCS) $(INCLUDES)
 
-$(objdir)/riscos-progs/fileutils/touch.o: touch.c
-$(objdir)/riscos-progs/fileutils/error.o: error.c
-$(objdir)/riscos-progs/fileutils/argmatch.o: argmatch.c
-$(objdir)/riscos-progs/fileutils/getdate.o: getdate.c
-$(objdir)/riscos-progs/fileutils/posixtm.o: posixtm.c
-$(objdir)/riscos-progs/fileutils/safe-read.o: safe-read.c
-$(objdir)/riscos-progs/fileutils/closeout.o: closeout.c
-$(objdir)/riscos-progs/fileutils/mkdir.o: mkdir.c
-$(objdir)/riscos-progs/fileutils/modechange.o: modechange.c
-$(objdir)/riscos-progs/fileutils/makepath.o: makepath.c
-$(objdir)/riscos-progs/fileutils/save-cwd.o: save-cwd.c
-$(objdir)/riscos-progs/fileutils/xgetcwd.o: xgetcwd.c
-$(objdir)/riscos-progs/fileutils/stripslash.o: stripslash.c
-$(objdir)/riscos-progs/fileutils/xmalloc.o: xmalloc.c
+$(bin_dir)/touch$(exesfx):	$(objdir)/riscos-progs/touch.o
+	$(CROSS_CC) -o $@ $(objdir)/riscos-progs/touch.o $(LIBIBERTY)
+
+$(bin_dir)/mkdir$(exesfx):	$(objdir)/riscos-progs/mkdir.o
+	$(CROSS_CC) -o $@ $(objdir)/riscos-progs/mkdir.o $(LIBIBERTY)

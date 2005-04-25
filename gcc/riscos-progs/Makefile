@@ -10,7 +10,7 @@ LIBIBERTY = $(gcc_bin_dir)/$(TRG)/o/libiberty
 
 export host_bin_dir bin_dir gcc_bin_dir LIBIBERTY
 
-all:	make diff bison fileutils flex gperf grep gzip patch \
+all:	flex make diff bison fileutils gperf grep gzip patch \
 	sed fortify
 
 .PHONY: bison
@@ -25,7 +25,10 @@ all:	make diff bison fileutils flex gperf grep gzip patch \
 .PHONY: sed
 .PHONY: fortify
 
-bison diff fileutils flex gperf grep gzip make patch sed fortify:
+flex fortify gperf:
 	mkdir -p $(objdir)/riscos-progs/$@
+	$(MAKE) -C $@
+
+bison diff fileutils grep gzip make patch sed:
 	$(MAKE) -C $@
 

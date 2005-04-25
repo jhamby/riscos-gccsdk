@@ -6,8 +6,9 @@ CROSS_CFLAGS += -DFORTIFY
 $(objdir)/riscos-progs/fortify/%.o: %.c
 	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c $< $(INCLUDES)
 
-OBJS = $(objdir)/riscos-progs/fortify/fortify.o \
-	$(objdir)/riscos-progs/fortify/memwrap.o
+SRCS = fortify.c memwrap.c
+
+OBJS = $(addprefix $(objdir)/riscos-progs/fortify/, $(SRCS:.c=.o))
 
 all:    $(ux_gcc_bin_dir)/$(TRG)/libfortify.o \
         $(ux_gcc_bin_dir)/$(TRG)/memory-edit

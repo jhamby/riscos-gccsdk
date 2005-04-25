@@ -1,63 +1,26 @@
 # Makefile for GNU make - a build management tool
-# Written by Nick Burrett <nick@dsvr.net>
+# Written by Nick Burrett <nick@sqrt.co.uk>
 
 INCLUDES = -I.
 CROSS_CFLAGS += -DHAVE_CONFIG_H -DLOCALEDIR=\".\" -DINCLUDEDIR=\".\" \
                 -DLIBDIR=\".\" -DGCC_IS_NATIVE
 
-$(objdir)/riscos-progs/make/%.o: %.c
-	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c $< $(INCLUDES)
+SRCS = ar.c arscan.c commands.c default.c dir.c expand.c \
+	file.c function.c getloadavg.c hash.c implicit.c \
+	job.c main.c misc.c read.c remake.c remote-stub.c \
+	rule.c signame.c variable.c version.c vpath.c
 
-OBJS = $(objdir)/riscos-progs/make/ar.o \
-	$(objdir)/riscos-progs/make/arscan.o \
-	$(objdir)/riscos-progs/make/commands.o \
-	$(objdir)/riscos-progs/make/default.o \
-	$(objdir)/riscos-progs/make/dir.o \
-	$(objdir)/riscos-progs/make/expand.o \
-	$(objdir)/riscos-progs/make/file.o \
-	$(objdir)/riscos-progs/make/function.o \
-	$(objdir)/riscos-progs/make/getloadavg.o \
-	$(objdir)/riscos-progs/make/hash.o \
-	$(objdir)/riscos-progs/make/implicit.o \
-	$(objdir)/riscos-progs/make/job.o \
-	$(objdir)/riscos-progs/make/main.o \
-	$(objdir)/riscos-progs/make/misc.o \
-	$(objdir)/riscos-progs/make/read.o \
-	$(objdir)/riscos-progs/make/remake.o \
-	$(objdir)/riscos-progs/make/remote-stub.o \
-	$(objdir)/riscos-progs/make/rule.o \
-	$(objdir)/riscos-progs/make/signame.o \
-	$(objdir)/riscos-progs/make/variable.o \
-	$(objdir)/riscos-progs/make/version.o \
-	$(objdir)/riscos-progs/make/vpath.o
+HDRS = amiga.h commands.h config.h debug.h dep.h filedef.h \
+	getopt.h gettext.h hash.h job.h make.h rule.h variable.h \
+	vmsdir.h
 
 all:	$(bin_dir)/make$(exesfx) $(info_dir)/make
 
-$(bin_dir)/make$(exesfx):	$(OBJS)
-	$(CROSS_CC) -o $@ $(OBJS) -L$(objdir)/libiberty/$(STAGE) -liberty
+$(objdir)/riscos-progs/make.o:	$(SRCS) $(HDRS)
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c $(SRCS) $(INCLUDES)
+
+$(bin_dir)/make$(exesfx):	$(objdir)/riscos-progs/make.o
+	$(CROSS_CC) -o $@ $(objdir)/riscos-progs/make.o -L$(objdir)/libiberty/$(STAGE) -liberty
 
 $(info_dir)/make:	doc/fdl.texi doc/make-stds.texi doc/make.texi
 	$(MAKEINFO) --no-split --number-sections doc/make.texi -o $@ -I doc
-
-$(objdir)/riscos-progs/make/ar.o: ar.c
-$(objdir)/riscos-progs/make/arscan.o: arscan.c
-$(objdir)/riscos-progs/make/commands.o: commands.c
-$(objdir)/riscos-progs/make/default.o: default.c
-$(objdir)/riscos-progs/make/dir.o: dir.c
-$(objdir)/riscos-progs/make/expand.o: expand.c
-$(objdir)/riscos-progs/make/file.o: file.c
-$(objdir)/riscos-progs/make/function.o: function.c
-$(objdir)/riscos-progs/make/getloadavg.o: getloadavg.c
-$(objdir)/riscos-progs/make/gettext.o: gettext.c gettext.h
-$(objdir)/riscos-progs/make/implicit.o: implicit.c
-$(objdir)/riscos-progs/make/job.o: job.c
-$(objdir)/riscos-progs/make/main.o: main.c
-$(objdir)/riscos-progs/make/misc.o: misc.c
-$(objdir)/riscos-progs/make/read.o: read.c
-$(objdir)/riscos-progs/make/remake.o: remake.c
-$(objdir)/riscos-progs/make/remote-stub.o: remote-stub.c
-$(objdir)/riscos-progs/make/rule.o: rule.c
-$(objdir)/riscos-progs/make/signame.o: signame.c
-$(objdir)/riscos-progs/make/variable.o: variable.c
-$(objdir)/riscos-progs/make/version.o: version.c
-$(objdir)/riscos-progs/make/vpath.o: vpath.c

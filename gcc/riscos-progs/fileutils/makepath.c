@@ -35,7 +35,6 @@ char *alloca ();
 # endif
 #endif
 
-#include <stdio.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #if HAVE_UNISTD_H
@@ -66,6 +65,8 @@ char *alloca ();
 #  define strchr index
 # endif
 #endif
+
+#include <stdio.h>
 
 #ifndef S_IWUSR
 # define S_IWUSR 0200

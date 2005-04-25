@@ -24,6 +24,7 @@ Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 
 #include <stdlib.h>
 #include "bitsetv.h"
+#include "xalloc.h"
 
 
 /* Create a vector of N_VECS bitsets, each of N_BITS, and of

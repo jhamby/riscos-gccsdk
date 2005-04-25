@@ -1,73 +1,42 @@
 # Makefile for GNU bison
-# Written by Nick Burrett <nick@dsvr.net>
+# Written by Nick Burrett <nick@sqrt.co.uk>
 
 INCLUDES = -I. -I ./lib -I ../../include
 CROSS_CFLAGS += -DHAVE_CONFIG_H -DPKGDATADIR=\"GCCsys:bison\"
 
-$(objdir)/riscos-progs/bison/%.o: %.c
-	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c $< $(INCLUDES)
+SRCS = assoc.c closure.c complain.c conflicts.c derives.c files.c getargs.c \
+	gram.c lalr.c location.c LR0.c main.c muscle_tab.c \
+	nullable.c output.c parse-gram.c print.c print_graph.c \
+	reader.c reduce.c relation.c scan-gram.c scan-skel.c \
+	state.c symlist.c symtab.c tables.c uniqstr.c vcg.c
 
-bobj = $(objdir)/riscos-progs/bison
+HDRS = assoc.h closure.h complain.h config.h conflicts.h derives.h \
+	files.h getargs.h gram.h lalr.h location.h LR0.h \
+	muscle_tab.h nullable.h output.h parse-gram.h print_graph.h \
+	print.h reader.h reduce.h relation.h state.h symlist.h \
+	symtab.h system.h tables.h uniqstr.h vcg_defaults.h vcg.h
 
-OBJS = $(bobj)/assoc.o \
-	$(bobj)/closure.o \
-	$(bobj)/complain.o \
-	$(bobj)/conflicts.o \
-	$(bobj)/derives.o \
-	$(bobj)/files.o \
-	$(bobj)/getargs.o \
-	$(bobj)/gram.o \
-	$(bobj)/lalr.o \
-	$(bobj)/location.o \
-	$(bobj)/LR0.o \
-	$(bobj)/main.o \
-	$(bobj)/muscle_tab.o \
-	$(bobj)/nullable.o \
-	$(bobj)/output.o \
-	$(bobj)/parse-gram.o \
-	$(bobj)/print.o \
-	$(bobj)/print_graph.o \
-	$(bobj)/reader.o \
-	$(bobj)/reduce.o \
-	$(bobj)/relation.o \
-	$(bobj)/scan-gram.o \
-	$(bobj)/scan-skel.o \
-	$(bobj)/state.o \
-	$(bobj)/symlist.o \
-	$(bobj)/symtab.o \
-	$(bobj)/tables.o \
-	$(bobj)/uniqstr.o \
-	$(bobj)/vcg.o
+LIBSRCS = lib/abitset.c lib/argmatch.c lib/basename.c lib/bitset.c \
+	lib/bitset_stats.c lib/bitsetv.c lib/bitsetv-print.c \
+	lib/dirname.c lib/ebitset.c lib/error.c lib/get-errno.c \
+	lib/hash.c lib/lbitset.c lib/mbswidth.c lib/quotearg.c \
+	lib/quote.c lib/subpipe.c lib/timevar.c lib/xmalloc.c \
+	lib/xstrndup.c
 
-LIB = \
-	$(bobj)/lib/abitset.o \
-	$(bobj)/lib/argmatch.o \
-	$(bobj)/lib/basename.o \
-	$(bobj)/lib/bitset.o \
-	$(bobj)/lib/bitset_stats.o \
-	$(bobj)/lib/bitsetv.o \
-	$(bobj)/lib/bitsetv-print.o \
-	$(bobj)/lib/dirname.o \
-	$(bobj)/lib/ebitset.o \
-	$(bobj)/lib/error.o \
-	$(bobj)/lib/get-errno.o \
-	$(bobj)/lib/hash.o \
-	$(bobj)/lib/lbitset.o \
-	$(bobj)/lib/mbswidth.o \
-	$(bobj)/lib/quotearg.o \
-	$(bobj)/lib/quote.o \
-	$(bobj)/lib/subpipe.o \
-	$(bobj)/lib/timevar.o \
-	$(bobj)/lib/xmalloc.o \
-	$(bobj)/lib/xstrndup.o
+LIBHDRS = lib/abitset.h lib/argmatch.h lib/bitset.h lib/bbitset.h \
+	lib/bitset_stats.h lib/bitsetv.h lib/bitsetv-print.h \
+	lib/dirname.h lib/ebitset.h lib/error.h lib/get-errno.h \
+	lib/gettext.h lib/hash.h lib/lbitset.h lib/mbswidth.h lib/quotearg.h \
+	lib/quote.h lib/subpipe.h lib/timevar.h lib/unlocked-io.h \
+	lib/xalloc.h
 
-all:	dirs $(bin_dir)/bison$(exesfx) $(info_dir)/bison
+all:	$(bin_dir)/bison$(exesfx) $(info_dir)/bison
 
-dirs:
-	mkdir -p $(bobj) $(bobj)/lib
+$(objdir)/riscos-progs/bison.o:  $(SRCS) $(HDRS) $(LIBSRCS) $(LIBHDRS)
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c $(SRCS) $(LIBSRCS) $(INCLUDES)
 
-$(bin_dir)/bison$(exesfx):	$(OBJS) $(LIB)
-	$(CROSS_CC) -o $@ $(OBJS) $(LIB) -L$(objdir)/libiberty/$(STAGE) -liberty
+$(bin_dir)/bison$(exesfx):	$(objdir)/riscos-progs/bison.o $(LIB)
+	$(CROSS_CC) -o $@ $(objdir)/riscos-progs/bison.o $(LIB) -L$(objdir)/libiberty/$(STAGE) -liberty
 
 $(info_dir)/bison:	doc/bison.texinfo doc/fdl.texi doc/gpl.texi doc/version.texi
 	$(MAKEINFO) --no-split --number-sections doc/bison.texinfo -o $@ -I doc
@@ -78,5 +47,5 @@ $(info_dir)/bison:	doc/bison.texinfo doc/fdl.texi doc/gpl.texi doc/version.texi
 #scan-skel.c: scan-skel.l
 #	$(FLEX) -t -o$@ scan-skel.l > $@
 
-$(bobj)/scan-gram.o: scan-gram.c scan-gram.l
-$(bobj)/scan-skel.o: scan-skel.c scan-skel.l
+#$(bobj)/scan-gram.o: scan-gram.c scan-gram.l
+#$(bobj)/scan-skel.o: scan-skel.c scan-skel.l

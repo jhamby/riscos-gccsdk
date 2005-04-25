@@ -80,7 +80,7 @@ unsigned int error_message_count;
 
 /* The calling program should define program_name and set it to the
    name of the executing program.  */
-extern char *program_name;
+extern char const program_name[];
 
 # ifdef HAVE_STRERROR_R
 #  define __strerror_r strerror_r

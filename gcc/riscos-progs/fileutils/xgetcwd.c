@@ -22,10 +22,12 @@
 #endif
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <errno.h>
 
 #include <sys/types.h>
 #include "pathmax.h"
+#include "xalloc.h"
 
 #if HAVE_GETCWD
 char *getcwd ();
@@ -36,10 +38,6 @@ char *getwd ();
 
 /* Amount to increase buffer size by in each try. */
 #define PATH_INCR 32
-
-char *xmalloc ();
-char *xrealloc ();
-void free ();
 
 /* Return the current directory, newly allocated, arbitrarily long.
    Return NULL and set errno on error. */

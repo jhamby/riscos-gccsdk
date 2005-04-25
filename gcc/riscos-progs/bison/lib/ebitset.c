@@ -24,6 +24,7 @@
 #include "ebitset.h"
 #include "obstack.h"
 #include <stdlib.h>
+#include "xalloc.h"
 
 /* This file implements expandable bitsets.  These bitsets can be of
    arbitrary length and are more efficient than arrays of bits for

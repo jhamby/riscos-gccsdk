@@ -1,47 +1,21 @@
 # Makefile for GNU patch
-# Written by Nick Burrett <nick@dsvr.net>
+# Written by Nick Burrett <nick@sqrt.co.uk>
 
 INCLUDES = -I. -I ../../include
 CROSS_CFLAGS += -DHAVE_CONFIG_H -Ded_PROGRAM=\"ed\"
 
-$(objdir)/riscos-progs/patch/%.o: %.c
-	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c $< $(INCLUDES)
+SRCS = addext.c argmatch.c backupfile.c basename.c error.c inp.c \
+	maketime.c partime.c patch.c pch.c quotearg.c quotesys.c \
+	util.c version.c xmalloc.c
 
-pobj = $(objdir)/riscos-progs/patch
-
-OBJS = $(pobj)/addext.o \
-	$(pobj)/argmatch.o \
-	$(pobj)/backupfile.o \
-	$(pobj)/basename.o \
-	$(pobj)/error.o \
-	$(pobj)/inp.o \
-	$(pobj)/maketime.o \
-	$(pobj)/partime.o \
-	$(pobj)/patch.o \
-	$(pobj)/pch.o \
-	$(pobj)/quotearg.o \
-	$(pobj)/quotesys.o \
-	$(pobj)/util.o \
-	$(pobj)/version.o \
-	$(pobj)/xmalloc.o
+HDRS = argmatch.h backupfile.h basename.h common.h config.h \
+	error.h inp.h maketime.h partime.h patchlevel.h \
+	pch.h quotearg.h quotesys.h util.h version.h xalloc.h
 
 all:	$(bin_dir)/patch$(exesfx)
 
-$(bin_dir)/patch$(exesfx):	$(OBJS)
-	$(CROSS_CC) -o $@ $(OBJS) -L$(objdir)/libiberty/$(STAGE) -liberty
+$(objdir)/riscos-progs/patch.o:	$(SRCS) $(HDRS)
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c $(SRCS) $(INCLUDES)
 
-$(pobj)/addext.o: addext.c
-$(pobj)/argmatch.o: argmatch.c
-$(pobj)/backupfile.o: backupfile.c
-$(pobj)/basename.o: basename.c
-$(pobj)/error.o: error.c
-$(pobj)/inp.o: inp.c
-$(pobj)/maketime.o: maketime.c
-$(pobj)/partime.o: partime.c
-$(pobj)/patch.o: patch.c
-$(pobj)/pch.o: pch.c
-$(pobj)/quotearg.o: quotearg.c
-$(pobj)/quotesys.o: quotesys.c
-$(pobj)/util.o: util.c
-$(pobj)/version.o: version.c
-$(pobj)/xmalloc.o: xmalloc.c
+$(bin_dir)/patch$(exesfx):	$(objdir)/riscos-progs/patch.o
+	$(CROSS_CC) -o $@ $(objdir)/riscos-progs/patch.o -L$(objdir)/libiberty/$(STAGE) -liberty

@@ -19,6 +19,7 @@
 # include <config.h>
 #endif
 
+#include <ansidecl.h>
 #include <sys/types.h>
 
 #if STDC_HEADERS
