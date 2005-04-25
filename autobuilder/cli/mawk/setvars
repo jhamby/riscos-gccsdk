@@ -1,7 +1,10 @@
 
 AB_CATEGORY=cli
 
-AB_FILESNOPATH="mawk,ff8 COPYING"
 AB_MANPAGE=man/mawk.1
 
 AB_MAKE="$AB_MAKE mawk"
+
+ab_package() {
+  cp $S/mawk,ff8 $S/COPYING $D
+}
