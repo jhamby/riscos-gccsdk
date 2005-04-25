@@ -20,9 +20,11 @@
 
 #include <complex.h>
 #include <math.h>
-
 #include "math_private.h"
 
+#include <features.h>
+
+#ifndef __UNIXLIB_NO_COMPLEX
 __complex__ float
 __cacoshf (__complex__ float x)
 {
@@ -97,3 +99,4 @@ __cacoshf (__complex__ float x)
   return res;
 }
 weak_alias (__cacoshf, cacoshf)
+#endif

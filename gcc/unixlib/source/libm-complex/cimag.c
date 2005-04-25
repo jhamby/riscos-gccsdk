@@ -20,6 +20,9 @@
 
 #include <complex.h>
 
+#include <features.h>
+
+#ifndef __UNIXLIB_NO_COMPLEX
 double
 __cimag (double _Complex z)
 {
@@ -29,4 +32,5 @@ weak_alias (__cimag, cimag)
 #ifdef NO_LONG_DOUBLE
 strong_alias (__cimag, __cimagl)
 weak_alias (__cimag, cimagl)
+#endif
 #endif

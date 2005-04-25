@@ -22,6 +22,9 @@
 #include <math.h>
 #include "math_private.h"
 
+#include <features.h>
+
+#ifndef __UNIXLIB_NO_COMPLEX
 __complex__ double
 __cproj (__complex__ double x)
 {
@@ -48,4 +51,5 @@ weak_alias (__cproj, cproj)
 #ifdef NO_LONG_DOUBLE
 strong_alias (__cproj, __cprojl)
 weak_alias (__cproj, cprojl)
+#endif
 #endif

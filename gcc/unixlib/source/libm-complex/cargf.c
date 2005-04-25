@@ -21,9 +21,13 @@
 #include <complex.h>
 #include <math.h>
 
+#include <features.h>
+
+#ifndef __UNIXLIB_NO_COMPLEX
 float
 __cargf (__complex__ float x)
 {
   return __atan2f (__imag__ x, __real__ x);
 }
 weak_alias (__cargf, cargf)
+#endif

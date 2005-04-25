@@ -20,10 +20,11 @@
 
 #include <complex.h>
 #include <math.h>
-
 #include "math_private.h"
 
+#include <features.h>
 
+#ifndef __UNIXLIB_NO_COMPLEX
 __complex__ double
 __catan (__complex__ double x)
 {
@@ -86,4 +87,5 @@ weak_alias (__catan, catan)
 #ifdef NO_LONG_DOUBLE
 strong_alias (__catan, __catanl)
 weak_alias (__catan, catanl)
+#endif
 #endif

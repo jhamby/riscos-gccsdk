@@ -224,28 +224,42 @@ enum
 
 /* Return nonzero value if X is a NaN.  We could use `fpclassify' but
    we already have this functions `__isnan' and it is faster.  */
-# ifdef __NO_LONG_DOUBLE_MATH
+# if defined(__CC_NORCROFT) || defined(__LCC__)
+extern int isnanf (float x);
+extern int isnan (double x);
 #  define isnan(x) \
-     (sizeof (x) == sizeof (float) ? __isnanf (x) : __isnan (x))
-# else
-#  define isnan(x) \
-     (sizeof (x) == sizeof (float)					      \
-      ? __isnanf (x)							      \
-      : sizeof (x) == sizeof (double)					      \
-      ? __isnan (x) : __isnanl (x))
-# endif
+       (sizeof (x) == sizeof (float) ? isnanf (x) : isnan (x))
+# else /* GNUC */
+#  ifdef __NO_LONG_DOUBLE_MATH
+#   define isnan(x) \
+       (sizeof (x) == sizeof (float) ? __isnanf (x) : __isnan (x))
+#  else
+#   define isnan(x) \
+       (sizeof (x) == sizeof (float)                                          \
+        ? __isnanf (x)                                                        \
+        : sizeof (x) == sizeof (double)                                       \
+        ? __isnan (x) : __isnanl (x))
+#  endif
+# endif /* !__CC_NORCROFT && !__LCC__ */
 
 /* Return nonzero value is X is positive or negative infinity.  */
-# ifdef __NO_LONG_DOUBLE_MATH
+# if defined(__CC_NORCROFT) || defined(__LCC__)
+extern int isinff (float x);
+extern int isinf (double x);
 #  define isinf(x) \
-     (sizeof (x) == sizeof (float) ? __isinff (x) : __isinf (x))
-# else
-#  define isinf(x) \
-     (sizeof (x) == sizeof (float)					      \
-      ? __isinff (x)							      \
-      : sizeof (x) == sizeof (double)					      \
-      ? __isinf (x) : __isinfl (x))
-# endif
+       (sizeof (x) == sizeof (float) ? isinff (x) : isinf (x))
+# else /* GNUC */
+#  ifdef __NO_LONG_DOUBLE_MATH
+#   define isinf(x) \
+       (sizeof (x) == sizeof (float) ? __isinff (x) : __isinf (x))
+#  else
+#   define isinf(x) \
+       (sizeof (x) == sizeof (float)                                          \
+        ? __isinff (x)                                                        \
+        : sizeof (x) == sizeof (double)                                       \
+        ? __isinf (x) : __isinfl (x))
+#  endif
+# endif /* !__CC_NORCROFT && !__LCC__ */
 
 /* Bitmasks for the math_errhandling macro.  */
 # define MATH_ERRNO	1	/* errno set by math functions.  */

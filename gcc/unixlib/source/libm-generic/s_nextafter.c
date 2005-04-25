@@ -21,9 +21,11 @@ static char rcsid[] = "$NetBSD: s_nextafter.c,v 1.8 1995/05/10 20:47:58 jtc Exp 
  *   Special cases:
  */
 
+#ifdef __GNUC__
 /* Ugly hack so that the aliasing works.  */
 #define __nexttoward __internal___nexttoward
 #define nexttoward __internal_nexttoward
+#endif
 
 #include "math.h"
 #include "math_private.h"

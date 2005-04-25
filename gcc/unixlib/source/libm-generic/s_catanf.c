@@ -20,10 +20,11 @@
 
 #include <complex.h>
 #include <math.h>
-
 #include "math_private.h"
 
+#include <features.h>
 
+#ifndef __UNIXLIB_NO_COMPLEX
 __complex__ float
 __catanf (__complex__ float x)
 {
@@ -83,3 +84,4 @@ __catanf (__complex__ float x)
   return res;
 }
 weak_alias (__catanf, catanf)
+#endif

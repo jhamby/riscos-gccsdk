@@ -21,9 +21,13 @@
 #include <complex.h>
 #include <math.h>
 
+#include <features.h>
+
+#ifndef __UNIXLIB_NO_COMPLEX
 long double
 __cabsl (long double _Complex z)
 {
   return __hypotl (__real__ z, __imag__ z);
 }
 weak_alias (__cabsl, cabsl)
+#endif

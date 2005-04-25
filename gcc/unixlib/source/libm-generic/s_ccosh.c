@@ -21,10 +21,11 @@
 #include <complex.h>
 #include <fenv.h>
 #include <math.h>
-
 #include "math_private.h"
 
+#include <features.h>
 
+#ifndef __UNIXLIB_NO_COMPLEX
 __complex__ double
 __ccosh (__complex__ double x)
 {
@@ -102,4 +103,5 @@ weak_alias (__ccosh, ccosh)
 #ifdef NO_LONG_DOUBLE
 strong_alias (__ccosh, __ccoshl)
 weak_alias (__ccosh, ccoshl)
+#endif
 #endif

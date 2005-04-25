@@ -57,7 +57,7 @@
 #undef __memrchr
 #undef memrchr
 
-#ifndef weak_alias
+#if defined (__CC_NORCROFT) || defined (__LCC__)
 # define __memrchr memrchr
 #endif
 

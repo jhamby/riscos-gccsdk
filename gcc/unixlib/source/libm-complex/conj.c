@@ -20,6 +20,9 @@
 
 #include <complex.h>
 
+#include <features.h>
+
+#ifndef __UNIXLIB_NO_COMPLEX
 double _Complex
 __conj (double _Complex z)
 {
@@ -29,4 +32,5 @@ weak_alias (__conj, conj)
 #ifdef NO_LONG_DOUBLE
 strong_alias (__conj, __conjl)
 weak_alias (__conj, conjl)
+#endif
 #endif

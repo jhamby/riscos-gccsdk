@@ -1,10 +1,10 @@
 /****************************************************************************
  *
- * $Source: $
- * $Date: $
- * $Revision: $
- * $State: $
- * $Author: $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/string/strndup.c,v $
+ * $Date: 2002/12/22 18:22:29 $
+ * $Revision: 1.1 $
+ * $State: Exp $
+ * $Author: admin $
  *
  ***************************************************************************/
 
@@ -55,7 +55,7 @@ char *malloc ();
 #undef __strndup
 #undef strndup
 
-#ifndef weak_alias
+#if defined (__CC_NORCROFT) || defined (__LCC__)
 # define __strndup strndup
 #endif
 

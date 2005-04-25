@@ -1,10 +1,10 @@
 /****************************************************************************
  *
- * $Source: $
- * $Date: $
- * $Revision: $
- * $State: $
- * $Author: $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/string/strnlen.c,v $
+ * $Date: 2002/12/22 18:22:29 $
+ * $Revision: 1.1 $
+ * $State: Exp $
+ * $Author: admin $
  *
  ***************************************************************************/
 
@@ -41,7 +41,7 @@
 #include <string.h>
 #include <stdlib.h>
 
-#ifndef weak_alias
+#if defined (__CC_NORCROFT) || defined (__LCC__)
 # define __strnlen strnlen
 #endif
 

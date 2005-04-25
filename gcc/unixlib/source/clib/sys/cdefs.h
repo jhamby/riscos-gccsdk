@@ -276,7 +276,7 @@
    symbol modifiers.  To retain source code compatibility, we just
    define them to evaluate to nothing.  */
 
-#define stong_alias(name, aliasname) /**/
+#define strong_alias(name, aliasname) /**/
 #define _strong_alias(name, aliasname) /**/
 #define weak_function /**/
 #define weak_const_function /**/

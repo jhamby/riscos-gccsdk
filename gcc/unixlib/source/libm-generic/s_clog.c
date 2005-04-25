@@ -20,9 +20,10 @@
 
 #include <complex.h>
 #include <math.h>
-
 #include "math_private.h"
 
+#include <features.h>
+#ifndef __UNIXLIB_NO_COMPLEX
 
 __complex__ double
 __clog (__complex__ double x)
@@ -62,4 +63,5 @@ weak_alias (__clog, clog)
 #ifdef NO_LONG_DOUBLE
 strong_alias (__clog, __clogl)
 weak_alias (__clog, clogl)
+#endif
 #endif

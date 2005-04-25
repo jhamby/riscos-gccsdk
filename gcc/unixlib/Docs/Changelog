@@ -1,3 +1,39 @@
+Mon Apr 25 13:32:29 2005  Stefan Bellon  <sbellon@sbellon.de>
+
+	Norcroft compatibility.
+	* math.h (isinf, isnan): Provide Norcroft specific definitions.
+	* sys/cdefs.h (strong_alias): Fix typo in definition.
+	* libm-complex/cabs.c: When __UNIXLIB_NO_COMPLEX is defined,
+	do not compile functions that use complex types.
+	* libm-complex/{cabsf.c, cabsl.c, carg.c, cargf.c}: Likewise.
+	* libm-complex/{cargl.c, cimag.c, cimagf.c, cimagl.c}: Likewise.
+	* libm-complex/{conj.c, conjf.c, conjl.c, creal.c}: Likewise.
+	* libm-complex/{crealf.c, creall.c}: Likewise.
+	* libm-generic/{s_cacos.c, s_cacosf.c, s_cacosh.c}: Likewise.
+	* libm-generic/{s_cacoshf.c, s_casin.c, s_casinf.c}: Likewise.
+	* libm-generic/{s_casinh.c, s_casinhf.c, s_catan.c}: Likewise.
+	* libm-generic/{s_catanf.c, s_catanh.c, s_catanhf.c}: Likewise.
+	* libm-generic/{s_ccos.c, s_ccosf.c, s_ccosh.c, s_ccoshf.c}: Likewise.
+	* libm-generic/{s_cexp.c, s_cexpf.c, s_clog.c, s_clog10.c}: Likewise.
+	* libm-generic/{s_clog10f.c, s_clogf.c, s_cpow.c, s_cpowf.c}: Likewise.
+	* libm-generic/{s_cproj.c, s_cprojf.c, s_csin.c, s_csinf.c}: Likewise.
+	* libm-generic/{s_csinh.c, s_csinhf.c, s_csqrt.c}: Likewise.
+	* libm-generic/{s_csqrtf.c, c_ctan.c, s_ctanf.c, s_ctanh.c}: Likewise.
+	* libm-generic/{s_ctanhf.c}: Likewise.
+
+	* libm-generic/s_nextafter.c (nexttoward): Disable aliasing hack
+	for Norcroft.
+	* libm-generic/w_dremf.c (__dremf): ANSIify function definition.
+
+	* libm-dbl64/s_isinf.c: For Norcroft, #undef __isinf.
+	* libm-dbl64/s_isnan.c: For Norcroft, #undef __isnan.
+
+	* string/memrchr.c: For Norcroft and LCC, define the double-underscore
+	variant of the function name to the variant without.
+	* string/strchrnul.c: Likewise.
+	* string/strndup.c: Likewise.
+	* string/strnlen.c: Likewise.
+	
 Sun Apr 24 22:11:02 2005  Alex Waugh  <alex@alexwaugh.com>
 
 	* unix/unix.c (convert_command_line): Prevent >> type redirections
@@ -16,7 +52,7 @@ Sun Apr 24 21:24:36 2005  John Tytgat  <John.Tytgat@aaug.net>
 	* unixlib/sigstate.h (__backtrace_getfp): Return type is now void*
 	instead of int*.
 	(__ul_callbackfp): Changed type from int* to unsigned int*.
-	* unix.h (struct __sul_process): Changed types fo maxfd, fdsize,
+	* unix.h (struct __sul_process): Changed types of maxfd, fdsize,
 	fdhandlesize and environ_size from int to unsigned int.
 	Removed __OS_ARTHUR & __OS_RISCOS_* defines.
 	(__decstrtoui): Changed constify end parameter.
@@ -50,7 +86,7 @@ Sun Apr 24 21:24:36 2005  John Tytgat  <John.Tytgat@aaug.net>
 	* sys/_syslib.s: Likewise.
 	* unix/custom.c: Likewise.
 	* stdio/rename.c (rename): Failure to delete destination file is no
-	long ignored.
+	longer ignored.
 	* sys/_os.s: CMP -> TEQ for consistency reasons.
 	* sys/mman.c: Rename get_program_name to __get_program_name.
 	* unix/features.c: Likewise.

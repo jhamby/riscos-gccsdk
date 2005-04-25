@@ -21,10 +21,11 @@
 #include <complex.h>
 #include <fenv.h>
 #include <math.h>
-
 #include "math_private.h"
 
+#include <features.h>
 
+#ifndef __UNIXLIB_NO_COMPLEX
 __complex__ float
 __cexpf (__complex__ float x)
 {
@@ -121,3 +122,4 @@ __cexpf (__complex__ float x)
   return retval;
 }
 weak_alias (__cexpf, cexpf)
+#endif

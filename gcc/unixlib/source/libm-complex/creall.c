@@ -20,9 +20,13 @@
 
 #include <complex.h>
 
+#include <features.h>
+
+#ifndef __UNIXLIB_NO_COMPLEX
 long double
 __creall (long double _Complex z)
 {
   return __real__ z;
 }
 weak_alias (__creall, creall)
+#endif

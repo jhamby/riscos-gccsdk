@@ -22,6 +22,9 @@
 #include <math.h>
 #include "math_private.h"
 
+#include <features.h>
+
+#ifndef __UNIXLIB_NO_COMPLEX
 __complex__ double
 __casinh (__complex__ double x)
 {
@@ -81,4 +84,5 @@ weak_alias (__casinh, casinh)
 #ifdef NO_LONG_DOUBLE
 strong_alias (__casinh, __casinhl)
 weak_alias (__casinh, casinhl)
+#endif
 #endif
