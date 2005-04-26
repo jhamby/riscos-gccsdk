@@ -1,7 +1,7 @@
 | !Run file for the GCCSDK
 | Copyright (c) Nick Burrett, 1996, 1997, 1998, 1999, 2001
-| Copyright (c) GCCSDK Development Team 2002, 2003, 2004
-| Version 1.11 (12 April 2004)
+| Copyright (c) GCCSDK Development Team 2002, 2003, 2004, 2005
+| Version 1.12 (18 April 2005)
 
 Set GCC$Dir <Obey$Dir>
 
@@ -21,7 +21,7 @@ Set Sys$RCLimit 65536
 If "<UnixFS$/tmp>" = "" Then Set UnixFS$/tmp <Wimp$ScrapDir>
 
 | Ensure correct filename translation for a variety of prefixes
-Set UnixEnv$gcc$sfix "f:for:F:fpp:cc:cxx:cpp:c++:C:ii:rpo:ads:adb:ada:c:m:h:i:s:S:ali:adc:xrb:xrs:l:o:p:pas:ph:gpi:gpc:y:tcc"
+Set UnixEnv$gcc$sfix "f:for:F:fpp:cc:cxx:cpp:c++:C:i:ii:rpo:c:m:h:hh:s:S:xrb:xrs:l:o:y:tcc"
 Set UnixEnv$cc1$sfix <UnixEnv$gcc$sfix>
 Set UnixEnv$cc1plus$sfix <UnixEnv$gcc$sfix>
 Set UnixEnv$cpp$sfix <UnixEnv$gcc$sfix>
@@ -32,11 +32,6 @@ Set UnixEnv$gcov$sfix <UnixEnv$gcc$sfix>
 Set UnixEnv$make$sfix <UnixEnv$gcc$sfix>
 Set UnixEnv$as$sfix "h:S:s:o"
 
-| Set search paths for the Ada run time library files
-Set GNATada$Path <GCC$Dir>.adainc.
-Set GNATInc$Path gnatada:1.,gnatada:2.,gnatada:3.,gnatada:4.,gnatada:5.,gnatada:6.,gnatada:7.
-Set GNATlib$Path gcc:adalib.1.,gcc:adalib.2.,gcc:adalib.3.,gcc:adalib.4.,gcc:adalib.5.,gcc:adalib.6.,gcc:adalib.7.
-
 | Set search path for gnatbl
 SetMacro Path <Run$Path>
 
@@ -46,21 +41,11 @@ SetMacro Path <Run$Path>
 | Uncomment these if you have a RiscPC and wish to use dynamic areas
 Set gcc$heap ""
 
-| For GNAT Ada
-Set gnatbind$heap ""
-Set gnatbl$heap ""
-Set gnatchop$heap ""
-Set gnatf$heap ""
-Set gnatmake$heap ""
-
 | For Fortran 77
 Set g77$heap ""
 
 | For C++
 Set g++$heap ""
-
-| For Pascal
-Set gpc$heap ""
 
 | For the assembler
 Set as$heap ""
