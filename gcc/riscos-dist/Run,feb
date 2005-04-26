@@ -1,7 +1,7 @@
 | !Run file for the GCCSDK
 | Copyright (c) Nick Burrett, 1996, 1997, 1998, 1999, 2001
 | Copyright (c) GCCSDK Development Team 2002, 2003, 2004, 2005
-| Version 1.12 (18 April 2005)
+| Version 1.13 (27 April 2005)
 
 Set GCC$Dir <Obey$Dir>
 
@@ -17,8 +17,10 @@ Set GCClcl$Path <GCC$Dir>.local.
 | Set the return code limit. UnixLib encodes information within this range
 Set Sys$RCLimit 65536
 
-| Place to store temporary files
-If "<UnixFS$/tmp>" = "" Then Set UnixFS$/tmp <Wimp$ScrapDir>
+| Place to store temporary files.  Only needed if you really want it to
+| be different than <Wimp$ScrapDir> (which is the UnixLib default for /tmp
+| files).
+| Set UnixFS$/tmp <Wimp$ScrapDir>
 
 | Ensure correct filename translation for a variety of prefixes
 Set UnixEnv$gcc$sfix "f:for:F:fpp:cc:cxx:cpp:c++:C:i:ii:rpo:c:m:h:hh:s:S:xrb:xrs:l:o:y:tcc"
@@ -34,8 +36,10 @@ Set UnixEnv$as$sfix "h:S:s:o"
 
 | Set aliases for controlling UnixLib heap for dynamic areas
 | See the documentation about UnixLib and dynamic areas.
+| Uncomment these if you have RISC OS 3.5 or more recent and
+| wish *NOT* to use dynamic areas.
 
-| Uncomment these if you have a RiscPC and wish to use dynamic areas
+| For C
 Set gcc$heap ""
 
 | For Fortran 77
