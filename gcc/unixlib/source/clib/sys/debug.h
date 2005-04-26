@@ -1,12 +1,5 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/sys/debug.h,v $
- * $Date: 2004/09/23 22:16:39 $
- * $Revision: 1.4 $
- * $State: Exp $
- * $Author: joty $
- *
- ***************************************************************************/
+/* Functions for internally debugging UnixLib.
+   Copyright (c) 2004, 2005 UnixLib Developers.  */
 
 #ifdef DEBUG
 
@@ -22,6 +15,10 @@ __BEGIN_DECLS
 /* __debug(s) dumps UNIX status with title __s.  __s may be NULL when there
    is no title to be printed.  */
 extern void __debug(const char *__s);
+
+/* Works like the standard printf function but outputs using standard
+   RISC OS SWIs to the console.  */
+extern void debug_printf (const char *__fmt, ...);
 
 __END_DECLS
 

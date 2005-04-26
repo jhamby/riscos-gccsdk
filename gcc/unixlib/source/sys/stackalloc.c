@@ -1,14 +1,6 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/stackalloc.c,v $
- * $Date: 2004/12/11 14:18:57 $
- * $Revision: 1.5 $
- * $State: Exp $
- * $Author: joty $
- *
- ***************************************************************************/
-
-/* stackalloc.c: Written by Alex Waugh, January 2002. */
+/* Non-contiguous stack chunk allocator.
+   Copyright (c) 2002, 2003, 2004, 2005 UnixLib Devlopers.
+   Written by Alex Waugh, January 2002. */
 
 /****************************************************************************
  * This file implements a heap that sits in application space and is intended
@@ -28,17 +20,13 @@
  *          of stack space
  ***************************************************************************/
 
-#ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: stackalloc.c,v 1.5 2004/12/11 14:18:57 joty Exp $";
-#endif
-
 #include <stddef.h>
 #include <unixlib/os.h>
 #include <unixlib/unix.h>
 #include <pthread.h>
 #include <swis.h>
 
-/* #define DEBUG 1*/
+/* #define DEBUG 1 */
 
 #define BLOCK_FREE 0
 #define BLOCK_DATA_SIZE 4096
@@ -239,12 +227,9 @@ __stackalloc_incr_downwards (int blocksneeded)
   new__stack = (u_char *)__unixlib_stack - incr;
 
 #ifdef DEBUG
-  __os_print ("-- __stackalloc_incr_downwards: incr = ");
-  __os_prhex (incr); __os_nl ();
-  __os_print ("-- __stackalloc_incr_downwards: __unixlib_stack = ");
-  __os_prhex ((int)__unixlib_stack); __os_nl ();
-  __os_print ("-- __stackalloc_incr_downwards: __unixlib_stack_limit = ");
-  __os_prhex ((int)__unixlib_stack_limit); __os_nl ();
+  debug_printf ("__stack_alloc_incr_downwards: incr=%08x,"
+		" __unixlib_stack=%08x, __unixlib_stack_limit=%08x\n",
+		incr, __unixlib_stack, __unixlib_stack_limit);
 #endif
 
   if (new__stack >= __unixlib_stack_limit)
@@ -263,7 +248,7 @@ __stackalloc_incr_downwards (int blocksneeded)
   else
     {
 #ifdef DEBUG
-      __os_print ("-- __stackalloc: no free memory below stack heap\r\n");
+      debug_printf ("__stackalloc_incr_downwards: no free memory below stack heap\n");
 #endif
       newbottomblock = NULL;
     }
@@ -328,12 +313,9 @@ __stackalloc_init (void)
      There are also 8 bytes spare above the initial chunk */
 
 #ifdef DEBUG
-  __os_print ("-- __stackalloc_init: __unixlib_stack      = ");
-  __os_prhex ((int)__unixlib_stack); __os_nl ();
-  __os_print ("-- __stackalloc_init: __image_rw_himem      = ");
-  __os_prhex ((int)__image_rw_himem); __os_nl ();
-  __os_print ("-- __stackalloc_init: __unixlib_real_himem = ");
-  __os_prhex ((int)__unixlib_real_himem); __os_nl ();
+  debug_printf ("stackalloc_init: __unixlib_stack=%08x\n"
+		"---- __image_rw_himem=%08x, __unixlib_real_himem=%08x\n",
+		__unixlib_stack, __image_rw_himem, __unixlib_real_himem);
 #endif
 
   /* Record the value of himem when the initial stack chunk was setup */
@@ -369,25 +351,27 @@ __stackalloc (size_t size)
     __pthread_disable_ints ();
 #endif
 
-#ifdef DEBUG
-  __os_print ("-- __stackalloc: size = "); __os_prhex (size); __os_nl ();
-#endif
   /* Convert size into number of blocks */
   blocksneeded = size + BLOCK_DATA_SIZE - 1;
   blocksneeded &= ~(BLOCK_DATA_SIZE - 1);
-  blocksneeded /= BLOCK_DATA_SIZE; /* BLOCK_DATA_SIZE should be a power of two so this should optimise to a shift */
+  /* BLOCK_DATA_SIZE should be a power of two so
+     this should optimise to a shift.  */
+  blocksneeded /= BLOCK_DATA_SIZE;
 #ifdef DEBUG
-  __os_print ("-- __stackalloc: blocksneeded = "); __os_prhex (blocksneeded); __os_nl ();
+  debug_printf ("__stackalloc: size=%08x, blocksneeded=%08x\n",
+		size, blocksneeded);
 #endif
 
-  /* Search through freelist to find the first smallest block that is large enough for this request*/
+  /* Search through freelist to find the first smallest block
+     that is large enough for this request.  */
   blocklist = freelist;
   blocktoalloc = NULL;
   while (blocklist)
     {
       if (blocklist->contents.free.numconsecutiveblocks == blocksneeded)
         {
-          /* We have found a block of exactly the right size, so no need to search any further */
+          /* We have found a block of exactly the right size,
+	     so no need to search any further.  */
           blocktoalloc = blocklist;
           break;
         }
@@ -395,10 +379,13 @@ __stackalloc (size_t size)
         {
           if (blocklist->contents.free.numconsecutiveblocks > blocksneeded)
             {
-              if (blocktoalloc == NULL || blocklist->contents.free.numconsecutiveblocks < blocktoalloc->contents.free.numconsecutiveblocks)
+              if (blocktoalloc == NULL
+		  || (blocklist->contents.free.numconsecutiveblocks
+		      < blocktoalloc->contents.free.numconsecutiveblocks))
                 {
-                  /* We have found a block that is smaller then the best so far,
-                     but still bigger than needed so carry on searching */
+                  /* We have found a block that is smaller then the
+		     best so far, but still bigger than needed so
+		     carry on searching.  */
                   blocktoalloc = blocklist;
                 }
             }
@@ -456,7 +443,7 @@ __stackalloc (size_t size)
 
   returnptr = ((char*)blocktoalloc) + offsetof (struct block, contents.allocated);
 #ifdef DEBUG
-  __os_print ("-- __stackalloc: returning "); __os_prhex ((int)returnptr); __os_nl ();
+  debug_printf ("__stackalloc: returning %08x\n", returnptr);
 #endif
 
 #if __UNIXLIB_FEATURE_PTHREADS

@@ -1,3 +1,13 @@
+Tue Apr 26 15:20:03 2005  Nick Burrett  <nick@sqrt.co.uk>
+
+	Provide new internal debugging function.
+	* sys/debug.h (debug_printf): Add prototype.
+	* debug/dvsprintf.c: New file.
+	* debug/debug.c: Moved here from sys/debug.c.  Re-written
+	to use new 'debug_printf' function.
+	* unix/unix.c: Use new debug_printf function.
+	* sys/stackalloc.c: Likewise.
+
 Mon Apr 25 19:28:15 2005  Nick Burrett  <nick@sqrt.co.uk>
 
 	* sys/_mem.s: Delete file.

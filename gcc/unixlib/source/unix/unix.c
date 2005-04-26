@@ -28,7 +28,7 @@
 #include <unixlib/sigstate.h>
 #include <internal/swiparams.h>
 
-/* #define DEBUG 1*/
+/*#define DEBUG 1*/
 
 #include <sys/debug.h>
 
@@ -186,7 +186,7 @@ void __unixinit (void)
   char *cli;
 
 #ifdef DEBUG
-  __os_print ("-- __unixinit: new process\r\n");
+  debug_printf ("__unixinit: new process\n");
 #endif
 
   /* Record the initial escape key status. If escape is disabled (as it
@@ -276,8 +276,8 @@ void __unixinit (void)
   __cli_size = strlen (__unixlib_cli);
 
 #ifdef DEBUG
-  __os_print ("-- __unixinit: getting cli: __unixlib_cli = ");
-  __os_print (__unixlib_cli); __os_nl ();
+  debug_printf ("__unixinit (getting cli) __unixlib_cli=%s\n",
+		__unixlib_cli);
 #endif
 
   /* Since the command line limit of RISC OS is only 255 characters,
@@ -320,8 +320,7 @@ void __unixinit (void)
   __runtime_features (cli);
 
 #ifdef DEBUG
-  __os_print ("-- __unixinit: create argv: cli_size = ");
-  __os_prdec (cli_size); __os_nl ();
+  debug_printf ("__unixinit: create argv: cli_size=%d\n", cli_size);
 #endif
   /* Parse the command line, looking for I/O redirection.  */
   get_io_redir (cli);
@@ -462,9 +461,7 @@ _exit (int return_code)
   __env_riscos ();
 
 #ifdef DEBUG
-  __os_print ("__exit(): Calling sul_exit with return code = ");
-  __os_prhex (status);
-  __os_nl ();
+  debug_printf ("__exit(): Calling sul_exit with return code=%d\n", status);
 #endif
   __proc->sul_exit (__proc->pid, status);
 }
@@ -481,9 +478,8 @@ __alloc_file_descriptor (void)
     if (getfd (i)->devicehandle == NULL)
       {
 #ifdef DEBUG
-	__os_print ("__alloc_file_descriptor: found free descriptor ");
-	__os_prhex (i);
-	__os_nl ();
+	debug_printf ("__alloc_file_descriptor: found free descriptor %d\n",
+		      i);
 #endif
 	return i;
       }
@@ -522,7 +518,8 @@ initialise_unix_io (void)
 
   if (__proc->file_descriptors == NULL)
     {
-      __proc->file_descriptors = __proc->sul_malloc (__proc->pid, __proc->maxfd * __proc->fdsize);
+      __proc->file_descriptors = __proc->sul_malloc (__proc->pid,
+						     __proc->maxfd * __proc->fdsize);
       if (__proc->file_descriptors == NULL)
         __unixlib_fatal ("cannot allocate file descriptor memory");
 
@@ -627,8 +624,7 @@ static void check_io_redir (const char *p, int fd, int mode)
     fd = get_fd_redirection (p - 1);
 
 #ifdef DEBUG
-  __os_print ("-- check_io_redir: redirecting fd ");
-  __os_prdec (fd); __os_nl ();
+  debug_printf ("check_io_redir: redirecting fd %d\n", fd);
 #endif
 
   /* Skip any whitespace that precedes the filename e.g '< filename'.  */
@@ -641,9 +637,8 @@ static void check_io_redir (const char *p, int fd, int mode)
   /* Zero terminate the filename.  */
   fn[space - p] = '\0';
 #ifdef DEBUG
-  __os_print ("-- check_io_redir: filename = '");
-  __os_print (fn); __os_print ("', mode = ");
-  __os_prhex (mode) ; __os_nl ();
+  debug_printf ("check_io_redir: filename='%s', mode=%08x\n",
+		fn, mode);
 #endif
 
   /* Check the >& construct.  */
@@ -677,7 +672,7 @@ static void get_io_redir (const char *cli)
 
   /* By default, we redirect file descriptor 0 (stdin).  */
 #ifdef DEBUG
-  __os_print ("-- get_io_redir: checking <\r\n");
+  debug_printf ("get_io_redir: checking <\n");
 #endif
   while ((p = find_redirection_type (p, '<')))
     {
@@ -691,7 +686,7 @@ static void get_io_redir (const char *cli)
   /* By default, we redirect file descriptor 1 (stdout).  */
   mode = O_WRONLY | O_CREAT;
 #ifdef DEBUG
-  __os_print ("-- get_io_redir: checking >\r\n");
+  debug_printf ("get_io_redir: checking >\n");
 #endif
   while ((p = find_redirection_type (p, '>')) != NULL)
     {
@@ -731,9 +726,7 @@ verify_redirection (const char *redir)
   int x;
 
 #ifdef DEBUG
-  __os_print ("-- verify_redirection: ");
-  __os_print (redir);
-  __os_nl ();
+  debug_printf ("verify_redirection: %s\n", redir);
 #endif
 
   /* So we've found a re-direction operator.  We must watch out
@@ -821,7 +814,8 @@ find_redirection_type (const char *cmdline, char redirection_type)
       /* Look for redirection operator `redirection_type'.  */
       while (*cmdline && *cmdline != redirection_type)
         {
-          while (*cmdline && *cmdline != redirection_type && *cmdline != '"' && *cmdline != '\'')
+          while (*cmdline && *cmdline != redirection_type
+		 && *cmdline != '"' && *cmdline != '\'')
             cmdline++;
 
           if (*cmdline == '"')
