@@ -1,16 +1,5 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/stdio/stdio.c,v $
- * $Date: 2001/01/29 15:10:21 $
- * $Revision: 1.2 $
- * $State: Exp $
- * $Author: admin $
- *
- ***************************************************************************/
-
-#ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: stdio.c,v 1.2 2001/01/29 15:10:21 admin Exp $";
-#endif
+/* UnixLib stdio stdin/stdout/stderr initialisation and finalisation.
+   Copyright (c) 2000, 2001, 2002, 2003, 2004, 2005 UnixLib Developers.  */
 
 #include <stddef.h>
 #include <stdio.h>
@@ -33,13 +22,13 @@ __stdioinit (void)
   /* Create line oriented buffers for stdin and stdout.  */
   stdin->i_base = stdin->i_ptr = (unsigned char *) malloc (BUFSIZ);
   if (stdin->i_base == NULL)
-    __unixlib_fatal ("cannot malloc for stdio init");
+    __unixlib_fatal ("Cannot malloc for stdio init");
   stdin->i_cnt = 0;
   stdin->__bufsize = BUFSIZ;
   stdin->__linebuf = 1;
   stdout->o_base = stdout->o_ptr = (unsigned char *) malloc (BUFSIZ);
   if (stdout->o_base == NULL)
-    __unixlib_fatal ("cannot malloc for stdio init");
+    __unixlib_fatal ("Cannot malloc for stdio init");
   stdout->o_cnt = 0;
   stdout->__bufsize = BUFSIZ;
   stdout->__linebuf = 1;

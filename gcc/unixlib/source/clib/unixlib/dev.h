@@ -1,12 +1,5 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/unixlib/dev.h,v $
- * $Date: 2005/04/18 11:30:48 $
- * $Revision: 1.14 $
- * $State: Exp $
- * $Author: peter $
- *
- ***************************************************************************/
+/* UnixLib internal device implementation.
+   Copyright (c) 2002, 2003, 2004, 2005 UnixLib Developers.  */
 
 #ifndef __UNIXLIB_DEV_H
 #define __UNIXLIB_DEV_H
@@ -67,7 +60,7 @@ extern fd_set __socket_fd_set;
 
 extern const struct dev __dev[NDEV];
 
-extern dev_t __getdevtype (const char *__filename);
+extern dev_t __getdevtype (const char *__filename, int __ro_control);
 
 /* RISC OS file system support */
 extern void *__fsopen (struct __unixlib_fd *__fd, const char *__fname, int __mode);

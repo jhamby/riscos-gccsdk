@@ -1,16 +1,5 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/stat.c,v $
- * $Date: 2005/03/04 20:59:06 $
- * $Revision: 1.9 $
- * $State: Exp $
- * $Author: alex $
- *
- ***************************************************************************/
-
-#ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: stat.c,v 1.9 2005/03/04 20:59:06 alex Exp $";
-#endif
+/* UnixLib stat()/stat64() implementation.
+   Copyright (c) 2000, 2001, 2002, 2003, 2004, 2005 UnixLib Developers.  */
 
 #include <errno.h>
 #include <limits.h>
@@ -39,7 +28,7 @@ stat (const char *filename, struct stat *buf)
 #endif
 
   /* Perform a special check for devices.  */
-  buf->st_dev = __getdevtype (filename);
+  buf->st_dev = __getdevtype (filename, __get_riscosify_control());
 
   /* Perform the device specific open operation.  */
   return dev_funcall (buf->st_dev, stat, (filename, buf));

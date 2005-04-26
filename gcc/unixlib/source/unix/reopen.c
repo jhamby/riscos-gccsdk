@@ -1,16 +1,5 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/reopen.c,v $
- * $Date: 2003/04/05 09:33:57 $
- * $Revision: 1.4 $
- * $State: Exp $
- * $Author: alex $
- *
- ***************************************************************************/
-
-#ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: reopen.c,v 1.4 2003/04/05 09:33:57 alex Exp $";
-#endif
+/* UnixLib __reopen() implementation.
+   Copyright (c) 2000, 2001, 2002, 2003, 2004, 2005 UnixLib Developers.  */
 
 #include <stdarg.h>
 #include <errno.h>
@@ -49,5 +38,5 @@ __reopen (int fd, const char *file, int oflag, ...)
     return -1;
 
   /* Now open the file.  */
-  return __open (fd, file, oflag, mode);
+  return __open_fn (fd, file, oflag, mode);
 }

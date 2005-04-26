@@ -121,11 +121,11 @@ void __free_process(struct __sul_process *process)
       struct __unixlib_fd *file_desc;
 
       for (i = 0; i < process->maxfd; i++)
-        {
-          file_desc = (struct __unixlib_fd *)((char *)(process->file_descriptors) + i * process->fdsize);
-          if (file_desc->devicehandle)
-            __close (file_desc);
-        }
+	{
+	  file_desc = (struct __unixlib_fd *)((char *)(process->file_descriptors) + i * process->fdsize);
+	  if (file_desc->devicehandle)
+	    __close (file_desc);
+	}
 
       __proc->sul_free (__proc->pid, process->file_descriptors);
       process->file_descriptors = NULL;
@@ -140,14 +140,14 @@ void __free_process(struct __sul_process *process)
   if (process->console)
     {
       if (__atomic_modify (&(process->console->refcount), -1) == 0)
-        __proc->sul_free(__proc->pid, __proc->console);
+	__proc->sul_free(__proc->pid, __proc->console);
       process->console = NULL;
     }
 
   if (process->rs423)
     {
       if (__atomic_modify (&(process->rs423->refcount), -1) == 0)
-        __proc->sul_free(__proc->pid, process->rs423);
+	__proc->sul_free(__proc->pid, process->rs423);
       process->rs423 = NULL;
     }
 
@@ -156,15 +156,15 @@ void __free_process(struct __sul_process *process)
     {
       next_child = child->next_child;
       if (child->status.zombie)
-        {
-          __free_process (child);
-        }
+	{
+	  __free_process (child);
+	}
       else
-        {
-          /* The child is still running, so we can't free it */
-          child->ppid = 1;
-          child->next_child = NULL;
-        }
+	{
+	  /* The child is still running, so we can't free it */
+	  child->ppid = 1;
+	  child->next_child = NULL;
+	}
 
       child = next_child;
     }
@@ -174,7 +174,6 @@ void __free_process(struct __sul_process *process)
   /* If this a process struct from a zombie child, then free it */
   if (process->status.zombie)
     __proc->sul_free (__proc->pid, process);
-
 }
 
 /* Initialise the UnixLib world.  Create a new process structure, initialise
@@ -236,39 +235,39 @@ void __unixinit (void)
   else
     {
       /* We have no parent, so populate our environment with a subset of the
-         RISC OS global environment. */
+	 RISC OS global environment. */
       char **new_environ;
-      char *call = 0;
+      char *call = NULL;
       int environlen = 10;
       int environentries = 0;
 
       environ = malloc (environlen * sizeof (char *));
       if (environ == NULL)
-        __unixlib_fatal ("Cannot allocate memory for environ");
+	__unixlib_fatal ("Cannot allocate memory for environ");
 
       do
-        {
-          char *value = __getenv_from_os ("*", NULL, 0, &call);
-          if (value)
-            {
-              if (environentries >= environlen)
-                {
-                  environlen += 10;
-                  new_environ = realloc (environ, environlen * sizeof (char *));
-                  if (new_environ == NULL)
-                    __unixlib_fatal ("Cannot allocate memory for environ");
-                  environ = new_environ;
-                }
-              environ[environentries++] = value;
-            }
-        }
+	{
+	  char *value = __getenv_from_os ("*", NULL, 0, &call);
+	  if (value)
+	    {
+	      if (environentries >= environlen)
+		{
+		  environlen += 10;
+		  new_environ = realloc (environ, environlen * sizeof (char *));
+		  if (new_environ == NULL)
+		    __unixlib_fatal ("Cannot allocate memory for environ");
+		  environ = new_environ;
+		}
+	      environ[environentries++] = value;
+	    }
+	}
       while (call);
 
       /* Terminate the list and shrink it to the exact size needed */
       environ[environentries] = NULL;
       new_environ = realloc (environ, (environentries + 1) * sizeof (char *));
       if (new_environ)
-        environ = new_environ;
+	environ = new_environ;
     }
 
   /* Get command line.  __unixlib_cli's pointing to the command line block
@@ -302,7 +301,7 @@ void __unixinit (void)
 	  regs[0] = (int) cli + __cli_size + 1;
 	  if ((err = __os_swi (DDEUtils_GetCl, regs)) != NULL)
 	    {
-	      __unixlib_fatal ("cannot get command line");
+	      __unixlib_fatal ("Cannot get command line");
 	    }
 	}
     }
@@ -313,7 +312,7 @@ void __unixinit (void)
   (void) __os_swi (DDEUtils_SetCLSize, regs);
 
   if (cli == NULL)
-    __unixlib_fatal ("command line too long (not enough memory)");
+    __unixlib_fatal ("Command line too long (not enough memory)");
 
   /* Find any environment variables that may influence parts of UnixLib's
      decision making.  */
@@ -406,13 +405,13 @@ _exit (int return_code)
      for compatibility with RISC OS.
 
      The exit code:
-        if bit 7 == 0
-           bits 0..6 = normal exit code
-        else
-          {
-             bits 0..5 = signal number that terminated the process.
-             bit 6 == 1 if process core dumped
-          }
+	if bit 7 == 0
+	   bits 0..6 = normal exit code
+	else
+	  {
+	     bits 0..5 = signal number that terminated the process.
+	     bit 6 == 1 if process core dumped
+	  }
   */
 
   if (WIFSIGNALED (return_code))
@@ -425,14 +424,14 @@ _exit (int return_code)
       status |= (1 << 7);
 
       if (WCOREDUMP (return_code))
-        {
-          status |= (1 << 6);
-          __proc->status.core_dump = 1;
-        }
+	{
+	  status |= (1 << 6);
+	  __proc->status.core_dump = 1;
+	}
       else
-        {
-          __proc->status.core_dump = 0;
-        }
+	{
+	  __proc->status.core_dump = 0;
+	}
     }
   else
     {
@@ -442,8 +441,7 @@ _exit (int return_code)
       __proc->status.signal_exit = 0;
     }
 
-  /* Reset the DDEUtils' Prefix variable to the value at startup and
-     free the DDEUtils' Prefix storage. */
+  /* Reset the DDEUtils' Prefix variable to the value at startup.  */
   if (__u->dde_prefix)
     {
       int regs[10];
@@ -514,33 +512,44 @@ __stop_itimers (void)
 static void
 initialise_unix_io (void)
 {
-  int i;
-
   if (__proc->file_descriptors == NULL)
     {
+      _kernel_oserror *err;
+      int regs[10], i;
+
       __proc->file_descriptors = __proc->sul_malloc (__proc->pid,
 						     __proc->maxfd * __proc->fdsize);
       if (__proc->file_descriptors == NULL)
-        __unixlib_fatal ("cannot allocate file descriptor memory");
+	__unixlib_fatal ("Cannot allocate file descriptor memory");
 
       /* Set all file descriptors to unallocated status.  */
       for (i = 0; i < __proc->maxfd; i++)
-        getfd (i)->devicehandle = NULL;
+	getfd (i)->devicehandle = NULL;
 
       /* These are guaranteed to be the first files opened. stdin, stdout
-         and stderr will receive file descriptor numbers 0, 1 and 2
-         respectively.  */
+	 and stderr will receive file descriptor numbers 0, 1 and 2
+	 respectively.  */
 
       /* Open a file descriptor for reading from the tty (stdin)
-         and writing to the tty (stdout).  */
-      if (__open (STDIN_FILENO, "/dev/tty", O_RDONLY, 0777) < 0
-          || __open (STDOUT_FILENO, "/dev/tty", O_WRONLY | O_CREAT, 0666) < 0)
-        __unixlib_fatal ("cannot open stdin/stdout/stderr");
+	 and writing to the tty (stdout) when there is no CLI
+	 redirection done by RISC OS, otherwise take RISC OS own
+	 files handles as basis for stdin and/or stdout.  */
+      regs[1] = regs[0] = -1;
+      err = __os_swi (OS_ChangeRedirection, regs);
+      if (err != NULL)
+	__unixlib_fatal (err->errmess);
+      if ((regs[0] ? __open_fh (STDIN_FILENO, regs[0], O_RDONLY, 0777)
+                   : __open_fn (STDIN_FILENO, "/dev/tty", O_RDONLY, 0777)) < 0)
+	__unixlib_fatal ("Cannot open stdin");
+      if ((regs[1] ? __open_fh (STDOUT_FILENO, regs[1], O_WRONLY | O_CREAT, 0666)
+                   : __open_fn (STDOUT_FILENO, "/dev/tty", O_WRONLY | O_CREAT, 0666)) < 0)
+	__unixlib_fatal ("Cannot open stdout");
 
       /* Duplicate the file descriptor for stdout, to create a suitable
-         file descriptor for stderr.  */
-      fcntl (STDOUT_FILENO, F_DUPFD, STDERR_FILENO);
-  }
+	 file descriptor for stderr.  */
+      if (fcntl (STDOUT_FILENO, F_DUPFD, STDERR_FILENO) < 0)
+	__unixlib_fatal ("Cannot open stderr");
+    }
 }
 
 /* Attempt to re-direct a file descriptor based on the file descriptor
@@ -650,12 +659,12 @@ static void check_io_redir (const char *p, int fd, int mode)
       if (!BADF (fd))
 	__close (getfd (fd));
 
-      fd = __open (fd, ptr, mode, 0666);
+      fd = __open_fn (fd, ptr, mode, 0666);
       if (fd < 0)
 	{
 	   char failure[300];
-
-	   sprintf (failure, "cannot open %s for I/O redirection", ptr);
+	   snprintf (failure, sizeof (failure),
+		     "Cannot open %s for I/O redirection", ptr);
 	   __unixlib_fatal (failure);
 	}
 
@@ -813,38 +822,38 @@ find_redirection_type (const char *cmdline, char redirection_type)
     {
       /* Look for redirection operator `redirection_type'.  */
       while (*cmdline && *cmdline != redirection_type)
-        {
-          while (*cmdline && *cmdline != redirection_type
+	{
+	  while (*cmdline && *cmdline != redirection_type
 		 && *cmdline != '"' && *cmdline != '\'')
-            cmdline++;
+	    cmdline++;
 
-          if (*cmdline == '"')
-            {
-              /* Skip over anything in double quotes */
-              cmdline++;
-              while (*cmdline && *cmdline != '"')
-                cmdline++;
-              if (*cmdline == '"')
-                cmdline++;
-            }
-          else if (*cmdline == '\'')
-            {
-              /* Skip over anything in single quotes, unless it is an
-                 apostrophe in a filename */
-              cmdline++;
-              if (cmdline[-2] == ' ')
-                {
-                  while (*cmdline && *cmdline != '\'')
-                    cmdline++;
-                  if (*cmdline == '\'')
-                    cmdline++;
-                }
-            }
-        }
+	  if (*cmdline == '"')
+	    {
+	      /* Skip over anything in double quotes */
+	      cmdline++;
+	      while (*cmdline && *cmdline != '"')
+		cmdline++;
+	      if (*cmdline == '"')
+		cmdline++;
+	    }
+	  else if (*cmdline == '\'')
+	    {
+	      /* Skip over anything in single quotes, unless it is an
+		 apostrophe in a filename */
+	      cmdline++;
+	      if (cmdline[-2] == ' ')
+		{
+		  while (*cmdline && *cmdline != '\'')
+		    cmdline++;
+		  if (*cmdline == '\'')
+		    cmdline++;
+		}
+	    }
+	}
 
       if (*cmdline == '\0')
 	/* Operator `redirection_type' doesn't exist.  */
-    	return NULL;
+	return NULL;
       else
 	{
 	  /* Cope with "2> foobar" */
@@ -875,7 +884,7 @@ convert_command_line (struct proc *process, const char *cli, int cli_size)
   argc = 0;
   argv = (char **) malloc ((argc + 2) * sizeof (char *));
   if (temp == NULL || argv == NULL)
-    __unixlib_fatal ("cannot allocate memory for main() parameters");
+    __unixlib_fatal ("Cannot allocate memory for main() parameters");
   while (*cli)
     {
       /* Set to 1 if we are storing an empty argument, for example
@@ -1043,7 +1052,7 @@ convert_command_line (struct proc *process, const char *cli, int cli_size)
 	  argv = (char **) realloc (argv, (argc + 1) * sizeof (char *));
 	  argv[argc - 1] = strdup (temp);
 	  if (argv == NULL || argv[argc - 1] == NULL)
-	    __unixlib_fatal ("cannot allocate memory for main() parameters");
+	    __unixlib_fatal ("Cannot allocate memory for main() parameters");
 	}
   }
 

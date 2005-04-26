@@ -1,14 +1,5 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/unixlib/fd.h,v $
- * $Date: 2004/10/17 16:24:44 $
- * $Revision: 1.4 $
- * $State: Exp $
- * $Author: joty $
- *
- ***************************************************************************/
-
-/* File descriptor interface definition.  */
+/* UnixLib internal file descriptor interface definition.
+   Copyright (c) 2002, 2003, 2004, 2005 UnixLib Developers.  */
 
 #ifndef __UNIXLIB_FD_H
 #define __UNIXLIB_FD_H 1
@@ -33,7 +24,7 @@ __BEGIN_DECLS
 /* Multiple __unixlib_fd structures may point to one of these */
 struct __unixlib_fd_handle {
   unsigned int refcount;
-  unsigned int type; /* Device type (tty, socket etc. ) */
+  unsigned int type; /* Device type (tty, socket etc. ), see DEV_* */
   void *handle; /* device specific field (i.e. socket, file handle) */
 };
 
@@ -51,7 +42,9 @@ struct __unixlib_fd
 /* File descriptor flags.  */
 
 /* Set if file is a directory.  */
-#define FILE_ISDIR 0x0001
+#define FILE_ISDIR		0x0001
+/* Set if handle in devicehandle is from OS (OS_ChangeRedirection).  */
+#define FILE_HANDLE_FROM_OS	0x0002
 
 
 /* Allocate and initialise a new file descriptor.  */

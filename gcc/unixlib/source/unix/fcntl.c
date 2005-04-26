@@ -1,16 +1,5 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/fcntl.c,v $
- * $Date: 2003/11/23 20:26:45 $
- * $Revision: 1.8 $
- * $State: Exp $
- * $Author: joty $
- *
- ***************************************************************************/
-
-#ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: fcntl.c,v 1.8 2003/11/23 20:26:45 joty Exp $";
-#endif
+/* UnixLib fcntl() implementation.
+   Copyright (c) 2000, 2001, 2002, 2003, 2004, 2005 UnixLib Developers.  */
 
 #include <errno.h>
 #include <fcntl.h>
@@ -75,8 +64,8 @@ fcntl (int fd, int cmd, ...)
 
     case F_SETFD:
       {
-      /* Set close-on-exec flag */
-            va_start(ap, cmd);
+	/* Set close-on-exec flag */
+	va_start(ap, cmd);
 
 	if (va_arg (ap, int))
 	  file_desc->fflag |= O_EXECCL;
@@ -95,25 +84,25 @@ fcntl (int fd, int cmd, ...)
 	int newfflag;
 
 	va_start (ap, cmd);
-        newfflag = va_arg (ap, int);
-        va_end (ap);
+	newfflag = va_arg (ap, int);
+	va_end (ap);
 
-        if (file_desc->devicehandle->type == DEV_SOCKET)
-          {
-             if ((file_desc->fflag ^ newfflag) & O_NONBLOCK)
+	if (file_desc->devicehandle->type == DEV_SOCKET)
+	  {
+	     if ((file_desc->fflag ^ newfflag) & O_NONBLOCK)
 	       {
 		 int arg = (newfflag & O_NONBLOCK) ? 1 : 0;
 		 _sioctl((int)file_desc->devicehandle->handle, FIONBIO, &arg);
 	       }
 
-             if ((file_desc->fflag ^ newfflag) & O_ASYNC)
+	     if ((file_desc->fflag ^ newfflag) & O_ASYNC)
 	       {
 		 int arg = (newfflag & O_ASYNC) ? 1 : 0;
 		 _sioctl((int)file_desc->devicehandle->handle, FIOASYNC, &arg);
 	       }
-          }
+	  }
 
-        file_desc->fflag = (file_desc->fflag & ~modify) | (newfflag & modify);
+	file_desc->fflag = (file_desc->fflag & ~modify) | (newfflag & modify);
       }
       return 0;
 

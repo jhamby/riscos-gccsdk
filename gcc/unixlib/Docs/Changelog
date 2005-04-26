@@ -1,3 +1,23 @@
+Tue Apr 26 23:32:44 2005  John Tytgat  <John.Tytgat@aaug.net>
+
+	* unixlib/dev.h (__getdevtype): Added explicit riscosify control
+	parameter (not necessarily equal to the __get_riscosify_control()
+	value).
+	* unix/dev.c (__getdevtype): Likewise.
+	* unix/stat.c: Likewise.
+	(__fsclose): Don't close RISC OS filehandle when dflag
+	FILE_HANDLE_FROM_OS bit is set.
+	* unixlib/fd.h: Added comment.
+	* unixlib/local.h (__open_fn): Renamed from __open().
+	(__open_fh): Similar call to __open_fn() but instead of a filename, this
+	gets a RISC OS file handle (from OS).
+	* unix/open.c: Likewise.
+	* unix/reopen.c: Likewise.
+	* stdio/stdio.c: Capitalised first char of __unixlib_fatal() strings.
+	* unix/unix.c: Likewise.
+	(initialise_unix_io): Directly use the RISC OS filehandles in case of
+	CLI redirection.  This results in a significant speed improvement.
+
 Tue Apr 26 15:20:03 2005  Nick Burrett  <nick@sqrt.co.uk>
 
 	Provide new internal debugging function.

@@ -1,16 +1,5 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/open.c,v $
- * $Date: 2004/12/11 14:18:57 $
- * $Revision: 1.7 $
- * $State: Exp $
- * $Author: joty $
- *
- ***************************************************************************/
-
-#ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: open.c,v 1.7 2004/12/11 14:18:57 joty Exp $";
-#endif
+/* UnixLib open() implementation.
+   Copyright (c) 2000, 2001, 2002, 2003, 2004, 2005 UnixLib Developers.  */
 
 #include <stdarg.h>
 #include <errno.h>
@@ -31,7 +20,7 @@ static const char rcs_id[] = "$Id: open.c,v 1.7 2004/12/11 14:18:57 joty Exp $";
 char *
 ttyname (int fd)
 {
-  static char name[10];
+  static char ttyname[] = "/dev/tty";
 
   PTHREAD_UNSAFE
 
@@ -42,15 +31,50 @@ ttyname (int fd)
     }
 
   if (getfd (fd)->devicehandle->type == DEV_TTY)
-    return strcpy (name, "/dev/tty");
+    return ttyname;
 
   return NULL;
 }
 
-/* This function will open a file on the specified file descriptor.
-   There is no error checking.  */
+/* This function will open a file on the specified file descriptor
+   with given RISC OS file handle. Caller assures fd and fh are valid.  */
 int
-__open (int fd, const char *file, int oflag, int mode)
+__open_fh (int fd, int fh, int oflag, int mode)
+{
+  struct __unixlib_fd *file_desc;
+  const char *rofs;
+
+  PTHREAD_UNSAFE
+
+  file_desc = getfd (fd);
+  file_desc->fflag = oflag;
+  file_desc->dflag = FILE_HANDLE_FROM_OS; /* Never close this handle. */
+
+  file_desc->devicehandle = __proc->sul_malloc (__proc->pid, __proc->fdhandlesize);
+  if (file_desc->devicehandle == NULL)
+    return -1;
+
+  rofs = __fd_to_name (fh, NULL, 0);
+  if (rofs == NULL)
+    {
+      __proc->sul_free (__proc->pid, file_desc->devicehandle);
+      file_desc->devicehandle = NULL;
+      return -1;
+    }
+  /* Perform a special check for devices.  */
+  file_desc->devicehandle->type = __getdevtype (rofs, __RISCOSIFY_NO_PROCESS);
+  file_desc->devicehandle->refcount = 1;
+  free (rofs);
+
+  file_desc->devicehandle->handle = fh;
+
+  return fd;
+}
+
+/* This function will open a file on the specified file descriptor
+   with given filename. Caller assures fd is valid.  */
+int
+__open_fn (int fd, const char *file, int oflag, int mode)
 {
   struct __unixlib_fd *file_desc;
 
@@ -65,7 +89,7 @@ __open (int fd, const char *file, int oflag, int mode)
     return -1;
 
   /* Perform a special check for devices.  */
-  file_desc->devicehandle->type = __getdevtype (file);
+  file_desc->devicehandle->type = __getdevtype (file, __get_riscosify_control());
   file_desc->devicehandle->refcount = 1;
 
   /* Perform the device specific open operation.  */
@@ -115,5 +139,5 @@ open (const char *file, int oflag, ...)
   if (fd == -1)
     return -1;
 
-  return __open (fd, file, oflag, mode);
+  return __open_fn (fd, file, oflag, mode);
 }

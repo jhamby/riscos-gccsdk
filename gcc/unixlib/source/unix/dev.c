@@ -102,10 +102,8 @@ static const struct rofs2dev __rofs2dev[] =
 };
 
 dev_t
-__getdevtype (const char *filename)
+__getdevtype (const char *filename, int ro_control)
 {
-  const int ro_control = __get_riscosify_control();
-
   if ((ro_control & __RISCOSIFY_NO_PROCESS)
       || !(ro_control & __RISCOSIFY_STRICT_UNIX_SPECS))
     {
@@ -349,38 +347,43 @@ os_err:
 int
 __fsclose (struct __unixlib_fd *file_desc)
 {
-  char *buffer = NULL;
+  char *buffer;
   _kernel_oserror *err;
-  int regs[10];
+
+  /* If we got the RISC OS file handle from OS, we don't close it.  */
+  if (file_desc->dflag & FILE_HANDLE_FROM_OS)
+    return 0;
 
   if (file_desc->dflag & FILE_ISDIR)
     return closedir ((DIR *) file_desc->devicehandle->handle);
 
   if (file_desc->fflag & O_UNLINKED)
     buffer = __fd_to_name ((int) file_desc->devicehandle->handle, NULL, 0);
+  else
+    buffer = NULL;
 
 #ifdef DEBUG
   __os_print ("Closing file ");
   __os_prhex ((int)file_desc->devicehandle->handle);
-  if( buffer )
-  {
-    __os_print (": ");
-    __os_print (buffer);
-  }
+  if (buffer)
+    {
+      __os_print (": ");
+      __os_print (buffer);
+    }
   __os_nl();
 #endif
 
   /* Close file.  */
   err = __os_fclose ((int) file_desc->devicehandle->handle);
-  if (! err && buffer)
+  if (!err && buffer)
     {
+      int regs[10];
       err = __os_file (OSFILE_DELETENAMEDOBJECT, buffer, regs);
       /* Delete the suffix swap dir if it is now empty */
       __unlinksuffix (buffer); /* buffer is corrupted by this call */
     }
 
-  if (buffer)
-    free (buffer);
+  free (buffer);
   return (! err) ? 0 : (__ul_seterr (err, 1), -1);
 }
 

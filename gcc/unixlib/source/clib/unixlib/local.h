@@ -1,15 +1,5 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/unixlib/local.h,v $
- * $Date: 2004/10/17 16:24:44 $
- * $Revision: 1.15 $
- * $State: Exp $
- * $Author: joty $
- *
- * This file should eventually contain most / all of the UnixLib specific
- * functions.
- ***************************************************************************/
-
+/* UnixLib internal function declarations.
+   Copyright (c) 2002, 2003, 2004, 2005 UnixLib Developers.  */
 
 #ifndef __UNIXLIB_LOCAL_H
 #define __UNIXLIB_LOCAL_H 1
@@ -83,9 +73,14 @@ extern void __cvt_unix_time (__time_t __unix_time, unsigned int *__high,
    and refers to a socket device.  Return -1 if not.  */
 extern int __socket_valid (int __socket);
 
-/* Open a file descriptor.  Returns the file descriptor on success,
-   -1 on failure.  */
-extern int __open (int __fd, const char *__file, int __oflag, int __mode);
+/* Open a file descriptor with given filename.  Returns the file descriptor
+   on success, -1 on failure.  */
+extern int __open_fn (int __fd, const char *__file, int __oflag, int __mode);
+
+/* Open a file descriptor with given RISC OS file handle.  Returns the file
+   descriptor on success, -1 on failure. UnixLib will never close this
+   handle, only read/write from it.  */
+extern int __open_fh (int __fd, int __fh, int __oflag, int __mode);
 
 /* Close a file descriptor.  Returns zero on success, -1 on failure.  */
 extern int __close (struct __unixlib_fd *file_desc);
