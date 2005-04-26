@@ -32,9 +32,6 @@ Set UnixEnv$gcov$sfix <UnixEnv$gcc$sfix>
 Set UnixEnv$make$sfix <UnixEnv$gcc$sfix>
 Set UnixEnv$as$sfix "h:S:s:o"
 
-| Set search path for gnatbl
-SetMacro Path <Run$Path>
-
 | Set aliases for controlling UnixLib heap for dynamic areas
 | See the documentation about UnixLib and dynamic areas.
 
@@ -55,7 +52,3 @@ Set make$heap ""
 
 | Used for extended command lines
 RMEnsure DDEUtils 0.02 RMLoad System:Modules.DDEUtils
-
-RMEnsure UtilityModule 3.10 Obey
-| Details specific to RISC OS 3.10 and above
-RMEnsure UtilityModule 3.70 RMEnsure CallASWI 0.01 RMLoad System:Modules.CallASWI
