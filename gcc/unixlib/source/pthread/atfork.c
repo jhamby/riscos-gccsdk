@@ -1,22 +1,11 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/pthread/atfork.c,v $
- * $Date: 2003/04/05 12:42:28 $
- * $Revision: 1.2 $
- * $State: Exp $
- * $Author: alex $
- *
- ***************************************************************************/
-
-#ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: atfork.c,v 1.2 2003/04/05 12:42:28 alex Exp $";
-#endif
-
-/* Written by Alex Waugh */
+/* Register handlers to be called at fork time.
+   Copyright (c) 2004, 2005 UnixLib Devlopers.
+   Written by Alex Waugh.  */
 
 #include <pthread.h>
 #include <errno.h>
 #include <stdlib.h>
+#include <unixlib/unix.h>
 
 struct fork_handlers
 {
@@ -26,37 +15,43 @@ struct fork_handlers
   struct fork_handlers *next;
 };
 
-static struct fork_handlers *handlers = NULL; /* Linked list of all registered handlers */
+/* Linked list of all registered handlers */
+static struct fork_handlers *handlers = NULL;
 
 /* Register handlers to be called immediatly before and after a
    fork occurs.  */
 int
-pthread_atfork (void (*prepare)(void), void (*parent)(void), void (*child)(void))
+pthread_atfork (void (*prepare)(void), void (*parent)(void),
+		void (*child)(void))
 {
   struct fork_handlers *newhandlers;
+  int retval;
+  struct ul_global *gbl = &__ul_global;
 
-  if (! __pthread_system_running)
-    __pthread_system_running = 1;
-
-  newhandlers = malloc (sizeof (struct fork_handlers));
-  if (newhandlers == NULL)
-    return ENOMEM;
+  if (! gbl->__pthread_system_running)
+    gbl->__pthread_system_running = 1;
 
   __pthread_disable_ints ();
-
-  newhandlers->prepare = prepare;
-  newhandlers->parent = parent;
-  newhandlers->child = child;
-  newhandlers->next = handlers;
-  handlers = newhandlers;
-
+  newhandlers = malloc_unlocked (gbl->malloc_state,
+				 sizeof (struct fork_handlers));
+  if (newhandlers == NULL)
+    retval = ENOMEM;
+  else
+    {
+      newhandlers->prepare = prepare;
+      newhandlers->parent = parent;
+      newhandlers->child = child;
+      newhandlers->next = handlers;
+      handlers = newhandlers;
+      retval = 0;
+    }
   __pthread_enable_ints ();
-
-  return 0;
+  return retval;
 }
 
-/* Called by the fork code just before the fork takes place */
-/* Prepare handlers are called in the opposite order to which they were registered */
+/* Called by the fork code just before the fork takes place.
+   Prepare handlers are called in the opposite order to which they
+   were registered.  */
 void
 __pthread_atfork_callprepare (void)
 {
@@ -73,7 +68,8 @@ __pthread_atfork_callprepare (void)
 
 /* Call handlers in the same order that they were registered */
 static void
-__pthread_atfork_recurse (const int parent, const struct fork_handlers *handler)
+__pthread_atfork_recurse (const int parent,
+			  const struct fork_handlers *handler)
 {
   if (handler != NULL)
     {
@@ -92,8 +88,8 @@ __pthread_atfork_recurse (const int parent, const struct fork_handlers *handler)
     }
 }
 
-/* Called by the fork code just after the fork has taken place */
-/* Parent is nonzero if this is being called from the parent process */
+/* Called by the fork code just after the fork has taken place.
+   Parent is nonzero if this is being called from the parent process.  */
 void
 __pthread_atfork_callparentchild (const int parent)
 {

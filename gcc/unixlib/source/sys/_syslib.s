@@ -1,12 +1,5 @@
-;----------------------------------------------------------------------------
-;
-; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/_syslib.s,v $
-; $Date: 2005/04/23 10:44:38 $
-; $Revision: 1.47 $
-; $State: Exp $
-; $Author: nick $
-;
-;----------------------------------------------------------------------------
+; Provide program entry and initialise the UnixLib world
+; Copyright (c) 2002, 2003, 2004, 2005 UnixLib Developers
 
 	GET	clib/unixlib/asm_dec.s
 
@@ -83,10 +76,11 @@ MAX_DA_NAME_SIZE	* 32
 	; RMEnsure the minimum version of the SharedUnixLibrary we need.
 SUL_MIN_VERSION	EQU	105
 |rmensure1|
-	DCB "RMEnsure SharedUnixLibrary 1.05 RMLoad System:Modules.SharedULib", 0
+	DCB	"RMEnsure SharedUnixLibrary 1.05"
+	DCB	"RMLoad System:Modules.SharedULib", 0
 	; The exact error message is not important as it will get ignored.
 |rmensure2|
-	DCB "RMEnsure SharedUnixLibrary 1.05 Error XYZ", 0
+	DCB	"RMEnsure SharedUnixLibrary 1.05 Error XYZ", 0
 	ALIGN
 
 	EXPORT	|__main|
@@ -370,6 +364,9 @@ no_dynamic_area
 	STR	a2, [ip, #GBL_UPCALL_HANDLER_ADDR]
 	STR	a3, [ip, #GBL_UPCALL_HANDLER_R12]
 
+
+	; Initialise the malloc memory allocator.
+	BL	|__ul_malloc_init|
 	; Read the current RISC OS environment handler state
 	BL	|__env_read|
 	; Install the UnixLib environment handlers
@@ -430,17 +427,19 @@ error_no_memory
 	ALIGN
 error_no_sharedunixlib
 	DCD	SharedUnixLibrary_Error_NotRecentEnough
-	DCB	"This application requires at least version 1.05 of the SharedUnixLibrary module", 0
+	DCB	"This application requires at least version"
+	DCB	"1.05 of the SharedUnixLibrary module", 0
 	ALIGN
 error_no_fpe
 	DCD	SharedUnixLibrary_Error_NoFPE
-	DCB	"This application requires version 4.00 or later of the FPEmulator module", 0
+	DCB	"This application requires version 4.00"
+	DCB	"or later of the FPEmulator module", 0
 	ALIGN
 error_unrecoverable_loop
 	DCD	SharedUnixLibrary_Error_FatalError
 	DCB	"Unrecoverable fatal error detected", 0
 	ALIGN
-
+	
 	IMPORT	|__munmap_all|
 	EXPORT	|__dynamic_area_exit|
 	NAME	__dynamic_area_exit
@@ -565,7 +564,8 @@ handlers
 	NAME	__rt_stkovf_split_small
 |x$stack_overflow|
 |__rt_stkovf_split_small|
-	STMFD	sp!, {a1, a2, a3, a4, v1, v2, v3, lr}	; This must store the same regs as for __rt_stkovf_split_big
+	; This must store the same regs as for __rt_stkovf_split_big
+	STMFD	sp!, {a1, a2, a3, a4, v1, v2, v3, lr}
 
 	MOV	v1, #4096
 	B	stack_overflow_common
@@ -581,12 +581,14 @@ handlers
 	MOVCS	pc, lr
 	STMFD	sp!, {a1, a2, a3, a4, v1, v2, v3, lr}
 	; This must store the same regs as for __rt_stkovf_split_small
-	; and if changed, also update the 8*4 in the frame size calculation below
+	; and if changed, also update the 8*4 in the frame size
+	; calculation below
 
 	SUB	v1, sp, ip	; Get required frame size
 	ADD	v1, v1, #8*4	; Take account of the earlier STMFD
 
-	ADD	v1, v1, #512+CHUNK_OVERHEAD	;size of chunk header and space for stack extension procedures
+	; Size of chunk header and space for stack extension procedures
+	ADD	v1, v1, #512+CHUNK_OVERHEAD
 	ADD	v1, v1, #&FF0	;round up to nearest 4KB
 	ADD	v1, v1, #&00F
 	BIC	v1, v1, #&FF0
@@ -607,7 +609,8 @@ stack_overflow_common
 	BL	|__check_stack|
 	]
 
-	SUB	v2, sl, #512+CHUNK_OVERHEAD	; Find bottom of chunk
+	; Find bottom of chunk
+	SUB	v2, sl, #512+CHUNK_OVERHEAD
 	[ __UNIXLIB_STACK_CHECK_MAGIC > 0
 	LDR	a1, |__stackchunk_magic_number|
 	LDR	a2, [v2, #CHUNK_MAGIC]
@@ -623,7 +626,8 @@ stack_overflow_common
 
 	LDR	a1, [v2, #CHUNK_NEXT]
 	TEQ	a1, #0
-	BEQ	alloc_new_chunk	; There isn't a spare chunk, so we need to alloc a new one
+	; There isn't a spare chunk, so we need to alloc a new one
+	BEQ	alloc_new_chunk
 
 	[ __UNIXLIB_STACK_CHECK_MAGIC > 0
 	LDR	a3, |__stackchunk_magic_number|
@@ -787,7 +791,10 @@ __check_chunk
 __check_chunk_l1
 	LDR	v1, [a1, #CHUNK_PREV]
 	TEQ	v1, #0
-	BEQ	__check_chunk_l2 ; If the previous chunk is zero then dealloc and return may also be zero
+	; If the previous chunk is zero then dealloc and return
+	; may also be zero
+	BEQ	__check_chunk_l2
+
 	CMP	v1, a2
 	BCC	stack_corrupt
 	CMP	v1, a3
@@ -882,8 +889,10 @@ no_chunk_to_free
 	LDMFD	sp, {a1, a2, fp, sp} 	; Restore important regs
 
 	LDR	lr, [sl, #CHUNK_RETURN]	; Get the real return address
+
+	; Set sl up correctly for the old stack chunk
 	LDR	sl, [sl, #CHUNK_PREV]
-	ADD	sl, sl, #512+CHUNK_OVERHEAD	; Set sl up correctly for the old stack chunk
+	ADD	sl, sl, #512+CHUNK_OVERHEAD
 	MOV	pc, lr
 
 
@@ -939,6 +948,7 @@ __unixlib_fatal_got_msg
 	; Should never return
 	LDMDB	fp, {v1, fp, sp, pc}
 
+	; int _kernel_fpavailable (void)
 	; Return non-zero if the floating point instruction set is available
 	EXPORT	|_kernel_fpavailable|
 	NAME	_kernel_fpavailable
@@ -1133,4 +1143,10 @@ dynamic_area_name_end
 |__signalhandler_sp|
 	DCD	0						; offset = 132
 
+|__old_himem|
+	DCD	0						; offset = 136
+
+	DCD	0	; __mutex		offset = 140
+	DCD	0	; malloc_state		offset = 144
+		
 	END

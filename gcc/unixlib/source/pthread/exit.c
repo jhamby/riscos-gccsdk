@@ -6,7 +6,12 @@
 #include <errno.h>
 #include <unixlib/os.h>
 #include <pthread.h>
+#include <unixlib/unix.h>
 
+#ifdef PTHREAD_DEBUG
+#define DEBUG
+#include <sys/debug.h>
+#endif
 
 /* Exit from the current thread, or exit the entire program if there
    is only a single thread.  */
@@ -14,19 +19,17 @@ void
 pthread_exit (void *status)
 {
   pthread_t thread;
+  struct ul_global *gbl = &__ul_global;
 
   /* If we aren't running the thread system then just exit */
-  if (!__pthread_system_running)
+  if (! gbl->__pthread_system_running)
     exit ((int)status);
 
   __pthread_disable_ints ();
 
 #ifdef PTHREAD_DEBUG
-  __os_print ("-- pthread_exit(");
-  __os_prhex ((int)status);
-  __os_print ("): called from thread ");
-  __os_prhex ((int)__pthread_running_thread);
-  __os_nl ();
+  debug_printf ("pthread_exit(%d): called from thread %08x\n",
+		status, __pthread_running_thread);
 #endif
 
   __pthread_running_thread->state = STATE_CLEANUP;
@@ -64,23 +67,21 @@ pthread_exit (void *status)
   __pthread_disable_ints ();
 
 #ifdef PTHREAD_DEBUG
-  __os_print ("-- pthread_exit: Thread ");
-  __os_prhex ((int)thread);
-  __os_print (" now exit idle\r\n");
+  debug_printf ("pthread_exit: thread %08x now exit idle\n", thread);
 #endif
 
-  __pthread_num_running_threads--;
+  gbl->__pthread_num_running_threads--;
 
-  if (__pthread_num_running_threads <= 1)
+  if (gbl->__pthread_num_running_threads <= 1)
     {
 #ifdef PTHREAD_DEBUG
-      __os_print ("-- pthread_exit: Last or penultimate thread exited, stopping interrupts\r\n");
+      debug_printf ("pthread_exit: Last or penultimate thread exited, stopping interrupts\n");
 #endif
       /* There is no need for the ticker if there is only one thread left.  */
       __pthread_stop_ticker ();
     }
 
-  if (__pthread_num_running_threads > 0)
+  if (gbl->__pthread_num_running_threads > 0)
     {
       /* Not the last thread */
       thread->state = STATE_IDLE;
@@ -96,7 +97,7 @@ pthread_exit (void *status)
     }
 
 #ifdef PTHREAD_DEBUG
-  __os_print ("-- pthread_exit: Last thread exited, calling exit()\r\n");
+  debug_printf ("pthread_exit: Last thread exited, calling exit()\n");
 #endif
 
   exit ((int)status);

@@ -7,7 +7,9 @@
 #include <unixlib/os.h>
 #include <unixlib/unix.h>
 #include <pthread.h>
+#include <malloc.h>
 
+/* #define DEBUG_PTHREAD */
 
 /* Initialise an new thread node to hold all the details of the thread.
    If node is NULL, then allocate memory for the node as well.
@@ -23,27 +25,28 @@
 pthread_t
 __pthread_new_node (pthread_t node)
 {
+  struct ul_global *gbl = &__ul_global;
   if (node == NULL)
     {
-      node = __proc->sul_malloc (__proc->pid,
-				 sizeof (struct __pthread_thread));
+      node = malloc_unlocked (gbl->malloc_state,
+			      sizeof (struct __pthread_thread));
       if (node == NULL)
         {
 #ifdef DEBUG_PTHREAD
-          __os_print("-- __pthread_new_node: Unable to allocate thread node\r\n");
+          debug_printf ("__pthread_new_node: Unable to allocate thread node\n");
 #endif
           return NULL;
         }
 
       node->saved_context =
-	__proc->sul_malloc (__proc->pid,
-			    sizeof (struct __pthread_saved_context));
+	malloc_unlocked (gbl->malloc_state,
+			 sizeof (struct __pthread_saved_context));
       if (node->saved_context == NULL)
         {
 #ifdef DEBUG_PTHREAD
-          __os_print ("-- _pthread_new_node: Unable to allocate thread saved_context\r\n");
+          debug_printf ("_pthread_new_node: Unable to allocate thread saved_context\n");
 #endif
-          __proc->sul_free (__proc->pid, node);
+          free_unlocked (gbl->malloc_state, node);
           return NULL;
         }
     }
@@ -87,7 +90,7 @@ __pthread_new_stack (void)
   if (stack == NULL)
     {
 #ifdef DEBUG_PTHREAD
-      __os_print("-- __pthread_new_stack: Unable to allocate thread stack\r\n");
+      debug_printf ("__pthread_new_stack: Unable to allocate thread stack\n");
 #endif
       return NULL;
     }

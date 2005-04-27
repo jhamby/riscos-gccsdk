@@ -1,12 +1,12 @@
 /* Pthread initialisation.
-   Copyright (c) 2004, 2005 UnixLib Developers.  */
-
-/* Written by Martin Piper and Alex Waugh */
+   Copyright (c) 2004, 2005 UnixLib Developers.
+   Written by Martin Piper and Alex Waugh */
 
 #include <unixlib/os.h>
 #include <unixlib/unix.h>
 #include <stdlib.h>
 #include <pthread.h>
+#include <malloc.h>
 
 static struct __pthread_thread mainthread;
 
@@ -14,8 +14,9 @@ static struct __pthread_thread mainthread;
 void
 __pthread_prog_init (void)
 {
+  struct ul_global *gbl = &__ul_global;
 #ifdef PTHREAD_DEBUG
-  __os_print ("-- __pthread_prog_init: Program initialisation\r\n");
+  debug_printf ("__pthread_prog_init: Program initialisation\n");
 #endif
 
   /* Create a node for the main program.  Calling this function with a
@@ -25,11 +26,12 @@ __pthread_prog_init (void)
     __unixlib_fatal ("pthreads initialisation error: out of memory, increase RMA");
 
   mainthread.saved_context =
-    __proc->sul_malloc (__proc->pid, sizeof (struct __pthread_saved_context));
+    malloc_unlocked (gbl->malloc_state,
+		     sizeof (struct __pthread_saved_context));
   if (mainthread.saved_context == NULL)
     __unixlib_fatal ("pthreads initialisation error: out of memory, increase RMA");
+  mainthread.magic = PTHREAD_MAGIC;
 
   __pthread_thread_list = __pthread_running_thread;
-  __pthread_num_running_threads = 1;
-  mainthread.magic = PTHREAD_MAGIC;
+  gbl->__pthread_num_running_threads = 1;
 }

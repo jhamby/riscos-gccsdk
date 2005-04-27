@@ -1,12 +1,5 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/brk.c,v $
- * $Date: 2004/06/12 08:59:49 $
- * $Revision: 1.7 $
- * $State: Exp $
- * $Author: peter $
- *
- ***************************************************************************/
+/* Change data segment size.
+   Copyright (c) 2002, 2003, 2004, 2005 UnixLib Developers.  */
 
 /****************************************************************************
  *
@@ -40,9 +33,6 @@
 
 /* sys/brk.c: Complete rewrite by Peter Burwood, June 1997  */
 
-#ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: brk.c,v 1.7 2004/06/12 08:59:49 peter Exp $";
-#endif
 
 #include <string.h>
 #include <errno.h>
@@ -221,7 +211,9 @@ sbrk (intptr_t delta)
 }
 
 /* sbrk for internal UnixLib callers (i.e. malloc) that are aware that
-   space allocated may not be contiguous */
+   space allocated may not be contiguous.  No need to be thread safe
+   as the internal callers should already have ensured that context switching
+   is disabled.  */
 void *
 __internal_sbrk (int incr)
 {

@@ -7,6 +7,7 @@
 #include <errno.h>
 #include <unixlib/os.h>
 #include <unixlib/unix.h>
+#include <malloc.h>
 
 /* Wait for the specified thread to finish, and read its exit value.  */
 int
@@ -55,7 +56,7 @@ pthread_join (pthread_t tojoin, void **status)
           *status = tojoin->ret;
 
         tojoin->magic = 0;
-        __proc->sul_free (__proc->pid, tojoin);
+	free_unlocked (__ul_global.malloc_state, tojoin);
         __pthread_enable_ints ();
         break;
 

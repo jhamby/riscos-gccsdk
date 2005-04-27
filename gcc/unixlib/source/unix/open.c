@@ -1,6 +1,7 @@
 /* UnixLib open() implementation.
    Copyright (c) 2000, 2001, 2002, 2003, 2004, 2005 UnixLib Developers.  */
 
+#include <stdlib.h>
 #include <stdarg.h>
 #include <errno.h>
 #include <fcntl.h>
@@ -42,7 +43,7 @@ int
 __open_fh (int fd, int fh, int oflag, int mode)
 {
   struct __unixlib_fd *file_desc;
-  const char *rofs;
+  char *rofs;
 
   PTHREAD_UNSAFE
 
@@ -66,7 +67,7 @@ __open_fh (int fd, int fh, int oflag, int mode)
   file_desc->devicehandle->refcount = 1;
   free (rofs);
 
-  file_desc->devicehandle->handle = fh;
+  file_desc->devicehandle->handle = (void *) fh;
 
   return fd;
 }

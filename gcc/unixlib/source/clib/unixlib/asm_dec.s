@@ -1,8 +1,8 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/unixlib/asm_dec.s,v $
-; $Date: 2005/04/22 14:38:49 $
-; $Revision: 1.23 $
+; $Date: 2005/04/23 10:44:38 $
+; $Revision: 1.24 $
 ; $State: Exp $
 ; $Author: nick $
 ;
@@ -500,5 +500,10 @@ GBL_PTH_NUM_RUNNING_THREADS		EQU	120
 GBL_EXECUTING_SIGNALHANDLER		EQU	124
 GBL_SIGNALHANDLER_SL			EQU	128
 GBL_SIGNALHANDLER_SP			EQU	132
+
+GBL_OLD_HIMEM				EQU	136
+
+GBL_MUTEX				EQU	140
+GBL_MALLOC_GBL				EQU	144
 
 	END

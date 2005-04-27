@@ -1,14 +1,5 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/unixlib/unix.h,v $
- * $Date: 2005/04/18 13:48:04 $
- * $Revision: 1.30 $
- * $State: Exp $
- * $Author: nick $
- *
- * UNIX is a registered trademark of AT&T Bell Laboratories
- *
- ***************************************************************************/
+/* Structures for UnixLib's internal process management.
+   Copyright (c) 2002, 2003, 2004, 2005 UnixLib Developers.  */
 
 #ifndef __UNIXLIB_UNIX_H
 #define __UNIXLIB_UNIX_H 1
@@ -125,6 +116,96 @@ struct __sul_process
 
 extern struct __sul_process *__proc;
 extern struct proc *__u;	/* current process */
+
+
+/* This structure must be kept in perfect synchronisation with:
+
+     a) GBL_* definitions in clib/unixlib/asm_dec.s
+     b) The __ul_global structure at the end of sys/_syslib.s
+
+   Functions wishing to use this structure can reduce the number of
+   load/store operations by defining a local-variable i.e.
+
+      void foo (void)
+      {
+        struct ul_global *gbl = __ul_global;
+        ...
+      }
+
+   Otherwise the compiler will force a lookup on __ul_global for each
+   access.  */
+
+struct ul_global
+{
+  char *__unixlib_cli;
+  void *__image_rw_himem;
+  unsigned int __time[2];
+  void *__unixlib_stack;
+  void *__robase;
+  void *__unixlib_rwlimit;
+  void *__image_ro_base;
+  void *__image_rw_lomem;
+  void *__unixlib_break;
+  void *__unixlib_stack_limit;
+  void *__rwbase;
+  void *__unixlib_real_break;
+  int __fpflag;
+  int __taskwindow;
+  int __taskhandle;
+  int __dynamic_num;
+  void *__old_u;
+  void *__unixlib_real_himem;
+  int __32bit;
+  int __panic_mode;
+  struct __sul_process *__proc;
+  int __ul_pagesize;
+  void *__upcall_handler_addr;
+  void *__upcall_handler_r12;
+  void *__pthread_return_address;
+  int __pthread_worksemaphore;
+  int __pthread_callback_semaphore;
+  int __pthread_system_running;
+  int __pthread_callback_missed;
+  int __pthread_num_running_threads;
+  int __executing_signalhandler;
+  void *__signalhandler_sl;
+  void *__signalhandler_sp;
+
+  /* Value of __image_rw_himem last time the stack was increased */
+  void *__old_himem;
+
+  /* Serialise access to data in this structure (opaque type).  */
+  void *__mutex;
+
+  /* The global malloc state (opaque type).  */
+  void *malloc_state;
+};
+
+#if 0
+struct ul_memory
+{
+  /* Serialise access to this structure (opaque type).  */
+  void *mutex;
+
+  void *__image_rw_himem;
+  void *__unixlib_stack;
+  void *__robase;
+  void *__unixlib_rwlimit;
+  void *__image_ro_base;
+  void *__image_rw_lomem;
+  void *__unixlib_break;
+  void *__unixlib_stack_limit;
+  void *__rwbase;
+  void *__unixlib_real_break;
+
+  /* Value of __image_rw_himem last time the stack was increased */
+  void *__old_himem;
+};
+extern struct ul_memory __ul_memory;
+#endif
+
+extern struct ul_global __ul_global;
+
 
 extern int __funcall_error (const char *, int, unsigned int);
 #if __UNIXLIB_PARANOID > 0

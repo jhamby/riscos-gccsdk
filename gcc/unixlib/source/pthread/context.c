@@ -1,7 +1,6 @@
 /* Context switching/scheduling.
-   Copyright (c) 2004, 2005 UnixLib Developers.  */
-
-/* Written by Martin Piper and Alex Waugh */
+   Copyright (c) 2004, 2005 UnixLib Developers.
+   Written by Martin Piper and Alex Waugh */
 
 #include <stdlib.h>
 #include <errno.h>
@@ -9,9 +8,13 @@
 #include <unixlib/unix.h> /* for __stackalloc */
 #include <time.h>
 #include <pthread.h>
+#include <malloc.h>
 
-/*#define PTHREAD_DEBUG*/
-/*#define PTHREAD_DEBUG_CONTEXT*/
+/* #define PTHREAD_DEBUG
+#define PTHREAD_DEBUG_CONTEXT
+
+#define DEBUG
+#include <sys/debug.h> */
 
 pthread_t __pthread_thread_list = NULL; /* Linked list of all threads */
 pthread_t __pthread_running_thread = NULL; /* Currently running thread */
@@ -20,6 +23,7 @@ pthread_t __pthread_running_thread = NULL; /* Currently running thread */
 static void
 __pthread_cleanup_idle (pthread_t node)
 {
+  struct ul_global *gbl = &__ul_global;
   if (node == NULL)
     return;
 
@@ -27,15 +31,13 @@ __pthread_cleanup_idle (pthread_t node)
     __pthread_fatal_error ("-- __pthread_cleanup_idle: Not an idle thread!");
 
 #ifdef PTHREAD_DEBUG
-  __os_print ("-- __pthread_cleanup_idle: Marking as STATE_UNALLOCED idle thread node ");
-  __os_prhex ((int) node);
-  __os_print (" from link list\r\n");
+  debug_printf ("__pthread_cleanup_idle: Marking as STATE_UNALLOCED idle thread node %08x from linked list\n", node);
 #endif
   node->state = STATE_UNALLOCED;
 
   if (node->saved_context)
     {
-      __proc->sul_free (__proc->pid, node->saved_context);
+      free_unlocked (gbl->malloc_state, node->saved_context);
       node->saved_context = NULL;
     }
 
@@ -50,15 +52,15 @@ __pthread_cleanup_idle (pthread_t node)
   if (node->detachstate == PTHREAD_CREATE_DETACHED)
     {
       node->magic = 0; /* Invalidate magic number */
-      __proc->sul_free (__proc->pid, node);
+      free_unlocked (gbl->malloc_state, node);
     }
 #ifdef PTHREAD_DEBUG
-  __os_print ("-- __pthread_cleanup_idle: complete\r\n");
+  debug_printf ("__pthread_cleanup_idle: complete\n");
 #endif
 }
 
-/* Round robin scheduler */
-/* Occurs under a callback from the call_every interupt */
+/* Round robin scheduler.
+   Occurs under a callback from the call_every interrupt.  */
 void
 __pthread_context_switch (void)
 {
@@ -66,9 +68,8 @@ __pthread_context_switch (void)
   int iter = 0;
 
 #ifdef PTHREAD_DEBUG_CONTEXT
-  __os_print ("-- __pthread_context_switch: __pthread_running_thread  = ");
-  __os_prhex ((int) __pthread_running_thread);
-  __os_nl ();
+  debug_printf ("__pthread_context_switch: __pthread_running_thread=%08x\n",
+		__pthread_running_thread);
 #endif
 
 #if ! __UNIXLIB_ERRNO_THREADED
@@ -82,7 +83,7 @@ __pthread_context_switch (void)
   do
     {
 #ifdef PTHREAD_DEBUG_CONTEXT
-/*      __os_print ("-- __pthread_context_switch: Looking for non idle thread\r\n");*/
+      /* debug_printf ("__pthread_context_switch: Looking for non idle thread\n");*/
 #endif
       if (next != NULL)
         {
@@ -135,11 +136,8 @@ __pthread_context_switch (void)
             }
         }
 #ifdef PTHREAD_DEBUG_CONTEXT
-      __os_print ("-- __pthread_context_switch: thread = ");
-      __os_prhex ((int)__pthread_running_thread);
-      __os_print (" State = ");
-      __os_prdec (__pthread_running_thread->state);
-      __os_nl ();
+      debug_printf ("__pthread_context_switch: thread=%08x, state=%d\n",
+		    __pthread_running_thread, __pthread_running_thread->state);
 #endif
 
     }
@@ -158,9 +156,8 @@ __pthread_context_switch (void)
     }
 
 #ifdef PTHREAD_DEBUG_CONTEXT
-  __os_print ("-- __pthread_context_switch: New __pthread_running_thread  = ");
-  __os_prhex ((int) __pthread_running_thread);
-  __os_nl ();
+  debug_printf ("__pthread_context_switch: New __pthread_running_thread=%08x\n",
+		__pthread_running_thread);
 #endif
 }
 

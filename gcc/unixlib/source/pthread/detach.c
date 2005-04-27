@@ -5,6 +5,7 @@
 #include <pthread.h>
 #include <errno.h>
 #include <stdlib.h>
+#include <malloc.h>
 #include <unixlib/unix.h>
 
 /* Detach a thread.  No thread should subsequently try to join with
@@ -23,7 +24,7 @@ pthread_detach (pthread_t thread)
   if (thread->state == STATE_UNALLOCED)
     {
       thread->magic = 0;
-      __proc->sul_free (__proc->pid, thread);
+      free_unlocked (__ul_global.malloc_state, thread);
     }
 
   __pthread_enable_ints ();

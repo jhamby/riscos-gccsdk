@@ -35,7 +35,7 @@ static char rcsid[] = "$NetBSD: s_finite.c,v 1.8 1995/05/10 20:47:17 jtc Exp $";
 }
 //hidden_def (__finite)
 weak_alias (__finite, finite)
-//#ifdef NO_LONG_DOUBLE
-//strong_alias (__finite, __finitel)
-//weak_alias (__finite, finitel)
-//#endif
+#ifdef NO_LONG_DOUBLE
+strong_alias (__finite, __finitel)
+weak_alias (__finite, finitel)
+#endif

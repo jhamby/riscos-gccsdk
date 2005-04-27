@@ -1,105 +1,100 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/pthread/key.c,v $
- * $Date: 2003/05/07 22:10:27 $
- * $Revision: 1.2 $
- * $State: Exp $
- * $Author: alex $
- *
- ***************************************************************************/
-
-#ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: key.c,v 1.2 2003/05/07 22:10:27 alex Exp $";
-#endif
-
-/* Thread specific keys */
-
-/* Written by Alex Waugh */
+/* Thread specific keys.
+   Copyright (c) 2004, 2005 UnixLib Devlopers.
+   Written by Alex Waugh.  */
 
 #include <errno.h>
 #include <stdlib.h>
 #include <pthread.h>
+#include <unixlib/unix.h>
 
+/* ID to allocate to next new key.  */
+static pthread_key_t nextkey = 0;
 
-static pthread_key_t nextkey = 0; /* ID to allocate to next new key */
+/* Linked list of all keys.  */
+static struct __pthread_key *keys = NULL;
 
-static struct __pthread_key *keys = NULL; /* Linked list of all keys */
-
-
-/* Create a key and associate a destructor function with it */
+/* Create a key and associate a destructor function with it.  */
 int
 pthread_key_create (pthread_key_t *key, void (*destructor) (void*))
 {
   struct __pthread_key *newkey;
+  int retval = 0;
 
   if (key == NULL)
     return EINVAL;
 
-  newkey = malloc (sizeof (struct __pthread_key));
-  if (newkey == NULL)
-    return ENOMEM;
-
   __pthread_disable_ints ();
-
-  if (nextkey >= PTHREAD_KEYS_MAX)
+  newkey = malloc_unlocked (__ul_global.malloc_state,
+			    sizeof (struct __pthread_key));
+  if (newkey == NULL)
+    retval = ENOMEM;
+  else
     {
-      __pthread_enable_ints ();
-      return EAGAIN;
+      if (nextkey >= PTHREAD_KEYS_MAX)
+	retval = EAGAIN;
+      else
+	{
+	  newkey->next = keys;
+	  keys = newkey;
+	  newkey->keyid = nextkey++;
+	  newkey->destructor = destructor;
+	}
     }
-
-  newkey->next = keys;
-  keys = newkey;
-  newkey->keyid = nextkey++;
-  newkey->destructor = destructor;
+  __pthread_enable_ints ();
 
   *key = newkey->keyid;
-
-  __pthread_enable_ints ();
-  return 0;
+  return retval;
 }
 
-/* Deletes a thread specific key (does not call the key's destructors) */
+/* Deletes a thread specific key (does not call the key's destructors).  */
 int
 pthread_key_delete (pthread_key_t key)
 {
-  struct __pthread_key *keylist;
+  struct __pthread_key *oldkey; /* Key to delete.  */
+  int retval;
 
   if (keys == NULL)
     return EINVAL;
 
+  retval = 0;
   __pthread_disable_ints ();
 
-  /* Remove key from the linked list */
+  /* Check whether key is head node in list of keys.  */
   if (keys->keyid == key)
     {
-      keylist = keys->next;
-      free (keys);
-      keys = keylist;
+      /* It is; remove key from the linked list of keys.  */
+      oldkey = keys;
+      keys = keys->next;
     }
   else
     {
-      struct __pthread_key *temp;
-
-      keylist = keys;
+      /* Key is buried somewhere within the list.  */
+      struct __pthread_key *keylist = keys;
       while (keylist->next && keylist->next->keyid != key)
         keylist = keylist->next;
 
       if (keylist->next == NULL)
         {
-          __pthread_enable_ints ();
-          return EINVAL;
-        }
-
-      temp = keylist->next;
-      keylist->next = temp->next;
-      free (temp);
+	  /* Key doesn't exist.  */
+	  retval = EINVAL;
+	}
+      else
+	{
+	  oldkey = keylist->next;
+	  keylist->next = oldkey->next;
+	}
     }
 
+  /* If retval is zero, then it indicates that we successfully
+     found a key.  */
+  if (! retval)
+    free_unlocked (__ul_global.malloc_state, oldkey);
+
   __pthread_enable_ints ();
-  return 0;
+  return retval;
 }
 
-/* Set a thread specific value to associate with the given key */
+/* Set a thread specific value to associate with the given key.  */
 int
 pthread_setspecific (pthread_key_t key, const void *value)
 {
@@ -108,7 +103,7 @@ pthread_setspecific (pthread_key_t key, const void *value)
 
   __pthread_disable_ints ();
 
-  /* Find key in linked list */
+  /* Find key in linked list.  */
   keylist = keys;
   while (keylist != NULL && keylist->keyid != key)
     keylist = keylist->next;
@@ -119,19 +114,20 @@ pthread_setspecific (pthread_key_t key, const void *value)
       return EINVAL;
     }
 
-  /* Check to see if it's already set for this thread */
+  /* Check to see if it's already set for this thread.  */
   findkey = __pthread_running_thread->keys;
   while (findkey != NULL && findkey->keyid != key)
     findkey = findkey->next;
 
   if (findkey == NULL)
     {
-      findkey = malloc (sizeof (struct __pthread_key));
+      findkey = malloc_unlocked (__ul_global.malloc_state,
+				 sizeof (struct __pthread_key));
       if (findkey == NULL)
-      {
-        __pthread_enable_ints ();
-        return ENOMEM;
-      }
+	{
+	  __pthread_enable_ints ();
+	  return ENOMEM;
+	}
 
       /* Add key to list for this thread */
       findkey->next = __pthread_running_thread->keys;
@@ -147,8 +143,8 @@ pthread_setspecific (pthread_key_t key, const void *value)
   return 0;
 }
 
-/* Read value associated with given key for the current thread */
-/* Returns NULL if no value has been set for this thread yet */
+/* Read value associated with given key for the current thread.
+   Returns NULL if no value has been set for this thread yet.  */
 void *
 pthread_getspecific (pthread_key_t key)
 {
@@ -170,4 +166,3 @@ pthread_getspecific (pthread_key_t key)
   __pthread_enable_ints ();
   return NULL;
 }
-

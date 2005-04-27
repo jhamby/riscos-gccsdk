@@ -2,12 +2,19 @@
    Copyright (c) 2004, 2005 UnixLib Developers.
    Written by Martin Piper and Alex Waugh.  */
 
+/*#define PTHREAD_DEBUG*/
 
 #include <stdlib.h>
 #include <errno.h>
 #include <unixlib/os.h>
 #include <unixlib/unix.h>
 #include <pthread.h>
+#include <malloc.h>
+
+#ifdef PTHREAD_DEBUG
+#define DEBUG
+#include <sys/debug.h>
+#endif
 
 /* __pthread_create is the first thing called when a new thread
    is switched to.  */
@@ -17,18 +24,14 @@ __pthread_create (pthread_t thread)
   void *ret = NULL;
 
 #ifdef PTHREAD_DEBUG
-  __os_print ("-- __pthread_create: About to start thread ");
-  __os_prhex ((int) thread);
-  __os_nl ();
+  debug_printf ("__pthread_create: About to start thread %d\n", thread);
 #endif
 
   /* Go into the thread properly.  */
   ret = (*thread->start_routine) (thread->arg);
 
 #ifdef PTHREAD_DEBUG
-  __os_print ("-- __pthread_create: Thread ");
-  __os_prhex ((int) thread);
-  __os_print (" has returned\r\n");
+  debug_printf ("__pthread_create: Thread %d has returned\n", thread);
 #endif
 
   /* A thread returning from its main function is an implicit call
@@ -41,19 +44,20 @@ pthread_create (pthread_t *threadin, const pthread_attr_t *attr,
 		void * (*start_routine) (void *), void *arg)
 {
   pthread_t thread;
+  struct ul_global *gbl = &__ul_global;
 
   if (threadin == NULL || start_routine == NULL)
     return EINVAL;
 
   /* If the pthread subsystem wasn't running before, set the flag to
      indicate that it should be now.  */
-  if (! __pthread_system_running)
-    __pthread_system_running = 1;
+  if (! gbl->__pthread_system_running)
+    gbl->__pthread_system_running = 1;
 
   __pthread_disable_ints ();
 
 #ifdef PTHREAD_DEBUG
-  __os_print ("-- pthread_create: Starting new thread\r\n");
+  debug_printf ("pthread_create: Starting new thread\n");
 #endif
 
   /* Allocate memory for a new thread, without adding the thread to
@@ -74,14 +78,14 @@ pthread_create (pthread_t *threadin, const pthread_attr_t *attr,
         __free_stack_chain (thread->stack);
 
       if (thread->saved_context != NULL)
-        __proc->sul_free (__proc->pid, thread->saved_context);
+	free_unlocked (gbl->malloc_state, thread->saved_context);
 
-      __proc->sul_free (__proc->pid, thread);
+      free_unlocked (gbl->malloc_state, thread);
 
 #ifdef PTHREAD_DEBUG
-      __os_print ("-- pthread_create: Cannot start any more threads at the moment (no memory)\r\n");
+      debug_printf ("pthread_create: Cannot start any more threads at the moment (no memory)\n");
 #endif
-      __pthread_enable_ints () ;
+      __pthread_enable_ints ();
       return EAGAIN;
     }
 
@@ -128,7 +132,10 @@ pthread_create (pthread_t *threadin, const pthread_attr_t *attr,
 
   *threadin = thread;
 
-  __pthread_num_running_threads++;
+  gbl->__pthread_num_running_threads ++;
+#ifdef PTHREAD_DEBUG
+  debug_printf ("pthread_create: running threads=%d (%08x)\n", gbl->__pthread_num_running_threads, &gbl->__pthread_num_running_threads);
+#endif
   __pthread_start_ticker ();
   __pthread_enable_ints ();
 

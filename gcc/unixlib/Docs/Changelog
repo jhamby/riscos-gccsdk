@@ -1,3 +1,54 @@
+Wed Apr 27 12:14:41 2005  Nick Burrett  <nick@sqrt.co.uk>
+
+	* stdlib/alloc.c: Cleanup code, remove WIN32 and non-STDC code.
+	Re-write public facing functions to disable pthread context
+	switching around internal malloc calls.
+	Rename functions to be the correct C function names, rather than via
+	some macro mangling.
+	Drop strange-case in function names, renaming all to lower-case.
+	Internal versions of malloc, free, realloc are renamed to an
+	unlocked variant.
+	(largebin_index): Delete i386 specific code.
+	(malloc_init_state): Declare inline.
+	(malloc_unlocked): Don't perform malloc initialisation check.
+	(malloc_consolidate): Likewise.
+	(iALLOc, iCALLOc, iCOMALLOc): Delete functions.
+	(mUSABLe, mALLINFo, mSTATs, mALLOPt): Delete functions.
+	(__ul_malloc_init): New function.
+
+	* sys/_syslib.s (__main): Call __ul_malloc_init.
+	(__ul_global): Add entries for '__mutex' and 'malloc_state'.
+	
+	* malloc.h (malloc_unlocked): Add prototype.
+	(free_unlocked, realloc_unlocked): Add prototypes.
+	(malloc_trim_unlocked): Add prototype.
+	(__ul_malloc_init): Add prototype.
+	* unixlib/asm_dec.s (GBL_OLD_HIMEM): Add.
+	(GBL_MUTEX, GBL_MALLOC_GBL): Add.
+	* unixlib/unix.h (struct ul_global): Add definition.
+	(__ul_global): Declare.
+
+	* pthread/atfork.c (pthread_atfork): Use __ul_global structure
+	and use unlocked variants of malloc rather than SUL malloc.
+	* pthread/context.c (__pthread_cleanup_idle): Likewise.
+	* pthread/create.c (pthread_create): Likewise.
+	* pthread/detach.c (pthread_detach): Likewise.
+	* pthread/exit.c (pthread_exit): Likewise.
+	* pthread/join.c (pthread_join): Likewise.
+	* pthread/newnode.c (__pthread_new_node): Likewise.
+	* pthread/pthinit.c (__pthread_prog_init: Likewise.
+
+	* pthread/key.c (pthread_key_create): Use unlocked variants of
+	malloc and ensure they are called with interrupts disabled.
+	(pthread_key_delete): Likewise.
+	(pthread_setspecific): Likewise.
+
+	* debug/dvsprintf.c: Compile without stack-checking.
+	* source/Makefile.in (debug/dvsprintf.o): New target.
+
+	* unix/open.c (__open_fh): Type fixes for Norcroft [from Stefan
+	Bellon].
+
 Tue Apr 26 23:32:44 2005  John Tytgat  <John.Tytgat@aaug.net>
 
 	* unixlib/dev.h (__getdevtype): Added explicit riscosify control
@@ -9,8 +60,8 @@ Tue Apr 26 23:32:44 2005  John Tytgat  <John.Tytgat@aaug.net>
 	FILE_HANDLE_FROM_OS bit is set.
 	* unixlib/fd.h: Added comment.
 	* unixlib/local.h (__open_fn): Renamed from __open().
-	(__open_fh): Similar call to __open_fn() but instead of a filename, this
-	gets a RISC OS file handle (from OS).
+	(__open_fh): Similar call to __open_fn() but instead of a filename,
+	this gets a RISC OS file handle (from OS).
 	* unix/open.c: Likewise.
 	* unix/reopen.c: Likewise.
 	* stdio/stdio.c: Capitalised first char of __unixlib_fatal() strings.

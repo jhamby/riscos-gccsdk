@@ -3,6 +3,7 @@ common
 complex
 crypt
 ctype
+debug
 fenv
 gcccompat
 gdtoa

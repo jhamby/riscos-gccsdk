@@ -56,6 +56,10 @@ $(libunixobj)/sys/stackalloc.o: sys/stackalloc.c
 $(libunixobj)/sys/brk.o: sys/brk.c
 	$(CROSS_CC) $(CROSS_CFLAGS) -mno-apcs-stack-check -o $@ -c $< $(INCLUDES) $(CFL)
 
+$(libunixobj)/debug/dvsprintf.o: debug/dvsprintf.c
+	$(CROSS_CC) $(CROSS_CFLAGS) -mno-apcs-stack-check -o $@ -c $< $(INCLUDES) $(CFL)
+
+
 $(ro_gcc_bin_dir)/$(TRG)/o/unixlib $(ro_unixlibpkg)/source/clib/o/unixlib: $(ux_gcc_bin_dir)/$(TRG)/unixlib.o
 	cp $< $@
 
