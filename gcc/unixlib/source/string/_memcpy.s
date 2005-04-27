@@ -1,27 +1,12 @@
-;----------------------------------------------------------------------------
-;
-; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/string/_strcpy.s,v $
-; $Date: 2005/04/01 16:08:12 $
-; $Revision: 1.1 $
-; $State: Exp $
-; $Author: peter $
-;
-;----------------------------------------------------------------------------
+; Fast memcpy and memmove
+; Copyright (c) 2005 UnixLib Devlopers
+; Written by Adrian Lees
 
-; Fast memcpy Contriubted by Adrian Lees
-
-	AREA	|ARM$$code|,CODE,READONLY
+	AREA	|C$$code|, CODE, READONLY
 
 	EXPORT	|memcpy|
 	EXPORT	|memmove|
 	EXPORT  |bcopy|
-
-;-------------------------------------------------------------------------------------------
-;
-;				Optimised APCS-32 SharedCLibrary routines
-;
-;-------------------------------------------------------------------------------------------
-
 
 |bcopy|
 	MOV	a4,a1

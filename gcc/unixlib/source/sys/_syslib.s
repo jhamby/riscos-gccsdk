@@ -123,12 +123,10 @@ SUL_MIN_VERSION	EQU	105
 
 	; For a description of the memory layout of a UnixLib application
 	; see sys/brk.c.
-	LDR	a2, [fp, #MEM_UNIXLIB_RWLIMIT]	; __rwlimit
-
-	STR	a2, [fp, #MEM_IMAGE_RW_LOMEM]	; __lomem       = __rwlimit
-	STR	a2, [fp, #MEM_UNIXLIB_BREAK]	; __break       = __rwlimit
-	STR	a2, [fp, #MEM_UNIXLIB_STACK_LIMIT]	; __stack_limit = __rwlimit
-	STR	a2, [fp, #MEM_UNIXLIB_REAL_BREAK]	; __real_break  = __rwlimit
+	LDR	a2, [fp, #MEM_RWLOMEM]	; __rwlomem
+	STR	a2, [fp, #MEM_UNIXLIB_BREAK]	; __break = __rwlomem
+	STR	a2, [fp, #MEM_UNIXLIB_STACK_LIMIT] ; __stack_limit = __rwlomem
+	STR	a2, [fp, #MEM_UNIXLIB_REAL_BREAK] ; __real_break  = __rwlomem
 
 	; The stack is allocated in chunks in the wimpslot, with the first
 	; 4KB chunk immediately below __image_rw_himem.  We cannot place it
@@ -316,9 +314,12 @@ t08
 
 	; v6 is size left in area, a4 is start offset
 	ADD	a1, v6, a4
-	STR	a4, [fp, #MEM_IMAGE_RW_LOMEM]	; __lomem = start of dynamic area
-	STR	a1, [fp, #MEM_UNIXLIB_BREAK]	; __break = end of used part of DA
-	STR	a1, [fp, #MEM_UNIXLIB_REAL_BREAK]	; __real_break = end of used part of DA
+	; __lomem = start of dynamic area
+	STR	a4, [fp, #MEM_RWLOMEM]
+	; __break = end of used part of DA
+	STR	a1, [fp, #MEM_UNIXLIB_BREAK]
+	; __real_break = end of used part of DA
+	STR	a1, [fp, #MEM_UNIXLIB_REAL_BREAK]
 
 no_dynamic_area
 	MOV	fp, #0
@@ -1116,18 +1117,17 @@ dynamic_area_name_end
 	DCD	0	; unixlib_stack		offset = 8
 	[ __UNIXLIB_ELF > 0
 	DCD	|__executable_start|	; robase		offset = 12
-	DCD	|__end__|		; unixlib_rwlimit	offset = 16
+	DCD	|__end__|		; rwlomem		offset = 16
 	DCD	|__data_start|		; rwbase		offset = 20
 	|
 	DCD	|Image$$RO$$Base|	; robase		offset = 12
-	DCD	|Image$$RW$$Limit|	; unixlib_rwlimit	offset = 16
+	DCD	|Image$$RW$$Limit|	; rwlomem		offset = 16
 	DCD	|Image$$RW$$Base|	; rwbase		offset = 20
 	]
-	DCD	0	; image_rw_lomem	offset = 24
-	DCD	0	; unixlib_break		offset = 38
-	DCD	0	; unixlib_stack_limit	offset = 32
-	DCD	0	; unixlib_real_break	offset = 36
-	DCD	0	; unixlib_real_himem	offset = 40
-	DCD	0	; old_himem		offset = 44
+	DCD	0	; unixlib_break		offset = 24
+	DCD	0	; unixlib_stack_limit	offset = 28
+	DCD	0	; unixlib_real_break	offset = 32
+	DCD	0	; unixlib_real_himem	offset = 36
+	DCD	0	; old_himem		offset = 40
 
 	END

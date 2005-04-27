@@ -52,7 +52,7 @@ __resource_initialise (struct proc *p)
       regs[0] = __dynamic_num;
       if (__os_swi (OS_ReadDynamicArea, regs))
 	p->limit[RLIMIT_DATA].rlim_max = ((u_char *) mem->__unixlib_break
-					  - (u_char *) mem->__image_rw_lomem);
+					  - (u_char *) mem->__rwlomem);
       else
 	p->limit[RLIMIT_DATA].rlim_max = regs[2];
     }
@@ -73,7 +73,7 @@ __resource_initialise (struct proc *p)
 
      I think that maximum physical memory is the area from __robase to
      __image_rw_himem (no dynamic area). Also included is from
-     __image_rw_lomem to __unixlib_break and beyond for dynamic areas.  */
+     __rwlomem to __unixlib_break and beyond for dynamic areas.  */
   if (__dynamic_num == -1)	/* No dynamic area */
     {
       p->limit[RLIMIT_RSS].rlim_max = max_wimpslot;
@@ -86,7 +86,7 @@ __resource_initialise (struct proc *p)
       regs[0] = 6 + 128;
       if (__os_swi (OS_ReadDynamicArea, regs))
 	p->limit[RLIMIT_RSS].rlim_max += ((u_char *) mem->__unixlib_break
-					  - (u_char *) mem->__image_rw_lomem);
+					  - (u_char *) mem->__rwlomem);
       else
 	/* rlim_max is all of physical memory ?  */
 	p->limit[RLIMIT_RSS].rlim_max = regs[2];

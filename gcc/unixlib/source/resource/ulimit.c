@@ -49,7 +49,7 @@ long int ulimit (int cmd, ...)
       }
     case __UL_GETMAXBRK:
       /* Get maximum address for `brk'.  This lies between
-         __image_rw_lomem and __image_rw_lomem + current limit on
+         __rwlomem and __image_rw_lomem + current limit on
 	 address size.  */
       {
 	struct rlimit dsize;
@@ -57,7 +57,7 @@ long int ulimit (int cmd, ...)
 	if (status < 0)
 	  return -1;
 
-	return ((long int) __ul_memory.__image_rw_lomem) + dsize.rlim_cur;
+	return ((long int) __ul_memory.__rwlomem) + dsize.rlim_cur;
       }
     case __UL_GETOPENMAX:
       return FOPEN_MAX;

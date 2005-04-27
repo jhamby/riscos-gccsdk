@@ -14,7 +14,7 @@
  *    +-------+-------------+         +--------+.....+
  *    ^       ^             ^->     <-^        ^     ^->
  * __base  __rwlimit     __break   __stack     |  __real_himem
- *         __lomem       __stack_limit      __himem
+ *         __rwlomem     __stack_limit      __himem
  *
  *
  * Case 2: Heap in dynamic area
@@ -23,7 +23,7 @@
  *    |       |  ....... |        |     | ......     \      | heap ->|     | ......
  *    +-------+          +--------+.....+            /      +--------+.....+
  *    ^       ^        <-^        ^     ^->         /       ^        ^     ^->
- * __base  __rwlimit  __stack     |  __real_himem        __lomem     |  __real_break
+ * __base  __rwlimit  __stack     |  __real_himem       __rwlomem     |  __real_break
  *         __stack_limit       __himem                            __break
  *
  * The stack initially decends (in chunks) downto __unixlib_stack_limit, then
@@ -60,9 +60,6 @@
 #pragma -s1
 #endif
 
-/* __unixlib_real_break is the top limit of the dynamic area allocated.  */
-extern void * __unixlib_real_break;
-
 static int
 __internal_brk (void *addr, int internalcall)
 {
@@ -71,15 +68,15 @@ __internal_brk (void *addr, int internalcall)
   addr = align (addr);
 
 #ifdef DEBUG
-  debug_printf ("brk: addr=%08x, image_rw_lomem=%08x"
+  debug_printf ("brk: addr=%08x, rwlomem=%08x"
 		", unixlib_break=%08x, unixlib_stack=%08x\n",
-		addr, mem->__image_rw_lomem,
+		addr, mem->__rwlomem,
 		mem->__unixlib_break, mem->__unixlib_stack);
 #endif
 
-  /* Check new limit isn't below minimum brk limit, i.e., __image_rw_lomem.
+  /* Check new limit isn't below minimum brk limit, i.e., __rwlomem.
      Return EINVAL, because it doesn't make sense to return ENOMEM.  */
-  if (addr < mem->__image_rw_lomem)
+  if (addr < mem->__rwlomem)
     return __set_errno (EINVAL);
 
   /* We can't call getrlimit until the process is up and running.
@@ -89,17 +86,17 @@ __internal_brk (void *addr, int internalcall)
      data limit resource.  */
   if (addr > mem->__unixlib_break)
     {
-      if ((u_char *) addr - (u_char *) mem->__image_rw_lomem > (32 * 1024))
+      if ((u_char *) addr - (u_char *) mem->__rwlomem > (32 * 1024))
 	{
 	  /* struct rlimit rlim; */
 	  /* Inline version of
 	     if (getrlimit (RLIMIT_DATA, &rlim) >= 0)
-	     if ((u_char *) addr - (u_char *) __image_rw_lomem > rlim.rlim_cur) */
-	  if ((u_char *) addr - (u_char *) mem->__image_rw_lomem
+	     if ((u_char *) addr - (u_char *) __rwlomem > rlim.rlim_cur) */
+	  if ((u_char *) addr - (u_char *) mem->__rwlomem
 	      > __u->limit[RLIMIT_DATA].rlim_cur)
 	    {
 #ifdef DEBUG
-       	      debug_printf ("brk: addr - __image_rw_lomem > RLIMIT_DATA (%08x)\n",
+       	      debug_printf ("brk: addr - __rwlomem > RLIMIT_DATA (%08x)\n",
 			    __u->limit[RLIMIT_DATA].rlim_cur);
 #endif
 	      /* Need to increase the resource limit.  */

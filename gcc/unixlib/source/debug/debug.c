@@ -20,9 +20,9 @@ __debug (const char *s)
 
   PTHREAD_UNSAFE
   debug_printf ("\n# %s\n", (s) ? s : "");
-  debug_printf ("__robase: %08x, __image_rw_lomem: %08x,"
+  debug_printf ("__robase: %08x, __rwlomem: %08x,"
 		" __image_rw_himem: %08x\n",
-		mem->__robase, mem->__image_rw_lomem,
+		mem->__robase, mem->__rwlomem,
 		mem->__image_rw_himem);
 
   debug_printf ("__u: %08x, __unixlib_break: %08x, __unixlib_stack: %08x\n",

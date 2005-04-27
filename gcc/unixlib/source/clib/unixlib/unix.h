@@ -197,22 +197,31 @@ struct ul_memory
   /* This points to the start of application memory, usually 0x8000.
      Defined as Image$$RO$$Base for AOF.
      Defined as __executable_start for ELF.  */
-  void *__robase;
+  const void *__robase;
 
   /* This points to the end of the executable, including any read/write
      data that has been initialised before program start.
+
+     It is called 'rwlomem' because it refers to the lowest memory address
+     that is usable for run-time allocation of memory.
+
      Defined as Image$$RW$$Limit for AOF.
-     Defined as __end__ for ELF.  */
-  void *__unixlib_rwlimit;
+     Defined as __end__ for ELF.
+
+     Note that if we decide to use a dynamic area for general memory
+     allocations, then this value is changed to point to the base
+     address of the dynamic area in sys/_syslib.s.  */
+  const void *__rwlomem;
 
   /* This points to the start of read/write data.
      Defined as Image$$RW$$Base for AOF.
      Defined as __data_start for ELF.  */
-  void *__rwbase;
+  const void *__rwbase;
 
-  void *__image_rw_lomem;
   void *__unixlib_break;
   void *__unixlib_stack_limit;
+
+  /* Top limit of the dynamic area allocated.  */
   void *__unixlib_real_break;
 
   void *__unixlib_real_himem;

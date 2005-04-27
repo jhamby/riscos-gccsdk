@@ -1,3 +1,23 @@
+Wed Apr 27 18:38:51 2005  Nick Burrett  <nick@sqrt.co.uk>
+
+	* unixlib/asm_dec.s (MEM_RWLOMEM): Renamed from MEM_UNIXLIB_RWLIMIT.
+	(MEM_IMAGE_RW_LOMEM): Deleted.
+	* unixlib/unix.h (struct ul_memory): Rename __unixlib_rwlimit
+	to __rwlomem.
+	Delete __image_rw_lomem.
+	Constify __robase, __rwlomem and __rwbase as these values should
+	never change during the execution of a program.
+	* sys/_syslib.s (__main): Fixup accordingly.
+	* debug/debug.c (__debug): Use __rwlomem instead of __image_rw_lomem.
+	* resource/initialise.c (__resource_initialise): Likewise.
+	* resource/ulimit.c (ulimit): Likewise.
+	* sys/brk.c (__internal_brk): Likewise.
+	(__unixlib_real_break): Delete extern reference.
+
+	* string/_memcpy.s: AREA should be 'C$$code' as the 'C' defines
+	the language type for the run-time environment, not the type
+	of language used in the source unit.
+
 Wed Apr 27 17:00:00 2005  Nick Burrett  <nick@sqrt.co.uk>
 
 	* unixlib/unix.c (struct ul_global): Move fields __image_rw_himem,

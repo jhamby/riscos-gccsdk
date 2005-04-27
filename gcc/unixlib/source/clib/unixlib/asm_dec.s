@@ -1,8 +1,8 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/unixlib/asm_dec.s,v $
-; $Date: 2005/04/27 11:17:11 $
-; $Revision: 1.25 $
+; $Date: 2005/04/27 15:56:44 $
+; $Revision: 1.26 $
 ; $State: Exp $
 ; $Author: nick $
 ;
@@ -501,15 +501,14 @@ MEM_IMAGE_RW_HIMEM			EQU	4
 MEM_UNIXLIB_STACK			EQU	8
 
 MEM_ROBASE				EQU	12
-MEM_UNIXLIB_RWLIMIT			EQU	16
+MEM_RWLOMEM				EQU	16
 MEM_RWBASE				EQU	20
 
-MEM_IMAGE_RW_LOMEM			EQU	24
-MEM_UNIXLIB_BREAK			EQU	28
-MEM_UNIXLIB_STACK_LIMIT			EQU	32
-MEM_UNIXLIB_REAL_BREAK			EQU	36
-MEM_UNIXLIB_REAL_HIMEM			EQU	40
-MEM_OLD_HIMEM				EQU	44
+MEM_UNIXLIB_BREAK			EQU	24
+MEM_UNIXLIB_STACK_LIMIT			EQU	28
+MEM_UNIXLIB_REAL_BREAK			EQU	32
+MEM_UNIXLIB_REAL_HIMEM			EQU	36
+MEM_OLD_HIMEM				EQU	40
 
 	
 	END
