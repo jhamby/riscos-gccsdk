@@ -128,7 +128,7 @@ extern struct proc *__u;	/* current process */
 
       void foo (void)
       {
-        struct ul_global *gbl = __ul_global;
+        struct ul_global *gbl = &__ul_global;
         ...
       }
 
@@ -138,41 +138,29 @@ extern struct proc *__u;	/* current process */
 struct ul_global
 {
   char *__unixlib_cli;
-  void *__image_rw_himem;
   unsigned int __time[2];
-  void *__unixlib_stack;
-  void *__robase;
-  void *__unixlib_rwlimit;
-  void *__image_ro_base;
-  void *__image_rw_lomem;
-  void *__unixlib_break;
-  void *__unixlib_stack_limit;
-  void *__rwbase;
-  void *__unixlib_real_break;
   int __fpflag;
   int __taskwindow;
   int __taskhandle;
   int __dynamic_num;
   void *__old_u;
-  void *__unixlib_real_himem;
   int __32bit;
   int __panic_mode;
   struct __sul_process *__proc;
   int __ul_pagesize;
   void *__upcall_handler_addr;
   void *__upcall_handler_r12;
+
   void *__pthread_return_address;
   int __pthread_worksemaphore;
   int __pthread_callback_semaphore;
   int __pthread_system_running;
   int __pthread_callback_missed;
   int __pthread_num_running_threads;
+
   int __executing_signalhandler;
   void *__signalhandler_sl;
   void *__signalhandler_sp;
-
-  /* Value of __image_rw_himem last time the stack was increased */
-  void *__old_himem;
 
   /* Serialise access to data in this structure (opaque type).  */
   void *__mutex;
@@ -181,28 +169,59 @@ struct ul_global
   void *malloc_state;
 };
 
-#if 0
+/* This structure must be kept in perfect synchronisation with:
+
+     a) MEM_* definitions in clib/unixlib/asm_dec.s
+     b) The __ul_memory structure at the end of sys/_syslib.s
+
+   Functions wishing to use this structure can reduce the number of
+   load/store operations by defining a local-variable i.e.
+
+      void foo (void)
+      {
+        struct ul_memory *mem = &__ul_memory;
+        ...
+      }
+
+   */
+
 struct ul_memory
 {
   /* Serialise access to this structure (opaque type).  */
   void *mutex;
 
+  /* Points to the permitted RAM limit, initially obtained from OS_GetEnv.  */
   void *__image_rw_himem;
   void *__unixlib_stack;
+
+  /* This points to the start of application memory, usually 0x8000.
+     Defined as Image$$RO$$Base for AOF.
+     Defined as __executable_start for ELF.  */
   void *__robase;
+
+  /* This points to the end of the executable, including any read/write
+     data that has been initialised before program start.
+     Defined as Image$$RW$$Limit for AOF.
+     Defined as __end__ for ELF.  */
   void *__unixlib_rwlimit;
-  void *__image_ro_base;
+
+  /* This points to the start of read/write data.
+     Defined as Image$$RW$$Base for AOF.
+     Defined as __data_start for ELF.  */
+  void *__rwbase;
+
   void *__image_rw_lomem;
   void *__unixlib_break;
   void *__unixlib_stack_limit;
-  void *__rwbase;
   void *__unixlib_real_break;
+
+  void *__unixlib_real_himem;
 
   /* Value of __image_rw_himem last time the stack was increased */
   void *__old_himem;
 };
+
 extern struct ul_memory __ul_memory;
-#endif
 
 extern struct ul_global __ul_global;
 
@@ -210,35 +229,14 @@ extern struct ul_global __ul_global;
 extern int __funcall_error (const char *, int, unsigned int);
 #if __UNIXLIB_PARANOID > 0
 #define __funcall(f,p) \
-  ((((void *)(f) >= __image_ro_base) && (((unsigned int)(f) & ~3) == (unsigned int)(f)) \
+  ((((void *)(f) >= __ul_memory.__robase) && (((unsigned int)(f) & ~3) == (unsigned int)(f)) \
    ? 0 : __funcall_error(__FILE__,__LINE__,(unsigned int)(f))), (f)p)
 #else
 #define __funcall(f,p) ((f)p)
 #endif
 
 
-
-/* __unixlib_break is initialised to __image_rw_lomem & __unixlib_stack to
-   __image_rw_himem - STAKSIZ;
-   __unixlib_stack is extended downwards in chunks by x$stack_overflow()
-   and __unixlib_break is extended upwards by brk() and sbrk(). The sl
-   register is kept equal to __unixlib_stack + 512. Should x$stack_overflow()
-   attempt to extend __unixlib_stack below __unixlib_break then SIGEMT is
-   raised.
-   Should brk() or sbrk() be asked to extend __unixlib_break above
-   __unixlib_stack then they return with ENOMEM.  */
-
 extern char *__unixlib_cli;		/* command line from OS_GetEnv */
-extern void *__image_ro_base;		/* BASE = Image$$RO$$Base */
-extern void *__image_rw_lomem;		/* LOMEM = Image$$RW$$Limit */
-extern void *__image_rw_himem;		/* HIMEM from OS_GetEnv */
-extern void *__unixlib_real_himem;	/* Real HIMEM  - application space limit */
-extern void *__unixlib_rwlimit;
-
-extern void *__unixlib_break;		/* end of data area */
-extern void *__unixlib_real_break;	/* real end of data area */
-extern void *__unixlib_stack;		/* bottom of stack */
-extern void *__unixlib_stack_limit;
 extern int __dynamic_num;
 extern unsigned int __dynamic_area_refcount;
 extern void __dynamic_area_exit (void);

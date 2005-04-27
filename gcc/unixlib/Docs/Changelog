@@ -1,3 +1,36 @@
+Wed Apr 27 17:00:00 2005  Nick Burrett  <nick@sqrt.co.uk>
+
+	* unixlib/unix.c (struct ul_global): Move fields __image_rw_himem,
+	__unixlib_stack, __robase, __unixlib_rwlimit,
+	__image_rw_lomem, __unixlib_break, __unixlib_stack_limit,
+	__rwbase, __unixlib_real_break, __unixlib_real_himem and __old_himem
+	into new structure 'ul_memory'.
+	Delete 'extern' declarations of those variables and therefore
+	make them non-exportable.
+	Delete '__image_ro_base' and convert all references to use '__robase'.
+	* sys/syslib.s (__ul_global): Delete those fields from here and
+	remove EXPORT lines.
+	(__ul_memory): Declare.
+	* unixlib/asm_dec.s (GBL_*): Adjust accordingly.
+	(MEM_*): New definitions for referencing fields of 'ul_memory'.
+	* common/funcallerr.c: Fix all occurances to the above variables to
+	use 'ul_memory' structure and change references of '__image_ro_base'
+	to '__robase'.
+	* debug/debug.c: Likewise.
+	* resource/initialise.c: Likewise.
+	* resource/ulimit.c: Likewise.
+	* signal/_signal.s: Likewise.
+	* sys/_alloca.s: Likewise.
+	* sys/_syslib.s: Likewise.
+	* sys/_vfork.s: Likewise.
+	* sys/exec.c: Likewise.
+	* sys/vfork.c: Likewise.
+	* sys/brk.c: Likewise and comes with improved code efficiency.
+	* sys/stackalloc.c: Likewise.
+	(REMOVE_FROM_FREELIST): Convert from a macro to an inline
+	function.
+	(ADD_TO_FREELIST): Likewise.
+
 Wed Apr 27 12:14:41 2005  Nick Burrett  <nick@sqrt.co.uk>
 
 	* stdlib/alloc.c: Cleanup code, remove WIN32 and non-STDC code.

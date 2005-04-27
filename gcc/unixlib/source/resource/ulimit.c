@@ -1,16 +1,5 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/resource/ulimit.c,v $
- * $Date: 2005/04/13 19:20:06 $
- * $Revision: 1.5 $
- * $State: Exp $
- * $Author: nick $
- *
- ***************************************************************************/
-
-#ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: ulimit.c,v 1.5 2005/04/13 19:20:06 nick Exp $";
-#endif
+/* Provide obsolete ulimit function.
+   Copyright (c) 2004, 2005 UnixLib Devlopers.  */
 
 #include <sys/resource.h>
 #include <unixlib/unix.h>
@@ -60,14 +49,15 @@ long int ulimit (int cmd, ...)
       }
     case __UL_GETMAXBRK:
       /* Get maximum address for `brk'.  This lies between
-         __image_rw_lomem and __image_rw_lomem + current limit on address size.  */
+         __image_rw_lomem and __image_rw_lomem + current limit on
+	 address size.  */
       {
 	struct rlimit dsize;
 	status = getrlimit (RLIMIT_DATA, &dsize);
 	if (status < 0)
 	  return -1;
 
-	return ((long int) &__image_rw_lomem) + dsize.rlim_cur;
+	return ((long int) __ul_memory.__image_rw_lomem) + dsize.rlim_cur;
       }
     case __UL_GETOPENMAX:
       return FOPEN_MAX;

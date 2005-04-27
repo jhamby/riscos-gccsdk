@@ -3,6 +3,7 @@
 
 #include <pthread.h>
 #include <string.h>
+#define DEBUG
 #include <sys/debug.h>
 
 #include <unixlib/dev.h>
@@ -14,16 +15,18 @@
 void
 __debug (const char *s)
 {
+  struct ul_memory *mem = &__ul_memory;
   unsigned int ui;
 
   PTHREAD_UNSAFE
   debug_printf ("\n# %s\n", (s) ? s : "");
-  debug_printf ("__image_ro_base: %08x, __image_rw_lomem: %08x,"
+  debug_printf ("__robase: %08x, __image_rw_lomem: %08x,"
 		" __image_rw_himem: %08x\n",
-		__image_ro_base, __image_rw_lomem, __image_rw_himem);
+		mem->__robase, mem->__image_rw_lomem,
+		mem->__image_rw_himem);
 
   debug_printf ("__u: %08x, __unixlib_break: %08x, __unixlib_stack: %08x\n",
-		__u, __unixlib_break, __unixlib_stack);
+		__u, mem->__unixlib_break, mem->__unixlib_stack);
 
   /* Make sure the complete __u struct is pointing to valid memory
      otherwise adding __debug() will raise memory exceptions which

@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/vfork.c,v $
- * $Date: 2005/03/04 20:59:06 $
- * $Revision: 1.12 $
+ * $Date: 2005/04/08 22:37:55 $
+ * $Revision: 1.13 $
  * $State: Exp $
  * $Author: alex $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: vfork.c,v 1.12 2005/03/04 20:59:06 alex Exp $";
+static const char rcs_id[] = "$Id: vfork.c,v 1.13 2005/04/08 22:37:55 alex Exp $";
 #endif
 
 #include <errno.h>
@@ -78,12 +78,13 @@ __fork_post (pid_t pid, int isfork)
       if (isfork)
         {
           int regs[10];
+	  struct ul_memory *mem = &__ul_memory;
 
           /* Read the new application space limit */
           regs[0] = 14;
           regs[1] = 0;
           __os_swi (OS_ChangeEnvironment, regs);
-          __image_rw_himem = __unixlib_real_himem = (void *)regs[1];
+          mem->__image_rw_himem = mem->__unixlib_real_himem = (void *)regs[1];
 
         }
 

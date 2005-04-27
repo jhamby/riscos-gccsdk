@@ -66,7 +66,8 @@ MAX_DA_NAME_SIZE	* 32
 	IMPORT  |__pthread_disable_ints|   ;ASM function (pthread/_ints.s)
 	IMPORT  |__pthread_enable_ints|    ;ASM function (pthread/_ints.s)
 	IMPORT	|__setup_signalhandler_stack| ;ASM function (signal/_signal.s)
-
+	IMPORT	|__ul_malloc_init|
+	
 	IMPORT	|_main|
 	IMPORT	|__program_name|, WEAK
 	IMPORT	|__dynamic_no_da|, WEAK
@@ -99,9 +100,10 @@ SUL_MIN_VERSION	EQU	105
 	; See the end of this file.  For the initialisation here, we
 	; will always use ip as the base register.
 	LDR	ip, =|__ul_global|
+	LDR	fp, =|__ul_memory|
 
 	STR	a1, [ip, #GBL_UNIXLIB_CLI]	; __unixlib_cli = pointer to command line
-	STR	a2, [ip, #GBL_IMAGE_RW_HIMEM]	; __image_rw_himem = permitted RAM limit
+	STR	a2, [fp, #MEM_IMAGE_RW_HIMEM]	; __image_rw_himem = permitted RAM limit
 
 	LDMIA	a3, {a1, a2}	; Get time
 	STR	a1, [ip, #GBL_TIME_LOW]	; __time (low word)
@@ -117,24 +119,22 @@ SUL_MIN_VERSION	EQU	105
 	SWI	XOS_ChangeEnvironment
 	; Default value of __unixlib_real_himem is
 	; the size of application space
-	STR	a2, [ip, #GBL_UNIXLIB_REAL_HIMEM]
+	STR	a2, [fp, #MEM_UNIXLIB_REAL_HIMEM]
 
 	; For a description of the memory layout of a UnixLib application
 	; see sys/brk.c.
-	LDR	a1, [ip, #GBL_ROBASE]	; __robase
-	LDR	a2, [ip, #GBL_UNIXLIB_RWLIMIT]	; __rwlimit
+	LDR	a2, [fp, #MEM_UNIXLIB_RWLIMIT]	; __rwlimit
 
-	STR	a1, [ip, #GBL_IMAGE_RO_BASE]	; __base        = __robase
-	STR	a2, [ip, #GBL_IMAGE_RW_LOMEM]	; __lomem       = __rwlimit
-	STR	a2, [ip, #GBL_UNIXLIB_BREAK]	; __break       = __rwlimit
-	STR	a2, [ip, #GBL_UNIXLIB_STACK_LIMIT]	; __stack_limit = __rwlimit
-	STR	a2, [ip, #GBL_UNIXLIB_REAL_BREAK]	; __real_break  = __rwlimit
+	STR	a2, [fp, #MEM_IMAGE_RW_LOMEM]	; __lomem       = __rwlimit
+	STR	a2, [fp, #MEM_UNIXLIB_BREAK]	; __break       = __rwlimit
+	STR	a2, [fp, #MEM_UNIXLIB_STACK_LIMIT]	; __stack_limit = __rwlimit
+	STR	a2, [fp, #MEM_UNIXLIB_REAL_BREAK]	; __real_break  = __rwlimit
 
 	; The stack is allocated in chunks in the wimpslot, with the first
 	; 4KB chunk immediately below __image_rw_himem.  We cannot place it
 	; in a dynamic area because GCC might generate trampolines.
 
-	LDR	sp, [ip, #GBL_IMAGE_RW_HIMEM]	; __image_rw_himem
+	LDR	sp, [fp, #MEM_IMAGE_RW_HIMEM]	; __image_rw_himem
 
 	; 8 bytes are needed above the initial chunk
 	; for the stackalloc heap
@@ -153,7 +153,7 @@ SUL_MIN_VERSION	EQU	105
 	SUB	a3, a1, #8
 	; __stackalloc_init needs a minimum of 8 bytes below the initial
 	; chunk for its heap - check this doesn't overlap the code section
-	STR	a3, [ip, #GBL_UNIXLIB_STACK]	; __stack = bottom of stack
+	STR	a3, [fp, #MEM_UNIXLIB_STACK]	; __stack = bottom of stack
 	CMP	a3, a2
 	MOVCC	a1, #ERR_NO_MEMORY
 	BCC	|__exit_with_error_num|	; No room for stack, exit.
@@ -316,9 +316,9 @@ t08
 
 	; v6 is size left in area, a4 is start offset
 	ADD	a1, v6, a4
-	STR	a4, [ip, #GBL_IMAGE_RW_LOMEM]	; __lomem = start of dynamic area
-	STR	a1, [ip, #GBL_UNIXLIB_BREAK]	; __break = end of used part of DA
-	STR	a1, [ip, #GBL_UNIXLIB_REAL_BREAK]	; __real_break = end of used part of DA
+	STR	a4, [fp, #MEM_IMAGE_RW_LOMEM]	; __lomem = start of dynamic area
+	STR	a1, [fp, #MEM_UNIXLIB_BREAK]	; __break = end of used part of DA
+	STR	a1, [fp, #MEM_UNIXLIB_REAL_BREAK]	; __real_break = end of used part of DA
 
 no_dynamic_area
 	MOV	fp, #0
@@ -725,15 +725,15 @@ signalhandler_overflow
 	SUB	fp, ip, #4
 
 	[ __UNIXLIB_FEATURE_PTHREADS > 0
-	LDR	a1, =|__pthread_system_running|
-	LDR	a1, [a1]
+	LDR	a1, =|__ul_global|
+	LDR	a1, [a1, #GBL_PTH_SYSTEM_RUNNING]
 	TEQ	a1, #0
 	BLNE	|__pthread_disable_ints|
 	]
-	LDR	a1, =|__ul_global|
-	LDR	a2, [a1, #GBL_UNIXLIB_STACK]
-	LDR	a3, [a1, #GBL_IMAGE_RW_HIMEM]
-	LDR	a4, [a1, #GBL_IMAGE_RO_BASE]
+	LDR	a1, =|__ul_memory|
+	LDR	a2, [a1, #MEM_UNIXLIB_STACK]
+	LDR	a3, [a1, #MEM_IMAGE_RW_HIMEM]
+	LDR	a4, [a1, #MEM_ROBASE]
 
 	SUB	a1, sl, #512+CHUNK_OVERHEAD
 __check_stack_l1
@@ -749,8 +749,8 @@ __check_stack_l3
 	CMP	a1, #0
 	BNE	__check_stack_l4
 	[ __UNIXLIB_FEATURE_PTHREADS > 0
-	LDR	a1, =|__pthread_system_running|
-	LDR	a1, [a1]
+	LDR	a1, =|__ul_global|
+	LDR	a1, [a1, #GBL_PTH_SYSTEM_RUNNING]
 	CMP	a1, #0
 	BLNE	|__pthread_enable_ints|
 	]
@@ -1022,20 +1022,11 @@ dynamic_area_name_end
 	IMPORT	|Image$$RW$$Base|
 	IMPORT	|Image$$RW$$Limit|
 	EXPORT	|__unixlib_cli|		; CLI from OS_GetEnv
-	EXPORT	|__image_ro_base|	; BASE (application = 0x8000)
-	EXPORT	|__image_rw_lomem|	; LOMEM
-	EXPORT	|__unixlib_rwlimit|
-	EXPORT	|__image_rw_himem|	; HIMEM from OS_GetEnv
-	EXPORT	|__unixlib_break|	; the 'break'
-	EXPORT	|__unixlib_stack|	; stack limit
-	EXPORT	|__unixlib_stack_limit|	; lower stack limit
 	EXPORT	|__time|	; start time - 5 byte format
-	EXPORT	|__unixlib_real_break|	; top limit of dynamic area allocated
 	EXPORT	|__fpflag|	; FPE emulator version number
 	EXPORT	|__taskwindow|	; non-zero if executing in a TaskWindow
 	EXPORT	|__taskhandle|	; WIMP task handle, or zero if non WIMP task
 	EXPORT	|__dynamic_num|
-	EXPORT	|__unixlib_real_himem|
 	EXPORT	|__32bit|	; non-zero if executing in 32-bit mode
 	EXPORT	|__panic_mode|	; non-zero when we're panicing.
 	EXPORT	|__proc|
@@ -1059,94 +1050,84 @@ dynamic_area_name_end
 
 	; Altering this structure will require fixing __main.
 |__unixlib_cli|	        DCD	0				; offset = 0
-|__image_rw_himem|	DCD	0				; offset = 4
-|__time|	        DCD	0, 0	; low word, high byte	; offset = 8
-|__unixlib_stack|	DCD	0				; offset = 16
+|__time|	        DCD	0, 0	; low word, high byte	; offset = 4
+|__fpflag|	        DCD	0				; offset = 12
 
-|__robase|
-	[ __UNIXLIB_ELF > 0
-	        DCD	|__executable_start|		; offset = 20
-	|
-	        DCD	|Image$$RO$$Base|		; offset = 20
-	]
-|__unixlib_rwlimit|
-	[ __UNIXLIB_ELF > 0
-		DCD	|__end__|			; offset = 24
-	|
-		DCD	|Image$$RW$$Limit|		; offset = 24
-	]
+|__taskwindow|	        DCD	0				; offset = 16
+|__taskhandle|	        DCD	0				; offset = 20
 
-|__image_ro_base|	DCD	0				; offset = 28
+|__dynamic_num|	        DCD	-1				; offset = 24
+|__old_u|	        DCD	0				; offset = 28
 
-|__image_rw_lomem|	DCD	0				; offset = 32
-|__unixlib_break|	DCD	0				; offset = 36
-|__unixlib_stack_limit|	DCD	0				; offset = 40
+|__32bit|	        DCD	0				; offset = 32
 
-|__rwbase|
-	[ __UNIXLIB_ELF > 0
-		DCD	|__data_start|			; offset = 44
-	|
-	        DCD	|Image$$RW$$Base|		; offset = 44
-	]
-|__unixlib_real_break|  DCD	0				; offset = 48
-|__fpflag|	        DCD	0				; offset = 52
+|__panic_mode|		DCD	0				; offset = 36
 
-|__taskwindow|	        DCD	0				; offset = 56
-|__taskhandle|	        DCD	0				; offset = 60
-
-|__dynamic_num|	        DCD	-1				; offset = 64
-|__old_u|	        DCD	0				; offset = 68
-|__unixlib_real_himem|	DCD	0				; offset = 72
-
-|__32bit|	        DCD	0				; offset = 76
-
-|__panic_mode|		DCD	0				; offset = 80
-
-|__proc|		DCD	0				; offset = 84
-|__ul_pagesize|		DCD	0				; offset = 88
-|__upcall_handler_addr|	DCD	0				; offset = 92
-|__upcall_handler_r12|	DCD	0				; offset = 96
+|__proc|		DCD	0				; offset = 40
+|__ul_pagesize|		DCD	0				; offset = 44
+|__upcall_handler_addr|	DCD	0				; offset = 48
+|__upcall_handler_r12|	DCD	0				; offset = 52
 
 |__pthread_return_address|
-	DCD	0						; offset = 100
+	DCD	0						; offset = 56
 
 |__pthread_worksemaphore|
-	DCD	0						; offset = 104
+	DCD	0						; offset = 60
 
 	; Prevent a callback being set whilst servicing another callback
 |__pthread_callback_semaphore|
-	DCD	0						; offset = 108
+	DCD	0						; offset = 64
 
 	; Global initialisation flag.  UnixLib internally uses this to
 	; test whether or not to use mutexes for locking critical structures.
 |__pthread_system_running|
-	DCD	0						; offset = 112
+	DCD	0						; offset = 68
 
 	; Non zero if a callback occured when context switching was
 	; temporarily disabled
 |__pthread_callback_missed|
-	DCD	0						; offset = 116
+	DCD	0						; offset = 72
 
 	; Number of running threads.
 |__pthread_num_running_threads|
-	DCD	1						; offset = 120
+	DCD	1						; offset = 76
 
 	; Non-zero if we are currently executing a signal handler
 |__executing_signalhandler|
-	DCD	0						; offset = 124
+	DCD	0						; offset = 80
 
 	; Stack limit for signal handlers
 |__signalhandler_sl|
-	DCD	0						; offset = 128
+	DCD	0						; offset = 84
 
 	; Stack pointer for signal handlers
 |__signalhandler_sp|
-	DCD	0						; offset = 132
+	DCD	0						; offset = 88
 
-|__old_himem|
-	DCD	0						; offset = 136
+	DCD	0	; __mutex		offset = 92
+	DCD	0	; malloc_state		offset = 96
 
-	DCD	0	; __mutex		offset = 140
-	DCD	0	; malloc_state		offset = 144
-		
+
+
+	EXPORT	|__ul_memory|
+|__ul_memory|
+	DCD	0	; mutex			offset = 0
+	DCD	0	; image_rw_himem	offset = 4
+	DCD	0	; unixlib_stack		offset = 8
+	[ __UNIXLIB_ELF > 0
+	DCD	|__executable_start|	; robase		offset = 12
+	DCD	|__end__|		; unixlib_rwlimit	offset = 16
+	DCD	|__data_start|		; rwbase		offset = 20
+	|
+	DCD	|Image$$RO$$Base|	; robase		offset = 12
+	DCD	|Image$$RW$$Limit|	; unixlib_rwlimit	offset = 16
+	DCD	|Image$$RW$$Base|	; rwbase		offset = 20
+	]
+	DCD	0	; image_rw_lomem	offset = 24
+	DCD	0	; unixlib_break		offset = 38
+	DCD	0	; unixlib_stack_limit	offset = 32
+	DCD	0	; unixlib_real_break	offset = 36
+	DCD	0	; unixlib_real_himem	offset = 40
+	DCD	0	; old_himem		offset = 44
+
 	END

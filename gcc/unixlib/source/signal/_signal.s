@@ -21,6 +21,7 @@
 	IMPORT	|__pthread_running_thread|
 	IMPORT	|__pthread_worksemaphore|
 	IMPORT	|__ul_global|
+	IMPORT	|__ul_memory|
 	IMPORT	|__unixlib_fatal|
 	IMPORT	|exit|
 
@@ -612,8 +613,6 @@ Internet_Event	EQU	19
 ;	All registers should be loaded from the register save area
 
 	IMPORT	|__pthread_callback|
-	IMPORT	|__image_ro_base|
-	IMPORT	|__unixlib_real_himem|
 	EXPORT	|__h_cback|
 	NAME	__h_cback
 |__h_cback|
@@ -625,12 +624,12 @@ Internet_Event	EQU	19
 	TEQ	pc, pc
 	BICNE	a1, a1, #&fc000003
 
-	LDR	a3, =|__ul_global|
-	LDR	a2, [a3, #GBL_IMAGE_RO_BASE]
+	LDR	a3, =|__ul_memory|
+	LDR	a2, [a3, #MEM_ROBASE]
 	CMP	a1, a2
 	BLO	return_quickly
 
-	LDR	a2, [a3, #GBL_UNIXLIB_REAL_HIMEM]
+	LDR	a2, [a3, #MEM_UNIXLIB_REAL_HIMEM]
 	CMP	a1, a2
 	BHI	return_quickly
 
@@ -638,6 +637,7 @@ Internet_Event	EQU	19
 	TST	a1, #3			; Check escape and internet flags
 	BNE	|__h_cback_common|
 
+	LDR	a3, =|__ul_global|
 	LDR	a1, [a3, #GBL_PTH_SYSTEM_RUNNING]
 	TEQ	a1, #0
 	BNE	|__pthread_callback|

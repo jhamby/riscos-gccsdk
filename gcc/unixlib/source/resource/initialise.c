@@ -1,16 +1,5 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/resource/initialise.c,v $
- * $Date: 2003/04/05 12:16:34 $
- * $Revision: 1.4 $
- * $State: Exp $
- * $Author: alex $
- *
- ***************************************************************************/
-
-#ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: initialise.c,v 1.4 2003/04/05 12:16:34 alex Exp $";
-#endif
+/* Initialise system resource limits.
+   Copyright (c) 2004, 2005 UnixLib Developers.  */
 
 #include <sys/resource.h>
 #include <unixlib/os.h>
@@ -27,6 +16,7 @@ static const char rcs_id[] = "$Id: initialise.c,v 1.4 2003/04/05 12:16:34 alex E
 void
 __resource_initialise (struct proc *p)
 {
+  struct ul_memory *mem = &__ul_memory;
   int regs[10];
   int max_wimpslot;
 
@@ -61,7 +51,8 @@ __resource_initialise (struct proc *p)
     {
       regs[0] = __dynamic_num;
       if (__os_swi (OS_ReadDynamicArea, regs))
-	p->limit[RLIMIT_DATA].rlim_max = (u_char *) __unixlib_break - (u_char *) __image_rw_lomem;
+	p->limit[RLIMIT_DATA].rlim_max = ((u_char *) mem->__unixlib_break
+					  - (u_char *) mem->__image_rw_lomem);
       else
 	p->limit[RLIMIT_DATA].rlim_max = regs[2];
     }
@@ -80,9 +71,9 @@ __resource_initialise (struct proc *p)
      Again, for RISC OS 3.5+ dynamic areas and without, both cases
      should be treated differently.
 
-     I think that maximum physical memory is the area from __image_ro_base to
-     __image_rw_himem (no dynamic area). Also included is from __image_rw_lomem to
-     __unixlib_break and beyond for dynamic areas.  */
+     I think that maximum physical memory is the area from __robase to
+     __image_rw_himem (no dynamic area). Also included is from
+     __image_rw_lomem to __unixlib_break and beyond for dynamic areas.  */
   if (__dynamic_num == -1)	/* No dynamic area */
     {
       p->limit[RLIMIT_RSS].rlim_max = max_wimpslot;
@@ -94,11 +85,13 @@ __resource_initialise (struct proc *p)
          the maximum size.  */
       regs[0] = 6 + 128;
       if (__os_swi (OS_ReadDynamicArea, regs))
-	p->limit[RLIMIT_RSS].rlim_max += (u_char *) __unixlib_break - (u_char *) __image_rw_lomem;
+	p->limit[RLIMIT_RSS].rlim_max += ((u_char *) mem->__unixlib_break
+					  - (u_char *) mem->__image_rw_lomem);
       else
 	/* rlim_max is all of physical memory ?  */
 	p->limit[RLIMIT_RSS].rlim_max = regs[2];
-      /* rlim_cur is available free memory + __image_ro_base to __image_rw_himem.  */
+      /* rlim_cur is available free memory + __image_ro_base
+	 to __image_rw_himem.  */
       p->limit[RLIMIT_RSS].rlim_cur += regs[1];
     }
 

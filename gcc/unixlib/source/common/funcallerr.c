@@ -1,16 +1,5 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/common/funcallerr.c,v $
- * $Date: 2004/01/14 23:16:59 $
- * $Revision: 1.4 $
- * $State: Exp $
- * $Author: joty $
- *
- ***************************************************************************/
-
-#ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: funcallerr.c,v 1.4 2004/01/14 23:16:59 joty Exp $";
-#endif
+/* Paranoid error function.
+   Copyright (c) 2004, 2005 UnixLib Developers.  */
 
 #include <signal.h>
 #include <unixlib/unix.h>
@@ -23,7 +12,7 @@ __funcall_error (const char *file, int line, unsigned int addr)
   char *s = buf + sizeof(buf);
 
   __os_print ("fatal error: Attempt to call a function at address below 0x");
-  __os_prhex ((unsigned int) __image_ro_base);
+  __os_prhex ((unsigned int) __ul_memory.__robase);
   __os_print ("\n\ror a function at a non word-aligned address in a UnixLib function.\r\nFile: ");
   __os_print (file);
   __os_print (", line: ");

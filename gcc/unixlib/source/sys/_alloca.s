@@ -1,12 +1,5 @@
-;----------------------------------------------------------------------------
-;
-; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/_alloca.s,v $
-; $Date: 2004/10/17 16:24:44 $
-; $Revision: 1.11 $
-; $State: Exp $
-; $Author: joty $
-;
-;----------------------------------------------------------------------------
+; Implementation of alloca for non-contiguous stack chunk architectures
+; Copyright (c) 2002, 2003, 2004, 2005 UnixLib Developers
 
 	GET	clib/unixlib/asm_dec.s
 
@@ -14,7 +7,7 @@
 
 	IMPORT  malloc
 	IMPORT  free
-	IMPORT  |__image_ro_base|
+	IMPORT  |__ul_memory|
 	IMPORT  abort
 
 	; __rt_allocauto and __rt_freeauto are for Norcroft users only
@@ -101,9 +94,9 @@ noabort
 	LDMIA	a1, {a4, v1}
 	STR	a4, [a3]
 	BL	free
-	LDR	a2, =|__image_ro_base|
+	LDR	a2, =|__ul_memory|
 	MOV	a3, v1
-	LDR	a2, [a2]
+	LDR	a2, [a2, #MEM_ROBASE]
 	CMP	a3, a2
 	BCC	|__alloca_rtn_corrupt|
 	BIC	a2, a3, #3

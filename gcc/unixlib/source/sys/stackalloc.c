@@ -32,60 +32,71 @@
 #define BLOCK_DATA_SIZE 4096
 #define DUMMY_BLOCK_SIZE 4
 
-/* This file should be compiled without stack checking, as it is not reentrant */
+/* This file should be compiled without stack checking,
+   as it is not reentrant.  */
 #ifdef __CC_NORCROFT
 #pragma -s1
 #endif
 
 struct block
 {
-  int size; /* number of consecutive blocks allocated, or BLOCK_FREE for a free block */
+  /* Number of consecutive blocks allocated,
+     or BLOCK_FREE for a free block.  */
+  int size;
   union
   {
     struct
     {
-      struct block *nextfreeblock; /* Next non-consecutive block in the freelist linked list */
-      int numconsecutiveblocks; /* Number of consecutive free blocks */
+      /* Next non-consecutive block in the freelist linked list.  */
+      struct block *nextfreeblock;
+
+      /* Number of consecutive free blocks.  */
+      int numconsecutiveblocks;
     } free;
-    char allocated[BLOCK_DATA_SIZE]; /* The actual payload space returned to the user */
+
+    /* The actual payload space returned to the user.  */
+    char allocated[BLOCK_DATA_SIZE];
   } contents;
-  struct block *startofcon; /* First block in this group of consecutive free blocks.
-                               NULL if this block is allocated.
-                               Only valid in the last block in the group */
+
+  /* First block in this group of consecutive free blocks.
+     NULL if this block is allocated.
+     Only valid in the last block in the group.  */
+  struct block *startofcon;
 };
 
 
-static struct block *freelist; /* Head of linked list of free blocks */
-static struct block *dummybottomblock; /* dummy block header at the bottom of the heap */
-static struct block *dummytopblock; /* dummy block header at the top of the heap */
+/* Head of linked list of free blocks.  */
+static struct block *freelist;
 
-static void *__old_himem; /* Value of __image_rw_himem last time the stack was increased */
+/* Dummy block header at the bottom of the heap.  */
+static struct block *dummybottomblock;
+
+/* Dummy block header at the top of the heap.  */
+static struct block *dummytopblock;
 
 
-/* Remove a block from the freelist */
-#define REMOVE_FROM_FREELIST(remove) \
-{ \
-  struct block *blcklist = freelist; \
-\
-  if (freelist == remove) \
-    { \
-      freelist = remove->contents.free.nextfreeblock; \
-    } \
-  else \
-    { \
-      while (blcklist && blcklist->contents.free.nextfreeblock != remove) \
-        blcklist = blcklist->contents.free.nextfreeblock; \
-\
-      if (blcklist) \
-        blcklist->contents.free.nextfreeblock = remove->contents.free.nextfreeblock; \
-    } \
+/* Remove a block from the freelist.  */
+static __inline void REMOVE_FROM_FREELIST (struct block *remove)
+{
+  if (freelist == remove)
+    {
+      freelist = remove->contents.free.nextfreeblock;
+    }
+  else
+    {
+      struct block *blcklist = freelist;
+      while (blcklist && blcklist->contents.free.nextfreeblock != remove)
+        blcklist = blcklist->contents.free.nextfreeblock;
+
+      if (blcklist)
+        blcklist->contents.free.nextfreeblock = remove->contents.free.nextfreeblock;
+    }
 }
 
-/* Add a block to the start of the freelist */
-#define ADD_TO_FREELIST(add) \
-{ \
-  add->contents.free.nextfreeblock = freelist; \
-  freelist = add; \
+static __inline void ADD_TO_FREELIST (struct block *add)
+{
+  add->contents.free.nextfreeblock = freelist;
+  freelist = add;
 }
 
 /* The adding to the freelist could perhaps be a bit more intelligent and
@@ -100,60 +111,68 @@ static void *__old_himem; /* Value of __image_rw_himem last time the stack was i
 void *
 __stackalloc_incr_wimpslot (int incr)
 {
+  struct ul_memory *mem = &__ul_memory;
+  struct ul_global *gbl = &__ul_global;
   void *new_wimpslot;
 
-  if ((u_char *)__image_rw_himem + incr <= (u_char *)__unixlib_real_himem)
+  if ((u_char *)mem->__image_rw_himem + incr
+      <= (u_char *)mem->__unixlib_real_himem)
     {
 #ifdef DEBUG
-      __os_print ("-- __stackalloc_incr_wimpslot: no need to increase\r\n");
+      debug_printf ("__stackalloc_incr_wimpslot: no need to increase\n");
 #endif
-      __image_rw_himem = (u_char *)__image_rw_himem + incr;
-      return __image_rw_himem;
+      mem->__image_rw_himem = (u_char *)mem->__image_rw_himem + incr;
+      return mem->__image_rw_himem;
     }
 
   /* Round the size up to reduce the number of calls needed to Wimp_SlotSize */
-  new_wimpslot = (void *) ((int) ((u_char *)__image_rw_himem + incr +
-                  __DA_WIMPSLOT_ALIGNMENT) & ~__DA_WIMPSLOT_ALIGNMENT);
+  new_wimpslot = (void *) ((int) ((u_char *)mem->__image_rw_himem
+				  + incr
+				  + __DA_WIMPSLOT_ALIGNMENT)
+			   & ~__DA_WIMPSLOT_ALIGNMENT);
 
 #ifdef DEBUG
-  __os_print ("-- __stackalloc_incr_wimpslot: attempting to increase wimpslot to ");
-  __os_prhex(new_wimpslot); __os_nl ();
+  debug_printf ("__stackalloc_incr_wimpslot: attempting to"
+		"increase wimpslot to %d\n", new_wimpslot);
 #endif
 
-  __unixlib_real_himem =
-  new_wimpslot = __proc->sul_wimpslot (__proc->pid, new_wimpslot);
+  mem->__unixlib_real_himem =
+    new_wimpslot = gbl->__proc->sul_wimpslot (gbl->__proc->pid, new_wimpslot);
 
 #ifdef DEBUG
-  __os_print ("-- __stackalloc_incr_wimpslot: increased wimpslot to "); __os_prhex(new_wimpslot); __os_nl ();
+  debug_printf ("__stackalloc_incr_wimpslot: increased wimpslot to %08x\n",
+		new_wimpslot);
 #endif
 
   if (new_wimpslot == NULL)
     return NULL;
 
-  __unixlib_real_himem = new_wimpslot;
+  mem->__unixlib_real_himem = new_wimpslot;
 
 
-  if ((u_char *)__image_rw_himem + incr > (u_char *)__unixlib_real_himem)
+  if ((u_char *)mem->__image_rw_himem + incr
+      > (u_char *)mem->__unixlib_real_himem)
     {
 #ifdef DEBUG
-      __os_print ("-- __stackalloc_incr_wimpslot: wimpslot not increased by enough\r\n");
+      debug_printf ("__stackalloc_incr_wimpslot: wimpslot not increased by enough\n");
 #endif
       return NULL;
     }
 
-  __image_rw_himem = (u_char *)__image_rw_himem + incr;
+  mem->__image_rw_himem = (u_char *)mem->__image_rw_himem + incr;
 
-  return __image_rw_himem;
+  return mem->__image_rw_himem;
 }
 
 /* Try to increase the stack heap upwards */
 static struct block *
 __stackalloc_incr_upwards (int blocksneeded)
 {
+  struct ul_memory *mem = &__ul_memory;
   int realblocksneeded = blocksneeded;
   struct block *topblock = dummytopblock - 1;
   int incr;
-  int foreign_incr = __image_rw_himem != __old_himem;
+  int foreign_incr = mem->__image_rw_himem != mem->__old_himem;
 
   if (foreign_incr)
     {
@@ -184,31 +203,33 @@ __stackalloc_incr_upwards (int blocksneeded)
   if (realblocksneeded != blocksneeded)
     {
       /* Only remove the block from the free list once we know the
-         wimpslot incr was successful */
+         wimpslot incr was successful.  */
       REMOVE_FROM_FREELIST (topblock);
     }
 
   if (foreign_incr)
     {
-      topblock = (struct block *)(void *)((u_char *)__image_rw_himem - incr + DUMMY_BLOCK_SIZE);
+      topblock = (struct block *)(void *)((u_char *)mem->__image_rw_himem
+					  - incr + DUMMY_BLOCK_SIZE);
       /* Setup a dummy block below the new block, to prevent us trying to
-         coalesce with something that isn't in our heap */
+         coalesce with something that isn't in our heap.  */
       (topblock - 1)->startofcon = NULL;
     }
 
-  __old_himem = __image_rw_himem;
+  mem->__old_himem = mem->__image_rw_himem;
 
-  /* Setup a new dummy block at the top of the heap */
+  /* Setup a new dummy block at the top of the heap.  */
   dummytopblock = topblock + blocksneeded;
   dummytopblock->size = 1;
 
   return topblock;
 }
 
-/* Try to increase the stack heap downwards */
+/* Try to increase the stack heap downwards.  */
 static struct block *
 __stackalloc_incr_downwards (int blocksneeded)
 {
+  struct ul_memory *mem = &__ul_memory;
   int realblocksneeded = blocksneeded;
   struct block *bottomblock = dummybottomblock + 1;
   struct block *newbottomblock;
@@ -224,17 +245,17 @@ __stackalloc_incr_downwards (int blocksneeded)
   newbottomblock = bottomblock - realblocksneeded;
 
   incr = realblocksneeded * sizeof (struct block);
-  new__stack = (u_char *)__unixlib_stack - incr;
+  new__stack = (u_char *)mem->__unixlib_stack - incr;
 
 #ifdef DEBUG
   debug_printf ("__stack_alloc_incr_downwards: incr=%08x,"
 		" __unixlib_stack=%08x, __unixlib_stack_limit=%08x\n",
-		incr, __unixlib_stack, __unixlib_stack_limit);
+		incr, mem->__unixlib_stack, mem->__unixlib_stack_limit);
 #endif
 
-  if (new__stack >= __unixlib_stack_limit)
+  if (new__stack >= mem->__unixlib_stack_limit)
     {
-      __unixlib_stack = new__stack;
+      mem->__unixlib_stack = new__stack;
 
       if (realblocksneeded != blocksneeded)
         {
@@ -262,10 +283,12 @@ __stackalloc_incr_downwards (int blocksneeded)
 int
 __stackalloc_trim (void)
 {
+  struct ul_memory *mem = &__ul_memory;
+  struct ul_global *gbl = &__ul_global;
   struct block *bottomblock;
 
 #if __UNIXLIB_FEATURE_PTHREADS
-  if (__pthread_system_running)
+  if (gbl->__pthread_system_running)
     __pthread_disable_ints ();
 #endif
 
@@ -275,7 +298,7 @@ __stackalloc_trim (void)
   if (bottomblock->size != BLOCK_FREE)
     {
 #if __UNIXLIB_FEATURE_PTHREADS
-      if (__pthread_system_running)
+      if (gbl->__pthread_system_running)
         __pthread_enable_ints ();
 #endif
       return 0; /* Unable to free anything */
@@ -284,17 +307,18 @@ __stackalloc_trim (void)
   REMOVE_FROM_FREELIST (bottomblock);
 
   /* Move dummy block up to where the end of the bottom block was */
-  dummybottomblock = bottomblock + bottomblock->contents.free.numconsecutiveblocks - 1;
+  dummybottomblock = bottomblock
+    + bottomblock->contents.free.numconsecutiveblocks - 1;
   dummybottomblock->startofcon = NULL;
-  __unixlib_stack = (u_char *)dummybottomblock + sizeof(struct block) - 4;
+  mem->__unixlib_stack = (u_char *)dummybottomblock + sizeof(struct block) - 4;
 
 #ifdef DEBUG
-  __os_print ("-- __stackalloc_trim: __unixlib_stack = ");
-  __os_prhex ((int)__unixlib_stack); __os_nl ();
+  debug_printf ("__stackalloc_trim: __unixlib_stack=%08x\n",
+		mem->__unixlib_stack);
 #endif
 
 #if __UNIXLIB_FEATURE_PTHREADS
-  if (__pthread_system_running)
+  if (gbl->__pthread_system_running)
     __pthread_enable_ints ();
 #endif
 
@@ -306,6 +330,7 @@ __stackalloc_trim (void)
 void
 __stackalloc_init (void)
 {
+  struct ul_memory *mem = &__ul_memory;
   struct block *initialblock;
 
   /* The initial stack chunk is set up in _syslib.s
@@ -315,15 +340,16 @@ __stackalloc_init (void)
 #ifdef DEBUG
   debug_printf ("stackalloc_init: __unixlib_stack=%08x\n"
 		"---- __image_rw_himem=%08x, __unixlib_real_himem=%08x\n",
-		__unixlib_stack, __image_rw_himem, __unixlib_real_himem);
+		mem->__unixlib_stack, mem->__image_rw_himem,
+		mem->__unixlib_real_himem);
 #endif
 
   /* Record the value of himem when the initial stack chunk was setup */
-  __old_himem = __image_rw_himem;
+  mem->__old_himem = mem->__image_rw_himem;
 
-  __image_rw_himem = __unixlib_real_himem;
+  mem->__image_rw_himem = mem->__unixlib_real_himem;
 
-  initialblock = (struct block *)(void *)((u_char *)__unixlib_stack + 4);
+  initialblock = (struct block *)(void *)((u_char *)mem->__unixlib_stack + 4);
   initialblock->size = 1;
   initialblock->startofcon = NULL;
 
@@ -340,6 +366,7 @@ __stackalloc_init (void)
 void *
 __stackalloc (size_t size)
 {
+  struct ul_global *gbl = &__ul_global;
   int blocksneeded, blocksleft;
   struct block *blocklist;
   struct block *blocktoalloc;
@@ -347,7 +374,7 @@ __stackalloc (size_t size)
   void *returnptr;
 
 #if __UNIXLIB_FEATURE_PTHREADS
-  if (__pthread_system_running)
+  if (gbl->__pthread_system_running)
     __pthread_disable_ints ();
 #endif
 
@@ -406,10 +433,10 @@ __stackalloc (size_t size)
       if (blocktoalloc == NULL)
         {
 #ifdef DEBUG
-          __os_print ("-- __stackalloc: no free memory\r\n");
+          debug_printf ("__stackalloc: no free memory\n");
 #endif
 #if __UNIXLIB_FEATURE_PTHREADS
-          if (__pthread_system_running)
+          if (gbl->__pthread_system_running)
             __pthread_enable_ints ();
 #endif
           return NULL;
@@ -422,12 +449,14 @@ __stackalloc (size_t size)
       blocksleft = blocktoalloc->contents.free.numconsecutiveblocks - blocksneeded;
       if (blocksleft > 0)
         {
-          /* The block is bigger than we need, so add the remainder back to the freelist */
+          /* The block is bigger than we need, so add the remainder
+	     back to the freelist.  */
           struct block *newfreeblock;
           struct block *lastfreeblock;
 
           newfreeblock = blocktoalloc + blocksneeded;
-          lastfreeblock = blocktoalloc + blocktoalloc->contents.free.numconsecutiveblocks - 1;
+          lastfreeblock = blocktoalloc
+	    + blocktoalloc->contents.free.numconsecutiveblocks - 1;
 
           ADD_TO_FREELIST (newfreeblock);
           newfreeblock->contents.free.numconsecutiveblocks = blocksleft;
@@ -436,18 +465,20 @@ __stackalloc (size_t size)
         }
     }
 
-  /* At this point, blocktoalloc contains a block of exactly the right size, and is not in the freelist */
+  /* At this point, blocktoalloc contains a block of exactly
+     the right size, and is not in the freelist.  */
   blocktoalloc->size = blocksneeded;
   lastblocktoalloc = blocktoalloc + blocksneeded - 1;
   lastblocktoalloc->startofcon = NULL;
 
-  returnptr = ((char*)blocktoalloc) + offsetof (struct block, contents.allocated);
+  returnptr = ((char*)blocktoalloc)
+    + offsetof (struct block, contents.allocated);
 #ifdef DEBUG
   debug_printf ("__stackalloc: returning %08x\n", returnptr);
 #endif
 
 #if __UNIXLIB_FEATURE_PTHREADS
-  if (__pthread_system_running)
+  if (gbl->__pthread_system_running)
     __pthread_enable_ints ();
 #endif
 
@@ -458,6 +489,7 @@ __stackalloc (size_t size)
 void
 __stackfree (void *ptr)
 {
+  struct ul_global *gbl = &__ul_global;
   struct block *blocktofree;
   struct block *prevblock;
   struct block *startblock;
@@ -465,24 +497,27 @@ __stackfree (void *ptr)
   struct block *lastblock;
 
 #if __UNIXLIB_FEATURE_PTHREADS
-  if (__pthread_system_running)
+  if (gbl->__pthread_system_running)
     __pthread_disable_ints ();
 #endif
 
 #ifdef DEBUG
-  __os_print ("-- __stackfree: ptr = "); __os_prhex ((int)ptr); __os_nl ();
+  debug_printf ("__stackfree: ptr=%08x\n", ptr);
 #endif
 
-  /* Find start of block this ptr refers to */
-  blocktofree = (struct block *)(void *)((u_char *)ptr - offsetof (struct block, contents.allocated));
+  /* Find start of block this ptr refers to.  */
+  blocktofree = (struct block *)(void *)((u_char *)ptr
+					 - offsetof (struct block,
+						     contents.allocated));
 
   prevblock = blocktofree - 1;
   startblock = prevblock->startofcon;
   if (startblock == NULL)
     {
-      /* Block below this is not free, so we need to add this block to the freelist */
+      /* Block below this is not free, so we need to add this
+	 block to the freelist.  */
 #ifdef DEBUG
-      __os_print("-- __stackfree: adding to free list"); __os_nl ();
+      debug_printf ("__stackfree: adding to free list\n");
 #endif
       startblock = blocktofree;
       startblock->contents.free.numconsecutiveblocks = 0;
@@ -491,9 +526,9 @@ __stackfree (void *ptr)
 #ifdef DEBUG
   else
     {
-      /* Block below this is free, so we can coalesce with it and hence don't need
-         to add this block to the freelist */
-      __os_print ("-- __stackfree: coalescing with lower block"); __os_nl ();
+      /* Block below this is free, so we can coalesce with it and
+	 hence don't need to add this block to the freelist.  */
+      debug_printf ("__stackfree: coalescing with lower block\n");
     }
 #endif
 
@@ -504,9 +539,9 @@ __stackfree (void *ptr)
     {
       /* Block above this is free, so coalesce with it.
          This block has already been added to the freelist,
-         so we need to remove the nextblock from the freelist */
+         so we need to remove the nextblock from the freelist.  */
 #ifdef DEBUG
-      __os_print ("-- __stackfree: coalescing with higher block"); __os_nl ();
+      debug_printf ("__stackfree: coalescing with higher block\n");
 #endif
       REMOVE_FROM_FREELIST (nextblock);
       startblock->contents.free.numconsecutiveblocks += nextblock->contents.free.numconsecutiveblocks;
@@ -517,7 +552,7 @@ __stackfree (void *ptr)
   blocktofree->size = BLOCK_FREE;
 
 #if __UNIXLIB_FEATURE_PTHREADS
-  if (__pthread_system_running)
+  if (gbl->__pthread_system_running)
     __pthread_enable_ints ();
 #endif
 }

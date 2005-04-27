@@ -1,10 +1,10 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/_vfork.s,v $
-; $Date: 2004/10/17 16:24:44 $
-; $Revision: 1.11 $
+; $Date: 2005/03/04 20:59:06 $
+; $Revision: 1.12 $
 ; $State: Exp $
-; $Author: joty $
+; $Author: alex $
 ;
 ;----------------------------------------------------------------------------
 
@@ -14,8 +14,7 @@
 
 	IMPORT	|__fork_pre|
 	IMPORT	|__fork_post|
-	IMPORT	|__unixlib_stack_limit|
-	IMPORT	|__unixlib_stack|
+	IMPORT	|__ul_memory|
 	IMPORT	|__proc|
 
 ; vfork is similar to fork.
@@ -54,10 +53,9 @@ fork_common
 	STMIA	a2, {a3, lr}
 	LDR	a2, =|__proc|
 	TEQ	a3, #0
-	LDRNE	a3, =|__unixlib_stack_limit|
-	LDRNE	a3, [a3]
-	LDRNE	a4, =|__unixlib_stack|
-	LDRNE	a4, [a4]
+	LDRNE	a3, =|__ul_memory|
+	LDRNE	a4, [a3, #MEM_UNIXLIB_STACK]
+	LDRNE	a3, [a3, #MEM_UNIXLIB_STACK_LIMIT]
 	MOVEQ	a4, #0
 	; Now call sul_fork()
 	MOV	lr, pc

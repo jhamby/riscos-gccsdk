@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/exec.c,v $
- * $Date: 2004/12/26 10:45:20 $
- * $Revision: 1.18 $
+ * $Date: 2005/03/04 20:59:06 $
+ * $Revision: 1.19 $
  * $State: Exp $
- * $Author: peter $
+ * $Author: alex $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: exec.c,v 1.18 2004/12/26 10:45:20 peter Exp $";
+static const char rcs_id[] = "$Id: exec.c,v 1.19 2005/03/04 20:59:06 alex Exp $";
 #endif
 
 #include <ctype.h>
@@ -391,7 +391,9 @@ execve (const char *execname, char *const argv[], char *const envp[])
 #ifdef DEBUG
   __os_print ("-- execve: about to call:"); __os_print (cli); __os_nl ();
 #endif
-  __proc->sul_exec (__proc->pid, cli, __unixlib_stack_limit, __unixlib_stack);
+  __proc->sul_exec (__proc->pid, cli,
+		    __ul_memory.__unixlib_stack_limit,
+		    __ul_memory.__unixlib_stack);
 
 
   /* This is never reached.  */
