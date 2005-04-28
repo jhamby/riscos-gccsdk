@@ -190,8 +190,19 @@ struct ul_memory
   /* Serialise access to this structure (opaque type).  */
   void *mutex;
 
-  /* Points to the permitted RAM limit, initially obtained from OS_GetEnv.  */
-  void *__image_rw_himem;
+  /* This variable sets the value of what is considered to be the
+     maximum value of addressable memory within application space.
+     This value can increase during program execution if there is a
+     request for more memory.
+
+     The value of 'appspace_himem' will always be less-than or equal-to
+     the value of 'appspace_limit'.
+
+     Note that when dynamic areas are in use, the only function that will
+     try to increase 'appspace_himem' and 'appspace_limit' is the stack
+     extension code.  */
+  unsigned int appspace_himem;
+
   void *__unixlib_stack;
 
   /* This points to the start of application memory, usually 0x8000.
@@ -228,7 +239,9 @@ struct ul_memory
 
   /* This variable is used by the non-contiguous stack chunk code.
      It records the upper limit of application space (or wimpslot)
-     and will increase as more is required.  */
+     and will increase as more is required in multiples of 32K.  In such
+     circumstances, this means that 'appspace_limit' will be larger than
+     'appspace_himem'.  */
   unsigned int appspace_limit;
 
   /* Value of __image_rw_himem last time the stack was increased */

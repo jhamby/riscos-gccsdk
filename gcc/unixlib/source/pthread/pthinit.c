@@ -23,13 +23,13 @@ __pthread_prog_init (void)
      valid argument means that we must setup 'saved_context' ourselves.  */
   __pthread_running_thread = __pthread_new_node (&mainthread);
   if (__pthread_running_thread == NULL)
-    __unixlib_fatal ("pthreads initialisation error: out of memory, increase RMA");
+    __unixlib_fatal ("pthreads initialisation error: out of memory");
 
   mainthread.saved_context =
     malloc_unlocked (gbl->malloc_state,
 		     sizeof (struct __pthread_saved_context));
   if (mainthread.saved_context == NULL)
-    __unixlib_fatal ("pthreads initialisation error: out of memory, increase RMA");
+    __unixlib_fatal ("pthreads initialisation error: out of memory");
   mainthread.magic = PTHREAD_MAGIC;
 
   __pthread_thread_list = __pthread_running_thread;

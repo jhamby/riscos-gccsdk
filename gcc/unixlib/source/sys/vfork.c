@@ -75,7 +75,8 @@ __fork_post (pid_t pid, int isfork)
           regs[0] = 14;
           regs[1] = 0;
           __os_swi (OS_ChangeEnvironment, regs);
-          mem->__image_rw_himem = mem->appspace_limit = (void *)regs[1];
+	  mem->appspace_limit = regs[1];
+          mem->appspace_himem = mem->appspace_limit;
         }
 
       /* There are now two processes sharing the dynamic area.  */

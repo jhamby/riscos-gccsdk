@@ -105,7 +105,7 @@ SUL_MIN_VERSION	EQU	105
 	; __unixlib_cli = pointer to command line	
 	STR	a1, [ip, #GBL_UNIXLIB_CLI]
 	; __image_rw_himem = permitted RAM limit
-	STR	a2, [fp, #MEM_IMAGE_RW_HIMEM]
+	STR	a2, [fp, #MEM_APPSPACE_HIMEM]
 
 	LDMIA	a3, {a1, a2}	; Get time
 	STR	a1, [ip, #GBL_TIME_LOW]	; __time (low word)
@@ -130,10 +130,10 @@ SUL_MIN_VERSION	EQU	105
 	STR	a2, [fp, #MEM_UNIXLIB_STACK_LIMIT] ; __stack_limit = __rwlomem
 
 	; The stack is allocated in chunks in the wimpslot, with the first
-	; 4KB chunk immediately below __image_rw_himem.  We cannot place it
+	; 4KB chunk immediately below 'appspace_himem'.  We cannot place it
 	; in a dynamic area because GCC might generate trampolines.
 
-	LDR	sp, [fp, #MEM_IMAGE_RW_HIMEM]	; __image_rw_himem
+	LDR	sp, [fp, #MEM_APPSPACE_HIMEM]
 
 	; 8 bytes are needed above the initial chunk
 	; for the stackalloc heap
@@ -738,7 +738,7 @@ signalhandler_overflow
 	]
 	LDR	a1, =|__ul_memory|
 	LDR	a2, [a1, #MEM_UNIXLIB_STACK]
-	LDR	a3, [a1, #MEM_IMAGE_RW_HIMEM]
+	LDR	a3, [a1, #MEM_APPSPACE_HIMEM]
 	LDR	a4, [a1, #MEM_ROBASE]
 
 	SUB	a1, sl, #512+CHUNK_OVERHEAD
@@ -1118,7 +1118,7 @@ dynamic_area_name_end
 	EXPORT	|__ul_memory|
 |__ul_memory|
 	DCD	0	; mutex			offset = 0
-	DCD	0	; image_rw_himem	offset = 4
+	DCD	0	; appspace_himem	offset = 4
 	DCD	0	; unixlib_stack		offset = 8
 	[ __UNIXLIB_ELF > 0
 	DCD	|__executable_start|	; robase		offset = 12

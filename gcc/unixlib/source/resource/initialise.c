@@ -72,7 +72,7 @@ __resource_initialise (struct proc *p)
      should be treated differently.
 
      I think that maximum physical memory is the area from __robase to
-     __image_rw_himem (no dynamic area). Also included is from
+     'appspace_himem' (no dynamic area). Also included is from
      __rwlomem to __unixlib_break and beyond for dynamic areas.  */
   if (__dynamic_num == -1)	/* No dynamic area */
     {

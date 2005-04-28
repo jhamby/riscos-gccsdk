@@ -1,14 +1,5 @@
-;----------------------------------------------------------------------------
-;
-; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/unixlib/asm_dec.s,v $
-; $Date: 2005/04/27 17:40:27 $
-; $Revision: 1.27 $
-; $State: Exp $
-; $Author: nick $
-;
-; Declare registers and SWIs we will be calling.
-;
-;----------------------------------------------------------------------------
+; Global definitions used by all assembler files.
+; Copyright (c) 2002, 2003, 2004, 2005 UnixLib Developers.
 
 ; Bits that control which bits are compiled into UnixLib. Note, this must be
 ; kept in sync with <sys/syslib.h>, <signal.h> and <errno.h>.
@@ -497,7 +488,7 @@ GBL_MALLOC_GBL				EQU	96
 
 	; Entries in the __ul_memory table.  Must be kept in sync with
 	; sys/_syslib.s and unixlib/unix.h.
-MEM_IMAGE_RW_HIMEM			EQU	4
+MEM_APPSPACE_HIMEM			EQU	4
 MEM_UNIXLIB_STACK			EQU	8
 
 MEM_ROBASE				EQU	12

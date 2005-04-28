@@ -13,8 +13,8 @@
  *    |       | heap ->     | ....... |        |     | ......
  *    +-------+-------------+         +--------+.....+
  *    ^       ^             ^->     <-^        ^     ^->
- * __base  __rwlimit     __break   __stack     |  __real_himem
- *         __rwlomem     __stack_limit      __himem
+ * __base  __rwlimit     __break   __stack     |  appspace_limit
+ *         __rwlomem     __stack_limit     appspace_himem
  *
  *
  * Case 2: Heap in dynamic area
@@ -23,8 +23,8 @@
  *    |       |  ....... |        |     | ......     \      | heap ->|     | ......
  *    +-------+          +--------+.....+            /      +--------+.....+
  *    ^       ^        <-^        ^     ^->         /       ^        ^     ^->
- * __base  __rwlimit  __stack     |  __real_himem       __rwlomem     |  __dalimit
- *         __stack_limit       __himem                            __break
+ * __base  __rwlimit  __stack     |  appspace_limit    __rwlomem     |  __dalimit
+ *         __stack_limit      appspace_himem                     __break
  *
  * The stack initially decends (in chunks) downto __unixlib_stack_limit, then
  * increases (in chunks) by increasing the wimpslot. If the malloc heap is
@@ -45,7 +45,7 @@
 #include <unixlib/unix.h>
 #include <pthread.h>
 
-/* #define DEBUG */
+/*#define DEBUG*/
 
 #ifdef DEBUG
 #include <sys/debug.h>
@@ -55,7 +55,7 @@
 #define align(x) ((void *)(((unsigned int)(x) + 3) & ~3))
 
 /* This file should be compiled without stack checking, as it is could
-   confuse malloc if the stack extension caused __image_rw_himem to move
+   confuse malloc if the stack extension caused 'appspace_himem' to move
    whilst malloc is trying to sbrk a region */
 #ifdef __CC_NORCROFT
 #pragma -s1
@@ -71,8 +71,8 @@ __internal_brk (void *addr, int internalcall)
   addr = align (addr);
 
 #ifdef DEBUG
-  debug_printf ("brk: addr=%08x, rwlomem=%08x"
-		", unixlib_break=%08x, unixlib_stack=%08x\n",
+  debug_printf ("brk: addr=%08x rwlomem=%08x"
+		" unixlib_break=%08x unixlib_stack=%08x\n",
 		addr, mem->__rwlomem,
 		mem->__unixlib_break, mem->__unixlib_stack);
 #endif
@@ -97,7 +97,10 @@ __internal_brk (void *addr, int internalcall)
 	  > __u->limit[RLIMIT_DATA].rlim_cur)
 	{
 #ifdef DEBUG
-	  debug_printf ("brk: addr - __rwlomem > RLIMIT_DATA (%08x)\n",
+	  debug_printf ("brk: addr (%08x) - __rwlomem (%08x) [%08x]"
+			" > RLIMIT_DATA (%08x)\n",
+			addr, mem->__rwlomem,
+			addr - mem->__rwlomem,
 			__u->limit[RLIMIT_DATA].rlim_cur);
 #endif
 	  /* Need to increase the resource limit.  */
@@ -198,9 +201,11 @@ __internal_brk (void *addr, int internalcall)
 	  /* No space before stack, so try to increase wimpslot
 	     If this is a userland call then increasing the wimpslot is
 	     likely to give unexpected results so don't bother */
-	  if (! internalcall
-	      || __stackalloc_incr_wimpslot ((u_char *)addr
-					     - (u_char *)mem->__image_rw_himem) == 0)
+	  if (! internalcall)
+	    return __set_errno (ENOMEM);
+
+	  if (__stackalloc_incr_wimpslot ((unsigned int) addr
+					  - mem->appspace_himem) == NULL)
 	    return __set_errno (ENOMEM);
         }
       else
@@ -238,7 +243,7 @@ sbrk (intptr_t delta)
   PTHREAD_UNSAFE
 
 #ifdef DEBUG
-  debug_printf ("sbrk: incr=%d\\n", delta);
+  debug_printf ("sbrk: incr=%d\n", delta);
 #endif
 
   if (delta != NULL && __internal_brk ((u_char *) oldbrk + (int)delta, 0) < 0)
@@ -276,7 +281,7 @@ __internal_sbrk (int incr)
 	  || ((u_char *)mem->__unixlib_break + incr
 	      >= (u_char *)mem->__unixlib_stack)))
     {
-      oldbrk = mem->__image_rw_himem;
+      oldbrk = mem->appspace_himem;
       overstack = 1;
     }
   else

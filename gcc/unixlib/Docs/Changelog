@@ -1,3 +1,18 @@
+Thu Apr 28 13:47:20 2005  Nick Burrett  <nick@sqrt.co.uk>
+
+	* unixlib/unix.h (struct ul_memory): Rename '__image_rw_himem' to
+	'appspace_himem'.
+	* debug/debug.c: Use 'appspace_himem'.
+	* sys/brk.c: Likewise.
+	* sys/vfork.c (__fork_post): Likewise.
+	* sys/stackalloc.c (__stackalloc_init): Likewise.
+	(__stackalloc_incr_upwards): Likewise.
+	(__stackalloc_incr_wimpslot): Likewise.
+	* unixlib/asm_dec.s (MEM_APPSPACE_HIMEM): Renamed from
+	MEM_IMAGE_RW_HIMEM.
+	* sys/_syslib.s (__main): Use it.
+	(__check_stack): Use it.
+
 Thu Apr 28 12:14:15 2005  Nick Burrett  <nick@sqrt.co.uk>
 
 	* unixlib/unix.h (struct ul_memory): Rename '__unixlib_real_break'
