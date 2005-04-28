@@ -1,3 +1,7 @@
+Thu Apr 28 20:49:34 2005  Alex Waugh  <alex@alexwaugh.com>
+
+	* sys/_syslib.s: Add missing spaces.
+
 Thu Apr 28 13:47:20 2005  Nick Burrett  <nick@sqrt.co.uk>
 
 	* unixlib/unix.h (struct ul_memory): Rename '__image_rw_himem' to

@@ -77,7 +77,7 @@ MAX_DA_NAME_SIZE	* 32
 	; RMEnsure the minimum version of the SharedUnixLibrary we need.
 SUL_MIN_VERSION	EQU	105
 |rmensure1|
-	DCB	"RMEnsure SharedUnixLibrary 1.05"
+	DCB	"RMEnsure SharedUnixLibrary 1.05 "
 	DCB	"RMLoad System:Modules.SharedULib", 0
 	; The exact error message is not important as it will get ignored.
 |rmensure2|
@@ -433,12 +433,12 @@ error_no_memory
 	ALIGN
 error_no_sharedunixlib
 	DCD	SharedUnixLibrary_Error_NotRecentEnough
-	DCB	"This application requires at least version"
+	DCB	"This application requires at least version "
 	DCB	"1.05 of the SharedUnixLibrary module", 0
 	ALIGN
 error_no_fpe
 	DCD	SharedUnixLibrary_Error_NoFPE
-	DCB	"This application requires version 4.00"
+	DCB	"This application requires version 4.00 "
 	DCB	"or later of the FPEmulator module", 0
 	ALIGN
 error_unrecoverable_loop
