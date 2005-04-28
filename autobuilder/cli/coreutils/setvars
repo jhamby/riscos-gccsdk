@@ -1,0 +1,12 @@
+
+AB_CATEGORY=cli
+
+#AB_MANPAGE=
+
+ab_package() {
+  cp $S/src/*,ff8 $S/COPYING $D
+}
+
+
+touch configure.ac aclocal.m4 stamp-h.in Makefile.in config.status
+
