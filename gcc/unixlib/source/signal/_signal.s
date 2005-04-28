@@ -629,7 +629,7 @@ Internet_Event	EQU	19
 	CMP	a1, a2
 	BLO	return_quickly
 
-	LDR	a2, [a3, #MEM_UNIXLIB_REAL_HIMEM]
+	LDR	a2, [a3, #MEM_APPSPACE_LIMIT]
 	CMP	a1, a2
 	BHI	return_quickly
 
@@ -653,6 +653,8 @@ return_quickly
 	MOVS	pc, lr
 	]
 
+	; This is the common entry point for many of the RISC OS exception
+	; handlers.  On entry, assume that all registers are corrupted.
 |__h_cback_common|
 	[ __UNIXLIB_FEATURE_PTHREADS > 0
 	LDR	a3, =|__ul_global|

@@ -178,7 +178,10 @@ void __free_process(struct __sul_process *process)
 
 /* Initialise the UnixLib world.  Create a new process structure, initialise
    the UnixLib library and parse command line arguments.
-   This function is called by __main () in sys.s._syslib.  */
+   This function is called by __main () in sys.s._syslib.
+
+   No calls to 'brk', 'sbrk' or 'malloc' should occur before calling
+   this function.  */
 void __unixinit (void)
 {
   int __cli_size, cli_size, regs[10];
@@ -187,6 +190,10 @@ void __unixinit (void)
 #ifdef DEBUG
   debug_printf ("__unixinit: new process\n");
 #endif
+
+  /* Calls to 'brk', 'sbrk' or 'malloc' can occur once the call
+     to '__resource_initialise' has completed.  */
+  __resource_initialise (__u);
 
   /* Record the initial escape key status. If escape is disabled (as it
      might be if we are being run as an ANSI task from Nettle) then we
@@ -198,7 +205,6 @@ void __unixinit (void)
   /* Initialise the pthread system */
   __pthread_prog_init ();
 #endif
-  __resource_initialise (__u);
   __unixlib_signal_initialise (__u);
   /* Initialise ctype tables to the C locale.  */
   __build_ctype_tables (-2);

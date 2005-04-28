@@ -93,19 +93,18 @@ static __inline void REMOVE_FROM_FREELIST (struct block *remove)
     }
 }
 
+/* The adding to the freelist could perhaps be a bit more intelligent and
+   add free blocks in an order such that when the freelist is searched
+   blocks higher in the heap will be found first, which should help reduce
+   fragmentation in a multithreaded program */
 static __inline void ADD_TO_FREELIST (struct block *add)
 {
   add->contents.free.nextfreeblock = freelist;
   freelist = add;
 }
 
-/* The adding to the freelist could perhaps be a bit more intelligent and
-   add free blocks in an order such that when the freelist is searched
-   blocks higher in the heap will be found first, which should help reduce
-   fragmentation in a multithreaded program */
-
 /* Increase __image_rw_himem (and hence the wimpslot, if needed) by incr bytes
-   __unixlib_real_himem contains the actual wimpslot size, which may be greater
+   'appspace_limit' contains the actual wimpslot size, which may be greater
    than __image_rw_himem to try to reduce the number of times the wimpslot has
    to be increased */
 void *
@@ -113,45 +112,50 @@ __stackalloc_incr_wimpslot (int incr)
 {
   struct ul_memory *mem = &__ul_memory;
   struct ul_global *gbl = &__ul_global;
-  void *new_wimpslot;
+  unsigned int new_wimpslot;
 
-  if ((u_char *)mem->__image_rw_himem + incr
-      <= (u_char *)mem->__unixlib_real_himem)
+  /* If the amount requested does not exceed the current application space
+     limit, then we can satisfy the request easily.  */
+  if ((unsigned int) mem->__image_rw_himem + incr <= mem->appspace_limit)
     {
 #ifdef DEBUG
       debug_printf ("__stackalloc_incr_wimpslot: no need to increase\n");
 #endif
-      mem->__image_rw_himem = (u_char *)mem->__image_rw_himem + incr;
+      mem->__image_rw_himem = (unsigned int) mem->__image_rw_himem + incr;
       return mem->__image_rw_himem;
     }
 
-  /* Round the size up to reduce the number of calls needed to Wimp_SlotSize */
-  new_wimpslot = (void *) ((int) ((u_char *)mem->__image_rw_himem
-				  + incr
-				  + __DA_WIMPSLOT_ALIGNMENT)
-			   & ~__DA_WIMPSLOT_ALIGNMENT);
+  /* We need to increase the application space size.  */
+  new_wimpslot = (unsigned int) mem->__image_rw_himem + incr;
+
+  /* The amount requested is rounded up to the next 32K in order to
+     reduce the number of calls that we make to Wimp_SlotSize during
+     the execution of the application.  */
+  new_wimpslot = (new_wimpslot
+		  + __DA_WIMPSLOT_ALIGNMENT) & ~__DA_WIMPSLOT_ALIGNMENT;
 
 #ifdef DEBUG
   debug_printf ("__stackalloc_incr_wimpslot: attempting to"
 		"increase wimpslot to %d\n", new_wimpslot);
 #endif
 
-  mem->__unixlib_real_himem =
-    new_wimpslot = gbl->__proc->sul_wimpslot (gbl->__proc->pid, new_wimpslot);
+  new_wimpslot = gbl->__proc->sul_wimpslot (gbl->__proc->pid, new_wimpslot);
+  if (new_wimpslot == NULL)
+    {
+      debug_printf ("__stackalloc_incr_wimpslot: request failed\n");
+      return NULL;
+    }
 
 #ifdef DEBUG
   debug_printf ("__stackalloc_incr_wimpslot: increased wimpslot to %08x\n",
 		new_wimpslot);
 #endif
 
-  if (new_wimpslot == NULL)
-    return NULL;
+  /* Application space limit has been successfully increased.  */
+  mem->appspace_limit = new_wimpslot;
 
-  mem->__unixlib_real_himem = new_wimpslot;
-
-
-  if ((u_char *)mem->__image_rw_himem + incr
-      > (u_char *)mem->__unixlib_real_himem)
+  /* But check that application space has been increased by enough.  */
+  if ((unsigned int) mem->__image_rw_himem + incr > mem->appspace_limit)
     {
 #ifdef DEBUG
       debug_printf ("__stackalloc_incr_wimpslot: wimpslot not increased by enough\n");
@@ -159,12 +163,11 @@ __stackalloc_incr_wimpslot (int incr)
       return NULL;
     }
 
-  mem->__image_rw_himem = (u_char *)mem->__image_rw_himem + incr;
-
+  mem->__image_rw_himem = (unsigned int) mem->__image_rw_himem + incr;
   return mem->__image_rw_himem;
 }
 
-/* Try to increase the stack heap upwards */
+/* Try to increase the stack heap upwards.  */
 static struct block *
 __stackalloc_incr_upwards (int blocksneeded)
 {
@@ -182,10 +185,11 @@ __stackalloc_incr_upwards (int blocksneeded)
     }
   else
     {
-      /* Nothing has increased himem since we last increase the heap size */
+      /* Nothing has increased himem since we last increased the
+	 heap size.  */
       if (topblock->startofcon != NULL)
         {
-          /* We can use the top block to provide part of the new block */
+          /* We can use the top block to provide part of the new block.  */
           topblock = topblock->startofcon;
           realblocksneeded -= topblock->contents.free.numconsecutiveblocks;
         }
@@ -339,15 +343,15 @@ __stackalloc_init (void)
 
 #ifdef DEBUG
   debug_printf ("stackalloc_init: __unixlib_stack=%08x\n"
-		"---- __image_rw_himem=%08x, __unixlib_real_himem=%08x\n",
+		"---- __image_rw_himem=%08x, appspace_limit=%08x\n",
 		mem->__unixlib_stack, mem->__image_rw_himem,
-		mem->__unixlib_real_himem);
+		mem->appspace_limit);
 #endif
 
   /* Record the value of himem when the initial stack chunk was setup */
   mem->__old_himem = mem->__image_rw_himem;
 
-  mem->__image_rw_himem = mem->__unixlib_real_himem;
+  mem->__image_rw_himem = mem->appspace_limit;
 
   initialblock = (struct block *)(void *)((u_char *)mem->__unixlib_stack + 4);
   initialblock->size = 1;

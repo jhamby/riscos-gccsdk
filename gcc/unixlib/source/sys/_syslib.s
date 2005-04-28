@@ -102,8 +102,10 @@ SUL_MIN_VERSION	EQU	105
 	LDR	ip, =|__ul_global|
 	LDR	fp, =|__ul_memory|
 
-	STR	a1, [ip, #GBL_UNIXLIB_CLI]	; __unixlib_cli = pointer to command line
-	STR	a2, [fp, #MEM_IMAGE_RW_HIMEM]	; __image_rw_himem = permitted RAM limit
+	; __unixlib_cli = pointer to command line	
+	STR	a1, [ip, #GBL_UNIXLIB_CLI]
+	; __image_rw_himem = permitted RAM limit
+	STR	a2, [fp, #MEM_IMAGE_RW_HIMEM]
 
 	LDMIA	a3, {a1, a2}	; Get time
 	STR	a1, [ip, #GBL_TIME_LOW]	; __time (low word)
@@ -113,20 +115,19 @@ SUL_MIN_VERSION	EQU	105
 	TEQ	pc, pc          ; EQ if in 32-bit mode, NE if 26-bit
 	STREQ   a1, [ip, #GBL_32BIT]   ; __32bit
 
-	MOV	a1, #14		; Read appspace value
+	; Obtain the application space limit.  Note that this is different
+	; to the permitted RAM limit returned by OS_GetEnv.
+	MOV	a1, #14
 	MOV	a2, #0
 	MOV	a3, #0
 	SWI	XOS_ChangeEnvironment
-	; Default value of __unixlib_real_himem is
-	; the size of application space
-	STR	a2, [fp, #MEM_UNIXLIB_REAL_HIMEM]
+	STR	a2, [fp, #MEM_APPSPACE_LIMIT]
 
 	; For a description of the memory layout of a UnixLib application
 	; see sys/brk.c.
 	LDR	a2, [fp, #MEM_RWLOMEM]	; __rwlomem
 	STR	a2, [fp, #MEM_UNIXLIB_BREAK]	; __break = __rwlomem
 	STR	a2, [fp, #MEM_UNIXLIB_STACK_LIMIT] ; __stack_limit = __rwlomem
-	STR	a2, [fp, #MEM_UNIXLIB_REAL_BREAK] ; __real_break  = __rwlomem
 
 	; The stack is allocated in chunks in the wimpslot, with the first
 	; 4KB chunk immediately below __image_rw_himem.  We cannot place it
@@ -319,7 +320,7 @@ t08
 	; __break = end of used part of DA
 	STR	a1, [fp, #MEM_UNIXLIB_BREAK]
 	; __real_break = end of used part of DA
-	STR	a1, [fp, #MEM_UNIXLIB_REAL_BREAK]
+	STR	a1, [fp, #MEM_DALIMIT]
 
 no_dynamic_area
 	MOV	fp, #0
@@ -374,8 +375,12 @@ no_dynamic_area
 	BL	|__env_unixlib|
 	; Initialise the stack heap in application space
 	BL	|__stackalloc_init|
+	
 	; Initialise the UnixLib library
+	; NOTE:	 No calls to brk, sbrk, or malloc should occur before
+	; calling this function.
 	BL	|__unixinit|
+
 	; Run the users program.
 	BL	|_main|
 	; C programs always terminate by calling exit.
@@ -1126,8 +1131,8 @@ dynamic_area_name_end
 	]
 	DCD	0	; unixlib_break		offset = 24
 	DCD	0	; unixlib_stack_limit	offset = 28
-	DCD	0	; unixlib_real_break	offset = 32
-	DCD	0	; unixlib_real_himem	offset = 36
+	DCD	0	; dalimit		offset = 32
+	DCD	0	; appspace_limit	offset = 36
 	DCD	0	; old_himem		offset = 40
 
 	END

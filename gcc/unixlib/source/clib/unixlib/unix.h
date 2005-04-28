@@ -221,10 +221,15 @@ struct ul_memory
   void *__unixlib_break;
   void *__unixlib_stack_limit;
 
-  /* Top limit of the dynamic area allocated.  */
-  void *__unixlib_real_break;
+  /* This variable is used only when dynamic areas are in use.  It records
+     the upper limit of the dynamic area and will increase/decrease as
+     we claim or release memory.  */
+  unsigned int dalimit;
 
-  void *__unixlib_real_himem;
+  /* This variable is used by the non-contiguous stack chunk code.
+     It records the upper limit of application space (or wimpslot)
+     and will increase as more is required.  */
+  unsigned int appspace_limit;
 
   /* Value of __image_rw_himem last time the stack was increased */
   void *__old_himem;

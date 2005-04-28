@@ -1,3 +1,27 @@
+Thu Apr 28 12:14:15 2005  Nick Burrett  <nick@sqrt.co.uk>
+
+	* unixlib/unix.h (struct ul_memory): Rename '__unixlib_real_break'
+	to 'dalimit'.
+	Rename '__unixlib_real_himem' to 'appspace_limit'.
+
+	* sys/brk.c (__internal_brk): Use 'dalimit'.
+	Remove 32K check hack as system resource limits are setup before
+	the first call to 'brk'.  Add more explanatory comments.
+	* unix/unix.c (__unixinit): Call '__resource_initialise' before
+	setting up pthreads.
+	* unixlib/asm_dec.s (MEM_DALIMIT): Renamed from MEM_UNIXLIB_REAL_BREAK.
+	(MEM_APPSPACE_LIMIT): Renamed from MEM_UNIXLIB_REAL_HIMEM.
+	* sys/_syslib.s (__main): Use it.  In the non-dynamic area case
+	do not set MEM_DALIMIT as it will remain unused throughout the
+	execution of the application.
+	* sys/_signal.s (__h_cback): Use 'MEM_APPSPACE_LIMIT'.
+
+	* sys/stackalloc.c (__stackalloc_incr_wimpslot): Use 'appspace_limit'.
+	If the request for increasing the wimpslot fails, don't adjust
+	value of 'appspace_limit'.
+	* sys/vfork.c (__fork_pre): Reference globals through '__ul_global'.
+	(__fork_post): Use 'appspace_limit'.
+
 Thu Apr 28 10:25:00 2005  Nick Burrett  <nick@sqrt.co.uk>
 
 	* signal/post.c (sigsetup): Perform address validation for the
