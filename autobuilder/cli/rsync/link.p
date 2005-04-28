@@ -1,0 +1,11 @@
+--- rsync.h.orig	2005-04-28 09:49:35.000000000 +0100
++++ rsync.h	2005-04-28 09:49:45.000000000 +0100
+@@ -676,7 +676,7 @@
+ #endif
+ 
+ #define SUPPORT_LINKS HAVE_READLINK
+-#define SUPPORT_HARD_LINKS HAVE_LINK
++/* #define SUPPORT_HARD_LINKS HAVE_LINK */
+ 
+ #define SIGNAL_CAST (RETSIGTYPE (*)())
+ 
