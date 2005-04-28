@@ -7,3 +7,6 @@ AB_FILESNOPATH="rsync,ff8 COPYING"
 
 AB_MANPAGE=rsync.1
 
+ab_package () {
+  cp -av $S/rsync,ff8 $S/COPYING $D
+}
