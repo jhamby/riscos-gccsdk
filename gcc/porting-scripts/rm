@@ -2,7 +2,20 @@
 
 # Avoid removing files during library package creation
 if ! [ -z "$RO_PKG" ] ; then
- echo "rm: Not removing files during library package creation: $@"
+ params=
+
+  for param in $@ ; do
+    if echo $param | grep -q /riscos/env/ ; then
+      echo "rm: Not removing files during library package creation: $param"
+    else
+      params="$params $param"
+    fi
+  done
+
+  if [ "$params" != "" ] ; then
+    /bin/rm $params
+  fi
+
 else
  /bin/rm $@
 fi
