@@ -1,9 +1,64 @@
 Noteworthy changes to the RISC OS GCCSDK
 
-For UnixLib changes, see !gcc.docs.ULChanges
+For specific UnixLib changes, see !gcc.docs.ULChanges
+
+RISC OS GCC release 3.4.4 release 2 (released XX May 2005)
+=======================================
+
+* drlink is much faster when handling very large numbers of symbols.
+
+* UnixLib no longer contains any GPL code.  UnixLib in its entirety
+  is govenered by the LGPL, which may make it suitable for some commercial
+  projects (subject to LPGL requirements).  Specific files in UnixLib
+  may be subject to different licenses.
+
+* The 'as' assembler is now GPL, permission thanks to Niklas Röjemo.
+  Also has considerable tidying and some minor bug fixes.
+
+* More code moved to SharedUnixLibrary (now 1.05).  This allows
+  more flexible and reliable handling of some low-level operations.
+
+* Substantial pthread improvements.
+
+* GCCSDK now contains porting scripts and autobuilder packaging scripts
+  to signficantly simplify porting and rebuilding of Unix applications
+  for RISC OS.
+
+* Linker will dynamically link to ChoX11 and DeskLib if the system
+  variable TLINK_CX11 is set and -lX11 is specified on the command line.
+
+* Better handling of fork() and related functions.
+
+* System variables under UnixLib without a $ in them are now specific
+  to the process.
+
+* Rationalisation of escape handling in UnixLib.
+
+* Overflows and other exceptional floating point behaviour now do
+  not generate a signal, consistent with Unix behaviour.
+
+* More safety in UnixLib signal handling; improved backtraces.
+
+* Faster memcpy/memset/strcpy/strlen implementations from Arian Lees.
+
+* Addition of fake /dev/custom device in UnixLib allows overriding
+  of specific file descriptor behaviour.
+
+* Fix for needing to specify -I. sometimes with includes relative to
+  a path in GCC.
+
+* Update to latest GCC 3.4.4 snapshot.
+
+* Rationalisation of UnixLib sources in preparation for ELF and GCC 4.
+
+* When cross compiling, setting the system variable TLINK_MEMCHECK to
+  a value will, at link time, redirect calls to malloc/calloc/realloc/free
+  via the 'fortify' memory check library.  This allows checking for
+  block overwrites, use of free memory and other memory indiscretions. 
+
 
 RISC OS GCC release 3.4.4 release 1 (released 25 December 2004)
-===================================
+=======================================
 
 * Modernisation of assert() handling and ensure compability with StubsG.
 
