@@ -2,7 +2,7 @@
 
 AB_CATEGORY=cli/test
 
-AB_CONFLAGS=--without-bash-malloc
+AB_CONFLAGS="--without-bash-malloc --disable-process-substitution"
 AB_MAKE=make
 
 ln -s mksignames,ff8 mksignames
