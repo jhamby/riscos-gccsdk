@@ -493,7 +493,7 @@ $(libobjdir)/negate_sf.o:	fp-bit.c
 $(libobjdir)/unord_sf.o:	fp-bit.c
 	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c fp-bit.c $(FPBIT_FLAGS) -DL_unord_sf
 $(libobjdir)/thenan.o:	fp-bit.c
-	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c fp-bit.c $(FPBIT_FLAGS) -DL_thenan
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c fp-bit.c -DFLOAT $(FPBIT_FLAGS) -DL_thenan_sf
 $(libobjdir)/make_sf.o:	fp-bit.c
 	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c fp-bit.c -DFLOAT $(FPBIT_FLAGS) -DL_make_sf
 
