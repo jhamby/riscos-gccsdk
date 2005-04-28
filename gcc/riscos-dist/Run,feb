@@ -36,8 +36,7 @@ Set UnixEnv$as$sfix "h:S:s:o"
 
 | Set aliases for controlling UnixLib heap for dynamic areas
 | See the documentation about UnixLib and dynamic areas.
-| Uncomment these if you have RISC OS 3.5 or more recent and
-| wish *NOT* to use dynamic areas.
+| Comment these out if you do *NOT* wish to use dynamic areas.
 
 | For C
 Set gcc$heap ""
