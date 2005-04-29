@@ -151,10 +151,10 @@ decode()
 			for (i = 0; i < aofhdr->numareas; i++) {
 				Byte flags = (areahdrs[i].flags >> 8) & 0xff;
 
-				if (!(flags & AT_NOINIT))
+				if (!(flags & AREA_UDATA))
 					reloff = offset + areahdrs[i].size;
 				print_area(ifp, &areahdrs[i], offset, reloff);
-				if (!(flags & AT_NOINIT))
+				if (!(flags & AREA_UDATA))
 					offset = reloff + (areahdrs[i].numrelocs * sizeof(struct reloc));
 			}
 		} else
@@ -230,23 +230,30 @@ print_area(ifp, areahdr, offset, reloff)
 	struct areahdr *areahdr;
 	Word offset, reloff;
 {
-	Byte flags = (areahdr->flags >> 8) & 0xff;
+	Word flags = areahdr->flags >> 8;
 
-	printf("\n** Area \"%s\" ", string(areahdr->name));
-	if (flags & AT_DEBUG)
-		fputs("debug ", stdout);
+	printf("\n** Area (0x%x) \"%s\" ", areahdr->flags, string(areahdr->name));
+	if (flags & AREA_DEBUG)
+		fputs("[debug] ", stdout);
 	else {
-		if (flags & AT_CODE)
-			fputs("code ", stdout);
+		if (flags & AREA_CODE)
+			fputs("[code] ", stdout);
 		else
-			fputs("data ", stdout);
+			fputs("[data] ", stdout);
 	}
-	if (flags & AT_COMMDEF)
-		fputs("commdef ", stdout);
-	if (flags & AT_READONLY)
-		fputs("readonly ", stdout);
-	if (flags & AT_NOINIT)
-		fputs("noinit ", stdout);
+	if (flags & AREA_COMMONDEF)
+		fputs("[commdef] ", stdout);
+	if (flags & AREA_READONLY)
+		fputs("[readonly] ", stdout);
+	if (flags & AREA_UDATA)
+		fputs("[noinit] ", stdout);
+	if (flags & AREA_32BITAPCS)
+		fputs("[32bit] ", stdout);
+	if (flags & AREA_SOFTFLOAT)
+		fputs("[soft-float] ", stdout);
+	if (flags & AREA_LINKONCE)
+		fputs("[linkonce] ", stdout);
+
 	printf("\nsize %ld byte%s, %ld relocation%s\n", areahdr->size, areahdr->size == 1 ? "" : "s", areahdr->numrelocs, areahdr->numrelocs == 1 ? "" : "s");
 
 	if (area_contents) {
@@ -399,7 +406,7 @@ areaname(offset)
 	for (i = 0, aoff = 0; i < aofhdr->numareas; i++)
 		if (aoff == offset)
 			return (string(areahdrs[i].name));
-		else if (!(areahdrs[i].flags & AT_NOINIT))
+		else if (!(areahdrs[i].flags & AREA_UDATA))
 			aoff += areahdrs[i].size + (sizeof(struct reloc) * areahdrs[i].numrelocs);
 	return (NULL);
 }

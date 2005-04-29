@@ -155,12 +155,22 @@ struct areahdr {
 /*
  * area attributes (areahdr->flags.AT)
  */
-#define AT_CODE		(1<<1)
-#define AT_COMMDEF	(1<<2)
-#define AT_NOINIT	(1<<4)
-#define AT_READONLY	(1<<5)
-#define AT_DEBUG	(1<<7)
-	
+#define AREA_CODE		0x000002
+#define AREA_COMMONDEF		0x000004 /* Common block definition       */
+#define AREA_COMMONREF		0x000008 /* Common block reference        */
+#define AREA_UDATA		0x000010 /* Uninitialised (0-initialised) */
+#define AREA_READONLY		0x000020
+#define AREA_PIC		0x000040
+#define AREA_DEBUG		0x000080
+#define AREA_32BITAPCS		0x000100
+#define AREA_REENTRANT		0x000200
+#define AREA_EXTFPSET		0x000400
+#define AREA_NOSTACKCHECK	0x000800
+#define AREA_BASED		0x001000
+#define AREA_STUBDATA		0x002000
+#define AREA_SOFTFLOAT		0x080000 /* Avoids FP instructions        */
+#define AREA_LINKONCE		0x100000 /* GNU linkonce (extension)      */
+
 struct reloc {
 	Word offset;
 	Word flags;		/* varies depending on type */

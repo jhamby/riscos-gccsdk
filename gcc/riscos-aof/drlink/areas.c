@@ -380,6 +380,7 @@ static void list_attributes(arealist *ap) {
     {ATT_NOSTAK, "No stack checking code"},
     {ATT_BASED,  "Based area"},
     {ATT_STUBS,  "Shared library stub data"},
+    {ATT_SOFTFLOAT, "Uses soft-float"},
     {ATT_LINKONCE, "Linkonce area"},
     {0,          "*"}
   };
@@ -568,7 +569,7 @@ static arealist *add_newarea(filelist *fp, areaentry *aep, unsigned int atattr, 
     if (imagetype!=AOF) {	/* Do not want symbol created when linking partially-linked AOF file */
       ap->arsymbol = make_symbol(ap->arname, SYM_COMMON);
       sp = ap->arsymbol->symtptr;	/* Fill in 'area' field of cb's SYMT entry */
-      sp->symtattr = SYM_GLOBAL;	/* Watch this!!! Change attributes as symbol has area */
+      sp->symtattr = SYM_GLOBAL;	/* Watch this! Change attributes as symbol has area */
       sp->symtarea.areaptr = ap;
     }
     insert_area(&zidatalist, &zidatalast, ap);

@@ -29,9 +29,9 @@
 #define AREA_INIT		0x00000002
 #define AREA_CODE		0x00000200
 #define AREA_DATA		0x00000000
-#define AREA_COMMONDEF		0x00000400	/* common block definition */
-#define AREA_COMMONREF		0x00000800	/* common block reference */
-#define AREA_UDATA		0x00001000	/* uninitialised (0-initialised) */
+#define AREA_COMMONDEF		0x00000400 /* Common block definition       */
+#define AREA_COMMONREF		0x00000800 /* Common block reference        */
+#define AREA_UDATA		0x00001000 /* Uninitialised (0-initialised) */
 #define AREA_READONLY		0x00002000
 #define AREA_PIC		0x00004000
 #define AREA_DEBUG		0x00008000
@@ -41,7 +41,8 @@
 #define AREA_NOSTACKCHECK	0x00080000
 #define AREA_BASED		0x00100000
 #define AREA_STUBDATA		0x00200000
-#define AREA_LINKONCE		0x10000000 /* GNU linkonce (extension) */
+#define AREA_SOFTFLOAT		0x08000000 /* Avoids FP instructions        */
+#define AREA_LINKONCE		0x10000000 /* GNU linkonce (extension)      */
 
 #define AREA_IMAGE(x) (!((x)->type&AREA_UDATA))
 #define AREA_NOSPACE(x,v) ((x)->imagesize < v)

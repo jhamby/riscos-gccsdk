@@ -72,6 +72,7 @@ int objasm = 0;
 int uc = 0;
 int apcs_32bit = 1;
 int apcs_fpv3 = 1;
+int apcs_softfloat = 0;
 int elf = 0;
 
 const char *ProgName = NULL;
@@ -118,6 +119,8 @@ as_help (void)
 	   "-apcs32                    32-bit APCS AREAs (default)\n"
 	   "-apcsfpv2                  Use floating point v2 AREAs\n"
 	   "-apcsfpv3                  Use floating point v3 AREAs (SFM, LFM) (default)\n"
+	   "-soft-float                Mark code as using -msoft-float (avoids explicit FP instructions)\n"
+	   "-hard-float                Mark code as using -mhard-float (uses explicit FP instructions)\n"
 #ifndef NO_ELF_SUPPORT
 	   "-elf                       Output ELF file\n"
 #endif
@@ -241,6 +244,10 @@ main (int argc, char **argv)
 	apcs_fpv3 = 0;
       else if (! strcmp (*argv, "-apcsfpv3"))
 	apcs_fpv3++;
+      else if (! strcmp (*argv, "-soft-float"))
+	apcs_softfloat++;
+      else if (! strcmp (*argv, "-hard-float"))
+	apcs_softfloat = 0;
       else if (!strcmp (*argv, "-gas"))
 	gas_backend++;
       else if (!strcmp (*argv, "-dde"))

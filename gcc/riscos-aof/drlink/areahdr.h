@@ -23,18 +23,19 @@
 
 /* Following are the extra AOF V3 area attributes */
 
-#define ATT_ABSOL  0x00001		/* Area has an absolute address */
-#define ATT_POSIND 0x00040		/* Area is position independent */
-#define ATT_32BIT  0x00100		/* Area contains 32-bit PC code */
-#define ATT_REENT  0x00200		/* Area contains re-entrant code */
-#define ATT_EXTFP  0x00400		/* Area contain instructions from extended FP set */
-#define ATT_NOSTAK 0x00800		/* Area contains no stack checking code */
-#define ATT_BASED  0x01000		/* Area contains based data */
-#define ATT_STUBS  0x02000		/* Area contains shared library stub data */
-#define ATT_LINKONCE 0x0100000		/* GNU Linkonce section.  */
-#define ATT_BRMASK 0xF0000		/* Mask for based area register number */
-#define ATT_A3ATTR 0x03F41		/* Mask for AOF 3 attributes */
-#define ATT_UNSUPP 0x02001		/* Mask for unsupported AOF 3 attributes */
+#define ATT_ABSOL       0x00001		/* Area has an absolute address                    */
+#define ATT_POSIND      0x00040		/* Area is position independent                    */
+#define ATT_32BIT       0x00100		/* Area contains 32-bit PC code                    */
+#define ATT_REENT       0x00200		/* Area contains re-entrant code                   */
+#define ATT_EXTFP       0x00400		/* Area contain instructions from extended FP set  */
+#define ATT_NOSTAK      0x00800		/* Area contains no stack checking code            */
+#define ATT_BASED       0x01000		/* Area contains based data                        */
+#define ATT_STUBS       0x02000		/* Area contains shared library stub data          */
+#define ATT_SOFTFLOAT 0x0080000		/* Uses soft-float                                 */
+#define ATT_LINKONCE  0x0100000		/* GNU Linkonce section                            */
+#define ATT_BRMASK      0xF0000		/* Mask for based area register number             */
+#define ATT_A3ATTR      0x03F41		/* Mask for AOF 3 attributes                       */
+#define ATT_UNSUPP      0x02001		/* Mask for unsupported AOF 3 attributes           */
 
 /* Masks for checking legality of attribute settings */
 
