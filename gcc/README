@@ -1,5 +1,5 @@
-The RISC OS Software Development Kit [GCCSDK 3.4.4 Prerelease]
-===========================================================
+The RISC OS Software Development Kit [GCCSDK 3.4.4 Release 2]
+=============================================================
 
 GCCSDK is a portable build environment for creating ARM executables to
 be run natively on RISC OS.  The build environment is designed to be
@@ -192,6 +192,8 @@ A2. Systems on which it has successfully been built upon include:
         Cygwin,
         and others.
 
+        Mac OS X is not yet supported, because drlink needs further
+        work to support big endian systems.
 
 -----------------------------------------------------------------------------
 
