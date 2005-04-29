@@ -1,7 +1,7 @@
 | !Run file for the GCCSDK
 | Copyright (c) Nick Burrett, 1996, 1997, 1998, 1999, 2001
 | Copyright (c) GCCSDK Development Team 2002, 2003, 2004, 2005
-| Version 1.13 (27 April 2005)
+| Version 1.14 (29 April 2005)
 
 Set GCC$Dir <Obey$Dir>
 
@@ -40,15 +40,23 @@ Set UnixEnv$as$sfix "h:S:s:o"
 
 | For C
 Set gcc$heap ""
+Set cc1$heap ""
+Set cpp$heap ""
 
 | For Fortran 77
 Set g77$heap ""
+Set f771$heap ""
 
 | For C++
 Set g++$heap ""
+Set cc1plus$heap ""
 
 | For the assembler
 Set as$heap ""
+
+| For the linker
+Set ld$heap ""
+Set drlink$heap ""
 
 | For GNU Make
 Set make$heap ""
