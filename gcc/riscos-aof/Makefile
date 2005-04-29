@@ -15,7 +15,7 @@ endif
 
 export bin_dir gcc_bin_dir
 
-all:	as drlink infozip ld nm rink libfile
+all:	as drlink infozip ld nm rink libfile decaof
 
 .PHONY: as
 .PHONY: drlink
@@ -24,7 +24,8 @@ all:	as drlink infozip ld nm rink libfile
 .PHONY: libfile
 .PHONY: nm
 .PHONY: rink
+.PHONY: decaof
 
-as drlink infozip ld libfile nm rink:
+as drlink infozip ld libfile nm rink decaof:
 	mkdir -p $(objdir)/riscos-aof/$@/$(STAGE)
 	$(MAKE) -C $@ "STAGE=$(STAGE)"
