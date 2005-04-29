@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/assert.h,v $
- * $Date: 2004/10/12 08:32:38 $
- * $Revision: 1.8 $
+ * $Date: 2005/04/13 19:20:05 $
+ * $Revision: 1.9 $
  * $State: Exp $
- * $Author: peter $
+ * $Author: nick $
  *
  ***************************************************************************/
 
@@ -46,7 +46,7 @@ __END_DECLS
 #endif
 
 #ifdef NDEBUG
-# define assert(x) (__ASSERT_CAST 0)
+# define assert(x) (__ASSERT_CAST (0))
 #else
 # ifdef __GNUC__
 /* If compiled under GCC, we can also output the function name.  */

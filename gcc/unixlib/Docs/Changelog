@@ -1,3 +1,9 @@
+Fri Apr 29 19:23:19 2005  Peter Naulls  <peter@chocky.org>
+
+	* clib/assert.h: Make NDEBUG work under C++.
+	* clib/netdb.h, netlib/getaddrinfo.c: getaddrinfo and friends
+	  implementation.
+
 Fri Apr 29 13:43:24 2005  Nick Burrett  <nick@sqrt.co.uk>
 
 	* unixlib/unix.h (struct ul_memory): Remove double-underscore

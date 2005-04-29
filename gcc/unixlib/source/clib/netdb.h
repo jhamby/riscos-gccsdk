@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/netdb.h,v $
- * $Date: 2004/10/12 08:32:38 $
- * $Revision: 1.9 $
+ * $Date: 2005/04/13 19:20:05 $
+ * $Revision: 1.10 $
  * $State: Exp $
- * $Author: peter $
+ * $Author: nick $
  *
  ***************************************************************************/
 
@@ -436,7 +436,6 @@ extern int rresvport_af (int *__alport, sa_family_t __af);
 
 /* Extension from POSIX.1g.  */
 #ifdef	__USE_POSIX
-#if 0
 /* Structure to contain information about address of a service provider.  */
 struct addrinfo
 {
@@ -449,7 +448,6 @@ struct addrinfo
   char *ai_canonname;		/* Canonical name for service location.  */
   struct addrinfo *ai_next;	/* Pointer to next in list.  */
 };
-#endif
 
 # ifdef __USE_GNU
 /* Structure used as control block for asynchronous lookup.  */
@@ -464,7 +462,6 @@ struct gaicb
   int __unused[5];
 };
 
-#if 0
 /* Lookup mode.  */
 #  define GAI_WAIT	0
 #  define GAI_NOWAIT	1
@@ -472,10 +469,14 @@ struct gaicb
 
 /* Possible values for `ai_flags' field in `addrinfo' structure.  */
 # define AI_PASSIVE	0x0001	/* Socket address is intended for `bind'.  */
-# define AI_CANONNAME	0x0002	/* Request for canonical name.  */
-# define AI_NUMERICHOST	0x0004	/* Don't use name resolution.  */
-/* valid flags for addrinfo */
-# define AI_MASK         (AI_PASSIVE | AI_CANONNAME | AI_NUMERICHOST)
+# define AI_ALL		0x0002
+# define AI_CANONNAME	0x0004	/* Request for canonical name.  */
+# define AI_NUMERICHOST	0x0008	/* Don't use name resolution.  */
+# define AI_NUMERICSERV	0x0010
+# define AI_PASSIVE	0x0020
+# define AI_V4MAPPED	0x0040
+# define AI_DEFAULT	(AI_V4MAPPED | AI_ADDRCONFIG)
+
 
 /* Error values for `getaddrinfo' function.  */
 # define EAI_BADFLAGS	  -1	/* Invalid value for `ai_flags' field.  */
@@ -491,7 +492,8 @@ struct gaicb
 # define EAI_SYSTEM	  -11	/* System error returned in `errno'.  */
 # define EAI_BADHINTS	  -12
 # define EAI_PROTOCOL	  -13
-# define EAI_MAX	  -14
+# define EAI_OVERFLOW	  -14
+# define EAI_MAX	  -15
 
 # ifdef __USE_GNU
 #  define EAI_INPROGRESS  -100	/* Processing request in progress.  */
@@ -500,7 +502,6 @@ struct gaicb
 #  define EAI_ALLDONE	  -103	/* All requests done.  */
 #  define EAI_INTR	  -104	/* Interrupted by a signal.  */
 # endif
-#endif
 
 # define NI_MAXHOST      1025
 # define NI_MAXSERV      32
@@ -511,7 +512,6 @@ struct gaicb
 # define NI_NAMEREQD	8	/* Don't return numeric addresses.  */
 # define NI_DGRAM	16	/* Look up UDP service rather than TCP.  */
 
-#if 0
 /* Translate name of a service location and/or a service name to set of
    socket addresses.  */
 extern int getaddrinfo (__const char *__restrict __name,
@@ -524,7 +524,6 @@ extern void freeaddrinfo (struct addrinfo *__ai);
 
 /* Convert error return from getaddrinfo() to a string.  */
 extern __const char *gai_strerror (int __ecode);
-#endif
 
 /* Translate a socket address to a location and service name.  */
 extern int getnameinfo (__const struct sockaddr *__restrict __sa,
