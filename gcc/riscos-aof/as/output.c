@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright © 1992 Niklas Röjemo
- * Copyright © 1997, Nick Burrett.
+ * Copyright © 1997 Nick Burrett
  * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
