@@ -1,0 +1,12 @@
+
+AB_CATEGORY=games
+
+# Doesn't have a configure command
+AB_CONFIG=
+
+ab_package() {
+  cp -av $H/\!Wargus $D
+  cp -av $S/campaigns $S/contrib $S/maps $S/scripts $S/wartool,ff8 \
+         $D/\!Wargus
+  cp -av $H/ReadMe $D/ReadMe
+}

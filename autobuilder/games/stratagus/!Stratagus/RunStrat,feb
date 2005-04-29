@@ -1,0 +1,18 @@
+| Run Stratagus ensuring environment is set up correctly
+| Game parameters are passed from command line
+
+WimpSlot -min 16384k -max 16384k
+
+RMEnsure DigitalRenderer 0.51 RMLoad System:Modules.DRenderer
+
+Set stratagus$Dir <Obey$Dir>
+
+| Use assembler backbuffer
+Set SDL$stratagus$BackBuffer 2
+
+| Use Dynamic area on Machines before the Iyonix
+RMEnsure UtilityModule 5.00 Set stratagus$Heap ""
+RMEnsure UtilityModule 5.00 SetEval stratagus$HeapMax 64
+
+|Run <stratagus$Dir>.stratagus %*0 ><stratagus$dir>.stdout 2><stratagus$dir>.stderr
+Run <stratagus$Dir>.stratagus %*0 >null: 2>null:

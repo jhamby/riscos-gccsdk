@@ -1,0 +1,12 @@
+
+AB_CATEGORY=games
+
+# Force the install to use lua50
+AB_CONFLAGS="LUACONFIG=./lua-config"
+cp -av $H/lua-config $S/lua-config
+
+ab_package() {
+  cp -av $H/\!Stratagus $D
+  cp -av $S/doc $S/stratagus,ff8 \
+         $D/\!Stratagus
+}
