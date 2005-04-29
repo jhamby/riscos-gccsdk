@@ -500,7 +500,8 @@ do {							\
 #define ASM_SPEC "%{mcpu=strongarm:-t SA110 -apcsfpv3} \
 	%{mcpu=arm6:-t ARM6 -apcsfpv3} \
 	%{mcpu=arm7:-t ARM7 -apcsfpv3} \
-	%{mfp=3:-apcsfpv3} %{mfpe=3:-apcsfpv3} %{mapcs-32:-apcs32}"
+	%{mfp=3:-apcsfpv3} %{mfpe=3:-apcsfpv3} %{mapcs-32:-apcs32} \
+	%{msoft-float:-soft-float}"
 
 #define TARGET_OS_CPP_BUILTINS()		\
     do {					\
