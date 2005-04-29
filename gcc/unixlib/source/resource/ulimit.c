@@ -57,7 +57,7 @@ long int ulimit (int cmd, ...)
 	if (status < 0)
 	  return -1;
 
-	return ((long int) __ul_memory.__rwlomem) + dsize.rlim_cur;
+	return __ul_memory.rwlomem + dsize.rlim_cur;
       }
     case __UL_GETOPENMAX:
       return FOPEN_MAX;

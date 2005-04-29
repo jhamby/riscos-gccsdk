@@ -203,12 +203,15 @@ struct ul_memory
      extension code.  */
   unsigned int appspace_himem;
 
-  void *__unixlib_stack;
+  /* Current lowest position of the stack.  It lowers in memory address
+     until it reaches 'unixlib_stack_limit'.  Once reached, attempts to
+     increase stack size will happen by increasing the wimpslot.  */
+  unsigned int unixlib_stack;
 
   /* This points to the start of application memory, usually 0x8000.
      Defined as Image$$RO$$Base for AOF.
      Defined as __executable_start for ELF.  */
-  const void *__robase;
+  const unsigned int robase;
 
   /* This points to the end of the executable, including any read/write
      data that has been initialised before program start.
@@ -222,12 +225,12 @@ struct ul_memory
      Note that if we decide to use a dynamic area for general memory
      allocations, then this value is changed to point to the base
      address of the dynamic area in sys/_syslib.s.  */
-  const void *__rwlomem;
+  const unsigned int rwlomem;
 
   /* This points to the start of read/write data.
      Defined as Image$$RW$$Base for AOF.
      Defined as __data_start for ELF.  */
-  const void *__rwbase;
+  const unsigned int rwbase;
 
   /* As data is requested from the system by 'brk' to satisfy allocation
      and deallocation requests, the value of 'rwlimit' will change.
@@ -238,7 +241,10 @@ struct ul_memory
      When a request is made for more space, then 'rwlimit' will increase.  */
   unsigned int rwbreak;
 
-  void *__unixlib_stack_limit;
+  /* This variable points to the lowest extent to which the stack can
+     grow.  It's value increases in line with 'rwbreak' as more memory
+     is taken from the system.  */
+  unsigned int unixlib_stack_limit;
 
   /* Holds the base memory address of the dynamic area.  It is used to
      ensure that any requests by 'brk' or 'sbrk' to change the data segment
@@ -264,8 +270,8 @@ struct ul_memory
      'appspace_himem'.  */
   unsigned int appspace_limit;
 
-  /* Value of __image_rw_himem last time the stack was increased */
-  void *__old_himem;
+  /* Value of __appspace_himem last time the stack was increased */
+  unsigned int old_himem;
 };
 
 extern struct ul_memory __ul_memory;
@@ -396,7 +402,7 @@ extern void *__stackalloc (size_t __size) __wur;
 extern void __stackfree (void *__ptr);
 extern int __stackalloc_trim (void);
 extern void __free_stack_chain (void *__ptr) __nonnull ((1));
-extern void *__stackalloc_incr_wimpslot (int __incr) __wur;
+extern unsigned int __stackalloc_incr_wimpslot (unsigned int __incr) __wur;
 
 /* Initialise the UnixLib world.  */
 extern void __unixinit (void);

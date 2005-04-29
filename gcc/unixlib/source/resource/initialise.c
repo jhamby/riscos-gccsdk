@@ -55,8 +55,7 @@ __resource_initialise (struct proc *p)
     {
       regs[0] = gbl->__dynamic_num;
       if (__os_swi (OS_ReadDynamicArea, regs))
-	p->limit[RLIMIT_DATA].rlim_max = (mem->rwbreak
-					  - (unsigned int) mem->__rwlomem);
+	p->limit[RLIMIT_DATA].rlim_max = mem->rwbreak - mem->rwlomem;
       else
 	p->limit[RLIMIT_DATA].rlim_max = regs[2];
     }
@@ -75,9 +74,9 @@ __resource_initialise (struct proc *p)
      Again, for RISC OS 3.5+ dynamic areas and without, both cases
      should be treated differently.
 
-     I think that maximum physical memory is the area from __robase to
+     I think that maximum physical memory is the area from robase to
      'appspace_himem' (no dynamic area). Also included is from
-     __rwlomem to __unixlib_break and beyond for dynamic areas.  */
+     'rwlomem' to 'rwbreak' and beyond for dynamic areas.  */
   if (gbl->__dynamic_num == -1) 
     {
       /* No dynamic area */
@@ -90,8 +89,7 @@ __resource_initialise (struct proc *p)
          the maximum size.  */
       regs[0] = 6 + 128;
       if (__os_swi (OS_ReadDynamicArea, regs))
-	p->limit[RLIMIT_RSS].rlim_max += (mem->rwbreak
-					  - (unsigned int) mem->__rwlomem);
+	p->limit[RLIMIT_RSS].rlim_max += mem->rwbreak - mem->rwlomem;
       else
 	/* rlim_max is all of physical memory ?  */
 	p->limit[RLIMIT_RSS].rlim_max = regs[2];

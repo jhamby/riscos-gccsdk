@@ -1,3 +1,38 @@
+Fri Apr 29 13:43:24 2005  Nick Burrett  <nick@sqrt.co.uk>
+
+	* unixlib/unix.h (struct ul_memory): Remove double-underscore
+	prefix from 'unixlib_stack', 'robase', 'rwlomem', 'rwbase',
+	'unixlib_stack_limit' and 'old_himem'.
+	Change types for those variables from void* to 'unsigned int'
+	as they aren't pointers and it reduces the number of explicit
+	casts.
+	(__stackalloc_incr_wimpslot): Change parameter types.
+	* resource/initialise.c (__resource_initialise): Fix accordingly.
+	* resource/ulimit.c (ulimit): Likewise.
+	* debug/debug.c (__debug): Likewise.
+	* common/funcallerr.c (__funcall_error): Likewise.
+	* signal/post.c (sigsetup): Likewise.  Change types for 'low' and
+	'high' and 'handler_addr' to unsigned int to avoid a lot of
+	unnecessary casts.
+	* sys/exec.c (execve): Use new variable names.  Call unlocked
+	variant of malloc_trim.
+	* sys/stackalloc.c (__stackalloc_incr_wimpslot): Change return
+	type to 'unsigned int'.
+	(incr_upwards): Renamed from '__stackalloc_incr_upwards'.
+	(incr_downards): Renamed from '__stackalloc_incr_downwards'.
+	(__stackalloc): Use new function names.
+
+	* math.h (struct exception): Add const qualifier to 'name' to clear up
+	compile-time warnings.
+	* resolv/resolv.h (struct res_sym): Likewise for 'name' and
+	'humanname'.
+	
+	Norcroft fixes from Stefan Bellon.
+	* pthread/atfork.c: Include malloc.h.
+	* pthread/key.c: Include malloc.h.
+	* stdlib/alloc.c (malloc_trim): Cast return type of
+	malloc_trim_unlocked.
+
 Fri Apr 29 11:02:07 2005  Nick Burrett  <nick@sqrt.co.uk>
 
 	Remove the dual-purpose use of 'rwlomem' and '__unixlib_break'

@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/resolv/resolv.h,v $
- * $Date: 2002/12/22 18:22:28 $
- * $Revision: 1.1 $
+ * $Date: 2004/10/17 16:24:43 $
+ * $Revision: 1.2 $
  * $State: Exp $
- * $Author: admin $
+ * $Author: joty $
  *
  ***************************************************************************/
 
@@ -123,8 +123,8 @@ typedef res_sendhookact (*res_send_rhook) (const struct sockaddr_in *ns,
 
 struct res_sym {
 	int	number;		/* Identifying number, like T_MX */
-	char *	name;		/* Its symbolic name, like "MX" */
-	char *	humanname;	/* Its fun name, like "mail exchanger" */
+	const char *name;		/* Its symbolic name, like "MX" */
+	const char *humanname;	/* Its fun name, like "mail exchanger" */
 };
 
 /*

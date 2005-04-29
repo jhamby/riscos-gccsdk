@@ -4002,7 +4002,7 @@ int malloc_trim (size_t bytes)
 {
   int result;
   __pthread_disable_ints ();
-  result = malloc_trim_unlocked (__ul_global.malloc_state, bytes);
+  result = (int) malloc_trim_unlocked (__ul_global.malloc_state, bytes);
   __pthread_enable_ints ();
   return result;
 }

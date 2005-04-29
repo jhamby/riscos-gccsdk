@@ -65,17 +65,17 @@ sigsetup (struct unixlib_sigstate *ss, sighandler_t handler,
 
   /* Case the function pointer to a standard void pointer here to reduce
      compiler warnings and number of places we have to apply this cast.  */
-  const void *handler_addr = (void *) ((unsigned int) handler);
+  unsigned int handler_addr = (unsigned int) handler;
 
   /* Perform an address validation on the user supplied handler address.
      We select a reasonable range of 16 instructions.
 
      The handler must also reside within the address range of read
      only code of the application.  */
-  if (handler_addr < mem->__robase
-      || handler_addr > mem->__rwbase
-      || ! __valid_address (handler_addr,
-			    (void *) ((unsigned int) handler_addr + 16 * 4)))
+  if (handler_addr < mem->robase
+      || handler_addr > mem->rwbase
+      || ! __valid_address ((void *) handler_addr,
+			    (void *) (handler_addr + 16 * 4)))
     {
 #ifdef DEBUG
       debug_printf ("sigsetup: handler %08x points to an invalid address\n",
@@ -89,7 +89,7 @@ sigsetup (struct unixlib_sigstate *ss, sighandler_t handler,
 		signo, sys_siglist[signo]);
   debug_printf ("sigsetup: handler=%08x (%s)\n",
 		handler_addr,
-		extract_name (handler_addr));
+		extract_name ((unsigned int *) handler_addr));
 #endif
   system_stack = ((ss->signalstack.ss_flags & SA_DISABLE)
 		  || ss->signalstack.ss_size == 0
@@ -133,8 +133,8 @@ sigsetup (struct unixlib_sigstate *ss, sighandler_t handler,
      executor.  */
   if ((int)ss->signalstack.ss_size == -1)
     {
-      void *low = (void *) ss->signalstack.ss_sp;
-      void *high = (void *) ((unsigned int) low + 16384);
+      unsigned int low = ss->signalstack.ss_sp;
+      unsigned int high = low + 16384;
 #ifdef DEBUG
       debug_printf ("sigsetup: will execute signal off a BSD stack\n");
 #endif
@@ -142,9 +142,9 @@ sigsetup (struct unixlib_sigstate *ss, sighandler_t handler,
       /* Perform address validation on the user supplied stack.
 	 The stack must be within a read/write data area and not in
 	 the first 32K page.  */
-      if (low < (void *) 0x8000
-	  || (low >= mem->__robase && low < mem->__rwbase)
-	  || ! __valid_address (low, high))
+      if (low < 0x8000
+	  || (low >= mem->robase && low < mem->rwbase)
+	  || ! __valid_address ((void *) low, (void *) high))
 	{
 #ifdef DEBUG
 	  debug_printf ("sigsetup: stack area (%08x - %08x) is invalid\n",
@@ -156,16 +156,16 @@ sigsetup (struct unixlib_sigstate *ss, sighandler_t handler,
     }
   else
     {
-      void *low = (void *) ss->signalstack.ss_sp;
-      void *high = (void *) ((unsigned int) low + ss->signalstack.ss_size);
+      unsigned int low = ss->signalstack.ss_sp;
+      unsigned int high = low + ss->signalstack.ss_size;
 #ifdef DEBUG
       debug_printf ("sigsetup: will execute signal off a POSIX stack\n");
 #endif
 
       /* Perform address validation on the user supplied stack.  */
-      if (low < (void *) 0x8000
-	  || (low >= mem->__robase && low < mem->__rwbase)
-	  || ! __valid_address (low, high))
+      if (low < 0x8000
+	  || (low >= mem->robase && low < mem->rwbase)
+	  || ! __valid_address ((void *) low, (void *) high))
 	{
 #ifdef DEBUG
 	  debug_printf ("sigsetup: stack area (%08x - %08x) is invalid\n",

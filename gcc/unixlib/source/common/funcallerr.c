@@ -12,7 +12,7 @@ __funcall_error (const char *file, int line, unsigned int addr)
   char *s = buf + sizeof(buf);
 
   __os_print ("fatal error: Attempt to call a function at address below 0x");
-  __os_prhex ((unsigned int) __ul_memory.__robase);
+  __os_prhex ((unsigned int) __ul_memory.robase);
   __os_print ("\n\ror a function at a non word-aligned address in a UnixLib function.\r\nFile: ");
   __os_print (file);
   __os_print (", line: ");

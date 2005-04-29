@@ -106,7 +106,7 @@ static __inline void ADD_TO_FREELIST (struct block *add)
 /* Increase 'appspace_himem' (and hence the wimpslot, if needed) by incr bytes.
    'appspace_limit' contains the actual wimpslot size, which may be greater
    than or equal-to 'appspace_himem'.  */
-void *__stackalloc_incr_wimpslot (int incr)
+unsigned int __stackalloc_incr_wimpslot (unsigned int incr)
 {
   struct ul_memory *mem = &__ul_memory;
   struct ul_global *gbl = &__ul_global;
@@ -120,7 +120,7 @@ void *__stackalloc_incr_wimpslot (int incr)
       debug_printf ("__stackalloc_incr_wimpslot: no need to increase\n");
 #endif
       mem->appspace_himem += incr;
-      return (void *) mem->appspace_himem;
+      return mem->appspace_himem;
     }
 
   /* We need to increase the application space size.  */
@@ -137,11 +137,14 @@ void *__stackalloc_incr_wimpslot (int incr)
 		"increase wimpslot to %d\n", new_wimpslot);
 #endif
 
-  new_wimpslot = gbl->__proc->sul_wimpslot (gbl->__proc->pid, new_wimpslot);
-  if (new_wimpslot == NULL)
+  new_wimpslot = (unsigned int) gbl->__proc->sul_wimpslot (gbl->__proc->pid,
+							   (void *) new_wimpslot);
+  if (new_wimpslot == 0)
     {
+#ifdef DEBUG
       debug_printf ("__stackalloc_incr_wimpslot: request failed\n");
-      return NULL;
+#endif
+      return 0;
     }
 
 #ifdef DEBUG
@@ -158,22 +161,21 @@ void *__stackalloc_incr_wimpslot (int incr)
 #ifdef DEBUG
       debug_printf ("__stackalloc_incr_wimpslot: wimpslot not increased by enough\n");
 #endif
-      return NULL;
+      return 0;
     }
 
   mem->appspace_himem += incr;
-  return (void *) mem->appspace_himem;
+  return mem->appspace_himem;
 }
 
 /* Try to increase the stack heap upwards.  */
-static struct block *
-__stackalloc_incr_upwards (int blocksneeded)
+static struct block *incr_upwards (int blocksneeded)
 {
   struct ul_memory *mem = &__ul_memory;
   int realblocksneeded = blocksneeded;
   struct block *topblock = dummytopblock - 1;
-  int incr;
-  int foreign_incr = mem->appspace_himem != mem->__old_himem;
+  unsigned int incr;
+  int foreign_incr = mem->appspace_himem != mem->old_himem;
 
   if (foreign_incr)
     {
@@ -199,7 +201,7 @@ __stackalloc_incr_upwards (int blocksneeded)
       incr = realblocksneeded * sizeof (struct block);
     }
 
-  if (__stackalloc_incr_wimpslot (incr) == NULL)
+  if (! __stackalloc_incr_wimpslot (incr))
     return NULL;
 
   if (realblocksneeded != blocksneeded)
@@ -218,7 +220,7 @@ __stackalloc_incr_upwards (int blocksneeded)
       (topblock - 1)->startofcon = NULL;
     }
 
-  mem->__old_himem = mem->appspace_himem;
+  mem->old_himem = mem->appspace_himem;
 
   /* Setup a new dummy block at the top of the heap.  */
   dummytopblock = topblock + blocksneeded;
@@ -228,15 +230,14 @@ __stackalloc_incr_upwards (int blocksneeded)
 }
 
 /* Try to increase the stack heap downwards.  */
-static struct block *
-__stackalloc_incr_downwards (int blocksneeded)
+static struct block *incr_downwards (int blocksneeded)
 {
   struct ul_memory *mem = &__ul_memory;
   int realblocksneeded = blocksneeded;
   struct block *bottomblock = dummybottomblock + 1;
   struct block *newbottomblock;
-  void *new__stack;
-  int incr;
+  unsigned int new__stack;
+  unsigned int incr;
 
   if (bottomblock->size == BLOCK_FREE)
     {
@@ -247,17 +248,17 @@ __stackalloc_incr_downwards (int blocksneeded)
   newbottomblock = bottomblock - realblocksneeded;
 
   incr = realblocksneeded * sizeof (struct block);
-  new__stack = (u_char *)mem->__unixlib_stack - incr;
+  new__stack = mem->unixlib_stack - incr;
 
 #ifdef DEBUG
-  debug_printf ("__stack_alloc_incr_downwards: incr=%08x,"
-		" __unixlib_stack=%08x, __unixlib_stack_limit=%08x\n",
-		incr, mem->__unixlib_stack, mem->__unixlib_stack_limit);
+  debug_printf ("incr_downwards: incr=%08x"
+		" unixlib_stack=%08x unixlib_stack_limit=%08x\n",
+		incr, mem->unixlib_stack, mem->unixlib_stack_limit);
 #endif
 
-  if (new__stack >= mem->__unixlib_stack_limit)
+  if (new__stack >= mem->unixlib_stack_limit)
     {
-      mem->__unixlib_stack = new__stack;
+      mem->unixlib_stack = new__stack;
 
       if (realblocksneeded != blocksneeded)
         {
@@ -271,7 +272,7 @@ __stackalloc_incr_downwards (int blocksneeded)
   else
     {
 #ifdef DEBUG
-      debug_printf ("__stackalloc_incr_downwards: no free memory below stack heap\n");
+      debug_printf ("incr_downwards: no free memory below stack heap\n");
 #endif
       newbottomblock = NULL;
     }
@@ -280,10 +281,9 @@ __stackalloc_incr_downwards (int blocksneeded)
 }
 
 
-/* Release any free memory at the bottom of the heap */
-/* Returns non-zero if it managed to free anything */
-int
-__stackalloc_trim (void)
+/* Release any free memory at the bottom of the heap.
+   Returns non-zero if it managed to free anything.  */
+int __stackalloc_trim (void)
 {
   struct ul_memory *mem = &__ul_memory;
   struct ul_global *gbl = &__ul_global;
@@ -312,11 +312,12 @@ __stackalloc_trim (void)
   dummybottomblock = bottomblock
     + bottomblock->contents.free.numconsecutiveblocks - 1;
   dummybottomblock->startofcon = NULL;
-  mem->__unixlib_stack = (u_char *)dummybottomblock + sizeof(struct block) - 4;
+  mem->unixlib_stack = ((unsigned int) dummybottomblock
+			+ sizeof(struct block) - 4);
 
 #ifdef DEBUG
   debug_printf ("__stackalloc_trim: __unixlib_stack=%08x\n",
-		mem->__unixlib_stack);
+		mem->unixlib_stack);
 #endif
 
 #if __UNIXLIB_FEATURE_PTHREADS
@@ -329,8 +330,7 @@ __stackalloc_trim (void)
 
 /* Initialise the stackalloc heap
    No need for thread-safety, as only called before threads initialised */
-void
-__stackalloc_init (void)
+void __stackalloc_init (void)
 {
   struct ul_memory *mem = &__ul_memory;
   struct block *initialblock;
@@ -340,18 +340,18 @@ __stackalloc_init (void)
      There are also 8 bytes spare above the initial chunk */
 
 #ifdef DEBUG
-  debug_printf ("stackalloc_init: __unixlib_stack=%08x\n"
-		"---- appspace_himem=%08x, appspace_limit=%08x\n",
-		mem->__unixlib_stack, mem->appspace_himem,
+  debug_printf ("stackalloc_init: unixlib_stack=%08x"
+		" appspace_himem=%08x  appspace_limit=%08x\n",
+		mem->unixlib_stack, mem->appspace_himem,
 		mem->appspace_limit);
 #endif
 
   /* Record the value of himem when the initial stack chunk was setup */
-  mem->__old_himem = mem->appspace_himem;
+  mem->old_himem = mem->appspace_himem;
 
   mem->appspace_himem = mem->appspace_limit;
 
-  initialblock = (struct block *)(void *)((u_char *)mem->__unixlib_stack + 4);
+  initialblock = (struct block *) (mem->unixlib_stack + 4);
   initialblock->size = 1;
   initialblock->startofcon = NULL;
 
@@ -364,9 +364,8 @@ __stackalloc_init (void)
   freelist = NULL;
 }
 
-/* Allocate some space from the heap - equivalent to malloc() */
-void *
-__stackalloc (size_t size)
+/* Allocate some space from the heap - equivalent to malloc().  */
+void *__stackalloc (size_t size)
 {
   struct ul_global *gbl = &__ul_global;
   int blocksneeded, blocksleft;
@@ -427,10 +426,10 @@ __stackalloc (size_t size)
       /* No suitable block found, so try to increase the size of the heap.
          Try extending the stack heap downwards if room, otherwise increase
          the wimpslot */
-      blocktoalloc = __stackalloc_incr_downwards (blocksneeded);
+      blocktoalloc = (struct block *) incr_downwards (blocksneeded);
 
       if (blocktoalloc == NULL)
-        blocktoalloc = __stackalloc_incr_upwards (blocksneeded);
+        blocktoalloc = (struct block *) incr_upwards (blocksneeded);
 
       if (blocktoalloc == NULL)
         {
@@ -487,9 +486,8 @@ __stackalloc (size_t size)
   return returnptr;
 }
 
-/* Free a chunk - equivalent to free() */
-void
-__stackfree (void *ptr)
+/* Free a chunk - equivalent to free().  */
+void __stackfree (void *ptr)
 {
   struct ul_global *gbl = &__ul_global;
   struct block *blocktofree;
@@ -558,4 +556,3 @@ __stackfree (void *ptr)
     __pthread_enable_ints ();
 #endif
 }
-

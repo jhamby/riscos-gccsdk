@@ -20,13 +20,13 @@ __debug (const char *s)
 
   PTHREAD_UNSAFE
   debug_printf ("\n# %s\n", (s) ? s : "");
-  debug_printf ("__robase: %08x, __rwlomem: %08x,"
+  debug_printf ("robase: %08x, rwlomem: %08x,"
 		" appspace_himem: %08x, appspace_limit: %08x\n",
-		mem->__robase, mem->__rwlomem,
+		mem->robase, mem->rwlomem,
 		mem->appspace_himem, mem->appspace_limit);
 
   debug_printf ("__u: %08x, rwbreak: %08x, __unixlib_stack: %08x\n",
-		__u, mem->rwbreak, mem->__unixlib_stack);
+		__u, mem->rwbreak, mem->unixlib_stack);
 
   debug_printf ("dalomem: %08x, dabreak: %08x, dalimit: %08x\n",
 		mem->dalomem, mem->dabreak, mem->dalimit);

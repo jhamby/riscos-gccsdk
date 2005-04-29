@@ -47,7 +47,7 @@
 #include <unixlib/unix.h>
 #include <pthread.h>
 
-#define DEBUG
+/* #define DEBUG */
 
 #ifdef DEBUG
 #include <sys/debug.h>
@@ -180,27 +180,27 @@ static int brk_rw (unsigned int addr, int internal_call)
 
 #ifdef DEBUG
   debug_printf ("brk_rw: addr=%08x rwlomem=%08x rwbreak=%08x stack_limit=%08x stack=%08x\n",
-		addr, mem->__rwlomem, mem->rwbreak,
-		mem->__unixlib_stack_limit, mem->__unixlib_stack);
+		addr, mem->rwlomem, mem->rwbreak,
+		mem->unixlib_stack_limit, mem->unixlib_stack);
 #endif
 
-  /* Check new limit isn't below minimum brk limit, i.e., __rwlomem.
+  /* Check new limit isn't below minimum brk limit, i.e., rwlomem.
      Return EINVAL, because it doesn't make sense to return ENOMEM.  */
-  if (addr < (unsigned int) mem->__rwlomem)
+  if (addr < mem->rwlomem)
     {
 #ifdef DEBUG
       /* It would be interesting to know if this ever happens, so
 	 for the time being it is marked with a flag to draw special
 	 attention.  */
       debug_printf ("brk_rw: addr (%08x) < rwlomem (%08x)  !!! flag !!!\n",
-		    addr, mem->__rwlomem);
+		    addr, mem->rwlomem);
 #endif
       return __set_errno (EINVAL);
     }
 
   /* Heap is not in a dynamic area and is therefore below the stack.
      Make sure we don't run into the stack */
-  if (addr > (unsigned int) mem->__unixlib_stack)
+  if (addr > mem->unixlib_stack)
     {
 #ifdef DEBUG
       debug_printf ("brk_rw: addr > __unixlib_stack\n");
@@ -211,14 +211,13 @@ static int brk_rw (unsigned int addr, int internal_call)
       if (! internal_call)
 	return __set_errno (ENOMEM);
 
-      if (__stackalloc_incr_wimpslot ((unsigned int) addr
-				      - mem->appspace_himem) == NULL)
+      if (__stackalloc_incr_wimpslot (addr - mem->appspace_himem) == NULL)
 	return __set_errno (ENOMEM);
     }
   else
     {
       /* Adjust stack limit.*/
-      mem->__unixlib_stack_limit = (void *) addr;
+      mem->unixlib_stack_limit = addr;
     }
   
   /* Adjust break limit.
@@ -238,15 +237,15 @@ __internal_brk (void *addr, int internalcall)
       /* struct rlimit rlim; */
       /* Inline version of
 	 if (getrlimit (RLIMIT_DATA, &rlim) >= 0)
-	   if ((u_char *) addr - (u_char *) __rwlomem > rlim.rlim_cur) */
-      if ((unsigned int) addr - (unsigned int) mem->__rwlomem
+	   if ((u_char *) addr - (u_char *) rwlomem > rlim.rlim_cur) */
+      if ((unsigned int) addr - (unsigned int) mem->rwlomem
 	  > __u->limit[RLIMIT_DATA].rlim_cur)
 	{
 #ifdef DEBUG
-	  debug_printf ("brk: addr (%08x) - __rwlomem (%08x) [%08x]"
+	  debug_printf ("brk: addr (%08x) - rwlomem (%08x) [%08x]"
 			" > RLIMIT_DATA (%08x)\n",
-			addr, mem->__rwlomem,
-			addr - mem->__rwlomem,
+			addr, mem->rwlomem,
+			addr - mem->rwlomem,
 			__u->limit[RLIMIT_DATA].rlim_cur);
 #endif
 	  /* Need to increase the resource limit.  */
@@ -301,10 +300,9 @@ sbrk (intptr_t delta)
 	}
 
       /* sbrk returns a pointer to the start of the area.  */
-      return ((oldbrk > (unsigned int) mem->__unixlib_stack_limit)
-	      ? mem->__unixlib_stack_limit
-	      : (void *) oldbrk);
-    }      
+      return (void *) ((oldbrk > mem->unixlib_stack_limit)
+		       ? mem->unixlib_stack_limit : oldbrk);
+    }
   else
     {
       unsigned int oldbrk = mem->dabreak;
@@ -337,7 +335,7 @@ __internal_sbrk (int incr)
 #endif
 
   if (incr < 0)
-    return ((void *)-1);
+    return (void *) -1;
 
   if (gbl->__dynamic_num == -1)
     {
@@ -349,7 +347,7 @@ __internal_sbrk (int incr)
       static int overstack = 0;
   
       if (overstack
-	  || (mem->rwbreak + incr >= (unsigned int) mem->__unixlib_stack))
+	  || (mem->rwbreak + incr >= mem->unixlib_stack))
 	{
 	  oldbrk = mem->appspace_himem;
 	  overstack = 1;

@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <pthread.h>
 #include <unixlib/unix.h>
+#include <malloc.h>
 
 /* ID to allocate to next new key.  */
 static pthread_key_t nextkey = 0;

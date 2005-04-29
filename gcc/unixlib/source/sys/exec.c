@@ -1,16 +1,5 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/exec.c,v $
- * $Date: 2005/03/04 20:59:06 $
- * $Revision: 1.19 $
- * $State: Exp $
- * $Author: alex $
- *
- ***************************************************************************/
-
-#ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: exec.c,v 1.19 2005/03/04 20:59:06 alex Exp $";
-#endif
+/* Execute a new program.
+   Copyright (c) 2002, 2003, 2004, 2005 UnixLib Developers.  */
 
 #include <ctype.h>
 #include <errno.h>
@@ -66,7 +55,7 @@ set_dde_cli (char *cli)
   if (*temp != '\0')
     temp[-1] = '\0';		/* terminate cli.  */
 #ifdef DEBUG
-  __os_print ("DDEUtils set up\n\r");
+  debug_printf ("DDEUtils set up\n");
 #endif
   return 0;
 }
@@ -87,7 +76,6 @@ execve (const char *execname, char *const argv[], char *const envp[])
   char **newenviron = NULL;
   int envlen = 0;
 
-
   if (! execname)
     return __set_errno (EINVAL);
 
@@ -95,18 +83,13 @@ execve (const char *execname, char *const argv[], char *const envp[])
     argv = &null_list;
 
 #ifdef DEBUG
-  __os_print ("-- execve: function arguments\r\n");
-  __os_print ("      execname: '"); __os_print (execname); __os_print ("'\r\n");
+  debug_printf ("execve: function arguments\n");
+  debug_printf ("   execname: '%s'\n", execname);
   for (x = 0; argv[x] != NULL; ++x)
-    {
-      __os_print ("      argv["); __os_prdec (x); __os_print ("]: ");
-      __os_print (argv[x]); __os_nl ();
-    }
+    debug_printf ("   argv[%d]: %s\n", x, argv[x]);
+
   for (x = 0; envp[x] != NULL; ++x)
-    {
-      __os_print ("      envp["); __os_prdec (x); __os_print ("]: ");
-      __os_print (envp[x]); __os_nl ();
-    }
+    debug_printf ("   envp[%d]: %s\n", x, envp[x]);
 
   __debug ("-- execve: process structure");
 #endif
@@ -141,7 +124,8 @@ execve (const char *execname, char *const argv[], char *const envp[])
   else
     {
       const char *p;
-	  char temp[MAXPATHLEN];
+      char temp[MAXPATHLEN];
+      int x;
 
       /* scenario 1 : We've arrived here from a user call to system(),
 	 with execname == "*" because on RISC OS the '*' is equivalent
@@ -168,8 +152,7 @@ execve (const char *execname, char *const argv[], char *const envp[])
 	  nasty_hack = x;
 
 #ifdef DEBUG
-	  __os_print ("-- execve: pathname: '");
-	  __os_print (temp); __os_print ("'\r\n");
+	  debug_printf ("execve: pathname: '%s'\n", temp);
 #endif
 
 	  program_name = __riscosify_std (temp, 0, pathname,
@@ -180,12 +163,11 @@ execve (const char *execname, char *const argv[], char *const envp[])
 	}
 
 #ifdef DEBUG
-  __os_print ("-- execve: program_name: "); __os_print (program_name);
-  __os_nl ();
+  debug_printf ("execve: program_name: %s\n", program_name);
 #endif
 
 #ifdef DEBUG
-  __os_print ("-- execve: building command line\r\n");
+  debug_printf ("execve: building command line\n");
 #endif
 
   /* Calculate the length of the command line.  */
@@ -221,8 +203,7 @@ execve (const char *execname, char *const argv[], char *const envp[])
     }
 
 #ifdef DEBUG
-  __os_print ("-- execve: cli_length = "); __os_prdec (cli_length);
-  __os_nl ();
+  debug_printf ("execve: cli_length = %d\n", cli_length);
 #endif
 
   /* SUL will free cli for us when we call sul_exec */
@@ -241,51 +222,54 @@ execve (const char *execname, char *const argv[], char *const envp[])
 
   /* Copy the rest of the arguments into the cli.  */
   if (argv[0])
-    for (x = scenario; argv[x] != NULL; ++x)
-      {
-        char *p = argv[x];
-        int contains_space = 0;
+    {
+      int x;
+      for (x = scenario; argv[x] != NULL; ++x)
+	{
+	  char *p = argv[x];
+	  int contains_space = 0;
 
-	if (nasty_hack && x == scenario)
-	  p += nasty_hack;
+	  if (nasty_hack && x == scenario)
+	    p += nasty_hack;
 
-        while (*p != '\0' && ! isspace (*p))
-          p++;
+	  while (*p != '\0' && ! isspace (*p))
+	    p++;
 
-	/* Don't enclose arguments in additional quotes if our nasty hack
-	   is in place.  */
-        if (! nasty_hack && *p)
-          contains_space = 1;
+	  /* Don't enclose arguments in additional quotes if our nasty hack
+	     is in place.  */
+	  if (! nasty_hack && *p)
+	    contains_space = 1;
 
-        /* Add quotes, if argument contains a space.  */
-	if (contains_space)
-	  *command_line ++ = '\"';
+	  /* Add quotes, if argument contains a space.  */
+	  if (contains_space)
+	    *command_line ++ = '\"';
 
-	p = argv[x];
-	if (nasty_hack && x == scenario)
-	  p += nasty_hack;
-	for (/* */; *p; ++p)
-	  {
-	    /* If character is a " or a ' then preceed with a backslash.  */
-	    if ((!nasty_hack || x != scenario) && (*p == '\"' || *p == '\''))
-	      *command_line ++ = '\\';
+	  p = argv[x];
+	  if (nasty_hack && x == scenario)
+	    p += nasty_hack;
+	  for (/* */; *p; ++p)
+	    {
+	      /* If character is a " or a ' then preceed with a backslash.  */
+	      if ((!nasty_hack || x != scenario) && (*p == '\"' || *p == '\''))
+		*command_line ++ = '\\';
 
-	    if (*p == 127 || *p < 32)
-	      {
-		sprintf (command_line, "\\x%.2X", *p);
-		command_line += 4;
-	      }
-	    else
-	      *command_line ++ = *p;
-	  }
-	if (contains_space)
-	  *command_line ++ = '\"';
-	*command_line ++ = ' ';
-      }
+	      if (*p == 127 || *p < 32)
+		{
+		  sprintf (command_line, "\\x%.2X", *p);
+		  command_line += 4;
+		}
+	      else
+		*command_line ++ = *p;
+	    }
+	  if (contains_space)
+	    *command_line ++ = '\"';
+	  *command_line ++ = ' ';
+	}
+    }
   command_line[-1] = '\0';
 
 #ifdef DEBUG
-  __os_print ("-- execve: cli: "); __os_print (cli); __os_nl ();
+  debug_printf ("execve: cli: %s\n", cli);
 #endif
 
   /* If the cli is >= MAXPATHLEN, we will need the aid of DDEUtils.  */
@@ -297,7 +281,7 @@ execve (const char *execname, char *const argv[], char *const envp[])
 
   if (envp)
     {
-      int enventries;
+      int enventries, x;
       char *offset;
 
       envlen = sizeof (char *);
@@ -360,6 +344,7 @@ execve (const char *execname, char *const argv[], char *const envp[])
     }
   else
     {
+      unsigned int x;
       /* File descriptors open in the existing process image remain open
          in the new process image, unless they have the 'FD_CLOEXEC'
          flag set.  O_EXECCL is an alias for FD_CLOEXEC.  */
@@ -375,7 +360,7 @@ execve (const char *execname, char *const argv[], char *const envp[])
   __proc->environ_size = envlen;
 
   /* Force a malloc trim to reduce memory usage.  */
-  malloc_trim (0);
+  malloc_trim_unlocked (0);
   __stackalloc_trim ();
 
   /* If the DAs are being used, then delete the dynamic area. */
@@ -389,11 +374,11 @@ execve (const char *execname, char *const argv[], char *const envp[])
      (This function never returns, even for a RISC OS built-in
      command.)  */
 #ifdef DEBUG
-  __os_print ("-- execve: about to call:"); __os_print (cli); __os_nl ();
+  debug_printf ("execve: about to call: %s\n", cli);
 #endif
   __proc->sul_exec (__proc->pid, cli,
-		    __ul_memory.__unixlib_stack_limit,
-		    __ul_memory.__unixlib_stack);
+		    __ul_memory.unixlib_stack_limit,
+		    __ul_memory.unixlib_stack);
 
 
   /* This is never reached.  */
