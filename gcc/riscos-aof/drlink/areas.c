@@ -380,7 +380,7 @@ static void list_attributes(arealist *ap) {
     {ATT_NOSTAK, "No stack checking code"},
     {ATT_BASED,  "Based area"},
     {ATT_STUBS,  "Shared library stub data"},
-    {ATT_SOFTFLOAT, "Uses soft-float"},
+    {ATT_SOFTFLOAT, "Soft float"},
     {ATT_LINKONCE, "Linkonce area"},
     {0,          "*"}
   };

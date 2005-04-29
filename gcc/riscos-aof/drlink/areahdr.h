@@ -39,7 +39,7 @@
 
 /* Masks for checking legality of attribute settings */
 
-#define ATT_BADCODE 0xFF090		/* Mask for 'code' area attributes */
+#define ATT_BADCODE 0x7F090		/* Mask for 'code' area attributes */
 #define ATT_BADATA  0x0CF80		/* Mask for 'data' attributes */
 #define ATT_BADSYM  0xFF05D		/* Mask for 'debugging' attributes */
 
