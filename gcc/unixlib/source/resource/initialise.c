@@ -17,6 +17,7 @@ void
 __resource_initialise (struct proc *p)
 {
   struct ul_memory *mem = &__ul_memory;
+  struct ul_global *gbl = &__ul_global;
   int regs[10];
   int max_wimpslot;
 
@@ -45,14 +46,17 @@ __resource_initialise (struct proc *p)
      For dynamic areas the limit is current available memory size or
      the limit imposed by any virtual memory system such as Virtualise.  */
 
-  if (__dynamic_num == -1)	/* No dynamic area */
-    p->limit[RLIMIT_DATA].rlim_max = max_wimpslot;
+  if (gbl->__dynamic_num == -1)
+    {
+      /* No dynamic area.  */
+      p->limit[RLIMIT_DATA].rlim_max = max_wimpslot;
+    }
   else
     {
-      regs[0] = __dynamic_num;
+      regs[0] = gbl->__dynamic_num;
       if (__os_swi (OS_ReadDynamicArea, regs))
-	p->limit[RLIMIT_DATA].rlim_max = ((u_char *) mem->__unixlib_break
-					  - (u_char *) mem->__rwlomem);
+	p->limit[RLIMIT_DATA].rlim_max = (mem->rwbreak
+					  - (unsigned int) mem->__rwlomem);
       else
 	p->limit[RLIMIT_DATA].rlim_max = regs[2];
     }
@@ -74,8 +78,9 @@ __resource_initialise (struct proc *p)
      I think that maximum physical memory is the area from __robase to
      'appspace_himem' (no dynamic area). Also included is from
      __rwlomem to __unixlib_break and beyond for dynamic areas.  */
-  if (__dynamic_num == -1)	/* No dynamic area */
+  if (gbl->__dynamic_num == -1) 
     {
+      /* No dynamic area */
       p->limit[RLIMIT_RSS].rlim_max = max_wimpslot;
       p->limit[RLIMIT_RSS].rlim_cur = p->limit[RLIMIT_RSS].rlim_max;
     }
@@ -85,8 +90,8 @@ __resource_initialise (struct proc *p)
          the maximum size.  */
       regs[0] = 6 + 128;
       if (__os_swi (OS_ReadDynamicArea, regs))
-	p->limit[RLIMIT_RSS].rlim_max += ((u_char *) mem->__unixlib_break
-					  - (u_char *) mem->__rwlomem);
+	p->limit[RLIMIT_RSS].rlim_max += (mem->rwbreak
+					  - (unsigned int) mem->__rwlomem);
       else
 	/* rlim_max is all of physical memory ?  */
 	p->limit[RLIMIT_RSS].rlim_max = regs[2];

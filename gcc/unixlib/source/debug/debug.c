@@ -25,8 +25,11 @@ __debug (const char *s)
 		mem->__robase, mem->__rwlomem,
 		mem->appspace_himem, mem->appspace_limit);
 
-  debug_printf ("__u: %08x, __unixlib_break: %08x, __unixlib_stack: %08x\n",
-		__u, mem->__unixlib_break, mem->__unixlib_stack);
+  debug_printf ("__u: %08x, rwbreak: %08x, __unixlib_stack: %08x\n",
+		__u, mem->rwbreak, mem->__unixlib_stack);
+
+  debug_printf ("dalomem: %08x, dabreak: %08x, dalimit: %08x\n",
+		mem->dalomem, mem->dabreak, mem->dalimit);
 
   /* Make sure the complete __u struct is pointing to valid memory
      otherwise adding __debug() will raise memory exceptions which

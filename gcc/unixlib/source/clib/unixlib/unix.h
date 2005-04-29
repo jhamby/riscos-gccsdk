@@ -229,8 +229,28 @@ struct ul_memory
      Defined as __data_start for ELF.  */
   const void *__rwbase;
 
-  void *__unixlib_break;
+  /* As data is requested from the system by 'brk' to satisfy allocation
+     and deallocation requests, the value of 'rwlimit' will change.
+
+     Initially it starts off equal to '__rwlomem', meaning that no data
+     has been allocated at run-time.
+
+     When a request is made for more space, then 'rwlimit' will increase.  */
+  unsigned int rwbreak;
+
   void *__unixlib_stack_limit;
+
+  /* Holds the base memory address of the dynamic area.  It is used to
+     ensure that any requests by 'brk' or 'sbrk' to change the data segment
+     size, cannot reduce it past this value.
+
+     This variable is used only when dynamic areas are in use.  */
+  unsigned int dalomem;
+
+  /* This variable is used only when dynamic areas are in use.  It records
+     the used space in a dynamic area, which will increase or decrease
+     as required according to the user's calls to 'brk'.  */
+  unsigned int dabreak;
 
   /* This variable is used only when dynamic areas are in use.  It records
      the upper limit of the dynamic area and will increase/decrease as

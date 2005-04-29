@@ -126,7 +126,7 @@ SUL_MIN_VERSION	EQU	105
 	; For a description of the memory layout of a UnixLib application
 	; see sys/brk.c.
 	LDR	a2, [fp, #MEM_RWLOMEM]	; __rwlomem
-	STR	a2, [fp, #MEM_UNIXLIB_BREAK]	; __break = __rwlomem
+	STR	a2, [fp, #MEM_RWBREAK]	; __break = __rwlomem
 	STR	a2, [fp, #MEM_UNIXLIB_STACK_LIMIT] ; __stack_limit = __rwlomem
 
 	; The stack is allocated in chunks in the wimpslot, with the first
@@ -316,9 +316,9 @@ t08
 	; v6 is size left in area, a4 is start offset
 	ADD	a1, v6, a4
 	; __lomem = start of dynamic area
-	STR	a4, [fp, #MEM_RWLOMEM]
+	STR	a4, [fp, #MEM_DALOMEM]
 	; __break = end of used part of DA
-	STR	a1, [fp, #MEM_UNIXLIB_BREAK]
+	STR	a1, [fp, #MEM_DABREAK]
 	; __real_break = end of used part of DA
 	STR	a1, [fp, #MEM_DALIMIT]
 
@@ -1129,10 +1129,12 @@ dynamic_area_name_end
 	DCD	|Image$$RW$$Limit|	; rwlomem		offset = 16
 	DCD	|Image$$RW$$Base|	; rwbase		offset = 20
 	]
-	DCD	0	; unixlib_break		offset = 24
+	DCD	0	; rwbreak		offset = 24
 	DCD	0	; unixlib_stack_limit	offset = 28
-	DCD	0	; dalimit		offset = 32
-	DCD	0	; appspace_limit	offset = 36
-	DCD	0	; old_himem		offset = 40
+	DCD	0	; dalomem		offset = 32
+	DCD	0	; dabreak		offset = 36
+	DCD	0	; dalimit		offset = 40
+	DCD	0	; appspace_limit	offset = 44
+	DCD	0	; old_himem		offset = 48
 
 	END

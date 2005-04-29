@@ -13,8 +13,8 @@
  *    |       | heap ->     | ....... |        |     | ......
  *    +-------+-------------+         +--------+.....+
  *    ^       ^             ^->     <-^        ^     ^->
- * __base  __rwlimit     __break   __stack     |  appspace_limit
- *         __rwlomem     __stack_limit     appspace_himem
+ * robase  rwlimit     rwbreak   __stack     |  appspace_limit
+ *         rwlomem     __stack_limit     appspace_himem
  *
  *
  * Case 2: Heap in dynamic area
@@ -23,8 +23,10 @@
  *    |       |  ....... |        |     | ......     \      | heap ->|     | ......
  *    +-------+          +--------+.....+            /      +--------+.....+
  *    ^       ^        <-^        ^     ^->         /       ^        ^     ^->
- * __base  __rwlimit  __stack     |  appspace_limit    __rwlomem     |  __dalimit
- *         __stack_limit      appspace_himem                     __break
+ * robase  rwlimit    _stack      |  appspace_limit    dalomem     |  dalimit
+ *         stack_limit      appspace_himem                     dabreak
+ *         rwbreak
+ * 
  *
  * The stack initially decends (in chunks) downto __unixlib_stack_limit, then
  * increases (in chunks) by increasing the wimpslot. If the malloc heap is
@@ -45,14 +47,14 @@
 #include <unixlib/unix.h>
 #include <pthread.h>
 
-/*#define DEBUG*/
+#define DEBUG
 
 #ifdef DEBUG
 #include <sys/debug.h>
 #include <unixlib/os.h>
 #endif
 
-#define align(x) ((void *)(((unsigned int)(x) + 3) & ~3))
+#define align(x) ((x + 3) & ~3)
 
 /* This file should be compiled without stack checking, as it is could
    confuse malloc if the stack extension caused 'appspace_himem' to move
@@ -61,8 +63,114 @@
 #pragma -s1
 #endif
 
-static int
-__internal_brk (void *addr, int internalcall)
+/* brk function for dynamic areas.  */
+static int brk_da (unsigned int addr)
+{
+  struct ul_memory *mem = &__ul_memory;
+  struct ul_global *gbl = &__ul_global;
+  int regs[10];
+
+  /* Ensure requested address is aligned to a 4 byte boundry.  */
+  addr = align (addr);
+
+#ifdef DEBUG
+  debug_printf ("brk_da: addr=%08x dalomem=%08x dabreak=%08x dalimit=%08x\n",
+		addr, mem->dalomem, mem->dabreak, mem->dalimit);
+#endif
+
+  /* Check new limit isn't below minimum brk limit, i.e., dalomem
+     Return EINVAL, because it doesn't make sense to return ENOMEM.  */
+  if (addr < mem->dalomem)
+    {
+#ifdef DEBUG
+      /* It would be interesting to know if this ever happens, so
+	 for the time being it is marked with a flag to draw special
+	 attention.  */
+      debug_printf ("brk_da: addr (%08x) < dalomem (%08x)  !!! flag !!!\n",
+		    addr, mem->dalomem);
+#endif
+      return __set_errno (EINVAL);
+    }
+
+  regs[0] = gbl->__dynamic_num;
+
+  /* If the new address exceeds our current allocation from the
+     dynamic area, then we must attempt to claim more memory for
+     the dynamic area.  */
+  if (addr > mem->dalimit)
+    {
+      /* Calculate the amount we want to increase the dynamic area
+	 by.  */
+      regs[1] = addr - mem->dalimit;
+	  
+      /* Align that amount up to a multiple of 32K to reduce number
+	 of expensive sbrk calls.
+
+	 This is done because OS_ChangeDynamicArea can be expensive,
+	 so smaller [s]brk increments will fit inside 'dalimit'.  */
+      regs[1] = ((regs[1] + __DA_WIMPSLOT_ALIGNMENT)
+		 & ~__DA_WIMPSLOT_ALIGNMENT);
+      if (__os_swi (OS_ChangeDynamicArea, regs))
+	{
+#ifdef DEBUG
+	  debug_printf ("brk: OS_ChangeDynamicArea failed\n");
+#endif
+	  /* Failed to allocate the memory, so return an error.  */
+	  return __set_errno (ENOMEM);
+	}
+      
+      /* Record the new maximum address space.  */
+      mem->dalimit += regs[1];
+    }
+  
+  /* At this point, we know that we can always satisfy a request to
+     increase or decrease the address space.  */
+
+  if (addr > mem->dabreak)
+    {
+      /* The user is claiming more memory and we have enough space in
+	 our dynamic area to cope.  */
+      mem->dabreak = addr;
+    }
+  else
+    {
+      /* The user is freeing memory.  */
+	  
+      /* New alloc system can cope with userland calling sbrk aswell
+	 as the library.  Thus, we should honour a request to reduce
+	 the brk limit.  Align the new limit to a page boundary.  */
+      mem->dabreak = addr;
+      
+      /* See if we can give some memory back to the system by
+	 reducing the size of our dynamic area.  */
+      regs[1] = mem->dalimit - addr;
+      
+      /* Align size down to multiple of 32K, thereby sticking to the
+	 rule that we provide a small buffer space to reduce the number
+	 of calls to OS_ChangeDynamicArea.  */
+      regs[1] = regs[1] & ~__DA_WIMPSLOT_ALIGNMENT;
+      
+      /* If regs[1] is non-zero and positive, then we have found
+	 memory to give back.  */
+      if (regs[1] > 0)
+	{
+	  /* OS_ChangeDynamicArea takes a signed integer, with negative
+	     values meaning that memory is to be released.  */
+	  regs[1] = -regs[1];
+	  
+	  /* Ignore any error from __os_swi, since it can happen with a
+	     request to reduce the size of the area which is only partially
+	     satisfied.  Either way, regs[1] should have the +ve amount of
+	     memory returned to the system.  */
+	  __os_swi (OS_ChangeDynamicArea, regs);
+	  mem->dalimit -= regs[1];
+	}
+    }
+  return 0;
+}
+
+/* brk function for standard read/write area.  */
+static int brk_rw (unsigned int addr, int internal_call)
 {
   struct ul_memory *mem = &__ul_memory;
   struct ul_global *gbl = &__ul_global;
@@ -71,23 +179,61 @@ __internal_brk (void *addr, int internalcall)
   addr = align (addr);
 
 #ifdef DEBUG
-  debug_printf ("brk: addr=%08x rwlomem=%08x"
-		" unixlib_break=%08x unixlib_stack=%08x\n",
-		addr, mem->__rwlomem,
-		mem->__unixlib_break, mem->__unixlib_stack);
+  debug_printf ("brk_rw: addr=%08x rwlomem=%08x rwbreak=%08x stack_limit=%08x stack=%08x\n",
+		addr, mem->__rwlomem, mem->rwbreak,
+		mem->__unixlib_stack_limit, mem->__unixlib_stack);
 #endif
 
   /* Check new limit isn't below minimum brk limit, i.e., __rwlomem.
      Return EINVAL, because it doesn't make sense to return ENOMEM.  */
-  if (addr < mem->__rwlomem)
-    return __set_errno (EINVAL);
+  if (addr < (unsigned int) mem->__rwlomem)
+    {
+#ifdef DEBUG
+      /* It would be interesting to know if this ever happens, so
+	 for the time being it is marked with a flag to draw special
+	 attention.  */
+      debug_printf ("brk_rw: addr (%08x) < rwlomem (%08x)  !!! flag !!!\n",
+		    addr, mem->__rwlomem);
+#endif
+      return __set_errno (EINVAL);
+    }
 
-  /* We can't call getrlimit until the process is up and running.
-     Unfortunately there is currently no method for safely determining
-     whether the resource limits have been initialised yet.  Thus, we
-     assume that we can allocate a minimum of 32K before we test the
-     data limit resource.  */
-  if (addr > mem->__unixlib_break)
+  /* Heap is not in a dynamic area and is therefore below the stack.
+     Make sure we don't run into the stack */
+  if (addr > (unsigned int) mem->__unixlib_stack)
+    {
+#ifdef DEBUG
+      debug_printf ("brk_rw: addr > __unixlib_stack\n");
+#endif
+      /* No space before stack, so try to increase wimpslot
+	 If this is a userland call then increasing the wimpslot is
+	 likely to give unexpected results so don't bother */
+      if (! internal_call)
+	return __set_errno (ENOMEM);
+
+      if (__stackalloc_incr_wimpslot ((unsigned int) addr
+				      - mem->appspace_himem) == NULL)
+	return __set_errno (ENOMEM);
+    }
+  else
+    {
+      /* Adjust stack limit.*/
+      mem->__unixlib_stack_limit = (void *) addr;
+    }
+  
+  /* Adjust break limit.
+     This allows +ve or -ve sbrk increments.  */
+  mem->rwbreak = addr;
+
+  return 0;
+}
+
+#if 0
+static int
+__internal_brk (void *addr, int internalcall)
+{
+
+  if ((unsigned int) addr > mem->rwbreak)
     {
       /* struct rlimit rlim; */
       /* Inline version of
@@ -108,129 +254,24 @@ __internal_brk (void *addr, int internalcall)
 	}
     }
 
-  /* Is heap in a dynamic area ?  */
-  if (gbl->__dynamic_num != -1)
-    {
-      /* The heap is in a dynamic area.  */
-      int regs[10];
-
-      regs[0] = gbl->__dynamic_num;
-
-      /* If the new address exceeds our current allocation from the
-	 dynamic area, then we must attempt to claim more memory for
-	 the dynamic area.  */
-      if ((unsigned int) addr > mem->dalimit)
-	{
-	  /* Calculate the amount we want to increase the dynamic area
-	     by.  */
-	  regs[1] = (int) addr - mem->dalimit;
-
-	  /* Align that amount up to a multiple of 32K to reduce number
-	     of expensive sbrk calls.
-
-	     This is done because OS_ChangeDynamicArea can be expensive,
-	     so smaller [s]brk increments will fit inside 'dalimit'.  */
-	  regs[1] = ((regs[1] + __DA_WIMPSLOT_ALIGNMENT)
-		     & ~__DA_WIMPSLOT_ALIGNMENT);
-	  if (__os_swi (OS_ChangeDynamicArea, regs))
-	    {
-#ifdef DEBUG
-       	      debug_printf ("brk: OS_ChangeDynamicArea failed\n");
-#endif
-	      /* Failed to allocate the memory, so return an error.  */
-	      return __set_errno (ENOMEM);
-	    }
-
-	  /* Record the new maximum address space.  */
-	  mem->dalimit += regs[1];
-
-	  /* Record the new break value.  Note that because we aligned
-	     'dalimit', '__unixlib_break' will never equal it.  */
-	  mem->__unixlib_break = addr;
-	}
-      else if (addr > mem->__unixlib_break)
-	{
-	  /* The user is claiming more memory and we have enough space in
-	     our dynamic area to cope.  */
-	  mem->__unixlib_break = addr;
-	}
-      else if (addr < mem->__unixlib_break)
-	{
-	  /* The user is freeing memory.  */
-
-	  /* New alloc system can cope with userland calling sbrk aswell
-	     as the library.  Thus, we should honour a request to reduce
-	     the brk limit.  Align the new limit to a page boundary.  */
-	  mem->__unixlib_break = addr;
-
-	  /* See if we can give some memory back to the system by
-	     reducing the size of our dynamic area.  */
-	  regs[1] = mem->dalimit - (unsigned int) addr;
-
-	  /* Align size down to multiple of 32K, thereby sticking to the
-	     rule that we provide a small buffer space to reduce the number
-	     of calls to OS_ChangeDynamicArea.  */
-	  regs[1] = regs[1] & ~__DA_WIMPSLOT_ALIGNMENT;
-
-	  /* If regs[1] is non-zero and positive, then we have found
-	     memory to give back.  */
-	  if (regs[1] > 0)
-	    {
-	      /* OS_ChangeDynamicArea takes a signed integer, with negative
-		 values meaning that memory is to be released.  */
-	      regs[1] = -regs[1];
-
-	      /* Ignore any error from __os_swi, since it can happen with a
-		 request to reduce the size of the area which is only partially
-		 satisfied.  Either way, regs[1] should have the +ve amount of
-		 memory returned to the system.  */
-	      __os_swi (OS_ChangeDynamicArea, regs);
-	      mem->dalimit -= regs[1];
-	    }
-	}
-    }
-  else
-    {
-      /* Heap is not in a dynamic area and is therefore below the stack.
-	 Make sure we don't run into the stack */
-      if (addr > mem->__unixlib_stack)
-        {
-#ifdef DEBUG
-	  debug_printf ("brk: addr > __unixlib_stack\n");
-#endif
-	  /* No space before stack, so try to increase wimpslot
-	     If this is a userland call then increasing the wimpslot is
-	     likely to give unexpected results so don't bother */
-	  if (! internalcall)
-	    return __set_errno (ENOMEM);
-
-	  if (__stackalloc_incr_wimpslot ((unsigned int) addr
-					  - mem->appspace_himem) == NULL)
-	    return __set_errno (ENOMEM);
-        }
-      else
-        {
-          /* Adjust stack limit.*/
-          mem->__unixlib_stack_limit = addr;
-        }
-
-      /* Adjust break limit.
-	 This allows +ve or -ve sbrk increments.  */
-      mem->__unixlib_break = addr;
-    }
-
   return 0;
 }
+#endif
 
 int
 brk (void *addr)
 {
-  PTHREAD_UNSAFE
+  struct ul_global *gbl = &__ul_global;
+  if (gbl->__pthread_system_running)
+    __pthread_protect_unsafe ();
 
-  return __internal_brk (addr, 0);
+  if (gbl->__dynamic_num == -1)
+    return brk_rw ((unsigned int) addr, 0);
+
+  return brk_da ((unsigned int) addr);
 }
 
-/* External calls to sbrk can only increase __unixlib_break up
+/* External calls to sbrk can only increase rwbreak up
    to __unixlib_stack, and cannot increase the wimpslot as the
    stack will be in the way. */
 void *
@@ -238,20 +279,47 @@ sbrk (intptr_t delta)
 {
   struct ul_memory *mem = &__ul_memory;
   struct ul_global *gbl = &__ul_global;
-  void *oldbrk = mem->__unixlib_break;
-
-  PTHREAD_UNSAFE
-
 #ifdef DEBUG
   debug_printf ("sbrk: incr=%d\n", delta);
 #endif
 
-  if (delta != NULL && __internal_brk ((u_char *) oldbrk + (int)delta, 0) < 0)
-    return ((void *)-1);
+  if (gbl->__pthread_system_running)
+    __pthread_protect_unsafe ();
 
-  return ((gbl->__dynamic_num == -1
-	   && oldbrk > mem->__unixlib_stack_limit)
-	  ? mem->__unixlib_stack_limit : oldbrk);
+  if (gbl->__dynamic_num == -1)
+    {
+      /* Non-dynamic area case.  */
+      unsigned int oldbrk = mem->rwbreak;
+
+      /* If the user has requested a change in the data segment size,
+	 then try to satisfy it.  */
+      if (delta != NULL
+	  && brk_rw (mem->rwbreak + (unsigned int) delta, 0) < 0)
+	{
+	  /* Request failed.  */
+	  return (void *) -1;
+	}
+
+      /* sbrk returns a pointer to the start of the area.  */
+      return ((oldbrk > (unsigned int) mem->__unixlib_stack_limit)
+	      ? mem->__unixlib_stack_limit
+	      : (void *) oldbrk);
+    }      
+  else
+    {
+      unsigned int oldbrk = mem->dabreak;
+
+      /* Dynamic area case.  */
+      if (delta != NULL
+	  && brk_da (oldbrk + (unsigned int) delta) < 0)
+	{
+	  /* Request failed.  */
+	  return (void *) -1;
+	}
+
+      /* Request succeeded, return pointer to start of the area.  */
+      return (void *) oldbrk;
+    }
 }
 
 /* sbrk for internal UnixLib callers (i.e. malloc) that are aware that
@@ -263,11 +331,6 @@ __internal_sbrk (int incr)
 {
   struct ul_memory *mem = &__ul_memory;
   struct ul_global *gbl = &__ul_global;
-  void *oldbrk;
-  /* Record once we have returned some memory above the stack, to ensure all
-     subsequent memory is also from above the stack, otherwise malloc would
-     get confused */
-  static int overstack = 0;
 
 #ifdef DEBUG
   debug_printf ("__internal_sbrk: incr=%d\n", incr);
@@ -276,19 +339,37 @@ __internal_sbrk (int incr)
   if (incr < 0)
     return ((void *)-1);
 
-  if (gbl->__dynamic_num == -1
-      && (overstack
-	  || ((u_char *)mem->__unixlib_break + incr
-	      >= (u_char *)mem->__unixlib_stack)))
+  if (gbl->__dynamic_num == -1)
     {
-      oldbrk = mem->appspace_himem;
-      overstack = 1;
+      /* Dynamic areas are not in use.  */
+      unsigned int oldbrk;
+      /* Record once we have returned some memory above the stack,
+	 to ensure all subsequent memory is also from above the stack,
+	 otherwise malloc would get confused */
+      static int overstack = 0;
+  
+      if (overstack
+	  || (mem->rwbreak + incr >= (unsigned int) mem->__unixlib_stack))
+	{
+	  oldbrk = mem->appspace_himem;
+	  overstack = 1;
+	}
+      else
+	oldbrk = mem->rwbreak;
+
+      if (incr != 0 && brk_rw (oldbrk + incr, 1) < 0)
+	return (void *) -1;
+
+      return (void *) oldbrk;
     }
   else
-    oldbrk = mem->__unixlib_break;
+    {
+      /* Dynamic areas are in use.  */
+      unsigned int oldbrk = mem->dabreak;
 
-  if (incr != 0 && __internal_brk ((u_char *) oldbrk + incr, 1) < 0)
-    return ((void *)-1);
+      if (incr != 0 && brk_da (oldbrk + incr) < 0)
+	return (void *)-1;
 
-  return oldbrk;
+      return (void *) oldbrk;
+    }
 }

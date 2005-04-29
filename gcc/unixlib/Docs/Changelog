@@ -1,3 +1,26 @@
+Fri Apr 29 11:02:07 2005  Nick Burrett  <nick@sqrt.co.uk>
+
+	Remove the dual-purpose use of 'rwlomem' and '__unixlib_break'
+	for both read/write application memory and dynamic areas.
+	* unixlib/asm_dec.s (MEM_RWBREAK, MWM_DABREAK): New constants,
+	split from MEM_UNIXLIB_BREAK.
+	* unixlib/unix.h (struct ul_memory): Add 'dalomem'
+	Remove the ambiguity of '__unixlib_break' by replacing it with
+	'rwbreak' and 'dabreak'. 
+	* debug/debug.c (__debug): Add code to show the dynamic area
+	memory limits.
+	* resource/initialise.c (__resource_initialise): Use new variables.
+	* sys/_syslib.s (__main): Use new variables.  When creating a
+	dynamic area, set 'dalomem' and 'dabreak', rather than 'rwlomem'
+	and 'unixlib_break'
+	(__ul_memory): Add new fields.
+	* sys/brk.c (__internal_brk): Delete function, moving code into
+	two new functions ...
+	(brk_da): ... this one for dynamic areas.  Use new 'da' variables.
+	(brk_rw): ... this one for read/write data area in application space.
+	(brk): Use new worker functions.
+	(sbrk): Likewise.
+
 Thu Apr 28 20:49:34 2005  Alex Waugh  <alex@alexwaugh.com>
 
 	* sys/_syslib.s: Add missing spaces.
