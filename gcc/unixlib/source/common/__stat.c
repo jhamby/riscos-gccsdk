@@ -1,16 +1,5 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/common/stat.c,v $
- * $Date: 2003/12/29 19:02:38 $
- * $Revision: 1.8 $
- * $State: Exp $
- * $Author: peter $
- *
- ***************************************************************************/
-
-#ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: stat.c,v 1.8 2003/12/29 19:02:38 peter Exp $";
-#endif
+/* Common stat operation.
+   Copyright (c) 2002, 2003, 2004, 2005 UnixLib Developers.  */
 
 #include <time.h>
 #include <unixlib/dev.h>

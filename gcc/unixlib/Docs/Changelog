@@ -1,3 +1,8 @@
+Sat Apr 30 12:36:51 2005  Nick Burrett  <nick@sqrt.co.uk>
+
+	* common/__stat.c: Renamed from common/stat.c to avoid filename
+	clash with unix/stat.c.
+
 Sat Apr 30 11:14:07 2005  Nick Burrett  <nick@sqrt.co.uk>
 
 	* sys/exec.c (execve): Fix call usage of malloc_trim_unlocked.
