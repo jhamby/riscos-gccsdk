@@ -1,3 +1,7 @@
+Sat Apr 30 11:14:07 2005  Nick Burrett  <nick@sqrt.co.uk>
+
+	* sys/exec.c (execve): Fix call usage of malloc_trim_unlocked.
+
 Fri Apr 29 19:23:19 2005  Peter Naulls  <peter@chocky.org>
 
 	* clib/assert.h: Make NDEBUG work under C++.

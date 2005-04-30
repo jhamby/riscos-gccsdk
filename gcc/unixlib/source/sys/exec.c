@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <malloc.h>
 
 #include <fcntl.h>
 #include <unistd.h>
@@ -360,7 +361,7 @@ execve (const char *execname, char *const argv[], char *const envp[])
   __proc->environ_size = envlen;
 
   /* Force a malloc trim to reduce memory usage.  */
-  malloc_trim_unlocked (0);
+  malloc_trim_unlocked (__ul_global.malloc_state, 0);
   __stackalloc_trim ();
 
   /* If the DAs are being used, then delete the dynamic area. */
