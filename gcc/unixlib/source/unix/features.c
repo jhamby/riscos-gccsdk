@@ -1,16 +1,5 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/features.c,v $
- * $Date: 2005/04/07 18:46:23 $
- * $Revision: 1.13 $
- * $State: Exp $
- * $Author: nick $
- *
- ***************************************************************************/
-
-#ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: features.c,v 1.13 2005/04/07 18:46:23 nick Exp $";
-#endif
+/* Set UnixLib run-time features based on environment variables.
+   Copyright (c) 2002, 2003, 2004, 2005 UnixLib Developers.  */
 
 /* #define DEBUG 1 */
 
@@ -32,7 +21,7 @@ char *__get_program_name (const char *cli, char *fname_buf, size_t fname_buf_len
   /* Did the user specify the program name ?  */
 #ifdef __ELF__
   /* With ELF/GCC we can use the weak symbol directly.  */
-  if (__program_name)
+  if (&__program_name)
     {
       strncpy (fname_buf, __program_name, fname_buf_len);
       fname_buf[fname_buf_len - 1] = '\0';

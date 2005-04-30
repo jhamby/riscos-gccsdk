@@ -149,7 +149,7 @@ mmap (caddr_t addr, size_t len, int prot, int flags, int fd, off_t offset)
 
 #ifdef __ELF__
     /* With ELF/GCC, we can use the weak symbol directly.  */
-    if (__dynamic_da_name)
+    if (&__dynamic_da_name)
       regs[8] = (int) __dynamic_da_name;
 #else
     /* With AOF, we have to indirectly access the weak symbol.  */
