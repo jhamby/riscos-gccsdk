@@ -124,7 +124,7 @@ sub convert_s {
 	    next;
 	}
 
-	s/^\s+ALIGN$/.align/i;
+	s/^\s+ALIGN$/\t.align/i;
 	s/^(\w+)\s+EQU\s+2_(\w+)/.set\t$1, 0b$2/;
 	s/^(\w+)\s+EQU\s+&(\w+)/.set\t$1, 0x$2/;
 	s/^(\w+)\s+EQU\s+(\w+)/.set\t$1, $2/;
