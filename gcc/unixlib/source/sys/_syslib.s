@@ -706,7 +706,8 @@ raise_sigemt
 
 	[ (__UNIXLIB_EXTREMELY_PARANOID > 0) :LOR: (__UNIXLIB_STACK_CHECK_MAGIC > 0)
 stack_corrupt_msg
-	DCB	"***Fatal error: Stack corruption detected***", 13, 10, 0
+	DCB	"***Fatal error: Stack corruption detected***"
+	DCB	13, 10, 0
 	ALIGN
 stack_corrupt
 	ADR	a1, stack_corrupt_msg
@@ -714,7 +715,8 @@ stack_corrupt
 	]
 
 signalhandler_overflow_msg
-	DCB	"***Fatal error: Stack overflow in signal handler***", 13, 10, 0
+	DCB	"***Fatal error: Stack overflow in signal handler***"
+	DCB	13, 10, 0
 	ALIGN
 signalhandler_overflow
 	ADR	a1, signalhandler_overflow_msg
@@ -724,7 +726,7 @@ signalhandler_overflow
 	; Check every stack chunk in the chain to ensure it contains
 	; sensible values.
 	EXPORT	|__check_stack|
-	NAME	"__check_stack"
+	NAME	__check_stack
 |__check_stack|
 	MOV	ip, sp
 	STMFD	sp!, {a1, a2, a3, a4, v1, v2, fp, ip, lr, pc}

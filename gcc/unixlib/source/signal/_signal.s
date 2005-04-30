@@ -370,7 +370,7 @@
 ; For non-serious errors, bit 31 = 0, raise SIGOSERROR.
 ;
 	EXPORT	|__h_error|
-	NAME	"*** UnixLib error handler ***"
+	NAME	UnixLibErrorHandler
 |__h_error|
 	MOV	v1, fp	; Save some USR regs. There is no guarantee that these
 	MOV	v2, sp	; contain anything of use, but they seem to be the USR
@@ -767,7 +767,8 @@ return_quickly
 	;		 = R0-R15 only in 26-bit mode (the 17th word equals
 	;		   the pc value)
 	EXPORT	|__cbreg|
-|__cbreg|	%	4 * 17
+|__cbreg|
+	%	68	; 4 * 17
 
 	; bit 0 Escape condition flag
 	; bit 1 Internet event flag
@@ -959,6 +960,6 @@ return_quickly
 
 	EXPORT |__ul_fp_registers|
 |__ul_fp_registers|
-	%	4 + 8 * 8	; FPSR and 8 double-precision registers
+	%	68	; (4 + 8*8)  FPSR and 8 double-precision registers
 
 	END

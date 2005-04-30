@@ -1,12 +1,4 @@
-;----------------------------------------------------------------------------
-;
-; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/common/_exist.s,v $
-; $Date: 2003/08/18 22:35:36 $
-; $Revision: 1.6 $
-; $State: Exp $
-; $Author: joty $
-;
-;----------------------------------------------------------------------------
+; Copyright (c) 2002, 2003, 2004, 2005 UnixLib Developers
 
 	GET	clib/unixlib/asm_dec.s
 
@@ -50,27 +42,13 @@
 
 	; int __get_feature_imagefs_is_file (void)
 	EXPORT	|__get_feature_imagefs_is_file|
-	NAME	"__get_feature_imagefs_is_file"
+	NAME	__get_feature_imagefs_is_file
 |__get_feature_imagefs_is_file|
 	LDR	a1, =|__feature_imagefs_is_file|
 	TEQ	a1, #0
 	LDREQ	a1, =|__feature_imagefs_is_file_internal|
 	LDR	a1, [a1, #0]
 	MOV	pc, lr
-
-	; At the moment, we don't need to manipulate the
-	; __set_feature_imagefs_is_file feature directly inside UnixLib, so
-	; following routine is commented out until we need it.
-
-;	; void __set_feature_imagefs_is_file(int __feature_imagefs_is_file_value)
-;	EXPORT	|__set_feature_imagefs_is_file|
-;	NAME	"__set_feature_imagefs_is_file"
-;|__set_feature_imagefs_is_file|
-;	LDR	a2, =|__feature_imagefs_is_file|
-;	TEQ	a2, #0
-;	LDREQ	a2, =|__feature_imagefs_is_file_internal|
-;	STR	a1, [a2, #0]
-;	return	AL, pc, lr
 
 	AREA	|C$$data|, DATA
 

@@ -3,18 +3,20 @@
 @
 @ This file and aof-macros.s must be kept in sync with each other
 
+	@ Turn on macro extensions, allowing the use of LOCAL.
+	.altmacro
+
 	@ Macro for embedding function names in code, just before
 	@ the function prologue.
 	.macro	NAME	name
-	.altmacro
-	LOCAL	t0, t1
+	LOCAL t0, t1
 t0:
-	.asciz	\name
+	.asciz	"\name"
 	.align
 t1:	
 	.word	0xff000000 + (t1 - t0)
 	.endm
-	
+
 	@ Assembler equivalent of __set_errno in errno.h.
 	@ #define __set_errno(val) (errno = (val), -1)
 	@ Entry condition

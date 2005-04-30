@@ -1,3 +1,18 @@
+Sat Apr 30 14:55:04 2005  Nick Burrett  <nick@sqrt.co.uk>
+
+	Ease the conversion from AOF to ELF.
+	* gcccompat/_divdi3.s: Change local label names to support ELF syntax.
+	* gcccompat/_udivdi3.s: Likewise.
+	* gcccompat/_moddi3.s: Likewise.
+	* gcccompat/_umoddi3.s: Likewise.
+	* sys/_jmp.s (__longjmp_fatal_msg): Ease translation to ELF syntax.
+	* incl-local/internal/elf-macros.s (macro NAME): Place quotes around
+	name.  Move .altmacro directive out of macro.
+	* common/_exist.s: Remove quotes from NAME statements.
+	* common/_riscosify.s: Likewise.
+	* signal/_signal.s: Likewise.
+	* sys/_syslib.s: Likewise.
+	
 Sat Apr 30 13:32:23 2005  Nick Burrett  <nick@sqrt.co.uk>
 
 	* unixlib/asm_dec.s: Move MACRO definitions to aid ELF conversion ...

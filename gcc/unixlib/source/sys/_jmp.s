@@ -1,10 +1,10 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/_jmp.s,v $
-; $Date: 2004/10/17 16:24:44 $
-; $Revision: 1.10 $
+; $Date: 2005/03/12 10:33:40 $
+; $Revision: 1.11 $
 ; $State: Exp $
-; $Author: joty $
+; $Author: alex $
 ;
 ;----------------------------------------------------------------------------
 
@@ -143,10 +143,14 @@ longjmp
 |__longjmp_fatal_msg|
 	DCB	13, 10
 	DCB	13, 10
-	DCB	"Fatal error detected in longjmp, jmpbuf possibly corrupt.",13,10
-	DCB	"This can happen for at least two reasons.",13,10
-	DCB	" - The jmpbuf has become corrupt through being overwritten.",13,10
-	DCB	" - The program is attempting a longjmp to an invalid setjmp point",13,10
+	DCB	"Fatal error detected in longjmp, jmpbuf possibly corrupt."
+	DCB	13, 10
+	DCB	"This can happen for at least two reasons."
+	DCB	13, 10
+	DCB	" - The jmpbuf has become corrupt through being overwritten."
+	DCB	13, 10
+	DCB	" - The program is attempting a longjmp to an invalid setjmp point"
+	DCB	13, 10
 	DCB	"   i.e. the scope of the setjmp has exited."
 	DCB	13, 10, 0
 

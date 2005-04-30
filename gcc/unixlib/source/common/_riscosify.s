@@ -1,10 +1,10 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/common/_riscosify.s,v $
-; $Date: 2003/07/31 19:57:03 $
-; $Revision: 1.5 $
+; $Date: 2004/10/17 16:24:44 $
+; $Revision: 1.6 $
 ; $State: Exp $
-; $Author: alex $
+; $Author: joty $
 ;
 ;----------------------------------------------------------------------------
 
@@ -16,7 +16,7 @@
 
 	;int __get_riscosify_control (void)
 	EXPORT	|__get_riscosify_control|
-	NAME	"__get_riscosify_control"
+	NAME	__get_riscosify_control
 |__get_riscosify_control|
 	LDR	a1, =|__riscosify_control|
 	TEQ	a1, #0
@@ -26,7 +26,7 @@
 
 	;void __set_riscosify_control(int __riscosify_flags)
 	EXPORT	|__set_riscosify_control|
-	NAME	"__set_riscosify_control"
+	NAME	__set_riscosify_control
 |__set_riscosify_control|
 	LDR	a2, =|__riscosify_control|
 	TEQ	a2, #0
