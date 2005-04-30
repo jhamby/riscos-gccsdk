@@ -1,3 +1,10 @@
+Sat Apr 30 13:32:23 2005  Nick Burrett  <nick@sqrt.co.uk>
+
+	* unixlib/asm_dec.s: Move MACRO definitions to aid ELF conversion ...
+	* incl-local/internal/aof-macros.s: ... here.
+	* incl-local/internal/elf-macros.s: New file, providing ELF versions
+	of the AOF macros.
+
 Sat Apr 30 12:36:51 2005  Nick Burrett  <nick@sqrt.co.uk>
 
 	* common/__stat.c: Renamed from common/stat.c to avoid filename
