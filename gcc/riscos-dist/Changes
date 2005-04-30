@@ -12,6 +12,9 @@ RISC OS GCC release 3.4.4 release 2 (released XX May 2005)
   projects (subject to LPGL requirements).  Specific files in UnixLib
   may be subject to different licenses.
 
+* The SharedCLibrary compatibility headers and stubs, libscl, are
+  now distributed under a BSD-style free-software license.
+
 * The 'as' assembler is now GPL, permission thanks to Niklas Röjemo.
   Also has considerable tidying and some minor bug fixes.
 
@@ -39,7 +42,7 @@ RISC OS GCC release 3.4.4 release 2 (released XX May 2005)
 
 * More safety in UnixLib signal handling; improved backtraces.
 
-* Faster memcpy/memset/strcpy/strlen implementations from Arian Lees.
+* Faster memcpy/memset/strcpy/strlen implementations from Adrian Lees.
 
 * Addition of fake /dev/custom device in UnixLib allows overriding
   of specific file descriptor behaviour.
@@ -61,7 +64,7 @@ RISC OS GCC release 3.4.4 release 2 (released XX May 2005)
   floating point arithmetic accurate to the last decimal place.  The
   library additionally provides all C99 math functions.
 
-* UnixLib now incorporates David Gay's libgdtoa library to provide
+* UnixLib: incorporated David Gay's libgdtoa library to provide
   accurate representation of floating point numbers as strings.
 
 * UnixLib: updates to 'printf' family of functions provides better
@@ -123,7 +126,7 @@ RISC OS GCC release 3.4.4 pre-release 2 (released 29 November 2004)
 RISC OS GCC release 3.4.4 pre-release 1 (released 26 November 2004)
 =======================================
 
-* gcc: Updated to version 3.4.4 (prerelease of 13/Nov/2004)
+* gcc: Updated to version 3.4.4 (prerelease of 13 Nov 2004)
 
 
 RISC OS GCC release 3.4.1 release 1 (released 05 October 2004)
