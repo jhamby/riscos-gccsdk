@@ -17,11 +17,6 @@
    write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
    Boston, MA 02111-1307, USA.  */
 
-#define FUNC(f) f
-#define MATHTYPE double
-#define PRINTF_EXPR "f"
-#define PRINTF_XEXPR "x"
-#define TEST_MSG "this is a test"
 
 /* Part of testsuite for libm.
 
@@ -130,7 +125,7 @@
 #include <errno.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include <machine/huge_val.h>
+//#include <machine/huge_val.h>
 /* #include <getopt.h> */
 
 /* Possible exceptions */
@@ -1402,7 +1397,6 @@ gamma_test (void)
   check_int ("gamma (-0.5) sets signgam to -1", signgam, -1);
 }
 
-
 static void
 tgamma_test (void)
 {
@@ -1435,7 +1429,6 @@ tgamma_test (void)
   check ("tgamma (1.2) == 0.91816...", FUNC(tgamma) (1.2),
 	 0.91816874239976061064L);
 }
-
 
 static void
 lgamma_test (void)
