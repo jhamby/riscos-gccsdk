@@ -1,16 +1,5 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/strtok_r.c,v $
- * $Date: 2001/01/29 15:10:19 $
- * $Revision: 1.2 $
- * $State: Exp $
- * $Author: admin $
- *
- ***************************************************************************/
-
-#ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: strtok_r.c,v 1.2 2001/01/29 15:10:19 admin Exp $";
-#endif
+/* String tokeniser (reentrant version).
+   Copyright (c) 2002, 2003, 2004, 2005, UnixLib Developers.  */
 
 #include <string.h>
 
@@ -19,8 +8,8 @@ strtok_r (char *s, const char *delim, char **save_ptr)
 {
   char *token;
 
-  if (s == NULL)
-    s = *save_ptr;
+  if (s == NULL && (s = *save_ptr) == NULL)
+    return NULL;
 
   s += strspn (s, delim);
   if (*s == '\0')

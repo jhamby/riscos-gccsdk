@@ -1,3 +1,8 @@
+Sun May  1 13:17:47 2005  Nick Burrett  <nick@sqrt.co.uk>
+
+	* string/strtok_r.c (strtok_r): Check for a NULL save_ptr.
+	* string/stricmp.c (stricmp): Corner case fix.
+
 Sun May  1 11:22:00 2005  Nick Burrett  <nick@sqrt.co.uk>
 
 	* stdlib/strtol.c: Import from FreeBSD libc, includes bug fixes.
