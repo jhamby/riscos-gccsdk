@@ -25,9 +25,8 @@
 
 int failures = 0;
 
-void try (long long int value, int expected)
+static void try (unsigned long long int value, int expected)
 {
-  printf ("value='%lld'\n", value);
   if (ffsll (value) != expected)
     {
       fprintf (stderr, "%lld expected %d got %d\n",
@@ -39,16 +38,15 @@ void try (long long int value, int expected)
 int
 main (void)
 {
-  long long int i;
-
+  int i;
   try (0, 0);
   for (i=0 ; i<64 ; i++)
-    try (1<<i, i+1);
+    try (1ULL << i, i+1);
   for (i=0 ; i<64 ; i++)
-    try ((~0 >> i) << i, i+1);
-  try (0x8000800000000000, 48);
-  try (0x8000800080000000, 32);
-  try (0x0000000080008000, 16);
+    try ((~0ULL >> i) << i, i+1);
+  try (0x8000800000000000ULL, 48);
+  try (0x8000800080000000ULL, 32);
+  try (0x0000000080008000ULL, 16);
 
   if (failures)
     printf ("Test FAILED!  %d failure%s.\n", failures, &"s"[failures == 1]);
