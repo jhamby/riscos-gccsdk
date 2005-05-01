@@ -1,18 +1,5 @@
 --- ../orig/stratagus-040702/src/video/sdl.c	2004-06-27 09:38:20.000000000 +0100
 +++ src/video/sdl.c	2005-01-11 12:53:58.000000000 +0000
-@@ -95,7 +95,12 @@
- 
- static int FrameTicks; /// Frame length in ms
- static int FrameRemainder; /// Frame remainder 0.1 ms
-+
-+#ifdef __riscos__
-+static int FrameFraction = 0; /// Frame fractional term
-+#else
- static int FrameFraction; /// Frame fractional term
-+#endif
- 
- /*----------------------------------------------------------------------------
- --  Functions
 @@ -257,6 +262,13 @@
  	ColorYellow = VideoMapRGB(TheScreen->format, 252, 252, 0);
  
