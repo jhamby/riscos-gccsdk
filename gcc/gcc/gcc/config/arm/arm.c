@@ -270,6 +270,8 @@ const char * target_fp_name = NULL;
 const char * structure_size_string = NULL;
 int    arm_structure_size_boundary = DEFAULT_STRUCTURE_SIZE_BOUNDARY;
 
+int flag_riscos_module;
+
 /* Bit values used to identify processor capabilities.  */
 #define FL_CO_PROC    (1 << 0)        /* Has external co-processor bus */
 #define FL_FAST_MULT  (1 << 1)        /* Fast multiply */
@@ -777,7 +779,13 @@ arm_override_options (void)
   
   if (TARGET_APCS_FLOAT)
     warning ("passing floating point arguments in fp regs not yet supported");
-  
+
+  if (TARGET_MODULE)
+    {
+      flag_pic = 1;
+      arm_pic_register = 10;
+    }
+
   /* Initialize boolean versions of the flags, for use in the arm.md file.  */
   arm_fast_multiply = (insn_flags & FL_FAST_MULT) != 0;
   arm_arch4         = (insn_flags & FL_ARCH4) != 0;
@@ -2590,7 +2598,10 @@ legitimize_pic_address (rtx orig, enum machine_mode mode, rtx reg)
 #ifdef AOF_ASSEMBLER
       /* The AOF assembler can generate relocations for these directly, and
 	 understands that the PIC register has to be added into the offset.  */
-      insn = emit_insn (gen_pic_load_addr_based (reg, orig));
+        if (TARGET_MODULE)
+          insn = emit_insn (gen_module_load_addr_based(reg, orig, gen_reg_rtx (SImode)));
+        else
+          insn = emit_insn (gen_pic_load_addr_based (reg, orig));
 #else
       if (subregs)
 	address = gen_reg_rtx (Pmode);
@@ -6933,7 +6944,9 @@ static void
 push_minipool_fix (rtx insn, HOST_WIDE_INT address, rtx *loc,
 		   enum machine_mode mode, rtx value)
 {
-  Mfix * fix = (Mfix *) obstack_alloc (&minipool_obstack, sizeof (* fix));
+  Mfix * fix;
+
+  fix  = (Mfix *) obstack_alloc (&minipool_obstack, sizeof (* fix));
 
 #ifdef AOF_ASSEMBLER
   /* PIC symbol references need to be converted into offsets into the
@@ -6956,7 +6969,7 @@ push_minipool_fix (rtx insn, HOST_WIDE_INT address, rtx *loc,
   /* If an insn doesn't have a range defined for it, then it isn't
      expecting to be reworked by this code.  Better to abort now than
      to generate duff assembly code.  */
-  if (fix->forwards == 0 && fix->backwards == 0)
+  if (fix->forwards == 0 && fix->backwards == 0 && !TARGET_MODULE)
     abort ();
 
   /* With iWMMXt enabled, the pool is aligned to an 8-byte boundary.
@@ -13244,9 +13257,12 @@ aof_dump_pic_table (FILE *f)
   if (aof_pic_chain == NULL)
     return;
 
-  asm_fprintf (f, "\tAREA |%r$$adcons|, BASED %r\n",
-	       PIC_OFFSET_TABLE_REGNUM,
-	       PIC_OFFSET_TABLE_REGNUM);
+  if (TARGET_MODULE)
+    asm_fprintf (f, "\tAREA |%r$$adcons|\n", PIC_OFFSET_TABLE_REGNUM);
+  else
+    asm_fprintf (f, "\tAREA |%r$$adcons|, BASED %r\n",
+	         PIC_OFFSET_TABLE_REGNUM,
+	         PIC_OFFSET_TABLE_REGNUM);
   fputs ("|x$adcons|\n", f);
   
   for (chain = aof_pic_chain; chain; chain = chain->next)
@@ -13265,7 +13281,7 @@ aof_text_section (void )
   static char buf[100];
   sprintf (buf, "\tAREA |C$$code%d|, CODE, READONLY",
 	   arm_text_section_count++);
-  if (flag_pic)
+  if (flag_pic && !TARGET_MODULE)
     strcat (buf, ", PIC, REENTRANT");
   return buf;
 }

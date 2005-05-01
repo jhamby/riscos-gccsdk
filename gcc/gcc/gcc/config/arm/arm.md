@@ -4051,8 +4051,18 @@
 (define_insn "pic_load_addr_arm"
   [(set (match_operand:SI 0 "s_register_operand" "=r")
 	(unspec:SI [(match_operand:SI 1 "" "mX")] UNSPEC_PIC_SYM))]
-  "TARGET_ARM && flag_pic"
-  "ldr%?\\t%0, %1"
+  "TARGET_ARM && flag_pic && !TARGET_MODULE"
+  "ldr%?\\t%0, %1 %@ pic_load_addr_arm"
+  [(set_attr "type" "load")
+   (set (attr "pool_range")     (const_int 4096))
+   (set (attr "neg_pool_range") (const_int 4084))]
+)
+
+(define_insn "module_load_addr_arm"
+  [(set (match_operand:SI 0 "s_register_operand" "=r")
+	(unspec:SI [(match_operand:SI 1 "" "mX")] UNSPEC_PIC_SYM))]
+  "TARGET_ARM && TARGET_MODULE"
+  "add%?\\t%0, pc, #%1-.-8 %@ module_load_addr_arm"
   [(set_attr "type" "load")
    (set (attr "pool_range")     (const_int 4096))
    (set (attr "neg_pool_range") (const_int 4084))]
@@ -4074,6 +4084,15 @@
 	(unspec:SI [(match_operand 1 "" "") (match_dup 2)] UNSPEC_PIC_SYM))]
   "TARGET_ARM && flag_pic"
   "operands[2] = pic_offset_table_rtx;"
+)
+
+(define_insn "module_load_addr_based"
+  [(set (match_operand:SI 0 "s_register_operand" "=r")
+        (unspec:SI [(match_operand:SI 1 "" "mX")] UNSPEC_PIC_SYM))
+   (set (match_operand:SI 2 "s_register_operand" "=r")
+        (match_dup 0))]
+  "TARGET_ARM && TARGET_MODULE"
+  "ldr%?\\t%0, [pc, #%1-.-8]\;ldr%?\\t%2, [sl, #0]\;add\\t%0, %2, %0"
 )
 
 (define_insn "*pic_load_addr_based_insn"

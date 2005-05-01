@@ -58,6 +58,10 @@ Boston, MA 02111-1307, USA.  */
 
 /* Extra command line options supported by the RISC OS backend.  */
 
+/* Create code suitable for a RISC OS module */
+#define ARM_MODULE		(0x08000000)
+#define TARGET_MODULE		(target_flags & ARM_MODULE)
+
 /* Non-zero if we allow the argument pointer (fp) to be used by
    the register allocator. Note this option is really only useful
    when not targetting the APCS.  */
@@ -88,7 +92,8 @@ Boston, MA 02111-1307, USA.  */
   {"libscl",			 0x80000000,			\
    "Compile with the SharedCLibrary headers" },			\
   {"unixlib",			-0x80000000, 			\
-   "Compile with the headers from UnixLib (default)" },
+   "Compile with the headers from UnixLib (default)" },   \
+  {"module",   ARM_MODULE, "" },
 
 /* Default RISC OS options
    - APCS
