@@ -1,10 +1,10 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/module/sul.s,v $
-; $Date: 2005/03/13 16:35:47 $
-; $Revision: 1.11 $
+; $Date: 2005/03/13 19:39:43 $
+; $Revision: 1.12 $
 ; $State: Exp $
-; $Author: joty $
+; $Author: alex $
 ;
 ;----------------------------------------------------------------------------
 
@@ -136,7 +136,8 @@ EARLIEST_SUPPORTED_VERSION	EQU	105
 	DCD	module_flags - module_start	; Module flags
 
 |help|
-	DCB	"SharedUnixLibrary", 9
+	DCB	"SharedUnixLibrary"
+	DCB	9
 	DCB	"1.05 (13 Mar 2005) (C) UnixLib Developers, 2001-2005", 0
 	ALIGN
 

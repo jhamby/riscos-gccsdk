@@ -1,3 +1,8 @@
+Sun May  1 15:54:36 2005  Nick Burrett  <nick@sqrt.co.uk>
+
+	* module/sul.s (help): Move tab char onto seperate line to aid
+	ELF conversion script.
+
 Sun May  1 13:17:47 2005  Nick Burrett  <nick@sqrt.co.uk>
 
 	* string/strtok_r.c (strtok_r): Check for a NULL save_ptr.
