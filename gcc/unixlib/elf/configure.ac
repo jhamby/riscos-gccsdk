@@ -45,6 +45,7 @@ AM_PROG_AS
 AC_PROG_LN_S
 AC_CHECK_TOOL(AS, as)
 AC_CHECK_TOOL(AR, ar)
+AC_CHECK_TOOL(OBJCOPY, objcopy)
 AC_CHECK_TOOL(RANLIB, ranlib, :)
 AC_PROG_MAKE_SET
 # Get 'install' or 'install-sh' and its variants

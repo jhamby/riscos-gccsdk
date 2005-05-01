@@ -1,5 +1,21 @@
-Scripts and additional stuff for easing the conversion of
-UnixLib from AOF to ELF.
+The convert-unixlib.pl script in this directory can be used
+to convert the standard AOF-style UnixLib structure into a build
+system suitable for ELF.  This includes converting the assembler files
+into ELF-syntax suitable for compiling with GAS.
+
+To perform the task, just type:
+
+$ convert-unixlib.pl gccsdk-3.4/unixlib dest_dir/unixlib
+
+Then to build unixlib you do this:
+
+$ cd dest_dir/unixlib
+$ mkdir arm-riscos
+$ cd arm-riscos
+$ CC=arm-riscos-elf-gcc OBJCOPY=arm-riscos-elf-objcopy ../configure --prefix=/home/riscos/env/unixlib
+$ make
+$ make install
+
 
 Nothing in this directory should be distributed outside of
 the GCCSDK source tree.

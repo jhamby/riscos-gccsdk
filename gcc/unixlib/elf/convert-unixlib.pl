@@ -43,14 +43,14 @@ sub convert_s {
     open IN, "$srcfile" or die "$!";
     open OUT, "> $dstfile" or die "$!";
     while (<IN>) {
-	if (/^;/) {
-	    next if (/; \$Source:/);
-	    next if (/; \$Date:/);
-	    next if (/; \$Revision:/);
-	    next if (/; \$State:/);
-	    next if (/; \$Author:/);
-	    next if (/;---+/);
-	}
+	#if (/^;/) {
+	#    next if (/; \$Source:/);
+	#    next if (/; \$Date:/);
+	#    next if (/; \$Revision:/);
+	#    next if (/; \$State:/);
+	#    next if (/; \$Author:/);
+	#    next if (/;---+/);
+	#}
 
 	s/;/@/; # Change comments from ; to @
 
@@ -345,9 +345,7 @@ AM_CCASFLAGS = -xassembler-with-cpp -isystem \$(top_srcdir)/include -I \$(top_sr
 
 SUBDIRS = test
 
-# For future libtool support
-#toolexeclib_LTLIBRARIES = libunixlib.la
-#include_HEADERS = stdio.h
+includedir = \$(prefix)
 EOF
 
 # Contain a list of the make variables that hold a per-directory list
@@ -405,9 +403,9 @@ closedir (ROOT);
 @inst_headers = convert_headers ("$aofsourcetree/source/clib", "$elfsourcetree/include");
 @noinst_headers = convert_headers ("$aofsourcetree/source/incl-local", "$elfsourcetree/incl-local");
 
-output_make_var ("include_HEADERS", \@inst_headers, "");
+output_make_var ("nobase_dist_include_HEADERS", \@inst_headers, "include");
 print MAKE "\n";
-output_make_var ("nobase_include_HEADERS", \@noinst_headers, "");
+output_make_var ("nobase_noinst_HEADERS", \@noinst_headers, "incl-local");
 print MAKE "\n";
 
 print MAKE "toolexeclib_LIBRARIES = libunixlib.a\n\n";
@@ -425,10 +423,17 @@ foreach $m (@makevars) {
 }
 
 print MAKE "\n\n";
-print MAKE "# This is bogus, but is a placeholder\n";
-print MAKE "bin_PROGRAMS = sul\n";
-print MAKE "sul_SOURCES = module/sul.s\n";
-print MAKE "sul_LDFLAGS = -module\n";
+print MAKE "# Build the SharedUnixLibrary module\n";
+print MAKE "bin_PROGRAMS = sul\n\n";
+print MAKE "sul.o: module/sul.s\n";
+print MAKE "\t\$(CCASCOMPILE) -o sul.o -c \`test -f \'module/sul.s\' || echo \'\$(srcdir)/\'\`module/sul.s\n\n";
+
+print MAKE "# The ARM linker cannot change output formats during the link\n";
+print MAKE "# stage.  We must use objcopy to convert the ELF binary into\n";
+print MAKE "# a raw binary\n";
+print MAKE "sul\$(EXEEXT): sul.o\n";
+print MAKE "\t\$(CC) -o sul\$(EXEEXT) sul.o\n";
+print MAKE "\t\$(OBJCOPY) -O binary sul\$(EXEEXT)\n";
 print MAKE "\n";
 print MAKE "# These rules are copied direct from a generated Makefile.\n";
 print MAKE "# The only difference is that stack checking is turned off\n";
@@ -441,8 +446,7 @@ foreach $f (@nostackfiles) {
     my $leaf = $f;
     $leaf =~ s/[a-z]*\///;
     printf MAKE "%s.o: %s.c\n", $leaf, $f;
-    printf MAKE "\tif \$(CC) \$(DEFS) \$(DEFAULT_INCLUDES) \$(INCLUDES) \$(AM_CPPFLAGS) \\\n";
-    printf MAKE "\t\$(CPPFLAGS) \$(AM_CFLAGS) \$(CFLAGS) -mno-apcs-stack-check \\\n";
+    printf MAKE "\tif \$(COMPILE) -mno-apcs-stack-check \\\n";
     printf MAKE "\t-MT %s.o -MD -MP -MF \"\$(DEPDIR)/%s.Tpo\" -c -o %s.o \\\n", $leaf, $leaf, $leaf;
     printf MAKE "\t\`test -f \'%s.c\' || echo \'\$(srcdir)/\'\`%s.c; \\\n", $f, $f;
     printf MAKE "\tthen mv -f \"\$(DEPDIR)/%s.Tpo\" \"\$(DEPDIR)/%s.Po\"; \\\n", $leaf, $leaf;
@@ -503,13 +507,13 @@ foreach $dir ("math", "stdio", "stdlib", "string", "strings") {
 
     print MAKE "check_PROGRAMS = ";
     my $x = 0;
-    foreach (@tests) {
-	my $test = $_;
+    for (my $y = 0; $y < $#tests; $y++) {
+	my $test = $tests[$y];
 	$x ++;
 	# Strip suffix as automake wants the program name.
 	$test =~ s/\.c//;
 	printf MAKE "%s ", $test;
-	if ($x == 5) {
+	if ($x == 5 and $y != $#tests) {
 	    printf MAKE "\\\n\t";
 	    $x = 0;
 	}
