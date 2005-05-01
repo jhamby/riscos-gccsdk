@@ -1,3 +1,10 @@
+Sun May  1 11:22:00 2005  Nick Burrett  <nick@sqrt.co.uk>
+
+	* stdlib/strtol.c: Import from FreeBSD libc, includes bug fixes.
+	* stdlib/strtoul.c: Likewise.
+	* stdlib/atoi.c: New file, split from strtol.c.
+	* stdlib/atol.c: New file, split from strtol.c.
+	
 Sat Apr 30 16:15:13 2005  Nick Burrett  <nick@sqrt.co.uk>
 
 	* unix/features.c (__get_program_name): For ELF, dereference weak
