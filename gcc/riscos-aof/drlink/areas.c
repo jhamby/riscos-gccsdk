@@ -459,6 +459,9 @@ static void insert_area(arealist **list, arealist **lastentry, arealist *newarea
        name, newarea->arfileptr->chfilename, lastarea->arfileptr->chfilename);
       list_attributes(newarea);
       list_attributes(lastarea);
+
+      if (((newarea->aratattr ^ lastarea->aratattr) | (newarea->aralign ^ lastarea->aralign)) & ATT_SOFTFLOAT)
+       error("Error: You cannot mix soft-float and non soft-float code");
     }
     newarea->arbase = lastarea->arbase;
     lastarea->arbase->arlast = newarea;
