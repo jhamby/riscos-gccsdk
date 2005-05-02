@@ -1,10 +1,10 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/module/sul.s,v $
-; $Date: 2005/03/13 19:39:43 $
-; $Revision: 1.12 $
+; $Date: 2005/05/01 14:56:10 $
+; $Revision: 1.13 $
 ; $State: Exp $
-; $Author: alex $
+; $Author: nick $
 ;
 ;----------------------------------------------------------------------------
 
@@ -138,7 +138,7 @@ EARLIEST_SUPPORTED_VERSION	EQU	105
 |help|
 	DCB	"SharedUnixLibrary"
 	DCB	9
-	DCB	"1.05 (13 Mar 2005) (C) UnixLib Developers, 2001-2005", 0
+	DCB	"1.06 (02 May 2005) (C) UnixLib Developers, 2001-2005", 0
 	ALIGN
 
 |title|
@@ -457,7 +457,13 @@ alloc_proc
 	STR	ip, [v2,  #PROC_PRIVATEWORD]	; Store the module's private word
 
 	; Initialise the structure
-	STR	v2, [v2, #PROC_PID]
+
+	; As we are using the result of OS_Module for the pid value,
+	; we shrink it to 30-bits because 'pid_t' is a signed-integer
+	; and many applications just the for (pid < 0) to determine fork
+	; failure.
+	MOV	a1, v2, LSR #2
+	STR	a1, [v2, #PROC_PID]
 	MOV	a1, #1
 	STR	a1, [v2, #PROC_PPID]
 	STR	a1, [v2, #PROC_UID]
@@ -637,6 +643,7 @@ copy_from_top_loop
 sul_fork
 	; Allocate the new child process structure
 	MOV	ip, sp
+	MOV	a1, a1, LSL #2 ; expand pid to 32-bits
 	STMFD	sp!, {a1-a4}
 	LDR	a4, =PROC_SIZE
 	MOV	a1, #6
@@ -667,7 +674,8 @@ sul_fork
 
 	; Fix process IDs
 	STR	v1, [v2, #PROC_PPID]
-	STR	v2, [v2, #PROC_PID]
+	MOV	a1, v2, LSR #2 ; shrink pid to 30 bits
+	STR	a1, [v2, #PROC_PID]
 
 	; Add to SULs linked list
 	STR	v2, [v1, #PROC_NEXT]
@@ -942,7 +950,7 @@ restore_wimpslot
 ;
 ; Never returns, so all registers can be corrupted
 sul_exec
-	MOV	v2, a1
+	MOV	v2, a1, LSL #2 ; expand pid to 32-bits
 	MOV	v3, a3
 	MOV	v4, a4
 
@@ -1085,7 +1093,7 @@ exit_error_handler_common	; a1 = __proc, a2 = returncode
 	AND	a3, a2, #RETURNCODE_MASK
 	STR	a3, [a1, #PROC_STATUS]
 	; Fall though to sul_exit
-
+	MOV	a1, a1, LSR #2 ; shrink pid to 30-bits
 
 ;
 ; sul_exit (__pid_t pid, int status);
@@ -1095,7 +1103,7 @@ exit_error_handler_common	; a1 = __proc, a2 = returncode
 ; from the exit handler above.
 ; Does not need to preserve any registers
 sul_exit
-	MOV	v2, a1
+	MOV	v2, a1, LSL #2 ; expand pid to 32-bits
 	MOV	v3, a2
 
 	; Restore old exit and error handlers if necessary
@@ -1158,7 +1166,7 @@ has_parent
 	STR	a3, [v2, #PROC_STATUS]
 
 	; Restore registers and return with a1 = child pid
-	MOV	a1, v2
+	MOV	a1, v2, LSR #2 ; shrink pid to 30-bits
 	LDR	a2, =PROC_FORK_STORAGE
 	ADD	a2, v2, a2
 	LFM	f4, 4, [a2]
