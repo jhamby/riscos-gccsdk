@@ -189,16 +189,12 @@ build-native:	libiberty-stg2 gcc-stg2 riscos-aof-stg2 \
 # write them like this because it makes the rest of the makefile easy
 # to read.
 trg20=apcs32/arch3/unixlib
-trg21=apcs32/arch4/unixlib
 
 trg30=apcs32/arch3/libscl
-trg31=apcs32/arch4/libscl
 
-cfl20="CFL=-mapcs-32 -munixlib"
-cfl21="CFL=-mapcs-32 -mcpu=strongarm -mtune=xscale -munixlib"
+cfl20="CFL=-munixlib"
 
-cfl30="CFL=-mapcs-32 -mlibscl"
-cfl31="CFL=-mapcs-32 -mcpu=strongarm -mlibscl"
+cfl30="CFL=-mlibscl"
 
 libiberty-stg1:
 	$(MAKE) -C libiberty "STAGE=stage1"
@@ -267,14 +263,10 @@ directories:
 	mkdir -p $(ro_gccpkg)/$(gn_share_dir)/jar
 
 	mkdir -p $(ux_gccpkg)/$(gn_gcc_bin_dir)/$(trg20)
-	mkdir -p $(ux_gccpkg)/$(gn_gcc_bin_dir)/$(trg21)
 	mkdir -p $(ux_gccpkg)/$(gn_gcc_bin_dir)/$(trg30)
-	mkdir -p $(ux_gccpkg)/$(gn_gcc_bin_dir)/$(trg31)
 
 	mkdir -p $(ro_gccpkg)/$(gn_gcc_bin_dir)/$(trg20)/o
-	mkdir -p $(ro_gccpkg)/$(gn_gcc_bin_dir)/$(trg21)/o
 	mkdir -p $(ro_gccpkg)/$(gn_gcc_bin_dir)/$(trg30)/o
-	mkdir -p $(ro_gccpkg)/$(gn_gcc_bin_dir)/$(trg31)/o
 
 	mkdir -p ${ro_syspkg}/310/Modules
 	mkdir -p $(info_dir)
