@@ -59,7 +59,7 @@ RISC OS GCC release 3.4.4 release 2 (released XX May 2005)
   via the 'fortify' memory check library.  This allows checking for
   block overwrites, use of free memory and other memory indiscretions. 
 
-* UnixLib contains an amalgamation of Sun Microsystems 'fdlibm' and
+* UnixLib contains an amalgamation of Sun Microsystems' 'fdlibm' and
   the IBM MathLib libraries to provide precise IEEE single and double
   floating point arithmetic accurate to the last decimal place.  The
   library additionally provides all C99 math functions.
@@ -73,6 +73,14 @@ RISC OS GCC release 3.4.4 release 2 (released XX May 2005)
 * UnixLib: headers incorporate GCC's 'nonnull' and 'warn_unused_result'
   attributes to generate additional warnings that may aid in tracking down
   bugs at compile time.
+
+* GCC/GCCSDK now includes the 'decaof' tool for examinging AOF object
+  files.
+
+* The toolchain now includes support for soft-float floating point
+  behaviour.  Note that you will need to compile all your code (including
+  UnixLib and all libraries) with -msoft-float.
+  
 
 RISC OS GCC release 3.4.4 release 1 (released 25 December 2004)
 =======================================
