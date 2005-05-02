@@ -1,6 +1,7 @@
 # Makefile for the GNU Compiler Collection for ARM/RISC OS
 # Copyright (c) 1997, 1998, 1999, 2000, 2003 Nick Burrett
-# Written by Nick Burrett <nick@dsvr.net>
+# Copyright (c) 2005 GCCSDK Developers
+# Written by Nick Burrett <nick@sqrt.co.uk>
 
 CC_S = $(CROSS_CC) -xassembler-with-cpp
 INCLUDES = -I. -I../../include -I../gcc -I../gcc/config
@@ -8,6 +9,13 @@ CROSS_CFLAGS += -D$(targetsystem)
 CROSS_CFLAGS += -DIN_GCC -DHAVE_CONFIG_H -DIN_LIBGCC2 -D__GCC_FLOAT_NOT_NEEDED -DDONT_USE_BUILTIN_SETJMP
 
 FPBIT_FLAGS=-DFINE_GRAINED_LIBRARIES -I. -I../../include -I../gcc -I../gcc/config
+
+# fpbit.c flags for single precision float.  The ordering of bits for
+# the FPA is odd on the ARM.
+SPFLAGS=-DFLOAT -DFLOAT_BIT_ORDER_MISMATCH $(FPBIT_FLAGS)
+
+# fpbit.c flags for double precision float.
+DPFLAGS=-DFLOAT_BIT_ORDER_MISMATCH -DFLOAT_WORD_ORDER_MISMATCH $(FPBIT_FLAGS)
 
 libobjdir=$(objdir)/gcc-$(VERSION)/libgcc/$(STAGE)/$(TRG)
 
@@ -412,94 +420,94 @@ $(libobjdir)/nextarg.o:	lib1aof.s
 
 # fp-bit library (double precision)
 $(libobjdir)/pack_df.o:	fp-bit.c
-	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c fp-bit.c $(FPBIT_FLAGS) -DL_pack_df
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c fp-bit.c $(DPFLAGS) -DL_pack_df
 $(libobjdir)/unpack_df.o:	fp-bit.c
-	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c fp-bit.c $(FPBIT_FLAGS) -DL_unpack_df
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c fp-bit.c $(DPFLAGS) -DL_unpack_df
 $(libobjdir)/addsub_df.o:	fp-bit.c
-	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c fp-bit.c $(FPBIT_FLAGS) -DL_addsub_df
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c fp-bit.c $(DPFLAGS) -DL_addsub_df
 $(libobjdir)/mul_df.o:	fp-bit.c
-	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c fp-bit.c $(FPBIT_FLAGS) -DL_mul_df
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c fp-bit.c $(DPFLAGS) -DL_mul_df
 $(libobjdir)/div_df.o:	fp-bit.c
-	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c fp-bit.c $(FPBIT_FLAGS) -DL_div_df
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c fp-bit.c $(DPFLAGS) -DL_div_df
 $(libobjdir)/fpcmp_p_df.o:	fp-bit.c
-	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c fp-bit.c $(FPBIT_FLAGS) -DL_fpcmp_parts_df
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c fp-bit.c $(DPFLAGS) -DL_fpcmp_parts_df
 $(libobjdir)/compare_df.o:	fp-bit.c
-	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c fp-bit.c $(FPBIT_FLAGS) -DL_compare_df
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c fp-bit.c $(DPFLAGS) -DL_compare_df
 $(libobjdir)/eq_df.o:	fp-bit.c
-	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c fp-bit.c $(FPBIT_FLAGS) -DL_eq_df
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c fp-bit.c $(DPFLAGS) -DL_eq_df
 $(libobjdir)/ne_df.o:	fp-bit.c
-	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c fp-bit.c $(FPBIT_FLAGS) -DL_ne_df
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c fp-bit.c $(DPFLAGS) -DL_ne_df
 $(libobjdir)/gt_df.o:	fp-bit.c
-	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c fp-bit.c $(FPBIT_FLAGS) -DL_gt_df
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c fp-bit.c $(DPFLAGS) -DL_gt_df
 $(libobjdir)/ge_df.o:	fp-bit.c
-	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c fp-bit.c $(FPBIT_FLAGS) -DL_ge_df
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c fp-bit.c $(DPFLAGS) -DL_ge_df
 $(libobjdir)/lt_df.o:	fp-bit.c
-	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c fp-bit.c $(FPBIT_FLAGS) -DL_lt_df
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c fp-bit.c $(DPFLAGS) -DL_lt_df
 $(libobjdir)/le_df.o:	fp-bit.c
-	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c fp-bit.c $(FPBIT_FLAGS) -DL_le_df
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c fp-bit.c $(DPFLAGS) -DL_le_df
 $(libobjdir)/si_to_df.o:	fp-bit.c
-	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c fp-bit.c $(FPBIT_FLAGS) -DL_si_to_df
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c fp-bit.c $(DPFLAGS) -DL_si_to_df
 $(libobjdir)/df_to_si.o:	fp-bit.c
-	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c fp-bit.c $(FPBIT_FLAGS) -DL_df_to_si
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c fp-bit.c $(DPFLAGS) -DL_df_to_si
 $(libobjdir)/df_to_usi.o:	fp-bit.c
-	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c fp-bit.c $(FPBIT_FLAGS) -DL_df_to_usi
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c fp-bit.c $(DPFLAGS) -DL_df_to_usi
 $(libobjdir)/negate_df.o:	fp-bit.c
-	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c fp-bit.c $(FPBIT_FLAGS) -DL_negate_df
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c fp-bit.c $(DPFLAGS) -DL_negate_df
 $(libobjdir)/unord_df.o:	fp-bit.c
-	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c fp-bit.c $(FPBIT_FLAGS) -DL_unord_df
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c fp-bit.c $(DPFLAGS) -DL_unord_df
 $(libobjdir)/thenan_df.o:	fp-bit.c
-	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c fp-bit.c $(FPBIT_FLAGS) -DL_thenan_df
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c fp-bit.c $(DPFLAGS) -DL_thenan_df
 $(libobjdir)/make_df.o:	fp-bit.c
-	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c fp-bit.c $(FPBIT_FLAGS) -DL_make_df
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c fp-bit.c $(DPFLAGS) -DL_make_df
 $(libobjdir)/usi_to_df.o:	fp-bit.c
-	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c fp-bit.c $(FPBIT_FLAGS) -DL_usi_to_df
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c fp-bit.c $(DPFLAGS) -DL_usi_to_df
 
 
 # fplib (single precision)
 $(libobjdir)/pack_sf.o:	fp-bit.c
-	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c fp-bit.c -DFLOAT $(FPBIT_FLAGS) -DL_pack_sf
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c fp-bit.c $(SPFLAGS) -DL_pack_sf
 $(libobjdir)/unpack_sf.o:	fp-bit.c
-	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c fp-bit.c -DFLOAT $(FPBIT_FLAGS) -DL_unpack_sf
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c fp-bit.c $(SPFLAGS) -DL_unpack_sf
 $(libobjdir)/addsub_sf.o:	fp-bit.c
-	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c fp-bit.c -DFLOAT $(FPBIT_FLAGS) -DL_addsub_sf
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c fp-bit.c $(SPFLAGS) -DL_addsub_sf
 $(libobjdir)/mul_sf.o:	fp-bit.c
-	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c fp-bit.c -DFLOAT $(FPBIT_FLAGS) -DL_mul_sf
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c fp-bit.c $(SPFLAGS) -DL_mul_sf
 $(libobjdir)/div_sf.o:	fp-bit.c
-	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c fp-bit.c -DFLOAT $(FPBIT_FLAGS) -DL_div_sf
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c fp-bit.c $(SPFLAGS) -DL_div_sf
 $(libobjdir)/fpcmp_p_sf.o:	fp-bit.c
-	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c fp-bit.c -DFLOAT $(FPBIT_FLAGS) -DL_fpcmp_parts_sf
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c fp-bit.c $(SPFLAGS) -DL_fpcmp_parts_sf
 $(libobjdir)/compare_sf.o:	fp-bit.c
-	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c fp-bit.c -DFLOAT $(FPBIT_FLAGS) -DL_compare_sf
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c fp-bit.c $(SPFLAGS) -DL_compare_sf
 $(libobjdir)/eq_sf.o:	fp-bit.c
-	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c fp-bit.c -DFLOAT $(FPBIT_FLAGS) -DL_eq_sf
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c fp-bit.c $(SPFLAGS) -DL_eq_sf
 $(libobjdir)/ne_sf.o:	fp-bit.c
-	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c fp-bit.c -DFLOAT $(FPBIT_FLAGS) -DL_ne_sf
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c fp-bit.c $(SPFLAGS) -DL_ne_sf
 $(libobjdir)/gt_sf.o:	fp-bit.c
-	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c fp-bit.c -DFLOAT $(FPBIT_FLAGS) -DL_gt_sf
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c fp-bit.c $(SPFLAGS) -DL_gt_sf
 $(libobjdir)/ge_sf.o:	fp-bit.c
-	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c fp-bit.c -DFLOAT $(FPBIT_FLAGS) -DL_ge_sf
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c fp-bit.c $(SPFLAGS) -DL_ge_sf
 $(libobjdir)/lt_sf.o:	fp-bit.c
-	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c fp-bit.c -DFLOAT $(FPBIT_FLAGS) -DL_lt_sf
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c fp-bit.c $(SPFLAGS) -DL_lt_sf
 $(libobjdir)/le_sf.o:	fp-bit.c
-	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c fp-bit.c -DFLOAT $(FPBIT_FLAGS) -DL_le_sf
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c fp-bit.c $(SPFLAGS) -DL_le_sf
 $(libobjdir)/si_to_sf.o:	fp-bit.c
-	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c fp-bit.c -DFLOAT $(FPBIT_FLAGS) -DL_si_to_sf
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c fp-bit.c $(SPFLAGS) -DL_si_to_sf
 $(libobjdir)/sf_to_si.o:	fp-bit.c
-	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c fp-bit.c -DFLOAT $(FPBIT_FLAGS) -DL_sf_to_si
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c fp-bit.c $(SPFLAGS) -DL_sf_to_si
 $(libobjdir)/sf_to_usi.o:	fp-bit.c
-	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c fp-bit.c -DFLOAT $(FPBIT_FLAGS) -DL_sf_to_usi
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c fp-bit.c $(SPFLAGS) -DL_sf_to_usi
 $(libobjdir)/negate_sf.o:	fp-bit.c
-	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c fp-bit.c -DFLOAT $(FPBIT_FLAGS) -DL_negate_sf
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c fp-bit.c $(SPFLAGS) -DL_negate_sf
 $(libobjdir)/unord_sf.o:	fp-bit.c
-	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c fp-bit.c $(FPBIT_FLAGS) -DL_unord_sf
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c fp-bit.c $(DPFLAGS) -DL_unord_sf
 $(libobjdir)/thenan.o:	fp-bit.c
-	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c fp-bit.c -DFLOAT $(FPBIT_FLAGS) -DL_thenan_sf
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c fp-bit.c $(SPFLAGS) -DL_thenan_sf
 $(libobjdir)/make_sf.o:	fp-bit.c
-	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c fp-bit.c -DFLOAT $(FPBIT_FLAGS) -DL_make_sf
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c fp-bit.c $(SPFLAGS) -DL_make_sf
 
 $(libobjdir)/df_to_sf.o:	fp-bit.c
-	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c fp-bit.c $(FPBIT_FLAGS) -DL_df_to_sf
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c fp-bit.c $(DPFLAGS) -DL_df_to_sf
 $(libobjdir)/sf_to_df.o:	fp-bit.c
-	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c fp-bit.c -DFLOAT $(FPBIT_FLAGS) -DL_sf_to_df
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c fp-bit.c $(SPFLAGS) -DL_sf_to_df
 $(libobjdir)/usi_to_sf.o:	fp-bit.c
-	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c fp-bit.c $(FPBIT_FLAGS) -DL_usi_to_sf
+	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c fp-bit.c $(DPFLAGS) -DL_usi_to_sf
