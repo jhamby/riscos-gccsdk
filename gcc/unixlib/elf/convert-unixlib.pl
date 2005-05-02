@@ -76,23 +76,17 @@ sub convert_s {
 	    next;
 	}
 
-	if (/^\s+ENTRY/) {
-	    print OUT "\t.global\t_start\n";
-	    print OUT "\t.type\t_start, \%function\n";
-	    print OUT "_start:\n";
-	    next;
-	}
+	next if (/^\s+ENTRY/);
 
-	s/^\s+ENTRY/\t.section\t\".init\"/;
+	# Fixup IMPORT |symname|, WEAK to ELF .weak references
 	s/^\s+IMPORT\s+\|(.*)\|,\s*WEAK/\t.weak\t$1/;
+
+	# Skip all other IMPORTs as they are not required for ELF.
 	next if /IMPORT/;
 
+	# Convert EXPORTs, and remove the vertical bars around symbols.
 	s/^\s+EXPORT\s+\|(.*)\|/\t.global\t$1/;
 	s/^\s+EXPORT\s+(.*)/\t.global\t$1/;
-
-	#if (^\s+NAME/) {
-	#    my $name =~ /^\s+NAME\s+[\"]*(\w*)[\"]*/;
-	#s/^\s+NAME\s+[\"]*(\w*)[\"]*/\t.type\t$1, %function/;
 
 	if (/AREA/) {
 	    if (/CODE/) { $_ = "\t.text"; }
@@ -125,14 +119,26 @@ sub convert_s {
 	}
 
 	s/^\s+ALIGN$/\t.align/i;
+
+	# Convert EQU statements with a base 2 number
 	s/^(\w+)\s+EQU\s+2_(\w+)/.set\t$1, 0b$2/;
+
+	# Convert EQU statements with a base 16 number
 	s/^(\w+)\s+EQU\s+&(\w+)/.set\t$1, 0x$2/;
+
+	# Convert EQU statements with a base 10 number
 	s/^(\w+)\s+EQU\s+(\w+)/.set\t$1, $2/;
 
+	# Convert '*' (EQU) statements with a base 2 number
 	s/^(\w+)\s+\*\s+2_(\w+)/.set\t$1, 0b$2/;
+
+	# Convert '*' (EQU) statements with a base 16 number
 	s/^(\w+)\s+\*\s+&(\w+)/.set\t$1, 0x$2/;
+
+	# Convert '*' (EQU) statements with a base 10 number
 	s/^(\w+)\s+\*\s+(\w+)/.set\t$1, $2/;
 
+	# Convert RISC OS-style hex notation &1f to 0x1f.
 	s/&(\w+)/0x$1/;
 
 	# Label handling
@@ -141,15 +147,16 @@ sub convert_s {
 	    else { s/([\w\$]+)/$1:/; }
 	}
 
-	# Fix things like cmp a4,#"f" into cmp a4,#'f'
+	# Turn statements like cmp a4,#"f" into cmp a4,#'f'
 	s/\#\"(.)\"/\#\'$1\'/;
 
-	s/\|(.*)\|/$1/; # Remove | from labels
+	s/\|(.*)\|/$1/; # Remove | from surrounding labels
 
 	# Ensure that a '.end' statement isn't placed at the end
-	# of asm_dec.s.
+	# of asm_dec.s or _syslib.s
 	if (/\s*END$/) {
 	    next if ($dstfile =~ /asm_dec.s$/);
+	    next if ($dstfile =~ /_syslib.s$/);
 	    print OUT "\t.end\n";
 	    next;
 	}
@@ -176,6 +183,20 @@ sub convert_s {
 	#s/Image\$\$RW\$\$Limit/__end__/;
 
 	print OUT $_;
+    }
+
+    # If building the _syslib.s file, then output a small section at
+    # the end that will be the ELF program entry point.  By placing
+    # in the init section, we also ensure it appears at the start
+    # of the executable.
+    if ($dstfile =~ /_syslib.s$/) {
+	print OUT "\n\t.section \".init\"\n";
+	print OUT "\t.global\t_start\n";
+	print OUT "\t.type\t_start, \%function\n";
+	print OUT "_start:\n";
+	print OUT "\tB\t__main\n";
+	print OUT "\t.size\t_start, . - _start\n\n";
+	print OUT "\t.end\n\n";
     }
     close OUT;
     close IN;
@@ -317,10 +338,13 @@ print MAKE<<EOF;
 # Copyright (c) 2005 UnixLib developers
 # Written by Nick Burrett <nick\@sqrt.co.uk>
 
+# These flags exclusively apply to a C compiler
+WARNINGSC = -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations \\
+	-Wnested-externs
+
 WARNINGS = -pedantic -Wall -Wundef -Wpointer-arith \\
-          -Wcast-align -Wwrite-strings -Wstrict-prototypes \\
-          -Wmissing-prototypes -Wmissing-declarations -Wnested-externs \\
-          -Winline -Wno-unused -Wno-long-long -W -Wcast-qual -Wshadow
+	-Wcast-align -Wwrite-strings -Winline -Wno-unused \\
+	-Winline -Wno-unused -W -Wcast-qual -Wshadow \$(WARNINGSC)
 
 # IBM MathLib flags.  The ARM FPA represents FP words in big-endian
 # format with the word-order swapped.
@@ -491,7 +515,7 @@ foreach $dir ("math", "stdio", "stdlib", "string", "strings") {
     open (MAKE, "> $elfsourcetree/test/$dir/Makefile.am");
     print MAKE "# Testsuite automake-style infrastructure\n\n";
     print MAKE "AUTOMAKE_OPTIONS = no-dependencies\n";
-    print MAKE "AM_CPPFLAGS = -isystem \$(top_srcdir)/include\n";
+    print MAKE "AM_CPPFLAGS = -isystem \$(top_srcdir)/include -I \$(top_srcdir)/test -D_GNU_SOURCE=1 -std=c99\n";
     print MAKE "LDADD = -L \$(top_builddir)\n\n";
 
     opendir (TESTS, "$aofsourcetree/source/test/$dir");
