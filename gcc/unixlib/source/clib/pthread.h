@@ -1,8 +1,8 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/pthread.h,v $
- * $Date: 2005/04/14 12:13:09 $
- * $Revision: 1.17 $
+ * $Date: 2005/04/22 14:38:49 $
+ * $Revision: 1.18 $
  * $State: Exp $
  * $Author: nick $
  *
@@ -123,7 +123,7 @@ struct __pthread_thread
   /* Space for registers on the context switch */
   struct __pthread_saved_context *saved_context;
 
-  int alloca[3]; /* Storage for alloca */
+  void *alloca[3]; /* Storage for alloca */
 
   int thread_errno; /* Value of errno for this thread */
 

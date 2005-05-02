@@ -7,11 +7,11 @@
 
 int main (int argc, char *argv[], char *env[])
 {
-  int x, status;
+  int x = 0, status;
 
-  for (x = 0; x < 500; x++)
+   for (x = 0; x < 500; x++)
     {
-      pid_t pid = vfork ();
+      pid_t pid = fork ();
       if (pid == (pid_t) 0)
         {
           printf ("-- child process: %d (pid = %u)\n", x, pid);
@@ -23,6 +23,7 @@ int main (int argc, char *argv[], char *env[])
         {
           printf ("-- parent process: %d\n", x);
           waitpid (pid, &status, 0);
+	  printf ("-- waitpid: status=%d\n", status);
         }
     }
 

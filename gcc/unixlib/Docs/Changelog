@@ -1,3 +1,11 @@
+Mon May  2 14:51:58 2005  Nick Burrett  <nick@sqrt.co.uk>
+
+	* module/sul.s (sul_fork): For consistency, shrink parent pid to
+	30-bits.
+	* gcccompat/galloca.c: New file for GCC 4 alloca implementation.
+	* gcccompat/_galloca.s: New file for GCC 4 alloca implementation.
+	* pthread/_exit.s (__pthread_exit): Call __gcc_alloca_thread_free_all.
+
 Mon May  2 14:24:06 2005  Peter Naulls  <peter@chocky.org>
 
 	* fenv/fclrexcpt.c, fenv/fedisblxcpt.c, fenv/egetexcept.c,

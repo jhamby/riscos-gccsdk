@@ -1,8 +1,8 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/module/sul.s,v $
-; $Date: 2005/05/01 14:56:10 $
-; $Revision: 1.13 $
+; $Date: 2005/05/02 12:48:45 $
+; $Revision: 1.14 $
 ; $State: Exp $
 ; $Author: nick $
 ;
@@ -673,8 +673,9 @@ sul_fork
 	BL	sul_memmove
 
 	; Fix process IDs
-	STR	v1, [v2, #PROC_PPID]
-	MOV	a1, v2, LSR #2 ; shrink pid to 30 bits
+	MOV	a1, v1, LSR #2 ; shrink parent pid to 30 bits
+	STR	a1, [v2, #PROC_PPID]
+	MOV	a1, v2, LSR #2 ; shrink child pid to 30 bits
 	STR	a1, [v2, #PROC_PID]
 
 	; Add to SULs linked list
