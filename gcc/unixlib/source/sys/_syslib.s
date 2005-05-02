@@ -967,12 +967,18 @@ __unixlib_fatal_got_msg
 
 	EXPORT	|__unixlib_get_fpstatus|
 |__unixlib_get_fpstatus|
+	[ {SOFTFLOAT}={FALSE}
 	rfs	r0
+	|
+	mov	r0, #0
+	]
 	mov	pc, lr
 
 	EXPORT	|__unixlib_set_fpstatus|
 |__unixlib_set_fpstatus|
+	[ {SOFTFLOAT}={FALSE}
 	wfs	r0
+	]
 	mov	pc, lr
 
 	; int __valid_address (const void *lower, const void *upper)

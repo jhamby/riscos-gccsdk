@@ -1,8 +1,8 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/pthread/_context.s,v $
-; $Date: 2005/04/22 14:38:49 $
-; $Revision: 1.14 $
+; $Date: 2005/04/23 10:44:38 $
+; $Revision: 1.15 $
 ; $State: Exp $
 ; $Author: nick $
 ;
@@ -277,11 +277,13 @@ stop_ticker_core
 	; from user mode
 	CHGMODE	a3, USR_Mode
 
+        [ {SOFTFLOAT}={FALSE}
 	; Save floating point regs
 	SFM	f0, 4, [a1], #48
 	SFM	f4, 4, [a1], #48
 	RFS	a2	; Read floating status
 	STR	a2, [a1]
+	]
 
 	; Call the scheduler to switch to another thread
 	BL	|__pthread_context_switch|
@@ -291,11 +293,13 @@ stop_ticker_core
 	LDR	a1, [a1]
 	LDR	a2, [a1, #__PTHREAD_CONTEXT_OFFSET]	; __pthread_running_thread->saved_context
 
+        [ {SOFTFLOAT}={FALSE}
 	ADD	a2, a2, #17*4
 	LFM	f0, 4, [a2], #48
 	LFM	f4, 4, [a2], #48
 	LDR	a1, [a2]
 	WFS	a1	; Write floating status
+	]
 
 	SWI	XOS_EnterOS	; Back to supervisor mode
 
@@ -357,11 +361,13 @@ stop_ticker_core
 ;   R0 = save area
 	NAME	__pthread_init_save_area
 |__pthread_init_save_area|
+        [ {SOFTFLOAT}={FALSE}
 	ADD	a2, a1, #17*4
 	SFM	f0, 4, [a2], #48
 	SFM	f4, 4, [a2], #48
 	RFS	a1	; Read floating status
 	STR	a1, [a2], #12
+	]
 	MOV	pc, lr
 
 

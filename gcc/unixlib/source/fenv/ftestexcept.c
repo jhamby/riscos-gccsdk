@@ -23,10 +23,14 @@
 int
 fetestexcept (int excepts)
 {
+#ifndef __SOFT_FLOAT__
   fexcept_t temp;
 
   /* Get current exceptions.  */
   _FPU_GETCW(temp);
 
   return temp & excepts & FE_ALL_EXCEPT;
+#else
+  return 0;
+#endif
 }

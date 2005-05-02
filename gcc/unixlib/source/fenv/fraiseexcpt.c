@@ -24,6 +24,7 @@
 int
 feraiseexcept (int excepts)
 {
+#ifndef __SOFT_FLOAT__
   /* Raise exceptions represented by EXPECTS.  */
   fexcept_t temp;
   _FPU_GETCW (temp);
@@ -31,5 +32,6 @@ feraiseexcept (int excepts)
   _FPU_SETCW (temp);
 
   /* Success.  */
+#endif
   return 0;
 }

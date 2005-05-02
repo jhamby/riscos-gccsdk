@@ -1,3 +1,14 @@
+Mon May  2 14:24:06 2005  Peter Naulls  <peter@chocky.org>
+
+	* fenv/fclrexcpt.c, fenv/fedisblxcpt.c, fenv/egetexcept.c,
+	  fenv/feholdexcpt.c, fenv/fesetenv.c, fenv/fraiseexcpt.c,
+	  fenv/setexcptflg.c, fenv/testexcept.c: Do nothing interesting
+	  when using soft-float.
+	* pthread/_context.s: Don't save FP regs when using soft-float
+	* sys/_jmp.s: Similarly.
+	* sys/_syslib.s: Leave FP status register alone when using soft-float
+	* incl-local/internal/aof-macros.s: Add missing END.
+
 Mon May  2 13:45:54 2005  Nick Burrett  <nick@sqrt.co.uk>
 
 	* module/sul.s (alloc_proc): Shrink the stored pid to 30-bits

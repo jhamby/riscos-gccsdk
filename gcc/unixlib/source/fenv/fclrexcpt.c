@@ -22,6 +22,7 @@
 
 int feclearexcept (int excepts)
 {
+#ifndef __SOFT_FLOAT__
   unsigned long int temp;
 
   /* Mask out unsupported bits/exceptions.  */
@@ -36,6 +37,7 @@ int feclearexcept (int excepts)
   /* Put the new data in effect.  */
   _FPU_SETCW (temp);
 
-  /* Success.  */
+ /* Success.  */
+#endif
   return 0;
 }

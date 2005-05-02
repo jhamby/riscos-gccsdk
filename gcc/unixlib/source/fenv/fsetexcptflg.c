@@ -24,6 +24,7 @@
 int
 fesetexceptflag (const fexcept_t *flagp, int excepts)
 {
+#ifndef __SOFT_FLOAT__
   fexcept_t temp;
 
   /* Get the current environment.  */
@@ -37,5 +38,6 @@ fesetexceptflag (const fexcept_t *flagp, int excepts)
   _FPU_SETCW (temp);
 
   /* Success.  */
+#endif
   return 0;
 }

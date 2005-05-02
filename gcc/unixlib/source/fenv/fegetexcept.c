@@ -24,9 +24,13 @@
 int
 fegetexcept (void)
 {
+#ifndef __SOFT_FLOAT__
   unsigned long temp;
 
   _FPU_GETCW (temp);
 
   return (temp >> FE_EXCEPT_SHIFT) & FE_ALL_EXCEPT;
+#else
+  return 0;
+#endif
 }

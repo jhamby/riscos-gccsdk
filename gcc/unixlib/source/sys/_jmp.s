@@ -1,10 +1,10 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/_jmp.s,v $
-; $Date: 2005/03/12 10:33:40 $
-; $Revision: 1.11 $
+; $Date: 2005/04/30 13:58:48 $
+; $Revision: 1.12 $
 ; $State: Exp $
-; $Author: alex $
+; $Author: nick $
 ;
 ;----------------------------------------------------------------------------
 
@@ -56,7 +56,11 @@ setjmp
 	LDR	a4, [a4]
 	STR	a4, [a1], #4
 
+	[ {SOFTFLOAT}={FALSE}
 	SFM	f4, 4, [a1], #4*12
+	|
+	ADD	a1, a1, #4*12
+	]
 	STMIA	a1, {v1, v2, v3, v4, v5, v6, sl, fp, sp, lr}
 
 	MOV	a1, #0
@@ -114,7 +118,11 @@ longjmp
 	LDR	lr, [v1], #4
 	STR	lr, [a1]
 
+	[ {SOFTFLOAT}={FALSE}
 	LFM	f4, 4, [v1], #4*12
+	|
+	ADD	v1, v1, #4*12
+	]
 
 	MOVS	a1, v2
 	MOVEQ	a1, #1			; longjmp can't return 0

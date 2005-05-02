@@ -133,3 +133,6 @@
 	MOV	a1, a1	; Avoid StrongARM MSR bug
 
 	MEND
+
+	END
+

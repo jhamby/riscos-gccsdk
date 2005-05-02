@@ -23,6 +23,7 @@
 int
 feholdexcept (fenv_t *envp)
 {
+#ifndef __SOFT_FLOAT__
   unsigned long int temp;
 
   /* Store the environment.  */
@@ -33,5 +34,6 @@ feholdexcept (fenv_t *envp)
   temp &= ~(FE_ALL_EXCEPT << FE_EXCEPT_SHIFT);
   _FPU_SETCW(temp);
 
+#endif
   return 0;
 }
