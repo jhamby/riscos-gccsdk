@@ -186,6 +186,11 @@ lexAcornPrim (Lex * lex)
       FINISH_STR_PRIM ("c}");
       lex->tag = LexPosition;
       return 1;
+    case 's':
+      FINISH_STR_PRIM ("oftfloat}");
+      lex->tag = LexBool;
+      lex->LexInt.value = apcs_softfloat;
+      return 1;
     case 't':
       FINISH_STR_PRIM ("rue}");
       lex->tag = LexBool;

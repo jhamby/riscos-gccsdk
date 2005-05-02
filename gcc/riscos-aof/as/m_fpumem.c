@@ -34,10 +34,13 @@
 #include "input.h"
 #include "mnemonics.h"
 #include "put.h"
+#include "main.h"
 
 static void
 dstmem (WORD ir)
 {
+  if (apcs_softfloat) error (ErrorWarning, TRUE, "soft-float code uses hard FP instructions");
+    
   ir |= DST_OP (getFpuReg ());
   ir = help_copAddr (ir, FALSE);
   putIns (ir);
@@ -62,6 +65,8 @@ dstmemx (WORD ir)
   BOOL stack_ia = FALSE;
   BOOL stack;
   Value im;
+
+  if (apcs_softfloat) error (ErrorWarning, TRUE, "soft-float code uses hard FP instructions");
 
   stack = (BOOL) ! isspace (inputLook ());
   if (stack)

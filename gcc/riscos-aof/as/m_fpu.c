@@ -39,6 +39,7 @@
 #include "put.h"
 #include "reloc.h"
 #include "value.h"
+#include "main.h"
 
 WORD
 fpuImm (FLOAT d)
@@ -119,6 +120,9 @@ static void
 dstlhsrhs (WORD ir)
 {
   WORD op;
+
+  if (apcs_softfloat) error (ErrorWarning, TRUE, "soft-float code uses hard FP instructions");
+
   op = getFpuReg ();
   ir |= DST_OP (op);
   skipblanks ();
@@ -228,6 +232,9 @@ static void
 dstrhs (WORD ir)
 {
   WORD op;
+
+  if (apcs_softfloat) error (ErrorWarning, TRUE, "soft-float code uses hard FP instructions");
+
   op = getFpuReg ();
   ir |= DST_OP (op);
   skipblanks ();
@@ -343,6 +350,9 @@ void
 m_fix (WORD cc)
 {
   WORD ir = M_FIX | cc;
+
+  if (apcs_softfloat) error (ErrorWarning, TRUE, "soft-float code uses hard FP instructions");
+
   ir |= DST_OP (getCpuReg ());
   skipblanks ();
   if (inputLook () == ',')
@@ -359,6 +369,9 @@ void
 m_flt (WORD cc)
 {
   WORD ir = M_FLT | cc;
+
+  if (apcs_softfloat) error (ErrorWarning, TRUE, "soft-float code uses hard FP instructions");
+
   ir |= LHS_OP (getFpuReg ());
   skipblanks ();
   if (inputLook () == ',')
@@ -376,6 +389,9 @@ static void
 flagtransfer (WORD ir)
 {
   WORD op;
+
+  if (apcs_softfloat) error (ErrorWarning, TRUE, "soft-float code uses hard FP instructions");
+
   op = getCpuReg ();
   ir |= DST_OP (op);
   putIns (ir);
@@ -408,6 +424,8 @@ m_rfc (WORD cc)
 static void
 comparelow (WORD ir)		/* No precision and no rounding allowed ? */
 {
+  if (apcs_softfloat) error (ErrorWarning, TRUE, "soft-float code uses hard FP instructions");
+
   ir |= LHS_OP (getFpuReg ());
   skipblanks ();
   if (inputLook () == ',')
