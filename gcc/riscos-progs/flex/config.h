@@ -55,7 +55,7 @@
 #define PACKAGE "flex"
 
 /* Define to the address where bug reports for this package should be sent. */
-#define PACKAGE_BUGREPORT "gcc@hard-mofo.dsvr.net"
+#define PACKAGE_BUGREPORT "gcc@gccsdk.riscos.info"
 
 /* Define to the full name of this package. */
 #define PACKAGE_NAME "flex"
