@@ -1,7 +1,7 @@
 #!/bin/bash
 
 ro_jobs=""
-ro_hosts=/home/riscos/env/ro-hosts
+ro_hosts=GCCSDK_ENV/ro-hosts
 
 export ac_exeext=,ff8
 export ac_cv_exeext=,ff8
@@ -11,6 +11,6 @@ if [ -f $ro_hosts ] && [ "$RO_DIST" == "YES" ] ; then
   ro_jobs="-j$(wc -w < $ro_hosts | tr -s " " | cut -f 2 -d ' ')"
 fi
 
-/home/riscos/env/ro-path make $ro_jobs $@
+GCCSDK_ENV/ro-path make $ro_jobs $@
  
 

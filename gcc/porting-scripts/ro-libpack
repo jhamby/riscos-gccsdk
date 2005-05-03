@@ -10,7 +10,7 @@ if [ -z "$RO_PKG" ] ; then
 fi
 
 if [ -z "$AB_MAKE" ] ; then
-  AB_MAKE=/home/riscos/env/ro-make
+  AB_MAKE=GCCSDK_ENV/ro-make
 fi
 
 if [ -z "$AB_INSTALLTARGET" ] ; then
@@ -52,6 +52,6 @@ for file in $(find) ; do
  fi
 done
 
-/home/riscos/cross/bin/zip -, -r -D $output/$RO_PKG.zip .
+GCCSDK_BIN/zip -, -r -D $output/$RO_PKG.zip .
 
 rm -rf $AB_DIR/package

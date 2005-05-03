@@ -3,7 +3,7 @@
 # Binary install path
 
 if [ -z "$RO_BIN" ] ; then
-  RO_BIN=/home/riscos/cross/bin
+  RO_BIN=GCCSDK_BIN
 fi
 
-PATH=$RO_BIN:/home/riscos/env/bin:/home/riscos/env/X11R6/bin:$PATH $@
+PATH=$RO_BIN:GCCSDK_ENV/bin:GCCSDK_ENV/X11R6/bin:$PATH $@

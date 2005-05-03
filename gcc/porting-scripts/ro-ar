@@ -12,7 +12,7 @@ for param in $@ ; do
 done
 
 if [ -z "$RO_BIN" ] ; then
-  RO_BIN=/home/riscos/cross/bin
+  RO_BIN=GCCSDK_BIN
 fi
 
 $RO_BIN/ar $RO_CPARAMS

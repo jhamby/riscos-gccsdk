@@ -54,13 +54,13 @@ fi
 if [ -z "$RO_PKG" ] ; then
   # Regular unix style install for cross environment
 
-  # Only install files in bin|include|lib|X11R6 in /home/riscos/env
+  # Only install files in bin|include|lib|X11R6 in GCCSDK_ENV
   
 #  if echo "$dest" | grep -E "/env/bin|/env/include|/env/lib|/etc/etc|/env/X11R6" >/dev/null ; then
 #    exec $command $installparams $dest
 #
 #  else
-#    if echo "$dest" | grep "/home/riscos/env" > /dev/null; then
+#    if echo "$dest" | grep "GCCSDK_ENV" > /dev/null; then
 #      echo "RISC OS Cross installer: Not installing non bin/include/lib/X11R6 files"
 #    else
       exec $command $installparams $dest
@@ -71,7 +71,7 @@ else
   # Install for RISC OS headers and libraries
 
   if echo "$dest" | grep -E "/env/lib|env/include" >/dev/null ; then
-    dest=$(echo $dest | sed s#/home/riscos/env/#$AB_DIR/package/#)
+    dest=$(echo $dest | sed s#GCCSDK_ENV/#$AB_DIR/package/#)
     echo "RO Install: $installparams $dest"
     exec $command $installparams $dest
   fi

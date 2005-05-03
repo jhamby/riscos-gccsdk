@@ -4,7 +4,7 @@
 # Binary install path
 
 if [ -z "$RO_BIN" ] ; then
-  RO_BIN=/home/riscos/cross/bin
+  RO_BIN=GCCSDK_BIN
 fi
 
 if [ "$RO_DIST" == "YES" ] ; then
@@ -57,8 +57,8 @@ addff8() {
   # Doesn't strictly belong here, but it fits
   if grep "sys_lib_dlsearch_path_spec=" >/dev/null $ff8PATH; then
     echo RISC OS: Setting libtool library paths for $ff8PATH
-    sed -e s#"sys_lib_dlsearch_path_spec=".*\$#"sys_lib_dlsearch_path_spec=/home/riscos/env/lib"# \
-        -e s#"sys_lib_search_path_spec=".*\$#"sys_lib_search_path_spec=/home/riscos/env/lib"# \
+    sed -e s#"sys_lib_dlsearch_path_spec=".*\$#"sys_lib_dlsearch_path_spec=GCCSDK_ENV/lib"# \
+        -e s#"sys_lib_search_path_spec=".*\$#"sys_lib_search_path_spec=GCCSDK_ENV/lib"# \
          < $ff8PATH > /tmp/new-configure
     mv /tmp/new-configure $ff8PATH
     chmod +x $ff8PATH
@@ -151,10 +151,10 @@ TARGET=
 
 # Set Prefix
 if grep -- --prefix /tmp/out-configure >/dev/null; then
- PREFIX="--prefix=/home/riscos/env"
+ PREFIX="--prefix=GCCSDK_ENV"
 else
  if grep -- -prefix /tmp/out-configure >/dev/null; then
-  PREFIX="--prefix=/home/riscos/env"
+  PREFIX="--prefix=GCCSDK_ENV"
  else
   PREFIX=
  fi 
@@ -162,7 +162,7 @@ fi
 
 # Set WITHLIBS
 #if grep -- --with-libs /tmp/out-configure >/dev/null; then
-# WITHLIBS="--with-libs=/home/riscos/env"
+# WITHLIBS="--with-libs=GCCSDK_ENV"
 #else
  WITHLIBS= 
 #fi
@@ -170,7 +170,7 @@ fi
 # Add X paths if needed
 if grep -- -x-includes $RO_CPATH/configure >/dev/null; then
  echo RISC OS: Adding X Paths
- X="--x-libraries=/home/riscos/env/X11R6/lib --x-includes=/home/riscos/env/X11R6/include"
+ X="--x-libraries=GCCSDK_ENV/X11R6/lib --x-includes=GCCSDK_ENV/X11R6/include"
 else
  X=
 fi
@@ -179,7 +179,7 @@ fi
 # Add OpenSSL
 if grep -- --with-openssl $RO_CPATH/configure >/dev/null; then
  echo RISC OS: Adding SSL Path
- SSL="--with-openssl=/home/riscos/env"
+ SSL="--with-openssl=GCCSDK_ENV"
 else
  SSL=
 fi
@@ -225,7 +225,7 @@ fi
 # Glib location
 if grep with-glib-prefix /tmp/out-configure >/dev/null; then
  echo RISC OS: Setting Glib path
- GLIB=--with-glib-prefix=/home/riscos/env
+ GLIB=--with-glib-prefix=GCCSDK_ENV
 else
  GLIB=
 fi
@@ -233,7 +233,7 @@ fi
 # GTK location
 if grep with-gtk-prefix /tmp/out-configure >/dev/null; then
  echo RISC OS: Setting GTK path
- GTK=--with-gtk-prefix=/home/riscos/env
+ GTK=--with-gtk-prefix=GCCSDK_ENV
 else
  GTK=
 fi
@@ -242,7 +242,7 @@ fi
 # TCL
 if grep with-tclconfig /tmp/out-configure >/dev/null; then
  echo RISC OS: Setting TCL path
- TCLTK="--with-tclconfig=/home/riscos/env/lib/tcl8.4"
+ TCLTK="--with-tclconfig=GCCSDK_ENV/lib/tcl8.4"
 else
  TCLTK=
  fi
@@ -250,7 +250,7 @@ else
 # TK
 if grep with-tkconfig /tmp/out-configure >/dev/null; then
  echo RISC OS: Setting TK path
- TCLTK="$TCLTK --with-tkconfig=/home/riscos/env/lib/tk8.4"
+ TCLTK="$TCLTK --with-tkconfig=GCCSDK_ENV/lib/tk8.4"
 fi
 
 
@@ -273,7 +273,7 @@ else
 fi
 
 
-LTOOL=/home/riscos/env/bin/libtool
+LTOOL=GCCSDK_ENV/bin/libtool
 
 # Remove configure options
 rm /tmp/out-configure
@@ -281,8 +281,8 @@ rm /tmp/out-configure
 
 # Set tool chain variables picked up by configure
 export CC="$DISTCC $RO_BIN/gcc"
-export CPPFLAGS="-isystem /home/riscos/env/include"
-export LDFLAGS="-L/home/riscos/env/lib $AB_LDFLAGS"
+export CPPFLAGS="-isystem GCCSDK_ENV/include"
+export LDFLAGS="-LGCCSDK_ENV/lib $AB_LDFLAGS"
 export CXX="$DISTCC $RO_BIN/g++"
 #export CXXLIBS=-liostream
 
@@ -293,7 +293,7 @@ export AR="$RO_BIN/ar $AB_ARFLAGS"
 export NM="$RO_BIN/libfile -s"
 export RANLIB=echo
 if [ -z "$AB_DEFINSTALL" ] ; then
-  export INSTALL=/home/riscos/env/ro-install
+  export INSTALL=GCCSDK_ENV/ro-install
 fi
 export STRIP=echo
 # Used by Mozilla
@@ -511,7 +511,7 @@ export lt_cv_global_symbol_to_c_name_address="sed -n -e 's/^: \\([^ ]*\\) \$/  {
 
 
 
-/home/riscos/env/ro-path $RO_CPATH/configure \
+GCCSDK_ENV/ro-path $RO_CPATH/configure \
   $HOST $BUILD $TARGET $PREFIX $WITHLIBS $X $SHARED $STATIC $GLIB $GTK \
   $TCLTK $THREADS $NATIVE $SSL $NLS $RO_CPARAMS 
 

@@ -5,7 +5,7 @@ if ! [ -z "$RO_PKG" ] ; then
  params=
 
   for param in $@ ; do
-    if echo $param | grep -q /riscos/env/ ; then
+    if echo $param | grep -q GCCSDK_ENV ; then
       echo "rm: Not removing files during library package creation: $param"
     else
       params="$params $param"

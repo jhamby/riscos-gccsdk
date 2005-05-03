@@ -1,13 +1,18 @@
 
 
 SCRIPTS=ro-ar ro-config ro-install ro-libpack ro-make ro-path
+WRAPPERS=uname cp rm
+
+SED=sed -e s:GCCSDK_ENV:$(ro_env):g -e s:GCCSDK_BIN:$(ux_bin_dir):g
 
 all: scripts links dummies wrappers
 
 
 scripts:
 	mkdir -p $(ro_env)
-	cp $(SCRIPTS) $(ro_env)
+	for script in $(SCRIPTS) ; do \
+	  $(SED) < $$script > $(ro_env)/$$script; \
+	done
 
 links:
 	mkdir -p $(ux_bin_dir)
@@ -21,6 +26,6 @@ dummies:
 
 wrappers:
 	mkdir -p $(ux_bin_dir)
-	cp uname $(ux_bin_dir)
-	cp cp $(ux_bin_dir)
-	cp rm $(ux_bin_dir)
+	for script in $(SCRIPTS) ; do \
+	  $(SED) < $$script > $(ro_env)/$$script; \
+	done
