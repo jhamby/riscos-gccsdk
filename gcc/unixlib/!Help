@@ -1,4 +1,4 @@
-                                UnixLib 4.0
+                                UnixLib 4.1
                                 ~~~~~~~~~~~
 
 This document provides a VERY short introduction to UnixLib, and only covers
@@ -9,7 +9,7 @@ manual (like <URL:http://www.opengroup.org/onlinepubs/007904975/download/>
 and <URL:http://www.opengroup.org/onlinepubs/007908799/>).
 
 The UnixLib is part of the RISC OS GCC SDK and its home page is at
-<URL:http://hard-mofo.dsvr.net/gcc/>. This should be checked for
+<URL:http://gccsdk.riscos.info/>. This should be checked for
 updates and bug-fixes.
 
 
@@ -17,9 +17,9 @@ What
 ~~~~
 
 UnixLib is an APCS-32 compliant Run-Time Library for the RISC OS based
-computers that provides a mixed System V / BSD interface for C and C++
-programs.  It is also an alternative to the "Stubs" and "AnsiLib"
-libraries supplied with the Norcroft C compiler.
+computers that provides a mixed System V / BSD / Linux interface for C and
+C++ programs.  It is also an alternative to the "Stubs" libraries supplied
+with the Norcroft/Castle C/C++ compiler.
 
 It is also the default Run-Time Library for the RISC OS port of GCC.
 
@@ -67,10 +67,16 @@ Distributing of UnixLib based programs
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 When your program is linked with UnixLib, it needs the "SharedUnixLibrary"
-module.  We advise to ship together with your product the following
+module.  If your program is to be distributed on the internet, we
+recommend you direct users to fetch the latest version from the GCCSDK
+home page (http://gccsdk.riscos.info) to ensure they have the latest version.
+Otherwise, we advise to ship together with your product the following
 directory tree !System.310.Modules containing a copy of the
 "SharedUnixLibrary" module as file "SharedULib".  Users can use the
 !System merger to make sure they have the latest version of this module.
+Please don't distribute any development version of SharedUnixLib without
+permission from developers, as you may cause version confusion and the
+potential exists to distribute unstable or untested code.
 
 If you intend your program to run on versions of RISC OS older than 3.7,
 you should also provide an installation note or program to install the

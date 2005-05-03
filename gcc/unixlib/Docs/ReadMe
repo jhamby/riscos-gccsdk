@@ -215,7 +215,7 @@ vfork and exec internally) then, if the child program is greater than
 200k, there must be sufficient free space already inside the wimpslot
 to start the child program. If the child program is less than 200k then
 the wimpslot can be extended to accomodate it. The 200k limit is a bit
-aribtrary, but it is not trivial to determine the size of the child
+arbitrary, but it is not trivial to determine the size of the child
 program before it is loaded, and setting a larger limit could waste
 lots of memory when the child is small.
 Secondly, while vfork() will work when the heap is in the wimpslot or
@@ -296,8 +296,6 @@ makes use of the DigitalRenderer module which can be fetched from:
 
   <URL:http://home.t-online.de/home/zarquon/Software.html>
 
-This is a new feature, and it is likely improvements can be made.
-
 
 iconv support
 ~~~~~~~~~~~~~
@@ -333,6 +331,7 @@ changing an environment for one process will only that process and
 possibly its children. However RISC OS system variables are global and
 if one process changes a variable then that change is seen by all other
 processes.
+
 To cater for both ported programs and native programs, UnixLib changes
 the behaviour of the getenv and setenv functions depending on the name
 of the variable. If the variable has a $ in the name, then it is
