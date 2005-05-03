@@ -85,6 +85,12 @@ m_branch (WORD cc)
 }
 
 void
+m_bx (WORD cc)
+{
+  putIns (cc | 0x01200010 | getCpuReg ());
+}
+
+void
 m_swi (WORD cc)
 {
   Value im;

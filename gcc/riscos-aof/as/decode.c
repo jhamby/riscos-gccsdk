@@ -250,6 +250,8 @@ decode (Lex * label)
 	      goto illegal;
 	    }
 	  break;
+	case 'x':
+	  M_FINISH (m_bx, optionCond);
 	default:
 	  inputUnGet (c);
 	  M_FINISH (m_branch, optionLinkCond);	/* b, bl */

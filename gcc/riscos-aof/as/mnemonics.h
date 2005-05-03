@@ -35,6 +35,7 @@ void m_asn (WORD cc);
 void m_atn (WORD cc);
 void m_bic (WORD cc);
 void m_branch (WORD cc);
+void m_bx  (WORD cc);
 void m_cdp (WORD cc);
 void m_cmn (WORD cc);
 void m_cmf (WORD cc);
