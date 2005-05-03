@@ -35,7 +35,7 @@
  # add -fPIC to MYCFLAGS.
  #
 -MYCFLAGS= -O3 -g
-+MYCFLAGS= -O3
++MYCFLAGS= -O2
  #MYCFLAGS= -O3 -fomit-frame-pointer # -fPIC
  
  # Write here any options you may need for your C linker.
