@@ -87,7 +87,13 @@ m_branch (WORD cc)
 void
 m_bx (WORD cc)
 {
-  putIns (cc | 0x01200010 | getCpuReg ());
+  int dst = getCpuReg();
+
+  cpuWarn (XSCALE);
+  if (dst == 15)
+    error (ErrorWarning, TRUE, "Use of PC with BX is discouraged");
+
+  putIns (cc | 0x01200010 | dst);
 }
 
 void
