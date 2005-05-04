@@ -26,6 +26,10 @@ g++.  The versions of these aren't particularly important, but it is
 recommended you use at least version 3.3 of GCC.  Other versions are known
 to work.
 
+On older Linux installations, in particular, Debian Woody, makeinfo 4.1
+may only be available.  This is only required to build documentation,
+and a work around is shown below.
+
 
 Installation
 ------------
@@ -57,8 +61,12 @@ libraries may be installed.
 	--enable-filetype-ff8 --enable-checking=no
 
 The 'do-configure' script encapsulates this command, so instead of the
-above, you can run "sh do-configure".
+above, you can run "./do-configure".
 
+On systems with makeinfo 4.1, you can avoid building documentation by
+prefixing the ./configure or ./do-configure commands with:
+
+  ac_cv_prog_MAKEINFO=echo
 
 Adding the flag --enable-filetype-ff8 to the configure options will add the
 ",ff8" suffix to any RISC OS executables built under Unix.  This is to allow
