@@ -120,7 +120,7 @@ _kernel_oserror *ThrowbackSendError (int level,
 				     long int lineno, const char *error)
 {
   int regs[10];
-  regs[0] = THROWBACK_REASON_PROCESSING;
+  regs[0] = THROWBACK_REASON_ERROR_DETAILS;
   regs[1] = 0;
   regs[2] = (int) ErrorFile;
   regs[3] = lineno;

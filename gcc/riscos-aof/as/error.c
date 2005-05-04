@@ -97,12 +97,13 @@ TB (int level, long int lineno, const char *error, const char *file)
 
   if (!ThrowbackStarted)
     ThrowbackStarted = ThrowbackStart ()? -1 : 1;
+
   if (ThrowbackStarted == 1)
     {
       _kernel_oserror *err;
 
       if ((err = ThrowbackSendStart (file)) != NULL && verbose > 1)
-	fprintf (stderr, "ThrowbackSendStart error: %s\n", err->errmess);
+        fprintf (stderr, "ThrowbackSendStart error: %s\n", err->errmess);
       if ((err = ThrowbackSendError (level, lineno, error)) != NULL && verbose > 1)
         fprintf (stderr, "ThrowbackSendError error: %s\n", err->errmess);
     }
