@@ -163,9 +163,9 @@ decode()
 		if (symtab && aofhdr->numsyms) {
 			puts("\n** Symbol table:");
 			for (i = 0; i < aofhdr->numsyms; i++) {
-				Byte flags;
-				printf("%-16s ", string(symboltab[i].name));
-				flags = symboltab[i].flags & 0xff;
+				Byte flags = symboltab[i].flags & 0xff;
+				printf("%-16s", string(symboltab[i].name));
+
 				switch (flags & 0x3) {
 					case 0x01:
 						fputs("local ", stdout);
@@ -181,17 +181,17 @@ decode()
 						fputs("unknown-type ", stdout);
 						break;
 				}				
-				if (flags & (1<<2) && flags & (1<<0))
+				if ((flags & (1<<2)) && flags & (1<<0))
 					fputs("constant ", stdout);
-				if (flags & (1<<3) && !(flags & (1<<0)))
+				if ((flags & (1<<3)) && !(flags & (1<<0)))
 					fputs("case-insensitive ", stdout);
-				if (flags & (1<<4) && (flags & 0x03 == 0x02))
+				if ((flags & (1<<4)) && ((flags & 0x03) == 0x02))
 					fputs("weak ", stdout);
-				if (flags & (1<<5) && (flags & 0x03 == 0x03))
+				if ((flags & (1<<5)) && ((flags & 0x03) == 0x03))
 					fputs("strong ", stdout);
-				if (flags & (1<<6) && (flags & 0x03 == 0x02))
+				if ((flags & (1<<6)) && ((flags & 0x03) == 0x02))
 					fputs("common ", stdout);
-				if (flags & (1<<0) || flags & (1<<6)) {
+				if ((flags & (1<<0)) || (flags & (1<<6))) {
 					if (flags & (1<<2))
 						printf("= 0x%08lx", symboltab[i].value);
 					else
@@ -232,7 +232,7 @@ print_area(ifp, areahdr, offset, reloff)
 {
 	Word flags = areahdr->flags >> 8;
 
-	printf("\n** Area (0x%x) \"%s\" ", areahdr->flags, string(areahdr->name));
+	printf("\n** Area (0x%06x) \"%s\" ", areahdr->flags, string(areahdr->name));
 	if (flags & AREA_DEBUG)
 		fputs("[debug] ", stdout);
 	else {
