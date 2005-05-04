@@ -508,7 +508,8 @@ do {							\
 	%{mcpu=strongarm:-t SA110 -apcsfpv3} \
 	%{mcpu=xscale:-t XSCALE -apcsfpv3} \
 	%{mfp=3:-apcsfpv3} %{mfpe=3:-apcsfpv3} %{mapcs-32:-apcs32} \
-	%{msoft-float:-soft-float}"
+	%{msoft-float:-soft-float} \
+	%{mthrowback:-throwback}"
 
 #define TARGET_OS_CPP_BUILTINS()		\
     do {					\
