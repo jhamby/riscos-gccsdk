@@ -502,9 +502,11 @@ do {							\
 
 /* Options to pass through to the assembler.  */
 #undef ASM_SPEC
-#define ASM_SPEC "%{mcpu=strongarm:-t SA110 -apcsfpv3} \
+#define ASM_SPEC "%{!mcpu=*:-t ARM6 -apcsfpv3} \
 	%{mcpu=arm6:-t ARM6 -apcsfpv3} \
 	%{mcpu=arm7:-t ARM7 -apcsfpv3} \
+	%{mcpu=strongarm:-t SA110 -apcsfpv3} \
+	%{mcpu=xscale:-t XSCALE -apcsfpv3} \
 	%{mfp=3:-apcsfpv3} %{mfpe=3:-apcsfpv3} %{mapcs-32:-apcs32} \
 	%{msoft-float:-soft-float}"
 
