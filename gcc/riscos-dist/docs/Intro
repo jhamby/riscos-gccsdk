@@ -31,7 +31,7 @@ The standard RISC OS distribution contains GCC and supporting binaries
 allowing you to start developing applications straight away. So you get
 a C compiler, a C++ compiler, an AOF linker, an AOF assembler, the UnixLib
 C runtime library and headers and stubs for the SharedCLibrary (as found in
-the RISC OS ROMS). 
+the RISC OS ROMS).
 
 
 Installation
@@ -184,7 +184,7 @@ RISC OS specific options
 
  -munixlib
    build and link source code against the UnixLib headers and library
-   files. 
+   files.
 
    -mlibscl and -munixlib are mutually exclusive.  -munixlib is the
    default.
@@ -309,7 +309,7 @@ Basically, use
 
 to enable dynamic areas for the compiler and
 
-  *UnSet GCC$Heap
+  *Unset GCC$Heap
 
 to disable dynamic areas for the compiler.
 
@@ -349,14 +349,14 @@ compilers. Possible solutions are provided for the known problems.
   This is usually caused by a lack of memory. To see how far through
   compilation a file has gone, try compiling with the '-v' flag. '-v' gives
   verbose output and will show the programs gcc is executing.
-  
+
   A lack of memory will be shown up by an almost instantaneous return from
   any program executed. If this happens, try increasing the wimpslot,
   using *wimpslot -min nnnK, where nnn is as follows:
 
       4000K or more for GNU C, Objective-C, C++, Fortran and Pascal.
       6000K or more for GNAT Ada.
-  
+
   When the compiler runs out of memory during compilation, an error
   'virtual memory exhausted' is usually reported.
 
@@ -423,11 +423,11 @@ are not defined (i.e. referenced) by that source.
     C source: fred.c
       Symbols defined: foo, bar, pint
       Symbols referenced: printf, puts, food
-    
+
     C source: bob.c
       Symbols defined: fags, beer, food
       Symbols referenced: bar, pint
-    
+
     C source: harry.c
       Symbols defined: main
       Symbols referenced: foo

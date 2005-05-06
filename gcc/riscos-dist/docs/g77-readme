@@ -14,7 +14,7 @@ This port is © 1996, 1997, 1998, 1999, 2000, 2001 Nick Burrett
 
 As with GNU programs, THERE IS NO WARRANTY OF ANY SORT
 
-This compiler requires a minimum 3200Kb of free RAM for compilations.
+This compiler requires a minimum 3200KB of free RAM for compilations.
 
 
 Files
@@ -28,7 +28,7 @@ This is a binary distribution only and consists of the following files:
   docs.g77-readme   This documentation
   gcc.o.libf2c      Fortran compiler runtime library
 
-The compiler sources (about 47Mb) can be obtained from the sites listed at
+The compiler sources (about 47MB) can be obtained from the sites listed at
 the end of docs.!Intro.
 
 

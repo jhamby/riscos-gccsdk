@@ -1,4 +1,4 @@
-Welcome to GCC 3.4.4 for RISC OS.
+Welcome to GCC 3.4.4 release 2 for RISC OS.
 
 This document covers important notes for new users and existing users alike.
 GCC and UnixLib have undergone many changes, so it's important that you read
@@ -29,6 +29,14 @@ If you've used GCC before:
   !gcc.docs.ULChanges has a comprehensive list of changes to UnixLib.
 
 
+Future Versions of GCC:
+
+  Although we intend to continue maintaining GCC 3.4 for RISC OS,
+  new versions of GCC 4.0 for RISC OS will soon be available, which
+  will be ELF and soft-float based.  We are also working on a shared
+  library system.
+
+
 Credits:
 
   Primary Developers
@@ -39,7 +47,7 @@ Credits:
   - John Tytgat - UnixLib (especially process handling, sockets),
      Norcroft compatibility.
   - Alex Waugh - UnixLib (especially signals, pthreads, file handling)
-  
+
   The following people have also made contributions over the last two years
 
   - Graham Shaw, John-Mark Bell, James Bursa, Stefan Bellon,
