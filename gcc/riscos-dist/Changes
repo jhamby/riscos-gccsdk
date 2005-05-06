@@ -78,10 +78,6 @@ RISC OS GCC release 3.4.4 release 2 (released 6 May 2005)
 * GCC/GCCSDK now includes the 'decaof' tool for examinging AOF object
   files.
 
-* The toolchain now includes support for soft-float floating point
-  behaviour.  Note that you will need to compile all your code (including
-  UnixLib and all libraries) with -msoft-float.
-
 
 RISC OS GCC release 3.4.4 release 1 (released 25 December 2004)
 ===================================
