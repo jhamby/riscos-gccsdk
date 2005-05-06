@@ -27,7 +27,9 @@
 #define LITTLE_ENDIAN
 #endif
 
-#ifdef UNIX
+#ifdef __CYGWIN__
+#include <machine/endian.h>
+#elif UNIX
 #include <endian.h>
 #endif
 
