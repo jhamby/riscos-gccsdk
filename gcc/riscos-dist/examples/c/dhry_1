@@ -14,6 +14,7 @@
  *
  ****************************************************************************
  */
+#include <stdlib.h>
 
 #include "dhry.h"
 
@@ -30,7 +31,6 @@ int             Arr_2_Glob [50] [50];
 
 int _exit_dummy_decl;
 
-extern char     *malloc ();
 Enumeration     Func_1 ();
   /* forward declaration necessary since Enumeration may not simply be int */
 
