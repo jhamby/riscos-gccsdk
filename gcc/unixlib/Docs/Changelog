@@ -1,3 +1,8 @@
+Fri May  6 10:10:16 2005  Peter Naulls  <peter@chocky.org>
+
+	* clib/sys/select.h: Add NFDBITS constant.
+	* sys/_syslib.s: Require SharedUnixLibrary 1.06
+
 Tue May  3 15:56:47 2005  John-Mark Bell  <jmb202@ecs.soton.ac.uk>
 	* clib/sys/queue.h: Update to more recent version including more
 	  queue types.

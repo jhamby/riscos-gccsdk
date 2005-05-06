@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/sys/select.h,v $
- * $Date: 2004/10/17 16:24:43 $
- * $Revision: 1.7 $
+ * $Date: 2005/04/13 19:20:06 $
+ * $Revision: 1.8 $
  * $State: Exp $
- * $Author: joty $
+ * $Author: nick $
  *
  ***************************************************************************/
 
@@ -57,7 +57,11 @@ typedef struct
 #define	FD_ISSET(d, set)	((set)->fds_bits[__FDELT(d)] & __FDMASK(d))
 
 #ifdef __USE_MISC
+/* Sometimes the fd_set member is assumed to have this type.  */
 typedef __fd_mask fd_mask;
+
+/* Number of bits per word of `fd_set' (some code assumes this is 32).  */
+# define NFDBITS		__NFDBITS
 #endif
 
 typedef __fd_set fd_set;
