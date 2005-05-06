@@ -17,6 +17,7 @@ GCCPKG = $(pkg)/\!Run,feb \
 	$(pkg)/Changes \
 	$(pkg)/include \
 	$(pkg)/bin/ar$(exesfx) \
+	$(pkg)/bin/decaof$(exesfx) \
 	$(pkg)/bin/drlink$(exesfx) \
 	$(pkg)/bin/dyn_kill,ffb \
 	$(pkg)/bin/gcc$(exesfx) \
@@ -82,8 +83,7 @@ UTILSPKG = $(pkg)/bin/bison$(exesfx) \
 	$(pkg)/docs/rink \
 	$(pkg)/docs/sed \
 	$(bindir)/apcs32/arch3/unixlib/o/libfl \
-	$(bindir)/apcs32/arch3/unixlib/o/libiberty \
-	$(bindir)/apcs32/arch3/unixlib/o/libmp
+	$(bindir)/apcs32/arch3/unixlib/o/libiberty
 
 SYSTEMPKG = `basename $(ro_syspkg)`
 
