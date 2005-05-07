@@ -24,7 +24,7 @@ AB_ROVERSION=1
 AB_PREZIP=
 
 # Command in front of invokation of RISC OS GNU configure wrapper.  If you do
-# not want this to be called, you could see this var to ":"
+# not want this to be called, you could set this var to ":"
 AB_PRECONF=
 
 # Flags to pass to configure in addition to those added by the configure
@@ -56,6 +56,3 @@ AB_README=ReadMe,fff
 # Finally, as this file is executed as a bash script, you can place other
 # commands in here.  These will be executed after unpack of the source
 # and application of any patches, but before any configuration or build.
-
-
-
