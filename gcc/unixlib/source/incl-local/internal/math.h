@@ -1,13 +1,3 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/incl-local/internal/math.h,v $
- * $Date: 2005/04/14 14:31:13 $
- * $Revision: 1.1 $
- * $State: Exp $
- * $Author: nick $
- *
- ***************************************************************************/
-
 /*
  * ====================================================
  * Copyright (C) 1993 by Sun Microsystems, Inc. All rights reserved.
@@ -25,7 +15,7 @@
 #ifndef __UNIXLIB_TYPES_H
 #include <unixlib/types.h>
 #endif
-
+#include <endian.h>
 #include <stdint.h>
 
 __BEGIN_DECLS
@@ -44,6 +34,7 @@ __BEGIN_DECLS
 /* A union which permits us to convert between a double and two 32 bit
    ints.  */
 
+#if __FLOAT_WORD_ORDER == __BIG_ENDIAN
 
 typedef union
 {
@@ -54,6 +45,22 @@ typedef union
     __uint32_t lsw;
   } parts;
 } ieee_double_shape_type;
+
+#endif
+
+#if __FLOAT_WORD_ORDER == __LITTLE_ENDIAN
+
+typedef union
+{
+  double value;
+  struct
+  {
+    __uint32_t lsw;
+    __uint32_t msw;
+  } parts;
+} ieee_double_shape_type;
+
+#endif
 
 /* Get two 32 bit ints from a double.  */
 
@@ -143,6 +150,8 @@ do {								\
 /* A union which permits us to convert between a long double and
    three 32 bit ints.  */
 
+#if __FLOAT_WORD_ORDER == __BIG_ENDIAN
+
 typedef union
 {
   long double value;
@@ -155,6 +164,25 @@ typedef union
     __uint32_t lsw;
   } parts;
 } ieee_long_double_shape_type;
+
+#endif
+
+#if __FLOAT_WORD_ORDER == __LITTLE_ENDIAN
+
+typedef union
+{
+  long double value;
+  struct
+  {
+    __uint32_t lsw;
+    __uint32_t msw;
+    unsigned int exponent:15;
+    unsigned int sign:1;
+    unsigned int empty:16;
+  } parts;
+} ieee_long_double_shape_type;
+
+#endif
 
 /* Get three 32 bit ints from a double. Hacked for ARM FPA.  */
 

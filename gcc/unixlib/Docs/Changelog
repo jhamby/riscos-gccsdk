@@ -1,3 +1,50 @@
+Sat May  7 10:14:36 2005  Nick Burrett  <nick@sqrt.co.uk>
+
+	Software-floating point support.
+	* source/Makefile.in (LIBM_FLAGS): Remove.
+	* incl-local/math_private.h (LITTLE_ENDI): Define flags here according
+	to value of __FLOAT_WORD_ORDER.
+	(HIGH_HALF): Define.
+	(LOW_HALF): Define.
+	(BIG_ENDI): Define
+	* endian.h (__FLOAT_BIT_ORDER): Define.
+	(__FLOAT_WORD_ORDER): Define.
+	* ieee754.h: Redefine unions according to values of __FLOAT_BIT_ORDER
+	and __FLOAT_WORD_ORDER.
+	* gdtoa/fpmath.h: Likewise.
+	* gdtoa/arith.h: Include endian.h.
+	* incl-local/internal/elf-macros.s (__SOFTFP__): Define to zero,
+	if not defined.
+	* incl-local/internal/math.h: Include endian.h.  Add structures
+	to cope with little-endian __FLOAT_WORD_ORDER.
+	* libm-dbl64/branred.c: Include <math_private.h> first, drop
+	inclusion of endian.h.
+	* libm-dbl64/{dosincos.c, e_asin, e_atan2.c, e_exp.c}: Likewise.
+	* libm-dbl64/{e_log.c, e_pow.c, e_remainder.c, mpa.c}: Likewise.
+	* libm-dbl64/{mpatan.c, mpatan2.c, mpexp.c, mplog.c}: Likewise.
+	* libm-dbl64/{mpsqrt.c, mptan.c, s_atan.c, s_sin.c}: Likewise.
+	* libm-dbl64/{sincos32.c, slowexp.c, slowpow.c}: Likewise.
+	* libm-dbl64/upow.h: Swap ordering of 'static' and 'const'.
+
+	* fenv/fclrexcpt.c: Use __SOFTFP__ rather than __SOFT_FLOAT__.
+	* fenv/fedisblxcpt.c: Likewise.
+	* fenv/fegetexcept.c: Likewise.
+	* fenv/feholdexcpt.c: Likewise.
+	* fenv/fesetenv.c: Likewise.
+	* fenv/fraiseexcpt.c: Likewise.
+	* fenv/fsetexcptflg.c: Likewise.
+	* fenv/ftestexcept.c: Likewise.
+
+	* stdlib/alloc.c (malloc): Check for __pthread_system_running
+	before enabling/disabling interrupts.
+	(free, realloc, memalign, valloc, pvalloc, calloc): Likewise.
+	(cfree, malloc_trim): Likewise.
+
+	* bits/signum.h: New file.
+	* signal.h: Move all signal number definitions e.g. SIGHUP into
+	bits/signum.h.
+	(SIG_ERR, SIG_DFL, SIG_IGN, NSIG): Likewise.
+
 Fri May  6 11:54:07 2005  Peter Naulls  <peter@chocky.org>
 
 	* UnixLib 4.1 release.
@@ -8,6 +55,7 @@ Fri May  6 10:10:16 2005  Peter Naulls  <peter@chocky.org>
 	* sys/_syslib.s: Require SharedUnixLibrary 1.06
 
 Tue May  3 15:56:47 2005  John-Mark Bell  <jmb202@ecs.soton.ac.uk>
+
 	* clib/sys/queue.h: Update to more recent version including more
 	  queue types.
 	

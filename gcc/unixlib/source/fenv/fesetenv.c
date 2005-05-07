@@ -23,7 +23,7 @@
 int
 fesetenv (const fenv_t *envp)
 {
-#ifndef __SOFT_FLOAT__
+#ifndef __SOFTFP__
   if (envp == FE_DFL_ENV)
     _FPU_SETCW (_FPU_DEFAULT);
   else

@@ -30,11 +30,10 @@
 /*                                                                        */
 /* ************************************************************************/
 
-#include "endian.h"
+#include <math_private.h>
 #include "mydefs.h"
 #include "urem.h"
 #include "MathLib.h"
-#include "math_private.h"
 
 /**************************************************************************/
 /* An ultimate remainder routine. Given two IEEE double machine numbers x */

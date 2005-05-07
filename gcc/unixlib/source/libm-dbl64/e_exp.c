@@ -33,12 +33,11 @@
 /*                                                                         */
 /***************************************************************************/
 
-#include "endian.h"
+#include <math_private.h>
 #include "uexp.h"
 #include "mydefs.h"
 #include "MathLib.h"
 #include "tbl_uexp.h"
-#include "math_private.h"
 
 double __slowexp(double);
 

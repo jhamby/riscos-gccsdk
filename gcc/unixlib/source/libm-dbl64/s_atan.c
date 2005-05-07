@@ -36,7 +36,7 @@
 /* round to nearest mode of IEEE 754 standard.                          */
 /*                                                                      */
 /************************************************************************/
-
+#include <math_private.h>
 #include "dla.h"
 #include "mpa.h"
 #include "MathLib.h"

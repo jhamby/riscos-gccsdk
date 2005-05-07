@@ -14,14 +14,9 @@ WARNINGS = -pedantic -Wall -Wundef -Wpointer-arith \
 	-Wcast-align -Wwrite-strings -Winline -Wno-unused \
 	-W -Wcast-qual -Wshadow $(WARNINGSC)
 
-# IBM MathLib flags.  The ARM FPA represents FP words in big-endian
-# format with the word-order swapped.
-LIBM_FLAGS = -DBIG_ENDI -DHIGH_HALF=0 -DLOW_HALF=1
-
 # C99 mode is required to build UnixLib because the library now contains
 # a lot of C99 features.
-CROSS_CFLAGS += -D__UNIXLIB_INTERNALS $(WARNINGS) -D_GNU_SOURCE=1 -std=c99 \
-	$(LIBM_FLAGS)
+CROSS_CFLAGS += -D__UNIXLIB_INTERNALS $(WARNINGS) -D_GNU_SOURCE=1 -std=c99
 
 INCLUDES = -isystem clib -I incl-local
 

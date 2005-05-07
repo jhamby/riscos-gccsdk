@@ -23,7 +23,7 @@
 int
 fetestexcept (int excepts)
 {
-#ifndef __SOFT_FLOAT__
+#ifndef __SOFTFP__
   fexcept_t temp;
 
   /* Get current exceptions.  */

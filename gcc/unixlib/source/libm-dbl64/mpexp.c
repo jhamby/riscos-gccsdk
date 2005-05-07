@@ -30,7 +30,7 @@
 /*   (  for p >= 4, 2**(-55) <= abs(x) <= 1024     ).                    */
 /*************************************************************************/
 
-#include "endian.h"
+#include <math_private.h>
 #include "mpa.h"
 #include "mpexp.h"
 

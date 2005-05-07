@@ -1,15 +1,10 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/machine/Attic/endian.h,v $
- * $Date: 2001/01/29 15:10:19 $
- * $Revision: 1.2 $
- * $State: Exp $
- * $Author: admin $
- *
- ***************************************************************************/
+/* Define byte-sex for the host system.
+   Copyright (c) 2004, 2005 UnixLib Developers.  */
 
 #ifndef	__ENDIAN_H
 #define	__ENDIAN_H	1
+
+#include <features.h>
 
 /* Definitions for byte order, according to significance of bytes, from low
    addresses to high addresses.  The value is what you get by putting '4'
@@ -24,10 +19,25 @@
 /* Byte order for RISC OS is little endian.  */
 #define __BYTE_ORDER __LITTLE_ENDIAN
 
+#ifdef __USE_BSD
 /* For compatibility with BSD.  */
 #define	LITTLE_ENDIAN	__LITTLE_ENDIAN
 #define	BIG_ENDIAN	__BIG_ENDIAN
 #define	PDP_ENDIAN	__PDP_ENDIAN
 #define	BYTE_ORDER	__BYTE_ORDER
+#endif
+
+/* Define the floating-point compatibility macros.  */
+
+#ifdef __SOFTFP__
+/* Software floating point, utilises big-endial words.  */
+#define __FLOAT_BIT_ORDER __BIG_ENDIAN
+#define __FLOAT_WORD_ORDER __BIG_ENDIAN
+#else
+/* ARM/FPA format uses an inconsistent mix of little-endian words,
+   stored in a big endian order. */
+#define __FLOAT_BIT_ORDER __LITTLE_ENDIAN
+#define __FLOAT_WORD_ORDER __BIG_ENDIAN
+#endif
 
 #endif

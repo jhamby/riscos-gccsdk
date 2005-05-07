@@ -33,10 +33,9 @@
 /* of x.                                                           */
 /*******************************************************************/
 
-#include "endian.h"
+#include <math_private.h>
 #include "mydefs.h"
 #include "branred.h"
-#include "math_private.h"
 
 
 /*******************************************************************/

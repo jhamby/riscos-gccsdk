@@ -35,7 +35,7 @@
 /* bound of at most 2**(-52). The routine improves the accuracy of y.   */
 /*                                                                      */
 /************************************************************************/
-#include "endian.h"
+#include <math_private.h>
 #include "mpa.h"
 
 void __mpexp(mp_no *, mp_no *, int);

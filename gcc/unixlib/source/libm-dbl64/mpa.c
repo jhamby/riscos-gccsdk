@@ -43,8 +43,7 @@
 /* Relative errors are bounded                                          */
 /************************************************************************/
 
-
-#include "endian.h"
+#include <math_private.h>
 #include "mpa.h"
 #include "mpa2.h"
 /* mcr() compares the sizes of the mantissas of two multiple precision  */

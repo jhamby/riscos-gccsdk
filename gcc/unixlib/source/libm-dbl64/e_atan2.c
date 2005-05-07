@@ -37,12 +37,12 @@
 /*                                                                      */
 /************************************************************************/
 
+#include <math_private.h>
 #include "dla.h"
 #include "mpa.h"
 #include "MathLib.h"
 #include "tbl_uatan.h"
 #include "atnat2.h"
-#include "math_private.h"
 
 /************************************************************************/
 /* An ultimate atan2 routine. Given two IEEE double machine numbers y,x */

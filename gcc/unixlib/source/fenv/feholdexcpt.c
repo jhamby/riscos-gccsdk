@@ -23,7 +23,7 @@
 int
 feholdexcept (fenv_t *envp)
 {
-#ifndef __SOFT_FLOAT__
+#ifndef __SOFTFP__
   unsigned long int temp;
 
   /* Store the environment.  */

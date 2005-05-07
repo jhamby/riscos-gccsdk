@@ -40,10 +40,9 @@
 /* a double number x into multi precision number   y,           */
 /* such that y=x-n*pi/2, abs(y)<pi/4,  n=0,+-1,+-2,....         */
 /****************************************************************/
-#include "endian.h"
+#include <math_private.h>
 #include "mpa.h"
 #include "sincos32.h"
-#include "math_private.h"
 
 /****************************************************************/
 /* Compute Multi-Precision sin() function for given p.  Receive */

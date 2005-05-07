@@ -24,7 +24,7 @@
 int
 fegetexcept (void)
 {
-#ifndef __SOFT_FLOAT__
+#ifndef __SOFTFP__
   unsigned long temp;
 
   _FPU_GETCW (temp);

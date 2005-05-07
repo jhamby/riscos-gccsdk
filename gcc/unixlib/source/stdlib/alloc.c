@@ -3934,76 +3934,94 @@ void *malloc_trim_unlocked (void *state, size_t pad)
 void *malloc (size_t bytes)
 {
   void *ptr;
-  __pthread_disable_ints ();
+  if (__pthread_system_running)
+    __pthread_disable_ints ();
   ptr = malloc_unlocked (__ul_global.malloc_state, bytes);
-  __pthread_enable_ints ();
+  if (__pthread_system_running)
+    __pthread_enable_ints ();
   return ptr;
 }
 
 void free (void *ptr)
 {
-  __pthread_disable_ints ();
+  if (__pthread_system_running)
+    __pthread_disable_ints ();
   free_unlocked (__ul_global.malloc_state, ptr);
-  __pthread_enable_ints ();
+  if (__pthread_system_running)
+    __pthread_enable_ints ();
 }
 
 void *realloc (void *ptr, size_t bytes)
 {
-  __pthread_disable_ints ();
+  if (__pthread_system_running)
+    __pthread_disable_ints ();
   ptr = realloc_unlocked (__ul_global.malloc_state, ptr, bytes);
-  __pthread_enable_ints ();
+  if (__pthread_system_running)
+    __pthread_enable_ints ();
   return ptr;
 }
 
 void *memalign (size_t alignment, size_t bytes)
 {
   void *ptr;
-  __pthread_disable_ints ();
+  if (__pthread_system_running)
+    __pthread_disable_ints ();
   ptr = memalign_unlocked (__ul_global.malloc_state, alignment, bytes);
-  __pthread_enable_ints ();
+  if (__pthread_system_running)
+    __pthread_enable_ints ();
   return ptr;
 }
 
 void *valloc (size_t bytes)
 {
   void *ptr;
-  __pthread_disable_ints ();
+  if (__pthread_system_running)
+    __pthread_disable_ints ();
   ptr = int_valloc (__ul_global.malloc_state, bytes);
-  __pthread_enable_ints ();
+  if (__pthread_system_running)
+    __pthread_enable_ints ();
   return ptr;
 }
 
 void *pvalloc (size_t bytes)
 {
   void *ptr;
-  __pthread_disable_ints ();
+  if (__pthread_system_running)
+    __pthread_disable_ints ();
   ptr = int_pvalloc (__ul_global.malloc_state, bytes);
-  __pthread_enable_ints ();
+  if (__pthread_system_running)
+    __pthread_enable_ints ();
   return ptr;
 }
 
 void *calloc (size_t n, size_t elem_size)
 {
   void *ptr;
-  __pthread_disable_ints ();
+  if (__pthread_system_running)
+    __pthread_disable_ints ();
   ptr = int_calloc (__ul_global.malloc_state, n, elem_size);
-  __pthread_enable_ints ();
+  if (__pthread_system_running)
+    __pthread_enable_ints ();
   return ptr;
 }
 
 void cfree (void *ptr)
 {
-  __pthread_disable_ints ();
+  if (__pthread_system_running)
+    __pthread_disable_ints ();
   int_cfree (__ul_global.malloc_state, ptr);
-  __pthread_enable_ints ();
+  if (__pthread_system_running)
+    __pthread_enable_ints ();
 }
 
 int malloc_trim (size_t bytes)
 {
   int result;
-  __pthread_disable_ints ();
+  if (__pthread_system_running)
+    __pthread_disable_ints ();
   result = (int) malloc_trim_unlocked (__ul_global.malloc_state, bytes);
-  __pthread_enable_ints ();
+  if (__pthread_system_running)
+    __pthread_enable_ints ();
   return result;
 }
 

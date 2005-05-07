@@ -24,7 +24,7 @@
 int
 fedisableexcept (int excepts)
 {
-#ifndef __SOFT_FLOAT__
+#ifndef __SOFTFP__
   unsigned long int new_exc, old_exc;
 
   _FPU_GETCW(new_exc);
@@ -37,6 +37,8 @@ fedisableexcept (int excepts)
 
   _FPU_SETCW(new_exc);
 
-#endif
   return old_exc;
+#else
+  return 0;
+#endif
 }

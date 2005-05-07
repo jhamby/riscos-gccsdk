@@ -32,8 +32,8 @@
 /* calls to mpexp routine                                                */
 /*************************************************************************/
 
+#include <math_private.h>
 #include "mpa.h"
-#include "math_private.h"
 
 void __mpexp(mp_no *x, mp_no *y, int p);
 void __mplog(mp_no *x, mp_no *y, int p);

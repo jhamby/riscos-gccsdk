@@ -35,7 +35,7 @@
 /* significant bits.                                                  */
 /*                                                                    */
 /**********************************************************************/
-#include "endian.h"
+#include <math_private.h>
 #include "mpa.h"
 
 int __mpranred(double, mp_no *, int);

@@ -3,6 +3,10 @@
 @
 @ This file and aof-macros.s must be kept in sync with each other
 
+#ifndef __SOFTFP__
+#define __SOFTFP__ 0
+#endif
+	
 	@ Turn on macro extensions, allowing the use of LOCAL.
 	.altmacro
 

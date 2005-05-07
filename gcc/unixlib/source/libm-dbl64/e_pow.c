@@ -35,13 +35,12 @@
 /* round to nearest mode of IEEE 754 standard.                             */
 /*                                                                         */
 /***************************************************************************/
-#include "endian.h"
+#include <math_private.h>
 #include "upow.h"
 #include "dla.h"
 #include "mydefs.h"
 #include "MathLib.h"
 #include "tbl_upow.h"
-#include "math_private.h"
 
 
 double __exp1(double x, double xx, double error);

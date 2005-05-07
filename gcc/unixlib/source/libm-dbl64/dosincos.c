@@ -32,13 +32,11 @@
 /********************************************************************/
 
 
-
-#include "endian.h"
+#include <math_private.h>
 #include "mydefs.h"
 #include "tbl_sincos.h"
 #include "dla.h"
 #include "dosincos.h"
-#include "math_private.h"
 
 /***********************************************************************/
 /* Routine receive Double-Length number (x+dx) and computing sin(x+dx) */

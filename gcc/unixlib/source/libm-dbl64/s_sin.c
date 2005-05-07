@@ -47,13 +47,11 @@
 /*                                                                          */
 /****************************************************************************/
 
-
-#include "endian.h"
+#include <math_private.h>
 #include "mydefs.h"
 #include "usncs.h"
 #include "MathLib.h"
 #include "tbl_sincos.h"
-#include "math_private.h"
 
 static const double
           sn3 = -1.66666666666664880952546298448555E-01,

@@ -31,7 +31,7 @@
 #include "mydefs.h"
 
 #ifdef BIG_ENDI
-  const static mynumber
+static const mynumber
 /**/ nZERO	    = {{0x80000000, 0}},	  /* -0.0          */
 /**/ INF            = {{0x7ff00000, 0x00000000}}, /* INF           */
 /**/ nINF           = {{0xfff00000, 0x00000000}}, /* -INF          */
@@ -46,7 +46,7 @@
 
 #else
 #ifdef LITTLE_ENDI
-  const static mynumber
+static const mynumber
 /**/ nZERO	    = {{0, 0x80000000}},	  /* -0.0          */
 /**/ INF            = {{0x00000000, 0x7ff00000}}, /* INF           */
 /**/ nINF           = {{0x00000000, 0xfff00000}}, /* -INF           */
@@ -62,7 +62,7 @@
 #endif
 #endif
 
-const static double p2=-0.5, p3 =  3.3333333333333333333e-1, p4 = -0.25,
+static const double p2=-0.5, p3 =  3.3333333333333333333e-1, p4 = -0.25,
   q2 = -0.5, q3 = 3.3333333333331404e-01, q4 =  -2.4999999999996436e-01,
   q5 =  2.0000010500004459e-01, q6 =  -1.6666678916688004e-01,
   r3 =  3.33333333333333333372884096563030E-01,

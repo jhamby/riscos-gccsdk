@@ -34,12 +34,10 @@
 /*                                                                   */
 /*********************************************************************/
 
-
-#include "endian.h"
+#include <math_private.h>
 #include "dla.h"
 #include "mpa.h"
 #include "MathLib.h"
-#include "math_private.h"
 
 void __mplog(mp_no *, mp_no *, int);
 

@@ -34,8 +34,7 @@
 /*                                                                */
 /******************************************************************/
 
-
-
+#include <math_private.h>
 #include "mpa.h"
 
 void __mpsqrt(mp_no *, mp_no *, int);

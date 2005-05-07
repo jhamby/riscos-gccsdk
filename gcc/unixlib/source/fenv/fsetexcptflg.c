@@ -24,7 +24,7 @@
 int
 fesetexceptflag (const fexcept_t *flagp, int excepts)
 {
-#ifndef __SOFT_FLOAT__
+#ifndef __SOFTFP__
   fexcept_t temp;
 
   /* Get the current environment.  */

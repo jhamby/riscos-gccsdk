@@ -22,7 +22,7 @@
 
 int feclearexcept (int excepts)
 {
-#ifndef __SOFT_FLOAT__
+#ifndef __SOFTFP__
   unsigned long int temp;
 
   /* Mask out unsupported bits/exceptions.  */

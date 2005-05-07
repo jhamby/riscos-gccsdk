@@ -33,14 +33,13 @@
 /* round to nearest mode of IEEE 754 standard.                    */
 /*                                                                */
 /******************************************************************/
-#include "endian.h"
+#include <math_private.h>
 #include "mydefs.h"
 #include "tbl_asincos.h"
 #include "tbl_root.h"
 #include "tbl_powtwo.h"
 #include "MathLib.h"
 #include "uasncs.h"
-#include "math_private.h"
 
 void __doasin(double x, double dx, double w[]);
 void __dubsin(double x, double dx, double v[]);
