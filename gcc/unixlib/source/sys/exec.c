@@ -378,8 +378,8 @@ execve (const char *execname, char *const argv[], char *const envp[])
   debug_printf ("execve: about to call: %s\n", cli);
 #endif
   __proc->sul_exec (__proc->pid, cli,
-		    __ul_memory.unixlib_stack_limit,
-		    __ul_memory.unixlib_stack);
+		    (void *) __ul_memory.unixlib_stack_limit,
+		    (void *) __ul_memory.unixlib_stack);
 
 
   /* This is never reached.  */

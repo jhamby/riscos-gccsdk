@@ -133,7 +133,7 @@ sigsetup (struct unixlib_sigstate *ss, sighandler_t handler,
      executor.  */
   if ((int)ss->signalstack.ss_size == -1)
     {
-      unsigned int low = ss->signalstack.ss_sp;
+      unsigned int low = (unsigned int) ss->signalstack.ss_sp;
       unsigned int high = low + 16384;
 #ifdef DEBUG
       debug_printf ("sigsetup: will execute signal off a BSD stack\n");
@@ -152,11 +152,11 @@ sigsetup (struct unixlib_sigstate *ss, sighandler_t handler,
 #endif
 	  return 1;
 	}
-      __unixlib_exec_sigstack_bsd (low, handler, signo);
+      __unixlib_exec_sigstack_bsd ((void *) low, handler, signo);
     }
   else
     {
-      unsigned int low = ss->signalstack.ss_sp;
+      unsigned int low = (unsigned int) ss->signalstack.ss_sp;
       unsigned int high = low + ss->signalstack.ss_size;
 #ifdef DEBUG
       debug_printf ("sigsetup: will execute signal off a POSIX stack\n");
@@ -174,7 +174,8 @@ sigsetup (struct unixlib_sigstate *ss, sighandler_t handler,
 	  return 1;
 	}
 
-      __unixlib_exec_sigstack (low, ss->signalstack.ss_size, handler, signo);
+      __unixlib_exec_sigstack ((void *) low, ss->signalstack.ss_size,
+			       handler, signo);
     }
   /* Say that the signal stack is no longer in use.  */
   ss->signalstack.ss_flags &= ~SA_ONSTACK;

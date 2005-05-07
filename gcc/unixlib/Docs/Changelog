@@ -1,3 +1,8 @@
+Sat May  7 16:08:52 2005  Stefan Bellon  <sbellon@sbellon.de>
+
+	* signal/post.c (sigsetup): Casting fixes for Norcroft compatibility
+	* sys/exec.c (execve): Likewise.
+
 Sat May  7 10:14:36 2005  Nick Burrett  <nick@sqrt.co.uk>
 
 	Software-floating point support.
