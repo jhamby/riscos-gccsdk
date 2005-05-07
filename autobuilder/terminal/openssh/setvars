@@ -3,9 +3,10 @@ AB_CATEGORY=terminal
 
 AB_CONFLAGS="--disable-libutil --without-lastlog --disable-utmp --disable-wtmp"
 
-AB_FILESNOPATH="ssh,ff8 LICENCE"
-
 AB_MANPAGE=ssh.1
 
+ab_package () {
+  cp -av $S/ssh,ff8 $S/LICENCE $D
+}
 
 
