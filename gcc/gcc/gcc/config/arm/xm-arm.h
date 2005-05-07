@@ -21,29 +21,12 @@ along with GNU CC; see the file COPYING.  If not, write to
 the Free Software Foundation, 59 Temple Place - Suite 330,
 Boston, MA 02111-1307, USA.  */
 
-/* #defines that need visibility everywhere.  */
-#define FALSE 0
-#define TRUE 1
-
 /* This describes the machine the compiler is hosted on.  */
 #define HOST_BITS_PER_CHAR 8
 #define HOST_BITS_PER_SHORT 16
 #define HOST_BITS_PER_INT 32
 #define HOST_BITS_PER_LONG 32
 #define HOST_BITS_PER_LONGLONG 64
-
-/* A code distinguishing the floating point format of the host
-   machine.  There are three defined values: IEEE_FLOAT_FORMAT,
-   VAX_FLOAT_FORMAT, and UNKNOWN_FLOAT_FORMAT.  */
-
-#define HOST_FLOAT_FORMAT IEEE_FLOAT_FORMAT
-
-#define HOST_FLOAT_WORDS_BIG_ENDIAN 1
-
-/* If not compiled with GNU C, use C alloca.  */
-#ifndef __GNUC__
-#define USE_C_ALLOCA
-#endif
 
 /* Define this to be 1 if you know the host compiler supports prototypes, even
    if it doesn't define __STDC__, or define it to be 0 if you do not want any
@@ -57,12 +40,6 @@ Boston, MA 02111-1307, USA.  */
 /* Arguments to use with `exit'.  */
 #define SUCCESS_EXIT_CODE 0
 #define FATAL_EXIT_CODE 33
-
-/* If we have defined POSIX, but are compiling in the BSD environment, then
-   we need to define getcwd in terms of getwd.  */
-#if defined (POSIX) && defined (_BSD_C)
-#define HAVE_GETWD 1
-#endif
 
 /* EOF xm-arm.h */
 
