@@ -1,0 +1,9 @@
+
+AB_CVS_ROOT=:pserver:guest:@libsdl.org:/home/sdlweb/libsdl.org/cvs
+AB_CVS_MODULE=SDL12
+                             
+AB_INSTALL=yes
+
+mkdir -p $D/include/SDL/
+
+./autogen.sh
