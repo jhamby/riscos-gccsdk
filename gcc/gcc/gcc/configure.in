@@ -74,15 +74,15 @@ AC_HEADER_TIME
 gcc_AC_HEADER_STDBOOL
 gcc_AC_HEADER_STRING
 AC_CHECK_HEADERS(direct.h malloc.h stdint.h inttypes.h endian.h machine/endian.h)
-AC_CHECK_HEADERS(vfork.h fcntl.h limits.h stab.h stddef.h stdlib.h)
+AC_CHECK_HEADERS(vfork.h fcntl.h limits.h maloc.h stab.h stdbool.h stddef.h stdlib.h)
 AC_CHECK_HEADERS(string.h strings.h sys/file.h sys/mman.h sys/param.h sys/resource.h)
-AC_CHECK_HEADERS(sys/stat.h sys/time.h sys/times.h time.h unistd.h)
+AC_CHECK_HEADERS(sys/stat.h sys/time.h sys/times.h sys/wait.h time.h unistd.h)
 
 # Check for thread headers.
 AC_CHECK_HEADER(thread.h, [have_thread_h=yes], [have_thread_h=])
 AC_CHECK_HEADER(pthread.h, [have_pthread_h=yes], [have_pthread_h=])
 
-AC_CHECK_FUNCS(alphasort atoll atoq)
+AC_CHECK_FUNCS(alphasort abort atoll atoq)
 AC_CHECK_FUNCS(bcmp bcopy bsearch bzero clock dup2 getrlimit gettimeofday index)
 AC_CHECK_FUNCS(isascii kill lstat mmap popen putenv scandir setrlimit strchr strerror)
 AC_CHECK_FUNCS(strrchr strsignal strtoul sysconf stpcpy times)
@@ -258,17 +258,16 @@ GCC_NEED_DECLARATION($ac_func, $2)
 done
 ])
 
+# We will need to find libiberty.h and ansidecl.h
+saved_CFLAGS="$CFLAGS"
+CFLAGS="$CFLAGS -I. -I../../include"
+
 gcc_AC_CHECK_DECLS(getenv atol sbrk abort atof getcwd getwd \
 	strsignal putc_unlocked fputs_unlocked fwrite_unlocked \
 	fprintf_unlocked strstr errno snprintf vasprintf \
 	malloc realloc calloc free basename getopt clock, , ,[
 #include "ansidecl.h"
 #include "system.h"])
-
-# We will need to find libiberty.h and ansidecl.h
-saved_CFLAGS="$CFLAGS"
-CFLAGS="$CFLAGS -I. -I../../include"
-
 
 gcc_AC_CHECK_DECLS(getrlimit setrlimit getrusage, , ,[
 #include "ansidecl.h"
