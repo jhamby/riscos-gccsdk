@@ -7,23 +7,27 @@ AB_NOFETCH=no         # Using existing source fetched from last time
 AB_VERBOSE=no         # Echo output
 
 for param in $@ ; do
- if [ "$param" == "-d" ] ; then
-   AB_DEBUG=yes
- else
-   if [ "$param" == "-p" ] ; then
-     AB_PACKONLY=yes
-   else
-     if [ "$param" == "-f" ] ; then
+  case "$param" in
+    -d)
+      AB_DEBUG=yes
+      ;;
+    -p)
+      AB_PACKONLY=yes
+      ;;
+    -f)
        AB_NOFETCH=yes
-     else
-       if [ "$param" == "-v" ] ; then
-         AB_VERBOSE=yes
-       else
-         AB_PACKAGES="$AB_PACKAGES $param"
-       fi
-     fi
-   fi  
- fi
+       ;;
+    -v)
+       AB_VERBOSE=yes
+       ;;
+    -*)
+       echo "Autobuilder: unknown option $param"
+       exit 1
+       ;;
+    *)
+       AB_PACKAGES="$AB_PACKAGES $param"
+       ;;
+  esac
 done
 
 export AB_PACKONLY
@@ -110,6 +114,8 @@ for AB_PACKAGEDIR in $AB_PACKAGES ; do
        rm -f $AB_HOME/$AB_PACKAGEDIR/last-failure
      fi
      echo
+   else
+     echo "Autobuilder: No setvars found for package \"$AB_PACKAGE\" - ignoring" 1>&2
    fi
    #rm -f /tmp/ab-success /tmp/ab-failure
  else
