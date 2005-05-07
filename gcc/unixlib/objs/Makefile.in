@@ -1,13 +1,13 @@
 # Project:   GCCSDK UnixLib
 
 # $Source: /usr/local/cvsroot/gccsdk/unixlib/objs/Makefile.in,v $
-# $Date: 2005/04/25 18:25:47 $
-# $Revision: 1.13 $
+# $Date: 2005/04/25 21:21:39 $
+# $Revision: 1.14 $
 # $State: Exp $
-# $Author: nick $
+# $Author: joty $
 
 CCfeatures =
-Predefs = -D__UNIXLIB_INTERNALS -DBIG_ENDI -DHIGH_HALF=0 -DLOW_HALF=1 -D_GNU_SOURCE=1
+Predefs = -D__UNIXLIB_INTERNALS -D_GNU_SOURCE=1
 
 # Misc macros
 # XX = commamd
@@ -41,7 +41,7 @@ CCflags = -depend !Depend -throwback -fcah -IUnixLib: -JUnixLib: -I UnixLib:^.in
 
 # Acorn Objasm Assembler. Comment out if you are using 'as'.
 AS = objasm
-ASflags = -Stamp -quit -CloseExec
+ASflags = -Stamp -quit -CloseExec -predefine "SOFTFLOAT SETA 0"
 ASdflags =
 ASrflags =
 ASflags = -throwback -depend !Depend -I UnixLib:^ $(ASdflags) -APCS 3/32bit
