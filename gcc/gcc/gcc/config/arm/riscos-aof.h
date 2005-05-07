@@ -59,14 +59,8 @@ Boston, MA 02111-1307, USA.  */
 /* Extra command line options supported by the RISC OS backend.  */
 
 /* Create code suitable for a RISC OS module */
-#define ARM_MODULE		(0x08000000)
+#define ARM_MODULE		(0x10000000)
 #define TARGET_MODULE		(target_flags & ARM_MODULE)
-
-/* Non-zero if we allow the argument pointer (fp) to be used by
-   the register allocator. Note this option is really only useful
-   when not targetting the APCS.  */
-#define ARM_USE_AP		(0x10000000)
-#define TARGET_USE_AP		(target_flags & ARM_USE_AP)
 
 /* Non-zero if we wish to format dependencies for Acorn's
    Make Utility.  */
@@ -80,9 +74,6 @@ Boston, MA 02111-1307, USA.  */
 /* Options not used in cc1 will have bit 31 set.  */
 
 #define SUBTARGET_SWITCHES					\
-  {"use-arg-pointer",		 ARM_USE_AP,			\
-   "Make fp (r11) available to the register allocator" },	\
-  {"no-use-arg-pointer",	-ARM_USE_AP, "" },		\
   {"throwback",			 ARM_THROWBACK,			\
    "Send errors to a DDEUtils compatible text editor" },	\
   {"no-throwback",		-ARM_THROWBACK, "" },		\
@@ -92,8 +83,11 @@ Boston, MA 02111-1307, USA.  */
   {"libscl",			 0x80000000,			\
    "Compile with the SharedCLibrary headers" },			\
   {"unixlib",			-0x80000000, 			\
-   "Compile with the headers from UnixLib (default)" },   \
-  {"module",   ARM_MODULE, "" },
+   "Compile with the headers from UnixLib (default)" },		\
+  {"module",			 ARM_MODULE,			\
+   "Generate data references suitable for RISC OS modules" },	\
+  {"no-module",			-ARM_MODULE, ""},
+
 
 /* Default RISC OS options
    - APCS
@@ -114,15 +108,6 @@ Boston, MA 02111-1307, USA.  */
 {									\
   if (write_symbols != NO_DEBUG)					\
     warning ("-g under RISC OS does not give useful debugging data");	\
-}
-
-#define SUBTARGET_CONDITIONAL_REGISTER_USAGE				\
-{									\
-  if (TARGET_USE_AP)							\
-    {									\
-      fixed_regs[11] = 0;						\
-      call_used_regs[11] = 1;						\
-    }									\
 }
 
 /* Add support of long doubles.  Undefine for better compatibility with
