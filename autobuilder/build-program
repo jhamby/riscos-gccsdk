@@ -84,11 +84,11 @@ else
  if [ "$AB_NOFETCH" != "yes" ] ; then
    # Fetch the source
    echo "Autobuilder - Fetching source for $AB_PACKAGE"
-   apt-get source $AB_PACKAGE
+   . $AB_HOME/fetch-program
  fi
  
  AB_FULLNAME=$(find -mindepth 1 -maxdepth 1 -type d | grep -v unpack | grep -v package | cut --bytes 3-)
- 
+
  # Run any preprocess script to unpack it in any special way
  if [ -e $AB_HOME/$AB_PACKAGEDIR/preprocess ] ; then
    cd $AB_FULLNAME
