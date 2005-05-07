@@ -1,5 +1,5 @@
-The RISC OS Software Development Kit [GCCSDK 3.4.4 Release 2]
-=============================================================
+The RISC OS Software Development Kit [GCCSDK 3.4 Development trunk]
+===================================================================
 
 GCCSDK is a portable build environment for creating ARM executables to
 be run natively on RISC OS.  The build environment is designed to be
