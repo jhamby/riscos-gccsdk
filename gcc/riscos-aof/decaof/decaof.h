@@ -8,85 +8,45 @@
 #define __DECAOF_H
 
 /*
- * globalise system-type defines...
- */
-#if defined(BSD42) || defined(BSD43) || defined(BSD44)
-#define UNIX
-#define BSD
-#endif
-#if defined(SYSV2) || defined(SYSV3) || defined (SYSV4)
-#define UNIX
-#define SYSV
-#endif
-#if defined(RISCOS2) || defined(RISCOS3)
-#define RISCOS
-#define LITTLE_ENDIAN
-#endif
-#if defined(MSDOS2) || defined(MSDOS3) || defined(MSDOS4) || defined(MSDOS5)
-#define MSDOS
-#define LITTLE_ENDIAN
-#endif
-
-#ifdef __CYGWIN__
-#include <machine/endian.h>
-#elif UNIX
-#include <endian.h>
-#endif
-
-/*
  * "Word" must be a 4-byte type.
  * "Halfword" must be a 2-byte type.
  * "Byte" must be a 1-byte type.
  */
-#ifdef MSDOS
-typedef unsigned long	Word;
-typedef	unsigned int	Halfword;
-typedef unsigned char	Byte;
-#else /* not MSDOS */
+#ifdef HAVE_STDINT_H
+#include <stdint.h>
+typedef uint32_t Word;
+typedef uint16_t Halfword;
+typedef uint8_t	Byte;
+#else
 typedef unsigned int	Word;
 typedef unsigned short	Halfword;
 typedef unsigned char	Byte;
-#endif /* MSDOS */
+#endif
 
 /*
  * define the path seperator character, and file open mode string.
  */
-#if defined(UNIX)
+#ifdef CROSS_COMPILE
 #define PATHSEP	'/'
 #define PATHSEPSTR	"/"
 #define W_OPENMODE	"w"
 #define R_OPENMODE	"r"
-#endif
-#if defined(RISCOS)
+#else
 #define PATHSEP	'.'
 #define PATHSEPSTR	"."
 #define W_OPENMODE	"w"
 #define R_OPENMODE	"r"
 #endif
-#if defined(MSDOS)
-#define PATHSEP	'\\'
-#define PATHSEPSTR	"\\"
-#define W_OPENMODE	"wb"
-#define R_OPENMODE	"rb"
-#endif
+
 
 /*
  * define maximum filename and pathname length
  */
-#if defined(BSD) || defined(SYSV4)
+#ifdef CROSS_COMPILE
 #define FILENAMELEN	256
 #define PATHNAMELEN	1024
-#endif
-#if defined(SYSV) && !defined(SYSV4)
-#define FILENAMELEN	14
-#define PATHNAMELEN	256
-#endif
-#if defined (RISCOS)
-#define FILENAMELEN	10
-#define PATHNAMELEN	256
-#endif
-#if defined (MSDOS)
-#define FILENAMELEN	12		/* including dot */
+#else
+#define FILENAMELEN	256
 #define PATHNAMELEN	256
 #endif
 
@@ -132,17 +92,17 @@ struct aofhdr {			/* fixed part of AOF header only */
 	Word entryoffset;
 };	
 
-#if defined(LITTLE_ENDIAN)
+#ifdef WORDS_BIGENDIAN
 struct areahdr_flags {
-	Byte AL;
-	Byte AT;
 	Halfword zeroes;
+	Byte AT;
+	Byte AL;
 };
-#else /* big endian assumed */
+#else
 struct areahdr_flags {
-	Halfword zeroes;
-	Byte AT;
 	Byte AL;
+	Byte AT;
+	Halfword zeroes;
 };
 #endif
 

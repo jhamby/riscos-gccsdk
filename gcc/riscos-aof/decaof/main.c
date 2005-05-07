@@ -4,10 +4,11 @@
  * Andy Duplain, BT Customer Systems, Brighton, UK.  duplain@btcs.bt.co.uk
  */
 
+#include "config.h"
 #include <stdio.h>
+#include <stdlib.h>
 #include <ctype.h>
 #include "decaof.h"
-#include "cproto.h"
 #include "io.h"
 #include "misc.h"
 #include "error.h"
@@ -25,12 +26,10 @@ short strtab = 0;		/* print string table (-t) */
 
 static int gotarg = 0;		/* non-zero if some flags where entered */
 
-static void usage P__((void));
+static void usage (void);
 
 int
-main(argc, argv)
-	int argc;
-	char **argv;
+main(int argc, char **argv)
 {
 	ourname = basename(*argv++);
 	argc--;
@@ -111,8 +110,7 @@ main(argc, argv)
 /*
  * display program usage and exit
  */
-static void
-usage()
+static void usage(void)
 {
 	fprintf(stderr, "usage: %s [options] [file ... file]\n",
 	    ourname);

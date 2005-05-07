@@ -4,14 +4,16 @@
  * Andy Duplain, BT Customer Systems, Brighton, UK.  duplain@btcs.bt.co.uk
  */
 
+#include "config.h"
+
 #include <stdio.h>
+#ifdef HAVE_STDLIB_H
+#include <stdlib.h>
+#endif
 #include "decaof.h"
-#include "cproto.h"
 #include "error.h"
 
-#if defined(BSD42) || defined(SYSV2)
-extern char *malloc P__((unsigned len));
-#else
+#ifdef HAVE_MALLOC_H
 #include <malloc.h>
 #endif
 
@@ -19,8 +21,7 @@ extern char *malloc P__((unsigned len));
  * check for EOF or write/read errors on stream.
  */
 Ferror
-check_stream(fp)
-	FILE *fp;
+check_stream(FILE *fp)
 {
 	int ret = FNOERR;
 
@@ -37,8 +38,7 @@ check_stream(fp)
  * read a byte from the input stream.
  */
 Byte
-read_byte(ifp)
-	FILE *ifp;
+read_byte(FILE *ifp)
 {
 	return ((Byte)getc(ifp));
 }
@@ -47,19 +47,18 @@ read_byte(ifp)
  * read a little-endian 2-byte halfword from the input stream.
  */
 Halfword
-read_halfword(ifp)
-	FILE *ifp;
+read_halfword(FILE *ifp)
 {
 	union {
 		Halfword h;
 		Byte b[sizeof(Halfword)];
 	} ret;
 
-#if defined(LITTLE_ENDIAN)
-	fread((char *)&ret.h, 1, sizeof(Halfword), ifp);
-#else
+#ifdef WORDS_BIGENDIAN
 	ret.b[HALFWORD0] = read_byte(ifp);
 	ret.b[HALFWORD1] = read_byte(ifp);
+#else
+	fread((char *)&ret.h, 1, sizeof(Halfword), ifp);
 #endif
 	return (ret.h);
 }
@@ -68,21 +67,20 @@ read_halfword(ifp)
  * read a little-endian 4-byte word from the input stream.
  */
 Word
-read_word(ifp)
-	FILE *ifp;
+read_word(FILE *ifp)
 {
 	union {
 		Word w;
 		Byte b[sizeof(Word)];
 	} ret;
 
-#if defined(LITTLE_ENDIAN)
-	fread((char *)&ret.w, 1, sizeof(Word), ifp);
-#else
+#ifdef WORDS_BIGENDIAN
 	ret.b[WORD0] = read_byte(ifp);
 	ret.b[WORD1] = read_byte(ifp);
 	ret.b[WORD2] = read_byte(ifp);
 	ret.b[WORD3] = read_byte(ifp);
+#else
+	fread((char *)&ret.w, 1, sizeof(Word), ifp);
 #endif
 	return (ret.w);
 }
@@ -91,8 +89,7 @@ read_word(ifp)
  * read in the chunk header
  */
 struct chunkhdr *
-read_chunkhdr(ifp)
-	FILE *ifp;
+read_chunkhdr(FILE *ifp)
 {
 	static struct chunkhdr hdr;
 
@@ -117,8 +114,7 @@ static struct aofhdr *aofhdr = NULL;	/* AOF header */
  * free the memory used by a chunk
  */
 int
-free_chunk_memory(ptr)
-	char *ptr;
+free_chunk_memory(char *ptr)
 {
 	if (!ptr)
 		return (0);
@@ -147,9 +143,7 @@ free_chunk_memory(ptr)
  * read in the chunk entries
  */
 struct chunkent *
-read_chunkents(ifp, hdr)
-	FILE *ifp;
-	struct chunkhdr *hdr;
+read_chunkents(FILE *ifp, struct chunkhdr *hdr)
 {
 	register i;
 
@@ -176,9 +170,7 @@ read_chunkents(ifp, hdr)
  * read in the string table
  */
 char *
-read_stringtab(ifp, strent)
-	FILE *ifp;
-	struct chunkent *strent;
+read_stringtab(FILE *ifp, struct chunkent *strent)
 {
 	if (strptr)
 		free(strptr);
@@ -199,10 +191,7 @@ read_stringtab(ifp, strent)
  * read in the symbol table
  */
 struct symbol *
-read_symboltab(ifp, syment, numsyms)
-	FILE *ifp;
-	struct chunkent *syment;
-	int numsyms;
+read_symboltab(FILE *ifp, struct chunkent *syment, int numsyms)
 {
 	register i;
 
@@ -229,9 +218,7 @@ read_symboltab(ifp, syment, numsyms)
  * read in the identification chunk
  */
 char *
-read_ident(ifp, ident)
-	FILE *ifp;
-	struct chunkent *ident;
+read_ident(FILE *ifp, struct chunkent *ident)
 {
 	if (idptr)
 		free(idptr);
@@ -251,9 +238,7 @@ read_ident(ifp, ident)
  * read in the AOF header
  */
 struct aofhdr *
-read_aofhdr(ifp, hdrent)
-	FILE *ifp;
-	struct chunkent *hdrent;
+read_aofhdr(FILE *ifp, struct chunkent *hdrent)
 {
 	register i;
 	struct areahdr *areahdr;
@@ -289,8 +274,7 @@ read_aofhdr(ifp, hdrent)
  * read in a relocation directive
  */
 struct reloc *
-read_reloc(ifp)
-	FILE *ifp;
+read_reloc(FILE *ifp)
 {
 	static struct reloc reloc;
 

@@ -4,20 +4,21 @@
  * Andy Duplain, BT Customer Systems, Brighton, UK.  duplain@btcs.bt.co.uk
  */
 
+#include "config.h"
 #include <stdio.h>
-#include "decaof.h"
-
-#ifdef BSD
-#define memcmp(a,b,c)	bcmp(a,b,c)
+#ifdef HAVE_STRING_H
+#include <string.h>
+#elif HAVE_STRINGS_H
+#include <strings.h>
 #endif
+#include "decaof.h"
 
 /*
  * return last element in pathname
  */
 #ifdef RISCOS3
 char *
-basename(s)
-	char *s;
+basename(char *s)
 {
 	char *cptr = s + strlen(s);
 	while (cptr > s) {
@@ -33,10 +34,7 @@ basename(s)
  * locate a chunk entry by chunk ID
  */
 struct chunkent *
-find_ent(hdr, ents, name)
-	struct chunkhdr *hdr;
-	struct chunkent *ents;
-	char *name;
+find_ent(struct chunkhdr *hdr, struct chunkent *ents, char *name)
 {
 	register i;
 

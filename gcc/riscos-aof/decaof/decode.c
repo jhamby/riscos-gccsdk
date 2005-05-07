@@ -4,14 +4,17 @@
  * Andy Duplain, BT Customer Systems, Brighton, UK.  duplain@btcs.bt.co.uk
  */
 
+#include "config.h"
+
 #include <stdio.h>
-#ifdef BSD42
-#include <strings.h>
-#else
+#ifdef HAVE_STRING_H
 #include <string.h>
 #endif
+#ifdef HAVE_STRINGS_H
+#include <strings.h>
+#endif
+
 #include "decaof.h"
-#include "cproto.h"
 #include "io.h"
 #include "main.h"
 #include "misc.h"
@@ -28,15 +31,15 @@ static Word symboltab_size;
 
 static char *cptr;
 
-static void print_area P__((FILE *ifp, struct areahdr *areahdr, Word offset, Word reloff));
-static char *string P__((Word offset));
-static char *symname P__((Word offset));
-static char *areaname P__((Word offset));
+static void print_area (FILE *ifp, struct areahdr *areahdr, Word offset, Word reloff);
+static char *string (Word offset);
+static char *symname (Word offset);
+static char *areaname (Word offset);
 
 int
-decode()
+decode (void)
 {
-	register i;
+  int i;
 	Word offset, reloff;
 	FILE *ifp;
 	char *filename;
@@ -225,10 +228,7 @@ next_file:
  * print each AOF area...
  */
 static void
-print_area(ifp, areahdr, offset, reloff)
-	FILE *ifp;
-	struct areahdr *areahdr;
-	Word offset, reloff;
+print_area(FILE *ifp, struct areahdr *areahdr, Word offset, Word reloff)
 {
 	Word flags = areahdr->flags >> 8;
 
@@ -254,17 +254,21 @@ print_area(ifp, areahdr, offset, reloff)
 	if (flags & AREA_LINKONCE)
 		fputs("[linkonce] ", stdout);
 
-	printf("\nsize %ld byte%s, %ld relocation%s\n", areahdr->size, areahdr->size == 1 ? "" : "s", areahdr->numrelocs, areahdr->numrelocs == 1 ? "" : "s");
+	printf("\nsize %ld byte%s, %ld relocation%s\n",
+	       areahdr->size,
+	       (areahdr->size == 1) ? "" : "s",
+	       areahdr->numrelocs,
+	       (areahdr->numrelocs == 1) ? "" : "s");
 
 	if (area_contents) {
-		register cols = 0, size = areahdr->size;
-		register Word area_off;
+		int cols = 0, size = areahdr->size;
+		Word area_off;
 
 		fseek(ifp, area_offset + offset, 0);
 		fputs("contents:\n000000: ", stdout);
 		area_off = 0;
 		while (area_off < size) {
-			printf("%l08x", read_word(ifp));
+			printf("%08x", read_word(ifp));
 			area_off += 4;
 			if (++cols == 8) {
 				printf("\n%06lx: ", area_off);
@@ -277,8 +281,8 @@ print_area(ifp, areahdr, offset, reloff)
 	}
 
 	if (reloc_dir && areahdr->numrelocs) {
-		register struct reloc *reloc;
-		register Word numrelocs;
+		struct reloc *reloc;
+		Word numrelocs;
 
 		fseek(ifp, area_offset + reloff, 0);
 		puts("relocations:");
@@ -367,8 +371,7 @@ print_area(ifp, areahdr, offset, reloff)
  * return a pointer to a string in the string table
  */
 static char *
-string(offset)
-	Word offset;
+string(Word offset)
 {
 	if (!stringtab || offset < 4 || offset >= *(Word *)stringtab)
 		return (NULL);
@@ -379,10 +382,9 @@ string(offset)
  * return a pointer to a symbol name in the symbol table
  */
 static char *
-symname(offset)
-	Word offset;
+symname(Word offset)
 {
-	register struct symbol *sym;
+	struct symbol *sym;
 
 	if (!symboltab || offset > symboltab_size)
 		return (NULL);
@@ -395,11 +397,10 @@ symname(offset)
  * into the OBJ_AREA.
  */
 static char *
-areaname(offset)
-	Word offset;
+areaname(Word offset)
 {
-	register Word aoff;
-	register i;
+	Word aoff;
+	int i;
 
 	if (!aofhdr || !areahdrs)
 		return (NULL);
