@@ -16,7 +16,7 @@
 /*
  * return last element in pathname
  */
-#ifdef RISCOS3
+#ifndef CROSS_COMPILE
 char *
 basename(char *s)
 {
