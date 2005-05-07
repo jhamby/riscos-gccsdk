@@ -1,8 +1,8 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/features.h,v $
- * $Date: 2005/04/18 21:27:51 $
- * $Revision: 1.8 $
+ * $Date: 2005/04/22 14:38:49 $
+ * $Revision: 1.9 $
  * $State: Exp $
  * $Author: nick $
  *
@@ -304,7 +304,7 @@
 /* Major and minor version number of the UnixLib C library package.  Use
    these macros to test for features in specific releases.  */
 #define __ULIBC__       4
-#define __ULIBC_MINOR__ 0
+#define __ULIBC_MINOR__ 1
 
 /* Convenience macros to test the versions of glibc and gcc.
    Use them like this:
