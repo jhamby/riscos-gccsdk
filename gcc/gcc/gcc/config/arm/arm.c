@@ -8160,9 +8160,9 @@ arm_compute_save_reg0_reg12_mask (void)
       /* Handle the frame pointer as a special case.  */
       if (! TARGET_APCS_FRAME
 	  && ! arm_apcs_frame_needed ()
-	  && regs_ever_live[HARD_FRAME_POINTER_REGNUM]
-	  && ! call_used_regs[HARD_FRAME_POINTER_REGNUM])
-	save_reg_mask |= 1 << HARD_FRAME_POINTER_REGNUM;
+	  && regs_ever_live[ARM_HARD_FRAME_POINTER_REGNUM]
+	  && ! call_used_regs[ARM_HARD_FRAME_POINTER_REGNUM])
+	save_reg_mask |= 1 << ARM_HARD_FRAME_POINTER_REGNUM;
 
       /* If we aren't loading the PIC register,
 	 don't stack it even though it may be live.  */
