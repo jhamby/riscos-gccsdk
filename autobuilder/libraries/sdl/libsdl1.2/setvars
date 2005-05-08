@@ -1,7 +1,8 @@
 
 AB_CVS_ROOT=:pserver:guest:@libsdl.org:/home/sdlweb/libsdl.org/cvs
 AB_CVS_MODULE=SDL12
-                             
+AB_ZIPNAME=libsdl1.2-cvs-$(date +%Y%m%d)
+
 AB_INSTALL=yes
 
 mkdir -p $D/include/SDL/
