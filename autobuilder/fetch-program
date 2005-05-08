@@ -14,8 +14,23 @@ else
   if [ -x /usr/bin/apt-get ] ; then
     apt-get source $AB_PACKAGE
   else
-    echo "Fetching source for this package requires apt-get"
-    exit 1
+    # Slower method.  Fetch packages file ourself and parse it.
+    debarchive=http://ftp.uk.debian.org/debian
+
+    wget -nv $debarchive/dists/unstable/main/source/Sources.bz2
+    bzgrep -A4 "/$AB_PACKAGE$" Sources.bz2 > files
+
+    if ! [ -s files ] ; then
+      echo "Package not found"
+      exit 1
+    fi
+
+    debdir=$debarchive/$(grep Directory files | cut -d ' ' -f 2)
+    wget -nv $debdir/$(grep \.orig\.tar\.gz files | cut -d ' ' -f 4)
+    wget -nv $debdir/$(grep \.diff\.gz files | cut -d ' ' -f 4)
+
+    tar xfz *.orig.tar.gz
+    zcat *.diff.gz | patch -p0
   fi
 fi
 
