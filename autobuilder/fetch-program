@@ -2,6 +2,7 @@
 
 AB_CVS_ROOT=$(grep AB_CVS_ROOT $AB_HOME/$AB_PACKAGEDIR/setvars | cut -d = -f 2)
 AB_CVS_MODULE=$(grep AB_CVS_MODULE $AB_HOME/$AB_PACKAGEDIR/setvars | cut -d = -f 2)
+AB_URL=$(grep AB_URL $AB_HOME/$AB_PACKAGEDIR/setvars | cut -d = -f 2)
 
 if [ "$AB_CVS_ROOT" != "" ] ; then
   if [ "$AB_CVS_MODULE" == "" ] ; then
@@ -9,6 +10,19 @@ if [ "$AB_CVS_ROOT" != "" ] ; then
     exit 1
   else
     cvs -d $AB_CVS_ROOT co $AB_CVS_MODULE
+  fi
+elif [ "$AB_URL" != "" ] ; then
+  wget -nv $AB_URL
+  base=$(basename $AB_URL)
+  if echo $base | grep -q "\.gz$" ; then
+    tar xfz $base
+  elif echo $base | grep -q "\.bz2$" ; then
+    tar xfj $base
+  elif echo $base | grep -q "\.zip$" ; then
+    unzip $base
+  else
+    echo "Unknown compression method"
+    exit 1
   fi
 else
   if [ -x /usr/bin/apt-get ] ; then
