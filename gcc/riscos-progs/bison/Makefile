@@ -35,8 +35,8 @@ all:	$(bin_dir)/bison$(exesfx) $(info_dir)/bison
 $(objdir)/riscos-progs/bison.o:  $(SRCS) $(HDRS) $(LIBSRCS) $(LIBHDRS)
 	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c $(SRCS) $(LIBSRCS) $(INCLUDES)
 
-$(bin_dir)/bison$(exesfx):	$(objdir)/riscos-progs/bison.o $(LIB)
-	$(CROSS_CC) -o $@ $(objdir)/riscos-progs/bison.o $(LIB) -L$(objdir)/libiberty/$(STAGE) -liberty
+$(bin_dir)/bison$(exesfx):	$(objdir)/riscos-progs/bison.o
+	$(CROSS_CC) -o $@ $(objdir)/riscos-progs/bison.o -L$(objdir)/libiberty/$(STAGE) -liberty
 
 $(info_dir)/bison:	doc/bison.texinfo doc/fdl.texi doc/gpl.texi doc/version.texi
 	$(MAKEINFO) --no-split --number-sections doc/bison.texinfo -o $@ -I doc

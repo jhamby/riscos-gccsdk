@@ -41,17 +41,17 @@ $(objdir)/riscos-progs/sdiff.o:	$(SDIFFSRC) $(HDRS) $(LIBSRC) $(LIBHDR)
 $(objdir)/riscos-progs/cmp.o:	$(CMPSRC) $(HDRS) $(LIBSRC) $(LIBHDR)
 	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c $(CMPSRC) $(LIBSRC) $(INCLUDES)
 
-$(bin_dir)/diff$(exesfx):	$(objdir)/riscos-progs/diff.o $(LIB)
-	$(CROSS_CC) -o $@ $(objdir)/riscos-progs/diff.o $(LIB)
+$(bin_dir)/diff$(exesfx):	$(objdir)/riscos-progs/diff.o 
+	$(CROSS_CC) -o $@ $(objdir)/riscos-progs/diff.o 
 
-$(bin_dir)/diff3$(exesfx):	$(objdir)/riscos-progs/diff3.o $(LIB)
-	$(CROSS_CC) -o $@ $(objdir)/riscos-progs/diff3.o $(LIB)
+$(bin_dir)/diff3$(exesfx):	$(objdir)/riscos-progs/diff3.o
+	$(CROSS_CC) -o $@ $(objdir)/riscos-progs/diff3.o 
 
-$(bin_dir)/sdiff$(exesfx):	$(objdir)/riscos-progs/sdiff.o $(LIB)
-	$(CROSS_CC) -o $@ $(objdir)/riscos-progs/sdiff.o $(LIB)
+$(bin_dir)/sdiff$(exesfx):	$(objdir)/riscos-progs/sdiff.o
+	$(CROSS_CC) -o $@ $(objdir)/riscos-progs/sdiff.o
 
-$(bin_dir)/cmp$(exesfx):	$(objdir)/riscos-progs/cmp.o $(LIB)
-	$(CROSS_CC) -o $@ $(objdir)/riscos-progs/cmp.o $(LIB)
+$(bin_dir)/cmp$(exesfx):	$(objdir)/riscos-progs/cmp.o
+	$(CROSS_CC) -o $@ $(objdir)/riscos-progs/cmp.o
 
 $(info_dir)/diff:	doc/diff.texi doc/fdl.texi doc/version.texi
 	$(MAKEINFO) --no-split --number-sections doc/diff.texi -o $@ -I doc
