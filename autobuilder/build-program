@@ -201,7 +201,13 @@ else
    fi
 
    if [ "$AB_ZIPNAME" != "" ] ; then
-     RO_PKG=$(echo $AB_FULLNAME | sed s#"$AB_PACKAGE"#"$AB_ZIPNAME"#) /home/riscos/env/ro-libpack
+
+     export RO_PKG=$(echo $AB_FULLNAME | sed s#"$AB_PACKAGE"#"$AB_ZIPNAME"#)
+     if [ "$RO_PKG" == "$AB_FULLNAME" ] ; then
+       export RO_PKG=$AB_ZIPNAME
+     fi
+
+     /home/riscos/env/ro-libpack
    else
      RO_PKG=$AB_FULLNAME /home/riscos/env/ro-libpack
    fi
