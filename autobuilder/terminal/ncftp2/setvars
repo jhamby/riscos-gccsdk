@@ -7,4 +7,3 @@ export CFLAGS=-O2
 AB_FILESNOPATH="ncftp,ff8 COPYING"
 AB_MANPAGE=ncftp.1
 
-AB_IYONIX=yes

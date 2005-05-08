@@ -6,4 +6,3 @@ AB_CONFLAGS=--without-lua
 AB_FILESNOPATH="links,ff8 COPYING"
 AB_MANPAGE=links.1
 
-AB_IYONIX=yes
