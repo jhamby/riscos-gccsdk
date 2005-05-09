@@ -1,0 +1,13 @@
+
+AB_CATEGORY=graphics
+
+AB_MANPAGE="dcparse.1 dcraw.1"
+
+ln -s . man1
+
+ab_package() {
+  cp $S/*,ff8 $D
+  cp $H/ReadMe-jmb $D/ReadMe
+}
+
+
