@@ -156,11 +156,16 @@ else
  export AB_DIR
  
  if [ -e Imakefile ] ; then
-  echo "Autobuilder - Calling xmkmf"
-  /home/riscos/env/ro-path /home/riscos/env/X11R6/bin/xmkmf -a
- else
+   echo "Autobuilder - Calling xmkmf"
+   /home/riscos/env/ro-path /home/riscos/env/X11R6/bin/xmkmf -a
+ elif [ -e configure ] ; then
    echo "Autobuilder - Calling configure command: $AB_PRECONF $AB_CONFIG $AB_CONFLAGS"
    eval $AB_PRECONF $AB_CONFIG $AB_CONFLAGS
+ elif [ -e Makefile ] || [ -e makefile ] ; then
+   :
+ else
+   echo "Autobuilder - no known build method"
+   exit 1
  fi
  
  if [ -e $AB_HOME/$AB_PACKAGEDIR/post-configure ] ; then
