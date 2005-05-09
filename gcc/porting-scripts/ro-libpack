@@ -32,26 +32,33 @@ if [ -z "$files" ] ; then
  exit 1
 fi
 
-tar cfvz $output/$RO_PKG.tgz $files
+if [ -d "$output" ] ; then
+ 
+  tar cfvz $output/$RO_PKG.tgz $files
 
-# Process to turn into RISC OS format filenames for zipping
+  # Process to turn into RISC OS format filenames for zipping
+  
+  for file in $(find) ; do
+   if echo $file | grep "\.h$" > /dev/null ; then
+     filename=$(basename $file | sed s#\.h\$##)
+     dirname=$(echo $file | sed s#/$filename\.h\$##)
+     mkdir -p $dirname/h
+     mv $file $dirname/h/$filename
+   fi
 
-for file in $(find) ; do
- if echo $file | grep "\.h$" > /dev/null ; then
-   filename=$(basename $file | sed s#\.h\$##)
-   dirname=$(echo $file | sed s#/$filename\.h\$##)
-   mkdir -p $dirname/h
-   mv $file $dirname/h/$filename
- fi
+   if echo $file | grep "\.a$" > /dev/null ; then
+     filename=$(basename $file | sed s#\.a\$##)
+     dirname=$(echo $file | sed s#/$filename\.a\$##)
+     mkdir -p $dirname/o
+     mv $file $dirname/o/$filename
+   fi
+  done
 
- if echo $file | grep "\.a$" > /dev/null ; then
-   filename=$(basename $file | sed s#\.a\$##)
-   dirname=$(echo $file | sed s#/$filename\.a\$##)
-   mkdir -p $dirname/o
-   mv $file $dirname/o/$filename
- fi
-done
+  GCCSDK_BIN/zip -, -r -D $output/$RO_PKG.zip .
 
-GCCSDK_BIN/zip -, -r -D $output/$RO_PKG.zip .
+else
+  echo "Output directory not set or doesn't exist - Library archives not created"
+fi
 
+cd ..
 rm -rf $AB_DIR/package
