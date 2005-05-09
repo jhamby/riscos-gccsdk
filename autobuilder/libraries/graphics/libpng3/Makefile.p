@@ -48,3 +48,14 @@
  
  # If you installed in $(DESTDIR), test-installed won't work until you
  # move the library to its final location.  Use test-dd to test it
+--- scripts/makefile.linux.orig	2005-05-09 14:32:12.000000000 +0100
++++ scripts/makefile.linux	2005-05-09 14:34:20.000000000 +0100
+@@ -86,7 +86,7 @@
+ 	echo prefix=\"$(prefix)\"; \
+ 	echo I_opts=\"-I$(INCPATH)/$(LIBNAME)\"; \
+ 	echo L_opts=\"-L$(LIBPATH)\"; \
+-	echo R_opts=\"-Wl,-rpath,$(LIBPATH)\"; \
++	echo R_opts=\"\"; \
+ 	echo libs=\"-lpng12 -lz -lm\"; \
+ 	cat scripts/libpng-config-body.in ) > libpng-config
+ 	chmod +x libpng-config
