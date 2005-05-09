@@ -12,6 +12,7 @@ scripts:
 	mkdir -p $(ro_env)
 	for script in $(SCRIPTS) ; do \
 	  $(SED) < $$script > $(ro_env)/$$script; \
+	  chmod +x $(ro_env)/$$script; \
 	done
 
 links:
@@ -28,4 +29,5 @@ wrappers:
 	mkdir -p $(ux_bin_dir)
 	for script in $(SCRIPTS) ; do \
 	  $(SED) < $$script > $(ro_env)/$$script; \
+	  chmod +x $(ro_env)/$$script; \
 	done
