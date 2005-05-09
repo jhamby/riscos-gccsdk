@@ -1,0 +1,2 @@
+tar xfj freetype-*.tar.bz2
+mv freetype-*/* .

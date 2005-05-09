@@ -1,0 +1,13 @@
+
+AB_INSTALL=yes
+
+echo "echo arm-riscos-aof" > builds/unix/config.guess
+
+AB_PRECONF="RO_CPATH=builds/unix/"
+
+AB_MAKE="cp freetype-config freetype2.pc ftconfig.h libtool *.mk builds/unix; $AB_MAKE"
+
+mkdir -p $D/include/freetype2/freetype/config
+mkdir -p $D/include/freetype2/freetype/cache
+mkdir -p $D/include/freetype2/freetype/internal
+
