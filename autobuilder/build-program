@@ -290,6 +290,7 @@ if [ "$AB_NOPACKAGE" == "" ] ; then
  mv $AB_ZIP $AB_OUTPUT/$AB_CATEGORY
 fi
 
+cd $AB_DIR/..
 [ "$AB_PACKONLY" == "yes" ] || [ "$AB_NOFETCH" == "yes" ] || [ "$AB_DEBUG" == "yes" ] || rm -rf $AB_DIR
 
 echo "Autobuilder - package completed"
