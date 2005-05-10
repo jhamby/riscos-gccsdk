@@ -1,0 +1,9 @@
+
+AB_CVS_ROOT=:pserver:anonymous:anonymous@cvs.chocky.org:/var/cvs/
+AB_CVS_MODULE=DeskLib
+
+AB_INSTALL=yes
+
+AB_MAKE="$AB_MAKE -C \!DLSources -f Makefile.unix"
+
+mkdir -p $D/include/DeskLib
