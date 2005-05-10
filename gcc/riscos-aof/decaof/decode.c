@@ -2,6 +2,7 @@
  * decode an AOF file
  *
  * Andy Duplain, BT Customer Systems, Brighton, UK.  duplain@btcs.bt.co.uk
+ * Copyright 2005 GCCSDK Developers
  */
 
 #include "config.h"
@@ -15,6 +16,7 @@
 #endif
 
 #include "decaof.h"
+#include "decode.h"
 #include "io.h"
 #include "main.h"
 #include "misc.h"
@@ -117,23 +119,30 @@ decode (void)
 				goto next_file;
 			}
 			puts("\n** AOF Header:");
-			if (aofhdr->filetype == 0xc5e2d080)
-				cptr = "Relocatable object format";
-			else if (aofhdr->filetype == 0xc5e2d081)
-				cptr = "AOF image type 1";
-			else if (aofhdr->filetype == 0xc5e2d083)
-				cptr = "AOF image type 2";
-			else if (aofhdr->filetype == 0xc5e2d087)
-				cptr = "AOF image type 3";
-			else
-				cptr = "unknown image type";
+			switch (aofhdr->filetype) {
+				case 0xc5e2d080:
+					cptr = "Relocatable object format";
+					break;
+				case 0xc5e2d081:
+					cptr = "AOF image type 1";
+					break;
+				case 0xc5e2d083:
+					cptr = "AOF image type 2";
+					break;
+				case 0xc5e2d087:
+					cptr = "AOF image type 3";
+					break;
+				default:
+					cptr = "unknown image type";
+					break;
+			}
 			puts(cptr);
 
-			printf("version %ld\n", aofhdr->version);
+			printf("version %d\n", aofhdr->version);
 			i = aofhdr->numareas;
-			printf("%ld area%s\n", i, i == 1 ? "" : "s");
+			printf("%d area%s\n", i, i == 1 ? "" : "s");
 			i = aofhdr->numsyms;
-			printf("%ld symbol%s\n", i, i == 1 ? "" : "s");
+			printf("%d symbol%s\n", i, i == 1 ? "" : "s");
 
 			/* read in the symbol table, if any */
 			if (aofhdr->numsyms) {
@@ -143,7 +152,7 @@ decode (void)
 					if (!symboltab) {
 						error("reading symbol table for file \"%s\"", filename);
 						goto next_file;
-					}					
+					}
 					symboltab_size = ent->size;
 				}
 			}
@@ -183,7 +192,7 @@ decode (void)
 					default:
 						fputs("unknown-type ", stdout);
 						break;
-				}				
+				}
 				if ((flags & (1<<2)) && flags & (1<<0))
 					fputs("constant ", stdout);
 				if ((flags & (1<<3)) && !(flags & (1<<0)))
@@ -196,9 +205,9 @@ decode (void)
 					fputs("common ", stdout);
 				if ((flags & (1<<0)) || (flags & (1<<6))) {
 					if (flags & (1<<2))
-						printf("= 0x%08lx", symboltab[i].value);
+						printf("= 0x%08x", symboltab[i].value);
 					else
-						printf("at \"%s\" + 0x%06lx", string(symboltab[i].areaname), symboltab[i].value);
+						printf("at \"%s\" + 0x%06x", string(symboltab[i].areaname), symboltab[i].value);
 				}
 				putchar('\n');
 			}
@@ -207,8 +216,8 @@ decode (void)
 		if (strtab && *(Word *)stringtab) {
 			puts("\n** String table:");
 			offset = 4;
-			while (cptr = string(offset)) {
-				printf("%06lx: %s\n", offset, cptr);
+			while ((cptr = string(offset)) != NULL) {
+				printf("%06x: %s\n", offset, cptr);
 				offset += strlen(cptr) + 1;
 			}
 		}
@@ -254,7 +263,7 @@ print_area(FILE *ifp, struct areahdr *areahdr, Word offset, Word reloff)
 	if (flags & AREA_LINKONCE)
 		fputs("[linkonce] ", stdout);
 
-	printf("\nsize %ld byte%s, %ld relocation%s\n",
+	printf("\nsize %d byte%s, %d relocation%s\n",
 	       areahdr->size,
 	       (areahdr->size == 1) ? "" : "s",
 	       areahdr->numrelocs,
@@ -271,7 +280,7 @@ print_area(FILE *ifp, struct areahdr *areahdr, Word offset, Word reloff)
 			printf("%08x", read_word(ifp));
 			area_off += 4;
 			if (++cols == 8) {
-				printf("\n%06lx: ", area_off);
+				printf("\n%06x: ", area_off);
 				cols = 0;
 			} else
 				putchar(' ');
@@ -288,7 +297,6 @@ print_area(FILE *ifp, struct areahdr *areahdr, Word offset, Word reloff)
 		puts("relocations:");
 		for (numrelocs = areahdr->numrelocs; numrelocs; numrelocs--) {
 			enum {unknown, type1, type2} rtype;
-			int shift;
 
 			reloc = read_reloc(ifp);
 			if (!reloc) {
@@ -319,7 +327,7 @@ print_area(FILE *ifp, struct areahdr *areahdr, Word offset, Word reloff)
 				cptr = "unknown-field-type at";
 				break;
 			}
-			printf("%s 0x%06lx ", cptr, reloc->offset);
+			printf("%s 0x%06x ", cptr, reloc->offset);
 
 			if (rtype == type1) {
 				fputs("type-1 ", stdout);

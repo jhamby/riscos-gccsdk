@@ -1,14 +1,18 @@
-/*					  
+/*
  * main function
  *
  * Andy Duplain, BT Customer Systems, Brighton, UK.  duplain@btcs.bt.co.uk
+ * Copyright 2005 GCCSDK Developers
  */
 
 #include "config.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
+
 #include "decaof.h"
+#include "decode.h"
 #include "io.h"
 #include "misc.h"
 #include "error.h"
@@ -92,7 +96,7 @@ main(int argc, char **argv)
 
 	if (!argc)
 		usage();
-		
+
 	files = argv;
 	nfiles = argc;
 

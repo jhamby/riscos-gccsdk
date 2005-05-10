@@ -2,6 +2,7 @@
  * file input/output
  *
  * Andy Duplain, BT Customer Systems, Brighton, UK.  duplain@btcs.bt.co.uk
+ * Copyright 2005 GCCSDK Developers
  */
 
 #include "config.h"
@@ -49,18 +50,10 @@ read_byte(FILE *ifp)
 Halfword
 read_halfword(FILE *ifp)
 {
-	union {
-		Halfword h;
-		Byte b[sizeof(Halfword)];
-	} ret;
+	Byte lowByte = read_byte(ifp);
+	Byte highByte = read_byte(ifp);
 
-#ifdef WORDS_BIGENDIAN
-	ret.b[HALFWORD0] = read_byte(ifp);
-	ret.b[HALFWORD1] = read_byte(ifp);
-#else
-	fread((char *)&ret.h, 1, sizeof(Halfword), ifp);
-#endif
-	return (ret.h);
+	return lowByte + (highByte << 8);
 }
 
 /*
@@ -69,20 +62,10 @@ read_halfword(FILE *ifp)
 Word
 read_word(FILE *ifp)
 {
-	union {
-		Word w;
-		Byte b[sizeof(Word)];
-	} ret;
+	Halfword lowHalfword = read_halfword(ifp);
+	Halfword highHalfword = read_halfword(ifp);
 
-#ifdef WORDS_BIGENDIAN
-	ret.b[WORD0] = read_byte(ifp);
-	ret.b[WORD1] = read_byte(ifp);
-	ret.b[WORD2] = read_byte(ifp);
-	ret.b[WORD3] = read_byte(ifp);
-#else
-	fread((char *)&ret.w, 1, sizeof(Word), ifp);
-#endif
-	return (ret.w);
+	return lowHalfword + (highHalfword << 16);
 }
 
 /*
@@ -98,7 +81,7 @@ read_chunkhdr(FILE *ifp)
 	hdr.maxchunks = read_word(ifp);
 	hdr.numchunks = read_word(ifp);
 	return (check_stream(ifp) != FRWERR ? &hdr : NULL);
-}	
+}
 
 /*
  * memory pointers maintained by read_xxx functions
@@ -137,7 +120,7 @@ free_chunk_memory(char *ptr)
 	} else
 		return (-1);
 	return (0);
-}	
+}
 
 /*
  * read in the chunk entries
@@ -145,7 +128,7 @@ free_chunk_memory(char *ptr)
 struct chunkent *
 read_chunkents(FILE *ifp, struct chunkhdr *hdr)
 {
-	register i;
+	int i;
 
 	if (ents)
 		free(ents);
@@ -155,7 +138,7 @@ read_chunkents(FILE *ifp, struct chunkhdr *hdr)
 		error("memory exhausted");
 		abort();
 	}
-		
+
 	fseek(ifp, sizeof(struct chunkhdr), 0);
 	for (i = 0; i < hdr->numchunks; i++) {
 		fread(ents[i].chunkid, 1, 8, ifp);
@@ -179,7 +162,7 @@ read_stringtab(FILE *ifp, struct chunkent *strent)
 		error("memory exhausted");
 		abort();
 	}
-	
+
 	fseek(ifp, strent->offset, 0);
 	*(Word *)strptr = read_word(ifp);	/* size in 1st word */
 	fread(strptr + 4, 1, (int)strent->size - 4, ifp);
@@ -193,7 +176,7 @@ read_stringtab(FILE *ifp, struct chunkent *strent)
 struct symbol *
 read_symboltab(FILE *ifp, struct chunkent *syment, int numsyms)
 {
-	register i;
+	int i;
 
 	if (symptr)
 		free(symptr);
@@ -202,7 +185,7 @@ read_symboltab(FILE *ifp, struct chunkent *syment, int numsyms)
 		error("memory exhausted");
 		abort();
 	}
-	
+
 	fseek(ifp, syment->offset, 0);
 	for (i = 0; i < numsyms; i++) {
 		symptr[i].name = read_word(ifp);
@@ -240,7 +223,7 @@ read_ident(FILE *ifp, struct chunkent *ident)
 struct aofhdr *
 read_aofhdr(FILE *ifp, struct chunkent *hdrent)
 {
-	register i;
+	int i;
 	struct areahdr *areahdr;
 
 	if (aofhdr)

@@ -2,6 +2,7 @@
  * report errors and warnings
  *
  * Andy Duplain, BT Customer Systems, Brighton, UK.  duplain@btcs.bt.co.uk
+ * Copyright 2005 GCCSDK Developers
  */
 
 #include "config.h"

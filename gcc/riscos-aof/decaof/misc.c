@@ -2,6 +2,7 @@
  * miscellaneous functions
  *
  * Andy Duplain, BT Customer Systems, Brighton, UK.  duplain@btcs.bt.co.uk
+ * Copyright 2005 GCCSDK Developers
  */
 
 #include "config.h"
@@ -34,9 +35,9 @@ basename(char *s)
  * locate a chunk entry by chunk ID
  */
 struct chunkent *
-find_ent(struct chunkhdr *hdr, struct chunkent *ents, char *name)
+find_ent(struct chunkhdr *hdr, struct chunkent *ents, const char *name)
 {
-	register i;
+	int i;
 
 	for (i = 0; i < hdr->numchunks; i++)
 		if (memcmp(ents[i].chunkid, name, 8) == 0)

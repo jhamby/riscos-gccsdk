@@ -2,10 +2,11 @@
  * defines types used in decaof
  *
  * Andy Duplain, BT Customer Systems, Brighton, UK.  duplain@btcs.bt.co.uk
+ * Copyright 2005 GCCSDK Developers
  */
 
-#ifndef __DECAOF_H
-#define __DECAOF_H
+#ifndef DECAOF_HEADER_INCLUDED
+#define DECAOF_HEADER_INCLUDED
 
 /*
  * "Word" must be a 4-byte type.
@@ -16,7 +17,7 @@
 #include <stdint.h>
 typedef uint32_t Word;
 typedef uint16_t Halfword;
-typedef uint8_t	Byte;
+typedef uint8_t Byte;
 #else
 typedef unsigned int	Word;
 typedef unsigned short	Halfword;
@@ -66,7 +67,7 @@ typedef struct {
 	int month;
 	int year;
 } Date;
-		
+
 /*
  * Chunk file / AOF structures
  */
@@ -90,7 +91,7 @@ struct aofhdr {			/* fixed part of AOF header only */
 	Word numsyms;
 	Word entryarea;
 	Word entryoffset;
-};	
+};
 
 #ifdef WORDS_BIGENDIAN
 struct areahdr_flags {
@@ -146,4 +147,4 @@ struct symbol {
 };
 
 
-#endif /* __DECAOF_H */
+#endif /* DECAOF_HEADER_INCLUDED */

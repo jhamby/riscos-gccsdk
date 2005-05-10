@@ -2,14 +2,15 @@
  * miscellaneous function prototypes
  *
  * Andy Duplain, BT Customer Systems, Brighton, UK.  duplain@btcs.bt.co.uk
+ * Copyright 2005 GCCSDK Developers
  */
 
-#ifndef __MISC_H
-#define __MISC_H
+#ifndef MISC_HEADER_INCLUDED
+#define MISC_HEADER_INCLUDED
 
-#ifdef RISCOS3
+#ifdef CROSS_COMPILE
 char *basename (char *s);
 #endif
-struct chunkent *find_ent (struct chunkhdr *hdr, struct chunkent *ents, char *name);
+struct chunkent *find_ent (struct chunkhdr *hdr, struct chunkent *ents, const char *name);
 
-#endif /* __MISC_H */
+#endif /* MISC_HEADER_INCLUDED */
