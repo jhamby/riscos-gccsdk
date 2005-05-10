@@ -6,6 +6,9 @@ ro_hosts=GCCSDK_ENV/ro-hosts
 export ac_exeext=,ff8
 export ac_cv_exeext=,ff8
 
+export GCCSDK_INSTALL_ENV=GCCSDK_ENV
+export DESKLIB_PATH=GCCSDK_ENV/DeskLib
+
 if [ -f $ro_hosts ] && [ "$RO_DIST" == "YES" ] ; then
   export DISTCC_HOSTS=$(cat $ro_hosts)
   ro_jobs="-j$(wc -w < $ro_hosts | tr -s " " | cut -f 2 -d ' ')"
