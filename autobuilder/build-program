@@ -163,7 +163,7 @@ else
    eval $AB_PRECONF $AB_CONFIG $AB_CONFLAGS
  elif [ -e Makefile ] || [ -e makefile ] ; then
    :
- else
+ elif [ "$AB_MAKE" == "$AB_GCCENV/ro-make" ] ; then
    echo "Autobuilder - no known build method"
    exit 1
  fi
