@@ -1,0 +1,6 @@
+
+AB_CVS_ROOT=:pserver:anonymous:anonymous@cvs.chocky.org:/var/cvs/
+AB_CVS_MODULE=ChoX11
+
+AB_MAKE="$AB_MAKE install"
+
