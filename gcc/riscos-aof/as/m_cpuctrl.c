@@ -93,7 +93,7 @@ m_bx (WORD cc)
   if (dst == 15)
     error (ErrorWarning, TRUE, "Use of PC with BX is discouraged");
 
-  putIns (cc | 0x01200010 | dst);
+  putIns (cc | 0x012fff10 | dst);
 }
 
 void
