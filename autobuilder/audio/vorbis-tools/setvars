@@ -1,10 +1,6 @@
 
 AB_CATEGORY=audio
 
-#AB_FILESNOPATH="ogg123/ogg123,ff8 oggenc/oggenc,ff8 oggdec/oggdec,ff8 \
-#                ogginfo/ogginfo,ff8 vcut/vcut,ff8 \
-#                vorbiscomment/vorbiscomment,ff8 COPYING"
-
 AB_MANPAGE="ogg123/ogg123.1 oggenc/man/oggenc.1 oggdec/oggdec.1 \
                 ogginfo/ogginfo.1 vcut/vcut.1 \
                 vorbiscomment/vorbiscomment.1"

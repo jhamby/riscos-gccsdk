@@ -1,0 +1,9 @@
+
+AB_CATEGORY=cli
+
+AB_MANPAGE="doc/bc.1 doc/dc.1"
+
+ab_package() {
+  cp -av $S/bc/bc,ff8 $S/dc/dc,ff8 $S/COPYING $D
+}
+

@@ -1,0 +1,9 @@
+
+AB_CATEGORY=cli
+
+AB_MANPAGE="ed.1"
+
+ab_package() {
+  cp -av $S/ed,ff8 $S/COPYING $D
+}
+

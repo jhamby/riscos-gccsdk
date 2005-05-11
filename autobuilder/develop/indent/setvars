@@ -1,0 +1,9 @@
+
+AB_CATEGORY=develop
+
+/usr/bin/cc -o man/texinfo2man man/texinfo2man.c
+
+ab_package() {
+  cp -av $S/src/indent,ff8 doc/indent.html $S/COPYING $D
+}
+
