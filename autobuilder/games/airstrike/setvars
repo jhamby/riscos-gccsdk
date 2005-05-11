@@ -1,0 +1,6 @@
+
+AB_CATEGORY=games
+
+ab_package() {
+  :
+}
