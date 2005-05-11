@@ -1,8 +1,22 @@
 /*
 ** Drlink AOF Linker
 **
-** Copyright © David Daniels 1993, 1994, 1995, 1996, 1997, 1998.
-** All rights reserved.
+** Copyright (c) 1993, 1994, 1995, 1996, 1997, 1998  David Daniels
+** Copyright (c) 2001, 2002, 2003, 2004, 2005  GCCSDK Developers
+**
+** This program is free software; you can redistribute it and/or
+** modify it under the terms of the GNU General Public License
+** as published by the Free Software Foundation; either version 2
+** of the License, or (at your option) any later version.
+**
+** This program is distributed in the hope that it will be useful,
+** but WITHOUT ANY WARRANTY; without even the implied warranty of
+** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+** GNU General Public License for more details.
+**
+** You should have received a copy of the GNU General Public License
+** along with this program; if not, write to the Free Software
+** Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 **
 ** This module contains the functions concerned with manipulating the
 ** various symbol tables
@@ -173,7 +187,7 @@ static void check_symedit(symtentry *symtp) {
   int fnhashval, syhashval;
   editcmd *ep;
   const char *symname = symtp->symtname;
-  
+
   fnhashval = current_file->chfilehash;
   syhashval = hash(symname);
   ep = current_symedit;
@@ -410,7 +424,7 @@ static bool add_symbol(symtentry *symtp) {
       error("Error: '%s' in '%s(%s)' duplicates a symbol already read in '%s'",
        name, current_lib->libname, objectname, cp->arfileptr->chfilename);
     else {
-      error("Error: '%s' in '%s' duplicates a symbol already read in '%s'", 
+      error("Error: '%s' in '%s' duplicates a symbol already read in '%s'",
        name, objectname, cp->arfileptr->chfilename);
     }
     return FALSE;
@@ -708,7 +722,7 @@ static void add_unresolved(missing **tree, symbol *sp, filelist *fp) {
 
     if (compval == 0)
       return;
- 
+
     if (compval > 0) {
       tree = &(*tree)->right;
     } else {
@@ -789,17 +803,17 @@ static libentry *search_lib_tree(libentry *lp, const char *name, bool ignorecase
 
   if (lp != NIL) {
     int compval = ignorecase ? stricmp(name, lp->libname) : strcmp(name, lp->libname);
- 
+
     if (compval == 0)
       return lp;
- 
+
     if (compval > 0) {
       return search_lib_tree(lp->right, name, ignorecase);
     } else {
       return search_lib_tree(lp->left, name, ignorecase);
     }
   }
- 
+
   return NIL;
 }
 

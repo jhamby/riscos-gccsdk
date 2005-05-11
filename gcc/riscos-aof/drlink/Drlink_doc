@@ -1148,26 +1148,15 @@ particular order:
 
 Any other suggestions people have will be gratefully received.
 
-If anyone has any suggestions or comments on Drlink, I can be
-contacted on the Arcade Bulletin Board, user #418 'Davedan'.
-Telephone numbers for Arcade are 0181-654-2212 and 0181-655-4412.
-Alternative, I can be reached at:
-
-    Davedan@arcade.demon.co.uk
-
 
 
 Copyright
 ~~~~~~~~~
 The software and the documentation that goes with it is
-Copyright © David Daniels 1993, 1994, 1995, 1996, 1997, 1998. All
-Rights Reserved.
+Copyright © David Daniels 1993, 1994, 1995, 1996, 1997, 1998.
+Copyright © GCCSDK Developers 2001, 2002, 2003, 2004, 2005.
 
-Permission is hereby given for you to copy this program and freely
-distribute it, subject to the following conditions:
+Around 2001 David Daniels issued the source code of Drlink under
+GPL.
 
- * No charge is made for the program (except nominal media costs).
- * No alterations are made to any of the files within this archive file.
- * All of the files within this archive are supplied, including this one.
- * No part of this program is included in a commercial product.
-
+-EOF-
