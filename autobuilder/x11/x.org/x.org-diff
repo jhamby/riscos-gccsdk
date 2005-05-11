@@ -1,0 +1,736 @@
+Index: config/cf/Imake.cf
+===================================================================
+RCS file: /cvs/xorg/xc/config/cf/Imake.cf,v
+retrieving revision 1.5
+diff -u -r1.5 Imake.cf
+--- config/cf/Imake.cf	18 Oct 2004 14:26:35 -0000	1.5
++++ config/cf/Imake.cf	31 Oct 2004 13:18:51 -0000
+@@ -1087,6 +1087,19 @@
+ # endif
+ #endif
+ 
++#ifdef __riscos__
++# define RISCOSArchitecture
++# define MacroIncludeFile <riscos.cf>
++# define MacroFile riscos.cf
++# undef riscos
++# ifdef __arm__
++#  define Arm32Architecture
++#  undef arm
++#  undef __arm
++#  undef __arm__
++# endif
++#endif
++
+ #ifndef MacroIncludeFile
+ XCOMM WARNING:  Imake.cf not configured; guessing at definitions!!!
+ XCOMM This might mean that BOOTSTRAPCFLAGS was not set when building imake.
+Index: config/cf/Imake.tmpl
+===================================================================
+RCS file: /cvs/xorg/xc/config/cf/Imake.tmpl,v
+retrieving revision 1.7
+diff -u -r1.7 Imake.tmpl
+--- config/cf/Imake.tmpl	9 Oct 2004 22:04:13 -0000	1.7
++++ config/cf/Imake.tmpl	31 Oct 2004 13:18:52 -0000
+@@ -1681,7 +1681,7 @@
+ # ifndef CrossCppCmd
+ #  define CrossCppCmd Concat3(CrossCompileDir,/,StripPath(CppCmd))
+ # endif
+-# ifndef CrossRawCppCmdCmd
++# ifndef CrossRawCppCmd
+ #  define CrossRawCppCmd Concat3(CrossCompileDir,/,StripPath(RawCppCmd))
+ # endif
+ # ifndef CrossPreProcessCmd
+Index: config/cf/Imakefile
+===================================================================
+RCS file: /cvs/xorg/xc/config/cf/Imakefile,v
+retrieving revision 1.4
+diff -u -r1.4 Imakefile
+--- config/cf/Imakefile	13 Oct 2004 16:47:28 -0000	1.4
++++ config/cf/Imakefile	31 Oct 2004 13:18:52 -0000
+@@ -36,6 +36,7 @@
+ X11.rules \
+ bsdLib.rules \
+ cde.rules \
++cross.rules \
+ cygwin.rules \
+ darwinLib.rules \
+ gnuLib.rules \
+@@ -121,6 +122,7 @@
+ os2.cf \
+ osf1.cf \
+ pegasus.cf \
++riscos.cf \
+ sco.cf \
+ sco5.cf \
+ sequent.cf \
+Index: config/cf/X11.tmpl
+===================================================================
+RCS file: /cvs/xorg/xc/config/cf/X11.tmpl,v
+retrieving revision 1.37
+diff -u -r1.37 X11.tmpl
+--- config/cf/X11.tmpl	30 Oct 2004 01:41:46 -0000	1.37
++++ config/cf/X11.tmpl	31 Oct 2004 13:18:53 -0000
+@@ -3748,7 +3748,7 @@
+  *
+  * Make sure that *Standard is set correctly, if not, the
+  * standard compile/link paths will be added *before* the
+- * local X directorys and installed versions of the standard
++ * local X directories and installed versions of the standard
+  * X headers will end up getting used.
+  */
+ 
+Index: config/imake/imakemdep.h
+===================================================================
+RCS file: /cvs/xorg/xc/config/imake/imakemdep.h,v
+retrieving revision 1.6
+diff -u -r1.6 imakemdep.h
+--- config/imake/imakemdep.h	19 Oct 2004 13:50:06 -0000	1.6
++++ config/imake/imakemdep.h	31 Oct 2004 13:18:54 -0000
+@@ -1362,6 +1362,9 @@
+ #if defined (__CHAR_BIT__)
+ 	{"__CHAR_BIT__", DEF_STRINGIFY(__CHAR_BIT__)},
+ #endif
++#if defined(__riscos__)
++        {"__riscos__", "1"},
++#endif
+ 	/* add any additional symbols before this line */
+ 	{NULL, NULL}
+ };
+Index: config/makedepend/Imakefile
+===================================================================
+RCS file: /cvs/xorg/xc/config/makedepend/Imakefile,v
+retrieving revision 1.3
+diff -u -r1.3 Imakefile
+--- config/makedepend/Imakefile	25 Jun 2004 10:02:33 -0000	1.3
++++ config/makedepend/Imakefile	31 Oct 2004 13:18:54 -0000
+@@ -21,7 +21,7 @@
+ #endif
+ #ifdef PreIncDir
+ PREINCDIR = PreIncDir
+-PREINC_DEFINES = -DPREINCDIR=\"$(PREINCDIR)\"
++PREINC_DEFINES = -DPREINCDIR="\"$(PREINCDIR)\""
+ #endif
+ #ifndef StdIncDir
+ #ifdef CrossCompileDir
+@@ -31,19 +31,19 @@
+ #endif
+ #endif
+ STDINCDIR = StdIncDir
+-STDINC_DEFINES = -DINCLUDEDIR=\"$(STDINCDIR)\"
++STDINC_DEFINES = -DINCLUDEDIR="\"$(STDINCDIR)\""
+ #ifdef PostIncDir
+ POSTINCDIR = PostIncDir
+-POSTINC_DEFINES = -DPOSTINCDIR=\"$(POSTINCDIR)\"
++POSTINC_DEFINES = -DPOSTINCDIR="\"$(POSTINCDIR)\""
+ #endif
+ #ifdef ExtraIncDir
+ EXTRAINCDIR = ExtraIncDir
+-EXTRAINC_DEFINES = -DEXTRAINCDIR=\"$(EXTRAINCDIR)\"
++EXTRAINC_DEFINES = -DEXTRAINCDIR="\"$(EXTRAINCDIR)\""
+ #endif
+ INC_DEFINES = $(PREINC_DEFINES) $(STDINC_DEFINES) $(POSTINC_DEFINES) \
+ 	      $(EXTRAINC_DEFINES)
+ OSUF = Concat(.,Osuf)
+-OSUF_DEFINES = -DOBJSUFFIX=\"$(OSUF)\"
++OSUF_DEFINES = -DOBJSUFFIX="\"$(OSUF)\""
+ MAIN_DEFINES = $(INC_DEFINES) $(SIGNAL_DEFINES) $(OSUF_DEFINES)
+ INCLUDES = -I$(IMAKESRC) -I$(TOP)/include $(TOP_X_INCLUDES)/X11
+ 
+Index: lib/font/fontfile/dirfile.c
+===================================================================
+RCS file: /cvs/xorg/xc/lib/font/fontfile/dirfile.c,v
+retrieving revision 1.2
+diff -u -r1.2 dirfile.c
+--- lib/font/fontfile/dirfile.c	23 Apr 2004 18:44:21 -0000	1.2
++++ lib/font/fontfile/dirfile.c	31 Oct 2004 13:19:00 -0000
+@@ -74,7 +74,11 @@
+ #ifdef FONTDIRATTRIB
+     /* Check for font directory attributes */
+ #ifndef __UNIXOS2__
++#ifdef __riscos__
++    if ((ptr = strchr(directory, ';'))) {
++#else
+     if ((ptr = strchr(directory, ':'))) {
++#endif    
+ #else
+     /* OS/2 path might start with a drive letter, don't clip this */
+     if (ptr = strchr(directory+2, ':')) {
+Index: lib/font/fontfile/fontdir.c
+===================================================================
+RCS file: /cvs/xorg/xc/lib/font/fontfile/fontdir.c,v
+retrieving revision 1.2
+diff -u -r1.2 fontdir.c
+--- lib/font/fontfile/fontdir.c	23 Apr 2004 18:44:21 -0000	1.2
++++ lib/font/fontfile/fontdir.c	31 Oct 2004 13:19:00 -0000
+@@ -111,7 +111,7 @@
+ 
+ #ifdef FONTDIRATTRIB
+ #ifndef __UNIXOS2__
+-    attrib = strchr(dirName, ':');
++    attrib = strchr(dirName, ';');
+ #else
+     /* OS/2 uses the colon in the drive letter descriptor, skip this */
+     attrib = strchr(dirName+2, ':');
+Index: lib/font/util/atom.c
+===================================================================
+RCS file: /cvs/xorg/xc/lib/font/util/atom.c,v
+retrieving revision 1.2
+diff -u -r1.2 atom.c
+--- lib/font/util/atom.c	23 Apr 2004 18:44:23 -0000	1.2
++++ lib/font/util/atom.c	31 Oct 2004 13:19:00 -0000
+@@ -143,7 +143,7 @@
+ }
+ 
+ Atom 
+-MakeAtom(char *string, unsigned len, int makeit)
++MakeAtom2(char *string, unsigned len, int makeit)
+ {
+     AtomListPtr	a;
+     int		hash;
+@@ -216,13 +216,13 @@
+ }
+ 
+ int 
+-ValidAtom(Atom atom)
++ValidAtom2(Atom atom)
+ {
+     return (atom != None) && (atom <= lastAtom);
+ }
+ 
+ char *
+-NameForAtom(Atom atom)
++NameForAtom2(Atom atom)
+ {
+     if (atom != None && atom <= lastAtom)
+ 	return reverseMap[atom]->name;
+Index: lib/font/util/miscutil.c
+===================================================================
+RCS file: /cvs/xorg/xc/lib/font/util/miscutil.c,v
+retrieving revision 1.2
+diff -u -r1.2 miscutil.c
+--- lib/font/util/miscutil.c	23 Apr 2004 18:44:23 -0000	1.2
++++ lib/font/util/miscutil.c	31 Oct 2004 13:19:00 -0000
+@@ -39,7 +39,7 @@
+ 
+ /* make sure everything initializes themselves at least once */
+ 
+-long serverGeneration = 1;
++/*long serverGeneration = 1;*/
+ 
+ void *
+ Xalloc (unsigned long m)
+Index: programs/Xserver/cfb/cfbmskbits.h
+===================================================================
+RCS file: /cvs/xorg/xc/programs/Xserver/cfb/cfbmskbits.h,v
+retrieving revision 1.2
+diff -u -r1.2 cfbmskbits.h
+--- programs/Xserver/cfb/cfbmskbits.h	23 Apr 2004 19:00:12 -0000	1.2
++++ programs/Xserver/cfb/cfbmskbits.h	31 Oct 2004 13:19:01 -0000
+@@ -824,7 +824,7 @@
+ }
+ #else /* BITMAP_BIT_ORDER == LSB */
+ 
+-/* this must load 32 bits worth; for most machines, thats an int */
++/* this must load 32 bits worth; for most machines, that's an int */
+ #define CfbFetchUnaligned(x)	ldl_u(x)
+ 
+ #define getstipplepixels( psrcstip, xt, w, ones, psrcpix, destpix ) \
+Index: programs/Xserver/dix/atom.c
+===================================================================
+RCS file: /cvs/xorg/xc/programs/Xserver/dix/atom.c,v
+retrieving revision 1.2
+diff -u -r1.2 atom.c
+--- programs/Xserver/dix/atom.c	23 Apr 2004 19:04:43 -0000	1.2
++++ programs/Xserver/dix/atom.c	31 Oct 2004 13:19:02 -0000
+@@ -70,6 +70,7 @@
+ 
+ void FreeAtom(NodePtr patom);
+ 
++#if 1
+ Atom 
+ MakeAtom(string, len, makeit)
+     char *string;
+@@ -166,6 +167,7 @@
+     if ((node = nodeTable[atom]) == (NodePtr)NULL) return 0;
+     return node->string;
+ }
++#endif
+ 
+ void
+ AtomError()
+Index: programs/Xserver/dix/dispatch.c
+===================================================================
+RCS file: /cvs/xorg/xc/programs/Xserver/dix/dispatch.c,v
+retrieving revision 1.6
+diff -u -r1.6 dispatch.c
+--- programs/Xserver/dix/dispatch.c	15 Sep 2004 09:05:22 -0000	1.6
++++ programs/Xserver/dix/dispatch.c	31 Oct 2004 13:19:03 -0000
+@@ -456,6 +456,7 @@
+ 	    
+ 		if (result != Success) 
+ 		{
++		printf("error being returned %d %d %x\n",result,MAJOROP,client->requestVector[MAJOROP]);
+ 		    if (client->noClientException != Success)
+                         CloseDownClient(client);
+                     else
+Index: programs/Xserver/dix/dixutils.c
+===================================================================
+RCS file: /cvs/xorg/xc/programs/Xserver/dix/dixutils.c,v
+retrieving revision 1.5
+diff -u -r1.5 dixutils.c
+--- programs/Xserver/dix/dixutils.c	30 Jul 2004 01:15:57 -0000	1.5
++++ programs/Xserver/dix/dixutils.c	31 Oct 2004 13:19:04 -0000
+@@ -168,6 +168,7 @@
+ }
+ 
+ 
++#if 0
+ void
+ CopyISOLatin1Lowered(dest, source, length)
+     register unsigned char *dest, *source;
+@@ -179,6 +180,7 @@
+ 	*dest = ISOLatin1ToLower (*source);
+     *dest = '\0';
+ }
++#endif
+ 
+ int
+ CompareISOLatin1Lowered(unsigned char *s1, int s1len, 
+Index: programs/Xserver/dix/globals.c
+===================================================================
+RCS file: /cvs/xorg/xc/programs/Xserver/dix/globals.c,v
+retrieving revision 1.3
+diff -u -r1.3 globals.c
+--- programs/Xserver/dix/globals.c	22 Sep 2004 17:20:55 -0000	1.3
++++ programs/Xserver/dix/globals.c	31 Oct 2004 13:19:04 -0000
+@@ -85,7 +85,8 @@
+ WindowPtr *WindowTable;
+ 
+ unsigned long globalSerialNumber = 0;
+-unsigned long serverGeneration = 0;
++/*unsigned long serverGeneration = 0;*/
++unsigned long serverGeneration = 1;
+ 
+ /* these next four are initialized in main.c */
+ CARD32 ScreenSaverTime;
+Index: programs/Xserver/dix/main.c
+===================================================================
+RCS file: /cvs/xorg/xc/programs/Xserver/dix/main.c,v
+retrieving revision 1.4
+diff -u -r1.4 main.c
+--- programs/Xserver/dix/main.c	18 Sep 2004 23:18:35 -0000	1.4
++++ programs/Xserver/dix/main.c	31 Oct 2004 13:19:04 -0000
+@@ -288,15 +288,16 @@
+     if (xauthfile) InitAuthorization (xauthfile);
+     ProcessCommandLine(argc, argv);
+ 
++
+     alwaysCheckForInput[0] = 0;
+     alwaysCheckForInput[1] = 1;
+     while(1)
+     {
+-	serverGeneration++;
+ 	ScreenSaverTime = defaultScreenSaverTime;
+ 	ScreenSaverInterval = defaultScreenSaverInterval;
+ 	ScreenSaverBlanking = defaultScreenSaverBlanking;
+ 	ScreenSaverAllowExposures = defaultScreenSaverAllowExposures;
++
+ #ifdef DPMSExtension
+ 	DPMSStandbyTime = defaultDPMSStandbyTime;
+ 	DPMSSuspendTime = defaultDPMSSuspendTime;
+@@ -496,6 +497,8 @@
+ 
+ 	xfree(ConnectionInfo);
+ 	ConnectionInfo = NULL;
++
++	serverGeneration++;
+     }
+     return(0);
+ }
+Index: programs/Xserver/hw/xfree86/common/compiler.h
+===================================================================
+RCS file: /cvs/xorg/xc/programs/Xserver/hw/xfree86/common/compiler.h,v
+retrieving revision 1.3
+diff -u -r1.3 compiler.h
+--- programs/Xserver/hw/xfree86/common/compiler.h	27 Aug 2004 19:27:12 -0000	1.3
++++ programs/Xserver/hw/xfree86/common/compiler.h	31 Oct 2004 13:19:06 -0000
+@@ -565,7 +565,7 @@
+    return ret;
+ }
+ 
+-#   elif (defined(linux) || defined(Lynx) || defined(sun) || defined(__OpenBSD__) || defined(__FreeBSD__)) && defined(__sparc__)
++#   elif (defined(linux) || defined(__riscos__) || defined(Lynx) || defined(sun) || defined(__OpenBSD__) || defined(__FreeBSD__)) && defined(__sparc__)
+ 
+ #    if !defined(Lynx)
+ #     ifndef ASI_PL
+@@ -900,7 +900,7 @@
+ #    define write_mem_barrier()   /* XXX: nop for now */
+ 
+ #   elif defined(__mips__) || (defined(__arm32__) && !defined(__linux__))
+-#    ifdef __arm32__
++#    if defined(__arm32__) || defined(__riscos__)
+ #     define PORT_SIZE long
+ #    else
+ #     define PORT_SIZE short
+@@ -982,7 +982,7 @@
+ 	return r1;
+ }
+ 
+-#     ifdef linux	/* don't mess with other OSs */
++#     if defined(linux) || defined(__riscos__)	/* don't mess with other OSs */
+ 
+ /*
+  * EGCS 1.1 knows about arbitrary unaligned loads (and we don't support older
+@@ -1057,7 +1057,7 @@
+ #     endif /* !linux */
+ #    endif /* __mips__ */
+ 
+-#    if defined(__arm32__)
++#    if defined(__arm32__) || defined(__riscos__)
+ #     define ldq_u(p)	(*((unsigned long  *)(p)))
+ #     define ldl_u(p)	(*((unsigned int   *)(p)))
+ #     define ldw_u(p)	(*((unsigned short *)(p)))
+@@ -1356,7 +1356,7 @@
+ #    define write_mem_barrier()   /* NOP */
+ 
+ #    if !defined(__SUNPRO_C)
+-#    if !defined(FAKEIT) && !defined(__mc68000__) && !defined(__arm__) && !defined(__sh__) && !defined(__hppa__)
++#    if !defined(FAKEIT) && !defined(__mc68000__) && !defined(__arm__) && !defined(__sh__) && !defined(__hppa__) && !defined(__riscos__)
+ #     ifdef GCCUSESGAS
+ 
+ /*
+Index: programs/Xserver/hw/xfree86/common/xf86Events.c
+===================================================================
+RCS file: /cvs/xorg/xc/programs/Xserver/hw/xfree86/common/xf86Events.c,v
+retrieving revision 1.5
+diff -u -r1.5 xf86Events.c
+--- programs/Xserver/hw/xfree86/common/xf86Events.c	29 Oct 2004 02:06:17 -0000	1.5
++++ programs/Xserver/hw/xfree86/common/xf86Events.c	31 Oct 2004 13:19:07 -0000
+@@ -53,6 +53,8 @@
+ 
+ /* [JCH-96/01/21] Extended std reverse map to four buttons. */
+ 
++#include <signal.h>
++
+ #ifdef __UNIXOS2__
+ #define I_NEED_OS2_H
+ #endif
+Index: programs/Xserver/hw/xfree86/common/xf86Init.c
+===================================================================
+RCS file: /cvs/xorg/xc/programs/Xserver/hw/xfree86/common/xf86Init.c,v
+retrieving revision 1.14
+diff -u -r1.14 xf86Init.c
+--- programs/Xserver/hw/xfree86/common/xf86Init.c	11 Oct 2004 09:58:04 -0000	1.14
++++ programs/Xserver/hw/xfree86/common/xf86Init.c	31 Oct 2004 13:19:08 -0000
+@@ -33,6 +33,8 @@
+  */
+ 
+ #include <stdlib.h>
++#include <signal.h>
++#include <errno.h>
+ 
+ #undef HAS_UTSNAME
+ #if !defined(WIN32) && !defined(__UNIXOS2__)
+===================================================================
+RCS file: /cvs/xorg/xc/programs/Xserver/hw/xfree86/os-support/Imakefile,v
+retrieving revision 1.2
+diff -u -r1.2 Imakefile
+--- programs/Xserver/hw/xfree86/os-support/Imakefile	23 Apr 2004 19:54:07 -0000	1.2
++++ programs/Xserver/hw/xfree86/os-support/Imakefile	31 Oct 2004 13:19:09 -0000
+@@ -21,7 +21,7 @@
+ 	defined(KOpenBSDArchitecture) || defined(SGIArchitecture) || \
+ 	(defined(LynxOSArchitecture) && defined(PpcArchitecture)) || \
+ 	defined(AMD64Architecture) || defined(LinuxArchitecture) || \
+-	defined(GNUMachArchitecture)
++	defined(GNUMachArchitecture) || defined(RISCOSArchitecture)
+ BUS_SUBDIR = bus
+ #endif
+ 
+@@ -59,6 +59,10 @@
+ OS_SUBDIR = linux
+ #endif
+ 
++#if defined(RISCOSArchitecture)
++OS_SUBDIR = riscos
++#endif
++
+ #if defined(LynxOSArchitecture)
+ OS_SUBDIR = lynxos
+ #endif
+Index: programs/Xserver/hw/xfree86/os-support/bus/Pci.h
+===================================================================
+RCS file: /cvs/xorg/xc/programs/Xserver/hw/xfree86/os-support/bus/Pci.h,v
+retrieving revision 1.4
+diff -u -r1.4 Pci.h
+--- programs/Xserver/hw/xfree86/os-support/bus/Pci.h	11 Aug 2004 21:14:17 -0000	1.4
++++ programs/Xserver/hw/xfree86/os-support/bus/Pci.h	31 Oct 2004 13:19:10 -0000
+@@ -244,6 +244,9 @@
+ #  define INCLUDE_XF86_MAP_PCI_MEM
+ #  define INCLUDE_XF86_NO_DOMAIN
+ # endif
++# if defined(__riscos__)
++#  define ARCH_PCI_INIT riscosPciInit 
++# endif
+ #elif defined(__hppa__)
+ # if defined(linux)
+ #  define ARCH_PCI_INIT linuxPciInit
+Index: programs/Xserver/hw/xnest/Events.c
+===================================================================
+RCS file: /cvs/xorg/xc/programs/Xserver/hw/xnest/Events.c,v
+retrieving revision 1.3
+diff -u -r1.3 Events.c
+--- programs/Xserver/hw/xnest/Events.c	11 Aug 2004 22:40:14 -0000	1.3
++++ programs/Xserver/hw/xnest/Events.c	31 Oct 2004 13:19:10 -0000
+@@ -198,7 +198,7 @@
+       break;
+       
+     default:
+-      ErrorF("xnest warning: unhandled event\n");
++      ErrorF("xnest warning: unhandled event %d\n",X.type);
+       break;
+     }
+   }
+Index: programs/Xserver/hw/xnest/Keyboard.c
+===================================================================
+RCS file: /cvs/xorg/xc/programs/Xserver/hw/xnest/Keyboard.c,v
+retrieving revision 1.2
+diff -u -r1.2 Keyboard.c
+--- programs/Xserver/hw/xnest/Keyboard.c	23 Apr 2004 19:54:21 -0000	1.2
++++ programs/Xserver/hw/xnest/Keyboard.c	31 Oct 2004 13:19:10 -0000
+@@ -174,6 +174,7 @@
+ 	      modifier_keymap->
+ 	        modifiermap[j * modifier_keymap->max_keypermod + i]))
+ 	    modmap[keycode] |= 1<<j;
++	  printf("modifier map i %d j %d k %x\n",i,j,keycode);
+ 	}
+       XFreeModifiermap(modifier_keymap);
+       
+@@ -182,6 +183,13 @@
+       keySyms.mapWidth = mapWidth;
+       keySyms.map = keymap;
+ 
++printf("keymap:\n");
++for (i=0;i<max_keycode - min_keycode + 1;i++){
++	for (j=0;j<mapWidth;j++) {
++		printf(" %x",keymap[i*mapWidth+j]);
++	}
++printf("\n");
++}
+ #ifdef XKB
+       if (noXkbExtension) {
+ XkbError:
+Index: programs/Xserver/hw/xnest/Screen.c
+===================================================================
+RCS file: /cvs/xorg/xc/programs/Xserver/hw/xnest/Screen.c,v
+retrieving revision 1.3
+diff -u -r1.3 Screen.c
+--- programs/Xserver/hw/xnest/Screen.c	11 Aug 2004 22:40:14 -0000	1.3
++++ programs/Xserver/hw/xnest/Screen.c	31 Oct 2004 13:19:11 -0000
+@@ -51,6 +51,8 @@
+ int xnestScreenGeneration = -1;
+ #endif
+ 
++int bodge = 1;
++
+ ScreenPtr
+ xnestScreen(Window window)
+ {
+@@ -371,6 +373,9 @@
+     attributes.event_mask = xnestEventMask;
+     attributes.colormap = xnestDefaultVisualColormap(xnestDefaultVisual(pScreen));
+     
++   if (bodge)
++    xnestParentWindow = DefaultRootWindow(xnestDisplay);
++
+     if (xnestParentWindow != 0) {
+       xnestDefaultWindows[pScreen->myNum] = xnestParentWindow;
+       XSelectInput (xnestDisplay, xnestDefaultWindows[pScreen->myNum],
+@@ -406,13 +411,15 @@
+ 			   xnestWindowName, 
+ 			   xnestIconBitmap,
+ 			   argv, argc, &sizeHints);
+-    
+-    XMapWindow(xnestDisplay, xnestDefaultWindows[pScreen->myNum]);
++
++    if (!bodge) XMapWindow(xnestDisplay, xnestDefaultWindows[pScreen->myNum]);
+ 
+     valuemask = CWBackPixmap | CWColormap;
+     attributes.background_pixmap = xnestScreenSaverPixmap;
+     attributes.colormap = 
+       DefaultColormap(xnestDisplay, DefaultScreen(xnestDisplay));
++    xnestScreenSaverWindows[pScreen->myNum] = NULL;
++    if (bodge) {
+     xnestScreenSaverWindows[pScreen->myNum] =
+       XCreateWindow(xnestDisplay, 
+ 		    xnestDefaultWindows[pScreen->myNum],
+@@ -422,6 +429,7 @@
+ 		    DefaultVisual(xnestDisplay, DefaultScreen(xnestDisplay)),
+ 		    valuemask, &attributes);
+   }
++  }
+   
+   if (!xnestCreateDefaultColormap(pScreen)) return False;
+   
+Index: programs/Xserver/hw/xnest/Window.c
+===================================================================
+RCS file: /cvs/xorg/xc/programs/Xserver/hw/xnest/Window.c,v
+retrieving revision 1.2
+diff -u -r1.2 Window.c
+--- programs/Xserver/hw/xnest/Window.c	23 Apr 2004 19:54:21 -0000	1.2
++++ programs/Xserver/hw/xnest/Window.c	31 Oct 2004 13:19:11 -0000
+@@ -67,7 +67,9 @@
+   
+   return wm.pWin;
+ }
+-    
++
++extern int bodge;
++
+ Bool
+ xnestCreateWindow(WindowPtr pWin)
+ {
+@@ -106,7 +108,29 @@
+       attributes.colormap = xnestColormap(pCmap);
+     }
+   }
+-  
++if (bodge) {
++/*puts("window.c");
++write_backtrace(0);*/
++  static num = 0;
++  if (num == 0) {
++  	  xnestWindowPriv(pWin)->window = DefaultRootWindow(xnestDisplay);
++  } else {
++  xnestWindowPriv(pWin)->window = XCreateWindow(xnestDisplay,
++						xnestWindowParent(pWin),
++						pWin->origin.x - 
++						wBorderWidth(pWin),
++						pWin->origin.y - 
++						wBorderWidth(pWin),
++						pWin->drawable.width,
++						pWin->drawable.height,
++						pWin->borderWidth,
++						pWin->drawable.depth, 
++						pWin->drawable.class,
++						visual,
++						mask, &attributes);
++  }
++  num++;
++} else {
+   xnestWindowPriv(pWin)->window = XCreateWindow(xnestDisplay,
+ 						xnestWindowParent(pWin),
+ 						pWin->origin.x - 
+@@ -120,6 +144,8 @@
+ 						pWin->drawable.class,
+ 						visual,
+ 						mask, &attributes);
++
++}
+   xnestWindowPriv(pWin)->parent = xnestWindowParent(pWin);
+   xnestWindowPriv(pWin)->x = pWin->origin.x - wBorderWidth(pWin);
+   xnestWindowPriv(pWin)->y = pWin->origin.y - wBorderWidth(pWin);
+Index: programs/Xserver/include/servermd.h
+===================================================================
+RCS file: /cvs/xorg/xc/programs/Xserver/include/servermd.h,v
+retrieving revision 1.3
+diff -u -r1.3 servermd.h
+--- programs/Xserver/include/servermd.h	9 Aug 2004 22:37:22 -0000	1.3
++++ programs/Xserver/include/servermd.h	31 Oct 2004 13:19:11 -0000
+@@ -132,7 +132,7 @@
+ 
+ #endif /* vax */
+ 
+-#ifdef __arm32__
++#if defined(__arm32__) || defined(__riscos__)
+ 
+ #define IMAGE_BYTE_ORDER        LSBFirst
+ 
+Index: programs/Xserver/os/osinit.c
+===================================================================
+RCS file: /cvs/xorg/xc/programs/Xserver/os/osinit.c,v
+retrieving revision 1.2
+diff -u -r1.2 osinit.c
+--- programs/Xserver/os/osinit.c	23 Apr 2004 19:54:28 -0000	1.2
++++ programs/Xserver/os/osinit.c	31 Oct 2004 13:19:12 -0000
+@@ -112,7 +112,7 @@
+ #endif
+ #if !defined(SCO) && !defined(__CYGWIN__)
+ 	fclose(stdin);
+-	fclose(stdout);
++/*	fclose(stdout);*/
+ #endif
+ 	/* 
+ 	 * If a write of zero bytes to stderr returns non-zero, i.e. -1, 
+Index: programs/Xserver/os/utils.c
+===================================================================
+RCS file: /cvs/xorg/xc/programs/Xserver/os/utils.c,v
+retrieving revision 1.9
+diff -u -r1.9 utils.c
+--- programs/Xserver/os/utils.c	29 Sep 2004 04:17:44 -0000	1.9
++++ programs/Xserver/os/utils.c	31 Oct 2004 13:19:18 -0000
+@@ -1344,6 +1344,7 @@
+ 
+ #ifndef INTERNAL_MALLOC
+ 
++#if 0
+ void * 
+ Xalloc(unsigned long amount)
+ {
+@@ -1366,6 +1367,7 @@
+ 	FatalError("Out of memory");
+     return (unsigned long *)NULL;
+ }
++#endif
+ 
+ /*****************
+  * XNFalloc 
+@@ -1395,6 +1397,7 @@
+  * Xcalloc
+  *****************/
+ 
++#if 0
+ void *
+ Xcalloc(unsigned long amount)
+ {
+@@ -1405,6 +1408,7 @@
+ 	bzero ((char *) ret, (int) amount);
+     return ret;
+ }
++#endif
+ 
+ /*****************
+  * XNFcalloc
+@@ -1427,6 +1431,7 @@
+  * Xrealloc
+  *****************/
+ 
++#if 0
+ void *
+ Xrealloc(pointer ptr, unsigned long amount)
+ {
+@@ -1452,7 +1457,8 @@
+ 	FatalError("Out of memory");
+     return (unsigned long *)NULL;
+ }
+-                    
++#endif
++
+ /*****************
+  * XNFrealloc 
+  * "no failure" realloc, alternate interface to Xrealloc w/o Must_have_memory
+@@ -1474,12 +1480,14 @@
+  *    calls free 
+  *****************/    
+ 
++#if 0
+ void
+ Xfree(pointer ptr)
+ {
+     if (ptr)
+ 	free((char *)ptr); 
+ }
++#endif
+ 
+ void
+ OsInitAllocator (void)

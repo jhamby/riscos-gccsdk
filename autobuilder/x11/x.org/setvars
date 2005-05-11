@@ -1,0 +1,11 @@
+
+AB_URL=http://www.mirror.ac.uk/mirror/ftp.x.org/pub/X11R6.8.2/src-single/X11R6.8.2-src.tar.bz2
+
+
+AB_MAKE="if [ -e Imakefile.ab ] ; then mv Imakefile.ab Imakefile; fi; make World CROSSCOMPILEDIR=/home/riscos/cross/bin"
+
+AB_INSTALL=yes
+
+mv Imakefile Imakefile.ab
+
+cp $H/riscos.cf $S/config/cf/

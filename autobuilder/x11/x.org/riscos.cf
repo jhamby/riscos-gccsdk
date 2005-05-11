@@ -1,0 +1,102 @@
+
+#ifndef OSName
+#define OSName			RISC OS
+#endif
+#ifndef OSMajorVersion
+#define OSMajorVersion		3/4/5
+#endif
+#ifndef OSMinorVersion
+#define OSMinorVersion          0
+#endif
+#ifndef OSTeenyVersion
+#define OSTeenyVersion          0
+#endif
+XCOMM operating system:  OSName
+
+#ifndef OSVendor
+#define	OSVendor		Castle Technology
+#endif
+
+#define ProjectRoot /home/riscos/env/X11R6
+#define DriverSDKDir ProjectRoot
+
+#undef CrossCompiling
+#define CrossCompiling YES
+
+#define DoRanlibCmd    NO
+
+#define ArCmd libfile -i
+#define CcCmd gcc
+#define AsCmd gcc -c
+#define LdCmd gcc
+#define LdCombineFlags -Wl,-aof 
+#define CrossCppCmd CrossCompileDir/arm-riscos-aof/3_4/cpp
+#define CrossRawCppCmd   CrossCppCmd -undef
+#define InstallCmd /home/riscos/env/ro-install
+
+#define ModuleArCmd /home/riscos/cross/bin/libfile -i
+
+#undef ThreadedX
+#define ThreadedX    NO
+
+#define HasPosixThreads YES
+
+#define HasFreeType2 NO
+#define SharedLibFreeType2 NO
+
+#define HasCThreads NO
+#define HasSnprintf YES
+#define HasPutenv   YES
+#define HasZlib     YES
+
+#define ConnectionFlags -DTCPCONN
+
+#define OptimizedCDebugFlags -O2
+
+#define StandardDefines -D_POSIX_C_SOURCE=199309L \
+		        -D_POSIX_SOURCE -D_XOPEN_SOURCE \
+		        -D_BSD_SOURCE -D_SVID_SOURCE
+
+#define PreIncDir /home/riscos/cross/lib/gcc-lib/arm-riscos-aof/3_4/include/
+#define StdIncDir /home/riscos/cross/include/unixlib
+
+#define SystemUsrIncDir /home/riscos/env/include
+#define SystemUsrLibDir /home/riscos/env/lib
+
+#define StandardIncludes -I/home/riscos/env/include
+#define ExtraLoadFlags -L/home/riscos/env/lib
+
+#define BuildFonts YES
+
+#define UseRgbTxt YES
+#define XnestServer YES
+#define XFree86ServerOSDefines	-DDDXOSINIT -DDDXOSFATALERROR -DDDXOSVERRORF
+
+#define BuildGLULibrary YES
+#define BuildGLXLibrary YES
+#define BuildGlxExt YES
+
+#define BuildIPv6 NO
+
+#define Malloc0ReturnsNull   YES
+
+#define LibpngDir /home/riscos/env
+
+/*#define DependCmd /home/riscos/env/X11R6/bin/makedepend*/
+
+#define NothingOutsideProjectRoot YES
+
+#define DoLoadableServer NO
+
+#define HasGlide3 NO
+
+EXTENSIONS_NOT_SUPPORTED = \
+	-UMITSHM \
+
+#define DefaultFontPath   /RiscXLib:X11/fonts/100dpi/,/RiscXLib:X11/fonts/75dpi/,/RiscXLib:X11/fonts/misc/,/RiscXLib:X11/fonts/Speedo/,/RiscXLib:X11/fonts/Type1/
+#define DefaultRGBDatabase  /RiscXLib:X11/rgb
+#define ServerConfigDir /RiscXLib:X11/xserver
+
+#include <cross.rules>
+#include <xorg.cf>
+
