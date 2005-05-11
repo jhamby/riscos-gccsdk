@@ -8,9 +8,11 @@
 #ifndef MISC_HEADER_INCLUDED
 #define MISC_HEADER_INCLUDED
 
-#ifdef CROSS_COMPILE
-char *basename (char *s);
+#ifndef HAVE_BASENAME
+extern char *basename (char *s);
 #endif
-struct chunkent *find_ent (struct chunkhdr *hdr, struct chunkent *ents, const char *name);
+
+struct chunkent *find_ent (struct chunkhdr *hdr, struct chunkent *ents,
+			   const char *name);
 
 #endif /* MISC_HEADER_INCLUDED */

@@ -17,7 +17,7 @@
 /*
  * return last element in pathname
  */
-#ifndef CROSS_COMPILE
+#ifndef HAVE_BASENAME
 char *
 basename(char *s)
 {
