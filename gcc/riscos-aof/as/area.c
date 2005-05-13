@@ -281,7 +281,7 @@ c_area (void)
 	  reg = getCpuReg ();
 	  newtype |= AREA_BASED | AREA_READONLY | AREA_INIT | (reg << 24);
 	}
-      else
+      else if (strncmp ("REL", attribute.LexId.str, attribute.LexId.len))
 	error (ErrorError, TRUE, "Illegal area attribute %s", attribute.LexId.str);
       skipblanks ();
     }
