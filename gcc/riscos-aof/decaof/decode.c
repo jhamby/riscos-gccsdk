@@ -175,8 +175,8 @@ decode (void)
 		if (symtab && aofhdr->numsyms) {
 			puts("\n** Symbol table:");
 			for (i = 0; i < aofhdr->numsyms; i++) {
-				Byte flags = symboltab[i].flags & 0xff;
-				printf("%-16s", string(symboltab[i].name));
+				int flags = symboltab[i].flags;
+				printf("%-16s (%02x) ", string(symboltab[i].name), flags);
 
 				switch (flags & 0x3) {
 					case 0x01:
@@ -203,6 +203,10 @@ decode (void)
 					fputs("strong ", stdout);
 				if ((flags & (1<<6)) && ((flags & 0x03) == 0x02))
 					fputs("common ", stdout);
+				if (flags & (1<<8))
+					fputs("cadatum ", stdout);
+				if (flags & (1<<8))
+					fputs("fpargs ", stdout);
 				if ((flags & (1<<0)) || (flags & (1<<6))) {
 					if (flags & (1<<2))
 						printf("= 0x%08x", symboltab[i].value);
