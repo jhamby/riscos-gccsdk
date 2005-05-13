@@ -184,7 +184,7 @@ printf("\n");
 		}
 		else
 		{
-			pthread_yield(); /* Lets yield for a short time to give the other threads more time */
+			pthread_yield(); /* Let's yield for a short time to give the other threads more time */
 		}
 	}
 

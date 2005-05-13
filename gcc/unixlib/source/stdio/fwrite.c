@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/stdio/fwrite.c,v $
- * $Date: 2005/04/08 17:01:56 $
- * $Revision: 1.7 $
+ * $Date: 2005/04/20 16:59:12 $
+ * $Revision: 1.8 $
  * $State: Exp $
  * $Author: nick $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: fwrite.c,v 1.7 2005/04/08 17:01:56 nick Exp $";
+static const char rcs_id[] = "$Id: fwrite.c,v 1.8 2005/04/20 16:59:12 nick Exp $";
 #endif
 
 /* #define DEBUG */
@@ -32,7 +32,7 @@ __STDIOLIB__
 size_t
 fwrite (const void *data, size_t size, size_t count, FILE *stream)
 {
-  size_t to_write, bytes;
+  size_t to_write, bytes = 0;
 
   PTHREAD_UNSAFE
 
@@ -57,7 +57,7 @@ fwrite (const void *data, size_t size, size_t count, FILE *stream)
 
   if (stream->o_base != NULL)
     {
-      /* The special file descriptor of -1 is used when writing to a
+  /* The special file descriptor of -1 is used when writing to a
 	 memory buffer, such as the function 'sprintf' would.  In this
 	 circumstance, if we have been requested to write more data than
 	 the buffer contains, truncate it.  */
@@ -111,9 +111,8 @@ fwrite (const void *data, size_t size, size_t count, FILE *stream)
 	      /* Try the fast case.  */
 	      unsigned char *b = (unsigned char *)data;
 	      unsigned char *p = stream->o_ptr;
-	      while (--to_write)
+	      while (to_write-- > 0)
 	        *p++ = *b++;
-	      *p++ = *b++;
 	    }
 
 	  /* Increment the file pointers. */
@@ -154,6 +153,6 @@ fwrite (const void *data, size_t size, size_t count, FILE *stream)
 	}
     }
 
-  /* Return the number of objects actually read.  */
-  return count - (to_write / size);
+  /* Return the number of objects actually written.  */
+  return bytes / size; 
 }

@@ -1,8 +1,8 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/features.h,v $
- * $Date: 2005/04/22 14:38:49 $
- * $Revision: 1.9 $
+ * $Date: 2005/05/07 15:36:56 $
+ * $Revision: 1.10 $
  * $State: Exp $
  * $Author: nick $
  *
@@ -406,6 +406,10 @@ extern const char * const * const ___dynamic_da_name;
 #define __attribute_weak__ __attribute__ ((__weak__))
 #else
 #define __attribute_weak__ /**/
+#endif
+
+#ifdef __STRICT_ANSI__
+#define inline __inline__
 #endif
 
 /* When defined, specifies the <program name> part of the UnixLib OS

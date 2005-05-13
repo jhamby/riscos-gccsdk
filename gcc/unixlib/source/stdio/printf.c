@@ -47,7 +47,7 @@ int vsnprintf (char *buf, size_t limit, const char *format, va_list ap)
      already guarantee exclusivity to the FILE structure.  */
   ret = __vfprintf (f, format, ap);
   if (ol > 0)
-    putc ('\0', f);
+    *f->o_ptr = '\0';
 
   return ret;
 }

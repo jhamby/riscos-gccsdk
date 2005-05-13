@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/stdio/putc.c,v $
- * $Date: 2002/02/14 15:56:36 $
- * $Revision: 1.3 $
+ * $Date: 2003/04/13 16:21:02 $
+ * $Revision: 1.4 $
  * $State: Exp $
- * $Author: admin $
+ * $Author: alex $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: putc.c,v 1.3 2002/02/14 15:56:36 admin Exp $";
+static const char rcs_id[] = "$Id: putc.c,v 1.4 2003/04/13 16:21:02 alex Exp $";
 #endif
 
 #include <stdio.h>
@@ -46,6 +46,11 @@ fputc (int c, FILE *stream)
     return __flsbuf (c, stream);
 }
 
+int
+fputc_unlocked(int c, FILE *stream)
+{
+  return putc_unlocked(c, stream);
+}
 
 int
 putc (int c, FILE *stream)

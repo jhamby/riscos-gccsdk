@@ -92,7 +92,7 @@ hcreate_r (size_t nel, struct hsearch_data *htab)
   /* everything went alright */
   return 1;
 }
-//libc_hidden_def (hcreate_r)
+/*libc_hidden_def (hcreate_r)*/
 
 
 /* After using the hash table it has to be destroyed. The used memory can
@@ -114,7 +114,7 @@ hdestroy_r (struct hsearch_data *htab)
   /* the sign for an existing table is an value != NULL in htable */
   htab->table = NULL;
 }
-//libc_hidden_def (hdestroy_r)
+/*libc_hidden_def (hdestroy_r)*/
 
 
 /* This is the search function. It uses double hashing with open addressing.
@@ -220,4 +220,4 @@ hsearch_r (ENTRY item, ACTION action, ENTRY **retval,
   *retval = NULL;
   return 0;
 }
-//libc_hidden_def (hsearch_r)
+/*libc_hidden_def (hsearch_r)*/

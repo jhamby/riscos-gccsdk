@@ -1,3 +1,15 @@
+Fri May 13 22:17:31 2005  Peter Naulls  <peter@chocky.org>
+
+	* test/pthread/fork.c: Correct spelling.
+	* Makefile.in: Stronger warning flags.
+	* clib/features.h, libm-dbl64/s_finite.c, libm-flt32/s_finitef.c,
+	  search/hsearch.c, search/hsearch_r.c, search/lsearch.c,
+	  vfprintf.c: Make code work with new flags
+	* stdio/fwrite.c (fwrite): Tidy and correctly return number of
+	  items written.
+	* stdio/printf (vsnprintf): Correctly terminate buffer.
+	* stdio/putc.c (putc_unlocked): Implement new function.
+
 Sat May  7 16:35:02 2005  Nick Burrett  <nick@sqrt.co.uk>
 
 	* features.h (__ULIBC_MINOR__): Bump version to 1.

@@ -65,6 +65,11 @@ __FBSDID("$FreeBSD: src/lib/libc/stdio/vfprintf.c,v 1.68 2004/08/26 06:25:28 des
 
 #include <stdarg.h>
 
+#define va_start(v,l)	__builtin_va_start(v,l)
+#define va_end(v)	__builtin_va_end(v)
+#define va_arg(v,l)	__builtin_va_arg(v,l)
+#define va_copy(d,s)	__builtin_va_copy(d,s)
+
 struct __siov {
         void    *iov_base;
         size_t  iov_len;
