@@ -51,7 +51,7 @@
 #define SYM_LINKDEF 0x80000000		/* Marks symbol as linker defined */
 
 #define SYM_ATMASK 0x067		/* Mask to extract interesting symbol attributes */
-#define SYM_A3ATTR 0x700		/* Mask to extract unsupported AOF 3 symbol attributes */
+#define SYM_A3ATTR 0x400		/* Mask to extract unsupported AOF 3 symbol attributes */
 
 /* Relocation type bits */
 
