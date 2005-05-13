@@ -1,3 +1,14 @@
+;; Implementation for module code
+(define_insn "module_load_addr_based"
+  [(set (match_operand:SI 0 "s_register_operand" "=r")
+        (unspec:SI [(match_operand:SI 1 "" "mX")] UNSPEC_PIC_SYM))]
+  "TARGET_ARM && TARGET_MODULE"
+  "ldr%?\\t%0, [pc, #%1-.-8]"
+  [(set_attr "type" "load")
+   (set (attr "pool_range")     (const_int 4096))
+   (set (attr "neg_pool_range") (const_int 4084))]
+)
+
 ;; Implementations for dyamic allocation off the stack.
 
 ;; These patterns say how to perform an equivalent to dynamic allocation
