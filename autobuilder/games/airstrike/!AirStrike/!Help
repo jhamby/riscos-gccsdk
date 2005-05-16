@@ -1,0 +1,18 @@
+Airstrike
+---------
+
+You will need a filing system with long file name support to play this game.
+
+Keys
+----
+
+Turn clockwise		Right
+Turn counterclockwise	Left
+Accelerate		,
+Fire			.
+Bomb			Space
+
+Known Issues
+------------
+
+The filenames of the graphics are displayed while loading, but this does not affect gameplay.
