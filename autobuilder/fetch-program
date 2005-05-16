@@ -4,6 +4,7 @@ AB_CVS_ROOT=$(grep AB_CVS_ROOT $AB_HOME/$AB_PACKAGEDIR/setvars | cut -d = -f 2)
 AB_CVS_MODULE=$(grep AB_CVS_MODULE $AB_HOME/$AB_PACKAGEDIR/setvars | cut -d = -f 2)
 AB_SVN=$(grep AB_SVN $AB_HOME/$AB_PACKAGEDIR/setvars | cut -d = -f 2)
 AB_URL=$(grep AB_URL $AB_HOME/$AB_PACKAGEDIR/setvars | cut -d = -f 2)
+AB_NOREMOTE=$(grep AB_NOREMOTE $AB_HOME/$AB_PACKAGEDIR/setvars | cut -d = -f 2)
 
 if [ "$AB_CVS_ROOT" != "" ] ; then
   if [ "$AB_CVS_MODULE" == "" ] ; then
@@ -29,6 +30,10 @@ elif [ "$AB_URL" != "" ] ; then
     echo "Unknown compression method"
     exit 1
   fi
+
+elif [ "$AB_NOREMOTE" == "yes" ] ; then
+  mkdir $AB_PACKAGE
+
 else
   if [ -x /usr/bin/apt-get ] ; then
     apt-get source $AB_PACKAGE
