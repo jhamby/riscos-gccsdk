@@ -1,0 +1,11 @@
+| !Run for !UnixHome
+|
+| By Peter Naulls
+| peter@chocky.org
+
+Set UnixHome$Dir <Obey$Dir>
+<UnixHome$Dir>.!Boot
+
+Filer_OpenDir <UnixHome$Dir>.home
+Unset UnixHome$Dir
+
