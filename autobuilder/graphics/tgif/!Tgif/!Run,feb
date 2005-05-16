@@ -1,0 +1,4 @@
+
+WimpSlot -min 4000k -max 4000k
+
+<Obey$Dir>.tgif >null: 2>null:
