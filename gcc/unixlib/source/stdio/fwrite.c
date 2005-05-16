@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/stdio/fwrite.c,v $
- * $Date: 2005/04/20 16:59:12 $
- * $Revision: 1.8 $
+ * $Date: 2005/05/13 21:32:12 $
+ * $Revision: 1.9 $
  * $State: Exp $
- * $Author: nick $
+ * $Author: peter $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: fwrite.c,v 1.8 2005/04/20 16:59:12 nick Exp $";
+static const char rcs_id[] = "$Id: fwrite.c,v 1.9 2005/05/13 21:32:12 peter Exp $";
 #endif
 
 /* #define DEBUG */
@@ -32,7 +32,7 @@ __STDIOLIB__
 size_t
 fwrite (const void *data, size_t size, size_t count, FILE *stream)
 {
-  size_t to_write, bytes = 0;
+  size_t to_write, bytes, total_bytes = 0;
 
   PTHREAD_UNSAFE
 
@@ -91,6 +91,7 @@ fwrite (const void *data, size_t size, size_t count, FILE *stream)
 	      to_write -= bytes;
 	      /* Increment the internal file offset.  */
 	      stream->__offset += bytes;
+	      total_bytes += bytes;
 	    }
 	}
       else
@@ -118,6 +119,7 @@ fwrite (const void *data, size_t size, size_t count, FILE *stream)
 	  /* Increment the file pointers. */
 	  stream->o_ptr += bytes;
 	  stream->o_cnt -= bytes;
+	  total_bytes += bytes;
 	  /* If we're line buffered, look for a newline and
 	     flush everything.  */
 	  if (stream->__linebuf && stream->o_ptr[-1] == '\n')
@@ -142,7 +144,12 @@ fwrite (const void *data, size_t size, size_t count, FILE *stream)
 	 We don't have to worry about all that buffer crap :-) */
       while (to_write)
 	{
-	  bytes = write (stream->fd, data, to_write);
+	  /* This check is for (v)snprintf with a NULL buffer */
+	  if (stream->fd == -1)
+	    bytes = to_write;
+	  else
+	    bytes = write (stream->fd, data, to_write);
+
 	  if (bytes == -1)
 	    {
 	      stream->__error = 1;
@@ -150,9 +157,10 @@ fwrite (const void *data, size_t size, size_t count, FILE *stream)
 	    }
 	  to_write -= bytes;
 	  stream->__offset += bytes;
+	  total_bytes += bytes;
 	}
     }
 
   /* Return the number of objects actually written.  */
-  return bytes / size; 
+  return total_bytes / size;
 }

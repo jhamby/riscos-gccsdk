@@ -1,3 +1,8 @@
+Mon May 16 22:30:29 2005  Peter Naulls  <peter@chocky.org>
+
+	* stdio/fwrite.c (fwrite): Make (v)snprintf with null parameters
+	  work properly.  Correct byte count.
+
 Fri May 13 22:17:31 2005  Peter Naulls  <peter@chocky.org>
 
 	* test/pthread/fork.c: Correct spelling.
