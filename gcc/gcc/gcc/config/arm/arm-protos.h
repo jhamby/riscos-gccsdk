@@ -150,7 +150,7 @@ extern int arm_function_arg_pass_by_reference (CUMULATIVE_ARGS *,
 #endif
 
 #if defined AOF_ASSEMBLER 
-extern rtx aof_pic_entry (rtx);
+extern rtx aof_pic_entry (rtx, int);
 extern char *aof_text_section (void);
 extern char *aof_data_section (void);
 extern void aof_add_import (const char *);

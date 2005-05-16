@@ -1721,11 +1721,6 @@ typedef struct machine_function GTY(())
   int leaf;
   /* Non-zero if this function calls __builtin_apply.  */
   int apply_args;
-  /* Stack base register for RISC OS module code, setup in prologue.  */
-  rtx static_base;
-  /* Pointer to the base of the x$adcons structure for the current
-     source unit.  */
-  rtx adcons;
   /* NAB-- */
 }
 machine_function;

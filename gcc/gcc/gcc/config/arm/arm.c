@@ -780,10 +780,13 @@ arm_override_options (void)
   if (TARGET_APCS_FLOAT)
     warning ("passing floating point arguments in fp regs not yet supported");
 
+  /* RISC OS RMA module support.  */
   if (TARGET_MODULE)
     {
       flag_pic = 1;
-      arm_pic_register = 10;
+      /* We use r8 as the PIC register as r9 is reserved for the frame
+	 pointer and r10 is the stack-limit register.  */
+      arm_pic_register = 8;
     }
 
   /* Initialize boolean versions of the flags, for use in the arm.md file.  */
@@ -2573,8 +2576,6 @@ legitimate_pic_operand_p (rtx x)
   return 1;
 }
 
-static int aof_pic_entry_1 (rtx x);
-
 rtx
 legitimize_pic_address (rtx orig, enum machine_mode mode, rtx reg)
 {
@@ -2602,64 +2603,31 @@ legitimize_pic_address (rtx orig, enum machine_mode mode, rtx reg)
 	 understands that the PIC register has to be added into the offset.  */
       if (TARGET_MODULE)
 	{
-	  rtx t1;
-	  int offset;
-	  /* The static base value does not change throughout the
-	     function.  So, when required, load it into a pseudo-register,
-	     allowing GCC to optimise references via it, typically saving
-	     one load-operation per global reference.
-
-	     Note that local-labels, such as string constants do not need
-	     to be referenced via the static base register.  */
-	  if (cfun->machine->static_base == NULL)
-	    {
-	      rtx sb_ref;
-	      sb_ref = gen_rtx_MEM (Pmode,
-				    plus_constant (gen_rtx_REG (Pmode,
-								SL_REGNUM),
-						   -536));
-	      RTX_UNCHANGING_P (sb_ref) = 1;
-	      cfun->machine->static_base = gen_reg_rtx (SImode);
-	      emit_move_insn (cfun->machine->static_base, sb_ref);
-	    }
-	  
-	  /* Setup a pseudo-reg to point to the global variable base.  */
-	  if (cfun->machine->adcons == NULL)
-	    {
-	      rtx adcons = gen_rtx_SYMBOL_REF (Pmode, "x$adcons");
-	      RTX_UNCHANGING_P (adcons) = 1;
-	      cfun->machine->adcons = gen_reg_rtx (Pmode);
-	      emit_insn (gen_module_load_addr_based (cfun->machine->adcons,
-						     adcons));
-	    }
-	  
-	  /* Convert a variable reference into an offset value relative
-	     to x$adcons.  */
-	  offset = aof_pic_entry_1 (orig);
 	  /*printf ("legitimize_pic: sym=%s, offset=%d, local=%d\n",
 	    XSTR (orig, 0), offset, SYMBOL_REF_LOCAL_P (orig));*/
 
-	  /* We need to use an intermediary register as we have to add the
-	     static-base on for non-locals.  */
-	  if (! SYMBOL_REF_LOCAL_P (orig))
-	    t1 = gen_reg_rtx (SImode);
+	  /* This forces the original symbol lookup to be done via
+	     x$adcons.  */
+	  insn = emit_insn (gen_pic_load_addr_based (reg, orig));
 
-	  insn = emit_move_insn (SYMBOL_REF_LOCAL_P (orig) ? reg : t1,
-				 gen_rtx_MEM (Pmode,
-					      plus_constant (cfun->machine->adcons,
-							     offset)));
-
-	  /* Mark that a label that we've just converted into an x$adcons
-	     based reference is used, so as to stop the optimisers removing
-	     references to local symbols that are in fact required.  */
-	  emit_insn (gen_rtx_USE (VOIDmode, orig));
-
+	  /* Symbols that are local to the current source unit are
+	     not exported and therefore not relocated by the linker.
+	     As such, we do not need to add the static base to their
+	     value to obtain their true address.  */
 	  if (! SYMBOL_REF_LOCAL_P (orig))
 	    {
+	      rtx sb_reg = gen_reg_rtx (SImode);
+	      rtx sl_reg = gen_rtx_REG (Pmode, SL_REGNUM);
+	      rtx sb_ref = gen_rtx_MEM (Pmode,
+					gen_rtx_PLUS (Pmode,
+						      sl_reg, GEN_INT (-536)));
+	      RTX_UNCHANGING_P (sb_ref) = 1;
+
+	      emit_insn (gen_rtx_SET (SImode, sb_reg, sb_ref));
+	      
 	      /* Finally adjust the global symbol reference to be relative
 		 to the static base.  */
-	      insn = emit_insn (gen_addsi3 (reg, t1,
-					    cfun->machine->static_base));
+	      insn = emit_insn (gen_addsi3 (reg, reg, sb_reg));
 	    }
 	}
       else
@@ -2691,11 +2659,10 @@ legitimize_pic_address (rtx orig, enum machine_mode mode, rtx reg)
       insn = emit_move_insn (reg, pic_ref);
 #endif
       current_function_uses_pic_offset_table = 1;
-      if (! TARGET_MODULE)
-	/* Put a REG_EQUAL note on this insn, so that it can be optimized
-	   by loop.  */
-	REG_NOTES (insn) = gen_rtx_EXPR_LIST (REG_EQUAL, orig,
-					      REG_NOTES (insn));
+      /* Put a REG_EQUAL note on this insn, so that it can be optimized
+	 by loop.  */
+      REG_NOTES (insn) = gen_rtx_EXPR_LIST (REG_EQUAL, orig,
+					    REG_NOTES (insn));
       return reg;
     }
   else if (GET_CODE (orig) == CONST)
@@ -2761,8 +2728,8 @@ legitimize_pic_address (rtx orig, enum machine_mode mode, rtx reg)
 void
 arm_finalize_pic (int prologue ATTRIBUTE_UNUSED)
 {
-#ifndef AOF_ASSEMBLER
-  rtx l1, pic_tmp, pic_tmp2, seq, pic_rtx;
+  rtx seq;
+  rtx l1, pic_tmp, pic_tmp2, pic_rtx;
   rtx global_offset_table;
 
   if (current_function_uses_pic_offset_table == 0 || TARGET_SINGLE_PIC_BASE)
@@ -2772,6 +2739,13 @@ arm_finalize_pic (int prologue ATTRIBUTE_UNUSED)
     abort ();
 
   start_sequence ();
+
+#ifdef AOF_ASSEMBLER
+  global_offset_table = gen_rtx_SYMBOL_REF (Pmode, "x$adcons");
+  pic_tmp = gen_rtx_CONST (Pmode, global_offset_table);
+
+  emit_insn (gen_pic_load_addr_arm (pic_offset_table_rtx, pic_tmp));
+#else /* ! AOF_ASSEMBLER */
   l1 = gen_label_rtx ();
 
   global_offset_table = gen_rtx_SYMBOL_REF (Pmode, "_GLOBAL_OFFSET_TABLE_");
@@ -2796,6 +2770,7 @@ arm_finalize_pic (int prologue ATTRIBUTE_UNUSED)
       emit_insn (gen_pic_load_addr_thumb (pic_offset_table_rtx, pic_rtx));
       emit_insn (gen_pic_add_dot_plus_four (pic_offset_table_rtx, l1));
     }
+#endif /* AOF_ASSEMBLER */
 
   seq = get_insns ();
   end_sequence ();
@@ -2807,7 +2782,6 @@ arm_finalize_pic (int prologue ATTRIBUTE_UNUSED)
   /* Need to emit this whether or not we obey regdecls,
      since setjmp/longjmp can cause life info to screw up.  */
   emit_insn (gen_rtx_USE (VOIDmode, pic_offset_table_rtx));
-#endif /* AOF_ASSEMBLER */
 }
 
 /* Return nonzero if X is valid as an ARM state addressing register.  */
@@ -7014,7 +6988,7 @@ push_minipool_fix (rtx insn, HOST_WIDE_INT address, rtx *loc,
      based area.  */
   /* XXX This shouldn't be done here.  */
   if (flag_pic && GET_CODE (value) == SYMBOL_REF)
-    value = aof_pic_entry (value);
+    value = aof_pic_entry (value, 0);
 #endif /* AOF_ASSEMBLER */
 
   fix->insn = insn;
@@ -8226,13 +8200,8 @@ arm_compute_save_reg0_reg12_mask (void)
 	save_reg_mask |= 1 << ARM_HARD_FRAME_POINTER_REGNUM;
 
       /* If we aren't loading the PIC register,
-	 don't stack it even though it may be live.
-
-	 For RISC OS module code, we have PIC enabled but there is
-	 no specific register.   Therefore we don't need to save the PIC
-	 register.  */
+	 don't stack it even though it may be live.  */
       if (flag_pic
-	  && ! TARGET_MODULE
 	  && ! TARGET_SINGLE_PIC_BASE 
 	  && regs_ever_live[PIC_OFFSET_TABLE_REGNUM])
 	save_reg_mask |= 1 << PIC_OFFSET_TABLE_REGNUM;
@@ -8661,8 +8630,6 @@ arm_output_function_prologue (FILE *f, HOST_WIDE_INT frame_size)
     asm_fprintf (f, "\t%@ link register save eliminated.\n");
 
 #ifdef AOF_ASSEMBLER
-  /* For RISC OS module code, we don't have a specific PIC register,
-     so no need to move it here.  */
   if (flag_pic && ! TARGET_MODULE)
     asm_fprintf (f, "\tmov\t%r, %r\n", IP_REGNUM, PIC_OFFSET_TABLE_REGNUM);
 #endif
@@ -9802,9 +9769,8 @@ arm_expand_prologue (void)
 #ifdef TARGET_RISCOSAOF
       /* Explicit stack checks.  */
       if (TARGET_APCS_STACK)
-        {
-          rtx sl_reg = gen_rtx_REG (GET_MODE (stack_pointer_rtx), 10);
-	  
+        {	  
+	  rtx sl_reg = gen_rtx_REG (GET_MODE (stack_pointer_rtx), 10);
           if (frame_size <= -256)
             {
               rtx stkovf = gen_rtx_SYMBOL_REF (Pmode, ARM_STKOVF_SPLIT_BIG);
@@ -12418,8 +12384,6 @@ arm_init_machine_status (void)
 #endif
   machine->leaf = -1; /* NAB */
   machine->apply_args = 0;
-  machine->static_base = NULL;
-  machine->adcons = NULL;
   return machine;
 }
 
@@ -13297,33 +13261,10 @@ struct pic_chain
 
 static struct pic_chain * aof_pic_chain = NULL;
 
+/* If type == 0, then return an offset against x$adcons, otherwise
+   just supply an RTX const.  */
 rtx
-aof_pic_entry (rtx x)
-{
-  struct pic_chain ** chainp;
-  int offset;
-
-  if (aof_pic_label == NULL_RTX)
-    {
-      aof_pic_label = gen_rtx_SYMBOL_REF (Pmode, "x$adcons");
-    }
-
-  if (strcmp (XSTR (x, 0), "x$adcons") == 0)
-    return aof_pic_label;
-
-  for (offset = 0, chainp = &aof_pic_chain; *chainp;
-       offset += 4, chainp = &(*chainp)->next)
-    if ((*chainp)->symname == XSTR (x, 0))
-      return plus_constant (aof_pic_label, offset);
-
-  *chainp = (struct pic_chain *) xmalloc (sizeof (struct pic_chain));
-  (*chainp)->next = NULL;
-  (*chainp)->symname = XSTR (x, 0);
-  return plus_constant (aof_pic_label, offset);
-}
-
-static int
-aof_pic_entry_1 (rtx x)
+aof_pic_entry (rtx x, int type)
 {
   struct pic_chain ** chainp;
   int offset;
@@ -13336,12 +13277,18 @@ aof_pic_entry_1 (rtx x)
   for (offset = 0, chainp = &aof_pic_chain; *chainp;
        offset += 4, chainp = &(*chainp)->next)
     if ((*chainp)->symname == XSTR (x, 0))
-      return offset;
+      {
+	if (type == 0)
+	  return plus_constant (aof_pic_label, offset);
+	return GEN_INT (offset);
+      }
 
   *chainp = (struct pic_chain *) xmalloc (sizeof (struct pic_chain));
   (*chainp)->next = NULL;
   (*chainp)->symname = XSTR (x, 0);
-  return offset;
+  if (type == 0)
+    return plus_constant (aof_pic_label, offset);
+  return GEN_INT (offset);
 }
 
 void

@@ -4051,8 +4051,15 @@
 (define_insn "pic_load_addr_arm"
   [(set (match_operand:SI 0 "s_register_operand" "=r")
 	(unspec:SI [(match_operand:SI 1 "" "mX")] UNSPEC_PIC_SYM))]
-  "TARGET_ARM && flag_pic && !TARGET_MODULE"
-  "ldr%?\\t%0, %1 %@ pic_load_addr_arm"
+  "TARGET_ARM && flag_pic"
+  "*
+  if (TARGET_MODULE)
+    output_asm_insn (\"ldr%?\\t%0, [pc, #%1 - . - 8] %@ pic_load_addr_arm\",
+		     operands);
+  else
+    output_asm_insn (\"ldr%?\\t%0, %1 %@ pic_load_addr_arm\", operands);
+  return \"\";
+  "
   [(set_attr "type" "load")
    (set (attr "pool_range")     (const_int 4096))
    (set (attr "neg_pool_range") (const_int 4084))]
@@ -4076,7 +4083,6 @@
   "operands[2] = pic_offset_table_rtx;"
 )
 
-
 (define_insn "*pic_load_addr_based_insn"
   [(set (match_operand:SI 0 "s_register_operand" "=r")
 	(unspec:SI [(match_operand 1 "" "")
@@ -4085,9 +4091,12 @@
   "TARGET_EITHER && flag_pic && operands[2] == pic_offset_table_rtx"
   "*
 #ifdef AOF_ASSEMBLER
-  operands[1] = aof_pic_entry (operands[1]);
+  operands[1] = aof_pic_entry (operands[1], (TARGET_MODULE) ? 1 : 0);
 #endif
-  output_asm_insn (\"ldr%?\\t%0, %a1\", operands);
+  if (TARGET_MODULE)
+    output_asm_insn (\"ldr%?\\t%0, [%2, %1]\", operands);
+  else
+    output_asm_insn (\"ldr%?\\t%0, %a1\", operands);
   return \"\";
   "
   [(set_attr "type" "load")
