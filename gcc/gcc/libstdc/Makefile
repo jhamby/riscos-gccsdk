@@ -1,6 +1,6 @@
 # Makefile for GNU Libstdc++ V3 for the ARM/RISC OS GCC port
 # Copyright (c) 2002, 2003, 2004 Nick Burrett
-# Written by Nick Burrett <nick@dsvr.net>
+# Copyright (c) 2004, 2005 GCCSDK Developers
 #
 
 INCLUDES = -I ./include -I ./include/bits -I ./include/arm-riscos-aof -I ./include/backward -I ./libsupc
@@ -538,47 +538,47 @@ import:
 	mkdir -p ./include/backward
 	mkdir -p ./include/ext
 	mkdir -p ./include/arm-riscos-aof/bits
-	for x in $(bits_headers); do cp -a $$x ./include/bits; done
-	for x in $(backward_headers); do cp -a $$x ./include/backward; done
-	for x in $(ext_headers); do cp -a $$x ./include/ext; done
-	for x in $(debug_headers); do cp -a $$x ./include/debug; done
-	for x in $(c_base_headers); do cp -a $$x ./include; done
-	for x in $(c_base_headers_extra); do cp -a $$x ./include/bits; done
-	cp -a $(glibcpp_srcdir)/config/locale/generic/time_members.h ./include/bits
-	#for x in $(c_compatibility_headers); do cp -a $$x ./include; done
-	for x in $(std_headers); do cp -a $$x ./include; done
-	for x in $(target_headers); do cp -a $$x $(target_builddir); done
-	cp -a $(glibcpp_srcdir)/config/cpu/generic/atomic_word.h $(target_builddir)/atomic_word.h
-	cp -a $(glibcpp_srcdir)/config/io/basic_file_stdio.h $(target_builddir)/basic_file.h
-	cp -a $(glibcpp_srcdir)/config/allocator/new_allocator_base.h $(target_builddir)/c++allocator.h
-	cp -a $(glibcpp_srcdir)/config/io/c_io_stdio.h $(target_builddir)/c++io.h
-	cp -a $(glibcpp_srcdir)/config/locale/generic/c_locale.h $(target_builddir)/c++locale.h
-	cp -a $(glibcpp_srcdir)/config/locale/ieee_1003.1-2001/codecvt_specializations.h $(target_builddir)/codecvt_specializations.h
-	cp -a $(glibcpp_srcdir)/config/locale/generic/messages_members.h $(target_builddir)/messages_members.h
-	cp -a ../gcc/gthr*.h $(target_builddir)
+	for x in $(bits_headers); do cp -pR $$x ./include/bits; done
+	for x in $(backward_headers); do cp -pR $$x ./include/backward; done
+	for x in $(ext_headers); do cp -pR $$x ./include/ext; done
+	for x in $(debug_headers); do cp -pR $$x ./include/debug; done
+	for x in $(c_base_headers); do cp -pR $$x ./include; done
+	for x in $(c_base_headers_extra); do cp -pR $$x ./include/bits; done
+	cp -pR $(glibcpp_srcdir)/config/locale/generic/time_members.h ./include/bits
+	#for x in $(c_compatibility_headers); do cp -pR $$x ./include; done
+	for x in $(std_headers); do cp -pR $$x ./include; done
+	for x in $(target_headers); do cp -pR $$x $(target_builddir); done
+	cp -pR $(glibcpp_srcdir)/config/cpu/generic/atomic_word.h $(target_builddir)/atomic_word.h
+	cp -pR $(glibcpp_srcdir)/config/io/basic_file_stdio.h $(target_builddir)/basic_file.h
+	cp -pR $(glibcpp_srcdir)/config/allocator/new_allocator_base.h $(target_builddir)/c++allocator.h
+	cp -pR $(glibcpp_srcdir)/config/io/c_io_stdio.h $(target_builddir)/c++io.h
+	cp -pR $(glibcpp_srcdir)/config/locale/generic/c_locale.h $(target_builddir)/c++locale.h
+	cp -pR $(glibcpp_srcdir)/config/locale/ieee_1003.1-2001/codecvt_specializations.h $(target_builddir)/codecvt_specializations.h
+	cp -pR $(glibcpp_srcdir)/config/locale/generic/messages_members.h $(target_builddir)/messages_members.h
+	cp -pR ../gcc/gthr*.h $(target_builddir)
 	for x in $(std_headers_rename); do mv ./include/std_$$x.h ./include/$$x; done
 	for x in $(c_base_headers_rename); do mv ./include/std_$$x.h ./include/$$x; done
 	# Merge src directory
-	cp -a $(glibcpp_srcdir)/src/*.cc ./
-	cp -a $(glibcpp_srcdir)/config/cpu/generic/atomicity.h ./atomicity.cc
-	cp -a $(glibcpp_srcdir)/config/io/basic_file_stdio.cc ./basic_file.cc
-	cp -a $(glibcpp_srcdir)/config/locale/generic/c_locale.cc ./c++locale.cc
-	cp -a $(glibcpp_srcdir)/config/locale/generic/codecvt_members.cc ./codecvt_members.cc
-	cp -a $(glibcpp_srcdir)/config/locale/generic/collate_members.cc ./collate.cc
-	cp -a $(glibcpp_srcdir)/config/locale/generic/ctype_members.cc ./ctype_members.cc
-	cp -a $(glibcpp_srcdir)/config/locale/generic/messages_members.cc ./messages.cc
-	cp -a $(glibcpp_srcdir)/config/locale/generic/monetary_members.cc ./monetary.cc
-	cp -a $(glibcpp_srcdir)/config/locale/generic/numeric_members.cc ./numeric.cc
-	cp -a $(glibcpp_srcdir)/config/locale/generic/time_members.cc ./time.cc	
+	cp -pR $(glibcpp_srcdir)/src/*.cc ./
+	cp -pR $(glibcpp_srcdir)/config/cpu/generic/atomicity.h ./atomicity.cc
+	cp -pR $(glibcpp_srcdir)/config/io/basic_file_stdio.cc ./basic_file.cc
+	cp -pR $(glibcpp_srcdir)/config/locale/generic/c_locale.cc ./c++locale.cc
+	cp -pR $(glibcpp_srcdir)/config/locale/generic/codecvt_members.cc ./codecvt_members.cc
+	cp -pR $(glibcpp_srcdir)/config/locale/generic/collate_members.cc ./collate.cc
+	cp -pR $(glibcpp_srcdir)/config/locale/generic/ctype_members.cc ./ctype_members.cc
+	cp -pR $(glibcpp_srcdir)/config/locale/generic/messages_members.cc ./messages.cc
+	cp -pR $(glibcpp_srcdir)/config/locale/generic/monetary_members.cc ./monetary.cc
+	cp -pR $(glibcpp_srcdir)/config/locale/generic/numeric_members.cc ./numeric.cc
+	cp -pR $(glibcpp_srcdir)/config/locale/generic/time_members.cc ./time.cc	
 	# Merge libio directory
-	#cp -a $(glibcpp_srcdir)/libio/*.c ./
-	#cp -a $(glibcpp_srcdir)/libio/*.h ./
+	#cp -pR $(glibcpp_srcdir)/libio/*.c ./
+	#cp -pR $(glibcpp_srcdir)/libio/*.h ./
 	# Merge libsupc directory
-	cp -a $(glibcpp_srcdir)/libsupc++/*.cc ./libsupc
-	cp -a $(glibcpp_srcdir)/libsupc++/*.h ./libsupc
-	cp -a ${glibcpp_srcdir}/libsupc++/new ./libsupc
-	cp -a ${glibcpp_srcdir}/libsupc++/typeinfo ./libsupc
-	cp -a ${glibcpp_srcdir}/libsupc++/exception ./libsupc
+	cp -pR $(glibcpp_srcdir)/libsupc++/*.cc ./libsupc
+	cp -pR $(glibcpp_srcdir)/libsupc++/*.h ./libsupc
+	cp -pR ${glibcpp_srcdir}/libsupc++/new ./libsupc
+	cp -pR ${glibcpp_srcdir}/libsupc++/typeinfo ./libsupc
+	cp -pR ${glibcpp_srcdir}/libsupc++/exception ./libsupc
 
 $(libobjdir)/cp-demangle.o: ../../libiberty/cp-demangle.c ../../include/demangle.h
 	$(CROSS_CC) $(CROSS_CCFLAGS) -o $@ -c $< -I ../../include $(CFL) -DIN_GLIBCPP_V3

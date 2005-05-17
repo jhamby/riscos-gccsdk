@@ -1,5 +1,6 @@
 # Makefile for Ben Summers' run time linker - rink
-# Written by Nick Burrett <nick@dsvr.net>
+# Copyright (c) 2001, 2002, 2003, 2004 Nick Burrett
+# Copyright (c) 2001, 2002, 2003, 2004, 2005 GCCSDK Developers
 
 ifeq (${STAGE},stage1)
 CFLAGS += -DCROSS_COMPILE
@@ -45,7 +46,7 @@ $(bin_dir)/rinkptr$(exesfx):	$(rinkobjdir)/rinkptr.o
 	$(CC) -o $@ $(rinkobjdir)/rinkptr.o
 
 $(info_dir)/rink: doc/overview
-	cp -a $< $@
+	cp -pR $< $@
 
 $(rinkobjdir)/extractsym.o: extractsym.c
 $(rinkobjdir)/pointerblk.o: pointerblk.c
