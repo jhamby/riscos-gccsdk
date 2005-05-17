@@ -36,12 +36,15 @@
 ** requests or cases where the array contains no suitable
 ** entries, the free list is checked and space taken from the
 ** first area large enough. If the request still cannot be
-** fulfilled, memory is acquired using 'malloc'. Under RISCOS,
+** fulfilled, memory is acquired using 'malloc'. Under RISC OS,
 ** the size of the wimpslot is automatically increased if
 ** necessary by the Shared C Library.
 */
 
+#include "config.h"
+
 #include <stdlib.h>
+
 #include "drlhdr.h"
 #include "procdefs.h"
 

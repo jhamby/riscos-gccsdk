@@ -19,13 +19,16 @@
 ** Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 **
 ** This module contains the procedures called to produce error
-** messages. Under RISCOS, they can be sent to either the screen
+** messages. Under RISC OS, they can be sent to either the screen
 ** or a 'Throwback' window
 */
+
+#include "config.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
+
 #include "drlhdr.h"
 #include "filehdr.h"
 #include "procdefs.h"
@@ -206,6 +209,5 @@ bool got_errors(void) {
 ** 'announce' is called to say which version of the linker is in use
 */
 void announce(void) {
-  error("Drlink AOF Linker  Version %s", DL_VERSION);
+  error("Drlink AOF Linker  Version " DL_VERSION);
 }
-

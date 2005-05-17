@@ -98,7 +98,9 @@ extern bool
   opt_debimage,		/* TRUE if creating 'DebImage' file instead of 'Absolute' */
   opt_codebase,		/* TRUE if a non-standard value the code base address is given */
   opt_database,		/* TRUE if a non-standard value for the R/W data base address is given */
-  opt_dump,     	/* TRUE if a dump of linker structures is needed */
+#ifdef DEBUG
+  opt_dump,		/* TRUE if a dump of linker structures is needed */
+#endif
   opt_case,		/* TRUE if linker will ignore symbol case */
   opt_cpp,		/* TRUE if linking a C++ program */
   opt_gccareas,		/* TRUE if not touching GCC-specific areas in 'nounused' processing */

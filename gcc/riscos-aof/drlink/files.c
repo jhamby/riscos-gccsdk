@@ -22,6 +22,8 @@
 ** and those for reading AOF files
 */
 
+#include "config.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -127,7 +129,7 @@ char
 
 #ifdef TARGET_RISCOS
 
-/* Information on RISCOS files */
+/* Information on RISC OS files */
 
 #define TYPE_FILE 1			/* Directory entry type for a file */
 #define TYPE_DIR 2			/* Directory entry type for a directory */
@@ -239,7 +241,8 @@ static fileinfo find_filetype(void) {
   case OBJ_XXXX:
     filetype = AOFILE;
     break;
-  case LIB_XXXX: case OFL_XXXX:
+  case LIB_XXXX:
+  case OFL_XXXX:
     filetype = LIBRARY;
     break;
   default:
@@ -252,18 +255,14 @@ static fileinfo find_filetype(void) {
 /*
 ** Convert endian of a given number of words
 */
-#if !defined(__riscos__) && defined(WORDS_BIGENDIAN)
+#if defined(WORDS_BIGENDIAN)
 static void convert_endian(void *words, int size) {
-  int *values = words;
+  unsigned int *values = words;
 
   while (size-- > 0) {
-    int value = *values;
+    unsigned int value = *values;
 
-    *values =  (value >> 24) |
-             ((value >> 8) & 0xff00)   |
-             ((value << 8) & 0xff0000) |
-              (value << 24);
-    values++;
+    *values++ = (value >> 24) | ((value >> 8) & 0xff00) | ((value << 8) & 0xff0000) | (value << 24);
   }
 }
 #else
@@ -349,7 +348,10 @@ fileinfo examine_file(const char *filename) {
 bool open_object(const char *filename) {
   objectfile = fopen(filename, "rb");
   object_open = objectfile!=NIL;
-  if (object_open) strcpy(objectname, filename);
+  if (object_open) {
+    strncpy(objectname, filename, sizeof(objectname)-1);
+    objectname[sizeof(objectname)-1] = '\0';
+  }
   return object_open;
 }
 
@@ -539,7 +541,8 @@ static int read_file(const char *filename) {
   }
   count = fread(filebase, filesize, 1, objfile);
   if (count==1) {	/* File read successfully */
-    strcpy(objectname, filename);
+    strncpy(objectname, filename, sizeof(objectname)-1);
+    objectname[sizeof(objectname)-1] = '\0';
   }
   else {	/* Read failed */
     error("Error: Cannot read file '%s'", filename);
@@ -672,7 +675,7 @@ static int match_files(char dirname[], char leafname[]) {
 #endif
 
 /*
-** 'split_names' is passed a RISCOS path name in 'filename' and
+** 'split_names' is passed a RISC OS path name in 'filename' and
 ** returns it broken down into a directory name and a leaf name
 ** in the arrays 'dirname' and 'leafname' respectively
 */
@@ -932,7 +935,8 @@ filelist *read_member(libentry *lp, filelist *inwhat, symbol *forwhat) {
   int result;
   fp = NIL;
   membername = lp->libmember;
-  strcpy(objectname, membername);
+  strncpy(objectname, membername, sizeof(objectname)-1);
+  objectname[sizeof(objectname)-1] = '\0';
   if (current_lib->libase==NIL) {	/* Library is not in memory */
     result = fseek(objectfile, lp->liboffset, SEEK_SET);
     if (result!=NIL) {

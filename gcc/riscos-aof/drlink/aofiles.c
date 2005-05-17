@@ -27,8 +27,11 @@
 ** horrible enough as it is.
 */
 
+#include "config.h"
+
 #include <stdio.h>
 #include <string.h>
+
 #include "drlhdr.h"
 #include "filehdr.h"
 #include "areahdr.h"
@@ -388,7 +391,7 @@ static void write_index(unsigned int ctype, unsigned int offset, unsigned int si
 */
 static void start_aofile(void) {
   chunkheader header;
-  idfn_size = align(strlen(IDFNSTRING)+strlen(DL_VERSION)+sizeof(char));
+  idfn_size = align(sizeof(IDFNSTRING)-1 + sizeof(DL_VERSION)-1 + sizeof(char));
   imagesize = sizeof(chunkheader)+MAXCHUNKS*sizeof(chunkindex)+
    head_size+idfn_size+area_size+symt_size+strt_size;
   open_image();

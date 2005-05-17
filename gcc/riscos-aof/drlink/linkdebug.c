@@ -21,7 +21,10 @@
 ** Debugging functions for Drlink
 */
 
+#include "config.h"
+
 #include <stdio.h>
+
 #include "drlhdr.h"
 #include "filehdr.h"
 #include "symbolhdr.h"

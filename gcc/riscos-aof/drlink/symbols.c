@@ -22,6 +22,8 @@
 ** various symbol tables
 */
 
+#include "config.h"
+
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
@@ -840,7 +842,6 @@ static libentry *get_nextlib(libentry *lp) {
 */
 static void remove_entry(symbol **wp) {
  symbol *sym = *wp, *subnode;
- int before, after;
 
   /* Binary tree removal.
 
@@ -1029,8 +1030,6 @@ static bool check_library_tree(symbol **wp, filelist *fp) {
 
 
 static bool check_library(filelist *fp) {
-  libentry *lp;
-  symtentry *wstp;	/* OBJ_SYMT entry of external reference */
   current_symtbase = fp->objsymtptr;	/* For detecting 'strong symbol' refs */
   current_symtend = fp->objsymtptr+fp->objsymtsize;	/* These point at module containing ref */
 

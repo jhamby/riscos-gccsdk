@@ -23,7 +23,10 @@
 ** image
 */
 
+#include "config.h"
+
 #include <string.h>
+
 #include "drlhdr.h"
 #include "areahdr.h"
 #include "symbolhdr.h"
@@ -41,11 +44,11 @@
 
 #define ADDRESS_32BIT 0x00000020	/* 32-bit address mode */
 
-unsigned int bincode [] = {
+static const unsigned int bincode [] = {
   0xEA000000    /*  B       &00000000  Branch to entry point */
 };
 
-unsigned int aifcode [] = {
+static const unsigned int aifcode [] = {
   0xE1A00000,	/* BL      decompress	*/
   0xEB000000,	/* BL      self-relocate */
   0xEB00000C,	/* BL      zero-init	*/
@@ -81,7 +84,7 @@ unsigned int aifcode [] = {
   0xEAFFFFFB	/* B       zeroloop	*/
 };
 
-unsigned int modcode [] = {
+static const unsigned int modcode [] = {
   0xE1A00000,	/* NO-OP		*/
   0xE59F1030,	/* LDR   R1,RelocCode	*/
   0xE24FB010,	/* SUB   R11,PC,#12	*/
@@ -103,7 +106,7 @@ unsigned int modcode [] = {
                 /* end */
 };
 
-unsigned int relocode [] = {
+static const unsigned int relocode [] = {
 		/* RelocCode		*/
   0xE1A00000,	/* MOV     R0,R0	*/
   0xE04EC00F,	/* SUB     ip,lr,pc	*/
@@ -165,10 +168,9 @@ unsigned int relocode [] = {
 ** code as the code will be modified later
 */
 void get_hdrcode(segtype hdrtype, unsigned int **hdrstart, unsigned int *hdrsize) {
-  unsigned int *p, *cp;
-  unsigned int size;
-  p = cp = 0;	/* Stop gcc warnings */
-  size = 0;
+  unsigned int *p;
+  const unsigned int *cp;
+  size_t size;
   switch (hdrtype) {
   case HDR_BIN:		/* Binary image */
     cp = &bincode[0];
@@ -185,6 +187,9 @@ void get_hdrcode(segtype hdrtype, unsigned int **hdrstart, unsigned int *hdrsize
   case HDR_RELOC:	/* Relocatable AIF image */
     cp = &relocode[0];
     size = sizeof(relocode);
+  default:
+    cp = NULL;
+    size = 0;
   }
   if ((p = allocmem(size))==NIL) {
     error("Fatal: Out of memory in 'get_hdrcode'");

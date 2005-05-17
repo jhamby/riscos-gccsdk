@@ -112,7 +112,7 @@ supported are:
     -aif       Create an AIF image file.
 
                This is the standard format for programs running
-               under RISCOS where a small header is attached to
+               under RISC OS where a small header is attached to
                the start of the program containing various bits
                and pieces of information. It is the default option
                used for the image type when no type is explicitly
@@ -1017,7 +1017,7 @@ Drlink 0.25
 -  Fixed bug in '-nounused' code where references to areas in
    type-2 relocations were not being handled correctly.
 -  Fixed bug to do with filenames that include a path variable
-   that only showed up with RISCOS 2.
+   that only showed up with RISC OS 2.
 -  Added the option to create partially-linked AOF files (option
    '-aof').
 -  Added 'throwback' support (option '-throwback'). Warning, error
@@ -1043,7 +1043,7 @@ Drlink 0.26a - Bug fix version
 -  Programmed around problen affecting files from Objasm that
    contain debug tables where the tables contain an invalid 'AL'
    attribute.
--  RISCOS 2 filenames with paths finally sorted out I hope!
+-  RISC OS 2 filenames with paths finally sorted out I hope!
 -  Recompiled with the latest and greatest version of the
    compiler.
 

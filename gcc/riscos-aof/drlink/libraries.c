@@ -21,7 +21,10 @@
 ** This source file contains the routines used for handling libraries
 */
 
+#include "config.h"
+
 #include <string.h>
+
 #include "drlhdr.h"
 #include "filehdr.h"
 #include "chunkhdr.h"
@@ -113,7 +116,8 @@ bool addto_liblist(const char *name, unsigned int *filebase, unsigned int filesi
 
   lp->libflink = NIL;
 
-  for (n = 0; n<MAXENTRIES; n++) lp->librarysyms[n] = NIL;
+  for (n = 0; n<MAXENTRIES; n++)
+    lp->librarysyms[n] = NIL;
   if (liblist==NIL) {
     liblist = lp;
   }
@@ -385,7 +389,6 @@ void close_library_free(libentry *lep) {
 
 void close_library(libheader *lp) {
   int n;
-  libentry *lep, *temp;
   if (lp->libase==NIL) close_object();		/* Were reading library members from disk */
 
   if (!opt_rescan) {	/* Not scanning library again - Free memory used */
@@ -512,7 +515,8 @@ bool load_wholelib(const char *libname, unsigned int filesize) {
   chunkcount = chp->header.numchunks;
   for (n = 1; n<=chunkcount; n++) {
     if (cp->chunktype==LIB_DATA && cp->chunkoffset!=0) {
-      strcpy(objectname, find_membername(n-1));
+      strncpy(objectname, find_membername(n-1), sizeof(objectname)-1);
+      objectname[sizeof(objectname)-1] = '\0';
       if (opt_verbose) error("Drlink:   Extracting '%s'...", objectname);
       if (!extract_member(cp)) return FALSE;
     }

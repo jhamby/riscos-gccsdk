@@ -22,7 +22,10 @@
 ** debug tables, both the low-level and compiler generated types
 */
 
+#include "config.h"
+
 #include <string.h>
+
 #include "drlhdr.h"
 #include "symbolhdr.h"
 #include "areahdr.h"

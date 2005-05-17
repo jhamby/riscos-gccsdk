@@ -23,6 +23,8 @@
 ** relocation code
 */
 
+#include "config.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -93,7 +95,7 @@ typedef struct areasrchlist {
 } areasrchlist;
 
 #define GCCAREA "C$$gnu"	/* Area names starting with this cannot be deleted */
-#define GCCAREALEN (strlen(GCCAREA))	/* Length of name */
+#define GCCAREALEN (sizeof(GCCAREA)-1)	/* Length of name */
 
 #define MAXSRCH 32		/* Size of area search table (must be a power of 2) */
 #define SRCHMASK (MAXSRCH-1)	/* Mask for area search table */
@@ -239,7 +241,6 @@ static unsigned int decode_armconst(unsigned int value) {
 static arealist *check_commondef(filelist *fp, areaentry *aep, unsigned int atattr) {
   char *nameptr;
   arealist *ap;
-  symbol *sp;
   int hashval, count;
   unsigned int *p1, *p2;
 
@@ -2200,6 +2201,8 @@ static bool fixup_reloclist(arealist *ap) {
 
     return ok && fixup_reloclist(ap->left) && fixup_reloclist(ap->right);
   }
+
+  return TRUE;
 }
 
 /*

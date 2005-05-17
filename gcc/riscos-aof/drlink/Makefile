@@ -10,6 +10,7 @@ CFLAGS = $(CROSS_CFLAGS)
 endif
 
 INCLUDES = -I. -I../../
+CFLAGS += -Wall
 
 drlinkobjdir = $(objdir)/riscos-aof/drlink/$(STAGE)
 

@@ -59,8 +59,8 @@ typedef struct {
 typedef struct {
   unsigned int chunkclass;		/* What chunk contains */
   unsigned int chunktype;
-  unsigned int chunkoffset;		/* Offset in file of chunk */
-  unsigned int chunksize;		/* Size of chunk */
+  unsigned int chunkoffset;		/* Offset in file of chunk.  Must be divisible by 4.  If 0, this chunk is unused. */
+  unsigned int chunksize;		/* Size of chunk. Not necessarily divisible by 4. */
 } chunkindex;
 
 typedef struct {			/* Used when checking the start of a chunk file */

@@ -21,6 +21,8 @@
 ** This file contains the main procedures for controlling the link
 */
 
+#include "config.h"
+
 #include "drlhdr.h"
 #include "filehdr.h"
 #include "procdefs.h"

@@ -22,17 +22,17 @@
 ** processing of the command line and any options
 */
 
+#include "config.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
 #include <time.h>
+
 #include "drlhdr.h"
 #include "filehdr.h"
 #include "procdefs.h"
-#ifdef CROSS_COMPILE
-#include "sdk-config.h"
-#endif
 
 #ifdef TARGET_RISCOS
 #include <kernel.h>
@@ -68,7 +68,9 @@ bool
   opt_debimage,		/* TRUE if creating 'DebImage' file instead of 'Absolute' */
   opt_codebase,		/* TRUE if a non-standard value the code base address is given */
   opt_database,		/* TRUE if a non-standard value for the R/W data base address is given */
-  opt_dump,     	/* TRUE if a dump of linker structures is needed */
+#ifdef DEBUG
+  opt_dump,		/* TRUE if a dump of linker structures is needed */
+#endif
   opt_case,		/* TRUE if linker will ignore symbol case */
   opt_cpp,		/* TRUE if linking a C++ program */
   opt_gccareas,		/* TRUE if not touching special GCC areas in 'nounused' processing */
@@ -562,9 +564,11 @@ option optionlist [] = {
   case OPT_DEBUG:
     opt_keepdebug = opt_debug = TRUE;
     break;
+#ifdef DEBUG
   case OPT_DUMP:
     opt_dump = TRUE;
     break;
+#endif
   case OPT_EDIT:
     tp = get_text();
     if (tp!=NIL) {
@@ -815,8 +819,8 @@ void GetCL(char *cmdline) {
 ** character string as then the same code can be used to deal with
 ** the normal and extended command lines as well as 'via' files.
 **
-** There are two version of this routine, one specific to RISCOS and
-** the other for anyone else. The RISCOS one comes first
+** There are two version of this routine, one specific to RISC OS and
+** the other for anyone else. The RISC OS one comes first
 */
 static bool copy_cmdline(int argc, char *argv[]) {
   int n, size;
@@ -849,7 +853,7 @@ static bool copy_cmdline(int argc, char *argv[]) {
 #else
 
 /*
-** This is the non-RISCOS version of copy_cmdline. All it does
+** This is the non-RISC OS version of copy_cmdline. All it does
 ** is bolt the command line back together again.
 */
 static bool copy_cmdline(int argc, char *argv[]) {
@@ -899,7 +903,9 @@ static bool startup(void) {
   opt_symbols = FALSE;		/* Do not produce symbol map */
   opt_acornmap = FALSE;		/* Not producing symbol map in Acorn format */
   opt_revmap = FALSE;		/* Not listing symbols <addr> <name> */
+#ifdef DEBUG
   opt_dump = FALSE;		/* Do not dump linker structures */
+#endif
   opt_pagealign = FALSE;	/* Do not align end of R/O areas on page boundary */
   opt_codebase = FALSE;		/* No value given for start-of-code address */
   opt_database = FALSE;		/* No value given for start-of-R/W-data address */
