@@ -29,7 +29,7 @@ H=$AB_HOME/$AB_PACKAGEDIR
 
 
 addzip() {
- result=$($AB_GCCBIN/zip -, $@ 2>&1)
+ result=$($AB_GCCBIN/zip -, $@ -x CVS 2>&1)
  echo $result
  if echo $result | grep "zip warning" > /dev/null ; then
    exit 1
@@ -39,6 +39,11 @@ addzip() {
 ab_package() {
   echo "Not Packaging"
   AB_NOPACKAGE=yes
+}
+
+ab_make() {
+  eval $AB_MAKE
+  return
 }
 
 
@@ -177,22 +182,9 @@ else
  
  echo "Autobuilder - Running make command: $AB_MAKE"
  
- # It seems that some makefiles have incomplete depedencies, and this
- # means that use of -jX may cause failures.  The work around is to retry.
- 
- #retries=3
- succeed=0
- 
- #while [ "$retries" -gt 0 ] && [ "$succeed" == "0" ] ; do
-   if eval $AB_MAKE ; then
-     succeed=1
-   fi
- 
- #  retries=$(($retries - 1))
- #  echo "succeed: $succeed retries: $retries"
- #done
- 
- if [ "$AB_COMPILEFAIL" != "yes" ] && [ "$succeed" != "1" ] ; then
+ if ab_make || [ "$AB_COMPILEFAIL" == "yes" ] ; then
+   :
+ else
    exit 1
  fi
  
