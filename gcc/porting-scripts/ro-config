@@ -123,20 +123,20 @@ fi
 $RO_CPATH/configure --help > /tmp/out-configure
 
 # Set target type
-if grep -- --target $RO_CPATH/configure >/dev/null ; then
+if grep -q -- --target $RO_CPATH/configure; then
  TARGET="--target=arm-riscos"
 else
  TARGET=
 fi
 
-if grep -- --build $RO_CPATH/configure >/dev/null; then
+if grep -q -- --build $RO_CPATH/configure; then
  BUILD="--build=i686-linux"
 else
  BUILD=
 fi
 
 
-if grep -- --host $RO_CPATH/configure >/dev/null; then
+if grep -q -- --host $RO_CPATH/configure; then
  HOST="--host=arm-riscos"
 else
  HOST=
@@ -150,25 +150,29 @@ TARGET=
 
 
 # Set Prefix
-if grep -- --prefix /tmp/out-configure >/dev/null; then
- PREFIX="--prefix=GCCSDK_ENV"
+if echo $@ | grep -q -- -prefix; then
+ :
 else
- if grep -- -prefix /tmp/out-configure >/dev/null; then
+ if grep -q -- --prefix /tmp/out-configure; then
   PREFIX="--prefix=GCCSDK_ENV"
  else
-  PREFIX=
- fi 
-fi
+  if grep -q -- -prefix /tmp/out-configure; then
+   PREFIX="--prefix=GCCSDK_ENV"
+  else
+   PREFIX=
+  fi 
+ fi
+fi 
 
 # Set WITHLIBS
-#if grep -- --with-libs /tmp/out-configure >/dev/null; then
+#if grep -q -- --with-libs /tmp/out-configure; then
 # WITHLIBS="--with-libs=GCCSDK_ENV"
 #else
  WITHLIBS= 
 #fi
 
 # Add X paths if needed
-if grep -- -x-includes $RO_CPATH/configure >/dev/null; then
+if grep -q -- -x-includes $RO_CPATH/configure; then
  echo RISC OS: Adding X Paths
  X="--x-libraries=GCCSDK_ENV/X11R6/lib --x-includes=GCCSDK_ENV/X11R6/include"
 else
@@ -177,7 +181,7 @@ fi
 
 
 # Add OpenSSL
-if grep -- --with-openssl $RO_CPATH/configure >/dev/null; then
+if grep -q -- --with-openssl $RO_CPATH/configure; then
  echo RISC OS: Adding SSL Path
  SSL="--with-openssl=GCCSDK_ENV"
 else
@@ -187,10 +191,10 @@ fi
 
 # Disable NLS unless otherwise specified
  NLS=
-if echo $@ | grep -- -nls > /dev/null ; then
+if echo $@ | grep -q -- -nls; then
  :
 else
- if grep -- --disable-nls $RO_CPATH/configure >/dev/null; then
+ if grep -q -- --disable-nls $RO_CPATH/configure; then
   echo RISC OS: Disable NLS
   NLS="--disable-nls"
  fi
@@ -198,11 +202,11 @@ fi
 
 
 # Set Static and Dynamic options
-if grep -- --enable-shared /tmp/out-configure >/dev/null; then
+if grep -q -- --enable-shared /tmp/out-configure; then
  echo RISC OS: Disabling shared libraries
  SHARED=--enable-shared=no
 else
- if grep -- --disable-shared /tmp/out-configure > /dev/null; then
+ if grep -q -- --disable-shared /tmp/out-configure; then
    echo RISC OS: Disabling shared libraries
    SHARED=--disable-shared
  else
@@ -210,11 +214,11 @@ else
  fi
 fi
 
-if grep enable-static /tmp/out-configure >/dev/null; then
+if grep -q enable-static /tmp/out-configure; then
  echo RISC OS: Enabling static libraries
  STATIC=--enable-static=yes
 else
- if grep -- " -static" /tmp/out-configure >/dev/null; then
+ if grep -q -- " -static" /tmp/out-configure; then
   STATIC=-static
  else
   STATIC=
@@ -223,7 +227,7 @@ fi
 
 
 # Glib location
-if grep with-glib-prefix /tmp/out-configure >/dev/null; then
+if grep -q with-glib-prefix /tmp/out-configure; then
  echo RISC OS: Setting Glib path
  GLIB=--with-glib-prefix=GCCSDK_ENV
 else
@@ -231,7 +235,7 @@ else
 fi
 
 # GTK location
-if grep with-gtk-prefix /tmp/out-configure >/dev/null; then
+if grep -q with-gtk-prefix /tmp/out-configure; then
  echo RISC OS: Setting GTK path
  GTK=--with-gtk-prefix=GCCSDK_ENV
 else
@@ -240,7 +244,7 @@ fi
 
 
 # TCL
-if grep with-tclconfig /tmp/out-configure >/dev/null; then
+if grep -q with-tclconfig /tmp/out-configure; then
  echo RISC OS: Setting TCL path
  TCLTK="--with-tclconfig=GCCSDK_ENV/lib/tcl8.4"
 else
@@ -248,7 +252,7 @@ else
  fi
 
 # TK
-if grep with-tkconfig /tmp/out-configure >/dev/null; then
+if grep -q with-tkconfig /tmp/out-configure; then
  echo RISC OS: Setting TK path
  TCLTK="$TCLTK --with-tkconfig=GCCSDK_ENV/lib/tk8.4"
 fi
