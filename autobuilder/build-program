@@ -29,7 +29,7 @@ H=$AB_HOME/$AB_PACKAGEDIR
 
 
 addzip() {
- result=$($AB_GCCBIN/zip -, $@ -x CVS 2>&1)
+ result=$($AB_GCCBIN/zip -, $@ -x "*/CVS/*" 2>&1)
  echo $result
  if echo $result | grep "zip warning" > /dev/null ; then
    exit 1
