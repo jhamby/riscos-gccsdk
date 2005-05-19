@@ -84,7 +84,7 @@ fi
 #rm -f /tmp/ab-failure
 
 for AB_PACKAGEDIR in $AB_PACKAGES ; do
- AB_PACKAGE=$(echo "$AB_PACKAGEDIR" | perl -pi -e "s%/%\n%g;" | tail -1)
+ AB_PACKAGE=$(echo "$AB_PACKAGEDIR" | sed -e "s#/\$##" -e "s#/#\n#g" | tail -1)
 
  if [ -d $AB_HOME/$AB_PACKAGEDIR ] ; then
 
