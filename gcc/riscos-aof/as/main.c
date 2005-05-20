@@ -73,6 +73,7 @@ int uc = 0;
 int apcs_32bit = 1;
 int apcs_fpv3 = 1;
 int apcs_softfloat = 0;
+int rma_module = 0;
 int elf = 0;
 
 const char *ProgName = NULL;
@@ -121,6 +122,7 @@ as_help (void)
 	   "-apcsfpv3                  Use floating point v3 AREAs (SFM, LFM) (default)\n"
 	   "-soft-float                Mark code as using -msoft-float (avoids explicit FP instructions)\n"
 	   "-hard-float                Mark code as using -mhard-float (uses explicit FP instructions)\n"
+	   "-module                    Set if building RISC OS RMA modules\n"
 #ifndef NO_ELF_SUPPORT
 	   "-elf                       Output ELF file\n"
 #endif
@@ -148,9 +150,7 @@ restore_prefix (void)
   /* workaround for throwback/Prefix$Dir problem */
 }
 
-
-int
-main (int argc, char **argv)
+int main (int argc, char **argv)
 {
 #ifndef CROSS_COMPILE
   ProgName = getenv ("Prefix$Dir");
@@ -248,6 +248,8 @@ main (int argc, char **argv)
 	apcs_softfloat++;
       else if (! strcmp (*argv, "-hard-float"))
 	apcs_softfloat = 0;
+      else if (! strcmp (*argv, "-module"))
+	rma_module = 1;
       else if (!strcmp (*argv, "-gas"))
 	gas_backend++;
       else if (!strcmp (*argv, "-dde"))

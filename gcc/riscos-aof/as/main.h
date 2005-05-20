@@ -42,6 +42,7 @@ extern int uc;
 extern int apcs_32bit;
 extern int apcs_fpv3;
 extern int apcs_softfloat;
+extern int rma_module;
 extern int elf;
 
 extern const char *ProgName;

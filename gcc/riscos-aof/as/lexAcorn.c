@@ -182,6 +182,11 @@ lexAcornPrim (Lex * lex)
       lex->tag = LexBool;
       lex->LexInt.value = FALSE;
       return 1;
+    case 'm':
+      FINISH_STR_PRIM ("odule}");
+      lex->tag = LexBool;
+      lex->LexInt.value = rma_module;
+      return 1;
     case 'p':
       FINISH_STR_PRIM ("c}");
       lex->tag = LexPosition;
