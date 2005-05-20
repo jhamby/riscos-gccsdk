@@ -110,6 +110,9 @@ CROSS_COBJC=$(ux_gccpkg)/$(gn_standard_exec_prefix)/gcc
 CROSS_CFLAGS=-O2 $(TARGET_DEFS) -mpoke-function-name
 CROSS_COBJCFLAGS=-O2 $(TARGET_DEFS) -mpoke-function-name
 CROSS_CXXFLAGS=-O2 $(TARGET_DEFS) -mpoke-function-name
+#CROSS_CFLAGS=-O2 $(TARGET_DEFS) -mpoke-function-name -msoft-float
+#CROSS_COBJCFLAGS=-O2 $(TARGET_DEFS) -mpoke-function-name -msoft-float
+#CROSS_CXXFLAGS=-O2 $(TARGET_DEFS) -mpoke-function-name -msoft-float
 
 # Name of the host computers archiver.  This is only used to build
 # libiberty or linking against the cross-compiler.
@@ -188,13 +191,17 @@ build-native:	libiberty-stg2 gcc-stg2 riscos-aof-stg2 \
 # match for both trg and cfl in all calls to sub-make processes.  We
 # write them like this because it makes the rest of the makefile easy
 # to read.
-trg20=apcs32/arch3/unixlib
+trg20=apcs32/abs/unixlib
+trg21=apcs32/rma/unixlib
 
-trg30=apcs32/arch3/libscl
+trg30=apcs32/abs/libscl
+trg31=apcs32/rma/libscl
 
-cfl20="CFL=-munixlib"
+cfl20="CFL=-munixlib -mno-module"
+cfl21="CFL=-munixlib -mmodule"
 
-cfl30="CFL=-mlibscl"
+cfl30="CFL=-mlibscl -mno-module"
+cfl31="CFL=-mlibscl -mmodule"
 
 libiberty-stg1:
 	$(MAKE) -C libiberty "STAGE=stage1"
@@ -227,11 +234,13 @@ porting-scripts:
 # to do this (CFL1) brain damage.
 c-libs: gcc-stg1 riscos-aof-stg1 unixlib/Makefile unixlib/source/Makefile unixlib/source/object-list unixlib/objs/Makefile,fe1
 	$(MAKE) -C unixlib "TRG=$(trg20)" $(cfl20)
-	$(MAKE) -C libscl "TRG=$(trg30)" "TRG_UL=$(trg20)" $(cfl30)
+	$(MAKE) -C libscl "TRG=$(trg30)" $(cfl30)
+	$(MAKE) -C libscl "TRG=$(trg31)" $(cfl31)
 
 gcc-libs-stg2: gcc-stg1 riscos-aof-stg1
 	$(MAKE) -C gcc libgcc "TRG=$(trg20)" $(cfl20) "STAGE=stage2"
 	$(MAKE) -C gcc libgcc "TRG=$(trg30)" $(cfl30) "STAGE=stage2"
+	$(MAKE) -C gcc libgcc "TRG=$(trg31)" $(cfl31) "STAGE=stage2"
 	$(MAKE) -C gcc libf2c "TRG=$(trg20)" $(cfl20) "STAGE=stage2"
 	$(MAKE) -C gcc libf2c "TRG=$(trg30)" $(cfl30) "STAGE=stage2"
 	$(MAKE) -C gcc libobjc "TRG=$(trg20)" $(cfl20) "STAGE=stage2"
@@ -263,10 +272,14 @@ directories:
 	mkdir -p $(ro_gccpkg)/$(gn_share_dir)/jar
 
 	mkdir -p $(ux_gccpkg)/$(gn_gcc_bin_dir)/$(trg20)
+	mkdir -p $(ux_gccpkg)/$(gn_gcc_bin_dir)/$(trg21)
 	mkdir -p $(ux_gccpkg)/$(gn_gcc_bin_dir)/$(trg30)
+	mkdir -p $(ux_gccpkg)/$(gn_gcc_bin_dir)/$(trg31)
 
 	mkdir -p $(ro_gccpkg)/$(gn_gcc_bin_dir)/$(trg20)/o
+	mkdir -p $(ro_gccpkg)/$(gn_gcc_bin_dir)/$(trg21)/o
 	mkdir -p $(ro_gccpkg)/$(gn_gcc_bin_dir)/$(trg30)/o
+	mkdir -p $(ro_gccpkg)/$(gn_gcc_bin_dir)/$(trg31)/o
 
 	mkdir -p ${ro_syspkg}/310/Modules
 	mkdir -p $(info_dir)
