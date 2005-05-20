@@ -5,7 +5,6 @@
 # This file is part of the RISC OS GCCSDK
 #
 
-CROSS_CFLAGS += -mlibscl
 INCLUDES = -isystem .
 
 libsclobj=$(objdir)/libscl/$(TRG)
@@ -93,7 +92,7 @@ LIBC =  $(libsclobj)/unistd.o \
 	$(libsclobj)/riscosify.o \
 	$(libsclobj)/assert.o \
 	$(libsclobj)/_os.o \
-	$(libunixobj)/common/_riscosify.o 
+	$(libsclobj)/_riscosify.o 
 
 all:	mkdirs \
 	$(ux_gcc_bin_dir)/$(TRG)/libscl.o \

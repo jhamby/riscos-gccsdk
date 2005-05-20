@@ -43,12 +43,7 @@ The library to link against is c:o.stubs
 
 The following commands will compile the file c.hellow:
   *gcc -c c.hellow -O2 -mlibscl
-  *drlink -o hellow o.hellow gcc:o.libgcc c:o.stubs
-
-If you use LD, then add '-Lc: -lstubs' to the command line.
-
-Alternatively, let gcc handle the linking as well:
-  *gcc c.hellow -O2 -mlibscl -o hellow
+  *gcc -o hellow o.hellow -mlibscl
 
 Filename translation for the Shared C Library
 ---------------------------------------------

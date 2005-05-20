@@ -41,9 +41,14 @@ pc RN 15
 OS_GenerateError	EQU &2B
 OS_Exit			EQU &11
 OS_GetEnv		EQU &10
+OS_Module		EQU &1E
 
+X_Bit			EQU &20000
+	
 SharedCLibrary_LibInitAPCS_R	EQU &80681
+SharedCLibrary_LibInitModule	EQU &80682
 SharedCLibrary_LibInitAPCS_32	EQU &80683
+SharedCLibrary_LibInitModuleAPCS_32	EQU &80684
 
 ; Keep these in sync with unixlib/asm_dec.s and features.h
 __FEATURE_PTHREADS	EQU	1
@@ -304,7 +309,8 @@ __PTHREAD_ALLOCA_OFFSET	EQU	8
 	EXPORT	strcoll
 	EXPORT	|_clib_finalisemodule|
 	EXPORT	|_clib_version|
-	EXPORT	|_clib_finalise|  ; RISC OS PRMs say 'Finalise' but that'll clash
+	EXPORT	|_clib_finalise| ; RISC OS PRMs say 'Finalise' but that'll clash
+	EXPORT	|_Clib_Finalise| ; StubsG calls it this instead
 	EXPORT	tmpnam
 	EXPORT	|_swi|
 	EXPORT	|_swix|
@@ -323,19 +329,19 @@ __PTHREAD_ALLOCA_OFFSET	EQU	8
 	SWI	OS_GetEnv
 	MOV	r2, r1			; workspace limit
 	ADR	r0, stubs		; list of stubs
-	LDR	r1, workspace		; workspace start
+	LDR	r1, rwlimit		; workspace start
 	MOV	r3, #-1			; "-1"
 	MOV	r4, #0			; "0"
 	MOV	r5, #-1			; "-1"
 
 	; check for __root_stack_size. If it doesn't exist, then
 	; make our own up.
-	LDR	r6, stack_size
+	LDR	r6, stksiz
 	TEQ	r6, #0
 	LDRNE	r6, [r6]		; use __root_stack_size
-	MOVEQ	r6, #(4*1024)		; 4KB (single chunk) stack, then.
-	MOV	r6, r6, asr #10 	; convert bytes to KB
-	MOV	r6, r6, lsl #16 	; put in upper 16bits
+	MOVEQ	r6, #4<<16		; 4KB (single chunk) stack, then.
+	MOVNE	r6, r6, asr #10 	; convert bytes to KB
+	MOVNE	r6, r6, lsl #16 	; put in upper 16bits
 
 	TEQ	r0, r0			; Set Z flag
 	TEQ	pc, pc			; EQ if in 32-bit mode
@@ -380,15 +386,125 @@ kernel_init_block
 	DCD	|Image$$RO$$Base|	; image base
 	DCD	|RTSK$$Data$$Base|	; start of lang blocks
 	DCD	|RTSK$$Data$$Limit|	; end of lang blocks
-workspace
-	DCD	|Image$$RW$$Limit|
-stack_size
-	DCD	|__root_stack_size|
-	DCD	|Image$$RW$$Base|
-	DCD	|Image$$ZI$$Base|
+rwlimit	DCD	|Image$$RW$$Limit|
+stksiz	DCD	|__root_stack_size|
+rwbase	DCD	|Image$$RW$$Base|
+zibase	DCD	|Image$$ZI$$Base|
+	
+	EXPORT	|_Lib$Reloc$Off$DP|
+	; XXX This feels bogus to me, but with CMunge, it converts to
+	; the constant 540 when adjusting the SL register in the module
+	; initialisation and command interface code.
+|_Lib$Reloc$Off$DP|	EQU	&f87
+
+	IMPORT	|__RelocCode|, WEAK
+reloccode	DCD	|__RelocCode|
+	
+	; RMA module entry point, called from the module initialisation
+	; code.
+	; On entry:	 r0 = 1, then allocate image space
+	;		 r0 = 0, just allocate 12 bytes for SCL
+	EXPORT	|_clib_initialisemodule|
+|_clib_initialisemodule|
+	str	r14, [sp, #-4]!
+	mov	r9, r0
+
+	; Relocate module.  Check weak link exists (and therefore function
+	; is defined) before calling it.
+	ldr	r0, reloccode
+	teq	r0, #0
+	blne	|__RelocCode|
+
+	; Claim RMA space for module data
+	mov	r0, #6
+	mov	r4, #0
+	mov	r5, #0
+	cmp	r9, #0
+	moveq	r3, #12	; reserve 12 bytes for scl statics
+	ldrne	r4, rwbase		; Image$$RW$$Base
+	ldrne	r5, rwlimit		; Image$$RW$$Limit
+	subne	r3, r5, r4
+	addne	r3, r3, #12	; 12 bytes for scl statics
+	swi	OS_Module + X_Bit
+	; On exit:	 r2 = pointer to claimed block
+	;		 r3 = preserved (i.e. requested block size)
+	ldrvs	pc, [sp], #4
+
+	mov	r9, r12		; hold workspace pointer
+	; Set module private word to point to this new allocation
+	str	r2, [r12, #0]
+
+	mov	r12, r2
+	; First word of private word is size of allocated block
+	str	r3, [r12, #0]
+
+	adr	r0, stubs	; list of stub descriptions
+	add	r1, r12, #12	; pointer to workspace start
+	add	r2, r12, r3	; pointer to workspace limit
+	ldr	r3, zibase	; Image$$ZI$$base
+	ldr	r6, stksiz
+	teq	r6, #0
+	ldrne	r6, [r6]	; use __root_stack_size
+	moveq	r6, #4<<16	; otherwise default to 4K for root stack chunk
+	movne	r6, r6, asr #10	; convert bytes to KB
+	movne	r6, r6, lsl #16 ; put in upper 16 bits
+	[ {config} = 26
+	swi	SharedCLibrary_LibInitModule + X_Bit
+	|
+	swi	SharedCLibrary_LibInitModuleAPCS_32 + X_Bit
+	]
+	bvc	modscl_init
+
+	; An error occurred
+	mov	r1, r0		; preserve error pointer
+	mov	r0, #7		; free claimed workspace
+	ldr	r2, [r9, #0]
+	swi	OS_Module + X_Bit
+	mov	r0, #0		; set private word pointer
+	str	r0, [r9, #0]
+	mov	r0, r1		; restore error pointer
+	ldr	pc, [sp], #4	; exit
 
 
+modscl_init
+	; Store the static data offsets for SCL and client use in the
+	; first 12 bytes of module workspace.  The cmgh/cmunge module
+	; header interface assumes the position of these words.
 
+	; The client static data offset becomes the value that we
+	; reference through sl[-536] for accessing global variables.
+	ldr	r7, [r1, #20]	; scl static data offset
+	ldr	r8, [r1, #24]	; client static data offset
+
+	str	r7, [r12, #4]	; store in private workspace
+	str	r8, [r12, #8]
+
+	mov	r4, r0			; end of workspace
+	adr	r0, kernel_init_block
+	adr	lr, clibinit
+	str	lr, [sp, #-4]!
+	; _kernel_moduleinit pops the return address off the stack
+	b	|_kernel_moduleinit|
+clibinit
+	str	r9, [sp, #-4]!	; save workspace pointer
+	bl	|_clib_initialise|
+	ldr	r0, [sp], #4
+	ldr	pc, [sp], #4
+
+	EXPORT	|_clib_entermodule|
+|_clib_entermodule|
+	adr	r0, kernel_init_block
+	mov	r8, r12
+	mvn	r12, #0
+
+	; Set stack size according to __root_stack_size, or 4K if it
+	; does not exist.
+	ldr	r6, stksiz
+	cmp	r6, #0
+	moveq	r6, #4 * 1024
+	ldrne	r6, [r6, #0]
+	b	|_kernel_entermodule|
+	
 	AREA	|RTSK$$Data|, DATA, READONLY
 	DCD	40 ; |RTSK$$Data$$Limit| - |RTSK$$Data$$Base|
 	DCD	|Image$$RO$$Base| ; |C$$code$$Base|	; gcc is not nicely compatible with SCL
@@ -721,6 +837,7 @@ clib_vectors
 |strcoll|			MOV	pc,#0
 |_clib_finalisemodule|		MOV	pc,#0
 |_clib_version| 		MOV	pc,#0
+|_Clib_Finalise|
 |_clib_finalise|		MOV     pc,#0
 |tmpnam|			MOV     pc,#0
 |_swi|                          MOV     pc,#0
