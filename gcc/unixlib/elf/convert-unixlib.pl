@@ -29,7 +29,8 @@ sub convert_s {
 
     #printf ("converting asm '%s' to '%s'\n", $srcfile, $dstfile);
 
-    if ($dstfile =~ /elf-macros.s$/) {
+    if ($dstfile =~ /elf-macros.s$/
+	|| $dstfile =~ /aof-macros.s$/) {
 	open IN, "$srcfile" or die "$!";
 	open OUT, "> $dstfile" or die "$!";
 	while (<IN>) {
@@ -161,19 +162,45 @@ sub convert_s {
 	    next;
 	}
 
-	if (/^\t\[/) {
-	    # If statement
-	    s/^\t\[/\t.if/;
-	    s/\s=\s/ == /; # Replace = with ==
-	}
-	s/^\t\|/\t.else/;
-	s/^\t\]/\t.endif/;
+	# Convert assembler if, else and endif statements into
+	# C preprocessor directives.
 
-	s/__UNIXLIB_ELF/__ELF__/;
+	if (/^\t\[/ or /^\s+\[/) {
+	    # If statement
+	    my $i = $_;
+	    chomp $i;
+	    $i =~ s/^\t\[\s+//; # Remove .if
+	    my ($var, $comp, $val) = $i =~ /(\w+)\s+(<|>|=)\s+(\d+)/;
+	    printf ("if: i='%s', var='%s', comp='%s', val='%s'\n", $i, $var, $comp, $val);
+	    if ($i =~ /SOFTFLOAT/) {
+		printf OUT "#ifdef __SOFTFP__\n" if ($i =~ /TRUE/);
+		printf OUT "#ifndef __SOFTFP__\n" if ($i =~ /FALSE/);
+		next;
+	    }
+	    if ($var =~ /_ELF/) {
+		printf OUT "#ifdef __ELF__\n" if ($comp ne '=');	
+		printf OUT "#ifndef __ELF__\n" if ($comp eq '=');
+		next;
+	    }
+
+	    # Special case cause I'm too lazy today.
+	    if ($i =~ /:LOR:/) {
+		printf OUT "#if __UNIXLIB_EXTREMELY_PARANOID || __UNIXLIB_STACK_CHECK_MAGIC\n";
+		next;
+	    }
+
+	    printf OUT "#if %s\n", $var if ($comp eq '>');
+	    if ($comp eq '=') {
+		printf OUT "#if !%s\n", $var if ($val eq '0');
+		printf OUT "#if %s\n", $var, $val if ($val eq '1');
+	    }
+	    next;
+	}
+	s/^\t\|/\#else/;
+	s/^\t\]/\#endif/;
 
 	s/^\t\%\s+(\d+)/\t.space\t$1/;
 	s/^\t\%\s+(\w+)/\t.space\t$1/;
-	s/:LOR:/||/;
 	s/:SHL:/<</;
 	s/:SHR:/>>/;
 
@@ -185,19 +212,6 @@ sub convert_s {
 	print OUT $_;
     }
 
-    # If building the _syslib.s file, then output a small section at
-    # the end that will be the ELF program entry point.  By placing
-    # in the init section, we also ensure it appears at the start
-    # of the executable.
-    if ($dstfile =~ /_syslib.s$/) {
-	print OUT "\n\t.section \".init\"\n";
-	print OUT "\t.global\t_start\n";
-	print OUT "\t.type\t_start, \%function\n";
-	print OUT "_start:\n";
-	print OUT "\tB\t__main\n";
-	print OUT "\t.size\t_start, . - _start\n\n";
-	print OUT "\t.end\n\n";
-    }
     close OUT;
     close IN;
 }
@@ -338,6 +352,9 @@ print MAKE<<EOF;
 # Copyright (c) 2005 UnixLib developers
 # Written by Nick Burrett <nick\@sqrt.co.uk>
 
+# Multilib support
+MAKEOVERRIDES=
+
 # These flags exclusively apply to a C compiler
 WARNINGSC = -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations \\
 	-Wnested-externs
@@ -345,10 +362,6 @@ WARNINGSC = -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations \\
 WARNINGS = -pedantic -Wall -Wundef -Wpointer-arith \\
 	-Wcast-align -Wwrite-strings -Winline -Wno-unused \\
 	-Winline -Wno-unused -W -Wcast-qual -Wshadow \$(WARNINGSC)
-
-# IBM MathLib flags.  The ARM FPA represents FP words in big-endian
-# format with the word-order swapped.
-LIBM_FLAGS = -DBIG_ENDI -DHIGH_HALF=0 -DLOW_HALF=1
 
 # The -isystem command tells GCC to prefer the header files in UnixLib,
 # rather than trying to compile the library with the system headers.
@@ -360,8 +373,7 @@ AM_CPPFLAGS = -isystem \$(top_srcdir)/include -I \$(top_srcdir)/incl-local
 # a lot of C99 features.
 # The __UNIXLIB_INTERNALS definition will disappear when the system headers
 # have moved all private data into private header files.
-AM_CFLAGS = -D__UNIXLIB_INTERNALS -D_GNU_SOURCE=1 -std=c99 \\
-    \$(WARNINGS) \$(LIBM_FLAGS)
+AM_CFLAGS = -D__UNIXLIB_INTERNALS -D_GNU_SOURCE=1 -std=c99 \$(LIBM_FLAGS)
 
 # Assembler files rely heavily on the C preprocessor to keep structures
 # referred to by both languages in sync.
@@ -427,7 +439,7 @@ closedir (ROOT);
 @inst_headers = convert_headers ("$aofsourcetree/source/clib", "$elfsourcetree/include");
 @noinst_headers = convert_headers ("$aofsourcetree/source/incl-local", "$elfsourcetree/incl-local");
 
-output_make_var ("nobase_dist_include_HEADERS", \@inst_headers, "include");
+output_make_var ("libc_headers", \@inst_headers, "include");
 print MAKE "\n";
 output_make_var ("nobase_noinst_HEADERS", \@noinst_headers, "incl-local");
 print MAKE "\n";
@@ -476,6 +488,16 @@ foreach $f (@nostackfiles) {
     printf MAKE "\tthen mv -f \"\$(DEPDIR)/%s.Tpo\" \"\$(DEPDIR)/%s.Po\"; \\\n", $leaf, $leaf;
     printf MAKE "\telse rm -f \"\$(DEPDIR)/%s.Tpo\"; exit 1; fi\n\n", $leaf;
 }
+
+print MAKE "install-data-local: install-headers\n\n";
+print MAKE "install-headers:\n";
+print MAKE "\t\$(mkinstalldirs) \$(DESTDIR)\${tooldir}/include\n";
+print MAKE "\tfor dir in arpa bits net netinet resolv rpc string sys unixlib; do \\\n";
+print MAKE "\t  \$(mkinstalldirs) \$(DESTDIR)\${tooldir}/include/\$\${dir} ; done\n";
+print MAKE "\tfor file in \${libc_headers}; do \\\n";
+print MAKE "\t  \$(INSTALL_DATA) \$(srcdir)/\$\${file} \$(DESTDIR)\${tooldir}/\$\${file} ; done\n";
+
+print MAKE "\n";
 close MAKE;
 
 # Makefile has been completed.  Now move in other useful files
