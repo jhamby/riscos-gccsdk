@@ -1,6 +1,6 @@
 /* Functions related to invoking methods and overloaded functions.
    Copyright (C) 1987, 1992, 1993, 1994, 1995, 1996, 1997, 1998, 
-   1999, 2000, 2001, 2002, 2003, 2004 Free Software Foundation, Inc.
+   1999, 2000, 2001, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
    Contributed by Michael Tiemann (tiemann@cygnus.com) and
    modified by Brendan Kehoe (brendan@cygnus.com).
 
@@ -2203,10 +2203,18 @@ any_strictly_viable (struct z_candidate *cands)
   return false;
 }
 
+/* OBJ is being used in an expression like "OBJ.f (...)".  In other
+   words, it is about to become the "this" pointer for a member
+   function call.  Take the address of the object.  */
+
 static tree
 build_this (tree obj)
 {
-  /* Fix this to work on non-lvalues.  */
+  /* In a template, we are only concerned about the type of the
+     expression, so we can take a shortcut.  */
+  if (processing_template_decl)
+    return build_address (obj);
+
   return build_unary_op (ADDR_EXPR, obj, 0);
 }
 
@@ -3278,7 +3286,8 @@ build_conditional_expr (tree arg1, tree arg2, tree arg3)
     }
 
  valid_operands:
-  result = fold (build (COND_EXPR, result_type, arg1, arg2, arg3));
+  result = fold_if_not_in_template (build (COND_EXPR, result_type,
+					   arg1, arg2, arg3));
   /* We can't use result_type below, as fold might have returned a
      throw_expr.  */
 
