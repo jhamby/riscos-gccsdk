@@ -1,16 +1,18 @@
-/* Multilib support for ARM/RISC OS. 
-   Written by Nick Burrett <nick@dsvr.net.  */
+/* Multilib support for ARM/RISC OS.   */
 
 #if 1
 static const char *const multilib_raw[] = {
-  "apcs32/arch3/unixlib !mlibscl mapcs-32 archv3 !archv4;",
-  "apcs32/arch4/unixlib !mlibscl mapcs-32 !archv3 archv4;",
+  "apcs32/abs/unixlib !mlibscl mapcs-32 !mmodule;",
+  "apcs32/rma/unixlib !mlibscl mapcs-32 mmodule;",
 
-  "apcs32/arch3/libscl mlibscl mapcs-32 archv3 !archv4;",
-  "apcs32/arch4/libscl mlibscl mapcs-32 !archv3 archv4;",
+  "apcs32/abs/libscl mlibscl mapcs-32 !mmodule;",
+  "apcs32/rma/libscl mlibscl mapcs-32 mmodule;",
 
-  "apcs26/unixlib !mlibscl !mapcs-32;",
-  "apcs26/libscl mlibscl !mapcs-32;",
+  "apcs26/abs/unixlib !mlibscl !mapcs-32 !mmodule;",
+  "apcs26/rma/unixlib !mlibscl !mapcs-32 mmodule;",
+
+  "apcs26/abs/libscl mlibscl !mapcs-32 !mmodule;",
+  "apcs26/rma/libscl mlibscl !mapcs-32 mmodule;",
 
   NULL
 };
@@ -46,6 +48,7 @@ static const char *const multilib_raw[] = {
 static const char *const multilib_matches_raw[] = {
 "msoft-float msoft-float;",
 "mlibscl mlibscl;",
+"mmodule mmodule;",
 "mcpu=arm6 archv3;",
 "mcpu=arm600 archv3;",
 "mcpu=arm610 archv3;",
