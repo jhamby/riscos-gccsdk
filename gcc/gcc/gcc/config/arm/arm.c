@@ -2603,32 +2603,14 @@ legitimize_pic_address (rtx orig, enum machine_mode mode, rtx reg)
 	 understands that the PIC register has to be added into the offset.  */
       if (TARGET_MODULE)
 	{
-	  /*printf ("legitimize_pic: sym=%s, offset=%d, local=%d\n",
-	    XSTR (orig, 0), offset, SYMBOL_REF_LOCAL_P (orig));*/
+	  /* printf ("legitimize_pic: sym=%s, local=%d, constp=%d\n",
+		  XSTR (orig, 0),
+		  SYMBOL_REF_LOCAL_P (orig),
+		  TREE_CONSTANT_POOL_ADDRESS_P (orig));*/
 
-	  /* This forces the original symbol lookup to be done via
-	     x$adcons.  */
-	  insn = emit_insn (gen_pic_load_addr_based (reg, orig));
-
-	  /* Symbols that are local to the current source unit are
-	     not exported and therefore not relocated by the linker.
-	     As such, we do not need to add the static base to their
-	     value to obtain their true address.  */
-	  if (! SYMBOL_REF_LOCAL_P (orig))
-	    {
-	      rtx sb_reg = gen_reg_rtx (SImode);
-	      rtx sl_reg = gen_rtx_REG (Pmode, SL_REGNUM);
-	      rtx sb_ref = gen_rtx_MEM (Pmode,
-					gen_rtx_PLUS (Pmode,
-						      sl_reg, GEN_INT (-536)));
-	      RTX_UNCHANGING_P (sb_ref) = 1;
-
-	      emit_insn (gen_rtx_SET (SImode, sb_reg, sb_ref));
-	      
-	      /* Finally adjust the global symbol reference to be relative
-		 to the static base.  */
-	      insn = emit_insn (gen_addsi3 (reg, reg, sb_reg));
-	    }
+	  insn = emit_insn (gen_pic_load_addr_arm (reg, orig));
+	  /* if (! SYMBOL_REF_LOCAL_P (orig)) */
+	    insn = emit_insn (gen_addsi3 (reg, reg, pic_offset_table_rtx));
 	}
       else
 	insn = emit_insn (gen_pic_load_addr_based (reg, orig));
@@ -2728,6 +2710,26 @@ legitimize_pic_address (rtx orig, enum machine_mode mode, rtx reg)
 void
 arm_finalize_pic (int prologue ATTRIBUTE_UNUSED)
 {
+#ifdef AOF_ASSEMBLER
+  rtx seq;
+  rtx sb_reg, sl_reg, sb_ref;
+
+  if (current_function_uses_pic_offset_table == 0 || TARGET_SINGLE_PIC_BASE)
+    return;
+
+  if (!flag_pic)
+    abort ();
+
+  start_sequence ();
+
+  sl_reg = gen_rtx_REG (Pmode, SL_REGNUM);
+  sb_ref = gen_rtx_MEM (Pmode,
+			gen_rtx_PLUS (Pmode,
+				      sl_reg, GEN_INT (-536)));
+  RTX_UNCHANGING_P (sb_ref) = 1;
+  emit_insn (gen_rtx_SET (SImode, pic_offset_table_rtx, sb_ref));
+
+#else /* ! AOF_ASSEMBLER */
   rtx seq;
   rtx l1, pic_tmp, pic_tmp2, pic_rtx;
   rtx global_offset_table;
@@ -2740,12 +2742,6 @@ arm_finalize_pic (int prologue ATTRIBUTE_UNUSED)
 
   start_sequence ();
 
-#ifdef AOF_ASSEMBLER
-  global_offset_table = gen_rtx_SYMBOL_REF (Pmode, "x$adcons");
-  pic_tmp = gen_rtx_CONST (Pmode, global_offset_table);
-
-  emit_insn (gen_pic_load_addr_arm (pic_offset_table_rtx, pic_tmp));
-#else /* ! AOF_ASSEMBLER */
   l1 = gen_label_rtx ();
 
   global_offset_table = gen_rtx_SYMBOL_REF (Pmode, "_GLOBAL_OFFSET_TABLE_");
@@ -6987,7 +6983,7 @@ push_minipool_fix (rtx insn, HOST_WIDE_INT address, rtx *loc,
   /* PIC symbol references need to be converted into offsets into the
      based area.  */
   /* XXX This shouldn't be done here.  */
-  if (flag_pic && GET_CODE (value) == SYMBOL_REF)
+  if (flag_pic && GET_CODE (value) == SYMBOL_REF && ! TARGET_MODULE)
     value = aof_pic_entry (value, 0);
 #endif /* AOF_ASSEMBLER */
 

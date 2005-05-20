@@ -3943,7 +3943,7 @@
 	    operands[1] = force_reg (SImode, operands[1]);
         }
     }
-    
+
   if (flag_pic
       && (CONSTANT_P (operands[1])
 	 || symbol_mentioned_p (operands[1])
@@ -4052,14 +4052,7 @@
   [(set (match_operand:SI 0 "s_register_operand" "=r")
 	(unspec:SI [(match_operand:SI 1 "" "mX")] UNSPEC_PIC_SYM))]
   "TARGET_ARM && flag_pic"
-  "*
-  if (TARGET_MODULE)
-    output_asm_insn (\"ldr%?\\t%0, [pc, #%1 - . - 8] %@ pic_load_addr_arm\",
-		     operands);
-  else
-    output_asm_insn (\"ldr%?\\t%0, %1 %@ pic_load_addr_arm\", operands);
-  return \"\";
-  "
+  "ldr%?\\t%0, %1 %@ pic_load_addr_arm"
   [(set_attr "type" "load")
    (set (attr "pool_range")     (const_int 4096))
    (set (attr "neg_pool_range") (const_int 4084))]
@@ -4079,7 +4072,7 @@
 (define_expand "pic_load_addr_based"
   [(set (match_operand:SI 0 "s_register_operand" "")
 	(unspec:SI [(match_operand 1 "" "") (match_dup 2)] UNSPEC_PIC_SYM))]
-  "TARGET_ARM && flag_pic"
+  "TARGET_ARM && flag_pic && ! TARGET_MODULE"
   "operands[2] = pic_offset_table_rtx;"
 )
 
@@ -4088,7 +4081,7 @@
 	(unspec:SI [(match_operand 1 "" "")
 		    (match_operand 2 "s_register_operand" "r")]
 		   UNSPEC_PIC_SYM))]
-  "TARGET_EITHER && flag_pic && operands[2] == pic_offset_table_rtx"
+  "TARGET_EITHER && flag_pic && operands[2] == pic_offset_table_rtx && ! TARGET_MODULE"
   "*
 #ifdef AOF_ASSEMBLER
   operands[1] = aof_pic_entry (operands[1], (TARGET_MODULE) ? 1 : 0);

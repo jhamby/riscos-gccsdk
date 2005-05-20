@@ -159,7 +159,15 @@ Boston, MA 02111-1307, USA.  */
    addressing across such boundaries.  */
 #define TEXT_SECTION_ASM_OP aof_text_section ()
 #define DATA_SECTION_ASM_OP aof_data_section ()
-#define READONLY_DATA_SECTION_ASM_OP aof_rodata_section ()
+
+/* For RMA code we force string constants into the data section.  This is
+   bogus but works around a problem in legitimize_pic_address where we have
+   to add a displacement to the referenced variable.  At that time, it is
+   not possible to reliably determine whether a SYMBOL_REF points to a
+   read-only code section or a data section.  */
+#define READONLY_DATA_SECTION_ASM_OP \
+  ((TARGET_MODULE) ? aof_data_section () : aof_rodata_section ())
+
 #define BSS_SECTION_ASM_OP "\tAREA\t|C$$data|, DATA"
 
 
@@ -450,7 +458,7 @@ do {							\
 #define ENDFILE_SPEC ""
 
 /* Options to pass to the linker.  */
-#define LINK_SPEC ""
+#define LINK_SPEC "%{mmodule:-module}"
 #define ASM_FINAL_SPEC ""
 
 /* The GNU C++ standard library requires that these macros be defined.  */
@@ -494,12 +502,16 @@ do {							\
 	%{mcpu=xscale:-t XSCALE -apcsfpv3} \
 	%{mfp=3:-apcsfpv3} %{mfpe=3:-apcsfpv3} %{mapcs-32:-apcs32} \
 	%{msoft-float:-soft-float} \
-	%{mthrowback:-throwback}"
+	%{mthrowback:-throwback} \
+	%{mmodule:-module}"
+	
 
 #define TARGET_OS_CPP_BUILTINS()		\
     do {					\
-	builtin_define_std ("riscos");		\
-	builtin_define_std ("arm");		\
+	builtin_define ("__riscos");		\
+	builtin_define ("__arm");		\
+	builtin_define ("__riscos__");		\
+	builtin_define ("__arm__");		\
 	builtin_define ("__aof__");		\
     } while (0);
 
@@ -531,7 +543,7 @@ do {							\
 #define DOLLARS_IN_IDENTIFIERS 0
 
 #undef MULTILIB_DEFAULTS
-#define MULTILIB_DEFAULTS { "munixlib", "mapcs-32", "archv3" }
+#define MULTILIB_DEFAULTS { "munixlib", "mapcs-32", "!mmodule" }
 
 /* The backend assembler used for RISC OS does not support debugging data
    - this might change in the future (but don't bet on it).  */
