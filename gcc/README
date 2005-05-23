@@ -219,15 +219,8 @@ A3. It depends on the parameters you pass to configure.  But for the
 
 Q4. My Unix variant appears to be unsupported.  How do I fix it?
 
-A4. Fortunately this is quite easy and, in most cases, only requires you to
-    make changes to a few configuration files.
-
-    a) Change gccsdk/configure.in to correctly detect your CPU and OS type,
-       fixing up cpu_type and os_type respectively.
-
-    b) Fix config.h and hconfig.h.  Add a HOST_CPU_OS clause for your machine,
-       which should include an appropriate xm-*.h file, which you would have
-       previously copied from an original GCC 3.4.1 release.
+A4. Change gccsdk/configure.in to correctly detect your CPU and OS type,
+    fixing up cpu_type and os_type respectively.
 
     Big-endian CPUs, such as Sparc and MIPS, are currently unsupported.
 
