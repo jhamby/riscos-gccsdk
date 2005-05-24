@@ -14,6 +14,6 @@ if [ -f $ro_hosts ] && [ "$RO_DIST" == "YES" ] ; then
   ro_jobs="-j$(wc -w < $ro_hosts | tr -s " " | cut -f 2 -d ' ')"
 fi
 
-GCCSDK_ENV/ro-path make $ro_jobs $@
+GCCSDK_ENV/ro-path make $ro_jobs "$@"
  
 
