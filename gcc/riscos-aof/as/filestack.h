@@ -10,6 +10,6 @@
 
 int push_file (FILE * fp);
 FILE *pop_file (void);
-const int get_file (const char **file, long int *line);
+int get_file (const char **file, long int *line);
 
 #endif

@@ -68,7 +68,7 @@ pop_file (void)
   return NULL;
 }
 
-const int
+int
 get_file (const char **file, long int *line)
 {
   static int f;
