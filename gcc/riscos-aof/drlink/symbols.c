@@ -39,62 +39,53 @@
 
 symbol *globalsyms[MAXGLOBALS];	/* Global symbol table */
 
-symbol
-  *image_robase,		/* Symbol table entries of pre-defined symbols */
-  *image_rwbase,
-  *image_zibase,
-  *image_rolimit,
-  *image_rwlimit,
-  *image_zilimit,
-  *image_codebase,		/* Old symbols used by Fortran 77 */
-  *image_codelimit,
-  *image_database,
-  *image_datalimit,
-  *reloc_code;
+symbol * image_robase,		/* Symbol table entries of pre-defined symbols */
+  *image_rwbase, *image_zibase, *image_rolimit, *image_rwlimit, *image_zilimit, *image_codebase,	/* Old symbols used by Fortran 77 */
+  *image_codelimit, *image_database, *image_datalimit, *reloc_code;
 
-libtable *current_libsyms; 	/* Pointer to current library symbol table */
+libtable *current_libsyms;	/* Pointer to current library symbol table */
 libheader *current_lib;		/* Pointer to libheader entry for library being searched */
 
-symtentry
-  *current_symtbase,		/* Start of OBJ_SYMT chunk in current file containing references */
+symtentry * current_symtbase,	/* Start of OBJ_SYMT chunk in current file containing references */
   *current_symtend;		/* End of OBJ_SYMT chunk in current file */
 
-unsigned int
-  totalsymbols,			/* Total number of symbols defined in program */
+unsigned int totalsymbols,	/* Total number of symbols defined in program */
   numwanted,			/* Number of symbols currently wanted */
   numfound,			/* Number of symbols found this library pass */
   lldsize;			/* Space required for names in low-level debug table */
 
 /* Private declarations */
 
-typedef struct missing {
+typedef struct missing
+{
   const char *symname, *filename;	/* Symbol not found and the file that referenced it */
-  struct missing *left;			/* Left in binary tree                              */
-  struct missing *right;		/* Right in binary tree                             */
+  struct missing *left;		/* Left in binary tree                              */
+  struct missing *right;	/* Right in binary tree                             */
 } missing;
 
 static symbol *commonsyms[MAXCOMMON];	/* Common Block symbol table */
 
-static symbol
-  *symblock,			/* Memory to hold symbol entries for file when reading file */
-  *wantedlist;			/* 'Wanted symbols' list in current file */
+static symbol * symblock,	/* Memory to hold symbol entries for file when reading file */
+ *wantedlist;			/* 'Wanted symbols' list in current file */
 
 static filelist *current_file;	/* File list entry for file being processed */
 static symtable *current_table;	/* Pointer to local symbol table of current file */
-static editcmd
-  *current_symedit,		/* Pointer to symbol edits for current file */
-  *current_refedit;		/* Pointer to reference edits for current file */
+static editcmd * current_symedit,	/* Pointer to symbol edits for current file */
+ *current_refedit;		/* Pointer to reference edits for current file */
 
 /*
 ** 'stricmp' performs a comparison of two null-terminated character
 ** strings ignoring the case of the letters
 */
-int stricmp(const char *str1, const char *str2) {
-  while (*str1 && tolower(*str1)==tolower(*str2)) {
-    str1++;
-    str2++;
-  }
-  return *str1-*str2;
+int
+stricmp (const char *str1, const char *str2)
+{
+  while (*str1 && tolower (*str1) == tolower (*str2))
+    {
+      str1++;
+      str2++;
+    }
+  return *str1 - *str2;
 }
 
 /*
@@ -104,13 +95,16 @@ int stricmp(const char *str1, const char *str2) {
 ** any letters. I suppose it would be better to use 'tolower' but
 ** it's only a hashing function.
 */
-int hash(const char *name) {
+int
+hash (const char *name)
+{
   int total = 0;
 
-  while (*name != 0) {
-    total = total * 5 ^ (*name | 0x20);
-    name++;
-  }
+  while (*name != 0)
+    {
+      total = total * 5 ^ (*name | 0x20);
+      name++;
+    }
   return total;
 }
 
@@ -119,63 +113,83 @@ int hash(const char *name) {
 ** something that itself is relocatable. References to areas are
 ** relocatable but references to symbols can be absolute.
 */
-bool isrelocatable(relocation *rp) {
+bool
+isrelocatable (relocation * rp)
+{
   unsigned int symtindex, reltype;
   symtentry *sp;
   bool istype2;
   reltype = rp->reltypesym;
-  istype2 = (reltype & REL_TYPE2)!=0;
-  if (istype2) {
-    reltype = get_type2_type(reltype);
-  }
-  else {
-    reltype = get_type1_type(reltype);
-  }
-  if ((reltype & REL_SYM)==0) {	/* Simple area reference */
-    return TRUE;
-  }
-  if (istype2) {
-    symtindex = get_type2_index(rp->reltypesym);
-  }
-  else {
-    symtindex = get_type1_index(rp->reltypesym);
-  }
-  sp = symtbase+symtindex;
-  if ((sp->symtattr & SYM_WEAKREF)!=0) {	/* Reference to a weak external */
-    return FALSE;
-  }
-  else {
-    if ((sp->symtattr & SYM_DEFN)==0) {		/* Reference to external symbol */
-      sp = sp->symtarea.symdefptr;
+  istype2 = (reltype & REL_TYPE2) != 0;
+  if (istype2)
+    {
+      reltype = get_type2_type (reltype);
     }
-  }
-  return (sp->symtattr & SYM_ABSVAL)==0;
+  else
+    {
+      reltype = get_type1_type (reltype);
+    }
+  if ((reltype & REL_SYM) == 0)
+    {				/* Simple area reference */
+      return TRUE;
+    }
+  if (istype2)
+    {
+      symtindex = get_type2_index (rp->reltypesym);
+    }
+  else
+    {
+      symtindex = get_type1_index (rp->reltypesym);
+    }
+  sp = symtbase + symtindex;
+  if ((sp->symtattr & SYM_WEAKREF) != 0)
+    {				/* Reference to a weak external */
+      return FALSE;
+    }
+  else
+    {
+      if ((sp->symtattr & SYM_DEFN) == 0)
+	{			/* Reference to external symbol */
+	  sp = sp->symtarea.symdefptr;
+	}
+    }
+  return (sp->symtattr & SYM_ABSVAL) == 0;
 }
 
 /*
 ** 'check_edits' is called to see if there are any edits for the
 ** current file and to set up pointers to the edits if there are
 */
-static void check_edits(const char *filename, int hashval) {
+static void
+check_edits (const char *filename, int hashval)
+{
   editcmd *ep;
   current_symedit = NIL;
   current_refedit = NIL;
 
-  if (symedit_count>0) {	/* Symbol edits exist */
-    ep = symedit_list;
-    while (ep!=NIL && hashval > ep->edtfnhash) ep = ep->edtnext;
+  if (symedit_count > 0)
+    {				/* Symbol edits exist */
+      ep = symedit_list;
+      while (ep != NIL && hashval > ep->edtfnhash)
+	ep = ep->edtnext;
 
-    if (ep!=NIL && hashval==ep->edtfnhash && stricmp(filename, ep->edtfile)==0) {
-      current_symedit = ep;
+      if (ep != NIL && hashval == ep->edtfnhash
+	  && stricmp (filename, ep->edtfile) == 0)
+	{
+	  current_symedit = ep;
+	}
     }
-  }
-  if (refedit_count>0) {	/* Reference edits exist */
-    ep = refedit_list;
-    while (ep!=NIL && hashval>ep->edtfnhash) ep = ep->edtnext;
-    if (ep!=NIL && hashval==ep->edtfnhash && stricmp(filename, ep->edtfile)==0) {
-      current_refedit = ep;
+  if (refedit_count > 0)
+    {				/* Reference edits exist */
+      ep = refedit_list;
+      while (ep != NIL && hashval > ep->edtfnhash)
+	ep = ep->edtnext;
+      if (ep != NIL && hashval == ep->edtfnhash
+	  && stricmp (filename, ep->edtfile) == 0)
+	{
+	  current_refedit = ep;
+	}
     }
-  }
 }
 
 /*
@@ -185,60 +199,83 @@ static void check_edits(const char *filename, int hashval) {
 ** that, for example, a symbol can be renamed and made local
 ** or global at the same time.
 */
-static void check_symedit(symtentry *symtp) {
+static void
+check_symedit (symtentry * symtp)
+{
   int fnhashval, syhashval;
   editcmd *ep;
   const char *symname = symtp->symtname;
 
   fnhashval = current_file->chfilehash;
-  syhashval = hash(symname);
+  syhashval = hash (symname);
   ep = current_symedit;
 
-  while (ep!=NIL && ep->edtfnhash==fnhashval) {
-    if (ep->edtsyhash==syhashval &&
-     ((!opt_case && strcmp(ep->edtold, symname)==0)
-      || (opt_case && stricmp(ep->edtold, symname)==0))) {	/* Found symbol */
-      symedit_count-=1;
-      ep->edtdone = TRUE;
+  while (ep != NIL && ep->edtfnhash == fnhashval)
+    {
+      if (ep->edtsyhash == syhashval &&
+	  ((!opt_case && strcmp (ep->edtold, symname) == 0)
+	   || (opt_case && stricmp (ep->edtold, symname) == 0)))
+	{			/* Found symbol */
+	  symedit_count -= 1;
+	  ep->edtdone = TRUE;
 
-      switch (ep->edtoper) {
-        case EDT_RENAME:
-          current_file->edited = TRUE;
-          symtp->symtname = ep->edtnew;
-          if (opt_verbose) {
-            error("Warning: Symbol '%s' in '%s' renamed as '%s'", ep->edtold, ep->edtfile, ep->edtnew);
-          }
-          break;
+	  switch (ep->edtoper)
+	    {
+	    case EDT_RENAME:
+	      current_file->edited = TRUE;
+	      symtp->symtname = ep->edtnew;
+	      if (opt_verbose)
+		{
+		  error ("Warning: Symbol '%s' in '%s' renamed as '%s'",
+			 ep->edtold, ep->edtfile, ep->edtnew);
+		}
+	      break;
 
-        case EDT_HIDE:
-          if ((symtp->symtattr & SYM_SCOPE)==SYM_GLOBAL) {	/* Global symbol */
-            symtp->symtattr = symtp->symtattr-(SYM_GLOBAL-SYM_LOCAL);
-            if (opt_verbose) {
-              error("Warning: Symbol '%s' in '%s' now marked as 'local'", ep->edtold, ep->edtfile);
-            }
-          }
-          else {
-            error("Warning: Symbol '%s' in '%s' is already a 'local' symbol", symtp->symtname, ep->edtfile);
-          }
-          break;
+	    case EDT_HIDE:
+	      if ((symtp->symtattr & SYM_SCOPE) == SYM_GLOBAL)
+		{		/* Global symbol */
+		  symtp->symtattr =
+		    symtp->symtattr - (SYM_GLOBAL - SYM_LOCAL);
+		  if (opt_verbose)
+		    {
+		      error
+			("Warning: Symbol '%s' in '%s' now marked as 'local'",
+			 ep->edtold, ep->edtfile);
+		    }
+		}
+	      else
+		{
+		  error
+		    ("Warning: Symbol '%s' in '%s' is already a 'local' symbol",
+		     symtp->symtname, ep->edtfile);
+		}
+	      break;
 
-        case EDT_REVEAL:
-          if ((symtp->symtattr & SYM_SCOPE)==SYM_LOCAL) {		/* Local symbol */
-            symtp->symtattr = symtp->symtattr+(SYM_GLOBAL-SYM_LOCAL);
-            if (opt_verbose) {
-              error("Warning: Symbol '%s' in '%s' now marked as 'global'", ep->edtold, ep->edtfile);
-            }
-          }
-          else {
-            error("Warning: Symbol '%s' in '%s' is already a 'global' symbol", symtp->symtname, ep->edtfile);
-          }
+	    case EDT_REVEAL:
+	      if ((symtp->symtattr & SYM_SCOPE) == SYM_LOCAL)
+		{		/* Local symbol */
+		  symtp->symtattr =
+		    symtp->symtattr + (SYM_GLOBAL - SYM_LOCAL);
+		  if (opt_verbose)
+		    {
+		      error
+			("Warning: Symbol '%s' in '%s' now marked as 'global'",
+			 ep->edtold, ep->edtfile);
+		    }
+		}
+	      else
+		{
+		  error
+		    ("Warning: Symbol '%s' in '%s' is already a 'global' symbol",
+		     symtp->symtname, ep->edtfile);
+		}
 
-        default:
-          break;
-      }
+	    default:
+	      break;
+	    }
+	}
+      ep = ep->edtnext;
     }
-    ep = ep->edtnext;
-  }
 }
 
 
@@ -246,38 +283,48 @@ static void check_symedit(symtentry *symtp) {
 ** 'check_libedit' checks if a library entry might be renamed.  This is used to
 ** index a library before its symbols are loaded.
 */
-char *check_libedit(const char *memname, char *symname, int syhashval) {
+char *
+check_libedit (const char *memname, char *symname, int syhashval)
+{
   static int fnhashval = 0;
   editcmd *ep;
   static const char *current_member = NULL;
 
-  if (!symedit_count) return symname;
+  if (!symedit_count)
+    return symname;
 
-  if (current_member != memname) {
-    check_edits(memname, fnhashval = hash(memname));
-    current_member = memname;
-  }
+  if (current_member != memname)
+    {
+      check_edits (memname, fnhashval = hash (memname));
+      current_member = memname;
+    }
 
   ep = current_symedit;
 
-  while (ep!=NIL && ep->edtfnhash==fnhashval) {
-    if (ep->edtsyhash==syhashval &&
-     ((!opt_case && strcmp(ep->edtold, symname)==0)
-      || (opt_case && stricmp(ep->edtold, symname)==0))) {	/* Found symbol */
+  while (ep != NIL && ep->edtfnhash == fnhashval)
+    {
+      if (ep->edtsyhash == syhashval &&
+	  ((!opt_case && strcmp (ep->edtold, symname) == 0)
+	   || (opt_case && stricmp (ep->edtold, symname) == 0)))
+	{			/* Found symbol */
 
-      switch (ep->edtoper) {
-        case EDT_RENAME:
-          if (opt_verbose) {
-            error("Warning: Library reference '%s' in '%s' renamed as '%s'", ep->edtold, ep->edtfile, ep->edtnew);
-          }
-          return ep->edtnew;
+	  switch (ep->edtoper)
+	    {
+	    case EDT_RENAME:
+	      if (opt_verbose)
+		{
+		  error
+		    ("Warning: Library reference '%s' in '%s' renamed as '%s'",
+		     ep->edtold, ep->edtfile, ep->edtnew);
+		}
+	      return ep->edtnew;
 
-        default:
-          break;
-      }
+	    default:
+	      break;
+	    }
+	}
+      ep = ep->edtnext;
     }
-    ep = ep->edtnext;
-  }
   return symname;
 }
 
@@ -286,42 +333,58 @@ char *check_libedit(const char *memname, char *symname, int syhashval) {
 ** 'check_refedit' is called to check if the symbol reference
 ** passed to it has to be changed and if so to change it
 */
-static void check_refedit(symtentry *symtp) {
+static void
+check_refedit (symtentry * symtp)
+{
   int syhashval, fnhashval;
   editcmd *ep;
   const char *symname;
   symname = symtp->symtname;
   fnhashval = current_file->chfilehash;
-  syhashval = hash(symname);
+  syhashval = hash (symname);
   ep = current_refedit;
-  while (ep!=NIL && ep->edtfnhash==fnhashval) {
-    if (ep->edtsyhash==syhashval &&
-     ((!opt_case && strcmp(ep->edtold, symname)==0)
-     || (opt_case && stricmp(ep->edtold, symname)==0))) {	/* Found symbol */
-      refedit_count-=1;
-      ep->edtdone = TRUE;
-      current_file->edited = TRUE;
-      symtp->symtname = ep->edtnew;
-      if (opt_verbose) {
-        error("Warning: Symbol reference '%s' in '%s' changed to '%s'", ep->edtold, ep->edtfile, ep->edtnew);
-      }
+  while (ep != NIL && ep->edtfnhash == fnhashval)
+    {
+      if (ep->edtsyhash == syhashval &&
+	  ((!opt_case && strcmp (ep->edtold, symname) == 0)
+	   || (opt_case && stricmp (ep->edtold, symname) == 0)))
+	{			/* Found symbol */
+	  refedit_count -= 1;
+	  ep->edtdone = TRUE;
+	  current_file->edited = TRUE;
+	  symtp->symtname = ep->edtnew;
+	  if (opt_verbose)
+	    {
+	      error ("Warning: Symbol reference '%s' in '%s' changed to '%s'",
+		     ep->edtold, ep->edtfile, ep->edtnew);
+	    }
+	}
+      ep = ep->edtnext;
     }
-    ep = ep->edtnext;
-  }
 }
 
 
-static symbol **insert_symbol(symbol **tree, const char *name) {
+static symbol **
+insert_symbol (symbol ** tree, const char *name)
+{
 
-  while (*tree != NIL) {
-    int compval = opt_case ? stricmp(name, (*tree)->symtptr->symtname) : strcmp(name, (*tree)->symtptr->symtname);
+  while (*tree != NIL)
+    {
+      int compval =
+	opt_case ? stricmp (name, (*tree)->symtptr->symtname) : strcmp (name,
+									(*tree)->
+									symtptr->
+									symtname);
 
-    if (compval > 0) {
-      tree = &(*tree)->right;
-    } else {
-      tree = &(*tree)->left;
+      if (compval > 0)
+	{
+	  tree = &(*tree)->right;
+	}
+      else
+	{
+	  tree = &(*tree)->left;
+	}
     }
-  }
 
   return tree;
 }
@@ -364,7 +427,9 @@ static symbol **insert_symbol(symbol **tree, const char *name) {
 ** well, which means the relocation code has to be kludged to handle
 ** them too.
 */
-static bool add_symbol(symtentry *symtp) {
+static bool
+add_symbol (symtentry * symtp)
+{
   symbol *p;
   symbol **table;
   int hashval;
@@ -372,80 +437,98 @@ static bool add_symbol(symtentry *symtp) {
   const char *name;
   arealist *ap;
 
-  symtp->symtname = symtp->symtname+COERCE(strtbase, unsigned int);
+  symtp->symtname = symtp->symtname + COERCE (strtbase, unsigned int);
 
-  if (current_symedit != NIL) check_symedit(symtp);
+  if (current_symedit != NIL)
+    check_symedit (symtp);
   name = symtp->symtname;
-  hashval = hash(name);
+  hashval = hash (name);
   attr = symtp->symtattr & SYM_ATMASK;
 
-  if ((attr & SYM_ABSVAL)==0) {	/* Symbol is not an absolute value. Find its area */
-    ap = find_area(strtbase+symtp->symtarea.areaname);
-    if (ap==NIL) {	/* Dodgy C symbol reference to unknown area */
-      symtp->symtattr = symtp->symtattr | SYM_ABSVAL;	/* Convert symbol to absolute */
+  if ((attr & SYM_ABSVAL) == 0)
+    {				/* Symbol is not an absolute value. Find its area */
+      ap = find_area (strtbase + symtp->symtarea.areaname);
+      if (ap == NIL)
+	{			/* Dodgy C symbol reference to unknown area */
+	  symtp->symtattr = symtp->symtattr | SYM_ABSVAL;	/* Convert symbol to absolute */
+	}
     }
-  }
-  else {
-    ap = NIL;
-  }
+  else
+    {
+      ap = NIL;
+    }
 
   symtp->symtarea.areaptr = ap;
 
-  if ((attr & SYM_SCOPE)==SYM_LOCAL) {
-    table = &(*current_table)[hashval & LOCALMASK];
-  }
-  else {
-    table = &globalsyms[hashval & GLOBALMASK];
-  }
+  if ((attr & SYM_SCOPE) == SYM_LOCAL)
+    {
+      table = &(*current_table)[hashval & LOCALMASK];
+    }
+  else
+    {
+      table = &globalsyms[hashval & GLOBALMASK];
+    }
 
-  if (current_file->keepdebug) lldsize += strlen(name) + sizeof(char);
+  if (current_file->keepdebug)
+    lldsize += strlen (name) + sizeof (char);
 
-  table = insert_symbol(table, name);
+  table = insert_symbol (table, name);
   p = *table;
 
-  if (p == NIL) {  /* Entry not found */
-    p = symblock;
-    symblock++;
-    p->symhash = hashval;
-    p->symtptr = symtp;
-    p->symnormal = NIL;
-    p->left = p->right = NIL;
-    *table = p;
-  }
-  else if ((p->symtptr->symtattr & SYM_STRONG)==(attr & SYM_STRONG)) {	/* Duplicate symbol */
-    arealist *cp = p->symtptr->symtarea.areaptr;
-
-    if ((ap->aratattr & (ATT_COMDEF|ATT_COMMON))!=0	/* Symbol's area is common block */
-     && (cp->aratattr & (ATT_COMDEF|ATT_COMMON))!=0	/* Dup symbol's area is common block too */
-     && strcmp(ap->arname, cp->arname)==0		/* Common block names are the same */
-     && symtp->symtvalue==p->symtptr->symtvalue) {		/* Symbol values are the same */
-      return TRUE;					/* No problem */
-    }
-
-    if (link_state==LIB_SEARCH)
-      error("Error: '%s' in '%s(%s)' duplicates a symbol already read in '%s'",
-       name, current_lib->libname, objectname, cp->arfileptr->chfilename);
-    else {
-      error("Error: '%s' in '%s' duplicates a symbol already read in '%s'",
-       name, objectname, cp->arfileptr->chfilename);
-    }
-    return FALSE;
-
-  }
-  else {	/* New symbol of different 'strength' to existing definition */
-    if ((attr & SYM_STRONG)!=0) {	/* New symbol is strong; old one is non-strong */
-      if (link_state==LIB_SEARCH) {	/* Avoid possible use of wrong symbol... */
-        error("Error: 'Strong' definition of '%s' found in '%s' after non-strong definition has been used",
-         name, objectname);
-        return FALSE;
-      }
-      p->symnormal = p->symtptr;
+  if (p == NIL)
+    {				/* Entry not found */
+      p = symblock;
+      symblock++;
+      p->symhash = hashval;
       p->symtptr = symtp;
+      p->symnormal = NIL;
+      p->left = p->right = NIL;
+      *table = p;
     }
-    else {	/* Old symbol is strong; new one is non-strong */
-      p->symnormal = symtp;
+  else if ((p->symtptr->symtattr & SYM_STRONG) == (attr & SYM_STRONG))
+    {				/* Duplicate symbol */
+      arealist *cp = p->symtptr->symtarea.areaptr;
+
+      if ((ap->aratattr & (ATT_COMDEF | ATT_COMMON)) != 0	/* Symbol's area is common block */
+	  && (cp->aratattr & (ATT_COMDEF | ATT_COMMON)) != 0	/* Dup symbol's area is common block too */
+	  && strcmp (ap->arname, cp->arname) == 0	/* Common block names are the same */
+	  && symtp->symtvalue == p->symtptr->symtvalue)
+	{			/* Symbol values are the same */
+	  return TRUE;		/* No problem */
+	}
+
+      if (link_state == LIB_SEARCH)
+	error
+	  ("Error: '%s' in '%s(%s)' duplicates a symbol already read in '%s'",
+	   name, current_lib->libname, objectname, cp->arfileptr->chfilename);
+      else
+	{
+	  error
+	    ("Error: '%s' in '%s' duplicates a symbol already read in '%s'",
+	     name, objectname, cp->arfileptr->chfilename);
+	}
+      return FALSE;
+
     }
-  }
+  else
+    {				/* New symbol of different 'strength' to existing definition */
+      if ((attr & SYM_STRONG) != 0)
+	{			/* New symbol is strong; old one is non-strong */
+	  if (link_state == LIB_SEARCH)
+	    {			/* Avoid possible use of wrong symbol... */
+	      error
+		("Error: 'Strong' definition of '%s' found in '%s' after non-strong definition has been used",
+		 name, objectname);
+	      return FALSE;
+	    }
+	  p->symnormal = p->symtptr;
+	  p->symtptr = symtp;
+	}
+      else
+	{			/* Old symbol is strong; new one is non-strong */
+	  p->symnormal = symtp;
+	}
+    }
 
   return TRUE;
 }
@@ -456,25 +539,29 @@ static bool add_symbol(symtentry *symtp) {
 ** Memory for the symbol is taken from the block allocated for
 ** symbols in the file being processed.
 */
-static void add_externref(symtentry *symtp) {
+static void
+add_externref (symtentry * symtp)
+{
   symbol *sp, **insert;
   const char *name;
 
-  symtp->symtname = symtp->symtname+COERCE(strtbase, unsigned int);
+  symtp->symtname = symtp->symtname + COERCE (strtbase, unsigned int);
 
-  if (current_refedit!=NIL) check_refedit(symtp);
+  if (current_refedit != NIL)
+    check_refedit (symtp);
   name = symtp->symtname;
   sp = symblock;
   symblock++;
-  sp->symhash = hash(name);
+  sp->symhash = hash (name);
   sp->symtptr = symtp;
   sp->symnormal = NIL;
   sp->left = sp->right = NIL;
 
-  insert = insert_symbol(&wantedlist, name);
-  if (!*insert) *insert = sp;
+  insert = insert_symbol (&wantedlist, name);
+  if (!*insert)
+    *insert = sp;
 
-  numwanted++;  /* Bump up count of wanted symbols */
+  numwanted++;			/* Bump up count of wanted symbols */
 }
 
 /*
@@ -492,26 +579,30 @@ static void add_externref(symtentry *symtp) {
 ** problem. If none, the library search code has to deal with the
 ** reference.
 */
-symbol *create_externref(symtentry *stp) {
+symbol *
+create_externref (symtentry * stp)
+{
   symbol *sp, **insert;
   symtentry *newstp;
   const char *name;
 
-  sp = allocmem(sizeof(symbol));
-  newstp = allocmem(sizeof(symtentry));
-  if (sp==NIL || newstp==NIL) error("Fatal: Out of memory in 'create_externref'");
+  sp = allocmem (sizeof (symbol));
+  newstp = allocmem (sizeof (symtentry));
+  if (sp == NIL || newstp == NIL)
+    error ("Fatal: Out of memory in 'create_externref'");
   name = stp->symtname;
   newstp->symtname = name;
   newstp->symtattr = SYM_EXTERN;
   newstp->symtvalue = 0;
   newstp->symtarea.symdefptr = NIL;
-  sp->symhash = hash(name);
+  sp->symhash = hash (name);
   sp->symtptr = newstp;
   sp->symnormal = NIL;
   sp->left = sp->right = NIL;
 
-  insert = insert_symbol(&wantedlist, name);
-  if (!*insert) *insert = sp;
+  insert = insert_symbol (&wantedlist, name);
+  if (!*insert)
+    *insert = sp;
 
   numwanted++;
 
@@ -529,23 +620,26 @@ symbol *create_externref(symtentry *stp) {
 ** resolution code using the size of the common block as an offset (the
 ** words 'bug fix' and 'hack' come to mind here).
 */
-static void add_commonref(symtentry *stp) {
+static void
+add_commonref (symtentry * stp)
+{
   const char *name;
   symbol *sp;
 
-  stp->symtname = stp->symtname+COERCE(strtbase, unsigned int);
-  if (current_refedit!=NIL) check_refedit(stp);
+  stp->symtname = stp->symtname + COERCE (strtbase, unsigned int);
+  if (current_refedit != NIL)
+    check_refedit (stp);
 
   name = stp->symtname;
   sp = symblock;
   symblock++;
-  sp->symhash             = hash(name);
-  sp->symtptr             = stp;
-  sp->symnormal           = NIL;
-  sp->left = sp->right    = NIL;
+  sp->symhash = hash (name);
+  sp->symtptr = stp;
+  sp->symnormal = NIL;
+  sp->left = sp->right = NIL;
 
-  stp->symtarea.symdefptr = make_commonarea(sp);
-  stp->symtvalue          = 0;
+  stp->symtarea.symdefptr = make_commonarea (sp);
+  stp->symtvalue = 0;
 }
 
 /*
@@ -563,90 +657,119 @@ static void add_commonref(symtentry *stp) {
 ** meaningless for a reference, so the code clears it. The code to
 ** handle relocations goes wrong otherwise.
 */
-bool scan_symt(filelist *fp) {
+bool
+scan_symt (filelist * fp)
+{
   int i, symcount, attr;
   symtentry *symtp;
   bool ok, addok, gotstrong;
   unsigned int strtsize;
 
   symcount = fp->symtcount;
-  symblock = allocmem(symcount * sizeof(symbol));
-  if (symblock==NIL) error("Fatal: Out of memory in 'scan_symt' reading file '%s'", objectname);
+  symblock = allocmem (symcount * sizeof (symbol));
+  if (symblock == NIL)
+    error ("Fatal: Out of memory in 'scan_symt' reading file '%s'",
+	   objectname);
 
   current_file = fp;
   current_table = &fp->localsyms;
-  check_edits(current_file->chfilename, current_file->chfilehash);	/* Are there any link edits for this file? */
+  check_edits (current_file->chfilename, current_file->chfilehash);	/* Are there any link edits for this file? */
   symtp = fp->objsymtptr;
   strtsize = fp->objstrtsize;
   wantedlist = NIL;
   gotstrong = FALSE;
   addok = ok = TRUE;
 
-  for (i = 1; i <= symcount && ok; i++) {
-    if (COERCE(symtp->symtname, unsigned int) >= strtsize) {
-      error("Error: Offset of symbol name in OBJ_SYMT chunk is bad in '%s'", fp->chfilename);
-      symtp->symtname = NIL;
-      ok = FALSE;
-    }
+  for (i = 1; i <= symcount && ok; i++)
+    {
+      if (COERCE (symtp->symtname, unsigned int) >= strtsize)
+	{
+	  error
+	    ("Error: Offset of symbol name in OBJ_SYMT chunk is bad in '%s'",
+	     fp->chfilename);
+	  symtp->symtname = NIL;
+	  ok = FALSE;
+	}
 
-    if (strcmp(symtp->symtname+COERCE(strtbase, unsigned int), "$d")==0 ||
-        strcmp(symtp->symtname+COERCE(strtbase, unsigned int), "$a")==0) {
-      /* Convert symbol to absolute to prevent an attempt at relocation */
-      symtp->symtattr = symtp->symtattr | SYM_ABSVAL;
-      /* Ignore these symbols due to possible objasm bug? */
+      if (strcmp (symtp->symtname + COERCE (strtbase, unsigned int), "$d") ==
+	  0
+	  || strcmp (symtp->symtname + COERCE (strtbase, unsigned int),
+		     "$a") == 0)
+	{
+	  /* Convert symbol to absolute to prevent an attempt at relocation */
+	  symtp->symtattr = symtp->symtattr | SYM_ABSVAL;
+	  /* Ignore these symbols due to possible objasm bug? */
+	  symtp++;
+	  continue;
+	}
+      attr = symtp->symtattr;
+      if (aofv3flag && (attr & SYM_A3ATTR) != 0)
+	{			/* Reject AOF 3 attributes */
+	  error
+	    ("Error: Symbol '%s' in '%s' has unsupported AOF symbol attributes (%06x)",
+	     symtp->symtname + COERCE (strtbase, unsigned int),
+	     fp->chfilename, attr & SYM_A3ATTR);
+	  ok = FALSE;
+	}
+      attr = attr & SYM_ATMASK;
+
+      if ((attr & SYM_DEFN) != 0)
+	{			/* Add symbol defintion to symbol table */
+	  addok = addok && add_symbol (symtp);
+	  gotstrong = gotstrong || (attr & SYM_STRONG) != 0;
+	  totalsymbols += 1;
+	}
+      else if (attr == (SYM_COMMON | SYM_EXTERN))
+	{			/* Reference to a common block */
+	  add_commonref (symtp);
+	}
+      else if (attr == SYM_EXTERN)
+	{			/* Reference to an external symbol */
+	  add_externref (symtp);
+	}
+      else if (attr == (SYM_EXTERN | SYM_ABSVAL))
+	{			/* Dodgy ARM linker trick... */
+	  symtp->symtattr -= SYM_ABSVAL;	/* Lose 'absolute' attribute bit */
+	  add_externref (symtp);
+	}
+      else
+	{
+	  error
+	    ("Error: OBJ_SYMT attribute value (0x%x) of symbol '%s' in '%s' is bad. Is file corrupt?",
+	     attr, COERCE (strtbase, unsigned int) + symtp->symtname,
+	     fp->chfilename);
+	  ok = FALSE;
+	}
       symtp++;
-      continue;
     }
-    attr = symtp->symtattr;
-    if (aofv3flag && (attr & SYM_A3ATTR)!=0) {	/* Reject AOF 3 attributes */
-      error("Error: Symbol '%s' in '%s' has unsupported AOF symbol attributes (%06x)",
-       symtp->symtname+COERCE(strtbase, unsigned int), fp->chfilename,
-       attr & SYM_A3ATTR);
-      ok = FALSE;
-    }
-    attr = attr & SYM_ATMASK;
-
-    if ((attr & SYM_DEFN)!=0) {	/* Add symbol defintion to symbol table */
-      addok = addok && add_symbol(symtp);
-      gotstrong = gotstrong || (attr & SYM_STRONG)!=0;
-      totalsymbols+=1;
-    }
-    else if (attr==(SYM_COMMON|SYM_EXTERN)) {	/* Reference to a common block */
-      add_commonref(symtp);
-    }
-    else if (attr==SYM_EXTERN) {	/* Reference to an external symbol */
-      add_externref(symtp);
-    }
-    else if (attr==(SYM_EXTERN|SYM_ABSVAL)) {	/* Dodgy ARM linker trick... */
-      symtp->symtattr-=SYM_ABSVAL;		/* Lose 'absolute' attribute bit */
-      add_externref(symtp);
-    }
-    else {
-      error("Error: OBJ_SYMT attribute value (0x%x) of symbol '%s' in '%s' is bad. Is file corrupt?",
-       attr, COERCE(strtbase, unsigned int)+symtp->symtname, fp->chfilename);
-      ok = FALSE;
-    }
-    symtp++;
-  }
-  if (gotstrong) check_strongrefs(fp);	/* Special processing for strong symbols */
+  if (gotstrong)
+    check_strongrefs (fp);	/* Special processing for strong symbols */
   fp->symtries.wantedsyms = wantedlist;
   return ok && addok;
 }
 
 
-static symbol *find_symbol(symbol *tree, const char *name, bool ignorecase) {
+static symbol *
+find_symbol (symbol * tree, const char *name, bool ignorecase)
+{
 
-  while (tree != NIL) {
-    int compval = ignorecase ? stricmp(name, tree->symtptr->symtname) : strcmp(name, tree->symtptr->symtname);
+  while (tree != NIL)
+    {
+      int compval =
+	ignorecase ? stricmp (name, tree->symtptr->symtname) : strcmp (name,
+								       tree->
+								       symtptr->
+								       symtname);
 
-    if (compval == 0) {
-      return tree;
+      if (compval == 0)
+	{
+	  return tree;
+	}
+      if (compval > 0)
+	tree = tree->right;
+      else
+	tree = tree->left;
     }
-    if (compval > 0)
-      tree = tree->right;
-    else
-      tree = tree->left;
-  }
 
   return NIL;
 }
@@ -657,42 +780,51 @@ static symbol *find_symbol(symbol *tree, const char *name, bool ignorecase) {
 ** 'search_global' is a custom routine for searching the global symbol table as
 ** quickly as possible
 */
-static symbol *search_global(symbol *wantedsym) {
+static symbol *
+search_global (symbol * wantedsym)
+{
   symbol *p;
   const char *name;
 
   p = globalsyms[wantedsym->symhash & GLOBALMASK];
   name = wantedsym->symtptr->symtname;
 
-  return find_symbol(p, name, opt_case || (wantedsym->symtptr->symtattr & SYM_IGNCASE) != 0);
+  return find_symbol (p, name, opt_case
+		      || (wantedsym->symtptr->symtattr & SYM_IGNCASE) != 0);
 }
 
 /*
 ** 'search_local' searches the current local symbol table for the required
 ** symbol, returning a pointer to its entry if found or nil if not.
 */
-static symbol *search_local(symbol *wantedsym) {
+static symbol *
+search_local (symbol * wantedsym)
+{
   symbol *p;
   const char *name;
 
   p = (*current_table)[wantedsym->symhash & LOCALMASK];
   name = wantedsym->symtptr->symtname;
 
-  return find_symbol(p, name, opt_case || (wantedsym->symtptr->symtattr & SYM_IGNCASE) != 0);
+  return find_symbol (p, name, opt_case
+		      || (wantedsym->symtptr->symtattr & SYM_IGNCASE) != 0);
 }
 
 /*
 ** 'search_common' searches the common block symbol table for the required
 ** symbol, returning a pointer to its entry if found or nil if not.
 */
-symbol *search_common(symbol *wantedsym) {
+symbol *
+search_common (symbol * wantedsym)
+{
   symbol *p;
   const char *name;
 
   p = commonsyms[wantedsym->symhash & COMMONMASK];
   name = wantedsym->symtptr->symtname;
 
-  return find_symbol(p, name, opt_case || (wantedsym->symtptr->symtattr & SYM_IGNCASE) != 0);
+  return find_symbol (p, name, opt_case
+		      || (wantedsym->symtptr->symtattr & SYM_IGNCASE) != 0);
 }
 
 /*
@@ -701,43 +833,53 @@ symbol *search_common(symbol *wantedsym) {
 ** block and returns a pointer to the symbol table for the common
 ** block if found or 'nil'
 */
-symbol *find_common(const char *name) {
+symbol *
+find_common (const char *name)
+{
   symbol dummysym;
   symtentry dummysymt;
-  dummysym.symhash = hash(name);
+  dummysym.symhash = hash (name);
   dummysym.symtptr = &dummysymt;
   dummysymt.symtname = name;
   dummysymt.symtattr = 0;
-  return search_common(&dummysym);
+  return search_common (&dummysym);
 }
 
 /*
 ** 'add_unresolved' adds a symbol to one of the missing symbol
 ** lists if there is no reference to it already there
 */
-static void add_unresolved(missing **tree, symbol *sp, filelist *fp) {
+static void
+add_unresolved (missing ** tree, symbol * sp, filelist * fp)
+{
   const char *sname = sp->symtptr->symtname;
 
-  while (*tree != NIL) {
-    int compval = (opt_case || (sp->symtptr->symtattr & SYM_IGNCASE) != 0) ?
-     stricmp(sname, (*tree)->symname) : strcmp(sname, (*tree)->symname);
+  while (*tree != NIL)
+    {
+      int compval = (opt_case || (sp->symtptr->symtattr & SYM_IGNCASE) != 0) ?
+	stricmp (sname, (*tree)->symname) : strcmp (sname, (*tree)->symname);
 
-    if (compval == 0)
-      return;
+      if (compval == 0)
+	return;
 
-    if (compval > 0) {
-      tree = &(*tree)->right;
-    } else {
-      tree = &(*tree)->left;
+      if (compval > 0)
+	{
+	  tree = &(*tree)->right;
+	}
+      else
+	{
+	  tree = &(*tree)->left;
+	}
     }
-  }
 
-  if (*tree == NIL) {	/* New unresolved or weak symbol */
-    if ((*tree = allocmem(sizeof(missing)))==NIL) error("Fatal: Out of memory in 'add_unresolved'");
-    (*tree)->symname = sname;
-    (*tree)->filename = fp->chfilename;
-    (*tree)->left = (*tree)->right = NIL;
-  }
+  if (*tree == NIL)
+    {				/* New unresolved or weak symbol */
+      if ((*tree = allocmem (sizeof (missing))) == NIL)
+	error ("Fatal: Out of memory in 'add_unresolved'");
+      (*tree)->symname = sname;
+      (*tree)->filename = fp->chfilename;
+      (*tree)->left = (*tree)->right = NIL;
+    }
 }
 
 /*
@@ -747,52 +889,69 @@ static void add_unresolved(missing **tree, symbol *sp, filelist *fp) {
 ** unresolved, although the linker prints out a list of them at the
 ** end.
 */
-static void list_unresolved_print(missing *tree) {
-  if (tree != NIL) {
-    list_unresolved_print(tree->left);
-    error("    '%s' referenced in '%s'", tree->symname, tree->filename);
-    list_unresolved_print(tree->right);
-  }
-}
-
-
-static void list_unresolved_add(symbol *sp, filelist *fp, missing **misslist, missing **weaklist) {
-  if (sp != NIL) {
-    list_unresolved_add(sp->left, fp, misslist, weaklist);
-
-    if ((sp->symtptr->symtattr & SYM_WEAKREF) != 0) { /* No problem if weak external ref */
-      add_unresolved(weaklist, sp, fp);
-      numwanted--;
-
-    } else {
-      add_unresolved(misslist, sp, fp);
+static void
+list_unresolved_print (missing * tree)
+{
+  if (tree != NIL)
+    {
+      list_unresolved_print (tree->left);
+      error ("    '%s' referenced in '%s'", tree->symname, tree->filename);
+      list_unresolved_print (tree->right);
     }
-
-    list_unresolved_add(sp->right, fp, misslist, weaklist);
-  }
 }
 
 
-static void list_unresolved(void) {
+static void
+list_unresolved_add (symbol * sp, filelist * fp, missing ** misslist,
+		     missing ** weaklist)
+{
+  if (sp != NIL)
+    {
+      list_unresolved_add (sp->left, fp, misslist, weaklist);
+
+      if ((sp->symtptr->symtattr & SYM_WEAKREF) != 0)
+	{			/* No problem if weak external ref */
+	  add_unresolved (weaklist, sp, fp);
+	  numwanted--;
+
+	}
+      else
+	{
+	  add_unresolved (misslist, sp, fp);
+	}
+
+      list_unresolved_add (sp->right, fp, misslist, weaklist);
+    }
+}
+
+
+static void
+list_unresolved (void)
+{
   filelist *fp;
   missing *misslist = NIL, *weaklist = NIL;
 
   fp = aofilelist;
 
-  do {
-    list_unresolved_add(fp->symtries.wantedsyms, fp, &misslist, &weaklist);
-    fp = fp->nextfile;
-  } while (fp != NIL);
+  do
+    {
+      list_unresolved_add (fp->symtries.wantedsyms, fp, &misslist, &weaklist);
+      fp = fp->nextfile;
+    }
+  while (fp != NIL);
 
-  if (weaklist != NIL && (opt_verbose || opt_info)) {
-    error("Warning: The following symbols are unresolved 'weak' references:");
-    list_unresolved_print(weaklist);
-  }
+  if (weaklist != NIL && (opt_verbose || opt_info))
+    {
+      error
+	("Warning: The following symbols are unresolved 'weak' references:");
+      list_unresolved_print (weaklist);
+    }
 
-  if (misslist != NIL) {
-    error("Error: The following symbols could not be found:");
-    list_unresolved_print(misslist);
-  }
+  if (misslist != NIL)
+    {
+      error ("Error: The following symbols could not be found:");
+      list_unresolved_print (misslist);
+    }
 }
 
 /*
@@ -801,47 +960,64 @@ static void list_unresolved(void) {
 ** a pointer to the library symbol table entry, otherwise it
 ** returns 'nil'.
 */
-static libentry *search_lib_tree(libentry *lp, const char *name, bool ignorecase) {
+static libentry *
+search_lib_tree (libentry * lp, const char *name, bool ignorecase)
+{
 
-  if (lp != NIL) {
-    int compval = ignorecase ? stricmp(name, lp->libname) : strcmp(name, lp->libname);
+  if (lp != NIL)
+    {
+      int compval =
+	ignorecase ? stricmp (name, lp->libname) : strcmp (name, lp->libname);
 
-    if (compval == 0)
-      return lp;
+      if (compval == 0)
+	return lp;
 
-    if (compval > 0) {
-      return search_lib_tree(lp->right, name, ignorecase);
-    } else {
-      return search_lib_tree(lp->left, name, ignorecase);
+      if (compval > 0)
+	{
+	  return search_lib_tree (lp->right, name, ignorecase);
+	}
+      else
+	{
+	  return search_lib_tree (lp->left, name, ignorecase);
+	}
     }
-  }
 
   return NIL;
 }
 
-static libentry *search_lib(symbol *wantedsym) {
-  return search_lib_tree((*current_libsyms)[wantedsym->symhash & LIBEMASK], wantedsym->symtptr->symtname,
-                         opt_case || (wantedsym->symtptr->symtattr & SYM_IGNCASE) != 0);
+static libentry *
+search_lib (symbol * wantedsym)
+{
+  return search_lib_tree ((*current_libsyms)[wantedsym->symhash & LIBEMASK],
+			  wantedsym->symtptr->symtname, opt_case
+			  || (wantedsym->symtptr->symtattr & SYM_IGNCASE) !=
+			  0);
 }
 
 /*
 ** 'get_nextlib' returns a pointer to the next entry in the hash chain that
 ** matches the one passed to it
 */
-static libentry *get_nextlib(libentry *lp) {
+static libentry *
+get_nextlib (libentry * lp)
+{
   int hashval;
   char *name;
   hashval = lp->libhash;
   name = lp->libname;
-  while (lp!=NIL && (lp->libhash!=hashval || strcmp(name, lp->libname)!=0)) lp = lp->left;
+  while (lp != NIL
+	 && (lp->libhash != hashval || strcmp (name, lp->libname) != 0))
+    lp = lp->left;
   return lp;
 }
 
 /*
 ** 'remove_entry' deletes an entry from a file's wanted list
 */
-static void remove_entry(symbol **wp) {
- symbol *sym = *wp, *subnode;
+static void
+remove_entry (symbol ** wp)
+{
+  symbol *sym = *wp, *subnode;
 
   /* Binary tree removal.
 
@@ -851,46 +1027,57 @@ static void remove_entry(symbol **wp) {
      If there's two children, then when a subtree exists on the right side, replace it
      with the inorder successor.
 
-  */
+   */
 
-  if (sym->left == NIL && sym->right != NIL) {
-    subnode = sym->right;
-    freemem(sym, sizeof(symbol));
-    *wp = subnode;
-
-  } else if (sym->left != NIL && sym->right == NIL) {
-    subnode = sym->left;
-    freemem(sym, sizeof(symbol));
-    *wp = subnode;
-
-  } else if (sym->left != NIL && sym->right != NIL) {
-    /* Find successor */
-    symbol **success = &sym->right;
-
-    if (!(*success)->left) {
-      /* When there's no left successor, just move the right node up */
-
-      (*success)->left = sym->left;
-      *wp = *success;
-
-    } else {
-      while ((*success)->left != NIL) {
-        success = &(*success)->left;
-      }
-      subnode = *success;
-
-      *success = subnode->right;
-      subnode->left = sym->left;
-      subnode->right = sym->right;
+  if (sym->left == NIL && sym->right != NIL)
+    {
+      subnode = sym->right;
+      freemem (sym, sizeof (symbol));
       *wp = subnode;
+
     }
+  else if (sym->left != NIL && sym->right == NIL)
+    {
+      subnode = sym->left;
+      freemem (sym, sizeof (symbol));
+      *wp = subnode;
 
-    freemem(sym, sizeof(symbol));
+    }
+  else if (sym->left != NIL && sym->right != NIL)
+    {
+      /* Find successor */
+      symbol **success = &sym->right;
 
-  } else {
-    freemem(sym, sizeof(symbol));
-    *wp = NULL;
-  }
+      if (!(*success)->left)
+	{
+	  /* When there's no left successor, just move the right node up */
+
+	  (*success)->left = sym->left;
+	  *wp = *success;
+
+	}
+      else
+	{
+	  while ((*success)->left != NIL)
+	    {
+	      success = &(*success)->left;
+	    }
+	  subnode = *success;
+
+	  *success = subnode->right;
+	  subnode->left = sym->left;
+	  subnode->right = sym->right;
+	  *wp = subnode;
+	}
+
+      freemem (sym, sizeof (symbol));
+
+    }
+  else
+    {
+      freemem (sym, sizeof (symbol));
+      *wp = NULL;
+    }
 
   numwanted--;
 }
@@ -931,15 +1118,18 @@ static void remove_entry(symbol **wp) {
 ** way, whether or not a weak reference is resolved depends on the order
 ** in which the non-weak and weak references are encountered...
 */
-static bool check_library_tree(symbol **wp, filelist *fp) {
+static bool
+check_library_tree (symbol ** wp, filelist * fp)
+{
   bool ok = TRUE;
 
-  if (*wp != NIL) {
-    symbol *sp;
-    libentry *lp;
+  if (*wp != NIL)
+    {
+      symbol *sp;
+      libentry *lp;
 
-    ok &= check_library_tree(&(*wp)->left, fp);
-    ok &= check_library_tree(&(*wp)->right, fp);
+      ok &= check_library_tree (&(*wp)->left, fp);
+      ok &= check_library_tree (&(*wp)->right, fp);
 
 /*
 ** First, check if the symbol is now available. It is possible that a
@@ -948,8 +1138,9 @@ static bool check_library_tree(symbol **wp, filelist *fp) {
 ** again. A complication, as ever, is the possibility of a strong
 ** symbol...
 */
-    sp = search_global(*wp);	/* Is symbol now available? */
-    if (sp != NIL) {		/* Yes */
+      sp = search_global (*wp);	/* Is symbol now available? */
+      if (sp != NIL)
+	{			/* Yes */
 /*
 ** At this point, a module that contains a symbol definition is in
 ** memory. There are two possibilities to deal with here:
@@ -965,75 +1156,95 @@ static bool check_library_tree(symbol **wp, filelist *fp) {
 ** find another...
 ** In case (b), there is no problem. This is the definition to use
 */
-      if ((sp->symtptr->symtattr & SYM_STRONG) != 0 &&
-       sp->symtptr >= current_symtbase && sp->symtptr < current_symtend && sp->symnormal == NIL) {
+	  if ((sp->symtptr->symtattr & SYM_STRONG) != 0 &&
+	      sp->symtptr >= current_symtbase && sp->symtptr < current_symtend
+	      && sp->symnormal == NIL)
+	    {
 
-        lp = search_lib(*wp);
+	      lp = search_lib (*wp);
 
-        if (lp!=NIL && isloaded(lp)) {	/* Found symbol in library. Has member been loaded? */
-          lp = get_nextlib(lp);		/* If yes, look for another version */
-          if (isloaded(lp)) lp = NIL;
-        }
+	      if (lp != NIL && isloaded (lp))
+		{		/* Found symbol in library. Has member been loaded? */
+		  lp = get_nextlib (lp);	/* If yes, look for another version */
+		  if (isloaded (lp))
+		    lp = NIL;
+		}
 
-        if (lp != NIL) {
-          numfound++;
-          ok &= load_member(lp, fp, *wp);	/* Not in memory, so load it */
-        }
-      }
-      else {	/* Non-strong or strong and non-strong def'n known */
-        numfound+=1;
-        lp = COERCE(sp, libentry*);		/* This is just so that lp!=nil */
-      }
-    }
-    else if (((*wp)->symtptr->symtattr & SYM_WEAKREF) != 0 && opt_leaveweak) {	/* Ignore if weak external */
-      lp = NIL;
-    }
-    else {	/* Symbol is not available yet. Search library */
-      lp = search_lib(*wp);
-      if (lp != NIL) {	/* Entry found */
-        numfound+=1;
+	      if (lp != NIL)
+		{
+		  numfound++;
+		  ok &= load_member (lp, fp, *wp);	/* Not in memory, so load it */
+		}
+	    }
+	  else
+	    {			/* Non-strong or strong and non-strong def'n known */
+	      numfound += 1;
+	      lp = COERCE (sp, libentry *);	/* This is just so that lp!=nil */
+	    }
+	}
+      else if (((*wp)->symtptr->symtattr & SYM_WEAKREF) != 0 && opt_leaveweak)
+	{			/* Ignore if weak external */
+	  lp = NIL;
+	}
+      else
+	{			/* Symbol is not available yet. Search library */
+	  lp = search_lib (*wp);
+	  if (lp != NIL)
+	    {			/* Entry found */
+	      numfound += 1;
 /*
 ** Load member. The member containing the ref has to be different to the
 ** one containing the definition, so there are no problems with strong
 ** definitions and references in the same modules meaning we've got the
 ** wrong module
 */
-        ok &= load_member(lp, fp, *wp);
-        sp = search_global(*wp);
-      }
-    }
+	      ok &= load_member (lp, fp, *wp);
+	      sp = search_global (*wp);
+	    }
+	}
 
-    if (ok && lp!=NIL) {	/* Now link symbol and reference */
-      if (sp==NIL) {
-        error("Error: Cannot find symbol '%s' in library member '%s(%s)'. Is library corrupt?",
-         (*wp)->symtptr->symtname, current_lib->libname, lp->libmember);
-      }
-      else {
-        symtentry *wstp = (*wp)->symtptr;	/* OBJ_SYMT entry of external reference */
+      if (ok && lp != NIL)
+	{			/* Now link symbol and reference */
+	  if (sp == NIL)
+	    {
+	      error
+		("Error: Cannot find symbol '%s' in library member '%s(%s)'. Is library corrupt?",
+		 (*wp)->symtptr->symtname, current_lib->libname,
+		 lp->libmember);
+	    }
+	  else
+	    {
+	      symtentry *wstp = (*wp)->symtptr;	/* OBJ_SYMT entry of external reference */
 
-        if (sp->symnormal!=NIL && sp->symtptr>=current_symtbase && sp->symtptr<current_symtend) {
-          wstp->symtarea.symdefptr = sp->symnormal;
-        }
-        else {	/* Only one def or strong def in another module */
-          wstp->symtarea.symdefptr = sp->symtptr;
-        }
-        if ((wstp->symtattr & SYM_WEAKREF)!=0) {	/* Resolving a weak ref? */
-          wstp->symtattr-=SYM_WEAKREF;
-        }
-      }
-      remove_entry(wp);
+	      if (sp->symnormal != NIL && sp->symtptr >= current_symtbase
+		  && sp->symtptr < current_symtend)
+		{
+		  wstp->symtarea.symdefptr = sp->symnormal;
+		}
+	      else
+		{		/* Only one def or strong def in another module */
+		  wstp->symtarea.symdefptr = sp->symtptr;
+		}
+	      if ((wstp->symtattr & SYM_WEAKREF) != 0)
+		{		/* Resolving a weak ref? */
+		  wstp->symtattr -= SYM_WEAKREF;
+		}
+	    }
+	  remove_entry (wp);
+	}
     }
-  }
   return ok;
 }
 
 
 
-static bool check_library(filelist *fp) {
+static bool
+check_library (filelist * fp)
+{
   current_symtbase = fp->objsymtptr;	/* For detecting 'strong symbol' refs */
-  current_symtend = fp->objsymtptr+fp->objsymtsize;	/* These point at module containing ref */
+  current_symtend = fp->objsymtptr + fp->objsymtsize;	/* These point at module containing ref */
 
-  return check_library_tree(&fp->symtries.wantedsyms, fp);
+  return check_library_tree (&fp->symtries.wantedsyms, fp);
 }
 
 /*
@@ -1061,57 +1272,72 @@ static bool check_library(filelist *fp) {
 ** symbol resolution has to be defered until the 'last pass' when invented
 ** symbols are dealt with.
 */
-void resolve_refs_tree(symbol **wp) {
+void
+resolve_refs_tree (symbol ** wp)
+{
 
-  if (*wp != NIL) {
-    symbol *sp;
+  if (*wp != NIL)
+    {
+      symbol *sp;
 
-    resolve_refs_tree(&(*wp)->left);
-    resolve_refs_tree(&(*wp)->right);
+      resolve_refs_tree (&(*wp)->left);
+      resolve_refs_tree (&(*wp)->right);
 
-    sp = search_local(*wp);
-    if (sp == NIL) {
-      sp = search_global(*wp);
-      if (sp==NIL) sp = search_common(*wp);
+      sp = search_local (*wp);
+      if (sp == NIL)
+	{
+	  sp = search_global (*wp);
+	  if (sp == NIL)
+	    sp = search_common (*wp);
+	}
+
+      if (sp != NIL)
+	{			/* Symbol found */
+	  symtentry *wstp = (*wp)->symtptr;	/* Point at SYMT entry for the external ref */
+	  symtentry *stp = sp->symtptr;	/* Point at first SYMT entry for definition of symbol */
+
+	  if (stp >= current_symtbase && stp <= current_symtend)
+	    {			/* Is ref in same module as def'n? */
+	      if (sp->symnormal != NIL)
+		{		/* Non-strong def'n exists - use that */
+		  wstp->symtarea.symdefptr = sp->symnormal;	/* Point at non-strong definition's SYMT entry */
+		}
+	      else if ((stp->symtattr & SYM_STRONG) == 0)
+		{		/* Non-strong symbol */
+		  wstp->symtarea.symdefptr = stp;
+		}
+	      else
+		{		/* Strong def'n: do not resolve at this time */
+		  sp = NIL;	/* Pretend symbol was not found */
+		}
+	    }
+	  else
+	    {			/* Symbol def'n is elsewhere */
+	      wstp->symtarea.symdefptr = stp;	/* Point at strong or only definition's SYMT entry */
+	    }
+
+	  if (sp != NIL)
+	    {
+	      remove_entry (wp);
+	      if ((wstp->symtattr & SYM_WEAKREF) != 0)
+		{		/* Resolving a weak ref? */
+		  wstp->symtattr -= SYM_WEAKREF;
+		}
+	    }
+	}
     }
-
-    if (sp != NIL) { /* Symbol found */
-      symtentry *wstp = (*wp)->symtptr;	/* Point at SYMT entry for the external ref */
-      symtentry *stp  = sp->symtptr;	/* Point at first SYMT entry for definition of symbol */
-
-      if (stp>=current_symtbase && stp<=current_symtend) {	/* Is ref in same module as def'n? */
-        if (sp->symnormal != NIL) {			/* Non-strong def'n exists - use that */
-          wstp->symtarea.symdefptr = sp->symnormal;	/* Point at non-strong definition's SYMT entry */
-        }
-        else if ((stp->symtattr & SYM_STRONG)==0) {	/* Non-strong symbol */
-          wstp->symtarea.symdefptr = stp;
-        }
-        else {	/* Strong def'n: do not resolve at this time */
-          sp = NIL;		/* Pretend symbol was not found */
-        }
-      }
-      else {	/* Symbol def'n is elsewhere */
-        wstp->symtarea.symdefptr = stp;		/* Point at strong or only definition's SYMT entry */
-      }
-
-      if (sp != NIL) {
-        remove_entry(wp);
-        if ((wstp->symtattr & SYM_WEAKREF) != 0) {  /* Resolving a weak ref? */
-          wstp->symtattr -=SYM_WEAKREF;
-        }
-      }
-    }
-  }
 }
 
 
-void resolve_refs(filelist *fp) {
+void
+resolve_refs (filelist * fp)
+{
 
   current_table = &fp->localsyms;
   current_symtbase = fp->objsymtptr;	/* For detecting 'strong symbol' refs */
-  current_symtend = fp->objsymtptr+fp->objsymtsize;
+  current_symtend = fp->objsymtptr + fp->objsymtsize;
 
-  resolve_refs_tree(&fp->symtries.wantedsyms);
+  resolve_refs_tree (&fp->symtries.wantedsyms);
 }
 
 /*
@@ -1143,68 +1369,90 @@ void resolve_refs(filelist *fp) {
 ** all references have been satisfied or all the libraries have
 ** been searched for a particular symbol.
 */
-bool resolve(void) {
+bool
+resolve (void)
+{
   filelist *fp;
   libheader *lp, *lastlp;
   bool ok;
 
   link_state = AOF_SEARCH;
   fp = aofilelist;
-  if (fp==NIL) error("Fatal: There is nothing to link!");
-  if (opt_verbose) error("Drlink: Resolving symbol references (%d to find)...", numwanted);
+  if (fp == NIL)
+    error ("Fatal: There is nothing to link!");
+  if (opt_verbose)
+    error ("Drlink: Resolving symbol references (%d to find)...", numwanted);
 
-  while (fp!=NIL) {	/* Resolve symbol references between AOF files */
-    if (fp->symtries.wantedsyms != NIL) resolve_refs(fp);
-    fp = fp->nextfile;
-  }
+  while (fp != NIL)
+    {				/* Resolve symbol references between AOF files */
+      if (fp->symtries.wantedsyms != NIL)
+	resolve_refs (fp);
+      fp = fp->nextfile;
+    }
 
   /* Now search the libraries */
   link_state = LIB_SEARCH;
-  opt_rescan = opt_rescan && liblist!=liblast;
-  if (opt_rescan && liblist!=NIL) liblast->libflink = liblist;	/* Make library list circular */
+  opt_rescan = opt_rescan && liblist != liblast;
+  if (opt_rescan && liblist != NIL)
+    liblast->libflink = liblist;	/* Make library list circular */
 
   lp = liblist;
   ok = TRUE;
   lastlp = NIL;
   numfound = 0;
 
-  while (lp != NIL && numwanted != 0 && lp != lastlp && ok) {
-    numfound = 0;
+  while (lp != NIL && numwanted != 0 && lp != lastlp && ok)
+    {
+      numfound = 0;
 
-    if (opt_verbose) {
-      error("Drlink: Searching library '%s' to resolve symbol references (%d to find)...",
-       lp->libname, numwanted);
+      if (opt_verbose)
+	{
+	  error
+	    ("Drlink: Searching library '%s' to resolve symbol references (%d to find)...",
+	     lp->libname, numwanted);
+	}
+
+      ok = open_library (lp);
+      fp = aofilelist;
+
+      while (fp != NIL && numwanted != 0 && ok)
+	{
+	  if (fp->symtries.wantedsyms != NIL)
+	    ok = check_library (fp);
+	  fp = fp->nextfile;
+	}
+
+      if (numfound != 0 || lastlp == NIL)
+	lastlp = lp;
+      close_library (lp);
+      lp = lp->libflink;
     }
+  free_libmem ();
 
-    ok = open_library(lp);
-    fp = aofilelist;
+  if (imagetype == AOF)
+    {				/* Quick way out for partially-linked AOF files */
+      if (opt_verbose)
+	{
+	  error
+	    ("Drlink: %d reference(s) left unresolved in partially-linked AOF file",
+	     numwanted);
+	}
+      numwanted = 0;
 
-    while (fp!=NIL && numwanted != 0 && ok) {
-      if (fp->symtries.wantedsyms!=NIL) ok = check_library(fp);
-      fp = fp->nextfile;
     }
-
-    if (numfound!=0 || lastlp==NIL) lastlp = lp;
-    close_library(lp);
-    lp = lp->libflink;
-  }
-  free_libmem();
-
-  if (imagetype == AOF) {		/* Quick way out for partially-linked AOF files */
-    if (opt_verbose) {
-      error("Drlink: %d reference(s) left unresolved in partially-linked AOF file", numwanted);
+  else
+    {
+      /* Now check for invented entries and unresolved strong symbols */
+      fp = aofilelist;
+      while (fp != NIL && numwanted != 0)
+	{
+	  if (fp->symtries.wantedsyms != NIL)
+	    resolve_refs (fp);
+	  fp = fp->nextfile;
+	}
+      if (numwanted > 0 && !got_errors ())
+	list_unresolved ();
     }
-    numwanted = 0;
-
-  } else {
-    /* Now check for invented entries and unresolved strong symbols */
-    fp = aofilelist;
-    while (fp!=NIL && numwanted!=0) {
-      if (fp->symtries.wantedsyms!=NIL) resolve_refs(fp);
-      fp = fp->nextfile;
-    }
-    if (numwanted > 0 && !got_errors()) list_unresolved();
-  }
 
   return numwanted == 0;
 }
@@ -1214,32 +1462,41 @@ bool resolve(void) {
 ** 'relocate_symbols' goes through the OBJ_SYMT chunk of each
 ** AOF file and relocates each entry in it.
 */
-void relocate_symbols(void) {
+void
+relocate_symbols (void)
+{
   filelist *fp;
   symtentry *sp;
   int n, last;
   fp = aofilelist;
 
-  do {
-    sp = fp->objsymtptr;
-    last = fp->symtcount;
-    for (n = 1; n<=last; n++) {
-      if (sp->symtarea.areaptr != (void *)4) {
+  do
+    {
+      sp = fp->objsymtptr;
+      last = fp->symtcount;
+      for (n = 1; n <= last; n++)
+	{
+	  if (sp->symtarea.areaptr != (void *) 4)
+	    {
 
-        if ((sp->symtattr & (SYM_DEFN|SYM_ABSVAL))==SYM_DEFN) {	/* Relocate if not absolute */
-          sp->symtvalue+=sp->symtarea.areaptr->arplace;
-        }
-      }
-      sp++;
+	      if ((sp->symtattr & (SYM_DEFN | SYM_ABSVAL)) == SYM_DEFN)
+		{		/* Relocate if not absolute */
+		  sp->symtvalue += sp->symtarea.areaptr->arplace;
+		}
+	    }
+	  sp++;
+	}
+      fp = fp->nextfile;
     }
-    fp = fp->nextfile;
-  } while (fp!=NIL);
+  while (fp != NIL);
 }
 
 /*
 ** 'define_symbol' is used to set the given symbol to the supplied value
 */
-void define_symbol(symbol *sp, unsigned int value) {
+void
+define_symbol (symbol * sp, unsigned int value)
+{
   sp->symtptr->symtvalue = value;
 }
 
@@ -1253,15 +1510,18 @@ void define_symbol(symbol *sp, unsigned int value) {
 ** are marked as being relocatable although they are not relocated by
 ** the linker at all.
 */
-symbol *make_symbol(const char *name, unsigned int attributes) {
+symbol *
+make_symbol (const char *name, unsigned int attributes)
+{
   unsigned int hashval;
   symbol *sp;
   symtentry *stp;
 
-  sp = allocmem(sizeof(symbol));
-  stp = allocmem(sizeof(symtentry));
-  if (sp==NIL || stp==NIL) error("Fatal: Out of memory in 'make_symbol'");
-  hashval = hash(name);
+  sp = allocmem (sizeof (symbol));
+  stp = allocmem (sizeof (symtentry));
+  if (sp == NIL || stp == NIL)
+    error ("Fatal: Out of memory in 'make_symbol'");
+  hashval = hash (name);
   stp->symtname = name;
   stp->symtattr = attributes | SYM_LINKDEF;
   stp->symtvalue = 0;
@@ -1271,18 +1531,22 @@ symbol *make_symbol(const char *name, unsigned int attributes) {
   sp->symnormal = NIL;
   sp->left = sp->right = NIL;
 
-  if ((attributes & SYM_COMMON)==0) {	/* Put in global table */
-    symbol **insert = insert_symbol(&globalsyms[hashval & GLOBALMASK], name);
-    *insert = sp;
+  if ((attributes & SYM_COMMON) == 0)
+    {				/* Put in global table */
+      symbol **insert =
+	insert_symbol (&globalsyms[hashval & GLOBALMASK], name);
+      *insert = sp;
 
-  }
-  else {	/* Put in common block table */
-    symbol **insert = insert_symbol(&commonsyms[hashval & COMMONMASK], name);
-    *insert = sp;
+    }
+  else
+    {				/* Put in common block table */
+      symbol **insert =
+	insert_symbol (&commonsyms[hashval & COMMONMASK], name);
+      *insert = sp;
 
-  }
+    }
 
-  totalsymbols+=1;
+  totalsymbols += 1;
   return sp;
 }
 
@@ -1290,9 +1554,12 @@ symbol *make_symbol(const char *name, unsigned int attributes) {
 ** 'new_symbol' is called to create a symbol that will be added to the
 ** low-level debugging tables
 */
-static symbol *new_symbol(const char *name) {
-  if (opt_keepdebug) lldsize+=strlen(name)+sizeof(char);
-  return make_symbol(name, SYM_GLOBAL);
+static symbol *
+new_symbol (const char *name)
+{
+  if (opt_keepdebug)
+    lldsize += strlen (name) + sizeof (char);
+  return make_symbol (name, SYM_GLOBAL);
 }
 
 /*
@@ -1300,7 +1567,9 @@ static symbol *new_symbol(const char *name) {
 ** from the area 'ap'. It returns a pointer to a name or NIL if it
 ** cannot find anything
 */
-const char *find_areasymbol(arealist *ap) {
+const char *
+find_areasymbol (arealist * ap)
+{
   symtentry *sp;
   filelist *fp;
   const char *anp;
@@ -1309,13 +1578,18 @@ const char *find_areasymbol(arealist *ap) {
   fp = ap->arfileptr;
   sp = fp->objsymtptr;
   symcount = fp->symtcount;
-  for (n = 1; n<=symcount && (sp->symtarea.areaptr!=ap || (sp->symtattr&SYM_SCOPE)!=SYM_GLOBAL); n++) sp++;
-  if (n<=symcount) {
-    return sp->symtname;
-  }
-  else {
-    return NIL;
-  }
+  for (n = 1;
+       n <= symcount && (sp->symtarea.areaptr != ap
+			 || (sp->symtattr & SYM_SCOPE) != SYM_GLOBAL); n++)
+    sp++;
+  if (n <= symcount)
+    {
+      return sp->symtname;
+    }
+  else
+    {
+      return NIL;
+    }
 }
 
 /*
@@ -1327,18 +1601,23 @@ const char *find_areasymbol(arealist *ap) {
 ** relocation has to refer to the non-strong version, which would
 ** have been dragged in by the symbol resolution code.
 */
-symtentry *find_nonstrong(symtentry *stp) {
+symtentry *
+find_nonstrong (symtentry * stp)
+{
   symbol dummysym;
   symtentry dummysymt;
   const char *name;
   symbol *sp;
   name = stp->symtname;
-  dummysym.symhash = hash(name);
+  dummysym.symhash = hash (name);
   dummysym.symtptr = &dummysymt;
   dummysymt.symtname = name;
   dummysymt.symtattr = 0;
-  sp = search_global(&dummysym);
-  if (sp==NIL) error("Fatal: Could not find non-strong version of symbol '%s' in 'find_nonstrong'", name);
+  sp = search_global (&dummysym);
+  if (sp == NIL)
+    error
+      ("Fatal: Could not find non-strong version of symbol '%s' in 'find_nonstrong'",
+       name);
   return sp->symnormal;
 }
 
@@ -1351,7 +1630,9 @@ static unsigned int symbcount;
 ** 'build_symblist' builds a list of the symbols in the executable
 ** image. This is later sorted into address order and printed
 */
-static void build_symblist(void) {
+static void
+build_symblist (void)
+{
   filelist *fp;
   symtentry *sp;
   symtentry **sip;
@@ -1359,65 +1640,84 @@ static void build_symblist(void) {
   symbcount = 0;
   fp = aofilelist;
   sip = symbinfotable;
-  do {
-    sp = fp->objsymtptr;
-    count = fp->symtcount;
-    for (n = 1; n<=count; n++) {
-      if ((sp->symtattr & (SYM_ABSVAL|SYM_DEFN))==SYM_DEFN && strcmp(sp->symtname, "__codeseg")!=0) {
-        if ((sp->symtattr & SYM_ABSVAL)!=0 || (sp->symtarea.areaptr!=NIL && sp->symtarea.areaptr->arefcount!=0)) {
-          *sip = sp;
-          sip++;
-          symbcount+=1;
-        }
-      }
-      sp++;
+  do
+    {
+      sp = fp->objsymtptr;
+      count = fp->symtcount;
+      for (n = 1; n <= count; n++)
+	{
+	  if ((sp->symtattr & (SYM_ABSVAL | SYM_DEFN)) == SYM_DEFN
+	      && strcmp (sp->symtname, "__codeseg") != 0)
+	    {
+	      if ((sp->symtattr & SYM_ABSVAL) != 0
+		  || (sp->symtarea.areaptr != NIL
+		      && sp->symtarea.areaptr->arefcount != 0))
+		{
+		  *sip = sp;
+		  sip++;
+		  symbcount += 1;
+		}
+	    }
+	  sp++;
+	}
+      fp = fp->nextfile;
     }
-    fp = fp->nextfile;
-  } while (fp!=NIL);
-  if (imagetype!=AOF) {	/* These symbols will not exist in a partially-linked file */
-    *sip = image_robase->symtptr;
-    sip++;
-    *sip = image_rolimit->symtptr;
-    sip++;
-    *sip = image_rwbase->symtptr;
-    sip++;
-    *sip = image_rwlimit->symtptr;
-    sip++;
-    *sip = image_zibase->symtptr;
-    sip++;
-    *sip = image_zilimit->symtptr;
-    sip++;
-    symbcount+=6;
-    if (got_oldlibs) {	/* Include symbols for old-style libraries */
-      *sip = image_codebase->symtptr;
+  while (fp != NIL);
+  if (imagetype != AOF)
+    {				/* These symbols will not exist in a partially-linked file */
+      *sip = image_robase->symtptr;
       sip++;
-      *sip = image_codelimit->symtptr;
+      *sip = image_rolimit->symtptr;
       sip++;
-      *sip = image_database->symtptr;
+      *sip = image_rwbase->symtptr;
       sip++;
-      *sip = image_datalimit->symtptr;
+      *sip = image_rwlimit->symtptr;
       sip++;
-      symbcount+=4;
+      *sip = image_zibase->symtptr;
+      sip++;
+      *sip = image_zilimit->symtptr;
+      sip++;
+      symbcount += 6;
+      if (got_oldlibs)
+	{			/* Include symbols for old-style libraries */
+	  *sip = image_codebase->symtptr;
+	  sip++;
+	  *sip = image_codelimit->symtptr;
+	  sip++;
+	  *sip = image_database->symtptr;
+	  sip++;
+	  *sip = image_datalimit->symtptr;
+	  sip++;
+	  symbcount += 4;
+	}
     }
-  }
 }
 
-static void print_symblist(void) {
+static void
+print_symblist (void)
+{
   symtentry **sip;
   unsigned int n;
   sip = symbinfotable;
-  for (n = 1; n<=symbcount; n++) {
-    write_symbol(*sip);
-    sip++;
-  }
+  for (n = 1; n <= symbcount; n++)
+    {
+      write_symbol (*sip);
+      sip++;
+    }
 }
 
 /*
 ** 'symtcmp' compares the values of the two symbols passed to it
 */
-static int symtcmp(const void *first, const void *second) {
-  if (((*COERCE(first, symtentry **)))->symtvalue<((*COERCE(second, symtentry **)))->symtvalue) return -1;
-  if (((*COERCE(first, symtentry **)))->symtvalue>((*COERCE(second, symtentry **)))->symtvalue) return 1;
+static int
+symtcmp (const void *first, const void *second)
+{
+  if (((*COERCE (first, symtentry **)))->symtvalue <
+      ((*COERCE (second, symtentry **)))->symtvalue)
+    return -1;
+  if (((*COERCE (first, symtentry **)))->symtvalue >
+      ((*COERCE (second, symtentry **)))->symtvalue)
+    return 1;
   return 0;
 }
 
@@ -1425,16 +1725,19 @@ static int symtcmp(const void *first, const void *second) {
 ** 'print_symbols' is called to print a listing of the symbols found
 ** in the image file. These are listed by file.
 */
-void print_symbols(void) {
-  if ((symbinfotable = allocmem(totalsymbols*sizeof(symtentry *)))==NIL) {
-    error("Error: Cannot create symbol listing");
-    return;
-  }
-  open_symbol();
-  build_symblist();
-  qsort(symbinfotable, symbcount, sizeof(symtentry *), symtcmp);
-  print_symblist();
-  close_symbol();
+void
+print_symbols (void)
+{
+  if ((symbinfotable = allocmem (totalsymbols * sizeof (symtentry *))) == NIL)
+    {
+      error ("Error: Cannot create symbol listing");
+      return;
+    }
+  open_symbol ();
+  build_symblist ();
+  qsort (symbinfotable, symbcount, sizeof (symtentry *), symtcmp);
+  print_symblist ();
+  close_symbol ();
 }
 
 /*
@@ -1452,7 +1755,9 @@ void print_symbols(void) {
 ** each AOF file with the name of '__link'. '__head' points at the
 ** first entry in the list.
 */
-void build_cdlist(void) {
+void
+build_cdlist (void)
+{
   symbol tempsym;
   symtentry tempsymt;
   unsigned int lastlink, offset;
@@ -1460,76 +1765,91 @@ void build_cdlist(void) {
   symtentry *stp;
   arealist *ap;
   filelist *fp;
-  tempsym.symhash = hash(LINKNAME);
+  tempsym.symhash = hash (LINKNAME);
   tempsym.symtptr = &tempsymt;
   tempsymt.symtname = LINKNAME;
   fp = aofilelist;
   lastlink = 0;
-  if (opt_verbose) error("Drlink: Performing C++ specific operations...");
-  while (fp!=NIL) {
-    if (fp->chfilesize!=0) {	/* file size = 0 means filelist entry is a dummy one */
-      current_table = &fp->localsyms;
-      if ((sp = search_local(&tempsym))!=NIL) {
-        stp = sp->symtptr;
-        ap = stp->symtarea.areaptr;
-        offset = stp->symtvalue-ap->arplace;	/* Offset within area of __link */
-        *(ap->arobjdata+offset) = lastlink;	/* ???? */
-        lastlink = stp->symtvalue;
-      }
+  if (opt_verbose)
+    error ("Drlink: Performing C++ specific operations...");
+  while (fp != NIL)
+    {
+      if (fp->chfilesize != 0)
+	{			/* file size = 0 means filelist entry is a dummy one */
+	  current_table = &fp->localsyms;
+	  if ((sp = search_local (&tempsym)) != NIL)
+	    {
+	      stp = sp->symtptr;
+	      ap = stp->symtarea.areaptr;
+	      offset = stp->symtvalue - ap->arplace;	/* Offset within area of __link */
+	      *(ap->arobjdata + offset) = lastlink;	/* ???? */
+	      lastlink = stp->symtvalue;
+	    }
+	}
+      fp = fp->nextfile;
     }
-    fp = fp->nextfile;
-  }
-  tempsym.symhash = hash(HEADNAME);
+  tempsym.symhash = hash (HEADNAME);
   tempsym.symtptr = &tempsymt;
   tempsymt.symtname = HEADNAME;
-  sp = search_global(&tempsym);
-  if (sp!=NIL) {	/* Just to prevent embarrassing problems if this is not really C++ */
-    stp = sp->symtptr;
-    ap = stp->symtarea.areaptr;
-    offset = stp->symtvalue-ap->arplace;	/* Offset within area of __head */
-    *(ap->arobjdata+offset) = lastlink;		/* ???? */
-  }
+  sp = search_global (&tempsym);
+  if (sp != NIL)
+    {				/* Just to prevent embarrassing problems if this is not really C++ */
+      stp = sp->symtptr;
+      ap = stp->symtarea.areaptr;
+      offset = stp->symtvalue - ap->arplace;	/* Offset within area of __head */
+      *(ap->arobjdata + offset) = lastlink;	/* ???? */
+    }
 }
 
 /*
 ** 'find_cdareas' is called to mark all areas that contain constructors
 ** or destructors as 'not deletable'
 */
-void find_cdareas(void) {
+void
+find_cdareas (void)
+{
   symbol tempsym;
   symtentry tempsymt;
   symbol *sp;
   filelist *fp;
-  tempsym.symhash = hash(LINKNAME);
+  tempsym.symhash = hash (LINKNAME);
   tempsym.symtptr = &tempsymt;
   tempsymt.symtname = LINKNAME;
   fp = aofilelist;
-  while (fp!=NIL) {
-    if (fp->chfilesize!=0) {	/* file size = 0 means filelist entry is a dummy one */
-      current_table = &fp->localsyms;
-      if ((sp = search_local(&tempsym))!=NIL) {	/* File contains a constructor/destructor */
-        mark_area(sp->symtptr->symtarea.areaptr);
-      }
+  while (fp != NIL)
+    {
+      if (fp->chfilesize != 0)
+	{			/* file size = 0 means filelist entry is a dummy one */
+	  current_table = &fp->localsyms;
+	  if ((sp = search_local (&tempsym)) != NIL)
+	    {			/* File contains a constructor/destructor */
+	      mark_area (sp->symtptr->symtarea.areaptr);
+	    }
+	}
+      fp = fp->nextfile;
     }
-    fp = fp->nextfile;
-  }
-  tempsym.symhash = hash(HEADNAME);
+  tempsym.symhash = hash (HEADNAME);
   tempsym.symtptr = &tempsymt;
   tempsymt.symtname = HEADNAME;
-  sp = search_global(&tempsym);
-  if (sp!=NIL) {	/* Just to prevent embarrassing problems if this is not really C++ */
-    mark_area(sp->symtptr->symtarea.areaptr);
-  }
+  sp = search_global (&tempsym);
+  if (sp != NIL)
+    {				/* Just to prevent embarrassing problems if this is not really C++ */
+      mark_area (sp->symtptr->symtarea.areaptr);
+    }
 }
 
 /*
 ** 'init_symbols' is called at the start of the link to initialise
 ** the global symbol table and other stuff to do with symbols
 */
-void init_symbols(void) {
+void
+init_symbols (void)
+{
   int i;
-  for (i = 0; i<MAXGLOBALS; i++) globalsyms[i] = NIL;
-  for (i = 0; i<MAXCOMMON; i++) commonsyms[i] = NIL;
+  for (i = 0; i < MAXGLOBALS; i++)
+    globalsyms[i] = NIL;
+  for (i = 0; i < MAXCOMMON; i++)
+    commonsyms[i] = NIL;
   wantedlist = NIL;
   totalsymbols = numwanted = lldsize = 0;
 }
@@ -1541,23 +1861,28 @@ void init_symbols(void) {
 ** the symbols have to be left out as it is important that
 ** references to them are not resolved at this stage
 */
-void create_linksyms(void) {
-  if (imagetype!=AOF) {
-    image_robase = new_symbol("Image$$RO$$Base");
-    image_rolimit = new_symbol("Image$$RO$$Limit");
-    image_rwbase = new_symbol("Image$$RW$$Base");
-    image_rwlimit = new_symbol("Image$$RW$$Limit");
-    image_zibase = new_symbol("Image$$ZI$$Base");
-    image_zilimit = new_symbol("Image$$ZI$$Limit");
-    image_codebase = new_symbol("Image$$CodeBase");
-    image_codelimit = new_symbol("Image$$CodeLimit");
-    image_database = new_symbol("Image$$DataBase");
-    image_datalimit = new_symbol("Image$$DataLimit");
-    reloc_code = new_symbol("__RelocCode");
-  }
-  else {
-    image_robase = image_rolimit = image_rwbase = image_rwlimit = NIL;
-    image_zibase = image_zilimit = reloc_code = NIL;
-    image_codebase = image_codelimit = image_database = image_datalimit = NIL;
-  }
+void
+create_linksyms (void)
+{
+  if (imagetype != AOF)
+    {
+      image_robase = new_symbol ("Image$$RO$$Base");
+      image_rolimit = new_symbol ("Image$$RO$$Limit");
+      image_rwbase = new_symbol ("Image$$RW$$Base");
+      image_rwlimit = new_symbol ("Image$$RW$$Limit");
+      image_zibase = new_symbol ("Image$$ZI$$Base");
+      image_zilimit = new_symbol ("Image$$ZI$$Limit");
+      image_codebase = new_symbol ("Image$$CodeBase");
+      image_codelimit = new_symbol ("Image$$CodeLimit");
+      image_database = new_symbol ("Image$$DataBase");
+      image_datalimit = new_symbol ("Image$$DataLimit");
+      reloc_code = new_symbol ("__RelocCode");
+    }
+  else
+    {
+      image_robase = image_rolimit = image_rwbase = image_rwlimit = NIL;
+      image_zibase = image_zilimit = reloc_code = NIL;
+      image_codebase = image_codelimit = image_database = image_datalimit =
+	NIL;
+    }
 }

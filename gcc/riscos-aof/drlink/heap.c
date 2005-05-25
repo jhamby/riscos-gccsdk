@@ -50,14 +50,15 @@
 
 /* #define TRACE	Not tracing calls for now */
 
-typedef struct blockinfo {
+typedef struct blockinfo
+{
   struct blockinfo *blocknext;	/* Address of next block */
   unsigned int blocksize;	/* Size of this block */
 } blockinfo;
 
 #define MINALLOC (sizeof(blockinfo))	/* Smallest block allocated */
-#define MALLOCSIZE 4096			/* Size of block malloc'ed each time */
-#define MAXFREESIZE 10			/* Individual word size free lists */
+#define MALLOCSIZE 4096		/* Size of block malloc'ed each time */
+#define MAXFREESIZE 10		/* Individual word size free lists */
 #define MAXFREEBYTES (MAXFREESIZE*sizeof(int))
 
 #ifdef TARGET_RISCOS
@@ -67,22 +68,18 @@ typedef struct blockinfo {
 
 /* Private declarations */
 
-static char
-  *low_heapnext,		/* Next free address in current heap block */
-  *low_heaptop;			/* Top of current heap block */
+static char *low_heapnext,	/* Next free address in current heap block */
+ *low_heaptop;			/* Top of current heap block */
 
-static blockinfo
-  *malloclist,			/* List of blocks acquired using malloc */
-  *blocklist,			/* Free memory block list */
-  *blocklast;			/* Last entry in free memory block list */
+static blockinfo * malloclist,	/* List of blocks acquired using malloc */
+ *blocklist,			/* Free memory block list */
+ *blocklast;			/* Last entry in free memory block list */
 
-static blockinfo *freelist[MAXFREESIZE+1];	/* Small block free memory lists */
+static blockinfo *freelist[MAXFREESIZE + 1];	/* Small block free memory lists */
 
-static unsigned int
-  mallocsize;			/* Amount of memory acquired via malloc */
+static unsigned int mallocsize;	/* Amount of memory acquired via malloc */
 
-static bool
-  libs_gone;			/* TRUE if libraries have been discarded as memory is very low */
+static bool libs_gone;		/* TRUE if libraries have been discarded as memory is very low */
 
 /*
 ** 'allocmem' is the memory allocation routine. It assigns memory
@@ -97,123 +94,152 @@ static bool
 ** It is up to the routines that call 'allocmem' to deal with this
 ** condition.
 */
-void *allocmem(unsigned int size) {
+void *
+allocmem (unsigned int size)
+{
   char *area, *newnext;
   blockinfo *lp, *mp, *np, *p;
   unsigned int wordsize, bitleft;
-  size = (size+sizeof(int)-1) & -sizeof(int);	/* Round size up to next word boundary */
-  if (size<MINALLOC) size = MINALLOC;
-  if (size<=MAXFREEBYTES) {	/* Look for entry in small block free list array */
-    wordsize = size/sizeof(unsigned int);
-    if ((mp = freelist[wordsize])!=NIL) {	/* Found one */
-      freelist[wordsize] = mp->blocknext;
-      return mp;
+  size = (size + sizeof (int) - 1) & -sizeof (int);	/* Round size up to next word boundary */
+  if (size < MINALLOC)
+    size = MINALLOC;
+  if (size <= MAXFREEBYTES)
+    {				/* Look for entry in small block free list array */
+      wordsize = size / sizeof (unsigned int);
+      if ((mp = freelist[wordsize]) != NIL)
+	{			/* Found one */
+	  freelist[wordsize] = mp->blocknext;
+	  return mp;
+	}
     }
-  }
-  if ((p = blocklist)!=NIL) {   /* Check free block list */
-    lp = NIL;
-    while (p!=NIL && p->blocksize<size) {
-      lp = p;
-      p = p->blocknext;
-    }
-    if (p!=NIL) {  /* Found one big enough */
+  if ((p = blocklist) != NIL)
+    {				/* Check free block list */
+      lp = NIL;
+      while (p != NIL && p->blocksize < size)
+	{
+	  lp = p;
+	  p = p->blocknext;
+	}
+      if (p != NIL)
+	{			/* Found one big enough */
 #ifdef TRACE
-      printf("....  freelist allocate %x at %x\n", size, p);
+	  printf ("....  freelist allocate %x at %x\n", size, p);
 #endif
-      area = COERCE(p, char *);
-      bitleft = p->blocksize-size;
-      if (bitleft>=sizeof(blockinfo)) {	/* Block is too big - Release end of it */
-        np = COERCE(COERCE(p, char *)+size, blockinfo *);
-        if (bitleft<=MAXFREEBYTES) {	/* Add chunk to one of the small block lists */
-          wordsize = bitleft/sizeof(unsigned int);
-          np->blocknext = freelist[wordsize];
-          freelist[wordsize] = np;
+	  area = COERCE (p, char *);
+	  bitleft = p->blocksize - size;
+	  if (bitleft >= sizeof (blockinfo))
+	    {			/* Block is too big - Release end of it */
+	      np = COERCE (COERCE (p, char *) + size, blockinfo *);
+	      if (bitleft <= MAXFREEBYTES)
+		{		/* Add chunk to one of the small block lists */
+		  wordsize = bitleft / sizeof (unsigned int);
+		  np->blocknext = freelist[wordsize];
+		  freelist[wordsize] = np;
 /* Remove entire block from free memory chain */
-          if (lp==NIL) {	/* Allocated block was first in list */
-            blocklist = p->blocknext;
-          }
-          else {
-            lp->blocknext = p->blocknext;
-          }
-          if (blocklast==p) {	/* Allocated old last block in chain? */
-            blocklast = lp;
-          }
-        }
-        else {	/* Remainder is too big for small chunk lists */
-          np->blocksize = bitleft;
-          np->blocknext = p->blocknext;
-          if (lp==NIL) {	/* Allocated block was first in list */
-            blocklist = np;
-          }
-          else {
-            lp->blocknext = np;
-          }
-          if (p==blocklast) {	/* Area allocated was from last block in chain */
-           blocklast = np;
-          }
-        }
-      }
-      else {	/* Use entire block */
-        if (lp==NIL) {  /* Allocated block was first in list */
-          blocklist = p->blocknext;
-        }
-        else {
-          lp->blocknext = p->blocknext;
-        }
-        if (blocklast==p) {	/* Allocated old last block in chain? */
-          blocklast = lp;
-        }
-      }
-      return area;
+		  if (lp == NIL)
+		    {		/* Allocated block was first in list */
+		      blocklist = p->blocknext;
+		    }
+		  else
+		    {
+		      lp->blocknext = p->blocknext;
+		    }
+		  if (blocklast == p)
+		    {		/* Allocated old last block in chain? */
+		      blocklast = lp;
+		    }
+		}
+	      else
+		{		/* Remainder is too big for small chunk lists */
+		  np->blocksize = bitleft;
+		  np->blocknext = p->blocknext;
+		  if (lp == NIL)
+		    {		/* Allocated block was first in list */
+		      blocklist = np;
+		    }
+		  else
+		    {
+		      lp->blocknext = np;
+		    }
+		  if (p == blocklast)
+		    {		/* Area allocated was from last block in chain */
+		      blocklast = np;
+		    }
+		}
+	    }
+	  else
+	    {			/* Use entire block */
+	      if (lp == NIL)
+		{		/* Allocated block was first in list */
+		  blocklist = p->blocknext;
+		}
+	      else
+		{
+		  lp->blocknext = p->blocknext;
+		}
+	      if (blocklast == p)
+		{		/* Allocated old last block in chain? */
+		  blocklast = lp;
+		}
+	    }
+	  return area;
+	}
     }
-  }
 /*
 ** There is nothing suitable on the free memory lists. Allocate from heap
 */
-  if (size>MALLOCSIZE) {	/* Want more memory than is available in malloc'ed blocks */
-    mp = malloc(size+sizeof(blockinfo));
-    if (mp!=NIL) {	/* Acquired memory okay */
-      mp->blocknext = malloclist;
-      malloclist = mp;
-      mallocsize+=size+sizeof(blockinfo);
-      return COERCE(mp+1, void *);
+  if (size > MALLOCSIZE)
+    {				/* Want more memory than is available in malloc'ed blocks */
+      mp = malloc (size + sizeof (blockinfo));
+      if (mp != NIL)
+	{			/* Acquired memory okay */
+	  mp->blocknext = malloclist;
+	  malloclist = mp;
+	  mallocsize += size + sizeof (blockinfo);
+	  return COERCE (mp + 1, void *);
+	}
     }
-  }
-  else {
-    area = low_heapnext;
-    newnext = area+size;
-    if (newnext<low_heaptop) {	/* No problem. Allocate memory from heap */
+  else
+    {
+      area = low_heapnext;
+      newnext = area + size;
+      if (newnext < low_heaptop)
+	{			/* No problem. Allocate memory from heap */
 #ifdef TRACE
-    printf("....  Allocate %x at %x\n", size, area);
+	  printf ("....  Allocate %x at %x\n", size, area);
 #endif
-      low_heapnext = newnext;
-      return area;
+	  low_heapnext = newnext;
+	  return area;
+	}
+      else
+	{			/* Need to acquire new block of memory */
+	  mp = malloc (MALLOCSIZE + sizeof (blockinfo));
+	  if (mp != NIL)
+	    {			/* Acquired block okay. Add it to malloc'ed list and allocate space from it */
+	      mp->blocknext = malloclist;
+	      malloclist = mp;
+	      mallocsize += MALLOCSIZE + sizeof (blockinfo);
+	      area = COERCE (mp + 1, void *);
+	      low_heaptop = area + MALLOCSIZE;
+	      low_heapnext = area + size;
+	      return area;
+	    }
+	}
     }
-    else {	/* Need to acquire new block of memory */
-      mp = malloc(MALLOCSIZE+sizeof(blockinfo));
-      if (mp!=NIL) {	/* Acquired block okay. Add it to malloc'ed list and allocate space from it */
-        mp->blocknext = malloclist;
-        malloclist = mp;
-        mallocsize+=MALLOCSIZE+sizeof(blockinfo);
-        area = COERCE(mp+1, void *);
-        low_heaptop = area+MALLOCSIZE;
-        low_heapnext = area+size;
-        return area;
-      }
-    }
-  }
 /*
 ** There was insufficient memory available. Throw away any libraries
 ** loaded as a last gasp attempt to continue
 */
-  if (!libs_gone && link_state==READ_AOF) {
-    if (opt_verbose) error("Drlink: Linker is running very short of memory");
-    low_memory = libs_gone = TRUE;
-    resize_filebuffer();
-    discard_libraries();
-    return allocmem(size);
-  }
-  return NIL;	/* There is no memory left */
+  if (!libs_gone && link_state == READ_AOF)
+    {
+      if (opt_verbose)
+	error ("Drlink: Linker is running very short of memory");
+      low_memory = libs_gone = TRUE;
+      resize_filebuffer ();
+      discard_libraries ();
+      return allocmem (size);
+    }
+  return NIL;			/* There is no memory left */
 }
 
 /*
@@ -227,49 +253,59 @@ void *allocmem(unsigned int size) {
 ** further down the list relatively intact and available for the
 ** occasional large request.
 */
-void freemem(void *where, unsigned int size) {
-  blockinfo *mp;	/* Just to stop having to coerce everything in sight */
+void
+freemem (void *where, unsigned int size)
+{
+  blockinfo *mp;		/* Just to stop having to coerce everything in sight */
   mp = where;
 #ifdef TRACE
-  printf(">>>>  Freeing %x at %x\n", size, where);
+  printf (">>>>  Freeing %x at %x\n", size, where);
 #endif
-  if (size<=MAXFREEBYTES) {	/* Small area. Add area to free list array */
-    size = size/sizeof(unsigned int);
-    mp->blocknext = freelist[size];
-    freelist[size] = mp;
-  }
-  else {	/* Large area. Add to large area list */
-    mp->blocknext = NIL;
-    mp->blocksize = size;
-    if (blocklast==NIL) {
-      blocklist = mp;
+  if (size <= MAXFREEBYTES)
+    {				/* Small area. Add area to free list array */
+      size = size / sizeof (unsigned int);
+      mp->blocknext = freelist[size];
+      freelist[size] = mp;
     }
-    else {
-      blocklast->blocknext = mp;
+  else
+    {				/* Large area. Add to large area list */
+      mp->blocknext = NIL;
+      mp->blocksize = size;
+      if (blocklast == NIL)
+	{
+	  blocklist = mp;
+	}
+      else
+	{
+	  blocklast->blocknext = mp;
+	}
+      blocklast = mp;
     }
-    blocklast = mp;
-  }
 }
 
 /*
 ** 'initheap' is called at the start of the run to establish the heap
 */
-bool initheap(void) {
+bool
+initheap (void)
+{
   int n;
-  malloclist = malloc(MALLOCSIZE+sizeof(blockinfo));
-  if (malloclist==NIL) {
-    error("Fatal: There is not enough memory to run the linker");
-  }
+  malloclist = malloc (MALLOCSIZE + sizeof (blockinfo));
+  if (malloclist == NIL)
+    {
+      error ("Fatal: There is not enough memory to run the linker");
+    }
   malloclist->blocknext = NIL;
-  mallocsize = MALLOCSIZE+sizeof(blockinfo);
-  low_heapnext = COERCE(malloclist+1, char *);
+  mallocsize = MALLOCSIZE + sizeof (blockinfo);
+  low_heapnext = COERCE (malloclist + 1, char *);
   low_heaptop = low_heapnext + MALLOCSIZE;
-  for (n = 0; n<=MAXFREESIZE; n++) freelist[n] = NIL;
+  for (n = 0; n <= MAXFREESIZE; n++)
+    freelist[n] = NIL;
   blocklist = blocklast = NIL;
   low_memory = libs_gone = FALSE;
-  #ifdef TRACE
-  printf("First heap block is at: %x ends at: %x\n",
-   low_heapnext, low_heaptop);
+#ifdef TRACE
+  printf ("First heap block is at: %x ends at: %x\n",
+	  low_heapnext, low_heaptop);
 #endif
   return TRUE;
 }
@@ -278,21 +314,26 @@ bool initheap(void) {
 ** 'release heap' is called at the end to free all memory malloc'ed
 ** by the linker
 */
-void release_heap(void) {
+void
+release_heap (void)
+{
   blockinfo *p, *np;
   p = malloclist;
-  while (p!=NIL) {
-    np = p->blocknext;
-    free(p);
-    p = np;
-  }
+  while (p != NIL)
+    {
+      np = p->blocknext;
+      free (p);
+      p = np;
+    }
 }
 
 /*
 ** 'print_heapstats' prints some information on the amount
 ** of memory used by the program
 */
-void print_heapstats(void) {
-  error("Drlink: Linking the program required %dK bytes of memory",
-   mallocsize/1024);
+void
+print_heapstats (void)
+{
+  error ("Drlink: Linking the program required %dK bytes of memory",
+	 mallocsize / 1024);
 }

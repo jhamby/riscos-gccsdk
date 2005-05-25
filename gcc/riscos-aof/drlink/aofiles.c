@@ -40,46 +40,47 @@
 
 /* Private declarations */
 
-typedef struct newhead {
-  int headhash;				/* Hashed version of area name */
-  const char *headname;			/* Pointer to name of area */
-  unsigned int headattr;		/* Area's attributes */
-  struct newhead *headflink;		/* Next area in list */
+typedef struct newhead
+{
+  int headhash;			/* Hashed version of area name */
+  const char *headname;		/* Pointer to name of area */
+  unsigned int headattr;	/* Area's attributes */
+  struct newhead *headflink;	/* Next area in list */
 } newhead;
 
-typedef struct newsymt {
-  int newhash;				/* Symbol's hash value */
-  symtentry *newsymtptr;		/* Pointer to old OBJ_SYMT entry */
-  unsigned int newindex;		/* New OBJ_SYMT index */
-  struct newsymt *newnext;		/* Next entry in order of creation */
-  struct newsymt *newflink;		/* Next entry in list */
- } newsymt;
+typedef struct newsymt
+{
+  int newhash;			/* Symbol's hash value */
+  symtentry *newsymtptr;	/* Pointer to old OBJ_SYMT entry */
+  unsigned int newindex;	/* New OBJ_SYMT index */
+  struct newsymt *newnext;	/* Next entry in order of creation */
+  struct newsymt *newflink;	/* Next entry in list */
+} newsymt;
 
-typedef struct strtentry {
-  const char *strtname;			/* Pointer to name */
-  int strthash;				/* Name's hash value */
-  unsigned int strtoffset;		/* Name's offset within the OBJ_STRT chunk */
-  struct strtentry *strtnext;		/* Next entry in order of creation */
-  struct strtentry *strtflink;		/* Next name in list */
+typedef struct strtentry
+{
+  const char *strtname;		/* Pointer to name */
+  int strthash;			/* Name's hash value */
+  unsigned int strtoffset;	/* Name's offset within the OBJ_STRT chunk */
+  struct strtentry *strtnext;	/* Next entry in order of creation */
+  struct strtentry *strtflink;	/* Next name in list */
 } strtentry;
 
-#define STRTENTRIES 16			/* Number of STRT hash chains (Must be power of 2) */
+#define STRTENTRIES 16		/* Number of STRT hash chains (Must be power of 2) */
 #define STRTMASK (STRTENTRIES-1)
 
-#define MAXCHUNKS 5			/* Space in chunk header */
-#define NUMCHUNKS 5			/* Entries used in chunk header */
+#define MAXCHUNKS 5		/* Space in chunk header */
+#define NUMCHUNKS 5		/* Entries used in chunk header */
 
-static unsigned int
-  newsymcount,				/* Initial value of new SYMT index in each AOF file */
-  newareacount,				/* Number of areas in new AOF file */
-
-  file_offset,				/* Current offset in file */
-  newentryarea,				/* Area number of entry point */
-  head_start, head_size,		/* Start and size of OBJ_HEAD */
-  area_start, area_size,		/* Start and size of OBJ_AREA */
-  idfn_start, idfn_size,		/* Start and size of OBJ_IDFN */
-  symt_start, symt_size,		/* Start and size of OBJ_SYMT */
-  strt_start, strt_size;		/* Start and size of OBJ_STRT */
+static unsigned int newsymcount,	/* Initial value of new SYMT index in each AOF file */
+  newareacount,			/* Number of areas in new AOF file */
+  file_offset,			/* Current offset in file */
+  newentryarea,			/* Area number of entry point */
+  head_start, head_size,	/* Start and size of OBJ_HEAD */
+  area_start, area_size,	/* Start and size of OBJ_AREA */
+  idfn_start, idfn_size,	/* Start and size of OBJ_IDFN */
+  symt_start, symt_size,	/* Start and size of OBJ_SYMT */
+  strt_start, strt_size;	/* Start and size of OBJ_STRT */
 
 static strtentry *strtable[STRTENTRIES];
 static strtentry *strtlist, *strtlast;
@@ -94,7 +95,9 @@ static newhead *headlist, *headlast;
 /*
 ** 'init_aofile' initialises things concerning the AOF file
 */
-static void init_aofile(void) {
+static void
+init_aofile (void)
+{
   int n;
   head_start = head_size = 0;
   area_start = area_size = 0;
@@ -108,9 +111,11 @@ static void init_aofile(void) {
   strtlist = strtlast = NIL;
   symtlist = symtlast = NIL;
   headlist = headlast = NIL;
-  for (n = 0; n<STRTENTRIES; n++) strtable[n] = NIL;
-  strt_size = sizeof(unsigned int);
-  for (n = 0; n<MAXGLOBALS; n++) newsymtable[n] = NIL;
+  for (n = 0; n < STRTENTRIES; n++)
+    strtable[n] = NIL;
+  strt_size = sizeof (unsigned int);
+  for (n = 0; n < MAXGLOBALS; n++)
+    newsymtable[n] = NIL;
 }
 
 /*
@@ -121,29 +126,37 @@ static void init_aofile(void) {
 ** they are linked together in the order they are created for when
 ** the actual OBJ_STRT is built.
 */
-static unsigned int addto_strt(const char *name) {
+static unsigned int
+addto_strt (const char *name)
+{
   strtentry *p;
   int hashval;
-  hashval = hash(name);
+  hashval = hash (name);
   p = strtable[hashval & STRTMASK];
-  while (p!=NIL && (hashval!=p->strthash || strcmp(name, p->strtname)!=0)) p = p->strtflink;
-  if (p==NIL) {		/* New name. Create STRT entry for it */
-    if ((p = allocmem(sizeof(strtentry)))==NIL) error("Fatal: Out of memory in 'addto_strt'");
-    p->strtname = name;
-    p->strthash = hashval;
-    p->strtoffset = strt_size;
-    p->strtnext = NIL;
-    p->strtflink = strtable[hashval & STRTMASK];
-    strtable[hashval & STRTMASK] = p;
-    if (strtlast==NIL) {
-      strtlist = p;
+  while (p != NIL
+	 && (hashval != p->strthash || strcmp (name, p->strtname) != 0))
+    p = p->strtflink;
+  if (p == NIL)
+    {				/* New name. Create STRT entry for it */
+      if ((p = allocmem (sizeof (strtentry))) == NIL)
+	error ("Fatal: Out of memory in 'addto_strt'");
+      p->strtname = name;
+      p->strthash = hashval;
+      p->strtoffset = strt_size;
+      p->strtnext = NIL;
+      p->strtflink = strtable[hashval & STRTMASK];
+      strtable[hashval & STRTMASK] = p;
+      if (strtlast == NIL)
+	{
+	  strtlist = p;
+	}
+      else
+	{
+	  strtlast->strtnext = p;
+	}
+      strtlast = p;
+      strt_size += strlen (name) + sizeof (char);
     }
-    else {
-      strtlast->strtnext = p;
-    }
-    strtlast = p;
-    strt_size+=strlen(name)+sizeof(char);
-  }
   return p->strtoffset;
 }
 
@@ -158,47 +171,59 @@ static unsigned int addto_strt(const char *name) {
 ** the entry point area and offset if there is an entry point in
 ** the AOF files to be included
 */
-static void reloc_aofarlist_tree(arealist *ap, arealist **firstarea, unsigned int *areabase) {
+static void
+reloc_aofarlist_tree (arealist * ap, arealist ** firstarea,
+		      unsigned int *areabase)
+{
 
-  if (ap != NIL) {
-    reloc_aofarlist_tree(ap->left, firstarea, areabase);
+  if (ap != NIL)
+    {
+      reloc_aofarlist_tree (ap->left, firstarea, areabase);
 
-    if (ap->arbase != *firstarea) {	/* Area name differs from last one */
-      newhead *hp;
+      if (ap->arbase != *firstarea)
+	{			/* Area name differs from last one */
+	  newhead *hp;
 
-      *firstarea = ap->arbase;
-      newareacount+=1;
-      if ((hp = allocmem(sizeof(newhead)))==NIL) error("Fatal: Out of memory in 'reloc_aofarlist'");
-      hp->headhash = (*firstarea)->arhash;
-      hp->headname = (*firstarea)->arname;
-      hp->headattr = (*firstarea)->aratattr;
-      hp->headflink = NIL;
+	  *firstarea = ap->arbase;
+	  newareacount += 1;
+	  if ((hp = allocmem (sizeof (newhead))) == NIL)
+	    error ("Fatal: Out of memory in 'reloc_aofarlist'");
+	  hp->headhash = (*firstarea)->arhash;
+	  hp->headname = (*firstarea)->arname;
+	  hp->headattr = (*firstarea)->aratattr;
+	  hp->headflink = NIL;
 
-      if (headlast==NIL) {
-        headlist = hp;
-      } else {
-        headlast->headflink = hp;
-      }
-      headlast = hp;
+	  if (headlast == NIL)
+	    {
+	      headlist = hp;
+	    }
+	  else
+	    {
+	      headlast->headflink = hp;
+	    }
+	  headlast = hp;
+	}
+
+      ap->arplace = *areabase;
+      if (ap == entryarea)
+	{			/* Note new entry area if necessary */
+	  newentryarea = newareacount;
+	  entryoffset += *areabase;
+	}
+      *areabase += ap->arobjsize;
+
+      reloc_aofarlist_tree (ap->right, firstarea, areabase);
     }
-
-    ap->arplace = *areabase;
-    if (ap == entryarea) {	/* Note new entry area if necessary */
-      newentryarea = newareacount;
-      entryoffset += *areabase;
-    }
-    *areabase += ap->arobjsize;
-
-    reloc_aofarlist_tree(ap->right, firstarea, areabase);
-  }
 }
 
 
-static void reloc_aofarlist(arealist *ap) {
+static void
+reloc_aofarlist (arealist * ap)
+{
   unsigned int areabase = 0;
   arealist *firstarea = NIL;
 
-  reloc_aofarlist_tree(ap, &firstarea, &areabase);
+  reloc_aofarlist_tree (ap, &firstarea, &areabase);
 }
 
 /*
@@ -207,21 +232,25 @@ static void reloc_aofarlist(arealist *ap) {
 ** It also calculates the size of the new OBJ_HEAD chunk as
 ** this is known at this point.
 */
-static void reloc_aofareas(void) {
-  reloc_aofarlist(rocodelist);
-  reloc_aofarlist(rodatalist);
-  reloc_aofarlist(rwcodelist);
-  reloc_aofarlist(rwdatalist);
-  reloc_aofarlist(zidatalist);
-  reloc_aofarlist(debuglist);
-  head_size = sizeof(aofheader)+newareacount*sizeof(areaentry);
+static void
+reloc_aofareas (void)
+{
+  reloc_aofarlist (rocodelist);
+  reloc_aofarlist (rodatalist);
+  reloc_aofarlist (rwcodelist);
+  reloc_aofarlist (rwdatalist);
+  reloc_aofarlist (zidatalist);
+  reloc_aofarlist (debuglist);
+  head_size = sizeof (aofheader) + newareacount * sizeof (areaentry);
 }
 
 /*
 ** 'find_areaindex' finds the area index of the area passed to
 ** it in the OBJ_HEAD chunk of the new AOF file
 */
-unsigned int find_areaindex(arealist *ap) {
+unsigned int
+find_areaindex (arealist * ap)
+{
   newhead *hp;
   unsigned int index;
   int hash;
@@ -232,11 +261,15 @@ unsigned int find_areaindex(arealist *ap) {
   hash = ap->arhash;
   hp = headlist;
   index = 0;
-  while (hp!=NIL && (attr!=hp->headattr || hash!=hp->headhash || strcmp(name,hp->headname)!=0)) {
-    hp = hp->headflink;
-    index+=1;
-  }
-  if (hp==NIL) error("Fatal: Could not find area '%s' in 'find_areaindex'", name);
+  while (hp != NIL
+	 && (attr != hp->headattr || hash != hp->headhash
+	     || strcmp (name, hp->headname) != 0))
+    {
+      hp = hp->headflink;
+      index += 1;
+    }
+  if (hp == NIL)
+    error ("Fatal: Could not find area '%s' in 'find_areaindex'", name);
   return index;
 }
 
@@ -249,67 +282,85 @@ unsigned int find_areaindex(arealist *ap) {
 ** been carried out, that is, PC-relative ones within the
 ** 'super area'.
 */
-static void compact_reloclist(arealist *ap) {
+static void
+compact_reloclist (arealist * ap)
+{
   relocation *oldrp, *newrp;
   unsigned int n, oldcount, newcount, offset, typesym, reltype;
   indextable *newindex;
 
-  if (ap != NIL) {
-    compact_reloclist(ap->left);
+  if (ap != NIL)
+    {
+      compact_reloclist (ap->left);
 
-    newindex = ap->arfileptr->symtries.symtlookup;
-    newrp = oldrp = ap->areldata;
-    oldcount = ap->arnumrelocs;
-    newcount = 0;
-    offset = ap->arplace;
+      newindex = ap->arfileptr->symtries.symtlookup;
+      newrp = oldrp = ap->areldata;
+      oldcount = ap->arnumrelocs;
+      newcount = 0;
+      offset = ap->arplace;
 
-    for (n = 1; n<=oldcount; n++) {
-      if (oldrp->reloffset!=ALLFS) {	/* Relocation that still needs doing */
-        newrp->reloffset = oldrp->reloffset+offset;
-        typesym = oldrp->reltypesym;
-        if ((typesym & REL_TYPE2)==0) {	/* Type 1 relocation (16 bit SYMT index) */
-          reltype = get_type1_type(typesym);
-          if ((reltype & (REL_PC|REL_SYM))!=0) {
-            newrp->reltypesym = (reltype<<16)+*newindex[get_type1_index(typesym)];
-          }
-          else {
-            newrp->reltypesym = oldrp->reltypesym;
-          }
-        }
-        else {	/* Type 2 relocation (24 bit SYMT index) */
-          reltype = get_type2_type(typesym);
-          if ((reltype & REL_SYM)!=0) {
-            newrp->reltypesym = (reltype<<24)+*newindex[get_type2_index(typesym)];
-          }
-          else {
-            newrp->reltypesym = oldrp->reltypesym;
-          }
-        }
-        newrp++;
-        newcount+=1;
-      }
-      oldrp++;
+      for (n = 1; n <= oldcount; n++)
+	{
+	  if (oldrp->reloffset != ALLFS)
+	    {			/* Relocation that still needs doing */
+	      newrp->reloffset = oldrp->reloffset + offset;
+	      typesym = oldrp->reltypesym;
+	      if ((typesym & REL_TYPE2) == 0)
+		{		/* Type 1 relocation (16 bit SYMT index) */
+		  reltype = get_type1_type (typesym);
+		  if ((reltype & (REL_PC | REL_SYM)) != 0)
+		    {
+		      newrp->reltypesym =
+			(reltype << 16) +
+			*newindex[get_type1_index (typesym)];
+		    }
+		  else
+		    {
+		      newrp->reltypesym = oldrp->reltypesym;
+		    }
+		}
+	      else
+		{		/* Type 2 relocation (24 bit SYMT index) */
+		  reltype = get_type2_type (typesym);
+		  if ((reltype & REL_SYM) != 0)
+		    {
+		      newrp->reltypesym =
+			(reltype << 24) +
+			*newindex[get_type2_index (typesym)];
+		    }
+		  else
+		    {
+		      newrp->reltypesym = oldrp->reltypesym;
+		    }
+		}
+	      newrp++;
+	      newcount += 1;
+	    }
+	  oldrp++;
+	}
+
+      ap->arnumrelocs = newcount;
+      if ((ap->aratattr & ATT_NOINIT) == 0)
+	{			/* Area will appear in AOF file */
+	  area_size += ap->arobjsize + newcount * sizeof (relocation);
+	}
+
+      compact_reloclist (ap->right);
     }
-
-    ap->arnumrelocs = newcount;
-    if ((ap->aratattr & ATT_NOINIT)==0) {	/* Area will appear in AOF file */
-      area_size+=ap->arobjsize+newcount*sizeof(relocation);
-    }
-
-    compact_reloclist(ap->right);
-  }
 }
 
 /*
 ** 'compact_relocs' is called to modify the relocation info in all of
 ** the areas in the AOF file
 */
-static void compact_relocs(void) {
-  compact_reloclist(rocodelist);
-  compact_reloclist(rodatalist);
-  compact_reloclist(rwcodelist);
-  compact_reloclist(rwdatalist);
-  compact_reloclist(debuglist);
+static void
+compact_relocs (void)
+{
+  compact_reloclist (rocodelist);
+  compact_reloclist (rodatalist);
+  compact_reloclist (rwcodelist);
+  compact_reloclist (rwdatalist);
+  compact_reloclist (debuglist);
 }
 
 /*
@@ -322,88 +373,112 @@ static void compact_relocs(void) {
 ** new AOF file will contain. The function also calculates the size
 ** of the new OBJ_SYMT chunk
 */
-static void build_symt(void) {
+static void
+build_symt (void)
+{
   unsigned int oldcount, newcount, n, attr;
   indextable *indexlookup;
   symtentry *newsp, *oldsp;
   filelist *fp;
   newsymcount = 0;
   fp = aofilelist;
-  do {
-    if (fp->chfilesize!=0) {	/* Not a dummy entry in the list */
-      oldcount = fp->symtcount;
-      if ((indexlookup = allocmem(oldcount*sizeof(unsigned int)))==NIL) {
-        error("Fatal: Out of memory in 'build_symt'");
-      }
-      oldsp = newsp = fp->objsymtptr;
-      newcount = 0;
-      for (n = 1; n<=oldcount; n++) {
-        attr = oldsp->symtattr;
-        if ((attr & SYM_COMMON)!=0) {	/* Ref to common block: convert back to unresolved ref */
+  do
+    {
+      if (fp->chfilesize != 0)
+	{			/* Not a dummy entry in the list */
+	  oldcount = fp->symtcount;
+	  if ((indexlookup =
+	       allocmem (oldcount * sizeof (unsigned int))) == NIL)
+	    {
+	      error ("Fatal: Out of memory in 'build_symt'");
+	    }
+	  oldsp = newsp = fp->objsymtptr;
+	  newcount = 0;
+	  for (n = 1; n <= oldcount; n++)
+	    {
+	      attr = oldsp->symtattr;
+	      if ((attr & SYM_COMMON) != 0)
+		{		/* Ref to common block: convert back to unresolved ref */
 /* Fetch length from CB definition's area's entry */
-          oldsp->symtvalue = oldsp->symtarea.symdefptr->symtarea.areaptr->arobjsize;
-          oldsp->symtarea.symdefptr = NIL;
-        }
-        if ((attr & SYM_SCOPE)==SYM_LOCAL || ((attr & SYM_DEFN)==0 && oldsp->symtarea.symdefptr!=NIL)) {
+		  oldsp->symtvalue =
+		    oldsp->symtarea.symdefptr->symtarea.areaptr->arobjsize;
+		  oldsp->symtarea.symdefptr = NIL;
+		}
+	      if ((attr & SYM_SCOPE) == SYM_LOCAL
+		  || ((attr & SYM_DEFN) == 0
+		      && oldsp->symtarea.symdefptr != NIL))
+		{
 /* Entry not needed */
-          *indexlookup[n-1] = ALLFS;
-        }
-        else {
-          *newsp = *oldsp;
-          newsp->symtname = COERCE(addto_strt(newsp->symtname), char *);
-          if ((attr & (SYM_DEFN|SYM_ABSVAL))==SYM_DEFN) {	/* Def'n of symbol */
-            newsp->symtarea.areaname = addto_strt(newsp->symtarea.areaptr->arname);
-          }
-          else {
-            newsp->symtarea.areaname = 0;
-          }
-          *indexlookup[n-1] = newsymcount+newcount;
-          newcount+=1;
-          newsp++;
-        }
-        oldsp++;
-      }
-      fp->symtcount = newcount;
-      fp->symtries.symtlookup = indexlookup;
-      newsymcount+=newcount;
+		  *indexlookup[n - 1] = ALLFS;
+		}
+	      else
+		{
+		  *newsp = *oldsp;
+		  newsp->symtname =
+		    COERCE (addto_strt (newsp->symtname), char *);
+		  if ((attr & (SYM_DEFN | SYM_ABSVAL)) == SYM_DEFN)
+		    {		/* Def'n of symbol */
+		      newsp->symtarea.areaname =
+			addto_strt (newsp->symtarea.areaptr->arname);
+		    }
+		  else
+		    {
+		      newsp->symtarea.areaname = 0;
+		    }
+		  *indexlookup[n - 1] = newsymcount + newcount;
+		  newcount += 1;
+		  newsp++;
+		}
+	      oldsp++;
+	    }
+	  fp->symtcount = newcount;
+	  fp->symtries.symtlookup = indexlookup;
+	  newsymcount += newcount;
+	}
+      fp = fp->nextfile;
     }
-    fp = fp->nextfile;
-  } while (fp!=NIL);
-  symt_size = newsymcount*sizeof(symtentry);
+  while (fp != NIL);
+  symt_size = newsymcount * sizeof (symtentry);
 }
 
 /*
 ** 'write_index' is called to create an entry in the AOF file's
 ** chunk header
 */
-static void write_index(unsigned int ctype, unsigned int offset, unsigned int size) {
+static void
+write_index (unsigned int ctype, unsigned int offset, unsigned int size)
+{
   chunkindex indexentry;
   indexentry.chunkclass = OBJ_XXXX;
   indexentry.chunktype = ctype;
   indexentry.chunkoffset = offset;
   indexentry.chunksize = size;
-  write_image(&indexentry, sizeof(chunkindex));
+  write_image (&indexentry, sizeof (chunkindex));
 }
 
 /*
 ** 'start_aofile' is called to create the AOF file itself and
 ** to set up the initial version of the chunk file header
 */
-static void start_aofile(void) {
+static void
+start_aofile (void)
+{
   chunkheader header;
-  idfn_size = align(sizeof(IDFNSTRING)-1 + sizeof(DL_VERSION)-1 + sizeof(char));
-  imagesize = sizeof(chunkheader)+MAXCHUNKS*sizeof(chunkindex)+
-   head_size+idfn_size+area_size+symt_size+strt_size;
-  open_image();
+  idfn_size =
+    align (sizeof (IDFNSTRING) - 1 + sizeof (DL_VERSION) - 1 + sizeof (char));
+  imagesize =
+    sizeof (chunkheader) + MAXCHUNKS * sizeof (chunkindex) + head_size +
+    idfn_size + area_size + symt_size + strt_size;
+  open_image ();
   header.chunkfileid = CHUNKFILE;
   header.maxchunks = header.numchunks = MAXCHUNKS;
-  write_image(&header, sizeof(header));
-  write_index(OBJ_HEAD, 0, 0);
-  write_index(OBJ_IDFN, 0, 0);
-  write_index(OBJ_AREA, 0, 0);
-  write_index(OBJ_SYMT, 0, 0);
-  write_index(OBJ_STRT, 0, 0);
-  file_offset = sizeof(chunkheader)+MAXCHUNKS*sizeof(chunkindex);
+  write_image (&header, sizeof (header));
+  write_index (OBJ_HEAD, 0, 0);
+  write_index (OBJ_IDFN, 0, 0);
+  write_index (OBJ_AREA, 0, 0);
+  write_index (OBJ_SYMT, 0, 0);
+  write_index (OBJ_STRT, 0, 0);
+  file_offset = sizeof (chunkheader) + MAXCHUNKS * sizeof (chunkindex);
 }
 
 /*
@@ -411,40 +486,47 @@ static void start_aofile(void) {
 ** from a particular area list, writing them directly to the AOF
 ** file
 */
-static void write_objhead_calcsizes(arealist *ap, arealist *firstarea,
-                                    unsigned int *areasize, unsigned int *relco) {
+static void
+write_objhead_calcsizes (arealist * ap, arealist * firstarea,
+			 unsigned int *areasize, unsigned int *relco)
+{
 
-  if (ap != NIL) {
-    write_objhead_calcsizes(ap->left, firstarea, areasize, relco);
+  if (ap != NIL)
+    {
+      write_objhead_calcsizes (ap->left, firstarea, areasize, relco);
 
-    if (ap->arbase == firstarea) {
-      *areasize += ap->arobjsize;
-      *relco += ap->arnumrelocs;
+      if (ap->arbase == firstarea)
+	{
+	  *areasize += ap->arobjsize;
+	  *relco += ap->arnumrelocs;
+	}
+
+      write_objhead_calcsizes (ap->right, firstarea, areasize, relco);
     }
-
-    write_objhead_calcsizes(ap->right, firstarea, areasize, relco);
-  }
 }
 
 
-static void write_objhead(arealist *ap) {
+static void
+write_objhead (arealist * ap)
+{
   arealist *firstarea;
   unsigned int relco, areasize;
   areaentry entry;
 
-  if (ap==NIL) return;
+  if (ap == NIL)
+    return;
   firstarea = ap->arbase;
 
   areasize = relco = 0;
 
-  write_objhead_calcsizes(ap, firstarea, &areasize, &relco);
+  write_objhead_calcsizes (ap, firstarea, &areasize, &relco);
 
-  entry.areaname = addto_strt(firstarea->arname);
-  entry.attributes = (firstarea->aratattr<<8)+firstarea->aralign;
+  entry.areaname = addto_strt (firstarea->arname);
+  entry.attributes = (firstarea->aratattr << 8) + firstarea->aralign;
   entry.arsize = areasize;
   entry.arelocs = relco;
   entry.arlast.arzero = 0;
-  write_image(&entry, sizeof(entry));
+  write_image (&entry, sizeof (entry));
   /* TODO: This isn't exactly how it was previously */
 /*  if (ap!=NIL) firstarea = ap->arbase; */
 }
@@ -453,7 +535,9 @@ static void write_objhead(arealist *ap) {
 ** 'create_objhead' creates the new OBJ_HEAD chunk to describe all
 ** the new areas
 */
-static void create_objhead(void) {
+static void
+create_objhead (void)
+{
   aofheader header;
   header.oftype = OBJFILETYPE;
   header.aofversion = AOFVER2;
@@ -461,15 +545,15 @@ static void create_objhead(void) {
   header.numsymbols = newsymcount;
   header.eparea = newentryarea;
   header.epoffset = entryoffset;
-  write_image(&header, sizeof(aofheader));
-  write_objhead(rocodelist);
-  write_objhead(rodatalist);
-  write_objhead(rwcodelist);
-  write_objhead(rwdatalist);
-  write_objhead(zidatalist);
-  write_objhead(debuglist);
+  write_image (&header, sizeof (aofheader));
+  write_objhead (rocodelist);
+  write_objhead (rodatalist);
+  write_objhead (rwcodelist);
+  write_objhead (rwdatalist);
+  write_objhead (zidatalist);
+  write_objhead (debuglist);
   head_start = file_offset;
-  file_offset+=head_size;
+  file_offset += head_size;
 }
 
 /*
@@ -478,15 +562,18 @@ static void create_objhead(void) {
 ** to ensure that it is word aligned for 'write_image' to
 ** play with under RISC OS
 */
-static void create_objidfn(void) {
+static void
+create_objidfn (void)
+{
   int n;
   unsigned int buffer[25];
-  for (n = 0; n<25; n++) buffer[n] = 0;
-  strcpy(COERCE(&buffer, char *), IDFNSTRING);
-  strcat(COERCE(&buffer, char *), DL_VERSION);
-  write_image(&buffer, idfn_size);
+  for (n = 0; n < 25; n++)
+    buffer[n] = 0;
+  strcpy (COERCE (&buffer, char *), IDFNSTRING);
+  strcat (COERCE (&buffer, char *), DL_VERSION);
+  write_image (&buffer, idfn_size);
   idfn_start = file_offset;
-  file_offset+=idfn_size;
+  file_offset += idfn_size;
 }
 
 /*
@@ -495,60 +582,73 @@ static void create_objidfn(void) {
 ** areas with the same name and then going back to write out
 ** all the relocation data associated with those areas.
 */
-static void write_objarea(arealist *ap) {
-  if (ap != NIL) {
-    write_objarea(ap->left);
+static void
+write_objarea (arealist * ap)
+{
+  if (ap != NIL)
+    {
+      write_objarea (ap->left);
 
-    write_image(ap->areldata, ap->arnumrelocs * sizeof(relocation));
-    write_image(ap->arobjdata, ap->arobjsize);
+      write_image (ap->areldata, ap->arnumrelocs * sizeof (relocation));
+      write_image (ap->arobjdata, ap->arobjsize);
 
-    write_objarea(ap->right);
-  }
+      write_objarea (ap->right);
+    }
 }
 
 /*
 ** 'create_objarea' is the biggie. It creates the OBJ_AREA chunk
 ** in the AOF file
 */
-static void create_objarea(void) {
-  write_objarea(rocodelist);
-  write_objarea(rodatalist);
-  write_objarea(rwcodelist);
-  write_objarea(rwdatalist);
-  write_objarea(debuglist);
+static void
+create_objarea (void)
+{
+  write_objarea (rocodelist);
+  write_objarea (rodatalist);
+  write_objarea (rwcodelist);
+  write_objarea (rwdatalist);
+  write_objarea (debuglist);
   area_start = file_offset;
-  file_offset+=area_size;
+  file_offset += area_size;
 }
 
 /*
 ** 'create_objsymt' is called to create the AOF file's OBJ_SYMT
 ** chunk
 */
-static void create_objsymt(void) {
+static void
+create_objsymt (void)
+{
   filelist *fp;
   fp = aofilelist;
-  do {
-    if (fp->chfilesize!=0) write_image(fp->objsymtptr, fp->symtcount*sizeof(symtentry));
-    fp = fp->nextfile;
-  } while (fp!=NIL);
+  do
+    {
+      if (fp->chfilesize != 0)
+	write_image (fp->objsymtptr, fp->symtcount * sizeof (symtentry));
+      fp = fp->nextfile;
+    }
+  while (fp != NIL);
   symt_start = file_offset;
-  file_offset+=symt_size;
+  file_offset += symt_size;
 }
 
 /*
 ** 'create_objstrt' is called to create the AOF file's OBJ_STRT
 ** chunk
 */
-static void create_objstrt(void) {
+static void
+create_objstrt (void)
+{
   strtentry *p;
   p = strtlist;
-  write_image(&strt_size, sizeof(unsigned int));
-  while (p!=NIL) {
-    write_string(p->strtname);
-    p = p->strtnext;
-  }
+  write_image (&strt_size, sizeof (unsigned int));
+  while (p != NIL)
+    {
+      write_string (p->strtname);
+      p = p->strtnext;
+    }
   strt_start = file_offset;
-  file_offset+=strt_size;
+  file_offset += strt_size;
 }
 
 /*
@@ -556,30 +656,35 @@ static void create_objstrt(void) {
 ** the file pointer to the start of the chunk index and then
 ** fills in the index
 */
-static void finish_aofile(void) {
-  reset_image(sizeof(chunkheader));
-  write_index(OBJ_HEAD, head_start, head_size);
-  write_index(OBJ_IDFN, idfn_start, idfn_size);
-  write_index(OBJ_AREA, area_start, area_size);
-  write_index(OBJ_SYMT, symt_start, symt_size);
-  write_index(OBJ_STRT, strt_start, strt_size);
-  close_image();
+static void
+finish_aofile (void)
+{
+  reset_image (sizeof (chunkheader));
+  write_index (OBJ_HEAD, head_start, head_size);
+  write_index (OBJ_IDFN, idfn_start, idfn_size);
+  write_index (OBJ_AREA, area_start, area_size);
+  write_index (OBJ_SYMT, symt_start, symt_size);
+  write_index (OBJ_STRT, strt_start, strt_size);
+  close_image ();
 }
 
-void create_aofile(void) {
-  init_aofile();
-  reloc_aofareas();
-  relocate_symbols();
-  if (!fixup_relocs()) return;
-  build_symt();
-  compact_relocs();
-  if (opt_verbose) error("Drlink: Creating partially-linked AOF file '%s'...", imagename);
-  start_aofile();
-  create_objidfn();
-  create_objhead();
-  create_objarea();
-  create_objsymt();
-  create_objstrt();
-  finish_aofile();
+void
+create_aofile (void)
+{
+  init_aofile ();
+  reloc_aofareas ();
+  relocate_symbols ();
+  if (!fixup_relocs ())
+    return;
+  build_symt ();
+  compact_relocs ();
+  if (opt_verbose)
+    error ("Drlink: Creating partially-linked AOF file '%s'...", imagename);
+  start_aofile ();
+  create_objidfn ();
+  create_objhead ();
+  create_objarea ();
+  create_objsymt ();
+  create_objstrt ();
+  finish_aofile ();
 }
-

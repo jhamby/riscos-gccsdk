@@ -64,84 +64,101 @@ static bool first_error = TRUE;	/* TRUE before first time Throwback is used */
  * reported via 'throwback' to start the throwback session. It
  * returns TRUE if this worked otherwise it returns FALSE
  */
-static bool start_throwback(const char *filename) {
+static bool
+start_throwback (const char *filename)
+{
   _kernel_swi_regs regs;
   _kernel_oserror *swierror;
-  swierror = _kernel_swi(DDEUtils_ThrowbackStart, &regs, &regs);
-  if (swierror!=NIL) {
-    swierror = _kernel_last_oserror();	/* Lose SWI error just logged */
-    opt_throw = FALSE;
-    error("Warning: 'Throwback' is not available. Option ignored");
-    return FALSE;
-  }
+  swierror = _kernel_swi (DDEUtils_ThrowbackStart, &regs, &regs);
+  if (swierror != NIL)
+    {
+      swierror = _kernel_last_oserror ();	/* Lose SWI error just logged */
+      opt_throw = FALSE;
+      error ("Warning: 'Throwback' is not available. Option ignored");
+      return FALSE;
+    }
 /* Now register file */
   regs.r[0] = Throwback_ReasonProcessing;
-  regs.r[2] = COERCE(filename, int);
-  swierror = _kernel_swi(DDEUtils_ThrowbackSend, &regs, &regs);
-  if (swierror!=NIL) {
-    opt_throw = FALSE;
-    error("Error: Error occured sending 'throwback' message: %s", &swierror->errmess);
-    swierror = _kernel_last_oserror();	/* Lose SWI error just logged */
-    return FALSE;
-  }
+  regs.r[2] = COERCE (filename, int);
+  swierror = _kernel_swi (DDEUtils_ThrowbackSend, &regs, &regs);
+  if (swierror != NIL)
+    {
+      opt_throw = FALSE;
+      error ("Error: Error occured sending 'throwback' message: %s",
+	     &swierror->errmess);
+      swierror = _kernel_last_oserror ();	/* Lose SWI error just logged */
+      return FALSE;
+    }
   return TRUE;
 }
 
 /*
 ** 'end_throwback' is called to end a throwback session
 */
-void end_throwback(void) {
+void
+end_throwback (void)
+{
   _kernel_swi_regs regs;
   _kernel_oserror *swierror;
   opt_throw = FALSE;
-  swierror = _kernel_swi(DDEUtils_ThrowbackEnd, &regs, &regs);
-  if (swierror!=NIL) {
-    swierror = _kernel_last_oserror();	/* Lose SWI error just logged */
-    error("Error: Error occured trying to end 'throwback' session: %s", &swierror->errmess);
-  }
+  swierror = _kernel_swi (DDEUtils_ThrowbackEnd, &regs, &regs);
+  if (swierror != NIL)
+    {
+      swierror = _kernel_last_oserror ();	/* Lose SWI error just logged */
+      error ("Error: Error occured trying to end 'throwback' session: %s",
+	     &swierror->errmess);
+    }
 }
 
 /*
 ** 'throwback_message' is called to display an error message in a
 ** 'throwback' window
 */
-static void throwback_message(char *text) {
+static void
+throwback_message (char *text)
+{
   int errlevel;
   const char *filename;
   _kernel_oserror *swierror;
   _kernel_swi_regs regs;
   filename = imagename;
-  if (filename==NIL) filename = "!RunImage";
-  if (first_error) {
-    first_error = FALSE;
-    if (!start_throwback(filename)) return;
-  }
-  switch (*text) {	/* Decide on message type according to first char of error */
-  case ' ':
-    errlevel = last_level;
-    break;
-  case 'E':
-    errlevel = ERROR;
-    break;
-  case 'F':
-    errlevel = FATAL;
-    break;
-  default:
-    errlevel = WARNING;
-  }
+  if (filename == NIL)
+    filename = "!RunImage";
+  if (first_error)
+    {
+      first_error = FALSE;
+      if (!start_throwback (filename))
+	return;
+    }
+  switch (*text)
+    {				/* Decide on message type according to first char of error */
+    case ' ':
+      errlevel = last_level;
+      break;
+    case 'E':
+      errlevel = ERROR;
+      break;
+    case 'F':
+      errlevel = FATAL;
+      break;
+    default:
+      errlevel = WARNING;
+    }
   last_level = errlevel;
   regs.r[0] = Throwback_ReasonErrorDetails;
-  regs.r[2] = COERCE(filename, int);
+  regs.r[2] = COERCE (filename, int);
   regs.r[3] = DUMMYLINE;
   regs.r[4] = errlevel;
-  regs.r[5] = COERCE(text, int);
-  swierror = _kernel_swi(DDEUtils_ThrowbackSend, &regs, &regs);
-  if (swierror!=NIL) {
-    opt_throw = FALSE;
-    error("Error: Error occured sending 'throwback' message: %s", &swierror->errmess);
-    swierror = _kernel_last_oserror();	/* Lose SWI error just logged */
-    printf(text);
-  }
+  regs.r[5] = COERCE (text, int);
+  swierror = _kernel_swi (DDEUtils_ThrowbackSend, &regs, &regs);
+  if (swierror != NIL)
+    {
+      opt_throw = FALSE;
+      error ("Error: Error occured sending 'throwback' message: %s",
+	     &swierror->errmess);
+      swierror = _kernel_last_oserror ();	/* Lose SWI error just logged */
+      printf (text);
+    }
 }
 
 #endif
@@ -158,56 +175,66 @@ static void throwback_message(char *text) {
 ** the 'throwback' option is used, error messages are sent to a
 ** 'throwback' window otherwise they are just printed.
 */
-void error(const char *msg, ...) {
+void
+error (const char *msg, ...)
+{
   char *p1, *p2, *p3, *p4;
   va_list parms;
-  va_start(parms, msg);
-  p1 = va_arg(parms, char *);
-  p2 = va_arg(parms, char *);
-  p3 = va_arg(parms, char *);
-  p4 = va_arg(parms, char *);
-  va_end(parms);
+  va_start (parms, msg);
+  p1 = va_arg (parms, char *);
+  p2 = va_arg (parms, char *);
+  p3 = va_arg (parms, char *);
+  p4 = va_arg (parms, char *);
+  va_end (parms);
 #ifdef TARGET_RISCOS
-  if (opt_throw && (*msg==' ' || *msg=='W' || *msg=='E' ||  *msg=='F')) {
-    char text[MSGBUFLEN];
-    sprintf(text, msg, p1, p2, p3, p4);
-    throwback_message(text);
-  }
-  else {
-    printf(msg, p1, p2, p3, p4);
-    printf("\n");
-  }
+  if (opt_throw && (*msg == ' ' || *msg == 'W' || *msg == 'E' || *msg == 'F'))
+    {
+      char text[MSGBUFLEN];
+      sprintf (text, msg, p1, p2, p3, p4);
+      throwback_message (text);
+    }
+  else
+    {
+      printf (msg, p1, p2, p3, p4);
+      printf ("\n");
+    }
 #else
-  printf(msg, p1, p2, p3, p4);
-  printf("\n");
+  printf (msg, p1, p2, p3, p4);
+  printf ("\n");
 #endif
-  switch (*msg) {
-  case 'W':
-    warnings+=1;
-    break;
-  case 'E':
-    errors+=1;
-    break;
-  case 'F':
-    tidy_files();
-    release_heap();
+  switch (*msg)
+    {
+    case 'W':
+      warnings += 1;
+      break;
+    case 'E':
+      errors += 1;
+      break;
+    case 'F':
+      tidy_files ();
+      release_heap ();
 #ifdef TARGET_RISCOS
-    if (opt_throw) end_throwback();
+      if (opt_throw)
+	end_throwback ();
 #endif
-    exit(EXIT_FATAL);
-  }
+      exit (EXIT_FATAL);
+    }
 }
 
 /*
 ** 'got_errors' is called to see if any errors have occured during the link
 */
-bool got_errors(void) {
-  return errors>0;
+bool
+got_errors (void)
+{
+  return errors > 0;
 }
 
 /*
 ** 'announce' is called to say which version of the linker is in use
 */
-void announce(void) {
-  error("Drlink AOF Linker  Version " DL_VERSION);
+void
+announce (void)
+{
+  error ("Drlink AOF Linker  Version " DL_VERSION);
 }
