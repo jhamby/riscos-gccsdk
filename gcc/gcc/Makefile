@@ -15,12 +15,13 @@ all:	gcc
 .PHONY: libf2c
 .PHONY: libobjc
 .PHONY: libstdc
+.PHONY: libgcov
 
 gcc:
 	mkdir -p $(gccpath) $(gccpath)/cp $(gccpath)/f77 \
 	$(gccpath)/objc $(gccpath)/config/arm
 	$(MAKE) -C gcc "STAGE=$(STAGE)"
 
-libgcc libgpc libf2c libobjc libstdc:
+libgcc libgpc libf2c libobjc libstdc libgcov:
 	mkdir -p $(libpath)/$(STAGE)/$(TRG)
 	$(MAKE) -C $@ "STAGE=$(STAGE)"
