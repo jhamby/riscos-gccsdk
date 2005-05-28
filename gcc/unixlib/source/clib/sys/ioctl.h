@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/sys/ioctl.h,v $
- * $Date: 2004/04/17 10:51:15 $
- * $Revision: 1.6 $
+ * $Date: 2004/10/17 16:24:43 $
+ * $Revision: 1.7 $
  * $State: Exp $
- * $Author: nick $
+ * $Author: joty $
  *
  ***************************************************************************/
 
@@ -228,8 +228,10 @@ struct ttysize
 #define FIOGETOWN       _IOR('f', 123, int)     /* get owner */
 #define FIODTYPE        _IOR('f', 122, int)     /* get d_flags type part */
 #define FIOGETLBA       _IOR('f', 121, int)     /* get start blk # */
+/* RISC OS Specific */
 #define FIOSLEEPTW      _IOW('f', 121, int)     /* Set/clear OS_Upcall 6 use */
-
+#define FIORXDIR        _IOW('f', 122, int)     /* set/clear direct rx */
+#define FIOPOLLWORD     _IOW('f', 120, int[2])  /* set/clear Pollword trigger */
 
 
 /* Socket ioctl's. */

@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/common/unixify.c,v $
- * $Date: 2005/04/22 14:38:49 $
- * $Revision: 1.15 $
+ * $Date: 2005/04/24 20:07:47 $
+ * $Revision: 1.16 $
  * $State: Exp $
- * $Author: nick $
+ * $Author: alex $
  *
  ***************************************************************************/
 
@@ -356,7 +356,8 @@ __unixify (const char *ro_path, int unixify_flags, char *buffer,
 	*out++ = *input++;
       /* Copy across the '.$' */
       *out++ = '/';
-      input++;
+      if (*input != '\0')
+        input++;
     }
   else
     {

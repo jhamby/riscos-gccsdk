@@ -1,8 +1,8 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/errno.h,v $
- * $Date: 2005/04/18 21:27:51 $
- * $Revision: 1.17 $
+ * $Date: 2005/04/19 18:30:43 $
+ * $Revision: 1.18 $
  * $State: Exp $
  * $Author: nick $
  *
@@ -131,6 +131,7 @@
 #else
 /* Build options specify that errno should be global and not per-thread.  */
 extern int errno;
+#define errno errno
 #define __errno errno
 #endif
 

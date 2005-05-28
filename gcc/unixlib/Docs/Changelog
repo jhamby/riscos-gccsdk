@@ -1,3 +1,11 @@
+Sat May 28 21:52:15 2005  Peter Naulls  <peter@chocky.org>
+
+	* common/unixify.c: Ensure we don't run off the end of the input
+	  buffer.
+	* clib/errno.h: #define errno as itself, to allow for checks
+	  that errno exists to work.
+	* clib/sys/ioctl.h: Some TCPIPLibs compatibility (not implemented).     
+
 Mon May 16 22:30:29 2005  Peter Naulls  <peter@chocky.org>
 
 	* stdio/fwrite.c (fwrite): Make (v)snprintf with null parameters
