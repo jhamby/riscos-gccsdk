@@ -75,7 +75,7 @@ RISC OS GCC release 3.4.4 release 2 (released 6 May 2005)
   attributes to generate additional warnings that may aid in tracking down
   bugs at compile time.
 
-* GCC/GCCSDK now includes the 'decaof' tool for examinging AOF object
+* GCC/GCCSDK now includes the 'decaof' tool for examining AOF object
   files.
 
 
