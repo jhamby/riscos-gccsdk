@@ -2,6 +2,33 @@ Noteworthy changes to the RISC OS GCCSDK
 
 For specific UnixLib changes, see !gcc.docs.ULChanges
 
+RISC OS GCC release 3.4.4 release 3 (released XX June 2005)
+===================================
+
+* Update to full GCC 3.4.4 release.
+
+* UnixLib: Unterminated buffer fixes (__unixify and vnsprintf)
+
+* libscl: Much improved compatibility with Castle C/C++ headers
+  and TCPIPLibs.
+
+* GCC 'gcov' profiling support is now possible.  See the GCC manual
+  for more details.
+
+* Now with RISC OS module support.  See !gcc.docs.Intro for details.
+
+* Autobuilder: Minor fixes and many improvements.  Many packages added.
+
+* drlink: Explictly marked as GPL (permission granted for this in 2001)
+
+* 'as', drlink and decaof have improved support for previously unhandled
+  AOF attributes.
+
+* Improved support for GCCSDK under Cygwin and OpenBSD.
+
+* Additions for soft-float support.
+
+
 RISC OS GCC release 3.4.4 release 2 (released 6 May 2005)
 ===================================
 
