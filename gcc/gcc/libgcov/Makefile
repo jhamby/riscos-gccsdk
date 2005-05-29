@@ -1,7 +1,7 @@
 # Makefile for GNU libgcov for the ARM/RISC OS GCC port
 #
 
-INCLUDES = -I ../gcc -I ../../include -D__RISCOSIFY
+INCLUDES = -I ../gcc -I ../../include -D__RISCOSIFY -DBITS_PER_UNIT=8
 
 gcovdir=$(objdir)/gcc-$(VERSION)/libgcov/$(STAGE)/$(TRG)
 
