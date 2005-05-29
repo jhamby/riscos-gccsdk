@@ -36,6 +36,8 @@
 
 #define __need__va_list
 #include <stdarg.h>
+/* Castle C/C++ compatibility */
+#define __va_list va_list
 
 #ifdef __cplusplus
 extern "C" {
