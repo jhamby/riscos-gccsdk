@@ -1431,9 +1431,14 @@ static char *
 make_gcov_file_name (const char *input_name, const char *src_name)
 {
   char *cptr;
-  char *name = xmalloc (strlen (src_name) + strlen (input_name) + 10);
+  char *name = xmalloc (strlen (src_name) + strlen (input_name) + 12);
 
+#ifdef __riscos__
+  strcpy(name, "./");
+#else
   name[0] = 0;
+#endif
+
   if (flag_long_names && strcmp (src_name, input_name))
     {
       /* Generate the input filename part.  */
