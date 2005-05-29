@@ -27,6 +27,8 @@
 #ifndef __SYS_TYPES_H
 #define __SYS_TYPES_H 1
 
+#include <stdint.h>
+
 /* Convenience types.  */
 typedef unsigned char __u_char;
 typedef unsigned short __u_short;
@@ -133,13 +135,11 @@ typedef unsigned long __sigset_t;
 #include <stddef.h>
 #endif
 
-/* These size-specific names are used by some of the inet code.  */
+/* These size-specific names are used by some of the inet code.  */ 
 
-#define int32_t __int32_t
-#define int16_t __int16_t
-#define int8_t __int8_t
-#define u_int32_t __u_int32_t
-#define u_int16_t __u_int16_t
 #define u_int8_t __u_int8_t
+#define u_int16_t __u_int16_t
+#define u_int32_t __u_int32_t
+#define u_int64_t __u_int64_t
 
 #endif
