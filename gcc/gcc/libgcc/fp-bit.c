@@ -659,7 +659,7 @@ _fpadd_parts (fp_number_type * a,
       }
     else
       {
-	/* Somethings's up.. choose the biggest */
+	/* Something's up.. choose the biggest */
 	if (a_normal_exp > b_normal_exp)
 	  {
 	    b_normal_exp = a_normal_exp;
