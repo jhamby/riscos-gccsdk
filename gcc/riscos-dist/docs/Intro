@@ -43,6 +43,9 @@ archives into the same directory as where you install GCC - RISC OS will
 automatically combine the !gcc directories together. Running !gcc will
 setup Run$Path to automatically search for the compiler tools.
 
+The separate !CLib and !UnixLib applications are not required, and will
+not be used by !gcc - they are provided for use by other compilers.
+
 As compilers are installed, sub-directories named according to the language
 they support will be placed within !gcc.docs. These sub-directories will
 contain specific information for the language compiler, including its
@@ -195,13 +198,21 @@ RISC OS specific options
    with Acorn's Make Utility (AMU), which edits the makefile to include
    these after the '# Dynamic Dependencies' line.
 
+ -mmodule
+   Generate code suitable for a RISC OS module.  You must use this alongside
+   -mlibscl.
 
 LD
 --
 
 LD is a front end program that converts the linker command line as generated
 by gcc to a format recognised by Drlink and Link. LD also attempts to
-convert Unix format names to RISC OS format. The option recognised are:
+convert Unix format names to RISC OS format.  Only in unusual cases should
+you call LD directly: instead, for almost all instances, call GCC to perform
+the linking since this will supply the correct libraries and options.
+
+The following reference is provided for completeness, and the options recognised
+are:
 
  -L<dir>
    This specifies a directory/path that LD is to use when searching
@@ -302,6 +313,9 @@ heap include :
    * Dynamic Areas provide a means of Virtual Memory when used with a
      product such as Virtualise[1]. Virtual Memory allows programs to
      use more data space than is available with just physical memory.
+
+   * Some very large programs may fill most of the Wimpslot on 26-bit
+     systems, meaning the heap has to be elsewhere. 
 
 Basically, use
 
@@ -445,6 +459,21 @@ to resolve further references.
 'printf' and 'puts' are defined by the C library, therefore the linker will
 need to combine the ALF file with harry.o, fred.o and bob.o to finally
 generate an executable.
+
+
+RISC OS module support
+----------------------
+
+For a very long time, GCC was unable to generate code for RISC OS modules.
+Support was recently added, and is possible using correct switches.  Module
+code must be compiled and linked with the SharedCLibrary since UnixLib
+is not suitable for this purpose.  e.g.:
+
+  *gcc -mlibscl -mmodule -c module.c -O2
+  *gcc -mlibscl -mmodule module.o header.o -o mymodule
+
+At present, there is no freely available replacement for the cmhg tool
+in the Castle C/C++ suite. 
 
 
 Obtaining compilers
