@@ -432,7 +432,6 @@ gcov_exit (void)
 void
 __gcov_init (struct gcov_info *info)
 {
-puts("init");
   if (!info->version)
     return;
   if (gcov_version (info, info->version))
@@ -440,7 +439,6 @@ puts("init");
       const char *ptr = info->filename;
       gcov_unsigned_t crc32 = gcov_crc32;
   
-puts("init 2");
       do
 	{
 	  unsigned ix;
@@ -459,7 +457,6 @@ puts("init 2");
       
       gcov_crc32 = crc32;
       
-printf("init 3: %p\n", gcov_list);
       if (!gcov_list)
 	atexit (gcov_exit);
       
