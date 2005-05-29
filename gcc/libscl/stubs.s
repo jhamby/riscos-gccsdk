@@ -322,6 +322,120 @@ __PTHREAD_ALLOCA_OFFSET	EQU	8
 	EXPORT	|__ctype|
 	EXPORT	|__huge_val|
 
+        EXPORT |__fpclassifyf|                 
+        EXPORT |__fpclassifyd|                 
+        EXPORT |__signbitf|                    
+        EXPORT |__signbitd|                    
+        EXPORT |copysign|                      
+        EXPORT |copysignf|                     
+        EXPORT |nan|                           
+        EXPORT |nanf|                          
+        EXPORT |nextafter|                     
+        EXPORT |nextafterf|                    
+        EXPORT |fdim|                          
+        EXPORT |fdimf|                         
+        EXPORT |fmax|                          
+        EXPORT |fmaxf|                         
+        EXPORT |fmin|                          
+        EXPORT |fminf|                         
+        EXPORT |fabsf|                         
+        EXPORT |hypot|                         
+        EXPORT |hypotf|                        
+        EXPORT |feclearexcept|                 
+        EXPORT |fegetexceptflag|               
+        EXPORT |feraiseexcept|                 
+        EXPORT |fesetexceptflag|               
+        EXPORT |fetestexcept|                  
+        EXPORT |fegetround|                    
+        EXPORT |fesetround|                    
+        EXPORT |fegetenv|                      
+        EXPORT |feholdexcept|                  
+        EXPORT |fesetenv|                      
+        EXPORT |feupdateenv|                   
+        EXPORT |_snprintf|                     
+        EXPORT |snprintf|                      
+        EXPORT |vsnprintf|                     
+        EXPORT |vfscanf|                       
+        EXPORT |vscanf|                        
+        EXPORT |vsscanf|                       
+        EXPORT |ceilf|                         
+        EXPORT |floorf|                        
+        EXPORT |nearbyint|                     
+        EXPORT |nearbyintf|                    
+        EXPORT |rint|                          
+        EXPORT |rintf|                         
+        EXPORT |lrint|                         
+        EXPORT |lrintf|                        
+        EXPORT |round|                         
+        EXPORT |roundf|                        
+        EXPORT |lround|                        
+        EXPORT |lroundf|                       
+        EXPORT |trunc|                         
+        EXPORT |truncf|                        
+        EXPORT |remainder|                     
+        EXPORT |remainderf|                    
+        EXPORT |llabs|                         
+        EXPORT |lldiv|                         
+        EXPORT |atoll|                         
+        EXPORT |strtoll|                       
+        EXPORT |strtoull|                      
+        EXPORT |imaxabs|                       
+        EXPORT |imaxdiv|                       
+        EXPORT |strtoimax|                     
+        EXPORT |strtoumax|                     
+        EXPORT |__assert2|                     
+        EXPORT |_Exit|                         
+        EXPORT |acosf|                         
+        EXPORT |asinf|                         
+        EXPORT |atanf|                         
+        EXPORT |atan2f|                        
+        EXPORT |cosf|                          
+        EXPORT |sinf|                          
+        EXPORT |tanf|                          
+        EXPORT |acosh|                         
+        EXPORT |acoshf|                        
+        EXPORT |asinh|                         
+        EXPORT |asinhf|                        
+        EXPORT |atanh|                         
+        EXPORT |atanhf|                        
+        EXPORT |expf|                          
+        EXPORT |exp2|                          
+        EXPORT |exp2f|                         
+        EXPORT |expm1|                         
+        EXPORT |expm1f|                        
+        EXPORT |frexpf|                        
+        EXPORT |ilogb|                         
+        EXPORT |ilogbf|                        
+        EXPORT |ldexpf|                        
+        EXPORT |logf|                          
+        EXPORT |log10f|                        
+        EXPORT |log1p|                         
+        EXPORT |log1pf|                        
+        EXPORT |log2|                          
+        EXPORT |log2f|                         
+        EXPORT |logb|                          
+        EXPORT |logbf|                         
+        EXPORT |modff|                         
+        EXPORT |fmodf|                         
+        EXPORT |scalbn|                        
+        EXPORT |scalbnf|                       
+        EXPORT |scalbln|                       
+        EXPORT |scalblnf|                      
+        EXPORT |cbrt|                          
+        EXPORT |cbrtf|                         
+        EXPORT |powf|                          
+        EXPORT |sqrtf|                         
+        EXPORT |erf|                           
+        EXPORT |erff|                          
+        EXPORT |erfc|                          
+        EXPORT |erfcf|                         
+        EXPORT |lgamma|                        
+        EXPORT |lgammaf|                       
+        EXPORT |tgamma|                        
+        EXPORT |tgammaf|                       
+        EXPORT |nexttoward|                    
+        EXPORT |nexttowardf|                   
+
 	AREA	|Stub$$code|, CODE, READONLY
 
 	ENTRY
@@ -380,6 +494,11 @@ stubs
 	DCD	clib_vectors_end
 	DCD	clib_statics
 	DCD	clib_statics_end
+	DCD     5                       ; lib chunk id : Clib extra functions
+	DCD     extra_vectors
+	DCD     extra_vectors_end
+	DCD     0
+	DCD     0
 	DCD	-1			; end of list
 
 kernel_init_block
@@ -396,6 +515,9 @@ zibase	DCD	|Image$$ZI$$Base|
 	; the constant 540 when adjusting the SL register in the module
 	; initialisation and command interface code.
 |_Lib$Reloc$Off$DP|	EQU	&f87
+
+        EXPORT |_Mod$Reloc$Off|
+|_Mod$Reloc$Off|        EQU &218
 
 	IMPORT	|__RelocCode|, WEAK
 reloccode	DCD	|__RelocCode|
@@ -642,7 +764,6 @@ kernel_vectors
 |_kernel_raise_error|           MOV     pc,#0
 
 kernel_vectors_end
-
 kernel_vectors_space	% kernel_vectors_end - kernel_vectors
 
 clib_vectors
@@ -845,6 +966,126 @@ clib_vectors
 
 clib_vectors_end
 clib_vectors_space	% clib_vectors_end - clib_vectors
+
+extra_vectors
+
+|__fpclassifyf|                 MOV     pc,#0
+|__fpclassifyd|                 MOV     pc,#0
+|__signbitf|                    MOV     pc,#0
+|__signbitd|                    MOV     pc,#0
+|copysign|                      MOV     pc,#0
+|copysignf|                     MOV     pc,#0
+|nan|                           MOV     pc,#0
+|nanf|                          MOV     pc,#0
+|nextafter|                     MOV     pc,#0
+|nextafterf|                    MOV     pc,#0
+|fdim|                          MOV     pc,#0
+|fdimf|                         MOV     pc,#0
+|fmax|                          MOV     pc,#0
+|fmaxf|                         MOV     pc,#0
+|fmin|                          MOV     pc,#0
+|fminf|                         MOV     pc,#0
+|fabsf|                         MOV     pc,#0
+|hypot|                         MOV     pc,#0
+|hypotf|                        MOV     pc,#0
+|feclearexcept|                 MOV     pc,#0
+|fegetexceptflag|               MOV     pc,#0
+|feraiseexcept|                 MOV     pc,#0
+|fesetexceptflag|               MOV     pc,#0
+|fetestexcept|                  MOV     pc,#0
+|fegetround|                    MOV     pc,#0
+|fesetround|                    MOV     pc,#0
+|fegetenv|                      MOV     pc,#0
+|feholdexcept|                  MOV     pc,#0
+|fesetenv|                      MOV     pc,#0
+|feupdateenv|                   MOV     pc,#0
+|_snprintf|                     MOV     pc,#0
+|snprintf|                      MOV     pc,#0
+|vsnprintf|                     MOV     pc,#0
+|vfscanf|                       MOV     pc,#0
+|vscanf|                        MOV     pc,#0
+|vsscanf|                       MOV     pc,#0
+|ceilf|                         MOV     pc,#0
+|floorf|                        MOV     pc,#0
+|nearbyint|                     MOV     pc,#0
+|nearbyintf|                    MOV     pc,#0
+|rint|                          MOV     pc,#0
+|rintf|                         MOV     pc,#0
+|lrint|                         MOV     pc,#0
+|lrintf|                        MOV     pc,#0
+|round|                         MOV     pc,#0
+|roundf|                        MOV     pc,#0
+|lround|                        MOV     pc,#0
+|lroundf|                       MOV     pc,#0
+|trunc|                         MOV     pc,#0
+|truncf|                        MOV     pc,#0
+|remainder|                     MOV     pc,#0
+|remainderf|                    MOV     pc,#0
+|llabs|                         MOV     pc,#0
+|lldiv|                         MOV     pc,#0
+|atoll|                         MOV     pc,#0
+|strtoll|                       MOV     pc,#0
+|strtoull|                      MOV     pc,#0
+|imaxabs|                       MOV     pc,#0
+|imaxdiv|                       MOV     pc,#0
+|strtoimax|                     MOV     pc,#0
+|strtoumax|                     MOV     pc,#0
+|__assert2|                     MOV     pc,#0
+|_Exit|                         MOV     pc,#0
+|acosf|                         MOV     pc,#0
+|asinf|                         MOV     pc,#0
+|atanf|                         MOV     pc,#0
+|atan2f|                        MOV     pc,#0
+|cosf|                          MOV     pc,#0
+|sinf|                          MOV     pc,#0
+|tanf|                          MOV     pc,#0
+|acosh|                         MOV     pc,#0
+|acoshf|                        MOV     pc,#0
+|asinh|                         MOV     pc,#0
+|asinhf|                        MOV     pc,#0
+|atanh|                         MOV     pc,#0
+|atanhf|                        MOV     pc,#0
+|expf|                          MOV     pc,#0
+|exp2|                          MOV     pc,#0
+|exp2f|                         MOV     pc,#0
+|expm1|                         MOV     pc,#0
+|expm1f|                        MOV     pc,#0
+|frexpf|                        MOV     pc,#0
+|ilogb|                         MOV     pc,#0
+|ilogbf|                        MOV     pc,#0
+|ldexpf|                        MOV     pc,#0
+|logf|                          MOV     pc,#0
+|log10f|                        MOV     pc,#0
+|log1p|                         MOV     pc,#0
+|log1pf|                        MOV     pc,#0
+|log2|                          MOV     pc,#0
+|log2f|                         MOV     pc,#0
+|logb|                          MOV     pc,#0
+|logbf|                         MOV     pc,#0
+|modff|                         MOV     pc,#0
+|fmodf|                         MOV     pc,#0
+|scalbn|                        MOV     pc,#0
+|scalbnf|                       MOV     pc,#0
+|scalbln|                       MOV     pc,#0
+|scalblnf|                      MOV     pc,#0
+|cbrt|                          MOV     pc,#0
+|cbrtf|                         MOV     pc,#0
+|powf|                          MOV     pc,#0
+|sqrtf|                         MOV     pc,#0
+|erf|                           MOV     pc,#0
+|erff|                          MOV     pc,#0
+|erfc|                          MOV     pc,#0
+|erfcf|                         MOV     pc,#0
+|lgamma|                        MOV     pc,#0
+|lgammaf|                       MOV     pc,#0
+|tgamma|                        MOV     pc,#0
+|tgammaf|                       MOV     pc,#0
+|nexttoward|                    MOV     pc,#0
+|nexttowardf|                   MOV     pc,#0
+
+extra_vectors_end
+extra_vectors_space	% extra_vectors_end - extra_vectors
+
 
 	AREA	|Stub$$Data|, DATA
 kernel_statics	% &31c
