@@ -90,7 +90,6 @@ MATH = 	$(libsclobj)/math/acosf.o \
 LIBC =  $(libsclobj)/unistd.o \
 	$(libsclobj)/stubs.o \
 	$(libsclobj)/riscosify.o \
-	$(libsclobj)/assert.o \
 	$(libsclobj)/_os.o \
 	$(libsclobj)/_riscosify.o 
 
