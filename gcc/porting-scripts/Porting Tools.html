@@ -1,0 +1,286 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head><title>Unix Porting Project - Porting Tools Manual</title></head>
+<body>
+
+<hr>
+
+<h2>Porting Tools Manual</h2>
+
+<p>Copyright 2003-2005, <a href="mailto:peter@chocky.org">GCCSDK Developers</a>.</p>
+<p>Written by Peter Naulls (peter@chocky.org)</p>
+<p>Last updated - 29th May 2005</p>
+
+<hr>
+
+<p></p>
+
+<h3>The Idea</h3>
+
+<p>To greatly simplify the repetitive tasks when cross compiling Unix programs
+to RISC OS, especially when using GNU autoconf.  The tools will work most
+effectively (for purposes of fetching source) on a Debian system, but they
+will also work on other systems on which GCCSDK also works.</p>
+
+<p>I have found that there are many problems which are the same, when
+converting Unix programs.  Some of these come about because of the use
+of the ,ff8 extension which can confuse scripts and makefiles which have
+not been proprerly written to expect this (although there is a growing
+trend to improve this, as we see support for .exe in Cygwin, for example).</p>
+
+<p>There are other such mundane things as setting paths, faking the system
+type and passing often used flags to configure.</p>
+
+<p>It is also desirable to be able to run "make install", as this enables
+us to build a proper cross compiling environment, without having to
+fiddle about with libraries, paths, etc.</p>
+
+<p></p>
+
+<h3>Solution</h3>
+
+<p>Have a variety of wrappers to some of the usual Unix tools to pass
+appropriate options, or set variables, etc beforehand.  Notably,
+make, install and configure.</p>
+
+<p>Additionally, under the normal /home/riscos/ structure for the cross
+compiler, create a new "env" directory, to contain directories for
+the usual include, lib, bin, and X11R6 setup.</p>
+
+<p></p>
+
+<h3>Setup</h3>
+
+<p>The tools are installed as part of the GCCSDK build.
+See the <a href="http://gccsdk.riscos.info/">GCCSDK page</a> for more details.</p>
+
+<p></p>
+
+
+<hr>
+
+<h3>The Tools</h3>
+
+<p>The tools live in /home/riscos/env, /home/riscos/env/bin
+and additions to /home/riscos/cross/bin with a default GCCSDK setup (other
+locations are configurable).</p>
+
+
+<h4>ro-path</h4>
+
+<p>Very simple, to add to the path before calling a command.  This
+adds /home/riscos/cross/bin and /home/riscos/env/bin to the path
+before calling the supplied command.   This is useful to ensure
+the RISC OS version of a tool gets called, and not the native version.</p>
+
+<p>Also, some libraries set up a <i>libname</i>-config script in
+/home/riscos/env/bin, and we should ensure that gets called, and
+not the native one.</p>
+
+
+<h4>ro-make</h4>
+
+<p>This simply calls ro-path to invoke the native make program, and
+possibly sets vars that could be used by the build.  In simple
+makefiles, "gcc" or "cc" may be called directly, and this ensures
+that the cross compiler is used.  In complex setups using configure,
+even though the generated paths to most of the tools will be full,
+it's typical to see "ar" and some other tools not using a path.</p>
+
+
+<h4>ro-install</h4>
+
+<p>Wrapper for the Unix "install" program.  Its purpose is to suffix
+files with ,ff8 if the filename does not exist. This enables
+"make install" to suceed when installing binaries belonging to libraries
+(even though we are generally not interested in those binaries, we
+still want the install for headers and libs to work).</p>
+
+<p>Additionally, if the first parameter ends with ,ff8 (whether added
+by the ro-install script, or passed in), then it adds it to the second
+parameter too.  This ensures that installed RISC OS binaries have the
+correct ,ff8 extension.</p> 
+
+
+<h4>uname</h4>
+
+<p>This is simply a minimal version of the uname program on Unix,
+to return RISC OS and ARM as the OS and processor type.</p>
+
+
+<h4>ranlib, strip</h4>
+
+<p>These are empty scripts which do nothing, to avoid calling the
+native version.</p>
+
+
+<h4>ro-config</h4>
+
+<p>This is by far the most complex of all the scripts. Simply put, it just
+calls configure, via the ro-path script.  But it also does the following:</p>
+
+<ul>
+ <li><p>Massage the configure script, to correctly accecpt binaries using ,ff8.</p>
+
+
+ <li><p>Set a considerable number of ac_cv_* and other variables used by
+   various configure scripts.  This ensures that the configurue script
+   doesn't get upset when it tries to determine settings not possible
+   in a cross compilation setup (or set correctly, when it defaults).</p>
+
+ <li><p>Sets defaults, by scanning the output of --help:</p>
+
+  <pre>
+     --host=arm-riscos-aof
+     --build=arm-elf-linux-gnu (hardwired for my Linux setup)
+     --prefix=/home/riscos/env
+     --x-libraries=/home/riscos/env/X11R6/lib
+     --x-includes=/home/riscos/env/X11R6/include
+     --disable-shared
+     --enable-static
+     --with-glib-prefix=/home/riscos/env
+     --with-gtk-prefix=/home/riscos/env
+     --with-tclconfig=/home/riscos/env/lib
+     --with-tclconfig=/home/riscos/env/lib
+     --disable-threads (subject to change)
+     --with-build-cc (used by bash)
+  </pre>   
+
+  <p></p>
+
+  <li><p>Sets typical variables used by unix build systems:<br>
+    CC, CPPFLAGS, LDFLAGS, CXX, CXXLIBS, AR, NM, RANLIB, INSTALL, STRIP</p>
+</ul>
+
+
+<p>
+The script also accepts some settings: it is not always appropriate to
+have the configure script in the same place as you're building (e.g. bash,
+tcl, tk), so you can set RO_CPATH before calling configure for its actual
+location (usually relative), although it will also check ".."
+</p>
+
+<p>
+Some build setups use multiple configure scripts in subdirectories.
+This isn't desirable by default, as it's not normally needed, and
+calling find may take a little while.  Passing --ro-recurse as an
+option causes it to scan subdirectories, and massage all found configure
+scripts before calling the top level one.
+</p>
+
+<p></p>
+
+<hr>
+
+<h4>Simple use</h4>
+
+<p>(on Debian)</p>
+
+<pre>
+apt-get source wget
+cd wget-1.8.2
+/home/riscos/env/ro-config
+/home/risco/env/ro-make
+</pre>
+
+
+
+<p>
+This is typical simple use.  You can pass any additional configure commands
+to ro-config.  If it was a library, you could now run "make install".
+</p>
+
+<p></p>
+
+
+<hr>
+
+<h4>Problems</h4>
+
+<p>What's important to note about these tools is that they aren't clever -
+they are a substitute for lots of manual effort, but not for experience
+in programming and porting.  Don't forget to rely on your own judgement.
+</p>
+
+<p>If it all possible, I try to avoid patching the original source.  I
+instead try to improve my tools, as this is generally a better solution
+all round.   This isn't always possible, however, and it's common
+for the configure script to need some additional manual changes.
+</p>
+
+<p>
+Some build systems can get a bit unstuck at being cross compiled.
+The typical problem is compiling a program, then expecting it to
+work, to generate parts of the build.  The usual solution is a
+manual compile for the native system, or change to the makefile.
+</p>
+
+<p>
+Having INSTALL explictly set occasionally causes problems, when
+the build would have otherwise defaulted to 'cp' and been fine, as
+flags 'install' doesn't understand are passed.
+</p>
+
+<p>
+Having the native version of a config script (e.g. esd-config) and
+not having a RISC OS version can cause configure to make unfounded
+assumptions when it locates the native config script.
+</p>
+
+<p></p>
+
+
+<hr>
+
+<h4>X11 and xmkmf/imake</h4>
+
+<p>Build systems using xmkmf and imake will generally work too, using
+the installed XFree under /home/riscos/env and a version of xmkmf
+generated by the XFree build for RISC OS.</p>
+
+<p></p>
+
+
+<hr>
+
+<h4>libtool</h4>
+
+<p>ro-config contains the correct sed magic to process the output
+of libfile to extract symbols correctly.   This means that RISC OS
+can correctly work with libtool's simulated dynamic linking (e.g.
+kaffe) by statically linking.  There should be no extra work
+required on your part.</p>
+
+<p></p>
+
+
+<hr>
+
+<h4>Alternate Paths</h4>
+
+<p>Because of the GCCSDK development, you might have multiple
+installations.  You can set RO_BIN to point at an alternate
+path.  The default is /home/riscos/cross/bin.</p>
+
+
+<p></p>
+
+
+<hr>
+
+<h4>Autobuilder</h4>
+
+<p>The GCCSDK Autobuilder makes extensive used of these scripts -
+you may like to experiement with this to see use of them in practice.</p>
+
+<p></p>
+
+<hr>
+
+</body>
+</html>
+
+
+
+
+
