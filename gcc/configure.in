@@ -88,7 +88,7 @@ AC_CHECK_HEADERS(vfork.h fcntl.h limits.h stab.h stddef.h stdlib.h)
 AC_CHECK_HEADERS(string.h strings.h sys/file.h sys/param.h sys/resource.h)
 AC_CHECK_HEADERS(sys/stat.h sys/time.h sys/times.h time.h unistd.h)
 
-AC_CHECK_FUNCS(atoll atoq basename)
+AC_CHECK_FUNCS(atoll atoq basename stricmp)
 AC_CHECK_FUNCS(bcmp bcopy bsearch bzero getrlimit gettimeofday index)
 AC_CHECK_FUNCS(isascii kill popen putenv setrlimit strchr strerror)
 AC_CHECK_FUNCS(strrchr strsignal strtoul sysconf stpcpy strdup strncasecmp)
@@ -146,6 +146,9 @@ changequote([,])dnl
   mips-*)
         cpu_type="MIPS"
         ;;
+  powerpc-*)
+        cpu_type="POWERPC"
+        ;;
 esac
 
 # Determine operating system
@@ -164,6 +167,9 @@ case "$host" in
         ;;
   *cygwin*)
 	os_type="CYGWIN"
+	;;
+  *darwin*)
+	os_type="DARWIN"
 	;;
 esac
 
