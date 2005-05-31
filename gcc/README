@@ -186,7 +186,6 @@ A1. The default is for GCC to not embed function names in the program,
        CROSS_CFLAGS=-O2 $(TARGET_DEFS) -mpoke-function-name
        CROSS_CXXFLAGS=-O2 $(TARGET_DEFS) -mpoke-function-name
 
-
 -----------------------------------------------------------------------------
 
 Q2. What systems has GCCSDK been built on?
@@ -198,10 +197,8 @@ A2. Systems on which it has successfully been built upon include:
         FreeBSD,
         OpenBSD,
         Cygwin,
+        Mac OS X
         and others.
-
-        Mac OS X is not yet supported, because drlink needs further
-        work to support big endian systems.
 
 -----------------------------------------------------------------------------
 
@@ -214,7 +211,6 @@ A3. It depends on the parameters you pass to configure.  But for the
     For the Unix tree it could be:
       /home/riscos/riscos-cross/bin/arm-riscos-aof/apcs32/unixlib/unixlib.o
 
-
 -----------------------------------------------------------------------------
 
 Q4. My Unix variant appears to be unsupported.  How do I fix it?
@@ -222,7 +218,8 @@ Q4. My Unix variant appears to be unsupported.  How do I fix it?
 A4. Change gccsdk/configure.in to correctly detect your CPU and OS type,
     fixing up cpu_type and os_type respectively.
 
-    Big-endian CPUs, such as Sparc and MIPS, are currently unsupported.
+    Little endian CPUs (like i386) and big endian CPUs (Sparc, MIPS, PowerPC)
+    are supported.
 
 -----------------------------------------------------------------------------
 
@@ -235,3 +232,5 @@ A5. The preferred method for issuing bug reports for any package distributed
 
     Patches for any application can also be sent to the site.  Alternatively
     bugs or patches can be e-mailed to gcc@gccsdk.riscos.info.
+
+-EOF-
