@@ -38,7 +38,7 @@
 /*
 ** Variables referenced outside this file
 */
-editcmd * symedit_list,		/* List of symbols to edit */
+editcmd *symedit_list,		/* List of symbols to edit */
   *refedit_list,		/* List of references to change */
   *new_entry;			/* Replacement entry point */
 
@@ -144,15 +144,9 @@ find_cmd (void)
   unsigned int n;
   char *p;
   char name[10];
-  n = 0;
-  p = ident;
-  while (p != editptr && n < MAXLEN)
-    {
-      name[n] = tolower (*p);
-      n++;
-      p++;
-    }
-  name[n] = NULLCHAR;
+  for (n = 0, p = ident; p != editptr && n < MAXLEN; ++n, ++p)
+    name[n] = tolower (*p);
+  name[n] = '\0';
   n = 0;
   while (n < sizeof (cmdlist) / sizeof (commands)
 	 && strcmp (cmdlist[n].cmdname, name) != 0)
@@ -177,7 +171,7 @@ insert_null (char *cp)
 {
   while (*cp > ' ' && *cp != '(' && *cp != ')' && *cp != ',')
     cp++;
-  *cp = NULLCHAR;
+  *cp = '\0';
 }
 
 /*
@@ -192,14 +186,14 @@ insert_edit (editcmd ** editlist, editcmd * newedit)
   int hashval;
   editcmd *ep, *lastep;
   ep = *editlist;
-  lastep = NIL;
+  lastep = NULL;
   hashval = newedit->edtfnhash;
-  while (ep != NIL && hashval > ep->edtfnhash)
+  while (ep != NULL && hashval > ep->edtfnhash)
     {
       lastep = ep;
       ep = ep->edtnext;
     }
-  if (lastep == NIL)
+  if (lastep == NULL)
     {				/* List is empty or new first entry */
       newedit->edtnext = *editlist;
       *editlist = newedit;
@@ -252,7 +246,7 @@ parse_command (void)
       return FALSE;
     }
   oldsymbol = ident;
-  newsymbol = NIL;
+  newsymbol = NULL;
   getsym ();
   if (thiscmd == EDT_CHANGE || thiscmd == EDT_RENAME)
     {
@@ -278,12 +272,12 @@ parse_command (void)
     }
   insert_null (file);
   insert_null (oldsymbol);
-  if (thiscmd == EDT_ENTRY && new_entry != NIL)
+  if (thiscmd == EDT_ENTRY && new_entry != NULL)
     {
       edit_error ("Error: More than one 'entry' command found");
       return FALSE;
     }
-  if ((p = allocmem (sizeof (editcmd))) == NIL)
+  if ((p = allocmem (sizeof (editcmd))) == NULL)
     {
       error ("Fatal: Out of memory in 'parse_command'");
     }
@@ -351,7 +345,7 @@ list_badedits (editcmd * p)
   const char *opnames[] =
     { "", "rename", "change", "hide", "reveal", "entry" };
 
-  while (p != NIL)
+  while (p != NULL)
     {
       if (!p->edtdone)
 	error ("    %s '%s' in '%s'", opnames[p->edtoper], p->edtold,
@@ -381,7 +375,7 @@ verify_edits (void)
 void
 init_edit (void)
 {
-  symedit_list = refedit_list = NIL;
+  symedit_list = refedit_list = NULL;
   symedit_count = refedit_count = 0;
-  new_entry = NIL;
+  new_entry = NULL;
 }

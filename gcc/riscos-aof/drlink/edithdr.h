@@ -21,9 +21,17 @@
 ** Linker edit facilities definitions
 */
 
+#ifndef edithdr_h
+#define edithdr_h
+
 typedef enum
 {				/* Types of edit commands */
-  EDT_BAD, EDT_RENAME, EDT_CHANGE, EDT_HIDE, EDT_REVEAL, EDT_ENTRY
+  EDT_BAD,
+  EDT_RENAME,
+  EDT_CHANGE,
+  EDT_HIDE,
+  EDT_REVEAL,
+  EDT_ENTRY
 } editcommands;
 
 typedef struct editcmd
@@ -38,7 +46,7 @@ typedef struct editcmd
   struct editcmd *edtnext;	/* Next command in list */
 } editcmd;
 
-extern editcmd * symedit_list,	/* List of symbols to edit */
+extern editcmd *symedit_list,	/* List of symbols to edit */
  *refedit_list,			/* List of references to change */
  *new_entry;			/* Replacement entry point */
 
@@ -48,3 +56,5 @@ extern char *editptr,		/* Pointer into link edit file buffer */
 
 extern int symedit_count,	/* Count of rename/hide/reveal commands */
   refedit_count;		/* Count of change commands */
+
+#endif

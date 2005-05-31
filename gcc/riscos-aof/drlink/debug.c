@@ -83,7 +83,7 @@ nullfill (char *p)
 {
   while ((COERCE (p, int) & ALIGNBITS) != 0)
     {
-      *p = NULLCHAR;
+      *p = '\0';
       p++;
     }
   return p;
@@ -128,7 +128,7 @@ gen_llsymt (filelist * fp)
   int n, count;
   unsigned int lldclass;
   unsigned char areattr;
-  sp = fp->objsymtptr;
+  sp = fp->obj.symtptr;
   count = fp->symtcount;
   for (n = 1; n <= count; n++)
     {
@@ -136,7 +136,7 @@ gen_llsymt (filelist * fp)
 	  strncmp (sp->symtname, "x$", 2) != 0
 	  && strcmp (sp->symtname, "__codeseg") != 0)
 	{
-	  if (sp->symtarea.areaptr != NIL
+	  if (sp->symtarea.areaptr != NULL
 	      && sp->symtarea.areaptr->arefcount != 0)
 	    {
 	      areattr = sp->symtarea.areaptr->aratattr;
@@ -184,8 +184,11 @@ fillin_lldhdr (void)
 void
 write_lldtable (void)
 {
+  convert_endian (&lldhdr, sizeof (lldhdr) / 4);
   write_image (&lldhdr, sizeof (lldhdr));
+  convert_endian (lldinfotable, lldentco * sizeof (lldinfo) / 4);
   write_image (lldinfotable, lldentco * sizeof (lldinfo));
+  convert_endian (lldnametable, (lldnamenext - lldnametable) / 4);
   write_image (lldnametable, lldnamenext - lldnametable);
   freemem (lldnametable, lldsize);
   freemem (lldinfotable, totalsymbols * sizeof (lldinfo));
@@ -199,7 +202,7 @@ write_lldtable (void)
 static void
 add_common (arealist * ap)
 {
-  if (ap != NIL)
+  if (ap != NULL)
     {
       add_common (ap->left);
 
@@ -220,7 +223,7 @@ gen_lowlevel (void)
   lldinfotable = lldinfonext = allocmem (totalsymbols * sizeof (lldinfo));
   lldsize = align (lldsize);
   lldnametable = lldnamenext = allocmem (lldsize);
-  if (lldinfotable == NIL || lldnametable == NIL)
+  if (lldinfotable == NULL || lldnametable == NULL)
     {
       error
 	("Error: Not enough memory to construct low level debugging tables");
@@ -235,7 +238,7 @@ gen_lowlevel (void)
 	gen_llsymt (fp);
       fp = fp->nextfile;
     }
-  while (fp != NIL);
+  while (fp != NULL);
 
   add_common (zidatalist);	/* Now add common blocks to table */
 

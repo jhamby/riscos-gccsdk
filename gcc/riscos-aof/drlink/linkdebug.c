@@ -31,13 +31,14 @@
 #include "areahdr.h"
 #include "debugprocs.h"
 
+#ifdef DEBUG
 void
 list_areas (arealist * list)
 {
-  arearef *rp;
-
-  if (list != NIL)
+  if (list != NULL)
     {
+      arearef *rp;
+
       list_areas (list->left);
 
       printf
@@ -48,25 +49,18 @@ list_areas (arealist * list)
 	("  OBJ_AREA at %p, size=%x, relocations at %p, number=%d, area address=%x",
 	 list->arobjdata, list->arobjsize, list->areldata, list->arnumrelocs,
 	 list->arplace);
-      if (list->arsymbol != NIL)
+      if (list->arsymbol != NULL)
 	printf (", symbol address=%p", list->arsymbol);
-      printf ("\n");
-      printf ("  Reference count=%d, reference list at %p", list->arefcount,
+      printf ("\n  Reference count=%d, reference list at %p", list->arefcount,
 	      list->areflist);
-      rp = list->areflist;
-      if (rp == NIL)
-	{
-	  printf (", ** No references **\n");
-	}
+      if ((rp = list->areflist) == NULL)
+	printf (", ** No references **\n");
       else
 	{
 	  printf (", References:\n  ");
-	  while (rp != NIL)
-	    {
-	      printf ("  %p=%d", rp->arefarea, rp->arefcount);
-	      rp = rp->arefnext;
-	    }
-	  printf ("\n");
+	  for ( /* */ ; rp != NULL; rp = rp->arefnext)
+	    printf ("  %p=%d", rp->arefarea, rp->arefcount);
+	  fputc ('\n', stdout);
 	}
 
       list_areas (list->right);
@@ -91,28 +85,27 @@ list_allareas (void)
   list_areas (debuglist);
 }
 
+
 void
 list_symbols (symbol * list)
 {
   symtentry *sp;
   static int indent = 0;
 
-  if (list != NIL)
+  if (list != NULL)
     {
       int spaces = indent;
 
       while (spaces--)
-	printf (" ");
+	fputc (' ', stdout);
 
       sp = list->symtptr;
       printf
 	("    Symbol at %p, symt at %p, name='%s', hash=%x, attributes=%x, value=%x",
 	 list, sp, sp->symtname, list->symhash, sp->symtattr, sp->symtvalue);
-      if (sp->symtarea.areaptr != NIL)
-	{
-	  printf (", area at %p", sp->symtarea.areaptr);
-	}
-      printf ("\n");
+      if (sp->symtarea.areaptr != NULL)
+	printf (", area at %p", sp->symtarea.areaptr);
+      fputc ('\n', stdout);
 
       indent++;
 
@@ -120,8 +113,8 @@ list_symbols (symbol * list)
 	{
 	  spaces = indent;
 	  while (spaces--)
-	    printf (" ");
-	  puts ("    (NIL)");
+	    fputc (' ', stdout);
+	  puts ("    (NULL)");
 	}
 
       list_symbols (list->left);
@@ -130,7 +123,7 @@ list_symbols (symbol * list)
     }
 }
 
-void
+static void
 list_symtable (symbol * table[], unsigned int stsize)
 {
   symbol *list;
@@ -140,7 +133,7 @@ list_symtable (symbol * table[], unsigned int stsize)
   do
     {
       low = n;
-      while ((list = table[n]) == NIL && n < stsize)
+      while ((list = table[n]) == NULL && n < stsize)
 	n += 1;
       if (n != low)
 	printf ("  Index=%2d..%-2d, no entries\n", low, n - 1);
@@ -154,22 +147,23 @@ list_symtable (symbol * table[], unsigned int stsize)
   while (n < stsize);
 }
 
+#if 0
+/* NOT USED */
 void
 list_libentries (libentry * list)
 {
-  if (list != NIL)
+  if (list != NULL)
     {
       list_libentries (list->left);
-
       printf
 	("    Lib entry at %p, name='%s', hash=%x, member name='%s', offset in library=%x, size=%x\n",
 	 list, list->libname, list->libhash, list->libmember, list->liboffset,
 	 list->libsize);
-
       list_libentries (list->right);
     }
 }
 
+/* NOT USED */
 void
 list_libtable (libtable * table)
 {
@@ -178,7 +172,7 @@ list_libtable (libtable * table)
   printf ("  Library symbol table at %p\n", table);
   for (n = 0; n < MAXENTRIES; n++)
     {
-      if ((list = *table[n]) == NIL)
+      if ((list = *table[n]) == NULL)
 	{
 	  printf ("  Index=%2d, no entries\n", n);
 	}
@@ -189,38 +183,35 @@ list_libtable (libtable * table)
 	}
     }
 }
+#endif
 
-void
+static void
 list_filelist (filelist * list)
 {
-  while (list != NIL)
+  for ( /* */ ; list != NULL; list = list->nextfile)
     {
-      printf ("File def at %p, name='%s', file size=%x\n",
-	      list, list->chfilename, list->chfilesize);
+      printf ("File def at %p, name='%s', file size=%x\n", list,
+	      list->chfilename, list->chfilesize);
       printf ("  OBJ_HEAD is at %p, size=%x,   OBJ_SYMT is at %p, size=%x\n",
-	      list->objheadptr, list->objheadsize, list->objsymtptr,
-	      list->objsymtsize);
+	      list->obj.headptr, list->obj.headsize, list->obj.symtptr,
+	      list->obj.symtsize);
       printf ("  OBJ_AREA is at %p, size=%x,   OBJ_STRT is at %p, size=%x\n",
-	      list->objareaptr, list->objareasize, list->objstrtptr,
-	      list->objstrtsize);
+	      list->obj.areaptr, list->obj.areasize, list->obj.strtptr,
+	      list->obj.strtsize);
       printf
 	("  Areas=%u, symbols=%u Local symbols at %p, 'wanted' list at %p\n",
 	 list->areacount, list->symtcount, &list->localsyms,
 	 list->symtries.wantedsyms);
       list_symtable (list->localsyms, MAXLOCALS);
-      list = list->nextfile;
     }
 }
 
-void
+static void
 list_liblist (libheader * list)
 {
-  while (list != NIL)
-    {
-      printf ("Library def at %p, name='%s', loaded at %p, library size=%x\n",
-	      list, list->libname, list->libase, list->libextent);
-      list = list->libflink;
-    }
+  for ( /* */ ; list != NULL; list = list->libflink)
+    printf ("Library def at %p, name='%s', loaded at %p, library size=%x\n",
+	    list, list->libname, list->lib.base, list->libextent);
 }
 
 void
@@ -233,3 +224,4 @@ list_files (void)
   printf ("\n========== Global Symbol Table ==========\n");
   list_symtable (globalsyms, MAXGLOBALS);
 }
+#endif

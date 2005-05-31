@@ -173,6 +173,7 @@ get_hdrcode (segtype hdrtype, unsigned int **hdrstart, unsigned int *hdrsize)
   unsigned int *p;
   const unsigned int *cp;
   size_t size;
+
   switch (hdrtype)
     {
     case HDR_BIN:		/* Binary image */
@@ -194,14 +195,10 @@ get_hdrcode (segtype hdrtype, unsigned int **hdrstart, unsigned int *hdrsize)
       cp = NULL;
       size = 0;
     }
-  if ((p = allocmem (size)) == NIL)
-    {
-      error ("Fatal: Out of memory in 'get_hdrcode'");
-    }
-  else
-    {
-      memcpy (p, cp, size);
-    }
+  if ((p = allocmem (size)) == NULL)
+    error ("Fatal: Out of memory in 'get_hdrcode'");
+
+  memcpy (p, cp, size);
   *hdrstart = p;
   *hdrsize = size;
 }

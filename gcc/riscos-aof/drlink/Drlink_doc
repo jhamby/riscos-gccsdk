@@ -1133,22 +1133,12 @@ Drlink 0.33
 -  Increased the maximum length filename that the linker will
    handle to 500 characters.
 
- 
+[...]
+
+Drlink 0.41
+- Support big-endian platforms (like Mac OS X).  This does not
+  mean support for big-endian AOF/ALF files.
   
-Future Developments
-~~~~~~~~~~~~~~~~~~~
-At the moment, the items on my 'wish list' for Drlink are, in no
-particular order:
-
-1)  Add full support for AOF V3.
-2)  Improve the C++ support by printing de-mangled C++ function
-    and variable names.
-3)  Make it run faster.
-4)  Improve the memory management.
-
-Any other suggestions people have will be gratefully received.
-
-
 
 Copyright
 ~~~~~~~~~

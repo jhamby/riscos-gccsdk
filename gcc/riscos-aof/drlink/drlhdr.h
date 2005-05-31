@@ -27,14 +27,13 @@
 /* First, say which environment the program is being compiled to run under */
 
 #ifndef CROSS_COMPILE
-#define TARGET_RISCOS
-#define IGNORE_CASE
+# define IGNORE_CASE
 #endif
 
-#ifdef TARGET_RISCOS
-#define DL_VERSION "0.40  06/02/2005"
+#ifndef CROSS_COMPILE
+# define DL_VERSION "0.41  31/05/2005"
 #else
-#define DL_VERSION "0.4.0  06/02/2005  [GCCSDK build]"
+# define DL_VERSION "0.4.1  31/05/2005  [GCCSDK build]"
 #endif
 
 /*
@@ -43,8 +42,6 @@
 
 #define FALSE 0
 #define TRUE 1
-#define NIL 0
-#define NULLCHAR 0
 #define COERCE(x,t) ((t)(void *)(x))
 
 #define FNAMELEN 500		/* Maximum filename length */
@@ -62,9 +59,13 @@
 #define ALIGNSIZE (sizeof(int))
 #define ALIGNMASK (-ALIGNSIZE)
 
-typedef enum
-{				/* Linker states */
-  STARTING, READ_AOF, AOF_SEARCH, LIB_SEARCH, RELOCATE, CREATE_IMAGE
+typedef enum {	/* Linker states */
+  STARTING,
+  READ_AOF,
+  AOF_SEARCH,
+  LIB_SEARCH,
+  RELOCATE,
+  CREATE_IMAGE
 } linker_state;
 
 typedef char bool;

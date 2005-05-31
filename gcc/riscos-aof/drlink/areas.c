@@ -36,9 +36,9 @@
 #include "chunkhdr.h"
 #include "procdefs.h"
 
-#ifdef TARGET_RISCOS
-#include <kernel.h>
-#include <swis.h>
+#ifndef CROSS_COMPILE
+# include <kernel.h>
+# include <swis.h>
 #endif
 
 /* Variables referenced from other files */
@@ -60,6 +60,8 @@ unsigned int workspace,		/* Size of relocatable image workspace */
 
 arealist *entryarea;		/* Pointer to area containing entry point */
 unsigned int entryoffset;	/* Offset within area of entry point */
+
+symtentry *symtbase;		/* Address of current OBJ_SYMT chunk */
 
 /* Private declarations */
 
@@ -103,10 +105,10 @@ typedef struct areasrchlist
 #define RELOCSIZE 8		/* Size of a relocation entry in bytes in OBJ_AREA chunk */
 #define ABSBASE 0x8000		/* Address of start of program code when loaded */
 
-#ifdef TARGET_RISCOS
-#define DEFAULTSIZE 0x8000	/* Default page size (32K to allow for pre-RiscPC machines) */
+#ifndef CROSS_COMPILE
+# define DEFAULTSIZE 0x8000	/* Default page size (32K to allow for pre-RiscPC machines) */
 #else
-#define DEFAULTSIZE 0x1000	/* Default page size (4K to confuse matters) */
+# define DEFAULTSIZE 0x1000	/* Default page size (4K to confuse matters) */
 #endif
 
 /* The following constants are all used in the relocation code */
@@ -249,7 +251,7 @@ check_commondef (filelist * fp, areaentry * aep, unsigned int atattr)
   int hashval, count;
   unsigned int *p1, *p2;
 
-  nameptr = strtbase + aep->areaname;
+  nameptr = fp->obj.strtptr + aep->areaname;
   hashval = hash (nameptr);
 
   if ((atattr & ATT_CODE) != 0)
@@ -261,7 +263,7 @@ check_commondef (filelist * fp, areaentry * aep, unsigned int atattr)
       ap = ((atattr & ATT_RDONLY) != 0 ? rodatalist : rwdatalist);
     }
 
-  while (ap != NIL /* && hashval != ap->arhash */ )
+  while (ap != NULL /* && hashval != ap->arhash */ )
     {
       int compres = strcmp (nameptr, ap->arname);
 
@@ -273,15 +275,15 @@ check_commondef (filelist * fp, areaentry * aep, unsigned int atattr)
 	ap = ap->left;
     }
 
-  if (ap == NIL)
-    return NIL;			/* Common block is unknown */
+  if (ap == NULL)
+    return NULL;		/* Common block is unknown */
 
   if (ap->aratattr != atattr)
     {				/* Known common area. Check attributes are the same */
       error
 	("Warning: Attributes of common area '%s' in '%s' conflict with those in '%s'",
 	 nameptr, fp->chfilename, ap->arfileptr->chfilename);
-      return NIL;		/* This area will be added to the area list as a normal area */
+      return NULL;		/* This area will be added to the area list as a normal area */
     }
 
   /* The GNU linkonce attribute allows us to combine multiple COMDEF
@@ -301,7 +303,7 @@ check_commondef (filelist * fp, areaentry * aep, unsigned int atattr)
 	  error
 	    ("Error: Size of common area '%s' in '%s' differs from definition in '%s' %s)",
 	     nameptr, fp->chfilename, ap->arfileptr->chfilename, buffer);
-	  return NIL;
+	  return NULL;
 	}
 
       /* Verify areas' contents are the same */
@@ -320,7 +322,7 @@ check_commondef (filelist * fp, areaentry * aep, unsigned int atattr)
 	  error
 	    ("Error: Contents of common area '%s' in '%s' differ from those in '%s'",
 	     nameptr, fp->chfilename, ap->arfileptr->chfilename);
-	  return NIL;
+	  return NULL;
 	}
     }
   return ap;
@@ -344,10 +346,11 @@ check_commonref (filelist * fp, areaentry * aep, unsigned int atattr)
   symbol *sp;
   arealist *ap;
   unsigned int newsize;
-  nameptr = strtbase + aep->areaname;
+
+  nameptr = fp->obj.strtptr + aep->areaname;
   sp = find_common (nameptr);
-  if (sp == NIL)
-    return NIL;			/* Symbol not in table - Unknown common block */
+  if (sp == NULL)
+    return NULL;		/* Symbol not in table - Unknown common block */
   ap = sp->symtptr->symtarea.areaptr;
   newsize = aep->arsize;
   if ((atattr & ATT_COMDEF) != 0)
@@ -400,7 +403,7 @@ static char *
 make_name (const char *s1, const char *s2)
 {
   char *p;
-  if ((p = allocmem (strlen (s1) + strlen (s2) + sizeof (char))) == NIL)
+  if ((p = allocmem (strlen (s1) + strlen (s2) + sizeof (char))) == NULL)
     {
       error ("Fatal: Out of memory in 'make_name'");
     }
@@ -508,13 +511,13 @@ insert_area (arealist ** list, arealist ** lastentry, arealist * newarea)
   const char *name;
   arealimits *lp;
 
-  lastarea = NIL;
+  lastarea = NULL;
   name = newarea->arname;
   compres = 1;
 
   ap = *list;
 
-  while (ap != NIL)
+  while (ap != NULL)
     {
       lastarea = ap;
       compres = strcmp (name, ap->arname);
@@ -525,18 +528,14 @@ insert_area (arealist ** list, arealist ** lastentry, arealist * newarea)
 	ap = ap->left;		/* Areas with the same name are put to the left */
     }
 
-  if (lastarea == NIL)
-    {
-      *list = newarea;
-
-    }
+  if (lastarea == NULL)
+    *list = newarea;
   else
     {
       if (compres > 0)
 	lastarea->right = newarea;
       else
 	lastarea->left = newarea;
-
     }
 
   if (compres == 0)
@@ -563,52 +562,37 @@ insert_area (arealist ** list, arealist ** lastentry, arealist * newarea)
       lastarea->arbase->arlast = newarea;
     }
   else
-    {				/* New area name. Add to base/limit list and symbol table */
+    {	/* New area name. Add to base/limit list and symbol table */
       newarea->arbase = newarea;
       lp = allocmem (sizeof (arealimits));
-      if (lp == NIL)
-	{
-	  error
-	    ("Fatal: Out of memory in 'insert_area' handling area '%s' in file '%s'",
-	     name, newarea->arfileptr->chfilename);
-	}
+      if (lp == NULL)
+	error ("Fatal: Out of memory in 'insert_area' handling area '%s' in file '%s'",
+	       name, newarea->arfileptr->chfilename);
+
+      arealimits **insert;
+
+      lp->areaname = name;
+      lp->areahash = hash (name);
+      if (imagetype != AOF)
+        {
+          lp->areabase = make_symbol (make_name (name, "$$Base"), SYM_GLOBAL)->symtptr;
+          lp->arealimit = make_symbol (make_name (name, "$$Limit"), SYM_GLOBAL)->symtptr;
+        }
       else
-	{
-	  arealimits **insert;
+        {	/* Do not want base/limit pair when creating AOF file */
+          lp->areabase = lp->arealimit = NULL;
+        }
+      lp->left = lp->right = NULL;
 
-	  lp->areaname = name;
-	  lp->areahash = hash (name);
-	  if (imagetype != AOF)
-	    {
-	      lp->areabase =
-		make_symbol (make_name (name, "$$Base"), SYM_GLOBAL)->symtptr;
-	      lp->arealimit =
-		make_symbol (make_name (name, "$$Limit"),
-			     SYM_GLOBAL)->symtptr;
-	    }
-	  else
-	    {			/* Do not want base/limit pair when creating AOF file */
-	      lp->areabase = lp->arealimit = NIL;
-	    }
-	  lp->left = lp->right = NIL;
+      insert = &arlimlist;
 
-	  insert = &arlimlist;
+      while (*insert)
+        {
+          int compval = strcmp (name, (*insert)->areaname);
 
-	  while (*insert)
-	    {
-	      int compval = strcmp (name, (*insert)->areaname);
-
-	      if (compval > 0)
-		{
-		  insert = &(*insert)->right;
-		}
-	      else
-		{
-		  insert = &(*insert)->left;
-		}
-	    }
-	  *insert = lp;
-	}
+          insert = (compval > 0) ? &(*insert)->right : &(*insert)->left;
+        }
+      *insert = lp;
     }
 }
 
@@ -636,9 +620,9 @@ add_newarea (filelist * fp, areaentry * aep, unsigned int atattr,
   arealist *ap;
   symtentry *sp;
 
-  ap = areablock;		/* Take memory for entry from block allocated for all areas in file */
+  ap = areablock;	/* Take memory for entry from block allocated for all areas in file */
   areablock++;
-  ap->arname = strtbase + aep->areaname;
+  ap->arname = fp->obj.strtptr + aep->areaname;
   ap->arhash = hash (ap->arname);
   ap->arfileptr = fp;
   ap->aratattr = atattr;
@@ -653,27 +637,17 @@ add_newarea (filelist * fp, areaentry * aep, unsigned int atattr,
   thisarea =
     COERCE (COERCE (thisarea, char *) + aep->arelocs * RELOCSIZE,
 	    unsigned int *);
-  if (!opt_nounused || keep_area (ap))
-    {
-      ap->arefcount = 1;
-    }
-  else
-    {
-      ap->arefcount = 0;
-    }
-  ap->areflist = NIL;
-  if (aofv3flag && (atattr & ATT_ABSOL) != 0)
-    {				/* AOF 3 absolute address area */
-      ap->arplace = aep->arlast.araddress;
-    }
-  else
-    {
-      ap->arplace = 0;
-    }
+  ap->arefcount = (!opt_nounused || keep_area (ap)) ? 1 : 0;
 
-  ap->arsymbol = NIL;
-  ap->left = ap->right = NIL;
-  ap->arlast = NIL;
+  ap->areflist = NULL;
+  if (aofv3flag && (atattr & ATT_ABSOL) != 0)
+    ap->arplace = aep->arlast.araddress;	/* AOF 3 absolute address area */
+  else
+    ap->arplace = 0;
+
+  ap->arsymbol = NULL;
+  ap->left = ap->right = NULL;
+  ap->arlast = NULL;
   if ((atattr & ATT_SYMBOL) != 0)
     {				/* Debugging info area */
       ap->arefcount = 1;	/* Debug areas are never deleted */
@@ -685,13 +659,9 @@ add_newarea (filelist * fp, areaentry * aep, unsigned int atattr,
       got_32bitapcs = got_32bitapcs || ((atattr & ATT_32BIT) != 0);
       got_26bitapcs = got_26bitapcs || ((atattr & ATT_32BIT) == 0);
       if ((atattr & ATT_RDONLY) != 0)
-	{
-	  insert_area (&rocodelist, &rocodelast, ap);
-	}
+	insert_area (&rocodelist, &rocodelast, ap);
       else
-	{
-	  insert_area (&rwcodelist, &rwcodelast, ap);
-	}
+	insert_area (&rwcodelist, &rwcodelast, ap);
     }
   else if ((atattr & ATT_COMMON) != 0
 	   || ((atattr & ATT_COMDEF) != 0 && (atattr & ATT_NOINIT) != 0))
@@ -706,22 +676,16 @@ add_newarea (filelist * fp, areaentry * aep, unsigned int atattr,
       insert_area (&zidatalist, &zidatalast, ap);
     }
   else if ((atattr & ATT_RDONLY) != 0)
-    {				/* Data area with R/O bit set */
-      insert_area (&rodatalist, &rodatalast, ap);
-    }
+    insert_area (&rodatalist, &rodatalast, ap);	/* Data area with R/O bit set */
   else if ((atattr & ATT_NOINIT) == 0)
-    {				/* Data with R/O and 'zeroinit' bits clear */
-      insert_area (&rwdatalist, &rwdatalast, ap);
-    }
+    insert_area (&rwdatalist, &rwdatalast, ap);	/* Data with R/O and 'zeroinit' bits clear */
   else if ((atattr & ATT_NOINIT) != 0)
-    {				/* Data with 'zeroinit' bit set */
-      insert_area (&zidatalist, &zidatalast, ap);
-    }
+    insert_area (&zidatalist, &zidatalast, ap);	/* Data with 'zeroinit' bit set */
   else
     {
       error ("Error: Illegal 'area' attribute value 0x%06x found in '%s'",
 	     atattr, fp->chfilename);
-      return NIL;
+      return NULL;
     }
 
   if (!gotcodearea && (atattr & ATT_CODE) != 0)
@@ -742,23 +706,23 @@ add_commonarea (const char *name, unsigned int size)
 {
   arealist *ap;
   ap = allocmem (sizeof (arealist));
-  if (ap == NIL)
+  if (ap == NULL)
     error ("Fatal: Out of memory in 'add_commonarea'");
   ap->arname = name;
   ap->arhash = hash (name);
-  ap->left = ap->right = NIL;
+  ap->left = ap->right = NULL;
   ap->arfileptr = current_file;
   ap->aratattr = ATT_COMMON | ATT_NOINIT;
   ap->aralign = DEFALIGN;
   ap->arobjsize = size;
-  ap->arobjdata = NIL;
-  ap->areldata = NIL;
+  ap->arobjdata = NULL;
+  ap->areldata = NULL;
   ap->arnumrelocs = 0;
-  ap->arefcount = (opt_nounused ? 0 : 1);
-  ap->areflist = NIL;
+  ap->arefcount = (opt_nounused) ? 0 : 1;
+  ap->areflist = NULL;
   ap->arplace = 0;
-  ap->arsymbol = NIL;
-  ap->arlast = NIL;
+  ap->arsymbol = NULL;
+  ap->arlast = NULL;
   return ap;
 }
 
@@ -779,7 +743,7 @@ make_commonarea (symbol * sp)
   stp = sp->symtptr;
   size = stp->symtvalue;
   cbsp = search_common (sp);
-  if (cbsp == NIL)
+  if (cbsp == NULL)
     {				/* Common block is not known */
       ap = add_commonarea (stp->symtname, size);
       ap->arsymbol = make_symbol (ap->arname, SYM_COMMON);
@@ -821,7 +785,7 @@ add_srchlist (arealist * ap)
 {
   int hashval;
   areasrchlist *sp;
-  if ((sp = allocmem (sizeof (areasrchlist))) == NIL)
+  if ((sp = allocmem (sizeof (areasrchlist))) == NULL)
     {
       error ("Fatal: Out of memory in 'add_srchlist'");
     }
@@ -843,7 +807,7 @@ free_srchlist (void)
   for (i = 0; i < MAXSRCH; i++)
     {
       sp = areatable[i];
-      while (sp != NIL)
+      while (sp != NULL)
 	{
 	  nextsp = sp->srcflink;
 	  freemem (sp, sizeof (areasrchlist));
@@ -883,10 +847,9 @@ scan_head (filelist * fp)
   bool ok;
 
   for (count = 0; count < MAXSRCH; count++)
-    areatable[count] = NIL;
+    areatable[count] = NULL;
   current_file = fp;
-  ok = TRUE;
-  ahp = fp->objheadptr;
+  ahp = fp->obj.headptr;
   if (ahp->areaheader.oftype != OBJFILETYPE)
     {
       error ("Error: '%s' does not appear to be an AOF file (type=%x)",
@@ -904,7 +867,7 @@ scan_head (filelist * fp)
       return FALSE;
     }
   count = ahp->areaheader.numareas;
-  if (sizeof (aofheader) + count * sizeof (areaentry) > fp->objheadsize)
+  if (sizeof (aofheader) + count * sizeof (areaentry) > fp->obj.headsize)
     {
       error
 	("Error: Area count in 'OBJ_HEAD' chunk in '%s' is too large. Is file corrupt?",
@@ -917,20 +880,21 @@ scan_head (filelist * fp)
   entryareanum = ahp->areaheader.eparea - 1;	/* -1 as 'areaco' goes from 0, not 1 */
   if (entryareanum >= 0)
     entryoffset = ahp->areaheader.epoffset;
+
   ok = TRUE;
   totalsize = 0;
-  firstarea = NIL;
-  thisarea = fp->objareaptr;
-  areasize = fp->objareasize;
-  strtsize = fp->objstrtsize;
+  firstarea = NULL;
+  thisarea = fp->obj.areaptr;
+  areasize = fp->obj.areasize;
+  strtsize = fp->obj.strtsize;
   aep = &ahp->firstarea;
   headend = aep + count;
-  areablock = allocmem (count * sizeof (arealist));	/* Allocate block to hold arealist entries for file */
-  if (areablock == NIL)
+  /* Allocate block to hold arealist entries for file */
+  if ((areablock = allocmem (count * sizeof (arealist))) == NULL)
     error ("Fatal: Out of memory in 'scan_head' reading '%s'",
 	   fp->chfilename);
 
-  for (areaco = 0; areaco < count && ok; areaco++)
+  for (areaco = 0; areaco < count && ok; ++areaco, ++aep)
     {
       if (aep->areaname > strtsize)
 	{
@@ -1021,7 +985,7 @@ scan_head (filelist * fp)
 
       if (ok)
 	{
-	  ap = NIL;
+	  ap = NULL;
 	  if ((atattr & ATT_COMMON) != 0
 	      || atattr == (ATT_COMDEF | ATT_NOINIT))
 	    {			/* Extra checks for common blocks */
@@ -1030,7 +994,7 @@ scan_head (filelist * fp)
 	  else if ((atattr & ATT_COMDEF) != 0)
 	    {			/* Common definition with code or data */
 	      ap = check_commondef (fp, aep, atattr);
-	      if (ap != NIL)
+	      if (ap != NULL)
 		{		/* Known common area: free storage used by new version */
 		  add_srchlist (ap);
 		  freemem (thisarea, aep->arsize + aep->arelocs * RELOCSIZE);
@@ -1039,12 +1003,12 @@ scan_head (filelist * fp)
 			    aep->arelocs * RELOCSIZE, unsigned int *);
 		}
 	    }
-	  if (ap == NIL)
+	  if (ap == NULL)
 	    {			/* Not a known common block or new area found */
 	      if ((atattr & ATT_SYMBOL) == 0 || fp->keepdebug)
 		{		/* Area or new common block */
 		  ap = add_newarea (fp, aep, atattr, alattr);
-		  ok = ap != NIL;
+		  ok = ap != NULL;
 		}
 	      else
 		{		/* Debug info when info not needed */
@@ -1056,31 +1020,21 @@ scan_head (filelist * fp)
 	    }
 	}
 
-      if (ap != NIL)
+      if (ap != NULL)
 	{
 	  aep->arlast.arlptr = ap;
 	  add_srchlist (ap);
-	  if (firstarea == NIL)
+	  if (firstarea == NULL)
 	    firstarea = ap;
 	}
       if (areaco == entryareanum)
 	{
-	  if (entryarea != NIL)
-	    {
-	      error ("Error: Program has multiple entry points");
-	    }
-	  else
-	    {
-	      if ((atattr & ATT_CODE) == 0)
-		{
-		  error
-		    ("Warning: Entry point for program in '%s' is in a data area, not code",
-		     fp->chfilename);
-		}
-	      entryarea = ap;
-	    }
+	  if (entryarea != NULL)
+	    error ("Error: Program has multiple entry points");
+	  else if ((atattr & ATT_CODE) == 0)
+	    error ("Warning: Entry point for program in '%s' is in a data area, not code", fp->chfilename);
+	  entryarea = ap;
 	}
-      aep++;
     }
 
   return ok;
@@ -1143,30 +1097,30 @@ check_strongrefs (filelist * fp)
   symbol *sp;
   unsigned int refcount, i, j, reltype;
   refcount = 0;
-  ap = &fp->objheadptr->firstarea;
-  rp = COERCE (fp->objareaptr, relocation *);
+  ap = &fp->obj.headptr->firstarea;
+  rp = COERCE (fp->obj.areaptr, relocation *);
   for (i = 1; i <= fp->areacount; i++)
     {
       rp = COERCE (COERCE (rp, char *) + ap->arsize, relocation *);	/* Point at start of relocations */
       for (j = 1; j <= ap->arelocs; j++)
 	{
 	  reltype = rp->reltypesym;
-	  stp = NIL;
+	  stp = NULL;
 	  if ((reltype & REL_TYPE2) == 0)
 	    {			/* Got a type-1 relocation */
 	      if ((get_type1_type (reltype) & (REL_SYM | REL_PC)) != 0)
 		{		/* Symbol relocation */
-		  stp = fp->objsymtptr + (get_type1_index (reltype));
+		  stp = fp->obj.symtptr + get_type1_index (reltype);
 		}
 	    }
 	  else
 	    {
 	      if ((get_type2_type (reltype) & REL_SYM) != 0)
 		{
-		  stp = fp->objsymtptr + (get_type2_index (reltype));
+		  stp = fp->obj.symtptr + get_type2_index (reltype);
 		}
 	    }
-	  if (stp != NIL && (stp->symtattr & SYM_STRONGDEF) == SYM_STRONGDEF)
+	  if (stp != NULL && (stp->symtattr & SYM_STRONGDEF) == SYM_STRONGDEF)
 	    {
 	      refcount++;
 	      sp = create_externref (stp);
@@ -1180,7 +1134,7 @@ check_strongrefs (filelist * fp)
 /*
 ** 'find_area' is called to locate the area in which the area name 'np' is
 ** located. It returns a pointer to the 'arealist' entry of that area or
-** 'NIL' if it cannot find the area
+** 'NULL' if it cannot find the area
 */
 arealist *
 find_area (const char *np)
@@ -1190,10 +1144,10 @@ find_area (const char *np)
   int hashval;
   hashval = hash (np);
   sp = areatable[hashval & SRCHMASK];
-  while (sp != NIL
+  while (sp != NULL
 	 && (hashval != sp->srchash || strcmp (sp->srcarea->arname, np) != 0))
     sp = sp->srcflink;
-  if (sp != NIL)
+  if (sp != NULL)
     {
       ap = sp->srcarea;
     }
@@ -1203,7 +1157,7 @@ find_area (const char *np)
 	error
 	  ("Warning: Found reference to non-existent area '%s'. Default used",
 	   np);
-      ap = NIL;
+      ap = NULL;
     }
   return ap;
 }
@@ -1216,7 +1170,7 @@ static arealist *
 get_area (unsigned int index)
 {
   areaentry *temp;
-  temp = &current_file->objheadptr->firstarea;
+  temp = &current_file->obj.headptr->firstarea;
   return (temp + index)->arlast.arlptr;
 }
 
@@ -1231,13 +1185,13 @@ static void
 decr_refcount (arearef * rp)
 {
 
-  while (rp != NIL)
+  while (rp != NULL)
     {
       arealist *ap = rp->arefarea;
       if ((ap->arefcount -= rp->arefcount) == 0)
 	{
 	  decr_refcount (ap->areflist);
-	  ap->areflist = NIL;	/* So that mark_unused does not do them again */
+	  ap->areflist = NULL;	/* So that mark_unused does not do them again */
 	}
       rp = rp->arefnext;
     }
@@ -1251,7 +1205,7 @@ static void
 mark_unused (arealist * ap)
 {
 
-  if (ap != NIL)
+  if (ap != NULL)
     {
       mark_unused (ap->left);
 
@@ -1259,7 +1213,7 @@ mark_unused (arealist * ap)
 	{
 	  unused++;
 	  decr_refcount (ap->areflist);
-	  ap->areflist = NIL;
+	  ap->areflist = NULL;
 	}
 
       mark_unused (ap->right);
@@ -1279,18 +1233,18 @@ add_arearef (arealist * fromarea, arealist * toarea)
   if (fromarea != toarea)
     {				/* Don't want refs to this area */
       rp = fromarea->areflist;
-      while (rp != NIL && rp->arefarea != toarea)
+      while (rp != NULL && rp->arefarea != toarea)
 	{			/* First ref to this area? */
 	  rp = rp->arefnext;
 	}
-      if (rp != NIL)
+      if (rp != NULL)
 	{			/* Already seen this area */
 	  rp->arefcount += 1;
 	}
       else
 	{			/* new area ref */
 	  rp = allocmem (sizeof (arearef));
-	  if (rp == NIL)
+	  if (rp == NULL)
 	    {
 	      error ("Fatal: Out of memory in 'add_arearef'");
 	    }
@@ -1316,19 +1270,16 @@ static void
 add_symref (arealist * fromarea, int symtindex)
 {
   symtentry *sp;
+
   sp = symtbase + symtindex;
   if ((sp->symtattr & (SYM_WEAKREF | SYM_DEFN)) == 0)
-    {				/* Was an external ref */
-      sp = sp->symtarea.symdefptr;
-    }
+    sp = sp->symtarea.symdefptr;	/* Was an external ref */
   else if ((sp->symtattr & SYM_STRONGDEF) == SYM_STRONGDEF)
-    {				/* Direct reference to strong symbol */
-      sp = find_nonstrong (sp);
-    }
+    sp = find_nonstrong (sp);	/* Direct reference to strong symbol */
+
   if ((sp->symtattr & (SYM_LINKDEF | SYM_ABSVAL | SYM_WEAKREF)) != 0)
-    {				/* Symbol is absolute, predefined or weak external */
-      return;
-    }
+    return;		/* Symbol is absolute, predefined or weak external */
+
   add_arearef (fromarea, sp->symtarea.areaptr);
 }
 
@@ -1352,7 +1303,7 @@ find_arearefs (arealist * ap)
 {
   relocation *rp;
 
-  if (ap != NIL)
+  if (ap != NULL)
     {
       int n, numrelocs = ap->arnumrelocs;
 
@@ -1361,7 +1312,7 @@ find_arearefs (arealist * ap)
       if (numrelocs != 0)
 	{
 	  current_file = ap->arfileptr;
-	  symtbase = ap->arfileptr->objsymtptr;
+	  symtbase = ap->arfileptr->obj.symtptr;
 	  symbolcount = ap->arfileptr->symtcount;
 	  rp = ap->areldata;
 
@@ -1448,7 +1399,7 @@ fillin_limits (arealist * firstarea, arealist * lastarea)
   name = firstarea->arname;
   p = arlimlist;
 
-  while (p != NIL)
+  while (p != NULL)
     {
       int compval = strcmp (name, p->areaname);
 
@@ -1464,7 +1415,7 @@ fillin_limits (arealist * firstarea, arealist * lastarea)
 	}
     }
 
-  if (p == NIL)
+  if (p == NULL)
     error ("Fatal: Possible linker error in 'fillin_limits'");
   p->areabase->symtarea.areaptr = firstarea;
   p->areabase->symtvalue = firstarea->arplace;
@@ -1488,23 +1439,23 @@ align_page (void)
   arealist *rolist, *lastarea;
   int pagesize;
   unsigned int padding;
-#ifdef TARGET_RISCOS
+#ifndef CROSS_COMPILE
   _kernel_oserror *swierror;
   _kernel_swi_regs regs;
 #endif
-  rolist = (rodatalist != NIL ? rodatalist : rocodelist);
-  if (rolist == NIL)
+  rolist = (rodatalist != NULL ? rodatalist : rocodelist);
+  if (rolist == NULL)
     return;			/* No read-only areas to protect */
-  lastarea = NIL;
+  lastarea = NULL;
   do
     {
       lastarea = rolist;
       rolist = rolist->right;
     }
-  while (rolist != NIL);
-#ifdef TARGET_RISCOS
+  while (rolist != NULL);
+#ifndef CROSS_COMPILE
   swierror = _kernel_swi (OS_ReadMemMapInfo, &regs, &regs);
-  if (swierror == NIL)
+  if (swierror == NULL)
     {
       pagesize = regs.r[0];	/* Page size is returned by SWI in R0 */
     }
@@ -1538,13 +1489,13 @@ calc_place_tree (arealist * p, arealist ** firstarea, arealist ** lastarea,
 {
   unsigned int align;
 
-  if (p != NIL)
+  if (p != NULL)
     {
       calc_place_tree (p->left, firstarea, lastarea, lastbase);
 
       if (p->arefcount > 0)
 	{
-	  if (*firstarea == NIL)
+	  if (*firstarea == NULL)
 	    {			/* First ref to this area name */
 	      *firstarea = *lastarea = p;
 	      *lastbase = p->arbase;
@@ -1563,7 +1514,7 @@ calc_place_tree (arealist * p, arealist ** firstarea, arealist ** lastarea,
 	  align = (1 << p->aralign) - 1;	/* Align area address as necessary */
 	  areapc = (areapc + align) & ~align;
 	  p->arplace = areapc;
-	  if (p->arsymbol != NIL)
+	  if (p->arsymbol != NULL)
 	    define_symbol (p->arsymbol, areapc);
 	  areapc += p->arobjsize;
 	}
@@ -1579,11 +1530,11 @@ calc_place (arealist * p)
   arealist * firstarea,		/* Points to first area with name 'x' */
     *lastarea,			/* Points to last area with name 'x' */
     *lastbase;
-  firstarea = lastarea = lastbase = NIL;
+  firstarea = lastarea = lastbase = NULL;
 
   calc_place_tree (p, &firstarea, &lastarea, &lastbase);
 
-  if (firstarea != NIL)
+  if (firstarea != NULL)
     fillin_limits (firstarea, lastarea);
 }
 
@@ -1599,24 +1550,16 @@ relocate_areas (void)
   segtype wantedtype;
 
   if (opt_codebase)
-    {				/* Non-standard base-of-code used */
-      progbase = baseaddr = codebase;
-    }
+    progbase = baseaddr = codebase;	/* Non-standard base-of-code used */
   else
-    {
-      progbase = baseaddr = ABSBASE;
-    }
+    progbase = baseaddr = ABSBASE;
   headersize = 0;
   if (!noheader)
     {				/* Executable image has a header on it */
       if (imagetype == BIN)
-	{
-	  wantedtype = HDR_BIN;
-	}
+	wantedtype = HDR_BIN;
       else
-	{			/* AIF or relocatable AIF */
-	  wantedtype = HDR_AIF;
-	}
+	wantedtype = HDR_AIF;	/* AIF or relocatable AIF */
       get_hdrcode (wantedtype, &headercode, &headersize);
     }
   areatop = initpc = areapc = baseaddr + headersize;
@@ -1632,15 +1575,12 @@ relocate_areas (void)
   if (opt_database)
     {				/* Non-standard base-of-data used */
       if (database >= initpc && database < areapc)
-	{
-	  error
-	    ("Warning: Read/write code && data areas overlap read only areas");
-	}
-      if (rwcodelist != NIL || rwdatalist != NIL)
-	{
-	  error
-	    ("Warning: Image file contains code or constant data in read/write area and option '-data' has been used");
-	}
+	error
+	  ("Warning: Read/write code && data areas overlap read only areas");
+
+      if (rwcodelist != NULL || rwdatalist != NULL)
+	error
+	  ("Warning: Image file contains code or constant data in read/write area and option '-data' has been used");
       areapc = database;
     }
   define_symbol (image_rwbase, areapc);
@@ -1707,13 +1647,9 @@ fixup_adr (unsigned int *relplace, int inscount, unsigned int relvalue,
   do
     {				/* Extract the encoded offset */
       if ((inst & IN_ADDSUB) == INST_ADD)
-	{
-	  addr += decode_armconst (inst);
-	}
+	addr += decode_armconst (inst);
       else
-	{
-	  addr -= decode_armconst (inst);
-	}
+	addr -= decode_armconst (inst);
       relplace++;
       inst = *relplace;
       inscount -= 1;
@@ -1772,13 +1708,9 @@ fixup_additive (unsigned int *relplace, unsigned int reltype,
 	{			/* Byte relocation */
 	  data = *(COERCE (relplace, char *)) + relvalue;
 	  if (data > BYTEHIGH)
-	    {
-	      flag_badreloc (relplace, "Byte", sp);
-	    }
+	    flag_badreloc (relplace, "Byte", sp);
 	  else
-	    {
-	      *(COERCE (relplace, char *)) = data;
-	    }
+	    *(COERCE (relplace, char *)) = data;
 	}
       else
 	{			/* Half word  relocation */
@@ -1786,9 +1718,7 @@ fixup_additive (unsigned int *relplace, unsigned int reltype,
 	    *(COERCE (relplace, char *)) +
 	    (*(COERCE (relplace, char *) + 1) << 8) + relvalue;
 	  if (data > HALFHIGH)
-	    {
-	      flag_badreloc (relplace, "Halfword", sp);
-	    }
+	    flag_badreloc (relplace, "Halfword", sp);
 	  else
 	    {
 	      *(COERCE (relplace, char *)) = data & 0xFF;
@@ -1809,14 +1739,10 @@ fixup_additive (unsigned int *relplace, unsigned int reltype,
 	    addr = -addr;
 	  addr = addr + relvalue;
 	  if (addr <= -MAX_OFFSET || addr >= MAX_OFFSET)
-	    {
-	      flag_badreloc (relplace, "LDR/STR", sp);
-	    }
+	    flag_badreloc (relplace, "LDR/STR", sp);
 	  else
-	    {
-	      *relplace =
+	    *relplace =
 		(inst & LDST_MASK) | (addr < 0 ? -addr : addr | IN_POSOFF);
-	    }
 	}
       else if ((inst & INSTMASK) == IN_DATAPRO)
 	{			/* Data processing instruction */
@@ -1850,15 +1776,12 @@ fixup_pcrelative (unsigned int *relplace, reloctype reltype, int relvalue,
       addr = extend24 (inst) << 2;	/* Get address in inst, sign extend & convert to bytes */
       if (reltype == TYPE_1)
 	{
-	  addr =
-	    addr + relvalue - current_area->arplace -
+	  addr += relvalue - current_area->arplace -
 	    (COERCE (relplace, char *) - COERCE (areastart, char *)) -
 	    PCMODIFIER;
 	}
       else
-	{
-	  addr = addr + relvalue - current_area->arplace;
-	}
+	addr += relvalue - current_area->arplace;
       *relplace = (inst & BR_MASK) | ((addr >> 2) & BROFF_MASK);
     }
   else if ((inst & INSTMASK) == IN_LDRSTR)
@@ -1868,9 +1791,7 @@ fixup_pcrelative (unsigned int *relplace, reloctype reltype, int relvalue,
 	addr = -addr;
       addr = addr + relvalue - current_area->arplace;
       if (addr <= -MAX_OFFSET || addr >= MAX_OFFSET)
-	{
-	  flag_badreloc (relplace, "PC relative", sp);
-	}
+	flag_badreloc (relplace, "PC relative", sp);
       else
 	{
 	  *relplace =
@@ -1914,20 +1835,18 @@ fixup_type1 (unsigned int reltypesym, unsigned int *relplace)
       else if ((sp->symtattr & (SYM_WEAKREF | SYM_ABSVAL)) != 0)	/* Weak external ref or absolute */
 	relvalue = 0;
       else
-	{			/* Ref to defined external */
-	  relvalue = sp->symtarea.symdefptr->symtvalue;
-	}
+	relvalue = sp->symtarea.symdefptr->symtvalue;	/* Ref to defined external */
     }
   else
-    {				/* Internal, that is, relative to this area, relocation */
+    {	/* Internal, that is, relative to this area, relocation */
       relvalue = current_area->arplace;
     }
   if ((reltype & REL_PC) != 0)
-    {				/* PC-relative relocation */
+    {	/* PC-relative relocation */
       fixup_pcrelative (relplace, TYPE_1, relvalue, sp);
     }
   else
-    {				/* Additive relocation */
+    {	/* Additive relocation */
       fixup_additive (relplace, reltype, relvalue, sp);
     }
 }
@@ -1961,13 +1880,9 @@ fixup_type2 (unsigned int reltypesym, unsigned int *relplace)
 	  relvalue = sp->symtvalue;
 	}
       else if ((sp->symtattr & (SYM_WEAKREF | SYM_ABSVAL)) != 0)
-	{			/* Weak external ref or absolute */
-	  relvalue = 0;
-	}
+	relvalue = 0;	/* Weak external ref or absolute */
       else
-	{			/* Ref to defined external */
-	  relvalue = sp->symtarea.symdefptr->symtvalue;
-	}
+	relvalue = sp->symtarea.symdefptr->symtvalue;	/* Ref to defined external */
     }
   else
     {				/* Internal, that is, relative to some area, relocation */
@@ -2012,9 +1927,6 @@ fixup_type2 (unsigned int reltypesym, unsigned int *relplace)
 	   *  function's inter-link-unit entry point is the same as its
 	   *  intra-link-unit entry point.
 	   */
-	  printf
-	    ("PC-relative and based in area '%s' in '%s' to offset &%x\n",
-	     current_area->arname, current_file->chfilename, relvalue);
 	  if ((reltype & REL_SYM) == 0)
 	    {
 	      /* I don't know what to do if it's not symbol based; I can't look at
@@ -2060,13 +1972,9 @@ relocate_item (relocation * rp)
   relplace = COERCE (COERCE (areastart, char *) +offset, unsigned int *);
   relts = rp->reltypesym;
   if ((relts & REL_TYPE2) == 0)
-    {
-      fixup_type1 (relts, relplace);
-    }
+    fixup_type1 (relts, relplace);
   else
-    {
-      fixup_type2 (relts, relplace);
-    }
+    fixup_type2 (relts, relplace);
 }
 
 /*
@@ -2079,7 +1987,7 @@ relocate_arealist (arealist * ap)
   int n, numrelocs;
   relocation *rp;
 
-  if (ap != NIL)
+  if (ap != NULL)
     {
       relocate_arealist (ap->left);
 
@@ -2088,15 +1996,11 @@ relocate_arealist (arealist * ap)
 	  current_area = ap;
 	  current_file = ap->arfileptr;
 	  current_objsize = ap->arobjsize;
-	  symtbase = ap->arfileptr->objsymtptr;
+	  symtbase = ap->arfileptr->obj.symtptr;
 	  symbolcount = ap->arfileptr->symtcount;
 	  areastart = ap->arobjdata;
-	  rp = ap->areldata;
-	  for (n = 1; n <= numrelocs; n++)
-	    {
-	      relocate_item (rp);
-	      rp++;
-	    }
+	  for (n = 1, rp = ap->areldata; n <= numrelocs; ++n, ++rp)
+	    relocate_item (rp);
 	}
 
       relocate_arealist (ap->right);
@@ -2125,7 +2029,7 @@ relocate (void)
 void
 check_entryarea (void)
 {
-  if (entryarea == NIL)
+  if (entryarea == NULL)
     {				/* No entry point specified */
       entryarea = defaultarea;
       entryoffset = 0;
@@ -2157,7 +2061,7 @@ check_entryarea (void)
    */
   if (imagetype == BIN
       && (entryarea == rocodelist
-	  || (rodatalist == NIL && entryarea == rwcodelist))
+	  || (rodatalist == NULL && entryarea == rwcodelist))
       && entryoffset == 0)
     noheader = 1;
 }
@@ -2171,13 +2075,9 @@ fillin_header (void)
   unsigned int startaddr;
   startaddr = entryarea->arplace + entryoffset;
   if (imagetype == BIN)
-    {
-      setup_binhdr (headercode, startaddr);
-    }
+    setup_binhdr (headercode, startaddr);
   else
-    {
-      setup_aifhdr (headercode, startaddr);
-    }
+    setup_aifhdr (headercode, startaddr);
 }
 
 /*
@@ -2198,10 +2098,10 @@ fillin_header (void)
 ** smaller than the relocation data (relocations are eight bytes
 ** long and the table entries are four bytes).
 */
-#define WORDADDITIVE 0x00020000	/* Type-1 Word additive */
-#define RELMASK 0x00060000
+#define WORDADDITIVE   0x00020000	/* Type-1 Word additive */
+#define RELMASK        0x00060000
 #define T2WORDADDITIVE 0x82000000	/* Type-2 word additive */
-#define T2RELMASK 0x86000000
+#define T2RELMASK      0x86000000
 
 static void
 write_reloc (arealist * ap)
@@ -2212,23 +2112,23 @@ write_reloc (arealist * ap)
   numrelocs = ap->arnumrelocs;
   rp = ap->areldata;
   rip = COERCE (rp, unsigned int *);
+
   areaoffset = ap->arplace - progbase;
-  symtbase = ap->arfileptr->objsymtptr;
+  symtbase = ap->arfileptr->obj.symtptr;
   newsize = 0;
-  for (n = 1; n <= numrelocs; n++)
+  for (n = 1; n <= numrelocs; ++n, ++rp)
     {
       if (((rp->reltypesym & RELMASK) == WORDADDITIVE
 	   || (rp->reltypesym & T2RELMASK) == T2WORDADDITIVE)
 	  && isrelocatable (rp))
 	{
-	  *rip = areaoffset + rp->reloffset;
-	  rip++;
+	  *rip++ = areaoffset + rp->reloffset;
 	  newsize += sizeof (unsigned int);
 	}
-      rp++;
     }
   if (newsize != 0)
     {				/* Got some relocations */
+      convert_endian (ap->areldata, newsize / 4);
       write_image (ap->areldata, newsize);
     }
 }
@@ -2240,7 +2140,7 @@ write_reloc (arealist * ap)
 static void
 write_areareloc (arealist * ap)
 {
-  if (ap != NIL)
+  if (ap != NULL)
     {
       write_areareloc (ap->left);
       if (ap->arnumrelocs != 0)
@@ -2257,15 +2157,13 @@ static void
 write_relocinfo (void)
 {
   unsigned int *relocode;
-  unsigned int relocsize, relocend;
-  struct
-  {
-    unsigned int reloc_offset, robase_offset;
-  } lastbit;
-  get_hdrcode ((imagetype == RELOC ? HDR_RELOC : HDR_RMOD), &relocode,
+  unsigned int relocsize;
+
+  get_hdrcode ((imagetype == RELOC) ? HDR_RELOC : HDR_RMOD, &relocode,
 	       &relocsize);
   if (imagetype == RMOD)
     setup_modcode (relocode);
+  convert_endian (relocode, relocsize / 4);
   write_image (relocode, relocsize);
   write_areareloc (rocodelist);
   write_areareloc (rodatalist);
@@ -2273,14 +2171,20 @@ write_relocinfo (void)
   write_areareloc (rwdatalist);
   if (imagetype == RMOD)
     {				/* Write last two offsets required */
-      relocend =
+      struct
+      {
+	unsigned int reloc_offset, robase_offset;
+      } lastbit;
+      unsigned int relocend =
 	reloc_code->symtptr->symtvalue + relocsize -
 	2 * sizeof (unsigned int) - progbase;
       lastbit.reloc_offset = relocend;
       lastbit.robase_offset = relocend + sizeof (unsigned int);
+      convert_endian (&lastbit, sizeof (lastbit) / 4);
       write_image (&lastbit, sizeof (lastbit));
     }
   relocsize = 0xFFFFFFFF;	/* End marker */
+  // convert_endian() : not needed
   write_image (&relocsize, sizeof (unsigned int));
 }
 
@@ -2326,9 +2230,7 @@ alter_area_offset (relocation * rp)
 	    addr = -addr;
 	  addr = addr - current_area->arplace;	/* Subtract offset within 'super area' of area from inst offset */
 	  if (addr <= -MAX_OFFSET || addr >= MAX_OFFSET)
-	    {
-	      flag_badreloc (relplace, "Area Offset", NULL);
-	    }
+	    flag_badreloc (relplace, "Area Offset", NULL);
 	  else
 	    {
 	      *relplace =
@@ -2349,9 +2251,7 @@ alter_area_offset (relocation * rp)
 	}
     }
   else
-    {				/* Data */
-      *relplace = inst - current_area->arplace;
-    }
+    *relplace = inst - current_area->arplace;	/* Data */
 }
 
 /*
@@ -2378,15 +2278,11 @@ alter_type1_offset (relocation * rp)
       return FALSE;
     }
   relplace = COERCE (COERCE (areastart, char *) +offset, unsigned int *);
-  sp = symtbase + (get_type1_index (rp->reltypesym));
+  sp = symtbase + get_type1_index (rp->reltypesym);
   if ((sp->symtattr & SYM_DEFN) == 0)
-    {				/* Reference to another SYMT entry */
-      sp = sp->symtarea.symdefptr;
-    }
+    sp = sp->symtarea.symdefptr;	/* Reference to another SYMT entry */
   else if ((sp->symtattr & SYM_STRONGDEF) == SYM_STRONGDEF)
-    {				/* Direct reference to strong symbol */
-      sp = find_nonstrong (sp);
-    }
+    sp = find_nonstrong (sp);	/* Direct reference to strong symbol */
   addr = sp->symtvalue + (extend24 (*relplace) << 2);
   addr = addr - offset - current_area->arplace - PCMODIFIER;
   *relplace = (*relplace & BR_MASK) | ((addr >> 2) & BROFF_MASK);
@@ -2432,19 +2328,14 @@ alter_type2_offset (relocation * rp)
     {				/* Symbol reference */
       sp = symtbase + addr;
       if ((sp->symtattr & SYM_DEFN) == 0)
-	{			/* Reference to another SYMT entry */
-	  sp = sp->symtarea.symdefptr;
-	}
+	sp = sp->symtarea.symdefptr;	/* Reference to another SYMT entry */
       else if ((sp->symtattr & SYM_STRONGDEF) == SYM_STRONGDEF)
-	{			/* Direct reference to strong symbol */
-	  sp = find_nonstrong (sp);
-	}
+	sp = find_nonstrong (sp);	/* Direct reference to strong symbol */
       relvalue = sp->symtvalue;
     }
   else
-    {				/* Area reference */
-      relvalue = get_area (addr)->arplace;
-    }
+    relvalue = get_area (addr)->arplace;	/* Area reference */
+
   if ((inst & INSTMASK) == IN_LDRSTR)
     {				/* LDR/STR */
       addr = inst & IN_OFFMASK;
@@ -2452,14 +2343,9 @@ alter_type2_offset (relocation * rp)
 	addr = -addr;
       addr = addr + relvalue - current_area->arplace;
       if (addr <= -MAX_OFFSET || addr >= MAX_OFFSET)
-	{
-	  flag_badreloc (relplace, "Type 2 PC offset", sp);
-	}
+	flag_badreloc (relplace, "Type 2 PC offset", sp);
       else
-	{
-	  *relplace =
-	    (inst & LDST_MASK) | (addr < 0 ? -addr : addr | IN_POSOFF);
-	}
+	*relplace = (inst & LDST_MASK) | (addr < 0 ? -addr : addr | IN_POSOFF);
     }
   else if ((inst & INSTMASK) == IN_DATAPRO)
     {				/* Data processing instruction */
@@ -2518,7 +2404,7 @@ decode_reloc (relocation * rp)
       if ((sp->symtattr & SYM_DEFN) == 0)
 	{			/* External reference */
 	  sp = sp->symtarea.symdefptr;
-	  if (sp == NIL || (sp->symtattr & SYM_COMMON) != 0)
+	  if (sp == NULL || (sp->symtattr & SYM_COMMON) != 0)
 	    {			/* Not defined or ref to common block */
 	      if (istype1 || (typesym & REL_PC) == 0)
 		{		/* Type 1 or additive */
@@ -2618,23 +2504,16 @@ alter_reloc (relocation * rp, relaction t2type)
     {				/* Got a symbol reference */
       sp = symtbase + sid;
       if ((sp->symtattr & SYM_DEFN) == 0)
-	{
-	  sp = sp->symtarea.symdefptr;
-	}
+	sp = sp->symtarea.symdefptr;
       else if ((sp->symtattr & SYM_STRONGDEF) == SYM_STRONGDEF)
-	{			/* Direct reference to strong symbol */
-	  sp = find_nonstrong (sp);
-	}
+	sp = find_nonstrong (sp);	/* Direct reference to strong symbol */
       ap = sp->symtarea.areaptr;
     }
   else if (istype1)
-    {				/* Got a type-1 area reference */
-      ap = current_area;
-    }
+    ap = current_area;		/* Got a type-1 area reference */
   else
-    {				/* Got a type-2 area reference */
-      ap = get_area (sid);
-    }
+    ap = get_area (sid);		/* Got a type-2 area reference */
+
   sid = find_areaindex (ap);
   switch (t2type)
     {
@@ -2668,14 +2547,14 @@ fixup_reloclist (arealist * ap)
   bool ok;
   ok = TRUE;
 
-  if (ap != NIL)
+  if (ap != NULL)
     {
       if (ap->arefcount > 0 && (numrelocs = ap->arnumrelocs) != 0)
 	{
 	  current_area = ap;
 	  current_file = ap->arfileptr;
 	  current_objsize = ap->arobjsize;
-	  symtbase = ap->arfileptr->objsymtptr;
+	  symtbase = ap->arfileptr->obj.symtptr;
 	  symbolcount = ap->arfileptr->symtcount;
 	  areastart = ap->arobjdata;
 	  rp = ap->areldata;
@@ -2755,9 +2634,7 @@ fixup_relocs (void)
 static void
 write_areas (arealist * ap)
 {
-  int fillsize;
-
-  if (ap != NIL)
+  if (ap != NULL)
     {
       write_areas (ap->left);
 
@@ -2765,10 +2642,11 @@ write_areas (arealist * ap)
 	{
 	  if (ap->aralign != DEFALIGN)
 	    {			/* Area has a funny alignment */
-	      fillsize = ap->arplace - areatop;
+	      int fillsize = ap->arplace - areatop;
 	      if (fillsize != 0)
 		write_zeroes (fillsize);
 	    }
+	  convert_endian (ap->arobjdata, ap->arobjsize / 4);
 	  write_image (ap->arobjdata, ap->arobjsize);
 	  areatop = COERCE (ap->arplace + ap->arobjsize, unsigned int);
 	}
@@ -2789,9 +2667,10 @@ create_image (void)
   if (imagetype == RELOC || imagetype == RMOD)
     imagesize += totalrelocs * sizeof (unsigned int);
   open_image ();
-  if (headercode != NIL)
+  if (headercode != NULL)
     {
       fillin_header ();
+      convert_endian (headercode, headersize / 4);
       write_image (headercode, headersize);
     }
   write_areas (rocodelist);
@@ -2815,27 +2694,22 @@ create_image (void)
 static void
 print_arealist (const char *areaclass, arealist * ap)
 {
-  unsigned int offset;
-  char text[MSGBUFLEN];
-  offset = (imagetype == RMOD ? progbase : 0);
-
-  if (ap != NIL)
+  if (ap != NULL)
     {
       print_arealist (areaclass, ap->left);
 
       if (ap->arefcount > 0 && ap->arobjsize > 0)
 	{
-	  sprintf (text, "%-6x  %-6x  %s %s from %s\n",
-		   ap->arplace - offset, ap->arobjsize, areaclass, ap->arname,
+	  unsigned int offset = (imagetype == RMOD) ? progbase : 0;
+	  char text[MSGBUFLEN];
+
+	  sprintf (text, "%-6x  %-6x  %s %s from %s\n", ap->arplace - offset,
+		   ap->arobjsize, areaclass, ap->arname,
 		   ap->arfileptr->chfilename);
-	  if (map_open)
-	    {
-	      write_mapfile (text);
-	    }
+	  if (mapfile != NULL)
+	    write_mapfile (text);
 	  else
-	    {
-	      printf (text);
-	    }
+	    puts (text);
 	}
 
       print_arealist (areaclass, ap->right);
@@ -2853,14 +2727,10 @@ print_areamap (void)
   sprintf (text,
 	   "Area map of image file '%s':\n\nStart   Size    Type      Name\n",
 	   imagename);
-  if (map_open)
-    {
-      write_mapfile (text);
-    }
+  if (mapfile != NULL)
+    write_mapfile (text);
   else
-    {
-      printf (text);
-    }
+    puts (text);
   print_arealist ("R/O code ", rocodelist);
   print_arealist ("R/O data ", rodatalist);
   print_arealist ("R/W code ", rwcodelist);
@@ -2879,14 +2749,14 @@ list_unused (arealist * ap, bool findsymbol)
   const char *symname;
   char text[MSGBUFLEN];
 
-  if (ap != NIL)
+  if (ap != NULL)
     {
       list_unused (ap->left, findsymbol);
 
       if (ap->arefcount == 0)
 	{
-	  symname = (findsymbol ? find_areasymbol (ap) : NIL);
-	  if (symname != NIL)
+	  symname = (findsymbol ? find_areasymbol (ap) : NULL);
+	  if (symname != NULL)
 	    {
 	      sprintf (text, "    '%s' (%s) from %s", ap->arname, symname,
 		       ap->arfileptr->chfilename);
@@ -2896,15 +2766,13 @@ list_unused (arealist * ap, bool findsymbol)
 	      sprintf (text, "    '%s' from %s", ap->arname,
 		       ap->arfileptr->chfilename);
 	    }
-	  if (map_open)
+	  if (mapfile != NULL)
 	    {
 	      sprintf (&text[strlen (text)], " (%x bytes)\n", ap->arobjsize);
 	      write_mapfile (text);
 	    }
 	  else
-	    {
-	      error (text);
-	    }
+	    error ("%s", text);
 	}
 
       list_unused (ap->right, findsymbol);
@@ -2918,27 +2786,17 @@ list_unused (arealist * ap, bool findsymbol)
 void
 print_unusedlist (void)
 {
-  char text[64];
   if (unused == 0)
     {
-      if (map_open)
-	{
-	  sprintf (text, "\nNo areas were omitted from the image file\n");
-	  write_mapfile (text);
-	}
+      if (mapfile != NULL)
+	write_mapfile ("\nNo areas were omitted from the image file\n");
       return;
     }
-  if (map_open)
-    {
-      sprintf (text,
-	       "\nThe following areas were omitted from the image file:\n");
-      write_mapfile (text);
-    }
+  if (mapfile != NULL)
+    write_mapfile
+      ("\nThe following areas were omitted from the image file:\n");
   else
-    {
-      error ("Drlink: The following areas were omitted from the image file:",
-	     text);
-    }
+    error ("Drlink: The following areas were omitted from the image file:");
   list_unused (rocodelist, TRUE);
   list_unused (rodatalist, FALSE);
   list_unused (rwcodelist, TRUE);
@@ -2967,18 +2825,18 @@ void
 init_areas (void)
 {
   rocodelist = rwcodelist = rodatalist = rwdatalist = zidatalist = debuglist =
-    NIL;
+    NULL;
   rocodelast = rwcodelast = rodatalast = rwdatalast = zidatalast = debuglast =
-    NIL;
+    NULL;
   aofv3flag = FALSE;
-  entryarea = NIL;
+  entryarea = NULL;
   gotcodearea = FALSE;
   unused = 0;
   totalrelocs = 0;
   relocaddr = 0;
   workspace = 0;
-  headercode = NIL;
-  arlimlist = NIL;
+  headercode = NULL;
+  arlimlist = NULL;
   codebase = database = 0;
   progbase = areapc = ABSBASE;
 }

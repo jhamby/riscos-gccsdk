@@ -24,8 +24,6 @@
 #ifndef chunkhdr_h
 #define chunkhdr_h
 
-#include "symbolhdr.h"
-
 #define CHUNKFILE 0xC3CBC6C5	/* Says file uses Acorn chunk file format */
 #define BIGENDIAN 0xC5C6CBC3	/* Big endian chunk file */
 #define OBJ_XXXX 0x5F4A424F	/* Hex versions of the names of chunk types */
@@ -70,20 +68,5 @@ typedef struct
   chunkheader header;		/* Chunk file header */
   chunkindex firstentry;	/* First entry in chunk index */
 } chunkhdr;
-
-extern chunkindex *chunkhdrbase;	/* Address of file's chunk header when in memory */
-extern unsigned int chunkcount;	/* Count of chunks in file */
-
-extern symtentry *symtbase;	/* Address of OFL_SYMT chunk when in memory */
-
-extern unsigned int *dirybase,	/* Address of LIB_DIRY chunk when in memory */
- *vsrnbase;			/* Address of LIB_VSRN chunk when in memory */
-
-extern char *strtbase;		/* Address of OBJ_STRT chunk when in memory */
-
-extern unsigned int symtsize,	/* Size of OFL_SYMT chunk */
-  strtsize,			/* Size of OBJ_STRT chunk */
-  dirysize,			/* Size of LIB_DIRY chunk */
-  vsrnsize;			/* Size of LIB_VSRN chunk */
 
 #endif

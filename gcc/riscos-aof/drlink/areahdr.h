@@ -37,19 +37,19 @@
 
 /* Following are the extra AOF V3 area attributes */
 
-#define ATT_ABSOL       0x00001	/* Area has an absolute address                    */
-#define ATT_POSIND      0x00040	/* Area is position independent                    */
-#define ATT_32BIT       0x00100	/* Area contains 32-bit PC code                    */
-#define ATT_REENT       0x00200	/* Area contains re-entrant code                   */
-#define ATT_EXTFP       0x00400	/* Area contain instructions from extended FP set  */
-#define ATT_NOSTAK      0x00800	/* Area contains no stack checking code            */
-#define ATT_BASED       0x01000	/* Area contains based data                        */
-#define ATT_STUBS       0x02000	/* Area contains shared library stub data          */
+#define ATT_ABSOL     0x0000001	/* Area has an absolute address                    */
+#define ATT_POSIND    0x0000040	/* Area is position independent                    */
+#define ATT_32BIT     0x0000100	/* Area contains 32-bit PC code                    */
+#define ATT_REENT     0x0000200	/* Area contains re-entrant code                   */
+#define ATT_EXTFP     0x0000400	/* Area contain instructions from extended FP set  */
+#define ATT_NOSTAK    0x0000800	/* Area contains no stack checking code            */
+#define ATT_BASED     0x0001000	/* Area contains based data                        */
+#define ATT_STUBS     0x0002000	/* Area contains shared library stub data          */
 #define ATT_SOFTFLOAT 0x0080000	/* Uses soft-float                                 */
 #define ATT_LINKONCE  0x0100000	/* GNU Linkonce section                            */
-#define ATT_BRMASK      0xF0000	/* Mask for based area register number             */
-#define ATT_A3ATTR      0x03F41	/* Mask for AOF 3 attributes                       */
-#define ATT_UNSUPP      0x02001	/* Mask for unsupported AOF 3 attributes           */
+#define ATT_BRMASK    0x00F0000	/* Mask for based area register number             */
+#define ATT_A3ATTR    0x0003F41	/* Mask for AOF 3 attributes                       */
+#define ATT_UNSUPP    0x0002001	/* Mask for unsupported AOF 3 attributes           */
 
 /* Masks for checking legality of attribute settings */
 
@@ -64,8 +64,9 @@
 #define MAXV3AL 32		/* Maximum value of 'al' allowed in AOF V3 */
 #define DEFALIGN 2		/* Default alignment for 'al' */
 
-typedef struct areaentry
-{				/* Entry in OBJ_HEAD chunk in memory */
+/* Entry in OBJ_HEAD chunk in memory */
+typedef struct
+{
   unsigned int areaname;	/* Offset of area name in OBJ_STRT chunk */
   unsigned int attributes;	/* Attribute bytes */
   unsigned int arsize;		/* Size of area excluding relocations */
@@ -78,8 +79,9 @@ typedef struct areaentry
   } arlast;
 } areaentry;
 
-typedef struct aofheader
-{				/* OBJ_HEAD chunk header */
+/* OBJ_HEAD chunk header */
+typedef struct
+{
   unsigned int oftype;		/* Object file type */
   unsigned int aofversion;	/* Version of AOF in use */
   unsigned int numareas;	/* Number of areas in OBJ_AREA chunk */
@@ -88,7 +90,7 @@ typedef struct aofheader
   unsigned int epoffset;	/* Offset in area of entry point */
 } aofheader;
 
-typedef struct objheadhdr
+typedef struct
 {
   aofheader areaheader;		/* Header in OBJ_HEAD chunk */
   areaentry firstarea;		/* Entry for first area in OBJ_HEAD */
@@ -128,10 +130,13 @@ typedef struct arealist
 
 typedef enum
 {				/* type of image file being created */
-  HDR_BIN, HDR_AIF, HDR_RMOD, HDR_RELOC
+  HDR_BIN,
+  HDR_AIF,
+  HDR_RMOD,
+  HDR_RELOC
 } segtype;
 
-extern arealist * rocodelist,	/* Pointer to R/O code list */
+extern arealist *rocodelist,	/* Pointer to R/O code list */
  *rwcodelist,			/* Pointer to R/W code list */
  *rodatalist,			/* Pointer to R/O data list */
  *rwdatalist,			/* Pointer to R/W data list */

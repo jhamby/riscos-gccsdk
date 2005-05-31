@@ -94,6 +94,7 @@
 #define HAVE_STRCHR 1
 #define HAVE_STRDUP 1
 #define HAVE_STRERROR 1
+#define HAVE_STRICMP 1
 #define HAVE_STRINGS_H 1
 #define HAVE_STRING_H 1
 #define HAVE_STRNCASECMP 1

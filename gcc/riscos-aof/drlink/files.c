@@ -30,79 +30,53 @@
 #include <ctype.h>
 #include <sys/param.h>
 
-#include "drlhdr.h"
-#include "chunkhdr.h"
-#include "filehdr.h"
-#include "edithdr.h"
-#include "procdefs.h"
-
-#ifdef TARGET_RISCOS
-#include <kernel.h>
-#include <swis.h>
-#include <unixlib/local.h>
+#ifndef CROSS_COMPILE
+# include <kernel.h>
+# include <swis.h>
+# include <unixlib/local.h>
 #endif
 
-#ifdef TARGET_RISCOS
-#define WILDCARDS "#*"		/* RISC OS filename wildcard characters */
+#include "drlhdr.h"
+#include "chunkhdr.h"
+#include "edithdr.h"
+#include "filehdr.h"
+#include "libraries.h"
+#include "procdefs.h"
+
+#ifndef CROSS_COMPILE
+# define WILDCARDS "#*"		/* RISC OS filename wildcard characters */
 #else
-#define WILDCARDS "?*["		/* Unixish filename wildcard characters */
+# define WILDCARDS "?*["	/* Unixish filename wildcard characters */
 #endif
 
 /* Variables referenced from other files */
 
-chunkindex *chunkhdrbase;	/* Address of file's chunk header when in memory */
-
-unsigned int chunkcount;	/* Count of chunks in file */
-
-symtentry *symtbase;		/* Address of OFL_SYMT chunk when in memory */
-
-unsigned int symtsize,		/* Size of OFL_SYMT chunk */
-  strtsize,			/* Size of OBJ_STRT chunk */
-  dirysize,			/* Size of LIB_DIRY chunk */
-  vsrnsize;			/* Size of LIB_VSRN chunk */
-
-unsigned int *dirybase,		/* Address of LIB_DIRY chunk when in memory */
- *vsrnbase;			/* Address of LIB_VSRN chunk when in memory */
-
-char *strtbase;			/* Address of OBJ_STRT chunk when in memory */
-
 image imagetype;		/* What sort of file linker will produce */
 
-filelist * aofilelist,		/* Pointer to list of loaded files */
-  *aofilelast;			/* Pointer to last loaded file entry */
+filelist *aofilelist,		/* Pointer to list of loaded files */
+ *aofilelast;			/* Pointer to last loaded file entry */
 
-libheader * liblist,		/* Pointer to list of libraries */
-  *liblast;			/* Pointer to end of list of libraries */
+libheader *liblist,		/* Pointer to list of libraries */
+ *liblast;			/* Pointer to end of list of libraries */
 
-chunkheader header;		/* Chunk header from last file read */
-
-FILE * objectfile,		/* AOF or library being read */
-  *imagefile,			/* Image file being produced */
-  *symbolfile,			/* Symbol file being written */
-  *mapfile;			/* Area map file */
+FILE *imagefile,		/* Image file being produced */
+ *symbolfile,			/* Symbol file being written */
+ *mapfile;			/* Area map file */
 
 char *symbolname,		/* Pointer to name of symbol file */
  *mapfilename;			/* Pointer to name of map file */
 
 const char *imagename;		/* Pointer to name of linker output file */
 
-bool object_open,		/* TRUE if an object file is being read */
-  image_open,			/* TRUE if the image file is being written */
-  symbol_open,			/* TRUE if the symbol file is being written */
-  map_open;			/* TRUE if the area map file is being written */
-
 char objectname[FNAMELEN];	/* File currently being read */
 
-unsigned int filecount,		/* Count of AOF files loaded */
-  buffersize,			/* Size of image file buffer */
+unsigned int buffersize,	/* Size of image file buffer */
   headersize,			/* Size of AIF (or BIN) header */
   debugsize,			/* Size of debugging tables in image */
   imagesize;			/* Size of image file to be written to disk */
 
-unsigned int *filebase;		/* Pointer to a file when loaded */
-
-linkfiles * linklist,		/* Pointer to list of files to link */
-  *linklast;			/* Pointer to end of file list */
+linkfiles *linklist,		/* Pointer to list of files to link */
+ *linklast;			/* Pointer to end of file list */
 
 debugfiles *debugflist;		/* List of files where debug info is to be kept */
 
@@ -116,31 +90,53 @@ char *cmdbuffer,		/* Pointer to buffer holding command line */
 
 #define MINSIZE 100		/* Rough minimum size for an AOF file or library in bytes */
 
-#ifdef TARGET_RISCOS
-
+#ifndef CROSS_COMPILE
 /* Information on RISC OS files */
 
-#define TYPE_FILE 1		/* Directory entry type for a file */
-#define TYPE_DIR 2		/* Directory entry type for a directory */
-#define FILECOUNT 100		/* Number of directory entries returned per OS_GBPB call */
-#define DIRENTSIZE 20		/* Characters allowed per directory entry */
-#define DIRBUFSIZE (FILECOUNT*DIRENTSIZE)
+# define TYPE_FILE 1		/* Directory entry type for a file */
+# define TYPE_DIR 2		/* Directory entry type for a directory */
+# define FILECOUNT 100		/* Number of directory entries returned per OS_GBPB call */
+# define DIRENTSIZE 20		/* Characters allowed per directory entry */
+# define DIRBUFSIZE (FILECOUNT*DIRENTSIZE)
 
-#define TEXT 0xFFF		/* Number for filetype 'text' */
-#define DATA 0xFFD		/* Number for filetype 'data' */
-#define MODULE 0xFFA		/* Number for filetype 'module' */
-#define ABSOLUTE 0xFF8		/* Number for filetype 'absolute' */
-#define DEBIMAGE 0xFD3		/* Number for filetype 'debimage' */
+# define TEXT 0xFFF		/* Number for filetype 'text' */
+# define DATA 0xFFD		/* Number for filetype 'data' */
+# define MODULE 0xFFA		/* Number for filetype 'module' */
+# define ABSOLUTE 0xFF8		/* Number for filetype 'absolute' */
+# define DEBIMAGE 0xFD3		/* Number for filetype 'debimage' */
 #endif
 
 static char *filebuffer,	/* General purpose buffer used by file routines */
  *filebuftop,			/* Current top of file buffer */
  *filebufend;			/* End of file buffer */
 
-static unsigned int linewidth,	/* Chars printed on line in symbol file */
+static unsigned int linewidth,  /* Chars printed on line in symbol file */
   addroffset;			/* Value subtracted from addresses printed in symbol file */
 
-#ifdef TARGET_RISCOS
+#ifndef CROSS_COMPILE
+static bool rearrange (const char *filename);
+static void set_filetype (const char *filename, int filetype);
+static void set_loadexec (void);
+#endif
+static int find_size (FILE * file);
+static bool need_debug (const char *name, int hashval);
+
+static bool obj_check_and_adjust_head (const char *filename, const obj_overview * objoverview);
+static bool obj_check_and_adjust_area (const char *filename, const obj_overview * objoverview);
+static bool obj_check_and_adjust_symt (const char *filename, const obj_overview * objoverview);
+
+static bool read_file_and_process (const char *filename);
+static bool read_file_and_process_int (void *filebase, int filesize, const char *filename, FILE *objfile);
+
+static bool unread (const char *filename);
+static int match_files (char dirname[], char leafname[]);
+static void split_names (const char *filename, char dirname[], char leafname[]);
+static bool wildcarded (const char *p);
+static bool load_textfile (const char *filename, char **where, int *size);
+static void write_block (void *where, int size);
+static void check_write (void);
+
+#ifndef CROSS_COMPILE
 /*
 ** 'rearrange' is called to check for a file name of the form
 ** 'xxxx.o' and if so to change it in to 'o.xxxx'. The text of
@@ -156,7 +152,7 @@ rearrange (const char *filename)
   len = strlen (filename);
   if (len < 3)
     return FALSE;
-  toaddr = (char *) filename + len - 1;	/* Point at last char in name */
+  toaddr = (char *) filename + len - 1; /* Point at last char in name */
   if (*(toaddr - 1) == '.' && tolower (*toaddr) == 'o')
     {
       fromaddr = toaddr - 2;
@@ -166,17 +162,13 @@ rearrange (const char *filename)
 	  toaddr--;
 	  fromaddr--;
 	}
-      fromaddr++;		/* Now insert 'o.' */
-      *fromaddr = 'o';
-      *(fromaddr + 1) = '.';
+      *++fromaddr = 'o';	/* Now insert 'o.' */
+      *++fromaddr = '.';
       return TRUE;
     }
-  else
-    {
-      return FALSE;
-    }
-}
 
+  return FALSE;
+}
 #endif
 
 /*
@@ -185,11 +177,15 @@ rearrange (const char *filename)
 static int
 find_size (FILE * file)
 {
-  int oldplace, size, result;
+  int oldplace, size;
+
   oldplace = ftell (file);
-  result = fseek (file, 0, SEEK_END);
+  if (fseek (file, 0, SEEK_END))
+    return -1;
   size = ftell (file);
-  result = fseek (file, oldplace, SEEK_SET);
+  if (fseek (file, oldplace, SEEK_SET))
+    return -1;
+
   return size;
 }
 
@@ -203,89 +199,40 @@ find_filesize (const char *name)
 {
   int size;
   FILE *thefile;
-  thefile = fopen (name, "rb");
 
-  if (thefile == NIL)
-    size = -1;
-  else
-    {
-      size = find_size (thefile);
-      fclose (thefile);
-    }
+  if ((thefile = fopen (name, "rb")) == NULL)
+    return -1;
+
+  size = find_size (thefile);
+  fclose (thefile);
+
   return size;
-}
-
-/*
-** 'find_filetype' verifies the file is a legal chunk file and
-** determines its type. As a side effect, it also sets a couple
-** of important variables needed when scanning the chunk file
-** index (chunkhdrbase and chunkcount).
-*/
-static fileinfo
-find_filetype (void)
-{
-  fileinfo filetype;
-  chunkhdr *hp;
-  hp = COERCE (filebase, chunkhdr *);
-  if (hp->header.chunkfileid == BIGENDIAN)
-    {
-      error
-	("Error: File '%s' is a 'big endian' file. Drlink does not support these",
-	 objectname);
-      return NOWT;
-    }
-  else if (hp->header.chunkfileid != CHUNKFILE
-	   || hp->header.maxchunks < hp->header.numchunks)
-    {
-      error ("Error: File '%s' is not of the right format or is corrupt",
-	     objectname);
-      return NOWT;
-    }
-  chunkcount = hp->header.numchunks;
-  chunkhdrbase = &hp->firstentry;
-  switch (chunkhdrbase->chunkclass)
-    {
-    case OBJ_XXXX:
-      filetype = AOFILE;
-      break;
-    case LIB_XXXX:
-    case OFL_XXXX:
-      filetype = LIBRARY;
-      break;
-    default:
-      error
-	("Error: File '%s' does not contain object code nor is it a library",
-	 objectname);
-      filetype = NOWT;
-    }
-  return filetype;
 }
 
 /*
 ** Convert endian of a given number of words
 */
-#if defined(WORDS_BIGENDIAN)
-static void
-convert_endian (void *words, int size)
+#ifdef WORDS_BIGENDIAN
+void
+convert_endian (void *words, size_t size)
 {
   unsigned int *values = words;
 
   while (size-- > 0)
     {
       unsigned int value = *values;
-
       *values++ =
 	(value >> 24) | ((value >> 8) & 0xff00) | ((value << 8) & 0xff0000) |
 	(value << 24);
     }
 }
-#else
-#define convert_endian(words, size)
 #endif
 
 /*
 ** 'examine_file' is called to check that the file passed to it is an
-** AOF file or ALF library. It returns the type of the file if it was
+** AOF file or ALF library.  In the later case it determines it the
+** ALF librariy is old-style (OLDLIB) or new-style (LIBRARY).
+** It returns the type of the file if it was
 ** successfully validated, or NOWT if something is wrong with it.
 ** This function is used when it is necessary to read the file's chunk
 ** header without bringing the whole file into memory
@@ -293,112 +240,77 @@ convert_endian (void *words, int size)
 fileinfo
 examine_file (const char *filename)
 {
-  FILE *libfile;
-  unsigned int filesize, n;
+  FILE *objectfile;
+  int filesize;
+  unsigned int n;
   size_t count;
   fileinfo filetype;
-  chunkheader libheader;
-  chunkindex index;
-  libfile = fopen (filename, "rb");
+  chunkheader ch;
+  chunkindex ci;
+  bool cont;
 
-  if (libfile == NIL)
+  if ((objectfile = fopen (filename, "rb")) == NULL)
     {
       error ("Error: Cannot read '%s'", filename);
       return NOWT;
     }
-  filesize = find_size (libfile);
-  count = fread (&libheader, sizeof (chunkheader), 1, libfile);
-  convert_endian (&libheader, sizeof (chunkheader) / 4);
+  if ((filesize = find_size (objectfile)) < 0)
+    {
+      error ("Error: Unable to determine length of '%s'", filename);
+      return NOWT;
+    }
+  /* Read chunkheader + 1 chunk */
+  count = fread (&ch, sizeof (ch), 1, objectfile);
   if (count != 1)
-    {				/* Didn't read one chunkheader */
+    {	/* Didn't read one chunkheader + 1 chunk */
       error ("Error: Cannot read '%s'", filename);
-      fclose (libfile);
+      fclose (objectfile);
       return NOWT;
     }
-  if (libheader.chunkfileid == BIGENDIAN)
+
+  if (!check_and_adjust_chunkheader (&ch, filename, (unsigned int)filesize))
     {
-      error
-	("Error: '%s' is a 'big endian' file. Drlink does not support these",
-	 filename);
-      fclose (libfile);
+      fclose (objectfile);
       return NOWT;
     }
-  else if (libheader.chunkfileid != CHUNKFILE
-	   || libheader.numchunks > libheader.maxchunks || filesize < MINSIZE)
+
+  filetype = NOWT;
+  for (n = 0, cont = TRUE; n < ch.maxchunks && cont; ++n)
     {
-      error
-	("Error: File '%s' is corrupt or not of a suitable type to be linked",
-	 filename);
-      fclose (libfile);
-      return NOWT;
-    }
-  count = fread (&index, sizeof (chunkindex), 1, libfile);
-  convert_endian (&index, sizeof (chunkindex) / 4);
-  if (count != 1)
-    {
-      error ("Error: Cannot read '%s'", filename);
-      fclose (libfile);
-      return NOWT;
-    }
-  switch (index.chunkclass)
-    {
-    case OBJ_XXXX:
-      filetype = AOFILE;
-      break;
-    case OFL_XXXX:
-    case LIB_XXXX:
-      filetype = OLDLIB;	/* Assume an old-style library */
-      for (n = 1; n <= libheader.numchunks && filetype == OLDLIB; n++)
-	{			/* Check for new style */
-	  if (index.chunkoffset != 0 && index.chunkclass == LIB_XXXX
-	      && index.chunktype == LIB_VSRN)
-	    {
-	      filetype = LIBRARY;
-	    }
-	  else
-	    {
-	      count = fread (&index, sizeof (chunkindex), 1, libfile);
-	      convert_endian (&index, sizeof (chunkheader) / 4);
-	      if (count != 1)
-		{
-		  error ("Error: Cannot read '%s'", filename);
-		  filetype = NOWT;
-		}
-	    }
+      count = fread (&ci, sizeof (ci), 1, objectfile);
+      if (count != 1)
+	{
+	  error ("Error: Cannot read '%s'", filename);
+	  break;
 	}
-      break;
-    default:
-      filetype = NOWT;
-    }
-  fclose (libfile);
-  return filetype;
-}
 
-/*
-** 'open_object' opens an AOF file. It returns 'TRUE' if this was
-** okay otherwise it returns 'FALSE'.
-*/
-bool
-open_object (const char *filename)
-{
-  objectfile = fopen (filename, "rb");
-  object_open = objectfile != NIL;
-  if (object_open)
-    {
-      strncpy (objectname, filename, sizeof (objectname) - 1);
-      objectname[sizeof (objectname) - 1] = '\0';
-    }
-  return object_open;
-}
+      convert_endian(&ci, sizeof(ci)/4);
+      switch (ci.chunkclass)
+        {
+          case OBJ_XXXX:
+            filetype = AOFILE;
+            cont = FALSE;
+            break;
 
-/*
-** 'close_object' close the object file that was just read
-*/
-void
-close_object (void)
-{
+          case OFL_XXXX:
+          case LIB_XXXX:
+	    if (ci.chunkoffset != 0
+	        && ci.chunkclass == LIB_XXXX
+	        && ci.chunktype == LIB_VSRN)
+	      {
+	        filetype = LIBRARY; /* New-style library */
+	        cont = TRUE;
+	      }
+	    else
+              filetype = OLDLIB;	/* Assume an old-style library */
+	    break;
+	}
+    }
+  if (filetype == NOWT)
+    error ("Error: Cannot determine type of '%s'", filename);
+
   fclose (objectfile);
-  object_open = FALSE;
+  return filetype;
 }
 
 /*
@@ -411,65 +323,80 @@ need_debug (const char *name, int hashval)
   debugfiles *p;
   p = debugflist;
 #ifdef IGNORE_CASE
-  while (p != NIL
+  while (p != NULL
 	 && (hashval != p->dbghash || stricmp (name, p->dbgname) != 0))
     p = p->dbgnext;
 #else
-  while (p != NIL
+  while (p != NULL
 	 && (hashval != p->dbghash || strcmp (name, p->dbgname) != 0))
     p = p->dbgnext;
 #endif
-  if (p != NIL)
+  if (p != NULL)
     p->dbgread = TRUE;
-  return p != NIL;
+  return p != NULL;
 }
 
 /*
-** 'addto_filelist' adds a file to the file list, returning a pointer
-** to the file's entry in the file list or nil if it failed
+** 'create_filelist' returns a pointer
+** to a new file's entry in the file list or NULL if it failed
 */
-static filelist *
-addto_filelist (const char *fname, unsigned int fsize)
+filelist *
+create_filelist (const char *fname, unsigned int fsize)
 {
   filelist *p;
   char *cp;
   int i, hashval;
+
   cp = allocmem (strlen (fname) + sizeof (char));
   p = allocmem (sizeof (filelist));
-  if (p == NIL || cp == NIL)
-    {
-      error ("Fatal: Out of memory in 'addto_filelist' reading '%s'", fname);
-    }
-  filecount += 1;
+  if (p == NULL || cp == NULL)
+    error ("Fatal: Out of memory in 'create_filelist' reading '%s'", fname);
+
   strcpy (cp, fname);
   p->chfilename = cp;
   p->chfilehash = hashval = hash (fname);
   p->chfilesize = fsize;
-  p->keepdebug = opt_debug || need_debug (fname, hashval) || imagetype == AOF;
-  p->cached = TRUE;
-  p->edited = FALSE;
+  p->keepdebug = opt_debug || imagetype == AOF || need_debug (fname, hashval);
   p->aofv3 = FALSE;
-  p->objheadptr = NIL;
-  p->objareaptr = NIL;
-  p->objsymtptr = NIL;
-  p->objstrtptr = NIL;
+
+  memset(&p->obj, 0, sizeof(obj_overview));
+
   p->areacount = p->symtcount = 0;
-  p->nextfile = NIL;
+  p->nextfile = NULL;
   for (i = 0; i < MAXLOCALS; i++)
-    p->localsyms[i] = NIL;
-  p->symtries.wantedsyms = NIL;
-  p->strongrefs = NIL;
-  if (aofilelist == NIL)
-    {
-      aofilelist = p;
-    }
-  else
-    {
-      aofilelast->nextfile = p;
-    }
-  aofilelast = p;
+    p->localsyms[i] = NULL;
+  p->symtries.wantedsyms = NULL;
+  p->strongrefs = NULL;
+
   return p;
 }
+
+/*
+** 'addto_filelist' adds a file to the front of file list.
+*/
+void
+addto_filelist(filelist *fp)
+{
+  if (aofilelist == NULL)
+    aofilelist = fp;
+  else
+    aofilelast->nextfile = fp;
+  aofilelast = fp;
+}
+
+
+/*
+** 'free_filelist' free the given filelist strucutre.
+*/
+void
+free_filelist (filelist * fp)
+{
+  if (fp == NULL)
+    return;
+  freemem ( (void *)fp->chfilename, strlen(fp->chfilename) + 1);
+  freemem (fp, sizeof (filelist));
+}
+
 
 /*
 ** 'addto_debuglist' adds the file name passed to it to the list of
@@ -479,10 +406,8 @@ void
 addto_debuglist (const char *name)
 {
   debugfiles *p;
-  if ((p = allocmem (sizeof (debugfiles))) == NIL)
-    {
-      error ("Fatal: Out of memory in 'addto_debuglist'");
-    }
+  if ((p = allocmem (sizeof (debugfiles))) == NULL)
+    error ("Fatal: Out of memory in 'addto_debuglist'");
   p->dbgname = name;
   p->dbghash = hash (name);
   p->dbgread = FALSE;
@@ -501,7 +426,7 @@ check_debuglist (void)
   bool msg;
   msg = FALSE;
   p = debugflist;
-  while (p != NIL)
+  while (p != NULL)
     {
       if (!p->dbgread)
 	{
@@ -517,173 +442,524 @@ check_debuglist (void)
     }
 }
 
+
 /*
-** 'scan_chunkhdr' scans and validates the chunk file header. It
-** returns 'TRUE' if it is okay, otherwise it returns 'FALSE'.
+** 'obj_check_and_adjust_head' checks the OBJ_HEAD chunk and (if needed)
+** adjusts the OBJ_HEAD data for endian differences.  This routine may
+** only be called once on the same chunk data.
+** Returns TRUE if everything is ok, FALSE otherwise.
+*/
+/* FIXME: add additional OBJ_HEAD checks ! */
+static bool
+obj_check_and_adjust_head (const char *filename, const obj_overview * objoverview)
+{
+  objheadhdr *objheadptr = objoverview->headptr;
+  unsigned int objheadsize = objoverview->headsize;
+
+  convert_endian (objheadptr, sizeof (aofheader) / 4);
+  if (objheadsize !=
+      sizeof (aofheader) +
+      objheadptr->areaheader.numareas * sizeof (areaentry))
+    {
+      error
+	("AOF file '%s' OBJ_HEAD size doesn't match with its declaration (0x%x vs 0x%x)",
+	 filename, objheadsize,
+	 sizeof (aofheader) +
+	 objheadptr->areaheader.numareas * sizeof (areaentry));
+      return FALSE;
+    }
+  convert_endian (&objheadptr->firstarea,
+		  objheadptr->areaheader.numareas * sizeof (areaentry) / 4);
+
+  return TRUE;
+}
+
+
+/*
+** 'obj_check_and_adjust_area' checks the OBJ_AREA chunk and (if needed)
+** adjusts the OBJ_AREA data for endian differences.  This routine may
+** only be called once on the same chunk data.
+** Returns TRUE if everything is ok, FALSE otherwise.
 */
 static bool
-scan_chunkhdr (filelist * fp)
+obj_check_and_adjust_area (const char *filename, const obj_overview * objoverview)
 {
-  unsigned int i;
-  unsigned int start, size;
-  chunkindex *cp;
-  cp = chunkhdrbase;
-  convert_endian (cp, sizeof (chunkheader) / 4);
-  for (i = 1; i <= chunkcount; i++)
+  convert_endian (objoverview->areaptr, objoverview->areasize / 4);
+
+  return TRUE;
+}
+
+
+/*
+** 'obj_check_and_adjust_area' checks the OBJ_SYMT chunk and (if needed)
+** adjusts the OBJ_SYMT data for endian differences.  This routine may
+** only be called once on the same chunk data.
+** Returns TRUE if everything is ok, FALSE otherwise.
+*/
+/* FIXME: more checks are possible ! */
+static bool
+obj_check_and_adjust_symt (const char *filename, const obj_overview * objoverview)
+{
+  symtentry *objsymtptr = objoverview->symtptr;
+  unsigned int objsymtsize = objoverview->symtsize;
+
+  if (objsymtsize !=
+      objoverview->headptr->areaheader.numsymbols * sizeof (symtentry))
     {
-      start = cp->chunkoffset;
-      size = cp->chunksize;
-      if (start + size > fp->chfilesize)
+      error
+	("AOF file '%s' OBJ_SYMT size doesn't match with its declaration (0x%x vs 0x%x)",
+	 filename, objsymtsize,
+	 objoverview->headptr->areaheader.numsymbols * sizeof (symtentry));
+      return FALSE;
+    }
+  convert_endian (objsymtptr, objsymtsize / 4);
+
+  return TRUE;
+}
+
+
+/*
+** 'obj_check_and_adjust()' checks the OBJ_HEAD, OBJ_AREA and OBJ_SYMT
+** chunks of an AOF file.
+** ch->header should already be verified for correctness and adjusted
+** for endian differences.  This routine may only be called once on
+** the same AOF data.
+** Returns TRUE if everything is ok, FALSE otherwise.  The obj_overview
+** structure will be filled in with chunk information found.
+*/
+bool
+obj_check_and_adjust (chunkhdr * ch, const char *filename, unsigned int filesize, obj_overview *objoverviewp)
+{
+  chunkindex *curchunk;
+  unsigned int maxchunks, numchunks;
+  unsigned int chindex;
+
+  maxchunks = ch->header.maxchunks;
+  numchunks = ch->header.numchunks;
+  /* Quick scan to pickup position of the chunks.  */
+  memset (objoverviewp, 0, sizeof (obj_overview));
+  for (chindex = 1, curchunk = &ch->firstentry; chindex <= maxchunks;
+       ++chindex, ++curchunk)
+    {
+      unsigned int chunkoffset, chunksize;
+      convert_endian (curchunk, sizeof (chunkindex) / 4);
+      if ((chunkoffset = curchunk->chunkoffset) == 0)
+	continue;
+      chunksize = curchunk->chunksize;
+      if (chunkoffset % 4)
 	{
 	  error
-	    ("Error: Chunk file header entry %d in '%s' (or file) is corrupt",
-	     i, fp->chfilename);
+	    ("Error: AOF file '%s' chunk index %d has non 4 divisable chunk offset (0x%x)",
+	     filename, chindex, chunkoffset);
 	  return FALSE;
 	}
-      if (start != 0 && cp->chunkclass == OBJ_XXXX)
+      /* Adding chunkoffset and chunksize can overflow so first check
+         their value individually.  */
+      if (chunkoffset > filesize || chunksize > filesize
+	  || chunkoffset + chunksize > filesize)
 	{
-	  switch (cp->chunktype)
+	  error
+	    ("Error: AOF file '%s' chunk index %d has bogus offset and/or size values (0x%x, 0x%x, 0x%x)",
+	     filename, chindex, chunkoffset, chunksize, filesize);
+	  return FALSE;
+	}
+      if (chunkoffset < maxchunks * sizeof (chunkindex))
+	{
+	  error
+	    ("Error: AOF file '%s' chunk index %d interfers with chunk index table (offset is 0x%x)",
+	     filename, chindex, chunkoffset);
+	  return FALSE;
+	}
+
+      if (curchunk->chunkclass == OBJ_XXXX)
+	{
+	  switch (curchunk->chunktype)
 	    {
 	    case OBJ_HEAD:
-	      fp->objheadptr =
-		COERCE (COERCE (filebase, char *) + start, objheadhdr *);
-	      fp->objheadsize = size;
-	      break;
-	    case OBJ_AREA:
-	      if (fp->objareaptr != NIL)
+	      if (objoverviewp->headptr != NULL)
 		{
-		  error ("Error: More than one OBJ_AREA chunk found in '%s'",
-			 fp->chfilename);
+		  error
+		    ("Error: AOF file '%s' got more than one OBJ_HEAD chunk",
+		     filename);
 		  return FALSE;
 		}
-	      else
+	      if (chunksize < sizeof (aofheader) || (chunksize % 4))
 		{
-		  fp->objareaptr =
-		    COERCE (COERCE (filebase, char *) + start,
-			    unsigned int *);
-		  fp->objareasize = size;
+		  error
+		    ("Error: AOF file '%s' has unexpected OBJ_HEAD size (0x%x)",
+		     filename, chunksize);
+		  return FALSE;
 		}
+	      objoverviewp->headptr =
+		COERCE (COERCE (ch, char *) + chunkoffset, objheadhdr *);
+	      objoverviewp->headsize = chunksize;
+	      break;
+	    case OBJ_AREA:
+	      if (objoverviewp->areaptr != NULL)
+		{
+		  error
+		    ("Error: AOF file '%s' got more than one OBJ_AREA chunk",
+		     filename);
+		  return FALSE;
+		}
+	      /* FIXME: is this a correct test on chunksize ? */
+	      if (chunksize % 4)
+		{
+		  error
+		    ("Error: AOF file '%s' chunk index %d has non 4 divisable chunk size for OBJ_AREA",
+		     filename, chindex);
+		  return FALSE;
+		}
+	      objoverviewp->areaptr =
+		COERCE (COERCE (ch, char *) + chunkoffset, unsigned int *);
+	      objoverviewp->areasize = chunksize;
 	      break;
 	    case OBJ_SYMT:
-	      fp->objsymtptr =
-		COERCE (COERCE (filebase, char *) + start, symtentry *);
-	      fp->objsymtsize = size;
+	      if (objoverviewp->symtptr != NULL)
+		{
+		  error
+		    ("Error: AOF file '%s' got more than one OBJ_SYMT chunk",
+		     filename);
+		  return FALSE;
+		}
+	      objoverviewp->symtptr =
+		COERCE (COERCE (ch, char *) + chunkoffset, symtentry *);
+	      objoverviewp->symtsize = chunksize;
 	      break;
 	    case OBJ_STRT:
-	      fp->objstrtptr = strtbase = COERCE (filebase, char *) + start;
-	      fp->objstrtsize = size;
+	      if (objoverviewp->strtptr != NULL)
+		{
+		  error
+		    ("Error: AOF file '%s' got more than one OBJ_STRT chunk",
+		     filename);
+		  return FALSE;
+		}
+	      objoverviewp->strtptr = COERCE (ch, char *) + chunkoffset;
+	      objoverviewp->strtsize = chunksize;
 	      break;
 	    }
 	}
-      cp++;
     }
-  if (fp->objheadptr == NIL || fp->objareaptr == NIL || fp->objsymtptr == NIL
-      || fp->objstrtptr == NIL)
+  /* Check if the minimal set of OBJ_XXXX chunks are present.  */
+  if (objoverviewp->headptr == NULL)
     {
-      error
-	("Error: AOF file '%s' appears to be either incomplete or corrupt",
-	 objectname);
+      error ("Error: AOF file '%s' does not have an OBJ_HEAD chunk",
+	     filename);
       return FALSE;
     }
+  if (objoverviewp->areaptr == NULL)
+    {
+      error ("Error: AOF file '%s' does not have an OBJ_AREA chunk",
+	     filename);
+      return FALSE;
+    }
+  /* Check & adjust OBJ_HEAD and OBJ_AREA chunks.  */
+  if (!obj_check_and_adjust_head (filename, objoverviewp)
+      || !obj_check_and_adjust_area (filename, objoverviewp))
+    return FALSE;
+  /* Check OBJ_SYMT thoroughly.  */
+  if (objoverviewp->symtptr != NULL)
+    {
+      if (objoverviewp->symtsize !=
+	  objoverviewp->headptr->areaheader.numsymbols * sizeof (symtentry))
+	{
+	  error
+	    ("Error: AOF file '%s' OBJ_SYMT chunk has unexpected size (0x%x vs 0x%x)",
+	     filename,
+	     objoverviewp->headptr->areaheader.numsymbols *
+	     sizeof (symtentry), curchunk->chunksize);
+	  return FALSE;
+	}
+      if (!obj_check_and_adjust_symt (filename, objoverviewp))
+	return FALSE;
+    }
+
   return TRUE;
 }
 
 /*
-** 'read_file' reads an AOF file into memory. It determines the size of
+** 'check_and_adjust_chunkheader' checks and adjust for endian differences
+** chunkheader at 'ch'.
+** Needs at least sizeof(chunkheader) bytes and may only be called once
+** for the same chunkheader.
+** Returns TRUE for ok, FALSE for error
+*/
+bool
+check_and_adjust_chunkheader (chunkheader *ch, const char *filename, unsigned int filesize)
+{
+  if (filesize < sizeof (chunkheader))
+    {
+      error ("Error: File '%s' is too short", filename);
+      return FALSE;
+    }
+  convert_endian (ch, sizeof (chunkheader) / 4);
+  switch (ch->chunkfileid)
+    {
+    case CHUNKFILE:
+      if (ch->maxchunks < ch->numchunks)
+	{
+	  error ("Error: File '%s' is corrupt", filename);
+	  return FALSE;
+	}
+      /* We expect at least one chunk.  */
+      if (ch->numchunks == 0)
+	{
+	  error ("Error: File '%s' doesn't contain any chunk", filename);
+	  return FALSE;
+	}
+      /* Make sure the chunk header + all chunks are in the file.  */
+      if (filesize < sizeof (chunkheader) + ch->maxchunks * sizeof (chunkindex))
+	{
+	  error ("Error: File '%s' is too short to contain all chunk information", filename);
+	  return FALSE;
+	}
+      break;
+
+    case BIGENDIAN:
+      error
+	("Error: File '%s' is a 'big endian' file. Drlink does not support these",
+	 filename);
+      return FALSE;
+
+    default:
+      error ("Error: File '%s' has an unrecognised file format", filename);
+      return FALSE;
+    }
+
+  return TRUE;
+}
+
+
+/*
+** 'check_and_get_chunkclass_before_adjust' determine chunkclass and gives
+** an error when non can be determined.  The chunkheader at ch already
+** needs to be verified and adjusted for endian differences and all
+** chunkindexes should be in memory.
+** This routine can be called more than once and does not change any
+** chunk data at all and can only work on the original chunk data
+** (i.e. no endian changes done).  If endian adjusting already has
+** been done use check_and_get_chunkclass() instead.
+** isoldlib: can be NULL but when it isn't, the bool value will be updated
+** with the status that it is an 'old style' library (i.e. no LIB_VSRN chunk)
+** or not.
+*/
+unsigned int
+check_and_get_chunkclass_before_adjust (const chunkhdr *ch, const char *filename, bool *isoldlibP)
+{
+  chunkindex ci;
+  const chunkindex *cip;
+  unsigned int i;
+  unsigned int chunkclass;
+  bool isoldlib;
+
+  chunkclass = 0;
+  isoldlib = TRUE;
+  for (i = 0, cip = &ch->firstentry; i < ch->header.maxchunks; ++i, ++cip)
+    {
+      ci = *cip;
+      convert_endian (&ci, sizeof (chunkindex) / 4);
+      if (ci.chunkoffset != 0)
+	{
+	  /* Valid & used chunk */
+	  if (chunkclass == 0
+	      && (ci.chunkclass == OBJ_XXXX
+		  || ci.chunkclass == LIB_XXXX
+		  || ci.chunkclass == OFL_XXXX))
+	    chunkclass = ci.chunkclass;
+	  if (ci.chunkclass == LIB_XXXX && ci.chunktype == LIB_VSRN)
+	    isoldlib = FALSE;
+	}
+    }
+  if (chunkclass == 0)
+    error ("Error: File '%s' does not contain object code nor is it a library", filename);
+
+  if (isoldlibP != NULL)
+    *isoldlibP = (chunkclass != LIB_XXXX) ? FALSE : isoldlib;
+
+  return chunkclass;
+}
+
+
+/*
+** 'check_and_get_chunkclass' determine chunkclass and gives
+** an error when non can be determined.  The chunkheader at ch already
+** needs to be verified.  The chunkheader and all chunkindexes
+** should have been adjusted for endian differences and all
+** chunkindexes should be in memory (if not, you might need to use
+** check_and_get_chunkclass_before_adjust() instead).
+** This routine can be called more than once and does not change any
+** chunk data at all.
+*/
+unsigned int
+check_and_get_chunkclass (const chunkhdr *ch, const char *filename)
+{
+  const chunkindex *cip;
+  unsigned int i;
+
+  for (i = 0, cip = &ch->firstentry; i < ch->header.maxchunks; ++i, ++cip)
+    {
+      if (cip->chunkoffset != 0
+	  && (cip->chunkclass == OBJ_XXXX
+	      || cip->chunkclass == LIB_XXXX
+	      || cip->chunkclass == OFL_XXXX))
+	break;
+    }
+  if (i == ch->header.maxchunks)
+    {
+      error ("Error: File '%s' does not contain object code nor is it a library", filename);
+      return 0;
+    }
+
+  return cip->chunkclass;
+}
+
+
+/*
+** 'read_file' reads an AOF/ALF file into memory. It determines the size of
 ** the file and then reads the entire file into memory returning either
 ** the size of the file if it is read successfully or -1 if it fails.
 */
-static int
-read_file (const char *filename)
+static bool
+read_file_and_process (const char *filename)
 {
-  int filesize;
+  bool ok;
   FILE *objfile;
-  size_t count;
+  int filesize;
+  void *filebase;
+
+  if (!unread (filename))
+    return TRUE;
+
   if (opt_verbose)
     error ("Drlink: Reading file '%s'", filename);
-  objfile = fopen (filename, "rb");
 
-  if (objfile == NIL)
-    {				/* Could not open file */
+  if ((objfile = fopen (filename, "rb")) == NULL)
+    {	/* Could not open file */
       error ("Error: Cannot find file '%s'", filename);
-      return -1;
+      return FALSE;
     }
-  filesize = find_size (objfile);
+
+  if ((filesize = find_size (objfile)) < 0)
+    {
+      error ("Error: Cannot determine length of file '%s'", filename);
+      return FALSE;
+    }
   filebase = allocmem (filesize);
-  if (filebase == NIL)
-    {				/* Not enough memory */
-      fclose (objfile);
+
+  if (low_memory || filebase == NULL)
+    {	/* Running short on memory */
       switch (examine_file (filename))
 	{
 	case AOFILE:
-	case OLDLIB:		/* No chance */
-	  error ("Fatal: Not enough memory is available to load file '%s'",
-		 filename);
+	case OLDLIB:
+	  ok = read_file_and_process_int (filebase, (unsigned int)filesize, filename, objfile);
+	  break;
 	case LIBRARY:
-	  addto_liblist (filename, NIL, filesize);
-	  return 0;
+	  ok = addto_liblist (filename, NULL, (unsigned int)filesize);
+	  break;
 	default:
-	  return -1;
+	  ok = FALSE;
+	  break;
 	}
-    }
-  count = fread (filebase, filesize, 1, objfile);
-  if (count == 1)
-    {				/* File read successfully */
-      strncpy (objectname, filename, sizeof (objectname) - 1);
-      objectname[sizeof (objectname) - 1] = '\0';
     }
   else
-    {				/* Read failed */
-      error ("Error: Cannot read file '%s'", filename);
-      filesize = -1;
+    {
+      if ((ok = read_file_and_process_int (filebase, (unsigned int)filesize, filename, objfile)) == FALSE)
+        freemem(filebase, filesize);
     }
+
   fclose (objfile);
-  return filesize;
+  return ok;
 }
 
+
 /*
-** 'process_file' deals with a file once it has been loaded into
-** memory. If the file is an AOF file, it builds the various
-** linker tables for the file. If a library, if a new-style
-** library, the file is added to the library list, otherwise
-** all the library members are loaded and added to the file
-** list. If the 'low memory' flag is set, libraries are
-** immediately unloaded from memory after adding them to the
-** library list. There is probably not enough memory left to
-** complete the link if this flag is set, but it only adds a
-** couple of lines of code to the function to deal with it.
-** The proc returns 'TRUE' if all this worked otherwise it
-** returns 'FALSE'
+** 'read_file_and_process_int' reads and processes AOF/ALF files
+** when they can be stored fully in memory.
+** filebase can be NULL (no more free memory condition and this will
+** be checked for) or non NULL.
+** filesize is the filesize length of filename with handle objfile.
 */
 static bool
-process_file (const char *filename, unsigned int filesize)
+read_file_and_process_int (void *filebase, int filesize, const char *filename, FILE *objfile)
 {
-  filelist *fp;
-  bool ok;
+  size_t count;
+  bool ok, isoldlib;
 
-  ok = FALSE;
-  switch (find_filetype ())
-    {
-    case AOFILE:
-      fp = addto_filelist (filename, filesize);
-      if (scan_chunkhdr (fp))
-	ok = read_tables (fp);
-      break;
-    case LIBRARY:
-      if (isoldlib ())
-	{			/* Old-style library - Load everything in it */
-	  fp = addto_filelist (filename, 0);	/* Create dummy entry for library in file list */
-	  ok = load_wholelib (filename, filesize);
-	}
-      else
-	{			/* New-style library */
-	  addto_liblist (filename, filebase, filesize);
-	  ok = TRUE;
-	}
-      break;
-    default:
-      break;
+  if (filebase == NULL)
+    {				/* Not enough memory */
+      error ("Fatal: Not enough memory is available to load file '%s'",
+	     filename);
+      return FALSE;
     }
+
+  count = fread (filebase, filesize, 1, objfile);
+  if (count != 1)
+    {				/* Read failed */
+      error ("Error: Cannot read file '%s'", filename);
+      return FALSE;
+    }
+
+  if (!check_and_adjust_chunkheader (filebase, filename, filesize))
+    return FALSE;
+
+  /*
+  ** If the file is an AOF file, it builds the various
+  ** linker tables for the file. If a library, if a new-style
+  ** library, the file is added to the library list, otherwise
+  ** all the library members are loaded and added to the file
+  ** list. If the 'low memory' flag is set, libraries are
+  ** immediately unloaded from memory after adding them to the
+  ** library list. There is probably not enough memory left to
+  ** complete the link if this flag is set, but it only adds a
+  ** couple of lines of code to the function to deal with it.
+  ** The proc returns 'TRUE' if all this worked otherwise it
+  ** returns 'FALSE'
+  */
+
+  switch (check_and_get_chunkclass_before_adjust (filebase, filename, &isoldlib))
+    {
+      case OBJ_XXXX:
+	{
+	  filelist *fp;
+
+	  ok = (fp = create_filelist (filename, filesize)) != NULL
+	       && obj_check_and_adjust (filebase, filename, filesize, &fp->obj)
+	       && read_tables (fp);
+	  if (ok)
+	    addto_filelist(fp);
+	  else
+	    free_filelist(fp);
+	  break;
+	}
+
+      case LIB_XXXX:
+      case OFL_XXXX:
+	if (isoldlib)
+	  {	/* Old-style library - Load everything in it */
+	    filelist *fp;
+	    /* Create dummy entry for library in file list with
+	     * filesize = 0 (!)
+	     */
+	    if ((fp = create_filelist(filename, 0)) == NULL)
+	      return FALSE;
+	    addto_filelist (fp);
+	    if ((ok = load_wholelib (filename, filebase, filesize)) == FALSE)
+	      free_filelist(fp);
+	  }
+	else
+	  {	/* New-style library */
+	    lib_overview liboverview;
+	    ok = lib_check_and_adjust (filebase, filename, filesize, &liboverview)
+		 && addto_liblist (filename, &liboverview, filesize);
+	  }
+	break;
+
+      default:
+	ok = FALSE;
+	break;
+    }
+
   return ok;
 }
 
@@ -699,22 +975,22 @@ unread (const char *filename)
   fp = aofilelist;
   hashval = hash (filename);
 #ifdef IGNORE_CASE
-  while (fp != NIL
+  while (fp != NULL
 	 && (hashval != fp->chfilehash
 	     || stricmp (filename, fp->chfilename) != 0))
     fp = fp->nextfile;
 #else
-  while (fp != NIL
+  while (fp != NULL
 	 && (hashval != fp->chfilehash
 	     || strcmp (filename, fp->chfilename) != 0))
     fp = fp->nextfile;
 #endif
-  if (fp != NIL)
+  if (fp != NULL)
     error ("Warning: File '%s' has already been read. Ignored.", filename);
-  return fp == NIL;
+  return fp == NULL;
 }
 
-#ifdef TARGET_RISCOS
+#ifndef CROSS_COMPILE
 /*
 ** 'match_files' obtains the directory entries for the possibly
 ** wildcarded filename passed to it. It uses OS_GBPB call 9 to
@@ -734,6 +1010,7 @@ match_files (char dirname[], char leafname[])
   char *fp;
   _kernel_swi_regs regs;
   _kernel_oserror *swierror;
+
   fp = filebuffer;
   offset = 0;
   filecount = 0;
@@ -747,7 +1024,7 @@ match_files (char dirname[], char leafname[])
       regs.r[5] = DIRBUFSIZE;
       regs.r[6] = COERCE (&leafname[0], int);
       swierror = _kernel_swi (OS_GBPB, &regs, &regs);
-      if (swierror != NIL)
+      if (swierror != NULL)
 	{
 	  error ("Error: Cannot read directory entry for '%s'", leafname,
 		 &swierror->errmess);
@@ -765,7 +1042,7 @@ match_files (char dirname[], char leafname[])
 		    {
 		      fp++;
 		    }
-		  while (*fp != NULLCHAR);
+		  while (*fp != '\0');
 		  fp++;
 		}
 	      if (fp > filebuffer + buffersize)
@@ -780,7 +1057,6 @@ match_files (char dirname[], char leafname[])
   while (offset >= 0);
   return filecount;
 }
-
 #else
 
 /*
@@ -804,7 +1080,7 @@ split_names (const char *filename, char dirname[], char leafname[])
 {
   char *p, *leafstart, *dirstart;
   int len;
-  len = strlen (filename) - 1;	/* Get offset of last char */
+  len = strlen (filename) - 1;  /* Get offset of last char */
   strcpy (dirname, filename);
   dirstart = &dirname[0];
   p = dirstart + len;
@@ -814,13 +1090,13 @@ split_names (const char *filename, char dirname[], char leafname[])
   strcpy (leafname, leafstart);
   if (p < dirstart)
     {				/* No directory name found */
-      *dirstart = NULLCHAR;
+      *dirstart = '\0';
     }
   else
     {
       if (*p == ':')
 	p++;			/* Need ':' as part of directory name in names like wibble:eek */
-      *p = NULLCHAR;
+      *p = '\0';
     }
 }
 
@@ -831,7 +1107,7 @@ split_names (const char *filename, char dirname[], char leafname[])
 static bool
 wildcarded (const char *p)
 {
-  while (*p > ' ' && strchr (WILDCARDS, *p) == NIL)
+  while (*p > ' ' && strchr (WILDCARDS, *p) == NULL)
     p++;
   return *p > ' ';
 }
@@ -848,111 +1124,54 @@ wildcarded (const char *p)
 bool
 get_files (const char *filename)
 {
-  int count, i, filesize;
-  char *dp, *p;
-  bool ok;
-  char dirname[FNAMELEN];
-  char leafname[LEAFLEN];
+    int count, i;
+    char *dp, *p;
+    bool ok;
+    char dirname[FNAMELEN];
+    char leafname[LEAFLEN];
 
   if (!wildcarded (filename))
-    {				/* No wildcards. Simple call */
-      ok = TRUE;
-      if (unread (filename))
-	{
-	  if (low_memory)
-	    {			/* Running short on memory */
-	      switch (examine_file (filename))
-		{
-		case AOFILE:
-		case OLDLIB:
-		  filesize = read_file (filename);
-		  ok = process_file (filename, filesize);
-		  break;
-		case LIBRARY:
-		  addto_liblist (filename, NIL, find_filesize (filename));
-		  break;
-		default:
-		  ok = FALSE;
-		}
-	    }
-	  else
-	    {			/* Plenty of memory yet... */
-	      filesize = read_file (filename);
-	      ok = filesize >= 0;
-	      if (filesize > 0)
-		ok = process_file (filename, filesize);
-	    }
-	}
-      return ok;
-    }
-  else
-    {
-/*
-** Wildcards found, so we have to find all the file names that
-** match the wildcard specification. Separate directory name
-** and leaf name and then see what there is, allowing for
-** back-to-front 'xxx*.o' filenames. 'wildcarded' is used
-** here as a quick check for 'xxx*' as a directory name (when
-** it could be the leafname in 'xxx*.o')
-*/
+    return read_file_and_process (filename);	/* No wildcards. Simple call */
+
+  /*
+  ** Wildcards found, so we have to find all the file names that
+  ** match the wildcard specification. Separate directory name
+  ** and leaf name and then see what there is, allowing for
+  ** back-to-front 'xxx*.o' filenames. 'wildcarded' is used
+  ** here as a quick check for 'xxx*' as a directory name (when
+  ** it could be the leafname in 'xxx*.o')
+  */
+  split_names (filename, dirname, leafname);
+  count = 0;
+  if (!wildcarded (dirname))
+    count = match_files (dirname, leafname);
+#ifndef CROSS_COMPILE
+  if (count == 0 && rearrange (filename))
+    {			    /* 'xxx*.o' type filename */
       split_names (filename, dirname, leafname);
-      count = 0;
-      if (!wildcarded (dirname))
-	count = match_files (dirname, leafname);
-#ifdef TARGET_RISCOS
-      if (count == 0 && rearrange (filename))
-	{			/* 'xxx*.o' type filename */
-	  split_names (filename, dirname, leafname);
-	  count = match_files (dirname, leafname);
-	}
-#endif
-      if (count == 0)
-	{
-	  error ("Error: Cannot find '%s'", filename);
-	  return FALSE;
-	}
-      ok = TRUE;
-      dp = filebuffer;
-      p = &dirname[0] + strlen (dirname);
-      if (p != &dirname[0] && *(p - 1) != ':')
-	{			/* Need '.' after dir name */
-	  *p = '.';
-	  p++;
-	  *p = NULLCHAR;
-	}
-      for (i = 1; i <= count && ok; i++)
-	{
-	  strcpy (p, dp);
-	  if (unread (dirname))
-	    {
-	      if (low_memory)
-		{		/* Running short on memory */
-		  switch (examine_file (dirname))
-		    {
-		    case AOFILE:
-		    case OLDLIB:
-		      filesize = read_file (dirname);
-		      ok = process_file (dirname, filesize);
-		      break;
-		    case LIBRARY:
-		      addto_liblist (dirname, NIL, find_filesize (dirname));
-		      break;
-		    default:
-		      ok = FALSE;
-		    }
-		}
-	      else
-		{
-		  filesize = read_file (dirname);
-		  ok = filesize >= 0;
-		  if (filesize > 0)
-		    ok = process_file (dirname, filesize);
-		}
-	    }
-	  dp += strlen (dp) + 1;
-	}
-      return ok;
+      count = match_files (dirname, leafname);
     }
+#endif
+  if (count == 0)
+    {
+      error ("Error: Cannot find '%s'", filename);
+      return FALSE;
+    }
+  ok = TRUE;
+  dp = filebuffer;
+  p = &dirname[0] + strlen (dirname);
+  if (p != &dirname[0] && p[-1] != ':')
+    {			    /* Need '.' after dir name */
+      *p++ = '.';
+      *p = '\0';
+    }
+  for (i = 1; i <= count && ok; i++)
+    {
+      strcpy (p, dp);
+      ok &= read_file_and_process (dirname);
+      dp += strlen (dp) + 1;
+    }
+  return ok;
 }
 
 /*
@@ -963,21 +1182,22 @@ get_files (const char *filename)
 void
 tidy_files (void)
 {
-  if (object_open)
-    fclose (objectfile);
-  if (image_open)
+  if (imagefile != NULL)
     {
       fclose (imagefile);
+      imagefile = NULL;
       remove (imagename);
     }
-  if (symbol_open)
+  if (symbolfile != NULL)
     {
       fclose (symbolfile);
+      symbolfile = NULL;
       remove (symbolname);
     }
-  if (map_open)
+  if (mapfile != NULL)
     {
       fclose (mapfile);
+      mapfile = NULL;
       remove (mapfilename);
     }
 }
@@ -993,19 +1213,23 @@ tidy_files (void)
 static bool
 load_textfile (const char *filename, char **where, int *size)
 {
-  unsigned int fsize;
+  int fsize;
   char *p;
   FILE *textfile;
   size_t count;
-  textfile = fopen (filename, "r");
-  if (textfile == NIL)
+
+  if ((textfile = fopen (filename, "r")) == NULL)
     {
       error ("Error: Unable to read file '%s'", filename);
       return FALSE;
     }
-  fsize = find_size (textfile);
+  if ((fsize = find_size (textfile)) < 0)
+    {
+      error ("Error: Unable to determine length of '%s'", filename);
+      return FALSE;
+    }
   p = allocmem (fsize + sizeof (char));
-  if (p == NIL)
+  if (p == NULL)
     {
       fclose (textfile);
       error ("Fatal: Out of memory reading '%s' in 'load_textfile'",
@@ -1018,7 +1242,7 @@ load_textfile (const char *filename, char **where, int *size)
       error ("Error: Unable to read file '%s'", filename);
       return FALSE;
     }
-  *(p + fsize) = NULLCHAR;
+  p[fsize] = '\0';
   *where = p;
   *size = fsize;
   return TRUE;
@@ -1068,162 +1292,6 @@ load_editfile (const char *name)
   return ok;
 }
 
-/* ---------- Routines to read libraries ---------- */
-
-/*
-** 'read_chunk' reads a chunk from the current file, saving it at
-** 'loadaddr'. It returns 'true' if this went okay otherwise it
-** returns 'false'
-*/
-bool
-read_chunk (const char *chunkid, int chunkaddr, int chunksize, void *loadaddr)
-{
-  int result;
-  result = fseek (objectfile, chunkaddr, SEEK_SET);
-  if (result != 0)
-    {
-      error ("Error: Could not find '%s' chunk in '%s'", chunkid, objectname);
-      return FALSE;
-    }
-  result = fread (loadaddr, chunksize, 1, objectfile);
-  if (result != 1)
-    {
-      error ("Error: Could not read '%s' chunk in '%s'", chunkid, objectname);
-      return FALSE;
-    }
-  return TRUE;
-}
-
-/*
-** 'read_member' is called to read a member of a library into
-** memory. It returns a pointer to the member's file list entry
-** if this was okay or NIL if the member could not be read or was
-** not an AOF file
-*/
-filelist *
-read_member (libentry * lp, filelist * inwhat, symbol * forwhat)
-{
-  filelist *fp;
-  char *membername;
-  size_t count;
-  int result;
-  fp = NIL;
-  membername = lp->libmember;
-  strncpy (objectname, membername, sizeof (objectname) - 1);
-  objectname[sizeof (objectname) - 1] = '\0';
-  if (current_lib->libase == NIL)
-    {				/* Library is not in memory */
-      result = fseek (objectfile, lp->liboffset, SEEK_SET);
-      if (result != NIL)
-	{
-	  error ("Error: Cannot find library member '%s'", membername);
-	  return NIL;
-	}
-      if ((filebase = allocmem (lp->libsize)) == NIL)
-	{
-	  error
-	    ("Fatal: Not enough memory available to load library member '%s'",
-	     membername);
-	}
-      count = fread (filebase, lp->libsize, 1, objectfile);
-      if (count != 1)
-	{
-	  error ("Error: Cannot read library member '%s'", membername);
-	  return NIL;
-	}
-    }
-  else
-    {
-      filebase =
-	COERCE (COERCE (current_lib->libase, char *) + lp->liboffset,
-		unsigned int *);
-    }
-  switch (find_filetype ())
-    {
-    case AOFILE:
-      if (opt_verbose)
-	{
-	  error
-	    ("Drlink: Reading library member '%s' to resolve '%s' in '%s'",
-	     membername, forwhat->symtptr->symtname, inwhat->chfilename);
-	}
-      fp = addto_filelist (membername, lp->libsize);
-      if (!scan_chunkhdr (fp))
-	fp = NIL;
-      break;
-    case LIBRARY:
-      error ("Error: '%s' is a library. Nested libraries are not supported",
-	     membername);
-    default:
-      break;
-    }
-  return fp;
-}
-
-/*
-** 'extract_member' is called to add a member from a library to
-** the file list when the entire library is being read. It returns
-** 'TRUE' if this worked, otherwise it returns 'FALSE'
-*/
-bool
-extract_member (chunkindex * cp)
-{
-  unsigned int *oldbase;
-  filelist *fp;
-  bool ok;
-
-  oldbase = filebase;
-  filebase =
-    COERCE (COERCE (filebase, char *) + cp->chunkoffset, unsigned int *);
-  ok = FALSE;
-  switch (find_filetype ())
-    {
-    case AOFILE:
-      fp = addto_filelist (objectname, cp->chunksize);
-      ok = scan_chunkhdr (fp) && read_tables (fp);
-      break;
-    case LIBRARY:
-      error ("Error: '%s' is a library. Nested libraries are not supported",
-	     objectname);
-    default:
-      break;
-    }
-  filebase = oldbase;
-  return ok;
-}
-
-/*
-** 'read_libchunkhdr' reads the chunk header index of the library 'lp'. It
-** copies it into the general purpose file buffer 'filebuffer' to save
-** allocating memory needlessly.
-*/
-bool
-read_libchunkhdr (libheader * lp)
-{
-  unsigned int size;
-  size_t count;
-  count = fread (&header, sizeof (header), 1, objectfile);
-  if (count != 1)
-    {
-      error ("Error: Cannot read start of library '%s'", objectname);
-      return FALSE;
-    }
-  chunkcount = header.numchunks;
-  size = chunkcount * sizeof (chunkindex);
-  if (size > buffersize)
-    {
-      error ("Fatal: Library '%s' is too large to read", lp->libname);
-    }
-  chunkhdrbase = COERCE (filebuffer, chunkindex *);
-  count = fread (chunkhdrbase, size, 1, objectfile);
-  if (count != 1)
-    {
-      error ("Error: Cannot read header from library '%s'", lp->libname);
-      return FALSE;
-    }
-  return TRUE;
-}
-
 /* --------- Create executable image file ---------- */
 
 /*
@@ -1236,7 +1304,7 @@ read_libchunkhdr (libheader * lp)
 void
 open_image (void)
 {
-#ifdef TARGET_RISCOS
+#ifndef CROSS_COMPILE
   char ro_name[MAXPATHLEN];
   unsigned int filetype;
   _kernel_swi_regs regs;
@@ -1251,7 +1319,7 @@ open_image (void)
       filetype = DATA;
       break;
     default:
-      filetype = (opt_debimage && debugsize > 0 ? DEBIMAGE : ABSOLUTE);
+      filetype = (opt_debimage && debugsize > 0) ? DEBIMAGE : ABSOLUTE;
     }
 
   __riscosify_std (imagename, 1, ro_name, sizeof (ro_name), NULL);
@@ -1262,20 +1330,15 @@ open_image (void)
   regs.r[4] = 0;
   regs.r[5] = imagesize;
   swierror = _kernel_swi (OS_File, &regs, &regs);
-  if (swierror != NIL)
-    {
-      error ("Fatal: Cannot create image file '%s'", imagename);
-    }
+  if (swierror != NULL)
+    error ("Fatal: Cannot create image file '%s'", imagename);
 
   imagefile = fopen (imagename, "rb+");
 #else
   imagefile = fopen (imagename, "wb");
 #endif
-  if (imagefile == NIL)
-    {
-      error ("Fatal: Unable to open image file '%s'", imagename);
-    }
-  image_open = TRUE;
+  if (imagefile == NULL)
+    error ("Fatal: Unable to open image file '%s'", imagename);
   filebuftop = filebuffer;
   filebufend = filebuffer + buffersize;
 }
@@ -1287,10 +1350,9 @@ open_image (void)
 static void
 write_block (void *where, int size)
 {
-  size_t count;
   if (size != 0)
     {
-      count = fwrite (where, size, 1, imagefile);
+      size_t count = fwrite (where, size, 1, imagefile);
       if (count != 1)
 	error ("Fatal: Error occured writing '%s'", imagename);
     }
@@ -1314,10 +1376,9 @@ write_image (void *areaddr, unsigned int areasize)
       write_block (filebuffer, filebuftop - filebuffer);
       filebuftop = filebuffer;
     }
-  if (areasize >= buffersize)
-    {				/* Area too big for buffer */
-      write_block (areaddr, areasize);
-    }
+
+  if (areasize >= buffersize)	/* Area too big for buffer */
+    write_block (areaddr, areasize);
   else
     {
       memcpy (filebuftop, areaddr, areasize);
@@ -1333,14 +1394,13 @@ write_image (void *areaddr, unsigned int areasize)
 void
 write_string (const char *p)
 {
-  int len;
-  len = strlen (p) + sizeof (char);
+  size_t len = strlen (p) + sizeof (char);
   if (filebuftop + len >= filebufend)
     {				/* No room in staging buffer */
       write_block (filebuffer, filebuftop - filebuffer);
       filebuftop = filebuffer;
     }
-  strcpy (filebuftop, p);
+  memcpy (filebuftop, p, len);
   filebuftop += len;
 }
 
@@ -1361,13 +1421,13 @@ write_zeroes (unsigned int count)
     write_image (&zeroblock, count);
 }
 
-#ifdef TARGET_RISCOS
+#ifndef CROSS_COMPILE
 /*
 ** 'set_filetype' sets the type of the file passed to it
 ** to the filetype specified
 */
 static void
-set_filetype (char *filename, int filetype)
+set_filetype (const char *filename, int filetype)
 {
   _kernel_swi_regs regs;
   _kernel_oserror *swierror;
@@ -1375,10 +1435,8 @@ set_filetype (char *filename, int filetype)
   regs.r[1] = COERCE (filename, int);
   regs.r[2] = TEXT;
   swierror = _kernel_swi (OS_File, &regs, &regs);
-  if (swierror != NIL)
-    {
-      error ("Fatal: Cannot set filetype of '%s'", filename);
-    }
+  if (swierror != NULL)
+    error ("Fatal: Cannot set filetype of '%s'", filename);
 }
 
 static void
@@ -1390,18 +1448,15 @@ set_loadexec (void)
   regs.r[1] = COERCE (imagename, int);
   regs.r[2] = codebase;
   swierror = _kernel_swi (OS_File, &regs, &regs);
-  if (swierror != NIL)
-    {
-      error ("Fatal: Cannot alter load address of '%s'", imagename);
-    }
+  if (swierror != NULL)
+    error ("Fatal: Cannot alter load address of '%s'", imagename);
+
   regs.r[0] = 3;		/* Call to reset execution address */
   regs.r[1] = COERCE (imagename, int);
   regs.r[3] = entryarea->arplace + entryoffset;
   swierror = _kernel_swi (OS_File, &regs, &regs);
-  if (swierror != NIL)
-    {
-      error ("Fatal: Cannot alter execution address of '%s'", imagename);
-    }
+  if (swierror != NULL)
+    error ("Fatal: Cannot alter execution address of '%s'", imagename);
 }
 #endif
 
@@ -1416,8 +1471,8 @@ close_image (void)
 {
   write_block (filebuffer, filebuftop - filebuffer);
   fclose (imagefile);
-  image_open = FALSE;
-#ifdef TARGET_RISCOS
+  imagefile = NULL;
+#ifndef CROSS_COMPILE
   if (opt_codebase)
     set_loadexec ();
 #endif
@@ -1435,10 +1490,7 @@ reset_image (unsigned int offset)
   filebuftop = filebuffer;
   result = fseek (imagefile, offset, SEEK_SET);
   if (result != 0)
-    {
-      error ("Fatal: Error occured moving to new position in '%s'",
-	     imagename);
-    }
+    error ("Fatal: Error occured moving to new position in '%s'", imagename);
 }
 
 /*
@@ -1451,9 +1503,9 @@ close_symbol (void)
 {
   if (linewidth < 3)
     fprintf (symbolfile, "\n");
-  symbol_open = FALSE;
   fclose (symbolfile);
-#ifdef TARGET_RISCOS
+  symbolfile = NULL;
+#ifndef CROSS_COMPILE
   set_filetype (symbolname, TEXT);
 #endif
 }
@@ -1465,26 +1517,21 @@ static void
 check_write (void)
 {
   if (ferror (symbolfile))
-    {
-      error ("Fatal: Error occured writing to symbol file '%s'", symbolname);
-    }
+    error ("Fatal: Error occured writing to symbol file '%s'", symbolname);
 }
 
 void
 open_symbol (void)
 {
   symbolfile = fopen (symbolname, "w");
-  if (symbolfile == NIL)
-    {
-      error ("Fatal: Cannot create symbol listing file '%s'", symbolname);
-    }
-  symbol_open = TRUE;
+  if (symbolfile == NULL)
+    error ("Fatal: Cannot create symbol listing file '%s'", symbolname);
   linewidth = 0;
   addroffset = (imagetype == RMOD ? progbase : 0);
   if (!opt_acornmap)
     {
-      fprintf (symbolfile, "                          Symbol Map of '%s'\n\n",
-	       imagename);
+      fprintf (symbolfile,
+	       "                          Symbol Map of '%s'\n\n", imagename);
       check_write ();
     }
 }
@@ -1502,26 +1549,20 @@ write_symbol (symtentry * sp)
   if (opt_acornmap)
     {
       if (opt_revmap)
-	{
-	  fprintf (symbolfile, "%06x  %s", sp->symtvalue - addroffset,
-		   sp->symtname);
-	}
+	fprintf (symbolfile, "%06x  %s", sp->symtvalue - addroffset,
+		 sp->symtname);
       else
-	{
-	  fprintf (symbolfile, "%-25s %06x", sp->symtname,
-		   sp->symtvalue - addroffset);
-	}
+	fprintf (symbolfile, "%-25s %06x", sp->symtname,
+		 sp->symtvalue - addroffset);
       check_write ();
-      if ((sp->symtattr & SYM_ABSVAL) == 0 && sp->symtarea.areaptr != NIL)
+      if ((sp->symtattr & SYM_ABSVAL) == 0 && sp->symtarea.areaptr != NULL)
 	{			/* A relocatable symbol */
 	  ap = sp->symtarea.areaptr;
 	  fprintf (symbolfile, " in AREA %s from %s\n", ap->arname,
 		   ap->arfileptr->chfilename);
 	}
-      else
-	{			/* Absolute symbol */
-	  fprintf (symbolfile, "\n");
-	}
+      else			/* Absolute symbol */
+	fputc ('\n', symbolfile);
       check_write ();
     }
   else
@@ -1532,17 +1573,15 @@ write_symbol (symtentry * sp)
       linewidth += (len <= FIELDWIDTH ? 1 : 2);
       if (linewidth >= 3)
 	{
-	  fprintf (symbolfile, "\n");
+	  fputc ('\n', symbolfile);
 	  linewidth = 0;
 	}
       else
 	{
 	  len = FIELDWIDTH - len % FIELDWIDTH;
-	  if (len != FIELDWIDTH)
-	    {			/* Pad with blanks */
-	      fprintf (symbolfile, "%*.*s", len, len,
-		       "                         ");
-	    }
+	  if (len != FIELDWIDTH)	/* Pad with blanks */
+	    fprintf (symbolfile, "%*.*s", len, len,
+		     "                         ");
 	}
     }
   check_write ();
@@ -1555,11 +1594,8 @@ void
 open_mapfile (void)
 {
   mapfile = fopen (mapfilename, "w");
-  if (mapfile == NIL)
-    {
-      error ("Fatal: Cannot create area map file '%s'", mapfilename);
-    }
-  map_open = TRUE;
+  if (mapfile == NULL)
+    error ("Fatal: Cannot create area map file '%s'", mapfilename);
 }
 
 /*
@@ -1570,20 +1606,18 @@ void
 write_mapfile (const char *text)
 {
   size_t count;
-  count = fwrite (text, sizeof (char), strlen (text), mapfile);
-  if (count != strlen (text))
-    {
-      error ("Fatal: Error occured writing to area map file '%s'",
-	     mapfilename);
-    }
+
+  count = fwrite (text, strlen (text), sizeof (char), mapfile);
+  if (count != 1)
+    error ("Fatal: Error occured writing to area map file '%s'", mapfilename);
 }
 
 void
 close_mapfile (void)
 {
   fclose (mapfile);
-  map_open = FALSE;
-#ifdef TARGET_RISCOS
+  mapfile = NULL;
+#ifndef CROSS_COMPILE
   set_filetype (mapfilename, TEXT);
 #endif
 }
@@ -1597,10 +1631,8 @@ alloc_filebuffer (void)
 {
   if (buffersize < MINBUFFER)
     buffersize = MINBUFFER;
-  if ((filebuffer = allocmem (buffersize)) == NIL)
-    {
-      error ("Fatal: Out of memory in 'alloc_filebuffer'");
-    }
+  if ((filebuffer = allocmem (buffersize)) == NULL)
+    error ("Fatal: Out of memory in 'alloc_filebuffer'");
 }
 
 /*
@@ -1611,10 +1643,8 @@ alloc_filebuffer (void)
 void
 resize_filebuffer (void)
 {
-  if (filebuffer == NIL)
-    {				/* Not allocated buffer yet */
-      buffersize = MINBUFFER;
-    }
+  if (filebuffer == NULL)
+    buffersize = MINBUFFER;	/* Not allocated buffer yet */
   else if (buffersize > MINBUFFER)
     {
       freemem (filebuffer, buffersize);
@@ -1630,12 +1660,10 @@ void
 init_files (void)
 {
   imagetype = NOTYPE;
-  aofilelist = NIL;
-  liblist = NIL;
-  debugflist = NIL;
-  object_open = image_open = symbol_open = map_open = FALSE;
+  aofilelist = NULL;
+  liblist = NULL;
+  debugflist = NULL;
   headersize = debugsize = imagesize = 0;
-  imagename = NIL;
-  filecount = 0;
+  imagename = NULL;
   buffersize = STDBUFFER;
 }

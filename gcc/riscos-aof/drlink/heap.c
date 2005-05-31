@@ -46,6 +46,7 @@
 #include <stdlib.h>
 
 #include "drlhdr.h"
+#include "libraries.h"
 #include "procdefs.h"
 
 /* #define TRACE	Not tracing calls for now */
@@ -61,9 +62,9 @@ typedef struct blockinfo
 #define MAXFREESIZE 10		/* Individual word size free lists */
 #define MAXFREEBYTES (MAXFREESIZE*sizeof(int))
 
-#ifdef TARGET_RISCOS
-#define MEMLIMIT 0		/* OS_ChangeEnvironment calls */
-#define APPLIMIT 14
+#ifndef CROSS_COMPILE
+# define MEMLIMIT 0		/* OS_ChangeEnvironment calls */
+# define APPLIMIT 14
 #endif
 
 /* Private declarations */
@@ -71,7 +72,7 @@ typedef struct blockinfo
 static char *low_heapnext,	/* Next free address in current heap block */
  *low_heaptop;			/* Top of current heap block */
 
-static blockinfo * malloclist,	/* List of blocks acquired using malloc */
+static blockinfo *malloclist,	/* List of blocks acquired using malloc */
  *blocklist,			/* Free memory block list */
  *blocklast;			/* Last entry in free memory block list */
 
@@ -90,7 +91,7 @@ static bool libs_gone;		/* TRUE if libraries have been discarded as memory is ve
 ** attempted if the libraries have not been referenced, that is, at
 ** the time AOF files are being hoiked into memory. If this fails,
 ** there is not a lot that can be done... The proc returns a pointer
-** to the memory allocated or NIL if the request could not be fulfilled.
+** to the memory allocated or NULL if the request could not be fulfilled.
 ** It is up to the routines that call 'allocmem' to deal with this
 ** condition.
 */
@@ -106,21 +107,21 @@ allocmem (unsigned int size)
   if (size <= MAXFREEBYTES)
     {				/* Look for entry in small block free list array */
       wordsize = size / sizeof (unsigned int);
-      if ((mp = freelist[wordsize]) != NIL)
+      if ((mp = freelist[wordsize]) != NULL)
 	{			/* Found one */
 	  freelist[wordsize] = mp->blocknext;
 	  return mp;
 	}
     }
-  if ((p = blocklist) != NIL)
+  if ((p = blocklist) != NULL)
     {				/* Check free block list */
-      lp = NIL;
-      while (p != NIL && p->blocksize < size)
+      lp = NULL;
+      while (p != NULL && p->blocksize < size)
 	{
 	  lp = p;
 	  p = p->blocknext;
 	}
-      if (p != NIL)
+      if (p != NULL)
 	{			/* Found one big enough */
 #ifdef TRACE
 	  printf ("....  freelist allocate %x at %x\n", size, p);
@@ -136,7 +137,7 @@ allocmem (unsigned int size)
 		  np->blocknext = freelist[wordsize];
 		  freelist[wordsize] = np;
 /* Remove entire block from free memory chain */
-		  if (lp == NIL)
+		  if (lp == NULL)
 		    {		/* Allocated block was first in list */
 		      blocklist = p->blocknext;
 		    }
@@ -153,7 +154,7 @@ allocmem (unsigned int size)
 		{		/* Remainder is too big for small chunk lists */
 		  np->blocksize = bitleft;
 		  np->blocknext = p->blocknext;
-		  if (lp == NIL)
+		  if (lp == NULL)
 		    {		/* Allocated block was first in list */
 		      blocklist = np;
 		    }
@@ -169,7 +170,7 @@ allocmem (unsigned int size)
 	    }
 	  else
 	    {			/* Use entire block */
-	      if (lp == NIL)
+	      if (lp == NULL)
 		{		/* Allocated block was first in list */
 		  blocklist = p->blocknext;
 		}
@@ -191,7 +192,7 @@ allocmem (unsigned int size)
   if (size > MALLOCSIZE)
     {				/* Want more memory than is available in malloc'ed blocks */
       mp = malloc (size + sizeof (blockinfo));
-      if (mp != NIL)
+      if (mp != NULL)
 	{			/* Acquired memory okay */
 	  mp->blocknext = malloclist;
 	  malloclist = mp;
@@ -214,7 +215,7 @@ allocmem (unsigned int size)
       else
 	{			/* Need to acquire new block of memory */
 	  mp = malloc (MALLOCSIZE + sizeof (blockinfo));
-	  if (mp != NIL)
+	  if (mp != NULL)
 	    {			/* Acquired block okay. Add it to malloc'ed list and allocate space from it */
 	      mp->blocknext = malloclist;
 	      malloclist = mp;
@@ -239,7 +240,7 @@ allocmem (unsigned int size)
       discard_libraries ();
       return allocmem (size);
     }
-  return NIL;			/* There is no memory left */
+  return NULL;			/* There is no memory left */
 }
 
 /*
@@ -269,9 +270,9 @@ freemem (void *where, unsigned int size)
     }
   else
     {				/* Large area. Add to large area list */
-      mp->blocknext = NIL;
+      mp->blocknext = NULL;
       mp->blocksize = size;
-      if (blocklast == NIL)
+      if (blocklast == NULL)
 	{
 	  blocklist = mp;
 	}
@@ -290,22 +291,19 @@ bool
 initheap (void)
 {
   int n;
-  malloclist = malloc (MALLOCSIZE + sizeof (blockinfo));
-  if (malloclist == NIL)
-    {
-      error ("Fatal: There is not enough memory to run the linker");
-    }
-  malloclist->blocknext = NIL;
+  if ((malloclist = malloc (MALLOCSIZE + sizeof (blockinfo))) == NULL)
+    error ("Fatal: There is not enough memory to run the linker");
+  malloclist->blocknext = NULL;
   mallocsize = MALLOCSIZE + sizeof (blockinfo);
   low_heapnext = COERCE (malloclist + 1, char *);
   low_heaptop = low_heapnext + MALLOCSIZE;
   for (n = 0; n <= MAXFREESIZE; n++)
-    freelist[n] = NIL;
-  blocklist = blocklast = NIL;
+    freelist[n] = NULL;
+  blocklist = blocklast = NULL;
   low_memory = libs_gone = FALSE;
 #ifdef TRACE
-  printf ("First heap block is at: %x ends at: %x\n",
-	  low_heapnext, low_heaptop);
+  printf ("First heap block is at: %x ends at: %x\n", low_heapnext,
+	  low_heaptop);
 #endif
   return TRUE;
 }
@@ -319,7 +317,7 @@ release_heap (void)
 {
   blockinfo *p, *np;
   p = malloclist;
-  while (p != NIL)
+  while (p != NULL)
     {
       np = p->blocknext;
       free (p);

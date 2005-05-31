@@ -48,22 +48,22 @@ extern bool read_tables (filelist *);
 /* -- In 'Files' -- */
 
 extern void init_files (void);
+extern filelist *create_filelist (const char *fname, unsigned int fsize);
+extern void addto_filelist (filelist * fp);
+extern void free_filelist (filelist * fp);
 extern void alloc_filebuffer (void);
 extern void resize_filebuffer (void);
 extern bool get_files (const char *);
 extern int find_filesize (const char *);
-extern bool read_chunk (const char *, int, int, void *);
-extern bool cache_files (void);
+extern bool check_and_adjust_chunkheader (chunkheader *ch, const char *filename, unsigned int filesize);
+extern unsigned int check_and_get_chunkclass_before_adjust (const chunkhdr *ch, const char *filename, bool *isoldlibP);
+extern unsigned int check_and_get_chunkclass (const chunkhdr *ch, const char *filename);
+extern bool obj_check_and_adjust (chunkhdr * ch, const char *filename, unsigned int filesize, obj_overview *objoverviewp);
 extern void addto_debuglist (const char *);
 extern void check_debuglist (void);
 extern bool load_viafile (const char *);
 extern bool load_editfile (const char *);
-extern bool open_object (const char *);
-extern void close_object (void);
-extern bool read_libchunkhdr (libheader *);
 extern fileinfo examine_file (const char *);
-extern filelist *read_member (libentry *, filelist *, symbol *);
-extern bool extract_member (chunkindex *);
 extern void tidy_files (void);
 extern void open_image (void);
 extern void write_image (void *, unsigned int);
@@ -78,27 +78,18 @@ extern void close_symbol (void);
 extern void open_mapfile (void);
 extern void write_mapfile (const char *);
 extern void close_mapfile (void);
-
-/* -- In 'Libraries' -- */
-
-extern void init_library (void);
-extern bool addto_liblist (const char *, unsigned int *, unsigned int);
-extern bool read_libinfo (libheader *);
-extern bool open_library (libheader *);
-extern void close_library (libheader *);
-extern bool load_member (libentry *, filelist *, symbol *);
-extern bool load_wholelib (const char *, unsigned int);
-extern bool isloaded (libentry *);
-extern bool isoldlib (void);
-extern void free_libmem (void);
-extern bool discard_libraries (void);
+#ifdef WORDS_BIGENDIAN
+extern void convert_endian (void *words, size_t size);
+#else
+# define convert_endian(w, s)
+#endif
 
 /* -- In 'Messages' -- */
 
 extern void announce (void);
 extern void error (const char *, ...);
 extern bool got_errors (void);
-#ifdef TARGET_RISCOS
+#ifndef CROSS_COMPILE
 extern void end_throwback (void);
 #endif
 
@@ -128,7 +119,9 @@ extern void print_mapfile (void);
 
 /* -- In 'Symbols' -- */
 
-extern int stricmp (const char *, const char *);
+#ifndef HAVE_STRICMP
+extern int stricmp (const char *, const char*);
+#endif
 extern symbol *make_symbol (const char *, unsigned int);
 extern void create_linksyms (void);
 extern symbol *create_externref (symtentry *);
@@ -149,8 +142,7 @@ extern void build_cdlist (void);
 extern void find_cdareas (void);
 extern void print_symbols (void);
 extern void build_symbols (void);
-extern char *check_libedit (const char *, char *, int);
-
+extern const char *check_libedit (const char *, const char *, int);
 
 /* -- In 'Linkedit' -- */
 

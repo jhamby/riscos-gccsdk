@@ -26,19 +26,34 @@
 #define filehdr_h
 
 #include <stdio.h>
+
 #include "chunkhdr.h"
 #include "areahdr.h"
 #include "symbolhdr.h"
 
-
 #define MINBUFFER 0x2000	/* Minumum image file buffer size - 8K bytes */
 #define STDBUFFER 0x10000	/* Default image file buffer size - 64K bytes */
 
+/* Linker output file type */
 typedef enum
-{ NOTYPE, AIF, AOF, ALF, BIN, RMOD, RELOC } image;	/* Linker output file type */
+{
+  NOTYPE,
+  AIF,
+  AOF,
+  ALF,
+  BIN,
+  RMOD,
+  RELOC
+} image;
 
+/* Type of file currently being read */
 typedef enum
-{ NOWT, AOFILE, LIBRARY, OLDLIB } fileinfo;	/* Type of file currently being read */
+{
+  NOWT,				/* Invalid file for linking purposes */
+  AOFILE,			/* AOF */
+  LIBRARY,			/* ALF, new style, i.e. with LIB_VSRN chunk */
+  OLDLIB			/* ALF, odl style, i.e. without LIB_VSRN chunk */
+} fileinfo;
 
 typedef struct linkfiles
 {				/* AOF File to be included in link */
@@ -54,29 +69,39 @@ typedef struct debugfiles
   struct debugfiles *dbgnext;	/* Pointer to next file */
 } debugfiles;
 
+typedef struct
+{
+  /* OBJ_HEAD */
+  objheadhdr *headptr;		/* Pointer to OBJ_HEAD loaded chunk */
+  unsigned int headsize;	/* Size of OBJ_HEAD chunk */
+  /* OBJ_AREA */
+  unsigned int *areaptr;	/* Pointer to OBJ_AREA loaded chunk */
+  unsigned int areasize;	/* Size of OBJ_AREA chunk */
+  /* OBJ_SYMT */
+  symtentry *symtptr;		/* Pointer to OBJ_SYMT loaded chunk */
+  unsigned int symtsize;	/* Size of OBJ_SYMT chunk */
+  /* OBJ_STRT */
+  char *strtptr;		/* Pointer to OBJ_STRT loaded chunk */
+  unsigned int strtsize;	/* Size of OBJ_STRT chunk */
+} obj_overview;
+
 /*
 ** 'filelist' is the structure that contains details of an AOF file loaded
 ** into memory.
 */
 typedef struct filelist
 {
-  char *chfilename;		/* Name of this file. Useful for error messages */
+  const char *chfilename;	/* Name of this file. Useful for error messages */
   unsigned int chfilehash;	/* Hashed version of file's name */
   unsigned int chfilesize;	/* Size of file being processed */
   bool keepdebug;		/* TRUE if debug areas in file are to be kept */
-  bool cached;			/* TRUE if the AOF file is in memory */
-  bool edited;			/* TRUE if the file has been edited */
   bool aofv3;			/* TRUE if object code is AOF version 3 */
-  struct objheadhdr *objheadptr;	/* Pointer to OBJ_HEAD loaded chunk */
-  unsigned int objheadsize;	/* Size of OBJ_HEAD chunk */
-  unsigned int *objareaptr;	/* Pointer to OBJ_AREA loaded chunk */
-  unsigned int objareasize;	/* Size of OBJ_AREA chunk */
-  struct symtentry *objsymtptr;	/* Pointer to OBJ_SYMT loaded chunk */
-  unsigned int objsymtsize;	/* Size of OBJ_SYMT chunk */
-  char *objstrtptr;		/* Pointer to OBJ_STRT loaded chunk */
-  unsigned int objstrtsize;	/* Size of OBJ_STRT chunk */
+
+  obj_overview obj;		/* obj chunk overview */
+
   unsigned int areacount;	/* Number of areas in OBJ_AREA chunk */
   unsigned int symtcount;	/* Number of symbols in OBJ_SYMT chunk */
+
   symtable localsyms;		/* File's local symbol table */
   union
   {
@@ -92,13 +117,7 @@ extern image imagetype;		/* What sort of file linker will produce */
 extern filelist * aofilelist,	/* Pointer to list of loaded files */
  *aofilelast;			/* Pointer to last loaded file entry */
 
-extern libheader * liblist,	/* Pointer to list of libraries */
- *liblast;			/* Pointer to end of list of libraries */
-
-extern chunkheader header;	/* Chunk header from last file read */
-
-extern FILE * objectfile,	/* AOF or library being read */
- *imagefile,			/* Image file being produced */
+extern FILE * imagefile,	/* Image file being produced */
  *symbolfile,			/* Symbol file being written */
  *mapfile;			/* Area map file */
 
@@ -107,22 +126,14 @@ extern char *symbolname,	/* Pointer to name of symbol file */
 
 extern const char *imagename;	/* Pointer to name of linker output file */
 
-extern bool object_open,	/* TRUE if an object file is being read */
-  image_open,			/* TRUE if the image file is being written */
-  symbol_open,			/* TRUE if the symbol file is being written */
-  map_open;			/* TRUE if the area map file is being written */
-
 extern char objectname[FNAMELEN];	/* File currently being read */
 
-extern unsigned int filecount,	/* Count of AOF files loaded */
-  buffersize,			/* Size of image file buffer */
+extern unsigned int buffersize,	/* Size of image file buffer */
   headersize,			/* Size of AIF (or BIN) header */
   debugsize,			/* Size of debugging tables in image */
   imagesize;			/* Size of image file to be written to disk */
 
-extern unsigned int *filebase;	/* Pointer to a file when loaded */
-
-extern linkfiles * linklist,	/* Pointer to list of files to link */
+extern linkfiles *linklist,	/* Pointer to list of files to link */
  *linklast;			/* Pointer to end of file list */
 
 extern debugfiles *debugflist;	/* List of files where debug info is to be kept */

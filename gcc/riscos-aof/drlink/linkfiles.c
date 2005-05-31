@@ -31,7 +31,7 @@
 /* #define DEBUG */
 
 #ifdef TIMING
-#include <time.h>
+# include <time.h>
 #endif
 
 /*
@@ -43,8 +43,7 @@ read_tables (filelist * fp)
 {
   bool ok;
 
-  ok = scan_head (fp);
-  ok = ok && scan_symt (fp);
+  ok = scan_head (fp) && scan_symt (fp);
   free_srchlist ();
 
   return ok;
@@ -58,38 +57,39 @@ read_tables (filelist * fp)
 ** that handle the debug stuff check 'keepdebug' in the file
 ** structure to see if it is actually needed
 */
-
-#ifdef TIMING
-
 void
 link_program (void)
 {
+#ifdef TIMING
   time_t timer;
+#endif
   linkfiles *lp;
   bool ok;
+
   alloc_filebuffer ();
   create_linksyms ();
   if (opt_verbose)
     error ("Drlink: Checking files...");
+#ifdef TIMING
   timer = clock ();
+#endif
   link_state = READ_AOF;
-  lp = linklist;
-  ok = TRUE;
-  do
-    {
-      ok = get_files (lp->linkname);
-      lp = lp->linknext;
-    }
-  while (lp != NIL && ok);
+  for (lp = linklist, ok = TRUE; lp != NULL && ok; lp = lp->linknext)
+    ok = get_files (lp->linkname);
+#ifdef TIMING
   printf ("Read files: %d\n", (clock () - timer) / CLOCKS_PER_SEC);
   timer = clock ();
-  if (ok)
-    verify_edits ();
+#endif
   ok = ok && resolve ();
   if (ok)
-    check_debuglist ();
+    {
+      verify_edits ();
+      check_debuglist ();
+    }
+#ifdef TIMING
   printf ("Resolve references: %d\n", (clock () - timer) / CLOCKS_PER_SEC);
-  opt_debug = opt_debug || debugflist != NIL;	/* Enable 'debug' if necessary */
+#endif
+  opt_debug = opt_debug || debugflist != NULL;	/* Enable 'debug' if necessary */
   if (ok)
     {
       if (imagetype == AOF)
@@ -105,25 +105,41 @@ link_program (void)
       else
 	{
 	  check_entryarea ();
-	  timer = clock ();
 	  if (opt_nounused)
-	    find_unused ();
-	  printf ("Remove unused areas: %d\n",
-		  (clock () - timer) / CLOCKS_PER_SEC);
-	  timer = clock ();
+	    {
+#ifdef TIMING
+	      timer = clock ();
+#endif
+	      find_unused ();
+#ifdef TIMING
+	      printf ("Remove unused areas: %d\n",
+		      (clock () - timer) / CLOCKS_PER_SEC);
+#endif
+	    }
+
 	  link_state = RELOCATE;
 	  if (opt_verbose)
 	    error ("Drlink: Relocating program...");
+#ifdef TIMING
+	  timer = clock ();
+#endif
 	  relocate_areas ();
+#ifdef TIMING
 	  printf ("Relocate areas: %d\n",
 		  (clock () - timer) / CLOCKS_PER_SEC);
+#endif
 	  relocate_symbols ();
+#ifdef TIMING
 	  printf ("Relocate symbols: %d\n",
 		  (clock () - timer) / CLOCKS_PER_SEC);
 	  timer = clock ();
+#endif
 	  ok = relocate ();
+#ifdef TIMING
 	  printf ("Relocate program: %d\n",
 		  (clock () - timer) / CLOCKS_PER_SEC);
+#endif
+
 	  if (ok)
 	    {
 	      if (opt_cpp)
@@ -133,10 +149,14 @@ link_program (void)
 	    }
 	  if (ok)
 	    {
+#ifdef TIMING
 	      timer = clock ();
+#endif
 	      create_image ();
+#ifdef TIMING
 	      printf ("Create image file: %d\n",
 		      (clock () - timer) / CLOCKS_PER_SEC);
+#endif
 	      if (opt_verbose && opt_nounused)
 		print_unusedlist ();
 	      if (opt_areamap)
@@ -156,96 +176,8 @@ link_program (void)
     }
 #endif
 
-#ifdef TARGET_RISCOS
+#ifndef CROSS_COMPILE
   if (opt_throw)
     end_throwback ();
 #endif
 }
-
-#else
-
-/* This version leaves out all the timing code */
-
-void
-link_program (void)
-{
-  linkfiles *lp;
-  bool ok;
-  alloc_filebuffer ();
-  create_linksyms ();
-  if (opt_verbose)
-    error ("Drlink: Checking files...");
-  link_state = READ_AOF;
-  lp = linklist;
-  ok = TRUE;
-  do
-    {
-      ok = get_files (lp->linkname);
-      lp = lp->linknext;
-    }
-  while (lp != NIL && ok);
-  ok = ok && resolve ();
-  if (ok)
-    verify_edits ();
-  if (ok)
-    check_debuglist ();
-  opt_debug = opt_debug || debugflist != NIL;	/* Enable 'debug' if necessary */
-  if (ok)
-    {
-      if (imagetype == AOF)
-	{			/* Partially-linked AOF file */
-	  if (opt_symbols)
-	    print_symbols ();
-	  create_aofile ();
-	  if (opt_areamap)
-	    print_areamap ();
-	  if (opt_mapfile)
-	    print_mapfile ();
-	}
-      else
-	{
-	  check_entryarea ();
-	  if (opt_nounused)
-	    find_unused ();
-	  link_state = RELOCATE;
-	  if (opt_verbose)
-	    error ("Drlink: Relocating program...");
-	  relocate_areas ();
-	  relocate_symbols ();
-	  ok = relocate ();
-	  if (ok)
-	    {
-	      if (opt_cpp)
-		build_cdlist ();
-	      if (opt_debug)
-		ok = build_debugtables ();
-	    }
-	  if (ok)
-	    {
-	      create_image ();
-	      if (opt_verbose && opt_nounused)
-		print_unusedlist ();
-	      if (opt_areamap)
-		print_areamap ();
-	      if (opt_mapfile)
-		print_mapfile ();
-	      if (opt_symbols)
-		print_symbols ();
-	    }
-	}
-    }
-#ifdef DEBUG
-  if (opt_dump)
-    {
-      list_allareas ();
-      list_files ();
-    }
-#endif
-
-#ifdef TARGET_RISCOS
-  if (opt_throw)
-    end_throwback ();
-#endif
-}
-
-#endif

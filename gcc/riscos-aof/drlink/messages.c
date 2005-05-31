@@ -33,13 +33,13 @@
 #include "filehdr.h"
 #include "procdefs.h"
 
-#ifdef TARGET_RISCOS
-#include <kernel.h>
+#ifndef CROSS_COMPILE
+# include <kernel.h>
 #endif
 
 /* Private declarations */
 
-#ifdef TARGET_RISCOS
+#ifndef CROSS_COMPILE
 
 static int last_level = 0;	/* Last throwback error message level */
 static bool first_error = TRUE;	/* TRUE before first time Throwback is used */
@@ -70,7 +70,7 @@ start_throwback (const char *filename)
   _kernel_swi_regs regs;
   _kernel_oserror *swierror;
   swierror = _kernel_swi (DDEUtils_ThrowbackStart, &regs, &regs);
-  if (swierror != NIL)
+  if (swierror != NULL)
     {
       swierror = _kernel_last_oserror ();	/* Lose SWI error just logged */
       opt_throw = FALSE;
@@ -81,7 +81,7 @@ start_throwback (const char *filename)
   regs.r[0] = Throwback_ReasonProcessing;
   regs.r[2] = COERCE (filename, int);
   swierror = _kernel_swi (DDEUtils_ThrowbackSend, &regs, &regs);
-  if (swierror != NIL)
+  if (swierror != NULL)
     {
       opt_throw = FALSE;
       error ("Error: Error occured sending 'throwback' message: %s",
@@ -102,7 +102,7 @@ end_throwback (void)
   _kernel_oserror *swierror;
   opt_throw = FALSE;
   swierror = _kernel_swi (DDEUtils_ThrowbackEnd, &regs, &regs);
-  if (swierror != NIL)
+  if (swierror != NULL)
     {
       swierror = _kernel_last_oserror ();	/* Lose SWI error just logged */
       error ("Error: Error occured trying to end 'throwback' session: %s",
@@ -122,7 +122,7 @@ throwback_message (char *text)
   _kernel_oserror *swierror;
   _kernel_swi_regs regs;
   filename = imagename;
-  if (filename == NIL)
+  if (filename == NULL)
     filename = "!RunImage";
   if (first_error)
     {
@@ -151,7 +151,7 @@ throwback_message (char *text)
   regs.r[4] = errlevel;
   regs.r[5] = COERCE (text, int);
   swierror = _kernel_swi (DDEUtils_ThrowbackSend, &regs, &regs);
-  if (swierror != NIL)
+  if (swierror != NULL)
     {
       opt_throw = FALSE;
       error ("Error: Error occured sending 'throwback' message: %s",
@@ -186,7 +186,7 @@ error (const char *msg, ...)
   p3 = va_arg (parms, char *);
   p4 = va_arg (parms, char *);
   va_end (parms);
-#ifdef TARGET_RISCOS
+#ifndef CROSS_COMPILE
   if (opt_throw && (*msg == ' ' || *msg == 'W' || *msg == 'E' || *msg == 'F'))
     {
       char text[MSGBUFLEN];
@@ -196,11 +196,11 @@ error (const char *msg, ...)
   else
     {
       printf (msg, p1, p2, p3, p4);
-      printf ("\n");
+      fputc ('\n', stdout);
     }
 #else
   printf (msg, p1, p2, p3, p4);
-  printf ("\n");
+  fputc ('\n', stdout);
 #endif
   switch (*msg)
     {
@@ -213,7 +213,7 @@ error (const char *msg, ...)
     case 'F':
       tidy_files ();
       release_heap ();
-#ifdef TARGET_RISCOS
+#ifndef CROSS_COMPILE
       if (opt_throw)
 	end_throwback ();
 #endif

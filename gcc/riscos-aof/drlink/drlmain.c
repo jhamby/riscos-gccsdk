@@ -32,10 +32,11 @@
 
 #include "drlhdr.h"
 #include "filehdr.h"
+#include "libraries.h"
 #include "procdefs.h"
 
-#ifdef TARGET_RISCOS
-#include <kernel.h>
+#ifndef CROSS_COMPILE
+# include <kernel.h>
 #endif
 
 /* Variables referenced by other modules */
@@ -158,7 +159,7 @@ print_help (void)
     ("  -c[ase]      Ignore the case of symbols where searching for them\n");
   printf
     ("  -da[ta] <address> Start read/write part of image at <address>\n");
-#ifdef TARGET_RISCOS
+#ifndef CROSS_COMPILE
   printf
     ("  -debi[mage]  Set filetype of image file with debug info to 'DebImage'\n");
 #endif
@@ -182,7 +183,7 @@ print_help (void)
   printf ("  -rev[map]    Produce symbol listing in order <addr> <symbol>\n");
   printf ("  -rm[f]       Create a relocatable module\n");
   printf ("  -s[ymbols] <file> Write list of symbols in image to <file>\n");
-#ifdef TARGET_RISCOS
+#ifndef CROSS_COMPILE
   printf
     ("  -t[hrowback] Send warning and error messages to throwback window\n");
 #endif
@@ -204,7 +205,7 @@ print_help (void)
 ** 'get_text' returns a pointer to the next 'word' in the command
 ** line or 'via' file, adding a null to the end of the word and
 ** converting it to lower case if it starts with a '-'. It returns
-** 'NIL' if at the end of the command line buffer
+** 'NULL' if at the end of the command line buffer
 */
 static char *
 get_text (void)
@@ -213,9 +214,9 @@ get_text (void)
   char *cp, *start;
   bool option;
   cp = cvptr;
-  while (cp != cvptrend && *cp <= ' ' && *cp != NULLCHAR)
+  while (cp != cvptrend && *cp <= ' ' && *cp != '\0')
     cp++;
-  if (cp == cvptrend || *cp == NULLCHAR)
+  if (cp == cvptrend || *cp == '\0')
     {				/* At end of cmdline or 'via' file */
       if (inviafile)
 	{			/* End of 'via' file */
@@ -224,7 +225,7 @@ get_text (void)
 	  inviafile = FALSE;
 	  return get_text ();
 	}
-      return NIL;
+      return NULL;
     }
   option = *cp == '-';
   if (*cp == '"')
@@ -250,9 +251,9 @@ get_text (void)
     {				/* " missing */
       error ("Error: Unmatched '\"' found");
       cvptr = cp;
-      return NIL;
+      return NULL;
     }
-  *cp = NULLCHAR;
+  *cp = '\0';
   if (cp != cvptrend)
     cp++;			/* Skip 'null' just added */
   cvptr = cp;
@@ -267,11 +268,11 @@ static void
 addto_linklist (const char *p)
 {
   linkfiles *lp;
-  if ((lp = allocmem (sizeof (linkfiles))) == NIL)
+  if ((lp = allocmem (sizeof (linkfiles))) == NULL)
     error ("Fatal: Out of memory in 'addto_linklist'");
   lp->linkname = p;
-  lp->linknext = NIL;
-  if (linklist == NIL)
+  lp->linknext = NULL;
+  if (linklist == NULL)
     {
       linklist = lp;
     }
@@ -296,7 +297,7 @@ char *fnstart, *fnend;		/* Start and end of a filename */
 ** 'extract_name' is called to find the next name in the string
 ** pointed at by 'np'. It returns 'TRUE' if a name was found
 ** otherwise it returns 'FALSE'. 'fnstart' points at the start
-** of the string. If this is NIL, the end of the string has been
+** of the string. If this is NULL, the end of the string has been
 ** reached. The routine adds a null after a name to mark its end.
 ** Names can be separated by blanks or commas
 */
@@ -307,12 +308,12 @@ extract_name (char *np)
   np = skip_blanks (np);
   fnstart = np;
   ch = *np;
-  if (ch == NULLCHAR)
+  if (ch == '\0')
     {				/* End of string */
-      fnstart = NIL;
+      fnstart = NULL;
       return TRUE;
     }
-  while (ch != NULLCHAR && ch != ',' && ch != ' ')
+  while (ch != '\0' && ch != ',' && ch != ' ')
     {
       np++;
       ch = *np;
@@ -321,7 +322,7 @@ extract_name (char *np)
     return FALSE;		/* No text found */
   if (ch == ',' || ch == ' ')
     {				/* Another name to follow */
-      *np = NULLCHAR;
+      *np = '\0';
       np++;
     }
   fnend = np;
@@ -337,33 +338,36 @@ extract_name (char *np)
 static bool
 get_libraries (char *lp)
 {
-  bool ok;
   do
     {
-      ok = extract_name (lp);
-      if (!ok)
+      if (!extract_name (lp))
 	{
 	  error
 	    ("Error: Badly formed library list found after option '-lib'");
 	  return FALSE;
 	}
-      else if (fnstart != NIL)
+
+      if (fnstart != NULL)
 	{
 	  switch (examine_file (fnstart))
 	    {
-	    case NOWT:
-	      return FALSE;
-	    case LIBRARY:
-	      addto_liblist (fnstart, NIL, find_filesize (fnstart));
-	      break;
-	    case AOFILE:
-	    case OLDLIB:
-	      addto_linklist (fnstart);
+	      case NOWT:
+	        return FALSE;
+
+	      case LIBRARY:
+	        if (!addto_liblist (fnstart, NULL, find_filesize (fnstart)))
+	          return FALSE;
+	        break;
+
+	      case AOFILE:
+	      case OLDLIB:
+	        addto_linklist (fnstart);
+	        break;
 	    }
 	}
       lp = fnend;
     }
-  while (fnstart != NIL);
+  while (fnstart != NULL);
   return TRUE;
 }
 
@@ -384,11 +388,11 @@ get_debugfiles (char *lp)
 	    ("Error: Badly formed file list found after option '-keepdebug'");
 	  return FALSE;
 	}
-      if (fnstart != NIL)
+      if (fnstart != NULL)
 	addto_debuglist (fnstart);
       lp = fnend;
     }
-  while (fnstart != NIL);
+  while (fnstart != NULL);
   return TRUE;
 }
 
@@ -420,9 +424,7 @@ get_number (char *p, unsigned int *value)
   radix = 10;
   ch = *p;
   if (ch == '&')
-    {
-      radix = 16;
-    }
+    radix = 16;
   else if (ch == '0')
     {
       p++;
@@ -434,53 +436,38 @@ get_number (char *p, unsigned int *value)
   startp = p;
   ch = tolower (*p);
   ok = TRUE;
-  while (ok && ch != NULLCHAR && ch != 'm' && ch != 'k')
+  while (ok && ch != '\0' && ch != 'm' && ch != 'k')
     {
       if (radix == 16 && ch >= 'a')
-	{
-	  digit = ch - ('a' - 10);
-	}
+	digit = ch - ('a' - 10);
       else
-	{
-	  digit = ch - '0';
-	}
+	digit = ch - '0';
+
       if (digit < 0 || (radix == 10 && digit > 9)
 	  || (radix == 16 && digit > 15))
-	{
-	  ok = FALSE;
-	}
+	ok = FALSE;
       else
-	{
-	  size = size * radix + digit;
-	}
+	size = size * radix + digit;
       p++;
       ch = tolower (*p);
     }
   ok = ok && p != startp;
-  if (ch != NULLCHAR)
+  if (ch != '\0')
     {				/* Make sure number is formed properly */
-      ok = *(p + 1) == NULLCHAR;
+      ok = *(p + 1) == '\0';
       if (ch == 'k')
 	{			/* Followed by 'k' - Size is in 'kilo' */
 	  if (size < 4194304)
-	    {
-	      size = size * 1024;
-	    }
+	    size = size * 1024;
 	  else
-	    {
-	      ok = FALSE;
-	    }
+	    ok = FALSE;
 	}
       else
 	{			/* Followed by 'm' - Size is in 'mega' */
 	  if (size < 4096)
-	    {
-	      size = size * (1024 * 1024);
-	    }
+	    size = size * (1024 * 1024);
 	  else
-	    {
-	      ok = FALSE;
-	    }
+	    ok = FALSE;
 	}
     }
   *value = size;
@@ -527,7 +514,7 @@ get_option (char *tp)
 #ifdef DEBUG
 /* dump */ {"dump", 4, OPT_DUMP},
 #endif
-#ifdef TARGET_RISCOS
+#ifndef CROSS_COMPILE
 /* debimage */ {"debi", 4, OPT_DEBIMAGE},
 #endif
 /* data */ {"da", 2, OPT_DATA},
@@ -555,7 +542,7 @@ get_option (char *tp)
 /* relocatable */ {"r", 1, OPT_RELOC},
 /* strong */ {"str", 3, OPT_STRONG},
 /* symbols */ {"s", 1, OPT_SYMBOL},
-#ifdef TARGET_RISCOS
+#ifndef CROSS_COMPILE
 /* throwback */ {"t", 1, OPT_THROW},
 #endif
 /* via */ {"via", 3, OPT_VIA},
@@ -598,14 +585,11 @@ get_option (char *tp)
       break;
     case OPT_BASE:
       tp = get_text ();
-      if (tp != NIL)
+      if (tp != NULL)
 	{
 	  ok = get_number (tp, &value);
 	  if (!ok)
-	    {
-	      error ("Error: Bad numeric value supplied after option '%s'",
-		     op);
-	    }
+	    error ("Error: Bad numeric value supplied after option '%s'", op);
 	  else if (opt_codebase)
 	    {
 	      error ("Error: Code base address already supplied");
@@ -626,18 +610,13 @@ get_option (char *tp)
       break;
     case OPT_BUFFER:
       tp = get_text ();
-      if (tp != NIL)
+      if (tp != NULL)
 	{
 	  ok = get_number (tp, &buffersize);
 	  if (!ok)
-	    {
-	      error ("Error: Bad numeric value supplied after option '%s'",
-		     op);
-	    }
+	    error ("Error: Bad numeric value supplied after option '%s'", op);
 	  else
-	    {
-	      buffersize = align (buffersize);
-	    }
+	    buffersize = align (buffersize);
 	}
       else
 	{
@@ -653,14 +632,11 @@ get_option (char *tp)
       break;
     case OPT_DATA:
       tp = get_text ();
-      if (tp != NIL)
+      if (tp != NULL)
 	{
 	  ok = get_number (tp, &value);
 	  if (!ok)
-	    {
-	      error ("Error: Bad numeric value supplied after option '%s'",
-		     op);
-	    }
+	    error ("Error: Bad numeric value supplied after option '%s'", op);
 	  else if (opt_database)
 	    {
 	      error ("Error: Data base address already supplied");
@@ -675,7 +651,7 @@ get_option (char *tp)
 	  ok = FALSE;
 	}
       break;
-#ifdef TARGET_RISCOS
+#ifndef CROSS_COMPILE
     case OPT_DEBIMAGE:
       opt_debimage = TRUE;
       break;
@@ -690,10 +666,8 @@ get_option (char *tp)
 #endif
     case OPT_EDIT:
       tp = get_text ();
-      if (tp != NIL)
-	{
-	  ok = load_editfile (tp) && scan_editfile ();
-	}
+      if (tp != NULL)
+	ok = load_editfile (tp) && scan_editfile ();
       else
 	{
 	  error ("Error: No filename found after option '%s'", op);
@@ -712,7 +686,7 @@ get_option (char *tp)
       break;
     case OPT_KEEP:
       tp = get_text ();
-      if (tp != NIL)
+      if (tp != NULL)
 	{
 	  ok = get_debugfiles (tp);
 	  opt_keepdebug = TRUE;
@@ -728,7 +702,7 @@ get_option (char *tp)
       break;
     case OPT_LIB:
       tp = get_text ();
-      if (tp != NIL)
+      if (tp != NULL)
 	{
 	  ok = get_libraries (tp);
 	}
@@ -743,7 +717,7 @@ get_option (char *tp)
       break;
     case OPT_MAPFILE:
       tp = get_text ();
-      if (tp != NIL)
+      if (tp != NULL)
 	{
 	  mapfilename = tp;
 	  opt_mapfile = TRUE;
@@ -759,10 +733,8 @@ get_option (char *tp)
       break;
     case OPT_OUTPUT:
       tp = get_text ();
-      if (tp != NIL)
-	{
-	  imagename = tp;
-	}
+      if (tp != NULL)
+	imagename = tp;
       else
 	{
 	  ok = FALSE;
@@ -795,7 +767,7 @@ get_option (char *tp)
       break;
     case OPT_SYMBOL:
       tp = get_text ();
-      if (tp != NIL)
+      if (tp != NULL)
 	{
 	  symbolname = tp;
 	  opt_symbols = TRUE;
@@ -806,23 +778,18 @@ get_option (char *tp)
 	  error ("Error: No filename found after option '%s'", op);
 	}
       break;
-#ifdef TARGET_RISCOS
+#ifndef CROSS_COMPILE
     case OPT_THROW:
       opt_throw = TRUE;
       break;
 #endif
     case OPT_VIA:
       tp = get_text ();
-      if (tp != NIL)
+      if (tp != NULL)
 	{
 	  if (inviafile)
-	    {
-	      error ("Fatal: Nested 'via' files are not allowed");
-	    }
-	  else
-	    {
-	      ok = load_viafile (tp);
-	    }
+	    error ("Fatal: Nested 'via' files are not allowed");
+	  ok = load_viafile (tp);
 	}
       else
 	{
@@ -835,18 +802,13 @@ get_option (char *tp)
       break;
     case OPT_WORKS:
       tp = get_text ();
-      if (tp != NIL)
+      if (tp != NULL)
 	{
 	  ok = get_number (tp, &workspace);
 	  if (!ok)
-	    {
-	      error ("Error: Bad numeric value supplied after option '%s'",
-		     op);
-	    }
+	      error ("Error: Bad numeric value supplied after option '%s'", op);
 	  else
-	    {
-	      workspace = align (workspace);
-	    }
+	    workspace = align (workspace);
 	}
       else
 	{
@@ -877,21 +839,17 @@ scan_cmdline (void)
   bool ok;
   ok = TRUE;
   tp = get_text ();
-  while (tp != NIL && ok)
+  while (tp != NULL && ok)
     {
       if (*tp != '-')
-	{			/* A possible victim */
-	  addto_linklist (tp);
-	}
+	addto_linklist (tp);	/* A possible victim */
       else
-	{
-	  ok = get_option (tp);
-	}
+	ok = get_option (tp);
       tp = get_text ();
     }
   if (ok)
     {
-      ok = linklist != NIL;
+      ok = linklist != NULL;
       if (!ok)
 	print_help ();
     }
@@ -914,14 +872,14 @@ scan_cmdline (void)
       opt_debug = FALSE;
       break;
     case AOF:
-      if (imagename == NIL)
+      if (imagename == NULL)
 	imagename = "aof";
       opt_nounused = FALSE;
     default:
       break;
     }
 
-  if (imagename == NIL)
+  if (imagename == NULL)
 #if defined(CROSS_COMPILE) && defined(ENABLE_FILETYPE_FF8)
     imagename = "!RunImage,ff8";
 #else
@@ -931,7 +889,7 @@ scan_cmdline (void)
   return ok;
 }
 
-#ifdef TARGET_RISCOS
+#ifndef CROSS_COMPILE
 
 #define DDEUtils_GetCLSize 0x42583
 #define DDEUtils_GetCL 0x42584
@@ -946,15 +904,13 @@ GetCLSize (void)
   _kernel_swi_regs regs;
   _kernel_oserror *swierror;
   swierror = _kernel_swi (DDEUtils_GetCLSize, &regs, &regs);
-  if (swierror != NIL)
+  if (swierror != NULL)
     {				/* Error - Assume DDEUtils is not loaded */
       swierror = _kernel_last_oserror ();	/* Lose SWI error logged by C library */
       return -1;
     }
-  else
-    {
-      return regs.r[0];		/* Otherwise length is returned in R0 */
-    }
+
+  return regs.r[0];		/* Otherwise length is returned in R0 */
 }
 
 /*
@@ -1000,15 +956,13 @@ copy_cmdline (int argc, char *argv[])
 	size += strlen (argv[n]) + sizeof (char);	/* Find length of parameters */
     }
   cmdbuffer = allocmem (size + sizeof (char));	/* +1 for possible null at end */
-  if (cmdbuffer == NIL)
+  if (cmdbuffer == NULL)
     error ("Fatal: Not enough memory to run linker");
   if (extended)
-    {				/* Copy extended command line */
-      GetCL (cmdbuffer);
-    }
+    GetCL (cmdbuffer);		/* Copy extended command line */
   else
     {
-      *cmdbuffer = NULLCHAR;
+      *cmdbuffer = '\0';
       for (n = 1; n < argc; n++)
 	{
 	  strcat (cmdbuffer, argv[n]);
@@ -1037,9 +991,9 @@ copy_cmdline (int argc, char *argv[])
   for (n = 1; n < argc; n++)
     size += strlen (argv[n]) + sizeof (char);	/* Find length of parameters */
   cmdbuffer = allocmem (size + sizeof (char));	/* +1 for possible null at end */
-  if (cmdbuffer == NIL)
+  if (cmdbuffer == NULL)
     error ("Fatal: Not enough memory to run linker");
-  *cmdbuffer = NULLCHAR;
+  *cmdbuffer = '\0';
   for (n = 1; n < argc; n++)
     {
       strcat (cmdbuffer, argv[n]);
@@ -1089,9 +1043,9 @@ startup (void)
   opt_codebase = FALSE;		/* No value given for start-of-code address */
   opt_database = FALSE;		/* No value given for start-of-R/W-data address */
   opt_strongarm = FALSE;	/* Not destined to run on a StrongARM */
-  low_memory = FALSE;		/* Not running short on memory yet */
+
   got_oldlibs = FALSE;		/* No old libraries read yet */
-  linklist = linklast = NIL;
+  linklist = linklast = NULL;
   if (!initheap ())
     return FALSE;
   init_files ();

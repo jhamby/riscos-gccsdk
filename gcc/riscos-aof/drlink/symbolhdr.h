@@ -78,8 +78,9 @@
 #define REL_AOFMASK 0x73	/* Mask used when creating part-linked AOF relocations */
 #define REL_TYPE2 0x80000000	/* Type 2 relocation flag */
 
+/* Entry in OBJ_SYMT chunk */
 typedef struct symtentry
-{				/* Entry in OBJ_SYMT chunk */
+{
   const char *symtname;		/* Offset of symbol's name in OBJ_STRT chunk */
   unsigned int symtattr;	/* Symbol attributes */
   unsigned int symtvalue;	/* Symbol's value */
@@ -91,64 +92,41 @@ typedef struct symtentry
   } symtarea;
 } symtentry;
 
+/* Symbol table entry */
 typedef struct symbol
-{				/* Symbol table entry                                               */
-  struct symbol *left;		/* Left in binary tree                                              */
-  struct symbol *right;		/* Rigth in binary tree                                             */
-  int symhash;			/* Hash value of symbol's name                                      */
-  struct symtentry *symtptr;	/* Pointer to entry in OBJ_SYMT chunk                               */
+{
+  struct symbol *left;		/* Left in binary tree */
+  struct symbol *right;		/* Rigth in binary tree */
+  int symhash;			/* Hash value of symbol's name */
+  struct symtentry *symtptr;	/* Pointer to entry in OBJ_SYMT chunk */
   struct symtentry *symnormal;	/* Pointer to 'normal' version of symbol when a strong def'n exists */
 } symbol;
 
 typedef symbol *symtable[MAXLOCALS];	/* Local symbol hash table */
 
+/* Relocation info layout in OBJ_AREA chunk */
 typedef struct relocation
-{				/* Relocation info layout in OBJ_AREA chunk */
+{
   unsigned int reloffset;	/* Offset in area of relocation */
   unsigned int reltypesym;	/* Relocation type and symbol index in OBJ_SYMT area */
 } relocation;
-
-typedef struct libentry
-{				/* Library symbol table entry                     */
-  struct libentry *left;	/* Left in binary tree                            */
-  struct libentry *right;	/* Right in binary tree                           */
-  int libhash;			/* Hash value of library entry name               */
-  char *libname;		/* Pointer to library entry name                  */
-  char *libmember;		/* Pointer to name of entry's library member      */
-  unsigned int liboffset;	/* Offset in library of entry's LIB_DATA chunk    */
-  unsigned int libsize;		/* Size of LIB_DATA chunk                         */
-} libentry;
-
-typedef libentry *libtable[MAXENTRIES];	/* Library symbol hash table */
-
-typedef struct libheader
-{				/* Describes a library */
-  char *libname;		/* Name of library */
-  unsigned int *libase;		/* Address of library in memory */
-  unsigned int libextent;	/* Size of library */
-  bool libgotsyms;		/* TRUE if library symbol table has been read */
-  bool libvalid;		/* TRUE if library's chunk header has already been validated */
-  libtable librarysyms;		/* Library's symbol table */
-  struct libheader *libflink;	/* Pointer to next library in list */
-} libheader;
 
 typedef unsigned int indextable[1];
 
 extern symbol *globalsyms[MAXGLOBALS];	/* Global symbol table */
 
-extern symbol * image_robase,	/* Symbol table entries of pre-defined symbols */
+extern symbol *image_robase,	/* Symbol table entries of pre-defined symbols */
  *image_rwbase, *image_zibase, *image_rolimit, *image_rwlimit, *image_zilimit, *image_codebase,	/* Old symbols used by Fortran 77 */
  *image_codelimit, *image_database, *image_datalimit, *reloc_code;
 
-extern libtable *current_libsyms;	/* Pointer to current library symbol table */
-extern libheader *current_lib;	/* Pointer to libheader entry for library being searched */
+extern symtentry *current_symtbase,	/* Start of OBJ_SYMT chunk in current file containing references */
+ *current_symtend;			/* End of OBJ_SYMT chunk in current file */
 
-extern symtentry * current_symtbase,	/* Start of OBJ_SYMT chunk in current file containing references */
- *current_symtend;		/* End of OBJ_SYMT chunk in current file */
+extern symtentry *symtbase;	/* Address of current OBJ_SYMT chunk */
 
 extern unsigned int totalsymbols,	/* Total number of symbols defined in program */
-  numwanted,			/* Number of symbols currently wanted */
-  numfound,			/* Number of symbols found this library pass */
-  lldsize;			/* Space required for names in low-level debug table */
+  numwanted,				/* Number of symbols currently wanted */
+  numfound,				/* Number of symbols found this library pass */
+  lldsize;				/* Space required for names in low-level debug table */
 
 #endif
