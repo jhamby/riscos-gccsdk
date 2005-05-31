@@ -24,7 +24,8 @@ RISC OS GCC release 3.4.4 release 3 (released XX June 2005)
 * 'as', drlink and decaof have improved support for previously unhandled
   AOF attributes.
 
-* Improved support for GCCSDK under Cygwin and OpenBSD.
+* Improved support for GCCSDK under Cygwin, OpenBSD and big-endian
+  platforms like Mac OS X.
 
 * Additions for soft-float support.
 
