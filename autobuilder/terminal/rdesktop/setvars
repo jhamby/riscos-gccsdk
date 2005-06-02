@@ -14,8 +14,6 @@ ab_package() {
   cp -av $H/\!RDesktop $D
   cp -av $S/rdesktop,ff8 $D/\!RDesktop
   cp -av $S/keymaps $D/\!RDesktop
-  rm -rf $D/\!RDesktop/CVS
-  rm -rf $D/\!RDesktop/keymaps/CVS
   sed s#VERSION#$AB_ZIPNAME# < $H/\!RDesktop/Desc > $D/\!RDesktop/Desc
 }
 
