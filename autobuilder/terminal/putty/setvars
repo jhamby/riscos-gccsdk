@@ -1,0 +1,29 @@
+#
+
+AB_SVN=svn://ixion.tartarus.org/main/putty
+AB_CATEGORY=terminal
+
+# RISC OS Version of the package
+AB_ROVERSION=cvs.`date +%G%m%d-%H%M`
+
+# Commands to be carried out prior to zip, such as copying or moving files
+#AB_PREZIP=
+
+ab_package() {
+  echo S=$S
+  echo D=$D
+  EXECUTABLES="$S/psftp,ff8 $S/plink,ff8 $S/pscp,ff8 $S/puttygen,ff8"
+  # $S/puttytel,ff8 $S/pterm,ff8
+  DOCS="$S/../README.txt $S/../LICENCE"
+  cp -av $H/\!PuTTY $D
+  cp -av $S/putty,ff8 $D/\!PuTTY
+  cp $EXECUTABLES $DOCS $D
+}
+
+# setup PuTTY before we configure it
+# generate makefiles (including Makefile.in)
+./mkfiles.pl
+# run autoconf
+./mkauto.sh
+# build from unix/ directory
+cd unix
