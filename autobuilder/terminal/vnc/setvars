@@ -1,0 +1,15 @@
+
+AB_CATEGORY=terminal
+
+AB_MANPAGE=debian/xvncviewer.1x
+
+AB_ZIPNAME=xvncclient
+
+AB_CONFLAGS=--with-installed-zlib
+
+ab_package() {
+  cp -av $H/\!ChoxVNC $D
+  cp -av $S/vncviewer/vncviewer,ff8 $D/\!ChoxVNC
+}
+
+
