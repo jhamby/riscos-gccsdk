@@ -1,0 +1,18 @@
+
+AB_NOREMOTE=yes
+
+AB_CATEGORY=support
+
+AB_ZIPNAME=UnixHome
+AB_ROVERSION=1.03
+
+cp $H/!UnixHome/c/SetHome $S/SetHome.c
+
+AB_MAKE="/home/riscos/cross/bin/gcc SetHome.c -O2 -o SetHome"
+
+ab_package() {
+  cp -av $H/\!UnixHome $D
+  cp -av $S/SetHome,ff8 $D/\!UnixHome
+}
+
+
