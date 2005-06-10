@@ -1,0 +1,9 @@
+
+WimpSlot -min 2000k -max 2000k
+
+Set XPilot-ng$Dir <Obey$Dir>
+
+Set Chox11$XPilot-ng$subpixefont 1
+
+<XPilot-ng$Dir>.xpilot-ng-x11 ><XPilot-ng$Dir>.stdout 2><XPilot-ng$Dir>.stderr
+
