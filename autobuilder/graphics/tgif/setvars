@@ -7,5 +7,8 @@ ab_package() {
   cp -av $S/tgif,ff8 $D/\!Tgif/
   cp -av -L $S/Copyright $S/License $S/README $D/\!Tgif/Docs
 
+  mkdir -p $D/\!Tgif/data
+  cp -av $S/tgificon.xpm $D/\!Tgif/data
+
   rman -f HTML $S/tgif.man > $D/\!Tgif/Docs/tgif.html
 }

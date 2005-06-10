@@ -24,3 +24,14 @@
  
  XCOMM ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
  XCOMM Please see Imakefile for more defines to be added to MOREDEFINES above
+--- Tgif.tmpl.orig	2005-06-08 20:32:03.000000000 +0100
++++ Tgif.tmpl	2005-06-08 20:32:47.000000000 +0100
+@@ -35,7 +35,7 @@
+ XCOMM -----------------------------------------------
+ 
+ PROGRAMS	= tgif XCOMM prtgif frontend11.o testdrive
+-TGIFDIR		= $(LIBDIR)/tgif
++TGIFDIR		= \<Tgif\$$Dir\>/data
+ XCOMM CDEBUGFLAGS= -g -Wall
+ XCOMM INSTPGMFLAGS= -s
+ XCOMM BINDIR	= /u/halfmoon/bin
