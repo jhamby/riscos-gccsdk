@@ -1,5 +1,9 @@
 
 WimpSlot -min 2000k -max 2000k
 
-<Obey$Dir>.xpilot ><Obey$Dir>.stdout 2><Obey$Dir>.stderr
+Set XPilot$Dir <Obey$Dir>
+
+Set Chox11$XPilot$subpixefont 1
+
+<XPilot$Dir>.xpilot ><XPilot$Dir>.stdout 2><XPilot$Dir>.stderr
 
