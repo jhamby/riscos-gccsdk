@@ -5,7 +5,7 @@ This is a short introduction to GCC, the GNU Compiler Collection or RISC OS.
 This document does not provide an introduction to programming, for that you
 will have to get a text book on the language you are interested in.
 
-IMPORTANT NOTE 1: The GCC compiler binaries are at least 3000K, so you must
+IMPORTANT NOTE 1: The GCC compiler binaries are at least 3600K, so you must
 ensure that a large enough Wimpslot has been allocated. Please refer to the
 `Troubleshooting' section later in this document, if you are getting
 `Address exception' and `No writeable memory at this address' errors.
@@ -23,7 +23,7 @@ GCC is covered by the FSF General Public License (see the files docs.COPYING
 and docs.COPYINGLIB for details).
 
 This port of GCC is Copyright (c) 1996, 1997, 1998, 1999, 2000, 2001 Nick Burrett
-Copyright (c) 2002, 2003, 2004 GCCSDK Development Team
+Copyright (c) 2002, 2003, 2004, 2005 GCCSDK Development Team
 
 As with all GNU programs, THERE IS NO WARRANTY OF ANY SORT
 
@@ -285,9 +285,9 @@ namely `__TARGET_SCL__'.
 GCC and Virtual Memory
 ----------------------
 
-GNU compilers use a lot of memory and nothing can be done about that. For
-the Risc PC, UnixLib has been modified to make use of dynamic areas. So
-users with small memory machines can use Clares' Virtualise to provide a
+GNU compilers use a lot of memory and nothing can be done about that. On
+RISC OS 3.5 and later, UnixLib has been modified to make use of dynamic areas.
+So users with small memory machines can use Clares' Virtualise to provide a
 working virtual memory envionment for them. See the section *Dynamic Areas*
 below.
 
@@ -480,24 +480,11 @@ Obtaining compilers
 -------------------
 
 As said earlier, GCC is a compiler front end. The compilers themselves
-can be found at http://gccsdk.riscos.info/
+can be found at http://gccsdk.riscos.info/.
 
 
-Distribution patches
---------------------
-
-From time to time bugs might be fixed in the GCC distribution. To save
-download time involved in uploading/fetching new binaries, patch archives
-will become available from the address:
-
-  http://gccsdk.riscos.info/
-
-Announcements will be posted to comp.sys.acorn.announce whenever new
-patch archives are uploaded.
-
-
-Contacting the author
-----------------------
+GCCSDK mailing list
+-------------------
 
 A mailing list has been setup for discussions on GCC, including development
 work.  To join it, send mail to majordomo@gccsdk.riscos.info and put
@@ -509,3 +496,5 @@ Location of the main GCC sources
 
 The official GCC website is http://gcc.gnu.org
 The official GNU website is http://www.gnu.org
+
+-EOF-
