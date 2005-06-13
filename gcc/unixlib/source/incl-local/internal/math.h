@@ -527,6 +527,10 @@ extern void __docos (double __x, double __dx, double __v[]);
 #define __cimag cimag
 #define __creal creal
 
+#define __matherr matherr
+
+#undef isnan
+
 #endif /* __CC_NORCROFT */
 
 __END_DECLS

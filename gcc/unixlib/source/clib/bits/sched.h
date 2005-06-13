@@ -8,8 +8,8 @@
  *
  ***************************************************************************/
 
-#ifndef __SCHED_H
-#define __SCHED_H
+#ifndef __SCHED_BITS_H
+#define __SCHED_BITS_H
 
 #ifndef __UNIXLIB_FEATURES
 #include <features.h>
@@ -17,9 +17,15 @@
 
 __BEGIN_DECLS
 
-#include <bits/sched.h>
+#define SCHED_FIFO 0
+#define SCHED_RR 1
+#define SCHED_SPORADIC 2
+#define SCHED_OTHER 3
 
-extern int sched_yield (void);
+struct sched_param
+{
+  int sched_priority;
+};
 
 __END_DECLS
 

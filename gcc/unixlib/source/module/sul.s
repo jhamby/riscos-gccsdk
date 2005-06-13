@@ -1,8 +1,8 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/module/sul.s,v $
-; $Date: 2005/05/02 12:48:45 $
-; $Revision: 1.14 $
+; $Date: 2005/05/02 13:53:48 $
+; $Revision: 1.15 $
 ; $State: Exp $
 ; $Author: nick $
 ;
@@ -101,7 +101,7 @@ TTY_REFCOUNT		EQU	4
 ; The default size of the fdarray
 ; In future, clients could potentially dynamically increase the size of the
 ; array when needed
-DEFAULT_MAXFD		EQU	64
+DEFAULT_MAXFD		EQU	256
 
 ; Bits within the status word
 RETURNCODE_MASK		EQU	&FF
@@ -138,7 +138,7 @@ EARLIEST_SUPPORTED_VERSION	EQU	105
 |help|
 	DCB	"SharedUnixLibrary"
 	DCB	9
-	DCB	"1.06 (02 May 2005) (C) UnixLib Developers, 2001-2005", 0
+	DCB	"1.07 (08 June 2005) (C) UnixLib Developers, 2001-2005", 0
 	ALIGN
 
 |title|

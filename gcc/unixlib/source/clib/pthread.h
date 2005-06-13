@@ -1,8 +1,8 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/pthread.h,v $
- * $Date: 2005/04/22 14:38:49 $
- * $Revision: 1.18 $
+ * $Date: 2005/05/02 13:53:48 $
+ * $Revision: 1.19 $
  * $State: Exp $
  * $Author: nick $
  *
@@ -22,7 +22,8 @@
 #define __need_clock_t
 #include <time.h>
 
-#include <sched.h> /* for struct sched_param */
+#include <sched.h>
+#include <bits/sched.h> /* for struct sched_param */
 
 #ifndef __UNIXLIB_FEATURES
 #include <features.h>

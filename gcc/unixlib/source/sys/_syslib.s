@@ -75,13 +75,13 @@ MAX_DA_NAME_SIZE	* 32
 	IMPORT	|__dynamic_da_max_size|, WEAK
 
 	; RMEnsure the minimum version of the SharedUnixLibrary we need.
-SUL_MIN_VERSION	EQU	106
+SUL_MIN_VERSION	EQU	107
 |rmensure1|
-	DCB	"RMEnsure SharedUnixLibrary 1.06 "
+	DCB	"RMEnsure SharedUnixLibrary 1.07 "
 	DCB	"RMLoad System:Modules.SharedULib", 0
 	; The exact error message is not important as it will get ignored.
 |rmensure2|
-	DCB	"RMEnsure SharedUnixLibrary 1.06 Error XYZ", 0
+	DCB	"RMEnsure SharedUnixLibrary 1.07 Error XYZ", 0
 	ALIGN
 
 	EXPORT	|__main|
@@ -434,7 +434,7 @@ error_no_memory
 error_no_sharedunixlib
 	DCD	SharedUnixLibrary_Error_NotRecentEnough
 	DCB	"This application requires at least version "
-	DCB	"1.06 of the SharedUnixLibrary module", 0
+	DCB	"1.07 of the SharedUnixLibrary module", 0
 	ALIGN
 error_no_fpe
 	DCD	SharedUnixLibrary_Error_NoFPE

@@ -6,6 +6,9 @@
 	GET	clib/unixlib/asm_dec.s
 
 	AREA	|C$$code|, CODE, READONLY
+
+        IMPORT  |__gcc_alloca_free_1|
+
 	EXPORT	|__gcc_alloca_free|
 |__gcc_alloca_free|
 	; We must save any call-clobbered registers that are likely to be

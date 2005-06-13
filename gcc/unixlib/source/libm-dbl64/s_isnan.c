@@ -22,10 +22,6 @@ static char rcsid[] = "$NetBSD: s_isnan.c,v 1.8 1995/05/10 20:47:36 jtc Exp $";
 #include "math.h"
 #include "math_private.h"
 
-#ifdef __CC_NORCROFT
-#undef __isnan
-#endif
-
 #ifdef __STDC__
 	int __isnan(double x)
 #else

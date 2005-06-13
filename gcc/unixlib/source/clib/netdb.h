@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/netdb.h,v $
- * $Date: 2005/04/13 19:20:05 $
- * $Revision: 1.10 $
+ * $Date: 2005/04/29 18:26:12 $
+ * $Revision: 1.11 $
  * $State: Exp $
- * $Author: nick $
+ * $Author: peter $
  *
  ***************************************************************************/
 
@@ -473,7 +473,6 @@ struct gaicb
 # define AI_CANONNAME	0x0004	/* Request for canonical name.  */
 # define AI_NUMERICHOST	0x0008	/* Don't use name resolution.  */
 # define AI_NUMERICSERV	0x0010
-# define AI_PASSIVE	0x0020
 # define AI_V4MAPPED	0x0040
 # define AI_DEFAULT	(AI_V4MAPPED | AI_ADDRCONFIG)
 

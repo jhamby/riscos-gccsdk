@@ -1,3 +1,15 @@
+Mon Jun 13 14:55:30 2005  Peter Naulls  <peter@chocky.org>
+
+	* clib/netdb.h: Remove bogus extra AI_PASSIVE.
+	* clib/bits/sched.h, clib/pthread.h, clib/sched.h: Arrange
+	  things a bit more like glibc (Allows problems with files named
+	  sched.h to build).
+	* gcccompat/_galloc.s, libm-dbl64/s_isnan.c,
+	  incl-local/internal/math.h: Norcroft compatibility.
+	* module/sul.s: Increase file handles to 256 as per UnixLib.
+	  Bump version to 1.07.
+	* source/sys/_syslib.s: Required SharedUnixLibrary 1.07.
+
 Sat May 28 21:52:15 2005  Peter Naulls  <peter@chocky.org>
 
 	* common/unixify.c: Ensure we don't run off the end of the input
