@@ -4,6 +4,7 @@ AB_CVS_MODULE=DeskLib
 
 AB_INSTALL=yes
 
-AB_MAKE="$AB_MAKE -C \!DLSources -f Makefile.unix"
+
+AB_MAKE="cd $(PWD)/\!DLSources; $AB_MAKE -f Makefile.unix"
 
 mkdir -p $D/include/DeskLib
