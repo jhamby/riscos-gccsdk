@@ -1,3 +1,8 @@
+Thu Jun 16 14:51:14 2005  Alex Waugh  <alex@alexwaugh.com>
+
+	* pthreads/context.c: Ensure the first thread in the list can
+	  be freed when it is idle.
+
 Thu Jun 16 14:24:59 2005  Theo Markettos  <theo@markettos.org.uk>
 
 	* common/riscosify.c: Add support for mapping /home/riscos/env/foo

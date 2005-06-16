@@ -100,7 +100,17 @@ __pthread_context_switch (void)
       next = __pthread_running_thread->next;
 
       /* Free up any idle threads that are found */
-      if (next != NULL && next->state == STATE_IDLE)
+      if (next == NULL)
+        {
+          if (__pthread_thread_list->state == STATE_IDLE)
+            {
+              next = __pthread_thread_list;
+              __pthread_thread_list = __pthread_thread_list->next;
+              __pthread_cleanup_idle (next);
+              next = __pthread_running_thread->next;
+            }
+        }
+      else if (next->state == STATE_IDLE)
         {
           __pthread_running_thread->next = next->next;
           __pthread_cleanup_idle (next);
