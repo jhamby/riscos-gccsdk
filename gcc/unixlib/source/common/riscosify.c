@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/common/riscosify.c,v $
- * $Date: 2005/04/19 08:50:36 $
- * $Revision: 1.21 $
+ * $Date: 2005/04/22 14:38:49 $
+ * $Revision: 1.22 $
  * $State: Exp $
  * $Author: nick $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: riscosify.c,v 1.21 2005/04/19 08:50:36 nick Exp $";
+static const char rcs_id[] = "$Id: riscosify.c,v 1.22 2005/04/22 14:38:49 nick Exp $";
 #endif
 
 /* #define DEBUG */
@@ -365,10 +365,21 @@ translate_or_null (int create_dir, int flags,
                  *out++ = '.';
 
                  last_out_slash = out;
+                 in += 2;
+                 last_slash = in;
                }
-
-              in += 2;
-              last_slash = in;
+              else if (in[-1] == '/')
+                {
+                  /* only skip ./ if it was preceded by a /
+                     since we don't want to trim foo. into foo */
+                  in += 2;
+                  last_slash = in;
+                }
+              else
+                {
+                  *out++ = '/';
+                  in++;
+                }
             }
           else if (in > start && in[-1] == '/' && in[1] == '\0')
             {
@@ -727,6 +738,112 @@ guess_or_null (int create_dir, int flags, char *buffer, const char *buf_end,
 }
 
 
+/* Canonicalise a Unix path of the form
+   /foo///bar/../baz/.////
+   into a standard Unix path
+   /foo/baz/
+   Returns NULL if buffer overloaded
+
+   We must cope with things like:
+   ../foo     = ../foo
+   ./foo/bar  = foo/bar
+   ..foo      = ..foo
+   /../foo    = /foo
+   foo/bar/.  = foo/bar
+   foo./bar/  = foo./bar/
+
+   Currently this is only used for absolute Unix paths, though it can cope
+   with relative paths too.
+ */
+
+static char *
+canonicalise_unix_path(char *to, const char *from, const char *buf_end)
+{
+  char *out = to;
+  const char *in = from;
+  char *current_slash = to;    /* the current directory terminating slash */
+  char *previous_slash = NULL; /* the parent directory terminating slash */
+
+#ifdef DEBUG
+  __os_print ("-- canonicalise_unix_path:\r\n");
+  __os_print ("input = '");
+  __os_print (from);
+  __os_print ("'\r\n");
+#endif
+  /* sanity check our input parameters */
+  if ((!from) || (!to) || (!buf_end))
+    return NULL;
+
+
+  while ((out <= buf_end) && in[0])
+  {
+    switch (in[0])
+    {
+      case '/':
+      /* copy one slash, but not multiple */
+        previous_slash = current_slash;
+        current_slash = out;
+        *out++=*in++;
+        while (*in == '/')
+          in++;
+        break;
+      case '.':
+        if (in==from || in[-1]=='/')
+        {
+          /* if this is an initial '.' or was preceded by a '/' */
+          if (in[1]=='.' && (in[2]=='/' || in[2]=='\0'))
+          {
+          /* if '..', rewind to previous slash found if there was one */
+            if (previous_slash)
+            {
+              out = previous_slash;
+              in+=2;
+            }
+            else
+            {
+            /* if there wasn't a previous slash just copy '..' verbatim
+             * (this path started with '..' )
+             */
+              *out++ = '.';
+              if (out <= buf_end)
+                *out++ = '.';
+              else
+                return NULL;
+              in+=2;
+            }
+          }
+          else if (in[1]=='/')
+          /* ignore any './' */
+            in+=2;
+          else if (in[1]=='\0' && in[-1]=='/' && in!=from)
+          /* ignore any terminating '/.' */
+            in++;
+          else
+          /* otherwise it's just a '.' at the start of a name */
+            *out++ = *in++;
+        }
+        else
+        /* otherwise it's just a '.' in the middle of a name */
+          *out++ = *in++;
+
+        break;
+      default:
+        *out++ = *in++;
+        break;
+    }
+  }
+  *out = '\0';
+#ifdef DEBUG
+  __os_print ("output buffer = '");
+  __os_print (to);
+  __os_print ("'\r\n");
+#endif
+  if (out <= buf_end)
+    return NULL;
+  else
+    return to;
+}
+
 /* Call __riscosify() with __riscosfy_control as the flags.
    Place adjacent to __riscosify() to help with cache hits.  */
 char *
@@ -963,23 +1080,27 @@ __riscosify (const char *name, int create_dir,
           else
             {
               /* Must be an absolute unix path, with no RISC OS specific
-                 parts, so rewind to just after the initial slashes */
+                 parts, so rewind to just after the initial slashes but
+                 we must first attempt to convert the path we've been
+                 given into a canonicalised Unix path because otherwise
+                 we won't match on things like /home/foo/../riscos//./env/
+               */
               int matched = 0;
-
-              in = name;
-              while (*in == '/')
-                in++;
+              char canonical_name[MAXPATHLEN];
+              const char *cname;
+              canonicalise_unix_path(canonical_name, name, canonical_name+MAXPATHLEN);
+              cname = (const char *) canonical_name;
 
               out = buffer;
 
               /* Check for special paths, starting with /dev  */
-              if (in[0] == 'd' && in[1] == 'e' && in[2] == 'v'
-                  && in[3] == '/' && in[4] != '\0')
+              if (   cname[0] == '/' && cname[1] == 'd' && cname[2] == 'e'
+                  && cname[3] == 'v' && cname[4] == '/' && cname[5] != '\0')
                 {
                   /* Copy to the destination string as {device}:  e.g. /dev/tty
                      would become tty:.  */
 
-                  out = copy_or_null (out, in + 4, buf_end);
+                  out = copy_or_null (out, cname + 5, buf_end);
                   if (out == NULL)
                     return NULL;
 
@@ -988,13 +1109,15 @@ __riscosify (const char *name, int create_dir,
                   return out;
                 }
 
+
+
               /* /usr/xxx and /var/xxx. Try matching xxx segment.  */
-              if (((  in[0] == 'u' && in[1] == 's')
-                  || (in[0] == 'v' && in[1] == 'a'))
-                  &&  in[2] == 'r' && in[3] == '/')
+              if (    cname[0] == '/' && (( cname[1] == 'u' && cname[2] == 's' )
+                  || (cname[1] == 'v' && cname[2] == 'a'))
+                  &&  cname[3] == 'r' && cname[4] == '/')
                 {
-                  in += 4;
-                  switch (sdirseg (&in, &out, buf_end))
+                  cname += 5;
+                  switch (sdirseg (&cname, &out, buf_end))
                     {
                     case sdirseg_buf_to_small:
                       return NULL;
@@ -1007,20 +1130,86 @@ __riscosify (const char *name, int create_dir,
                          any '/'s in the input to prevent them being copied
                          as '.'s (so we don't end up with gcc:.foo) */
                       if (out > buffer && out[-1] == ':')
-                        while (*in == '/')
-                          in++;
+                        while (*cname == '/')
+                          cname++;
 
                       break;
 
                     default:
-                      in -= 4;
+                      cname -= 5;
                     }
                 }
 
+
+              /* /home/riscos/env/xxx. Try matching xxx segment.  */
+              if (    cname[0] == '/' && cname[1] == 'h'
+                  &&  cname[2] == 'o' && cname[3] == 'm'
+                  &&  cname[4] == 'e' && cname[5] == '/'
+                  &&  cname[6] == 'r' && cname[7] == 'i'
+                  &&  cname[8] == 's' && cname[9] == 'c'
+                  &&  cname[10]== 'o' && cname[11]== 's'
+                  &&  cname[12]== '/' && cname[13]== 'e'
+                  &&  cname[14]== 'n' && cname[15]== 'v'
+                  &&  cname[16]== '/')
+                {
+                  cname += 17;
+                  switch (sdirseg (&cname, &out, buf_end))
+                  {
+                     case sdirseg_buf_to_small:
+                      return NULL;
+                      break;
+
+                    case sdirseg_match:
+                      matched = 1;
+
+                      /* If the matched segment was a path var then consume
+                         any '/'s in the input to prevent them being copied
+                         as '.'s (so we don't end up with gcc:.foo) */
+                      if (out > buffer && out[-1] == ':')
+                        while (*cname == '/')
+                          cname++;
+
+                      break;
+
+                    default:
+                        /* Not matched anything in the list of UnixFS$...
+                         variables.  So we assume this is a vanilla
+                         path: translate /home/riscos/env/foo/bar/baz
+                         into foo:bar.baz
+                       */
+                      if (*cname == '\0')
+                      {
+                        /* this is just /home/riscos/env/
+                         * so just return it as $.home.riscos.env because
+                         * it doesn't match anything under RISC OS
+                         */
+                        cname-=16; /* wind back to after the first / in /home/... */
+                        break;
+                      }
+
+                      /* copy the name of the path variable */
+                      while (*cname != '/' && *cname != '\0')
+                      {
+                        *out = *cname;
+                        cname++;
+                        out++;
+                      }
+
+                      /* ...consuming any trailing slash */
+                      if (*cname == '/')
+                        cname++;
+
+                      /* this is a RISC OS path */
+                      *out++ = ':';
+                      matched = 1;
+                  }
+              }
+
               if (! matched)
                 {
+                  cname++;
                   /* Try matching against a user defined /xxx.  */
-                  switch (sdirseg (&in, &out, buf_end))
+                  switch (sdirseg (&cname, &out, buf_end))
                     {
                     case sdirseg_buf_to_small:
                       return NULL;
@@ -1033,12 +1222,13 @@ __riscosify (const char *name, int create_dir,
                          any '/'s in the input to prevent them being copied
                          as '.'s (so we don't end up with gcc:.foo) */
                       if (out > buffer && out[-1] == ':')
-                        while (*in == '/')
-                          in++;
+                        while (*cname == '/')
+                          cname++;
 
                       break;
 
                     case sdirseg_no_match:
+                      cname--;
                       break;
 
                     }
@@ -1054,6 +1244,8 @@ __riscosify (const char *name, int create_dir,
                   *out++ = '$';
                   *out++ = '.';
                 }
+              return translate_or_null (create_dir, flags, buffer, buf_end, filetype,
+                                        out, cname, 1);
             }
         }
 

@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/test/testriscosify.c,v $
- * $Date: 2003/04/26 11:58:59 $
- * $Revision: 1.1 $
+ * $Date: 2003/12/24 12:01:35 $
+ * $Revision: 1.2 $
  * $State: Exp $
  * $Author: alex $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: testriscosify.c,v 1.1 2003/04/26 11:58:59 alex Exp $";
+static const char rcs_id[] = "$Id: testriscosify.c,v 1.2 2003/12/24 12:01:35 alex Exp $";
 #endif
 
 /*
@@ -123,25 +123,52 @@ char tests[][2][256] = {
 {"foo/","foo"},
 {"foo//","foo"},
 {"dir/file.h/","dir.file/h"},
+{"/home/riscos/env/foo","foo:"},
+{"/home/riscos/env/","$.home.riscos.env"},
+{"/home/riscos/env/foo/bar/baz/","foo:bar.baz"},
+{"/../home/./fred/../riscos////env/./Choices/Boot","Choices:Boot"},
+{"/usr/../var/../tmp/./file.c","<Wimp$ScrapDir>.c.file"},
+{"~/foo",""},
+{"/a/long/path/name/that/is/going/to/end/in/a.","$.a.long.path.name.that.is.going.to.end.in.a/"},
+{"/a/long/path/name/that/is/not/going/to/end/in/a/.","$.a.long.path.name.that.is.not.going.to.end.in.a"},
+{"/a/long/path/name/that/has/aaaa./in/the/middle","$.a.long.path.name.that.has.aaaa/.in.the.middle"},
+{"/","$"},
+{"/.","$"},
+{"/..","$"},
+{"/../","$"},
+{"/.a","$./a"},
+{"/..a","$.//a"},
+{"/.a.","$./a/"},
+{"/.a..","$./a//"},
+{"/a/b/c/d/e..","$.a.b.c.d.e//"},
+{"/a/b/c/d/e.","$.a.b.c.d.e/"},
 {"","@"}};
 
 int main (void)
 {
 	char buffer[256];
+	char buffer2[256];
 	int i;
 	int j;
 	int fail = 0;
+	int filetype = 0;
 
 	i = -1;
 	do {
 		i++;
 		printf("Testing %s\n",tests[i][0]);
-		__riscosify(tests[i][0], 0 ,0 | __RISCOSIFY_FILETYPE_EXT | __RISCOSIFY_DONT_CHECK_DIR, buffer, 256, NULL);
+		__riscosify(tests[i][0], 0 ,0 | __RISCOSIFY_FILETYPE_EXT | __RISCOSIFY_DONT_CHECK_DIR, buffer, 256, &filetype);
 
-		fail = strcmp(buffer,tests[i][1]);
-		printf("%s\n",buffer);
+		if (tests[i][1][0])
+		  fail = strcmp(buffer,tests[i][1]);
+		else
+		  fail = 0;
+		printf("riscosified: %s\n",buffer);
 		for (j=0;j<60;j++) printf(" ");
-		printf("%s\n", fail ? "FAIL" : "Pass");
+		printf("%s\n", tests[i][1][0] ? (fail ? "riscosify FAIL" : "riscosify pass") : "riscosify no test");
+		__unixify(buffer,0 | __RISCOSIFY_FILETYPE_EXT | __RISCOSIFY_DONT_CHECK_DIR, buffer2, 256, filetype);
+
+		printf("unixified back again %s : %s\n\n\n",buffer2,strcmp(tests[i][0],buffer2) ? "DIFFERS" : "same");
 	} while (tests[i][0][0] && !fail);
 
 	return 0;
