@@ -1,3 +1,7 @@
+Thu Jun 16 20:44:38 2005  Alex Waugh  <alex@alexwaugh.com>
+
+	* time/utimes.c: Fix time convertion.
+
 Thu Jun 16 14:51:14 2005  Alex Waugh  <alex@alexwaugh.com>
 
 	* pthreads/context.c: Ensure the first thread in the list can
