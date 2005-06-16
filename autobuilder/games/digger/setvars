@@ -1,0 +1,10 @@
+
+AB_CATEGORY=games
+
+AB_URL=http://www.digger.org/digger-20020314.tar.gz
+
+AB_MAKE="$AB_MAKE -f Makefile.sdl"
+
+ab_package() {
+  cp -av $S/digger,ff8 $D
+}
