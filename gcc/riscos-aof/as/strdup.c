@@ -26,12 +26,6 @@
 
 #include "os.h"
 
-#if !defined (CROSS_COMPILE) && !defined (UNIXLIB)
-#undef HAVE_STRNDUP
-#undef HAVE_STRDUP
-#undef HAVE_STRNCASECMP
-#endif
-
 
 #if !defined (HAVE_STRNDUP)
 char *

@@ -35,7 +35,6 @@
 #include "error.h"
 #include "expr.h"
 #include "get.h"
-#include "hash.h"
 #include "input.h"
 #include "lex.h"
 #include "main.h"

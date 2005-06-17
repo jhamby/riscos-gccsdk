@@ -5,7 +5,7 @@ CFLAGS += -DCROSS_COMPILE
 exesfx =
 else
 CC = $(CROSS_CC)
-CFLAGS = $(CROSS_CFLAGS) -mlibscl -D__RISCOSIFY
+CFLAGS = $(CROSS_CFLAGS) -D_GNU_SOURCE -mlibscl -mmodule -D__RISCOSIFY
 endif
 
 INCLUDES = -I. -I../../
@@ -27,7 +27,6 @@ SRCS = area.c \
 	filestack.c \
 	fix.c \
 	get.c \
-	hash.c \
 	help_cop.c \
 	help_cpu.c \
 	help_eval.c \
@@ -78,7 +77,6 @@ HDRS = ../../sdk-config.h \
 	fix.h \
 	get.h \
 	global.h \
-	hash.h \
 	help_cop.h \
 	help_cpu.h \
 	help_eval.h \
@@ -138,7 +136,7 @@ endif
 
 ifeq (${STAGE},stage1)
 $(asobjdir)/area.o:  \
- area.c ../../sdk-config.h config.h lex.h global.h hash.h symbol.h value.h \
+ area.c ../../sdk-config.h config.h lex.h global.h symbol.h value.h \
   commands.h error.h input.h macros.h whileif.h expr.h area.h reloc.h \
   lit.h get.h
 $(asobjdir)/asm.o:  \
@@ -151,8 +149,7 @@ $(asobjdir)/code.o:  \
 $(asobjdir)/commands.o:  \
  commands.c ../../sdk-config.h config.h commands.h symbol.h lex.h global.h value.h \
   error.h input.h macros.h whileif.h output.h help_lex.h expr.h code.h \
-  reloc.h put.h fix.h include.h filestack.h area.h lit.h hash.h \
-  local.h os.h
+  reloc.h put.h fix.h include.h filestack.h area.h lit.h local.h os.h
 $(asobjdir)/decode.o:  \
  decode.c ../../sdk-config.h config.h decode.h symbol.h lex.h global.h value.h \
   input.h macros.h whileif.h commands.h variables.h mnemonics.h storage.h \
@@ -175,8 +172,6 @@ $(asobjdir)/fix.o:  \
 $(asobjdir)/get.o:  \
  get.c ../../sdk-config.h config.h get.h global.h error.h input.h macros.h lex.h \
   whileif.h symbol.h value.h expr.h reloc.h help_cpu.h fix.h
-$(asobjdir)/hash.o:  \
- hash.c
 $(asobjdir)/help_cop.o:  \
  help_cop.c ../../sdk-config.h config.h error.h global.h expr.h value.h help_cop.h \
   input.h macros.h lex.h whileif.h symbol.h area.h reloc.h lit.h get.h \
@@ -193,8 +188,7 @@ $(asobjdir)/input.o:  \
   whileif.h symbol.h value.h os.h filestack.h
 $(asobjdir)/lex.o:  \
  lex.c ../../sdk-config.h config.h error.h global.h lex.h local.h help_lex.h \
-  input.h macros.h whileif.h symbol.h value.h hash.h area.h \
-  reloc.h lit.h
+  input.h macros.h whileif.h symbol.h value.h area.h reloc.h lit.h
 $(asobjdir)/lexAcorn.o:  \
  lexAcorn.c ../../sdk-config.h config.h lex.h global.h input.h macros.h whileif.h \
   symbol.h value.h decode.h
@@ -272,8 +266,7 @@ $(asobjdir)/value.o:  \
 $(asobjdir)/variables.o:  \
  variables.c ../../sdk-config.h config.h variables.h symbol.h lex.h global.h \
   value.h error.h input.h macros.h whileif.h output.h help_lex.h expr.h \
-  code.h reloc.h put.h fix.h include.h filestack.h area.h lit.h \
-  hash.h os.h
+  code.h reloc.h put.h fix.h include.h filestack.h area.h lit.h os.h
 $(asobjdir)/whileif.o:  \
  whileif.c ../../sdk-config.h config.h commands.h symbol.h lex.h global.h value.h \
   decode.h error.h input.h macros.h whileif.h expr.h os.h

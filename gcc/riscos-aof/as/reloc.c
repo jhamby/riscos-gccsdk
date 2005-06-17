@@ -64,8 +64,7 @@ static const char *relocstr[] =
   "RelocNone"
 };
 
-const char *
-reloc2String (RelocTag tag)
+static const char *reloc2String (RelocTag tag)
 {
   return relocstr[tag];
 }

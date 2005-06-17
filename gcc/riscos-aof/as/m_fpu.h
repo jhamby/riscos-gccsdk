@@ -24,7 +24,7 @@
 
 #include "global.h"
 
-WORD fpuImm (FLOAT d);
+WORD fpuImm (FLOAT d) __attribute__ ((__const__));
 
 #define M_FMNEM 0x0ef08110
 

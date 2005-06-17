@@ -150,7 +150,11 @@ restore_prefix (void)
   /* workaround for throwback/Prefix$Dir problem */
 }
 
+#ifdef CROSS_COMPILE
 int main (int argc, char **argv)
+#else
+int as_main (int argc, char **argv)
+#endif
 {
 #ifndef CROSS_COMPILE
   ProgName = getenv ("Prefix$Dir");

@@ -59,7 +59,6 @@ typedef struct RELOC
 }
 Reloc;
 
-const char *reloc2String (RelocTag tag);
 int relocFix (Symbol * area);
 void relocOutput (FILE * outfile, Symbol * area);
 void relocElfOutput (FILE * outfile, Symbol * area);

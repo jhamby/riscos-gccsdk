@@ -8,8 +8,8 @@
 #ifndef filestack_header_included
 #define filestack_header_included
 
-int push_file (FILE * fp);
-FILE *pop_file (void);
-int get_file (const char **file, long int *line);
+extern int push_file (FILE * fp);
+extern FILE *pop_file (void);
+extern int get_file (const char **file, long int *line);
 
 #endif

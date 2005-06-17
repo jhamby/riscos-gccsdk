@@ -77,180 +77,153 @@ fixShiftImm (long int lineno, WORD shiftop, int shift)
 WORD
 fixImm8s4 (long int lineno, WORD ir, int im)
 {
-  int i8s4 = help_cpuImm8s4 (im);
-  if (i8s4 == -1)
-    {				/* Not a legal immediate */
-      switch (ir & M_MNEM)
-	{			/* try changing opcode */
-	case M_ADD:
-	  if ((i8s4 = help_cpuImm8s4 (-im)) != -1)
-	    {
-	      ir = (ir & ~M_MNEM) | M_SUB;
-	      if (fussy > 1)
-		errorLine (lineno, NULL, ErrorInfo, TRUE, "Changing %s r_,r_,#%d to %s r_,r_,#%d", "add", im, "sub", -im);
-	    }
-	  break;
-	case M_SUB:
-	  if ((i8s4 = help_cpuImm8s4 (-im)) != -1)
-	    {
-	      ir = (ir & ~M_MNEM) | M_ADD;
-	      if (fussy > 1)
-		errorLine (lineno, NULL, ErrorInfo, TRUE, "Changing %s r_,r_,#%d to %s r_,r_,#%d", "sub", im, "add", -im);
-	    }
-	  break;
-	case M_ADC:
-	  if ((i8s4 = help_cpuImm8s4 (-im)) != -1)
-	    {
-	      ir = (ir & ~M_MNEM) | M_SBC;
-	      if (fussy > 1)
-		errorLine (lineno, NULL, ErrorInfo, TRUE, "Changing %s r_,r_,#%d to %s r_,r_,#%d", "adc", im, "sbc", -im);
-	    }
-	  break;
-	case M_SBC:
-	  if ((i8s4 = help_cpuImm8s4 (-im)) != -1)
-	    {
-	      ir = (ir & ~M_MNEM) | M_ADC;
-	      if (fussy > 1)
-		errorLine (lineno, NULL, ErrorInfo, TRUE, "Changing %s r_,r_,#%d to %s r_,r_,#%d", "sbc", im, "adc", -im);
-	    }
-	  break;
-	case M_CMP:
-	  if ((i8s4 = help_cpuImm8s4 (-im)) != -1)
-	    {
-	      ir = (ir & ~M_MNEM) | M_CMN;
-	      if (fussy > 1)
-		errorLine (lineno, NULL, ErrorInfo, TRUE, "Changing %s r_,#%d to %s r_,#%d", "cmp", im, "cmn", -im);
-	    }
-	  break;
-	case M_CMN:
-	  if ((i8s4 = help_cpuImm8s4 (-im)) != -1)
-	    {
-	      ir = (ir & ~M_MNEM) | M_CMP;
-	      if (fussy > 1)
-		errorLine (lineno, NULL, ErrorInfo, TRUE, "Changing %s r_,#%d to %s r_,#%d", "cmn", im, "cmp", -im);
-	    }
-	  break;
-	case M_MOV:
-	  if ((i8s4 = help_cpuImm8s4 (~im)) != -1)
-	    {
-	      ir = (ir & ~M_MNEM) | M_MVN;
-	      if (fussy > 1)
-		errorLine (lineno, NULL, ErrorInfo, TRUE, "Changing %s r_,#%d to %s r_,#%d", "mov", im, "mvn", ~im);
-	    }
-	  break;
-	case M_MVN:
-	  if ((i8s4 = help_cpuImm8s4 (~im)) != -1)
-	    {
-	      ir = (ir & ~M_MNEM) | M_MOV;
-	      if (fussy > 1)
-		errorLine (lineno, NULL, ErrorInfo, TRUE, "Changing %s r_,#%d to %s r_,#%d", "mvn", im, "mov", ~im);
-	    }
-	  break;
-	case M_AND:
-	  if ((i8s4 = help_cpuImm8s4 (~im)) != -1)
-	    {
-	      ir = (ir & ~M_MNEM) | M_BIC;
-	      if (fussy > 1)
-		errorLine (lineno, NULL, ErrorInfo, TRUE, "Changing %s r_,r_,#0x%x to %s r_,r_,#0x%x", "and", im, "bic", ~im);
-	    }
-	  break;
-	case M_BIC:
-	  if ((i8s4 = help_cpuImm8s4 (~im)) != -1)
-	    {
-	      ir = (ir & ~M_MNEM) | M_AND;
-	      if (fussy > 1)
-		errorLine (lineno, NULL, ErrorInfo, TRUE, "Changing %s r_,r_,#0x%x to %s r_,r_,#0x%x", "bic", im, "and", ~im);
-	    }
-	  break;
-	}
-    }
+  const char *op3 = "Changing %s r_,r_,#%d to %s r_,r_,#d";
+  const char *op2 = "Changing %s r_,#d to %s r_,#d";
+  const char *m1, *m2, *optype;
+  int i8s4;
+  WORD mnemonic;
+
+  i8s4 = help_cpuImm8s4 (im);
+  if (i8s4 != -1)
+    return ir | i8s4;
+
+  /* Immediate constant was illegal.  Try the inverse.  */
+  i8s4 = help_cpuImm8s4 (-im);
   if (i8s4 == -1)
     {
-      errorLine (lineno, NULL, ErrorError, TRUE, "Illegal immediate constant %d (0x%08x)", im, im);
-      i8s4 = 0;
+      errorLine (lineno, NULL, ErrorError, TRUE,
+		 "Illegal immediate constant %d (0x%08x)", im, im);
+      return ir;
     }
+
+  mnemonic = ir & M_MNEM;
+  ir &= ~M_MNEM;
+  switch (mnemonic)
+    {			/* try changing opcode */
+    case M_ADD:
+      ir |= M_SUB;
+      optype = op3; m1 = "add"; m2 = "sub";
+      break;
+    case M_SUB:
+      ir |= M_ADD;
+      optype = op3; m1 = "sub"; m2 = "add";
+      break;
+    case M_ADC:
+      ir |= M_SBC;
+      optype = op3; m1 = "adc"; m2 = "sbc";
+      break;
+    case M_SBC:
+      ir |= M_ADC;
+      optype = op3; m1 = "sbc"; m2 = "adc";
+      break;
+    case M_CMP:
+      ir |= M_CMN;
+      optype = op2; m1 = "cmp"; m2 = "cmn";
+      break;
+    case M_CMN:
+      ir |= M_CMP;
+      optype = op2; m1 = "cmn"; m2 = "cmp";
+      break;
+    case M_MOV:
+      ir |= M_MVN;
+      optype = op2; m1 = "mov"; m2 = "mvn";
+      break;
+    case M_MVN:
+      ir |= M_MOV;
+      optype = op2; m1 = "mvn"; m2 = "mov";
+      break;
+    case M_AND:
+      ir |= M_BIC;
+      optype = op3; m1 = "and"; m2 = "bic";
+      break;
+    case M_BIC:
+      ir |= M_AND;
+      optype = op3; m1 = "bic"; m2 = "and";
+      break;
+    default:
+      optype = "unknown";
+      m1 = "unk";
+      m2 = "unk";
+      break; 
+   }
+
+  if (fussy > 1)
+    errorLine (lineno, NULL, ErrorInfo, TRUE, optype, m1, im, m2, -im);
+
   return ir | i8s4;
 }
 
 WORD
 fixImmFloat (long int lineno, WORD ir, FLOAT im)
 {
-  int f = fpuImm (im);
-  if (f == -1)
-    {				/* Not a legal float immediate */
-      switch (ir & M_FMNEM)
-	{			/* try changing opcode */
-	case M_ADF:
-	  if ((f = fpuImm (-im)) != -1)
-	    {
-	      ir = (ir & ~M_FMNEM) | M_SUF;
-	      if (fussy > 1)
-		errorLine (lineno, NULL, ErrorInfo, TRUE, "Changing %s f_,f_,#%.1f to %s f_,f_,#%.1f", "adf", im, "suf", -im);
-	    }
-	  break;
-	case M_SUF:
-	  if ((f = fpuImm (-im)) != -1)
-	    {
-	      ir = (ir & ~M_FMNEM) | M_ADF;
-	      if (fussy > 1)
-		errorLine (lineno, NULL, ErrorInfo, TRUE, "Changing %s f_,f_,#%.1f to %s f_,f_,#%.1f", "suf", im, "adf", -im);
-	    }
-	  break;
-	case M_MVF:
-	  if ((f = fpuImm (-im)) != -1)
-	    {
-	      ir = (ir & ~M_FMNEM) | M_MNF;
-	      if (fussy > 1)
-		errorLine (lineno, NULL, ErrorInfo, TRUE, "Changing %s f_,#%.1f to %s f_,#%.1f", "mvf", im, "mnf", -im);
-	    }
-	  break;
-	case M_MNF:
-	  if ((f = fpuImm (-im)) != -1)
-	    {
-	      ir = (ir & ~M_FMNEM) | M_MVF;
-	      if (fussy > 1)
-		errorLine (lineno, NULL, ErrorInfo, TRUE, "Changing %s f_,#%.1f to %s f_,#%.1f", "mnf", im, "mvf", -im);
-	    }
-	  break;
-	case M_CMF & M_FMNEM:
-	  if ((f = fpuImm (-im)) != -1)
-	    {
-	      ir = (ir & ~M_FMNEM) | M_CNF;
-	      if (fussy > 1)
-		errorLine (lineno, NULL, ErrorInfo, TRUE, "Changing %s f_,#%.1f to %s f_,#%.1f", "cmf", im, "cnf", -im);
-	    }
-	  break;
-	case M_CNF & M_FMNEM:
-	  if ((f = fpuImm (-im)) != -1)
-	    {
-	      ir = (ir & ~M_FMNEM) | M_CMF;
-	      if (fussy > 1)
-		errorLine (lineno, NULL, ErrorInfo, TRUE, "Changing %s f_,#%.1f to %s f_,#%.1f", "cnf", im, "cmf", -im);
-	    }
-	  break;
-	case (M_CMF | EXEPTION_BIT) & M_FMNEM:
-	  if ((f = fpuImm (-im)) != -1)
-	    {
-	      ir = (ir & ~M_FMNEM) | M_CNF | EXEPTION_BIT;
-	      if (fussy > 1)
-		errorLine (lineno, NULL, ErrorInfo, TRUE, "Changing %s f_,#%.1f to %s f_,#%.1f", "cmfe", im, "cnfe", -im);
-	    }
-	  break;
-	case (M_CNF | EXEPTION_BIT) & M_FMNEM:
-	  if ((f = fpuImm (-im)) != -1)
-	    {
-	      ir = (ir & ~M_FMNEM) | M_CMF | EXEPTION_BIT;
-	      if (fussy > 1)
-		errorLine (lineno, NULL, ErrorInfo, TRUE, "Changing %s f_,#%.1f to %s f_,#%.1f", "cnfe", im, "cmfe", -im);
-	    }
-	  break;
-	}
-    }
+  const char *op3 = "Changing %s f_,f_,#%.1f to %s f_,f_,#%.1f";
+  const char *op2 = "Changing %s f_,#%.1f to %s f_,#%.1f";
+  const char *m1, *m2, *optype;
+  int f;
+  WORD mnemonic;
+
+  f = fpuImm (im);
+  if (f != -1)
+    return ir | f;
+
+  /* Immediate float constant was illegal.  */
+  f = fpuImm (-im);
   if (f == -1)
     {
-      errorLine (lineno, NULL, ErrorError, TRUE, "Illegal immediate constant %g", im);
-      f = 0;
+      /* Even the inverse cannot be represented.  */
+      errorLine (lineno, NULL, ErrorError, TRUE,
+		 "Illegal immediate constant %g", im);
+      return ir;
     }
+
+  /* Inverse immediate constant acan be represented, so try to invert
+     the mnemonic.  */
+  mnemonic = ir & M_FMNEM;
+  ir &= ~M_FMNEM;
+  switch (mnemonic)
+    {
+    case M_ADF:
+      ir |= M_SUF;
+      optype = op3; m1 = "adf"; m2 = "suf";
+      break;
+    case M_SUF:
+      ir |= M_ADF;
+      optype = op3; m1 = "suf"; m2 = "adf";
+      break;
+    case M_MVF:
+      ir |= M_MNF;
+      optype = op2; m1 = "mvf"; m2 = "mnf";
+      break;
+    case M_MNF:
+      ir |= M_MVF;
+      optype = op2; m1 = "mnf"; m2 = "mvf";
+      break;
+    case M_CMF & M_FMNEM:
+      ir |= M_CNF;
+      optype = op2; m1 = "cmf"; m2 = "cnf";
+      break;
+    case M_CNF & M_FMNEM:
+      ir |= M_CMF;
+      optype = op2; m1 = "cnf"; m2 = "cmf";
+      break;
+    case (M_CMF | EXEPTION_BIT) & M_FMNEM:
+      ir |= M_CNF | EXEPTION_BIT;
+      optype = op2; m1 = "cmfe"; m2 = "cnfe";
+      break;
+    case (M_CNF | EXEPTION_BIT) & M_FMNEM:
+      ir |= M_CMF | EXEPTION_BIT;
+      optype = op2; m1 = "cnfe"; m2 = "cmfe";
+      break;
+    default:
+      optype = "unknown";
+      m1 = "unk";
+      m2 = "unk";
+      break;
+    }
+
+  if (fussy > 1)
+    errorLine (lineno, NULL, ErrorInfo, TRUE, optype, m1, im, m2, -im);
+
   return ir | f;
 }
 

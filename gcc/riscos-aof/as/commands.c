@@ -39,7 +39,6 @@
 #include "expr.h"
 #include "filestack.h"
 #include "fix.h"
-#include "hash.h"
 #include "help_lex.h"
 #include "include.h"
 #include "input.h"

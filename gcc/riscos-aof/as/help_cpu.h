@@ -22,6 +22,6 @@
 #ifndef help_cpu_header_included
 #define help_cpu_header_included
 
-int help_cpuImm8s4 (int value);
+int help_cpuImm8s4 (int value) __attribute__ ((__const__));
 
 #endif
