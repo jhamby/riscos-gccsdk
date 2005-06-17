@@ -409,6 +409,10 @@ while ($dir = readdir (ROOT)) {
 	my $src = "$aofsourcetree/source/$dir/$sf";
 	my $dst = "$elfsourcetree/$dir/$sf";
 	convert_c ($src, $dst);
+
+	# libm-support/libm.c is specially handled
+	next if ($dir eq "libm-support" and $sf eq "libm.c");
+
 	push (@marray, $sf);
     }
 
@@ -444,7 +448,8 @@ print MAKE "\n";
 output_make_var ("nobase_noinst_HEADERS", \@noinst_headers, "incl-local");
 print MAKE "\n";
 
-print MAKE "toolexeclib_LIBRARIES = libunixlib.a\n\n";
+print MAKE "toolexeclib_LIBRARIES = libm.a libunixlib.a\n\n";
+print MAKE "libm_a_SOURCES = libm-support/libm.c\n\n";
 print MAKE "libunixlib_a_SOURCES = ";
 my $x = 0;
 foreach $m (@makevars) {
