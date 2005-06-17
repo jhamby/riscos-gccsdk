@@ -1,3 +1,7 @@
+Fri Jun 17 11:05:25 2005  Nick Burrett  <nick@sqrt.co.uk>
+
+	* libm-support/libm.c: New file.
+
 Thu Jun 16 20:44:38 2005  Alex Waugh  <alex@alexwaugh.com>
 
 	* time/utimes.c: Fix time convertion.
