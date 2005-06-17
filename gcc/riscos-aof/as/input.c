@@ -130,7 +130,7 @@ char
 inputGetUC (void)
 {
   char x = *input_pos ? *input_pos++ : *input_pos;
-  return /* uc ? FLIP (x) :*/ tolower (x);
+  return uc ? FLIP (x) : tolower (x);
 }
 
 

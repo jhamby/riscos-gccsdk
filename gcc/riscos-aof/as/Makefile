@@ -5,7 +5,7 @@ CFLAGS += -DCROSS_COMPILE
 exesfx =
 else
 CC = $(CROSS_CC)
-CFLAGS = $(CROSS_CFLAGS) -D_GNU_SOURCE -mlibscl -mmodule -D__RISCOSIFY
+CFLAGS = $(CROSS_CFLAGS) -D_GNU_SOURCE -mlibscl -D__RISCOSIFY
 endif
 
 INCLUDES = -I. -I../../
