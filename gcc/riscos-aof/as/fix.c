@@ -1,17 +1,17 @@
 /*
  * AS an assembler for ARM
  * Copyright © 1992 Niklas Röjemo
- * 
+ *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
  * of the License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
@@ -82,13 +82,37 @@ fixImm8s4 (long int lineno, WORD ir, int im)
   const char *m1, *m2, *optype;
   int i8s4;
   WORD mnemonic;
+  int im2;
 
   i8s4 = help_cpuImm8s4 (im);
   if (i8s4 != -1)
     return ir | i8s4;
 
-  /* Immediate constant was illegal.  Try the inverse.  */
-  i8s4 = help_cpuImm8s4 (-im);
+  mnemonic = ir & M_MNEM;
+
+  /* Immediate constant was illegal.  Try the inverse or
+     two complement (depending on opcode).  */
+  switch (mnemonic)
+    {
+    case M_ADD:
+    case M_SUB:
+    case M_ADC:
+    case M_SBC:
+    case M_CMP:
+    case M_CMN:
+      im2 = -im;
+      break;
+    case M_MOV:
+    case M_MVN:
+    case M_AND:
+    case M_BIC:
+      im2 = ~im;
+      break;
+    default:
+      im2 = im;
+      break;
+    }
+  i8s4 = help_cpuImm8s4 (im2);
   if (i8s4 == -1)
     {
       errorLine (lineno, NULL, ErrorError, TRUE,
@@ -96,7 +120,6 @@ fixImm8s4 (long int lineno, WORD ir, int im)
       return ir;
     }
 
-  mnemonic = ir & M_MNEM;
   ir &= ~M_MNEM;
   switch (mnemonic)
     {			/* try changing opcode */
@@ -144,11 +167,11 @@ fixImm8s4 (long int lineno, WORD ir, int im)
       optype = "unknown";
       m1 = "unk";
       m2 = "unk";
-      break; 
+      break;
    }
 
   if (fussy > 1)
-    errorLine (lineno, NULL, ErrorInfo, TRUE, optype, m1, im, m2, -im);
+    errorLine (lineno, NULL, ErrorInfo, TRUE, optype, m1, im, m2, im2);
 
   return ir | i8s4;
 }
