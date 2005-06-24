@@ -90,8 +90,6 @@ UTILSPKG = $(pkg)/bin/bison$(exesfx) \
 	$(pkg)/docs/make \
 	$(pkg)/docs/rink \
 	$(pkg)/docs/sed \
-	$(pkg)/sys/bison/hairy \
-	$(pkg)/sys/bison/simple \
 	$(bindir)/apcs32/abs/unixlib/o/libfl \
 	$(bindir)/apcs32/abs/unixlib/o/libgcov \
 	$(bindir)/apcs32/abs/unixlib/o/libiberty \
