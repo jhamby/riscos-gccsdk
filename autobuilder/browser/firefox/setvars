@@ -11,5 +11,7 @@ cp $H/riscos.c $S/nsprpub/pr/src/md/unix/
 
 cp $H/riscos.mk $S/security/coreconf/
 
+cp $H/xptcstubs_arm_riscos.cpp $S/xpcom/reflect/xptcall/src/md/unix/xptcstubs_arm_riscos.cpp
+
 autoconf
 cd nsprpub; autoconf; cd ..
