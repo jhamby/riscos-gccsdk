@@ -15,7 +15,6 @@ GCCPKG = $(pkg)/\!Run,feb \
 	$(pkg)/\!Sprites22,ff9 \
 	$(pkg)/\!Help \
 	$(pkg)/Changes \
-	$(pkg)/include \
 	$(pkg)/bin/ar$(exesfx) \
 	$(pkg)/bin/decaof$(exesfx) \
 	$(pkg)/bin/drlink$(exesfx) \
@@ -26,19 +25,25 @@ GCCPKG = $(pkg)/\!Run,feb \
 	$(pkg)/bin/nm$(exesfx) \
 	$(pkg)/bin/rink$(exesfx) \
 	$(pkg)/bin/rinkptr$(exesfx) \
+	$(pkg)/include \
+	$(pkg)/startup \
 	$(bindir)/as$(exesfx) \
 	$(bindir)/cpp$(exesfx) \
 	$(bindir)/ld$(exesfx) \
-	$(bindir)/apcs32/arch3/libscl/o/libscl \
-	$(bindir)/apcs32/arch3/libscl/o/libgcc \
-	$(bindir)/apcs32/arch3/unixlib/o/libgcc \
-	$(bindir)/apcs32/arch3/unixlib/o/unixlib
+	$(bindir)/apcs32/abs/libscl/o/libscl \
+	$(bindir)/apcs32/abs/libscl/o/libgcc \
+	$(bindir)/apcs32/abs/unixlib/o/libgcc \
+	$(bindir)/apcs32/abs/unixlib/o/libobjc \
+	$(bindir)/apcs32/abs/unixlib/o/unixlib \
+	$(bindir)/apcs32/rma/libscl/o/libscl \
+	$(bindir)/apcs32/rma/libscl/o/libgcc
 
 GCCDOCPKG = $(pkg)/docs/COPYING \
 	$(pkg)/docs/COPYINGLIB \
 	$(pkg)/docs/Intro \
 	$(pkg)/docs/bugs \
 	$(pkg)/docs/cpp \
+	$(pkg)/docs/diff \
 	$(pkg)/docs/gcc \
 	$(pkg)/docs/ULChanges \
 	$(pkg)/docs/UnixLib \
@@ -48,15 +53,17 @@ CC1PKG = $(pkg)/bin/g++$(exesfx) \
 	$(bindir)/cc1$(exesfx) \
 	$(libdir)/include/h
 
-CC1PLUSPKG = $(bindir)/cc1plus$(exesfx) \
+CC1PLUSPKG = \
+	$(bindir)/cc1obj$(exesfx) \
+	$(bindir)/cc1plus$(exesfx) \
 	$(libdir)/include/g++-3 \
-	$(bindir)/apcs32/arch3/unixlib/o/libstdc++ \
-	$(bindir)/apcs32/arch3/libscl/o/libstdc++
+	$(bindir)/apcs32/abs/libscl/o/libstdc++ \
+	$(bindir)/apcs32/abs/unixlib/o/libstdc++
 
 G77PKG = $(pkg)/bin/g77$(exesfx) \
 	$(bindir)/f771$(exesfx) \
-	$(bindir)/apcs32/arch3/unixlib/o/libg2c \
-	$(bindir)/apcs32/arch3/libscl/o/libg2c \
+	$(bindir)/apcs32/abs/unixlib/o/libg2c \
+	$(bindir)/apcs32/abs/libscl/o/libg2c \
 	$(pkg)/docs/g77 \
 	$(pkg)/docs/g77-readme
 
@@ -64,6 +71,7 @@ UTILSPKG = $(pkg)/bin/bison$(exesfx) \
 	$(pkg)/bin/cmp$(exesfx) \
 	$(pkg)/bin/diff$(exesfx) \
 	$(pkg)/bin/diff3$(exesfx) \
+	$(pkg)/bin/extractsym$(exesfx) \
 	$(pkg)/bin/flex$(exesfx) \
 	$(pkg)/bin/gperf$(exesfx) \
 	$(pkg)/bin/grep$(exesfx) \
@@ -82,8 +90,12 @@ UTILSPKG = $(pkg)/bin/bison$(exesfx) \
 	$(pkg)/docs/make \
 	$(pkg)/docs/rink \
 	$(pkg)/docs/sed \
-	$(bindir)/apcs32/arch3/unixlib/o/libfl \
-	$(bindir)/apcs32/arch3/unixlib/o/libiberty
+	$(pkg)/sys/bison/hairy \
+	$(pkg)/sys/bison/simple \
+	$(bindir)/apcs32/abs/unixlib/o/libfl \
+	$(bindir)/apcs32/abs/unixlib/o/libgcov \
+	$(bindir)/apcs32/abs/unixlib/o/libiberty \
+	$(bindir)/apcs32/abs/libscl/o/libgcov
 
 SYSTEMPKG = `basename $(ro_syspkg)`
 
