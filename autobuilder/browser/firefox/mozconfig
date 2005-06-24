@@ -1,0 +1,78 @@
+PATH=/home/riscos/cross/bin:$PATH
+CROSS_COMPILE=1
+LIBIDL_CONFIG=/home/riscos/env/bin/libIDL-config
+HOST_LIBIDL_CONFIG=/usr/bin/libIDL-config
+ac_add_options --target=arm-riscos
+ac_add_options --x-includes=/home/riscos/env/X11R6/include
+ac_add_options --x-libraries=/home/riscos/env/X11R6/lib
+
+# use GTK+-2 widget set with XFT font rendering
+#ac_add_options --enable-default-toolkit=gtk
+ac_add_options --enable-default-toolkit=xlib
+#ac_add_options --enable-xft
+ac_add_options --disable-freetype2
+
+# enable minimal profile support
+ac_add_options --disable-profilesharing
+ac_add_options --disable-profilelocking
+ac_add_options --enable-single-profile
+
+# disable features and skip various build steps
+#ac_add_options --disable-extensions
+ac_add_options --disable-accessibility
+ac_add_options --disable-composer
+ac_add_options --enable-plaintext-editor-only
+ac_add_options --disable-mailnews
+#ac_add_options --disable-ldap
+ac_add_options --enable-postscript
+ac_add_options --enable-mathml
+#ac_add_options --disable-jsd
+#ac_add_options --disable-jsloader
+ac_add_options --disable-installer
+#ac_add_options --disable-xpinstall
+#ac_add_options --disable-xpfe-components
+#ac_add_options --disable-xprint
+#ac_add_options --disable-necko-disk-cache
+
+# configure necko to allocate smaller network buffers
+#ac_add_options --enable-necko-small-buffers
+
+# disable debug logging and tests
+ac_add_options --disable-dtd-debug
+ac_add_options --disable-logging
+ac_add_options --disable-tests
+ac_add_options --disable-gtktest
+
+# build crypto module (PSM + NSS)
+ac_add_options --enable-crypto
+
+# build minimal set of protocol handlers
+#ac_add_options --enable-necko-protocols=http,file,res,jar,ftp
+
+# build minimal set of image decoders
+ac_add_options --enable-image-decoders=png,gif,jpeg
+
+# code generation options (optimize for size)
+#ac_add_options --enable-optimize="-O3 -mpoke-function-name -fno-unit-at-a-time -fno-rename-registers"
+ac_add_options --enable-optimize="-O3 -fno-unit-at-a-time -fno-rename-registers"
+# ac_add_options --enable-strip
+#ac_add_options --disable-reorder
+#ac_add_options --enable-elf-dynstr-gc
+
+# enable static build
+ac_add_options --disable-shared
+ac_add_options --enable-static
+
+#ac_add_options --disable-native-uconv
+
+# remove link dependency on libstdc++.so
+LIBS=-lstdc++
+CXX=/home/riscos/cross/bin/g++
+DLL_SUFFIX=a
+LD="/home/riscos/env/ro-ar cr"
+
+ac_add_options --enable-application=browser
+#ac_add_options --enable-timeline
+#ac_add_options --enable-debug
+#ac_add_options --disable-svg
+ac_add_options --disable-debug

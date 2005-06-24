@@ -1,0 +1,15 @@
+
+AB_CVS_ROOT=:pserver:anonymous@cvs-mirror.mozilla.org:/cvsroot
+AB_CVS_MODULE=mozilla
+
+AB_CONFLAGS=--ro-recurse
+
+cp $H/mozconfig $S/
+
+cp $H/_riscos.* $S/nsprpub/pr/include/md/
+cp $H/riscos.c $S/nsprpub/pr/src/md/unix/
+
+cp $H/riscos.mk $S/security/coreconf/
+
+autoconf
+cd nsprpub; autoconf; cd ..
