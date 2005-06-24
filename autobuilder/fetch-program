@@ -54,7 +54,15 @@ else
     wget -nv $debdir/$(grep \.diff\.gz files | cut -d ' ' -f 4)
 
     tar xfz *.orig.tar.gz
-    zcat *.diff.gz | patch -p0
+
+    targetname=$(grep \.orig\.tar\.gz files | cut -d ' ' -f 4 | sed -e s#\.orig.*## -e s#_#-#)
+    origname=$(find -mindepth 1 -maxdepth 1 -type d | grep -v unpack | grep -v package  | cut --bytes 3-)
+
+    if [ "$targetname" != "$origname" ] ; then
+      mv $origname $targetname
+    fi
+
+    zcat *.diff.gz | patch -p0 || true
   fi
 fi
 
