@@ -15,6 +15,9 @@ RISC OS GCC release 3.4.4 release 3 (released XX June 2005)
 * GCC 'gcov' profiling support is now possible.  See the GCC manual
   for more details.
 
+* GCC Objective-C is now included (experimental).  See the GCC manual
+  for more details.
+
 * Now with RISC OS module support.  See !gcc.docs.Intro for details.
 
 * Autobuilder: Minor fixes and many improvements.  Many packages added.

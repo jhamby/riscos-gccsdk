@@ -49,7 +49,7 @@ __objc_init_thread_system(void)
 	   */
       if (pthread_attr_init(&_objc_thread_attribs) == 0)
         {
-          if (pthread_attr_setdetachstate(&_objc_thread_attribs, 
+          if (pthread_attr_setdetachstate(&_objc_thread_attribs,
                                           PTHREAD_CREATE_DETACHED) == 0)
             return 0;
         }
@@ -79,13 +79,13 @@ __objc_thread_detach(void (*func)(void *arg), void *arg)
 {
   objc_thread_t thread_id;
   pthread_t new_thread_handle;
-  
-  if (!(pthread_create(&new_thread_handle, &_objc_thread_attribs, 
+
+  if (!(pthread_create(&new_thread_handle, &_objc_thread_attribs,
                        (void *)func, arg)))
     thread_id = *(objc_thread_t *)&new_thread_handle;
   else
     thread_id = NULL;
-  
+
   return thread_id;
 }
 
@@ -103,6 +103,7 @@ __objc_thread_set_priority(int priority)
 
   if (pthread_getschedparam(thread_id, &policy, &params) == 0)
     {
+#if 0
       if ((priority_max = sched_get_priority_max(policy)) != 0)
         return -1;
 
@@ -113,6 +114,7 @@ __objc_thread_set_priority(int priority)
         priority = priority_max;
       else if (priority < priority_min)
         priority = priority_min;
+#endif
       params.sched_priority = priority;
 
       /*

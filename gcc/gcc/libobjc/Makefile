@@ -1,4 +1,6 @@
 # Makefile for GNU libobjc for the ARM/RISC OS GCC port
+# Copyright (c) 2002, 2003, 2004 Nick Burrett
+# Copyright (c) 2004, 2005 GCCSDK Developers
 #
 
 INCLUDES = -I . -I ./objc -I ../gcc -I ../../include -DIN_GCC -DHAVE_GTHR_PTHREADS -DIN_TARGET_LIBS -fno-strict-aliasing
@@ -40,6 +42,9 @@ OBJS = $(objcdir)/archive.o \
 
 all:	$(ux_gcc_bin_dir)/$(TRG)/libobjc.o \
 	$(ro_gcc_bin_dir)/$(TRG)/o/libobjc
+
+install_headers:
+	$(insthdr) objc "*.h" . $(ux_gccpkg)/$(gn_objc_include_dir) $(ro_gccpkg)/$(gn_objc_include_dir)
 
 $(ux_gcc_bin_dir)/$(TRG)/libobjc.o: $(OBJS)
 	$(CROSS_AR) $(CROSS_AR_FLAGS) $@ $(OBJS)

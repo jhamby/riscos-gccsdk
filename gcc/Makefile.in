@@ -87,6 +87,7 @@ gn_gcc_bin_dir=bin/$(TARGET_NAME)/$(VERSION)
 gn_standard_startfile_prefix=startup/
 gn_gcc_include_dir=lib/gcc-lib/$(TARGET_NAME)/$(VERSION)/include
 gn_gplusplus_include_dir=lib/gcc-lib/$(TARGET_NAME)/$(VERSION)/include/g++-3
+gn_objc_include_dir=lib/gcc-lib/$(TARGET_NAME)/$(VERSION)/include/objc
 gn_cross_include_dir=include
 gn_local_include_dir=local/include
 gn_system_include_dir=sys/include
@@ -132,7 +133,7 @@ instsrc = @topdir@/scripts/install-source.pl
 export TARGET_NAME objdir hostsystem targetsystem
 export ux_gccpkg ro_gccpkg ro_syspkg ro_zippkg ro_env unix_prefix riscos_prefix
 export gn_standard_exec_prefix gn_standard_startfile_prefix
-export gn_gcc_include_dir gn_gplusplus_include_dir
+export gn_gcc_include_dir gn_gplusplus_include_dir gn_objc_include_dir
 export gn_local_include_dir gn_system_include_dir gn_cross_include_dir
 export gn_gcc_bin_dir info_dir exesfx ro_unixlibpkg ro_libsclpkg
 export ux_bin_dir ux_gcc_bin_dir ro_bin_dir ro_gcc_bin_dir
@@ -261,6 +262,7 @@ directories:
 	mkdir -p $(ux_gccpkg)/$(gn_gcc_bin_dir)
 	mkdir -p $(ux_gccpkg)/$(gn_gcc_include_dir)
 	mkdir -p $(ux_gccpkg)/$(gn_gplusplus_include_dir)
+	mkdir -p $(ux_gccpkg)/$(gn_objc_include_dir)
 	mkdir -p $(ux_gccpkg)/$(gn_cross_include_dir)
 
 	mkdir -p $(ro_gccpkg)/$(gn_standard_exec_prefix)
@@ -268,6 +270,7 @@ directories:
 	mkdir -p $(ro_gccpkg)/$(gn_gcc_bin_dir)
 	mkdir -p $(ro_gccpkg)/$(gn_gcc_include_dir)/h
 	mkdir -p $(ro_gccpkg)/$(gn_gplusplus_include_dir)/h
+	mkdir -p $(ro_gccpkg)/$(gn_objc_include_dir)/h
 	mkdir -p $(ro_gccpkg)/$(gn_cross_include_dir)
 
 	mkdir -p $(ux_gccpkg)/$(gn_gcc_bin_dir)/$(trg20)
@@ -293,6 +296,7 @@ install_headers:
 	$(MAKE) -C libscl install_headers
 	$(MAKE) -C gcc/gcc install_headers
 	$(MAKE) -C gcc/libstdc install_headers
+	$(MAKE) -C gcc/libobjc install_headers
 
 # Generate unixlib makefiles
 # Regenerate whenever Changelog is updated, so that any new files added will get added to the makefiles

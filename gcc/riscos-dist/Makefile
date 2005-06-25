@@ -30,6 +30,7 @@ GCCPKG = $(pkg)/\!Run,feb \
 	$(bindir)/as$(exesfx) \
 	$(bindir)/cpp$(exesfx) \
 	$(bindir)/ld$(exesfx) \
+	$(bindir)/cc1obj$(exesfx) \
 	$(bindir)/apcs32/abs/libscl/o/libscl \
 	$(bindir)/apcs32/abs/libscl/o/libgcc \
 	$(bindir)/apcs32/abs/unixlib/o/libgcc \
@@ -51,10 +52,10 @@ GCCDOCPKG = $(pkg)/docs/COPYING \
 
 CC1PKG = $(pkg)/bin/g++$(exesfx) \
 	$(bindir)/cc1$(exesfx) \
-	$(libdir)/include/h
+	$(libdir)/include/h \
+	$(libdir)/include/objc
 
 CC1PLUSPKG = \
-	$(bindir)/cc1obj$(exesfx) \
 	$(bindir)/cc1plus$(exesfx) \
 	$(libdir)/include/g++-3 \
 	$(bindir)/apcs32/abs/libscl/o/libstdc++ \
@@ -119,7 +120,7 @@ LIBSCLPKG = $(spkg)
 all:	install
 
 install:
-	for dir in bin docs examples sys; do \
+	for dir in bin docs examples; do \
 		cp -pR $$dir $(ro_gccpkg) ; done
 	cp Run,feb $(ro_gccpkg)/\!Run,feb
 	cp Sprites,ff9 $(ro_gccpkg)/\!Sprites,ff9

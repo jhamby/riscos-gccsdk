@@ -1,7 +1,7 @@
 | !Run file for the GCCSDK
 | Copyright (c) Nick Burrett, 1996, 1997, 1998, 1999, 2001
 | Copyright (c) GCCSDK Development Team 2002, 2003, 2004, 2005
-| Version 1.14 (29 April 2005)
+| Version 1.15 (25 June 2005)
 
 Set GCC$Dir <Obey$Dir>
 
@@ -11,8 +11,6 @@ Set GCCbin$Path <GCC$Dir>.bin.
 
 | Search path used for the compiler headers and libraries.
 Set GCCpkg$Path <GCC$Dir>.
-Set GCCsys$Path <GCC$Dir>.sys.
-Set GCClcl$Path <GCC$Dir>.local.
 
 | Set the return code limit. UnixLib encodes information within this range
 Set Sys$RCLimit 65536
@@ -25,6 +23,7 @@ Set Sys$RCLimit 65536
 | Ensure correct filename translation for a variety of prefixes
 Set UnixEnv$gcc$sfix "f:for:F:fpp:cc:cxx:cpp:c++:C:i:ii:rpo:c:m:h:hh:s:S:xrb:xrs:l:o:y:tcc"
 Set UnixEnv$cc1$sfix <UnixEnv$gcc$sfix>
+Set UnixEnv$cc1obj$sfix <UnixEnv$gcc$sfix>
 Set UnixEnv$cc1plus$sfix <UnixEnv$gcc$sfix>
 Set UnixEnv$cpp$sfix <UnixEnv$gcc$sfix>
 Set UnixEnv$g++$sfix <UnixEnv$gcc$sfix>
@@ -38,9 +37,10 @@ Set UnixEnv$as$sfix "h:S:s:o"
 | See the documentation about UnixLib and dynamic areas.
 | Comment these out if you do *NOT* wish to use dynamic areas.
 
-| For C
+| For C & ObjC
 Set gcc$heap ""
 Set cc1$heap ""
+Set cc1obj$head ""
 Set cpp$heap ""
 
 | For Fortran 77
