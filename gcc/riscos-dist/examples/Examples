@@ -2,7 +2,9 @@ RISC OS GCC example applications
 ================================
 
 The following example programs are designed to demonstrate the basics
-of the C and C++ languages and help the user understand the GCC compilers.
+of the C, Objective-C and C++ languages and help the user understand the
+GCC compilers.
+
 For each program, there is a list of the necessary command lines for how
 to compile, link and run the program.
 
@@ -55,7 +57,7 @@ and full optimisation.
 
 
 helloworld
----------
+----------
 
 The standard C++ program.  We use the g++ driver to build and link C++
 applications.  This does nothing more than adding -lstdc++ to the linker
@@ -64,6 +66,7 @@ command line.
 Source: 	cc.helloworld
 Compile using: 	g++ helloworld.cc -o helloworld
 Run using: 	helloworld
+
 
 exception
 ---------
@@ -85,3 +88,25 @@ Demonstrates the instantiation of templates.
 Source: 	cc.template
 Compile using: 	g++ template.cc -o template
 Run using: 	template
+
+
+seaapp
+------
+
+An Objective-C program.
+
+Source:		m.Fishie, m.SeaApp
+Compile using:	gcc Fishie.m SeaApp.m -o seaapp -lobjc
+Run using:	seaapp
+
+
+simple
+------
+
+An Objective-C program.
+
+Source:		m.Simple
+Compile using:	gcc Simple.m -o simple -lobjc
+Run using:	simple
+
+-EOF-
