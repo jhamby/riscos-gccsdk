@@ -160,7 +160,7 @@
    (clobber (reg:SI LR_REGNUM))
    (clobber (reg:CC CC_REGNUM))]
   ""
-  "cmp\\t%0, %1\;bllt\\t%a2"
+  "cmp\\t%0, %1\;blmi\\t%a2"
 [(set_attr "conds" "clob")
  (set_attr "length" "8")])
 
