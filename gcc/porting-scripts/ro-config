@@ -502,6 +502,8 @@ export ac_cv_lib_SDL_ttf_TTF_RenderUNICODE_Blended_Shaded=yes
 export ac_cv_lib_SDL_ttf_TTF_Init=yes
 export ac_cv_lib_SDL_mixer_Mix_OpenAudio=yes
 
+export ac_cv_header_X11_extensions_XShm_h=no
+
 export ac_cv_kaffe_pathsep=:
 
 export fu_cv_sys_mounted_fread=yes
