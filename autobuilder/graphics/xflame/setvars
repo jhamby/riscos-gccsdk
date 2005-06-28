@@ -1,0 +1,9 @@
+
+AB_URL=http://linux.rice.edu/~rahul/xflame/xflame-1.1.1.tar.gz
+
+AB_CATEGORY=graphics
+
+ab_package() {
+  cp -av $H/!Run,feb $D
+  cp -av $S/xflame,ff8 $D
+}
