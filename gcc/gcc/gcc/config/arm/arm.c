@@ -2609,7 +2609,10 @@ legitimize_pic_address (rtx orig, enum machine_mode mode, rtx reg)
 		  TREE_CONSTANT_POOL_ADDRESS_P (orig));*/
 
 	  insn = emit_insn (gen_pic_load_addr_arm (reg, orig));
-	  /* if (! SYMBOL_REF_LOCAL_P (orig)) */
+	  /* Don't do reallocation based on PIC register when our
+	     symbol is a function, i.e. do this only for global/local
+	     variables.  */
+	  if (TREE_CODE(SYMBOL_REF_DECL(orig)) != FUNCTION_DECL)
 	    insn = emit_insn (gen_addsi3 (reg, reg, pic_offset_table_rtx));
 	}
       else
