@@ -30,11 +30,9 @@ GCCPKG = $(pkg)/\!Run,feb \
 	$(bindir)/as$(exesfx) \
 	$(bindir)/cpp$(exesfx) \
 	$(bindir)/ld$(exesfx) \
-	$(bindir)/cc1obj$(exesfx) \
 	$(bindir)/apcs32/abs/libscl/o/libscl \
 	$(bindir)/apcs32/abs/libscl/o/libgcc \
 	$(bindir)/apcs32/abs/unixlib/o/libgcc \
-	$(bindir)/apcs32/abs/unixlib/o/libobjc \
 	$(bindir)/apcs32/abs/unixlib/o/unixlib \
 	$(bindir)/apcs32/rma/libscl/o/libscl \
 	$(bindir)/apcs32/rma/libscl/o/libgcc
@@ -52,8 +50,7 @@ GCCDOCPKG = $(pkg)/docs/COPYING \
 
 CC1PKG = $(pkg)/bin/g++$(exesfx) \
 	$(bindir)/cc1$(exesfx) \
-	$(libdir)/include/h \
-	$(libdir)/include/objc
+	$(libdir)/include/h
 
 CC1PLUSPKG = \
 	$(bindir)/cc1plus$(exesfx) \
