@@ -276,8 +276,8 @@ void riscos_host_initialisation (void)
 {
   /* Perform a simple memory check.  Notify the user that there is
      not enough space in the `next' slot for a task and die.  */
-  int current, next, regs[10];
-  
+  int regs[10];
+
   regs[0] = -1;
   regs[1] = -1;
   __os_swi (Wimp_SlotSize, regs);
@@ -300,4 +300,3 @@ const char *riscos_convert_filename (void *obstack, const char *name, int do_exe
 
   return obstack_copy0 (obs, tmp, strlen (tmp));
 }
-
