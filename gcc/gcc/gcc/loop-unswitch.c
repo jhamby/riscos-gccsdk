@@ -286,6 +286,13 @@ unswitch_single_loop (struct loops *loops, struct loop *loop,
 	}
     } while (repeat);
 
+  if (BASIC_BLOCK (BLOCK_NUM (PREV_INSN (split_before))) != bbs[i])
+    {
+      if (rtl_dump_file)
+	fprintf (rtl_dump_file, ";; Not unswitching, cond in different bb\n");
+      return;
+    }
+      
   /* We found the condition we can unswitch on.  */
   conds = alloc_EXPR_LIST (0, cond, cond_checked);
   if (rcond)
