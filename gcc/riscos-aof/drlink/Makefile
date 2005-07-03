@@ -1,5 +1,6 @@
 # Makefile for the ARM Object Format linker - DrLink
-# Written by Nick Burrett <nick@sqrt.co.uk>
+# Copyright (c) 2000, 2001, 2002 Nick Burrett
+# Copyright (c) 2003, 2004, 2005 GCCSDK Developers
 
 ifeq (${STAGE},stage1)
 CFLAGS += -DCROSS_COMPILE
@@ -30,10 +31,21 @@ SRCS =	aofiles.c \
 	stdcode.c \
 	symbols.c
 
-HDRS =	areahdr.h chunkhdr.h debugprocs.h drlhdr.h \
-	edithdr.h filehdr.h procdefs.h symbolhdr.h
+HDRS =	../../sdk-config.h \
+	areahdr.h \
+	chunkhdr.h \
+	config.h \
+	debugprocs.h \
+	drlhdr.h \
+	edithdr.h \
+	filehdr.h \
+	libraries.h \
+	procdefs.h \
+	symbolhdr.h
 
 ifeq (${STAGE},stage1)
+# This funky line tells make to change all '.c' suffixes to '.o' and add
+# '$(drlinkobjdir)/' to each object.
 OBJS = $(addprefix $(drlinkobjdir)/, $(SRCS:.c=.o))
 
 $(drlinkobjdir)/%.o: %.c
@@ -41,25 +53,12 @@ $(drlinkobjdir)/%.o: %.c
 
 $(bin_dir)/drlink$(exesfx): $(OBJS) $(DEPS)
 	$(CC) -o $@ $(OBJS)
-
-
-$(drlinkobjdir)/aofiles.o: aofiles.c
-$(drlinkobjdir)/areas.o: areas.c
-$(drlinkobjdir)/c++names.o: c++names.c
-$(drlinkobjdir)/debug.o: debug.c
-$(drlinkobjdir)/drlmain.o: drlmain.c
-$(drlinkobjdir)/files.o: files.c
-$(drlinkobjdir)/heap.o: heap.c
-$(drlinkobjdir)/libraries.o: libraries.c
-$(drlinkobjdir)/linkdebug.o: linkdebug.c
-$(drlinkobjdir)/linkedit.o: linkedit.c
-$(drlinkobjdir)/linkfiles.o: linkfiles.c
-$(drlinkobjdir)/messages.o: messages.c
-$(drlinkobjdir)/stdcode.o: stdcode.c
-$(drlinkobjdir)/symbols.o: symbols.c
 endif
 
 ifeq (${STAGE},stage2)
+# Since we know that we are compiling with GCC 3.4, we can compile the
+# application using inter-module analysis, effectivly building as if all
+# functions are contained within one source file.
 	DEPS += $(gcc_bin_dir)/$(TRG)/o/unixlib
 
 $(drlinkobjdir)/drlink.o:	$(SRCS) $(DEPS) $(HDRS)
