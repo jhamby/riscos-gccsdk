@@ -1,2 +1,2 @@
-tar xfj freetype-*.tar.bz2
+tar xfj freetype-2*.tar.bz2
 mv freetype-*/* .
