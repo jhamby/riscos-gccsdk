@@ -134,7 +134,6 @@ extern rtx pool_vector_label;
 extern int return_used_this_function;
 /* Used to produce AOF syntax assembler.  */
 extern GTY(()) rtx aof_pic_label;
-extern int flag_riscos_module;
 
 /* Just in case configure has failed to define anything.  */
 #ifndef TARGET_CPU_DEFAULT

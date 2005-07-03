@@ -270,8 +270,6 @@ const char * target_fp_name = NULL;
 const char * structure_size_string = NULL;
 int    arm_structure_size_boundary = DEFAULT_STRUCTURE_SIZE_BOUNDARY;
 
-int flag_riscos_module;
-
 /* Bit values used to identify processor capabilities.  */
 #define FL_CO_PROC    (1 << 0)        /* Has external co-processor bus */
 #define FL_FAST_MULT  (1 << 1)        /* Fast multiply */
@@ -794,14 +792,14 @@ arm_override_options (void)
   arm_arch4         = (insn_flags & FL_ARCH4) != 0;
   arm_arch5         = (insn_flags & FL_ARCH5) != 0;
   arm_arch5e        = (insn_flags & FL_ARCH5E) != 0;
-  arm_arch_xscale     = (insn_flags & FL_XSCALE) != 0;
+  arm_arch_xscale   = (insn_flags & FL_XSCALE) != 0;
 
   arm_ld_sched      = (tune_flags & FL_LDSCHED) != 0;
   arm_is_strong     = (tune_flags & FL_STRONG) != 0;
   thumb_code	    = (TARGET_ARM == 0);
   arm_is_6_or_7     = (((tune_flags & (FL_MODE26 | FL_MODE32))
 		       && !(tune_flags & FL_ARCH4))) != 0;
-  arm_tune_xscale       = (tune_flags & FL_XSCALE) != 0;
+  arm_tune_xscale   = (tune_flags & FL_XSCALE) != 0;
   arm_is_cirrus	    = (tune_flags & FL_CIRRUS) != 0;
   arm_arch_iwmmxt   = (insn_flags & FL_IWMMXT) != 0;
 
