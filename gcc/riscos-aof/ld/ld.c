@@ -1856,6 +1856,7 @@ parse_args (int argc, char **argv)
 	  break;
 	case OPTION_MODULE:
 	  add_option ("-module");
+	  output_filetype = "ffa";
 	  break;
 	case OPTION_NOUNUSED:
 	  add_option ("-nounused");
