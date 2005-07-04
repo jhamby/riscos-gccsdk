@@ -1,0 +1,1014 @@
+Log file for CMunge
+===================
+
+------------------------------------------------------------------------
+    Version 0.52 21:01:58 6/10/2003
+------------------------------------------------------------------------
+$Log: VersionLog,v $
+Revision 1.41  2003/10/06 21:12:01  justin
+Summary:
+  Added explicit support for C++ modules.
+Detail:
+  * Although it has always been possible to create modules that use C++
+    code sections, it required that the modules themselves call the
+    global constructor routine ______main. I've added a minor change to
+    the initialisation sequence which will do this call for you.
+Admin:
+  Tested with C++ and normal C module and appears to work correctly.
+Tag:
+  CMunge-0_52
+
+------------------------------------------------------------------------
+    Version 0.51 18:32:33 6/10/2003
+------------------------------------------------------------------------
+Revision 1.40  2003/10/06 17:35:04  justin
+Summary:
+  Removed an unmatched apostrophe from the blank header.
+Detail:
+  * I was getting fed up with having to remove this apostrophe on all my
+    'blank'-based headers because the Norcroft compiler in pre-processor
+    mode dislikes it. So I've removed the apostrophe. The sentence still
+    makes sense, it's just not as correct English as it was.
+Admin:
+  Only a generated header change, no significant code modified. Tested
+  with test suite and didn't affect anything.
+Tag:
+  CMunge-0_51
+
+------------------------------------------------------------------------
+    Version 0.50 03:27:31 29/9/2003
+------------------------------------------------------------------------
+Revision 1.39  2003/09/29 02:30:07  justin
+Summary:
+  Added support for simple additive integers.
+Detail:
+  * Integer values (decoded by 'strint') can now be accumulated with
+    simple additive arithmetic operations. This fits in with the
+    bracketing regime we already enforce and allows values to be
+    accumulated without a separate processing phase (or any additional
+    work on the headers prior to export).
+Admin:
+  Tested operation with example file modified appropriately
+  (examples.cmhg.module) and with the new STV680 module which provoked
+  the issue. Both now work and I can now use exported headers based at
+  set values.
+Tag:
+  CMunge-0_50
+
+------------------------------------------------------------------------
+    Version 0.49 03:27:39 17/8/2003
+------------------------------------------------------------------------
+Revision 1.38  2003/08/17 02:36:28  justin
+Summary:
+  Fix for handling of the event handlers.
+  Added warnings about use of event-handlers when in cmhg mode.
+  Added warnings for -apcs and -t when in cmhg mode.
+Detail:
+  * Multiple event vectors were not actually being handled correctly.
+    Both the entry and the dispatch veneers were being constructed
+    incorrectly, resulting in vectors being dispatched to the wrong
+    handlers. Consequently modules using multiple event handlers would
+    (usually) cause the machine to stiff as vectors were processed by
+    the wrong routines. We now dispatch to the correct handlers and in
+    the entry sequence we correctly branch to the dispatch routine for
+    the events handlers which are not the last in the list.
+  * It seems that I was overly optimistic in my belief that CMHG could
+    handle multiple event handlers. Although CMHG appears to accept
+    multiple event handlers, it will only generate code to dispatch the
+    last of these. We now generate a warning if cmhg mode is in use and
+    multiple handlers are specified, and we discard the earlier handler
+    to match CMHG. This has been added to the documentation of the
+    event-handler entry points.
+  * If the explicit APCS specification, or the toolchain option are
+    given, and cmhg mode has been specified, we now emit a warning to
+    remind users that these are CMunge only features. We continue on,
+    though.
+Admin:
+  Tested locally with module using multiple event handler entry points
+  and no longer causes the machine to lock solid when data arrives on
+  a socket. The events are now being dispatched properly to the two
+  event handlers and the module functions as it did with CMHG (albeit
+  with two event handlers, rather than only 1).
+Tag:
+  CMunge-0_49
+
+------------------------------------------------------------------------
+    Version 0.48 00:36:38 16/8/2003
+------------------------------------------------------------------------
+Revision 1.37  2003/08/15 23:44:07  justin
+Summary:
+  Added support for explicit specification of APCS variant.
+Detail:
+  * In order to provide a common command line with the compiler and
+    assembler tools, the -apcs option has been added. This should allow
+    makefiles to specify the same options to all the tools which should
+    simplify makefile construction.
+  * This change has introduced a new 'apcs' flags option, rather
+    than the old 'bitness' binary flag. This has meant quite a few changes
+    across the source. Where the bitness was tested previously, the macros
+    CODE26 or CODE32 are used instead.
+  * The majority of the APCS variants are disallowed at present and raise
+    a fatal error if selected.
+  * In the -help output we display the names of the -apcs flags and their
+    descriptions. This is partly as a reminder for CMunge, but also it
+    is useful when the options for the compiler have been forgotten as
+    the options are equivilent. If a -apcs option is specified with the
+    -help option this will update the flags to the newly selected APCS
+    variant. This may be useful for debugging.
+Admin:
+  Tested locally and appears to fault the correct variants, generate the
+  correct code and supply the right arguments to objasm.
+  The operation with as has not been addressed. It's like that the flags
+  specified to as may not match those required by the user. This should
+  be looked at by someone who uses as.
+Tag:
+  CMunge-0_48
+
+------------------------------------------------------------------------
+    Version 0.47 01:12:14 15/8/2003
+------------------------------------------------------------------------
+Revision 1.36  2003/08/15 00:14:17  justin
+Summary:
+  Added initial support (useless) for LCC toolchain.
+Detail:
+  * The initial work has been done to make the LCC toolchain usable with
+    CMunge. However, because of failings in the cpp tool that comes with
+    LCC it is not possible to use the LCC toolchain with CMunge at the
+    present time. That's even allowing for the lack of any module
+    generation code in LCC.
+Admin:
+  Tested locally and found to be pretty much useless for use with LCC.
+  Other toolchains appear unaffected by these changes.
+Tag:
+  CMunge-0_47
+
+------------------------------------------------------------------------
+    Version 0.46 21:32:41 14/8/2003
+------------------------------------------------------------------------
+Revision 1.35  2003/08/14 21:03:14  justin
+Summary:
+  Added support for GCC toolchain.
+Detail:
+  * The code can now use gcc toolchain (as/cpp) rather than the norcroft
+    toolchain (objasm/cc). This has required a little bit of testing and
+    it should work correctly for most environments. However, in order to
+    accomodate as's more limited evaluation, I've removed one of the
+    immediate value calculations. This could probably be addressed better
+    for as, but for simplicity I've reduced that. AS was complaining about
+    the use of local labels in the assembler as well, so I've reduced
+    those to literal symbols instead.
+Admin:
+  Tested locally with a contemporary gcc installation and it appears to
+  build output correctly.
+Tag:
+  CMunge-0_46
+
+------------------------------------------------------------------------
+    Version 0.45 19:28:56 14/8/2003
+------------------------------------------------------------------------
+Revision 1.34  2003/08/14 18:47:08  justin
+Summary:
+  Added support for multiple event-handler entries.
+Detail:
+  * Previously, we only supported a single event-handler and had a single
+    table of values that would be accepted. I've moved the table of values
+    into the handler_list entries and made the event-handler processing
+    routine capable of multiple entries. When writing out the entries, the
+    we iterate over the handler list.
+Admin:
+  Tested with example code in Examples.cmhg.module to which I've added
+  a couple of handlers and it appears to work just fine with those.
+  Non-event-handler modules also seem the same as before.
+Tag:
+  CMunge-0_45
+
+------------------------------------------------------------------------
+    Version 0.44 15:56:20 17/7/2003
+------------------------------------------------------------------------
+Revision 1.33  2003/07/17 15:04:26  justin
+Summary:
+  Changed use of strncasecmp to stricmp.
+  Fix for uninitialised variable in the service call sorting.
+Detail:
+  * strncasecmp was a function we provided which compared strings case
+    insensitively. This is defined in some unix-like libraries to have
+    a different prototype (and function). To make the library a little
+    easier to port, it has been renamed to stricmp and the associated
+    code changed to reflect this.
+  * When the service call list was being sorted, the entries were being
+    generated incorrectly because 'min' was never initialised to 0
+    before the list was generated. This could result in some entries not
+    being listed.
+Admin:
+  Tested very briefly here and it seems to work correctly, but I think
+  I was just very lucky that I never saw problems with the fast service
+  entry before. Probably it would be better if we just called qsort on
+  the list before we used it, rather than doing the sort for one part
+  and then ignoring the sorting for the second (code) part.
+  Philip Pemberton reported the strncasecmp function problem.
+  John Duffell reported the service call problem.
+Tag:
+  CMunge-0_44
+
+------------------------------------------------------------------------
+    Version 0.43 00:15:56 28/6/2003
+------------------------------------------------------------------------
+Revision 1.32  2003/06/27 23:16:51  justin
+Summary:
+  Fix for alignment of 32bit flags word.
+Detail:
+  * 32bit flags word should be aligned but would not be if commands
+    existed. We now align explicitly before writing the flags.
+Admin:
+  Reported by Stefan Bellon.
+Tag:
+  CMunge-0_43
+
+------------------------------------------------------------------------
+    Version 0.42 19:21:30 28/5/2003
+------------------------------------------------------------------------
+Revision 1.31  2003/05/28 18:31:59  justin
+Summary:
+  Added CMHG_VERSION define (531).
+  Changed header generation to create Module_VersionNumber.
+  Changed header generation to create Module_Help like CMHG.
+  Added support for finalisation called after errors in init code.
+Detail:
+  * We now define CMHG_VERSION to the closest version number that we
+    support. It appears that 5.31 matches the feature set of CMunge rather
+    nicely - it's not a perfect match, but it's pretty close. Singificant
+    differences are in the 32bit code generation and since we don't care
+    about the code format in the header, this is not significant.
+  * Previously we used Module_VersionNumber as the define for the version
+    number of the module. This both clashes with headers created by my
+    commit script (local issue) and doesn't match with the use with CMHG.
+    I've aligned the use with that of CMHG but this will probably cause
+    compatibility issues with earlier CMunge versions. CMHG is the
+    definitive version, so we were in the wrong and are now falling in
+    line.
+  * Similar to the Module_VersionNumber define explained above,
+    Module_Help was in previous CMunge versions given as the full help
+    string. CMHG only gives the text part at the beginning. We now follow
+    CMHG behaviour.
+  * When an error is returned from the main module entry point, previous
+    versions would fail to call the finalisation for the C library and
+    would therefore end up without any form of atexit handling. This could
+    also cause problems if any addition RTSK chunks had allocated memory.
+    This change is a feedback from a known issue with CMHG which was
+    addressed prior to 5.31 (and thus allows us to claim 5.31
+    compatibility as described above).
+Admin:
+  Tested locally with a few example modules and appears to construct
+  functioning modules and headers. Will be tested with a range of modules
+  over the next couple of weeks.
+Tag:
+  CMunge-0_42
+
+------------------------------------------------------------------------
+    Version 0.41 02:02:25 12/4/2003
+------------------------------------------------------------------------
+Revision 1.30  2003/04/12 01:04:27  justin
+Summary:
+  Changed default built to use StubsG.
+  Updated 32bit build options to now be non-experimental.
+Detail:
+  * In order to be as useful as possible, we now link against StubsG
+    allowing CMunge to be used 'anywhere'.
+  * 32bit build options are still described in the manual as being
+    thrown together, but are no longer experimental. Tests have shown
+    it to be pretty reliable in generating fully functional modules.
+Admin:
+  Tested locally with various test files and appears to work correctly.
+Tag:
+  CMunge-0_41
+
+------------------------------------------------------------------------
+    Version 0.40 15:38:13 4/2/2003
+------------------------------------------------------------------------
+Revision 1.29  2003/02/04 15:46:10  justin
+Summary:
+  Initial changes for 32bit header generation.
+  Added support for -blank generation when in -cmhg mode.
+Detail:
+  * Tentative work on creating 32bit header code. This should impact
+    little on the 32bit header generation as the code is explicitly
+    switched away from for 32bit specific changes. The work is based on
+    the output from CMHG by examination and should be reasonably simple
+    to work into a more sane format.
+  * Previously -blank in -cmhg mode would just generate a warning and
+    produce a blank CMunge example. This has been changed so that the
+    example generated is suitable for CMHG. The warning is still
+    generated, because the -blank command is a new CMunge feature.
+Admin:
+  Tested on the 32bit generation has involved inclusion and removal of
+  each of the veneers which the code uses, generation with cmhg and then
+  comparing the output. Where possible the forms have been retained to
+  ensure that the output is correct. In cases where CMHG generates
+  incorrect code, these have been corrected in CMunge. The only known
+  cases of these are a backward branch (may have been fixed by a later
+  CMHG) and module entry (which seems to enter through the initialise
+  point, rather than the entry point).
+  Warning: This version is experimental and is flagged as such when
+  it starts up.
+Tag:
+  CMunge-0_40
+
+------------------------------------------------------------------------
+    Version 0.39 17:12:11 20/12/2002
+------------------------------------------------------------------------
+Revision 1.28  2002/12/20 17:14:58  justin
+Summary:
+  Added support for error block generation.
+Detail:
+  * -zerrors will generate a AOF file containing just error blocks. This
+    is useful for occassions when error blocks are required by a library
+    but you do not wish to include an assembler component to the library.
+Admin:
+  Tested locally with and required for the WebImage libraries.
+  I expect that this will be extended in the future to allow generation
+  of application veneers in a similar manner to module veneers. These
+  are of only specialised interest so probably less useful. If you really
+  need such integration in an application you should probably be using a
+  DLL instead.
+Tag:
+  CMunge-0_39
+
+------------------------------------------------------------------------
+    Version 0.38 12:56:11 20/12/2002
+------------------------------------------------------------------------
+Revision 1.27  2002/12/20 12:57:58  justin
+Summary:
+  Updates for building with OSLib and using 32bit tools.
+Detail:
+  * OSLib includes were broken; they included os.h rather than oslib/os.h
+    which was apparently necessary for later OSLibs.
+  * Building with the 32bit tools which default to a different compilation
+    mode was not possible with CMunge.
+Admin:
+  Tested using the examples and a couple of test modules.
+  Patches submitted by John Tytgat.
+Tag:
+  CMunge-0_38
+
+------------------------------------------------------------------------
+    Version 0.37 19:51:34 28/7/2002
+------------------------------------------------------------------------
+Revision 1.26  2002/07/28 18:56:29  justin
+Summary:
+  Fix for error identifiers with no base.
+  Fix for service entry where no service number specified.
+Detail:
+  * Where error identifiers had been specified, but no base provided, no
+    header entry would be generated for those identifiers. This was
+    because the error base was being incorrectly used as an identifier of
+    errors being present.
+  * CMunge would fail to generate a valid fast entry sequence where no
+    service numbers were in use. Such modules would not load on RISC OS
+    4 where the service table is explicitly checked. We now omit the
+    service entry where no service numbers are provided.
+Admin:
+  Tested locally and seems to work correctly for the module that
+  was having problems.
+Tag:
+  CMunge-0_37
+
+------------------------------------------------------------------------
+    Version 0.36 19:16:43 28/7/2002
+------------------------------------------------------------------------
+Revision 1.25  2002/07/28 18:19:13  justin
+Summary:
+  Added support for 'carry-capable' generic veneers.
+Detail:
+  * Carry capable generic veneers are used to return with the 'C' flag set
+    from a handler. This has been implemented as a variant of the generic
+    veneer, allowing a few interfaces which would previously only have
+    been possible using assembler veneers to be used.
+Admin:
+  Tested locally with example scripts and appears to generate the correct
+  code and headers.
+Tag:
+  CMunge-0_36
+
+------------------------------------------------------------------------
+    Version 0.35 13:31:30 27/6/2002
+------------------------------------------------------------------------
+Revision 1.24  2002/06/27 12:33:11  justin
+Summary:
+  Fix for vectortrap_f typedef appearing too late.
+Detail:
+  * The typedef for vectortrap_f was being defined after it was used. This
+    made compilation with such headers fail. We now write this definition
+    before the uses.
+Admin:
+  Tested locally and appears to work correctly with the test. Not tested
+  in any live code.
+Tag:
+  CMunge-0_35
+
+------------------------------------------------------------------------
+    Version 0.34 16:30:50 24/6/2002
+------------------------------------------------------------------------
+Revision 1.23  2002/06/24 15:32:25  justin
+Summary:
+  Fix for -xhdr generation not writing SWIs.
+Detail:
+  * -xhdr would not write any SWI definitions if no SWI handler was
+    supplied (such as happens if all the SWIs are handled by their own
+    dedicated functions). We now check for this condition and write out
+    the SWIs if either is set.
+Admin:
+  Tested locally and seems to work correctly now.
+  Previously, this fault had been corrected, but only for the C headers.
+Tag:
+  CMunge-0_34
+
+------------------------------------------------------------------------
+    Version 0.33 19:38:03 3/5/2002
+------------------------------------------------------------------------
+Revision 1.22  2002/05/03 18:40:00  justin
+Summary:
+  Fix for Help string translation bug.
+Detail:
+  * When help strings are parsed, they should have underscore replaced by
+    a space character. We were not, and this was a deviance from the CMHG
+    implementation. We now translate this character on the output in the
+    assembler. The header still ends up with underscores. This may or may
+    not be an issue.
+Admin:
+  Tested locally with example header and appears to function as CMHG
+  (examples.cmhg.module).
+Tag:
+  CMunge-0_33
+
+------------------------------------------------------------------------
+    Version 0.32 19:58:45 22/4/2002
+------------------------------------------------------------------------
+Revision 1.21  2002/04/22 19:01:12  justin
+Summary:
+  Moved help routines to using format_wrap.
+  Fix for duplicate entries not being appended to handlers.
+Detail:
+  * The help code which printed out the options now uses the generic
+    wrapping routines to wrap text, rather than being hardcoded. This
+    should make maintenance of the text a little easier.
+  * Duplicated entries (eg irq_handlers on multiple lines, rather than
+    appended to the first line) would replace the preceeding entries; this
+    caused problems with things that relied on this CMHG behaviour. We
+    now support this format.
+Admin:
+  Tested locally with a component requiring such behaviour.
+Tag:
+  CMunge-0_32
+
+------------------------------------------------------------------------
+    Version 0.31 02:59:17 3/4/2002
+------------------------------------------------------------------------
+Revision 1.20  2002/04/03 02:06:39  justin
+Summary:
+  Comments are now generated by central routines.
+  Blank file generation now uses the new formatting code.
+  Reorganised text formatting functions.
+  Added details of private-word to the blank comments.
+Detail:
+  * New file comments has been created that contains two simple veneers
+    to the formatting routines for writing out standard format comments.
+    These are very simple and will ensure that the comments come out
+    ina similar format whereever they are used.
+  * The blank file generation has been converted to use the formatting
+    routines, rather than using its own local copy of a similar routine.
+    This ensures that the text strings we use are the same throughout
+    the code.
+  * The text formatting functions have been moved to c.format to allow
+    them to be used from elsewhere. These functions are used by the
+    writefile, comments and blank files to format their comments, etc.
+    The functions have been extended to support the use of the '\b'
+    command which will line up all similar \b commands in the subsequent
+    lines.
+  * Updated the blank comments to include details about the private-word
+    parameter.
+Admin:
+  Tested with example files; needs testing on 'real world' modules.
+  The header seems to be generating whitespace oddly. This needs looking
+  at, but it's not serious.
+Tag:
+  CMunge-0_31
+
+------------------------------------------------------------------------
+    Version 0.30 22:39:57 29/3/2002
+------------------------------------------------------------------------
+Revision 1.19  2002/03/29 22:52:31  justin
+Summary:
+  Updated writeheader.c massively.
+Detail:
+  * writeheader.c has been reworked to use a set of prototype descriptors
+    to describe the comments and function prototypes being defined. The
+    changes revolve around having a single routine to output comments and
+    prototypes, rather than each section writing out the data itself. This
+    allows the header to be customised for a particular style of comments,
+    should this be necessary, and more importantly, ensures that the style
+    is maintained throughout the source file.
+    Primarily this means I can have a nicer format of the comment than
+    the classic style.
+  * The formatting of comments is handled centrally by header_format which
+    will rewrite strings supplied formatted to LINELEN. This is used by
+    most of the functions, as well as the prototype_write routine itself.
+  * prototype_write is used to write out prototype declaration which is
+    of a standard style, with nice readable comments.
+Admin:
+  Tested with all the modules I have and a load of others; sent to JD and
+  Robin and seems to be stable for the present. In theory it should be
+  functionally identical to the previous versions. The experiments and
+  examinations so far seem to hold this to be true.
+  It's possible that there might be some form of 'skinnable' interface
+  but that may be slightly extravagant.
+Tag:
+  CMunge-0_30
+
+------------------------------------------------------------------------
+    Version 0.29 02:32:09 29/3/2002
+------------------------------------------------------------------------
+Revision 1.18  2002/03/29 02:38:17  justin
+Summary:
+  Added support for private word registers in generic-veneers.
+  Fixed problem with header writing out vector-trap header.
+Detail:
+  * private-word can be used to identify the register containing the
+    private word, allowing other registers to be used as a private word
+    in the veneers.
+  * Vector trap header would be erroneously written out to the header
+    because of a missing 'break' statement.
+Admin:
+  Tested locally by examination. Code looks good in assembler.
+Tag:
+  CMunge-0_29
+
+------------------------------------------------------------------------
+    Version 0.28 04:02:47 9/1/2002
+------------------------------------------------------------------------
+Revision 1.17  2002/01/09 04:11:43  justin
+Summary:
+  Fix for C header veneer entry point symbol name using a pointer.
+Detail:
+  * Symbol name for veneer entry points was given as
+       void *func(void);
+    which was different to the cmhg version; cmhg uses
+       void func(void);
+    We now use the same as CMHG.
+Admin:
+  This failure was causing a previously CMHG based component to fail
+  to build. This is unacceptable and the change to conform with CMHG
+  behaviour has been made.
+Tag:
+  CMunge-0_28
+
+------------------------------------------------------------------------
+    Version 0.27 12:14:40 24/9/2001
+------------------------------------------------------------------------
+Revision 1.16  2001/09/24 11:16:31  justin
+Summary:
+  Correction for vector trap bug in header generation.
+Detail:
+  * The vectortrap define/typedef were being added for all the handler
+    types, rather than just the vectortrap. This caused errors if you used
+    two types of veneer routines. Now we only output it where the
+    vectortrap is actually used.
+Admin:
+  Tested locally and seems to work.
+  Special reasons on veneer handlers still don't work well; need to look
+  at that next.
+Tag:
+  CMunge-0_27
+
+------------------------------------------------------------------------
+    Version 0.26 23:03:49 10/9/2001
+------------------------------------------------------------------------
+Revision 1.15  2001/09/10 22:10:40  justin
+Summary:
+  Fix for date getting spaces at the end.
+Detail:
+  * If a definition were made for the use in the Date string, a space is
+    left after the value defined when substituted and this resulted in the
+    date string being something like (10 Sep 2001 )
+Admin:
+  Tested very briefly with an example file.
+Tag:
+  CMunge-0_26
+
+------------------------------------------------------------------------
+    Version 0.25 20:19:09 28/7/2001
+------------------------------------------------------------------------
+Revision 1.14  2001/07/28 19:22:30  justin
+Summary:
+  Removed duplicate checks from veneer routines.
+  Removed brackets from Module_Version in header.
+Detail:
+  * generic-veneers and irq-handlers had checks to see that they weren't
+    duplicated. If we do this then we're giving a different operation than
+    that expected by CMHG, so I've relaxed this restriction.
+  * Module_Version conflicts with that given in VersionNum files if we
+    use brackets, so I've removed them.
+Admin:
+  Builds. Tested with test suite.
+Tag:
+  CMunge-0_25
+
+------------------------------------------------------------------------
+    Version 0.24 00:52:09 14/7/2001
+------------------------------------------------------------------------
+Revision 1.13  2001/07/13 23:53:04  justin
+Summary:
+  Added export of __module_header.
+Detail:
+  * __module_header is exported by CMHG, and not by CMunge, so I've added
+    it. This allows me to build a module that relies on it existing.
+Admin:
+  Tested with module which requires it to exist and seemed to work.
+Tag:
+  CMunge-0_24
+
+------------------------------------------------------------------------
+    Version 0.23 14:45:21 23/6/2001
+------------------------------------------------------------------------
+Revision 1.12  2001/06/23 13:47:34  justin
+Summary:
+  Fix for broken copyright string comment.
+Detail:
+  * In updating the copyright string, I removed an end comment, rendering
+    the header files invalid.
+Admin:
+  Tested with examples and works.
+Tag:
+  CMunge-0_23 (retagged)
+
+Revision 1.11  2001/06/23 11:52:38  justin
+Summary:
+  Fix for -xh not exporting SWIs where handler omitted.
+  Added copyright file.
+Detail:
+  * -xh was only checking if there was a swi_handler present, rather than
+    checking whether a SWI handler was in use (swi_codeprovided could be
+    set). Now fixed.
+  * Copyright header file describes who CMunge is copyrighted by, so that
+    we don't have the same string scattered about the source.
+Admin:
+  Fix should ensure that InetServices can export a SWIs header (tested
+  with it and seems to work)
+Tag:
+  CMunge-0_23
+
+------------------------------------------------------------------------
+    Version 0.22 20:17:29 15/5/2001
+------------------------------------------------------------------------
+Revision 1.10  2001/05/15 19:18:41  justin
+Summary:
+  Fix for swi_names block being allocated too small entries
+Detail:
+  * The entries were allocated as a pointer, rather than as a structure,
+    which could cause corruption of random data and crashes.
+Admin:
+  Fix supplied by Alex Thoukydides.
+Tag:
+  CMunge-0_22
+
+------------------------------------------------------------------------
+    Version 0.21 23:59:59 6/5/2001
+------------------------------------------------------------------------
+Revision 1.9  2001/05/06 23:02:28  justin
+Summary:
+  Fix for bug in DateStamp that allocated too little memory.
+Detail:
+  * DateStamp was being given too little space when allocating room for
+    it on the end of the help string.
+Admin:
+  This fixes Peter Naulls problems with particular lengths of help text
+  extensions and an explicit date string.
+Tag:
+  CMunge-0_21
+
+------------------------------------------------------------------------
+    Version 0.20 12:11:30 20/4/2001
+------------------------------------------------------------------------
+Revision 1.8  2001/04/20 11:15:30  justin
+Summary:
+  Fix for overload strings leaving trailing quotes open.
+Detail:
+  * Patch sent by Alex Thoukydides to fix problem with writing command and
+    help strings in objasm-friendly format. Previously, it could be
+    possible to leave a quote open at the end of a line.
+  * Alex has restructured the code to remove the old return replacement
+    version, and amalgamate the code into a single routine (much nicer).
+  * Also, I fixed a minor bug introduced which failed to write out escaped
+    quotes as literal quotes. This is now fixed.
+Admin:
+  Tested with the examples, and with the test that Alex sent; works
+  correctly and produces lines of equal length (or slightly longer, due
+  to the way that numeric values are written out - this is not a problem
+  as we are very conservative with our line length restrictions).
+Tag:
+  CMunge-0_20
+
+------------------------------------------------------------------------
+    Version 0.19 23:52:33 18/2/2001
+------------------------------------------------------------------------
+Revision 1.7  2001/03/19 00:09:35  justin
+Summary:
+  Added notes about 32bit support.
+  Added 'vector-traps' support.
+  A few routine names re-named.
+Detail:
+  * 32bit support isn't implemented just yet, but we've got the place
+    holders in place. Basically we have bitness which can be bitness_32 or
+    bitness_26. If it's 32, we abort with a fatal error at present.
+  * vector-traps are my very simple implementation of post processing
+    vectors in C. This isn't actually all that complex, but requires a
+    little bit of care. We call a routine, the trap routine, that passes
+    on all the calls to the rest of the chain and then returns.
+  * library-init-code is not library-enter code. There are a few similar
+    changes to fit in with cmhg.
+Admin:
+  Tested the vector-traps with some test code and it appears to work
+  properly.
+  Tested the -26bit and -32bit and the work (or exit) as appropriate.
+Tag:
+  CMunge-0_19
+
+------------------------------------------------------------------------
+    Version 0.18 21:48:54 18/1/2001
+------------------------------------------------------------------------
+Revision 1.6  2001/02/18 21:51:15  justin
+Summary:
+  Fixed help message for -xhdr and -xh options.
+Detail:
+  * Previous versions of CMunge used to use -hdr to create a header file.
+    This has been updated to -xhdr and -xh (assembler and C respectively)
+    so that there can be more future expansion. However, in the last
+    version, this was not reflected in the help message.
+Admin:
+  Purely a change to the help message.
+
+------------------------------------------------------------------------
+    Version 0.17 23:06:40 2/1/2001
+------------------------------------------------------------------------
+Revision 1.5  2001/02/02 23:08:42  justin
+Summary:
+  Further minor changes to makefile for building.
+Detail:
+  * "When performing global search and replace, check the results, they
+    may not be as you wish" Problems with the global replace of Release
+    with $(RELEASE) meant that the zipping of files failed, as did the
+    actual release itself :-(
+Admin:
+  Does now build; required release for Jonathan Cooper who reported a
+  bug that is apparently fixed.
+
+Revision 1.4  2001/02/02 21:00:14  justin
+Summary:
+  Fix for omitted !Mk* scripts.
+Detail:
+  * In the update, these scripts were removed and had not been updated.
+    The scripts are not visible on release versions.
+Admin:
+  Build change should not affect external release version. Internal
+  version will now build :-)
+
+Revision 1.3  2001/02/02 20:57:29  justin
+Summary:
+  Update of build structure.
+Detail:
+  * The 'build' system used here has been updated to include Export and
+    Release phases. This allows a more standardised build system, with
+    much greater control over how components are built and the automatic
+    building of components which are required without the requirement for
+    complex interdependant makefiles. The changes in the way in which
+    CMunge is built do not affect the external release version as they are
+    transparent in use.
+Admin:
+  Should be no noticeable change in the CMunge being built.
+
+Revision 1.2  2000/12/05 00:49:01  justin
+Summary:
+  Initial checkin of CMunge.
+Detail:
+  * In theory, this version should be able to regenerate itself.
+Admin:
+  Local tests created working versions and regenerated the tests.
+  Peter Naulls has briefly tested this version prior to this checkin and
+  worked.
+
+------------------------------------------------------------------------
+    Version 0.16 00:39:57 5/11/2000
+------------------------------------------------------------------------
+Revision 1.1  2000/12/05 00:25:37  justin
+Version files now : VersionNum VersionLog
+
+=============================================================================
+History up to CVS check in point
+=============================================================================
+
+v0.17  05 Dec 2000 (JRF)
+  Checked into CVS.
+  Now able to create automated logs from CVS entries.
+
+v0.16  24 Sep 2000-31 Oct 2000 (JRF)
+  Added fixes from Theo Markettos (just applied diffs really) -
+    error-chunk-base-number can now be at any alignment, to allow for very
+      compact error number use.
+    SWI bases cannot have the x-bit set.
+    Experimental (/really/ experimental) simple-app support. Really only use
+      this if you're 100% sure you know what you're doing.
+    Whitespace skipping added to start of lines.
+
+
+v0.15  10 May 2000 (JRF)
+  
+  Added fixes for Alex Thoukydides' bugs -
+    Long lines in ObjAsm (this had been mentioned by John Tytgat previously)
+    Command parameter arguments (commas in rogue positions could have a
+      bad effect previously)
+
+
+v0.14  06 Feb 2000 (JRF)
+  
+  Added _blib_entermodule support for obsolete CMHG files (eg ShareFS).
+  Added support for module-is-not-re-entrant.
+  Fixed error handler for cases where final \n not output.
+  Added generalised file handling code for coping with files which are
+    otherwise left lying around on failure. No files should be retained
+    in scrap, or partially written when cmunge fails.
+  Internationalised message files now work.
+
+ 
+v0.13  07 Jan 2000 (JRF)
+
+  Unknown fields will now be reported correctly, rather than by 'programmer
+    confusion error' which is intentionally unhelpful.
+  Added command 'handlers' in a similar manner to SWI handlers. These are
+    specified using the 'handler:' token.
+  Fixed throwback when reporting errors in CLI arguments.
+  Added '# <line> "<file>"' syntax for GCC style pre-processing, when I get
+    around to it.
+  Updated (C) string on all files.
+  Added -cmhg so that we now have a means of preventing our creating CMunge
+    only files if we so desire.
+  Fixed bug with generic handlers which output them as functions returning
+    ints, not _kernel_oserror *'s.
+  Corrected a bug in veneer functions that got the address of the handler
+    routine wrong (miswrote the header).
+  Fixed bug in assembler header generated X-SWI variants.
+
+
+v0.12  28 Dec 1999 (JRF)
+
+  Added 'special' SWI handlers. It's now possible to dispatch SWIs without
+    a switch in your C code.
+  CMUNGE_VERSION is now defined as an integer number, rather than the decimal
+    value it was on earlier versions.
+  Added fallback to as if objasm gives an error.
+  Updated documentation slightly.
+  Fixed alignment after Bad_SWI error name (identified by as)
+  Removed capitalised registers from generated source (as doesn't like them)
+  Added support for building a release.
+
+
+v0.11  23 Dec 1999 (JRF)
+
+  Added error-identifiers, together with horrid casting to make this work.
+  Corrected handling of swi_base so that it reports mismatched swi_base/
+    table/etc usage in the right place (was doing it prior to reading the
+    file).
+
+
+v0.10  21 Dec 1999 (JRF)
+  
+  Added error-chunk-base-number to declare ERROR_BASE in C header file.
+  Added assembler header file for to declare SWIs exported.
+  SWI numbers are now output 'lined up' in the header file.
+  cmhg <infile> -d <file> now works (used to complain about no output)
+  Throwback now works with errors from CMunge itself
+  Field parser is now much more generic and so new fields can be added
+    more easily (no more copying chunks of code wrongly as I tended to :-( )
+  Files which are #included but contain nothing now work (previously passed
+    preprocessor directives through to parse_line)
+  Header files generation code is now through continuation lines where
+    possible. I'm not sure Robin will like that, but it makes things clearer
+    to me because things line up better. And the code produced is better
+    because only one function is called. Ok, so I'm justifying something odd
+    now!
+  Makefile updated to automatically build the examples with 'make examples'
+  Documentation updated to reflect some of the new features.
+  Now defines <SWI Prefix>_00 as the base of the SWIs to match CMHG operation.
+  
+  Faults identified:
+   * If an error occurs whilst processing the preprocessor file, we can't
+     remove it because it is open.
+   * Need to check if the user specified 00 as a SWI name as this will give
+     an error in the C header.
+
+
+v0.09  02/11/99
+
+  Fixed SWI headers not being generated correctly. Thanks to P.Naulls.
+
+
+v0.08  16/10/99
+
+  Fixed more bugs reported by John Tytgat
+   * Initialisation code had r10 instead of r0. Doh!
+   * Handlers *must* be defined as void XXX(void), not extern void *XXX;
+     due to Module C code offsetting data pointers within a block. Drat.
+
+
+v0.07  11/10/99
+
+  Fixed more bugs reported by John Tytgat.
+   * Service call handler returned void *, not void.
+   * OSLib option was broken.
+
+  Updated manual slightly.
+  
+  Corrected the error reporting introduced in v0.06 (reported by Andreas
+  Walter).
+  
+  Added 'date-string' (more CMHG undocumentedness) dug up by Peter Naulls.
+ 
+ 
+v0.06  9/10/99
+
+  Fixed bugs reported by Andreas Walter:
+    * No finalisation code forgot to IMPORT _clib_finalise_module.
+    * No command table still included a reference to a non-existent command
+      table
+    * No title string was not flagged as an error.
+    * No help string was not flagged as an error.
+    * \r's in input file were not parsed correctly.
+
+  Added -zbase option (to define Image__RO_Base in the generated header).
+
+v0.05  06/10/99
+
+  Added Internationalisation.
+
+  Added add-syntax.
+
+  Fixed parser bugs (wrt to non-concatenated strings at end of lines).
+  
+  Fixed predefine handling (under-mallocing).
+  
+  Added undefine handling.
+  
+  Added Include path handlig.
+  
+  First stab at -depend, but not happy with it (so undocumented) (except here
+    obviously).
+
+
+v0.04  05/10/99
+
+  Incorporated changes from J.Tytgat:
+    * Removed double #include in header
+    * Added -zoslib option, and updated header generation to match.
+    * Corrected service handler to have void return type.
+    * Corrected return type of representable to unsigned int.
+    * Fixed non-big service entry.
+
+  Put constants &21c back into assembler output. If anyone can figure out how
+  to successfully use _L1ib$Reloc$Off instead, then please, please tell me!
+  
+  Corrected call to _clib_initialise to be _clib_initialisemodule
+
+
+v0.03: 03/10/99
+
+  Fixed bug in number parsing (reported by J Tytgat).
+
+
+v0.02: 26/9/99
+
+  Assembler generated uses stubs relocation constants and not &21C.
+  
+  Now copes with no service calls being defined.
+
+  Changes to generated header file:  
+    * error_BAD_SWI defined.
+    * Entry point to handlers now declared to be void *. Still not the same as
+      CMHG's void entry(void), but safer; people shouldn't be tempted to call
+      it!
+    * extern and consts to some of the prototypes.
+    * file wrapped in if __cplusplus
+    * COMMAND_ changed to CMD_
+    * Now doesn't include <stdio.h>
+    * CMUNGE_VERSION defined
+    * Macros for text definitions (date, version, title, help string etc).
+    * Comments in header file now clearer.
+
+  Now copes with both 1 and 2 functions being given with swi-decoding-code:.
+
+  Fixed bug in service handler.
+  
+  Now parses numbers in the 0x form correctly, and copes with numbers in
+    parentheses.
+
+
+v0.01: 23/9/99
+
+  First Beta release

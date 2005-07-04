@@ -1,0 +1,5 @@
+Dir <Obey$Dir>
+x wipe h ~CR~V
+x wipe hdr ~CR~V
+x wipe o ~CR~V
+x wipe s ~CR~V

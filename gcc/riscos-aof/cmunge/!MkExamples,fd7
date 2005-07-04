@@ -1,0 +1,5 @@
+Dir <Obey$Dir>
+CDir o
+CDir aif
+amu examples RELEASE=Release THROWBACK=-throwback
+echo [Complete]

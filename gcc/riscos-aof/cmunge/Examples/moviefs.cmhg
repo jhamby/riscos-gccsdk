@@ -1,0 +1,57 @@
+;module-is-runnable: simple-app:
+;module-is-not-re-entrant:
+
+help-string:  MFS Universal 1.96 \"Universal\" recogniser for MovieFS.
+
+title-string: MFSUniv
+
+initialisation-code: initialise
+
+finalisation-code:     finalise
+
+service-call-handler: service ;&80500
+
+event-handler: event 1 2 3 4 10
+
+irq-handlers: wobble/wobble_handler, wubble,
+	weeble
+
+vector-handlers: feck
+
+generic-veneers: wibble
+
+command-keyword-table: command
+
+    MovieFsRegistration(min-args:0, max-args:0,
+        help-text: "Syntax\t" "MovieFs"
+        "Registration\n"),
+
+    MovieFsFillPeriod(min-args:1, max-args:1,
+        help-text: "Syntax\tMovieFsFillPeriod <integer>\n"),
+
+    MovieFsClearFileTypes(min-args:0, max-args:0,
+        help-text: "Syntax\tMovieFsClearFileTypes\n"),
+
+    MovieFsAddFileType(min-args:1, max-args:1,
+        help-text: "Syntax\tMovieFSAddFileType \"<3 hex digits>\"\n"),
+
+    MovieFsRemoveFileType(min-args:1, max-args:1,
+        help-text: "Syntax\tMovieFSAddFileType <3 hex digits>\n"),
+
+    MovieFsAuthority(min-args:1, max-args:1,
+        help-text: "Syntax\tMovieFSAuthority <path name>\n"),
+
+    MovieFsTracks(min-args:1, max-args:1, help:,
+        help-text: "Syntax\tMovieFSTracks [ Audio | Video | Both ]")
+
+swi-chunk-base-number: &83740
+
+swi-handler-code: swi_handler
+
+swi-decoding-table: MovieFS,
+                    Authority,
+                    GetState,
+                    SetState,
+                    MWCode
+
+swi-decoding-code: swi_dec/swi_dec2
