@@ -1,7 +1,7 @@
 | !Run file for the GCCSDK
 | Copyright (c) Nick Burrett, 1996, 1997, 1998, 1999, 2001
 | Copyright (c) GCCSDK Development Team 2002, 2003, 2004, 2005
-| Version 1.15 (25 June 2005)
+| Version 1.16 (05 July 2005)
 
 Set GCC$Dir <Obey$Dir>
 
@@ -31,8 +31,9 @@ Set UnixEnv$f771$sfix <UnixEnv$gcc$sfix>
 Set UnixEnv$gcov$sfix <UnixEnv$gcc$sfix>
 Set UnixEnv$make$sfix <UnixEnv$gcc$sfix>
 Set UnixEnv$as$sfix "h:S:s:o"
+Set UnixEnv$cmunge$sfix "h:s:o:cmhg"
 
-| Set aliases for controlling UnixLib heap for dynamic areas
+| Set system variables for controlling UnixLib heap for dynamic areas.
 | See the documentation about UnixLib and dynamic areas.
 | Comment these out if you do *NOT* wish to use dynamic areas.
 

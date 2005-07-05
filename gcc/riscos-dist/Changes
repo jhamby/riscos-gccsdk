@@ -1,8 +1,8 @@
 Noteworthy changes to the RISC OS GCCSDK
 
-For specific UnixLib changes, see !gcc.docs.ULChanges
+For specific UnixLib changes, see !gcc.docs.UnixLib.Changes
 
-RISC OS GCC release 3.4.4 release 3 (released XX June 2005)
+RISC OS GCC release 3.4.4 release 3 (released XX July 2005)
 ===================================
 
 * Update to full GCC 3.4.4 release.
@@ -16,6 +16,8 @@ RISC OS GCC release 3.4.4 release 3 (released XX June 2005)
   for more details.
 
 * Now with RISC OS module support.  See !gcc.docs.Intro for details.
+
+* Included CMunge written by Justin Fletcher & Robin Watts.
 
 * Autobuilder: Minor fixes and many improvements.  Many packages added.
 

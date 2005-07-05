@@ -5,7 +5,7 @@ This is a short introduction to GCC, the GNU Compiler Collection or RISC OS.
 This document does not provide an introduction to programming, for that you
 will have to get a text book on the language you are interested in.
 
-IMPORTANT NOTE 1: The GCC compiler binaries are at least 3600K, so you must
+IMPORTANT NOTE 1: The GCC compiler binaries are at least 4000K, so you must
 ensure that a large enough Wimpslot has been allocated. Please refer to the
 `Troubleshooting' section later in this document, if you are getting
 `Address exception' and `No writeable memory at this address' errors.
@@ -20,7 +20,9 @@ The RISC OS GNU Compiler Collection consists of a generic front end program
 Currently compilers are supported for the languages C, C++ and Fortran.
 
 GCC is covered by the FSF General Public License (see the files docs.COPYING
-and docs.COPYINGLIB for details).
+and docs.COPYINGLIB for details).  Note that a GCCSDK release can contain
+other binaries and/or source code covered by other licenses (see docs
+directory for more information).
 
 This port of GCC is Copyright (c) 1996, 1997, 1998, 1999, 2000, 2001 Nick Burrett
 Copyright (c) 2002, 2003, 2004, 2005 GCCSDK Development Team
@@ -28,10 +30,10 @@ Copyright (c) 2002, 2003, 2004, 2005 GCCSDK Development Team
 As with all GNU programs, THERE IS NO WARRANTY OF ANY SORT
 
 The standard RISC OS distribution contains GCC and supporting binaries
-allowing you to start developing applications straight away. So you get
-a C compiler, a C++ compiler, an AOF linker, an AOF assembler, the UnixLib
-C runtime library and headers and stubs for the SharedCLibrary (as found in
-the RISC OS ROMS).
+allowing you to start developing applications and modules straight away. So
+you get a C compiler, a C++ compiler, an AOF linker, an AOF assembler,
+a module header and veneer generator, the UnixLib C runtime library and
+headers and stubs for the SharedCLibrary (as found in the RISC OS ROMS).
 
 
 Installation
@@ -44,7 +46,8 @@ automatically combine the !gcc directories together. Running !gcc will
 setup Run$Path to automatically search for the compiler tools.
 
 The separate !CLib and !UnixLib applications are not required, and will
-not be used by !gcc - they are provided for use by other compilers.
+not be used by !gcc - they are provided for use by other compilers - and
+can be left out of a GCCSDK release.
 
 As compilers are installed, sub-directories named according to the language
 they support will be placed within !gcc.docs. These sub-directories will
@@ -472,8 +475,10 @@ is not suitable for this purpose.  e.g.:
   *gcc -mlibscl -mmodule -c module.c -O2
   *gcc -mlibscl -mmodule module.o header.o -o mymodule
 
-At present, there is no freely available replacement for the cmhg tool
-in the Castle C/C++ suite. 
+Each RISC OS module needs a module header which can be created using CMunge.
+See !gcc.docs.CMunge for more information.  CMunge can also be used to create
+veneer code acting as glue code for RISC OS callbacks into your C/C++ coded
+module.
 
 
 Obtaining compilers

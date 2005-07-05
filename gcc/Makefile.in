@@ -283,8 +283,10 @@ directories:
 	mkdir -p $(ro_gccpkg)/$(gn_gcc_bin_dir)/$(trg30)/o
 	mkdir -p $(ro_gccpkg)/$(gn_gcc_bin_dir)/$(trg31)/o
 
-	mkdir -p ${ro_syspkg}/310/Modules
+	mkdir -p $(ro_syspkg)/310/Modules
 	mkdir -p $(info_dir)
+	mkdir -p $(info_dir)/CMunge
+	mkdir -p $(info_dir)/UnixLib
 	mkdir -p $(objdir)
 	mkdir -p $(ro_zippkg)
 

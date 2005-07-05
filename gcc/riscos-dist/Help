@@ -26,13 +26,13 @@ If you've used GCC before:
   explicitly prepend 'std::' to all function and variable references.
 
 - The file !gcc.Changes lists major changes from the last version.
-  !gcc.docs.ULChanges has a comprehensive list of changes to UnixLib.
+  !gcc.docs.UnixLib.Changes has a comprehensive list of changes to UnixLib.
 
 
 Future Versions of GCC:
 
   Although we intend to continue maintaining GCC 3.4 for RISC OS,
-  new versions of GCC 4.0 for RISC OS will soon be available, which
+  new versions of GCC 4.1 for RISC OS will soon be available, which
   will be ELF and soft-float based.  We are also working on a shared
   library system.
 
@@ -55,7 +55,9 @@ Credits:
     Alex Macfarlane Smith, Christian Ludlam, Tony van der Hoff,
     Theo Markettos, Philip Pemberton
 
+  Special thanks to Justin Fletcher and Robin Watts for their CMunge
+  program.
+
   Thanks also to all the testers and bug reporters.
 
 GCCSDK Developers, 2005
-
