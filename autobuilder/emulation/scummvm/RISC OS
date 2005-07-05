@@ -1,0 +1,40 @@
+
+ScummVM
+-------
+
+RISC OS port by Peter Naulls
+
+24th December 2004
+
+This program was ported as part of the Unix Porting Project, for its
+Xmas 2004 games porting promotion. See the following URL for more
+details: http://www.drobe.co.uk/riscos/artifact1242.html
+
+Support is only available to subscribers to the Unix Porting Project.
+See http://www.chocky.org/unix for information on subscribing.
+
+
+RISC OS Notes:
+
+ScummVM should run ok and be usable on a RiscPC, although it can be
+a touch slow.  I recommend you turn down screen scaling and run in
+full screen mode.  You might like to investigate the "fast modes"
+in games (e.g. ctrl-f).
+
+To use games from the ScummVM site (see the extras section on http://scummvm.sourceforge.net/downloads.php), I suggest you unzip them to a directory
+at the same level as !ScummVM, change CSD to that directory and run
+and select the directory from within ScummVM.  Once a game is configured,
+it will remember the path in future.
+
+There will hopefully be speed improvements in future.
+
+The game files are large, and are available on the Unix Porting Project
+CD if you don't wish to download them.
+
+
+Known Issues:
+
+Flight of the Amazon Queen and Beneath a Steel Sky are the only
+games throughly tested with the RISC OS version and work fine.  I have not
+been able to get the DOS version of Simon the Sorcerer to work, although
+it works ok in other versions.
