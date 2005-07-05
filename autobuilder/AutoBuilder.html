@@ -9,7 +9,7 @@
 <h2>Autobuilder Manual</h2>
 
 <p>Copyright 2003-2005, GCCSDK Developers</a>.</p>
-<p>Last updated - 21st April 2005</p>
+<p>Last updated - 5st July 2005</p>
 
 <hr>
 
@@ -110,6 +110,8 @@ is successful.  If not, the directory will remain for you to examine the build f
 
  <li>-p Package only.  This is for testing the packaging part of the process.  Note that with this option, the autobuilder is unable to determine the version number, so the resulting zip filename will lack this.
 
+ <li>-n No dependencies.  By default the autobuilder will try to build any missing dependencies of the package before building the package itself. This option prevents any dependency checking.
+
  <li>-f Don't try and fetch the sources.  This allows you to unpack the sources yourself, that you've previously fetched - normally, because you're not on Debian.  To use this, you will need to have a precise setup, because the autobuilder relies on various paths to allow it find things.  Example usage:
 
   <pre>
@@ -151,6 +153,14 @@ is successful.  If not, the directory will remain for you to examine the build f
 
 <hr>
 
+<h3>Dependencies</h3>
+
+<p>The autobuilder will attempt to ensure any libraries that a package depends on will be built before the package. It does this by parsing the output of the apt-cache command if available, and the contents of the depends file in the package directory, it it exists. If a dependency has a last-success file in it's package directory then the autobuilder will assume that the dependency is satisfied, if there is no last-success file then it will attempt to build the dependency and fail if it can't.</p>
+
+<p></p>
+
+<hr>
+
 <h3>Programs in Autobuilder</h3>
 
 <p>The majority of programs build, but some may occasionally fail (access to Debian mirrors is not 100%), or changes to a new version, or in a dependent library may cause failures which occasionally need to be addressed.</p>
@@ -162,8 +172,6 @@ is successful.  If not, the directory will remain for you to examine the build f
 <hr>
 
 <h3>Other Issues</h3>
-
-<p>There is no dependency handling; it's possible in future we could pick up on the Debian control files for this.</p>
 
 <p>Some programs are built, but not packaged or installed.  This gives a warning at the end of the build.   This may be because it has simply not been done yet.  In some cases, "make install" isn't particular appropriate - in particular, I recommend you avoid it for <i>tk</i>.  Instead, it needs to be installed by a custom setup like <i>tcl</i> is.   This allows us to follow Debian conventions with library locations and so forth.</p>
 
