@@ -178,6 +178,8 @@ void
 arm_error_throwback (const char *file, int line, const char *prefix,
 		     const char *s)
 {
+  size_t slen;
+
   /* If the filename is not specified or "", then return.  */
   if (file == NULL || *file == '\0')
     return;
@@ -188,6 +190,25 @@ arm_error_throwback (const char *file, int line, const char *prefix,
 
   /* printf ("throwback: tb=%d, file='%s', line='%d', prefix='%s', s='%s'\n",
      arm_throwback_started, file, line, prefix, s); */
+
+  /* Skip file, line and level in the 's' message:  */
+  slen = strlen (file);
+  if (!strncmp (s, file, slen) && s[slen] == ':')
+    {
+      char sline[16];
+
+      s += slen + 1;
+      slen = sprintf (sline, "%d: ", line);
+      if (!strncmp (s, sline, slen))
+        {
+          int iserr = prefix == NULL || strcmp (prefix, "warning");
+          s += slen;
+          slen = (iserr) ? sizeof("error: ")-1 : sizeof("warning: ")-1;
+          if (!strncmp (s, (iserr) ? "error: " : "warning: ", slen))
+            s += slen;
+        }
+    }
+
 
   if (arm_throwback_started > 0 && riscos_canonicalise_filename (file))
     {
