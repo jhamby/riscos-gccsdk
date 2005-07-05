@@ -80,5 +80,5 @@ $(bin_dir)/cmunge$(exesfx): $(cmungeobjdir)/cmunge.o $(DEPS)
 	$(CC) -o $@ $(cmungeobjdir)/cmunge.o
 	# In order to comply with the CMunge license when distributing modified copies:
 	echo -e The following changes were made by the GCCSDK developers against the official CMunge version v`grep Module_MajorVersion_CMHG VersionNum | tac -s ' ' | head -n 1` :\\n\\n > Docs/GCCSDKModifications
-	-cvs -z9 -q diff -u -r CMunge-`grep Module_MajorVersion_CMHG VersionNum | tac -s ' ' | head -n 1 | sed "s/\./_/"` >> Docs/GCCSDKModifications
+	-cvs -z9 -q diff -N -u -r CMunge-`grep Module_MajorVersion_CMHG VersionNum | tac -s ' ' | head -n 1 | sed "s/\./_/"` >> Docs/GCCSDKModifications
 endif
