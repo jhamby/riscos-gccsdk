@@ -72,6 +72,7 @@ static struct obstack temporary_obstack;
 static struct obstack permanent_obstack;
 static char *temporary_firstobj;
 static char *temp_filename;
+static char *requested_linker;
 
 static int tlink_verbose = 0;
 
@@ -187,8 +188,6 @@ linker_initialise (void)
 int
 main (int argc, char *argv[])
 {
-  const char *requested_linker;
-
   atexit (do_unlink);
   tlink_init ();
   linker_initialise ();
@@ -203,7 +202,8 @@ main (int argc, char *argv[])
 #ifdef CROSS_COMPILE
   requested_linker = STANDARD_EXEC_PREFIX "drlink";
 #else /* CROSS_COMPILE */
-  requested_linker = getenv ("GCC$Linker");
+  if (requested_linker == NULL)
+    requested_linker = getenv ("GCC$Linker");
 
   /* No linker has been specified, try finding one on the Run$Path.  */
   if (requested_linker == NULL || *requested_linker == '\0')
@@ -1530,11 +1530,16 @@ add_library_file (const char *library)
 
   if (getenv ("TLINK_CX11") && strcmp (library, "X11") == 0)
     {
-      if (tlink_verbose >= 2)
-        printf ("Substituting ChoX11 library\n", library);
+      static int chox11;
 
-      add_library_file("CX11");
-      add_library_file("Desk");
+      if (!chox11)
+        {
+          fprintf (stderr, "ld: Using ChoX11 library for X11 support\n", library);
+          chox11 = 1;
+          add_library_file("CX11");
+          add_library_file("Desk");
+        }
+
       return;
     }
 
@@ -1771,6 +1776,7 @@ parse_args (int argc, char **argv)
 #define OPTION_QUIET			162
 #define OPTION_MODULE			163
 #define OPTION_SYMBOLS			164
+#define OPTION_LINKER			165                   
 
   static struct option longopts[] = {
     {"acornmap", no_argument, NULL, OPTION_MAP},
@@ -1783,6 +1789,7 @@ parse_args (int argc, char **argv)
     {"help", no_argument, NULL, OPTION_HELP},
     {"leave", no_argument, NULL, OPTION_LEAVEWEAK},
     {"leaveweak", no_argument, NULL, OPTION_LEAVEWEAK},
+    {"linker", required_argument, NULL, OPTION_LINKER},
     {"map", no_argument, NULL, OPTION_MAP},
     {"module", no_argument, NULL, OPTION_MODULE},
     {"no", no_argument, NULL, OPTION_NOUNUSED},
@@ -1851,6 +1858,9 @@ parse_args (int argc, char **argv)
 	case OPTION_LEAVEWEAK:
 	  add_option ("-leaveweak");
 	  break;
+	case OPTION_LINKER:
+	  requested_linker = optarg;
+	  break;
 	case OPTION_MAP:
 	  add_option ("-map");
 	  break;
@@ -1918,7 +1928,7 @@ parse_args (int argc, char **argv)
       fprintf(stderr, "ld: Linking with fortify memory check wrappers\n");
 
       add_option("-edit");
-      add_option(LIBDIR "apcs32/arch3/unixlib/memory-edit");
+      add_option(LIBDIR "apcs32/abs/unixlib/memory-edit");
       add_library_file("fortify");
     }
 #endif
