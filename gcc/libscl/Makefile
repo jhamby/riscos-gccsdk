@@ -95,8 +95,7 @@ LIBC =  $(libsclobj)/unistd.o \
 
 all:	mkdirs \
 	$(ux_gcc_bin_dir)/$(TRG)/libscl.o \
-	$(ro_gcc_bin_dir)/$(TRG)/o/libscl \
-	$(ro_libsclpkg)/o/stubs
+	$(ro_gcc_bin_dir)/$(TRG)/o/libscl
 
 .PHONY: mkdirs
 
@@ -113,10 +112,7 @@ install_headers:
 	$(insthdr) . "*.h" libscl $(ux_gccpkg)/$(gn_cross_include_dir) $(ro_gccpkg)/$(gn_cross_include_dir)
 	$(insthdr) sys "*.h" libscl/sys $(ux_gccpkg)/$(gn_cross_include_dir) $(ro_gccpkg)/$(gn_cross_include_dir)
 
-	$(instsrc) . "*.h" . $(ro_libsclpkg)
-	$(instsrc) sys "*.h" sys $(ro_libsclpkg)
-
-$(ux_gcc_bin_dir)/$(TRG)/libscl.o $(ro_gcc_bin_dir)/$(TRG)/o/libscl $(ro_libsclpkg)/o/stubs: $(LIBC) $(STDLIB) $(STRING) $(MATH) $(COMPAT) $(STDIO) $(TIME)
+$(ux_gcc_bin_dir)/$(TRG)/libscl.o $(ro_gcc_bin_dir)/$(TRG)/o/libscl: $(LIBC) $(STDLIB) $(STRING) $(MATH) $(COMPAT) $(STDIO) $(TIME)
 	$(CROSS_AR) $(CROSS_AR_FLAGS) $@ $(LIBC) $(STDLIB) $(STRING) $(MATH) $(COMPAT) $(STDIO) $(TIME)
 
 $(libsclobj)/riscosify.o: ../unixlib/source/common/riscosify.c
