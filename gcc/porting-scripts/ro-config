@@ -351,6 +351,8 @@ export ac_cv_file___dev_ptmx_=no
 export ac_cv_file___dev_ptc_=no
 export ac_cv_file___etc_default_login_=no
 export ac_cv_file___dev_urandom_=yes
+export ac_cv_file__etc_environment=no
+export ac_cv_file__etc_TIMEZONE=no
 
 export ac_cv_need_trio=no
 
