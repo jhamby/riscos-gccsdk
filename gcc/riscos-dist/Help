@@ -39,25 +39,34 @@ Future Versions of GCC:
 
 Credits:
 
-  Primary Developers
+  Primary Developers :
 
-  - Nick Burrett - Project Lead, GCC porting, C++ support, AOF tools
+  - Nick Burrett - Project Lead, GCC porting, C++ support, AOF tools.
   - Peter Naulls - UnixLib (All areas, especially glibc compatibility),
      release management, AOF tools.
   - John Tytgat - UnixLib (especially process handling, sockets),
-     Norcroft compatibility.
-  - Alex Waugh - UnixLib (especially signals, pthreads, file handling)
+     Norcroft compatibility, 'random' GCCSDK hacking.
+  - Alex Waugh - UnixLib (especially signals, pthreads, file handling).
 
-  The following people have also made contributions over the last two years
+  The following people have also made contributions over the last two years :
 
   - Graham Shaw, John-Mark Bell, James Bursa, Stefan Bellon,
     David Marston, Steve Ellacott, Rich Hudson, Jeffrey Lee,
     Alex Macfarlane Smith, Christian Ludlam, Tony van der Hoff,
     Theo Markettos, Philip Pemberton
 
-  Special thanks to Justin Fletcher and Robin Watts for their CMunge
-  program.
+  Special thanks to the following people having written programs which are
+  used in the GCCSDK project :
+  
+  - Niklas Röjemo for his 'as' AOF assembler.
+  - Justin Fletcher and Robin Watts for 'CMunge', a free alternative to CMHG.
+  - Andy Duplain for his 'decaof', an AOF decoder.
+  - Dave Daniels for his 'drlink', an AOF linker.
+  - Bernhard Walter for his 'libfile', an AOF library archiver.
+  - Ben Summers for his 'rink', an dynamic AOF loader.
 
   Thanks also to all the testers and bug reporters.
+
+  And last but not least, all the GCC contributers.
 
 GCCSDK Developers, 2005
