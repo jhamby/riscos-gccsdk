@@ -773,7 +773,11 @@ build_gcov_info (void)
   field = build_decl (FIELD_DECL, NULL_TREE, string_type);
   TREE_CHAIN (field) = fields;
   fields = field;
+#ifdef CROSS_COMPILE
+  filename = NULL;
+#else
   filename = getpwd ();
+#endif  
   filename = (filename && da_file_name[0] != '/'
 	      ? concat (filename, "/", da_file_name, NULL)
 	      : da_file_name);
