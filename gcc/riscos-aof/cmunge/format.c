@@ -45,7 +45,7 @@ void format_wrap(FILE *file,
   int lastbreak=0;
   int pos;
   int start=strlen(lead1);
-  fprintf(file,"%s",lead1);
+  fputs(lead1,file);
   pos=start;
   while (*text)
   {
@@ -71,58 +71,49 @@ void format_wrap(FILE *file,
       pos+=wordlen;
       needspace=1;
     }
-    switch (*text)
+    switch (*text++)
     {
       case '\t':
-        text++;
         do {
           fputc(' ',file);
-          pos+=1;
+          pos++;
         } while (((pos-start)%2) != 0);
         indent=pos-start;
         needspace=0;
         break;
 
       case '\b':
-        text++;
-
         /* Put a single space separator */
         fputc(' ',file);
         pos++;
 
         if (lastbreak==0)
         {
-          const char *search=text;
+          const char *search;
 
           lastbreak=pos-start;
 
           /* Work out what the furthest along a break is */
-          do {
-            search = strchr(search, '\n');
-            if (search)
+          for (search = strchr(text, '\n'); search; search = strchr(search, '\n'))
+          {
+            int searchpos=0;
+            int foundpos=0;
+            for (++search; *search && *search!='\n'; ++search)
             {
-              int searchpos;
-              int foundpos=0;
-              searchpos = 0;
-              search++;
-              while (*search && *search!='\n')
+              if (*search=='\t')
+                searchpos+=2-(pos%2);
+              else
               {
-                if (*search=='\t')
-                  searchpos+=2-(pos%2);
-                else
-                {
-                  searchpos++;
-                  if (*search=='\b')
-                    foundpos=searchpos;
-                }
-                search++;
+                searchpos++;
+                if (*search=='\b')
+                  foundpos=searchpos;
               }
-              if (foundpos==0)
-                search=NULL;
-              if (foundpos+1>lastbreak)
-                lastbreak=foundpos+1;
             }
-          } while (search);
+            if (foundpos==0)
+              break;
+            if (foundpos+1>lastbreak)
+              lastbreak=foundpos+1;
+          }
         }
         indent=lastbreak;
 
@@ -138,17 +129,15 @@ void format_wrap(FILE *file,
         break;
 
       case ' ':
-        text++;
         break;
 
       case '\n':
-        text++;
-        fprintf(file,"\n%s",lead2);
+        fputc('\n',file); fputs(lead2,file);
         pos=start;
         needspace=0;
         indent=0;
         break;
     }
   }
-  fprintf(file,"%s\n",trailer);
+  fputs(trailer,file); fputc('\n',file);
 }

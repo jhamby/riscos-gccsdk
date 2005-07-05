@@ -7,12 +7,17 @@
 #include <ctype.h>
 #include <string.h>
 
-#include "kernel.h"
-
 #include "datestamp.h"
 #include "error.h"
 #include "mem.h"
 #include "options.h"
+
+#ifndef GCC_BIN_DIR
+#define GCC_BIN_DIR ""
+#endif
+
+#define OBJASM "objasm"
+#define AS GCC_BIN_DIR "/as"
 
 static char buf[2048];
 
@@ -21,6 +26,12 @@ void AssembleFile(void) {
   int rc;
 
   if (opt.ofile) {
+    int throwback;
+#ifdef CROSS_COMPILE
+    throwback = 0;
+#else
+    throwback = opt.throwback;
+#endif
     switch (opt.toolchain)
     {
       case tc_norcroft:
@@ -28,12 +39,11 @@ void AssembleFile(void) {
           unsigned long flags = opt.apcs;
           apcsoptions_t *aarg;
           char *bufend;
-          bufend = buf + sprintf(buf, "objasm -nowarn %s %s -o %s -apcs 3",
-                                 opt.throwback ? "-throwback " : "",
+          bufend = buf + sprintf(buf, OBJASM " -nowarn %s %s -o %s -apcs 3",
+                                 throwback ? "-throwback " : "",
                                  opt.sfile, opt.ofile);
 
-          aarg = apcsoptions;
-          while (aarg->name!=NULL)
+          for (aarg = apcsoptions; aarg->name!=NULL; ++aarg)
           {
             if (aarg->bic & (APCS_32BIT | APCS_SWSTACKCHECK | APCS_FPREGARGS))
             {
@@ -41,16 +51,14 @@ void AssembleFile(void) {
               if ((flags & aarg->bic) == aarg->orr)
                 bufend += sprintf(bufend, "/%s", aarg->name);
             }
-            aarg++;
           }
         }
         break;
       case tc_gcc:
       case tc_lcc:
-        sprintf(buf, "as %s -objasm -gcc %s %s -o %s",
-                          (CODE32) ? "-apcs32 -apcsfpv3" :
-                                                        "",
-                          opt.throwback ? "-throwback " : "",
+        sprintf(buf, AS " %s -objasm -module %s %s -o %s",
+                          (CODE32) ? "-apcs32 -apcsfpv3" : "",
+                          throwback ? "-throwback " : "",
                           opt.sfile, opt.ofile);
         break;
     }
@@ -72,6 +80,7 @@ void AssembleFile(void) {
         /* They returned something icky. Obviously that's a fault; they
            should have already displayed an error as to the fault though.
          */
+        fprintf(stderr,"Assembling: %s\n",buf);
         fprintf(stderr,"Assembler returned %i unexpectedly; aborting\n",rc);
         exit(rc);
     }

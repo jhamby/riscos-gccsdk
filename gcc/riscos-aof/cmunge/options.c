@@ -16,7 +16,7 @@
 /* Instantiate the global options struct here */
 options opt;
 
-void Options_Init() {
+void Options_Init(void) {
 
   opt.runnable    = run_none;
   opt.reentrant   = 1;
@@ -147,7 +147,7 @@ static void help_text(void) {
 
   format_wrap(stdout,"","",
 "\n"
-"Make a RISC OS module header for a module written in C.\n"
+"Make a RISC OS module header for a module written in C/C++.\n"
 "\n"
 "Usage: cmunge [options] infile\n"
 "\n"
@@ -175,7 +175,7 @@ static void help_text(void) {
 "\t-cmhg         \bGive warnings for non CMHG values.\n"
 "\t-tgcc         \bUse GCC tool chain to generate output.\n"
 "\t-tlcc         \bUse LCC tool chain to generate output.\n"
-"\t-tnorcroft    \bUse GCC tool chain to generate output (default).\n"
+"\t-tnorcroft    \bUse Norcroft tool chain to generate output (default).\n"
 "\t-32bit        \bGenerate 32-bit compatible code.\n"
 "\t-26bit        \bGenerate 26-bit only code (default).\n"
 "\t-apcs 3/<flags>\bSpecify APCS variant to use.\n",
@@ -224,15 +224,15 @@ void Options_CL(int argc, char *argv[]) {
 
   inc_tail = &opt.includes;
   for (i = 1; i < argc; i++) {
-    if (stricmp("-throwback", argv[i])) {
+    if (!stricmp("-throwback", argv[i])) {
       opt.throwback=1;
     } else if (strncmp("-t", argv[i], sizeof("-t")-1)==0) {
       char *arg = &argv[i][2];
-      if (stricmp("norcroft", arg)) {
+      if (!stricmp("norcroft", arg)) {
         opt.toolchain = tc_norcroft;
-      } else if (stricmp("gcc", arg)) {
+      } else if (!stricmp("gcc", arg)) {
         opt.toolchain = tc_gcc;
-      } else if (stricmp("lcc", arg)) {
+      } else if (!stricmp("lcc", arg)) {
         opt.toolchain = tc_lcc;
       }
       else
@@ -241,9 +241,9 @@ void Options_CL(int argc, char *argv[]) {
     } else if (strncmp("-x", argv[i], sizeof("-x")-1)==0) {
       char *arg = &argv[i][2];
       char **file = NULL; /* Couldn't find opt */
-      if (stricmp("hdr", arg)) {
+      if (!stricmp("hdr", arg)) {
         file=&opt.x_hdr;
-      } else if (stricmp("h", arg)) {
+      } else if (!stricmp("h", arg)) {
         file=&opt.x_h;
       }
       if (file==NULL)
@@ -252,59 +252,59 @@ void Options_CL(int argc, char *argv[]) {
         ErrorFatal("Export flag %s used twice!",arg);
       i++;
       if (i < argc) {
-        *file = strdup(argv[i]);
+        *file = strdup_strip(argv[i]);
       } else {
         ErrorFatal("No filename passed with export flag %s flag!",arg);
       }
-    } else if (stricmp("-h", argv[i]) || stricmp("-help", argv[i])) {
+    } else if (!stricmp("-h", argv[i]) || !stricmp("-help", argv[i])) {
       help_text();
       exit(EXIT_FAILURE);
-    } else if (stricmp("-p", argv[i])) {
+    } else if (!stricmp("-p", argv[i])) {
       if (opt.pfile) {
         ErrorFatal("-p flag used twice!");
       }
       opt.pfile=file_temp();
       if (opt.pfile==NULL)
         ErrorFatal("Failed to find a temporary file for preprocessor");
-    } else if (stricmp("-cmhg", argv[i])) {
+    } else if (!stricmp("-cmhg", argv[i])) {
       if (opt.cmhg) {
         ErrorFatal("-cmhg flag used twice!");
       }
       opt.cmhg=1;
-    } else if (stricmp("-s", argv[i])) {
+    } else if (!stricmp("-s", argv[i])) {
       if (opt.sfile) {
         ErrorFatal("-s flag used twice!");
       }
       i++;
       if (i < argc) {
-        opt.sfile = strdup(argv[i]);
+        opt.sfile = strdup_strip(argv[i]);
       } else {
         ErrorFatal("No filename passed with -s flag!");
       }
-    } else if (stricmp("-o", argv[i])) {
+    } else if (!stricmp("-o", argv[i])) {
       if (opt.ofile) {
         ErrorFatal("-o flag used twice!");
       }
       i++;
       if (i < argc) {
-        opt.ofile = strdup(argv[i]);
+        opt.ofile = strdup_strip(argv[i]);
       } else {
         ErrorFatal("No filename passed with -o flag!");
       }
-    } else if (stricmp("-blank", argv[i])) {
+    } else if (!stricmp("-blank", argv[i])) {
       opt.blank=1;
-    } else if (stricmp("-b", argv[i])) {
+    } else if (!stricmp("-b", argv[i])) {
       if (opt.runnable) {
         ErrorFatal("-b flag used twice!");
       }
       opt.runnable=run_blib;
-    } else if (stricmp("-depend", argv[i])) {
+    } else if (!stricmp("-depend", argv[i])) {
       if (opt.dfile) {
         ErrorFatal("-depend flag used twice!");
       }
       i++;
       if (i < argc) {
-        opt.dfile = strdup(argv[i]);
+        opt.dfile = strdup_strip(argv[i]);
       } else {
         ErrorFatal("No filename passed with -depend flag!");
       }
@@ -313,7 +313,7 @@ void Options_CL(int argc, char *argv[]) {
       arg = &argv[i][2];
       if (*arg) {
         inc = Malloc(sizeof(*inc));
-        inc->path = strdup(arg);
+        inc->path = strdup_strip(arg);
         inc->next = NULL;
         *inc_tail = inc;
         inc_tail  = &inc->next;
@@ -330,7 +330,7 @@ void Options_CL(int argc, char *argv[]) {
           ErrorFatal("No definition variable given with -D");
         }
       }
-      arg = strdup(arg);
+      arg = strdup_strip(arg);
       val = strchr(arg,'=');
       if (val != NULL)
         *val++ = 0;
@@ -351,7 +351,7 @@ void Options_CL(int argc, char *argv[]) {
           ErrorFatal("No (un)definition variable given with -U");
         }
       }
-      arg = strdup(arg);
+      arg = strdup_strip(arg);
       val = strchr(arg, '=');
       if (val != NULL) {
         ErrorFatal("How can you undefine something to be something? %s", arg);
@@ -369,17 +369,17 @@ void Options_CL(int argc, char *argv[]) {
       }
       i++;
       if (i < argc) {
-        opt.hfile = strdup(argv[i]);
+        opt.hfile = strdup_strip(argv[i]);
       } else {
         ErrorFatal("No filename passed with -d flag!");
       }
     } else if (strncmp("-z", argv[i], sizeof("-z")-1)==0) { /* case sensitive */
       arg = &argv[i][sizeof("-z")-1];
-      if (stricmp("oslib", arg)) {
+      if (!stricmp("oslib", arg)) {
         opt.oslib = 1;
-      } else if (stricmp("base", arg)) {
+      } else if (!stricmp("base", arg)) {
         opt.base = 1;
-      } else if (stricmp("errors", arg)) {
+      } else if (!stricmp("errors", arg)) {
         opt.mode_errors = 1;
       } else {
         ErrorFatal("Unknown tweak option -z");
@@ -399,7 +399,7 @@ void Options_CL(int argc, char *argv[]) {
       if (opt.infile) {
         ErrorFatal("Unknown flag/Only specify one input file: %s", argv[i]);
       }
-      opt.infile = strdup(argv[i]);
+      opt.infile = strdup_strip(argv[i]);
     }
   }
 }

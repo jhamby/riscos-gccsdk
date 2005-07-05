@@ -657,8 +657,8 @@ command :
   *CMunge -help
 
 
-GCC and Norcroft Toolchains:
-----------------------------
+GCC, LCC and Norcroft Toolchains:
+--------------------------------
 
 Because CMunge is intended to be a free replacement for CMHG, it can be used
 with the freely available GCC toolchain as well as the commercial Norcroft

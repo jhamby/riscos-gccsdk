@@ -727,7 +727,7 @@ static void event_handler(void) {
     "This name should be used as an argument to OS_Claim/OS_Release as "
     "required, but should never be called from C.",
     NULL, /* No note */
-    NULL, /* NO Entry parameters */
+    { { NULL } }, /* NO Entry parameters */
     NULL
   };
 
@@ -784,7 +784,7 @@ static void handlers(handler_list h, const char *type, rettype rtype) {
     "This name should be used as an argument to OS_Claim/OS_Release as "
     "required, but should never be called from C.",
     NULL, /* Note will be updated */
-    NULL, /* NO Entry parameters */
+    { { NULL } }, /* NO Entry parameters */
     NULL
   };
 

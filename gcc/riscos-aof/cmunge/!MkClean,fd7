@@ -1,3 +1,0 @@
-Dir <Obey$Dir>
-amu clean RELEASE=Release
-echo [Cleaned]

@@ -415,7 +415,7 @@ static unsigned int representable(unsigned int i) {
 static void service(void) {
 
 /* JRF: 32bit */
-  unsigned int n, m, found;
+  unsigned int n, m;
   int_list l;
   int big;
   int first;
@@ -424,19 +424,19 @@ static void service(void) {
     return;
   fprintf(file, "\tALIGN\n");
   if (opt.services) {
-    int min = 0;
+    unsigned int min = 0;
+    unsigned int found;
+
     fprintf(file, "_CMUNGE_service_fast\n");
     fprintf(file, "\tDCD\t0\n");
     fprintf(file, "\tDCD\t_CMUNGE_service_fast_entry\t- _CMUNGE_origin\n");
     /* List services in ascending order */
     do {
       found = 0;
-      l = opt.services;
-      while (l) {
-        if (l->val > min)
-          if ((l->val < found) || (found == 0))
-            found = l->val;
-        l = l->next;
+      for (l = opt.services; l; l = l->next)
+      {
+        if (l->val > min && ((l->val < found) || (found == 0)))
+          found = l->val;
       }
       fprintf(file, "\tDCD\t0x%08x\n", found);
       min = found;

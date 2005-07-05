@@ -6,25 +6,33 @@
 #include <string.h>
 #include <ctype.h>
 
+#include "config.h"
 #include "error.h"
 #include "mem.h"
+#include "str.h"
 
-int stricmp(const char *p, const char *q) {
+#ifndef HAVE_STRICMP
+int stricmp (const char *s1, const char *s2)
+{
+  const unsigned char *p1 = (const unsigned char *) s1;
+  const unsigned char *p2 = (const unsigned char *) s2;
+  int result;
 
-  char a, b;
+  if (p1 == p2)
+    return 0;
 
-  while (1) {
-    a = toupper(*p++);
-    b = toupper(*q++);
-    if (a == b) {
-      if (a == 0)
-        return 1;
-    } else
-      return 0;
-  }
+  while ((result = tolower (*p1) - tolower (*p2)) == 0)
+    {
+      if (*p1++ == '\0')
+        break;
+      p2++;
+    }
+
+  return result;
 }
+#endif
 
-char *strdup(char *p) {
+char *strdup_strip(const char *p) {
 
   char *res;
   int s;

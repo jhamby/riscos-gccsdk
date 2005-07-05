@@ -156,7 +156,7 @@ FILE *file_write(char *filename,removetype removewhen)
       remove(filename);
       return NULL;
     }
-    ptr->filename=strdup(filename);
+    ptr->filename=strdup_strip(filename);
     ptr->remove=removewhen;
     ptr->next=list;
     list=ptr;
@@ -192,7 +192,7 @@ FILE *file_read(char *filename,removetype removewhen)
       remove(filename);
       return NULL;
     }
-    ptr->filename=strdup(filename);
+    ptr->filename=strdup_strip(filename);
     ptr->remove=removewhen;
     ptr->next=list;
     list=ptr;
@@ -218,7 +218,7 @@ char *file_temp(void)
   ptr=malloc(sizeof(filelist));
   if (ptr==NULL)
     return NULL;
-  ptr->filename=strdup(tmpnam(NULL));
+  ptr->filename=strdup_strip(tmpnam(NULL));
 #ifdef DEBUG
   printf("file_temp: %s\n",ptr->filename);
 #endif

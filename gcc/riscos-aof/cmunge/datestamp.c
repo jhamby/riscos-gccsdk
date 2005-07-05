@@ -5,8 +5,7 @@
 #include <stdio.h>
 #include <ctype.h>
 #include <string.h>
-
-#include "kernel.h"
+#include <time.h>
 
 #include "datestamp.h"
 #include "error.h"
@@ -18,9 +17,7 @@ void DateStamp(void) {
   char *date, *date0;
   char *s;
   char datebuf[24];
-  char osword[5];
   int i;
-  _kernel_swi_regs regs;
 
   if (opt.mode_errors)
     return; /* No work is required if we're only generating error blocks */
@@ -80,17 +77,11 @@ void DateStamp(void) {
   if (opt.datestring) {
     sprintf(datebuf, " (%s)", opt.datestring);
   } else {
-    /* OS_Word 14, 3 */
-    osword[0] = 3;
-    regs.r[0] = 14;
-    regs.r[1] = (int)osword;
-    _kernel_swi(0x07, &regs, &regs);
-    /* OS_ConvertDateAndTime */
-    regs.r[0] = (int)osword;
-    regs.r[1] = (int)datebuf;
-    regs.r[2] = 24;
-    regs.r[3] = (int)" (%DY %M3 %CE%YR)";
-    _kernel_swi(0xC1, &regs, &regs);
+    time_t curtime = time(NULL);
+    if (curtime == (time_t)-1)
+      ErrorFatal("Failed to retrieve the current time");
+    if (strftime(datebuf, sizeof(datebuf), " (%d %b %G)", gmtime(&curtime)) == 0)
+      ErrorFatal("Failed to convert time indication in readable format");
   }
 
   sprintf(date,  datebuf);

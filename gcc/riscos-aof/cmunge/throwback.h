@@ -5,7 +5,6 @@
 */
 
 #ifndef THROWBACK_H
-
 #define THROWBACK_H
 
 /*
@@ -20,7 +19,5 @@ typedef enum {
 } seriousness_t;
 
 void vThrowbackf(seriousness_t seriousness,char *file,int line,char *format,va_list args);
-
-void Throwback(seriousness_t seriousness,char *file,int line,char *message);
 
 #endif

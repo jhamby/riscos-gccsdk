@@ -3,12 +3,15 @@
  */
 
 #ifndef STR_H
-
 #define STR_H
 
-int stricmp(const char *p, const char *q);
+#include "config.h"
 
-char *strdup(const char *p);
+#ifndef HAVE_STRICMP
+int stricmp(const char *p, const char *q);
+#endif
+
+char *strdup_strip(const char *p);
 
 const char *strduptok(const char *p, char **res);
 

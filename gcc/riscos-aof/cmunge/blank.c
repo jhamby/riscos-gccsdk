@@ -7,8 +7,6 @@
 #include <ctype.h>
 #include <string.h>
 
-#include "kernel.h"
-
 #include "error.h"
 #include "options.h"
 #include "format.h"
@@ -60,5 +58,5 @@ void WriteBlank(void) {
     field++;
   }
   fclose(file);
-  exit(0); /* And exit NOW because we can't do any more processing */
+  exit(EXIT_SUCCESS); /* And exit NOW because we can't do any more processing */
 }

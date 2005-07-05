@@ -117,18 +117,18 @@ static void preprocess(FILE *file) {
   if (sscanf(prelinebuf," %i \"%[^\"]\"",&line,&filename)==2) {
     opt.atline = line-1; /* GCC style */
     Free(opt.infile);
-    opt.infile = strdup(filename);
+    opt.infile = strdup_strip(filename);
   }
   else if (sscanf(prelinebuf,"line %i \"%[^\"]\"",&line,&filename)==2) {
     opt.atline = line-1; /* Norcroft style */
     Free(opt.infile);
-    opt.infile = strdup(filename);
+    opt.infile = strdup_strip(filename);
   } else {
     ErrorFatal("Unknown preprocessor command encountered: #%s", prelinebuf);
   }
 }
 
-static char *getline(FILE *file) {
+static char *getcmhgline(FILE *file) {
 
   char c;
   int comma, discarding, whitespace;
@@ -317,8 +317,8 @@ static char *getline(FILE *file) {
 
 /*****************************************************************************
  * Starts to get cleaner from here :-)
- * parse_line calls getline and then deals with the returned string, setting
- * up the 'options' structure as required.
+ * parse_line calls getcmghline and then deals with the returned string,
+ * setting up the 'options' structure as required.
  *****************************************************************************/
 
 static void read_services(const char *s, FILE *file) {
@@ -328,7 +328,7 @@ static void read_services(const char *s, FILE *file) {
   UNUSED(file);
 
   if (opt.service)
-    ErrorFatal("Only supply one service-handler!");
+    ErrorFatal("Only supply one service-call-handler!");
   s = strduptok(s, &opt.service);
   if (*s == ',')
     while (isspace(*s))
@@ -456,7 +456,7 @@ static void read_errors(const char *s, FILE *file) {
         s = strstring(s, &(*l)->message);
       } else if (*s == 0) {
         while ((*s == 0) && !Feof(file)) {
-          s = getline(file);
+          s = getcmhgline(file);
           while (isspace(*s) && (!Feof(file)))
             s++;
         }
@@ -493,7 +493,7 @@ static void read_commands(const char *s, FILE *file) {
   s = strduptok(s, &opt.helpfn);
   s = strcomma(s);
   while ((*s == 0) && !Feof(file)) {
-    s = getline(file);
+    s = getcmhgline(file);
     while (isspace(*s) && (!Feof(file)))
       s++;
   }
@@ -585,7 +585,7 @@ static void read_commands(const char *s, FILE *file) {
         break;
       } else if (*s == 0) {
         while ((*s == 0) && !Feof(file)) {
-          s = getline(file);
+          s = getcmhgline(file);
           while (isspace(*s) && (!Feof(file)))
             s++;
         }
@@ -673,7 +673,7 @@ static void read_handlers(const char *s, handler_list *h, int allow_pw,
           break;
         } else if (*s == 0) {
           while ((*s == 0) && !Feof(file)) {
-            s = getline(file);
+            s = getcmhgline(file);
             while (isspace(*s) && (!Feof(file)))
               s++;
           }
@@ -826,7 +826,7 @@ static void read_runnable(const char *s, FILE *file)
       break;
     } else if (*s == 0) {
       while ((*s == 0) && !Feof(file)) {
-        s = getline(file);
+        s = getcmhgline(file);
         while (isspace(*s) && (!Feof(file)))
           s++;
       }
@@ -1075,7 +1075,7 @@ static void parse_line(FILE *file) {
 
   char *line;
 
-  line = getline(file);
+  line = getcmhgline(file);
 
   while (isspace(*line))
     line++;
@@ -1101,7 +1101,7 @@ static void parse_line(FILE *file) {
 
     do {
       field=fields;
-      while (field->name && !stricmp(field->name,line))
+      while (field->name && stricmp(field->name,line))
         field++;
       if (field->name==NULL)
         ErrorFatal("Unknown field: '%s'", line);
@@ -1205,7 +1205,7 @@ static void parse_line(FILE *file) {
           if (*value!=NULL)
             ErrorFatal("Only supply one %s field!",field->name);
 
-          *value=strdup(tail);
+          *value=strdup_strip(tail);
         }
         break;
 

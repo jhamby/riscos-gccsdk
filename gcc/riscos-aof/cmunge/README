@@ -1,0 +1,24 @@
+This is a modified version of CMunge for use in the GCCSDK project.  The
+original sources are and should be stored and tagged in the
+'CMungeImportBranch' CVS branch. Then they are merged to one of the GCCSDK
+development/stable branches where all the GCCSDK specific changes & bug
+fixes are done.
+
+Do not do any bug fixes or changes in the 'CMungeImportBranch' branch
+except for importing newer offical CMunge source releases.
+
+The official sources in the 'CMungeImportBranch' CVS branch are labeled
+using 'CMunge-X_YZ' tags where 'X_YZ' is the 'Module_MajorVersion_CMHG'
+#define value in the 'VersionNum' file but having its dot character
+changed into a underscore character.
+
+The GCCSDK build system will automatically create an unified difference
+file based on the 'CMunge-X_YZ' tag (derived from the 'VersionNum' file
+in the current sandbox) during stage2 building and store that difference
+file as 'Docs/GCCSDKModifications'.  All the files inside the 'Docs'
+directory (including the generated 'Docs/GCCSDKModifications' file) should
+be distributed together with the binary cmunge version in our GCCSDK
+binary releases if we want to be compliant with CMunge license outlined
+in its 'Docs/Copyright' file.
+
+-EOF-

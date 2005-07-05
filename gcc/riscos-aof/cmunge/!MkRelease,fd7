@@ -1,5 +1,0 @@
-Dir <Obey$Dir>
-CDir o
-CDir aif
-amu release RELEASE=Release THROWBACK=-throwback
-echo [Complete]
