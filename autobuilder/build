@@ -106,6 +106,25 @@ ab_build() {
   fi
   PACKAGE_DIR=`dirname $PACKAGE_DIR`
 
+  if [ ! -d $AB_HOME/$PACKAGE_DIR ] ; then
+
+    echo "Autobuilder: No directory found for package \"$PACKAGE_NAME\" - ignoring" 1>&2
+    return 0
+  fi
+
+  if [ ! -e $AB_HOME/$PACKAGE_DIR/setvars ] ; then
+
+    echo "Autobuilder: No setvars found for package \"$PACKAGE_NAME\" - ignoring" 1>&2
+    return 0
+  fi
+
+  if [ "$IS_DEPENDENCY" == "1" ] ; then
+    if [ -e "$AB_HOME/$PACKAGE_DIR/last-success" ] ; then
+      echo "Autobuilder - Dependency $PACKAGE_NAME satisfied"
+      return 0
+    fi
+  fi
+
   if [ "$AB_DEPS" == "yes" ] ; then
 
     local DEPENDENCIES
@@ -121,11 +140,8 @@ ab_build() {
 
 
     for DEP in $DEPENDENCIES ; do
-      # Filter out libc6 as it isn't needed and seems to have a circular dependency
-      if ! (echo "$DEP" | grep libc6 > /dev/null) ; then
-        if ! ab_build $DEP 1 ; then
-          return 1
-        fi
+      if ! ab_build $DEP 1 ; then
+        return 1
       fi
     done
   fi
@@ -135,47 +151,29 @@ ab_build() {
   AB_PACKAGE=$PACKAGE_NAME
   AB_PACKAGEDIR=$PACKAGE_DIR
 
-  if [ "$IS_DEPENDENCY" == "1" ] ; then
-    if [ -e "$AB_HOME/$AB_PACKAGEDIR/last-success" ] ; then
-      echo "Autobuilder - Dependency $AB_PACKAGE satisfied"
-      return 0
-    fi
-  fi
 
-  if [ -d $AB_HOME/$AB_PACKAGEDIR ] ; then
+  $AB_HOME/build-program 2>&1 | tee /tmp/ab-output >$AB_STDOUT
+  #echo  foo  > /tmp/ab-output
 
-    if [ -e $AB_HOME/$AB_PACKAGEDIR/setvars ] ; then
-      $AB_HOME/build-program 2>&1 | tee /tmp/ab-output >$AB_STDOUT
-      #echo  foo  > /tmp/ab-output
-
-      if ! grep "Autobuilder - package completed" < /tmp/ab-output >/dev/null ; then
-        echo "Package $AB_PACKAGE: ***Failure***"
-        #cat /tmp/ab-output >> /tmp/ab-failure
-        mv /tmp/ab-output $AB_HOME/$AB_PACKAGEDIR/last-failure
-        return 1
-      else
-        echo "Package $AB_PACKAGE: Success"
-        #cat /tmp/ab-output >> /tmp/ab-success
-
-        if ! grep "Autobuilder - Running make install" > /dev/null < /tmp/ab-output   && \
-             grep "Autobuilder: No files specified to package" > /dev/null < /tmp/ab-output ; then
-          echo "Warning: not installed, and not packaged"
-        fi
-
-        mv /tmp/ab-output $AB_HOME/$AB_PACKAGEDIR/last-success
-        rm -f $AB_HOME/$AB_PACKAGEDIR/last-failure
-      fi
-      echo
-
-    else
-      echo "Autobuilder: No setvars found for package \"$AB_PACKAGE\" - ignoring" 1>&2
-    fi
-    #rm -f /tmp/ab-success /tmp/ab-failure
+  if ! grep "Autobuilder - package completed" < /tmp/ab-output >/dev/null ; then
+    echo "Package $AB_PACKAGE: ***Failure***"
+    #cat /tmp/ab-output >> /tmp/ab-failure
+    mv /tmp/ab-output $AB_HOME/$AB_PACKAGEDIR/last-failure
+    return 1
   else
-    if ! [ -e "$AB_HOME/$AB_PACKAGEDIR" ] ; then
-      echo "Autobuilder: No directory found for package \"$AB_PACKAGE\" - ignoring" 1>&2
+    echo "Package $AB_PACKAGE: Success"
+    #cat /tmp/ab-output >> /tmp/ab-success
+
+    if ! grep "Autobuilder - Running make install" > /dev/null < /tmp/ab-output   && \
+         grep "Autobuilder: No files specified to package" > /dev/null < /tmp/ab-output ; then
+      echo "Warning: not installed, and not packaged"
     fi
+
+    mv /tmp/ab-output $AB_HOME/$AB_PACKAGEDIR/last-success
+    rm -f $AB_HOME/$AB_PACKAGEDIR/last-failure
   fi
+  echo
+
 
   return 0
 }
