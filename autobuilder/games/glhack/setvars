@@ -1,0 +1,21 @@
+
+AB_URL=http://kent.dl.sourceforge.net/sourceforge/glhack/glhack-1.2.tar.gz
+
+
+ab_package() {
+
+  cp -av $H/\!GLHack $D
+
+  mkdir -p $D/\!GLHack/Docs
+  mkdir -p $D/\!GLHack/locks
+  mkdir -p $D/\!GLHack/usr
+  mkdir -p $D/\!GLHack/var/save
+
+  cp $S/src/glhack,ff8 $D/\!GLHack/usr
+  cp $S/dat/*.png $D/\!GLHack/usr
+  cp $S/dat/glface*.lst $D/\!GLHack/usr
+  cp $S/dat/license $D/\!GLHack/usr
+  cp $S/dat/nhdat $D/\!GLHack/usr
+
+
+}
