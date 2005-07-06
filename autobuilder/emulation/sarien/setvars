@@ -1,3 +1,8 @@
 
+
+AB_CVS_ROOT=:pserver:anonymous:@cvs.sf.net:/cvsroot/sarien
+AB_CVS_MODULE=sarien
+
 AB_CATEGORY=emulation
 
+autoconf
