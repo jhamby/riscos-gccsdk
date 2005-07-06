@@ -64,7 +64,8 @@ void Options_Init(void) {
   /* Export files */
   opt.x_hdr       = NULL;
   opt.x_h         = NULL;
-  opt.apcs        = APCS_SWSTACKCHECK |
+  opt.apcs        = APCS_32BIT |
+                    APCS_SWSTACKCHECK |
                     APCS_FP;
   opt.toolchain   = tc_norcroft;
   opt.apcs_used   = 0;
@@ -176,8 +177,8 @@ static void help_text(void) {
 "\t-tgcc         \bUse GCC tool chain to generate output.\n"
 "\t-tlcc         \bUse LCC tool chain to generate output.\n"
 "\t-tnorcroft    \bUse Norcroft tool chain to generate output (default).\n"
-"\t-32bit        \bGenerate 32-bit compatible code.\n"
-"\t-26bit        \bGenerate 26-bit only code (default).\n"
+"\t-32bit        \bGenerate 32-bit compatible code (default).\n"
+"\t-26bit        \bGenerate 26-bit only code.\n"
 "\t-apcs 3/<flags>\bSpecify APCS variant to use.\n",
 "");
 

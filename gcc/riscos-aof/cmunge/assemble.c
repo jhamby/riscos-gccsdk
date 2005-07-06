@@ -57,7 +57,7 @@ void AssembleFile(void) {
       case tc_gcc:
       case tc_lcc:
         sprintf(buf, AS " %s -objasm -module %s %s -o %s",
-                          (CODE32) ? "-apcs32 -apcsfpv3" : "",
+                          (CODE32) ? "-apcs32 -apcsfpv3 -t ARM6" : "",
                           throwback ? "-throwback " : "",
                           opt.sfile, opt.ofile);
         break;
