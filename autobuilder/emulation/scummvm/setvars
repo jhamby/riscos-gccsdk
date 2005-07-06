@@ -7,13 +7,13 @@ AB_CATEGORY=emulation
 
 AB_CONFLAGS="--with-sdl-prefix=/home/riscos/env/bin --enable-release"
 
-AB_ZIPNAME=rdesktop-cvs-$(date +%Y%m%d)
+AB_ZIPNAME=scummvm-cvs-$(date +%Y%m%d)
 
 ab_package() {
   cp -av $H/\!ScummVM $D
 
   mkdir -p $D/\!ScummVM/Docs
-  cp "$H/RISC OS" $S/README $S/Copying $D/\!ScummVM/Docs
+  cp "$H/RISC OS" $S/README $S/COPYING $D/\!ScummVM/Docs
 
   cp $S/scummvm,ff8 $D/\!ScummVM
 }
