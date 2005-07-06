@@ -1,0 +1,13 @@
+
+touch Makefile
+
+ab_make() {
+  make clean
+
+  cd src/bulletml
+  $AB_MAKE
+
+  cd ..
+  exec $AB_MAKE
+}
+
