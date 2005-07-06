@@ -1,4 +1,7 @@
 
-Wimpslot -min 3000k -max 3000k
+
+Set rdesktop$Title Remote Desktop Client
+
+Wimpslot -min 3200k -max 3200k
 
 <RDesktop$Dir>.rdesktop %*0 ><RDesktop$Dir>.stdout 2><RDesktop$Dir>.stderr
