@@ -1,4 +1,4 @@
-The RISC OS Software Development Kit [GCCSDK 3.4 Development trunk]
+The RISC OS Software Development Kit [GCCSDK 3.4 Release 3]
 ===================================================================
 
 GCCSDK is a portable build environment for creating ARM executables to
@@ -158,6 +158,7 @@ The RISC OS distribution contains the following tools:
       sed - A batch stream editor
     touch - A port of the Unix touch command for changing file timestamps.
   rink, rinkptr, extractsym - components of Ben Summers' run-time linker.
+   cmunge - A clone of cmhg for generate RISC OS module veeners and headers.
 
 
 FAQ
@@ -196,7 +197,7 @@ A2. Systems on which it has successfully been built upon include:
         Debian ARM/Linux,
         FreeBSD,
         OpenBSD,
-        Cygwin,
+        Cygwin (Windows),
         Mac OS X
         and others.
 

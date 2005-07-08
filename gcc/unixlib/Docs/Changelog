@@ -1,4 +1,8 @@
-Fri Jul  8 14:23:04 BST 2005  Peter Naulls  <peter@chocky.org>
+Fri Jul  8 15:34:42 2005  Peter Naulls  <peter@chocky.org>
+
+	* UnixLib 4.2 release.
+
+Fri Jul  8 14:23:04 2005  Peter Naulls  <peter@chocky.org>
 
 	* pthread/keydest.c: Use free_unlocked instead of free to
 	  match allocation.

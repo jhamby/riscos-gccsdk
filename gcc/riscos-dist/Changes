@@ -2,7 +2,7 @@ Noteworthy changes to the RISC OS GCCSDK
 
 For specific UnixLib changes, see !gcc.docs.UnixLib.Changes
 
-RISC OS GCC release 3.4.4 release 3 (released XX July 2005)
+RISC OS GCC release 3.4.4 release 3 (released 8 July 2005)
 ===================================
 
 * Update to full GCC 3.4.4 release.
