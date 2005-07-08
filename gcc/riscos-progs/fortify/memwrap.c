@@ -130,7 +130,7 @@ void *calloc(size_t nmemb, size_t size) {
 }
 
 void free(void *ptr) {
-  return Fortify_free(ptr, __get_backtrace (), 0);
+  Fortify_free(ptr, __get_backtrace (), 0);
 }
 
 
