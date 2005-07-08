@@ -569,7 +569,7 @@ read_libchunkhdr (libheader * lp)
     }
 
   chunkclass = check_and_get_chunkclass_before_adjust (ch, lp->libname, &isoldlib);
-  if (chunkclass != LIB_XXXX && chunkclass != OFL_XXXX || isoldlib)
+  if ((chunkclass != LIB_XXXX && chunkclass != OFL_XXXX) || isoldlib)
     error ("Fatal: Program error, '%s' is not a new style ALF file", lp->libname);
 
   if (!lib_get_overview (ch, lp->libname, lp->libextent, &lp->lib))
