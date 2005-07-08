@@ -381,6 +381,7 @@ export ac_cv_func_getpwuid_r=yes
 export ac_cv_func_gnu_get_libc_version=no
 export ac_cv_func_log=yes
 export ac_cv_func_malloc_works=yes
+export ac_cv_func_memchr=yes
 export ac_cv_func_memcmp_clean=yes
 export ac_cv_func_memcpy=yes
 export ac_cv_func_memset=yes
