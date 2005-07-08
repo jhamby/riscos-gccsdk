@@ -15,7 +15,7 @@ RISC OS GCC release 3.4.4 release 3 (released XX July 2005)
 * GCC 'gcov' profiling support is now possible.  See the GCC manual
   for more details.
 
-* Now with RISC OS module support.  See !gcc.docs.Intro for details.
+* Now with full RISC OS module support.  See !gcc.docs.Intro for details.
 
 * Included CMunge written by Justin Fletcher & Robin Watts.
 
@@ -30,6 +30,16 @@ RISC OS GCC release 3.4.4 release 3 (released XX July 2005)
   platforms like Mac OS X.
 
 * Additions for soft-float support.
+
+* argv[0] is now a Unix-format filename under UnixLib.
+
+* !Clib is no longer distributed with GCC.  It is not used by anything,
+  and the compilers which can target the SharedCLibrary using its sources
+  (GCC and LCC) contain their own copies. 
+
+* Runaway optimisation fixed (bug #131)
+
+* Objective-C is now supported.
 
 
 RISC OS GCC release 3.4.4 release 2 (released 6 May 2005)
