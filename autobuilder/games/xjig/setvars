@@ -1,5 +1,13 @@
 
+AB_CATEGORY=games
 
 ab_make() {
   $AB_MAKE xjig
+}
+
+ab_package() {
+  mkdir -p $D/\!XJig
+
+  cp -av $H/\!Run,feb $H/choxcogs.gif $D/\!XJig
+  cp -av $S/xjig,ff8 $D/\!XJig 
 }

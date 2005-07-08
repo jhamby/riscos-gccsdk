@@ -1,0 +1,5 @@
+
+WimpSlot -min 1500k -max 1500k
+
+<Obey$Dir>.xjig -file <Obey$Dir>.choxcogs/gif >null: 2><Obey$Dir>.stderr
+
