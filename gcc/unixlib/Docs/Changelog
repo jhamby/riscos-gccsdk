@@ -1,3 +1,11 @@
+Fri Jul  8 14:23:04 BST 2005  Peter Naulls  <peter@chocky.org>
+
+	* pthread/keydest.c: Use free_unlocked instead of free to
+	  match allocation.
+	* sys/brk.c: Fix spelling mistake.
+	* unix/unix.c: Convert process filename to Unix format;
+	  patch from John Tytgat.
+
 Fri Jun 17 11:05:25 2005  Nick Burrett  <nick@sqrt.co.uk>
 
 	* libm-support/libm.c: New file.

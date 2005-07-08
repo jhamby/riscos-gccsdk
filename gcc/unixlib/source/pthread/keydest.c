@@ -1,21 +1,23 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/pthread/keydest.c,v $
- * $Date: 2003/05/07 22:10:27 $
- * $Revision: 1.2 $
+ * $Date: 2005/01/24 16:48:25 $
+ * $Revision: 1.3 $
  * $State: Exp $
- * $Author: alex $
+ * $Author: peter $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: keydest.c,v 1.2 2003/05/07 22:10:27 alex Exp $";
+static const char rcs_id[] = "$Id: keydest.c,v 1.3 2005/01/24 16:48:25 peter Exp $";
 #endif
 
 /* Written by Alex Waugh */
 
 #include <stdlib.h>
 #include <pthread.h>
+#include <unixlib/unix.h>
+#include <malloc.h>
 
 /* Separated from key.c to avoid other key functions being
    pulled in by the linker */
@@ -35,6 +37,6 @@ __pthread_key_calldestructors (void)
           tries++;
           key->destructor (key->value.nonconst);
         }
-      free (key);
+      free_unlocked (__ul_global.malloc_state, key);
     }
 }

@@ -3,7 +3,7 @@
 
 /****************************************************************************
  *
- * Memory is layed out in one of two ways, depending whether we are using
+ * Memory is laid out in one of two ways, depending whether we are using
  * a RISC OS 3.5+ dynamic area for the heap. If a dynamic area is being
  * used then __dynamic_num != -1.
  *

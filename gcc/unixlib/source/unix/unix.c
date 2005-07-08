@@ -1067,6 +1067,64 @@ convert_command_line (struct proc *process, const char *cli, int cli_size)
 
   free (temp);
 
+  /* Convert the process filename, either to a RISC OS full path, either
+     to an Unix full path.  Note that there is a fundamental problem when
+     you start a process via a temporary FS selection and that the current
+     FS get taken instead.  Use "/ADFS::MyDisc.$.my_risc_os_process" or
+     "run ADFS::MyDisc.$.my_risc_os_process" instead of
+     "ADFS::MyDisc.$.my_risc_os_process" to avoid this problem.  */
+    {
+      int regs[10];
+      char *new_argv0, *new_uargv0;
+      _kernel_oserror *err;
+      int filetype;
+
+      regs[0] = 37;
+      regs[1] = (int)argv[0];
+      regs[5] = regs[4] = regs[3] = regs[2] = 0;
+      if ((err = __os_swi(OS_FSControl, regs)) != NULL)
+       {
+         __ul_seterr (err, 0);
+         __unixlib_fatal ("cannot convert process filename");
+       }
+      if (regs[5] > 0)
+       __unixlib_fatal ("cannot convert process filename");
+
+      if ((new_argv0 = malloc(1 - regs[5])) == NULL)
+       __unixlib_fatal ("cannot allocate memory to convert process filename");
+
+      regs[0] = 37;
+      regs[1] = (int)argv[0];
+      regs[2] = (int)new_argv0;
+      regs[4] = regs[3] = 0;
+      regs[5] = 1 - regs[5];
+      if ((err = __os_swi(OS_FSControl, regs)) != NULL)
+       {
+         __ul_seterr (err, 0);
+         __unixlib_fatal ("cannot convert process filename");
+       }
+
+      if (__os_file (OSFILE_READCATINFO, new_argv0, regs) != NULL
+         || regs[0] != 1)
+       {
+#ifdef DEBUG
+         __os_print ("WARNING: cannot stat() process filename\r\nDid you use a temporary FS used to startup? If so, better use '*run' instead.\r\n");
+         __os_nl ();
+#endif
+         filetype = __RISCOSIFY_FILETYPE_NOTFOUND;
+       }
+      else
+       filetype = ((regs[2] & 0xfff00000U) == 0xfff00000U) ? (regs[2] >> 8) & 0xfff : __RISCOSIFY_FILETYPE_NOTFOUND;
+
+      /* Convert to Unix full path, if needed.  */
+      if ((new_uargv0 = __unixify_std (new_argv0, NULL, 0, filetype)) == NULL)
+       __unixlib_fatal ("cannot allocate memory to convert process filename");
+
+      free(new_argv0);
+      free(argv[0]);
+      argv[0] = new_uargv0;
+    }
+
   process->argc = argc;
   process->argv = argv;
 
