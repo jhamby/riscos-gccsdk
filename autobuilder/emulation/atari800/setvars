@@ -1,0 +1,8 @@
+
+AB_CATEGORY=emulation
+
+AB_PRECONF='CFLAGS="-O2 -I/home/riscos/env/include"'
+
+AB_CONFLAGS=--target=sdl
+
+cd src
