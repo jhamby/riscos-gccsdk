@@ -110,3 +110,17 @@ Compile using:	gcc Simple.m -o simple -lobjc
 Run using:	simple
 
 -EOF-
+
+
+gccmodule
+---------
+
+Example of RISC OS module generation using GCC
+
+Source:		c.gccmodule cmhg.module
+Compile using:	gcc -mmodule -mlibscl -c gccmodule.c
+                cmhg cmhg.module -o module.o module.h
+                gcc -mmodule -mlibscl module.o gccmodule.o -o gccmodule
+Run using:	gccmodule
+
+

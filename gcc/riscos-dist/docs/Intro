@@ -45,9 +45,9 @@ archives into the same directory as where you install GCC - RISC OS will
 automatically combine the !gcc directories together. Running !gcc will
 setup Run$Path to automatically search for the compiler tools.
 
-The separate !CLib and !UnixLib applications are not required, and will
-not be used by !gcc - they are provided for use by other compilers - and
-can be left out of a GCCSDK release.
+The !UnixLib applications is not required, and will not be used by !gcc
+is provided for use by other compilers, and can be left out of a GCCSDK
+release.
 
 As compilers are installed, sub-directories named according to the language
 they support will be placed within !gcc.docs. These sub-directories will
@@ -64,10 +64,9 @@ This completes installation, and GCC may be used simply by typing
 Simple compilations
 -------------------
 
-This assumes you have actually installed a compiler and are using UnixLib
-as the run-time library. Please note that the instructions below are generic
-and the ideas presented can be applied to all GNU compilers. The usage of
-C source files is merely for example purposes.
+This assumes you have actually installed a compiler. Please note that the
+instructions below are generic and the ideas presented can be applied to all
+GNU compilers. The usage of C source files is merely for example purposes.
 
 Source files are stored in the standard ASCII text format and kept in a
 directory that is relevant for the language of your program. For example,
@@ -479,6 +478,8 @@ Each RISC OS module needs a module header which can be created using CMunge.
 See !gcc.docs.CMunge for more information.  CMunge can also be used to create
 veneer code acting as glue code for RISC OS callbacks into your C/C++ coded
 module.
+
+The examples directory contains a basic module example using GCC.
 
 
 Obtaining compilers
