@@ -1,0 +1,12 @@
+
+AB_CATEGORY=emulation
+
+AB_MANPAGE=dgen.1
+
+ab_package() {
+  cp -av $S/dgen,ff8 $D
+  cp -av $S/COPYING $D
+}
+
+/usr/bin/gcc musa/m68kmake.c -o musa/m68kmake
+/usr/bin/gcc sdl/pbm2df.c -o sdl/pbm2df
