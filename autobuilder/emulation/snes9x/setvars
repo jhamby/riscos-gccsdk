@@ -1,0 +1,16 @@
+
+AB_CATEGORY=emulation
+
+AB_MANPAGE=../../debian/snes9x.1
+
+ab_package() {
+  cp -av $S/snes9x,ff8 $D
+
+  cp -av $S/../license.txt $D
+}
+
+
+cd *-src/snes9x
+
+/usr/bin/g++ offsets.cpp -o offsets
+/usr/bin/g++ unix/compile-keymap.cpp unix/keymap.cpp  -I. -o unix/compile-keymap -DZLIB -lz
