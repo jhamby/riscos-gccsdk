@@ -130,7 +130,7 @@ ab_build() {
     local DEPENDENCIES
     local DEP
 
-    if [ "`which apt-cache`" != "" ] ; then
+    if [ "`which apt-cache 2>/dev/null`" != "" ] ; then
       DEPENDENCIES=`apt-cache depends $PACKAGE_NAME | grep Depends: | sed 's/^.*Depends: //'`
     fi
 
