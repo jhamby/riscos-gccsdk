@@ -242,7 +242,6 @@ void __unixinit (void)
     {
       /* We have no parent, so populate our environment with a subset of the
 	 RISC OS global environment. */
-      char **new_environ;
       char *call = NULL;
       int environlen = 10;
       int environentries = 0;
@@ -259,10 +258,9 @@ void __unixinit (void)
 	      if (environentries >= environlen)
 		{
 		  environlen += 10;
-		  new_environ = realloc (environ, environlen * sizeof (char *));
-		  if (new_environ == NULL)
+		  environ = realloc (environ, environlen * sizeof (char *));
+		  if (environ == NULL)
 		    __unixlib_fatal ("Cannot allocate memory for environ");
-		  environ = new_environ;
 		}
 	      environ[environentries++] = value;
 	    }
@@ -270,10 +268,10 @@ void __unixinit (void)
       while (call);
 
       /* Terminate the list and shrink it to the exact size needed */
+      environ = realloc (environ, (environentries + 1) * sizeof (char *));
+      if (environ == NULL)
+	__unixlib_fatal ("Cannot allocate memory for environ");
       environ[environentries] = NULL;
-      new_environ = realloc (environ, (environentries + 1) * sizeof (char *));
-      if (new_environ)
-	environ = new_environ;
     }
 
   /* Get command line.  __unixlib_cli's pointing to the command line block
