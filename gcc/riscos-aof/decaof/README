@@ -1,0 +1,19 @@
+Decaof
+~~~~~~
+
+"DecAOF decodes one or more object files and returns information about
+each area within the files."  That's the Acorn "decaof" description which
+equally applies to this clone version.
+
+This program was originally written by Andy Duplain and released on
+20 Nov 1992 using the following license:
+
+--8<--
+	This program is free... do what you like with it (as long as you
+	don't make any money out of it).
+--8<--
+
+On 14 July 2005, Andy Duplain was happy to relicense his program under
+the GNU General Public License.
+
+-EOF-

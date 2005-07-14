@@ -1,8 +1,22 @@
 /*
  * defines types used in decaof
  *
- * Andy Duplain, BT Customer Systems, Brighton, UK.  duplain@btcs.bt.co.uk
- * Copyright 2005 GCCSDK Developers
+ * Copyright (c) 1992 Andy Duplain, andy.duplain@dsl.pipex.com
+ * Copyright (c) 2005 GCCSDK Developers
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA
  */
 
 #ifndef DECAOF_HEADER_INCLUDED
@@ -23,22 +37,6 @@ typedef unsigned int	Word;
 typedef unsigned short	Halfword;
 typedef unsigned char	Byte;
 #endif
-
-/*
- * define the path seperator character, and file open mode string.
- */
-#ifdef CROSS_COMPILE
-#define PATHSEP	'/'
-#define PATHSEPSTR	"/"
-#define W_OPENMODE	"w"
-#define R_OPENMODE	"r"
-#else
-#define PATHSEP	'.'
-#define PATHSEPSTR	"."
-#define W_OPENMODE	"w"
-#define R_OPENMODE	"r"
-#endif
-
 
 /*
  * define maximum filename and pathname length
@@ -118,6 +116,7 @@ struct areahdr {
 /*
  * area attributes (areahdr->flags.AT)
  */
+#define AREA_ABSADDR		0x000001 /* Area has absolute address */
 #define AREA_CODE		0x000002
 #define AREA_COMMONDEF		0x000004 /* Common block definition       */
 #define AREA_COMMONREF		0x000008 /* Common block reference        */
@@ -133,6 +132,8 @@ struct areahdr {
 #define AREA_STUBDATA		0x002000
 #define AREA_SOFTFLOAT		0x080000 /* Avoids FP instructions        */
 #define AREA_LINKONCE		0x100000 /* GNU linkonce (extension)      */
+
+#define AREA_UNKNOWNBITS	0xE00000
 
 struct reloc {
 	Word offset;

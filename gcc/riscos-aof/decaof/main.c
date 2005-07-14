@@ -1,24 +1,40 @@
 /*
  * main function
  *
- * Andy Duplain, BT Customer Systems, Brighton, UK.  duplain@btcs.bt.co.uk
- * Copyright 2005 GCCSDK Developers
+ * Copyright (c) 1992 Andy Duplain, andy.duplain@dsl.pipex.com
+ * Copyright (c) 2005 GCCSDK Developers
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA
  */
 
 #include "config.h"
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <ctype.h>
 
 #include "decaof.h"
 #include "decode.h"
+#include "error.h"
 #include "io.h"
 #include "misc.h"
-#include "error.h"
+#include "main.h"
 
-char *ourname;			/* program name */
-char **files;			/* list of files to decode */
+const char *ourname;		/* program name */
+const char **files;		/* list of files to decode */
 int nfiles;			/* number of files in **files */
 
 short area_contents = 0;	/* print area contents in hex (-a) */
@@ -85,7 +101,7 @@ main(int argc, char **argv)
 					break;
 				default:
 					error("unknown option '%c'", c);
-					exit(1);
+					exit(EXIT_FAILURE);
 				}
 			}
 			argv++;
@@ -97,7 +113,7 @@ main(int argc, char **argv)
 	if (!argc)
 		usage();
 
-	files = argv;
+	files = (const char **)argv;
 	nfiles = argc;
 
 	if (!gotarg) {
@@ -107,7 +123,8 @@ main(int argc, char **argv)
 		strtab++;
 	}
 
-	return(decode());
+	decode();
+	return (nrerrs) ? EXIT_FAILURE : EXIT_SUCCESS;
 }
 
 
@@ -116,15 +133,14 @@ main(int argc, char **argv)
  */
 static void usage(void)
 {
-	fprintf(stderr, "usage: %s [options] [file ... file]\n",
-	    ourname);
-	fprintf(stderr, "       where options are:\n");
-	fprintf(stderr, "       -b print only the area declarations\n");
-	fprintf(stderr, "       -a print area contents in hex\n");
-	fprintf(stderr, "       -d print area declarations\n");
-	fprintf(stderr, "       -r print relocation directives\n");
-	fprintf(stderr, "       -g print debugging areas\n");
-	fprintf(stderr, "       -s print symbol table\n");
-	fprintf(stderr, "       -t print string table\n");
-	exit(1);
+	fprintf(stderr, "usage: %s [options] file [file...]\n"
+			"       where options are:\n"
+			"       -b print only the area declarations\n"
+			"       -a print area contents in hex\n"
+			"       -d print area declarations\n"
+			"       -r print relocation directives\n"
+			"       -g print debugging areas\n"
+			"       -s print symbol table\n"
+			"       -t print string table\n", ourname);
+	exit(EXIT_FAILURE);
 }

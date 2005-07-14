@@ -1,8 +1,22 @@
 /*
  * decode an AOF file
  *
- * Andy Duplain, BT Customer Systems, Brighton, UK.  duplain@btcs.bt.co.uk
- * Copyright 2005 GCCSDK Developers
+ * Copyright (c) 1992 Andy Duplain, andy.duplain@dsl.pipex.com
+ * Copyright (c) 2005 GCCSDK Developers
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA
  */
 
 #include "config.h"
@@ -17,10 +31,10 @@
 
 #include "decaof.h"
 #include "decode.h"
+#include "error.h"
 #include "io.h"
 #include "main.h"
 #include "misc.h"
-#include "error.h"
 
 static struct chunkhdr *hdr;
 static struct chunkent *ents, *ent;
@@ -31,24 +45,23 @@ static char *stringtab;
 static long area_offset;
 static Word symboltab_size;
 
-static char *cptr;
-
 static void print_area (FILE *ifp, struct areahdr *areahdr, Word offset, Word reloff);
 static char *string (Word offset);
 static char *symname (Word offset);
 static char *areaname (Word offset);
 
-int
+void
 decode (void)
 {
-  int i;
+	int i;
 	Word offset, reloff;
 	FILE *ifp;
-	char *filename;
+	const char *filename;
+	const char *cptr;
 
 	while (nfiles--) {
 		filename = *files++;
-		ifp = fopen(filename, R_OPENMODE);
+		ifp = fopen(filename, "r");
 		if (!ifp) {
 			error("unable to open file \"%s\"", filename);
 			continue;
@@ -158,7 +171,7 @@ decode (void)
 			}
 
 			/* decode each of the areas */
-			areahdrs = (struct areahdr *)(aofhdr + sizeof(struct aofhdr));
+			areahdrs = (struct areahdr *)&aofhdr[1];
 			offset = reloff = 0;
 			for (i = 0; i < aofhdr->numareas; i++) {
 				Byte flags = (areahdrs[i].flags >> 8) & 0xff;
@@ -227,14 +240,12 @@ decode (void)
 		}
 
 next_file:
-		free_chunk_memory((char *)aofhdr);
-		free_chunk_memory((char *)symboltab);
-		free_chunk_memory((char *)stringtab);
-		free_chunk_memory((char *)ents);
+		free_chunk_memory(aofhdr);
+		free_chunk_memory(symboltab);
+		free_chunk_memory(stringtab);
+		free_chunk_memory(ents);
 		fclose(ifp);
 	}
-
-	return (0);
 }
 
 /*
@@ -254,18 +265,36 @@ print_area(FILE *ifp, struct areahdr *areahdr, Word offset, Word reloff)
 		else
 			fputs("[data] ", stdout);
 	}
+	if (flags & AREA_ABSADDR)
+		fputs("[abs] ", stdout);
 	if (flags & AREA_COMMONDEF)
 		fputs("[commdef] ", stdout);
+	if (flags & AREA_COMMONREF)
+		fputs("[commref] ", stdout);
 	if (flags & AREA_READONLY)
 		fputs("[readonly] ", stdout);
 	if (flags & AREA_UDATA)
 		fputs("[noinit] ", stdout);
+	if (flags & AREA_PIC)
+		fputs("[pic] ", stdout);
 	if (flags & AREA_32BITAPCS)
 		fputs("[32bit] ", stdout);
+	if (flags & AREA_REENTRANT)
+		fputs("[reentrant] ", stdout);
+	if (flags & AREA_EXTFPSET)
+		fputs("[extfpset] ", stdout);
+	if (flags & AREA_NOSTACKCHECK)
+		fputs("[nostackcheck] ", stdout);
+	if (flags & AREA_BASED)
+		fputs("[based] ", stdout);
+	if (flags & AREA_STUBDATA)
+		fputs("[stubdata] ", stdout);
 	if (flags & AREA_SOFTFLOAT)
 		fputs("[soft-float] ", stdout);
 	if (flags & AREA_LINKONCE)
 		fputs("[linkonce] ", stdout);
+	if (flags & AREA_UNKNOWNBITS)
+		printf("[unknown bits %06x] ", flags & AREA_UNKNOWNBITS);
 
 	printf("\nsize %d byte%s, %d relocation%s\n",
 	       areahdr->size,
@@ -301,6 +330,8 @@ print_area(FILE *ifp, struct areahdr *areahdr, Word offset, Word reloff)
 		puts("relocations:");
 		for (numrelocs = areahdr->numrelocs; numrelocs; numrelocs--) {
 			enum {unknown, type1, type2} rtype;
+			const char *cptr;
+
 
 			reloc = read_reloc(ifp);
 			if (!reloc) {
@@ -327,6 +358,7 @@ print_area(FILE *ifp, struct areahdr *areahdr, Word offset, Word reloff)
 			case 0x02:
 				cptr = "word at";
 				break;
+			default: /* to satisfy compiler */
 			case 0x03:
 				cptr = "unknown-field-type at";
 				break;

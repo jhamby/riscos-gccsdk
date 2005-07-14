@@ -1,4 +1,5 @@
 # Makefile for DecAOF
+# Copyright (c) 2004, 2005 GCCSDK Developers
 
 ifeq (${STAGE},stage1)
 CFLAGS += -DCROSS_COMPILE
@@ -13,13 +14,33 @@ CFLAGS += -Wall
 
 decaofobjdir = $(objdir)/riscos-aof/decaof/$(STAGE)
 
-all:	$(bin_dir)/decaof
+all:	$(bin_dir)/decaof$(exesfx)
+
+SRCS = decode.c io.c error.c main.c misc.c
+
+HDRS = ../../sdk-config.h config.h decaof.h error.h io.h main.h misc.h
+
+ifeq (${STAGE},stage1)
+# This funky line tells make to change all '.c' suffixes to '.o' and add
+# '$(decaofobjdir)/' to each object.
+OBJS = $(addprefix $(decaofobjdir)/, $(SRCS:.c=.o))
 
 $(decaofobjdir)/%.o: %.c
 	$(CC) $(CFLAGS) -o $@ -c $< $(INCLUDES)
 
-SRCS = main.c decode.c misc.c io.c error.c
-OBJS = $(addprefix $(decaofobjdir)/, $(SRCS:.c=.o))
+$(bin_dir)/decaof$(exesfx): $(OBJS) $(DEPS)
+	$(CC) -o $@ $(OBJS)
+endif
 
-$(bin_dir)/decaof: $(OBJS)
-	$(CC) -o $@ $(OBJS) $(LIBS)
+ifeq (${STAGE},stage2)
+# Since we know that we are compiling with GCC 3.4, we can compile the
+# application using inter-module analysis, effectivly building as if all
+# functions are contained within one source file.
+	DEPS += $(gcc_bin_dir)/$(TRG)/o/unixlib
+
+$(decaofobjdir)/decaof.o:	$(SRCS) $(DEPS) $(HDRS)
+	$(CC) $(CFLAGS) -o $@ -c $(SRCS) $(INCLUDES)
+
+$(bin_dir)/decaof$(exesfx): $(decaofobjdir)/decaof.o $(DEPS)
+	$(CC) -o $@ $(decaofobjdir)/decaof.o
+endif

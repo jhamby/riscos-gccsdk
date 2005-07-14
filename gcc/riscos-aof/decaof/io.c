@@ -1,8 +1,22 @@
 /*
  * file input/output
  *
- * Andy Duplain, BT Customer Systems, Brighton, UK.  duplain@btcs.bt.co.uk
- * Copyright 2005 GCCSDK Developers
+ * Copyright (c) 1992 Andy Duplain, andy.duplain@dsl.pipex.com
+ * Copyright (c) 2005 GCCSDK Developers
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA
  */
 
 #include "config.h"
@@ -11,12 +25,13 @@
 #ifdef HAVE_STDLIB_H
 #include <stdlib.h>
 #endif
-#include "decaof.h"
-#include "error.h"
-
 #ifdef HAVE_MALLOC_H
 #include <malloc.h>
 #endif
+
+#include "decaof.h"
+#include "error.h"
+#include "io.h"
 
 /*
  * check for EOF or write/read errors on stream.
@@ -87,34 +102,34 @@ read_chunkhdr(FILE *ifp)
  * memory pointers maintained by read_xxx functions
  */
 
-static struct chunkent *ents = NULL;	/* chunk file entries */
-static char *strptr = NULL;		/* string table */
-static struct symbol *symptr = NULL;	/* symbol table */
-static char *idptr = NULL;		/* identification string */
-static struct aofhdr *aofhdr = NULL;	/* AOF header */
+static struct chunkent *ents;	/* chunk file entries */
+static char *strptr;		/* string table */
+static struct symbol *symptr;	/* symbol table */
+static char *idptr;		/* identification string */
+static struct aofhdr *aofhdr;	/* AOF header */
 
 /*
  * free the memory used by a chunk
  */
 int
-free_chunk_memory(char *ptr)
+free_chunk_memory(void *ptr)
 {
 	if (!ptr)
 		return (0);
 
-	if (ptr == (char *)ents) {
+	if (ptr == (void *)ents) {
 		free(ents);
 		ents = NULL;
-	} else if (ptr == strptr) {
+	} else if (ptr == (void *)strptr) {
 		free(strptr);
 		strptr = NULL;
-	} else if (ptr == (char *)symptr) {
+	} else if (ptr == (void *)symptr) {
 		free(symptr);
 		symptr = NULL;
-	} else if (ptr == idptr) {
+	} else if (ptr == (void *)idptr) {
 		free(idptr);
 		idptr = NULL;
-	} else if (ptr == (char *)aofhdr) {
+	} else if (ptr == (void *)aofhdr) {
 		free(aofhdr);
 		aofhdr = NULL;
 	} else
@@ -136,7 +151,7 @@ read_chunkents(FILE *ifp, struct chunkhdr *hdr)
 	    sizeof(struct chunkent) * hdr->maxchunks);
 	if (!ents) {
 		error("memory exhausted");
-		abort();
+		exit(EXIT_FAILURE);
 	}
 
 	fseek(ifp, sizeof(struct chunkhdr), 0);
@@ -160,7 +175,7 @@ read_stringtab(FILE *ifp, struct chunkent *strent)
 	strptr = malloc(strent->size);
 	if (!strptr) {
 		error("memory exhausted");
-		abort();
+		exit(EXIT_FAILURE);
 	}
 
 	fseek(ifp, strent->offset, 0);
@@ -183,7 +198,7 @@ read_symboltab(FILE *ifp, struct chunkent *syment, int numsyms)
 	symptr = (struct symbol *)malloc(numsyms * sizeof(struct symbol));
 	if (!symptr) {
 		error("memory exhausted");
-		abort();
+		exit(EXIT_FAILURE);
 	}
 
 	fseek(ifp, syment->offset, 0);
@@ -208,7 +223,7 @@ read_ident(FILE *ifp, struct chunkent *ident)
 	idptr = malloc(ident->size);
 	if (!idptr) {
 		error("memory exhausted");
-		abort();
+		exit(EXIT_FAILURE);
 	}
 
 	fseek(ifp, (long)ident->offset, 0);
@@ -226,12 +241,16 @@ read_aofhdr(FILE *ifp, struct chunkent *hdrent)
 	int i;
 	struct areahdr *areahdr;
 
+	if (hdrent->size < sizeof(struct aofhdr)) {
+		error("AOF header size is %d which is smaller than the expected minimum size %d", hdrent->size, sizeof(struct aofhdr));
+		return NULL;
+	}
 	if (aofhdr)
 		free(aofhdr);
 	aofhdr = (struct aofhdr *)malloc(hdrent->size);
 	if (!aofhdr) {
 		error("memory exhausted");
-		abort();
+		exit(EXIT_FAILURE);
 	}
 
 	/* read-in whole of AOF header */
@@ -242,7 +261,11 @@ read_aofhdr(FILE *ifp, struct chunkent *hdrent)
 	aofhdr->numsyms = read_word(ifp);
 	aofhdr->entryarea = read_word(ifp);
 	aofhdr->entryoffset = read_word(ifp);
-	areahdr = (struct areahdr *)(aofhdr + sizeof(struct aofhdr));
+	if (hdrent->size != sizeof(struct aofhdr) + aofhdr->numareas*sizeof(struct areahdr)) {
+		error("Malformed header size : is %d bytes but based on number of declared areas we expect it to be %d bytes", hdrent->size, sizeof(struct aofhdr) + aofhdr->numareas*sizeof(struct areahdr));
+		return NULL;
+	}
+	areahdr = (struct areahdr *)&aofhdr[1];
 	for (i = 0; i < aofhdr->numareas; i++) {
 		areahdr[i].name = read_word(ifp);
 		areahdr[i].flags = read_word(ifp);
