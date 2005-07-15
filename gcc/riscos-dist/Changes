@@ -8,6 +8,8 @@ RISC OS GCC release 3.4.4 release 4 (released XX XXX 2005)
 * decaof: On 14 July 2005, the original author of decaof, Andy Duplain,
   relicensed decaof under GPL.
 
+* nm: Explictly marked as GPL.
+
 
 RISC OS GCC release 3.4.4 release 3 (released 8 July 2005)
 ===================================
