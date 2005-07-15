@@ -1,7 +1,29 @@
+/*
+ * List symbols of an AOF file.
+ *
+ * Copyright (c) 2002 Nick Burrett
+ * Copyright (c) 2003, 2004, 2005 GCCSDK Developers
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <getopt.h>
+
 #include "libiberty.h"
 #include "demangle.h"
 
@@ -24,10 +46,6 @@ static int opt_print_armap = 0;
 static int opt_reverse_sort = 0;
 static int opt_size_sort = 0;
 static int opt_undefined_only = 0;
-static int opt_version = 0;
-
-/* Non-zero if we are processing a --defsym from the command line.  */
-static int parsing_defsym = 0;
 
 typedef enum
 {
@@ -130,6 +148,7 @@ check_stream (FILE *fp)
   return (ret);
 }
 
+#ifndef LITTLE_ENDIAN
 /*
  * read a byte from the input stream.
  */
@@ -138,7 +157,9 @@ read_byte (FILE *ifp)
 {
   return (unsigned char) getc (ifp);
 }
+#endif
 
+#if 0
 /*
  * read a little-endian 2-byte halfword from the input stream.
  */
@@ -160,6 +181,7 @@ read_halfword (FILE *ifp)
 #endif
   return (ret.h);
 }
+#endif
 
 /*
  * read a little-endian 4-byte word from the input stream.
@@ -204,11 +226,10 @@ read_chunkhdr (FILE *ifp)
  * memory pointers maintained by read_xxx functions
  */
 
-static struct chunkent *ents = NULL;	/* chunk file entries */
-static char *strptr = NULL;	/* string table */
-static struct symbol *symptr = NULL;	/* symbol table */
-static char *idptr = NULL;	/* identification string */
-static struct aofhdr *aofhdr = NULL;	/* AOF header */
+static struct chunkent *ents;	/* chunk file entries */
+static char *strptr;		/* string table */
+static struct symbol *symptr;	/* symbol table */
+static struct aofhdr *aofhdr;	/* AOF header */
 
 /*
  * read in the chunk entries
@@ -216,7 +237,7 @@ static struct aofhdr *aofhdr = NULL;	/* AOF header */
 static struct chunkent *
 read_chunkents (FILE *ifp, struct chunkhdr *hdr)
 {
-  register unsigned int i;
+  unsigned int i;
 
   if (ents)
     free (ents);
@@ -255,7 +276,7 @@ read_stringtab (FILE *ifp, struct chunkent *strent)
 static struct symbol *
 read_symboltab (FILE *ifp, struct chunkent *syment, int numsyms)
 {
-  register int i;
+  int i;
 
   if (symptr)
     free (symptr);
@@ -274,27 +295,12 @@ read_symboltab (FILE *ifp, struct chunkent *syment, int numsyms)
 }
 
 /*
- * read in the identification chunk
- */
-static char *
-read_ident (FILE *ifp, struct chunkent *ident)
-{
-  if (idptr)
-    free (idptr);
-  idptr = xmalloc (ident->size);
-  fseek (ifp, (long) ident->offset, 0);
-  fread (idptr, 1, (int) ident->size, ifp);
-
-  return (check_stream (ifp) != FRWERR ? idptr : NULL);
-}
-
-/*
  * read in the AOF header
  */
 static struct aofhdr *
 read_aofhdr (FILE *ifp, struct chunkent *hdrent)
 {
-  register unsigned int i;
+  unsigned int i;
   struct areahdr *areahdr;
 
   if (aofhdr)
@@ -309,7 +315,7 @@ read_aofhdr (FILE *ifp, struct chunkent *hdrent)
   aofhdr->numsyms = read_word (ifp);
   aofhdr->entryarea = read_word (ifp);
   aofhdr->entryoffset = read_word (ifp);
-  areahdr = (struct areahdr *) ((int) aofhdr + sizeof (struct aofhdr));
+  areahdr = (struct areahdr *) &aofhdr[1];
   for (i = 0; i < aofhdr->numareas; i++)
     {
       areahdr[i].name = read_word (ifp);
@@ -320,20 +326,6 @@ read_aofhdr (FILE *ifp, struct chunkent *hdrent)
     }
   return (check_stream (ifp) != FRWERR ? aofhdr : NULL);
 }
-
-/*
- * read in a relocation directive
- */
-static struct reloc *
-read_reloc (FILE *ifp)
-{
-  static struct reloc reloc;
-
-  reloc.offset = read_word (ifp);
-  reloc.flags = read_word (ifp);
-  return (check_stream (ifp) != FRWERR ? &reloc : NULL);
-}
-
 
 /*
  * return a pointer to a string in the string table
@@ -452,12 +444,12 @@ decode (const char *aof_file)
 
 #if 0
       /* decode each of the areas */
-      areahdrs = (struct areahdr *) ((int) aofhdr + sizeof (struct aofhdr));
+      areahdrs = (struct areahdr *)&aofhdr[1];
       offset = reloff = 0;
       for (i = 0; i < aofhdr->numareas; i++)
 	{
 	  Byte flags = (areahdrs[i].flags >> 8) & 0xff;
-	  
+
 	  if (!(flags & AT_NOINIT))
 	    reloff = offset + areahdrs[i].size;
 	  print_area (ifp, &areahdrs[i], offset, reloff);
@@ -482,7 +474,7 @@ decode (const char *aof_file)
 
                if (opt_demangle &&
                    (demangle = (cplus_demangle (name, DMGL_PARAMS | DMGL_ANSI))))
-                 puts (demangle);  
+                 puts (demangle);
                else
 	         puts (name);
 	    }
@@ -548,7 +540,7 @@ parse_args (int argc, char **argv)
       switch (optc)
 	{
 	default:
-	  exit (1);
+	  exit (EXIT_FAILURE);
 	case 'A':
 	case 'o':
 	  opt_print_file_name = 1;
@@ -594,7 +586,7 @@ parse_args (int argc, char **argv)
 	  break;
 	case OPT_HELP:
 	  nm_help ();
-	  exit (1);
+	  exit (EXIT_FAILURE);
 	  break;
 	}
     }
@@ -606,7 +598,7 @@ parse_args (int argc, char **argv)
 int main (int argc, char **argv)
 {
   parse_args (argc, argv);
-  return 0;
+  return EXIT_SUCCESS;
 }
 
 
