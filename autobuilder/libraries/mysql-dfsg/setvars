@@ -1,0 +1,16 @@
+
+AB_ZIPNAME=libmysqlclient
+
+AB_INSTALL=yes
+
+AB_CONFLAGS=--without-server
+
+echo -e "all:\ninstall:\n" > Docs/Makefile.in
+echo -e "all:\ninstall:\n" > Docs/Images/Makefile.in
+
+autoconf
+
+/usr/bin/gcc libmysql/conf_to_src.c -o libmysql/conf_to_src
+
+mkdir -p $D/include/mysql
+mkdir -p $D/lib/mysql
