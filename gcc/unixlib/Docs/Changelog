@@ -1,3 +1,9 @@
+Wed Jul 20 19:27:41 2005  Peter Naulls  <peter@chocky.org>
+
+	* source/common/unixify.c: Correct conversion case when
+	  file is in root directory.
+	* elf/convert-unixlib.pl: Correct install location for GCC 4.1.
+
 Thu Jul 14 23:29:00 2005  John Tytgat  <John.Tytgat@aaug.net>
 
 	* unix/unix.c (__unixinit): Terminating NULL in environment list

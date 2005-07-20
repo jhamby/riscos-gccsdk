@@ -496,11 +496,11 @@ foreach $f (@nostackfiles) {
 
 print MAKE "install-data-local: install-headers\n\n";
 print MAKE "install-headers:\n";
-print MAKE "\t\$(mkinstalldirs) \$(DESTDIR)\${tooldir}/include\n";
+print MAKE "\t\$(mkinstalldirs) \$(DESTDIR)\${toolexecdir}/include\n";
 print MAKE "\tfor dir in arpa bits net netinet resolv rpc string sys unixlib; do \\\n";
-print MAKE "\t  \$(mkinstalldirs) \$(DESTDIR)\${tooldir}/include/\$\${dir} ; done\n";
+print MAKE "\t  \$(mkinstalldirs) \$(DESTDIR)\${toolexecdir}/include/\$\${dir} ; done\n";
 print MAKE "\tfor file in \${libc_headers}; do \\\n";
-print MAKE "\t  \$(INSTALL_DATA) \$(srcdir)/\$\${file} \$(DESTDIR)\${tooldir}/\$\${file} ; done\n";
+print MAKE "\t  \$(INSTALL_DATA) \$(srcdir)/\$\${file} \$(DESTDIR)\${toolexecdir}/\$\${file} ; done\n";
 
 print MAKE "\n";
 close MAKE;

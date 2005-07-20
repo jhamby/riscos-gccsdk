@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/common/unixify.c,v $
- * $Date: 2005/04/24 20:07:47 $
- * $Revision: 1.16 $
+ * $Date: 2005/05/28 20:57:33 $
+ * $Revision: 1.17 $
  * $State: Exp $
- * $Author: alex $
+ * $Author: peter $
  *
  ***************************************************************************/
 
@@ -354,10 +354,11 @@ __unixify (const char *ro_path, int unixify_flags, char *buffer,
       temp += 2;
       while (input != temp)
 	*out++ = *input++;
-      /* Copy across the '.$' */
-      *out++ = '/';
-      if (*input != '\0')
-        input++;
+
+       /* Terminate only if there's no more.  Otherwise, get_directory_name
+          gets it wrong for files in the root */
+      if (*input == '\0')
+        *out++ = '/';
     }
   else
     {
