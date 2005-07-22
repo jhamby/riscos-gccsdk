@@ -563,13 +563,13 @@ insert_area (arealist ** list, arealist ** lastentry, arealist * newarea)
     }
   else
     {	/* New area name. Add to base/limit list and symbol table */
+      arealimits **insert;
+
       newarea->arbase = newarea;
       lp = allocmem (sizeof (arealimits));
       if (lp == NULL)
 	error ("Fatal: Out of memory in 'insert_area' handling area '%s' in file '%s'",
 	       name, newarea->arfileptr->chfilename);
-
-      arealimits **insert;
 
       lp->areaname = name;
       lp->areahash = hash (name);
