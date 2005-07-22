@@ -29,6 +29,7 @@
 #include <string.h>
 #include <ctype.h>
 #include <sys/param.h>
+#include <sys/stat.h>
 
 #ifndef CROSS_COMPILE
 # include <kernel.h>
@@ -500,7 +501,6 @@ obj_check_and_adjust_area (const char *filename, const obj_overview * objovervie
 static bool
 obj_check_and_adjust_symt (const char *filename, const obj_overview * objoverview)
 {
-  symtentry *objsymtptr = objoverview->symtptr;
   unsigned int objsymtsize = objoverview->symtsize;
 
   if (objsymtsize !=
@@ -1336,6 +1336,13 @@ open_image (void)
   imagefile = fopen (imagename, "rb+");
 #else
   imagefile = fopen (imagename, "wb");
+  if (imagefile != NULL)
+    {
+      struct stat access;
+ 
+      if (stat(imagename, &access) == 0)
+        chmod(imagename, access.st_mode | S_IXUSR | S_IXGRP | S_IXOTH);
+    }
 #endif
   if (imagefile == NULL)
     error ("Fatal: Unable to open image file '%s'", imagename);
