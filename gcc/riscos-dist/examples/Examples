@@ -90,37 +90,16 @@ Compile using: 	g++ template.cc -o template
 Run using: 	template
 
 
-seaapp
-------
-
-An Objective-C program.
-
-Source:		m.Fishie, m.SeaApp
-Compile using:	gcc Fishie.m SeaApp.m -o seaapp -lobjc
-Run using:	seaapp
-
-
-simple
-------
-
-An Objective-C program.
-
-Source:		m.Simple
-Compile using:	gcc Simple.m -o simple -lobjc
-Run using:	simple
-
--EOF-
-
-
 gccmodule
 ---------
 
-Example of RISC OS module generation using GCC
+Example of RISC OS module generation using GCC.
 
 Source:		c.gccmodule cmhg.module
 Compile using:	gcc -mmodule -mlibscl -c gccmodule.c
-                cmhg cmhg.module -o module.o module.h
+                cmunge -tgcc -32bit module.cmhg -o module.o -d module.h
                 gcc -mmodule -mlibscl module.o gccmodule.o -o gccmodule
 Run using:	gccmodule
 
 
+-EOF-
