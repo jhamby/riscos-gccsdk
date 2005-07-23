@@ -643,11 +643,10 @@ scan_symt (filelist * fp)
       attr = symtp->symtattr;
       if (aofv3flag && (attr & SYM_UNSUPATTR) != 0)
 	{ /* Reject unsupported symbol attributes */
-	  error
-	    ("Error: Symbol '%s' in '%s' has unsupported AOF symbol attributes (%08x)",
+	  error ("Warning: Symbol '%s' in '%s' has unsupported AOF symbol attributes (%08x). It might be that you are using one or more AOF files produced by an older 'as' version which contained a bug causing this problem.",
 	     symtp->symtname + COERCE (fp->obj.strtptr, unsigned int),
 	     fp->chfilename, attr & SYM_UNSUPATTR);
-	  ok = FALSE;
+	  attr &= ~SYM_UNSUPATTR;
 	}
       attr = attr & SYM_ATMASK;
 
