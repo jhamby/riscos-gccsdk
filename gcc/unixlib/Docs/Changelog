@@ -1,3 +1,13 @@
+Sat Jul 23 13:45:59 2005  Peter Naulls  <peter@chocky.org>
+
+	* common/unixify.c: Fully fix earlier fix.
+	* clib/unixlib/os.h, signal/_signal.s: Make __ul_seterr
+	  return -1 on error.
+	* stdlib/alloc.c: Allow debug version to compile.
+	* debug/dvsprintf.c: Use stderr for output once initialised.
+	* unix/fcntl.c: Dummy file locking functionality.
+	* unix/mkdir.c: Set ENOENT when the RISC OS error is "Not found".   
+
 Wed Jul 20 19:27:41 2005  Peter Naulls  <peter@chocky.org>
 
 	* source/common/unixify.c: Correct conversion case when

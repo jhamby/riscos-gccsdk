@@ -1,8 +1,8 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/common/unixify.c,v $
- * $Date: 2005/05/28 20:57:33 $
- * $Revision: 1.17 $
+ * $Date: 2005/07/20 18:29:30 $
+ * $Revision: 1.18 $
  * $State: Exp $
  * $Author: peter $
  *
@@ -132,7 +132,7 @@ add_directory_name (char *o, const char *i)
 
   /* Root directory ($) can be ignored since output is only a '/'.
      The backslash is automatically output at the end of the string.  */
-  if (i[1] == '\0')
+  if (i[0] != '\0' && i[1] == '\0')
     {
       switch (i[0])
 	{

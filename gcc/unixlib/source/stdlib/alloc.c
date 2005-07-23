@@ -2006,7 +2006,7 @@ static void malloc_consolidate (mstate av);
    Also, it is called in check* routines if DEBUG is set.
 */
 
-#define get_malloc_state() (&(av_))
+#define get_malloc_state() (__ul_global.malloc_state)
 
 /*
   Initialize a malloc_state struct.

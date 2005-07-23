@@ -23,6 +23,7 @@
 #include <stddef.h>
 #include <string.h>
 #include <pthread.h>
+#include <stdio.h>
 #define DEBUG
 #include <sys/debug.h>
 #include <unixlib/os.h>
@@ -303,7 +304,7 @@ static int _vsnprintf(char *buf, size_t size, const char *fmt, va_list args)
 
       /* Because we are using RISC OS SWI calls to output the resultant
 	 string, all newlines must be CR-LF.  */
-      if (*fmt == '\n')
+      if (*fmt == '\n' && stderr == NULL)
 	*++str = '\r';
 
       ++str;
@@ -520,5 +521,8 @@ void debug_printf (const char *fmt, ...)
   _vsnprintf (buf + 3, sizeof (buf) - 3, fmt, args);
   va_end (args);
 
-  __os_print (buf);
+  if (stderr)
+    fputs(buf, stderr);
+  else
+    __os_print (buf);
 }

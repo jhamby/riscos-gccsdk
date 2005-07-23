@@ -42,18 +42,18 @@ mkdir (const char *ux_path, __mode_t mode)
   err = __os_file (OSFILE_CREATEDIRECTORY, path, regs);
   if (err)
     {
-      __ul_seterr (err, 1);
-      return -1;
+      /* Match with "Not found" RISC OS error */
+      if (err->errnum == 0x108d6)
+        return __set_errno (ENOENT);
+
+      return __ul_seterr (err, 1);
     }
 
   /* Set the file access permission bits.  */
   regs[5] = __set_protection (mode);
   err = __os_file (OSFILE_WRITECATINFO_ATTR, path, regs);
   if (err)
-    {
-      __ul_seterr (err, 1);
-      return -1;
-    }
+    return  __ul_seterr (err, 1);
 
   return 0;
 }

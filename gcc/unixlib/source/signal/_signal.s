@@ -89,7 +89,9 @@
 ;	a2 = non-zero if errno should be set,
 ;	     zero if errno should not be set
 ; On exit:
-;	APCS-32 compliant. a1-a4, ip corrupted.
+;	APCS-32 compliant.
+;       a1 = -1 if there was an error, else 0
+;       a2-a4, ip corrupted.
 ;
 ; Set UnixLib's errno to EOPSYS and copy the error from err to UnixLib's
 ; error buffer.
@@ -145,6 +147,7 @@
 	MOV	a1, #0			; ensure zero-terminated.
 	STRB	a1, [a2, #-1]
 
+        MVN     a1, #0
 	LDMFD	sp!, {v1-v5, pc}
 
 |seterr_fatal|

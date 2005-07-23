@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/unixlib/os.h,v $
- * $Date: 2005/04/18 17:04:56 $
- * $Revision: 1.9 $
+ * $Date: 2005/04/24 20:26:58 $
+ * $Revision: 1.10 $
  * $State: Exp $
- * $Author: nick $
+ * $Author: joty $
  *
  ***************************************************************************/
 
@@ -94,8 +94,10 @@ extern _kernel_oserror *__os_setfiletype (const char *fname, int filetype)
 
 /* Flag RISC OS error to UNIX and take a copy of the RISC OS error block.
    If 'err' is NULL, no action is taken.
-   If 'seterrno' is non-zero, then UnixLib's errno is also set to EOPSYS.  */
-extern void __ul_seterr (const _kernel_oserror *_err, int __seterrno)
+   If 'seterrno' is non-zero, then UnixLib's errno is also set to EOPSYS.
+   This function returns -1 if there is an error to allow to function
+   to be used as a return value in error situations */
+extern int __ul_seterr (const _kernel_oserror *_err, int __seterrno)
      __THROW __nonnull ((1));
 #endif
 

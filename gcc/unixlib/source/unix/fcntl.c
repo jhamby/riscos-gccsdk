@@ -128,6 +128,25 @@ fcntl (int fd, int cmd, ...)
       {
 	return 0;
       }
+
+    case F_GETLK:
+      {
+        struct flock *arg;
+
+        va_start (ap, cmd);
+        arg = va_arg (ap, struct flock *);
+        va_end (ap);
+
+        arg->l_type = F_UNLCK;
+        return 0;
+      }
+
+    case F_SETLK:
+    case F_SETLKW:
+      {
+        /* Dummy functionality */
+        return 0;
+      }
     }
 
   return __set_errno (EINVAL);
