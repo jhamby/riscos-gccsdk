@@ -71,7 +71,6 @@ G77PKG = $(pkg)/bin/g77$(exesfx) \
 CMUNGEPKG = $(pkg)/bin/cmunge$(exesfx) \
 	$(pkg)/docs/CMunge/Authors \
 	$(pkg)/docs/CMunge/Copyright \
-	$(pkg)/docs/CMunge/GCCSDKModifications \
 	$(pkg)/docs/CMunge/History \
 	$(pkg)/docs/CMunge/Manual \
 	$(pkg)/docs/CMunge/Warranty
@@ -153,7 +152,6 @@ install:
 	
 	cp -p ../riscos-aof/cmunge/Docs/Authors $(ro_gccpkg)/docs/CMunge
 	cp -p ../riscos-aof/cmunge/Docs/Copyright $(ro_gccpkg)/docs/CMunge
-	cp -p ../riscos-aof/cmunge/Docs/GCCSDKModifications $(ro_gccpkg)/docs/CMunge
 	cp -p ../riscos-aof/cmunge/Docs/History $(ro_gccpkg)/docs/CMunge
 	cp -p ../riscos-aof/cmunge/Docs/Manual $(ro_gccpkg)/docs/CMunge
 	cp -p ../riscos-aof/cmunge/Docs/Warranty $(ro_gccpkg)/docs/CMunge
