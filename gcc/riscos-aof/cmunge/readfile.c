@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2002 Robin Watts/Justin Fletcher
+ * Copyright (C) 1999-2003 Robin Watts/Justin Fletcher
  */
 
 #include <stdio.h>
@@ -13,6 +13,17 @@
 #include "options.h"
 #include "str.h"
 #include "readfile.h"
+#include "system.h"
+#include "filename.h"
+
+/* JRF: I don't like the idea of the tool location being fixed at compile
+        time, but John Tytgat informs me that this is unavoidable in the
+        cross-compiling environment that GCC employs. You'll just have to
+        rebuild with a new location if you use CMunge on a different
+        system. */
+#ifndef GCC_BIN_DIR
+#define GCC_BIN_DIR ""
+#endif
 
 #define UNUSED(x) { x=x; }
 
@@ -115,26 +126,71 @@ static void preprocess(FILE *file) {
   /* Now we have the line in prelinebuf */
   /* Spot the preprocessor directives */
   if (sscanf(prelinebuf," %i \"%[^\"]\"",&line,&filename)==2) {
-    opt.atline = line-1; /* GCC style */
+    /* It appears that GCC always generates its filenames in unix-format,
+       regardless of what you give it on the command line; to make the
+       throwback work properly, we must convert this to RISC OS style
+       if so given */
+    const char *nativefilename;
+#ifdef __riscos
+    nativefilename = filename_unixtoriscos(filename, EXTLIST_NORCROFT_CMHG);
+#else
+    /* On non-RISC OS systems, you won't care about the RISC OS filename;
+       it will only obscure the problems. */
+    nativefilename = filename;
+#endif
+    opt.atline = line-1;
     Free(opt.infile);
-    opt.infile = strdup_strip(filename);
+    opt.infile = strdup_strip(nativefilename);
   }
   else if (sscanf(prelinebuf,"line %i \"%[^\"]\"",&line,&filename)==2) {
-    opt.atline = line-1; /* Norcroft style */
+    /* Norcroft always generates the filenames in native-format which is
+       correct for throwback. */
+    opt.atline = line-1;
     Free(opt.infile);
     opt.infile = strdup_strip(filename);
   } else {
+    opt.atline++;
+#if 0
+    /* If this came from a pre-processed file, we should probably
+       report the error in the processed file - except the file
+       will be deleted when CMunge exits. So if we are pre-processing
+       we might want to report the error as being in some special
+       'processed-file' so that there is no confusion that this is
+       in an input file. However, the line number will then be wrong,
+       too.
+       I have not had enough time to think on this - it's not likely to
+       happen with the tools we use so it's probably not important.
+       Because of this, I've left it #if 0'd out. Someone should probably
+       think about it at some point. If only to satisfy the unlikely
+       failure case. */
+    if (opt.pfile)
+      opt.infile = "(processed-file)";
+#endif
     ErrorFatal("Unknown preprocessor command encountered: #%s", prelinebuf);
+  }
+
+  /* The pre-processor tool might be performing filename translation
+     and thus generating its line directives with a different name to the
+     input file. Because of this, we remember the first line declaration
+     that we see. This will henceforth be considered the root input file
+     and in non-extended pre-processor mode only lines from it will be
+     processed. */
+  if (opt.rootinfile == NULL)
+  {
+    opt.rootinfile = strdup_strip(opt.infile);
   }
 }
 
-static char *getcmhgline(FILE *file) {
+static char *getline(FILE *file) {
 
   char c;
   int comma, discarding, whitespace;
   int quoting, level, escape, concat;
   int done, linestart;
 
+  /* The 'retry' label is used to process lines which are being ignored
+     because they are inside the pre-processor's lower level includes. */
+retry:
   lineinit();
   /* First, skip whitespace */
   c = ' ';
@@ -312,13 +368,43 @@ static char *getcmhgline(FILE *file) {
   }
   insert(0);
 
+  /* If we not processing extended pre-processor operations, we need to act slightly
+     differently. CMHG will ignore anything which is not in the top level file
+     when it processes its input. This means that any text in a #include file
+     will be ignored completely in non-extended mode. In extended mode we process these
+     which means that we can therefore have fragments of the header files in
+     separate included files. */
+  if (!opt.pextended)
+  {
+    if (!Feof(file) && opt.rootinfile && strcmp(opt.rootinfile, opt.infile)!=0)
+    {
+      /* We are NOT inside the root input file that we were given. This means we're
+         in an included file. As such we need to just ignore the line. This is what
+         CMHG does and we're just copying them. */
+#if 0
+      /* JRF: I'm not sure that warning about these lines is really necessary so I've
+              commented it out for now. */
+      char *str = linebuf;
+      while (*str == ' ' || *str == '\t')
+        str++;
+      if (*str != '\0')
+      {
+        Warning("Ignoring line from included file '%s'", linebuf);
+      }
+#endif
+      /* For simplicity, we just return to the top of this routine to fetch the
+         next line. */
+      goto retry;
+    }
+  }
+
   return linebuf;
 }
 
 /*****************************************************************************
  * Starts to get cleaner from here :-)
- * parse_line calls getcmghline and then deals with the returned string,
- * setting up the 'options' structure as required.
+ * parse_line calls getline and then deals with the returned string, setting
+ * up the 'options' structure as required.
  *****************************************************************************/
 
 static void read_services(const char *s, FILE *file) {
@@ -414,6 +500,7 @@ static void read_swis(const char *s, FILE *file) {
     ErrorFatal("Only supply one swi-decoding-table!");
 
   opt.swi_names = Malloc(sizeof(*opt.swi_names));
+  opt.swi_names->handler = NULL; /* Never used but for safety */
   s = strduptok(s, &opt.swi_names->name);
   l = &opt.swi_names->next;
   s = strcomma(s);
@@ -456,7 +543,7 @@ static void read_errors(const char *s, FILE *file) {
         s = strstring(s, &(*l)->message);
       } else if (*s == 0) {
         while ((*s == 0) && !Feof(file)) {
-          s = getcmhgline(file);
+          s = getline(file);
           while (isspace(*s) && (!Feof(file)))
             s++;
         }
@@ -493,7 +580,7 @@ static void read_commands(const char *s, FILE *file) {
   s = strduptok(s, &opt.helpfn);
   s = strcomma(s);
   while ((*s == 0) && !Feof(file)) {
-    s = getcmhgline(file);
+    s = getline(file);
     while (isspace(*s) && (!Feof(file)))
       s++;
   }
@@ -585,7 +672,7 @@ static void read_commands(const char *s, FILE *file) {
         break;
       } else if (*s == 0) {
         while ((*s == 0) && !Feof(file)) {
-          s = getcmhgline(file);
+          s = getline(file);
           while (isspace(*s) && (!Feof(file)))
             s++;
         }
@@ -673,7 +760,7 @@ static void read_handlers(const char *s, handler_list *h, int allow_pw,
           break;
         } else if (*s == 0) {
           while ((*s == 0) && !Feof(file)) {
-            s = getcmhgline(file);
+            s = getline(file);
             while (isspace(*s) && (!Feof(file)))
               s++;
           }
@@ -757,8 +844,8 @@ static void read_runnable(const char *s, FILE *file)
   }
 
   while (*s != 0) {
-    /* Please not that simple-app === run_rmaapp_simple and is a VERY
-       experimental feature. It gives you an application with an equivilent
+    /* Please note that simple-app === run_rmaapp_simple and is a VERY
+       experimental feature. It gives you an application with an equivalent
        entry sequence to that of ShareFS. It does NOT make the application
        multiply threadable in user mode. It does NOT handle any exceptions
        or other environment handlers. It does NOT provide a useful context
@@ -826,7 +913,7 @@ static void read_runnable(const char *s, FILE *file)
       break;
     } else if (*s == 0) {
       while ((*s == 0) && !Feof(file)) {
-        s = getcmhgline(file);
+        s = getline(file);
         while (isspace(*s) && (!Feof(file)))
           s++;
       }
@@ -1075,7 +1162,7 @@ static void parse_line(FILE *file) {
 
   char *line;
 
-  line = getcmhgline(file);
+  line = getline(file);
 
   while (isspace(*line))
     line++;
@@ -1101,7 +1188,7 @@ static void parse_line(FILE *file) {
 
     do {
       field=fields;
-      while (field->name && stricmp(field->name,line))
+      while (field->name && !stricmp(field->name,line))
         field++;
       if (field->name==NULL)
         ErrorFatal("Unknown field: '%s'", line);
@@ -1233,10 +1320,17 @@ void ReadFile(void) {
     switch (opt.toolchain)
     {
       case tc_gcc:
-        bufend = buf+sprintf(buf, "cpp -nostdinc");
+        /* -xc hints that the input language is to be considered as C
+           because that is not necessarily guessable with the usual
+           cmhg extension. */
+        bufend = buf+sprintf(buf, GCC_BIN_DIR "gcc -E -nostdinc -xc");
         break;
       case tc_norcroft:
+#ifdef __riscos
         bufend = buf+sprintf(buf, "cc -E -C++");
+#else
+        bufend = buf+sprintf(buf, "ncc -E -C++");
+#endif
         break;
       case tc_lcc:
         bufend = buf+sprintf(buf, "cpp");
@@ -1270,20 +1364,30 @@ void ReadFile(void) {
     switch (opt.toolchain)
     {
       case tc_gcc:
-        /* Don't know how to do throwback with cpp */
-        /* Don't know how to do dependencies with cpp -
+        /* Don't know how to do throwback with gcc on non-RISC OS platform */
+        /* Don't know how to do dependencies with gcc -
              -M gives output in a mix of unix and RISC OS which isn't useful
          */
+#ifdef __riscos
+        if (opt.throwback)
+          bufend += sprintf(bufend," -mthrowback");
+#endif
+        /* See the Options_CheckSanity in c.options for warnings about the
+           dependency and throwback usage. */
         break;
+
       case tc_norcroft:
         if (opt.throwback)
           bufend += sprintf(bufend," -throwback");
         if (opt.dfile)
           bufend += sprintf(bufend," -depend %s", opt.dfile);
         break;
+
       case tc_lcc:
-        /* Don't know how to do throwback with cpp */
-        /* Don't know how to do dependencies with cpp */
+        /* Don't know how to do throwback with lcc */
+        /* Don't know how to do dependencies with lcc */
+        /* See the Options_CheckSanity in c.options for warnings about the
+           dependency and throwback usage. */
         break;
     }
 
@@ -1294,7 +1398,62 @@ void ReadFile(void) {
         bufend += sprintf(bufend, " %s -o %s", opt.infile, opt.pfile);
         break;
       case tc_norcroft:
-        bufend += sprintf(bufend, " %s > %s", opt.infile, opt.pfile);
+        if (opt.dfile)
+        {
+          char *result_file = NULL;
+          /* We have to provide the name of the file that is being generated
+             so that we have a correct dependency in the !Depend file. */
+          if (opt.ofile)
+            result_file = opt.ofile;
+          else if (opt.sfile && !opt.stemp)
+            result_file = opt.sfile;
+          else if (opt.hfile)
+            result_file = opt.hfile;
+          else if (opt.x_hdr)
+            result_file = opt.x_hdr;
+          else if (opt.x_h)
+            result_file = opt.x_h;
+          if (result_file != NULL)
+            bufend += sprintf(bufend, " -o %s", result_file);
+        }
+
+        {
+          FILE *f;
+          const char *nativefilename = opt.infile;
+          /* We need to identify whether the input file is valid or not;
+             Norcroft CC does not understand (for example) file.cmhg as
+             meaning cmhg.file. As such, we need to convert from the
+             Unix-named convention to the actual file. */
+          f = fopen(opt.infile, "r");
+          if (f)
+          {
+            fclose(f);
+            nativefilename = opt.infile;
+          }
+          else
+          {
+            const char *altfilename;
+            altfilename = filename_unixtoriscos(opt.infile,
+                                                EXTLIST_NORCROFT_CMHG);
+#ifndef __riscos
+            /* If we're not on RISC OS then a RISC OS name won't be valid
+               and we will need the actual unix name to be able to check
+               the file's existance. Because we specify no extension list,
+               we just get the filename conventions changed, with no
+               extension swapping.
+             */
+            altfilename = filename_riscostounix(altfilename, NULL);
+#endif
+            f = fopen(altfilename, "r");
+            if (f)
+            {
+              fclose(f);
+              nativefilename = altfilename;
+            }
+          }
+
+          bufend += sprintf(bufend, " %s > %s", nativefilename, opt.pfile);
+        }
         break;
       case tc_lcc:
         bufend += sprintf(bufend, " %s > %s", opt.infile, opt.pfile);
@@ -1302,9 +1461,9 @@ void ReadFile(void) {
     }
 
     /* printf("Command: %s\n", buf); */
-    rc = system(buf);
+    rc = our_system(buf);
     switch(rc) {
-      case 0: /* All ok */
+      case EXIT_SUCCESS: /* All ok */
         break;
       case -2: /* Failed */
         ErrorFatal("Could not start pre-processor");
@@ -1317,9 +1476,17 @@ void ReadFile(void) {
     if (file == NULL)
       ErrorFatal("Temporary pre-processor file not found");
   } else {
+    const char *filename;
     file = file_read(opt.infile, remove_never);
     if (file == NULL)
       ErrorFatal("File %s not found!", opt.infile);
+    /* The opt.infile can be changed (because of suffix swapping, or
+       canonicalisation). */
+    filename = file_getfilename(file);
+    if (filename == NULL)
+      ErrorFatal("Internal program error. file_getfilename() failed unexpectedly.");
+    Free(opt.infile);
+    opt.infile = strdup_strip(filename);
   }
 
   /* Allocate us a linebuffer */
@@ -1328,5 +1495,9 @@ void ReadFile(void) {
   while (!Feof(file)) {
     parse_line(file);
   }
+  /* We're at the end of our input file, so any errors/warnings
+     should not mention the last line of our input file as source
+     of the error/warning. */
+  opt.atline = 0;
   file_close(file);
 }

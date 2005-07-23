@@ -2,6 +2,438 @@ Log file for CMunge
 ===================
 
 ------------------------------------------------------------------------
+    Version 0.67 15:38:35 23/7/2005
+------------------------------------------------------------------------
+$Log: VersionLog,v $
+Revision 1.56  2005/07/23 14:40:32  justin
+Summary:
+  Fix for aborts if SWI prefix was omitted.
+Detail:
+  * The code which dealt with a lack of a SWI-prefix (and thus a missing
+    swi-decoding-table) failed to initialise the next pointer in the
+    chain. This meant that when the SWI table was written to the module it
+    would cause an abort when random data was dereferenced.
+Admin:
+  This seems to have been a quite old bug. Reported by John Tytgat.
+Tag:
+  CMunge-0_67
+
+------------------------------------------------------------------------
+    Version 0.66 05:26:22 23/7/2005
+------------------------------------------------------------------------
+Revision 1.55  2005/07/23 04:31:38  justin
+Summary:
+  Fix for failed filename conversion in filename_riscostounix.
+Detail:
+  * The filename_riscostounix function would not process extension lists
+    correctly - it would enter an infinite loop rather than stepping
+    through the list. The string is now stepped through correctly by
+    moving the pointer to the end of the list.
+Admin:
+  This change has no impact on CMunge; it merely fixes the routine which
+  was broken. The filename_riscostounix routine is only called for the
+  linux Norcroft builds, and then without an extensions list. Because of
+  this, the bug could never be triggered - it was only noticed when the
+  file was used in a different component.
+  Thus, this version is functionally identical to 0.65.
+Tag:
+  CMunge-0_66
+
+------------------------------------------------------------------------
+    Version 0.65 01:07:40 22/7/2005
+------------------------------------------------------------------------
+Revision 1.54  2005/07/22 00:15:28  justin
+Summary:
+  Corrected filename extension list definitions for UnixLib and GCC.
+  Large scale tests completed safely.
+Detail:
+  * The comments provided for (and values of) the GNU GCC tool were
+    incorrect. The definition has now been corrected to reflect the
+    description given by John Tytgat for UnixLib's default, and a new
+    definition added for the default extension list used by the GCC
+    resource.
+  * The updated tool has now been tested with the Norcroft toolchain
+    on RISC OS and linux and appears to function correctly. The issues
+    that were observed were restricted to the differing behaviour due
+    to the change of the pre-processor behaviour in -p over -px; these
+    are local issues as I am probably the only author to use this
+    feature. Module builds and their subsequent operation on being loaded
+    performed as previously with no noticable difference.
+Admin:
+  Corrections provided by John Tytgat. Doesn't affect the tool at all.
+  Testing is, I feel, adequate now to say the changed GCC support features
+  have not affected the underlying functionality. Mostly this extra
+  testing has been performed to try to ensure that the version to be
+  committed to the GCC CVS repository is known stable and should therefore
+  not require extensive exchanges of compatibility sources - we can
+  therefore concentrate (at some point) on functional enhancements.
+  Thus, this checkin does not contain a large change-set, but does form
+  a place-holder for a known working version of the tool.
+Tag:
+  CMunge-0_65
+
+------------------------------------------------------------------------
+    Version 0.64 03:02:20 21/7/2005
+------------------------------------------------------------------------
+Revision 1.53  2005/07/21 02:11:45  justin
+Summary:
+  GCC toolchain fix for invalid throwback error.
+Detail:
+  * The GCC toolchain warnings had been incorrectly merged from John
+    Tytgats changes and a -throwback option would generate an error
+    because it fell through to the Norcroft case. We now break there.
+  * The filename code had a redundant static buffer, now removed.
+Admin:
+  Checked changes here and look ok - the changes should not affect the
+  Norcroft toolchain that I can test so there's no point in testing
+  further. A fuller test will follow with more modules.
+  Faults pointed out by John Tytgat.
+Tag:
+  CMunge-0_64
+
+------------------------------------------------------------------------
+    Version 0.63 04:33:29 20/7/2005
+------------------------------------------------------------------------
+Revision 1.52  2005/07/20 03:42:50  justin
+Summary:
+  This version deals with GCC and general CMHG compatibility fixes.
+  GCC front end is now invoked rather than the sub-tools.
+  Unix-style naming convention now supported, in line with CMHG.
+  Corrected -help output with apcs selection switches.
+  Clearer error messages from non-source file input (no longer reports
+    last line).
+Detail:
+  * c.assemble, c.readfile (gcc toolchain): We're using gcc (as frontend
+    binary) to (optionally) pre-processs and assemble instead of directly
+    calling the underlying 'cpp' and 'as' binaries.  This has as advantage
+    that we don't need hacks to locate correct cpp/as binaries
+    (hack = no need to specify the binary directory of cpp/as during CMunge
+    compilation).
+    Normally gcc is found in the current run path but on non-RISC OS
+    platforms this might result in using a non ARM gcc toolchain.
+    Therefore if GCC_BIN_DIR is defined during CMunge compilation, we will
+    use that as the directory to find the gcc frontend binary.
+  * c.assemble: disable throwback if running on non-RISC OS platform.
+  * c.blank.c, c.gfile, c.options, c.readfile: in order to support
+    transparently the use of unix-style filenames in line with that of
+    CMHG, we first try to open the file using the given filename and if that
+    fails, we assume the filename was "source.c"-style and try the
+    "c.source"-style instead. The conversion code is on c.filename and is
+    believed to be correct. The extension-set used is equivilent to that
+    of CMHG.
+  * c.filename: provides the translation between RISC OS and Unix naming
+    conventions, with extension swapping where appropriate.
+  * c.gfile, h.gfile:
+    - constified the 'filename' parameter of file_find(), file_write(),
+      file_read() to indicate that these functions don't change the
+      contents of the 'filename' string.
+    - file_getfilename() : new function which gives the 'filename' back
+      for the given FILE file handle.  This is used to figure out the
+      real filename of the file opened with file_read()/file_write()
+      because those functions can try variations on their given
+      filenames because of suffix swapping.  If needed, in the future
+      this might also return a fully canonicalised filename.
+  * c.main (main): comma was missing the changes printed by the format_wrap()
+    calls (code which is normally disabled by '#if 0').
+  * c.options, h.options (Options_CL): processing of the "-h"/"-help" cmd
+    line option is delayed (via the opt.help_requested variable) until all
+    options are processed.  This allows the user to see what the apcs
+    selection is in the produced help text output whe apcs and "-h"/"-help"
+    are mixed *irrespectively* of the order of those options (i.e. before
+    this fix "cmunge -32bit -h" gave a different output as "cmunge -h
+    -32bit").
+    Changed the fixed values as 3rd parameter of strncmp() to sizeof()-1
+    equivalents like done in other parts of the code.
+  * c.readfile (preprocess): the error line number when "Unknown preprocessor
+    command encountered" error was given, was one line number wrong.
+  * c.options (gcc,lcc toolchain): output warning when the -throwback
+    and -depend options don't have any effect due to not being supported
+    (either by running on non-RISC OS platforms, either the support hasn't
+    been coded).
+  * c.readfile: reset opt.atline to zero after completely parsing the
+    (pre-processed) cmhg file so that errors/warnings from then on no longer
+    refer to the last line of the (pre-processed) cmhg file as source of
+    the error/warning.  A source of such an error could e.g. be the failure
+    to open the CMunge header file.
+  * c.system: check DDEUtils_SetCLSize and DDEUtils_SetCL before defining
+    them themselves as these #defines might be defined in kernel.h.
+    Either now (e.g. in the GCCSDK SCL stub headers today), or in the
+    future (e.g. in a new release of the Norcroft compiler).
+  * c.throwback: the RISC OS specific throwback code was only enabled
+    when __riscos is defined and when CROSS_COMPILE is not defined.
+    This has been reduced to just the __riscos check.
+  * c.apcscli: compiler warnings and over-cautious code removed. Part
+    of the minimal-abbreviation parser was being over-cautious about
+    its arguments and used what appeared to be some ambiguous comparisons.
+    The code has been reduced to a more readable and correct version.
+Admin:
+  The bulk of these changes are based on source provided by John Tytgat,
+  most of which was integrated wholesale. Where changes have been made,
+  they are most likely my own mistakes.
+  The new [ch].filename sources provide the suffix swapping on filenames
+  which appears to function correctly in tests. It has not been exercised
+  much, it may contain faults.
+  Linux build not tested with the Norcroft tools.
+  Linux build not tested with the GCC tools.
+  RISC OS build tested with regular command line operations and with
+  the suffix swapped filenames (a feature pointed out to me by JT) and
+  appears to be correct.
+  Because of the scope of these changes, this is expected to be an
+  intermediate checkin, with another one to follow with bug fixes after
+  JT has looked over these changes and pointed out things that I've
+  missed or done wrongly.
+Tag:
+  CMunge-0_63
+
+------------------------------------------------------------------------
+    Version 0.62 23:36:27 19/7/2005
+------------------------------------------------------------------------
+Revision 1.51  2005/07/19 22:44:02  justin
+Summary:
+  Added 'extended' pre-processor (-px) processing.
+  APCS 'reentrant' flag is now faulted by the processor.
+Detail:
+  * CMunge and CMHG behaviour were differing in their management of the
+    pre-processed files. CMHG will only process text from the first file
+    it is given; any text in included files will be ignored. CMunge was
+    processing all of the text. This change makes CMunge's default
+    operation match that of CMHG. To obtain the old-CMunge behaviour -
+    that of processing all text in included files - the -px switch should
+    be used.
+  * APCS 'reentrant' might be supported at a later date, and to ensure
+    that we are fault this if passed to a CMunge that does not support it,
+    we now cause an error if this is supplied.
+Admin:
+  Tested with example files supplied byb John Tytgat.
+  Differences in CMHG and CMunge pre-processing reported and diagnosed by
+  John Tytgat.
+  It appears that carry-capable returns are still not supported in 32bit
+  builds. This has now been noted in the source code. Filing systems are
+  thus not supported with CMunge in 32bit builds yet.
+Tag:
+  CMunge-0_62
+
+------------------------------------------------------------------------
+    Version 0.61 01:56:18 16/7/2005
+------------------------------------------------------------------------
+Revision 1.50  2005/07/16 00:59:52  justin
+Summary:
+  Fix for mis-written C header containing garbage characters.
+  Correction for Justin's email address.
+Detail:
+  * The formatting routine had been incorrectly optimised and was not
+    stopping at the 0-terminated end of the strings. The lack of comments
+    on the code meant that the change had an unforeseen consequence. The
+    optimisation has been reverted and comments added to describe the
+    reason.
+  * The email address has been incorrect for some time without my
+    noticing. Hopefully not too much mail has been incorrectly addressed.
+Admin:
+  Tested locally with example header and no longer outputs garbage
+  characters at the ends of lines.
+  Reported by John Tytgat.
+Tag:
+  CMunge-0_61
+
+------------------------------------------------------------------------
+    Version 0.60 01:25:43 10/7/2005
+------------------------------------------------------------------------
+Revision 1.49  2005/07/10 00:33:53  justin
+Summary:
+  Improved GCC support for modern toolchain.
+Detail:
+  * Changes to the invocation of the AS tool in order to build correctly
+    in different environments. I have not investigated this and presume
+    it to be correct, however I do believe that this is not quite a
+    sufficient merge to make it useful under non-RISC OS builds. Norcroft
+    operation is unchanged.
+  * Datestamp routines are now reduced to the standard C formatting
+    functions. The previous _kernel_swi calls for RISC OS, and standard
+    C functions under linux seems to be redundant. We now only use the
+    standard C functions.
+  * Some text strings have been tidied up where messages were untidy,
+    incorrect or unclear.
+  * All uses of strdup have been replaced by strdup_strip which should
+    alleviate confusion over its operation.
+Admin:
+  Patches submitted by John Tytgat on behalf of GCC development team.
+Tag:
+  CMunge-0_60
+
+------------------------------------------------------------------------
+    Version 0.59 21:38:17 26/9/2004
+------------------------------------------------------------------------
+Revision 1.48  2004/09/26 20:41:52  justin
+Summary:
+  Fix for headers providing SWI chunk but not names causing segmentation
+    faults.
+Detail:
+  * Because the SWI chunks was being used but the name was unallocated,
+    the tool would abort when the such files were used. This caused
+    problems when building the EtherY module. We now report a warning
+    when this is done so that the user is aware that an assumption has
+    been made.
+Admin:
+  Tested with EtherY build and now appears to work. Really such headers
+  should have their names given, but for compatibility we keep the header
+  valid like that. The EtherY module also appears to use # as a comment
+  character which isn't something that I've seen before. I've not added
+  that as a feature of CMunge yet; it might need to be if this is actually
+  the defined operation of CMunge.
+Tag:
+  CMunge-0_59
+
+------------------------------------------------------------------------
+    Version 0.58 17:20:07 16/9/2004
+------------------------------------------------------------------------
+Revision 1.47  2004/09/16 16:27:49  justin
+Summary:
+  Updated simple RMA application to be 32bit safe.
+  Updated Vector Trap handler to be 32bit safe.
+Detail:
+  * The simple RMA application entry sequence was actually just about
+    correct; it was only the exit sequence that needed a slight update.
+  * With a little bit of munging we now have a 32bit safe vector trap
+    routine which should allow us to build the final set of modules that
+    we hadn't otherwise been able to build. I believe the only people that
+    are using vector traps are Simtec, so this isn't a huge change, but
+    they did request it a long time ago. One thing to note about the
+    vector traps, that I hadn't noticed when I wrote it originally, is
+    that for the trap callback they do not revert to the callers mode.
+    This probably isn't a problem as none of the APIs require that they
+    be called in IRQ mode; Some events are entered in IRQ mode but that
+    doesn't mean they would stay in IRQ mode and if called from
+    OS_CallAVector they would be entered in SVC mode. Either way IRQ
+    semantics are still in place, so I don't think it makes much odds.
+Admin:
+  Tested on RO5 and appears to work correctly with ClipboardHolder. Tests
+  on RO4 32bit with older modules imply that everything is well so far
+  for 32bit safety, but the vector trap handler has not been tested more
+  than by examination.
+Tag:
+  CMunge-0_58
+
+------------------------------------------------------------------------
+    Version 0.57 15:16:11 16/3/2004
+------------------------------------------------------------------------
+Revision 1.46  2004/03/16 15:21:01  justin
+Summary:
+  Changed RISC OS invocation of system commands to always set DDE command line.
+  Fix for 'equivilent' typo.
+Detail:
+  * Because of problems with the path length might cause it to be
+    impossible to invoke the pre-processor (for example) due to the
+    command length limits, we now put the entire command line into
+    DDEUtils extended command line. The problem is worse on RISC OS 3.7
+    and earlier which have 256 character CLI buffers. SCL uses a limit
+    of 256 characters to decide whether to expand to the extended command
+    line. On later systems the longer CLI means that the expansion of a
+    command shorter than 256 characters is likely to be safe (it should
+    still expand to be less than 1024 characters), but this isn't the case
+    on 3.7. Because we know that the tools we invoke will all support the
+    extended command line we can safely invoke them in this manner.
+  * I've been spelling 'equivalent' wrongly for a while.
+Admin:
+  Tested build locally. Both faults reported by Chris Bazley.
+Tag:
+  CMunge-0_57
+
+------------------------------------------------------------------------
+    Version 0.56 01:53:39 1/1/2004
+------------------------------------------------------------------------
+Revision 1.45  2004/01/01 02:13:24  justin
+Summary:
+  Fix for dependency information writing correct object filename.
+Detail:
+  * When pre-processing files, we would generate !Depend information. This
+    would be created by the pre-processor. However, the 'object' file for
+    the data would not be set on the command line, so the pre-processor
+    would guess that this was an o. file. This is incorrect for my build
+    environment where modules are built into oz, and 32 bit code into o32
+    or oz32 directories; similarly (and more importantly) it means that
+    header generation now creates correct dependency information.
+Admin:
+  Tested with component seen to be failing and appears to generate the
+  corrent dependencies for both headers and object files.
+Tag:
+  CMunge-0_56
+
+------------------------------------------------------------------------
+    Version 0.55 09:18:26 29/12/2003
+------------------------------------------------------------------------
+Revision 1.44  2003/12/29 09:23:45  justin
+Summary:
+  Updated sources to build under linux more reliably.
+  Abstracted out APCS CLI parsing routines.
+Detail:
+  * Although building under linux is less useful to many, it makes testing
+    of the core code a lot faster and this makes the development a lot
+    faster. The changes are not too wideranging - escaping of the
+    assembler and pre-processor command lines (because of system variable
+    usage, etc), and corrected use of isalpha rather than isascii.
+  * I'm going to use the APCS command line parser in a few other tools
+    and rather than re-write all the code again, I've abstracted the
+    entire parser out of the options.[ch] files into apcscli.[ch]. This
+    should allow me to use it elsewhere without any significant changes.
+    Eventually it will find its way into a library, but for now this is
+    reasonable.
+Admin:
+  Tested locally with the example CMunge files and appears to work
+  correctly. Will need more testing with 'live' CMHG files.
+Tag:
+  CMunge-0_55
+
+------------------------------------------------------------------------
+    Version 0.54 05:11:38 29/11/2003
+------------------------------------------------------------------------
+Revision 1.43  2003/11/29 05:18:41  justin
+Summary:
+  Updated build and source to work under linux.
+  Improved data-string checks to prevent invalid date strings.
+Detail:
+  * The source code has been updated to omit unnecessary RISC OS
+    dependence. This means removing the calls to read the date using
+    OS_Word, redundant inclusion of kernel.h and a minor change to the
+    pre-processing call. Use the 'mklinks' script to build CMunge under
+    linux. It is expected that a suitable toolchain be present for this
+    to function as expected.
+  * It was possible to get an invalid date string attached to the module
+    through an erroneous specification of date-string. We now check that
+    the string has the right shape and fault it if not. This also removes
+    the potential for trailing text on the date-string. Note that we don't
+    check that the actual content of the date-string is correct. Dates
+    such as "99 XXX 9999" can be specified - this might be improved in
+    the future.
+Admin:
+  Tested under linux and appears to generate the correct files. For
+  correct operation under linux it is required that the pre-processor be
+  invoked. No other operation has been tested.
+  If RISC OS name conventions are used it will be necessary to ensure that
+  the pre-processor and/or assembler are capable of accepting such
+  conventions. Further modification may be necessary in the future to
+  more explicitly support other toolchains without RISC OS naming
+  conventions.
+Tag:
+  CMunge-0_54
+
+------------------------------------------------------------------------
+    Version 0.53 01:15:11 18/10/2003
+------------------------------------------------------------------------
+Revision 1.42  2003/10/18 00:17:58  justin
+Summary:
+  Fix for 32bit incompatible service entry sequence.
+Detail:
+  * The entry sequence generated in 32bit mode where the fast reject
+    service numbers were larger than could be represented in an
+    instruction would always be loaded using 26bit flag-restoring which
+    was wrong.
+Admin:
+  Tested locally with simple modules and appears to provide the correct
+  entry sequence.
+Tag:
+  CMunge-0_53
+
+------------------------------------------------------------------------
     Version 0.52 21:01:58 6/10/2003
 ------------------------------------------------------------------------
 Revision 1.41  2003/10/06 21:12:01  justin

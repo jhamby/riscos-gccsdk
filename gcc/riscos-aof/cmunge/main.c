@@ -4,6 +4,10 @@
 
 #include <stdio.h>
 
+#ifdef MEMCHECK_MemCheck
+#include "MemCheck.h"
+#endif
+
 #include "gfile.h"
 #include "options.h"
 #include "readfile.h"
@@ -21,9 +25,14 @@
 
 int main(int argc, char *argv[]) {
 
+#ifdef MEMCHECK_MemCheck
+  MemCheck_Init();
+  MemCheck_RegisterArgs(argc, argv);
+#endif
+
   file_init(); /* Initialise file tidy up library */
 
-  printf("CMunge " Module_FullVersionAndDate "\n" Copyright_CMunge "\n");
+  printf("CMunge " Module_FullVersionAndDate " [GCCSDK build]\n" Copyright_CMunge "\n");
   /* If you alter this code, insert a printf here to say that you have */
 #if 0
   format_wrap(stdout,"","",
@@ -56,23 +65,21 @@ int main(int argc, char *argv[]) {
                      "\t*\bHeader files are now a little more neatly "
                          "generated\n"
                      "\t*\bSupport for experimental 32-bit header generation\n"
-                     "\t*\bSupport for GCC and LCC toolchains (tentative)\n",
-                     "");
+                     "\t*\bSupport for GCC and LCC toolchains (tentative)\n"
+                     "\t*\bSupport for building under linux\n"
+                     "\t*\bAbstracted APCS options for use in other tools\n",
+                     "\n");
   /* ... and writeheader is structured quite a bit differently internally */
   format_wrap(stdout,"","",
                      "The following modifications made by John Tytgat :\n"
                      "\t*\bFixes for OSLib includes\n"
                      "\t*\bSupport for building using 32-bit compatible tools\n",
                      "");
-#endif
   format_wrap(stdout,"","",
                      "The following modifications were made by GCCSDK Developers :\n"
-#ifdef CROSS_COMPILE
-                     "\t*\bSee Docs/GCCSDKModifications\n",
-#else
-                     "\t*\bSee Docs.GCCSDKModifications\n",
-#endif
+                     "\t*\bImproved support for GCC toolchain\n",
                      "");
+#endif
   Options_Init();
   Options_CL(argc, argv);
   Options_CheckSanity();

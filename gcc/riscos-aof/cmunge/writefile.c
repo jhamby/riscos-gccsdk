@@ -8,6 +8,7 @@
 #include "gfile.h"
 #include "error.h"
 #include "options.h"
+#include "apcscli.h"
 
 #include "copyright.h"
 
@@ -77,7 +78,7 @@ static void outstring(const char *s,int terminate, char newline, int translate_u
           chars+=fprintf(file,"\"");
           inquote=0;
         }
-        chars+=fprintf(file,"%s%d",chars?",":"",(int)(*s=='\n'?newline:*s));
+        chars+=fprintf(file,"%s%u",chars?",":"",(int)(*s=='\n'?newline:(*s & 0xFF)));
       }
       if (*s)
         s++;
@@ -496,7 +497,10 @@ static void service(void) {
       first = 0;
     }
     if (big) {
-      fprintf(file, "\tLDMNEIA\tr13!,{pc}^\n");
+      if (CODE26)
+        fprintf(file, "\tLDMNEIA\tr13!,{pc}^\n");
+      else
+        fprintf(file, "\tLDMNEIA\tr13!,{pc}\n");
       /* CMHG is inefficient here, but I'll match it */
       fprintf(file, "\tLDR\tr14,[r13],#4\n");
     } else {
@@ -641,7 +645,13 @@ static void start(void) {
         fprintf(file,"\tSWINE\tOS_Module\n");
         fprintf(file,"\tMOV\tr0,#0\n");
         fprintf(file,"\tSTR\tr0,[r4]\n");
-        fprintf(file,"\tLDMFD\tsp!,{r0-r4,pc}^\n");
+        if (CODE26)
+          fprintf(file,"\tLDMFD\tsp!,{r0-r4,pc}^\n");
+        else
+        {
+          fprintf(file,"\tCMP\tpc,#0\t; clear V\n");
+          fprintf(file,"\tLDMFD\tsp!,{r0-r4,pc}^\n");
+        }
         fprintf(file,"\n");
         fprintf(file,"_CMUNGE_stackptr\n");
         fprintf(file,"\tDCD\t_CMUNGE_stack\n");
@@ -1311,6 +1321,7 @@ static void vector_traps(void) {
   fprintf(file, SUB_Lib_Reloc );
   fprintf(file, "\tSTMIA\tr10,{r4,r5}\n");
   fprintf(file, "\tMOV\tr14,r7\n");
+  /* Return to the caller's mode */
   if (CODE26)
   {
     fprintf(file, "\tTEQP\tr6,#0\n");
@@ -1322,15 +1333,47 @@ static void vector_traps(void) {
     fprintf(file, "\tTEQNEP   r8,#0\n");
     ErrorFatal("vector-traps have not been made 32bit-compatible yet");
   }
+  /* We need to return if 1,
+                claim if 0,
+                return VS, r0 passed on if other values
+   */
   /* FIXME: This end section hasn't been checked for 32bit */
-  fprintf(file, "\tTEQ\tr0,#1\n");
-  fprintf(file, "\tLDMEQIA\tr13!,{r0-r11,pc}^\n");
-  fprintf(file, "\tTEQ\tr0,#0\n");
-  fprintf(file, "\tLDMEQIA\tr13!,{r0-r11,r14,pc}^\n");
-  fprintf(file, "\tADD\tr13,r13,#4\n");
-  fprintf(file, "\tLDMIA\tr13!,{r1-r11,r14}\n");
-  fprintf(file, "\tLDR\tr14,[r13],#4\n");
-  fprintf(file, "\tORRS\tpc,r14,#0x10000000\n");
+  if (CODE26)
+  {
+    fprintf(file, "\tTEQ\tr0,#1\n");
+    fprintf(file, "\tLDMEQIA\tr13!,{r0-r11,pc}^\n");
+    fprintf(file, "\tTEQ\tr0,#0\n");
+    fprintf(file, "\tLDMEQIA\tr13!,{r0-r11,r14,pc}^\n");
+    fprintf(file, "\tADD\tr13,r13,#4\n");
+    fprintf(file, "\tLDMIA\tr13!,{r1-r11,r14}\n");
+    fprintf(file, "\tLDR\tr14,[r13],#4\n");
+    fprintf(file, "\tORRS\tpc,r14,#0x10000000\n");
+  }
+  else
+  {
+    fprintf(file,"\tCMP     r0, #1\n");
+    fprintf(file,"\tBHI     _CMUNGE_vtretv\n");
+    fprintf(file,"\tMOV     r12, r6\n");
+    fprintf(file,"\tLDMEQIA r13!,{r0-r11,r14}\n");
+    fprintf(file,"\tLDMLOIA r13!,{r0-r11}\n");
+    fprintf(file,"\tTEQ     pc,pc\n");
+    fprintf(file,"\tLDR     r14, [sp], #4\n");
+    fprintf(file,"\t_CMUNGE_vtret\n");
+    fprintf(file,"\tMOVNES  pc,r14\n");
+    fprintf(file,"\tMSR     cpsr_flg,r12\n");
+    fprintf(file,"\tMOV     pc, r14\n");
+
+    fprintf(file,"_CMUNGE_vtretv\n");
+    fprintf(file,"\tADD     r13, r13, #4\n");
+    fprintf(file,"\tLDMIA   r13!,{r1-r11,r14}\n");
+    fprintf(file,"\tTEQ     pc,pc\n");
+    fprintf(file,"\tLDR     r14, [sp], #4\n");
+    fprintf(file,"\tORREQ   r12, r6, #0x10000000\n");
+    fprintf(file,"\tORRNE   r14, r14, #0x10000000\n");
+    fprintf(file,"\tMOVNES  pc,r14\n");
+    fprintf(file,"\tMSR     cpsr_flg,r12\n");
+    fprintf(file,"\tMOV     pc, r14\n");
+  }
 
   /* Now the call routine...
      This routine is called with :
@@ -1339,6 +1382,7 @@ static void vector_traps(void) {
      What we must do is...
   */
   fprintf(file, "_CMUNGE_vtcall\n");
+
   fprintf(file, "\tSTMFD\tr13!,{r0,r4-r11,r14}\n");
   fprintf(file, "\tADD\tr12,r1,#10*4\n");
   fprintf(file, "\tLDMIA\tr0,{r0-r9}\n");
@@ -1348,7 +1392,18 @@ static void vector_traps(void) {
   fprintf(file, "\tLDR\tr12,[r13],#4\n");
   fprintf(file, "\tSTMIA\tr12,{r0-r9}\n");
   fprintf(file, "\tMOVVC\tr0,#0\n");
-  fprintf(file, "\tLDMFD\tr13!,{r4-r11,pc}^\n");
+  if (CODE26)
+  {
+    fprintf(file, "\tLDMFD\tr13!,{r4-r11,pc}^\n");
+  }
+  else
+  {
+    /* we're returning to APCS-R or APCS-32 so we preserve flags if in 26bit
+       where that's easy and ignore them in 32bit */
+    fprintf(file, "\tTEQ\tpc,pc\n");
+    fprintf(file, "\tLDMNEFD\tr13!,{r4-r11,pc}^\n");
+    fprintf(file, "\tLDMFD\tr13!,{r4-r11,pc}\n");
+  }
 }
 
 static void errors(void) {
@@ -1493,7 +1548,7 @@ static void generics(void) {
       fprintf(file, "\tTEQ\tr0,#0\n");
       fprintf(file, "\tLDMEQIA\tr13!,{r0-r%i,pc}^\n",preserve_endreg);
       if (carry_now)
-      { /* Not 32bit safe */
+      {
         fprintf(file, "\tTEQ\tr0,#2\n");
         fprintf(file, "\tLDMEQIA\tr13!,{r0-r%i,r14}\n",preserve_endreg);
         fprintf(file, "\tORREQS\tpc,r14,#0x20000000\n");
@@ -1525,6 +1580,7 @@ static void generics(void) {
         fprintf(file, "\tORRS\tpc,r14,#0x10000000\n");
         fprintf(file, "_CMUNGE_genv%i\n",(int)l);
         ErrorFatal("32bit code not present for carry handling");
+        /* JRF: Fix me; looks like I was lazy for this bit */
       }
       else
       {

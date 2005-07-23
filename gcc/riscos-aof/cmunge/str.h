@@ -5,11 +5,7 @@
 #ifndef STR_H
 #define STR_H
 
-#include "config.h"
-
-#ifndef HAVE_STRICMP
 int stricmp(const char *p, const char *q);
-#endif
 
 char *strdup_strip(const char *p);
 

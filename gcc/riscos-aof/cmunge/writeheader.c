@@ -1003,7 +1003,7 @@ void WriteHeader(void) {
     fprintf(file, "#include \"kernel.h\"\n\n");
 
   fprintf(file, "#define CMUNGE_VERSION (%i)\n",Module_Version);
-  fprintf(file, "#define CMHG_VERSION   (531) /* Nearest equivilent version */\n\n");
+  fprintf(file, "#define CMHG_VERSION   (531) /* Nearest equivalent version */\n\n");
 
   if (!opt.mode_errors)
   {

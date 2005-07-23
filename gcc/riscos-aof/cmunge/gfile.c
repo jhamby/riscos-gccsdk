@@ -11,6 +11,7 @@
 #include <stdio.h>
 #include "gfile.h"
 #include "str.h"
+#include "filename.h"
 
 /* Define this to debug this file */
 /* #define DEBUG */
@@ -120,7 +121,7 @@ void file_final(void)
  Parameters:   filename-> the filename to find
  Returns:      pointer to filelist, or NULL if not found
  ******************************************************************/
-static filelist *file_find(char *filename)
+static filelist *file_find(const char *filename)
 {
   filelist *ptr=list;
   while (ptr)
@@ -139,10 +140,15 @@ static filelist *file_find(char *filename)
                removewhen = whether the file should be removed at all
  Returns:      FILE handle, or NULL if failed
  ******************************************************************/
-FILE *file_write(char *filename,removetype removewhen)
+FILE *file_write(const char *filename,removetype removewhen)
 {
   filelist *ptr=file_find(filename);
   FILE *f=fopen(filename,"w");
+  if (f == NULL)
+  {
+    filename = filename_unixtoriscos(filename, EXTLIST_NORCROFT_CMHG);
+    f = fopen(filename, "w");
+  }
 
   if (f==NULL)
     return NULL;
@@ -175,10 +181,15 @@ FILE *file_write(char *filename,removetype removewhen)
                removewhen = whether the file should be removed at all
  Returns:      FILE handle, or NULL if failed
  ******************************************************************/
-FILE *file_read(char *filename,removetype removewhen)
+FILE *file_read(const char *filename,removetype removewhen)
 {
   filelist *ptr=file_find(filename);
   FILE *f=fopen(filename,"r");
+  if (f == NULL)
+  {
+    filename = filename_unixtoriscos(filename, EXTLIST_NORCROFT_CMHG);
+    f = fopen(filename, "r");
+  }
 
   if (f==NULL)
     return NULL;
@@ -202,6 +213,24 @@ FILE *file_read(char *filename,removetype removewhen)
 #endif
   ptr->handle=f;
   return f;
+}
+
+/*******************************************************************
+ Function:     file_getfilename
+ Description:  Get the filename associated with FILE handle
+ Parameters:   fhandle = FILE handle of which filename is requested
+ Returns:      filename->, or NULL if failed
+ ******************************************************************/
+const char *file_getfilename(FILE *f)
+{
+  filelist *ptr=list;
+  while (ptr)
+  {
+    if (ptr->handle == f)
+      return ptr->filename;
+    ptr=ptr->next;
+  }
+  return NULL;
 }
 
 /*********************************************** <c> Gerph *********
@@ -271,4 +300,3 @@ int file_close(FILE *f)
   fclose(f);
   return 1;
 }
-

@@ -75,12 +75,40 @@ void DateStamp(void) {
   opt.version = i;
 
   if (opt.datestring) {
-    sprintf(datebuf, " (%s)", opt.datestring);
+    char *dptr = datebuf;
+    char *iptr = opt.datestring;
+    char c;
+    int wrong = 0;
+    *dptr++ = ' ';
+    *dptr++ = '(';
+    *dptr++ = c = *iptr++; wrong = wrong || !isdigit(c);
+    *dptr++ = c = *iptr++; wrong = wrong || !isdigit(c);
+    *dptr++ = c = *iptr++; wrong = wrong || !(c==' ');
+    *dptr++ = c = *iptr++; wrong = wrong || !isalpha(c);
+    *dptr++ = c = *iptr++; wrong = wrong || !isalpha(c);
+    *dptr++ = c = *iptr++; wrong = wrong || !isalpha(c);
+    *dptr++ = c = *iptr++; wrong = wrong || !(c==' ');
+    *dptr++ = c = *iptr++; wrong = wrong || !isdigit(c);
+    *dptr++ = c = *iptr++; wrong = wrong || !isdigit(c);
+    *dptr++ = c = *iptr++; wrong = wrong || !isdigit(c);
+    *dptr++ = c = *iptr++; wrong = wrong || !isdigit(c);
+    *dptr++ = ')';
+    *dptr++ = '\0';
+    if (wrong)
+      ErrorFatal("Malformed date-string found: %s", opt.help);
+    /* The above checking form of the date string check will confirm
+       that the input string is actually sensible. Previously we used:
+          sprintf(datebuf, " (%s)", opt.datestring);
+     */
   } else {
+    /* FIXME: This will only work sensibly if the locale is set to something
+              that returns english format months, because everyone expects
+              English months. Still, it's better than the old kernel calls
+              I had. */
     time_t curtime = time(NULL);
     if (curtime == (time_t)-1)
       ErrorFatal("Failed to retrieve the current time");
-    if (strftime(datebuf, sizeof(datebuf), " (%d %b %G)", gmtime(&curtime)) == 0)
+    if (strftime(datebuf, sizeof(datebuf), " (%d %b %Y)", gmtime(&curtime)) == 0)
       ErrorFatal("Failed to convert time indication in readable format");
   }
 

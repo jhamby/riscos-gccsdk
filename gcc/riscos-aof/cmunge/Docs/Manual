@@ -60,7 +60,12 @@ Options:
 -x<type> <file> Name an export file to place SWI numbers in. Types can be :
                   hdr   assembler header
                   h     C header
--p              Pre-process the file with cpp before parsing.
+-p              Pre-process the file with the C pre-processor before parsing.
+                In this mode, all content within the included files will be
+                ignored (only the pre-processor directives will be obeyed).
+-px             Pre-process the file with the C pre-processor before parsing
+                in extended mode. In this mode, all content within the
+                included files will be processed by CMunge.
 -I<path>        Include <path> on the #include search path.
 -D<symbol>=<value>
 -D<symbol>      Define <symbol> on entry to the preprocessor.
@@ -658,7 +663,7 @@ command :
 
 
 GCC, LCC and Norcroft Toolchains:
---------------------------------
+---------------------------------
 
 Because CMunge is intended to be a free replacement for CMHG, it can be used
 with the freely available GCC toolchain as well as the commercial Norcroft
@@ -669,29 +674,27 @@ toolchain is used. This is the default and all testing of the CMunge tool
 has been performed using the Norcroft toolchain rather than the other two.
 
 The '-tgcc' option on the command line will ensure that the GCC toolchain is
-used. GCC does not, at present, support generation of relocatable modules,
-but this option is available in preparation for the freezing of hell when
-such a facility will be available :-)
+used. John Tytgat has contributed significantly to ensure that the GCC
+toolchain is able to be used with CMunge.
 
 The '-tlcc' option on the command line will ensure that the LCC toolchain is
-used. LCC, like GCC, does not support generation of relocatable modules.
+used. LCC does not support generation of relocatable modules.
 Filenames given to the LCC version of cpp must be in unix-form for the input
 and path names. CMunge deals only in native filenames so it is recommended
 that the LCC toolchain not be used with CMunge. As such, the lcc toolchain
 should be considered unusable with CMunge.
 
 Norcroft building:
-  cc     - Preprocesses the input if -p used
+  cc     - Pre-processes the input if -p used
   objasm - Assembles the generated code
   
 GCC building:
-  cpp    - Preprocesses the input if -p used
-           Note that there is no dependency or throwback support with the
-           GCC version of cpp
-  as     - Assembles the generated code
+  gcc    - Pre-processes the input if -p used (-xc mode)
+           Note that there is no dependency support.
+  gcc    - Assembles the generated code (-xassembler mode)
   
 LCC building:
-  cpp    - Preprocesses the input ip -p used
+  cpp    - Pre-processes the input ip -p used
            Note that there is no dependency or throwback support with the
            LCC version of cpp.
   as     - Assembles the generated code
@@ -755,8 +758,6 @@ Reformat this manual to be more readable.
 
 Possible faults:
 ----------------
-
-REL alignment isn't supported by AS, so we can't do the -zbase thing.
 
 I /think/ that the command entry handlers could be improved by not supplying
 a default handler, but I've not done that yet.

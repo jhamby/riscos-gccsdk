@@ -11,13 +11,12 @@
 #include "error.h"
 #include "mem.h"
 #include "options.h"
+#include "system.h"
+#include "apcscli.h"
 
 #ifndef GCC_BIN_DIR
 #define GCC_BIN_DIR ""
 #endif
-
-#define OBJASM "objasm"
-#define AS GCC_BIN_DIR "/as"
 
 static char buf[2048];
 
@@ -27,45 +26,38 @@ void AssembleFile(void) {
 
   if (opt.ofile) {
     int throwback;
-#ifdef CROSS_COMPILE
-    throwback = 0;
-#else
+#ifdef __riscos
     throwback = opt.throwback;
+#else
+    throwback = 0;
 #endif
+
     switch (opt.toolchain)
     {
       case tc_norcroft:
         {
           unsigned long flags = opt.apcs;
-          apcsoptions_t *aarg;
           char *bufend;
-          bufend = buf + sprintf(buf, OBJASM " -nowarn %s %s -o %s -apcs 3",
+          bufend = buf + sprintf(buf, "objasm -nowarn %s %s -o %s -apcs ",
                                  throwback ? "-throwback " : "",
                                  opt.sfile, opt.ofile);
-
-          for (aarg = apcsoptions; aarg->name!=NULL; ++aarg)
-          {
-            if (aarg->bic & (APCS_32BIT | APCS_SWSTACKCHECK | APCS_FPREGARGS))
-            {
-              /* Only process flags that objasm is known to accept */
-              if ((flags & aarg->bic) == aarg->orr)
-                bufend += sprintf(bufend, "/%s", aarg->name);
-            }
-          }
+          bufend += apcscli_buildstring(flags, ~(APCS_32BIT |
+                                                 APCS_SWSTACKCHECK),
+                                        1, bufend, buf+2048-bufend);
         }
         break;
       case tc_gcc:
       case tc_lcc:
-        sprintf(buf, AS " %s -objasm -module %s %s -o %s",
-                          (CODE32) ? "-apcs32 -apcsfpv3 -t ARM6" : "",
-                          throwback ? "-throwback " : "",
+        sprintf(buf, GCC_BIN_DIR "gcc -xassembler -mmodule %s %s -c %s -o %s",
+                          (CODE32) ? "-apcs32 -apcsfpv3" : "",
+                          throwback ? "-mthrowback" : "",
                           opt.sfile, opt.ofile);
         break;
     }
 
     /* printf("Command: %s\n",buf); */
 
-    rc = system(buf);
+    rc = our_system(buf);
     switch (rc) {
       case EXIT_SUCCESS:
         /* Yo, success! print a message ? Nah, just return */

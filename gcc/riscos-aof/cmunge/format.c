@@ -45,7 +45,7 @@ void format_wrap(FILE *file,
   int lastbreak=0;
   int pos;
   int start=strlen(lead1);
-  fputs(lead1,file);
+  fprintf(file, "%s", lead1);
   pos=start;
   while (*text)
   {
@@ -71,9 +71,13 @@ void format_wrap(FILE *file,
       pos+=wordlen;
       needspace=1;
     }
-    switch (*text++)
+
+    /* Put any trailing characters and perform operations necessary after
+       this break character */
+    switch (*text)
     {
       case '\t':
+        text++;
         do {
           fputc(' ',file);
           pos++;
@@ -83,6 +87,7 @@ void format_wrap(FILE *file,
         break;
 
       case '\b':
+        text++;
         /* Put a single space separator */
         fputc(' ',file);
         pos++;
@@ -94,7 +99,8 @@ void format_wrap(FILE *file,
           lastbreak=pos-start;
 
           /* Work out what the furthest along a break is */
-          for (search = strchr(text, '\n'); search; search = strchr(search, '\n'))
+          for (search = strchr(text, '\n'); search;
+               search = strchr(search, '\n'))
           {
             int searchpos=0;
             int foundpos=0;
@@ -129,15 +135,22 @@ void format_wrap(FILE *file,
         break;
 
       case ' ':
+        text++;
         break;
 
       case '\n':
-        fputc('\n',file); fputs(lead2,file);
+        text++;
+        fprintf(file, "\n%s", lead2);
         pos=start;
         needspace=0;
         indent=0;
         break;
+
+      case '\0':
+        /* End of the line - we are done with this formatted string, and
+           this nul will cause the while loop to terminate. */
+        break;
     }
   }
-  fputs(trailer,file); fputc('\n',file);
+  fprintf(file, "%s\n", trailer);
 }

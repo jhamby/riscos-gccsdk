@@ -6,9 +6,11 @@ prefix = $(unix_prefix)
 CFLAGS += -DCROSS_COMPILE
 exesfx =
 else
+# In stage2, we compile & link with libscl.  Do not change this unless you're
+# sure there aren't any licence issues between CMunge and UnixLib.
 prefix = $(riscos_prefix)
 CC = $(CROSS_CC)
-CFLAGS = $(CROSS_CFLAGS)
+CFLAGS = $(CROSS_CFLAGS) -mlibscl
 endif
 
 INCLUDES = -I. -I../../
@@ -18,37 +20,44 @@ cmungeobjdir = $(objdir)/riscos-aof/cmunge/$(STAGE)
 
 all:	$(bin_dir)/cmunge$(exesfx)
 
-SRCS =	assemble.c \
+SRCS =	apcscli.c \
+	assemble.c \
 	blank.c \
 	comments.c \
 	datestamp.c \
 	error.c \
 	format.c \
+	filename.c \
 	gfile.c \
 	main.c \
 	mem.c \
 	options.c \
 	readfile.c \
 	str.c \
+	system.c \
 	throwback.c \
 	writeexport.c \
 	writefile.c \
 	writeheader.c
 
 HDRS =	../../sdk-config.h \
+	apcscli.h\
 	assemble.h \
 	blank.h \
 	comments.h \
 	copyright.h \
 	datestamp.h \
 	error.h \
+	filename.h \
 	format.h \
 	gfile.h \
 	mem.h \
 	options.h \
 	readfile.h \
 	str.h \
+	system.h \
 	throwback.h \
+	VersionNum \
 	writeexport.h \
 	writefile.h \
 	writeheader.h
@@ -60,7 +69,7 @@ OBJS = $(addprefix $(cmungeobjdir)/, $(SRCS:.c=.o))
 
 $(cmungeobjdir)/%.o: %.c
 	$(CC) $(CFLAGS) -o $@ -c $< $(INCLUDES) \
-	-DGCC_BIN_DIR=\"$(prefix)$(gn_gcc_bin_dir)\"
+	-DGCC_BIN_DIR=\"$(prefix)$(gn_standard_exec_prefix)\"
 
 $(bin_dir)/cmunge$(exesfx): $(OBJS) $(DEPS)
 	$(CC) -o $@ $(OBJS)
@@ -74,11 +83,8 @@ ifeq (${STAGE},stage2)
 
 $(cmungeobjdir)/cmunge.o:	$(SRCS) $(DEPS) $(HDRS)
 	$(CC) $(CFLAGS) -o $@ -c $(SRCS) $(INCLUDES) \
-	-DGCC_BIN_DIR=\"$(prefix)$(gn_gcc_bin_dir)\"
+	-DGCC_BIN_DIR=\"\"
 
 $(bin_dir)/cmunge$(exesfx): $(cmungeobjdir)/cmunge.o $(DEPS)
-	$(CC) -o $@ $(cmungeobjdir)/cmunge.o
-	# In order to comply with the CMunge license when distributing modified copies:
-	echo -e The following changes were made by the GCCSDK developers against the official CMunge version v`grep Module_MajorVersion_CMHG VersionNum | tac -s ' ' | head -n 1` :\\n\\n > Docs/GCCSDKModifications
-	-cvs -z9 -q diff -N -u -r CMunge-`grep Module_MajorVersion_CMHG VersionNum | tac -s ' ' | head -n 1 | sed "s/\./_/"` >> Docs/GCCSDKModifications
+	$(CC) -o $@ -mlibscl $(cmungeobjdir)/cmunge.o
 endif
