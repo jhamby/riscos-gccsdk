@@ -2,11 +2,11 @@
 # Copyright (c) 2004, 2005 GCCSDK Developers
 
 ifeq (${STAGE},stage1)
-CFLAGS += -DCROSS_COMPILE
+CFLAGS += -DCROSS_COMPILE -D_GNU_SOURCE
 exesfx =
 else
 CC = $(CROSS_CC)
-CFLAGS += $(CROSS_CFLAGS)
+CFLAGS = $(CROSS_CFLAGS) -D_GNU_SOURCE
 endif
 
 INCLUDES = -I. -I ../../

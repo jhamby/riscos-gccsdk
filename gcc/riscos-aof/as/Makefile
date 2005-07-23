@@ -1,7 +1,7 @@
 # Makefile for the ARM Object Format assembler - AS
 
 ifeq (${STAGE},stage1)
-CFLAGS += -DCROSS_COMPILE
+CFLAGS += -DCROSS_COMPILE -D_GNU_SOURCE
 exesfx =
 else
 CC = $(CROSS_CC)

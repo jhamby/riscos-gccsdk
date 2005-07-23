@@ -2,13 +2,15 @@
 # Written by Nick Burrett <nick@dsvr.net>
 
 ifeq (${STAGE},stage1)
-CXXFLAGS += -DCROSS_COMPILE
+CFLAGS += -DCROSS_COMPILE -D_GNU_SOURCE
+CXXFLAGS += -DCROSS_COMPILE -D_GNU_SOURCE
 linklibs = -lstdc++
 exesfx = 
 else
 CC = $(CROSS_CC)
+CFLAGS = $(CROSS_CFLAGS) -D_GNU_SOURCE
 CXX = $(CROSS_CXX)
-CXXFLAGS = $(CROSS_CXXFLAGS)
+CXXFLAGS = $(CROSS_CXXFLAGS) -D_GNU_SOURCE
 endif
 
 INCLUDES = -I. -I../../

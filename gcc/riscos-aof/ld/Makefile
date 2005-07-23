@@ -3,12 +3,12 @@
 
 ifeq (${STAGE},stage1)
 prefix = $(unix_prefix)
-CFLAGS += -DCROSS_COMPILE -DLIBDIR=\"$(ux_gcc_bin_dir)/\"
+CFLAGS += -DCROSS_COMPILE -D_GNU_SOURCE -DLIBDIR=\"$(ux_gcc_bin_dir)/\"
 exesfx =
 else
 prefix = $(riscos_prefix)
 CC = $(CROSS_CC)
-CFLAGS = $(CROSS_CFLAGS)
+CFLAGS = $(CROSS_CFLAGS) -D_GNU_SOURCE
 endif
 
 INCLUDES = -I. -I../../ -I../../include

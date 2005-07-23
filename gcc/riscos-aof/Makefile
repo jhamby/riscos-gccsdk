@@ -4,8 +4,6 @@
 
 export TLIB
 
-CFLAGS += -D_GNU_SOURCE
-
 ifeq (${STAGE},stage1)
 bin_dir=$(ux_gccpkg)/$(gn_standard_exec_prefix)
 gcc_bin_dir=$(ux_gccpkg)/$(gn_gcc_bin_dir)
