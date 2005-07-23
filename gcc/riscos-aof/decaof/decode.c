@@ -46,9 +46,9 @@ static long area_offset;
 static Word symboltab_size;
 
 static void print_area (FILE *ifp, struct areahdr *areahdr, Word offset, Word reloff);
-static char *string (Word offset);
-static char *symname (Word offset);
-static char *areaname (Word offset);
+static const char *string (Word offset);
+static const char *symname (Word offset);
+static const char *areaname (Word offset);
 
 void
 decode (void)
@@ -193,38 +193,42 @@ decode (void)
 
 				switch (flags & 0x3) {
 					case 0x01:
-						fputs("local ", stdout);
+						fputs("local", stdout);
 						break;
 					case 0x02:
-						fputs("extern ",
+						fputs("extern",
 						    stdout);
 						break;
 					case 0x03:
-						fputs("global ", stdout);
+						fputs("global", stdout);
 						break;
 					default:
-						fputs("unknown-type ", stdout);
+						fputs("unknown-type", stdout);
 						break;
 				}
 				if ((flags & (1<<2)) && flags & (1<<0))
-					fputs("constant ", stdout);
+					fputs(", constant", stdout);
 				if ((flags & (1<<3)) && !(flags & (1<<0)))
-					fputs("case-insensitive ", stdout);
+					fputs(", case-insensitive", stdout);
 				if ((flags & (1<<4)) && ((flags & 0x03) == 0x02))
-					fputs("weak ", stdout);
+					fputs(", weak", stdout);
 				if ((flags & (1<<5)) && ((flags & 0x03) == 0x03))
-					fputs("strong ", stdout);
+					fputs(", strong", stdout);
 				if ((flags & (1<<6)) && ((flags & 0x03) == 0x02))
-					fputs("common ", stdout);
+					fputs(", common", stdout);
 				if (flags & (1<<8))
-					fputs("cadatum ", stdout);
-				if (flags & (1<<8))
-					fputs("fpargs ", stdout);
+					fputs(", cadatum", stdout);
+				if (flags & (1<<9))
+					fputs(", fpargs", stdout);
+				if (flags & (1<<11))
+					fputs(", fp args in fp regs", stdout);
+				if (flags & (1<<12))
+					fputs(", thumb", stdout);
 				if ((flags & (1<<0)) || (flags & (1<<6))) {
 					if (flags & (1<<2))
-						printf("= 0x%08x", symboltab[i].value);
+						printf(" = 0x%08x", symboltab[i].value);
 					else
-						printf("at \"%s\" + 0x%06x", string(symboltab[i].areaname), symboltab[i].value);
+						printf(" at \"%s\" + 0x%06x", string(symboltab[i].areaname), symboltab[i].value);
 				}
 				putchar('\n');
 			}
@@ -414,44 +418,44 @@ print_area(FILE *ifp, struct areahdr *areahdr, Word offset, Word reloff)
 /*
  * return a pointer to a string in the string table
  */
-static char *
+static const char *
 string(Word offset)
 {
 	if (!stringtab || offset < 4 || offset >= *(Word *)stringtab)
-		return (NULL);
-	return ((char *)(stringtab + offset));
+		return NULL;
+	return (char *)(stringtab + offset);
 }
 
 /*
  * return a pointer to a symbol name in the symbol table
  */
-static char *
+static const char *
 symname(Word offset)
 {
 	struct symbol *sym;
 
 	if (!symboltab || offset > symboltab_size)
-		return (NULL);
+		return NULL;
 	sym = (struct symbol *)(symboltab + offset);
-	return (string(sym->name));
+	return string(sym->name);
 }
 
 /*
  * return a pointer to an area name, given the area's offset
  * into the OBJ_AREA.
  */
-static char *
+static const char *
 areaname(Word offset)
 {
 	Word aoff;
 	int i;
 
 	if (!aofhdr || !areahdrs)
-		return (NULL);
+		return NULL;
 	for (i = 0, aoff = 0; i < aofhdr->numareas; i++)
 		if (aoff == offset)
-			return (string(areahdrs[i].name));
+			return string(areahdrs[i].name);
 		else if (!(areahdrs[i].flags & AREA_UDATA))
 			aoff += areahdrs[i].size + (sizeof(struct reloc) * areahdrs[i].numrelocs);
-	return (NULL);
+	return NULL;
 }
