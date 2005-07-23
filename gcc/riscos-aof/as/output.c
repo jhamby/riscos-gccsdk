@@ -2,17 +2,18 @@
  * AS an assembler for ARM
  * Copyright © 1992 Niklas Röjemo
  * Copyright © 1997 Nick Burrett
- * 
+ * Copyright (c) 2005 GCCSDK Developers
+ *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
  * of the License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
@@ -58,7 +59,7 @@ static FILE *objfile;
 #define FIX(n) ((3+(int)n)&~3)
 #define EXTRA(n) (FIX(n)-n)
 
-const char *idfn_text = "Creator: GCCSDK AOF"
+const char *idfn_text = "GCCSDK AOF"
 #ifndef NO_ELF_SUPPORT
 	"/ELF"
 #endif
@@ -283,7 +284,7 @@ outputAof (void)
       return;
     }
 /******** Chunk 2 String Table ***********/
-  strt_size = armword(strt_size);
+  strt_size = armword(symbolStringSize ());
   if (fwrite ((void *) &strt_size, 1, 4, objfile) != sizeof (strt_size))
     {
       errorLine (0, NULL, ErrorSerious, FALSE,

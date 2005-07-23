@@ -1,17 +1,18 @@
 /*
  * AS an assembler for ARM
  * Copyright © 1992 Niklas Röjemo
- * 
+ * Copyright (c) 2005 GCCSDK Developers
+ *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
  * of the License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
@@ -41,19 +42,22 @@
 #define SYMBOL_WEAK      0x10	/* Only if SYMBOL_REFERENCE, must not be resolved */
 #define SYMBOL_STRONG    0x20	/* Complicated ??? */
 #define SYMBOL_COMMON    0x40
-#define SYMBOL_KEEP	 0x80
 
+#define SYMBOL_SUPPORTEDBITS 0x7F
 
-#define SYMBOL_AREA        0x100
-#define SYMBOL_NOTRESOLVED 0x200
+/* The following are 'as' internal SYMBOL attribute values only and should
+   not be used in the AOF output file.  */
+#define SYMBOL_KEEP		0x80
+#define SYMBOL_AREA		0x100
+#define SYMBOL_NOTRESOLVED	0x200
 /* Symbol is defined in a based area.  */
-#define SYMBOL_BASED	   0x400
+#define SYMBOL_BASED		0x400
 
-#define SYMBOL_CPUREG      0x1000
-#define SYMBOL_FPUREG      0x2000
-#define SYMBOL_COPREG      0x4000
-#define SYMBOL_COPNUM	   0x8000
-#define SYMBOL_GETREG(x)   ((x)&0xf000)
+#define SYMBOL_CPUREG		0x1000
+#define SYMBOL_FPUREG		0x2000
+#define SYMBOL_COPREG		0x4000
+#define SYMBOL_COPNUM		0x8000
+#define SYMBOL_GETREG(x)	((x)&0xf000)
 
 #define SYMBOL_TABLESIZE 1024
 

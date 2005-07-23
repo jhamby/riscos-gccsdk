@@ -1,17 +1,18 @@
 /*
  * AS an assembler for ARM
  * Copyright © 1992 Niklas Röjemo
- * 
+ * Copyright (c) 2005 GCCSDK Developers
+ *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
  * of the License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
@@ -252,7 +253,7 @@ symbolStringOutput (FILE * outfile)	/* Count already output */
 	    if (pedantic && sym->declared == 0)
 	      if ((sym->type & SYMBOL_DEFINED) > 0 || sym->used > -1)
 		errorLine (0, NULL, ErrorWarning, TRUE, "Symbol %s is implicitly imported", sym->str);
-	    fwrite ((void *) sym->str, 1, sym->len + 1, outfile);
+	    fwrite (sym->str, 1, sym->len + 1, outfile);
 	  }
       }
 
@@ -280,9 +281,8 @@ symbolSymbolOutput (FILE * outfile)
 		  value = codeEvalLow (ValueAll, sym->value.ValueCode.len, sym->value.ValueCode.c);
 		}
 	      else
-		{
-		  value = sym->value;
-		}
+		value = sym->value;
+
 	      switch (value.Tag.t)
 		{
 		case ValueIllegal:
@@ -343,39 +343,37 @@ symbolSymbolOutput (FILE * outfile)
 	      asym.AreaName = 0;
 	    }
           asym.Name     = armword (asym.Name);
-          asym.Type     = armword (asym.Type);
+          asym.Type     = armword (asym.Type & SYMBOL_SUPPORTEDBITS);
           asym.Value    = armword (asym.Value);
           asym.AreaName = armword(asym.AreaName);
-	  fwrite ((void *) &asym, sizeof (AofSymbol), 1, outfile);
+	  fwrite (&asym, sizeof (AofSymbol), 1, outfile);
 	}
       else if (sym->type & SYMBOL_AREA)
 	{
 	  asym.Name = armword (sym->offset);
-	  asym.Type = armword (SYMBOL_KIND(sym->type)|SYMBOL_LOCAL);
+	  asym.Type = armword (SYMBOL_KIND(sym->type) | SYMBOL_LOCAL);
 	  asym.Value = armword (0);
 	  asym.AreaName = armword (sym->offset);
-	  fwrite ((void *) &asym, sizeof (AofSymbol), 1, outfile);
+	  fwrite (&asym, sizeof (AofSymbol), 1, outfile);
 	}
 }
 
 #ifndef NO_ELF_SUPPORT
 static int
-findAreaIndex (struct AREA * area) {
+findAreaIndex (struct AREA * area)
+{
   Symbol *ap;
   int i=3;
 
-  ap=areaHead;
+  for (ap=areaHead; ap; ap=ap->area.info->next)
+    {
+      if (area == (struct AREA *)ap)
+        return i;
+      i++;
+      if (ap->area.info->norelocs > 0)
+        i++; /* We will be outputting a relocation section as well */
+    }
 
-  while (ap) {
-    if (area == (struct AREA *)ap) {
-      return i;
-    }
-    i++;
-    if ((ap->area.info->norelocs)>0) {
-      i++; /* We will be outputting a relocation section as well */
-    }
-    ap=ap->area.info->next;
-  }
   return -1;
 }
 
@@ -397,7 +395,7 @@ symbolSymbolElfOutput (FILE * outfile)
   asym.st_other=0;
   asym.st_shndx=0;
 
-  fwrite ((void *) &asym, sizeof (Elf32_Sym), 1, outfile);
+  fwrite (&asym, sizeof (Elf32_Sym), 1, outfile);
 
   for (i = 0; i < SYMBOL_TABLESIZE; i++)
     for (sym = symbolTable[i]; sym; sym = sym-> next)
@@ -493,7 +491,7 @@ one time */
             bind = STB_WEAK;
 
           asym.st_info = ELF32_ST_INFO(bind, type);
-          fwrite ((void *) &asym, sizeof (Elf32_Sym), 1, outfile);
+          fwrite (&asym, sizeof (Elf32_Sym), 1, outfile);
         }
       else if (sym->type & SYMBOL_AREA)
 	{
@@ -502,7 +500,7 @@ one time */
 	  asym.st_name = sym->offset - 3;
 	  asym.st_value = 0;
 	  asym.st_shndx = findAreaIndex ((struct AREA *)sym);
-	  fwrite ((void *) &asym, sizeof (Elf32_Sym), 1, outfile);
+	  fwrite (&asym, sizeof (Elf32_Sym), 1, outfile);
 	}
 }
 #endif
