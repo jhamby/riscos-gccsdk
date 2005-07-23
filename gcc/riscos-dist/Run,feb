@@ -1,7 +1,7 @@
 | !Run file for the GCCSDK
 | Copyright (c) Nick Burrett, 1996, 1997, 1998, 1999, 2001
 | Copyright (c) GCCSDK Development Team 2002, 2003, 2004, 2005
-| Version 1.16 (05 July 2005)
+| Version 1.17 (23 July 2005)
 
 Set GCC$Dir <Obey$Dir>
 
@@ -21,7 +21,7 @@ Set Sys$RCLimit 65536
 | Set UnixFS$/tmp <Wimp$ScrapDir>
 
 | Ensure correct filename translation for a variety of prefixes
-Set UnixEnv$gcc$sfix "f:for:F:fpp:cc:cxx:cpp:c++:C:i:ii:rpo:c:m:h:hh:s:S:xrb:xrs:l:o:y:tcc"
+Set UnixEnv$gcc$sfix "f:for:F:fpp:cc:cxx:cpp:c++:C:i:ii:rpo:c:m:h:hh:s:S:xrb:xrs:l:o:y:tcc:cmhg"
 Set UnixEnv$cc1$sfix <UnixEnv$gcc$sfix>
 Set UnixEnv$cc1plus$sfix <UnixEnv$gcc$sfix>
 Set UnixEnv$cpp$sfix <UnixEnv$gcc$sfix>
@@ -31,7 +31,6 @@ Set UnixEnv$f771$sfix <UnixEnv$gcc$sfix>
 Set UnixEnv$gcov$sfix <UnixEnv$gcc$sfix>
 Set UnixEnv$make$sfix <UnixEnv$gcc$sfix>
 Set UnixEnv$as$sfix "h:S:s:o"
-Set UnixEnv$cmunge$sfix "h:s:o:cmhg"
 
 | Set system variables for controlling UnixLib heap for dynamic areas.
 | See the documentation about UnixLib and dynamic areas.
