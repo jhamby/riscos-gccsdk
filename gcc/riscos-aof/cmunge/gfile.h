@@ -44,7 +44,7 @@ void file_final(void);
                removewhen = whether the file should be removed at all
  Returns:      FILE handle, or NULL if failed
  ******************************************************************/
-FILE *file_write(char *filename,removetype removewhen);
+FILE *file_write(const char *filename,removetype removewhen);
 
 /*********************************************** <c> Gerph *********
  Function:     file_read
@@ -53,7 +53,19 @@ FILE *file_write(char *filename,removetype removewhen);
                removewhen = whether the file should be removed at all
  Returns:      FILE handle, or NULL if failed
  ******************************************************************/
-FILE *file_read(char *filename,removetype removewhen);
+FILE *file_read(const char *filename,removetype removewhen);
+
+/*******************************************************************
+ Function:     file_getfilename
+ Description:  Get the filename associated with FILE handle which
+               we got from file_read() or file_write().  The filename
+               can be different than the one priorly given to
+               file_read()/file_write() because of e.g.
+               canonicalistion or suffix swapping done.
+ Parameters:   fhandle = FILE handle of which filename is requested
+ Returns:      filename->, or NULL if failed
+ ******************************************************************/
+const char *file_getfilename(FILE *f);
 
 /*********************************************** <c> Gerph *********
  Function:     file_temp

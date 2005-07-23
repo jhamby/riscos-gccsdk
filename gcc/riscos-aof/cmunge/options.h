@@ -94,27 +94,9 @@ typedef struct defines_list_s {
   defines_list  next;
 } defines_list_s;
 
-/* APCS variant flags */
-#define APCS_REENTRANT     (1<<0) /* Reentrant APCS */
-#define APCS_32BIT         (1<<1) /* 32bit APCS (not 26bit) */
-#define APCS_FPE3          (1<<2) /* FPE3 (not FPE2) */
-#define APCS_SWSTACKCHECK  (1<<3) /* Software stack checking */
-#define APCS_FPREGARGS     (1<<4) /* Floating point registers */
-#define APCS_FP            (1<<5) /* Frame pointer */
-
 /* Shortcut checks so that it's easier to see what's happening */
 #define CODE32   (opt.apcs & APCS_32BIT)
 #define CODE26   (!CODE32)
-
-/* Structure representing the APCS options which can be used in opt.apcs */
-typedef struct apcsoptions_s {
-  char *name;        /* Argument name */
-  int minabbrev;     /* Minimum number of characters for abbreviation */
-  unsigned long bic; /* Bits to clear */
-  unsigned long orr; /* Bits to set */
-  char *desc;        /* Description of the flag */
-} apcsoptions_t;
-extern apcsoptions_t apcsoptions[];
 
 /* Main module structure */
 
@@ -185,12 +167,15 @@ typedef struct {
   int           atline;
 
   /* For pre-processing */
+  char         *rootinfile;     /* the base input file to emulate cmhg's ignoring of anything in include files */
   char         *pfile;          /* preprocessed file */
+  int           pextended;      /* are we using extended pre-processor operations */
   defines_list  defines;        /* any defines added */
   include_list  includes;       /* Include Path List */
 
   /* Options from the CLI */
   int           cmhg;           /* We /are/ CMHG, to all intents and purposes */
+  int           help_requested; /* User requested help on CLI options */
 } options;
 
 extern options opt;
