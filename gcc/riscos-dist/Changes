@@ -10,6 +10,15 @@ RISC OS GCC release 3.4.4 release 4 (released XX XXX 2005)
 
 * nm: Explictly marked as GPL.
 
+* cmunge: Upgraded to v0.67 which now contains GCCSDK support and several
+  bugs fixes and enhancements.  All details in !gcc.docs.CMunge.History.
+  Many thanks to Justin Fletcher for his full support.
+
+* as: Under some circumstances, reserved AOF symbol attributes were set
+  and this could be triggered too by GCC usage of 'as'.
+  drlink: A warning is given when unsupported/reserved AOF symbol
+  attributes are detected.
+
 
 RISC OS GCC release 3.4.4 release 3 (released 8 July 2005)
 ===================================
