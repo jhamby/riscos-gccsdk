@@ -418,6 +418,8 @@ export ac_cv_c_char_unsigned=yes
 export ac_cv_c_bitfields_htol=no
 export ac_cv_c_const=yes
 
+export ac_cv_conv_longlong_to_float=yes
+
 export ac_cv_dev_minor_bits=0
 export ac_cv_dev_minor_noncontig=no
 
