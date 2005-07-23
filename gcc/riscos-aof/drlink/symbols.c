@@ -641,12 +641,12 @@ scan_symt (filelist * fp)
 	  continue;
 	}
       attr = symtp->symtattr;
-      if (aofv3flag && (attr & SYM_A3ATTR) != 0)
-	{			/* Reject AOF 3 attributes */
+      if (aofv3flag && (attr & SYM_UNSUPATTR) != 0)
+	{ /* Reject unsupported symbol attributes */
 	  error
-	    ("Error: Symbol '%s' in '%s' has unsupported AOF symbol attributes (%06x)",
+	    ("Error: Symbol '%s' in '%s' has unsupported AOF symbol attributes (%08x)",
 	     symtp->symtname + COERCE (fp->obj.strtptr, unsigned int),
-	     fp->chfilename, attr & SYM_A3ATTR);
+	     fp->chfilename, attr & SYM_UNSUPATTR);
 	  ok = FALSE;
 	}
       attr = attr & SYM_ATMASK;

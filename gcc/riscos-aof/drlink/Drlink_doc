@@ -28,7 +28,7 @@ adequate in most cases. Drlink is designed to link 'ordinary'
 programs and cannot do some of the fancy things link can, such as
 create image files that use overlays. Of course, some of these
 features could be added at a later date but the current version of
-Drlink, 0.33, does not support them. On the other hand, it does
+Drlink does not support them. On the other hand, it does
 contain some features found on later releases of 'link' such as
 the ability to increase the size of the wimpslot if necessary when
 running in a task window and support for extended command lines.
@@ -1132,6 +1132,10 @@ Drlink 0.33
    from the image file when '-nounused' is used.
 -  Increased the maximum length filename that the linker will
    handle to 500 characters.
+
+Drlink 0.34
+-  Linker can now be compiled to run under RiscBSD and Linux (but
+   it still links only AOF files).
 
 [...]
 

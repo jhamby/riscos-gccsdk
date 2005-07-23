@@ -31,17 +31,21 @@
 #define SYM_LOCAL   0x01	/* Symbol defined here, only accessible here */
 #define SYM_EXTERN  0x02	/* Symbol defined externally */
 #define SYM_GLOBAL  0x03	/* Symbol defined here, accessibly anywhere */
-#define SYM_ABSVAL  0x04	/* Symbol has an absolute value i.e. a constant */
-#define SYM_IGNCASE 0x08	/* Ignore case when matching symbol */
-#define SYM_WEAKREF 0x10	/* Symbol reference may remain unresolved */
-#define SYM_STRONG  0x20	/* Symbol definition is 'strong' */
-#define SYM_COMMON  0x40	/* Symbol is a common area reference */
+#define SYM_ABSVAL  0x04	/* Symbol has an absolute value i.e. a constant (only for SYM_LOCAL or SYM_GLOBAL) */
+#define SYM_IGNCASE 0x08	/* Ignore case when matching symbol (only for SYM_EXTERN) */
+#define SYM_WEAKREF 0x10	/* Symbol reference may remain unresolved (only for SYM_EXTERN) */
+#define SYM_STRONG  0x20	/* Symbol definition is 'strong' (only for SYM_GLOBAL) */
+#define SYM_COMMON  0x40	/* Symbol is a common area reference (only for SYM_EXTERN) */
+/* Bit 7 (value 1<<7) is reserved and always set to 0. */
 
 /* Following are the extra AOF version 3 symbol attributes */
 
 #define SYM_CADATUM 0x100	/* Code area data attribute */
 #define SYM_FPARGS  0x200	/* FP args in FP registers */
+/* Bit 10 (value 1<<10) is reserved and always set to 0. */
 #define SYM_LEAF    0x800	/* Simple leaf function */
+#define SYM_THUMB   0x1000	/* Identifies Thumb code, instead of ARM code */
+/* Bits 13-31 are reserved and are always set to 0. */
 
 /* Special masks and attributes */
 
@@ -51,7 +55,7 @@
 #define SYM_LINKDEF 0x80000000	/* Marks symbol as linker defined */
 
 #define SYM_ATMASK 0x067	/* Mask to extract interesting symbol attributes */
-#define SYM_A3ATTR 0x400	/* Mask to extract unsupported AOF 3 symbol attributes */
+#define SYM_UNSUPATTR 0xFFFFF680	/* Mask containing all unsupported attributes. */
 
 /* Relocation type bits */
 

@@ -30,11 +30,7 @@
 # define IGNORE_CASE
 #endif
 
-#ifndef CROSS_COMPILE
-# define DL_VERSION "0.41  31/05/2005"
-#else
-# define DL_VERSION "0.4.1  31/05/2005  [GCCSDK build]"
-#endif
+#define DL_VERSION "0.41 " __DATE__ "  [GCCSDK build]"
 
 /*
 ** Some constants used everywhere
