@@ -117,7 +117,7 @@ static unsigned int linewidth,  /* Chars printed on line in symbol file */
 #ifndef CROSS_COMPILE
 static bool rearrange (const char *filename);
 static void set_filetype (const char *filename, int filetype);
-static void set_loadexec (void);
+static void set_loadexec (const char *filename);
 #endif
 static int find_size (FILE * file);
 static bool need_debug (const char *name, int hashval);
@@ -424,10 +424,8 @@ void
 check_debuglist (void)
 {
   debugfiles *p;
-  bool msg;
-  msg = FALSE;
-  p = debugflist;
-  while (p != NULL)
+  bool msg = FALSE;
+  for (p = debugflist; p != NULL; p = p->dbgnext)
     {
       if (!p->dbgread)
 	{
@@ -439,7 +437,6 @@ check_debuglist (void)
 	    }
 	  error ("    %s", p->dbgname);
 	}
-      p = p->dbgnext;
     }
 }
 
@@ -1296,55 +1293,24 @@ load_editfile (const char *name)
 
 /*
 ** 'open_image' creates the image file and then opens it so that
-** its contents can be written. The file is created first so that
-** an area of disk of the correct size will be allocated rather
-** than the OS having to keep extending the file. Hopefully this
-** speeds up writing the image file.
+** its contents can be written.
 */
 void
 open_image (void)
 {
-#ifndef CROSS_COMPILE
-  char ro_name[MAXPATHLEN];
-  unsigned int filetype;
-  _kernel_swi_regs regs;
-  _kernel_oserror *swierror;
-  switch (imagetype)
-    {
-    case RMOD:
-      filetype = MODULE;
-      break;
-    case AOF:
-    case ALF:
-      filetype = DATA;
-      break;
-    default:
-      filetype = (opt_debimage && debugsize > 0) ? DEBIMAGE : ABSOLUTE;
-    }
-
-  __riscosify_std (imagename, 1, ro_name, sizeof (ro_name), NULL);
-
-  regs.r[0] = 0x0B;		/* OS_File call to create a file */
-  regs.r[1] = COERCE (ro_name, int);
-  regs.r[2] = filetype;
-  regs.r[4] = 0;
-  regs.r[5] = imagesize;
-  swierror = _kernel_swi (OS_File, &regs, &regs);
-  if (swierror != NULL)
-    error ("Fatal: Cannot create image file '%s'", imagename);
-
-  imagefile = fopen (imagename, "rb+");
-#else
   imagefile = fopen (imagename, "wb");
+#ifdef CROSS_COMPILE
   if (imagefile != NULL)
     {
       struct stat access;
- 
+
       if (stat(imagename, &access) == 0)
         chmod(imagename, access.st_mode | S_IXUSR | S_IXGRP | S_IXOTH);
     }
-#endif
+  else
+#else
   if (imagefile == NULL)
+#endif
     error ("Fatal: Unable to open image file '%s'", imagename);
   filebuftop = filebuffer;
   filebufend = filebuffer + buffersize;
@@ -1438,32 +1404,44 @@ set_filetype (const char *filename, int filetype)
 {
   _kernel_swi_regs regs;
   _kernel_oserror *swierror;
+  char ro_name[MAXPATHLEN];
+
+  __riscosify_std (filename, 1, ro_name, sizeof (ro_name), NULL);
+
   regs.r[0] = 0x12;		/* Set file type */
-  regs.r[1] = COERCE (filename, int);
-  regs.r[2] = TEXT;
+  regs.r[1] = COERCE (ro_name, int);
+  regs.r[2] = filetype;
   swierror = _kernel_swi (OS_File, &regs, &regs);
   if (swierror != NULL)
-    error ("Fatal: Cannot set filetype of '%s'", filename);
+    error ("Fatal: Cannot set filetype of '%s' (%s)", filename, swierror->errmess);
 }
 
+/*
+** 'set_loadexec' sets the load- and execution address of the
+** file given by filename.
+*/
 static void
-set_loadexec (void)
+set_loadexec (const char *filename)
 {
   _kernel_swi_regs regs;
   _kernel_oserror *swierror;
+  char ro_name[MAXPATHLEN];
+
+  __riscosify_std (filename, 1, ro_name, sizeof (ro_name), NULL);
+
   regs.r[0] = 2;		/* Call to reset load address */
-  regs.r[1] = COERCE (imagename, int);
+  regs.r[1] = COERCE (ro_name, int);
   regs.r[2] = codebase;
   swierror = _kernel_swi (OS_File, &regs, &regs);
   if (swierror != NULL)
-    error ("Fatal: Cannot alter load address of '%s'", imagename);
+    error ("Fatal: Cannot alter load address of '%s' (%s)", filename, swierror->errmess);
 
   regs.r[0] = 3;		/* Call to reset execution address */
-  regs.r[1] = COERCE (imagename, int);
+  regs.r[1] = COERCE (ro_name, int);
   regs.r[3] = entryarea->arplace + entryoffset;
   swierror = _kernel_swi (OS_File, &regs, &regs);
   if (swierror != NULL)
-    error ("Fatal: Cannot alter execution address of '%s'", imagename);
+    error ("Fatal: Cannot alter execution address of '%s' (%s)", filename, swierror->errmess);
 }
 #endif
 
@@ -1479,9 +1457,29 @@ close_image (void)
   write_block (filebuffer, filebuftop - filebuffer);
   fclose (imagefile);
   imagefile = NULL;
+
 #ifndef CROSS_COMPILE
   if (opt_codebase)
-    set_loadexec ();
+    set_loadexec (imagename);
+  else
+    {
+      /* Set filetype: */
+      unsigned int filetype;
+      switch (imagetype)
+        {
+        case RMOD:
+          filetype = MODULE;
+          break;
+        case AOF:
+        case ALF:
+          filetype = DATA;
+          break;
+        default:
+          filetype = (opt_debimage && debugsize > 0) ? DEBIMAGE : ABSOLUTE;
+          break;
+        }
+      set_filetype (imagename, filetype);
+    }
 #endif
 }
 
