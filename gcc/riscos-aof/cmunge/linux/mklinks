@@ -1,0 +1,58 @@
+#!/usr/bin/perl
+
+## In order to build under linux the following commands should be used :
+##    ./mklinks cmunge
+##    make
+## The first command, mklinks, executes this file. This will build the
+## makefile which will be used to compile CMunge, and generate symbolic
+## links from the main source files in this directory.
+## The second command will build the cmunge binary.
+## This script has been tested upon my (Justin's) system and appears
+## to function correctly.
+##
+## This script may be used freely within other projects whether they be
+## freely available, for commercial use or otherwise. The only thing
+## that is asked is that improvements and suggestions be returned to
+## Justin Fletcher at <justin.fletcher@ntlworld.com>.
+
+$target = shift || "prog";
+
+makelinks("../c");
+makelinks("../h");
+
+open(MAKEFILE, "> makefile") || die;
+print MAKEFILE "LIBS = $libs\n";
+print MAKEFILE "OBJS = ";
+while (<*.c>)
+{
+  $file=$_;
+  /^([^\.]*)\./; $stem=$1;
+  print MAKEFILE "\\\n  $stem.o";
+}
+print MAKEFILE "\n";
+print MAKEFILE <<EOM;
+
+.c.o:
+	cc -I$clib -I. -I.. -c -o \$@ \$?
+
+$target: \$(OBJS) \$(LIBS)
+	cc -o $target \$(OBJS) \$(LIBS)
+
+EOM
+
+sub makelinks
+{
+  local ($path)=@_;
+  while (<$path/*>)
+  {
+    if (!-d $_)
+    {
+      $src= $_;
+      /\/([^\/]*)\/([^\/]*)$/; $leaf = $2; $dir = $1;
+   
+      $cmd = "ln -s $_ $leaf.$dir";
+      system "$cmd\n";
+    }
+  }
+}
+
