@@ -139,7 +139,7 @@ struct ul_global
 {
   char *__unixlib_cli;
   unsigned int __time[2];
-  int __fpflag;
+  int __notused1;
   int __taskwindow;
   int __taskhandle;
   int __dynamic_num;
@@ -307,9 +307,6 @@ extern int __32bit;
 extern int __escape_disabled;
 
 extern unsigned int __time[2];	/* start time */
-
-/* FP flag reflecting Floating Point presence or not.  */
-extern int __fpflag;
 
 /* System memory page size.  */
 extern int __ul_pagesize;

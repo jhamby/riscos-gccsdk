@@ -67,7 +67,7 @@ MAX_DA_NAME_SIZE	* 32
 	IMPORT  |__pthread_enable_ints|    ;ASM function (pthread/_ints.s)
 	IMPORT	|__setup_signalhandler_stack| ;ASM function (signal/_signal.s)
 	IMPORT	|__ul_malloc_init|
-	
+
 	IMPORT	|_main|
 	IMPORT	|__program_name|, WEAK
 	IMPORT	|__dynamic_no_da|, WEAK
@@ -102,7 +102,7 @@ SUL_MIN_VERSION	EQU	107
 	LDR	ip, =|__ul_global|
 	LDR	fp, =|__ul_memory|
 
-	; __unixlib_cli = pointer to command line	
+	; __unixlib_cli = pointer to command line
 	STR	a1, [ip, #GBL_UNIXLIB_CLI]
 	; __image_rw_himem = permitted RAM limit
 	STR	a2, [fp, #MEM_APPSPACE_HIMEM]
@@ -350,7 +350,6 @@ no_dynamic_area
 	; We insist on having at least version 4.00.
 	SWI	XFPEmulator_Version
 	MOVVS	a1, #0
-	STR	a1, [ip, #GBL_FPFLAG]	; __fpflag
 	CMP	a1, #400	; We want 4.00 or above so we can use SFM/LFM
 	MOVCC	a1, #ERR_NO_FPE
 	BCC	|__exit_with_error_num|
@@ -375,7 +374,7 @@ no_dynamic_area
 	BL	|__env_unixlib|
 	; Initialise the stack heap in application space
 	BL	|__stackalloc_init|
-	
+
 	; Initialise the UnixLib library
 	; NOTE:	 No calls to brk, sbrk, or malloc should occur before
 	; calling this function.
@@ -445,7 +444,7 @@ error_unrecoverable_loop
 	DCD	SharedUnixLibrary_Error_FatalError
 	DCB	"Unrecoverable fatal error detected", 0
 	ALIGN
-	
+
 	IMPORT	|__munmap_all|
 	EXPORT	|__dynamic_area_exit|
 	NAME	__dynamic_area_exit
@@ -961,8 +960,7 @@ __unixlib_fatal_got_msg
 	EXPORT	|_kernel_fpavailable|
 	NAME	_kernel_fpavailable
 |_kernel_fpavailable|
-	LDR	a1, =|__ul_global|
-	LDR	a1, [a1, #GBL_FPFLAG]	; __fpflag
+	MOV	a1, #1
 	MOV	pc, lr
 
 	EXPORT	|__unixlib_get_fpstatus|
@@ -1037,7 +1035,6 @@ dynamic_area_name_end
 	IMPORT	|Image$$RW$$Limit|
 	EXPORT	|__unixlib_cli|		; CLI from OS_GetEnv
 	EXPORT	|__time|	; start time - 5 byte format
-	EXPORT	|__fpflag|	; FPE emulator version number
 	EXPORT	|__taskwindow|	; non-zero if executing in a TaskWindow
 	EXPORT	|__taskhandle|	; WIMP task handle, or zero if non WIMP task
 	EXPORT	|__dynamic_num|
@@ -1065,7 +1062,7 @@ dynamic_area_name_end
 	; Altering this structure will require fixing __main.
 |__unixlib_cli|	        DCD	0				; offset = 0
 |__time|	        DCD	0, 0	; low word, high byte	; offset = 4
-|__fpflag|	        DCD	0				; offset = 12
+|__notused1|	        DCD	0				; offset = 12
 
 |__taskwindow|	        DCD	0				; offset = 16
 |__taskhandle|	        DCD	0				; offset = 20

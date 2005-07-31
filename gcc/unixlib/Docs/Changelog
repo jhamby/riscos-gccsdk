@@ -1,3 +1,10 @@
+Sun Jul 31 16:17:49 2005  John Tytgat  <John.Tytgat@aaug.net>
+
+	* clib/unixlib/{asm_dec.s,unix.h}, sys/_syslib.s: For some time UnixLib
+	  required the FPEmulator so __fpflag is not really needed.  Renamed to
+	  __notused1 (and not longer exported) so that we can reuse the space for
+	  something else in the future. Renamed GBL_FPFLAG to GBL_NOTUSED1.
+
 Sat Jul 23 13:45:59 2005  Peter Naulls  <peter@chocky.org>
 
 	* common/unixify.c: Fully fix earlier fix.
