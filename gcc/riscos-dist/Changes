@@ -2,7 +2,7 @@ Noteworthy changes to the RISC OS GCCSDK
 
 For specific UnixLib changes, see !gcc.docs.UnixLib.Changes
 
-RISC OS GCC release 3.4.4 release 4 (released XX XXX 2005)
+RISC OS GCC release 3.4.5 release 1 (released XX XXX 2005)
 ===================================
 
 * decaof: On 14 July 2005, the original author of decaof, Andy Duplain,
@@ -10,7 +10,7 @@ RISC OS GCC release 3.4.4 release 4 (released XX XXX 2005)
 
 * nm: Explictly marked as GPL.
 
-* cmunge: Upgraded to v0.67 which now contains GCCSDK support and several
+* cmunge: Upgraded to v0.68 which now contains GCCSDK support and several
   bugs fixes and enhancements.  All details in !gcc.docs.CMunge.History.
   Many thanks to Justin Fletcher for his full support.
 
