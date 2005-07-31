@@ -423,7 +423,6 @@ static void service(void) {
 
   if (!opt.service)
     return;
-  fprintf(file, "\tALIGN\n");
   if (opt.services) {
     unsigned int min = 0;
     unsigned int found;
@@ -677,8 +676,7 @@ static void init(void) {
   if (opt.mode_errors)
     return;
 
-  fprintf(file, "\n\tALIGN\n");
-  fprintf(file, "_CMUNGE_init\n");
+  fprintf(file, "\n_CMUNGE_init\n");
   fprintf(file, "\tSTMFD\tr13!,{r7-r11,r14}\n");
   fprintf(file, "\tMOV\tr0,#%i\n",opt.reentrant ? 1 : 0);
   if (opt.lib_init) {
@@ -875,7 +873,6 @@ static void swi_handler(void) {
   /* JRF: 32bit ok */
   if (!opt.swi_base)
     return;
-  fprintf(file, "\tALIGN\n");
   fprintf(file, "_CMUNGE_swi_handler\n");
   fprintf(file, "\tSTMDB\tr13!,{r0-r9,r14}\n");
   if (CODE26)
@@ -998,7 +995,6 @@ static void swi_decoder(void) {
 
   if (!opt.swi_decoder)
     return;
-  fprintf(file, "\tALIGN\n");
   fprintf(file, "_CMUNGE_swi_decoder\n");
   if (opt.swi_decoder->handler) {
     fprintf(file, "\tSTMDB\tr13!,{r0-r3,r10,r11,r14}\n");
@@ -1624,7 +1620,6 @@ static void flags(void) {
   {}
   else
   {
-    fprintf(file, "\tALIGN\n");
     fprintf(file, "_CMUNGE_module_flags\n");
     fprintf(file, "\tDCD\t1 ; 32bit supported\n");
   }
@@ -1638,8 +1633,10 @@ void WriteFile(void) {
 
   asm_header();
   mod_header();
-  strings();
-  swi_table();
+  strings(); /* Afterwards, PC can end on a non word boundary */
+  swi_table(); /* Afterwards, PC could end on a non word boundary */
+  fprintf(file, "\tALIGN\n");
+  /* From here onwards, PC is always word aligned */
   commands();
 #ifdef CMHG_RESOURCE_FILE_ORDERING
   if (opt.mfile) {

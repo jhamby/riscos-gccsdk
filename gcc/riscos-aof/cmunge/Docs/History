@@ -2,9 +2,36 @@ Log file for CMunge
 ===================
 
 ------------------------------------------------------------------------
+    Version 0.68 19:04:09 31/7/2005
+------------------------------------------------------------------------
+$Log: History,v $
+Revision 1.57  2005/07/31 18:14:23  justin
+Summary:
+  Fix for potential unaligned instruction.
+Detail:
+  * Within the module header it was possible, with runnable modules
+    without any other entry sequences, to generate a module with an
+    instruction that is unaligned. Such a module would not be usable
+    unless the simple-rma-app feature was used because such modules
+    would be required to trap the memory service to prevent their slot
+    being paged out (assuming they were tasks). However, this was not
+    good. The code has been rearranged so that the sections which require
+    alignment are always forced to be aligned.
+Admin:
+  Tested locally and seems to generate correct code now.
+  Fault located and patch submitted by John Tytgat.
+  There is a slight change in the behaviour now in that command tables
+  will always be aligned. Previously we could have saved up to 4 bytes
+  by having the command table run on from earlier strings. Given the
+  other wastages in the header, this probably isn't a huge issue. It
+  does break binary comparison with CMHG generated headers I believe (if
+  it wasn't already broken).
+Tag:
+  CMunge-0_68
+
+------------------------------------------------------------------------
     Version 0.67 15:38:35 23/7/2005
 ------------------------------------------------------------------------
-$Log: VersionLog,v $
 Revision 1.56  2005/07/23 14:40:32  justin
 Summary:
   Fix for aborts if SWI prefix was omitted.
