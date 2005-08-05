@@ -1,0 +1,6 @@
+
+AB_INSTALL=yes
+
+AB_CONFLAGS=--disable-xv
+
+mkdir -p $D/include/libdv
