@@ -67,16 +67,6 @@ r4 RN 4
 r12 RN 12
 r14 RN 14
 
-#ifdef __APCS_26__
-#define RETURN(dst,src) movs dst, src
-#define RETURNc(x,dst,src) mov##x##s dst, src
-#define RETCOND ^
-#else
-#define RETURN(dst,src) mov dst, src
-#define RETURNc(x,dst,src) mov##x dst, src
-#define RETCOND
-#endif
-
 /* Keep these in sync with unixlib/asm_dec.s and features.h */
 __FEATURE_PTHREADS	EQU	1
 __PTHREAD_ALLOCA_OFFSET	EQU	8
@@ -92,7 +82,7 @@ __PTHREAD_ALLOCA_OFFSET	EQU	8
 |__ashldi3|
 	/* if shift = 0 then return */
 	CMP	a3, #0
-	RETURNc(eq, pc, lr)
+	MOVEQ	pc, lr
 
 	/* if shift >= 32 then low word will be 0 */
 	RSBS	ip, a3, #32		/* bm = 32 - b */
@@ -103,8 +93,7 @@ __PTHREAD_ALLOCA_OFFSET	EQU	8
 	MOVGT	a2, a2, LSL a3		/* high = high << b */
 	ORRGT	a2, a2, a1, LSR ip	/* high = high | low >> bm */
 	MOVGT	a1, a1, ASL a3		/* low = low << b */
-
-	RETURN(pc, lr)
+        MOV	pc, lr
 #endif
 
 #ifdef L_ashrdi3
@@ -115,7 +104,7 @@ __PTHREAD_ALLOCA_OFFSET	EQU	8
 |__ashrdi3|
 	/* if shift = 0 then return */
 	CMP	a3, #0
-	RETURNc(eq, pc, lr)
+	MOVEQ	pc, lr
 
 	/* if shift >= 32 then high word will be 1..1 or 0..0 */
 	RSBS	ip, a3, #32		/* bm = 32 - b */
@@ -126,8 +115,7 @@ __PTHREAD_ALLOCA_OFFSET	EQU	8
 	MOVGT	a1, a1, LSR a3		/* low = low >> b */
 	ORRGT	a1, a1, a2, ASL ip	/* low = low | high << bm */
 	MOVGT	a2, a2, ASR a3		/* high = high >> b */
-
-	RETURN(pc, lr)
+        MOV	pc, lr
 #endif
 
 #ifdef L_clear_icache
@@ -146,7 +134,7 @@ XOS_SynchroniseCodeAreas	EQU	&00006E + X_Bit
 	MOV	a2, a1
 	MOV	a1, #1
 	SWI	XOS_SynchroniseCodeAreas
-	RETURN(pc, lr)
+	MOV	pc, lr
 #endif
 
 #ifdef L_cmpdi2
@@ -156,12 +144,12 @@ XOS_SynchroniseCodeAreas	EQU	&00006E + X_Bit
 	   entry a1,a2 = u, a3,a4 = v
 	   exit u > v = 2, u < v = 0, u = v = 1  */
 |__cmpdi2|
-	CMP    a2, a4
-	CMPEQ  a1, a3
-	MOVLT  a1, #0
-	MOVGT  a1, #2
-	MOVEQ  a1, #1
-	RETURN(pc, lr)
+	CMP	a2, a4
+	CMPEQ	a1, a3
+	MOVLT	a1, #0
+	MOVGT	a1, #2
+	MOVEQ	a1, #1
+	MOV	pc, lr
 #endif
 
 #ifdef L_divdi3
@@ -176,7 +164,7 @@ XOS_SynchroniseCodeAreas	EQU	&00006E + X_Bit
 	   check the numerator for zero  */
 	CMP	a1, #0	/* low */
 	CMPEQ	a2, #0	/* high */
-	RETURNc(eq, pc, lr)
+	MOVEQ	pc, lr
 	/* test for a divide by zero */
 	CMP	a3, #0	/* low */
 	CMPEQ	a4, #0	/* high */
@@ -250,10 +238,10 @@ XOS_SynchroniseCodeAreas	EQU	&00006E + X_Bit
 	MOVS	v6, v6, LSL#2
 	MOVCC	a1, v2
 	MOVCC	a2, v3
-	LDMCCFD	sp!, {v2, v3, v4, v6, pc}RETCOND
+	LDMCCFD	sp!, {v2, v3, v4, v6, pc}
 	RSBS	a1, v2, #0 /* low */
 	RSC	a2, v3, #0 /* high */
-	LDMFD	sp!, {v2, v3, v4, v6, pc}RETCOND
+	LDMFD	sp!, {v2, v3, v4, v6, pc}
 #endif
 
 #ifdef L_ffs
@@ -271,7 +259,7 @@ XOS_SynchroniseCodeAreas	EQU	&00006E + X_Bit
 	RSBNE	a1, a1, a1, LSL #8
 	/* load register, if not equal, with byte */
 	LDRNEB	a1, [pc, a1, LSR #26]
-	RETURN(pc, lr)
+	MOV	pc, lr
 
 |ffs.table|
 	/* table must occur 8 bytes after LDRxxB instruction above */
@@ -284,7 +272,7 @@ XOS_SynchroniseCodeAreas	EQU	&00006E + X_Bit
 |__ffsdi2|
 	CMP	a1, #0			/* if passed 0 */
 	CMPEQ	a2, #0			/* then exit */
-	RETURNc(eq, pc, lr)
+	MOVEQ	pc, lr
 	/* input and output in a1, workspace a2 */
 	TEQ	a1, #0			/* test equality with 0 */
 	MOVEQ	a1, a2			/* use the high word */
@@ -300,7 +288,7 @@ XOS_SynchroniseCodeAreas	EQU	&00006E + X_Bit
 	ADD	a4, pc, #|ffs.table| - . - 8
 	LDRB	a1, [a4, a1, LSR #26]
 	ADD	a1, a1, a3
-	RETURN(pc, lr)
+	MOV	pc, lr
 #endif
 
 #ifdef L_fixsfdi
@@ -314,7 +302,7 @@ XOS_SynchroniseCodeAreas	EQU	&00006E + X_Bit
 
 	moveq	r0, #0 /* If the exponent was 0, return 0 */
 	moveq	r1, #0 /* (Handles cases where fraction == 0 and so number=0, or fraction != 0 and so number=0.fraction*2^-126 (i.e. very small indeed)) */
-	RETURNc(eq, pc, lr)
+	MOVEQ	pc, lr
 
 	cmp	r2, #189 /* Maximum exponent we can allow is 62, since 2^63 would overflow into the sign slot and result in -1. Tracing that back results in an r2 of 62+127 = 189 */
 	bgt	fixsfdi_big
@@ -340,7 +328,7 @@ XOS_SynchroniseCodeAreas	EQU	&00006E + X_Bit
 	moveq	pc, r14 /* Return if positive */
 	rsbs	r0, r0, #0 /* Or negate */
 	rsc	r1, r1, #0
-	RETURN(pc, lr)
+	MOV	pc, lr
 
 fixsfdi_big /* For big numbers, including infinity */
 	cmp	r3, #0
@@ -348,7 +336,7 @@ fixsfdi_big /* For big numbers, including infinity */
 	mvneq	r1, #&80000000 /* +infinity */
 	movne	r0, #0
 	movne	r1, #&80000000 /* -infinity */
-	RETURN(pc, lr)
+	MOV	pc, lr
 #endif
 
 #ifdef L_fixunssfdi
@@ -361,12 +349,12 @@ fixsfdi_big /* For big numbers, including infinity */
 	movs	r1, r2, lsl #23 /* Check for sign=1 or exponent=0 */
 	movle	r0, #0 /* ...in which case return 0 */
 	movle	r1, #0
-	RETURNc(le, pc, lr)
+	MOVLE	pc, lr
 
 	cmp	r2, #190 /* Maximum exponent we can allow is 63, since 2^64 would overflow. Tracing that back results in an r2 of 63+127 = 190 */
 	mvngt	r0, #0
 	mvngt	r1, #0 /* +infinity */
-	RETURNc(gt, pc, lr)
+	MOVGT	pc, lr
 
 	/* Else exponent >0 and <191, so treat as 1.fraction*2^(exponent-127) */
 	orr	r1, r0, #&800000 /* Add the implicit 1 to the fraction */
@@ -384,7 +372,7 @@ fixsfdi_big /* For big numbers, including infinity */
 	rsblt	r2, r2, #0
 	movlt	r1, r1, lsr r2
 
-	RETURN(pc, lr)
+	MOV	pc, lr
 #endif
 
 #ifdef L_fixdfdi
@@ -398,7 +386,7 @@ fixsfdi_big /* For big numbers, including infinity */
 
 	moveq	r0, #0 /* If the exponent was 0, return 0 */
 	moveq	r1, #0 /* (Handles cases where fraction == 0 and so number=0, or fraction != 0 and so number=0.fraction*2^-1022 (i.e. very small indeed)) */
-	RETURNc(eq, pc, lr)
+	MOVEQ	pc, lr
 
 	sub	r2, r2, #1024 /* Adjust exponent (really this should be 1023, but that'd take two instructions) */
 	cmp	r2, #61 /* Maximum exponent we can allow is 62, since 2^63 would overflow into the sign slot and result in -1 */
@@ -428,7 +416,7 @@ fixsfdi_big /* For big numbers, including infinity */
 	moveq	pc, lr
 	rsbs	r0, r1, #0
 	rsc	r1, r2, #0
-	RETURN(pc, lr)
+	MOV	pc, lr
 
 fixdfdi_left
 	mov	r0, r0, lsl r2 /* Shift upper word */
@@ -446,7 +434,7 @@ fixdfdi_left
 	rsbs	r2, r2, #0
 	rsc	r1, r0, #0
 	mov	r0, r2
-	RETURN(pc, lr)
+	MOV	pc, lr
 
 fixdfdi_big /* For big numbers, including infinity */
 	cmp	r3, #0
@@ -454,7 +442,7 @@ fixdfdi_big /* For big numbers, including infinity */
 	mvneq	r1, #&80000000 /* +infinity */
 	movne	r0, #0
 	movne	r1, #&80000000 /* -infinity */
-	RETURN(pc, lr)
+	MOV	pc, lr
 #endif
 
 #ifdef L_fixunsdfdi
@@ -467,13 +455,13 @@ fixdfdi_big /* For big numbers, including infinity */
 	movs	r3, r2, lsl #20 /* Check for sign=1 or exponent=0 */
 	movle	r0, #0 /* ...in which case return 0 */
 	movle	r1, #0
-	RETURNc(le, pc, lr)
+	MOVLE	pc, lr
 
 	sub	r2, r2, #1024 /* Adjust exponent (really this should be 1023, but that'd take two instructions) */
 	cmp	r2, #62 /* Maximum exponent we can allow is 63, since 2^64 would overflow */
 	mvngt	r0, #0
 	mvngt	r1, #0 /* +infinity */
-	RETURNc(gt, pc, lr)
+	MOVGT	pc, lr
 
 	/* Else exponent is in range */
 	subs	r2, r2, #19+32 /* Adjust again so that the 1 bit will lie in bit 0 of r0 */
@@ -495,7 +483,7 @@ fixdfdi_big /* For big numbers, including infinity */
 	/* return (completing word order swap started above) */
 	mov	r0, r1
 	mov	r1, r2
-	RETURN(pc, lr)
+	MOV	pc, lr
 
 fixunsdfdi_left
 	mov	r0, r0, lsl r2 /* Shift upper word */
@@ -508,7 +496,7 @@ fixunsdfdi_left
 	/* return (completing word order swap started above) */
 	mov	r1, r0
 	mov	r0, r2
-	RETURN(pc, lr)
+	MOV	pc, lr
 #endif
 
 #ifdef L_fixunsxfdi
@@ -528,7 +516,7 @@ fixunsdfdi_left
 	BL	|__fixuns|
 	RSBS	a1, a1, #0
 	RSC	a2, a2, #0
-	RETURN(pc, a4)
+	MOV	pc, a4
 
 	/* On entry:
 	     sp = pointer to the floating point value
@@ -543,7 +531,7 @@ fixunsdfdi_left
 	CMFE	f2, #0.0
 	MOVLE	a1, #0
 	MOVLE	a2, #0
-	RETURNc(le, pc, lr)
+	MOVLE	pc, lr
 	LDFS	f1, [pc, #|c..1| - . - 8]
 	FMLS	f0, f1, #2.0
 	DVFE	f0, f2, f0
@@ -574,11 +562,11 @@ fixunsdfdi_left
 	BNE	|do_add.2|
 	SUBS	a1, a1, a3
 	SBC	a2, a2, #0
-	RETURN(pc, lr)
+	MOV	pc, lr
 |do_add.2|
 	ADDS	a1, a1, a3
 	ADC	a2, a2, #0
-	RETURN(pc, lr)
+	MOV	pc, lr
 #endif
 
 #ifdef L_floatdidf
@@ -601,7 +589,7 @@ fixunsdfdi_left
 	cmp	r0, #0
 	cmpeq	r1, #0
 	mvfeqd	f0, #0.0
-	RETURNc(eq, pc, lr)
+	MOVEQ	pc, lr
 
 	movs	r3, r1 /* check sign and copy top word */
 	movge	r2, r0 /* bottom word */
@@ -656,7 +644,7 @@ fltdidf_norm_fin
 	str	r0, [sp, #-8]
 	str	r1, [sp, #-4]
 	ldfd	f0, [sp, #-8]
-	RETURN(pc, lr)
+	MOV	pc, lr
 #endif
 
 #ifdef L_lshrdi3
@@ -668,7 +656,7 @@ fltdidf_norm_fin
 |__lshrdi3|
 	/* if shift = 0 then return */
 	CMP	a3, #0
-	RETURNc(eq, pc, lr)
+	MOVEQ	pc, lr
 
 	/* if shift >= 32 then high word will be 0 */
 	RSBS	ip, a3, #32		/* bm = 32 - b */
@@ -679,7 +667,7 @@ fltdidf_norm_fin
 	MOVGT	a1, a1, LSR a3		/* low = low >> b */
 	ORRGT	a1, a1, a2, ASL ip	/* low = low | high << bm */
 	MOVGT	a2, a2, LSR a3		/* high = high >> b */
-	RETURN(pc, lr)
+	MOV	pc, lr
 #endif
 
 #ifdef L_moddi3
@@ -694,7 +682,7 @@ fltdidf_norm_fin
 	   check the numerator for zero */
 	CMP	a1, #0	/* low */
 	CMPEQ	a2, #0	/* high */
-	RETURNc(eq, pc, lr)
+	MOVEQ	pc, lr
 	/* test for a divide by zero */
 	CMP	a3, #0	/* low */
 	CMPEQ	a4, #0	/* high */
@@ -765,10 +753,10 @@ fltdidf_norm_fin
 	MOVS	v6, v6, LSL#1
 	MOVCC	a1, v4 /* low */
 	MOVCC	a2, ip /* high */
-	LDMCCFD	sp!, {v2, v3, v4, v6, pc}RETCOND
+	LDMCCFD	sp!, {v2, v3, v4, v6, pc}
 	RSBS	a1, v4, #0 /* low */
 	RSC	a2, ip, #0 /* high */
-	LDMFD	sp!, {v2, v3, v4, v6, pc}RETCOND
+	LDMFD	sp!, {v2, v3, v4, v6, pc}
 #endif
 
 
@@ -779,7 +767,7 @@ fltdidf_norm_fin
 |__muldi3|
 #ifdef __ARM_ARCH_4__
 	SMULL	a1, a2, a3, a4
-	RETURN(pc, lr)
+	MOV    pc, lr
 #else
 	STMFD	sp!, {v1, v2, v3, lr}
 	MOV	v2, a1, LSR #16
@@ -797,7 +785,7 @@ fltdidf_norm_fin
 	MLA	v2, a1, a4, v2
 	MLA	a2, a3, a2, v2
 	MOV	a1, v1
-	LDMFD	sp!, {v1, v2, v3, pc}RETCOND
+	LDMFD	sp!, {v1, v2, v3, pc}
 #endif /* __ARM_ARCH_4__ */
 #endif /* L_muldi3 */
 
@@ -813,7 +801,7 @@ fltdidf_norm_fin
 	MOVCC  a1, #0
 	MOVHI  a1, #2
 	MOVEQ  a1, #1
-	RETURN(pc, lr)
+	MOV    pc, lr
 #endif
 
 #ifdef L_udivdi3
@@ -826,7 +814,7 @@ fltdidf_norm_fin
 |__udivdi3|
 	CMP	a1, #0
 	CMPEQ	a2, #0
-	RETURNc(eq, pc, lr)
+	MOVEQ	pc, lr
 	CMP	a3, #0
 	CMPEQ	a4, #0
 	BEQ	|__div0|  /* divide by zero.  */
@@ -861,7 +849,7 @@ fltdidf_norm_fin
 	BGE	|__udivdi3.division|
 	MOV	a1, v2
 	MOV	a2, v3
-	LDMFD	sp!, {v2, v3, v4, pc}RETCOND
+	LDMFD	sp!, {v2, v3, v4, pc}
 #endif
 
 
@@ -875,7 +863,7 @@ fltdidf_norm_fin
 |__umoddi3|
 	CMP	a1, #0
 	CMPEQ	a2, #0
-	RETURNc(eq, pc, lr)
+	MOVEQ	pc, lr
 	CMP	a3, #0
 	CMPEQ	a4, #0
 	BEQ	|__div0|   /* divide by zero.  */
@@ -908,7 +896,7 @@ fltdidf_norm_fin
 	BGE	|__umoddi3.division|
 	MOV	a1, v4
 	MOV	a2, ip
-	LDMFD	sp!, {v2, v3, v4, pc}RETCOND
+	LDMFD	sp!, {v2, v3, v4, pc}
 #endif
 
 
@@ -924,7 +912,7 @@ fltdidf_norm_fin
 	mov	a1, #8	/* SIGFPE under UnixLib.  */
 #endif
 	bl	raise
-	ldmfd	sp!, {a1, a2, pc}RETCOND
+	ldmfd	sp!, {a1, a2, pc}
 #endif
 
 #ifdef L_ctors
@@ -935,7 +923,7 @@ fltdidf_norm_fin
    on the constructor/destructor areas, we end up with:
 
 	; constructor code
-	___CTOR__LIST__
+	___CTOR_LIST__
 	dcd -1
 	dcd constructor list *
 	dcd 0
@@ -949,7 +937,6 @@ fltdidf_norm_fin
    Note that as we use '0', '2' and '4' as postfixes, it is possible
    to sneak in areas with postfixes of '1' and '3', if you want to
    get clever.  */
-
 
 	AREA	|C$$gnu_ctorsvec0|, DATA, READONLY
 	EXPORT  |__CTOR_LIST__|
@@ -971,7 +958,7 @@ fltdidf_norm_fin
 	EXPORT  |__EH_FRAME_BEGIN__|
 |__EH_FRAME_BEGIN__|
 	DCD	0
-	
+
 #endif
 
 #ifdef L_builtin_next_arg
@@ -980,7 +967,7 @@ fltdidf_norm_fin
 
 	EXPORT	|__builtin_next_arg|
 |__builtin_next_arg|
-	RETURN(pc, lr)
+	MOV    pc, lr
 #endif
 
 #ifdef L_nonlocal_goto
@@ -998,7 +985,7 @@ fltdidf_norm_fin
 	   located at 'target_addr'.  */
 	MOV	pc, a2
 #endif
-	
+
 
 #ifdef L_arm_alloca
 
@@ -1247,7 +1234,7 @@ chunks_retaddr_a	RN	12
 	BLEQ	|abort|
 	MOV	lr, return_addr
 	LDMFD	sp!, {a1, a2, a3, a4, arm_alloca_v, chunks, old_chunks, return_addr, alloca_level, fp, ip}
-	RETURN(pc, lr)
+	MOV    pc, lr
 
 |dynamic_alloca_rtn_error|
 	DCB	"Dynamic alloca return point corrupted", 13, 10
@@ -1285,7 +1272,7 @@ chunks			RN	9
 	STR	a1, [arm_alloca_v, #level_off]
 |L..18|					/* while (chunks != NULL) { */
 	MOVS	a1, chunks		/*    temp = chunks; */
-	LDMEQFD	sp!, {arm_alloca_v, chunks, pc}RETCOND
+	LDMEQFD	sp!, {arm_alloca_v, chunks, pc}
 	LDR	chunks, [chunks, #chunks_prev_off]
 
 	BL	|free|
@@ -1325,7 +1312,7 @@ gbaa_t3		RN	12
 |___arm_alloca_alloc|
 	/* Allocating nothing ? Then just return. */
 	CMP	a1, #0
-	RETURNc(eq, pc, lr)
+	MOVEQ	pc, lr
 	STMFD	sp!, {r1-r12, lr}
 	ADD	a1, a1, #chunk_size
 	BL	|malloc|
@@ -1362,7 +1349,7 @@ gbaa_t3		RN	12
 	STR	buffer, [arm_alloca_a, #list_off]
 	STRNE	gbaa_t3, [fp, #-4]
 	ADD	buffer, buffer, #chunk_size
-	LDMFD	sp!, {r1-r12, pc}RETCOND
+	LDMFD	sp!, {r1-r12, pc}
 
 |dynamic_alloca_error|
 	DCB	"Not enough free memory for dynamic alloca", 13, 10
@@ -1467,7 +1454,7 @@ all_allocations_freed	RN	6
 	CMP	return_addr, #0
 	CMPNE	all_allocations_freed, #0
 	STRNE	return_addr, [fp, #-4]
-	LDMFD	sp!, {r0-r12, pc}RETCOND
+	LDMFD	sp!, {r0-r12, pc}
 
 	ALIGN	4
 
@@ -1495,7 +1482,7 @@ all_allocations_freed	RN	6
 	LDR	a1, [a2, #level_off]
 	ADD	a1, a1, #1
 	STR	a1, [a2, #level_off]
-	RETURN(pc, lr)
+	MOV	pc, lr
 
 	/* __arm_save_stack_nonlocal (void *save_area, void *stack_pointer) */
 	EXPORT	|__arm_save_stack_nonlocal|
@@ -1512,7 +1499,7 @@ all_allocations_freed	RN	6
         LDR     a1, [a2, #level_off]
         ADD     a1, a1, #1
         STR     a1, [a2, #level_off]
-	RETURN(pc, lr)
+	MOV	pc, lr
 
 	/* __arm_restore_stack_nonlocal (void *stack_ptr, void *save_area) */
 	/* __arm_restore_stack_nonlocal (void *save_area) */
@@ -1520,7 +1507,7 @@ all_allocations_freed	RN	6
 |__arm_restore_stack_nonlocal|
 	/* LDR	a1, [a2, #0] */
 	MOV	sp, a1
-	RETURN(pc, lr)
+	MOV	pc, lr
 
 
 	/* -----------------------------------------------------------------
@@ -1622,7 +1609,7 @@ jmpbuf		RN	8
 	LDR	arm_alloca_a, [pc, #|arm_alloca_ptr|-.-8]
 	]
 	LDR	a1, [arm_alloca_a, #list_off]
-	RETURN(pc, lr)
+	MOV	pc, lr
 
 	/* -----------------------------------------------------------------
 	   ___arm_alloca_nonlocal_restore
@@ -1662,7 +1649,7 @@ jmpbuf		RN	8
 	   and not found the list pointer stored in the jmp_buf.
 	   Probably calling nonlocal_restore with an undefined value  */
 	CMP	chunks, search_value
-	LDMEQFD	sp!, {chunks, arm_alloca_v, search_value, fp, ip, pc}RETCOND
+	LDMEQFD	sp!, {chunks, arm_alloca_v, search_value, fp, ip, pc}
 	ADR	a1, |arm_alloca_nonlocal_restore_error|
 	SWI	XOS_Write0
 	B	|abort|
@@ -1684,7 +1671,7 @@ jmpbuf		RN	8
 	TEQ	a1, a1 /* 32bit mode check */
 	TEQ	pc, pc
 	BICNE	a1, a1, #&fc000003 /* If 26bit, clear PSR bits from the return address */
-	LDMFD	sp!, {pc}RETCOND
+	LDMFD	sp!, {pc}
 
 	/* -----------------------------------------------------------------
 	   __builtin_frame_address
@@ -1725,7 +1712,7 @@ next_fp	RN	12
 	LDR	a1, [fp, #-12]
 	CMP	a1, #0
 	/* No enclosing frame, so no return address.  */
-	LDMEQEA	fp, {bra_t1, bra_marker, fp, sp, pc}RETCOND
+	LDMEQEA	fp, {bra_t1, bra_marker, fp, sp, pc}
 	MOV	reg_fp, fp
 	/* We must cope with a variety of UnixLib and SharedCLibrary stacks
 	   occuring within a program.  */
@@ -1766,7 +1753,7 @@ next_fp	RN	12
 	LDR	sc, [sc, #8] /* sc->sc_prev */
 	CMP	sc, #0 /* No previous stack chunk */
 	MOVEQ	a1, #0
-	LDMEQEA	fp, {bra_t1, bra_marker, fp, sp, pc}RETCOND
+	LDMEQEA	fp, {bra_t1, bra_marker, fp, sp, pc}
 	LDR	reg_fp, [next_fp, #-12]
 
 |__builtin_frame_address.loop.end|
@@ -1778,19 +1765,19 @@ next_fp	RN	12
 	LDR	bra_t1, [sc, #0]
 	CMP	bra_t1, bra_marker	/* sc->sc_mark == 0xf60690ff */
 	/*; MOVNE	a1, reg_fp. If reg_fp != a1 then we need this instruction */
-	LDMNEEA	fp, {bra_t1, bra_marker, fp, sp, pc}RETCOND
+	LDMNEEA	fp, {bra_t1, bra_marker, fp, sp, pc}
 
 	LDR	bra_t1, [sc, #12]
 	ADD	bra_t1, bra_t1, sc ; sc+sc->sc_size
 	CMP	reg_fp, bra_t1
 	LDRGE	a1, [reg_fp, #-12]
-	LDMGEEA	fp, {bra_t1, bra_marker, fp, sp, pc}RETCOND
+	LDMGEEA	fp, {bra_t1, bra_marker, fp, sp, pc}
 
 	CMP	reg_fp, sc
 	LDRLT	reg_fp, [reg_fp, #-12]
 	/* MOV	a1, reg_fp. If reg_fp != a1 then we need this instruction */
 
-	LDMEA	fp, {bra_t1, bra_marker, fp, sp, pc}RETCOND
+	LDMEA	fp, {bra_t1, bra_marker, fp, sp, pc}
 
 	/* -----------------------------------------------------------------
 	   __unwind_function
@@ -1824,8 +1811,7 @@ temp_lr	RN	2
 	   desired 'stack_pointer' to find a match.  Upon matching,
 	   we then know we've unwound enough.  */
 	CMP	a1, sp
-	LDREQ	a4, [a2, #4]
-	RETURNc(eq, pc, a4)
+	LDREQ	pc, [a2, #4]
 	BL	|__unwind_function|
 	B	|__unwind_function_all.00|
 
@@ -1849,7 +1835,7 @@ temp_lr	RN	2
 	LDR	next_fp, [sc, #0] /* use next_fp as a temp. reg here */
 	CMP	next_fp, uf_t1	/* sc->sc_mark == 0xf60690ff */
 	LDMNEEA fp, {fp, sp, lr} /* unwind stack one level and exit */
-	RETURNc(ne, pc, temp_lr)
+	MOVNE	pc, temp_lr
 
 	LDR	next_fp, [fp, #-12]
 	LDR	uf_t1, [sc, #12] /* sc->sc_size */
@@ -1859,7 +1845,7 @@ temp_lr	RN	2
 
 	CMP	next_fp, sc
 	LDMGEEA fp, {fp, sp, lr} /* unwind stack one level and exit */
-	RETURNc(ge, pc, temp_lr)
+	MOVGE	pc, temp_lr
 |__unwind_function.shared.c.library|
 	/* Shared C Library style stack chunk  */
 	LDR	uf_t1, [sc, #8] /* sc->sc_prev */
@@ -1878,7 +1864,7 @@ temp_lr	RN	2
 	LDMFD	sp!, {sc, temp_lr, next_fp}
 	LDMEA	next_fp, {fp, sp, lr}
 	ADD	sl, sc, #560
-	RETURN(pc, temp_lr)
+	MOV	pc, temp_lr
 
 	/* Pointer to a temporary buffer for storing procedure return
 	   address and desired stack pointer.  */
@@ -1892,4 +1878,3 @@ unwind_buf
 #endif
 
         END
-
