@@ -1,4 +1,6 @@
 #include <iostream>
+#include <cstdlib>
+
 #include "Librarian.h"
 #include "BError.h"
 
@@ -13,8 +15,8 @@ int main(int argc,char **argv)
   catch (BError err)
     {
       cerr << &err;
-      return 1;
+      return EXIT_FAILURE;
     }
 
-  return 0;
+  return EXIT_SUCCESS;
 }

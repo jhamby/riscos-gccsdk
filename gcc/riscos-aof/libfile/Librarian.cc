@@ -28,15 +28,15 @@ void Librarian::run()
 {
   BString libFile, viaFile, destDir;
   List<BString> argList, tmpList;
-  
+
   int listSymbols = 0;
   int listLib = 0;
   int nullStamps = 0;
   Action action = ActionNone;
-  
+
   if(m_argParser->getOption("-v", viaFile))
     m_argParser->addArgsFromFile(viaFile);
-  
+
   if(!m_argParser->getOption("-q", destDir))
     {
 #ifdef CROSS_COMPILE
@@ -45,32 +45,32 @@ void Librarian::run()
       destDir = "@.";
 #endif
     }
-  
+
   if(m_argParser->getOption("-h"))
     {
       usage();
       return;
     }
-  
+
   if(m_argParser->getOption("-?"))
     {
       usage();
       return;
     }
-  
+
   argList = m_argParser->getTrailingArgs();
   if(argList)
     libFile = argList.unput();
-  
+
   if(m_argParser->getOption("-c"))
     action = ActionCreate;
-  
+
   if(m_argParser->getOption("-i"))
     action = ActionInsert;
-  
+
   if(m_argParser->getOption("-d"))
     action = ActionDelete;
-  
+
   if(m_argParser->getOption("-e"))
     {
       if(action == ActionDelete)
@@ -83,29 +83,29 @@ void Librarian::run()
     {
       action = ActionExtractAll;
     }
-  
+
   if(m_argParser->getOption("-t"))
     TimeStamp::useNull();
-  
+
   if(m_argParser->getOption("-l"))
     listLib = 1;
-  
+
   if(m_argParser->getOption("-L"))
     listLib = 2;
-  
+
   if(m_argParser->getOption("-s"))
     listSymbols = 1;
-  
+
   if(libFile == "")
     {
       usage ();
       return;
     }
-  
+
   m_argParser->warn();
-  
+
   Library *library = new Library(libFile);
-  
+
   switch(action)
     {
     case ActionInsert:
@@ -125,66 +125,64 @@ void Librarian::run()
       library->updateOflSymt();
       library->save();
       break;
-      
+
     case ActionExtract:
       library->load();
       library->extractMembers(argList, destDir);
       break;
-      
+
     case ActionExtractAll:
       library->load();
       library->extractAllMembers(destDir);
       break;
-      
+
     case ActionExtractDelete:
     case ActionDelete:
       library->load();
       if(action == ActionExtractDelete)
 	library->extractMembers(argList, destDir);
-      
+
       library->deleteMembers(argList);
       library->updateOflTime();
       library->updateOflSymt();
       library->save();
       break;
-      
+
     default:
       library->load();
       break;
     }
-  
+
   if(listLib)
     library->listMembers(listLib-1);
-  
+
   if(listSymbols)
     library->listSymbolTable(1);
 }
 
 void Librarian::usage()
 {
-  cout << "AOF Librarian" << endl;
-  cout << "Version 1.00 compiled by gcc " << __VERSION__ << endl;
-  cout << "ALF creation and maintenance tool" << endl;
-  cout << "(18-Sep-1998) by Bernhard Walter" << endl;
-  cout << endl;
-  cout << "Syntax: LibFile <Options> <Library> [ <FileList> | <MemberList> ]" << endl;
-  cout << endl;
-  cout << "Wildcards allowed in <FileList> and <MemberList>:" << endl << endl;
-  cout << "'#'       Single character" << endl;
-  cout << "'*'       Character sequence (only allowed at the end of a word)" << endl;
-  cout << endl;
-  cout << "Options:" << endl << endl;
-  cout << "-c        Create new library containing files in <FileList>" << endl;
-  cout << "-i        Insert files in <FileList>, replace existing members of same name" << endl;
-  cout << "-d        Delete the members in <MemberList>" << endl;
-  cout << "-e        Extract members in <MemberList>, place them in files of same name" << endl;
-  cout << "-x        Extract all members, place them in files of the same name" << endl;
-  cout << "-l        List library member names (combine with any other option)" << endl;
-  cout << "-L        List library member names & info (combine with any other option)" << endl;
-  cout << "-s        List symbol table (combine with any other option)" << endl;
-  cout << "-v <File> Take further arguments from file <File>" << endl;
-  cout << "-h        Display help" << endl;
-  cout << "-t        Use NULL timestamps" << endl;
-  cout << "-q <Dir>  Place relative filenames under directory <Dir>" << endl;
-  cout << endl;
+  cout << "AOF Librarian v1.00 (" __DATE__ ") [GCCSDK " << __VERSION__ << "]" << endl
+       << "ALF creation and maintenance tool" << endl
+       << endl
+       << "Syntax: LibFile <Options> <Library> [ <FileList> | <MemberList> ]" << endl
+       << endl
+       << "Wildcards allowed in <FileList> and <MemberList>:" << endl << endl
+       << "'#'       Single character" << endl
+       << "'*'       Character sequence (only allowed at the end of a word)" << endl
+       << endl
+       << "Options:" << endl << endl
+       << "-c        Create new library containing files in <FileList>" << endl
+       << "-i        Insert files in <FileList>, replace existing members of same name" << endl
+       << "-d        Delete the members in <MemberList>" << endl
+       << "-e        Extract members in <MemberList>, place them in files of same name" << endl
+       << "-x        Extract all members, place them in files of the same name" << endl
+       << "-l        List library member names (combine with any other option)" << endl
+       << "-L        List library member names & info (combine with any other option)" << endl
+       << "-s        List symbol table (combine with any other option)" << endl
+       << "-v <File> Take further arguments from file <File>" << endl
+       << "-h        Display help" << endl
+       << "-t        Use NULL timestamps" << endl
+       << "-q <Dir>  Place relative filenames under directory <Dir>" << endl
+       << endl;
 }

@@ -1,4 +1,5 @@
-(C) Bernhard Walter, 18. September 1998
+Copyright (C) Bernhard Walter, 18. September 1998
+Copyright (C) 2001, 2002, 2003, 2004, 2005 GCCSDK Developers.
 
 LibFile
 Freeware
@@ -18,10 +19,6 @@ from AOF files that can be passed to link/ld.
 It is a free replacement for the libfile program provided
 with Acorn's C/C++ and is intended to be a supplement to
 the gcc package.
-
-I have been using it for several weeks and it does very well.
-If you should come across any problems please tell me and I
-will correct them as soon as possible.
 
 To make the use of LibFile easier and more understandable its
 behaviour differs from the original tool in the following cases:
