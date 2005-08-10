@@ -2,17 +2,17 @@
  * AS an assembler for ARM
  * Copyright © 1992 Niklas Röjemo
  * Copyright © 2005 GCCSDK Developers
- * 
+ *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
  * of the License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
@@ -88,7 +88,7 @@ as_help (void)
 #ifndef NO_ELF_SUPPORT
 	   "/ELF"
 #endif
-	   " Assembler  Version %s %s  [GCCSDK build]"
+	   " Assembler " AS_VERSION " (" __DATE__ ") [GCCSDK " __VERSION__ "]"
 	   "\n"
 	   "Usage: %s [option]... <asmfile>\n"
 	   "\n"
@@ -127,7 +127,7 @@ as_help (void)
 	   "-elf                       Output ELF file\n"
 #endif
 	   "\n",
-	   AS_VERSION, __DATE__, ProgName);
+	   ProgName);
 }
 
 
@@ -275,10 +275,9 @@ int main (int argc, char **argv)
 #ifndef NO_ELF_SUPPORT
 		   "/ELF"
 #endif
-		   " Assembler  Version %s %s  [GCCSDK build]\n",
-		   AS_VERSION, __DATE__);
+		   " Assembler " AS_VERSION " (" __DATE__ ") [GCCSDK " __VERSION__ "]\n");
 
-	  fprintf (stderr, "Copyright (c) 1992-2005 Niklas Rojemo, Darren Salt and GCCSDK Development Team\n");
+	  fprintf (stderr, "Copyright (c) 1992-2005 Niklas Rojemo, Darren Salt and GCCSDK Developers\n");
 	  return EXIT_SUCCESS;
 	}
       else if (IS_ARG ("-H", "-h")

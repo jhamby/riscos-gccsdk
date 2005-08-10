@@ -30,7 +30,7 @@
 #ifndef LITTLE_ENDIAN
 #define LITTLE_ENDIAN 1
 #endif
-#define NM_VERSION "1.01"
+#define NM_VERSION "v1.01 (" __DATE__ ") [GCCSDK " __VERSION__ "]"
 
 static void nm_help (void);
 
@@ -582,7 +582,7 @@ parse_args (int argc, char **argv)
 	  opt_undefined_only = 1;
 	  break;
 	case 'V':
-	  printf ("nm version %s\n", NM_VERSION);
+	  printf ("nm " NM_VERSION "\n");
 	  break;
 	case OPT_HELP:
 	  nm_help ();

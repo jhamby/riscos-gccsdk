@@ -133,7 +133,7 @@ main(int argc, char **argv)
  */
 static void usage(void)
 {
-	fprintf(stderr, "Decode AOF files  Version 2.00  " __DATE__ "  [GCCSDK build]\n\n"
+	fprintf(stderr, "Decode AOF files v2.00 (" __DATE__ ") [GCCSDK " __VERSION__ "]\n\n"
 			"Usage: %s [options] file [file...]\n"
 			"       where options are:\n"
 			"       -b print only the area declarations\n"

@@ -18,7 +18,7 @@ Currently CMunge v0.67 itself contains nearly all the specific changes
 needed for the GCCSDK project, apart from:
 
   - a GCCSDK specific Makefile
-  - marked "[GCCSDK build]" via the CMunge printf() in main()
+  - marked "[GCCSDK " __VERSION__ "]" via the CMunge printf() in main()
   - using libscl as runtime library
   - hiding RISC OS specific build files (Makefile,fe1, !Mk*,fd7 files)
 

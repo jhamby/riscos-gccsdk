@@ -59,11 +59,11 @@ static FILE *objfile;
 #define FIX(n) ((3+(int)n)&~3)
 #define EXTRA(n) (FIX(n)-n)
 
-const char *idfn_text = "GCCSDK AOF"
+const char *idfn_text = "GCCSDK AS AOF"
 #ifndef NO_ELF_SUPPORT
 	"/ELF"
 #endif
-	" ASM vsn " AS_VERSION " [" __DATE__ "]\n";
+	" Assembler " AS_VERSION " (" __DATE__ ") [GCCSDK " __VERSION__ "]\n";
 
 #define MAXNAME 1024
 static char outname[MAXNAME + 1];
