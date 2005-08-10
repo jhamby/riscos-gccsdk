@@ -59,7 +59,8 @@ CC1PLUSPKG = \
 	$(bindir)/cc1plus$(exesfx) \
 	$(libdir)/include/g++-3 \
 	$(bindir)/apcs32/abs/libscl/o/libstdc++ \
-	$(bindir)/apcs32/abs/unixlib/o/libstdc++
+	$(bindir)/apcs32/abs/unixlib/o/libstdc++ \
+	$(bindir)/apcs32/rma/libscl/o/libstdc++
 
 G77PKG = $(pkg)/bin/g77$(exesfx) \
 	$(bindir)/f771$(exesfx) \
