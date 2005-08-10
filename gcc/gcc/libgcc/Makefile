@@ -5,6 +5,7 @@
 
 CC_S = $(CROSS_CC) -xassembler-with-cpp
 INCLUDES = -I. -I../../include -I../gcc -I../gcc/config
+CROSS_CFLAGS += $(CFL)
 CROSS_CFLAGS += -D$(targetsystem)
 CROSS_CFLAGS += -DIN_GCC -DHAVE_CONFIG_H -DIN_LIBGCC2 -D__GCC_FLOAT_NOT_NEEDED -DDONT_USE_BUILTIN_SETJMP
 
@@ -104,7 +105,6 @@ LIB2FUNCS_ST = $(libobjdir)/eprintf.o \
 
 LIB2FUNCS_EXTRA = $(libobjdir)/ffs.o \
 	$(libobjdir)/clricache.o \
-	$(libobjdir)/libgcc_fix.o \
 	$(libobjdir)/dynamic.o \
 	$(libobjdir)/nonlocal.o
 
@@ -375,8 +375,6 @@ $(libobjdir)/clricache.o:	lib1aof.s
 	$(CC_S) -c lib1aof.s -o $@ -DL_clear_icache
 $(libobjdir)/ctors.o:	lib1aof.s
 	$(CC_S) -c lib1aof.s -o $@ -DL_ctors
-$(libobjdir)/libgcc_fix.o:	libgcc_fix.s
-	$(CC_S) -c libgcc_fix.s -o $@
 $(libobjdir)/nonlocal.o:	lib1aof.s
 	$(CC_S) -c lib1aof.s -o $@ -DL_nonlocal_goto
 $(libobjdir)/cmpdi2.o:	lib1aof.s
