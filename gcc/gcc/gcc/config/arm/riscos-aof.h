@@ -116,9 +116,24 @@ Boston, MA 02111-1307, USA.  */
    the various floating point emulators and some other stuff.  */
 #undef ARM_LONG_DOUBLE_SUPPORT
 
-
 /* Unsigned chars produces much better code than signed.  */
 #define DEFAULT_SIGNED_CHAR  0
+
+/* Compare with the version found at gbl-ctors.h : this one uses a
+   static variable to have the start of __CTOR_LIST__ which is the
+   only way to have a correct value when RISC OS module code is
+   produced (otherwise the __CTOR_LIST__ data array will be accessed
+   indirectly via [sl, #-586] and contain garbage).
+   The __DTOR_LIST__ handling is at libgcc/libgcc2.c and contains
+   a similar way to make things work.  */
+#define DO_GLOBAL_CTORS_BODY						\
+do {									\
+  static func_ptr *p = __CTOR_LIST__;					\
+  unsigned nptrs, i;							\
+  for (nptrs = 1; p[nptrs] != NULL; nptrs++);				\
+  for (i = nptrs; i > 1; i--)						\
+    (p[i-1])();								\
+} while (0)
 
 /* Some systems use __main in a way incompatible with its use in gcc, in
    these cases use the macros NAME__MAIN to give a quoted symbol and
@@ -320,7 +335,7 @@ do {					\
       ASM_OUTPUT_LABEL (STREAM, NAME);			\
     }							\
   aof_delete_import ((NAME));				\
-}  
+}
 
 #define ASM_DECLARE_OBJECT_NAME(STREAM,NAME,DECL) \
 {						\
@@ -504,7 +519,7 @@ do {							\
 	%{msoft-float:-soft-float} \
 	%{mthrowback:-throwback} \
 	%{mmodule:-module}"
-	
+
 
 #define TARGET_OS_CPP_BUILTINS()		\
     do {					\
