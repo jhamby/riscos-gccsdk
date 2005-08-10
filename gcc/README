@@ -18,7 +18,7 @@ packages installed on your system, with at *least* these software revisions.
 	flex		version 2.5.4
 	gperf		version 2.7.2
 	sed		version 2.05
-	makeinfo	version 4.2
+	makeinfo	version 4.2 (texinfo package on Debian)
 
 You will of course need a C compiler for the system you are building on
 (normally gcc), and one of the tools requires C++, so you will also need
@@ -34,10 +34,8 @@ and a work around is shown below.
 Installation
 ------------
 
-Make sure you've got about 200 MB spare disk space and a spare couple of
-hours.  It is recommended that you install GCCSDK has a non-root user.
-The makefiles are still under development.  If something does go wrong
-then at least your system directory structure will still be preserved. 
+Make sure you've got about 200 MB spare disk space. It is recommended that
+you install GCCSDK has a non-root user.
 
 Generate the configure script.
   $ autoconf ; autoheader
@@ -88,7 +86,8 @@ Optionally, you can create the RISC OS GCC compiler zip packages using
 this command.
   $ make riscos-pkg
 
-Expect the building of the full package to take around 2 hours.
+Expect the building of the full package to take around 25 minutes on a 3GHz
+system.
 
 
 Using it
