@@ -243,11 +243,14 @@ gcc-libs-stg2: gcc-stg1 riscos-aof-stg1
 	$(MAKE) -C gcc libgcc "TRG=$(trg31)" $(cfl31) "STAGE=stage2"
 	$(MAKE) -C gcc libf2c "TRG=$(trg20)" $(cfl20) "STAGE=stage2"
 	$(MAKE) -C gcc libf2c "TRG=$(trg30)" $(cfl30) "STAGE=stage2"
-	$(MAKE) -C gcc libobjc "TRG=$(trg20)" $(cfl20) "STAGE=stage2"
+	$(MAKE) -C gcc libf2c "TRG=$(trg31)" $(cfl31) "STAGE=stage2"
+	#$(MAKE) -C gcc libobjc "TRG=$(trg20)" $(cfl20) "STAGE=stage2"
 	$(MAKE) -C gcc libstdc "TRG=$(trg20)" $(cfl20) "STAGE=stage2" "lib_incl_dir=$(unixlib_incl_dir)"
 	$(MAKE) -C gcc libstdc "TRG=$(trg30)" $(cfl30) "STAGE=stage2" "lib_incl_dir=$(libscl_incl_dir)"
+	$(MAKE) -C gcc libstdc "TRG=$(trg31)" $(cfl31) "STAGE=stage2" "lib_incl_dir=$(libscl_incl_dir)"
 	$(MAKE) -C gcc libgcov "TRG=$(trg20)" $(cfl20) "STAGE=stage2"
 	$(MAKE) -C gcc libgcov "TRG=$(trg30)" $(cfl30) "STAGE=stage2"
+	$(MAKE) -C gcc libgcov "TRG=$(trg31)" $(cfl31) "STAGE=stage2"
 
 riscos-dist: riscos-progs gcc-stg2 riscos-aof-stg2
 	$(MAKE) -C riscos-dist install
@@ -291,7 +294,7 @@ directories:
 	mkdir -p $(ro_zippkg)
 
 	mkdir -p $(ro_unixlibpkg)/source/clib/o
-	mkdir -p $(ro_libsclpkg)/o
+	#mkdir -p $(ro_libsclpkg)/o
 
 # Install header files for our standard C run-time libraries.
 install_headers:
