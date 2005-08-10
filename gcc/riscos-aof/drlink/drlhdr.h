@@ -30,7 +30,7 @@
 # define IGNORE_CASE
 #endif
 
-#define DL_VERSION "0.41 " __DATE__ "  [GCCSDK build]"
+#define DL_VERSION "v0.42 (" __DATE__ ") [GCCSDK " __VERSION__ "]"
 
 /*
 ** Some constants used everywhere
@@ -67,7 +67,7 @@ typedef enum {	/* Linker states */
 typedef char bool;
 
 /*
-** Variables found in 'Drlmain' used in other files
+** Variables found in 'drlmain.c' used in other files
 */
 extern int warnings,		/* Number of warning messages put out by linker */
   errors;			/* Number of error messages put out by linker */
@@ -100,6 +100,7 @@ extern bool inviafile,		/* TRUE if taking commands from 'via' file */
 #endif
   opt_case,			/* TRUE if linker will ignore symbol case */
   opt_cpp,			/* TRUE if linking a C++ program */
+  opt_linkersets,               /* TRUE if linking in linker-sets */
   opt_gccareas,			/* TRUE if not touching GCC-specific areas in 'nounused' processing */
   opt_pagealign,		/* TRUE if aligning start of R/W areas on page boundary */
   opt_strongarm;		/* TRUE if handling StrongARM-specific stuff */

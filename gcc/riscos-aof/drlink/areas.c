@@ -1198,7 +1198,7 @@ decr_refcount (arearef * rp)
 }
 
 /*
-** 'find_unused' goes through an area list and weeds out all the
+** 'mark_unused' goes through an area list and weeds out all the
 ** unreferenced areas.
 */
 static void
@@ -1371,7 +1371,9 @@ find_unused (void)
   if (imagetype == RMOD)
     mark_area (rocodelist);	/* or any embarrasing problems with modules */
   if (opt_cpp)
-    find_cdareas ();		/* Or with C++ constructors and destructors */
+    find_cdareas ();		/* or with C++ constructors and destructors */
+  if (opt_linkersets)
+    find_lsareas ();            /* or with any linker-sets in */
   find_arearefs (rocodelist);
   find_arearefs (rodatalist);
   find_arearefs (rwcodelist);
@@ -2169,6 +2171,7 @@ write_relocinfo (void)
   write_areareloc (rodatalist);
   write_areareloc (rwcodelist);
   write_areareloc (rwdatalist);
+  write_lsreloc ();
   if (imagetype == RMOD)
     {				/* Write last two offsets required */
       struct

@@ -140,9 +140,12 @@ extern symbol *find_common (const char *);
 extern bool isrelocatable (relocation *);
 extern void build_cdlist (void);
 extern void find_cdareas (void);
+extern void build_lslist (void);
+extern void find_lsareas (void);
 extern void print_symbols (void);
 extern void build_symbols (void);
 extern const char *check_libedit (const char *, const char *, int);
+extern void write_lsreloc (void);
 
 /* -- In 'Linkedit' -- */
 

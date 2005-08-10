@@ -236,5 +236,5 @@ got_errors (void)
 void
 announce (void)
 {
-  error ("Drlink AOF Linker  Version " DL_VERSION);
+  error ("Drlink AOF Linker " DL_VERSION);
 }

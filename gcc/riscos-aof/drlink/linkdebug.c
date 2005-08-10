@@ -30,6 +30,7 @@
 #include "symbolhdr.h"
 #include "areahdr.h"
 #include "debugprocs.h"
+#include "libraries.h"
 
 #ifdef DEBUG
 void
@@ -210,8 +211,8 @@ static void
 list_liblist (libheader * list)
 {
   for ( /* */ ; list != NULL; list = list->libflink)
-    printf ("Library def at %p, name='%s', loaded at %p, library size=%x\n",
-	    list, list->libname, list->lib.base, list->libextent);
+    printf ("Library def at %p, name='%s', %s loaded at %p, library size=%x\n",
+	    list, list->libname, list->fullyloaded ? "fully" : "partially", list->lib.base, list->libextent);
 }
 
 void

@@ -38,7 +38,7 @@
 
 /* Variables referenced from other files */
 
-symbol *globalsyms[MAXGLOBALS];	/* Global symbol table */
+symbol *globalsyms[MAXGLOBALS]; /* Global symbol table */
 
 symbol * image_robase,		/* Symbol table entries of pre-defined symbols */
   *image_rwbase, *image_zibase, *image_rolimit, *image_rwlimit, *image_zilimit, *image_codebase,	/* Old symbols used by Fortran 77 */
@@ -59,8 +59,8 @@ unsigned int totalsymbols,	/* Total number of symbols defined in program */
 typedef struct missing
 {
   const char *symname, *filename;	/* Symbol not found and the file that referenced it */
-  struct missing *left;		/* Left in binary tree                              */
-  struct missing *right;	/* Right in binary tree                             */
+  struct missing *left;		/* Left in binary tree				    */
+  struct missing *right;	/* Right in binary tree				    */
 } missing;
 
 static symbol *commonsyms[MAXCOMMON];	/* Common Block symbol table */
@@ -68,8 +68,8 @@ static symbol *commonsyms[MAXCOMMON];	/* Common Block symbol table */
 static symbol * symblock,	/* Memory to hold symbol entries for file when reading file */
  *wantedlist;			/* 'Wanted symbols' list in current file */
 
-static filelist *current_file;	/* File list entry for file being processed */
-static symtable *current_table;	/* Pointer to local symbol table of current file */
+static filelist *current_file;  /* File list entry for file being processed */
+static symtable *current_table; /* Pointer to local symbol table of current file */
 static editcmd * current_symedit,	/* Pointer to symbol edits for current file */
  *current_refedit;		/* Pointer to reference edits for current file */
 
@@ -152,7 +152,7 @@ check_edits (const char *filename, int hashval)
   current_refedit = NULL;
 
   if (symedit_count > 0)
-    {				/* Symbol edits exist */
+    {	/* Symbol edits exist */
       ep = symedit_list;
       while (ep != NULL && hashval > ep->edtfnhash)
 	ep = ep->edtnext;
@@ -162,7 +162,7 @@ check_edits (const char *filename, int hashval)
 	current_symedit = ep;
     }
   if (refedit_count > 0)
-    {				/* Reference edits exist */
+    {	/* Reference edits exist */
       ep = refedit_list;
       while (ep != NULL && hashval > ep->edtfnhash)
 	ep = ep->edtnext;
@@ -320,16 +320,16 @@ insert_symbol (symbol ** tree, const char *name)
   if (opt_case)
     while (*tree != NULL)
       {
-        int compval = stricmp (name, (*tree)->symtptr->symtname);
+	int compval = stricmp (name, (*tree)->symtptr->symtname);
 
-        tree = (compval > 0) ? &(*tree)->right : &(*tree)->left;
+	tree = (compval > 0) ? &(*tree)->right : &(*tree)->left;
       }
   else
     while (*tree != NULL)
       {
-        int compval = strcmp (name, (*tree)->symtptr->symtname);
+	int compval = strcmp (name, (*tree)->symtptr->symtname);
 
-        tree = (compval > 0) ? &(*tree)->right : &(*tree)->left;
+	tree = (compval > 0) ? &(*tree)->right : &(*tree)->left;
       }
 
   return tree;
@@ -392,10 +392,10 @@ add_symbol (filelist *fp, symtentry * symtp)
   attr = symtp->symtattr & SYM_ATMASK;
 
   if ((attr & SYM_ABSVAL) == 0)
-    {				/* Symbol is not an absolute value. Find its area */
+    {	/* Symbol is not an absolute value. Find its area */
       ap = find_area (fp->obj.strtptr + symtp->symtarea.areaname);
       if (ap == NULL)
-	{			/* Dodgy C symbol reference to unknown area */
+	{	/* Dodgy C symbol reference to unknown area */
 	  symtp->symtattr |= SYM_ABSVAL;	/* Convert symbol to absolute */
 	}
     }
@@ -426,7 +426,7 @@ add_symbol (filelist *fp, symtentry * symtp)
       *table = p;
     }
   else if ((p->symtptr->symtattr & SYM_STRONG) == (attr & SYM_STRONG))
-    {				/* Duplicate symbol */
+    {	/* Duplicate symbol */
       arealist *cp = p->symtptr->symtarea.areaptr;
 
       if ((ap->aratattr & (ATT_COMDEF | ATT_COMMON)) != 0	/* Symbol's area is common block */
@@ -449,11 +449,11 @@ add_symbol (filelist *fp, symtentry * symtp)
       return FALSE;
     }
   else
-    {				/* New symbol of different 'strength' to existing definition */
+    {	/* New symbol of different 'strength' to existing definition */
       if ((attr & SYM_STRONG) != 0)
-	{			/* New symbol is strong; old one is non-strong */
+	{	/* New symbol is strong; old one is non-strong */
 	  if (link_state == LIB_SEARCH)
-	    {			/* Avoid possible use of wrong symbol... */
+	    {	/* Avoid possible use of wrong symbol... */
 	      error
 		("Error: 'Strong' definition of '%s' found in '%s' after non-strong definition has been used",
 		 name, objectname);
@@ -463,7 +463,7 @@ add_symbol (filelist *fp, symtentry * symtp)
 	  p->symtptr = symtp;
 	}
       else
-	{			/* Old symbol is strong; new one is non-strong */
+	{	/* Old symbol is strong; new one is non-strong */
 	  p->symnormal = symtp;
 	}
     }
@@ -687,22 +687,22 @@ find_symbol (symbol * tree, const char *name, bool ignorecase)
   if (ignorecase)
     while (tree != NULL)
       {
-        int compval = stricmp (name, tree->symtptr->symtname);
+	int compval = stricmp (name, tree->symtptr->symtname);
 
-        if (compval == 0)
+	if (compval == 0)
 	  return tree;
 
-        tree = (compval > 0) ? tree->right : tree->left;
+	tree = (compval > 0) ? tree->right : tree->left;
       }
   else
     while (tree != NULL)
       {
-        int compval = strcmp (name, tree->symtptr->symtname);
+	int compval = strcmp (name, tree->symtptr->symtname);
 
-        if (compval == 0)
+	if (compval == 0)
 	  return tree;
 
-        tree = (compval > 0) ? tree->right : tree->left;
+	tree = (compval > 0) ? tree->right : tree->left;
       }
 
   return NULL;
@@ -791,22 +791,22 @@ add_unresolved (missing ** tree, symbol * sp, filelist * fp)
   if (opt_case || (sp->symtptr->symtattr & SYM_IGNCASE) != 0)
     while (*tree != NULL)
       {
-        int compval = stricmp (sname, (*tree)->symname);
+	int compval = stricmp (sname, (*tree)->symname);
 
-        if (compval == 0)
+	if (compval == 0)
 	  return;
 
-        tree = (compval > 0) ? &(*tree)->right : &(*tree)->left;
+	tree = (compval > 0) ? &(*tree)->right : &(*tree)->left;
       }
   else
     while (*tree != NULL)
       {
-        int compval = strcmp (sname, (*tree)->symname);
+	int compval = strcmp (sname, (*tree)->symname);
 
-        if (compval == 0)
+	if (compval == 0)
 	  return;
 
-        tree = (compval > 0) ? &(*tree)->right : &(*tree)->left;
+	tree = (compval > 0) ? &(*tree)->right : &(*tree)->left;
       }
 
   if (*tree == NULL)
@@ -893,7 +893,6 @@ list_unresolved (void)
 static libentry *
 search_lib_tree (libentry * lp, const char *name, bool ignorecase)
 {
-
   if (lp != NULL)
     {
       int compval =
@@ -1055,7 +1054,7 @@ check_library_tree (symbol ** wp, filelist * fp)
 ** again. A complication, as ever, is the possibility of a strong
 ** symbol...
 */
-      sp = search_global (*wp);	/* Is symbol now available? */
+      sp = search_global (*wp); /* Is symbol now available? */
       if (sp != NULL)
 	{			/* Yes */
 /*
@@ -1121,7 +1120,7 @@ check_library_tree (symbol ** wp, filelist * fp)
 	}
 
       if (ok && lp != NULL)
-	{			/* Now link symbol and reference */
+	{ /* Now link symbol and reference */
 	  if (sp == NULL)
 	    {
 	      error
@@ -1131,7 +1130,7 @@ check_library_tree (symbol ** wp, filelist * fp)
 	    }
 	  else
 	    {
-	      symtentry *wstp = (*wp)->symtptr;	/* OBJ_SYMT entry of external reference */
+	      symtentry *wstp = (*wp)->symtptr; /* OBJ_SYMT entry of external reference */
 
 	      if (sp->symnormal != NULL && sp->symtptr >= current_symtbase
 		  && sp->symtptr < current_symtend)
@@ -1139,11 +1138,11 @@ check_library_tree (symbol ** wp, filelist * fp)
 		  wstp->symtarea.symdefptr = sp->symnormal;
 		}
 	      else
-		{		/* Only one def or strong def in another module */
+		{ /* Only one def or strong def in another module */
 		  wstp->symtarea.symdefptr = sp->symtptr;
 		}
 	      if ((wstp->symtattr & SYM_WEAKREF) != 0)
-		{		/* Resolving a weak ref? */
+		{ /* Resolving a weak ref? */
 		  wstp->symtattr -= SYM_WEAKREF;
 		}
 	    }
@@ -1159,7 +1158,7 @@ static bool
 check_library (filelist * fp)
 {
   current_symtbase = fp->obj.symtptr;	/* For detecting 'strong symbol' refs */
-  current_symtend = fp->obj.symtptr + fp->obj.symtsize;	/* These point at module containing ref */
+  current_symtend = fp->obj.symtptr + fp->obj.symtsize; /* These point at module containing ref */
 
   return check_library_tree (&fp->symtries.wantedsyms, fp);
 }
@@ -1211,7 +1210,7 @@ resolve_refs_tree (symbol ** wp)
       if (sp != NULL)
 	{			/* Symbol found */
 	  symtentry *wstp = (*wp)->symtptr;	/* Point at SYMT entry for the external ref */
-	  symtentry *stp = sp->symtptr;	/* Point at first SYMT entry for definition of symbol */
+	  symtentry *stp = sp->symtptr; /* Point at first SYMT entry for definition of symbol */
 
 	  if (stp >= current_symtbase && stp <= current_symtend)
 	    {			/* Is ref in same module as def'n? */
@@ -1375,29 +1374,23 @@ void
 relocate_symbols (void)
 {
   filelist *fp;
-  symtentry *sp;
-  int n, last;
-  fp = aofilelist;
 
-  do
+  for (fp = aofilelist; fp != NULL; fp = fp->nextfile)
     {
-      sp = fp->obj.symtptr;
+      symtentry *sp;
+      int n, last;
       last = fp->symtcount;
-      for (n = 1; n <= last; n++)
+      for (n = 1, sp = fp->obj.symtptr; n <= last; ++n, ++sp)
 	{
 	  if (sp->symtarea.areaptr != (void *) 4)
 	    {
-
 	      if ((sp->symtattr & (SYM_DEFN | SYM_ABSVAL)) == SYM_DEFN)
 		{		/* Relocate if not absolute */
 		  sp->symtvalue += sp->symtarea.areaptr->arplace;
 		}
 	    }
-	  sp++;
 	}
-      fp = fp->nextfile;
     }
-  while (fp != NULL);
 }
 
 /*
@@ -1423,7 +1416,7 @@ symbol *
 make_symbol (const char *name, unsigned int attributes)
 {
   unsigned int hashval;
-  symbol *sp;
+  symbol *sp, **insert;
   symtentry *stp;
 
   sp = allocmem (sizeof (symbol));
@@ -1441,19 +1434,14 @@ make_symbol (const char *name, unsigned int attributes)
   sp->left = sp->right = NULL;
 
   if ((attributes & SYM_COMMON) == 0)
-    {				/* Put in global table */
-      symbol **insert =
-	insert_symbol (&globalsyms[hashval & GLOBALMASK], name);
-      *insert = sp;
-
+    {	/* Put in global table */
+      insert = insert_symbol (&globalsyms[hashval & GLOBALMASK], name);
     }
   else
-    {				/* Put in common block table */
-      symbol **insert =
-	insert_symbol (&commonsyms[hashval & COMMONMASK], name);
-      *insert = sp;
-
+    {	/* Put in common block table */
+      insert = insert_symbol (&commonsyms[hashval & COMMONMASK], name);
     }
+  *insert = sp;
 
   totalsymbols++;
   return sp;
@@ -1491,14 +1479,10 @@ find_areasymbol (arealist * ap)
        n <= symcount && (sp->symtarea.areaptr != ap
 			 || (sp->symtattr & SYM_SCOPE) != SYM_GLOBAL); n++)
     sp++;
-  if (n <= symcount)
-    {
-      return sp->symtname;
-    }
-  else
-    {
-      return NULL;
-    }
+  if (n > symcount)
+    return NULL;
+
+  return sp->symtname;
 }
 
 /*
@@ -1547,13 +1531,12 @@ build_symblist (void)
   symtentry **sip;
   unsigned int n, count;
   symbcount = 0;
-  fp = aofilelist;
+
   sip = symbinfotable;
-  do
+  for (fp = aofilelist; fp != NULL; fp = fp->nextfile)
     {
-      sp = fp->obj.symtptr;
       count = fp->symtcount;
-      for (n = 1; n <= count; n++)
+      for (n = 1, sp = fp->obj.symtptr; n <= count; ++n, ++sp)
 	{
 	  if ((sp->symtattr & (SYM_ABSVAL | SYM_DEFN)) == SYM_DEFN
 	      && strcmp (sp->symtname, "__codeseg") != 0)
@@ -1567,36 +1550,24 @@ build_symblist (void)
 		  symbcount++;
 		}
 	    }
-	  sp++;
 	}
-      fp = fp->nextfile;
     }
-  while (fp != NULL);
+
   if (imagetype != AOF)
-    {				/* These symbols will not exist in a partially-linked file */
-      *sip = image_robase->symtptr;
-      sip++;
-      *sip = image_rolimit->symtptr;
-      sip++;
-      *sip = image_rwbase->symtptr;
-      sip++;
-      *sip = image_rwlimit->symtptr;
-      sip++;
-      *sip = image_zibase->symtptr;
-      sip++;
-      *sip = image_zilimit->symtptr;
-      sip++;
+    {	/* These symbols will not exist in a partially-linked file */
+      *sip++ = image_robase->symtptr;
+      *sip++ = image_rolimit->symtptr;
+      *sip++ = image_rwbase->symtptr;
+      *sip++ = image_rwlimit->symtptr;
+      *sip++ = image_zibase->symtptr;
+      *sip++ = image_zilimit->symtptr;
       symbcount += 6;
       if (got_oldlibs)
-	{			/* Include symbols for old-style libraries */
-	  *sip = image_codebase->symtptr;
-	  sip++;
-	  *sip = image_codelimit->symtptr;
-	  sip++;
-	  *sip = image_database->symtptr;
-	  sip++;
-	  *sip = image_datalimit->symtptr;
-	  sip++;
+	{	/* Include symbols for old-style libraries */
+	  *sip++ = image_codebase->symtptr;
+	  *sip++ = image_codelimit->symtptr;
+	  *sip++ = image_database->symtptr;
+	  *sip++ = image_datalimit->symtptr;
 	  symbcount += 4;
 	}
     }
@@ -1607,12 +1578,8 @@ print_symblist (void)
 {
   symtentry **sip;
   unsigned int n;
-  sip = symbinfotable;
-  for (n = 1; n <= symbcount; n++)
-    {
-      write_symbol (*sip);
-      sip++;
-    }
+  for (n = 1, sip = symbinfotable; n <= symbcount; ++n, ++sip)
+    write_symbol (*sip);
 }
 
 /*
@@ -1659,13 +1626,34 @@ print_symbols (void)
 #define HEADNAME "__head"
 
 /*
-** 'build_cdlist' builds the constructor-destructor linked list
-** that C++ programs contain. These are denoted by a local symbol in
-** each AOF file with the name of '__link'. '__head' points at the
-** first entry in the list.
+** We must keep a list of all the locations that we have relocated so
+** that we can write the relocations out in any table of relocations
+** that we require for the output format. Typically this will be the
+** Relocatable Module relocation table, however it could also be used
+** for a Relocatable AIF. Partially linked AOF files are NOT supported
+** by this mechanism at present. This will need to be addressed by
+** someone clever, or at least who can put in the time to merge the
+** symbol list into the relocations provided in the linked areas.
+** For simplicity - not efficiency - this is implemented as a simple
+** linked list. Someone with more time could change it to an extending
+** array which might be more efficient.
 */
-void
-build_cdlist (void)
+typedef struct linker_set_reloc_s linker_set_reloc_t;
+struct linker_set_reloc_s {
+  linker_set_reloc_t *next;
+  symbol *sym;
+};
+
+static linker_set_reloc_t *linker_set_relocs = NULL;
+
+/*
+** 'build_lslist_named' will link all the symbols labelled with 'link_name'
+** into a linked list. The head of the linked list will be stored at the
+** 'head_name' symbol. This is a generalised form of the C++-constructor
+** destructor list routine
+*/
+static void
+build_lslist_named (const char *link_name, const char *head_name)
 {
   symbol tempsym;
   symtentry tempsymt;
@@ -1674,40 +1662,156 @@ build_cdlist (void)
   symtentry *stp;
   arealist *ap;
   filelist *fp;
-  tempsym.symhash = hash (LINKNAME);
+
+  tempsym.symhash = hash (link_name);
   tempsym.symtptr = &tempsymt;
-  tempsymt.symtname = LINKNAME;
-  fp = aofilelist;
+  tempsymt.symtname = link_name;
+  tempsymt.symtattr = 0;
   lastlink = 0;
-  if (opt_verbose)
-    error ("Drlink: Performing C++ specific operations...");
-  while (fp != NULL)
+  for (fp = aofilelist; fp != NULL; fp = fp->nextfile)
     {
-      if (fp->chfilesize != 0)
-	{			/* file size = 0 means filelist entry is a dummy one */
-	  current_table = &fp->localsyms;
-	  if ((sp = search_local (&tempsym)) != NULL)
+      /* file size = 0 means filelist entry is a dummy one */
+      if (fp->chfilesize == 0)
+	continue;
+
+      current_table = &fp->localsyms;
+      if ((sp = search_local (&tempsym)) != NULL)
+	{
+	  linker_set_reloc_t *lsreloc;
+
+	  stp = sp->symtptr;
+	  ap = stp->symtarea.areaptr;
+	  offset = stp->symtvalue - ap->arplace;    /* Offset within area of __link */
+	  *(ap->arobjdata + offset/sizeof(long)) = lastlink;	    /* ???? */
+
+	  /*
+	  ** We must remember the locations of the symbols so that they
+	  ** can be written to a relocation list in the output.
+	  */
+	  if (lastlink != 0)
 	    {
-	      stp = sp->symtptr;
-	      ap = stp->symtarea.areaptr;
-	      offset = stp->symtvalue - ap->arplace;	/* Offset within area of __link */
-	      *(ap->arobjdata + offset) = lastlink;	/* ???? */
-	      lastlink = stp->symtvalue;
+	      lsreloc = allocmem(sizeof(linker_set_reloc_t));
+	      if (lsreloc == NULL)
+		error ("Fatal: Out of memory in 'build_lslist_named' linking '%s'", link_name);
+	      lsreloc->sym = sp;
+	      lsreloc->next = linker_set_relocs;
+	      linker_set_relocs = lsreloc;
 	    }
+
+	  lastlink = stp->symtvalue;
 	}
-      fp = fp->nextfile;
     }
-  tempsym.symhash = hash (HEADNAME);
+  if (lastlink == 0)
+    {
+      error ("Warning: No linkerset links found for head '%s'", head_name);
+      return;
+    }
+
+  tempsym.symhash = hash (head_name);
   tempsym.symtptr = &tempsymt;
-  tempsymt.symtname = HEADNAME;
+  tempsymt.symtname = head_name;
+  tempsymt.symtattr = 0;
   sp = search_global (&tempsym);
   if (sp != NULL)
-    {				/* Just to prevent embarrassing problems if this is not really C++ */
+    {	/* Just to prevent embarrassing problems if this is not really C++ */
+      linker_set_reloc_t *lsreloc;
+
       stp = sp->symtptr;
       ap = stp->symtarea.areaptr;
+
+      /* Verify this isn't in a NOINIT area.  */
+      if ((ap->aratattr & ATT_NOINIT) != 0)
+        error ("Error: Head of linkerset '%s' is located in zero initialised area '%s' in '%s'", head_name, ap->arname, ap->arfileptr->chfilename);
+
       offset = stp->symtvalue - ap->arplace;	/* Offset within area of __head */
-      *(ap->arobjdata + offset) = lastlink;	/* ???? */
+      *(ap->arobjdata + offset/sizeof(long)) = lastlink;	/* ???? */
+
+      /*
+      ** We must remember the locations of the symbols so that they can be
+      ** written to a relocation list in the output.
+      */
+      lsreloc = allocmem(sizeof(linker_set_reloc_t));
+      if (lsreloc == NULL)
+        error ("Fatal: Out of memory in 'build_lslist_named' linking '%s'", head_name);
+      lsreloc->sym = sp;
+      lsreloc->next = linker_set_relocs;
+      linker_set_relocs = lsreloc;
     }
+  else
+    error ("Fatal: Program error, linkerset head '%s' can't be found back", head_name);
+}
+
+/*
+** 'find_lsareas_named' is called to mark all areas that containing named
+** linker set symbols as 'not deletable'.
+*/
+void
+find_lsareas_named (const char *link_name, const char *head_name)
+{
+  symbol tempsym;
+  symtentry tempsymt;
+  symbol *sp;
+  filelist *fp;
+  tempsym.symhash = hash (link_name);
+  tempsym.symtptr = &tempsymt;
+  tempsymt.symtname = link_name;
+  for (fp = aofilelist; fp != NULL; fp = fp->nextfile)
+    {
+      if (fp->chfilesize != 0)
+	{	/* file size = 0 means filelist entry is a dummy one */
+	  current_table = &fp->localsyms;
+	  if ((sp = search_local (&tempsym)) != NULL)
+	    {	/* File contains a constructor/destructor */
+	      mark_area (sp->symtptr->symtarea.areaptr);
+	    }
+	}
+    }
+  tempsym.symhash = hash (head_name);
+  tempsym.symtptr = &tempsymt;
+  tempsymt.symtname = head_name;
+  sp = search_global (&tempsym);
+  if (sp != NULL)
+    {	/* Just to prevent embarrassing problems if this is not really C++ */
+      mark_area (sp->symtptr->symtarea.areaptr);
+    }
+}
+
+/*
+** 'write_lsreloc' will write the addresses of the symbols which require relocation
+** to the image file. It is called by 'write_relocinfo' in c.areas. These are required
+** for any relocatable image.
+*/
+void
+write_lsreloc (void)
+{
+  linker_set_reloc_t *lsreloc;
+  for (lsreloc = linker_set_relocs; lsreloc; lsreloc=lsreloc->next)
+  {
+    symbol *sym = lsreloc->sym;
+    unsigned int value = sym->symtptr->symtvalue - progbase;
+
+    convert_endian (&value, sizeof (value));
+    write_image(&value, sizeof (value));
+  }
+}
+
+
+/*
+** 'build_cdlist' builds the constructor-destructor linked list
+** that C++ programs contain. These are denoted by a local symbol in
+** each AOF file with the name of '__link'. '__head' points at the
+** first entry in the list.
+*/
+void
+build_cdlist (void)
+{
+  if (opt_verbose)
+    error ("Drlink: Performing C++ specific operations...");
+  /*
+  ** This routine has been simplified to use the generalised linker-set
+  ** routine above.
+  */
+  build_lslist_named(LINKNAME, HEADNAME);
 }
 
 /*
@@ -1717,35 +1821,143 @@ build_cdlist (void)
 void
 find_cdareas (void)
 {
-  symbol tempsym;
-  symtentry tempsymt;
-  symbol *sp;
-  filelist *fp;
-  tempsym.symhash = hash (LINKNAME);
-  tempsym.symtptr = &tempsymt;
-  tempsymt.symtname = LINKNAME;
-  fp = aofilelist;
-  while (fp != NULL)
+  /*
+  ** This routine has been simplified to use the generalised linker-set
+  ** routine above.
+  */
+  find_lsareas_named(LINKNAME, HEADNAME);
+}
+
+
+/*
+** 'search_lsprefix' is a helper function for the linker-set support. It
+** searches a tree for all symbols in the given tree whose name is prefixed
+** by a particular string and calls a function with their symbol.
+*/
+static void
+search_lsprefix (symbol * tree, const char *prefix, void (*func)(symbol *p))
+{
+  int prefixlen = strlen(prefix);
+  /* Note: We're only using a case-sensitive comparison here; this is
+	   possibly wrong; maybe we should use the case flag for the
+	   symbol? */
+  int compval = strncmp (prefix, tree->symtptr->symtname, prefixlen);
+  if (compval == 0)
+    func(tree);
+
+  if (tree->left)
+    search_lsprefix(tree->left, prefix, func);
+  if (tree->right)
+    search_lsprefix(tree->right, prefix, func);
+}
+
+
+/*
+** A '__head' symbol has been found in the global symbol table. We must
+** link all the same-named '__link' symbols to it.
+*/
+static void
+build_lslist_symbol(symbol *p)
+{
+  const char *headsuffix = p->symtptr->symtname + sizeof(HEADNAME)-1;
+  int namelen = strlen(headsuffix) + sizeof(LINKNAME);
+  char *linkname;
+
+  if (*headsuffix == '\0')
+    return; /* The C++ linker sets will have already been dealt with */
+
+  /* Don't trigger on __head*$$Base or __head*$$Limit, even more, when
+     suffix starts with "$$", don't consider using this.  */
+  if (headsuffix[0] == '$' && headsuffix[1] == '$')
+    return;
+
+  linkname = allocmem (namelen);
+  if (linkname == NULL)
+    error ("Fatal: Out of memory in 'build_lslist_symbol'");
+
+  /* Construct the link name that we associate with this head */
+  strcpy(linkname, LINKNAME);
+  strcpy(linkname + sizeof(LINKNAME)-1, headsuffix);
+
+  build_lslist_named(linkname, p->symtptr->symtname);
+
+  freemem (linkname, namelen);
+}
+
+
+/*
+** 'build_lslist' builds a linker-set in a similar way to the
+** constructor-destructor linked list that C++ programs contain.
+** These are denoted by a local symbol in each AOF file with the prefix
+** of '__link'. A symbol prefixed by '__head' points at the first entry in
+** the list.
+*/
+void
+build_lslist (void)
+{
+  int hashval;
+  if (opt_verbose)
+    error ("Drlink: Performing linker-set specific operations...");
+  for (hashval = 0; hashval<MAXGLOBALS; hashval++)
     {
-      if (fp->chfilesize != 0)
-	{			/* file size = 0 means filelist entry is a dummy one */
-	  current_table = &fp->localsyms;
-	  if ((sp = search_local (&tempsym)) != NULL)
-	    {			/* File contains a constructor/destructor */
-	      mark_area (sp->symtptr->symtarea.areaptr);
-	    }
-	}
-      fp = fp->nextfile;
-    }
-  tempsym.symhash = hash (HEADNAME);
-  tempsym.symtptr = &tempsymt;
-  tempsymt.symtname = HEADNAME;
-  sp = search_global (&tempsym);
-  if (sp != NULL)
-    {				/* Just to prevent embarrassing problems if this is not really C++ */
-      mark_area (sp->symtptr->symtarea.areaptr);
+      symbol *p = globalsyms[hashval];
+      if (p)
+        search_lsprefix(p, HEADNAME, build_lslist_symbol);
     }
 }
+
+
+/*
+** A '__head' symbol has been found in the global symbol table. We must
+** make all the symbols associated with it as being in areas which are to
+** not be deleted.
+*/
+static void
+find_lsareas_symbol(symbol *p)
+{
+  const char *headsuffix = p->symtptr->symtname + sizeof(HEADNAME)-1;
+  int namelen = strlen(headsuffix) + sizeof(LINKNAME);
+  char *linkname;
+
+  if (*headsuffix == '\0')
+    return; /* The C++ linker sets will have already been dealt with */
+
+  /* Don't trigger on __head*$$Base or __head*$$Limit, even more, when
+     suffix starts with "$$", don't consider using this.  */
+  if (headsuffix[0] == '$' && headsuffix[1] == '$')
+    return;
+
+  linkname = allocmem (namelen);
+  if (linkname == NULL)
+    error ("Fatal: Out of memory in 'find_lsareas_symbol'");
+
+  /* Construct the link name that we associate with this head */
+  strcpy(linkname, LINKNAME);
+  strcpy(linkname + sizeof(LINKNAME)-1, headsuffix);
+
+  find_lsareas_named(linkname, p->symtptr->symtname);
+
+  freemem (linkname, namelen);
+}
+
+
+/*
+** 'find_lsareas' is called to mark all areas that contain linker-sets
+** as 'not deletable'.
+*/
+void
+find_lsareas (void)
+{
+  int hashval;
+  for (hashval = 0; hashval<MAXGLOBALS; hashval++)
+  {
+    symbol *p;
+    p = globalsyms[hashval];
+    if (p)
+      search_lsprefix(p, HEADNAME, find_lsareas_symbol);
+  }
+}
+
 
 /*
 ** 'init_symbols' is called at the start of the link to initialise

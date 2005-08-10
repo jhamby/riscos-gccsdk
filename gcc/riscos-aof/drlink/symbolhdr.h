@@ -100,7 +100,7 @@ typedef struct symtentry
 typedef struct symbol
 {
   struct symbol *left;		/* Left in binary tree */
-  struct symbol *right;		/* Rigth in binary tree */
+  struct symbol *right;		/* Right in binary tree */
   int symhash;			/* Hash value of symbol's name */
   struct symtentry *symtptr;	/* Pointer to entry in OBJ_SYMT chunk */
   struct symtentry *symnormal;	/* Pointer to 'normal' version of symbol when a strong def'n exists */

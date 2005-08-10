@@ -176,6 +176,14 @@ supported are:
                image file type is not given, '-bin' is assumed to
                be the image type.
 
+    -c++       Perform C++-specific operations (only relevant for
+               Norcroft compiler).
+               
+               C++ requires the symbols '__link' to be chained
+               together to form a list which can be accessed through
+               '__head'. This is used to call constructor and
+               destructor functions.
+
     -case      Ignore the case of symbols when trying to resolve
                symbol references. If this option is omitted, then
                the case of the letters in symbol names is treated
@@ -416,6 +424,20 @@ The linker has the following extra options of its own:
                '-lib' will be loaded immediately, that is, they
                will not be added to the list of libraries to be
                searched later.
+
+    -linkersets
+               This option is similar to the -c++ option, but supports
+               a generalised form of the chained symbols. All symbols
+               prefixed by '__link' will be chained together with the
+               same named symbols. The start of each chain will be
+               stored in the symbol with the prefix '__head' and the
+               same suffix as the '__link' symbol. For example, all
+               symbols with the name '__link_init' would be chained
+               together and could be accessed through the symbol
+               '__head_init'.
+               
+               The '__link' symbols must be local.
+               The '__head' symbols must be global.
 
     -nounused  This option is used to control whether unreferenced
                areas in the image file will be left out. By
@@ -877,6 +899,79 @@ have not been seen in any AOF files yet and so they have not be
 included in Drlink.
 
 
+Linker sets (and constructor/destructor lists)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+As of Drlink 0.42, Drlink is capable of creating implicitly
+linked lists of tables from its object files. This feature is an
+extension of the C++ constructor/destructor lists. These are only
+likely to be of use to experienced programmers.
+
+Within certain programs it is useful to be able to provide
+support for extending features of a program without requiring any
+changes to the code. The best example of this is the initial use
+of the linker sets, the C++ constructor list. When a C program
+starts its static data is already initialised before 'main' is run.
+However, when a C++ program starts, the initialisation of its
+static data may involve the execution of more complex code - the
+object constructors. There can be any number of constructors and
+these must all be located and initialised. The C++ system uses
+a special pair of symbols to locate the routines that will be
+used to constructor objects. The '__link' symbol is defined
+within every object file as a local symbol. Being a local symbol,
+it can therefore be defined in multiple files. The first word
+pointed to by each of these symbols will be chained together to
+the next. The start of this list is assigned to the word pointed
+to by the '__head' symbol. The '__head' symbol is a global
+symbol which is only defined in the routine used to initialise
+the C++ system (this is actually used in the ______main routine
+in the C++ system, but this is an implementation issue rather
+than a linker-provided feature). This feature is enabled by the
+'-c++' switch.
+
+Linker sets are a generalisation of this feature, enabled by
+the '-linkersets' switch. Rather than being restricted to the
+single '__link' and '__head' symbols, the linker can generate
+a chain of any number of symbols beginning with these names.
+Only lists which match the names suffix would be related. That
+is, the list starting at '__head_foo' and made up of the
+local symbols named '__link_foo', would be distinct from the
+list starting at '__head_bar' and made up of the local symbols
+named '__link_bar'.
+
+For example, if you had a list of messages you wanted to be
+printed by an application when it started up, you could use
+a linker set to chain these together. Each file which wanted
+to provide a message would include code similar to the
+following :
+
+static struct _linkerset_s {
+  struct _linkerset_s *next;
+  char *message;
+} __link_message = { NULL, "Message to be displayed" };
+
+Within the main code, where the message was to be displayed,
+the list could be iterated through with code similar to the
+following :
+
+struct _linkerset_s {
+  struct _linkerset_s *next;
+  char *message;
+} *__head_message;
+
+int show_messages(void)
+{
+  struct _linkerset_s *ls;
+  for (ls = __head_message; ls; ls = ls->next)
+    printf("%s\n", ls->message);
+}
+
+It is important to note that only the first word of the linker set
+is important to drlink. The above examples only use a single 
+additional word, but beyond the first element the structure is
+completely user defined.
+
+
 Differences Between Drlink and Link
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Drlink is based on the version of 'link' that comes with
@@ -1143,6 +1238,13 @@ Drlink 0.41
 - Support big-endian platforms (like Mac OS X).  This does not
   mean support for big-endian AOF/ALF files.
   
+Drlink 0.42 (based on work from Justin Fletcher)
+- Fix for C++ constructor/destructor lists corrupting image
+  (Norcroft case).
+- Added support for -linkersets in line with the functionality of
+  recent versions of Norcroft Link.
+- Src code cleanups.
+
 
 Copyright
 ~~~~~~~~~

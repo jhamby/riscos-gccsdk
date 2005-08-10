@@ -90,7 +90,7 @@ static newsymt *symtlist, *symtlast;
 
 static newhead *headlist, *headlast;
 
-#define IDFNSTRING "Drlink AOF Linker Version "
+#define IDFNSTRING "Drlink AOF Linker "
 
 /*
 ** 'init_aofile' initialises things concerning the AOF file

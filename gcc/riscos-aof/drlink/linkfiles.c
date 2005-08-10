@@ -144,6 +144,8 @@ link_program (void)
 	    {
 	      if (opt_cpp)
 		build_cdlist ();
+	      if (opt_linkersets)
+		build_lslist ();
 	      if (opt_debug)
 		ok = build_debugtables ();
 	    }

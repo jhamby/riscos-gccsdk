@@ -72,6 +72,7 @@ bool inviafile,			/* TRUE if taking commands from 'via' file */
 #endif
   opt_case,			/* TRUE if linker will ignore symbol case */
   opt_cpp,			/* TRUE if linking a C++ program */
+  opt_linkersets,               /* TRUE if linking in linker-sets */
   opt_gccareas,			/* TRUE if not touching special GCC areas in 'nounused' processing */
   opt_pagealign,		/* TRUE if aligning start of R/W areas on page boundary */
   opt_strongarm;		/* TRUE if handling StrongARM-specific stuff */
@@ -133,72 +134,54 @@ static void
 print_help (void)
 {
   announce ();
-  printf
-    ("\n'Drlink' is a linker for object files in Acorn's AOF format. It\n");
-  printf
-    ("carries out the same function as the Acorn linker, 'link', but it\n");
-  printf
-    ("is not a replacement for 'link' as it omits some of that program's\n");
-  printf
-    ("features such as the ability to create image files with overlays.\n");
-  printf ("\nThe command syntax is:\n\n");
-  printf
-    ("  drlink <options> <list of files to include in linked program>\n\n");
-  printf ("Options recognised are:\n\n");
-  printf
-    ("  -aco[rnmap]  Produce symbol listing in format similar to that of 'link'\n");
-  printf ("  -ai[f]       Produce an AIF image file (default)\n");
-  printf ("  -ao[f]       Produce a partially-linked AOF file\n");
-  printf
-    ("  -area[map] <file> Write list of areas in image file to <file>\n");
-  printf ("  -b[ase] <address> Start read only part of image at <address>\n");
-  printf ("  -bi[n]       Produce a plain binary image file\n");
-  printf
-    ("  -c++         Carry out extra linker actions needed by C++ programs\n");
-  printf
-    ("  -c[ase]      Ignore the case of symbols where searching for them\n");
-  printf
-    ("  -da[ta] <address> Start read/write part of image at <address>\n");
+  printf ("\n'Drlink' is a linker for object files in Acorn's AOF format. It\n"
+         "carries out the same function as the Acorn linker, 'link', but it\n"
+         "is not a replacement for 'link' as it omits some of that program's\n"
+         "features such as the ability to create image files with overlays.\n"
+         "\nThe command syntax is:\n\n"
+         "  drlink <options> <list of files to include in linked program>\n\n"
+         "Options recognised are:\n\n"
+         "  -aco[rnmap]  Produce symbol listing in format similar to that of 'link'\n"
+         "  -ai[f]       Produce an AIF image file (default)\n"
+         "  -ao[f]       Produce a partially-linked AOF file\n"
+         "  -area[map] <file> Write list of areas in image file to <file>\n"
+         "  -b[ase] <address> Start read only part of image at <address>\n"
+         "  -bi[n]       Produce a plain binary image file\n"
+         "  -c++         Carry out extra linker actions needed by C++ programs\n"
+         "  -c[ase]      Ignore the case of symbols where searching for them\n"
+         "  -da[ta] <address> Start read/write part of image at <address>\n"
 #ifndef CROSS_COMPILE
-  printf
-    ("  -debi[mage]  Set filetype of image file with debug info to 'DebImage'\n");
+         "  -debi[mage]  Set filetype of image file with debug info to 'DebImage'\n"
 #endif
-  printf ("  -d[ebug]     Include debugging information in the image file\n");
-  printf ("  -e[dit] <file> Take link edit commands from <file>\n");
-  printf
-    ("  -gcc         Do not remove GCC-specific areas when '-nounused' used\n");
-  printf ("  -h[elp]      Print this help information\n");
-  printf ("  -keep[debug] <list> Keep debug info for files in <list> only\n");
-  printf
-    ("  -leave[weak] Do not attempt to resolve weak externals using libraries\n");
-  printf ("  -lib <list>  Do not load libraries in <list> into memory\n");
-  printf ("  -map         Print a list of areas in the image file\n");
-  printf ("  -m[odule]    Create a relocatable module\n");
-  printf ("  -no[unused]  Leave unreferenced areas out of the image file\n");
-  printf ("  -o[utput] <file> Write executable image to file <file>\n");
-  printf ("  -pag[ealign] Align end of read-only areas on page boundary\n");
-  printf ("  -qui[et]     Do not print any messages except error messages\n");
-  printf ("  -r[elocatable] Create a relocatable AIF image file\n");
-  printf ("  -res[can]    Scan libraries more than once to find symbols\n");
-  printf ("  -rev[map]    Produce symbol listing in order <addr> <symbol>\n");
-  printf ("  -rm[f]       Create a relocatable module\n");
-  printf ("  -s[ymbols] <file> Write list of symbols in image to <file>\n");
+         "  -d[ebug]     Include debugging information in the image file\n"
+         "  -e[dit] <file> Take link edit commands from <file>\n"
+         "  -gcc         Do not remove GCC-specific areas when '-nounused' used\n"
+         "  -h[elp]      Print this help information\n"
+         "  -keep[debug] <list> Keep debug info for files in <list> only\n"
+         "  -leave[weak] Do not attempt to resolve weak externals using libraries\n"
+         "  -lib <list>  Do not load libraries in <list> into memory\n"
+         "  -linkersets  Carry out linker-set linkages\n"
+         "  -map         Print a list of areas in the image file\n"
+         "  -m[odule]    Create a relocatable module\n"
+         "  -no[unused]  Leave unreferenced areas out of the image file\n"
+         "  -o[utput] <file> Write executable image to file <file>\n"
+         "  -pag[ealign] Align end of read-only areas on page boundary\n"
+         "  -qui[et]     Do not print any messages except error messages\n"
+         "  -r[elocatable] Create a relocatable AIF image file\n"
+         "  -res[can]    Scan libraries more than once to find symbols\n"
+         "  -rev[map]    Produce symbol listing in order <addr> <symbol>\n"
+         "  -rm[f]       Create a relocatable module\n"
+         "  -s[ymbols] <file> Write list of symbols in image to <file>\n"
 #ifndef CROSS_COMPILE
-  printf
-    ("  -t[hrowback] Send warning and error messages to throwback window\n");
+         "  -t[hrowback] Send warning and error messages to throwback window\n"
 #endif
-  printf ("  -v[erbose]   Print messages as the link progresses\n");
-  printf
-    ("  -via <file>  Continue taking link parameters from file <file>\n");
-  printf
-    ("  -w[orkspace] <size> Set relocatable image workspace to <size> bytes\n");
-  printf
-    ("  -x[ref]      Print a list of references between areas (ignored)\n\n");
-  printf
-    ("Note that the following 'link' options, although recognised, have\n");
-  printf
-    ("not been implemented and will be flagged as an error: dbug, entry\n");
-  printf ("and overlay.\n");
+         "  -v[erbose]   Print messages as the link progresses\n"
+         "  -via <file>  Continue taking link parameters from file <file>\n"
+         "  -w[orkspace] <size> Set relocatable image workspace to <size> bytes\n"
+         "  -x[ref]      Print a list of references between areas (ignored)\n\n"
+         "Note that the following 'link' options, although recognised, have\n"
+         "not been implemented and will be flagged as an error: dbug, entry\n"
+         "and overlay.\n");
 }
 
 /*
@@ -488,7 +471,7 @@ get_option (char *tp)
     NOSUPPORT, IGNORED, OPT_ACORNMAP, OPT_AIF, OPT_AOF, OPT_BASE,
     OPT_BIN, OPT_BUFFER, OPT_CASE, OPT_CPLUS, OPT_DATA, OPT_DEBIMAGE,
     OPT_DEBUG, OPT_DUMP, OPT_EDIT, OPT_GCCAREAS, OPT_HELP, OPT_INFO,
-    OPT_KEEP, OPT_LEAVEWEAK, OPT_LIB, OPT_MAP, OPT_MAPFILE, OPT_NOUNUSED,
+    OPT_KEEP, OPT_LEAVEWEAK, OPT_LIB, OPT_LINKERSETS, OPT_MAP, OPT_MAPFILE, OPT_NOUNUSED,
     OPT_OUTPUT, OPT_PAGE, OPT_QUIET, OPT_RELOC, OPT_RESCAN, OPT_REVMAP,
     OPT_RMOD, OPT_STRONG, OPT_SYMBOL, OPT_THROW, OPT_VIA, OPT_VERBOSE,
     OPT_WORKS
@@ -501,54 +484,55 @@ get_option (char *tp)
     actions optaction;
   } option;
 
-  option optionlist[] = {
-/* areamap */ {"area", 4, OPT_MAPFILE},
-/* aif */ {"ai", 2, OPT_AIF},
-/* aof */ {"ao", 2, OPT_AOF},
-/* acornmap */ {"acornmap", 3, OPT_ACORNMAP},
-/* buffer */ {"buf", 3, OPT_BUFFER},
-/* bin */ {"bi", 2, OPT_BIN},
-/* base */ {"b", 1, OPT_BASE},
-/* C++ */ {"c++", 3, OPT_CPLUS},
-/* case */ {"c", 1, OPT_CASE},
+  const option optionlist[] = {
+/* areamap */ {"area", sizeof("area")-1, OPT_MAPFILE},
+/* aif */ {"ai", sizeof("ai")-1, OPT_AIF},
+/* aof */ {"ao", sizeof("ao")-1, OPT_AOF},
+/* acornmap */ {"aco", sizeof("aco")-1, OPT_ACORNMAP},
+/* buffer */ {"buf", sizeof("buf")-1, OPT_BUFFER}, /* FIXME: undocumented */
+/* bin */ {"bi", sizeof("bi")-1, OPT_BIN},
+/* base */ {"b", sizeof("b")-1, OPT_BASE},
+/* C++ */ {"c++", sizeof("c++")-1, OPT_CPLUS},
+/* case */ {"c", sizeof("c")-1, OPT_CASE},
 #ifdef DEBUG
-/* dump */ {"dump", 4, OPT_DUMP},
+/* dump */ {"dump", sizeof("dump")-1, OPT_DUMP},
 #endif
 #ifndef CROSS_COMPILE
-/* debimage */ {"debi", 4, OPT_DEBIMAGE},
+/* debimage */ {"debi", sizeof("debi")-1, OPT_DEBIMAGE},
 #endif
-/* data */ {"da", 2, OPT_DATA},
-/* dbug */ {"db", 2, NOSUPPORT},
-/* debug */ {"d", 1, OPT_DEBUG},
-/* entry */ {"en", 2, NOSUPPORT},
-/* edit */ {"e", 1, OPT_EDIT},
-/* gcc */ {"gcc", 3, OPT_GCCAREAS},
-/* help */ {"h", 1, OPT_HELP},
-/* info */ {"info", 4, OPT_INFO},
-/* keepdebug */ {"keep", 4, OPT_KEEP},
-/* keeponly */ {"k", 1, OPT_NOUNUSED},
-/* leaveweak */ {"leave", 5, OPT_LEAVEWEAK},
-/* library */ {"lib", 3, OPT_LIB},
-/* map */ {"map", 3, OPT_MAP},
-/* module */ {"m", 1, OPT_RMOD},
-/* nounused */ {"no", 2, OPT_NOUNUSED},
-/* overlay */ {"ov", 2, NOSUPPORT},
-/* output */ {"o", 1, OPT_OUTPUT},
-/* pagealign */ {"pag", 3, OPT_PAGE},
-/* quiet */ {"qui", 3, OPT_QUIET},
-/* rescan */ {"res", 3, OPT_RESCAN},
-/* revmap */ {"rev", 3, OPT_REVMAP},
-/* rmf */ {"rm", 2, OPT_RMOD},
-/* relocatable */ {"r", 1, OPT_RELOC},
-/* strong */ {"str", 3, OPT_STRONG},
-/* symbols */ {"s", 1, OPT_SYMBOL},
+/* data */ {"da", sizeof("da")-1, OPT_DATA},
+/* dbug */ {"db", sizeof("db")-1, NOSUPPORT},
+/* debug */ {"d", sizeof("d")-1, OPT_DEBUG},
+/* entry */ {"en", sizeof("en")-1, NOSUPPORT},
+/* edit */ {"e", sizeof("e")-1, OPT_EDIT},
+/* gcc */ {"gcc", sizeof("gcc")-1, OPT_GCCAREAS},
+/* help */ {"h", sizeof("h")-1, OPT_HELP},
+/* info */ {"info", sizeof("info")-1, OPT_INFO},
+/* keepdebug */ {"keep", sizeof("keep")-1, OPT_KEEP},
+/* keeponly */ {"k", sizeof("k")-1, OPT_NOUNUSED},
+/* leaveweak */ {"leave", sizeof("leave")-1, OPT_LEAVEWEAK},
+/* library */ {"lib", sizeof("lib")-1, OPT_LIB},
+/* linkerset */ {"linkersets", sizeof("linkersets")-1, OPT_LINKERSETS},
+/* map */ {"map", sizeof("map")-1, OPT_MAP},
+/* module */ {"m", sizeof("m")-1, OPT_RMOD},
+/* nounused */ {"no", sizeof("no")-1, OPT_NOUNUSED},
+/* overlay */ {"ov", sizeof("ov")-1, NOSUPPORT},
+/* output */ {"o", sizeof("o")-1, OPT_OUTPUT},
+/* pagealign */ {"pag", sizeof("pag")-1, OPT_PAGE},
+/* quiet */ {"qui", sizeof("qui")-1, OPT_QUIET},
+/* rescan */ {"res", sizeof("res")-1, OPT_RESCAN},
+/* revmap */ {"rev", sizeof("rev")-1, OPT_REVMAP},
+/* rmf */ {"rm", sizeof("rm")-1, OPT_RMOD},
+/* relocatable */ {"r", sizeof("r")-1, OPT_RELOC},
+/* strong */ {"str", sizeof("str")-1, OPT_STRONG},
+/* symbols */ {"s", sizeof("s")-1, OPT_SYMBOL},
 #ifndef CROSS_COMPILE
-/* throwback */ {"t", 1, OPT_THROW},
+/* throwback */ {"t", sizeof("t")-1, OPT_THROW},
 #endif
-/* via */ {"via", 3, OPT_VIA},
-/* verbose */ {"v", 1, OPT_VERBOSE},
-/* workspace */ {"w", 1, OPT_WORKS},
-/* xref */ {"x", 1, IGNORED}
+/* via */ {"via", sizeof("via")-1, OPT_VIA},
+/* verbose */ {"v", sizeof("v")-1, OPT_VERBOSE},
+/* workspace */ {"w", sizeof("w")-1, OPT_WORKS},
+/* xref */ {"x", sizeof("x")-1, IGNORED}
   };
 
   unsigned int n;
@@ -711,6 +695,9 @@ get_option (char *tp)
 	  error ("Error: No library names found after option '%s'", op);
 	  ok = FALSE;
 	}
+      break;
+    case OPT_LINKERSETS:
+      opt_linkersets = TRUE;
       break;
     case OPT_MAP:
       opt_areamap = TRUE;

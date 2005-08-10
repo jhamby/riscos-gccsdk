@@ -207,9 +207,7 @@ add_common (arealist * ap)
       add_common (ap->left);
 
       if ((ap->aratattr & (ATT_COMMON | ATT_COMDEF)) != 0)
-	{
-	  add_lldentry (ap->arname, LLD_COMMON, ap->arplace);
-	}
+	add_lldentry (ap->arname, LLD_COMMON, ap->arplace);
 
       add_common (ap->right);
     }
@@ -231,14 +229,11 @@ gen_lowlevel (void)
     }
   lldnamenext += sizeof (int);	/* First four bytes contains the table length */
   lldentco = 0;
-  fp = aofilelist;
-  do
+  for (fp = aofilelist; fp != NULL; fp = fp->nextfile)
     {
       if (fp->chfilesize != 0 && fp->keepdebug)
 	gen_llsymt (fp);
-      fp = fp->nextfile;
     }
-  while (fp != NULL);
 
   add_common (zidatalist);	/* Now add common blocks to table */
 
