@@ -44,8 +44,7 @@ Boston, MA 02111-1307, USA.  */
 #include "demangle.h"
 #include "getopt.h"
 
-#define LD_VERSION "2.30"
-#define LD_DATE __DATE__
+#define LD_VERSION "v2.30 (" __DATE__ ") [GCCSDK " __VERSION__ "]"
 
 #ifndef __GNUC__
 #undef __attribute__
@@ -1391,71 +1390,65 @@ dump_file (char *name)
 static void ldversion (int noisy)
 {
 #ifdef CROSS_COMPILE
-  fprintf (stdout, "ld: RISC OS cross-linker front end version %s [%s]\n",
-	   LD_VERSION, LD_DATE);
+  printf ("ld: RISC OS cross-linker front end " LD_VERSION "\n");
 #else
-  fprintf (stdout, "ld: RISC OS linker front end version %s [%s]\n",
-	   LD_VERSION, LD_DATE);
+  printf ("ld: RISC OS linker front end " LD_VERSION "\n");
 #endif
   if (noisy >= 1)
-    fprintf (stdout, "Including C++ template repository support\n\n");
+    printf ("Including C++ template repository support\n\n");
   else
-    fprintf (stdout, "\n");
-}
-
-static void out (const char *s)
-{
-  fprintf (stdout, "%s\n", s);
+    printf ("\n");
 }
 
 static void ldhelp (void)
 {
   ldversion (1);
-  out ("LD is used by GCC to convert command line options passed to");
+  printf ("LD is used by GCC to convert command line options passed to\n"
 #ifdef CROSS_COMPILE
-  out ("GNU LD into something that Drlink can understand.\n");
+          "GNU LD into something that Drlink can understand.\n"
 #else
-  out ("GNU LD into something that Drlink or Link can understand.\n");
+          "GNU LD into something that Drlink or Link can understand.\n"
 #endif
-  out ("LD also provides support for C++ template instantiation by");
-  out ("compiling a C++ source file several times to resolve missing");
-  out ("symbol references.\n");
+          "LD also provides support for C++ template instantiation by\n"
+          "compiling a C++ source file several times to resolve missing\n"
+          "symbol references.\n"
 
-  out ("Syntax:");
+          "Syntax:\n"
 #ifdef CROSS_COMPILE
-  out ("  ld -o <exec> <obj>.o [<obj>.o ...] [-L<path>] [-l<lib>]");
+          "  ld -o <exec> <obj>.o [<obj>.o ...] [-L<path>] [-l<lib>]\n"
 #else
-  out ("  ld -o <exec> o.<obj> [o.<obj> ...] [-L<path>] [-l<lib>]");
-#endif
-
-  out ("Where:");
-  out ("  -L<path>     <path> is a library search path");
-  out ("  -l<lib>      <lib> is a library to link against");
-#ifdef CROSS_COMPILE
-  out ("  <obj>.o      Object files\n");
-#else
-  out ("  o.<obj>      Object files\n");
+          "  ld -o <exec> o.<obj> [o.<obj> ...] [-L<path>] [-l<lib>]\n"
 #endif
 
-  out ("The following Drlink linker commands are recognised:");
-  out ("  -acornmap, -area[map] <file>, -aif, -aof, -bin, -case");
-  out ("  -leave[weak], -map, -m[odule], -no[unused], -output, -qui[et]");
-  out ("  -res[can], -symbols <file>, -throwback, -via <file>, -verbose\n");
+          "Where:\n"
+          "  -L<path>     <path> is a library search path\n"
+          "  -l<lib>      <lib> is a library to link against\n"
+#ifdef CROSS_COMPILE
+          "  <obj>.o      Object files\n"
+#else
+          "  o.<obj>      Object files\n"
+#endif
+
+          "The following Drlink linker commands are recognised:\n"
+          "  -acornmap, -area[map] <file>, -aif, -aof, -bin, -case\n"
+          "  -leave[weak], -map, -m[odule], -no[unused], -output, -qui[et]\n"
+          "  -res[can], -symbols <file>, -throwback, -via <file>, -verbose\n"
 
 #ifndef CROSS_COMPILE
-  out ("The following Acorn Link linker (version 4) commands are recognised:");
-  out ("  -aif, -aof, -bin, -map, -via <file>, -verbose\n");
+          "The following Acorn Link linker (version 4) commands are recognised:\n"
+          "  -aif, -aof, -bin, -map, -via <file>, -verbose\n"
 
-  out ("The following Acorn Link linker (version 5) commands are recognised:");
-  out ("  -aif, -aof, -bin, -map, -via <file>, -nounused[areas], -verbose");
-  out ("\nText within square brackets is optional\n");
+          "The following Acorn Link linker (version 5) commands are recognised:\n"
+          "  -aif, -aof, -bin, -map, -via <file>, -nounused[areas], -verbose\n"
+          "\nText within square brackets is optional\n"
 
-  out ("By default, the real linker will be Drlink, and this must be placed");
-  out ("in a directory searched by Run$Path. To use an alternative linker");
-  out ("(Acorn Link, or one that isn't contained within the Run$Path), ");
-  out ("then GCC$Linker should contain the full pathname of the linker e.g.");
-  out ("   *Set GCC$Linker \"$.library.link\"");
+          "By default, the real linker will be Drlink, and this must be placed\n"
+          "in a directory searched by Run$Path. To use an alternative linker\n"
+          "(Acorn Link, or one that isn't contained within the Run$Path),\n"
+          "then GCC$Linker should contain the full pathname of the linker e.g.\n"
+          "   *Set GCC$Linker \"$.library.link\"\n"
 #endif
+          );
 }
 
 /* Add string 'name' onto the end of a linked list.  */
@@ -1515,7 +1508,7 @@ append_arg (args *argv, int *offset, const char *text)
 static void
 add_library_file (const char *library)
 {
-  llist *list = libraries;
+  llist *list;
 
   /* Ignore -lm, -lc and -lpthread */
   if (strcmp (library, "m") == 0 || strcmp (library, "c") == 0 ||
@@ -1543,7 +1536,7 @@ add_library_file (const char *library)
       return;
     }
 
-  while (list)
+  for (list = libraries; list; list = list->next)
     {
       if (!strcmp (library, list->name))
 	{
@@ -1552,7 +1545,6 @@ add_library_file (const char *library)
 
 	  return;
 	}
-      list = list->next;
     }
 
   llist_add (&libraries, library);
@@ -1776,7 +1768,7 @@ parse_args (int argc, char **argv)
 #define OPTION_QUIET			162
 #define OPTION_MODULE			163
 #define OPTION_SYMBOLS			164
-#define OPTION_LINKER			165                   
+#define OPTION_LINKER			165
 
   static struct option longopts[] = {
     {"acornmap", no_argument, NULL, OPTION_MAP},
