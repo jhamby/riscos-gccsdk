@@ -1,6 +1,4 @@
 /*
- * regfree - free an RE
- *
  * Copyright (c) 1998, 1999 Henry Spencer.	All rights reserved.
  *
  * Development of this software was funded, in part, by Cray Research Inc.,
@@ -26,27 +24,44 @@
  * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- *
- * You might think that this could be incorporated into regcomp.c, and
- * that would be a reasonable idea... except that this is a generic
- * function (with a generic name), applicable to all compiled REs
- * regardless of the size of their characters, whereas the stuff in
- * regcomp.c gets compiled once per character size.
  */
 
-#include "regguts.h"
+/* headers if any */
+#include <ctype.h>
+#include <limits.h>
+#include <stddef.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <wctype.h>
 
+/* overrides for regguts.h definitions, if any */
+#define FUNCPTR(name, args) (*name) args
+#define MALLOC(n)		malloc(n)
+#define FREE(p)			free(VS(p))
+#define REALLOC(p,n)		realloc(VS(p),n)
 
-/*
- * regfree - free an RE (generic function, punts to RE-specific function)
- *
- * Ignoring invocation with NULL is a convenience.
- */
-void
-regfree(regex_t *re)
-{
-	if (re == NULL)
-		return;
-	(*((struct fns *) re->re_fns)->free) (re);
-}
+/* internal character type and related */
+typedef char chr;			/* the type itself */
+typedef unsigned char uchr;			/* unsigned type that will hold a chr */
+typedef int celt;			/* type to hold chr, MCCE number, or
+								 * NOCELT */
+
+#define NOCELT	(-1)			/* celt value which is not valid chr or
+								 * MCCE */
+#define CHR(c)	((unsigned char) (c))	/* turn char literal into chr
+								 * literal */
+#define DIGITVAL(c) ((c)-'0')		/* turn chr digit into its value */
+#define CHRBITS CHAR_BIT			/* bits in a chr; must not use sizeof */
+#define CHR_MIN CHAR_MIN		/* smallest and largest chr; the value */
+#define CHR_MAX (CHAR_MAX - 1)		/* CHR_MAX-CHR_MIN+1 should fit in uchr */
+
+/* functions operating on chr */
+#define iscalnum(x) isalnum(x)
+#define iscalpha(x) isalpha(x)
+#define iscdigit(x) isdigit(x)
+#define iscspace(x) isspace(x)
+
+/* and pick up the standard header */
+#include "regex.h"

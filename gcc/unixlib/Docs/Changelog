@@ -1,3 +1,14 @@
+Fri Aug 26 00:12:33 2005  John-Mark Bell  <jmb202@ecs.soton.ac.uk>
+
+	* regexp/{COPYRIGHT,regcomp.c,regcustom.h,regc_color.h,regc_cvec.h,
+	          regc_lex.h,regc_locale.h,regc_nfa.h,regerror.c,regerrs.h,
+	          regexec.c,rege_dfa.h,regfree.c,regguts.h}, clib/regex.h:
+	  Import regex implementation from PostgreSQL - this is significantly
+	  faster than the existing implementation.
+	* regexp/{cclass.h,cname.h,engine.h,regex2.h,utils.h}: Remove redundant
+	  files.
+	* Docs/Copyright: Add details of regex implementation licencing.
+
 Sun Jul 31 16:17:49 2005  John Tytgat  <John.Tytgat@aaug.net>
 
 	* clib/unixlib/{asm_dec.s,unix.h}, sys/_syslib.s: For some time UnixLib
