@@ -269,10 +269,7 @@ check_commondef (filelist * fp, areaentry * aep, unsigned int atattr)
 
       if (compres == 0)
 	break;
-      if (compres > 0)
-	ap = ap->right;
-      else
-	ap = ap->left;
+      ap = (compres > 0) ? ap->right : ap->left;
     }
 
   if (ap == NULL)
@@ -522,10 +519,8 @@ insert_area (arealist ** list, arealist ** lastentry, arealist * newarea)
       lastarea = ap;
       compres = strcmp (name, ap->arname);
 
-      if (compres > 0)
-	ap = ap->right;
-      else
-	ap = ap->left;		/* Areas with the same name are put to the left */
+      /* Areas with the same name are put to the left */
+      ap = (compres > 0) ? ap->right : ap->left;
     }
 
   if (lastarea == NULL)
@@ -988,14 +983,14 @@ scan_head (filelist * fp)
 	  ap = NULL;
 	  if ((atattr & ATT_COMMON) != 0
 	      || atattr == (ATT_COMDEF | ATT_NOINIT))
-	    {			/* Extra checks for common blocks */
+	    {		/* Extra checks for common blocks */
 	      ap = check_commonref (fp, aep, atattr);
 	    }
 	  else if ((atattr & ATT_COMDEF) != 0)
 	    {			/* Common definition with code or data */
 	      ap = check_commondef (fp, aep, atattr);
 	      if (ap != NULL)
-		{		/* Known common area: free storage used by new version */
+		{	/* Known common area: free storage used by new version */
 		  add_srchlist (ap);
 		  freemem (thisarea, aep->arsize + aep->arelocs * RELOCSIZE);
 		  thisarea =
@@ -1004,14 +999,14 @@ scan_head (filelist * fp)
 		}
 	    }
 	  if (ap == NULL)
-	    {			/* Not a known common block or new area found */
+	    {		/* Not a known common block or new area found */
 	      if ((atattr & ATT_SYMBOL) == 0 || fp->keepdebug)
 		{		/* Area or new common block */
 		  ap = add_newarea (fp, aep, atattr, alattr);
 		  ok = ap != NULL;
 		}
 	      else
-		{		/* Debug info when info not needed */
+		{	/* Debug info when info not needed */
 		  freemem (thisarea, aep->arsize + aep->arelocs * RELOCSIZE);
 		  thisarea =
 		    COERCE (COERCE (thisarea, char *) + aep->arsize +
@@ -1030,7 +1025,7 @@ scan_head (filelist * fp)
       if (areaco == entryareanum)
 	{
 	  if (entryarea != NULL)
-	    error ("Error: Program has multiple entry points");
+	    error ("Error: Program has multiple entry points (first '%s', second '%s')", entryarea->arfileptr->chfilename, fp->chfilename);
 	  else if ((atattr & ATT_CODE) == 0)
 	    error ("Warning: Entry point for program in '%s' is in a data area, not code", fp->chfilename);
 	  entryarea = ap;

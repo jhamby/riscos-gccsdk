@@ -126,7 +126,7 @@ extern char *symbolname,	/* Pointer to name of symbol file */
 
 extern const char *imagename;	/* Pointer to name of linker output file */
 
-extern char objectname[FNAMELEN];	/* File currently being read */
+extern const char *objectname;	/* AOF/ALF file currently being read */
 
 extern unsigned int buffersize,	/* Size of image file buffer */
   headersize,			/* Size of AIF (or BIN) header */

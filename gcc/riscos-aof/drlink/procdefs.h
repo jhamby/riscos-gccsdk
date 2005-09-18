@@ -122,7 +122,7 @@ extern void print_mapfile (void);
 #ifndef HAVE_STRICMP
 extern int stricmp (const char *, const char*);
 #endif
-extern symbol *make_symbol (const char *, unsigned int);
+extern const symbol *make_symbol (const char *, unsigned int);
 extern void create_linksyms (void);
 extern symbol *create_externref (symtentry *);
 extern void init_symbols (void);
@@ -131,7 +131,7 @@ extern bool scan_symt (filelist *);
 extern void resolve_refs (filelist *);
 extern bool resolve (void);
 extern void relocate_symbols (void);
-extern void define_symbol (symbol *, unsigned int);
+extern void define_symbol (const symbol *, unsigned int);
 extern int hash (const char *);
 extern const char *find_areasymbol (arealist *);
 extern symtentry *find_nonstrong (symtentry *);

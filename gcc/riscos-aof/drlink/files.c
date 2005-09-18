@@ -69,7 +69,7 @@ char *symbolname,		/* Pointer to name of symbol file */
 
 const char *imagename;		/* Pointer to name of linker output file */
 
-char objectname[FNAMELEN];	/* File currently being read */
+const char *objectname;		/* AOF/ALF file currently being read */
 
 unsigned int buffersize,	/* Size of image file buffer */
   headersize,			/* Size of AIF (or BIN) header */
@@ -126,6 +126,7 @@ static bool obj_check_and_adjust_head (const char *filename, const obj_overview 
 static bool obj_check_and_adjust_area (const char *filename, const obj_overview * objoverview);
 static bool obj_check_and_adjust_symt (const char *filename, const obj_overview * objoverview);
 
+static bool read_file_and_process_wrap (const char *filename);
 static bool read_file_and_process (const char *filename);
 static bool read_file_and_process_int (void *filebase, int filesize, const char *filename, FILE *objfile);
 
@@ -812,7 +813,28 @@ check_and_get_chunkclass (const chunkhdr *ch, const char *filename)
 
 
 /*
-** 'read_file' reads an AOF/ALF file into memory. It determines the size of
+** 'read_file_and_process_wrap' sets/unsets the global 'objectname'
+** variable before/after a 'read_file_and_process' call.
+*/
+static bool
+read_file_and_process_wrap (const char *filename)
+{
+  bool result;
+
+  if (objectname != NULL)
+    {
+      error ("Error: Recursive read_file_and_process() calls are not supported");
+      return FALSE;
+    }
+  objectname = filename;
+  result = read_file_and_process (filename);
+  objectname = NULL;
+  return result;
+}
+
+
+/*
+** 'read_file_and_process' reads an AOF/ALF file into memory. It determines the size of
 ** the file and then reads the entire file into memory returning either
 ** the size of the file if it is read successfully or -1 if it fails.
 */
@@ -1035,11 +1057,7 @@ match_files (char dirname[], char leafname[])
 	    {			/* More entries to come. Point fp at place to put them */
 	      for (i = 1; i <= regs.r[3]; i++)
 		{
-		  do
-		    {
-		      fp++;
-		    }
-		  while (*fp != '\0');
+		  while (*++fp != '\0');
 		  fp++;
 		}
 	      if (fp > filebuffer + buffersize)
@@ -1128,7 +1146,7 @@ get_files (const char *filename)
     char leafname[LEAFLEN];
 
   if (!wildcarded (filename))
-    return read_file_and_process (filename);	/* No wildcards. Simple call */
+    return read_file_and_process_wrap (filename);	/* No wildcards. Simple call */
 
   /*
   ** Wildcards found, so we have to find all the file names that
@@ -1165,7 +1183,7 @@ get_files (const char *filename)
   for (i = 1; i <= count && ok; i++)
     {
       strcpy (p, dp);
-      ok &= read_file_and_process (dirname);
+      ok &= read_file_and_process_wrap (dirname);
       dp += strlen (dp) + 1;
     }
   return ok;
@@ -1670,5 +1688,6 @@ init_files (void)
   debugflist = NULL;
   headersize = debugsize = imagesize = 0;
   imagename = NULL;
+  objectname = NULL;
   buffersize = STDBUFFER;
 }

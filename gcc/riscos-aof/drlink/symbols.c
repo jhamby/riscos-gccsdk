@@ -40,7 +40,7 @@
 
 symbol *globalsyms[MAXGLOBALS]; /* Global symbol table */
 
-symbol * image_robase,		/* Symbol table entries of pre-defined symbols */
+const symbol * image_robase,	/* Symbol table entries of pre-defined symbols */
   *image_rwbase, *image_zibase, *image_rolimit, *image_rwlimit, *image_zilimit, *image_codebase,	/* Old symbols used by Fortran 77 */
   *image_codelimit, *image_database, *image_datalimit, *reloc_code;
 
@@ -65,7 +65,7 @@ typedef struct missing
 
 static symbol *commonsyms[MAXCOMMON];	/* Common Block symbol table */
 
-static symbol * symblock,	/* Memory to hold symbol entries for file when reading file */
+static symbol *symblock,	/* Memory to hold symbol entries for file when reading file */
  *wantedlist;			/* 'Wanted symbols' list in current file */
 
 static filelist *current_file;  /* File list entry for file being processed */
@@ -100,13 +100,9 @@ stricmp (const char *str1, const char *str2)
 int
 hash (const char *name)
 {
-  int total = 0;
-
-  while (*name != 0)
-    {
-      total = total * 5 ^ (*name | 0x20);
-      name++;
-    }
+  int total;
+  for (total = 0; *name != 0; ++name)
+    total = total * 5 ^ (*name | 0x20);
   return total;
 }
 
@@ -321,14 +317,16 @@ insert_symbol (symbol ** tree, const char *name)
     while (*tree != NULL)
       {
 	int compval = stricmp (name, (*tree)->symtptr->symtname);
-
+	if (compval == 0)
+	  break;
 	tree = (compval > 0) ? &(*tree)->right : &(*tree)->left;
       }
   else
     while (*tree != NULL)
       {
 	int compval = strcmp (name, (*tree)->symtptr->symtname);
-
+	if (compval == 0)
+	  break;
 	tree = (compval > 0) ? &(*tree)->right : &(*tree)->left;
       }
 
@@ -417,8 +415,7 @@ add_symbol (filelist *fp, symtentry * symtp)
 
   if (p == NULL)
     {				/* Entry not found */
-      p = symblock;
-      symblock++;
+      p = symblock++;
       p->symhash = hashval;
       p->symtptr = symtp;
       p->symnormal = NULL;
@@ -488,8 +485,7 @@ add_externref (filelist *fp, symtentry * symtp)
   if (current_refedit != NULL)
     check_refedit (symtp);
   name = symtp->symtname;
-  sp = symblock;
-  symblock++;
+  sp = symblock++;
   sp->symhash = hash (name);
   sp->symtptr = symtp;
   sp->symnormal = NULL;
@@ -569,8 +565,7 @@ add_commonref (filelist *fp, symtentry * stp)
     check_refedit (stp);
 
   name = stp->symtname;
-  sp = symblock;
-  symblock++;
+  sp = symblock++;
   sp->symhash = hash (name);
   sp->symtptr = stp;
   sp->symnormal = NULL;
@@ -628,12 +623,11 @@ scan_symt (filelist * fp)
 	     fp->chfilename, COERCE (symtp->symtname, unsigned int), strtsize);
 	  symtp->symtname = NULL;
 	  ok = FALSE;
+	  break;
 	}
 
-      if (strcmp (symtp->symtname + COERCE (fp->obj.strtptr, unsigned int), "$d") ==
-	  0
-	  || strcmp (symtp->symtname + COERCE (fp->obj.strtptr, unsigned int),
-		     "$a") == 0)
+      if (!strcmp (symtp->symtname + COERCE (fp->obj.strtptr, unsigned int), "$d")
+	  || !strcmp (symtp->symtname + COERCE (fp->obj.strtptr, unsigned int), "$a"))
 	{
 	  /* Convert symbol to absolute to prevent an attempt at relocation */
 	  symtp->symtattr = symtp->symtattr | SYM_ABSVAL;
@@ -1127,6 +1121,7 @@ check_library_tree (symbol ** wp, filelist * fp)
 		("Error: Cannot find symbol '%s' in library member '%s(%s)'. Is library corrupt?",
 		 (*wp)->symtptr->symtname, current_lib->libname,
 		 lp->libmember);
+	      ok = FALSE;
 	    }
 	  else
 	    {
@@ -1397,7 +1392,7 @@ relocate_symbols (void)
 ** 'define_symbol' is used to set the given symbol to the supplied value
 */
 void
-define_symbol (symbol * sp, unsigned int value)
+define_symbol (const symbol * sp, unsigned int value)
 {
   sp->symtptr->symtvalue = value;
 }
@@ -1412,27 +1407,13 @@ define_symbol (symbol * sp, unsigned int value)
 ** are marked as being relocatable although they are not relocated by
 ** the linker at all.
 */
-symbol *
+const symbol *
 make_symbol (const char *name, unsigned int attributes)
 {
   unsigned int hashval;
-  symbol *sp, **insert;
-  symtentry *stp;
+  symbol **insert;
 
-  sp = allocmem (sizeof (symbol));
-  stp = allocmem (sizeof (symtentry));
-  if (sp == NULL || stp == NULL)
-    error ("Fatal: Out of memory in 'make_symbol'");
   hashval = hash (name);
-  stp->symtname = name;
-  stp->symtattr = attributes | SYM_LINKDEF;
-  stp->symtvalue = 0;
-  stp->symtarea.areaptr = NULL;
-  sp->symhash = hashval;
-  sp->symtptr = stp;
-  sp->symnormal = NULL;
-  sp->left = sp->right = NULL;
-
   if ((attributes & SYM_COMMON) == 0)
     {	/* Put in global table */
       insert = insert_symbol (&globalsyms[hashval & GLOBALMASK], name);
@@ -1441,17 +1422,45 @@ make_symbol (const char *name, unsigned int attributes)
     {	/* Put in common block table */
       insert = insert_symbol (&commonsyms[hashval & COMMONMASK], name);
     }
-  *insert = sp;
 
-  totalsymbols++;
-  return sp;
+  if (*insert)
+    {
+      /* Symbol is already added, we expect the same attributes. */
+      if ((attributes | SYM_LINKDEF) != (*insert)->symtptr->symtattr)
+        error ("Error: Inconsistent set of attributes for symbol '%s' (0x%x vs 0x%x)", name, attributes, (*insert)->symtptr->symtattr & ~SYM_LINKDEF);
+    }
+  else
+    {
+      symbol *sp;
+      symtentry *stp;
+
+      sp = allocmem (sizeof (symbol));
+      stp = allocmem (sizeof (symtentry));
+      if (sp == NULL || stp == NULL)
+        error ("Fatal: Out of memory in 'make_symbol'");
+      stp->symtname = name;
+      stp->symtattr = attributes | SYM_LINKDEF;
+      stp->symtvalue = 0;
+      stp->symtarea.areaptr = NULL;
+
+      sp->symhash = hashval;
+      sp->symtptr = stp;
+      sp->symnormal = NULL;
+      sp->left = sp->right = NULL;
+
+      *insert = sp;
+
+      totalsymbols++;
+    }
+
+  return *insert;
 }
 
 /*
 ** 'new_symbol' is called to create a symbol that will be added to the
 ** low-level debugging tables
 */
-static symbol *
+static const symbol *
 new_symbol (const char *name)
 {
   if (opt_keepdebug)

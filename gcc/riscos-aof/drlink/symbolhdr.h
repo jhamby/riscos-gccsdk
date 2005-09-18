@@ -119,7 +119,7 @@ typedef unsigned int indextable[1];
 
 extern symbol *globalsyms[MAXGLOBALS];	/* Global symbol table */
 
-extern symbol *image_robase,	/* Symbol table entries of pre-defined symbols */
+extern const symbol *image_robase,	/* Symbol table entries of pre-defined symbols */
  *image_rwbase, *image_zibase, *image_rolimit, *image_rwlimit, *image_zilimit, *image_codebase,	/* Old symbols used by Fortran 77 */
  *image_codelimit, *image_database, *image_datalimit, *reloc_code;
 

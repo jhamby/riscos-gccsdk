@@ -104,7 +104,7 @@ add_lldentry (const char *name, unsigned int class, int value)
 }
 
 static void
-add_lldsymbol (symbol * sp)
+add_lldsymbol (const symbol * sp)
 {
   symtentry *stp;
   stp = sp->symtptr;

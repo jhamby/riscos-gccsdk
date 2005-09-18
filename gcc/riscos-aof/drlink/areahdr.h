@@ -109,23 +109,23 @@ typedef struct arearef
 */
 typedef struct arealist
 {
-  struct arealist *left;	/* Left in binary tree                           */
-  struct arealist *right;	/* Right in binary tree                          */
-  int arhash;			/* Area name's hash value                        */
+  struct arealist *left;	/* Left in binary tree */
+  struct arealist *right;	/* Right in binary tree */
+  int arhash;			/* Area name's hash value */
   const char *arname;		/* Pointer to area name in loaded OBJ_STRT chunk */
-  struct arealist *arbase;	/* Pointer to first area with same name          */
-  struct arealist *arlast;	/* Pointer to last area with same name or nil    */
-  struct filelist *arfileptr;	/* Pointer to area's file's file list entry      */
-  unsigned int aratattr;	/* Area's AT attribute value                     */
-  unsigned int aralign;		/* Area's alignment mask                         */
-  unsigned int *arobjdata;	/* Pointer to area in OBJ_AREA chunk             */
-  unsigned int arobjsize;	/* Size of area in OBJ_AREA chunk                */
+  struct arealist *arbase;	/* Pointer to first area with same name */
+  struct arealist *arlast;	/* Pointer to last area with same name or NULL */
+  struct filelist *arfileptr;	/* Pointer to area's file's file list entry */
+  unsigned int aratattr;	/* Area's AT attribute value */
+  unsigned int aralign;		/* Area's alignment mask */
+  unsigned int *arobjdata;	/* Pointer to area in OBJ_AREA chunk */
+  unsigned int arobjsize;	/* Size of area in OBJ_AREA chunk */
   struct relocation *areldata;	/* Pointer to relocation data in OBJ_AREA chunk  */
-  unsigned int arnumrelocs;	/* Number of relocations in area                 */
-  unsigned int arplace;		/* Offset of area in final image                 */
-  struct symbol *arsymbol;	/* Pointer to area's symbol table entry or nil   */
-  int arefcount;		/* Count of times area is referenced             */
-  struct arearef *areflist;	/* Pointer to list of areas referenced           */
+  unsigned int arnumrelocs;	/* Number of relocations in area */
+  unsigned int arplace;		/* Offset of area in final image */
+  const struct symbol *arsymbol;	/* Pointer to area's symbol table entry or NULL */
+  int arefcount;		/* Count of times area is referenced */
+  struct arearef *areflist;	/* Pointer to list of areas referenced */
 } arealist;
 
 typedef enum
