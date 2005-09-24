@@ -52,6 +52,8 @@ fcntl (int fd, int cmd, ...)
 		__atomic_modify (&(dup_file_desc->devicehandle->refcount), 1);
 		/* File descriptor flags aren't duplicated.  */
 		dup_file_desc->dflag = 0;
+		/* The close-on-exec flag isn't duplicated.  */
+		dup_file_desc->fflag &= ~O_EXECCL;
 	      }
 	    return duplicate_fd;
 	  }

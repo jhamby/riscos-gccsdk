@@ -1,3 +1,8 @@
+Sat Sep 24 20:39:23 2005  Alex Waugh  <alex@alexwaugh.com>
+
+	* source/unix/fcntl.c: Close-on-exec flag should be cleared on
+	  duplicated file descriptors (Bug#146).
+
 Fri Aug 26 00:12:33 2005  John-Mark Bell  <jmb202@ecs.soton.ac.uk>
 
 	* regexp/{COPYRIGHT,regcomp.c,regcustom.h,regc_color.h,regc_cvec.h,
@@ -24,7 +29,7 @@ Sat Jul 23 13:45:59 2005  Peter Naulls  <peter@chocky.org>
 	* stdlib/alloc.c: Allow debug version to compile.
 	* debug/dvsprintf.c: Use stderr for output once initialised.
 	* unix/fcntl.c: Dummy file locking functionality.
-	* unix/mkdir.c: Set ENOENT when the RISC OS error is "Not found".   
+	* unix/mkdir.c: Set ENOENT when the RISC OS error is "Not found".
 
 Wed Jul 20 19:27:41 2005  Peter Naulls  <peter@chocky.org>
 
