@@ -1,3 +1,8 @@
+Sat Sep 24 22:24:47 2005  Alex Waugh  <alex@alexwaugh.com>
+
+	* source/module/sul.s: Add an additional check of the command line
+	   when searching for a process struct to use (Bug#142).
+
 Sat Sep 24 20:39:23 2005  Alex Waugh  <alex@alexwaugh.com>
 
 	* source/unix/fcntl.c: Close-on-exec flag should be cleared on

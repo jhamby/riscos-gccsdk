@@ -1,10 +1,10 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/module/sul.s,v $
-; $Date: 2005/05/02 13:53:48 $
-; $Revision: 1.15 $
+; $Date: 2005/06/13 14:04:52 $
+; $Revision: 1.16 $
 ; $State: Exp $
-; $Author: nick $
+; $Author: peter $
 ;
 ;----------------------------------------------------------------------------
 
@@ -138,7 +138,7 @@ EARLIEST_SUPPORTED_VERSION	EQU	105
 |help|
 	DCB	"SharedUnixLibrary"
 	DCB	9
-	DCB	"1.07 (08 June 2005) (C) UnixLib Developers, 2001-2005", 0
+	DCB	"1.08 (24 Sep 2005) (C) UnixLib Developers, 2001-2005", 0
 	ALIGN
 
 |title|
@@ -429,7 +429,8 @@ version_ok
 	; exec() call
 	MOV	a1, #5
 	SWI	XWimp_ReadSysInfo
-	MOVVS	a1, #0
+	MOVVC	v1, a1
+	MOVVS	v1, #0
 
 	LDR	v2, [ip]
 	TEQ	v2, #0
@@ -438,7 +439,29 @@ version_ok
 findproc_loop
 	LDR	a2, [v2, #PROC_TASKHANDLE]
 	TEQ	a1, a2
-	BEQ	use_found
+	BNE	try_next
+
+	; The taskhandles match, but we still need to determine if we are the
+	; first program to be called since this process structure was created.
+	; Otherwise, if a non-UnixLib program was called by the original
+	; parent, which then calls this program, we don't want to pick up the
+	; process structure as it was intended for use by the non-UnixLib
+	; program.
+	SWI	XOS_GetEnv
+	BVS	try_next
+	LDR	a2, [v2, #PROC_CLI]
+cli_loop
+	LDRB	a3, [a1], #1
+	LDRB	a4, [a2], #1
+	TEQ	a3, a4
+	BNE	try_next
+	TEQ	a3, #0
+	BNE	cli_loop
+	; If we get here, the two CLI strings matched, so use this
+	; process struct
+	B	use_found
+
+try_next
 	LDR	v2, [v2, #PROC_NEXT]
 	TEQ	v2, #0
 	BNE	findproc_loop
