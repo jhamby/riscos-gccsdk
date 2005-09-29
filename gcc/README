@@ -1,5 +1,5 @@
-The RISC OS Software Development Kit [GCCSDK 3.4 Release 3]
-===================================================================
+The RISC OS Software Development Kit [GCCSDK 3.4.5 Release 1]
+=============================================================
 
 GCCSDK is a portable build environment for creating ARM executables to
 be run natively on RISC OS.  The build environment is designed to be
@@ -68,9 +68,9 @@ prefixing the ./configure or ./do-configure commands with:
 
 Adding the flag --enable-filetype-ff8 to the configure options will add the
 ",ff8" suffix to any RISC OS executables built under Unix.  This is to allow
-filetyping by networking filing systems from RISC OS, such as LanMan98.
-We supply a modified version of `zip' which can encode proper filetypes
-into zipfiles whenever it sees the ,xxx suffix.  
+filetyping by networking filing systems from RISC OS, such as LanMan98 and
+Sunfish.  We supply a modified version of `zip' which can encode proper
+filetypes into zipfiles whenever it sees the ,xxx suffix.  
 
 Create installation directory structure
   $ make setup
@@ -126,8 +126,10 @@ GCCSDK package contents
 
 The cross-compiler contains the following tools:
 
-  Language compilers for C, C++, Fortran 77 and Pascal.
+  Language compilers for C, C++ and Fortran 77.
 
+   cmunge - Justin Fletcher's free alternative to CMHG.
+   decaof - Andy Duplain's AOF decoder.
    drlink - Dave Daniels' RISC OS AOF linker.
   libfile - a RISC OS ALF builder.
      gcov - a test coverage program
@@ -138,8 +140,10 @@ The cross-compiler contains the following tools:
 
 The RISC OS distribution contains the following tools:
 
-  Language compilers for C, C++, Fortran 77 and Pascal.
+  Language compilers for C, C++ and Fortran 77.
 
+   cmunge - Justin Fletcher's free alternative to CMHG.
+   decaof - Andy Duplain's AOF decoder.
    drlink - Dave Daniels' RISC OS AOF linker.
   libfile - a RISC OS ALF builder.
      gcov - a test coverage program
@@ -157,7 +161,6 @@ The RISC OS distribution contains the following tools:
       sed - A batch stream editor
     touch - A port of the Unix touch command for changing file timestamps.
   rink, rinkptr, extractsym - components of Ben Summers' run-time linker.
-   cmunge - A clone of cmhg for generate RISC OS module veeners and headers.
 
 
 FAQ
@@ -206,10 +209,10 @@ Q3. Where does the UnixLib library file end up?
 
 A3. It depends on the parameters you pass to configure.  But for the
     RISC OS distribution it could be something like:
-      /home/riscos/riscos-dist/bin/arm-riscos-aof/apcs32/unixlib/o/
+      /home/riscos/!gcc/bin/arm-riscos-aof/3_4/apcs32/abs/unixlib/o/unixlib
 
     For the Unix tree it could be:
-      /home/riscos/riscos-cross/bin/arm-riscos-aof/apcs32/unixlib/unixlib.o
+      /home/riscos/cross/bin/arm-riscos-aof/3_4/apcs32/abs/unixlib/unixlib.o
 
 -----------------------------------------------------------------------------
 
@@ -230,7 +233,7 @@ A5. The preferred method for issuing bug reports for any package distributed
     centralised location for bug reports helps the authors keep track of
     problems which can otherwise get lost under large piles of e-mail.
 
-    Patches for any application can also be sent to the site.  Alternatively
-    bugs or patches can be e-mailed to gcc@gccsdk.riscos.info.
+    Alternatively bugs or patches can be e-mailed to the GCCSDK mailing list
+    gcc@gccsdk.riscos.info.
 
 -EOF-
