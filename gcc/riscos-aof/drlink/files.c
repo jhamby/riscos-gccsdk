@@ -504,13 +504,12 @@ obj_check_and_adjust_symt (const char *filename, const obj_overview * objovervie
   if (objsymtsize !=
       objoverview->headptr->areaheader.numsymbols * sizeof (symtentry))
     {
-      error
-	("AOF file '%s' OBJ_SYMT size doesn't match with its declaration (0x%x vs 0x%x)",
-	 filename, objsymtsize,
-	 objoverview->headptr->areaheader.numsymbols * sizeof (symtentry));
+      error ("AOF file '%s' OBJ_SYMT size doesn't match with its declaration (0x%x vs 0x%x)",
+	     filename, objsymtsize,
+	     objoverview->headptr->areaheader.numsymbols * sizeof (symtentry));
       return FALSE;
     }
-  convert_endian (objsymtptr, objsymtsize / 4);
+  convert_endian (objoverview->symtptr, objsymtsize / 4);
 
   return TRUE;
 }
