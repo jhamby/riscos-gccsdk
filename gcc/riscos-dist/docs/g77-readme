@@ -5,16 +5,17 @@ Introduction
 ------------
 
 This is a port of the GNU Fortran compiler (version 0.5.25) for the 
-Fortran 77 and 90 programming language dialects to the Acorn range of
-ARM based machines, running under RISC OS. As such, this package is
+Fortran 77 and 90 programming language dialects to the range of ARM
+based machines running under RISC OS. As such, this package is
 covered by the FSF General Public License (see the files docs.COPYING
-and docs.COPYINGLIB for details).
+and docs.COPYINGLIB in the full GCCSDK package for details).
 
 This port is © 1996, 1997, 1998, 1999, 2000, 2001 Nick Burrett
+             © 2002, 2003, 2004, 2005 GCCSDK Development Team
 
 As with GNU programs, THERE IS NO WARRANTY OF ANY SORT
 
-This compiler requires a minimum 3200KB of free RAM for compilations.
+This compiler requires a minimum 4000KB of free RAM for compilations.
 
 
 Files
@@ -22,25 +23,29 @@ Files
 
 This is a binary distribution only and consists of the following files:
 
-  bin.f771          The Fortran compiler
-  bin.g77           The Fortran compiler front end
-  docs.g77          Fortran compiler instruction manual
-  docs.g77-readme   This documentation
-  gcc.o.libf2c      Fortran compiler runtime library
+  !gcc.bin.g77
+     The Fortran compiler front end
+  !gcc.bin.arm-riscos-aof.3_4.f771
+     The Fortran compiler
+  !gcc.bin.arm-riscos-aof.3_4.apcs32.abs.unixlib.o.libg2c
+     Fortran compiler runtime library based on UnixLib
+  !gcc.bin.arm-riscos-aof.3_4.apcs32.abs.libscl.o.libg2c
+     Fortran compiler runtime library based on SharedCLibrary
+  !gcc.docs.g77
+     Fortran compiler instruction manual
+  !gcc.docs.g77-readme
+     This documentation
 
-The compiler sources (about 47MB) can be obtained from the sites listed at
-the end of docs.!Intro.
+The compiler sources can be obtained from the GCCSDK site at
+http://gccsdk.riscos.info/.
 
 
 Installation
 ------------
 
-Before attempting to use GNU C, it should be noted that this distribution
-will require the GCC compiler. If you do not have a copy of this, it can
-be retrieved from
-  http://gccsdk.riscos.info
-
-GNU Fortran 0.5.25 also requires UnixLib 3.8.
+This binary distribution can not be used standalone and other components
+of the GCCSDK package are needed.  The full GCCSDK package can be
+downloaded (as several parts) from http://gccsdk.riscos.info/.
 
 
 Compiling Fortran source
@@ -54,24 +59,27 @@ library needed by Fortran whenever the compilation needs it.
 
 Typing:
     gcc -c f.test
+or  gcc -c test.f
 or  g77 -c f.test
+or  g77 -c test.f
 
 will compile the Fortran file, test, into an AOF file and store it in the
 'o' directory.
 
 Typing:
-  gcc f.test -o test -lf2c -Wl,-rescan
+    gcc -o test -lg2c o.test
+or  gcc -o test -lg2c test.o
 
-is equivalent to:
-  g77 f.test -o test -Wl,-rescan
+will link o.test AOF file (you can specify more than one AOF file) into
+the executable 'test'.
 
-libf2c is the standard run-time library required by Fortran. Notice the
-extra command line option '-Wl,-rescan'. This requests drlink to rescan
-all libraries to try and resolve missing references. It is equivalent
-to passing '-rescan' on the drlink command line.
+Typing:
+    gcc f.test -o test -lg2c
+or  gcc test.f -o test -lg2c
+or  g77 f.test -o test
+or  g77 test.f -o test
 
-All GNU compilers require the library gcc:o.libgcc to operate. So separate
-compile and link operations must include this.
+will directly compile your Fortran file into the executable 'test'.
 
 
 Error numbers
