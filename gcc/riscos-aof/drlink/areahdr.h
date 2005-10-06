@@ -37,25 +37,36 @@
 
 /* Following are the extra AOF V3 area attributes */
 
-#define ATT_ABSOL     0x0000001	/* Area has an absolute address                    */
-#define ATT_POSIND    0x0000040	/* Area is position independent                    */
-#define ATT_32BIT     0x0000100	/* Area contains 32-bit PC code                    */
-#define ATT_REENT     0x0000200	/* Area contains re-entrant code                   */
-#define ATT_EXTFP     0x0000400	/* Area contain instructions from extended FP set  */
-#define ATT_NOSTAK    0x0000800	/* Area contains no stack checking code            */
-#define ATT_BASED     0x0001000	/* Area contains based data                        */
-#define ATT_STUBS     0x0002000	/* Area contains shared library stub data          */
-#define ATT_SOFTFLOAT 0x0080000	/* Uses soft-float                                 */
-#define ATT_LINKONCE  0x0100000	/* GNU Linkonce section                            */
-#define ATT_BRMASK    0x00F0000	/* Mask for based area register number             */
-#define ATT_A3ATTR    0x0003F41	/* Mask for AOF 3 attributes                       */
-#define ATT_UNSUPP    0x0002001	/* Mask for unsupported AOF 3 attributes           */
+#define ATT_ABSOL     0x000001	/* Area has an absolute address */
+#define ATT_POSIND    0x000040	/* Area is position independent */
+#define ATT_32BIT     0x000100	/* Area contains 32-bit PC code */
+#define ATT_REENT     0x000200	/* Area contains re-entrant code */
+#define ATT_EXTFP     0x000400	/* Area contain instructions from extended FP set */
+#define ATT_NOSTAK    0x000800	/* Area contains no stack checking code */
+
+#define ATT_THUMB     0x001000	/* Area contains thumb code (code area only) */
+#define ATT_HALFWORD  0x002000	/* Area contains half word access (code area only) */
+#define ATT_INTERWRK  0x004000	/* (code area only) */
+#define ATT_BASED     0x001000	/* Area contains based data (data area only) */
+#define ATT_STUBS     0x002000	/* Area contains shared library stub data (data area only) */
+#define ATT_RES22     0x004000	/* Reserved bit 22 (data area only) */
+#define ATT_RES23     0x008000	/* Reserved bit 23 (code & data area) */
+
+#define ATT_BRMASK    0x0F0000	/* Mask for based area register number */
+
+#define ATT_LINKONCE  0x100000	/* GNU linkonce section (GCCSDK extension), normally a reserved bit */
+#define ATT_RES29     0x200000	/* Reserved bit 29 */
+#define ATT_RES30     0x400000	/* Reserved bit 30 */
+#define ATT_SOFTFLOAT 0x800000	/* Uses soft-float (GCCSDK extension), normally a reserved bit */
+
+#define ATT_A3ATTR    0x003F41	/* Mask for AOF 3 attributes */
+#define ATT_UNSUPP    0x002001	/* Mask for unsupported AOF 3 attributes */
 
 /* Masks for checking legality of attribute settings */
 
-#define ATT_BADCODE 0x7F090	/* Mask for 'code' area attributes */
-#define ATT_BADATA  0x0CF80	/* Mask for 'data' attributes */
-#define ATT_BADSYM  0xFF05D	/* Mask for 'debugging' attributes */
+#define ATT_BADCODE   0x07F090	/* Mask for 'code' area attributes */
+#define ATT_BADATA    0x00CF80	/* Mask for 'data' attributes */
+#define ATT_BADSYM    0x0FF05D	/* Mask for 'debugging' attributes */
 
 /* Alignment ('al') byte constants */
 
