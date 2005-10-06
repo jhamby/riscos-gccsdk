@@ -5,4 +5,3 @@ To-Do list for GCCSDK
   information, other than "source file builds object file".  The dependencies
   should be built from gcc -MMD.
 
-test
