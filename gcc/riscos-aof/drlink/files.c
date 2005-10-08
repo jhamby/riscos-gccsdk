@@ -395,7 +395,7 @@ free_filelist (filelist * fp)
 {
   if (fp == NULL)
     return;
-  freemem ( (void *)fp->chfilename, strlen(fp->chfilename) + 1);
+  freemem ((void *)fp->chfilename, strlen(fp->chfilename) + 1);
   freemem (fp, sizeof (filelist));
 }
 
@@ -1061,9 +1061,8 @@ match_files (char dirname[], char leafname[])
 		}
 	      if (fp > filebuffer + buffersize)
 		{		/* Oops... Run out of buffer */
-		  error
-		    ("Fatal: Directory '%s' contains too many files for linker to handle",
-		     dirname);
+		  error ("Fatal: Directory '%s' contains too many files for linker to handle",
+		         dirname);
 		}
 	    }
 	}
@@ -1401,7 +1400,7 @@ write_string (const char *p)
 void
 write_zeroes (unsigned int count)
 {
-  unsigned int zeroblock[] = { 0, 0, 0, 0, 0, 0, 0, 0 };
+  const unsigned int zeroblock[] = { 0, 0, 0, 0, 0, 0, 0, 0 };
   while (count >= sizeof (zeroblock))
     {
       write_image (&zeroblock, sizeof (zeroblock));

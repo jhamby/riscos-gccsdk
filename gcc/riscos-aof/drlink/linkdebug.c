@@ -34,7 +34,7 @@
 
 #ifdef DEBUG
 void
-list_areas (arealist * list)
+list_areas (const arealist * list)
 {
   if (list != NULL)
     {
@@ -42,14 +42,11 @@ list_areas (arealist * list)
 
       list_areas (list->left);
 
-      printf
-	("Area entry at %p, areaname='%s', hash=%x, base entry at %p, file entry at %p, AT=%x\n",
-	 list, list->arname, list->arhash, list->arbase, list->arfileptr,
-	 list->aratattr);
-      printf
-	("  OBJ_AREA at %p, size=%x, relocations at %p, number=%d, area address=%x",
-	 list->arobjdata, list->arobjsize, list->areldata, list->arnumrelocs,
-	 list->arplace);
+      printf ("Area entry at %p, areaname='%s', base entry at %p, file entry at %p, AT=%x\n",
+	      list, list->arname, list->arbase, list->arfileptr, list->aratattr);
+      printf ("  OBJ_AREA at %p, size=%x, relocations at %p, number=%d, area address=%x",
+	      list->arobjdata, list->arobjsize, list->areldata, list->arnumrelocs,
+	      list->arplace);
       if (list->arsymbol != NULL)
 	printf (", symbol address=%p", list->arsymbol);
       printf ("\n  Reference count=%d, reference list at %p", list->arefcount,
@@ -88,22 +85,21 @@ list_allareas (void)
 
 
 void
-list_symbols (symbol * list)
+list_symbols (const symbol * list)
 {
-  symtentry *sp;
   static int indent = 0;
 
   if (list != NULL)
     {
+      symtentry *sp;
       int spaces = indent;
 
       while (spaces--)
 	fputc (' ', stdout);
 
       sp = list->symtptr;
-      printf
-	("    Symbol at %p, symt at %p, name='%s', hash=%x, attributes=%x, value=%x",
-	 list, sp, sp->symtname, list->symhash, sp->symtattr, sp->symtvalue);
+      printf ("    Symbol at %p, symt at %p, name='%s', hash=%x, attributes=%x, value=%x",
+	      list, sp, sp->symtname, list->symhash, sp->symtattr, sp->symtvalue);
       if (sp->symtarea.areaptr != NULL)
 	printf (", area at %p", sp->symtarea.areaptr);
       fputc ('\n', stdout);
@@ -127,13 +123,12 @@ list_symbols (symbol * list)
 static void
 list_symtable (symbol * table[], unsigned int stsize)
 {
-  symbol *list;
-  unsigned int n, low;
+  unsigned int n;
   printf ("  Symbol table at %p\n", table);
-  n = 0;
-  do
+  for (n = 0; n < stsize; )
     {
-      low = n;
+      const symbol *list;
+      unsigned int low = n;
       while ((list = table[n]) == NULL && n < stsize)
 	n += 1;
       if (n != low)
@@ -145,7 +140,6 @@ list_symtable (symbol * table[], unsigned int stsize)
 	  n += 1;
 	}
     }
-  while (n < stsize);
 }
 
 #if 0
@@ -193,17 +187,17 @@ list_filelist (filelist * list)
     {
       printf ("File def at %p, name='%s', file size=%x\n", list,
 	      list->chfilename, list->chfilesize);
-      printf ("  OBJ_HEAD is at %p, size=%x,   OBJ_SYMT is at %p, size=%x\n",
+      printf ("  OBJ_HEAD is at %p, size=%x, OBJ_SYMT is at %p, size=%x\n",
 	      list->obj.headptr, list->obj.headsize, list->obj.symtptr,
 	      list->obj.symtsize);
-      printf ("  OBJ_AREA is at %p, size=%x,   OBJ_STRT is at %p, size=%x\n",
+      printf ("  OBJ_AREA is at %p, size=%x, OBJ_STRT is at %p, size=%x\n",
 	      list->obj.areaptr, list->obj.areasize, list->obj.strtptr,
 	      list->obj.strtsize);
-      printf
-	("  Areas=%u, symbols=%u Local symbols at %p, 'wanted' list at %p\n",
-	 list->areacount, list->symtcount, &list->localsyms,
-	 list->symtries.wantedsyms);
+      printf ("  Areas=%u, symbols=%u Local symbols at %p, 'wanted' list at %p\n",
+	      list->areacount, list->symtcount, &list->localsyms,
+	      list->symtries.wantedsyms);
       list_symtable (list->localsyms, MAXLOCALS);
+      fputc('\n', stdout);
     }
 }
 
@@ -224,5 +218,7 @@ list_files (void)
   list_liblist (liblist);
   printf ("\n========== Global Symbol Table ==========\n");
   list_symtable (globalsyms, MAXGLOBALS);
+  printf ("\n========== Common Symbol Table ==========\n");
+  list_symtable (commonsyms, MAXCOMMON);
 }
 #endif

@@ -28,24 +28,31 @@
 #include "chunkhdr.h"
 #include "filehdr.h"
 
-/* -- In 'Drlmain' -- */
+/* -- In 'drlmain' -- */
 
 extern int align (int value);
 
-/* -- In 'Heap' -- */
+/* -- In 'heap' -- */
 
-extern bool initheap (void);
+extern void init_heap (void);
 extern void *allocmem (unsigned int);
 extern void freemem (void *, unsigned int);
 extern void release_heap (void);
 extern void print_heapstats (void);
 
-/* -- In 'Linkfiles' -- */
+/* -- In 'linkfiles' -- */
 
 extern void link_program (void);
 extern bool read_tables (filelist *);
 
-/* -- In 'Files' -- */
+/* -- In 'linkdebug' -- */
+
+#ifdef DEBUG
+extern void list_allareas (void);
+extern void list_files (void);
+#endif
+
+/* -- In 'files' -- */
 
 extern void init_files (void);
 extern filelist *create_filelist (const char *fname, unsigned int fsize);
@@ -84,7 +91,7 @@ extern void convert_endian (void *words, size_t size);
 # define convert_endian(w, s)
 #endif
 
-/* -- In 'Messages' -- */
+/* -- In 'messages' -- */
 
 extern void announce (void);
 extern void error (const char *, ...);
@@ -93,7 +100,7 @@ extern bool got_errors (void);
 extern void end_throwback (void);
 #endif
 
-/* -- In 'Areas' -- */
+/* -- In 'areas' -- */
 
 extern void init_areas (void);
 extern int get_type1_type (int);
@@ -117,7 +124,7 @@ extern void print_unusedlist (void);
 extern void print_xref (void);
 extern void print_mapfile (void);
 
-/* -- In 'Symbols' -- */
+/* -- In 'symbols' -- */
 
 #ifndef HAVE_STRICMP
 extern int stricmp (const char *, const char*);
@@ -147,25 +154,25 @@ extern void build_symbols (void);
 extern const char *check_libedit (const char *, const char *, int);
 extern void write_lsreloc (void);
 
-/* -- In 'Linkedit' -- */
+/* -- In 'linkedit' -- */
 
 extern bool scan_editfile (void);
 extern bool verify_edits (void);
 extern void init_edit (void);
 
-/* -- In 'Aofiles' -- */
+/* -- In 'aofiles' -- */
 
 extern unsigned int find_areaindex (arealist *);
 extern void create_aofile (void);
 
-/* -- In 'Stdcode' -- */
+/* -- In 'stdcode' -- */
 
 extern void get_hdrcode (segtype, unsigned int **, unsigned int *);
 extern void setup_binhdr (unsigned int *, unsigned int);
 extern void setup_aifhdr (unsigned int *, unsigned int);
 extern void setup_modcode (unsigned int *);
 
-/* -- In 'Debug' -- */
+/* -- In 'debug' -- */
 
 extern void write_lldtable (void);
 extern bool build_debugtables (void);

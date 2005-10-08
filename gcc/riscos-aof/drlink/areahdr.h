@@ -28,7 +28,6 @@
 /* Area attribute bits */
 
 #define ATT_CODE   0x02		/* Area contains code */
-#define ATT_DATA   0x00		/* Area contains data */
 #define ATT_COMDEF 0x04		/* Area is a common block definition */
 #define ATT_COMMON 0x08		/* Area is a common block reference */
 #define ATT_NOINIT 0x10		/* Area not present in file */
@@ -122,7 +121,6 @@ typedef struct arealist
 {
   struct arealist *left;	/* Left in binary tree */
   struct arealist *right;	/* Right in binary tree */
-  int arhash;			/* Area name's hash value */
   const char *arname;		/* Pointer to area name in loaded OBJ_STRT chunk */
   struct arealist *arbase;	/* Pointer to first area with same name */
   struct arealist *arlast;	/* Pointer to last area with same name or NULL */

@@ -49,6 +49,15 @@
 #include "libraries.h"
 #include "procdefs.h"
 
+/* I'm not convinced that this own memory management is worthwhile
+   to use any further.  In fact, it hides possible memory corruption
+   problems because tools like valgrind won't work.  And does it really
+   make a worthwhile difference ?  */
+
+/* #define OWN_MEMORY_MANAGEMENT */
+
+#ifdef OWN_MEMORY_MANAGEMENT
+
 /* #define TRACE	Not tracing calls for now */
 
 typedef struct blockinfo
@@ -273,22 +282,18 @@ freemem (void *where, unsigned int size)
       mp->blocknext = NULL;
       mp->blocksize = size;
       if (blocklast == NULL)
-	{
-	  blocklist = mp;
-	}
+	blocklist = mp;
       else
-	{
-	  blocklast->blocknext = mp;
-	}
+	blocklast->blocknext = mp;
       blocklast = mp;
     }
 }
 
 /*
-** 'initheap' is called at the start of the run to establish the heap
+** 'init_heap' is called at the start of the run to establish the heap
 */
-bool
-initheap (void)
+void
+init_heap (void)
 {
   int n;
   if ((malloclist = malloc (MALLOCSIZE + sizeof (blockinfo))) == NULL)
@@ -305,7 +310,6 @@ initheap (void)
   printf ("First heap block is at: %x ends at: %x\n", low_heapnext,
 	  low_heaptop);
 #endif
-  return TRUE;
 }
 
 /*
@@ -315,10 +319,10 @@ initheap (void)
 void
 release_heap (void)
 {
-  blockinfo *p, *np;
-  p = malloclist;
-  while (p != NULL)
+  blockinfo *p;
+  for (p = malloclist; p != NULL; )
     {
+      blockinfo *np;
       np = p->blocknext;
       free (p);
       p = np;
@@ -335,3 +339,43 @@ print_heapstats (void)
   error ("Drlink: Linking the program required %dK bytes of memory",
 	 mallocsize / 1024);
 }
+
+#else
+/* Straight malloc()/free() memory management */
+
+static unsigned int mallocsize;	/* Amount of memory acquired via malloc */
+
+void *
+allocmem (unsigned int size)
+{
+  mallocsize += size;
+  return malloc (size);
+}
+
+void
+freemem (void *where, unsigned int size)
+{
+  free (where);
+}
+
+void
+init_heap (void)
+{
+}
+
+void
+release_heap (void)
+{
+}
+
+/*
+** 'print_heapstats' prints some information on the amount
+** of memory used by the program
+*/
+void
+print_heapstats (void)
+{
+  error ("Drlink: Linking the program required %dK bytes of memory",
+	 mallocsize / 1024);
+}
+#endif

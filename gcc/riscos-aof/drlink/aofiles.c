@@ -186,7 +186,7 @@ reloc_aofarlist_tree (arealist * ap, arealist ** firstarea,
       ++newareacount;
       if ((hp = allocmem (sizeof (newhead))) == NULL)
         error ("Fatal: Out of memory in 'reloc_aofarlist'");
-      hp->headhash = (*firstarea)->arhash;
+      hp->headhash = hash ((*firstarea)->arname);
       hp->headname = (*firstarea)->arname;
       hp->headattr = (*firstarea)->aratattr;
       hp->headflink = NULL;
@@ -246,16 +246,16 @@ find_areaindex (arealist * ap)
 {
   newhead *hp;
   unsigned int index;
-  int hash;
+  int hashvalue;
   const char *name;
   unsigned int attr;
   name = ap->arname;
   attr = ap->aratattr;
-  hash = ap->arhash;
+  hashvalue = hash (name);
   hp = headlist;
   index = 0;
   while (hp != NULL
-	 && (attr != hp->headattr || hash != hp->headhash
+	 && (attr != hp->headattr || hashvalue != hp->headhash
 	     || strcmp (name, hp->headname) != 0))
     {
       hp = hp->headflink;

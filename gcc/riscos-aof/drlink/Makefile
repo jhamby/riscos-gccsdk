@@ -11,7 +11,7 @@ CFLAGS = $(CROSS_CFLAGS) -D_GNU_SOURCE
 endif
 
 INCLUDES = -I. -I../../
-CFLAGS += -Wall
+CFLAGS += -Wall -W
 
 drlinkobjdir = $(objdir)/riscos-aof/drlink/$(STAGE)
 

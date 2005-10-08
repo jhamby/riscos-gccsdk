@@ -43,7 +43,7 @@
 
 /* Variables referenced from other files */
 
-arealist * rocodelist,		/* Pointer to R/O code list */
+arealist *rocodelist,		/* Pointer to R/O code list */
   *rwcodelist,			/* Pointer to R/W code list */
   *rodatalist,			/* Pointer to R/O data list */
   *rwdatalist,			/* Pointer to R/W data list */
@@ -75,14 +75,14 @@ typedef enum
 */
 typedef enum
 {
-  NOTPOSS,			/* Relocation not possible */
-  IGNORE,			/* Ignore relocation */
-  POSSIBLE,			/* Relocation can be finished in its entirety */
-  TYPE2_SA,			/* Relocate but extra type-2 symbol additive relocation needed */
-  TYPE2_SP,			/* Relocate but extra type-2 symbol PC-relative relocation needed */
-  TYPE2_AA,			/* Relocate but extra type-2 area additive relocation needed */
-  TYPE2_AP,			/* Relocate but extra type-2 area PC-relative relocation needed */
-  TYPE2_RP			/* Relocation not possible but offset in instruction must be altered */
+  NOTPOSS,	/* Relocation not possible */
+  IGNORE,	/* Ignore relocation */
+  POSSIBLE,	/* Relocation can be finished in its entirety */
+  TYPE2_SA,	/* Relocate but extra type-2 symbol additive relocation needed */
+  TYPE2_SP,	/* Relocate but extra type-2 symbol PC-relative relocation needed */
+  TYPE2_AA,	/* Relocate but extra type-2 area additive relocation needed */
+  TYPE2_AP,	/* Relocate but extra type-2 area PC-relative relocation needed */
+  TYPE2_RP	/* Relocation not possible but offset in instruction must be altered */
 } relaction;
 
 /*
@@ -166,20 +166,12 @@ static int entryareanum;	/* Number of area containing program entry point */
 static bool gotcodearea,	/* TRUE if the first code area has been found */
   noheader;			/* TRUE if the program does not have a header on it */
 
-static arealist * rocodelast,	/* Pointer to last R/O code entry added */
- *rwcodelast,			/* Pointer to last R/W code entry added */
- *rodatalast,			/* Pointer to last R/O data entry added */
- *rwdatalast,			/* Pointer to last R/W data entry added */
- *zidatalast,			/* Pointer to last ZI data entry added */
- *debuglast,			/* Pointer to last debug list (R/O) added */
- *firstarea,			/* Pointer to first area entry in OBJ_HEAD */
- *defaultarea,			/* Default entry point if no entry point given */
+static arealist *defaultarea,	/* Default entry point if no entry point given */
  *areablock;			/* Memory allocated to hold arealist structures */
 
 typedef struct arealimits
 {
   const char *areaname;		/* Ptr to name of area */
-  int areahash;			/* Hashed area name */
   symtentry *areabase;		/* Pointer to SYMT entry of area's 'base' symbol */
   symtentry *arealimit;		/* Pointer to SYMT entry of area's 'limit' symbol */
   struct arealimits *left;
@@ -189,6 +181,9 @@ typedef struct arealimits
 static arealimits *arlimlist;
 
 static areasrchlist *areatable[MAXSRCH];	/* Area symbol table */
+
+static void list_attributes (const char *filename, unsigned int attr);
+static arealist *add_newarea (filelist * fp, areaentry * aep, unsigned int atattr, unsigned int alattr);
 
 /*
 ** 'extend24' sign extends the 24-bit value passed to it to 32 bits
@@ -224,6 +219,32 @@ decode_armconst (unsigned int value)
 }
 
 /*
+** 'check_commondefref' makes sure that when equally named COMDEF and COMMON
+** area share the same symbol and don't have any conflicting attributes.
+*/
+static void
+check_commondefref (const char *areaname,
+                    unsigned int atattr_def, unsigned int size_def,
+                    const char *file_def,
+                    unsigned int atattr_ref, unsigned int size_ref,
+                    const char *file_ref)
+{
+  if (size_ref > size_def)
+    error ("Error: Common Block area '%s' has a COMMON instance in '%s' which is bigger in size than its COMDEF instance in '%s'",
+           areaname, file_ref, file_def);
+
+  atattr_def &= ~ATT_COMDEF;
+  atattr_ref &= ~(ATT_COMMON | ATT_NOINIT);
+  if (atattr_def != atattr_ref)
+    {
+      error ("Warning: Attributes of Common Block area '%s' in '%s' conflict with those in '%s'",
+             areaname, file_ref, file_def);
+      list_attributes (file_ref, atattr_ref);
+      list_attributes (file_def, atattr_def);
+    }
+}
+
+/*
 ** 'check_commondef' is called when a code or data area has the 'common
 ** definition' bit set. This is only used for AOF V3 object code files.
 ** The function checks to see if an area of the same name already
@@ -234,7 +255,7 @@ decode_armconst (unsigned int value)
 ** not specified in the AOF docs but it makes sense to me that they should
 ** be.)
 ** The function returns either a pointer to the arealist entry if an area
-** of that name already exists or 'nil' if it is a new area or an error
+** of that name already exists or NULL if it is a new area or an error
 ** occurs.
 **
 ** Note that these areas do not appear in the common block symbol table
@@ -242,30 +263,32 @@ decode_armconst (unsigned int value)
 ** of the same code or the same data across several AOF files where only
 ** one instance is to be kept in the image file. The 'common definition'
 ** attribute is being used to mark these areas.
+**
+** Note that under AOF V3, it is possible to have multiple definitions
+** of a common block and not just a single one as in AOF V2. If a
+** program being linked contains nothing but AOF V2 files then this
+** restriction is maintained; otherwise the AOF V3 rule applies.
+**
+** 'current_file' needs to be set.
 */
 static arealist *
-check_commondef (filelist * fp, areaentry * aep, unsigned int atattr)
+check_commondef (const char *atname, unsigned int atsize, unsigned int atattr)
 {
-  char *nameptr;
   arealist *ap;
-  int hashval, count;
-  unsigned int *p1, *p2;
 
-  nameptr = fp->obj.strtptr + aep->areaname;
-  hashval = hash (nameptr);
-
+  /* Figure out which list to check */
   if ((atattr & ATT_CODE) != 0)
-    {				/* Figure out which list to check */
-      ap = ((atattr & ATT_RDONLY) != 0 ? rocodelist : rwcodelist);
+    {				/* Code area */
+      ap = (atattr & ATT_RDONLY) != 0 ? rocodelist : rwcodelist;
     }
   else
     {				/* Data area */
-      ap = ((atattr & ATT_RDONLY) != 0 ? rodatalist : rwdatalist);
+      ap = (atattr & ATT_RDONLY) != 0 ? rodatalist : rwdatalist;
     }
 
-  while (ap != NULL /* && hashval != ap->arhash */ )
+  while (ap != NULL)
     {
-      int compres = strcmp (nameptr, ap->arname);
+      int compres = strcmp (atname, ap->arname);
 
       if (compres == 0)
 	break;
@@ -273,55 +296,75 @@ check_commondef (filelist * fp, areaentry * aep, unsigned int atattr)
     }
 
   if (ap == NULL)
-    return NULL;		/* Common block is unknown */
-
-  if (ap->aratattr != atattr)
-    {				/* Known common area. Check attributes are the same */
-      error
-	("Warning: Attributes of common area '%s' in '%s' conflict with those in '%s'",
-	 nameptr, fp->chfilename, ap->arfileptr->chfilename);
-      return NULL;		/* This area will be added to the area list as a normal area */
-    }
-
-  /* The GNU linkonce attribute allows us to combine multiple COMDEF
-     areas of the same name which contain different data.  The choice
-     of which is indetermined.  We cannot verify for either common code-size
-     or actual content because areas of the same name may have been compiled
-     with different compilation options.  */
-  if (!(atattr & ATT_LINKONCE))
     {
-      if (aep->arsize != ap->arobjsize)
-	{
-	  /* hack: error() only allows 4 params */
-	  char buffer[256];
+      symbol *sp;
+      arealist *ref_ap;
 
-	  sprintf (buffer, "(%d != %d)", aep->arsize, ap->arobjsize);
+      /* Check if the area isn't already known as a COMMON area.  */
+      sp = find_common (atname);
+      if (sp == NULL)
+        return NULL;		/* Common block is unknown */
 
-	  error
-	    ("Error: Size of common area '%s' in '%s' differs from definition in '%s' %s)",
-	     nameptr, fp->chfilename, ap->arfileptr->chfilename, buffer);
-	  return NULL;
-	}
+      ref_ap = sp->symtptr->symtarea.areaptr;
+      /* ref_ap must be a COMMON area, if it would be a COMDEF area,
+         we wouldn't be in the if (ap == NULL) case.  */
 
-      /* Verify areas' contents are the same */
-      count = ap->arobjsize >> 2;
-      p1 = ap->arobjdata;
-      p2 = thisarea;
+      check_commondefref (atname,
+                          atattr, atsize,
+                          current_file->chfilename,
+                          ref_ap->aratattr, ref_ap->arobjsize,
+                          ref_ap->arfileptr->chfilename);
 
-      while (count > 0 && *p1 == *p2)
-	{
-	  p2++;
-	  p1++;
-	  count -= 1;
-	}
-      if (count > 0)
-	{			/* Area contents do not match */
-	  error
-	    ("Error: Contents of common area '%s' in '%s' differ from those in '%s'",
-	     nameptr, fp->chfilename, ap->arfileptr->chfilename);
-	  return NULL;
-	}
+      return NULL;
     }
+  else
+    {
+      if (!aofv3flag)
+        {	/* AOF V2 - Cannot have two definitions of a common block */
+          error ("Error: There is already a definition (in '%s') of Common Block '%s' in '%s'",
+                 ap->arfileptr->chfilename, atname, current_file->chfilename);
+          /* This area will be added to the area list as a normal area */
+          return NULL;
+        }
+
+      if (ap->aratattr != atattr)
+        {	/* Known COMDEF area. Check attributes are the same */
+          error ("Warning: Attributes of common area '%s' in '%s' conflict with those in '%s'",
+	         atname, current_file->chfilename, ap->arfileptr->chfilename);
+          /* This area will be added to the area list as a normal area */
+          return NULL;
+        }
+
+      /* The GNU linkonce attribute allows us to combine multiple COMDEF
+         areas of the same name which contain different data.  The choice
+         of which is indetermined.  We cannot verify for either common
+         code-size or actual content because areas of the same name may have
+         been compiled with different compilation options.
+         Another reason why the COMDEF areas might be different is that for
+         CODE areas the reallocation hasn't been done yet.  If it would have
+         been done, then the area contents might be equal.  */
+      if ((atattr & ATT_LINKONCE) == 0)
+        {
+          if (atsize != ap->arobjsize)
+	    {
+	      /* hack: error() only allows 4 params */
+	      char buffer[256];
+	      sprintf (buffer, "(%d != %d)", atsize, ap->arobjsize);
+	      error ("Error: Size of common area '%s' in '%s' differs from definition in '%s' %s)",
+	             atname, current_file->chfilename, ap->arfileptr->chfilename, buffer);
+	      return NULL;
+	    }
+
+          /* Verify areas' contents are the same */
+          if (memcmp(thisarea, ap->arobjdata, ap->arobjsize))
+	    {
+	      error ("Error: Contents of common area '%s' in '%s' differ from those in '%s'",
+	             atname, current_file->chfilename, ap->arfileptr->chfilename);
+	      return NULL;
+	    }
+        }
+    }
+
   return ap;
 }
 
@@ -329,70 +372,37 @@ check_commondef (filelist * fp, areaentry * aep, unsigned int atattr)
 ** 'check_commonref' is called if the area is a common block reference or
 ** a definition with the 'no data' attribute. If the common block refers to
 ** one previously encountered, it returns a pointer to its area list entry
-** after updating the size and/or attributes otherwise it returns 'nil'
+** after updating the size and/or attributes otherwise it returns NULL.
 **
-** Note that under AOF V3, it is possible to have multiple definitions
-** of a common block and not just a single one as in AOF V2. If a
-** program being linked contains nothing but AOF V2 files then this
-** restriction is maintained; otherwise the AOF V3 rule applies.
+** 'current_file' needs to be defined.
 */
 static arealist *
-check_commonref (filelist * fp, areaentry * aep, unsigned int atattr)
+check_commonref (const char *atname, unsigned int atsize, unsigned int atattr)
 {
-  char *nameptr;
   symbol *sp;
   arealist *ap;
-  unsigned int newsize;
 
-  nameptr = fp->obj.strtptr + aep->areaname;
-  sp = find_common (nameptr);
+  if ((atattr & ATT_COMDEF) && (atattr & ATT_NOINIT))
+    atattr -= ATT_COMDEF | ATT_NOINIT;
+
+  sp = find_common (atname);
   if (sp == NULL)
     return NULL;		/* Symbol not in table - Unknown common block */
   ap = sp->symtptr->symtarea.areaptr;
-  newsize = aep->arsize;
-  if ((atattr & ATT_COMDEF) != 0)
-    {				/* This ref is a definition */
-      if ((ap->aratattr & ATT_COMDEF) != 0)
-	{			/* Previous ref was definition also */
-	  if (aofv3flag)
-	    {			/* AOF V3 rules apply */
-	      if (newsize != ap->arobjsize)
-		{
-		  error
-		    ("Error: Size of common block '%s' in '%s' differs from its definition in '%s' (%d != %d)",
-		     nameptr, fp->chfilename, ap->arfileptr->chfilename,
-		     newsize, ap->arobjsize);
-		}
-	    }
-	  else
-	    {			/* AOF V2 - Cannot have two definitions of a common block */
-	      error
-		("Error: There is already a definition (in '%s') of Common Block '%s' in '%s'",
-		 ap->arfileptr->chfilename, nameptr, fp->chfilename);
-	    }
-	}
-      else if (newsize < ap->arobjsize)
-	{			/* Definition of previously referenced common block */
-	  error
-	    ("Error: Reference to Common Block '%s' in '%s' is larger than defined size in '%s'",
-	     nameptr, ap->arfileptr->chfilename, fp->chfilename);
-	}
-      ap->aratattr = ap->aratattr | ATT_COMDEF;
-      ap->arobjsize = newsize;
+
+  if ((ap->aratattr & ATT_COMDEF) != 0)
+    {	/* There is COMDEF already */
+      check_commondefref (atname,
+                          ap->aratattr, ap->arobjsize,
+                          ap->arfileptr->chfilename,
+                          atattr, atsize,
+                          current_file->chfilename);
     }
-  else if (aep->arsize > ap->arobjsize)
-    {				/* Common block reference */
-      if ((ap->aratattr & ATT_COMDEF) != 0)
-	{			/* Previous ref was definition */
-	  error
-	    ("Error: Reference to Common Block '%s' in '%s' is larger than defined size in '%s'",
-	     nameptr, fp->chfilename, ap->arfileptr->chfilename);
-	}
+  else if (atsize > ap->arobjsize)
+    {	/* Common block reference new size is bigger. */
+    ap->arobjsize = atsize;
     }
-  else
-    {
-      ap->arobjsize = newsize;
-    }
+
   return ap;
 }
 
@@ -416,56 +426,39 @@ make_name (const char *s1, const char *s2)
 ** 'list_attributes' lists the area attributes of the area passed to it
 */
 static void
-list_attributes (arealist * ap)
+list_attributes (const char *filename, unsigned int attr)
 {
   char text[MSGBUFLEN];
-  unsigned int attr, count, n;
+  unsigned int count, n;
   struct
   {
     unsigned int atmask;
     const char *atname;
   } attributes[] =
   {
-    {
-    ATT_ABSOL, "Absolute"},
-    {
-    ATT_CODE, "Code"},
-    {
-    ATT_COMDEF, "Common definition"},
-    {
-    ATT_COMMON, "Common reference"},
-    {
-    ATT_NOINIT, "Zero-initialised"},
-    {
-    ATT_RDONLY, "Read only"},
-    {
-    ATT_POSIND, "Position independent"},
-    {
-    ATT_SYMBOL, "Debugging tables"},
-    {
-    ATT_32BIT, "32-bit APCS"},
-    {
-    ATT_REENT, "Reentrant code"},
-    {
-    ATT_EXTFP, "Extended FP instructions"},
-    {
-    ATT_NOSTAK, "No stack checking code"},
-    {
-    ATT_BASED, "Based area"},
-    {
-    ATT_STUBS, "Shared library stub data"},
-    {
-    ATT_SOFTFLOAT, "Soft float"},
-    {
-    ATT_LINKONCE, "Linkonce area"},
-    {
-    0, "*"}
+    { ATT_CODE, "Code" },
+    { ATT_COMDEF, "Common definition" },
+    { ATT_COMMON, "Common reference" },
+    { ATT_NOINIT, "Zero-initialised" },
+    { ATT_RDONLY, "Read only" },
+    { ATT_SYMBOL, "Debugging tables" },
+
+    { ATT_ABSOL, "Absolute" },
+    { ATT_POSIND, "Position independent" },
+    { ATT_32BIT, "32-bit APCS" },
+    { ATT_REENT, "Reentrant code" },
+    { ATT_EXTFP, "Extended FP instructions" },
+    { ATT_NOSTAK, "No stack checking code" },
+    { ATT_BASED, "Based area" },
+    { ATT_STUBS, "Shared library stub data" },
+    { ATT_SOFTFLOAT, "Soft float" },
+    { ATT_LINKONCE, "Linkonce area" },
+    { 0, "*"}
   };
 
-  attr = ap->aratattr;
   count = 0;
-  sprintf (text, "    %s:  ", ap->arfileptr->chfilename);
-  for (n = 0; *(attributes[n].atname) != '*'; n++)
+  sprintf (text, "    %s:  ", filename);
+  for (n = 0; attributes[n].atname[0] != '*'; n++)
     {
       if ((attr & attributes[n].atmask) != 0)
 	{
@@ -483,25 +476,9 @@ list_attributes (arealist * ap)
 ** place (alphabetical order) in the area list passed to the routine.
 ** If there are duplicate names, these are added so that they appear
 ** in the order in which they were defined
-**
-** This code is very messy as it has to handle the case where there
-** are a lot of areas with similar names, for example, C$$Code_123,
-** C$$Code_124, C$$Code_125 and so on. As the entire area list has
-** to be searched to find where to insert the new entry, this can
-** be very time consuming, so two tricks are used to speed up the
-** code. Firstly, the field 'arlast' is used to provide a link from
-** the first area with a certain name to the last area with the same
-** name, so that, for example, if there are twenty areas called
-** 'C$$Code', the search will check the first and then skip the rest.
-** The second trick is the use of 'lastentry'. This points at the
-** last area entry **added** to a list (and not the last entry as
-** used elsewhere). Using this, if the area name is greater than
-** the last one added, the search will start partway down the
-** list instead of at the beginning. In the case above, it gives
-** immediately the place where the new area will be inserted.
 */
 static void
-insert_area (arealist ** list, arealist ** lastentry, arealist * newarea)
+insert_area (arealist ** list, arealist * newarea)
 {
   int compres;
   arealist *ap, *lastarea;
@@ -512,9 +489,7 @@ insert_area (arealist ** list, arealist ** lastentry, arealist * newarea)
   name = newarea->arname;
   compres = 1;
 
-  ap = *list;
-
-  while (ap != NULL)
+  for (ap = *list; ap != NULL; )
     {
       lastarea = ap;
       compres = strcmp (name, ap->arname);
@@ -535,23 +510,25 @@ insert_area (arealist ** list, arealist ** lastentry, arealist * newarea)
 
   if (compres == 0)
     {				/* Name already in list. Propagate base pointer */
-      if (newarea->aratattr != lastarea->aratattr
-	  || newarea->aralign != lastarea->aralign)
+      if (newarea->aratattr != lastarea->aratattr)
 	{			/* Check attributes are the same */
-	  error
-	    ("Warning: Attributes of area '%s' in '%s' conflict with those in '%s'",
-	     name, newarea->arfileptr->chfilename,
-	     lastarea->arfileptr->chfilename);
-	  list_attributes (newarea);
-	  list_attributes (lastarea);
+	  error ("Warning: Attributes of area '%s' in '%s' conflict with those in '%s'",
+	         name, newarea->arfileptr->chfilename,
+	         lastarea->arfileptr->chfilename);
+	  list_attributes (newarea->arfileptr->chfilename, newarea->aratattr);
+	  list_attributes (lastarea->arfileptr->chfilename, lastarea->aratattr);
 
-	  if (((newarea->aratattr ^ lastarea->aratattr) | (newarea->
-							   aralign ^
-							   lastarea->
-							   aralign)) &
-	      ATT_SOFTFLOAT)
-	    error
-	      ("Error: You cannot mix soft-float and non soft-float code");
+	  if ((newarea->aratattr ^ lastarea->aratattr) & ATT_SOFTFLOAT)
+	    error ("Error: You cannot mix soft-float and non soft-float code");
+	}
+      if (newarea->aralign != lastarea->aralign)
+	{			/* Check align attributes are the same */
+	  error ("Warning: Align attributes of area '%s' in '%s' conflict with those in '%s' (%d vs %d)",
+	         name,
+	         newarea->arfileptr->chfilename,
+	         lastarea->arfileptr->chfilename,
+	         newarea->aralign,
+	         lastarea->aralign);
 	}
       newarea->arbase = lastarea->arbase;
       lastarea->arbase->arlast = newarea;
@@ -567,7 +544,6 @@ insert_area (arealist ** list, arealist ** lastentry, arealist * newarea)
 	       name, newarea->arfileptr->chfilename);
 
       lp->areaname = name;
-      lp->areahash = hash (name);
       if (imagetype != AOF)
         {
           lp->areabase = make_symbol (make_name (name, "$$Base"), SYM_GLOBAL)->symtptr;
@@ -579,9 +555,7 @@ insert_area (arealist ** list, arealist ** lastentry, arealist * newarea)
         }
       lp->left = lp->right = NULL;
 
-      insert = &arlimlist;
-
-      while (*insert)
+      for (insert = &arlimlist; *insert; )
         {
           int compval = strcmp (name, (*insert)->areaname);
 
@@ -595,7 +569,7 @@ insert_area (arealist ** list, arealist ** lastentry, arealist * newarea)
 ** 'keep_area' is called to check if the area 'ap' should be
 ** marked as 'non-deleteable' and therefore should not be removed
 ** when weeding out unreferenced areas. At present this only
-** affects some GCC-specific areas
+** affects some GCC-specific areas.
 */
 static bool
 keep_area (arealist * ap)
@@ -606,7 +580,7 @@ keep_area (arealist * ap)
 /*
 ** 'add_newarea' creates a new area structure and adds it to the relevant
 ** area list. It returns a pointer to the entry if it was successfully
-** created or nil
+** created or NULL.
 */
 static arealist *
 add_newarea (filelist * fp, areaentry * aep, unsigned int atattr,
@@ -618,20 +592,16 @@ add_newarea (filelist * fp, areaentry * aep, unsigned int atattr,
   ap = areablock;	/* Take memory for entry from block allocated for all areas in file */
   areablock++;
   ap->arname = fp->obj.strtptr + aep->areaname;
-  ap->arhash = hash (ap->arname);
   ap->arfileptr = fp;
   ap->aratattr = atattr;
   ap->aralign = alattr;
   ap->arobjsize = aep->arsize;
   ap->arobjdata = thisarea;
   if ((atattr & ATT_NOINIT) == 0)
-    thisarea =
-      COERCE (COERCE (thisarea, char *) + aep->arsize, unsigned int *);
-  ap->areldata = COERCE (thisarea, relocation *);
+    ap->areldata = COERCE (COERCE (thisarea, char *) + aep->arsize, relocation *);
+  else
+    ap->areldata = COERCE (thisarea, relocation *);
   ap->arnumrelocs = aep->arelocs;
-  thisarea =
-    COERCE (COERCE (thisarea, char *) + aep->arelocs * RELOCSIZE,
-	    unsigned int *);
   ap->arefcount = (!opt_nounused || keep_area (ap)) ? 1 : 0;
 
   ap->areflist = NULL;
@@ -646,41 +616,51 @@ add_newarea (filelist * fp, areaentry * aep, unsigned int atattr,
   if ((atattr & ATT_SYMBOL) != 0)
     {				/* Debugging info area */
       ap->arefcount = 1;	/* Debug areas are never deleted */
-      insert_area (&debuglist, &debuglast, ap);
+      insert_area (&debuglist, ap);
       debugsize += aep->arsize;
     }
-  else if ((atattr & ATT_CODE) != 0)
-    {				/* Code areas */
-      got_32bitapcs = got_32bitapcs || ((atattr & ATT_32BIT) != 0);
-      got_26bitapcs = got_26bitapcs || ((atattr & ATT_32BIT) == 0);
-      if ((atattr & ATT_RDONLY) != 0)
-	insert_area (&rocodelist, &rocodelast, ap);
-      else
-	insert_area (&rwcodelist, &rwcodelast, ap);
-    }
-  else if ((atattr & ATT_COMMON) != 0
-	   || ((atattr & ATT_COMDEF) != 0 && (atattr & ATT_NOINIT) != 0))
+  else if ((atattr & ATT_COMMON)
+	   || ((atattr & ATT_COMDEF) && (atattr & ATT_NOINIT)))
     {				/* Common block ref */
       if (imagetype != AOF)
 	{			/* Do not want symbol created when linking partially-linked AOF file */
 	  ap->arsymbol = make_symbol (ap->arname, SYM_COMMON);
 	  sp = ap->arsymbol->symtptr;	/* Fill in 'area' field of cb's SYMT entry */
-	  sp->symtattr = SYM_GLOBAL;	/* Watch this! Change attributes as symbol has area */
 	  sp->symtarea.areaptr = ap;
 	}
-      insert_area (&zidatalist, &zidatalast, ap);
+      insert_area (&zidatalist, ap);
     }
-  else if ((atattr & ATT_RDONLY) != 0)
-    insert_area (&rodatalist, &rodatalast, ap);	/* Data area with R/O bit set */
-  else if ((atattr & ATT_NOINIT) == 0)
-    insert_area (&rwdatalist, &rwdatalast, ap);	/* Data with R/O and 'zeroinit' bits clear */
-  else if ((atattr & ATT_NOINIT) != 0)
-    insert_area (&zidatalist, &zidatalast, ap);	/* Data with 'zeroinit' bit set */
   else
     {
-      error ("Error: Illegal 'area' attribute value 0x%06x found in '%s'",
-	     atattr, fp->chfilename);
-      return NULL;
+      if ((atattr & ATT_COMDEF) != 0)
+        {
+          if (imagetype != AOF)
+	    {			/* Do not want symbol created when linking partially-linked AOF file */
+	      ap->arsymbol = make_symbol (ap->arname, SYM_COMMON);
+	      sp = ap->arsymbol->symtptr;	/* Fill in 'area' field of cb's SYMT entry */
+	      /* When sp->symtarea.areaptr is non-NULL, this mean that there
+	         was a previous COMMON area, which we no longer need.  */
+	      if (sp->symtarea.areaptr != NULL)
+	        sp->symtarea.areaptr->arefcount = 0;
+	      sp->symtarea.areaptr = ap;
+	    }
+        }
+
+      if ((atattr & ATT_CODE) != 0)
+        {				/* Code areas */
+          got_32bitapcs = got_32bitapcs || ((atattr & ATT_32BIT) != 0);
+          got_26bitapcs = got_26bitapcs || ((atattr & ATT_32BIT) == 0);
+          if ((atattr & ATT_RDONLY) != 0)
+	    insert_area (&rocodelist, ap);
+          else
+	    insert_area (&rwcodelist, ap);
+        }
+      else if ((atattr & ATT_RDONLY) != 0)
+        insert_area (&rodatalist, ap);	/* Data area with R/O bit set */
+      else if ((atattr & ATT_NOINIT) == 0)
+        insert_area (&rwdatalist, ap);	/* Data with R/O and 'zeroinit' bits clear */
+      else
+        insert_area (&zidatalist, ap);	/* Data with 'zeroinit' bit set */
     }
 
   if (!gotcodearea && (atattr & ATT_CODE) != 0)
@@ -688,13 +668,14 @@ add_newarea (filelist * fp, areaentry * aep, unsigned int atattr,
       gotcodearea = TRUE;
       defaultarea = ap;
     }
+
   return ap;
 }
 
 /*
 ** 'add_commonarea' is called to create an arealist structure for a common
 ** block that is referenced only by an entry in the OBJ_SYMT chunk with the
-** 'common' attribute set. It returns a pointer to the structure created
+** 'common' attribute set. It returns a pointer to the structure created.
 */
 static arealist *
 add_commonarea (const char *name, unsigned int size)
@@ -704,7 +685,6 @@ add_commonarea (const char *name, unsigned int size)
   if (ap == NULL)
     error ("Fatal: Out of memory in 'add_commonarea'");
   ap->arname = name;
-  ap->arhash = hash (name);
   ap->left = ap->right = NULL;
   ap->arfileptr = current_file;
   ap->aratattr = ATT_COMMON | ATT_NOINIT;
@@ -746,7 +726,7 @@ make_commonarea (symbol * sp)
       stp->symtarea.areaptr = ap;
       if (imagetype != AOF)
 	{			/* Only add area to list if not partially-linked AOF file */
-	  insert_area (&zidatalist, &zidatalast, ap);
+	  insert_area (&zidatalist, ap);
 	}
     }
   else
@@ -756,11 +736,8 @@ make_commonarea (symbol * sp)
       if ((ap->aratattr & ATT_COMDEF) != 0)
 	{			/* Common block size set by a 'definition' entry */
 	  if (size > ap->arobjsize)
-	    {
-	      error
-		("Size of reference to Common Block '%s' in '%s' is greater than its defined value",
-		 sp->symtptr->symtname, current_file->chfilename);
-	    }
+	    error ("Size of reference to Common Block '%s' in '%s' is greater than its defined value",
+		   sp->symtptr->symtname, current_file->chfilename);
 	}
       else
 	{			/* Size not set */
@@ -768,6 +745,7 @@ make_commonarea (symbol * sp)
 	    ap->arobjsize = size;
 	}
     }
+
   return stp;
 }
 
@@ -781,11 +759,9 @@ add_srchlist (arealist * ap)
   int hashval;
   areasrchlist *sp;
   if ((sp = allocmem (sizeof (areasrchlist))) == NULL)
-    {
-      error ("Fatal: Out of memory in 'add_srchlist'");
-    }
+    error ("Fatal: Out of memory in 'add_srchlist'");
   sp->srcarea = ap;
-  sp->srchash = hashval = ap->arhash;
+  sp->srchash = hashval = hash (ap->arname);
   sp->srcflink = areatable[hashval & SRCHMASK];
   areatable[hashval & SRCHMASK] = sp;
 }
@@ -801,8 +777,7 @@ free_srchlist (void)
   areasrchlist *sp, *nextsp;
   for (i = 0; i < MAXSRCH; i++)
     {
-      sp = areatable[i];
-      while (sp != NULL)
+      for (sp = areatable[i]; sp != NULL; )
 	{
 	  nextsp = sp->srcflink;
 	  freemem (sp, sizeof (areasrchlist));
@@ -835,10 +810,9 @@ scan_head (filelist * fp)
 {
   arealist *ap = NULL;		/* Points at arealist entry created for entry being checked */
   objheadhdr *ahp;		/* Points at OBJ_HEAD chunk of file */
-  areaentry * aep,		/* Points at OBJ_HEAD entry being checked */
-    *headend;			/* Points at end of OBJ_HEAD chunk */
+  areaentry * aep;		/* Points at OBJ_HEAD entry being checked */
   int count, areaco;
-  unsigned int totalsize, areasize, strtsize, atattr, alattr;
+  unsigned int totalsize, areasize, strtsize;
   bool ok;
 
   for (count = 0; count < MAXSRCH; count++)
@@ -855,18 +829,16 @@ scan_head (filelist * fp)
   aofv3flag = aofv3flag || fp->aofv3;
   if (ahp->areaheader.aofversion > AOFVERSION)
     {
-      error
-	("Error: The version of AOF used in '%s' (%d.%02d) is not supported",
-	 fp->chfilename, ahp->areaheader.aofversion / 100,
-	 ahp->areaheader.aofversion % 100);
+      error ("Error: The version of AOF used in '%s' (%d.%02d) is not supported",
+	     fp->chfilename, ahp->areaheader.aofversion / 100,
+	     ahp->areaheader.aofversion % 100);
       return FALSE;
     }
   count = ahp->areaheader.numareas;
   if (sizeof (aofheader) + count * sizeof (areaentry) > fp->obj.headsize)
     {
-      error
-	("Error: Area count in 'OBJ_HEAD' chunk in '%s' is too large. Is file corrupt?",
-	 fp->chfilename);
+      error ("Error: Area count in 'OBJ_HEAD' chunk in '%s' is too large. Is file corrupt?",
+	     fp->chfilename);
       return FALSE;
     }
 
@@ -876,59 +848,62 @@ scan_head (filelist * fp)
   if (entryareanum >= 0)
     entryoffset = ahp->areaheader.epoffset;
 
-  ok = TRUE;
-  totalsize = 0;
-  firstarea = NULL;
-  thisarea = fp->obj.areaptr;
-  areasize = fp->obj.areasize;
-  strtsize = fp->obj.strtsize;
-  aep = &ahp->firstarea;
-  headend = aep + count;
   /* Allocate block to hold arealist entries for file */
   if ((areablock = allocmem (count * sizeof (arealist))) == NULL)
     error ("Fatal: Out of memory in 'scan_head' reading '%s'",
 	   fp->chfilename);
 
-  for (areaco = 0; areaco < count && ok; ++areaco, ++aep)
+  ok = TRUE;
+  totalsize = 0;
+  thisarea = fp->obj.areaptr;
+  areasize = fp->obj.areasize;
+  strtsize = fp->obj.strtsize;
+
+  for (areaco = 0, aep = &ahp->firstarea; areaco < count && ok; ++areaco, ++aep)
     {
+      unsigned int atattr, alattr;
+      const char *atname;
+
       if (aep->areaname > strtsize)
 	{
 	  error ("Error: Area name offset in area %d in '%s' is too big",
 		 areaco + 1, fp->chfilename);
 	  ok = FALSE;
 	}
+
       atattr = aep->attributes >> 8;
       alattr = aep->attributes & 0xFF;
+      atname = aep->areaname + fp->obj.strtptr;
+
       if (!aofv3flag && alattr > ALBYTE)
 	{			/* Check 'al' byte */
-	  error ("Error: Found bad 'al' attribute byte in area %d in '%s'",
-		 areaco + 1, fp->chfilename);
+	  error ("Error: Found bad 'al' attribute byte in area '%s' (%d) in '%s'",
+		 atname, areaco + 1, fp->chfilename);
 	  ok = FALSE;
 	}
       else if (aofv3flag)
 	{			/* Checks for 'al' byte in AOF 3 */
 	  if (alattr < DEFALIGN || alattr > MAXV3AL)
 	    {
-	      error
-		("Error: Area alignment value in area %d in '%s' is outside range 2 to 32",
-		 areaco + 1, fp->chfilename);
+	      error ("Error: Area alignment value in area '%s' (%d) in '%s' is outside range 2 to 32",
+		     atname, areaco + 1, fp->chfilename);
 	      ok = FALSE;
 	    }
 	}
+
       if (aofv3flag && (atattr & ATT_UNSUPP) != 0)
 	{			/* Reject unsupported AOF 3 area attributes */
-	  error
-	    ("Error: Area %d of '%s' contains unsupported area attributes (%06x)",
-	     areaco + 1, fp->chfilename, atattr & ATT_UNSUPP);
+	  error ("Error: Area '%s' (%d) of '%s' contains unsupported area attributes (%06x)",
+	         atname, areaco + 1, fp->chfilename, atattr & ATT_UNSUPP);
 	  ok = FALSE;
 	}
+
       if ((atattr & ATT_SYMBOL) != 0)
 	{			/* Debugging area */
 	  if ((atattr & ATT_BADSYM) != 0)
 	    {			/* Check only legal symbol attributes */
-	      error
-		("Error: Area %d of '%s' has illegal 'area' attributes (0x%06x)",
-		 areaco + 1, fp->chfilename, atattr);
+	      error ("Error: Area '%s' (%d) %d of '%s' has unsupported attributes (0x%06x)",
+		     atname, areaco + 1, fp->chfilename, atattr);
 	      ok = FALSE;
 	    }
 	}
@@ -936,9 +911,8 @@ scan_head (filelist * fp)
 	{			/* code area */
 	  if ((atattr & ATT_BADCODE) != 0)
 	    {			/* Check only legal code attributes */
-	      error
-		("Error: Area %d of '%s' has illegal 'area' attributes (0x%06x)",
-		 areaco + 1, fp->chfilename, atattr);
+	      error ("Error: Area '%s' (%d) of '%s' has unsupported attributes (0x%06x)",
+		     atname, areaco + 1, fp->chfilename, atattr);
 	      ok = FALSE;
 	    }
 	}
@@ -946,88 +920,90 @@ scan_head (filelist * fp)
 	{			/* Data area */
 	  if ((atattr & ATT_BADATA) != 0)
 	    {			/* Check only legal data attributes */
-	      error
-		("Error: Area %d of '%s' has illegal 'area' attributes (0x%06x)",
-		 areaco + 1, fp->chfilename, atattr);
+	      error ("Error: Area '%s' (%d) of '%s' has unsupported attributes (0x%06x)",
+		     atname, areaco + 1, fp->chfilename, atattr);
 	      ok = FALSE;
 	    }
 	}
+
+      /* ATT_NOINIT and ATT_RDONLY are incompatible. */
+      if ((atattr & ATT_NOINIT) && (atattr & ATT_RDONLY))
+        {
+          error ("Warning: Area '%s' (%d) in '%s' has both 'NOINIT' and 'READONLY' attributes specified",
+                 atname, areaco + 1, fp->chfilename);
+          ok = FALSE;
+        }
+
       if ((atattr & ATT_NOINIT) == 0)
 	{			/* Area is present in AOF file */
 	  totalsize += aep->arsize;
 	  if (totalsize > areasize)
 	    {
-	      error
-		("Error: Size of area %d in 'OBJ_AREA' chunk in '%s' is too big",
-		 areaco + 1, fp->chfilename);
+	      error ("Error: Area '%s' (%d) in '%s' is too big",
+		     atname, areaco + 1, fp->chfilename);
 	      ok = FALSE;
 	    }
 	}
       totalsize += aep->arelocs * RELOCSIZE;
       if (totalsize > areasize)
 	{
-	  error ("Error: Number of relocations in area %d in '%s' is bad",
-		 areaco + 1, fp->chfilename);
+	  error ("Error: Number of relocations in area '%s' (%d) in '%s' is bad",
+		 atname, areaco + 1, fp->chfilename);
 	  ok = FALSE;
 	}
       if (!fp->aofv3 && aep->arlast.arzero != 0)
 	{			/* AOF 2 check only */
-	  error
-	    ("Error: Last word of definition of area %d in '%s' is not zero",
-	     areaco + 1, fp->chfilename);
+	  error ("Error: Last word of definition of area '%s' (%d) in '%s' is not zero",
+	         atname, areaco + 1, fp->chfilename);
 	  ok = FALSE;
 	}
 
       if (ok)
 	{
-	  ap = NULL;
-	  if ((atattr & ATT_COMMON) != 0
-	      || atattr == (ATT_COMDEF | ATT_NOINIT))
+	  /* Note that ATT_COMDEF + ATT_NOINIT is equal to ATT_COMMON */
+	  if ((atattr & ATT_COMMON) || ((atattr & ATT_COMDEF) && (atattr & ATT_NOINIT)))
 	    {		/* Extra checks for common blocks */
-	      ap = check_commonref (fp, aep, atattr);
+	      ap = check_commonref (atname, aep->arsize, atattr);
 	    }
 	  else if ((atattr & ATT_COMDEF) != 0)
-	    {			/* Common definition with code or data */
-	      ap = check_commondef (fp, aep, atattr);
-	      if (ap != NULL)
-		{	/* Known common area: free storage used by new version */
-		  add_srchlist (ap);
-		  freemem (thisarea, aep->arsize + aep->arelocs * RELOCSIZE);
-		  thisarea =
-		    COERCE (COERCE (thisarea, char *) + aep->arsize +
-			    aep->arelocs * RELOCSIZE, unsigned int *);
-		}
+	    {		/* Common definition with code or data */
+	      ap = check_commondef (atname, aep->arsize, atattr);
 	    }
+	  else
+	    ap = NULL;
+
 	  if (ap == NULL)
 	    {		/* Not a known common block or new area found */
 	      if ((atattr & ATT_SYMBOL) == 0 || fp->keepdebug)
-		{		/* Area or new common block */
+		{	/* Area or new common block */
 		  ap = add_newarea (fp, aep, atattr, alattr);
 		  ok = ap != NULL;
 		}
-	      else
-		{	/* Debug info when info not needed */
-		  freemem (thisarea, aep->arsize + aep->arelocs * RELOCSIZE);
-		  thisarea =
-		    COERCE (COERCE (thisarea, char *) + aep->arsize +
-			    aep->arelocs * RELOCSIZE, unsigned int *);
-		}
 	    }
 	}
+      else
+        ap = NULL;
+
+      if ((atattr & ATT_NOINIT) == 0)
+        thisarea = COERCE (COERCE (thisarea, char *)
+                           + aep->arsize + aep->arelocs * RELOCSIZE, unsigned int *);
+      else
+        thisarea = COERCE (COERCE (thisarea, char *)
+                           + aep->arelocs * RELOCSIZE, unsigned int *);
 
       if (ap != NULL)
 	{
 	  aep->arlast.arlptr = ap;
 	  add_srchlist (ap);
-	  if (firstarea == NULL)
-	    firstarea = ap;
 	}
       if (areaco == entryareanum)
 	{
 	  if (entryarea != NULL)
-	    error ("Error: Program has multiple entry points (first '%s', second '%s')", entryarea->arfileptr->chfilename, fp->chfilename);
+	    error ("Error: Program has multiple entry points (first '%s', second '%s')",
+	           entryarea->arfileptr->chfilename, fp->chfilename);
 	  else if ((atattr & ATT_CODE) == 0)
-	    error ("Warning: Entry point for program in '%s' is in a data area, not code", fp->chfilename);
+	    error ("Warning: Entry point for program in '%s' is in a data area, not code",
+	           fp->chfilename);
 	  entryarea = ap;
 	}
     }
@@ -1094,10 +1070,10 @@ check_strongrefs (filelist * fp)
   refcount = 0;
   ap = &fp->obj.headptr->firstarea;
   rp = COERCE (fp->obj.areaptr, relocation *);
-  for (i = 1; i <= fp->areacount; i++)
+  for (i = 1; i <= fp->areacount; ++i, ++ap)
     {
       rp = COERCE (COERCE (rp, char *) + ap->arsize, relocation *);	/* Point at start of relocations */
-      for (j = 1; j <= ap->arelocs; j++)
+      for (j = 1; j <= ap->arelocs; ++j, ++rp)
 	{
 	  reltype = rp->reltypesym;
 	  stp = NULL;
@@ -1120,9 +1096,7 @@ check_strongrefs (filelist * fp)
 	      refcount++;
 	      sp = create_externref (stp);
 	    }
-	  rp++;
 	}
-      ap++;
     }
 }
 
@@ -1142,31 +1116,37 @@ find_area (const char *np)
   while (sp != NULL
 	 && (hashval != sp->srchash || strcmp (sp->srcarea->arname, np) != 0))
     sp = sp->srcflink;
-  if (sp != NULL)
-    {
-      ap = sp->srcarea;
-    }
-  else
-    {
-      if (opt_verbose)
-	error
-	  ("Warning: Found reference to non-existent area '%s'. Default used",
-	   np);
-      ap = NULL;
-    }
+
+  ap = (sp != NULL) ? sp->srcarea : NULL;
+
   return ap;
 }
 
 /*
 ** 'get_area' is called to return the area list entry for the area with
 ** area index 'index'. It is used when handling type-2 relocations
+**
+** 'current_file' needs to be set.
 */
 static arealist *
 get_area (unsigned int index)
 {
-  areaentry *temp;
-  temp = &current_file->obj.headptr->firstarea;
-  return (temp + index)->arlast.arlptr;
+  areaentry *temp = &current_file->obj.headptr->firstarea;
+  areaentry *ae = &temp[index];
+  unsigned int atattr = ae->attributes >> 8;
+
+  /* If it is a COMMON area, find the corresponding COMDEF area.
+     If there isn't a COMDEF area with the same name, we fall back
+     on the COMMON area again.  */
+  if ((atattr & ATT_COMMON)
+      || ((atattr & ATT_COMDEF) && (atattr & ATT_NOINIT)))
+    {
+      const char *arname = current_file->obj.strtptr + ae->areaname;
+      symbol *comsym = find_common (arname);
+      return comsym->symtptr->symtarea.areaptr;
+    }
+
+  return temp[index].arlast.arlptr;
 }
 
 /*
@@ -1179,8 +1159,7 @@ get_area (unsigned int index)
 static void
 decr_refcount (arearef * rp)
 {
-
-  while (rp != NULL)
+  for (; rp != NULL; rp = rp->arefnext)
     {
       arealist *ap = rp->arefarea;
       if ((ap->arefcount -= rp->arefcount) == 0)
@@ -1188,7 +1167,6 @@ decr_refcount (arearef * rp)
 	  decr_refcount (ap->areflist);
 	  ap->areflist = NULL;	/* So that mark_unused does not do them again */
 	}
-      rp = rp->arefnext;
     }
 }
 
@@ -1199,7 +1177,6 @@ decr_refcount (arearef * rp)
 static void
 mark_unused (arealist * ap)
 {
-
   if (ap != NULL)
     {
       mark_unused (ap->left);
@@ -1251,7 +1228,7 @@ add_arearef (arealist * fromarea, arealist * toarea)
 	      fromarea->areflist = rp;
 	    }
 	}
-      toarea->arefcount += 1;
+      toarea->arefcount++;
     }
 }
 
@@ -1296,35 +1273,33 @@ add_symref (arealist * fromarea, int symtindex)
 static void
 find_arearefs (arealist * ap)
 {
-  relocation *rp;
-
   if (ap != NULL)
     {
-      int n, numrelocs = ap->arnumrelocs;
+      int numrelocs = ap->arnumrelocs;
 
       find_arearefs (ap->left);
 
       if (numrelocs != 0)
 	{
+	  relocation *rp;
+	  int n;
 	  current_file = ap->arfileptr;
 	  symtbase = ap->arfileptr->obj.symtptr;
 	  symbolcount = ap->arfileptr->symtcount;
-	  rp = ap->areldata;
 
-	  for (n = 1; n <= numrelocs; n++)
+	  for (n = 1, rp = ap->areldata; n <= numrelocs; ++n, ++rp)
 	    {
-	      int reltype;
 	      int relword = rp->reltypesym;
 
 	      if ((relword & REL_TYPE2) == 0)
 		{		/* Type-1 relocation */
-		  reltype = get_type1_type (relword);
+		  int reltype = get_type1_type (relword);
 		  if ((reltype & (REL_SYM | REL_PC)) != 0)
 		    add_symref (ap, get_type1_index (relword));
 		}
 	      else
 		{		/* Type-2 relocation */
-		  reltype = get_type2_type (relword);
+		  int reltype = get_type2_type (relword);
 		  if ((reltype & REL_SYM) != 0)
 		    {		/* Symbol */
 		      add_symref (ap, get_type2_index (relword));
@@ -1334,7 +1309,6 @@ find_arearefs (arealist * ap)
 		      add_arearef (ap, get_area (get_type2_index (relword)));
 		    }
 		}
-	      rp++;
 	    }
 	}
 
@@ -1349,7 +1323,7 @@ find_arearefs (arealist * ap)
 void
 mark_area (arealist * ap)
 {
-  ap->arefcount += 1;
+  ap->arefcount++;
 }
 
 /*
@@ -1389,27 +1363,15 @@ static void
 fillin_limits (arealist * firstarea, arealist * lastarea)
 {
   arealimits *p;
-  int hashval;
-  const char *name;
+  const char *name = firstarea->arname;
 
-  hashval = firstarea->arhash;
-  name = firstarea->arname;
-  p = arlimlist;
-
-  while (p != NULL)
+  for (p = arlimlist; p != NULL; )
     {
       int compval = strcmp (name, p->areaname);
 
       if (compval == 0)
 	break;
-      if (compval > 0)
-	{
-	  p = p->right;
-	}
-      else
-	{
-	  p = p->left;
-	}
+      p = (compval > 0) ? p->right : p->left;
     }
 
   if (p == NULL)
@@ -1440,7 +1402,7 @@ align_page (void)
   _kernel_oserror *swierror;
   _kernel_swi_regs regs;
 #endif
-  rolist = (rodatalist != NULL ? rodatalist : rocodelist);
+  rolist = (rodatalist != NULL) ? rodatalist : rocodelist;
   if (rolist == NULL)
     return;			/* No read-only areas to protect */
   lastarea = NULL;
@@ -1453,13 +1415,10 @@ align_page (void)
 #ifndef CROSS_COMPILE
   swierror = _kernel_swi (OS_ReadMemMapInfo, &regs, &regs);
   if (swierror == NULL)
-    {
-      pagesize = regs.r[0];	/* Page size is returned by SWI in R0 */
-    }
+    pagesize = regs.r[0];	/* Page size is returned by SWI in R0 */
   else
     {
-      error
-	("Warning: Could not determine machine's page size. Default of 32K used");
+      error ("Warning: Could not determine machine's page size. Default of 32K used");
       pagesize = DEFAULTSIZE;
     }
 #else
@@ -1484,14 +1443,14 @@ static void
 calc_place_tree (arealist * p, arealist ** firstarea, arealist ** lastarea,
 		 arealist ** lastbase)
 {
-  unsigned int align;
-
   if (p != NULL)
     {
       calc_place_tree (p->left, firstarea, lastarea, lastbase);
 
       if (p->arefcount > 0)
 	{
+	  unsigned int align;
+
 	  if (*firstarea == NULL)
 	    {			/* First ref to this area name */
 	      *firstarea = *lastarea = p;
@@ -1572,12 +1531,10 @@ relocate_areas (void)
   if (opt_database)
     {				/* Non-standard base-of-data used */
       if (database >= initpc && database < areapc)
-	error
-	  ("Warning: Read/write code && data areas overlap read only areas");
+	error ("Warning: Read/write code && data areas overlap read only areas");
 
       if (rwcodelist != NULL || rwdatalist != NULL)
-	error
-	  ("Warning: Image file contains code or constant data in read/write area and option '-data' has been used");
+	error ("Warning: Image file contains code or constant data in read/write area and option '-data' has been used");
       areapc = database;
     }
   define_symbol (image_rwbase, areapc);
@@ -1608,17 +1565,17 @@ relocate_areas (void)
 ** relocation
 */
 static void
-flag_badreloc (unsigned int *relplace, const char *type, symtentry * sp)
+flag_badreloc (const unsigned int *relplace, const char *type, symtentry * sp)
 {
-  error ("Erorr: Bad relocation in in file '%s'", current_file->chfilename);
+  unsigned int offset = (const char *)relplace - (const char *)areastart;
+
+  error ("Error: Bad relocation in in file '%s'", current_file->chfilename);
   if (sp)
-    error
-      ("Error: Relocated (%s) value is out of range at offset 0x%x in area '%s' for symbol '%s'",
-       type, relplace - areastart, current_area->arname, sp->symtname);
+    error ("Error: Relocated (%s) value is out of range at offset 0x%x in area '%s' for symbol '%s'",
+           type, offset, current_area->arname, sp->symtname);
   else
-    error
-      ("Error: Relocated (%s) value is out of range at offset 0x%x in area '%s'",
-       type, relplace - areastart, current_area->arname);
+    error ("Error: Relocated (%s) value is out of range at offset 0x%x in area '%s'",
+           type, offset, current_area->arname);
 }
 
 /*
@@ -1696,9 +1653,8 @@ fixup_additive (unsigned int *relplace, unsigned int reltype,
     case REL_HALF:		/* Relocate byte and halfword */
       if ((reltype & REL_SYM) == 0)
 	{
-	  error
-	    ("Error: Found bad relocation type for a byte or halfword field in area '%s' in '%s'",
-	     current_area->arname, current_file->chfilename);
+	  error ("Error: Found bad relocation type for a byte or halfword field in area '%s' in '%s'",
+	         current_area->arname, current_file->chfilename);
 	  return;
 	}
       if ((reltype & FTMASK) == 0)
@@ -1723,10 +1679,12 @@ fixup_additive (unsigned int *relplace, unsigned int reltype,
 	    }
 	}
       break;
+
     case REL_WORD:
       *relplace += relvalue;
       totalrelocs += 1;
       break;
+
     case REL_SEQ:		/* Instruction sequence */
       inst = *relplace;
       if ((inst & INSTMASK) == IN_LDRSTR)
@@ -1857,14 +1815,14 @@ fixup_type2 (unsigned int reltypesym, unsigned int *relplace)
   unsigned int reltype, relvalue, symtindex;
   symtentry *sp = NULL;
   arealist *ap;
+
   reltype = get_type2_type (reltypesym);
   if ((reltype & REL_SYM) != 0)
-    {				/* Symbol relocation */
+    {	/* Symbol relocation */
       if ((symtindex = (get_type2_index (reltypesym))) > symbolcount)
 	{
-	  error
-	    ("Error: Found bad OBJ_SYMT index in relocation in area '%s' in '%s'",
-	     current_area->arname, current_file->chfilename);
+	  error ("Error: Found bad OBJ_SYMT index in relocation in area '%s' in '%s'",
+	         current_area->arname, current_file->chfilename);
 	  return;
 	}
       sp = symtbase + symtindex;
@@ -1882,18 +1840,18 @@ fixup_type2 (unsigned int reltypesym, unsigned int *relplace)
 	relvalue = sp->symtarea.symdefptr->symtvalue;	/* Ref to defined external */
     }
   else
-    {				/* Internal, that is, relative to some area, relocation */
+    {	/* Internal, that is, relative to some area, relocation */
       reltypesym = get_type2_index (reltypesym);
       if (reltypesym >= current_file->areacount)
 	{
-	  error
-	    ("Error: Type-2 relocation area index too high in area '%s' in '%s'",
-	     current_area->arname, current_file->chfilename);
+	  error ("Error: Type-2 relocation area index too high in area '%s' in '%s'",
+	         current_area->arname, current_file->chfilename);
 	  return;
 	}
       if ((reltype & REL_BASED) == 0)
 	{			/* Ordinary area relocation */
-	  relvalue = get_area (reltypesym)->arplace;
+	  ap = get_area (reltypesym);
+	  relvalue = ap->arplace;
 	}
       else
 	{			/* Based area relocation */
@@ -1901,6 +1859,7 @@ fixup_type2 (unsigned int reltypesym, unsigned int *relplace)
 	  relvalue = ap->arplace - ap->arbase->arplace;	/* Addr of area - addr of 1st area of this name */
 	}
     }
+
   if ((reltype & REL_PC) != 0)
     {				/* PC-relative relocation */
       /* From Linker document :
@@ -1929,19 +1888,14 @@ fixup_type2 (unsigned int reltypesym, unsigned int *relplace)
 	      /* I don't know what to do if it's not symbol based; I can't look at
 	       * the symbol to check how to re-link it; this is (AFAICT) undefined.
 	       */
-	      error
-		("Error: PC-relative, reentrant linkage of non-symbol data in area '%s' in '%s'",
-		 current_area->arname, current_file->chfilename);
+	      error ("Error: PC-relative, reentrant linkage of non-symbol data in area '%s' in '%s'",
+		     current_area->arname, current_file->chfilename);
 	      return;
 	    }
 	  if ((sp->symtattr & SYM_LEAF) == 0)
 	    relvalue += 4;	/* Use inter-link entry point */
-	  fixup_pcrelative (relplace, TYPE_2, relvalue, sp);
 	}
-      else
-	{
-	  fixup_pcrelative (relplace, TYPE_2, relvalue, sp);
-	}
+      fixup_pcrelative (relplace, TYPE_2, relvalue, sp);
     }
   else
     {				/* Additive relocation */
@@ -1958,15 +1912,15 @@ relocate_item (relocation * rp)
 {
   unsigned int offset, relts;
   unsigned int *relplace;
-  offset = rp->reloffset;
 
+  offset = rp->reloffset;
   if (offset > current_objsize)
     {
       error ("Error: Bad relocation offset (0x%x) found in area '%s' in '%s'",
 	     offset, current_area->arname, current_file->chfilename);
       return;
     }
-  relplace = COERCE (COERCE (areastart, char *) +offset, unsigned int *);
+  relplace = COERCE (COERCE (areastart, char *) + offset, unsigned int *);
   relts = rp->reltypesym;
   if ((relts & REL_TYPE2) == 0)
     fixup_type1 (relts, relplace);
@@ -1981,15 +1935,16 @@ relocate_item (relocation * rp)
 static void
 relocate_arealist (arealist * ap)
 {
-  int n, numrelocs;
-  relocation *rp;
-
   if (ap != NULL)
     {
+      int numrelocs;
+
       relocate_arealist (ap->left);
 
       if (ap->arefcount > 0 && (numrelocs = ap->arnumrelocs) != 0)
 	{
+	  int n;
+	  relocation *rp;
 	  current_area = ap;
 	  current_file = ap->arfileptr;
 	  current_objsize = ap->arobjsize;
@@ -2030,8 +1985,7 @@ check_entryarea (void)
     {				/* No entry point specified */
       entryarea = defaultarea;
       entryoffset = 0;
-      error
-	("Warning: Program has no entry point. Default of first executable instruction assumed");
+      error ("Warning: Program has no entry point. Default of first executable instruction assumed");
     }
 
   /* Default to suggesting that the program requires a standard
@@ -2046,7 +2000,7 @@ check_entryarea (void)
   /* Images where the user has supplied a base address do not have
    * a standard header.
    */
-  if (imagetype == opt_codebase)
+  if (opt_codebase)
     noheader = 1;
 
   /* Both AIF and Binary (BIN) images can have headers.
@@ -2555,9 +2509,8 @@ fixup_reloclist (arealist * ap)
 	  symtbase = ap->arfileptr->obj.symtptr;
 	  symbolcount = ap->arfileptr->symtcount;
 	  areastart = ap->arobjdata;
-	  rp = ap->areldata;
 
-	  for (n = 1; ok && n <= numrelocs; n++)
+	  for (n = 1, rp = ap->areldata; ok && n <= numrelocs; ++n, ++rp)
 	    {
 	      reltype = decode_reloc (rp);
 	      switch (reltype)
@@ -2577,13 +2530,9 @@ fixup_reloclist (arealist * ap)
 		  break;
 		case TYPE2_AP:	/* Relocate and create a type-2 area PC-relative as well */
 		  if ((rp->reltypesym & REL_TYPE2) == 0)
-		    {
-		      ok = alter_type1_offset (rp);
-		    }
+		    ok = alter_type1_offset (rp);
 		  else
-		    {
-		      ok = alter_type2_offset (rp);
-		    }
+		    ok = alter_type2_offset (rp);
 		  if (ok)
 		    alter_reloc (rp, reltype);
 		  break;
@@ -2592,7 +2541,6 @@ fixup_reloclist (arealist * ap)
 		default:
 		  break;
 		}
-	      rp++;
 	    }
 	}
 
@@ -2755,15 +2703,12 @@ list_unused (arealist * ap, bool findsymbol)
 	{
 	  symname = (findsymbol ? find_areasymbol (ap) : NULL);
 	  if (symname != NULL)
-	    {
-	      sprintf (text, "    '%s' (%s) from %s", ap->arname, symname,
-		       ap->arfileptr->chfilename);
-	    }
+	    sprintf (text, "    '%s' (%s) from %s", ap->arname, symname,
+		     ap->arfileptr->chfilename);
 	  else
-	    {
-	      sprintf (text, "    '%s' from %s", ap->arname,
-		       ap->arfileptr->chfilename);
-	    }
+	    sprintf (text, "    '%s' from %s", ap->arname,
+		     ap->arfileptr->chfilename);
+
 	  if (mapfile != NULL)
 	    {
 	      sprintf (&text[strlen (text)], " (%x bytes)\n", ap->arobjsize);
@@ -2791,8 +2736,7 @@ print_unusedlist (void)
       return;
     }
   if (mapfile != NULL)
-    write_mapfile
-      ("\nThe following areas were omitted from the image file:\n");
+    write_mapfile ("\nThe following areas were omitted from the image file:\n");
   else
     error ("Drlink: The following areas were omitted from the image file:");
   list_unused (rocodelist, TRUE);
@@ -2822,10 +2766,7 @@ print_mapfile (void)
 void
 init_areas (void)
 {
-  rocodelist = rwcodelist = rodatalist = rwdatalist = zidatalist = debuglist =
-    NULL;
-  rocodelast = rwcodelast = rodatalast = rwdatalast = zidatalast = debuglast =
-    NULL;
+  rocodelist = rwcodelist = rodatalist = rwdatalist = zidatalist = debuglist = NULL;
   aofv3flag = FALSE;
   entryarea = NULL;
   gotcodearea = FALSE;

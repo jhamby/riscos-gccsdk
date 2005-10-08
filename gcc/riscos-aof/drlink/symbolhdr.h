@@ -24,8 +24,6 @@
 #ifndef symbolhdr_h
 #define symbolhdr_h
 
-#include "areahdr.h"
-
 /* OBJ_SYMT symbol table attribute bits */
 
 #define SYM_LOCAL   0x01	/* Symbol defined here, only accessible here */
@@ -55,19 +53,18 @@
 #define SYM_LINKDEF 0x80000000	/* Marks symbol as linker defined */
 
 #define SYM_ATMASK 0x067	/* Mask to extract interesting symbol attributes */
-#define SYM_UNSUPATTR 0xFFFFF680	/* Mask containing all unsupported attributes. */
+#define SYM_UNSUPATTR 0xFFFFE480	/* Mask containing all unsupported attributes. */
 
 /* Relocation type bits */
 
-#define FTMASK   0x03		/* 'Field type' mask */
-#define REL_BYTE 0x00		/* Byte relocation */
-#define REL_HALF 0x01		/* Half-word relocation */
-#define REL_WORD 0x02		/* Word relocation */
-#define REL_SEQ  0x03		/* Instruction sequence */
-#define REL_ABS  0x00		/* Absolute (additive) relocation */
-#define REL_PC   0x04		/* PC-relative relocation */
-#define REL_INT  0x00		/* Internal relocation */
-#define REL_SYM  0x08		/* Symbol relocation */
+#define FTMASK   0x03	/* 'Field type' mask */
+#define REL_BYTE 0x00	/* Byte relocation */
+#define REL_HALF 0x01	/* Half-word relocation */
+#define REL_WORD 0x02	/* Word relocation */
+#define REL_SEQ  0x03	/* Instruction or Instruction sequence */
+
+#define REL_PC   0x04	/* PC-relative relocation (when not set, it is an absolute/additive relocation) */
+#define REL_SYM  0x08	/* Symbol relocation (when not set, it is internal relocation) */
 
 /* AOF version 3 relocation bits */
 
@@ -118,6 +115,7 @@ typedef struct relocation
 typedef unsigned int indextable[1];
 
 extern symbol *globalsyms[MAXGLOBALS];	/* Global symbol table */
+extern symbol *commonsyms[MAXCOMMON];	/* Common Block symbol table */
 
 extern const symbol *image_robase,	/* Symbol table entries of pre-defined symbols */
  *image_rwbase, *image_zibase, *image_rolimit, *image_rwlimit, *image_zilimit, *image_codebase,	/* Old symbols used by Fortran 77 */

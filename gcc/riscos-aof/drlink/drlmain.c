@@ -126,7 +126,7 @@ main (int argc, char *argv[])
 	}
       release_heap ();
     }
-  return (errors == 0 ? EXIT_OK : EXIT_ERROR);
+  return (errors == 0) ? EXIT_OK : EXIT_ERROR;
 }
 
 
@@ -152,6 +152,9 @@ print_help (void)
          "  -da[ta] <address> Start read/write part of image at <address>\n"
 #ifndef CROSS_COMPILE
          "  -debi[mage]  Set filetype of image file with debug info to 'DebImage'\n"
+#endif
+#ifdef DEBUG
+         "  -dump        Dumps the internal state after linking\n"
 #endif
          "  -d[ebug]     Include debugging information in the image file\n"
          "  -e[dit] <file> Take link edit commands from <file>\n"
@@ -256,13 +259,9 @@ addto_linklist (const char *p)
   lp->linkname = p;
   lp->linknext = NULL;
   if (linklist == NULL)
-    {
-      linklist = lp;
-    }
+    linklist = lp;
   else
-    {
-      linklast->linknext = lp;
-    }
+    linklast->linknext = lp;
   linklast = lp;
 }
 
@@ -1033,8 +1032,7 @@ startup (void)
 
   got_oldlibs = FALSE;		/* No old libraries read yet */
   linklist = linklast = NULL;
-  if (!initheap ())
-    return FALSE;
+  init_heap ();
   init_files ();
   init_areas ();
   init_symbols ();
