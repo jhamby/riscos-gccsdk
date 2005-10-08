@@ -196,8 +196,7 @@ decode (void)
 						fputs("local", stdout);
 						break;
 					case 0x02:
-						fputs("extern",
-						    stdout);
+						fputs("extern", stdout);
 						break;
 					case 0x03:
 						fputs("global", stdout);
@@ -221,11 +220,11 @@ decode (void)
 				if (flags & (1<<9))
 					fputs(", fpargs", stdout);
 				if (flags & (1<<11))
-					fputs(", fp args in fp regs", stdout);
+					fputs(", leaf", stdout);
 				if (flags & (1<<12))
 					fputs(", thumb", stdout);
-				if ((flags & (1<<0)) || (flags & (1<<6))) {
-					if (flags & (1<<2))
+				if (flags & ((1<<0) | (1<<6))) {
+					if (flags & ((1<<2) | (1<<6)))
 						printf(" = 0x%08x", symboltab[i].value);
 					else
 						printf(" at \"%s\" + 0x%06x", string(symboltab[i].areaname), symboltab[i].value);
@@ -258,6 +257,8 @@ next_file:
 static void
 print_area(FILE *ifp, struct areahdr *areahdr, Word offset, Word reloff)
 {
+	Word ubits; /* the unknown bits */
+	int isCode, isData;
 	Word flags = areahdr->flags;
 
 	printf("\n** Area (0x%06x) \"%s\", aligned at %d byte%s, ",
@@ -265,13 +266,19 @@ print_area(FILE *ifp, struct areahdr *areahdr, Word offset, Word reloff)
 	       string(areahdr->name),
 	       1 << (areahdr->flags & 0xFF),
 	       (areahdr->flags & 0xFF) ? "s" : "");
-	if (flags & AREA_DEBUG)
+	if (flags & AREA_DEBUG) {
 		fputs("[debug] ", stdout);
-	else {
-		if (flags & AREA_CODE)
+		isCode = isData = 0;
+		ubits = flags & AREA_CODE;
+	} else {
+		if (flags & AREA_CODE) {
 			fputs("[code] ", stdout);
-		else
+			isCode = 1; isData = 0;
+		} else {
 			fputs("[data] ", stdout);
+			isData = 1; isCode = 0;
+		}
+		ubits = 0;
 	}
 	if (flags & AREA_ABS)
 		fputs("[abs] ", stdout);
@@ -279,30 +286,66 @@ print_area(FILE *ifp, struct areahdr *areahdr, Word offset, Word reloff)
 		fputs("[commdef] ", stdout);
 	if (flags & AREA_COMMONREF)
 		fputs("[commref] ", stdout);
-	if (flags & AREA_READONLY)
-		fputs("[readonly] ", stdout);
 	if (flags & AREA_UDATA)
 		fputs("[noinit] ", stdout);
+	if (flags & AREA_READONLY)
+		fputs("[readonly] ", stdout);
 	if (flags & AREA_PIC)
 		fputs("[pic] ", stdout);
-	if (flags & AREA_32BITAPCS)
-		fputs("[32bit] ", stdout);
-	if (flags & AREA_REENTRANT)
-		fputs("[reentrant] ", stdout);
-	if (flags & AREA_EXTFPSET)
-		fputs("[extfpset] ", stdout);
-	if (flags & AREA_NOSTACKCHECK)
-		fputs("[nostackcheck] ", stdout);
-	if (flags & AREA_BASED)
-		fputs("[based] ", stdout);
-	if (flags & AREA_STUBDATA)
-		fputs("[stubdata] ", stdout);
+	if (flags & AREA_32BITAPCS) {
+		if (isCode)
+			fputs("[32bit] ", stdout);
+		else
+			ubits |= AREA_32BITAPCS;
+	}
+	if (flags & AREA_REENTRANT) {
+		if (isCode)
+			fputs("[reentrant] ", stdout);
+		else
+			ubits |= AREA_REENTRANT;
+	}
+	if (flags & AREA_EXTFPSET) {
+		if (isCode)
+			fputs("[extfpset] ", stdout);
+		else
+			ubits |= AREA_EXTFPSET;
+	}
+	if (flags & AREA_NOSTACKCHECK) {
+		if (isCode)
+			fputs("[nostackcheck] ", stdout);
+		else
+			ubits |= AREA_NOSTACKCHECK;
+	}
+	if (flags & AREA_BASED) { /* is same test for AREA_THUMB */
+		if (isCode) {
+			fputs("[thumb] ", stdout);
+			ubits |= flags & AREA_MASKBASEREGS;
+		} else if (isData)
+			printf("[based, reg %d] ", (flags & AREA_MASKBASEREGS)>>24);
+		else
+			ubits |= flags & (AREA_BASED | AREA_MASKBASEREGS);
+	}
+	if (flags & AREA_STUBDATA) { /* is same test for AREA_HALFWORD */
+		if (isCode)
+			fputs("[halfword] ", stdout);
+		else if (isData)
+			fputs("[stubdata] ", stdout);
+		else
+			ubits |= AREA_STUBDATA;
+	}
+	if (flags & AREA_INTERWORK) {
+		if (isCode)
+			fputs("[interwork] ", stdout);
+		else
+			ubits |= AREA_INTERWORK;
+	}
 	if (flags & AREA_SOFTFLOAT)
 		fputs("[soft-float] ", stdout);
 	if (flags & AREA_LINKONCE)
 		fputs("[linkonce] ", stdout);
-	if (flags & AREA_UNKNOWNBITS)
-		printf("[unknown bits %06x] ", flags & AREA_UNKNOWNBITS);
+	ubits |= flags & AREA_UNKNOWNBITS;
+	if (ubits)
+		printf("[unknown bits %06x00] ", (flags & AREA_UNKNOWNBITS) >> 8);
 
 	printf("\nsize %d byte%s, %d relocation%s\n",
 	       areahdr->size,

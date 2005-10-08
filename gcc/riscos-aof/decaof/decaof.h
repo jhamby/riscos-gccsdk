@@ -135,7 +135,7 @@ struct areahdr {
 #define AREA_STUBDATA		0x00200000 /* Data area only */
 #define AREA_RESERVED22		0x00400000
 #define AREA_RESERVED23		0x00800000
-/* Bits 24-27 encode the base register. */
+#define AREA_MASKBASEREGS	0x0F000000 /* Base regs, data area only */
 #define AREA_LINKONCE		0x10000000 /* GNU linkonce (GCCSDK extension) Normally a reserved bit. */
 #define AREA_RESERVED29		0x20000000
 #define AREA_RESERVED30		0x40000000
