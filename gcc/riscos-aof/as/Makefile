@@ -9,7 +9,7 @@ CFLAGS = $(CROSS_CFLAGS) -D_GNU_SOURCE -mlibscl -D__RISCOSIFY
 endif
 
 INCLUDES = -I. -I../../
-CFLAGS += -Wall
+CFLAGS += -Wall -W
 
 asobjdir = $(objdir)/riscos-aof/as/$(STAGE)
 

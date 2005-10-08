@@ -67,7 +67,7 @@ areaNew (int type)
   if (res)
     {
       res->next = areaHead;
-      res->type = type | AREA_INIT;
+      res->type = type;
       res->imagesize = 0;
       res->image = NULL;
       res->norelocs = 0;
@@ -232,6 +232,7 @@ c_area (void)
   int oldtype = 0;
   int newtype = 0;
   int c;
+  int rel_specified = 0, data_specified = 0;
 
   sym = symbolGet (lexGetId ());
   if (sym->type & SYMBOL_DEFINED)
@@ -251,41 +252,78 @@ c_area (void)
   while ((c = inputGet ()) == ',')
     {
       Lex attribute = lexGetId ();
-      if (!strncmp ("CODE", attribute.LexId.str, attribute.LexId.len))
-	newtype |= AREA_CODE | AREA_INIT;
+      if (!strncmp ("ABS", attribute.LexId.str, attribute.LexId.len))
+        {
+          if (rel_specified)
+            error (ErrorError, TRUE, "Conflicting area attributes ABS vs REL");
+          newtype |= AREA_ABS;
+        }
+      else if (!strncmp ("REL", attribute.LexId.str, attribute.LexId.len))
+        {
+          if (newtype & AREA_ABS)
+            error (ErrorError, TRUE, "Conflicting area attributes ABS vs REL");
+          rel_specified = 1;
+        }
+      else if (!strncmp ("CODE", attribute.LexId.str, attribute.LexId.len))
+        {
+          if (data_specified)
+            error (ErrorError, TRUE, "Conflicting area attributes CODE vs DATA");
+          newtype |= AREA_CODE;
+        }
       else if (!strncmp ("DATA", attribute.LexId.str, attribute.LexId.len))
-	newtype |= AREA_INIT;
-      else if (!strncmp ("NOINIT", attribute.LexId.str, attribute.LexId.len))
-	newtype |= AREA_UDATA | AREA_INIT;
-      else if (!strncmp ("READONLY", attribute.LexId.str, attribute.LexId.len))
-	newtype |= AREA_READONLY | AREA_INIT;
-      else if (!strncmp ("COMMON", attribute.LexId.str, attribute.LexId.len))
-	newtype |= AREA_COMMONDEF | AREA_COMMONREF | AREA_UDATA | AREA_INIT;
+	{
+	  if (newtype & AREA_CODE)
+            error (ErrorError, TRUE, "Conflicting area attributes CODE vs DATA");
+          data_specified = 1;
+        }
       else if (!strncmp ("COMDEF", attribute.LexId.str, attribute.LexId.len))
-	newtype |= AREA_COMMONDEF | AREA_INIT;
-      else if (!strncmp ("COMREF", attribute.LexId.str, attribute.LexId.len))
-	newtype |= AREA_COMMONREF | AREA_UDATA | AREA_INIT;
-      else if (!strncmp ("DEBUG", attribute.LexId.str, attribute.LexId.len))
-	newtype |= AREA_DEBUG | AREA_READONLY | AREA_INIT;
+	newtype |= AREA_COMMONDEF;
+      else if (!strncmp ("COMMON", attribute.LexId.str, attribute.LexId.len)
+               || !strncmp ("COMREF", attribute.LexId.str, attribute.LexId.len))
+	newtype |= AREA_COMMONREF | AREA_UDATA;
+      else if (!strncmp ("NOINIT", attribute.LexId.str, attribute.LexId.len))
+	newtype |= AREA_UDATA;
+      else if (!strncmp ("READONLY", attribute.LexId.str, attribute.LexId.len))
+	newtype |= AREA_READONLY;
       else if (!strncmp ("PIC", attribute.LexId.str, attribute.LexId.len))
-	newtype |= AREA_PIC | AREA_INIT;
+	newtype |= AREA_PIC;
+      else if (!strncmp ("DEBUG", attribute.LexId.str, attribute.LexId.len))
+	newtype |= AREA_DEBUG;
       else if (!strncmp ("REENTRANT", attribute.LexId.str, attribute.LexId.len))
-	newtype |= AREA_REENTRANT | AREA_INIT;
-      else if (!strncmp ("LINKONCE", attribute.LexId.str, attribute.LexId.len))
-	newtype |= AREA_LINKONCE;
+	newtype |= AREA_REENTRANT;
       else if (!strncmp ("BASED", attribute.LexId.str, attribute.LexId.len))
 	{
 	  WORD reg;
-
 	  skipblanks ();
 	  reg = getCpuReg ();
-	  newtype |= AREA_BASED | AREA_READONLY | AREA_INIT | (reg << 24);
+	  newtype |= AREA_BASED | AREA_READONLY | (reg << 24);
 	}
-      else if (strncmp ("REL", attribute.LexId.str, attribute.LexId.len))
+      else if (!strncmp ("LINKONCE", attribute.LexId.str, attribute.LexId.len))
+	newtype |= AREA_LINKONCE;
+      else
 	error (ErrorError, TRUE, "Illegal area attribute %s", attribute.LexId.str);
       skipblanks ();
     }
   inputUnGet (c);
+
+  /* Alignment ? No, take default alignment (2) */
+  if ((newtype & 0xFF) == 0)
+    newtype |= AREA_INIT;
+
+  /* AREA_COMMONDEF + AREA_COMMONREF => AREA_COMMONDEF */
+  if (newtype & AREA_COMMONDEF)
+    newtype &= ~AREA_COMMONREF;
+
+  /* AREA_COMMONDEF + AREA_UDATA => AREA_COMMONREF */
+  if ((newtype & AREA_COMMONDEF) && (newtype & AREA_UDATA))
+    {
+      newtype &= ~(AREA_COMMONDEF | AREA_UDATA);
+      newtype |= AREA_COMMONREF;
+    }
+
+  /* Debug area ? Ignore code attribute */
+  if (newtype & AREA_DEBUG)
+    newtype &= ~AREA_CODE;
 
   if (newtype & AREA_CODE)
     {
@@ -297,23 +335,21 @@ c_area (void)
       if (apcs_softfloat)
         newtype |= AREA_SOFTFLOAT;
     }
+  else if (newtype & (AREA_32BITAPCS | AREA_REENTRANT | AREA_EXTFPSET | AREA_NOSTACKCHECK))
+    {
+      error (ErrorError, TRUE, "Attribute REENTRANT may not be set for a DATA area");
+    }
 
   if ((newtype & AREA_READONLY) && (newtype & AREA_UDATA))
     error (ErrorError, TRUE, "Attributes READONLY and NOINIT are mutually exclusive");
 
   if ((newtype & AREA_LINKONCE) && !(newtype & AREA_COMMONDEF))
-    error (ErrorError, TRUE, "Attribute LINKONCE must appear as part of a COMDEF.");
+    error (ErrorError, TRUE, "Attribute LINKONCE must appear as part of a COMDEF");
 
-  if (!(newtype & AREA_CODE))
-    {
-      if (newtype & AREA_REENTRANT)
-	error (ErrorError, TRUE, "Attribute CODE must be set to use REENTRANT");
-    }
-  if (newtype & AREA_CODE)
-    {
-      if (newtype & AREA_BASED)
-	error (ErrorError, TRUE, "Attribute CODE must be unset to use BASED");
-    }
+  if (!(newtype & AREA_CODE) && (newtype & AREA_REENTRANT))
+    error (ErrorError, TRUE, "Attribute REENTRANT may not be set for DATA area");
+  if ((newtype & AREA_CODE) && (newtype & AREA_BASED))
+    error (ErrorError, TRUE, "Attribute BASED may not be set for CODE area");
 
   if (newtype && oldtype && newtype != oldtype)
     error (ErrorError, TRUE, "Changing attribute of area %s", sym->str);

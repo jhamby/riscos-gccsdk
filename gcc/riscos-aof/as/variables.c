@@ -1,6 +1,21 @@
 /*
  * variables.c
  * Copyright © 1997 Darren Salt
+ * Copyright (c) 2005 GCCSDK Developers
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
 #include "config.h"
@@ -100,7 +115,7 @@ declare_var (const char *ptr, int len, const ValueTag type, BOOL local)
   var = lexTempLabel (ptr, len);
   if (local == FALSE && (sym = symbolFind (&var)) != NULL)
     {
-      error (ErrorWarning, TRUE, "Redeclaration of variable '%*s'",
+      error (ErrorWarning, TRUE, "Redeclaration of variable '%.*s'",
 	     var.LexId.len, var.LexId.str);
       return;
     }
@@ -116,7 +131,7 @@ declare_var (const char *ptr, int len, const ValueTag type, BOOL local)
         c = NULL;
       if (c)
 	{
-	  error (ErrorError, TRUE, "'%*s' is already declared as a %s",
+	  error (ErrorError, TRUE, "'%.*s' is already declared as a %s",
 	         len, ptr, c);
 	  inputRest ();
 	  return;
@@ -239,7 +254,7 @@ c_set (ValueTag type, Lex * label)
     c = NULL;
   if (c)
     {
-      error (ErrorError, TRUE, "'%*s' is %s",
+      error (ErrorError, TRUE, "'%.*s' is %s",
              label->LexId.len, label->LexId.str, c);
       inputRest ();
       return;
@@ -307,7 +322,7 @@ var_define (const char *def)
   int len;
 
   const char *i = strchr (def, '=');
-  len = i ? i - def : strlen (def);
+  len = i ? i - def : (int)strlen (def);
   declare_var (def, len, ValueString, FALSE);
   var = lexTempLabel (def, len);
   if (!i)

@@ -28,36 +28,41 @@
 #include "lex.h"
 #include "value.h"
 
-#define SYMBOL_LOCAL     0x01	/* Defined with local scope */
-#define SYMBOL_REFERENCE 0x02
-#define SYMBOL_GLOBAL    0x03	/* Defined with global scope */
+#define SYMBOL_LOCAL     0x0001	/* Defined with local scope */
+#define SYMBOL_REFERENCE 0x0002
+#define SYMBOL_GLOBAL    0x0003	/* Defined with global scope */
 
-#define SYMBOL_KIND(x)      ((x) & 0x03)
+#define SYMBOL_KIND(x)   ((x) & 0x0003)
 
-#define SYMBOL_DEFINED   0x01
-#define SYMBOL_EXPORT    0x02
+#define SYMBOL_DEFINED   0x0001
+#define SYMBOL_EXPORT    0x0002
 
-#define SYMBOL_ABSOLUTE  0x04	/* This is a constant, (not valid if SYMBOL_REFERENCE) */
-#define SYMBOL_NOCASE    0x08	/* Only if SYMBOL_REFERENCE, case insesitive */
-#define SYMBOL_WEAK      0x10	/* Only if SYMBOL_REFERENCE, must not be resolved */
-#define SYMBOL_STRONG    0x20	/* Complicated ??? */
-#define SYMBOL_COMMON    0x40
+#define SYMBOL_ABSOLUTE  0x0004	/* This is a constant, (not valid if SYMBOL_REFERENCE) */
+#define SYMBOL_NOCASE    0x0008	/* Only if SYMBOL_REFERENCE, case insensitive */
+#define SYMBOL_WEAK      0x0010	/* Only if SYMBOL_REFERENCE, must not be resolved */
+#define SYMBOL_STRONG    0x0020	/* Complicated ??? */
+#define SYMBOL_COMMON    0x0040
 
-#define SYMBOL_SUPPORTEDBITS 0x7F
+#define SYMBOL_DATUM     0x0100	/* ???, for code symbols only */
+#define SYMBOL_FPREGARGS 0x0200 /* FP args in FP regs attribute, for code symbols only */
+#define SYMBOL_LEAF      0x0800	/* Leaf function, for code symbol only */
+#define SYMBOL_THUMB     0x1000	/* Identifies Thumb code, instead of ARM code */
+
+#define SYMBOL_SUPPORTEDBITS 0x1B7F
 
 /* The following are 'as' internal SYMBOL attribute values only and should
    not be used in the AOF output file.  */
-#define SYMBOL_KEEP		0x80
-#define SYMBOL_AREA		0x100
-#define SYMBOL_NOTRESOLVED	0x200
+#define SYMBOL_KEEP		0x01000000
+#define SYMBOL_AREA		0x02000000
+#define SYMBOL_NOTRESOLVED	0x04000000
 /* Symbol is defined in a based area.  */
-#define SYMBOL_BASED		0x400
+#define SYMBOL_BASED		0x08000000
 
-#define SYMBOL_CPUREG		0x1000
-#define SYMBOL_FPUREG		0x2000
-#define SYMBOL_COPREG		0x4000
-#define SYMBOL_COPNUM		0x8000
-#define SYMBOL_GETREG(x)	((x)&0xf000)
+#define SYMBOL_CPUREG		0x10000000
+#define SYMBOL_FPUREG		0x20000000
+#define SYMBOL_COPREG		0x40000000
+#define SYMBOL_COPNUM		0x80000000
+#define SYMBOL_GETREG(x)	((x) & 0xF0000000)
 
 #define SYMBOL_TABLESIZE 1024
 

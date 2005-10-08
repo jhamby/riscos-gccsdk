@@ -74,43 +74,43 @@ symbolNew (int len, const char *str)
 static BOOL
 EqSymLex (const Symbol * str, const Lex * lx)
 {
-  const char *s, *l;
-  int i;
   if (str->len != lx->LexId.len)
     return FALSE;
-  for (i = str->len, s = str->str, l = lx->LexId.str; i > 0; i--)
-    if (*s++ != *l++)
-      return FALSE;
-  return TRUE;
+  return !memcmp(str->str, lx->LexId.str, str->len);
 }
 
 
 Symbol *
 symbolAdd (Lex l)
 {
-  Symbol **isearch = &symbolTable[l.LexId.hash];
+  Symbol **isearch;
+
   if (l.tag != LexId)
     error (ErrorSerious, FALSE, "Internal symbolAdd: non-ID");
-  while (*isearch)
+
+  for (isearch = &symbolTable[l.LexId.hash]; *isearch; isearch = &((*isearch)->next))
     {
-      if (EqSymLex (*isearch, &l))
+      Symbol *search = *isearch;
+      if (EqSymLex (search, &l))
 	{
-	  if ((*isearch)->type & SYMBOL_DEFINED)
-	    error (ErrorError, TRUE, "Redefinition of %*s",
+	  if (search->type & SYMBOL_DEFINED)
+	    error (ErrorError, TRUE, "Redefinition of %.*s",
 	           l.LexId.len, l.LexId.str);
 	  else
 	    {
-	      if ((*isearch)->type & SYMBOL_AREA)
-		error (ErrorError, TRUE, "Area %*s is already defined",
-		       l.LexId.len, l.LexId.str);
+	      if (search->type & SYMBOL_AREA)
+	        {
+	          if (areaCurrent->value.ValueInt.i != 0)
+		    error (ErrorError, TRUE, "Symbol %.*s is already defined as area with incompatible definition",
+		           l.LexId.len, l.LexId.str);
+		}
 	      else
 		{
-		  (*isearch)->type |= SYMBOL_DEFINED;
-		  return *isearch;
+		  search->type |= SYMBOL_DEFINED;
+		  return search;
 		}
 	    }
 	}
-      isearch = &((*isearch)->next);
     }
   *isearch = symbolNew (l.LexId.len, l.LexId.str);
   (*isearch)->type |= SYMBOL_DEFINED;
@@ -128,21 +128,20 @@ symbolGet (Lex l)
 	  isearch = &symbolTable[0];
 	  while (*isearch)
 	    isearch = &((*isearch)->next);
-	  *isearch = symbolNew (7, "|Dummy|");
+	  *isearch = symbolNew (sizeof("|Dummy|")-1, "|Dummy|");
 	}
       else
 	error (ErrorSerious, FALSE, "Internal symbolGet: non-ID");
     }
   else
     {
-      isearch = &symbolTable[l.LexId.hash];
-      while (*isearch)
+      for (isearch = &symbolTable[l.LexId.hash]; *isearch; isearch = &((*isearch)->next))
 	{
 	  if (EqSymLex (*isearch, &l))
 	    return *isearch;
-	  isearch = &((*isearch)->next);
 	}
     }
+
   *isearch = symbolNew (l.LexId.len, l.LexId.str);
   return *isearch;
 }
@@ -154,12 +153,10 @@ symbolFind (const Lex * l)
 
   if (l->tag != LexId)
     return NULL;
-  isearch = &symbolTable[l->LexId.hash];
-  while (*isearch)
+  for (isearch = &symbolTable[l->LexId.hash]; *isearch; isearch = &((*isearch)->next))
     {
       if (EqSymLex (*isearch, l))
 	return *isearch;
-      isearch = &((*isearch)->next);
     }
   return NULL;
 }
@@ -264,17 +261,17 @@ symbolSymbolOutput (FILE * outfile)
 {
   int i;
   Symbol *sym;
-  Value value;
-  int v = 0;
-  AofSymbol asym;
 
   for (i = 0; i < SYMBOL_TABLESIZE; i++)
     for (sym = symbolTable[i]; sym; sym = sym->next)
       if (!(sym->type & SYMBOL_AREA) && SYMBOL_OUTPUT (sym) /*sym->used >= 0 */ )
 	{
+	  AofSymbol asym;
 	  asym.Name = sym->offset;
 	  if (sym->type & SYMBOL_DEFINED)
 	    {
+	      int v;
+	      Value value;
 	      if (sym->value.Tag.t == ValueCode)
 		{
 		  codeInit ();
@@ -319,15 +316,22 @@ symbolSymbolOutput (FILE * outfile)
 			  sym->area.ptr = value.ValueLate.late->symbol;
 			}
 		      else if (sym->area.ptr != value.ValueLate.late->symbol)
-			errorLine (0, NULL, ErrorError, TRUE, "Linker cannot have 2 areas for the same symbol (%s)", sym->str);
+		        {
+			  errorLine (0, NULL, ErrorError, TRUE, "Linker cannot have 2 areas for the same symbol (%s)", sym->str);
+			  v = 0;
+			}
+		      else
+		        v = 0;
 		    }
 		  else
 		    {
 		      errorLine (0, NULL, ErrorError, TRUE, "Linker cannot have many late labels for the same symbol (%s)", sym->str);
+		      v = 0;
 		    }
 		  break;
 		default:
 		  errorLine (0, NULL, ErrorSerious, FALSE, "Internal symbolSymbolOutput: not possible (%s) (0x%x)", sym->str, value.Tag.t);
+		  v = 0;
 		  break;
 		}
 	      asym.Value = v;
@@ -339,7 +343,7 @@ symbolSymbolOutput (FILE * outfile)
 	  else
 	    {
 	      asym.Type = sym->type | TYPE_REFERENCE;
-	      asym.Value = 0;
+	      asym.Value = (sym->type & SYMBOL_COMMON) ? sym->value.ValueInt.i : 0;
 	      asym.AreaName = 0;
 	    }
           asym.Name     = armword (asym.Name);
@@ -350,6 +354,7 @@ symbolSymbolOutput (FILE * outfile)
 	}
       else if (sym->type & SYMBOL_AREA)
 	{
+	  AofSymbol asym;
 	  asym.Name = armword (sym->offset);
 	  asym.Type = armword (SYMBOL_KIND(sym->type) | SYMBOL_LOCAL);
 	  asym.Value = armword (0);

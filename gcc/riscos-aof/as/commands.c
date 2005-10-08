@@ -1,17 +1,18 @@
 /*
  * AS an assembler for ARM
  * Copyright © 1992 Niklas Röjemo, 1997 Darren Salt
- * 
+ * Copyright (c) 2005 GCCSDK Developers
+ *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
  * of the License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
@@ -73,7 +74,7 @@ c_define (const char *msg, Symbol * sym, ValueTag legal)
     sym->value = valueCopy (value);
   sym->type |= SYMBOL_DEFINED;
   sym->declared = 1;
-  sym->area.ptr = 0;
+  sym->area.ptr = NULL;
   return sym;
 }
 
@@ -355,20 +356,53 @@ c_import (void)
 {
   int c;
   Symbol *sym;
+
   Lex lex = lexGetId ();
   if (lex.tag != LexId)
     return;
+
   sym = symbolGet (lex);
   sym->type |= SYMBOL_REFERENCE;
   sym->declared = 1;
-  if ((c = inputGet ()) == ',')
+  while ((c = inputGet ()) == ',')
     {
       Lex attribute = lexGetId ();
-      if (!strncmp ("WEAK", attribute.LexId.str, attribute.LexId.len))
+      if (!strncmp ("NOCASE", attribute.LexId.str, attribute.LexId.len))
+	sym->type |= SYMBOL_NOCASE;
+      else if (!strncmp ("WEAK", attribute.LexId.str, attribute.LexId.len))
 	sym->type |= SYMBOL_WEAK;
+      else if (!strncmp ("COMMON", attribute.LexId.str, attribute.LexId.len))
+        {
+	  skipblanks ();
+	  if ((c = inputGet ()) != '=')
+	    {
+	      error (ErrorError, TRUE, "COMMON attribute needs size specification");
+	      inputUnGet (c);
+	    }
+	  else
+	    {
+	      Value size;
+	      exprBuild ();
+	      size = exprEval (ValueInt);
+	      switch (size.Tag.t)
+	        {
+	        case ValueInt:
+		  sym->value = valueCopy (size);
+	          sym->type |= SYMBOL_COMMON;
+	          break;
+	        default:
+	          error (ErrorError, TRUE, "Illegal COMMON attribute expression");
+	          break;
+	        }
+	    }
+	}
+      else if (!strncmp ("FPREGARGS", attribute.LexId.str, attribute.LexId.len))
+	sym->type |= SYMBOL_FPREGARGS;
       else
 	error (ErrorError, TRUE, "Illegal IMPORT attribute %s", attribute.LexId.str);
+      skipblanks ();
     }
+  inputUnGet (c);
 }
 
 
