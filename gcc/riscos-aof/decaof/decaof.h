@@ -114,26 +114,34 @@ struct areahdr {
 };
 
 /*
- * area attributes (areahdr->flags.AT)
+ * area attributes
  */
-#define AREA_ABSADDR		0x000001 /* Area has absolute address */
-#define AREA_CODE		0x000002
-#define AREA_COMMONDEF		0x000004 /* Common block definition       */
-#define AREA_COMMONREF		0x000008 /* Common block reference        */
-#define AREA_UDATA		0x000010 /* Uninitialised (0-initialised) */
-#define AREA_READONLY		0x000020
-#define AREA_PIC		0x000040
-#define AREA_DEBUG		0x000080
-#define AREA_32BITAPCS		0x000100
-#define AREA_REENTRANT		0x000200
-#define AREA_EXTFPSET		0x000400
-#define AREA_NOSTACKCHECK	0x000800
-#define AREA_BASED		0x001000
-#define AREA_STUBDATA		0x002000
-#define AREA_SOFTFLOAT		0x080000 /* Avoids FP instructions        */
-#define AREA_LINKONCE		0x100000 /* GNU linkonce (extension)      */
+#define AREA_ABS		0x00000100
+#define AREA_CODE		0x00000200
+#define AREA_COMMONDEF		0x00000400 /* Common block definition */
+#define AREA_COMMONREF		0x00000800 /* Common block reference */
+#define AREA_UDATA		0x00001000 /* Uninitialised (0-initialised) */
+#define AREA_READONLY		0x00002000
+#define AREA_PIC		0x00004000
+#define AREA_DEBUG		0x00008000
+#define AREA_32BITAPCS		0x00010000 /* Code area only */
+#define AREA_REENTRANT		0x00020000 /* Code area only */
+#define AREA_EXTFPSET		0x00040000 /* Code area only */
+#define AREA_NOSTACKCHECK	0x00080000 /* Code area only */
+#define AREA_THUMB		0x00100000 /* Code area only */
+#define AREA_HALFWORD		0x00200000 /* Code area only */
+#define AREA_INTERWORK		0x00400000 /* Code area only */
+#define AREA_BASED		0x00100000 /* Data area only */
+#define AREA_STUBDATA		0x00200000 /* Data area only */
+#define AREA_RESERVED22		0x00400000
+#define AREA_RESERVED23		0x00800000
+/* Bits 24-27 encode the base register. */
+#define AREA_LINKONCE		0x10000000 /* GNU linkonce (GCCSDK extension) Normally a reserved bit. */
+#define AREA_RESERVED29		0x20000000
+#define AREA_RESERVED30		0x40000000
+#define AREA_SOFTFLOAT		0x80000000 /* Avoids FP instructions (GCCSDK extension) Normally reserved bit. */
 
-#define AREA_UNKNOWNBITS	0xE00000
+#define AREA_UNKNOWNBITS	0x60E00000
 
 struct reloc {
 	Word offset;

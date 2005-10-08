@@ -258,9 +258,13 @@ next_file:
 static void
 print_area(FILE *ifp, struct areahdr *areahdr, Word offset, Word reloff)
 {
-	Word flags = areahdr->flags >> 8;
+	Word flags = areahdr->flags;
 
-	printf("\n** Area (0x%06x) \"%s\" ", areahdr->flags, string(areahdr->name));
+	printf("\n** Area (0x%06x) \"%s\", aligned at %d byte%s, ",
+	       areahdr->flags >> 8,
+	       string(areahdr->name),
+	       1 << (areahdr->flags & 0xFF),
+	       (areahdr->flags & 0xFF) ? "s" : "");
 	if (flags & AREA_DEBUG)
 		fputs("[debug] ", stdout);
 	else {
@@ -269,7 +273,7 @@ print_area(FILE *ifp, struct areahdr *areahdr, Word offset, Word reloff)
 		else
 			fputs("[data] ", stdout);
 	}
-	if (flags & AREA_ABSADDR)
+	if (flags & AREA_ABS)
 		fputs("[abs] ", stdout);
 	if (flags & AREA_COMMONDEF)
 		fputs("[commdef] ", stdout);
