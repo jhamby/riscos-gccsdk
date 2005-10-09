@@ -204,11 +204,15 @@ do {									\
 #undef  TARGET_ASM_NAMED_SECTION
 #define TARGET_ASM_NAMED_SECTION  arm_aof_asm_named_section
 
-#define EXTRA_SECTIONS in_zero_init, in_common
+#undef  TARGET_ASM_SELECT_SECTION
+#define TARGET_ASM_SELECT_SECTION arm_aof_select_section
+
+#define EXTRA_SECTIONS in_zero_init, in_common, in_comdef
 
 #define EXTRA_SECTION_FUNCTIONS	\
 ZERO_INIT_SECTION		\
-COMMON_SECTION
+COMMON_SECTION			\
+COMDEF_SECTION
 
 #define ZERO_INIT_SECTION					\
 void								\
@@ -232,6 +236,19 @@ common_section ()						\
   if (in_section != in_common)					\
     {								\
       in_section = in_common;					\
+    }								\
+}
+
+/* Used by arm_aof_select_section() which filters out the COMDEF
+   area and is using comdef_section() to tell varasm.c that we're
+   in a COMDEF area/section now.  */
+#define COMDEF_SECTION						\
+void								\
+comdef_section (void)						\
+{								\
+  if (in_section != in_comdef)					\
+    {								\
+      in_section = in_comdef;					\
     }								\
 }
 
@@ -277,7 +294,7 @@ common_section ()						\
   do								\
     {								\
      common_section ();						\
-     fprintf ((STREAM), "\tAREA |%s|, DATA, COMMON\n", (NAME));	\
+     fprintf ((STREAM), "\tAREA |%s|, DATA, NOINIT, COMMON\n", (NAME));	\
      fprintf ((STREAM), "\tEXPORT |%s|\n", (NAME));		\
      fprintf ((STREAM), "\t%% %d\t%s size=%d\n",		\
 	      (ROUNDED), ASM_COMMENT_START, (SIZE));		\
@@ -290,7 +307,7 @@ common_section ()						\
   do								\
     {								\
      common_section ();						\
-     fprintf ((STREAM), "\tAREA |%s|, DATA, COMMON\n", (NAME));	\
+     fprintf ((STREAM), "\tAREA |%s|, DATA, NOINIT, COMMON\n", (NAME));	\
      fprintf ((STREAM), "\tEXPORT |%s|\n", (NAME));		\
      fprintf ((STREAM), "\t%% %d\t%s size=%d\n",		\
 	      (ROUNDED), ASM_COMMENT_START, (SIZE));		\

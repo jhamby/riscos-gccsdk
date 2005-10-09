@@ -3943,7 +3943,7 @@
 	    operands[1] = force_reg (SImode, operands[1]);
         }
     }
-
+    
   if (flag_pic
       && (CONSTANT_P (operands[1])
 	 || symbol_mentioned_p (operands[1])
@@ -4089,7 +4089,7 @@
   if (TARGET_MODULE)
     output_asm_insn (\"ldr%?\\t%0, [%2, %1]\", operands);
   else
-    output_asm_insn (\"ldr%?\\t%0, %a1\", operands);
+  output_asm_insn (\"ldr%?\\t%0, %a1\", operands);
   return \"\";
   "
   [(set_attr "type" "load")
