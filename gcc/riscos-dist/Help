@@ -51,14 +51,13 @@ License:
   - drlink : GPL version 2
   - infozip : See !gcc.docs.InfoZip.LICENSE
   - ld : GPL
-  - libfile, ar : Freeware
+  - libfile, ar : Freeware, see !gcc.docs.LibFile.Readme
   - nm : GPL version 2
   - rink, extractsym, rinkptr : See !gcc.docs.rink
   - cmp, diff, diff3, sdiff : See !gcc.docs.diff
   - bison, fileutils (touch, mkdir), gperf, grep, gzip, make, patch,
     sed: GPL
   - flex : See !gcc.docs.flex
-  - LibSCL : See !gcc.docs.LibSCL.License
   - UnixLib : See !gcc.docs.UnixLib.Copyright
 
 

@@ -21,6 +21,7 @@ riscos-dist:
 	$(MAKE) -C infozip riscos-dist
 	$(MAKE) -C decaof riscos-dist
 	$(MAKE) -C cmunge riscos-dist
+	$(MAKE) -C libfile riscos-dist
 
 .PHONY: riscos-dist
 .PHONY: as

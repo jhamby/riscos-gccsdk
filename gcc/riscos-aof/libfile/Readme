@@ -30,7 +30,7 @@ behaviour differs from the original tool in the following cases:
   on every operation, simply ignoring non-AOF files.
   There is no need for the option -o anymore.
   If you want to add a symbol table to an existing library use
-  'LibFile -c <library file>'.
+  'libfile -c <Library>'.
   
 - LibFile always creates all directories that are included in a
   filename when the file is extracted.
@@ -45,13 +45,10 @@ Ultra-short introduction
 
 The command for creating a simple library is:
 
-LibFile -c library file1 file2 file3 ...
+libfile -c library file1 file2 file3 ...
 
-Use LibFile -? for a short summary of available options.
+Use libfile without any parameters for a short summary of
+available options.
 
 
-Sources
--------
-
-LibFile was written in C++ with the excellent gcc for RISC OS,
-all sources are included in this package.
+-EOF-

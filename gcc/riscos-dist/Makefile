@@ -26,6 +26,7 @@ GCCPKG = $(pkg)/\!Run,feb \
 	$(pkg)/bin/gcc$(exesfx) \
 	$(pkg)/bin/gcov$(exesfx) \
 	$(pkg)/bin/libfile$(exesfx) \
+	$(pkg)/docs/LibFile/* \
 	$(pkg)/bin/nm$(exesfx) \
 	$(pkg)/bin/rink$(exesfx) \
 	$(pkg)/bin/rinkptr$(exesfx) \

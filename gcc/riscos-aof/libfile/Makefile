@@ -1,5 +1,6 @@
-# Makefile for the ARM Library Format compiler - LIBFILE
-# Written by Nick Burrett <nick@dsvr.net>
+# Makefile for the ARM Library Format compiler - LibFile
+# Copyright (c) 2000, 2001, 2002 Nick Burrett
+# Copyright (c) 2003, 2004, 2005 GCCSDK Developers
 
 ifeq (${STAGE},stage1)
 CFLAGS += -DCROSS_COMPILE -D_GNU_SOURCE
@@ -52,6 +53,10 @@ DEPS += $(gcc_bin_dir)/$(TRG)/o/unixlib
 endif
 
 all:	$(bin_dir)/libfile$(exesfx) $(bin_dir)/ar$(exesfx)
+
+riscos-dist:
+	mkdir -p $(info_dir)/LibFile
+	cp -p Readme $(info_dir)/LibFile
 
 $(bin_dir)/libfile$(exesfx):	$(libfileobjdir)/LibFile.o $(OBJS) $(DEPS)
 	$(CXX) -o $@ $(libfileobjdir)/LibFile.o $(OBJS)
