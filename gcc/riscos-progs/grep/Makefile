@@ -1,5 +1,6 @@
 # Makefile for GNU grep
-# Written by Nick Burrett <nick@sqrt.co.uk>
+# Copyright (c) 2000, 2001, 2002 Nick Burrett
+# Copyright (c) 2003, 2004, 2005 GCCSDK Developers
 
 INCLUDES = -I.  -I ./lib -I ../../include
 CROSS_CFLAGS += -DHAVE_CONFIG_H 
@@ -15,7 +16,9 @@ LIBHDR = lib/closeout.h lib/error.h lib/exclude.h lib/hard-locale.h \
 	lib/quotearg.h lib/regex.h lib/savedir.h \
 	lib/xalloc.h lib/xstrtol.h
 
-all:	$(bin_dir)/grep$(exesfx) $(info_dir)/grep
+all:	$(bin_dir)/grep$(exesfx)
+
+riscos-dist: $(info_dir)/grep,faf
 
 $(objdir)/riscos-progs/grep.o:  $(SRCS) $(HDRS) $(LIBSRC) $(LIBHDR)
 	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c $(SRCS) $(LIBSRC) $(INCLUDES)
@@ -23,5 +26,5 @@ $(objdir)/riscos-progs/grep.o:  $(SRCS) $(HDRS) $(LIBSRC) $(LIBHDR)
 $(bin_dir)/grep$(exesfx):	$(objdir)/riscos-progs/grep.o
 	$(CROSS_CC) -o $@ $(objdir)/riscos-progs/grep.o -L$(objdir)/libiberty/$(STAGE) -liberty
 
-$(info_dir)/grep:	doc/grep.texi
-	$(MAKEINFO) --no-split --number-sections doc/grep.texi -o $@ -I doc
+$(info_dir)/grep,faf:	doc/grep.texi
+	$(MAKEINFO) --no-split --number-sections --html doc/grep -o $@ -I doc

@@ -19,7 +19,9 @@ GCCPKG = $(pkg)/\!Run,feb \
 	$(pkg)/Changes \
 	$(pkg)/bin/ar$(exesfx) \
 	$(pkg)/bin/decaof$(exesfx) \
+	$(pkg)/docs/decaof/* \
 	$(pkg)/bin/drlink$(exesfx) \
+	$(pkg)/docs/Drlink/* \
 	$(pkg)/bin/dyn_kill,ffb \
 	$(pkg)/bin/gcc$(exesfx) \
 	$(pkg)/bin/gcov$(exesfx) \
@@ -44,7 +46,6 @@ GCCDOCPKG = $(pkg)/docs/COPYING \
 	$(pkg)/docs/Intro \
 	$(pkg)/docs/bugs \
 	$(pkg)/docs/cpp \
-	$(pkg)/docs/diff \
 	$(pkg)/docs/gcc \
 	$(pkg)/docs/UnixLib/Changes \
 	$(pkg)/docs/UnixLib/Copyright \
@@ -70,35 +71,40 @@ G77PKG = $(pkg)/bin/g77$(exesfx) \
 	$(pkg)/docs/g77-readme
 
 CMUNGEPKG = $(pkg)/bin/cmunge$(exesfx) \
-	$(pkg)/docs/CMunge/Authors \
-	$(pkg)/docs/CMunge/Copyright \
-	$(pkg)/docs/CMunge/History \
-	$(pkg)/docs/CMunge/Manual \
-	$(pkg)/docs/CMunge/Warranty
+	$(pkg)/docs/CMunge/*
 
 UTILSPKG = $(pkg)/bin/bison$(exesfx) \
+	$(pkg)/docs/bison,faf \
+	\
 	$(pkg)/bin/cmp$(exesfx) \
 	$(pkg)/bin/diff$(exesfx) \
 	$(pkg)/bin/diff3$(exesfx) \
+	$(pkg)/bin/sdiff$(exesfx) \
+	$(pkg)/docs/diff,faf \
+	\
 	$(pkg)/bin/extractsym$(exesfx) \
 	$(pkg)/bin/flex$(exesfx) \
+	$(pkg)/docs/flex,faf \
+	\
 	$(pkg)/bin/gperf$(exesfx) \
+	$(pkg)/docs/gperf \
+	\
 	$(pkg)/bin/grep$(exesfx) \
+	$(pkg)/docs/grep,faf \
+	\
 	$(pkg)/bin/gzip$(exesfx) \
 	$(pkg)/bin/make$(exesfx) \
+	$(pkg)/docs/make \
+	\
 	$(pkg)/bin/mkdir$(exesfx) \
 	$(pkg)/bin/patch$(exesfx) \
-	$(pkg)/bin/sdiff$(exesfx) \
 	$(pkg)/bin/sed$(exesfx) \
+	$(pkg)/docs/sed,faf \
+	\
 	$(pkg)/bin/touch$(exesfx) \
 	$(pkg)/bin/zip$(exesfx) \
-	$(pkg)/docs/bison \
-	$(pkg)/docs/flex \
-	$(pkg)/docs/grep \
-	$(pkg)/docs/gperf \
-	$(pkg)/docs/make \
+	$(pkg)/docs/InfoZip/* \
 	$(pkg)/docs/rink \
-	$(pkg)/docs/sed \
 	$(bindir)/apcs32/abs/unixlib/o/libfl \
 	$(bindir)/apcs32/abs/unixlib/o/libgcov \
 	$(bindir)/apcs32/abs/unixlib/o/libiberty \
@@ -151,12 +157,6 @@ install:
 	find $(ro_unixlibpkg) -name "CVS" -type d | xargs rm -rf
 	find $(ro_unixlibpkg) -name "*~*" -or -name "*.orig*" -or -name "*.reg*" -type f | xargs rm -rf
 	
-	cp -p ../riscos-aof/cmunge/Docs/Authors $(ro_gccpkg)/docs/CMunge
-	cp -p ../riscos-aof/cmunge/Docs/Copyright $(ro_gccpkg)/docs/CMunge
-	cp -p ../riscos-aof/cmunge/Docs/History $(ro_gccpkg)/docs/CMunge
-	cp -p ../riscos-aof/cmunge/Docs/Manual $(ro_gccpkg)/docs/CMunge
-	cp -p ../riscos-aof/cmunge/Docs/Warranty $(ro_gccpkg)/docs/CMunge
-
 	#cp -p ../libscl/Boot,feb $(ro_libsclpkg)/\!Boot,feb
 	#cp -p ../libscl/Help $(ro_libsclpkg)/\!Help
 	#cp -p ../libscl/Run,feb $(ro_libsclpkg)/\!Run,feb

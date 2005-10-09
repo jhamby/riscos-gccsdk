@@ -1,5 +1,6 @@
 # Second-level Makefile for supporting binaries for RISC OS GCC
-# Written by Nick Burrett <nick@dsvr.net>
+# Copyright (c) 2000, 2001, 2002 Nick Burrett
+# Copyright (c) 2003, 2004, 2005 GCCSDK Developers
 
 export TLIB
 
@@ -13,6 +14,16 @@ export host_bin_dir bin_dir gcc_bin_dir LIBIBERTY
 all:	flex make diff bison fileutils gperf grep gzip patch \
 	sed fortify
 
+riscos-dist:
+	$(MAKE) -C bison riscos-dist
+	$(MAKE) -C diff riscos-dist
+	$(MAKE) -C flex riscos-dist
+	$(MAKE) -C gperf riscos-dist
+	$(MAKE) -C grep riscos-dist
+	$(MAKE) -C make riscos-dist
+	$(MAKE) -C sed riscos-dist
+	
+.PHONY: riscos-dist
 .PHONY: bison
 .PHONY: diff
 .PHONY: fileutils

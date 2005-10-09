@@ -171,7 +171,6 @@ build-native:	libiberty-stg2 gcc-stg2 riscos-aof-stg2 \
 .PHONY: riscos-progs
 .PHONY: riscos-elf
 .PHONY: riscos-dist
-.PHONY: zlib
 
 .PHONY: gcc-stg1
 .PHONY: gcc-stg2
@@ -253,6 +252,8 @@ gcc-libs-stg2: gcc-stg1 riscos-aof-stg1
 	$(MAKE) -C gcc libgcov "TRG=$(trg31)" $(cfl31) "STAGE=stage2"
 
 riscos-dist: riscos-progs gcc-stg2 riscos-aof-stg2
+	$(MAKE) -C riscos-aof riscos-dist
+	$(MAKE) -C riscos-progs riscos-dist
 	$(MAKE) -C riscos-dist install
 
 riscos-pkg: riscos-dist
@@ -288,7 +289,6 @@ directories:
 
 	mkdir -p $(ro_syspkg)/310/Modules
 	mkdir -p $(info_dir)
-	mkdir -p $(info_dir)/CMunge
 	mkdir -p $(info_dir)/UnixLib
 	mkdir -p $(objdir)
 	mkdir -p $(ro_zippkg)
@@ -303,7 +303,7 @@ install_headers:
 	$(MAKE) -C gcc/libstdc install_headers
 	$(MAKE) -C gcc/libobjc install_headers
 
-# Generate unixlib makefiles
+# Generate UnixLib makefiles
 # Regenerate whenever Changelog is updated, so that any new files added will get added to the makefiles
 unixlib/source/Makefile unixlib/source/object-list unixlib/objs/Makefile,fe1: unixlib/Makefile
 

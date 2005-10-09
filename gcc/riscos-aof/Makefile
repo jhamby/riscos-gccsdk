@@ -16,6 +16,13 @@ export bin_dir gcc_bin_dir
 
 all:	as drlink infozip ld nm rink libfile decaof cmunge
 
+riscos-dist:
+	$(MAKE) -C drlink riscos-dist
+	$(MAKE) -C infozip riscos-dist
+	$(MAKE) -C decaof riscos-dist
+	$(MAKE) -C cmunge riscos-dist
+
+.PHONY: riscos-dist
 .PHONY: as
 .PHONY: drlink
 .PHONY: infozip

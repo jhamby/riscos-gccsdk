@@ -20,6 +20,14 @@ cmungeobjdir = $(objdir)/riscos-aof/cmunge/$(STAGE)
 
 all:	$(bin_dir)/cmunge$(exesfx)
 
+riscos-dist:
+	mkdir -p $(info_dir)/CMunge
+	cp -p Docs/Authors $(info_dir)/CMunge
+	cp -p Docs/Copyright $(info_dir)/CMunge
+	cp -p Docs/History $(info_dir)/CMunge
+	cp -p Docs/Manual $(info_dir)/CMunge
+	cp -p Docs/Warranty $(info_dir)/CMunge
+
 SRCS =	apcscli.c \
 	assemble.c \
 	blank.c \

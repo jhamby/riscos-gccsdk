@@ -49,6 +49,10 @@ endif
 
 all:	$(bin_dir)/zip$(exesfx)
 
+riscos-dist:
+	mkdir -p $(info_dir)/InfoZip
+	cp -p LICENSE $(info_dir)/InfoZip
+
 $(bin_dir)/zip$(exesfx): $(OBJS)
 	$(CC) -o $@ $(OBJS)
 

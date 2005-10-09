@@ -1,5 +1,6 @@
 # Makefile for GNU gperf - a perfect hash generator
-# Written by Nick Burrett <nick@dsvr.net>
+# Copyright (c) 2000, 2001, 2002 Nick Burrett
+# Copyright (c) 2003, 2004, 2005 GCCSDK Developers
 
 INCLUDES = -I. -I../../include -I../../gcc/libstdc/include
 CROSS_CFLAGS += -DHAVE_CONFIG_H
@@ -21,13 +22,15 @@ OBJS = 	$(objdir)/riscos-progs/gperf/bool-array.o \
 	$(objdir)/riscos-progs/gperf/search.o \
 	$(objdir)/riscos-progs/gperf/version.o
 
-all:	$(bin_dir)/gperf$(exesfx) $(info_dir)/gperf
+all:	$(bin_dir)/gperf$(exesfx)
+
+riscos-dist: $(info_dir)/gperf
 
 $(bin_dir)/gperf$(exesfx):	$(OBJS)
 	$(CROSS_CXX) -o $@ $(OBJS) -L$(objdir)/libiberty/stage2 -liberty
 
 $(info_dir)/gperf:	doc/gperf.texi
-	$(MAKEINFO) --no-split --number-sections doc/gperf.texi -o $@ -I doc
+	$(MAKEINFO) --no-split --number-sections doc/gperf -o $@ -I doc
 
 $(objdir)/riscos-progs/gperf/bool-array.o: bool-array.cc bool-array.icc options.icc
 $(objdir)/riscos-progs/gperf/getline.o: getline.cc getline.h

@@ -16,6 +16,11 @@ decaofobjdir = $(objdir)/riscos-aof/decaof/$(STAGE)
 
 all:	$(bin_dir)/decaof$(exesfx)
 
+riscos-dist:
+	mkdir -p $(info_dir)/decaof
+	cp -p COPYING $(info_dir)/decaof
+	cp -p README $(info_dir)/decaof
+
 SRCS = decode.c io.c error.c main.c misc.c
 
 HDRS = ../../sdk-config.h config.h decaof.h error.h io.h main.h misc.h

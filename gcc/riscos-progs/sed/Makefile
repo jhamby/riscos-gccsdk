@@ -1,5 +1,6 @@
 # Makefile for GNU sed
-# Written by Nick Burrett <nick@sqrt.co.uk>
+# Copyright (c) 2000, 2001, 2002 Nick Burrett
+# Copyright (c) 2003, 2004, 2005 GCCSDK Developers
 
 INCLUDES = -I. -I ../../include
 CROSS_CFLAGS += -DHAVE_CONFIG_H
@@ -11,7 +12,9 @@ SRCS = compile.c execute.c fmt.c regex.c regexp.c sed.c strverscmp.c utils.c
 HDRS = basicdefs.h config.h regex.h regex_internal.h sed.h \
 	strverscmp.h utils.h
 
-all:	$(bin_dir)/sed$(exesfx) $(info_dir)/sed
+all:	$(bin_dir)/sed$(exesfx)
+
+riscos-dist: $(info_dir)/sed,faf
 
 $(objdir)/riscos-progs/sed.o:	$(SRCS) $(HDRS)
 	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c $(SRCS) $(INCLUDES)
@@ -19,5 +22,5 @@ $(objdir)/riscos-progs/sed.o:	$(SRCS) $(HDRS)
 $(bin_dir)/sed$(exesfx):	$(objdir)/riscos-progs/sed.o
 	$(CROSS_CC) -o $@ $(objdir)/riscos-progs/sed.o -L$(objdir)/libiberty/$(STAGE) -liberty
 
-$(info_dir)/sed:	doc/config.texi doc/sed.texi doc/version.texi
-	$(MAKEINFO) --no-split --number-sections doc/sed.texi -o $@ -I doc
+$(info_dir)/sed,faf:	doc/config.texi doc/sed.texi doc/version.texi
+	$(MAKEINFO) --no-split --number-sections --html doc/sed.texi -o $@ -I doc

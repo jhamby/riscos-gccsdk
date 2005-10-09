@@ -1,5 +1,6 @@
 # Makefile for GNU bison
-# Written by Nick Burrett <nick@sqrt.co.uk>
+# Copyright (c) 2000, 2001, 2002 Nick Burrett
+# Copyright (c) 2003, 2004, 2005 GCCSDK Developers
 
 INCLUDES = -I. -I ./lib -I ../../include
 CROSS_CFLAGS += -DHAVE_CONFIG_H -DPKGDATADIR=\"GCCsys:bison\"
@@ -30,16 +31,18 @@ LIBHDRS = lib/abitset.h lib/argmatch.h lib/bitset.h lib/bbitset.h \
 	lib/quote.h lib/subpipe.h lib/timevar.h lib/unlocked-io.h \
 	lib/xalloc.h
 
-all:	$(bin_dir)/bison$(exesfx) $(info_dir)/bison
+all:	$(bin_dir)/bison$(exesfx)
+
+riscos-dist: $(info_dir)/bison,faf
+
+$(info_dir)/bison,faf: doc/bison.texinfo doc/fdl.texi doc/gpl.texi doc/version.texi
+	$(MAKEINFO) --no-split --number-sections --html doc/bison.texinfo -o $@ -I doc
 
 $(objdir)/riscos-progs/bison.o:  $(SRCS) $(HDRS) $(LIBSRCS) $(LIBHDRS)
 	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c $(SRCS) $(LIBSRCS) $(INCLUDES)
 
 $(bin_dir)/bison$(exesfx):	$(objdir)/riscos-progs/bison.o
 	$(CROSS_CC) -o $@ $(objdir)/riscos-progs/bison.o -L$(objdir)/libiberty/$(STAGE) -liberty
-
-$(info_dir)/bison:	doc/bison.texinfo doc/fdl.texi doc/gpl.texi doc/version.texi
-	$(MAKEINFO) --no-split --number-sections doc/bison.texinfo -o $@ -I doc
 
 #scan-gram.c: scan-gram.l
 #	$(FLEX) -t -o$@ scan-gram.l > $@

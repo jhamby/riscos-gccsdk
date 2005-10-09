@@ -1,5 +1,6 @@
 # Makefile for GNU diffutils
-# Written by Nick Burrett <nick@sqrt.co.uk>
+# Copyright (c) 2000, 2001, 2002 Nick Burrett
+# Copyright (c) 2003, 2004, 2005 GCCSDK Developers
 
 INCLUDES = -I. -I ./lib -I ../../include
 CROSS_CFLAGS += -DHAVE_CONFIG_H
@@ -26,8 +27,9 @@ LIBHDR = lib/cmpbuf.h lib/c-stack.h lib/dirname.h lib/error.h \
 HDRS = config.h diff.h system.h
 
 all:	$(bin_dir)/diff$(exesfx) $(bin_dir)/diff3$(exesfx) \
-	$(bin_dir)/sdiff$(exesfx) $(bin_dir)/cmp$(exesfx) \
-	$(info_dir)/diff
+	$(bin_dir)/sdiff$(exesfx) $(bin_dir)/cmp$(exesfx)
+
+riscos-dist:	$(info_dir)/diff,faf
 
 $(objdir)/riscos-progs/diff.o:	$(DIFFSRC) $(HDRS) $(LIBSRC) $(LIBHDR)
 	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c $(DIFFSRC) $(LIBSRC) $(INCLUDES)
@@ -53,5 +55,5 @@ $(bin_dir)/sdiff$(exesfx):	$(objdir)/riscos-progs/sdiff.o
 $(bin_dir)/cmp$(exesfx):	$(objdir)/riscos-progs/cmp.o
 	$(CROSS_CC) -o $@ $(objdir)/riscos-progs/cmp.o
 
-$(info_dir)/diff:	doc/diff.texi doc/fdl.texi doc/version.texi
-	$(MAKEINFO) --no-split --number-sections doc/diff.texi -o $@ -I doc
+$(info_dir)/diff,faf:	doc/diff.texi doc/fdl.texi doc/version.texi
+	$(MAKEINFO) --no-split --number-sections --html doc/diff.texi -o $@ -I doc

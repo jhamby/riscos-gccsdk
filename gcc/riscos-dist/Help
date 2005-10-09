@@ -1,4 +1,4 @@
-Welcome to GCC 3.4.4 release 3 for RISC OS.
+Welcome to GCC 3.4.5 release 1 for RISC OS.
 
 This document covers important notes for new users and existing users alike.
 GCC and UnixLib have undergone many changes, so it's important that you read
@@ -37,6 +37,31 @@ Future Versions of GCC:
   library system.
 
 
+License:
+
+  GCCSDK release made by the GCCSDK Developers consists of several binaries
+  and sources which have different licenses.  The following overview can
+  help to identify those licenses but is in no way an authoritive statement
+  on behalf of the GCCSDK Developers:
+  
+  - gcc (and all its associated files) : See !gcc.docs.gcc
+  - as : GPL version 2
+  - cmunge : See !gcc.docs.CMunge.Copyright
+  - decaof : GPL version 2
+  - drlink : GPL version 2
+  - infozip : See !gcc.docs.InfoZip.LICENSE
+  - ld : GPL
+  - libfile, ar : Freeware
+  - nm : GPL version 2
+  - rink, extractsym, rinkptr : See !gcc.docs.rink
+  - cmp, diff, diff3, sdiff : See !gcc.docs.diff
+  - bison, fileutils (touch, mkdir), gperf, grep, gzip, make, patch,
+    sed: GPL
+  - flex : See !gcc.docs.flex
+  - LibSCL : See !gcc.docs.LibSCL.License
+  - UnixLib : See !gcc.docs.UnixLib.Copyright
+
+
 Credits:
 
   Primary Developers :
@@ -58,12 +83,14 @@ Credits:
   Special thanks to the following people having written programs which are
   used in the GCCSDK project :
   
-  - Niklas Röjemo for his 'as' AOF assembler.
+  - Niklas Röjemo for his 'as' AOF assembler and Darren Salt for his
+    improvements.
   - Justin Fletcher and Robin Watts for 'CMunge', a free alternative to CMHG.
   - Andy Duplain for his 'decaof', an AOF decoder.
   - Dave Daniels for his 'drlink', an AOF linker.
   - Bernhard Walter for his 'libfile', an AOF library archiver.
   - Ben Summers for his 'rink', an dynamic AOF loader.
+  - Nick Burrett for his 'nm', listing symbols of AOF files.
 
   Thanks also to all the testers and bug reporters.
 

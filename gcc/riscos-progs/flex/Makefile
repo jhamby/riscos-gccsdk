@@ -1,5 +1,6 @@
 # Makefile for GNU flex - a lexical analyser
-# Written by Nick Burrett <nick@dsvr.net>
+# Copyright (c) 2000, 2001, 2002 Nick Burrett
+# Copyright (c) 2003, 2004, 2005 GCCSDK Developers
 
 INCLUDES = -I.
 CROSS_CFLAGS += -DHAVE_CONFIG_H
@@ -19,8 +20,12 @@ HDRS = config.h flexdef.h flexint.h FlexLexer.h gettext.h \
 LIBFL_OBJS = $(fobj)/libmain.o \
 	$(fobj)/libyywrap.o
 
-all:	$(bin_dir)/flex$(exesfx) $(gcc_bin_dir)/$(TRG)/o/libfl \
-	$(info_dir)/flex
+all:	$(bin_dir)/flex$(exesfx) $(gcc_bin_dir)/$(TRG)/o/libfl
+
+riscos-dist:	$(info_dir)/flex,faf
+
+$(info_dir)/flex,faf: doc/flex.texi doc/version.texi
+	$(MAKEINFO) --no-split --number-sections --html doc/flex -o $@ -I doc
 
 $(objdir)/riscos-progs/flex.o:  $(SRCS) $(HDRS)
 	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c $(SRCS)
@@ -30,9 +35,6 @@ $(bin_dir)/flex$(exesfx):	$(objdir)/riscos-progs/flex.o
 
 $(gcc_bin_dir)/$(TRG)/o/libfl:	$(LIBFL_OBJS)
 	$(CROSS_AR) $(CROSS_AR_FLAGS) $@ $(LIBFL_OBJS)
-
-$(info_dir)/flex:	doc/flex.texi doc/version.texi
-	$(MAKEINFO) --no-split --number-sections doc/flex -o $@ -I doc
 
 parse.h parse.c: parse.y
 	$(BISON) -d parse.y -o parse.c

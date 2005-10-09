@@ -17,6 +17,11 @@ drlinkobjdir = $(objdir)/riscos-aof/drlink/$(STAGE)
 
 all:	$(bin_dir)/drlink$(exesfx)
 
+riscos-dist:
+	mkdir -p $(info_dir)/Drlink
+	cp -p COPYING $(info_dir)/Drlink
+	cp -p Drlink_doc $(info_dir)/Drlink
+
 SRCS =	aofiles.c \
 	areas.c \
 	debug.c \
