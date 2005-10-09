@@ -21,6 +21,8 @@ RISC OS GCC release 3.4.5 release 1 (released XX XXX 2005)
 
 * RISC OS modules can now be created in C++ too.
 
+* Longstanding Fortran COMMON bug is fixed.
+
 
 RISC OS GCC release 3.4.4 release 3 (released 8 July 2005)
 ===================================
