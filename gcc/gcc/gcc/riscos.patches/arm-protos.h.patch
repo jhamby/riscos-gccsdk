@@ -1,0 +1,11 @@
+--- ../../../gcc-3.4-20050719/gcc/config/arm/arm-protos.h	2005-02-01 16:07:02.000000000 +0100
++++ ./config/arm/arm-protos.h	2005-05-16 17:17:59.000000000 +0200
+@@ -150,7 +150,7 @@
+ #endif
+ 
+ #if defined AOF_ASSEMBLER 
+-extern rtx aof_pic_entry (rtx);
++extern rtx aof_pic_entry (rtx, int);
+ extern char *aof_text_section (void);
+ extern char *aof_data_section (void);
+ extern void aof_add_import (const char *);

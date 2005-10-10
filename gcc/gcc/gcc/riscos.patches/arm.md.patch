@@ -1,5 +1,5 @@
---- /home/nick/riscos/masters/gcc-3.4/gcc/config/arm/arm.md	2004-12-03 10:49:20.000000000 +0000
-+++ config/arm/arm.md	2004-12-03 13:40:15.953647648 +0000
+--- ../../../gcc-3.4-20050719/gcc/config/arm/arm.md	2005-01-25 13:50:34.000000000 +0100
++++ ./config/arm/arm.md	2005-10-08 23:41:18.000000000 +0200
 @@ -30,7 +30,8 @@
  
  ;; Register numbers
@@ -19,7 +19,42 @@
    ]
  )
  
-@@ -7345,7 +7348,7 @@
+@@ -4049,7 +4052,7 @@
+   [(set (match_operand:SI 0 "s_register_operand" "=r")
+ 	(unspec:SI [(match_operand:SI 1 "" "mX")] UNSPEC_PIC_SYM))]
+   "TARGET_ARM && flag_pic"
+-  "ldr%?\\t%0, %1"
++  "ldr%?\\t%0, %1 %@ pic_load_addr_arm"
+   [(set_attr "type" "load")
+    (set (attr "pool_range")     (const_int 4096))
+    (set (attr "neg_pool_range") (const_int 4084))]
+@@ -4069,7 +4072,7 @@
+ (define_expand "pic_load_addr_based"
+   [(set (match_operand:SI 0 "s_register_operand" "")
+ 	(unspec:SI [(match_operand 1 "" "") (match_dup 2)] UNSPEC_PIC_SYM))]
+-  "TARGET_ARM && flag_pic"
++  "TARGET_ARM && flag_pic && ! TARGET_MODULE"
+   "operands[2] = pic_offset_table_rtx;"
+ )
+ 
+@@ -4078,11 +4081,14 @@
+ 	(unspec:SI [(match_operand 1 "" "")
+ 		    (match_operand 2 "s_register_operand" "r")]
+ 		   UNSPEC_PIC_SYM))]
+-  "TARGET_EITHER && flag_pic && operands[2] == pic_offset_table_rtx"
++  "TARGET_EITHER && flag_pic && operands[2] == pic_offset_table_rtx && ! TARGET_MODULE"
+   "*
+ #ifdef AOF_ASSEMBLER
+-  operands[1] = aof_pic_entry (operands[1]);
++  operands[1] = aof_pic_entry (operands[1], (TARGET_MODULE) ? 1 : 0);
+ #endif
++  if (TARGET_MODULE)
++    output_asm_insn (\"ldr%?\\t%0, [%2, %1]\", operands);
++  else
+   output_asm_insn (\"ldr%?\\t%0, %a1\", operands);
+   return \"\";
+   "
+@@ -7345,7 +7351,7 @@
  		    (match_operand 1 "general_operand" ""))
  	      (return)
  	      (use (match_operand 2 "" ""))])]
@@ -28,7 +63,7 @@
    "
    {
      if (operands[2] == NULL_RTX)
-@@ -7359,7 +7362,7 @@
+@@ -7359,7 +7365,7 @@
  			 (match_operand 2 "general_operand" "")))
  	      (return)
  	      (use (match_operand 3 "" ""))])]
@@ -37,7 +72,7 @@
    "
    {
      if (operands[3] == NULL_RTX)
-@@ -7372,7 +7375,7 @@
+@@ -7372,7 +7378,7 @@
  	(match_operand 1 "" ""))
    (return)
    (use (match_operand 2 "" ""))]
@@ -46,7 +81,7 @@
    "*
    return NEED_PLT_RELOC ? \"b%?\\t%a0(PLT)\" : \"b%?\\t%a0\";
    "
-@@ -7385,7 +7388,7 @@
+@@ -7385,7 +7391,7 @@
  	     (match_operand 2 "" "")))
    (return)
    (use (match_operand 3 "" ""))]
@@ -55,7 +90,7 @@
    "*
    return NEED_PLT_RELOC ? \"b%?\\t%a1(PLT)\" : \"b%?\\t%a1\";
    "
-@@ -10054,3 +10057,5 @@
+@@ -10054,3 +10060,5 @@
  (include "cirrus.md")
  ;; Load the Intel Wireless Multimedia Extension patterns
  (include "iwmmxt.md")

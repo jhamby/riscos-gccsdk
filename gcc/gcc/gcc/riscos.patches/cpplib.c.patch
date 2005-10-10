@@ -1,10 +1,5 @@
-Index: cpplib.c
-===================================================================
-RCS file: /usr/local/cvsroot/gccsdk/gcc/gcc/cpplib.c,v
-retrieving revision 1.8
-diff -u -r1.8 cpplib.c
---- cpplib.c	31 May 2004 15:10:24 -0000	1.8
-+++ cpplib.c	25 Sep 2004 15:43:48 -0000
+--- ../../../gcc-3.4-20050719/gcc/cpplib.c	2004-12-02 03:32:17.000000000 +0100
++++ ./cpplib.c	2005-03-21 12:56:25.000000000 +0100
 @@ -636,6 +636,11 @@
  {
    char *fname;

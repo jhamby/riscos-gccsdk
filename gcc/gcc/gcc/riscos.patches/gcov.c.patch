@@ -1,0 +1,18 @@
+--- ../../../gcc-3.4-20050719/gcc/gcov.c	2004-02-20 07:47:11.000000000 +0100
++++ ./gcov.c	2005-05-29 22:33:49.000000000 +0200
+@@ -1431,9 +1431,14 @@
+ make_gcov_file_name (const char *input_name, const char *src_name)
+ {
+   char *cptr;
+-  char *name = xmalloc (strlen (src_name) + strlen (input_name) + 10);
++  char *name = xmalloc (strlen (src_name) + strlen (input_name) + 12);
+ 
++#ifdef __riscos__
++  strcpy(name, "./");
++#else
+   name[0] = 0;
++#endif
++
+   if (flag_long_names && strcmp (src_name, input_name))
+     {
+       /* Generate the input filename part.  */

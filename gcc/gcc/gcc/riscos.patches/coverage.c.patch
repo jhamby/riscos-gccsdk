@@ -1,0 +1,14 @@
+--- ../../../gcc-3.4-20050719/gcc/coverage.c	2004-03-03 01:45:00.000000000 +0100
++++ ./coverage.c	2005-07-06 02:40:39.000000000 +0200
+@@ -773,7 +773,11 @@
+   field = build_decl (FIELD_DECL, NULL_TREE, string_type);
+   TREE_CHAIN (field) = fields;
+   fields = field;
++#ifdef CROSS_COMPILE
++  filename = NULL;
++#else
+   filename = getpwd ();
++#endif  
+   filename = (filename && da_file_name[0] != '/'
+ 	      ? concat (filename, "/", da_file_name, NULL)
+ 	      : da_file_name);

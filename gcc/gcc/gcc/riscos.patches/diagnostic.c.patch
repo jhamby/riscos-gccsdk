@@ -1,6 +1,6 @@
---- /home/nick/riscos/masters/gcc-3.4/gcc/diagnostic.c	2003-09-22 06:09:12.000000000 +0100
-+++ diagnostic.c	2004-06-18 16:27:22.000000000 +0100
-@@ -355,7 +355,24 @@ diagnostic_report_diagnostic (diagnostic
+--- ../../../gcc-3.4-20050719/gcc/diagnostic.c	2003-09-22 07:09:12.000000000 +0200
++++ ./diagnostic.c	2004-06-01 20:33:52.000000000 +0200
+@@ -355,7 +355,24 @@
      {
        (*diagnostic_starter (context)) (context, diagnostic);
        pp_format_text (context->printer, &diagnostic->message);
