@@ -4,6 +4,7 @@
 #include <errno.h>
 #include <limits.h>
 #include <unistd.h>
+#include <string.h>
 
 #include <unixlib/os.h>
 #include <sys/stat.h>
@@ -43,7 +44,8 @@ mkdir (const char *ux_path, __mode_t mode)
   if (err)
     {
       /* Match with "Not found" RISC OS error */
-      if (err->errnum == 0x108d6)
+      if (err->errnum == 0x108d6 || strcasecmp(err->errmess, "Not found") == 0 ||
+          strstr(err->errmess, "not found"))
         return __set_errno (ENOENT);
 
       return __ul_seterr (err, 1);

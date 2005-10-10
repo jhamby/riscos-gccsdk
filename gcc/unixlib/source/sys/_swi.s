@@ -1,8 +1,8 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/_swi.s,v $
-; $Date: 2004/12/27 19:38:43 $
-; $Revision: 1.6 $
+; $Date: 2005/03/19 19:25:47 $
+; $Revision: 1.7 $
 ; $State: Exp $
 ; $Author: jmb $
 ;
@@ -166,34 +166,34 @@ swi_call
 fill_return
 	; fill in return values
 	MOVS	r10, r11, LSL #1
-	LDRMI	r12, [lr], #4
-	STRMI	a2, [r12, #0]
 	LDRCS	r12, [lr], #4
 	STRCS	a1, [r12, #0]
-	MOVS	r10, r11, LSL #3
 	LDRMI	r12, [lr], #4
-	STRMI	a4, [r12, #0]
+	STRMI	a2, [r12, #0]
+	MOVS	r10, r11, LSL #3
 	LDRCS	r12, [lr], #4
 	STRCS	a3, [r12, #0]
+	LDRMI	r12, [lr], #4
+	STRMI	a4, [r12, #0]
 	; done 4, can we stop here?
 	TST	r11, #(&FC<<20)
 	BEQ	swi_flags
 
 	MOVS	r10, r11, LSL #5
-	LDRMI	r12, [lr], #4
-	STRMI	v2, [r12, #0]
 	LDRCS	r12, [lr], #4
 	STRCS	v1, [r12, #0]
-	MOVS	r10, r11, LSL #7
 	LDRMI	r12, [lr], #4
-	STRMI	v4, [r12, #0]
+	STRMI	v2, [r12, #0]
+	MOVS	r10, r11, LSL #7
 	LDRCS	r12, [lr], #4
 	STRCS	v3, [r12, #0]
-	MOVS	r10, r11, LSL #9
 	LDRMI	r12, [lr], #4
-	STRMI	v6, [r12, #0]
+	STRMI	v4, [r12, #0]
+	MOVS	r10, r11, LSL #9
 	LDRCS	r12, [lr], #4
 	STRCS	v5, [r12, #0]
+	LDRMI	r12, [lr], #4
+	STRMI	v6, [r12, #0]
 
 	; do we need to return PC?
 swi_flags

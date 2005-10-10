@@ -152,26 +152,29 @@ itself.
 
 2. __feature_imagefs_is_file
 
-Header file: <unixlib/features.h>, default value 0.
+Header file: <features.h>, default value 0.
 When non zero, files with filetypes recognized by an active ImageFS will
 be considered as regular files and not as directories.
 
 3. __dynamic_no_da
 
-Header file: <unixlib/features.h>.
+Header file: <features.h>.
 When defined (value is unimportant), no dynamic area will be created
-for the memory pool, even on RISC OS versions supporting dynamic area's.
+for the memory pool, even on RISC OS versions supporting dynamic areas.
 
 4. __dynamic_da_name
 
-Header file: <unixlib/features.h>.
+Header file: <features.h>.
+
+Declaraction: extern const char * const __dynamic_da_name __attribute_weak__;
+
 Specifies the dynamic area name when there is one created for keeping
 the memory pool.  When __dynamic_da_name is not defined, the dynamic
 area name will be <program name> + "$Heap".
 
 5. __dynamic_da_max_size
 
-Header file: <unixlib/features.h>.
+Header file: <features.h>.
 Specifies the maximum size to use when creating a dynamic area for
 the heap. When not defined, it defaults to 32MB. Can be overridden by
 the <program name>$HeapMax variable.

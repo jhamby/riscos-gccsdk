@@ -1,7 +1,15 @@
+Mon Oct 10 14:20:00 2005  Peter Naulls <peter@chocky.org>
+
+	* Docs/ReadMe: Misc corrections and updates.
+	* source/sys/_swi.s: Correct _swix() output arguments.
+	  Fix from Bob Brand.
+	* source/unix/mkdir.c: Spot more directory creation
+	  failure variants.
+
 Sat Sep 24 22:24:47 2005  Alex Waugh  <alex@alexwaugh.com>
 
 	* source/module/sul.s: Add an additional check of the command line
-	   when searching for a process struct to use (Bug#142).
+	  when searching for a process struct to use (Bug#142).
 
 Sat Sep 24 20:39:23 2005  Alex Waugh  <alex@alexwaugh.com>
 
