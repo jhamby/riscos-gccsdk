@@ -21,6 +21,9 @@ RISC OS GCC release 3.4.5 release 1 (released XX XXX 2005)
 
 * RISC OS modules can now be created in C++ too.
 
+* UnixLib's regex implementation is now derived from the PostgreSQL codebase
+  resulting in significantly faster timings.
+
 * Longstanding Fortran COMMON bug is fixed.
 
 
@@ -45,7 +48,7 @@ RISC OS GCC release 3.4.4 release 3 (released 8 July 2005)
 
 * drlink: Explictly marked as GPL (permission granted for this in 2001)
 
-* 'as', drlink and decaof have improved support for previously unhandled
+* 'as', 'drlink' and 'decaof' have improved support for previously unhandled
   AOF attributes.
 
 * Improved support for GCCSDK under Cygwin, OpenBSD and big-endian
