@@ -158,12 +158,6 @@ install:
 	find $(ro_unixlibpkg) -name "CVS" -type d | xargs rm -rf
 	find $(ro_unixlibpkg) -name "*~*" -or -name "*.orig*" -or -name "*.reg*" -type f | xargs rm -rf
 	
-	#cp -p ../libscl/Boot,feb $(ro_libsclpkg)/\!Boot,feb
-	#cp -p ../libscl/Help $(ro_libsclpkg)/\!Help
-	#cp -p ../libscl/Run,feb $(ro_libsclpkg)/\!Run,feb
-	#cp -p ../libscl/Sprites,ff9 $(ro_libsclpkg)/\!Sprites,ff9
-	#cp -p ../libscl/Sprites22,ff9 $(ro_libsclpkg)/\!Sprites22,ff9
-
 # Build the separate RISC OS GCC zip packages
 package:
 	( cd $(ro_gccpkg)/../ ; \
