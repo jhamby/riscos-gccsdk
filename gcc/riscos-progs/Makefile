@@ -2,8 +2,6 @@
 # Copyright (c) 2000, 2001, 2002 Nick Burrett
 # Copyright (c) 2003, 2004, 2005 GCCSDK Developers
 
-export TLIB
-
 host_bin_dir = $(ux_gccpkg)/$(gn_standard_exec_prefix)
 bin_dir = $(ro_gccpkg)/$(gn_standard_exec_prefix)
 gcc_bin_dir = $(ro_gccpkg)/$(gn_gcc_bin_dir)
