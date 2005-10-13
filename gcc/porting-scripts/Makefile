@@ -1,12 +1,18 @@
-
+# Copyright (c) 2005 GCCSDK Developers
 
 SCRIPTS=ro-ar ro-config ro-install ro-libpack ro-make ro-path
 WRAPPERS=uname cp rm
+DOCS=Porting\ Tools.html
 
 SED=sed -e s:GCCSDK_ENV:$(ro_env):g -e s:GCCSDK_BIN:$(ux_bin_dir):g
 
-all: scripts links dummies wrappers
+all: scripts links dummies wrappers docs
 
+.PHONY: scripts
+.PHONY: links
+.PHONY: dummies
+.PHONY: wrappers
+.PHONY: docs
 
 scripts:
 	mkdir -p $(ro_env)
@@ -26,8 +32,14 @@ dummies:
 	touch $(ux_bin_dir)strip
 
 wrappers:
-	mkdir -p $(ux_bin_dir)
+	mkdir -p $(ro_env)
 	for script in $(WRAPPERS) ; do \
 	  $(SED) < $$script > $(ro_env)/$$script; \
 	  chmod +x $(ro_env)/$$script; \
+	done
+
+docs:
+	mkdir -p $(ro_env)
+	for script in $(DOCS) ; do \
+	  $(SED) < $$script > $(ro_env)/$$script; \
 	done
