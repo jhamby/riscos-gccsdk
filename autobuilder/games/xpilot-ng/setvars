@@ -1,9 +1,8 @@
-
 AB_CATEGORY=games
 
-AB_URL=http://kent.dl.sourceforge.net/sourceforge/xpilot/xpilot-ng-4.7.1.tar.gz
+AB_URL=http://kent.dl.sourceforge.net/sourceforge/xpilot/xpilot-ng-4.7.2.tar.gz
 
-AB_CONFLAGS=--disable-sdl-client
+AB_CONFLAGS="--disable-sdl-client --disable-replay --disable-xp-mapedit"
 
 ab_package () {
  cp -av $H/\!Xpilot-ng $D
@@ -16,4 +15,3 @@ ab_package () {
  cp -av $S/lib/textures/*.ppm $D/\!Xpilot-ng/data/textures
  cp -av $S/lib/shipshapes.txt $D/\!Xpilot-ng/data
 }
-
