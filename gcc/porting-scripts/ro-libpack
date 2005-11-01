@@ -57,7 +57,7 @@ if [ -d "$output" ] ; then
   GCCSDK_BIN/zip -, -r -D $output/$RO_PKG.zip .
 
 else
-  echo "Output directory not set or doesn't exist - Library archives not created"
+  echo "Output directory '$output' not set or doesn't exist - Library archives not created"
 fi
 
 cd ..
