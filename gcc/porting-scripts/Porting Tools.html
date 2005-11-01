@@ -25,7 +25,7 @@ will also work on other systems on which GCCSDK also works.</p>
 <p>I have found that there are many problems which are the same, when
 converting Unix programs.  Some of these come about because of the use
 of the ,ff8 extension which can confuse scripts and makefiles which have
-not been proprerly written to expect this (although there is a growing
+not been properly written to expect this (although there is a growing
 trend to improve this, as we see support for .exe in Cygwin, for example).</p>
 
 <p>There are other such mundane things as setting paths, faking the system
@@ -44,7 +44,7 @@ appropriate options, or set variables, etc beforehand.  Notably,
 make, install and configure.</p>
 
 <p>These wrappers are stored in a subdirectory "env" created under the
-normal structure for the cross compiler (cfr the --with-riscos-dist parameter
+normal structure for the cross compiler (specified by the --with-riscos-dist parameter
 of the GCCSDK configure), and this GCCSDK_ENV directory
 also contains directories for the usual include, lib, bin, and
 X11R6 setup.</p>
@@ -83,7 +83,7 @@ not the native one.</p>
 <h4>ro-make</h4>
 
 <p>This simply calls ro-path to invoke the native make program, and
-possibly sets vars that could be used by the build.  In simple
+possibly sets environment variables that could be used by the build.  In simple
 makefiles, "gcc" or "cc" may be called directly, and this ensures
 that the cross compiler is used.  In complex setups using configure,
 even though the generated paths to most of the tools will be full,
@@ -94,7 +94,7 @@ it's typical to see "ar" and some other tools not using a path.</p>
 
 <p>Wrapper for the Unix "install" program.  Its purpose is to suffix
 files with ,ff8 if the filename does not exist. This enables
-"make install" to suceed when installing binaries belonging to libraries
+"make install" to succeed when installing binaries belonging to libraries
 (even though we are generally not interested in those binaries, we
 still want the install for headers and libs to work).</p>
 
@@ -122,11 +122,11 @@ native version.</p>
 calls configure, via the ro-path script.  But it also does the following:</p>
 
 <ul>
- <li><p>Massage the configure script, to correctly accecpt binaries using ,ff8.</p>
+ <li><p>Massage the configure script, to correctly accept binaries using ,ff8.</p>
 
 
  <li><p>Set a considerable number of ac_cv_* and other variables used by
-   various configure scripts.  This ensures that the configurue script
+   various configure scripts.  This ensures that the configure script
    doesn't get upset when it tries to determine settings not possible
    in a cross compilation setup (or set correctly, when it defaults).</p>
 
@@ -221,7 +221,7 @@ manual compile for the native system, or change to the makefile.
 </p>
 
 <p>
-Having INSTALL explictly set occasionally causes problems, when
+Having INSTALL explicitly set occasionally causes problems, when
 the build would have otherwise defaulted to 'cp' and been fine, as
 flags 'install' doesn't understand are passed.
 </p>
@@ -276,7 +276,7 @@ path.  The default is GCCSDK_BIN.</p>
 <h4>Autobuilder</h4>
 
 <p>The GCCSDK Autobuilder makes extensive used of these scripts -
-you may like to experiement with this to see use of them in practice.</p>
+you may like to experiment with this to see use of them in practice.</p>
 
 <p></p>
 
