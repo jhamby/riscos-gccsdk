@@ -8,7 +8,7 @@ If you're new to GCC:
 
  - The !gcc application contains everything you need to get started
    programming in RISC OS.  Although it possible to mix and match,
-   in particular with Acorn's C/C++, this is not recommened for beginners.
+   in particular with Acorn's C/C++, this is not recommended for beginners.
 
    To get started using GCC, read !gcc.docs.Intro
 
@@ -31,17 +31,17 @@ If you've used GCC before:
 
 Future Versions of GCC:
 
-  Although we intend to continue maintaining GCC 3.4 for RISC OS,
-  new versions of GCC 4.1 for RISC OS will soon be available, which
-  will be ELF and soft-float based.  We are also working on a shared
-  library system.
+  Although we intend to continue maintaining GCC 3.4 for RISC OS, new
+  versions of GCC 4.1 for RISC OS will soon be available, which will be ELF
+  and possibly soft-float based.  We are also working on a shared library
+  system.
 
 
 License:
 
   GCCSDK release made by the GCCSDK Developers consists of several binaries
   and sources which have different licenses.  The following overview can
-  help to identify those licenses but is in no way an authoritive statement
+  help to identify those licenses but is in no way an authoritative statement
   on behalf of the GCCSDK Developers:
   
   - gcc (and all its associated files) : See !gcc.docs.gcc
@@ -63,14 +63,15 @@ License:
 
 Credits:
 
-  Primary Developers :
+  Primary Developers today :
 
-  - Nick Burrett - Project Lead, GCC porting, C++ support, AOF tools.
   - Peter Naulls - UnixLib (All areas, especially glibc compatibility),
      release management, AOF tools.
-  - John Tytgat - UnixLib (especially process handling, sockets),
-     Norcroft compatibility, 'random' GCCSDK hacking.
+  - John Tytgat - 'random' GCCSDK hacking.
   - Alex Waugh - UnixLib (especially signals, pthreads, file handling).
+
+  An enormous amount of porting and testing work was done by Nick Burrett.
+  Without his contribution GCCSDK wouldn't exist.
 
   The following people have also made contributions over the last two years :
 
@@ -90,6 +91,8 @@ Credits:
   - Bernhard Walter for his 'libfile', an AOF library archiver.
   - Ben Summers for his 'rink', an dynamic AOF loader.
   - Nick Burrett for his 'nm', listing symbols of AOF files.
+  - All UnixLib Developers for providing a run-time library which is
+    essential for GCCSDK and ported programs using GCCSDK.
 
   Thanks also to all the testers and bug reporters.
 
