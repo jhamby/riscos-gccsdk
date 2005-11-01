@@ -152,7 +152,7 @@ supported are:
                a binary image file.
                
                Image files created when this option is used do not
-               have a filetype but have 'load' and 'excute'
+               have a filetype but have 'load' and 'execute'
                addresses instead. The load address is set to
                whatever was specified on '-base' and the 'execute'
                address to the program's entry point address. The
@@ -234,9 +234,9 @@ supported are:
                the file '!Runimage' in the current directory.
 
     -relocatable
-               Create a reloctable AIF image file.
+               Create a relocatable AIF image file.
 
-    -rmf       Create a reloctable module in RMF format.
+    -rmf       Create a relocatable module in RMF format.
 
     -verbose   Print messages as the link progresses saying how
                far it has got. Some extra warning messages are
@@ -318,7 +318,7 @@ The linker has the following extra options of its own:
 
                The linker built-in symbol 'Image$$RW$$Base' is set
                to the address of the start of the read/write
-               portion of the file, so the addresss of the data
+               portion of the file, so the address of the data
                can be found in a program by including a reference
                to this symbol.
 
@@ -450,7 +450,7 @@ The linker has the following extra options of its own:
                out any unused functions in a program. To achieve
                this, it is necessary first to compile the program
                with the '-zo' C (and DDE Pascal) compiler option.
-               This has the effect of spliting each function up
+               This has the effect of splitting each function up
                into its own self-contained 'area' in the object
                code file. If '-nounused' is specified, the linker
                examines all the areas and discards any that it
@@ -850,7 +850,7 @@ but there are a large number of other undocumented symbols, some
 of which are used by the libraries supplied with the C compiler
 (the C release 3 libraries, at least). Drlink implements a
 number of these but not the whole set, nor are the ones that are
-present guarenteed to remain there.
+present guaranteed to remain there.
 
 'Area' Symbols
 Roughly speaking, the part of the AOF file that contains the
@@ -1135,7 +1135,7 @@ Drlink 0.26
 
 Drlink 0.26a - Bug fix version
 -  Fixed bug introduced in 0.26 where -aof code stopped working.
--  Programmed around problen affecting files from Objasm that
+-  Programmed around problem affecting files from Objasm that
    contain debug tables where the tables contain an invalid 'AL'
    attribute.
 -  RISC OS 2 filenames with paths finally sorted out I hope!
