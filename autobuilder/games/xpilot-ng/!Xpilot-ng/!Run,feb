@@ -2,6 +2,6 @@ WimpSlot -min 2000k -max 2000k
 
 Set XPilot-NG$Dir <Obey$Dir>
 
-Set Chox11$XPilot-NG$subpixefont 1
+Set Chox11$XPilot-NG-X11$SubPixelFont 1
 
 Run <XPilot-NG$Dir>.xpilot-ng-x11 ><XPilot-NG$Dir>.stdout 2><XPilot-NG$Dir>.stderr
