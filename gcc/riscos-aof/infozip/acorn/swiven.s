@@ -63,10 +63,9 @@ $name
         MOV     r0, #26
 
         SWI     OS_FSControl + XOS_Bit
-
         MOVVC   r0, #0
 
-        MOVS    pc, ip
+        MOV	pc, ip
 
 
 ; os_error *SWI_OS_FSControl_27(char *filename, int actionmask);
@@ -80,10 +79,9 @@ $name
         MOV     r0, #27
 
         SWI     OS_FSControl + XOS_Bit
-
         MOVVC   r0, #0
 
-        MOVS    pc, ip
+        MOV	pc, ip
 
 
 ; os_error *SWI_OS_GBPB_9(char *dirname, void *buf, int *number,
@@ -100,12 +98,12 @@ $name
         MOV     r1, r0
         MOV     r0, #9
         SWI     OS_GBPB + XOS_Bit
-        LDMVSFD sp!, {r2-r6,pc}^
+        LDMVSFD sp!, {r2-r6,pc}
         MOV     r0, #0
         LDMFD   sp, {r5,r6}
         STR     r3, [r5]
         STR     r4, [r6]
-        LDMFD   sp!, {r2-r6,pc}^
+        LDMFD   sp!, {r2-r6,pc}
 
 
 ; os_error *SWI_OS_File_1(char *filename, int loadaddr, int execaddr, int attrib);
@@ -120,7 +118,7 @@ $name
         MOV     r0, #1
         SWI     OS_File + XOS_Bit
         MOVVC   r0, #0
-        LDMFD   sp!, {r5,pc}^
+        LDMFD   sp!, {r5,pc}
 
 
 
@@ -133,7 +131,7 @@ $name
         MOV     r1, r0
         MOV     r0, #5
         SWI     OS_File + XOS_Bit
-        LDMVSFD sp!, {r1-r5,pc}^
+        LDMVSFD sp!, {r1-r5,pc}
         LDR     lr, [sp]
         TEQ     lr, #0
         STRNE   r0, [lr]
@@ -150,7 +148,7 @@ $name
         TEQ     lr, #0
         STRNE   r5, [lr]
         MOV     r0, #0
-        LDMFD   sp!, {r1-r5,pc}^
+        LDMFD   sp!, {r1-r5,pc}
 
 
 ; os_error *SWI_OS_File_6(char *filename);
@@ -162,7 +160,7 @@ $name
         MOV     r0, #6
         SWI     OS_File + XOS_Bit
         MOVVC   r0, #0
-        LDMFD   sp!, {r4-r5,pc}^
+        LDMFD   sp!, {r4-r5,pc}
 
 
 ; os_error *SWI_OS_File_7(char *filename, int loadaddr, int execaddr, int size);
@@ -178,7 +176,7 @@ $name
         MOV     r0, #7
         SWI     OS_File + XOS_Bit
         MOVVC   r0, #0
-        LDMFD   sp!, {r4-r5,pc}^
+        LDMFD   sp!, {r4-r5,pc}
 
 
 ; os_error *SWI_OS_CLI(char *cmd);
@@ -188,7 +186,7 @@ $name
         MOV     ip, lr
         SWI     OS_CLI + XOS_Bit
         MOVVC   r0, #0
-        MOVS    pc, ip
+        MOV	pc, ip
 
 
 ; int SWI_OS_ReadC(void);
@@ -197,7 +195,7 @@ $name
 
         MOV     ip, lr
         SWI     OS_ReadC + XOS_Bit
-        MOVS    pc, ip
+        MOV	pc, ip
 
 
 ; os_error *SWI_OS_ReadVarVal(char *var, char *buf, int len, int *bytesused);
@@ -209,11 +207,11 @@ $name
         MOV     r3, #0
         MOV     r4, #0
         SWI     OS_ReadVarVal + XOS_Bit
-        LDMVSFD sp!, {r4,pc}^
+        LDMVSFD sp!, {r4,pc}
         TEQ     ip, #0
         STRNE   r2, [ip]
         MOV     r0, #0
-        LDMFD   sp!, {r4,pc}^
+        LDMFD   sp!, {r4,pc}
 
 
 ; os_error *SWI_OS_FSControl_54(char *buffer, int dir, char *fsname, int *size);
@@ -227,11 +225,11 @@ $name
         MOV     r1, r0
         MOV     r0, #54
         SWI     OS_FSControl + XOS_Bit
-        LDMVSFD sp!, {r3-r6,pc}^
+        LDMVSFD sp!, {r3-r6,pc}
         MOV     r0, #0
         LDMFD   sp!, {r3}
         STR     r5, [r3]
-        LDMFD   sp!, {r4-r6,pc}^
+        LDMFD   sp!, {r4-r6,pc}
 
 
 ; os_error *SWI_OS_FSControl_37(char *pathname, char *buffer, int *size);
@@ -246,11 +244,11 @@ $name
         MOV     r1, r0
         MOV     r0, #37
         SWI     OS_FSControl + XOS_Bit
-        LDMVSFD sp!, {r2,r3-r5,pc}^
+        LDMVSFD sp!, {r2,r3-r5,pc}
         MOV     r0, #0
         LDMFD   sp!, {r2}
         STR     r5, [r2]
-        LDMFD   sp!, {r3-r5,pc}^
+        LDMFD   sp!, {r3-r5,pc}
 
 
 ; os_error *SWI_DDEUtils_Prefix(char *dir);
@@ -260,7 +258,7 @@ $name
         MOV     ip, lr
         SWI     DDEUtils_Prefix + XOS_Bit
         MOVVC   r0, #0
-        MOVS    pc, ip
+        MOV	pc, ip
 
 ; int SWI_Read_Timezone(void);
 
@@ -270,7 +268,7 @@ $name
         SWI     Territory_ReadCurrentTimeZone + XOS_Bit
         MOVVC   r0, r1
         MOVVS   r0, #0
-        MOVS    pc, ip
+        MOV	pc, ip
 
 
         END

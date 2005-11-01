@@ -32,7 +32,7 @@ MAX_MATCH  EQU  258
                 AREA    |C$$code|, CODE, READONLY
 
 
-; r1 = chain_lenght
+; r1 = chain_length
 ; r2 = scan
 ; r3 = match
 ; r4 = len (tmp)
@@ -212,6 +212,6 @@ cycle_end
 exit_match
         MOV     r0, r5
 
-        LDMFD   sp!, {r4-r9,fp,pc}^
+        LDMFD   sp!, {r4-r9,fp,pc}
 
         END

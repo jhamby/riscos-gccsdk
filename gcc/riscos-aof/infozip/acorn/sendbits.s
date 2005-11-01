@@ -54,7 +54,7 @@ send_bits
         CMP     r2,#&10
         STRLE   r2,[r3]         ; short? store & return
         STRLE   r4,[r5]
-        LDMLEDB fp,{r4,r5,fp,sp,pc}^
+        LDMLEDB fp,{r4,r5,fp,sp,pc}
 
         SUB     r2,r2,#&10      ; adjust bi_valid, bi_buf
         MOV     ip,r4,LSR #16   ;  (done early, keeping the old bi_buf
@@ -80,7 +80,7 @@ send_bits
         ADD     r2,r2,#2
         STR     r2,[r1]
 
-        LDMDB   fp,{r4,r5,fp,sp,pc}^
+        LDMDB   fp,{r4,r5,fp,sp,pc}
 
 
 ptr_bi          &       bi_valid
@@ -99,7 +99,7 @@ loop    MOVS    r0,r0,LSR #1
         SUBS    r1,r1,#1
         BNE     loop
         MOV     r0,r2
-        MOVS    pc,lr
+        MOV	pc,lr
 
 
         END
