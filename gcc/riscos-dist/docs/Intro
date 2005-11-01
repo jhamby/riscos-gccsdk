@@ -8,9 +8,9 @@ will have to get a text book on the language you are interested in.
 IMPORTANT NOTE 1: The GCC compiler binaries are at least 4000K, so you must
 ensure that a large enough Wimpslot has been allocated. Please refer to the
 `Troubleshooting' section later in this document, if you are getting
-`Address exception' and `No writeable memory at this address' errors.
+`Address exception' and `No writable memory at this address' errors.
 
-IMPORTANT NOTE 2: If ypu have received this copy of GCC from a CD, then it is
+IMPORTANT NOTE 2: If you have received this copy of GCC from a CD, then it is
 likely there is a more up-to-date version obtainable from elsewhere.
 
 IMPORTANT NOTE 3: GCC requires a minimum of 16MB RAM.
@@ -89,7 +89,7 @@ place to store the resultant file:
 
    *gcc hellow.c -o hellow
 
-This will comple, assemble and link the source 'hellow.c' to produce an
+This will compile, assemble and link the source 'hellow.c' to produce an
 executable called 'hellow', which can be run immediately.
 
 It is possible to compile several sources at one go, mixing C sources in
@@ -173,7 +173,7 @@ There are some additional ARM specific switches.
  -mfpe=2
    Target the Floating Point architecture version 2.  Notably the function
    prologues and epilogues use the STFE instruction to preserve floating-point
-   registers rathern than the much faster and more accurate SFM instruction
+   registers rather than the much faster and more accurate SFM instruction
    of the version 3 (default) architecture.
 
 RISC OS specific options
@@ -279,7 +279,7 @@ To implement dynamic allocations within a function, it is necessary to add
 an extra field to jmpbuf. Fortunately the setjmp.h header files recognise
 __JMP_BUF_SIZE and can alter their jmpbuf array appropriately.
 
-When targetting the SharedCLibrary (i.e. -mlibscl switch is supplied on
+When targeting the SharedCLibrary (i.e. -mlibscl switch is supplied on
 gcc command line) then an additional preprocessor constant is defined,
 namely `__TARGET_SCL__'.
 
@@ -290,7 +290,7 @@ GCC and Virtual Memory
 GNU compilers use a lot of memory and nothing can be done about that. On
 RISC OS 3.5 and later, UnixLib has been modified to make use of dynamic areas.
 So users with small memory machines can use Clares' Virtualise to provide a
-working virtual memory envionment for them. See the section *Dynamic Areas*
+working virtual memory environment for them. See the section *Dynamic Areas*
 below.
 
 Users of older machines, the Archimedes and A5000, with less than 8MB RAM
@@ -395,7 +395,7 @@ compilers. Possible solutions are provided for the known problems.
    'hellow' is placed in the current directory. However, when I try and
    run the file I get the error 'No such file or directory'.
    
-   This and many other obsure errors are caused by linking source files
+   This and many other obscure errors are caused by linking source files
    against run-time libraries that are incompatible with the StrongARM
    processor. An example would be UnixLib 3.7a.
    
