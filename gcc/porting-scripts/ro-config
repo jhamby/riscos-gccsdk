@@ -507,7 +507,14 @@ export ac_cv_lib_SDL_ttf_TTF_RenderUNICODE_Blended_Shaded=yes
 export ac_cv_lib_SDL_ttf_TTF_Init=yes
 export ac_cv_lib_SDL_mixer_Mix_OpenAudio=yes
 
+export ac_cv_header_X11_X_h=yes
+export ac_cv_header_X11_Xatom_h=yes
+export ac_cv_header_X11_Xlib_h=yes
+export ac_cv_header_X11_Xmd_h=yes
+export ac_cv_header_X11_Xos_h=yes
+export ac_cv_header_X11_Xutil_h=yes
 export ac_cv_header_X11_extensions_XShm_h=no
+export ac_cv_header_X11_keysym_h=yes
 
 export ac_cv_kaffe_pathsep=:
 
@@ -525,4 +532,3 @@ export lt_cv_global_symbol_to_c_name_address="sed -n -e 's/^: \\([^ ]*\\) \$/  {
 GCCSDK_ENV/ro-path $RO_CPATH/configure \
   $HOST $BUILD $TARGET $PREFIX $WITHLIBS $X $SHARED $STATIC $GLIB $GTK \
   $TCLTK $THREADS $NATIVE $SSL $NLS $RO_CPARAMS 
-
