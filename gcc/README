@@ -41,7 +41,7 @@ Generate the configure script.
   $ autoconf ; autoheader
 
 Configure it.  The package creates two main installations.  The first,
-is a Unix-based cross-compiler for targetting RISC OS which will be
+is a Unix-based cross-compiler for targeting RISC OS which will be
 installed under the directory specified with the `--prefix' option. 
 The second, is a complete GCC compiler toolset built to run natively on
 RISC OS and will be installed under the directory specified with
