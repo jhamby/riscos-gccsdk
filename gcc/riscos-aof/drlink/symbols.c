@@ -639,8 +639,12 @@ scan_symt (filelist * fp)
       attr = symtp->symtattr;
       if (aofv3flag && (attr & SYM_UNSUPATTR) != 0)
 	{ /* Reject unsupported symbol attributes */
-	  error ("Warning: Symbol '%s' in '%s' has unsupported AOF symbol attributes (%08x). It might be that you are using one or more AOF files produced by an older 'as' version which contained a bug causing this problem.",
-	         symtname, fp->chfilename, attr & SYM_UNSUPATTR);
+	  if (link_state == LIB_SEARCH)
+	    error ("Warning: Symbol '%s' in '%s(%s)' has unsupported AOF symbol attributes (%08x). It might be that you are using one or more AOF files produced by an older 'as' version which contained a bug causing this problem.",
+	           symtname, fp->chfilename, current_lib->libname, attr & SYM_UNSUPATTR);
+	  else
+	    error ("Warning: Symbol '%s' in '%s' has unsupported AOF symbol attributes (%08x). It might be that you are using one or more AOF files produced by an older 'as' version which contained a bug causing this problem.",
+	           symtname, fp->chfilename, attr & SYM_UNSUPATTR);
 	  attr &= ~SYM_UNSUPATTR;
 	}
       attr &= SYM_ATMASK;
