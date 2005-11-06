@@ -41,8 +41,24 @@ else
     # Slower method.  Fetch packages file ourself and parse it.
     debarchive=http://ftp.uk.debian.org/debian
 
-    wget -nv $debarchive/dists/unstable/main/source/Sources.bz2
-    bzgrep -A4 "/$AB_PACKAGE$" Sources.bz2 > files
+    # Use and keep existing Sources.bz2 if it exists and is less
+    # than a day old
+
+    Sources=../Sources.bz2
+
+    if ! [ -e $Sources ] ||
+         [ $(($(date +"%s") - $(date -r $Sources +"%s"))) -gt $((24 * 60 * 60)) ] ; then
+
+      echo "Autobuilder - Fetching new Sources.bz2"
+
+      wget -nv $debarchive/dists/unstable/main/source/Sources.bz2
+      mv Sources.bz2 $Sources
+
+    else
+      echo "Autobuilder - Using existing Sources.bz2"
+    fi
+
+    bzgrep -A4 "/$AB_PACKAGE$" $Sources > files
 
     if ! [ -s files ] ; then
       echo "Package not found"
