@@ -2,8 +2,8 @@
 # Create various UnixLib Makefiles
 #
 # $Source: /usr/local/cvsroot/gccsdk/unixlib/gen-makefiles.pl,v $
-# $Date: 2005/04/18 21:27:51 $
-# $Revision: 1.11 $
+# $Date: 2005/04/25 18:25:47 $
+# $Revision: 1.12 $
 # $State: Exp $
 # $Author: nick $
 
@@ -258,7 +258,10 @@ while (<SRCMAKEFILEIN>) {
         if ($dynamicdeps) {
           my $dir = $src;
           $dir =~ s/[^\/]*$//;
-          print SRCMAKEFILE "\$(libunixobj)/$dir".`(cd source; gcc -M -isystem clib -I incl-local -D__UNIXLIB_INTERNALS $src)`;
+          my $deps = `(cd source; gcc -M -isystem clib -I incl-local -D__UNIXLIB_INTERNALS $src)`;
+          # Remove any absolute paths, as they are likely to be wrong
+          $deps =~ s/\s\/\S*\.h//mg;
+          print SRCMAKEFILE "\$(libunixobj)/$dir".$deps;
         } else {
           print SRCMAKEFILE "\$(libunixobj)/$obj\: $src\n";
         }
