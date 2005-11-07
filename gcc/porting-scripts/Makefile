@@ -28,8 +28,10 @@ links:
 
 dummies:
 	mkdir -p $(ux_bin_dir)
-	touch $(ux_bin_dir)ranlib
-	touch $(ux_bin_dir)strip
+	cp ranlib $(ux_bin_dir)ranlib
+	chmod +x $(ux_bin_dir)ranlib
+	cp strip $(ux_bin_dir)strip
+	chmod +x $(ux_bin_dir)strip
 
 wrappers:
 	mkdir -p $(ro_env)
