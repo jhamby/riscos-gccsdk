@@ -626,22 +626,28 @@ __pipeselect (struct __unixlib_fd *file_desc, int fd,
 
   if (pread)
     {
-	int regs[3];
-	int pos;
-	/* Read current file position.  */
-	if (! __os_args (0, (int)file_desc->devicehandle->handle, 0, regs))
-	  {
-	    pos = regs[2];
-	    /* Read extent.  */
-	    if (! __os_args (2, (int)file_desc->devicehandle->handle, 0, regs))
-		if (pos != regs[2])
-		  to_read = 1;
-	    /* If file pointer != extent then there is still data to read.  */
-	    }
-      if (to_read) {
-	FD_SET(fd, pread);
-      } else
-	FD_CLR (fd, pread);
+      int regs[3];
+      int pos;
+      /* Read current file position.  */
+      if (! __os_args (0, (int)file_desc->devicehandle->handle, 0, regs))
+        {
+          pos = regs[2];
+          /* Read extent.  */
+          if (! __os_args (2, (int)file_desc->devicehandle->handle, 0, regs))
+            if (pos != regs[2])
+              to_read = 1;
+          /* If file pointer != extent then there is still data to read.  */
+        }
+
+      /* If this is the only fd left open on the pipe then there is EOF
+         to read */
+      if (file_desc->devicehandle->refcount < 2)
+        to_read = 1;
+
+      if (to_read)
+        FD_SET(fd, pread);
+      else
+        FD_CLR (fd, pread);
     }
 
   if (pwrite)

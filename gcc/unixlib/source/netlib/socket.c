@@ -1,16 +1,16 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/netlib/socket.c,v $
- * $Date: 2004/12/03 11:37:51 $
- * $Revision: 1.7 $
+ * $Date: 2005/03/04 20:59:05 $
+ * $Revision: 1.8 $
  * $State: Exp $
- * $Author: peter $
+ * $Author: alex $
  *
  * (c) Copyright 1995 Sergio Monesi
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: socket.c,v 1.7 2004/12/03 11:37:51 peter Exp $";
+static const char rcs_id[] = "$Id: socket.c,v 1.8 2005/03/04 20:59:05 alex Exp $";
 #endif
 
 #include <errno.h>
@@ -61,7 +61,7 @@ socket (int af, int type, int protocol)
 	}
     }
 
-  if ((fd = __alloc_file_descriptor ()) == -1)
+  if ((fd = __alloc_file_descriptor (0)) == -1)
     return -1;
 
   /* printf("U! socket: sd=%d fd=%d\n",sd,fd); */

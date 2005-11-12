@@ -469,14 +469,14 @@ _exit (int return_code)
 }
 
 int
-__alloc_file_descriptor (void)
+__alloc_file_descriptor (int start)
 {
   int i;
 
   PTHREAD_UNSAFE
 
   /* Look for a spare file descriptor.  */
-  for (i = 0; i < __proc->maxfd; i++)
+  for (i = start; i < __proc->maxfd; i++)
     if (getfd (i)->devicehandle == NULL)
       {
 #ifdef DEBUG
@@ -580,7 +580,7 @@ check_fd_redirection (const char *filename, unsigned int fd_to_replace)
       if (dup_fd != fd_to_replace)
 	{
 	  /* Duplicate the file descriptor.  */
-	  fcntl (dup_fd, F_DUPFD, fd_to_replace);
+	  dup2 (dup_fd, fd_to_replace);
 	}
     }
   else

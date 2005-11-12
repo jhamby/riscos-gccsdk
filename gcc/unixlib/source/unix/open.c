@@ -136,7 +136,7 @@ open (const char *file, int oflag, ...)
 
   /* Allocate a new file descriptor. This function automatically
      sets errno if there are none available.  */
-  fd = __alloc_file_descriptor ();
+  fd = __alloc_file_descriptor (0);
   if (fd == -1)
     return -1;
 

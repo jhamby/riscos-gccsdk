@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/pipe.c,v $
- * $Date: 2005/01/30 16:08:35 $
- * $Revision: 1.7 $
+ * $Date: 2005/03/04 20:59:06 $
+ * $Revision: 1.8 $
  * $State: Exp $
  * $Author: alex $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: pipe.c,v 1.7 2005/01/30 16:08:35 alex Exp $";
+static const char rcs_id[] = "$Id: pipe.c,v 1.8 2005/03/04 20:59:06 alex Exp $";
 #endif
 
 #include <stdlib.h>
@@ -36,7 +36,7 @@ pipe (int *p)
 
   PTHREAD_UNSAFE
 
-  fd0 = __alloc_file_descriptor ();
+  fd0 = __alloc_file_descriptor (0);
   if (fd0 == -1)
     return -1;
   file_desc_0 = getfd (fd0);
@@ -45,7 +45,7 @@ pipe (int *p)
   if (file_desc_0->devicehandle == NULL)
     return -1;
 
-  fd1 = __alloc_file_descriptor ();
+  fd1 = __alloc_file_descriptor (0);
   if (fd1 == -1)
     {
       /* Deallocate the first file descriptor.  */

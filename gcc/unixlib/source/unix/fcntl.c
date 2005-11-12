@@ -39,9 +39,8 @@ fcntl (int fd, int cmd, ...)
 	/* Check the new file descriptor for validity.  */
 	if ((unsigned int) duplicate_fd < __proc->maxfd)
 	  {
-	    if (duplicate_fd == 0)
-	      /* Allocate a new file descriptor.  */
-	      duplicate_fd = __alloc_file_descriptor ();
+	    /* Allocate a new file descriptor.  */
+	    duplicate_fd = __alloc_file_descriptor (duplicate_fd);
 
 	    if (duplicate_fd != -1)
 	      {

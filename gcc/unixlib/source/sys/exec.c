@@ -136,11 +136,13 @@ execve (const char *execname, char *const argv[], char *const envp[])
 	 as "xyz" (i.e. argv[2]).  */
       p = argv[scenario];
 
+      for (x = 0; x < sizeof(temp) && *p && *p == ' '; /* */)
+	p++;
       for (x = 0; x < sizeof(temp) && *p && *p != ' '; /* */)
 	temp[x++] = *p++;
       if (x == sizeof(temp))
-	    return __set_errno (E2BIG);
-	  temp[x] = '\0';
+	return __set_errno (E2BIG);
+      temp[x] = '\0';
 
 	  /* Ah. The nasty hack.  Comes into everything somewhere.
 	     Since argv[1] contains our program name and all arguments,

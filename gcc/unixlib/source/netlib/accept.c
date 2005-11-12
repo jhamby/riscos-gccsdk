@@ -1,15 +1,15 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/netlib/accept.c,v $
- * $Date: 2004/12/03 11:37:51 $
- * $Revision: 1.7 $
+ * $Date: 2005/03/04 20:59:05 $
+ * $Revision: 1.8 $
  * $State: Exp $
- * $Author: peter $
+ * $Author: alex $
  *
  ***************************************************************************/
 
 #ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: accept.c,v 1.7 2004/12/03 11:37:51 peter Exp $";
+static const char rcs_id[] = "$Id: accept.c,v 1.8 2005/03/04 20:59:05 alex Exp $";
 #endif
 
 #include <errno.h>
@@ -43,7 +43,7 @@ accept (int s, struct sockaddr *name, socklen_t *namelen)
   if ((nsd = _accept ((int)(getfd (s)->devicehandle->handle), name, namelen)) < 0)
     return (-1);
 
-  if ((nfd = __alloc_file_descriptor ()) < 0)
+  if ((nfd = __alloc_file_descriptor (0)) < 0)
     return (-1);
 
 #ifdef DEBUG

@@ -1,3 +1,19 @@
+Sat Nov 12 17:43:11 2005  Alex Waugh  <alex@alexwaugh.com>
+
+	* source/sys/exec.c: Strip any spaces before the command.
+	* source/unix/dev.c (__pipeselect): Don't block on EOF.
+	* source/unix/fcntl.c: Search for next free file descriptor rather
+	  than assuming the one given is unused.
+	* source/unix/unix.c (__alloc_file_descriptor): Allow starting
+	  descriptor to be specified.
+	  (check_fd_redirection): Use dup2 rather than fcntl so old
+	  descriptor gets closed.
+	* source/clib/unixlib/fd.h (__alloc_file_descriptor): Add parameter.
+	* source/netlib/accept.c: Likewise.
+	* source/netlib/socket.c: Likewise.
+	* source/unix/open.c: Likewise.
+	* source/unix/pipe.c: Likewise.
+
 Sun Nov  6 14:38:12 2005  Alex Waugh  <alex@alexwaugh.com>
 
 	* gen-makefiles.pl: Attempt to strip out incorrect dependencies added

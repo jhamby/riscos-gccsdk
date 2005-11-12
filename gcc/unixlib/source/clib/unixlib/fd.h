@@ -47,8 +47,9 @@ struct __unixlib_fd
 #define FILE_HANDLE_FROM_OS	0x0002
 
 
-/* Allocate and initialise a new file descriptor.  */
-extern int __alloc_file_descriptor (void);
+/* Allocate and initialise a new file descriptor, searching from fd start
+   onwards.  */
+extern int __alloc_file_descriptor (int start);
 #endif
 
 __END_DECLS
