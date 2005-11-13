@@ -1,3 +1,8 @@
+Sun Nov 13 15:44:22 2005  Alex Waugh  <alex@alexwaugh.com>
+
+	* source/module/sul.s: Cope with command lines where RISC OS has
+	  stripped the temporary FS from the start.
+
 Sat Nov 12 17:43:11 2005  Alex Waugh  <alex@alexwaugh.com>
 
 	* source/sys/exec.c: Strip any spaces before the command.

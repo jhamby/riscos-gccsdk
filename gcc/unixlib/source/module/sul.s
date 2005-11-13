@@ -1,10 +1,10 @@
 ;----------------------------------------------------------------------------
 ;
 ; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/module/sul.s,v $
-; $Date: 2005/06/13 14:04:52 $
-; $Revision: 1.16 $
+; $Date: 2005/09/24 21:28:33 $
+; $Revision: 1.17 $
 ; $State: Exp $
-; $Author: peter $
+; $Author: alex $
 ;
 ;----------------------------------------------------------------------------
 
@@ -138,7 +138,7 @@ EARLIEST_SUPPORTED_VERSION	EQU	105
 |help|
 	DCB	"SharedUnixLibrary"
 	DCB	9
-	DCB	"1.08 (24 Sep 2005) (C) UnixLib Developers, 2001-2005", 0
+	DCB	"1.09 (13 Nov 2005) (C) UnixLib Developers, 2001-2005", 0
 	ALIGN
 
 |title|
@@ -450,6 +450,21 @@ findproc_loop
 	SWI	XOS_GetEnv
 	BVS	try_next
 	LDR	a2, [v2, #PROC_CLI]
+
+	; In the case of the command being ADFS::Disc.$.foo then RISC OS will
+	; treat the ADFS: as a temporary filing system selection and
+	; unhelpfully remove it from the command line provided by OS_GetEnv.
+	; So we have to skip the FS name before comparing if this is the case.
+	LDRB	a3, [a1]
+	TEQ	a3, #':'
+	BNE	cli_loop
+tmp_fs_loop
+	LDRB	a4, [a2], #1
+	TEQ	a4, #0
+	BEQ	try_next
+	TEQ	a4, #':'
+	BNE	tmp_fs_loop
+
 cli_loop
 	LDRB	a3, [a1], #1
 	LDRB	a4, [a2], #1
