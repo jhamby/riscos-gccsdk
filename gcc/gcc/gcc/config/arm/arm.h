@@ -58,6 +58,11 @@
 	if (TARGET_SOFT_FLOAT)				\
 	  builtin_define ("__SOFTFP__");		\
 							\
+	if (TARGET_SCL)					\
+	  builtin_define ("__TARGET_SCL__");		\
+	else						\
+	  builtin_define ("__TARGET_UNIXLIB__");	\
+							\
 	/* FIXME: TARGET_HARD_FLOAT currently implies	\
 	   FPA.  */					\
 	if (TARGET_VFP && !TARGET_HARD_FLOAT)		\

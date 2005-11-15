@@ -56,20 +56,27 @@ Boston, MA 02111-1307, USA.  */
 #define TARGET_VERSION \
   fputs (" (ARM/RISC OS with AOF)", stderr)
 
-/* Extra command line options supported by the RISC OS backend.  */
+/* Extra command line options supported by the RISC OS backend.
+   Currently bits 0 to 23 (incl) are in use by arm.h, we defined here
+   a couple other onces.  */
 
 /* Create code suitable for a RISC OS module */
-#define ARM_MODULE		(0x10000000)
+#define ARM_MODULE		(0x08000000)
 #define TARGET_MODULE		(target_flags & ARM_MODULE)
 
 /* Non-zero if we wish to format dependencies for Acorn's
    Make Utility.  */
-#define ARM_AMU			(0x20000000)
+#define ARM_AMU			(0x10000000)
 #define TARGET_AMU		(target_flags & ARM_AMU)
 
 /* Non-zero if we will allow a text editor to capture our errors.  */
-#define ARM_THROWBACK		(0x40000000)
+#define ARM_THROWBACK		(0x20000000)
 #define TARGET_THROWBACK	(target_flags & ARM_THROWBACK)
+
+/* Non-zero if we are using the SharedCLibrary instead of UnixLib
+   as Runtime Library for our compiled code.  */
+#define ARM_SCL			(0x40000000)
+#define TARGET_SCL		(target_flags & ARM_SCL)
 
 /* Options not used in cc1 will have bit 31 set.  */
 
@@ -80,9 +87,9 @@ Boston, MA 02111-1307, USA.  */
   {"amu",			 ARM_AMU,	 		\
    "Format source dependencies for Acorn's Make Utility" },	\
   {"no-amu",			-ARM_AMU, "" },			\
-  {"libscl",			 0x80000000,			\
+  {"libscl",			 ARM_SCL,			\
    "Compile with the SharedCLibrary headers" },			\
-  {"unixlib",			-0x80000000, 			\
+  {"unixlib",			-ARM_SCL, 			\
    "Compile with the headers from UnixLib (default)" },		\
   {"module",			 ARM_MODULE,			\
    "Generate data references suitable for RISC OS modules" },	\
@@ -282,7 +289,7 @@ comdef_section (void)						\
   for (i = 0; i < (long)(LEN); i++)			\
     fprintf ((STREAM), " &%02x%s", 			\
 	     (unsigned ) *(ptr++),			\
-	     (i + 1 < (long)(LEN)				\
+	     (i + 1 < (long)(LEN)			\
 	      ? ((i & 3) == 3 ? "\n\tDCB" : ",")	\
 	      : "\n"));					\
 }
@@ -504,9 +511,10 @@ do {							\
    stubs.  */
 #define LIB_SPEC "%{!nostdlib:%{!mlibscl:-lunixlib}%{mlibscl:-lscl}}"
 
-#define SUBTARGET_CPP_SPEC "-D__JMP_BUF_SIZE=26 %{mlibscl:-D__TARGET_SCL__} \
+#define SUBTARGET_CPP_SPEC "\
 	%{mlibscl:-icrossdirafter /libscl} \
 	%{!mlibscl:-icrossdirafter /unixlib} \
+	-D__JMP_BUF_SIZE=26 \
 	%{posix:-D_POSIX_SOURCE}"
 
 #else
@@ -520,7 +528,7 @@ do {							\
 #define SUBTARGET_CPP_SPEC "%{mamu:-MD !Depend} \
 	%{mlibscl:-icrossdirafter /libscl} \
 	%{!mlibscl:-icrossdirafter /unixlib} \
-	-D__JMP_BUF_SIZE=26 %{mlibscl:-D__TARGET_SCL__} \
+	-D__JMP_BUF_SIZE=26 \
 	%{posix:-D_POSIX_SOURCE}"
 
 #endif /* CROSS_COMPILE */
@@ -545,7 +553,7 @@ do {							\
 	builtin_define ("__riscos__");		\
 	builtin_define ("__arm__");		\
 	builtin_define ("__aof__");		\
-    } while (0);
+    } while (0)
 
 /* This is how we tell the assembler that a symbol is weak.  Though
    we can specify a symbol as being weak using the method defined below,
