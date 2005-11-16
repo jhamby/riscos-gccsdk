@@ -1,16 +1,12 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/locale/nl_langinfo.c,v $
- * $Date: 2004/09/17 18:39:54 $
- * $Revision: 1.1 $
+ * $Date: 2005/01/09 23:29:04 $
+ * $Revision: 1.2 $
  * $State: Exp $
- * $Author: peter $
+ * $Author: alex $
  *
  ***************************************************************************/
-
-#ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: nl_langinfo.c,v 1.1 2004/09/17 18:39:54 peter Exp $";
-#endif
 
 #include <locale.h>
 #include <nl_types.h>

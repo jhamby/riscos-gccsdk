@@ -1,16 +1,12 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/time/mktime.c,v $
- * $Date: 2004/10/08 11:56:13 $
- * $Revision: 1.5 $
+ * $Date: 2004/10/12 08:32:38 $
+ * $Revision: 1.6 $
  * $State: Exp $
  * $Author: peter $
  *
  ***************************************************************************/
-
-#ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: mktime.c,v 1.5 2004/10/08 11:56:13 peter Exp $";
-#endif
 
 /* Territory time support, written by Nick Burrett on 13 July 1997.  */
 

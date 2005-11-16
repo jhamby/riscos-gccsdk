@@ -1,16 +1,12 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/unix/c/getdomain,v $
- * $Date: 1997/10/09 20:00:50 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/getdomain.c,v $
+ * $Date: 2001/01/29 15:10:22 $
  * $Revision: 1.2 $
  * $State: Exp $
- * $Author: unixlib $
+ * $Author: admin $
  *
  ***************************************************************************/
-
-#ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: getdomain,v 1.2 1997/10/09 20:00:50 unixlib Exp $";
-#endif
 
 /* unix/getdomain.c: Written by Peter Burwood, July 1997  */
 

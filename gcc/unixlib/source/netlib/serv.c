@@ -1,16 +1,12 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/netlib/serv.c,v $
- * $Date: 2003/04/21 10:48:45 $
- * $Revision: 1.4 $
+ * $Date: 2003/04/28 21:04:36 $
+ * $Revision: 1.5 $
  * $State: Exp $
- * $Author: peter $
+ * $Author: alex $
  *
  ***************************************************************************/
-
-#ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: serv.c,v 1.4 2003/04/21 10:48:45 peter Exp $";
-#endif
 
 #include <stdio.h>
 #include <stdlib.h>

@@ -1,16 +1,12 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/signal/sigprocmsk.c,v $
- * $Date: 2002/02/14 15:56:36 $
- * $Revision: 1.3 $
+ * $Date: 2003/04/28 21:04:36 $
+ * $Revision: 1.4 $
  * $State: Exp $
- * $Author: admin $
+ * $Author: alex $
  *
  ***************************************************************************/
-
-#ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: sigprocmsk.c,v 1.3 2002/02/14 15:56:36 admin Exp $";
-#endif
 
 /* signal.c.sigprocmsk: Implementation of the POSIX signal function
    sigprocmask.

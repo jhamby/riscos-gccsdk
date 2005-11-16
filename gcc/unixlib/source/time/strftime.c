@@ -1,16 +1,12 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/time/strftime.c,v $
- * $Date: 2005/04/13 19:20:06 $
- * $Revision: 1.5 $
+ * $Date: 2005/04/24 20:26:59 $
+ * $Revision: 1.6 $
  * $State: Exp $
- * $Author: nick $
+ * $Author: joty $
  *
  ***************************************************************************/
-
-#ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: strftime.c,v 1.5 2005/04/13 19:20:06 nick Exp $";
-#endif
 
 /* UnixLib port by Nick Burrett, 13 July 1997.  */
 

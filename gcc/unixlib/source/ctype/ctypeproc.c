@@ -1,16 +1,12 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/ctypeproc.c,v $
- * $Date: 2002/02/14 15:56:33 $
- * $Revision: 1.3 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/ctype/ctypeproc.c,v $
+ * $Date: 2005/04/20 17:12:10 $
+ * $Revision: 1.1 $
  * $State: Exp $
- * $Author: admin $
+ * $Author: nick $
  *
  ***************************************************************************/
-
-#ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: ctypeproc.c,v 1.3 2002/02/14 15:56:33 admin Exp $";
-#endif
 
 #include <ctype.h>
 

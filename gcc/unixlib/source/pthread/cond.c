@@ -1,16 +1,12 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/pthread/cond.c,v $
- * $Date: 2003/04/28 12:07:02 $
- * $Revision: 1.3 $
+ * $Date: 2003/11/23 20:26:45 $
+ * $Revision: 1.4 $
  * $State: Exp $
- * $Author: alex $
+ * $Author: joty $
  *
  ***************************************************************************/
-
-#ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: cond.c,v 1.3 2003/04/28 12:07:02 alex Exp $";
-#endif
 
 /* Condition variables */
 

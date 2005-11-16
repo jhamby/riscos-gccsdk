@@ -1,16 +1,12 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/common/sockvalid.c,v $
- * $Date: 2003/01/21 17:54:22 $
- * $Revision: 1.4 $
+ * $Date: 2005/03/04 20:59:05 $
+ * $Revision: 1.5 $
  * $State: Exp $
- * $Author: admin $
+ * $Author: alex $
  *
  ***************************************************************************/
-
-#ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: sockvalid.c,v 1.4 2003/01/21 17:54:22 admin Exp $";
-#endif
 
 #include <errno.h>
 #include <unixlib/fd.h>

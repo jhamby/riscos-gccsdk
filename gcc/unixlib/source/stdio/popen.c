@@ -1,16 +1,12 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/stdio/popen.c,v $
- * $Date: 2002/12/13 15:01:59 $
- * $Revision: 1.4 $
+ * $Date: 2003/04/13 16:21:02 $
+ * $Revision: 1.5 $
  * $State: Exp $
- * $Author: admin $
+ * $Author: alex $
  *
  ***************************************************************************/
-
-#ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: popen.c,v 1.4 2002/12/13 15:01:59 admin Exp $";
-#endif
 
 #include <errno.h>
 #include <stdlib.h>

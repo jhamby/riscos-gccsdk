@@ -1,16 +1,12 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/common/c/cvttime,v $
- * $Date: 1997/10/09 19:59:59 $
- * $Revision: 1.4 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/common/cvttime.c,v $
+ * $Date: 2001/01/29 15:10:19 $
+ * $Revision: 1.2 $
  * $State: Exp $
- * $Author: unixlib $
+ * $Author: admin $
  *
  ***************************************************************************/
-
-#ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: cvttime,v 1.4 1997/10/09 19:59:59 unixlib Exp $";
-#endif
 
 #include <unixlib/local.h>
 #include <unixlib/types.h>

@@ -1,16 +1,12 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/stdio/fpos.c,v $
- * $Date: 2003/04/13 16:21:02 $
- * $Revision: 1.6 $
+ * $Date: 2004/12/11 14:18:57 $
+ * $Revision: 1.7 $
  * $State: Exp $
- * $Author: alex $
+ * $Author: joty $
  *
  ***************************************************************************/
-
-#ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: fpos.c,v 1.6 2003/04/13 16:21:02 alex Exp $";
-#endif
 
 /* #define DEBUG */
 

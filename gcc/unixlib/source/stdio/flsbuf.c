@@ -1,16 +1,12 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/stdio/flsbuf.c,v $
- * $Date: 2004/11/28 21:31:34 $
- * $Revision: 1.5 $
+ * $Date: 2004/12/11 14:18:57 $
+ * $Revision: 1.6 $
  * $State: Exp $
  * $Author: joty $
  *
  ***************************************************************************/
-
-#ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: flsbuf.c,v 1.5 2004/11/28 21:31:34 joty Exp $";
-#endif
 
 /* #define DEBUG */
 

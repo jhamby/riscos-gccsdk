@@ -1,16 +1,12 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/netlib/socketpair.c,v $
- * $Date: 2004/01/14 23:16:59 $
- * $Revision: 1.5 $
+ * $Date: 2004/01/18 16:11:13 $
+ * $Revision: 1.6 $
  * $State: Exp $
- * $Author: joty $
+ * $Author: alex $
  *
  ***************************************************************************/
-
-#ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: socketpair.c,v 1.5 2004/01/14 23:16:59 joty Exp $";
-#endif
 
 #include <sys/types.h>
 #include <sys/socket.h>

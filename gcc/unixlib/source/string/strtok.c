@@ -1,22 +1,18 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/strtok.c,v $
- * $Date: 2003/01/05 12:40:04 $
- * $Revision: 1.3 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/string/strtok.c,v $
+ * $Date: 2005/04/20 17:12:10 $
+ * $Revision: 1.1 $
  * $State: Exp $
- * $Author: admin $
+ * $Author: nick $
  *
  ***************************************************************************/
-
-#ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: strtok.c,v 1.3 2003/01/05 12:40:04 admin Exp $";
-#endif
 
 #include <string.h>
 
 /* Defined by POSIX as not threadsafe */ 
 char *
-strtok (register char *s1, register const char *s2)
+strtok (char *s1, const char *s2)
 
 {
   static char *s;

@@ -1,16 +1,12 @@
 /****************************************************************************
  *
- * $Source: $
- * $Date: $
- * $Revision: $
- * $State: $
- * $Author: $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/pthread/attr.c,v $
+ * $Date: 2002/12/15 13:16:55 $
+ * $Revision: 1.1 $
+ * $State: Exp $
+ * $Author: admin $
  *
  ***************************************************************************/
-
-#ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: $";
-#endif
 
 /* Thread attribute manipulation functions */
 /* Written by Alex Waugh */

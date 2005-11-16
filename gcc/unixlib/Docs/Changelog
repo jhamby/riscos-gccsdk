@@ -1,3 +1,8 @@
+Wed Nov 16 03:38:56 2005  John Tytgat  <John.Tytgat@aaug.net>
+
+	* Removed EMBED_RCSID.
+	* Removed 'register' keyword in all non-imported source files.
+
 Sun Nov 13 15:44:22 2005  Alex Waugh  <alex@alexwaugh.com>
 
 	* source/module/sul.s: Cope with command lines where RISC OS has
@@ -24,7 +29,7 @@ Sun Nov  6 14:38:12 2005  Alex Waugh  <alex@alexwaugh.com>
 	* gen-makefiles.pl: Attempt to strip out incorrect dependencies added
 	  by gcc -M.
 
-Mon Oct 10 14:20:00 2005  Peter Naulls <peter@chocky.org>
+Mon Oct 10 14:20:00 2005  Peter Naulls  <peter@chocky.org>
 
 	* Docs/ReadMe: Misc corrections and updates.
 	* source/sys/_swi.s: Correct _swix() output arguments.
@@ -1085,7 +1090,7 @@ Mon Apr 18 14:44:24 2005  Nick Burrett  <nick@sqrt.co.uk>
 	(pVALLOc): Likewise.
 	(mTRIm): Likewise.
 
-Mon Apr 18 12:26:48 2005  Peter Naulls <peter@chocky.org>
+Mon Apr 18 12:26:48 2005  Peter Naulls  <peter@chocky.org>
 
 	* source/unix/rmdir.c, clib/unixlib/unix.h: Improve language.
 	* clib/unixlib/dev.h, source/unix/custom.c: Add a function to
@@ -1503,7 +1508,7 @@ Wed Apr  6 21:10:21 2005  Alex Waugh  <alex@alexwaugh.com>
 	* source/unix/dirent.c (opendir): Remove check on whether
 	  __riscosify returned a filetype.
 
-Tue Apr  5 22:30:34 2005 Peter Naulls <peter@chocky.org>
+Tue Apr  5 22:30:34 2005 Peter Naulls  <peter@chocky.org>
 
 	* source/string/_memset.s: Fixed version of Adrian's memset.
 	* source/clib/unixlib/dev.h, source/unix/custom.c,
@@ -1517,12 +1522,12 @@ Tue Apr  5 22:09:32 2005  Alex Waugh  <alex@alexwaugh.com>
 	  the attrs directly and avoid loss in converting between formats.
 	* source/termios/tcsetattr.c (tcsetattr): Likewise.
 
-Mon Apr  4 19:37:26 2005 Peter Naulls <peter@chocky.org>
+Mon Apr  4 19:37:26 2005 Peter Naulls  <peter@chocky.org>
 
 	* source/string/_memset.s: Revert; Adrian's version seems to have
 	  problems.
 
-Mon Apr  4 12:57:46 2005 Peter Naulls <peter@chocky.org>
+Mon Apr  4 12:57:46 2005 Peter Naulls  <peter@chocky.org>
 
 	* source/memcpy.c, source/memset.c: Removed - bzero, bcopy
 	  included in assembler.
@@ -3022,7 +3027,7 @@ Wed Jul 30 00:03:42 2003  Nick Burrett  <nick@dsvr.net>
 	* time.h: Likewise.
 	* unistd.h: Likewise.
 
-Mon Jun 23 21:10:01 2003  John Tytgat <John.Tytgat@aaug.net>
+Mon Jun 23 21:10:01 2003  John Tytgat  <John.Tytgat@aaug.net>
 
 	* MKDir,fe1: Removed objs.clib & objs.clib.o directory creation.
 	* objs/Makefile.in: APCS-R builds are no longer supported.
@@ -3050,12 +3055,12 @@ Mon Jun 23 21:10:01 2003  John Tytgat <John.Tytgat@aaug.net>
 	* source/unix/unix.c(__unixlib_fatal): Moved to _syslib.s and added
 	  explicit stack setup.
 
-Mon Jun 23 10:31:08 2003  Peter Naulls <peter@chocky.org>
+Mon Jun 23 10:31:08 2003  Peter Naulls  <peter@chocky.org>
 
 	* source/unix/fcntl.c: Patches missed from 2.95 trunk.
 	  Fix use of O_EXECCL flag, and add F_SETOWN stub.
 
-Fri Jun 20 00:50:01 2003  John Tytgat <John.Tytgat@aaug.net>
+Fri Jun 20 00:50:01 2003  John Tytgat  <John.Tytgat@aaug.net>
 
 	* source/clib/errno.h (__ul_errbuf): Not a char* but a struct
 	  definition.
@@ -3066,11 +3071,11 @@ Fri Jun 20 00:50:01 2003  John Tytgat <John.Tytgat@aaug.net>
 	  during the complete routine call.
 	* source/sys/errlist.c: Using struct __ul_errbuf member.
 
-Tue Jun 17 20:45:01 2003  John Tytgat <John.Tytgat@aaug.net>
+Tue Jun 17 20:45:01 2003  John Tytgat  <John.Tytgat@aaug.net>
 
 	* source/clib/unixlib/local.h: Removed obsolete __RISCOSIFY_DROP_VOWEL.
 
-Tue Jun 17 00:09:01 2003  John Tytgat <John.Tytgat@aaug.net>
+Tue Jun 17 00:09:01 2003  John Tytgat  <John.Tytgat@aaug.net>
 
 	* source/clib/unixlib/local.h: Removed obsolete uname().  Use
 	  riscosify[_std]() instead.  Removed obsolete *_TRUNCATE bits in
@@ -3092,7 +3097,7 @@ Tue Jun 17 00:09:01 2003  John Tytgat <John.Tytgat@aaug.net>
 	  source/common/riscosifyc.c.  Make use of __set_riscosify_control()
 	  when the "nonametrans" feature is defined.
 
-Mon Jun 16 22:00:01 2003  John Tytgat <John.Tytgat@aaug.net>
+Mon Jun 16 22:00:01 2003  John Tytgat  <John.Tytgat@aaug.net>
 
 	* source/clib/signal.h: Changed SISERR into SISOSERROR in order to
 	  be compatible with SharedCLibrary.
@@ -3105,7 +3110,7 @@ Sat Jun  7 09:31:05 2003  Alex Waugh  <alex@alexwaugh.com>
 
 	* sys/_alloca.s: Fix non 32bit code.
 
-Sat Jun  7 04:20:04 2003  John Tytgat <John.Tytgat@aaug.net>
+Sat Jun  7 04:20:04 2003  John Tytgat  <John.Tytgat@aaug.net>
 
 	* .cvsignore: Added MKDir,feb
 	* gen-makefiles.pl: Removed cdir of objs.clib.o
@@ -3133,7 +3138,7 @@ Sun Jun  1 18:20:15 2003  Alex Waugh  <alex@alexwaugh.com>
 
 	* module/sul.s: Fix non 32bit SWI returns.
 
-Mon May 26 19:47:04 2003  Peter Naulls <peter@chocky.org>
+Mon May 26 19:47:04 2003  Peter Naulls  <peter@chocky.org>
 	* clib/wchar.h: __mbrtowc and __mbrlen don't exist - avoid
 	  inline mbrlen.
 
@@ -3173,7 +3178,7 @@ Sun May 18 18:04:16 2003  Alex Waugh  <alex@alexwaugh.com>
 	* source/math/llrintf.c: New file from glibc 2.3.1
 	* source/math/lrintf.c: Likewise.
 
-Wed May 14 00:01:05 2003  John Tytgat <John.Tytgat@aaug.net>
+Wed May 14 00:01:05 2003  John Tytgat  <John.Tytgat@aaug.net>
 
 	* netlib/_accept.s, netlib/_getpeerna.s, netlib/_getsockna.s,
 	  netlib/_recvfrom.s, netlib/_recvmsg.s, netlib/_sendmsg.s:
@@ -3221,7 +3226,7 @@ Sun May 11 22:01:15 2003  Alex Waugh  <alex@alexwaugh.com>
 	* sys/_os.s (__os_file, __os_fread, __os_fwrite, __os_args): Store a1
 	  before clearing it.
 
-Sun May 11 19:13:12 2003  John Tytgat <John.Tytgat@aaug.net>
+Sun May 11 19:13:12 2003  John Tytgat  <John.Tytgat@aaug.net>
 
 	* objs/Makefile,fe1: Specifying minimum Norcroft C version 5.53.
 	* clib/unixlib/features.h: Avoid double #define's when project header
@@ -3230,7 +3235,7 @@ Sun May 11 19:13:12 2003  John Tytgat <John.Tytgat@aaug.net>
 	  (didn't exist).
 	* source/sys/_syslib.s: Removed "IMPORT __h_upcall" (didn't exist).
 
-Sun May 11 13:28:12 2003  John Tytgat <John.Tytgat@aaug.net>
+Sun May 11 13:28:12 2003  John Tytgat  <John.Tytgat@aaug.net>
 
 	* source/unix/chdir.c (chdir): chdir(".") did not work when Prefix$Dir
 	  was defined.
@@ -3357,24 +3362,24 @@ Mon Apr 28 13:05:24 2003  Alex Waugh  <alex@alexwaugh.com>
 	  Restore CPSR on exit from a callback.
 	* sys/_syslib.s: Initialise signal handler stack.
 
-Sun Apr 27 13:31:44 2003  John Tytgat <John.Tytgat@aaug.net>
+Sun Apr 27 13:31:44 2003  John Tytgat  <John.Tytgat@aaug.net>
 
 	* source/unix/chdir.c: Code failed when chdir() was done for a
 	  subdirectory in the CSD.
 
-Sat Apr 26 11:36:00 2003  Peter Naulls <peter@chocky.org>
+Sat Apr 26 11:36:00 2003  Peter Naulls  <peter@chocky.org>
 	* source/signal/signal.c, source/signal/post.c:
 	  Add _GNU_SOURCE define, to allow use of sighandler_t.
 	* source/strtod.c: Add an explicit atof function (as well
 	  as the existing #define)
 
-Fri Apr 25 15:14:29 2003  Peter Naulls <peter@chocky.org>
+Fri Apr 25 15:14:29 2003  Peter Naulls  <peter@chocky.org>
 	* clib/sys/cdefs.h: Added, from a patch by John T.  Didn't create
 	  the needless misc directory in use with that, however.
 	* clib/stddef.h: Add _WCHAR_T and _WINT_T defines as per glibc.
 	* clib/signal.h: Add __USE_GNU wrapper to sighandler_t typedef.
 
-Fri Apr 25 00:32:18 2003  John Tytgat <John.Tytgat@aaug.net>
+Fri Apr 25 00:32:18 2003  John Tytgat  <John.Tytgat@aaug.net>
 
 	* objs/Makefile,fe1: Forgot to specify APCS 3/32bit for assembler.
 	* source/netlib/timeofday.c: Removed (duplicate of
@@ -3386,24 +3391,24 @@ Fri Apr 25 00:32:18 2003  John Tytgat <John.Tytgat@aaug.net>
 	* source/resolv/gethnamaddr.c(gethostbyname2): timeout in the resolver
 	  requests will result in hosts file lookup.
 
-Tue Apr 22 11:57:14 2003  Peter Naulls <peter@chocky.org>
+Tue Apr 22 11:57:14 2003  Peter Naulls  <peter@chocky.org>
 	* clib/stddef.h: Remove ptr_t.  Not defined in glibc, and
 	  sometimes clashes in programs.
 	* clib/unixlib/local.h: Fix typo.  Move stddef.h include -
 	  size_t required by non UnixLib internal functions.
 
-Mon Apr 21 16:48:12 2003  Peter Naulls <peter@chocky.org>
+Mon Apr 21 16:48:12 2003  Peter Naulls  <peter@chocky.org>
 	* source/Makefile: Added _longlong.s to SYS_ASM.
 	* objs/Makefile,fe1: Add missing setsid, and _longlong.
 	* source/sys/_longlong.s: Added (long long Norcroft helper routines,
 	  from John Tytgat's addition)
 	* source/unistd/getpass.c: define _GNU_SOURCE for getline().
 
-Mon Apr 21 14:18:04 2003  Peter Naulls <peter@chocky.org>
+Mon Apr 21 14:18:04 2003  Peter Naulls  <peter@chocky.org>
 	* clib/unistd.h, resource/setsid.c: Dummy setsid implementation.
 	* Makefile: prevent library being created 3 times.
 
-Mon Apr 21 08:40:33 2003  Peter Naulls <peter@chocky.org>
+Mon Apr 21 08:40:33 2003  Peter Naulls  <peter@chocky.org>
 	* objs/Makefile,fe1: Change APCS flags to 32-bit
 	* clib/unixlib/asm_dec.s: Extra definitions for 32-bit,
 	  make networking macros 32-bit.
@@ -3477,14 +3482,14 @@ Mon Apr  7 21:09:46 2003  Alex Waugh  <alex@alexwaugh.com>
 	* Makefile: Add -pedantic to assembly rule.
 	* common/_riscosify.s: Add missing END directive.
 
-Sun Apr  6 22:48:08 2003  John Tytgat <John.Tytgat@aaug.net>
+Sun Apr  6 22:48:08 2003  John Tytgat  <John.Tytgat@aaug.net>
 
 	* unix/dirent.c: Norcroft C breaks on an int64 switch argument
 	  since __off_t has been changed to 64 bits.  Void'ing or using
 	  the return parameter of __set_errno() to reduce warnings.
 	* !MKDir: Removed, an up-to-date copy is MKDir.
 
-Sun Apr  6 15:03:26 2003  Peter Naulls <peter@chocky.org>
+Sun Apr  6 15:03:26 2003  Peter Naulls  <peter@chocky.org>
 
 	* source/netlib/socketpair.c: socketpair() implementation
 	* source/clib/regex.h, source/regex.c: regex implementation
@@ -3500,14 +3505,14 @@ Sun Apr  6 15:03:26 2003  Peter Naulls <peter@chocky.org>
 	* source/unix/tty.c: Check for ttyS0, and alias to rs423
 	* source/clib/unixlib/types.h: Remove rouge +
 
-Sun Apr  6 13:22:00 2003  Peter Naulls <peter@chocky.org>
+Sun Apr  6 13:22:00 2003  Peter Naulls  <peter@chocky.org>
 
 	* clib/swis.h: Include kernel.h, add new CDFS SWI.
 	* clib/unixlib/types.h: LCC support, change __off_t to
 	  64 bits for consistency with other types in UnixLib.
 	  Minor tidying to UnixLibify.
 
-Sun Apr  6 12:48:17 2003  Peter Naulls <peter@chocky.org>
+Sun Apr  6 12:48:17 2003  Peter Naulls  <peter@chocky.org>
 
 	* Help: Remove extra help file, and just use !Help
 
@@ -3521,7 +3526,7 @@ Sat Apr  6 11:54:16 2003  Alex Waugh  <alex@alexwaugh.com>
 	* pthread/init.c: Likewise.
 	* pthread/_context.s: Likewise, add missing IMPORT.
 
-Sun Apr  6 01:00:57 2003  John Tytgat <John.Tytgat@aaug.net>
+Sun Apr  6 01:00:57 2003  John Tytgat  <John.Tytgat@aaug.net>
 
 	* source/clib/bits/netdb.h: Removed _gethostbyname() and
 	  _gethostbyaddr() definition
@@ -3659,7 +3664,7 @@ Fri Apr  4 22:51:24 2003  Alex Waugh  <alex@alexwaugh.com>
 	* asm_dec.s (__set_errno, __get_errno): Revert back to using
 	  global errno
 
-Wed Jan 29 18:51:20 2003  John Tytgat <John.Tytgat@aaug.net>
+Wed Jan 29 18:51:20 2003  John Tytgat  <John.Tytgat@aaug.net>
 
 	* objs/Makefile: crypt rules had a spurious column chars at the end
 	  of their lines
@@ -3827,7 +3832,7 @@ Mon Dec 30 12:05:21 2002  Nick Burrett  <nick@dsvr.net>
 	(__rt_stkovf_split_big): Likewise.
 	(stack_overflow_common): Restore 'ip'.
 
-Sun Dec 22 18:21:18 2002  John Tytgat <John.Tytgat@aaug.net>
+Sun Dec 22 18:21:18 2002  John Tytgat  <John.Tytgat@aaug.net>
 
 	* MKDir: added resolv & resolv.o
 	* objs/Makefile,fe1: Added resolv/*; Removed netlib.o.ntohl,
@@ -5249,7 +5254,7 @@ Thu Aug 02 09:22:31 2001  Nick Burrett  <nick@dsvr.net>
 
 	* vfork.c: Unset debugging mode.
 
-Thu Aug 02 15:55:07 2001  John Tytgat <John.Tytgat@aaug.net>
+Thu Aug 02 15:55:07 2001  John Tytgat  <John.Tytgat@aaug.net>
 
         Removing clashing symbols between UnixLib and OSLib.
         * clib/sys/os.h (__os_cli): Renamed from os_cli.
@@ -5428,12 +5433,12 @@ Thu Aug 17 17:17:22 2000  Nick Burrett  <nick.burrett@btinternet.com>
 	* unix/getcwd.c (getcwd): Change unixify_path call to a __unixify_std
 	call.
 
-Wed Jul  5 15:58:27 2000  John Tytgat <John.Tytgat@aaug.net>
+Wed Jul  5 15:58:27 2000  John Tytgat  <John.Tytgat@aaug.net>
 
 	* clib/errno.h (errno): Remove volatile, for POSIX conformance.
 	* unix/fchmod.c: Remove garbade from header.
 
-Mon Jul  3 12:31:38 2000  John Tytgat <John.Tytgat@aaug.net>
+Mon Jul  3 12:31:38 2000  John Tytgat  <John.Tytgat@aaug.net>
 
 	* sys/syslib.h (__wimpprogram): Declare.
 	* unixlib/asm_dec.s (XWimp_ReadSysInfo): Define.
@@ -5444,18 +5449,18 @@ Mon Jul  3 12:31:38 2000  John Tytgat <John.Tytgat@aaug.net>
 	* signal/sleep.c (sleep): Likewise.
 	* unix/unix.c (__stop_itimers): Likewise.
 
-Mon Jul  3 12:19:27 2000  John Tytgat <John.Tytgat@aaug.net>
+Mon Jul  3 12:19:27 2000  John Tytgat  <John.Tytgat@aaug.net>
 
 	* common/unixify.c (unixify): Fix suffix swapping for "c.dev".
 
-Mon Jul  3 12:14:10 2000  John Tytgat <John.Tytgat@aaug.net>
+Mon Jul  3 12:14:10 2000  John Tytgat  <John.Tytgat@aaug.net>
 
 	* !Help: Change "RiscOS" to "RISC OS".
 	* qsort.c: Change PARANOID to __PARANOID.
 	* common/unixify.c (__unixify): Filetype extension marker is
 	a comma, not a dot.
 
-Sat Jun 10 13:58:43 2000  John Tytgat <John.Tytgat@aaug.net>
+Sat Jun 10 13:58:43 2000  John Tytgat  <John.Tytgat@aaug.net>
 
 	Support `,xyz' RISC OS file type extensions on filenames.
 	* dirent.h (telldir): Return __off_t.
@@ -5584,7 +5589,7 @@ Sat Jun 03 16:26:06 2000  Nick Burrett  <nick.burrett@btinternet.com>
 
 	* Docs/ReadMe38: Updated.
 
-Sat Jun 03 15:53:18 2000  John Tytgat <John.Tytgat@aaug.net>
+Sat Jun 03 15:53:18 2000  John Tytgat  <John.Tytgat@aaug.net>
 
 	* fenv.h (fesetenv, feupdateenv): Use const rather than __const.
 	* unix/write.c (write): Change __FEATURE_DEV_PIPE to __FEATURE_PIPEDEV.
@@ -5753,7 +5758,7 @@ Thu Nov 18 12:18:07 1999  Nick Burrett  <nick.burrett@btinternet.com>
 
 	* complex.h: Add missing header file.
 
-Tue Nov 16 13:45:59 1999  John Tytgat <John.Tytgat@aaug.net>
+Tue Nov 16 13:45:59 1999  John Tytgat  <John.Tytgat@aaug.net>
 
 	* time/setitmr.c (add_ticker): Time for OS_CallAfter was wrongly
 	calculated.

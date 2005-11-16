@@ -1,16 +1,12 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/common/c/exist,v $
- * $Date: 2000/06/10 12:59:43 $
- * $Revision: 1.8 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/common/exist.c,v $
+ * $Date: 2001/01/29 15:10:19 $
+ * $Revision: 1.2 $
  * $State: Exp $
  * $Author: admin $
  *
  ***************************************************************************/
-
-#ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: exist,v 1.8 2000/06/10 12:59:43 admin Exp $";
-#endif
 
 #include <limits.h>
 #include <unixlib/local.h>

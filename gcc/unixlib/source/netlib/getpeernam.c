@@ -1,17 +1,13 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/netlib/getpeernam.c,v $
- * $Date: 2005/03/04 20:59:05 $
- * $Revision: 1.7 $
+ * $Date: 2005/04/07 18:34:11 $
+ * $Revision: 1.8 $
  * $State: Exp $
- * $Author: alex $
+ * $Author: nick $
  *
  * (c) Copyright 1995 Sergio Monesi
  ***************************************************************************/
-
-#ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: getpeernam.c,v 1.7 2005/03/04 20:59:05 alex Exp $";
-#endif
 
 #include <unixlib/unix.h>
 #include <sys/socket.h>

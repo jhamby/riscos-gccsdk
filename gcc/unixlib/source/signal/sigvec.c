@@ -1,16 +1,12 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/signal/sigvec.c,v $
- * $Date: 2003/06/07 02:30:22 $
- * $Revision: 1.5 $
+ * $Date: 2004/03/17 20:00:51 $
+ * $Revision: 1.6 $
  * $State: Exp $
  * $Author: joty $
  *
  ***************************************************************************/
-
-#ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: sigvec.c,v 1.5 2003/06/07 02:30:22 joty Exp $";
-#endif
 
 /* c.sigvec: Written by Nick Burrett, 30 August 1996.  */
 
@@ -45,7 +41,7 @@ wrapper_handle (int sig)
 static int
 convert_mask (sigset_t * set, const int mask)
 {
-  register int sig;
+  int sig;
 
   if (set == NULL || sigemptyset (set) < 0)
     return __set_errno (EINVAL);
@@ -110,7 +106,7 @@ sigvec (int sig, const struct sigvec *vec, struct sigvec *ovec)
 
   if (ovec != NULL)
     {
-      register int i;
+      int i;
       int mask = 0;
 
       for (i = 1; i < NSIG; ++i)

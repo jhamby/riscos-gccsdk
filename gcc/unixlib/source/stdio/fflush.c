@@ -1,16 +1,12 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/stdio/fflush.c,v $
- * $Date: 2003/04/13 16:21:02 $
- * $Revision: 1.3 $
+ * $Date: 2004/12/07 22:57:53 $
+ * $Revision: 1.4 $
  * $State: Exp $
  * $Author: alex $
  *
  ***************************************************************************/
-
-#ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: fflush.c,v 1.3 2003/04/13 16:21:02 alex Exp $";
-#endif
 
 #include <stdio.h>
 #include <errno.h>

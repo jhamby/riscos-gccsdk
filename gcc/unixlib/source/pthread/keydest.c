@@ -1,16 +1,12 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/pthread/keydest.c,v $
- * $Date: 2005/01/24 16:48:25 $
- * $Revision: 1.3 $
+ * $Date: 2005/07/08 13:25:41 $
+ * $Revision: 1.4 $
  * $State: Exp $
  * $Author: peter $
  *
  ***************************************************************************/
-
-#ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: keydest.c,v 1.3 2005/01/24 16:48:25 peter Exp $";
-#endif
 
 /* Written by Alex Waugh */
 

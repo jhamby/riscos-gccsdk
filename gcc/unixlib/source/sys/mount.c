@@ -1,23 +1,18 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/mount.c,v $
- * $Date: 2004/10/08 11:56:13 $
- * $Revision: 1.1 $
+ * $Date: 2005/04/07 18:34:11 $
+ * $Revision: 1.2 $
  * $State: Exp $
- * $Author: peter $
+ * $Author: nick $
  *
  ***************************************************************************/
-
-#ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: mount.c,v 1.1 2004/10/08 11:56:13 peter Exp $";
-#endif
 
 #include <sys/mount.h>
 #include <errno.h>
 
 
-
-extern int
+int
 mount (__const char *__special_file, __const char *__dir,
        __const char *__fstype, unsigned long int __rwflag,
       __const void *__data)
@@ -26,16 +21,15 @@ mount (__const char *__special_file, __const char *__dir,
 }
 
 
-extern int
+int
 umount (__const char *__special_file)
 {
   return __set_errno (ENOSYS);
 }
 
 
-extern int
+int
 umount2 (__const char *__special_file, int __flags)
 {
   return __set_errno (ENOSYS);
 }
-

@@ -1,16 +1,12 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/signal/c/sigaddset,v $
- * $Date: 1997/10/09 20:00:28 $
- * $Revision: 1.7 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/signal/sigaddset.c,v $
+ * $Date: 2001/01/29 15:10:21 $
+ * $Revision: 1.2 $
  * $State: Exp $
- * $Author: unixlib $
+ * $Author: admin $
  *
  ***************************************************************************/
-
-#ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: sigaddset,v 1.7 1997/10/09 20:00:28 unixlib Exp $";
-#endif
 
 /* Written by Nick Burrett, 6 October 1996.  */
 

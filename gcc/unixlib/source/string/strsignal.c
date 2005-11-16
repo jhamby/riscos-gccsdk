@@ -1,16 +1,12 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/strsignal.c,v $
- * $Date: 2004/12/26 10:45:20 $
- * $Revision: 1.5 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/string/strsignal.c,v $
+ * $Date: 2005/04/20 17:12:10 $
+ * $Revision: 1.1 $
  * $State: Exp $
- * $Author: peter $
+ * $Author: nick $
  *
  ***************************************************************************/
-
-#ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: strsignal.c,v 1.5 2004/12/26 10:45:20 peter Exp $";
-#endif
 
 #include <signal.h>
 #include <stdio.h>

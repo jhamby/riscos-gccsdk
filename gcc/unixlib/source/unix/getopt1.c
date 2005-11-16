@@ -1,16 +1,12 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/getopt.c,v $
- * $Date: 2003/04/05 09:33:57 $
- * $Revision: 1.3 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/getopt1.c,v $
+ * $Date: 2003/05/13 20:54:59 $
+ * $Revision: 1.1 $
  * $State: Exp $
  * $Author: alex $
  *
  ***************************************************************************/
-
-#ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: getopt.c,v 1.3 2003/04/05 09:33:57 alex Exp $";
-#endif
 
 /* getopt_long and getopt_long_only entry points for GNU getopt.
    Copyright (C) 1987,88,89,90,91,92,93,94,96,97,98

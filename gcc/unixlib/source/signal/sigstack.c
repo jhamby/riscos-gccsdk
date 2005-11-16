@@ -1,16 +1,12 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/signal/sigstack.c,v $
- * $Date: 2002/02/14 15:56:36 $
- * $Revision: 1.3 $
+ * $Date: 2003/04/28 21:04:36 $
+ * $Revision: 1.4 $
  * $State: Exp $
- * $Author: admin $
+ * $Author: alex $
  *
  ***************************************************************************/
-
-#ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: sigstack.c,v 1.3 2002/02/14 15:56:36 admin Exp $";
-#endif
 
 /* sigstack.c: Written by Nick Burrett, 27 August 1996.
    This is the BSD version of the POSIX function sigaltstack.  */

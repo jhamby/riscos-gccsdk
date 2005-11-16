@@ -1,16 +1,12 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/qsort.c,v $
- * $Date: 2004/10/17 16:24:43 $
- * $Revision: 1.7 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/stdlib/qsort.c,v $
+ * $Date: 2005/04/20 17:12:10 $
+ * $Revision: 1.1 $
  * $State: Exp $
- * $Author: joty $
+ * $Author: nick $
  *
  ***************************************************************************/
-
-#ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: qsort.c,v 1.7 2004/10/17 16:24:43 joty Exp $";
-#endif
 
 #include <unixlib/unix.h>
 
@@ -29,13 +25,12 @@ static int (*__c) (const void *, const void *);
 /* fast insertion sort - used for n <= N_INSERT */
 
 static void
-__isort (register char *b, register size_t n)
-
+__isort (char *b, size_t n)
 {
-  register size_t z = __z;
-  register int (*c) (const void *, const void *) = __c;
-  register char *m, *e, *p;
-  register char *t;
+  size_t z = __z;
+  int (*c) (const void *, const void *) = __c;
+  char *m, *e, *p;
+  char *t;
 
 #define swap(x,y) (memcpy(t,x,z),memcpy(x,y,z),memcpy(y,t,z))
 #define move(x,y,z) memmove(x,y,z)
@@ -75,14 +70,13 @@ __isort (register char *b, register size_t n)
 /* quicksort - used for n > N_INSERT */
 
 static void
-__qsort (register char *b, register size_t n)
-
+__qsort (char *b, size_t n)
 {
-  register size_t z = __z;
-  register int (*c) (const void *, const void *) = __c;
-  register char *m, *e, *p, *t;
-  register size_t i, j;
-  register int k;
+  size_t z = __z;
+  int (*c) (const void *, const void *) = __c;
+  char *m, *e, *p, *t;
+  size_t i, j;
+  int k;
 
 #define swap(x,y) (memcpy(t,x,z),memcpy(x,y,z),memcpy(y,t,z))
 
@@ -166,9 +160,8 @@ loop:
 }
 
 void
-qsort (register void *v, register size_t n, register size_t z,
-       register int (*c) (const void *, const void *))
-
+qsort (void *v, size_t n, size_t z,
+       int (*c) (const void *, const void *))
 {
   static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
   /* Use a mutex so that threads aren't disabled while calling the user function */

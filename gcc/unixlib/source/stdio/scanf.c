@@ -1,16 +1,12 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/stdio/scanf.c,v $
- * $Date: 2002/09/24 21:02:38 $
- * $Revision: 1.3 $
+ * $Date: 2003/04/13 16:21:02 $
+ * $Revision: 1.4 $
  * $State: Exp $
- * $Author: admin $
+ * $Author: alex $
  *
  ***************************************************************************/
-
-#ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: scanf.c,v 1.3 2002/09/24 21:02:38 admin Exp $";
-#endif
 
 /*-
  * Copyright (c) 1990, 1993
@@ -53,7 +49,7 @@ static const char rcs_id[] = "$Id: scanf.c,v 1.3 2002/09/24 21:02:38 admin Exp $
 static char sccsid[] = "@(#)vfscanf.c	8.1 (Berkeley) 6/4/93";
 #endif
 static const char rcsid[] =
-		"$Id: scanf.c,v 1.3 2002/09/24 21:02:38 admin Exp $";
+		"$Id: scanf.c,v 1.4 2003/04/13 16:21:02 alex Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 #include <stdio.h>

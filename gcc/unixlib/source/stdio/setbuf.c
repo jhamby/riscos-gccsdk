@@ -1,16 +1,12 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/stdio/setbuf.c,v $
- * $Date: 2001/01/29 15:10:21 $
- * $Revision: 1.2 $
+ * $Date: 2003/04/13 16:21:02 $
+ * $Revision: 1.3 $
  * $State: Exp $
- * $Author: admin $
+ * $Author: alex $
  *
  ***************************************************************************/
-
-#ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: setbuf.c,v 1.2 2001/01/29 15:10:21 admin Exp $";
-#endif
 
 #include <errno.h>
 #include <stdlib.h>
@@ -38,7 +34,7 @@ setlinebuf (FILE * stream)
 }
 
 void
-setbuf (register FILE * f, char *buf)
+setbuf (FILE * f, char *buf)
 {
   setvbuf (f, buf, (buf) ? _IOFBF : _IONBF, BUFSIZ);
 }

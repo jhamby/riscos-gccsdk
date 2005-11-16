@@ -1,16 +1,12 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/errlist.c,v $
- * $Date: 2004/10/17 16:24:44 $
- * $Revision: 1.10 $
+ * $Date: 2004/10/23 17:23:36 $
+ * $Revision: 1.11 $
  * $State: Exp $
  * $Author: joty $
  *
  ***************************************************************************/
-
-#ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: errlist.c,v 1.10 2004/10/17 16:24:44 joty Exp $";
-#endif
 
 #include <string.h>
 #include <errno.h>

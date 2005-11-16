@@ -1,16 +1,12 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/stat/Attic/mkfifo.c,v $
- * $Date: 2002/06/15 12:59:11 $
- * $Revision: 1.1.2.1 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/stat/mkfifo.c,v $
+ * $Date: 2002/11/18 15:42:33 $
+ * $Revision: 1.2 $
  * $State: Exp $
  * $Author: admin $
  *
  ***************************************************************************/
-
-#ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: mkfifo.c,v 1.1.2.1 2002/06/15 12:59:11 admin Exp $";
-#endif
 
 #include <errno.h>
 #include <sys/stat.h>

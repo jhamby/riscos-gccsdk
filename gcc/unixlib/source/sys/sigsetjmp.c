@@ -1,16 +1,12 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/sigsetjmp.c,v $
- * $Date: 2003/04/28 21:04:36 $
- * $Revision: 1.4 $
+ * $Date: 2003/06/23 20:33:04 $
+ * $Revision: 1.5 $
  * $State: Exp $
- * $Author: alex $
+ * $Author: joty $
  *
  ***************************************************************************/
-
-#ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: sigsetjmp.c,v 1.4 2003/04/28 21:04:36 alex Exp $";
-#endif
 
 #include <setjmp.h>
 #include <unixlib/sigstate.h>

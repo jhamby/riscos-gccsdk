@@ -1,16 +1,12 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/signal/c/sigsetmask,v $
- * $Date: 1997/10/09 20:00:30 $
- * $Revision: 1.6 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/signal/sigsetmask.c,v $
+ * $Date: 2001/01/29 15:10:21 $
+ * $Revision: 1.2 $
  * $State: Exp $
- * $Author: unixlib $
+ * $Author: admin $
  *
  ***************************************************************************/
-
-#ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: sigsetmask,v 1.6 1997/10/09 20:00:30 unixlib Exp $";
-#endif
 
 /* sigsetmask.c: BSD signal blocking function.
    Written by Nick Burrett, 5 October 1996.  */

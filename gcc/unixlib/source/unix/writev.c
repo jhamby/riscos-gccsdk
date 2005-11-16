@@ -1,16 +1,12 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/writev.c,v $
- * $Date: 2004/11/28 21:31:35 $
- * $Revision: 1.5 $
+ * $Date: 2005/03/04 20:59:06 $
+ * $Revision: 1.6 $
  * $State: Exp $
- * $Author: joty $
+ * $Author: alex $
  *
  ***************************************************************************/
-
-#ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: writev.c,v 1.5 2004/11/28 21:31:35 joty Exp $";
-#endif
 
 #include <errno.h>
 #include <fcntl.h>

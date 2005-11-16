@@ -1,16 +1,12 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/time/setitmr.c,v $
- * $Date: 2005/04/13 19:20:06 $
- * $Revision: 1.7 $
+ * $Date: 2005/04/23 10:56:41 $
+ * $Revision: 1.8 $
  * $State: Exp $
  * $Author: nick $
  *
  ***************************************************************************/
-
-#ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: setitmr.c,v 1.7 2005/04/13 19:20:06 nick Exp $";
-#endif
 
 #include <stddef.h>
 #include <errno.h>

@@ -1,16 +1,12 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/ioctl.c,v $
- * $Date: 2004/09/09 15:34:52 $
- * $Revision: 1.6 $
+ * $Date: 2005/03/04 20:59:06 $
+ * $Revision: 1.7 $
  * $State: Exp $
- * $Author: peter $
+ * $Author: alex $
  *
  ***************************************************************************/
-
-#ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: ioctl.c,v 1.6 2004/09/09 15:34:52 peter Exp $";
-#endif
 
 #include <errno.h>
 

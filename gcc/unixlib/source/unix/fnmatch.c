@@ -1,16 +1,12 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/fnmatch.c,v $
- * $Date: 2001/01/29 15:10:22 $
- * $Revision: 1.2 $
+ * $Date: 2004/10/23 17:23:36 $
+ * $Revision: 1.4 $
  * $State: Exp $
- * $Author: admin $
+ * $Author: joty $
  *
  ***************************************************************************/
-
-#ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: fnmatch.c,v 1.2 2001/01/29 15:10:22 admin Exp $";
-#endif
 
 /*      $NetBSD: fnmatch.c,v 1.11 1995/02/27 03:43:06 cgd Exp $ */
 

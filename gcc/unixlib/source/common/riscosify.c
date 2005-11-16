@@ -1,16 +1,12 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/common/riscosify.c,v $
- * $Date: 2005/04/22 14:38:49 $
- * $Revision: 1.22 $
+ * $Date: 2005/06/16 13:32:06 $
+ * $Revision: 1.23 $
  * $State: Exp $
- * $Author: nick $
+ * $Author: alex $
  *
  ***************************************************************************/
-
-#ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: riscosify.c,v 1.22 2005/04/22 14:38:49 nick Exp $";
-#endif
 
 /* #define DEBUG */
 

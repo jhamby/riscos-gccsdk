@@ -1,16 +1,12 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/pwd/getpwuid.c,v $
- * $Date: 2003/01/21 17:54:22 $
- * $Revision: 1.4 $
+ * $Date: 2005/04/14 12:13:09 $
+ * $Revision: 1.5 $
  * $State: Exp $
- * $Author: admin $
+ * $Author: nick $
  *
  ***************************************************************************/
-
-#ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: getpwuid.c,v 1.4 2003/01/21 17:54:22 admin Exp $";
-#endif
 
 /* pwd.c.getpwuid. Search for an entry with a matching user ID.
 

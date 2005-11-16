@@ -1,16 +1,12 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/execvp.c,v $
- * $Date: 2003/04/28 21:04:36 $
- * $Revision: 1.5 $
+ * $Date: 2004/12/11 14:18:57 $
+ * $Revision: 1.6 $
  * $State: Exp $
- * $Author: alex $
+ * $Author: joty $
  *
  ***************************************************************************/
-
-#ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: execvp.c,v 1.5 2003/04/28 21:04:36 alex Exp $";
-#endif
 
 #include <unistd.h>
 

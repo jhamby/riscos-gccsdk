@@ -1,16 +1,12 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/common/serial.c,v $
- * $Date: 2003/06/16 23:09:08 $
- * $Revision: 1.4 $
+ * $Date: 2003/12/29 19:02:38 $
+ * $Revision: 1.5 $
  * $State: Exp $
- * $Author: joty $
+ * $Author: peter $
  *
  ***************************************************************************/
-
-#ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: serial.c,v 1.4 2003/06/16 23:09:08 joty Exp $";
-#endif
 
 #include <stddef.h>
 #include <string.h>

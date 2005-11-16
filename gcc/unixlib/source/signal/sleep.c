@@ -1,16 +1,12 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/signal/sleep.c,v $
- * $Date: 2004/05/16 18:48:24 $
- * $Revision: 1.8 $
+ * $Date: 2005/03/31 11:42:02 $
+ * $Revision: 1.9 $
  * $State: Exp $
- * $Author: alex $
+ * $Author: nick $
  *
  ***************************************************************************/
-
-#ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: sleep.c,v 1.8 2004/05/16 18:48:24 alex Exp $";
-#endif
 
 /* Copyright (C) 1991, 1992, 1993, 1996, 1997 Free Software Foundation, Inc.
 

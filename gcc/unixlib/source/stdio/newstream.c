@@ -1,16 +1,12 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/stdio/newstream.c,v $
- * $Date: 2003/04/13 16:21:02 $
- * $Revision: 1.4 $
+ * $Date: 2004/12/11 14:18:57 $
+ * $Revision: 1.5 $
  * $State: Exp $
- * $Author: alex $
+ * $Author: joty $
  *
  ***************************************************************************/
-
-#ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: newstream.c,v 1.4 2003/04/13 16:21:02 alex Exp $";
-#endif
 
 #include <errno.h>
 #include <stddef.h>

@@ -1,16 +1,12 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/unix/c/getdtables,v $
- * $Date: 1997/10/09 20:00:50 $
- * $Revision: 1.4 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/getdtables.c,v $
+ * $Date: 2001/01/29 15:10:22 $
+ * $Revision: 1.2 $
  * $State: Exp $
- * $Author: unixlib $
+ * $Author: admin $
  *
  ***************************************************************************/
-
-#ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: getdtables,v 1.4 1997/10/09 20:00:50 unixlib Exp $";
-#endif
 
 /* unix.c.getdtables. Implementation of getdtablesize ().
 

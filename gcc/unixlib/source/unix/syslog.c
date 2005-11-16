@@ -1,16 +1,12 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/syslog.c,v $
- * $Date: 2003/06/07 02:30:22 $
- * $Revision: 1.7 $
+ * $Date: 2005/04/24 20:26:59 $
+ * $Revision: 1.8 $
  * $State: Exp $
  * $Author: joty $
  *
  ***************************************************************************/
-
-#ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: syslog.c,v 1.7 2003/06/07 02:30:22 joty Exp $";
-#endif
 
 /*
  * Copyright (c) 1983, 1988, 1993

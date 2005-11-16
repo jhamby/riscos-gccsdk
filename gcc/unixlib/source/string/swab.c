@@ -1,17 +1,12 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/string/Attic/swab.c,v $
- * $Date: 2002/08/18 18:35:21 $
- * $Revision: 1.1.2.1 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/string/swab.c,v $
+ * $Date: 2002/11/18 15:43:32 $
+ * $Revision: 1.2 $
  * $State: Exp $
  * $Author: admin $
  *
  ***************************************************************************/
-
-#ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: swab.c,v 1.1.2.1 2002/08/18 18:35:21 admin Exp $";
-#endif
-
 
 #include <unistd.h>
 

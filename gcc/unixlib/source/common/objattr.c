@@ -1,16 +1,12 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/common/objattr.c,v $
- * $Date: 2005/04/14 15:17:23 $
- * $Revision: 1.6 $
+ * $Date: 2005/04/18 17:04:56 $
+ * $Revision: 1.7 $
  * $State: Exp $
  * $Author: nick $
  *
  ***************************************************************************/
-
-#ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: objattr.c,v 1.6 2005/04/14 15:17:23 nick Exp $";
-#endif
 
 #include <errno.h>
 

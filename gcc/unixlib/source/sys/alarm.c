@@ -1,16 +1,12 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/alarm.c,v $
- * $Date: 2002/09/24 21:02:38 $
- * $Revision: 1.3 $
+ * $Date: 2004/10/17 16:24:44 $
+ * $Revision: 1.4 $
  * $State: Exp $
- * $Author: admin $
+ * $Author: joty $
  *
  ***************************************************************************/
-
-#ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: alarm.c,v 1.3 2002/09/24 21:02:38 admin Exp $";
-#endif
 
 /* Copyright (C) 1991, 1992, 1994, 1997 Free Software Foundation, Inc.
 

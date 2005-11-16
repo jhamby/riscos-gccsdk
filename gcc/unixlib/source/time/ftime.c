@@ -1,16 +1,12 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/time/c/ftime,v $
- * $Date: 1997/10/09 20:00:45 $
- * $Revision: 1.6 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/time/ftime.c,v $
+ * $Date: 2001/01/29 15:10:22 $
+ * $Revision: 1.2 $
  * $State: Exp $
- * $Author: unixlib $
+ * $Author: admin $
  *
  ***************************************************************************/
-
-#ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: ftime,v 1.6 1997/10/09 20:00:45 unixlib Exp $";
-#endif
 
 /* time.c.ftime.
    Function implementation for <sys/timeb.h>.

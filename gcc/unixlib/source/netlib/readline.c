@@ -1,16 +1,12 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/netlib/c/readline,v $
- * $Date: 1997/10/09 20:00:20 $
- * $Revision: 1.5 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/netlib/readline.c,v $
+ * $Date: 2001/01/29 15:10:20 $
+ * $Revision: 1.2 $
  * $State: Exp $
- * $Author: unixlib $
+ * $Author: admin $
  *
  ***************************************************************************/
-
-#ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: readline,v 1.5 1997/10/09 20:00:20 unixlib Exp $";
-#endif
 
 #include <stdio.h>
 #include <stdlib.h>

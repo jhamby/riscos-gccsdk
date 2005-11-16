@@ -1,16 +1,12 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/getopt.c,v $
- * $Date: 2003/04/05 09:33:57 $
- * $Revision: 1.3 $
+ * $Date: 2003/05/13 20:54:59 $
+ * $Revision: 1.4 $
  * $State: Exp $
  * $Author: alex $
  *
  ***************************************************************************/
-
-#ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: getopt.c,v 1.3 2003/04/05 09:33:57 alex Exp $";
-#endif
 
 /* Getopt for GNU.
    NOTE: getopt is now part of the C library, so if you don't know what

@@ -1,16 +1,12 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/test/testriscosify.c,v $
- * $Date: 2003/12/24 12:01:35 $
- * $Revision: 1.2 $
+ * $Date: 2005/06/16 13:32:06 $
+ * $Revision: 1.3 $
  * $State: Exp $
  * $Author: alex $
  *
  ***************************************************************************/
-
-#ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: testriscosify.c,v 1.2 2003/12/24 12:01:35 alex Exp $";
-#endif
 
 /*
 Regression tests for riscosify

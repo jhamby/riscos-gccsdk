@@ -1,16 +1,12 @@
 /****************************************************************************
  *
- * $Source$
- * $Date$
- * $Revision$
- * $State$
- * $Author$
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/grp/grpread.c,v $
+ * $Date: 2003/01/21 17:54:22 $
+ * $Revision: 1.3 $
+ * $State: Exp $
+ * $Author: admin $
  *
  ***************************************************************************/
-
-#ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id$";
-#endif
 
 /* Internal group password-file reading functions. */
 
@@ -28,7 +24,7 @@ static const char rcs_id[] = "$Id$";
 static char *
 g_gstrcp (char **lp, char sep)
 {
-  register char *l = *lp, *r = l;
+  char *l = *lp, *r = l;
 
   if (sep == ',' && *l == '\0')
     return NULL;

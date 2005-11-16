@@ -1,16 +1,12 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/locale/setlocale.c,v $
- * $Date: 2003/12/29 19:02:38 $
- * $Revision: 1.6 $
+ * $Date: 2005/03/31 12:52:25 $
+ * $Revision: 1.7 $
  * $State: Exp $
- * $Author: peter $
+ * $Author: nick $
  *
  ***************************************************************************/
-
-#ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: setlocale.c,v 1.6 2003/12/29 19:02:38 peter Exp $";
-#endif
 
 /* Locale support. Written by Nick Burrett, 20 July 1997.  */
 

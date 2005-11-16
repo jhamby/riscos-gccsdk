@@ -1,17 +1,13 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/resource/getrusage.c,v $
- * $Date: 2002/02/14 15:56:36 $
- * $Revision: 1.3 $
+ * $Date: 2005/04/13 19:20:06 $
+ * $Revision: 1.4 $
  * $State: Exp $
- * $Author: admin $
+ * $Author: nick $
  *
  * Written by Nick Burrett, 18 Feb 1996.
  ***************************************************************************/
-
-#ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: getrusage.c,v 1.3 2002/02/14 15:56:36 admin Exp $";
-#endif
 
 #include <sys/resource.h>
 #include <unixlib/unix.h>

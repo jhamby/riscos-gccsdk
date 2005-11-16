@@ -1,16 +1,12 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/stdio/putc.c,v $
- * $Date: 2003/04/13 16:21:02 $
- * $Revision: 1.4 $
+ * $Date: 2005/05/13 21:32:12 $
+ * $Revision: 1.5 $
  * $State: Exp $
- * $Author: alex $
+ * $Author: peter $
  *
  ***************************************************************************/
-
-#ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: putc.c,v 1.4 2003/04/13 16:21:02 alex Exp $";
-#endif
 
 #include <stdio.h>
 #include <errno.h>

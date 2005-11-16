@@ -1,16 +1,12 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/system.c,v $
- * $Date: 2003/04/28 21:04:35 $
- * $Revision: 1.3 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/stdlib/system.c,v $
+ * $Date: 2005/04/20 17:12:10 $
+ * $Revision: 1.1 $
  * $State: Exp $
- * $Author: alex $
+ * $Author: nick $
  *
  ***************************************************************************/
-
-#ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: system.c,v 1.3 2003/04/28 21:04:35 alex Exp $";
-#endif
 
 /* c.system: Written by Nick Burrett, 6 October 1996.  */
 

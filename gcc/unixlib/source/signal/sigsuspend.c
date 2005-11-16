@@ -1,16 +1,12 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/signal/sigsuspend.c,v $
- * $Date: 2003/04/28 21:04:36 $
- * $Revision: 1.4 $
+ * $Date: 2004/05/16 18:48:24 $
+ * $Revision: 1.5 $
  * $State: Exp $
  * $Author: alex $
  *
  ***************************************************************************/
-
-#ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: sigsuspend.c,v 1.4 2003/04/28 21:04:36 alex Exp $";
-#endif
 
 /* Written by Nick Burrett, 26 Aug 1996.  */
 

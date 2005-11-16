@@ -1,16 +1,12 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/stdio/getw.c,v $
- * $Date: 2001/01/29 15:10:21 $
- * $Revision: 1.2 $
+ * $Date: 2003/04/13 16:21:02 $
+ * $Revision: 1.3 $
  * $State: Exp $
- * $Author: admin $
+ * $Author: alex $
  *
  ***************************************************************************/
-
-#ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: getw.c,v 1.2 2001/01/29 15:10:21 admin Exp $";
-#endif
 
 #include <stdio.h>
 #include <pthread.h>
@@ -20,9 +16,9 @@ static const char rcs_id[] = "$Id: getw.c,v 1.2 2001/01/29 15:10:21 admin Exp $"
 __STDIOLIB__
 
 int
-getw (register FILE * f)
+getw (FILE * f)
 {
-  register int i;
+  int i;
 
   PTHREAD_UNSAFE
 

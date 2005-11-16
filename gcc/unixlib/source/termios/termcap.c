@@ -1,16 +1,12 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/termcap.c,v $
- * $Date: 2003/01/05 12:40:04 $
- * $Revision: 1.4 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/termios/termcap.c,v $
+ * $Date: 2005/04/20 17:12:10 $
+ * $Revision: 1.1 $
  * $State: Exp $
- * $Author: admin $
+ * $Author: nick $
  *
  ***************************************************************************/
-
-#ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: termcap.c,v 1.4 2003/01/05 12:40:04 admin Exp $";
-#endif
 
 #include <unixlib/unix.h>
 
@@ -449,7 +445,7 @@ t_tgetid (const char *id)
 int
 tgetnum (const char *id)
 {
-  register unsigned char *eptr;
+  unsigned char *eptr;
   int rval;
 
 #ifdef TIOCGWINSZ

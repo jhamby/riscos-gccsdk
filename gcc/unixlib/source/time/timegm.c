@@ -1,16 +1,12 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/time/mktime.c,v $
- * $Date: 2002/02/14 15:56:38 $
- * $Revision: 1.4 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/time/timegm.c,v $
+ * $Date: 2004/10/08 11:56:13 $
+ * $Revision: 1.1 $
  * $State: Exp $
- * $Author: admin $
+ * $Author: peter $
  *
  ***************************************************************************/
-
-#ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: mktime.c,v 1.4 2002/02/14 15:56:38 admin Exp $";
-#endif
 
 /* POSIX equivalent function - take from timegm man page under Linux  */
 

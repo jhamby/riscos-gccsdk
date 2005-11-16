@@ -1,16 +1,12 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/pthread/pthsignal.c,v $
- * $Date: 2005/04/14 12:13:09 $
- * $Revision: 1.1 $
+ * $Date: 2005/04/14 16:03:55 $
+ * $Revision: 1.2 $
  * $State: Exp $
  * $Author: nick $
  *
  ***************************************************************************/
-
-#ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: pthsignal.c,v 1.1 2005/04/14 12:13:09 nick Exp $";
-#endif
 
 /* Written by Alex Waugh */
 

@@ -1,16 +1,12 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/unixlib/source/termios/c/tcsetpgrp,v $
- * $Date: 1997/12/17 22:02:59 $
- * $Revision: 1.1 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/termios/tcsetpgrp.c,v $
+ * $Date: 2001/01/29 15:10:21 $
+ * $Revision: 1.2 $
  * $State: Exp $
- * $Author: unixlib $
+ * $Author: admin $
  *
  ***************************************************************************/
-
-#ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: tcsetpgrp,v 1.1 1997/12/17 22:02:59 unixlib Exp $";
-#endif
 
 #include <sys/types.h>
 #include <sys/ioctl.h>

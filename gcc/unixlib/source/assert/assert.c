@@ -1,16 +1,12 @@
 /****************************************************************************
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/assert.c,v $
- * $Date: 2004/04/20 20:20:36 $
- * $Revision: 1.6 $
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/assert/assert.c,v $
+ * $Date: 2005/04/20 17:12:09 $
+ * $Revision: 1.1 $
  * $State: Exp $
- * $Author: joty $
+ * $Author: nick $
  *
  ***************************************************************************/
-
-#ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: assert.c,v 1.6 2004/04/20 20:20:36 joty Exp $";
-#endif
 
 #include <stdio.h>
 #include <stdlib.h>

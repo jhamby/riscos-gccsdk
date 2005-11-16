@@ -1,16 +1,12 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/resource/setprior.c,v $
- * $Date: 2005/03/04 20:59:06 $
- * $Revision: 1.6 $
+ * $Date: 2005/04/24 20:26:58 $
+ * $Revision: 1.7 $
  * $State: Exp $
- * $Author: alex $
+ * $Author: joty $
  *
  ***************************************************************************/
-
-#ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: setprior.c,v 1.6 2005/03/04 20:59:06 alex Exp $";
-#endif
 
 #include <errno.h>
 #include <sys/resource.h>

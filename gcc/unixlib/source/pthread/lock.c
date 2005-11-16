@@ -1,16 +1,12 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/pthread/lock.c,v $
- * $Date: 2005/01/24 16:48:25 $
- * $Revision: 1.4 $
+ * $Date: 2005/03/21 12:14:56 $
+ * $Revision: 1.5 $
  * $State: Exp $
  * $Author: peter $
  *
  ***************************************************************************/
-
-#ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: lock.c,v 1.4 2005/01/24 16:48:25 peter Exp $";
-#endif
 
 /* Common routines shared by the mutex, rwlock and cond functions */
 

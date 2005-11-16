@@ -1,16 +1,12 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/common/prefix.c,v $
- * $Date: 2004/01/14 23:16:59 $
- * $Revision: 1.1 $
+ * $Date: 2005/03/15 22:09:37 $
+ * $Revision: 1.2 $
  * $State: Exp $
- * $Author: joty $
+ * $Author: alex $
  *
  ***************************************************************************/
-
-#ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: prefix.c,v 1.1 2004/01/14 23:16:59 joty Exp $";
-#endif
 
 #include <stdlib.h>
 #include <string.h>

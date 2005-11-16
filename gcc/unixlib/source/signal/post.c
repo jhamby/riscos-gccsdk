@@ -239,7 +239,7 @@ __write_backtrace (int signo)
       else
 	pc = (unsigned int *)(fp[0] & 0x03fffffc);
       if (!(features & 0x8))
-	pc += 1;
+	pc++;
 
       if (!__valid_address(pc, pc))
 	{
@@ -277,7 +277,6 @@ __write_backtrace (int signo)
 
       if (fp == __ul_callbackfp)
 	{
-	  int reg;
 	  const char * const rname[16] =
 	    { "a1", "a2", "a3", "a4", "v1", "v2", "v3", "v4",
 	      "v5", "v6", "sl", "fp", "ip", "sp", "lr", "pc" };
@@ -288,6 +287,8 @@ __write_backtrace (int signo)
 
 	  if (__valid_address(oldfp, oldfp + 17))
 	    {
+	      int reg;
+
 	      for (reg = 0; reg < 16; reg++)
 		{
 		  if ((reg & 0x3) == 0)
@@ -299,7 +300,7 @@ __write_backtrace (int signo)
 	      if (__32bit)
 		fprintf(stderr, "\n  cpsr: %8x\n", oldfp[1]);
 	      else
-		fprintf(stderr, "\n");
+		fputc('\n', stderr);
 	    }
 	  else
 	    fputs("    [bad register dump address]\n", stderr);
@@ -334,11 +335,11 @@ __write_backtrace (int signo)
 	      fprintf(stderr, "[Disassembly not available]");
 	    }
 
-	  fprintf(stderr, "\n\n");
+	  fputs("\n\n", stderr);
 	}
     }
   
-  fputs("\n", stderr);
+  fputc('\n', stderr);
 }
 
 

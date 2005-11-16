@@ -1,16 +1,12 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/signal/signame.c,v $
- * $Date: 2002/09/24 21:02:38 $
- * $Revision: 1.4 $
+ * $Date: 2003/06/16 21:00:33 $
+ * $Revision: 1.5 $
  * $State: Exp $
- * $Author: admin $
+ * $Author: joty $
  *
  ***************************************************************************/
-
-#ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: signame.c,v 1.4 2002/09/24 21:02:38 admin Exp $";
-#endif
 
 /* signame.c: Define signals for sys_siglist.  */
 

@@ -1,16 +1,12 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/locale/localeconv.c,v $
- * $Date: 2005/03/13 11:09:32 $
- * $Revision: 1.7 $
+ * $Date: 2005/03/31 09:47:01 $
+ * $Revision: 1.8 $
  * $State: Exp $
- * $Author: alex $
+ * $Author: nick $
  *
  ***************************************************************************/
-
-#ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: localeconv.c,v 1.7 2005/03/13 11:09:32 alex Exp $";
-#endif
 
 /* Character localisation support. Written by Nick Burrett, 20 July 1997.  */
 

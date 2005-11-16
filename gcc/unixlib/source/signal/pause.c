@@ -1,16 +1,12 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/signal/pause.c,v $
- * $Date: 2001/01/29 15:10:20 $
- * $Revision: 1.2 $
+ * $Date: 2003/04/28 21:04:36 $
+ * $Revision: 1.3 $
  * $State: Exp $
- * $Author: admin $
+ * $Author: alex $
  *
  ***************************************************************************/
-
-#ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: pause.c,v 1.2 2001/01/29 15:10:20 admin Exp $";
-#endif
 
 /* signal.c.pause: Written by Nick Burrett, 5 October 1996.  */
 

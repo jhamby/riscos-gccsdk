@@ -1,16 +1,12 @@
 /****************************************************************************
  *
- * $Source$
- * $Date$
- * $Revision$
- * $State$
- * $Author$
+ * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/netlib/inet_netwo.c,v $
+ * $Date: 2002/12/22 18:22:29 $
+ * $Revision: 1.3 $
+ * $State: Exp $
+ * $Author: admin $
  *
  ***************************************************************************/
-
-#ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id$";
-#endif
 
 #include <arpa/inet.h>
 #include <netinet/in.h>

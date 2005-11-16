@@ -1,16 +1,12 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/pthread/testcancel.c,v $
- * $Date: 2003/04/28 12:07:02 $
- * $Revision: 1.2 $
+ * $Date: 2003/05/26 17:27:07 $
+ * $Revision: 1.3 $
  * $State: Exp $
  * $Author: alex $
  *
  ***************************************************************************/
-
-#ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: testcancel.c,v 1.2 2003/04/28 12:07:02 alex Exp $";
-#endif
 
 /* pthread_testcancel
    Separate from cancel.c to avoid pulling in other cancel functions

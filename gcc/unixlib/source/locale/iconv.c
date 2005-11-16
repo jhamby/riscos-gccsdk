@@ -1,16 +1,12 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/locale/iconv.c,v $
- * $Date: 2005/04/18 17:04:56 $
- * $Revision: 1.8 $
+ * $Date: 2005/04/19 08:50:36 $
+ * $Revision: 1.9 $
  * $State: Exp $
  * $Author: nick $
  *
  ***************************************************************************/
-
-#ifdef EMBED_RCSID
-static const char rcs_id[] = "$Id: iconv.c,v 1.8 2005/04/18 17:04:56 nick Exp $";
-#endif
 
 #include <stdlib.h>
 
