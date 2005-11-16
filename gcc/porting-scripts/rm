@@ -2,7 +2,7 @@
 
 # Avoid removing files during library package creation
 if ! [ -z "$RO_PKG" ] ; then
- params=
+  params=
 
   for param in $@ ; do
     if echo $param | grep -q GCCSDK_ENV ; then
@@ -15,7 +15,6 @@ if ! [ -z "$RO_PKG" ] ; then
   if [ "$params" != "" ] ; then
     /bin/rm $params
   fi
-
 else
- /bin/rm $@
+  /bin/rm $@
 fi
