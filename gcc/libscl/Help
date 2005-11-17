@@ -4,7 +4,8 @@
 This directory contains the necessary header files and object file to
 enable programs to use the SharedCLibrary module.
 
-This library is release 1.10 and is Copyright (c) 1997-2005 Nick Burrett
+This library is Copyright (c) 1997-2005 Nick Burrett
+                Copyright (c) 2005 UnixLib Developers
 
 !Clib is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -69,4 +70,3 @@ Known problems with the filename translation code
 
 If you use command-line redirection of stdin and stdout, the filenames used
 for redirection are not translated. If this is important, use UnixLib.
-
