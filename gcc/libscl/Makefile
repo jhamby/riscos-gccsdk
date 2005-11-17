@@ -1,6 +1,6 @@
 # Makefile for the SharedCLibrary stubs
-# Copyright (c) 2000, 2001, 2003 Nick Burrett
-# Written by Nick Burrett <nick@dsvr.net>
+# Copyright (c) 2000-2005 Nick Burrett
+# Copyright (c) UnixLib Developers
 #
 # This file is part of the RISC OS GCCSDK
 #
@@ -8,7 +8,6 @@
 INCLUDES = -isystem .
 
 libsclobj=$(objdir)/libscl/$(TRG)
-libunixobj=$(objdir)/unixlib/$(TRG_UL)
 
 $(libsclobj)/%.o: %.c
 	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c $< $(INCLUDES) $(CFL)
@@ -45,6 +44,7 @@ MATH = 	$(libsclobj)/math/acosf.o \
 	$(libsclobj)/math/ceilf.o \
 	$(libsclobj)/math/ceill.o \
 	$(libsclobj)/math/copysign.o \
+	$(libsclobj)/math/copysignf.o \
 	$(libsclobj)/math/cosf.o \
 	$(libsclobj)/math/coshf.o \
 	$(libsclobj)/math/coshl.o \
@@ -52,6 +52,7 @@ MATH = 	$(libsclobj)/math/acosf.o \
 	$(libsclobj)/math/expf.o \
 	$(libsclobj)/math/expl.o \
 	$(libsclobj)/math/fabs.o \
+	$(libsclobj)/math/fabsf.o \
 	$(libsclobj)/math/fclrexcpt.o \
 	$(libsclobj)/math/fegetenv.o \
 	$(libsclobj)/math/fegetrnd.o \
@@ -65,6 +66,7 @@ MATH = 	$(libsclobj)/math/acosf.o \
 	$(libsclobj)/math/fsetexcpt.o \
 	$(libsclobj)/math/ftstexcpt.o \
 	$(libsclobj)/math/hypot.o \
+	$(libsclobj)/math/hypotf.o \
 	$(libsclobj)/math/isinf.o \
 	$(libsclobj)/math/isnan.o \
 	$(libsclobj)/math/ldexpf.o \
@@ -152,6 +154,7 @@ $(libsclobj)/math/atanl.o: math/atanl.s
 $(libsclobj)/math/ceilf.o: math/ceilf.s
 $(libsclobj)/math/ceill.o: math/ceill.s
 $(libsclobj)/math/copysign.o: math/copysign.s
+$(libsclobj)/math/copysignf.o: math/copysignf.s
 $(libsclobj)/math/cosf.o: math/cosf.s
 $(libsclobj)/math/coshf.o: math/coshf.s
 $(libsclobj)/math/coshl.o: math/coshl.s
@@ -159,6 +162,7 @@ $(libsclobj)/math/cosl.o: math/cosl.s
 $(libsclobj)/math/expf.o: math/expf.s
 $(libsclobj)/math/expl.o: math/expl.s
 $(libsclobj)/math/fabs.o: math/fabs.s
+$(libsclobj)/math/fabsf.o: math/fabsf.s
 $(libsclobj)/math/fclrexcpt.o: math/fclrexcpt.s
 $(libsclobj)/math/fegetenv.o: math/fegetenv.s
 $(libsclobj)/math/fegetrnd.o: math/fegetrnd.s
@@ -172,6 +176,7 @@ $(libsclobj)/math/fraiseexc.o: math/fraiseexc.s
 $(libsclobj)/math/fsetexcpt.o: math/fsetexcpt.s
 $(libsclobj)/math/ftstexcpt.o: math/ftstexcpt.s
 $(libsclobj)/math/hypot.o: math/hypot.s
+$(libsclobj)/math/hypotf.o: math/hypotf.s
 $(libsclobj)/math/isinf.o: math/isinf.s
 $(libsclobj)/math/isnan.o: math/isnan.s
 $(libsclobj)/math/ldexpf.o: math/ldexpf.s
