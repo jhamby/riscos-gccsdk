@@ -11,7 +11,7 @@ if [ "$AB_CVS_ROOT" != "" ] ; then
     echo "No CVS module specified"
     exit 1
   else
-    cvs -d $AB_CVS_ROOT co $AB_CVS_MODULE
+    cvs -z9 -d $AB_CVS_ROOT co -P $AB_CVS_MODULE
   fi
 
 elif [ "$AB_SVN" != "" ] ; then
