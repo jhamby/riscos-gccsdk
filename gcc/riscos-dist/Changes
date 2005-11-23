@@ -26,6 +26,9 @@ RISC OS GCC release 3.4.5 release 1 (released XX XXX 2005)
 
 * Longstanding Fortran COMMON bug is fixed.
 
+* Calling SharedCLibrary functions (-mlibscl option) having one or more
+  float arguments resulted in wrong behaviour.  This is now fixed.
+
 
 RISC OS GCC release 3.4.4 release 3 (released 8 July 2005)
 ===================================
