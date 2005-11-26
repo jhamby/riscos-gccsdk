@@ -1,21 +1,25 @@
-
-/* Example module using GCC */
+/* Copyright (c) 2005 GCCSDK Developers
+ *
+ * Example module using GCC.
+ */
 
 #include <stdio.h>
 
 #include "module.h"
 
-_kernel_oserror *module_init(const char *cmd_tail, int podule_base, void *pw)
+_kernel_oserror *
+gccmodule_init(const char *cmd_tail, int podule_base, void *pw)
 {
-  printf("GCC example module initialise\n");
+  puts("GCC example module initialise");
 
   return NULL;
 }
 
 
-_kernel_oserror *module_final(int fatal, int podule, void *pw)
+_kernel_oserror *
+gccmodule_final(int fatal, int podule, void *pw)
 {
-  printf("GCC example module finalise\n");
+  puts("GCC example module finalise");
 
   return NULL;
 }

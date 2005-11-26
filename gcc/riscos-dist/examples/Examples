@@ -2,8 +2,7 @@ RISC OS GCC example applications
 ================================
 
 The following example programs are designed to demonstrate the basics
-of the C, Objective-C and C++ languages and help the user understand the
-GCC compilers.
+of the C and C++ languages and help the user understand the GCC compilers.
 
 For each program, there is a list of the necessary command lines for how
 to compile, link and run the program.
@@ -96,10 +95,29 @@ gccmodule
 Example of RISC OS module generation using GCC.
 
 Source:		c.gccmodule cmhg.module
-Compile using:	gcc -mmodule -mlibscl -c gccmodule.c
-                cmunge -tgcc -32bit module.cmhg -o module.o -d module.h
+Compile using:	cmunge -tgcc -32bit module.cmhg -o module.o -d module.h
+                gcc -mmodule -mlibscl -c gccmodule.c
                 gcc -mmodule -mlibscl module.o gccmodule.o -o gccmodule
 Run using:	gccmodule
+
+
+gccmodule2
+----------
+
+Example of RISC OS FS module generation using GCC and an example of
+a Makefile.  The Makefile and source code is also Acorn C/C++
+compatible.  Note this example needs to presence of OSLib library
+which can be found at <URL:http://ro-oslib.sourceforge.net/>.
+
+Source:		Makefile c.gccmodule2 h.gccmodule_config cmhg.module2
+Compile using:
+  - In TaskWindow:
+      make
+  - When the Makefile filetype FE1 has a RunType defined, like:
+      Set Alias$@RunType_FE1 TaskWindow "make -f %%0 %%*1" -display -quit -wimpslot 8000k -name "Makefile"
+    You can just double click on the Makefile Filer icon and the
+    compilation then happens in a separate TaskWindow.
+Run using:	gccmodule2
 
 
 -EOF-

@@ -1,0 +1,84 @@
+# Copyright (C) 2005 GCCSDK Developers
+#
+# This is an example of a Makefile which can be used in RISC OS by GCCSDK
+# and Acorn C/C++ suite (Norcroft).  It is not suited for cross-compiling.
+#
+# When you have the following defined, dbl clicking on the Makefile Filer
+# icon will build 'gccmodule'.
+#   GCCSDK:
+#     Set Alias$@RunType_FE1 TaskWindow "make -f %%0 %%*1" -display -quit -wimpslot 8000k -name "Makefile"
+#   Norcroft:
+#     Set Alias$@RunType_FE1 TaskWindow "amu -desktop -f %%0 %%*1" -display -quit -wimpslot 8000k -name "Makefile"
+#
+# TOOLCHAIN can have the following values:
+#   - norcroft : Use the Norcroft tools (CC, LINK, CMHG)
+#   - gcc : Use the GCCSDK tools (GCC, CMUNGE)
+TOOLCHAIN=norcroft
+# Enable unit-at-a-time in GCC (yes/no) ?
+UNITATATIME=no
+
+# When using OSLib, DeskLib, TCPIPLibs, etc, you have to specify their
+# header include directories.  E.g.  -IOSLib: -ITCPIPLibs:
+INCLUDE    = -IOSLib:
+
+ifeq ($(TOOLCHAIN),gcc)
+## GCC:
+CC         = gcc
+CC_FLAGS   = -O3 -std=c99 -mmodule -mlibscl -mthrowback $(INCLUDE)
+LINK       = gcc
+LINK_FLAGS = -mmodule -mlibscl
+CMHG       = cmunge
+CMHG_FLAGS = -throwback -p -tgcc -32bit -zbase
+else
+## Norcroft:
+CC         = cc
+CC_FLAGS   = -throwback -zM -zps0 -ffa -Wp -IC: $(INCLUDE)
+LINK       = link
+LINK_FLAGS = -rmf C:o.Stubs
+CMHG       = cmhg
+CMHG_FLAGS = -throwback -p
+
+UNITATATIME= no
+endif
+
+MODOBJS = module2.o
+ifneq ($(TOOLCHAIN),gcc)
+MODOBJS += ro_base.o
+endif
+
+# Here you need to specify extra libraries if you use them, like:
+# TCPIPLibs:o.inetlibzm TCPIPLibs:o.unixlibzm TCPIPLibs:o.socklibzm \
+# OSLib:o.OSLib32
+LIBS = OSLib:o.OSLib32
+
+# Add here all your C files :
+MODSRCS =  gccmodule2.c
+
+.INIT:
+	@cdir o
+
+.PHONY: all
+
+.SUFFIXES: .o .c .s
+
+.c.o:;	$(CC) $(CC_FLAGS) -c -o $@ $<
+.s.o:;	$(CC) $(CC_FLAGS) -c -o $@ $<
+
+# Static dependencies:
+
+all: gccmodule2
+
+ifeq ($(UNITATATIME),yes)
+# One big compilation (GCC only):
+gccmodule2: $(MODSRCS) module2.h $(MODOBJS)
+	$(CC) $(CC_FLAGS) -o $@ $(MODSRCS) $(MODOBJS) $(LIBS)
+else
+# Object-per-object compilation:
+gccmodule2: module2.h $(MODSRCS:.c=.o) $(MODOBJS)
+	$(LINK) $(LINK_FLAGS) -o $@ $(MODSRCS:.c=.o) $(MODOBJS) $(LIBS)
+endif
+
+module2.h module2.o: module2.cmhg
+	$(CMHG) $(CMHG_FLAGS) module2.cmhg -o module2.o -d module2.h
+
+# Dynamic dependencies:
