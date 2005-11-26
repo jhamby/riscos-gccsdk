@@ -38,9 +38,11 @@ GCCPKG = $(pkg)/\!Run,feb \
 	$(bindir)/apcs32/abs/libscl/o/libscl \
 	$(bindir)/apcs32/abs/libscl/o/libgcc \
 	$(bindir)/apcs32/abs/unixlib/o/libgcc \
+	$(bindir)/apcs32/abs/unixlib/o/libgcov \
 	$(bindir)/apcs32/abs/unixlib/o/unixlib \
 	$(bindir)/apcs32/rma/libscl/o/libscl \
-	$(bindir)/apcs32/rma/libscl/o/libgcc
+	$(bindir)/apcs32/rma/libscl/o/libgcc \
+	$(bindir)/apcs32/abs/libscl/o/libgcov
 
 GCCDOCPKG = $(pkg)/docs/COPYING \
 	$(pkg)/docs/COPYINGLIB \
@@ -107,9 +109,7 @@ UTILSPKG = $(pkg)/bin/bison$(exesfx) \
 	$(pkg)/docs/InfoZip/* \
 	$(pkg)/docs/rink \
 	$(bindir)/apcs32/abs/unixlib/o/libfl \
-	$(bindir)/apcs32/abs/unixlib/o/libgcov \
-	$(bindir)/apcs32/abs/unixlib/o/libiberty \
-	$(bindir)/apcs32/abs/libscl/o/libgcov
+	$(bindir)/apcs32/abs/unixlib/o/libiberty
 
 SYSTEMPKG = `basename $(ro_syspkg)`
 
