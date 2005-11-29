@@ -2,9 +2,23 @@ Log file for CMunge
 ===================
 
 ------------------------------------------------------------------------
+    Version 0.69 15:24:53 1/11/2005
+------------------------------------------------------------------------
+$Log: VersionLog,v $
+Revision 1.58  2005/11/01 15:26:59  justin
+Summary:
+  Minor documentation fixes from John Tytgat.
+Detail:
+  * Typos and spelling mistakes for words which I regularly get wrong
+    supplied by John Tytgat.
+Admin:
+  No actual code changes; just documentation.
+Tag:
+  CMunge-0_69
+
+------------------------------------------------------------------------
     Version 0.68 19:04:09 31/7/2005
 ------------------------------------------------------------------------
-$Log: History,v $
 Revision 1.57  2005/07/31 18:14:23  justin
 Summary:
   Fix for potential unaligned instruction.
@@ -85,7 +99,7 @@ Detail:
     to the change of the pre-processor behaviour in -p over -px; these
     are local issues as I am probably the only author to use this
     feature. Module builds and their subsequent operation on being loaded
-    performed as previously with no noticable difference.
+    performed as previously with no noticeable difference.
 Admin:
   Corrections provided by John Tytgat. Doesn't affect the tool at all.
   Testing is, I feel, adequate now to say the changed GCC support features
@@ -107,7 +121,7 @@ Summary:
   GCC toolchain fix for invalid throwback error.
 Detail:
   * The GCC toolchain warnings had been incorrectly merged from John
-    Tytgats changes and a -throwback option would generate an error
+    Tytgat's changes and a -throwback option would generate an error
     because it fell through to the Norcroft case. We now break there.
   * The filename code had a redundant static buffer, now removed.
 Admin:
@@ -146,7 +160,7 @@ Detail:
     CMHG, we first try to open the file using the given filename and if that
     fails, we assume the filename was "source.c"-style and try the
     "c.source"-style instead. The conversion code is on c.filename and is
-    believed to be correct. The extension-set used is equivilent to that
+    believed to be correct. The extension-set used is equivalent to that
     of CMHG.
   * c.filename: provides the translation between RISC OS and Unix naming
     conventions, with extension swapping where appropriate.
@@ -165,7 +179,7 @@ Detail:
   * c.options, h.options (Options_CL): processing of the "-h"/"-help" cmd
     line option is delayed (via the opt.help_requested variable) until all
     options are processed.  This allows the user to see what the apcs
-    selection is in the produced help text output whe apcs and "-h"/"-help"
+    selection is in the produced help text output when apcs and "-h"/"-help"
     are mixed *irrespectively* of the order of those options (i.e. before
     this fix "cmunge -32bit -h" gave a different output as "cmunge -h
     -32bit").
@@ -231,7 +245,7 @@ Detail:
     that we are fault this if passed to a CMunge that does not support it,
     we now cause an error if this is supplied.
 Admin:
-  Tested with example files supplied byb John Tytgat.
+  Tested with example files supplied by John Tytgat.
   Differences in CMHG and CMunge pre-processing reported and diagnosed by
   John Tytgat.
   It appears that carry-capable returns are still not supported in 32bit
@@ -381,7 +395,7 @@ Detail:
     header generation now creates correct dependency information.
 Admin:
   Tested with component seen to be failing and appears to generate the
-  corrent dependencies for both headers and object files.
+  correct dependencies for both headers and object files.
 Tag:
   CMunge-0_56
 
@@ -570,7 +584,7 @@ Detail:
   * In the -help output we display the names of the -apcs flags and their
     descriptions. This is partly as a reminder for CMunge, but also it
     is useful when the options for the compiler have been forgotten as
-    the options are equivilent. If a -apcs option is specified with the
+    the options are equivalent. If a -apcs option is specified with the
     -help option this will update the flags to the newly selected APCS
     variant. This may be useful for debugging.
 Admin:
@@ -607,7 +621,7 @@ Revision 1.35  2003/08/14 21:03:14  justin
 Summary:
   Added support for GCC toolchain.
 Detail:
-  * The code can now use gcc toolchain (as/cpp) rather than the norcroft
+  * The code can now use gcc toolchain (as/cpp) rather than the Norcroft
     toolchain (objasm/cc). This has required a little bit of testing and
     it should work correctly for most environments. However, in order to
     accomodate as's more limited evaluation, I've removed one of the
@@ -694,7 +708,7 @@ Summary:
 Detail:
   * We now define CMHG_VERSION to the closest version number that we
     support. It appears that 5.31 matches the feature set of CMunge rather
-    nicely - it's not a perfect match, but it's pretty close. Singificant
+    nicely - it's not a perfect match, but it's pretty close. Significant
     differences are in the 32bit code generation and since we don't care
     about the code format in the header, this is not significant.
   * Previously we used Module_VersionNumber as the define for the version
@@ -779,7 +793,7 @@ Summary:
   Added support for error block generation.
 Detail:
   * -zerrors will generate a AOF file containing just error blocks. This
-    is useful for occassions when error blocks are required by a library
+    is useful for occasions when error blocks are required by a library
     but you do not wish to include an assembler component to the library.
 Admin:
   Tested locally with and required for the WebImage libraries.
@@ -910,7 +924,7 @@ Detail:
     wrapping routines to wrap text, rather than being hardcoded. This
     should make maintenance of the text a little easier.
   * Duplicated entries (eg irq_handlers on multiple lines, rather than
-    appended to the first line) would replace the preceeding entries; this
+    appended to the first line) would replace the preceding entries; this
     caused problems with things that relied on this CMHG behaviour. We
     now support this format.
 Admin:
@@ -931,7 +945,7 @@ Detail:
   * New file comments has been created that contains two simple veneers
     to the formatting routines for writing out standard format comments.
     These are very simple and will ensure that the comments come out
-    ina similar format whereever they are used.
+    in a similar format whereever they are used.
   * The blank file generation has been converted to use the formatting
     routines, rather than using its own local copy of a similar routine.
     This ensures that the text strings we use are the same throughout
@@ -1237,7 +1251,7 @@ Detail:
     Release phases. This allows a more standardised build system, with
     much greater control over how components are built and the automatic
     building of components which are required without the requirement for
-    complex interdependant makefiles. The changes in the way in which
+    complex interdependent makefiles. The changes in the way in which
     CMunge is built do not affect the external release version as they are
     transparent in use.
 Admin:
@@ -1414,7 +1428,7 @@ v0.05  06/10/99
   
   Added undefine handling.
   
-  Added Include path handlig.
+  Added Include path handling.
   
   First stab at -depend, but not happy with it (so undocumented) (except here
     obviously).
