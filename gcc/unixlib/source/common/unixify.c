@@ -1,8 +1,8 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/common/unixify.c,v $
- * $Date: 2005/07/20 18:29:30 $
- * $Revision: 1.18 $
+ * $Date: 2005/07/23 14:38:55 $
+ * $Revision: 1.19 $
  * $State: Exp $
  * $Author: peter $
  *
@@ -286,7 +286,7 @@ __unixify (const char *ro_path, int unixify_flags, char *buffer,
   else if (buf_len == 0)
     return NULL;
 
-  if (unixify_flags & __RISCOSIFY_NO_PROCESS)
+  if (unixify_flags & __RISCOSIFY_NO_PROCESS || ro_path[0] == '/')
     {
       size_t len = strlen (ro_path);
       /* Equal sizes would leave no room for terminating '\0'  */

@@ -1,3 +1,8 @@
+Sun Dec  4 17:11:31 2005  Alex Waugh  <alex@alexwaugh.com>
+
+	* source/common/unixify.c: Don't convert absolute filenames that
+	  are already in Unix format.
+
 Wed Nov 16 03:38:56 2005  John Tytgat  <John.Tytgat@aaug.net>
 
 	* Removed EMBED_RCSID.
