@@ -1,4 +1,4 @@
-Welcome to GCC 3.4.5 release 1 for RISC OS.
+Welcome to GCC 3.4.5 Release 1 for RISC OS.
 
 This document covers important notes for new users and existing users alike.
 GCC and UnixLib have undergone many changes, so it's important that you read
@@ -73,12 +73,12 @@ Credits:
   An enormous amount of porting and testing work was done by Nick Burrett.
   Without his contribution GCCSDK wouldn't exist.
 
-  The following people have also made contributions over the last two years :
+  The following people have also made contributions over the last three years :
 
   - Graham Shaw, John-Mark Bell, James Bursa, Stefan Bellon,
     David Marston, Steve Ellacott, Rich Hudson, Jeffrey Lee,
     Alex Macfarlane Smith, Christian Ludlam, Tony van der Hoff,
-    Theo Markettos, Philip Pemberton
+    Theo Markettos, Philip Pemberton, Alan Buckley
 
   Special thanks to the following people having written programs which are
   used in the GCCSDK project :
