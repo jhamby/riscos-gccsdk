@@ -1,3 +1,11 @@
+Wed Dec 14 21:07:03 2005
+
+	* !Help: Update version to 4.2
+	* source/sound/dsp.c: Buffer calculation improvements 
+	  from Alan Buckley.
+	* source/clib/local.h, source/common/unixify.c:
+          New __unixify_ext function.
+
 Sun Dec  4 17:11:31 2005  Alex Waugh  <alex@alexwaugh.com>
 
 	* source/common/unixify.c: Don't convert absolute filenames that

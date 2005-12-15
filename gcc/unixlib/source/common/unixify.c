@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/common/unixify.c,v $
- * $Date: 2005/07/23 14:38:55 $
- * $Revision: 1.19 $
+ * $Date: 2005/12/04 17:13:43 $
+ * $Revision: 1.20 $
  * $State: Exp $
- * $Author: peter $
+ * $Author: alex $
  *
  ***************************************************************************/
 
@@ -241,6 +241,37 @@ char *
 __unixify_std (const char *name, char *buffer, size_t buflen,
 		     int filetype)
 {
+  return __unixify (name, __get_riscosify_control (), buffer, buflen,
+		    filetype);
+}
+
+/* Call __unixify with __riscosify_flags as the unixify_flags,
+   and use 'ext' to help disambiguate using a specific file extension.  */
+char *
+__unixify_ext (const char *name, char *buffer, size_t buflen,
+               int filetype, const char *ext)
+{
+  int namelen = strlen(name);
+  int extlen  = strlen(ext);
+
+  if (extlen < namelen && strcmp(name + namelen - extlen, ext) == 0)
+    {
+
+      if (name[namelen - extlen - 1] == '.' && !strchr(name, '/'))
+        return __unixify(name, __RISCOSIFY_NO_PROCESS, buffer, buflen,
+                         filetype);
+  
+      if (name[namelen - extlen - 1] == '/' && !strchr(name, '.'))
+        {
+          char *extname = alloca(namelen + 3);
+  
+          strcpy(extname, "@.");
+          strcat(extname, name);
+  
+          name = extname;
+        }
+      }
+
   return __unixify (name, __get_riscosify_control (), buffer, buflen,
 		    filetype);
 }

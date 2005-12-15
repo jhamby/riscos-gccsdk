@@ -210,6 +210,9 @@ extern char *__unixify (const char *__name, int __unixify_flags,
 extern char *__unixify_std (const char *__name,
 			    char *__buffer, size_t __buf_len,
 			    int __filetype);
+extern char *__unixify_ext (const char *name, char *buffer, size_t buflen,
+                            int filetype, const char *ext);
+
 
 /* Get an object's filetype, object type, etc and do some common checks.
    Returns nonzero and sets errno on error. Returns riscosified filename

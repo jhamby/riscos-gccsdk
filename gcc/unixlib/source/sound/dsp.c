@@ -1,8 +1,8 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sound/dsp.c,v $
- * $Date: 2005/04/14 15:17:23 $
- * $Revision: 1.11 $
+ * $Date: 2005/04/18 17:04:56 $
+ * $Revision: 1.12 $
  * $State: Exp $
  * $Author: nick $
  *
@@ -48,16 +48,20 @@
 
 
 /* If we've called atexit */
-static int handler_installed = 0;
+static int handler_installed;
 /* If we're currently registered with DigitalRenderer */
-static int dr_registered = 0;
+static int dr_registered;
 
 static int dr_channels  = 2;
 static int dr_format    = AFMT_S16_LE;
 static int dr_frequency = 44100;
 
-static int dr_buffers;     /* Number of buffers in use */
+static int dr_buffers = 0;     /* Number of buffers in use */
 static int dr_fragscale  = 1;
+
+
+/* Avoid warnings, but don't advertise */
+void dsp_exit(void);
 
 
 /* Close /dev/dsp upon exit if it's still open.  This is mostly
@@ -106,11 +110,19 @@ static _kernel_oserror *set_defaults (struct __unixlib_fd *fd,
   dr_registered = 0;
 
   if (buffers)
-    dr_buffers = buffers;
-  else
-    dr_buffers = (int)((double)DRENDERER_CSEC_TO_BUFFER
-		       / ((double)DRENDERER_BUFFER_SIZE * 100.0
-			  / dr_frequency)) + 1;
+    {
+      dr_buffers = buffers;
+    }
+  else if (dr_buffers == 0)
+    {
+      /* This still isn't quite correct as the buffers should
+         really change if the frequency is changed, however as
+	 the default will buffer for a relatively long time
+	 anyway I don't think it matters. */
+      dr_buffers = (int)((double)DRENDERER_CSEC_TO_BUFFER
+                   / ((double)DRENDERER_BUFFER_SIZE * 100.0
+                   / dr_frequency)) + 1;
+    }
 
   regs.r[0] = dr_buffers;
   if ((err = _kernel_swi(DigitalRenderer_NumBuffers, &regs, &regs)))
@@ -132,7 +144,7 @@ static _kernel_oserror *set_defaults (struct __unixlib_fd *fd,
         return err;
 
       if (!_kernel_swi(DigitalRenderer_GetFrequency, &regs, &regs))
-	dr_frequency = regs.r[0];
+	  dr_frequency = regs.r[0];
     }
   else
     {
@@ -209,11 +221,13 @@ int __dspwrite (struct __unixlib_fd *fd, const void *data, int nbyte)
   _kernel_oserror *err;
   _kernel_swi_regs regs;
   int left = nbyte;
+  int buffer_byte_size = DRENDERER_BUFFER_SIZE * dr_channels;
+  if (dr_format == AFMT_S16_LE) buffer_byte_size <<= 1;
 
   while (left > 0)
     {
-      int towrite = ((left < DRENDERER_BUFFER_SIZE)
-		     ? left : DRENDERER_BUFFER_SIZE);
+      int towrite = ((left < buffer_byte_size)
+		     ? left : buffer_byte_size);
 
       do
 	{
@@ -232,8 +246,14 @@ int __dspwrite (struct __unixlib_fd *fd, const void *data, int nbyte)
 	  __pthread_disable_ints();
 	} while (1);
     
-      regs.r[0] = (int)data + nbyte - left;
-      regs.r[1] = towrite / dr_channels;
+        regs.r[0] = (int)data + nbyte - left;
+        /* Size is in samples, counting left and right as separate samples
+           so it is always divided by 2 for 16 bit samples regardless of
+           the number of channels */
+        if (dr_format == AFMT_S16_LE)
+          regs.r[1] = (towrite >> 1);
+        else
+	  regs.r[1] = towrite;
 
       if ((err = _kernel_swi((dr_format == AFMT_S16_LE)
 			     ? DigitalRenderer_Stream16BitSamples
@@ -244,7 +264,7 @@ int __dspwrite (struct __unixlib_fd *fd, const void *data, int nbyte)
           return -1;
         }
 
-      left -= DRENDERER_BUFFER_SIZE;
+      left -= buffer_byte_size;
     }
 
   return nbyte;
@@ -298,8 +318,13 @@ int __dspioctl (struct __unixlib_fd *fd, unsigned long request, void *arg)
         }
 
       case SNDCTL_DSP_GETBLKSIZE & 0xffff:
-        *((int *)arg) = DRENDERER_BUFFER_SIZE;
-        return 0;
+	{
+          int blksize = DRENDERER_BUFFER_SIZE * dr_channels;
+          if (dr_format == AFMT_MU_LAW) blksize <<= 1;
+          *((int *)arg) = blksize;
+
+          return 0;
+        }
 
       case SNDCTL_DSP_CHANNELS & 0xffff:
         {
@@ -317,7 +342,11 @@ int __dspioctl (struct __unixlib_fd *fd, unsigned long request, void *arg)
           int fragments = fragspec >> 16;
           int fragsize  = 1 << (fragspec & 0xffff);
 
-          dr_fragscale = (fragsize / DRENDERER_BUFFER_SIZE);
+	  /* fragsize is in bytes, but the buffer size used
+	     by DigitalRenderer is in samples */
+          dr_fragscale = (fragsize / (DRENDERER_BUFFER_SIZE * dr_channels));
+	  if (dr_format == AFMT_S16_LE) dr_fragscale >>= 1;
+
           if (dr_fragscale == 0) dr_fragscale = 1;
           fragments *= dr_fragscale;
 
@@ -340,9 +369,13 @@ int __dspioctl (struct __unixlib_fd *fd, unsigned long request, void *arg)
 
           info->fragments  = (dr_buffers - regs.r[0]) / dr_fragscale;
           info->fragstotal = dr_buffers / dr_fragscale;
-          info->fragsize   = DRENDERER_BUFFER_SIZE * dr_fragscale;
-          info->bytes      = DRENDERER_BUFFER_SIZE * dr_fragscale * dr_buffers;
-
+          info->fragsize   = DRENDERER_BUFFER_SIZE * dr_fragscale * dr_channels;
+          info->bytes      = (dr_buffers - regs.r[0]) * DRENDERER_BUFFER_SIZE * dr_channels;
+          if (dr_format == AFMT_S16_LE)
+          {
+            info->fragsize <<= 1;
+            info->bytes <<= 1;
+          }
           return 0;
         }
 
