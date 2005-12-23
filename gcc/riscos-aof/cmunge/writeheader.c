@@ -769,12 +769,16 @@ static void event_handler(void) {
 }
 
 typedef enum {
-  ret_int,
-  ret_err,
-  ret_errspecial /* Used for the vector trap routines */
+  ret_int,       /* vector/irq */
+  ret_err,       /* generic */
+  ret_errspecial /* vector-trap */
 } rettype;
 
-static void handlers(handler_list h, const char *type, rettype rtype) {
+static void handlers(handler_list head, const char *type, rettype rtype) {
+
+  int carry_used = 0;
+  int error_used = 0;
+  handler_list h = head;
 
   static prototypedef_t header_entry =
   {
@@ -819,9 +823,18 @@ static void handlers(handler_list h, const char *type, rettype rtype) {
   {
     case ret_int:
       header_handler.returntype = "int";
-      header_handler.exit = "Update r to alter return values\n"
-                            "Return 0 to claim (return via stack)\n"
-                            "Return non-0 to pass on (return via r14)";
+      if (head != opt.irqs)
+      {
+        header_handler.exit = "Update r to alter return values\n"
+                              "Return VECTOR_PASS to claim (return via stack)\n"
+                              "Return VECTOR_CLAIM to pass on (return via r14)";
+      }
+      else
+      {
+        header_handler.exit = "Update r to alter return values\n"
+                              "Return 0 to claim (return via stack)\n"
+                              "Return non-0 to pass on (return via r14)";
+      }
       break;
 
     case ret_err:
@@ -904,6 +917,11 @@ static void handlers(handler_list h, const char *type, rettype rtype) {
     else
       header_handler.param[2].type = NULL;
 
+    if (h->carry_capable)
+      carry_used = 1;
+    if (h->error_capable)
+      error_used = 1;
+
     prototype_write(&header_entry);
     prototype_write(&header_handler);
 
@@ -916,16 +934,47 @@ static void handlers(handler_list h, const char *type, rettype rtype) {
                     "whatsoever. It is available as an optimisation "
                     "over calling the trap function as a return "
                     "parameter.");
-    fprintf(file,"#define VECTORTRAP_PASSON ((_kernel_oserror *)1)\n\n");
+    fprintf(file,"#define VECTORTRAP_PASSON ((%s *)1)\n\n", error);
   }
 
-  if (rtype==ret_err)
+  if (rtype==ret_err && carry_used)
   {
-    c_comment(file, "VENEER_SETCARRY can be used on routines which have "
-                    "been marked as capable of having a carry flag returned "
-                    "to return with the carry flag set. All other registers "
-                    "are preserved.");
-    fprintf(file,"#define VENEER_SETCARRY ((_kernel_oserror *)2)\n\n");
+    c_comment(file, "VENEER_SETCARRY can be returned from routines which "
+                    "have been marked as capable of having a carry flag "
+                    "returned to return with the carry flag set. All other "
+                    "registers are preserved.");
+    fprintf(file,"#define VENEER_SETCARRY ((%s *)2)\n\n", error);
+  }
+
+  {
+    static int wrote_vectors = 0;
+    /* We don't write out on IRQs because a) they're deprecated and
+                                          b) it makes a mess of the way
+                                             that we handle it */
+    if (rtype==ret_int && !wrote_vectors && head != opt.irqs)
+    {
+      wrote_vectors = 1;
+      c_comment(file, "VECTOR_PASSON can be returned from vectors to pass "
+                      "the call on to other handlers.");
+      fprintf(file,"#define VECTOR_PASSON (1)\n");
+      if (error_used)
+      {
+        c_comment(file, "VECTOR_CLAIM(err) can be returned from routines which "
+                        "have been marked as capable of having an error returned "
+                        "as well as claiming the call. All other registers "
+                        "are preserved if the error pointer is not NULL. Use "
+                        "VECTOR_CLAIM(NULL) to just claim without returning an "
+                        "error.");
+        fprintf(file,"#define VECTOR_CLAIM(err) ((int)(err))\n\n");
+      }
+      else
+      {
+        c_comment(file, "VECTOR_CLAIM can be returned from vectors to claim "
+                        "the vector and return with the updated register "
+                        "block.");
+        fprintf(file,"#define VECTOR_CLAIM (0)\n\n");
+      }
+    }
   }
 }
 

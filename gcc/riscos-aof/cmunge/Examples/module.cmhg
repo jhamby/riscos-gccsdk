@@ -50,3 +50,5 @@ generic-veneers:        generic_entry/generic_handler(private-word: r1),
 ; Look - two event-handlers
 event-handler: Event_Entry/Event_Handler 1 2 3 4 5 6
 event-handler: SecondEvent_Entry/SecondEvent_Handler 25 22 11 7
+
+vector-handlers:        VectorTest(error-capable:)

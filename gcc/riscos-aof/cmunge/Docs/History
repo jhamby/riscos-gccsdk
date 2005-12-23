@@ -2,9 +2,86 @@ Log file for CMunge
 ===================
 
 ------------------------------------------------------------------------
-    Version 0.69 15:24:53 1/11/2005
+    Version 0.70 19:55:30 17/12/2005
 ------------------------------------------------------------------------
 $Log: VersionLog,v $
+Revision 1.59  2005/12/17 20:25:53  justin
+Summary:
+  Updated documentation to reflect obsolete nature of irq-handlers.
+  Updated documentation with details of the error-capable vector-handlers.
+  Updated documentation with short note about build switches.
+  Updated documentation with note about command line compatibility with
+    CMHG.
+  Added support for error-capable to vector-handlers.
+  Updated the blank values for swi-chunk-base-number and error-base to
+    use safer values.
+Detail:
+  * The irq-handlers entry is obsolete, as declared in the old DDE
+    manual, and we should not really be promoting its use by listing it
+    before the vector-handlers entry that replaces it. The
+    vector-handlers entry has consequently replaced that of the
+    irq-handlers, and the irq-handlers entry has been marked as being
+    obsolete. Additionally, the examples within that entry use the name
+    'wrch' instead of 'irq1' as IRQ handlers are actually unlikely to
+    be used by users.
+  * Vector handlers (see below) are now documented in place of the old
+    irq-handlers documentation (as described above). We give the
+    parameter form in a similar way to that given in the generic-veneers
+    entry.
+  * A question about using CMunge to build 32bit modules was received a
+    while back and this prompted the addition of a note about the
+    building of modules for neutrality. In addition, I've suggested that
+    automated builds use the -apcs switch as this is more broadly
+    compatible than the redundant -26bit/-32bit switches.
+  * Alongside the file format and header file compatibility, I've added
+    some notes about the command line switch compatibility. This reads a
+    little like a feature list, but it is intended to provide
+    information necessary to interwork with both tools, should the CMHG
+    tool ever gain features which are not supported by this tool.
+  * The vector-handler entry point now accepts parameters. This is
+    supported by the generalised 'read_handlers' function being updated
+    to take a flags word instead of a single flag. The other handler
+    functions now pass in the relevant flags so that values might be
+    updated in the structure. Primarily this affects the 'read_generics'
+    and 'read_vectors' which are the only handlers that support
+    parameters at present.
+    The code generated has changed for the handlers in some important
+    ways. In particular, the entry number which is to be called used to
+    be in r2 as a table offset. It is now in r9 as a table index (ie
+    offset divided by 4), with a flag in bit 31. If the flag in bit 31
+    is set, the entry is 'error-capable' and requires special handling
+    on return. Notice that the use of bit 31 reduces the effective range
+    of the values by 4; that is that if there are error-capable handlers
+    present they must be within the first 64 handlers rather than the
+    full 256 which are possible for regular handlers.
+    It is the return which is the reason for the change to using R9 - it
+    will be preserved by APCS calling conventions. If any 'error-capable'
+    routines are used, an alternate return sequence is constructed which
+    deals with the return. Because it is the PSR flags which being
+    manipulated, the exit sequences are significantly different for the
+    26bit and 32bit versions.
+  * The swi-chunk-base-number and the error-base are now within sensible
+    ranges. In addition, I have taken the values from the PRM which have
+    been reserved and added these to the descriptions. This should help
+    decide what numbers to use 'randomly' during development. Obviously
+    developers won't bother to register values at the start of a
+    project even though that is recommended, so we try to help out by
+    giving them the ranges so that they know what is sensible.
+Admin:
+  Tested within new module for which the error-capable flag was required
+  and appears to be functional. Manual examination of non-error-capable
+  output appears to be correct, and building of modules which are
+  non-error-capable appears unaffected by these changes.
+  In looking at the code, one thing that is obvious is the duplication
+  of the vector entries within the irq handler and vector handler code.
+  It seems unnecessary; we could use a single variable. However, for now
+  this rationalisation has been left.
+Tag:
+  CMunge-0_70
+
+------------------------------------------------------------------------
+    Version 0.69 15:24:53 1/11/2005
+------------------------------------------------------------------------
 Revision 1.58  2005/11/01 15:26:59  justin
 Summary:
   Minor documentation fixes from John Tytgat.

@@ -709,7 +709,11 @@ static void read_commands(const char *s, FILE *file) {
   *l = NULL;
 }
 
-static void read_handlers(const char *s, handler_list *h, int allow_pw,
+#define HANDLER_ALLOW_PW    (1<<0)
+#define HANDLER_ALLOW_CARRY (1<<1)
+#define HANDLER_ALLOW_ERROR (1<<2)
+
+static void read_handlers(const char *s, handler_list *h, unsigned long allow,
                           FILE *file) {
 
   /* Find the end of the list, so that we append to whatever is already there, rather
@@ -723,6 +727,7 @@ static void read_handlers(const char *s, handler_list *h, int allow_pw,
     s = strfindpair(s, &(*h)->name, &(*h)->handler);
     (*h)->private_word = -1;
     (*h)->carry_capable = 0;
+    (*h)->error_capable = 0;
     if (*s == '(')
     {
       if (opt.cmhg)
@@ -731,7 +736,7 @@ static void read_handlers(const char *s, handler_list *h, int allow_pw,
       s = strskip(s, '(');
       while (*s != ')') {
         if (strprefix(s, "private-word:")) {
-          if (!allow_pw)
+          if (!(allow & HANDLER_ALLOW_PW))
             ErrorFatal("private-word argument not permitted");
           if ((*h)->private_word != -1)
             ErrorFatal("private-word supplied twice!");
@@ -745,14 +750,21 @@ static void read_handlers(const char *s, handler_list *h, int allow_pw,
           s = strint(s, (unsigned int *)&(*h)->private_word);
           if ((*h)->private_word < 0 ||
               (*h)->private_word > 12)
-            ErrorFatal("private-word register must be 0-12!");
+            ErrorFatal("private-word register must be r0-r12!");
         } else if (strprefix(s, "carry-capable:")) {
-          /* JRF: I'm reusing the allow_pw here just because it's simpler */
-          if (!allow_pw)
+          if (!(allow & HANDLER_ALLOW_CARRY))
             ErrorFatal("carry-capable argument not permitted");
           (*h)->carry_capable = 1;
 
           s += strlen("carry-capable:");
+          while (isspace(*s))
+            s++;
+        } else if (strprefix(s, "error-capable:")) {
+          if (!(allow & HANDLER_ALLOW_ERROR))
+            ErrorFatal("error-capable argument not permitted");
+          (*h)->error_capable = 1;
+
+          s += strlen("error-capable:");
           while (isspace(*s))
             s++;
         } else if (Feof(file)) {
@@ -793,18 +805,11 @@ static void read_swidec(const char *s, FILE *file) {
     ErrorFatal("Junk found at end of swi-decoding-code!");
 }
 
-/* Notes about the blank section :
-    * The 'blank' data is used to generate a blank cmhg file.
-    * All ft_alias entries will be ignored.
-    * Fields will be used IN ORDER
-    * Comments will be word wrapped by the blank generation code
-    * End your sentances with a .
-*/
 
 static void read_generics(const char *s, FILE *file)
 {
   UNUSED(file);
-  read_handlers(s, &opt.generics, 1, file);
+  read_handlers(s, &opt.generics, HANDLER_ALLOW_PW | HANDLER_ALLOW_CARRY, file);
 }
 
 static void read_irqs(const char *s, FILE *file)
@@ -816,7 +821,7 @@ static void read_irqs(const char *s, FILE *file)
 static void read_vectors(const char *s, FILE *file)
 {
   UNUSED(file);
-  read_handlers(s, &opt.vectors, 0, file);
+  read_handlers(s, &opt.vectors, HANDLER_ALLOW_ERROR, file);
 }
 
 static void read_vector_traps(const char *s, FILE *file)
@@ -925,6 +930,13 @@ static void read_runnable(const char *s, FILE *file)
   }
 }
 
+/* Notes about the blank section :
+    * The 'blank' data is used to generate a blank cmhg file.
+    * All ft_alias entries will be ignored.
+    * Fields will be used IN ORDER
+    * Comments will be word wrapped by the blank generation code
+    * End your sentances with a .
+*/
 
 field_t fields[] =
 {
@@ -970,10 +982,16 @@ field_t fields[] =
     }, IN_BOTH },
 
   { "swi-chunk-base-number",       { NULL, ft_xint64,   &opt.swi_base },
-    { "&1280", /* Change this to a number in the user allocatable range */
+    { "&C0000", /* Now in the user allocatable range */
       "If you supply SWIs in your module, you must provide a base number "
       "at which these start. Each chunk is 64 entries long and must be "
-      "registered if the module is going to be distributed."
+      "registered if the module is going to be distributed.\n"
+      "SWI chunks     &0- &3FFC0 are for operating system use.\n"
+      "           &40000- &7FFC0 are for operating system exetensions.\n"
+      "           &80000- &BFFC0 are for third party applications.\n"
+      "           &C0000- &FFFC0 are for user applications.\n"
+      "Bit 17 will always be clear on the SWI chunk number.\n"
+      "Consult PRM 1-26 for more details."
     }, IN_BOTH },
 
   /* For now we'll relax the error-base restraints. This should /really/
@@ -982,12 +1000,17 @@ field_t fields[] =
      entries, but Theo has pointed out that this may not be sufficiently
      wide for all uses. Left as int for now. */
   { "error-base",                  { NULL, ft_int,      &opt.error_base },
-    { "&1280", /* Make sure this is a user allocatable one too */
+    { "&840000", /* Closer to a 'user-range'. */
       "If you have any error messages in your module that are returned "
       "through the standard interfaces, you should use different error "
       "numbers for each, starting at a base number. You should register "
       "your error bases before distributing the module. Using random "
-      "error numbers is dangerous."
+      "error numbers is dangerous.\n"
+      "Error chunks        &0-   &7FFFFF are for operating system use.\n"
+      "               &800000-   &FFFFFF are for other authors.\n"
+      "             &1B000000- &1BFFFFFF are for program (NOT module) errors.\n"
+      "             &80000000- &FFFFFFFF are for serious hardware exceptions.\n"
+      "Consult PRM 1-43, 5a-493 for more details."
     }, IN_CMUNGE | IN_ERRORS },
   { "error-chunk-base-number",     { NULL, ft_alias,   (void*)"error-base" } },
 
@@ -1081,11 +1104,8 @@ field_t fields[] =
 
   { "irq-handlers",                { read_irqs,     ft_none, &opt.irqs },
     { "IRQ_Entry/IRQ_Handler",
-      "IRQ veneers are used to provide a simple C environment for SVC "
-      "and IRQ modes. You should register the Entry routine as the external "
-      "interface (ie provide it as the code address to call). The Handler "
-      "routine will be called from this. You can return 0 or 1 from your "
-      "routine to say you either handled the interrupt, or did not."
+      "IRQ veneers are the old name for vector-handlers. Use vector-handlers in "
+      "preference to irq-handlers."
     }, IN_BOTH },
 
   { "vector-handlers",             { read_vectors,  ft_check, &opt.vectors },
@@ -1094,7 +1114,13 @@ field_t fields[] =
       "and IRQ modes. You should register the Entry routine as the external "
       "interface (ie provide it as the code address to call). The Handler "
       "routine will be called from this. You can return 0 or 1 from your "
-      "routine to say you either handled the vector, or did not."
+      "routine to say you either handled the vector, or did not. "
+      "Parameters for the veneer may be specified in brackets in the same "
+      "form as command keywords :\n"
+      "\t({<field>: <value>})\n"
+      "Field names:\n"
+      "\terror-capable:\bVeneer is capable of claiming the vector and "
+                        "returning an error"
     }, IN_BOTH },
 
   { "vector-traps",                { read_vector_traps, ft_check, &opt.vector_traps },

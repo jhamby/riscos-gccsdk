@@ -11,7 +11,7 @@ aren't developing software for one, then don't bother reading any further.
 
 OK. The base functionality of a RISC OS machine can be extended by loading
 new software components called 'relocatable modules'. These are loosely
-equivalent to DLLs on windows etc. If you don't know what a relocatable
+equivalent to DLLs on Windows etc. If you don't know what a relocatable
 module is, then you are out of your depth. Go read the PRMs or something.
 
 Modules have traditionally been written in assembler for speed and
@@ -422,36 +422,54 @@ every occurrence of _kernel_oserror is replaced by os_error.
     to the number of the SWI within the SWI chunk into buffer starting at
     offset, and return offset updated by the length of the name written. If
     there is no name for the SWI, just return offset, unaltered.
-  
-  * irq-handlers: <C-function-name>[/<C-function-name>] ...
-  
+
+  * vector-handlers: <C-function-name>[/<C-function-name>][(<params>)] ...
+ 
     Several pairs of function names can be given here; each corresponds to an
     entry point into the module (to be used for OS_Claim or similar) and
     the name of the C function that that entry point calls. If you omit the
     '/' and the second half of the pair, than that name is constructed by
-    adding '_handler' on to the end of the first name.
+    adding '_handler' on to the end of the first name. Where parameters are
+    supplied, the following parameters are supported :
     
-    So, for 'irq-handlers: irq1' the following function is expected:
+      error-capable:
+         The return parameter may be specified as 'VENEER_CLAIM(error)',
+         rather than an error block. This will cause the vector to be
+         claimed and for an error to be returned in R0 with the V flag set.
+         All other registers will be as returned in the parameter block.
+
+    So, for 'vector-handlers: irq1' the following function is expected:
     
-    int irq1_handler(_kernel_swi_regs *r, void *pw);
+    int wrch_handler(_kernel_swi_regs *r, void *pw);
 
     and a symbol is setup to point to an entrypoint (NOT a C function):
 
-    extern void irq1(void);
+    extern void wrch(void);
     
-    You must provide irq1_handler; the CMunge generated header creates irq1
-    for you. *Never* call irq1, just use its address in interrupt claims. All
-    such interrupt claims must be done in SVC mode, such as from initialisation
-    code or in a SWI handler.
+    You must provide wrch_handler; the CMunge generated header creates wrch
+    for you. *Never* call wrch directly, just use its address in vector
+    claims. All such vector claims must be done in SVC mode, such as from
+    initialisation code or in a SWI handler.
     
-    When irq1_handler is called, r[0]-r[9] are the values on entry. These can
-    be updated to change the values on return. IRQ veneers should never need
-    this done, but when veneers are used in other ways (as filing system entry
-    points for example) then this may be required.
+    When wrch_handler is called, r->r[0]-r[9] are the values on entry. These
+    can be updated to change the values on return. Consult the relevant
+    vector documentation to be sure that you comply with its interfaces.
 
-    Return 0 if you handled the interrupt, or 1 to pass it on to the handlers
-    deeper down the stack of handlers.
-
+    Return VECTOR_CLAIM if you handled the interrupt, or VECTOR_PASSON to
+    pass it on to the handlers deeper down the stack of handlers. The
+    VECTOR_CLAIM macro takes a parameter if any error-capable vectors are
+    used within the header. The parameter should be a pointer to an error
+    to claim and return an error, or NULL to claim the vector without
+    returning an error.
+  
+  * irq-handlers: <C-function-name>[/<C-function-name>] ...
+  
+    Several pairs of function names can be given here, generating entry points
+    that call handler functions under the same entry/exit conditions as above.
+    
+    The irq-handlers declaration is the obsolete name for vector-handlers.
+    Clients should use vector-handlers where possible.
+ 
   * event-handler: <C-function-name>[/<C-function-name>] [<number> <number>...]
   
     Only one pair of names can be given per use of this handler, but they
@@ -483,11 +501,6 @@ every occurrence of _kernel_oserror is replaced by os_error.
          than an error block. This will cause the carry flag to be set on
          return from the handler function. All registers will be as
          returned in the parameter block.
-
-  * vector-handlers: <C-function-name>[/<C-function-name>] ...
-  
-    Several pairs of function names can be given here, generating entry points
-    that call handler functions under the same entry/exit conditions as above.
 
   * vector-traps: <C-function-name>[/<C-function-name>] ...
   
@@ -585,8 +598,19 @@ is a bug. CMunge also adds to the file format :
   * SWI specific handlers (<swi>/<handler> in swi-decoding-table)
   * Vector trap handlers (vector-traps)
   * Generic veneers can now have parameters (private-word, and carry-capable)
+  * Vector handlers can now claim with errors (error-capable)
   * Simple additive evaluation of integers (see below)
-  * C++ module creation (module-is-c-plus-plus)
+  * Simpler C++ module creation (module-is-c-plus-plus)
+
+The command line differs from CMHG in the following ways :
+  * Exported header types (-x switch)
+  * Extended pre-processing operation (-px switch)
+  * Optional build specification using the -z switch (OSLib-specific,
+    error block generation only, Image__RO_Base definition)
+  * Blank template file generation (-blank switch)
+  * Multiple toolchain suport (-t switch)
+  * Explicit APCS variant selection (-apcs switch)
+  * Backwards compatibility with CMHG (-cmhg switch)
 
 Within the header produced, there are a couple of deviances :
 
@@ -639,12 +663,18 @@ possible, CMunge produces the same output as CMHG. Known issues :
     In particular, carry-capable return from a function has not been
     addressed yet.
   * Vector-trap veneers have not been tested.
-  * Vector-handler veneers have not been tested.
 
 Presently, the header generation is as close to that of CMHG as possible
 without introducing any faults; this may result in slightly different code
 sequences (over and above those required for 32bit) to those which might be
 expected of a pure 26bit to 32bit conversion.
+
+For 32bit builds, all that should be necessary is to provide the APCS
+variant specifier as :
+   -apcs 3/32bit/fpe2/swstackcheck/fp/nofpregargs
+For brevity (and because the defaults are suitable, this can be abbreviated
+to :
+   -apcs 3/32
 
 
 Explicit APCS specification:
@@ -654,7 +684,11 @@ In line with the compiler and assembler (for ARM and consequently Norcroft
 tools), the CMunge tool may take an explicit specification of the APCS
 variant which should be used. CMunge does not support the full range of
 APCS variants, but this option allows makefiles to be created which use
-APCS specifications to describe the type of compilation required.
+APCS specifications to describe the type of compilation required. It is
+recommended that the build tools use the full APCS specifier as this then
+means that the same specifier can be supplied to all tools (cc, c++, objasm,
+cmunge) regardless of the version of the tool. All version 5 Norcroft
+tools accept the -apcs switch.
 
 The full syntax for the APCS declaration can be obtained through the
 command :
@@ -720,7 +754,8 @@ we can.
 The C header generation at present exports only the SWI numbers. This
 results in lots of modules having two files - one for the SWIs and one for
 the definitions of the module (constants, services, etc). A way of providing
-a template would help here.
+a template would help here. This has been addressed locally by the perl
+'MergeModeSWIs script'.
 
 Commands, Events, Vectors, etc with their own handler routines for particular
 cases. These would remove the requirement for the switch statement in a
@@ -770,3 +805,12 @@ extra register must be preserved for all entry points. Any definitions using
 a private word will also gain an extra instruction in their entry sequence
 to relocate the private-word. I (Justin) don't feel this is a serious
 problem.
+
+The cost of a error-capable vector handler is taken by all vector handlers,
+although it should only be a few instructions (the code sequences vary quite
+a bit between 26bit and 32bit versions). Slightly more bothersome is that
+the VECTOR_CLAIM macro changes when you start using the error-capable
+attribute. I (Justin) don't think this is a particularly onorous change;
+it should not affect the bulk of code as they will use one convention or
+the other. The only distinction comes when adding an error-capable vector
+handler as the code will need changing.

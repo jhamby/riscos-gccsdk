@@ -1058,6 +1058,7 @@ static void swi_decoder(void) {
 
 static void veneers(void) {
 
+  int any_error = 0;
   int n;
   int first;
   handler_list l;
@@ -1065,6 +1066,10 @@ static void veneers(void) {
 
   first = 1;
   n = 0;
+  /* JRF: Note: we use the number in r9 to indicate the routine that is
+                being entered, as number increasing by 1 (previously we
+                increased it by 4), so that we can use the top bit to
+                mean that the entry point can return an error. */
   /* Events */
   l = opt.events;
   while (l)
@@ -1098,8 +1103,8 @@ static void veneers(void) {
       l=l->next;
     }
     fprintf(file, "\tSTMDB\tr13!,{r0-r11,r14}\n");
-    fprintf(file, "\tMOV\tr2,#%d\n", n);
-    n += 4;
+    fprintf(file, "\tMOV\tr9,#%d\n", n);
+    n += 1;
     first = 0;
   }
 
@@ -1111,9 +1116,15 @@ static void veneers(void) {
     fprintf(file, "\tEXPORT\t%s\n", l->name);
     fprintf(file, "%s\n", l->name);
     fprintf(file, "\tSTMDB\tr13!,{r0-r11,r14}\n");
-    fprintf(file, "\tMOV\tr2,#%d\n", n);
+    if (l->error_capable)
+    {
+      fprintf(file, "\tMOV\tr9,#%d :OR: (1<<31)\n", n);
+      any_error = 1;
+    }
+    else
+      fprintf(file, "\tMOV\tr9,#%d\n", n);
     l = l->next;
-    n += 4;
+    n += 1;
     first = 0;
   }
   /* Irqs */
@@ -1124,9 +1135,9 @@ static void veneers(void) {
     fprintf(file, "\tEXPORT\t%s\n", l->name);
     fprintf(file, "%s\n", l->name);
     fprintf(file, "\tSTMDB\tr13!,{r0-r11,r14}\n");
-    fprintf(file, "\tMOV\tr2,#%d\n", n);
+    fprintf(file, "\tMOV\tr9,#%d\n", n);
     l = l->next;
-    n += 4;
+    n += 1;
     first = 0;
   }
   if (n == 0)
@@ -1169,7 +1180,7 @@ static void veneers(void) {
     fprintf(file, "\tADD\tr14,pc,# _CMUNGE_vret - _CMUNGE_vpc - 4\n");
   }
   fprintf(file, "_CMUNGE_vpc\n");
-  fprintf(file, "\tADD\tpc,pc,r2\n");
+  fprintf(file, "\tADD\tpc,pc,r9,LSL #2 ; notice that we lose the top bits\n");
   fprintf(file, "\tMOV\tr0,r0\n");
 
   /* Events */
@@ -1222,14 +1233,53 @@ static void veneers(void) {
     fprintf(file, "\tBEQ      _CMUNGE_vret_10\n");
     fprintf(file, "\tTEQP     r8,#0\n");
   }
+  if (any_error)
+  {
+    /* r9 = has bit 31 set if :
+            r0 = 0 (claim)
+                 1 (pass on)
+                 pointer to error (claim + set v)
+            otherwise:
+            r0 = 0 (claim)
+                 other (pass on)
+     */
+    fprintf(file, "\tTST\tr9,#1<<31\n");
+    fprintf(file, "\tBEQ\t_CMUNGE_vret_26noerror\n");
+
+    fprintf(file, "\tCMP\tr0,#1\n");
+    fprintf(file, "\tLDMEQIA\tr13!,{r0-r11,pc}^\n");
+    fprintf(file, "\tLDMLOIA\tr13!,{r0-r11,r14,pc}^\n");
+    fprintf(file, "\tSTR\tr0,[sp]\n");
+    fprintf(file, "\tLDMIA\tr13!,{r0-r11,r14}\n");
+    fprintf(file, "\tLDR\tr14,[sp], #4\n");
+    fprintf(file, "\tORRS\tpc, r14, #1<<28 ; return with V set\n");
+    fprintf(file, "_CMUNGE_vret_26noerror\n");
+  }
   fprintf(file, "\tTEQ\tr0,#0\n");
   fprintf(file, "\tLDMEQIA\tr13!,{r0-r11,r14,pc}^\n");
   fprintf(file, "\tLDMNEIA\tr13!,{r0-r11,pc}^\n");
+
   if (CODE26)
   {}
   else
   {
     fprintf(file, "_CMUNGE_vret_10\n");
+    if (any_error)
+    {
+      /* r9 = has bit 31 set if :
+              r0 = 0 (claim)
+                   1 (pass on)
+                   pointer to error (claim + set v)
+              otherwise:
+              r0 = 0 (claim)
+                   other (pass on)
+       */
+      fprintf(file, "\tTST\tr9,#1<<31\n");
+      fprintf(file, "\tBICNES\tr14,r0,#1\n");
+      fprintf(file, "\tORRNE\tr6,r6,#1<<28 ; V set on returned flags\n");
+      fprintf(file, "\tSTRNE\tr0,[sp, #0]  ; R0 updated for return\n");
+      fprintf(file, "\tMOVNE\tr0,#0        ; mark as claiming\n");
+    }
     fprintf(file, "\tMOV      r12,r6\n");
     fprintf(file, "\tMSR      cpsr_ctl,r6\n");
     fprintf(file, "\tTEQ      r0,#0\n");
