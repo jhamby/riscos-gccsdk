@@ -65,6 +65,8 @@ typedef struct handler_list_s {
   int          private_word;
   int          carry_capable; /* Set for generics if it is capable of setting
                                  carry on return */
+  int          error_capable; /* Set for vectors if they are capable of
+                                 claiming vectors to return an error */
   handler_list  next;
   /* extradata contains any additional information required for the handler.
      At present it is used for the event handler to reference an int_list
