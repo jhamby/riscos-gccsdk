@@ -344,7 +344,7 @@ static void commands(void) {
     fprintf(file, "\tADD\tr14,r14,# _CMUNGE_com_ret - _CMUNGE_com_pc\n");
     fprintf(file, "_CMUNGE_com_pc\n");
     fprintf(file, "\tCMP\tr2,#%i\n",numcoms);
-    fprintf(file, "\tADDLT\tpc,pc,r2,LSL #2\n");
+    fprintf(file, "\tADDLO\tpc,pc,r2,LSL #2\n");
     if (opt.helpfn)
     {
       fprintf(file, "\tIMPORT\t%s\n", opt.helpfn);

@@ -116,6 +116,8 @@ static void preprocess(FILE *file) {
     c = Fgetc(file);
     prelinebuf[i++] = c;
   } while ((!Feof(file)) && (c != '\n') && (i < 1023));
+  if (c=='\n')
+    i--;
   prelinebuf[i] = 0;
   if (c != '\n') {
     while ((!Feof(file)) && (c != '\n')) {

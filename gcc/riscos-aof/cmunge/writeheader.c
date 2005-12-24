@@ -880,7 +880,22 @@ static void handlers(handler_list head, const char *type, rettype rtype) {
       }
     }
     else
+    {
       header_entry.note = NULL;
+    }
+
+    /* JRF: Really we should be updating the exit comment, but this is easier
+            for now. */
+    if (h->error_capable)
+    {
+      header_handler.note =
+        "VECTOR_ERROR(error) may also be used to claim this vector, "
+        "and return with V set and R0 set to the pointer supplied.";
+    }
+    else
+    {
+      header_handler.note = NULL;
+    }
 
     {
       static char buffer[MAXLINELEN];
@@ -957,22 +972,17 @@ static void handlers(handler_list head, const char *type, rettype rtype) {
       c_comment(file, "VECTOR_PASSON can be returned from vectors to pass "
                       "the call on to other handlers.");
       fprintf(file,"#define VECTOR_PASSON (1)\n");
+      c_comment(file, "VECTOR_CLAIM can be returned from vectors to claim "
+                      "the vector and return with the updated register "
+                      "block.");
+      fprintf(file,"#define VECTOR_CLAIM (0)\n\n");
       if (error_used)
       {
-        c_comment(file, "VECTOR_CLAIM(err) can be returned from routines which "
+        c_comment(file, "VECTOR_ERROR(err) can be returned from routines which "
                         "have been marked as capable of having an error returned "
                         "as well as claiming the call. All other registers "
-                        "are preserved if the error pointer is not NULL. Use "
-                        "VECTOR_CLAIM(NULL) to just claim without returning an "
-                        "error.");
-        fprintf(file,"#define VECTOR_CLAIM(err) ((int)(err))\n\n");
-      }
-      else
-      {
-        c_comment(file, "VECTOR_CLAIM can be returned from vectors to claim "
-                        "the vector and return with the updated register "
-                        "block.");
-        fprintf(file,"#define VECTOR_CLAIM (0)\n\n");
+                        "are preserved if the error pointer is not NULL.");
+        fprintf(file,"#define VECTOR_ERROR(err) ((int)(err))\n\n");
       }
     }
   }

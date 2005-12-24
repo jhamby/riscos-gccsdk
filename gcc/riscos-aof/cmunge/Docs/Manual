@@ -433,7 +433,7 @@ every occurrence of _kernel_oserror is replaced by os_error.
     supplied, the following parameters are supported :
     
       error-capable:
-         The return parameter may be specified as 'VENEER_CLAIM(error)',
+         The return parameter may be specified as 'VENEER_ERROR(error)',
          rather than an error block. This will cause the vector to be
          claimed and for an error to be returned in R0 with the V flag set.
          All other registers will be as returned in the parameter block.
@@ -456,11 +456,11 @@ every occurrence of _kernel_oserror is replaced by os_error.
     vector documentation to be sure that you comply with its interfaces.
 
     Return VECTOR_CLAIM if you handled the interrupt, or VECTOR_PASSON to
-    pass it on to the handlers deeper down the stack of handlers. The
-    VECTOR_CLAIM macro takes a parameter if any error-capable vectors are
-    used within the header. The parameter should be a pointer to an error
-    to claim and return an error, or NULL to claim the vector without
-    returning an error.
+    pass it on to the handlers deeper down the stack of handlers.
+    Alternatively, if the error-capable veneer is in use, the
+    VECTOR_ERROR(error) macro should be used to return the error pointer to
+    the caller. If the 'error' parameter is NULL, the return will be
+    equivilent to a VECTOR_CLAIM.
   
   * irq-handlers: <C-function-name>[/<C-function-name>] ...
   
@@ -808,9 +808,4 @@ problem.
 
 The cost of a error-capable vector handler is taken by all vector handlers,
 although it should only be a few instructions (the code sequences vary quite
-a bit between 26bit and 32bit versions). Slightly more bothersome is that
-the VECTOR_CLAIM macro changes when you start using the error-capable
-attribute. I (Justin) don't think this is a particularly onorous change;
-it should not affect the bulk of code as they will use one convention or
-the other. The only distinction comes when adding an error-capable vector
-handler as the code will need changing.
+a bit between 26bit and 32bit versions).

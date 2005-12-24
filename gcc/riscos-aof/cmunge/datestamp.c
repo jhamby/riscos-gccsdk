@@ -112,7 +112,7 @@ void DateStamp(void) {
       ErrorFatal("Failed to convert time indication in readable format");
   }
 
-  sprintf(date,  datebuf);
+  strcpy(date, datebuf);
   date += strlen(datebuf);
   if (*s)
     *date++ = 32;
@@ -122,6 +122,6 @@ void DateStamp(void) {
   opt.help = date0;
 
   opt.date = Malloc(strlen(datebuf)+1);
-  sprintf(opt.date, datebuf+2);
+  strcpy(opt.date, datebuf+2);
   opt.date[strlen(opt.date)-1] = 0;
 }
