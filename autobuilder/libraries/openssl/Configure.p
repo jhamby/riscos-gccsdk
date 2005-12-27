@@ -1,21 +1,26 @@
---- Configure	2002-11-13 17:08:55.000000000 +0000
-+++ Configure	2002-11-12 18:25:48.000000000 +0000
+--- Configure.old	2005-12-27 04:22:21.000000000 +0100
++++ Configure	2005-12-27 03:58:16.000000000 +0100
 @@ -1,4 +1,4 @@
 -#!/usr/local/bin/perl
 +#!/usr/bin/perl
  eval 'exec perl -S $0 ${1+"$@"}'
      if $running_under_some_shell;
  ##
---- Configure.old	2003-03-09 11:47:42.000000000 +0000
-+++ Configure	2003-03-09 11:48:42.000000000 +0000
-@@ -448,6 +448,10 @@
- # Linux on ARM
- "linux-elf-arm","gcc:-DL_ENDIAN -DTERMIO -O3 -fomit-frame-pointer -Wall::-D_REENTRANT:::BN_LLONG::::::::::dlfcn:linux-shared:-fPIC::.so.\$(SHLIB_MAJOR).\$(SHLIB_MINOR)",
+@@ -420,6 +420,9 @@
+ "qnx4",	"cc:-DL_ENDIAN -DTERMIO::(unknown):::${x86_gcc_des} ${x86_gcc_opts}:",
+ "qnx6",	"cc:-DL_ENDIAN -DTERMIOS::(unknown)::-lsocket:${x86_gcc_des} ${x86_gcc_opts}:",
  
 +# RISC OS on ARM
-+"riscos-aof-arm","gcc:-DL_ENDIAN -DTERMIOS -DNO_SYS_UN_H -O3 -fomit-frame-pointer -Wall::-D_REENTRANT:::BN_LLONG:::::::::::::::echo",
++"riscos-aof-arm","gcc:-DL_ENDIAN -DTERMIOS -DNO_SYS_UN_H -O3 -fomit-frame-pointer -Wall::-D_REENTRANT:::BN_LLONG DES_RISC1:::::::::::::::echo",
 +
-+
- # SCO/Caldera targets.
+ #### SCO/Caldera targets.
  #
  # Originally we had like unixware-*, unixware-*-pentium, unixware-*-p6, etc.
+@@ -949,6 +952,7 @@
+ $IsMK1MF=1 if ($target eq "mingw" && $^O ne "cygwin");
+ 
+ $exe_ext=".exe" if ($target eq "Cygwin" || $target eq "DJGPP" || $target eq "mingw");
++$exe_ext=",ff8" if ($target eq "riscos-aof-arm");
+ $exe_ext=".pm"  if ($target =~ /vos/);
+ $openssldir="/usr/local/ssl" if ($openssldir eq "" and $prefix eq "");
+ $prefix=$openssldir if $prefix eq "";
