@@ -1,0 +1,11 @@
+# c-ares (libcares) is a forked branch of libarea library and part of curl CVS
+# project.  However, it is not part of curl build process so it is built
+# separately.
+
+AB_CVS_ROOT=:pserver:anonymous@cool.haxx.se:/cvsroot/curl
+AB_CVS_MODULE=curl/ares
+
+AB_INSTALL=yes
+
+cd ares 
+./buildconf
