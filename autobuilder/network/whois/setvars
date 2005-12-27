@@ -1,7 +1,6 @@
-
 AB_CATEGORY=network
 
-AB_CONFIG=:
+AB_PRECONF=:
 AB_MANPAGE=whois.1
 
 ab_package() {

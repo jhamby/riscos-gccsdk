@@ -1,6 +1,5 @@
-
 AB_CATEGORY=cli
 
-AB_CONFIG=:
+AB_PRECONF=:
 
 AB_MAKE="$AB_MAKE -C bogo-1.2"

@@ -1,10 +1,9 @@
-
 AB_CATEGORY=games
 
 AB_URL=http://kent.dl.sourceforge.net/sourceforge/wargus/wargus-2.1-src.tar.gz
 
 # Doesn't have a configure command
-AB_CONFIG=
+AB_PRECONF=:
 
 ab_package() {
   cp -av $H/\!Wargus $D

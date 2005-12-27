@@ -1,4 +1,3 @@
-
-AB_PRECONF=":"
+AB_PRECONF=:
 
 make gobpack

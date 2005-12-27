@@ -1,5 +1,4 @@
-
-AB_CONFIG=":"
+AB_PRECONF=:
 
 cd libastro
 $AB_MAKE
