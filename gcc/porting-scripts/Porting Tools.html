@@ -9,7 +9,7 @@
 
 <p>Copyright 2003-2005, <a href="http://gccsdk.riscos.info/">GCCSDK Developers</a>.</p>
 <p>Written by Peter Naulls (<a href="mailto:peter@chocky.org">peter@chocky.org</a>)</p>
-<p>Last updated - 1st Nov 2005</p>
+<p>Last updated - 30th Dec 2005</p>
 
 <hr>
 
@@ -22,7 +22,7 @@ to RISC OS, especially when using GNU autoconf.  The tools will work most
 effectively (for purposes of fetching source) on a Debian system, but they
 will also work on other systems on which GCCSDK also works.</p>
 
-<p>I have found that there are many problems which are the same, when
+<p>We have found that there are many problems which are the same, when
 converting Unix programs.  Some of these come about because of the use
 of the ,ff8 extension which can confuse scripts and makefiles which have
 not been properly written to expect this (although there is a growing
@@ -44,10 +44,10 @@ appropriate options, or set variables, etc beforehand.  Notably,
 make, install and configure.</p>
 
 <p>These wrappers are stored in a subdirectory "env" created under the
-normal structure for the cross compiler (specified by the --with-riscos-dist parameter
-of the GCCSDK configure), and this GCCSDK_ENV directory
-also contains directories for the usual include, lib, bin, and
-X11R6 setup.</p>
+normal structure for the cross compiler (specified by the --with-riscos-dist parameter of the GCCSDK configure).  This directoy is on this system
+currently located at GCCSDK_ENV and more generally accessible via the
+environment variable GCCSDK_INSTALL_ENV and contains directories for the
+usual include, lib, bin, etc, info, man and X11R6 setup.</p>
 
 <p></p>
 
@@ -207,8 +207,8 @@ they are a substitute for lots of manual effort, but not for experience
 in programming and porting.  Don't forget to rely on your own judgement.
 </p>
 
-<p>If it all possible, I try to avoid patching the original source.  I
-instead try to improve my tools, as this is generally a better solution
+<p>If it all possible, we try to avoid patching the original source.  we
+instead try to improve our tools, as this is generally a better solution
 all round.   This isn't always possible, however, and it's common
 for the configure script to need some additional manual changes.
 </p>
@@ -264,8 +264,11 @@ required on your part.</p>
 <h4>Alternate Paths</h4>
 
 <p>Because of the GCCSDK development, you might have multiple
-installations.  You can set RO_BIN to point at an alternate
-path.  The default is GCCSDK_BIN.</p>
+installations of the cross compiler itself.  You can set RO_BIN to point at
+an alternate path.  This alternative path or the default when RO_BIN
+is not defined, is reflected in the environment variable
+GCCSDK_INSTALL_CROSSBIN.  The default value is currently on this
+system GCCSDK_BIN.</p>
 
 
 <p></p>

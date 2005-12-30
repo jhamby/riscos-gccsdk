@@ -2,8 +2,16 @@
 
 # Binary install path
 
+# The user can define RO_BIN to directory containing an alternative
+# cross compiler version (e.g. for testing, developing) than the
+# current GCCSDK has created at GCCSDK_BIN.
 if [ -z "$RO_BIN" ] ; then
   RO_BIN=GCCSDK_BIN
 fi
+
+export GCCSDK_INSTALL_ENV=GCCSDK_ENV
+export GCCSDK_INSTALL_CROSSBIN=$RO_BIN
+
+export DESKLIB_PATH=GCCSDK_ENV/include/DeskLib
 
 PATH=$RO_BIN:GCCSDK_ENV/bin:GCCSDK_ENV/X11R6/bin:$PATH "$@"
