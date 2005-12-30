@@ -1,7 +1,0 @@
-
-AB_CATEGORY=x11/test
-
-AB_PREZIP="cp chimera/chimera.1.html chimera.1.html,faf"
-
-AB_FILESNOPATH="chimera/chimera,ff8 doc/COPYING chimera.n.html,faf"
-
