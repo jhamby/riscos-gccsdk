@@ -5,7 +5,7 @@
  
  #define Use_JPEG
 -JPEGDIR = /usr
-+JPEGDIR = /home/riscos/env
++JPEGDIR = $(GCCSDK_INSTALL_ENV)
  JPEGINCLUDE = -I$(JPEGDIR)/include
  JPEGLIB = -L$(JPEGDIR)/lib -ljpeg$(IMGLEXT)
  
@@ -13,7 +13,7 @@
  
  #define Use_PNG
 -PNGDIR = /usr
-+PNGDIR = /home/riscos/env
++PNGDIR = $(GCCSDK_INSTALL_ENV)
  PNGINCLUDE = -I$(PNGDIR)/include
  PNGLIB = -L$(PNGDIR)/lib -lpng$(IMGLEXT) -lz$(IMGLEXT)
  
