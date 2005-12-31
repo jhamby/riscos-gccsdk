@@ -1,0 +1,6 @@
+AB_CVS_ROOT=:pserver:anonymous@cvs.sourceforge.net:/cvsroot/ro-oslib
+AB_CVS_MODULE=OSLib
+
+AB_INSTALL=yes
+
+AB_MAKE="cd $PWD/\!OsLib; $AB_MAKE"
