@@ -135,7 +135,6 @@ The cross-compiler contains the following tools:
      gcov - a test coverage program
    libscl - C library headers and stubs for linking with the SharedCLibrary.
   unixlib - A C library with BSD, System V and POSIX library extensions.
-  rink, rinkptr, extractsym - components of Ben Summers' run-time linker
       zip - A file archive utility
 
 The RISC OS distribution contains the following tools:
@@ -160,7 +159,6 @@ The RISC OS distribution contains the following tools:
             of diff.
       sed - A batch stream editor
     touch - A port of the Unix touch command for changing file timestamps.
-  rink, rinkptr, extractsym - components of Ben Summers' run-time linker.
 
 
 FAQ

@@ -53,7 +53,6 @@ License:
   - ld : GPL
   - libfile, ar : Freeware, see !gcc.docs.LibFile.Readme
   - nm : GPL version 2
-  - rink, extractsym, rinkptr : See !gcc.docs.rink
   - cmp, diff, diff3, sdiff : See !gcc.docs.diff
   - bison, fileutils (touch, mkdir), gperf, grep, gzip, make, patch,
     sed: GPL
@@ -89,7 +88,6 @@ Credits:
   - Andy Duplain for his 'decaof', an AOF decoder.
   - Dave Daniels for his 'drlink', an AOF linker.
   - Bernhard Walter for his 'libfile', an AOF library archiver.
-  - Ben Summers for his 'rink', an dynamic AOF loader.
   - Nick Burrett for his 'nm', listing symbols of AOF files.
   - All UnixLib Developers for providing a run-time library which is
     essential for GCCSDK and ported programs using GCCSDK.
@@ -98,4 +96,4 @@ Credits:
 
   And last but not least, all the GCC contributers.
 
-GCCSDK Developers, 2005
+GCCSDK Developers, 2006

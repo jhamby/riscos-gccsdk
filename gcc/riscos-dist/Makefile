@@ -3,7 +3,7 @@
 # this makefile will install the additional files to make a complete
 # RISC OS distribution of GCC.
 # Copyright (c) 2001, 2002 Nick Burrett
-# Copyright (c) 2003, 2004, 2005 GCCSDK Developers
+# Copyright (c) 2003, 2004, 2005, 2006 GCCSDK Developers
 
 pkg=`basename $(ro_gccpkg)`
 upkg=`basename $(ro_unixlibpkg)`
@@ -28,8 +28,6 @@ GCCPKG = $(pkg)/\!Run,feb \
 	$(pkg)/bin/libfile$(exesfx) \
 	$(pkg)/docs/LibFile/* \
 	$(pkg)/bin/nm$(exesfx) \
-	$(pkg)/bin/rink$(exesfx) \
-	$(pkg)/bin/rinkptr$(exesfx) \
 	$(pkg)/include \
 	$(pkg)/startup \
 	$(bindir)/as$(exesfx) \
@@ -85,7 +83,6 @@ UTILSPKG = $(pkg)/bin/bison$(exesfx) \
 	$(pkg)/bin/sdiff$(exesfx) \
 	$(pkg)/docs/diff,faf \
 	\
-	$(pkg)/bin/extractsym$(exesfx) \
 	$(pkg)/bin/flex$(exesfx) \
 	$(pkg)/docs/flex,faf \
 	\
@@ -107,7 +104,6 @@ UTILSPKG = $(pkg)/bin/bison$(exesfx) \
 	$(pkg)/bin/touch$(exesfx) \
 	$(pkg)/bin/zip$(exesfx) \
 	$(pkg)/docs/InfoZip/* \
-	$(pkg)/docs/rink \
 	$(bindir)/apcs32/abs/unixlib/o/libfl \
 	$(bindir)/apcs32/abs/unixlib/o/libiberty
 
