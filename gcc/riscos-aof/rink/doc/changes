@@ -1,9 +1,0 @@
-rinkptr - requires sugars
-rinkptr - slightly faster
-rink_rtsys - rink_call removed
-rink - number of arguments not expected
-rink_rtsys - register_memory_fn removed
-rink_rtsys - new rink_load prototype
-rink - deletes scrap (rinkXscrap)
-
-write note about test files...

@@ -1,6 +1,6 @@
 # Second-level Makefile for supporting binaries for RISC OS GCC
 # Copyright (c) 2000, 2001, 2002 Nick Burrett
-# Copyright (c) 2003, 2004, 2005 GCCSDK Developers
+# Copyright (c) 2003, 2004, 2005, 2006 GCCSDK Developers
 
 ifeq (${STAGE},stage1)
 bin_dir=$(ux_gccpkg)/$(gn_standard_exec_prefix)
@@ -12,7 +12,7 @@ endif
 
 export bin_dir gcc_bin_dir
 
-all:	as drlink infozip ld nm rink libfile decaof cmunge
+all:	as drlink infozip ld nm libfile decaof cmunge
 
 riscos-dist:
 	$(MAKE) -C drlink riscos-dist
@@ -28,10 +28,9 @@ riscos-dist:
 .PHONY: ld
 .PHONY: libfile
 .PHONY: nm
-.PHONY: rink
 .PHONY: decaof
 .PHONY: cmunge
 
-as drlink infozip ld libfile nm rink decaof cmunge:
+as drlink infozip ld libfile nm decaof cmunge:
 	mkdir -p $(objdir)/riscos-aof/$@/$(STAGE)
 	$(MAKE) -C $@ "STAGE=$(STAGE)"
