@@ -1,12 +1,17 @@
-
 AB_CATEGORY=cli
-
-AB_FILESNOPATHEVAL="find | grep ff8 | grep -v makecrc"
-AB_FILESPATH="README doc"
-
-AB_PRECONF=:
 
 rm -f crc/*.o crc/*.a
 make -C crc
 rm -f crc/*.o crc/*.a
 
+AB_MANPAGE="man/binhex.1 man/frommac.1 man/hexbin.1 man/macsave.1 man/macstream.1 man/macunpack.1 man/macutil.1 man/tomac.1"
+
+ab_package() {
+  cp $S/binhex/binhex,ff8 $D
+  cp $S/comm/tomac,ff8 $D
+  cp $S/comm/frommac,ff8 $D
+  cp $S/mixed/macsave,ff8 $D
+  cp $S/mixed/macstream,ff8 $D
+  cp $S/hexbin/hexbin,ff8 $D
+  cp $S/macunpack/macunpack,ff8 $D
+}
