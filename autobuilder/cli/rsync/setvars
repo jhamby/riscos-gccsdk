@@ -1,6 +1,3 @@
-
-AB_PRECONF="CFLAGS=\"-I/home/riscos/env/include -O2\""
-
 AB_CATEGORY=cli/test
 
 AB_FILESNOPATH="rsync,ff8 COPYING"
