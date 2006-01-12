@@ -1,0 +1,41 @@
+/*******************************************************************
+ * File:     version
+ * Purpose:  Example 'version' command
+ * Author:   Justin Fletcher
+ * Date:     11 Jan 2006
+ * License:  Free for any use with no restrictions or requirements
+ ******************************************************************/
+
+#include <stdlib.h>
+#include <stdio.h>
+#include "VersionNum" /* For 'Module_FullVersionAndDate' */
+#include "interact.h"
+
+/*************************************************** Gerph *********
+ Function:     com_version
+ Description:  Print the version of the tool
+ Parameters:   tail-> any tail on the command
+ Returns:      0
+ ******************************************************************/
+static int com_version(char *tail)
+{
+  printf("ToolName " Module_FullVersionAndDate "\n");
+  return 0;
+}
+
+/* This is the list of the commands we provide. It is referenced
+   from the linker set below. */
+static interactcommand_t commands[] = {
+  { "version", "Display command version", com_version },
+  { NULL }
+};
+
+/* This is how we generate the linker-set.
+   Each __linkinteract will be chained with the others to form
+   a list of which __headinteract is the first reference. The
+   first word of this structure must always be zero. We could
+   have any number of other members of the structure, but we
+   only need to have a list of commands we provide. */
+static interactlink_t __linkinteract = {
+  NULL, commands
+};
