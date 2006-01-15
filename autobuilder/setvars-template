@@ -7,8 +7,8 @@
 # a new package directory and delete uneeded parts.
 
 
-# Man page file, to be processed by rman to make an HTML helpfile
-# Updated so this can now be a list of files
+# List of man page files, to be processed by rman to make an HTML helpfile
+# The produced HTML files will automatically be added to the package.
 #AB_MANPAGE=
 
 # RISC OS Version of the package
@@ -26,15 +26,18 @@
 # (e.g. example/test apps)
 #AB_COMPILEFAIL=no
 
-# Run "make install" after build
+# Run "make install" (in fact: make $AB_INSTALLTARGET) after build
 #AB_INSTALL=no
 
+# Use this target as make target to install after build
+#AB_INSTALLTARGET=install
+
 # RISC OS configuration script
-#AB_CONFIG=$AB_GCCENV/ro-config
+#AB_CONFIG=$GCCSDK_INSTALL_ENV/ro-config
 
 # RISC OS make wrapper.  This can be set to just "make" if setting the
 # path causes problems - e.g., the native compiler is required too
-#AB_MAKE=$AB_GCCENV/ro-make
+#AB_MAKE=$GCCSDK_INSTALL_ENV/ro-make
 
 # Zip name; alternate name for package to be zipped as
 # Useful if tools from a library, etc.

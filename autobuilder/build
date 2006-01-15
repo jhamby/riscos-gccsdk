@@ -44,27 +44,55 @@ pushd `dirname $0` > /dev/null
 AB_HOME=`pwd`
 popd > /dev/null
 
-AB_OUTPUT=/var/www/info/unix/downloads/
+# Determine directory where the packages will be published:
+# Note: the libraries (= result of 'make install') will be published at AB_OUTPUTLIB
+if [ -z "$AB_OUTPUTPACK" ] ; then
+  AB_OUTPUTPACK=$AB_HOME/autobuilder_packages
+  if [ ! -d "$AB_OUTPUTPACK" ] ; then
+    echo "Autobuilder: will store the packages at $AB_OUTPUTPACK"
+    mkdir $AB_OUTPUTPACK
+  fi
+else
+  if [ ! -d "$AB_OUTPUTPACK" ] ; then
+    echo "Autobuilder: Autobuilder package directory $AB_OUTPUTPACK (defined by \$AB_OUTPUTPACK) does not exist."
+    exit 1
+  fi
+fi
+
+# Determine directory where the libraries will be published:
+# Note: AB_OUTPUTPACK != AB_OUTPUTLIB
+if [ -z "$AB_OUTPUTLIB" ] ; then
+  AB_OUTPUTLIB=$AB_HOME/autobuilder_libraries
+  if [ ! -d "$AB_OUTPUTLIB" ] ; then
+    echo "Autobuilder: will store the libraries at $AB_OUTPUTLIB"
+    mkdir $AB_OUTPUTLIB
+  fi
+else
+  if [ ! -d "$AB_OUTPUTLIB" ] ; then
+    echo "Autobuilder: Autobuilder library directory $AB_OUTPUTLIB (defined by \$AB_OUTPUTLIB) does not exist."
+    exit 1
+  fi
+fi
 
 # GCCSDK Scripts
-if [ -z "$RO_ENV" ] ; then
-  RO_ENV=/home/riscos/env
+if [ -z "$GCCSDK_INSTALL_ENV" ] ; then
+  GCCSDK_INSTALL_ENV=/home/riscos/env
 fi
-AB_GCCENV=$RO_ENV
-if [ ! -d "$AB_GCCENV" ] ; then
-  echo "Autobuilder: directory with porting tools does not exist. \$RO_ENV not defined or /home/riscos/env does not exist."
+if [ ! -d "$GCCSDK_INSTALL_ENV" ] ; then
+  echo "Autobuilder: directory with porting tools does not exist. \$GCCSDK_INSTALL_ENV not defined or /home/riscos/env does not exist."
   exit 1
 fi
+export GCCSDK_INSTALL_ENV
 
 # GCCSDK Binaries
-if [ -z "$RO_BIN" ] ; then
-  RO_BIN=/home/riscos/cross/bin
+if [ -z "$GCCSDK_INSTALL_CROSSBIN" ] ; then
+  GCCSDK_INSTALL_CROSSBIN=/home/riscos/cross/bin
 fi
-AB_GCCBIN=$RO_BIN
-if [ ! -d "$AB_GCCBIN" ] ; then
-  echo "Autobuilder: directory with cross compiling tools does not exist. \$RO_BIN not defined or /home/riscos/cross/bin does not exist."
+if [ ! -d "$GCCSDK_INSTALL_CROSSBIN" ] ; then
+  echo "Autobuilder: directory with cross compiling tools does not exist. \$GCCSDK_INSTALL_CROSSBIN not defined or /home/riscos/cross/bin does not exist."
   exit 1
 fi
+export GCCSDK_INSTALL_CROSSBIN
 
 # build location
 AB_TMPDIR=$PWD
@@ -72,7 +100,7 @@ AB_TMPDIR=$PWD
 
 # Change to autobuilder home
 if [ "$AB_PACKONLY" != "yes" ] ; then
- cd $AB_HOME
+  cd $AB_HOME
 fi
 
 # If a specific package is named, build that; otherwise everything
@@ -83,9 +111,6 @@ if [ "$AB_PACKAGES" == "" ] ; then
     exit 1
   fi
 fi
-
-#rm -f /tmp/ab-success
-#rm -f /tmp/ab-failure
 
 if [ "$AB_VERBOSE" == "yes" ] ; then
   AB_STDOUT=/dev/stdout
@@ -112,6 +137,8 @@ ab_build() {
     return 0
   fi
 
+  echo "Autobuilder: Package \"$PACKAGE_NAME\" will be built using recipe at \"$AB_HOME/$PACKAGE_DIR\""
+
   if [ ! -e $AB_HOME/$PACKAGE_DIR/setvars ] ; then
 
     echo "Autobuilder: No setvars found for package \"$PACKAGE_NAME\" - ignoring" 1>&2
@@ -120,7 +147,7 @@ ab_build() {
 
   if [ "$IS_DEPENDENCY" == "1" ] ; then
     if [ -e "$AB_HOME/$PACKAGE_DIR/last-success" ] ; then
-      echo "Autobuilder - Dependency $PACKAGE_NAME satisfied"
+      echo "Autobuilder: Dependency $PACKAGE_NAME satisfied"
       return 0
     fi
   fi
@@ -153,18 +180,15 @@ ab_build() {
 
 
   $AB_HOME/build-program 2>&1 | tee /tmp/ab-output >$AB_STDOUT
-  #echo  foo  > /tmp/ab-output
 
-  if ! grep "Autobuilder - package completed" < /tmp/ab-output >/dev/null ; then
+  if ! grep "Autobuilder: Package stage completed" < /tmp/ab-output >/dev/null ; then
     echo "Package $AB_PACKAGE: ***Failure***"
-    #cat /tmp/ab-output >> /tmp/ab-failure
     mv /tmp/ab-output $AB_HOME/$AB_PACKAGEDIR/last-failure
     return 1
   else
     echo "Package $AB_PACKAGE: Success"
-    #cat /tmp/ab-output >> /tmp/ab-success
 
-    if ! grep "Autobuilder - Running make install" > /dev/null < /tmp/ab-output   && \
+    if ! grep "Autobuilder: Running make install" > /dev/null < /tmp/ab-output   && \
          grep "Autobuilder: No files specified to package" > /dev/null < /tmp/ab-output ; then
       echo "Warning: not installed, and not packaged"
     fi

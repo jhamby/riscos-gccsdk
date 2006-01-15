@@ -9,7 +9,7 @@
 <h2>Autobuilder Manual</h2>
 
 <p>Copyright 2003-2005, GCCSDK Developers</a>.</p>
-<p>Last updated - 5st July 2005</p>
+<p>Last updated - 30 Dec 2005</p>
 
 <hr>
 
@@ -59,7 +59,7 @@ packaging and sundry items of programs and libraries built for the Unix Porting 
 <h3>Installation</h3>
 
 <p>The autobuilder is normally placed in /usr/src/autobuilder.  There's a
-few hardwired paths, although attempts have been made to avoid them.  Among other things, it assumes the porting tools are in /home/riscos/env, as per the porting tools document.</p>
+few hardwired paths, although attempts have been made to avoid them.  The porting tools are assumed to be in $GCCSDK_INSTALL_ENV (usually /home/riscos/env) and the cross compiler in $GCCSDK_INSTALL_CROSSBIN (usually /home/riscos/cross/bin).</p>
 
 <p>Under the autobuilder directory are subdirectories for categories of programs, and in those are program directories, although directories can be anywhere under the autobuilder to aid in organisation.   Each program directory contains a "setvars" script, which sets variables used by the autobuilder.</p>
 

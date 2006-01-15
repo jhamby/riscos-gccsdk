@@ -1,17 +1,15 @@
 #!/bin/bash
 
 if [ "$AB_PACKONLY" != "yes" ] ; then
-  echo "Autobuilder - Building package: $AB_PACKAGE"
+  echo "Autobuilder: Building package: $AB_PACKAGE"
 else
-  echo "Autobuilder - Zipping package: $AB_PACKAGE"
+  echo "Autobuilder: Zipping package: $AB_PACKAGE"
 fi
 
 set -e
 
 # Reset vars for each package
 
-AB_FILESPATH=
-AB_FILESNOPATH=
 AB_MANPAGE=
 AB_ROVERSION=1
 AB_PRECONF=
@@ -28,7 +26,7 @@ H=$AB_HOME/$AB_PACKAGEDIR
 
 
 addzip() {
- result=$($AB_GCCBIN/zip -, $@ -x "*/CVS/*" 2>&1)
+ result=$($GCCSDK_INSTALL_CROSSBIN/zip -, $@ -x "*/CVS/*" 2>&1)
  echo $result
  if echo $result | grep "zip warning" > /dev/null ; then
    exit 1
@@ -36,7 +34,7 @@ addzip() {
 }
 
 ab_package() {
-  echo "Not Packaging"
+  echo "Autobuilder: Not Packaging"
   AB_NOPACKAGE=yes
 }
 
@@ -46,8 +44,8 @@ ab_make() {
 }
 
 
-AB_CONFIG=$AB_GCCENV/ro-config
-export AB_MAKE=$AB_GCCENV/ro-make
+AB_CONFIG=$GCCSDK_INSTALL_ENV/ro-config
+export AB_MAKE=$GCCSDK_INSTALL_ENV/ro-make
 
 if [ "$AB_PACKONLY" == "yes" ] ; then
 
@@ -56,11 +54,11 @@ if [ "$AB_PACKONLY" == "yes" ] ; then
  S=$PWD
 
  if [ -e $AB_HOME/$AB_PACKAGEDIR/preprocess ] ; then
-  echo "Autobuilder - Calling preprocess"
+  echo "Autobuilder: Calling preprocess"
   . $AB_HOME/$AB_PACKAGEDIR/preprocess
  fi
  
- echo "Autobuilder - Calling setvars"
+ echo "Autobuilder: Calling setvars"
  . $AB_HOME/$AB_PACKAGEDIR/setvars
 
 else
@@ -81,13 +79,13 @@ else
 
  if [ -e $AB_HOME/$AB_PACKAGEDIR/alias ] ; then
   AB_ZIPNAME=$AB_PACKAGE
-  echo "Autobuilder - Calling alias"
+  echo "Autobuilder: Calling alias"
   . $AB_HOME/$AB_PACKAGEDIR/alias
  fi
 
  if [ "$AB_NOFETCH" != "yes" ] ; then
    # Fetch the source
-   echo "Autobuilder - Fetching source for $AB_PACKAGE"
+   echo "Autobuilder: Fetching source for $AB_PACKAGE"
    . $AB_HOME/fetch-program
  fi
  
@@ -96,7 +94,7 @@ else
  # Run any preprocess script to unpack it in any special way
  if [ -e $AB_HOME/$AB_PACKAGEDIR/preprocess ] ; then
    cd $AB_FULLNAME
-   echo "Autobuilder - Calling preprocess"
+   echo "Autobuilder: Calling preprocess"
    . $AB_HOME/$AB_PACKAGEDIR/preprocess
   
  # Check to see if it's tarred up inside
@@ -122,7 +120,7 @@ else
  
    # Apply any Debian/Upstream patches
    for AB_PATCH in $AB_PATCHES ; do
-    echo "Autobuilder - Upstream patch: $AB_PATCH"
+    echo "Autobuilder: Upstream patch: $AB_PATCH"
     patch -p1 -l < "$AB_PATCH" || true
    done
  else
@@ -137,49 +135,48 @@ else
  # Apply any Debian patches
  if [ -d debian/patches ] ; then
    for AB_PATCH in $(find debian/patches/ -type f || true) ; do
-     echo "Autobuilder - Debian patch: $AB_PATCH"
+     echo "Autobuilder: Debian patch: $AB_PATCH"
      patch -p1 -l < "$AB_PATCH" || true
    done
  fi  
  
  # Apply any RISC OS patches
  for AB_PATCH in $(find $AB_HOME/$AB_PACKAGEDIR/ | grep "\.p$") ; do
-   echo "Autobuilder - RISC OS patch: $AB_PATCH"
+   echo "Autobuilder: RISC OS patch: $AB_PATCH"
    patch -p0 -l < $AB_PATCH || [ "$AB_DEBUG" == "yes" ]
  done
  
- echo "Autobuilder - Calling setvars"
+ echo "Autobuilder: Calling setvars"
  . $AB_HOME/$AB_PACKAGEDIR/setvars
  
  if [ -z "$AB_INSTALLTARGET" ] ; then
    AB_INSTALLTARGET=install
  fi
  
- export AB_DEFINSTALL
  export AB_INSTALLTARGET
  export AB_DIR
  
  if [ -e Imakefile ] ; then
-   echo "Autobuilder - Calling xmkmf"
-   /home/riscos/env/ro-path /home/riscos/env/X11R6/bin/xmkmf -a
+   echo "Autobuilder: Calling xmkmf"
+   $GCCSDK_INSTALL_ENV/ro-path $GCCSDK_INSTALL_ENV/X11R6/bin/xmkmf -a
  elif [ -e configure ] ; then
-   echo "Autobuilder - Calling configure command: $AB_PRECONF $AB_CONFIG $AB_CONFLAGS"
+   echo "Autobuilder: Calling configure command: $AB_PRECONF $AB_CONFIG $AB_CONFLAGS"
    eval $AB_PRECONF $AB_CONFIG $AB_CONFLAGS
  elif [ -e Makefile ] || [ -e makefile ] ; then
    :
- elif [ "$AB_MAKE" == "$AB_GCCENV/ro-make" ] ; then
-   echo "Autobuilder - no known build method"
+ elif [ "$AB_MAKE" == "$GCCSDK_INSTALL_ENV/ro-make" ] ; then
+   echo "Autobuilder: No known build method"
    exit 1
  fi
  
  if [ -e $AB_HOME/$AB_PACKAGEDIR/post-configure ] ; then
-   echo "Autobuilder - Calling post-configure"
+   echo "Autobuilder: Calling post-configure"
    . $AB_HOME/$AB_PACKAGEDIR/post-configure
  fi
 
  S=$PWD
  
- echo "Autobuilder - Running make command: $AB_MAKE"
+ echo "Autobuilder: Running make command: $AB_MAKE"
  
  if ab_make || [ "$AB_COMPILEFAIL" == "yes" ] ; then
    :
@@ -189,13 +186,14 @@ else
  
  
  if [ "$AB_INSTALL" == "yes" ] ; then
-   echo "Autobuilder - Running make install"
+   echo "Autobuilder: Running make install"
    if [ "$AB_COMPILEFAIL" != "yes" ] ; then
      eval $AB_MAKE $AB_INSTALLTARGET
    else
      eval $AB_MAKE $AB_INSTALLTARGET || true
    fi
 
+   export AB_OUTPUTLIB
    if [ "$AB_ZIPNAME" != "" ] ; then
 
      export RO_PKG=$(echo $AB_FULLNAME | sed s#"$AB_PACKAGE"#"$AB_ZIPNAME"#)
@@ -203,9 +201,9 @@ else
        export RO_PKG=$AB_ZIPNAME
      fi
 
-     /home/riscos/env/ro-libpack
+     $GCCSDK_INSTALL_ENV/ro-libpack
    else
-     RO_PKG=$AB_FULLNAME /home/riscos/env/ro-libpack
+     RO_PKG=$AB_FULLNAME $GCCSDK_INSTALL_ENV/ro-libpack
    fi
  fi
  
@@ -219,24 +217,18 @@ mkdir -p $D
 ab_package
 
 
-#if [ "$AB_FILESPATH" == "" ] && \
-#   [ "$AB_FILESNOPATH" == "" ] && \
-#   [ "$AB_FILESNOPATHEVAL" == "" ]  ; then
-# echo "Autobuilder - No files specified to package"
-#else
-
 if [ "$AB_NOPACKAGE" == "" ] ; then
 
  if [ "$AB_CATEGORY" == "" ] ; then
-   echo "Autobuilder - No category specified, not packaging"
+   echo "Autobuilder: No category specified, not packaging"
    exit 1
  fi
  
- echo "Autobuilder - Packaging files"
+ echo "Autobuilder: Packaging files"
  if [ "$AB_PACKONLY" == "yes" ] ; then
  
    if [ "$AB_ZIPNAME" != "" ] ; then
-     echo "Autobuilder - Packaging as $AB_ZIPNAME"
+     echo "Autobuilder: Packaging as $AB_ZIPNAME"
      AB_ZIP=$AB_ZIPNAME.zip
    else
      AB_ZIP=$AB_PACKAGE.zip
@@ -244,7 +236,7 @@ if [ "$AB_NOPACKAGE" == "" ] ; then
 
  else
    if [ "$AB_ZIPNAME" != "" ] ; then
-     echo "Autobuilder - Packaging as $AB_ZIPNAME"
+     echo "Autobuilder: Packaging as $AB_ZIPNAME"
      AB_ZIPNAME=$(echo $AB_FULLNAME | sed s#"$AB_PACKAGE"#"$AB_ZIPNAME"#)
  
      AB_ZIP=$AB_DIR/$AB_ZIPNAME-$AB_ROVERSION.zip
@@ -257,8 +249,8 @@ if [ "$AB_NOPACKAGE" == "" ] ; then
  
  if [ "$AB_MANPAGE" != "" ] ; then
    for AB_PAGE in $AB_MANPAGE ; do
-     rman -f HTML $S/$AB_PAGE > $S/$AB_PAGE.html
-     addzip -j $AB_ZIP $S/$AB_PAGE.html
+     rman -f HTML $S/$AB_PAGE > $S/$AB_PAGE,faf
+     addzip -j $AB_ZIP $S/$AB_PAGE,faf
    done
  fi
  
@@ -277,16 +269,17 @@ if [ "$AB_NOPACKAGE" == "" ] ; then
     :
   fi
 
-
  fi
 
+ # FIXME? this will not add files beginning with a dot.  Intended behaviour ?
  addzip -r $AB_ZIP *
 
- mkdir -p  $AB_OUTPUT/$AB_CATEGORY
- mv $AB_ZIP $AB_OUTPUT/$AB_CATEGORY
+ mkdir -p  $AB_OUTPUTPACK/$AB_CATEGORY
+ mv $AB_ZIP $AB_OUTPUTPACK/$AB_CATEGORY
 fi
 
 cd $AB_DIR/..
 [ "$AB_PACKONLY" == "yes" ] || [ "$AB_NOFETCH" == "yes" ] || [ "$AB_DEBUG" == "yes" ] || rm -rf $AB_DIR
 
-echo "Autobuilder - package completed"
+# Note that the following echo is a cookie for 'build' script to acknowledge a successful build.
+echo "Autobuilder: Package stage completed"
