@@ -702,8 +702,16 @@ static void init(void) {
       fprintf(file, "\tMOV\tr11,#0\n");
       if (opt.cplusplus)
       {
-        fprintf(file, "\tIMPORT\t______main\n");
-        fprintf(file, "\tBL\t______main\n");
+        if (opt.toolchain == tc_gcc)
+        {
+          fprintf(file, "\tIMPORT\t__gccmain\n");
+          fprintf(file, "\tBL\t__gccmain\n");
+        }
+        else
+        {
+          fprintf(file, "\tIMPORT\t______main\n");
+          fprintf(file, "\tBL\t______main\n");
+        }
       }
       if (opt.init)
       {
@@ -747,8 +755,16 @@ static void init(void) {
       fprintf(file, "\tMOV\tr11,#0\n");
       if (opt.cplusplus)
       {
-        fprintf(file, "\tIMPORT\t______main\n");
-        fprintf(file, "\tBL\t______main\n");
+        if (opt.toolchain == tc_gcc)
+        {
+          fprintf(file, "\tIMPORT\t__gccmain\n");
+          fprintf(file, "\tBL\t__gccmain\n");
+        }
+        else
+        {
+          fprintf(file, "\tIMPORT\t______main\n");
+          fprintf(file, "\tBL\t______main\n");
+        }
       }
       if (opt.init)
       {

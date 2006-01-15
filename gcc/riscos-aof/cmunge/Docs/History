@@ -2,9 +2,32 @@ Log file for CMunge
 ===================
 
 ------------------------------------------------------------------------
-    Version 0.71 17:02:41 23/12/2005
+    Version 0.72 22:33:26 13/1/2006
 ------------------------------------------------------------------------
 $Log: VersionLog,v $
+Revision 1.61  2006/01/13 22:37:55  justin
+Summary:
+  Fix for C++ object initialisation within GCC.
+Detail:
+  * The GCC environment uses __gccmain to initialise its global objects
+    within C++. This differs from the CFront ______main function's use
+    only in name. When the GCC toolchain is in use we use the former
+    name if C++ module initalisation is requested. If Norcroft is in
+    use, we use the latter name.
+Admin:
+  Patch submitted by John Tytgat.
+  This clearly precludes the use of CFront generated C code with GCC.
+  This is not felt to be a significant issue - there would be greater
+  interworking issues involved with such code than the initialisation
+  of global objects.
+  Not actually tested by me; I've examined the code and I'm trusting
+  John because it's pretty obvious.
+Tag:
+  CMunge-0_72
+
+------------------------------------------------------------------------
+    Version 0.71 17:02:41 23/12/2005
+------------------------------------------------------------------------
 Revision 1.60  2005/12/23 17:15:53  justin
 Summary:
   Changed use of VECTOR_CLAIM to VECTOR_ERROR for error-capable vector
