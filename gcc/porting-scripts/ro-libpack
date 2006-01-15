@@ -2,10 +2,8 @@
 
 set -e
 
-output=/var/www/info/downloads/unix-libraries
-
 if [ -z "$RO_PKG" ] ; then 
-  echo RO_PKG must be set to the package filename
+  echo "RO libpack: RO_PKG must be set to the package filename"
   exit 1
 fi
 
@@ -20,7 +18,7 @@ fi
 mkdir -p $AB_DIR/package/include/
 mkdir -p $AB_DIR/package/lib/pkgconfig/
 
-echo "Running install target: $AB_INSTALLTARGET" 
+echo "RO libpack: Running install target: $AB_INSTALLTARGET" 
 eval $AB_MAKE $AB_INSTALLTARGET
 
 cd $AB_DIR/package
@@ -28,13 +26,13 @@ cd $AB_DIR/package
 files=$(find -type f)
 
 if [ -z "$files" ] ; then
- echo "No files to pack"
- exit 1
+  echo "RO libpack: No files to pack"
+  exit 0
 fi
 
-if [ -d "$output" ] ; then
- 
-  tar cfvz $output/$RO_PKG.tgz $files
+if [ -d "$AB_OUTPUTLIB" ] ; then
+
+  tar cfvz $AB_OUTPUTLIB/$RO_PKG.tgz $files
 
   # Process to turn into RISC OS format filenames for zipping
   
@@ -54,10 +52,14 @@ if [ -d "$output" ] ; then
    fi
   done
 
-  GCCSDK_BIN/zip -, -r -D $output/$RO_PKG.zip .
+  GCCSDK_BIN/zip -, -r -D $AB_OUTPUTLIB/$RO_PKG.zip .
 
 else
-  echo "Output directory '$output' not set or doesn't exist - Library archives not created"
+  if [ -z "$AB_OUTPUTLIB" ] ; then
+    echo "RO libpack: Output directory \$AB_OUTPUTLIB not set - library archives not created"
+  else
+    echo "RO libpack: Output directory '$AB_OUTPUTLIB' (defined by \$AB_OUTPUTLIB) does not exist - library archives not created"
+  fi
 fi
 
 cd ..

@@ -1,11 +1,6 @@
 #!/bin/bash
 
-
 # Binary install path
-
-if [ -z "$RO_BIN" ] ; then
-  RO_BIN=GCCSDK_BIN
-fi
 
 if [ "$RO_DIST" == "YES" ] ; then
   DISTCC=$(which distcc)
@@ -284,17 +279,17 @@ rm /tmp/out-configure
 
 
 # Set tool chain variables picked up by configure
-export CC="$DISTCC $RO_BIN/gcc"
+export CC="$DISTCC $GCCSDK_INSTALL_CROSSBIN/gcc"
 export CPPFLAGS="-isystem GCCSDK_ENV/include"
 export LDFLAGS="-LGCCSDK_ENV/lib $AB_LDFLAGS"
-export CXX="$DISTCC $RO_BIN/g++"
+export CXX="$DISTCC $GCCSDK_INSTALL_CROSSBIN/g++"
 #export CXXLIBS=-liostream
 
 export config_BUILD_CC=/usr/bin/cc
-export config_TARGET_CC="$DISTCC $RO_BIN/gcc"
+export config_TARGET_CC="$DISTCC $GCCSDK_INSTALL_CROSSBIN/gcc"
 
-export AR="$RO_BIN/ar $AB_ARFLAGS"
-export NM="$RO_BIN/libfile -s"
+export AR="$GCCSDK_INSTALL_CROSSBIN/ar $AB_ARFLAGS"
+export NM="$GCCSDK_INSTALL_CROSSBIN/libfile -s"
 export RANLIB=echo
 if [ -z "$AB_DEFINSTALL" ] ; then
   export INSTALL=GCCSDK_ENV/ro-install

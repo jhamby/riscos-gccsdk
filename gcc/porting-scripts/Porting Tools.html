@@ -9,7 +9,7 @@
 
 <p>Copyright 2003-2005, <a href="http://gccsdk.riscos.info/">GCCSDK Developers</a>.</p>
 <p>Written by Peter Naulls (<a href="mailto:peter@chocky.org">peter@chocky.org</a>)</p>
-<p>Last updated - 30th Dec 2005</p>
+<p>Last updated - 7th Jan 2006</p>
 
 <hr>
 
@@ -44,7 +44,8 @@ appropriate options, or set variables, etc beforehand.  Notably,
 make, install and configure.</p>
 
 <p>These wrappers are stored in a subdirectory "env" created under the
-normal structure for the cross compiler (specified by the --with-riscos-dist parameter of the GCCSDK configure).  This directoy is on this system
+normal structure for the cross compiler (specified by the --with-riscos-env
+parameter of the GCCSDK configure).  This directoy is on this system
 currently located at GCCSDK_ENV and more generally accessible via the
 environment variable GCCSDK_INSTALL_ENV and contains directories for the
 usual include, lib, bin, etc, info, man and X11R6 setup.</p>
@@ -61,18 +62,18 @@ See the <a href="http://gccsdk.riscos.info/">GCCSDK page</a> for more details.</
 
 <hr>
 
-<h3>The Tools</h3>
+<h3>The Porting Tools</h3>
 
-<p>The tools live in GCCSDK_ENV, GCCSDK_ENV/bin
-and additions to GCCSDK_BIN. These directories are defined by the
-GCCSDK configure script.</p>
+<p>The porting tools currently for this build live in GCCSDK_ENV and
+GCCSDK_ENV/bin and the cross compiler in GCCSDK_BIN. These directories are
+defined by the GCCSDK configure script.</p>
 
 
 <h4>ro-path</h4>
 
 <p>Very simple, to add to the path before calling a command.  This
-adds GCCSDK_BIN and GCCSDK_ENV/bin to the path
-before calling the supplied command.   This is useful to ensure
+adds $GCCSDK_INSTALL_CROSSBIN, GCCSDK_ENV/bin and GCCSDK_ENV/X11R6/bin to
+the path before calling the supplied command.   This is useful to ensure
 the RISC OS version of a tool gets called, and not the native version.</p>
 
 <p>Also, some libraries set up a <i>libname</i>-config script in
@@ -264,11 +265,10 @@ required on your part.</p>
 <h4>Alternate Paths</h4>
 
 <p>Because of the GCCSDK development, you might have multiple
-installations of the cross compiler itself.  You can set RO_BIN to point at
-an alternate path.  This alternative path or the default when RO_BIN
-is not defined, is reflected in the environment variable
-GCCSDK_INSTALL_CROSSBIN.  The default value is currently on this
-system GCCSDK_BIN.</p>
+installations of the cross compiler itself.  You can set
+the environment variable GCCSDK_INSTALL_CROSSBIN to point at an
+alternate path.
+The default value for this build is GCCSDK_BIN.</p>
 
 
 <p></p>

@@ -2,16 +2,28 @@
 
 # Binary install path
 
-# The user can define RO_BIN to directory containing an alternative
-# cross compiler version (e.g. for testing, developing) than the
-# current GCCSDK has created at GCCSDK_BIN.
-if [ -z "$RO_BIN" ] ; then
-  RO_BIN=GCCSDK_BIN
+# The user can define GCCSDK_INSTALL_CROSSBIN to a directory
+# containing an alternative cross compiler (e.g. for testing or
+# developing purposes) than what GCCSDK has currently created at
+# GCCSDK_BIN.
+if [ -z "$GCCSDK_INSTALL_CROSSBIN" ] ; then
+  export GCCSDK_INSTALL_CROSSBIN=GCCSDK_BIN
 fi
 
-export GCCSDK_INSTALL_ENV=GCCSDK_ENV
-export GCCSDK_INSTALL_CROSSBIN=$RO_BIN
+# The user can define GCCSDK_INSTALL_ENV to a directory containing
+# an alternative set of porting tools, cross compiled libraries or
+# data files.
+if [ -z "$GCCSDK_INSTALL_ENV" ] ; then
+  export GCCSDK_INSTALL_ENV=GCCSDK_ENV
+else
+  if [ "$GCCSDK_INSTALL_ENV" != "GCCSDK_ENV" ] ; then
+    echo "ro-path: environment variable GCCSDK_INSTALL_ENV has wrong value, expected GCCSDK_ENV while it seems to be $GCCSDK_INSTALL_ENV"
+    exit 1
+  fi
+fi
 
+# In order to be able to include header files using
+# "#include <DeskLib:Wimp.h>" in the compiler:
 export DESKLIB_PATH=GCCSDK_ENV/include/DeskLib
 
-PATH=$RO_BIN:GCCSDK_ENV/bin:GCCSDK_ENV/X11R6/bin:$PATH "$@"
+PATH=$GCCSDK_INSTALL_CROSSBIN:GCCSDK_ENV/bin:GCCSDK_ENV/X11R6/bin:$PATH "$@"

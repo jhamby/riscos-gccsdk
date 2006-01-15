@@ -40,37 +40,48 @@ you install GCCSDK has a non-root user.
 Generate the configure script.
   $ autoconf ; autoheader
 
-Configure it.  The package creates two main installations.  The first,
-is a Unix-based cross-compiler for targeting RISC OS which will be
-installed under the directory specified with the `--prefix' option. 
-The second, is a complete GCC compiler toolset built to run natively on
-RISC OS and will be installed under the directory specified with
-the `--with-riscos-dist' option.  `--with-riscos-pkg' points
-to a directory where distributable zip files of the RISC OS GCC toolset
-will be created.  These should then be suitable for unpacking on a RISC OS
-computer to make a working compiler. `--with-riscos-env' points
-to a directory where porting scripts are installed and cross compiled
-libraries may be installed.
+The package creates two main installations.
 
+- The first, is a Unix-based cross-compiler for targeting RISC OS which will
+  be installed under the directory specified with the `--prefix' option.
+  The cross-compiler binaries themselves are stored in the `bin' subdirectory
+  and when using those binaries they should be accessed via the environment
+  variable GCCSDK_INSTALL_CROSSBIN.
+
+  The `--with-riscos-env' option points to a directory where porting tools
+  are installed and cross compiled libraries and data files may be installed.
+  This `env' directory should be accessed via the environment variable
+  GCCSDK_INSTALL_ENV.
+
+- The second, is a complete GCC compiler toolset built to run natively on
+  RISC OS and will be installed under the directory specified with
+  the `--with-riscos-dist' option.  `--with-riscos-pkg' points
+  to a directory where distributable zip files of the RISC OS GCC toolset
+  will be created.  These should then be suitable for unpacking on a RISC OS
+  computer to make a working compiler.
+
+Configure it.
   $ ./configure --prefix=/home/riscos/cross \
 	--with-riscos-dist=/home/riscos/riscos-dist \
 	--with-riscos-pkg=/home/riscos/riscos-pkg \
 	--with-riscos-env=/home/riscos/env \
 	--enable-filetype-ff8 --enable-checking=no
 
-The 'do-configure' script encapsulates this command, so instead of the
-above, you can run "./do-configure".
+The `do-configure' script encapsulates this command, so instead of the
+above, you can adapt `do-configure' script if needed and run
+`./do-configure'.
 
 On systems with makeinfo 4.1, you can avoid building documentation by
-prefixing the ./configure or ./do-configure commands with:
+prefixing the `./configure' or `./do-configure' commands with:
 
   ac_cv_prog_MAKEINFO=echo
 
-Adding the flag --enable-filetype-ff8 to the configure options will add the
-",ff8" suffix to any RISC OS executables built under Unix.  This is to allow
+Adding the flag `--enable-filetype-ff8' to the configure options will add the
+`,ff8' suffix to any RISC OS executables built under Unix.  This is to allow
 filetyping by networking filing systems from RISC OS, such as LanMan98 and
-Sunfish.  We supply a modified version of `zip' which can encode proper
-filetypes into zipfiles whenever it sees the ,xxx suffix.  
+Sunfish.  We supply a modified version of `zip' in the
+GCCSDK_INSTALL_CROSSBIN directory which can encode proper filetypes into
+zipfiles whenever it sees the `,xxx' suffix.  
 
 Create installation directory structure
   $ make setup
@@ -90,11 +101,42 @@ Expect the building of the full package to take around 25 minutes on a 3GHz
 system.
 
 
-Using it
---------
+Using the porting tools
+-----------------------
 
-Once built, you need only add /home/riscos/cross/bin to your PATH
-variable.  Then use it as you would the GCC compiler normally.
+Once built, the porting tools are stored in the directory specified with the
+`--with-riscos-env` configure option.  They will by default make use of the
+cross compiler found in the directory specified with the `--prefix' configure
+option.  Those tools can make use of an alternative cross compiler build by
+via the environment variable GCCSDK_INSTALL_CROSSBIN.
+  $ export GCCSDK_INSTALL_CROSSBIN=/home/riscos/cross/bin
+
+When you don't want to use the porting tools but do want to access e.g.
+the include headers and libraries, do this via environment variable
+GCCSDK_INSTALL_ENV which you also need to setup for this case only.
+  $ export GCCSDK_INSTALL_ENV=/home/riscos/env
+
+  $ gcc -I$GCCSDK_INSTALL_ENV/include -c example.c
+  $ gcc -o example example.o -L$GCCSDK_INSTALL_ENV/lib -lOSLib32
+
+Programs or setups using the porting tools, like GCCSDK Autobuilder, are also
+using the environment variable GCCSDK_INSTALL_ENV.
+
+
+Using the cross-compiler
+------------------------
+
+The cross-compiler can be used on its own.  The recommended way is to
+define the environment variable GCCSDK_INSTALL_CROSSBIN.
+  $ export GCCSDK_INSTALL_CROSSBIN=/home/riscos/cross/bin
+
+Add add this environment value to your PATH.
+  $ PATH=$GCCSDK_INSTALL_CROSSBIN:$PATH
+  
+Then use it as you would the GCC compiler normally.
+
+GCCSDK_INSTALL_CROSSBIN is sometimes also used explicitly to access the
+GCCSDK cross-compiler.
 
 
 RISC OS filename compatibility issues for the cross-compiler
@@ -118,7 +160,7 @@ directory for those headers, simply define the variable:
 Bug reporting
 -------------
 
-Please use the bug-tracking system at http://gccsdk.riscos.info/bugs/
+Please use the bug-tracking system at <URL:http://gccsdk.riscos.info/bugs/>.
 
 
 GCCSDK package contents
@@ -205,11 +247,13 @@ A2. Systems on which it has successfully been built upon include:
 
 Q3. Where does the UnixLib library file end up?
 
-A3. It depends on the parameters you pass to configure.  But for the
-    RISC OS distribution it could be something like:
-      /home/riscos/!gcc/bin/arm-riscos-aof/3_4/apcs32/abs/unixlib/o/unixlib
+A3. It depends on the `--with-riscos-dist' and '--prefix' parameters you
+    pass to configure.  With the default `--with-riscos-dist' parameter
+    UnixLib for the RISC OS distribution is located at:
+      /home/riscos/riscos-dist/!gcc/bin/arm-riscos-aof/3_4/apcs32/abs/unixlib/o/unixlib
 
-    For the Unix tree it could be:
+    With the default `--prefix' parameter UnixLib for Unix cross compiling
+    can be found at:
       /home/riscos/cross/bin/arm-riscos-aof/3_4/apcs32/abs/unixlib/unixlib.o
 
 -----------------------------------------------------------------------------
@@ -227,8 +271,8 @@ A4. Change gccsdk/configure.in to correctly detect your CPU and OS type,
 Q5. Where do I report bugs or send patches ?
 
 A5. The preferred method for issuing bug reports for any package distributed
-    with GCCSDK can be registered at http://gccsdk.riscos.info/bugs/.  A
-    centralised location for bug reports helps the authors keep track of
+    with GCCSDK can be registered at <URL:http://gccsdk.riscos.info/bugs/>.
+    A centralised location for bug reports helps the authors keep track of
     problems which can otherwise get lost under large piles of e-mail.
 
     Alternatively bugs or patches can be e-mailed to the GCCSDK mailing list

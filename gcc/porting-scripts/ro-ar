@@ -11,8 +11,4 @@ for param in $@ ; do
   fi
 done
 
-if [ -z "$RO_BIN" ] ; then
-  RO_BIN=GCCSDK_BIN
-fi
-
-$RO_BIN/ar $RO_CPARAMS
+GCCSDK_ENV/ro-path ar $RO_CPARAMS
