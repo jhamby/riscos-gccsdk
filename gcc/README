@@ -152,9 +152,9 @@ When the pre-processor attempts to read an include statement like:
   #include <DeskLib:Wimp.h>
 it will try to resolve the DeskLib reference against the environment variable
 DESKLIB_PATH.  So you could install the DeskLib header files in a place
-such as /home/riscos/libs/include/desklib.  To get GCC to search in that
+such as /home/riscos/env/include/DeskLib.  To get GCC to search in that
 directory for those headers, simply define the variable:
-  $ export DESKLIB_PATH=/home/riscos/lib/include/desklib
+  $ export DESKLIB_PATH=/home/riscos/env/include/DeskLib
 
 
 Bug reporting
@@ -201,6 +201,7 @@ The RISC OS distribution contains the following tools:
             of diff.
       sed - A batch stream editor
     touch - A port of the Unix touch command for changing file timestamps.
+      zip - A file archive utility
 
 
 FAQ
