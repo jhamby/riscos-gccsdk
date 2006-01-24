@@ -14,7 +14,7 @@
 # TOOLCHAIN can have the following values:
 #   - norcroft : Use the Norcroft tools (CC, LINK, CMHG)
 #   - gcc : Use the GCCSDK tools (GCC, CMUNGE)
-TOOLCHAIN=norcroft
+TOOLCHAIN=gcc
 # Enable unit-at-a-time in GCC (yes/no) ?
 UNITATATIME=no
 
