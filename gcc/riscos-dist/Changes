@@ -37,6 +37,10 @@ RISC OS GCC release 3.4.5 release 1 (released XX XXX 2006)
   switching between multiple cross-compiler versions or installation at
   non-default directories.
 
+* Included Andreas Dehmel's DRenderer v0.52 source & binary which recently
+  became GPL licensed.  Any future development of DRenderer can happen in
+  the GCCSDK project.
+
 
 RISC OS GCC release 3.4.4 release 3 (released 8 July 2005)
 ===================================
