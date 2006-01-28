@@ -295,9 +295,13 @@ Sound support
 ~~~~~~~~~~~~~
 
 UnixLib implements the OSS sound interface via the /dev/dsp device.  It
-makes use of the DigitalRenderer module which can be fetched from:
+makes use of the DRenderer module which is now part GCCSDK. DRenderer was
+writen by Andreas Dehmel and licensed in Jan 2006 under GPL.  Its previous
+homepage was:
 
-  <URL:http://home.t-online.de/home/zarquon/Software.html>
+  <URL:http://www.zarquon.homepage.t-online.de/Software.html>
+
+At the time of writing, the latest version is 0.52.
 
 
 iconv support
@@ -313,7 +317,7 @@ The latest version of the iconv module is currently available from:
 
   <URL:http://moose.mine.nu:6888/iconv_latest.zip>
 
-At the time of writing, the latest version is 0.03.
+At the time of writing, the latest version is 0.04.
 
 
 /dev/(u)random support
@@ -324,6 +328,8 @@ CryptRandom RISC OS module.  This CryptRandom module is currently available
 from:
 
   <URL:http://www.markettos.org.uk/>
+
+At the time of writing, the latest version is 0.12.
 
 
 Environment Variables

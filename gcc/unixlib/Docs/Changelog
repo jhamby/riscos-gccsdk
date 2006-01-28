@@ -1,4 +1,9 @@
-Wed Dec 14 21:07:03 2005
+Sun Jan 29 00:29:13 2005  John Tytgat  <John.Tytgat@aaug.net>
+
+	* Docs/ReadMe: DRenderer is now part of GCCSDK where further development
+	  can take place.
+
+Wed Dec 14 21:07:03 2005  Peter Naulls  <peter@chocky.org>
 
 	* !Help: Update version to 4.2
 	* source/sound/dsp.c: Buffer calculation improvements 
