@@ -51,6 +51,8 @@ GCCDOCPKG = $(pkg)/docs/COPYING \
 	$(pkg)/docs/UnixLib/Changes \
 	$(pkg)/docs/UnixLib/Copyright \
 	$(pkg)/docs/UnixLib/UnixLib \
+	$(pkg)/docs/DRenderer/COPYING \
+	$(pkg)/docs/DRenderer/DocDRender \
 	$(pkg)/examples
 
 CC1PKG = $(pkg)/bin/g++$(exesfx) \
