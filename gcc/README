@@ -186,6 +186,7 @@ The RISC OS distribution contains the following tools:
    cmunge - Justin Fletcher's free alternative to CMHG.
    decaof - Andy Duplain's AOF decoder.
    drlink - Dave Daniels' RISC OS AOF linker.
+drenderer - Andreas Dehmel's DRenderer sound module used by UnixLib.
   libfile - a RISC OS ALF builder.
      gcov - a test coverage program
    libscl - C library headers and stubs for linking with the SharedCLibrary.
