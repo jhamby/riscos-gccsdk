@@ -253,6 +253,7 @@ gcc-libs-stg2: gcc-stg1 riscos-aof-stg1
 
 riscos-dist: riscos-progs gcc-stg2 riscos-aof-stg2
 	$(MAKE) -C riscos-aof riscos-dist
+	$(MAKE) -C riscos-misc riscos-dist
 	$(MAKE) -C riscos-progs riscos-dist
 	$(MAKE) -C riscos-dist install
 
