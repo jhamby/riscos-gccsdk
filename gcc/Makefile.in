@@ -1,6 +1,6 @@
 # Top-level Makefile for the GNU Compiler Collection for ARM/RISC OS
 # Copyright (c) 2000, 2001, 2002 Nick Burrett
-# Copyright (c) 2003, 2004, 2005 GCCSDK Developers
+# Copyright (c) 2003, 2004, 2005, 2006 GCCSDK Developers
 
 # Tell GNU make 3.79 not to run this directory in parallel.
 # Not all of the required dependencies are present.
@@ -229,8 +229,6 @@ riscos-elf:
 porting-scripts:
 	$(MAKE) -C porting-scripts
 
-# The ballache of having to keep support with Objasm forces us
-# to do this (CFL1) brain damage.
 c-libs: gcc-stg1 riscos-aof-stg1 unixlib/Makefile unixlib/source/Makefile unixlib/source/object-list unixlib/objs/Makefile,fe1
 	$(MAKE) -C unixlib "TRG=$(trg20)" $(cfl20)
 	$(MAKE) -C libscl "TRG=$(trg30)" $(cfl30)
