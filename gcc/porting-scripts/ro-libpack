@@ -15,6 +15,8 @@ if [ -z "$AB_INSTALLTARGET" ] ; then
   AB_INSTALLTARGET=install
 fi
 
+mkdir -p $AB_DIR/package/bin/
+mkdir -p $AB_DIR/package/lib/
 mkdir -p $AB_DIR/package/include/
 mkdir -p $AB_DIR/package/lib/pkgconfig/
 
@@ -53,6 +55,9 @@ if [ -d "$AB_OUTPUTLIB" ] ; then
    fi
   done
 
+  if [ -e $AB_OUTPUTLIB/$RO_PKG.zip ] ; then
+    rm $AB_OUTPUTLIB/$RO_PKG.zip
+  fi
   GCCSDK_BIN/zip -, -r -D $AB_OUTPUTLIB/$RO_PKG.zip .
 
 else
