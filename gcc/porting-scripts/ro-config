@@ -470,6 +470,7 @@ export ac_cv_path_db_cv_path_ar=ar
 export ac_cv_path_db_cv_path_ranlib=:
 export ac_cv_path_db_cv_path_cp=$INSTALL
 export ac_cv_path_db_cv_path_chmod=/bin/echo
+export ac_cv_path_db_cv_path_rm=GCCSDK_ENV/rm
 export ac_cv_path_db_cv_path_strip=:
 
 export ac_cv_lib_db_4___db185_open=yes
