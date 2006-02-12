@@ -1,8 +1,8 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/stdio.h,v $
- * $Date: 2005/04/20 13:18:56 $
- * $Revision: 1.19 $
+ * $Date: 2005/04/22 14:38:49 $
+ * $Revision: 1.20 $
  * $State: Exp $
  * $Author: nick $
  *
@@ -75,15 +75,19 @@ __END_NAMESPACE_STD
 #endif
 
 /* The mode of file input/output. */
-typedef struct
+typedef union
 {
-  unsigned int __read:1; /* Open for reading.  */
-  unsigned int __write:1; /* Open for writing.  */
-  unsigned int __append:1; /* Open for appending.  */
-  unsigned int __binary:1; /* Opened binary.  */
-  unsigned int __create:1; /* Create the file.  */
-  unsigned int __exclusive:1; /* Error if it already exists.  */
-  unsigned int __truncate:1; /* Truncate the file on opening.  */
+  struct
+  {
+    unsigned int __read:1; /* Open for reading.  */
+    unsigned int __write:1; /* Open for writing.  */
+    unsigned int __append:1; /* Open for appending.  */
+    unsigned int __binary:1; /* Opened binary.  */
+    unsigned int __create:1; /* Create the file.  */
+    unsigned int __exclusive:1; /* Error if it already exists.  */
+    unsigned int __truncate:1; /* Truncate the file on opening.  */
+  } __bits;
+  unsigned char __allbits;
 } __io_mode;
 
 struct __iobuf

@@ -1,5 +1,5 @@
 /* printf interface functions.
-   Copyright (c) 2005 UnixLib Developers.  */
+   Copyright (c) 2005-2006 UnixLib Developers.  */
 
 #include <sys/types.h>
 
@@ -31,8 +31,8 @@ int vsnprintf (char *buf, size_t limit, const char *format, va_list ap)
   f->o_cnt = f->__bufsize = limit;
 
   /* Buffer needs to be write only.  */
-  f->__mode.__read = f->__mode.__append = 0;
-  f->__mode.__write = 1;
+  f->__mode.__bits.__read = f->__mode.__bits.__append = 0;
+  f->__mode.__bits.__write = 1;
 
   f->__linebuf = 0;
   f->__eof = f->__error = 0;

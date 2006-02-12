@@ -240,7 +240,6 @@ readdir_r (DIR *stream, struct dirent *entry, struct dirent **result)
 {
   _kernel_oserror *err;
   int slen;
-  char *str;
   const int riscosify_ctl = __get_riscosify_control ();
 
   PTHREAD_UNSAFE_CANCELLATION
@@ -277,6 +276,7 @@ readdir_r (DIR *stream, struct dirent *entry, struct dirent **result)
 	  if (sresult != NULL)
 	    {
 	      char x,y,z;
+	      char *str;
 #ifdef DEBUG
 	      fprintf (stderr, "suffix stream data at 0x%p\n", sresult);
 #endif
@@ -359,6 +359,7 @@ readdir_r (DIR *stream, struct dirent *entry, struct dirent **result)
     return 0;
   else
     {
+      char *str;
       /* Does the cache needs a refill ? */
       if (stream->do_read == 0)
 	{

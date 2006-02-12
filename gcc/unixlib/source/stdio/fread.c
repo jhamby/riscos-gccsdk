@@ -1,12 +1,5 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/stdio/fread.c,v $
- * $Date: 2003/04/13 16:21:02 $
- * $Revision: 1.3 $
- * $State: Exp $
- * $Author: alex $
- *
- ***************************************************************************/
+/* UnixLib fread() implementation.
+   Copyright 2000-2006 UnixLib Developers.  */
 
 #include <errno.h>
 #include <stdlib.h>
@@ -29,7 +22,7 @@ fread (void *data, size_t size, size_t count, FILE *stream)
   PTHREAD_UNSAFE
 
   /* Check for any errors.  */
-  if (!__validfp (stream) || !stream->__mode.__read)
+  if (!__validfp (stream) || !stream->__mode.__bits.__read)
     {
       (void) __set_errno (EINVAL);
       return (size_t)0;

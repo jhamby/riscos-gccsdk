@@ -1,12 +1,5 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/stdio/popen.c,v $
- * $Date: 2003/04/13 16:21:02 $
- * $Revision: 1.5 $
- * $State: Exp $
- * $Author: alex $
- *
- ***************************************************************************/
+/* UnixLib popen() and pclose() implementation.
+   Copyright 2001-2006 UnixLib Developers.  */
 
 #include <errno.h>
 #include <stdlib.h>
@@ -160,7 +153,7 @@ pclose (FILE * stream)
   if (!stream->__ispipe)
     return __set_errno (EINVAL);
 
-  if (stream->__mode.__write)
+  if (stream->__mode.__bits.__write)
     {
       /* The current process has written to the pipe, so now fork the child
 	 to read from the pipe.  */

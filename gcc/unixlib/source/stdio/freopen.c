@@ -1,12 +1,5 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/stdio/freopen.c,v $
- * $Date: 2003/04/13 16:21:02 $
- * $Revision: 1.4 $
- * $State: Exp $
- * $Author: alex $
- *
- ***************************************************************************/
+/* UnixLib freopen() implementation.
+   Copyright 2001-2006 UnixLib Developers.  */
 
 /* #define DEBUG */
 
@@ -56,7 +49,7 @@ freopen (const char *filename, const char *mode, FILE *stream)
 #endif
 
   m = __getmode (mode);
-  if (! m.__read && ! m.__write)
+  if (! m.__bits.__read && ! m.__bits.__write)
     {
       fclose (stream);
       (void) __set_errno (EINVAL);
@@ -65,7 +58,7 @@ freopen (const char *filename, const char *mode, FILE *stream)
 
 
   /* Flush the stream.  */
-  if (stream->__mode.__write)
+  if (stream->__mode.__bits.__write)
     __flsbuf (EOF, stream);
 
   /* Reset the file buffers.  */
@@ -80,19 +73,19 @@ freopen (const char *filename, const char *mode, FILE *stream)
 
   stream->__mode = m;
 
-  if (m.__read && m.__write)
+  if (m.__bits.__read && m.__bits.__write)
     file_mode = O_RDWR;
   else
-    file_mode = m.__read ? O_RDONLY : O_WRONLY;
+    file_mode = m.__bits.__read ? O_RDONLY : O_WRONLY;
 
-  if (m.__append)
+  if (m.__bits.__append)
     file_mode |= O_APPEND;
-  if (m.__truncate)
+  if (m.__bits.__truncate)
     file_mode |= O_TRUNC;
 
-  if (m.__create)
+  if (m.__bits.__create)
     fd = __reopen (stream->fd, filename, file_mode | O_CREAT,
-       	       S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
+               S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
   else
     fd = __reopen (stream->fd, filename, file_mode);
 

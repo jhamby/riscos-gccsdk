@@ -1,12 +1,5 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/stdio/filbuf.c,v $
- * $Date: 2003/04/13 16:21:02 $
- * $Revision: 1.3 $
- * $State: Exp $
- * $Author: alex $
- *
- ***************************************************************************/
+/* UnixLib buffer stream handling.
+   Copyright 2000-2006 UnixLib Developers.  */
 
 #include <errno.h>
 #include <stdlib.h>
@@ -20,7 +13,7 @@ __STDIOLIB__
 /* Check the stream for validity and errors.  */
 static int check_stream (FILE *stream)
 {
-  if (!__validfp (stream) || !stream->__mode.__read)
+  if (!__validfp (stream) || !stream->__mode.__bits.__read)
     {
       (void) __set_errno (EINVAL);
       return EOF;

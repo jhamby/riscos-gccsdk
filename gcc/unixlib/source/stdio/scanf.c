@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/stdio/scanf.c,v $
- * $Date: 2003/04/13 16:21:02 $
- * $Revision: 1.4 $
+ * $Date: 2005/11/16 03:15:42 $
+ * $Revision: 1.5 $
  * $State: Exp $
- * $Author: alex $
+ * $Author: joty $
  *
  ***************************************************************************/
 
@@ -49,7 +49,7 @@
 static char sccsid[] = "@(#)vfscanf.c	8.1 (Berkeley) 6/4/93";
 #endif
 static const char rcsid[] =
-		"$Id: scanf.c,v 1.4 2003/04/13 16:21:02 alex Exp $";
+		"$Id: scanf.c,v 1.5 2005/11/16 03:15:42 joty Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 #include <stdio.h>
@@ -797,7 +797,7 @@ int vsscanf (const char *buf, const char *format, va_list ap)
   f.__magic = _IOMAGIC;
   f.i_ptr = f.i_base = (unsigned char *) buf;
   f.i_cnt = f.__bufsize = strlen (buf);
-  f.__mode.__read = 1;
+  f.__mode.__bits.__read = 1;
   f.__string_istream = 1;
   f.fd = -1;
 

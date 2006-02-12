@@ -1,12 +1,5 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/stdio/fopen.c,v $
- * $Date: 2005/03/04 20:59:06 $
- * $Revision: 1.7 $
- * $State: Exp $
- * $Author: alex $
- *
- ***************************************************************************/
+/* UnixLib fopen()/fdopen() implementation.
+   Copyright 2001-2006 UnixLib Developers.  */
 
 /* #define DEBUG */
 
@@ -48,7 +41,7 @@ fopen (const char *filename, const char *mode)
 #endif
 
   m = __getmode (mode);
-  if (! m.__read && ! m.__write)
+  if (! m.__bits.__read && ! m.__bits.__write)
     {
       (void) __set_errno (EINVAL);
       return NULL;
@@ -61,17 +54,17 @@ fopen (const char *filename, const char *mode)
 
   stream->__mode = m;
 
-  if (m.__read && m.__write)
+  if (m.__bits.__read && m.__bits.__write)
     file_mode = O_RDWR;
   else
-    file_mode = m.__read ? O_RDONLY : O_WRONLY;
+    file_mode = m.__bits.__read ? O_RDONLY : O_WRONLY;
 
-  if (m.__append)
+  if (m.__bits.__append)
     file_mode |= O_APPEND;
-  if (m.__truncate)
+  if (m.__bits.__truncate)
     file_mode |= O_TRUNC;
 
-  if (m.__create)
+  if (m.__bits.__create)
     fd = open (filename, file_mode | O_CREAT,
 	       S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
   else
@@ -99,7 +92,7 @@ fdopen (int fd, const char *mode)
   __os_print (",mode="); __os_print (mode); __os_print (")\r\n");
 #endif
   m = __getmode (mode);
-  if (! m.__read && ! m.__write)
+  if (! m.__bits.__read && ! m.__bits.__write)
     return NULL;
 
 #ifdef DEBUG
@@ -115,12 +108,12 @@ fdopen (int fd, const char *mode)
 #endif
 
   /* Check the access mode.  */
-  if ((dflags & O_ACCMODE) == O_RDONLY && ! m.__read)
+  if ((dflags & O_ACCMODE) == O_RDONLY && ! m.__bits.__read)
     {
       errno = EBADF;
       return NULL;
     }
-  if ((dflags & O_ACCMODE) == O_WRONLY && ! m.__write)
+  if ((dflags & O_ACCMODE) == O_WRONLY && ! m.__bits.__write)
     {
       errno = EBADF;
       return NULL;

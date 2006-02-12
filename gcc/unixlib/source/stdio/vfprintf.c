@@ -672,7 +672,7 @@ __vfprintf(FILE *fp, const char *fmt0, va_list ap)
 	decimal_point = localeconv()->decimal_point;
 #endif
 	/* sorry, fprintf(read_only_file, "") returns EOF, not 0 */
-	if (! fp->__mode.__write)
+	if (! fp->__mode.__bits.__write)
 		return (EOF);
 
 #if 0

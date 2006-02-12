@@ -1,4 +1,31 @@
-Sun Jan 29 00:29:13 2005  John Tytgat  <John.Tytgat@aaug.net>
+Sun Feb 12 13:29:24 2006  John Tytgat  <John.Tytgat@aaug.net>
+
+	* source/clib/stdio.h (__io_mode): Changed struct into union so that
+	  all bits can be set to zero in __getmode() in a more clean way.
+	* source/stdio/fclose.c (fclose): Following stdio.h(__io_mode) change.
+	* source/stdio/fflush.c (fflush): Likewise.
+	* source/stdio/filbuf.c (check_stream): Likewise.
+	* source/stdio/fopen.c (fopen, fdopen): Likewise.
+	* source/stdio/fpos.c (fseek, ftell): Likewise.
+	* source/stdio/fread.c (fread): Likewise.
+	* source/stdio/freopen.c (freopen): Likewise.
+	* source/stdio/fwrite.c (fwrite): Likewise.
+	* source/stdio/getc.c (fgetc): Likewise.
+	* source/stdio/newstream.c (__stream_init, __getmode): Likewise.
+	* source/stdio/popen.c (pclose): Likewise.
+	* source/stdio/printf.c (vsnprintf): Likewise.
+	* source/stdio/putc.c (fputc): Likewise.
+	* source/stdio/scanf.c (vsscanf): Likewise.
+	* source/stdio/setbuf.c (setvbuf): Likewise.
+	* source/stdio/ungetc.c (ungetc): Likewise.
+	* source/stdio/vfprintf.c (__vfprintf): Likewise.
+	* source/gcccompat/_galloca.s: Added missing END.
+	* source/unix/dirent.c: Reduced compiler warnings.
+	* source/unix/open.c: Likewise.
+	* source/unix/select.c: Likewise.
+	* source/unix/unix.c: Likewise.
+
+Sun Jan 29 00:29:13 2006  John Tytgat  <John.Tytgat@aaug.net>
 
 	* Docs/ReadMe: DRenderer is now part of GCCSDK where further development
 	  can take place.

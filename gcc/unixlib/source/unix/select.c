@@ -1,14 +1,5 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/select.c,v $
- * $Date: 2005/04/24 20:26:59 $
- * $Revision: 1.13 $
- * $State: Exp $
- * $Author: joty $
- *
- ***************************************************************************/
-
-/* unix/select.c: Written by Peter Burwood, July 1997  */
+/* Unixlib select() implementation.
+   Copyright 1997-2006 UnixLib Developers.  */
 
 #include <errno.h>
 #include <string.h>
@@ -166,7 +157,7 @@ select (int nfds, fd_set *readfds, fd_set *writefds,
     {
       /* We need to scan all file descriptors to initialise as we could be
          a child program with sockets already open */
-      int i;
+      unsigned int i;
 
       FD_ZERO (&__socket_fd_set);
 

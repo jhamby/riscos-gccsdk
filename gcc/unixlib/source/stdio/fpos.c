@@ -1,12 +1,6 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/stdio/fpos.c,v $
- * $Date: 2004/12/11 14:18:57 $
- * $Revision: 1.7 $
- * $State: Exp $
- * $Author: joty $
- *
- ***************************************************************************/
+/* UnixLib fgetpos(), fsetpos(), fseek(), fseeko(), ftell(), ftello(),
+   rewind() implementation.
+   Copyright 2001-2006 UnixLib Developers.  */
 
 /* #define DEBUG */
 
@@ -64,7 +58,7 @@ fseek (FILE * stream, long offset, int w)
     }
 
   /* Write out any pending data.  */
-  if (stream->__mode.__write && __flsbuf (EOF, stream) == EOF)
+  if (stream->__mode.__bits.__write && __flsbuf (EOF, stream) == EOF)
     return EOF;
 
   /* Calculate the current position after file positioning.  */
@@ -144,7 +138,7 @@ ftell (FILE *stream)
      set if the last operation was a write, then we could check
      the appropriate fields.  Instead we will take the easy option
      and flush the write buffers.  */
-  if (stream->__mode.__read && stream->__mode.__write)
+  if (stream->__mode.__bits.__read && stream->__mode.__bits.__write)
     __flsbuf (EOF, stream);
 
 #ifdef DEBUG

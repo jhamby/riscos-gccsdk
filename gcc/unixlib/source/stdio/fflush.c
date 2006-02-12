@@ -1,12 +1,5 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/stdio/fflush.c,v $
- * $Date: 2004/12/07 22:57:53 $
- * $Revision: 1.4 $
- * $State: Exp $
- * $Author: alex $
- *
- ***************************************************************************/
+/* UnixLib fflush() implementation.
+   Copyright 2000-2006 UnixLib Developers.  */
 
 #include <stdio.h>
 #include <errno.h>
@@ -27,7 +20,7 @@ fflush (FILE *stream)
       stream = __iob_head;
       while (stream)
         {
-	  if (__validfp (stream) && stream->__mode.__write)
+	  if (__validfp (stream) && stream->__mode.__bits.__write)
 	    lossage |= __flsbuf (EOF, stream);
 	  stream = stream->next;
 	}
@@ -40,7 +33,7 @@ fflush (FILE *stream)
       return EOF;
     }
 
-  if (!stream->__mode.__write)
+  if (!stream->__mode.__bits.__write)
     return 0;
 
   return __flsbuf (EOF, stream);

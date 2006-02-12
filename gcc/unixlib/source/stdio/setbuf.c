@@ -1,12 +1,5 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/stdio/setbuf.c,v $
- * $Date: 2003/04/13 16:21:02 $
- * $Revision: 1.3 $
- * $State: Exp $
- * $Author: alex $
- *
- ***************************************************************************/
+/* UnixLib setbuffer(), setlinebuf(), setbuf() and setvbuf() implementation.
+   Copyright 2000-2006 UnixLib Developers.  */
 
 #include <errno.h>
 #include <stdlib.h>
@@ -92,13 +85,13 @@ setvbuf (FILE * stream, char *buf, int flag, size_t bufsiz)
       return EOF;
     }
 
-  if (!stream->__mode.__read && !stream->__mode.__write)
+  if (!stream->__mode.__bits.__read && !stream->__mode.__bits.__write)
     return EOF;
 
   /* ANSI says that setvbuf can only be called before any I/O is
      done, but we will allow it to replace at any time. Though
      any old contents of the buffer will be lost.  */
-  if (stream->__mode.__read)
+  if (stream->__mode.__bits.__read)
     {
       userbuf = stream->__iuserbuf;
 
@@ -108,7 +101,7 @@ setvbuf (FILE * stream, char *buf, int flag, size_t bufsiz)
 
       stream->__iuserbuf = userbuf;
     }
-  if (stream->__mode.__write)
+  if (stream->__mode.__bits.__write)
     {
       userbuf = stream->__ouserbuf;
 

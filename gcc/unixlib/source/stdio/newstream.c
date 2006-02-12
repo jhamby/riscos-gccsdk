@@ -1,12 +1,5 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/stdio/newstream.c,v $
- * $Date: 2004/12/11 14:18:57 $
- * $Revision: 1.5 $
- * $State: Exp $
- * $Author: joty $
- *
- ***************************************************************************/
+/* UnixLib low-level stream implementation.
+   Copyright 2001-2006 UnixLib Developers.  */
 
 #include <errno.h>
 #include <stddef.h>
@@ -84,7 +77,7 @@ __stream_init (int fd, FILE *stream)
     setvbuf (stream, NULL, _IOLBF, BUFSIZ);
   else
     {
-      if (stream->__mode.__append)
+      if (stream->__mode.__bits.__append)
 	stream->__offset = (fpos_t) lseek (fd, 0L, SEEK_END);
       else
 	stream->__offset = (fpos_t) lseek (fd, 0L, SEEK_CUR);
@@ -101,22 +94,22 @@ __io_mode __getmode (const char *mode)
 {
   __io_mode m;
 
-  (*((int *) &m)) = 0;
+  m.__allbits = 0;
 
   if (*mode == 'a')
-    m.__write = m.__create = m.__append = 1;
+    m.__bits.__write = m.__bits.__create = m.__bits.__append = 1;
   else if (*mode == 'w')
-    m.__write = m.__create = m.__truncate = 1;
+    m.__bits.__write = m.__bits.__create = m.__bits.__truncate = 1;
   else if (*mode == 'r')
-    m.__read = 1;
+    m.__bits.__read = 1;
   else
     return m;
 
   ++mode;
   if (*mode == '+' || (*mode && mode[1] == '+'))
-    m.__read = m.__write = 1;
+    m.__bits.__read = m.__bits.__write = 1;
   if (*mode == 'b' || (*mode && mode[1] == 'b'))
-    m.__binary = 1;
+    m.__bits.__binary = 1;
 
   return m;
 }

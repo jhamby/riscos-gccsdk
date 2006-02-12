@@ -1,12 +1,5 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/stdio/putc.c,v $
- * $Date: 2005/05/13 21:32:12 $
- * $Revision: 1.5 $
- * $State: Exp $
- * $Author: peter $
- *
- ***************************************************************************/
+/* UnixLib fputc(), fputc_unlocked(), putc() and putchar() implementation.
+   Copyright 2002-2006 UnixLib Developers.  */
 
 #include <stdio.h>
 #include <errno.h>
@@ -19,7 +12,7 @@ fputc (int c, FILE *stream)
 {
   PTHREAD_UNSAFE
 
-  if (! __validfp (stream) || ! stream->__mode.__write)
+  if (! __validfp (stream) || ! stream->__mode.__bits.__write)
     {
       errno = EINVAL;
       return EOF;

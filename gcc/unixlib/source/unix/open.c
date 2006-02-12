@@ -1,5 +1,5 @@
-/* UnixLib open() implementation.
-   Copyright (c) 2000, 2001, 2002, 2003, 2004, 2005 UnixLib Developers.  */
+/* UnixLib ttyname() and open() implementation.
+   Copyright (c) 2000-2006 UnixLib Developers.  */
 
 #include <stdlib.h>
 #include <stdarg.h>
@@ -21,7 +21,7 @@
 char *
 ttyname (int fd)
 {
-  static char ttyname[] = "/dev/tty";
+  static char cttyname[] = "/dev/tty";
 
   PTHREAD_UNSAFE
 
@@ -32,7 +32,7 @@ ttyname (int fd)
     }
 
   if (getfd (fd)->devicehandle->type == DEV_TTY)
-    return ttyname;
+    return cttyname;
 
   return NULL;
 }

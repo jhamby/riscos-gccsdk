@@ -1,12 +1,5 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/stdio/fclose.c,v $
- * $Date: 2003/04/13 16:21:01 $
- * $Revision: 1.4 $
- * $State: Exp $
- * $Author: alex $
- *
- ***************************************************************************/
+/* UnixLib fclose() implementation.
+   Copyright 2001-2006 UnixLib Developers.  */
 
 /* #define DEBUG */
 
@@ -57,7 +50,7 @@ fclose (FILE * stream)
 #endif
 
   /* Only flush writable streams.  */
-  if (stream->__mode.__write && __flsbuf (EOF, stream) == EOF)
+  if (stream->__mode.__bits.__write && __flsbuf (EOF, stream) == EOF)
     {
 #ifdef DEBUG
       __os_print ("EOF\r\n");

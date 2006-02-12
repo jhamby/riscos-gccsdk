@@ -1,7 +1,7 @@
 ; UnixLib GCC 4 alloca function interface.
 ; These functions tie-in directly with both UnixLib and the GCC compiler.
 ; Change one, change the other.
-; Copyright (c) 2005 UnixLib Developers
+; Copyright (c) 2005-2006 UnixLib Developers
 
 	GET	clib/unixlib/asm_dec.s
 
@@ -29,3 +29,5 @@
 	teq	pc, pc
 	movnes	pc, lr		; 26-bit mode, restore flags
 	mov	pc, lr		; 32-bit mode, scrap flags
+
+	END

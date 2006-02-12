@@ -1,12 +1,5 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/stdio/getc.c,v $
- * $Date: 2003/04/13 16:21:02 $
- * $Revision: 1.3 $
- * $State: Exp $
- * $Author: alex $
- *
- ***************************************************************************/
+/* UnixLib fgetc(), getc() and getchar() implementation.
+   Copyright 2000-2006 UnixLib Developers.  */
 
 #include <stdio.h>
 #include <errno.h>
@@ -19,7 +12,7 @@ fgetc (FILE * stream)
 {
   PTHREAD_UNSAFE
 
-  if (!__validfp (stream) || !stream->__mode.__read)
+  if (!__validfp (stream) || !stream->__mode.__bits.__read)
     {
       errno = EINVAL;
       return -1;

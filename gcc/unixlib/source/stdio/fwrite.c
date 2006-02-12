@@ -1,12 +1,5 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/stdio/fwrite.c,v $
- * $Date: 2005/05/16 21:32:32 $
- * $Revision: 1.10 $
- * $State: Exp $
- * $Author: peter $
- *
- ***************************************************************************/
+/* UnixLib fwrite() implementation.
+   Copyright 2001-2006 UnixLib Developers.  */
 
 /* #define DEBUG */
 
@@ -33,7 +26,7 @@ fwrite (const void *data, size_t size, size_t count, FILE *stream)
   PTHREAD_UNSAFE
 
   /* Check for any errors.  */
-  if (!__validfp (stream) || !stream->__mode.__write)
+  if (!__validfp (stream) || !stream->__mode.__bits.__write)
     {
       (void) __set_errno (EINVAL);
       return (size_t)0;

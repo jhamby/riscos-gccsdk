@@ -53,7 +53,7 @@ static void __badr (void) __attribute__ ((__noreturn__));
    so to prevent possible compiler errors from sources that
    might include <unixlib/unix.h> we will have the main()
    declaration here.  */
-extern int main (int argc, char *argv[], char **environ);
+extern int main (int, char *[], char **);
 
 /* Only called externally from here - see comment below */
 extern int dsp_exit(void);
@@ -81,7 +81,7 @@ __decstrtoui (const char *nptr, const char **end)
     result = result * 10 + (*nptr++ - '0');
   while (isdigit (*nptr));
   if (end)
-    *end = (char *) nptr;
+    *end = nptr;
 
   return result;
 }
@@ -117,7 +117,7 @@ void __free_process(struct __sul_process *process)
   /* Close all file descriptors.  */
   if (process->file_descriptors)
     {
-      int i;
+      unsigned int i;
       struct __unixlib_fd *file_desc;
 
       for (i = 0; i < process->maxfd; i++)
@@ -471,7 +471,7 @@ _exit (int return_code)
 int
 __alloc_file_descriptor (int start)
 {
-  int i;
+  unsigned int i;
 
   PTHREAD_UNSAFE
 
@@ -519,7 +519,8 @@ initialise_unix_io (void)
   if (__proc->file_descriptors == NULL)
     {
       _kernel_oserror *err;
-      int regs[10], i;
+      int regs[10];
+      unsigned int i;
 
       __proc->file_descriptors = __proc->sul_malloc (__proc->pid,
 						     __proc->maxfd * __proc->fdsize);
@@ -591,7 +592,7 @@ check_fd_redirection (const char *filename, unsigned int fd_to_replace)
 static int
 get_fd_redirection (const char *redir)
 {
-  int fd, multiplier;
+  unsigned int fd, multiplier;
 
   /* On entry, *redir will point to either a left or right chevron.  */
   redir--;
