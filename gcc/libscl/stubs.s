@@ -1,6 +1,6 @@
 ; Provides an Object Format file for linking with the SharedCLibrary
 ; Copyright (c) 1997-2005 Nick Burrett
-; Copyright (c) 2005 UnixLib Developers
+; Copyright (c) 2005-2006 UnixLib Developers
 ; All rights reserved.
 
 ; Redistribution and use in source and binary forms, with or without
@@ -707,6 +707,7 @@ c_run
 
 	GBLA	Loop
 
+	; FIXME: READONLY ? We're going to write to this area ?!
 	AREA	|Stub$$Entries|, CODE, READONLY
 
 kernel_vectors
@@ -1089,7 +1090,7 @@ extra_vectors_end
 extra_vectors_space	% extra_vectors_end - extra_vectors
 
 
-	AREA	|Stub$$Data|, DATA
+	AREA	|Stub$$Data|, DATA, NOINIT
 kernel_statics	% &31c
 kernel_statics_end
 
