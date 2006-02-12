@@ -3,7 +3,6 @@
 # Install wrapper for RISC OS, to handle ",ff8" extensions
 
 installparams=
-hasff8=0
 dest=
 
 if [ "$1" == "cp" ] ; then
@@ -24,21 +23,11 @@ for param in $@ ; do
       fi
     fi
 
-    # Don't install RISC OS binaries
-    if file $param | grep "RISC OS AIF executable" > /dev/null; then
+    # Don't install RISC OS binaries (only in non-packaging mode)
+    if [ -z "$RO_PKG" ] && file $param | grep "RISC OS AIF executable" > /dev/null; then
       echo "RISC OS Cross installer: Not installing RISC OS binary"
       exit 0;
     fi
-
-#    # If one of the parameters ends in ",ff8", then the next parameter
-#    # should too, if it's not a directory
-#    if echo "$param" | grep ",ff8" > /dev/null ; then
-#      hasff8=1
-#    else
-#      if [ "$hasff8" == 1 ] && ! [ -d $param ] ; then
-#        param="$param,ff8"
-#      fi
-#    fi
   fi
 
   dest=$param
@@ -52,34 +41,34 @@ fi
 
 
 if [ -z "$RO_PKG" ] ; then
-  # Regular unix style install for cross environment
-
-  # Only install files in bin|include|lib|X11R6 in GCCSDK_ENV
-  
-#  if echo "$dest" | grep -E "/env/bin|/env/include|/env/lib|/etc/etc|/env/X11R6" >/dev/null ; then
-#    exec $command $installparams $dest
-#
-#  else
-#    if echo "$dest" | grep "GCCSDK_ENV" > /dev/null; then
-#      echo "RISC OS Cross installer: Not installing non bin/include/lib/X11R6 files"
-#    else
-      exec $command $installparams $dest
-#    fi
-#  fi
-
+  # Regular Unix style install for cross environment
+  exec $command $installparams $dest
 else
   # Install for RISC OS headers, libraries and man pages
 
-  if echo "$dest" | grep -E "/env/lib|env/include" >/dev/null ; then
+  if echo "$dest" | grep -E "/env/lib|/env/include|/env/bin" >/dev/null ; then
     dest=$(echo $dest | sed s#GCCSDK_ENV/#$AB_DIR/package/#)
     echo "RISC OS Cross installer: $installparams $dest"
     exec $command $installparams $dest
   fi
+
   if echo "$dest" | grep -E "/env/share/man/|/env/man/" >/dev/null ; then
     dest=$(echo $dest | sed -e "s#GCCSDK_ENV/share/#$AB_DIR/package/#" -e "s#GCCSDK_ENV/#$AB_DIR/package/#" -e "s#/man[0-9]##")
+    # Skip option '-m'
+    if [ "$(echo $installparams | cut -c -2)" == "-m" ] ; then
+      installparams=$(echo $installparams | cut -f 3- -d ' ')
+    fi
+
+    # If there is only one source file and that equals the basename of destination, make
+    # of the destination its dirname.
+    if ! expr index "$installparams" ' ' ; then
+      if [ "$(basename $installparams)" == "$(basename $dest)" ] ; then
+        dest=$(dirname $dest)
+      fi
+    fi
     mkdir -p $dest
     for manpage in $installparams ; do
-      rman -f HTML $manpage > $dest/$manpage,faf
+      rman -f HTML $manpage > $dest/`(basename $manpage)`,faf
     done
   fi
 fi
