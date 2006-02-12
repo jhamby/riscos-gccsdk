@@ -1,3 +1,7 @@
+Sun Feb 12 17:31:43 2006  John-Mark Bell  <jmb202@ecs.soton.ac.uk>
+
+	* source/common/unixify.c: Obey __RISCOSIFY_NO_REVERSE_SUFFIX.
+
 Sun Feb 12 13:29:24 2006  John Tytgat  <John.Tytgat@aaug.net>
 
 	* source/clib/stdio.h (__io_mode): Changed struct into union so that

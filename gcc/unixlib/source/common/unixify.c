@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/common/unixify.c,v $
- * $Date: 2005/12/04 17:13:43 $
- * $Revision: 1.20 $
+ * $Date: 2005/12/15 05:15:46 $
+ * $Revision: 1.21 $
  * $State: Exp $
- * $Author: alex $
+ * $Author: peter $
  *
  ***************************************************************************/
 
@@ -260,14 +260,14 @@ __unixify_ext (const char *name, char *buffer, size_t buflen,
       if (name[namelen - extlen - 1] == '.' && !strchr(name, '/'))
         return __unixify(name, __RISCOSIFY_NO_PROCESS, buffer, buflen,
                          filetype);
-  
+
       if (name[namelen - extlen - 1] == '/' && !strchr(name, '.'))
         {
           char *extname = alloca(namelen + 3);
-  
+
           strcpy(extname, "@.");
           strcat(extname, name);
-  
+
           name = extname;
         }
       }
@@ -422,14 +422,16 @@ __unixify (const char *ro_path, int unixify_flags, char *buffer,
 	  input += strlen (tempbuf) + 1;
 	  get_directory_name (input, name);
 
-	  if (is_prefix (name))
+	  if (!(unixify_flags & __RISCOSIFY_NO_REVERSE_SUFFIX)
+	      && is_prefix (name))
 	    {
 	      /* Method 1.
 	         name contains the prefix.
 	         tempbuf contains the filename.  */
 	      out = add_directory_and_prefix (out, tempbuf, name);
 	    }
-	  else if (is_prefix (tempbuf))
+	  else if (!(unixify_flags & __RISCOSIFY_NO_REVERSE_SUFFIX)
+		   && is_prefix (tempbuf))
 	    {
 	      /* Method 2.
 	         tempbuf contains the prefix.
