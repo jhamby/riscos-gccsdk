@@ -35,7 +35,6 @@ static cxx_scope *innermost_nonclass_level (void);
 static tree select_decl (cxx_binding *, int);
 static cxx_binding *binding_for_name (cxx_scope *, tree);
 static tree lookup_name_current_level (tree);
-static void push_local_binding (tree, tree, int);
 static tree push_overloaded_decl (tree, int);
 static bool lookup_using_namespace (tree, cxx_binding *, tree,
                                     tree, int);
@@ -1052,7 +1051,7 @@ maybe_push_decl (tree decl)
    doesn't really belong to this binding level, that it got here
    through a using-declaration.  */
 
-static void
+void
 push_local_binding (tree id, tree decl, int flags)
 {
   struct cp_binding_level *b;
@@ -1180,6 +1179,10 @@ check_for_out_of_scope_variable (tree decl)
     return decl;
 
   DECL_ERROR_REPORTED (decl) = 1;
+
+  if (TREE_TYPE (decl) == error_mark_node)
+    return decl;
+
   if (TYPE_HAS_NONTRIVIAL_DESTRUCTOR (TREE_TYPE (decl)))
     {
       error ("name lookup of `%D' changed for new ISO `for' scoping",
@@ -3021,7 +3024,13 @@ set_decl_namespace (tree decl, tree scope, bool friendp)
 	  return;
     }
   else
-    return;
+    {
+      /* Writing "int N::i" to declare a variable within "N" is invalid.  */
+      if (at_namespace_scope_p ())
+       error ("explicit qualification in declaration of `%D'", decl);
+      return;
+    }
+
  complain:
   error ("`%D' should have been declared inside `%D'",
 	    decl, scope);
@@ -3199,12 +3208,10 @@ namespace_ancestor (tree ns1, tree ns2)
 void
 do_namespace_alias (tree alias, tree namespace)
 {
-  if (TREE_CODE (namespace) != NAMESPACE_DECL)
-    {
-      /* The parser did not find it, so it's not there.  */
-      error ("unknown namespace `%D'", namespace);
-      return;
-    }
+  if (namespace == error_mark_node)
+    return;
+
+  my_friendly_assert (TREE_CODE (namespace) == NAMESPACE_DECL, 20050830);
 
   namespace = ORIGINAL_NAMESPACE (namespace);
 
@@ -3345,26 +3352,15 @@ do_toplevel_using_decl (tree decl, tree scope, tree name)
 void
 do_using_directive (tree namespace)
 {
+  if (namespace == error_mark_node)
+    return;
+
+  my_friendly_assert (TREE_CODE (namespace) == NAMESPACE_DECL, 20050830);
+
   if (building_stmt_tree ())
     add_stmt (build_stmt (USING_STMT, namespace));
-  
-  /* using namespace A::B::C; */
-  if (TREE_CODE (namespace) == SCOPE_REF)
-      namespace = TREE_OPERAND (namespace, 1);
-  if (TREE_CODE (namespace) == IDENTIFIER_NODE)
-    {
-      /* Lookup in lexer did not find a namespace.  */
-      if (!processing_template_decl)
-	error ("namespace `%T' undeclared", namespace);
-      return;
-    }
-  if (TREE_CODE (namespace) != NAMESPACE_DECL)
-    {
-      if (!processing_template_decl)
-	error ("`%T' is not a namespace", namespace);
-      return;
-    }
   namespace = ORIGINAL_NAMESPACE (namespace);
+
   if (!toplevel_bindings_p ())
     push_using_directive (namespace);
   else

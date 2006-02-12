@@ -2647,16 +2647,7 @@ make_typename_type (tree context, tree name, tsubst_flags_t complain)
       return error_mark_node;
     }
   my_friendly_assert (TREE_CODE (name) == IDENTIFIER_NODE, 20030802);
-  
-  if (TREE_CODE (context) == NAMESPACE_DECL)
-    {
-      /* We can get here from typename_sub0 in the explicit_template_type
-	 expansion.  Just fail.  */
-      if (complain & tf_error)
-	error ("no class template named `%#T' in `%#T'",
-		  name, context);
-      return error_mark_node;
-    }
+  my_friendly_assert (TYPE_P (context), 20050905);
 
   if (!dependent_type_p (context)
       || currently_open_class (context))
@@ -5903,6 +5894,7 @@ grokvardecl (tree type,
              tree scope)
 {
   tree decl;
+  tree explicit_scope;
   RID_BIT_TYPE specbits;
 
   my_friendly_assert (!name || TREE_CODE (name) == IDENTIFIER_NODE, 
@@ -5910,7 +5902,9 @@ grokvardecl (tree type,
 
   specbits = *specbits_in;
 
-  /* Compute the scope in which to place the variable.  */
+  /* Compute the scope in which to place the variable, but remember
+     whether or not that scope was explicitly specified by the user.  */
+  explicit_scope = scope;
   if (!scope)
     {
       /* An explicit "extern" specifier indicates a namespace-scope
@@ -5939,8 +5933,8 @@ grokvardecl (tree type,
   else
     decl = build_decl (VAR_DECL, name, type);
 
-  if (scope && TREE_CODE (scope) == NAMESPACE_DECL)
-    set_decl_namespace (decl, scope, 0);
+  if (explicit_scope && TREE_CODE (explicit_scope) == NAMESPACE_DECL)
+    set_decl_namespace (decl, explicit_scope, 0);
   else
     DECL_CONTEXT (decl) = scope;
 
@@ -9341,9 +9335,11 @@ tag_name (enum tag_types code)
     case class_type:
       return "class";
     case union_type:
-      return "union ";
+      return "union";
     case enum_type:
       return "enum";
+    case typename_type:
+      return "typename";
     default:
       abort ();
     }
@@ -9381,7 +9377,8 @@ check_elaborated_type_specifier (enum tag_types tag_code,
      In other words, the only legitimate declaration to use in the
      elaborated type specifier is the implicit typedef created when
      the type is declared.  */
-  if (!DECL_IMPLICIT_TYPEDEF_P (decl))
+  if (!DECL_IMPLICIT_TYPEDEF_P (decl)
+      && tag_code != typename_type)
     {
       error ("using typedef-name `%D' after `%s'", decl, tag_name (tag_code));
       return IS_AGGR_TYPE (type) ? type : error_mark_node;
@@ -9395,7 +9392,8 @@ check_elaborated_type_specifier (enum tag_types tag_code,
     }
   else if (TREE_CODE (type) != RECORD_TYPE
 	   && TREE_CODE (type) != UNION_TYPE
-	   && tag_code != enum_type)
+	   && tag_code != enum_type
+	   && tag_code != typename_type)
     {
       error ("`%T' referred to as `%s'", type, tag_name (tag_code));
       return error_mark_node;
@@ -10317,7 +10315,11 @@ start_function (tree declspecs, tree declarator, tree attrs, int flags)
      class scope, current_class_type will be NULL_TREE until set above
      by push_nested_class.)  */
   if (processing_template_decl)
-    decl1 = push_template_decl (decl1);
+    {
+      tree newdecl1 = push_template_decl (decl1);
+      if (newdecl1 != error_mark_node)
+	decl1 = newdecl1;
+    }
 
   /* We are now in the scope of the function being defined.  */
   current_function_decl = decl1;
