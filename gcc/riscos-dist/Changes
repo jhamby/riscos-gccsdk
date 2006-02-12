@@ -2,7 +2,7 @@ Noteworthy changes to the RISC OS GCCSDK
 
 For specific UnixLib changes, see !gcc.docs.UnixLib.Changes
 
-RISC OS GCC release 3.4.5 release 1 (released 12 Feb 2006)
+RISC OS GCC release 3.4.5 release 1 (released 15 Feb 2006)
 ===================================
 
 * Update to full GCC 3.4.5 release.  See
