@@ -1,6 +1,6 @@
 # Makefile for UnixLib for the ARM/RISC OS GCC port
 # Copyright (c) 2000, 2001 Nick Burrett
-# Copyright (c) 2004, 2005 UnixLib Developers
+# Copyright (c) 2004, 2005, 2006 UnixLib Developers
 #
 # This file is part of UnixLib
 #
@@ -28,7 +28,7 @@ $(libunixobj)/%.o: %.c
 	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c $< $(INCLUDES) $(CFL)
 
 $(libunixobj)/%.o: %.s
-	$(CROSS_CC) $(CROSS_CFLAGS) -Wa,-pedantic -o $@ -c $< $(CFL) $(CFL1)
+	$(CROSS_CC) $(CROSS_CFLAGS) -Wa,-pedantic -o $@ -c $< $(CFL)
 
 
 OBJS = \
