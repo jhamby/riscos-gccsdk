@@ -1,3 +1,9 @@
+Mon Feb 14 00:39:17 2006  John Tytgat  <John.Tytgat@aaug.net>
+
+	* !Help: Update version to 4.3
+	* Docs.ReadMe: Current iconv module version is 0.07.  Also using more
+	  stable URL.
+
 Sun Feb 12 17:31:43 2006  John-Mark Bell  <jmb202@ecs.soton.ac.uk>
 
 	* source/common/unixify.c: Obey __RISCOSIFY_NO_REVERSE_SUFFIX.
