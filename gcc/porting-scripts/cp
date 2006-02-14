@@ -2,7 +2,7 @@
 
 # Look for 'cp' trying to do the job of 'install'
 if echo "$@" | grep GCCSDK_ENV > /dev/null ; then
- /home/riscos/env/ro-install cp $@
+  GCCSDK_ENV/ro-install cp $@
 else
- /bin/cp $@
+  /bin/cp $@
 fi
