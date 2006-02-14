@@ -1,3 +1,7 @@
+Tue Feb 14 23:31:18 2006  John Tytgat  <John.Tytgat@aaug.net>
+
+	* features.h (__ULIBC_MINOR__): Bump version to 3.
+
 Mon Feb 14 00:39:17 2006  John Tytgat  <John.Tytgat@aaug.net>
 
 	* !Help: Update version to 4.3
