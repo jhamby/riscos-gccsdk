@@ -1,9 +1,9 @@
-Noteworthy changes to the RISC OS GCCSDK
+Noteworthy changes to the RISC OS GCCSDK releases made.
 
 For specific UnixLib changes, see !gcc.docs.UnixLib.Changes
 
-RISC OS GCC release 3.4.5 release 1 (released 15 Feb 2006)
-===================================
+GCCSDK GCC 3.4.5 Release 1 (released 15 Feb 2006)
+==========================
 
 * Update to full GCC 3.4.5 release.  See
   <URL:http://gcc.gnu.org/gcc-3.4/changes.html#3.4.5> for more
@@ -46,8 +46,8 @@ RISC OS GCC release 3.4.5 release 1 (released 15 Feb 2006)
   the GCCSDK project.
 
 
-RISC OS GCC release 3.4.4 release 3 (released 8 July 2005)
-===================================
+GCCSDK GCC 3.4.4 Release 3 (released 8 July 2005)
+==========================
 
 * Update to full GCC 3.4.4 release.  See
   <URL:http://gcc.gnu.org/gcc-3.4/changes.html#3.4.4> for more
@@ -86,8 +86,8 @@ RISC OS GCC release 3.4.4 release 3 (released 8 July 2005)
 * Runaway optimisation fixed (bug #131)
 
 
-RISC OS GCC release 3.4.4 release 2 (released 6 May 2005)
-===================================
+GCCSDK GCC 3.4.4 Release 2 (released 6 May 2005)
+==========================
 
 * drlink is much faster when handling very large numbers of symbols.
 
@@ -163,16 +163,16 @@ RISC OS GCC release 3.4.4 release 2 (released 6 May 2005)
   files.
 
 
-RISC OS GCC release 3.4.4 release 1 (released 25 December 2004)
-===================================
+GCCSDK GCC 3.4.4 Release 1 (released 25 December 2004)
+==========================
 
 * Modernisation of assert() handling and ensure compability with StubsG.
 
 * Improved Co-processor register support in 'as'
 
 
-RISC OS GCC release 3.4.4 pre-release 4 (released 20 December 2004)
-=======================================
+GCCSDK GCC 3.4.4 pre-release 4 (released 20 December 2004)
+==============================
 
 * Extensive improvement of filename handling in AOF tools and GCC.  They
   now all use UnixLib's riscosify/unixify functions and can handle
@@ -189,8 +189,8 @@ RISC OS GCC release 3.4.4 pre-release 4 (released 20 December 2004)
 * as: Now linked with SCL instead of UnixLib, so it is smaller.
 
 
-RISC OS GCC release 3.4.4 pre-release 3 (released 10 December 2004)
-=======================================
+GCCSDK GCC 3.4.4 pre-release 3 (released 10 December 2004)
+==============================
 
 * gcc: Updated to version 3.4.4 (prerelease of 03/Dec/2004)
 
@@ -204,22 +204,22 @@ RISC OS GCC release 3.4.4 pre-release 3 (released 10 December 2004)
   in stack mismatches.
 
 
-RISC OS GCC release 3.4.4 pre-release 2 (released 29 November 2004)
-=======================================
+GCCSDK GCC 3.4.4 pre-release 2 (released 29 November 2004)
+==============================
 
 * gcc: Minor bug fixes.
 
 * zip: Be more intelligent when setting RISC OS filetype.
 
 
-RISC OS GCC release 3.4.4 pre-release 1 (released 26 November 2004)
-=======================================
+GCCSDK GCC 3.4.4 pre-release 1 (released 26 November 2004)
+==============================
 
 * gcc: Updated to version 3.4.4 (prerelease of 13 Nov 2004)
 
 
-RISC OS GCC release 3.4.1 release 1 (released 05 October 2004)
-===================================
+GCCSDK GCC 3.4.1 Release 1 (released 05 October 2004)
+==========================
 
 * gcc: Updated to version 3.4.1 to make the distribution current and
   bring in speed improvements and better optimisation.  The 3.3 release
@@ -247,8 +247,8 @@ RISC OS GCC release 3.4.1 release 1 (released 05 October 2004)
   - General improvements to source formatting and comments.
 
 
-RISC OS GCC release 3.3.3 pre-release 2 (released 18 April 2004)
-=======================================
+GCCSDK GCC 3.3.3 pre-release 2 (released 18 April 2004)
+==============================
 
 * diffutils: Upgrade to version 2.8.1.  Add documentation.
 
@@ -274,8 +274,8 @@ RISC OS GCC release 3.3.3 pre-release 2 (released 18 April 2004)
 * drlink: Fix handling of RISC OS filenames.
 
 
-RISC OS GCC release 3.3.3 pre-release 1 (released 20 March 2004)
-=======================================
+GCCSDK GCC 3.3.3 pre-release 1 (released 20 March 2004)
+==============================
 
 * unixlib: Path <Unix$Path> has been replaced by <UnixLib$Path>.  All
   makefiles that previously used the path Unix: will have to be updated
@@ -320,8 +320,8 @@ RISC OS GCC release 3.3.3 pre-release 1 (released 20 March 2004)
 * sed: Upgrade to version 4.0.7.
 
 
-RISC OS GCC release 2.95.4 release 3 (released 05 January 2003)
-====================================
+GCCSDK GCC 2.95.4 Release 3 (released 05 January 2003)
+===========================
 
 * as: Fix pre/post indexed addressing assembler error.
 
@@ -332,8 +332,8 @@ RISC OS GCC release 2.95.4 release 3 (released 05 January 2003)
 * libscl: Preserve flags on 26-bit systems.
 
 
-RISC OS GCC release 2.95.4 release 2 (released 13 November 2002)
-====================================
+GCCSDK GCC 2.95.4 Release 2 (released 13 November 2002)
+===========================
 
 * ar: This is an ALF implementation of the Unix archiver.  This is
   simply a front end onto libfile but takes compatible arguments.
@@ -364,8 +364,8 @@ RISC OS GCC release 2.95.4 release 2 (released 13 November 2002)
 * libscl: Support APCS-32.
 
 
-RISC OS GCC release 2.95.4 release 1 (released 20 December 2001)
-====================================
+GCCSDK GCC 2.95.4 Release 1 (released 20 December 2001)
+===========================
 
 * unixlib: Allow for program independent sfix settings.
 
@@ -408,8 +408,8 @@ RISC OS GCC release 2.95.4 release 1 (released 20 December 2001)
 * gcc: Upgraded to version 2.95.4.
 
 
-RISC OS GCC pre-release 3a  (released 23 November 1999)
-==========================
+GCCSDK GCC pre-release 3a  (released 23 November 1999)
+=========================
 
 * Integer division will now raise a SIGFPE upon division
   by zero
@@ -422,8 +422,8 @@ RISC OS GCC pre-release 3a  (released 23 November 1999)
   directory.
 
 
-RISC OS GCC pre-release 3  (released 19 November 1999)
-=========================
+GCCSDK GCC pre-release 3  (released 19 November 1999)
+========================
 
 These are the user visible changes since pre-release 2.
 
@@ -447,8 +447,8 @@ These are the user visible changes since pre-release 2.
   math functions.
 
 
-RISC OS GCC pre-release 2  (released 23 September 1999)
-=========================
+GCCSDK GCC pre-release 2  (released 23 September 1999)
+========================
 
 This file details the user visible changes since pre-release 1.
 
