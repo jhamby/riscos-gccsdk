@@ -260,7 +260,9 @@ lang_specific_driver (int *in_argc, const char *const **in_argv,
 
   /* 0 => initial/reset state
      1 => FORTRAN_INIT linked in */
-  int use_init = 0;
+  /* JOTY: vvv We don't have nor need the libfrtbegin library */
+  int use_init = 1;
+  /* JOTY: ^^^ */
   /* By default, we throw on the math library if we have one.  */
   int need_math = (MATH_LIBRARY[0] != '\0');
 
