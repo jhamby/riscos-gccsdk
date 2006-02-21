@@ -2,6 +2,16 @@ Noteworthy changes to the RISC OS GCCSDK releases made.
 
 For specific UnixLib changes, see !gcc.docs.UnixLib.Changes
 
+GCCSDK GCC 3.4.6 Release 1 (released XX XXX 2006)
+========================
+
+* Provided two new GCC options -mlibrary-static-data-offset and
+  -mclient-static-data-offset (latter being default) which when compiling
+  module code to be able to use the library static data offset (at
+  sl-540) instead of the client static data offset (sl-536).
+  Graham Shaw <gdshaw@sagitta.demon.co.uk>
+
+
 GCCSDK GCC 3.4.5 Release 1 (released 15 Feb 2006)
 ==========================
 

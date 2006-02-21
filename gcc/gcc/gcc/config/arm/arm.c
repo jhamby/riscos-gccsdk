@@ -2720,6 +2720,7 @@ arm_finalize_pic (int prologue ATTRIBUTE_UNUSED)
 #ifdef AOF_ASSEMBLER
   rtx seq;
   rtx sb_reg, sl_reg, sb_ref;
+  int static_data_offset;
 
   if (current_function_uses_pic_offset_table == 0 || TARGET_SINGLE_PIC_BASE)
     return;
@@ -2729,10 +2730,15 @@ arm_finalize_pic (int prologue ATTRIBUTE_UNUSED)
 
   start_sequence ();
 
+  if (TARGET_LIBSTATICS)
+    static_data_offset = -540;
+  else
+    static_data_offset = -536;
+
   sl_reg = gen_rtx_REG (Pmode, SL_REGNUM);
   sb_ref = gen_rtx_MEM (Pmode,
 			gen_rtx_PLUS (Pmode,
-				      sl_reg, GEN_INT (-536)));
+				      sl_reg, GEN_INT (static_data_offset)));
   RTX_UNCHANGING_P (sb_ref) = 1;
   emit_insn (gen_rtx_SET (SImode, pic_offset_table_rtx, sb_ref));
 

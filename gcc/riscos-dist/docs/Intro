@@ -132,6 +132,7 @@ in !gcc.files.
 
 The full GCC manual can be referred to at !gcc.docs.gcc.
 
+
 Switches
 --------
 
@@ -187,7 +188,7 @@ RISC OS specific options
    build and link source code against the SharedCLibrary headers and
    library files.
 
- -munixlib
+ -munixlib (default)
    build and link source code against the UnixLib headers and library
    files.
 
@@ -203,6 +204,21 @@ RISC OS specific options
  -mmodule
    Generate code suitable for a RISC OS module.  You must use this alongside
    -mlibscl.
+ 
+ -mlibrary-static-data-offset
+   Only relevant when compiling a RISC OS module (option -mmodule set).
+   This specifies to use the library static data offset (at sl-540) instead
+   of the client static data offset (sl-536).  This is only to be used in very
+   rare cases.
+
+ -mclient-static-data-offset (default)
+   Only relevant when compiling a RISC OS module (option -mmodule set).
+   This specifies to use the client static data offset (at sl-536) instead
+   of the library static data offset (sl-540).
+
+   -mlibrary-static-data-offset and -mclient-static-data-offset are mutually
+   exclusive.  -mclient-static-data-offset is the default.
+
 
 LD
 --
@@ -295,6 +311,7 @@ below.
 
 Users of older machines, the Archimedes and A5000, with less than 8MB RAM
 will not be able to use this software.
+
 
 Dynamic areas
 -------------

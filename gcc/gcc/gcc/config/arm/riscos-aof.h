@@ -60,6 +60,10 @@ Boston, MA 02111-1307, USA.  */
    Currently bits 0 to 23 (incl) are in use by arm.h, we defined here
    a couple other onces.  */
 
+/* Use library static data offset instead of client offset. */
+#define ARM_LIBSTATICS		(0x04000000)
+#define TARGET_LIBSTATICS	(target_flags & ARM_LIBSTATICS)
+
 /* Create code suitable for a RISC OS module */
 #define ARM_MODULE		(0x08000000)
 #define TARGET_MODULE		(target_flags & ARM_MODULE)
@@ -93,7 +97,11 @@ Boston, MA 02111-1307, USA.  */
    "Compile with the headers from UnixLib (default)" },		\
   {"module",			 ARM_MODULE,			\
    "Generate data references suitable for RISC OS modules" },	\
-  {"no-module",			-ARM_MODULE, ""},
+  {"no-module",			-ARM_MODULE, ""}, \
+  {"library-static-data-offset", ARM_LIBSTATICS, \
+   "Use library static data offset in RISC OS module code" }, \
+  {"client-static-data-offset", -ARM_LIBSTATICS, \
+   "Use client static data offset in RISC OS module code" },
 
 
 /* Default RISC OS options
