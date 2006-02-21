@@ -1,6 +1,6 @@
-This document is a modification from !gcc.docs.gccuser of the
+This document is a modification from !gcc.docs.gcc of the
 *Reporting Bugs* section. Please use the information supplied here
-rather than in !gcc.docs.gccuser.
+rather than in !gcc.docs.gcc.
 
 Throughout the document, reference is make to GCC. This is a collective
 term used to describe GNU C, Obj-C, C++, GNAT Ada and Fortran. In the
