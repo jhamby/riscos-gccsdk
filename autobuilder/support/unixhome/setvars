@@ -8,7 +8,7 @@ AB_ROVERSION=1.03
 
 cp $H/!UnixHome/c/SetHome $S/SetHome.c
 
-AB_MAKE="/home/riscos/cross/bin/gcc SetHome.c -O2 -o SetHome"
+AB_MAKE="$GCCSDK_INSTALL_CROSSBIN/gcc SetHome.c -O2 -o SetHome"
 
 ab_package() {
   cp -av $H/\!UnixHome $D
