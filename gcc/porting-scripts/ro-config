@@ -285,6 +285,8 @@ export LDFLAGS="-LGCCSDK_ENV/lib $AB_LDFLAGS"
 export CXX="$DISTCC $GCCSDK_INSTALL_CROSSBIN/g++"
 #export CXXLIBS=-liostream
 
+export CC_FOR_BUILD=/usr/bin/cc
+
 export config_BUILD_CC=/usr/bin/cc
 export config_TARGET_CC="$DISTCC $GCCSDK_INSTALL_CROSSBIN/gcc"
 
