@@ -1,5 +1,4 @@
-
-
 AB_INSTALL=yes
 
 mkdir -p $D/lib/sigc++-1.0/include/
+mkdir -p $D/include/sigc++-1.0/sigc++/macros

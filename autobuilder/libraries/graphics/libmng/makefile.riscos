@@ -14,25 +14,25 @@ CC=gcc
 #OPTIONS = -DMNG_BUILD_SO -DMNG_FULL_CMS
 
 # where "make install" puts libmng.a,libmng.so*,libmng.h,libmng_conf.h,libmng_types.h
-prefix=/home/riscos/env
+prefix=$(GCCSDK_INSTALL_ENV)
 
 # Where the zlib library and include files are located
 #ZLIBLIB=../zlib
 #ZLIBINC=../zlib
-ZLIBLIB=/home/riscos/env/lib
-ZLIBINC=/home/riscos/env/include
+ZLIBLIB=$(prefix)/lib
+ZLIBINC=$(prefix)/include
 
 # Where the jpeg library and include files are located
 #JPEGLIB=../jpgsrc
 #JPEGINC=../jpgsrc
-JPEGLIB=/home/riscos/env/lib
-JPEGINC=/home/riscos/env/include
+JPEGLIB=$(prefix)/lib
+JPEGINC=$(prefix)/include
 
 # Where the lcms library and include files are located
 #LCMSLIB=../lcms/lib
 #LCMSINC=../lcms/source
-LCMSLIB=/home/riscos/env/lib
-LCMSINC=/home/riscos/env/include
+LCMSLIB=$(prefix)/lib
+LCMSINC=$(prefix)/include
 
 ALIGN=
 # for i386:

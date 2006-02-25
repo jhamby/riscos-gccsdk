@@ -1,7 +1,6 @@
-
 cd unix
 
-#AB_INSTALL=yes
+AB_INSTALL=yes
 
 AB_MAKE="$AB_MAKE CFLAGS=-O2"
 

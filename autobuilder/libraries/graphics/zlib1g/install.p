@@ -5,10 +5,10 @@
  	-@if [ ! -d $(libdir)      ]; then mkdir -p $(libdir); fi
  	-@if [ ! -d $(man3dir)     ]; then mkdir -p $(man3dir); fi
 -	cp zlib.h zconf.h $(includedir)
-+	/home/riscos/env/ro-install zlib.h zconf.h $(includedir)
++	$(GCCSDK_INSTALL_ENV)/ro-install zlib.h zconf.h $(includedir)
  	chmod 644 $(includedir)/zlib.h $(includedir)/zconf.h
 -	cp $(LIBS) $(libdir)
-+	/home/riscos/env/ro-install $(LIBS) $(libdir)
++	$(GCCSDK_INSTALL_ENV)/ro-install $(LIBS) $(libdir)
  	cd $(libdir); chmod 755 $(LIBS)
  	-@(cd $(libdir); $(RANLIB) libz.a || true) >/dev/null 2>&1
  	cd $(libdir); if test -f $(SHAREDLIBV); then \
@@ -17,7 +17,7 @@
  	  (ldconfig || true)  >/dev/null 2>&1; \
  	fi
 -	cp zlib.3 $(man3dir)
-+	/home/riscos/env/ro-install zlib.3 $(man3dir)
++	$(GCCSDK_INSTALL_ENV)/ro-install zlib.3 $(man3dir)
  	chmod 644 $(man3dir)/zlib.3
  # The ranlib in install is needed on NeXTSTEP which checks file times
  # ldconfig is for Linux

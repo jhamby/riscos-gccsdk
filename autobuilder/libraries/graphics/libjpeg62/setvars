@@ -1,9 +1,11 @@
-
 AB_CATEGORY=graphics
 
 AB_INSTALL=yes
 AB_INSTALLTARGET=install-lib 
 
-AB_FILESNOPATH="*ff8"
 AB_ZIPNAME=libjpeg-progs
-AB_MANPAGE="*jpeg*.1"
+AB_MANPAGE="cjpeg.1 djpeg.1 jpegtran.1 rdjpgcom.1 wrjpgcom.1"
+
+ab_package() {
+  cp $S/*,ff8 $D
+}

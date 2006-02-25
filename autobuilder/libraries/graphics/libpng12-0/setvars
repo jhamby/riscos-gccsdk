@@ -1,6 +1,6 @@
+AB_CATEGORY=libraries/graphics
 
 AB_INSTALL=yes
-AB_PRECONF=:
 
 AB_MAKE="$AB_MAKE libpng.a"
 

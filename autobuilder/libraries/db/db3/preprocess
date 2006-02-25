@@ -1,4 +1,2 @@
-
-
 tar xfz db-3*.gz
 mv db-3*/* .

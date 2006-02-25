@@ -5,7 +5,7 @@
  # libpng12/png.h and libpng12/pngconf.h
  # Prefix must be a full pathname.
 -prefix=/usr/local
-+prefix=/home/riscos/env
++prefix=$(GCCSDK_INSTALL_ENV)
  
  # Where the zlib library and include files are located.
  #ZLIBLIB=/usr/local/lib
@@ -13,7 +13,7 @@
  # for pgcc version 2.95.1, -O3 is buggy; don't use it.
  
  CFLAGS=-I$(ZLIBINC) -Wall -O3 -funroll-loops \
-+	-L/home/riscos/env/lib -I/home/riscos/env/include \
++	-L$(GCCSDK_INSTALL_ENV)/lib -I$(GCCSDK_INSTALL_ENV)/include \
  	$(ALIGN) # $(WARNMORE) -g -DPNG_DEBUG=5
  
  LDFLAGS=-L. -Wl,-rpath,. -L$(ZLIBLIB) -Wl,-rpath,$(ZLIBLIB) -lpng12 -lz -lm
