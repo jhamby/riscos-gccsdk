@@ -127,7 +127,14 @@ else
    cd $AB_FULLNAME
  fi
 
+ # FIXME: needed for the TIFF project, is it a more general problem ?
+ # Workaround when *.gz file is the contents of the package.orig.tar.gz file.
+ # FIXME: this gives spurious (& ignored errors) for x.org.  Probably better to
+ # limit this to a certain depth (1 ?)
+ ( cd .. && find $AB_FULLNAME -name '*.gz' -exec tar -xzf '{}' \; )
+
  S=$PWD
+ echo "Autobuilder: source directory is $S"
  
  # Get the version number
  AB_PVERSION=$(echo $AB_FULLNAME | sed s/$AB_PACKAGE-//)
@@ -187,10 +194,11 @@ else
  
  if [ "$AB_INSTALL" == "yes" ] ; then
    echo "Autobuilder: Running make install"
+   # Append GCCSDK_INSTALL_ENV to PATH so that cp/rm are picked up there.
    if [ "$AB_COMPILEFAIL" != "yes" ] ; then
-     eval $AB_MAKE $AB_INSTALLTARGET
+     PATH=$GCCSDK_INSTALL_ENV:$PATH eval "$AB_MAKE $AB_INSTALLTARGET"
    else
-     eval $AB_MAKE $AB_INSTALLTARGET || true
+     PATH=$GCCSDK_INSTALL_ENV:$PATH eval "$AB_MAKE $AB_INSTALLTARGET" || true
    fi
 
    export AB_OUTPUTLIB
@@ -246,6 +254,11 @@ if [ "$AB_NOPACKAGE" == "" ] ; then
  fi
  
  cd $D
+
+ # Remove an existing ZIP file (otherwise the old contents will be merged with the new one)
+ if [ -e $AB_ZIP ] ; then
+   rm $AB_ZIP
+ fi
  
  if [ "$AB_MANPAGE" != "" ] ; then
    for AB_PAGE in $AB_MANPAGE ; do
