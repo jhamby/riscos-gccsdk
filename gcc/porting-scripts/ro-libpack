@@ -22,7 +22,7 @@ mkdir -p $AB_DIR/package/lib/pkgconfig/
 
 echo "RO libpack: Running install target: $AB_INSTALLTARGET"
 # Adding GCCSDK_ENV in our path to intercept cp/rm calls during installation.
-eval PATH=GCCSDK_ENV:$PATH $AB_MAKE $AB_INSTALLTARGET
+PATH=GCCSDK_ENV:$PATH eval "$AB_MAKE $AB_INSTALLTARGET"
 
 cd $AB_DIR/package
 
