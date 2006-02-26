@@ -1,3 +1,10 @@
+Sun Feb 26 23:51:25 2006  John Tytgat  <John.Tytgat@aaug.net>
+
+	* source/netlib/getaddrinfo.c(gai_strerror): Always wrongly returned
+	  "Unknown error".
+	* source/resolv/gethnameaddr.c(gethostbyname2): Use hosts file as
+	  fallback when resolv query failed.
+
 Tue Feb 14 23:31:18 2006  John Tytgat  <John.Tytgat@aaug.net>
 
 	* features.h (__ULIBC_MINOR__): Bump version to 3.

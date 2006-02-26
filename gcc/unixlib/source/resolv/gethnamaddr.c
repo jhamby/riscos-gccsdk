@@ -1,19 +1,11 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/resolv/gethnamaddr.c,v $
- * $Date: 2003/04/25 00:04:48 $
- * $Revision: 1.2 $
- * $State: Exp $
- * $Author: joty $
- *
- ***************************************************************************/
-
 /*
  * File taken from glibc 2.2.5.
  * Following changes were made:
  *  - Renamed __hostalias() into hostalias()
  *  - (gethostbyaddr) void ptr can not be increase using operator +=.
  *  - Renamed __res_ninit() into res_ninit()
+ *  - gethostbyname(): always fall back on hosts file when resolv query
+ *    failed
  */
 
 /*
@@ -69,7 +61,7 @@
 
 #if defined(LIBC_SCCS) && !defined(lint)
 static char sccsid[] = "@(#)gethostnamadr.c	8.1 (Berkeley) 6/4/93";
-static char rcsid[] = "$Id: gethnamaddr.c,v 1.2 2003/04/25 00:04:48 joty Exp $";
+static char rcsid[] = "$Id: gethnamaddr.c,v 1.3 2005/04/13 19:20:06 nick Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 #include <sys/types.h>
@@ -637,9 +629,11 @@ gethostbyname2(name, af)
 
 	if ((n = res_nsearch(&_res, name, C_IN, type, buf.buf, sizeof(buf.buf))) < 0) {
 		dprintf("res_nsearch failed (%d)\n", n);
-		if (errno == ETIMEDOUT || errno == ECONNREFUSED)
+		// UnixLib change: always fall back on hosts file when
+		// resolv query failed
+		//if (errno == ETIMEDOUT || errno == ECONNREFUSED)
 			return (_gethtbyname2(name, af));
-		return (NULL);
+		//return (NULL);
 	}
 	return (getanswer(&buf, n, name, type));
 }

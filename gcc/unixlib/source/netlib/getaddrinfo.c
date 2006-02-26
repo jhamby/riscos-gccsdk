@@ -153,38 +153,47 @@ extern int h_errno;
 static const char *eai_errlist[] = {
     N_("Success"),
 
-    /* EAI_ADDRFAMILY */
-    N_("Address family for hostname not supported"),
-
-    /* EAI_AGAIN */
-    N_("Temporary failure in name resolution"),
-
     /* EAI_BADFLAGS */
     N_("Invalid value for ai_flags"),
-
-    /* EAI_FAIL */
-    N_("Non-recoverable failure in name resolution"),
-
-    /* EAI_FAMILY */
-    N_("ai_family not supported"),                      
-
-    /* EAI_MEMORY */
-    N_("Memory allocation failure"),
 
     /* EAI_NONAME */
     N_("hostname nor servname provided, or not known"),
 
-    /* EAI_OVERFLOW */
-    N_("An argument buffer overflowed"),
+    /* EAI_AGAIN */
+    N_("Temporary failure in name resolution"),
 
-    /* EAI_SERVICE */
-    N_("servname not supported for ai_socktype"),
+    /* EAI_FAIL */
+    N_("Non-recoverable failure in name resolution"),
+
+    /* EAI_NODATA */
+    N_("No data available"),
+
+    /* EAI_FAMILY */
+    N_("ai_family not supported"),                      
 
     /* EAI_SOCKTYPE */
     N_("ai_socktype not supported"),
 
+    /* EAI_SERVICE */
+    N_("servname not supported for ai_socktype"),
+
+    /* EAI_ADDRFAMILY */
+    N_("Address family for hostname not supported"),
+
+    /* EAI_MEMORY */
+    N_("Memory allocation failure"),
+
     /* EAI_SYSTEM */
-    N_("System error returned in errno")
+    N_("System error returned in errno"),
+
+    /* EAI_BADHINTS */
+    N_("Bad hints"),
+    
+    /* EAI_PROTOCOL */
+    N_("protocol not supported"),
+
+    /* EAI_OVERFLOW */
+    N_("An argument buffer overflowed")
 };
 
 /*
@@ -220,7 +229,8 @@ static int itoa_length();
 const char *
 gai_strerror(int ecode)
 {
-    if (ecode < 0 || ecode > EAI_SYSTEM)
+    ecode = -ecode;
+    if (ecode < 0 || ecode >= -EAI_MAX)
 	return _("Unknown error");
 
     return gettext(eai_errlist[ecode]);
