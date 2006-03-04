@@ -1,0 +1,4 @@
+AB_CVS_ROOT=:pserver:anonymous@cvs.semichrome.net:/home/netsurf/cvs
+AB_CVS_MODULE=rufl
+
+AB_INSTALL=yes
