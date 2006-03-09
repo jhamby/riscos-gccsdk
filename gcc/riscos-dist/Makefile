@@ -6,8 +6,6 @@
 # Copyright (c) 2003, 2004, 2005, 2006 GCCSDK Developers
 
 pkg=`basename $(ro_gccpkg)`
-upkg=`basename $(ro_unixlibpkg)`
-spkg=`basename $(ro_libsclpkg)`
 
 bindir=$(pkg)/bin/$(TARGET_NAME)/$(VERSION)
 libdir=$(pkg)/lib/gcc-lib/$(TARGET_NAME)/$(VERSION)
@@ -111,50 +109,11 @@ UTILSPKG = $(pkg)/bin/bison$(exesfx) \
 
 SYSTEMPKG = `basename $(ro_syspkg)`
 
-UNIXLIBBINPKG = $(upkg)/\!Boot,feb \
-	$(upkg)/\!Run,feb \
-	$(upkg)/\!Sprites,ff9 \
-	$(upkg)/\!Sprites22,ff9 \
-	$(upkg)/\!Help \
-	$(upkg)/Docs \
-	$(upkg)/source/clib
-
-UNIXLIBSRCPKG = $(upkg)/\!Boot,feb \
-	$(upkg)/\!Run,feb \
-	$(upkg)/\!Sprites,ff9 \
-	$(upkg)/\!Sprites22,ff9 \
-	$(upkg)/\!Help \
-	$(upkg)/Docs \
-	$(upkg)/objs \
-	$(upkg)/source
-
-LIBSCLPKG = $(spkg)
-
 all:	install
 
 install:
-	for dir in bin docs examples; do \
-		cp -pR $$dir $(ro_gccpkg) ; done
-	cp -p Run,feb $(ro_gccpkg)/\!Run,feb
-	cp -p Sprites,ff9 $(ro_gccpkg)/\!Sprites,ff9
-	cp -p Sprites22,ff9 $(ro_gccpkg)/\!Sprites22,ff9
-	cp -p Changes $(ro_gccpkg)/Changes
-	cp -p Help $(ro_gccpkg)/\!Help
-	find $(ro_gccpkg) -name "CVS" -type d | xargs rm -rf
-	find $(ro_gccpkg) -name "*~*" -or -name "*.orig*" -or -name "*.reg*" -type f | xargs rm -rf
-	cp -p ../unixlib/Docs/ReadMe $(ro_gccpkg)/docs/UnixLib/UnixLib
-	cp -p ../unixlib/Docs/Changelog $(ro_gccpkg)/docs/UnixLib/Changes
-	cp -p ../unixlib/Docs/Copyright $(ro_gccpkg)/docs/UnixLib/Copyright
-
-	cp -pR ../unixlib/Docs $(ro_unixlibpkg)
-	cp -pR ../unixlib/objs $(ro_unixlibpkg)
-	cp -p ../unixlib/Boot,feb $(ro_unixlibpkg)/\!Boot,feb
-	cp -p ../unixlib/\!Help $(ro_unixlibpkg)/\!Help
-	cp -p ../unixlib/Run,feb $(ro_unixlibpkg)/\!Run,feb
-	cp -p ../unixlib/Sprites,ff9 $(ro_unixlibpkg)/\!Sprites,ff9
-	cp -p ../unixlib/Sprites22,ff9 $(ro_unixlibpkg)/\!Sprites22,ff9
-	find $(ro_unixlibpkg) -name "CVS" -type d | xargs rm -rf
-	find $(ro_unixlibpkg) -name "*~*" -or -name "*.orig*" -or -name "*.reg*" -type f | xargs rm -rf
+	for dir in $$( find . \! -path "*.svn*" -type d ) ; do mkdir -p $(ro_gccpkg)/$$dir ; find $$dir -type f -maxdepth 1 -exec cp -p {} $(ro_gccpkg)/$$dir \; ; done
+	find $(ro_gccpkg) -name "*~*" -or -name "*.orig*" -or -name "*.reg*" -or -name Makefile -type f | xargs rm -rf
 	
 # Build the separate RISC OS GCC zip packages
 package:
@@ -166,8 +125,6 @@ package:
 	rm -f $(ro_zippkg)/g77.zip; \
 	rm -f $(ro_zippkg)/utils.zip; \
 	rm -f $(ro_zippkg)/system.zip; \
-	rm -f $(ro_zippkg)/unixlibbin.zip; \
-	rm -f $(ro_zippkg)/unixlibsrc.zip; \
 	rm -f $(ro_zippkg)/cmunge.zip; \
 	$(ux_bin_dir)/zip -, -9rq $(ro_zippkg)/gcc.zip $(GCCPKG) ; \
 	$(ux_bin_dir)/zip -, -9rq $(ro_zippkg)/gccdoc.zip $(GCCDOCPKG) ; \
@@ -176,6 +133,4 @@ package:
 	$(ux_bin_dir)/zip -, -9rq $(ro_zippkg)/g77.zip $(G77PKG) ; \
 	$(ux_bin_dir)/zip -, -9rq $(ro_zippkg)/utils.zip $(UTILSPKG) ; \
 	$(ux_bin_dir)/zip -, -9rq $(ro_zippkg)/system.zip $(SYSTEMPKG) ; \
-	$(ux_bin_dir)/zip -, -9rq $(ro_zippkg)/unixlibbin.zip $(UNIXLIBBINPKG) ; \
-	$(ux_bin_dir)/zip -, -9rq $(ro_zippkg)/unixlibsrc.zip $(UNIXLIBSRCPKG) ; \
 	$(ux_bin_dir)/zip -, -9rq $(ro_zippkg)/cmunge.zip $(CMUNGEPKG) ; )
