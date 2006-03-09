@@ -1,4 +1,4 @@
-The RISC OS Software Development Kit [GCCSDK 3.4.5 Release 1]
+The RISC OS Software Development Kit [GCCSDK 3.4.6 Release 1]
 =============================================================
 
 GCCSDK is a portable build environment for creating ARM executables to
@@ -87,11 +87,14 @@ Create installation directory structure
   $ make setup
 
 To build the full compiler package, including native compilers for execution
-on RISC OS, just type:
+on RISC OS and the porting scripts, just type:
   $ make
 
 If, instead, you just want a cross-compiler, then type:
   $ make build-cross
+
+And the porting scripts, then type:
+  $ make porting-scripts
 
 Optionally, you can create the RISC OS GCC compiler zip packages using
 this command.
