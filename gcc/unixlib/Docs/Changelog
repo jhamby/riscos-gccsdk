@@ -1,3 +1,8 @@
+Thu Mar  9 19:33:31 2006  Alex Waugh  <alex@alexwaugh.com>
+
+	* source/clib/unistd.h: Add lchown().
+	* source/unistd/lchown.c: New file.
+
 Sun Feb 26 23:51:25 2006  John Tytgat  <John.Tytgat@aaug.net>
 
 	* source/netlib/getaddrinfo.c(gai_strerror): Always wrongly returned

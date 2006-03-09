@@ -227,6 +227,10 @@ extern int pause (void);
 extern int chown (const char *__file, __uid_t __owner,
 		  __gid_t __group) __THROW __nonnull ((1)) __wur;
 
+/* Change the owner and group of file.  */
+extern int lchown (const char *__file, __uid_t __owner,
+		  __gid_t __group) __THROW __nonnull ((1)) __wur;
+
 /* Change the process's working directory to path.  */
 extern int chdir (const char *__path) __THROW __nonnull ((1)) __wur;
 
