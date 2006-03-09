@@ -60,7 +60,7 @@
 typedef struct AREA
 {
   Symbol *next;
-  unsigned int type;
+  unsigned int type;		/* See AREA_ #defines */
   int imagesize;
   unsigned char *image;
   int norelocs;

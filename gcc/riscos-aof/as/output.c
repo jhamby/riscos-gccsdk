@@ -2,7 +2,7 @@
  * AS an assembler for ARM
  * Copyright © 1992 Niklas Röjemo
  * Copyright © 1997 Nick Burrett
- * Copyright (c) 2005 GCCSDK Developers
+ * Copyright (c) 2005-2006 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -26,9 +26,9 @@
 #include <string.h>
 #include <stdlib.h>
 #ifdef HAVE_STDINT_H
-#include <stdint.h>
+#  include <stdint.h>
 #elif HAVE_INTTYPES_H
-#include <inttypes.h>
+#  include <inttypes.h>
 #endif
 
 #include "aoffile.h"
@@ -44,20 +44,20 @@
 #include "version.h"
 
 #ifdef __TARGET_SCL__
-#include <swis.h>
+#  include <swis.h>
 #else
-#include <ctype.h>
-#include <errno.h>
+#  include <ctype.h>
+#  include <errno.h>
 #endif
 
 #ifndef CROSS_COMPILE
-#include "depend.h"
+#  include "depend.h"
 #endif
 
 static FILE *objfile;
 
-#define FIX(n) ((3+(int)n)&~3)
-#define EXTRA(n) (FIX(n)-n)
+#define FIX(n) ((3+(int)(n))&~3)
+#define EXTRA(n) (FIX(n)-(n))
 
 const char *idfn_text = "GCCSDK AS AOF"
 #ifndef NO_ELF_SUPPORT
@@ -192,8 +192,7 @@ writeEntry (int ID, int type, int size, int *offset)
   chunk_entry.FileOffset = armword (*offset);
   chunk_entry.Size = armword (size);
   *offset += size;
-  return fwrite ((void *) &chunk_entry, sizeof (char),
-                 sizeof (chunk_entry), objfile);
+  return fwrite (&chunk_entry, 1, sizeof (chunk_entry), objfile);
 }
 
 void
@@ -210,14 +209,13 @@ outputAof (void)
 
   /* We must call relocFix() before anything else.  */
   obj_area_size = 0;
-  ap = areaHead;		/* avoid problems with no areas.  */
-  while (ap)
+  /* avoid problems with no areas.  */
+  for (ap = areaHead; ap != NULL; ap = ap->area.info->next)
     {
       ap->area.info->norelocs = relocFix (ap);
-      if (!(ap->area.info->type & AREA_UDATA))
+      if (AREA_IMAGE (ap->area.info))
 	obj_area_size += FIX (ap->value.ValueInt.i)
 	  + ap->area.info->norelocs * sizeof (AofReloc);
-      ap = ap->area.info->next;
     }
 
   aof_head.Type = armword (AofHeaderID);
@@ -231,8 +229,7 @@ outputAof (void)
   chunk_header.ChunkField = armword (ChunkFileID);
   chunk_header.maxChunks = armword (5);
   chunk_header.noChunks = armword (5);
-  written = fwrite ((void *) &chunk_header, sizeof (char),
-		    sizeof (chunk_header), objfile);
+  written = fwrite (&chunk_header, 1, sizeof (chunk_header), objfile);
   offset = sizeof (chunk_header) + 5 * sizeof (chunk_entry);
 
   written += writeEntry(ChunkID_OBJ, ChunkID_OBJ_HEAD,
@@ -258,26 +255,23 @@ outputAof (void)
     }
 
 /******** Chunk 0 Header ********/
-  fwrite ((void *) &aof_head, sizeof (char), sizeof (aof_head), objfile);
+  fwrite (&aof_head, 1, sizeof (aof_head), objfile);
 
-  ap = areaHead;
-  while (ap)
+  for (ap = areaHead; ap != NULL; ap = ap->area.info->next)
     {
       aof_entry.Name = armword (ap->offset);
       aof_entry.Type = armword (ap->area.info->type);
       aof_entry.Size = armword (FIX (ap->value.ValueInt.i));
       aof_entry.noRelocations = armword(ap->area.info->norelocs);
-      if (aof_entry.noRelocations != 0 && aof_entry.Type & AREA_UDATA)
+      if (aof_entry.noRelocations != 0 && !AREA_IMAGE (ap->area.info))
 	errorLine (0, NULL, ErrorSerious, FALSE,
 		   "Internal outputAof: relocations in uninitialised area");
       aof_entry.Unused = 0;
-      fwrite ((void *) &aof_entry, sizeof (char), sizeof (aof_entry), objfile);
-      ap = ap->area.info->next;
+      fwrite (&aof_entry, 1, sizeof (aof_entry), objfile);
     }
 
 /******** Chunk 1 Identification *********/
-  if (idfn_size !=
-      fwrite ((void *) idfn_text, 1, idfn_size, objfile))
+  if (idfn_size != fwrite (idfn_text, 1, idfn_size, objfile))
     {
       errorLine (0, NULL, ErrorSerious, FALSE,
 		 "Internal outputAof: error when writing identification");
@@ -285,7 +279,7 @@ outputAof (void)
     }
 /******** Chunk 2 String Table ***********/
   strt_size = armword(symbolStringSize ());
-  if (fwrite ((void *) &strt_size, 1, 4, objfile) != sizeof (strt_size))
+  if (fwrite (&strt_size, 1, 4, objfile) != sizeof (strt_size))
     {
       errorLine (0, NULL, ErrorSerious, FALSE,
 		 "Internal outputAof: error when writing string table size");
@@ -299,22 +293,22 @@ outputAof (void)
   symbolSymbolOutput (objfile);
 
 /******** Chunk 4 Area *****************/
-  ap = areaHead;
-  while (ap)
+  for (ap = areaHead; ap != NULL; ap = ap->area.info->next)
     {
-      if (!(ap->area.info->type & AREA_UDATA))
+      if (AREA_IMAGE (ap->area.info))
 	{
-	  if ((size_t)(FIX (ap->value.ValueInt.i)) !=
-	      fwrite ((void *) ap->area.info->image, sizeof (char),
-		      FIX (ap->value.ValueInt.i), objfile))
+	  if ((size_t)ap->value.ValueInt.i !=
+	      fwrite (ap->area.info->image, 1, ap->value.ValueInt.i, objfile))
 	    {
 	      errorLine (0, NULL, ErrorSerious, FALSE,
 		"Internal outputAof: error when writing %s image", ap->str);
 	      return;
 	    }
+	  /* Word align the written area.  */
+	  for (pad = EXTRA (ap->value.ValueInt.i); pad; --pad)
+	    fputc (0, objfile);
 	  relocOutput (objfile, ap);
 	}
-      ap = ap->area.info->next;
     }
 }
 
@@ -347,9 +341,9 @@ writeElfSH (int nmoffset, int type, int flags, int size,
   sect_hdr.sh_info = info;
   sect_hdr.sh_addralign = addralign;
   sect_hdr.sh_entsize = entsize;
-  if (type!=SHT_NOBITS) *offset += size;
-  return fwrite ((void *) &sect_hdr, sizeof (char),
-                 sizeof (sect_hdr), objfile);
+  if (type!=SHT_NOBITS)
+    *offset += size;
+  return fwrite (&sect_hdr, 1, sizeof (sect_hdr), objfile);
 }
 
 void
@@ -365,12 +359,8 @@ outputElf (void)
 
   /* We must call relocFix() before anything else.  */
   obj_area_size = 0;
-  ap = areaHead;                /* avoid problems with no areas.  */
-  while (ap)
-    {
-      ap->area.info->norelocs = relocFix (ap);
-      ap = ap->area.info->next;
-    }
+  for (ap = areaHead; ap != NULL; ap = ap->area.info->next)
+    ap->area.info->norelocs = relocFix (ap);
   norels = countRels(areaHead);
 
   elf_head.e_ident[EI_MAG0] = ELFMAG0;
@@ -391,7 +381,8 @@ outputElf (void)
   elf_head.e_phoff = 0;
   elf_head.e_shoff = sizeof(elf_head);
   elf_head.e_flags = EF_ARM_CURRENT;
-  if (areaEntry) elf_head.e_flags |= EF_ARM_HASENTRY;
+  if (areaEntry)
+    elf_head.e_flags |= EF_ARM_HASENTRY;
   elf_head.e_ehsize = sizeof(elf_head);
   elf_head.e_phentsize = 0;
   elf_head.e_phnum = 0;
@@ -399,8 +390,7 @@ outputElf (void)
   elf_head.e_shnum = (noareas+norels)+4;
   elf_head.e_shstrndx = (noareas+norels)+3;
 
-  written = fwrite ((void *) &elf_head, sizeof (char),
-                    sizeof (elf_head), objfile);
+  written = fwrite (&elf_head, 1, sizeof (elf_head), objfile);
 
   offset = sizeof (elf_head) + elf_head.e_shnum * sizeof (Elf32_Shdr);
 
@@ -422,36 +412,36 @@ outputElf (void)
   shstrsize += 8; /* .strtab */
 
   /* Area headers - index 3 */
-  ap=areaHead;
+  
   elfIndex = 3;
-  while (ap) {
-    int areaFlags = 0;
-    if ((ap->area.info->type & AREA_CODE) > 0)
-      areaFlags |= SHF_EXECINSTR;
-    if ((ap->area.info->type & AREA_READONLY) == 0)
-      areaFlags |= SHF_WRITE;
-    if ((ap->area.info->type & AREA_COMMONDEF) > 0)
-      areaFlags |= SHF_COMDEF;
-    if (ap == areaEntry)
-      areaFlags |= SHF_ENTRYSECT;
-    areaFlags |= SHF_ALLOC;
-    sectionSize = FIX(ap->value.ValueInt.i);
-    sectionType = (ap->area.info->type & AREA_UDATA)?SHT_NOBITS:SHT_PROGBITS;
-    writeElfSH(shstrsize, sectionType, areaFlags, sectionSize,
-               0, 0, 4, 0, &offset);
-    shstrsize += ap->len + 1;
-    if (ap->area.info->norelocs) {
-      /* relocations */
-      writeElfSH(shstrsize, SHT_REL, 0,
-        (ap->area.info->norelocs)*sizeof(Elf32_Rel),
-        1, elfIndex, 4, sizeof(Elf32_Rel), &offset);
-      shstrsize += ap->len + 5;
+  for (ap = areaHead; ap != NULL; ap = ap->area.info->next)
+    {
+      int areaFlags = 0;
+      if ((ap->area.info->type & AREA_CODE) > 0)
+        areaFlags |= SHF_EXECINSTR;
+      if ((ap->area.info->type & AREA_READONLY) == 0)
+        areaFlags |= SHF_WRITE;
+      if ((ap->area.info->type & AREA_COMMONDEF) > 0)
+        areaFlags |= SHF_COMDEF;
+      if (ap == areaEntry)
+        areaFlags |= SHF_ENTRYSECT;
+      areaFlags |= SHF_ALLOC;
+      sectionSize = FIX (ap->value.ValueInt.i);
+      sectionType = AREA_IMAGE (ap->area.info) ? SHT_PROGBITS : SHT_NOBITS;
+      writeElfSH(shstrsize, sectionType, areaFlags, sectionSize,
+                 0, 0, 4, 0, &offset);
+      shstrsize += ap->len + 1;
+      if (ap->area.info->norelocs)
+        {
+          /* relocations */
+          writeElfSH(shstrsize, SHT_REL, 0,
+            (ap->area.info->norelocs)*sizeof(Elf32_Rel),
+            1, elfIndex, 4, sizeof(Elf32_Rel), &offset);
+          shstrsize += ap->len + 5;
+          elfIndex++;
+        }
       elfIndex++;
     }
-    elfIndex++;
-
-    ap = ap->area.info->next;
-  }
 
   /* Section head string table */
   shstrsize += 10; /* .shstrtab */
@@ -469,43 +459,40 @@ outputElf (void)
     fputc (0, objfile);
 
   /* Areas */
-  ap=areaHead;
-  while (ap)
+  for (ap = areaHead; ap != NULL; ap = ap->area.info->next)
     {
-      if (!(ap->area.info->type & AREA_UDATA))
+      if (AREA_IMAGE (ap->area.info))
         {
-          if ((size_t)(FIX (ap->value.ValueInt.i)) !=
-              fwrite ((void *) ap->area.info->image, sizeof (char),
-                      FIX (ap->value.ValueInt.i), objfile))
+          if ((size_t)ap->value.ValueInt.i !=
+              fwrite (ap->area.info->image, 1, ap->value.ValueInt.i, objfile))
             {
               errorLine (0, NULL, ErrorSerious, FALSE,
                 "Internal outputElf: error when writing %s image", ap->str);
               return;
             }
-          if(ap->area.info->norelocs) relocElfOutput (objfile, ap);
+	  /* Word align the written area.  */
+	  for (pad = EXTRA (ap->value.ValueInt.i); pad; --pad)
+	    fputc (0, objfile);
+          if (ap->area.info->norelocs)
+            relocElfOutput (objfile, ap);
         }
-      ap = ap->area.info->next;
     }
 
   /* Section head string table */
   fputc (0, objfile);
-  fwrite ((void *) ".symtab", sizeof(char), 7, objfile);
-  fputc (0, objfile);
-  fwrite ((void *) ".strtab", sizeof(char), 7, objfile);
-  fputc (0, objfile);
-  ap=areaHead;
-  while (ap)
+  fwrite (".symtab", 1, sizeof(".symtab"), objfile);
+  fwrite (".strtab", 1, sizeof(".strtab"), objfile);
+  for (ap = areaHead; ap != NULL; ap = ap->area.info->next)
     {
-      fwrite ((void *) ap->str, 1, ap->len + 1, objfile);
-      if (ap->area.info->norelocs) {
-        fwrite ((void *) ".rel", 1, 4, objfile);
-        fwrite ((void *) ap->str, 1, ap->len + 1, objfile);
-      }
-      ap = ap->area.info->next;
+      fwrite (ap->str, 1, ap->len + 1, objfile);
+      if (ap->area.info->norelocs)
+        {
+          fwrite (".rel", 1, sizeof(".rel")-1, objfile);
+          fwrite (ap->str, 1, ap->len + 1, objfile);
+        }
     }
 
-  fwrite ((void *) ".shstrtab", sizeof(char), 9, objfile);
-  fputc (0, objfile);
+  fwrite (".shstrtab", sizeof(char), sizeof(".shstrtab"), objfile);
   for (pad = EXTRA (shstrsize); pad; pad--)
     fputc (0, objfile);
 }

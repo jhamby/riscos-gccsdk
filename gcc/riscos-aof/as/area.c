@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright © 1992 Niklas Röjemo
- * Copyright © 2005 GCCSDK Developers
+ * Copyright © 2005-2006 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -26,9 +26,9 @@
 #include <ctype.h>
 #include <string.h>
 #ifdef HAVE_STDINT_H
-#include <stdint.h>
+#  include <stdint.h>
 #elif HAVE_INTTYPES_H
-#include <inttypes.h>
+#  include <inttypes.h>
 #endif
 
 #include "area.h"
@@ -49,6 +49,7 @@ Symbol *areaEntry = NULL;
 int areaEntryOffset;
 Symbol *areaHead = NULL;
 
+
 void
 areaError (void)
 {
@@ -59,6 +60,7 @@ areaError (void)
       error (ErrorSerious, TRUE, "No area defined");
     }
 }
+
 
 static Area *
 areaNew (int type)
@@ -78,6 +80,7 @@ areaNew (int type)
     errorOutOfMem ("areaNew");
   return res;
 }
+
 
 static BOOL
 areaImage (Area * area, int newsize)
@@ -125,7 +128,7 @@ void
 areaFinish (void)		/* insert ltorg at end of all areas */
 {
   Symbol *ap;
-  for (ap = areaHead; ap; ap = ap->area.info->next)
+  for (ap = areaHead; ap != NULL; ap = ap->area.info->next)
     {
       areaCurrent = ap;
       litOrg (ap->area.info->lits);
@@ -153,75 +156,116 @@ c_entry (void)
 void
 c_align (void)
 {
-  Value value;
-  skipblanks ();
+  int alignValue, offsetValue, unaligned;
+
   if (!areaCurrent)
     {
       areaError ();
       return;
     }
+
+  skipblanks ();
   if (inputComment ())
     {				/* no expression follows */
-      if (areaCurrent->area.info->image)
-	{
-	  while (areaCurrent->value.ValueInt.i & 3)
-	    areaCurrent->area.info->image[areaCurrent->value.ValueInt.i++] = 0;
-	}
-      else
-	areaCurrent->value.ValueInt.i = (areaCurrent->value.ValueInt.i + 3) & ~3;
+      alignValue = 1<<2;
+      offsetValue = 0;
     }
   else
     {				/* an expression follows */
+      /* Determine align value */
+      Value value;
       exprBuild ();
       value = exprEval (ValueInt);
       if (value.Tag.t == ValueInt)
 	{
-	  if (areaCurrent->area.info->image)
+	  alignValue = value.ValueInt.i;
+	  if (alignValue <= 0 || (alignValue & (alignValue - 1)))
 	    {
-	      while (areaCurrent->value.ValueInt.i % value.ValueInt.i)
-		areaCurrent->area.info->image[areaCurrent->value.ValueInt.i++] = 0;
-	    }
-	  else
-	    {
-	      areaCurrent->value.ValueInt.i /= value.ValueInt.i;
-	      areaCurrent->value.ValueInt.i++;
-	      areaCurrent->value.ValueInt.i *= value.ValueInt.i;
+	      error (ErrorError, TRUE, "ALIGN value is not a power of two");
+	      alignValue = 1<<0;
 	    }
 	}
       else
-	error (ErrorError, TRUE, "Unresolved align not possible");
+	{
+	  error (ErrorError, TRUE, "Unrecognized ALIGN value");
+	  alignValue = 1<<0;
+	}
+
+      /* Determine offset value */
+      skipblanks ();
+      if (inputComment ())
+	offsetValue = 0;
+      else if (inputGet () == ',')
+	{
+	  Value value;
+	  exprBuild ();
+	  value = exprEval (ValueInt);
+	  if (value.Tag.t == ValueInt)
+	    {
+	      offsetValue = value.ValueInt.i;
+	      if (offsetValue < 0)
+		{
+		  error (ErrorError, TRUE, "ALIGN offset value is out-of-bounds");
+		  offsetValue = 0;
+		}
+	    }
+	  else
+	    {
+	      error (ErrorError, TRUE, "Unrecognized ALIGN offset value");
+	      offsetValue = 0;
+	    }
+	}
+      else
+	{
+	  error (ErrorError, TRUE, "Unrecognized ALIGN offset value");
+	  offsetValue = 0;
+	}
+    }
+  /* We have to align on alignValue + offsetValue */
+
+  unaligned = (offsetValue - areaCurrent->value.ValueInt.i) % alignValue;
+  if (unaligned || offsetValue >= alignValue)
+    {
+      int bytesToStuff = (unaligned < 0) ? alignValue + unaligned : unaligned;
+
+      bytesToStuff += (offsetValue / alignValue)*alignValue;
+
+      if (AREA_NOSPACE (areaCurrent->area.info, areaCurrent->value.ValueInt.i + bytesToStuff))
+	areaGrow (areaCurrent->area.info, bytesToStuff);
+
+      for (; bytesToStuff; --bytesToStuff)
+	areaCurrent->area.info->image[areaCurrent->value.ValueInt.i++] = 0;
     }
 }
+
 
 void
 c_reserve (void)
 {
   Value value;
+
+  if (!areaCurrent)
+    {
+      areaError ();
+      return;
+    }
+
   exprBuild ();
   value = exprEval (ValueInt);
-  switch (value.Tag.t)
+  if (value.Tag.t == ValueInt)
     {
-    case ValueInt:
-      if (!areaCurrent)
-	areaError ();
-      else
-	{
-	  int i = areaCurrent->value.ValueInt.i;
+      int i = areaCurrent->value.ValueInt.i;
 
-	  if (AREA_NOSPACE (areaCurrent->area.info, i + value.ValueInt.i))
-	    areaGrow (areaCurrent->area.info, value.ValueInt.i);
+      if (AREA_NOSPACE (areaCurrent->area.info, i + value.ValueInt.i))
+	areaGrow (areaCurrent->area.info, value.ValueInt.i);
 
-	  areaCurrent->value.ValueInt.i += value.ValueInt.i;
+      areaCurrent->value.ValueInt.i += value.ValueInt.i;
 
-	  if (areaCurrent->area.info->image)
-	    for (; i < areaCurrent->value.ValueInt.i; i++)
-	      areaCurrent->area.info->image[i] = 0;
-	}
-      break;
-    default:
-      error (ErrorError, TRUE, "Unresolved reserve not possible");
-      break;
+      for (; i < areaCurrent->value.ValueInt.i; i++)
+	areaCurrent->area.info->image[i] = 0;
     }
+  else
+    error (ErrorError, TRUE, "Unresolved reserve not possible");
 }
 
 
@@ -253,33 +297,33 @@ c_area (void)
     {
       Lex attribute = lexGetId ();
       if (!strncmp ("ABS", attribute.LexId.str, attribute.LexId.len))
-        {
-          if (rel_specified)
-            error (ErrorError, TRUE, "Conflicting area attributes ABS vs REL");
-          newtype |= AREA_ABS;
-        }
+	{
+	  if (rel_specified)
+	    error (ErrorError, TRUE, "Conflicting area attributes ABS vs REL");
+	  newtype |= AREA_ABS;
+	}
       else if (!strncmp ("REL", attribute.LexId.str, attribute.LexId.len))
-        {
-          if (newtype & AREA_ABS)
-            error (ErrorError, TRUE, "Conflicting area attributes ABS vs REL");
-          rel_specified = 1;
-        }
+	{
+	  if (newtype & AREA_ABS)
+	    error (ErrorError, TRUE, "Conflicting area attributes ABS vs REL");
+	  rel_specified = 1;
+	}
       else if (!strncmp ("CODE", attribute.LexId.str, attribute.LexId.len))
-        {
-          if (data_specified)
-            error (ErrorError, TRUE, "Conflicting area attributes CODE vs DATA");
-          newtype |= AREA_CODE;
-        }
+	{
+	  if (data_specified)
+	    error (ErrorError, TRUE, "Conflicting area attributes CODE vs DATA");
+	  newtype |= AREA_CODE;
+	}
       else if (!strncmp ("DATA", attribute.LexId.str, attribute.LexId.len))
 	{
 	  if (newtype & AREA_CODE)
-            error (ErrorError, TRUE, "Conflicting area attributes CODE vs DATA");
-          data_specified = 1;
-        }
+	    error (ErrorError, TRUE, "Conflicting area attributes CODE vs DATA");
+	  data_specified = 1;
+	}
       else if (!strncmp ("COMDEF", attribute.LexId.str, attribute.LexId.len))
 	newtype |= AREA_COMMONDEF;
       else if (!strncmp ("COMMON", attribute.LexId.str, attribute.LexId.len)
-               || !strncmp ("COMREF", attribute.LexId.str, attribute.LexId.len))
+	       || !strncmp ("COMREF", attribute.LexId.str, attribute.LexId.len))
 	newtype |= AREA_COMMONREF | AREA_UDATA;
       else if (!strncmp ("NOINIT", attribute.LexId.str, attribute.LexId.len))
 	newtype |= AREA_UDATA;
@@ -300,13 +344,35 @@ c_area (void)
 	}
       else if (!strncmp ("LINKONCE", attribute.LexId.str, attribute.LexId.len))
 	newtype |= AREA_LINKONCE;
+      else if (!strncmp ("ALIGN", attribute.LexId.str, attribute.LexId.len))
+	{
+	  Value value;
+
+	  if (newtype & 0xFF)
+	    error (ErrorError, TRUE, "You can't specify ALIGN attribute more than once");
+	  skipblanks ();
+	  if (inputGet () != '=')
+	    error (ErrorError, TRUE, "Malformed ALIGN attribute specification");
+	  skipblanks ();
+	  exprBuild ();
+	  value = exprEval (ValueInt);
+	  if (value.Tag.t == ValueInt)
+	    {
+	      if (value.ValueInt.i < 2 || value.ValueInt.i > 12)
+		error (ErrorError, TRUE, "ALIGN attribute value must be between 2 (incl) and 12 (incl)");
+	      else
+		newtype |= value.ValueInt.i;
+	    }
+	  else
+	    error (ErrorError, TRUE, "Unrecognized ALIGN attribute value");
+	}
       else
 	error (ErrorError, TRUE, "Illegal area attribute %s", attribute.LexId.str);
       skipblanks ();
     }
   inputUnGet (c);
 
-  /* Alignment ? No, take default alignment (2) */
+  /* Any alignment specified ? No, take default alignment (2) */
   if ((newtype & 0xFF) == 0)
     newtype |= AREA_INIT;
 
@@ -329,11 +395,11 @@ c_area (void)
     {
       /* 32-bit and FPv3 flags should only be set on CODE areas.  */
       if (apcs_32bit)
-        newtype |= AREA_32BITAPCS;
+	newtype |= AREA_32BITAPCS;
       if (apcs_fpv3)
-        newtype |= AREA_EXTFPSET;
+	newtype |= AREA_EXTFPSET;
       if (apcs_softfloat)
-        newtype |= AREA_SOFTFLOAT;
+	newtype |= AREA_SOFTFLOAT;
     }
   else if (newtype & (AREA_32BITAPCS | AREA_REENTRANT | AREA_EXTFPSET | AREA_NOSTACKCHECK))
     {
