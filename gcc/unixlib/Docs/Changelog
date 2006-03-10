@@ -1,3 +1,8 @@
+Fri Mar 10 21:25:47 2006  Alex Waugh  <alex@alexwaugh.com>
+
+	* source/unix/unix.c: Prevent canonicalising program name if it is
+	  just a leafname.
+
 Thu Mar  9 19:33:31 2006  Alex Waugh  <alex@alexwaugh.com>
 
 	* source/clib/unistd.h: Add lchown().

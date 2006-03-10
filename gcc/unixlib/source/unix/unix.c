@@ -1071,7 +1071,11 @@ convert_command_line (struct proc *process, const char *cli, int cli_size)
      you start a process via a temporary FS selection and that the current
      FS get taken instead.  Use "/ADFS::MyDisc.$.my_risc_os_process" or
      "run ADFS::MyDisc.$.my_risc_os_process" instead of
-     "ADFS::MyDisc.$.my_risc_os_process" to avoid this problem.  */
+     "ADFS::MyDisc.$.my_risc_os_process" to avoid this problem.
+     The path isn't converted if there is no . in it, as that indicates
+     that it is something on Run$Path and so canonicalising it is not a
+     good idea.  */
+  if (strchr(argv[0], '.'))
     {
       int regs[10];
       char *new_argv0, *new_uargv0;
