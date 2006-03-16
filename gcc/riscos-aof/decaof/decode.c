@@ -2,7 +2,7 @@
  * decode an AOF file
  *
  * Copyright (c) 1992 Andy Duplain, andy.duplain@dsl.pipex.com
- * Copyright (c) 2005 GCCSDK Developers
+ * Copyright (c) 2005-2006 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -103,7 +103,7 @@ decode (void)
 				goto next_file;
 			}
 		} else
-			puts("\n** no string table");
+			puts("\n** No String table");
 
 		/* read and print identification string */
 		ent = find_ent(hdr, ents, "OBJ_IDFN");
@@ -117,7 +117,7 @@ decode (void)
 			printf("\n** Identification:\n%s\n", idstr);
 			free_chunk_memory(idstr);	/* not needed */
 		} else
-			puts("\n** no identification chunk");
+			puts("\n** No Identification chunk");
 
 		/* find file offset of OBJ_AREA (for later use) */
 		ent = find_ent(hdr, ents, "OBJ_AREA");
@@ -183,54 +183,58 @@ decode (void)
 					offset = reloff + (areahdrs[i].numrelocs * sizeof(struct reloc));
 			}
 		} else
-			puts("\n** no AOF header");
+			puts("\n** No AOF header");
 
-		if (symtab && aofhdr->numsyms) {
-			puts("\n** Symbol table:");
-			for (i = 0; i < aofhdr->numsyms; i++) {
-				int flags = symboltab[i].flags;
-				printf("%-16s (%02x) ", string(symboltab[i].name), flags);
+		if (symtab) {
+			if (aofhdr) {
+				if (aofhdr->numsyms)
+					puts("\n** Symbol table:");
+				for (i = 0; i < aofhdr->numsyms; i++) {
+					int flags = symboltab[i].flags;
+					printf("%-16s (%02x) ", string(symboltab[i].name), flags);
 
-				switch (flags & 0x3) {
-					case 0x01:
-						fputs("local", stdout);
-						break;
-					case 0x02:
-						fputs("extern", stdout);
-						break;
-					case 0x03:
-						fputs("global", stdout);
-						break;
-					default:
-						fputs("unknown-type", stdout);
-						break;
+					switch (flags & 0x3) {
+						case 0x01:
+							fputs("local", stdout);
+							break;
+						case 0x02:
+							fputs("extern", stdout);
+							break;
+						case 0x03:
+							fputs("global", stdout);
+							break;
+						default:
+							fputs("unknown-type", stdout);
+							break;
+					}
+					if ((flags & (1<<2)) && flags & (1<<0))
+						fputs(", constant", stdout);
+					if ((flags & (1<<3)) && !(flags & (1<<0)))
+						fputs(", case-insensitive", stdout);
+					if ((flags & (1<<4)) && ((flags & 0x03) == 0x02))
+						fputs(", weak", stdout);
+					if ((flags & (1<<5)) && ((flags & 0x03) == 0x03))
+						fputs(", strong", stdout);
+					if ((flags & (1<<6)) && ((flags & 0x03) == 0x02))
+						fputs(", common", stdout);
+					if (flags & (1<<8))
+						fputs(", cadatum", stdout);
+					if (flags & (1<<9))
+						fputs(", fpargs", stdout);
+					if (flags & (1<<11))
+						fputs(", leaf", stdout);
+					if (flags & (1<<12))
+						fputs(", thumb", stdout);
+					if (flags & ((1<<0) | (1<<6))) {
+						if (flags & ((1<<2) | (1<<6)))
+							printf(" = 0x%08x", symboltab[i].value);
+						else
+							printf(" at \"%s\" + 0x%06x", string(symboltab[i].areaname), symboltab[i].value);
+					}
+					putchar('\n');
 				}
-				if ((flags & (1<<2)) && flags & (1<<0))
-					fputs(", constant", stdout);
-				if ((flags & (1<<3)) && !(flags & (1<<0)))
-					fputs(", case-insensitive", stdout);
-				if ((flags & (1<<4)) && ((flags & 0x03) == 0x02))
-					fputs(", weak", stdout);
-				if ((flags & (1<<5)) && ((flags & 0x03) == 0x03))
-					fputs(", strong", stdout);
-				if ((flags & (1<<6)) && ((flags & 0x03) == 0x02))
-					fputs(", common", stdout);
-				if (flags & (1<<8))
-					fputs(", cadatum", stdout);
-				if (flags & (1<<9))
-					fputs(", fpargs", stdout);
-				if (flags & (1<<11))
-					fputs(", leaf", stdout);
-				if (flags & (1<<12))
-					fputs(", thumb", stdout);
-				if (flags & ((1<<0) | (1<<6))) {
-					if (flags & ((1<<2) | (1<<6)))
-						printf(" = 0x%08x", symboltab[i].value);
-					else
-						printf(" at \"%s\" + 0x%06x", string(symboltab[i].areaname), symboltab[i].value);
-				}
-				putchar('\n');
-			}
+			} else
+				puts("\n** No Symbol table");
 		}
 
 		if (strtab && *(Word *)stringtab) {
