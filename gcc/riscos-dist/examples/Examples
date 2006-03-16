@@ -89,12 +89,12 @@ Compile using: 	g++ template.cc -o template
 Run using: 	template
 
 
-gccmodule
----------
+gccmodule1
+----------
 
 Example of RISC OS module generation using GCC.
 
-Source:		c.gccmodule cmhg.module
+Source:		gccmodule1.c.gccmodule gccmodule1.cmhg.module
 Compile using:	cmunge -tgcc -32bit module.cmhg -o module.o -d module.h
                 gcc -mmodule -mlibscl -c gccmodule.c
                 gcc -mmodule -mlibscl module.o gccmodule.o -o gccmodule
@@ -109,7 +109,8 @@ a Makefile.  The Makefile and source code is also Acorn C/C++
 compatible.  Note this example needs to presence of OSLib library
 which can be found at <URL:http://ro-oslib.sourceforge.net/>.
 
-Source:		Makefile c.gccmodule2 h.gccmodule_config cmhg.module2
+Source:		gccmodule2.Makefile gccmodule2.c.gccmodule
+		gccmodule2.h.gccmodule_config gccmodule2.cmhg.module
 Compile using:
   - In TaskWindow:
       make
@@ -117,7 +118,29 @@ Compile using:
       Set Alias$@RunType_FE1 TaskWindow "make -f %%0 %%*1" -display -quit -wimpslot 8000k -name "Makefile"
     You can just double click on the Makefile Filer icon and the
     compilation then happens in a separate TaskWindow.
-Run using:	gccmodule2
+Run using:	gccmodule
+
+
+gccmodule3
+----------
+
+Example of RISC OS FS module generation using GCC, example of
+a Makefile and how to use resgen.  The Makefile and source code
+is also Acorn C/C++ compatible.  Note this example needs to
+presence of OSLib library which can be found at
+<URL:http://ro-oslib.sourceforge.net/>.
+
+Source:		gccmodule3.Makefile gccmodule3.c.gccmodule
+		gccmodule3.cmhg.module gccmodule3.dat.ObeyFile
+		gccmodule3.dat.TextFile
+Compile using:
+  - In TaskWindow:
+      make
+  - When the Makefile filetype FE1 has a RunType defined, like:
+      Set Alias$@RunType_FE1 TaskWindow "make -f %%0 %%*1" -display -quit -wimpslot 8000k -name "Makefile"
+    You can just double click on the Makefile Filer icon and the
+    compilation then happens in a separate TaskWindow.
+Run using:	gccmodule
 
 
 -EOF-

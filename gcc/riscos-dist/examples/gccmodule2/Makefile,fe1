@@ -5,7 +5,7 @@
 # for cross-compiling.
 #
 # When you have the following defined, double clicking on the Makefile Filer
-# icon will build 'gccmodule2'.
+# icon will build 'gccmodule'.
 #   GCCSDK:
 #     Set Alias$@RunType_FE1 TaskWindow "make -f %%0 %%*1" -display -quit -wimpslot 8000k -name "Makefile"
 #   Norcroft:
@@ -53,11 +53,11 @@ MKDIR       = cdir
 LIBS = OSLib:o.OSLib32
 
 # Add here all your C files :
-MODCSRCS   = gccmodule2.c
+MODCSRCS   = gccmodule.c
 # Add here all your ASM files :
 MODSSRCS   = 
 # Add here your CMHG file :
-MODCMHGSRC = module2.cmhg
+MODCMHGSRC = module.cmhg
 
 # Sometimes you need the start of the module as variable in your code
 # (e.g. when implementing a filing system).  CMunge can create such
@@ -67,7 +67,7 @@ ifneq ($(TOOLCHAIN),gcc)
 MODSSRCS += ro_base.s
 endif
 
-all: gccmodule2
+all: gccmodule
 
 .INIT:
 	@$(MKDIR) o
@@ -85,11 +85,11 @@ all: gccmodule2
 
 ifeq ($(UNITATATIME),yes)
 # One big compilation (GCC only):
-gccmodule2: $(MODCSRCS) $(MODSSRCS) $(MODCMHGSRC:.cmhg=.h) $(MODCMHGSRC:.cmhg=.o) $(LIBS)
+gccmodule: $(MODCSRCS) $(MODSSRCS) $(MODCMHGSRC:.cmhg=.h) $(MODCMHGSRC:.cmhg=.o) $(LIBS)
 	$(CC) $(CC_FLAGS) -o $@ $(MODCSRCS) $(MODSSRCS) $(MODCMHGSRC:.cmhg=.o) $(LIBS)
 else
 # Object-per-object compilation:
-gccmodule2: $(MODCSRCS:.c=.o) $(MODSSRCS:.s=.o) $(MODCMHGSRC:.cmhg=.h) $(MODCMHGSRC:.cmhg=.o) $(LIBS)
+gccmodule: $(MODCSRCS:.c=.o) $(MODSSRCS:.s=.o) $(MODCMHGSRC:.cmhg=.h) $(MODCMHGSRC:.cmhg=.o) $(LIBS)
 	$(LINK) $(LINK_FLAGS) -o $@ $(MODCSRCS:.c=.o) $(MODSSRCS:.s=.o) $(MODCMHGSRC:.cmhg=.o) $(LIBS)
 endif
 
