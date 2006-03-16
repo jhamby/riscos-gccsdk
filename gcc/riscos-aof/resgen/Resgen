@@ -1,0 +1,47 @@
+Resgen
+~~~~~~
+
+1. What ?
+-------
+
+A tool to create an AOF file encapsulating one or more files ready for
+(de)registering with ResourceFS.  All files are stored in one 32-bit CODE
+READONLY area together with a global routine which is exported and can
+be called to give you a pointer to the begining of the ResourceFS data
+block holding the contents of those given files.
+
+2. How ?
+------
+
+resgen <areaname> <output file> [ <local file> <ResourceFS name> ]*
+
+E.g.
+
+  $ resgen resourcefsdata resgen.o dat/file1 $.ThirdParty.GCCSDK.Example.file1 dat/file2 $.ThirdParty.GCCSDK.Example.file2
+
+This will create the AOF file 'resgen.o' contain a 32-bit CODE READONLY area
+named 'resourcefsdata' holding the file contents of files dat/file1 and
+dat/file2 in a ResourceFS structure ready to be registered as
+Resources:$.ThirdParty.GCCSDK.Example.file1 and
+Resources:$.ThirdParty.GCCSDK.Example.file2 respectively.
+
+To get access to that area, you can call the following generated routine
+(you have to declare the function prototype yourself) :
+
+  void *resourcefsdata(void);
+
+I.e. the function name is the same as the given areaname.
+
+The returned value is supposed to be used with SWIs ResourceFS_RegisterFiles
+(&41B40), ResourceFS_DeregisterFiles (&41B41) and service call
+Service_ResourceFSStarting (&60).
+
+3. License
+----------
+
+Written by John Tytgat / BASS and licensed under GPL v2 or later.  See
+file COPYING for details.
+
+Contact: <mailto:John.Tytgat@aaug.net>
+
+-EOF-

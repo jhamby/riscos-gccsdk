@@ -12,7 +12,7 @@ endif
 
 export bin_dir gcc_bin_dir
 
-all:	as drlink infozip ld nm libfile decaof cmunge
+all:	as drlink infozip ld nm libfile decaof cmunge resgen
 
 riscos-dist:
 	$(MAKE) -C drlink riscos-dist
@@ -20,6 +20,7 @@ riscos-dist:
 	$(MAKE) -C decaof riscos-dist
 	$(MAKE) -C cmunge riscos-dist
 	$(MAKE) -C libfile riscos-dist
+	$(MAKE) -C resgen riscos-dist
 
 .PHONY: riscos-dist
 .PHONY: as
@@ -30,7 +31,8 @@ riscos-dist:
 .PHONY: nm
 .PHONY: decaof
 .PHONY: cmunge
+.PHONY: resgen
 
-as drlink infozip ld libfile nm decaof cmunge:
+as drlink infozip ld libfile nm decaof cmunge resgen:
 	mkdir -p $(objdir)/riscos-aof/$@/$(STAGE)
 	$(MAKE) -C $@ "STAGE=$(STAGE)"
