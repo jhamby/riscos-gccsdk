@@ -18,9 +18,10 @@ GCCPKG = $(pkg)/\!Run,feb \
 	$(pkg)/bin/ar$(exesfx) \
 	$(pkg)/bin/decaof$(exesfx) \
 	$(pkg)/docs/decaof/* \
+	$(pkg)/bin/resgen$(exesfx) \
+	$(pkg)/docs/resgen/* \
 	$(pkg)/bin/drlink$(exesfx) \
 	$(pkg)/docs/Drlink/* \
-	$(pkg)/bin/dyn_kill,ffb \
 	$(pkg)/bin/gcc$(exesfx) \
 	$(pkg)/bin/gcov$(exesfx) \
 	$(pkg)/bin/libfile$(exesfx) \
