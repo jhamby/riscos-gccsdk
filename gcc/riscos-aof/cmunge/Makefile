@@ -1,5 +1,5 @@
 # Makefile for "A free alternative to CMHG" - CMunge
-# Copyright (c) 2005 GCCSDK Developers
+# Copyright (c) 2005-2006 GCCSDK Developers
 
 ifeq (${STAGE},stage1)
 prefix = $(unix_prefix)
@@ -87,7 +87,6 @@ ifeq (${STAGE},stage2)
 # Since we know that we are compiling with GCC 3.4, we can compile the
 # application using inter-module analysis, effectivly building as if all
 # functions are contained within one source file.
-	DEPS += $(gcc_bin_dir)/$(TRG)/o/unixlib
 
 $(cmungeobjdir)/cmunge.o:	$(SRCS) $(DEPS) $(HDRS)
 	$(CC) $(CFLAGS) -o $@ -c $(SRCS) $(INCLUDES) \
