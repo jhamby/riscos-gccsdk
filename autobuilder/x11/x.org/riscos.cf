@@ -1,4 +1,3 @@
-
 #ifndef OSName
 #define OSName			RISC OS
 #endif
@@ -17,7 +16,7 @@ XCOMM operating system:  OSName
 #define	OSVendor		Castle Technology
 #endif
 
-#define ProjectRoot /home/riscos/env/X11R6
+#define ProjectRoot $(GCCSDK_INSTALL_ENV)/X11R6
 #define DriverSDKDir ProjectRoot
 
 #undef CrossCompiling
@@ -32,16 +31,16 @@ XCOMM operating system:  OSName
 #define LdCombineFlags -Wl,-aof 
 #define CrossCppCmd CrossCompileDir/arm-riscos-aof/3_4/cpp
 #define CrossRawCppCmd   CrossCppCmd -undef
-#define InstallCmd /home/riscos/env/ro-install
+#define InstallCmd $(GCCSDK_INSTALL_ENV)/ro-install
 
-#define ModuleArCmd /home/riscos/cross/bin/libfile -i
+#define ModuleArCmd $(GCCSDK_INSTALL_CROSSBIN)/libfile -i
 
 #undef ThreadedX
 #define ThreadedX    NO
 
 #define HasPosixThreads YES
 
-#define HasFreeType2 NO
+#define HasFreeType2 YES
 #define SharedLibFreeType2 NO
 
 #define HasCThreads NO
@@ -57,14 +56,14 @@ XCOMM operating system:  OSName
 		        -D_POSIX_SOURCE -D_XOPEN_SOURCE \
 		        -D_BSD_SOURCE -D_SVID_SOURCE
 
-#define PreIncDir /home/riscos/cross/lib/gcc-lib/arm-riscos-aof/3_4/include/
-#define StdIncDir /home/riscos/cross/include/unixlib
+#define PreIncDir $(GCCSDK_INSTALL_CROSSBIN)/../lib/gcc-lib/arm-riscos-aof/3_4/include/
+#define StdIncDir $(GCCSDK_INSTALL_CROSSBIN)/../include/unixlib
 
-#define SystemUsrIncDir /home/riscos/env/include
-#define SystemUsrLibDir /home/riscos/env/lib
+#define SystemUsrIncDir $(GCCSDK_INSTALL_ENV)/include
+#define SystemUsrLibDir $(GCCSDK_INSTALL_ENV)/lib
 
-#define StandardIncludes -I/home/riscos/env/include
-#define ExtraLoadFlags -L/home/riscos/env/lib
+#define StandardIncludes -I$(GCCSDK_INSTALL_ENV)/include
+#define ExtraLoadFlags -L$(GCCSDK_INSTALL_ENV)/lib
 
 #define BuildFonts YES
 
@@ -80,9 +79,9 @@ XCOMM operating system:  OSName
 
 #define Malloc0ReturnsNull   YES
 
-#define LibpngDir /home/riscos/env
+#define LibpngDir $(GCCSDK_INSTALL_ENV)
 
-/*#define DependCmd /home/riscos/env/X11R6/bin/makedepend*/
+/*#define DependCmd $(GCCSDK_INSTALL_ENV)/X11R6/bin/makedepend*/
 
 #define NothingOutsideProjectRoot YES
 
