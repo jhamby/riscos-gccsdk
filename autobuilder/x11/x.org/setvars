@@ -1,11 +1,13 @@
-
 AB_URL=http://www.mirror.ac.uk/mirror/ftp.x.org/pub/X11R6.8.2/src-single/X11R6.8.2-src.tar.bz2
 
-
-AB_MAKE="if [ -e Imakefile.ab ] ; then mv Imakefile.ab Imakefile; fi; make World CROSSCOMPILEDIR=/home/riscos/cross/bin"
+AB_MAKE="if [ -e Imakefile.ab ] ; then mv Imakefile.ab Imakefile; fi; make World CROSSCOMPILEDIR=$GCCSDK_INSTALL_CROSSBIN"
 
 AB_INSTALL=yes
 
-mv Imakefile Imakefile.ab
+# Temporary rename this and in AB_MAKE we rename it back.  Otherwise in build-program
+# xmkmf kicks in.
+if [ -e Imakefile ] ; then
+  mv Imakefile Imakefile.ab
+fi
 
 cp $H/riscos.cf $S/config/cf/
