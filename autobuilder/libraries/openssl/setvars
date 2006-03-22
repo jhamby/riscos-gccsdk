@@ -1,6 +1,6 @@
 AB_INSTALL=yes
 
-perl Configure --prefix=/home/riscos/env riscos-aof-arm no-threads no-shared no-idea no-mdc2 no-rc5
+perl Configure --prefix=$GCCSDK_INSTALL_ENV riscos-aof-arm no-threads no-shared no-idea no-mdc2 no-rc5
 
 mkdir -p $D/include/openssl
 
