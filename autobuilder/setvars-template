@@ -7,6 +7,19 @@
 # a new package directory and delete uneeded parts.
 
 
+# Where to fetch the souces ?
+#  1. Either via CVS:
+#AB_CVS_ROOT=
+#AB_CVS_MODULE=
+#  2. Either via SVN:
+#AB_SVN=
+#  3. Either via an URL:
+#AB_URL=
+#  4. Either somewhere on a filing system:
+#AB_NOREMOTE=
+#  And if non of the above is defined, we'll fetch it via apt-get (if
+#  available), or via ftp from one of the Debian FTP servers.
+
 # List of man page files, to be processed by rman to make an HTML helpfile
 # The produced HTML files will automatically be added to the package.
 #AB_MANPAGE=
