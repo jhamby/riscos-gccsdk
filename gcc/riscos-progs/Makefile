@@ -1,13 +1,12 @@
 # Second-level Makefile for supporting binaries for RISC OS GCC
 # Copyright (c) 2000, 2001, 2002 Nick Burrett
-# Copyright (c) 2003, 2004, 2005 GCCSDK Developers
+# Copyright (c) 2003, 2004, 2005, 2006 GCCSDK Developers
 
 host_bin_dir = $(ux_gccpkg)/$(gn_standard_exec_prefix)
 bin_dir = $(ro_gccpkg)/$(gn_standard_exec_prefix)
 gcc_bin_dir = $(ro_gccpkg)/$(gn_gcc_bin_dir)
-LIBIBERTY = $(gcc_bin_dir)/$(TRG)/o/libiberty
 
-export host_bin_dir bin_dir gcc_bin_dir LIBIBERTY
+export host_bin_dir bin_dir gcc_bin_dir
 
 all:	flex make diff bison fileutils gperf grep gzip patch \
 	sed fortify

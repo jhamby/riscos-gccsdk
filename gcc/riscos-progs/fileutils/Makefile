@@ -21,7 +21,7 @@ $(objdir)/riscos-progs/mkdir.o:  $(MKDIR_SRCS) $(HDRS)
 	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c $(MKDIR_SRCS) $(INCLUDES)
 
 $(bin_dir)/touch$(exesfx):	$(objdir)/riscos-progs/touch.o
-	$(CROSS_CC) -o $@ $(objdir)/riscos-progs/touch.o $(LIBIBERTY)
+	$(CROSS_CC) -o $@ $(objdir)/riscos-progs/touch.o
 
 $(bin_dir)/mkdir$(exesfx):	$(objdir)/riscos-progs/mkdir.o
-	$(CROSS_CC) -o $@ $(objdir)/riscos-progs/mkdir.o $(LIBIBERTY)
+	$(CROSS_CC) -o $@ $(objdir)/riscos-progs/mkdir.o

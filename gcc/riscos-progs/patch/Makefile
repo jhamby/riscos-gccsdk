@@ -1,5 +1,6 @@
 # Makefile for GNU patch
-# Written by Nick Burrett <nick@sqrt.co.uk>
+# Copyright (c) 2000, 2001, 2002 Nick Burrett
+# Copyright (c) 2003, 2004, 2005, 2006 GCCSDK Developers
 
 INCLUDES = -I. -I ../../include
 CROSS_CFLAGS += -DHAVE_CONFIG_H -Ded_PROGRAM=\"ed\"
@@ -18,4 +19,4 @@ $(objdir)/riscos-progs/patch.o:	$(SRCS) $(HDRS)
 	$(CROSS_CC) $(CROSS_CFLAGS) -o $@ -c $(SRCS) $(INCLUDES)
 
 $(bin_dir)/patch$(exesfx):	$(objdir)/riscos-progs/patch.o
-	$(CROSS_CC) -o $@ $(objdir)/riscos-progs/patch.o -L$(objdir)/libiberty/$(STAGE) -liberty
+	$(CROSS_CC) -o $@ $(objdir)/riscos-progs/patch.o
