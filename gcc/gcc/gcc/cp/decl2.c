@@ -2959,7 +2959,7 @@ check_default_args (tree x)
 	{
 	  cp_error_at ("default argument missing for parameter %P of `%+#D'",
 		       i, x);
-	  break;
+	  TREE_PURPOSE (arg) = error_mark_node;
 	}
     }
 }
@@ -2967,6 +2967,18 @@ check_default_args (tree x)
 void
 mark_used (tree decl)
 {
+  /* If DECL is a BASELINK for a single function, then treat it just
+     like the DECL for the function.  Otherwise, if the BASELINK is
+     for an overloaded function, we don't know which function was
+     actually used until after overload resolution.  */
+  if (TREE_CODE (decl) == BASELINK)
+    {
+      decl = BASELINK_FUNCTIONS (decl);
+      if (really_overloaded_fn (decl))
+	return;
+      decl = OVL_CURRENT (decl);
+    }
+
   TREE_USED (decl) = 1;
   if (processing_template_decl || skip_evaluation)
     return;

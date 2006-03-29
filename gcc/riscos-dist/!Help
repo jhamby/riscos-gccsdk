@@ -1,4 +1,4 @@
-Welcome to GCC 3.4.5 Release 1 for RISC OS.
+Welcome to GCCSDK GCC 3.4.6 Release 1 for RISC OS.
 
 This document covers important notes for new users and existing users alike.
 GCC and UnixLib have undergone many changes, so it's important that you read
@@ -31,8 +31,11 @@ If you've used GCC before:
 
 Future Versions of GCC:
 
-  Although we intend to continue maintaining GCC 3.4 for RISC OS, new
-  versions of GCC 4.1 for RISC OS will soon be available, which will be ELF
+  The 3.4.6 version of GCC is the last release of its 3.4 branch.  It is
+  unlikely that GCCSDK Developers team will create Release 2 based on
+  GCC 3.4.6 as its code is sufficently stable.
+
+  New GCCSDK developments will be based on GCC 4.1/4.2, which will be ELF
   and possibly soft-float based.  We are also working on a shared library
   system.
 
@@ -49,6 +52,7 @@ License:
   - cmunge : See !gcc.docs.CMunge.Copyright
   - decaof : GPL version 2
   - drlink : GPL version 2
+  - resgen : GPL version 2
   - infozip : See !gcc.docs.InfoZip.LICENSE
   - ld : GPL
   - libfile, ar : Freeware, see !gcc.docs.LibFile.Readme
@@ -89,6 +93,7 @@ Credits:
   - Dave Daniels for his 'drlink', an AOF linker.
   - Bernhard Walter for his 'libfile', an AOF library archiver.
   - Nick Burrett for his 'nm', listing symbols of AOF files.
+  - John Tytgat for his 'resgen', a ResourceFS AOF data generator.
   - All UnixLib Developers for providing a run-time library which is
     essential for GCCSDK and ported programs using GCCSDK.
 

@@ -1380,10 +1380,7 @@ duplicate_decls (tree newdecl, tree olddecl)
 	  else
 	    return NULL_TREE;
 	}
-
-      /* Already complained about this, so don't do so again.  */
-      else if (current_class_type == NULL_TREE
-	  || IDENTIFIER_ERROR_LOCUS (DECL_ASSEMBLER_NAME (newdecl)) != current_class_type)
+      else
 	{
 	  error ("conflicting declaration '%#D'", newdecl);
 	  cp_error_at ("'%D' has a previous declaration as `%#D'",
@@ -7191,8 +7188,8 @@ grokdeclarator (tree declarator,
 
   if (virtualp && staticp == 2)
     {
-      error ("member `%D' cannot be declared both virtual and static",
-		dname);
+      error ("member `%D' cannot be declared both virtual and static", dname);
+      RIDBIT_RESET (RID_STATIC, specbits);
       staticp = 0;
     }
   friendp = RIDBIT_SETP (RID_FRIEND, specbits);
@@ -9016,17 +9013,19 @@ grok_op_properties (tree decl, bool complain)
   tree name = DECL_NAME (decl);
   enum tree_code operator_code;
   int arity;
+  bool ellipsis_p;
   bool ok;
   tree class_type;
 
   /* Assume that the declaration is valid.  */
   ok = true;
 
-  /* Count the number of arguments.  */
+  /* Count the number of arguments. and check for ellipsis  */
   for (argtype = argtypes, arity = 0;
        argtype && argtype != void_list_node;
        argtype = TREE_CHAIN (argtype))
     ++arity;
+  ellipsis_p = !argtype;
 
   class_type = DECL_CONTEXT (decl);
   if (class_type && !CLASS_TYPE_P (class_type))
@@ -9166,11 +9165,14 @@ grok_op_properties (tree decl, bool complain)
 	    warning ("conversion to %s%s will never use a type conversion operator",
 		     ref ? "a reference to " : "", what);
 	}
+
       if (operator_code == COND_EXPR)
 	{
 	  /* 13.4.0.3 */
 	  error ("ISO C++ prohibits overloading operator ?:");
 	}
+      else if (ellipsis_p)
+	error ("`%D' must not have variable number of arguments", decl);
       else if (ambi_op_p (operator_code))
 	{
 	  if (arity == 1)
@@ -10333,6 +10335,8 @@ start_function (tree declspecs, tree declarator, tree attrs, int flags)
      must be complete when you define the function.  */
   if (! processing_template_decl)
     check_function_type (decl1, current_function_parms);
+  /* Make sure no default arg is missing.  */
+  check_default_args (decl1);
 
   /* Build the return declaration for the function.  */
   restype = TREE_TYPE (fntype);
@@ -10396,8 +10400,6 @@ start_function (tree declspecs, tree declarator, tree attrs, int flags)
 	  /* We need to set the DECL_CONTEXT.  */
 	  if (!DECL_CONTEXT (decl1) && DECL_TEMPLATE_INFO (decl1))
 	    DECL_CONTEXT (decl1) = DECL_CONTEXT (DECL_TI_TEMPLATE (decl1));
-	  /* And make sure we have enough default args.  */
-	  check_default_args (decl1);
 	}
       fntype = TREE_TYPE (decl1);
     }

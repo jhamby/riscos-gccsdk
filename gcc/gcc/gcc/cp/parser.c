@@ -10905,7 +10905,7 @@ cp_parser_declarator_id (cp_parser* parser)
 					   /*declarator_p=*/true);
   /* If the name was qualified, create a SCOPE_REF to represent 
      that.  */
-  if (parser->scope)
+  if (parser->scope && id_expression != error_mark_node)
     {
       id_expression = build_nt (SCOPE_REF, parser->scope, id_expression);
       parser->scope = NULL_TREE;
@@ -14928,6 +14928,9 @@ cp_parser_late_parsing_default_args (cp_parser *parser, tree fn)
       parser->lexer = saved_lexer;
       parser->local_variables_forbidden_p = saved_local_variables_forbidden_p;
     }
+
+  /* Make sure no default arg is missing.  */
+  check_default_args (fn);
 
   /* Restore the queue.  */
   parser->unparsed_functions_queues 
