@@ -1,6 +1,6 @@
 # Makefile for GNU bison
 # Copyright (c) 2000, 2001, 2002 Nick Burrett
-# Copyright (c) 2003, 2004, 2005 GCCSDK Developers
+# Copyright (c) 2003, 2004, 2005, 2006 GCCSDK Developers
 
 INCLUDES = -I. -I ./lib -I ../../include
 CROSS_CFLAGS += -DHAVE_CONFIG_H -DPKGDATADIR=\"GCCsys:bison\"
@@ -43,12 +43,3 @@ $(objdir)/riscos-progs/bison.o:  $(SRCS) $(HDRS) $(LIBSRCS) $(LIBHDRS)
 
 $(bin_dir)/bison$(exesfx):	$(objdir)/riscos-progs/bison.o
 	$(CROSS_CC) -o $@ $(objdir)/riscos-progs/bison.o -L$(objdir)/libiberty/$(STAGE) -liberty
-
-#scan-gram.c: scan-gram.l
-#	$(FLEX) -t -o$@ scan-gram.l > $@
-
-#scan-skel.c: scan-skel.l
-#	$(FLEX) -t -o$@ scan-skel.l > $@
-
-#$(bobj)/scan-gram.o: scan-gram.c scan-gram.l
-#$(bobj)/scan-skel.o: scan-skel.c scan-skel.l
