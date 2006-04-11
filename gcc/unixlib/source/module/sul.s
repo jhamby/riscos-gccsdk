@@ -138,7 +138,7 @@ EARLIEST_SUPPORTED_VERSION	EQU	105
 |help|
 	DCB	"SharedUnixLibrary"
 	DCB	9
-	DCB	"1.09 (13 Nov 2005) (C) UnixLib Developers, 2001-2005", 0
+	DCB	"1.10 (10 Apr 2006) (C) UnixLib Developers, 2001-2006", 0
 	ALIGN
 
 |title|
@@ -176,6 +176,7 @@ EARLIEST_SUPPORTED_VERSION	EQU	105
 	DCD    1      ; 32-bit compatible
 
 |swi_handler|
+	LDR	r12, [r12]
 	CMP	r11, #0
 	BEQ	register
 	CMP	r11, #1
@@ -221,7 +222,7 @@ EARLIEST_SUPPORTED_VERSION	EQU	105
 	;
 	; The application may deregister its interest by calling
 	; DeRegister_UpCall, ; such as during an application's Exit and
-	; Error handlesr, or for other reasons.
+	; Error handlers, or for other reasons.
 	;
 	; It is important that the application does so, as the module will not
 	; exit if any claimants remain.
@@ -242,8 +243,6 @@ EARLIEST_SUPPORTED_VERSION	EQU	105
 
 |register|
 	STMFD	sp!, {r0, r3, lr}
-
-	MOV	r4, r2
 
 	MOV	r0, #6
 	MOV	r3, #16
@@ -370,9 +369,18 @@ deregister_error
 	B	|count_find|
 
 	; Module initialisation
+	; Allocate the initial list pointer rather than use the private word,
+	; so code running in user mode doesn't have to access the private word.
 
 |init_code|
-	MOV	pc, lr
+	STMFD	sp!, {lr}
+	MOV	r0, #6
+	MOV	r3, #4
+	SWI	XOS_Module
+	MOVVC	r0, #0
+	STRVC	r0, [r2]
+	STRVC	r2, [r12]
+	LDMFD	sp!, {pc}
 
 
 	; Module finalisation
@@ -383,9 +391,9 @@ deregister_error
 	STMFD	sp!, {r0, lr}
 
 	LDR	r0, [r12]
+	LDR	r0, [r0]
 	CMP	r0, #0			; Is head of list set?
-
-	LDMEQFD sp!, {r0, pc}		; No, so allow normal finalisation
+	BEQ	normal_exit		; No, so allow normal finalisation
 
 	ADR	r0, error_active	; If so, set error and
 					; disallow module finalisation
@@ -396,6 +404,12 @@ deregister_error
 	ORRNES	pc, lr, #VFlag		; Return error (26bit)
 	MSR	CPSR_f, #VFlag
 	MOV	pc, lr			; Return error (32bit)
+
+normal_exit
+	MOV	r0, #7
+	LDR	r2, [r12]
+	SWI	XOS_Module
+	LDMFD sp!, {r0, pc}
 
 
 ; SharedUnixLibrary_Initialise SWI
