@@ -250,9 +250,27 @@ void Buffer::load(const BString &a_file)
 
  fp=fopen(a_file(),"rb");
  if(!fp)
- 	THROW_SPEC_ERR(BError::FileNotFound);
-
 #ifdef CROSS_COMPILE
+ 	THROW_SPEC_ERR(BError::FileNotFound);
+#else
+ {
+   int reg[6] = { 17, 0, 0, 0, 0, 0 };
+
+   reg[1] = (int) (a_file());
+   OS_File(reg);
+   increase(reg[4]-m_size);
+  
+   m_length = reg[4];
+  
+   reg[0] = 16;
+   reg[2] = (int) m_data;
+   reg[3] = 0;
+  
+   OS_File(reg);
+   return;
+ }
+#endif
+
  struct stat f;
 
  stat (a_file(), &f);
@@ -260,23 +278,6 @@ void Buffer::load(const BString &a_file)
  m_length = f.st_size;
  fread (m_data, 1, m_length, fp);
  fclose (fp);
-#else
- fclose(fp);
-
- int reg[6] = { 17, 0, 0, 0, 0, 0 };
-
- reg[1] = (int) (a_file());
- OS_File(reg);
- increase(reg[4]-m_size);
-
- m_length = reg[4];
-
- reg[0] = 16;
- reg[2] = (int) m_data;
- reg[3] = 0;
-
- OS_File(reg);
-#endif
 }
 
 void Buffer::dump()

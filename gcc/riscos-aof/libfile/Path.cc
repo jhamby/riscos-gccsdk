@@ -8,9 +8,9 @@ extern "C" void *OS_GBPB(int *);
 #endif
 
 #ifdef CROSS_COMPILE
-#define DIRECTORY_SEPERATOR "/"
+#define DIRECTORY_SEPARATOR "/"
 #else
-#define DIRECTORY_SEPERATOR "."
+#define DIRECTORY_SEPARATOR "."
 #endif
 
 int Path::isRelativePath(const BString &a_path)
@@ -96,18 +96,21 @@ List<BString> Path::getMatchingFiles(const BString &a_wildName)
  	int start = 0;
  	int type;
 
-#ifdef CROSS_COMPILE
 	glob_t zzz;
-
 	if (glob ((char *) (a_wildName ()), 0, NULL, &zzz) == 0)
 	  {
-	    for (start = 0; start < zzz.gl_pathc; start++)
+	    for (start = 0; start < zzz.gl_pathc; start++) {
 	      result.put (zzz.gl_pathv[start]);
+	    }
 	  }
-#else
- 	while(type = getNextFile(a_wildName, file, start))
- 		if((type == 1) && (match(a_wildName, file)))
- 			result.put(file);
+        return result;
+
+#ifndef CROSS_COMPILE
+        if (result.length() == 0) {
+        	while(type = getNextFile(a_wildName, file, start))
+        		if((type == 1) && (match(a_wildName, file)))
+        			result.put(file);
+        }
 #endif
 	if (result.length() == 0)
 		cout << "Warning: File '" << a_wildName() << "' not found" << endl;
@@ -140,15 +143,16 @@ int Path::getNextFile(const BString &a_wildName, BString &a_fileName, int &a_sta
      a_start = regs[4];
    } while (a_start != -1 && regs[3] == 0);
 
- if(a_start == -1)
-   return 0;
+  if (a_start == -1)
+    return 0;
 
  int type = *((int *) (buffer + 16));
-  BString full = BString(buffer + 20);
+ BString full = BString(buffer + 20);
+
  if(path == "")
    a_fileName = full;
  else
-   a_fileName = path + DIRECTORY_SEPERATOR + full;
+   a_fileName = path + DIRECTORY_SEPARATOR + full;
  
  return type;
 }
@@ -159,7 +163,7 @@ BString Path::getPath(const BString &a_fileName)
 // cout << a_fileName << endl;
  int start = 0;
  int last = 0;
- while((start = a_fileName.suchen(DIRECTORY_SEPERATOR, start)) != -1)
+ while((start = a_fileName.suchen(DIRECTORY_SEPARATOR, start)) != -1)
  {
  	start++;
  	last = start;
@@ -175,7 +179,7 @@ BString Path::getFileName(const BString &a_path)
 {
  int start = 0;
  int last = 0;
- while((start = a_path.suchen(DIRECTORY_SEPERATOR, start)) != -1)
+ while((start = a_path.suchen(DIRECTORY_SEPARATOR, start)) != -1)
  {
  	start++;
  	last = start;

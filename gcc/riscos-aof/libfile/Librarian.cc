@@ -96,6 +96,9 @@ void Librarian::run()
   if(m_argParser->getOption("-s"))
     listSymbols = 1;
 
+  /* Ignore ("Add an external symbol table to an object library") */
+  m_argParser->getOption("-o");
+
   if(libFile == "")
     {
       usage ();
