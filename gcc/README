@@ -62,7 +62,7 @@ The package creates two main installations.
 
 Configure it.
   $ ./configure --prefix=/home/riscos/cross \
-	--with-riscos-dist=/home/riscos/riscos-dist \
+	--with-riscos-dist=/home/riscos \
 	--with-riscos-pkg=/home/riscos/riscos-pkg \
 	--with-riscos-env=/home/riscos/env \
 	--enable-filetype-ff8 --enable-checking=no
