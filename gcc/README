@@ -18,6 +18,7 @@ packages installed on your system, with at *least* these software revisions.
 	flex		version 2.5.4
 	gperf		version 2.7.2
 	sed		version 2.05
+	make		version 3.80
 	makeinfo	version 4.2 (texinfo package on Debian)
 
 You will of course need a C compiler for the system you are building on
