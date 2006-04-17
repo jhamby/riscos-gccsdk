@@ -1,28 +1,29 @@
 This is a copy of CMunge for use in the GCCSDK project.  The original
-sources are and should be stored and tagged in the 'CMungeImportBranch'
-CVS branch. Then they are merged to one of the GCCSDK development/stable
+sources are and should be stored and tagged in the
+'svn://svn.riscos.info/gccsdk/branches/CMungeImportBranch/gcc/riscos-aof/cmunge'
+SVN branch. Then they are merged to one of the GCCSDK development/stable
 branches where all the GCCSDK specific changes & bug fixes are done.
 
-Do not do any bug fixes or changes in the 'CMungeImportBranch' branch
+Do not make any bug fixes or changes in the 'CMungeImportBranch' branch
 except for importing newer offical CMunge source releases.
 
 The official sources in the 'CMungeImportBranch' CVS branch are labeled
-using 'CMunge-X_YZ' tags where 'X_YZ' is the 'Module_MajorVersion_CMHG'
-#define value in the 'VersionNum' file but having its dot character
-changed into a underscore character.
+using 'svn://svn.riscos.info/gccsdk/tags/CMunge-X_YZ' tags where 'X_YZ'
+is the 'Module_MajorVersion_CMHG' #define value in the 'VersionNum'
+file but having its dot character changed into a underscore character.
 
 Doing this in a consistent way allows us to easily find out what the
 GCCSDK specific changes are in the CMunge GCCSDK version.
 
-Currently CMunge v0.67 itself contains nearly all the specific changes
-needed for the GCCSDK project, apart from:
+CMunge v0.67 onwards contains nearly all the specific changes needed
+for the GCCSDK project and apart from:
 
   - a GCCSDK specific Makefile
   - marked "[GCCSDK " __VERSION__ "]" via the CMunge printf() in main()
   - using libscl as runtime library
   - hiding RISC OS specific build files (Makefile,fe1, !Mk*,fd7 files)
 
-there are no additional changes made.
+no additional changes are made.
 
 When such changes would be needed in the future, please read the
 CMunge licence (the 'Docs/Copyright' file) carefully and follow it, like
