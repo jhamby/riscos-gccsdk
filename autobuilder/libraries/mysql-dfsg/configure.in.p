@@ -1,6 +1,5 @@
-diff -ur mysql-dfsg-4.0.24/configure.in mysql-dfsg-4.0.24-ro/configure.in
---- configure.in	2005-03-05 00:38:15.000000000 +0000
-+++ configure.in	2005-07-18 06:14:30.000000000 +0100
+--- configure.in.orig	2006-04-19 19:29:16.114081528 +0200
++++ configure.in	2006-04-19 20:14:29.310000000 +0200
 @@ -216,7 +216,7 @@
  
  #check the return type of sprintf
@@ -28,7 +27,25 @@ diff -ur mysql-dfsg-4.0.24/configure.in mysql-dfsg-4.0.24-ro/configure.in
      AC_MSG_RESULT([no])
      ;;
    *)
-@@ -1588,7 +1588,7 @@
+@@ -1280,7 +1280,7 @@
+ if test "$with_named_thread" = "no"
+ then
+   AC_MSG_CHECKING("SCO threads")
+-  if expr "$SYSTEM_TYPE" : ".*sco.*" > /dev/null
++  if false
+   then
+     if test -f /usr/lib/libgthreads.a -o -f /usr/lib/libgthreads.so
+     then
+@@ -1320,7 +1320,7 @@
+     then
+       AC_MSG_RESULT("no")
+       AC_MSG_CHECKING("SCO UnixWare 7.1.x native threads")
+-      if expr "$SYSTEM_TYPE" : ".*sco.*" > /dev/null
++      if false
+       then
+         if test -f /usr/lib/libthread.so -o -f /usr/lib/libthreadT.so
+         then
+@@ -1585,7 +1585,7 @@
  
  # System characteristics
  case $SYSTEM_TYPE in
