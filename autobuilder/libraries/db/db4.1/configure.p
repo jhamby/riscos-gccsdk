@@ -11,11 +11,11 @@
 --- dist/configure.old	2004-09-15 17:41:30.000000000 +0100
 +++ dist/configure	2004-09-15 17:42:20.000000000 +0100
 @@ -9575,7 +9575,7 @@
- 
- 
- 
+
+
+
 -INSTALLER="\$(LIBTOOL) --mode=install cp -p"
-+INSTALLER="/home/riscos/env/ro-install -p"
- 
++INSTALLER="\$(GCCSDK_INSTALL_ENV)/ro-install -p"
+
  MAKEFILE_CC="\$(LIBTOOL) --mode=compile ${MAKEFILE_CC}"
  MAKEFILE_SOLINK="\$(LIBTOOL) --mode=link ${MAKEFILE_CCLINK} -avoid-version"
