@@ -1,3 +1,6 @@
-# This executable will be run as dftables$(EXEEXT).
-gcc -o dftables -O2 dftables.c
+# The 'dftables' executable is compiled with the host compiler but will be
+# incorrectly run as 'dftables$(EXEEXT)'.  We create 'dftables$(EXEEXT)
+# here.
+gcc -c -O2 -I. ./dftables.c
+gcc -o ./dftables ./dftables.o
 ln -s dftables dftables,ff8
