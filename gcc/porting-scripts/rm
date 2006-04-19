@@ -5,11 +5,11 @@ if ! [ -z "$RO_PKG" ] ; then
   params=
 
   if echo $PWD | grep -q GCCSDK_ENV ; then
-    echo "rm: Not removing files during library package creation: $@"
+    echo "GCCSDK_ENV/rm: Not removing files during library package creation: $@"
   else
     for param in $@ ; do
       if echo $param | grep -q GCCSDK_ENV ; then
-        echo "rm: Not removing files during library package creation: $param"
+        echo "GCCSDK_ENV/rm: Not removing files during library package creation: $param"
       else
         params="$params $param"
       fi
