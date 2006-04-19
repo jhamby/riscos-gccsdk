@@ -164,7 +164,7 @@ else
  if [ -e Imakefile ] ; then
    echo "Autobuilder: Calling xmkmf"
    $GCCSDK_INSTALL_ENV/ro-path $GCCSDK_INSTALL_ENV/X11R6/bin/xmkmf -a
- elif [ -e configure ] ; then
+ elif [ -e configure ] || [ ! -z "$RO_CPATH" -a -e $RO_CPATH/configure ] ; then
    echo "Autobuilder: Calling configure command: $AB_PRECONF $AB_CONFIG $AB_CONFLAGS"
    eval $AB_PRECONF $AB_CONFIG $AB_CONFLAGS
  elif [ -e Makefile ] || [ -e makefile ] ; then

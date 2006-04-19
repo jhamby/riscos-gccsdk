@@ -11,13 +11,20 @@
 #  1. Either via CVS:
 #AB_CVS_ROOT=
 #AB_CVS_MODULE=
+#     Note: consider defining "AB_ZIPNAME=xxx-cvs-$(date +%Y%m%d)" as well.
+#
 #  2. Either via SVN:
 #AB_SVN=
+#     Note: consider defining "AB_ZIPNAME=xxx-svn-$(date +%Y%m%d)" as well.
+#
 #  3. Either via an URL:
 #AB_URL=
+#
 #  4. Either somewhere on a filing system:
 #AB_NOREMOTE=
-#  And if non of the above is defined, we'll fetch it via apt-get (if
+#     Note: consider defining "AB_ZIPNAME=xxx-local-$(date +%Y%m%d)" as well.
+#
+#  And when non of the above is defined, we'll fetch it via apt-get (if
 #  available), or via ftp from one of the Debian FTP servers.
 
 # List of man page files, to be processed by rman to make an HTML helpfile
@@ -48,12 +55,16 @@
 # RISC OS configuration script
 #AB_CONFIG=$GCCSDK_INSTALL_ENV/ro-config
 
+# Directory where 'configure' should be looked for (when the build
+# is 'configure' based)
+#RO_CPATH=.
+
 # RISC OS make wrapper.  This can be set to just "make" if setting the
 # path causes problems - e.g., the native compiler is required too
 #AB_MAKE=$GCCSDK_INSTALL_ENV/ro-make
 
-# Zip name; alternate name for package to be zipped as
-# Useful if tools from a library, etc.
+# Zip name; alternate name for package to be zipped as.  No extension is
+# needed. Useful if tools from a library, etc.
 #AB_ZIPNAME=
 
 # Name ReadMe should be zipped as.  For example, !Program/!Help,fff
