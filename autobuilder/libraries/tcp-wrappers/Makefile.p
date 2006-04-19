@@ -3,13 +3,13 @@
 @@ -99,6 +99,13 @@
  	LIBS= RANLIB=ranlib ARFLAGS=rv AUX_OBJ=setenv.o \
  	NETGROUP=-DNETGROUP TLI= IPV6="$(IPV6)" all
- 
+
 +riscos:
 +	make REAL_DAEMON_DIR=$(REAL_DAEMON_DIR) STYLE=$(STYLE) \
 +	LIBS= RANLIB=ranlib ARFLAGS=rv AUX_OBJ=setenv.o \
 +	NETGROUP=-DNETGROUP TLI= IPV6= \
 +	EXTRA_CFLAGS=-DSYS_ERRLIST_DEFINED libwrap.a
-+	cp libwrap.a /home/riscos/env/lib
++	cp libwrap.a $(GCCSDK_INSTALL_ENV)/lib
 +
  # Ditto, with vsyslog
  sunos4:
