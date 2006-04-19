@@ -1,4 +1,4 @@
-AB_CVS_ROOT=:pserver:anonymous@cvs.semichrome.net:/home/netsurf/cvs
-AB_CVS_MODULE=pencil
+AB_SVN=svn://semichrome.net/trunk/pencil
+AB_ZIPNAME=pencil-svn-$(date +%Y%m%d)
 
 AB_INSTALL=yes
