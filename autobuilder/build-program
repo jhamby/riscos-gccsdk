@@ -129,9 +129,7 @@ else
 
  # FIXME: needed for the TIFF project, is it a more general problem ?
  # Workaround when *.gz file is the contents of the package.orig.tar.gz file.
- # FIXME: this gives spurious (& ignored errors) for x.org.  Probably better to
- # limit this to a certain depth (1 ?)
- ( cd .. && find $AB_FULLNAME -name '*.gz' -exec tar -xzf '{}' \; )
+ ( cd .. && find $AB_FULLNAME -maxdepth 1 -name '*.gz' -exec tar -xzf '{}' \; )
 
  S=$PWD
  echo "Autobuilder: source directory is $S"
