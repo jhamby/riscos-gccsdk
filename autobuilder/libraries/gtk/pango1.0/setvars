@@ -1,9 +1,7 @@
-
-
 AB_INSTALL=yes
 
 AB_CONFLAGS=--with-included-modules=basic-x,basic-fc
 
 mkdir -p $D/include/pango-1.0/pango/
 mkdir -p $D/lib/pango/1.4.0/modules/
-
+mkdir -p $D/lib/pango/1.5.0/modules/
