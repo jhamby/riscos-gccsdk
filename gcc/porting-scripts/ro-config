@@ -34,7 +34,7 @@ fi
 
 # Add onto exeext with ,ff8 extension 
 addff8() {
-  if grep "exeext=$" $ff8PATH >/dev/null ; then
+  if grep -q "exeext=$" $ff8PATH ; then
     echo RISC OS: Adding filetype for exeext for $ff8PATH
     sed s#exeext=\$#"exeext=,ff8;"# < $ff8PATH > /tmp/new-configure
     mv /tmp/new-configure $ff8PATH
@@ -42,7 +42,7 @@ addff8() {
   fi
 
   # Fix some tests that assume no file extension for binaries
-  if grep -- "-s conftest;" >/dev/null $ff8PATH; then
+  if grep -q -- "-s conftest;" $ff8PATH ; then
     echo RISC OS: Adding filetype for binary tests for $ff8PATH
     sed s#-s\ conftest\;#"-s conftest\$\{ac_exeext\}\;"# < $ff8PATH > /tmp/new-configure
     mv /tmp/new-configure $ff8PATH
@@ -50,7 +50,7 @@ addff8() {
   fi
 
   # Doesn't strictly belong here, but it fits
-  if grep "sys_lib_dlsearch_path_spec=" >/dev/null $ff8PATH; then
+  if grep -q "sys_lib_dlsearch_path_spec=" $ff8PATH ; then
     echo RISC OS: Setting libtool library paths for $ff8PATH
     sed -e s#"sys_lib_dlsearch_path_spec=".*\$#"sys_lib_dlsearch_path_spec=GCCSDK_ENV/lib"# \
         -e s#"sys_lib_search_path_spec=".*\$#"sys_lib_search_path_spec=GCCSDK_ENV/lib"# \
@@ -102,7 +102,7 @@ if [ "$RO_RECURSE" == "yes" ] ; then
   RO_CFILES=$(find $RO_PATH -type f)
 
   for ff8PATH in $RO_CFILES ; do
-    if echo $ff8PATH | grep "configure$" > /dev/null ; then
+    if echo $ff8PATH | grep -q "configure$" ; then
       addff8
     fi
   done
@@ -255,7 +255,7 @@ fi
 
 # Threading
 # We probably want this on in future. 
-#if grep -- "--enable-thread" /tmp/out-configure >/dev/null; then
+#if grep -q -- "--enable-thread" /tmp/out-configure ; then
 # echo RISC OS: Disabling threads
 # THREADS=--disable-threads
 #else
@@ -264,7 +264,7 @@ fi
 
 
 # Native compilers
-if grep -- "--with-build-cc" /tmp/out-configure >/dev/null; then
+if grep -q -- "--with-build-cc" /tmp/out-configure ; then
  echo RISC OS: Setting native compiler
  NATIVE="--with-build-cc=$(which cc)"
 else

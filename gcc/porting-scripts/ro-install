@@ -24,7 +24,7 @@ for param in $@ ; do
     fi
 
     # Don't install RISC OS binaries (only in non-packaging mode)
-    if [ -z "$RO_PKG" ] && file $param | grep "RISC OS AIF executable" > /dev/null; then
+    if [ -z "$RO_PKG" ] && file $param | grep -q "RISC OS AIF executable" ; then
       echo "RISC OS Cross installer: Not installing RISC OS binary"
       exit 0;
     fi
@@ -46,13 +46,13 @@ if [ -z "$RO_PKG" ] ; then
 else
   # Install for RISC OS headers, libraries and man pages
 
-  if echo "$dest" | grep -E "/env/lib|/env/include|/env/bin" >/dev/null ; then
+  if echo "$dest" | grep -q -E "/env/lib|/env/include|/env/bin" ; then
     dest=$(echo $dest | sed s#GCCSDK_ENV/#$AB_DIR/package/#)
     echo "RISC OS Cross installer: $installparams $dest"
     exec $command $installparams $dest
   fi
 
-  if echo "$dest" | grep -E "/env/share/man/|/env/man/" >/dev/null ; then
+  if echo "$dest" | grep -q -E "/env/share/man/|/env/man/" ; then
     dest=$(echo $dest | sed -e "s#GCCSDK_ENV/share/#$AB_DIR/package/#" -e "s#GCCSDK_ENV/#$AB_DIR/package/#" -e "s#/man[0-9]##")
     # Skip option '-m'
     if [ "$(echo $installparams | cut -c -2)" == "-m" ] ; then
@@ -62,13 +62,36 @@ else
     # If there is only one source file and that equals the basename of destination, make
     # of the destination its dirname.
     if ! expr index "$installparams" ' ' ; then
-      if [ "$(basename $installparams)" == "$(basename $dest)" ] ; then
-        dest=$(dirname $dest)
-      fi
+      # Only one source, so dest is a filename.  We rather trust the destination basename
+      # as a good representative one as basis for our HTML output filename.
+      destbasename=$(basename $dest)
+      # Make sure $dest is now a directory:
+      dest=$(dirname $dest)
+    else
+      # More than one source file, the dest basename needs to be derived from the sources.
+      destbasename=""
     fi
+    # $dest is a directory, make sure it exists.
     mkdir -p $dest
+
+    # Convert man pages to HTML:
     for manpage in $installparams ; do
-      rman -f HTML $manpage > $dest/`(basename $manpage)`,faf
+      if [ -z "$destbasename" ] ; then
+        # Derive destination basename from source (the source should be one file)
+        manoutputname=$(basename $manpage)
+        manoutputname_nogz=$(basename $manpage .gz)
+      else
+        # Destination basename is given.
+        manoutputname=$(basename $destbasename)
+        manoutputname_nogz=$(basename $destbasename .gz)
+      fi
+      if [ "$manoutputname" == "$manoutputname_nogz" ] ; then
+        # Man page without compression
+        rman -f HTML $manpage > $dest/$manoutputname,faf
+      else
+        # Man page with compression
+        zcat $manpage | rman -f HTML > $dest/$manoutputname_nogz,faf
+      fi
     done
   fi
 fi
