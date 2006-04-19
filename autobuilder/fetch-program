@@ -15,12 +15,12 @@ if [ "$AB_CVS_ROOT" != "" ] ; then
   fi
 
 elif [ "$AB_SVN" != "" ] ; then
-  svn co $AB_SVN
+  svn co -q $AB_SVN
 
 elif [ "$AB_URL" != "" ] ; then
   wget -nv $AB_URL
   base=$(basename $AB_URL)
-  if echo $base | grep -q "\.gz$" ; then
+  if echo $base | grep -q -E "\.gz$|\.tgz$" ; then
     tar xfz $base
   elif echo $base | grep -q "\.bz2$" ; then
     tar xfj $base
