@@ -1,6 +1,6 @@
---- apps/Makefile.org	2006-02-14 03:22:23.000000000 +0100
-+++ apps/Makefile	2006-02-14 03:21:34.000000000 +0100
-@@ -102,9 +102,7 @@
+--- apps/Makefile.org	2005-07-05 20:41:28.000000000 +0200
++++ apps/Makefile	2006-04-19 18:15:32.820000000 +0200
+@@ -102,20 +102,14 @@
  	@set -e; for i in $(EXE); \
  	do  \
  	(echo installing $$i; \
@@ -11,3 +11,16 @@
  	 done;
  	@set -e; for i in $(SCRIPTS); \
  	do  \
+ 	(echo installing $$i; \
+-	 cp $$i $(INSTALL_PREFIX)$(OPENSSLDIR)/misc/$$i.new; \
+-	 chmod 755 $(INSTALL_PREFIX)$(OPENSSLDIR)/misc/$$i.new; \
+-	 mv -f $(INSTALL_PREFIX)$(OPENSSLDIR)/misc/$$i.new $(INSTALL_PREFIX)$(OPENSSLDIR)/misc/$$i ); \
++	 cp $$i $(INSTALL_PREFIX)$(OPENSSLDIR)/misc/$$i ); \
+ 	 done
+-	@cp openssl.cnf $(INSTALL_PREFIX)$(OPENSSLDIR)/openssl.cnf.new; \
+-	chmod 644 $(INSTALL_PREFIX)$(OPENSSLDIR)/openssl.cnf.new; \
+-	mv -f  $(INSTALL_PREFIX)$(OPENSSLDIR)/openssl.cnf.new $(INSTALL_PREFIX)$(OPENSSLDIR)/openssl.cnf
++	@cp openssl.cnf $(INSTALL_PREFIX)$(OPENSSLDIR)/openssl.cnf
+
+ tags:
+ 	ctags $(SRC)
