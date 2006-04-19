@@ -1,0 +1,33 @@
+#!/bin/bash
+
+# Because we disable 'rm' during package creation, an 'rm' done just before
+# 'ln' gives troubles at 'ln' time.  So we take sure source of 'ln' is always
+# removed.
+
+if ! [ -z "$RO_PKG" ] ; then
+  # Figure out what source & target is in our 'ln' command:
+  beforelastarg=
+  lastarg=
+  for arg in $@ ; do
+    if [ $(echo $arg | cut -b 1) == "-" ] ; then
+      # Check if it is the '-s' option, as the others we don't support yet.
+      if [ $arg != "-s" ] ; then
+        echo "GCCSDK_ENV/ln: no support for option $arg"
+        exit 1
+      fi
+    else
+      beforelastarg="$lastarg"
+      lastarg="$arg"
+    fi
+  done
+
+  if ! [ -z "$beforelastarg" ] ; then
+    if [ -e "$lastarg" ] ; then
+      echo "GCCSDK_ENV/ln: force removing target $lastarg"
+      /bin/rm -rf $lastarg
+    fi
+  fi
+fi
+
+# Do the original 'ln' operation:
+/bin/ln $@

@@ -1,7 +1,7 @@
-# Copyright (c) 2005 GCCSDK Developers
+# Copyright (c) 2005, 2006 GCCSDK Developers
 
 SCRIPTS=ro-ar ro-config ro-install ro-libpack ro-make ro-path
-WRAPPERS=uname cp rm
+WRAPPERS=uname cp ln rm
 DOCS=Porting\ Tools.html
 
 SED=sed -e s:GCCSDK_ENV:$(ro_env):g -e s:GCCSDK_BIN:$(ux_bin_dir):g
