@@ -34,6 +34,25 @@ for param in $@ ; do
 done
 
 
+if [ "$command" == "/usr/bin/install" ] ; then
+  # If we're installing when one of the $installparams are directories, we need to expand
+  # those.  This happens when this scripts gets used as 'cp' but not called as 'cp'.
+  # FIXME: this looses options!
+  installparams_exp=
+  for param in $installparams ; do
+    if [ -d $param ] ; then
+      for fileinparam in $(find $param -mindepth 1 -maxdepth 1) ; do
+        mkdir -p $dest/$param
+        GCCSDK_ENV/ro-install $fileinparam $dest/$param
+      done
+    else
+      installparams_exp="$installparams_exp $param"
+    fi
+  done
+  installparams=$installparams_exp
+fi
+
+
 # Check for ending up with no parameters
 if [ -z "$installparams" ] ; then
   exit 0
