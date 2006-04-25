@@ -13,6 +13,8 @@ extern "C" void *OS_GBPB(int *);
 #define DIRECTORY_SEPARATOR "."
 #endif
 
+bool pathNotFound;
+
 int Path::isRelativePath(const BString &a_path)
 {
 #ifdef CROSS_COMPILE
@@ -103,7 +105,6 @@ List<BString> Path::getMatchingFiles(const BString &a_wildName)
 	      result.put (zzz.gl_pathv[start]);
 	    }
 	  }
-        return result;
 
 #ifndef CROSS_COMPILE
         if (result.length() == 0) {
@@ -112,8 +113,11 @@ List<BString> Path::getMatchingFiles(const BString &a_wildName)
         			result.put(file);
         }
 #endif
-	if (result.length() == 0)
-		cout << "Warning: File '" << a_wildName() << "' not found" << endl;
+
+	if (result.length() == 0) {
+                pathNotFound = true;            
+		cerr << "Error: File '" << a_wildName() << "' not found" << endl;
+	}
 
 	return result;
 }

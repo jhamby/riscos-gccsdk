@@ -19,4 +19,6 @@ class Path
  	Path();
 };
 
+extern bool pathNotFound;
+
 #endif

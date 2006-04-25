@@ -99,7 +99,7 @@ void Librarian::run()
   /* Ignore ("Add an external symbol table to an object library") */
   m_argParser->getOption("-o");
 
-  if(libFile == "")
+  if(libFile == "" || action == ActionNone)
     {
       usage ();
       return;
@@ -143,7 +143,7 @@ void Librarian::run()
     case ActionDelete:
       library->load();
       if(action == ActionExtractDelete)
-	library->extractMembers(argList, destDir);
+        library->extractMembers(argList, destDir);
 
       library->deleteMembers(argList);
       library->updateOflTime();
@@ -165,7 +165,7 @@ void Librarian::run()
 
 void Librarian::usage()
 {
-  cout << "AOF Librarian v1.00 (" __DATE__ ") [GCCSDK " << __VERSION__ << "]" << endl
+  cerr << "AOF Librarian v1.00 (" __DATE__ ") [GCCSDK " << __VERSION__ << "]" << endl
        << "ALF creation and maintenance tool" << endl
        << endl
        << "Syntax: LibFile <Options> <Library> [ <FileList> | <MemberList> ]" << endl

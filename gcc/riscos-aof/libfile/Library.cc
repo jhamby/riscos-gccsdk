@@ -149,7 +149,7 @@ void Library::deleteMembers(const List<BString> &a_wildMembers)
   	 	delete chunk;
   	}
   	else
-  		cout << "Warning: Member '" << *file << "'not found in library" << endl;
+  		cerr << "Warning: Member '" << *file << "'not found in library" << endl;
  }
 }
 
@@ -162,6 +162,8 @@ void Library::addMembers(const List<BString> &a_newFiles)
  // Expand wildcards
  while(file = iter.next())
  	files.put(Path::getMatchingFiles(*file));
+
+ if (pathNotFound) exit(EXIT_FAILURE);
 
  LibData *data;
  Const_listiter<BString> fiter(files);
