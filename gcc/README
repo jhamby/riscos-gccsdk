@@ -246,7 +246,8 @@ A2. Systems on which it has successfully been built upon include:
         FreeBSD,
         OpenBSD,
         Cygwin (Windows),
-        Mac OS X
+        Mac OS X,
+        Solaris 8 SPARC,
         and others.
 
 -----------------------------------------------------------------------------

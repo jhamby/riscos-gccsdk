@@ -23,6 +23,7 @@ scripts:
 
 links:
 	mkdir -p $(ux_bin_dir)
+	rm -f $(ux_bin_dir)cc $(ux_bin_dir)c++
 	ln -sf gcc $(ux_bin_dir)cc
 	ln -sf g++ $(ux_bin_dir)c++
 

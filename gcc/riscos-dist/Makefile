@@ -113,9 +113,13 @@ SYSTEMPKG = `basename $(ro_syspkg)`
 all:	install
 
 install:
-	for dir in $$( find . \! -path "*.svn*" -type d ) ; do mkdir -p $(ro_gccpkg)/$$dir ; find $$dir -maxdepth 1 -type f -exec cp -p {} $(ro_gccpkg)/$$dir \; ; done
-	find $(ro_gccpkg) -name "*~*" -or -name "*.orig*" -or -name "*.reg*" -or -name Makefile -type f | xargs rm -rf
-	
+	for dir in `find . -type d | grep -v "\.svn" ` ; do mkdir -p $(ro_gccpkg)/$$dir ; done
+	for file in `find . -type f | grep -v "\.svn" ` ; do cp -p $$file $(ro_gccpkg)/$$file ; done
+	find $(ro_gccpkg) -name "*~*" -type f | xargs rm -rf
+	find $(ro_gccpkg) -name "*.orig*" -type f | xargs rm -rf
+	find $(ro_gccpkg) -name "*.reg*" -type f | xargs rm -rf
+	find $(ro_gccpkg) -name Makefile -type f | xargs rm -rf
+
 # Build the separate RISC OS GCC zip packages
 package:
 	( cd $(ro_gccpkg)/../ ; \
