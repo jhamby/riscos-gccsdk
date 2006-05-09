@@ -1,8 +1,9 @@
 Tue Apr 11 17:40:56 2006  Alex Waugh  <alex@alexwaugh.com>
 
 	* source/module/sul.s: Allocate some memory to store the head of the
-	  linked ist so user mode code does not need to access the module
+	  linked list so user mode code does not need to access the module
 	  private word.
+	  Fixed R4 corruption of SWI SharedUnixLibrary_RegisterUpCall.
 
 Fri Mar 10 21:25:47 2006  Alex Waugh  <alex@alexwaugh.com>
 
