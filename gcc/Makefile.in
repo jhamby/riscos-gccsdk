@@ -253,6 +253,7 @@ riscos-dist: riscos-progs gcc-stg2 riscos-aof-stg2
 	$(MAKE) -C riscos-aof riscos-dist
 	$(MAKE) -C riscos-misc riscos-dist
 	$(MAKE) -C riscos-progs riscos-dist
+	$(MAKE) -C unixlib riscos-dist
 	$(MAKE) -C riscos-dist install
 
 riscos-pkg: riscos-dist
@@ -288,7 +289,6 @@ directories:
 
 	mkdir -p $(ro_syspkg)/310/Modules
 	mkdir -p $(info_dir)
-	mkdir -p $(info_dir)/UnixLib
 	mkdir -p $(objdir)
 	mkdir -p $(ro_zippkg)
 

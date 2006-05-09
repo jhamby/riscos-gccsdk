@@ -1,9 +1,10 @@
 # Second-level Makefile for UnixLib for RISC OS GCC
 # Written by Nick Burrett <nick@sqrt.co.uk>
+# Copyright (c) 2003-2006 GCCSDK Developers
 
 all:	unixlib
 
-.PHONY: unixlib
+.PHONY: unixlib riscos-dist
 
 upath=$(objdir)/unixlib/$(TRG)
 
@@ -12,6 +13,11 @@ DIRS = \
 unixlib: $(DIRS)
 	$(MAKE) -C source
 
+riscos-dist:
+	mkdir -p $(info_dir)/UnixLib
+	cp -p Docs/Changelog $(info_dir)/UnixLib
+	cp -p Docs/Copyright $(info_dir)/UnixLib
+	cp -p Docs/ReadMe $(info_dir)/UnixLib
 
 $(DIRS):
 	mkdir -p $@
