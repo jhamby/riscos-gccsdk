@@ -508,9 +508,12 @@ static void commands(void) {
   l = opt.commands;
   n = 0;
   while (l) {
-    fprintf(file, "#undef CMD_%s\n", l->name);
-    fprintf(file, "#define CMD_%s (%d)\n", l->name, n);
-    n++;
+    if (!l->no_handler)
+    {
+      fprintf(file, "#undef CMD_%s\n", l->name);
+      fprintf(file, "#define CMD_%s (%d)\n", l->name, n);
+      n++;
+    }
     l=l->next;
   }
   fprintf(file, "\n");

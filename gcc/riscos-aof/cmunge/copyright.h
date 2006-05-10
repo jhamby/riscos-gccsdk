@@ -8,6 +8,6 @@
 #ifndef COPYRIGHT_CMUNGE_H
 #define COPYRIGHT_CMUNGE_H
 
-#define Copyright_CMunge "Copyright (c) 1999-2002 Robin Watts/Justin Fletcher"
+#define Copyright_CMunge "Copyright (c) 1999-2006 Robin Watts/Justin Fletcher"
 
 #endif

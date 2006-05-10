@@ -304,7 +304,7 @@ every occurrence of _kernel_oserror is replaced by os_error.
     If its a *Configure option, and arg_string is set to arg_STATUS (as defined
     in the generated header file to be a cast of 1) then print the current
     status. Return NULL.
-    
+
     Otherwise, if its a *configure option, use arg_string and argc to set
     the configure option. Return NULL on success, an error pointer, or
     configure_BAD_OPTION (defined in the header file to be a cast of -1),
@@ -313,17 +313,19 @@ every occurrence of _kernel_oserror is replaced by os_error.
 
     Command descriptions are given in the following form:
     
-      command-name ( min-args:       <integer>,        ; (0 to 255, default 0)
-                     max-args:       <integer>,        ; (0 to 255, default 0)
-                     gstrans-map:    <integer>,        ; (default 0)
-                     fs-command:,                      ; (flag)
-                     status:,                          ; (flag)
-                     configure:,                       ; (flag)
-                     help:,                            ; (flag)
-                     international:,                   ; (flag)
-                     add-syntax:,                      ; (flag)
-                     invalid-syntax: <string>          ; (default empty string)
-                     help-text:      <string>          ; (default empty string)
+      command-name ( min-args:       <integer>,         ; (0 to 255, default 0)
+                     max-args:       <integer>,         ; (0 to 255, default 0)
+                     gstrans-map:    <integer>,         ; (default 0)
+                     fs-command:,                       ; (flag)
+                     status:,                           ; (flag)
+                     configure:,                        ; (flag)
+                     help:,                             ; (flag)
+                     international:,                    ; (flag)
+                     add-syntax:,                       ; (flag)
+                     invalid-syntax: <string>,          ; (default empty string)
+                     help-text:      <string>,          ; (default empty string)
+                     handler:        <C-function-name>, ; (explicit handler)
+                     no-handler:                        ; (flag)
                    )
 
     Each sub-argument (min-args:, max-args: etc) is optional.
@@ -331,6 +333,20 @@ every occurrence of _kernel_oserror is replaced by os_error.
     The flags set bits in the flag word for that entry in the command table,
     except for add-syntax (which adds the invalid syntax message to the end of
     the help information).
+    
+    The handler specification allows dispatch of command to specific
+    routines without a higher-level switching function. Commands without
+    an explicit handler name will be dispatched to base function named
+    at the start of the parameters. The base function may be specified as
+    '-' to indicate that no such function exists. If this is the case,
+    all the handlers must be specified within the commands, or the
+    no-handler flag set.
+    
+    The no-handler flag indicates that there is no code handler for the
+    command. Such command declarations are useful for providing help-only
+    commands definitions.
+    
+    The help flag is not supported by this version of CMunge.
   
   * error-chunk-base-number: <number>
     
@@ -601,6 +617,7 @@ is a bug. CMunge also adds to the file format :
   * Vector handlers can now claim with errors (error-capable)
   * Simple additive evaluation of integers (see below)
   * Simpler C++ module creation (module-is-c-plus-plus)
+  * Command keyword handlers (handler) and handler omission (no-handler)
 
 The command line differs from CMHG in the following ways :
   * Exported header types (-x switch)
@@ -654,20 +671,14 @@ reasons.
 
 In order to support generic compilation, CMunge has been updated to generate
 32bit header veneers. These veneers should function identically on 26bit and
-32bit, so far as the operation of the module is involved. There are, however,
-a number of known issues with the generation, as well as a general caveat
-this this was only done very quickly and so may not be 100% correct. Where
-possible, CMunge produces the same output as CMHG. Known issues :
+32bit, so far as the operation of the module is involved. 32bit code has been
+tested in both 32bit and 26bit environments with a large number of components
+and been found to be reliable.
 
-  * Non-CMHG veneers may not function as desired.
-    In particular, carry-capable return from a function has not been
-    addressed yet.
-  * Vector-trap veneers have not been tested.
-
-Presently, the header generation is as close to that of CMHG as possible
-without introducing any faults; this may result in slightly different code
-sequences (over and above those required for 32bit) to those which might be
-expected of a pure 26bit to 32bit conversion.
+The header generation is as close to that of CMHG as possible without
+introducing any faults; this may result in slightly different code sequences
+(over and above those required for 32bit) to those which might be expected
+of a pure 26bit to 32bit conversion.
 
 For 32bit builds, all that should be necessary is to provide the APCS
 variant specifier as :
@@ -757,10 +768,10 @@ the definitions of the module (constants, services, etc). A way of providing
 a template would help here. This has been addressed locally by the perl
 'MergeModeSWIs script'.
 
-Commands, Events, Vectors, etc with their own handler routines for particular
-cases. These would remove the requirement for the switch statement in a
-central handling module. The impact on SWI decoding was four instructions (the
-same as it would be for a switch) when I added that, so it should not be too
+Events, Vectors, etc with their own handler routines for particular cases.
+These would remove the requirement for the switch statement in a central
+handling module. The impact on SWI decoding was four instructions (the same
+as it would be for a switch) when I added that, so it should not be too
 important.
 
 I (Justin) don't like the name 'codesupplied' in the source. It should really
@@ -793,12 +804,6 @@ Reformat this manual to be more readable.
 
 Possible faults:
 ----------------
-
-I /think/ that the command entry handlers could be improved by not supplying
-a default handler, but I've not done that yet.
-
-I'm not sure about the name 'vector-traps' and I'm not sure that we should
-define our typedef as vectortrap_f. Suggestions welcome.
 
 The cost of a private-word is taken by *all* generic veneers in that an
 extra register must be preserved for all entry points. Any definitions using

@@ -15,6 +15,7 @@
 #include "readfile.h"
 #include "system.h"
 #include "filename.h"
+#include "blank.h"
 
 /* JRF: I don't like the idea of the tool location being fixed at compile
         time, but John Tytgat informs me that this is unavoidable in the
@@ -573,6 +574,115 @@ static void read_errors(const char *s, FILE *file) {
   *l = NULL;
 }
 
+
+
+const char *readcmd_handler(const char *trailer, help_list helpl)
+{
+  trailer = strduptok(trailer, &helpl->handler);
+  opt.command_codesupplied=1;
+  return trailer;
+}
+
+static help_list_s skeletoncmd;
+
+cmdfield_t cmdfields[] = {
+  { "min-args",      { NULL, ft_uint, &skeletoncmd.min_args },
+    { "<number>",
+      "Minimum number of arguments acceptable for this command."
+    }, IN_BOTH
+  },
+
+  { "max-args",      { NULL, ft_uint, &skeletoncmd.max_args },
+    { "<number>",
+      "Maximum number of arguments acceptable for this command."
+    }, IN_BOTH
+  },
+
+  { "gstrans-map",   { NULL, ft_uint, &skeletoncmd.gstrans },
+    { "<bits>",
+      "A bit-field describing which arguments to the command will be "
+      "processed by GSTrans before being passed to the module."
+    }, IN_BOTH
+  },
+
+  { "fs-command",    { NULL, ft_flag_on, &skeletoncmd.fs_command },
+    { "",
+      "This command is a filing system specific command. "
+      "It will only be used if the current filing system is this module."
+    }, IN_BOTH
+  },
+
+  { "international", { NULL, ft_flag_on, &skeletoncmd.international },
+    { "",
+      "The help text for this command should be translated through the "
+      "messages file supplied in the 'international-help-file' field."
+    }, IN_BOTH
+  },
+
+  { "add-syntax",    { NULL, ft_flag_on, &skeletoncmd.add_syntax },
+    { "",
+      "The text supplied in the 'invalid-syntax' field will be appended "
+      "to the text supplied in the 'help-text' field."
+    }, IN_BOTH
+  },
+
+  { "configure",     { NULL, ft_flag_on, &skeletoncmd.configure },
+    { "",
+      "The command is used for *Status and *Configure commands only. "
+      "This is equivilent to the 'status' field."
+    }, IN_BOTH
+  },
+  { "status",        { NULL, ft_flag_on, &skeletoncmd.status },
+    { "",
+      "The command is used for *Status and *Configure commands only. "
+      "This is equivilent to the 'configure' field."
+    }, IN_BOTH
+  },
+
+  { "help",          { NULL, ft_flag_on, &skeletoncmd.help },
+    { "",
+      "The command handler will be called to process help requests."
+    }, IN_BOTH
+  },
+
+  { "invalid-syntax", { NULL, ft_quoted, &skeletoncmd.invalid_syntax },
+    { "<string>",
+      "When an invalid syntax has been supplied, the supplied text will "
+      "be displayed. If the 'add-syntax' field is used, the text will be "
+      "appended to the content of the 'help-text' field. If the "
+      "'international' field is set, the string supplied is a token to "
+      "be looked up in the messages file."
+    }, IN_BOTH
+  },
+
+  { "help-text",     { NULL, ft_quoted, &skeletoncmd.help_text },
+    { "<string>",
+      "When an invalid syntax has been supplied, the supplied text will "
+      "be displayed. If the 'add-syntax' field is used, the text will be "
+      "appended to the content of the 'help-text' field. If the "
+      "'international' field is set, the string supplied is a token to "
+      "be looked up in the messages file."
+    }, IN_BOTH
+  },
+
+  { "handler",       { readcmd_handler, ft_check, &skeletoncmd.handler },
+    { "<function>",
+      "The function to call to handle this command. Setting this field "
+      "overrides the use of default handler function."
+    }, IN_CMUNGE
+  },
+
+  { "no-handler",    { NULL, ft_flag_on, &skeletoncmd.no_handler },
+    { "",
+      "The command has no handler function present. This is useful for "
+      "creating help-only commands."
+    }, IN_CMUNGE
+  },
+
+  /* End of list */
+  { NULL }
+};
+
 static void read_commands(const char *s, FILE *file) {
 
   help_list *l;
@@ -580,6 +690,8 @@ static void read_commands(const char *s, FILE *file) {
   if (opt.commands)
     ErrorFatal("Only supply one command-keyword-table!");
   s = strduptok(s, &opt.helpfn);
+  if (strcmp(opt.helpfn, "-")==0 || strcmp(opt.helpfn, "")==0)
+    opt.helpfn = NULL;
   s = strcomma(s);
   while ((*s == 0) && !Feof(file)) {
     s = getline(file);
@@ -604,85 +716,184 @@ static void read_commands(const char *s, FILE *file) {
     (*l)->invalid_syntax = NULL;
     (*l)->help_text      = NULL;
     (*l)->handler        = NULL;
+    (*l)->no_handler     = -1;
     s = strcomma(s);
-    while (*s != ')') {
-      if (strprefix(s, "min-args:")) {
-        if ((*l)->min_args != -1)
-          ErrorFatal("min-args supplied twice!");
-        s += strlen("min-args:");
-        s = strint(s, (unsigned int *)&(*l)->min_args);
-      } else if (strprefix(s, "max-args:")) {
-        if ((*l)->max_args != -1)
-          ErrorFatal("max-args supplied twice!");
-        s += strlen("max-args:");
-        s = strint(s, (unsigned int *)&(*l)->max_args);
-      } else if (strprefix(s, "gstrans-map:")) {
-        if ((*l)->gstrans != -1)
-          ErrorFatal("gstrans-map supplied twice!");
-        s += strlen("gstrans-map:");
-        s = strint(s, (unsigned int *)&(*l)->gstrans);
-      } else if (strprefix(s, "fs-command:")) {
-        if ((*l)->fs_command != -1)
-          ErrorFatal("fs-command supplied twice!");
-        s += strlen("fs-command:");
-        (*l)->fs_command = 1;
-      } else if (strprefix(s, "international:")) {
-        if ((*l)->international != -1)
-          ErrorFatal("international supplied twice!");
-        s += strlen("international:");
-        (*l)->international = 1;
-      } else if (strprefix(s, "add-syntax:")) {
-        if ((*l)->add_syntax != -1)
-          ErrorFatal("add-syntax supplied twice!");
-        s += strlen("add-syntax:");
-        (*l)->add_syntax = 1;
-      } else if (strprefix(s, "status:")) {
-        if ((*l)->status != -1)
-          ErrorFatal("status supplied twice!");
-        s += strlen("status:");
-        (*l)->status = 1;
-      } else if (strprefix(s, "configure:")) {
-        if ((*l)->configure != -1)
-          ErrorFatal("configure supplied twice!");
-        s += strlen("configure:");
-        (*l)->configure = 1;
-      } else if (strprefix(s, "help:")) {
-        if ((*l)->help != -1)
-          ErrorFatal("help supplied twice!");
-        s += strlen("help:");
-        (*l)->help = 1;
-      } else if (strprefix(s, "handler:")) {
-        if ((*l)->handler != NULL)
-          ErrorFatal("handler supplied twice!");
-        s += strlen("handler:");
-        s = strduptok(s, &(*l)->handler);
-        if (opt.cmhg)
-          CMHGWarning("handler supplied for command %s",(*l)->name);
-        opt.command_codesupplied=1;
-      } else if (strprefix(s, "invalid-syntax:")) {
-        if ((*l)->invalid_syntax != NULL)
-          ErrorFatal("invalid-syntax supplied twice!");
-        s += strlen("invalid-syntax:");
-        s = strstring(s, &(*l)->invalid_syntax);
-      } else if (strprefix(s, "help-text:")) {
-        if ((*l)->help_text != NULL)
-          ErrorFatal("help-text supplied twice!");
-        s += strlen("help-text:");
-        s = strstring(s, &(*l)->help_text);
-      } else if (Feof(file)) {
-        ErrorFatal("Ran out of file when parsing command details!");
-        break;
-      } else if (*s == 0) {
-        while ((*s == 0) && !Feof(file)) {
-          s = getline(file);
-          while (isspace(*s) && (!Feof(file)))
-            s++;
+    for (; *s != ')' && !Feof(file); s = strcomma(s)) {
+      void *valuep;
+      const
+      char *tail;
+      const char *find = s;
+      cmdfield_t *field;
+
+      do {
+        field=cmdfields;
+        while (field->name &&
+               (strprefix(find, field->name)==0 ||
+                find[strlen(field->name)] != ':'))
+          field++;
+        if (field->name==NULL)
+          ErrorFatal("Unknown field: '%s'", find);
+        if (field->values.type==ft_alias)
+          find=(char *)field->values.value; /* It's an alias */
+      } while (field->values.type==ft_alias);
+
+      if (field == NULL)
+      {
+        if (*s == 0) {
+          while ((*s == 0) && !Feof(file)) {
+            s = getline(file);
+            while (isspace(*s) && (!Feof(file)))
+              s++;
+          }
+          continue;
+
+        } else {
+          ErrorFatal("Unknown argument in command-description: %s", s);
+          break;
         }
-      } else {
-        ErrorFatal("Unknown argument in command-description: %s", s);
-        break;
       }
-      s = strcomma(s);
+
+      s = strchr(s, ':')+1; /* Skip over field and the ':' */
+
+      if (field->hgtype==0)
+        ErrorFatal("%s is not supported by any header generator (programmer error)",field->name);
+      if (!(field->hgtype & IN_CMUNGE))
+        ErrorFatal("%s is not supported by CMunge in command-keyword-table",field->name);
+      if (!(field->hgtype & IN_CMHG) && (opt.cmhg))
+        CMHGWarning("%s used in command-keyword-table",field->name);
+
+      if (field->values.func)
+      { /* We have a function for special processing of this field, so we
+           have to call it to deal with the more complex trailling data */
+        int *value=(int *)field->values.value;
+        if (field->values.type==ft_check)
+        { /* They've asked us to check dupe declarations, so we'd better */
+          if (*value != 0)
+            ErrorFatal("Only supply one %s field in command-keyword-table!",
+                       field->name);
+        }
+        s = field->values.func(s,(*l));
+      }
+      else
+      {
+        /* Correct the value pointer to point at the current help_list, rather
+           than the skeletoncmd. Pointer arithmetic - may not be portable so
+           it may need checking. Probably we'd be better using offsetof in the
+           structure ? */
+        valuep = ((char *)field->values.value) -
+                 ((char *)&skeletoncmd) +
+                 ((char *)(*l));
+
+        tail = s;
+
+        while (isspace(*tail))
+          tail++;
+
+        /* Do the type based checks */
+        switch (field->values.type)
+        {
+          case ft_flag_on:
+          case ft_flag_off:
+            {
+              int *value=(int *)valuep;
+              if (*tail=='\0' || *tail==',' || *tail==')')
+              { /* They want the default operation */
+                if (field->values.type==ft_flag_on)
+                  *value=1;
+                else
+                  *value=0;
+              }
+              else
+              {
+                /* You might like to add On/Off checking here to add some nicer
+                   user interface for it */
+                ErrorFatal("Trailing junk after %s",field->name);
+              }
+            }
+            break;
+
+          case ft_int:
+            {
+              unsigned int *value=(unsigned int *)valuep;
+              if (*value!=0)
+                ErrorFatal("Only supply one %s field in command-keyword-table!",field->name);
+              tail = strint(tail, value);
+              if (*value==0)
+                ErrorFatal("Illegal %s: %i in command-keyword-table", field->name,*value);
+              if (*tail!='\0' && *tail!=',' && *tail!=')')
+                ErrorFatal("Trailing junk after %s in command-keyword-table",field->name);
+            }
+            break;
+
+          case ft_uint:
+            {
+              unsigned int *value=(unsigned int *)valuep;
+              if (*value!=-1)
+                ErrorFatal("Only supply one %s field in command-keyword-table!",field->name);
+              tail = strint(tail, value);
+              if (*value==-1)
+                ErrorFatal("Illegal %s: %i in command-keyword-table", field->name,*value);
+              if (*tail!='\0' && *tail!=',' && *tail!=')')
+                ErrorFatal("Trailing junk after %s in command-keyword-table",field->name);
+            }
+            break;
+
+          case ft_int64:
+          case ft_xint64:
+            {
+              unsigned int *value=(unsigned int *)valuep;
+              if (*value!=0)
+                ErrorFatal("Only supply one %s field in command-keyword-table!",field->name);
+              tail = strint(tail, value);
+              if ((*value==0) || (*value & 0x3f))
+                ErrorFatal("Illegal %s: 0x%08x in command-keyword-table", field->name,*value);
+              if ((field->values.type==ft_xint64) && (*value & 0x20000))
+                ErrorFatal("Illegal %s: 0x%08x (x bit set) in command-keyword-table", field->name,*value);
+              if (*tail!='\0' && *tail!=',' && *tail!=')')
+                ErrorFatal("Trailing junk after %s in command-keyword-table",field->name);
+            }
+            break;
+
+          case ft_label:
+          case ft_quoted:
+            {
+              char **value=(char **)valuep;
+              if (*value!=NULL)
+                ErrorFatal("Only supply one %s field in command-keyword-table!",field->name);
+
+              if (field->values.type==ft_label)
+                tail = strduptok(tail, value);
+              else
+                tail = strstring(tail, value);
+              if (*tail!='\0' && *tail!=',' && *tail!=')')
+                ErrorFatal("Trailing junk after %s in command-keyword-table",field->name);
+            }
+            break;
+
+          case ft_string:
+            {
+              char **value=(char **)valuep;
+              if (*value!=NULL)
+                ErrorFatal("Only supply one %s field in command-keyword-table!",field->name);
+
+              *value=strdup_strip(tail);
+            }
+            break;
+
+          default:
+            /* Erm... what the hell have you done to my nice little description
+               block */
+            ErrorFatal("Programmer confusion error (%s:%s: ft: %i) in command-keyword-table",
+                       field->name,s,field->values.type);
+        }
+
+        s = tail;
+      }
+    }
+
+    if (*s=='\0' && Feof(file)) {
+      ErrorFatal("Ran out of file when parsing command details!");
+      break;
     }
     if ((*l)->min_args      == -1)
       (*l)->min_args      = 0;
@@ -704,6 +915,30 @@ static void read_commands(const char *s, FILE *file) {
       (*l)->international = 0;
     if ((*l)->add_syntax    == -1)
       (*l)->add_syntax    = 0;
+    if ((*l)->no_handler    == -1)
+      (*l)->no_handler    = 0;
+
+    /* Check the sanity of these settings */
+    if ((*l)->min_args > 255)
+      ErrorFatal("min-args: must be between 0 and 255 in command %s",(*l)->name);
+    if ((*l)->max_args > 255)
+      ErrorFatal("max-args: must be between 0 and 255 in command %s",(*l)->name);
+    if ((*l)->gstrans > 255)
+      ErrorFatal("gstrans: mapping may only describe 8 bits in command %s",(*l)->name);
+    if ((*l)->add_syntax && (*l)->international)
+      ErrorFatal("add-syntax: and international: are mutually exclusive in command %s",(*l)->name);
+    if ((*l)->add_syntax && !(*l)->invalid_syntax)
+      Warning("add-syntax: has no meaning without invalid-syntax: in command %s",(*l)->name);
+    if ((*l)->add_syntax && !(*l)->help_text)
+      Warning("add-syntax: has no meaning without help-text: in command %s",(*l)->name);
+    if ((*l)->help)
+      ErrorFatal("help: is not supported in command %s (unsupported in CMunge, unreliable in CMHG)", (*l)->name);
+    if ((*l)->no_handler && (*l)->handler)
+      ErrorFatal("no-handler: and handler: are mutually exclusive in command %s",(*l)->name);
+    if (opt.helpfn == NULL && (*l)->handler==NULL && (*l)->no_handler==0)
+      (*l)->no_handler = 1; /* Silently promote to 'no-handler' if nothing
+                               present */
+
     s = strskip(s, ')');
     s = strcomma(s);
     l = &(*l)->next;
@@ -1150,7 +1385,7 @@ field_t fields[] =
       "with an event handler, as their reason codes are also passed in R0."
     }, IN_BOTH },
 
-  { "command-keyword-table",       { read_commands },
+  { "command-keyword-table",       { read_commands, ft_none },
     { "Mod_Command\n   ModuleCommand()",
       "The command table is one of the more complex fields in the CMHG "
       "file. The first entry is the routine to call to process the "
@@ -1158,9 +1393,11 @@ field_t fields[] =
       "command definitions. These take the form :\n"
       "\t<Command>({<field>: <value>})\n"
       "\n"
-      "Field names:\n"
+      "Field names:"
+#if 0
       /* Note: The spaces in this block are unimportant; it's the \b code
                that is important to line up the strings */
+      "\n"
       "\tmin-args: <number>   \bMinimum number of arguments to command\n"
       "\tmax-args: <number>   \bMaximum number of arguments to command\n"
       "\tgstrans-map: <bits>  \bBitmap of arguments that should be GSTransd\n"
@@ -1173,6 +1410,11 @@ field_t fields[] =
                                "message processing. Not implemented\n"
       "\thelp-text: <string>  \bThe text/token to use for *Help\n"
       "\tinvalid-syntax: <string>\bThe text/token to use for syntax errors"
+#else
+/* The help text for the table is now supplied by a function, using the
+   cmdfields table. */
+      , blank_commands
+#endif
     }, IN_BOTH },
 
   { "service-call-handler",        { read_services },
@@ -1264,7 +1506,7 @@ static void parse_line(FILE *file) {
           {
             /* You might like to add On/Off checking here to add some nicer
                user interface for it */
-            ErrorFatal("Tailing junk after %s",field->name);
+            ErrorFatal("Trailing junk after %s",field->name);
           }
         }
         break;
@@ -1278,7 +1520,20 @@ static void parse_line(FILE *file) {
           if (*value==0)
             ErrorFatal("Illegal %s: %i", field->name,*value);
           if (*tail!='\0')
-            ErrorFatal("Tailing junk after %s",field->name);
+            ErrorFatal("Trailing junk after %s",field->name);
+        }
+        break;
+
+      case ft_uint:
+        {
+          unsigned int *value=(unsigned int *)field->values.value;
+          if (*value!=-1)
+            ErrorFatal("Only supply one %s field!",field->name);
+          tail = strint(tail, value);
+          if (*value==-1)
+            ErrorFatal("Illegal %s: %i", field->name,*value);
+          if (*tail!='\0')
+            ErrorFatal("Trailing junk after %s",field->name);
         }
         break;
 
@@ -1294,7 +1549,7 @@ static void parse_line(FILE *file) {
           if ((field->values.type==ft_xint64) && (*value & 0x20000))
             ErrorFatal("Illegal %s: 0x%08x (x bit set)", field->name,*value);
           if (*tail!='\0')
-            ErrorFatal("Tailing junk after %s",field->name);
+            ErrorFatal("Trailing junk after %s",field->name);
         }
         break;
 
@@ -1310,7 +1565,7 @@ static void parse_line(FILE *file) {
           else
             tail = strstring(tail, value);
           if (*tail != 0)
-            ErrorFatal("Tailing junk after %s",field->name);
+            ErrorFatal("Trailing junk after %s",field->name);
         }
         break;
 

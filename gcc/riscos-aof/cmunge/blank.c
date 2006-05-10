@@ -66,6 +66,9 @@ void WriteBlank(void) {
         format_wrap(file, "; ",
                           "; ", field->blank.comment,
                           "");
+        if (field->blank.func)
+          field->blank.func(file);
+
         fprintf(file,"%s: %s\n\n",field->name,field->blank.value);
       }
     }
@@ -73,4 +76,31 @@ void WriteBlank(void) {
   }
   fclose(file);
   exit(EXIT_SUCCESS); /* And exit NOW because we can't do any more processing */
+}
+
+
+/* Special case for the command-keyword-table so that we can write out all
+   its options. */
+void blank_commands(FILE *file)
+{
+  cmdfield_t *field;
+
+  field=cmdfields;
+
+  while (field->name)
+  {
+    if (field->values.type != ft_alias)
+    {
+      if ( (opt.cmhg && (field->hgtype & IN_CMHG)) ||
+           (!opt.cmhg && (field->hgtype & IN_CMUNGE)) )
+      {
+        fprintf(file,";   %s: %s\n",field->name,field->blank.value);
+        format_wrap(file, ";     ",
+                          ";     ", field->blank.comment,
+                          "");
+      }
+    }
+    field++;
+  }
+
 }

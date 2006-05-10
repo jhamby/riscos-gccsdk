@@ -33,6 +33,7 @@ typedef struct help_list_s {
   char        *help_text;
   char        *name;
   char        *handler;
+  int          no_handler; /* There isn't a code entry point */
   help_list    next;
 } help_list_s;
 

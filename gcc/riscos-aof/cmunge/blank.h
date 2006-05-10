@@ -8,4 +8,6 @@
 
 void WriteBlank(void);
 
+void blank_commands(FILE *f);
+
 #endif

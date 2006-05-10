@@ -2,9 +2,151 @@ Log file for CMunge
 ===================
 
 ------------------------------------------------------------------------
-    Version 0.72 22:33:26 13/1/2006
+    Version 0.76 13:12:38 10/5/2006
 ------------------------------------------------------------------------
 $Log: VersionLog,v $
+Revision 1.65  2006/05/10 12:14:20  justin
+Summary:
+  Fix for carry-capable return on veneer being inverted on 32bit builds.
+Detail:
+  * Carry capable setting on return from the veneer was not returning
+    the correct flags because the condition check was inverted. We now
+    return the C flag properly in that case.
+Admin:
+  Manual examination of code only; will test with the few modules
+  that use it later. Fault reported by Matt Edgar.
+Tag:
+  CMunge-0_76
+
+------------------------------------------------------------------------
+    Version 0.75 13:05:15 10/5/2006
+------------------------------------------------------------------------
+Revision 1.64  2006/05/10 12:08:21  justin
+Summary:
+  Fix for broken handling of system by Pace SCL.
+Detail:
+  * The Pace SCL appears to have been modified to clear the command line
+    set by DDEUtils if no DDEUtils command line is apparently required
+    for the invocation of the subtask. This broke our explicit handling
+    of the deficiency of the SCL with regard to long path names. After
+    much discussion, the solution of replacing system with
+    _kernel_system was reached and this has cured the problem.
+Admin:
+  Tested locally and by Alex Waugh and appears to have solved their
+  problems. Fault originally reported by Alex, relayed through John
+  Tytgat as part of the GCC development group.
+Tag:
+  CMunge-0_75
+
+------------------------------------------------------------------------
+    Version 0.74 20:02:31 22/3/2006
+------------------------------------------------------------------------
+Revision 1.63  2006/03/22 20:28:24  justin
+Summary:
+  Changed command-keyword-table processor to use a field table similar
+    to the main keyword processor.
+  Added support for empty command dispatch function.
+  Updated documentation for handler: field in command table.
+  Added support for no-handler: field to allow help-only commands.
+  Added sanity checking to command table fields.
+  Updated documentation to reflect the greater amount of testing.
+  Updated blank file generation to take advantage of extra command table
+    field help.
+  Fix for typo in errors from main keyword processor.
+Detail:
+  * The command-keyword-table processor previously used a number of
+    conditional checks for each explicit keyword chained together in
+    if-else clauses. These seemed to be awkward to update, so a similar
+    table to that used by the main processor has been created. This
+    does not appear to have made the code either more readable or (on
+    the face of things) more flexible. However, it does allow new
+    fields to be added more readily, and this should be useful for the
+    next batch of updates.
+    As the address of the values being changed by each keyword is
+    variable, we use a 'skeleton' help_list structure upon which the
+    manipulated values are based. Pointer arithmetic is used to
+    calculate the actual value within the current help_list element,
+    and this should be checked carefully on other platforms. It is
+    believed to be correct, but it may be more reliable to modify
+    the code to use offsetof macros explicitly.
+  * The C function supplied for commands may be left empty or specified
+    as a '-' to indicate that no base function is to be used. This is
+    only useful where all, or no, commands provide handlers.
+  * The handler: field on the command-keyword-table was not documented,
+    although it has been present for quite a few versions of the tool.
+    It has now been added to the documentation and notes about its use
+    are included.
+  * The no-handler: field can be used to create help-only command
+    entries. This sets the handler entry point to 0, and omits the
+    veneer for that command. Loops within the writefile.c source have
+    been updated to count the number of the entry point as this is now
+    distinct from the command's position in the linked list. Similar
+    changes have been added to the header generation.
+  * The command-keyword-table values are now checked once the processing
+    of the command has completed. This should ensure that the incorrect
+    specification of some values does not have unintentional side
+    effects (eg the max-args being set to 256). In particlar, we include
+    a check for the use of the help: field as this is not implemented
+    within the current version of CMunge and is unreliable in all known
+    versions of CMHG.
+  * The last version of CMunge (and preceeding versions) have undergone
+    rigorous testing in both 26bit and 32bit environments, with hundreds
+    of components in active use. No known problems have been seen since
+    this time and it is believed that the last version is quite
+    reliable within both 26bit and 32bit configurations. In addition,
+    large numbers of modules have been constructed under cross-compiled
+    environments (Linux and Windows) with no intermediate code
+    generation (ARM assembler) problems. The documentation has been
+    updated to reflect this higher degree of confidence in the tool.
+  * The blank file output generation has been updated to use callback
+    functions to augment the output from the main keyword processor
+    table. This is used by the command-keyword-table entry to provide
+    more information about the keywords which may be provided
+    per-command. The resulting blank is larger because of this, but it
+    is a benefit to have more information on these fields.
+  * The main keyword processor would emit error messages stating
+    'Tailing junk after ...'. This has been corrected to 'Trailing junk
+    after ...'.
+Admin:
+  Tested with a few modules which use command-keyword-table entries. Not
+  a rigorous test for this version, as more command-keyword-table
+  changes will be following this checkin. However, tests against likely
+  failure cases appear to show up as working correctly so far.
+  Tests have been performed on Linux and RISC OS. No Windows testing.
+  Most of the problems are likely to be parser-based rather than output
+  based, so testing has focused on that.
+Tag:
+  CMunge-0_74
+
+------------------------------------------------------------------------
+    Version 0.73 03:31:57 20/2/2006
+------------------------------------------------------------------------
+Revision 1.62  2006/02/20 03:38:36  justin
+Summary:
+  Fix for 32bit vector-trap handlers, and carry-capable.
+Detail:
+  * The 32bit vector-trap handlers had not been checked for safety.
+    These have now been checked by manual examination and were found to
+    be inverted. The handler has now been corrected. Generic veneers
+    in 32bit have also been modified to modify the PSR in force on
+    entry, rather than the PSR on return from the client function.
+  * Vector trap return code has been modified to correct a minor APCS-32
+    violation. A failure could only occur if the vector-trap caller
+    code was invoked from custom code. I do not believe the problem case
+    could be generated by any extant version of the compiler.
+  * Carry capable code has now been checked and similar code to that for
+    the 26bit case has been used.
+Admin:
+  Tested build on RISC OS, generating both object through the assembler
+  and source for manual examination. Both appear to be correct code.
+  More tests may be needed to ensure that both the vector trap and the
+  carry capable code are correct within 32bit builds.
+Tag:
+  CMunge-0_73
+
+------------------------------------------------------------------------
+    Version 0.72 22:33:26 13/1/2006
+------------------------------------------------------------------------
 Revision 1.61  2006/01/13 22:37:55  justin
 Summary:
   Fix for C++ object initialisation within GCC.

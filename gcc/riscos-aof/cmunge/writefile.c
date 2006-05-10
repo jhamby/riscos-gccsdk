@@ -258,7 +258,7 @@ static void commands(void) {
 
 /* JRF: 32bit'd */
   help_list l;
-  int n;
+  int n,nentry;
   int info;
 
   /* FIXME: Help entries can be commands - should work; or at least mirror CHMG */
@@ -282,13 +282,19 @@ static void commands(void) {
     n++;
   }
   l = opt.commands;
-  n = 0;
+  n = 0; nentry = 0;
   fprintf(file, "\tALIGN\n");
   fprintf(file, "_CMUNGE_command\n");
   while (l) {
     fprintf(file, "\t= \"%s\",0\n", l->name);
     fprintf(file, "\tALIGN\n");
-    fprintf(file, "\tDCD\t_CMUNGE_ce%d\t- _CMUNGE_origin\n", n);
+    if (l->no_handler)
+      fprintf(file, "\tDCD\t0\n");
+    else
+    {
+      fprintf(file, "\tDCD\t_CMUNGE_ce%d\t- _CMUNGE_origin\n", n);
+      nentry++;
+    }
     info = l->min_args | (l->max_args<<16) | (l->gstrans<<8) |
            (l->fs_command ? (1U<<31) : 0) | (l->status ? (1<<30) : 0) |
            (l->configure ? (1<<30) : 0) | (l->help ? (1<<29) : 0) |
@@ -305,18 +311,30 @@ static void commands(void) {
     l = l->next;
     n++;
   }
-  /* CMHG *doesn't* output the following, because the low byte of the next */
-  /* instruction is 0. Hacky or what? For compatibility I'll do the same. */
-  //fprintf(file, "\tDCD\t0\n");
+  /* CMHG *doesn't* output the following, because the low byte of the next
+     instruction is 0. Hacky or what? For compatibility I'll do the same,
+     except when there are no entry points to follow, in which case we
+     need the 0 as the following code doesn't have any.
+   */
+  if (nentry==0)
+  {
+    fprintf(file, "\tDCD\t0\n");
+    /* Of course, if there are no entry points there is no point in writing
+       out any veneers. */
+    return;
+  }
   l = opt.commands;
-  n = 0;
+  n = 0; nentry=0;
   while (l) {
-    fprintf(file, "_CMUNGE_ce%d\n", n);
-    fprintf(file, "\tMOV\tr2,#%d\n", n);
+    if (!l->no_handler)
+    {
+      if (nentry != 0)
+        fprintf(file, "\tB\t_CMUNGE_ce\n");
+      fprintf(file, "_CMUNGE_ce%d\n", n);
+      fprintf(file, "\tMOV\tr2,#%d\n", nentry++);
+    }
     l = l->next;
     n++;
-    if (l)
-      fprintf(file, "\tB\t_CMUNGE_ce\n");
   }
   fprintf(file, "_CMUNGE_ce\n");
   fprintf(file, "\tSTMDB\tr13!,{r0,r10,r11,r14}\n");
@@ -329,21 +347,22 @@ static void commands(void) {
   fprintf(file, "\tSTMIA\tr10,{r11,r12}\n");
   fprintf(file, ADD_Lib_Reloc);
   fprintf(file, "\tMOV\tr11,#0\n");
-  if (opt.swi_codesupplied)
+  if (opt.command_codesupplied)
   {
     help_list l;
-    int numcoms=0;
+    int numentries=0;
 
     l = opt.commands;
     while (l)
     {
-      numcoms++;
+      if (!l->no_handler)
+        numentries++;
       l=l->next;
     }
     fprintf(file, "\tMOV\tr14,pc\n");
     fprintf(file, "\tADD\tr14,r14,# _CMUNGE_com_ret - _CMUNGE_com_pc\n");
     fprintf(file, "_CMUNGE_com_pc\n");
-    fprintf(file, "\tCMP\tr2,#%i\n",numcoms);
+    fprintf(file, "\tCMP\tr2,#%i\n",numentries);
     fprintf(file, "\tADDLO\tpc,pc,r2,LSL #2\n");
     if (opt.helpfn)
     {
@@ -356,17 +375,20 @@ static void commands(void) {
     l = opt.commands;
     while (l)
     {
-      if (l->handler)
+      if (!l->no_handler)
       {
-        fprintf(file, "\tIMPORT\t%s\n", l->handler);
-        fprintf(file, "\tB\t%s\n", l->handler);
-      }
-      else
-      {
-        if (opt.commands)
-          fprintf(file, "\tB\t%s\n", opt.helpfn);
+        if (l->handler)
+        {
+          fprintf(file, "\tIMPORT\t%s\n", l->handler);
+          fprintf(file, "\tB\t%s\n", l->handler);
+        }
         else
-          fprintf(file, "\tB\t_CMUNGE_nocom_handler\n");
+        {
+          if (opt.commands)
+            fprintf(file, "\tB\t%s\n", opt.helpfn);
+          else
+            fprintf(file, "\tB\t_CMUNGE_nocom_handler\n");
+        }
       }
       l=l->next;
     }
@@ -1393,13 +1415,11 @@ static void vector_traps(void) {
     fprintf(file, "\tTEQ      pc,pc\n");
     fprintf(file, "\tMSREQ    cpsr_ctl,r6\n");
     fprintf(file, "\tTEQNEP   r8,#0\n");
-    ErrorFatal("vector-traps have not been made 32bit-compatible yet");
   }
   /* We need to return if 1,
                 claim if 0,
-                return VS, r0 passed on if other values
+                claim with VS, r0 passed on if other values
    */
-  /* FIXME: This end section hasn't been checked for 32bit */
   if (CODE26)
   {
     fprintf(file, "\tTEQ\tr0,#1\n");
@@ -1413,19 +1433,19 @@ static void vector_traps(void) {
   }
   else
   {
+    /* JRF: Checked 20 Feb 2006, and should now be correct */
     fprintf(file,"\tCMP     r0, #1\n");
     fprintf(file,"\tBHI     _CMUNGE_vtretv\n");
     fprintf(file,"\tMOV     r12, r6\n");
-    fprintf(file,"\tLDMEQIA r13!,{r0-r11,r14}\n");
-    fprintf(file,"\tLDMLOIA r13!,{r0-r11}\n");
+    fprintf(file,"\tLDMEQIA r13!,{r0-r11}      ; r0=1 case (pass on)\n");
+    fprintf(file,"\tLDMLOIA r13!,{r0-r11,r14}  ; r0=0 case (claim)\n");
     fprintf(file,"\tTEQ     pc,pc\n");
     fprintf(file,"\tLDR     r14, [sp], #4\n");
-    fprintf(file,"\t_CMUNGE_vtret\n");
     fprintf(file,"\tMOVNES  pc,r14\n");
     fprintf(file,"\tMSR     cpsr_flg,r12\n");
     fprintf(file,"\tMOV     pc, r14\n");
 
-    fprintf(file,"_CMUNGE_vtretv\n");
+    fprintf(file,"_CMUNGE_vtretv               ; r0 = anything else (claim+VS+R0 returned)\n");
     fprintf(file,"\tADD     r13, r13, #4\n");
     fprintf(file,"\tLDMIA   r13!,{r1-r11,r14}\n");
     fprintf(file,"\tTEQ     pc,pc\n");
@@ -1443,6 +1463,7 @@ static void vector_traps(void) {
        r1-> *original* register block
      What we must do is...
   */
+
   fprintf(file, "_CMUNGE_vtcall\n");
 
   fprintf(file, "\tSTMFD\tr13!,{r0,r4-r11,r14}\n");
@@ -1460,10 +1481,10 @@ static void vector_traps(void) {
   }
   else
   {
-    /* we're returning to APCS-R or APCS-32 so we preserve flags if in 26bit
-       where that's easy and ignore them in 32bit */
-    fprintf(file, "\tTEQ\tpc,pc\n");
-    fprintf(file, "\tLDMNEFD\tr13!,{r4-r11,pc}^\n");
+    /* We're returning to APCS-32 so no need to preserve flags -
+       note that we're inside our client, so there is no
+       need to check for 26bitness. To do so would violate APCS-32.
+     */
     fprintf(file, "\tLDMFD\tr13!,{r4-r11,pc}\n");
   }
 }
@@ -1628,29 +1649,45 @@ static void generics(void) {
     else
     {
       fprintf(file, "\tTEQ      pc,pc\n");
-      fprintf(file, "\tBEQ      _CMUNGE_genv%i ; 32bit PC\n",(int)l);
+      fprintf(file, "\tBEQ      _CMUNGE_genv%s ; 32bit PC\n", carry_now ? "_carry" : "");
       fprintf(file, "\tTEQP     r8,#0\n");
       fprintf(file, "\tTEQ      r0,#0\n");
       fprintf(file, "\tLDMEQIA  r13!,{r0-r11,pc}^\n");
       if (carry_now)
       {
+        /* If r0 = 2, return CS
+              r0 = 0, has already been dealt with
+              r0 = anything else, return VS + R0 value
+              r8 = 26bit PSR on entry
+         */
         fprintf(file, "\tTEQ\tr0,#2\n");
         fprintf(file, "\tLDMEQIA\tr13!,{r0-r%i,r14}\n",preserve_endreg);
         fprintf(file, "\tORREQS\tpc,r14,#0x20000000\n");
         fprintf(file, "\tADD\tr13,r13,#4\n");
         fprintf(file, "\tLDMIA\tr13!,{r1-r%i,r14}\n",preserve_endreg);
         fprintf(file, "\tORRS\tpc,r14,#0x10000000\n");
-        fprintf(file, "_CMUNGE_genv%i\n",(int)l);
-        ErrorFatal("32bit code not present for carry handling");
-        /* JRF: Fix me; looks like I was lazy for this bit */
+        fprintf(file, "_CMUNGE_genv_carry\n");
+        /* 32bit return for the same case as the above 26bit case, except:
+              r0 = 0 has not been dealt with
+              r6 = 32bit PSR on entry
+         */
+        fprintf(file, "\tTEQ      r0,#2\n");
+        fprintf(file, "\tORREQ    r6,r6,#0x20000000\n");
+        fprintf(file, "\tBICS     r14,r0,#2 ; NE if r0 <> 0 and r0 <> 2\n");
+        fprintf(file, "\tSTRNE    r0,[r13,#0]\n");
+        fprintf(file, "\tORRNE    r6,r6,#0x10000000\n");
+        fprintf(file, "\tMSR      cpsr_flg,r6\n");
+        fprintf(file, "\tLDMIA    r13!,{r0-r11,pc}\n");
       }
       else
       {
         fprintf(file, "\tADD\tr13,r13,#4\n");
         fprintf(file, "\tLDMIA\tr13!,{r1-r%i,r14}\n",preserve_endreg);
         fprintf(file, "\tORRS\tpc,r14,#0x10000000\n");
-        fprintf(file, "_CMUNGE_genv%i\n",(int)l);
-        fprintf(file, "\tMSR      cpsr_ctl,r6\n");
+        fprintf(file, "_CMUNGE_genv\n");
+        /* 32bit return for the same case as the above 26bit case, except:
+              r6 = 32bit PSR on entry
+         */
         fprintf(file, "\tTEQ      r0,#0\n");
         fprintf(file, "\tSTRNE    r0,[r13,#0]\n");
         fprintf(file, "\tORRNE    r6,r6,#0x10000000\n");

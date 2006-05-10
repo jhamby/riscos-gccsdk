@@ -10,6 +10,14 @@
 #endif
 #include "error.h"
 
+/* #define DEBUG */
+
+#ifdef DEBUG
+#define dprintf if (1) printf
+#else
+#define dprintf if (0) printf
+#endif
+
 /* This function is here for two reasons ...
 
    1. To provide escaping for the invoked comand when used under linux.
@@ -67,7 +75,17 @@ int our_system(const char *cmdtxt)
     ErrorFatal("Cannot set Extended CLI (%s); aborting\n",err->errmess);
   }
 
-  rc = system(cmd);
+  dprintf("Starting command '%s'\n", cmd);
+  /* The Pace SharedCLibrary is broken with regard to command line invocation.
+     Apparently, it explicitly clears the DDEUtils command line before
+     invocation of the command with system(). This means that we cannot set
+     the command line here using DDEUtils if we use system(). Our fix is to
+     call _kernel_system instead, which does not perform the DDEUtils command
+     line clearing and which functions correctly on all known SCL versions.
+     (Fault reported by Alex Waugh)
+   */
+  rc = _kernel_system(cmd, 0);
+  dprintf("  got return code %i\n", rc);
   free(cmd);
 #else
   int need_quotes =0;
