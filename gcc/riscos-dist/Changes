@@ -9,6 +9,10 @@ GCCSDK GCC 3.4.6 Release 1 (released XX XXX 2006)
   <URL:http://gcc.gnu.org/gcc-3.4/changes.html#3.4.6> for more
   information about this release.
 
+* cmunge: Upgraded to v0.76 which has fixes for the carry-capable veneer
+  return problem and a workaround for the broken handling of the system
+  call in Pace SCL seen on Iyonix.  All details in !gcc.docs.CMunge.History.
+
 * Provided two new GCC options -mlibrary-static-data-offset and
   -mclient-static-data-offset (latter being default) which when compiling
   module code to be able to use the library static data offset (at
@@ -17,6 +21,16 @@ GCCSDK GCC 3.4.6 Release 1 (released XX XXX 2006)
 
 * Added resgen, a tool to create an AOF file encapsulating one or more
   files ready for (de)registering with ResourceFS.
+
+* Several bug fixes were done:
+  - libfile : increased compatibility with Acorn libfile version.
+  - UnixLib : bug fix details in separate !gcc.docs.UnixLib.Changes file.
+  - SharedUnixLibrary (v1.10) : support for RISC OS versions where the
+    module private word is in USR read-only memory.
+
+* GCCSDK build enhancements:
+  - GCC ARM backend/drlink : support for 64-bit platforms (x86_64).
+  - Solaris 8 SPARC support
 
 
 GCCSDK GCC 3.4.5 Release 1 (released 15 Feb 2006)
