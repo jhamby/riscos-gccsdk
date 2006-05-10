@@ -2,7 +2,7 @@
 ** Drlink AOF linker
 **
 ** Copyright (c) 1993, 1994, 1995, 1996, 1997, 1998  David Daniels
-** Copyright (c) 2001, 2002, 2003, 2004, 2005  GCCSDK Developers
+** Copyright (c) 2001, 2002, 2003, 2004, 2005, 2006  GCCSDK Developers
 **
 ** This program is free software; you can redistribute it and/or
 ** modify it under the terms of the GNU General Public License
@@ -132,16 +132,15 @@ gen_llsymt (filelist * fp)
   count = fp->symtcount;
   for (n = 1; n <= count; n++)
     {
-      if ((sp->symtattr & (SYM_DEFN | SYM_ABSVAL)) == SYM_DEFN &&
-	  strncmp (sp->symtname, "x$", 2) != 0
+      if ((sp->symtattr & (SYM_MASK_DEFN | SYM_ABSVAL)) == SYM_MASK_DEFN
+	  && strncmp (sp->symtname, "x$", 2) != 0
 	  && strcmp (sp->symtname, "__codeseg") != 0)
 	{
 	  if (sp->symtarea.areaptr != NULL
 	      && sp->symtarea.areaptr->arefcount != 0)
 	    {
 	      areattr = sp->symtarea.areaptr->aratattr;
-	      lldclass =
-		((areattr & ATT_RDONLY) != 0 ? LLD_ROSYMBOL : LLD_RWSYMBOL);
+	      lldclass = (areattr & ATT_RDONLY) != 0 ? LLD_ROSYMBOL : LLD_RWSYMBOL;
 	      add_lldentry (sp->symtname, lldclass, sp->symtvalue);
 	    }
 	}

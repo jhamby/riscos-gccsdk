@@ -1245,12 +1245,15 @@ Drlink 0.42 (based on work from Justin Fletcher)
   recent versions of Norcroft Link.
 - Src code cleanups.
 
+Drlink 0.43
+- Support for host platforms where sizeof(void *) != 4.
+
 
 Copyright
 ~~~~~~~~~
 The software and the documentation that goes with it is
 Copyright © David Daniels 1993, 1994, 1995, 1996, 1997, 1998.
-Copyright © GCCSDK Developers 2001, 2002, 2003, 2004, 2005.
+Copyright © GCCSDK Developers 2001, 2002, 2003, 2004, 2005, 2006.
 
 Around 2001 David Daniels issued the source code of Drlink under
 GPL.

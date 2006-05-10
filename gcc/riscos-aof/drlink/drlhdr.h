@@ -2,7 +2,7 @@
 ** Drlink AOF linker
 **
 ** Copyright (c) 1993, 1994, 1995, 1996, 1997, 1998  David Daniels
-** Copyright (c) 2001, 2002, 2003, 2004, 2005  GCCSDK Developers
+** Copyright (c) 2001, 2002, 2003, 2004, 2005, 2006  GCCSDK Developers
 **
 ** This program is free software; you can redistribute it and/or
 ** modify it under the terms of the GNU General Public License
@@ -30,7 +30,7 @@
 # define IGNORE_CASE
 #endif
 
-#define DL_VERSION "v0.42 (" __DATE__ ") [GCCSDK " __VERSION__ "]"
+#define DL_VERSION "v0.43 (" __DATE__ ") [GCCSDK " __VERSION__ "]"
 
 /*
 ** Some constants used everywhere

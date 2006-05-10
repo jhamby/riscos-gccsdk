@@ -2,7 +2,7 @@
 ** Drlink AOF linker
 **
 ** Copyright (c) 1993, 1994, 1995, 1996, 1997, 1998  David Daniels
-** Copyright (c) 2001, 2002, 2003, 2004, 2005  GCCSDK Developers
+** Copyright (c) 2001, 2002, 2003, 2004, 2005, 2006  GCCSDK Developers
 **
 ** This program is free software; you can redistribute it and/or
 ** modify it under the terms of the GNU General Public License
@@ -81,12 +81,7 @@ typedef struct
   unsigned int attributes;	/* Attribute bytes */
   unsigned int arsize;		/* Size of area excluding relocations */
   unsigned int arelocs;		/* Number of relocations */
-  union
-  {
-    unsigned int arzero;	/* 0 */
-    struct arealist *arlptr;	/* Or pointer to arealist entry for area */
-    unsigned int araddress;	/* Or base address if area has absolute address */
-  } arlast;
+  unsigned int araddress;	/* Base address if area has absolute address */
 } areaentry;
 
 /* OBJ_HEAD chunk header */

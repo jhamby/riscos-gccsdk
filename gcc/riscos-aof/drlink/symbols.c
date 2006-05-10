@@ -2,7 +2,7 @@
 ** Drlink AOF Linker
 **
 ** Copyright (c) 1993, 1994, 1995, 1996, 1997, 1998  David Daniels
-** Copyright (c) 2001, 2002, 2003, 2004, 2005  GCCSDK Developers
+** Copyright (c) 2001, 2002, 2003, 2004, 2005, 2006  GCCSDK Developers
 **
 ** This program is free software; you can redistribute it and/or
 ** modify it under the terms of the GNU General Public License
@@ -75,7 +75,7 @@ static editcmd * current_symedit,	/* Pointer to symbol edits for current file */
 
 #ifndef HAVE_STRICMP
 /*
-** 'stricmp' performs a comparison of two null-terminated character
+** 'stricmp' performs a comparison of two nul-terminated character
 ** strings ignoring the case of the letters
 */
 int
@@ -86,7 +86,7 @@ stricmp (const char *str1, const char *str2)
       str1++;
       str2++;
     }
-  return *str1 - *str2;
+  return tolower (*str1) - tolower (*str2);
 }
 #endif
 
@@ -130,7 +130,7 @@ isrelocatable (relocation * rp)
   if ((sp->symtattr & SYM_WEAKREF) != 0)
     return FALSE;			/* Reference to a weak external */
 
-  if ((sp->symtattr & SYM_DEFN) == 0)
+  if ((sp->symtattr & SYM_MASK_DEFN) == 0)
     sp = sp->symtarea.symdefptr;	/* Reference to external symbol */
 
   return (sp->symtattr & SYM_ABSVAL) == 0;
@@ -202,7 +202,7 @@ check_symedit (symtentry * symtp)
 	      break;
 
 	    case EDT_HIDE:
-	      if ((symtp->symtattr & SYM_SCOPE) == SYM_GLOBAL)
+	      if ((symtp->symtattr & SYM_MASK_SCOPE) == SYM_GLOBAL)
 		{		/* Global symbol */
 		  symtp->symtattr -= (SYM_GLOBAL - SYM_LOCAL);
 		  if (opt_verbose)
@@ -215,7 +215,7 @@ check_symedit (symtentry * symtp)
 	      break;
 
 	    case EDT_REVEAL:
-	      if ((symtp->symtattr & SYM_SCOPE) == SYM_LOCAL)
+	      if ((symtp->symtattr & SYM_MASK_SCOPE) == SYM_LOCAL)
 		{		/* Local symbol */
 		  symtp->symtattr += (SYM_GLOBAL - SYM_LOCAL);
 		  if (opt_verbose)
@@ -356,7 +356,7 @@ insert_symbol (symbol ** tree, const char *name)
 ** the 'area' pointers and if they are the same quietly ignoring the
 ** symbol.
 **
-** If there are duplicate entries then, for a local' table entry, this
+** If there are duplicate entries then, for a 'local' table entry, this
 ** means there is something wrong with the OBJ_SYMT chunk but for a
 ** 'global' symbol then it is just a simple case (of the same symbol
 ** appearing in more than one file.
@@ -379,13 +379,11 @@ add_symbol (filelist *fp, symtentry * symtp)
   const char *name;
   arealist *ap;
 
-  symtp->symtname += COERCE (fp->obj.strtptr, unsigned int);
-
   if (current_symedit != NULL)
     check_symedit (symtp);
   name = symtp->symtname;
   hashval = hash (name);
-  attr = symtp->symtattr & SYM_ATMASK;
+  attr = symtp->symtattr;
 
   if ((attr & SYM_ABSVAL) == 0)
     {	/* Symbol is not an absolute value. Find its area */
@@ -403,7 +401,7 @@ add_symbol (filelist *fp, symtentry * symtp)
 
   symtp->symtarea.areaptr = ap;
 
-  if ((attr & SYM_SCOPE) == SYM_LOCAL)
+  if ((attr & SYM_MASK_SCOPE) == SYM_LOCAL)
     table = &(*current_table)[hashval & LOCALMASK];
   else
     table = &globalsyms[hashval & GLOBALMASK];
@@ -471,12 +469,10 @@ add_symbol (filelist *fp, symtentry * symtp)
 ** symbols in the file being processed.
 */
 static void
-add_externref (filelist *fp, symtentry * symtp)
+add_externref (symtentry * symtp)
 {
   symbol *sp, **insert;
   const char *name;
-
-  symtp->symtname += COERCE (fp->obj.strtptr, unsigned int);
 
   if (current_refedit != NULL)
     check_refedit (symtp);
@@ -531,7 +527,7 @@ create_externref (symtentry * stp)
   sp->left = sp->right = NULL;
 
   insert = insert_symbol (&wantedlist, name);
-  if (!*insert)
+  if (*insert == NULL)
     *insert = sp;
 
   numwanted++;
@@ -551,12 +547,11 @@ create_externref (symtentry * stp)
 ** words 'bug fix' and 'hack' come to mind here).
 */
 static void
-add_commonref (filelist *fp, symtentry * stp)
+add_commonref (symtentry * stp)
 {
   const char *name;
   symbol *sp;
 
-  stp->symtname += COERCE (fp->obj.strtptr, unsigned int);
   if (current_refedit != NULL)
     check_refedit (stp);
 
@@ -612,18 +607,7 @@ scan_symt (filelist * fp)
 
   for (i = 1, symtp = fp->obj.symtptr; i <= symcount && ok; ++i, ++symtp)
     {
-      const char *symtname;
-      if (COERCE (symtp->symtname, unsigned int) >= strtsize)
-	{
-	  error ("Error: Offset of symbol name in OBJ_SYMT chunk is bad in '%s' (0x%x > 0x%x)",
-	         fp->chfilename, COERCE (symtp->symtname, unsigned int),
-	         strtsize);
-	  symtp->symtname = NULL;
-	  ok = FALSE;
-	  break;
-	}
-
-      symtname = symtp->symtname + COERCE (fp->obj.strtptr, unsigned int);
+      const char *symtname = symtp->symtname;
 
       /* FIXME? I believe this is an objasm hack.  Those symbols seem also to have the
          SYM_CADATUM bit (what's that anyway ?) so it might perhaps be better to check
@@ -637,32 +621,49 @@ scan_symt (filelist * fp)
 	}
 
       attr = symtp->symtattr;
-      if (aofv3flag && (attr & SYM_UNSUPATTR) != 0)
-	{ /* Reject unsupported symbol attributes */
-	  if (link_state == LIB_SEARCH)
-	    error ("Warning: Symbol '%s' in '%s(%s)' has unsupported AOF symbol attributes (%08x). It might be that you are using one or more AOF files produced by an older 'as' version which contained a bug causing this problem.",
-	           symtname, fp->chfilename, current_lib->libname, attr & SYM_UNSUPATTR);
-	  else
-	    error ("Warning: Symbol '%s' in '%s' has unsupported AOF symbol attributes (%08x). It might be that you are using one or more AOF files produced by an older 'as' version which contained a bug causing this problem.",
-	           symtname, fp->chfilename, attr & SYM_UNSUPATTR);
-	  attr &= ~SYM_UNSUPATTR;
+      if (aofv3flag)
+        {
+          if ((attr & ~SYM_MASK_AOFv3) != 0)
+	    { /* Reject unsupported AOF v3 symbol attributes */
+	      if (link_state == LIB_SEARCH)
+	        error ("Warning: Symbol '%s' in '%s(%s)' has unsupported AOF symbol attributes (%08x). It might be that you are using one or more AOF files produced by an older 'as' version which contained a bug causing this problem.",
+	               symtname, fp->chfilename, current_lib->libname, attr & ~SYM_MASK_AOFv3);
+	      else
+	        error ("Warning: Symbol '%s' in '%s' has unsupported AOF symbol attributes (%08x). It might be that you are using one or more AOF files produced by an older 'as' version which contained a bug causing this problem.",
+	               symtname, fp->chfilename, attr & ~SYM_MASK_AOFv3);
+	      attr &= SYM_MASK_AOFv3;
+	    }
 	}
-      attr &= SYM_ATMASK;
+      else
+        {
+          if ((attr & ~SYM_MASK_AOFv2) != 0)
+	    { /* Reject unsupported AOF v2 symbol attributes */
+	      if (link_state == LIB_SEARCH)
+	        error ("Warning: Symbol '%s' in '%s(%s)' has unsupported AOF symbol attributes (%08x).",
+	               symtname, fp->chfilename, current_lib->libname, attr & ~SYM_MASK_AOFv2);
+	      else
+	        error ("Warning: Symbol '%s' in '%s' has unsupported AOF symbol attributes (%08x).",
+	               symtname, fp->chfilename, attr & ~SYM_MASK_AOFv2);
+              attr &= SYM_MASK_AOFv2;
+	    }
+	}
+      /* Make the WEAKREF bit away */
+      attr &= ~SYM_WEAKREF;
 
-      if ((attr & SYM_DEFN) != 0)
+      if ((attr & SYM_MASK_DEFN) != 0)
 	{			/* Add symbol defintion to symbol table */
 	  addok = addok && add_symbol (fp, symtp);
 	  gotstrong = gotstrong || (attr & SYM_STRONG) != 0;
 	  totalsymbols++;
 	}
       else if (attr == (SYM_COMMON | SYM_EXTERN))
-	add_commonref (fp, symtp);	/* Reference to a common block */
+	add_commonref (symtp);	/* Reference to a common block */
       else if (attr == SYM_EXTERN)
-	add_externref (fp, symtp);	/* Reference to an external symbol */
+	add_externref (symtp);	/* Reference to an external symbol */
       else if (attr == (SYM_EXTERN | SYM_ABSVAL))
 	{			/* Dodgy ARM linker trick... */
 	  symtp->symtattr -= SYM_ABSVAL;	/* Lose 'absolute' attribute bit */
-	  add_externref (fp, symtp);
+	  add_externref (symtp);
 	}
       else
 	{
@@ -1364,7 +1365,7 @@ relocate_symbols (void)
 	{
 	  if (sp->symtarea.areaptr != (void *) 4)
 	    {
-	      if ((sp->symtattr & (SYM_DEFN | SYM_ABSVAL)) == SYM_DEFN)
+	      if ((sp->symtattr & (SYM_MASK_DEFN | SYM_ABSVAL)) == SYM_MASK_DEFN)
 		{		/* Relocate if not absolute */
 		  sp->symtvalue += sp->symtarea.areaptr->arplace;
 		}
@@ -1472,7 +1473,7 @@ find_areasymbol (arealist * ap)
   symcount = fp->symtcount;
   for (n = 1;
        n <= symcount && (sp->symtarea.areaptr != ap
-			 || (sp->symtattr & SYM_SCOPE) != SYM_GLOBAL); n++)
+			 || (sp->symtattr & SYM_MASK_SCOPE) != SYM_GLOBAL); n++)
     sp++;
   if (n > symcount)
     return NULL;
@@ -1532,7 +1533,7 @@ build_symblist (void)
       count = fp->symtcount;
       for (n = 1, sp = fp->obj.symtptr; n <= count; ++n, ++sp)
 	{
-	  if ((sp->symtattr & (SYM_ABSVAL | SYM_DEFN)) == SYM_DEFN
+	  if ((sp->symtattr & (SYM_MASK_DEFN | SYM_ABSVAL)) == SYM_MASK_DEFN
 	      && strcmp (sp->symtname, "__codeseg") != 0)
 	    {
 	      if ((sp->symtattr & SYM_ABSVAL) != 0
@@ -1704,8 +1705,7 @@ build_lslist_named (const char *link_name, const char *head_name)
   tempsym.symtptr = &tempsymt;
   tempsymt.symtname = head_name;
   tempsymt.symtattr = 0;
-  sp = search_global (&tempsym);
-  if (sp != NULL)
+  if ((sp = search_global (&tempsym)) != NULL)
     {	/* Just to prevent embarrassing problems if this is not really C++ */
       linker_set_reloc_t *lsreloc;
 

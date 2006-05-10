@@ -2,7 +2,7 @@
 ** Drlink AOF linker - AOF File creation
 **
 ** Copyright (c) 1993, 1994, 1995, 1996, 1997, 1998  David Daniels
-** Copyright (c) 2001, 2002, 2003, 2004, 2005  GCCSDK Developers
+** Copyright (c) 2001, 2002, 2003, 2004, 2005, 2006  GCCSDK Developers
 **
 ** This program is free software; you can redistribute it and/or
 ** modify it under the terms of the GNU General Public License
@@ -392,14 +392,14 @@ build_symt (void)
                 oldsp->symtarea.symdefptr->symtarea.areaptr->arobjsize;
               oldsp->symtarea.symdefptr = NULL;
             }
-          if ((attr & SYM_SCOPE) == SYM_LOCAL
-              || ((attr & SYM_DEFN) == 0 && oldsp->symtarea.symdefptr != NULL))
+          if ((attr & SYM_MASK_SCOPE) == SYM_LOCAL
+              || ((attr & SYM_MASK_DEFN) == 0 && oldsp->symtarea.symdefptr != NULL))
             *indexlookup[n - 1] = ALLFS; /* Entry not needed */
           else
             {
               *newsp = *oldsp;
               newsp->symtname = COERCE (addto_strt (newsp->symtname), char *);
-              if ((attr & (SYM_DEFN | SYM_ABSVAL)) == SYM_DEFN)
+              if ((attr & (SYM_MASK_DEFN | SYM_ABSVAL)) == SYM_MASK_DEFN)
                 { /* Def'n of symbol */
                   newsp->symtarea.areaname = addto_strt (newsp->symtarea.areaptr->arname);
                 }
@@ -505,7 +505,7 @@ write_objhead (arealist * ap)
   entry.attributes = (firstarea->aratattr << 8) + firstarea->aralign;
   entry.arsize = areasize;
   entry.arelocs = relco;
-  entry.arlast.arzero = 0;
+  entry.araddress = 0;
   convert_endian (&entry, sizeof (entry) / 4);
   write_image (&entry, sizeof (entry));
   /* TODO: This isn't exactly how it was previously */

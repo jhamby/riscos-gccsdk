@@ -2,7 +2,7 @@
 ** Drlink AOF linker
 **
 ** Copyright (c) 1993, 1994, 1995, 1996, 1997, 1998  David Daniels
-** Copyright (c) 2001, 2002, 2003, 2004, 2005  GCCSDK Developers
+** Copyright (c) 2001, 2002, 2003, 2004, 2005, 2006  GCCSDK Developers
 **
 ** This program is free software; you can redistribute it and/or
 ** modify it under the terms of the GNU General Public License
@@ -44,6 +44,8 @@
 
 #define OBJFILETYPE 0xC5E2D080	/* Marks file as an AOF file */
 #define AOFVERSION 311		/* Highest version of AOF supported */
+
+#define AOFVER1 150		/* AOF version 1 */
 #define AOFVER2 200		/* AOF version 2 */
 #define AOFVER3 300		/* AOF version 3 */
 #define AOFVER31 311		/* AOF version 3.11 */

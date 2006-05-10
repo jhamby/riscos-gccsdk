@@ -2,7 +2,7 @@
 ** Drlink AOF linker
 **
 ** Copyright (c) 1993, 1994, 1995, 1996, 1997, 1998  David Daniels
-** Copyright (c) 2001, 2002, 2003, 2004, 2005  GCCSDK Developers
+** Copyright (c) 2001, 2002, 2003, 2004, 2005, 2006  GCCSDK Developers
 **
 ** This program is free software; you can redistribute it and/or
 ** modify it under the terms of the GNU General Public License
@@ -78,11 +78,14 @@ typedef struct
   unsigned int *areaptr;	/* Pointer to OBJ_AREA loaded chunk */
   unsigned int areasize;	/* Size of OBJ_AREA chunk */
   /* OBJ_SYMT */
-  symtentry *symtptr;		/* Pointer to OBJ_SYMT loaded chunk */
+  objsymt *symtptr2;		/* Pointer to OBJ_SYMT loaded chunk */
   unsigned int symtsize;	/* Size of OBJ_SYMT chunk */
   /* OBJ_STRT */
   char *strtptr;		/* Pointer to OBJ_STRT loaded chunk */
   unsigned int strtsize;	/* Size of OBJ_STRT chunk */
+
+  arealist **arealistptrs;	/* List of ptrs to arealist structures */
+  symtentry *symtptr;
 } obj_overview;
 
 /*

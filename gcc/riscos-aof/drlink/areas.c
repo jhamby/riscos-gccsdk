@@ -2,7 +2,7 @@
 ** Drlink AOF Linker - AOF Area handling
 **
 ** Copyright (c) 1993, 1994, 1995, 1996, 1997, 1998  David Daniels
-** Copyright (c) 2001, 2002, 2003, 2004, 2005  GCCSDK Developers
+** Copyright (c) 2001, 2002, 2003, 2004, 2005, 2006  GCCSDK Developers
 **
 ** This program is free software; you can redistribute it and/or
 ** modify it under the terms of the GNU General Public License
@@ -605,10 +605,8 @@ add_newarea (filelist * fp, areaentry * aep, unsigned int atattr,
   ap->arefcount = (!opt_nounused || keep_area (ap)) ? 1 : 0;
 
   ap->areflist = NULL;
-  if (aofv3flag && (atattr & ATT_ABSOL) != 0)
-    ap->arplace = aep->arlast.araddress;	/* AOF 3 absolute address area */
-  else
-    ap->arplace = 0;
+  /* AOF 3 absolute address area */
+  ap->arplace = (aofv3flag && (atattr & ATT_ABSOL)) ? aep->araddress : 0;
 
   ap->arsymbol = NULL;
   ap->left = ap->right = NULL;
@@ -951,11 +949,25 @@ scan_head (filelist * fp)
 		 atname, areaco + 1, fp->chfilename);
 	  ok = FALSE;
 	}
-      if (!fp->aofv3 && aep->arlast.arzero != 0)
-	{			/* AOF 2 check only */
-	  error ("Error: Last word of definition of area '%s' (%d) in '%s' is not zero",
-	         atname, areaco + 1, fp->chfilename);
-	  ok = FALSE;
+      if (!fp->aofv3)
+        {
+          /* AOF 2 check only */
+          if (aep->araddress != 0)
+	    {
+	      error ("Error: Last word of definition of area '%s' (%d) in '%s' is not zero",
+	             atname, areaco + 1, fp->chfilename);
+	      ok = FALSE;
+	    }
+	}
+      else
+        {
+          /* AOF 3 check only */
+          if ((atattr & ATT_ABSOL) == 0 && aep->araddress != 0)
+	    {
+	      error ("Error: Base address of area '%s' (%d) in '%s' is not zero but area is not absolute positioned",
+	             atname, areaco + 1, fp->chfilename);
+	      ok = FALSE;
+	    }
 	}
 
       if (ok)
@@ -993,7 +1005,7 @@ scan_head (filelist * fp)
 
       if (ap != NULL)
 	{
-	  aep->arlast.arlptr = ap;
+	  fp->obj.arealistptrs[areaco] = ap;
 	  add_srchlist (ap);
 	}
       if (areaco == entryareanum)
@@ -1091,7 +1103,7 @@ check_strongrefs (filelist * fp)
 		  stp = fp->obj.symtptr + get_type2_index (reltype);
 		}
 	    }
-	  if (stp != NULL && (stp->symtattr & SYM_STRONGDEF) == SYM_STRONGDEF)
+	  if (stp != NULL && (stp->symtattr & SYM_MASK_STRONGDEF) == SYM_MASK_STRONGDEF)
 	    {
 	      refcount++;
 	      sp = create_externref (stp);
@@ -1127,17 +1139,20 @@ find_area (const char *np)
 ** area index 'index'. It is used when handling type-2 relocations
 **
 ** 'current_file' needs to be set.
+**
+** FIXME: add sanity check 'index' is less than number of areas.
 */
 static arealist *
 get_area (unsigned int index)
 {
   areaentry *temp = &current_file->obj.headptr->firstarea;
-  areaentry *ae = &temp[index];
+  const areaentry *ae = &temp[index];
   unsigned int atattr = ae->attributes >> 8;
 
   /* If it is a COMMON area, find the corresponding COMDEF area.
-     If there isn't a COMDEF area with the same name, we fall back
-     on the COMMON area again.  */
+     If there isn't a COMDEF area with the same name (yet seen), we fall
+     back on the same COMMON area.  When the COMDEF area turns up later,
+     we'll resolve that at that time.  */
   if ((atattr & ATT_COMMON)
       || ((atattr & ATT_COMDEF) && (atattr & ATT_NOINIT)))
     {
@@ -1146,7 +1161,7 @@ get_area (unsigned int index)
       return comsym->symtptr->symtarea.areaptr;
     }
 
-  return temp[index].arlast.arlptr;
+  return current_file->obj.arealistptrs[index];
 }
 
 /*
@@ -1244,9 +1259,9 @@ add_symref (arealist * fromarea, int symtindex)
   symtentry *sp;
 
   sp = symtbase + symtindex;
-  if ((sp->symtattr & (SYM_WEAKREF | SYM_DEFN)) == 0)
+  if ((sp->symtattr & (SYM_WEAKREF | SYM_MASK_DEFN)) == 0)
     sp = sp->symtarea.symdefptr;	/* Was an external ref */
-  else if ((sp->symtattr & SYM_STRONGDEF) == SYM_STRONGDEF)
+  else if ((sp->symtattr & SYM_MASK_STRONGDEF) == SYM_MASK_STRONGDEF)
     sp = find_nonstrong (sp);	/* Direct reference to strong symbol */
 
   if ((sp->symtattr & (SYM_LINKDEF | SYM_ABSVAL | SYM_WEAKREF)) != 0)
@@ -1779,7 +1794,7 @@ fixup_type1 (unsigned int reltypesym, unsigned int *relplace)
 	  return;
 	}
       sp = symtbase + symtindex;
-      if ((sp->symtattr & SYM_DEFN) != 0)
+      if ((sp->symtattr & SYM_MASK_DEFN) != 0)
 	{			/* Nice, easy ref to symbol */
 	  if ((sp->symtattr & SYM_STRONG) != 0)
 	    {			/* Nasty, horrible ref to strong symbol in this file */
@@ -1826,7 +1841,7 @@ fixup_type2 (unsigned int reltypesym, unsigned int *relplace)
 	  return;
 	}
       sp = symtbase + symtindex;
-      if ((sp->symtattr & SYM_DEFN) != 0)
+      if ((sp->symtattr & SYM_MASK_DEFN) != 0)
 	{			/* Nice, easy ref to symbol */
 	  if ((sp->symtattr & SYM_STRONG) != 0)
 	    {			/* Direct reference to strong symbol */
@@ -2231,9 +2246,9 @@ alter_type1_offset (relocation * rp)
     }
   relplace = COERCE (COERCE (areastart, char *) +offset, unsigned int *);
   sp = symtbase + get_type1_index (rp->reltypesym);
-  if ((sp->symtattr & SYM_DEFN) == 0)
+  if ((sp->symtattr & SYM_MASK_DEFN) == 0)
     sp = sp->symtarea.symdefptr;	/* Reference to another SYMT entry */
-  else if ((sp->symtattr & SYM_STRONGDEF) == SYM_STRONGDEF)
+  else if ((sp->symtattr & SYM_MASK_STRONGDEF) == SYM_MASK_STRONGDEF)
     sp = find_nonstrong (sp);	/* Direct reference to strong symbol */
   addr = sp->symtvalue + (extend24 (*relplace) << 2);
   addr = addr - offset - current_area->arplace - PCMODIFIER;
@@ -2279,9 +2294,9 @@ alter_type2_offset (relocation * rp)
   if ((typesym & REL_SYM) != 0)
     {				/* Symbol reference */
       sp = symtbase + addr;
-      if ((sp->symtattr & SYM_DEFN) == 0)
+      if ((sp->symtattr & SYM_MASK_DEFN) == 0)
 	sp = sp->symtarea.symdefptr;	/* Reference to another SYMT entry */
-      else if ((sp->symtattr & SYM_STRONGDEF) == SYM_STRONGDEF)
+      else if ((sp->symtattr & SYM_MASK_STRONGDEF) == SYM_MASK_STRONGDEF)
 	sp = find_nonstrong (sp);	/* Direct reference to strong symbol */
       relvalue = sp->symtvalue;
     }
@@ -2353,7 +2368,7 @@ decode_reloc (relocation * rp)
   if ((typesym & REL_SYM) != 0 || (istype1 && (typesym & REL_PC) != 0))
     {				/* Symbol relocation */
       sp = symtbase + sid;
-      if ((sp->symtattr & SYM_DEFN) == 0)
+      if ((sp->symtattr & SYM_MASK_DEFN) == 0)
 	{			/* External reference */
 	  sp = sp->symtarea.symdefptr;
 	  if (sp == NULL || (sp->symtattr & SYM_COMMON) != 0)
@@ -2368,7 +2383,7 @@ decode_reloc (relocation * rp)
 		}
 	    }
 	}
-      else if ((sp->symtattr & SYM_STRONGDEF) == SYM_STRONGDEF)
+      else if ((sp->symtattr & SYM_MASK_STRONGDEF) == SYM_MASK_STRONGDEF)
 	{			/* Direct reference to strong symbol */
 	  sp = find_nonstrong (sp);
 	}
@@ -2455,16 +2470,16 @@ alter_reloc (relocation * rp, relaction t2type)
   if ((flags & REL_SYM) != 0 || (istype1 && (flags & REL_PC) != 0))
     {				/* Got a symbol reference */
       sp = symtbase + sid;
-      if ((sp->symtattr & SYM_DEFN) == 0)
+      if ((sp->symtattr & SYM_MASK_DEFN) == 0)
 	sp = sp->symtarea.symdefptr;
-      else if ((sp->symtattr & SYM_STRONGDEF) == SYM_STRONGDEF)
+      else if ((sp->symtattr & SYM_MASK_STRONGDEF) == SYM_MASK_STRONGDEF)
 	sp = find_nonstrong (sp);	/* Direct reference to strong symbol */
       ap = sp->symtarea.areaptr;
     }
   else if (istype1)
     ap = current_area;		/* Got a type-1 area reference */
   else
-    ap = get_area (sid);		/* Got a type-2 area reference */
+    ap = get_area (sid);	/* Got a type-2 area reference */
 
   sid = find_areaindex (ap);
   switch (t2type)

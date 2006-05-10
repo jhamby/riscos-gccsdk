@@ -2,7 +2,7 @@
 ** Drlink AOF linker
 **
 ** Copyright (c) 1993, 1994, 1995, 1996, 1997, 1998  David Daniels
-** Copyright (c) 2001, 2002, 2003, 2004, 2005  GCCSDK Developers
+** Copyright (c) 2001, 2002, 2003, 2004, 2005, 2006  GCCSDK Developers
 **
 ** This program is free software; you can redistribute it and/or
 ** modify it under the terms of the GNU General Public License
@@ -45,15 +45,16 @@
 #define SYM_THUMB   0x1000	/* Identifies Thumb code, instead of ARM code */
 /* Bits 13-31 are reserved and are always set to 0. */
 
-/* Special masks and attributes */
-
-#define SYM_SCOPE   0x03	/* Mask to say what kind of symbol this is */
-#define SYM_DEFN    0x01	/* Mask to check if this is a symbol definition */
-#define SYM_STRONGDEF (SYM_DEFN | SYM_STRONG)	/* Definition of strong symbol */
+/* Special attributes */
 #define SYM_LINKDEF 0x80000000	/* Marks symbol as linker defined */
 
-#define SYM_ATMASK 0x067	/* Mask to extract interesting symbol attributes */
-#define SYM_UNSUPATTR 0xFFFFE480	/* Mask containing all unsupported attributes. */
+/* Special masks */
+#define SYM_MASK_SCOPE   0x03	/* Mask to say what kind of symbol this is */
+#define SYM_MASK_DEFN    0x01	/* Mask to check if this is a symbol definition */
+#define SYM_MASK_STRONGDEF (SYM_MASK_DEFN | SYM_STRONG)	/* Definition of strong symbol */
+
+#define SYM_MASK_AOFv2 0x007F	/* Mask to extract supported symbol attributes for pre-AOF v3 files */
+#define SYM_MASK_AOFv3 0x1B7F	/* Mask to extract supported symbol attributes for AOF v3 files */
 
 /* Relocation type bits */
 
@@ -80,9 +81,17 @@
 #define REL_TYPE2 0x80000000	/* Type 2 relocation flag */
 
 /* Entry in OBJ_SYMT chunk */
+typedef struct
+{
+  unsigned int name;		/* Offset of symbol's name in OBJ_STRT chunk */
+  unsigned int attr;		/* Symbol attributes */
+  unsigned int value;		/* Symbol's value */
+  unsigned int areaname;	/* Offset in OBJ_STRT chunk of name of symbol's area */
+} objsymt;
+
 typedef struct symtentry
 {
-  const char *symtname;		/* Offset of symbol's name in OBJ_STRT chunk */
+  const char *symtname;		/* Symbol's name */
   unsigned int symtattr;	/* Symbol attributes */
   unsigned int symtvalue;	/* Symbol's value */
   union

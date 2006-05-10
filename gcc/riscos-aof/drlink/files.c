@@ -2,7 +2,7 @@
 ** Drlink AOF Linker
 **
 ** Copyright (c) 1993, 1994, 1995, 1996, 1997, 1998  David Daniels
-** Copyright (c) 2001, 2002, 2003, 2004, 2005  GCCSDK Developers
+** Copyright (c) 2001, 2002, 2003, 2004, 2005, 2006  GCCSDK Developers
 **
 ** This program is free software; you can redistribute it and/or
 ** modify it under the terms of the GNU General Public License
@@ -432,8 +432,7 @@ check_debuglist (void)
 	{
 	  if (!msg)
 	    {
-	      error
-		("Warning: The following file(s) listed on '-keepdebug' were not loaded:");
+	      error ("Warning: The following file(s) listed on '-keepdebug' were not loaded:");
 	      msg = TRUE;
 	    }
 	  error ("    %s", p->dbgname);
@@ -460,11 +459,9 @@ obj_check_and_adjust_head (const char *filename, const obj_overview * objovervie
       sizeof (aofheader) +
       objheadptr->areaheader.numareas * sizeof (areaentry))
     {
-      error
-	("AOF file '%s' OBJ_HEAD size doesn't match with its declaration (0x%x vs 0x%x)",
-	 filename, objheadsize,
-	 sizeof (aofheader) +
-	 objheadptr->areaheader.numareas * sizeof (areaentry));
+      error ("AOF file '%s' OBJ_HEAD size doesn't match with its declaration (0x%x vs 0x%x)",
+	     filename, objheadsize,
+	     sizeof (aofheader) +  objheadptr->areaheader.numareas * sizeof (areaentry));
       return FALSE;
     }
   convert_endian (&objheadptr->firstarea,
@@ -502,14 +499,14 @@ obj_check_and_adjust_symt (const char *filename, const obj_overview * objovervie
   unsigned int objsymtsize = objoverview->symtsize;
 
   if (objsymtsize !=
-      objoverview->headptr->areaheader.numsymbols * sizeof (symtentry))
+      objoverview->headptr->areaheader.numsymbols * sizeof (objsymt))
     {
       error ("AOF file '%s' OBJ_SYMT size doesn't match with its declaration (0x%x vs 0x%x)",
 	     filename, objsymtsize,
-	     objoverview->headptr->areaheader.numsymbols * sizeof (symtentry));
+	     objoverview->headptr->areaheader.numsymbols * sizeof (objsymt));
       return FALSE;
     }
-  convert_endian (objoverview->symtptr, objsymtsize / 4);
+  convert_endian (objoverview->symtptr2, objsymtsize / 4);
 
   return TRUE;
 }
@@ -530,6 +527,7 @@ obj_check_and_adjust (chunkhdr * ch, const char *filename, unsigned int filesize
   chunkindex *curchunk;
   unsigned int maxchunks, numchunks;
   unsigned int chindex;
+  unsigned int symindex;
 
   maxchunks = ch->header.maxchunks;
   numchunks = ch->header.numchunks;
@@ -545,9 +543,8 @@ obj_check_and_adjust (chunkhdr * ch, const char *filename, unsigned int filesize
       chunksize = curchunk->chunksize;
       if (chunkoffset % 4)
 	{
-	  error
-	    ("Error: AOF file '%s' chunk index %d has non 4 divisable chunk offset (0x%x)",
-	     filename, chindex, chunkoffset);
+	  error ("Error: AOF file '%s' chunk index %d has non 4 divisable chunk offset (0x%x)",
+	         filename, chindex, chunkoffset);
 	  return FALSE;
 	}
       /* Adding chunkoffset and chunksize can overflow so first check
@@ -555,16 +552,14 @@ obj_check_and_adjust (chunkhdr * ch, const char *filename, unsigned int filesize
       if (chunkoffset > filesize || chunksize > filesize
 	  || chunkoffset + chunksize > filesize)
 	{
-	  error
-	    ("Error: AOF file '%s' chunk index %d has bogus offset and/or size values (0x%x, 0x%x, 0x%x)",
-	     filename, chindex, chunkoffset, chunksize, filesize);
+	  error ("Error: AOF file '%s' chunk index %d has bogus offset and/or size values (0x%x, 0x%x, 0x%x)",
+	         filename, chindex, chunkoffset, chunksize, filesize);
 	  return FALSE;
 	}
       if (chunkoffset < maxchunks * sizeof (chunkindex))
 	{
-	  error
-	    ("Error: AOF file '%s' chunk index %d interfers with chunk index table (offset is 0x%x)",
-	     filename, chindex, chunkoffset);
+	  error ("Error: AOF file '%s' chunk index %d interfers with chunk index table (offset is 0x%x)",
+	         filename, chindex, chunkoffset);
 	  return FALSE;
 	}
 
@@ -572,71 +567,65 @@ obj_check_and_adjust (chunkhdr * ch, const char *filename, unsigned int filesize
 	{
 	  switch (curchunk->chunktype)
 	    {
-	    case OBJ_HEAD:
-	      if (objoverviewp->headptr != NULL)
-		{
-		  error
-		    ("Error: AOF file '%s' got more than one OBJ_HEAD chunk",
-		     filename);
-		  return FALSE;
-		}
-	      if (chunksize < sizeof (aofheader) || (chunksize % 4))
-		{
-		  error
-		    ("Error: AOF file '%s' has unexpected OBJ_HEAD size (0x%x)",
-		     filename, chunksize);
-		  return FALSE;
-		}
-	      objoverviewp->headptr =
-		COERCE (COERCE (ch, char *) + chunkoffset, objheadhdr *);
-	      objoverviewp->headsize = chunksize;
-	      break;
-	    case OBJ_AREA:
-	      if (objoverviewp->areaptr != NULL)
-		{
-		  error
-		    ("Error: AOF file '%s' got more than one OBJ_AREA chunk",
-		     filename);
-		  return FALSE;
-		}
-	      /* FIXME: is this a correct test on chunksize ? */
-	      if (chunksize % 4)
-		{
-		  error
-		    ("Error: AOF file '%s' chunk index %d has non 4 divisable chunk size for OBJ_AREA",
-		     filename, chindex);
-		  return FALSE;
-		}
-	      objoverviewp->areaptr =
-		COERCE (COERCE (ch, char *) + chunkoffset, unsigned int *);
-	      objoverviewp->areasize = chunksize;
-	      break;
-	    case OBJ_SYMT:
-	      if (objoverviewp->symtptr != NULL)
-		{
-		  error
-		    ("Error: AOF file '%s' got more than one OBJ_SYMT chunk",
-		     filename);
-		  return FALSE;
-		}
-	      objoverviewp->symtptr =
-		COERCE (COERCE (ch, char *) + chunkoffset, symtentry *);
-	      objoverviewp->symtsize = chunksize;
-	      break;
-	    case OBJ_STRT:
-	      if (objoverviewp->strtptr != NULL)
-		{
-		  error
-		    ("Error: AOF file '%s' got more than one OBJ_STRT chunk",
-		     filename);
-		  return FALSE;
-		}
-	      objoverviewp->strtptr = COERCE (ch, char *) + chunkoffset;
-	      objoverviewp->strtsize = chunksize;
-	      break;
+	      case OBJ_HEAD:
+	        if (objoverviewp->headptr != NULL)
+		  {
+		    error ("Error: AOF file '%s' got more than one OBJ_HEAD chunk",
+		           filename);
+		    return FALSE;
+		  }
+	        if (chunksize < sizeof (aofheader) || (chunksize % 4))
+		  {
+		    error ("Error: AOF file '%s' has unexpected OBJ_HEAD size (0x%x)",
+		           filename, chunksize);
+		    return FALSE;
+		  }
+	        objoverviewp->headptr = COERCE (COERCE (ch, char *) + chunkoffset, objheadhdr *);
+	        objoverviewp->headsize = chunksize;
+	        break;
+
+	      case OBJ_AREA:
+	        if (objoverviewp->areaptr != NULL)
+		  {
+		    error ("Error: AOF file '%s' got more than one OBJ_AREA chunk",
+		           filename);
+		    return FALSE;
+		  }
+	        /* FIXME: is this a correct test on chunksize ? */
+	        if (chunksize % 4)
+		  {
+		    error ("Error: AOF file '%s' chunk index %d has non 4 divisable chunk size for OBJ_AREA",
+		           filename, chindex);
+		    return FALSE;
+		  }
+	        objoverviewp->areaptr = COERCE (COERCE (ch, char *) + chunkoffset, unsigned int *);
+	        objoverviewp->areasize = chunksize;
+	        break;
+
+	      case OBJ_SYMT:
+	        if (objoverviewp->symtptr2 != NULL)
+		  {
+		    error ("Error: AOF file '%s' got more than one OBJ_SYMT chunk",
+		           filename);
+		    return FALSE;
+		  }
+	        objoverviewp->symtptr2 = COERCE (COERCE (ch, char *) + chunkoffset, objsymt *);
+	        objoverviewp->symtsize = chunksize;
+	        break;
+	      case OBJ_STRT:
+	        if (objoverviewp->strtptr != NULL)
+		  {
+		    error ("Error: AOF file '%s' got more than one OBJ_STRT chunk",
+		           filename);
+		    return FALSE;
+		  }
+	        objoverviewp->strtptr = COERCE (ch, char *) + chunkoffset;
+	        objoverviewp->strtsize = chunksize;
+	        break;
 	    }
 	}
     }
+
   /* Check if the minimal set of OBJ_XXXX chunks are present.  */
   if (objoverviewp->headptr == NULL)
     {
@@ -650,25 +639,48 @@ obj_check_and_adjust (chunkhdr * ch, const char *filename, unsigned int filesize
 	     filename);
       return FALSE;
     }
+
   /* Check & adjust OBJ_HEAD and OBJ_AREA chunks.  */
   if (!obj_check_and_adjust_head (filename, objoverviewp)
       || !obj_check_and_adjust_area (filename, objoverviewp))
     return FALSE;
+
   /* Check OBJ_SYMT thoroughly.  */
-  if (objoverviewp->symtptr != NULL)
+  if (objoverviewp->symtptr2 != NULL)
     {
       if (objoverviewp->symtsize !=
-	  objoverviewp->headptr->areaheader.numsymbols * sizeof (symtentry))
+	  objoverviewp->headptr->areaheader.numsymbols * sizeof (objsymt))
 	{
-	  error
-	    ("Error: AOF file '%s' OBJ_SYMT chunk has unexpected size (0x%x vs 0x%x)",
-	     filename,
-	     objoverviewp->headptr->areaheader.numsymbols *
-	     sizeof (symtentry), curchunk->chunksize);
+	  error ("Error: AOF file '%s' OBJ_SYMT chunk has unexpected size (0x%x vs 0x%x)",
+	         filename,
+	         objoverviewp->headptr->areaheader.numsymbols * sizeof (objsymt),
+	         curchunk->chunksize);
 	  return FALSE;
 	}
       if (!obj_check_and_adjust_symt (filename, objoverviewp))
 	return FALSE;
+    }
+
+  /* Alloc room for arealist ptrs, one per area */
+  if ((objoverviewp->arealistptrs = allocmem (objoverviewp->headptr->areaheader.numareas * sizeof (arealist *))) == NULL)
+    return FALSE;
+  /* Alloc room for symbols */
+  if ((objoverviewp->symtptr = allocmem (objoverviewp->headptr->areaheader.numsymbols * sizeof (symtentry))) == NULL)
+    return FALSE;
+  for (symindex = 0; symindex < objoverviewp->headptr->areaheader.numsymbols; ++symindex)
+    {
+      /* Sanity check symbol name. */
+      unsigned int symnameoffset = objoverviewp->symtptr2[symindex].name;
+      if (symnameoffset >= objoverviewp->strtsize)
+        {
+	  error ("Error: AOF file '%s' contains bad symbol name in OBJ_SYMT chunk (0x%x > 0x%x)",
+	         filename, symnameoffset, objoverviewp->strtsize);
+	  return FALSE;
+	}
+      objoverviewp->symtptr[symindex].symtname = &objoverviewp->strtptr[symnameoffset];
+      objoverviewp->symtptr[symindex].symtattr = objoverviewp->symtptr2[symindex].attr;
+      objoverviewp->symtptr[symindex].symtvalue = objoverviewp->symtptr2[symindex].value;
+      objoverviewp->symtptr[symindex].symtarea.areaname = objoverviewp->symtptr2[symindex].areaname;
     }
 
   return TRUE;
@@ -692,35 +704,34 @@ check_and_adjust_chunkheader (chunkheader *ch, const char *filename, unsigned in
   convert_endian (ch, sizeof (chunkheader) / 4);
   switch (ch->chunkfileid)
     {
-    case CHUNKFILE:
-      if (ch->maxchunks < ch->numchunks)
-	{
-	  error ("Error: File '%s' is corrupt", filename);
-	  return FALSE;
-	}
-      /* We expect at least one chunk.  */
-      if (ch->numchunks == 0)
-	{
-	  error ("Error: File '%s' doesn't contain any chunk", filename);
-	  return FALSE;
-	}
-      /* Make sure the chunk header + all chunks are in the file.  */
-      if (filesize < sizeof (chunkheader) + ch->maxchunks * sizeof (chunkindex))
-	{
-	  error ("Error: File '%s' is too short to contain all chunk information", filename);
-	  return FALSE;
-	}
-      break;
+      case CHUNKFILE:
+        if (ch->maxchunks < ch->numchunks)
+	  {
+	    error ("Error: File '%s' is corrupt", filename);
+	    return FALSE;
+	  }
+        /* We expect at least one chunk.  */
+        if (ch->numchunks == 0)
+	  {
+	    error ("Error: File '%s' doesn't contain any chunk", filename);
+	    return FALSE;
+	  }
+        /* Make sure the chunk header + all chunks are in the file.  */
+        if (filesize < sizeof (chunkheader) + ch->maxchunks * sizeof (chunkindex))
+	  {
+	    error ("Error: File '%s' is too short to contain all chunk information", filename);
+	    return FALSE;
+	  }
+        break;
 
-    case BIGENDIAN:
-      error
-	("Error: File '%s' is a 'big endian' file. Drlink does not support these",
-	 filename);
-      return FALSE;
+      case BIGENDIAN:
+        error ("Error: File '%s' is a 'big endian' file. Drlink does not support this",
+	       filename);
+        return FALSE;
 
-    default:
-      error ("Error: File '%s' has an unrecognised file format", filename);
-      return FALSE;
+      default:
+        error ("Error: File '%s' has an unrecognised file format", filename);
+        return FALSE;
     }
 
   return TRUE;
@@ -868,16 +879,16 @@ read_file_and_process (const char *filename)
     {	/* Running short on memory */
       switch (examine_file (filename))
 	{
-	case AOFILE:
-	case OLDLIB:
-	  ok = read_file_and_process_int (filebase, (unsigned int)filesize, filename, objfile);
-	  break;
-	case LIBRARY:
-	  ok = addto_liblist (filename, NULL, (unsigned int)filesize);
-	  break;
-	default:
-	  ok = FALSE;
-	  break;
+	  case AOFILE:
+	  case OLDLIB:
+	    ok = read_file_and_process_int (filebase, (unsigned int)filesize, filename, objfile);
+	    break;
+	  case LIBRARY:
+	    ok = addto_liblist (filename, NULL, (unsigned int)filesize);
+	    break;
+	  default:
+	    ok = FALSE;
+	    break;
 	}
     }
   else
@@ -1483,16 +1494,18 @@ close_image (void)
       unsigned int filetype;
       switch (imagetype)
         {
-        case RMOD:
-          filetype = MODULE;
-          break;
-        case AOF:
-        case ALF:
-          filetype = DATA;
-          break;
-        default:
-          filetype = (opt_debimage && debugsize > 0) ? DEBIMAGE : ABSOLUTE;
-          break;
+          case RMOD:
+            filetype = MODULE;
+            break;
+
+          case AOF:
+          case ALF:
+            filetype = DATA;
+            break;
+
+          default:
+            filetype = (opt_debimage && debugsize > 0) ? DEBIMAGE : ABSOLUTE;
+            break;
         }
       set_filetype (imagename, filetype);
     }
