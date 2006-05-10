@@ -12,8 +12,7 @@ if ! [ -z "$RO_PKG" ] ; then
     if [ $(echo $arg | cut -b 1) == "-" ] ; then
       # Check if it is the '-s' option, as the others we don't support yet.
       if [ $arg != "-s" ] ; then
-        echo "GCCSDK_ENV/ln: no support for option $arg"
-        exit 1
+        echo "WARNING: GCCSDK_ENV/ln: no support for option $arg"
       fi
     else
       beforelastarg="$lastarg"
