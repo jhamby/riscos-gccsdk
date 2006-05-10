@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright © 1997 Darren Salt
- * Copyright (c) 2005 GCCSDK Developers
+ * Copyright (c) 2005-2006 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -63,7 +63,7 @@ int rout_null = 0;
 static routPos *routList;
 static routPos *routListEnd;
 
-const char localFormat[] = "|Local$$%08x$$%02i$$%i$$%s|";
+const char localFormat[] = "|Local$$%p$$%02i$$%i$$%s|";
 
 int localCurrent = 0;
 static localPos *localList;
@@ -132,7 +132,7 @@ c_local (Lex * label)
 int
 localTest (const char *s)
 {
-  return !memcmp (s, localFormat + 1, 7);
+  return !memcmp (s, localFormat + 1, sizeof ("Local$$")-1);
 }
 
 

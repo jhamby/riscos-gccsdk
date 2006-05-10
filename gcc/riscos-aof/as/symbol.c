@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright © 1992 Niklas Röjemo
- * Copyright (c) 2005 GCCSDK Developers
+ * Copyright (c) 2005-2006 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -170,7 +170,8 @@ symbolFix (void)		/* Returns number of symbols */
   int strsize = 4;		/* Always contains its length */
   int i;
   Symbol *sym;
-  char routine[1024], area[1024];
+  char routine[1024];
+  void *area; /* FIXME: this is not usefully used. Why ? */
   const char *file;
   long int lineno;
 
@@ -191,7 +192,7 @@ symbolFix (void)		/* Returns number of symbols */
 	      if (SYMBOL_OUTPUT (sym) && sym->value.Tag.v == ValueConst)
 		/*(sym->used >= 0 || sym->type & SYMBOL_REFERENCE) */
 		{
-		  signed int label = -1, i;
+		  int label = -1, i;
 		  if (localTest (sym->str))
 		    {
 		      *routine = 0;
@@ -200,19 +201,17 @@ symbolFix (void)		/* Returns number of symbols */
 			  localFindRout (routine, &file, &lineno);
 			  errorLine (lineno, file, ErrorError, FALSE, "Missing local label (fwd) with ID %02i in routine '%s'%s", label, *routine ? routine : "<anonymous>", lineno ? " in block starting" : " (unknown location)");
 			}
-		      else if (sscanf (sym->str + 7, "%i$$%s", &i, routine) > 0)
+		      else if (sscanf (sym->str + sizeof ("Local$$")-1, "%i$$%s", &i, routine) > 0)
 			{
 			  localFindLocal (i, &file, &lineno);
 			  errorLine (lineno, file, ErrorError, FALSE, "Missing local label '%s'%s", routine ? routine : "<anonymous>", lineno ? " in block starting" : " (unknown location)");
 			}
 		      return 0;
 		    }
-		  else
-		    {
-		      sym->offset = strsize;
-		      strsize += sym->len + 1;
-		      sym->used = nosym++;
-		    }
+
+		  sym->offset = strsize;
+		  strsize += sym->len + 1;
+		  sym->used = nosym++;
 		}
 	      else
 		{

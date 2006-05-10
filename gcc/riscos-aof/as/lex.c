@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright © 1992 Niklas Röjemo
- * Copyright (c) 2005 GCCSDK Developers
+ * Copyright (c) 2005-2006 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -281,7 +281,7 @@ lexMakeLocal (int dir)
       i = rout_lblno[label];
       break;
     }
-  sprintf (id, localFormat, (int) areaCurrent, label, i, rout_id);
+  sprintf (id, localFormat, areaCurrent, label, i, rout_id);
   result.LexId.str = strdup (id);
   result.LexId.len = strlen (id);
   result.LexId.hash = hashstr (result.LexId.str, result.LexId.len);
@@ -306,8 +306,7 @@ lexGetLocal (void)
       name = lexReadLocal (&len, &label);
       if (!name)
 	return result;
-      sprintf (id, localFormat,
-	       (int) areaCurrent, label, rout_lblno[label]++, rout_id);
+      sprintf (id, localFormat, areaCurrent, label, rout_lblno[label]++, rout_id);
       result.LexId.str = strdup (id);
       result.LexId.len = strlen (id);
       if (!result.LexId.str)

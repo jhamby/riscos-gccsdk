@@ -1,6 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright © 1992 Niklas Röjemo
+ * Copyright © 2006 GCCSDK Developers
  * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -22,7 +23,7 @@
 #include "error.h"
 #include "help_cpu.h"
 
-static const unsigned int mask[] =
+static const WORD mask[] =
 {
   0x000000ff, 0xc000003f, 0xf000000f, 0xfc000003,
   0xff000000, 0x3fc00000, 0x0ff00000, 0x03fc0000,
@@ -36,7 +37,7 @@ help_cpuImm8s4 (int value)
   int i;
   for (i = 0; i < 16; i++)
     {
-      if ((value & mask[i]) == value)	/* hittat mask */
+      if (((WORD) value & mask[i]) == (WORD) value)	/* hittat mask */
 	return ((((WORD) value >> ((16 - i) * 2)) | value << (i * 2)) & 0xff) | i << 8;
     }
   return -1;
