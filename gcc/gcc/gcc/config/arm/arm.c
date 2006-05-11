@@ -593,8 +593,8 @@ arm_override_options (void)
 	 preferred flags.  */
       if (tune_flags == 0)
 	{
-	  struct processors * tunesel;
-	  struct cpu_default * tunedef;
+	  const struct processors * tunesel;
+	  const struct cpu_default * tunedef;
 
 	  for (tunedef = cpu_defaults; tunedef->name; tunedef++)
 	    if (tunedef->cpu == TARGET_TUNE_DEFAULT)

@@ -1,5 +1,5 @@
---- ../../../gcc-3.4-20050719/gcc/config/arm/arm.md	2005-01-25 13:50:34.000000000 +0100
-+++ ./config/arm/arm.md	2005-10-08 23:41:18.000000000 +0200
+--- ../../../gcc-3.4.6/gcc/config/arm/arm.md	2005-10-01 15:31:38.000000000 +0200
++++ config/arm/arm.md	2006-04-18 00:20:07.000000000 +0200
 @@ -30,7 +30,8 @@
  
  ;; Register numbers
@@ -19,6 +19,15 @@
    ]
  )
  
+@@ -1862,7 +1865,7 @@
+ 
+ 	emit_insn (gen_andsi3 (op1, operands[0], GEN_INT (~mask2)));
+ 	emit_insn (gen_iorsi3 (subtarget, op1,
+-			       GEN_INT (op3_value << start_bit)));
++			       GEN_INT (ARM_SIGN_EXTEND (op3_value << start_bit))));
+       }
+     else if (start_bit == 0
+ 	     && !(const_ok_for_arm (mask)
 @@ -4049,7 +4052,7 @@
    [(set (match_operand:SI 0 "s_register_operand" "=r")
  	(unspec:SI [(match_operand:SI 1 "" "mX")] UNSPEC_PIC_SYM))]
@@ -54,7 +63,7 @@
    output_asm_insn (\"ldr%?\\t%0, %a1\", operands);
    return \"\";
    "
-@@ -7345,7 +7351,7 @@
+@@ -7344,7 +7350,7 @@
  		    (match_operand 1 "general_operand" ""))
  	      (return)
  	      (use (match_operand 2 "" ""))])]
@@ -63,7 +72,7 @@
    "
    {
      if (operands[2] == NULL_RTX)
-@@ -7359,7 +7365,7 @@
+@@ -7358,7 +7364,7 @@
  			 (match_operand 2 "general_operand" "")))
  	      (return)
  	      (use (match_operand 3 "" ""))])]
@@ -72,7 +81,7 @@
    "
    {
      if (operands[3] == NULL_RTX)
-@@ -7372,7 +7378,7 @@
+@@ -7371,7 +7377,7 @@
  	(match_operand 1 "" ""))
    (return)
    (use (match_operand 2 "" ""))]
@@ -81,7 +90,7 @@
    "*
    return NEED_PLT_RELOC ? \"b%?\\t%a0(PLT)\" : \"b%?\\t%a0\";
    "
-@@ -7385,7 +7391,7 @@
+@@ -7384,7 +7390,7 @@
  	     (match_operand 2 "" "")))
    (return)
    (use (match_operand 3 "" ""))]
@@ -90,7 +99,7 @@
    "*
    return NEED_PLT_RELOC ? \"b%?\\t%a1(PLT)\" : \"b%?\\t%a1\";
    "
-@@ -10054,3 +10060,5 @@
+@@ -10053,3 +10059,5 @@
  (include "cirrus.md")
  ;; Load the Intel Wireless Multimedia Extension patterns
  (include "iwmmxt.md")
