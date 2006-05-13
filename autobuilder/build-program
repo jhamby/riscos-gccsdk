@@ -18,7 +18,6 @@ AB_INSTALL=no
 AB_CATEGORY=
 AB_ZIPNAME=
 AB_README=ReadMe
-AB_ARFLAGS=
 
 export TLINK_CX11=
 
@@ -141,7 +140,23 @@ else
  if [ -d debian/patches ] ; then
    for AB_PATCH in $(find debian/patches/ -type f || true) ; do
      echo "Autobuilder: Debian patch: $AB_PATCH"
-     patch -p1 -l < "$AB_PATCH" || true
+     # Not all patches are at the same level. Do some heuristic (see simple-patchsys.mk).
+     AB_PATCH_SUCCESS=""
+     for AB_PATCH_LEVEL in 0 1 2 ; do
+       if [ -z "$AB_PATCH_SUCCESS" ] ; then
+         echo "  ...trying level $AB_PATCH_LEVEL"
+         if cat $AB_PATCH | patch -E --dry-run -p$AB_PATCH_LEVEL -l 1> /dev/null 2>&1 ; then
+           # Patching at this level seems to work out.  Do it now for real:
+           cat $AB_PATCH | patch -E -p$AB_PATCH_LEVEL -l
+           AB_PATCH_SUCCESS="yes"
+         fi
+       fi
+     done
+     if [ -z "$AB_PATCH_SUCCESS" ] ; then
+       echo "  ...FAILED"
+     else
+       echo "  ...success !"
+     fi
    done
  fi  
  
@@ -165,7 +180,9 @@ else
    echo "Autobuilder: Calling xmkmf"
    $GCCSDK_INSTALL_ENV/ro-path $GCCSDK_INSTALL_ENV/X11R6/bin/xmkmf -a
  elif [ -e configure ] || [ ! -z "$RO_CPATH" -a -e $RO_CPATH/configure ] ; then
-   echo "Autobuilder: Calling configure command: $AB_PRECONF $AB_CONFIG $AB_CONFLAGS"
+   if [ "$AB_PRECONF" != ":" ] ; then
+     echo "Autobuilder: Calling configure command: $AB_PRECONF $AB_CONFIG $AB_CONFLAGS"
+   fi
    eval $AB_PRECONF $AB_CONFIG $AB_CONFLAGS
  elif [ -e Makefile ] || [ -e makefile ] ; then
    :
@@ -189,16 +206,19 @@ else
    exit 1
  fi
  
- 
- if [ "$AB_INSTALL" == "yes" ] ; then
+ # Need to install in $GCCSDK_INSTALL_ENV ?
+ if [ "$AB_INSTALL" == "env" ] || [ "$AB_INSTALL" == "yes" ] ; then
    echo "Autobuilder: Running make install"
-   # Append GCCSDK_INSTALL_ENV to PATH so that cp/rm are picked up there.
+   # Append GCCSDK_INSTALL_ENV to PATH so that cp/rm/ln are picked up there.
    if [ "$AB_COMPILEFAIL" != "yes" ] ; then
      PATH=$GCCSDK_INSTALL_ENV:$PATH eval "$AB_MAKE $AB_INSTALLTARGET"
    else
      PATH=$GCCSDK_INSTALL_ENV:$PATH eval "$AB_MAKE $AB_INSTALLTARGET" || true
    fi
+ fi
 
+ # Need to package the installed files ?
+ if [ "$AB_INSTALL" == "yes" ] ; then
    export AB_OUTPUTLIB
    if [ "$AB_ZIPNAME" != "" ] ; then
 
@@ -217,11 +237,11 @@ else
 fi # Package only
 
 
+# Custom package routine ?
 rm -rf $D
 mkdir -p $D
 
 ab_package
-
 
 if [ "$AB_NOPACKAGE" == "" ] ; then
 

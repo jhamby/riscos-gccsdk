@@ -3,7 +3,6 @@
 
 AB_URL=ftp://ftp.plig.org/pub/OpenLDAP/openldap-release/openldap-2.3.21.tgz
 
-##FIXME: install doesn't work nicely (shtool troubles)
-##AB_INSTALL=yes
+AB_INSTALL=env
 
 AB_CONFLAGS="--enable-x-compile --with-yielding_select=no"
