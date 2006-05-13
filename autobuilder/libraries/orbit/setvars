@@ -1,17 +1,16 @@
-
 AB_INSTALL=yes
 
 AB_CONFLAGS=--disable-nls
 
+# Build orbit-idl-compiler natively:
 ./configure $AB_CONFLAGS --disable-shared --enable-static
-
 make -C src/orbit-idl-compiler
 cp src/orbit-idl-compiler/orbit-idl /tmp
 
 make clean
 
 # Install in bin manually; make install will only put RISC OS version there.
-cp /tmp/orbit-idl /home/riscos/env/bin
+cp /tmp/orbit-idl $GCCSDK_INSTALL_ENV/bin
 mv /tmp/orbit-idl src/orbit-idl-compiler/
 
 mkdir -p $D/include/libIDL-1.0/libIDL/
@@ -19,8 +18,3 @@ mkdir -p $D/include/orbit-1.0/ORBitutil/
 mkdir -p $D/include/orbit-1.0/IIOP/
 mkdir -p $D/include/orbit-1.0/orb/
 mkdir -p $D/include/orbit-1.0/ORBitservices/
-
-
-
-
-

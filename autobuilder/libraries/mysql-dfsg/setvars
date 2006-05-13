@@ -1,10 +1,10 @@
-
 AB_ZIPNAME=libmysqlclient
 
 AB_INSTALL=yes
 
 AB_CONFLAGS=--without-server
 
+mkdir -p Docs/Images
 echo -e "all:\ninstall:\n" > Docs/Makefile.in
 echo -e "all:\ninstall:\n" > Docs/Images/Makefile.in
 

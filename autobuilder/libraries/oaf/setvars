@@ -1,9 +1,1 @@
-
 AB_INSTALL=yes
-
-tar xfz oaf-*.tar.gz
-mv oaf*/* .
-
-find debian/patches/ -type f | xargs cat | patch -p1
-
-mkdir -p $D/include/liboaf/
