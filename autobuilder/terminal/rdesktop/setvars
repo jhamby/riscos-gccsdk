@@ -1,12 +1,10 @@
-
 AB_CVS_ROOT=:pserver:anonymous:@cvs.sf.net:/cvsroot/rdesktop
 AB_CVS_MODULE=rdesktop
+AB_ZIPNAME=rdesktop-cvs-$(date +%Y%m%d)
 
 AB_CATEGORY=terminal
 
 AB_MANPAGE=doc/rdesktop.1
-
-AB_ZIPNAME=rdesktop-cvs-$(date +%Y%m%d)
 
 autoconf
 
@@ -14,7 +12,6 @@ ab_package() {
   cp -av $H/\!RDesktop $D
   cp -av $S/rdesktop,ff8 $D/\!RDesktop
   cp -av $S/keymaps $D/\!RDesktop
+  find $D \( -name .svn -o -name CVS \) -print | xargs rm -rf
   sed s#VERSION#$AB_ZIPNAME# < $H/\!RDesktop/Desc > $D/\!RDesktop/Desc
 }
-
-
