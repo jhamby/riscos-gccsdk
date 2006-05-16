@@ -548,11 +548,13 @@ do {							\
 	%{mcpu=arm7:-t ARM7 -apcsfpv3} \
 	%{mcpu=strongarm:-t SA110 -apcsfpv3} \
 	%{mcpu=xscale:-t XSCALE -apcsfpv3} \
-	%{mfp=3:-apcsfpv3} %{mfpe=3:-apcsfpv3} %{mapcs-32:-apcs32} \
+	%{mfp=3:-apcsfpv3} %{mfpe=3:-apcsfpv3} \
 	%{msoft-float:-soft-float} \
 	%{mthrowback:-throwback} \
-	%{mmodule:-module}"
-
+	%{mmodule:-module} \
+	%{mcpu=arm2:-apcs26; mcpu=arm250:-apcs26; mcpu=arm3:-apcs26; \
+	march=armv2:-apcs26; march=armv2a:-apcs26; mapcs-*:-apcs%*; :-apcs32} \
+	%{mapcs-*:-apcs%*}"
 
 #define TARGET_OS_CPP_BUILTINS()		\
     do {					\
