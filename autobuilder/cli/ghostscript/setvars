@@ -1,0 +1,35 @@
+AB_URL=http://kent.dl.sourceforge.net/sourceforge/ghostscript/ghostscript-8.50-gpl.tar.bz2
+
+AB_CATEGORY=cli
+
+# Get Ghostscript fonts:
+if [ ! -e fonts/ghostscript-fonts-std-6.0.tar.gz ] ; then
+  mkdir -p fonts
+  wget -nv -O fonts/ghostscript-fonts-std-6.0.tar.gz ftp://mirror.cs.wisc.edu/pub/mirrors/ghost/fonts/ghostscript-fonts-std-6.0.tar.gz
+fi
+if [ ! -e fonts/ghostscript-fonts-other-6.0.tar.gz ] ; then
+  mkdir -p fonts
+  wget -nv -O fonts/ghostscript-fonts-other-6.0.tar.gz ftp://mirror.cs.wisc.edu/pub/mirrors/ghost/fonts/ghostscript-fonts-other-6.0.tar.gz
+fi
+
+# Copy src code sprite device:
+cp $H/gdevspr.c src
+
+# Generate makefiles (including Makefile.in)
+rm -f configure.ac Makefile.in
+ln -s src/configure.ac .
+ln -s src/Makefile.in .
+autoconf
+
+ab_package () {
+  cp -r $H/\!GhostScr $D
+  cp $S/bin/gs,ff8 $D/\!GhostScr/gs,ff8
+  cp $S/LICENSE $D/\!GhostScr/LICENSE
+  cp -r $S/doc $D/\!GhostScr/8_50
+  cp -r $S/Resource $D/\!GhostScr/8_50
+  cp -r $S/lib $D/\!GhostScr/8_50
+  rm $D/\!GhostScr/8_50/lib/*.bat
+  rm $D/\!GhostScr/8_50/lib/*.pl
+  ( cd $D/\!GhostScr ; tar -xzf $S/fonts/ghostscript-fonts-std-6.0.tar.gz )
+  ( cd $D/\!GhostScr ; tar -xzf $S/fonts/ghostscript-fonts-other-6.0.tar.gz )
+}

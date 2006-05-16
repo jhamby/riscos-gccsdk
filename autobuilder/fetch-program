@@ -11,7 +11,8 @@ if [ "$AB_CVS_ROOT" != "" ] ; then
     echo "No CVS module specified"
     exit 1
   else
-    cvs -z9 -d $AB_CVS_ROOT co -P $AB_CVS_MODULE
+    # -z9 seems to be sf.net unfriendly.
+    cvs -z3 -d $AB_CVS_ROOT co -P $AB_CVS_MODULE
   fi
 
 elif [ "$AB_SVN" != "" ] ; then

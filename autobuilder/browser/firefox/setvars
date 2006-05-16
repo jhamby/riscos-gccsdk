@@ -1,6 +1,6 @@
-
 AB_CVS_ROOT=:pserver:anonymous@cvs-mirror.mozilla.org:/cvsroot
 AB_CVS_MODULE=mozilla
+#AB_ZIPNAME=mozilla-cvs-$(date +%Y%m%d)
 
 AB_CONFLAGS=--ro-recurse
 

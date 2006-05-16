@@ -1,0 +1,5 @@
+| Print the metrics from a font in AFM format.  Usage:
+|	printafm fontname
+| Output goes to stdout.
+wimpslot -min 3500K
+gs -q -dNODISPLAY -- printafm.ps "%*0"

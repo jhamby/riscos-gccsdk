@@ -1,6 +1,7 @@
 AB_CATEGORY=games
 
 AB_URL=http://kent.dl.sourceforge.net/sourceforge/wargus/wargus-2.1-src.tar.gz
+AB_ZIPNAME=wargus-2.1
 
 # Doesn't have a configure command
 AB_PRECONF=:
