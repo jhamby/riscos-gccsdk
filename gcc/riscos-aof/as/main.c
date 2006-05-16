@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright © 1992 Niklas Röjemo
- * Copyright © 2005 GCCSDK Developers
+ * Copyright © 2005-2006 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -70,9 +70,9 @@ int gas_backend = 0;
 int local = 1;
 int objasm = 0;
 int uc = 0;
-int apcs_32bit = 1;
-int apcs_fpv3 = 1;
-int apcs_softfloat = 0;
+int apcs_32bit = -1;
+int apcs_fpv3 = -1;
+int apcs_softfloat = -1;
 int rma_module = 0;
 int elf = 0;
 
@@ -237,17 +237,59 @@ int main (int argc, char **argv)
       else if (IS_ARG ("-fussy", "-f"))
 	fussy++;
       else if (! strcmp (*argv, "-apcs26"))
-	apcs_32bit = 0;
+        {
+          if (apcs_32bit == 1)
+            {
+	      fprintf (stderr, "%s: Conflicting options -apcs26 and -apcs32\n", ProgName);
+	      return EXIT_FAILURE;
+	    }
+	  apcs_32bit = 0;
+	}
       else if (! strcmp (*argv, "-apcs32"))
-	apcs_32bit++;
+        {
+          if (apcs_32bit == 0)
+            {
+	      fprintf (stderr, "%s: Conflicting options -apcs26 and -apcs32\n", ProgName);
+	      return EXIT_FAILURE;
+	    }
+	  apcs_32bit = 1;
+	}
       else if (! strcmp (*argv, "-apcsfpv2"))
-	apcs_fpv3 = 0;
+        {
+          if (apcs_fpv3 == 1)
+            {
+	      fprintf (stderr, "%s: Conflicting options -apcsfpv2 and -apcsfpv3\n", ProgName);
+	      return EXIT_FAILURE;
+	    }
+	  apcs_fpv3 = 0;
+	}
       else if (! strcmp (*argv, "-apcsfpv3"))
-	apcs_fpv3++;
+        {
+          if (apcs_fpv3 == 0)
+            {
+	      fprintf (stderr, "%s: Conflicting options -apcsfpv2 and -apcsfpv3\n", ProgName);
+	      return EXIT_FAILURE;
+	    }
+	  apcs_fpv3 = 1;
+	}
       else if (! strcmp (*argv, "-soft-float"))
-	apcs_softfloat++;
+        {
+          if (apcs_softfloat == 0)
+            {
+              fprintf (stderr, "%s: Conflicting options -soft-float and -hard-float\n", ProgName);
+	      return EXIT_FAILURE;
+	    }
+	  apcs_softfloat = 1;
+	}
       else if (! strcmp (*argv, "-hard-float"))
-	apcs_softfloat = 0;
+        {
+          if (apcs_softfloat == 1)
+            {
+              fprintf (stderr, "%s: Conflicting options -soft-float and -hard-float\n", ProgName);
+	      return EXIT_FAILURE;
+	    }
+	  apcs_softfloat = 0;
+	}
       else if (! strcmp (*argv, "-module"))
 	rma_module = 1;
       else if (!strcmp (*argv, "-gas"))
@@ -277,7 +319,7 @@ int main (int argc, char **argv)
 #endif
 		   " Assembler " AS_VERSION " (" __DATE__ ") [GCCSDK " __VERSION__ "]\n");
 
-	  fprintf (stderr, "Copyright (c) 1992-2005 Niklas Rojemo, Darren Salt and GCCSDK Developers\n");
+	  fprintf (stderr, "Copyright (c) 1992-2006 Niklas Rojemo, Darren Salt and GCCSDK Developers\n");
 	  return EXIT_SUCCESS;
 	}
       else if (IS_ARG ("-H", "-h")
@@ -342,6 +384,14 @@ int main (int argc, char **argv)
       else
 	fprintf (stderr, "%s: Illegal flag %s ignored\n", ProgName, *argv);
     }
+
+  /* Fallback on default options ? */
+  if (apcs_32bit == -1)
+    apcs_32bit = 1;
+  if (apcs_fpv3 == -1)
+    apcs_fpv3 = 1;
+  if (apcs_softfloat == -1)
+    apcs_softfloat = 0;
 
   /* When the command line has been sorted, get on with the job in hand */
   if (ObjFileName == NULL)
