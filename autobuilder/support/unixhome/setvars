@@ -1,9 +1,10 @@
+
 AB_NOREMOTE=yes
 
 AB_CATEGORY=support
 
+AB_ZIPNAME=UnixHome
 AB_ROVERSION=1.03
-AB_ZIPNAME=UnixHome-$AB_ROVERSION
 
 cp $H/!UnixHome/c/SetHome $S/SetHome.c
 
@@ -13,3 +14,5 @@ ab_package() {
   cp -av $H/\!UnixHome $D
   cp -av $S/SetHome,ff8 $D/\!UnixHome
 }
+
+

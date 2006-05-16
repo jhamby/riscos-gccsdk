@@ -1,7 +1,7 @@
 
 AB_CATEGORY=cli
 
-AB_PRECONF="CFLAGS=\"-I$GCCSDK_INSTALL_ENV/include -O2 -D_USE_BSD\""
+AB_PRECONF="CFLAGS=\"-I$AB_GCCENV/include -O2 -D_USE_BSD\""
 AB_CONFLAGS="--disable-elf --disable-elf-core"
 
 AB_PREZIP="mkdir -p \!UnixHome/home; cp magic/magic \!UnixHome/home/.magic; "

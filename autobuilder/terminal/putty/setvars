@@ -1,10 +1,10 @@
-AB_SVN=svn://ixion.tartarus.org/main/putty
-AB_ZIPNAME=putty-svn-$(date +%Y%m%d)
+#
 
+AB_SVN=svn://ixion.tartarus.org/main/putty
 AB_CATEGORY=terminal
 
 # RISC OS Version of the package
-AB_ROVERSION=svn.`date +%G%m%d-%H%M`
+AB_ROVERSION=cvs.`date +%G%m%d-%H%M`
 
 # Commands to be carried out prior to zip, such as copying or moving files
 #AB_PREZIP=

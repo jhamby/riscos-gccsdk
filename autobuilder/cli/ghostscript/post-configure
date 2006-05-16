@@ -1,8 +1,0 @@
-# The obj/arch.h is normally the output of 'genarch' program but this should
-# be run on the target (i.e. RISC OS) and not on the host.
-mkdir -p obj
-cp $H/genarch_output obj/arch.h
-echo echo Fake genarch > obj/genarch
-chmod 755 obj/genarch
-
-make CC=gcc CCLD=gcc obj/echogs obj/genconf obj/geninit

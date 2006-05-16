@@ -1,3 +1,0 @@
-| Wimpslot should be set by the alias calling this file ...
-wimpslot -min 3500K
-gs -q -sDEVICE=epson -r180 -dNOPAUSE -sPROGNAME=gslp -- gslp.ps --heading-center <Sys$Date> %*0

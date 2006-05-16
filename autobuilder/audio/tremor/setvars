@@ -1,8 +1,10 @@
+
 AB_SVN=http://svn.xiph.org/trunk/Tremor
-AB_ZIPNAME=tremor-svn-$(date +%Y%m%d)
 
 AB_CATEGORY=audio
 AB_INSTALL=yes
+
+AB_ZIPNAME=tremor-svn-$(date +%Y%m%d)
 
 ./autogen.sh
 

@@ -1,3 +1,0 @@
-| Wimpslot should be set by the alias calling this file ...
-wimpslot -min 3500K
-gs -q -sDEVICE=laserjet -r300 -dNOPAUSE -sPROGNAME=gslj -- gslp.ps --heading-center <Sys$Date> %*0

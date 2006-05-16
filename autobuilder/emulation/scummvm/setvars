@@ -1,10 +1,13 @@
+
+
 AB_CVS_ROOT=:pserver:anonymous:@cvs.sf.net:/cvsroot/scummvm
 AB_CVS_MODULE=scummvm
-AB_ZIPNAME=scummvm-cvs-$(date +%Y%m%d)
 
 AB_CATEGORY=emulation
 
 AB_CONFLAGS="--with-sdl-prefix=/home/riscos/env/bin --enable-release"
+
+AB_ZIPNAME=scummvm-cvs-$(date +%Y%m%d)
 
 ab_package() {
   cp -av $H/\!ScummVM $D
@@ -14,3 +17,4 @@ ab_package() {
 
   cp $S/scummvm,ff8 $D/\!ScummVM
 }
+

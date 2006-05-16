@@ -1,6 +1,4 @@
-AB_INSTALL=yes
 
-# We disable pthreads but fall back on RISC OS specific pthread code in SDL
-AB_CONFLAGS=--disable-ogg --disable-pthreads
+AB_INSTALL=yes
 
 mkdir -p $D/include/SDL/

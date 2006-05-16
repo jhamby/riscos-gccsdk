@@ -1,5 +1,6 @@
+
 AB_URL=http://kent.dl.sourceforge.net/sourceforge/glhack/glhack-1.2.tar.gz
-AB_ZIPNAME=glhack-1.2
+
 
 ab_package() {
 
@@ -15,4 +16,6 @@ ab_package() {
   cp $S/dat/glface*.lst $D/\!GLHack/usr
   cp $S/dat/license $D/\!GLHack/usr
   cp $S/dat/nhdat $D/\!GLHack/usr
+
+
 }

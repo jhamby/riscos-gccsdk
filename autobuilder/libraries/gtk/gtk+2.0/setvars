@@ -1,8 +1,8 @@
+
+AB_PRECONF=/home/riscos/env/ro-path
+
 AB_INSTALL=yes
 
-##FIXME: check vvv this !
-##AB_CONFLAGS="--without-libtiff --disable-xkb"
+AB_CONFLAGS="--without-libtiff --disable-xkb"
 
-mkdir -p $D/include/gtk-2.0/gdk/
 mkdir -p $D/include/gtk-2.0/gdk-pixbuf/
-mkdir -p $D/include/gtk-2.0/gtk/
