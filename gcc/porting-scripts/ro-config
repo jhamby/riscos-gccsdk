@@ -1,6 +1,12 @@
 #!/bin/bash
 
-# Binary install path
+# The user can define GCCSDK_INSTALL_CROSSBIN to a directory
+# containing an alternative cross compiler (e.g. for testing or
+# developing purposes) than what GCCSDK has currently created at
+# GCCSDK_BIN.
+if [ -z "$GCCSDK_INSTALL_CROSSBIN" ] ; then
+  export GCCSDK_INSTALL_CROSSBIN=GCCSDK_BIN
+fi
 
 if [ "$RO_DIST" == "YES" ] ; then
   DISTCC=$(which distcc)
@@ -290,13 +296,11 @@ export CC_FOR_BUILD=/usr/bin/cc
 export config_BUILD_CC=/usr/bin/cc
 export config_TARGET_CC="$DISTCC $GCCSDK_INSTALL_CROSSBIN/gcc"
 
-export AR="$GCCSDK_INSTALL_CROSSBIN/ar $AB_ARFLAGS"
+export AR="$GCCSDK_INSTALL_CROSSBIN/ar"
 export NM="$GCCSDK_INSTALL_CROSSBIN/libfile -s"
-export RANLIB=echo
-if [ -z "$AB_DEFINSTALL" ] ; then
-  export INSTALL=GCCSDK_ENV/ro-install
-fi
-export STRIP=echo
+export RANLIB="echo Disabled ranlib: "
+export INSTALL=GCCSDK_ENV/ro-install
+export STRIP="echo Disabled strip: "
 # Used by Mozilla
 export CROSS_COMPILE=1
 export HOST_RANLIB=/usr/bin/ranlib
