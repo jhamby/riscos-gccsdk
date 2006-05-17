@@ -8,7 +8,7 @@ various documents elsewhere in this distribution, the source, and a proper
 manual (like <URL:http://www.opengroup.org/onlinepubs/007904975/download/>
 and <URL:http://www.opengroup.org/onlinepubs/007908799/>).
 
-The UnixLib is part of the RISC OS GCC SDK and its home page is at
+The UnixLib is part of the RISC OS GCCSDK and its home page is at
 <URL:http://gccsdk.riscos.info/>. This should be checked for
 updates and bug-fixes.
 
@@ -21,7 +21,14 @@ computers that provides a mixed System V / BSD / Linux interface for C and
 C++ programs.  It is also an alternative to the "Stubs" libraries supplied
 with the Norcroft/Castle C/C++ compiler.
 
-It is also the default Run-Time Library for the RISC OS port of GCC.
+It is also the default Run-Time Library for the RISC OS port of GCC.  It
+can also be used as Run-Time Library for programs compiled with the
+Norcroft/Castle C/C++ compiler but this usage is depredicated and support
+for this will be dropped in future versions.
+
+Supported RISC OS versions are currently RISC OS 4 (26-bit and 32-bit
+flavours) and RISC OS 5 (32-bit).  Other versions might work too but are
+not actively tested by its developers.
 
 Quoting the original documentation :
 
@@ -44,27 +51,8 @@ is the Lesser GNU Public License. For more details see the file
 !UnixLib.Docs.Copyright
 
 
-Installation
-~~~~~~~~~~~~
-
-Installation is quite simple:
-
-1) Copy the !UnixLib directory to an appropriate location on your hard disc,
-and ensure that !UnixLib.!Boot is run.  Running !UnixLib.!Boot is normally
-done by the Filer when seeing the !UnixLib directory for the first time.
-
-2) If you develop on RISC OS earlier than 3.7, make sure you have the
-CallASWI module installed in your !System directory.  The latest known
-version is 0.03 and can be found at
-<URL:http://www.iyonix.com/32bit/CallASWI.shtml>.
-
-3) The module "SharedUnixLibrary" needs to be copied as
-!System.310.Modules.SharedULib.  In !UnixLib you can find the sources of
-this module.
-
-
-Distributing of UnixLib based programs
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Running and distributing UnixLib based programs
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 When your program is linked with UnixLib, it needs the "SharedUnixLibrary"
 module.  If your program is to be distributed on the internet, we
@@ -83,6 +71,9 @@ you should also provide an installation note or program to install the
 CallASWI module as !System.Modules.CallASWI.  Or, even better, redirect
 the users to <URL:http://www.iyonix.com/32bit/CallASWI.shtml> for the
 latest known version and approved installation program.
+
+Note you might need other modules used by UnixLib when you're using
+specific functionaly.  See separate document for more information.
 
 
 UnixLib and GCC

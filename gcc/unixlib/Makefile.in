@@ -15,9 +15,10 @@ unixlib: $(DIRS)
 
 riscos-dist:
 	mkdir -p $(info_dir)/UnixLib
-	cp -p Docs/Changelog $(info_dir)/UnixLib
-	cp -p Docs/Copyright $(info_dir)/UnixLib
-	cp -p Docs/ReadMe $(info_dir)/UnixLib
+	cp -p \!Help $(info_dir)/UnixLib/ReadMe
+	cp -p Docs/Changelog $(info_dir)/UnixLib/Changelog
+	cp -p Docs/Copyright $(info_dir)/UnixLib/Copyright
+	cp -p Docs/ReadMe $(info_dir)/UnixLib/Usage
 
 $(DIRS):
 	mkdir -p $@

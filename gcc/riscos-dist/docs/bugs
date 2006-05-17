@@ -88,12 +88,11 @@ Where to Report Bugs
 ====================
 
 Different people have ported different compilers, but we have a central
-repository for holding bugs at: http://gccsdk.riscos.info/bugs
+repository for holding bugs at: http://www.riscos.info/bugzilla/index.cgi
 
-   *Do not send bug reports to `help-gcc@prep.ai.mit.edu' or to the
-newsgroup `gnu.gcc.help'.* Most users of GNU CC do not want to receive
-bug reports.
-
+Do not send bug reports to `gcc-help@gcc.gnu.org', `gcc@gcc.gnu.org' nor
+to the newsgroup `gnu.gcc.help'. Most users of GNU CC do not want to
+receive bug reports.
 
 How to Report Bugs
 ==================

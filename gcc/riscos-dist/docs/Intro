@@ -11,9 +11,15 @@ ensure that a large enough Wimpslot has been allocated. Please refer to the
 `Address exception' and `No writable memory at this address' errors.
 
 IMPORTANT NOTE 2: If you have received this copy of GCC from a CD, then it is
-likely there is a more up-to-date version obtainable from elsewhere.
+likely there is a more up-to-date version obtainable from
+http://gccsdk.riscos.info/ which is also the homepage of this GCC port.
 
 IMPORTANT NOTE 3: GCC requires a minimum of 16MB RAM.
+
+IMPORTANT NOTE 4: This GCC port itself and the code produced using this GCC
+version is targeted and tested for RISC OS 4 (26-bit and 32-bit version) and
+RISC OS 5 (32-bit version).
+
 
 The RISC OS GNU Compiler Collection consists of a generic front end program
 `gcc' that provides a consistent interface to the compilers themselves.
@@ -25,7 +31,7 @@ other binaries and/or source code covered by other licenses (see docs
 directory for more information).
 
 This port of GCC is Copyright (c) 1996, 1997, 1998, 1999, 2000, 2001 Nick Burrett
-Copyright (c) 2002, 2003, 2004, 2005 GCCSDK Developers
+Copyright (c) 2002, 2003, 2004, 2005, 2006 GCCSDK Developers
 
 As with all GNU programs, THERE IS NO WARRANTY OF ANY SORT
 
@@ -33,7 +39,7 @@ The standard RISC OS distribution contains GCC and supporting binaries
 allowing you to start developing applications and modules straight away. So
 you get a C compiler, a C++ compiler, an AOF linker, an AOF assembler,
 a module header and veneer generator, the UnixLib C runtime library and
-headers and stubs for the SharedCLibrary (as found in the RISC OS ROMS).
+headers and stubs for the SharedCLibrary (as found in the RISC OS ROMs).
 
 
 Installation
@@ -44,10 +50,6 @@ Other compilers can be installed by copying the contents of their
 archives into the same directory as where you install GCC - RISC OS will
 automatically combine the !gcc directories together. Running !gcc will
 setup Run$Path to automatically search for the compiler tools.
-
-The !UnixLib applications is not required, and will not be used by !gcc
-is provided for use by other compilers, and can be left out of a GCCSDK
-release.
 
 As compilers are installed, sub-directories named according to the language
 they support will be placed within !gcc.docs. These sub-directories will
@@ -128,7 +130,7 @@ but
   tree.def		is translated to	tree/def
 
 For further examples of compilation procedures, please look at `Examples'
-in !gcc.files.
+in !gcc.
 
 The full GCC manual can be referred to at !gcc.docs.gcc.
 
@@ -150,10 +152,9 @@ The switches described below are useable with any GNU compiler.
 -O2             apply full optimisation.
 -O3             full optimisation and inline small functions as well.
 
-There are some additional ARM specific switches.
 
- -mapcs, -mapcs-frame
-   target for ARM Procedure Call Standard stack frames.
+There are some additional ARM specific switches.  These are documented in
+!gcc.docs.gcc, section "ARM Options".  The most important one is:
 
  -mpoke-function-name
    place the name of the current function before the start of the function
@@ -165,17 +166,11 @@ There are some additional ARM specific switches.
    to turn this option on when developing applications as it can lead to a
    clear indication of where a program is failing.
 
- -mapcs-stack-check
-   provide explicit stack checking on entry to each function which allocates
-   temporary variables on the stack.  This option is enabled by default.
-   Disabling this option will reduce the function prologue overhead by
-   3-5 instructions.
+Note that APCS-R mode (option -mapcs-26) is deprecated and will be removed
+from future GCC versions.  Given that the supplied runtime libraries UnixLib
+and SharedCLibrary stubs are only APCS-32 compliant, specifying -mapcs-26
+means that you have to provide an alternative APCS-R compliant runtime library.
 
- -mfpe=2
-   Target the Floating Point architecture version 2.  Notably the function
-   prologues and epilogues use the STFE instruction to preserve floating-point
-   registers rather than the much faster and more accurate SFM instruction
-   of the version 3 (default) architecture.
 
 RISC OS specific options
 
@@ -300,77 +295,6 @@ gcc command line) then an additional preprocessor constant is defined,
 namely `__TARGET_SCL__'.
 
 
-GCC and Virtual Memory
-----------------------
-
-GNU compilers use a lot of memory and nothing can be done about that. On
-RISC OS 3.5 and later, UnixLib has been modified to make use of dynamic areas.
-So users with small memory machines can use Clares' Virtualise to provide a
-working virtual memory environment for them. See the section *Dynamic Areas*
-below.
-
-Users of older machines, the Archimedes and A5000, with less than 8MB RAM
-will not be able to use this software.
-
-
-Dynamic areas
--------------
-
-The following information is deprecated, as UnixLib programs have been able
-to extend their own Wimpslot for some years, but it is included for reference.
-
-UnixLib has a facility to use Dynamic Areas, found in RISC OS 3.5
-and above, for the program's heap. The heap is another name for the
-malloc area. The advantages of using a dynamic area for the program's
-heap include :
-
-   * the Wimpslot of the program can be limited to the code and stack
-     requirements of the program. This helps alleviate the cost of RISC
-     OS task switching which slows down dramatically as the Wimpslot
-     grows in size.
-
-   * Dynamic Areas provide a means of Virtual Memory when used with a
-     product such as Virtualise[1]. Virtual Memory allows programs to
-     use more data space than is available with just physical memory.
-
-   * Some very large programs may fill most of the Wimpslot on 26-bit
-     systems, meaning the heap has to be elsewhere. 
-
-Basically, use
-
-  *Set GCC$Heap ""
-
-to enable dynamic areas for the compiler and
-
-  *Unset GCC$Heap
-
-to disable dynamic areas for the compiler.
-
-Before running a program set the wimpslot in the normal way, but it only
-needs to be large enough to hold the sum of the largest executables that
-can be run concurrently. e.g., with gcc, use the unsqueezed size of gcc
-plus cc1. When running from a command line amu remember to allow
-additional space for the amu executable and amu's workspace (though this
-is tricky to estimate!).
-
-If other programs that form part of a compiler are run directly from the
-command line, e.g., gnatmake, then separate environment variables must
-be set to allow these programs to use dynamic areas for the program's
-heap. So, with gnatmake,
-
-   *Set gnatmake$heap ""
-
-As a user, you should not really need to worry about these details as the
-!gcc.!run file already contains the relevant lines. Please read the !run
-file if you are a Risc PC user, since some lines will need to be uncommented.
-
-[1] Virtualise is a commercial product available from Clares. Peter Burwood
-has no connection with Clares or the Virtualise product other than being a
-user of Virtualise. If other similar products become available then UnixLib
-should work transparently since the UnixLib startup code does not use
-any Virtualise features.
-
-
 Troubleshooting
 ---------------
 
@@ -407,16 +331,6 @@ compilers. Possible solutions are provided for the known problems.
 
   This is caused by insufficient memory during the linking stage.
   Increase the wimpslot to fix this.
-
-5. A source file is correctly compiled and linked. The resultant executable
-   'hellow' is placed in the current directory. However, when I try and
-   run the file I get the error 'No such file or directory'.
-   
-   This and many other obscure errors are caused by linking source files
-   against run-time libraries that are incompatible with the StrongARM
-   processor. An example would be UnixLib 3.7a.
-   
-   StrongARM compatibility wasn't introduced to UnixLib until version 3.7b.
 
 
 AOF files, Libraries, Linkers etc.
@@ -510,8 +424,8 @@ GCCSDK mailing list
 -------------------
 
 A mailing list has been setup for discussions on GCC, including development
-work.  To join it, send mail to majordomo@gccsdk.riscos.info and put
-`subscribe gcc' as the only item of text in the message body.
+work.  Details on how you can join the GCCSDK mailing list can be found
+at http://gccsdk.riscos.info/.
 
 
 Location of the main GCC sources
