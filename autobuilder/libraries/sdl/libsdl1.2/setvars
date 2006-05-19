@@ -1,9 +1,95 @@
-AB_SVN=svn://libsdl.org/trunk/SDL
 
-AB_ZIPNAME=libsdl1.2-svn-$(date +%Y%m%d)
+SDLVER=1.2.10
 
+AB_SVN=svn://libsdl.org/tags/SDL/release-1.2.10
+AB_ZIPNAME=libsdl1.2
+
+AB_CATEGORY=library
 AB_INSTALL=yes
 
 mkdir -p $D/include/SDL/
 
 ./autogen.sh
+
+ab_package() {
+  # Location to install to
+  mkdir $D/Apps
+  mkdir $D/Apps/Library
+
+  # Copy application directory base
+  mkdir $D/Apps/Library/\!SDL
+  cp -pv $H/\!SDL/* $D/Apps/Library/\!SDL
+
+  # Copy headers
+  mkdir $D/Apps/Library/\!SDL/SDL
+  mkdir $D/Apps/Library/\!SDL/SDL/h
+  cp -pv $S/include/*.h $D/Apps/Library/\!SDL/SDL/h
+
+  # Remove ".h" suffix for RISC OS
+  for file in $(find $D/Apps/Library/\!SDL/SDL/h/*\.h); do
+     newname=$(echo $file | sed s#\.h\$##)
+     mv $file $newname
+  done
+ 
+  # Copy library
+  mkdir $D/Apps/Library/\!SDL/a
+  cp -pv $S/build/.libs/libSDL.a $D/Apps/Library/\!SDL/a/libSDL
+
+  # Copy documents
+  cp -pv $S/BUGS $D/Apps/Library/\!SDL
+  cp -pv $S/COPYING $D/Apps/Library/\!SDL
+  cp -pv $S/CREDITS $D/Apps/Library/\!SDL
+  cp -pv $S/docs.html $D/Apps/Library/\!SDL/docs.html,faf
+  cp -pv $S/README $D/Apps/Library/\!SDL
+  cp -pv $S/README-SDL.txt $D/Apps/Library/\!SDL/README-SDL.txt,fff
+  cp -pv $S/README.RISCOS $D/Apps/Library/\!SDL/README.RISCOS,fff
+  cp -pv $S/WhatsNew $D/Apps/Library/\!SDL
+
+  # HTML documents
+  mkdir $D/Apps/Library/\!SDL/docs
+  mkdir $D/Apps/Library/\!SDL/docs/html
+  cp -pv $S/docs/index.html $D/Apps/Library/\!SDL/docs/index.html,faf
+  cp -av $S/docs/html/*.html $D/Apps/Library/\!SDL/docs/html
+
+  # Set file type for html docs
+  for file in $(find $D/Apps/Library/\!SDL/docs/html/*\.html); do
+     mv $file $file,faf
+  done
+
+  # Copy test programs
+  mkdir $D/Apps/Library/\!SDL/test
+  mkdir $D/Apps/Library/\!SDL/test/c
+
+  cp -pv $S/test/*.c $D/Apps/Library/\!SDL/test/c
+  # Remove ".c" suffix for RISC OS
+  for file in $(find $D/Apps/Library/\!SDL/test/c/*\.c); do
+     newname=$(echo $file | sed s#\.c\$##)
+     mv $file $newname
+  done
+
+  # Copy test extra files
+  cp -pv $S/test/COPYING $D/Apps/Library/\!SDL/test
+  cp -pv $S/test/README $D/Apps/Library/\!SDL/test
+  cp -pv $S/test/icon.bmp $D/Apps/Library/\!SDL/test/icon.bmp,ffd
+  cp -pv $S/test/moose.dat $D/Apps/Library/\!SDL/test/moose.dat,ffd
+  cp -pv $S/test/picture.xbm $D/Apps/Library/\!SDL/test/picture.xbm,ffd
+  cp -pv $S/test/sail.bmp $D/Apps/Library/\!SDL/test/sail.bmp,ffd
+  cp -pv $S/test/sample.bmp $D/Apps/Library/\!SDL/test/sample.bmp,ffd
+  cp -pv $S/test/sample.wav $D/Apps/Library/\!SDL/test/sample.wav,ffd
+  cp -pv $S/test/utf8.txt $D/Apps/Library/\!SDL/test/utf8.txt,fff
+
+  # Packaging data
+  mkdir $D/RiscPkg
+
+  sed "s/PACKAGE/SDL12-Dev/; s/VERSION/$SDLVER/; s/RELEASE/$AB_ROVERSION/" \
+     < $H/RiscPkg/Control \
+     > $D/RiscPkg/Control
+ 
+  cp -av $H/RiscPkg/Copyright $D/RiscPkg
+  mkdir $D/SysVars
+  cp -pv $H/SysVars/* $D/SysVars
+
+  # Modify zipname for packaging
+  AB_ZIPNAME=SDL12-Dev
+}
+

@@ -1,0 +1,14 @@
+Simple DirectMedia Layer (SDL) 1.2.
+
+The SDL web-site is at http://www.libsdl.org/.
+
+Packaged by: Alan Buckley (alan_baa@hotmail.com)
+
+This library is distributed under GNU LGPL version 2 - for details
+see the file:
+
+<Common_Licences$Dir>.LGPL-2.1.txt
+
+or downloaded from the URL:
+
+http://www.riscpkg.org/licences/LGPL-2.1.txt
