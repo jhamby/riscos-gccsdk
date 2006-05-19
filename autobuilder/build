@@ -162,7 +162,7 @@ ab_build() {
     fi
 
     if [ -e "$AB_HOME/$PACKAGE_DIR/depends" ] ; then
-      DEPENDENCIES=`echo $DEPENDENCIES | cat $AB_HOME/$PACKAGE_DIR/depends`
+      DEPENDENCIES=`echo $DEPENDENCIES $(cat $AB_HOME/$PACKAGE_DIR/depends | grep -v \^\#)`
     fi
 
 
