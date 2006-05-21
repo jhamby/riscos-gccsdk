@@ -412,6 +412,7 @@ __unixify (const char *ro_path, int unixify_flags, char *buffer,
       if (one_dot (input))
 	{
 	  char name[256];
+	  char *slash;
 
 	  /* We've processed enough of the filename to be left with the
 	     following combinations:
@@ -422,8 +423,13 @@ __unixify (const char *ro_path, int unixify_flags, char *buffer,
 	  input += strlen (tempbuf) + 1;
 	  get_directory_name (input, name);
 
+	  /* If either part contains a / then we don't have a valid prefix */
+	  slash = strchr (tempbuf, '/');
+	  if (slash == NULL)
+	    slash = strchr (name, '/');
+
 	  if (!(unixify_flags & __RISCOSIFY_NO_REVERSE_SUFFIX)
-	      && is_prefix (name))
+	      && is_prefix (name) && (slash == NULL))
 	    {
 	      /* Method 1.
 	         name contains the prefix.
@@ -431,7 +437,7 @@ __unixify (const char *ro_path, int unixify_flags, char *buffer,
 	      out = add_directory_and_prefix (out, tempbuf, name);
 	    }
 	  else if (!(unixify_flags & __RISCOSIFY_NO_REVERSE_SUFFIX)
-		   && is_prefix (tempbuf))
+		   && is_prefix (tempbuf) && (slash == NULL))
 	    {
 	      /* Method 2.
 	         tempbuf contains the prefix.

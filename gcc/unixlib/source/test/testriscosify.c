@@ -138,6 +138,7 @@ char tests[][2][256] = {
 {"/.a..","$./a//"},
 {"/a/b/c/d/e..","$.a.b.c.d.e//"},
 {"/a/b/c/d/e.","$.a.b.c.d.e/"},
+{"/ADFS::4.$/foo/h/info.php","ADFS::4.$.foo.h.info/php"},
 {"","@"}};
 
 int main (void)

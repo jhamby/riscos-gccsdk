@@ -1,3 +1,9 @@
+Sun May 21 20:36:42 2006  Alex Waugh  <alex@alexwaugh.com>
+
+	* source/common/unixify.c: Don't do suffix swapping if the leafname
+	  has a / in it.
+	* source/test/testriscosify.c: Add extra testcase.
+
 Tue Apr 11 17:40:56 2006  Alex Waugh  <alex@alexwaugh.com>
 
 	* source/module/sul.s: Allocate some memory to store the head of the
