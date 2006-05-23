@@ -9,24 +9,37 @@ AB_DEPS=yes           # Build dependencies first
 
 for param in $@ ; do
   case "$param" in
-    -d)
-      AB_DEBUG=yes
-      ;;
-    -p)
-      AB_PACKONLY=yes
-      ;;
-    -f)
-       AB_NOFETCH=yes
-       ;;
-    -v)
-       AB_VERBOSE=yes
-       ;;
-    -n)
-       AB_DEPS=no
-       ;;
     -*)
-       echo "Autobuilder: unknown option $param"
-       exit 1
+      byte=2
+      while true; do
+        opt=$(echo $param | cut -b $byte)
+        byte=$((byte + 1))
+
+        case "$opt" in
+          "")
+            break
+            ;;
+          d)
+            AB_DEBUG=yes
+            ;;
+          p)
+            AB_PACKONLY=yes
+            ;;
+          f)
+            AB_NOFETCH=yes
+            ;;
+          v)
+            AB_VERBOSE=yes
+            ;;
+          n)
+            AB_DEPS=no
+            ;;
+          *)
+          echo "Autobuilder: unknown option -$opt"
+          exit 1
+          ;;
+        esac
+      done
        ;;
     *)
        AB_PACKAGES="$AB_PACKAGES $param"
