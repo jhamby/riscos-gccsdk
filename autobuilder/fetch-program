@@ -2,6 +2,7 @@
 
 AB_CVS_ROOT=$(grep AB_CVS_ROOT $AB_HOME/$AB_PACKAGEDIR/setvars | cut -d = -f 2)
 AB_CVS_MODULE=$(grep AB_CVS_MODULE $AB_HOME/$AB_PACKAGEDIR/setvars | cut -d = -f 2)
+AB_CVS_TAGORBRANCH=$(grep AB_CVS_TAGORBRANCH $AB_HOME/$AB_PACKAGEDIR/setvars | cut -d = -f 2)
 AB_SVN=$(grep AB_SVN $AB_HOME/$AB_PACKAGEDIR/setvars | cut -d = -f 2)
 AB_URL=$(grep AB_URL $AB_HOME/$AB_PACKAGEDIR/setvars | cut -d = -f 2)
 AB_NOREMOTE=$(grep AB_NOREMOTE $AB_HOME/$AB_PACKAGEDIR/setvars | cut -d = -f 2)
@@ -11,7 +12,11 @@ if [ "$AB_CVS_ROOT" != "" ] ; then
     echo "No CVS module specified"
     exit 1
   else
-    cvs -z9 -d $AB_CVS_ROOT co -P $AB_CVS_MODULE
+    if [ ! -z "$AB_CVS_TAGORBRANCH" ] ; then
+      AB_CVS_TAGORBRANCH="-r $AB_CVS_TAGORBRANCH"
+    fi
+    # -z9 seems to be sf.net unfriendly.
+    cvs -z3 -d $AB_CVS_ROOT co -P $AB_CVS_TAGORBRANCH $AB_CVS_MODULE
   fi
 
 elif [ "$AB_SVN" != "" ] ; then

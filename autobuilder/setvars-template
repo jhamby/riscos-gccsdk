@@ -11,6 +11,7 @@
 #  1. Either via CVS:
 #AB_CVS_ROOT=
 #AB_CVS_MODULE=
+#AB_CVS_TAGORBRANCH=
 #     Note: consider defining "AB_ZIPNAME=xxx-cvs-$(date +%Y%m%d)" as well.
 #
 #  2. Either via SVN:
@@ -21,7 +22,7 @@
 #AB_URL=
 #
 #  4. Either somewhere on a filing system:
-#AB_NOREMOTE=
+#AB_NOREMOTE=yes
 #     Note: consider defining "AB_ZIPNAME=xxx-local-$(date +%Y%m%d)" as well.
 #
 #  And when non of the above is defined, we'll fetch it via apt-get (if
