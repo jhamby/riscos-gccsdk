@@ -24,10 +24,10 @@ for param in $@ ; do
     fi
 
     # Don't install RISC OS binaries (only in non-packaging mode)
-    if [ -z "$RO_PKG" ] && file $param | grep -q "RISC OS AIF executable" ; then
-      echo "RISC OS Cross installer: Not installing RISC OS binary"
-      exit 0;
-    fi
+##    if [ -z "$RO_PKG" ] && file $param | grep -q "RISC OS AIF executable" ; then
+##      echo "RISC OS Cross installer: Not installing RISC OS binary"
+##      exit 0;
+##    fi
   fi
 
   dest=$param
