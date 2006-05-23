@@ -105,12 +105,10 @@ done
 
 if [ "$RO_RECURSE" == "yes" ] ; then
   # Search for more configure files
-  RO_CFILES=$(find $RO_PATH -type f)
+  RO_CFILES=$(find $RO_PATH -type f -name configure)
 
   for ff8PATH in $RO_CFILES ; do
-    if echo $ff8PATH | grep -q "configure$" ; then
-      addff8
-    fi
+    addff8
   done
 
 else
