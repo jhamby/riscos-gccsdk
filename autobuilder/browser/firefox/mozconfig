@@ -1,10 +1,16 @@
-PATH=/home/riscos/cross/bin:$PATH
+mk_add_options MOZ_CO_PROJECT=browser
+
+PATH=$GCCSDK_INSTALL_CROSSBIN:$PATH
 CROSS_COMPILE=1
-LIBIDL_CONFIG=/home/riscos/env/bin/libIDL-config
+GLIB_CONFIG=$GCCSDK_INSTALL_ENV/bin/glib-config
+GTK_CONFIG=$GCCSDK_INSTALL_ENV/bin/gtk-config
+LIBIDL_CONFIG=$GCCSDK_INSTALL_ENV/bin/libIDL-config
 HOST_LIBIDL_CONFIG=/usr/bin/libIDL-config
+
+ac_add_options --prefix=$GCCSDK_INSTALL_ENV
 ac_add_options --target=arm-riscos
-ac_add_options --x-includes=/home/riscos/env/X11R6/include
-ac_add_options --x-libraries=/home/riscos/env/X11R6/lib
+ac_add_options --x-includes=$GCCSDK_INSTALL_ENV/X11R6/include
+ac_add_options --x-libraries=$GCCSDK_INSTALL_ENV/X11R6/lib
 
 # use GTK+-2 widget set with XFT font rendering
 #ac_add_options --enable-default-toolkit=gtk
@@ -53,8 +59,8 @@ ac_add_options --enable-crypto
 ac_add_options --enable-image-decoders=png,gif,jpeg
 
 # code generation options (optimize for size)
-#ac_add_options --enable-optimize="-O3 -mpoke-function-name -fno-unit-at-a-time -fno-rename-registers"
-ac_add_options --enable-optimize="-O3 -fno-unit-at-a-time -fno-rename-registers"
+#ac_add_options --enable-optimize="-O3 -fno-unit-at-a-time -fno-rename-registers"
+ac_add_options --enable-optimize="-O2 -mpoke-function-name"
 # ac_add_options --enable-strip
 #ac_add_options --disable-reorder
 #ac_add_options --enable-elf-dynstr-gc
@@ -67,9 +73,9 @@ ac_add_options --enable-static
 
 # remove link dependency on libstdc++.so
 LIBS=-lstdc++
-CXX=/home/riscos/cross/bin/g++
+CXX=$GCCSDK_INSTALL_CROSSBIN/g++
 DLL_SUFFIX=a
-LD="/home/riscos/env/ro-ar cr"
+LD="$GCCSDK_INSTALL_ENV/ro-ar cr"
 
 ac_add_options --enable-application=browser
 #ac_add_options --enable-timeline

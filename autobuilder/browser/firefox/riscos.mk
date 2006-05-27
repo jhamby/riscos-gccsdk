@@ -40,11 +40,10 @@ LIB_SUFFIX  = a
 DLL_SUFFIX  = a
 AR          = ar cr $@
 LDOPTS     += -L$(SOURCE_LIB_DIR)
-MKSHLIB     = $(AR)
+MKSHLIB     = $(GCCSDK_INSTALL_CROSSBIN)/ar cr
 
 OS_RELEASE =
 OS_TARGET  = riscos
-
 
 ifdef BUILD_OPT
 	OPTIMIZER  += -O2 -mpoke-function-name

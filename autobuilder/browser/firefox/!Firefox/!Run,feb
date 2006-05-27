@@ -1,0 +1,34 @@
+| Firefox !Run file
+
+Set Firefox$Dir <Obey$Dir>
+
+| Large enough to contain the binary
+Wimpslot -min 17000k -max 17000k
+| Use a Dynamic Area for the heap.  On 32-bit versions of RISC OS,
+| this can be commented out, and the WimpSlot will be used instead.
+Set firefox-bin$heap ""
+
+| Control font behaviour
+Set Chox11$firefox-bin$subpixelfont 0
+Set Chox11$firefox-bin$scalefont 120
+
+| Application name
+Set firefox-bin$Title "Mozilla Firefox"
+
+| Latest Tinct
+RMEnsure Tinct 0.13 RMLoad System:Modules.Tinct
+RMEnsure Tinct 0.13 Error Firefox requires Tinct 0.13 or later. This can be downloaded from http://www.tinct.net/
+
+| Ensure !UnixHome has been seen
+If "<UnixEnv$HOME>" = "" Then Error !UnixHome has not been seen
+
+| RiscXLib is not used by Firefox, but older versions set HOME and upset
+| things, so watch for them.
+If "<HOME>" <> "" Then Error You appear to have an old version of !RiscXLib installed.  Please delete it or upgrade it from http://www.riscos.info/xlib/
+
+| Under RISC OS 3.7 or earlier, set the CSD.  This is a temporary work around
+| for filename canonicalisation issues.
+RMEnsure UtilityModule 4.00 Dir <Firefox$Dir>
+
+| stdout is not interesting.  stderr may contain crash or debug information.
+Run <Firefox$Dir>.firefox-bin >null: 2><Firefox$Dir>.stderr
