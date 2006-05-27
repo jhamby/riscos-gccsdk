@@ -12,7 +12,7 @@ if [ ! -e fonts/ghostscript-fonts-other-6.0.tar.gz ] ; then
   wget -nv -O fonts/ghostscript-fonts-other-6.0.tar.gz ftp://mirror.cs.wisc.edu/pub/mirrors/ghost/fonts/ghostscript-fonts-other-6.0.tar.gz
 fi
 
-# Copy src code sprite device:
+# Copy src code sprite and gdi device:
 cp $H/gdevspr.c src
 cp $H/gdevgdi.c src
 
