@@ -54,4 +54,10 @@ gcc progname.c -ISDL:SDL -LSDL: -lSDL -o progname
 
 See README/RISCOS for further RISC OS specific information.
 
+Additional SDL libraries (e.g. SDL_Image/SDL_Mixer etc) are
+packaged to be installed within the SDL directory. These
+libraries will create a directory named after the library
+in the docs subdirectory that will contain the copyright
+files, README and other documentation for the library.
+
 Alan Buckley (alan_baa@hotmail.com)
