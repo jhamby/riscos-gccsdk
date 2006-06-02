@@ -4,7 +4,7 @@ SDLVER=1.2.10
 AB_SVN=svn://libsdl.org/tags/SDL/release-1.2.10
 AB_ZIPNAME=libsdl1.2
 
-AB_CATEGORY=library
+AB_CATEGORY=libraries/sdl
 AB_INSTALL=yes
 
 mkdir -p $D/include/SDL/
