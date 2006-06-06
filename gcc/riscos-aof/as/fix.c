@@ -199,7 +199,7 @@ fixImmFloat (long int lineno, WORD ir, FLOAT im)
       return ir;
     }
 
-  /* Inverse immediate constant acan be represented, so try to invert
+  /* Inverse immediate constant can be represented, so try to invert
      the mnemonic.  */
   mnemonic = ir & M_FMNEM;
   ir &= ~M_FMNEM;

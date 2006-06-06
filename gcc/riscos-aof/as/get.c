@@ -352,6 +352,21 @@ getRhs (BOOL immonly, BOOL shift, WORD ir)
       switch (im.Tag.t)
 	{
 	case ValueInt:
+	  if (inputLook () == ',')
+	    {
+	      Lex shift;
+	  
+	      inputSkip ();
+	      shift = lexGetPrim ();
+	  
+	      if (im.ValueInt.i < 0 || im.ValueInt.i > 256)
+	        error (ErrorError, TRUE, "Immediate value out of range: 0x%x", im.ValueInt.i);
+	  
+	      if (shift.LexInt.value < 0 || shift.LexInt.value > 30 || (shift.LexInt.value % 2) == 1)
+	        error (ErrorError, TRUE, "Bad rotator %d", shift.LexInt.value);
+	  
+	      ir |= (shift.LexInt.value >> 1) << 8;
+	    }
 	case ValueAddr:
 	  ir = fixImm8s4 (inputLineNo, ir, im.ValueInt.i);
 	  break;
