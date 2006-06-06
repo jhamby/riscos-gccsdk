@@ -23,12 +23,21 @@ GCCSDK GCC 3.4.6 Release 1 (released XX XXX 2006)
   files ready for (de)registering with ResourceFS.
 
 * Several bug fixes were done:
-  - libfile : increased compatibility with Acorn libfile version.
+  - as : solved bug #149; support for offset parameter in ALIGN; support
+    for ALIGN AREA attribute; alignment happens with zero bytes instead of
+    random bytes; support for rotated constants.
+  - decaof : made it more robust.
+  - gcc : better -mapcs-26 vs -mapcs-32 behaviour but note that -mapcs-26
+    support is deprecated.
+  - libfile : increased compatibility with Acorn/Castle libfile version.
   - UnixLib : bug fix details in separate !gcc.docs.UnixLib.Changes file.
   - SharedUnixLibrary (v1.10) : support for RISC OS versions where the
     module private word is in USR read-only memory.
 
+* Various Autobuiler and porting-tool enhancements.
+
 * GCCSDK build enhancements:
+  - Move CVS to SVN changes.
   - GCC ARM backend/drlink : support for 64-bit platforms (x86_64).
   - Solaris 8 SPARC support
 
