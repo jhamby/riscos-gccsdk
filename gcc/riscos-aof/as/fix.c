@@ -1,6 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright © 1992 Niklas Röjemo
+ * Copyright © 2004-2006 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -77,8 +78,8 @@ fixShiftImm (long int lineno, WORD shiftop, int shift)
 WORD
 fixImm8s4 (long int lineno, WORD ir, int im)
 {
-  const char *op3 = "Changing %s r_,r_,#%d to %s r_,r_,#d";
-  const char *op2 = "Changing %s r_,#d to %s r_,#d";
+  const char * const op3 = "Changing \"%s R_, R_, #%d\" to \"%s R_, R_, #%d\"";
+  const char * const op2 = "Changing \"%s R_, #%d\" to \"%s R_, #%d\"";
   const char *m1, *m2, *optype;
   int i8s4;
   WORD mnemonic;
@@ -125,49 +126,47 @@ fixImm8s4 (long int lineno, WORD ir, int im)
     {			/* try changing opcode */
     case M_ADD:
       ir |= M_SUB;
-      optype = op3; m1 = "add"; m2 = "sub";
+      optype = op3; m1 = "ADD"; m2 = "SUB";
       break;
     case M_SUB:
       ir |= M_ADD;
-      optype = op3; m1 = "sub"; m2 = "add";
+      optype = op3; m1 = "SUB"; m2 = "ADD";
       break;
     case M_ADC:
       ir |= M_SBC;
-      optype = op3; m1 = "adc"; m2 = "sbc";
+      optype = op3; m1 = "ADC"; m2 = "SBC";
       break;
     case M_SBC:
       ir |= M_ADC;
-      optype = op3; m1 = "sbc"; m2 = "adc";
+      optype = op3; m1 = "SBC"; m2 = "ADC";
       break;
     case M_CMP:
       ir |= M_CMN;
-      optype = op2; m1 = "cmp"; m2 = "cmn";
+      optype = op2; m1 = "CMP"; m2 = "CMN";
       break;
     case M_CMN:
       ir |= M_CMP;
-      optype = op2; m1 = "cmn"; m2 = "cmp";
+      optype = op2; m1 = "CMN"; m2 = "CMP";
       break;
     case M_MOV:
       ir |= M_MVN;
-      optype = op2; m1 = "mov"; m2 = "mvn";
+      optype = op2; m1 = "MOV"; m2 = "MVN";
       break;
     case M_MVN:
       ir |= M_MOV;
-      optype = op2; m1 = "mvn"; m2 = "mov";
+      optype = op2; m1 = "MVN"; m2 = "MOV";
       break;
     case M_AND:
       ir |= M_BIC;
-      optype = op3; m1 = "and"; m2 = "bic";
+      optype = op3; m1 = "AND"; m2 = "BIC";
       break;
     case M_BIC:
       ir |= M_AND;
-      optype = op3; m1 = "bic"; m2 = "and";
+      optype = op3; m1 = "BIC"; m2 = "AND";
       break;
     default:
-      optype = "unknown";
-      m1 = "unk";
-      m2 = "unk";
-      break;
+      errorLine (lineno, NULL, ErrorSerious, FALSE, "Internal fixImm8s4: unknown mnemonic");
+      return ir;
    }
 
   if (fussy > 1)
@@ -179,8 +178,8 @@ fixImm8s4 (long int lineno, WORD ir, int im)
 WORD
 fixImmFloat (long int lineno, WORD ir, FLOAT im)
 {
-  const char *op3 = "Changing %s f_,f_,#%.1f to %s f_,f_,#%.1f";
-  const char *op2 = "Changing %s f_,#%.1f to %s f_,#%.1f";
+  const char * const op3 = "Changing \"%s F_, F_, #%.1f\" to \"%s F_, F_, #%.1f\"";
+  const char * const op2 = "Changing \"%s F_, #%.1f\" to \"%s F_, #%.1f\"";
   const char *m1, *m2, *optype;
   int f;
   WORD mnemonic;
@@ -207,40 +206,39 @@ fixImmFloat (long int lineno, WORD ir, FLOAT im)
     {
     case M_ADF:
       ir |= M_SUF;
-      optype = op3; m1 = "adf"; m2 = "suf";
+      optype = op3; m1 = "ADF"; m2 = "SUF";
       break;
     case M_SUF:
       ir |= M_ADF;
-      optype = op3; m1 = "suf"; m2 = "adf";
+      optype = op3; m1 = "SUF"; m2 = "ADF";
       break;
     case M_MVF:
       ir |= M_MNF;
-      optype = op2; m1 = "mvf"; m2 = "mnf";
+      optype = op2; m1 = "MVF"; m2 = "MNF";
       break;
     case M_MNF:
       ir |= M_MVF;
-      optype = op2; m1 = "mnf"; m2 = "mvf";
+      optype = op2; m1 = "MNF"; m2 = "MVF";
       break;
     case M_CMF & M_FMNEM:
       ir |= M_CNF;
-      optype = op2; m1 = "cmf"; m2 = "cnf";
+      optype = op2; m1 = "CMF"; m2 = "CNF";
       break;
     case M_CNF & M_FMNEM:
       ir |= M_CMF;
-      optype = op2; m1 = "cnf"; m2 = "cmf";
+      optype = op2; m1 = "CNF"; m2 = "CMF";
       break;
     case (M_CMF | EXEPTION_BIT) & M_FMNEM:
       ir |= M_CNF | EXEPTION_BIT;
-      optype = op2; m1 = "cmfe"; m2 = "cnfe";
+      optype = op2; m1 = "CMFE"; m2 = "CNFE";
       break;
     case (M_CNF | EXEPTION_BIT) & M_FMNEM:
       ir |= M_CMF | EXEPTION_BIT;
-      optype = op2; m1 = "cnfe"; m2 = "cmfe";
+      optype = op2; m1 = "CNFE"; m2 = "CMFE";
       break;
     default:
-      optype = "unknown";
-      m1 = "unk";
-      m2 = "unk";
+      errorLine (lineno, NULL, ErrorSerious, FALSE, "Internal fixImmFloat: unknown mnemonic");
+      return ir;
       break;
     }
 
