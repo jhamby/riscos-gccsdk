@@ -1,0 +1,23 @@
+
+CXX=g++
+
+all: hellow ackermann dhry \
+     helloworld exception template \
+     gccmodule1
+
+# hellow, ackermann: No rule, makes use of implict rules
+
+
+# dhry: Specify just the object files required to create it
+
+dhry: dhry_1.o dhry_2.o
+
+
+# Modules examples, change directory and make
+# .PHONY targets used to ensure the target is always 'made'
+
+.PHONY: gccmodule1 gccmodule2 gccmodule3
+gccmodule1 gccmodule2 gccmodule3:
+	$(MAKE) -C $@
+
+	
