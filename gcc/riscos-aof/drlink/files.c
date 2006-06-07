@@ -131,10 +131,10 @@ static bool read_file_and_process (const char *filename);
 static bool read_file_and_process_int (void *filebase, int filesize, const char *filename, FILE *objfile);
 
 static bool unread (const char *filename);
-static int match_files (char dirname[], char leafname[]);
+static int match_files (const char dirname[], const char leafname[]);
 static void split_names (const char *filename, char dirname[], char leafname[]);
 static bool wildcarded (const char *p);
-static bool load_textfile (const char *filename, char **where, size_t *size);
+static bool load_textfile (const char *filename, char **where, int *size);
 static void write_block (void *where, int size);
 static void check_write (void);
 
@@ -1035,7 +1035,7 @@ unread (const char *filename)
 ** entry will be returned in one call.
 */
 static int
-match_files (char dirname[], char leafname[])
+match_files (const char dirname[], const char leafname[])
 {
   int filecount, offset, i;
   char *fp;
@@ -1089,8 +1089,9 @@ match_files (char dirname[], char leafname[])
 ** This is the non OS-specific version of match_files.
 */
 static int
-match_files (char dirname[], char leafname[])
+match_files (const char dirname[], const char leafname[])
 {
+  dirname = dirname;
   strcpy (filebuffer, leafname);
   return 1;
 }
@@ -1237,9 +1238,9 @@ tidy_files (void)
 ** returns FALSE.
 */
 static bool
-load_textfile (const char *filename, char **where, size_t *size)
+load_textfile (const char *filename, char **where, int *size)
 {
-  size_t fsize;
+  int fsize;
   char *p;
   FILE *textfile;
   size_t count;
@@ -1261,9 +1262,9 @@ load_textfile (const char *filename, char **where, size_t *size)
       error ("Fatal: Out of memory reading '%s' in 'load_textfile'",
 	     filename);
     }
-  count = fread (p, sizeof (char), fsize, textfile);
+  count = fread (p, sizeof (char), (size_t)fsize, textfile);
   fclose (textfile);
-  if (count != fsize)
+  if (count != (size_t)fsize)
     {
       error ("Error: Unable to read file '%s'", filename);
       return FALSE;
