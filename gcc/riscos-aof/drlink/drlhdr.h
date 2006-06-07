@@ -103,7 +103,8 @@ extern bool inviafile,		/* TRUE if taking commands from 'via' file */
   opt_linkersets,               /* TRUE if linking in linker-sets */
   opt_gccareas,			/* TRUE if not touching GCC-specific areas in 'nounused' processing */
   opt_pagealign,		/* TRUE if aligning start of R/W areas on page boundary */
-  opt_strongarm;		/* TRUE if handling StrongARM-specific stuff */
+  opt_strongarm,		/* TRUE if handling StrongARM-specific stuff */
+  opt_warningerrors;		/* TRUE if warnings are treated as errors */           
 
 extern linker_state link_state;	/* Says what the linker is doing */
 

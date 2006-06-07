@@ -206,7 +206,8 @@ error (const char *msg, ...)
     {
     case 'W':
       warnings += 1;
-      break;
+      if (!opt_warningerrors)
+        break;
     case 'E':
       errors += 1;
       break;

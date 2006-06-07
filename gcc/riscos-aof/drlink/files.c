@@ -134,7 +134,7 @@ static bool unread (const char *filename);
 static int match_files (char dirname[], char leafname[]);
 static void split_names (const char *filename, char dirname[], char leafname[]);
 static bool wildcarded (const char *p);
-static bool load_textfile (const char *filename, char **where, int *size);
+static bool load_textfile (const char *filename, char **where, size_t *size);
 static void write_block (void *where, int size);
 static void check_write (void);
 
@@ -480,6 +480,8 @@ obj_check_and_adjust_head (const char *filename, const obj_overview * objovervie
 static bool
 obj_check_and_adjust_area (const char *filename, const obj_overview * objoverview)
 {
+  filename = filename;
+  objoverview = objoverview;
   convert_endian (objoverview->areaptr, objoverview->areasize / 4);
 
   return TRUE;
@@ -1235,9 +1237,9 @@ tidy_files (void)
 ** returns FALSE.
 */
 static bool
-load_textfile (const char *filename, char **where, int *size)
+load_textfile (const char *filename, char **where, size_t *size)
 {
-  int fsize;
+  size_t fsize;
   char *p;
   FILE *textfile;
   size_t count;

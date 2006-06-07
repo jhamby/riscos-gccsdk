@@ -75,7 +75,8 @@ bool inviafile,			/* TRUE if taking commands from 'via' file */
   opt_linkersets,               /* TRUE if linking in linker-sets */
   opt_gccareas,			/* TRUE if not touching special GCC areas in 'nounused' processing */
   opt_pagealign,		/* TRUE if aligning start of R/W areas on page boundary */
-  opt_strongarm;		/* TRUE if handling StrongARM-specific stuff */
+  opt_strongarm,		/* TRUE if handling StrongARM-specific stuff */
+  opt_warningerrors;		/* TRUE if warnings are treated as errors */           
 
 linker_state link_state;	/* Says what the linker is doing */
 
@@ -175,6 +176,8 @@ print_help (void)
          "  -rev[map]    Produce symbol listing in order <addr> <symbol>\n"
          "  -rm[f]       Create a relocatable module\n"
          "  -s[ymbols] <file> Write list of symbols in image to <file>\n"
+         "  -str[ong]    Warn for StrongARM specific behaviour\n"
+         "  -strict      Warnings are treated as errors\n"
 #ifndef CROSS_COMPILE
          "  -t[hrowback] Send warning and error messages to throwback window\n"
 #endif
@@ -472,7 +475,7 @@ get_option (char *tp)
     OPT_DEBUG, OPT_DUMP, OPT_EDIT, OPT_GCCAREAS, OPT_HELP, OPT_INFO,
     OPT_KEEP, OPT_LEAVEWEAK, OPT_LIB, OPT_LINKERSETS, OPT_MAP, OPT_MAPFILE, OPT_NOUNUSED,
     OPT_OUTPUT, OPT_PAGE, OPT_QUIET, OPT_RELOC, OPT_RESCAN, OPT_REVMAP,
-    OPT_RMOD, OPT_STRONG, OPT_SYMBOL, OPT_THROW, OPT_VIA, OPT_VERBOSE,
+    OPT_RMOD, OPT_STRICT, OPT_STRONG, OPT_SYMBOL, OPT_THROW, OPT_VIA, OPT_VERBOSE,
     OPT_WORKS
   } actions;
 
@@ -523,6 +526,7 @@ get_option (char *tp)
 /* revmap */ {"rev", sizeof("rev")-1, OPT_REVMAP},
 /* rmf */ {"rm", sizeof("rm")-1, OPT_RMOD},
 /* relocatable */ {"r", sizeof("r")-1, OPT_RELOC},
+/* strict */ {"strict", sizeof("strict")-1, OPT_STRICT},
 /* strong */ {"str", sizeof("str")-1, OPT_STRONG},
 /* symbols */ {"s", sizeof("s")-1, OPT_SYMBOL},
 #ifndef CROSS_COMPILE
@@ -748,6 +752,10 @@ get_option (char *tp)
       ok = onetype ();
       imagetype = RMOD;
       break;
+    case OPT_STRICT:
+      error ("Warning: Warnings treated as Errors");
+      opt_warningerrors = TRUE;
+      break;  
     case OPT_STRONG:
       opt_strongarm = TRUE;
       break;

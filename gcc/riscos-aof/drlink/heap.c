@@ -355,6 +355,7 @@ allocmem (unsigned int size)
 void
 freemem (void *where, unsigned int size)
 {
+  size = size;
   free (where);
 }
 
