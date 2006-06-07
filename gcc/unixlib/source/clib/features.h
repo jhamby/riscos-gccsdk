@@ -1,12 +1,5 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/features.h,v $
- * $Date: 2005/05/13 21:32:12 $
- * $Revision: 1.11 $
- * $State: Exp $
- * $Author: peter $
- *
- ***************************************************************************/
+/* UnixLib declaration of its features.
+   Copyright (c) 2004, 2005, 2006 UnixLib Developers.  */
 
 /* This file is derived from GNU Libc 2.2.4, features.h  We are attempting
    to closely match the macros defined within it in order to maintain
@@ -304,7 +297,7 @@
 /* Major and minor version number of the UnixLib C library package.  Use
    these macros to test for features in specific releases.  */
 #define __ULIBC__       4
-#define __ULIBC_MINOR__ 3
+#define __ULIBC_MINOR__ 4
 
 /* Convenience macros to test the versions of glibc and gcc.
    Use them like this:

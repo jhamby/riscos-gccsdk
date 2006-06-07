@@ -1,3 +1,11 @@
+Thu Jun  8 00:17:00 2006  John Tytgat  <John.Tytgat@aaug.net>
+
+	* !Help: Update version to 4.4
+	* source/clib/features.h (__ULIBC_MINOR__): Bump minor version to 4.
+	* source/signal/post.c (__write_backtrace): show explicitly the
+	  processor mode and flags when in 26bit mode; show memory contents of
+	  disassembled part as words and ASCII interpretation of its bytes.
+
 Wed Jun  7 22:52:47 2006  Alex Waugh  <alex@alexwaugh.com>
 
 	* source/sys/_syslib.s: Search for SUL in UnixLib:Modules
@@ -35,7 +43,7 @@ Sun Feb 26 23:51:25 2006  John Tytgat  <John.Tytgat@aaug.net>
 
 Tue Feb 14 23:31:18 2006  John Tytgat  <John.Tytgat@aaug.net>
 
-	* features.h (__ULIBC_MINOR__): Bump version to 3.
+	* source/clib/features.h (__ULIBC_MINOR__): Bump minor version to 3.
 
 Mon Feb 14 00:39:17 2006  John Tytgat  <John.Tytgat@aaug.net>
 

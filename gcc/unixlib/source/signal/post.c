@@ -1,5 +1,5 @@
 /* Perform delivery of a signal to a process.
-   Copyright (c) 1996, 1997, 2002, 2003, 2004, 2005 UnixLib Developers.
+   Copyright (c) 1996, 1997, 2002, 2003, 2004, 2005, 2006 UnixLib Developers.
    Written by Nick Burrett.  */
 
 #include <errno.h>
@@ -298,12 +298,24 @@ __write_backtrace (int signo)
 		}
 
 	      if (__32bit)
-		fprintf(stderr, "\n  cpsr: %8x\n", oldfp[1]);
+		fprintf(stderr, "\n    cpsr: %8x\n", oldfp[1]);
 	      else
-		fputc('\n', stderr);
+	        {
+	          const char * const pmode[4] =
+	            { "USR", "FIQ", "IRQ", "SVC" };
+	          fprintf(stderr, "\n    Mode %s, flags set: ",
+	            pmode[oldfp[15 + 2] & 3]);
+	          fputc((oldfp[15 + 2] & (1<<31)) ? 'N' : 'n', stderr);
+	          fputc((oldfp[15 + 2] & (1<<30)) ? 'Z' : 'z', stderr);
+	          fputc((oldfp[15 + 2] & (1<<29)) ? 'C' : 'c', stderr);
+	          fputc((oldfp[15 + 2] & (1<<28)) ? 'V' : 'v', stderr);
+	          fputc((oldfp[15 + 2] & (1<<27)) ? 'I' : 'i', stderr);
+	          fputc((oldfp[15 + 2] & (1<<26)) ? 'F' : 'f', stderr);
+		  fputc('\n', stderr);
+		}
 	    }
 	  else
-	    fputs("    [bad register dump address]\n", stderr);
+	    fputs("\n    [bad register dump address]\n", stderr);
 
 	  if (__32bit)
 	    pc = (unsigned int *) (oldfp[17] & 0xfffffffc);
@@ -322,17 +334,28 @@ __write_backtrace (int signo)
                 {
                   const char *ins;
                   int length;
+                  unsigned char c[4];
 
                   _swix (Debugger_Disassemble, _INR(0,1) | _OUTR(1,2),
 			 *diss, diss, &ins, &length);
 
-		  fprintf(stderr, "\n    %08x    ", (unsigned int) diss);
+                  c[3] = *diss >> 24;
+                  c[2] = (*diss >> 16) & 0xFF;
+                  c[1] = (*diss >>  8) & 0xFF;
+                  c[0] = (*diss >>  0) & 0xFF;
+		  fprintf(stderr, "\n  %08x : %c%c%c%c : %08x : ",
+		    (unsigned int) diss,
+		    (c[0] >= ' ' && c[0] != 127) ? c[0] : '.',
+		    (c[1] >= ' ' && c[1] != 127) ? c[1] : '.',
+		    (c[2] >= ' ' && c[2] != 127) ? c[2] : '.',
+		    (c[3] >= ' ' && c[3] != 127) ? c[3] : '.',
+		    *diss);
 		  fwrite(ins, length, 1, stderr);
                 }
             }
           else
 	    {
-	      fprintf(stderr, "[Disassembly not available]");
+	      fputs("\n  [Disassembly not available]", stderr);
 	    }
 
 	  fputs("\n\n", stderr);
