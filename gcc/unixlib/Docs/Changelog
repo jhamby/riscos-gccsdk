@@ -1,3 +1,8 @@
+Wed Jun  7 22:52:47 2006  Alex Waugh  <alex@alexwaugh.com>
+
+	* source/sys/_syslib.s: Search for SUL in UnixLib:Modules
+	  as well as System:Modules.
+
 Sun May 21 20:36:42 2006  Alex Waugh  <alex@alexwaugh.com>
 
 	* source/common/unixify.c: Don't do suffix swapping if the leafname

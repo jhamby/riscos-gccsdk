@@ -78,9 +78,12 @@ MAX_DA_NAME_SIZE	* 32
 SUL_MIN_VERSION	EQU	107
 |rmensure1|
 	DCB	"RMEnsure SharedUnixLibrary 1.07 "
+	DCB	"RMLoad UnixLib:Modules.SharedULib", 0
+|rmensure2|
+	DCB	"RMEnsure SharedUnixLibrary 1.07 "
 	DCB	"RMLoad System:Modules.SharedULib", 0
 	; The exact error message is not important as it will get ignored.
-|rmensure2|
+|rmensure3|
 	DCB	"RMEnsure SharedUnixLibrary 1.07 Error XYZ", 0
 	ALIGN
 
@@ -187,7 +190,9 @@ SUL_MIN_VERSION	EQU	107
 
 	LDR	a1, =|rmensure1|	; If no SUL or not recent enough, ...
 	SWI	XOS_CLI			; load it.
-	LDRVC	a1, =|rmensure2|	; If still not recent enough, ...
+	LDR	a1, =|rmensure2|	; Try a second location.
+	SWI	XOS_CLI			;
+	LDRVC	a1, =|rmensure3|	; If still not recent enough, ...
 	SWIVC	XOS_CLI			; complain.
 	MOVVS	a1, #ERR_NO_SUL
 	BVS	|__exit_with_error_num|
