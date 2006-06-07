@@ -201,6 +201,11 @@ static bool include_pch_p (_cpp_file *file);
    O_BINARY tells some runtime libraries (notably DJGPP) not to do
    newline translation; we can handle DOS line breaks just fine
    ourselves.  */
+
+#ifdef __riscos__
+#include <unixlib/local.h>
+#endif
+
 static bool
 open_file (_cpp_file *file)
 {
@@ -211,6 +216,17 @@ open_file (_cpp_file *file)
     }
   else
     file->fd = open (file->path, O_RDONLY | O_NOCTTY | O_BINARY, 0666);
+
+#ifdef __riscos__
+   /* If that failed, try "natural" format filename.  e.g. file/c as a literal RISC OS name */
+   if (file->fd == -1)
+     {
+        __set_riscosify_control(__get_riscosify_control () | __RISCOSIFY_NO_SUFFIX);
+       file->fd = open (file->path, O_RDONLY | O_NOCTTY | O_BINARY, 0666);
+        __set_riscosify_control(__get_riscosify_control () & ~__RISCOSIFY_NO_SUFFIX);
+     }
+#endif
+
 
   if (file->fd != -1)
     {
