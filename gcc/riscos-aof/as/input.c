@@ -245,6 +245,15 @@ inputInit (const char *infile)
   if (infile != NULL && strcmp (infile, "-"))
     {
       if ((asmfile = fopen (infile, "r")) == NULL)
+        {
+#ifndef CROSS_COMPILE
+          __set_riscosify_control(__get_riscosify_control () | __RISCOSIFY_NO_SUFFIX);
+           asmfile = fopen (infile, "r");
+          __set_riscosify_control(__get_riscosify_control () & ~__RISCOSIFY_NO_SUFFIX);
+#endif
+        }
+
+      if (asmfile == NULL)
 	errorLine (0, NULL, ErrorAbort, FALSE, "AS can't read %s: %s",
 	           infile, strerror (errno));
       else
