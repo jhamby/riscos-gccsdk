@@ -43,3 +43,12 @@ $(objdir)/riscos-progs/bison.o:  $(SRCS) $(HDRS) $(LIBSRCS) $(LIBHDRS)
 
 $(bin_dir)/bison$(exesfx):	$(objdir)/riscos-progs/bison.o
 	$(CROSS_CC) -o $@ $(objdir)/riscos-progs/bison.o -L$(objdir)/libiberty/$(STAGE) -liberty
+
+#scan-gram.c: scan-gram.l
+#	$(FLEX) -t -o$@ scan-gram.l > $@
+
+#scan-skel.c: scan-skel.l
+#	$(FLEX) -t -o$@ scan-skel.l > $@
+
+#$(bobj)/scan-gram.o: scan-gram.c scan-gram.l
+#$(bobj)/scan-skel.o: scan-skel.c scan-skel.l
