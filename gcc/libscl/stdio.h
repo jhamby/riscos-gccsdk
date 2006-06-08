@@ -446,6 +446,15 @@ extern char *__riscosify (const char *__name, int __create_dir,
 			  char *__buffer, size_t __buf_len,
 			  int *__filetype);
 
+/* Gets the __riscosify_control value which can be defined by
+   the global variable __riscosify_control in the user program.
+   Returns a copy of __riscosify_control_internal (with a default
+   value of 0) when __riscosify_control is not defined.  */
+extern int __get_riscosify_control (void);
+/* Sets the __riscosify_control value when it's defined.
+   Otherwise __riscosify_control_internal gets written.  */
+extern void __set_riscosify_control (int __riscosify_flags);
+
 #endif
 
 /* Return the system file descriptor for stream.  */
