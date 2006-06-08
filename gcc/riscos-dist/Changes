@@ -2,7 +2,7 @@ Noteworthy changes to the RISC OS GCCSDK releases made.
 
 For specific UnixLib changes, see !gcc.docs.UnixLib.Changes
 
-GCCSDK GCC 3.4.6 Release 1 (released XX XXX 2006)
+GCCSDK GCC 3.4.6 Release 1 (released 08 Jun 2006)
 ==========================
 
 * Update to full GCC 3.4.6 release.  See
@@ -22,13 +22,18 @@ GCCSDK GCC 3.4.6 Release 1 (released XX XXX 2006)
 * Added resgen, a tool to create an AOF file encapsulating one or more
   files ready for (de)registering with ResourceFS.
 
-* Several bug fixes were done:
+* Several bug fixes and enhancements were done:
   - as : solved bug #149; support for offset parameter in ALIGN; support
     for ALIGN AREA attribute; alignment happens with zero bytes instead of
     random bytes; support for rotated constants.
   - decaof : made it more robust.
+  - drlink : new option -strict to treat warnings as errors.
   - gcc : better -mapcs-26 vs -mapcs-32 behaviour but note that -mapcs-26
     support is deprecated.
+  - gcc/as : RISC OS binaries have additional support for "program/c" style
+    of filenames in their argument list as fallback of the more classic
+    "c.program" filenames.  Note the files are still stored as "c.program"
+    on RISC OS FS.
   - libfile : increased compatibility with Acorn/Castle libfile version.
   - UnixLib : bug fix details in separate !gcc.docs.UnixLib.Changes file.
   - SharedUnixLibrary (v1.10) : support for RISC OS versions where the
