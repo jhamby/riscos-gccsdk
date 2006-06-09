@@ -347,7 +347,7 @@ get_fileinfo (FILE *lfh, const char *lfname, unsigned int *loadaddr,
   char upath[MAXPATHLEN];
   int filetype;
 
-  if (__riscosify_std (lfname, 0, upath, sizeof(upath), &filetype) == NULL)
+  if (__riscosify (lfname, 0, __RISCOSIFY_STRICT_UNIX_SPECS, upath, sizeof(upath), &filetype) == NULL)
     {
       fprintf (stderr, "Failed to convert filename %s to a RISC OS path\n", lfname);
       return 1;
@@ -355,10 +355,16 @@ get_fileinfo (FILE *lfh, const char *lfname, unsigned int *loadaddr,
   
   regs.r[0] = 17;
   regs.r[1] = (int)upath;
-  if ((err = _kernel_swi (8 /* OS_File */, &regs, &regs)) != NULL)
+  if ((err = _kernel_swi (8 /* OS_File */, &regs, &regs)) != NULL
+      || regs.r[0] == 0)
     {
-      fputs (err->errmess, stderr);
-      return 1;
+      regs.r[0] = 17;
+      regs.r[1] = (int)lfname;
+      if ((err = _kernel_swi (8 /* OS_File */, &regs, &regs)) != NULL)
+        {
+          fputs (err->errmess, stderr);
+          return 1;
+        }
     }
 
   if (regs.r[0] == 0)
@@ -400,8 +406,17 @@ output_resfile (unsigned int *totalsize, const char *lfname,
 
   if ((lfh = fopen (lfname, "r")) == NULL)
     {
-      fprintf (stderr, "Failed to open %s for reading\n", lfname);
-      return 1;
+#ifndef CROSS_COMPILE
+      int orgRC = __get_riscosify_control ();
+      __set_riscosify_control (orgRC | __RISCOSIFY_NO_PROCESS);
+      lfh = fopen (lfname, "r");
+      __set_riscosify_control (orgRC);
+      if (lfh == NULL)
+#endif
+        {
+          fprintf (stderr, "Failed to open %s for reading\n", lfname);
+          return 1;
+        }
     }
   /* Will be reset to 0 when everything has succesfully been finished.  */
   failed = 1;
