@@ -1925,5 +1925,10 @@ parse_args (int argc, char **argv)
     }
 #endif
 
+  if (getenv("TLINK_STRICT"))
+    {
+     add_option("-strict");
+    }
+
   parse_libraries ();
 }
