@@ -54,6 +54,7 @@ extern void list_files (void);
 
 /* -- In 'files' -- */
 
+extern FILE *fopen_wrapper(const char *name, const char *mode);
 extern void init_files (void);
 extern filelist *create_filelist (const char *fname, unsigned int fsize);
 extern void addto_filelist (filelist * fp);

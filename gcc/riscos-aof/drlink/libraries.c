@@ -31,6 +31,10 @@
 #include "libraries.h"
 #include "procdefs.h"
 
+#ifndef CROSS_COMPILE
+#define fopen fopen_wrapper
+#endif
+
 /* Private declarations */
 
 /*

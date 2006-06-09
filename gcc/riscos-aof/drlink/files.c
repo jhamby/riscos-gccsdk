@@ -24,18 +24,19 @@
 
 #include "config.h"
 
+#ifndef CROSS_COMPILE
+# define __UNIXLIB_INTERNALS
+# include <kernel.h>
+# include <swis.h>
+# include <unixlib/local.h>
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
 #include <sys/param.h>
 #include <sys/stat.h>
-
-#ifndef CROSS_COMPILE
-# include <kernel.h>
-# include <swis.h>
-# include <unixlib/local.h>
-#endif
 
 #include "drlhdr.h"
 #include "chunkhdr.h"
@@ -171,6 +172,22 @@ rearrange (const char *filename)
 
   return FALSE;
 }
+
+FILE *fopen_wrapper(const char *name, const char *mode)
+{
+  FILE *handle = fopen (name, mode);
+
+  if (handle == NULL)
+    {
+      __set_riscosify_control(__get_riscosify_control () | __RISCOSIFY_NO_SUFFIX);
+      handle = fopen (name, mode);
+     __set_riscosify_control(__get_riscosify_control () & ~__RISCOSIFY_NO_SUFFIX);
+    }
+  return handle;  
+}
+
+#define fopen fopen_wrapper
+
 #endif
 
 /*
