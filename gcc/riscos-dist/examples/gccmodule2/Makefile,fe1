@@ -5,7 +5,7 @@
 # for cross-compiling.
 #
 # When you have the following defined, double clicking on the Makefile Filer
-# icon will build 'gccmodule'.
+# icon will build 'gccmodule2'.
 #   GCCSDK:
 #     Set Alias$@RunType_FE1 TaskWindow "make -f %%0 %%*1" -display -quit -wimpslot 8000k -name "Makefile"
 #   Norcroft:
@@ -67,7 +67,7 @@ ifneq ($(TOOLCHAIN),gcc)
 MODSSRCS += ro_base.s
 endif
 
-all: gccmodule
+all: gccmodule2
 
 .INIT:
 	@$(MKDIR) o
@@ -83,13 +83,15 @@ all: gccmodule
 
 # Static dependencies:
 
+$(MODCSRCS): $(MODCMHGSRC:.cmhg=.h)
+
 ifeq ($(UNITATATIME),yes)
 # One big compilation (GCC only):
-gccmodule: $(MODCSRCS) $(MODSSRCS) $(MODCMHGSRC:.cmhg=.h) $(MODCMHGSRC:.cmhg=.o) $(LIBS)
+gccmodule2: $(MODCSRCS) $(MODSSRCS) $(MODCMHGSRC:.cmhg=.h) $(MODCMHGSRC:.cmhg=.o)
 	$(CC) $(CC_FLAGS) -o $@ $(MODCSRCS) $(MODSSRCS) $(MODCMHGSRC:.cmhg=.o) $(LIBS)
 else
 # Object-per-object compilation:
-gccmodule: $(MODCSRCS:.c=.o) $(MODSSRCS:.s=.o) $(MODCMHGSRC:.cmhg=.h) $(MODCMHGSRC:.cmhg=.o) $(LIBS)
+gccmodule2: $(MODCSRCS:.c=.o) $(MODSSRCS:.s=.o) $(MODCMHGSRC:.cmhg=.h) $(MODCMHGSRC:.cmhg=.o)
 	$(LINK) $(LINK_FLAGS) -o $@ $(MODCSRCS:.c=.o) $(MODSSRCS:.s=.o) $(MODCMHGSRC:.cmhg=.o) $(LIBS)
 endif
 

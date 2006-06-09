@@ -5,7 +5,7 @@
 # for cross-compiling.
 #
 # When you have the following defined, double clicking on the Makefile Filer
-# icon will build 'gccmodule'.
+# icon will build 'gccmodule3'.
 #   GCCSDK:
 #     Set Alias$@RunType_FE1 TaskWindow "make -f %%0 %%*1" -display -quit -wimpslot 8000k -name "Makefile"
 #   Norcroft:
@@ -65,10 +65,10 @@ MODCMHGSRC = module.cmhg
 # Add here your ResourceFS files (everything is added twice, once in a
 # real subdirectory 'dat', and once in a non-existing subdirectory 'res') :
 RESGENSRC  = dat/ObeyFile res/ObeyFile dat/TextFile res/TextFile
-RESGENTRG  =resgen.o
+RESGENTRG  = resgen.o
 RESGENAREA = resourcefsdata
 
-all: gccmodule
+all: gccmodule3
 
 .INIT:
 	@$(MKDIR) o
@@ -87,13 +87,15 @@ all: gccmodule
 $(RESGENTRG): $(patsubst res/%,dat/%,$(RESGENSRC))
 	$(RESGEN) $(RESGEN_FLAGS) $(RESGENAREA) $(RESGENTRG) $(patsubst res/%,ThirdParty.GCCSDK.%,$(RESGENSRC))
 
+$(MODCSRCS): $(MODCMHGSRC:.cmhg=.h)
+
 ifeq ($(UNITATATIME),yes)
 # One big compilation (GCC only):
-gccmodule: $(MODCSRCS) $(MODSSRCS) $(MODCMHGSRC:.cmhg=.h) $(MODCMHGSRC:.cmhg=.o) $(RESGENTRG) $(LIBS)
+gccmodule3: $(MODCSRCS) $(MODSSRCS) $(MODCMHGSRC:.cmhg=.h) $(MODCMHGSRC:.cmhg=.o) $(RESGENTRG)
 	$(CC) $(CC_FLAGS) -o $@ $(MODCSRCS) $(MODSSRCS) $(MODCMHGSRC:.cmhg=.o) $(RESGENTRG) $(LIBS)
 else
 # Object-per-object compilation:
-gccmodule: $(MODCSRCS:.c=.o) $(MODSSRCS:.s=.o) $(MODCMHGSRC:.cmhg=.h) $(MODCMHGSRC:.cmhg=.o) $(RESGENTRG) $(LIBS)
+gccmodule3: $(MODCSRCS:.c=.o) $(MODSSRCS:.s=.o) $(MODCMHGSRC:.cmhg=.h) $(MODCMHGSRC:.cmhg=.o) $(RESGENTRG)
 	$(LINK) $(LINK_FLAGS) -o $@ $(MODCSRCS:.c=.o) $(MODSSRCS:.s=.o) $(MODCMHGSRC:.cmhg=.o) $(RESGENTRG) $(LIBS)
 endif
 
