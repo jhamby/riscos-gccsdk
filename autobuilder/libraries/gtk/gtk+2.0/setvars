@@ -3,6 +3,10 @@ AB_PRECONF=/home/riscos/env/ro-path
 
 AB_INSTALL=yes
 
-AB_CONFLAGS="--without-libtiff --disable-xkb"
+AB_CONFLAGS="--disable-modules --with-included-loaders=png,gif,jpeg,bmp --without-libtiff --disable-xkb"
 
 mkdir -p $D/include/gtk-2.0/gdk-pixbuf/
+mkdir -p $D/include/gtk-2.0/gdk-pixbuf-xlib/
+mkdir -p $D/lib/gtk-2.0/2.4.0/immodules/
+mkdir -p $D/lib/gtk-2.0/2.4.0/engines/
+mkdir -p $D/lib/gtk-2.0/2.4.0/loaders/
