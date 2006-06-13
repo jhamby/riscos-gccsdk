@@ -184,7 +184,7 @@ static void preprocess(FILE *file) {
   }
 }
 
-static char *getline(FILE *file) {
+static char *get_line(FILE *file) {
 
   char c;
   int comma, discarding, whitespace;
@@ -406,7 +406,7 @@ retry:
 
 /*****************************************************************************
  * Starts to get cleaner from here :-)
- * parse_line calls getline and then deals with the returned string, setting
+ * parse_line calls get_line and then deals with the returned string, setting
  * up the 'options' structure as required.
  *****************************************************************************/
 
@@ -546,7 +546,7 @@ static void read_errors(const char *s, FILE *file) {
         s = strstring(s, &(*l)->message);
       } else if (*s == 0) {
         while ((*s == 0) && !Feof(file)) {
-          s = getline(file);
+          s = get_line(file);
           while (isspace(*s) && (!Feof(file)))
             s++;
         }
@@ -694,7 +694,7 @@ static void read_commands(const char *s, FILE *file) {
     opt.helpfn = NULL;
   s = strcomma(s);
   while ((*s == 0) && !Feof(file)) {
-    s = getline(file);
+    s = get_line(file);
     while (isspace(*s) && (!Feof(file)))
       s++;
   }
@@ -741,7 +741,7 @@ static void read_commands(const char *s, FILE *file) {
       {
         if (*s == 0) {
           while ((*s == 0) && !Feof(file)) {
-            s = getline(file);
+            s = get_line(file);
             while (isspace(*s) && (!Feof(file)))
               s++;
           }
@@ -1009,7 +1009,7 @@ static void read_handlers(const char *s, handler_list *h, unsigned long allow,
           break;
         } else if (*s == 0) {
           while ((*s == 0) && !Feof(file)) {
-            s = getline(file);
+            s = get_line(file);
             while (isspace(*s) && (!Feof(file)))
               s++;
           }
@@ -1155,7 +1155,7 @@ static void read_runnable(const char *s, FILE *file)
       break;
     } else if (*s == 0) {
       while ((*s == 0) && !Feof(file)) {
-        s = getline(file);
+        s = get_line(file);
         while (isspace(*s) && (!Feof(file)))
           s++;
       }
@@ -1432,7 +1432,7 @@ static void parse_line(FILE *file) {
 
   char *line;
 
-  line = getline(file);
+  line = get_line(file);
 
   while (isspace(*line))
     line++;
