@@ -1,3 +1,9 @@
+Fri Jun 16 12:03:17 2006  John-Mark Bell  <jmb202@ecs.soton.ac.uk>
+
+	* source/stdio/scanf.c: Fix handling of width-limited character classes.
+	  Previously re-read the last character that matched the format string.
+	* source/test/stdio/tsscanf.c: Testcase for the above.
+
 Thu Jun  8 00:17:00 2006  John Tytgat  <John.Tytgat@aaug.net>
 
 	* !Help: Update version to 4.4

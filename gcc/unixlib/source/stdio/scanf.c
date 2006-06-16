@@ -393,7 +393,8 @@ fprintf (stderr, "3. fp->i_ptr = %d, i_cnt = %d\n", *fp->i_ptr, fp->i_cnt);
 					if (z == EOF)
 					  break;
 				}
-				ungetc (z, fp);
+				if (width != 0)
+				  ungetc (z, fp);
 				if (n == 0)
 					goto match_failure;
 			} else {
@@ -410,7 +411,8 @@ fprintf (stderr, "3. fp->i_ptr = %d, i_cnt = %d\n", *fp->i_ptr, fp->i_cnt);
 					if (z == EOF)
 					  break;
 				}
-				ungetc (z, fp);
+				if (width != 0)
+				  ungetc (z, fp);
 				n = p - p0;
 				if (n == 0)
 					goto match_failure;
