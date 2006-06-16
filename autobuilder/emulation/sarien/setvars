@@ -1,7 +1,6 @@
-
-
 AB_CVS_ROOT=:pserver:anonymous:@cvs.sf.net:/cvsroot/sarien
 AB_CVS_MODULE=sarien
+AB_ZIPNAME=sarien-cvs-$(date +%Y%m%d)
 
 AB_CATEGORY=emulation
 
