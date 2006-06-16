@@ -2,6 +2,13 @@ AB_INSTALL=yes
 
 AB_CONFLAGS=--with-included-modules=basic-x,basic-fc
 
+# Because we've patched configure.in and the Makefile is cunningly
+# detecting this, it will recreate configure.in undoing our efforts.
+# The following prevents that.
+touch aclocal.m4
+touch Makefile.in
+autoconf
+
 mkdir -p $D/include/pango-1.0/pango/
 mkdir -p $D/lib/pango/1.4.0/modules/
 mkdir -p $D/lib/pango/1.5.0/modules/

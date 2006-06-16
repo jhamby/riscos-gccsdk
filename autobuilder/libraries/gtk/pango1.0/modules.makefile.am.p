@@ -1,15 +1,15 @@
---- modules/Makefile.in.org	2006-03-13 05:56:35.000000000 +0100
-+++ modules/Makefile.in	2006-04-19 13:50:59.290000000 +0200
-@@ -603,7 +603,7 @@
- 
- @CROSS_COMPILING_FALSE@all-local: pango.modules
+--- modules/Makefile.am.org	2006-06-16 01:53:00.000000000 +0200
++++ modules/Makefile.am	2006-06-16 01:54:20.000000000 +0200
+@@ -26,7 +26,7 @@
+ all-local: pango.modules
+ endif
  
 -install-data-local: $(top_builddir)/pango/pango-querymodules
 +install-data-local: $(top_builddir)/pango/pango-querymodules$(EXEEXT)
  	@if $(RUN_QUERY_MODULES_TEST) ; then 				\
  	  echo $(mkinstalldirs) $(DESTDIR)$(sysconfdir)/pango \&\& 	\
  	  $(top_builddir)/pango/pango-querymodules 			\
-@@ -623,7 +623,7 @@
+@@ -46,7 +46,7 @@
  uninstall-local:
  	$(RM) $(DESTDIR)$(sysconfdir)/pango/pango.modules
  
