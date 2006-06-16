@@ -1,9 +1,12 @@
-AB_URL=http://x.mirrors.skynet.be/pub/x.org/pub/X11R6.8.2/src-single/X11R6.8.2-src.tar.bz2
+AB_URL=ftp://x.mirrors.skynet.be/pub/x.org/pub/X11R6.8.2/src-single/X11R6.8.2-src.tar.bz2
 AB_ZIPNAME=X11R6.8.2
 
 AB_MAKE="if [ -e Imakefile.ab ] ; then mv Imakefile.ab Imakefile; fi; make World CROSSCOMPILEDIR=$GCCSDK_INSTALL_CROSSBIN"
 
 AB_INSTALL=yes
+
+# No ChoX11 link interaction:
+export -n TLINK_CX11
 
 # Temporary rename this and in AB_MAKE we rename it back.  Otherwise in build-program
 # xmkmf kicks in.
