@@ -5,3 +5,5 @@ AB_ZIPNAME=oslib-cvs-$(date +%Y%m%d)
 AB_INSTALL=yes
 
 AB_MAKE="cd $PWD/\!OsLib; $AB_MAKE"
+
+mkdir -p $D/include/oslib/oslib
