@@ -1,0 +1,4 @@
+AB_CATEGORY=libraries
+AB_INSTALL=yes
+
+mkdir -p $D/include/libcroco-0.6/libcroco
