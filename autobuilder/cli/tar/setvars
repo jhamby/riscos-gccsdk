@@ -1,0 +1,7 @@
+AB_CATEGORY=cli
+
+AB_URL=ftp://gnu.mirror.pacific.net.au/gnu/gnu/tar/tar-1.15.tar.gz
+
+ab_package() {
+  cp $S/src/tar,ff8 $S/COPYING $D
+}
