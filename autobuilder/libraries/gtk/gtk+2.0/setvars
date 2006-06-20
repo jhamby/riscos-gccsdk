@@ -1,12 +1,20 @@
-
-AB_PRECONF=/home/riscos/env/ro-path
-
 AB_INSTALL=yes
 
-AB_CONFLAGS="--disable-modules --with-included-loaders=png,gif,jpeg,bmp --without-libtiff --disable-xkb"
+AB_CONFLAGS="--disable-modules --with-included-loaders=bmp,gif,ico,jpeg,png --disable-shm --disable-xim --disable-xkb --with-gdktarget=x11 --disable-shadowfb"
 
+export -n TLINK_CX11
+
+# Because we've patched configure.in and the Makefile is cunningly
+# detecting this, it will recreate configure.in undoing our efforts.
+# The following prevents that.
+touch aclocal.m4
+touch Makefile.in
+autoconf
+
+mkdir -p $D/include/gtk-2.0/gdk/
 mkdir -p $D/include/gtk-2.0/gdk-pixbuf/
 mkdir -p $D/include/gtk-2.0/gdk-pixbuf-xlib/
+mkdir -p $D/include/gtk-2.0/gtk/
 mkdir -p $D/lib/gtk-2.0/2.4.0/immodules/
 mkdir -p $D/lib/gtk-2.0/2.4.0/engines/
 mkdir -p $D/lib/gtk-2.0/2.4.0/loaders/
