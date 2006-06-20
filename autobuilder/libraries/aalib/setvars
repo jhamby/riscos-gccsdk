@@ -1,8 +1,1 @@
 AB_INSTALL=yes
-
-ln -sf /usr/share/automake-1.?/depcomp
-
-libtoolize --force
-aclocal
-automake --force-missing --add-missing --foreign
-autoconf
