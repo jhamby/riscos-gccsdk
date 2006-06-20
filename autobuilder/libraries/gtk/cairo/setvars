@@ -1,11 +1,10 @@
 #AB_URX=http://cairographics.org/releases/cairo-1.0.4.tar.gz
 #AB_ZIPNAMX=cairo-1.0.4
-AB_URL=http://cairographics.org/snapshots/cairo-1.1.8.tar.gz
-AB_ZIPNAME=cairo-1.1.8
+AB_URL=http://cairographics.org/snapshots/cairo-1.1.10.tar.gz
+AB_ZIPNAME=cairo-1.1.10
 
 AB_INSTALL=yes
 
-# png seems not to work
-AB_CONFLAGS="--enable-xlib=yes --enable-png=no --enable-freetype=yes --enable-ps=yes --enable-pdf=yes --enable-svg=yes"
+AB_CONFLAGS="--enable-xlib=yes --enable-png=yes --enable-freetype=yes --enable-ps=yes --enable-pdf=yes --enable-svg=yes"
 
 mkdir -p $D/include/cairo/
