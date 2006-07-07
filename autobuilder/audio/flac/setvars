@@ -1,0 +1,12 @@
+AB_CATEGORY=audio
+
+AB_INSTALL=yes
+
+mkdir -p $D/include/FLAC
+mkdir -p $D/include/FLAC++
+mkdir -p $D/include/OggFLAC
+mkdir -p $D/include/OggFLAC++
+
+ab_package () {
+	cp $S/src/flac/flac,ff8 COPYING.* $D
+}
