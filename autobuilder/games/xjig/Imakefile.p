@@ -5,7 +5,7 @@
                        color_mapper.C gif_image.C gifx_image.C
  
 -           CXXFLAGS = $(USE_MIT_SHM) $(RANG_CHECK)
-+           CXXFLAGS = $(RANG_CHECK) -I/home/riscos/env/X11R6/include -O2
++           CXXFLAGS = $(RANG_CHECK) -I/home/riscos/env/include -O2
  
      LOCAL_LIBRARIES = $(XLIB) -lm
  

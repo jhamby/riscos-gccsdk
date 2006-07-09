@@ -6,8 +6,7 @@ ab_make() {
 }
 
 ab_package() {
-  mkdir -p $D/\!XJig
-
-  cp -av $H/\!Run,feb $H/choxcogs.gif $D/\!XJig
-  cp -av $S/xjig,ff8 $D/\!XJig 
+  cp -av $H/\!XJig $D
+  cp -av $S/xjig,ff8 $D/\!XJig
+  rman -f HTML $S/xjig.man > $D/\!XJig/\!Help,faf
 }
