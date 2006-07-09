@@ -1,3 +1,8 @@
+Sun Jul  9 13:52:36 2006  Alex Waugh  <alex@alexwaugh.com>
+
+	* source/common/unixify.c: Remove part of previous change so that
+	  names such as foo/bar.c get translated correctly.
+
 Fri Jun 16 12:03:17 2006  John-Mark Bell  <jmb202@ecs.soton.ac.uk>
 
 	* source/stdio/scanf.c: Fix handling of width-limited character classes.
