@@ -296,16 +296,29 @@ static void
 l_onlyregs (WORD ir, const char *op)
 {
   WORD dstl, dsth, lhs, rhs;
-  cpuWarn (ARM7M);
-  skipblanks ();
-  dstl = getCpuReg ();
-  if (inputLook () == ',')
+  /* This bit only set for smulxx */
+  int issmull = !(ir & 0x01000000);
+
+  if (issmull)
     {
-      inputSkip ();
+      cpuWarn (ARM7M);
       skipblanks ();
+      dstl = getCpuReg ();
+      if (inputLook () == ',')
+        {
+          inputSkip ();
+          skipblanks ();
+        }
+      else
+        error (ErrorError, TRUE, "%sdst_h", InsertCommaAfter);
     }
   else
-    error (ErrorError, TRUE, "%sdst_h", InsertCommaAfter);
+    {
+      cpuWarn (XSCALE);
+      skipblanks ();
+      dstl = 0;
+    }
+
   dsth = getCpuReg ();
   skipblanks ();
   if (inputLook () == ',')
@@ -325,25 +338,64 @@ l_onlyregs (WORD ir, const char *op)
   else
     error (ErrorError, TRUE, "%slhs", InsertCommaAfter);
   rhs = getCpuReg ();
-  if (dstl == dsth)
-    error (ErrorError, TRUE, "Destination high and low are the same register %d", dstl);
-  if (dstl == lhs || dsth == lhs)
+  if (issmull)
     {
-      if (dstl == rhs || dsth == rhs)
-	error (ErrorError, TRUE, "Left operand register %d also occurs in destination", lhs);
-      else
-	{
-	  if (fussy)
-	    error (ErrorInfo, TRUE, "Changing order of operands in %s", op);
-	  {
-	    int t = lhs;
-	    lhs = rhs;
-	    rhs = t;
-	  }
-	}
-    }
+      if (dstl == dsth)
+        error (ErrorError, TRUE, "Destination high and low are the same register %d", dstl);
+      if (dstl == lhs || dsth == lhs)
+        {
+          if (dstl == rhs || dsth == rhs)
+            error (ErrorError, TRUE, "Left operand register %d also occurs in destination", lhs);
+          else
+	    {
+	      if (fussy)
+	        error (ErrorInfo, TRUE, "Changing order of operands in %s", op);
+	      {
+	        int t = lhs;
+	        lhs = rhs;
+	        rhs = t;
+	      }
+	    }
+        }
+     }
+  else
+     {
+       if (dsth == 15 || lhs == 15 || rhs == 15)
+         error (ErrorError, TRUE, "Cannot use R15 with %s", op);
+     }
+
   ir |= dstl << 12 | dsth << 16 | lhs | rhs << 8;
   putIns (ir);
+}
+
+void m_smulbb (WORD cc)
+{
+  l_onlyregs (cc | M_SMULBB, "SMULBB");
+}
+
+void m_smulbt (WORD cc)
+{
+  l_onlyregs (cc | M_SMULBT, "SMULBT");
+}
+
+void m_smultb (WORD cc)
+{
+  l_onlyregs (cc | M_SMULTB, "SMULTB");
+}
+
+void m_smultt (WORD cc)
+{
+  l_onlyregs (cc | M_SMULTT, "SMULTT");
+}
+
+void m_smulwb (WORD cc)
+{
+  l_onlyregs (cc | M_SMULWB, "SMULWB");
+}
+
+void m_smulwt (WORD cc)
+{
+  l_onlyregs (cc | M_SMULWT, "SMULWT");
 }
 
 void
@@ -369,3 +421,7 @@ m_umlal (WORD cc)
 {
   l_onlyregs (cc | M_UMLAL, "UMLAL");
 }
+
+
+
+

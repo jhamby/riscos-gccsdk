@@ -642,7 +642,43 @@ decode (Lex * label)
 	  switch (inputGetUC ())
 	    {
 	    case 'u':
-	      M_FINISH_STR ("ll", m_smull, optionCondS);	/* smull CC */
+	      switch (inputGetUC ())
+	        {
+	        case 'l':
+	          switch (inputGetUC ())
+	          {
+	            case 'l':
+	              M_FINISH (m_smull, optionCondS);	/* smull CC */
+	            case 'b':
+	              switch (inputGetUC ())
+	                {
+	                  case 'b':
+	                    M_FINISH (m_smulbb, optionCond); /* smulbb CC */
+	                  case 't':
+	                    M_FINISH (m_smulbt, optionCond); /* smulbt CC */
+	                }
+	              break;
+	           case 't':
+	              switch (inputGetUC ())
+	                {
+	                  case 'b':
+	                    M_FINISH (m_smultb, optionCond); /* smultb CC */
+	                  case 't':
+	                    M_FINISH (m_smultt, optionCond); /* smultt CC */
+	                }
+	              break;
+	           case 'w':
+	              switch (inputGetUC ())
+	                {
+	                  case 'b':
+	                    M_FINISH (m_smulwb, optionCond); /* smulwb CC */
+	                  case 't':
+	                    M_FINISH (m_smulwt, optionCond); /* smulwt CC */
+	                }
+	              break;
+	          }
+	        }
+	      break;  
 	    case 'l':
 	      M_FINISH_STR ("al", m_smlal, optionCondS);	/* smlal CC */
 	    default:
