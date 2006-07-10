@@ -76,12 +76,14 @@ addff8() {
   ff8PATH_ACLOCALM4=`dirname $ff8PATH`/aclocal.m4
   if [ -e $ff8PATH_ACLOCALM4 ] ; then
     echo RISC OS: Touching $ff8PATH_ACLOCALM4 because $ff8PATH got patched
-    touch $ff8PATH_ACLOCALM4
+    # The sleep is necessary to make sure 'make' sees a time difference
+    sleep 1 && touch $ff8PATH_ACLOCALM4
   fi
   ff8PATH_MAKEFILEIN=`dirname $ff8PATH`/Makefile.in
   if [ -e $ff8PATH_MAKEFILEIN ] ; then
     echo RISC OS: Touching $ff8PATH_MAKEFILEIN because $ff8PATH got patched
-    touch $ff8PATH_MAKEFILEIN
+    # The sleep is necessary to make sure 'make' sees a time difference
+    sleep 1 && touch $ff8PATH_MAKEFILEIN
   fi
 }
 
