@@ -72,6 +72,17 @@ addff8() {
     mv /tmp/new-configure $ff8PATH
     chmod +x $ff8PATH
   fi  
+
+  ff8PATH_ACLOCALM4=`dirname $ff8PATH`/aclocal.m4
+  if [ -e $ff8PATH_ACLOCALM4 ] ; then
+    echo RISC OS: Touching $ff8PATH_ACLOCALM4 because $ff8PATH got patched
+    touch $ff8PATH_ACLOCALM4
+  fi
+  ff8PATH_MAKEFILEIN=`dirname $ff8PATH`/Makefile.in
+  if [ -e $ff8PATH_MAKEFILEIN ] ; then
+    echo RISC OS: Touching $ff8PATH_MAKEFILEIN because $ff8PATH got patched
+    touch $ff8PATH_MAKEFILEIN
+  fi
 }
 
 
