@@ -47,9 +47,10 @@ GCCDOCPKG = $(pkg)/docs/COPYING \
 	$(pkg)/docs/bugs \
 	$(pkg)/docs/cpp \
 	$(pkg)/docs/gcc \
-	$(pkg)/docs/UnixLib/Changes \
+	$(pkg)/docs/UnixLib/Changelog \
 	$(pkg)/docs/UnixLib/Copyright \
-	$(pkg)/docs/UnixLib/UnixLib \
+	$(pkg)/docs/UnixLib/ReadMe \
+	$(pkg)/docs/UnixLib/Usage \
 	$(pkg)/docs/DRenderer/COPYING \
 	$(pkg)/docs/DRenderer/DocDRender \
 	$(pkg)/examples
