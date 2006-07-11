@@ -42,49 +42,40 @@ fi
 addff8() {
   if grep -q "exeext=$" $ff8PATH ; then
     echo RISC OS: Adding filetype for exeext for $ff8PATH
-    sed s#exeext=\$#"exeext=,ff8;"# < $ff8PATH > /tmp/new-configure
-    mv /tmp/new-configure $ff8PATH
+    tmpconfigure=/tmp/new-configure-$$-$RANDOM
+    sed s#exeext=\$#"exeext=,ff8;"# < $ff8PATH > $tmpconfigure
+    mv $tmpconfigure $ff8PATH
     chmod +x $ff8PATH
   fi
 
   # Fix some tests that assume no file extension for binaries
   if grep -q -- "-s conftest;" $ff8PATH ; then
     echo RISC OS: Adding filetype for binary tests for $ff8PATH
-    sed s#-s\ conftest\;#"-s conftest\$\{ac_exeext\}\;"# < $ff8PATH > /tmp/new-configure
-    mv /tmp/new-configure $ff8PATH
+    tmpconfigure=/tmp/new-configure-$$-$RANDOM
+    sed s#-s\ conftest\;#"-s conftest\$\{ac_exeext\}\;"# < $ff8PATH > $tmpconfigure
+    mv $tmpconfigure $ff8PATH
     chmod +x $ff8PATH
   fi
 
   # Doesn't strictly belong here, but it fits
   if grep -q "sys_lib_dlsearch_path_spec=" $ff8PATH ; then
     echo RISC OS: Setting libtool library paths for $ff8PATH
+    tmpconfigure=/tmp/new-configure-$$-$RANDOM
     sed -e s#"sys_lib_dlsearch_path_spec=".*\$#"sys_lib_dlsearch_path_spec=GCCSDK_ENV/lib"# \
         -e s#"sys_lib_search_path_spec=".*\$#"sys_lib_search_path_spec=GCCSDK_ENV/lib"# \
-         < $ff8PATH > /tmp/new-configure
-    mv /tmp/new-configure $ff8PATH
+         < $ff8PATH > $tmpconfigure
+    mv $tmpconfigure $ff8PATH
     chmod +x $ff8PATH
   fi
 
   if grep -q -- "-lSDL_mixer.*\$L" $ff8PATH; then
     echo RISC OS: Adding vorbis library
+    tmpconfigure=/tmp/new-configure-$$-$RANDOM
     sed -e s#"-lSDL_mixer.*\$L"#"-lSDL_mixer -lvorbisfile \$L"# \
-         < $ff8PATH > /tmp/new-configure
-    mv /tmp/new-configure $ff8PATH
+         < $ff8PATH > $tmpconfigure
+    mv $tmpnewconfigure $ff8PATH
     chmod +x $ff8PATH
   fi  
-
-  ff8PATH_ACLOCALM4=`dirname $ff8PATH`/aclocal.m4
-  if [ -e $ff8PATH_ACLOCALM4 ] ; then
-    echo RISC OS: Touching $ff8PATH_ACLOCALM4 because $ff8PATH got patched
-    # The sleep is necessary to make sure 'make' sees a time difference
-    sleep 1 && touch $ff8PATH_ACLOCALM4
-  fi
-  ff8PATH_MAKEFILEIN=`dirname $ff8PATH`/Makefile.in
-  if [ -e $ff8PATH_MAKEFILEIN ] ; then
-    echo RISC OS: Touching $ff8PATH_MAKEFILEIN because $ff8PATH got patched
-    # The sleep is necessary to make sure 'make' sees a time difference
-    sleep 1 && touch $ff8PATH_MAKEFILEIN
-  fi
 }
 
 
@@ -106,24 +97,14 @@ if ! [ -e $RO_CPATH/configure ] ; then
 fi
 
 
-# Prevent configure being re-run by make in some circumstances
-for touched in \
-  configure.in aclocal.m4 stamp-h.in Makefile.in config.status
-do
-  touch $RO_CPATH/touched
-done
-
-
 # Massage the configure scripts
-
 if [ "$RO_RECURSE" == "yes" ] ; then
   # Search for more configure files
-  RO_CFILES=$(find $RO_PATH -type f -name configure)
+  RO_CFILES=$(find $RO_CPATH -type f -name configure)
 
   for ff8PATH in $RO_CFILES ; do
     addff8
   done
-
 else
   # Otherwise, just the single one at the top
   ff8PATH=$RO_CPATH/configure
@@ -131,8 +112,20 @@ else
 fi
 
 
+# Prevent configure being re-run by make in some circumstances (e.g.
+# Debian patches make changes in configure.in which normally results in
+# recreating aclocal.m4, config.h.in, Makefile.in, etc).  For all clearness,
+# we ignore such patches by doing the following:
+for touched in \
+  aclocal.m4 config.h.in Makefile.in stamp-h.in config.guess config.sub configure 
+do
+  touch -c $RO_CPATH/$touched
+done
+
+
 # Record configure options so switches can be added if needed
-$RO_CPATH/configure --help > /tmp/out-configure
+tmpoutconfigure=/tmp/out-configure-$$-$RANDOM
+$RO_CPATH/configure --help > $tmpoutconfigure
 
 # Set target type
 if grep -q -- --target $RO_CPATH/configure; then
@@ -165,10 +158,10 @@ TARGET=
 if echo $@ | grep -q -- -prefix; then
  :
 else
- if grep -q -- --prefix /tmp/out-configure; then
+ if grep -q -- --prefix $tmpoutconfigure; then
   PREFIX="--prefix=GCCSDK_ENV"
  else
-  if grep -q -- -prefix /tmp/out-configure; then
+  if grep -q -- -prefix $tmpoutconfigure; then
    PREFIX="--prefix=GCCSDK_ENV"
   else
    PREFIX=
@@ -177,7 +170,7 @@ else
 fi 
 
 # Set WITHLIBS
-#if grep -q -- --with-libs /tmp/out-configure; then
+#if grep -q -- --with-libs $tmpoutconfigure; then
 # WITHLIBS="--with-libs=GCCSDK_ENV"
 #else
  WITHLIBS= 
@@ -214,11 +207,11 @@ fi
 
 
 # Set Static and Dynamic options
-if grep -q -- --enable-shared /tmp/out-configure; then
+if grep -q -- --enable-shared $tmpoutconfigure; then
  echo RISC OS: Disabling shared libraries
  SHARED=--enable-shared=no
 else
- if grep -q -- --disable-shared /tmp/out-configure; then
+ if grep -q -- --disable-shared $tmpoutconfigure; then
    echo RISC OS: Disabling shared libraries
    SHARED=--disable-shared
  else
@@ -226,11 +219,11 @@ else
  fi
 fi
 
-if grep -q enable-static /tmp/out-configure; then
+if grep -q enable-static $tmpoutconfigure; then
  echo RISC OS: Enabling static libraries
  STATIC=--enable-static=yes
 else
- if grep -q -- " -static" /tmp/out-configure; then
+ if grep -q -- " -static" $tmpoutconfigure; then
   STATIC=-static
  else
   STATIC=
@@ -239,7 +232,7 @@ fi
 
 
 # Glib location
-if grep -q with-glib-prefix /tmp/out-configure; then
+if grep -q with-glib-prefix $tmpoutconfigure; then
  echo RISC OS: Setting Glib path
  GLIB=--with-glib-prefix=GCCSDK_ENV
 else
@@ -247,7 +240,7 @@ else
 fi
 
 # GTK location
-if grep -q with-gtk-prefix /tmp/out-configure; then
+if grep -q with-gtk-prefix $tmpoutconfigure; then
  echo RISC OS: Setting GTK path
  GTK=--with-gtk-prefix=GCCSDK_ENV
 else
@@ -256,7 +249,7 @@ fi
 
 
 # TCL
-if grep -q with-tclconfig /tmp/out-configure; then
+if grep -q with-tclconfig $tmpoutconfigure; then
  echo RISC OS: Setting TCL path
  TCLTK="--with-tclconfig=GCCSDK_ENV/lib/tcl8.4"
 else
@@ -264,7 +257,7 @@ else
  fi
 
 # TK
-if grep -q with-tkconfig /tmp/out-configure; then
+if grep -q with-tkconfig $tmpoutconfigure; then
  echo RISC OS: Setting TK path
  TCLTK="$TCLTK --with-tkconfig=GCCSDK_ENV/lib/tk8.4"
 fi
@@ -272,7 +265,7 @@ fi
 
 # Threading
 # We probably want this on in future. 
-#if grep -q -- "--enable-thread" /tmp/out-configure ; then
+#if grep -q -- "--enable-thread" $tmpoutconfigure ; then
 # echo RISC OS: Disabling threads
 # THREADS=--disable-threads
 #else
@@ -281,7 +274,7 @@ fi
 
 
 # Native compilers
-if grep -q -- "--with-build-cc" /tmp/out-configure ; then
+if grep -q -- "--with-build-cc" $tmpoutconfigure ; then
  echo RISC OS: Setting native compiler
  NATIVE="--with-build-cc=$(which cc)"
 else
@@ -292,7 +285,7 @@ fi
 LTOOL=GCCSDK_ENV/bin/libtool
 
 # Remove configure options
-rm /tmp/out-configure
+rm $tmpoutconfigure
 
 
 # Set tool chain variables picked up by configure
