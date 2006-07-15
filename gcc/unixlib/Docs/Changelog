@@ -1,3 +1,10 @@
+Sat Jul 15 21:35:32 2006  John Tytgat  <John.Tytgat@aaug.net>
+
+	* source/unix/tty.c,source/clib/unixlib/fd.h: minor src code cleanup.
+	* source/clib/unixlib/unix.h,source/common/funcallerr.c: made
+	  __UNIXLIB_PARANOID build working again and added extra test on
+	  function pointers be lower than __ul_memory.appspace_himem value.
+
 Sun Jul  9 13:52:36 2006  Alex Waugh  <alex@alexwaugh.com>
 
 	* source/common/unixify.c: Remove part of previous change so that

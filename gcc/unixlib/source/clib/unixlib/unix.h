@@ -1,5 +1,5 @@
 /* Structures for UnixLib's internal process management.
-   Copyright (c) 2002, 2003, 2004, 2005 UnixLib Developers.  */
+   Copyright (c) 2002, 2003, 2004, 2005, 2006 UnixLib Developers.  */
 
 #ifndef __UNIXLIB_UNIX_H
 #define __UNIXLIB_UNIX_H 1
@@ -235,7 +235,7 @@ struct ul_memory
   /* As data is requested from the system by 'brk' to satisfy allocation
      and deallocation requests, the value of 'rwlimit' will change.
 
-     Initially it starts off equal to '__rwlomem', meaning that no data
+     Initially it starts off equal to 'rwlomem', meaning that no data
      has been allocated at run-time.
 
      When a request is made for more space, then 'rwlimit' will increase.  */
@@ -270,7 +270,7 @@ struct ul_memory
      'appspace_himem'.  */
   unsigned int appspace_limit;
 
-  /* Value of __appspace_himem last time the stack was increased */
+  /* Value of 'appspace_himem' last time the stack was increased.  */
   unsigned int old_himem;
 };
 
@@ -281,11 +281,11 @@ extern struct ul_global __ul_global;
 
 extern int __funcall_error (const char *, int, unsigned int);
 #if __UNIXLIB_PARANOID > 0
-#define __funcall(f,p) \
-  ((((void *)(f) >= __ul_memory.__robase) && (((unsigned int)(f) & ~3) == (unsigned int)(f)) \
-   ? 0 : __funcall_error(__FILE__,__LINE__,(unsigned int)(f))), (f)p)
+#define __funcall(f, p) \
+  ((((unsigned int)(f) >= __ul_memory.robase) && !((unsigned int)(f) & 3) && (unsigned int)(f) < __ul_memory.appspace_himem \
+   ? 0 : __funcall_error(__FILE__, __LINE__, (unsigned int)(f))), (f)p)
 #else
-#define __funcall(f,p) ((f)p)
+#define __funcall(f, p) ((f)p)
 #endif
 
 

@@ -1,5 +1,5 @@
 /* Paranoid error function.
-   Copyright (c) 2004, 2005 UnixLib Developers.  */
+   Copyright (c) 2004, 2005, 2006 UnixLib Developers.  */
 
 #include <signal.h>
 #include <unixlib/unix.h>
@@ -13,7 +13,9 @@ __funcall_error (const char *file, int line, unsigned int addr)
 
   __os_print ("fatal error: Attempt to call a function at address below 0x");
   __os_prhex ((unsigned int) __ul_memory.robase);
-  __os_print ("\n\ror a function at a non word-aligned address in a UnixLib function.\r\nFile: ");
+  __os_print (", or higher than ");
+  __os_prhex ((unsigned int) __ul_memory.appspace_himem);
+  __os_print (" or a function at a non word-aligned address in a UnixLib function.\r\nFile: ");
   __os_print (file);
   __os_print (", line: ");
   do

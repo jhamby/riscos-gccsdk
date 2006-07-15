@@ -1,5 +1,5 @@
 /* UnixLib internal file descriptor interface definition.
-   Copyright (c) 2002, 2003, 2004, 2005 UnixLib Developers.  */
+   Copyright (c) 2002, 2003, 2004, 2005, 2006 UnixLib Developers.  */
 
 #ifndef __UNIXLIB_FD_H
 #define __UNIXLIB_FD_H 1
@@ -22,7 +22,8 @@ __BEGIN_DECLS
    They are referenced by SUL and other processes */
 
 /* Multiple __unixlib_fd structures may point to one of these */
-struct __unixlib_fd_handle {
+struct __unixlib_fd_handle
+{
   unsigned int refcount;
   unsigned int type; /* Device type (tty, socket etc. ), see DEV_* */
   void *handle; /* device specific field (i.e. socket, file handle) */

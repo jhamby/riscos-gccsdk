@@ -1,14 +1,5 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/tty.c,v $
- * $Date: 2005/04/24 20:26:59 $
- * $Revision: 1.22 $
- * $State: Exp $
- * $Author: joty $
- *
- ***************************************************************************/
-
-/* System V tty device driver for RISC OS.  */
+/* UnixLib tty device driver.
+   Copyright (c) 2000-2006 UnixLib Developers.  */
 
 #define _BSD_SOURCE
 
@@ -66,7 +57,7 @@ static void __ttycr (struct tty *tty, tcflag_t oflag);
 static void __ttynl (struct tty *tty, tcflag_t oflag);
 
 
-static cc_t ttydefchars[NCCS] =
+static const cc_t ttydefchars[NCCS] =
 {
   CEOF, /* 0 */
   CEOL, /* 1 */
@@ -102,16 +93,16 @@ struct ttyfuncs
   int (*flush) (void);
 };
 
-static struct ttyfuncs ttyfuncs[MAXTTY] =
+static const struct ttyfuncs ttyfuncs[MAXTTY] =
 {
-  {
+  { /* TTY_CON */
     __os_vdu,
     __os_get,
     __os_inkey,
     __os_console,
     __os_keyflush
   },
-  {
+  { /* TTY_423 */
     __os_423vdu,
     __os_423get,
     __os_423inkey,
@@ -133,7 +124,7 @@ __tty_console_gwinsz (struct winsize *win)
   if (__taskhandle != 0)
     {
       char *size;
-      int lines = 24, cols = 80;
+      int lines, cols;
 
       size = getenv ("LINES");
       if (size)
@@ -143,6 +134,8 @@ __tty_console_gwinsz (struct winsize *win)
           if (lines <= 0)
             lines = 24;
         }
+      else
+        lines = 24;
 
       size = getenv ("COLUMNS");
       if (size)
@@ -152,6 +145,8 @@ __tty_console_gwinsz (struct winsize *win)
           if (cols <= 0)
             cols = 80;
         }
+      else
+        cols = 80;
 
       win->ws_col = cols;
       win->ws_row = lines;
@@ -776,7 +771,7 @@ int
 __ttywrite (struct __unixlib_fd *file_desc, const void *buf, int nbyte)
 {
   struct tty *tty = file_desc->devicehandle->handle;
-  int i = 0, c;
+  int i = 0;
   const char *s = buf;
   const tcflag_t oflag = tty->t->c_oflag;
   const tcflag_t lflag = tty->t->c_lflag;
@@ -785,7 +780,7 @@ __ttywrite (struct __unixlib_fd *file_desc, const void *buf, int nbyte)
 
   while (i < nbyte)
     {
-      c = s[i++];
+      int c = s[i++];
 #if 0
       if ((oflag & (OPOST | OLCUC)) == (OPOST | OLCUC))
 	c = tolower (c);
