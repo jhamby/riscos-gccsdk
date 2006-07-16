@@ -1,1 +1,5 @@
 AB_INSTALL=yes
+
+ln -s . man3
+
+mkdir -p $D/include/X11
