@@ -17,7 +17,7 @@ fi
 
 mkdir -p $AB_DIR/package/bin/
 mkdir -p $AB_DIR/package/lib/
-mkdir -p $AB_DIR/package/include/
+mkdir -p $AB_DIR/package/include/X11/
 mkdir -p $AB_DIR/package/lib/pkgconfig/
 
 echo "RO libpack: Running install target: $AB_INSTALLTARGET"
