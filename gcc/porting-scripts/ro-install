@@ -37,7 +37,7 @@ done
 if [ "$command" == "/usr/bin/install" ] ; then
   # If we're installing when one of the $installparams are directories, we need to expand
   # those.  This happens when this scripts gets used as 'cp' but not called as 'cp'.
-  # FIXME: this looses options!
+  # FIXME: this loses options!
   installparams_exp=
   for param in $installparams ; do
     if [ -d $param ] ; then

@@ -696,7 +696,7 @@ arm_override_options (void)
     {
       /* If APCS-32 was not the default then it must have been set by the
 	 user, so issue a warning message.  If the user has specified
-	 "-mapcs-32 -mcpu=arm2" then we loose here.  */
+	 "-mapcs-32 -mcpu=arm2" then we lose here.  */
       if ((TARGET_DEFAULT & ARM_FLAG_APCS_32) == 0)
 	warning ("target CPU does not support APCS-32" );
       target_flags &= ~ARM_FLAG_APCS_32;

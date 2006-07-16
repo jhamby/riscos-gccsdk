@@ -47,7 +47,7 @@ int pselect (int nfds, fd_set *readfds, fd_set *writefds,
   int retval;
   sigset_t savemask;
 
-  /* Change nanosecond number to microseconds.  This may loose
+  /* Change nanosecond number to microseconds.  This may lose
      precision and therefore the `pselect` should be available.  But
      for now it is hardly found.  */
   if (timeout != NULL)

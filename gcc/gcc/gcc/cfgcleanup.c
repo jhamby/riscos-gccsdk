@@ -1317,7 +1317,7 @@ outgoing_edges_match (int mode, basic_block bb1, basic_block bb2)
 	     and BB2 because when deleting the common insns in the end of BB1
 	     by delete_block () the jump table would be deleted too.  */
 	  /* If LABEL2 is referenced in BB1->END do not do anything
-	     because we would loose information when replacing
+	     because we would lose information when replacing
 	     LABEL1 by LABEL2 and then LABEL2 by LABEL1 in BB1->END.  */
 	  if (label1 != label2 && !rtx_referenced_p (label2, BB_END (bb1)))
 	    {

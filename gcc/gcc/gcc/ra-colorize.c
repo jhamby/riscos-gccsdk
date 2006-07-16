@@ -1801,7 +1801,7 @@ try_recolor_web (struct web *web)
       if (cost > cost_neighbors[newcol]
 	  && nregs == 1 && !TEST_HARD_REG_BIT (wide_seen, newcol))
 	abort ();
-      /* But if the new spill-cost is higher than our own, then really loose.
+      /* But if the new spill-cost is higher than our own, then really lose.
 	 Respill us and recolor neighbors as before.  */
       if (cost > web->spill_cost)
 	{

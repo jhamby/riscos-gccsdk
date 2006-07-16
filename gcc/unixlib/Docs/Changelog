@@ -6840,7 +6840,7 @@ Nicholas Clark  <nickc@liv.ac.uk>
 
 	* common/riscosify.c (__riscosify): Ensure "." returns "@"
 	Do create directories unless they exist already. (not don't!)
-	(sdirinit) don't loose last char from names when adding '.'
+	(sdirinit) don't lose last char from names when adding '.'
 
 Sat Sep 20 09:53:25 1997 CL0048
 Nicholas Clark  <nickc@liv.ac.uk>
@@ -6870,7 +6870,7 @@ Sat Oct 04 19:40:02 1997 CL0047
 Nicholas Clark  <nickc@liv.ac.uk>
 
 	* common/riscosify.c (__riscosify): Ensure "." returns "@"
-	(sdirinit) don't loose last char from names when adding '.'
+	(sdirinit) don't lose last char from names when adding '.'
 
 Thu Oct 02 11:53:21 1997 CL0046
 Peter Burwood  <pjb@arcangel.dircon.co.uk>
