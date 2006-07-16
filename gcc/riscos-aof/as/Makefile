@@ -15,6 +15,10 @@ asobjdir = $(objdir)/riscos-aof/as/$(STAGE)
 
 all:	$(gcc_bin_dir)/as$(exesfx)
 
+riscos-dist:
+	mkdir -p $(info_dir)/as
+	cp -p COPYING $(info_dir)/as
+
 SRCS = area.c \
 	asm.c \
 	code.c \

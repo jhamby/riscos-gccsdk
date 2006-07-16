@@ -30,8 +30,10 @@ GCCPKG = $(pkg)/\!Run,feb \
 	$(pkg)/include \
 	$(pkg)/startup \
 	$(bindir)/as$(exesfx) \
+	$(pkg)/docs/as/* \
 	$(bindir)/cpp$(exesfx) \
 	$(bindir)/ld$(exesfx) \
+	$(pkg)/docs/ld/* \
 	$(bindir)/apcs32/abs/libscl/o/libscl \
 	$(bindir)/apcs32/abs/libscl/o/libgcc \
 	$(bindir)/apcs32/abs/unixlib/o/libgcc \

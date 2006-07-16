@@ -1,4 +1,5 @@
 # Makefile for LD - frontend to DRLINK
+# Copyright (c) 1997-2006 GCCSDK Developers
 # Written by Nick Burrett <nick@dsvr.net>
 
 ifeq (${STAGE},stage1)
@@ -22,6 +23,11 @@ endif
 
 all:	$(gcc_bin_dir)/ld$(exesfx)
 
+riscos-dist:
+	mkdir -p $(info_dir)/ld
+	cp -p README $(info_dir)/ld
+	cp -p COPYING $(info_dir)/ld
+
 $(gcc_bin_dir)/ld$(exesfx):	$(OBJS) $(DEPS)
 	$(CC) -o $@ $(OBJS) -L$(objdir)/libiberty/$(STAGE) -liberty
 
@@ -29,4 +35,3 @@ $(ldobjdir)/ld.o: ld.c ../../sdk-config.h ../../include/obstack.h \
 	../../include/demangle.h
 	$(CC) $(CFLAGS) -o $@ -c ld.c $(INCLUDES) \
 	-DSTANDARD_EXEC_PREFIX=\"$(prefix)$(gn_standard_exec_prefix)\"
-

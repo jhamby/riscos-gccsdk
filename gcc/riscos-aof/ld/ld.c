@@ -3,6 +3,7 @@
 
    Copyright (C) 1997, 1998, 1999, 2000, 2001, 2004 Nick Burrett
    Contributed by Nick Burrett (nick@sqrt.co.uk)
+   Copyright (C) 2005-2006 GCCSDK Developers
 
 This file is part of GNU CC.
 
