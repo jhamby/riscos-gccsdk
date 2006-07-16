@@ -31,7 +31,7 @@ TLINK_VERBOSE:
 
 TLINK_CX11
   When defined (value unimportant) and the X11 library is in the link line,
-  replace the X11 library with ChoX11 library and add Desk library as well.
+  replace the X11 library with ChoX11 library and add DeskLib library as well.
 
 TLINK_EXTRA
   When defined, its value specifies extra command line arguments for the
@@ -47,8 +47,10 @@ TLINK_STRICT
 
 COLLECT_GCC
 COLLECT_GCC_OPTIONS
+  Deprecated debugging values.  These have little practical use.
+
 COLLECT_NO_DEMANGLE
-  ???
+  If defined, don't demangle C++ symbols reported by drlink
   
 GCC$Linker [not applicable for cross-compile environment]
   When defined, its value specifies the underlying linker to be used
@@ -56,7 +58,7 @@ GCC$Linker [not applicable for cross-compile environment]
   GCCSDK drlink linker.
 
 Note the libm, libc, libpthread and libdl libraries are not passed to
-the underlying linker.
+the underlying linker, since these are all all implied by UnixLib.
 
 
 Copyright
