@@ -27,6 +27,8 @@
 #include <stddef.h>
 #include <stdio.h>
 #include <unistd.h>
+#include <errno.h>
+#include <sys/stat.h>
 
 ssize_t write (int fd, const void *buffer, size_t nbytes)
 {
@@ -49,3 +51,18 @@ __off_t lseek (int fd, __off_t offset, int whence)
 {
   return fseek(&__iob[fd], offset, whence);
 }
+
+/* Dummy fstat for the benefit of libstdc++ with libscl */
+int fstat (int fd, struct stat *buf)
+{
+  if (!buf)
+    { 
+      errno = EINVAL;
+      return -1;
+    }
+
+  memset(buf, 0, sizeof(struct stat));
+  buf->st_mode = S_IFREG;
+  return 0;
+}
+
