@@ -205,7 +205,12 @@ else
  else
    exit 1
  fi
- 
+
+ # Ensure links in man pages work when creating HTML with rman 
+ if ! [ -e man3 ] ; then
+   ln -s . $S/man3
+ fi
+
  # Need to install in $GCCSDK_INSTALL_ENV ?
  if [ "$AB_INSTALL" == "env" ] || [ "$AB_INSTALL" == "yes" ] ; then
    echo "Autobuilder: Running make install"
@@ -279,11 +284,6 @@ if [ "$AB_NOPACKAGE" == "" ] ; then
  fi
 
  if [ "$AB_MANPAGE" != "" ] ; then
-   # Ensure links in man pages work when creating HTML with rman ]
-   if ! [ -e man3 ] ; then
-     ln -s . $S/man3
-   fi
-  
    for AB_PAGE in $AB_MANPAGE ; do
      rman -f HTML $S/$AB_PAGE > $S/$AB_PAGE,faf
      addzip -j $AB_ZIP $S/$AB_PAGE,faf
