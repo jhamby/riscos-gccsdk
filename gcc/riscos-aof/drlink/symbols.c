@@ -70,8 +70,8 @@ static symbol *symblock,	/* Memory to hold symbol entries for file when reading 
 
 static filelist *current_file;  /* File list entry for file being processed */
 static symtable *current_table; /* Pointer to local symbol table of current file */
-static editcmd * current_symedit,	/* Pointer to symbol edits for current file */
- *current_refedit;		/* Pointer to reference edits for current file */
+static editcmd *current_symedit,	/* Pointer to symbol edits for current file (sorted based on low -> high hash values) */
+ *current_refedit;		/* Pointer to reference edits for current file (sorted based on low -> high hash values) */
 
 #ifndef HAVE_STRICMP
 /*
@@ -138,18 +138,18 @@ isrelocatable (relocation * rp)
 
 /*
 ** 'check_edits' is called to see if there are any edits for the
-** current file and to set up pointers to the edits if there are
+** current file and to set up global variables 'current_symedit'
+** and 'current_refedit' to the edits if there are.
 */
 static void
 check_edits (const char *filename, int hashval)
 {
-  editcmd *ep;
   current_symedit = NULL;
   current_refedit = NULL;
 
   if (symedit_count > 0)
     {	/* Symbol edits exist */
-      ep = symedit_list;
+      editcmd *ep = symedit_list;
       while (ep != NULL && hashval > ep->edtfnhash)
 	ep = ep->edtnext;
 
@@ -159,9 +159,10 @@ check_edits (const char *filename, int hashval)
     }
   if (refedit_count > 0)
     {	/* Reference edits exist */
-      ep = refedit_list;
+      editcmd *ep = refedit_list;
       while (ep != NULL && hashval > ep->edtfnhash)
 	ep = ep->edtnext;
+
       if (ep != NULL && hashval == ep->edtfnhash
 	  && stricmp (filename, ep->edtfile) == 0)
 	current_refedit = ep;
@@ -235,8 +236,9 @@ check_symedit (symtentry * symtp)
 
 
 /*
-** 'check_libedit' checks if a library entry might be renamed.  This is used to
-** index a library before its symbols are loaded.
+** 'check_libedit' checks if a library entry might be renamed or made
+** hidden.  This is used to index a library before its symbols are loaded.
+** FIXME: deal with EDT_REVEAL ?!?
 */
 const char *
 check_libedit(const char *memname, const char *symname, int syhashval)
@@ -267,6 +269,12 @@ check_libedit(const char *memname, const char *symname, int syhashval)
 		error ("Warning: Library reference '%s' in '%s' renamed as '%s'",
 		       ep->edtold, ep->edtfile, ep->edtnew);
 	      return ep->edtnew;
+
+	    case EDT_HIDE:
+	      if (opt_verbose)
+	        error ("Warning: Made library reference '%s' in '%s' hidden",
+	               ep->edtold, ep->edtfile);
+	      return NULL;
 
 	    default:
 	      break;
@@ -879,12 +887,6 @@ list_unresolved (void)
     }
 }
 
-/*
-** 'search_lib' seaches the current library's symbol table for
-** the symbol 'wantedsym'. If it is found, the function returns
-** a pointer to the library symbol table entry, otherwise it
-** returns NULL.
-*/
 static libentry *
 search_lib_tree (libentry * lp, const char *name, bool ignorecase)
 {
@@ -902,6 +904,12 @@ search_lib_tree (libentry * lp, const char *name, bool ignorecase)
   return NULL;
 }
 
+/*
+** 'search_lib' seaches the current library's symbol table for
+** the symbol 'wantedsym'. If it is found, the function returns
+** a pointer to the library symbol table entry, otherwise it
+** returns NULL.
+*/
 static libentry *
 search_lib (symbol * wantedsym)
 {

@@ -25,6 +25,7 @@
 #include "config.h"
 
 #include <string.h>
+#include <stdint.h>
 
 #include "drlhdr.h"
 #include "symbolhdr.h"
@@ -76,12 +77,12 @@ static char *lldnametable, *lldnamenext;	/* Text of names to go in low level tab
 ** number of words long, returning the updated pointer
 */
 
-#define ALIGNBITS (sizeof(int)-1)
+#define ALIGNBITS (sizeof(int32_t)-1)
 
 static char *
 nullfill (char *p)
 {
-  while ((COERCE (p, int) & ALIGNBITS) != 0)
+  while ((COERCE (p, intptr_t) & ALIGNBITS) != 0)
     {
       *p = '\0';
       p++;
@@ -226,7 +227,7 @@ gen_lowlevel (void)
 	("Error: Not enough memory to construct low level debugging tables");
       return FALSE;
     }
-  lldnamenext += sizeof (int);	/* First four bytes contains the table length */
+  lldnamenext += sizeof (int32_t);	/* First four bytes contains the table length */
   lldentco = 0;
   for (fp = aofilelist; fp != NULL; fp = fp->nextfile)
     {

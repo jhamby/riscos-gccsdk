@@ -2,7 +2,7 @@
 ** Drlink AOF linker
 **
 ** Copyright (c) 1993, 1994, 1995, 1996, 1997, 1998  David Daniels
-** Copyright (c) 2001, 2002, 2003, 2004, 2005  GCCSDK Developers
+** Copyright (c) 2001, 2002, 2003, 2004, 2005, 2006  GCCSDK Developers
 **
 ** This program is free software; you can redistribute it and/or
 ** modify it under the terms of the GNU General Public License
@@ -32,7 +32,7 @@
 #include "procdefs.h"
 
 #ifndef CROSS_COMPILE
-#define fopen fopen_wrapper
+#  define fopen fopen_wrapper
 #endif
 
 /* Private declarations */
@@ -396,7 +396,7 @@ find_membername (const lib_overview *liboverviewp, unsigned int index)
 static bool
 add_libsymbol (libheader * fp, unsigned int index, const char *name)
 {
-  const char *memname;
+  const char *memname, *newname;
   libentry *lp;
   const chunkindex *hp;
   int hashval;
@@ -417,6 +417,20 @@ add_libsymbol (libheader * fp, unsigned int index, const char *name)
       return FALSE;
     }
 
+  hashval = hash (name);
+  newname = check_libedit (memname, name, hashval);
+  if (newname != name)
+    {
+      /* Was symbol made hidden ? */
+      if (newname == NULL)
+        return TRUE;
+
+      /* Symbol got renamed: */
+      name = newname;
+      hashval = hash (name);
+    }
+
+  /* Get a free libentry: */
   if (freeliblist != NULL)
     {				/* Allocate entry from free list */
       lp = freeliblist;
@@ -424,17 +438,6 @@ add_libsymbol (libheader * fp, unsigned int index, const char *name)
     }
   else if ((lp = allocmem (sizeof (libentry))) == NULL)
     error ("Fatal: Out of memory in 'add_libsymbol' adding '%s'", fp->libname);
-  hashval = hash (name);
-
-  {
-    const char *newname = check_libedit (memname, name, hashval);
-
-    if (newname != name)
-      {
-	name = newname;
-	hashval = hash (name);
-      }
-  }
 
   lp->left = NULL;
   lp->right = NULL;

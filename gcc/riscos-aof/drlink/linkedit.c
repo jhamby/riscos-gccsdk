@@ -2,7 +2,7 @@
 ** Drlink AOF Linker
 **
 ** Copyright (c) 1993, 1994, 1995, 1996, 1997, 1998  David Daniels
-** Copyright (c) 2001, 2002, 2003, 2004, 2005  GCCSDK Developers
+** Copyright (c) 2001, 2002, 2003, 2004, 2005, 2006  GCCSDK Developers
 **
 ** This program is free software; you can redistribute it and/or
 ** modify it under the terms of the GNU General Public License
@@ -39,8 +39,7 @@
 ** Variables referenced outside this file
 */
 editcmd *symedit_list,		/* List of symbols to edit */
-  *refedit_list,		/* List of references to change */
-  *new_entry;			/* Replacement entry point */
+  *refedit_list;		/* List of references to change */
 
 const char *editname;		/* Name of edit file */
 char *editptr,			/* Pointer into link edit file buffer */
@@ -81,6 +80,7 @@ getsym (void)
 {
   char *cp;
   char ch;
+
   cp = editptr;
   editsym = NOTHING;
   while (cp != editendptr && *cp <= ' ')
@@ -139,27 +139,25 @@ find_cmd (void)
 /* change */ {"change", EDT_CHANGE},
 /* hide */ {"hide", EDT_HIDE},
 /* reveal */ {"reveal", EDT_REVEAL},
-/* entry */ {"entry", EDT_ENTRY}
   };
   unsigned int n;
-  char *p;
+  const char *p;
   char name[10];
+
   for (n = 0, p = ident; p != editptr && n < MAXLEN; ++n, ++p)
     name[n] = tolower (*p);
   name[n] = '\0';
-  n = 0;
-  while (n < sizeof (cmdlist) / sizeof (commands)
-	 && strcmp (cmdlist[n].cmdname, name) != 0)
-    n++;
+
+  for (n = 0; n < sizeof (cmdlist) / sizeof (commands)
+	      && strcmp (cmdlist[n].cmdname, name) != 0; ++n)
+    /* */;
   if (n < sizeof (cmdlist) / sizeof (commands))
     {				/* Command found */
       return cmdlist[n].cmd;
     }
-  else
-    {
-      edit_error ("Error: Invalid edit command found");
-      return EDT_BAD;
-    }
+
+  edit_error ("Error: Invalid edit command found");
+  return EDT_BAD;
 }
 
 /*
@@ -272,11 +270,6 @@ parse_command (void)
     }
   insert_null (file);
   insert_null (oldsymbol);
-  if (thiscmd == EDT_ENTRY && new_entry != NULL)
-    {
-      edit_error ("Error: More than one 'entry' command found");
-      return FALSE;
-    }
   if ((p = allocmem (sizeof (editcmd))) == NULL)
     {
       error ("Fatal: Out of memory in 'parse_command'");
@@ -300,8 +293,6 @@ parse_command (void)
       insert_edit (&refedit_list, p);
       refedit_count += 1;
       break;
-    case EDT_ENTRY:
-      new_entry = p;
     default:
       break;
     }
@@ -377,5 +368,4 @@ init_edit (void)
 {
   symedit_list = refedit_list = NULL;
   symedit_count = refedit_count = 0;
-  new_entry = NULL;
 }
