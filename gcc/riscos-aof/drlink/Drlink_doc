@@ -532,6 +532,9 @@ The linker has the following extra options of its own:
                is produced with one symbol per line in
                <address> <name> order.
 
+   -strict
+               Treat warnings as errors.
+
    -throwback  If this option is used and it is possible to use
                'throwback' then all warning, error and fatal error
                messages will be displayed in a 'throwback' window.
@@ -1247,6 +1250,12 @@ Drlink 0.42 (based on work from Justin Fletcher)
 
 Drlink 0.43
 - Support for host platforms where sizeof(void *) != 4.
+
+Drlink 0.44
+- Option -strict: treat warnings as errors.
+- Support for natural filenames for object and library files.
+- Fixed problem hiding symbol from an AOF file stored in ALF
+  library.
 
 
 Copyright

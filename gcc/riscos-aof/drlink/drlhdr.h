@@ -30,7 +30,7 @@
 # define IGNORE_CASE
 #endif
 
-#define DL_VERSION "v0.43 (" __DATE__ ") [GCCSDK " __VERSION__ "]"
+#define DL_VERSION "v0.44 (" __DATE__ ") [GCCSDK " __VERSION__ "]"
 
 /*
 ** Some constants used everywhere
