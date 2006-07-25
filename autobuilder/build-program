@@ -277,8 +277,13 @@ if [ "$AB_NOPACKAGE" == "" ] ; then
  if [ -e $AB_ZIP ] ; then
    rm $AB_ZIP
  fi
- 
+
  if [ "$AB_MANPAGE" != "" ] ; then
+   # Ensure links in man pages work when creating HTML with rman ]
+   if ! [ -e man3 ] ; then
+     ln -s . $S/man3
+   fi
+  
    for AB_PAGE in $AB_MANPAGE ; do
      rman -f HTML $S/$AB_PAGE > $S/$AB_PAGE,faf
      addzip -j $AB_ZIP $S/$AB_PAGE,faf

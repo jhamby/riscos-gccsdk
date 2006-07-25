@@ -1,3 +1,2 @@
 AB_INSTALL=yes
 
-ln -s . man3
