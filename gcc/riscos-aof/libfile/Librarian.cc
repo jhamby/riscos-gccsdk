@@ -13,11 +13,11 @@
 #include "Library.h"
 #include "TimeStamp.h"
 
-Librarian::Librarian(int a_argc,char **a_argv)
+#define LIBRARIAN_VERSION "1.01"
+
+Librarian::Librarian(int a_argc, char **a_argv)
+  : m_argParser(a_argc, a_argv)
 {
-  m_argParser = new  ArgParser(a_argc, a_argv);
-  if(!m_argParser)
-    THROW_SPEC_ERR(BError::NewFailed);
 }
 
 Librarian::~Librarian()
@@ -34,10 +34,10 @@ void Librarian::run()
   int nullStamps = 0;
   Action action = ActionNone;
 
-  if(m_argParser->getOption("-v", viaFile))
-    m_argParser->addArgsFromFile(viaFile);
+  if (m_argParser.getOption("-v", viaFile))
+    m_argParser.addArgsFromFile(viaFile);
 
-  if(!m_argParser->getOption("-q", destDir))
+  if (!m_argParser.getOption("-q", destDir))
     {
 #ifdef CROSS_COMPILE
       destDir = "./";
@@ -46,126 +46,119 @@ void Librarian::run()
 #endif
     }
 
-  if(m_argParser->getOption("-h"))
+  if (m_argParser.getOption("-h") || m_argParser.getOption("-?"))
     {
       usage();
       return;
     }
 
-  if(m_argParser->getOption("-?"))
-    {
-      usage();
-      return;
-    }
-
-  argList = m_argParser->getTrailingArgs();
-  if(argList)
+  argList = m_argParser.getTrailingArgs();
+  if (argList)
     libFile = argList.unput();
 
-  if(m_argParser->getOption("-c"))
+  if (m_argParser.getOption("-c"))
     action = ActionCreate;
 
-  if(m_argParser->getOption("-i"))
+  if (m_argParser.getOption("-i"))
     action = ActionInsert;
 
-  if(m_argParser->getOption("-d"))
+  if (m_argParser.getOption("-d"))
     action = ActionDelete;
 
-  if(m_argParser->getOption("-e"))
+  if (m_argParser.getOption("-e"))
     {
-      if(action == ActionDelete)
+      if (action == ActionDelete)
 	action = ActionExtractDelete;
       else
 	action = ActionExtract;
     }
 
-  if(m_argParser->getOption("-x"))
-    {
-      action = ActionExtractAll;
-    }
+  if (m_argParser.getOption("-x"))
+    action = ActionExtractAll;
 
-  if(m_argParser->getOption("-t"))
+  if (m_argParser.getOption("-t"))
     TimeStamp::useNull();
 
-  if(m_argParser->getOption("-l"))
+  if (m_argParser.getOption("-l"))
     listLib = 1;
 
-  if(m_argParser->getOption("-L"))
+  if (m_argParser.getOption("-L"))
     listLib = 2;
 
-  if(m_argParser->getOption("-s"))
+  if (m_argParser.getOption("-s"))
     listSymbols = 1;
 
   /* Ignore ("Add an external symbol table to an object library") */
-  m_argParser->getOption("-o");
+  m_argParser.getOption("-o");
 
-  if(libFile == "" || action == ActionNone)
+  if (libFile == ""
+      || action == ActionNone && listLib == 0 && listSymbols == 0)
     {
       usage ();
       return;
     }
 
-  m_argParser->warn();
+  m_argParser.warn();
 
-  Library *library = new Library(libFile);
+  Library library(libFile);
 
   switch(action)
     {
     case ActionInsert:
     case ActionCreate:
-      if((action == ActionInsert) || (argList.length() == 0))
+      if (action == ActionInsert || argList.length() == 0)
 	{
 	  FILE *fp = fopen (libFile (), "r");
 	  if (fp != NULL)
 	    {
 	      fclose (fp);
-	      library->load();
+	      library.load();
 	    }
 	}
 
-      library->addMembers(argList);
-      library->updateOflTime();
-      library->updateOflSymt();
-      library->save();
+      library.addMembers(argList);
+      library.updateOflTime();
+      library.updateOflSymt();
+      library.save();
       break;
 
     case ActionExtract:
-      library->load();
-      library->extractMembers(argList, destDir);
+      library.load();
+      library.extractMembers(argList, destDir);
       break;
 
     case ActionExtractAll:
-      library->load();
-      library->extractAllMembers(destDir);
+      library.load();
+      library.extractAllMembers(destDir);
       break;
 
     case ActionExtractDelete:
     case ActionDelete:
-      library->load();
-      if(action == ActionExtractDelete)
-        library->extractMembers(argList, destDir);
+      library.load();
+      if (action == ActionExtractDelete)
+        library.extractMembers(argList, destDir);
 
-      library->deleteMembers(argList);
-      library->updateOflTime();
-      library->updateOflSymt();
-      library->save();
+      library.deleteMembers(argList);
+      library.updateOflTime();
+      library.updateOflSymt();
+      library.save();
       break;
 
     default:
-      library->load();
+      library.load();
       break;
     }
 
-  if(listLib)
-    library->listMembers(listLib-1);
+  if (listLib)
+    library.listMembers(listLib-1);
 
-  if(listSymbols)
-    library->listSymbolTable(1);
+  if (listSymbols)
+    library.listSymbolTable(1);
 }
 
 void Librarian::usage()
 {
-  cerr << "AOF Librarian v1.00 (" __DATE__ ") [GCCSDK " << __VERSION__ << "]" << endl
+  cerr << "AOF Librarian " LIBRARIAN_VERSION " (" __DATE__ ") [GCCSDK " << __VERSION__ << "]" << endl
        << "ALF creation and maintenance tool" << endl
        << endl
        << "Syntax: LibFile <Options> <Library> [ <FileList> | <MemberList> ]" << endl

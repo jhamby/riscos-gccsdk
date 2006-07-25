@@ -89,7 +89,7 @@ BString::BString(const BString *s)
 BString::~BString()
 {
 	if(_str)
-		delete _str;
+		delete [] _str;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -192,7 +192,7 @@ BString &BString::einfuegen(const char *s, int pos, int ll)
 		set(pos, tmp, 0);
 		add(ll, s, 0);
 		add(tmplen-pos, tmp+pos, 0);
-		delete tmp;
+		delete [] tmp;
 	}
 	else
 	{
@@ -215,7 +215,7 @@ BString &BString::einfuegen(int c, int pos, int anz)
 		set(pos, tmp, 0);
 		add(anz, 0, c);
 		add(tmplen-pos, tmp+pos, 0);
-		delete tmp;
+		delete [] tmp;
 	}
 	else
 	{
@@ -731,7 +731,7 @@ void BString::trim()
 		if( new_str=new char[new_size] )
 		{
 			memcpy(new_str, _str, _len+1);
-			delete _str;
+			delete [] _str;
 			_str = new_str;
 			_size=new_size;
 		}
@@ -761,7 +761,7 @@ int BString::set(int len, const char *s, int fuellbyte)
 		}
 		else					// sonst Ziel leeren
 		{
-			delete _str;
+			delete [] _str;
 			init();
 			return 1;
 		}
@@ -797,7 +797,7 @@ int BString::add(int len, const char *s, int fuellbyte)
 				memset(newstr+_len, fuellbyte, len);
 
 			newstr[newlen] = 0;
-			delete _str;
+			delete [] _str;
 
 			_str = newstr;
 			_size = newsize;
@@ -805,7 +805,7 @@ int BString::add(int len, const char *s, int fuellbyte)
 		}
 		else
 		{
-			delete _str;
+			delete [] _str;
 			init();
 		}
 	}

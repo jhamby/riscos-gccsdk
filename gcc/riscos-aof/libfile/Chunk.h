@@ -40,7 +40,7 @@ class Chunk
  	virtual int calculateChunkSize() { return 0; }
 
 	static int exists(const BString &a_file);
- 	BString format(const BString &a_string, int a_len, int a_left=1);
+ 	BString format(const BString &a_string, int a_len, int a_left=1) const;
 
  	Buffer m_data;
  	Buffer m_head;

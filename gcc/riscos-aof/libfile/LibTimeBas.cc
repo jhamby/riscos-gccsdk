@@ -2,10 +2,6 @@
 #include "LibTimeBas.h"
 #include "BError.h"
 
-#ifndef CROSS_COMPILE
-extern "C" void *OS_File(int *);
-#endif
-
 LibTimeBas::LibTimeBas(const BString &a_chunkName, Library *a_owner)
  : Chunk(a_chunkName, a_owner)
 {
@@ -38,6 +34,5 @@ int LibTimeBas::calculateChunkSize()
 
 void LibTimeBas::print()
 {
- cout << "Chunk LibTime:" << endl;
  m_now.print();
 }

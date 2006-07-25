@@ -33,6 +33,5 @@ int LibVersion::calculateChunkSize()
 
 void LibVersion::print()
 {
- cout << "Chunk LibVersion:" << endl;
- cout << "Version " << m_version << endl;
+ cout << m_version;
 }

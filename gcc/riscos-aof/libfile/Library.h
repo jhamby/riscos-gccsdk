@@ -1,5 +1,5 @@
-#ifndef __Library_h__
-#define __Library_h__
+#ifndef LIBRARY_HEADER_INCLUDED
+#define LIBRARY_HEADER_INCLUDED
 
 #include "BList.h"
 #include "LibData.h"
@@ -24,17 +24,17 @@ class Library : public ChunkFile
  	void save();
 
  	void addMembers(const List<BString> &a_newFiles);
- 	void extractMembers(const List<BString> &a_memberList, const BString &a_path);
- 	void extractAllMembers(const BString &a_path);
+ 	void extractMembers(const List<BString> &a_memberList, const BString &a_path, bool beVerbose = false);
+ 	void extractAllMembers(const BString &a_path, bool beVerbose = false);
 	void deleteMembers(const List<BString> &a_members);
 
- 	void listMembers(int a_long=0);
+	void listMembers(int a_long=0);
 	void listSymbolTable(int a_long=0);
 
 	void updateOflSymt();
 	void updateOflTime();
 
- 	void print();
+	void print();
 
  protected:
 	void attach(Chunk *a_member);

@@ -5,10 +5,6 @@
 #include "BError.h"
 #include "Path.h"
 
-#ifndef CROSS_COMPILE
-extern "C" void *OS_File(int *);
-#endif
-
 LibDir::LibDir(Library *a_owner) : Chunk("LIB_DIRY", a_owner)
 {
 }
@@ -33,287 +29,261 @@ void LibDir::set(const List<BString> &a_fileList)
 
 int LibDir::deleteMember(const BString &a_file)
 {
-  List_of_piter<DirEntry> iter(m_fileList);
-  DirEntry *entry;
   int sub = 0, theChunk = -1;
 
-  // Go through list of directory entries
-  while(entry = iter.next())
+  DirEntryList::iterator iter, iterToRemove;
+  for (iter = m_fileList.begin(); iter != m_fileList.end(); ++iter)
     {
       // reduce index by one if entry was deleted
-      entry->m_chunkIndex -= sub;
+      DirEntry &dirEntry = (DirEntry &)*iter;
+      dirEntry.m_chunkIndex -= sub;
       // This is the desired entry
-      if(entry->m_fileName == a_file)
-  	{
-	  // Save the chunkIndex
-	  theChunk = entry->m_chunkIndex;
-	  // Remove it from the list
-	  iter.remove_prev();
-	  // And delete it
-	  delete entry;
-	  // shift all following entries
-	  sub = 1;
-  	}
+      if (iter->m_fileName == a_file)
+        {
+          // Save the chunkIndex
+          theChunk = iter->m_chunkIndex;
+          iterToRemove = iter;
+          // shift all following entries
+          sub = 1;
+        }
     }
-  
-  if(sub)
-    return theChunk;
-  
+
+  if (sub)
+    {
+      // Remove it from the list
+      m_fileList.erase(iterToRemove);
+      return theChunk;
+    }
+
   return -1;
 }
 
-// return 1 if a new member added,
-// 0 if nothing added or an existing member replaced
+// return chunk index of new member added
+// -1 if nothing added
 int LibDir::addFile(const BString &a_file)
 {
-  DirEntry *entry;
-  // first chunkindex is 3
-  int index = 3 + m_fileList.length();
-  TimeStamp time;
-
-  if(exists(a_file))
+  if (!exists(a_file))
     {
-      int newmember = 1;
-
-      // get real filename (upper/lower case)
-      // todo
-      
-      // remove file from library if it exists
-      if (deleteMember(a_file) != -1)
-	{
-	  index --;
-	  newmember = 0;
-	}
-      
-      // get timestamp
-      time.load(a_file);
-      
-      // add to list
-      entry = new DirEntry(a_file, index, time);
-      if(!entry)
-	THROW_SPEC_ERR(BError::NewFailed);
-      m_fileList.put(entry);
-      return newmember;
+      cout << "Warning: File '" << a_file << "' cannot be loaded" << endl;
+      return -1;
     }
-  else
-    cout << "Warning: File '" << a_file << "' cannot be loaded" << endl;
-  
- return 0;
-}
 
-int LibDir::sortFunc(const DirEntry *&e1, const DirEntry *&e2)
-{
- return (e1->m_chunkIndex) < (e2->m_chunkIndex);
+  // get real filename (upper/lower case)
+  // todo
+
+  // first chunkindex is 3
+  int index = 3 + m_fileList.size();
+
+  // get timestamp
+  TimeStamp time;
+  time.load(a_file);
+
+  // add to list
+  DirEntry entry(a_file, index, time);
+  m_fileList.insert(entry);
+
+  return index;
 }
 
 void LibDir::readData(Buffer *a_data)
 {
- int start = 0, entryStart;
- int bufLen = a_data->length();
- int index, len1, len2;
- TimeStamp time;
- BString fileName;
- DirEntry *entry;
+  int start = 0;
+  const int bufLen = a_data->length();
 
- // loop until end of buffer
- while(start < bufLen)
- {
-  	entryStart = start;
-  	// get chunk index of file
-  	index = a_data->getInt(start);
-  	// get total entry length
-  	len1 = a_data->getInt(start);
-  	// check if entry is in use
-  	if(index == 0)
-  	{
-  	 	start = entryStart + len1;
-  	 	continue;
-  	}
+  // loop until end of buffer
+  while (start < bufLen)
+    {
+      int entryStart = start;
+      // get chunk index of file
+      int index = a_data->getInt(start);
+      // get total entry length
+      int len1 = a_data->getInt(start);
+      // check if entry is in use
+      if(index == 0)
+        {
+          start = entryStart + len1;
+          continue;
+        }
 
-  	// get length of filename + padding + timestamp (if any)
-  	len2 = a_data->getInt(start);
-  	// get filename
-  	fileName = a_data->getString(start, 1);
-  	// skip padding
-  	int padding = len2 - 8 - fileName.laenge() - 1;
-  	start += padding;
-  	// read timestamp if present
-  	if(start < (entryStart+len1))
-  		time.get(a_data, start);
-  	else
-  		time.setNull();
+      // get length of filename + padding + timestamp (if any)
+      int len2 = a_data->getInt(start);
+      // get filename
+      BString fileName(a_data->getString(start, 1));
+      // skip padding
+      int padding = len2 - 8 - fileName.laenge() - 1;
+      start += padding;
 
-	// add to list
-  	entry = new DirEntry(fileName, index, time);
-  	if(!entry)
-  		THROW_SPEC_ERR(BError::NewFailed);
-  	m_fileList.put(entry);
- }
- m_fileList.sort(sortFunc);
+      // read timestamp if present
+      TimeStamp time;
+      if (start < entryStart+len1)
+        time.get(a_data, start);
+      else
+        time.setNull();
+
+      // add to list
+      DirEntry entry(fileName, index, time);
+      m_fileList.insert(entry);
+    }
 }
 
-DirEntry *LibDir::getDirEntry(const BString &a_fileName)
+
+const DirEntry *LibDir::getDirEntry(const BString &a_fileName) const
 {
- List_of_piter<DirEntry> iter(m_fileList);
- DirEntry *entry;
+  DirEntryList::const_iterator iter;
+  for (iter = m_fileList.begin(); iter != m_fileList.end(); ++iter)
+    {
+      if (iter->m_fileName == a_fileName)
+        return &(*iter);
+    }
 
- while(entry = iter.next())
- 	if(entry->m_fileName == a_fileName)
- 		return entry;
-
- return 0;
+  return NULL;
 }
+
 
 void LibDir::buildData()
 {
- int len=0, l, ol;
- int k;
+  DirEntryList::const_iterator iter;
+  for (iter = m_fileList.begin(); iter != m_fileList.end(); ++iter)
+    {
+      // get length of filename incl. termination char
+      int ol = iter->m_fileName.laenge() + 1;
+      int l = ol;
+      // round up to multiple of 4
+      while (l & 3)
+        l++;
+      // total entry length
+      int len = 4+4+4+l+8;
 
- List_of_piter<DirEntry> iter(m_fileList);
- DirEntry *entry;
+      // write chunk index
+      m_data.putInt(iter->m_chunkIndex);
+      // write total length of entry
+      m_data.putInt(len);
+      // write length of filename + padding + timestamp
+      m_data.putInt(l+8);
+      // write filename
+      m_data.put((unsigned char *)(iter->m_fileName)(),1);
 
- while(entry = iter.next())
- {
-	// get length of filename incl. termination char
-  	ol = entry->m_fileName.laenge() + 1;
-  	l = ol;
-  	// round up to multiple of 4
-  	while(l & 3)
-  		l++;
-  	// total entry length
-  	len = 4+4+4+l+8;
+      // write padding
+      for (int k = ol; k < l; k++)
+        m_data.put((unsigned char)'\0');
 
-	// write chunk index
-  	m_data.putInt(entry->m_chunkIndex);
-  	// write total length of entry
-  	m_data.putInt(len);
-  	// write length of filename + padding + timestamp
-  	m_data.putInt(l+8);
-  	// write filename
-  	m_data.put((unsigned char *)(entry->m_fileName)(),1);
-
-	// write padding
-  	for(k=ol; k<l; k++)
-  		m_data.put((unsigned char)'\0');
-
-	// write timestamp
-  	(entry->m_time).put(m_data);
- }
+      // write timestamp
+      iter->m_time.put(m_data);
+    }
 }
+
 
 int LibDir::calculateChunkSize()
 {
- int len=0, l;
- List_of_piter<DirEntry> iter(m_fileList);
- DirEntry *entry;
-
- while(entry = iter.next())
- {
-  	// get length of filename
-  	l = entry->m_fileName.laenge() + 1;
-  	// round up to multiple of 4
-  	while(l & 3)
-  		l++;
-  	// calculate total entry length
-  	len += 4+4+4+l+8;
- }
+  int len = 0;
+  DirEntryList::const_iterator iter;
+  for (iter = m_fileList.begin(); iter != m_fileList.end(); ++iter)
+    {
+      // get length of filename
+      int l = iter->m_fileName.laenge() + 1;
+      // round up to multiple of 4
+      while (l & 3)
+        l++;
+      // calculate total entry length
+      len += 4+4+4+l+8;
+    }
 
  return len;
 }
 
-void LibDir::print(const List_of_p<Chunk> &a_chunks, int a_long)
+
+void LibDir::print(const List_of_p<Chunk> &a_chunks, int a_long) const
 {
- List_of_piter<DirEntry> iter(m_fileList);
- DirEntry *entry;
+  DirEntryList::const_iterator iter;
+  for (iter = m_fileList.begin(); iter != m_fileList.end(); ++iter)
+    {
+      if (a_long)
+        {
+          cout << format(iter->m_fileName, 20) << " ";
+          cout << iter->m_time.asString() << " ";
+          BString len(a_chunks[iter->m_chunkIndex]->getChunkSize());
+          cout << format(len, 7, 0) << " Bytes ";
+          cout << "(Chunk " << iter->m_chunkIndex << ")";
+        }
+      else
+        cout << iter->m_fileName;
 
- while(entry = iter.next())
- {
-  	if(a_long)
-  	{
-  		cout << format(entry->m_fileName, 20) << " ";
-  		cout << entry->m_time.asString() << " ";
-  		BString len(a_chunks[entry->m_chunkIndex]->getChunkSize());
-  		cout << format(len, 7, 0) << " Bytes ";
-  		cout << "(Chunk " << entry->m_chunkIndex << ")";
-  	}
-  	else
-		cout << entry->m_fileName;
-
-	cout << endl;
- }
+      cout << endl;
+    }
 }
 
-List<BString> LibDir::getMemberList()
+
+List<BString> LibDir::getMemberList() const
 {
- List<BString> res;
+  List<BString> res;
 
- List_of_piter<DirEntry> iter(m_fileList);
- DirEntry *entry;
+  DirEntryList::const_iterator iter;
+  for (iter = m_fileList.begin(); iter != m_fileList.end(); ++iter)
+    res.put(iter->m_fileName);
 
- while(entry = iter.next())
- 	res.put(entry->m_fileName);
-
- return res;
+  return res;
 }
 
-BString LibDir::getMemberName(int a_chunkIndex)
+
+BString LibDir::getMemberName(int a_chunkIndex) const
 {
- List_of_piter<DirEntry> iter(m_fileList);
- DirEntry *entry;
+  DirEntryList::const_iterator iter;
+  for (iter = m_fileList.begin(); iter != m_fileList.end() && iter->m_chunkIndex != a_chunkIndex; ++iter)
+    /* */;
 
- while(entry = iter.next())
- {
-  	if(entry->m_chunkIndex == a_chunkIndex)
-  		return entry->m_fileName;
- }
+  if (iter == m_fileList.end())
+    {
+      // Should not happen
+      THROW_SPEC_ERR(BError::ChunkIndex);
+      // To make compiler happy
+      return "";
+    }
 
- // Should not happen
- THROW_SPEC_ERR(BError::ChunkIndex);
- // To make compiler happy
- return "";
+  return iter->m_fileName;
 }
 
-List<BString> LibDir::expandMemberList(const List<BString> &a_wildCards)
+List<BString> LibDir::expandMemberList(const List<BString> &a_wildCards) const
 {
- List<BString> result;
- Listiter<BString> rIter(result);
+  List<BString> result;
+  Listiter<BString> rIter(result);
 
- Const_listiter<BString> wIter(a_wildCards);
- BString *fn, *ft, *fs;
- int found;
-
- while(fn = wIter.next())
- {
-  	List<BString> tRes = expandMember(*fn);
-  	Listiter<BString> sIter(tRes);
-  	while(fs = sIter.next())
-  	{
-	  	found = 0;
-	  	rIter.reset();
-  	 	while(ft = rIter.next())
-	  		if((*ft) == (*fs))
-	  		{
-	  		 	found = 1;
-	  		 	break;
-	  		}
-	  	if(!found)
-	  		result.put(*fs);
-  	}
- }
- return result;
+  Const_listiter<BString> wIter(a_wildCards);
+  BString *fn;
+  while (fn = wIter.next())
+    {
+      List<BString> tRes = expandMember(*fn);
+      Listiter<BString> sIter(tRes);
+      BString *fs;
+      while (fs = sIter.next())
+        {
+          bool found = false;
+          rIter.reset();
+          BString *ft;
+          while (ft = rIter.next())
+            {
+              if (*ft == *fs)
+                {
+                  found = true;
+                  break;
+                }
+            }
+          if (!found)
+            result.put(*fs);
+        }
+    }
+  return result;
 }
 
-List<BString> LibDir::expandMember(const BString &a_wildCard)
+List<BString> LibDir::expandMember(const BString &a_wildCard) const
 {
- List<BString> result;
- List_of_piter<DirEntry> iter(m_fileList);
- DirEntry *entry;
+  List<BString> result;
 
- while(entry = iter.next())
- {
-  	if(Path::match(a_wildCard, entry->m_fileName))
-  		result.put(entry->m_fileName);
- }
- return result;
+  DirEntryList::const_iterator iter;
+  for (iter = m_fileList.begin(); iter != m_fileList.end(); ++iter)
+    {
+      if (Path::match(a_wildCard, iter->m_fileName))
+        result.put(iter->m_fileName);
+    }
+
+  return result;
 }
-

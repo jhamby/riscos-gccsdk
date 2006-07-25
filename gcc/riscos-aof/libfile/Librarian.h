@@ -1,11 +1,9 @@
 #ifndef __Librarian_h__
 #define __Librarian_h__
 
+#include "ArgParser.h"
 #include "BString.h"
 #include "BList.h"
-
-class ArgParser;
-class Library;
 
 class Librarian
 {
@@ -19,14 +17,14 @@ public:
 		ActionNone
 	};
 
-	Librarian(int a_argc,char **a_argv);
+	Librarian(int a_argc, char **a_argv);
 	~Librarian();
 
 	void run();
 	void usage();
 
 private:
-	ArgParser *m_argParser;
+	ArgParser m_argParser;
 };
 
 #endif

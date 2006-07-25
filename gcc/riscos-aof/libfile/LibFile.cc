@@ -1,4 +1,5 @@
 #include <iostream>
+
 #include <cstdlib>
 
 #include "Librarian.h"
@@ -14,7 +15,7 @@ int main(int argc,char **argv)
 
   catch (BError err)
     {
-      cerr << &err;
+      std::cerr << "libfile: " << err << std::endl;
       return EXIT_FAILURE;
     }
 

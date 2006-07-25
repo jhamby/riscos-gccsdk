@@ -1,32 +1,41 @@
-#ifndef __Ar_h__
-#define __Ar_h__
+#ifndef AR_HEADER_INCLUDED
+#define AR_HEADER_INCLUDED
 
-#include "BString.h"
+#include "BError.h"
 #include "BList.h"
-
-class ArgParser;
-class Library;
+#include "BString.h"
 
 class Ar
 {
 public:
 	enum Action
 	{
-		ActionCreate, ActionInsert,
-		ActionDelete, ActionExtract,
-		ActionExtractAll,
-		ActionExtractDelete,
+		ActionDelete,
+		ActionList,
+		ActionInsert,
+		ActionExtract,
+		ActionHelp,
 		ActionNone
 	};
 
-	Ar(int a_argc,char **a_argv);
+	Ar(int a_argc, char **a_argv);
 	~Ar();
 
 	void run();
-	void usage();
-	void version();
+
 private:
-	ArgParser *m_argParser;
+	void usage() const;
+	void version() const;
+
+private:
+	Action iAction;
+	BString iErrorString;
+	bool iModCreate;
+	bool iModVerbose;
+	bool iModShowVersion;
+	
+	BString iArchive;
+	List<BString> iMembers;
 };
 
 #endif

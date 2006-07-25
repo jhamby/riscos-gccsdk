@@ -32,29 +32,29 @@ public:
 
 	inline const char	*lesen() const;
 	inline const char	*operator()() const;
-	inline int			laenge() const;
-	inline int			istLeer() const;
-	inline int			maxLaenge() const;
-	int					istNurSpaces() const;
+	inline int		laenge() const;
+	inline int		istLeer() const;
+	inline int		maxLaenge() const;
+	int			istNurSpaces() const;
 
 	// Auslesen eines Zeichens (falsche Position pos liefert EOF)
 
-	inline int			operator[](int pos) const;
+	inline int		operator[](int pos) const;
 
 	// Setzen mit Werten (teilweise mit Formatierung)
 
-	int 				setzen(int i, const char *format=0);
-	double 				setzen(double d, const char *format=0);
+	int 			setzen(int i, const char *format=0);
+	double 			setzen(double d, const char *format=0);
 	inline const char	*setzen(const char *s);
 	inline BString		&setzen(const BString& s);
 	inline BString		&setzen(const BString* s);
 
-	const char			*setzen(const char *s, int laenge);
+	const char		*setzen(const char *s, int laenge);
 
 	// Anhaengen von Werten (teilweise mit Formatierung)
 
 	BString			&anhaengen(int i, const char *format=0);
-	BString 			&anhaengen(double d, const char *format=0);
+	BString 		&anhaengen(double d, const char *format=0);
 	BString			&anhaengen(const char *s, int laenge=-1);	// -1: alles
 	inline BString		&anhaengen(const BString &s);
 	BString			&anhaengen(const BString *s);
@@ -89,7 +89,7 @@ public:
 
 	// Suchen von s ab Position start; liefert pos wenn gefunden -1 sonst
 
-	int					suchen(const BString &s, int start=0) const;
+	int			suchen(const BString &s, int start=0) const;
 
 	// Auslesen von n Zeichen ab Position pos (n=-1: Rest auslesen)
 
@@ -98,7 +98,7 @@ public:
 
 	// Kopieren
 
-	void				kopieren(const BString *s);
+	void			kopieren(const BString *s);
 	BString			&kopieren(const BString &q, int abWo, int laenge);
 
 	// Lesen eines Tokens/Wortes nach ziel ab Position start (in-out) bis ein
@@ -167,7 +167,7 @@ public:
 
 	// Internes
 
-	void	setzeNull();				// Null-String (braucht kein Speicher)
+	void		setzeNull();	// Null-String (braucht kein Speicher)
 
 	BString	&operator<<(int i);
 	BString	&operator<<(double d);
@@ -179,9 +179,9 @@ public:
 	friend BString	&endl(BString &s);
 
 protected:
-	char	*_str;				// Zeiger auf Zeichenkette (kann 0 sein)
-	int		_len;				// Laenge der Zeichenkette
-	int		_size;				// Groesse des reservierten Speichers
+	char		*_str;			// Zeiger auf Zeichenkette (kann 0 sein)
+	int		_len;			// Laenge der Zeichenkette
+	int		_size;			// Groesse des reservierten Speichers
 
 	inline void	init();			// Variable auf 0 setzen (kein delete)
 
@@ -315,4 +315,3 @@ inline void BString::init()
 }
 
 #endif
-

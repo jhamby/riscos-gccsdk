@@ -1,4 +1,7 @@
 #include <iostream>
+
+#include <cstdlib>
+
 #include "Ar.h"
 #include "BError.h"
 
@@ -12,8 +15,9 @@ int main(int argc,char **argv)
 
   catch (BError err)
     {
-      cerr << &err;
+      std::cerr << "ar: " << err << std::endl;
+      return EXIT_FAILURE;
     }
 
-  return 0;
+  return EXIT_SUCCESS;
 }

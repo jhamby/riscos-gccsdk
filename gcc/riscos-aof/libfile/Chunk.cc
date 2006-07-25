@@ -69,7 +69,7 @@ void Chunk::buildHeader(int &a_offset)
   m_head.put((unsigned char *) m_chunkName());
   m_head.putInt(a_offset);
   m_head.putInt(getChunkSize());
-  
+
   a_offset+=getChunkSize();
 }
 
@@ -100,12 +100,12 @@ int Chunk::createPath(const BString &a_path)
       if(a_path.leseWort(dir, save, "/"))
   	{
 	  struct stat r;
-	  
+
 	  //cerr << "create " << fullDir << endl;
 	  if (stat ((char *) fullDir (), &r) == 0)
 	    if (! S_ISDIR (r.st_mode))
 	      THROW_SPEC_ERR(BError::IsAFile);
-	  
+
 	  mkdir ((char *) fullDir(), 0755);
 	  fullDir += "/";
 	}
@@ -121,16 +121,16 @@ int Chunk::createPath(const BString &a_path)
 	  regs[1] = (int) fullDir();
 	  OS_File(regs);
 	  //cerr << "create " << fullDir << endl;
-	  
+
 	  // object is a file, but should be a directory
 	  if(regs[0] & 1)
 	    THROW_SPEC_ERR(BError::IsAFile);
-	  
+
 	  regs[0] = 8;
 	  regs[1] = (int) fullDir ();
 	  regs[4] = 0;
 	  OS_File(regs);
-	  
+
 	  fullDir += ".";
   	}
     }
@@ -138,7 +138,7 @@ int Chunk::createPath(const BString &a_path)
   return 1;
 }
 
-BString Chunk::format(const BString &a_string, int a_len, int a_left)
+BString Chunk::format(const BString &a_string, int a_len, int a_left) const
 {
  int l = a_string.laenge();
  if(l>a_len)

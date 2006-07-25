@@ -1,5 +1,5 @@
-#ifndef __HiAsnError__
-#define __HiAsnError__
+#ifndef BERROR_HEADER_INCLUDED
+#define BERROR_HEADER_INCLUDED
 
 #include <iostream>
 #include "BString.h"
@@ -9,11 +9,11 @@ class BError
 public:
 	enum ErrorCode
 	{
-	 	// Allgemein
-	 	Unusable, Generic, System,
-	 	NotImplemented, NewFailed,
+		// Allgemein
+		Unusable, Generic, System,
+		NotImplemented, NewFailed,
 
-	 	// ChunkFile
+		// ChunkFile
 		ChunkNotFound, ChunkIndex,
 		NoChunkFile,
 
@@ -30,20 +30,22 @@ public:
 		IsAFile, CantOpenFile
 	};
 
-	BError(int a_err, BString a_file, int a_line);
+	BError(ErrorCode a_err, BString a_file, int a_line);
+	BError(BString a_strerr, BString a_file, int a_line);
 	~BError();
 
-	friend ostream &operator<<(ostream &out, BError *a_err);
+	ErrorCode GetErrorCode() const { return m_err; }
 
-	int m_err;
-protected:
+private:
+
+	friend ostream &operator<<(ostream &out, const BError &a_err);
+	BString m_strErr;
 	BString m_file;
+	ErrorCode m_err;
 	int m_line;
 };
 
-extern BError theError;
-
-#define THROW_ERR throw BError ((int) BError::Generic, __FILE__, __LINE__);
-#define THROW_SPEC_ERR(errno) throw BError ((int) errno, __FILE__, __LINE__);
+#define THROW_ERR throw BError (BError::Generic, __FILE__, __LINE__);
+#define THROW_SPEC_ERR(errno) throw BError (errno, __FILE__, __LINE__);
 
 #endif
