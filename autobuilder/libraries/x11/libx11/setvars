@@ -1,0 +1,7 @@
+AB_INSTALL=yes
+
+AB_CONFLAGS="--enable-malloc0returnsnull --disable-loadable-xcursor"
+
+/usr/bin/gcc src/util/makekeys.c -o src/util/makekeys
+
+ln -s . man/man3
