@@ -9,7 +9,7 @@ AB_NOREMOTE=$(grep AB_NOREMOTE $AB_HOME/$AB_PACKAGEDIR/setvars | cut -d = -f 2)
 
 if [ "$AB_CVS_ROOT" != "" ] ; then
   if [ "$AB_CVS_MODULE" == "" ] ; then
-    echo "No CVS module specified"
+    echo "Autobuilder: No CVS module specified"
     exit 1
   else
     if [ ! -z "$AB_CVS_TAGORBRANCH" ] ; then
@@ -32,7 +32,7 @@ elif [ "$AB_URL" != "" ] ; then
   elif echo $base | grep -q "\.zip$" ; then
     unzip $base
   else
-    echo "Unknown compression method"
+    echo "Autobuilder: Unknown compression method"
     exit 1
   fi
 
@@ -54,19 +54,23 @@ else
     if ! [ -e $Sources ] ||
          [ $(($(date +"%s") - $(date -r $Sources +"%s"))) -gt $((24 * 60 * 60)) ] ; then
 
-      echo "Autobuilder - Fetching new Sources.bz2"
+      echo "Autobuilder: Fetching new Sources.bz2"
 
       wget -nv $debarchive/dists/unstable/main/source/Sources.bz2
       mv Sources.bz2 $Sources
 
     else
-      echo "Autobuilder - Using existing Sources.bz2"
+      echo "Autobuilder: Using existing Sources.bz2"
     fi
 
-    bzgrep -A4 "/$AB_PACKAGE$" $Sources > files
+    if ! bzgrep -A4 "/$AB_PACKAGE$" $Sources > files ; then
+       echo "Autobuilder: Directory name not found in Sources.bz2"
+       echo "Autobuilder: Trying Binary entry"
+       bzgrep -A20 "Binary:.*\<$AB_PACKAGE\>" $Sources > files
+    fi
 
     if ! [ -s files ] ; then
-      echo "Package not found"
+      echo "AutoBuilder: Package not found"
       exit 1
     fi
 
