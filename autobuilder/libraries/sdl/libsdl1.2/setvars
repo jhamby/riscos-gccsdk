@@ -1,7 +1,7 @@
 
-SDLVER=1.2.10
+SDLVER=1.2.11
 
-AB_SVN=svn://libsdl.org/tags/SDL/release-1.2.10
+AB_SVN=svn://libsdl.org/tags/SDL/release-1.2.11
 AB_ZIPNAME=libsdl1.2
 
 AB_CATEGORY=libraries/sdl
