@@ -378,8 +378,10 @@
 	MOV	v1, fp	; Save some USR regs. There is no guarantee that these
 	MOV	v2, sp	; contain anything of use, but they seem to be the USR
 	MOV	v3, lr	; regs at the time of the error.
-	SWI	XOS_EnterOS	; Change to SVC mode so we don't get any
-				; callbacks while we are setting up the stack
+
+	; Change to SVC26/SVC32 mode so we don't get any
+	; callbacks while we are setting up the stack
+	SWI	XOS_EnterOS
 
 	[ __UNIXLIB_FEATURE_PTHREADS > 0
 	LDR	a1, =|__ul_global|

@@ -1,3 +1,17 @@
+Sun Jul 30 19:12:17 2006  John Tytgat  <John.Tytgat@aaug.net>
+
+	* source/clib/unixlib/sigstate.h,source/signal/_demangle.s
+	  (__unixlib_cxa_demangle): via WEAK symbol, make libstdc++'s
+	  __cxa_demangle routine available internally when it's possible.
+	* source/signal/post.c(extract_name): make use of
+	  __unixlib_cxa_demangle during __write_backtrace.
+	* source/signal/post.c(__write_backtrace): don't output registers
+	  when __ul_callbackfp is NULL as then they don't make any sense.
+	* source/stdlib/_rand48.c: Removed bogus CVS tags.
+	* source/signal/_signal.s,source_sys/_syslib.s: Minor comment
+	  improvement.
+	* Docs/Changelog: char 0xA0 -> 0x20.
+
 Sat Jul 15 21:35:32 2006  John Tytgat  <John.Tytgat@aaug.net>
 
 	* source/unix/tty.c,source/clib/unixlib/fd.h: minor src code cleanup.
@@ -6775,7 +6789,7 @@ Nicholas Clark  <nickc@liv.ac.uk>
 	__ttyicanon and __ttyiraw check lookahead, __ttylseek not compiled
 	unless __UNIXLIB_NO_COMMON_DEV
 
-	* unix/close.c: use __set_errno. more debugging info
+	* unix/close.c: use __set_errno. more debugging info
 
 	* unix/dev.c: relevant functions wrapped with __UNIXLIB_NO_COMMON_DEV
 	added __*select, changed functions to pass unixlib_fd as 1st arg
@@ -6790,7 +6804,7 @@ Nicholas Clark  <nickc@liv.ac.uk>
 	* unix/reopen.c,
 	* unix/write.c,
 	* unix/writev.c: changed to call with unixlib_fd as 1st arg
-	use __set_errno
+	use __set_errno
 
 	* netlib/accept.c: set _FDMAGIC on accepted socket's fd
 
@@ -6851,7 +6865,7 @@ Nicholas Clark  <nickc@liv.ac.uk>
 	* netlib/_net_error.s: Added  __net_error_simple_entry
 	* netlib/*.s
 	  Files with 1-4 args which call NetSWI: Replaced with NetSWIsimple
-	  Other files which call NetSWI: remove BLVS __net_error
+	  Other files which call NetSWI: remove BLVS __net_error
 	netlib/_shutdown.s,
 	netlib/_listen.s,
 	netlib/_ioctl.s,
@@ -6860,10 +6874,10 @@ Nicholas Clark  <nickc@liv.ac.uk>
 	netlib/_connect.s,
 	netlib/_close.s,
 	netlib/_bind.s:
-	  NetSWIsimple0 - ie don't rely on R0 being uncorrupted.
+	  NetSWIsimple0 - ie don't rely on R0 being uncorrupted.
 	netlib/_getsockopt.s:
 	netlib/_setsockopt.s:
-	  NetSWI0 - ie don't rely on R0 being uncorrupted.
+	  NetSWI0 - ie don't rely on R0 being uncorrupted.
 	netlib/_select.s: Work around bug in Internet 5.02
 
 Sat Oct 04 19:40:02 1997 CL0047
@@ -7206,7 +7220,7 @@ Nicholas Clark  <nickc@liv.ac.uk>
 
 	* stdio/flsbuf.c: Flushing a stream with no characters buffered
 	pending a write now does not perform a write() of 0. [consistent with
-	BSD, can avoid problems with unconnected sockets]
+	BSD, can avoid problems with unconnected sockets]
 
 	* sys/exec.c: Remove DDE Utils extended command line on OSCLI failure
 	* sys/_exec.s: Remove DDE Utils extended command line on OSCLI failure

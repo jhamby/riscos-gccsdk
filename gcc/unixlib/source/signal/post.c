@@ -22,14 +22,18 @@
 #endif
 
 /* Given an address to the approximate start of a function, try
-   to obtain an embedded function name.  */
-static const char *extract_name (const unsigned int *pc)
+   to obtain an embedded function name. Implemenation can return
+   a pointer to a static buffer.  */
+static const char *
+extract_name (const unsigned int *pc)
 {
   int address;
-  const char *name = NULL;
+  const char *name;
+
   if ((unsigned int) pc <= 0x100)
     return NULL;
 
+  name = NULL;
   for (address = 0; address > -8; address--)
     {
       if ((pc[address] & 0xffffff00) == 0xff000000)
@@ -44,6 +48,18 @@ static const char *extract_name (const unsigned int *pc)
       && (!__valid_address(name, name + 256)
 	  || strnlen(name, 256) == 256))
     name = NULL;
+
+  if (name != NULL)
+    {
+      static char demangled[256];
+      const char *dname;
+      size_t size = sizeof(demangled);
+      int status;
+      dname = __unixlib_cxa_demangle(name, demangled,
+				     &size, &status);
+      if (dname != NULL)
+	name = dname;
+    }
 
   return name;
 }
@@ -275,7 +291,7 @@ __write_backtrace (int signo)
       oldfp = fp;
       fp = (unsigned int *)fp[-3];
 
-      if (fp == __ul_callbackfp)
+      if (fp != NULL && fp == __ul_callbackfp)
 	{
 	  const char * const rname[16] =
 	    { "a1", "a2", "a3", "a4", "v1", "v2", "v3", "v4",
@@ -283,7 +299,7 @@ __write_backtrace (int signo)
 
 	  /* At &oldfp[1] = cpsr, a1-a4, v1-v6, sl, fp, ip, sp, lr, pc */
 	  fprintf(stderr, "\n  Register dump at %08x:\n",
-	          (unsigned int)&oldfp[1]);
+		  (unsigned int)&oldfp[1]);
 
 	  if (__valid_address(oldfp, oldfp + 17))
 	    {
@@ -300,17 +316,17 @@ __write_backtrace (int signo)
 	      if (__32bit)
 		fprintf(stderr, "\n    cpsr: %8x\n", oldfp[1]);
 	      else
-	        {
-	          const char * const pmode[4] =
-	            { "USR", "FIQ", "IRQ", "SVC" };
-	          fprintf(stderr, "\n    Mode %s, flags set: ",
-	            pmode[oldfp[15 + 2] & 3]);
-	          fputc((oldfp[15 + 2] & (1<<31)) ? 'N' : 'n', stderr);
-	          fputc((oldfp[15 + 2] & (1<<30)) ? 'Z' : 'z', stderr);
-	          fputc((oldfp[15 + 2] & (1<<29)) ? 'C' : 'c', stderr);
-	          fputc((oldfp[15 + 2] & (1<<28)) ? 'V' : 'v', stderr);
-	          fputc((oldfp[15 + 2] & (1<<27)) ? 'I' : 'i', stderr);
-	          fputc((oldfp[15 + 2] & (1<<26)) ? 'F' : 'f', stderr);
+		{
+		  const char * const pmode[4] =
+		    { "USR", "FIQ", "IRQ", "SVC" };
+		  fprintf(stderr, "\n    Mode %s, flags set: ",
+		    pmode[oldfp[15 + 2] & 3]);
+		  fputc((oldfp[15 + 2] & (1<<31)) ? 'N' : 'n', stderr);
+		  fputc((oldfp[15 + 2] & (1<<30)) ? 'Z' : 'z', stderr);
+		  fputc((oldfp[15 + 2] & (1<<29)) ? 'C' : 'c', stderr);
+		  fputc((oldfp[15 + 2] & (1<<28)) ? 'V' : 'v', stderr);
+		  fputc((oldfp[15 + 2] & (1<<27)) ? 'I' : 'i', stderr);
+		  fputc((oldfp[15 + 2] & (1<<26)) ? 'F' : 'f', stderr);
 		  fputc('\n', stderr);
 		}
 	    }
@@ -322,27 +338,27 @@ __write_backtrace (int signo)
 	  else
 	    pc = (unsigned int *) (oldfp[17] & 0x03fffffc);
 
-          /* Try LR if PC invalid */
-          if (pc < (unsigned int *)0x8000 || !__valid_address(pc - 5, pc + 3))
-            pc = (unsigned int *)oldfp[16];
+	  /* Try LR if PC invalid */
+	  if (pc < (unsigned int *)0x8000 || !__valid_address(pc - 5, pc + 3))
+	    pc = (unsigned int *)oldfp[16];
 
-          if (pc > (unsigned int *)0x8000 && __valid_address(pc - 5, pc + 3))
-            {
-              unsigned int *diss;
+	  if (pc > (unsigned int *)0x8000 && __valid_address(pc - 5, pc + 3))
+	    {
+	      unsigned int *diss;
 
-              for (diss = pc - 5; diss <= pc + 3; diss++)
-                {
-                  const char *ins;
-                  int length;
-                  unsigned char c[4];
+	      for (diss = pc - 5; diss <= pc + 3; diss++)
+		{
+		  const char *ins;
+		  int length;
+		  unsigned char c[4];
 
-                  _swix (Debugger_Disassemble, _INR(0,1) | _OUTR(1,2),
+		  _swix (Debugger_Disassemble, _INR(0,1) | _OUTR(1,2),
 			 *diss, diss, &ins, &length);
 
-                  c[3] = *diss >> 24;
-                  c[2] = (*diss >> 16) & 0xFF;
-                  c[1] = (*diss >>  8) & 0xFF;
-                  c[0] = (*diss >>  0) & 0xFF;
+		  c[3] = *diss >> 24;
+		  c[2] = (*diss >> 16) & 0xFF;
+		  c[1] = (*diss >>  8) & 0xFF;
+		  c[0] = (*diss >>  0) & 0xFF;
 		  fprintf(stderr, "\n  %08x : %c%c%c%c : %08x : ",
 		    (unsigned int) diss,
 		    (c[0] >= ' ' && c[0] != 127) ? c[0] : '.',
@@ -351,9 +367,9 @@ __write_backtrace (int signo)
 		    (c[3] >= ' ' && c[3] != 127) ? c[3] : '.',
 		    *diss);
 		  fwrite(ins, length, 1, stderr);
-                }
-            }
-          else
+		}
+	    }
+	  else
 	    {
 	      fputs("\n  [Disassembly not available]", stderr);
 	    }

@@ -262,7 +262,7 @@ t02
 	LDRNE	v5, [v5, #0]	; get the actual string referred to
 	BNE	t07
 
-	; check environment variable for creating a DA
+	; Check environment variable for creating a DA
 	MOV	a1, v4
 	MOV	a3, #-1
 	MOV	a4, #0
@@ -302,11 +302,10 @@ t08
 	MOV	a3, #0
 	STRB	a3, [a1, #5]	; Change back to $Heap
 
-	; create dynamic area
+	; Create dynamic area
 	MOV	a1, #0
 	MOV	a2, #-1
-	; set initial size of dynamic area to 0K
-	MOV	a3, #0
+	MOV	a3, #0		; Set initial size of dynamic area to 0K
 	MOV	a4, #-1
 	MOV	v1, #&80
 	; v2 is already set from above

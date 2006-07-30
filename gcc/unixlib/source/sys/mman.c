@@ -27,7 +27,8 @@
    maybe not a good idea, since len request is likely to be a multiple of 1024.
 
    Since will only allow a fixed maximum number of mmap'ed regions, declare an
-   array.  Requests are likely to be a power of 2 when called from malloc which	   will request an integral number of pages. It will already have allocated a
+   array.  Requests are likely to be a power of 2 when called from malloc which
+   will request an integral number of pages. It will already have allocated a
    word for its length field, so if we stored extra information ourselves we
    would need an extra page. If malloc was called with a request for an
    integral number of pages then we would waste two pages. */
@@ -158,9 +159,9 @@ mmap (caddr_t addr, size_t len, int prot, int flags, int fd, off_t offset)
 #endif
     else
       {
-        regs[8] = (int)__get_program_name (__u->argv[0], namebuf,
+	regs[8] = (int)__get_program_name (__u->argv[0], namebuf,
 					 sizeof(namebuf) - sizeof(" MMap"));
-        strcat (namebuf, " MMap");
+	strcat (namebuf, " MMap");
       }
 
     if (__os_swi (OS_DynamicArea, regs))
@@ -168,9 +169,9 @@ mmap (caddr_t addr, size_t len, int prot, int flags, int fd, off_t offset)
   }
 
   mmaps[i].number = regs[1];
-  mmaps[i].addr   = (caddr_t)regs[3];
-  mmaps[i].len    = len;
-  mmaps[i].prot   = prot;
+  mmaps[i].addr	  = (caddr_t)regs[3];
+  mmaps[i].len	  = len;
+  mmaps[i].prot	  = prot;
 
   return (mmaps[i].addr);
 }
@@ -314,7 +315,7 @@ mremap (caddr_t addr, size_t old_len, size_t new_len, int may_move)
       if (new_addr == (caddr_t)-1)
 	{
 	  /* If mmap failed, then keep the old area.  */
-	  mmaps[i].addr   = addr;
+	  mmaps[i].addr	  = addr;
 	  mmaps[i].number = old_area;
 	  return ((caddr_t)-1);
 	}

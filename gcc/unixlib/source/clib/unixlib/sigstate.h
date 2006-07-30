@@ -1,15 +1,6 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/unixlib/sigstate.h,v $
- * $Date: 2005/03/31 09:32:23 $
- * $Revision: 1.10 $
- * $State: Exp $
- * $Author: nick $
- *
- ***************************************************************************/
-
 /* This is an internal UnixLib header file for implementing the signal
-   handlers.  These functions cannot be used in a user program.  */
+   handlers.  These functions cannot be used in a user program.
+   Copyright 2000-2006 UnixLib Developers.  */
 
 #ifndef __UNIXLIB_SIGSTATE_H
 #define __UNIXLIB_SIGSTATE_H 1
@@ -72,6 +63,14 @@ extern int __valid_address (const void *__lower, const void *__upper);
    number can be supplied as 'signo'.  */
 extern void __write_backtrace (int signo);
 
+/* Demangle C++ symbols (only when libstdc++ was available during
+   linktime).  Is a wrapper around __cxa_demangle() and follows the
+   same API.  When libstd++ wasn't available during linking, the returned
+   value equals '__mangled_name'.  */
+extern const char *__unixlib_cxa_demangle(const char *__mangled_name,
+                                    char *__output_buffer, size_t *__length,
+                                    int *__status);
+
 /* SIGALRM handler.  */
 extern void __h_sigalrm_init (void);
 
@@ -87,9 +86,7 @@ extern int __h_sigprof_sema, __h_sigvtalrm_sema, __h_sigalrm_sema;
 /* Get the fp at the moment of calling.  */
 extern void *__backtrace_getfp (void);
 
-/* When non-NULL, the fp at the moment __h_cback_common is executed.  This
-   means that at __ul_callbackfp + 1, a complete exception snapshot of CPSR
-   followed by r0-r16 is located.  */
+/* When non-NULL, the fp at the moment __h_cback_common is executed.  */
 extern unsigned int * __ul_callbackfp;
 
 __END_DECLS
