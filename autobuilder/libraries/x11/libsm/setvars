@@ -1,0 +1,3 @@
+AB_INSTALL=yes
+
+mkdir -p $D/include/X11/SM
