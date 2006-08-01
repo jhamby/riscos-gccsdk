@@ -1,0 +1,35 @@
+Index: js/src/Makefile.in
+===================================================================
+RCS file: /cvsroot/mozilla/js/src/Makefile.in,v
+retrieving revision 3.95.12.2
+diff -u -r3.95.12.2 Makefile.in
+--- js/src/Makefile.in	12 Jun 2006 21:36:07 -0000	3.95.12.2
++++ js/src/Makefile.in	1 Aug 2006 00:44:40 -0000
+@@ -307,7 +307,7 @@
+ 
+ # On OS/2 & win32 we are already linking against fdlibm, so don't bother
+ # creating jsmathtemp
+-ifeq (,$(filter OS2 WINNT OpenVMS,$(OS_ARCH)))
++ifeq (,$(filter OS2 WINNT OpenVMS riscos,$(OS_ARCH)))
+ # special rule for jsmath.o since we want to incrementally link
+ # against fdlibm to pull in only what is needed
+ # Do this in a single step to avoid dependency problems
+@@ -322,7 +322,8 @@
+ 	$(LD) $(DASH_R) -o $@ $(JSMATH_PRELINK) $(FDLIBM_LIBRARY)
+ endif
+ else
+-	$(LD) $(DASH_R) -o $@ $(JSMATH_PRELINK) $(FDLIBM_LIBRARY)
++	$(AR) rc $(FDLIBM_LIBRARY) $@ $(JSMATH_PRELINK)
++#	$(LD) $(DASH_R) -o $@ $(JSMATH_PRELINK) $(FDLIBM_LIBRARY)
+ endif
+ 	@$(RM) -f $(JSMATH_PRELINK)
+ else
+@@ -373,7 +374,7 @@
+ 
+ ifdef CROSS_COMPILE
+ # jscpucfg needs to know when it's supposed to produce a config for the target
+-JSCPUCFG_DEFINES = $(ACDEFINES)
++JSCPUCFG_DEFINES = $(ACDEFINES) -DCROSS_COMPILE
+ 
+ # This is incredibly hacky.  Darwin NSPR uses the same MDCPUCFG for multiple
+ # processors, and determines which processor to configure for based on

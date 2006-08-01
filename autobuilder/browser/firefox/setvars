@@ -6,6 +6,10 @@ AB_ZIPNAME=firefox-1.5-$(date +%Y%m%d)
 
 AB_CATEGORY=browser
 
+# 'Official' build:
+export MOZILLA_OFFICIAL=1
+export BUILD_OFFICIAL=1
+
 # Disable any Autobuilder configure/make.  We drive it all ourselves.
 AB_PRECONF=:
 AB_MAKE=
@@ -51,7 +55,7 @@ ab_package () {
   for f in \
       firefox-bin,ff8 bloaturls.txt browserconfig.properties dependentlibs.list \
       LICENSE README.txt updater.ini chrome components defaults extensions \
-      greprefs init.d plugins res searchplugins \
+      greprefs plugins res searchplugins \
     ; do
     cp -prL $S/dist/bin/$f $D/!Firefox
   done  

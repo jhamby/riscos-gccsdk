@@ -158,32 +158,6 @@ diff -u -r1.4 nsX11AlphaBlend.cpp
  
  #if ENABLE_X11ALPHA_BLEND_PRINTF
  static PRUint32 gX11AlphaBlendDebug;
-Index: js/src/Makefile.in
-===================================================================
-RCS file: /cvsroot/mozilla/js/src/Makefile.in,v
-retrieving revision 3.95.12.1
-diff -u -r3.95.12.1 Makefile.in
---- js/src/Makefile.in	23 Feb 2006 19:30:43 -0000	3.95.12.1
-+++ js/src/Makefile.in	22 May 2006 00:40:08 -0000
-@@ -307,7 +307,7 @@
- 
- # On OS/2 & win32 we are already linking against fdlibm, so don't bother
- # creating jsmathtemp
--ifeq (,$(filter OS2 WINNT OpenVMS,$(OS_ARCH)))
-+ifeq (,$(filter OS2 WINNT OpenVMS riscos,$(OS_ARCH)))
- # special rule for jsmath.o since we want to incrementally link
- # against fdlibm to pull in only what is needed
- # Do this in a single step to avoid dependency problems
-@@ -322,7 +322,8 @@
- 	$(LD) $(DASH_R) -o $@ $(JSMATH_PRELINK) $(FDLIBM_LIBRARY)
- endif
- else
--	$(LD) $(DASH_R) -o $@ $(JSMATH_PRELINK) $(FDLIBM_LIBRARY)
-+	$(AR) rc $(FDLIBM_LIBRARY) $@ $(JSMATH_PRELINK)
-+#	$(LD) $(DASH_R) -o $@ $(JSMATH_PRELINK) $(FDLIBM_LIBRARY)
- endif
- 	@$(RM) -f $(JSMATH_PRELINK)
- else
 Index: js/src/jsfile.c
 ===================================================================
 RCS file: /cvsroot/mozilla/js/src/jsfile.c,v
