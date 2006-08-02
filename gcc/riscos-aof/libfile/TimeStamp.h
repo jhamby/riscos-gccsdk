@@ -48,7 +48,7 @@ public:
 #ifdef CROSS_COMPILE
 		time_t utime;
 		time (&utime);
-		const uint64_t rotime = 100ULL*utime + 0x336e996a00;
+		const uint64_t rotime = 100ULL*utime + 0x336e996a00ULL;
 		m_exe = (uint32_t)(rotime & 0xFFFFFFFF);
 		m_load = (uint32_t)((rotime >> 32) & 0xFF);
 #else
@@ -67,7 +67,7 @@ public:
 	{
 #ifdef CROSS_COMPILE
 		const uint64_t rotime = ((uint64_t)m_load << 32) + m_exe;
-		const time_t utime = (rotime - 0x336e996a00) / 100ULL;
+		const time_t utime = (rotime - 0x336e996a00ULL) / 100ULL;
 		BString rslt(ctime (&utime));
 		rslt.minus(1); // Strip ending new-line
 		return rslt;
@@ -121,7 +121,7 @@ public:
 #ifdef CROSS_COMPILE
 		struct stat f;
 		stat (a_file(), &f);
-		const uint64_t rotime = 100ULL*f.st_ctime + 0x336e996a00;
+		const uint64_t rotime = 100ULL*f.st_ctime + 0x336e996a00ULL;
 		m_exe = (uint32_t)(rotime & 0xFFFFFFFF);
 		m_load = (uint32_t)((rotime >> 32) & 0xFF);
 #else
