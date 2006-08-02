@@ -43,20 +43,6 @@ __BEGIN_DECLS
    Software Development Utilities Option.  */
 #define	_POSIX2_SW_DEV	1
 
-/* File name components longer than NAME_MAX will generate an
-   ENAMETOOLONG error.  */
-#define _POSIX_NO_TRUNC 1
-
-/* For terminal devices.  This allows special control characters
-   to be disabled individually.  */
-#define _POSIX_VDISABLE ((unsigned char) - 1)
-
-/* POSIX.4 clocks and timers are supported.  */
-#define _POSIX_TIMERS 1
-
-/* Real-time queued signals are supported.  */
-#define _POSIX_REALTIME_SIGNALS 1
-
 /* Protocol-independent interfaces are supported.  */
 #define _POSIX_PII 1
 
@@ -78,15 +64,7 @@ __BEGIN_DECLS
 /* Library supports select and pselect.  */
 #define _POSIX_SELECT 1
 
-/* The Monotonic Clock POSIX timer.  */
-#define _POSIX_MONOTONIC_CLOCK 1
-
-/* A high-resolution per-process timer from the CPU.  */
-/*#define _POSIX_CPUTIME 0 */
-
-/* Thread-specific CPU-time clock.  */
-/*#define _POSIX_THREAD_CPUTIME 0 */
-
+#include <bits/posix_opt.h>
 
 /* Standard file descriptors.  */
 #define	STDIN_FILENO	0	/* Standard input.  */

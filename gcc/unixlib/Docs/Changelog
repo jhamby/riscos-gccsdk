@@ -1,3 +1,10 @@
+Wed Aug  2 08:41:59 PDT 2006  Peter Naulls  <peter@chocky.org>
+
+	* source/clib/unistd.h, source/clib/bits/posix_opt.h: Add
+	  posix_opt header and set RISC OS features.  In particular,
+	  set flags indicating UnixLib supports POSIX threads, required
+	  by X libraries.
+
 Sun Jul 30 19:12:17 2006  John Tytgat  <John.Tytgat@aaug.net>
 
 	* source/clib/unixlib/sigstate.h,source/signal/_demangle.s

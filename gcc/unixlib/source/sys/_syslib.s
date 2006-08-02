@@ -384,7 +384,7 @@ no_dynamic_area
 	; calling this function.
 	BL	|__unixinit|
 
-	; Run the users program.
+	; Run the user's program.
 	BL	|_main|
 	; C programs always terminate by calling exit.
 	B	exit
