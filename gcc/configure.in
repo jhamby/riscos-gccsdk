@@ -129,6 +129,12 @@ if test "$enable_filetype_ff8" = yes; then
 else
   exesfx=
 fi
+
+withval=
+AC_ARG_WITH(target-arch,
+	[  --target-arch=CPU    specify an ARM processor to target with GCC (default: tune for StrongARM, compile for ARMv3)])
+target_arch=$withval
+
 AC_SUBST(exesfx)
 
 dnl Checks for library functions
@@ -183,6 +189,7 @@ AC_SUBST(host_system)
 AC_SUBST(with_riscos_dist)
 AC_SUBST(with_riscos_pkg)
 AC_SUBST(with_riscos_env)
+AC_SUBST(target_arch)
 
 # Get an absolute path to the GCCSDK top-level source directory
 holddir=`pwd`

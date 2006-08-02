@@ -170,7 +170,11 @@ do {									\
 #define MAX_WCHAR_TYPE_SIZE 32
 
 /* Override the normal default CPU.  */
+#ifdef TARGET_CPU
+#define SUBTARGET_CPU_DEFAULT TARGET_CPU
+#else
 #define SUBTARGET_CPU_DEFAULT TARGET_CPU_arm6
+#endif
 
 /* Tune for XScale.  */
 #define TARGET_TUNE_DEFAULT TARGET_CPU_xscale
@@ -543,7 +547,16 @@ do {							\
 
 /* Options to pass through to the assembler.  */
 #undef ASM_SPEC
-#define ASM_SPEC "%{!mcpu=*:-t ARM6 -apcsfpv3} \
+
+#if TARGET_ARCH == TARGET_ARCH_xscale
+#define ASM_CPU "XSCALE"
+#elif TARGET_ARCH == TARGET_ARCH_strongarm
+#define ASM_CPU "SA110"
+#else
+#define ASM_CPU "ARM6"
+#endif
+
+#define ASM_SPEC "%{!mcpu=*:-t " ASM_CPU " -apcsfpv3} \
 	%{mcpu=arm6:-t ARM6 -apcsfpv3} \
 	%{mcpu=arm7:-t ARM7 -apcsfpv3} \
 	%{mcpu=strongarm:-t SA110 -apcsfpv3} \
