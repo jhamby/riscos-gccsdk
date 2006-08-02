@@ -1,0 +1,17 @@
+Index: gfx/src/xlib/nsFontMetricsXlib.cpp
+===================================================================
+RCS file: /cvsroot/mozilla/gfx/src/xlib/nsFontMetricsXlib.cpp,v
+retrieving revision 1.171
+diff -u -r1.171 nsFontMetricsXlib.cpp
+--- gfx/src/xlib/nsFontMetricsXlib.cpp	23 Jan 2005 23:58:31 -0000	1.171
++++ gfx/src/xlib/nsFontMetricsXlib.cpp	2 Aug 2006 00:56:25 -0000
+@@ -5078,6 +5078,9 @@
+ static nsresult
+ GetAllFontNames(nsFontMetricsXlibContext *aFmctx)
+ {
++  if (!aFmctx)
++    return NS_ERROR_FAILURE;
++
+   if (!aFmctx->mGlobalListInitalised) {
+     aFmctx->mGlobalListInitalised = PR_TRUE;
+     // This may well expand further (families * sizes * styles?), but it's
