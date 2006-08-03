@@ -179,7 +179,7 @@ fi
 # Add X paths if needed
 if grep -q -- -x-includes $RO_CPATH/configure; then
  echo RISC OS: Adding X Paths
- X="--x-libraries=GCCSDK_ENV/X11R6/lib --x-includes=GCCSDK_ENV/X11R6/include"
+ X="--x-libraries=GCCSDK_ENV/lib --x-includes=GCCSDK_ENV/include"
 else
  X=
 fi
