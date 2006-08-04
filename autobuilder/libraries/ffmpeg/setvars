@@ -1,3 +1,7 @@
-
 AB_CVS_ROOT=:pserver:anonymous@mplayerhq.hu:/cvsroot/ffmpeg
 AB_CVS_MODULE=ffmpeg
+AB_ZIPNAME=ffmpeg-cvs-$(date +%Y%m%d)
+
+AB_PRECONF=:
+
+./configure --prefix=$GCCSDK_INSTALL_ENV --enable-static --disable-shared --cc=$GCCSDK_INSTALL_CROSSBIN/gcc --cpu=armv4l --extra-cflags=-DHAVE_LRINTF=1
