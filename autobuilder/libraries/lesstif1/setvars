@@ -8,12 +8,11 @@ cd ..
 
 cc scripts/man2html.c -o scripts/man2html
 
-mkdir -p /home/riscos/env/include/Xm
-mkdir -p /home/riscos/env/include/Mrm
+mkdir -p $GCCSDK_INSTALL_ENV/include/Xm
+mkdir -p $GCCSDK_INSTALL_ENV/include/Mrm
 
-
-AB_MAKE="$AB_MAKE; cp include/Motif-2.1/Xm/*.h /home/riscos/env/include/Xm; \
-         cp include/Motif-2.1/Mrm/*.h /home/riscos/env/include/Mrm; \
+AB_MAKE="$AB_MAKE; cp include/Motif-2.1/Xm/*.h $GCCSDK_INSTALL_ENV/include/Xm; \
+         cp include/Motif-2.1/Mrm/*.h $GCCSDK_INSTALL_ENV/include/Mrm; \
          cp lib/Xm/.libs/libXm.a lib/Xm/.libs/libXm.la  \
             lib/Mrm/.libs/libMrm.a lib/Mrm/.libs/libMrm.la \
-            /home/riscos/env/lib"
+            $GCCSDK_INSTALL_ENV/lib"
