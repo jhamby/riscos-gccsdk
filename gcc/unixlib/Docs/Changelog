@@ -1,3 +1,10 @@
+Sat Aug  5 16:33:17 PDT 2006  Peter Naulls  <peter@chocky.org>
+
+	* source/clib/bits/posix_opt.h: Be less optimistic about what
+	  we support.
+	* source/clib/bits/signum.h: Declare SIGSTAK for compatibility
+	  with Acorn C.
+
 Wed Aug  2 08:41:59 PDT 2006  Peter Naulls  <peter@chocky.org>
 
 	* source/clib/unistd.h, source/clib/bits/posix_opt.h: Add

@@ -27,7 +27,7 @@
 #define	_POSIX_SAVED_IDS	0
 
 /* Priority scheduling is supported.  */
-#define	_POSIX_PRIORITY_SCHEDULING	0
+#undef	_POSIX_PRIORITY_SCHEDULING
 
 /* Synchronizing file data is supported.  */
 #define	_POSIX_SYNCHRONIZED_IO	200112L
@@ -39,7 +39,7 @@
 #define	_POSIX_MAPPED_FILES	200112L
 
 /* Locking of all memory is supported.  */
-#define	_POSIX_MEMLOCK	200112L
+#undef	_POSIX_MEMLOCK
 
 /* Locking of ranges of memory is supported.  */
 #define	_POSIX_MEMLOCK_RANGE	200112L

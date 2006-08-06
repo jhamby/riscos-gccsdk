@@ -77,10 +77,12 @@
 #define SIGLOST		32
 /* RISC OS error.  */
 #define SIGOSERROR	33
+/* Stack extension failed (RISC OS Acorn C compatibility) */
+#define SIGSTAK		34
 
 /* Total number of signals defined. This should be one greater than
    the largest defined signal number.  */
-#define _NSIG 34
+#define _NSIG 35
 #define NSIG _NSIG
 
 /* Fake signal functions, based on the BSD versions.  */
