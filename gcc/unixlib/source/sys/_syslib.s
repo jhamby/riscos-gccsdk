@@ -1,5 +1,5 @@
 ; Provide program entry and initialise the UnixLib world
-; Copyright (c) 2002, 2003, 2004, 2005 UnixLib Developers
+; Copyright (c) 2002, 2003, 2004, 2005, 2006 UnixLib Developers
 
 	GET	clib/unixlib/asm_dec.s
 
@@ -587,7 +587,7 @@ handlers
 |x$stack_overflow_1|
 |__rt_stkovf_split_big|
 	CMP	ip, sl		; sanity check
-	MOVCS	pc, lr
+	MOVPL	pc, lr
 	STMFD	sp!, {a1, a2, a3, a4, v1, v2, v3, lr}
 	; This must store the same regs as for __rt_stkovf_split_small
 	; and if changed, also update the 8*4 in the frame size
@@ -656,7 +656,7 @@ alloc_new_chunk
 	MOV	a1, v1
 	BL	|__stackalloc|
 	TEQ	a1, #0
-	BEQ	raise_sigemt	; No free memory
+	BEQ	raise_sigstak		; No free memory
 
 	LDR	a3, |__stackchunk_magic_number|
 	STR	a3, [a1, #CHUNK_MAGIC]
@@ -690,9 +690,9 @@ use_existing_chunk
 
 	LDMFD	v3, {a1, a2, a3, a4, v1, v2, v3, pc}
 
-raise_sigemt
-	; The 256 bytes left on the stack aren't enough for the signal handler
-	; so setup a larger stack
+raise_sigstak
+	; The 256 bytes left on the stack aren't enough for the signal
+	; handler so setup a larger stack
 	MOV	v1, fp
 	MOV	v2, sp
 	MOV	v3, lr
@@ -703,7 +703,7 @@ raise_sigemt
 	ADD	fp, sp, #12		; link to the old stack
 
 	MOV	a1, #0
-	MOV	a2, #SIGEMT
+	MOV	a2, #SIGSTAK
 	BL	|__unixlib_raise_signal|
 	B	|_exit|		; __unixlib_raise_signal shouldn't return
 

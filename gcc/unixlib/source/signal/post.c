@@ -9,9 +9,9 @@
 #include <stdio.h>
 #include <string.h>
 #include <sys/wait.h>
-#include <swis.h>
 #include <unistd.h>
 
+#include <swis.h>
 #include <unixlib/os.h>
 #include <unixlib/unix.h>
 #include <unixlib/sigstate.h>
@@ -22,8 +22,7 @@
 #endif
 
 /* Given an address to the approximate start of a function, try
-   to obtain an embedded function name. Implemenation can return
-   a pointer to a static buffer.  */
+   to obtain an embedded function name.  */
 static const char *
 extract_name (const unsigned int *pc)
 {
@@ -45,20 +44,17 @@ extract_name (const unsigned int *pc)
 
   /* Function name sanity check.  */
   if (name != NULL
-      && (!__valid_address(name, name + 256)
-	  || strnlen(name, 256) == 256))
+      && (!__valid_address (name, name + 256) || strnlen (name, 256) == 256))
     name = NULL;
 
   if (name != NULL)
     {
-      static char demangled[256];
-      const char *dname;
-      size_t size = sizeof(demangled);
+      static char *demangled;
+      static size_t size;
       int status;
-      dname = __unixlib_cxa_demangle(name, demangled,
-				     &size, &status);
-      if (dname != NULL)
-	name = dname;
+      demangled = __unixlib_cxa_demangle ((name[0] == '^') ? name + 1 : name,
+					  demangled, &size, &status);
+      name = (demangled == NULL || status != 0) ? name : demangled;
     }
 
   return name;
@@ -206,7 +202,7 @@ sigsetup (struct unixlib_sigstate *ss, sighandler_t handler,
 static void
 write_termination (int signo)
 {
-  fprintf(stderr, "\nTermination signal received: %s\n", sys_siglist[signo]);
+  fprintf (stderr, "\nTermination signal received: %s\n", sys_siglist[signo]);
 }
 
 
@@ -217,14 +213,14 @@ __write_backtrace (int signo)
   unsigned int *fp = __backtrace_getfp();
   unsigned int *oldfp = NULL;
 
-  if (_swix(OS_PlatformFeatures, _IN(0) | _OUT(0), 0, &features))
+  if (_swix (OS_PlatformFeatures, _IN(0) | _OUT(0), 0, &features))
     features = 0;
 
   /* The ASM version did originally disable environment handlers
      but this seems to cause problems.  */
 
-  fprintf(stderr, "\nFatal signal received: %s\n\nStack backtrace:\n\n",
-	  strsignal(signo));
+  fprintf (stderr, "\nFatal signal received: %s\n\nStack backtrace:\n\n",
+	   strsignal (signo));
 
   /* fp[0]  => pc
      fp[-1] => lr
@@ -237,15 +233,15 @@ __write_backtrace (int signo)
       /* Check that FP is different.  */
       if (fp == oldfp)
 	{
-	  fprintf(stderr, "fp unchanged at %x\n", (unsigned int)fp);
+	  fprintf (stderr, "fp unchanged at %x\n", (unsigned int)fp);
 	  break;
 	}
 
       /* Validate FP address.  */
-      if (!__valid_address(fp - 3, fp))
+      if (!__valid_address (fp - 3, fp))
 	{
-	  fprintf(stderr, "Stack frame has gone out of bounds "
-			  "with address %x\n", (unsigned int)fp - 12);
+	  fprintf (stderr, "Stack frame has gone out of bounds "
+			   "with address %x\n", (unsigned int)fp - 12);
 	  break;
 	}
 
@@ -257,9 +253,9 @@ __write_backtrace (int signo)
       if (!(features & 0x8))
 	pc++;
 
-      if (!__valid_address(pc, pc))
+      if (!__valid_address (pc, pc))
 	{
-	  fprintf(stderr, "Invalid pc address %x\n", (unsigned int)pc);
+	  fprintf (stderr, "Invalid pc address %x\n", (unsigned int)pc);
 	  break;
 	}
 
@@ -269,23 +265,23 @@ __write_backtrace (int signo)
       else
 	lr = (unsigned int *)(fp[-1] & 0x03fffffc);
 
-      fprintf(stderr, "  (%8x) pc: %8x lr: %8x sp: %8x ",
-	      (unsigned int)fp, (unsigned int)pc, (unsigned int)lr,
-	      (unsigned int)fp[-2]);
+      fprintf (stderr, "  (%8x) pc: %8x lr: %8x sp: %8x ",
+	       (unsigned int)fp, (unsigned int)pc, (unsigned int)lr,
+	       (unsigned int)fp[-2]);
 
       /* Retrieve function name.  */
-      if (!__valid_address(pc - 7, pc))
+      if (!__valid_address (pc - 7, pc))
 	{
-	  fputs("[invalid address]\n", stderr);
+	  fputs ("[invalid address]\n", stderr);
 	}
       else
 	{
 	  const char *name = extract_name (pc);
 
 	  if (!name)
-	    fputs(" ?()\n", stderr);
+	    fputs (" ?()\n", stderr);
 	  else
-	    fprintf(stderr, " %s()\n", name);
+	    fprintf (stderr, " %s()\n", name);
 	}
 
       oldfp = fp;
@@ -298,40 +294,40 @@ __write_backtrace (int signo)
 	      "v5", "v6", "sl", "fp", "ip", "sp", "lr", "pc" };
 
 	  /* At &oldfp[1] = cpsr, a1-a4, v1-v6, sl, fp, ip, sp, lr, pc */
-	  fprintf(stderr, "\n  Register dump at %08x:\n",
-		  (unsigned int)&oldfp[1]);
+	  fprintf (stderr, "\n  Register dump at %08x:\n",
+		   (unsigned int)&oldfp[1]);
 
-	  if (__valid_address(oldfp, oldfp + 17))
+	  if (__valid_address (oldfp, oldfp + 17))
 	    {
 	      int reg;
 
 	      for (reg = 0; reg < 16; reg++)
 		{
 		  if ((reg & 0x3) == 0)
-		    fputs("\n   ", stderr);
+		    fputs ("\n   ", stderr);
 		  
-		  fprintf(stderr, " %s: %8x", rname[reg], oldfp[reg + 2]);
+		  fprintf (stderr, " %s: %8x", rname[reg], oldfp[reg + 2]);
 		}
 
 	      if (__32bit)
-		fprintf(stderr, "\n    cpsr: %8x\n", oldfp[1]);
+		fprintf (stderr, "\n    cpsr: %8x\n", oldfp[1]);
 	      else
 		{
 		  const char * const pmode[4] =
 		    { "USR", "FIQ", "IRQ", "SVC" };
-		  fprintf(stderr, "\n    Mode %s, flags set: ",
+		  fprintf (stderr, "\n    Mode %s, flags set: ",
 		    pmode[oldfp[15 + 2] & 3]);
-		  fputc((oldfp[15 + 2] & (1<<31)) ? 'N' : 'n', stderr);
-		  fputc((oldfp[15 + 2] & (1<<30)) ? 'Z' : 'z', stderr);
-		  fputc((oldfp[15 + 2] & (1<<29)) ? 'C' : 'c', stderr);
-		  fputc((oldfp[15 + 2] & (1<<28)) ? 'V' : 'v', stderr);
-		  fputc((oldfp[15 + 2] & (1<<27)) ? 'I' : 'i', stderr);
-		  fputc((oldfp[15 + 2] & (1<<26)) ? 'F' : 'f', stderr);
-		  fputc('\n', stderr);
+		  fputc ((oldfp[15 + 2] & (1<<31)) ? 'N' : 'n', stderr);
+		  fputc ((oldfp[15 + 2] & (1<<30)) ? 'Z' : 'z', stderr);
+		  fputc ((oldfp[15 + 2] & (1<<29)) ? 'C' : 'c', stderr);
+		  fputc ((oldfp[15 + 2] & (1<<28)) ? 'V' : 'v', stderr);
+		  fputc ((oldfp[15 + 2] & (1<<27)) ? 'I' : 'i', stderr);
+		  fputc ((oldfp[15 + 2] & (1<<26)) ? 'F' : 'f', stderr);
+		  fputc ('\n', stderr);
 		}
 	    }
 	  else
-	    fputs("\n    [bad register dump address]\n", stderr);
+	    fputs ("\n    [bad register dump address]\n", stderr);
 
 	  if (__32bit)
 	    pc = (unsigned int *) (oldfp[17] & 0xfffffffc);
@@ -339,10 +335,10 @@ __write_backtrace (int signo)
 	    pc = (unsigned int *) (oldfp[17] & 0x03fffffc);
 
 	  /* Try LR if PC invalid */
-	  if (pc < (unsigned int *)0x8000 || !__valid_address(pc - 5, pc + 3))
+	  if (pc < (unsigned int *)0x8000 || !__valid_address (pc - 5, pc + 3))
 	    pc = (unsigned int *)oldfp[16];
 
-	  if (pc > (unsigned int *)0x8000 && __valid_address(pc - 5, pc + 3))
+	  if (pc > (unsigned int *)0x8000 && __valid_address (pc - 5, pc + 3))
 	    {
 	      unsigned int *diss;
 
@@ -359,26 +355,26 @@ __write_backtrace (int signo)
 		  c[2] = (*diss >> 16) & 0xFF;
 		  c[1] = (*diss >>  8) & 0xFF;
 		  c[0] = (*diss >>  0) & 0xFF;
-		  fprintf(stderr, "\n  %08x : %c%c%c%c : %08x : ",
+		  fprintf (stderr, "\n  %08x : %c%c%c%c : %08x : ",
 		    (unsigned int) diss,
 		    (c[0] >= ' ' && c[0] != 127) ? c[0] : '.',
 		    (c[1] >= ' ' && c[1] != 127) ? c[1] : '.',
 		    (c[2] >= ' ' && c[2] != 127) ? c[2] : '.',
 		    (c[3] >= ' ' && c[3] != 127) ? c[3] : '.',
 		    *diss);
-		  fwrite(ins, length, 1, stderr);
+		  fwrite (ins, length, 1, stderr);
 		}
 	    }
 	  else
 	    {
-	      fputs("\n  [Disassembly not available]", stderr);
+	      fputs ("\n  [Disassembly not available]", stderr);
 	    }
 
-	  fputs("\n\n", stderr);
+	  fputs ("\n\n", stderr);
 	}
     }
   
-  fputc('\n', stderr);
+  fputc ('\n', stderr);
 }
 
 

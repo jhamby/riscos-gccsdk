@@ -1,3 +1,23 @@
+Sun Aug  6 12:47:09 2006  John Tytgat  <John.Tytgat@aaug.net>
+
+	* source/Makefile.in: Mark generated clib/unixlib/buildoptions.s file
+	  clearly as a derived file.
+	* debug/dvsprintf.c: don't make use of routines which have stack
+	  checking enabled.  Write all info via __os_print() and not via stderr.
+	* source/clib/unixlib/buildoptions.s: Removed (it will be generated
+	  in the build).
+	* source/clib/unixlib/asm_dec.s: Added SIGSTAK as alias for SIGEMT.
+	* source/clib/bits/signum.h: Made SIGSTAK an alias for SIGEMT instead
+	  of allocating an unique signal number (which is already beyound
+	  the currently 32 supported signal set).
+	* source/signal/signame.c: Reformated.
+	* source/clib/unixlib/sigstate.h,source/signal/post.c,
+	  source/signal/_demangle.s: respect the __cxa_demangle() API, i.e. all
+	  its buffers all heap buffers.
+	* sys/stackalloc.c: Include sys/debug.h when #define DEBUG is done.
+	  (incr_downards): add check if downwards stack increasing doesn't mean
+	  going lower than zero page.
+
 Sat Aug  5 16:33:17 PDT 2006  Peter Naulls  <peter@chocky.org>
 
 	* source/clib/bits/posix_opt.h: Be less optimistic about what

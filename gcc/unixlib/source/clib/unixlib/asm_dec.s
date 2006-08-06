@@ -1,5 +1,5 @@
 ; Global definitions used by all assembler files.
-; Copyright (c) 2002, 2003, 2004, 2005 UnixLib Developers.
+; Copyright (c) 2002, 2003, 2004, 2005, 2006 UnixLib Developers.
 
 ; Bits that control which bits are compiled into UnixLib. Note, this must be
 ; kept in sync with <sys/syslib.h>, <signal.h> and <errno.h>.
@@ -104,6 +104,7 @@ SIGTRAP EQU	5	; * trace trap - unused
 SIGIOT	EQU	6	;   abort
 SIGABRT EQU	6	;   abort
 SIGEMT	EQU	7	; * EMT (h/ware error)
+SIGSTAK	EQU	SIGEMT
 SIGFPE	EQU	8	; * FPE trap
 SIGKILL EQU	9	;   kill signal
 SIGBUS	EQU	10	; * bus error

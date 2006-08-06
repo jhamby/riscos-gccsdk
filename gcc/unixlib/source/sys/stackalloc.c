@@ -1,5 +1,5 @@
 /* Non-contiguous stack chunk allocator.
-   Copyright (c) 2002, 2003, 2004, 2005 UnixLib Devlopers.
+   Copyright (c) 2002, 2003, 2004, 2005, 2006 UnixLib Devlopers.
    Written by Alex Waugh, January 2002. */
 
 /****************************************************************************
@@ -27,6 +27,10 @@
 #include <swis.h>
 
 /* #define DEBUG 1 */
+
+#ifdef DEBUG
+#  include <sys/debug.h>
+#endif
 
 #define BLOCK_FREE 0
 #define BLOCK_DATA_SIZE 4096
@@ -256,7 +260,8 @@ static struct block *incr_downwards (int blocksneeded)
 		incr, mem->unixlib_stack, mem->unixlib_stack_limit);
 #endif
 
-  if (new__stack >= mem->unixlib_stack_limit)
+  if (new__stack >= mem->unixlib_stack_limit
+      && new__stack <= mem->unixlib_stack)
     {
       mem->unixlib_stack = new__stack;
 

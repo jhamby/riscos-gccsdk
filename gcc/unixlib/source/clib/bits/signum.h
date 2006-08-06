@@ -1,5 +1,5 @@
 /* Signal number definitions.
-   Copyright (c) 2002, 2003, 2004, 2005 UnixLib Developers.  */
+   Copyright (c) 2002, 2003, 2004, 2005, 2006 UnixLib Developers.  */
 
 #ifndef __BITS_SIGNUM_H
 #define __BITS_SIGNUM_H
@@ -21,6 +21,8 @@
 #define SIGIOT		6
 /* EMT trap (4.2 BSD).  */
 #define SIGEMT		7
+/* Stack extension failed (RISC OS Acorn C compatibility) */
+#define SIGSTAK		SIGEMT
 /* Floating-point exception (ANSI).  */
 #define SIGFPE		8
 /* Kill, unblockable (POSIX).  */
@@ -77,12 +79,10 @@
 #define SIGLOST		32
 /* RISC OS error.  */
 #define SIGOSERROR	33
-/* Stack extension failed (RISC OS Acorn C compatibility) */
-#define SIGSTAK		34
 
 /* Total number of signals defined. This should be one greater than
    the largest defined signal number.  */
-#define _NSIG 35
+#define _NSIG 34
 #define NSIG _NSIG
 
 /* Fake signal functions, based on the BSD versions.  */

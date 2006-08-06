@@ -1,5 +1,5 @@
 /* Linux kernel vsprintf modified for UnixLib debugging.
-   Copyright (c) 2005 UnixLib Devlopers.
+   Copyright (c) 2005, 2006 UnixLib Devlopers.
 
    This must be compiled without stack checking.  */
 
@@ -33,7 +33,7 @@
 #pragma -s1
 #endif
 
-static int isxdigit (const char x)
+static __inline int isxdigit (const char x)
 {
   return ((x >= '0' && x <= '9')
 	  || (x >= 'A' && x <= 'F')
@@ -45,16 +45,24 @@ static __inline int isdigit (const char x)
   return (x >= '0' && x <= '9') ? 1 : 0;
 }
 
-static char toupper (const char x)
+static __inline char toupper (const char x)
 {
   return (x >= 'a') ? x - 26 + 7 : x;
 }
 
-static int islower (const char x)
+static __inline int islower (const char x)
 {
   return (x >= 'a' && x <= 'z') ? 1 : 0;
 }
- 
+
+static __inline size_t strnlen (const char *s, size_t maxlen)
+{
+  size_t r;
+  for (r = 0; s[r] && r < maxlen; ++r)
+    /* */;
+  return r;
+}
+
 /**
  * simple_strtoul - convert a string to an unsigned long
  * @cp: The start of the string
@@ -95,7 +103,7 @@ static unsigned long simple_strtoul(const char *cp,
  */
 static long simple_strtol(const char *cp,char **endp,unsigned int base)
 {
-  if(*cp=='-')
+  if (*cp == '-')
     return -simple_strtoul(cp+1,endp,base);
   return simple_strtoul(cp,endp,base);
 }
@@ -304,7 +312,7 @@ static int _vsnprintf(char *buf, size_t size, const char *fmt, va_list args)
 
       /* Because we are using RISC OS SWI calls to output the resultant
 	 string, all newlines must be CR-LF.  */
-      if (*fmt == '\n' && stderr == NULL)
+      if (*fmt == '\n')
 	*++str = '\r';
 
       ++str;
@@ -521,8 +529,5 @@ void debug_printf (const char *fmt, ...)
   _vsnprintf (buf + 3, sizeof (buf) - 3, fmt, args);
   va_end (args);
 
-  if (stderr)
-    fputs(buf, stderr);
-  else
-    __os_print (buf);
+  __os_print (buf);
 }

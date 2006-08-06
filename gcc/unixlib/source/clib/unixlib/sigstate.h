@@ -42,7 +42,7 @@ struct unixlib_sigstate
 /* Raise a signal as described by __signo on the process whose sigstate
    __ss points to. If __ss is null, this will affect the calling process.  */
 extern void __unixlib_raise_signal (struct unixlib_sigstate *__ss,
-				   int __signo);
+				    int __signo);
 
 /* Function run for SIGINFO when its action is SIG_DFL and the current
    process is the session leader.  */
@@ -67,9 +67,9 @@ extern void __write_backtrace (int signo);
    linktime).  Is a wrapper around __cxa_demangle() and follows the
    same API.  When libstd++ wasn't available during linking, the returned
    value equals '__mangled_name'.  */
-extern const char *__unixlib_cxa_demangle(const char *__mangled_name,
-                                    char *__output_buffer, size_t *__length,
-                                    int *__status);
+extern char *__unixlib_cxa_demangle (const char *__mangled_name,
+				     char *__output_buffer, size_t *__length,
+				     int *__status);
 
 /* SIGALRM handler.  */
 extern void __h_sigalrm_init (void);
