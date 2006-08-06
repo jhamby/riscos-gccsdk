@@ -8,8 +8,8 @@
 
 <h2>Autobuilder Manual</h2>
 
-<p>Copyright 2003-2005, GCCSDK Developers</a>.</p>
-<p>Last updated - 30 Dec 2005</p>
+<p>Copyright 2003-2006, GCCSDK Developers</a>.</p>
+<p>Last updated - 06 Aug 2006</p>
 
 <hr>
 
@@ -20,7 +20,7 @@
 <p>To automate the mundane and error prone task of repeated builds, updates,
 packaging and sundry items of programs and libraries built for the Unix Porting Project.</p>
 
-<p>What the autobuilder does is relatively straightforward, but also complex due to the diverse nature of types of build systems.  Based upon a set of variables set in a configuration file, and optional helper script commands, the autobuilder does the following for a given program:<p>
+<p>What the Autobuilder does is relatively straightforward, but also complex due to the diverse nature of types of build systems.  Based upon a set of variables set in a configuration file, and optional helper script commands, the Autobuilder does the following for a given program:<p>
 
 <ul>
  <li>Fetch the latest version of the source for the package, using Debian's
@@ -58,10 +58,9 @@ packaging and sundry items of programs and libraries built for the Unix Porting 
 
 <h3>Installation</h3>
 
-<p>The autobuilder is normally placed in /usr/src/autobuilder.  There's a
-few hardwired paths, although attempts have been made to avoid them.  The porting tools are assumed to be in $GCCSDK_INSTALL_ENV (usually /home/riscos/env) and the cross compiler in $GCCSDK_INSTALL_CROSSBIN (usually /home/riscos/cross/bin).</p>
+<p>The Autobuilder sources do not have to be stored in a specific directory, in this document we'll assume it to be /usr/src/autobuilder.  The porting tools are assumed to be in $GCCSDK_INSTALL_ENV (usually /home/riscos/env) and the cross compiler in $GCCSDK_INSTALL_CROSSBIN (usually /home/riscos/cross/bin).</p>
 
-<p>Under the autobuilder directory are subdirectories for categories of programs, and in those are program directories, although directories can be anywhere under the autobuilder to aid in organisation.   Each program directory contains a "setvars" script, which sets variables used by the autobuilder.</p>
+<p>Under the Autobuilder directory are subdirectories for categories of programs, and in those are program directories, although directories can be anywhere under the Autobuilder to aid in organisation.   Each program directory contains a "setvars" script, which sets variables used by the Autobuilder.</p>
 
 <p></p>
 
@@ -72,21 +71,21 @@ few hardwired paths, although attempts have been made to avoid them.  The portin
 <p>To try out the builder, run something like this:</p>
 
 <pre>
-   /usr/src/autobuild/build -v cli/whois
+   /usr/src/autobuilder/build -v network/whois
 </pre>
 
-<p>This will attempt to fetch, build and package the whois program for RISC OS, and place it in the autobuilder's download directory.</p>
+<p>This will attempt to fetch, build and package the whois program for RISC OS, and place it in the Autobuilder's download directory.</p>
 
-<p>The program is built in /tmp/whois, which will be deleted if the build
+<p>The program is built in $PWD/whois, which will be deleted if the build
 is successful.  If not, the directory will remain for you to examine the build failure.</p>
 
-<p>The file /usr/src/autobuild/whois/setvars is the file that controls the build.  All these variables are documented in the setvars-template in the top level, so won't be discussed in detail here.</p>
+<p>The file /usr/src/autobuilder/whois/setvars is the file that controls the build.  All these variables are documented in the setvars-template in the top level, so won't be discussed in detail here.</p>
 
 
 <p>Try:</p>
 
 <pre>
-   /usr/src/autobuild/build -v libraries/popt
+   /usr/src/autobuilder/build -v libraries/popt
 </pre>
 
 <p>The single line in the setvars file for this library means that "make install" will be run after a successful build.  This means a build environment can be built up under /home/riscos/env.</p>
@@ -108,14 +107,13 @@ is successful.  If not, the directory will remain for you to examine the build f
  the build, even if it was successful.  It will also continue even if applying
  patches fails (to allow for them to be applied already in a previous build).
 
- <li>-p Package only.  This is for testing the packaging part of the process.  Note that with this option, the autobuilder is unable to determine the version number, so the resulting zip filename will lack this.
+ <li>-p Package only.  This is for testing the packaging part of the process.  Note that with this option, the Autobuilder is unable to determine the version number, so the resulting zip filename will lack this.
 
- <li>-n No dependencies.  By default the autobuilder will try to build any missing dependencies of the package before building the package itself. This option prevents any dependency checking.
+ <li>-n No dependencies.  By default the Autobuilder will try to build any missing dependencies of the package before building the package itself. This option prevents any dependency checking.
 
- <li>-f Don't try and fetch the sources.  This allows you to unpack the sources yourself, that you've previously fetched - normally, because you're not on Debian.  To use this, you will need to have a precise setup, because the autobuilder relies on various paths to allow it find things.  Example usage:
+ <li>-f Don't try and fetch the sources.  This allows you to unpack the sources yourself, that you've previously fetched - normally, because you're not on Debian.  To use this, you will need to have a precise setup, because the Autobuilder relies on various paths to allow it find things.  Example usage:
 
   <pre>
-  
     mkdir libmng
     cd libmng
     tar xfvz libmng-1.0.0.tgz
@@ -147,7 +145,7 @@ is successful.  If not, the directory will remain for you to examine the build f
 <p>Any files in a package directory ending in ".p" are applied as patches
    using "patch -p0 -l".</p>
 
-<p>The autobuilder will also look in several standard places for Debian patches, and apply those.</p>
+<p>The Autobuilder will also look in several standard places for Debian patches, and apply those.</p>
 
 <p></p>
 
@@ -155,7 +153,7 @@ is successful.  If not, the directory will remain for you to examine the build f
 
 <h3>Dependencies</h3>
 
-<p>The autobuilder will attempt to ensure any libraries that a package depends on will be built before the package. It does this by parsing the output of the apt-cache command if available, and the contents of the depends file in the package directory, it it exists. If a dependency has a last-success file in it's package directory then the autobuilder will assume that the dependency is satisfied, if there is no last-success file then it will attempt to build the dependency and fail if it can't.</p>
+<p>The Autobuilder will attempt to ensure any libraries that a package depends on will be built before the package. It does this by parsing the output of the apt-cache command if available, and the contents of the depends file in the package directory, it it exists. If a dependency has a last-success file in it's package directory then the Autobuilder will assume that the dependency is satisfied, if there is no last-success file then it will attempt to build the dependency and fail if it can't.</p>
 
 <p></p>
 
@@ -165,7 +163,7 @@ is successful.  If not, the directory will remain for you to examine the build f
 
 <p>The majority of programs build, but some may occasionally fail (access to Debian mirrors is not 100%), or changes to a new version, or in a dependent library may cause failures which occasionally need to be addressed.</p>
 
-<p>Please contribute any fixes back to GCCSDK so they can be incorporated.</p>
+<p>Please contribute any fixes back to <a href="http://www.riscos.info/">GCCSDK</a> so they can be incorporated.</p>
 
 <p></p>
 
