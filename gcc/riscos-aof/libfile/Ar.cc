@@ -139,23 +139,23 @@ void Ar::run()
         break;
 
       case ActionInsert:
-        if (iModCreate)
+        // Don't error if the library does not exist.  Silently create
+        // a new one instead.
+        try
           {
-            // Don't error if the library does not exist.  Silently create
-            // a new one instead.
-            try
-              {
-                library.load();
-              }
-            catch(BError err)
-              {
-                // Re-throw the error if it is one we aren't interested in.
-                if (err.GetErrorCode() != BError::FileNotFound)
-                  throw err;
-              }
+            library.load();
           }
-        else
-          library.load();
+        catch(BError err)
+          {
+            if (err.GetErrorCode() == BError::FileNotFound)
+              {
+                // Either give message, either ignore the exception.
+                if (!iModCreate)
+                  cerr << "ar: creating " << iArchive << endl;
+              }
+            else
+              throw err;
+          }
         library.addMembers(iMembers);
         library.updateOflTime();
         library.updateOflSymt();
