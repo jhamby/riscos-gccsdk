@@ -51,7 +51,13 @@ int symedit_count,		/* Count of rename/hide/reveal commands */
 /* Private declarations */
 
 typedef enum
-{ IDENT, LPAREN, RPAREN, COMMA, NOTHING } editsymbol;
+{
+  IDENT,
+  LPAREN,
+  RPAREN,
+  COMMA,
+  NOTHING
+} editsymbol;
 
 static editsymbol editsym;
 static char *ident;
@@ -333,15 +339,14 @@ scan_editfile (void)
 static void
 list_badedits (editcmd * p)
 {
-  const char *opnames[] =
-    { "", "rename", "change", "hide", "reveal", "entry" };
+  const char * const opnames[] =
+    { "", "rename", "change", "hide", "reveal" };
 
-  while (p != NULL)
+  for (/* */; p != NULL; p = p->edtnext)
     {
       if (!p->edtdone)
 	error ("    %s '%s' in '%s'", opnames[p->edtoper], p->edtold,
 	       p->edtfile);
-      p = p->edtnext;
     }
 }
 
@@ -355,11 +360,16 @@ verify_edits (void)
 {
   if (symedit_count == 0 && refedit_count == 0)
     return TRUE;
-  error ("Warning: The following link edits were not carried out:");
-  if (symedit_count != 0)
-    list_badedits (symedit_list);
-  if (refedit_count != 0)
-    list_badedits (refedit_list);
+
+  if (!opt_quiet)
+    {
+      error ("Warning: The following link edits were not carried out:");
+      if (symedit_count != 0)
+        list_badedits (symedit_list);
+      if (refedit_count != 0)
+        list_badedits (refedit_list);
+    }
+
   return FALSE;
 }
 

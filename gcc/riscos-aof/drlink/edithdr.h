@@ -46,8 +46,7 @@ typedef struct editcmd
 } editcmd;
 
 extern editcmd *symedit_list,	/* List of symbols to edit */
- *refedit_list,			/* List of references to change */
- *new_entry;			/* Replacement entry point */
+ *refedit_list;			/* List of references to change */
 
 extern const char *editname;	/* Name of edit file */
 extern char *editptr,		/* Pointer into link edit file buffer */

@@ -732,7 +732,7 @@ get_option (char *tp)
 	}
       break;
     case OPT_QUIET:
-      opt_quiet = TRUE;
+      opt_quiet = !opt_warningerrors;
       break;
     case OPT_RELOC:
       if (imagetype > AIF)
@@ -755,6 +755,7 @@ get_option (char *tp)
     case OPT_STRICT:
       error ("Warning: Warnings treated as Errors");
       opt_warningerrors = TRUE;
+      opt_quiet = FALSE;
       break;  
     case OPT_STRONG:
       opt_strongarm = TRUE;

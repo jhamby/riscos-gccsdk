@@ -497,7 +497,8 @@ The linker has the following extra options of its own:
                'Drlink AOF Linker ...' message when it starts
                up. Nothing will be printed except for error
                messages. This option overrides '-verbose' if
-               both are specified.
+               both are specified.  This option will be ignored
+               when '-strict' is specified.
 
     -rescan    This tells the linker to scan libraries more than
                once if necessary when searching for symbols.
@@ -533,7 +534,8 @@ The linker has the following extra options of its own:
                <address> <name> order.
 
    -strict
-               Treat warnings as errors.
+               Treat warnings as errors.  Specifying this option
+               will ignore option '-quiet'.
 
    -throwback  If this option is used and it is possible to use
                'throwback' then all warning, error and fatal error
