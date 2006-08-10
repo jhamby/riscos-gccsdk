@@ -1,3 +1,7 @@
+Thu Aug 10 13:53:58 PDT 2006  Peter Naulls  <peter@chocky.org>
+
+	* source/sys/_syslib.s: Check for RISC OS 5 when built for XScale.
+
 Sun Aug  6 12:47:09 2006  John Tytgat  <John.Tytgat@aaug.net>
 
 	* source/Makefile.in: Mark generated clib/unixlib/buildoptions.s file
@@ -13,7 +17,7 @@ Sun Aug  6 12:47:09 2006  John Tytgat  <John.Tytgat@aaug.net>
 	* source/signal/signame.c: Reformated.
 	* source/clib/unixlib/sigstate.h,source/signal/post.c,
 	  source/signal/_demangle.s: respect the __cxa_demangle() API, i.e. all
-	  its buffers all heap buffers.
+	  its buffers are heap buffers.
 	* sys/stackalloc.c: Include sys/debug.h when #define DEBUG is done.
 	  (incr_downards): add check if downwards stack increasing doesn't mean
 	  going lower than zero page.

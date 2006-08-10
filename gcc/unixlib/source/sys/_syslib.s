@@ -9,6 +9,7 @@ ERR_NO_CALLASWI 	* 1
 ERR_NO_SUL      	* 2
 ERR_NO_FPE      	* 3
 ERR_UNRECOVERABLE	* 4
+ERR_NO_XSCALE           * 5
 
 ; Constants for field offsets within a stack chunk
 ; The stack is allocated in chunks, each chunk is a multiple of 4KB, and
@@ -201,6 +202,17 @@ SUL_MIN_VERSION	EQU	107
 	LDR	a1, |___dynamic_no_da|
 	TEQ	a1, #0
 	BNE	no_dynamic_area
+
+	[ TARGET_CPU = "XSCALE"
+	; Assume OS version = 170 (RISC OS 5) means XScale
+	MOV	a1, #129
+	MOV	a2, #0
+	MOV	a3, #255
+	SWI	XOS_Byte
+        CMP     a2, #170
+	MOVCC	a1, #ERR_NO_XSCALE
+	BCC	|__exit_with_error_num|
+	]
 
 	; Check OS version for RISC OS 3.5 or more recent.
 	MOV	a1, #129
@@ -424,6 +436,9 @@ error_table
 	DCD	error_no_sharedunixlib
 	DCD	error_no_fpe
 	DCD	error_unrecoverable_loop
+        [ TARGET_CPU = "XSCALE"
+	DCD     error_no_xscale
+        ]
 error_table_end
 
 error_no_callaswi
@@ -448,7 +463,12 @@ error_unrecoverable_loop
 	DCD	SharedUnixLibrary_Error_FatalError
 	DCB	"Unrecoverable fatal error detected", 0
 	ALIGN
-
+        [ TARGET_CPU = "XSCALE"
+error_no_xscale
+        DCD	SharedUnixLibrary_Error_FatalError
+        DCB     "This program has been build with XScale only instructions", 0
+        ALIGN
+        ]
 	IMPORT	|__munmap_all|
 	EXPORT	|__dynamic_area_exit|
 	NAME	__dynamic_area_exit
