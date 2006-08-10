@@ -393,6 +393,8 @@ int main (int argc, char **argv)
   if (apcs_softfloat == -1)
     apcs_softfloat = 0;
 
+  set_cpuvar();
+
   /* When the command line has been sorted, get on with the job in hand */
   if (ObjFileName == NULL)
     ObjFileName = SourceFileName;

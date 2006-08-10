@@ -47,4 +47,6 @@ int as_target (const char *target);
 
 BOOL cpuWarn (TargetCPU_t);
 
+void set_cpuvar (void);
+
 #endif

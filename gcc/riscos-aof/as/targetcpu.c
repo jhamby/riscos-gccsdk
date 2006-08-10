@@ -29,8 +29,10 @@
 #include "main.h"
 #include "targetcpu.h"
 #include "os.h"
+#include "variables.h"
 
 TargetCPU_t targetCPU = UNKNOWN;
+static const char *targetName = "";
 
 
 int
@@ -116,11 +118,14 @@ as_target (const char *target)	/* only called from main() */
 	 && strncasecmp (target, cpu[n].name, cpu[n].name_len); ++n)
     /* */;
   if (cpu[n].name != NULL)
-    targetCPU = cpu[n].type;
+    {
+      targetCPU = cpu[n].type;
+      targetName = cpu[n].name;
+    }
   else
     {
-    targetCPU = ARM2;
-    fprintf (stderr, "%s: Unrecognised target CPU <%s>, assuming ARM2\n", ProgName, target);
+      targetCPU = ARM2;
+      fprintf (stderr, "%s: Unrecognised target CPU <%s>, assuming ARM2\n", ProgName, target);
     }
   return 0;
 }
@@ -134,3 +139,13 @@ cpuWarn (TargetCPU_t type)	/* true if warning is output */
   error (ErrorWarning, TRUE, "Instruction unsupported on target CPU");
   return TRUE;
 }
+
+void set_cpuvar (void)
+{
+   char buffer[40];
+
+   snprintf (buffer, sizeof(buffer), "TARGET_CPU=%s", targetName);
+   var_define (buffer);
+}
+
+
