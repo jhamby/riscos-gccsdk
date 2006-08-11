@@ -315,6 +315,9 @@ add_path (char *path, int chain, int cxx_aware)
     if (*c == '\\') *c = '/';
 #endif
 
+#ifdef __riscos__
+  path = __unixify_std(path, NULL, 0, 0, NULL);
+#endif
   p = xmalloc (sizeof (struct cpp_dir));
   p->next = NULL;
   p->name = path;
