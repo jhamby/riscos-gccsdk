@@ -1,10 +1,22 @@
-CXX=g++
+CXXFLAGS = -lstdc++
 
-all: hellow ackermann dhry \
-     helloworld exception template \
-     gccmodule1 gccmodule2 gccmodule3
+all: hellow hellowscl helloworld helloworldscl \
+	ackermann dhry \
+	exception template \
+	gccmodule1
 
-# hellow, ackermann: No rule, makes use of implict rules
+# These require OSLib, so not built by default
+extra: gccmodule2 gccmodule3
+
+# hellow, ackermann: Makes use of implict rules
+
+
+# hellow, and helloworld with libscl
+hellowscl:
+	$(CC) -mlibscl -o $@ hellow.c
+
+helloworldscl:
+	$(CXX) -mlibscl -o $@ helloworld.cc
 
 
 # dhry: Specify just the object files required to create it
