@@ -10,6 +10,14 @@ lot of Unix function calls like this library does but it is not a
 Run Time library.
 
 
+UnixLib Purpose
+~~~~~~~~~~~~~~~
+
+The intent of UnixLib is to provide, as much as possible, a fully POSIX-compatible and Acorn SharedCLibrary-compatible C run-time library for RISC OS.
+
+It should be possible to use UnixLib in place of the SharedCLibrary for any program which targets that.  It should also be possible to compile and run most (but not all) POSIX-compatible code that avoids OS=specific code.  This is true of much open source code.  It also includes some Linux and GLIBC compatible interfaces.  Some POSIX features are impractical on RISC OS or simply have not been implemented.  In the latter case, we'd appreciate a bug report.  Non-advertised deviation from POSIX behaviour will generally also be a bug.
+
+
 Run-time features
 ~~~~~~~~~~~~~~~~~
 
@@ -43,12 +51,12 @@ The list of recognised features are:
 2. sfix
 
    Default: a:c:cc:f:h:i:ii:l:o:p:s:y
-   This defines the list of suffices with will be used to do suffix
+   This defines the list of suffixes which will be used to perform suffix
    swapping when suffix swapping is enabled.  Suffix swapping is enabled
    by default and can be disabled by having the __RISCOSIFY_NO_SUFFIX
    bit specified in __riscosify_flags of the __riscosify() routine or
    having that bit specified in the WEAK symbol __riscosify_control.
-   See <unixlib/local.h> include file for more information.
+   See the <unixlib/local.h> include file for more information.
 
    Suffix swapping can also be disabled by defining the
    UnixEnv$<program name>$sfix environment variable as an empty string :
@@ -244,7 +252,7 @@ dynamic area space may be limited.
 pthreads
 ~~~~~~~~
 
-UnixLib now provides support for threading, using the POSIX pthreads
+UnixLib provides support for threading, using the POSIX pthreads
 interface as defined in IEEE Std 1003.1 2003
 <URL:http://www.opengroup.org/onlinepubs/007904975/>.
 
@@ -307,7 +315,7 @@ At the time of writing, the latest version is 0.52.
 iconv support
 ~~~~~~~~~~~~~
 
-Previously, use of iconv in programs required linking in of the standable
+Previously, use of iconv in programs required linking in of the stand alone
 iconv library, which adds around 1MB to UnixLib programs - mainly because
 of the lack of a shared library system on RISC OS.  In this version,   
 iconv support is in an external module, and UnixLib provides a C interface
@@ -316,14 +324,6 @@ to call this.  It should act much like the inbuilt iconv support in GLIBC.
 The latest version of the iconv module is currently available from:
 
   <URL:http://netsurf.sf.net/iconv/iconv_latest.zip>
-
-Beta testers of A9home hardware might need an alternative version compiled
-using RISCOS Ltd's StubsG instead of the SharedCLibrary stubs:
-
-  <URL:http://netsurf.sf.net/iconv/iconv_latestg.zip>
-
-It is expected that this last version is only temporary needed until the
-SharedCLibrary issues of A9home are resolved.
 
 At the time of writing, the latest version is 0.07.
 
@@ -399,6 +399,7 @@ registered for use in and by UnixLib :
 - Application names : UnixLib and GCC
   [ Which also means that the UnixLib$* and GCC$* OS system variables
     are registered too. ]
+- Module name: SharedUnixLibrary with SWI base &55c80 and error base &81a400
 
 The previous usage of the OS system variables Unix$* has been discontinued.
 
