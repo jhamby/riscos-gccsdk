@@ -29,7 +29,14 @@ Foundation, 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 #include "cpphash.h"
 #include "intl.h"
 
+#include "system.h"
+#include "coretypes.h"
+#include "tm.h" 
+
 static void print_location (cpp_reader *, fileline, unsigned int);
+
+const char *throwback_file = "";
+int throwback_line = 0;
 
 /* Print the logical file location (LINE, COL) in preparation for a
    diagnostic.  Outputs the #include chain if it has changed.  A line
@@ -58,6 +65,9 @@ print_location (cpp_reader *pfile, fileline line, unsigned int col)
 	fprintf (stderr, "%s:%u:", map->to_file, lin);
       else
 	fprintf (stderr, "%s:%u:%u:", map->to_file, lin, col);
+
+      throwback_file = map->to_file;
+      throwback_line = lin;
 
       fputc (' ', stderr);
     }
@@ -128,7 +138,7 @@ cpp_error (cpp_reader * pfile, int level, const char *msgid, ...)
   fileline line;
   unsigned int column;
   va_list ap;
-  
+
   va_start (ap, msgid);
 
   if (CPP_OPTION (pfile, traditional))
@@ -145,8 +155,14 @@ cpp_error (cpp_reader * pfile, int level, const char *msgid, ...)
       column = pfile->cur_token[-1].col;
     }
 
-  if (_cpp_begin_message (pfile, level, line, column))
+  if (_cpp_begin_message (pfile, level, line, column)) {
+    char buffer[256];
     v_message (msgid, ap);
+#ifdef ERROR_THROWBACK
+    vsnprintf (buffer, sizeof(buffer), _(msgid), ap);
+    ERROR_THROWBACK (throwback_file, throwback_line, CPP_DL_WARNING_P (level) ? "warning" : "", buffer);
+#endif
+  }
 
   va_end (ap);
 }
@@ -158,11 +174,17 @@ cpp_error_with_line (cpp_reader *pfile, int level,
 		     const char *msgid, ...)
 {
   va_list ap;
-  
+
   va_start (ap, msgid);
 
-  if (_cpp_begin_message (pfile, level, line, column))
+  if (_cpp_begin_message (pfile, level, line, column)) {
+    char buffer[256];
     v_message (msgid, ap);
+#ifdef ERROR_THROWBACK
+    vsnprintf (buffer, sizeof(buffer), _(msgid), ap);
+    ERROR_THROWBACK (throwback_file, throwback_line, CPP_DL_WARNING_P (level) ? "warning" : "", buffer);
+#endif
+  }
 
   va_end (ap);
 }

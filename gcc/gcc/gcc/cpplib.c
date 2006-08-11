@@ -25,6 +25,10 @@ Foundation, 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.  */
 #include "cpphash.h"
 #include "obstack.h"
 
+#include "system.h"
+#include "coretypes.h"
+#include "tm.h" 
+
 /* Chained list of answers to an assertion.  */
 struct answer
 {
@@ -942,6 +946,14 @@ do_diagnostic (cpp_reader *pfile, int code, int print_dir)
       pfile->state.prevent_expansion++;
       cpp_output_line (pfile, stderr);
       pfile->state.prevent_expansion--;
+#ifdef ERROR_THROWBACK
+      {
+        extern const char *throwback_file;
+        extern int throwback_line;
+
+        ERROR_THROWBACK (throwback_file, throwback_line, "", pfile->directive->name);
+      }
+#endif
     }
 }
 
