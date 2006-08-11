@@ -641,7 +641,7 @@ parse_include (cpp_reader *pfile, int *pangle_brackets)
   char *fname;
   const cpp_token *header;
 #if defined(CROSS_COMPILE)
-  char unixed[256]; /* Temp buffer to translate Unix filenames to RISCOS */
+  char unixed[256]; /* Temp buffer to translate Unix filenames to RISC OS */
   int len;
   extern char *riscos_to_unix (char *, char *);
 #endif
