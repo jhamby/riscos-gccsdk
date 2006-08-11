@@ -28,6 +28,8 @@ Boston, MA 02111-1307, USA.  */
 #include <stdarg.h>
 #include <stdlib.h>
 #include <unistd.h>
+
+#define __UNIXLIB_INTERNALS
 #include <unixlib/os.h>
 #include <unixlib/local.h>
 #include <swis.h>
