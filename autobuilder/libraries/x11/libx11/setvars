@@ -4,4 +4,8 @@ AB_CONFLAGS="--enable-malloc0returnsnull --disable-loadable-xcursor"
 
 /usr/bin/gcc src/util/makekeys.c -o src/util/makekeys
 
+# This patch doesn't apply to all versions, so use sed instead
+sed s/"libX11_la_LDFLAGS ="/"#libX11_la_LDFLAGS = "/ < src/Makefile.in > src/Makefile.in.new
+mv src/Makefile.in.new src/Makefile.in
+
 ln -s . man/man3
