@@ -1,0 +1,9 @@
+x11proto-bigreqs
+x11proto-xcmisc
+x11proto-core
+x11proto-xext
+x11proto-kb
+x11proto-input
+libxau
+libxdmcp
+xtrans
