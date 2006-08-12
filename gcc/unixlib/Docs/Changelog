@@ -1,4 +1,8 @@
-Thu Aug 10 20:48:03 PDT 2006 Peter Naulls  <peter@chocky.org>
+Sat Aug 12 07:15:40 PDT 2006  Peter Naulls  <peter@chocky.org>
+
+	* source/unix/sync.c: More robust handling of file handles.
+
+Thu Aug 10 20:48:03 PDT 2006  Peter Naulls  <peter@chocky.org>
 
 	* source/clib/bits/posix_opt.h: Revise further
 	* Docs/ReadMe: Update with notes about POSIX compatibility
