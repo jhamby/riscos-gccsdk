@@ -1506,6 +1506,21 @@ append_arg (args *argv, int *offset, const char *text)
     }
 }
 
+
+static void add_chox11(void)
+{
+  static int chox11;
+
+  if (!chox11)
+    {
+      fprintf (stderr, "ld: Using ChoX11 library for X11 support\n");
+      chox11 = 1;
+      add_library_file("CX11");
+      add_library_file("Desk");
+    }
+}
+
+
 static void
 add_library_file (const char *library)
 {
@@ -1524,17 +1539,8 @@ add_library_file (const char *library)
 
   if (getenv ("TLINK_CX11") && strcmp (library, "X11") == 0)
     {
-      static int chox11;
-
-      if (!chox11)
-        {
-          fprintf (stderr, "ld: Using ChoX11 library for X11 support\n", library);
-          chox11 = 1;
-          add_library_file("CX11");
-          add_library_file("Desk");
-        }
-
-      return;
+       add_chox11();
+       return;
     }
 
   for (list = libraries; list; list = list->next)
@@ -1550,6 +1556,7 @@ add_library_file (const char *library)
 
   llist_add (&libraries, library);
 }
+
 
 /* Return 1 if library was found and added to object list.
    Return 0 on failure.  */
@@ -1683,6 +1690,17 @@ static void add_input_file (const char *fname)
 {
   if (tlink_verbose >= 4)
     printf ("adding object file %s\n", fname);
+
+  if (getenv ("TLINK_CX11"))
+    {
+      int len = strlen(fname);
+
+      if (len >= 8 && strcmp(fname + len - 8, "libX11.a") == 0)
+        {
+          add_chox11();
+          return;
+        }
+    }
 
   /* Don't add object to the command line, let tlink_execute do that.  */
   /* append_arg (command_line, &command_line_offset, fname); */
