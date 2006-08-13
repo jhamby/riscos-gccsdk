@@ -1,6 +1,6 @@
 AB_INSTALL=yes
 
-AB_CONFLAGS="--disable-modules --with-included-loaders=bmp,gif,ico,jpeg,png --disable-shm --disable-xim --disable-xkb --with-gdktarget=x11 --disable-shadowfb"
+AB_CONFLAGS="--disable-modules --with-included-loaders=xpm,bmp,gif,ico,jpeg,png --disable-shm --disable-xim --disable-xkb --with-gdktarget=x11 --disable-shadowfb"
 
 export -n TLINK_CX11
 
