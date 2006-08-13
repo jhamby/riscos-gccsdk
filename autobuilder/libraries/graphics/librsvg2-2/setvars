@@ -1,5 +1,6 @@
 AB_CATEGORY=libraries/graphics
 AB_INSTALL=yes
+AB_CONFLAGS=--disable-gnome-vfs
 
 mkdir -p $D/include/librsvg-2/librsvg
 mkdir -p $D/lib/gtk-2.0/2.4.0/engines
