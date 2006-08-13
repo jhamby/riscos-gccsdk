@@ -1,4 +1,3 @@
 
 AB_INSTALL=yes
 
-cp -a configure.in configure.ac
