@@ -1,3 +1,8 @@
+Sun Aug 13 11:45:32 PDT 2006  Peter Naulls  <peter@chocky.org>
+
+	* source/sys/_syslib.s: Improve XScale check (from John-Mark Bell).
+	* source/wchar/mbsrtowcs.c: Add alias.
+
 Sat Aug 12 07:15:40 PDT 2006  Peter Naulls  <peter@chocky.org>
 
 	* source/unix/sync.c: More robust handling of file handles.

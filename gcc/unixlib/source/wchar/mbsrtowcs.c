@@ -135,3 +135,4 @@ __mbsrtowcs (dst, src, len, ps)
 
   return written;
 }
+weak_alias (__mbsrtowcs, mbsrtowcs)

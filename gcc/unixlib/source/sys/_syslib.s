@@ -204,14 +204,24 @@ SUL_MIN_VERSION	EQU	107
 	BNE	no_dynamic_area
 
 	[ TARGET_CPU = "XSCALE"
-	; Assume OS version = 170 (RISC OS 5) means XScale
-	MOV	a1, #129
-	MOV	a2, #0
-	MOV	a3, #255
-	SWI	XOS_Byte
-        CMP     a2, #170
-	MOVCC	a1, #ERR_NO_XSCALE
-	BCC	|__exit_with_error_num|
+        ; Check that we really do have an XScale
+	MRS     a2, CPSR
+	SWI     XOS_EnterOS
+	MOVVS   a1, #ERR_UNRECOVERABLE  ; paranoia
+	BVS     |__exit_with_error_num|
+	MRC     p15, 0, a1, c0, c0, 0
+	MSR     CPSR_c, a2
+	ANDS    a2, a1, #&0000F000  ; ARM <= 7?
+	TEQNE   a2, #7
+	MOVEQ   a1, #ERR_NO_XSCALE
+	BEQ     |__exit_with_error_num|
+	AND     a2, a1, #&000F0000
+	AND     a1, a1, #&FF000000
+	TEQ     a2, #&00050000   ; ARMv5TE
+	TEQNE   a2, #&00060000   ; ARMv5TEJ (optimistic overkill)
+	TEQEQ   a1, #&69000000   ; Intel
+	MOVNE   a1, #ERR_NO_XSCALE
+	BNE	|__exit_with_error_num|
 	]
 
 	; Check OS version for RISC OS 3.5 or more recent.
