@@ -16,7 +16,7 @@
  AUTOHEADER = @AUTOHEADER@
  
 -INSTALL = @INSTALL@
-+INSTALL = /home/riscos/env/ro-install
++INSTALL = $(GCCSDK_INSTALL_ENV)/ro-install
  INSTALL_PROGRAM = @INSTALL_PROGRAM@ $(AM_INSTALL_PROGRAM_FLAGS)
  INSTALL_DATA = @INSTALL_DATA@
  INSTALL_SCRIPT = @INSTALL_SCRIPT@
@@ -27,7 +27,29 @@
  AUTOHEADER = @AUTOHEADER@
  
 -INSTALL = @INSTALL@
-+INSTALL = /home/riscos/env/ro-install
++INSTALL = $(GCCSDK_INSTALL_ENV)/ro-install
  INSTALL_PROGRAM = @INSTALL_PROGRAM@ $(AM_INSTALL_PROGRAM_FLAGS)
  INSTALL_DATA = @INSTALL_DATA@
  INSTALL_SCRIPT = @INSTALL_SCRIPT@
+--- gnome-data/Makefile.in.orig	2006-08-13 09:01:19.000000000 -0700
++++ gnome-data/Makefile.in	2006-08-13 09:01:36.000000000 -0700
+@@ -388,7 +388,7 @@
+ install-data-local:
+ 	$(mkinstalldirs) $(DESTDIR)$(scoredir)
+ 	-chgrp $(GAMES_GROUP) $(DESTDIR)$(scoredir) && chmod g=rwXs $(DESTDIR)$(scoredir)
+-	$(top_builddir)/libgnome/gnome-gen-mimedb $(DESTDIR)$(sysconfdir)/mime-magic
++	gnome-gen-mimedb $(DESTDIR)$(sysconfdir)/mime-magic
+ 
+ # Tell versions [3.59,3.63) of GNU make to not export all variables.
+ # Otherwise a system limit (for SysV at least) may be exceeded.
+--- libgnorba/Makefile.in.orig	2006-08-13 10:02:27.000000000 -0700
++++ libgnorba/Makefile.in	2006-08-13 10:01:42.000000000 -0700
+@@ -1188,7 +1188,7 @@
+ 
+ install-data-hook:
+ 	$(RM) -f $(DESTDIR)$(bindir)/new-object
+-	$(LN_S) goad-browser $(DESTDIR)$(bindir)/new-object
++	$(LN_S) -f goad-browser $(DESTDIR)$(bindir)/new-object
+ 
+ clean-local:
+ 	$(RM) -f $(BUILT_SOURCES)

@@ -3,14 +3,24 @@
 AB_CONFLAGS="--disable-nls --ro-recurse"
 AB_INSTALL=yes
 
-# Build gen_art_config first
-
-AB_MAKE="/usr/bin/cc -O2 -Wall libart_lgpl/gen_art_config.c -o libart_lgpl/gen_art_config; \
-         make -C tools/convertrgb loadpng.o convertrgb.o; \
-         /usr/bin/cc -lglib -lpng1.0 -o tools/convertrgb/convertrgb tools/convertrgb/*.o; \
-         touch tools/convertrgb/convertrgb,ff8; \
-         $AB_MAKE"
+ab_make() {
+  # Build gen_art_config first
+  /usr/bin/cc -O2 -Wall libart_lgpl/gen_art_config.c -o libart_lgpl/gen_art_config
+  # Build native convertrgb
+  make -C tools/convertrgb loadpng.o convertrgb.o
+  /usr/bin/cc -lglib -lpng12 -o tools/convertrgb/convertrgb tools/convertrgb/*.o
+  touch tools/convertrgb/convertrgb,ff8
+  eval $AB_MAKE
+}
 
 # Avoid running native esd-config
 touch $GCCSDK_INSTALL_ENV/bin/esd-config
 chmod +x $GCCSDK_INSTALL_ENV/bin/esd-config
+
+mkdir -p $D/lib/gnome-libs/include/
+mkdir -p $D/include/gnome-1.0/libgnome/
+mkdir -p $D/include/gnome-1.0/libgnomeui/
+mkdir -p $D/include/gnome-1.0/gtk-xmhtml/
+mkdir -p $D/include/gnome-1.0/libart_lgpl/
+mkdir -p $D/include/gnome-1.0/zvt/
+mkdir -p $D/include/gnome-1.0/libgnorba/
