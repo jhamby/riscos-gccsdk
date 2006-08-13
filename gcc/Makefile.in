@@ -23,6 +23,8 @@ sharedstatedir=@sharedstatedir@
 srcdir=@srcdir@
 sysconfdir=@sysconfdir@
 
+VPATH = @srcdir@
+
 TARGET_NAME=@target_name@
 TARGET_DEFS=@target_defs@
 TARGET_ARCH=@target_arch@

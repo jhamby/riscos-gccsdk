@@ -409,7 +409,8 @@ HOST_PRINT = $(gccobjdir)/_print-rtl.o
 HOST_ERRORS = $(gccobjdir)/_errors.o
 HOST_VARRAY = $(gccobjdir)/_varray.o
 
-srcdir = .
+srcdir = @srcdir@
+VPATH = @srcdir@
 
 build_xm_file_list= auto-host.h $(srcdir)/../../include/ansidecl.h $(srcdir)/config/arm/riscos-aof.h $(srcdir)/config/arm/aof.h $(srcdir)/config/arm/arm.h
 build_xm_file=auto-host.h ansidecl.h arm/riscos-aof.h arm/aof.h arm/arm.h defaults.h
