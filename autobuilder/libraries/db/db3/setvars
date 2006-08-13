@@ -3,5 +3,11 @@ AB_CONFLAGS=--enable-compat185
 
 cd dist
 
-rm -f $GCCSDK_INSTALL_ENV/lib/libdb-3.a
-ln -s $GCCSDK_INSTALL_ENV/lib/libdb.a $GCCSDK_INSTALL_ENV/lib/libdb-3.a
+# Debian style setup 
+ln -sf $GCCSDK_INSTALL_ENV/lib/libdb.a $GCCSDK_INSTALL_ENV/lib/libdb-3.a
+ln -sf $GCCSDK_INSTALL_ENV/lib/libdb.a $GCCSDK_INSTALL_ENV/lib/libdb3.a
+
+mkdir -p $D/lib/
+ln -sf $D/lib/libdb.a $D/lib/libdb-3.a
+ln -sf $D/lib/libdb.a $D/lib/libdb3.a
+
