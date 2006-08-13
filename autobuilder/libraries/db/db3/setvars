@@ -1,3 +1,6 @@
 AB_INSTALL=yes
 
 cd dist
+
+rm -f $GCCSDK_INSTALL_ENV/lib/libdb-3.a
+ln -s $GCCSDK_INSTALL_ENV/lib/libdb.a $GCCSDK_INSTALL_ENV/lib/libdb-3.a
