@@ -1,3 +1,4 @@
+chox11
 x11proto-bigreqs
 x11proto-xcmisc
 x11proto-core
@@ -7,5 +8,3 @@ x11proto-input
 libxau
 libxdmcp
 xtrans
-desklib
-chox11
