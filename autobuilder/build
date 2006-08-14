@@ -6,6 +6,7 @@ AB_PACKONLY=no        # Zip only from current directory
 AB_NOFETCH=no         # Using existing source fetched from last time
 AB_VERBOSE=no         # Echo output
 AB_DEPS=yes           # Build dependencies first
+AB_TARGET=            # Name added to packages and logs
 
 for param in $@ ; do
   case "$param" in
@@ -87,6 +88,12 @@ else
   fi
 fi
 
+# Check for values set in a local build directory
+if [ -e build-setvars ] ; then
+ echo "Autobuilder: using locally set values"
+ . build-setvars
+fi
+
 # GCCSDK Scripts
 if [ -z "$GCCSDK_INSTALL_ENV" ] ; then
   GCCSDK_INSTALL_ENV=/home/riscos/env
@@ -96,6 +103,7 @@ if [ ! -d "$GCCSDK_INSTALL_ENV" ] ; then
   exit 1
 fi
 export GCCSDK_INSTALL_ENV
+export AB_TARGET
 
 # GCCSDK Binaries
 if [ -z "$GCCSDK_INSTALL_CROSSBIN" ] ; then
@@ -159,7 +167,7 @@ ab_build() {
   fi
 
   if [ "$IS_DEPENDENCY" == "1" ] ; then
-    if [ -e "$AB_HOME/$PACKAGE_DIR/last-success" ] ; then
+    if [ -e "$AB_HOME/$PACKAGE_DIR/last-success$AB_TARGET" ] ; then
       echo "Autobuilder: Dependency $PACKAGE_NAME satisfied"
       return 0
     fi
@@ -197,7 +205,7 @@ ab_build() {
 
   if ! grep "Autobuilder: Package stage completed" < $AB_OUTPUT >/dev/null ; then
     echo "Package $AB_PACKAGE: ***Failure***"
-    mv $AB_OUTPUT $AB_HOME/$AB_PACKAGEDIR/last-failure
+    mv $AB_OUTPUT $AB_HOME/$AB_PACKAGEDIR/last-failure$AB_TARGET
     return 1
   else
     echo "Package $AB_PACKAGE: Success"
@@ -207,8 +215,8 @@ ab_build() {
       echo "Warning: not installed, and not packaged"
     fi
 
-    mv $AB_OUTPUT $AB_HOME/$AB_PACKAGEDIR/last-success
-    rm -f $AB_HOME/$AB_PACKAGEDIR/last-failure
+    mv $AB_OUTPUT $AB_HOME/$AB_PACKAGEDIR/last-success$AB_TARGET
+    rm -f $AB_HOME/$AB_PACKAGEDIR/last-failure$AB_TARGET
   fi
   echo
 

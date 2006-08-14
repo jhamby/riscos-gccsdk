@@ -229,12 +229,12 @@ else
 
      export RO_PKG=$(echo $AB_FULLNAME | sed s#"$AB_PACKAGE"#"$AB_ZIPNAME"#)
      if [ "$RO_PKG" == "$AB_FULLNAME" ] ; then
-       export RO_PKG=$AB_ZIPNAME
+       export RO_PKG=$AB_ZIPNAME$AB_TARGET
      fi
 
      $GCCSDK_INSTALL_ENV/ro-libpack
    else
-     RO_PKG=$AB_FULLNAME $GCCSDK_INSTALL_ENV/ro-libpack
+     RO_PKG=$AB_FULLNAME$AB_TARGET $GCCSDK_INSTALL_ENV/ro-libpack
    fi
  fi
  
@@ -259,10 +259,10 @@ if [ "$AB_NOPACKAGE" == "" ] ; then
  if [ "$AB_PACKONLY" == "yes" ] ; then
  
    if [ "$AB_ZIPNAME" != "" ] ; then
-     echo "Autobuilder: Packaging as $AB_ZIPNAME"
-     AB_ZIP=$AB_ZIPNAME.zip
+     echo "Autobuilder: Packaging as $AB_ZIPNAME$AB_TARGET"
+     AB_ZIP=$AB_ZIPNAME$AB_TARGET.zip
    else
-     AB_ZIP=$AB_PACKAGE.zip
+     AB_ZIP=$AB_PACKAGE$AB_TARGET.zip
    fi
 
  else
@@ -270,9 +270,9 @@ if [ "$AB_NOPACKAGE" == "" ] ; then
      echo "Autobuilder: Packaging as $AB_ZIPNAME"
      AB_ZIPNAME=$(echo $AB_FULLNAME | sed s#"$AB_PACKAGE"#"$AB_ZIPNAME"#)
  
-     AB_ZIP=$AB_DIR/$AB_ZIPNAME-$AB_ROVERSION.zip
+     AB_ZIP=$AB_DIR/$AB_ZIPNAME-$AB_ROVERSION$AB_TARGET.zip
    else  
-     AB_ZIP=$AB_DIR/$AB_FULLNAME-$AB_ROVERSION.zip
+     AB_ZIP=$AB_DIR/$AB_FULLNAME-$AB_ROVERSION$AB_TARGET.zip
    fi
  fi
  
