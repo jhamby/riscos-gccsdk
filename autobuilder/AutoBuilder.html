@@ -9,7 +9,7 @@
 <h2>Autobuilder Manual</h2>
 
 <p>Copyright 2003-2006, GCCSDK Developers</a>.</p>
-<p>Last updated - 06 Aug 2006</p>
+<p>Last updated - 13 Aug 2006</p>
 
 <hr>
 
@@ -18,35 +18,37 @@
 <h3>Purpose</h3>
 
 <p>To automate the mundane and error prone task of repeated builds, updates,
-packaging and sundry items of programs and libraries built for the Unix Porting Project.</p>
+packaging and sundry items of programs and libraries built using GCCSDK and its porting tools.
+It was originally developed as bu Peter Naulls as part of the Unix Porting Project</p>
 
 <p>What the Autobuilder does is relatively straightforward, but also complex due to the diverse nature of types of build systems.  Based upon a set of variables set in a configuration file, and optional helper script commands, the Autobuilder does the following for a given program:<p>
 
 <ul>
- <li>Fetch the latest version of the source for the package, using Debian's
+ <li>Fetch the latest version of the source for the package, possibly using Debian's
      <i>apt-get</i> command.  This of course presumes you're using Debian,
-     and perform the <i>apt-get update</i> command regularly.  In future,
-     we might add CVS fetches and other possibilities, but for now,
-     Debian source provides the large majority of sources we might want
-     to build.  I would also generally recommend your sources.list file
-     refer to Debian <i>testing</i>, at least for sources, as this
-     generally reflects the latest released versions from upstream.
+     and perform the <i>apt-get update</i> command regularly.  If you're
+     on a non-Debian system, we have a fetching script that knows how to
+     fetch sources itself, although this isn't as efficient.  The system
+     currently assumes Debian testing/unstable sources.<p>
 
- <li>Apply any Debian patches packaged with the source.
+     For other packages, the sources can also be fetched via wget, CVS
+     or SVN.  
 
- <li>Apply any RISC OS specific patches.
+ <li>Apply any Debian patches packaged with the source if possible.
+
+ <li>Apply any RISC OS specific patches.  These must apply correctly.
 
  <li>Run any extra commands required to set up the build correctly.
 
  <li>Configure the package, with GNU configure or xmkmf, where appropriate.
 
- <li>Call make on the sources.
+ <li>Call make on the sources, or the package specific rule.
 
- <li>Call make install, if requested.
+ <li>Call make install, if requested, and generated a library package in this case.
 
  <li>Generate HTML from man pages.
 
- <li>Zip up named files, along with generic ReadMe header.
+ <li>Zip up named files, along with RISC OS application files for programs.
 
  <li>Place final package in a location for downloading, etc.
 </ul> 
@@ -58,7 +60,8 @@ packaging and sundry items of programs and libraries built for the Unix Porting 
 
 <h3>Installation</h3>
 
-<p>The Autobuilder sources do not have to be stored in a specific directory, in this document we'll assume it to be /usr/src/autobuilder.  The porting tools are assumed to be in $GCCSDK_INSTALL_ENV (usually /home/riscos/env) and the cross compiler in $GCCSDK_INSTALL_CROSSBIN (usually /home/riscos/cross/bin).</p>
+<p>The autobuilder does not have any specific installation requirements, since it exists alongside GCCSDK.  You will need to have that properly configured first.  We'll assume
+that it's checked out into /usr/src/gccsdk, but any path is fine. 
 
 <p>Under the Autobuilder directory are subdirectories for categories of programs, and in those are program directories, although directories can be anywhere under the Autobuilder to aid in organisation.   Each program directory contains a "setvars" script, which sets variables used by the Autobuilder.</p>
 
@@ -68,10 +71,10 @@ packaging and sundry items of programs and libraries built for the Unix Porting 
 
 <h3>Usage</h3>
 
-<p>To try out the builder, run something like this:</p>
+<p>To try out the builder, create a 'build' directory somewhere (not inside the gccsdk tree) and inside it, run something like this:</p>
 
 <pre>
-   /usr/src/autobuilder/build -v network/whois
+   /usr/src/gccsdk/autobuilder/build -v whois
 </pre>
 
 <p>This will attempt to fetch, build and package the whois program for RISC OS, and place it in the Autobuilder's download directory.</p>
@@ -79,16 +82,37 @@ packaging and sundry items of programs and libraries built for the Unix Porting 
 <p>The program is built in $PWD/whois, which will be deleted if the build
 is successful.  If not, the directory will remain for you to examine the build failure.</p>
 
-<p>The file /usr/src/autobuilder/whois/setvars is the file that controls the build.  All these variables are documented in the setvars-template in the top level, so won't be discussed in detail here.</p>
+<p>The file /usr/src/gccsdk/autobuilder/whois/setvars is the file that controls the build.  All these variables are documented in the setvars-template in the top level, so won't be discussed in detail here.</p>
 
+<p>Packaged programs will be placed into /usr/src/gccsdk/autobuilder/autobuilder_packages
 
 <p>Try:</p>
 
 <pre>
-   /usr/src/autobuilder/build -v libraries/popt
+   /usr/src/autobuilder/gccsdk/build -v popt
 </pre>
 
 <p>The single line in the setvars file for this library means that "make install" will be run after a successful build.  This means a build environment can be built up under /home/riscos/env.</p>
+
+<p>Packaged libraries will be placed into /usr/src/gccsdk/autobuilder/autobuilder_libraries in both zip (for use natively on RISC OS) and .tgz (for use with the GCCSDK cross compiler) variants. 
+
+<p></p>
+
+<hr>
+
+<h3>Non-standard locations/toolchains</h3>
+
+<p>It's possible to have different versions of GCCSDK set up, perhaps to target different machines or have it installed somewhere else.  In this case, you will need to set environment variables so that the autobuider knows where to look.  To make this easy, create a file called 'build-setvars' in the 'build' directory you created for building in to contain for example, the following:</p>
+
+<pre>
+  GCCSDK_INSTALL_CROSSBIN="/home/riscos/xscale/cross/bin/"
+  GCCSDK_INSTALL_ENV="/home/riscos/xscale/env"
+  AB_TARGET=-xscale
+</pre>
+
+<p>This file will be included every time the autobuilder is run from that directory to set these values automatically.  GCCSDK_INSTALL_CROSSBIN in this case points to the location of a GCCSDK that is targetted at XScale.  GCCSDK_INSTALL_ENV points to the 'env' dir where the include, library and other generated files are placed.</p>
+
+<p>Finally, AB_TARGET is a suffix added to the names of build logs and generated archives to differentiate it from builds with other toolchains.  This is optional if you only have one toolchain, but if you have several, it is essential for depenedencies to work correctly.</p>
 
 <p></p>
 
@@ -153,7 +177,7 @@ is successful.  If not, the directory will remain for you to examine the build f
 
 <h3>Dependencies</h3>
 
-<p>The Autobuilder will attempt to ensure any libraries that a package depends on will be built before the package. It does this by parsing the output of the apt-cache command if available, and the contents of the depends file in the package directory, it it exists. If a dependency has a last-success file in it's package directory then the Autobuilder will assume that the dependency is satisfied, if there is no last-success file then it will attempt to build the dependency and fail if it can't.</p>
+<p>The Autobuilder will attempt to ensure any libraries that a package depends on will be built before the package. It does this by parsing the output of the apt-cache command if available, and the contents of the depends file in the package directory, it it exists. If a dependency has a last-success file in its package directory then the Autobuilder will assume that the dependency is satisfied, if there is no last-success file then it will attempt to build the dependency and fail if it can't.</p>
 
 <p></p>
 
@@ -163,7 +187,7 @@ is successful.  If not, the directory will remain for you to examine the build f
 
 <p>The majority of programs build, but some may occasionally fail (access to Debian mirrors is not 100%), or changes to a new version, or in a dependent library may cause failures which occasionally need to be addressed.</p>
 
-<p>Please contribute any fixes back to <a href="http://www.riscos.info/">GCCSDK</a> so they can be incorporated.</p>
+<p>Please contribute any fixes back to <a href="http://gccsdk.riscos.info/">GCCSDK</a> so they can be incorporated.</p>
 
 <p></p>
 
@@ -173,7 +197,9 @@ is successful.  If not, the directory will remain for you to examine the build f
 
 <p>Some programs are built, but not packaged or installed.  This gives a warning at the end of the build.   This may be because it has simply not been done yet.  In some cases, "make install" isn't particular appropriate - in particular, I recommend you avoid it for <i>tk</i>.  Instead, it needs to be installed by a custom setup like <i>tcl</i> is.   This allows us to follow Debian conventions with library locations and so forth.</p>
 
-<p>You need a fast connection for this to be useful.  A feature may be added for "static" building.   This would allow building from archives located on a filesystem.  This might also be useful for programs which have not made it to a Debian package yet.</p>
+<p>You need a fast connection for this to be useful.  A feature may be added for "static" building.   This would allow building from archives located on a filesystem.</p>
+
+<p>It does not package sources.  This needs to be added to fully meet GPL requirements. 
 
 <p></p>
 
