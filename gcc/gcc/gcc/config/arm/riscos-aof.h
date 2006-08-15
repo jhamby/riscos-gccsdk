@@ -548,12 +548,14 @@ do {							\
 /* Options to pass through to the assembler.  */
 #undef ASM_SPEC
 
-#if TARGET_ARCH == TARGET_ARCH_xscale
+#if !defined(TARGET_ARCH)
+#define ASM_CPU "ARM6"
+#elif TARGET_ARCH == TARGET_ARCH_xscale
 #define ASM_CPU "XSCALE"
 #elif TARGET_ARCH == TARGET_ARCH_strongarm
 #define ASM_CPU "SA110"
 #else
-#define ASM_CPU "ARM6"
+#error Don't know what CPU to pass to the assembler
 #endif
 
 #define ASM_SPEC "%{!mcpu=*:-t " ASM_CPU " -apcsfpv3} \
