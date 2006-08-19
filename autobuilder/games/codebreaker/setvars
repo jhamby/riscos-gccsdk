@@ -1,0 +1,7 @@
+AB_CATEGORY=games
+
+ab_package () {
+	cp -a -v $H/\!CodeBreaker $D/
+	cp -a -v $S/src/codebreaker,ff8 $D/!CodeBreaker/
+	cp -a -v $S/doc/HOWTO $D/!CodeBreaker/
+}
