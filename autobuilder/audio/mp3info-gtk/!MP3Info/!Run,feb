@@ -1,0 +1,4 @@
+Iconsprites <Obey$Dir>.!Sprites
+Wimpslot -min 3000k -max 3000k
+Set CodeBreaker$Dir <Obey$Dir>
+<CodeBreaker$Dir>.gmp3info > <Obey$Dir>.stdout 2> <Obey$Dir>.stderr

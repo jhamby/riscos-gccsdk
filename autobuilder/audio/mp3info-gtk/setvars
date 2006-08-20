@@ -1,0 +1,8 @@
+AB_CATEGORY=audio
+
+ab_package () {
+	cp -a -v $H/\!MP3Info $D/
+	cp -a -v $S/mp3info,ff8 $D/
+	cp -a -v $S/gmp3info,ff8 $D/\!MP3Info
+	cp -a -v $S/README $S/LICENSE $D/
+}
