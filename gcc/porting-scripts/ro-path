@@ -27,6 +27,6 @@ fi
 export DESKLIB_PATH=GCCSDK_ENV/include/DeskLib
 
 # In order to let the pkgconfig tool find its .pc files:
-export PKG_CONFIG_PATH=GCCSDK_ENV/lib/pkgconfig:GCCSDK_ENV/X11R6/lib/pkgconfig
+export PKG_CONFIG_PATH=GCCSDK_ENV/lib/pkgconfig
 
-PATH=$GCCSDK_INSTALL_CROSSBIN:GCCSDK_ENV/bin:GCCSDK_ENV/X11R6/bin:$PATH "$@"
+PATH=$GCCSDK_INSTALL_CROSSBIN:GCCSDK_ENV/bin:$PATH "$@"

@@ -7,9 +7,9 @@
 
 <h2>Porting Tools Manual</h2>
 
-<p>Copyright 2003-2005, <a href="http://gccsdk.riscos.info/">GCCSDK Developers</a>.</p>
+<p>Copyright 2003-2006, <a href="http://gccsdk.riscos.info/">GCCSDK Developers</a>.</p>
 <p>Written by Peter Naulls (<a href="mailto:peter@chocky.org">peter@chocky.org</a>)</p>
-<p>Last updated - 7th Jan 2006</p>
+<p>Last updated - 7th Aug 2006</p>
 
 <hr>
 
@@ -48,7 +48,7 @@ normal structure for the cross compiler (specified by the --with-riscos-env
 parameter of the GCCSDK configure).  This directoy is on this system
 currently located at GCCSDK_ENV and more generally accessible via the
 environment variable GCCSDK_INSTALL_ENV and contains directories for the
-usual include, lib, bin, etc, info, man and X11R6 setup.</p>
+usual include, lib, bin, etc, info, man and X11 setup.</p>
 
 <p></p>
 
@@ -72,7 +72,7 @@ defined by the GCCSDK configure script.</p>
 <h4>ro-path</h4>
 
 <p>Very simple, to add to the path before calling a command.  This
-adds $GCCSDK_INSTALL_CROSSBIN, GCCSDK_ENV/bin and GCCSDK_ENV/X11R6/bin to
+adds $GCCSDK_INSTALL_CROSSBIN and GCCSDK_ENV/bin to
 the path before calling the supplied command.   This is useful to ensure
 the RISC OS version of a tool gets called, and not the native version.</p>
 
@@ -137,8 +137,8 @@ calls configure, via the ro-path script.  But it also does the following:</p>
      --host=arm-riscos
      --build=i686-linux
      --prefix=GCCSDK_ENV
-     --x-libraries=GCCSDK_ENV/X11R6/lib
-     --x-includes=GCCSDK_ENV/X11R6/include
+     --x-libraries=GCCSDK_ENV/lib
+     --x-includes=GCCSDK_ENV/include
      --disable-shared <i>(or: --enabled-shared=no)</i>
      --enable-static <i>(or: -static)</i>
      --with-glib-prefix=GCCSDK_ENV
