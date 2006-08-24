@@ -1,6 +1,4 @@
 Set GLHack$Dir <Obey$Dir>
 
-RMEnsure SharedUnixLibrary 1.02 Error SharedUnixLibrary 1.02 is required for this application.
-
 WimpSlot -min 4096k -max 4096k
-<GLHack$Dir>.usr.glhack --windowed ><GLHack$Dir>.stdout 2><GLHack$Dir>.stderr 
+Run <GLHack$Dir>.usr.glhack --windowed ><GLHack$Dir>.stdout 2><GLHack$Dir>.stderr

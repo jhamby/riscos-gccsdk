@@ -1,4 +1,3 @@
-
 WimpSlot -min 4000k -max 4000k
 
 Set Chox11$Tgif$SubPixelFont 1
@@ -6,4 +5,4 @@ Set Chox11$Tgif$ScaleFont 100
 
 Set Tgif$Dir <Obey$Dir>
 
-<Tgif$Dir>.tgif ><Tgif$Dir>.stdout 2><Tgif$Dir>.stderr
+Run <Tgif$Dir>.tgif ><Tgif$Dir>.stdout 2><Tgif$Dir>.stderr

@@ -1,18 +1,19 @@
-AB_CONFLAGS="--disable-build-tests --enable-build-12 --disable-build-20 --enable-build-21 --enable-production"
+AB_CONFLAGS="--disable-build-tests --enable-build-12 --disable-build-20 --enable-build-21 --enable-production --ro-recurse"
 
-#AB_INSTALL=yes
+AB_INSTALL=yes
 
-cd test
-$AB_CONFIG $AB_CONFLAGS
-cd ..
+##cd test
+##$AB_CONFIG $AB_CONFLAGS
+##cd ..
 
+##cc scripts/man2html.c -o scripts/man2html
 cc scripts/man2html.c -o scripts/man2html
 
-mkdir -p $GCCSDK_INSTALL_ENV/include/Xm
-mkdir -p $GCCSDK_INSTALL_ENV/include/Mrm
+##mkdir -p $GCCSDK_INSTALL_ENV/include/Xm
+##mkdir -p $GCCSDK_INSTALL_ENV/include/Mrm
 
-AB_MAKE="$AB_MAKE; cp include/Motif-2.1/Xm/*.h $GCCSDK_INSTALL_ENV/include/Xm; \
-         cp include/Motif-2.1/Mrm/*.h $GCCSDK_INSTALL_ENV/include/Mrm; \
-         cp lib/Xm/.libs/libXm.a lib/Xm/.libs/libXm.la  \
-            lib/Mrm/.libs/libMrm.a lib/Mrm/.libs/libMrm.la \
-            $GCCSDK_INSTALL_ENV/lib"
+#AB_MAKE="$AB_MAKE; cp include/Motif-2.1/Xm/*.h $GCCSDK_INSTALL_ENV/include/Xm; \
+#         cp include/Motif-2.1/Mrm/*.h $GCCSDK_INSTALL_ENV/include/Mrm; \
+#         cp lib/Xm/.libs/libXm.a lib/Xm/.libs/libXm.la  \
+#            lib/Mrm/.libs/libMrm.a lib/Mrm/.libs/libMrm.la \
+#            $GCCSDK_INSTALL_ENV/lib"

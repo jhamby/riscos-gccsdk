@@ -2,5 +2,4 @@ WimpSlot -min 11000k -max 11000k
 
 Set SDL$scummvm$Backbuffer 2
 
-<Obey$Dir>.scummvm ><Obey$Dir>.stdout 2><Obey$Dir>.stderr --output-rate=44100
-
+Run <Obey$Dir>.scummvm ><Obey$Dir>.stdout 2><Obey$Dir>.stderr --output-rate=44100
