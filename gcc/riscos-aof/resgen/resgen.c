@@ -27,6 +27,7 @@
 
 #ifndef CROSS_COMPILE
 #  include <kernel.h>
+#  define __UNIXLIB_INTERNALS
 #  include <unixlib/local.h>
 #  include <sys/param.h>
 #endif
@@ -346,6 +347,8 @@ get_fileinfo (FILE *lfh, const char *lfname, unsigned int *loadaddr,
   _kernel_oserror *err;
   char upath[MAXPATHLEN];
   int filetype;
+
+  lfh = lfh; /* Removes warning */
 
   if (__riscosify (lfname, 0, __RISCOSIFY_STRICT_UNIX_SPECS, upath, sizeof(upath), &filetype) == NULL)
     {
