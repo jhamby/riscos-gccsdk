@@ -1,16 +1,6 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/pthread/rwlock.c,v $
- * $Date: 2003/04/05 12:42:28 $
- * $Revision: 1.2 $
- * $State: Exp $
- * $Author: alex $
- *
- ***************************************************************************/
-
-/* Read/write lock routines. Most of the functionality is implemented in lock.c */
-
-/* Written by Alex Waugh */
+/* Read/write lock routines. Most of the functionality is implemented in lock.c.
+   Copyright (c) 2002, 2003, 2004, 2005, 2006 UnixLib Developers
+   Written by Alex Waugh */
 
 #include <errno.h>
 #include <pthread.h>

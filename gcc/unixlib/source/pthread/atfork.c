@@ -1,5 +1,5 @@
 /* Register handlers to be called at fork time.
-   Copyright (c) 2004, 2005 UnixLib Devlopers.
+   Copyright (c) 2002, 2003, 2004, 2005, 2006 UnixLib Developers.
    Written by Alex Waugh.  */
 
 #include <pthread.h>

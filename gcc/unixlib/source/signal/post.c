@@ -206,21 +206,14 @@ write_termination (int signo)
 }
 
 
-void
-__write_backtrace (int signo)
+static void
+__write_backtrace_thread (unsigned int *fp)
 {
   int features;
-  unsigned int *fp = __backtrace_getfp();
   unsigned int *oldfp = NULL;
 
   if (_swix (OS_PlatformFeatures, _IN(0) | _OUT(0), 0, &features))
     features = 0;
-
-  /* The ASM version did originally disable environment handlers
-     but this seems to cause problems.  */
-
-  fprintf (stderr, "\nFatal signal received: %s\n\nStack backtrace:\n\n",
-	   strsignal (signo));
 
   /* fp[0]  => pc
      fp[-1] => lr
@@ -375,6 +368,34 @@ __write_backtrace (int signo)
     }
   
   fputc ('\n', stderr);
+}
+
+
+void
+__write_backtrace (int signo)
+{
+  pthread_t th;
+  fprintf (stderr, "\nFatal signal received: %s\n\nStack backtrace:\n\n",
+	   strsignal (signo));
+
+  fprintf (stderr, "Running thread %p\n", __pthread_running_thread);
+  __write_backtrace_thread (__backtrace_getfp());
+
+  for (th = __pthread_thread_list; th != NULL; th = th->next)
+    {
+      if (th == __pthread_running_thread)
+        continue;
+
+      fprintf (stderr, "\nThread %p\n", th);
+      const unsigned int fakestackframe[] =
+        {
+        (unsigned int)th->saved_context->r[11],
+        (unsigned int)th->saved_context->r[13],
+        (unsigned int)th->saved_context->r[14],
+        (unsigned int)th->saved_context->r[15]
+        };
+      __write_backtrace_thread (&fakestackframe[3]);
+    }
 }
 
 

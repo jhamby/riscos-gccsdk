@@ -1,5 +1,5 @@
 ; Signal exception handling
-; Copyright (c) 2002, 2003, 2004, 2005 UnixLib Developers
+; Copyright (c) 2002, 2003, 2004, 2005, 2006 UnixLib Developers
 
 ; This file handles all the hairy exceptions that can occur when a
 ; program runs. This includes hardware exceptions like data abort and
@@ -83,7 +83,8 @@
 
 
 ;-----------------------------------------------------------------------
-; void __ul_seterr (const _kernel_oserror *err, int seterrno)
+; int __ul_seterr (const _kernel_oserror *err, int seterrno)
+;
 ; On entry:
 ;	a1 = RISC OS error block
 ;	a2 = non-zero if errno should be set,
@@ -156,8 +157,12 @@
 
 ;-----------------------------------------------------------------------
 ; _kernel_oserror *_kernel_last_oserror (void)
+;
 ; On exit:
-;	APCS-32 compliant. a1, a2 corrupted.
+;	APCS-32 compliant.
+;	a1 returns ptr to last RISC OS error for current thread or
+;	   0 when non did happen.
+;	a2 corrupted.
 ;
 ; Provide access to the last operating system error.  This is a
 ; SharedCLibrary compatibility function.  It appears in here because
@@ -789,6 +794,12 @@ return_quickly
 	EXPORT	|__h_exit|
 	NAME	__h_exit
 |__h_exit|
+	; Although we're called in USR26/USR32 mode, the USR registers
+	; can not be trusted as we come here when OS_Exit is called
+	; and this can be from anywhere (including the <Alt><Break>
+	; TaskManager implementation).
+	BL	|__setup_signalhandler_stack|
+
 	MOV	a1, #EXIT_FAILURE
 	B	|exit|
 

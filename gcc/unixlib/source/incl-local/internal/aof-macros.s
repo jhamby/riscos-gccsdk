@@ -1,5 +1,5 @@
 ; UnixLib assembler helper macros (AOF version)
-; Copyright (c) 2002, 2003, 2004, 2005 UnixLib Developers
+; Copyright (c) 2002, 2003, 2004, 2005, 2006 UnixLib Developers
 ;
 ; This file and elf-macros.s must be kept in sync with each other.
 
@@ -91,29 +91,6 @@
 	MOVVC	a1, #0
 	MOVVC	pc, lr
 	B	|__net_error|
-	MEND
-
-	; Macro to implement SWP instruction
-	; srcreg and dstreg can be the same register, provided scratch is a
-	; different register.
-	; If srcreg and dstreg are different registers then scratch can be
-	; the same as dstreg
-	MACRO
-	swp_arm2	$dstreg, $srcreg, $addr, $scratch
-	[ __UNIXLIB_SWP_SUPPORTED > 0
-	SWP	$dstreg, $srcreg, [$addr]
-	|
-	STMFD	sp!, {lr}	; Could be called in USR or SVC mode
-	SWI	XOS_IntOff
-	LDR	$scratch, [$addr]
-	STR	$srcreg, [$addr]
-	[ $dstreg <> $scratch
-	MOV	$dstreg, $scratch
-	]
-	SWI	XOS_IntOn
-	LDMFD	sp!, {lr}
-	]
-
 	MEND
 
 	; Macro to change processor modes and interrupt flags

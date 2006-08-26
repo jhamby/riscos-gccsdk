@@ -1,14 +1,5 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/pthread/pthsignal.c,v $
- * $Date: 2005/04/14 16:03:55 $
- * $Revision: 1.2 $
- * $State: Exp $
- * $Author: nick $
- *
- ***************************************************************************/
-
-/* Written by Alex Waugh */
+/* Copyright (c) 2002, 2003, 2004, 2005, 2006 UnixLib Developers
+   Written by Alex Waugh */
 
 #include <sys/types.h>
 #include <signal.h>

@@ -1,16 +1,6 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/pthread/cond.c,v $
- * $Date: 2003/11/23 20:26:45 $
- * $Revision: 1.4 $
- * $State: Exp $
- * $Author: joty $
- *
- ***************************************************************************/
-
-/* Condition variables */
-
-/* Written by Alex Waugh */
+/* Condition variables
+   Copyright (c) 2002, 2003, 2004, 2005, 2006 UnixLib Developers
+   Written by Alex Waugh */
 
 #include <errno.h>
 #include <time.h>

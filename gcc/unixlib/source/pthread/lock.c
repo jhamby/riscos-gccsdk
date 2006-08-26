@@ -1,16 +1,6 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/pthread/lock.c,v $
- * $Date: 2005/03/21 12:14:56 $
- * $Revision: 1.5 $
- * $State: Exp $
- * $Author: peter $
- *
- ***************************************************************************/
-
-/* Common routines shared by the mutex, rwlock and cond functions */
-
-/* Written by Alex Waugh */
+/* Common routines shared by the mutex, rwlock and cond functions.
+   Copyright (c) 2002, 2003, 2004, 2005, 2006 UnixLib Developers
+   Written by Alex Waugh */
 
 /* #define PTHREAD_DEBUG */
 

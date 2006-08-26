@@ -33,9 +33,6 @@
 /* increased performance but they are not supported on */
 /* all current ARM architectures. */
 
-/* Set to 1 if the SWP instruction is supported (not on ARM2). */
-#define __UNIXLIB_SWP_SUPPORTED	1
-
 /* Set to 1 if the (U)MULL instructions can be used. */
 #define __UNIXLIB_MULL_SUPPORTED	1
 

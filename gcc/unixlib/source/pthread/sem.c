@@ -1,5 +1,5 @@
 /* POSIX Semaphores.
-   Copyright (c) 2004, 2005 UnixLib Developers.  */
+   Copyright (c) 2004, 2005, 2006 UnixLib Developers.  */
 
 
 /*-

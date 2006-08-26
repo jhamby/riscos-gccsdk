@@ -1,16 +1,6 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/pthread/mutexattr.c,v $
- * $Date: 2002/12/15 13:16:55 $
- * $Revision: 1.1 $
- * $State: Exp $
- * $Author: admin $
- *
- ***************************************************************************/
-
-/* Mutex attribute manipulation routines */
-
-/* Written by Alex Waugh */
+/* Mutex attribute manipulation routines.
+   Copyright (c) 2002, 2003, 2004, 2005, 2006 UnixLib Developers
+   Written by Alex Waugh */
 
 
 #include <errno.h>

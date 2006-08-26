@@ -1,14 +1,5 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/pthread/error.c,v $
- * $Date: 2004/12/11 14:18:57 $
- * $Revision: 1.2 $
- * $State: Exp $
- * $Author: joty $
- *
- ***************************************************************************/
-
-/* Written by Alex Waugh */
+/* Copyright (c) 2002, 2003, 2004, 2005, 2006 UnixLib Developers
+   Written by Alex Waugh */
 
 #include <pthread.h>
 #include <stdlib.h>
@@ -25,4 +16,3 @@ __pthread_fatal_error (const char *msg)
   __os_nl ();
   abort ();
 }
-

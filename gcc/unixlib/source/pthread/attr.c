@@ -1,15 +1,6 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/pthread/attr.c,v $
- * $Date: 2002/12/15 13:16:55 $
- * $Revision: 1.1 $
- * $State: Exp $
- * $Author: admin $
- *
- ***************************************************************************/
-
-/* Thread attribute manipulation functions */
-/* Written by Alex Waugh */
+/* Thread attribute manipulation functions.
+   Copyright (c) 2002, 2003, 2004, 2005, 2006 UnixLib Developers
+   Written by Alex Waugh */
 
 #include <pthread.h>
 #include <errno.h>

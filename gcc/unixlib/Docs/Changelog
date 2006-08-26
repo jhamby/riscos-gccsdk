@@ -1,6 +1,29 @@
+Sat Aug 26 16:59:31 CET 2006  John Tytgat  <John.Tytgat@aaug.net>
+
+	* source/pthread/{*.c,*.s}: Removed CVS keywords and made Copyright
+	  statements conforming.
+	* source/pthread/_context.s: Fixed comment.
+	* source/pthread/_yield.s: Renamed callback_return to
+	  __pthread_yield_return and gave it an APCS function name so we see
+	  the thread waiting in the backtrace.
+	* source/pthread/_ints.s: Use SWP instead off swp_arm2 macro.
+	* source/pthread/_exit.s: Small optimisation.
+	* source/signal.post.c(__write_backtrace,__write_backtrace_thead):
+	  output backtrace per created thread.
+	* source/signal/_signal.s: Updated comments.
+	  (__h_exit) Setup signal stackhandler as the USR26/USR32 registers
+	  can not be trusted (e.g. TaskManager calling OS_Exit when <Alt><Break>
+	  gets pressed).
+	* source/clib/unixlib/buildoptions.h: Removed __UNIXLIB_SWP_SUPPORTED. No
+	  longer supporting or pretending to support ARM2.
+	* source/incl-local/internal/aof-macros.s: Removed swp_arm2 macro.
+	* source/incl-local/internal/elf-macros.s: Likewise.
+	* source/sys/_syslib.s: Likewise.  Tabbified.
+
 Sun Aug 13 11:45:32 PDT 2006  Peter Naulls  <peter@chocky.org>
 
-	* source/sys/_syslib.s: Improve XScale check (from John-Mark Bell).
+	* source/sys/_syslib.s: Improve XScale check (from John-Mark Bell /
+	  Adrian Lees).
 	* source/wchar/mbsrtowcs.c: Add alias.
 
 Sat Aug 12 07:15:40 PDT 2006  Peter Naulls  <peter@chocky.org>

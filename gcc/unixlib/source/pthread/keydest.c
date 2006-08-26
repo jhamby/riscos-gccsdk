@@ -1,14 +1,5 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/pthread/keydest.c,v $
- * $Date: 2005/07/08 13:25:41 $
- * $Revision: 1.4 $
- * $State: Exp $
- * $Author: peter $
- *
- ***************************************************************************/
-
-/* Written by Alex Waugh */
+/* Copyright (c) 2002, 2003, 2004, 2005, 2006 UnixLib Developers
+   Written by Alex Waugh */
 
 #include <stdlib.h>
 #include <pthread.h>

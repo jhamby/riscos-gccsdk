@@ -1,12 +1,12 @@
 @ UnixLib assembler helper macros (ELF version)
-@ Copyright (c) 2002, 2003, 2004, 2005 UnixLib Developers
+@ Copyright (c) 2002, 2003, 2004, 2005, 2006 UnixLib Developers
 @
 @ This file and aof-macros.s must be kept in sync with each other
 
 #ifndef __SOFTFP__
 #define __SOFTFP__ 0
 #endif
-	
+
 	@ Turn on macro extensions, allowing the use of LOCAL.
 	.altmacro
 
@@ -17,7 +17,7 @@
 t0:
 	.asciz	"\name"
 	.align
-t1:	
+t1:
 	.word	0xff000000 + (t1 - t0)
 	.endm
 
@@ -61,7 +61,7 @@ t1:
 	swi	\swiname
 	blvs	__net_error
 	.endm
-	
+
 
 	@ Calls networking (TCP/IP) SWI and returns to lr.
 	.macro	NetSWIsimple	swiname
@@ -88,28 +88,6 @@ t1:
 	movvc	a1, #0
 	movvc	pc, lr
 	b	__net_error
-	.endm
-
-
-	@ Macro to implement SWP instruction
-	@ srcreg and dstreg can be the same register, provided scratch is a
-	@ different register.
-	@ If srcreg and dstreg are different registers then scratch can be
-	@ the same as dstreg
-	.macro	swp_arm2	dstreg, srcreg, addr, scratch
-	.if	__UNIXLIB_SWP_SUPPORTED > 0
-	swp	\dstreg, \srcreg, [\addr]
-	.else
-	stmfd	sp!, {lr}	@ Could be called in USR or SVC mode
-	swi	XOS_IntOff
-	ldr	\scratch, [\addr]
-	str	\srcreg, [\addr]
-	.if	\dstreg <> \scratch
-	mov	\dstreg, \scratch
-	.endif
-	swi	XOS_IntOn
-	ldmfd	sp!, {lr}
-	.endif
 	.endm
 
 

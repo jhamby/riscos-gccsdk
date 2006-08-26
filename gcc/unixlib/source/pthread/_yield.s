@@ -1,5 +1,5 @@
 ; Yield processor control to another thread
-; Copyright (c) 2004, 2005 UnixLib Developers
+; Copyright (c) 2002, 2003, 2004, 2005, 2006 UnixLib Developers
 ; Written by Martin Piper and Alex Waugh
 
 	GET	clib/unixlib/asm_dec.s
@@ -11,11 +11,9 @@
 	IMPORT	|__cbreg|
 	IMPORT	|__ul_global|
 
-	EXPORT	|pthread_yield|
-
-;
 ; pthread_yield
 ; Called in USR mode by a thread wishing to give up the processor
+	EXPORT	|pthread_yield|
 	NAME	pthread_yield
 |pthread_yield|
 	; Setup an APCS-32 stack frame so this will appear in a backtrace
@@ -44,7 +42,7 @@
 	LDR	a1, =|__cbreg|
 	ADD	a1, a1, #15*4
 	STMDB	a1, {r4-r14}^
-	ADR	a2, callback_return	;USR mode, IRQs enabled if in a 26bit mode
+	ADR	a2, __pthread_yield_return	;USR mode, IRQs enabled if in a 26bit mode
 	STR	a2, [a1]
 	STR	a3, [a1, #4]	; Save CPSR
 
@@ -52,7 +50,8 @@
 	; It will return by loading the registers from __cbreg
 	B	__pthread_callback
 
-callback_return
+	NAME	__pthread_yield_return
+__pthread_yield_return
 	LDMDB	fp, {fp, sp, pc}
 
 failmessage

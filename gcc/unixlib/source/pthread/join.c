@@ -1,5 +1,5 @@
 /* Wait for the termination of another thread.
-   Copyright (c) 2003, 2005 UnixLib Devlopers.
+   Copyright (c) 2002, 2003, 2004, 2005, 2006 UnixLib Developers.
    Written by Martin Piper and Alex Waugh.  */
 
 #include <pthread.h>
@@ -90,4 +90,3 @@ pthread_join (pthread_t tojoin, void **status)
 
   return 0;
 }
-

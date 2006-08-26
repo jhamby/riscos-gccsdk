@@ -1,17 +1,7 @@
-;----------------------------------------------------------------------------
-;
-; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/pthread/_ints.s,v $
-; $Date: 2004/10/23 17:23:36 $
-; $Revision: 1.8 $
-; $State: Exp $
-; $Author: joty $
-;
-;----------------------------------------------------------------------------
-
 ; Enable and disable the callevery interrupt from causing context switches
 ; disable_ints can be called multiple times, provided enable_ints is
 ; subsequently called an equal number of times
-
+; Copyright (c) 2002, 2003, 2004, 2005, 2006 UnixLib Developers
 ; Written by Martin Piper and Alex Waugh
 
 	GET	clib/unixlib/asm_dec.s
@@ -26,7 +16,6 @@
 	EXPORT	|__pthread_enable_ints|
 	EXPORT	|__pthread_protect_unsafe|
 
-;
 ; Disable context switches by incrementing the semaphore
 ; May be called from USR or SVC mode
 	NAME	__pthread_disable_ints
@@ -34,14 +23,13 @@
 	LDR	a1, =|__ul_global|
 	ADD	a1, a1, #GBL_PTH_WORKSEMAPHORE
 	MOV	a3, #1
-	swp_arm2	a2, a3, a1, a2
+	SWP	a2, a3, [a1]
 	; From this point onwards we will not be interrupted by the callback
 	ADD	a2, a2, #1
 	STR	a2, [a1]
 	MOV	pc, lr
 
 
-;
 ; Decrement the semaphore, thus enabling context switches if it reaches 0
 ; May be called from USR or SVC mode
 	NAME	__pthread_enable_ints
@@ -77,7 +65,7 @@
 	LDR	a4, =|__ul_global|
 	ADD	a1, a4, #GBL_PTH_WORKSEMAPHORE
 	MOV	a2, #1
-	swp_arm2	a3, a2, a1, a3
+	SWP	a3, a2, [a1]
 	; From this point onwards we cannot be interrupted by the callback
 	CMP	a3, #0
 	STRNE	a3, [a1, #0]	; Restore original value

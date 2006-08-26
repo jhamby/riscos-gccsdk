@@ -4,12 +4,12 @@
 	GET	clib/unixlib/asm_dec.s
 
 	; Keep in sync with error_table.
-ERR_NO_MEMORY   	* 0
-ERR_NO_CALLASWI 	* 1
-ERR_NO_SUL      	* 2
-ERR_NO_FPE      	* 3
+ERR_NO_MEMORY		* 0
+ERR_NO_CALLASWI		* 1
+ERR_NO_SUL		* 2
+ERR_NO_FPE		* 3
 ERR_UNRECOVERABLE	* 4
-ERR_NO_XSCALE           * 5
+ERR_NO_XSCALE		* 5
 
 ; Constants for field offsets within a stack chunk
 ; The stack is allocated in chunks, each chunk is a multiple of 4KB, and
@@ -19,20 +19,20 @@ ERR_NO_XSCALE           * 5
 ; (see PRMs, 4-239 and Appendix C)
 ;
 ;  ______
-; |      | +0
+; |	 | +0
 ; |Header|
-; |      |
+; |	 |
 ; |______|
-; |      | +24
-; |      |
-; |      | +536 <- sl
-; |      |
-; |      |
+; |	 | +24
+; |	 |
+; |	 | +536 <- sl
+; |	 |
+; |	 |
 ; ________/
 ;/
-; |      |
+; |	 |
 ; |______|
-;         +4096 * n  <- sp (initially)
+;	  +4096 * n  <- sp (initially)
 ;
 ; First 20 bytes equals SCL's _kernel_stack_chunk structure :
 CHUNK_MAGIC	*	0	; Magic number to help detect if someone overwrites the stack
@@ -48,24 +48,24 @@ MAX_DA_NAME_SIZE	* 32
 
 	AREA	|C$$code|, CODE, READONLY
 
-	IMPORT  |__unixinit|            ;C function (unix/unix.c)
-	IMPORT  |exit|                  ;C function (unix/unix.c)
-	IMPORT  |_exit|                 ;C function (unix/unix.c)
-	IMPORT	|__stackalloc_init|     ;C function (sys/stackalloc.c)
-	IMPORT	|__stackalloc|          ;C function (sys/stackalloc.c)
-	IMPORT	|__stackfree|           ;C function (sys/stackalloc.c)
-	IMPORT  |__cbreg|               ;Data (signal/_signal.s)
-	IMPORT  |__h_sigill|            ;ASM function (signal/_signal.s)
-	IMPORT  |__h_sigsegv0|          ;ASM function (signal/_signal.s)
-	IMPORT  |__h_sigsegv1|          ;ASM function (signal/_signal.s)
-	IMPORT  |__h_sigbus|            ;ASM function (signal/_signal.s)
-	IMPORT  |__h_error|             ;ASM function (signal/_signal.s)
-	IMPORT  |__h_cback|             ;ASM function (signal/_signal.s)
-	IMPORT  |__h_sigint|            ;ASM function (signal/_signal.s)
-	IMPORT  |__h_event|             ;ASM function (signal/_signal.s)
-	IMPORT  |__h_exit|              ;ASM function (signal/_signal.s)
+	IMPORT  |__unixinit|		;C function (unix/unix.c)
+	IMPORT  |exit|			;C function (unix/unix.c)
+	IMPORT  |_exit|			;C function (unix/unix.c)
+	IMPORT	|__stackalloc_init|	;C function (sys/stackalloc.c)
+	IMPORT	|__stackalloc|		;C function (sys/stackalloc.c)
+	IMPORT	|__stackfree|		;C function (sys/stackalloc.c)
+	IMPORT  |__cbreg|		;Data (signal/_signal.s)
+	IMPORT  |__h_sigill|		;ASM function (signal/_signal.s)
+	IMPORT  |__h_sigsegv0|		;ASM function (signal/_signal.s)
+	IMPORT  |__h_sigsegv1|		;ASM function (signal/_signal.s)
+	IMPORT  |__h_sigbus|		;ASM function (signal/_signal.s)
+	IMPORT  |__h_error|		;ASM function (signal/_signal.s)
+	IMPORT  |__h_cback|		;ASM function (signal/_signal.s)
+	IMPORT  |__h_sigint|		;ASM function (signal/_signal.s)
+	IMPORT  |__h_event|		;ASM function (signal/_signal.s)
+	IMPORT  |__h_exit|		;ASM function (signal/_signal.s)
 	IMPORT  |__pthread_disable_ints|   ;ASM function (pthread/_ints.s)
-	IMPORT  |__pthread_enable_ints|    ;ASM function (pthread/_ints.s)
+	IMPORT  |__pthread_enable_ints|	   ;ASM function (pthread/_ints.s)
 	IMPORT	|__setup_signalhandler_stack| ;ASM function (signal/_signal.s)
 	IMPORT	|__ul_malloc_init|
 
@@ -111,13 +111,13 @@ SUL_MIN_VERSION	EQU	107
 	; __image_rw_himem = permitted RAM limit
 	STR	a2, [fp, #MEM_APPSPACE_HIMEM]
 
-	LDMIA	a3, {a1, a2}	; Get time
-	STR	a1, [ip, #GBL_TIME_LOW]	; __time (low word)
+	LDMIA	a3, {a1, a2}			; Get time
+	STR	a1, [ip, #GBL_TIME_LOW]		; __time (low word)
 	STR	a2, [ip, #GBL_TIME_HIGH]	; __time (high word)
 
-	MVNS	a1, #0          ; ensure a flag is set
-	TEQ	pc, pc          ; EQ if in 32-bit mode, NE if 26-bit
-	STREQ   a1, [ip, #GBL_32BIT]   ; __32bit
+	MVNS	a1, #0			; ensure a flag is set
+	TEQ	pc, pc			; EQ if in 32-bit mode, NE if 26-bit
+	STREQ	a1, [ip, #GBL_32BIT]	; __32bit
 
 	; Obtain the application space limit.  Note that this is different
 	; to the permitted RAM limit returned by OS_GetEnv.
@@ -204,23 +204,23 @@ SUL_MIN_VERSION	EQU	107
 	BNE	no_dynamic_area
 
 	[ TARGET_CPU = "XSCALE"
-        ; Check that we really do have an XScale
-	MRS     a2, CPSR
-	SWI     XOS_EnterOS
-	MOVVS   a1, #ERR_UNRECOVERABLE  ; paranoia
-	BVS     |__exit_with_error_num|
-	MRC     p15, 0, a1, c0, c0, 0
-	MSR     CPSR_c, a2
-	ANDS    a2, a1, #&0000F000  ; ARM <= 7?
-	TEQNE   a2, #7
-	MOVEQ   a1, #ERR_NO_XSCALE
-	BEQ     |__exit_with_error_num|
-	AND     a2, a1, #&000F0000
-	AND     a1, a1, #&FF000000
-	TEQ     a2, #&00050000   ; ARMv5TE
-	TEQNE   a2, #&00060000   ; ARMv5TEJ (optimistic overkill)
-	TEQEQ   a1, #&69000000   ; Intel
-	MOVNE   a1, #ERR_NO_XSCALE
+	; Check that we really do have an XScale
+	MRS	a2, CPSR
+	SWI	XOS_EnterOS
+	MOVVS	a1, #ERR_UNRECOVERABLE  ; paranoia
+	BVS	|__exit_with_error_num|
+	MRC	p15, 0, a1, c0, c0, 0
+	MSR	CPSR_c, a2
+	ANDS	a2, a1, #&0000F000  ; ARM <= 7?
+	TEQNE	a2, #7
+	MOVEQ	a1, #ERR_NO_XSCALE
+	BEQ	|__exit_with_error_num|
+	AND	a2, a1, #&000F0000
+	AND	a1, a1, #&FF000000
+	TEQ	a2, #&00050000	 ; ARMv5TE
+	TEQNE	a2, #&00060000	 ; ARMv5TEJ (optimistic overkill)
+	TEQEQ	a1, #&69000000	 ; Intel
+	MOVNE	a1, #ERR_NO_XSCALE
 	BNE	|__exit_with_error_num|
 	]
 
@@ -271,7 +271,7 @@ t02
 	; v4 => OS variable to check if Heap or DA needs to be used.
 
 	; Allow the user the option of setting their own name for the
-	; dynamic area used as a heap.   If the variable __dynamic_da_name
+	; dynamic area used as a heap.	 If the variable __dynamic_da_name
 	; exists, then it must be a const char pointer (not an array) to an
 	; alternate name.  DAs are always used in this case, and there's
 	; no need to set a $Heap variable.
@@ -358,8 +358,8 @@ no_dynamic_area
 	STR	a1, [ip, #GBL_TASKWINDOW]	; __taskwindow
 
 	; Find out whether we are executing as a WIMP program or not.
-	MOV     a1, #3		; Text output mode, or desktop mode ?
-	SWI     XWimp_ReadSysInfo
+	MOV	a1, #3		; Text output mode, or desktop mode ?
+	SWI	XWimp_ReadSysInfo
 	MOVVS	a1, #0
 	TEQ	a1, #0
 	MOVNE	a1, #5		; When desktop mode, get the taskhandle
@@ -446,9 +446,9 @@ error_table
 	DCD	error_no_sharedunixlib
 	DCD	error_no_fpe
 	DCD	error_unrecoverable_loop
-        [ TARGET_CPU = "XSCALE"
-	DCD     error_no_xscale
-        ]
+	[ TARGET_CPU = "XSCALE"
+	DCD	error_no_xscale
+	]
 error_table_end
 
 error_no_callaswi
@@ -473,12 +473,13 @@ error_unrecoverable_loop
 	DCD	SharedUnixLibrary_Error_FatalError
 	DCB	"Unrecoverable fatal error detected", 0
 	ALIGN
-        [ TARGET_CPU = "XSCALE"
+	[ TARGET_CPU = "XSCALE"
 error_no_xscale
-        DCD	SharedUnixLibrary_Error_FatalError
-        DCB     "This program has been build with XScale only instructions", 0
-        ALIGN
-        ]
+	DCD	SharedUnixLibrary_Error_FatalError
+	DCB	"This program has been build with XScale only instructions", 0
+	ALIGN
+	]
+
 	IMPORT	|__munmap_all|
 	EXPORT	|__dynamic_area_exit|
 	NAME	__dynamic_area_exit
@@ -927,7 +928,7 @@ free_stack_chunk
 	STR	a1, [sl, #CHUNK_NEXT]
 
 no_chunk_to_free
-	LDMFD	sp, {a1, a2, fp, sp} 	; Restore important regs
+	LDMFD	sp, {a1, a2, fp, sp}	; Restore important regs
 
 	LDR	lr, [sl, #CHUNK_RETURN]	; Get the real return address
 
@@ -962,7 +963,7 @@ no_chunk_to_free
 	; can do ?
 	MOV	a2, #1
 	ADD	a3, a4, #GBL_PANIC_MODE
-	swp_arm2 a2, a2, a3
+	SWP	a2, a2, [a3]
 	TEQ	a2, #0
 	BEQ	__unixlib_fatal_cont1
 
@@ -1094,17 +1095,17 @@ dynamic_area_name_end
 |__ul_global|
 
 	; Altering this structure will require fixing __main.
-|__unixlib_cli|	        DCD	0				; offset = 0
-|__time|	        DCD	0, 0	; low word, high byte	; offset = 4
-|__notused1|	        DCD	0				; offset = 12
+|__unixlib_cli|		DCD	0				; offset = 0
+|__time|		DCD	0, 0	; low word, high byte	; offset = 4
+|__notused1|		DCD	0				; offset = 12
 
-|__taskwindow|	        DCD	0				; offset = 16
-|__taskhandle|	        DCD	0				; offset = 20
+|__taskwindow|		DCD	0				; offset = 16
+|__taskhandle|		DCD	0				; offset = 20
 
-|__dynamic_num|	        DCD	-1				; offset = 24
-|__old_u|	        DCD	0				; offset = 28
+|__dynamic_num|		DCD	-1				; offset = 24
+|__old_u|		DCD	0				; offset = 28
 
-|__32bit|	        DCD	0				; offset = 32
+|__32bit|		DCD	0				; offset = 32
 
 |__panic_mode|		DCD	0				; offset = 36
 

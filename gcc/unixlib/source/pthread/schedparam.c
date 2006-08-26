@@ -1,5 +1,5 @@
 /* Control thread scheduling parameters.
-   Copyright (c) 2005 UnixLib Developers.  */
+   Copyright (c) 2005, 2006 UnixLib Developers.  */
 
 #include <errno.h>
 #include <pthread.h>

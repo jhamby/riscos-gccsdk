@@ -1,14 +1,5 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/pthread/equal.c,v $
- * $Date: 2002/12/15 13:16:55 $
- * $Revision: 1.1 $
- * $State: Exp $
- * $Author: admin $
- *
- ***************************************************************************/
-
-/* Written by Martin Piper and Alex Waugh */
+/* Copyright (c) 2002, 2003, 2004, 2005, 2006 UnixLib Developers
+   Written by Martin Piper and Alex Waugh */
 
 #include <pthread.h>
 
@@ -19,4 +10,3 @@ pthread_equal (pthread_t t1, pthread_t t2)
 {
   return (t1 == t2);
 }
-

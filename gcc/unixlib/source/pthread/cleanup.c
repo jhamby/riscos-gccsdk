@@ -1,16 +1,6 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/pthread/cleanup.c,v $
- * $Date: 2003/04/05 12:42:28 $
- * $Revision: 1.2 $
- * $State: Exp $
- * $Author: alex $
- *
- ***************************************************************************/
-
-/* Push and pop thread cleanup handlers, to be called when a thread exits */
-
-/* Written by Alex Waugh */
+/* Push and pop thread cleanup handlers, to be called when a thread exits.
+   Copyright (c) 2002, 2003, 2004, 2005, 2006 UnixLib Developers
+   Written by Alex Waugh */
 
 #include <pthread.h>
 
@@ -34,4 +24,3 @@ __pthread_cleanup_pop (void)
 
   __pthread_enable_ints ();
 }
-

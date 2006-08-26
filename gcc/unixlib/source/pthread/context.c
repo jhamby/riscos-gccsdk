@@ -1,5 +1,5 @@
 /* Context switching/scheduling.
-   Copyright (c) 2004, 2005 UnixLib Developers.
+   Copyright (c) 2002, 2003, 2004, 2005, 2006 UnixLib Developers.
    Written by Martin Piper and Alex Waugh */
 
 #include <stdlib.h>

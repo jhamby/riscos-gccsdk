@@ -1,5 +1,5 @@
 ; Call alloca thread free functions as necessary
-; Copyright (c) 2002, 2003, 2004, 2005 UnixLib Developers
+; Copyright (c) 2002, 2003, 2004, 2005, 2006 UnixLib Developers
 
 	GET	clib/unixlib/asm_dec.s
 
@@ -13,28 +13,27 @@
 
 	NAME	__pthread_exit
 |__pthread_exit|
-	STMFD	sp!, {v1, lr}
-	ADR	v1, funcs
-	LDR	a1, [v1], #4
+	STMFD	sp!, {lr}
+	LDR	a1, funcs + 0
 	TEQ	a1, #0
 	MOVNE	lr, pc
 	MOVNE	pc, a1
 
-	LDR	a1, [v1], #4
+	LDR	a1, funcs + 4
 	TEQ	a1, #0
 	MOVNE	lr, pc
 	MOVNE	pc, a1
 
-	LDR	a1, [v1], #4
+	LDR	a1, funcs + 8
 	TEQ	a1, #0
 	MOVNE	lr, pc
 	MOVNE	pc, a1
 
-	LDMFD	sp!, {v1, pc}
+	LDMFD	sp!, {pc}
 
 |funcs|
 	DCD	|__alloca_thread_free_all|
 	DCD	|___arm_alloca_thread_free_all|
 	DCD	|__gcc_alloca_thread_free_all|
-	
+
 	END

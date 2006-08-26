@@ -1,14 +1,5 @@
-;----------------------------------------------------------------------------
-;
-; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/pthread/_context.s,v $
-; $Date: 2005/04/23 10:44:38 $
-; $Revision: 1.15 $
-; $State: Exp $
-; $Author: nick $
-;
-;----------------------------------------------------------------------------
-
 ; Low level context switching code
+; Copyright (c) 2002, 2003, 2004, 2005, 2006 UnixLib Developers
 ; Written by Martin Piper and Alex Waugh
 
 ; For a single tasking program (not running in a taskwindow), the context
@@ -313,7 +304,7 @@ stop_ticker_core
 
 	; Signify that we are no longer in the middle of a context switch.
 	STR	a1, [a2, #GBL_PTH_CALLBACK_SEMAPHORE]
-	
+
 	; Indicate that we are no longer in a signal handler, since we
 	; will be returning direct to USR mode and the application itself.
 	LDR	a1, [a2, #GBL_EXECUTING_SIGNALHANDLER]
@@ -340,7 +331,7 @@ stop_ticker_core
 	; or because the program indicates that we are in a critical
 	; section.
 
-	; On entry, a2 == __ul_global
+	; On entry, a3 == __ul_global
 |skip_contextswitch|
 	; Indicate that this context switch did not occur
 	MOV	a1, #1
