@@ -1,0 +1,8 @@
+AB_CONFLAGS="--ro-recurse"
+AB_INSTALL=yes
+
+mkdir -p $D/include/Xm
+mkdir -p $D/include/Mrm
+mkdir -p $D/include/uil
+mkdir -p $D/include/Dt
+mkdir -p $D/lib/LessTif/config
