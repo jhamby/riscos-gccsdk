@@ -11,9 +11,12 @@ AB_TARGET=            # Name added to packages and logs
 for param in $@ ; do
   case "$param" in
     -*)
-      byte=2
+      byte=3
       while true; do
-        opt=$(echo $param | cut -b $byte)
+        # The "" parameter for 'echo' is there on purpose because otherwise $param might be
+        # interpreted as an 'echo' parameter.  E.g. with option -n, the input for 'cut' is
+        # now " -n" instead of an empty string.
+        opt=$(echo "" $param | cut -b $byte)
         byte=$((byte + 1))
 
         case "$opt" in
@@ -153,7 +156,6 @@ ab_build() {
   PACKAGE_DIR=`dirname $PACKAGE_DIR`
 
   if [ ! -d $AB_HOME/$PACKAGE_DIR ] ; then
-
     echo "Autobuilder: No directory found for package \"$PACKAGE_NAME\" - ignoring" 1>&2
     return 0
   fi
@@ -161,7 +163,6 @@ ab_build() {
   echo "Autobuilder: Package \"$PACKAGE_NAME\" will be built using recipe at \"$AB_HOME/$PACKAGE_DIR\""
 
   if [ ! -e $AB_HOME/$PACKAGE_DIR/setvars ] ; then
-
     echo "Autobuilder: No setvars found for package \"$PACKAGE_NAME\" - ignoring" 1>&2
     return 0
   fi
