@@ -3,7 +3,7 @@
 
    Copyright (C) 1997, 1998, 1999, 2000, 2001, 2004 Nick Burrett
    Contributed by Nick Burrett (nick@sqrt.co.uk)
-   Copyright (C) 2005-2006 GCCSDK Developers
+   Copyright (C) 2005, 2006 GCCSDK Developers
 
 This file is part of GNU CC.
 
@@ -75,6 +75,7 @@ static char *temp_filename;
 static char *requested_linker;
 
 static int tlink_verbose = 0;
+static int runtime_unixlib = 0;
 
 static const char *output_filetype = "ff8";
 static int filetype_offset = -1;
@@ -90,8 +91,8 @@ typedef struct list_
   struct list_ *next;
 } llist;
 
-static llist *library_path = 0;
-static llist *libraries = 0;
+static llist *library_path = NULL;
+static llist *libraries = NULL;
 
 #define LINKER_DRLINK 0
 #define LINKER_LINK_V4 1
@@ -121,7 +122,8 @@ static void ldhelp (void);
 static void parse_args (int, char **);
 
 #ifndef HAVE_STPCPY
-static char *stpcpy (char *s, const char *s2)
+static char *
+stpcpy (char *s, const char *s2)
 {
   while ((*s++ = *s2++))
     ;
@@ -130,7 +132,8 @@ static char *stpcpy (char *s, const char *s2)
 }
 #endif
 
-static void do_unlink (void)
+static void
+do_unlink (void)
 {
   if (tlink_verbose < 15)
     {
@@ -237,15 +240,16 @@ main (int argc, char *argv[])
 
   if (filetype_offset != -1)
     {
-      int len = strlen(command_line[filetype_offset].arg);
+      size_t len = strlen(command_line[filetype_offset].arg);
       char *ext = command_line[filetype_offset].arg + len - 4;
 
-      ext[0] = '\0';
       if (output_filetype)
        {
          ext[0] = ',';
          strcpy(ext + 1, output_filetype);
        }
+     else
+       ext[0] = '\0';
     }
 
   do_tlink (requested_linker, (char **)command_line, object_list);
@@ -1094,7 +1098,8 @@ demangle_new_symbols (void)
     }
 }
 
-static int scan_link_output (FILE *stream, char *line, int linker)
+static int
+scan_link_output (FILE *stream, char *line, int linker)
 {
   char *symbol_buf;
   int symbol_buf_size;
@@ -1221,7 +1226,7 @@ static int scan_link_output (FILE *stream, char *line, int linker)
 }
 
 static int
-scan_linker_output (char *fname)
+scan_linker_output (const char *fname)
 {
   FILE *stream = fopen (fname, "r");
   char *line = tfgets (stream);
@@ -1230,7 +1235,7 @@ scan_linker_output (char *fname)
 
   /* Determine which linker produced the output.  */
 #ifndef CROSS_COMPILE
-  if (strncmp (line, "link:", 5) == 0)
+  if (strncmp (line, "link:", sizeof ("link:")-1) == 0)
   {
     /* Acorn's link will prefix any errors by 'link:' on the first line.  */
     link_type = LINKER_LINK_V4;
@@ -1238,7 +1243,7 @@ scan_linker_output (char *fname)
       fprintf (stderr, "Recognised output from Acorn Link v4\n");
     r = scan_link_output (stream, line, link_type);
   }
-  else if (strncmp (line, "Drlink", 6) == 0)
+  else if (strncmp (line, "Drlink", sizeof ("Drlink")-1) == 0)
   {
 #endif
     /* Drlink always has the linker name on the first line 'Drlink'.  */
@@ -1248,7 +1253,7 @@ scan_linker_output (char *fname)
     r = scan_link_output (stream, line, link_type);
 #ifndef CROSS_COMPILE
   }
-  else if (strncmp (line, "ARM Linker:", 11) == 0)
+  else if (strncmp (line, "ARM Linker:", sizeof ("ARM Linker:")-1) == 0)
   {
     link_type = LINKER_LINK_V5;
     if (tlink_verbose >= 3)
@@ -1337,7 +1342,7 @@ dump_file (char *name)
   FILE *stream = fopen (name, "r");
   int no_demangle = !! getenv ("COLLECT_NO_DEMANGLE");
 
-  if (stream == 0)
+  if (stream == NULL)
     return;
   while (1)
     {
@@ -1388,72 +1393,75 @@ dump_file (char *name)
 
 /* ************** Command line processing ********************  */
 
-static void ldversion (int noisy)
+static void
+ldversion (int noisy)
 {
 #ifdef CROSS_COMPILE
-  printf ("ld: RISC OS cross-linker front end " LD_VERSION "\n");
+  puts ("ld: RISC OS cross-linker front end " LD_VERSION);
 #else
-  printf ("ld: RISC OS linker front end " LD_VERSION "\n");
+  puts ("ld: RISC OS linker front end " LD_VERSION);
 #endif
   if (noisy >= 1)
-    printf ("Including C++ template repository support\n\n");
+    puts ("Including C++ template repository support\n");
   else
-    printf ("\n");
+    putc ('\n', stdout);
 }
 
-static void ldhelp (void)
+static void
+ldhelp (void)
 {
   ldversion (1);
-  printf ("LD is used by GCC to convert command line options passed to\n"
+  puts ("LD is used by GCC to convert command line options passed to\n"
 #ifdef CROSS_COMPILE
-          "GNU LD into something that Drlink can understand.\n"
+        "GNU LD into something that Drlink can understand.\n"
 #else
-          "GNU LD into something that Drlink or Link can understand.\n"
+        "GNU LD into something that Drlink or Link can understand.\n"
 #endif
-          "LD also provides support for C++ template instantiation by\n"
-          "compiling a C++ source file several times to resolve missing\n"
-          "symbol references.\n"
+        "LD also provides support for C++ template instantiation by\n"
+        "compiling a C++ source file several times to resolve missing\n"
+        "symbol references.\n"
 
-          "Syntax:\n"
+        "Syntax:\n"
 #ifdef CROSS_COMPILE
-          "  ld -o <exec> <obj>.o [<obj>.o ...] [-L<path>] [-l<lib>]\n"
+        "  ld -o <exec> <obj>.o [<obj>.o ...] [-L<path>] [-l<lib>]\n"
 #else
-          "  ld -o <exec> o.<obj> [o.<obj> ...] [-L<path>] [-l<lib>]\n"
-#endif
-
-          "Where:\n"
-          "  -L<path>     <path> is a library search path\n"
-          "  -l<lib>      <lib> is a library to link against\n"
-#ifdef CROSS_COMPILE
-          "  <obj>.o      Object files\n"
-#else
-          "  o.<obj>      Object files\n"
+        "  ld -o <exec> o.<obj> [o.<obj> ...] [-L<path>] [-l<lib>]\n"
 #endif
 
-          "The following Drlink linker commands are recognised:\n"
-          "  -acornmap, -area[map] <file>, -aif, -aof, -bin, -case\n"
-          "  -leave[weak], -map, -m[odule], -no[unused], -output, -qui[et]\n"
-          "  -res[can], -symbols <file>, -throwback, -via <file>, -verbose\n"
+        "Where:\n"
+        "  -L<path>     <path> is a library search path\n"
+        "  -l<lib>      <lib> is a library to link against\n"
+#ifdef CROSS_COMPILE
+        "  <obj>.o      Object files\n"
+#else
+        "  o.<obj>      Object files\n"
+#endif
+
+        "The following Drlink linker commands are recognised:\n"
+        "  -acornmap, -area[map] <file>, -aif, -aof, -bin, -case\n"
+        "  -leave[weak], -map, -m[odule], -no[unused], -output, -qui[et]\n"
+        "  -res[can], -symbols <file>, -throwback, -via <file>, -verbose\n"
 
 #ifndef CROSS_COMPILE
-          "The following Acorn Link linker (version 4) commands are recognised:\n"
-          "  -aif, -aof, -bin, -map, -via <file>, -verbose\n"
+        "The following Acorn Link linker (version 4) commands are recognised:\n"
+        "  -aif, -aof, -bin, -map, -via <file>, -verbose\n"
 
-          "The following Acorn Link linker (version 5) commands are recognised:\n"
-          "  -aif, -aof, -bin, -map, -via <file>, -nounused[areas], -verbose\n"
-          "\nText within square brackets is optional\n"
+        "The following Acorn Link linker (version 5) commands are recognised:\n"
+        "  -aif, -aof, -bin, -map, -via <file>, -nounused[areas], -verbose\n"
+        "\nText within square brackets is optional\n"
 
-          "By default, the real linker will be Drlink, and this must be placed\n"
-          "in a directory searched by Run$Path. To use an alternative linker\n"
-          "(Acorn Link, or one that isn't contained within the Run$Path),\n"
-          "then GCC$Linker should contain the full pathname of the linker e.g.\n"
-          "   *Set GCC$Linker \"$.library.link\"\n"
+        "By default, the real linker will be Drlink, and this must be placed\n"
+        "in a directory searched by Run$Path. To use an alternative linker\n"
+        "(Acorn Link, or one that isn't contained within the Run$Path),\n"
+        "then GCC$Linker should contain the full pathname of the linker e.g.\n"
+        "   *Set GCC$Linker \"$.library.link\""
 #endif
           );
 }
 
 /* Add string 'name' onto the end of a linked list.  */
-static void llist_add (llist **list, const char *name)
+static void
+llist_add (llist **list, const char *name)
 {
   llist *y, *z;
 
@@ -1475,7 +1483,8 @@ static void llist_add (llist **list, const char *name)
 }
 
 /* Free all elements in a llist.  */
-static void llist_free (llist *list)
+static void
+llist_free (llist *list)
 {
   llist *list1;
 
@@ -1536,7 +1545,6 @@ add_library_file (const char *library)
     }
 
   /* Substitute -lX11 with -lCX11 and -lDesk (ChoX11) */
-
   if (getenv ("TLINK_CX11") && strcmp (library, "X11") == 0)
     {
        add_chox11();
@@ -1547,20 +1555,29 @@ add_library_file (const char *library)
     {
       if (!strcmp (library, list->name))
 	{
-	  if (tlink_verbose >= 4)
-	    printf ("Ignoring library %s\n", library);
+	  if (tlink_verbose >= 2)
+	    printf ("Ignoring library %s, was already added\n", library);
 
 	  return;
 	}
     }
 
+  /* Detect UnixLib because this is a minimal requirement to be able to
+     use Fortify.  */
+  if (!strcmp (library, "unixlib"))
+    runtime_unixlib = 1;
+
+  if (tlink_verbose >= 2)
+    printf ("Adding library %s\n", library);
+  
   llist_add (&libraries, library);
 }
 
 
 /* Return 1 if library was found and added to object list.
    Return 0 on failure.  */
-static int check_and_add_library (const char *file_name)
+static int
+check_and_add_library (const char *file_name)
 {
   char converted[256], *temp;
 
@@ -1581,7 +1598,8 @@ static int check_and_add_library (const char *file_name)
   return 0;
 }
 
-static void parse_library (const char *library)
+static void
+parse_library (const char *library)
 {
   char file_name[200];
   int pass;
@@ -1590,15 +1608,14 @@ static void parse_library (const char *library)
      for the second last ditch pass, try without the lib prefix */
   for (pass = 0; pass < 2; pass++)
     {
-      llist *list = library_path;
+      llist *list;
 
-      while (list)
+      for (list = library_path; list != NULL; list = list->next)
         {
-          int namelen = strlen (list->name);
+          size_t namelen = strlen (list->name);
 
           if (pass == 0)
             {
-
               /* Add 'lib' onto the front of each library name. This is what
                 'ld' does anyway.  */
               strcpy (file_name, list->name);
@@ -1615,7 +1632,7 @@ static void parse_library (const char *library)
               strcat (file_name, library);
 #endif
               if (check_and_add_library (file_name) == 1)
-               return;
+                return;
 
               /* Couldn't find lib<name>.a so try lib<name>.o */
               strcpy (file_name, list->name);
@@ -1633,30 +1650,27 @@ static void parse_library (const char *library)
 #endif
               if (check_and_add_library (file_name) == 1)
                 return;
-
-           }
-         else
-           {
-
-           /* If we couldn't find the library with lib on the front e.g.
-              for the case of UnixLib then try it without.  */
-           strcpy (file_name, list->name);
-           if (list->name[namelen] != ':' && list->name[namelen] != '.'
-               && list->name[namelen] != '/')
-             strcat (file_name, "/");
+            }
+          else
+            {
+              /* If we couldn't find the library with lib on the front e.g.
+                 for the case of UnixLib then try it without.  */
+              strcpy (file_name, list->name);
+              if (list->name[namelen] != ':' && list->name[namelen] != '.'
+                  && list->name[namelen] != '/')
+                strcat (file_name, "/");
 
 #ifdef CROSS_COMPILE
-           strcat (file_name, library);
-           strcat (file_name, ".o");
+              strcat (file_name, library);
+              strcat (file_name, ".o");
 #else
-           strcat (file_name, "o/");
-           strcat (file_name, library);
+              strcat (file_name, "o/");
+              strcat (file_name, library);
 #endif
-           if (check_and_add_library (file_name) == 1)
-             return;
+              if (check_and_add_library (file_name) == 1)
+                return;
+            }
         }
-        list = list->next;
-      }
     }
 
   /* Check for precise filename */
@@ -1666,36 +1680,48 @@ static void parse_library (const char *library)
   ld_error ("library file lib%s not found", library);
 }
 
-static void parse_libraries (void)
+static void
+parse_libraries (void)
 {
-  llist *x = libraries;
-  while (x)
-    {
-      parse_library (x->name);
-      x = x->next;
-    }
+  llist *x;
+  for (x = libraries; x != NULL; x = x->next)
+    parse_library (x->name);
 }
 
 static void
 add_library_search_path (const char *path)
 {
+  llist *list;
+
   if (tlink_verbose >= 4)
     printf ("adding search path %s\n", path);
+
+  for (list = library_path; list != NULL; list = list->next)
+    {
+      if (!strcmp (path, list->name))
+        {
+          if (tlink_verbose >= 2)
+            printf ("Ignoring library path %s, was already added\n", path);
+          return;
+        }
+    }
 
   llist_add (&library_path, path);
 }
 
 
-static void add_input_file (const char *fname)
+static void
+add_input_file (const char *fname)
 {
   if (tlink_verbose >= 4)
     printf ("adding object file %s\n", fname);
 
   if (getenv ("TLINK_CX11"))
     {
-      int len = strlen(fname);
+      size_t len = strlen(fname);
 
-      if (len >= 8 && strcmp(fname + len - 8, "libX11.a") == 0)
+      if (len >= sizeof("libX11.a")-1
+          && strcmp(fname + len - sizeof("libX11.a")-1, "libX11.a") == 0)
         {
           add_chox11();
           return;
@@ -1708,11 +1734,12 @@ static void add_input_file (const char *fname)
   append_arg (object_list, &object_offset, fname);
 }
 
-static void add_output_file (const char *fname)
+static void
+add_output_file (const char *fname)
 {
 #if defined(CROSS_COMPILE) && defined(ENABLE_FILETYPE_FF8)
   char tmp[256];
-  int len;
+  size_t len;
   int append;
 
   /* If asked for, append a filetype to the RISC OS executable in the
@@ -1735,11 +1762,13 @@ static void add_output_file (const char *fname)
   append_arg (command_line, &command_line_offset, "-o");
   append_arg (command_line, &command_line_offset, tmp);
 #if defined(CROSS_COMPILE) && defined(ENABLE_FILETYPE_FF8)
-  if (append) filetype_offset = command_line_offset - 1;
+  if (append)
+    filetype_offset = command_line_offset - 1;
 #endif
 }
 
-static void add_option_file (const char *option, const char *fname)
+static void
+add_option_file (const char *option, const char *fname)
 {
   if (tlink_verbose >= 4)
     printf ("adding option '%s', file '%s'\n", option, fname);
@@ -1748,16 +1777,14 @@ static void add_option_file (const char *option, const char *fname)
   append_arg (command_line, &command_line_offset, fname);
 }
 
-static void add_option (const char *arg)
+static void
+add_option (const char *arg)
 {
   if (tlink_verbose >= 4)
     printf ("adding option '%s'\n", arg);
 
   append_arg (command_line, &command_line_offset, arg);
 }
-
-/* Non-zero if we are processing a --defsym from the command line.  */
-int parsing_defsym = 0;
 
 static void
 parse_args (int argc, char **argv)
@@ -1887,11 +1914,10 @@ parse_args (int argc, char **argv)
 	  break;
 	case OPTION_QUIET:
 	  add_option ("-quiet");
-	  a |= 1;
 	  break;
 	case OPTION_RESCAN:
 	  add_option ("-rescan");
-	  a |= 2;
+	  a |= (1<<1);
 	  break;
 	case OPTION_SYMBOLS:
 	  add_option_file("-symbols", optarg);
@@ -1902,6 +1928,7 @@ parse_args (int argc, char **argv)
 	case 'V':
 	  ldversion (1);
 	  add_option ("-verbose");
+	  a |= (1<<0);
 	  break;
 	case 'v':
 	  ldversion (0);
@@ -1912,9 +1939,14 @@ parse_args (int argc, char **argv)
 	}
     }
 
-  if (! (a & 1) && !getenv ("GCC$Linker"))
+  /* When -verbose hasn't been specified, add -quiet */
+  if (! (a & (1<<0))
+#ifndef CROSS_COMPILE
+      && !getenv ("GCC$Linker")
+#endif
+     )
     add_option ("-quiet");
-  if (! (a & 2))
+  if (! (a & (1<<1)))
     add_option ("-rescan");
 
   if ((extra = getenv("TLINK_EXTRA")))
@@ -1934,20 +1966,40 @@ parse_args (int argc, char **argv)
     }
 
 #ifdef CROSS_COMPILE
-  if (getenv("TLINK_MEMCHECK"))
-    {
-      fprintf(stderr, "ld: Linking with fortify memory check wrappers\n");
+  {
+    const char *memcheck = getenv ("TLINK_MEMCHECK");
 
-      add_option("-edit");
-      add_option(LIBDIR "apcs32/abs/unixlib/memory-edit");
-      add_library_file("fortify");
-    }
+    if (memcheck != NULL)
+      {
+        if (memcheck[0] == '\0' || !strcmp (memcheck, "fortify"))
+          {
+            if (runtime_unixlib)
+              {
+                fprintf (stderr, "ld: Linking with Fortify memory check wrappers\n");
+
+                add_option ("-edit");
+                add_option (LIBDIR "apcs32/abs/unixlib/memory-edit-fortify");
+                add_library_file ("fortify");
+              }
+            else
+              fprintf (stderr, "ld: Ignoring the Fortify memory check wrappers as run-time library is not UnixLib\n");
+          }
+        else if (!strcmp (memcheck, "dmalloc"))
+          {
+            fprintf (stderr, "ld: Linking with Dmalloc memory check wrappers\n");
+
+            add_option ("-edit");
+            add_option (LIBDIR "apcs32/abs/unixlib/memory-edit-dmalloc");
+            add_library_file ("dmallocthcxx");
+          }
+        else
+          fprintf (stderr, "ld: Unknown memory checker specified '%s'\n", memcheck);
+      }
+  }
 #endif
 
   if (getenv("TLINK_STRICT"))
-    {
-     add_option("-strict");
-    }
+    add_option("-strict");
 
   parse_libraries ();
 }

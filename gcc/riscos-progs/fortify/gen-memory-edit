@@ -1,0 +1,61 @@
+#!/bin/bash
+# Simple script to generate the Drlink edit file to hook in the Fortify routines in UnixLib
+
+# $1 = UnixLib library filename
+# $2 = AOF fortity.o filename
+
+set -e
+
+if [ -z "$1" ] ; then
+  echo $0": error: missing UnixLib library filename"
+  exit 1
+fi
+if [ -z "$2" ] ; then
+  echo $0": error: missing AOF fortify.o filename"
+  exit 1
+fi
+if [ -z "$ux_bin_dir" ] ; then
+  echo $0" : error: \$ux_bin_dir is not defined"
+  exit 1
+fi
+
+# $1 = symbol to change
+# $2 = AOF filename
+aof_change()
+{
+  local SYMISEXTERN=`$ux_bin_dir/decaof -s $2 | grep -w $1 | grep -i "extern"`
+  if [ ! -z "$SYMISEXTERN" ] ; then
+    echo "change "$2"("$1",__unixlib_real_"$1")"
+  fi
+}
+
+# $1 = symbol to change
+lib_rename_and_change()
+{
+  local SYMBOL=$1
+
+  for ANAOF in $ALLAOFS ; do
+    local SYMISGLOBAL=`$ux_bin_dir/decaof -s $ANAOF | grep -w $SYMBOL | grep -i "global"`
+    if [ ! -z "$SYMISGLOBAL" ] ; then
+      echo "rename "$ANAOF"("$SYMBOL",__unixlib_real_"$SYMBOL")"
+    fi
+    aof_change $SYMBOL $ANAOF
+  done
+  echo
+}
+
+ALLAOFS=$($ux_bin_dir/libfile -l $1)
+
+lib_rename_and_change "malloc"
+lib_rename_and_change "realloc"
+lib_rename_and_change "calloc"
+lib_rename_and_change "strdup"
+lib_rename_and_change "free"
+
+aof_change "malloc" $2
+aof_change "realloc" $2
+aof_change "calloc" $2
+aof_change "strdup" $2
+aof_change "free" $2
+
+exit 0

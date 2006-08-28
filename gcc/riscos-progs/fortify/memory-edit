@@ -1,8 +1,0 @@
-rename OBJDIR/unixlib/apcs32/abs/unixlib/stdlib/alloc.o(malloc,__unixlib_real_malloc)
-rename OBJDIR/unixlib/apcs32/abs/unixlib/stdlib/alloc.o(realloc,__unixlib_real_realloc)
-rename OBJDIR/unixlib/apcs32/abs/unixlib/stdlib/alloc.o(calloc,__unixlib_real_calloc)
-rename OBJDIR/unixlib/apcs32/abs/unixlib/stdlib/alloc.o(free,__unixlib_real_free)
-change OBJDIR/riscos-progs/fortify/fortify.o(malloc,__unixlib_real_malloc)
-change OBJDIR/riscos-progs/fortify/fortify.o(realloc,__unixlib_real_realloc)
-change OBJDIR/riscos-progs/fortify/fortify.o(calloc,__unixlib_real_calloc)
-change OBJDIR/riscos-progs/fortify/fortify.o(free,__unixlib_real_free)

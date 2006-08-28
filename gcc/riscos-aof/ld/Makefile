@@ -1,6 +1,6 @@
 # Makefile for LD - frontend to DRLINK
 # Copyright (c) 1997-2006 GCCSDK Developers
-# Written by Nick Burrett <nick@dsvr.net>
+# Written by Nick Burrett <nick@sqrt.co.uk>
 
 ifeq (${STAGE},stage1)
 prefix = $(unix_prefix)

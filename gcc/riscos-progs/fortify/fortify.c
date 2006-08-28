@@ -77,7 +77,7 @@ struct Header
     size_t         Size;        /* The size of the malloc'd block    */
     struct Header *Prev;        /* Previous link                     */
     struct Header *Next;        /* Next link                         */
-    char          *Label;		/* User's Label (may be null)        */
+    char          *Label;        /* User's Label (may be null)        */
     unsigned char  Scope;       /* Scope level of the caller         */
     unsigned char  Allocator;   /* malloc/realloc/new/etc            */
 };
@@ -234,15 +234,15 @@ Fortify_Allocate(size_t size, unsigned char allocator, const char *file, unsigne
     if(st_Disabled)
     {
 #ifdef FORTIFY_FAIL_ON_ZERO_MALLOC
-    	if(size == 0 && (allocator == Fortify_Allocator_new
+        if(size == 0 && (allocator == Fortify_Allocator_new
                       || allocator == Fortify_Allocator_array_new))
-		{
-			/*
-			 * A new of zero bytes must succeed, but a malloc of 
+        {
+            /*
+             * A new of zero bytes must succeed, but a malloc of 
              * zero bytes probably won't
              */
-			return malloc(1);
-		}
+            return malloc(1);
+        }
 #endif
 
         return malloc(size);
@@ -281,30 +281,30 @@ Fortify_Allocate(size_t size, unsigned char allocator, const char *file, unsigne
     }
 
 #ifdef FORTIFY_WARN_ON_ZERO_MALLOC
-	if(size == 0 && (allocator == Fortify_Allocator_malloc ||
+    if(size == 0 && (allocator == Fortify_Allocator_malloc ||
                      allocator == Fortify_Allocator_calloc ||
                      allocator == Fortify_Allocator_realloc ))
-	{                     
-		sprintf(st_Buffer, 
-        		"\nFortify: A \"%s\" of 0 bytes attempted at %s.%lu\n",
+    {                     
+        sprintf(st_Buffer, 
+                "\nFortify: A \"%s\" of 0 bytes attempted at %s.%lu\n",
                 st_AllocatorName[allocator], file, line);
-       	st_Output(st_Buffer);
-	}
+           st_Output(st_Buffer);
+    }
 #endif /* FORTIFY_WARN_ON_ZERO_MALLOC */
 
 #ifdef FORTIFY_FAIL_ON_ZERO_MALLOC
-	if(size == 0 && (allocator == Fortify_Allocator_malloc ||
+    if(size == 0 && (allocator == Fortify_Allocator_malloc ||
                      allocator == Fortify_Allocator_calloc ||
                      allocator == Fortify_Allocator_realloc ))
-	{                     
+    {                     
 #ifdef FORTIFY_WARN_ON_ALLOCATE_FAIL
         sprintf(st_Buffer, "\nFortify: A \"%s\" of %lu bytes failed at %s.%lu\n",
                 st_AllocatorName[allocator], (unsigned long)size, file, line);
         st_Output(st_Buffer);
 #endif /* FORTIFY_WARN_ON_ALLOCATE_FAIL */
-		return 0;
-	}
-#endif /* FORTIFY_FAIL_ON_ZERO_MALLOC */	
+        return 0;
+    }
+#endif /* FORTIFY_FAIL_ON_ZERO_MALLOC */    
 
 #ifdef FORTIFY_WARN_ON_SIZE_T_OVERFLOW
     /*
@@ -388,7 +388,7 @@ Fortify_Allocate(size_t size, unsigned char allocator, const char *file, unsigne
      */
     h = (struct Header *)ptr;
     h->Size      = size;
-    h->File      = file;
+    h->File      = strdup(file);
     h->Line      = line;  
     h->Next      = st_AllocatedHead;
     h->Prev      = 0;
@@ -486,6 +486,8 @@ Fortify_Deallocate(void *uptr, unsigned char deallocator, const char *file, unsi
              * Begin critical region
              */
             FORTIFY_LOCK();
+        
+            free((void *)h->File); h->File = NULL;
         
             /*
              * Remove the block from the list
@@ -674,7 +676,7 @@ Fortify_Deallocate(void *uptr, unsigned char deallocator, const char *file, unsi
         }
 
         h = (struct Header *)ptr;
-        h->FreedFile   = file;
+        h->FreedFile   = strdup(file);
         h->FreedLine   = line;
         h->Deallocator = deallocator;
         h->Next        = st_DeallocatedHead;
@@ -707,13 +709,13 @@ Fortify_Deallocate(void *uptr, unsigned char deallocator, const char *file, unsi
     else
 #endif /* FORTIFY_TRACK_DEALLOCATED_MEMORY */
     {
-	   	/*
-		 * Free the User Label
-		 */
-		if(h->Label)
-		{
-			free(h->Label);
-		}		 	
+           /*
+         * Free the User Label
+         */
+        if(h->Label)
+        {
+            free(h->Label);
+        }             
 
 #ifdef FORTIFY_FILL_ON_DEALLOCATE
         /*
@@ -741,31 +743,31 @@ Fortify_Deallocate(void *uptr, unsigned char deallocator, const char *file, unsi
 void
 Fortify_LabelPointer(void *uptr, const char *label, const char *file, unsigned long line)
 {
-	if(!st_Disabled)
-	{
-		unsigned char *ptr = (unsigned char *)uptr
+    if(!st_Disabled)
+    {
+        unsigned char *ptr = (unsigned char *)uptr
                               - FORTIFY_HEADER_SIZE - FORTIFY_ALIGNED_BEFORE_SIZE;
-		struct Header *h = (struct Header *)ptr;
+        struct Header *h = (struct Header *)ptr;
 
-		/* make sure the pointer is okay */
-		Fortify_CheckPointer(uptr, file, line);
-	
-		/* free the previous label */
-		if(h->Label)
-		{
-			free(h->Label);
-		}	
-	
-		/* make sure the label is sensible */
-		assert(label);
+        /* make sure the pointer is okay */
+        Fortify_CheckPointer(uptr, file, line);
+    
+        /* free the previous label */
+        if(h->Label)
+        {
+            free(h->Label);
+        }    
+    
+        /* make sure the label is sensible */
+        assert(label);
 
-		/* copy it in */
-		h->Label = (char*)malloc(strlen(label)+1);
-		strcpy(h->Label, label);
-		
-		/* update the checksum */
-		st_MakeHeaderValid(h);
-	}
+        /* copy it in */
+        h->Label = (char*)malloc(strlen(label)+1);
+        strcpy(h->Label, label);
+        
+        /* update the checksum */
+        st_MakeHeaderValid(h);
+    }
 }
 
 /*
@@ -1639,6 +1641,8 @@ st_FreeDeallocatedBlock(struct Header *h, const char *file, unsigned long line)
     {
         st_DeallocatedTail = h->Prev;
     }
+
+    free(h->FreedFile); h->FreedFile = NULL;
     
     if(h->Prev)
     {
@@ -1654,13 +1658,13 @@ st_FreeDeallocatedBlock(struct Header *h, const char *file, unsigned long line)
         st_MakeHeaderValid(h->Next);    
     }
 
-	/*
-	 * Free the label
-	 */
-	if(h->Label) 
-	{
-		free(h->Label);
-	}
+    /*
+     * Free the label
+     */
+    if(h->Label) 
+    {
+        free(h->Label);
+    }
 
     /*
      * Nuke out all memory that is about to be freed, including the header
@@ -1699,27 +1703,27 @@ st_OutputMemory(struct Header *h)
 static void 
 st_OutputHeader(struct Header *h)
 {
-	if(h->Label == NULL)
-	{
+    if(h->Label == NULL)
+    {
 #ifdef FORTIFY_NO_PERCENT_P
-	    sprintf(st_Buffer, "0x%08lx %8lu %s.%lu\n", 
+        sprintf(st_Buffer, "0x%08lx %8lu %s.%lu\n", 
 #else
-	    sprintf(st_Buffer, "%10p %8lu %s.%lu\n", 
+        sprintf(st_Buffer, "%10p %8lu %s.%lu\n", 
 #endif
-	                       (unsigned char*)h + FORTIFY_HEADER_SIZE + FORTIFY_ALIGNED_BEFORE_SIZE,
-    	                   (unsigned long)h->Size,
-        	               h->File, h->Line);
+                           (unsigned char*)h + FORTIFY_HEADER_SIZE + FORTIFY_ALIGNED_BEFORE_SIZE,
+                           (unsigned long)h->Size,
+                           h->File, h->Line);
     }                   
     else
     {
 #ifdef FORTIFY_NO_PERCENT_P
-	    sprintf(st_Buffer, "0x%08lx %8lu %s.%lu %s\n", 
+        sprintf(st_Buffer, "0x%08lx %8lu %s.%lu %s\n", 
 #else
-	    sprintf(st_Buffer, "%10p %8lu %s.%lu %s\n", 
+        sprintf(st_Buffer, "%10p %8lu %s.%lu %s\n", 
 #endif
-    	                   (unsigned char*)h + FORTIFY_HEADER_SIZE + FORTIFY_ALIGNED_BEFORE_SIZE,
-        	               (unsigned long)h->Size,
-            	           h->File, h->Line, h->Label);
+                           (unsigned char*)h + FORTIFY_HEADER_SIZE + FORTIFY_ALIGNED_BEFORE_SIZE,
+                           (unsigned long)h->Size,
+                           h->File, h->Line, h->Label);
     }
     st_Output(st_Buffer);
 }
@@ -1749,23 +1753,23 @@ st_MemoryBlockString(struct Header *h)
     if(h->Label == 0)
     {
 #ifdef FORTIFY_NO_PERCENT_P
-	    sprintf(st_BlockString,"(0x%08lx,%lu,%s.%lu)",
+        sprintf(st_BlockString,"(0x%08lx,%lu,%s.%lu)",
 #else
-	    sprintf(st_BlockString,"(%p,%lu,%s.%lu)",
+        sprintf(st_BlockString,"(%p,%lu,%s.%lu)",
 #endif
-    	        (char*)h + FORTIFY_HEADER_SIZE + FORTIFY_ALIGNED_BEFORE_SIZE,
-	            (unsigned long)h->Size, h->File, h->Line);
-	}            
-	else
-	{
+                (char*)h + FORTIFY_HEADER_SIZE + FORTIFY_ALIGNED_BEFORE_SIZE,
+                (unsigned long)h->Size, h->File, h->Line);
+    }            
+    else
+    {
 #ifdef FORTIFY_NO_PERCENT_P
-	    sprintf(st_BlockString,"(0x%08lx,%lu,%s.%lu,%s)",
+        sprintf(st_BlockString,"(0x%08lx,%lu,%s.%lu,%s)",
 #else
-	    sprintf(st_BlockString,"(%p,%lu,%s.%lu,%s)",
+        sprintf(st_BlockString,"(%p,%lu,%s.%lu,%s)",
 #endif
-    	        (char*)h + FORTIFY_HEADER_SIZE + FORTIFY_ALIGNED_BEFORE_SIZE,
-	            (unsigned long)h->Size, h->File, h->Line, h->Label);
-	}
+                (char*)h + FORTIFY_HEADER_SIZE + FORTIFY_ALIGNED_BEFORE_SIZE,
+                (unsigned long)h->Size, h->File, h->Line, h->Label);
+    }
 
     return st_BlockString;
 }
@@ -1784,26 +1788,26 @@ st_DeallocatedMemoryBlockString(struct Header *h)
 {
     static char st_BlockString[256];
 
-	if(h->Label == 0)
-	{
+    if(h->Label == 0)
+    {
 #ifdef FORTIFY_NO_PERCENT_P
-	    sprintf(st_BlockString,"(0x%08lx,%lu,%s.%lu,%s.%lu)",
+        sprintf(st_BlockString,"(0x%08lx,%lu,%s.%lu,%s.%lu)",
 #else
-	    sprintf(st_BlockString,"(%p,%lu,%s.%lu,%s.%lu)",
+        sprintf(st_BlockString,"(%p,%lu,%s.%lu,%s.%lu)",
 #endif
-    	        (char*)h + FORTIFY_HEADER_SIZE + FORTIFY_ALIGNED_BEFORE_SIZE,
-	            (unsigned long)h->Size, h->File, h->Line, h->FreedFile, h->FreedLine);
-	}            
-	else
-	{
+                (char*)h + FORTIFY_HEADER_SIZE + FORTIFY_ALIGNED_BEFORE_SIZE,
+                (unsigned long)h->Size, h->File, h->Line, h->FreedFile, h->FreedLine);
+    }            
+    else
+    {
 #ifdef FORTIFY_NO_PERCENT_P
-	    sprintf(st_BlockString,"(0x%08lx,%lu,%s.%lu,%s.%lu,%s)",
+        sprintf(st_BlockString,"(0x%08lx,%lu,%s.%lu,%s.%lu,%s)",
 #else
-	    sprintf(st_BlockString,"(%p,%lu,%s.%lu,%s.%lu,%s)",
+        sprintf(st_BlockString,"(%p,%lu,%s.%lu,%s.%lu,%s)",
 #endif
-    	        (char*)h + FORTIFY_HEADER_SIZE + FORTIFY_ALIGNED_BEFORE_SIZE,
-	            (unsigned long)h->Size, h->File, h->Line, h->FreedFile, h->FreedLine, h->Label);
-	}
+                (char*)h + FORTIFY_HEADER_SIZE + FORTIFY_ALIGNED_BEFORE_SIZE,
+                (unsigned long)h->Size, h->File, h->Line, h->FreedFile, h->FreedLine, h->Label);
+    }
 
     return st_BlockString;
 }
@@ -1947,8 +1951,8 @@ Fortify_calloc(size_t num, size_t size, const char *file, unsigned long line)
 void  
 Fortify_free(void *uptr, const char *file, unsigned long line)
 {
-	/* it is defined to be safe to free(0) */
-	if(uptr == 0)
+    /* it is defined to be safe to free(0) */
+    if(uptr == 0)
         return;
 
     Fortify_Deallocate(uptr, Fortify_Deallocator_free, file, line);

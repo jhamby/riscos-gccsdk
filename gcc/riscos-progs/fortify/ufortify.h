@@ -27,7 +27,7 @@
 
 /* #define FORTIFY_CHECK_ALL_MEMORY_ON_ALLOCATE   */
 /* #define FORTIFY_CHECK_ALL_MEMORY_ON_DEALLOCATE */
-/* #define FORTIFY_PARANOID_DEALLOCATE            */
+/* #define FORTIFY_PARANOID_DEALLOCATE */
 
 /* #define FORTIFY_WARN_ON_ZERO_MALLOC *//* A debug is issued on a malloc(0) */
 /* #define FORTIFY_FAIL_ON_ZERO_MALLOC */ /* A malloc(0) will fail            */
@@ -37,8 +37,8 @@
 #define FORTIFY_WARN_ON_SIZE_T_OVERFLOW  /* Watch for breaking the 64K limit in  */
                                          /* some braindead architectures...      */
 
-#define FORTIFY_TRACK_DEALLOCATED_MEMORY
-#define FORTIFY_DEALLOCATED_MEMORY_LIMIT 1048576 /* Maximum amount of deallocated bytes to keep */
+/* #define FORTIFY_TRACK_DEALLOCATED_MEMORY */
+/* #define FORTIFY_DEALLOCATED_MEMORY_LIMIT 1048576 */ /* Maximum amount of deallocated bytes to keep */
 /* #define FORTIFY_WARN_WHEN_DISCARDING_DEALLOCATED_MEMORY */
 #define FORTIFY_VERBOSE_WARN_WHEN_DISCARDING_DEALLOCATED_MEMORY
 
