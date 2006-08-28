@@ -1,0 +1,23 @@
+AB_URL=http://download.sourceforge.net/dmalloc/dmalloc-5.4.2.tgz
+
+AB_CONFLAGS=--enable-threads
+
+AB_INSTALL=yes
+
+ab_make() {
+  eval $AB_MAKE
+
+  LIBDIR=`$GCCSDK_INSTALL_CROSSBIN/gcc -print-search-dirs | grep install: | cut -d " " -f 2-``$GCCSDK_INSTALL_CROSSBIN/gcc -print-multi-os-directory`
+
+  mkdir -p $D/lib
+  # Rename all malloc/free/... to __unixlib_real_xxx in UnixLib
+  echo "Creating memory-edit-dmalloc for unixlib.o..."
+  $H/gen-memory-edit $LIBDIR/unixlib.o > $D/lib/memory-edit-dmalloc
+  # Do the same in libgcc.o as well.
+  echo "Creating memory-edit-dmalloc for libgcc.o..."
+  $H/gen-memory-edit $LIBDIR/libgcc.o >> $D/lib/memory-edit-dmalloc
+
+  # Copy to $LIBDIR as well:
+  cp $S/libdmallocthcxx.a $LIBDIR
+  cp $D/lib/memory-edit-dmalloc $LIBDIR
+}
