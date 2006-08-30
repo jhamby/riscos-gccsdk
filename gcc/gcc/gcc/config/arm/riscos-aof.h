@@ -555,7 +555,7 @@ do {							\
 #elif TARGET_ARCH == TARGET_ARCH_strongarm
 #define ASM_CPU "SA110"
 #else
-#error Don't know what CPU to pass to the assembler
+#error "Don't know what CPU to pass to the assembler"
 #endif
 
 #define ASM_SPEC "%{!mcpu=*:-t " ASM_CPU " -apcsfpv3} \
