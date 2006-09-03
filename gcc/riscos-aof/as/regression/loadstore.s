@@ -1,38 +1,77 @@
+		GET config.h
 
-	AREA |C$$code1|, CODE, READONLY
+		AREA |C$$code|, CODE, READONLY
 
+	[ :LNOT: REFERENCE
+		LDR	R0, [R1]
+		LDR	R0, [R1, #0]
+		LDR	R0, [R1, #4]
+		LDR	R0, [R1, R2]
+		LDR	R0, [R1], #4
+		LDR	R0, [R1], R2
 
-        ldr  r0, [r1]
-        ldr  r0, [r1, #0]
-        ldr  r0, [r1, #4]
-        ldr  r0, [r1, r2]
-        ldr  r0, [r1], #4
-        ldr  r0, [r1], r2
+		LDRB	R0, [R1]
+		LDRB	R0, [R1, #0]
+		LDRB	R0, [R1, #4]
+		LDRB	R0, [R1, R2]
+		LDRB	R0, [R1], #4
+		LDRB	R0, [R1], R2
 
-        ldrb  r0, [r1]
-        ldrb  r0, [r1, #0]
-        ldrb  r0, [r1, #4]
-        ldrb  r0, [r1, r2]
-        ldrb  r0, [r1], #4
-        ldrb  r0, [r1], r2
+		LDRH	R0, [R1]
+		LDRH	R0, [R1, #0]
+		LDRH	R0, [R1, #4]
+		LDRH	R0, [R1, R2]
+		LDRH	R0, [R1], #4
+		LDRH	R0, [R1], R2
 
-        ldrh  r0, [r1]
-        ldrh  r0, [r1, #0]
-        ldrh  r0, [r1, #4]
-        ldrh  r0, [r1, r2]
-        ldrh  r0, [r1], #4
-        ldrh  r0, [r1], r2
+		LDRSB	R0, [R1]
+		LDRSB	R0, [R1, #0]
+		LDRSB	R0, [R1, #4]
+		LDRSB	R0, [R1, R2]
+		LDRSB	R0, [R1], #4
+		LDRSB	R0, [R1], R2
 
-        ldrsb  r0, [r1]
-        ldrsb  r0, [r1, #0]
-        ldrsb  r0, [r1, #4]
-        ldrsb  r0, [r1, r2]
-        ldrsb  r0, [r1], #4
-        ldrsb  r0, [r1], r2
+		LDRSH	R0, [R1]
+		LDRSH	R0, [R1, #0]
+		LDRSH	R0, [R1, #4]
+		LDRSH	R0, [R1, R2]
+		LDRSH	R0, [R1], #4
+		LDRSH	R0, [R1], R2
+	|
+		DCD	&E5910000
+		DCD	&E5910000
+		DCD	&E5910004
+		DCD	&E7910002
+		DCD	&E4910004
+		DCD	&E6910002
 
-        ldrsh  r0, [r1]
-        ldrsh  r0, [r1, #0]
-        ldrsh  r0, [r1, #4]
-        ldrsh  r0, [r1, r2]
-        ldrsh  r0, [r1], #4
-        ldrsh  r0, [r1], r2
+		DCD	&E5D10000
+		DCD	&E5D10000
+		DCD	&E5D10004
+		DCD	&E7D10002
+		DCD	&E4D10004
+		DCD	&E6D10002
+
+		DCD	&E1D100B0
+		DCD	&E1D100B0
+		DCD	&E1D100B4
+		DCD	&E19100B2
+		DCD	&E0D100B4
+		DCD	&E09100B2
+
+		DCD	&E1D100D0
+		DCD	&E1D100D0
+		DCD	&E1D100D4
+		DCD	&E19100D2
+		DCD	&E0D100D4
+		DCD	&E09100D2
+
+		DCD	&E1D100F0
+		DCD	&E1D100F0
+		DCD	&E1D100F4
+		DCD	&E19100F2
+		DCD	&E0D100F4
+		DCD	&E09100F2
+	]
+
+		END
