@@ -1,17 +1,17 @@
 /*
  * AS an assembler for ARM
  * Copyright © 1992 Niklas Röjemo
- * 
+ *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
  * of the License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
@@ -65,7 +65,7 @@ help_copInt (int max, const char *msg)
 WORD
 help_copAddr (WORD ir, BOOL stack)
 {
-  BOOL pre, up = TRUE;
+  BOOL pre, offValue = FALSE;
   Value offset;
   skipblanks ();
   if (inputLook () == ',')
@@ -93,44 +93,52 @@ help_copAddr (WORD ir, BOOL stack)
       if (inputLook () == ',')
 	{			/* either [base,XX] or [base],XX */
 	  if (stack)
-	    error (ErrorError, TRUE, "Cannot specify both offset and stack type");
+	    {
+	      error (ErrorError, TRUE, "Cannot specify both offset and stack type");
+	      break;
+	    }
 	  inputSkip ();
 	  skipblanks ();
-	  switch (inputLook ())
-	    {
-	    case '-':
-	      up = FALSE;
-	    case '+':
-	      inputSkip ();
-	      skipblanks ();
-	    }
 	  if (inputLook () == '#')
 	    {
 	      inputSkip ();
 	      exprBuild ();
-	      if (!up)
-		codeOperator (Op_neg);
 	      offset = exprEval (ValueInt | ValueCode | ValueLateLabel);
-	      if (!stack)
+	      offValue = TRUE;
+	      switch (offset.Tag.t)
 		{
-		  switch (offset.Tag.t)
-		    {
-		    case ValueInt:
-		      ir = fixCopOffset (inputLineNo, ir, offset.ValueInt.i);
-		      break;
-		    case ValueCode:
-		    case ValueLateLabel:
-		      relocCopOffset (ir, offset);
-		      break;
-		    default:
-		      error (ErrorError, TRUE, "Illegal offset expression");
-		      break;
-		    }
-		  if (!pre)
-		    ir |= WB_FLAG;	/* If postfix, set writeback */
+		case ValueInt:
+		  ir = fixCopOffset (inputLineNo, ir, offset.ValueInt.i);
+		  break;
+		case ValueCode:
+		case ValueLateLabel:
+		  relocCopOffset (ir, offset);
+		  break;
+		default:
+		  error (ErrorError, TRUE, "Illegal offset expression");
+		  break;
 		}
+	      if (!pre)
+		ir |= WB_FLAG;	/* If postfix, set writeback */
 	    }
-	  else if (!stack)
+	  else if (inputLook () == '{')
+	    {
+	      inputSkip ();
+	      skipblanks ();
+	      exprBuild ();
+	      offset = exprEval (ValueInt);
+	      offValue = TRUE;
+	      if (offset.Tag.t != ValueInt)
+	        error (ErrorError, TRUE, "Illegal option value");
+	      if (offset.ValueInt.i < -128 || offset.ValueInt.i > 256)
+		error (ErrorError, TRUE, "Option value too large");
+	      ir |= (offset.ValueInt.i & 0xFF) | UP_FLAG;
+	      skipblanks ();
+	      if (inputLook () != '}')
+		error (ErrorError, TRUE, "Missing '}' in option");
+	      inputSkip ();
+	    }
+	  else
 	    error (ErrorError, TRUE, "Coprocessor memory instructions cannot use register offset");
 	  skipblanks ();
 	}
@@ -150,10 +158,11 @@ help_copAddr (WORD ir, BOOL stack)
 	    }
 	  else
 	    error (ErrorError, TRUE, "Inserting missing ] after address");
-	  ir |= PRE_FLAG;
 	}
-      else if (!stack)
-	ir |= WB_FLAG;		/* Ensure r is updated for [r],#x */
+      else if (!stack && !offValue)
+	{
+	  pre = TRUE;		/* make [base] into [base,#0] */
+	}
       if (inputLook () == '!')
 	{
 	  if (pre || stack)
@@ -163,16 +172,23 @@ help_copAddr (WORD ir, BOOL stack)
 	  inputSkip ();
 	  skipblanks ();
 	}
+      else if (stack)
+	{
+	  pre = TRUE;		/* [base] in stack context => [base,#0] */
+	}
+      if (pre)
+	ir |= PRE_FLAG;
       break;
     case '=':
       inputSkip ();
       if (stack)
-	error (ErrorError, TRUE, "Literal cannot be used when stack type is specified");
+	{
+	  error (ErrorError, TRUE, "Literal cannot be used when stack type is specified");
+	  break;
+	}
       ir |= PRE_FLAG | LHS_OP (15);
       exprBuild ();
       offset = exprEval (ValueInt | ValueFloat | ValueLateLabel);
-      if (stack)
-	break;
       switch (offset.Tag.t)
 	{
 	case ValueInt:
@@ -203,7 +219,10 @@ help_copAddr (WORD ir, BOOL stack)
       break;
     default:
       if (stack)
-	error (ErrorError, TRUE, "Address cannot be used when stack type is specified");
+	{
+	  error (ErrorError, TRUE, "Address cannot be used when stack type is specified");
+	  break;
+	}
       /*  cop_reg,Address */
       ir |= PRE_FLAG | LHS_OP (15);
       exprBuild ();
@@ -212,8 +231,6 @@ help_copAddr (WORD ir, BOOL stack)
       codeInt (8);
       codeOperator (Op_sub);
       offset = exprEval (ValueInt | ValueCode | ValueLateLabel | ValueAddr);
-      if (stack)
-	break;
       switch (offset.Tag.t)
 	{
 	case ValueInt:

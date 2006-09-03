@@ -1,17 +1,17 @@
 /*
  * AS an assembler for ARM
  * Copyright © 1992 Niklas Röjemo
- * 
+ *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
  * of the License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
@@ -40,11 +40,10 @@
 #include "targetcpu.h"
 
 static void
-coprocessor (BOOL CopOnly, int ir, int maxop)	/* cp#,cpop,cpdst,cplhs,cprhs {,info} */
+coprocessor (BOOL CopOnly, int ir, int maxop)	/* p#,cpop,cpdst,cplhs,cprhs {,info} */
 {
   int cop = CP_NUMBER (getCopNum ());
 
-  /* int cop = CP_NUMBER(help_copInt(15,"coprocessor number")); */
   if (cop == 1)
     {
       if (pedantic)
@@ -103,7 +102,7 @@ coprocessor (BOOL CopOnly, int ir, int maxop)	/* cp#,cpop,cpdst,cplhs,cprhs {,in
 }
 
 void
-m_cdp (WORD cc)			/* cdp CC cp#,cpop,cpdst,cplhs,cprhs {,info} */
+m_cdp (WORD cc)			/* cdp CC p#,cpop,cpdst,cplhs,cprhs {,info} */
 {
   coprocessor (TRUE, cc | 0x0e000000, 15);
 }

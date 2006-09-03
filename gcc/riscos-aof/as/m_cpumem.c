@@ -52,8 +52,8 @@ dstmem (WORD ir)
   if ((ir & 0x90) == 0x90)
     {
       if (cpuWarn (ARM7M) == FALSE && (ir & 0x20) && targetCPU < ARM10)
-        error (ErrorWarning, TRUE,
-        "Half-word ops only work correctly when accessed location is cached");
+	error (ErrorWarning, TRUE,
+	"Half-word ops only work correctly when accessed location is cached");
       half = TRUE;
     }
   dst = getCpuReg ();
@@ -70,7 +70,6 @@ dstmem (WORD ir)
     {
     case '[':			/* ldr reg,[ */
       {
-	BOOL up = TRUE;
 	inputSkip ();
 	skipblanks ();
 	op = getCpuReg ();	/* Base register */
@@ -88,23 +87,10 @@ dstmem (WORD ir)
 	  {			/* either [base,XX] or [base],XX */
 	    inputSkip ();
 	    skipblanks ();
-	    if (inputLook () == '+')
-	      {
-		inputSkip ();
-		skipblanks ();
-	      }
-	    else if (inputLook () == '-')
-	      {
-		inputSkip ();
-		skipblanks ();
-		up = FALSE;
-	      }
 	    if (inputLook () == '#')
 	      {
 		inputSkip ();
 		exprBuild ();
-		if (!up)
-		  codeOperator (Op_neg);
 		offset = exprEval (ValueInt | ValueCode | ValueLateLabel | ValueAddr);
 		offValue = TRUE;
 		switch (offset.Tag.t)
@@ -131,12 +117,27 @@ dstmem (WORD ir)
 	      }
 	    else
 	      {
+		ir |= UP_FLAG;
+		if (inputLook () == '+')
+		  {
+		    inputSkip ();
+		    skipblanks ();
+		  }
+		else if (inputLook () == '-')
+		  {
+		    inputSkip ();
+		    skipblanks ();
+		    ir &= ~UP_FLAG;
+		  }
+		if (inputLook () == '#')
+		  {
+		    /* Edge case - ±#XX */
+		    error (ErrorError, TRUE, "Unknown register definition in offset field");
+		  }
 		ir |= ((ir & 0x90) == 0x90) ? 0 : REG_FLAG;
 		ir = getRhs (TRUE, ((ir & 0x90) == 0x90) ? FALSE : TRUE, ir);
 		/* Reg {,shiftop {#shift}} */
 		offValue = TRUE;
-		if (up)
-		  ir |= UP_FLAG;/* | PRE_FLAG;*/	/* 0 nicer than #-0 */
 	      }
 	    skipblanks ();
 	  }
@@ -160,12 +161,12 @@ dstmem (WORD ir)
 	  }
 	else
 	  {
-            /* If offset value was never set, then make it a pre-index load */
-            if (!offValue)
-              pre = TRUE;
-            else if (dst == op)
-              error (ErrorError, TRUE, "Post increment is not sane where base and destination register are the same");
-          }
+	    /* If offset value was never set, then make it a pre-index load */
+	    if (!offValue)
+	      pre = TRUE;
+	    else if (dst == op)
+	      error (ErrorError, TRUE, "Post increment is not sane where base and destination register are the same");
+	  }
 	if (inputLook () == '!')
 	  {
 	    if (pre)
@@ -251,7 +252,7 @@ void
 m_pld (void)
 {
   int op;
-  WORD ir = 0xf450f000 | PRE_FLAG | UP_FLAG;
+  WORD ir = 0xf450f000 | PRE_FLAG;
 
   cpuWarn (XSCALE);
 
@@ -266,63 +267,71 @@ m_pld (void)
   skipblanks();
 
   if (inputLook () == ']')
-    {
+    {			/* [base] */
       inputSkip();
       skipblanks();
+      ir |= UP_FLAG;	/* 0 nicer than -0 */
     }
   else
-   {
-     skipblanks();
-     if (inputGet () != ',')
-       error (ErrorError, TRUE, "Expected ',' or ']' in PLD instruction");
+    {
+      skipblanks();
+      if (inputGet () != ',')
+	error (ErrorError, TRUE, "Expected ',' or ']' in PLD instruction");
 
-     skipblanks();
+      skipblanks();
 
-     if (inputLook () == '+')
-       {
-         inputSkip ();
-         skipblanks ();
-       }
-     else if (inputLook () == '-')
-       {
-         inputSkip ();
-         skipblanks ();
-         ir &= ~UP_FLAG;
-       }
+      if (inputLook () == '#')
+	{
+	  Value offset;
 
-     if (inputLook () == '#')
-       {
-         Value offset;
+	  inputSkip ();
+	  exprBuild ();
+	  offset = exprEval (ValueInt | ValueCode);
 
-         inputSkip ();
-         exprBuild ();
-         offset = exprEval (ValueInt | ValueCode);
+	  switch (offset.Tag.t)
+	    {
+	    case ValueInt:
+	    case ValueAddr:
+	      ir = fixCpuOffset (inputLineNo, ir, offset.ValueInt.i);
+	      break;
+	    default:
+	      error (ErrorError, TRUE, "Illegal offset expression");
+	      break;
+	    }
 
-         switch (offset.Tag.t)
-           {
-           case ValueInt:
-           case ValueAddr:
-             ir = fixCpuOffset (inputLineNo, ir, offset.ValueInt.i);
-             break;
-           default:
-             error (ErrorError, TRUE, "Illegal offset expression");
-             break;
-           }
-       }
-     else
-       {
-         ir = getRhs(TRUE, TRUE, ir) | REG_FLAG;
-       }
+	    /* UP_FLAG is fixed in fixCpuOffset */
+	}
+      else
+	{
+	  ir |= UP_FLAG;
+	  if (inputLook () == '+')
+	    {
+	      inputSkip ();
+	      skipblanks ();
+	    }
+	  else if (inputLook () == '-')
+	    {
+	      inputSkip ();
+	      skipblanks ();
+	      ir &= ~UP_FLAG;
+	    }
+	  if (inputLook () == '#')
+	    {
+	      /* Edge case - ±#XX */
+	      error (ErrorError, TRUE, "Unknown register definition in offset field");
+	    }
+	  ir = getRhs(TRUE, TRUE, ir) | REG_FLAG;
+	}
 
-       if (inputLook () == ']')
-         {
-           inputSkip ();
-           skipblanks ();
-         }
-       else
-         error (ErrorError, TRUE, "Expected closing ]");
-   }
-   putIns(ir);
+      if (inputLook () == ']')
+	{
+	  inputSkip ();
+	  skipblanks ();
+	}
+      else
+	error (ErrorError, TRUE, "Expected closing ]");
+    }
+  putIns(ir);
 }
 
 

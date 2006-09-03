@@ -430,6 +430,7 @@ int main (int argc, char **argv)
 #ifndef NO_ELF_SUPPORT
 	  if (elf != 0)
 	    outputElf();
+	  else
 #endif
 	    outputAof();
 	}
