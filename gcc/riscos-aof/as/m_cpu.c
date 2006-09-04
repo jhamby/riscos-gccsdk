@@ -1,17 +1,17 @@
 /*
  * AS an assembler for ARM
  * Copyright © 1992 Niklas Röjemo
- * 
+ *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
  * of the License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
@@ -298,6 +298,9 @@ l_onlyregs (WORD ir, const char *op)
   WORD dstl, dsth, lhs, rhs;
   /* This bit only set for smulxx */
   int issmull = !(ir & 0x01000000);
+  int issmlaxy = ((ir & 0x00600000) == 0);
+  int issmlalxy = ((ir & 0x00600000) == 0x00400000);
+  int issmlawy = ((ir & 0x00600020) == 0x00200000);
 
   if (issmull)
     {
@@ -316,7 +319,19 @@ l_onlyregs (WORD ir, const char *op)
     {
       cpuWarn (XSCALE);
       skipblanks ();
-      dstl = 0;
+      if (issmlalxy)
+        {
+          dstl = getCpuReg ();
+          if (inputLook () == ',')
+            {
+              inputSkip ();
+              skipblanks ();
+            }
+          else
+            error (ErrorError, TRUE, "%sdst_l", InsertCommaAfter);
+        }
+      else
+        dstl = 0;
     }
 
   dsth = getCpuReg ();
@@ -363,37 +378,116 @@ l_onlyregs (WORD ir, const char *op)
        if (dsth == 15 || lhs == 15 || rhs == 15)
          error (ErrorError, TRUE, "Cannot use R15 with %s", op);
      }
+  if (!issmull && (issmlaxy || issmlawy))
+    {
+      if (inputLook () == ',')
+        {
+          inputSkip ();
+          skipblanks ();
+        }
+      else
+        error (ErrorError, TRUE, "%dst_l", InsertCommaAfter);
+      dstl = getCpuReg ();
+      if (dstl == 15)
+        error (ErrorError, TRUE, "Cannot use R15 with %s", op);
+    }
 
   ir |= dstl << 12 | dsth << 16 | lhs | rhs << 8;
   putIns (ir);
 }
 
-void m_smulbb (WORD cc)
+void
+m_smlabb (WORD cc)
+{
+  l_onlyregs (cc | M_SMLABB, "SMLABB");
+}
+
+void
+m_smlabt (WORD cc)
+{
+  l_onlyregs (cc | M_SMLABT, "SMLABT");
+}
+
+void
+m_smlatb (WORD cc)
+{
+  l_onlyregs (cc | M_SMLATB, "SMLATB");
+}
+
+void
+m_smlatt (WORD cc)
+{
+  l_onlyregs (cc | M_SMLATT, "SMLATT");
+}
+
+void
+m_smlalbb (WORD cc)
+{
+  l_onlyregs (cc | M_SMLALBB, "SMLALBB");
+}
+
+void
+m_smlalbt (WORD cc)
+{
+  l_onlyregs (cc | M_SMLALBT, "SMLALBT");
+}
+
+void
+m_smlaltb (WORD cc)
+{
+  l_onlyregs (cc | M_SMLALTB, "SMLALTB");
+}
+
+void
+m_smlaltt (WORD cc)
+{
+  l_onlyregs (cc | M_SMLALTT, "SMLALTT");
+}
+
+void
+m_smlawb (WORD cc)
+{
+  l_onlyregs (cc | M_SMLAWB, "SMLAWB");
+}
+
+void
+m_smlawt (WORD cc)
+{
+  l_onlyregs (cc | M_SMLAWT, "SMLAWT");
+}
+
+void
+m_smulbb (WORD cc)
 {
   l_onlyregs (cc | M_SMULBB, "SMULBB");
 }
 
-void m_smulbt (WORD cc)
+void
+m_smulbt (WORD cc)
 {
   l_onlyregs (cc | M_SMULBT, "SMULBT");
 }
 
-void m_smultb (WORD cc)
+void
+m_smultb (WORD cc)
 {
   l_onlyregs (cc | M_SMULTB, "SMULTB");
 }
 
-void m_smultt (WORD cc)
+void
+m_smultt (WORD cc)
 {
   l_onlyregs (cc | M_SMULTT, "SMULTT");
 }
 
-void m_smulwb (WORD cc)
+void
+m_smulwb (WORD cc)
 {
   l_onlyregs (cc | M_SMULWB, "SMULWB");
 }
 
-void m_smulwt (WORD cc)
+void
+m_smulwt (WORD cc)
 {
   l_onlyregs (cc | M_SMULWT, "SMULWT");
 }
@@ -423,5 +517,88 @@ m_umlal (WORD cc)
 }
 
 
+void
+m_clz (WORD cc)
+{
+  WORD ir = cc | M_CLZ;
+  WORD dst, rhs;
 
+  cpuWarn (XSCALE);
 
+  dst = getCpuReg ();
+  ir |= DST_OP (dst);
+  skipblanks ();
+  if (inputLook () == ',')
+    {
+      inputSkip ();
+      skipblanks ();
+    }
+  else
+    error (ErrorError, TRUE, "%slhs", InsertCommaAfter);
+
+  rhs = getCpuReg ();
+  ir |= RHS_OP (rhs);
+
+  if (dst == 15 || rhs == 15)
+    error(ErrorError, TRUE, "Use of R15 in CLZ is unpredictable");
+
+  putIns (ir);
+}
+
+static void
+q_onlyregs (WORD ir, const char *op)
+{
+  WORD dst, lhs, rhs;
+
+  cpuWarn (XSCALE);
+  skipblanks ();
+
+  dst = getCpuReg ();
+  skipblanks ();
+  if (inputLook () == ',')
+    {
+      inputSkip ();
+      skipblanks ();
+    }
+  else
+    error (ErrorError, TRUE, "%sdst", InsertCommaAfter);
+  lhs = getCpuReg ();
+  skipblanks ();
+  if (inputLook () == ',')
+    {
+      inputSkip ();
+      skipblanks ();
+    }
+  else
+    error (ErrorError, TRUE, "%slhs", InsertCommaAfter);
+  rhs = getCpuReg ();
+  if (dst == 15 || lhs == 15 || rhs == 15)
+    error (ErrorError, TRUE, "Cannot use R15 with %s", op);
+
+  ir |= dst << 12 | lhs | rhs << 16;
+  putIns (ir);
+}
+
+void
+m_qadd (WORD cc)
+{
+  q_onlyregs (cc | M_QADD, "QADD");
+}
+
+void
+m_qdadd (WORD cc)
+{
+  q_onlyregs (cc | M_QDADD, "QDADD");
+}
+
+void
+m_qdsub (WORD cc)
+{
+  q_onlyregs (cc | M_QDSUB, "QDSUB");
+}
+
+void
+m_qsub (WORD cc)
+{
+  q_onlyregs (cc | M_QSUB, "QSUB");
+}

@@ -5,9 +5,9 @@
 		; Miscellaneous instructions
 
 	[ :LNOT: REFERENCE
-;		BKPT	1234
+		BKPT	1234
 
-;		CLZ	R0,R1
+		CLZ	R0,R1
 
 		MRS	R0,CPSR
 		MRS	R0,SPSR
@@ -38,9 +38,9 @@
 
 		SWPB	R0,R1,[R2]
 	|
-;		DCD	&E1204D72
+		DCD	&E1204D72
 
-;		DCD	&E16F0F11
+		DCD	&E16F0F11
 
 		DCD	&E10F0000
 		DCD	&E14F0000

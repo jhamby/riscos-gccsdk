@@ -37,7 +37,7 @@
 #include "put.h"
 #include "reloc.h"
 
-/** MEMMORY **/
+/** MEMORY **/
 
 
 static void
@@ -64,7 +64,23 @@ m_ldc (WORD cc)
 }
 
 void
+m_ldc2 (WORD cc)
+{
+  if ((cc & NV) != AL)
+    error (ErrorError, TRUE, "LDC2 cannot be conditional");
+  dstmem (cc | 0x0c100000 | NV);
+}
+
+void
 m_stc (WORD cc)
 {
   dstmem (cc | 0x0c000000);
+}
+
+void
+m_stc2 (WORD cc)
+{
+  if ((cc & NV) != AL)
+    error (ErrorError, TRUE, "STC2 cannot be conditional");
+  dstmem (cc | 0x0c000000 | NV);
 }

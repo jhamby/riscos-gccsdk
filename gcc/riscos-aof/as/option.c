@@ -1,17 +1,17 @@
 /*
  * AS an assembler for ARM
  * Copyright © 1992 Niklas Röjemo
- * 
+ *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
  * of the License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
@@ -328,7 +328,8 @@ optionCondB (void)
 
 
 WORD
-optionCondBT (void)		/* also does signed byte, (un)signed halfword */
+optionCondBT (void)		/* also does signed byte,
+				   (un)signed halfword and doubleword */
 {
   WORD option = getCond ();
   if (inputLookUC () == 's')
@@ -351,6 +352,11 @@ optionCondBT (void)		/* also does signed byte, (un)signed halfword */
     {
       switch (inputLookUC ())
 	{
+	case 'd':
+	  option |= 0xD0 | (1 << 27);	/* Use bit 27 as a flag
+					 * for doubleword access */
+	  inputSkip ();
+	  break;
 	case 'h':
 	  option |= 0xB0;
 	  inputSkip ();

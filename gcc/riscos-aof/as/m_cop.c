@@ -40,11 +40,11 @@
 #include "targetcpu.h"
 
 static void
-coprocessor (BOOL CopOnly, int ir, int maxop)	/* p#,cpop,cpdst,cplhs,cprhs {,info} */
+coprocessor (BOOL CopOnly, WORD ir, int maxop)	/* p#,cpop,cpdst,cplhs,cprhs {,info} */
 {
   int cop = CP_NUMBER (getCopNum ());
 
-  if (cop == 1)
+  if (cop == CP_NUMBER (1))
     {
       if (pedantic)
 	error (ErrorInfo, TRUE, "Coprocessor 1 is the floating point unit. Use a floating point mnemonic if possible");
@@ -107,16 +107,90 @@ m_cdp (WORD cc)			/* cdp CC p#,cpop,cpdst,cplhs,cprhs {,info} */
   coprocessor (TRUE, cc | 0x0e000000, 15);
 }
 
+void
+m_cdp2 (void)
+{
+  coprocessor (TRUE, 0xfe000000, 15);
+}
+
 /** REGISTER TRANSFER **/
 
 void
 m_mcr (WORD cc)
 {
-  coprocessor (FALSE, cc | 0x0e000010, 15);
+  coprocessor (FALSE, cc | 0x0e000010, 7);
+}
+
+void
+m_mcr2 (void)
+{
+  coprocessor (FALSE, 0xfe000010, 7);
 }
 
 void
 m_mrc (WORD cc)
 {
-  coprocessor (FALSE, cc | 0x0e100010, 15);
+  coprocessor (FALSE, cc | 0x0e100010, 7);
+}
+
+void
+m_mrc2 (void)
+{
+  coprocessor (FALSE, 0xfe100010, 7);
+}
+
+static void
+coprocessorr (WORD ir)
+{
+  ir |= CP_NUMBER (getCopNum ());
+  skipblanks ();
+  if (inputLook () == ',')
+    {
+      inputSkip ();
+      skipblanks ();
+    }
+  else
+    error (ErrorError, TRUE, "%scoprocessor number", InsertCommaAfter);
+  ir |= (help_copInt (15, "coprocessor opcode") << 4);
+  skipblanks ();
+  if (inputLook () == ',')
+    {
+      inputSkip ();
+      skipblanks ();
+    }
+  else
+    error (ErrorError, TRUE, "%scoprocessor opcode", InsertCommaAfter);
+  ir |= CPDST_OP (getCpuReg ());
+  skipblanks ();
+  if (inputLook () == ',')
+    {
+      inputSkip ();
+      skipblanks ();
+    }
+  else
+    error (ErrorError, TRUE, "%sdst", InsertCommaAfter);
+  ir |= CPLHS_OP (getCpuReg ());
+  skipblanks ();
+  if (inputLook () == ',')
+    {
+      inputSkip ();
+      skipblanks ();
+    }
+  else
+    error (ErrorError, TRUE, "%slhs", InsertCommaAfter);
+  ir |= CPRHS_OP (getCopReg ());
+
+  putIns (ir);
+}
+
+void
+m_mcrr (WORD cc)
+{
+  coprocessorr (cc | 0x0C400000);
+}
+
+void
+m_mrrc (WORD cc)
+{
+  coprocessorr (cc | 0x0C500000);
 }

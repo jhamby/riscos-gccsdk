@@ -1,17 +1,17 @@
 /*
  * AS an assembler for ARM
  * Copyright © 1992 Niklas Röjemo
- * 
+ *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
  * of the License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
@@ -43,6 +43,17 @@
 #define M_MLA    0x00200090
 #define M_MUL    0x00000090
 
+#define M_SMLABB 0x01000080
+#define M_SMLATB 0x010000a0
+#define M_SMLABT 0x010000c0
+#define M_SMLATT 0x010000e0
+#define M_SMLALBB 0x01400080
+#define M_SMLALTB 0x014000a0
+#define M_SMLALBT 0x014000c0
+#define M_SMLALTT 0x014000e0
+#define M_SMLAWB 0x01200080
+#define M_SMLAWT 0x012000c0
+
 #define M_SMULBB 0x01600080
 #define M_SMULTB 0x016000a0
 #define M_SMULBT 0x016000c0
@@ -54,5 +65,12 @@
 #define M_UMLAL  0x00a00090
 #define M_SMULL  0x00c00090
 #define M_SMLAL  0x00e00090
+
+#define M_CLZ    0x016F0F10
+
+#define M_QADD   0x01000050
+#define M_QDADD  0x01400050
+#define M_QDSUB  0x01600050
+#define M_QSUB   0x01200050
 
 #endif

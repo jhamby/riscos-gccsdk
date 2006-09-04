@@ -1,17 +1,17 @@
 /*
  * AS an assembler for ARM
  * Copyright © 1992 Niklas Röjemo
- * 
+ *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
  * of the License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
@@ -54,6 +54,7 @@ static const char *relocstr[] =
   "RelocImm8s4",
   "RelocImmFloat",
   "RelocBranch",
+  "RelocBranchT",
   "RelocSWI",
   "RelocCpuOffset",
   "RelocCopOffset",
@@ -132,6 +133,13 @@ void
 relocBranch (Value offset)
 {
   relocOp (0, &offset, RelocBranch);
+}
+
+
+void
+relocBranchT (Value offset)
+{
+  relocOp (0, &offset, RelocBranchT);
 }
 
 
@@ -267,6 +275,7 @@ relocEval (Reloc * r, Value * value, Symbol * area)
 	  break;
 
 	case RelocBranch:
+	case RelocBranchT:
 	  {
 	    LateInfo *late;
 	    int thisF = 0;
@@ -369,6 +378,14 @@ relocWrite (Reloc * r, Value * value, unsigned char *image)
 	{			/* Write out the value */
 	case RelocBranch:
 	  w = fixBranch (r->lineno, value->ValueInt.i);
+	  image[offset + 2] = (w >> 16) & 0xff;
+	  image[offset + 1] = (w >> 8) & 0xff;
+	  image[offset + 0] = w & 0xff;
+	  break;
+	case RelocBranchT:
+	  w = READWORD (image, offset);
+	  w |= fixBranchT (r->lineno, value->ValueInt.i);
+	  image[offset + 3] = (w >> 24) & 0xff;
 	  image[offset + 2] = (w >> 16) & 0xff;
 	  image[offset + 1] = (w >> 8) & 0xff;
 	  image[offset + 0] = w & 0xff;
@@ -594,6 +611,7 @@ relocOutput (FILE * outfile, Symbol * area)
 	  How = HOW2_INIT | HOW2_SIZE | HOW2_SYMBOL;
 	  break;
 	case RelocBranch:
+	case RelocBranchT:
 	case RelocAdr:
 	case RelocAdrl:
 	  How = HOW2_INIT | HOW2_SIZE | HOW2_RELATIVE;
@@ -676,6 +694,7 @@ relocElfOutput (FILE * outfile, Symbol * area)
           How = HOW2_INIT | HOW2_SIZE | HOW2_SYMBOL;
           break;
         case RelocBranch:
+        case RelocBranchT:
         case RelocAdr:
         case RelocAdrl:
           How = HOW2_INIT | HOW2_SIZE | HOW2_RELATIVE;

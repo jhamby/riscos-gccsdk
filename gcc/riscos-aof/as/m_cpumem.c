@@ -237,14 +237,19 @@ dstmem (WORD ir)
 void
 m_ldr (WORD cc)
 {
-  dstmem (cc | (((cc & 0x90) == 0x90) ? (1 << 20) : ((1 << 20) | (1 << 26))));
+  /* Bit 27 set => LDRD */
+  dstmem ((cc & ~(1 << 27)) |
+    (((cc & 0x90) == 0x90) ? (cc & (1 << 27)) ? 0 : (1 << 20)
+			   : ((1 << 20) | (1 << 26))));
 }
 
 
 void
 m_str (WORD cc)
 {
-  dstmem (cc | (((cc & 0x90) == 0x90) ? 0 : (1 << 26)));
+  /* Bit 27 set => STRD */
+  dstmem ((cc & ~(1 << 27)) |
+    (((cc & 0x90) == 0x90) ? (cc & (1 << 27)) ? 0x20 : 0 : (1 << 26)));
 }
 
 

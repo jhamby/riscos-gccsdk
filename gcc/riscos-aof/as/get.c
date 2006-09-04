@@ -1,17 +1,17 @@
 /*
  * AS an assembler for ARM
  * Copyright © 1992 Niklas Röjemo
- * 
+ *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
  * of the License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
@@ -45,8 +45,8 @@ struct reg_id
     int len;
   };
 
-WORD
-getCpuReg (void)
+static WORD
+getCpuRegInternal (BOOL genError)
 {
   static const struct reg_id cpu_regs[] =
   {
@@ -64,9 +64,9 @@ getCpuReg (void)
   unsigned int loop;
   Symbol *sym;
 
-  lexSym = lexGetId ();
+  lexSym = genError ? lexGetId () : lexGetIdNoError ();
   if (lexSym.tag == LexNone)
-    return 0;
+    return genError ? 0 : INVALID_REG;
 
   if (lexSym.tag == LexId)
     for (loop = 0; loop < sizeof (cpu_regs) / sizeof (struct reg_id); loop++)
@@ -82,12 +82,24 @@ getCpuReg (void)
     {
       if (SYMBOL_GETREG (sym->type) == SYMBOL_CPUREG)
 	return sym->value.ValueInt.i;
-      else
+      else if (genError)
 	error (ErrorError, TRUE, "'%s' (=%d) is not a %s register", sym->str, sym->value, "cpu");
     }
-  else
+  else if (genError)
     error (ErrorError, TRUE, "Undefined register %s", sym->str);
-  return 0;
+  return genError ? 0 : INVALID_REG;
+}
+
+WORD
+getCpuReg (void)
+{
+  return getCpuRegInternal (TRUE);
+}
+
+WORD
+getCpuRegNoError (void)
+{
+  return getCpuRegInternal (FALSE);
 }
 
 WORD
@@ -355,16 +367,16 @@ getRhs (BOOL immonly, BOOL shift, WORD ir)
 	  if (inputLook () == ',')
 	    {
 	      Lex shift;
-	  
+
 	      inputSkip ();
 	      shift = lexGetPrim ();
-	  
+
 	      if (im.ValueInt.i < 0 || im.ValueInt.i >= 256)
 	        error (ErrorError, TRUE, "Immediate value out of range: 0x%x", im.ValueInt.i);
-	  
+
 	      if (shift.LexInt.value < 0 || shift.LexInt.value > 30 || (shift.LexInt.value % 2) == 1)
 	        error (ErrorError, TRUE, "Bad rotator %d", shift.LexInt.value);
-	  
+
 	      ir |= (shift.LexInt.value >> 1) << 8;
 	    }
 	case ValueAddr:

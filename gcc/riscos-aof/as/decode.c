@@ -1,17 +1,17 @@
 /*
  * AS an assembler for ARM
  * Copyright © 1992 Niklas Röjemo
- * 
+ *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
  * of the License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
@@ -250,11 +250,28 @@ decode (Lex * label)
 	      goto illegal;
 	    }
 	  break;
+	case 'k':
+	case 'K':
+	  C_FINISH_STR("pt", m_bkpt);	/* bkpt */
+	case 'l':
+	case 'L':
+	  if (inputLookUC () == 'x')
+	    {
+	      inputSkip ();
+	      M_FINISH (m_blx, optionCond);	/* blx CC */
+	    }
+	  else
+	    {
+	      inputUnGet (c);
+	      M_FINISH (m_branch, optionLinkCond);	/* bl CC */
+	    }
+	  break;
 	case 'x':
-	  M_FINISH (m_bx, optionCond);
+	case 'X':
+	  M_FINISH (m_bx, optionCond);	/* bx CC */
 	default:
 	  inputUnGet (c);
-	  M_FINISH (m_branch, optionLinkCond);	/* b, bl */
+	  M_FINISH (m_branch, optionLinkCond);	/* b CC */
 	  break;
 	}
       break;
@@ -262,7 +279,24 @@ decode (Lex * label)
       switch (inputGetUC ())
 	{
 	case 'd':
-	  M_FINISH_CHR ('p', m_cdp, optionCond);	/* cdp CC */
+	  switch (inputGetUC ())
+	    {
+	    case 'p':
+	      switch ((c = inputGet ()))
+		{
+		case '2':
+		  C_FINISH (m_cdp2);	/* cdp2 */
+		default:
+		  inputUnGet (c);
+		  M_FINISH (m_cdp, optionCond);	/* cdp CC */
+		}
+	      break;
+	    default:
+	      goto illegal;
+	    }
+	  break;
+	case 'l':
+	  M_FINISH_CHR ('z', m_clz, optionCond);	/* clz CC */
 	case 'm':
 	  switch (inputGetUC ())
 	    {
@@ -446,7 +480,15 @@ decode (Lex * label)
 	  switch (inputGetUC ())
 	    {
 	    case 'c':
-	      M_FINISH (m_ldc, optionCondL);	/* ldc CC l */
+	      switch ((c = inputGet ()))
+		{
+		case '2':
+		  M_FINISH (m_ldc2, optionCondL);	/* ldc2 l */
+		default:
+		  inputUnGet (c);
+		  M_FINISH (m_ldc, optionCondL);	/* ldc CC l */
+		}
+	      break;
 	    case 'f':
 	      M_FINISH (m_ldf, optionCondPrec_P);	/* ldf CC P */
 	    case 'm':
@@ -488,7 +530,25 @@ decode (Lex * label)
 	case 'a':
 	  C_FINISH_FLOW ("cro", c_macro);	/* macro */
 	case 'c':
-	  M_FINISH_CHR ('r', m_mcr, optionCond);	/* mcr CC */
+	  switch (inputGetUC ())
+	    {
+	    case 'r':
+	      switch ((c = inputGet ()))
+		{
+		case '2':
+		  C_FINISH (m_mcr2);	/* mcr2 */
+		case 'r':
+		case 'R':
+		  M_FINISH (m_mcrr, optionCond);	/* mcrr CC */
+		default:
+		  inputUnGet (c);
+		  M_FINISH (m_mcr, optionCond);	/* mcr CC */
+		}
+	      break;
+	    default:
+	      goto illegal;
+	    }
+	  break;
 	case 'e':
 	  C_FINISH_FLOW ("xit", c_mexit);	/* mexit */
 	case 'l':
@@ -501,7 +561,17 @@ decode (Lex * label)
 	  switch (inputGetUC ())
 	    {
 	    case 'c':
-	      M_FINISH (m_mrc, optionCond);	/* mrc CC */
+	      switch ((c = inputGet ()))
+		{
+		case '2':
+		  C_FINISH (m_mrc2);	/* mrc2 */
+		default:
+		  inputUnGet (c);
+		  M_FINISH (m_mrc, optionCond);	/* mrc CC */
+		}
+	      break;
+	    case 'r':
+	      M_FINISH_CHR ('c', m_mrrc, optionCond);	/* mrrc CC */
 	    case 's':
 	      M_FINISH (m_mrs, optionCond);	/* mrs CC */
 	    default:
@@ -567,6 +637,26 @@ decode (Lex * label)
 	  break;
 	default:
 	  goto illegal;
+	}
+      break;
+    case 'q':
+      switch (inputGetUC ())
+	{
+	case 'a':
+	  M_FINISH_STR ("dd", m_qadd, optionCond);	/* qadd CC */
+	case 'd':
+	  switch (inputGetUC ())
+	    {
+	    case 'a':
+	      M_FINISH_STR ("dd", m_qdadd, optionCond);	/* qdadd CC */
+	    case 's':
+	      M_FINISH_STR ("ub", m_qdsub, optionCond);	/* qdsub CC */
+	    default:
+	      goto illegal;
+	    }
+	  break;
+	case 's':
+	  M_FINISH_STR("ub", m_qsub, optionCond);	/* qsub CC */
 	}
       break;
     case 'r':
@@ -643,44 +733,126 @@ decode (Lex * label)
 	    {
 	    case 'u':
 	      switch (inputGetUC ())
-	        {
-	        case 'l':
-	          switch (inputGetUC ())
-	          {
-	            case 'l':
-	              M_FINISH (m_smull, optionCondS);	/* smull CC */
-	            case 'b':
-	              switch (inputGetUC ())
-	                {
-	                  case 'b':
-	                    M_FINISH (m_smulbb, optionCond); /* smulbb CC */
-	                  case 't':
-	                    M_FINISH (m_smulbt, optionCond); /* smulbt CC */
-	                }
-	              break;
-	           case 't':
-	              switch (inputGetUC ())
-	                {
-	                  case 'b':
-	                    M_FINISH (m_smultb, optionCond); /* smultb CC */
-	                  case 't':
-	                    M_FINISH (m_smultt, optionCond); /* smultt CC */
-	                }
-	              break;
-	           case 'w':
-	              switch (inputGetUC ())
-	                {
-	                  case 'b':
-	                    M_FINISH (m_smulwb, optionCond); /* smulwb CC */
-	                  case 't':
-	                    M_FINISH (m_smulwt, optionCond); /* smulwt CC */
-	                }
-	              break;
-	          }
-	        }
-	      break;  
+		{
+		case 'l':
+		  switch (inputGetUC ())
+		    {
+		    case 'l':
+		      M_FINISH (m_smull, optionCondS);	/* smull CC */
+		    case 'b':
+		      switch (inputGetUC ())
+			{
+			case 'b':
+			  M_FINISH (m_smulbb, optionCond); /* smulbb CC */
+			case 't':
+			  M_FINISH (m_smulbt, optionCond); /* smulbt CC */
+			default:
+			  goto illegal;
+			}
+		      break;
+		    case 't':
+		      switch (inputGetUC ())
+			{
+			case 'b':
+			  M_FINISH (m_smultb, optionCond); /* smultb CC */
+			case 't':
+			  M_FINISH (m_smultt, optionCond); /* smultt CC */
+			default:
+			  goto illegal;
+			}
+		      break;
+		    case 'w':
+		      switch (inputGetUC ())
+			{
+			case 'b':
+			  M_FINISH (m_smulwb, optionCond); /* smulwb CC */
+			case 't':
+			  M_FINISH (m_smulwt, optionCond); /* smulwt CC */
+			default:
+			  goto illegal;
+			}
+		      break;
+		    }
+		  break;
+		}
+	      break;
 	    case 'l':
-	      M_FINISH_STR ("al", m_smlal, optionCondS);	/* smlal CC */
+	      switch (inputGetUC ())
+		{
+		case 'a':
+		  switch (inputGetUC ())
+		    {
+		    case 'l':
+		      switch ((c = inputGet ()))
+			{
+			case 'b':
+			case 'B':
+			  switch (inputGetUC ())
+			    {
+			    case 'b':
+			      M_FINISH (m_smlalbb, optionCond); /* smlalbb CC */
+			    case 't':
+			      M_FINISH (m_smlalbt, optionCond); /* smlalbt CC */
+			    default:
+			      goto illegal;
+			    }
+			  break;
+			case 't':
+			case 'T':
+			  switch (inputGetUC ())
+			    {
+			    case 'b':
+			      M_FINISH (m_smlaltb, optionCond); /* smlaltb CC */
+			    case 't':
+			      M_FINISH (m_smlaltt, optionCond); /* smlaltt CC */
+			    default:
+			      goto illegal;
+			    }
+			  break;
+			default:
+			  inputUnGet (c);
+			  M_FINISH (m_smlal, optionCondS); /* smlal CC S */
+			}
+		      break;
+		    case 'b':
+		      switch (inputGetUC ())
+			{
+			case 'b':
+			  M_FINISH (m_smlabb, optionCond); /* smlabb CC */
+			case 't':
+			  M_FINISH (m_smlabt, optionCond); /* smlabt CC */
+			default:
+			  goto illegal;
+			}
+		      break;
+		    case 't':
+		      switch (inputGetUC ())
+			{
+			case 'b':
+			  M_FINISH (m_smlatb, optionCond); /* smlatb CC */
+			case 't':
+			  M_FINISH (m_smlatt, optionCond); /* smlatt CC */
+			default:
+			  goto illegal;
+			}
+		      break;
+		    case 'w':
+		      switch (inputGetUC ())
+			{
+			case 'b':
+			  M_FINISH (m_smlawb, optionCond); /* smlawb CC */
+			case 't':
+			  M_FINISH (m_smlawt, optionCond); /* smlawt CC */
+			default:
+			  goto illegal;
+			}
+		      break;
+		    }
+		  break;
+		default:
+		  goto illegal;
+		}
+	      break;
 	    default:
 	      goto illegal;
 	    }
@@ -693,7 +865,15 @@ decode (Lex * label)
 	    case 'a':
 	      C_FINISH_STR ("ck", m_stack);	/* stack CC */
 	    case 'c':
-	      M_FINISH (m_stc, optionCondL);	/* stc CC l */
+	      switch ((c = inputGet ()))
+		{
+		case '2':
+		  M_FINISH (m_stc2, optionCondL);	/* stc2 l */
+		default:
+		  inputUnGet (c);
+		  M_FINISH (m_stc, optionCondL);	/* stc CC l */
+		}
+	      break;
 	    case 'f':
 	      M_FINISH (m_stf, optionCondPrec_P);	/* stf CC P */
 	    case 'm':

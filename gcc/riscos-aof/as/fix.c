@@ -317,6 +317,15 @@ fixBranch (long int lineno, int im)
 }
 
 WORD
+fixBranchT (long int lineno, int im)
+{
+  if (im & 1)
+    errorLine (lineno, NULL, ErrorError, TRUE, "Branch value is not a multiple of two");
+
+  return ((im >> 2) & 0xffffff) | ((im & 2) << 23);
+}
+
+WORD
 fixCopOffset (long int lineno, WORD ir, int offset)
 {
   BOOL up = TRUE;

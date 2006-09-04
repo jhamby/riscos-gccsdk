@@ -1,17 +1,17 @@
 /*
  * AS an assembler for ARM
  * Copyright © 1992 Niklas Röjemo
- * 
+ *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
  * of the License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
@@ -85,6 +85,64 @@ m_branch (WORD cc)
 }
 
 void
+m_blx (WORD cc)
+{
+  Value im;
+  WORD reg;
+  WORD ir;
+
+  cpuWarn (XSCALE);
+
+  inputMark ();
+  reg = getCpuRegNoError ();
+  if (reg == INVALID_REG)
+    {			/* BLXcc <target_addr> */
+      inputRollback ();
+
+      if (cc != AL)
+        error (ErrorError, TRUE, "BLX <target_addr> must be unconditional");
+
+      ir = NV | 0x0A000000;
+
+      switch (inputLook ())
+	{
+	case '#':
+	  inputSkip ();
+	case '"':
+	  exprBuild ();
+	  break;
+	default:
+	  exprBuild ();
+	  codePosition (areaCurrent);
+	  codeOperator (Op_sub);
+	  codeInt (8);
+	  codeOperator (Op_sub);
+	  break;
+	}
+      im = exprEval (ValueInt | ValueCode | ValueLateLabel);
+      switch (im.Tag.t)
+	{
+	case ValueInt:
+	  ir |= fixBranchT (inputLineNo, im.ValueInt.i);
+	  break;
+	case ValueCode:
+	case ValueLateLabel:
+	  relocBranchT (im);
+	  break;
+	default:
+	  error (ErrorError, TRUE, "Illegal branch destination");
+	  break;
+	}
+    }
+  else
+    {			/* BLX <Rm> */
+      ir = cc | 0x012FFF30 | RHS_OP (reg);
+    }
+
+  putIns (ir);
+}
+
+void
 m_bx (WORD cc)
 {
   int dst = getCpuReg();
@@ -140,6 +198,33 @@ m_swi (WORD cc)
       error (ErrorError, TRUE, "Illegal SWI expression");
       break;
     }
+  putIns (ir);
+}
+
+void
+m_bkpt (void)
+{
+  Value im;
+  WORD ir = 0xE1200070;
+  WORD val;
+
+  cpuWarn (XSCALE);
+
+  if (inputLook () == '#')
+    {
+      inputSkip ();
+      error (ErrorInfo, TRUE, "BKPT is always immediate");
+    }
+  exprBuild ();
+  im = exprEval (ValueInt);
+  if (im.Tag.t != ValueInt)
+    {
+      error (ErrorError, TRUE, "Illegal BKPT expression");
+    }
+  val = fixInt (inputLineNo, 2, im.ValueInt.i);
+
+  ir |= ((val & 0xFFF0) << 4) | (val & 0xF);
+
   putIns (ir);
 }
 

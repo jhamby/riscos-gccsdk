@@ -183,8 +183,8 @@ lexfloat (int r)
 }
 
 
-Lex
-lexGetId (void)
+static Lex
+lexGetIdInternal (BOOL genError)
 {
   char c;
   Lex result;
@@ -219,13 +219,28 @@ lexGetId (void)
 	}
       else
 	{
-	  error (ErrorError, TRUE, "Missing identifier");
+	  if (genError)
+	    error (ErrorError, TRUE, "Missing identifier");
 	  result.tag = LexNone;
 	}
     }
   if (result.tag == LexId && result.LexId.len > 1)
     localMunge (&result);
   return result;
+}
+
+
+Lex
+lexGetId (void)
+{
+  return lexGetIdInternal (TRUE);
+}
+
+
+Lex
+lexGetIdNoError (void)
+{
+  return lexGetIdInternal (FALSE);
 }
 
 
