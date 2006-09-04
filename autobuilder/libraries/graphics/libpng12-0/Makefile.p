@@ -59,3 +59,25 @@
  	echo libs=\"-lpng12 -lz -lm\"; \
  	cat scripts/libpng-config-body.in ) > libpng-config
  	chmod +x libpng-config
+--- scripts/makefile.linux.orig	2006-09-03 18:33:15.000000000 +0200
++++ scripts/makefile.linux	2006-09-03 18:33:37.000000000 +0200
+@@ -132,12 +132,18 @@
+ 	-@/bin/rm -f $(DI)/libpng
+ 	(cd $(DI); ln -sf $(LIBNAME) libpng; ln -sf $(LIBNAME)/* .)
+ 
+-install-static: install-headers libpng.a
++install-static: install-headers libpng.a libpng.pc
+ 	-@if [ ! -d $(DL) ]; then mkdir $(DL); fi
+ 	cp libpng.a $(DL)/$(LIBNAME).a
+ 	chmod 644 $(DL)/$(LIBNAME).a
+ 	-@/bin/rm -f $(DL)/libpng.a
+ 	(cd $(DL); ln -sf $(LIBNAME).a libpng.a)
++	-@if [ ! -d $(DL)/pkgconfig ]; then mkdir $(DL)/pkgconfig; fi
++	#-@/bin/rm -f $(DL)/pkgconfig/$(LIBNAME).pc
++	#-@/bin/rm -f $(DL)/pkgconfig/libpng.pc
++	cp libpng.pc $(DL)/pkgconfig/$(LIBNAME).pc
++	chmod 644 $(DL)/pkgconfig/$(LIBNAME).pc
++	(cd $(DL)/pkgconfig; ln -sf $(LIBNAME).pc libpng.pc)
+ 
+ install-shared: install-headers $(LIBNAME).so.$(PNGVER) libpng.pc \
+ 	libpng.so.3.$(PNGMIN)
