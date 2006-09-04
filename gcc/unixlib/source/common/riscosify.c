@@ -233,7 +233,7 @@ enum sdirseg_result
 {
   sdirseg_no_match,
   sdirseg_match,
-  sdirseg_buf_to_small
+  sdirseg_buf_too_small
 };
 
 /* sdirseg(&s1,&s2,len) checks s1 to see if it is a special directory name.
@@ -265,7 +265,7 @@ sdirseg (const char **in_p, char **out_p, const char *buf_end)
 	  out = copy_or_null (out, __sdir[j].riscos_name, buf_end);
 
 	  if (!out)
-	    return sdirseg_buf_to_small;
+	    return sdirseg_buf_too_small;
 
 	  *in_p = in;
 	  *out_p = out;
@@ -1115,7 +1115,7 @@ __riscosify (const char *name, int create_dir,
                   cname += 5;
                   switch (sdirseg (&cname, &out, buf_end))
                     {
-                    case sdirseg_buf_to_small:
+                    case sdirseg_buf_too_small:
                       return NULL;
                       break;
 
@@ -1136,28 +1136,20 @@ __riscosify (const char *name, int create_dir,
                     }
                 }
 
-
-              /* /home/riscos/env/xxx. Try matching xxx segment.  */
-              if (    cname[0] == '/' && cname[1] == 'h'
-                  &&  cname[2] == 'o' && cname[3] == 'm'
-                  &&  cname[4] == 'e' && cname[5] == '/'
-                  &&  cname[6] == 'r' && cname[7] == 'i'
-                  &&  cname[8] == 's' && cname[9] == 'c'
-                  &&  cname[10]== 'o' && cname[11]== 's'
-                  &&  cname[12]== '/' && cname[13]== 'e'
-                  &&  cname[14]== 'n' && cname[15]== 'v'
-                  &&  cname[16]== '/')
+              /* /home/riscos/env/xxx. (or configured path) Try matching xxx segment.  */
+              if (strncmp (cname, RO_ENV, sizeof(RO_ENV) - 1) == 0)
                 {
-                  cname += 17;
+                  cname += sizeof(RO_ENV) - 1;
+                  while (*cname && *cname == '/') cname++;
+
                   switch (sdirseg (&cname, &out, buf_end))
                   {
-                     case sdirseg_buf_to_small:
+                     case sdirseg_buf_too_small:
                       return NULL;
                       break;
 
                     case sdirseg_match:
                       matched = 1;
-
                       /* If the matched segment was a path var then consume
                          any '/'s in the input to prevent them being copied
                          as '.'s (so we don't end up with gcc:.foo) */
@@ -1179,7 +1171,7 @@ __riscosify (const char *name, int create_dir,
                          * so just return it as $.home.riscos.env because
                          * it doesn't match anything under RISC OS
                          */
-                        cname-=16; /* wind back to after the first / in /home/... */
+                        cname -= sizeof(RO_ENV) - 1; /* wind back to after the first / in /home/... */
                         break;
                       }
 
@@ -1207,7 +1199,7 @@ __riscosify (const char *name, int create_dir,
                   /* Try matching against a user defined /xxx.  */
                   switch (sdirseg (&cname, &out, buf_end))
                     {
-                    case sdirseg_buf_to_small:
+                    case sdirseg_buf_too_small:
                       return NULL;
                       break;
 
