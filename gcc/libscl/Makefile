@@ -7,6 +7,8 @@
 
 INCLUDES = -isystem .
 
+CROSS_CFLAGS += -DRO_ENV=\"$(ro_env)\"
+
 libsclobj=$(objdir)/libscl/$(TRG)
 
 $(libsclobj)/%.o: %.c
