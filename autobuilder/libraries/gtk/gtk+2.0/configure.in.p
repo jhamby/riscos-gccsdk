@@ -9,9 +9,9 @@
      have_base_x_pc=true
 -    X_PACKAGES="$X_PACKAGES x11 xext xrender"
 -    x_libs="`pkg-config --libs x11 xext xrender`"
-+    X_CFLAGS="`pkg-config --cflags x11 xext xrender xau xdmcp`"
++    X_CFLAGS="`$PKG_CONFIG --cflags x11 xext xrender xau xdmcp`"
 +    X_PACKAGES="$X_PACKAGES x11 xext xrender xau xdmcp"
-+    x_libs="`pkg-config --libs x11 xext xrender xau xdmcp`"
++    x_libs="`$PKG_CONFIG --libs x11 xext xrender xau xdmcp`"
 
      # Strip out any .la files that pkg-config might give us (this happens
      # with -uninstalled.pc files)
