@@ -1,3 +1,9 @@
+Mon Sep  4 06:43:03 PDT 2006  Peter Naulls  <peter@chocky.org>
+
+	* source/Makefile.in, source/common/riscosify.c: Avoid using hard-wired
+	  "/home/riscos/env/" path.
+	 * source/clib/bits/posix_opt.h: Refine further. 
+
 Sat Aug 26 16:59:31 CET 2006  John Tytgat  <John.Tytgat@aaug.net>
 
 	* source/pthread/{*.c,*.s}: Removed CVS keywords and made Copyright
