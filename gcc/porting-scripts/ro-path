@@ -26,7 +26,9 @@ fi
 # "#include <DeskLib:Wimp.h>" in the compiler:
 export DESKLIB_PATH=GCCSDK_ENV/include/DeskLib
 
-# In order to let the pkgconfig tool find its .pc files:
-export PKG_CONFIG_PATH=GCCSDK_ENV/lib/pkgconfig
+# We want to give the '--static' option to pkg-config by default.  Normally this
+# should be possible to add this to PKG_CONFIG but some 'configure' scripts don't
+# expect default arguments.
+export PKG_CONFIG=GCCSDK_ENV/ro-pkg-config
 
 PATH=$GCCSDK_INSTALL_CROSSBIN:GCCSDK_ENV/bin:$PATH "$@"
