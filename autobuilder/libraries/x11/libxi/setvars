@@ -2,4 +2,6 @@ AB_INSTALL=yes
 
 AB_CONFLAGS="--enable-malloc0returnsnull"
 
-ln -s . man/man3
+if [ ! -d man/man3 ] ; then
+  ln -s . man/man3
+fi

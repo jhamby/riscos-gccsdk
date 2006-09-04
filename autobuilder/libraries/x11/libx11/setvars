@@ -8,4 +8,6 @@ AB_CONFLAGS="--enable-malloc0returnsnull --disable-loadable-xcursor"
 sed s/"libX11_la_LDFLAGS ="/"#libX11_la_LDFLAGS = "/ < src/Makefile.in > src/Makefile.in.new
 mv src/Makefile.in.new src/Makefile.in
 
-ln -s . man/man3
+if [ ! -d man/man3 ] ; then
+  ln -s . man/man3
+fi

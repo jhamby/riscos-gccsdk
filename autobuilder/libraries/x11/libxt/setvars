@@ -2,6 +2,8 @@ AB_INSTALL=yes
 
 AB_CONFLAGS="--enable-malloc0returnsnull"
 
-ln -s . man/man3
-
 gcc util/makestrs.c -o util/makestrs
+
+if [ ! -d man/man3 ] ; then
+  ln -s . man/man3
+fi
