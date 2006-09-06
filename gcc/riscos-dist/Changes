@@ -13,7 +13,8 @@ GCCSDK GCC 3.4.6 Release 2 (released xx Aug 2006)
 
 * Autobuilder now uses separate X libraries instead of relying
   on monolithic X tree.  Many other autobuilder packages updated.
-  Non-Debian source fetcher improved.
+  Non-Debian source fetcher improved.  Many dependencies added so
+  that many packages can be built with just one command.
 
 * Improvement of UnixLib backtrace and error handling.
 
@@ -25,6 +26,11 @@ GCCSDK GCC 3.4.6 Release 2 (released xx Aug 2006)
 * Correction of Release 1 filename handling regression with GCC.
 
 * Enabling of throwback for C preprocessor.
+
+* Assembler now supports the full complement of ARMv5 (XScale) instructions.
+
+* Improved memory debugging support, allowing use of dmalloc instead of
+  Fortify.
 
 
 GCCSDK GCC 3.4.6 Release 1 (released 12 Jun 2006)
