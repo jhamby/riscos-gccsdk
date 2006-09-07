@@ -1720,8 +1720,8 @@ add_input_file (const char *fname)
     {
       size_t len = strlen(fname);
 
-      if (len >= sizeof("libX11.a")-1
-          && strcmp(fname + len - sizeof("libX11.a")-1, "libX11.a") == 0)
+      if (len >= sizeof("libX11.a") - 1
+          && strcmp(fname + len - (sizeof("libX11.a") - 1), "libX11.a") == 0)
         {
           add_chox11();
           return;
