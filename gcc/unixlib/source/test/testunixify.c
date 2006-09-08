@@ -25,6 +25,7 @@ struct test tests[] = {
 {"config/arm/rname.c", "config/arm/rname.c", 0},
 {"funky.cold.medina.c", "funky.cold.medina.c", 1},
 {".", ".", 0},
+{"..", "..", 0},
 {"../cc.cool", "../cc.cool", 1},
 {"./././c.cool", "./././c.cool", 1},
 {"../../../c.smart", "../../../c.smart", 1},

@@ -339,7 +339,7 @@ __unixify (const char *ro_path, int unixify_flags, char *buffer,
         {
           *out++ = '.';
           *out = '\0';
-          return out;
+          return buffer;
         }
 
       if (ro_path[1] == '.')
@@ -350,7 +350,7 @@ __unixify (const char *ro_path, int unixify_flags, char *buffer,
               *out++ = '.';
               *out++ = '.';
               *out = '\0';
-              return out;
+              return buffer;
             }
         }
 
@@ -358,7 +358,7 @@ __unixify (const char *ro_path, int unixify_flags, char *buffer,
         {
           *out++ = '.';
           *out = '\0';
-          return out;
+          return buffer;
         }
     }
 
@@ -366,7 +366,7 @@ __unixify (const char *ro_path, int unixify_flags, char *buffer,
     {
       *out++ = '/';
       *out = '\0';
-      return out;
+      return buffer;
     }
 
   /* If we take a file name like:

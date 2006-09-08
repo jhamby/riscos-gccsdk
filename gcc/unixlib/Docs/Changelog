@@ -1,3 +1,9 @@
+Fri Sep  8 16:42:35 2006  John-Mark Bell  <jmb202@ecs.soton.ac.uk>
+
+	* source/common/unixify.c: Fix unixify early exits to return pointer to 
+	  buffer rather than pointer to NULL terminator.
+	* source/test/testunixify.c: Add test for "..".
+
 Mon Sep  4 06:43:03 PDT 2006  Peter Naulls  <peter@chocky.org>
 
 	* source/Makefile.in, source/common/riscosify.c: Avoid using hard-wired
