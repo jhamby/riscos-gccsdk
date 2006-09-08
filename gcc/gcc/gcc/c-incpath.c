@@ -316,7 +316,18 @@ add_path (char *path, int chain, int cxx_aware)
 #endif
 
 #ifdef __riscos__
-  path = __unixify_std(path, NULL, 0, 0, NULL);
+  char *temp;
+  temp = __unixify_std(path, NULL, 0, 0, NULL);
+  if (!temp)
+    {
+      fprintf (stderr, _("Unixify failed (%s), falling back to input path\n"),
+      path);
+    }
+  else
+    {
+      free(path);
+      path = temp;
+    }
 #endif
   p = xmalloc (sizeof (struct cpp_dir));
   p->next = NULL;
