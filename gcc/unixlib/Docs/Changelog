@@ -1,6 +1,12 @@
+Sat Sep  9 12:24:32 2006  Alex Waugh  <alex@alexwaugh.com>
+
+	* source/unix/dirent.c (readdir_r): Fix suffix swapping code.
+	  Fix the result value (POSIX states it should be the value of
+	  entry, or NULL).
+
 Fri Sep  8 16:42:35 2006  John-Mark Bell  <jmb202@ecs.soton.ac.uk>
 
-	* source/common/unixify.c: Fix unixify early exits to return pointer to 
+	* source/common/unixify.c: Fix unixify early exits to return pointer to
 	  buffer rather than pointer to NULL terminator.
 	* source/test/testunixify.c: Add test for "..".
 
@@ -8,7 +14,7 @@ Mon Sep  4 06:43:03 PDT 2006  Peter Naulls  <peter@chocky.org>
 
 	* source/Makefile.in, source/common/riscosify.c: Avoid using hard-wired
 	  "/home/riscos/env/" path.
-	 * source/clib/bits/posix_opt.h: Refine further. 
+	 * source/clib/bits/posix_opt.h: Refine further.
 
 Sat Aug 26 16:59:31 CET 2006  John Tytgat  <John.Tytgat@aaug.net>
 

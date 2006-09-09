@@ -269,7 +269,7 @@ readdir_r (DIR *stream, struct dirent *entry, struct dirent **result)
 	     come out of a dirent enum. */
 	  do
 	    {
-	      readdir_r (stream->suffix, &stream->suffix->dirent, result);
+	      readdir_r (stream->suffix, entry, result);
 	    } while ((sresult = *result) != NULL
 		     && sresult->d_type == DT_DIR);
 
@@ -292,7 +292,7 @@ readdir_r (DIR *stream, struct dirent *entry, struct dirent **result)
 		{
 		  str = sresult->d_name + sresult->d_namlen - 4;
 		  *str++ = '.';
-		  str = stpcpy (str, stream->dirent.d_name);
+		  str = stpcpy (str, strrchr(stream->suffix->dd_name_can, '.') + 1);
 		  *str++ = ',';
 		  *str++ = x;
 		  *str++ = y;
@@ -303,7 +303,7 @@ readdir_r (DIR *stream, struct dirent *entry, struct dirent **result)
 		{
 		  str = sresult->d_name + sresult->d_namlen;
 		  *str++ = '.';
-		  str = stpcpy (str, stream->dirent.d_name);
+		  str = stpcpy (str, strrchr(stream->suffix->dd_name_can, '.') + 1);
 		}
 
 	      sresult->d_namlen = str - sresult->d_name;
