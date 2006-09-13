@@ -43,6 +43,12 @@ extern const char __filename_char_map[256];
 #include <stdio.h>
 #include <string.h>
 
+#ifdef __TARGET_SCL__
+
+#include <kernel.h>
+
+#endif
+
 #include <swis.h>
 #include <stdlib.h>
 #include <ctype.h>
@@ -1517,9 +1523,31 @@ __riscosify_scl(const char *name, int create_dir)
 
   if (!riscosify_init)
     {
+      char buf[1024];
+      char *cmd, *start;
+
+      cmd = _kernel_command_string();
+
+      /* skip leading spaces */
+      while (*cmd == ' ')
+        cmd++;
+
+      /* Take the program name, and find the last segment of it
+       * (using . as the directory separator) */
+      start = cmd;
+      while (*cmd && *cmd != ' ')
+        {
+          if (*cmd == '.')
+            start = cmd + 1;
+          cmd++;
+        }
+
+      snprintf(buf, sizeof buf, "UnixEnv$%.*s$sfix", cmd - start, start);
+      cmd = getenv(buf);
+
       riscosify_init = 1;
       __sdirinit ();
-      __sfixinit (__sfix_default);
+      __sfixinit (cmd ? cmd : __sfix_default);
     }
 
   /* Swap between two static buffers to allow the rename call to work */

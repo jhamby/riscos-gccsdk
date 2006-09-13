@@ -1,3 +1,8 @@
+Wed Sep 13 22:13:35 2006  John-Mark Bell  <jmb202@ecs.soton.ac.uk>
+
+	* source/common/riscosify.c (riscosify_scl): Add support for
+	  UnixEnv$foo$sfix.
+
 Sat Sep  9 12:24:32 2006  Alex Waugh  <alex@alexwaugh.com>
 
 	* source/unix/dirent.c (readdir_r): Fix suffix swapping code.
