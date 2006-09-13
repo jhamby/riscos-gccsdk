@@ -86,7 +86,17 @@ openInclude (const char *filename, const char *mode, const char **strdupFilename
   FILE *fp;
 
   if ((fp = fopen (filename, mode)) == NULL)
-    *strdupFilename = NULL;
+    {
+#ifndef CROSS_COMPILE
+      /* Try again, without suffix swapping */
+      __set_riscosify_control(__get_riscosify_control () | __RISCOSIFY_NO_SUFFIX);
+      fp = fopen (filename, mode);
+      __set_riscosify_control(__get_riscosify_control () & ~__RISCOSIFY_NO_SUFFIX);
+#endif
+    }
+
+  if (fp == NULL)
+      *strdupFilename = NULL;
   else
 #ifdef CROSS_COMPILE
     *strdupFilename = strdup (filename);
