@@ -86,7 +86,7 @@ int
 inputComment (void)
 {
   const int c = *input_pos;
-  return c == 0 || c == ';' || (gcc_backend && c == '@');
+  return c == 0 || c == ';';
 }
 
 
@@ -384,9 +384,8 @@ inputArgSub (void)
   Lex label;
   Symbol *sym;
   int ptr = 0, trunc = 0, len;
-  char g, c, *rb;
+  char c, *rb;
 
-  g = gcc_backend ? '@' : 0;
   input_pos = workBuff;
 
 
@@ -397,7 +396,7 @@ inputArgSub (void)
       while (*input_pos && *input_pos != '"' && *input_pos != '\''
              && *input_pos != '|' && *input_pos != '$'
 	     && *input_pos != ';' && (*input_pos != '<' || !objasm)
-	     && *input_pos != g && ptr < MAX_LINE)
+	     && ptr < MAX_LINE)
 	input_buff[ptr++] = *input_pos++;
 
       /* process special characters */
@@ -406,7 +405,6 @@ inputArgSub (void)
 
 	/* comment follows; just copy it all */
 	case ';':
-	case '@':
 	  len = strlen (input_pos);
 	  if (ptr + len >= MAX_LINE)
 	    {

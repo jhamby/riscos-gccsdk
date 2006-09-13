@@ -537,7 +537,7 @@ lexGetPrim (void)
       result.tag = LexPosition;
       break;
     case '@':
-      result.tag = gcc_backend ? LexNone : LexStorage;
+      result.tag = LexStorage;
       break;
     case '%':
       {

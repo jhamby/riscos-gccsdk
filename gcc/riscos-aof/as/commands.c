@@ -428,7 +428,7 @@ c_get (void)
       *cptr++ = '\0';		/* must be a space */
       while (*cptr && isspace (*cptr))
 	cptr++;
-      if (*cptr && *cptr != ';' && (!gcc_backend || *cptr != '@'))
+      if (*cptr && *cptr != ';')
 	{
 	  error (ErrorError, FALSE, "Skipping extra characters '%s' after filename", cptr);
 	}

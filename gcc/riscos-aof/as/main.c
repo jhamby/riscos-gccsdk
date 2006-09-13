@@ -65,7 +65,6 @@ int throwback = 0;
 int dde = 0;
 int autocast = 0;
 int align = 1;
-int gcc_backend = 1;
 int gas_backend = 0;
 int local = 1;
 int objasm = 0;
@@ -220,8 +219,6 @@ int main (int argc, char **argv)
 	{
 	  /* Used as index in lex.c.  */
 	  objasm = 1;
-	  /* Treats '@' as current storage location; instead of comment.  */
-	  gcc_backend = 0;
 	}
       else if (IS_ARG ("-upper", "-up"))
 	uc++;
