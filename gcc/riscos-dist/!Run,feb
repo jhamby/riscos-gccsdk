@@ -30,7 +30,7 @@ Set UnixEnv$g77$sfix <UnixEnv$gcc$sfix>
 Set UnixEnv$f771$sfix <UnixEnv$gcc$sfix>
 Set UnixEnv$gcov$sfix <UnixEnv$gcc$sfix>
 Set UnixEnv$make$sfix <UnixEnv$gcc$sfix>
-Set UnixEnv$as$sfix "h:S:s:o"
+Set UnixEnv$as$sfix "h:hdr:S:s:o"
 
 | Set system variables for controlling UnixLib heap for dynamic areas.
 | See the documentation about UnixLib and dynamic areas.
