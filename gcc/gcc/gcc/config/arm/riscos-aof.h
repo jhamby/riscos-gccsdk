@@ -569,7 +569,8 @@ do {							\
 	%{mmodule:-module} \
 	%{mcpu=arm2:-apcs26; mcpu=arm250:-apcs26; mcpu=arm3:-apcs26; \
 	march=armv2:-apcs26; march=armv2a:-apcs26; mapcs-*:-apcs%*; :-apcs32} \
-	%{mapcs-*:-apcs%*}"
+	%{mapcs-*:-apcs%*} \
+	%{I*}"
 
 #define TARGET_OS_CPP_BUILTINS()		\
     do {					\
