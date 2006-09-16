@@ -48,6 +48,17 @@ addff8() {
     chmod +x $ff8PATH
   fi
 
+  # Fix modern autoconf badness with ,ff8
+  if grep -q "conftest.exe a.out" $ff8PATH ; then
+    echo RISC OS: Adding extra filetype checks for $ff8PATH
+    tmpconfigure=/tmp/new-configure-$$-$RANDOM
+    sed -e s#"conftest.exe a.out"#"conftest.exe *,ff8 a.out"# \
+        -e s#"[ab].out )"#"[ab].out | *,ff8 )"# \
+       < $ff8PATH > $tmpconfigure
+    mv $tmpconfigure $ff8PATH
+    chmod +x $ff8PATH
+  fi
+
   # Fix some tests that assume no file extension for binaries
   if grep -q -- "-s conftest;" $ff8PATH ; then
     echo RISC OS: Adding filetype for binary tests for $ff8PATH
