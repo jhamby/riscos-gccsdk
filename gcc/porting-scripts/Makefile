@@ -15,7 +15,8 @@ all: scripts links dummies wrappers docs
 .PHONY: docs
 
 scripts:
-	mkdir -p $(ro_env)
+	mkdir -p $(ro_env)/include
+	mkdir -p $(ro_env)/lib
 	for script in $(SCRIPTS) ; do \
 	  $(SED) < $$script > $(ro_env)/$$script; \
 	  chmod +x $(ro_env)/$$script; \
