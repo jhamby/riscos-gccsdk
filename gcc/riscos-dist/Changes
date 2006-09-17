@@ -1,39 +1,85 @@
 Noteworthy changes to the RISC OS GCCSDK releases made.
 
-For specific UnixLib changes, see !gcc.docs.UnixLib.Changes
+For specific UnixLib changes, see !gcc.docs.UnixLib.Changes too.
 
-GCCSDK GCC 3.4.6 Release 2 (released xx Aug 2006)
+GCCSDK GCC 3.4.6 Release 2 (released 17 September 2006)
 ==========================
 
-* Allow building of processor specific toolchains.  In particular,
-  allow building of GCC and UnixLib which target XScale, and the
-  assembler has been updated to support some missing XScale instructions.
+This is only a summery of the most important changes made.
 
-* Refinements in Drlink/ar/as behaviour.
+* GCC compilers fixes:
 
-* Autobuilder now uses separate X libraries instead of relying
-  on monolithic X tree.  Many other autobuilder packages updated.
-  Non-Debian source fetcher improved.  Many dependencies added so
-  that many packages can be built with just one command.
+  - Correction of Release 1 filename handling regression with GCC.
+  - Enabling of throwback for C preprocessor.
+  - Pass gcc include paths through to 'as' assembler.  There are known
+    limitations on the current assembler include path support concerning
+    Unix and RISC OS style pathname syntax so we recommend using path
+    variables when you want to specify assembler include directories.
+    E.g.: gcc -IOSLib: -c source.s -o source.o
 
-* Improvement of UnixLib backtrace and error handling.
+* Assembler fixes:
+
+  - Allow suffix swapping in its include filenames and adding hdr/Hdr
+    suffixes to its default suffix swap list.  This allows RISC OS and
+    cross compilation of same assembler sources which include OSLib headers.
+  - No longer supporting GCC @ comments.  This is no logner needed for the
+    GCCSDK build procedure and allows the @ as built-in variable by default
+    i.e. without having to resort to the -objasm option.
+  - Assembler now supports all ARMv5E (XScale) instructions (i.e. not
+    including the Thumb instructions).
+  - Fixed several miss-assemblings or unsupported corner cases: LFMFD,
+    LDC/STC, PLD, LDR/STR(H,SH,SB), etc.
+  - Added testcases for future regression tests.
+
+* UnixLib fixes:
+
+  - Improvement of backtrace and error handling: showing info on all current
+    threads and demangled C++ function names.
+  - readdir: fix in its suffix swapping code and improved POSIX behaviour.
+  - unixify: fix memory leak and return value.
+  - riscosify: avoid using hard-wired "/home/riscos/env/" path.
+  - Stability fix when <Alt><Break> is used.
+  - Conditional support for XScale compilation.
+
+* Librarian fixes:
+
+  - Replacing AOF object in ALF file didn't work.
+  - Several code fixes improving its stability.
+
+* Linker fixes:
+
+  - 'hide' edit command did not always work.
 
 * Fix for C++ using SharedCLibrary.  Examples Makefile updated
   to build hello world examples in different ways.
 
 * Various documentation updates.
 
-* Correction of Release 1 filename handling regression with GCC.
-
-* Enabling of throwback for C preprocessor.
-
-* Assembler now supports the full complement of ARMv5 (XScale) instructions.
+GCCSDK cross-compilation improvements:
 
 * Improved memory debugging support, allowing use of dmalloc instead of
   Fortify.
 
+* Allow building of processor specific toolchains using the --with-arch,
+  --with-tune and --with-float configure options.  In particular,
+  allow building of GCC and UnixLib which, apart from ARMv3, also target
+  ARMv3M (like ARM7), ARMv4 (like StrongARM) and ARMv5TE (like XScale)
+  architectures by default.
 
-GCCSDK GCC 3.4.6 Release 1 (released 12 Jun 2006)
+* Improvements of the "porting scripts" used are also used by the
+  GCCSDK Autobuilder:
+
+  - Autobuilder now uses separate X libraries instead of relying
+    on monolithic X tree.  Many other autobuilder packages updated.
+    Non-Debian source fetcher improved.  Many dependencies added so
+    that many packages can be built with just one command.
+  - Faster --ro-recursive implementation.
+  - Parallel build support.
+  - Created pkg-config wrapper to make sure only cross-compiled pkg-config
+    files are found.
+
+
+GCCSDK GCC 3.4.6 Release 1 (released 12 June 2006)
 ==========================
 
 * Update to full GCC 3.4.6 release.  See
@@ -79,7 +125,7 @@ GCCSDK GCC 3.4.6 Release 1 (released 12 Jun 2006)
   - Solaris 8 SPARC support
 
 
-GCCSDK GCC 3.4.5 Release 1 (released 15 Feb 2006)
+GCCSDK GCC 3.4.5 Release 1 (released 15 February 2006)
 ==========================
 
 * Update to full GCC 3.4.5 release.  See
@@ -176,7 +222,7 @@ GCCSDK GCC 3.4.4 Release 2 (released 6 May 2005)
 * The SharedCLibrary compatibility headers and stubs, libscl, are
   now distributed under a BSD-style free-software license.
 
-* The 'as' assembler is now GPL, permission thanks to Niklas Röjemo.
+* The 'as' assembler is now GPL, permission thanks to Niklas Rï¿½emo.
   Also has considerable tidying and some minor bug fixes, and GCC will
   cause it to use throwback if the compiler is doing so.
 
