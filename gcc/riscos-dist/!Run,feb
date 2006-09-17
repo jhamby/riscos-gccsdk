@@ -1,7 +1,7 @@
 | !Run file for the GCCSDK
 | Copyright (c) Nick Burrett, 1996, 1997, 1998, 1999, 2001
-| Copyright (c) GCCSDK Developers 2002, 2003, 2004, 2005
-| Version 1.18 (30 Sept 2005)
+| Copyright (c) GCCSDK Developers 2002, 2003, 2004, 2005, 2006
+| Version 1.19 (17 Sept 2006)
 
 Set GCC$Dir <Obey$Dir>
 
