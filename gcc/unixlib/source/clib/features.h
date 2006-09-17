@@ -297,7 +297,7 @@
 /* Major and minor version number of the UnixLib C library package.  Use
    these macros to test for features in specific releases.  */
 #define __ULIBC__       4
-#define __ULIBC_MINOR__ 4
+#define __ULIBC_MINOR__ 5
 
 /* Convenience macros to test the versions of glibc and gcc.
    Use them like this:

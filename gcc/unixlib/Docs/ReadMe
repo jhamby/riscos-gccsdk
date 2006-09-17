@@ -13,9 +13,18 @@ Run Time library.
 UnixLib Purpose
 ~~~~~~~~~~~~~~~
 
-The intent of UnixLib is to provide, as much as possible, a fully POSIX-compatible and Acorn SharedCLibrary-compatible C run-time library for RISC OS.
+The intent of UnixLib is to provide, as much as possible, a fully
+POSIX-compatible and Acorn SharedCLibrary-compatible C run-time library
+for RISC OS.
 
-It should be possible to use UnixLib in place of the SharedCLibrary for any program which targets that.  It should also be possible to compile and run most (but not all) POSIX-compatible code that avoids OS=specific code.  This is true of much open source code.  It also includes some Linux and GLIBC compatible interfaces.  Some POSIX features are impractical on RISC OS or simply have not been implemented.  In the latter case, we'd appreciate a bug report.  Non-advertised deviation from POSIX behaviour will generally also be a bug.
+It should be possible to use UnixLib in place of the SharedCLibrary for any
+program which targets that.  It should also be possible to compile and run
+most (but not all) POSIX-compatible code that avoids OS specific code.
+This is true of much open source code.  It also includes some Linux and
+GLIBC compatible interfaces.  Some POSIX features are impractical on
+RISC OS or simply have not been implemented.  In the latter case, we'd
+appreciate a bug report.  Non-advertised deviation from POSIX behaviour will
+generally also be a bug.
 
 
 Run-time features
@@ -40,7 +49,7 @@ The list of recognised features are:
 
    If set, all file paths and filenames will be used verbatim i.e. without
    the usual Unix to RISC OS conversions.  Its value is not important.
-   
+
      *Set UnixEnv$my_program$nonametrans ""
 
    This corresponds with having the __RISCOSIFY_NO_PROCESS bit in

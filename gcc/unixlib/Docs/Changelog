@@ -1,3 +1,9 @@
+Thu Sep 14 01:25:05 CEST 2006  John Tytgat  <John.Tytgat@aaug.net>
+
+	* !Help: Update version to 4.5.
+	* source/clib/features.h (__ULIBC_MINOR__): Bump minor version to 5.
+	* Docs/ReadMe: reformated last change.
+
 Wed Sep 13 22:13:35 2006  John-Mark Bell  <jmb202@ecs.soton.ac.uk>
 
 	* source/common/riscosify.c (riscosify_scl): Add support for
@@ -21,7 +27,7 @@ Mon Sep  4 06:43:03 PDT 2006  Peter Naulls  <peter@chocky.org>
 	  "/home/riscos/env/" path.
 	 * source/clib/bits/posix_opt.h: Refine further.
 
-Sat Aug 26 16:59:31 CET 2006  John Tytgat  <John.Tytgat@aaug.net>
+Sat Aug 26 16:59:31 CEST 2006  John Tytgat  <John.Tytgat@aaug.net>
 
 	* source/pthread/{*.c,*.s}: Removed CVS keywords and made Copyright
 	  statements conforming.
