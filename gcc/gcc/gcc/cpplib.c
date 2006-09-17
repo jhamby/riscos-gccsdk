@@ -951,7 +951,7 @@ do_diagnostic (cpp_reader *pfile, int code, int print_dir)
         extern const char *throwback_file;
         extern int throwback_line;
 
-        ERROR_THROWBACK (throwback_file, throwback_line, "", pfile->directive->name);
+        ERROR_THROWBACK (throwback_file, throwback_line, CPP_DL_WARNING_P(code) ? "warning" : NULL, pfile->directive->name);
       }
 #endif
     }

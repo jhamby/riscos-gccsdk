@@ -34,11 +34,11 @@ extern const char *riscos_convert_filename (void *obstack,
 #ifndef CROSS_COMPILE
 /* Defines for the implementation of throwbacks.  */
 
-#define ERROR_THROWBACK(FILE,LINE,PREFIX,S)        \
-{						   \
-  if (TARGET_THROWBACK)				   \
-    arm_error_throwback (FILE, LINE, PREFIX, S);  \
-}
+#define ERROR_THROWBACK(FILE,LINE,PREFIX,S)		\
+  do {							\
+    if (TARGET_THROWBACK)				\
+      arm_error_throwback (FILE, LINE, PREFIX, S);	\
+    } while (0)
 
 #define ERROR_THROWBACK_FINALISE arm_throwback_finish ()
 #define GCC_DRIVER_HOST_INITIALIZATION riscos_host_initialisation ()
