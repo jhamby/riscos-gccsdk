@@ -351,7 +351,7 @@ extern int arm_main_function;
 #define ASM_OUTPUT_LABEL(STREAM,NAME)	\
 do {					\
   assemble_name (STREAM,NAME);		\
-  fputs ("\n", STREAM);			\
+  fputc ('\n', STREAM);			\
 } while (0)
 
 /* Encode a function name before the prologue.  RISC OS can use this
@@ -547,18 +547,9 @@ do {							\
 
 /* Options to pass through to the assembler.  */
 #undef ASM_SPEC
-
-#if !defined(TARGET_ARCH)
-#define ASM_CPU "ARM6"
-#elif TARGET_ARCH == TARGET_ARCH_xscale
-#define ASM_CPU "XSCALE"
-#elif TARGET_ARCH == TARGET_ARCH_strongarm
-#define ASM_CPU "SA110"
-#else
-#error "Don't know what CPU to pass to the assembler"
-#endif
-
-#define ASM_SPEC "%{!mcpu=*:-t " ASM_CPU " -apcsfpv3} \
+#define ASM_SPEC "%{!mcpu=*:%{march=armv3:-t ARM6 -apcsfpv3; \
+	march=armv3m:-t ARM7M -apcsfpv3; march=armv4:-t SA110 -apcsfpv3; \
+	march=armv5te:-t XSCALE -apcsfpv3; :-t ARM6 -apcsfpv3}} \
 	%{mcpu=arm6:-t ARM6 -apcsfpv3} \
 	%{mcpu=arm7:-t ARM7 -apcsfpv3} \
 	%{mcpu=strongarm:-t SA110 -apcsfpv3} \

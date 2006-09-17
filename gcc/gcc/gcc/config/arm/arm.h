@@ -323,7 +323,7 @@ extern GTY(()) rtx aof_pic_label;
 #define ARM_FLAG_APCS_FRAME	(1 << 0)
 
 /* Nonzero if the function prologue should output the function name to enable
-   the post mortem debugger to print a backtrace (very useful on RISCOS,
+   the post mortem debugger to print a backtrace (very useful on RISC OS,
    unused on RISCiX).  Specifying this flag also enables
    -fno-omit-frame-pointer.
    XXX Must still be implemented in the prologue.  */

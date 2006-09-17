@@ -27,11 +27,9 @@ VPATH = @srcdir@
 
 TARGET_NAME=@target_name@
 TARGET_DEFS=@target_defs@
-TARGET_ARCH=@target_arch@
+TARGET_DEFAULT_SPEC=@target_default_spec@
 
-ifneq (${TARGET_ARCH},)
-TARGET_DEFS += -DTARGET_CPU=TARGET_CPU_$(TARGET_ARCH)
-endif
+TARGET_DEFS += -DARM_CONFIGURE_DEFAULT_SPECS="$(TARGET_DEFAULT_SPEC)"
 
 # The native C and C++ compilers on the host computer
 CC=@CC@

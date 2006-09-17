@@ -1,4 +1,4 @@
-Welcome to GCCSDK GCC 3.4.6 Release 1 for RISC OS.
+Welcome to GCCSDK GCC 3.4.6 Release 2 for RISC OS.
 
 This document covers important notes for new users and existing users alike.
 GCC and UnixLib have undergone many changes, so it's important that you read
@@ -31,13 +31,15 @@ If you've used GCC before:
 
 Future Versions of GCC:
 
-  The 3.4.6 version of GCC is the last release of its 3.4 branch.  It is
-  unlikely that GCCSDK Developers team will create Release 2 based on
-  GCC 3.4.6 as its code is sufficently stable.
+  The 3.4.6 version of GCC is the last release of its 3.4 branch.  New GCCSDK
+  releases based on GCC 3.4.6 are unlikely as the current code based is
+  considered sufficently stable and feature complete.  However, based on
+  voluntary code and/or bug fix contributions the GCCSDK Developers team might
+  consider another interim release based on 3.4.6 before the next series of
+  major GCCSDK releases which will be based on GCC 4.1/4.2.
 
-  New GCCSDK developments will be based on GCC 4.1/4.2, which will be ELF
-  and possibly soft-float based.  We are also working on a shared library
-  system.
+  Those future 4.1/4.2 GCCSDK developments will be ELF and possibly soft-float
+  based.  We are also working on a shared library system.
 
 
 License:
@@ -46,7 +48,7 @@ License:
   and sources which have different licenses.  The following overview can
   help to identify those licenses but is in no way an authoritative statement
   on behalf of the GCCSDK Developers:
-  
+
   - gcc (and all its associated files) : See !gcc.docs.gcc
   - as : GPL version 2
   - cmunge : See !gcc.docs.CMunge.Copyright
@@ -85,8 +87,8 @@ Credits:
 
   Special thanks to the following people having written programs which are
   used in the GCCSDK project :
-  
-  - Niklas Röjemo for his 'as' AOF assembler and Darren Salt for his
+
+  - Niklas Rï¿½emo for his 'as' AOF assembler and Darren Salt for his
     improvements.
   - Justin Fletcher and Robin Watts for 'CMunge', a free alternative to CMHG.
   - Andy Duplain for his 'decaof', an AOF decoder.
