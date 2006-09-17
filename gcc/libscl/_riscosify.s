@@ -18,8 +18,6 @@
 	LDR	a1, [a1, #0]
 	MOV	pc, lr
 
-	MOV	pc, lr
-
 	;void __set_riscosify_control(int __riscosify_flags)
 	EXPORT	|__set_riscosify_control|
 |__set_riscosify_control|
@@ -38,7 +36,7 @@ ctrl
 	DCD	|__riscosify_control|
 ctrl_int
 	DCD	|__riscosify_control_internal|
-	
+
 	AREA	|C$$data|, DATA
 
 |__riscosify_control_internal|
