@@ -144,10 +144,10 @@ case "$with_arch" in
 esac
 
 AC_ARG_WITH(tune,
-	[  --with-tune=CPU         specify an ARM processor to target with GCC as default tuning.  Possible values are "arm6", "arm7m", "strongarm" (default), "xscale" ])
-test "$with_tune" = yes && with_tune=strongarm
-test "$with_tune" = default && with_tune=strongarm
-test "$with_tune" = "" && with_tune=strongarm
+	[  --with-tune=CPU         specify an ARM processor to target with GCC as default tuning.  Possible values are "arm6", "arm7m", "strongarm", "xscale" (default) ])
+test "$with_tune" = yes && with_tune=xscale
+test "$with_tune" = default && with_tune=xscale
+test "$with_tune" = "" && with_tune=xscale
 
 case "$with_tune" in
   arm6)
