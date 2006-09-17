@@ -27,7 +27,7 @@
 #include "rname.h"
 #include "main.h"
 
-#define INCDIRMAX  (10)
+#define INCDIRMAX  (40)
 #define DIR '/'
 
 static char *incdir[INCDIRMAX];
