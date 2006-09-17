@@ -1,6 +1,6 @@
 /*
  * AS an assembler for ARM
- * Copyright © 1992 Niklas Röjemo
+ * Copyright (c) 2002-2006 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -16,8 +16,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  *
- * aoffile.h
- * Types that exist in an AOF file.
+ * main.h
  */
 
 #ifndef main_header_included

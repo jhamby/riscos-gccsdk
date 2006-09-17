@@ -1,6 +1,7 @@
 /*
  * AS an assembler for ARM
- * Copyright © 1992 Niklas Röjemo
+ * Copyright (c) 1992 Niklas Rï¿½emo
+ * Copyright (c) 2000-2006 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -131,7 +132,7 @@ dstmem (WORD ir)
 		  }
 		if (inputLook () == '#')
 		  {
-		    /* Edge case - ±#XX */
+		    /* Edge case - #XX */
 		    error (ErrorError, TRUE, "Unknown register definition in offset field");
 		  }
 		ir |= ((ir & 0x90) == 0x90) ? 0 : REG_FLAG;
@@ -322,7 +323,7 @@ m_pld (void)
 	    }
 	  if (inputLook () == '#')
 	    {
-	      /* Edge case - ±#XX */
+	      /* Edge case - #XX */
 	      error (ErrorError, TRUE, "Unknown register definition in offset field");
 	    }
 	  ir = getRhs(TRUE, TRUE, ir) | REG_FLAG;

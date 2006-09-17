@@ -1,6 +1,6 @@
 /*
- * Copyright © 1997 Darren Salt
- * Copyright © 2005 GCCSDK Developers
+ * Copyright (c) 1997 Darren Salt
+ * Copyright (c) 2004-2006 GCCSDK Developers
  * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License

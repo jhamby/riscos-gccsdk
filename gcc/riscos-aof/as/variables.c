@@ -1,7 +1,7 @@
 /*
- * variables.c
- * Copyright © 1997 Darren Salt
- * Copyright (c) 2005 GCCSDK Developers
+ * AS an assembler for ARM
+ * Copyright (c) 1997 Darren Salt
+ * Copyright (c) 2000-2006 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -16,6 +16,8 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * variables.c
  */
 
 #include "config.h"

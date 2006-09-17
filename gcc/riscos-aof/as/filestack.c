@@ -1,10 +1,10 @@
 /*
  * filestack.c
  *
- * (c) Andy Duplain, August 1992.
- *     Added line numbers  Niklas Röjemo
+ * Copyright (c) Andy Duplain, August 1992.
+ *     Added line numbers  Niklas Rï¿½emo
  *     Added filenames     Darren Salt
- * Copyright © 2005 GCCSDK Developers
+ * Copyright (c) 2000-2006 GCCSDK Developers
  */
 
 #include "config.h"

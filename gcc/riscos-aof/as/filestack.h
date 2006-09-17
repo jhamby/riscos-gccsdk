@@ -1,8 +1,8 @@
 /*
  * filestack.h
  *
- * (c) Andy Duplain, August 1992.
- * Copyright © 2005 GCCSDK Developers
+ * Copyright (c) Andy Duplain, August 1992.
+ * Copyright (c) 2004-2006 GCCSDK Developers
  */
 
 #ifndef filestack_header_included

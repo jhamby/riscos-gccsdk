@@ -1,8 +1,8 @@
 /*
  * AS an assembler for ARM
- * Copyright © 1992 Niklas Röjemo
- * Copyright © 1997 Nick Burrett
- * Copyright (c) 2005-2006 GCCSDK Developers
+ * Copyright (c) 1992 Niklas Rï¿½emo
+ * Copyright (c) 1997 Nick Burrett
+ * Copyright (c) 2000-2006 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License

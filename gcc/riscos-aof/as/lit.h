@@ -1,6 +1,7 @@
 /*
  * AS an assembler for ARM
- * Copyright © 1992 Niklas Röjemo
+ * Copyright (c) 1992 Niklas Rï¿½emo
+ * Copyright (c) 2004-2006 GCCSDK Developers
  * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -16,7 +17,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  *
- * Copyright © 1992 Niklas Röjemo
+ * lit.h
  */
 
 #ifndef lit_header_included
