@@ -1,2 +1,0 @@
-tar xfj printproto-*.tar.bz2
-mv printproto-*/* .
