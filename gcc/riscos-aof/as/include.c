@@ -43,56 +43,53 @@
 #include "rname.h"
 #include "main.h"
 
-#define INCDIRMAX  (40)
 #define DIR '/'
 
-static char *incdir[INCDIRMAX];
-
-int
-initInclude (void)
-{
-  int i;
-
-  for (i = 0; i < INCDIRMAX; i++)
-    incdir[i] = NULL;
-  return 0;
-}
+static const char **incDirPP;
+static int incDirCurSize;
+static int incDirMaxSize;
 
 int
 addInclude (const char *path)
 {
   int i;
+  size_t len;
+  char *newPath;
 
-  for (i = 0; i < INCDIRMAX; i++)
-    if (incdir[i])
-      if (strcmp (incdir[i], path) == 0)
-	return 0;		/* already in list */
+  for (i = 0; i < incDirCurSize; i++)
+    if (strcmp (incDirPP[i], path) == 0)
+      return 0; /* already in list */
 
-  for (i = 0; i < INCDIRMAX; i++)
-    if (!incdir[i])
-      {
-        int len;
-	if ((incdir[i] = strdup (path)) == NULL)
-	  {
-	    errorOutOfMem("addInclude");
-	    return -1;
-	  }
-	len = strlen (incdir[i]);
+  /* Need to add to the list */
+  if (incDirCurSize == incDirMaxSize)
+    {
+      int newDirMaxSize = 2*incDirMaxSize + 3;
+      incDirPP = (const char **)realloc (incDirPP, newDirMaxSize * sizeof (const char *));
+      if (incDirPP == NULL)
+        {
+          incDirMaxSize = incDirCurSize = 0;
+	  errorOutOfMem ("addInclude");
+	  return -1;
+        }
+      incDirMaxSize = newDirMaxSize;
+    }
 
-	if (*(incdir[i] + len) == DIR)
-	  *(incdir[i] + len) = '\0';
+  newPath = strdup (path);
+  if (newPath == NULL)
+    {
+      errorOutOfMem ("addInclude");
+      return -1;
+    }
+  /* Strip trailing DIR separator */
+  len = strlen (newPath);
+  if (newPath[len] == DIR)
+    newPath[len] = '\0';
+  incDirPP[incDirCurSize++] = newPath;
 #if (defined DEBUG) && (DEBUG > 0)
-	fprintf (stderr, "addInclude: added %s\n", incdir[i]);
+  fprintf (stderr, "addInclude: added %s\n", newPath);
 #endif
 
-
-	return 0;
-      }
-
-  fprintf (stderr, "addInclude: maximum number of include paths exceeded (%d)\n",
-	   INCDIRMAX);
-
-  return -1;
+  return 0;
 }
 
 
@@ -131,7 +128,6 @@ getInclude (const char *filename, const char *mode, const char **strdupFilename)
 #ifndef CROSS_COMPILE
   FILE *fp;
 #endif
-  char incpath[MAXPATHLEN];
 #if defined (CROSS_COMPILE)
   const char *file = rname (filename);
 #else
@@ -157,23 +153,21 @@ getInclude (const char *filename, const char *mode, const char **strdupFilename)
     }
 #endif
 
-  for (i = 0; i < INCDIRMAX; i++)
+  for (i = 0; i < incDirCurSize; i++)
     {
+      char incpath[MAXPATHLEN];
+      sprintf (incpath, "%s%c%s", incDirPP[i], DIR, file);
 #if (defined DEBUG) && (DEBUG > 0)
-      fprintf( stderr, "getInclude: Searching for %s\n", incpath );
+      fprintf (stderr, "getInclude: Searching for %s\n", incpath);
 #endif
 
-      if (incdir[i] != NULL)
-        {
-	  sprintf (incpath, "%s%c%s", incdir[i], DIR, file);
 #ifdef CROSS_COMPILE
-	  if (access (incpath, F_OK) == 0)
-	    return openInclude (incpath, mode, strdupFilename);
+      if (access (incpath, F_OK) == 0)
+        return openInclude (incpath, mode, strdupFilename);
 #else
-	  if ((fp = openInclude (incpath, mode, strdupFilename)) != NULL)
-	    return fp;
+      if ((fp = openInclude (incpath, mode, strdupFilename)) != NULL)
+        return fp;
 #endif
-	}
     }
 
   return NULL;

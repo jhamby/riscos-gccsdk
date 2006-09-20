@@ -160,7 +160,6 @@ int main (int argc, char **argv)
 #endif
   atexit (restore_prefix);
   setlocale (LC_ALL, "");
-  initInclude ();
   ProgName = *argv++;
 
 #define IS_ARG(ln,sn) !strcmp(*argv,ln) || !strcmp(*argv,sn)
