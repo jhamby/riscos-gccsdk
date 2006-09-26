@@ -1,0 +1,11 @@
+
+AB_INSTALL=yes
+
+AB_CONFLAGS=--disable-mmx
+
+# 2.0.13 unstable release was missing the following file
+if [ ! -e $S/acinclude.m4 ] ; then
+  cp -v $H/acinclude.m4 $S
+fi
+
+mkdir -p $D/include/SDL/
