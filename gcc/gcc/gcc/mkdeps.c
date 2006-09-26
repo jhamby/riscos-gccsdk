@@ -22,6 +22,10 @@ Foundation, 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 #include "config.h"
 #include "system.h"
+#ifdef __riscos__
+#include "coretypes.h"
+#include "tm.h"
+#endif
 #include "mkdeps.h"
 
 /* Keep this structure local to this file, so clients don't find it
@@ -52,6 +56,19 @@ munge (const char *filename)
   int len;
   const char *p, *q;
   char *dst, *buffer;
+
+#ifdef __riscos__
+  char *temp_fn = NULL;
+
+  if (TARGET_AMU)
+    {
+      len = strlen (filename) * 2;
+      temp_fn = xmalloc (len);
+      /* If riscosify fails, simply use the unix path */
+      if (__riscosify_std (filename, 0, temp_fn, len, NULL))
+        filename = temp_fn;
+    }
+#endif
 
   for (p = filename, len = 0; *p; p++, len++)
     {
@@ -100,6 +117,10 @@ munge (const char *filename)
 	}
       *dst = *p;
     }
+
+#ifdef __riscos__
+  free (temp_fn);
+#endif
 
   *dst = '\0';
   return buffer;
@@ -162,6 +183,21 @@ deps_add_target (struct deps *d, const char *t, int quote)
   if (quote)
     t = munge (t);  /* Also makes permanent copy.  */
   else
+#ifdef __riscos__
+    if (TARGET_AMU)
+      {
+	int len;
+	char *temp;
+
+	len = strlen (t) * 2;
+	temp = xmalloc (len);
+	if (__riscosify_std (t, 0, temp, len, NULL))
+	  t = temp;
+	else
+	  t = xstrdup (t); /* riscosify failed; fall back to unix path */
+      }
+    else
+#endif
     t = xstrdup (t);
 
   d->targetv[d->ntargets++] = t;
