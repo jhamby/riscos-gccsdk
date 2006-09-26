@@ -1,3 +1,7 @@
+Tue Sep 26 23:14:57 2006  John-Mark Bell  <jmb202@ecs.soton.ac.uk>
+
+	* source/time/mktime.c: Fix corruption of input structure (bug #152)
+
 Thu Sep 14 01:25:05 CEST 2006  John Tytgat  <John.Tytgat@aaug.net>
 
 	* !Help: Update version to 4.5.

@@ -12,6 +12,7 @@
 
 #include <locale.h>
 #include <time.h>
+#include <stddef.h>
 #include <string.h>
 #include <unixlib/os.h>
 #include <swis.h>
@@ -31,6 +32,13 @@ mktime (struct tm *brokentime)
   regs[1] = (int) riscos_time;
   regs[2] = (int) brokentime;
   __os_swi (Territory_ConvertTimeToOrdinals, regs);
+
+  /* Fixup normalised brokentime to lose centiseconds field */
+  memmove(brokentime, &brokentime->tm_min, offsetof(struct tm, tm_gmtoff));
+  /* And fixup month field */
+  brokentime->tm_mon -= 1;
+  /* And fixup year field */
+  brokentime->tm_year -= 1900;
 
   /* Set correct timezone information in brokentime structure.  */
   brokentime->tm_gmtoff = daylight * 3600 - timezone;
