@@ -137,9 +137,9 @@ if [ "$AB_PACKAGES" == "" ] ; then
 fi
 
 if [ "$AB_VERBOSE" == "yes" ] ; then
-  AB_STDOUT=/dev/stdout
+  AB_STDOUT=
 else
-  AB_STDOUT=/dev/null
+  AB_STDOUT=>/dev/null
 fi
 
 ab_build() {
@@ -202,7 +202,7 @@ ab_build() {
 
 
   AB_OUTPUT=/tmp/ab-output-$$-$RANDOM
-  $AB_HOME/build-program 2>&1 | tee $AB_OUTPUT >$AB_STDOUT
+  $AB_HOME/build-program 2>&1 | tee $AB_OUTPUT $AB_STDOUT
 
   if ! grep "Autobuilder: Package stage completed" < $AB_OUTPUT >/dev/null ; then
     echo "Package $AB_PACKAGE: ***Failure***"
