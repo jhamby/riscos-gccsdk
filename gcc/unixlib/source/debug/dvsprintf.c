@@ -33,29 +33,29 @@
 #pragma -s1
 #endif
 
-static __inline int isxdigit (const char x)
+static __inline int local_isxdigit (const char x)
 {
   return ((x >= '0' && x <= '9')
 	  || (x >= 'A' && x <= 'F')
 	  || (x >= 'a' && x <= 'f')) ? 1 : 0;
 }
 
-static __inline int isdigit (const char x)
+static __inline int local_isdigit (const char x)
 {
   return (x >= '0' && x <= '9') ? 1 : 0;
 }
 
-static __inline char toupper (const char x)
+static __inline char local_toupper (const char x)
 {
   return (x >= 'a') ? x - 26 + 7 : x;
 }
 
-static __inline int islower (const char x)
+static __inline int local_islower (const char x)
 {
   return (x >= 'a' && x <= 'z') ? 1 : 0;
 }
 
-static __inline size_t strnlen (const char *s, size_t maxlen)
+static __inline size_t local_strnlen (const char *s, size_t maxlen)
 {
   size_t r;
   for (r = 0; s[r] && r < maxlen; ++r)
@@ -79,14 +79,14 @@ static unsigned long simple_strtoul(const char *cp,
     if (*cp == '0') {
       base = 8;
       cp++;
-      if ((*cp == 'x') && isxdigit(cp[1])) {
+      if ((*cp == 'x') && local_isxdigit(cp[1])) {
 	cp++;
 	base = 16;
       }
     }
   }
-  while (isxdigit(*cp) &&
-	 (value = isdigit(*cp) ? *cp-'0' : toupper(*cp)-'A'+10) < base) {
+  while (local_isxdigit(*cp) &&
+	 (value = local_isdigit(*cp) ? *cp-'0' : local_toupper(*cp)-'A'+10) < base) {
     result = result*base + value;
     cp++;
   }
@@ -123,14 +123,14 @@ static unsigned long long simple_strtoull(const char *cp,char **endp,unsigned in
     if (*cp == '0') {
       base = 8;
       cp++;
-      if ((*cp == 'x') && isxdigit(cp[1])) {
+      if ((*cp == 'x') && local_isxdigit(cp[1])) {
 	cp++;
 	base = 16;
       }
     }
   }
-  while (isxdigit(*cp) && (value = isdigit(*cp) ? *cp-'0' : (islower(*cp)
-							     ? toupper(*cp) : *cp)-'A'+10) < base) {
+  while (local_isxdigit(*cp) && (value = local_isdigit(*cp) ? *cp-'0' : (local_islower(*cp)
+							     ? local_toupper(*cp) : *cp)-'A'+10) < base) {
     result = result*base + value;
     cp++;
   }
@@ -156,7 +156,7 @@ static int skip_atoi(const char **s)
 {
   int i=0;
 
-  while (isdigit(**s))
+  while (local_isdigit(**s))
     i = i*10 + *((*s)++) - '0';
   return i;
 }
@@ -333,7 +333,7 @@ static int _vsnprintf(char *buf, size_t size, const char *fmt, va_list args)
 
     /* get field width */
     field_width = -1;
-    if (isdigit(*fmt))
+    if (local_isdigit(*fmt))
       field_width = skip_atoi(&fmt);
     else if (*fmt == '*') {
       ++fmt;
@@ -349,7 +349,7 @@ static int _vsnprintf(char *buf, size_t size, const char *fmt, va_list args)
     precision = -1;
     if (*fmt == '.') {
       ++fmt;	
-      if (isdigit(*fmt))
+      if (local_isdigit(*fmt))
 	precision = skip_atoi(&fmt);
       else if (*fmt == '*') {
 	++fmt;
@@ -400,7 +400,7 @@ static int _vsnprintf(char *buf, size_t size, const char *fmt, va_list args)
       if ((unsigned long)s < 0x1000)
 	s = "<NULL>";
 
-      len = strnlen(s, precision);
+      len = local_strnlen(s, precision);
 
       if (!(flags & LEFT)) {
 	while (len < field_width--) {

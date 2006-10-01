@@ -1,0 +1,40 @@
+#!/bin/bash
+# Written by John Tytgat <John.Tytgat@aaug.net>
+# Copyright (c) 2006 GCCSDK Developers
+
+set -e
+
+GCCSDK_ROOT=`dirname \`realpath $0\``
+source $GCCSDK_ROOT/setup-gccsdk-params
+
+if [ -d $GCCSDK_DIR ] ; then
+  rm -rf $GCCSDK_DIR
+fi
+mkdir $GCCSDK_DIR
+
+# Copy original GCC:
+cp -r $GCCSDK_GCCORIG/* $GCCSDK_DIR
+
+# Copy a selection of binutils' directories:
+cp -r $GCCSDK_BINUTILSORIG/{etc,include,bfd,binutils,cpu,gas,opcodes,ld,gprof} $GCCSDK_DIR
+
+# 1. Patch it:
+for p in `ls $GCCSDK_RECIPE_PATCHES/*.p` ; do
+  ( cd $GCCSDK_DIR ; patch -p0 < $p )
+done
+
+# 2. Copy full files:
+cp -r $GCCSDK_RECIPE_FILES/* $GCCSDK_DIR
+
+# 3. Run scripts:
+for s in `ls $GCCSDK_RECIPE_SCRIPTS/*` ; do
+  . $s
+done
+
+# 4. Re-configure for patched configurations:
+# FIXME: libffi rebuild
+# FIXME: libjava rebuild
+# Is done in recipe/scripts/cp-aof2elf-unixlib: ( cd $GCCSDK_DIR/libunixlib && aclocal-1.9 && autoheader && automake-1.9 -a && autoconf )
+( cd $GCCSDK_DIR/ld && automake-1.9 )
+( cd $GCCSDK_DIR/libstdc++-v3 && autoconf )
+( cd $GCCSDK_DIR && autogen Makefile.def && autoconf && autoheader )

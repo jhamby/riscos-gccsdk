@@ -1,0 +1,11 @@
+mthrowback
+Target Report Mask(THROWBACK)
+Send errors to a DDEUtils compatible text editor
+
+mlibscl
+Target Report
+Compile with the SharedCLibrary headers
+
+munixlib
+Target Report
+Compile with the headers from UnixLib

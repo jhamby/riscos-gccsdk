@@ -1142,6 +1142,9 @@ __riscosify (const char *name, int create_dir,
                     }
                 }
 
+/* The __ELF__ test is a hack until our ELF build system @ gccsdk4 has a
+   concept of RO_ENV. FIXME  */
+#ifndef __ELF__
               /* /home/riscos/env/xxx. (or configured path) Try matching xxx segment.  */
               if (strncmp (cname, RO_ENV, sizeof(RO_ENV) - 1) == 0)
                 {
@@ -1198,6 +1201,7 @@ __riscosify (const char *name, int create_dir,
                       matched = 1;
                   }
               }
+#endif
 
               if (! matched)
                 {

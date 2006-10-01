@@ -1,0 +1,43 @@
+#!/bin/bash
+# Written by John Tytgat <John.Tytgat@aaug.net>
+# Copyright (c) 2006 GCCSDK Developers
+
+# Arguments:
+#  $1: file to patch (relative to $GCCSDK_DIR)
+
+set -e
+
+GCCSDK_ROOT=`dirname \`realpath $0\``
+source $GCCSDK_ROOT/setup-gccsdk-params
+
+if [ "x"$1 == "x" ] ; then
+  echo "Syntax: create-patch <file-in-gccsdk-dir-to-create-patch-from>"
+  exit 1
+fi
+GCCSDK_PATCHFORFILE_REL=$1
+GCCSDK_PATCHFORFILE_ABS=$GCCSDK_DIR/$GCCSDK_PATCHFORFILE_REL
+
+if [ ! -f $GCCSDK_PATCHFORFILE_ABS ] ; then
+  echo "File $GCCSDK_PATCHFORFILE_ABS does not exist"
+  exit 1
+fi
+
+# If we don't find the .orig version of the file of which we want to create
+# a patch from, we search for the original file in the GCC official
+# distribution.
+if [ ! -f $GCCSDK_PATCHFORFILE_ABS.orig ] ; then
+  # Originial file does not exist, find it.
+  if [ -f $GCCSDK_GCCORIG/$GCCSDK_PATCHFORFILE_REL ] ; then
+    cp $GCCSDK_GCCORIG/$GCCSDK_PATCHFORFILE_REL $GCCSDK_PATCHFORFILE_ABS.orig
+  else
+    echo Can\'t find original file $GCCSDK_PATCHFORFILE_REL to patch against it.
+    exit 1
+  fi
+fi
+
+GCCSDK_PATCHFILENAME=$GCCSDK_RECIPE_PATCHES/`echo $GCCSDK_PATCHFORFILE_REL | tr "/" "."`.p
+if [ ! -f $GCCSDK_PATCHFILENAME ] ; then
+  echo Creating new patch $GCCSDK_PATCHFILENAME
+fi
+( cd $GCCSDK_DIR ; diff -u $GCCSDK_PATCHFORFILE_REL.orig $GCCSDK_PATCHFORFILE_REL > $GCCSDK_PATCHFILENAME )
+echo "Patch $GCCSDK_PATCHFILENAME made."

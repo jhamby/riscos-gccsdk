@@ -8,7 +8,7 @@ dnl Written by Nick Burrett <nick@sqrt.co.uk>
 sinclude(../config/no-executables.m4)
 
 AC_PREREQ(2.59)
-AC_INIT([RISC OS UnixLib C Runtime Library], 4.10, [gcc@gccsdk.riscos.info], [libunixlib])
+AC_INIT([RISC OS UnixLib C Runtime Library], 5.0, [http://gccsdk.riscos.info/], [libunixlib])
 AC_CONFIG_SRCDIR([assert/assert.c])
 AC_CONFIG_HEADER(config.h)
 

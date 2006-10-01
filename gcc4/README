@@ -1,0 +1,49 @@
+The RISC OS Software Development Kit [GCCSDK 4.x Release y]
+===========================================================
+
+This is a lightweight build environment which combines a GCC 4.x release,
+binutils 2.17 release and UnixLib 5.0 into one directory which can
+be used to build a RISC OS cross-compiler with target arm-elf-riscos.
+
+Steps:
+~~~~~
+
+The setup-gccsdk-params file contains several definitions as environment
+variables which you can change if desired.
+
+1. Place a GCC 4.x release in $GCCSDK_GCCORIG
+2. Place a binutils 2.17 release in $GCCSDK_BINUTILSORIG
+3. Combine the contents of $GCCSDK_GCCORIG, $GCCSDK_BINUTILSORIG and
+   UnixLib 5.0 (GAS assembler syntax and ELF configuration) into
+   $GCCSDK_DIR and apply the necessary patches for arm-elf-riscos
+   target by running:
+
+   ./create-gccsdk
+
+4. Build and install the cross-compiler into $PREFIX:
+
+   ./build-it > build-output.txt 2>&1
+
+   When the configuration has been successfully done during ./build-it,
+   you can restart the build by:
+
+   cd arm-elf-riscos
+   make
+   make install
+
+GCCSDK specific changes for the gcc/binutils sources are done via patches
+(recipe/patches directory), copying full source files (recipe/files) or via
+scripts (recipe/scripts).  Easy patch (re)creation can be done using the
+./create-patch script.  Currently UnixLib 5.0 is copied into $GCCSDK_DIR
+using a conversion of an AOF based UnixLib in the GCCSDK 3.4.6 tree to
+an ELF one.
+
+Credits:
+~~~~~~~
+
+The initial arm-elf-riscos work for GCC 4.1 was done by Nick Burrett (Jun
+2005). Integrating Nick's work in a GCCSDK build environment and bringing it
+up-to-date was done by John Tytgat and John-Mark Bell (Oct 2006).
+
+Copyright (c) 2005, 2006 GCCSDK Developers
+http://gccsdk.riscos.info/

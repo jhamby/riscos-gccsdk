@@ -1,0 +1,101 @@
+;; Implementations for dyamic allocation off the stack.
+
+;; These patterns say how to perform an equivalent to dynamic allocation
+;; off the stack. We use library routines to return malloced memory
+;; then alter the frame pointer so that on function exit, all chunks
+;; will be freed. This system also works for different blocks within a
+;; function.
+
+;; We do not need to worry about the outermost block in a function since
+;; function exit will tidy up all unalloced chunks.
+
+(define_insn "call_no_clobber"
+  [(unspec:SI [(match_operand 0 "" "")] UNSPEC_CALL)
+   (clobber (reg:SI LR_REGNUM))
+   (clobber (reg:CC CC_REGNUM))]
+  ""
+  "bl%?\\t%a0"
+[(set_attr "conds" "clob")
+ (set_attr "length" "4")])
+
+
+;; On entrance to a block, with __builtin_alloca, create a unique key
+;; suitable for the free code.
+(define_expand "save_stack_block"
+  [(use (match_operand:SI 0 "s_register_operand" "=r"))
+   (match_operand:SI 1 "s_register_operand" "")
+   (clobber (reg:SI 14))]
+  "TARGET_ARM && TARGET_APCS_STACK"
+{
+  arm_expand_save_stack_block (operands[0], operands[1]);
+  DONE;
+})
+
+;; Use the unique key produced earlier to free chunks created under
+;; this key.
+(define_expand "restore_stack_block"
+  [(match_operand:SI 0 "s_register_operand" "")
+   (use (match_operand:SI 1 "s_register_operand" "=r"))
+   (clobber (reg:SI 14))]
+  "TARGET_ARM && TARGET_APCS_STACK"
+{
+  arm_expand_restore_stack_block (operands[0], operands[1]);
+  DONE;
+})
+
+(define_expand "save_stack_nonlocal"
+  [(use (match_operand:SI 0 "memory_operand" ""))
+   (use (match_operand:SI 1 "s_register_operand" ""))]
+  "TARGET_ARM && TARGET_APCS_STACK"
+{
+  arm_expand_save_stack_nonlocal (operands);
+  DONE;
+})
+
+(define_expand "restore_stack_nonlocal"
+  [(use (match_operand:SI 0 "s_register_operand" ""))
+   (use (match_operand:SI 1 "memory_operand" ""))]
+  "TARGET_ARM && TARGET_APCS_STACK"
+{
+  arm_expand_restore_stack_nonlocal (operands);
+  DONE;
+})
+
+
+(define_expand "allocate_stack"
+  [(set (match_operand:SI 0 "s_register_operand" "=r")
+        (minus:SI (reg:SI 13) (match_operand:SI 1 "reg_or_int_operand" "")))
+   (set (reg:SI 13)
+        (minus:SI (reg:SI 13) (match_dup 1)))
+   (clobber (reg:SI 0))
+   (clobber (reg:SI 14))]
+  "TARGET_APCS_STACK"
+  "
+{
+  arm_expand_allocate_stack (operands[0], operands[1]);
+  DONE;
+}")
+
+(define_insn "rt_stkovf"
+  [(unspec:SI [(match_operand:SI 0 "s_register_operand" "r")
+               (match_operand:SI 1 "s_register_operand" "r")
+               (match_operand 2 "" "")] UNSPEC_STK)
+   (clobber (reg:SI SL_REGNUM))
+   (clobber (reg:SI IP_REGNUM))
+   (clobber (reg:SI LR_REGNUM))
+   (clobber (reg:CC CC_REGNUM))]
+  ""
+  "cmp\\t%0, %1\;bllt\\t%a2"
+[(set_attr "conds" "clob")
+ (set_attr "length" "8")])
+
+(define_expand "nonlocal_goto"
+  [(match_operand:SI 0 "general_operand" "")
+   (match_operand:SI 1 "general_operand" "")
+   (match_operand:SI 2 "general_operand" "")
+   (match_operand:SI 3 "" "")]
+  "TARGET_ARM && TARGET_APCS_STACK"
+{
+  arm_expand_nonlocal_goto (operands);
+  DONE;
+})

@@ -9,9 +9,6 @@ if ($#ARGV != 1) {
     die "syntax: convert-unixlib.pl <source aof tree> <destination elf dir for tree>";
 }
 
-#$aofsourcetree = "/home/nick/riscos-aof/gccsdk-3.4/unixlib";
-#$elfsourcetree = "/home/nick/riscos-elf/unixlib";
-
 if (! -d "$aofsourcetree") {
   die "$aofsourcetree does not exist\n";
 }
@@ -171,7 +168,7 @@ sub convert_s {
 	    chomp $i;
 	    $i =~ s/^\t\[\s+//; # Remove .if
 	    my ($var, $comp, $val) = $i =~ /(\w+)\s+(<|>|=)\s+(\d+)/;
-	    printf ("if: i='%s', var='%s', comp='%s', val='%s'\n", $i, $var, $comp, $val);
+	    #printf ("if: i='%s', var='%s', comp='%s', val='%s'\n", $i, $var, $comp, $val);
 	    if ($i =~ /SOFTFLOAT/) {
 		printf OUT "#ifdef __SOFTFP__\n" if ($i =~ /TRUE/);
 		printf OUT "#ifndef __SOFTFP__\n" if ($i =~ /FALSE/);
@@ -255,7 +252,7 @@ sub filelist {
     my @a = ();
     opendir (DIR, "$dir");
     while ($e = readdir (DIR)) {
-	next if ($e eq '.' or $e eq '..' or $e eq 'CVS');
+	next if ($e eq '.' or $e eq '..' or $e eq '.svn');
 	if ($e =~ /\.$suffix$/) {
 	    push (@a, $e);
 	}
@@ -274,7 +271,7 @@ sub convert_headers {
     opendir (ROOT, "$from");
     my @subdirs = ();
     while ($entry = readdir (ROOT)) {
-	next if ($entry eq '.' or $entry eq '..' or $entry eq 'CVS');
+	next if ($entry eq '.' or $entry eq '..' or $entry eq '.svn');
 	if (-d "$from/$entry") {
 	    # Deal with sub-directories later
 	    push (@subdirs, $entry);
@@ -297,7 +294,7 @@ sub convert_headers {
     foreach $dir (@subdirs) {
 	opendir (SUBDIR, "$from/$dir");
 	while ($entry = readdir (SUBDIR)) {
-	    next if ($entry eq '.' or $entry eq '..' or $entry eq 'CVS');
+	    next if ($entry eq '.' or $entry eq '..' or $entry eq '.svn');
 	    mkdir ("$to/$dir") if (! -d "$to/$dir");
 	    my $src = "$from/$dir/$entry";
 	    my $dst = "$to/$dir/$entry";
@@ -349,7 +346,7 @@ if (! -d "$elfsourcetree") {
 open (MAKE, "> $elfsourcetree/Makefile.am");
 print MAKE<<EOF;
 # Automake style makefile for UnixLib
-# Copyright (c) 2005 UnixLib developers
+# Copyright (c) 2005, 2006 UnixLib developers
 # Written by Nick Burrett <nick\@sqrt.co.uk>
 
 # Multilib support
@@ -391,9 +388,9 @@ EOF
 # The top level source directory only contains sub-directories.
 opendir (ROOT, "$aofsourcetree/source");
 while ($dir = readdir (ROOT)) {
-    # Do not look at CVS directories or the main header file
+    # Do not look at .svn directories or the main header file
     # directories 'clib' and 'incl-local'.
-    next if ($dir eq '.' or $dir eq '..' or $dir eq "CVS"
+    next if ($dir eq '.' or $dir eq '..' or $dir eq ".svn"
 	     or $dir eq "test" or $dir eq "test.1"
 	     or $dir eq "clib" or $dir eq "incl-local");
     next if (! -d "$aofsourcetree/source/$dir");
@@ -473,8 +470,7 @@ print MAKE "# The ARM linker cannot change output formats during the link\n";
 print MAKE "# stage.  We must use objcopy to convert the ELF binary into\n";
 print MAKE "# a raw binary\n";
 print MAKE "sul\$(EXEEXT): sul.o\n";
-print MAKE "\t\$(CC) -o sul\$(EXEEXT) sul.o\n";
-print MAKE "\t\$(OBJCOPY) -O binary sul\$(EXEEXT)\n";
+print MAKE "\t\$(OBJCOPY) -O binary sul.o sul\$(EXEEXT)\n";
 print MAKE "\n";
 print MAKE "# These rules are copied direct from a generated Makefile.\n";
 print MAKE "# The only difference is that stack checking is turned off\n";
@@ -496,11 +492,11 @@ foreach $f (@nostackfiles) {
 
 print MAKE "install-data-local: install-headers\n\n";
 print MAKE "install-headers:\n";
-print MAKE "\t\$(mkinstalldirs) \$(DESTDIR)\${toolexecdir}/include\n";
+print MAKE "\t\$(mkinstalldirs) \$(DESTDIR)\${tooldir}/include\n";
 print MAKE "\tfor dir in arpa bits net netinet resolv rpc string sys unixlib; do \\\n";
-print MAKE "\t  \$(mkinstalldirs) \$(DESTDIR)\${toolexecdir}/include/\$\${dir} ; done\n";
+print MAKE "\t  \$(mkinstalldirs) \$(DESTDIR)\${tooldir}/include/\$\${dir} ; done\n";
 print MAKE "\tfor file in \${libc_headers}; do \\\n";
-print MAKE "\t  \$(INSTALL_DATA) \$(srcdir)/\$\${file} \$(DESTDIR)\${toolexecdir}/\$\${file} ; done\n";
+print MAKE "\t  \$(INSTALL_DATA) \$(srcdir)/\$\${file} \$(DESTDIR)\${tooldir}/\$\${file} ; done\n";
 
 print MAKE "\n";
 close MAKE;
@@ -548,7 +544,7 @@ foreach $dir ("math", "stdio", "stdlib", "string", "strings") {
     opendir (TESTS, "$aofsourcetree/source/test/$dir");
     my @tests = ();
     while ($entry = readdir (TESTS)) {
-	next if ($entry eq '.' or $entry eq '..' or $entry eq 'CVS');
+	next if ($entry eq '.' or $entry eq '..' or $entry eq '.svn');
 	if ($entry =~ /\.c$/) {
 	    push (@tests, $entry);
 	}
@@ -577,11 +573,11 @@ foreach $dir ("math", "stdio", "stdlib", "string", "strings") {
 printf ("-- building automake stuff\n");
 chdir $elfsourcetree;
 printf ("-- running aclocal\n");
-system "aclocal";
+system "aclocal-1.9";
 printf ("-- running autoheader\n");
 system "autoheader";
 printf ("-- running automake\n");
-system "automake", "-a";
+system "automake-1.9", "-a";
 printf ("-- running autoconf\n");
 system "autoconf";
 printf ("-- complete\n");

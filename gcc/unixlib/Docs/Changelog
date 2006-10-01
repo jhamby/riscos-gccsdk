@@ -1,3 +1,22 @@
+Sun Oct 01 01:02:06 CEST 2006  John Tytgat  <John.Tytgat@aaug.net>
+
+	Start of UnixLib 5.0 as RISC OS RunTime lib in ELF format.
+	* source/debug/dvsprintf.c: renamed isxdigit()/isdigit()/tolower()/
+	toupper()/strnlen() to local_* as this gave warnings and an error
+	with GCC 4.1.1.
+	* source/common/riscosify.c: temporary disabled RO_ENV support as
+	GCC 4 ELF build does not have support for this.
+	* source/sys/_syslib.s: temporary disabled the XScale test as it
+	not supported by the convert-unixlib.pl right now.
+	(__builtin_return_address): Added (code from Nick Burrett).
+	* elf/convert-unixlib.pl: updated so it works with the current
+	UnixLib code base and the build system we've now setup for GCC 4.1.
+	* !Help: Update version to 5.0.
+	* source/clib/features.h (__ULIBC__, __ULIBC_MINOR__): Updated it to
+	5.0.
+
+-----------------------------------------------------------------------
+
 Tue Sep 26 23:14:57 2006  John-Mark Bell  <jmb202@ecs.soton.ac.uk>
 
 	* source/time/mktime.c: Fix corruption of input structure (bug #152)

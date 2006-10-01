@@ -1,0 +1,31 @@
+#!/bin/bash
+# Written by John Tytgat <John.Tytgat@aaug.net>
+# Copyright (c) 2006 GCCSDK Developers
+
+set -e
+
+GCCSDK_ROOT=`dirname \`realpath $0\``
+source $GCCSDK_ROOT/setup-gccsdk-params
+
+TARGET=
+GCCSDK_BUILDDIR=$GCCSDK_ROOT/$TARGET
+
+if [ ! -d $GCCSDK_BUILDDIR ] ; then
+  mkdir $GCCSDK_BUILDDIR
+fi
+if [ ! -d $PREFIX ] ; then
+  mkdir $PREFIX
+fi
+
+cd $GCCSDK_BUILDDIR
+# Note: the --disable-libssp is needed to avoid a 4.1.1 regression bug, see
+#       http://gcc.gnu.org/bugzilla/show_bug.cgi?id=25035 to track its status.
+$GCCSDK_DIR/configure --prefix=$PREFIX --enable-threads=posix \
+	--target=$TARGET --enable-sjlj-exceptions=no \
+	--disable-c-mbchar --enable-languages=c \
+	--enable-checking=no --disable-libstdcxx-pch \
+	--enable-c99 --enable-cmath \
+	--without-pic --disable-shared --without-x --enable-libgcj \
+	
+make all
+make install

@@ -203,26 +203,28 @@ SUL_MIN_VERSION	EQU	107
 	TEQ	a1, #0
 	BNE	no_dynamic_area
 
-	[ TARGET_CPU = "XSCALE"
-	; Check that we really do have an XScale
-	MRS	a2, CPSR
-	SWI	XOS_EnterOS
-	MOVVS	a1, #ERR_UNRECOVERABLE  ; paranoia
-	BVS	|__exit_with_error_num|
-	MRC	p15, 0, a1, c0, c0, 0
-	MSR	CPSR_c, a2
-	ANDS	a2, a1, #&0000F000  ; ARM <= 7?
-	TEQNE	a2, #7
-	MOVEQ	a1, #ERR_NO_XSCALE
-	BEQ	|__exit_with_error_num|
-	AND	a2, a1, #&000F0000
-	AND	a1, a1, #&FF000000
-	TEQ	a2, #&00050000	 ; ARMv5TE
-	TEQNE	a2, #&00060000	 ; ARMv5TEJ (optimistic overkill)
-	TEQEQ	a1, #&69000000	 ; Intel
-	MOVNE	a1, #ERR_NO_XSCALE
-	BNE	|__exit_with_error_num|
-	]
+; FIXME: following temporary disabled because convert-unixlib.pl does not
+; support this.
+;	[ TARGET_CPU = "XSCALE"
+;	;Check that we really do have an XScale
+;	MRS	a2, CPSR
+;	SWI	XOS_EnterOS
+;	MOVVS	a1, #ERR_UNRECOVERABLE  ; paranoia
+;	BVS	|__exit_with_error_num|
+;	MRC	p15, 0, a1, c0, c0, 0
+;	MSR	CPSR_c, a2
+;	ANDS	a2, a1, #&0000F000  ; ARM <= 7?
+;	TEQNE	a2, #7
+;	MOVEQ	a1, #ERR_NO_XSCALE
+;	BEQ	|__exit_with_error_num|
+;	AND	a2, a1, #&000F0000
+;	AND	a1, a1, #&FF000000
+;	TEQ	a2, #&00050000	 ; ARMv5TE
+;	TEQNE	a2, #&00060000	 ; ARMv5TEJ (optimistic overkill)
+;	TEQEQ	a1, #&69000000	 ; Intel
+;	MOVNE	a1, #ERR_NO_XSCALE
+;	BNE	|__exit_with_error_num|
+;	]
 
 	; Check OS version for RISC OS 3.5 or more recent.
 	MOV	a1, #129
@@ -446,9 +448,11 @@ error_table
 	DCD	error_no_sharedunixlib
 	DCD	error_no_fpe
 	DCD	error_unrecoverable_loop
-	[ TARGET_CPU = "XSCALE"
-	DCD	error_no_xscale
-	]
+; FIXME: following temporary disabled because convert-unixlib.pl does not
+; support this.
+;	[ TARGET_CPU = "XSCALE"
+;	DCD	error_no_xscale
+;	]
 error_table_end
 
 error_no_callaswi
@@ -473,12 +477,14 @@ error_unrecoverable_loop
 	DCD	SharedUnixLibrary_Error_FatalError
 	DCB	"Unrecoverable fatal error detected", 0
 	ALIGN
-	[ TARGET_CPU = "XSCALE"
-error_no_xscale
-	DCD	SharedUnixLibrary_Error_FatalError
-	DCB	"This program has been build with XScale only instructions", 0
-	ALIGN
-	]
+; FIXME: following temporary disabled because convert-unixlib.pl does not
+; support this.
+;	[ TARGET_CPU = "XSCALE"
+;error_no_xscale
+;	DCD	SharedUnixLibrary_Error_FatalError
+;	DCB	"This program has been build with XScale only instructions", 0
+;	ALIGN
+;	]
 
 	IMPORT	|__munmap_all|
 	EXPORT	|__dynamic_area_exit|
@@ -935,6 +941,45 @@ no_chunk_to_free
 	; Set sl up correctly for the old stack chunk
 	LDR	sl, [sl, #CHUNK_PREV]
 	ADD	sl, sl, #512+CHUNK_OVERHEAD
+	MOV	pc, lr
+
+
+	; void * __builtin_return_adress (unsigned int level)
+
+	; This is an implementation of a GCC internal function.  It appears
+	; here because we need to cope with the function return address
+	; being modified in the frame by calls to stack extension code
+	; or calls to alloca.
+	
+	; Return the return address of the current function (level == 0)
+	; or of one of its callers.  Return 0 if at the top of the stack
+	; or the address is unobtainable
+	EXPORT	|__builtin_return_address|
+	; FIXME: not sure if this is needed for ELF build: .type	__builtin_return_address, %function
+|__builtin_return_address|
+	; A non-zero level is only required for debugging.  For the time
+	; being, do not support it. FIXME
+	CMP	a1, #0
+	MOVNE	a1, #0
+	MOVNE	pc, lr
+
+	; Traditionally the return address is held at fp[-4], but this
+	; may change if a stack extension has occurred.
+	LDR	a1, [fp, #-4]
+	TEQ	pc, pc
+	BICNE	a1, a1, #0xfc000003	@ Drop flags in 26-bit mode
+	ADR	a2, free_stack_chunk
+
+	; If the return address in the frame points to the 'free_stack_chunk'
+	; function, then the real return address can be found
+	; at sl[CHUNK_RETURN]
+	CMP	a1, a2
+	LDREQ	a1, [sl, #CHUNK_RETURN]
+
+	TEQ	pc, pc
+	BICNE	a1, a1, #0xfc000003	@ Drop flags in 26-bit mode
+
+	; XXX FIXME: Implement alloca() return address check.
 	MOV	pc, lr
 
 
