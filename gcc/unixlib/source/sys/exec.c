@@ -136,7 +136,7 @@ execve (const char *execname, char *const argv[], char *const envp[])
 	 as "xyz" (i.e. argv[2]).  */
       p = argv[scenario];
 
-      for (x = 0; x < sizeof(temp) && *p && *p == ' '; /* */)
+      while (*p == ' ')
 	p++;
       for (x = 0; x < sizeof(temp) && *p && *p != ' '; /* */)
 	temp[x++] = *p++;
@@ -144,26 +144,26 @@ execve (const char *execname, char *const argv[], char *const envp[])
 	return __set_errno (E2BIG);
       temp[x] = '\0';
 
-	  /* Ah. The nasty hack.  Comes into everything somewhere.
-	     Since argv[1] contains our program name and all arguments,
-	     we need to stop the command line builder sticking quotes
-	     around everything and also not include the program name
-	     twice in the argument vector.
-	     So nasty_hack contains the length of the program name
-	     held within argv[1].  We then know (when non-zero) how
-	     many characters to skip, if at all.  */
-	  nasty_hack = x;
+      /* Ah. The nasty hack.  Comes into everything somewhere.
+	 Since argv[1] contains our program name and all arguments,
+	 we need to stop the command line builder sticking quotes
+	 around everything and also not include the program name
+	 twice in the argument vector.
+	 So nasty_hack contains the length of the program name
+	 held within argv[1].  We then know (when non-zero) how
+	 many characters to skip, if at all.  */
+      nasty_hack = x;
 
 #ifdef DEBUG
-	  debug_printf ("execve: pathname: '%s'\n", temp);
+      debug_printf ("execve: pathname: '%s'\n", temp);
 #endif
 
-	  program_name = __riscosify_std (temp, 0, pathname,
-					  sizeof (pathname), NULL);
-	  if (program_name == NULL)
-	    return __set_errno (E2BIG);
-	  program_name = pathname;
-	}
+       program_name = __riscosify_std (temp, 0, pathname,
+				       sizeof (pathname), NULL);
+       if (program_name == NULL)
+	 return __set_errno (E2BIG);
+       program_name = pathname;
+    }
 
 #ifdef DEBUG
   debug_printf ("execve: program_name: %s\n", program_name);
