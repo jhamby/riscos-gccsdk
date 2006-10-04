@@ -1,13 +1,7 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/common/attrib.c,v $
- * $Date: 2005/04/08 19:22:12 $
- * $Revision: 1.3 $
- * $State: Exp $
- * $Author: nick $
- *
+/* __set_protection (), __get_protection ()
  * Written by Nick Burrett, 3 May 1997.
- ***************************************************************************/
+ * Copyright (c) 1997-2006 UnixLib Developers
+ */
 
 #include <sys/stat.h>
 #include <unixlib/types.h>

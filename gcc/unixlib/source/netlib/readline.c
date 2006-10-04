@@ -1,12 +1,6 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/netlib/readline.c,v $
- * $Date: 2001/01/29 15:10:20 $
- * $Revision: 1.2 $
- * $State: Exp $
- * $Author: admin $
- *
- ***************************************************************************/
+/* __net_readline ()
+ * Copyright (c) 2000-2006 UnixLib Developers
+ */
 
 #include <stdio.h>
 #include <stdlib.h>

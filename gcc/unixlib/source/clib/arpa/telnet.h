@@ -1,13 +1,3 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/unixlib/source/clib/arpa/h/telnet,v $
- * $Date: 1997/10/09 19:59:45 $
- * $Revision: 1.4 $
- * $State: Exp $
- * $Author: unixlib $
- *
- ***************************************************************************/
-
 /*
  * Copyright (c) 1983, 1993
  *	The Regents of the University of California.  All rights reserved.

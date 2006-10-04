@@ -1,12 +1,6 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/lseek.c,v $
- * $Date: 2005/03/04 20:59:06 $
- * $Revision: 1.7 $
- * $State: Exp $
- * $Author: alex $
- *
- ***************************************************************************/
+/* lseek (), lseek64 ()
+ * Copyright (c) 2000-2006 UnixLib Developers
+ */
 
 #include <errno.h>
 #include <unistd.h>

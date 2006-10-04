@@ -1,12 +1,6 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/common/riscosify.c,v $
- * $Date: 2005/06/16 13:32:06 $
- * $Revision: 1.23 $
- * $State: Exp $
- * $Author: alex $
- *
- ***************************************************************************/
+/*
+ * Copyright (c) 2000-2006 UnixLib Developers
+ */
 
 /* #define DEBUG */
 

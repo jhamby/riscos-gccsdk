@@ -1,13 +1,3 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/wchar/wcstold.c,v $
- * $Date: 2001/01/29 15:10:22 $
- * $Revision: 1.2 $
- * $State: Exp $
- * $Author: admin $
- *
- ***************************************************************************/
-
 /* Copyright (C) 1996, 1997 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
    Contributed by Ulrich Drepper <drepper@gnu.ai.mit.edu>, 1996.

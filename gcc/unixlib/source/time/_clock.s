@@ -1,12 +1,5 @@
-;----------------------------------------------------------------------------
-;
-; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/time/_clock.s,v $
-; $Date: 2002/09/24 21:02:38 $
-; $Revision: 1.3 $
-; $State: Exp $
-; $Author: admin $
-;
-;----------------------------------------------------------------------------
+; clock
+; Copyright (c) 2000-2006 UnixLib Developers
 
 	GET	clib/unixlib/asm_dec.s
 

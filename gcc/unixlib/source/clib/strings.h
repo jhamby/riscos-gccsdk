@@ -1,12 +1,6 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/strings.h,v $
- * $Date: 2004/05/10 10:58:55 $
- * $Revision: 1.9 $
- * $State: Exp $
- * $Author: peter $
- *
- ***************************************************************************/
+/*
+ * Copyright (c) 2000-2006 GCCSDK Developers
+ */
 
 #ifndef __STRINGS_H
 #define __STRINGS_H 1

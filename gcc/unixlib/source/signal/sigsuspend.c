@@ -1,14 +1,7 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/signal/sigsuspend.c,v $
- * $Date: 2004/05/16 18:48:24 $
- * $Revision: 1.5 $
- * $State: Exp $
- * $Author: alex $
- *
- ***************************************************************************/
-
-/* Written by Nick Burrett, 26 Aug 1996.  */
+/* sigsuspend ()
+ * Written by Nick Burrett, 26 Aug 1996.
+ * Copyright (c) 1996-2006 UnixLib Developers
+ */
 
 #include <errno.h>
 #include <signal.h>

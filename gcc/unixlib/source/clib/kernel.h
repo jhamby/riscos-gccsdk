@@ -1,18 +1,12 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/kernel.h,v $
- * $Date: 2005/03/28 14:58:03 $
- * $Revision: 1.10 $
- * $State: Exp $
- * $Author: joty $
- *
+/*
  * This file is intended to provide an interface between UnixLib and
  * programs and/or libraries initially developed using Norcroft headers
  * (in particular its kernel.h header).
  * Any simularity between this and the Norcroft kernel.h file is probably
  * due to having to use identical structs.
  *
- ***************************************************************************/
+ * Copyright (c) 2000-2006 GCCSDK Developers
+ */
 
 #ifndef __KERNEL_H
 #define __KERNEL_H

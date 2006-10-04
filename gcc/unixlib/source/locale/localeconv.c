@@ -1,14 +1,7 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/locale/localeconv.c,v $
- * $Date: 2005/03/31 09:47:01 $
- * $Revision: 1.8 $
- * $State: Exp $
- * $Author: nick $
- *
- ***************************************************************************/
-
-/* Character localisation support. Written by Nick Burrett, 20 July 1997.  */
+/* localeconv ()
+ * Written by Nick Burrett, 20 July 1997.
+ * Copyright (c) 1997-2006 UnixLib Developers
+ */
 
 #include <locale.h>
 #include <limits.h>

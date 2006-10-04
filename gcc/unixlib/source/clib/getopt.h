@@ -1,13 +1,3 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/getopt.h,v $
- * $Date: 2004/04/12 13:03:37 $
- * $Revision: 1.7 $
- * $State: Exp $
- * $Author: nick $
- *
- ***************************************************************************/
-
 /* Declarations for getopt.
    Copyright (C) 1989-1994, 1996-1999, 2001 Free Software Foundation, Inc.
    This file is part of the GNU C Library.

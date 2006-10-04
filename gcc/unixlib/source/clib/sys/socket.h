@@ -1,13 +1,3 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/sys/socket.h,v $
- * $Date: 2004/01/14 23:16:58 $
- * $Revision: 1.7 $
- * $State: Exp $
- * $Author: joty $
- *
- ***************************************************************************/
-
 /*
  * File taken from glibc 2.2.5.
  * Following changes were made:

@@ -1,12 +1,5 @@
-;----------------------------------------------------------------------------
-;
-; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/_jmp.s,v $
-; $Date: 2005/04/30 13:58:48 $
-; $Revision: 1.12 $
-; $State: Exp $
-; $Author: nick $
-;
-;----------------------------------------------------------------------------
+; setjmp, longjmp
+; Copyright (c) 2000-2006 UnixLib Developers
 
 	GET	clib/unixlib/asm_dec.s
 

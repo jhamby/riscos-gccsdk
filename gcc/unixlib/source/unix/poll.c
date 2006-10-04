@@ -1,12 +1,6 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/poll.c,v $
- * $Date: 2003/04/05 09:33:57 $
- * $Revision: 1.4 $
- * $State: Exp $
- * $Author: alex $
- *
- ***************************************************************************/
+/* poll ()
+ * Copyright (c) 2000-2006 UnixLib Developers
+ */
 
 #include <string.h>
 #include <stddef.h>

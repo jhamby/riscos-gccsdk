@@ -1,13 +1,7 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/netlib/getsockopt.c,v $
- * $Date: 2005/03/04 20:59:05 $
- * $Revision: 1.6 $
- * $State: Exp $
- * $Author: alex $
- *
- * (c) Copyright 1995 Sergio Monesi
- ***************************************************************************/
+/* getsockopt ()
+ * Copyright (c) 1995 Sergio Monesi
+ * Copyright (c) 1995-2006 UnixLib Developers
+ */
 
 #include <unixlib/unix.h>
 #include <sys/socket.h>

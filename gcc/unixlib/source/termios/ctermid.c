@@ -1,12 +1,6 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/termios/ctermid.c,v $
- * $Date: 2003/04/05 09:33:56 $
- * $Revision: 1.3 $
- * $State: Exp $
- * $Author: alex $
- *
- ***************************************************************************/
+/* ctermid ()
+ * Copyright (c) 2000-2006 UnixLib Developers
+ */
 
 #include <stdio.h>
 #include <string.h>

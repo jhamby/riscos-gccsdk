@@ -1,12 +1,6 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/stat/mkfifo.c,v $
- * $Date: 2002/11/18 15:42:33 $
- * $Revision: 1.2 $
- * $State: Exp $
- * $Author: admin $
- *
- ***************************************************************************/
+/* mkfifo ()
+ * Copyright (c) 2000-2006 UnixLib Developers
+ */
 
 #include <errno.h>
 #include <sys/stat.h>

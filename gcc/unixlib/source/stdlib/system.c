@@ -1,14 +1,7 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/stdlib/system.c,v $
- * $Date: 2005/04/20 17:12:10 $
- * $Revision: 1.1 $
- * $State: Exp $
- * $Author: nick $
- *
- ***************************************************************************/
-
-/* c.system: Written by Nick Burrett, 6 October 1996.  */
+/* system ()
+ * Written by Nick Burrett, 6 October 1996.
+ * Copyright 1996-2006 UnixLib Developers
+ */
 
 #include <errno.h>
 #include <stddef.h>

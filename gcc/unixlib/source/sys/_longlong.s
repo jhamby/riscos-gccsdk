@@ -1,12 +1,5 @@
-;----------------------------------------------------------------------------
-;
-; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/_longlong.s,v $
-; $Date: 2005/01/03 22:55:13 $
-; $Revision: 1.5 $
-; $State: Exp $
-; $Author: joty $
-;
-;----------------------------------------------------------------------------
+; Norcroft long long support routines
+; Copyright (c) 2003-2006 UnixLib Developers
 
 	GET	clib/unixlib/asm_dec.s
 

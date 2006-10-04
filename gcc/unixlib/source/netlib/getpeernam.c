@@ -1,13 +1,7 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/netlib/getpeernam.c,v $
- * $Date: 2005/04/07 18:34:11 $
- * $Revision: 1.8 $
- * $State: Exp $
- * $Author: nick $
- *
- * (c) Copyright 1995 Sergio Monesi
- ***************************************************************************/
+/* getpeername ()
+ * Copyright (c) 1995 Sergio Monesi
+ * Copyright (c) 1995-2006 UnixLib Developers
+ */
 
 #include <unixlib/unix.h>
 #include <sys/socket.h>

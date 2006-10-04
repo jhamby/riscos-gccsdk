@@ -1,13 +1,3 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/resolv/resolv.h,v $
- * $Date: 2004/10/17 16:24:43 $
- * $Revision: 1.2 $
- * $State: Exp $
- * $Author: joty $
- *
- ***************************************************************************/
-
 /*
  * File taken from glibc 2.2.5.
  * Following changes were made:

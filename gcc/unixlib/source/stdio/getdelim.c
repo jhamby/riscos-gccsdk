@@ -1,14 +1,7 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/stdio/getdelim.c,v $
- * $Date: 2003/04/13 16:21:02 $
- * $Revision: 1.3 $
- * $State: Exp $
- * $Author: alex $
- *
- ***************************************************************************/
-
-/* c.getdelim. Written by Nick Burrett, 27 October 1996.  */
+/* getdelim (), getline ()
+ * Written by Nick Burrett, 27 October 1996.
+ * Copyright (c) 1996-2006 UnixLib Developers
+ */
 
 #include <errno.h>
 #include <stddef.h>

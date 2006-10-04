@@ -1,15 +1,8 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/pwd/fgetpwentr.c,v $
- * $Date: 2005/04/14 12:13:09 $
- * $Revision: 1.4 $
- * $State: Exp $
- * $Author: nick $
- *
- ***************************************************************************/
-
-/* Read a password file entry (re-entrant version).
-   Written by Nick Burrett, 10 December 1997.  */
+/* fgetpwent_r
+ * Read a password file entry (re-entrant version).
+ * Written by Nick Burrett, 10 December 1997.
+ * Copyright (c) 1997-2006 UnixLib Developers
+ */
 
 #include <stddef.h>
 #include <stdio.h>

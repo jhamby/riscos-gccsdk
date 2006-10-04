@@ -1,12 +1,6 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/stdarg.h,v $
- * $Date: 2002/09/24 21:02:36 $
- * $Revision: 1.4 $
- * $State: Exp $
- * $Author: admin $
- *
- ***************************************************************************/
+/*
+ * Copyright (c) 2000-2006 GCCSDK Developers
+ */
 
 #ifdef __GNUC__
 /* If we're GCC, then we really don't want to be using this file.

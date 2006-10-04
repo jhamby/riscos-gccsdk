@@ -1,12 +1,5 @@
-;----------------------------------------------------------------------------
-;
-; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/_umod.s,v $
-; $Date: 2005/01/03 22:55:13 $
-; $Revision: 1.6 $
-; $State: Exp $
-; $Author: joty $
-;
-;----------------------------------------------------------------------------
+; _kernel_urem, x$uremainder, __rt_urem
+; Copyright (c) 2000-2006 UnixLib Developers
 
 	GET	clib/unixlib/asm_dec.s
 

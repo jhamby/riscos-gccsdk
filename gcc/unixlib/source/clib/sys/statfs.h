@@ -1,14 +1,7 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/sys/statfs.h,v $
- * $Date: 2004/04/17 10:51:15 $
- * $Revision: 1.4 $
- * $State: Exp $
- * $Author: nick $
- *
- ***************************************************************************/
-
-/* Definitions for getting information about a filesystem.  */
+/*
+ * Definitions for getting information about a filesystem.
+ * Copyright (c) 2000-2006 GCCSDK Developers
+ */
 
 #ifndef	__SYS_STATFS_H
 #define	__SYS_STATFS_H 1

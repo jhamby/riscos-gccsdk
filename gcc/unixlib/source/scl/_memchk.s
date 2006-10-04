@@ -1,12 +1,5 @@
-;----------------------------------------------------------------------------
 ;
-; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/scl/_memchk.s,v $
-; $Date: 2002/02/14 15:56:36 $
-; $Revision: 1.3 $
-; $State: Exp $
-; $Author: admin $
-;
-;----------------------------------------------------------------------------
+; Copyright (c) 2000-2006 UnixLib Developers
 
 	GET	clib/unixlib/asm_dec.s
 

@@ -1,12 +1,5 @@
-;----------------------------------------------------------------------------
-;
-; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/scl/_kswi_c.s,v $
-; $Date: 2004/11/28 21:31:34 $
-; $Revision: 1.5 $
-; $State: Exp $
-; $Author: joty $
-;
-;----------------------------------------------------------------------------
+; _kernel_swi_c
+; Copyright (c) 2000-2006 UnixLib Developers
 
 	GET	clib/unixlib/asm_dec.s
 

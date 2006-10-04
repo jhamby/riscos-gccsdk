@@ -1,12 +1,6 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/termios/tcgetattr.c,v $
- * $Date: 2005/04/05 21:11:22 $
- * $Revision: 1.8 $
- * $State: Exp $
- * $Author: alex $
- *
- ***************************************************************************/
+/* tcgetattr ()
+ * Copyright (c) 2000-2006 UnixLib Developers
+ */
 
 #include <stdio.h>
 #include <errno.h>

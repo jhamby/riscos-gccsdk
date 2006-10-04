@@ -1,13 +1,3 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/bits/netdb.h,v $
- * $Date: 2003/04/05 23:56:08 $
- * $Revision: 1.2 $
- * $State: Exp $
- * $Author: joty $
- *
- ***************************************************************************/
-
 /*
  * File taken from glibc 2.2.5.
  * Following changes were made:

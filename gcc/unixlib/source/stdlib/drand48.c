@@ -1,13 +1,3 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/stdlib/Attic/drand48.c,v $
- * $Date: 2002/07/19 13:14:49 $
- * $Revision: 1.1.2.2 $
- * $State: Exp $
- * $Author: admin $
- *
- ***************************************************************************/
-
 /*
  * Copyright (c) 1993 Martin Birgmeier
  * All rights reserved.

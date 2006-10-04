@@ -1,13 +1,6 @@
-;----------------------------------------------------------------------------
-;
-; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/signal/sigexec.s,v $
-; $Date: 2003/06/23 20:33:03 $
-; $Revision: 1.6 $
-; $State: Exp $
-; $Author: joty $
-;
-;----------------------------------------------------------------------------
-; signal.s.sigexec: Written by Nick Burrett, 1 September 1996.
+; __unixlib_exec_sig, __unixlib_exec_sigstack, __unixlib_exec_sigstack_bsd
+; Written by Nick Burrett, 1 September 1996.
+; Copyright (c) 1996-2006 UnixLib Developers
 
 	GET	clib/unixlib/asm_dec.s
 

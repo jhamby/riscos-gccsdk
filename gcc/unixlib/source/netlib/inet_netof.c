@@ -1,12 +1,6 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/netlib/inet_netof.c,v $
- * $Date: 2002/12/22 18:22:29 $
- * $Revision: 1.3 $
- * $State: Exp $
- * $Author: admin $
- *
- ***************************************************************************/
+/* inet_netof ()
+ * Copyright (c) 2000-2006 UnixLib Developers
+ */
 
 #include <arpa/inet.h>
 #include <netinet/in.h>

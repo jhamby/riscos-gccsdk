@@ -1,12 +1,7 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unistd/chown.c,v $
- * $Date: 2005/11/16 03:15:42 $
- * $Revision: 1.3 $
- * $State: Exp $
- * $Author: joty $
- *
- ***************************************************************************/
+/* lchown ()
+ * Written by Alex Waugh
+ * Copyright (c) 2006 UnixLib Developers
+ */
 
 #include <errno.h>
 #include <unistd.h>

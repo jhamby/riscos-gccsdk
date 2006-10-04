@@ -1,14 +1,7 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/ctype.h,v $
- * $Date: 2004/10/17 16:24:43 $
- * $Revision: 1.6 $
- * $State: Exp $
- * $Author: joty $
- *
- ***************************************************************************/
-
-/* ANSI Standard 4.3: Character Handling <ctype.h> */
+/*
+ * ANSI Standard 4.3: Character Handling <ctype.h>
+ * Copyright (c) 2000-2006 GCCSDK Developers
+ */
 
 #ifndef __CTYPE_H
 #define __CTYPE_H

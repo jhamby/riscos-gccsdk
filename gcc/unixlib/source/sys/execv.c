@@ -1,12 +1,6 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/execv.c,v $
- * $Date: 2002/09/24 21:02:38 $
- * $Revision: 1.3 $
- * $State: Exp $
- * $Author: admin $
- *
- ***************************************************************************/
+/* execv ()
+ * Copyright (c) 2000-2006 UnixLib Developers
+ */
 
 #include <unistd.h>
 

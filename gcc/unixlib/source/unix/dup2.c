@@ -1,12 +1,6 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/dup2.c,v $
- * $Date: 2005/03/04 20:59:06 $
- * $Revision: 1.3 $
- * $State: Exp $
- * $Author: alex $
- *
- ***************************************************************************/
+/* dup2 ()
+ * Copyright (c) 2000-2006 UnixLib Developers
+ */
 
 #include <errno.h>
 #include <fcntl.h>

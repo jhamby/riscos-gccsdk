@@ -1,3 +1,9 @@
+Wed Oct  4 22:22:30 CEST 2006  John Tytgat  <John.Tytgat@aaug.net>
+
+	* Removed all CVS identifiers, updated Copyright statements and years
+	based on SVN history (but UnixLib history starts before CVS/SVN so
+	start dates are not always correct).
+
 Sun Oct 01 01:02:06 CEST 2006  John Tytgat  <John.Tytgat@aaug.net>
 
 	Start of UnixLib 5.0 as RISC OS RunTime lib in ELF format.

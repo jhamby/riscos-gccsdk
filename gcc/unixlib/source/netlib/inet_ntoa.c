@@ -1,12 +1,6 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/netlib/inet_ntoa.c,v $
- * $Date: 2004/06/05 19:53:23 $
- * $Revision: 1.4 $
- * $State: Exp $
- * $Author: joty $
- *
- ***************************************************************************/
+/* inet_ntoa ()
+ * Copyright (c) 2000-2006 UnixLib Developers
+ */
 
 #include <stdio.h>
 

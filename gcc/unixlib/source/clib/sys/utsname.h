@@ -1,14 +1,7 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/sys/utsname.h,v $
- * $Date: 2004/04/17 10:51:15 $
- * $Revision: 1.5 $
- * $State: Exp $
- * $Author: nick $
- *
- ***************************************************************************/
-
-/* POSIX Standard 4.4: System Identification <sys/utsname.h> */
+/*
+ * POSIX Standard 4.4: System Identification <sys/utsname.h>
+ * Copyright (c) 2000-2006 GCCSDK Developers
+ */
 
 #ifndef __SYS_UTSNAME_H
 #define __SYS_UTSNAME_H 1

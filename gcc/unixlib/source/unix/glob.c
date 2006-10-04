@@ -1,13 +1,3 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/glob.c,v $
- * $Date: 2002/02/14 15:56:38 $
- * $Revision: 1.3 $
- * $State: Exp $
- * $Author: admin $
- *
- ***************************************************************************/
-
 /*
  * Copyright (c) 1989, 1993
  *	The Regents of the University of California.  All rights reserved.

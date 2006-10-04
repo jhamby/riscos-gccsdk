@@ -1,14 +1,8 @@
-/****************************************************************************
+/* getgrnam ()
+ * Search for an entry with a matching username.
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/grp/getgrnam.c,v $
- * $Date: 2005/04/14 12:13:09 $
- * $Revision: 1.4 $
- * $State: Exp $
- * $Author: nick $
- *
- ***************************************************************************/
-
-/* Search for an entry with a matching username. */
+ * Copyright (c) 2000-2006 UnixLib Developers
+ */
 
 #include <stddef.h>
 #include <stdio.h>

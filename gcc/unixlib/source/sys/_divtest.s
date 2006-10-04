@@ -1,12 +1,5 @@
-;----------------------------------------------------------------------------
-;
-; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/_divtest.s,v $
-; $Date: 2004/10/17 16:24:44 $
-; $Revision: 1.5 $
-; $State: Exp $
-; $Author: joty $
-;
-;----------------------------------------------------------------------------
+; __rt_divtest, x$divtest
+; Copyright (c) 2000-2006 UnixLib Developers
 
 	GET	clib/unixlib/asm_dec.s
 

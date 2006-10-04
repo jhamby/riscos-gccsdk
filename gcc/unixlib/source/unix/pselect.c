@@ -1,13 +1,3 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/pselect.c,v $
- * $Date: 2002/12/22 18:22:29 $
- * $Revision: 1.4 $
- * $State: Exp $
- * $Author: admin $
- *
- ***************************************************************************/
-
 /* Copyright (C) 1996, 1997, 1998, 2001 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
    Contributed by Ulrich Drepper <drepper@cygnus.com>, 1996.

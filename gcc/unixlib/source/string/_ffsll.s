@@ -1,14 +1,6 @@
-;----------------------------------------------------------------------------
-;
-; $Source: $
-; $Date: $
-; $Revision: $
-; $State: $
-; $Author: $
-;
-;----------------------------------------------------------------------------
-
-; Written by John Tytgat / BASS
+; ffsll
+; Written by John Tytgat
+; Copyright (c) 2004-2006 UnixLib Developers
 
 	GET	clib/unixlib/asm_dec.s
 

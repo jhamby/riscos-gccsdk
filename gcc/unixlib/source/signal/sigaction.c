@@ -1,14 +1,7 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/signal/sigaction.c,v $
- * $Date: 2003/04/28 21:04:36 $
- * $Revision: 1.4 $
- * $State: Exp $
- * $Author: alex $
- *
- ***************************************************************************/
-
-/* sigaction.c: Written by Nick Burrett, 31 August 1996.  */
+/* sigaction ()
+ * Written by Nick Burrett, 31 August 1996.
+ * Copyright (c) 1996-2006 UnixLib Developers
+ */
 
 #include <errno.h>
 #include <stddef.h>

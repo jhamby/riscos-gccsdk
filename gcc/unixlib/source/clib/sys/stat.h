@@ -1,14 +1,7 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/sys/stat.h,v $
- * $Date: 2004/10/17 16:24:43 $
- * $Revision: 1.10 $
- * $State: Exp $
- * $Author: joty $
- *
- ***************************************************************************/
-
-/* POSIX Standard 5.6: File Characteristics <sys/stat.h>.  */
+/*
+ * POSIX Standard 5.6: File Characteristics <sys/stat.h>.
+ * Copyright (c) 2000-2006 GCCSDK Developers
+ */
 
 #ifndef __SYS_STAT_H
 #define __SYS_STAT_H

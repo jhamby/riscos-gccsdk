@@ -1,12 +1,6 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/sys/resource.h,v $
- * $Date: 2005/04/13 19:20:06 $
- * $Revision: 1.8 $
- * $State: Exp $
- * $Author: nick $
- *
- ***************************************************************************/
+/*
+ * Copyright (c) 2000-2006 GCCSDK Developers
+ */
 
 #ifndef	__SYS_RESOURCE_H
 

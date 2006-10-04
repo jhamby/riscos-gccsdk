@@ -1,12 +1,6 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/termios/cfgetispee.c,v $
- * $Date: 2004/01/02 23:33:58 $
- * $Revision: 1.3 $
- * $State: Exp $
- * $Author: joty $
- *
- ***************************************************************************/
+/* cfgetispeed ()
+ * Copyright (c) 2000-2006 UnixLib Developers
+ */
 
 #include <errno.h>
 #include <stdlib.h>

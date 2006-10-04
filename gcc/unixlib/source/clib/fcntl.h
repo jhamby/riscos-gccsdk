@@ -1,15 +1,7 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/fcntl.h,v $
- * $Date: 2004/10/17 16:24:43 $
- * $Revision: 1.7 $
- * $State: Exp $
- * $Author: joty $
- *
- *
- ***************************************************************************/
-
-/* POSIX Standard 6.5: File Control Operations <fcntl.h> */
+/*
+ * POSIX Standard 6.5: File Control Operations <fcntl.h>
+ * Copyright (c) 2000-2006 GCCSDK Developers
+ */
 
 #ifndef __FCNTL_H
 #define __FCNTL_H

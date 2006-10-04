@@ -1,12 +1,6 @@
-;----------------------------------------------------------------------------
-;
-; $Source$
-; $Date$
-; $Revision$
-; $State$
-; $Author$
-;
-;----------------------------------------------------------------------------
+; _printf, _fprintf, _sprintf, _vfprintf, _vprintf, _snprintf
+; _vsprintf, _vsnprintf
+; Copyright (c) 2000-2006 UnixLib Developers
 
 	GET	clib/unixlib/asm_dec.s
 

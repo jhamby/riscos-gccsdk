@@ -1,12 +1,7 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/locale/nl_langinfo.c,v $
- * $Date: 2005/01/09 23:29:04 $
- * $Revision: 1.2 $
- * $State: Exp $
- * $Author: alex $
- *
- ***************************************************************************/
+/* ln_langinfo ()
+ * Written by Peter Naulls
+ * Copyright (c) 2004-2006 UnixLib Developers
+ */
 
 #include <locale.h>
 #include <nl_types.h>
@@ -29,4 +24,3 @@ nl_langinfo(nl_item item)
 
   return (char *)value;
 }
-

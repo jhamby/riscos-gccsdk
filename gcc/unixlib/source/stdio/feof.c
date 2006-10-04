@@ -1,12 +1,6 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/stdio/feof.c,v $
- * $Date: 2003/04/13 16:21:01 $
- * $Revision: 1.3 $
- * $State: Exp $
- * $Author: alex $
- *
- ***************************************************************************/
+/* feof ()
+ * Copyright (c) 2000-2006 UnixLib Developers
+ */
 
 #include <errno.h>
 #include <stdio.h>

@@ -967,7 +967,7 @@ no_chunk_to_free
 	; may change if a stack extension has occurred.
 	LDR	a1, [fp, #-4]
 	TEQ	pc, pc
-	BICNE	a1, a1, #0xfc000003	@ Drop flags in 26-bit mode
+	BICNE	a1, a1, #0xfc000003	; Drop flags in 26-bit mode
 	ADR	a2, free_stack_chunk
 
 	; If the return address in the frame points to the 'free_stack_chunk'
@@ -977,7 +977,7 @@ no_chunk_to_free
 	LDREQ	a1, [sl, #CHUNK_RETURN]
 
 	TEQ	pc, pc
-	BICNE	a1, a1, #0xfc000003	@ Drop flags in 26-bit mode
+	BICNE	a1, a1, #0xfc000003	; Drop flags in 26-bit mode
 
 	; XXX FIXME: Implement alloca() return address check.
 	MOV	pc, lr

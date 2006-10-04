@@ -1,12 +1,6 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/resource/getrlimit.c,v $
- * $Date: 2002/02/14 15:56:36 $
- * $Revision: 1.3 $
- * $State: Exp $
- * $Author: admin $
- *
- ***************************************************************************/
+/* getrlimit ()
+ * Copyright (c) 2000-2006 UnixLib Developers
+ */
 
 #include <sys/resource.h>
 #include <unixlib/os.h>

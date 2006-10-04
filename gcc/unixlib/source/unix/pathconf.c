@@ -1,16 +1,8 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/pathconf.c,v $
- * $Date: 2005/03/04 20:59:06 $
- * $Revision: 1.5 $
- * $State: Exp $
- * $Author: alex $
- *
- ***************************************************************************/
-
-/* unix.c.pathconf. Return filing system implementation details.
-
-   Written by Nick Burrett, 13 October 1996.  */
+/* pathconf (), fpathconf ()
+ * Return filing system implementation details.
+ * Written by Nick Burrett, 13 October 1996.
+ * Copyright (c) 1996-2006 UnixLib Developers
+ */
 
 #include <errno.h>
 #include <limits.h>

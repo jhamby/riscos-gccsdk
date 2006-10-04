@@ -1,15 +1,8 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/pwd/getpwuid_r.c,v $
- * $Date: 2005/04/14 12:13:09 $
- * $Revision: 1.5 $
- * $State: Exp $
- * $Author: nick $
- *
- ***************************************************************************/
-
-/* Search for an entry with a matching user ID (re-entrant version).
-   Contributed by Nick Burrett, 10 December 1997.  */
+/* getpwuid_r ()
+ * Search for an entry with a matching user ID (re-entrant version).
+ * Written by Nick Burrett, 10 December 1997.
+ * Copyright (c) 1997-2006 UnixLib Developers
+ */
 
 #include <stddef.h>
 #include <stdio.h>

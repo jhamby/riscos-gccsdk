@@ -1,14 +1,6 @@
-;----------------------------------------------------------------------------
-;
-; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/_udivsi3.s,v $
-; $Date: 2001/01/29 15:10:21 $
-; $Revision: 1.2 $
-; $State: Exp $
-; $Author: admin $
-;
-;----------------------------------------------------------------------------
-
+; __udivsi3, __udivmodsi4
 ; GCC compatability file
+; Copyright (c) 2000-2006 UnixLib Developers
 
 	GET	clib/unixlib/asm_dec.s
 

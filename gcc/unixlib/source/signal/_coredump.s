@@ -1,12 +1,5 @@
-;----------------------------------------------------------------------------
-;
-; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/signal/_coredump.s,v $
-; $Date: 2004/11/28 21:31:34 $
-; $Revision: 1.8 $
-; $State: Exp $
-; $Author: joty $
-;
-;----------------------------------------------------------------------------
+; __backtrace_getfp
+; Copyright (c) 2000-2006 UnixLib Developers
 
 	GET	clib/unixlib/asm_dec.s
 

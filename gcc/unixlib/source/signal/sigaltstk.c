@@ -1,14 +1,7 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/signal/sigaltstk.c,v $
- * $Date: 2003/04/28 21:04:36 $
- * $Revision: 1.4 $
- * $State: Exp $
- * $Author: alex $
- *
- ***************************************************************************/
-
-/* Written by Nick Burrett, 27 August 1996.  */
+/* sigaltstack ()
+ * Written by Nick Burrett, 27 August 1996.
+ * Copyright (c) 1996-2006 UnixLib Developers
+ */
 
 #include <signal.h>
 #include <errno.h>

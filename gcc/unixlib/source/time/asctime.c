@@ -1,14 +1,7 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/time/asctime.c,v $
- * $Date: 2003/04/05 09:33:56 $
- * $Revision: 1.3 $
- * $State: Exp $
- * $Author: alex $
- *
- ***************************************************************************/
-
-/* Territory time support, written by Nick Burrett on 12 July 1997.  */
+/* asctime ()
+ * Written by Nick Burrett on 12 July 1997.
+ * Copyright (c) 1997-2006 UnixLib Developers
+ */
 
 #include <time.h>
 

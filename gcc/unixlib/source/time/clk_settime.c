@@ -1,12 +1,7 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/time/asctime.c,v $
- * $Date: 2003/04/05 09:33:56 $
- * $Revision: 1.3 $
- * $State: Exp $
- * $Author: alex $
- *
- ***************************************************************************/
+/* clock_settime ()
+ * Written by Nick Burrett
+ * Copyright (c) 2005-2006 UnixLib Developers
+ */
 
 #include <errno.h>
 #include <time.h>

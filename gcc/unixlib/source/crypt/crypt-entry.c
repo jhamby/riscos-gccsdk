@@ -1,13 +1,3 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/crypt/crypt-entry.c,v $
- * $Date: 2002/11/18 15:38:12 $
- * $Revision: 1.2 $
- * $State: Exp $
- * $Author: admin $
- *
- ***************************************************************************/
-
 /*
  * File taken from glibc 2.2.5.
  * Following changes were made:

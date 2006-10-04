@@ -1,13 +1,3 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/Attic/sysexits.h,v $
- * $Date: 2001/09/11 12:57:05 $
- * $Revision: 1.1.2.1 $
- * $State: Exp $
- * $Author: admin $
- *
- ***************************************************************************/
-
 /*
  * Copyright (c) 1987, 1993
  *	The Regents of the University of California.  All rights reserved.

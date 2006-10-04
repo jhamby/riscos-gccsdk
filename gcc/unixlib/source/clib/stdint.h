@@ -1,12 +1,6 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/stdint.h,v $
- * $Date: 2004/04/10 10:25:32 $
- * $Revision: 1.8 $
- * $State: Exp $
- * $Author: nick $
- *
- ***************************************************************************/
+/*
+ * Copyright (c) 2000-2006 GCCSDK Developers
+ */
 
 #ifndef __STDINT_H
 #define __STDINT_H 1

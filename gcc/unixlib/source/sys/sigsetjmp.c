@@ -1,12 +1,6 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/sigsetjmp.c,v $
- * $Date: 2003/06/23 20:33:04 $
- * $Revision: 1.5 $
- * $State: Exp $
- * $Author: joty $
- *
- ***************************************************************************/
+/* __sigsetjmp_helper (), __siglongjmp_helper ()
+ * Copyright (c) 2000-2006 UnixLib Developers
+ */
 
 #include <setjmp.h>
 #include <unixlib/sigstate.h>

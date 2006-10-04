@@ -1,13 +1,3 @@
-/****************************************************************************
- *
- * $Source: $
- * $Date: $
- * $Revision: $
- * $State: $
- * $Author: $
- *
- ***************************************************************************/
-
 /* Copyright (C) 1993, 1995, 1996, 1997, 1998 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
    Contributed by David Mosberger (davidm@azstarnet.com).

@@ -1,13 +1,6 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/resource/getrusage.c,v $
- * $Date: 2005/04/13 19:20:06 $
- * $Revision: 1.4 $
- * $State: Exp $
- * $Author: nick $
- *
- * Written by Nick Burrett, 18 Feb 1996.
- ***************************************************************************/
+/* getrusage ()
+ * Copyright (c) 2000-2006 UnixLib Developers
+ */
 
 #include <sys/resource.h>
 #include <unixlib/unix.h>

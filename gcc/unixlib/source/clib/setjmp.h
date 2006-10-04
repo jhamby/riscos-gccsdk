@@ -1,14 +1,7 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/setjmp.h,v $
- * $Date: 2005/03/12 10:33:40 $
- * $Revision: 1.13 $
- * $State: Exp $
- * $Author: alex $
- *
- ***************************************************************************/
-
-/* ANSI Standard 4.6: Non-Local Jumps <setjmp.h>.  */
+/*
+ * ANSI Standard 4.6: Non-Local Jumps <setjmp.h>.
+ * Copyright (c) 2000-2006 GCCSDK Developers
+ */
 
 #ifndef __SETJMP_H
 #define __SETJMP_H

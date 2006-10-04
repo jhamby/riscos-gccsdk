@@ -1,12 +1,6 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/unixlib/os.h,v $
- * $Date: 2005/04/24 20:26:58 $
- * $Revision: 1.10 $
- * $State: Exp $
- * $Author: joty $
- *
- ***************************************************************************/
+/*
+ * Copyright (c) 2000-2006 GCCSDK Developers
+ */
 
 #ifndef __UNIXLIB_OS_H
 #define __UNIXLIB_OS_H

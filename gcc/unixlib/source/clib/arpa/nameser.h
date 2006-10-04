@@ -1,13 +1,3 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/arpa/nameser.h,v $
- * $Date: 2003/01/29 18:49:00 $
- * $Revision: 1.5 $
- * $State: Exp $
- * $Author: admin $
- *
- ***************************************************************************/
-
 /*
  * Copyright (c) 1996-1999 by Internet Software Consortium.
  *

@@ -1,12 +1,6 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/stdio/remove.c,v $
- * $Date: 2001/01/29 15:10:21 $
- * $Revision: 1.2 $
- * $State: Exp $
- * $Author: admin $
- *
- ***************************************************************************/
+/* remove ()
+ * Copyright (c) 2000-2006 UnixLib Developers
+ */
 
 #include <stdio.h>
 #include <unistd.h>

@@ -1,12 +1,6 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/time/utimes.c,v $
- * $Date: 2005/06/16 19:45:52 $
- * $Revision: 1.3 $
- * $State: Exp $
- * $Author: alex $
- *
- ***************************************************************************/
+/* utimes ()
+ * Copyright (c) 2000-2006 UnixLib Developers
+ */
 
 #include <utime.h>
 #include <sys/time.h>

@@ -1,14 +1,7 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/sys/wait.h,v $
- * $Date: 2004/04/17 10:51:15 $
- * $Revision: 1.5 $
- * $State: Exp $
- * $Author: nick $
- *
- ***************************************************************************/
-
-/* POSIX Standard 3.2.1: Wait for Process Termination <sys/wait.h>.  */
+/*
+ * POSIX Standard 3.2.1: Wait for Process Termination <sys/wait.h>.
+ * Copyright (c) 2000-2006 GCCSDK Developers
+ */
 
 #ifndef	__SYS_WAIT_H
 #define	__SYS_WAIT_H 1

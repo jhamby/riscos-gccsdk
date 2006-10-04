@@ -1,16 +1,8 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/signal/sigpause.c,v $
- * $Date: 2003/04/28 21:04:36 $
- * $Revision: 1.3 $
- * $State: Exp $
- * $Author: alex $
- *
- ***************************************************************************/
-
-/* signal.c.sigpause: BSD signal function.
-
-   Written by Nick Burrett, 5 October 1996.  */
+/* sigpause ()
+ * BSD signal function.
+ * Written by Nick Burrett, 5 October 1996.
+ * Copyright (c) 1996-2006 UnixLib Developers
+ */
 
 #include <signal.h>
 #include <pthread.h>

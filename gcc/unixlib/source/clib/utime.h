@@ -1,14 +1,7 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/utime.h,v $
- * $Date: 2002/09/24 21:02:37 $
- * $Revision: 1.4 $
- * $State: Exp $
- * $Author: admin $
- *
- ***************************************************************************/
-
-/* POSIX Standard: 5.6.6 Set File Access and Modification Times <utime.h> */
+/*
+ * POSIX Standard: 5.6.6 Set File Access and Modification Times <utime.h>
+ * Copyright (c) 2000-2006 GCCSDK Developers
+ */
 
 #ifndef	__UTIME_H
 #define	__UTIME_H  1

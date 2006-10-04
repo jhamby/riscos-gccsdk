@@ -1,13 +1,3 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/resolv/inet_addr.c,v $
- * $Date: 2002/12/22 18:22:29 $
- * $Revision: 1.1 $
- * $State: Exp $
- * $Author: admin $
- *
- ***************************************************************************/
-
 /*
  * File taken from glibc 2.2.5.
  * Following changes were made:

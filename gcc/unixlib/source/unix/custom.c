@@ -1,18 +1,10 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/custom.c,v $
- * $Date: 2005/04/18 11:30:48 $
- * $Revision: 1.3 $
- * $State: Exp $
- * $Author: peter $
- *
- ***************************************************************************/
-
 /*
  * Implement a custom UnixLib device.
  *
  * This is used where the device specific structures need to set on a per
  * file descriptor basis, such as faking a socket.
+ *
+ * Copyright (c) 2005-2006 UnixLib Developers
  */
 
 #include <swis.h>
@@ -129,5 +121,3 @@ __customfstat (int fd, struct stat *buf)
 {
   return __nullfstat(fd, buf);
 }
-
-

@@ -1,12 +1,6 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/time/setitmr.c,v $
- * $Date: 2005/04/23 10:56:41 $
- * $Revision: 1.8 $
- * $State: Exp $
- * $Author: nick $
- *
- ***************************************************************************/
+/* setitimer ()
+ * Copyright (c) 2000-2006 UnixLib Developers
+ */
 
 #include <stddef.h>
 #include <errno.h>

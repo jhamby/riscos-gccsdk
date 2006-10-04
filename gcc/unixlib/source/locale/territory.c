@@ -1,12 +1,6 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/locale/territory.c,v $
- * $Date: 2001/01/29 15:10:19 $
- * $Revision: 1.2 $
- * $State: Exp $
- * $Author: admin $
- *
- ***************************************************************************/
+/* __locale_territory
+ * Copyright (c) 2000-2006 UnixLib Developers
+ */
 
 #include <locale.h>
 

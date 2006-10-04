@@ -1,15 +1,8 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/signal/sigstack.c,v $
- * $Date: 2003/04/28 21:04:36 $
- * $Revision: 1.4 $
- * $State: Exp $
- * $Author: alex $
- *
- ***************************************************************************/
-
-/* sigstack.c: Written by Nick Burrett, 27 August 1996.
-   This is the BSD version of the POSIX function sigaltstack.  */
+/* sigstack ()
+ * This is the BSD version of the POSIX function sigaltstack.
+ * Written by Nick Burrett, 27 August 1996.
+ * Copyright (c) 1996-2006 UnixLib Developers
+ */
 
 #include <signal.h>
 #include <errno.h>

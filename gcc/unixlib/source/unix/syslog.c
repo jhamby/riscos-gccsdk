@@ -1,13 +1,3 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/syslog.c,v $
- * $Date: 2005/04/24 20:26:59 $
- * $Revision: 1.8 $
- * $State: Exp $
- * $Author: joty $
- *
- ***************************************************************************/
-
 /*
  * Copyright (c) 1983, 1988, 1993
  *      The Regents of the University of California.  All rights reserved.

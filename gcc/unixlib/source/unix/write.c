@@ -1,14 +1,6 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/write.c,v $
- * $Date: 2005/03/04 20:59:06 $
- * $Revision: 1.8 $
- * $State: Exp $
- * $Author: alex $
- *
- ***************************************************************************/
-
-/* #define DEBUG */
+/* write ()
+ * Copyright (c) 2000-2006 UnixLib Developers
+ */
 
 #include <errno.h>
 #include <fcntl.h>
@@ -22,7 +14,7 @@
 #include <pthread.h>
 
 #ifdef DEBUG
-#include <unixlib/os.h>
+#  include <unixlib/os.h>
 #endif
 
 ssize_t

@@ -1,14 +1,7 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/locale.h,v $
- * $Date: 2004/10/17 16:24:43 $
- * $Revision: 1.5 $
- * $State: Exp $
- * $Author: joty $
- *
- ***************************************************************************/
-
-/* ANSI Standard 4.4: Localisation <locale.h> */
+/*
+ * ANSI Standard 4.4: Localisation <locale.h>
+ * Copyright (c) 2000-2006 GCCSDK Developers
+ */
 
 #ifndef	__LOCALE_H
 #define	__LOCALE_H 1

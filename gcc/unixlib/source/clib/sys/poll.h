@@ -1,14 +1,7 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/sys/poll.h,v $
- * $Date: 2004/10/17 16:24:43 $
- * $Revision: 1.6 $
- * $State: Exp $
- * $Author: joty $
- *
- ***************************************************************************/
-
-/* System V poll interface.  */
+/*
+ * System V poll interface.
+ * Copyright (c) 2000-2006 GCCSDK Developers
+ */
 
 #ifndef __SYS_POLL_H
 #define __SYS_POLL_H

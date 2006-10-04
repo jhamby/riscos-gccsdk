@@ -1,12 +1,6 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/common/serial.c,v $
- * $Date: 2003/12/29 19:02:38 $
- * $Revision: 1.5 $
- * $State: Exp $
- * $Author: peter $
- *
- ***************************************************************************/
+/* __get_file_ino ()
+ * Copyright (c) 2000-2006 UnixLib Developers
+ */
 
 #include <stddef.h>
 #include <string.h>

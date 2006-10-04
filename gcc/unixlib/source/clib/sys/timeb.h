@@ -1,12 +1,6 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/sys/timeb.h,v $
- * $Date: 2004/04/17 10:51:15 $
- * $Revision: 1.5 $
- * $State: Exp $
- * $Author: nick $
- *
- ***************************************************************************/
+/*
+ * Copyright (c) 2000-2006 GCCSDK Developers
+ */
 
 #ifndef __SYS_TIMEB_H
 #define __SYS_TIMEB_H 1

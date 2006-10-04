@@ -1,14 +1,7 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/assert.h,v $
- * $Date: 2005/04/13 19:20:05 $
- * $Revision: 1.9 $
- * $State: Exp $
- * $Author: nick $
- *
- ***************************************************************************/
-
-/* ANSI Standard: 4.2 Diagnostics <assert.h>.  */
+/*
+ * ANSI Standard: 4.2 Diagnostics <assert.h>.
+ * Copyright (c) 2000-2006 GCCSDK Developers
+ */
 
 /* It is possible to turn assertions off and on in different functions within
    a translation unit by definining (or undefining) NDEBUG and including

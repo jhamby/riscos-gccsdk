@@ -1,14 +1,7 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/getdomain.c,v $
- * $Date: 2001/01/29 15:10:22 $
- * $Revision: 1.2 $
- * $State: Exp $
- * $Author: admin $
- *
- ***************************************************************************/
-
-/* unix/getdomain.c: Written by Peter Burwood, July 1997  */
+/* getdomainname (), setdomainname ()
+ * Written by Peter Burwood, July 1997
+ * Copyright (c) 1997-2006 UnixLib Developers
+ */
 
 #include <string.h>
 #include <stdlib.h>

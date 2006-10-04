@@ -1,13 +1,5 @@
-;----------------------------------------------------------------------------
-;
-; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/module/sul.s,v $
-; $Date: 2005/09/24 21:28:33 $
-; $Revision: 1.17 $
-; $State: Exp $
-; $Author: alex $
-;
-;----------------------------------------------------------------------------
-
+; SharedUnixLibrary
+; Copyright (c) 2002-2006 UnixLib Developers
 
 	GET	clib/unixlib/asm_dec.s
 

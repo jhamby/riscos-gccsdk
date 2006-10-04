@@ -1,17 +1,8 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/signal/sigprocmsk.c,v $
- * $Date: 2003/04/28 21:04:36 $
- * $Revision: 1.4 $
- * $State: Exp $
- * $Author: alex $
- *
- ***************************************************************************/
-
-/* signal.c.sigprocmsk: Implementation of the POSIX signal function
-   sigprocmask.
-
-   Written by Nick Burrett, 5 October 1996.  */
+/* sigprocmask ()
+ * Implementation of the POSIX signal function sigprocmask.
+ * Written by Nick Burrett, 5 October 1996.
+ * Copyright (c) 1996-2006 UnixLib Developers
+ */
 
 #include <errno.h>
 #include <signal.h>

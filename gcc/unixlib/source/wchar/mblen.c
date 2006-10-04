@@ -1,12 +1,6 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/wchar/mblen.c,v $
- * $Date: 2001/01/29 15:10:22 $
- * $Revision: 1.2 $
- * $State: Exp $
- * $Author: admin $
- *
- ***************************************************************************/
+/* mblen ()
+ * Copyright (c) 2000-2006 UnixLib Developers
+ */
 
 #include <stdlib.h>
 

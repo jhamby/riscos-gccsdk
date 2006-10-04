@@ -1,14 +1,7 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/errno.h,v $
- * $Date: 2005/04/19 18:30:43 $
- * $Revision: 1.18 $
- * $State: Exp $
- * $Author: nick $
- *
- ***************************************************************************/
-
-/* ANSI Standard 4.1.3: Errors <errno.h> */
+/*
+ * ANSI Standard 4.1.3: Errors <errno.h>
+ * Copyright (c) 2000-2006 GCCSDK Developers
+ */
 
 #ifndef __ERRNO_H
 #define __ERRNO_H

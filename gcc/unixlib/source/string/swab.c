@@ -1,15 +1,3 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/string/swab.c,v $
- * $Date: 2002/11/18 15:43:32 $
- * $Revision: 1.2 $
- * $State: Exp $
- * $Author: admin $
- *
- ***************************************************************************/
-
-#include <unistd.h>
-
 /* Copyright (C) 1992, 1996, 1997 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
@@ -27,6 +15,8 @@
    License along with the GNU C Library; if not, write to the Free
    Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
    02111-1307 USA.  */
+
+#include <unistd.h>
 
 void
 swab (const void *bfrom, void *bto, ssize_t n)

@@ -1,12 +1,6 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/nice.c,v $
- * $Date: 2005/04/24 20:26:59 $
- * $Revision: 1.3 $
- * $State: Exp $
- * $Author: joty $
- *
- ***************************************************************************/
+/* nice ()
+ * Copyright (c) 2000-2006 UnixLib Developers
+ */
 
 #include <unistd.h>
 #include <sys/resource.h>

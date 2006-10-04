@@ -1,13 +1,3 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/sys/types.h,v $
- * $Date: 2005/04/14 12:13:09 $
- * $Revision: 1.9 $
- * $State: Exp $
- * $Author: nick $
- *
- ***************************************************************************/
-
 /*
  * File taken from glibc 2.2.5.
  * Following changes were made:

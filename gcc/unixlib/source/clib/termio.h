@@ -1,12 +1,6 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/unixlib/source/clib/h/termio,v $
- * $Date: 1997/12/17 22:02:51 $
- * $Revision: 1.6 $
- * $State: Exp $
- * $Author: unixlib $
- *
- ***************************************************************************/
+/*
+ * Copyright (c) 2000-2006 GCCSDK Developers
+ */
 
 #ifndef __TERMIO_H
 #define __TERMIO_H

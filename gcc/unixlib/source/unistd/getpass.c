@@ -1,13 +1,3 @@
-/***************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unistd/getpass.c,v $
- * $Date: 2003/04/21 16:04:02 $
- * $Revision: 1.3 $
- * $State: Exp $
- * $Author: peter $
- *
- ***************************************************************************/  
-
 /* Copyright (C) 1992,93,94,95,96,97,98,99,2001 Free Software Foundation, Inc.
    This file is part of the GNU C Library. 
  

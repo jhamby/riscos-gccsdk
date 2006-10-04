@@ -1,12 +1,6 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/sys/uio.h,v $
- * $Date: 2004/04/17 10:51:15 $
- * $Revision: 1.6 $
- * $State: Exp $
- * $Author: nick $
- *
- ***************************************************************************/
+/*
+ * Copyright (c) 2000-2006 GCCSDK Developers
+ */
 
 #ifndef __SYS_UIO_H
 #define __SYS_UIO_H 1

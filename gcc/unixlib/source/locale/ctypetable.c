@@ -1,12 +1,6 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/locale/ctypetable.c,v $
- * $Date: 2003/01/21 17:54:22 $
- * $Revision: 1.4 $
- * $State: Exp $
- * $Author: admin $
- *
- ***************************************************************************/
+/* __build_ctype_tables ()
+ * Copyright (c) 2000-2006 UnixLib Developers
+ */
 
 #include <ctype.h>
 #include <unixlib/os.h>

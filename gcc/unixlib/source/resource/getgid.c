@@ -1,12 +1,6 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/resource/getgid.c,v $
- * $Date: 2005/03/04 20:59:06 $
- * $Revision: 1.4 $
- * $State: Exp $
- * $Author: alex $
- *
- ***************************************************************************/
+/* getgid ()
+ * Copyright (c) 2000-2006 UnixLib Developers
+ */
 
 #include <unistd.h>
 #include <unixlib/unix.h>

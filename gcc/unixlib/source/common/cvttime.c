@@ -1,12 +1,6 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/common/cvttime.c,v $
- * $Date: 2001/01/29 15:10:19 $
- * $Revision: 1.2 $
- * $State: Exp $
- * $Author: admin $
- *
- ***************************************************************************/
+/* __cvt_riscos_time (), __cvt_unix_time ()
+ * Copyright (c) 2000-2006 UnixLib Developers
+ */
 
 #include <unixlib/local.h>
 #include <unixlib/types.h>

@@ -1,14 +1,7 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/signal/sigvec.c,v $
- * $Date: 2004/03/17 20:00:51 $
- * $Revision: 1.6 $
- * $State: Exp $
- * $Author: joty $
- *
- ***************************************************************************/
-
-/* c.sigvec: Written by Nick Burrett, 30 August 1996.  */
+/* sigvec ()
+ * Written by Nick Burrett, 30 August 1996.
+ * Copyright (c) 1996-2006 UnixLib Developers
+ */
 
 #include <signal.h>
 #include <errno.h>

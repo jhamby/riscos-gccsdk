@@ -1,14 +1,7 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/sys/times.h,v $
- * $Date: 2004/04/17 10:51:15 $
- * $Revision: 1.5 $
- * $State: Exp $
- * $Author: nick $
- *
- ***************************************************************************/
-
-/* POSIX Standard 4.5.2: Process Times <sys/times.h>.  */
+/*
+ * POSIX Standard 4.5.2: Process Times <sys/times.h>.
+ * Copyright (c) 2000-2006 GCCSDK Developers
+ */
 
 #ifndef __SYS_TIMES_H
 #define __SYS_TIMES_H

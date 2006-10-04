@@ -1,14 +1,7 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/unistd.h,v $
- * $Date: 2005/04/13 19:20:06 $
- * $Revision: 1.18 $
- * $State: Exp $
- * $Author: nick $
- *
- ***************************************************************************/
-
-/* POSIX Standard 2.10: Symbolic Constants <unistd.h>.  */
+/*
+ * POSIX Standard 2.10: Symbolic Constants <unistd.h>.
+ * Copyright (c) 2000-2006 GCCSDK Developers
+ */
 
 #ifndef __UNISTD_H
 #define __UNISTD_H

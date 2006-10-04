@@ -1,12 +1,6 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/execvp.c,v $
- * $Date: 2004/12/11 14:18:57 $
- * $Revision: 1.6 $
- * $State: Exp $
- * $Author: joty $
- *
- ***************************************************************************/
+/* execvp ()
+ * Copyright (c) 2000-2006 UnixLib Developers
+ */
 
 #include <unistd.h>
 

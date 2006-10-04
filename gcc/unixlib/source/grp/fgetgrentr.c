@@ -1,14 +1,8 @@
-/****************************************************************************
+/* fgetgrent_r ()
+ * Read a group password file entry (re-entrant version).
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/grp/fgetgrentr.c,v $
- * $Date: 2005/04/14 12:13:09 $
- * $Revision: 1.4 $
- * $State: Exp $
- * $Author: nick $
- *
- ***************************************************************************/
-
-/* Read a group password file entry (re-entrant version). */
+ * Copyright (c) 2002-2006 UnixLib Developers
+ */
 
 #include <stddef.h>
 #include <stdio.h>

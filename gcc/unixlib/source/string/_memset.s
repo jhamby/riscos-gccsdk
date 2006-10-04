@@ -1,15 +1,6 @@
-;----------------------------------------------------------------------------
-;
-; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/string/_memset.s,v $
-; $Date: 2005/04/04 12:01:15 $
-; $Revision: 1.1 $
-; $State: Exp $
-; $Author: peter $
-;
-;----------------------------------------------------------------------------
-
-; Fast memset Contriubted by Adrian Lees
-
+; Fast memset
+; Written by Adrian Lees
+; Copyright (c) 2005-2006 UnixLib Developers
 
 	GET	clib/unixlib/asm_dec.s
 

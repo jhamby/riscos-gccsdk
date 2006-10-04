@@ -1,12 +1,6 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/netinet/ip_var.h,v $
- * $Date: 2002/12/22 18:22:28 $
- * $Revision: 1.4 $
- * $State: Exp $
- * $Author: admin $
- *
- ***************************************************************************/
+/*
+ * Copyright (c) 2000-2006 GCCSDK Developers
+ */
 
 #ifndef __NETINET_IP_VAR_H
 #define __NETINET_IP_VAR_H 1

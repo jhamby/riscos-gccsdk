@@ -1,12 +1,6 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/pipe.c,v $
- * $Date: 2005/11/12 17:45:17 $
- * $Revision: 1.9 $
- * $State: Exp $
- * $Author: alex $
- *
- ***************************************************************************/
+/* pipe ()
+ * Copyright (c) 2000-2006 UnixLib Developers
+ */
 
 #include <stdlib.h>
 #include <string.h>

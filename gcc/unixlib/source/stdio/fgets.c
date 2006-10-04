@@ -1,12 +1,6 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/stdio/fgets.c,v $
- * $Date: 2005/04/14 12:13:09 $
- * $Revision: 1.4 $
- * $State: Exp $
- * $Author: nick $
- *
- ***************************************************************************/
+/* fgets ()
+ * Copyright (c) 2000-2006 UnixLib Developers
+ */
 
 #include <stdio.h>
 #include <errno.h>

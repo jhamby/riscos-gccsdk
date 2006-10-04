@@ -1,12 +1,6 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/common/objattr.c,v $
- * $Date: 2005/04/18 17:04:56 $
- * $Revision: 1.7 $
- * $State: Exp $
- * $Author: nick $
- *
- ***************************************************************************/
+/* __object_get_attrs ()
+ * Copyright (c) 2000-2006 UnixLib Developers
+ */
 
 #include <errno.h>
 

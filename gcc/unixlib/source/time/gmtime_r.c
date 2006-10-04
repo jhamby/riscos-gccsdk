@@ -1,14 +1,7 @@
-/****************************************************************************
- *
- * $Source$
- * $Date$
- * $Revision$
- * $State$
- * $Author$
- *
- ***************************************************************************/
-
-/* Territory time support, written by Nick Burrett on 12 July 1997.  */
+/* gmtime_r ()
+ * Written by Nick Burrett on 12 July 1997.
+ * Copyright (c) 1997-2006 UnixLib Developers
+ */
 
 #include <time.h>
 #include <kernel.h>

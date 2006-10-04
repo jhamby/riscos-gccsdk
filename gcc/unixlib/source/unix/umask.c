@@ -1,12 +1,6 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/umask.c,v $
- * $Date: 2005/03/04 20:59:06 $
- * $Revision: 1.5 $
- * $State: Exp $
- * $Author: alex $
- *
- ***************************************************************************/
+/* umask ()
+ * Copyright (c) 2000-2006 UnixLib Developers
+ */
 
 #include <unixlib/types.h>
 #include <sys/stat.h>

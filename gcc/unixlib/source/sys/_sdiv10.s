@@ -1,12 +1,5 @@
-;----------------------------------------------------------------------------
-;
-; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/_sdiv10.s,v $
-; $Date: 2003/04/05 23:56:08 $
-; $Revision: 1.5 $
-; $State: Exp $
-; $Author: joty $
-;
-;----------------------------------------------------------------------------
+; _kernel_sdiv10, __rt_sdiv10
+; Copyright (c) 2000-2006 UnixLib Developers
 
 	GET	clib/unixlib/asm_dec.s
 

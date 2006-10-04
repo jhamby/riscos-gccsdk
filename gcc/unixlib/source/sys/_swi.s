@@ -1,14 +1,5 @@
-;----------------------------------------------------------------------------
-;
-; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/_swi.s,v $
-; $Date: 2005/03/19 19:25:47 $
-; $Revision: 1.7 $
-; $State: Exp $
-; $Author: jmb $
-;
-; _swi and _swix implementation
-;
-;----------------------------------------------------------------------------
+; _swi, _swix
+; Copyright (c) 2002-2006 UnixLib Developers
 
 	AREA |C$$code|, CODE, READONLY
 

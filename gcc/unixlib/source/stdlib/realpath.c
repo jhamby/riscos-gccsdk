@@ -1,12 +1,6 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/stdlib/realpath.c,v $
- * $Date: 2004/03/17 20:00:51 $
- * $Revision: 1.4 $
- * $State: Exp $
- * $Author: joty $
- *
- ***************************************************************************/
+/* realpath ()
+ * Copyright 2002-2006 UnixLib Developers
+ */
 
 #include <errno.h>
 #include <stdlib.h>

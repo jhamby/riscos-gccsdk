@@ -1,14 +1,7 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/locale/setlocale.c,v $
- * $Date: 2005/03/31 12:52:25 $
- * $Revision: 1.7 $
- * $State: Exp $
- * $Author: nick $
- *
- ***************************************************************************/
-
-/* Locale support. Written by Nick Burrett, 20 July 1997.  */
+/* setlocale ()
+ * Written by Nick Burrett, 20 July 1997.
+ * Copyright (c) 1997-2006 UnixLib Developers
+ */
 
 #include <ctype.h>
 #include <errno.h>

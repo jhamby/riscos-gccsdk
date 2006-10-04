@@ -1,12 +1,6 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/grp.h,v $
- * $Date: 2005/04/14 12:13:09 $
- * $Revision: 1.8 $
- * $State: Exp $
- * $Author: nick $
- *
- ***************************************************************************/
+/*
+ * Copyright (c) 2002-2006 GCCSDK Developers
+ */
 
 #ifndef __GRP_H
 #define __GRP_H 1

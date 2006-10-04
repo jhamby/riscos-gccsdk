@@ -1,14 +1,7 @@
-;----------------------------------------------------------------------------
-;
-; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/string/_strcpy.s,v $
-; $Date: 2005/04/01 16:08:12 $
-; $Revision: 1.1 $
-; $State: Exp $
-; $Author: peter $
-;
-;----------------------------------------------------------------------------
+; Fast strcpy
+; Written by Adrian Lees
+; Copyright (c) 2005-2006 UnixLib Developers
 
-; Fast strcpy Contriubted by Adrian Lees
 ; ----- Remember that string-handling routines can only read one
 ;       word ahead without risking a data abort :-(
 

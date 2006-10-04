@@ -1,12 +1,5 @@
-;----------------------------------------------------------------------------
-;
-; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/_vfork.s,v $
-; $Date: 2005/03/04 20:59:06 $
-; $Revision: 1.12 $
-; $State: Exp $
-; $Author: alex $
-;
-;----------------------------------------------------------------------------
+; vfork, fork
+; Copyright (c) 2000-2006 UnixLib Developers
 
 	GET	clib/unixlib/asm_dec.s
 

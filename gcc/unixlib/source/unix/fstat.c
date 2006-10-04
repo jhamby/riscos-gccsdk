@@ -1,12 +1,6 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/fstat.c,v $
- * $Date: 2005/04/14 15:17:23 $
- * $Revision: 1.11 $
- * $State: Exp $
- * $Author: nick $
- *
- ***************************************************************************/
+/* fstat (), fstat64 ()
+ * Copyright (c) 2000-2006 UnixLib Developers
+ */
 
 #include <errno.h>
 #include <fcntl.h>

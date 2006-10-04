@@ -1,14 +1,7 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/pwd.h,v $
- * $Date: 2004/10/17 16:24:43 $
- * $Revision: 1.8 $
- * $State: Exp $
- * $Author: joty $
- *
- ***************************************************************************/
-
-/* POSIX Standard 9.2.2 User Database Access <pwd.h>.  */
+/*
+ * POSIX Standard 9.2.2 User Database Access <pwd.h>.
+ * Copyright (c) 2000-2006 GCCSDK Developers
+ */
 
 #ifndef __PWD_H
 #define __PWD_H 1

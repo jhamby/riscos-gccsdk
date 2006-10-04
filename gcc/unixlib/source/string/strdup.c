@@ -1,12 +1,6 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/string/strdup.c,v $
- * $Date: 2005/04/20 17:12:10 $
- * $Revision: 1.1 $
- * $State: Exp $
- * $Author: nick $
- *
- ***************************************************************************/
+/* strdup ()
+ * Copyright (c) 2000-2006 UnixLib Developers
+ */
 
 #include <stdlib.h>
 #include <string.h>

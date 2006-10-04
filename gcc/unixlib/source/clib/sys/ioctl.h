@@ -1,13 +1,3 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/sys/ioctl.h,v $
- * $Date: 2004/10/17 16:24:43 $
- * $Revision: 1.7 $
- * $State: Exp $
- * $Author: joty $
- *
- ***************************************************************************/
-
 /*-
  * Copyright (c) 1982, 1986, 1990, 1993, 1994
  *      The Regents of the University of California.  All rights reserved.

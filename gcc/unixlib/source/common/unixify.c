@@ -1,12 +1,6 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/common/unixify.c,v $
- * $Date: 2005/12/15 05:15:46 $
- * $Revision: 1.21 $
- * $State: Exp $
- * $Author: peter $
- *
- ***************************************************************************/
+/*
+ * Copyright (c) 2000-2006 UnixLib Developers
+ */
 
 #include <errno.h>
 #include <string.h>

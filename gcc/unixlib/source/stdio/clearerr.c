@@ -1,12 +1,6 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/stdio/clearerr.c,v $
- * $Date: 2003/04/13 16:21:01 $
- * $Revision: 1.3 $
- * $State: Exp $
- * $Author: alex $
- *
- ***************************************************************************/
+/* clearerr ()
+ * Copyright (c) 2000-2006 UnixLib Developers
+ */
 
 #include <errno.h>
 #include <stdio.h>
@@ -22,6 +16,7 @@ void clearerr (FILE *stream)
       errno = EINVAL;
       return;
     }
+
   stream->__error = 0;
   stream->__eof = 0;
 }

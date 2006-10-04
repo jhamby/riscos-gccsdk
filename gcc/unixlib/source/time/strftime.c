@@ -1,13 +1,3 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/time/strftime.c,v $
- * $Date: 2005/04/24 20:26:59 $
- * $Revision: 1.6 $
- * $State: Exp $
- * $Author: joty $
- *
- ***************************************************************************/
-
 /* UnixLib port by Nick Burrett, 13 July 1997.  */
 
 /*

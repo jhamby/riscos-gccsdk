@@ -1,14 +1,6 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/stdio/flsbuf.c,v $
- * $Date: 2004/12/11 14:18:57 $
- * $Revision: 1.6 $
- * $State: Exp $
- * $Author: joty $
- *
- ***************************************************************************/
-
-/* #define DEBUG */
+/* __flsbuf ()
+ * Copyright (c) 2000-2006 UnixLib Developers
+ */
 
 #include <errno.h>
 #include <stdlib.h>
@@ -18,7 +10,7 @@
 #include <pthread.h>
 
 #ifdef DEBUG
-#include <unixlib/os.h>
+#  include <unixlib/os.h>
 #endif
 
 __STDIOLIB__

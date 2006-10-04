@@ -1,12 +1,6 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/putenv.c,v $
- * $Date: 2005/03/15 22:09:40 $
- * $Revision: 1.4 $
- * $State: Exp $
- * $Author: alex $
- *
- ***************************************************************************/
+/* putenv ()
+ * Copyright (c) 2000-2006 UnixLib Developers
+ */
 
 #include <stdlib.h>
 #include <string.h>
@@ -14,8 +8,6 @@
 #include <pthread.h>
 #include <errno.h>
 #include <unistd.h>
-
-/*#define DEBUG*/
 
 /* Add NAME=VALUE to the environment. If NAME is already in the environment,
    only add when replace is non-zero.  If string is non-NULL then it is

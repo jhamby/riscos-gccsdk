@@ -1,12 +1,6 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/termios/tcgetpgrp.c,v $
- * $Date: 2001/01/29 15:10:21 $
- * $Revision: 1.2 $
- * $State: Exp $
- * $Author: admin $
- *
- ***************************************************************************/
+/* tcgetpgrp ()
+ * Copyright (c) 2000-2006 UnixLib Developers
+ */
 
 #include <sys/ioctl.h>
 #include <errno.h>

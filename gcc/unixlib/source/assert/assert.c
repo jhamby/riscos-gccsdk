@@ -1,12 +1,6 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/assert/assert.c,v $
- * $Date: 2005/04/20 17:12:09 $
- * $Revision: 1.1 $
- * $State: Exp $
- * $Author: nick $
- *
- ***************************************************************************/
+/* __assert2 (), assert ()
+ * Copyright (c) 2000-2006 UnixLib Developers
+ */
 
 #include <stdio.h>
 #include <stdlib.h>

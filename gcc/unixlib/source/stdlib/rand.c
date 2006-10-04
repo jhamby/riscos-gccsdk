@@ -1,12 +1,6 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/stdlib/rand.c,v $
- * $Date: 2003/01/21 17:54:22 $
- * $Revision: 1.3 $
- * $State: Exp $
- * $Author: admin $
- *
- ***************************************************************************/
+/* srand (), rand ()
+ * Copyright (c) 2002-2006 UnixLib Developers
+ */
 
 #include <stdlib.h>
 #include <pthread.h>

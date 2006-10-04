@@ -1,14 +1,8 @@
-/****************************************************************************
+/* __grpread ()
+ * Internal group password-file reading functions.
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/grp/grpread.c,v $
- * $Date: 2003/01/21 17:54:22 $
- * $Revision: 1.3 $
- * $State: Exp $
- * $Author: admin $
- *
- ***************************************************************************/
-
-/* Internal group password-file reading functions. */
+ * Copyright (c) 2002-2006 UnixLib Developers
+ */
 
 #include <errno.h>
 #include <limits.h>

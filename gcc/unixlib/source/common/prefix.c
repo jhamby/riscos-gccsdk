@@ -1,12 +1,6 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/common/prefix.c,v $
- * $Date: 2005/03/15 22:09:37 $
- * $Revision: 1.2 $
- * $State: Exp $
- * $Author: alex $
- *
- ***************************************************************************/
+/* __get_dde_prefix ()
+ * Copyright (c) 2000-2006 UnixLib Developers
+ */
 
 #include <stdlib.h>
 #include <string.h>

@@ -1,12 +1,6 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/termios/cuserid.c,v $
- * $Date: 2003/04/05 09:33:56 $
- * $Revision: 1.3 $
- * $State: Exp $
- * $Author: alex $
- *
- ***************************************************************************/
+/* cuserid ()
+ * Copyright (c) 2000-2006 UnixLib Developers
+ */
 
 #include <pwd.h>
 #include <stdio.h>

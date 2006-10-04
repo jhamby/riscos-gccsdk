@@ -1,13 +1,3 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/string/byteswap.h,v $
- * $Date: 2002/12/22 18:32:47 $
- * $Revision: 1.1 $
- * $State: Exp $
- * $Author: admin $
- *
- ***************************************************************************/
-
 /* Copyright (C) 1997 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 

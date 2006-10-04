@@ -1,12 +1,6 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/time/getitmr.c,v $
- * $Date: 2003/11/23 20:26:45 $
- * $Revision: 1.4 $
- * $State: Exp $
- * $Author: joty $
- *
- ***************************************************************************/
+/* getitimer ()
+ * Copyright (c) 2000-2006 UnixLib Developers
+ */
 
 #include <stddef.h>
 #include <errno.h>

@@ -1,14 +1,7 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/dirent.h,v $
- * $Date: 2005/04/22 08:45:40 $
- * $Revision: 1.13 $
- * $State: Exp $
- * $Author: nick $
- *
- ***************************************************************************/
-
-/* POSIX Standard 5.1.2: Directory Operations <dirent.h> */
+/*
+ * POSIX Standard 5.1.2: Directory Operations <dirent.h>
+ * Copyright (c) 2000-2006 GCCSDK Developers
+ */
 
 #ifndef __DIRENT_H
 #define __DIRENT_H

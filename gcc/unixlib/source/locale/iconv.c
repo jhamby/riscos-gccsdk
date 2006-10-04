@@ -1,12 +1,7 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/locale/iconv.c,v $
- * $Date: 2005/04/19 08:50:36 $
- * $Revision: 1.9 $
- * $State: Exp $
- * $Author: nick $
- *
- ***************************************************************************/
+/* iconv_open (), iconv (), iconv_close ()
+ * Written by Peter Naulls
+ * Copyright (c) 2004-2006 UnixLib Developers
+ */
 
 #include <stdlib.h>
 

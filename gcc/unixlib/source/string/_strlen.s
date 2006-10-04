@@ -1,14 +1,7 @@
-;----------------------------------------------------------------------------
-;
-; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/string/_strlen.s,v $
-; $Date: 2005/04/01 16:08:12 $
-; $Revision: 1.1 $
-; $State: Exp $
-; $Author: peter $
-;
-;----------------------------------------------------------------------------
+; Fast strlen
+; Written by Adrian Lees
+; Copyright (c) 2005-2006 UnixLib Developers
 
-; Fast strlen Contriubted by Adrian Lees
 ; Determine the length of a NUL-terminated string
 ;
 ; entry	a1 -> NUL-terminated string

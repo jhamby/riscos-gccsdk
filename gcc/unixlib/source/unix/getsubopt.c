@@ -1,12 +1,6 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/unixlib/source/unix/c/getsubopt,v $
- * $Date: 1997/10/09 20:00:51 $
- * $Revision: 1.4 $
- * $State: Exp $
- * $Author: unixlib $
- *
- ***************************************************************************/
+/* getsubopt ()
+ * Copyright (c) 2000-2006 UnixLib Developers
+ */
 
 #include <unistd.h>
 #include <stdlib.h>

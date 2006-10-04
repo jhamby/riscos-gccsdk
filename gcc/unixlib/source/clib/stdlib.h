@@ -1,14 +1,7 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/stdlib.h,v $
- * $Date: 2005/04/13 19:20:05 $
- * $Revision: 1.18 $
- * $State: Exp $
- * $Author: nick $
- *
- ***************************************************************************/
-
-/* ANSI Standard 4.10: General Utilities <stdlib.h>.  */
+/*
+ * ANSI Standard 4.10: General Utilities <stdlib.h>.
+ * Copyright (c) 2000-2006 GCCSDK Developers
+ */
 
 #ifndef __STDLIB_H
 #define __STDLIB_H

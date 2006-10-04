@@ -1,12 +1,5 @@
-;----------------------------------------------------------------------------
-;
-; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/_profile.s,v $
-; $Date: 2002/09/24 21:02:38 $
-; $Revision: 1.4 $
-; $State: Exp $
-; $Author: admin $
-;
-;----------------------------------------------------------------------------
+; _count, _count1
+; Copyright (c) 2000-2006 UnixLib Developers
 
 	GET	clib/unixlib/asm_dec.s
 

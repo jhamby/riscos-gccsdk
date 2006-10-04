@@ -1,12 +1,6 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/unixlib/source/clib/h/float,v $
- * $Date: 1997/10/09 19:59:46 $
- * $Revision: 1.4 $
- * $State: Exp $
- * $Author: unixlib $
- *
- ***************************************************************************/
+/*
+ * Copyright (c) 2000-2006 GCCSDK Developers
+ */
 
 #ifndef __FLOAT_H
 #define __FLOAT_H

@@ -1,13 +1,6 @@
-;----------------------------------------------------------------------------
-;
-; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/_mman.s,v $
-; $Date: 2002/09/24 21:02:38 $
-; $Revision: 1.3 $
-; $State: Exp $
-; $Author: admin $
-;
-;----------------------------------------------------------------------------
-; sys/_mman.s: Written by Peter Burwood, June 1997
+; __mmap_page_copy
+; Written by Peter Burwood, June 1997
+; Copyright (c) 1997-2006 UnixLib Developers
 
 	GET	clib/unixlib/asm_dec.s
 

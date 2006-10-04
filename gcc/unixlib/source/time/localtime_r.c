@@ -1,14 +1,7 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/time/localtime_r.c,v $
- * $Date: 2002/12/13 11:07:59 $
- * $Revision: 1.1 $
- * $State: Exp $
- * $Author: admin $
- *
- ***************************************************************************/
-
-/* Territory time support, written by Nick Burrett on 12 July 1997.  */
+/* localtime_r ()
+ * Written by Nick Burrett on 12 July 1997.
+ * Copyright (c) 1997-2006 UnixLib Developers
+ */
 
 #include <time.h>
 #include <kernel.h>

@@ -1,14 +1,7 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/sys/select.h,v $
- * $Date: 2005/04/13 19:20:06 $
- * $Revision: 1.8 $
- * $State: Exp $
- * $Author: nick $
- *
- ***************************************************************************/
-
-/* POSIX 1003.1g: 6.2 Select from File Descriptor Sets */
+/*
+ * POSIX 1003.1g: 6.2 Select from File Descriptor Sets
+ * Copyright (c) 2000-2006 GCCSDK Developers
+ */
 
 #ifndef __SYS_SELECT_H
 #define __SYS_SELECT_H

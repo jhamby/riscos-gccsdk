@@ -1,14 +1,9 @@
-/****************************************************************************
+/* setgrent (), endgrent (), getgrent (), getgrent_r ()
+ * Group Password-file operations.
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/grp/getgrent.c,v $
- * $Date: 2005/04/14 12:13:09 $
- * $Revision: 1.4 $
- * $State: Exp $
- * $Author: nick $
- *
- ***************************************************************************/
+ * Copyright (c) 2002-2006 UnixLib Developers
+ */
 
-/* Group Password-file operations. */
 
 #include <stddef.h>
 #include <stdio.h>

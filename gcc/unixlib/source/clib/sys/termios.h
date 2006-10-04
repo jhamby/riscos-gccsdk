@@ -1,12 +1,6 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/sys/Attic/termios.h,v $
- * $Date: 2001/09/03 12:03:29 $
- * $Revision: 1.1.2.1 $
- * $State: Exp $
- * $Author: admin $
- *
- ***************************************************************************/
+/*
+ * Copyright (c) 2002-2006 GCCSDK Developers
+ */
 
 #ifndef __SYS_TERMIOS_H
 #define __SYS_TERMIOS_H 1

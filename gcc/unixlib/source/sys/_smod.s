@@ -1,12 +1,5 @@
-;----------------------------------------------------------------------------
-;
-; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/_smod.s,v $
-; $Date: 2005/01/03 22:55:13 $
-; $Revision: 1.6 $
-; $State: Exp $
-; $Author: joty $
-;
-;----------------------------------------------------------------------------
+; _kernel_srem, x$remainder, __rt_srem
+; Copyright (c) 2000-2006 UnixLib Developers
 
 	GET	clib/unixlib/asm_dec.s
 

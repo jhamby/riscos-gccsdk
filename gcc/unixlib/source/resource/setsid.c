@@ -1,12 +1,6 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/resource/setsid.c,v $
- * $Date: 2003/04/21 13:20:39 $
- * $Revision: 1.1 $
- * $State: Exp $
- * $Author: peter $
- *
- ***************************************************************************/
+/* setsid ()
+ * Copyright (c) 2003-2006 UnixLib Developers
+ */
 
 #include <unistd.h>
 #include <unixlib/unix.h>

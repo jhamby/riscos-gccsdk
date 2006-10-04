@@ -1,13 +1,3 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/wchar.h,v $
- * $Date: 2004/08/16 21:01:26 $
- * $Revision: 1.6 $
- * $State: Exp $
- * $Author: joty $
- *
- ***************************************************************************/
-
 /* Copyright (C) 1995, 1996 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 

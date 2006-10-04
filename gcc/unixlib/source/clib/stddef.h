@@ -1,12 +1,6 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/stddef.h,v $
- * $Date: 2003/04/22 10:59:44 $
- * $Revision: 1.5 $
- * $State: Exp $
- * $Author: peter $
- *
- ***************************************************************************/
+/*
+ * Copyright (c) 2000-2006 GCCSDK Developers
+ */
 
 #ifndef __STDDEF_H
 

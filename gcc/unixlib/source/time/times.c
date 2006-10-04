@@ -1,14 +1,7 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/time/times.c,v $
- * $Date: 2002/02/14 15:56:38 $
- * $Revision: 1.3 $
- * $State: Exp $
- * $Author: admin $
- *
- ***************************************************************************/
-
-/* Territory time support, written by Nick Burrett on 12 July 1997.  */
+/* times ()
+ * Written by Nick Burrett on 12 July 1997.
+ * Copyright (c) 1997-2006 UnixLib Developers
+ */
 
 #include <time.h>
 #include <sys/times.h>

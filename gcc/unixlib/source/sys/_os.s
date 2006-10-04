@@ -1,12 +1,5 @@
-;----------------------------------------------------------------------------
-;
-; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/_os.s,v $
-; $Date: 2005/04/18 17:04:57 $
-; $Revision: 1.11 $
-; $State: Exp $
-; $Author: nick $
-;
-;----------------------------------------------------------------------------
+; __os_*
+; Copyright (c) 2000-2006 UnixLib Developers
 
 	GET	clib/unixlib/asm_dec.s
 

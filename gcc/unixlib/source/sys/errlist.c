@@ -1,12 +1,6 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/errlist.c,v $
- * $Date: 2004/10/23 17:23:36 $
- * $Revision: 1.11 $
- * $State: Exp $
- * $Author: joty $
- *
- ***************************************************************************/
+/* strerror (), strerror_r ()
+ * Copyright (c) 2000-2006 UnixLib Developers
+ */
 
 #include <string.h>
 #include <errno.h>

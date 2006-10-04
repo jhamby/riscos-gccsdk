@@ -1,14 +1,7 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/limits.h,v $
- * $Date: 2004/08/16 21:01:26 $
- * $Revision: 1.4 $
- * $State: Exp $
- * $Author: joty $
- *
- ***************************************************************************/
-
-/* ANSI Standard 4.14/2.2.4.2: Limits of integral types <limits.h>.  */
+/*
+ * ANSI Standard 4.14/2.2.4.2: Limits of integral types <limits.h>
+ * Copyright (c) 2000-2006 GCCSDK Developers
+ */
 
 #ifndef __LIMITS_H
 #define __LIMITS_H

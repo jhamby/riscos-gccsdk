@@ -1,14 +1,7 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/termios.h,v $
- * $Date: 2004/10/17 16:24:43 $
- * $Revision: 1.6 $
- * $State: Exp $
- * $Author: joty $
- *
- ***************************************************************************/
-
-/* termios.h: POSIX Standard 7.1-2 General Terminal Interface.  */
+/*
+ * termios.h: POSIX Standard 7.1-2 General Terminal Interface.
+ * Copyright (c) 2000-2006 GCCSDK Developers
+ */
 
 #ifndef __TERMIOS_H
 #define __TERMIOS_H 1

@@ -1,14 +1,7 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/time.h,v $
- * $Date: 2005/03/31 11:42:02 $
- * $Revision: 1.15 $
- * $State: Exp $
- * $Author: nick $
- *
- ***************************************************************************/
-
-/* ISO C99 Standard: 7.23 Date and Time <time.h>.  */
+/*
+ * ISO C99 Standard: 7.23 Date and Time <time.h>.
+ * Copyright (c) 2000-2006 GCCSDK Developers
+ */
 
 #ifndef __TIME_H
 

@@ -1,13 +1,3 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/netinet/in.h,v $
- * $Date: 2004/08/08 11:32:41 $
- * $Revision: 1.6 $
- * $State: Exp $
- * $Author: peter $
- *
- ***************************************************************************/
-
 /*
  * File taken from glibc 2.2.5.
  * Following changes were made:

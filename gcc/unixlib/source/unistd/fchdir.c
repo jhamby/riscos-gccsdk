@@ -1,12 +1,7 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unistd/fchdir.c,v $
- * $Date: 2005/03/04 20:59:06 $
- * $Revision: 1.2 $
- * $State: Exp $
- * $Author: alex $
- *
- ***************************************************************************/
+/* fchdir ()
+ * Written by Alex Waugh
+ * Copyright (c) 2003-2006 UnixLib Developers
+ */
 
 #include <errno.h>
 #include <unistd.h>

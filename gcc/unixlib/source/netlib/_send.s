@@ -1,12 +1,5 @@
-;----------------------------------------------------------------------------
-;
-; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/netlib/_send.s,v $
-; $Date: 2002/09/24 21:02:37 $
-; $Revision: 1.3 $
-; $State: Exp $
-; $Author: admin $
-;
-;----------------------------------------------------------------------------
+; _send
+; Copyright (c) 2000-2006 UnixLib Developers
 
 	GET	clib/unixlib/asm_dec.s
 

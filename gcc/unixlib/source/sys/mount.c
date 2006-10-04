@@ -1,12 +1,6 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/mount.c,v $
- * $Date: 2005/04/07 18:34:11 $
- * $Revision: 1.2 $
- * $State: Exp $
- * $Author: nick $
- *
- ***************************************************************************/
+/* mount (), umount (), umount2 ()
+ * Copyright (c) 2000-2006 UnixLib Developers
+ */
 
 #include <sys/mount.h>
 #include <errno.h>

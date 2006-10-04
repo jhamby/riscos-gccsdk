@@ -1,14 +1,7 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/signal.h,v $
- * $Date: 2005/04/19 08:50:36 $
- * $Revision: 1.13 $
- * $State: Exp $
- * $Author: nick $
- *
- ***************************************************************************/
-
-/* ANSI, POSIX and BSD signal handling.  */
+/*
+ * ANSI, POSIX and BSD signal handling.
+ * Copyright (c) 2000-2006 GCCSDK Developers
+ */
 
 #ifndef __SIGNAL_H
 #define __SIGNAL_H

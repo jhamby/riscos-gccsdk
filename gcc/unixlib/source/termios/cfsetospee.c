@@ -1,12 +1,6 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/termios/cfsetospee.c,v $
- * $Date: 2004/01/02 23:33:59 $
- * $Revision: 1.3 $
- * $State: Exp $
- * $Author: joty $
- *
- ***************************************************************************/
+/* cfsetospeed ()
+ * Copyright (c) 2000-2006 UnixLib Developers
+ */
 
 #include <errno.h>
 #include <stdlib.h>

@@ -1,12 +1,6 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/netlib/h_errno.c,v $
- * $Date: 2002/09/24 21:02:37 $
- * $Revision: 1.3 $
- * $State: Exp $
- * $Author: admin $
- *
- ***************************************************************************/
+/*
+ * Copyright (c) 2000-2006 UnixLib Developers
+ */
 
 #include <netdb.h>
 

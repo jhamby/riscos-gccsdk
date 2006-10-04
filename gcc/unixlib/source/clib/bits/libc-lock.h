@@ -1,12 +1,7 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/bits/libc-lock.h,v $
- * $Date: 2003/04/28 21:04:35 $
- * $Revision: 1.1 $
- * $State: Exp $
- * $Author: alex $
- *
- ***************************************************************************/
+/*
+ * Written by Alex Waugh
+ * Copyright (c) 2003-2006 GCCSDK Developers
+ */
 
 #ifndef _BITS_LIBC_LOCK_H
 #define _BITS_LIBC_LOCK_H 1

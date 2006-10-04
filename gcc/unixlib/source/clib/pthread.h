@@ -1,17 +1,11 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/pthread.h,v $
- * $Date: 2005/05/02 13:53:48 $
- * $Revision: 1.19 $
- * $State: Exp $
- * $Author: nick $
- *
- ***************************************************************************/
-
-/* pthread.h - IEEE Std 1003.1-2001 threads */
+/*
+ * pthread.h - IEEE Std 1003.1-2001 threads
+ * Written by Alex Waugh
+ * Copyright (c) 2002-2006 GCCSDK Developers
+ */
 
 #ifndef __PTHREAD_H
-                                  
+
 #if (! defined __need_pthread_t)
 #define __PTHREAD_H
 #endif
@@ -666,4 +660,3 @@ extern int __pthread_worksemaphore;
 __END_DECLS
 
 #endif /* ! __PTHREAD_H */
-

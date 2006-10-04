@@ -1,13 +1,3 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sys/alarm.c,v $
- * $Date: 2004/10/17 16:24:44 $
- * $Revision: 1.4 $
- * $State: Exp $
- * $Author: joty $
- *
- ***************************************************************************/
-
 /* Copyright (C) 1991, 1992, 1994, 1997 Free Software Foundation, Inc.
 
    The GNU C Library is free software; you can redistribute it and/or

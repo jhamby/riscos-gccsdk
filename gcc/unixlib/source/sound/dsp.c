@@ -1,14 +1,5 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/sound/dsp.c,v $
- * $Date: 2005/04/18 17:04:56 $
- * $Revision: 1.12 $
- * $State: Exp $
- * $Author: nick $
- *
- ***************************************************************************/
-
-/* Implement OSS/soundcard.h support
+/*
+ * Implement OSS/soundcard.h support
  * Written by Peter Naulls <peter@chocky.org>
  *
  * This is essentially an emulation of the /dev/dsp device found under Linux
@@ -23,7 +14,9 @@
  *
  * We support 16-bit and 8-bit ulaw in stereo and mono.
  *
- * n.b. I don't believe that 8-bit currently works properly.
+ * FIXME: I don't believe that 8-bit currently works properly.
+ *
+ * Copyright (c) 2004-2006 UnixLib Developers
  */
 
 #include <swis.h>

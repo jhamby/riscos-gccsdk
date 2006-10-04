@@ -1,12 +1,6 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/creat.c,v $
- * $Date: 2001/01/29 15:10:22 $
- * $Revision: 1.2 $
- * $State: Exp $
- * $Author: admin $
- *
- ***************************************************************************/
+/* creat ()
+ * Copyright (c) 2000-2006 UnixLib Developers
+ */
 
 #include <fcntl.h>
 #include <unixlib/types.h>

@@ -1,13 +1,7 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/netlib/socket.c,v $
- * $Date: 2005/11/12 17:45:17 $
- * $Revision: 1.9 $
- * $State: Exp $
- * $Author: alex $
- *
- * (c) Copyright 1995 Sergio Monesi
- ***************************************************************************/
+/* socket ()
+ * Copyright (c) 1995 Sergio Monesi
+ * Copyright (c) 2000-2006 UnixLib Developers
+ */
 
 #include <errno.h>
 
@@ -60,8 +54,6 @@ socket (int af, int type, int protocol)
   if ((fd = __alloc_file_descriptor (0)) == -1)
     return -1;
 
-  /* printf("U! socket: sd=%d fd=%d\n",sd,fd); */
-
   file_desc = getfd (fd);
   file_desc->fflag = O_RDWR;
   file_desc->dflag = 0;
@@ -71,11 +63,6 @@ socket (int af, int type, int protocol)
     return -1;
 
   file_desc->devicehandle->handle = (void *) sd;
-#if 0
-  f->r[1] = af;
-  f->r[2] = type;
-  f->r[3] = protocol;
-#endif
 
   file_desc->devicehandle->type = DEV_SOCKET;
   file_desc->devicehandle->refcount = 1;

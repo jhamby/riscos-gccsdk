@@ -1,12 +1,6 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/lstat.c,v $
- * $Date: 2004/06/12 08:59:48 $
- * $Revision: 1.3 $
- * $State: Exp $
- * $Author: peter $
- *
- ***************************************************************************/
+/* lstat (), lstat64 ()
+ * Copyright (c) 2000-2006 UnixLib Developers
+ */
 
 #include <sys/stat.h>
 

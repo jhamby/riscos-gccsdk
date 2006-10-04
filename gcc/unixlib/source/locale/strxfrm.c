@@ -1,12 +1,6 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/locale/strxfrm.c,v $
- * $Date: 2002/02/14 15:56:35 $
- * $Revision: 1.3 $
- * $State: Exp $
- * $Author: admin $
- *
- ***************************************************************************/
+/* strxfrm ()
+ * Copyright (c) 2000-2006 UnixLib Developers
+ */
 
 #include <locale.h>
 #include <string.h>

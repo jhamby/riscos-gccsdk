@@ -1,14 +1,6 @@
-;----------------------------------------------------------------------------
-;
-; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/string/_ffs.s,v $
-; $Date: 2004/10/17 16:24:44 $
-; $Revision: 1.1 $
-; $State: Exp $
-; $Author: joty $
-;
-;----------------------------------------------------------------------------
-
-; Written by John Tytgat / BASS
+; ffs, ffsl
+; Written by John Tytgat
+; Copyright (c) 2004-2006 UnixLib Developers
 
 	GET	clib/unixlib/asm_dec.s
 

@@ -1,12 +1,6 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/pwd/getpw.c,v $
- * $Date: 2005/04/14 12:13:09 $
- * $Revision: 1.3 $
- * $State: Exp $
- * $Author: nick $
- *
- ***************************************************************************/
+/* getpw ()
+ * Copyright (c) 2000-2006 UnixLib Developers
+ */
 
 #include <errno.h>
 #include <stdio.h>

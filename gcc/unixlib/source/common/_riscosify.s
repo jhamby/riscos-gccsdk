@@ -1,12 +1,5 @@
-;----------------------------------------------------------------------------
-;
-; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/common/_riscosify.s,v $
-; $Date: 2004/10/17 16:24:44 $
-; $Revision: 1.6 $
-; $State: Exp $
-; $Author: joty $
-;
-;----------------------------------------------------------------------------
+; __get_riscosify_control, __set_riscosify_control
+; Copyright (c) 2002-2006 UnixLib Developers
 
         GET     clib/unixlib/asm_dec.s
 

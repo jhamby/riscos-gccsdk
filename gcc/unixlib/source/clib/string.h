@@ -1,14 +1,7 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/string.h,v $
- * $Date: 2004/12/25 10:28:13 $
- * $Revision: 1.14 $
- * $State: Exp $
- * $Author: peter $
- *
- ***************************************************************************/
-
-/* ANSI Standard 4.11: String Handling <string.h>.  */
+/*
+ * ANSI Standard 4.11: String Handling <string.h>.
+ * Copyright (c) 2000-2006 GCCSDK Developers
+ */
 
 #ifndef __STRING_H
 #define __STRING_H 1

@@ -1,16 +1,7 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unix/getdtables.c,v $
- * $Date: 2001/01/29 15:10:22 $
- * $Revision: 1.2 $
- * $State: Exp $
- * $Author: admin $
- *
- ***************************************************************************/
-
-/* unix.c.getdtables. Implementation of getdtablesize ().
-
-   Written by Nick Burrett, 13 October 1996.  */
+/* getdtablesize ()
+ * Written by Nick Burrett, 13 October 1996.
+ * Copyright (c) 1996-2006 UnixLib Developers
+ */
 
 #include <limits.h>
 #include <unistd.h>

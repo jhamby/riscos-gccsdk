@@ -1,12 +1,6 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/stdio/tmpfile.c,v $
- * $Date: 2005/03/04 20:59:06 $
- * $Revision: 1.6 $
- * $State: Exp $
- * $Author: alex $
- *
- ***************************************************************************/
+/* tmpfile (), tmpnam (), tmpnam_r (), mktemp (), mkstemp (), tempnam ()
+ * Copyright (c) 2000-2006 UnixLib Developers
+ */
 
 #include <string.h>
 #include <stdio.h>

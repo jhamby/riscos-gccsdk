@@ -1,16 +1,8 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/pwd/pwdread.c,v $
- * $Date: 2004/12/04 15:23:09 $
- * $Revision: 1.7 $
- * $State: Exp $
- * $Author: alex $
- *
- ***************************************************************************/
-
-/* pwd.c.pwdread. Internal password-file reading functions.
-
-   Modified from the original c.getpw by Nick Burrett, 13 October 1996.  */
+/* __pwdread (), __pwddefault ()
+ * Internal password-file reading functions.
+ * Modified from the original c.getpw by Nick Burrett, 13 October 1996.
+ * Copyright (c) 1996-2006 UnixLib Developers
+ */
 
 #include <errno.h>
 #include <limits.h>
@@ -20,8 +12,6 @@
 #include <stdlib.h>
 #include <pwd.h>
 #include <pthread.h>
-
-/* p_pstrcp() */
 
 static char *
 p_pstrcp (char **lp)
@@ -35,8 +25,6 @@ p_pstrcp (char **lp)
   *lp = l;
   return (r);
 }
-
-/* p_pdecode() */
 
 static void
 p_pdecode (char *line, struct passwd *passwd)

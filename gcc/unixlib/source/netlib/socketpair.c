@@ -1,12 +1,7 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/netlib/socketpair.c,v $
- * $Date: 2004/01/18 16:11:13 $
- * $Revision: 1.6 $
- * $State: Exp $
- * $Author: alex $
- *
- ***************************************************************************/
+/* socketpair ()
+ * Written by Peter Naulls
+ * Copyright (c) 2003-2006 UnixLib Developers
+ */
 
 #include <sys/types.h>
 #include <sys/socket.h>

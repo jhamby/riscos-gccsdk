@@ -1,13 +1,3 @@
-/****************************************************************************
- *
- * $Source: $
- * $Date: $
- * $Revision: $
- * $State: $
- * $Author: $
- *
- ***************************************************************************/
-
 /* Copyright (c) 1983, 1989
  *    The Regents of the University of California.  All rights reserved.
  *

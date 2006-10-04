@@ -1,15 +1,8 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/sys/mman.h,v $
- * $Date: 2004/04/17 10:51:15 $
- * $Revision: 1.4 $
- * $State: Exp $
- * $Author: nick $
- *
- ***************************************************************************/
-
-/* Definitions for BSD-style memory management.  Generic/4.4 BSD version.
-   sys/mman.h: Written by Peter Burwood, 1 November 1996, June 1997 */
+/*
+ * Definitions for BSD-style memory management.  Generic/4.4 BSD version.
+ * Written by Peter Burwood, 1 November 1996, June 1997
+ * Copyright (c) 1997-2006 GCCSDK Developers
+ */
 
 /* These are the bits used by 4.4 BSD and its derivatives.  On systems
    (such as GNU) where these facilities are not system services but can be

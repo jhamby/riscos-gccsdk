@@ -1,12 +1,6 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unistd/readlink.c,v $
- * $Date: 2002/11/18 15:44:17 $
- * $Revision: 1.2 $
- * $State: Exp $
- * $Author: admin $
- *
- ***************************************************************************/
+/* readlink ()
+ * Copyright (c) 2002-2006 UnixLib Developers
+ */
 
 #include <errno.h>
 #include <unistd.h>

@@ -1,14 +1,7 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/time/mktime.c,v $
- * $Date: 2004/10/12 08:32:38 $
- * $Revision: 1.6 $
- * $State: Exp $
- * $Author: peter $
- *
- ***************************************************************************/
-
-/* Territory time support, written by Nick Burrett on 13 July 1997.  */
+/* mktime ()
+ * Written by Nick Burrett on 13 July 1997.
+ * Copyright (c) 1997-2006 UnixLib Developers
+ */
 
 #include <locale.h>
 #include <time.h>

@@ -1,14 +1,9 @@
-/****************************************************************************
+/* getgroups (), setgroups (), initgroups ()
+ * Supplementary group reading and setting functions.
  *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/grp/getgroups.c,v $
- * $Date: 2005/04/14 12:13:09 $
- * $Revision: 1.4 $
- * $State: Exp $
- * $Author: nick $
- *
- ***************************************************************************/
+ * Copyright (c) 2002-2006 UnixLib Developers
+ */
 
-/* Supplementary group reading and setting functions.  */
 
 #include <errno.h>
 #include <limits.h>

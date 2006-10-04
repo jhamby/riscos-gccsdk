@@ -1,12 +1,6 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/unistd/fchown.c,v $
- * $Date: 2005/03/04 20:59:06 $
- * $Revision: 1.4 $
- * $State: Exp $
- * $Author: alex $
- *
- ***************************************************************************/
+/* fchown ()
+ * Copyright (c) 2002-2006 UnixLib Developers
+ */
 
 #include <errno.h>
 #include <unistd.h>

@@ -1,13 +1,3 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/sys/syslog.h,v $
- * $Date: 2004/04/17 10:51:15 $
- * $Revision: 1.7 $
- * $State: Exp $
- * $Author: nick $
- *
- ***************************************************************************/
-
 #ifndef __SYSLOG_H
 #define __SYSLOG_H 1
 

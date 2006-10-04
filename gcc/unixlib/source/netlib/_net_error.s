@@ -1,12 +1,5 @@
-;----------------------------------------------------------------------------
-;
-; $Source: /usr/local/cvsroot/gccsdk/unixlib/source/netlib/_net_error.s,v $
-; $Date: 2004/11/28 21:31:34 $
-; $Revision: 1.7 $
-; $State: Exp $
-; $Author: joty $
-;
-;----------------------------------------------------------------------------
+; __net_error
+; Copyright (c) 2000-2006 UnixLib Developers
 
 	GET	clib/unixlib/asm_dec.s
 

@@ -1,14 +1,7 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/clib/stdio.h,v $
- * $Date: 2005/04/22 14:38:49 $
- * $Revision: 1.20 $
- * $State: Exp $
- * $Author: nick $
- *
- ***************************************************************************/
-
-/* ANSI Standard 4.9: Input/Output <stdio.h>.  */
+/*
+ * ANSI Standard 4.9: Input/Output <stdio.h>.
+ * Copyright (c) 2000-2006 GCCSDK Developers
+ */
 
 #ifndef __STDIO_H
 

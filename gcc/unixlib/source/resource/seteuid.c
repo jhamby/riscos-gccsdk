@@ -1,12 +1,6 @@
-/****************************************************************************
- *
- * $Source: /usr/local/cvsroot/gccsdk/unixlib/source/resource/seteuid.c,v $
- * $Date: 2005/03/04 20:59:06 $
- * $Revision: 1.5 $
- * $State: Exp $
- * $Author: alex $
- *
- ***************************************************************************/
+/* seteuid ()
+ * Copyright (c) 2000-2006 UnixLib Developers
+ */
 
 #include <unistd.h>
 #include <unixlib/unix.h>
@@ -24,5 +18,6 @@ seteuid (__uid_t uid)
       __proc->euid = uid;
       return 0;
     }
+
   return -1;
 }
