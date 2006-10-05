@@ -5,7 +5,7 @@
  * Any simularity between this and the Norcroft kernel.h file is probably
  * due to having to use identical structs.
  *
- * Copyright (c) 2000-2006 GCCSDK Developers
+ * Copyright (c) 2000-2006 UnixLib Developers
  */
 
 #ifndef __KERNEL_H

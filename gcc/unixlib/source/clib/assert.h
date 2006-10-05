@@ -1,6 +1,6 @@
 /*
  * ANSI Standard: 4.2 Diagnostics <assert.h>.
- * Copyright (c) 2000-2006 GCCSDK Developers
+ * Copyright (c) 2000-2006 UnixLib Developers
  */
 
 /* It is possible to turn assertions off and on in different functions within

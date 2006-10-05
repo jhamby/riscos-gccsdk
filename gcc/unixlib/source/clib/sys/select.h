@@ -1,6 +1,6 @@
 /*
  * POSIX 1003.1g: 6.2 Select from File Descriptor Sets
- * Copyright (c) 2000-2006 GCCSDK Developers
+ * Copyright (c) 2000-2006 UnixLib Developers
  */
 
 #ifndef __SYS_SELECT_H

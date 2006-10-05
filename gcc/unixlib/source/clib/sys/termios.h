@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2002-2006 GCCSDK Developers
+ * Copyright (c) 2002-2006 UnixLib Developers
  */
 
 #ifndef __SYS_TERMIOS_H

@@ -1,7 +1,7 @@
 /*
  * pthread.h - IEEE Std 1003.1-2001 threads
  * Written by Alex Waugh
- * Copyright (c) 2002-2006 GCCSDK Developers
+ * Copyright (c) 2002-2006 UnixLib Developers
  */
 
 #ifndef __PTHREAD_H

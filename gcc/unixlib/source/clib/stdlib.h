@@ -1,6 +1,6 @@
 /*
  * ANSI Standard 4.10: General Utilities <stdlib.h>.
- * Copyright (c) 2000-2006 GCCSDK Developers
+ * Copyright (c) 2000-2006 UnixLib Developers
  */
 
 #ifndef __STDLIB_H

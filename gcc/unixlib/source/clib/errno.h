@@ -1,6 +1,6 @@
 /*
  * ANSI Standard 4.1.3: Errors <errno.h>
- * Copyright (c) 2000-2006 GCCSDK Developers
+ * Copyright (c) 2000-2006 UnixLib Developers
  */
 
 #ifndef __ERRNO_H

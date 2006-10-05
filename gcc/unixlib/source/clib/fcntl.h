@@ -1,6 +1,6 @@
 /*
  * POSIX Standard 6.5: File Control Operations <fcntl.h>
- * Copyright (c) 2000-2006 GCCSDK Developers
+ * Copyright (c) 2000-2006 UnixLib Developers
  */
 
 #ifndef __FCNTL_H

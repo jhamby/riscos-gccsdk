@@ -1,6 +1,6 @@
 /*
  * POSIX Standard 9.2.2 User Database Access <pwd.h>.
- * Copyright (c) 2000-2006 GCCSDK Developers
+ * Copyright (c) 2000-2006 UnixLib Developers
  */
 
 #ifndef __PWD_H

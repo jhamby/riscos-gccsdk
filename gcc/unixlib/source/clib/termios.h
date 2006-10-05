@@ -1,6 +1,6 @@
 /*
  * termios.h: POSIX Standard 7.1-2 General Terminal Interface.
- * Copyright (c) 2000-2006 GCCSDK Developers
+ * Copyright (c) 2000-2006 UnixLib Developers
  */
 
 #ifndef __TERMIOS_H

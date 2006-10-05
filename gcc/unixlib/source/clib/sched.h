@@ -1,6 +1,6 @@
 /*
  * Written by Alex Waugh
- * Copyright (c) 2002-2006 GCCSDK Developers
+ * Copyright (c) 2002-2006 UnixLib Developers
  */
 
 #ifndef __SCHED_H

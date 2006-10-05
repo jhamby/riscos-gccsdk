@@ -1,6 +1,6 @@
 /*
  * ISO C99 Standard: 7.23 Date and Time <time.h>.
- * Copyright (c) 2000-2006 GCCSDK Developers
+ * Copyright (c) 2000-2006 UnixLib Developers
  */
 
 #ifndef __TIME_H

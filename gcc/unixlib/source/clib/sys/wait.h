@@ -1,6 +1,6 @@
 /*
  * POSIX Standard 3.2.1: Wait for Process Termination <sys/wait.h>.
- * Copyright (c) 2000-2006 GCCSDK Developers
+ * Copyright (c) 2000-2006 UnixLib Developers
  */
 
 #ifndef	__SYS_WAIT_H

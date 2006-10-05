@@ -1,6 +1,6 @@
 # Second-level Makefile for UnixLib for RISC OS GCC
 # Written by Nick Burrett <nick@sqrt.co.uk>
-# Copyright (c) 2003-2006 GCCSDK Developers
+# Copyright (c) 2003-2006 UnixLib Developers
 
 all:	unixlib
 

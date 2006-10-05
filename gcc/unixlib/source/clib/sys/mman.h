@@ -1,7 +1,7 @@
 /*
  * Definitions for BSD-style memory management.  Generic/4.4 BSD version.
  * Written by Peter Burwood, 1 November 1996, June 1997
- * Copyright (c) 1997-2006 GCCSDK Developers
+ * Copyright (c) 1997-2006 UnixLib Developers
  */
 
 /* These are the bits used by 4.4 BSD and its derivatives.  On systems

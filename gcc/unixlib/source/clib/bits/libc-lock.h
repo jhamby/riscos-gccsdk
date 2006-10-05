@@ -1,6 +1,6 @@
 /*
  * Written by Alex Waugh
- * Copyright (c) 2003-2006 GCCSDK Developers
+ * Copyright (c) 2003-2006 UnixLib Developers
  */
 
 #ifndef _BITS_LIBC_LOCK_H

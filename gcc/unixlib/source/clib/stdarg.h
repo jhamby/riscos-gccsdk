@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000-2006 GCCSDK Developers
+ * Copyright (c) 2000-2006 UnixLib Developers
  */
 
 #ifdef __GNUC__

@@ -1,6 +1,6 @@
 /*
  * ANSI Standard 4.3: Character Handling <ctype.h>
- * Copyright (c) 2000-2006 GCCSDK Developers
+ * Copyright (c) 2000-2006 UnixLib Developers
  */
 
 #ifndef __CTYPE_H

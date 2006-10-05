@@ -1,6 +1,6 @@
 /*
  * POSIX Standard: 5.6.6 Set File Access and Modification Times <utime.h>
- * Copyright (c) 2000-2006 GCCSDK Developers
+ * Copyright (c) 2000-2006 UnixLib Developers
  */
 
 #ifndef	__UTIME_H

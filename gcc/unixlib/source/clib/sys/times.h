@@ -1,6 +1,6 @@
 /*
  * POSIX Standard 4.5.2: Process Times <sys/times.h>.
- * Copyright (c) 2000-2006 GCCSDK Developers
+ * Copyright (c) 2000-2006 UnixLib Developers
  */
 
 #ifndef __SYS_TIMES_H

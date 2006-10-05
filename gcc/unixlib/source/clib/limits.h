@@ -1,6 +1,6 @@
 /*
  * ANSI Standard 4.14/2.2.4.2: Limits of integral types <limits.h>
- * Copyright (c) 2000-2006 GCCSDK Developers
+ * Copyright (c) 2000-2006 UnixLib Developers
  */
 
 #ifndef __LIMITS_H
