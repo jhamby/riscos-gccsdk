@@ -3,12 +3,17 @@ if [ ! -d $GCCSDK_ROOT ] ; then
   exit 1
 fi
 
-# $GCCSDK_DIR is the directory where we will placed the copied & patched
+# $GCCSDK_SRCDIR is the directory where we will placed the copied & patched
 # gcc/binutils sources ready to start compiling.
-export GCCSDK_DIR=$GCCSDK_ROOT/gccsdk
+export GCCSDK_SRCDIR=$GCCSDK_ROOT/srcdir
 
-# Where to install the cross-compiler:
-PREFIX=$GCCSDK_ROOT/cross
+# Where to install the cross-compiler.  If GCCSDK_INSTALL_CROSSBIN is defined
+# we use it.
+if [ ! -z "$GCCSDK_INSTALL_CROSSBIN" ] ; then
+  PREFIX=$GCCSDK_INSTALL_CROSSBIN/..
+else
+  PREFIX=$GCCSDK_ROOT/cross
+fi
 
 # Where to find AOF based unixlib:
 export GCCSDK_AOFUNIXLIB=$GCCSDK_ROOT/../gcc/unixlib
@@ -29,7 +34,7 @@ GCCSDK_BINUTILSORIG=$GCCSDK_ROOT/orig.binutils
 # GCCSDK_RECIPE_PATCHES : patches of gcc/binutils
 GCCSDK_RECIPE_PATCHES=$GCCSDK_ROOT/recipe/patches
 # GCCSDK_RECIPE_FILES : full copies of files which need to be copied in the
-# resulting $GCCSDK_DIR source tree.
+# resulting $GCCSDK_SRCDIR source tree.
 GCCSDK_RECIPE_FILES=$GCCSDK_ROOT/recipe/files
 # GCCSDK_RECIPE_SCRIPTS : scripts to be run
 GCCSDK_RECIPE_SCRIPTS=$GCCSDK_ROOT/recipe/scripts

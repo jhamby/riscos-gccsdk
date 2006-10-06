@@ -7,8 +7,8 @@ if [ -z "$GCCSDK_AOFUNIXLIB" ] ; then
   echo "\$GCCSDK_AOFUNIXLIB needs to be defined"
   exit 1
 fi
-if [ -z "$GCCSDK_DIR" ] ; then
-  echo "\$GCCSDK_DIR needs to be defined"
+if [ -z "$GCCSDK_SRCDIR" ] ; then
+  echo "\$GCCSDK_SRCDIR needs to be defined"
   exit 1
 fi
 if [ ! -d $GCCSDK_AOFUNIXLIB ] ; then
@@ -16,4 +16,4 @@ if [ ! -d $GCCSDK_AOFUNIXLIB ] ; then
   exit 1
 fi
 
-$GCCSDK_AOFUNIXLIB/elf/convert-unixlib.pl $GCCSDK_AOFUNIXLIB $GCCSDK_DIR/libunixlib
+$GCCSDK_AOFUNIXLIB/elf/convert-unixlib.pl $GCCSDK_AOFUNIXLIB $GCCSDK_SRCDIR/libunixlib

@@ -15,7 +15,7 @@ variables which you can change if desired.
 2. Place a binutils 2.17 release in $GCCSDK_BINUTILSORIG
 3. Combine the contents of $GCCSDK_GCCORIG, $GCCSDK_BINUTILSORIG and
    UnixLib 5.0 (GAS assembler syntax and ELF configuration) into
-   $GCCSDK_DIR and apply the necessary patches for arm-elf-riscos
+   $GCCSDK_SRCDIR and apply the necessary patches for arm-elf-riscos
    target by running:
 
    ./create-gccsdk
@@ -34,7 +34,7 @@ variables which you can change if desired.
 GCCSDK specific changes for the gcc/binutils sources are done via patches
 (recipe/patches directory), copying full source files (recipe/files) or via
 scripts (recipe/scripts).  Easy patch (re)creation can be done using the
-./create-patch script.  Currently UnixLib 5.0 is copied into $GCCSDK_DIR
+./create-patch script.  Currently UnixLib 5.0 is copied into $GCCSDK_SRCDIR
 using a conversion of an AOF based UnixLib in the GCCSDK 3.4.6 tree to
 an ELF one.
 

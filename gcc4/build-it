@@ -7,7 +7,7 @@ set -e
 GCCSDK_ROOT=`dirname \`realpath $0\``
 source $GCCSDK_ROOT/setup-gccsdk-params
 
-TARGET=
+TARGET=arm-elf-riscos
 GCCSDK_BUILDDIR=$GCCSDK_ROOT/$TARGET
 
 if [ ! -d $GCCSDK_BUILDDIR ] ; then
@@ -20,7 +20,7 @@ fi
 cd $GCCSDK_BUILDDIR
 # Note: the --disable-libssp is needed to avoid a 4.1.1 regression bug, see
 #       http://gcc.gnu.org/bugzilla/show_bug.cgi?id=25035 to track its status.
-$GCCSDK_DIR/configure --prefix=$PREFIX --enable-threads=posix \
+$GCCSDK_SRCDIR/configure --prefix=$PREFIX --enable-threads=posix \
 	--target=$TARGET --enable-sjlj-exceptions=no \
 	--disable-c-mbchar --enable-languages=c \
 	--enable-checking=no --disable-libstdcxx-pch \
