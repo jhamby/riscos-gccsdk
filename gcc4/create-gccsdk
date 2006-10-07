@@ -4,7 +4,9 @@
 
 set -e
 
-GCCSDK_ROOT=`dirname \`realpath $0\``
+pushd `dirname $0` > /dev/null
+GCCSDK_ROOT=`pwd`
+popd > /dev/null
 source $GCCSDK_ROOT/setup-gccsdk-params
 
 if [ -d $GCCSDK_SRCDIR ] ; then
@@ -23,8 +25,11 @@ for p in `ls $GCCSDK_RECIPE_PATCHES/*.p` ; do
   ( cd $GCCSDK_SRCDIR ; patch -p0 < $p )
 done
 
-# 2. Copy full files:
-cp -r $GCCSDK_RECIPE_FILES/* $GCCSDK_SRCDIR
+# 2. Copy full files excluding the .svn directories:
+pushd $GCCSDK_RECIPE_FILES > /dev/null
+for dir in `find . -type d | grep -v "\.svn" ` ; do mkdir -p $GCCSDK_SRCDIR/$dir ; done
+for file in `find . -type f | grep -v "\.svn" ` ; do cp -p $file $GCCSDK_SRCDIR/$file ; done
+popd > /dev/null
 
 # 3. Run scripts:
 for s in `ls $GCCSDK_RECIPE_SCRIPTS/*` ; do

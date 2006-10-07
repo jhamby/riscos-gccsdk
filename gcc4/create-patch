@@ -7,7 +7,9 @@
 
 set -e
 
-GCCSDK_ROOT=`dirname \`realpath $0\``
+pushd `dirname $0` > /dev/null
+GCCSDK_ROOT=`pwd`
+popd > /dev/null
 source $GCCSDK_ROOT/setup-gccsdk-params
 
 if [ "x"$1 == "x" ] ; then
