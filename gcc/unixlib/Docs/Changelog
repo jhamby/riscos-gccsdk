@@ -1,3 +1,8 @@
+Sun Oct  8 19:38:58 CEST 2006  John Tytgat  <John.Tytgat@aaug.net>
+
+	* source/clib/sys/elf.h: Added (copy of Lee Noar's GCCSDK 3.4.6 patch
+	of his ELF work).
+
 Wed Oct  4 22:22:30 CEST 2006  John Tytgat  <John.Tytgat@aaug.net>
 
 	* Removed all CVS identifiers, updated Copyright statements and years
