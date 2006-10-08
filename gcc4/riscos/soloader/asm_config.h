@@ -1,0 +1,1 @@
+.set	USE_SYMLINKS,	1

@@ -5,14 +5,28 @@ This is a lightweight build environment which combines a GCC 4.x release,
 binutils 2.17 release and UnixLib 5.0 into one directory which can
 be used to build a RISC OS cross-compiler with target arm-elf-riscos.
 
-Steps:
-~~~~~
+1. Build steps
+~~~~~~~~~~~~~~
+
+1. Build cross-compiler with target arm-elf-riscos (static ELF target only
+   at the moment).
+2. Build RISC OS ELF loader (in development at the moment).
+
+1.1. Build cross-compiler
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The setup-gccsdk-params file contains several definitions as environment
-variables which you can change if desired.
+variables which you can change if desired.  Like with GCCSDK 3.4.6, we
+recomment setting up $GCCSDK_INSTALL_CROSSBIN which then can be used by
+setup-gccsdk-params files to determine where the cross-compiler will be
+installed during 'make install' (note: $GCCSDK_INSTALL_CROSSBIN actually
+specfies the pathname 'bin' subdirectory of the directory where the complete
+cross-compiler will be installed).
 
-1. Place a GCC 4.x release in $GCCSDK_GCCORIG
-2. Place a binutils 2.17 release in $GCCSDK_BINUTILSORIG
+1. Place a GCC 4.x release in $GCCSDK_GCCORIG (either tarball, either
+   result of SVN checkout).
+2. Place a binutils 2.17 release in $GCCSDK_BINUTILSORIG (either tarball,
+   either result of CVS checkout).
 3. Combine the contents of $GCCSDK_GCCORIG, $GCCSDK_BINUTILSORIG and
    UnixLib 5.0 (GAS assembler syntax and ELF configuration) into
    $GCCSDK_SRCDIR and apply the necessary patches for arm-elf-riscos
@@ -38,12 +52,24 @@ scripts (recipe/scripts).  Easy patch (re)creation can be done using the
 using a conversion of an AOF based UnixLib in the GCCSDK 3.4.6 tree to
 an ELF one.
 
-Credits:
-~~~~~~~
+1.2. Build RISC OS ELF loader
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This is at the moment not fully buildable because not all RISC OS ELF related
+changes have been made to the cross-compiler, UnixLib and/or the soloader sources.
+
+   cd riscos/soloader
+   ./build-it > build-output.txt 2>&1
+
+2. Credits
+~~~~~~~~~~
 
 The initial arm-elf-riscos work for GCC 4.1 was done by Nick Burrett (Jun
 2005). Integrating Nick's work in a GCCSDK build environment and bringing it
 up-to-date was done by John Tytgat and John-Mark Bell (Oct 2006).
+
+Lee Noar contributed his RISC OS ELF loader work which was originally developed
+for his ELF support based on GCCSDK 3.4 (Oct 2006).
 
 Copyright (c) 2005, 2006 GCCSDK Developers
 http://gccsdk.riscos.info/
