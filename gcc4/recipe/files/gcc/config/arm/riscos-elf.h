@@ -39,9 +39,9 @@
 #undef  FPUTYPE_DEFAULT
 #define FPUTYPE_DEFAULT FPUTYPE_FPA_EMU3
 
-/* RISC OS uses the APCS-R ABI.  */
+/* RISC OS uses the APCS-32 ABI.  */
 #undef ARM_DEFAULT_ABI
-#define ARM_DEFAULT_ABI ARM_ABI_APCSR
+#define ARM_DEFAULT_ABI ARM_ABI_APCS32
 
 #define SUBTARGET_EXTRA_LINK_SPEC " -m armelf_riscos -p"
 

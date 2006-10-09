@@ -1,11 +1,11 @@
---- gcc/config/arm/arm.h.orig	2006-09-25 00:51:39.000000000 +0200
-+++ gcc/config/arm/arm.h	2006-09-25 01:19:50.000000000 +0200
+--- gcc/config/arm/arm.h.orig	2006-10-09 00:37:26.000000000 +0200
++++ gcc/config/arm/arm.h	2006-10-09 01:01:03.000000000 +0200
 @@ -190,7 +190,7 @@
  				         : TARGET_TPCS_FRAME)
  #define TARGET_LDRD			(arm_arch5e && ARM_DOUBLEWORD_ALIGN)
  #define TARGET_AAPCS_BASED \
 -    (arm_abi != ARM_ABI_APCS && arm_abi != ARM_ABI_ATPCS)
-+    (arm_abi != ARM_ABI_APCS && arm_abi != ARM_ABI_ATPCS && arm_abi != ARM_ABI_APCSR)
++    (arm_abi != ARM_ABI_APCS && arm_abi != ARM_ABI_ATPCS && arm_abi != ARM_ABI_APCS32)
  
  #define TARGET_HARD_TP			(target_thread_pointer == TP_CP15)
  #define TARGET_SOFT_TP			(target_thread_pointer == TP_SOFT)
@@ -15,7 +15,7 @@
    ARM_ABI_IWMMXT,
 -  ARM_ABI_AAPCS_LINUX
 +  ARM_ABI_AAPCS_LINUX,
-+  ARM_ABI_APCSR
++  ARM_ABI_APCS32
  };
  
  extern enum arm_abi_type arm_abi;
@@ -24,9 +24,9 @@
        call_used_regs[PIC_OFFSET_TABLE_REGNUM] = 1;		\
      }								\
 -  else if (TARGET_APCS_STACK)					\
-+  else if (TARGET_APCS_STACK || arm_abi == ARM_ABI_APCSR)	\
++  else if (TARGET_APCS_STACK || arm_abi == ARM_ABI_APCS32)	\
      {								\
-+      /* For APCS-R, we preserve SL because we need to		\
++      /* For APCS-32, we preserve SL because we need to		\
 +	 interwork with functions that have stack checking.  */	\
        fixed_regs[10]     = 1;					\
        call_used_regs[10] = 1;					\
@@ -50,7 +50,7 @@
  #define THUMB_HARD_FRAME_POINTER_REGNUM	 7
  
 +#define FP_REGNUM	\
-+  (arm_abi == ARM_ABI_APCSR		\
++  (arm_abi == ARM_ABI_APCS32		\
 +   ? ARM_HARD_FRAME_POINTER_REGNUM	\
 +   : HARD_FRAME_POINTER_REGNUM)
 +
@@ -100,7 +100,7 @@
 -   functions, or simple tail call functions.  */
 -
 +   functions, or simple tail call functions.
-+   The APCS-R ABI never requires a frame pointer.  */
++   The APCS-32 ABI never requires a frame pointer.  */
  #ifndef SUBTARGET_FRAME_POINTER_REQUIRED
  #define SUBTARGET_FRAME_POINTER_REQUIRED 0
  #endif
@@ -110,7 +110,7 @@
 -   || SUBTARGET_FRAME_POINTER_REQUIRED				\
 -   || (TARGET_ARM && TARGET_APCS_FRAME && ! leaf_function_p ()))
 +#define FRAME_POINTER_REQUIRED						\
-+  (arm_abi == ARM_ABI_APCSR						\
++  (arm_abi == ARM_ABI_APCS32						\
 +   ? 0									\
 +   : (current_function_has_nonlocal_label				\
 +      || SUBTARGET_FRAME_POINTER_REQUIRED				\
@@ -145,7 +145,7 @@
     that is, each additional local variable allocated
     goes at a more negative offset in the frame.  */
 -#define FRAME_GROWS_DOWNWARD 1
-+#define FRAME_GROWS_DOWNWARD ((arm_abi == ARM_ABI_APCSR) ? 0 : 1)
++#define FRAME_GROWS_DOWNWARD ((arm_abi == ARM_ABI_APCS32) ? 0 : 1)
  
  /* The amount of scratch space needed by _interwork_{r7,r11}_call_via_rN().
     When present, it is one word in size, and sits at the top of the frame,
@@ -155,7 +155,7 @@
     of the first local allocated.  */
 -#define STARTING_FRAME_OFFSET  0
 +#define STARTING_FRAME_OFFSET				\
-+   (arm_abi == ARM_ABI_APCSR				\
++   (arm_abi == ARM_ABI_APCS32				\
 +    ? current_function_outgoing_args_size		\
 +    : 0)
  

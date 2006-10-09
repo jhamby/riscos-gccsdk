@@ -98,9 +98,9 @@ Boston, MA 02111-1307, USA.  */
 #undef  TARGET_DEFAULT_FLOAT_ABI
 #define TARGET_DEFAULT_FLOAT_ABI ARM_FLOAT_ABI_HARD
 
-/* RISC OS uses the APCS-R ABI.  */
+/* RISC OS uses the APCS-32 ABI.  */
 #undef ARM_DEFAULT_ABI
-#define ARM_DEFAULT_ABI ARM_ABI_APCSR
+#define ARM_DEFAULT_ABI ARM_ABI_APCS32
 
 /* Dividing the Output into Sections (Text, Data, ...) */
 /* AOF Assembler syntax is a nightmare when it comes to areas, since once

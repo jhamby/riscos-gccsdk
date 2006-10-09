@@ -1,5 +1,5 @@
---- gcc/config/arm/arm.c.orig	2006-09-25 22:27:34.000000000 +0200
-+++ gcc/config/arm/arm.c	2006-09-25 22:26:11.000000000 +0200
+--- gcc/config/arm/arm.c.orig	2006-10-09 00:37:23.000000000 +0200
++++ gcc/config/arm/arm.c	2006-10-08 23:35:25.000000000 +0200
 @@ -52,6 +52,7 @@
  #include "target-def.h"
  #include "debug.h"
@@ -30,7 +30,7 @@
    {"iwmmxt",  ARM_ABI_IWMMXT},
 -  {"aapcs-linux",   ARM_ABI_AAPCS_LINUX}
 +  {"aapcs-linux",   ARM_ABI_AAPCS_LINUX},
-+  {"apcs-r",  ARM_ABI_APCSR}
++  {"apcs-32",  ARM_ABI_APCS32}
  };
  
  /* Supported TLS relocations.  */
@@ -55,7 +55,7 @@
  
    offsets = arm_get_frame_offsets ();
 -  stack_adjust = offsets->outgoing_args - offsets->saved_regs;
-+  if (arm_abi == ARM_ABI_APCSR)
++  if (arm_abi == ARM_ABI_APCS32)
 +    stack_adjust = abs (- offsets->frame_size - offsets->outgoing_args);
 +  else
 +    stack_adjust = offsets->outgoing_args - offsets->saved_regs;
@@ -208,7 +208,7 @@
  	     frame_pointer_needed is true, but only if sp already
  	     points to the base of the saved core registers.  */
 -	  if (live_regs_mask & (1 << SP_REGNUM))
-+	  if (arm_abi == ARM_ABI_APCSR)
++	  if (arm_abi == ARM_ABI_APCS32)
  	    {
 -	      unsigned HOST_WIDE_INT stack_adjust;
 -
@@ -304,7 +304,7 @@
 -	asm_fprintf (f, "\tsub\t%r, %r, #%d\n", SP_REGNUM, FP_REGNUM,
 -		     4 * bit_count (saved_regs_mask));
 -      print_multi_reg (f, "ldmfd\t%r", SP_REGNUM, saved_regs_mask);
-+      if (arm_abi == ARM_ABI_APCSR)
++      if (arm_abi == ARM_ABI_APCS32)
 +	{
 +	  print_multi_reg (f, "ldmea\t%r", FP_REGNUM, saved_regs_mask);
 +	}
@@ -333,14 +333,14 @@
      {
        /* Restore stack pointer if necessary.  */
 -      if (offsets->outgoing_args != offsets->saved_regs)
-+      if (arm_abi != ARM_ABI_APCSR
++      if (arm_abi != ARM_ABI_APCS32
 +	  && offsets->outgoing_args != offsets->saved_regs)
  	{
  	  operands[0] = operands[1] = stack_pointer_rtx;
  	  operands[2] = GEN_INT (offsets->outgoing_args - offsets->saved_regs);
  	  output_add_immediate (operands);
  	}
-+      else if (arm_abi == ARM_ABI_APCSR
++      else if (arm_abi == ARM_ABI_APCS32
 +	       && (abs (offsets->frame_size) + offsets->outgoing_args))
 +	{
 +	  operands[0] = operands[1] = stack_pointer_rtx;
@@ -357,10 +357,10 @@
  		  || !return_used_this_function
 -		  || offsets->saved_regs == offsets->outgoing_args
 -		  || frame_pointer_needed);
-+		  || (arm_abi == ARM_ABI_APCSR
++		  || (arm_abi == ARM_ABI_APCS32
 +		      && abs (offsets->frame_size
 +			      + offsets->outgoing_args) <= 256)
-+		  || (arm_abi != ARM_ABI_APCSR
++		  || (arm_abi != ARM_ABI_APCS32
 +		      && offsets->saved_regs == offsets->outgoing_args)
 +		  || arm_apcs_frame_needed ());
  
@@ -375,7 +375,7 @@
 +int
 +arm_can_eliminate (int from, int to)
 +{
-+  if (arm_abi == ARM_ABI_APCSR)
++  if (arm_abi == ARM_ABI_APCS32)
 +    {
 +      /* We can eliminate ARGP to STACKP if no alloca, no stack checks needed
 +	 and frame not needed.  */
@@ -448,7 +448,7 @@
    /* A leaf function does not need any stack alignment if it has nothing
       on the stack.  */
 -  if (leaf && frame_size == 0)
-+  if (leaf && offsets->frame_size == 0 && arm_abi != ARM_ABI_APCSR)
++  if (leaf && offsets->frame_size == 0 && arm_abi != ARM_ABI_APCS32)
      {
        offsets->outgoing_args = offsets->soft_frame;
        return offsets;
@@ -457,7 +457,7 @@
      offsets->soft_frame += 4;
  
 -  offsets->locals_base = offsets->soft_frame + frame_size;
-+  if (arm_abi == ARM_ABI_APCSR)
++  if (arm_abi == ARM_ABI_APCS32)
 +    offsets->locals_base = 0;
 +  else
 +    offsets->locals_base = offsets->soft_frame + offsets->frame_size;
@@ -479,7 +479,7 @@
 -  arm_stack_offsets *offsets;
 +  arm_stack_offsets *offsets = arm_get_frame_offsets ();
 +  
-+  if (arm_abi == ARM_ABI_APCSR)
++  if (arm_abi == ARM_ABI_APCS32)
 +    {
 +      if (from == ARG_POINTER_REGNUM || to == ARG_POINTER_REGNUM)
 +	{
@@ -624,7 +624,7 @@
 -    {
 +  /* NAB++ */
 +  offsets = arm_get_frame_offsets ();
-+  if (arm_abi == ARM_ABI_APCSR)
++  if (arm_abi == ARM_ABI_APCS32)
 +    frame_size = - offsets->frame_size - offsets->outgoing_args;
 +  else
 +    frame_size = offsets->saved_args + saved_regs - offsets->outgoing_args;
@@ -640,7 +640,7 @@
  
 +#if defined(ARM_STKOVF_SPLIT_SMALL) && defined(ARM_STKOVF_SPLIT_BIG)
 +      /* Explicit stack checks.  */
-+      if (arm_abi == ARM_ABI_APCSR && TARGET_APCS_STACK)
++      if (arm_abi == ARM_ABI_APCS32 && TARGET_APCS_STACK)
 +	{
 +	  rtx sl_reg = gen_rtx_REG (GET_MODE (stack_pointer_rtx), 10);
 +	  
@@ -675,7 +675,7 @@
  	    {
 -	      insn = gen_rtx_PLUS (SImode, hard_frame_pointer_rtx,
 -				   GEN_INT (4));
-+	      if (arm_abi == ARM_ABI_APCSR)
++	      if (arm_abi == ARM_ABI_APCS32)
 +		insn = gen_rtx_PLUS (SImode, fp_rtx, GEN_INT (4));
 +	      else
 +		insn = gen_rtx_PLUS (SImode, hard_frame_pointer_rtx,
@@ -715,7 +715,7 @@
 -    }
  
 +      /* NAB: FIXME.  Hack for __builtin_apply_args. */
-+      if (arm_abi == ARM_ABI_APCSR)
++      if (arm_abi == ARM_ABI_APCS32)
 +	{
 +	  if (cfun->machine->apply_args || ! optimize)
 +	    {
@@ -772,7 +772,7 @@
    if (count != 0)
      return NULL_RTX;
  
-+  if (arm_abi == ARM_ABI_APCSR)
++  if (arm_abi == ARM_ABI_APCS32)
 +    {
 +      /* On RISC OS, the story is more complicated because calls to
 +	 stack-extension code, or alloca can directly alter the
