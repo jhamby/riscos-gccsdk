@@ -1,18 +1,29 @@
---- ../../../gcc-3.4-20050719/gcc/cpplib.c	2004-12-02 03:32:17.000000000 +0100
-+++ ./cpplib.c	2005-03-21 12:56:25.000000000 +0100
-@@ -636,6 +636,11 @@
+--- ../../../../gcc3.4.6/gcc-3.4.6/gcc/cpplib.c	2004-12-02 03:32:21.000000000 +0100
++++ ./cpplib.c	2006-09-18 00:41:00.000000000 +0200
+@@ -25,6 +25,10 @@
+ #include "cpphash.h"
+ #include "obstack.h"
+ 
++#include "system.h"
++#include "coretypes.h"
++#include "tm.h" 
++
+ /* Chained list of answers to an assertion.  */
+ struct answer
+ {
+@@ -636,6 +640,11 @@
  {
    char *fname;
    const cpp_token *header;
 +#if defined(CROSS_COMPILE)
-+  char unixed[256]; /* Temp buffer to translate Unix filenames to RISCOS */
++  char unixed[256]; /* Temp buffer to translate Unix filenames to RISC OS */
 +  int len;
 +  extern char *riscos_to_unix (char *, char *);
 +#endif
  
    /* Allow macro expansion.  */
    header = get_token_no_padding (pfile);
-@@ -644,6 +649,14 @@
+@@ -644,6 +653,14 @@
        fname = xmalloc (header->val.str.len - 1);
        memcpy (fname, header->val.str.text + 1, header->val.str.len - 2);
        fname[header->val.str.len - 2] = '\0';
@@ -27,3 +38,18 @@
        *pangle_brackets = header->type == CPP_HEADER_NAME;
      }
    else if (header->type == CPP_LESS)
+@@ -929,6 +946,14 @@
+       pfile->state.prevent_expansion++;
+       cpp_output_line (pfile, stderr);
+       pfile->state.prevent_expansion--;
++#ifdef ERROR_THROWBACK
++      {
++        extern const char *throwback_file;
++        extern int throwback_line;
++
++        ERROR_THROWBACK (throwback_file, throwback_line, CPP_DL_WARNING_P(code) ? "warning" : NULL, pfile->directive->name);
++      }
++#endif
+     }
+ }
+ 

@@ -1,5 +1,5 @@
---- ../../../gcc-3.4-20050719/gcc/config/arm/arm.h	2004-08-25 17:55:55.000000000 +0200
-+++ ./config/arm/arm.h	2005-11-15 21:56:14.000000000 +0100
+--- ../../../../gcc3.4.6/gcc-3.4.6/gcc/config/arm/arm.h	2004-08-25 17:55:55.000000000 +0200
++++ ./config/arm/arm.h	2006-09-18 00:34:28.000000000 +0200
 @@ -58,6 +58,11 @@
  	if (TARGET_SOFT_FLOAT)				\
  	  builtin_define ("__SOFTFP__");		\
@@ -12,6 +12,15 @@
  	/* FIXME: TARGET_HARD_FLOAT currently implies	\
  	   FPA.  */					\
  	if (TARGET_VFP && !TARGET_HARD_FLOAT)		\
+@@ -318,7 +323,7 @@
+ #define ARM_FLAG_APCS_FRAME	(1 << 0)
+ 
+ /* Nonzero if the function prologue should output the function name to enable
+-   the post mortem debugger to print a backtrace (very useful on RISCOS,
++   the post mortem debugger to print a backtrace (very useful on RISC OS,
+    unused on RISCiX).  Specifying this flag also enables
+    -fno-omit-frame-pointer.
+    XXX Must still be implemented in the prologue.  */
 @@ -999,7 +1004,7 @@
        fixed_regs[PIC_OFFSET_TABLE_REGNUM] = 1;			\
        call_used_regs[PIC_OFFSET_TABLE_REGNUM] = 1;		\

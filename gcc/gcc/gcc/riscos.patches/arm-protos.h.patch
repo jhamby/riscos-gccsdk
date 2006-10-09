@@ -1,6 +1,6 @@
---- ../../../gcc-3.4-20050719/gcc/config/arm/arm-protos.h	2005-02-01 16:07:02.000000000 +0100
-+++ ./config/arm/arm-protos.h	2005-05-16 17:17:59.000000000 +0200
-@@ -150,7 +150,7 @@
+--- ../../../../gcc3.4.6/gcc-3.4.6/gcc/config/arm/arm-protos.h	2005-10-01 15:31:38.000000000 +0200
++++ ./config/arm/arm-protos.h	2006-04-15 15:21:14.000000000 +0200
+@@ -152,7 +152,7 @@
  #endif
  
  #if defined AOF_ASSEMBLER 

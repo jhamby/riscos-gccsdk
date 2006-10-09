@@ -1,0 +1,73 @@
+--- ../../../../gcc3.4.6/gcc-3.4.6/gcc/cpperror.c	2003-11-01 23:56:54.000000000 +0100
++++ ./cpperror.c	2006-08-14 14:41:39.000000000 +0200
+@@ -29,8 +29,15 @@
+ #include "cpphash.h"
+ #include "intl.h"
+ 
++#include "system.h"
++#include "coretypes.h"
++#include "tm.h" 
++
+ static void print_location (cpp_reader *, fileline, unsigned int);
+ 
++const char *throwback_file = "";
++int throwback_line = 0;
++
+ /* Print the logical file location (LINE, COL) in preparation for a
+    diagnostic.  Outputs the #include chain if it has changed.  A line
+    of zero suppresses the include stack, and outputs the program name
+@@ -59,6 +66,9 @@
+       else
+ 	fprintf (stderr, "%s:%u:%u:", map->to_file, lin, col);
+ 
++      throwback_file = map->to_file;
++      throwback_line = lin;
++
+       fputc (' ', stderr);
+     }
+ }
+@@ -128,7 +138,7 @@
+   fileline line;
+   unsigned int column;
+   va_list ap;
+-  
++
+   va_start (ap, msgid);
+ 
+   if (CPP_OPTION (pfile, traditional))
+@@ -145,8 +155,14 @@
+       column = pfile->cur_token[-1].col;
+     }
+ 
+-  if (_cpp_begin_message (pfile, level, line, column))
++  if (_cpp_begin_message (pfile, level, line, column)) {
++    char buffer[256];
+     v_message (msgid, ap);
++#ifdef ERROR_THROWBACK
++    vsnprintf (buffer, sizeof(buffer), _(msgid), ap);
++    ERROR_THROWBACK (throwback_file, throwback_line, CPP_DL_WARNING_P (level) ? "warning" : "", buffer);
++#endif
++  }
+ 
+   va_end (ap);
+ }
+@@ -158,11 +174,17 @@
+ 		     const char *msgid, ...)
+ {
+   va_list ap;
+-  
++
+   va_start (ap, msgid);
+ 
+-  if (_cpp_begin_message (pfile, level, line, column))
++  if (_cpp_begin_message (pfile, level, line, column)) {
++    char buffer[256];
+     v_message (msgid, ap);
++#ifdef ERROR_THROWBACK
++    vsnprintf (buffer, sizeof(buffer), _(msgid), ap);
++    ERROR_THROWBACK (throwback_file, throwback_line, CPP_DL_WARNING_P (level) ? "warning" : "", buffer);
++#endif
++  }
+ 
+   va_end (ap);
+ }

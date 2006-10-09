@@ -1,5 +1,5 @@
---- ../../../gcc-3.4.6/gcc/config/arm/arm.c	2005-10-01 15:31:38.000000000 +0200
-+++ config/arm/arm.c	2006-04-18 00:22:01.000000000 +0200
+--- ../../../../gcc3.4.6/gcc-3.4.6/gcc/config/arm/arm.c	2005-10-01 15:31:38.000000000 +0200
++++ ./config/arm/arm.c	2006-09-18 00:34:50.000000000 +0200
 @@ -110,6 +110,7 @@
  static unsigned long arm_compute_func_type (void);
  static tree arm_handle_fndecl_attribute (tree *, tree, tree, int, bool *);
@@ -50,6 +50,15 @@
        /* Now check to see if the user has specified some command line
  	 switch that require certain abilities from the cpu.  */
        sought = 0;
+@@ -667,7 +696,7 @@
+     {
+       /* If APCS-32 was not the default then it must have been set by the
+ 	 user, so issue a warning message.  If the user has specified
+-	 "-mapcs-32 -mcpu=arm2" then we loose here.  */
++	 "-mapcs-32 -mcpu=arm2" then we lose here.  */
+       if ((TARGET_DEFAULT & ARM_FLAG_APCS_32) == 0)
+ 	warning ("target CPU does not support APCS-32" );
+       target_flags &= ~ARM_FLAG_APCS_32;
 @@ -750,6 +779,15 @@
    if (TARGET_APCS_FLOAT)
      warning ("passing floating point arguments in fp regs not yet supported");
