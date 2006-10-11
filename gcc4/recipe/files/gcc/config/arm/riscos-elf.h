@@ -49,7 +49,7 @@
 #define MULTILIB_DEFAULTS { "mhard-float" }
 
 #undef SUBTARGET_CPP_SPEC
-#define SUBTARGET_CPP_SPEC "%{mlibscl:-D__TARGET_SCL__}"
+#define SUBTARGET_CPP_SPEC "%{mlibscl:-D__TARGET_SCL__}%{!mlibscl:-D__TARGET_UNIXLIB__}"
 
 /* #define SUBTARGET_CPP_SPEC \
 	"%{mlibscl:-D__TARGET_SCL__} \
