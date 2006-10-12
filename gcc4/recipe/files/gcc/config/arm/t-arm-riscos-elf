@@ -73,6 +73,3 @@ $(T)crtn-riscos.o: $(srcdir)/config/arm/crtn-riscos.asm $(GCC_PASSES)
 
 riscos.o: $(srcdir)/config/arm/riscos.c $(CONFIG_H)
 	$(CC) -c $(ALL_CFLAGS) $(ALL_CPPFLAGS) $(INCLUDES) $(srcdir)/config/arm/riscos.c
-
-rname.o: $(srcdir)/config/arm/rname.c $(CONFIG_H)
-	$(CC) -c $(ALL_CFLAGS) $(ALL_CPPFLAGS) $(INCLUDES) $(srcdir)/config/arm/rname.c
