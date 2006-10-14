@@ -380,7 +380,10 @@ outputElf (void)
   elf_head.e_entry = areaEntry?areaEntryOffset:0;
   elf_head.e_phoff = 0;
   elf_head.e_shoff = sizeof(elf_head);
-  elf_head.e_flags = EF_ARM_CURRENT;
+  /* We like to take all the aspects of EF_ARM_CURRENT but not its ARM EABI version
+     as we aren't complying with any of the versions so we set the version to 0 which
+     means EF_ARM_ABI_UNKNOWN.  */
+  elf_head.e_flags = EF_ARM_CURRENT & ~EF_ARM_EABIMASK;
   if (areaEntry)
     elf_head.e_flags |= EF_ARM_HASENTRY;
   elf_head.e_ehsize = sizeof(elf_head);
