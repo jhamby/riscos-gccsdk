@@ -1,8 +1,7 @@
-
 AB_INSTALL=yes
+
+AB_CONFLAGS=--without-python
 
 mkdir -p $D/include/libgsf-1/gsf
 mkdir -p $D/include/libgsf-1/gsf-gnome
 mkdir -p $D/include/libgsf-1/gsf-win32
-
-
