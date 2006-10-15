@@ -1,5 +1,5 @@
 --- ld/scripttempl/elf.sc.orig	2006-10-15 12:07:59.000000000 +0100
-+++ ld/scripttempl/elf.sc	2006-10-15 12:14:47.000000000 +0100
++++ ld/scripttempl/elf.sc	2006-10-15 13:53:33.000000000 +0100
 @@ -239,6 +239,18 @@
     test -z "${TEXT_BASE_ADDRESS}" && TEXT_BASE_ADDRESS="${TEXT_START_ADDR}"
  fi
@@ -32,7 +32,7 @@
    ${CREATE_SHLIB-${INTERP}}
    ${INITIAL_READONLY_SECTIONS}
    ${TEXT_DYNAMIC+${DYNAMIC}}
-@@ -362,10 +376,14 @@
+@@ -362,16 +376,21 @@
    ${CREATE_SHLIB-${SDATA2}}
    ${CREATE_SHLIB-${SBSS2}}
    ${OTHER_READONLY_SECTIONS}
@@ -42,12 +42,19 @@
    .gcc_except_table ${RELOCATING-0} : ONLY_IF_RO { *(.gcc_except_table .gcc_except_table.*) }
  
 +  ${RELOCATING+${CREATE_SHLIB-${RISCOS_ROLIMIT}}}
-+  ${RELOCATING+${CREATE_SHLIB-${RISCOS_RWBASE}}}
 +
    /* Adjust the address for the data segment.  We want to adjust up to
       the same address within the page on the next page up.  */
    ${CREATE_SHLIB-${CREATE_PIE-${RELOCATING+. = ${DATA_ADDR-${DATA_SEGMENT_ALIGN}};}}}
-@@ -441,6 +459,7 @@
+   ${CREATE_SHLIB+${RELOCATING+. = ${SHLIB_DATA_ADDR-${DATA_SEGMENT_ALIGN}};}}
+   ${CREATE_PIE+${RELOCATING+. = ${SHLIB_DATA_ADDR-${DATA_SEGMENT_ALIGN}};}}
+ 
++  ${RELOCATING+${CREATE_SHLIB-${RISCOS_RWBASE}}}
++
+   /* Exception handling  */
+   .eh_frame     ${RELOCATING-0} : ONLY_IF_RW { KEEP (*(.eh_frame)) }
+   .gcc_except_table ${RELOCATING-0} : ONLY_IF_RW { *(.gcc_except_table .gcc_except_table.*) }
+@@ -441,6 +460,7 @@
    ${BSS_PLT+${PLT}}
    .bss          ${RELOCATING-0} :
    {
@@ -55,7 +62,7 @@
     *(.dynbss)
     *(.bss${RELOCATING+ .bss.* .gnu.linkonce.b.*})
     *(COMMON)
-@@ -450,6 +469,7 @@
+@@ -450,6 +470,7 @@
        FIXME: Why do we need it? When there is no .bss section, we don't
        pad the .data section.  */
     ${RELOCATING+. = ALIGN(. != 0 ? ${ALIGNMENT} : 1);}
@@ -63,7 +70,7 @@
    }
    ${RELOCATING+${OTHER_BSS_END_SYMBOLS}}
    ${RELOCATING+. = ALIGN(${ALIGNMENT});}
-@@ -458,6 +478,7 @@
+@@ -458,6 +479,7 @@
    ${RELOCATING+${OTHER_END_SYMBOLS}}
    ${RELOCATING+${END_SYMBOLS-${USER_LABEL_PREFIX}_end = .; PROVIDE (${USER_LABEL_PREFIX}end = .);}}
    ${RELOCATING+${DATA_SEGMENT_END}}
