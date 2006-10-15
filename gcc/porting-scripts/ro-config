@@ -302,7 +302,15 @@ else
 fi
 
 
-LTOOL=GCCSDK_ENV/bin/libtool
+# Define architecture
+if grep -q -- "--with-arch" $tmpoutconfigure ; then
+ echo RISC OS: Setting architecture
+ # FIXME: right value?
+ ARCHITECTURE="--with-arch=arm-riscos"
+else
+ ARCHITECTURE=
+fi
+
 
 # Remove configure options
 rm $tmpoutconfigure
@@ -557,4 +565,4 @@ export lt_cv_global_symbol_to_c_name_address="sed -n -e 's/^: \\([^ ]*\\) \$/  {
 
 GCCSDK_ENV/ro-path $RO_CPATH/configure \
   $HOST $BUILD $TARGET $PREFIX $WITHLIBS $X $SHARED $STATIC $GLIB $GTK \
-  $TCLTK $THREADS $NATIVE $SSL $NLS $RO_CPARAMS 
+  $TCLTK $THREADS $NATIVE $ARCHITECTURE $SSL $NLS $RO_CPARAMS 
