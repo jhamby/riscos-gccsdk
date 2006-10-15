@@ -99,3 +99,31 @@
   arm_expand_nonlocal_goto (operands);
   DONE;
 })
+
+; 4th operand is ignored and included to make pattern different from above
+(define_insn "rt_stkovf_v5_clobbered"
+  [(unspec:SI [(match_operand:SI 0 "s_register_operand" "r")
+               (match_operand:SI 1 "s_register_operand" "r")
+               (match_operand 2 "" "")
+	       (match_operand 3 "" "")] UNSPEC_STK)
+   (clobber (reg:SI 8))
+   (clobber (reg:SI SL_REGNUM))
+   (clobber (reg:SI IP_REGNUM))
+   (clobber (reg:SI LR_REGNUM))
+   (clobber (reg:CC CC_REGNUM))]
+  ""
+  "cmp\\t%0, %1\;bllt\\t%a2"
+[(set_attr "conds" "clob")
+ (set_attr "length" "8")])
+
+(define_insn "rt_loadpic"
+  [(unspec:SI [(match_operand 0 "" "")] UNSPEC_STK)
+   (clobber (reg:SI 7))
+   (clobber (reg:SI 8))
+   (clobber (reg:SI IP_REGNUM))
+   (clobber (reg:SI LR_REGNUM))
+   (clobber (reg:CC CC_REGNUM))]
+  ""
+  "bl\\t%a0"
+[(set_attr "conds" "clob")
+ (set_attr "length" "4")])
