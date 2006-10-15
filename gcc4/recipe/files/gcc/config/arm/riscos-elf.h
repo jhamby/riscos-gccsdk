@@ -160,6 +160,8 @@
 #define ARM_STKOVF_SPLIT_SMALL "__rt_stkovf_split_small"
 #define ARM_STKOVF_SPLIT_BIG "__rt_stkovf_split_big"
 
+#define	ARM_LOAD_PIC "__rt_load_pic"
+
 
 /* Default RISC OS options
    - APCS
