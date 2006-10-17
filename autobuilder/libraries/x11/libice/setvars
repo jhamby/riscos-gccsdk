@@ -1,3 +1,7 @@
 AB_INSTALL=yes
 
+# Because we're patching src/Makefile.am
+autoconf
+automake-1.9
+
 mkdir -p $D/include/X11/ICE
