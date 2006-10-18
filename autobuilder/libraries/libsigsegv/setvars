@@ -1,0 +1,3 @@
+AB_INSTALL=yes
+
+chmod +x $S/build-aux/install-sh

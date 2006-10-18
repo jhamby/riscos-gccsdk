@@ -1,0 +1,12 @@
+run <Obey$Dir>.README/x { > <Obey$Dir>.^.!CLISP-SWI.doc.README }
+settype <Obey$Dir>.^.!CLISP-SWI.doc.README Text
+run <Obey$Dir>.README/de/x { > <Obey$Dir>.^.!CLISP-SWI.doc.README/de }
+settype <Obey$Dir>.^.!CLISP-SWI.doc.README/de Text
+run <Obey$Dir>.README/es/x { > <Obey$Dir>.^.!CLISP-SWI.doc.README/es }
+settype <Obey$Dir>.^.!CLISP-SWI.doc.README/es Text
+run <Obey$Dir>.clisp/1/x { > <Obey$Dir>.^.!CLISP-SWI.doc.clisp/1 }
+settype <Obey$Dir>.^.!CLISP-SWI.doc.clisp/1 Text
+run <Obey$Dir>.clisp/html/x { > <Obey$Dir>.^.!CLISP-SWI.doc.clisp/html }
+settype <Obey$Dir>.^.!CLISP-SWI.doc.clisp/html Text
+Echo All Done.
+Quit

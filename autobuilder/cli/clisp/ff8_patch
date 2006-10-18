@@ -1,0 +1,22 @@
+--- configure_base	2006-07-15 09:11:28.000000000 +0100
++++ configure	2006-08-13 12:54:28.000000000 +0100
+@@ -1757,7 +1757,7 @@
+ # Otherwise an old cache value of `no' led to `EXEEXT = no' in a Makefile.
+ ac_cv_exeext=
+ # b.out is created by i960 compilers.
+-for ac_file in a_out.exe a.exe conftest.exe a.out conftest a.* conftest.* b.out
++for ac_file in a_out.exe a.exe conftest.exe !RunImage,ff8 conftest,ff8 a.out conftest a.* conftest.* b.out
+ do
+   test -f "$ac_file" || continue
+   case $ac_file in
+@@ -1777,6 +1777,10 @@
+ 	# maintain Libtool? --akim.
+ 	export ac_cv_exeext
+ 	break;;
++    *,* )
++	ac_cv_exeext=`expr "$ac_file" : '[^,]*\(\,.*\)'`
++	export ac_cv_exeext
++	break;;
+     * )
+ 	break;;
+   esac

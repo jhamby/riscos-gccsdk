@@ -1,0 +1,2 @@
+Set CLISP_SWI$Path <Obey$Dir>.
+Filer_Run CLISP_SWI:doc.README

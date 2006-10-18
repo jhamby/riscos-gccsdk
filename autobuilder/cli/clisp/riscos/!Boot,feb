@@ -1,0 +1,2 @@
+Set CLISP_SWI$Path <Obey$Dir>.
+Run CLISP_SWI:UnixifyPath CLISP_SWI$Path

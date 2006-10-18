@@ -1,0 +1,3 @@
+Set CLISP_SWI$Path <Obey$Dir>.
+Run CLISP_SWI:UnixifyPath CLISP_SWI$Path
+TaskWindow "CLISP_SWI:base.lisp/run -M <U_CLISP_SWI$Path>base/lispinit.mem" -wimpslot 4096k -name "GNU CLISP"
