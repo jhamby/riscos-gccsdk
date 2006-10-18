@@ -148,20 +148,20 @@ tmpoutconfigure=/tmp/out-configure-$$-$RANDOM
 $RO_CPATH/configure --help > $tmpoutconfigure
 
 # Set target type
-if grep -q -- --target $RO_CPATH/configure; then
+if grep -q -- --target= $RO_CPATH/configure; then
  TARGET="--target=arm-riscos"
 else
  TARGET=
 fi
 
-if grep -q -- --build $RO_CPATH/configure; then
+if grep -q -- --build= $RO_CPATH/configure; then
  BUILD="--build=i686-linux"
 else
  BUILD=
 fi
 
 
-if grep -q -- --host $RO_CPATH/configure; then
+if grep -q -- --host= $RO_CPATH/configure; then
  HOST="--host=arm-riscos"
 else
  HOST=
