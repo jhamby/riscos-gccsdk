@@ -43,7 +43,7 @@
 #undef ARM_DEFAULT_ABI
 #define ARM_DEFAULT_ABI ARM_ABI_APCS32
 
-#define SUBTARGET_EXTRA_LINK_SPEC " -m armelf_riscos -p"
+#define SUBTARGET_EXTRA_LINK_SPEC " -m armelf_riscos -p %{!static:%{!fpic:-fPIC}} -L/DSOLib:lib %{fpic:-fpic}"
 
 #undef  MULTILIB_DEFAULTS
 #define MULTILIB_DEFAULTS { "mhard-float" }
