@@ -31,6 +31,10 @@
  *
  */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /*
  * interface types etc.
  */
@@ -170,5 +174,9 @@ extern size_t	regerror(int, const regex_t *, char *, size_t);
 #define regexec(preg, string, nmatch, pmatch, eflags) \
 		ul_regexec((preg), (string), strlen((string)), 0, \
 				NULL, (nmatch), (pmatch), (eflags))
+
+#ifdef	__cplusplus
+}
+#endif
 
 #endif   /* _REGEX_H_ */

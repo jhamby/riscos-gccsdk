@@ -28,7 +28,11 @@ Sun Oct 01 01:02:06 CEST 2006  John Tytgat  <John.Tytgat@aaug.net>
 
 [ ^^^ Here starts UnixLib 5.0 ^^^ ]
 -----------------------------------------------------------------------
-[ vvv Here ends UnixLib 4.5 vvv ]
+[ vvv Here ends UnixLib 4.5/4.6 vvv ]
+
+Sat Oct 21 22:38:13 CEST 2006  John Tytgat  <John.Tytgat@aaug.net>
+
+	* source/clib/regex.h: Made it usable for C++ programs.
 
 Wed Oct  4 23:13:35 CEST 2006  John Tytgat  <John.Tytgat@aaug.net>
 
@@ -65,7 +69,7 @@ Mon Sep  4 06:43:03 PDT 2006  Peter Naulls  <peter@chocky.org>
 
 	* source/Makefile.in, source/common/riscosify.c: Avoid using hard-wired
 	  "/home/riscos/env/" path.
-	 * source/clib/bits/posix_opt.h: Refine further.
+	* source/clib/bits/posix_opt.h: Refine further.
 
 Sat Aug 26 16:59:31 CEST 2006  John Tytgat  <John.Tytgat@aaug.net>
 
