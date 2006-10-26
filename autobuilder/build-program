@@ -18,6 +18,10 @@ AB_INSTALL=no
 AB_CATEGORY=
 AB_ZIPNAME=
 AB_README=ReadMe
+AB_COPYSOURCE=
+AB_DISTCLEAN=
+AB_INSTALLDOCS="README ChangeLog FAQ AUTHORS CHANGES COPYING LICENSE"
+AB_SHORTDESC=
 
 export TLINK_CX11=
 
@@ -225,6 +229,11 @@ else
  # Need to package the installed files ?
  if [ "$AB_INSTALL" == "yes" ] ; then
    export AB_OUTPUTLIB
+   export AB_INSTALLDOCS
+   export AB_COPYSOURCE
+   export AB_DISTCLEAN
+   export AB_SHORTDESC
+
    if [ "$AB_ZIPNAME" != "" ] ; then
 
      export RO_PKG=$(echo $AB_FULLNAME | sed s#"$AB_PACKAGE"#"$AB_ZIPNAME"#)
