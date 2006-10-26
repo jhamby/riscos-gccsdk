@@ -1,0 +1,6 @@
+| Run file for LibU
+
+IconSprites <Obey$Dir>.!Sprites
+
+Set LibU$Dir <Obey$Dir>
+Set LibU$Path <LibU$Dir>.

@@ -1,0 +1,43 @@
+This application provides libraries built using the autobuilder
+for use on RISC OS.
+
+All the libraries were cross-compiled with the GCCSDK against
+the unixlib library.
+
+Details of the autobuilder and the GCCSDK can be found at
+www.riscos.info.
+
+This application sets a path variable called LibU that can
+be used with your compile and link commands as follows:
+
+To include the headers add:
+
+   -ILibU:include
+
+To link the libraries add:
+
+   -LLibU:lib -l<library name>
+
+where <library name> is the name of the library. If the library
+name starts with lib you do not need to include this.
+
+e.g. to link with zlib (library name libz) use:
+
+ -LLibU:lib -lz
+
+The standard documents for a library are copied to the doc
+directory in a subdirectory named after the library. This
+usually includes a README file and some kind of copyright
+or license file.
+
+More documentation for some of the libraries is contained in
+the man directory that contains unix man pages that have
+been automatically converted to HTML.
+
+The sources subdirectory contains the source code in a zip
+file from any libraries that require that the source code
+is made available with a binary distribution. These zip
+files sometime also contain extra documentation and example
+files.
+
+The libraries are:

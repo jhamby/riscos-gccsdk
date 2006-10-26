@@ -1,0 +1,50 @@
+This is the RISC OS port of SDL and some of the libraries based
+upon it.
+
+The libraries were all built using the autobuilder cross-compiled
+using the GCCSDK against UnixLib.
+
+See www.riscos.info for more information on the GCCSDK and
+the autobuilder.
+
+To use the main SDL library add -ISDL:include if the
+headers are specified using the SDL subdirectory or
+-I/SDL:include/SDL if just using the header names.
+
+Link using -LSDL:lib -lSDL
+
+Other libraries may be required from the !LibU application
+for some of the additional SDL based libraries. In this
+case you will have to add -LLibU:lib and the libraries to
+the link line.
+
+Examples:
+
+Compiling the playmus.c SDL_Mixer example:
+
+gcc -I/SDL:include/SDL -LSDL:lib -LLibU:lib -lSDL -lSDL_mixer
+  -lvorbis -logg -lvorbisfile -lvorbisenc -o playmusic playmus.c
+
+Compiling the showimage.c SDL_Image example:
+
+gcc -I/SDL:include/SDL -LSDL:lib -LLibU:lib -lSDL_Image -lSDL
+  -ltiff -ljpeg -lpng12 -lz -o showimage showimage.c
+
+(Note the above should only be on one line and have been
+split here for clarity)
+
+The most common documents have been copied to the doc
+subdirectory.
+
+The sources for the libraries whose license requires the
+source to be available are in a companion zip file that
+should be available in the same location you downloaded
+this from. It is normally named sdl-xxx-src.zip, where
+xxx is the version number.
+
+These source zip files may include extra documentation
+and examples.
+
+Alan Buckley (alan_baa@hotmail.com)
+
+The SDL based libraries included in this file are:

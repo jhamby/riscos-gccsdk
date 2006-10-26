@@ -1,0 +1,49 @@
+# This package includes the libraries specified
+# in the zipprefix file.
+# Ideally depends should also be updated to
+# ensure the libraries are built before
+# being included in this package
+
+AB_NOREMOTE=yes
+AB_ZIPNAME=sdl-0.1
+AB_CATEGORY=libraries
+
+AB_MAKE=":"
+
+ab_package() {
+  cp -av $H/\!SDL $D
+
+  FILES=$(cat $H/zipprefix)
+
+  # Need output dir for sources
+  mkdir -p $AB_OUTPUTPACK/$AB_CATEGORY
+  AB_SRCZIP=$AB_OUTPUTPACK/$AB_CATEGORY/$AB_ZIPNAME-src.zip
+  addzip -j $AB_SRCZIP $H/ReadMeSrc
+
+  cd $D/\!SDL
+
+  # Get list of libraries
+  ls -t -1 $AB_OUTPUTLIB/*.zip > alllibraries
+
+  for FILE in $FILES ; do
+     FULLPATH=$( grep -m 1 "$AB_OUTPUTLIB/$FILE" alllibraries )
+     echo "Adding $FILE, zip file name $FULLPATH"
+     unzip $FULLPATH
+     if [ -e abshortdesc ] ; then
+       cat abshortdesc >> $D/\!SDL/\!Help
+       rm -f abshortdesc
+     fi
+     if [ -d sources ] ; then
+        addzip -j $AB_SRCZIP sources/*
+        rm -rf sources
+     fi
+  done
+
+  # Need to retype the converted manual files
+  MANFILES=$(find man -type f)
+  for FILE in $MANFILES ; do
+     mv $FILE $FILE,faf
+  done
+
+  rm -f alllibraries
+}
