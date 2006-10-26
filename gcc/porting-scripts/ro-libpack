@@ -19,10 +19,61 @@ mkdir -p $AB_DIR/package/bin/
 mkdir -p $AB_DIR/package/lib/X11/
 mkdir -p $AB_DIR/package/include/X11/extensions/
 mkdir -p $AB_DIR/package/lib/pkgconfig/
+mkdir -p $AB_DIR/package/doc/$RO_PKG
 
 echo "RO libpack: Running install target: $AB_INSTALLTARGET"
 # Adding GCCSDK_ENV in our path to intercept cp/rm/ln calls during installation.
 PATH=GCCSDK_ENV:$PATH eval "$AB_MAKE $AB_INSTALLTARGET"
+
+# Setup defaults for copying source
+if [ -z "$AB_COPYSOURCE" ] ; then
+  if [ -e COPYING ]; then
+    AB_COPYSOURCE=yes
+  fi
+fi
+
+if [ "$AB_COPYSOURCE" == "yes" ] ; then
+  if [ -z "$AB_DISTCLEAN" ] ; then
+    AB_DISTCLEAN="$AB_MAKE distclean"
+  fi
+
+  eval $AB_DISTCLEAN
+
+  # Some configure tests end up with this file
+  if [ -e \!RunImage,ff8 ] ; then
+     rm -f \!RunImage,ff8
+  fi
+
+  # Delete svn subdirectories
+  find . -name "*.svn" -type d -print0 | xargs -0 rm -rf
+
+  mkdir -p $AB_DIR/package/sources
+  /home/riscos/cross/bin/zip -r -y $AB_DIR/package/sources/$RO_PKG.zip *
+fi
+
+if [ ! -z "$AB_INSTALLDOCS" ] ; then
+  for file in $AB_INSTALLDOCS ; do
+     if [ -e $file ] ; then
+       if echo $file | grep "/" > /dev/null ; then
+         filename=$(basename $file)
+         dirname=$(echo $file | sed s#/$filename\$##)
+         mkdir -p $AB_DIR/package/doc/$RO_PKG/$dirname
+       fi
+       cp -av $file $AB_DIR/package/doc/$RO_PKG/$file
+     fi
+  done
+fi
+
+if [ -z "$AB_SHORTDESC" ] && [ -e debian/control ] ; then
+  # Try to get description of development package
+  AB_SHORTDESC=$(grep -A20 "Package:.*-dev" debian/control | grep -m 1 "Description:" | cut --bytes 14-)
+  # Just use first found if we can't find a dev entry
+  if [ -z "$AB_SHORTDESC" ] ; then
+    AB_SHORTDESC=$(grep -m 1 "Description:" debian/control | cut --bytes 14-)
+  fi
+fi
+
+echo "$RO_PKG $AB_SHORTDESC" > $AB_DIR/package/abshortdesc
 
 cd $AB_DIR/package
 
