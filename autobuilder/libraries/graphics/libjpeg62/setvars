@@ -3,9 +3,11 @@ AB_CATEGORY=graphics
 AB_INSTALL=yes
 AB_INSTALLTARGET=install-lib 
 
-AB_ZIPNAME=libjpeg-progs
 AB_MANPAGE="cjpeg.1 djpeg.1 jpegtran.1 rdjpgcom.1 wrjpgcom.1"
 
 ab_package() {
   cp $S/*,ff8 $D
+  # Fullname is changed here so that the packaged programs
+  # have a direrent name than the packaged libraries
+  AB_FULLNAME=$(echo $AB_FULLNAME | sed s#"libjpeg"#"libjpeg-progs"#)
 }
