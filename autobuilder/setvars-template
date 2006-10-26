@@ -80,6 +80,23 @@
 # Don't forget to escape '!' in bash.
 #AB_README=ReadMe,fff
 
+# Copy sources into library packages "yes" or "no"
+# If left blank it will copy the sources if the file COPYING exists
+#AB_COPYSOURCE=
+
+# Command to clean the distribution before packaging up the source
+# If left blank it defaults to "$AB_MAKE distclean"
+#AB_DISTCLEAN=
+
+# List of documents to copy into the library. Files that do not
+# exist are ignored
+#AB_INSTALLDOCS="README ChangeLog FAQ AUTHORS CHANGES COPYING LICENSE"
+
+# Short description of the library package. Placed into the file
+# abshortdesc. If blank it is read from the debian control file.
+#AB_SHORTDESC=
+
+
 # Make function
 #
 # Define this if you want special actions for make
