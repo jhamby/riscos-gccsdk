@@ -6,6 +6,7 @@
 #include "lispbibl.c"
 
 #include <swis.h>
+#include <memory.h>
 
 /* error: SWI number not valid */
 nonreturning_function(local, fehler_swi_number, (object obj)) {
@@ -203,6 +204,25 @@ LISPFUNN(riscos_swix,2)
     VALUES2(STACK_0, T);
     skipSTACK(3);
   }
+}
+
+
+/* (RISCOS:MALLOC size) */
+LISPFUNN(riscos_malloc,1)
+{
+	var uintL size = I_to_uint32( popSTACK() );
+
+	VALUES1(uint32_to_I(malloc(size)));
+}
+
+
+/* (RISCOS:FREE ptr) */
+LISPFUNN(riscos_free,1)
+{
+	var uintL ptr = I_to_uint32( popSTACK() );
+
+	free(ptr);
+	VALUES1(NIL);
 }
 
 
