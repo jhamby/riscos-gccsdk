@@ -284,7 +284,7 @@ if [ "$AB_NOPACKAGE" == "" ] ; then
      AB_ZIP=$AB_DIR/$AB_FULLNAME-$AB_ROVERSION$AB_TARGET.zip
    fi
  fi
- 
+
  cd $D
 
  # Remove an existing ZIP file (otherwise the old contents will be merged with the new one)
@@ -321,6 +321,7 @@ if [ "$AB_NOPACKAGE" == "" ] ; then
 
  mkdir -p  $AB_OUTPUTPACK/$AB_CATEGORY
  mv $AB_ZIP $AB_OUTPUTPACK/$AB_CATEGORY
+ ls -l  $AB_OUTPUTPACK/$AB_CATEGORY/$(basename $AB_ZIP)
 fi
 
 cd $AB_DIR/..
