@@ -204,15 +204,15 @@ ab_build() {
   AB_OUTPUT=/tmp/ab-output-$$-$RANDOM
   $AB_HOME/build-program 2>&1 | tee $AB_OUTPUT $AB_STDOUT
 
-  if ! grep "Autobuilder: Package stage completed" < $AB_OUTPUT >/dev/null ; then
+  if ! grep -q "Autobuilder: Package stage completed" < $AB_OUTPUT ; then
     echo "Package $AB_PACKAGE: ***Failure***"
     mv $AB_OUTPUT $AB_HOME/$AB_PACKAGEDIR/last-failure$AB_TARGET
     return 1
   else
     echo "Package $AB_PACKAGE: Success"
 
-    if ! grep "Autobuilder: Running make install" > /dev/null < $AB_OUTPUT   && \
-         grep "Autobuilder: No files specified to package" > /dev/null < $AB_OUTPUT ; then
+    if ! grep -q "Autobuilder: Running make install" < $AB_OUTPUT   && \
+         grep -q "Autobuilder: No files specified to package" < $AB_OUTPUT ; then
       echo "Warning: not installed, and not packaged"
     fi
 
