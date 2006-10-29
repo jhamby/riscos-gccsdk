@@ -1,13 +1,11 @@
 
 AB_CATEGORY=cli
 
-AB_FILESNOPATH="src/wget,ff8 COPYING wget.html,faf"
 AB_CONFLAGS=--without-ssl
+AB_MANPAGE=doc/wget.1
 
-#AB_PREZIP="man2html < doc/wget.1 > wget.html,faf"
-
-#ab_package() {
-#  echo moose wget
-#}
+ab_package() {
+ cp -av $S/src/wget,ff8 COPYING 
+}
 
 
