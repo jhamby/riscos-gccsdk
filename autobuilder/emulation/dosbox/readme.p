@@ -1,7 +1,7 @@
---- README	2004-11-18 14:12:58.000000000 +0000
-+++ Help	2005-01-04 22:16:34.000000000 +0000
+--- README.orig	2006-03-29 13:54:41.000000000 +0100
++++ README	2006-10-27 16:14:35.656250000 +0100
 @@ -1,5 +1,6 @@
- DOSBox v0.63
+ DOSBox v0.65
  
 +See end of this file for notes specific to RISC OS.
  
@@ -15,10 +15,10 @@
  
  
  ==============
-@@ -763,3 +765,72 @@
+@@ -815,3 +817,72 @@
  See the site: 
  http://dosbox.sourceforge.net
- for an emailaddress (The Crew-page).
+ for an email address (The Crew-page).
 +
 +=================
 +14. RISC OS Notes
@@ -29,29 +29,28 @@
 +
 +Ported to RISC OS by Alan Buckley March 2004.
 +Version 0.62 ported October 2004.
++Version 0.65 ported November 2006
 +
 +This program is 32 bit compatible and requires RISCOS 3.6+.
 +
 +It requires 48MB of memory (as it emulates a DOS machine with 16MB
 +of ram).
 +
-+Digital Renderer module (available from http://home.t-online.de/~zarquon)
-+may be installed in System:Modules if sound is required. If it is not
-+installed DosBox will run without sound.
++The SharedUnixLibrary module is requried and should be merged with
++your system modules. It is available from:
++http://www.riscos.info/downloads/gccsdk/sharedunixlib/system.zip 
 +
-+The !UnixHome application (available from http://www.chocky.org/unix/) must
-+have been seen by the filer.
++Digital Renderer module must be installed for sound support. It is included
++in the above system.zip file.
 +
-+You will also need to have installed the Shared Unix Library 1.0.2 which
-+is available from the Unix Porting Project (http://www.chocky.org/unix/) 
-+and the GCC web pages.
++The !UnixHome application must have been seen by the filer.
++It is available from:
++http://www.riscos.info/unix/downloads/support/UnixHome-1.03.zip
 +
-+Part of the Unix Porting Project.  Support for this program under RISC OS
-+is only offered to subscribers.  See http://www.chocky.org/unix/
-+for more information.
 +
 +The source code provided here has had minor changes to the original to
-+support RISC OS.
++support RISC OS and can be located by searching for __riscos__ in
++the source code.
 +
 +
 +Directory names for the MOUNT command and command line
@@ -88,3 +87,4 @@
 +See the other command line options in the main notes above.
 +
 +The DosBox application must have been seen by the filer.
++

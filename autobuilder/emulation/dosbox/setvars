@@ -8,4 +8,8 @@ ab_package() {
   cp -av $S/AUTHORS $S/COPYING $S/INSTALL $S/NEWS $S/THANKS $S/src/dosbox,ff8 \
          $D/\!DosBox
   cp -av $S/README $D/\!DosBox/\!Help
+  $AB_MAKE distclean
+  rm -f $S/\!RunImage,ff8
+  rm -f $S/man3
+  $GCCSDK_INSTALL_CROSSBIN/zip -r $D/\!DosBox/src.zip * 
 }
