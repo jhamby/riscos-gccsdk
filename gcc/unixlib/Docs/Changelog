@@ -1,3 +1,8 @@
+Tue Nov  7 19:44:12 2006  Lee Noar  <leenoar@ntlworld.com>
+
+	* unixlib/elf/convert-unixlib.pl: Added code to generate stubs header
+	for ELF version (adapted from gen-makefiles.pl).
+
 Sun Oct  8 19:38:58 CEST 2006  John Tytgat  <John.Tytgat@aaug.net>
 
 	* source/clib/sys/elf.h: Added (copy of Lee Noar's GCCSDK 3.4.6 patch
