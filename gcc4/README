@@ -1,75 +1,160 @@
 The RISC OS Software Development Kit [GCCSDK 4.x Release y]
 ===========================================================
 
-This is a lightweight build environment which combines a GCC 4.x release,
+This is a lightweight build environment which combines a GCC 4.1 release,
 binutils 2.17 release and UnixLib 5.0 into one directory which can
 be used to build a RISC OS cross-compiler with target arm-elf-riscos.
 
-1. Build steps
+We expect that the current set of GCCSDK patches for GCC and binutils can
+be applied to later versions than GCC 4.1 and binutils 2.17 as is, or at least
+with a minimum of changes of those patches.  However this still needs to be
+verified if that's really going to be the case as we're currently focusing
+to get all GCCSDK specific development done for GCC 4.1 and binutils 2.17.
+
+1. Checking out
+~~~~~~~~~~~~~~~
+
+During this stage of the development of GCCSDK 4.x we need a modified version
+of GCCSDK 3.4.6 R2 release for building.  The latter is stored in SVN
+gccsdk/trunk/gcc.  The GCCSDK 4.x code itself is stored in SVN in
+gccsdk/trunk/gcc4.
+
+So to check out:
+
+  $ mkdir gccsdk4
+  $ cd gccsdk4
+  $ svn co svn://svn.riscos.info/gccsdk/trunk/gcc
+  $ svn co svn://svn.riscos.info/gccsdk/trunk/gcc4
+
+We have now in 'gcc' the modified GCCSDK 3.4.6 R2 and in 'gcc4' the GCCSDK 4.x
+code.
+
+2. Build steps
 ~~~~~~~~~~~~~~
+
+[ Aside: at the moment it is not necessary yet to build the modified GCCSDK
+  3.4.6 R2 which is in the 'gcc' subdirectory. ]
 
 1. Build cross-compiler with target arm-elf-riscos (static ELF target only
    at the moment).
 2. Build RISC OS ELF loader (in development at the moment).
 
-1.1. Build cross-compiler
+[ Not developed yet: 3. Build the native RISC OS compiler ]
+
+Make sure GCCSDK_ROOT is defined at the directory path where GCCSDK 4.x
+code is located :
+
+  $ export GCCSDK_ROOT=`pwd`/gcc4
+
+2.1. Build cross-compiler
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The setup-gccsdk-params file contains several definitions as environment
-variables which you can change if desired.  Like with GCCSDK 3.4.6, we
+variables which you can change if really desired.  Like with GCCSDK 3.4.6, we
 recomment setting up $GCCSDK_INSTALL_CROSSBIN which then can be used by
 setup-gccsdk-params files to determine where the cross-compiler will be
 installed during 'make install' (note: $GCCSDK_INSTALL_CROSSBIN actually
-specfies the pathname 'bin' subdirectory of the directory where the complete
+specifies the pathname 'bin' subdirectory of the directory where the complete
 cross-compiler will be installed).
 
-1. Place a GCC 4.x release in $GCCSDK_GCCORIG (either tarball, either
+1. Use the definitions in the setup-gccsdk-params file :
+
+   $ cd $GCCSDK_ROOT
+   $ source setup-gccsdk-params
+
+2. Place an unchanged GCC 4.x release in $GCCSDK_GCCORIG (either tarball, either
    result of SVN checkout).
-2. Place a binutils 2.17 release in $GCCSDK_BINUTILSORIG (either tarball,
+
+   Tarball:
+
+     Fetch GCC 4.x.y tarball (at {http|ftp}://ftp.gnu.org/gnu/gcc or using one of the
+     GNU mirrors) and extract its gcc-4.x.y/gcc directory as $GCCSDK_GCCORIG.
+
+   SVN checkout:
+
+     $ svn co svn://gcc.gnu.org/svn/gcc/branches/gcc-4_1-branch $GCCSDK_GCCORIG
+
+   Note that the contents of $GCCSDK_GCCORIG is considered read-only from
+   now on and used in the scripts 'create-gccsdk' (see step 3) and 'create-patch'
+   (to update or create patches).
+
+3. Place a binutils 2.17 release in $GCCSDK_BINUTILSORIG (either tarball,
    either result of CVS checkout).
-3. Combine the contents of $GCCSDK_GCCORIG, $GCCSDK_BINUTILSORIG and
+
+   Tarball:
+
+     Fetch binutils 2-17 tarball (at {http|ftp}://ftp.gnu.org/gnu/binutils/binutils-2.17.tar.bz2
+     or using one of the GNU mirrors) and extract its binutils-2.17/binutils
+     directory as $GCCSDK_BINUTILSORIG.
+
+   CVS checkout:
+
+     $ cvs -z9 -d:pserver:anoncvs@sourceware.org:/cvs/src login
+       -> password: anoncvs
+     $ cd `dirname $GCCSDK_BINUTILSORIG`
+     $ cvs -z9 -d:pserver:anoncvs@sourceware.org:/cvs/src co -RPN -d tmp.binutils binutils
+     $ mv tmp.binutils/src `basename $GCCSDK_BINUTILSORIG`
+     $ rm -rf tmp.binutils
+
+   Note that the contents of $GCCSDK_BINUTILSORIG is considered read-only from
+   now on and used in the scripts 'create-gccsdk' (see step 4) and 'create-patch'
+   (to update or create patches).
+
+4. Combine the contents of $GCCSDK_GCCORIG, $GCCSDK_BINUTILSORIG and
    UnixLib 5.0 (GAS assembler syntax and ELF configuration) into
    $GCCSDK_SRCDIR and apply the necessary patches for arm-elf-riscos
    target by running:
 
-   ./create-gccsdk
+     $ cd $GCCSDK_ROOT
+     $ ./create-gccsdk
 
-4. Build and install the cross-compiler into $PREFIX:
+   At this point the source tree at $GCCSDK_SRCDIR is used to do the real build.
+   Developer changes can and should be done here and when those changes are
+   ready to be commited, either patches need to be created (using create-patch),
+   either full file copy needs to be made in the correct subdirector under
+   $GCCSDK_RECIPE_FILES.
 
-   ./build-it > build-output.txt 2>&1
+5. Build and install the cross-compiler into $PREFIX:
 
-   When the configuration has been successfully done during ./build-it,
+     $ cd $GCCSDK_ROOT
+     $ ./build-it > build-output.txt 2>&1
+
+   When the configuration part has been successfully done during ./build-it,
    you can restart the build by:
 
-   cd arm-elf-riscos
-   make
-   make install
+     $ cd $GCCSDK_ROOT/arm-elf-riscos
+     $ make
+     $ make install
 
-GCCSDK specific changes for the gcc/binutils sources are done via patches
-(recipe/patches directory), copying full source files (recipe/files) or via
-scripts (recipe/scripts).  Easy patch (re)creation can be done using the
-./create-patch script.  Currently UnixLib 5.0 is copied into $GCCSDK_SRCDIR
-using a conversion of an AOF based UnixLib in the GCCSDK 3.4.6 tree to
-an ELF one.
-
-1.2. Build RISC OS ELF loader
+2.2. Build RISC OS ELF loader
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 This is at the moment not fully buildable because not all RISC OS ELF related
 changes have been made to the cross-compiler, UnixLib and/or the soloader sources.
 
-   cd riscos/soloader
-   ./build-it > build-output.txt 2>&1
+   $ cd riscos/soloader
+   $ ./build-it > build-output.txt 2>&1
 
-2. Credits
+3. Developing
+~~~~~~~~~~~~~
+
+GCCSDK specific changes for the original gcc/binutils sources are done via
+patches (recipe/patches directory), copying full source files (recipe/files)
+or via scripts (recipe/scripts).  Easy patch (re)creation can be done using the
+./create-patch script.  Currently UnixLib 5.0 is copied into $GCCSDK_SRCDIR
+using a conversion of an AOF based UnixLib in the GCCSDK 3.4.6 tree to
+an ELF one.
+
+4. Credits
 ~~~~~~~~~~
 
 The initial arm-elf-riscos work for GCC 4.1 was done by Nick Burrett (Jun
 2005). Integrating Nick's work in a GCCSDK build environment and bringing it
 up-to-date was done by John Tytgat and John-Mark Bell (Oct 2006).
 
-Lee Noar contributed his RISC OS ELF loader work which was originally developed
-for his ELF support based on GCCSDK 3.4 (Oct 2006).
+Lee Noar contributed his RISC OS ELF loader work together with the necessary
+dynamic ELF changes for RISC OS (originally developed for GCCSDK 3.4)
+(Oct 2006).
 
 Copyright (c) 2005, 2006 GCCSDK Developers
 http://gccsdk.riscos.info/
