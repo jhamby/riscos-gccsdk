@@ -21,9 +21,11 @@ cp -r $GCCSDK_GCCORIG/* $GCCSDK_SRCDIR
 cp -r $GCCSDK_BINUTILSORIG/{etc,include,bfd,binutils,cpu,gas,opcodes,ld,gprof} $GCCSDK_SRCDIR
 
 # 1. Patch it:
+pushd $GCCSDK_SRCDIR > /dev/null
 for p in `ls $GCCSDK_RECIPE_PATCHES/*.p` ; do
-  ( cd $GCCSDK_SRCDIR ; patch -p0 < $p )
+  patch -p0 < $p
 done
+popd > /dev/null
 
 # 2. Copy full files excluding the .svn directories:
 pushd $GCCSDK_RECIPE_FILES > /dev/null
