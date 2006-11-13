@@ -28,6 +28,7 @@ $GCCSDK_SRCDIR/configure --prefix=$PREFIX --enable-threads=posix \
 	--enable-checking=no --disable-libstdcxx-pch \
 	--enable-c99 --enable-cmath \
 	--without-pic --disable-shared --without-x --enable-libgcj \
-	
+	--enable-maintainer-mode
+
 make all
 make install

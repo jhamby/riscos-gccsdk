@@ -18,7 +18,7 @@ mkdir $GCCSDK_SRCDIR
 cp -r $GCCSDK_GCCORIG/* $GCCSDK_SRCDIR
 
 # Copy a selection of binutils' directories:
-cp -r $GCCSDK_BINUTILSORIG/{etc,include,bfd,binutils,cpu,gas,opcodes,ld,gprof} $GCCSDK_SRCDIR
+cp -r $GCCSDK_BINUTILSORIG/{etc,include,bfd,binutils,cpu,gas,opcodes,ld,gprof,gettext.m4} $GCCSDK_SRCDIR
 
 # 1. Patch it:
 pushd $GCCSDK_SRCDIR > /dev/null
@@ -38,10 +38,6 @@ for s in `ls $GCCSDK_RECIPE_SCRIPTS/*` ; do
   . $s
 done
 
-# 4. Re-configure for patched configurations:
-# FIXME: libffi rebuild
-# FIXME: libjava rebuild
-# Is done in recipe/scripts/cp-aof2elf-unixlib: ( cd $GCCSDK_SRCDIR/libunixlib && aclocal-1.9 && autoheader && automake-1.9 -a && autoconf )
+# 4. Re-configure for patched configurations not belonging to GCC or UnixLib, i.e. binutils only ATM:
+# GCC's configure option --enable-maintainer-mode will take care of GCC/UnixLib configuration changes.
 ( cd $GCCSDK_SRCDIR/ld && automake-1.9 )
-( cd $GCCSDK_SRCDIR/libstdc++-v3 && autoconf )
-( cd $GCCSDK_SRCDIR && autogen Makefile.def && autoconf && autoheader )
