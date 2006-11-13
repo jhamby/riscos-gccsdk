@@ -46,6 +46,9 @@ code is located :
 
   $ export GCCSDK_ROOT=`pwd`/gcc4
 
+Prerequisites for building GCC can be found at
+<URL:http://gcc.gnu.org/install/prerequisites.html>.
+
 2.1. Build cross-compiler
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -67,16 +70,17 @@ cross-compiler will be installed).
 
    Tarball:
 
-     Fetch GCC 4.x.y tarball (at {http|ftp}://ftp.gnu.org/gnu/gcc or using one of the
-     GNU mirrors) and extract its gcc-4.x.y/gcc directory as $GCCSDK_GCCORIG.
+     Fetch GCC 4.x.y tarball (at {http|ftp}://ftp.gnu.org/gnu/gcc or using one
+     of the GNU mirrors) and extract its gcc-4.x.y/gcc directory as
+     $GCCSDK_GCCORIG.
 
    SVN checkout:
 
      $ svn co svn://gcc.gnu.org/svn/gcc/branches/gcc-4_1-branch $GCCSDK_GCCORIG
 
    Note that the contents of $GCCSDK_GCCORIG is considered read-only from
-   now on and used in the scripts 'create-gccsdk' (see step 3) and 'create-patch'
-   (to update or create patches).
+   now on and used in the scripts 'create-gccsdk' (see step 3) and
+   'create-patch' (to update or create patches).
 
 3. Place a binutils 2.17 release in $GCCSDK_BINUTILSORIG (either tarball,
    either result of CVS checkout).
@@ -97,8 +101,8 @@ cross-compiler will be installed).
      $ rm -rf tmp.binutils
 
    Note that the contents of $GCCSDK_BINUTILSORIG is considered read-only from
-   now on and used in the scripts 'create-gccsdk' (see step 4) and 'create-patch'
-   (to update or create patches).
+   now on and used in the scripts 'create-gccsdk' (see step 4) and
+   'create-patch' (to update or create patches).
 
 4. Combine the contents of $GCCSDK_GCCORIG, $GCCSDK_BINUTILSORIG and
    UnixLib 5.0 (GAS assembler syntax and ELF configuration) into
