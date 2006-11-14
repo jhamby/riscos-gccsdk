@@ -1,1 +1,1 @@
-make CC=$GCCSDK_INSTALL_CROSSBIN/arm-elf-riscos-gcc LD=$GCCSDK_INSTALL_CROSSBIN/arm-elf-riscos-ld OBJCOPY=$GCCSDK_INSTALL_CROSSBIN/arm-elf-riscos-objcopy AR=$GCCSDK_INSTALL_CROSSBIN/arm-elf-riscos-ar BUILDDIR=../build
+make CC=$GCCSDK_INSTALL_CROSSBIN/arm-unknown-riscos-gcc LD=$GCCSDK_INSTALL_CROSSBIN/arm-unknown-riscos-ld OBJCOPY=$GCCSDK_INSTALL_CROSSBIN/arm-unknown-riscos-objcopy AR=$GCCSDK_INSTALL_CROSSBIN/arm-unknown-riscos-ar BUILDDIR=../build

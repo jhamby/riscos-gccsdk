@@ -9,7 +9,7 @@ GCCSDK_ROOT=`pwd`
 popd > /dev/null
 source $GCCSDK_ROOT/setup-gccsdk-params
 
-TARGET=arm-elf-riscos
+TARGET=arm-unknown-riscos
 GCCSDK_BUILDDIR=$GCCSDK_ROOT/$TARGET
 
 if [ ! -d $GCCSDK_BUILDDIR ] ; then
