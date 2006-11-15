@@ -1,6 +1,6 @@
---- ld/scripttempl/elf.sc.orig	2006-10-15 12:07:59.000000000 +0100
-+++ ld/scripttempl/elf.sc	2006-10-15 13:53:33.000000000 +0100
-@@ -239,6 +239,18 @@
+--- ld/scripttempl/elf.sc.orig	2006-11-14 18:14:21.000000000 +0000
++++ ld/scripttempl/elf.sc	2006-11-14 18:14:25.000000000 +0000
+@@ -236,6 +236,18 @@
     test -z "${TEXT_BASE_ADDRESS}" && TEXT_BASE_ADDRESS="${TEXT_START_ADDR}"
  fi
  
@@ -19,7 +19,7 @@
  cat <<EOF
  OUTPUT_FORMAT("${OUTPUT_FORMAT}", "${BIG_OUTPUT_FORMAT}",
  	      "${LITTLE_OUTPUT_FORMAT}")
-@@ -255,10 +267,12 @@
+@@ -252,10 +264,12 @@
  
  SECTIONS
  {
@@ -32,7 +32,7 @@
    ${CREATE_SHLIB-${INTERP}}
    ${INITIAL_READONLY_SECTIONS}
    ${TEXT_DYNAMIC+${DYNAMIC}}
-@@ -362,16 +376,21 @@
+@@ -358,16 +372,21 @@
    ${CREATE_SHLIB-${SDATA2}}
    ${CREATE_SHLIB-${SBSS2}}
    ${OTHER_READONLY_SECTIONS}
@@ -54,7 +54,7 @@
    /* Exception handling  */
    .eh_frame     ${RELOCATING-0} : ONLY_IF_RW { KEEP (*(.eh_frame)) }
    .gcc_except_table ${RELOCATING-0} : ONLY_IF_RW { *(.gcc_except_table .gcc_except_table.*) }
-@@ -441,6 +460,7 @@
+@@ -437,6 +456,7 @@
    ${BSS_PLT+${PLT}}
    .bss          ${RELOCATING-0} :
    {
@@ -62,7 +62,7 @@
     *(.dynbss)
     *(.bss${RELOCATING+ .bss.* .gnu.linkonce.b.*})
     *(COMMON)
-@@ -450,6 +470,7 @@
+@@ -446,6 +466,7 @@
        FIXME: Why do we need it? When there is no .bss section, we don't
        pad the .data section.  */
     ${RELOCATING+. = ALIGN(. != 0 ? ${ALIGNMENT} : 1);}
@@ -70,9 +70,9 @@
    }
    ${RELOCATING+${OTHER_BSS_END_SYMBOLS}}
    ${RELOCATING+. = ALIGN(${ALIGNMENT});}
-@@ -458,6 +479,7 @@
+@@ -454,6 +475,7 @@
    ${RELOCATING+${OTHER_END_SYMBOLS}}
-   ${RELOCATING+${END_SYMBOLS-${USER_LABEL_PREFIX}_end = .; PROVIDE (${USER_LABEL_PREFIX}end = .);}}
+   ${RELOCATING+${END_SYMBOLS-_end = .; PROVIDE (end = .);}}
    ${RELOCATING+${DATA_SEGMENT_END}}
 +  ${RELOCATING+${CREATE_SHLIB-${RISCOS_RWLIMIT}}}
  
