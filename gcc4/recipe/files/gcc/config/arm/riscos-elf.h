@@ -146,6 +146,15 @@
 #define LINK_GCC_C_SEQUENCE_SPEC \
   "%{static:--start-group} %G %L %{static:--end-group}%{!static:%G}"
 
+#define LINK_COMMAND_SPEC "\
+%{!fsyntax-only:%{!c:%{!M:%{!MM:%{!E:%{!S:\
+    %(linker) %l " LINK_PIE_SPEC "%X %{o*} %{A} %{d} %{e*} %{m} %{N} %{n} %{r}\
+    %{s} %{t} %{u*} %{x} %{z} %{Z} %{!A:%{!nostdlib:%{!nostartfiles:%S}}}\
+    %{static:} %{L*} %(mfwrap) %(link_libgcc) --start-group %o --end-group %(mflib)\
+    %{fprofile-arcs|fprofile-generate|coverage:-lgcov}\
+    %{!nostdlib:%{!nodefaultlibs:%(link_ssp) %(link_gcc_c_sequence)}}\
+    %{!A:%{!nostdlib:%{!nostartfiles:%E}}} %{T*} }}}}}}"
+
 /* Use --as-needed -lgcc_s for eh support.  */
 #ifdef HAVE_LD_AS_NEEDED
 #define USE_LD_AS_NEEDED 1
@@ -160,8 +169,7 @@
 #define ARM_STKOVF_SPLIT_SMALL "__rt_stkovf_split_small"
 #define ARM_STKOVF_SPLIT_BIG "__rt_stkovf_split_big"
 
-#define	ARM_LOAD_PIC "__rt_load_pic"
-
+#define ARM_LOAD_PIC "__rt_load_pic"
 
 /* Default RISC OS options
    - APCS
