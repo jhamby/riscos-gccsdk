@@ -1,6 +1,6 @@
 AB_INSTALL=yes
 
-AB_CONFLAGS=--without-python
+AB_CONFLAGS="--without-python --disable-schemas-install"
 
 mkdir -p $D/include/libgsf-1/gsf
 mkdir -p $D/include/libgsf-1/gsf-gnome
