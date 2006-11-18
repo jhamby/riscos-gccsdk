@@ -1,4 +1,4 @@
-cairo
+cairo-gtk2
 atk1.0
 libxcursor
 libxinerama
