@@ -7,6 +7,7 @@ AB_CONFLAGS=--with-included-modules=basic-x,basic-fc
 # The following prevents that.
 touch aclocal.m4
 touch Makefile.in
+automake
 autoconf
 
 mkdir -p $D/include/pango-1.0/pango/
