@@ -1,3 +1,22 @@
+Sun Nov 19 16:05:12 2006  Lee Noar  <leenoar@ntlworld.com>
+
+	* source/incl-local/internal/aof-macros.s:
+	Add macro to define word of data to mirror same
+	macro in elf-macros.s.
+	Add NOP macros to mirror those in elf-macros.s that
+	are used for the ELF shared library.
+
+Sun Nov 19 14:58:12 2006  Lee Noar  <leenoar@ntlworld.com>
+	* source/incl-local/internal/elf-macros.s:
+	Disable macro extension to allow quoted macro arguments.
+	Change label names in NAME macro to allow multiple use.
+	Add macros to declare type and size of functions and objects
+	defined in assembler.
+	Add macros to conditionally assemble PIC instructions for shared
+	library.
+	Add macro to define word of data with or without GOT relocation
+	depending on library being built.
+
 Tue Nov  7 19:44:12 2006  Lee Noar  <leenoar@ntlworld.com>
 
 	* unixlib/elf/convert-unixlib.pl: Added code to generate stubs header
