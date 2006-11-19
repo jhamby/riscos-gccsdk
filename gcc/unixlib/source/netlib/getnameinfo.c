@@ -45,6 +45,8 @@
  *   beware on merge.
  */
 
+#ifndef PIC
+
 #include <sys/cdefs.h>
 #if defined(LIBC_SCCS) && !defined(lint)
 __RCSID("$NetBSD: getnameinfo.c,v 1.25.2.8 2002/11/11 22:22:25 nathanw Exp $");
@@ -568,4 +570,6 @@ int main(void)
   if (getnameinfo((struct sockaddr *)sa, ((struct sockaddr *)sa)->sa_len, hbuf, sizeof(hbuf), sbuf, sizeof(sbuf), NI_NUMERICHOST | NI_NUMERICSERV) == 0)
     printf("host=%s, serv=%s\n", hbuf, sbuf);
 }
+#endif
+
 #endif
