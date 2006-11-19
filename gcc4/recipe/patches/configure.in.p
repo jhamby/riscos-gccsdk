@@ -1,5 +1,5 @@
---- configure.in.orig	2006-09-29 02:08:02.000000000 +0100
-+++ configure.in	2006-09-29 00:45:18.000000000 +0100
+--- configure.in.orig	2006-11-15 20:37:56.000000000 +0000
++++ configure.in	2006-11-15 20:37:27.000000000 +0000
 @@ -142,7 +142,8 @@
  # these libraries are built for the target environment, and are built after
  # the host libraries and the host tools (which may be a cross compiler)
@@ -31,7 +31,7 @@
    ;;
 +
 + *" libunixlib "*)
-+  FLAGS_FOR_TARGET=$FLAGS_FOR_TARGET' -B$$r/$(TARGET_SUBDIR)/libunixlib/ -isystem $$s/libunixlib/include'
++  FLAGS_FOR_TARGET=$FLAGS_FOR_TARGET' -B$$r/$(TARGET_SUBDIR)/libunixlib/ -B$$r/$(TARGET_SUBDIR)/libunixlib/.libs/ -isystem $$s/libunixlib/include'
 +  ;;
  esac
  
