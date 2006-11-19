@@ -1,3 +1,9 @@
+Sun Nov 19 17:01:30 2006  Lee Noar  <leenoar@ntlworld.com>
+
+	* source/netlib/getnameinfo.c: Only compile for static library to
+	prevent multiple definition of getnameinfo() (also defined in
+	netlib/getaddrinfo.c) when linking shared library.
+
 Sun Nov 19 16:05:12 2006  Lee Noar  <leenoar@ntlworld.com>
 
 	* source/incl-local/internal/aof-macros.s:
