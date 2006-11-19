@@ -111,5 +111,28 @@
 
 	MEND
 
+	; Macros to mirror ELF versions.
+	MACRO
+	WORD $name
+	DCD	$name
+	MEND
+
+	; The rest are NOPs.
+	MACRO
+	DECLARE_FUNCTION $name
+	MEND
+
+	MACRO
+	DECLARE_OBJECT $name
+	MEND
+
+	MACRO
+	PICEQ $instr
+	MEND
+
+	MACRO
+	PICNE $instr
+	MEND
+
 	END
 
