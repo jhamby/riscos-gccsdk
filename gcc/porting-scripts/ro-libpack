@@ -48,7 +48,7 @@ if [ "$AB_COPYSOURCE" == "yes" ] ; then
   find . -name "*.svn" -type d -print0 | xargs -0 rm -rf
 
   mkdir -p $AB_DIR/package/sources
-  /home/riscos/cross/bin/zip -r -y $AB_DIR/package/sources/$RO_PKG.zip *
+  GCCSDK_BIN/zip -r -y $AB_DIR/package/sources/$RO_PKG.zip *
 fi
 
 if [ ! -z "$AB_INSTALLDOCS" ] ; then
