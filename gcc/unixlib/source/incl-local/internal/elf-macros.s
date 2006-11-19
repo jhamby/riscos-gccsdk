@@ -8,17 +8,17 @@
 #endif
 
 	@ Turn on macro extensions, allowing the use of LOCAL.
-	.altmacro
+@	.altmacro
 
 	@ Macro for embedding function names in code, just before
 	@ the function prologue.
 	.macro	NAME	name
-	LOCAL t0, t1
-t0:
+@	LOCAL t0, t1
+0:
 	.asciz	"\name"
 	.align
-t1:
-	.word	0xff000000 + (t1 - t0)
+1:
+	.word	0xff000000 + (1b - 0b)
 	.endm
 
 	@ Assembler equivalent of __set_errno in errno.h.
@@ -105,4 +105,44 @@ t1:
 	.endif
 	msreq	CPSR_c, \scratch
 	mov	a1, a1	@ Avoid StrongARM MSR bug
+	.endm
+
+	@ Macro for declaring the type and size of a function defined in ARM code.
+	@ Place at end of function definition for size to be calculated correctly.
+	.macro	DECLARE_FUNCTION name
+	.type	\name, %function
+	.size	\name, . - \name
+	.endm
+
+	@ Macro for declaring the type and size of an object defined in ARM code.
+	@ Place at end of object definition for size to be calculated correctly.
+	.macro	DECLARE_OBJECT name
+	.type	\name, %object
+	.size	\name, . - \name
+	.endm
+
+	@ Macro to define a word of data either with a GOT relocation for
+	@ the shared library or with no relocation for the static library.
+	.macro	WORD name
+#ifdef PIC
+	.word	\name(GOT)
+#else
+	.word	\name
+#endif
+	.endm
+
+	@ Macro to conditionally assemble instruction for use in the shared library.
+	@ Note: Do not use tabs as GAS faults the resulting instructions.
+	.macro PICEQ instr
+#ifdef PIC
+	\instr
+#endif
+	.endm
+
+	@ Macro to conditionally assemble instruction for use in the static library.
+	@ Note: Do not use tabs as GAS faults the resulting instructions.
+	.macro PICNE instr
+#ifndef PIC
+	\instr
+#endif
 	.endm
