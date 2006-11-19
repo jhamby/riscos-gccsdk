@@ -1,0 +1,13 @@
+# Just install into env
+AB_INSTALL=env
+
+# Configure for host platform (gets bjam built)
+./configure
+
+# Find it
+BJAM=`find $PWD/tools/build/jam_src -name bjam`
+
+echo "Using bjam: $BJAM"
+
+AB_CONFLAGS="--with-bjam=$BJAM --without-libraries=python"
+
