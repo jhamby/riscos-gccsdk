@@ -1,3 +1,17 @@
+Mon Nov 20 19:57:46 2006  Lee Noar  <leenoar@ntlworld.com>
+
+	* elf/convert-unixlib.pl:
+	Alter label handling to allow them to start with a '.'.
+	Add include/unixlib/stubs.h to list of install headers.
+	Change *_SOURCES and *_LIBRARIES variables to libtool
+	versions.
+	Make sure libtool doesn't try to link libunixlib against
+	itself by passing -nostdlib to compiler.
+	Change nostackfiles dependencies to work with libtool.
+	Add elf/libtool.m4 to list of files to copy.
+	Add include path to aclocal-1.9 command to ensure it picks
+	up the elf/libtool.m4 file.
+
 Mon Nov 20 19:00:46 2006  Lee Noar  <leenoar@ntlworld.com>
 
 	* source/clib/dlfcn.h: New file. Provide defines, etc for
