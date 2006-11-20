@@ -145,11 +145,11 @@ esac
 AC_SUBST(toolexecdir)
 AC_SUBST(toolexeclibdir)
 
-# For future libtool support
-#AC_LIBTOOL_DLOPEN
-#AM_PROG_LIBTOOL
-#AC_SUBST(enable_shared)
-#AC_SUBST(enable_static)
+# For libtool support
+AC_LIBTOOL_DLOPEN
+AM_PROG_LIBTOOL
+AC_SUBST(enable_shared)
+AC_SUBST(enable_static)
 
 AC_CACHE_SAVE
 
