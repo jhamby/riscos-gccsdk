@@ -140,9 +140,9 @@ sub convert_s {
 	s/&(\w+)/0x$1/;
 
 	# Label handling
-	if (/^[a-zA-Z_\|]/) {
-	    if (/^\|/) { s/^\|([\w\$]+)\|/$1:/; }
-	    else { s/([\w\$]+)/$1:/; }
+	if (/^[\.a-zA-Z_\|]/) {
+	    if (/^\|/) { s/^\|([\.\w\$]+)\|/$1:/; }
+	    else { s/([\.\w\$]+)/$1:/; }
 	}
 
 	# Turn statements like cmp a4,#"f" into cmp a4,#'f'
@@ -441,13 +441,16 @@ closedir (ROOT);
 @noinst_headers = convert_headers ("$aofsourcetree/source/incl-local", "$elfsourcetree/incl-local");
 
 output_make_var ("libc_headers", \@inst_headers, "include");
+print MAKE "libc_headers += include/unixlib/stubs.h\n";
+
 print MAKE "\n";
 output_make_var ("nobase_noinst_HEADERS", \@noinst_headers, "incl-local");
 print MAKE "\n";
 
-print MAKE "toolexeclib_LIBRARIES = libm.a libunixlib.a\n\n";
-print MAKE "libm_a_SOURCES = libm-support/libm.c\n\n";
-print MAKE "libunixlib_a_SOURCES = ";
+print MAKE "libm_la_SOURCES = libm-support/libm.c\n\n";
+print MAKE "toolexeclib_LTLIBRARIES = libunixlib.la libm.la\n";
+
+print MAKE "libunixlib_la_SOURCES = ";
 my $x = 0;
 foreach $m (@makevars) {
     # Don't include the SUL module in the library make list.
@@ -461,6 +464,11 @@ foreach $m (@makevars) {
 }
 
 print MAKE "\n\n";
+
+print MAKE "libunixlib_la_LDFLAGS = -Wc,-nostdlib\n\n";
+
+print MAKE "libm_la_LDFLAGS = -Wc,-nostdlib\n\n";
+
 print MAKE "# Build the SharedUnixLibrary module\n";
 print MAKE "bin_PROGRAMS = sul\n\n";
 print MAKE "sul.o: module/sul.s\n";
@@ -482,11 +490,11 @@ print MAKE "# setting function.\n";
 foreach $f (@nostackfiles) {
     my $leaf = $f;
     $leaf =~ s/[a-z]*\///;
-    printf MAKE "%s.o: %s.c\n", $leaf, $f;
-    printf MAKE "\tif \$(COMPILE) -mno-apcs-stack-check \\\n";
-    printf MAKE "\t-MT %s.o -MD -MP -MF \"\$(DEPDIR)/%s.Tpo\" -c -o %s.o \\\n", $leaf, $leaf, $leaf;
+    printf MAKE "%s.lo: %s.c\n", $leaf, $f;
+    printf MAKE "\tif \$(LTCOMPILE) -Wc,-mno-apcs-stack-check \\\n";
+    printf MAKE "\t-MT %s.lo -MD -MP -MF \"\$(DEPDIR)/%s.Tpo\" -c -o %s.lo \\\n", $leaf, $leaf, $leaf;
     printf MAKE "\t\`test -f \'%s.c\' || echo \'\$(srcdir)/\'\`%s.c; \\\n", $f, $f;
-    printf MAKE "\tthen mv -f \"\$(DEPDIR)/%s.Tpo\" \"\$(DEPDIR)/%s.Po\"; \\\n", $leaf, $leaf;
+    printf MAKE "\tthen mv -f \"\$(DEPDIR)/%s.Tpo\" \"\$(DEPDIR)/%s.Plo\"; \\\n", $leaf, $leaf;
     printf MAKE "\telse rm -f \"\$(DEPDIR)/%s.Tpo\"; exit 1; fi\n\n", $leaf;
 }
 
@@ -512,6 +520,7 @@ copy_file ("Run,feb", "contrib/Run,feb");
 copy_file ("Sprites,ff9", "contrib/Sprites,ff9");
 copy_file ("Sprites22,ff9", "contrib/Sprites22,ff9");
 copy_file ("elf/configure.ac", "configure.ac");
+copy_file ("elf/libtool.m4", "libtool.m4");
 
 # Copy in testsuite and convert to automake style
 mkdir "$elfsourcetree/test" if (! -d "$elfsourcetree/test");
@@ -643,7 +652,7 @@ close STUBS;
 printf ("-- building automake stuff\n");
 chdir $elfsourcetree;
 printf ("-- running aclocal\n");
-system "aclocal-1.9";
+system "aclocal-1.9 -I ./";
 printf ("-- running autoheader\n");
 system "autoheader";
 printf ("-- running automake\n");
