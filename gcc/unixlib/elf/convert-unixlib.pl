@@ -140,9 +140,9 @@ sub convert_s {
 	s/&(\w+)/0x$1/;
 
 	# Label handling
-	if (/^[\.a-zA-Z_\|]/) {
+	if (/^[a-zA-Z_\|]/) {
 	    if (/^\|/) { s/^\|([\.\w\$]+)\|/$1:/; }
-	    else { s/([\.\w\$]+)/$1:/; }
+	    else { s/([\w\$]+)/$1:/; }
 	}
 
 	# Turn statements like cmp a4,#"f" into cmp a4,#'f'
