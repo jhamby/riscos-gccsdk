@@ -1,3 +1,9 @@
+Tue Nov 21 20:34:20 2006  Lee Noar  <leenoar@ntlworld.com>
+
+	* elf/convert-unixlib.pl: Only handle labels that begin
+	with a '.' if they are delimited by '|' to prevent
+	clashes with assembler directives.
+
 Mon Nov 20 20:26:46 2006  Lee Noar  <leenoar@ntlworld.com>
 
 	* elf/configure.ac: Enable libtool support to build both
