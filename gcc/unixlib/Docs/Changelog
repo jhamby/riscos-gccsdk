@@ -1,3 +1,8 @@
+Tue Nov 21 21:45:22 2006  Alex Waugh  <alex@alexwaugh.com>
+
+	* source/unix/sync.c (fsync): Don't error on files open with 
+	  O_RDWR
+
 Tue Nov 21 20:34:20 2006  Lee Noar  <leenoar@ntlworld.com>
 
 	* elf/convert-unixlib.pl: Only handle labels that begin

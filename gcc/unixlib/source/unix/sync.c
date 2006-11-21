@@ -32,7 +32,7 @@ int fsync (int fd)
   file_desc = getfd (fd);
 
   /* Must be only for write */
-  if (!(file_desc->fflag & O_WRONLY))
+  if (!(file_desc->fflag & (O_WRONLY | O_RDWR)))
     return __set_errno (EBADF);
 
   /* Only meaningful for those backed by a read RISC OS file handle */
