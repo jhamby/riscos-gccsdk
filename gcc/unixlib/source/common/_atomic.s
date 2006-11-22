@@ -18,5 +18,6 @@
 	SWI	XOS_IntOn
 	MOV	a1, a3
 	MOV	pc, lr
+	DECLARE_FUNCTION |__atomic_modify|
 
 	END

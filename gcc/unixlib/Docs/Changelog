@@ -1,3 +1,10 @@
+Wed Nov 22 19:33:04 2006  Lee Noar  <leenoar@ntlworld.com>
+
+	* source/common/_atomic.s: Declare function for ELF DSO.
+	* source/common/_exist.s: Add PIC instructions and declare
+	functions and objects for ELF DSO.
+	* source/common/_riscosify.s: Likewise.
+
 Tue Nov 21 21:45:22 2006  Alex Waugh  <alex@alexwaugh.com>
 
 	* source/unix/sync.c (fsync): Don't error on files open with 

@@ -25,6 +25,7 @@
 	TEQNE	v1, #2		; feature imagefs set, so only real directories
 	MOVNE	a1, #0
 	LDMFD	sp!, {v1, v2, pc}
+	DECLARE_FUNCTION __isdir_raw
 
 	; int __object_exists_raw (const char *object)
 	; Return nonzero if OBJECT exists (as file, dir or image).
@@ -39,20 +40,31 @@
 	SWI	XOS_File
 	MOVVS	a1, #0		; Error, so assume not there
 	LDMFD	sp!, {v1, v2, pc}
+	DECLARE_FUNCTION __object_exists_raw
 
 	; int __get_feature_imagefs_is_file (void)
 	EXPORT	|__get_feature_imagefs_is_file|
 	NAME	__get_feature_imagefs_is_file
 |__get_feature_imagefs_is_file|
-	LDR	a1, =|__feature_imagefs_is_file|
+ PICEQ "STMFD	sp!, {v4, lr}"
+ PICEQ "BL	__rt_load_pic"
+	LDR	a1, |.L0|	;=__feature_imagefs_is_file
+ PICEQ "LDR	a1, [v4, a1]"
 	TEQ	a1, #0
-	LDREQ	a1, =|__feature_imagefs_is_file_internal|
+	LDREQ	a1, |.L0|+4	;=__feature_imagefs_is_file_internal
+ PICEQ "LDREQ	a1, [v4, a1]"
 	LDR	a1, [a1, #0]
+ PICEQ "LDMFD	sp!, {v4, lr}"
 	MOV	pc, lr
+|.L0|
+	WORD	|__feature_imagefs_is_file|
+	WORD	|__feature_imagefs_is_file_internal|
+	DECLARE_FUNCTION __get_feature_imagefs_is_file
 
 	AREA	|C$$data|, DATA
 
 |__feature_imagefs_is_file_internal|
 	DCD	0
+	DECLARE_OBJECT __feature_imagefs_is_file_internal
 
 	END
