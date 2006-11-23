@@ -41,3 +41,4 @@ done
 # 4. Re-configure for patched configurations not belonging to GCC or UnixLib, i.e. binutils only ATM:
 # GCC's configure option --enable-maintainer-mode will take care of GCC/UnixLib configuration changes.
 ( cd $GCCSDK_SRCDIR/ld && automake-1.9 )
+( cd $GCCSDK_SRCDIR/libstdc++-v3 && autoconf )

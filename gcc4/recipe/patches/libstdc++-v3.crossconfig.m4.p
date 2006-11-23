@@ -1,10 +1,10 @@
---- libstdc++-v3/crossconfig.m4.orig	2006-09-26 01:56:49.000000000 +0200
-+++ libstdc++-v3/crossconfig.m4	2006-09-26 01:57:07.000000000 +0200
+--- libstdc++-v3/crossconfig.m4.orig	2006-11-23 01:37:22.000000000 +0100
++++ libstdc++-v3/crossconfig.m4	2006-11-23 01:37:04.000000000 +0100
 @@ -305,6 +305,63 @@
      AC_DEFINE(HAVE_SINHF)
      AC_DEFINE(HAVE_SINHL)
      ;;
-+  arm*-riscos*)
++  arm*-*-riscos*)
 +    AC_CHECK_HEADERS([nan.h ieeefp.h endian.h sys/isa_defs.h \
 +      machine/endian.h machine/param.h sys/machine.h sys/types.h \
 +      fp.h float.h endian.h inttypes.h locale.h float.h stdint.h])
