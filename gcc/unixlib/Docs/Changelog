@@ -1,3 +1,10 @@
+Sat Nov 25 12:36:08 2006  Lee Noar  <leenoar@ntlworld.com>
+
+	* source/incl-local/internal/elf-macros.s: Remove warning notes as
+	GAS no longer faults resulting instructions when a tab is included.
+	* source/incl-local/internal/aof-macros.s: Always assemble a non-PIC
+	instruction in AOF.
+
 Wed Nov 22 19:33:04 2006  Lee Noar  <leenoar@ntlworld.com>
 
 	* source/common/_atomic.s: Declare function for ELF DSO.

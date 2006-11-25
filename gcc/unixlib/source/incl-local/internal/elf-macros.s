@@ -132,7 +132,6 @@
 	.endm
 
 	@ Macro to conditionally assemble instruction for use in the shared library.
-	@ Note: Do not use tabs as GAS faults the resulting instructions.
 	.macro PICEQ instr
 #ifdef PIC
 	\instr
@@ -140,7 +139,6 @@
 	.endm
 
 	@ Macro to conditionally assemble instruction for use in the static library.
-	@ Note: Do not use tabs as GAS faults the resulting instructions.
 	.macro PICNE instr
 #ifndef PIC
 	\instr

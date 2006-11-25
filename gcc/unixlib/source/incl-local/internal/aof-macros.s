@@ -117,6 +117,12 @@
 	DCD	$name
 	MEND
 
+	; A non-PIC instruction should always be assembled in AOF
+	MACRO
+	PICNE $instr
+	$instr
+	MEND
+
 	; The rest are NOPs.
 	MACRO
 	DECLARE_FUNCTION $name
@@ -128,10 +134,6 @@
 
 	MACRO
 	PICEQ $instr
-	MEND
-
-	MACRO
-	PICNE $instr
 	MEND
 
 	END
