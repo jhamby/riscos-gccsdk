@@ -52,7 +52,7 @@ addff8() {
   if grep -q "conftest.exe a.out" $ff8PATH ; then
     echo RISC OS: Adding extra filetype checks for $ff8PATH
     tmpconfigure=/tmp/new-configure-$$-$RANDOM
-    sed -e s#"conftest.exe a.out"#"conftest.exe *,ff8 a.out"# \
+    sed -e s#"conftest.exe a.out"#"conftest.exe *,ff8 !RunImage a.out"# \
         -e s#"[ab].out )"#"[ab].out | *,ff8 )"# \
        < $ff8PATH > $tmpconfigure
     mv $tmpconfigure $ff8PATH
