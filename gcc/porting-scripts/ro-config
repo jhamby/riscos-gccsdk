@@ -330,9 +330,9 @@ export config_TARGET_CC="$DISTCC $GCCSDK_INSTALL_CROSSBIN/gcc"
 
 export AR="$GCCSDK_INSTALL_CROSSBIN/ar"
 export NM="$GCCSDK_INSTALL_CROSSBIN/libfile -s"
-export RANLIB="echo Disabled ranlib: "
+export RANLIB=GCCSDK_ENV/ro-ranlib
 export INSTALL=GCCSDK_ENV/ro-install
-export STRIP="echo Disabled strip: "
+export STRIP=GCCSDK_ENV/ro-strip
 # Used by Mozilla
 export CROSS_COMPILE=1
 export HOST_RANLIB=/usr/bin/ranlib

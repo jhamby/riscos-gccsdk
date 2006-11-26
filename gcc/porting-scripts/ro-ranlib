@@ -1,0 +1,4 @@
+#!/bin/bash
+
+echo "Disabled ranlib: $*"
+
