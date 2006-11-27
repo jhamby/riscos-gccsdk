@@ -1,6 +1,6 @@
 # Copyright (c) 2005, 2006 GCCSDK Developers
 
-SCRIPTS=ro-ar ro-config ro-install ro-libpack ro-make ro-path ro-pkg-config
+SCRIPTS=ro-ar ro-config ro-install ro-libpack ro-make ro-path ro-pkg-config ro-ranlib ro-strip
 WRAPPERS=uname cp ln rm
 DOCS=Porting\ Tools.html
 
