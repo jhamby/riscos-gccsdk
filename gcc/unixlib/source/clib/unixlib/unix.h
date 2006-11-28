@@ -152,8 +152,8 @@ struct ul_global
   void *__upcall_handler_r12;
 
   void *__pthread_return_address;
-  int __pthread_worksemaphore;
-  int __pthread_callback_semaphore;
+  volatile int __pthread_worksemaphore;
+  volatile int __pthread_callback_semaphore;
   int __pthread_system_running;
   int __pthread_callback_missed;
   int __pthread_num_running_threads;

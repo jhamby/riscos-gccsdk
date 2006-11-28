@@ -29,16 +29,10 @@
 setjmp
 	; record the current allocation pointer for use with longjmp
 	; Note, alloca_list is a weak symbol so may not be set
-	[ __UNIXLIB_FEATURE_PTHREADS > 0
 	IMPORT	|__pthread_running_thread|
 	LDR	a4, =|__pthread_running_thread|
 	LDR	a4, [a4]
 	LDR	a4, [a4, #|__PTHREAD_ALLOCA_OFFSET| + 8]
-	|
-	LDR	a4, =|__alloca_list|
-	TEQ	a4, #0
-	LDRNE	a4, [a4, #0]
-	]
 	STR	a4, [a1], #4
 
 	LDR	a4, =|__executing_signalhandler|
@@ -70,13 +64,9 @@ longjmp
 	; call to longjmp does occur, then the v1-v6 are going to be
 	; safely restored to their current values.
 
-	[ __UNIXLIB_FEATURE_PTHREADS > 0
 	LDR	v5, =|__pthread_running_thread|
 	LDR	v5, [v5]
 	ADD	v5, v5, #|__PTHREAD_ALLOCA_OFFSET| + 8
-	|
-	LDR	v5, =|__alloca_list|
-	]
 	LDR	v4, [a1], #4
 	CMP	v5, #0
 	LDRNE	v3, [v5]

@@ -34,20 +34,11 @@ struct alloca_chunk
   struct alloca_chunk *next;
 };
 
-#if ! __UNIXLIB_FEATURE_PTHREADS
-/* Head node of alloca list for single threaded programs.  */
-static struct alloca_chunk *head = NULL;
-#endif
-
 /* Return head node.  Multi-threaded applications store the head node
    in a private structure.  */
 static inline struct alloca_chunk *chunk_head (void)
 {
-#if __UNIXLIB_FEATURE_PTHREADS
   return (struct alloca_chunk *) __pthread_running_thread->alloca[0];
-#else
-  return head;
-#endif
 }
 
 
@@ -137,11 +128,7 @@ static void alloca_restore (unsigned int fp, unsigned int block, int fix_lr)
       if (! return_address && list->fp == fp && list->lr)
 	return_address = list->lr;
 
-#if __UNIXLIB_FEATURE_PTHREADS
       __pthread_running_thread->alloca[0] = list->next;
-#else
-      head = list->next;
-#endif
 
       free (list->ptr);
       free (list);
@@ -291,13 +278,8 @@ void *__gcc_alloca (size_t size)
   }
 
   /* Add alloca chunk to the head of the linked list.  */
-#if __UNIXLIB_FEATURE_PTHREADS
   chunk->next = (struct alloca_chunk *) __pthread_running_thread->alloca[0];
   __pthread_running_thread->alloca[0] = chunk;
-#else
-  chunk->next = head;
-  head = chunk;
-#endif
 
 #ifdef DEBUG
   printf ("__gcc_alloca: fp=%08x, size=%08x, ptr=%08x, block=%d, lr=%08x\n",

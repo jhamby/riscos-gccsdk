@@ -294,20 +294,16 @@ int __stackalloc_trim (void)
   struct ul_global *gbl = &__ul_global;
   struct block *bottomblock;
 
-#if __UNIXLIB_FEATURE_PTHREADS
   if (gbl->__pthread_system_running)
     __pthread_disable_ints ();
-#endif
 
   /* Find start of the last real block in the heap */
   bottomblock = dummybottomblock + 1;
 
   if (bottomblock->size != BLOCK_FREE)
     {
-#if __UNIXLIB_FEATURE_PTHREADS
       if (gbl->__pthread_system_running)
         __pthread_enable_ints ();
-#endif
       return 0; /* Unable to free anything */
     }
 
@@ -325,10 +321,8 @@ int __stackalloc_trim (void)
 		mem->unixlib_stack);
 #endif
 
-#if __UNIXLIB_FEATURE_PTHREADS
   if (gbl->__pthread_system_running)
     __pthread_enable_ints ();
-#endif
 
   return 1;
 }
@@ -379,10 +373,8 @@ void *__stackalloc (size_t size)
   struct block *lastblocktoalloc;
   void *returnptr;
 
-#if __UNIXLIB_FEATURE_PTHREADS
   if (gbl->__pthread_system_running)
     __pthread_disable_ints ();
-#endif
 
   /* Convert size into number of blocks */
   blocksneeded = size + BLOCK_DATA_SIZE - 1;
@@ -441,10 +433,8 @@ void *__stackalloc (size_t size)
 #ifdef DEBUG
           debug_printf ("__stackalloc: no free memory\n");
 #endif
-#if __UNIXLIB_FEATURE_PTHREADS
           if (gbl->__pthread_system_running)
             __pthread_enable_ints ();
-#endif
           return NULL;
         }
     }
@@ -483,10 +473,8 @@ void *__stackalloc (size_t size)
   debug_printf ("__stackalloc: returning %08x\n", returnptr);
 #endif
 
-#if __UNIXLIB_FEATURE_PTHREADS
   if (gbl->__pthread_system_running)
     __pthread_enable_ints ();
-#endif
 
   return returnptr;
 }
@@ -501,10 +489,8 @@ void __stackfree (void *ptr)
   struct block *nextblock;
   struct block *lastblock;
 
-#if __UNIXLIB_FEATURE_PTHREADS
   if (gbl->__pthread_system_running)
     __pthread_disable_ints ();
-#endif
 
 #ifdef DEBUG
   debug_printf ("__stackfree: ptr=%08x\n", ptr);
@@ -556,8 +542,6 @@ void __stackfree (void *ptr)
   lastblock->startofcon = startblock;
   blocktofree->size = BLOCK_FREE;
 
-#if __UNIXLIB_FEATURE_PTHREADS
   if (gbl->__pthread_system_running)
     __pthread_enable_ints ();
-#endif
 }

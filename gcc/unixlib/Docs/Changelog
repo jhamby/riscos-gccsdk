@@ -1,3 +1,15 @@
+Tue Nov 28 22:48:49 CET 2006  John Tytgat  <John.Tytgat@aaug.net>
+
+	* source/stdlib/qsort.c, source/unix/unix.c,
+	source/clib/{unixlib/buildoptions.h,bits/libc-lock.h,pthread.h,
+	errno.h},source/gcccompat/galloca.c,source/string/strsignal.c,
+	source/signal/_signal.s, source/sys/{stackalloc.c,errlist.c,exec.c,
+	_jmp.s,_syslib.s}: Remove compile test on __UNIXLIB_FEATURE_PTHREADS.
+	pthread support is standaard now.
+	* source/clib/unixlib/unix.h(struct ul_global): made
+	__pthread_worksemaphore and __pthread_callback_semaphore volatile
+	as they are (can) be modified under interrupts.
+
 Sat Nov 25 12:36:08 2006  Lee Noar  <leenoar@ntlworld.com>
 
 	* source/incl-local/internal/elf-macros.s: Remove warning notes as

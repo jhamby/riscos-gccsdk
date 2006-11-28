@@ -321,7 +321,6 @@ execve (const char *execname, char *const argv[], char *const envp[])
   /* From this point onwards we cannot return an error */
 
 
-#if __UNIXLIB_FEATURE_PTHREADS
   /* All threads are terminated on an exec call.
      Destructor functions are not called. */
   if (__pthread_system_running)
@@ -329,7 +328,6 @@ execve (const char *execname, char *const argv[], char *const envp[])
       __pthread_stop_ticker ();
       __pthread_system_running = 0;
     }
-#endif
 
 #if __UNIXLIB_FEATURE_ITIMERS
   /* Stop any interval timers that might be running.  Technically

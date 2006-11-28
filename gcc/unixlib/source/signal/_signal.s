@@ -54,9 +54,7 @@
 	MOV	v1, a1
 	BL	|__setup_signalhandler_stack|
 
-	[ __UNIXLIB_FEATURE_PTHREADS > 0
 	BL	|__pthread_disable_ints|
-	]
 
 	; Drop into USR mode and raise the signal
 	CHGMODE	a2, USR_Mode
@@ -66,9 +64,7 @@
 	; Return to SVC mode.
 	SWI	XOS_EnterOS
 
-	[ __UNIXLIB_FEATURE_PTHREADS > 0
 	BL	|__pthread_enable_ints|
-	]
 
 	LDR	a2, =|__ul_global|
 	LDR	a1, [a2, #GBL_EXECUTING_SIGNALHANDLER]
@@ -110,10 +106,8 @@
 	__set_errno	a3, a2		; Set errno = EOPSYS
 
 |seterr01|
-	[ __UNIXLIB_FEATURE_PTHREADS > 0
 	LDR	a2, =|__pthread_running_thread|
 	LDR	a2, [a2]
-
         ; If __pthread_running_thread == NULL then something has gone
         ; wrong during initialisation, or we have an inconsistent build,
         ; or something has written over UnixLib's memory.  Whichever
@@ -122,9 +116,6 @@
         ADREQ   a1, |seterr_fatal|
         BEQ     |__unixlib_fatal|
 	ADD	a2, a2, #__PTHREAD_ERRBUF_OFFSET
-	|
-	LDR     a2, =|__ul_errbuf_errblock|
-	]
 
 	; Copy the error to UnixLib's buffer.
 
@@ -172,14 +163,9 @@
 	EXPORT	|_kernel_last_oserror|
 	NAME	_kernel_last_oserror
 |_kernel_last_oserror|
-	[ __UNIXLIB_FEATURE_PTHREADS > 0
 	LDR	a1, =|__pthread_running_thread|
 	LDR	a1, [a1, #0]
 	LDR	a2, [a1, #__PTHREAD_ERRBUF_OFFSET]!
-	|
-	LDR	a1, =|__ul_errbuf_errblock|
-	LDR	a2, [a1, #0]
-	]
 	TEQ	a2, #0
 	MOVEQ	a1, #0
 	MOV	pc, lr
@@ -388,12 +374,10 @@
 	; callbacks while we are setting up the stack
 	SWI	XOS_EnterOS
 
-	[ __UNIXLIB_FEATURE_PTHREADS > 0
 	LDR	a1, =|__ul_global|
 	LDR	a1, [a1, #GBL_PTH_SYSTEM_RUNNING]
 	TEQ	a1, #0
 	BLNE	|__pthread_disable_ints|
-	]
 
 	BL	|__setup_signalhandler_stack|
 	CHGMODE	a1, USR_Mode	; Back to USR mode now we have a stack
@@ -411,7 +395,6 @@
 	MOV	a2, #EOPSYS
 	__set_errno	a2, a1
 
-	[ __UNIXLIB_FEATURE_PTHREADS > 0
 	IMPORT	|memcpy|
 	; Copy error buffer into thread specific storage
 	LDR	a1, =|__pthread_running_thread|
@@ -420,7 +403,6 @@
 	LDR	a2, =|__ul_errbuf_errblock|
 	MOV	a3, #|__ul_errbuf__size|
 	BL	|memcpy|
-	]
 
 	; Mark the error buffer as valid.
 	LDR	a1, =|__ul_errbuf_valid|
@@ -626,7 +608,6 @@ Internet_Event	EQU	19
 	EXPORT	|__h_cback|
 	NAME	__h_cback
 |__h_cback|
-	[ __UNIXLIB_FEATURE_PTHREADS > 0
 	; Check that the return PC value is within our wimpslot.
 	; If it isn't, then we don't want to do a context switch
 	; so return straight away.
@@ -661,17 +642,14 @@ return_quickly
 	MOV	a1, a1
 	LDR	lr, [lr, #15*4]
 	MOVS	pc, lr
-	]
 
 	; This is the common entry point for many of the RISC OS exception
 	; handlers.  On entry, assume that all registers are corrupted.
 |__h_cback_common|
-	[ __UNIXLIB_FEATURE_PTHREADS > 0
 	LDR	a3, =|__ul_global|
 	LDR	a1, [a3, #GBL_PTH_WORKSEMAPHORE]
 	ADD	a1, a1, #1
 	STR	a1, [a3, #GBL_PTH_WORKSEMAPHORE]
-	]
 
 	BL	|__setup_signalhandler_stack|
 
@@ -718,11 +696,9 @@ return_quickly
 	SWI	XOS_IntOff
 
 	LDR	a3, =|__ul_global|
-	[ __UNIXLIB_FEATURE_PTHREADS > 0
 	LDR	a1, [a3, #GBL_PTH_WORKSEMAPHORE]
 	SUB	a1, a1, #1
 	STR	a1, [a3, #GBL_PTH_WORKSEMAPHORE]
-	]
 
 	LDR	a1, [a3, #GBL_EXECUTING_SIGNALHANDLER]
 	SUB	a1, a1, #1

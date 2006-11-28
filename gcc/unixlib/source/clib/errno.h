@@ -111,7 +111,7 @@
 
 #undef errno
 
-#if __UNIXLIB_FEATURE_PTHREADS && __UNIXLIB_ERRNO_THREADED
+#if __UNIXLIB_ERRNO_THREADED
 /* Errno is thread local.  */
 
 #ifndef __pthread_t_defined
@@ -137,7 +137,7 @@ extern int sys_nerr;
    threads ever appear.  We also give a return value so we can use
    return __set_errno () which can allow function tail calling.  */
 
-#if __UNIXLIB_FEATURE_PTHREADS && __UNIXLIB_ERRNO_THREADED
+#if __UNIXLIB_ERRNO_THREADED
 #define __set_errno(val) (__pthread_running_thread->thread_errno = (val), -1)
 #else
 #define __set_errno(val) (errno = (val), -1)

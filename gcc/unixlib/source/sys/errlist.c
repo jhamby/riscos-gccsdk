@@ -121,11 +121,7 @@ strerror (int errnum)
     }
   if (errnum == EOPSYS)
     {
-#if __UNIXLIB_FEATURE_PTHREADS
       return __pthread_running_thread->errbuf.errmess;
-#else
-      return __ul_errbuf.errmess;
-#endif
     }
 
   return (char *) sys_errlist[errnum];

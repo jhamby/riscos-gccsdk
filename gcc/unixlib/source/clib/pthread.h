@@ -623,8 +623,6 @@ extern void __pthread_exit (void);
    and register a function to reenable them when the current function returns */
 extern void __pthread_protect_unsafe (void);
 
-#if __UNIXLIB_FEATURE_PTHREADS
-
 /* Should be placed at the beginning of a function body for a
    thread safe function that is defined as a cancellation point */
 #define PTHREAD_SAFE_CANCELLATION if (__pthread_system_running) pthread_testcancel ();
@@ -641,14 +639,6 @@ if (__pthread_system_running) \
     pthread_testcancel (); \
     __pthread_protect_unsafe (); \
   }
-
-#else
-
-#define PTHREAD_SAFE_CANCELLATION
-#define PTHREAD_UNSAFE
-#define PTHREAD_UNSAFE_CANCELLATION
-
-#endif /* __UNIXLIB_FEATURE_PTHREADS */
 
 /* zero if the context switcher is allowed to switch threads */
 extern int __pthread_worksemaphore;

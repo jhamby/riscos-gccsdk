@@ -21,14 +21,9 @@ strsignal (int signum)
       int bytesWritten;
 
       if ((bytesWritten = snprintf(ro_err, sizeof(ro_err), "%s (%s)",
-          sys_siglist[signum],
-#if __UNIXLIB_FEATURE_PTHREADS
-          __pthread_running_thread->errbuf.errmess
-#else
-          __ul_errbuf.errmess
-#endif
+          sys_siglist[signum], __pthread_running_thread->errbuf.errmess
           )) >= 0 && bytesWritten < sizeof(ro_err))
-         return ro_err;
+        return ro_err;
     }
 
   return (char *) sys_siglist[signum];

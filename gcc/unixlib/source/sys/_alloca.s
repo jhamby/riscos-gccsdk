@@ -57,14 +57,10 @@ noabort
 	; + 4 : return link value of caller (i.e. [fp, #-4])
 	; + 8 : start contents block returned from alloca()
 
-	[ __UNIXLIB_FEATURE_PTHREADS > 0
 	IMPORT  |__pthread_running_thread|
 	LDR	a3, =|__pthread_running_thread|
 	LDR	a3, [a3]
 	ADD	a3, a3, #|__PTHREAD_ALLOCA_OFFSET| + 8
-	|
-	LDR	a3, =|__alloca_list|
-	]
 	LDR	a2, [fp, #-4]
 	LDR	a4, [a3]
 	STR	a2, [a1, #4]
@@ -82,13 +78,9 @@ noabort
 	LDMFD	sp!, {pc}
 
 |__alloca_free|
-	[ __UNIXLIB_FEATURE_PTHREADS > 0
 	LDR	a3, =|__pthread_running_thread|
 	LDR	a3, [a3]
 	ADD	a3, a3, #|__PTHREAD_ALLOCA_OFFSET| + 8
-	|
-	LDR	a3, =|__alloca_list|	; StrongARM order
-	]
 	STMFD	sp!, {a1, a2, v1}
 	LDR	a1, [a3]
 	LDMIA	a1, {a4, v1}
@@ -122,7 +114,6 @@ noabort
 	B	abort		; never returns
 
 ; Free all alloca blocks for the current thread
-	[ __UNIXLIB_FEATURE_PTHREADS > 0
 	EXPORT	|__alloca_thread_free_all|
 |__alloca_thread_free_all|
 	STMFD	sp!, {v1, lr}
@@ -138,16 +129,5 @@ __alloca_thread_free_all_l1
 	LDR	v1, [v1]
 	BL	free
 	B	__alloca_thread_free_all_l1
-	]
-
-
-	[ __UNIXLIB_FEATURE_PTHREADS = 0
-	; If pthreads are in use then __alloca_list is stored per-thread
-	AREA	|C$$data|, DATA
-
-	EXPORT  |__alloca_list|
-|__alloca_list|
-	DCD	0
-	]
 
 	END

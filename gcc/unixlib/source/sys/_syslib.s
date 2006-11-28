@@ -772,12 +772,10 @@ signalhandler_overflow
 	STMFD	sp!, {a1, a2, a3, a4, v1, v2, fp, ip, lr, pc}
 	SUB	fp, ip, #4
 
-	[ __UNIXLIB_FEATURE_PTHREADS > 0
 	LDR	a1, =|__ul_global|
 	LDR	a1, [a1, #GBL_PTH_SYSTEM_RUNNING]
 	TEQ	a1, #0
 	BLNE	|__pthread_disable_ints|
-	]
 	LDR	a1, =|__ul_memory|
 	LDR	a2, [a1, #MEM_UNIXLIB_STACK]
 	LDR	a3, [a1, #MEM_APPSPACE_HIMEM]
@@ -796,12 +794,10 @@ __check_stack_l2
 __check_stack_l3
 	CMP	a1, #0
 	BNE	__check_stack_l4
-	[ __UNIXLIB_FEATURE_PTHREADS > 0
 	LDR	a1, =|__ul_global|
 	LDR	a1, [a1, #GBL_PTH_SYSTEM_RUNNING]
 	CMP	a1, #0
 	BLNE	|__pthread_enable_ints|
-	]
 	LDMEA	fp, {a1, a2, a3, a4, v1, v2, fp, sp, pc}
 
 __check_stack_l4

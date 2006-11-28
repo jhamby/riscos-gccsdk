@@ -163,15 +163,11 @@ qsort (void *v, size_t n, size_t z,
   if (n < 2)
     return;
 
-#if __UNIXLIB_FEATURE_PTHREADS
   pthread_mutex_lock (&mutex);
-#endif
 
   if (!(__t = malloc (z)))
     {
-#if __UNIXLIB_FEATURE_PTHREADS
       pthread_mutex_unlock (&mutex);
-#endif
       return;
     }
 
@@ -190,7 +186,5 @@ qsort (void *v, size_t n, size_t z,
 
   free (__t);
 
-#if __UNIXLIB_FEATURE_PTHREADS
   pthread_mutex_unlock (&mutex);
-#endif
 }

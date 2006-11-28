@@ -201,10 +201,8 @@ void __unixinit (void)
   __os_byte (0xe5, 0, 0xff, regs);
   __escape_disabled = regs[1];
 
-#if __UNIXLIB_FEATURE_PTHREADS
   /* Initialise the pthread system */
   __pthread_prog_init ();
-#endif
   __unixlib_signal_initialise (__u);
   /* Initialise ctype tables to the C locale.  */
   __build_ctype_tables (-2);

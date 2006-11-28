@@ -42,9 +42,6 @@
 /* Set to 1 if we want to support POSIX interval timers.  */
 #define __UNIXLIB_FEATURE_ITIMERS	1
 
-/* Set to 1 if we want support for pthreads. */
-#define __UNIXLIB_FEATURE_PTHREADS	1
-
 /* Set to 1 if we want 'errno' to be per-thread rather than a global */
 /* variable.  It is currently inadvisable to set this option as many */
 /* applications rely on 'errno' being a real variable rather than a */
