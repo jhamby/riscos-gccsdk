@@ -1,10 +1,9 @@
-/* This file contains the UnixLib build options and */
-/* gets included by C and ASM files so its syntax is */
-/* quite restricted. */
+/* The file 'buildoptions.h' contains the UnixLib build options and */
+/* gets translated into 'buildoptions.s'.  The former is included by C */
+/* files and the latter is included by ASM files.  */
 
 /* Set to 1 if alloca() should call abort() if no memory can be allocated.  */
 /* Otherwise set it to 0.  */
-
 #define __UNIXLIB_ALLOCA_FATAL		1
 
 /* Set to 1 if runtime paranoid checks need to be performed. Otherwise */
@@ -21,17 +20,14 @@
 
 /* Set to 1 if DDEUtils' Prefix needs to be set at the beginning of */
 /* each process task. Note this hits bugs in some versions of RISC OS. */
-#define __UNIXLIB_SET_DDEPREFIX	0
+#define __UNIXLIB_SET_DDEPREFIX		0
 
 /* Some ARM instructions are very handy and result in */
 /* increased performance but they are not supported on */
 /* all current ARM architectures. */
 
-/* Set to 1 if the (U)MULL instructions can be used. */
-#define __UNIXLIB_MULL_SUPPORTED	1
-
 /* Set to 1 if the CLZ instruction can be used. */
-#define __UNIXLIB_CLZ_SUPPORTED	0
+#define __UNIXLIB_CLZ_SUPPORTED		0
 
 /* Set to 1 if we want to support POSIX interval timers.  */
 #define __UNIXLIB_FEATURE_ITIMERS	1
@@ -49,4 +45,4 @@
 /* definition.  */
 
 /* Set to 1 if we are building for ELF.  */
-#define __UNIXLIB_ELF	0
+#define __UNIXLIB_ELF			0

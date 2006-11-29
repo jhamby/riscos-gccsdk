@@ -1,3 +1,8 @@
+Wed Nov 29 22:58:55 CET 2006  John Tytgat  <John.Tytgat@aaug.net>
+
+	* source/clib/unixlib/buildoptions.h: Removed __UNIXLIB_MULL_SUPPORTED
+	as it isn't used anymore.
+
 Wed Nov 29 22:43:05 CET 2006  John Tytgat  <John.Tytgat@aaug.net>
 
 	* source/clib/unixlib/buildoptions.h,
