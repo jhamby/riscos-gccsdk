@@ -41,21 +41,8 @@ __END_DECLS
 #ifdef NDEBUG
 # define assert(x) (__ASSERT_CAST (0))
 #else
-# ifdef __GNUC__
 /* If compiled under GCC, we can also output the function name.  */
-#  define assert(expr) \
-    (__ASSERT_CAST ((expr) || (__assert2 (#expr, __PRETTY_FUNCTION__, __FILE__, __LINE__), 0)))
-# else
-
-#  ifdef __STDC__
-/* __func__ is defined by Norcroft C.  */
-#   define assert(expr) \
-     (__ASSERT_CAST ((expr) || (__assert2 (#expr, __func__, __FILE__, __LINE__), 0)))
-#  else
-#   define assert(expr) \
-     (__ASSERT_CAST ((expr) || (__assert2 ("expr", NULL, __FILE__, __LINE__), 0)))
-#  endif
-
-# endif /* __GNUC__ */
+# define assert(expr) \
+   (__ASSERT_CAST ((expr) || (__assert2 (#expr, __PRETTY_FUNCTION__, __FILE__, __LINE__), 0)))
 
 #endif /* NDEBUG */

@@ -45,10 +45,6 @@ char *malloc ();
 #undef __strndup
 #undef strndup
 
-#if defined (__CC_NORCROFT) || defined (__LCC__)
-# define __strndup strndup
-#endif
-
 char *
 __strndup (s, n)
      const char *s;

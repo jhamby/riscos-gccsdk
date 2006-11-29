@@ -1,11 +1,6 @@
 /*
  * File taken from glibc 2.2.5.
  * Following changes were made:
- *  - #define'd inline to nothing for Norcroft C (Note: this is dangerous
- *    as every include of this file makes a copy of __ifreq() &
- *    __if_freereq() for Norcroft C users.  But as there is only one source
- *    including this headers file and I want to stay as close as possible
- *    to glibc 2.2.5, I take this shortcut.)
  *  - Renamed __ioctl() into ioctl(), __close() into close().
  */
 
@@ -34,10 +29,6 @@
 #include <net/if.h>
 #include <sys/socket.h>
 #include <sys/ioctl.h>
-
-#ifdef __CC_NORCROFT
-# define inline     /* */
-#endif
 
 static inline void
 __ifreq (struct ifreq **ifreqs, int *num_ifs)

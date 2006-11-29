@@ -24,7 +24,6 @@
 
 #include <features.h>
 
-#ifndef __UNIXLIB_NO_COMPLEX
 __complex__ double
 __cacosh (__complex__ double x)
 {
@@ -88,5 +87,4 @@ weak_alias (__cacosh, cacosh)
 #ifdef NO_LONG_DOUBLE
 strong_alias (__cacosh, __cacoshl)
 weak_alias (__cacosh, cacoshl)
-#endif
 #endif

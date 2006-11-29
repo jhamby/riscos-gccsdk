@@ -4,7 +4,6 @@
  *  - Added __extension__ to __u_quad_t and __quad_t definitions
  *  - Added definitions for __tcflag_t, __cc_t, __speed_t, __sig_atomic_t
  *    __sigset_t
- *  - Added Norcroft C definitions for __int64_t and __uint64_t
  *  - Changed "bits/types.h" of last line into unixlib/types.h.
  */
 
@@ -43,11 +42,6 @@ typedef unsigned char __u_char;
 typedef unsigned short __u_short;
 typedef unsigned int __u_int;
 typedef unsigned long __u_long;
-
-#ifdef __LCC__
-/* Actually, it's 32 bits in LCC, but this is a work around */
-typedef long long int __int64;
-#endif
 
 #ifdef __GNUC__
 __extension__

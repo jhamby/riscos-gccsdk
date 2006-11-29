@@ -22,11 +22,9 @@
 
 #include <features.h>
 
-#ifndef __UNIXLIB_NO_COMPLEX
 long double
 __cimagl (long double _Complex z)
 {
   return __imag__ z;
 }
 weak_alias (__cimagl, cimagl)
-#endif

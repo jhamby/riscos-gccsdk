@@ -18,24 +18,16 @@
 typedef signed char int8_t;
 typedef short int int16_t;
 typedef int int32_t;
-#if defined(__CC_NORCROFT) && (__CC_NORCROFT_VERSION < 550)
-typedef __int64 int64_t;
-#else
 __extension__
 typedef long long int int64_t;
-#endif
 #endif
 
 /* Unsigned.  */
 typedef unsigned char uint8_t;
 typedef unsigned short int uint16_t;
 typedef unsigned int uint32_t;
-#if defined(__CC_NORCROFT) && (__CC_NORCROFT_VERSION < 550)
-typedef unsigned __int64 uint64_t;
-#else
 __extension__
 typedef unsigned long long int uint64_t;
-#endif
 
 
 /* Small types.  */
@@ -44,23 +36,15 @@ typedef unsigned long long int uint64_t;
 typedef signed char int_least8_t;
 typedef short int int_least16_t;
 typedef int int_least32_t;
-#if defined(__CC_NORCROFT) && (__CC_NORCROFT_VERSION < 550)
-typedef __int64 int_least64_t;
-#else
 __extension__
 typedef long long int int_least64_t;
-#endif
 
 /* Unsigned.  */
 typedef unsigned char uint_least8_t;
 typedef unsigned short int uint_least16_t;
 typedef unsigned int uint_least32_t;
-#if defined(__CC_NORCROFT) && (__CC_NORCROFT_VERSION < 550)
-typedef unsigned __int64 uint_least64_t;
-#else
 __extension__
 typedef unsigned long long int uint_least64_t;
-#endif
 
 
 /* Fast types.  */
@@ -69,23 +53,15 @@ typedef unsigned long long int uint_least64_t;
 typedef signed char int_fast8_t;
 typedef int int_fast16_t;
 typedef int int_fast32_t;
-#if defined(__CC_NORCROFT) && (__CC_NORCROFT_VERSION < 550)
-typedef __int64 int_fast64_t;
-#else
 __extension__
 typedef long long int int_fast64_t;
-#endif
 
 /* Unsigned.  */
 typedef unsigned char uint_fast8_t;
 typedef unsigned int uint_fast16_t;
 typedef unsigned int uint_fast32_t;
-#if defined(__CC_NORCROFT) && (__CC_NORCROFT_VERSION < 550)
-typedef unsigned __int64 uint_fast64_t;
-#else
 __extension__
 typedef unsigned long long int uint_fast64_t;
-#endif
 
 
 /* Types for `void *' pointers.  */
@@ -102,9 +78,6 @@ __extension__
 typedef long long int intmax_t;
 __extension__
 typedef unsigned long long int uintmax_t;
-#elif defined(__CC_NORCROFT) && (__CC_NORCROFT_VERSION < 550)
-typedef __int64 intmax_t;
-typedef unsigned __int64 uintmax_t;
 #else
 /* Largest integral types.  */
 typedef long int intmax_t;

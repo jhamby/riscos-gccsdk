@@ -22,11 +22,9 @@
 
 #include <features.h>
 
-#ifndef __UNIXLIB_NO_COMPLEX
 long double _Complex
 __conjl (long double _Complex z)
 {
   return ~z;
 }
 weak_alias (__conjl, conjl)
-#endif

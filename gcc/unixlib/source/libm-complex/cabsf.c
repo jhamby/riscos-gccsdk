@@ -23,11 +23,9 @@
 
 #include <features.h>
 
-#ifndef __UNIXLIB_NO_COMPLEX
 float
 __cabsf (float _Complex z)
 {
   return __hypotf (__real__ z, __imag__ z);
 }
 weak_alias (__cabsf, cabsf)
-#endif

@@ -22,11 +22,9 @@
 
 #include <features.h>
 
-#ifndef __UNIXLIB_NO_COMPLEX
 float
 __cimagf (float _Complex z)
 {
   return __imag__ z;
 }
 weak_alias (__cimagf, cimagf)
-#endif

@@ -1,11 +1,5 @@
 #!/usr/bin/perl -w
 # Create various UnixLib Makefiles
-#
-# $Source: /usr/local/cvsroot/gccsdk/unixlib/gen-makefiles.pl,v $
-# $Date: 2005/04/25 18:25:47 $
-# $Revision: 1.12 $
-# $State: Exp $
-# $Author: nick $
 
 use Getopt::Long;
 

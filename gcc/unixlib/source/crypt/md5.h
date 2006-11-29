@@ -1,7 +1,7 @@
 /*
  * File taken from glibc 2.2.5.
  * Following changes were made:
- *  - Added Norcroft equivalent for __alignof__
+ *  - None
  */
 
 /* Declaration of functions and data types used for MD5 sum computing
@@ -31,13 +31,6 @@
 
 #if defined HAVE_LIMITS_H || _LIBC
 # include <limits.h>
-#endif
-
-#ifdef __CC_NORCROFT
-#define __alignof__(type) \
-   ((char *)&(((struct{char __member1; \
-                       ___type type __member2;}*) 0)->__member2) - \
-    (char *)0)
 #endif
 
 /* The following contortions are an attempt to use the C preprocessor

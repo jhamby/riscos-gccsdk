@@ -31,6 +31,11 @@
  * The stack initially decends (in chunks) downto __unixlib_stack_limit, then
  * increases (in chunks) by increasing the wimpslot. If the malloc heap is
  * also in the wimpslot then it can also cause the wimpslot to extend.
+ *
+ * This file should be compiled without stack checking, as it is could
+ * confuse malloc if the stack extension caused 'appspace_himem' to move
+ * whilst malloc is trying to sbrk a region.
+ *
  ***************************************************************************/
 
 /* sys/brk.c: Complete rewrite by Peter Burwood, June 1997  */
@@ -55,13 +60,6 @@
 #endif
 
 #define align(x) ((x + 3) & ~3)
-
-/* This file should be compiled without stack checking, as it is could
-   confuse malloc if the stack extension caused 'appspace_himem' to move
-   whilst malloc is trying to sbrk a region */
-#ifdef __CC_NORCROFT
-#pragma -s1
-#endif
 
 /* brk function for dynamic areas.  */
 static int brk_da (unsigned int addr)

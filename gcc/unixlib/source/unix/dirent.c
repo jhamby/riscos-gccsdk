@@ -333,242 +333,247 @@ readdir_r (DIR *stream, struct dirent *entry, struct dirent **result)
 	   "readir_r: stream 0x%p : enum user offset 0x%x, system offset 0x%x\n",
 	   stream, stream->dd_off, stream->gbpb_off);
 #endif
-  /* Instead of a more natural switch() statement, we're using cascaded if()
-     statements until Norcroft C supports int64 switch() arguments.  */
-  if (stream->dd_off == GBPB_FAKE_CURRENTDIR
-      || stream->dd_off == GBPB_FAKE_PARENTDIR)
+  switch (stream->dd_off)
     {
-      int x = 0;
-      /* Fake directory '.' or '..' */
-      if (stream->dd_off == GBPB_FAKE_PARENTDIR)
-	entry->d_name[x++] = '.'; /* Fake directory '..' */
+      case GBPB_FAKE_CURRENTDIR:
+      case GBPB_FAKE_PARENTDIR:
+        {
+          int x = 0;
+          /* Fake directory '.' or '..' */
+          if (stream->dd_off == GBPB_FAKE_PARENTDIR)
+            entry->d_name[x++] = '.'; /* Fake directory '..' */
 
-      entry->d_name[x++] = '.';
+          entry->d_name[x++] = '.';
 
-      entry->d_name[x] = '\0';
-      entry->d_namlen = x;
+          entry->d_name[x] = '\0';
+          entry->d_namlen = x;
 
-      /* These directories are (hard) links to directories.  */
-      entry->d_type = DT_DIR;
+          /* These directories are (hard) links to directories.  */
+          entry->d_type = DT_DIR;
 
-      stream->dd_off = stream->gbpb_off =
-	(stream->gbpb_off == GBPB_FAKE_CURRENTDIR)
-	? GBPB_FAKE_PARENTDIR : GBPB_START_ENUM;
-    }
-  else if (stream->dd_off == GBPB_END_ENUM)
-    return 0;
-  else
-    {
-      char *str;
-      /* Does the cache needs a refill ? */
-      if (stream->do_read == 0)
-	{
-          int regs[10];
-	    /* Read entries from the directory. We loop until we have read at
-	       least one entry or we have reached the end of the directory.
-	       This is because OS_GBPB is allowed to do nothing due to
-	       external constraints imposed by some filing systems
-	       (PRM 2-70).  */
-	  do
-	    {
-	      regs[0] = 10;
-	      regs[1] = (int) stream->dd_name_can;
-	      regs[2] = (int) stream->dir_cache;
-	      /* Max entries possible given zero termination of names.  */
-	      regs[3] = CACHE_SIZE / (sizeof(__os_gbpb_10) + 1);
-	      regs[5] = CACHE_SIZE;
-	      regs[4] = (int) stream->gbpb_off;
-	      regs[6] = 0;		    /* Match all names */
+          stream->dd_off = stream->gbpb_off =
+            (stream->gbpb_off == GBPB_FAKE_CURRENTDIR)
+            ? GBPB_FAKE_PARENTDIR : GBPB_START_ENUM;
+          break;
+        }
 
-	      err = __os_swi (OS_GBPB, regs);
-	      if (err)
-	        {
-		  __ul_seterr (err, 0);
-		  return EIO;
-	        }
+      case GBPB_END_ENUM:
+        return 0;
 
-#ifdef DEBUG
-	      fprintf (stderr,
-		       "Start enum 0x%x, got 0x%x with stop enum 0x%x\n",
-		       stream->gbpb_off, regs[3], regs[4]);
-#endif
-	      if (regs[4] == GBPB_END_ENUM)
-	        {
-		  if (regs[3] == 0)
-		    {
-		      stream->gbpb_off = stream->dd_off = GBPB_END_ENUM;
-		      return 0;
-		    }
-		  }
-	      else
-	        {
-		  /* Check if we have a monotonic unit increase OS_GBPB
-		     offset, if not, we don't do anything. */
-		  if (stream->gbpb_off + regs[3] != regs[4])
-		    {
-		      stream->gbpb_off = stream->dd_off = GBPB_END_ENUM;
-		      return 0;
-		    }
-
-		  /* We can't enum more than GBPB_MAX_ENUM-1 objects */
-		  if ((unsigned int)regs[4] >= GBPB_MAX_ENUM)
-		    {
-		      regs[3] -= (unsigned int)regs[4] - GBPB_MAX_ENUM;
-		      if (regs[3] <= 0)
-		        {
-			  stream->gbpb_off = stream->dd_off = GBPB_END_ENUM;
-			  return 0;
-		        }
-
-		      regs[4] = (int)GBPB_END_ENUM;
-		    }
-	        }
-
-	      stream->gbpb_off = regs[4];
-	    } while (regs[3] == 0);
-
-	  stream->do_read = regs[3];
-	  stream->dir_cache_index = stream->dir_cache;
-	} /* cache refill */
-
-      /* Point 'filename' to the correct directory entry.  */
+      default:
+        {
+          char *str;
+          /* Does the cache needs a refill ? */
+          if (stream->do_read == 0)
+            {
+              int regs[10];
+                /* Read entries from the directory. We loop until we have read at
+                  least one entry or we have reached the end of the directory.
+                  This is because OS_GBPB is allowed to do nothing due to
+                  external constraints imposed by some filing systems
+                  (PRM 2-70).  */
+              do
+                {
+                  regs[0] = 10;
+                  regs[1] = (int) stream->dd_name_can;
+                  regs[2] = (int) stream->dir_cache;
+                  /* Max entries possible given zero termination of names.  */
+                  regs[3] = CACHE_SIZE / (sizeof(__os_gbpb_10) + 1);
+                  regs[5] = CACHE_SIZE;
+                  regs[4] = (int) stream->gbpb_off;
+                  regs[6] = 0;		    /* Match all names */
+ 
+                  err = __os_swi (OS_GBPB, regs);
+                  if (err)
+                    {
+                      __ul_seterr (err, 0);
+                      return EIO;
+                    }
 
 #ifdef DEBUG
-      fprintf (stderr, "Raw RO name '%s', entry at 0x%p\n",
-	       stream->dir_cache_index->obj_name, entry);
+                  fprintf (stderr,
+                          "Start enum 0x%x, got 0x%x with stop enum 0x%x\n",
+                          stream->gbpb_off, regs[3], regs[4]);
 #endif
-      /* Copy name direct if flag is set.  */
-      if (riscosify_ctl & __RISCOSIFY_NO_PROCESS)
-	{
-	  str = stpcpy (entry->d_name, stream->dir_cache_index->obj_name);
-	  slen = (offsetof (__os_gbpb_10, obj_name)
-		  + (str - entry->d_name) + 1 + 3) & -4;
-	}
-      else
-	{
-	  const char *from = stream->dir_cache_index->obj_name;
-	  const char *end = &entry->d_name[sizeof(entry->d_name) - 1];
-	  char ch;
+                  if (regs[4] == GBPB_END_ENUM)
+                    {
+                      if (regs[3] == 0)
+                        {
+                          stream->gbpb_off = stream->dd_off = GBPB_END_ENUM;
+                          return 0;
+                        }
+                      }
+                  else
+                    {
+                      /* Check if we have a monotonic unit increase OS_GBPB
+                        offset, if not, we don't do anything. */
+                      if (stream->gbpb_off + regs[3] != regs[4])
+                        {
+                          stream->gbpb_off = stream->dd_off = GBPB_END_ENUM;
+                          return 0;
+                        }
 
-	  /* Convert RISC OS name to Unix format.
-	     Map  '/' => '.', '?' => '#'
-	     see common.c.riscosify for the table.  */
-	  str = entry->d_name;
-	  do
-	    {
-	      ch = *from++;
-	      *str++ = __filename_char_map[(unsigned char) ch];
-	    } while (ch != '\0' && str <= end);
-	  /* Ensure we still have a C zero terminated string.  */
-	  *--str = '\0';
+                      /* We can't enum more than GBPB_MAX_ENUM-1 objects */
+                      if ((unsigned int)regs[4] >= GBPB_MAX_ENUM)
+                        {
+                          regs[3] -= (unsigned int)regs[4] - GBPB_MAX_ENUM;
+                          if (regs[3] <= 0)
+                            {
+                              stream->gbpb_off = stream->dd_off = GBPB_END_ENUM;
+                              return 0;
+                            }
 
-	  slen = (offsetof (__os_gbpb_10, obj_name)
-		  + (str - entry->d_name) + 1 + 3) & -4;
+                          regs[4] = (int)GBPB_END_ENUM;
+                        }
+                    }
 
-	  /* Need to add filetype extension (for straight files or
-	     image files if they are treated as files) */
-	  if ((riscosify_ctl & __RISCOSIFY_FILETYPE_EXT)
-	      && (stream->dir_cache_index->obj_type == 1 ||
-		  (stream->dir_cache_index->obj_type == 3
-		   && __get_feature_imagefs_is_file ()))
-	      && (stream->dir_cache_index->load_address & 0xfff00000U) == 0xfff00000U)
-	    {
-	      int filetype;
+                  stream->gbpb_off = regs[4];
+                } while (regs[3] == 0);
 
-	      filetype = (stream->dir_cache_index->load_address >> 8) & 0xfff;
-	      if (filetype != 0xfff && str+4 <= end)
-		{
-		  int ft_extension_needed = 1;
+              stream->do_read = regs[3];
+              stream->dir_cache_index = stream->dir_cache;
+            } /* cache refill */
 
-		  if (!(riscosify_ctl & __RISCOSIFY_FILETYPE_NOT_SET))
-		    {
-		      char *fn_extension;
-
-		      for (fn_extension = str - 1;
-			   fn_extension != entry->d_name && *fn_extension != '.';
-			   --fn_extension)
-			;
-
-		      if (*fn_extension == '.')
-			{
-			  int regs[10];
-
-			  /* We have a filename extension
-			     at 'fn_extension'.  */
-			  regs[0] = MMM_TYPE_DOT_EXTN; /* Input extension */
-			  regs[1] = (int)fn_extension;
-			  regs[2] = MMM_TYPE_RISCOS; /* Output extension */
-
-			  /* When there is no MimeMap error and the
-			     filetype returned matches 'filetype', we don't
-			     want filetype extension.  */
-			  if (! __os_swi (MimeMap_Translate, regs)
-			      && regs[3] == filetype)
-			    ft_extension_needed = 0;
-			}
-		    }
-
-		  if (ft_extension_needed)
-		    {
-		      *str++ = ',';
-		      *str++ = "0123456789abcdef"[filetype >> 8];
-		      *str++ = "0123456789abcdef"[(filetype >> 4) & 0xf];
-		      *str++ = "0123456789abcdef"[filetype & 0xf];
-		      *str = '\0';
-		    }
-		}
-	    }
-	}
-
-      entry->d_type = (stream->dir_cache_index->obj_type == 1 ||
-		       (stream->dir_cache_index->obj_type == 3
-			&& __get_feature_imagefs_is_file ()))
-		      ? DT_REG : DT_DIR;
-
-      entry->d_namlen = str - entry->d_name;
-      /* 'entry' is now correctly filled in except for the d_fileno field. */
-
-      /* Update the stream params */
-      stream->dir_cache_index = (__os_gbpb_10 *)(((char *)stream->dir_cache_index) + slen);
-      stream->do_read--;
-      /* Did the previous OS_GBPB enum indicated the end ? */
-      if (stream->do_read == 0 && stream->gbpb_off == GBPB_END_ENUM)
-	stream->dd_off = GBPB_END_ENUM;
-      else
-	stream->dd_off++;
+          /* Point 'filename' to the correct directory entry.  */
 
 #ifdef DEBUG
-      fprintf (stderr, "reverse suffix %d, obj_type %d, d_name '%s'\n",
-	       !(riscosify_ctl & __RISCOSIFY_NO_REVERSE_SUFFIX),
-	       entry->d_type == DT_DIR, entry->d_name);
+          fprintf (stderr, "Raw RO name '%s', entry at 0x%p\n",
+                  stream->dir_cache_index->obj_name, entry);
 #endif
-      /* Check for reverse suffix dir swapping */
-      if (!(riscosify_ctl & __RISCOSIFY_NO_REVERSE_SUFFIX)
-	  && entry->d_type == DT_DIR
-	  && __sfixfind (entry->d_name, entry->d_namlen))
-	{
-	  char name[_POSIX_PATH_MAX];
-	  char *str;
+          /* Copy name direct if flag is set.  */
+          if (riscosify_ctl & __RISCOSIFY_NO_PROCESS)
+            {
+              str = stpcpy (entry->d_name, stream->dir_cache_index->obj_name);
+              slen = (offsetof (__os_gbpb_10, obj_name)
+                      + (str - entry->d_name) + 1 + 3) & -4;
+            }
+          else
+            {
+              const char *from = stream->dir_cache_index->obj_name;
+              const char *end = &entry->d_name[sizeof(entry->d_name) - 1];
+              char ch;
 
-	  str = stpcpy (name, stream->dd_name_can);
-	  *str++ = '.';
-	  strcpy(str, entry->d_name);
+              /* Convert RISC OS name to Unix format.
+                Map  '/' => '.', '?' => '#'
+                see common.c.riscosify for the table.  */
+              str = entry->d_name;
+              do
+                {
+                  ch = *from++;
+                  *str++ = __filename_char_map[(unsigned char) ch];
+                } while (ch != '\0' && str <= end);
+              /* Ensure we still have a C zero terminated string.  */
+              *--str = '\0';
 
-	  stream->suffix = newstream (name , stream->dd_suf_off);
-	  stream->dd_suf_off = GBPB_START_ENUM;
+              slen = (offsetof (__os_gbpb_10, obj_name)
+                      + (str - entry->d_name) + 1 + 3) & -4;
 
-	  /* Get the first entry in the suffix directory */
+              /* Need to add filetype extension (for straight files or
+                image files if they are treated as files) */
+              if ((riscosify_ctl & __RISCOSIFY_FILETYPE_EXT)
+                  && (stream->dir_cache_index->obj_type == 1 ||
+                      (stream->dir_cache_index->obj_type == 3
+                      && __get_feature_imagefs_is_file ()))
+                  && (stream->dir_cache_index->load_address & 0xfff00000U) == 0xfff00000U)
+                {
+                  int filetype;
+
+                  filetype = (stream->dir_cache_index->load_address >> 8) & 0xfff;
+                  if (filetype != 0xfff && str+4 <= end)
+                    {
+                      int ft_extension_needed = 1;
+
+                      if (!(riscosify_ctl & __RISCOSIFY_FILETYPE_NOT_SET))
+                        {
+                          char *fn_extension;
+
+                          for (fn_extension = str - 1;
+                              fn_extension != entry->d_name && *fn_extension != '.';
+                              --fn_extension)
+                            ;
+
+                          if (*fn_extension == '.')
+                            {
+                              int regs[10];
+
+                              /* We have a filename extension
+                                at 'fn_extension'.  */
+                              regs[0] = MMM_TYPE_DOT_EXTN; /* Input extension */
+                              regs[1] = (int)fn_extension;
+                              regs[2] = MMM_TYPE_RISCOS; /* Output extension */
+
+                              /* When there is no MimeMap error and the
+                                filetype returned matches 'filetype', we don't
+                                want filetype extension.  */
+                              if (! __os_swi (MimeMap_Translate, regs)
+                                  && regs[3] == filetype)
+                                ft_extension_needed = 0;
+                            }
+                        }
+
+                      if (ft_extension_needed)
+                        {
+                          *str++ = ',';
+                          *str++ = "0123456789abcdef"[filetype >> 8];
+                          *str++ = "0123456789abcdef"[(filetype >> 4) & 0xf];
+                          *str++ = "0123456789abcdef"[filetype & 0xf];
+                          *str = '\0';
+                        }
+                    }
+                }
+            }
+
+          entry->d_type = (stream->dir_cache_index->obj_type == 1 ||
+                          (stream->dir_cache_index->obj_type == 3
+                            && __get_feature_imagefs_is_file ()))
+                          ? DT_REG : DT_DIR;
+
+          entry->d_namlen = str - entry->d_name;
+          /* 'entry' is now correctly filled in except for the d_fileno field. */
+
+          /* Update the stream params */
+          stream->dir_cache_index = (__os_gbpb_10 *)(((char *)stream->dir_cache_index) + slen);
+          stream->do_read--;
+          /* Did the previous OS_GBPB enum indicated the end ? */
+          if (stream->do_read == 0 && stream->gbpb_off == GBPB_END_ENUM)
+            stream->dd_off = GBPB_END_ENUM;
+          else
+            stream->dd_off++;
+
 #ifdef DEBUG
-	  fprintf (stderr, "First entry in suffix dir\n");
+          fprintf (stderr, "reverse suffix %d, obj_type %d, d_name '%s'\n",
+                  !(riscosify_ctl & __RISCOSIFY_NO_REVERSE_SUFFIX),
+                  entry->d_type == DT_DIR, entry->d_name);
 #endif
-	  readdir_r (stream, entry, result);
+          /* Check for reverse suffix dir swapping */
+          if (!(riscosify_ctl & __RISCOSIFY_NO_REVERSE_SUFFIX)
+              && entry->d_type == DT_DIR
+              && __sfixfind (entry->d_name, entry->d_namlen))
+            {
+              char name[_POSIX_PATH_MAX];
+              char *str;
+
+              str = stpcpy (name, stream->dd_name_can);
+              *str++ = '.';
+              strcpy(str, entry->d_name);
+
+              stream->suffix = newstream (name , stream->dd_suf_off);
+              stream->dd_suf_off = GBPB_START_ENUM;
+
+              /* Get the first entry in the suffix directory */
 #ifdef DEBUG
-	  fprintf (stderr,
-		   "Result of first entry query in suffix dir : 0x%p\n",
-		   *result);
+              fprintf (stderr, "First entry in suffix dir\n");
 #endif
-	  return 0;
-	}
+              readdir_r (stream, entry, result);
+#ifdef DEBUG
+              fprintf (stderr,
+                      "Result of first entry query in suffix dir : 0x%p\n",
+                      *result);
+#endif
+              return 0;
+            }
+          break;
+        }
     }
 
 

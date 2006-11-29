@@ -52,31 +52,8 @@
 #  endif
 # endif
 
-#elif defined(__CC_NORCROFT)
-/* The Norcroft compiler supports the __inline keyword.  Allow it
-   to support the GCC variant.  */
-# define __inline__ __inline
-
-# define __const const
-# define __signed signed
-# define __volatile volatile
-# define __THROW
-# define __NTH(fct) fct
-
-# define __UNIXLIB_NO_COMPLEX 1
-
-#elif defined(__LCC__)
-# define __inline__		/* No inline functions.  */
-# define __inline               /* No inline functions.  */
-# define __THROW
-# define __NTH(fct)	fct
-# define __const        const
-# define __signed       signed
-# define __volatile     volatile
-# define __UNIXLIB_NO_COMPLEX 1
-
 #else /* Unknown compiler.  */
-#error "Unrecognised/unsupported system compiler."
+# error "Unrecognised/unsupported system compiler."
 #endif
 
 /* Some user header file might have defined this before.  */
@@ -270,23 +247,6 @@
 #endif
 
 #ifdef __UNIXLIB_INTERNALS
-
-#if defined (__CC_NORCROFT) || defined (__LCC__)
-/* The Norcroft and LCC compilers do not have support for any of these
-   symbol modifiers.  To retain source code compatibility, we just
-   define them to evaluate to nothing.  */
-
-#define strong_alias(name, aliasname) /**/
-#define _strong_alias(name, aliasname) /**/
-#define weak_function /**/
-#define weak_const_function /**/
-#define weak_alias(name, aliasname) /**/
-#define _weak_alias(name, aliasname) /**/
-#define hidden_def(name) /**/
-#define libm_hidden_def(name) /**/
-#define INTDEF(name) /**/
-
-#endif /* __CC_NORCROFT || __LCC__ */
 
 #ifdef __GNUC__
 /* The GCC compiler for RISC OS comes in two variants, an AOF compiler

@@ -55,12 +55,6 @@ __BEGIN_DECLS
 /* Need the definition of struct stat.  */
 #ifdef __GNUC__
 struct stat;
-#else
-/* We should not do this, but Norcroft C complains about duplicate
-   definitions. */
-#ifndef __SYS_STAT_H
-#include <sys/stat.h>
-#endif
 #endif /* !__GNUC__ */
 
 /* Structure describing a globbing run.  */

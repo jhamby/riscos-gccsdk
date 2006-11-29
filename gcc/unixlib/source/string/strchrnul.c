@@ -37,10 +37,6 @@
 #undef __strchrnul
 #undef strchrnul
 
-#if defined (__CC_NORCROFT) || defined (__LCC__)
-# define __strchrnul strchrnul
-#endif
-
 /* Find the first occurrence of C in S or the final NUL byte.  */
 char *
 __strchrnul (s, c_in)

@@ -25,7 +25,6 @@
 
 #include <features.h>
 
-#ifndef __UNIXLIB_NO_COMPLEX
 __complex__ float
 __csqrtf (__complex__ float x)
 {
@@ -109,4 +108,3 @@ __csqrtf (__complex__ float x)
   return res;
 }
 weak_alias (__csqrtf, csqrtf)
-#endif

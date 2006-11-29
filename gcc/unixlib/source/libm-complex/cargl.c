@@ -23,11 +23,9 @@
 
 #include <features.h>
 
-#ifndef __UNIXLIB_NO_COMPLEX
 long double
 __cargl (__complex__ long double x)
 {
   return __atan2l (__imag__ x, __real__ x);
 }
 weak_alias (__cargl, cargl)
-#endif

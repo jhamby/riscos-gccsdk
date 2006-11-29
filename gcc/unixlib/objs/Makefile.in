@@ -1,11 +1,5 @@
 # Project:   GCCSDK UnixLib
 
-# $Source: /usr/local/cvsroot/gccsdk/unixlib/objs/Makefile.in,v $
-# $Date: 2005/04/25 21:21:39 $
-# $Revision: 1.14 $
-# $State: Exp $
-# $Author: joty $
-
 CCfeatures =
 Predefs = -D__UNIXLIB_INTERNALS -D_GNU_SOURCE=1
 
@@ -16,55 +10,24 @@ Predefs = -D__UNIXLIB_INTERNALS -D_GNU_SOURCE=1
 # XXrflags = release flags
 # XXapcsflags = APCS selection flags
 
-# Norcroft C (Acorn) compiler. Comment out if you are using GCC compiler.
-#
-# Note: Norcroft versions later than 5.39 (excl) and earlier than 5.55 (excl) could
-# generate wrong code because of the so called "shrinkwrap" bug.  We're not sure
-# that compiling UnixLib triggers this problem but if you want to be on the safe
-# side you might want to disable the shrinkwrap code by adding the "-zpq262144"
-# compiler option.  As soon 5.55 becomes mainstream we can define this version
-# as minimal compiler version.  For more info on the above mentioned compiler option:
-# <URL:http://www.google.be/groups?selm=99e598294c.kbracey%40tematic.com&output=gplain>
-CC = cc
-CCdflags = -g
+CC = gcc
+CCdflags = -pedantic -Wall -Wundef -Wpointer-arith -Wcast-align \
+	-Wwrite-strings -Wstrict-prototypes -Wmissing-prototypes \
+	-Wmissing-declarations -Wnested-externs -Winline -Wno-unused \
+	-W -Wcast-qual -Wshadow
 CCrflags =
-CCflags = -depend !Depend -throwback -fcah -IUnixLib: -JUnixLib: -I UnixLib:^.incl-local -Wdap -ccversion 553 $(CCrflags) -APCS 3/32bit/fpe3
+CCflags = -O2 -mpoke-function-name -mthrowback -std=c99 $(CCdflags) $(CCfeatures) -isystem UnixLib: -I UnixLib:^.incl-local
 
-# GCC compiler. Comment out if you are using Norcroft C (Acorn) compiler.
-#CC = gcc
-#CCdflags = -pedantic -Wall -Wundef -Wpointer-arith -Wcast-align \
-#	-Wwrite-strings -Wstrict-prototypes -Wmissing-prototypes \
-#	-Wmissing-declarations -Wnested-externs -Winline -Wno-unused \
-#	-W -Wcast-qual -Wshadow
-#CCrflags =
-#CCflags = -O2 -mpoke-function-name -mthrowback -std=c99 $(CCdflags) $(CCfeatures) -isystem UnixLib: -I UnixLib:^.incl-local
-
-# Acorn Objasm Assembler. Comment out if you are using 'as'.
-AS = objasm
-ASflags = -Stamp -quit -CloseExec -predefine "SOFTFLOAT SETA 0"
+AS = gcc
+ASflags = -c
 ASdflags =
-ASrflags =
-ASflags = -throwback -depend !Depend -I UnixLib:^ $(ASdflags) -APCS 3/32bit
+ASrflags = -I UnixLib:^
 
-# as Assembler. Comment out if you are using Acorn Objasm.
-#AS = gcc
-#ASflags = -c
-#ASdflags =
-#ASrflags = -I UnixLib:^
-
-# Libfile, etc
 AR = libfile
 ARflags = -c
-#AR = makealf
-#ARflags =
 
-# Acorn linker :
 LINKflags = -RMF
-LINK = link
-
-# DrLink linker.  Comment out if you are using Acorn linker.
-# LINKflags = -RMF
-# LINK = drlink
+LINK = drlink
 
 VPATH = ^.source
 .SUFFIXES: .o .c .s

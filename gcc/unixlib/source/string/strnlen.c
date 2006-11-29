@@ -31,10 +31,6 @@
 #include <string.h>
 #include <stdlib.h>
 
-#if defined (__CC_NORCROFT) || defined (__LCC__)
-# define __strnlen strnlen
-#endif
-
 /* Find the length of S, but scan at most MAXLEN characters.  If no
    '\0' terminator is found in that many characters, return MAXLEN.  */
 size_t

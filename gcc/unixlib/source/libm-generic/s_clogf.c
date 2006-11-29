@@ -24,7 +24,6 @@
 
 #include <features.h>
 
-#ifndef __UNIXLIB_NO_COMPLEX
 __complex__ float
 __clogf (__complex__ float x)
 {
@@ -60,4 +59,3 @@ __clogf (__complex__ float x)
   return result;
 }
 weak_alias (__clogf, clogf)
-#endif

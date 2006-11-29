@@ -22,11 +22,9 @@
 
 #include <features.h>
 
-#ifndef __UNIXLIB_NO_COMPLEX
 float
 __crealf (float _Complex z)
 {
   return __real__ z;
 }
 weak_alias (__crealf, crealf)
-#endif

@@ -14,12 +14,9 @@ UnixLib Purpose
 ~~~~~~~~~~~~~~~
 
 The intent of UnixLib is to provide, as much as possible, a fully
-POSIX-compatible and Acorn SharedCLibrary-compatible C run-time library
-for RISC OS.
-
-It should be possible to use UnixLib in place of the SharedCLibrary for any
-program which targets that.  It should also be possible to compile and run
+POSIX-compatible Run Time library for RISC OS in order to compile and run
 most (but not all) POSIX-compatible code that avoids OS specific code.
+
 This is true of much open source code.  It also includes some Linux and
 GLIBC compatible interfaces.  Some POSIX features are impractical on
 RISC OS or simply have not been implemented.  In the latter case, we'd
@@ -326,7 +323,7 @@ iconv support
 
 Previously, use of iconv in programs required linking in of the stand alone
 iconv library, which adds around 1MB to UnixLib programs - mainly because
-of the lack of a shared library system on RISC OS.  In this version,   
+of the lack of a shared library system on RISC OS.  In this version,
 iconv support is in an external module, and UnixLib provides a C interface
 to call this.  It should act much like the inbuilt iconv support in GLIBC.
 
@@ -382,20 +379,12 @@ The Perl script unixlib/gen-makefiles.pl is used to create three makefiles:
 
 1. unixlib/Makefile and unixlib/source/Makefile: used in the GCCSDK build.
 2. unixlib/objs/Makefile: to be used if you want to build UnixLib yourself
-   outside the context of the GCCSDK kit.
-   The compiler and assembler can easily specified and is by default
-   suited for the Norcroft (Acorn C/C++) users.
+   outside the context of the GCCSDK build but still using GCC.
 
 A set of build options specifying which parts of UnixLib are to be
 included, which ARM mnemonics can be used for better performance, which
 runtime sanity checks needs to be done, etc are specified at
-unixlib/source/clib/unixlib/buildoptions.h.  Note this file is included by
-both C and assembler code via some trickery so the syntax is quite
-limited.
-
-A special mention is deserved for the __UNIXLIB_NORCROFT_BUILD option
-which specifies, due to some APCS-32 ambiguity, which ABI should be used,
-i.e. the Norcroft or GCC one.
+unixlib/source/clib/unixlib/buildoptions.h.
 
 
 Name registration

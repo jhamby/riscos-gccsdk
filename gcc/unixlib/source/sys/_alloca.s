@@ -10,25 +10,11 @@
 	IMPORT  |__ul_memory|
 	IMPORT  abort
 
-	; __rt_allocauto and __rt_freeauto are for Norcroft users only
-	; and to be used to allocate and free blocks of memory for
-	; automatic storage, i.e. associated with the current stack
-	; frame.  The current Norcroft implementation seems to be
-	; that these are aliases for malloc()/free().  I think it is
-	; prefered to have them here implemented as alloca() and nop.
-
-	; void __rt_freeauto(void *__autostorage)
-	EXPORT	|__rt_freeauto|
-|__rt_freeauto|
-	MOV	pc, lr
-
 	; void *__rt_allocauto(unsigned int __size)
 	EXPORT  |__alloca|
 	EXPORT  |alloca|
-	EXPORT	|__rt_allocauto|
 	NAME	__alloca
 |alloca|		; just in case
-|__rt_allocauto|
 |__alloca|
 	TEQ	a1, #0
 	MOVEQ	pc, lr

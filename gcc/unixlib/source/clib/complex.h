@@ -25,9 +25,6 @@
 
 #include <features.h>
 
-/* For compilers without complex math support, just ignore this file.  */
-#ifndef __UNIXLIB_NO_COMPLEX
-
 /* Get general and ISO C99 specific information.  */
 #include <bits/mathdef.h>
 
@@ -106,7 +103,5 @@ __BEGIN_DECLS
 #undef	__MATHCALL
 
 __END_DECLS
-
-#endif /* ! __UNIXLIB_NO_COMPLEX */
 
 #endif /* complex.h */

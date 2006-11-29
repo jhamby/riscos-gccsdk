@@ -28,11 +28,6 @@
 #include <sys/debug.h>
 #include <unixlib/os.h>
 
-/* This unit must be compiled without stack checking.  */
-#ifdef __CC_NORCROFT
-#pragma -s1
-#endif
-
 static __inline int local_isxdigit (const char x)
 {
   return ((x >= '0' && x <= '9')

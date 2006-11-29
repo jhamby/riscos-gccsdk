@@ -21,14 +21,11 @@ computers that provides a mixed System V / BSD / Linux interface for C and
 C++ programs.  It is also an alternative to the "Stubs" libraries supplied
 with the Norcroft/Castle C/C++ compiler.
 
-It is also the default Run-Time Library for the RISC OS port of GCC.  It
-can also be used as Run-Time Library for programs compiled with the
-Norcroft/Castle C/C++ compiler but this usage is depredicated and support
-for this will be dropped in future versions.
+It is also the default Run-Time Library for the RISC OS port of GCC.
 
 Supported RISC OS versions are currently RISC OS 4 (26-bit and 32-bit
-flavours) and RISC OS 5 (32-bit).  Other versions might work too but are
-not actively tested by its developers.
+flavours), RISC OS 5 (32-bit) and RISC OS 6 (26-bit/32-bit).  Other versions
+might work too but are not actively tested by its developers.
 
 Quoting the original documentation :
 
@@ -45,6 +42,10 @@ working towards 3.8 for their ports of GCC 2.7 and GNAT 3.03 respectively.
 Additional help along the way has been provided by Nick Clark and
 John Tytgat. Peter Naulls and Alex Waugh contributed significantly to
 create 4.0 which features 32-bit compliancy and pthread support.
+
+UnixLib version 5.0 has no longer any support for the Norcroft (nor LCC)
+compiler and is only suited for use with GCC compiler.  It is also the
+first official version supporting ELF static & shared object format.
 
 UnixLib is covered with various licenses, the most significant of which
 is the Lesser GNU Public License. For more details see the file
@@ -74,37 +75,5 @@ latest known version and approved installation program.
 
 Note you might need other modules used by UnixLib when you're using
 specific functionaly.  See separate document for more information.
-
-
-UnixLib and GCC
-~~~~~~~~~~~~~~~
-
-UnixLib is the default library for GCC, and there are no actions that need
-to be taken to use this combination.
-
-
-UnixLib and Norcroft C
-~~~~~~~~~~~~~~~~~~~~~~
-
-By default Norcroft C uses the ANSI library that come with the compiler. To
-use UnixLib, you have to change its behaviour, by using the following
-command switches
-
-        -IUnixLib: -JUnixLib: -lUnixLib:o.UnixLib
-
-If you are using a seperate link stage, the -l switch is not needed, instead
-you should specifiy 'UnixLib:o.UnixLib' in the link command line.
-
-If using the DDE frontend '!CC', the following needs to be changed
-
-The 'Include' field should be changed to 'UnixLib:'
-On the popup menu, the 'Default path' should be set to 'UnixLib:', while the
-'libraries' should be set to 'UnixLib:o.UnixLib'.
-
-For !Link, 'UnixLib:o.UnixLib' should be specified as one of the files
-to be linked.
-
-Please note that the math functions defined in complex.h cannot be
-used if UnixLib is compiled with Norcroft C.
 
 -EOF-

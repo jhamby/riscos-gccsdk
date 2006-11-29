@@ -25,7 +25,6 @@
 
 #include <features.h>
 
-#ifndef __UNIXLIB_NO_COMPLEX
 __complex__ float
 __csinf (__complex__ float x)
 {
@@ -126,4 +125,3 @@ __csinf (__complex__ float x)
   return retval;
 }
 weak_alias (__csinf, csinf)
-#endif

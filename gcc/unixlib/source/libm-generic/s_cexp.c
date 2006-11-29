@@ -25,7 +25,6 @@
 
 #include <features.h>
 
-#ifndef __UNIXLIB_NO_COMPLEX
 __complex__ double
 __cexp (__complex__ double x)
 {
@@ -125,5 +124,4 @@ weak_alias (__cexp, cexp)
 #ifdef NO_LONG_DOUBLE
 strong_alias (__cexp, __cexpl)
 weak_alias (__cexp, cexpl)
-#endif
 #endif

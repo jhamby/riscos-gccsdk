@@ -24,7 +24,6 @@
 
 #include <features.h>
 
-#ifndef __UNIXLIB_NO_COMPLEX
 __complex__ float
 __catanhf (__complex__ float x)
 {
@@ -79,4 +78,3 @@ __catanhf (__complex__ float x)
   return res;
 }
 weak_alias (__catanhf, catanhf)
-#endif

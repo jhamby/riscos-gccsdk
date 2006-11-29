@@ -413,7 +413,7 @@ no_dynamic_area
 	; C programs always terminate by calling exit.
 	B	exit
 
-	; Weak symbols.  We need only export these symbols for Norcroft
+	; Weak symbols.  We need only export these symbols for AOF/GCC
 	; compatibility.  For ELF, we don't need to export at all.
 	[ __UNIXLIB_ELF = 0
 	EXPORT	|___program_name|
@@ -605,10 +605,8 @@ handlers
 	IMPORT	|__unixlib_raise_signal|
 	; Allocate 512 bytes more stack
 	; Round up to 4K as stack is only allocated in multiples of 4K
-	EXPORT	|x$stack_overflow|
 	EXPORT	|__rt_stkovf_split_small|
 	NAME	__rt_stkovf_split_small
-|x$stack_overflow|
 |__rt_stkovf_split_small|
 	; This must store the same regs as for __rt_stkovf_split_big
 	STMFD	sp!, {a1, a2, a3, a4, v1, v2, v3, lr}
@@ -618,10 +616,8 @@ handlers
 
 
 	; Allocate stack to below <ip>
-	EXPORT	|x$stack_overflow_1|
 	EXPORT	|__rt_stkovf_split_big|
 	NAME	__rt_stkovf_split_big
-|x$stack_overflow_1|
 |__rt_stkovf_split_big|
 	CMP	ip, sl		; sanity check
 	MOVPL	pc, lr
@@ -894,7 +890,7 @@ __free_stack_chain_l1
 free_stack_chunk
 	; Called on exit from a function that caused stack extension
 	; a3-a4, ip, sl and lr can be corrupted, all others (including sp)
-	; must be preserved. GCC & Norcroft use a2 to return 64bit results.
+	; must be preserved. GCC uses a1 & a2 to return 64bit results.
 	; Stack chunks are freed with one chunk of latency,
 	; so we need to free the previously unused chunk, not the chunk that
 	; has just been finished with. Therefore the chunk just finished

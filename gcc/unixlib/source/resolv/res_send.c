@@ -1,7 +1,6 @@
 /*
  * File taken from glibc 2.2.5.
  * Following changes were made:
- *  - Define'd inline to nothing for Norcroft C compiler.
  *  - Go for #include <sys/poll.h> and the ev*() routines.
  *  - (send_vc) Changed parametertype of getpeername() and recvfrom().
  *  - Renamed __poll() into poll().
@@ -77,10 +76,6 @@
 static const char sccsid[] = "@(#)res_send.c	8.1 (Berkeley) 6/4/93";
 static const char rcsid[] = "$BINDId: res_send.c,v 8.38 2000/03/30 20:16:51 vixie Exp $";
 #endif /* LIBC_SCCS and not lint */
-
-#ifdef __CC_NORCROFT
-# define inline /* */
-#endif
 
 /*
  * Send query to name server and wait for reply.

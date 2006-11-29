@@ -25,7 +25,6 @@
 
 #include <features.h>
 
-#ifndef __UNIXLIB_NO_COMPLEX
 __complex__ double
 __csqrt (__complex__ double x)
 {
@@ -112,5 +111,4 @@ weak_alias (__csqrt, csqrt)
 #ifdef NO_LONG_DOUBLE
 strong_alias (__csqrt, __csqrtl)
 weak_alias (__csqrt, csqrtl)
-#endif
 #endif

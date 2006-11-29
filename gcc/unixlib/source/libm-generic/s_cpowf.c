@@ -24,11 +24,9 @@
 
 #include <features.h>
 
-#ifndef __UNIXLIB_NO_COMPLEX
 __complex__ float
 __cpowf (__complex__ float x, __complex__ float c)
 {
   return __cexpf (c * __clogf (x));
 }
 weak_alias (__cpowf, cpowf)
-#endif

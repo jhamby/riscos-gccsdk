@@ -24,7 +24,6 @@
 
 #include <features.h>
 
-#ifndef __UNIXLIB_NO_COMPLEX
 __complex__ float
 __casinf (__complex__ float x)
 {
@@ -63,4 +62,3 @@ __casinf (__complex__ float x)
   return res;
 }
 weak_alias (__casinf, casinf)
-#endif

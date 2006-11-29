@@ -23,7 +23,6 @@
 
 #include <features.h>
 
-#ifndef __UNIXLIB_NO_COMPLEX
 double
 __carg (__complex__ double x)
 {
@@ -33,5 +32,4 @@ weak_alias (__carg, carg)
 #ifdef NO_LONG_DOUBLE
 strong_alias (__carg, __cargl)
 weak_alias (__carg, cargl)
-#endif
 #endif

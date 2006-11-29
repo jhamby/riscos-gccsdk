@@ -48,12 +48,6 @@
 /* macro.  GCC's builtin math functions also rely on this.  */
 #define __UNIXLIB_ERRNO_THREADED	0
 
-/* The APCS-32 ABI in GCC and Norcroft are not 100% */
-/* the same. */
-
-/* Set to 1 if we want to use the Norcroft ABI */
-#define __UNIXLIB_NORCROFT_BUILD	0
-
 /* Here mainly as a placeholder to reduce the porting requirements */
 /* between AOF and ELF variants of the library.  Throughout */
 /* the C sources, we stick to __ELF__, but we can't explicitly */

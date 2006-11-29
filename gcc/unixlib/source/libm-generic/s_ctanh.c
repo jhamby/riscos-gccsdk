@@ -25,7 +25,6 @@
 
 #include <features.h>
 
-#ifndef __UNIXLIB_NO_COMPLEX
 __complex__ double
 __ctanh (__complex__ double x)
 {
@@ -72,5 +71,4 @@ weak_alias (__ctanh, ctanh)
 #ifdef NO_LONG_DOUBLE
 strong_alias (__ctanh, __ctanhl)
 weak_alias (__ctanh, ctanhl)
-#endif
 #endif

@@ -16,6 +16,9 @@
  * each such group. The final block in each group contains a pointer to the
  * first block in the group.
  *
+ * This file should be compiled without stack checking, as it is not
+ * reentrant.
+ *
  * Warning: __stackalloc and __stackfree must not use more than 256 bytes
  *          of stack space
  ***************************************************************************/
@@ -35,12 +38,6 @@
 #define BLOCK_FREE 0
 #define BLOCK_DATA_SIZE 4096
 #define DUMMY_BLOCK_SIZE 4
-
-/* This file should be compiled without stack checking,
-   as it is not reentrant.  */
-#ifdef __CC_NORCROFT
-#pragma -s1
-#endif
 
 struct block
 {

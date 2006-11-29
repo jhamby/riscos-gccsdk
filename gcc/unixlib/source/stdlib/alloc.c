@@ -1,5 +1,5 @@
 /* Doug Lea's malloc, modified for UnixLib.
-   Copyright (c) 2005 UnixLib Devlopers.  */
+   Copyright (c) 2005-2006 UnixLib Devlopers.  */
 
 /* Original version is public domain.  */
 
@@ -28,13 +28,7 @@
    malloc_stats is commented out to removed stdio dependency, unless DEBUG
    is defined.
 
-
    Changes to reduce compiler warnings, without affecting the functionality.
-
-   RISCOS_CCBUG defined to overcome compiler bugs with Norcroft Cv5 for the
-   MALLOC_COPY and MALLOC_ZERO macros within calloc and realloc.  The bugs
-   are avoided by disabling common subexpression elimination for those
-   functions.
 
 */
 
@@ -43,10 +37,6 @@
 #include <string.h>
 #include <malloc.h>
 #include <pthread.h>
-
-#if !defined(__GNUC__)
-#define RISCOS_CCBUG
-#endif
 
 #define HAVE_MMAP 1
 #define HAVE_MREMAP 1
@@ -3481,10 +3471,6 @@ static void malloc_consolidate(mstate av)
   ------------------------------ realloc ------------------------------
 */
 
-#ifdef RISCOS_CCBUG
-#pragma -z0
-#endif
-
 void *realloc_unlocked (void *state, void * oldmem, size_t bytes)
 {
   mstate av = (mstate) state;
@@ -3702,10 +3688,6 @@ void *realloc_unlocked (void *state, void * oldmem, size_t bytes)
   }
 }
 
-#ifdef RISCOS_CCBUG
-#pragma -z1
-#endif
-
 /*
   ------------------------------ memalign ------------------------------
 */
@@ -3813,10 +3795,6 @@ static void *memalign_unlocked (mstate av, size_t alignment, size_t bytes)
   ------------------------------ calloc ------------------------------
 */
 
-#ifdef RISCOS_CCBUG
-#pragma -z0
-#endif
-
 static void *int_calloc (mstate av, size_t n_elements, size_t elem_size)
 {
   mchunkptr p;
@@ -3876,10 +3854,6 @@ static void *int_calloc (mstate av, size_t n_elements, size_t elem_size)
   }
   return mem;
 }
-
-#ifdef RISCOS_CCBUG
-#pragma -z1
-#endif
 
 /*
   ------------------------------ cfree ------------------------------

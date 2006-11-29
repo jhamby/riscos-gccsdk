@@ -25,7 +25,6 @@
 
 #include <features.h>
 
-#ifndef __UNIXLIB_NO_COMPLEX
 __complex__ float
 __ccoshf (__complex__ float x)
 {
@@ -100,4 +99,3 @@ __ccoshf (__complex__ float x)
   return retval;
 }
 weak_alias (__ccoshf, ccoshf)
-#endif

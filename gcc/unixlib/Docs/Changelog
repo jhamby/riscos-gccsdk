@@ -1,3 +1,19 @@
+Wed Nov 29 20:36:22 CET 2006  John Tytgat  <John.Tytgat@aaug.net>
+
+	* Removed build support for Norcroft and LCC compilers (preprocessor
+	tests on __UNIXLIB_NORCROFT_BUILD, __CC_NORCROFT,
+	__CC_NORCROFT_VERSION, __LCC__).
+	* source/{scl/_memchk.s,sys/_profile.s,sys/_longlong.s,sys/_divtest.s,
+	sys/_smod.s,sys/_umod.s,sys/_sdiv.s,sys/_sdiv10.s,sys/_udiv.s,
+	sys/_udiv10.s}: Removed private Norcroft routines.
+	* source/sys/_alloca.s(__rt_freealloc,__rt_allocauto): Likewise.
+	* source/sys/_syslib.s(x$stack_overflow,x$stack_overflow_1): Likewise.
+	* source/sys/{_udivsi3.s,_modsi3.s,_umodsi3.s,_divsi3.s}: Removed
+	unnecessary duplication of GCC private routines (already available in
+	libgcc.a).
+	* __UNIXLIB_NO_COMPLEX: Removed.
+	* Docs/ReadMe,!Help: Updated that we're only support GCC compiler now.
+
 Tue Nov 28 22:48:49 CET 2006  John Tytgat  <John.Tytgat@aaug.net>
 
 	* source/stdlib/qsort.c, source/unix/unix.c,
@@ -5,7 +21,7 @@ Tue Nov 28 22:48:49 CET 2006  John Tytgat  <John.Tytgat@aaug.net>
 	errno.h},source/gcccompat/galloca.c,source/string/strsignal.c,
 	source/signal/_signal.s, source/sys/{stackalloc.c,errlist.c,exec.c,
 	_jmp.s,_syslib.s}: Remove compile test on __UNIXLIB_FEATURE_PTHREADS.
-	pthread support is standaard now.
+	pthread support is standard now.
 	* source/clib/unixlib/unix.h(struct ul_global): made
 	__pthread_worksemaphore and __pthread_callback_semaphore volatile
 	as they are (can) be modified under interrupts.

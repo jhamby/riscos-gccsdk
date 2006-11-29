@@ -1,8 +1,7 @@
 /*
  * File taken from glibc 2.2.5.
  * Following changes were made:
- *  - Disabled the UINT_FAST32_MAX == UINT_FAST64_MAX for Norcroft as it
- *    didn't like it.
+ *  - None
  */
 
 /* Types for UFC-crypt.
@@ -29,11 +28,8 @@
 typedef uint_fast32_t ufc_long;
 typedef uint64_t long64;
 typedef uint32_t long32;
-#define _UFC_32_
-/*
 #if UINT_FAST32_MAX == UINT_FAST64_MAX
 # define _UFC_64_
 #else
 # define _UFC_32_
 #endif
-*/

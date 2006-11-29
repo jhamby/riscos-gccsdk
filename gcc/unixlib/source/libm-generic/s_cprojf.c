@@ -24,7 +24,6 @@
 
 #include <features.h>
 
-#ifndef __UNIXLIB_NO_COMPLEX
 __complex__ float
 __cprojf (__complex__ float x)
 {
@@ -48,4 +47,3 @@ __cprojf (__complex__ float x)
   return res;
 }
 weak_alias (__cprojf, cprojf)
-#endif

@@ -112,40 +112,6 @@
 #undef  __FAVOR_BSD
 #undef  __KERNEL_STRICT_NAMES
 
-/* This will reduce the number of Norcroft compiler warnings "Undefined macro
-   'xxx' in #if - treated as 0".  */
-#ifdef __CC_NORCROFT
-# ifndef __STDC_VERSION__
-#  define __STDC_VERSION__       199409L
-# endif
-# ifndef _ISOC99_SOURCE
-#  define _ISOC99_SOURCE         1
-# endif
-# ifndef _POSIX_SOURCE
-#  define _POSIX_SOURCE          1
-# endif
-# ifndef _POSIX_C_SOURCE
-#  define _POSIX_C_SOURCE        199506L
-# endif
-# ifndef _XOPEN_SOURCE
-#  define _XOPEN_SOURCE          500
-# endif
-# ifndef _XOPEN_SOURCE_EXTENDED
-#  define _XOPEN_SOURCE_EXTENDED 1
-# endif
-# ifndef _LARGEFILE64_SOURCE
-#  define _LARGEFILE64_SOURCE    1
-# endif
-# ifndef _BSD_SOURCE
-#  define _BSD_SOURCE            1
-# endif
-# ifndef _SVID_SOURCE
-#  define _SVID_SOURCE           1
-# endif
-# ifndef _FILE_OFFSET_BITS
-#  define _FILE_OFFSET_BITS      32
-# endif
-#endif
 
 #ifdef __UNIXLIB_INTERNALS
 # define __GNU_LIBRARY__
@@ -385,15 +351,14 @@ extern void __set_feature_imagefs_is_file (int __value);
 /* NULL if user didn't specify __program_name; non-NULL otherwise and then
    its value equals __program_name.
 
-   These symbols are only required for compatibility with Norcroft CC
-   and AOF/GCC.  */
+   These symbols are only required for compatibility with AOF/GCC.  */
 extern const char * const * const ___program_name;
 extern const char * const * const ___dynamic_da_name;
 #endif
 
 #endif  /* __UNIXLIB_INTERNALS */
 
-/* Note that AOF/GCC and Norcroft CC will ignore the WEAK attribute
+/* Note that AOF/GCC will ignore the WEAK attribute
    here.  ELF/GCC will correctly handle it and do the right thing.  */
 #ifdef __ELF__
 #define __attribute_weak__ __attribute__ ((__weak__))

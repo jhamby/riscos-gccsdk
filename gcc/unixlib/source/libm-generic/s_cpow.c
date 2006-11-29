@@ -24,7 +24,6 @@
 
 #include <features.h>
 
-#ifndef __UNIXLIB_NO_COMPLEX
 __complex__ double
 __cpow (__complex__ double x, __complex__ double c)
 {
@@ -34,5 +33,4 @@ weak_alias (__cpow, cpow)
 #ifdef NO_LONG_DOUBLE
 strong_alias (__cpow, __cpowl)
 weak_alias (__cpow, cpowl)
-#endif
 #endif

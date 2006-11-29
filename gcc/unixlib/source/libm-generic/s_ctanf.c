@@ -25,7 +25,6 @@
 
 #include <features.h>
 
-#ifndef __UNIXLIB_NO_COMPLEX
 __complex__ float
 __ctanf (__complex__ float x)
 {
@@ -69,4 +68,3 @@ __ctanf (__complex__ float x)
   return res;
 }
 weak_alias (__ctanf, ctanf)
-#endif

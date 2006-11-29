@@ -57,10 +57,6 @@
 #undef __memrchr
 #undef memrchr
 
-#if defined (__CC_NORCROFT) || defined (__LCC__)
-# define __memrchr memrchr
-#endif
-
 /* Search no more than N bytes of S for C.  */
 __ptr_t
 __memrchr (s, c_in, n)
