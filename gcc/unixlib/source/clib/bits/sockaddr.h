@@ -1,8 +1,7 @@
 /*
  * File taken from glibc 2.2.5.
  * Following changes were made:
- *  - Added #define test on __UNIXLIB_COMPAT_INET4 (equivalent to
- *    COMPAT_INET4 in Acorn's TCPIPLibs).
+ *  - None.
  */
 
 /* Definition of `struct sockaddr_*' common members.  4.4 BSD version.
@@ -33,24 +32,12 @@
 
 
 /* POSIX.1g specifies this type name for the `sa_family' member.  */
-#if __UNIXLIB_COMPAT_INET4
-typedef unsigned short sa_family_t;
-#else
 typedef unsigned char sa_family_t;
-#endif
 
 /* This macro is used to declare the initial common members
    of the data types used for socket addresses, `struct sockaddr',
    `struct sockaddr_in', `struct sockaddr_un', etc.  */
 
-#if __UNIXLIB_COMPAT_INET4
-#define	__SOCKADDR_COMMON(sa_prefix)	\
-  sa_family_t sa_prefix##family
-
-#define __SOCKADDR_COMMON_SIZE	(sizeof (sa_family_t))
-
-#define _HAVE_SA_LEN	0	/* We don't have the sa_len field.  */
-#else
 #define	__SOCKADDR_COMMON(sa_prefix)	\
   unsigned char sa_prefix##len;		\
   sa_family_t sa_prefix##family
@@ -58,6 +45,5 @@ typedef unsigned char sa_family_t;
 #define __SOCKADDR_COMMON_SIZE	(2 * sizeof (unsigned char))
 
 #define _HAVE_SA_LEN	1	/* We have the sa_len field.  */
-#endif
 
 #endif	/* bits/sockaddr.h */

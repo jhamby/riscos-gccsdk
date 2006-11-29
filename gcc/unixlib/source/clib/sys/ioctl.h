@@ -242,42 +242,20 @@ struct ttysize
 #define SIOCGETSGCNT    _IOWR('r', 16, struct sioc_sg_req) /* get s,g pkt cnt */
 
 #define SIOCSIFADDR      _IOW('i', 12, struct ifreq)    /* set ifnet address */
-#if __UNIXLIB_COMPAT_INET4
-#define SIOCGIFADDR     _IOWR('i', 13, struct ifreq)    /* get ifnet address */
-#define NSIOCGIFADDR    _IOWR('i', 99, struct nifreq)   /* get ifnet address */
-#else
 #define OSIOCGIFADDR    _IOWR('i', 13, struct oifreq)   /* get ifnet address */
 #define SIOCGIFADDR     _IOWR('i', 99, struct ifreq)    /* get ifnet address */
-#endif
 #define SIOCSIFDSTADDR   _IOW('i', 14, struct ifreq)    /* set p-p address */
-#if __UNIXLIB_COMPAT_INET4
-#define SIOCGIFDSTADDR  _IOWR('i', 15, struct ifreq)    /* get p-p address */
-#define NSIOCGIFDSTADDR _IOWR('i', 98, struct nifreq)   /* get p-p address */
-#else
 #define OSIOCGIFDSTADDR _IOWR('i', 15, struct oifreq)   /* get p-p address */
 #define SIOCGIFDSTADDR  _IOWR('i', 98, struct ifreq)    /* get p-p address */
-#endif
 #define SIOCSIFFLAGS     _IOW('i', 16, struct ifreq)    /* set ifnet flags */
 #define SIOCGIFFLAGS    _IOWR('i', 17, struct ifreq)    /* get ifnet flags */
-#if __UNIXLIB_COMPAT_INET4
-#define SIOCGIFBRDADDR  _IOWR('i', 18, struct ifreq)    /* get broadcast addr */
-#define NSIOCGIFBRDADDR _IOWR('i', 97, struct nifreq)   /* get broadcast addr */
-#else
 #define OSIOCGIFBRDADDR _IOWR('i', 18, struct oifreq)   /* get broadcast addr */
 #define SIOCGIFBRDADDR  _IOWR('i', 97, struct ifreq)    /* get broadcast addr */
-#endif
 #define SIOCSIFBRDADDR   _IOW('i', 19, struct ifreq)    /* set broadcast addr */
-#if __UNIXLIB_COMPAT_INET4
-#define SIOCGIFCONF     _IOWR('i', 20, struct ifconf)   /* get ifnet list */
-#define NSIOCGIFCONF    _IOWR('i', 96, struct nifconf)  /* get ifnet list */
-#define SIOCGIFNETMASK  _IOWR('i', 21, struct ifreq)    /* get net addr mask */
-#define NSIOCGIFNETMASK _IOWR('i', 95, struct nifreq)   /* get net addr mask */
-#else
 #define OSIOCGIFCONF    _IOWR('i', 20, struct oifconf)  /* get ifnet list */
 #define SIOCGIFCONF     _IOWR('i', 96, struct ifconf)   /* get ifnet list */
 #define OSIOCGIFNETMASK _IOWR('i', 21, struct oifreq)   /* get net addr mask */
 #define SIOCGIFNETMASK  _IOWR('i', 95, struct ifreq)    /* get net addr mask */
-#endif
 #define SIOCSIFNETMASK   _IOW('i', 22, struct ifreq)    /* set net addr mask */
 #define SIOCGIFMETRIC   _IOWR('i', 23, struct ifreq)    /* get IF metric */
 #define SIOCSIFMETRIC    _IOW('i', 24, struct ifreq)    /* set IF metric */

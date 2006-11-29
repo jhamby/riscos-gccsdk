@@ -8,10 +8,6 @@
 	EXPORT	|_accept|
 	NAME	_accept
 |_accept|
-	[ __UNIXLIB_COMPAT_INET4 > 0
-	NetSWIsimple	XSocket_Accept
-	|
 	NetSWIsimple	XSocket_Accept_1
-	]
 
 	END

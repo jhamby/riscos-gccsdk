@@ -8,10 +8,6 @@
 	EXPORT	|_sendmsg|
 	NAME	_sendmsg
 |_sendmsg|
-	[ __UNIXLIB_COMPAT_INET4 > 0
-	NetSWIsimple	XSocket_Sendmsg
-	|
 	NetSWIsimple	XSocket_Sendmsg_1
-	]
 
 	END

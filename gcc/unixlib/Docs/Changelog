@@ -1,3 +1,11 @@
+Wed Nov 29 22:10:40 CET 2006  John Tytgat  <John.Tytgat@aaug.net>
+
+	* source/clib/{unixlib/buildoptions.h,bits/sockaddr.h,sys/ioctl.h},
+	source/netlib/{_sendmsg.s,_recvmsg.s,_getpeerna.s,_recvfrom.s,
+	_accept.s,_getsockna.s}: Removed Internet 4 support
+	(__UNIXLIB_COMPAT_INET4, which was equivalent to COMPAT_INET4 in
+	Acorn's TCPIPLibs headers).
+
 Wed Nov 29 20:36:22 CET 2006  John Tytgat  <John.Tytgat@aaug.net>
 
 	* Removed build support for Norcroft and LCC compilers (preprocessor

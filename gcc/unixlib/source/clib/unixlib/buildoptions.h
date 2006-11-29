@@ -22,9 +22,6 @@
 /* */
 #define __UNIXLIB_USEFILEPATH		0
 
-/* Set to 1 if we want Internet 4 compatibility. */
-#define __UNIXLIB_COMPAT_INET4		0
-
 /* Set to 1 if DDEUtils' Prefix needs to be set at the beginning of */
 /* each process task. Note this hits bugs in some versions of RISC OS. */
 #define __UNIXLIB_SET_DDEPREFIX	0
