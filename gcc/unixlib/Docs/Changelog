@@ -1,3 +1,10 @@
+Wed Nov 29 22:43:05 CET 2006  John Tytgat  <John.Tytgat@aaug.net>
+
+	* source/clib/unixlib/buildoptions.h,
+	source/incl-local/internal/swiparams.h: Removed
+	__UNIXLIB_USEFILEPATH build support and made FILEPATH default instead
+	of using Run$Path.
+
 Wed Nov 29 22:10:40 CET 2006  John Tytgat  <John.Tytgat@aaug.net>
 
 	* source/clib/{unixlib/buildoptions.h,bits/sockaddr.h,sys/ioctl.h},
