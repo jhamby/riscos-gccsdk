@@ -18,14 +18,18 @@
 |pthread_yield|
 	; Setup an APCS-32 stack frame so this will appear in a backtrace
 	MOV	ip, sp
-	STMFD	sp!, {fp, ip, lr, pc}
+ PICEQ "STMFD	sp!, {v4, fp, ip, lr, pc}"
+ PICEQ "BL	__rt_load_pic"
+ PICNE "STMFD	sp!, {fp, ip, lr, pc}"
 	SUB	fp, ip, #4
 
 	; If the thread system isn't running then yielding is pointless
-	LDR	a2, =|__ul_global|
+	LDR	a2, |.L0|	;=__ul_global
+ PICEQ "LDR	a2, [v4, a2]"
 	LDR	a1, [a2, #GBL_PTH_SYSTEM_RUNNING]
 	CMP	a1, #0
-	LDMEQDB	fp, {fp, sp, pc}
+ PICEQ "LDMEQDB fp, {v4, fp, sp, pc}"
+ PICNE "LDMEQDB	fp, {fp, sp, pc}"
 
 	; Check that a context switch can take place
 	LDR	a1, [a2, #GBL_PTH_WORKSEMAPHORE]
@@ -39,7 +43,8 @@
 	SWI	XOS_EnterOS
 	CHGMODE	a4, SVC_Mode+IFlag
 	; Save regs to callback save area
-	LDR	a1, =|__cbreg|
+	LDR	a1, |.L0|+4	;=__cbreg
+ PICEQ "LDR	a1, [v4, a1]"
 	ADD	a1, a1, #15*4
 	STMDB	a1, {r4-r14}^
 	ADR	a2, __pthread_yield_return	;USR mode, IRQs enabled if in a 26bit mode
@@ -52,10 +57,15 @@
 
 	NAME	__pthread_yield_return
 __pthread_yield_return
-	LDMDB	fp, {fp, sp, pc}
+ PICEQ "LDMDB	fp, {v4, fp, sp, pc}"
+ PICNE "LDMDB	fp, {fp, sp, pc}"
+|.L0|
+	WORD	|__ul_global|
+	WORD	|__cbreg|
 
 failmessage
 	DCB	"pthread_yield called with context switching disabled", 0
 	ALIGN
+	DECLARE_FUNCTION pthread_yield
 
 	END

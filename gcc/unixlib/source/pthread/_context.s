@@ -45,24 +45,31 @@
 ;
 	NAME	__pthread_start_ticker
 |__pthread_start_ticker|
-	STMFD	sp!, {v1-v2, lr}
-	LDR	a2, =|__ul_global|
+ PICEQ "STMFD	sp!, {v1-v2, v4, lr}"
+ PICEQ "BL	__rt_load_pic"
+ PICNE "STMFD	sp!, {v1-v2, lr}"
+	LDR	a2, |.L0|	;=__ul_global
+ PICEQ "LDR	a2, [v4, a2]"
 
 	; Don't start until the thread system has been setup
 	LDR	a1, [a2, #GBL_PTH_SYSTEM_RUNNING]
 	TEQ	a1, #0
-	LDMEQFD	sp!, {v1-v2, pc}
+ PICEQ "LDMEQFD	sp!, {v1-v2, v4, pc}"
+ PICNE "LDMEQFD	sp!, {v1-v2, pc}"
 
 	; Don't start if there's only one thread running
 	LDR	a1, [a2, #GBL_PTH_NUM_RUNNING_THREADS]
 	CMP	a1, #1
-	LDMLEFD	sp!, {v1-v2, pc}
+ PICEQ "LDMLEFD	sp!, {v1-v2, v4, pc}"
+ PICNE "LDMLEFD	sp!, {v1-v2, pc}"
 
 	; Don't start if the ticker is already running
-	LDR	a1, =|ticker_started|
+	LDR	a1, |.L0|+4	;=ticker_started
+ PICEQ "LDR	a1, [v4, a1]"
 	LDR	a1, [a1]
 	TEQ	a1, #0
-	LDMNEFD	sp!, {v1-v2, pc}
+ PICEQ "LDMNEFD	sp!, {v1-v2, v4, pc}"
+ PICNE "LDMNEFD	sp!, {v1-v2, pc}"
 
 	; Are we running as WIMP task ?
 	; If we are then we need a filter switching off our ticker when we're
@@ -72,10 +79,12 @@
 	BEQ	|start_ticker_core|
 
 	; Temporarily disable the filter code as it is not stable.
-	LDMFD	sp!, {v1-v2, pc}
+ PICEQ "LDMFD	sp!, {v1-v2, v4, pc}"
+ PICNE "LDMFD	sp!, {v1-v2, pc}"
 
 	; Install the filter routines (a4 = WIMP taskhandle) :
-	LDR	v2, =|filter_installed|
+	LDR	v2, |.L0|+8	;=filter_installed
+ PICEQ "LDR	v2, [v4, v2]"
 	LDR	a1, [v2]
 	STR	v2, [v2]
 	TEQ	a1, #0
@@ -83,7 +92,10 @@
 
 	ADR	a1, |filter_name|
 	ADR	a2, |stop_call_every|
-	MOV	a3, #0
+	; In the shared library, pass the GOT pointer to the filter
+	; code.
+ PICEQ "MOV	a3, v4"
+ PICNE "MOV	a3, #0"
 	SWI	XFilter_RegisterPreFilter
 	ADRVC	a2, |start_call_every|
 	MVNVC	v1, #0
@@ -92,26 +104,39 @@
 	BVS	|__pthread_fatal_error|
 
 start_ticker_core
+	; start_call_every may be called as a filter routine, in which case
+	; it expects the GOT pointer in r12. Make sure that's the case when
+	; called directly.
+ PICEQ "MOV	r12, v4"
 	BL	|start_call_every|
-	LDMFD	sp!, {v1-v2, pc}
+ PICEQ "LDMFD	sp!, {v1-v2, v4, pc}"
+ PICNE "LDMFD	sp!, {v1-v2, pc}"
+|.L0|
+	WORD	|__ul_global|
+	WORD	|ticker_started|
+	WORD	|filter_installed|
 
 filter_name
 	DCB	"pthread filter", 0
 	ALIGN
-
+	DECLARE_FUNCTION __pthread_start_ticker
 
 	; Start the RISC OS CallEvery ticker
+	; This may be called as a filter, so assume r12 contains the GOT
+	; pointer.
 	NAME	start_call_every
 |start_call_every|
 	STMFD	sp!, {lr}
-	LDR	a4, =|ticker_started|
+	LDR	a4, |.L0|+4	;=ticker_started
+ PICEQ "LDR	a4, [r12, a4]"
 	LDR	a1, [a4]
 	TEQ	a1, #0
 	LDMNEFD	sp!, {pc}
 
 	MOV	a1, #1
 	ADR	a2, |pthread_call_every|
-	MOV	a3, #0
+ PICEQ "MOV	a3, r12"
+ PICNE "MOV	a3, #0"
 	SWI	XOS_CallEvery
 
 	MOVVC	a1, #1
@@ -119,14 +144,17 @@ filter_name
 	LDMVCFD	sp!, {pc}
 	ADD	a1, a1, #4
 	B	|__pthread_fatal_error|
-
+	DECLARE_FUNCTION start_call_every
 
 	; Stop the RISC OS CallEvery ticker
+	; This may be called as a filter, so assume r12 contains the GOT
+	; pointer.
 	NAME	stop_call_every
 |stop_call_every|
 	STMFD	sp!, {lr}
 	; Don't stop it if it isn't enabled yet
-	LDR	a3, =|ticker_started|
+	LDR	a3, |.L0|+4	;=ticker_started
+ PICEQ "LDR	a3, [r12, a3]"
 	LDR	a2, [a3]
 	TEQ	a2, #1
 	LDMNEFD	sp!, {pc}
@@ -134,22 +162,27 @@ filter_name
 	STR	a2, [a3]
 
 	ADR	a1, |pthread_call_every|
-	MOV	a2, #0
+ PICEQ "MOV	a2, r12"
+ PICNE "MOV	a2, #0"
 	SWI	XOS_RemoveTickerEvent
 	LDMFD	sp!, {pc}
-
+	DECLARE_FUNCTION stop_call_every
 
 ;
 ; Stop the ticker running
 ;
 	NAME	__pthread_stop_ticker
 |__pthread_stop_ticker|
-	STMFD	sp!, {v1, v2, lr}
+ PICEQ "STMFD	sp!, {v1, v2, v4, lr}"
+ PICEQ "BL	__rt_load_pic"
+ PICNE "STMFD	sp!, {v1, v2, lr}"
 	; Don't bother if thread system is not running
-	LDR	a2, =|__ul_global|
+	LDR	a2, |.L1|	;=__ul_global
+ PICEQ "LDR	a2, [v4, a2]"
 	LDR	a1, [a2, #GBL_PTH_SYSTEM_RUNNING]
 	TEQ	a1, #0
-	LDMEQFD	sp!, {v1, v2, pc}
+ PICEQ "LDMEQFD	sp!, {v1, v2, v4, pc}"
+ PICNE "LDMEQFD	sp!, {v1, v2, pc}"
 
 	; Need to remove the filters ?
 	LDR	a1, [a2, #GBL_TASKHANDLE]
@@ -158,14 +191,16 @@ filter_name
 
 	; Remove the filter routines (a4 = WIMP taskhandle) :
 	; Ignore any errors.
-	LDR	v2, =|filter_installed|
+	LDR	v2, |.L1|+4	;=filter_installed
+ PICEQ "LDR	v2, [v4, v2]"
 	LDR	a1, [v2]
 	TEQ	a1, #0
 	BEQ	|stop_ticker_core|
 
 	ADR	a1, |filter_name|
 	ADR	a2, |stop_call_every|
-	MOV	a3, #0
+ PICEQ "MOV	a3, v4"
+ PICNE "MOV	a3, #0"
 	SWI	XFilter_DeRegisterPreFilter
 	ADR	a1, |filter_name|	; a1 can be corrupted, so re-init
 	ADR	a2, |start_call_every|
@@ -174,13 +209,22 @@ filter_name
 	STR	a3, [v2]
 
 stop_ticker_core
+	; stop_call_every may be called as a filter routine, in which case
+	; it expects the GOT pointer in r12. Make sure that's the case when
+	; called directly.
+ PICEQ "MOV	r12, v4"
 	BL	|stop_call_every|
-	LDMFD	sp!, {v1, v2, pc}
-
+ PICEQ "LDMFD	sp!, {v1, v2, v4, pc}"
+ PICNE "LDMFD	sp!, {v1, v2, pc}"
+|.L1|
+	WORD	|__ul_global|
+	WORD	|filter_installed|
+	DECLARE_FUNCTION __pthread_stop_ticker
 
 ; The ticker calls this every clock tick, note that it is every *two*
 ; centiseconds.
 ; Called in SVC mode with IRQs disabled, all registers must be preserved.
+; In the shared library, r12 contains the GOT pointer of UnixLib.
 	NAME	pthread_call_every
 |pthread_call_every|
 	STMFD	sp!, {a1-a4, lr}
@@ -197,7 +241,8 @@ stop_ticker_core
 	MOV	a4, #0
 	SWI	XOS_ChangeEnvironment
 
-	LDR	a4, =|__ul_global|
+	LDR	a4, |.L1|	;=__ul_global
+ PICEQ "LDR	a4, [r12, a4]"
 	LDMVSFD	sp!, {a1-a4, pc}
 
 	; If it is not a SUL upcall handler, don't set callback
@@ -215,16 +260,20 @@ stop_ticker_core
 	TEQEQ	a1, #0
 	SWIEQ	XOS_SetCallBack
 	LDMFD	sp!, {a1-a4, pc}
+	DECLARE_FUNCTION pthread_call_every
 
 ; This is called from _signal.s::__h_cback and pthread_yield.
 ; Entered in SVC or IRQ mode with IRQs disabled.
 
 ; The operating system will eventually be returning to USR mode.
+; In the shared library, we assume that the caller has passed the GOT
+; pointer in v4.
 	EXPORT	|__pthread_callback|
 
 	NAME	__pthread_callback
 |__pthread_callback|
-	LDR	a3, =|__ul_global|
+	LDR	a3, |.L2|	;=__ul_global
+ PICEQ "LDR	a3, [v4, a3]"
 	; If we are in a critical region, do not switch threads and
 	; exit quicky.
 	LDR	a1, [a3, #GBL_PTH_WORKSEMAPHORE]
@@ -248,16 +297,20 @@ stop_ticker_core
 	BL	|__setup_signalhandler_stack|
 
 	; Save regs to thread's save area
-	LDR	a1, =|__pthread_running_thread|
+	LDR	a1, |.L2|+4	;=__pthread_running_thread
+ PICEQ "LDR	a1, [v4, a1]"
 	LDR	a1, [a1]
 	LDR	a1, [a1, #__PTHREAD_CONTEXT_OFFSET]	; __pthread_running_thread->saved_context
 
 	; Copy integer regs
-	LDR	a2, =|__cbreg|
+	LDR	a2, |.L2|+8	;=__cbreg
+ PICEQ "MOV	ip, v4"		; Preserve GOT pointer
+ PICEQ "LDR	a2, [v4, a2]"
 	LDMIA	a2!, {a3, a4, v1, v2, v3, v4, v5, v6}
 	STMIA	a1!, {a3, a4, v1, v2, v3, v4, v5, v6}
 	LDMIA	a2!, {a3, a4, v1, v2, v3, v4, v5, v6}
 	STMIA	a1!, {a3, a4, v1, v2, v3, v4, v5, v6}
+ PICEQ "MOV	v4, ip"		; Restore GOT pointer
 	; Copy SPSR
 	LDR	a3, [a2]
 	STR	a3, [a1], #4
@@ -280,7 +333,8 @@ stop_ticker_core
 	BL	|__pthread_context_switch|
 
 	; Now reload the registers from the new thread's save area
-	LDR	a1, =|__pthread_running_thread|
+	LDR	a1, |.L2|+4	;=__pthread_running_thread
+ PICEQ "LDR	a1, [v4, a1]"
 	LDR	a1, [a1]
 	LDR	a2, [a1, #__PTHREAD_CONTEXT_OFFSET]	; __pthread_running_thread->saved_context
 
@@ -296,7 +350,8 @@ stop_ticker_core
 
 	CHGMODE	a2, SVC_Mode+IFlag	; Force SVC mode, IRQs off
 
-	LDR	a2, =|__ul_global|
+	LDR	a2, |.L2|	;=__ul_global
+ PICEQ "LDR	a2, [v4, a2]"
 
 	; Indicate that this context switch was successful
 	MOV	a1, #0
@@ -312,7 +367,8 @@ stop_ticker_core
 	STR	a1, [a2, #GBL_EXECUTING_SIGNALHANDLER]
 
 	; Point to the register save area for the new thread.
-	LDR	r14, =|__pthread_running_thread|
+	LDR	r14, |.L2|+4	;=__pthread_running_thread
+ PICEQ "LDR	r14, [v4, r14]"
 	LDR	r14, [r14]
 	LDR	r14, [r14, #__PTHREAD_CONTEXT_OFFSET]	; __pthread_running_thread->saved_context
 
@@ -339,7 +395,8 @@ stop_ticker_core
 
 	; Exiting from the CallBack handler requires us to reload all
 	; registers from the register save area.
-	LDR	r14, =|__cbreg|
+	LDR	r14, |.L2|+8		;=__cbreg
+ PICEQ "LDR	r14, [v4, r14]"
 	LDR	a1, [r14, #16*4]	; Get user PSR
 	MSR	SPSR_cxsf, a1		; Put it into SPSR_SVC/IRQ (NOP on ARM2/3, shouldn't have any effect in 26bit mode)
 	LDMIA	r14, {r0-r14}^		; Load USR mode regs
@@ -347,6 +404,11 @@ stop_ticker_core
 
 	LDR	r14, [r14, #15*4]	; Load the old PC value
 	MOVS	pc, lr			; Return (Valid for 26 and 32bit modes)
+|.L2|
+	WORD	|__ul_global|
+	WORD	|__pthread_running_thread|
+	WORD	|__cbreg|
+	DECLARE_FUNCTION __pthread_callback
 
 ; entry:
 ;   R0 = save area
@@ -360,6 +422,7 @@ stop_ticker_core
 	STR	a1, [a2], #12
 	]
 	MOV	pc, lr
+	DECLARE_FUNCTION __pthread_init_save_area
 
 
 	AREA	|C$data|, DATA
@@ -367,9 +430,11 @@ stop_ticker_core
 	; Have we registered the CallEvery ticker ?
 |ticker_started|
 	DCD	0
+	DECLARE_OBJECT ticker_started
 
 	; Have we installed Filter ?
 |filter_installed|
 	DCD	0
+	DECLARE_OBJECT filter_installed
 
 	END

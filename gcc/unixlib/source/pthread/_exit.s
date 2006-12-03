@@ -11,20 +11,26 @@
 
 	EXPORT	|__pthread_exit|
 
+	; For the shared library, we assume that __pthread_exit is only ever
+	; called by pthread_exit() and that v4 already contains the GOT pointer.
 	NAME	__pthread_exit
 |__pthread_exit|
 	STMFD	sp!, {lr}
-	LDR	a1, funcs + 0
+	ADR	a2, funcs
+	LDR	a1, [a2, #0]	;funcs + 0
+ PICEQ "LDR	a1, [v4, a1]"
 	TEQ	a1, #0
 	MOVNE	lr, pc
 	MOVNE	pc, a1
 
-	LDR	a1, funcs + 4
+	LDR	a1, [a2, #4]	;funcs + 4
+ PICEQ "LDR	a1, [v4, a1]"
 	TEQ	a1, #0
 	MOVNE	lr, pc
 	MOVNE	pc, a1
 
-	LDR	a1, funcs + 8
+	LDR	a1, [a2, #8]	;funcs + 8
+ PICEQ "LDR	a1, [v4, a1]"
 	TEQ	a1, #0
 	MOVNE	lr, pc
 	MOVNE	pc, a1
@@ -32,8 +38,9 @@
 	LDMFD	sp!, {pc}
 
 |funcs|
-	DCD	|__alloca_thread_free_all|
-	DCD	|___arm_alloca_thread_free_all|
-	DCD	|__gcc_alloca_thread_free_all|
+	WORD	|__alloca_thread_free_all|
+	WORD	|___arm_alloca_thread_free_all|
+	WORD	|__gcc_alloca_thread_free_all|
+	DECLARE_FUNCTION __pthread_exit
 
 	END
