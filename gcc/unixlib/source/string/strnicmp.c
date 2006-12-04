@@ -17,8 +17,8 @@ strnicmp (const char *s1, const char *s2, size_t n)
   do
     {
       i = *s1++, j = *s2++;
-      i = toupper (i);
-      j = toupper (j);
+      i = tolower (i);
+      j = tolower (j);
     }
   while (i && i == j && --n);
 

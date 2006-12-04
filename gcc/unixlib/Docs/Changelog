@@ -1,3 +1,9 @@
+Mon Dec 04 01:59:39 2006  John-Mark Bell  <jmb202@ecs.soton.ac.uk>
+
+	* source/string/strnicmp.c: Compare lowercased versions of strings
+	rather than uppercase. This matches the manpage (and what stricmp
+	does).
+
 Sun Dec 03 16:36:08 2006  Lee Noar  <leenoar@ntlworld.com>
 
 	* source/pthread/_context.s: Add PIC instructions and declare
