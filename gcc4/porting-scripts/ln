@@ -1,0 +1,11 @@
+#!/bin/bash
+
+# Because we disable 'rm' during package creation, an 'rm' done just before
+# 'ln' gives troubles at 'ln' time.  So we take sure source of 'ln' is always
+# removed.
+
+if [ -z "$RO_PKG" ] ; then
+  /bin/ln $@
+else
+  /bin/ln -f $@
+fi

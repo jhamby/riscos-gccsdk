@@ -1,0 +1,36 @@
+#!/bin/bash
+# Written by John Tytgat <John.Tytgat@aaug.net>
+# Copyright (c) 2006 GCCSDK Developers
+#
+# Makes links to GCCSDK 3.4.6 cross-compiler binaries.
+# This is a temporary script which will be removed as soon as GCCSDK 4.x
+# is selfhosting and no longer need GCCSDK 3.4.6 to build any of the
+# autobuilder projects.
+
+set -e
+
+pushd `dirname $0` > /dev/null
+GCCSDK_ROOT=`pwd`
+popd > /dev/null
+source $GCCSDK_ROOT/setup-gccsdk-params
+
+if [ -z "$GCCSDK_INSTALL_CROSSBIN" ] ; then
+  echo \$GCCSDKk_INSTALL_CROSSBIN is not defined
+  exit 1
+fi
+
+cd $GCCSDK_INSTALL_CROSSBIN
+# Remove all links:
+find . -maxdepth 1 -type l | xargs rm -f
+# Make links:
+for f in `ls arm-riscos-aof-*` ; do
+  case "$f" in
+    "arm-riscos-aof-as" | "arm-riscos-aof-ld")
+       # Don't link as & ld to our cross-compiler version as otherwise
+       # using the host compiler, as & ld will be wrongly picked up.
+       ;;
+    *)
+       ln -sf $f `echo $f | sed s/arm-riscos-aof-//`
+       ;;
+  esac
+done

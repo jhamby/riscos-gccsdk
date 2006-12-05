@@ -167,7 +167,50 @@ and can be started using:
   $ cd $GCCSDK_ROOT/arm-unknown-riscos/gcc
   $ make check
 
-5. Credits
+More information on running GCC testsuite can be found at
+http://gcc.gnu.org/install/test.html.
+
+5. Porting tools
+~~~~~~~~~~~~~~~~
+
+The files in the subdirectory 'porting-scripts' can help you to easily use the
+cross-compiler for porting of existing programs.  More information can be found
+in the 'PortingTools.html' file how this works.
+
+To install those scripts:
+
+  1. Define GCCSDK_INSTALL_ENV as the directory where those porting scripts can
+     be installed.  E.g.:
+
+       $ export GCCSDK_INSTALL_ENV=/home/riscos/env
+
+  2. GCCSDK_INSTALL_CROSSBIN still needs to be defined where the cross-compiler
+     has been instaled (see above).
+
+  3. Run 'install-env':
+
+       $ ./install-env
+
+Note that the GCCSDK Autobuilder framework will use these porting-scripts in
+order to do its job (cfr http://www.riscos.info/index.php/Using_GCCSDK).
+
+Some GCCSDK Autobuilder projects still have AOF based assembler and currently
+the best way to handle these (and remain GCCSDK 3.4.6 compatible until GCCSDK
+4.x is completely selfhosting) is to temporary use GCCSDK 3.4.6 and instructing
+its assembler to write ELF output instead of AOF.  This requires:
+
+  1. Building GCCSDK 3.4.6 in gccsdk/gcc cross-compiler ('make build-cross')
+     using the same GCCSDK_INSTALL_CROSSBIN as above.
+  2. Rename the GCCSDK 3.4.6 binaries using 'move-3-4-6-away' (actually they
+     get prefixed with 'arm-riscos-aof-'.
+  3. AOF assembler based project need to use in their Makefile:
+
+       AS = $(GCCSDK_INSTALL_CROSSBIN)/arm-riscos-aof-gcc
+       ASFLAGS = -Wa,-elf,-ILibraries,-I$(@D) -c
+
+     It is advised to do this only when AB_ELFBUILD is defined as "yes".
+
+6. Credits
 ~~~~~~~~~~
 
 The initial static ELF RISC OS work for GCC 4.1 was done by Nick Burrett (Jun

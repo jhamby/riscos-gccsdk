@@ -24,7 +24,7 @@ cd $GCCSDK_BUILDDIR
 #       http://gcc.gnu.org/bugzilla/show_bug.cgi?id=25035 to track its status.
 $GCCSDK_SRCDIR/configure --prefix=$PREFIX --enable-threads=posix \
 	--target=$TARGET --enable-sjlj-exceptions=no \
-	--disable-c-mbchar --enable-languages=c \
+	--disable-c-mbchar --enable-languages=c,c++ \
 	--enable-checking=no --disable-libstdcxx-pch \
 	--enable-c99 --enable-cmath \
 	--without-pic --enable-shared=libunixlib --without-x --enable-libgcj \

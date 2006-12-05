@@ -1,0 +1,32 @@
+#!/bin/bash
+# Written by John Tytgat <John.Tytgat@aaug.net>
+# Copyright (c) 2006 GCCSDK Developers
+
+set -e
+
+pushd `dirname $0` > /dev/null
+GCCSDK_ROOT=`pwd`
+popd > /dev/null
+source $GCCSDK_ROOT/setup-gccsdk-params
+
+if [ -z "$GCCSDK_INSTALL_ENV" ] ; then
+  echo \$GCCSDK_INSTALL_ENV is not defined
+  exit 1
+fi
+if [ -z "$GCCSDK_INSTALL_CROSSBIN" ] ; then
+  echo \$GCCSDK_INSTALL_CROSSBIN is not defined
+  exit 1
+fi
+
+if [ ! -d $GCCSDK_INSTALL_ENV ] ; then
+  mkdir -p $GCCSDK_INSTALL_ENV
+fi
+
+for f in `ls $GCCSDK_ROOT/porting-scripts` ; do
+  sed -e s:GCCSDK_ENV:$GCCSDK_INSTALL_ENV:g -e s:GCCSDK_BIN:$GCCSDK_INSTALL_CROSSBIN:g < $GCCSDK_ROOT/porting-scripts/$f > $GCCSDK_INSTALL_ENV/$f
+  test -x $GCCSDK_ROOT/porting-scripts/$f && chmod 755 $GCCSDK_INSTALL_ENV/$f
+done
+
+# Create an empty libc.a (needed to fool configure tests)
+$GCCSDK_INSTALL_CROSSBIN/arm-unknown-riscos-ar mv $GCCSDK_INSTALL_CROSSBIN/../arm-unknown-riscos/lib/libc.a
+$GCCSDK_INSTALL_CROSSBIN/arm-unknown-riscos-ar mv $GCCSDK_INSTALL_CROSSBIN/../arm-unknown-riscos/lib/soft/libc.a

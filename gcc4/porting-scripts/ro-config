@@ -1,0 +1,551 @@
+#!/bin/bash
+
+if [ "$RO_DIST" == "YES" ] ; then
+  DISTCC=$(which distcc)
+else
+  DISTCC=""
+fi
+
+RO_CPARAMS=
+RO_RECURSE=no
+
+# Check Parameters for recurse option
+for param in $@ ; do
+  if [ "$param" == "--ro-recurse" ] ; then
+    RO_RECURSE=yes
+  else
+    RO_CPARAMS="$RO_CPARAMS $param"
+  fi
+done
+
+exeext=e1f
+
+# Add onto exeext with ,e1f extension 
+adde1f() {
+  if grep -q "exeext=$" $e1fPATH ; then
+    echo RISC OS: Adding filetype for exeext for $e1fPATH
+    tmpconfigure=/tmp/new-configure-$$-$RANDOM
+    sed s#exeext=\$#"exeext=,e1f;"# < $e1fPATH > $tmpconfigure
+    mv $tmpconfigure $e1fPATH
+    chmod +x $e1fPATH
+  fi
+
+  # Fix modern autoconf badness with ,e1f
+  if grep -q "conftest.exe a.out" $e1fPATH ; then
+    echo RISC OS: Adding extra filetype checks for $e1fPATH
+    tmpconfigure=/tmp/new-configure-$$-$RANDOM
+    sed -e s#"conftest.exe a.out"#"conftest.exe *,e1f !RunImage a.out"# \
+        -e s#"[ab].out )"#"[ab].out | *,e1f )"# \
+       < $e1fPATH > $tmpconfigure
+    mv $tmpconfigure $e1fPATH
+    chmod +x $e1fPATH
+  fi
+
+  # Fix some tests that assume no file extension for binaries
+  if grep -q -- "-s conftest;" $e1fPATH ; then
+    echo RISC OS: Adding filetype for binary tests for $e1fPATH
+    tmpconfigure=/tmp/new-configure-$$-$RANDOM
+    sed s#-s\ conftest\;#"-s conftest\$\{ac_exeext\}\;"# < $e1fPATH > $tmpconfigure
+    mv $tmpconfigure $e1fPATH
+    chmod +x $e1fPATH
+  fi
+
+  # Add !RunImage,$exeext to the list of possible default compiler output filenames.
+  if grep -q -- "ac_outfiles=\"a_out.exe" $e1fPATH ; then
+    echo RISC OS: Adding \!RunImage,$exeext to list of possible default compiler output filenames for $e1fPATH
+    tmpconfigure=/tmp/new-configure-$$-$RANDOM
+    sed s#"ac_outfiles=\"a_out.exe"#"ac_outfiles=\"\!RunImage,$exeext a_out.exe"# < $e1fPATH > $tmpconfigure
+    mv $tmpconfigure $e1fPATH
+    chmod +x $e1fPATH
+  fi
+
+  # Doesn't strictly belong here, but it fits
+  if grep -q "sys_lib_dlsearch_path_spec=" $e1fPATH ; then
+    echo RISC OS: Setting libtool library paths for $e1fPATH
+    tmpconfigure=/tmp/new-configure-$$-$RANDOM
+    sed -e s#"sys_lib_dlsearch_path_spec=".*\$#"sys_lib_dlsearch_path_spec=GCCSDK_ENV/lib"# \
+        -e s#"sys_lib_search_path_spec=".*\$#"sys_lib_search_path_spec=GCCSDK_ENV/lib"# \
+         < $e1fPATH > $tmpconfigure
+    mv $tmpconfigure $e1fPATH
+    chmod +x $e1fPATH
+  fi
+
+  if grep -q -- "-lSDL_mixer.*\$L" $e1fPATH; then
+    echo RISC OS: Adding vorbis library
+    tmpconfigure=/tmp/new-configure-$$-$RANDOM
+    sed -e s#"-lSDL_mixer.*\$L"#"-lSDL_mixer -lvorbisfile \$L"# \
+         < $e1fPATH > $tmpconfigure
+    mv $tmpnewconfigure $e1fPATH
+    chmod +x $e1fPATH
+  fi  
+}
+
+
+
+# If the path for the configure script wasn't set, then use .
+if [ -z "$RO_CPATH" ] ; then
+  RO_CPATH=.
+fi
+
+# Also check .. if it doesn't exist.  This is useful for some setups
+#  (e.g. bash)
+if ! [ -e $RO_CPATH/configure ] ; then
+  if [ -e ../configure ] ; then
+    RO_CPATH=..
+  else
+    echo "No configure script found" 1>&2
+    exit 1
+  fi
+fi
+
+
+# Massage the configure scripts
+if [ "$RO_RECURSE" == "yes" ] ; then
+  # Search for more configure files
+  RO_CFILES=$(find $RO_CPATH -type f -name configure)
+
+  for e1fPATH in $RO_CFILES ; do
+    adde1f
+  done
+else
+  # Otherwise, just the single one at the top
+  e1fPATH=$RO_CPATH/configure
+  adde1f
+fi
+
+
+# Prevent configure being re-run by make in some circumstances (e.g.
+# Debian patches make changes in configure.in which normally results in
+# recreating aclocal.m4, config.h.in, Makefile.in, etc).  For all clearness,
+# we ignore such patches by doing the following:
+for touched in \
+  aclocal.m4 config.h.in Makefile.in stamp-h.in config.guess config.sub configure 
+do
+  touch -c $RO_CPATH/$touched
+done
+
+
+# Record configure options so switches can be added if needed
+tmpoutconfigure=/tmp/out-configure-$$-$RANDOM
+$RO_CPATH/configure --help > $tmpoutconfigure
+
+# Set target type
+if grep -q -- --target= $RO_CPATH/configure; then
+ TARGET="--target=arm-unknown-riscos"
+else
+ TARGET=
+fi
+
+if grep -q -- --build= $RO_CPATH/configure; then
+ BUILD="--build=i686-linux"
+else
+ BUILD=
+fi
+
+
+if grep -q -- --host= $RO_CPATH/configure; then
+ HOST="--host=arm-unknown-riscos"
+else
+ HOST=
+fi
+
+
+# Well, this should ideally be set.  But some things (e.g. ncurses) get
+# confused and think we're no longer cross compiling.  OTOH, the TIFF
+# library needs it set, so we do so manually for its configure switches
+TARGET=
+
+
+# Set Prefix
+if echo $@ | grep -q -- -prefix; then
+ :
+else
+ if grep -q -- --prefix $tmpoutconfigure; then
+  PREFIX="--prefix=GCCSDK_ENV"
+ else
+  if grep -q -- -prefix $tmpoutconfigure; then
+   PREFIX="--prefix=GCCSDK_ENV"
+  else
+   PREFIX=
+  fi 
+ fi
+fi 
+
+# Set WITHLIBS
+#if grep -q -- --with-libs $tmpoutconfigure; then
+# WITHLIBS="--with-libs=GCCSDK_ENV"
+#else
+ WITHLIBS= 
+#fi
+
+# Add X paths if needed
+if grep -q -- -x-includes $RO_CPATH/configure; then
+ echo RISC OS: Adding X Paths
+ X="--x-libraries=GCCSDK_ENV/lib --x-includes=GCCSDK_ENV/include"
+else
+ X=
+fi
+
+
+# Add OpenSSL
+if grep -q -- --with-openssl $RO_CPATH/configure; then
+ echo RISC OS: Adding SSL Path
+ SSL="--with-openssl=GCCSDK_ENV"
+else
+ SSL=
+fi
+
+
+# Disable NLS unless otherwise specified
+ NLS=
+if echo $@ | grep -q -- -nls; then
+ :
+else
+ if grep -q -- --disable-nls $RO_CPATH/configure; then
+  echo RISC OS: Disable NLS
+  NLS="--disable-nls"
+ fi
+fi
+
+
+# Set Static and Dynamic options
+if grep -q -- --enable-shared $tmpoutconfigure; then
+ echo RISC OS: Disabling shared libraries
+ SHARED=--enable-shared=no
+else
+ if grep -q -- --disable-shared $tmpoutconfigure; then
+   echo RISC OS: Disabling shared libraries
+   SHARED=--disable-shared
+ else
+   SHARED=
+ fi
+fi
+
+if grep -q enable-static $tmpoutconfigure; then
+ echo RISC OS: Enabling static libraries
+ STATIC=--enable-static=yes
+else
+ if grep -q -- " -static" $tmpoutconfigure; then
+  STATIC=-static
+ else
+  STATIC=
+ fi
+fi
+
+
+# Glib location
+if grep -q with-glib-prefix $tmpoutconfigure; then
+ echo RISC OS: Setting Glib path
+ GLIB=--with-glib-prefix=GCCSDK_ENV
+else
+ GLIB=
+fi
+
+# GTK location
+if grep -q with-gtk-prefix $tmpoutconfigure; then
+ echo RISC OS: Setting GTK path
+ GTK=--with-gtk-prefix=GCCSDK_ENV
+else
+ GTK=
+fi
+
+
+# TCL
+if grep -q with-tclconfig $tmpoutconfigure; then
+ echo RISC OS: Setting TCL path
+ TCLTK="--with-tclconfig=GCCSDK_ENV/lib/tcl8.4"
+else
+ TCLTK=
+ fi
+
+# TK
+if grep -q with-tkconfig $tmpoutconfigure; then
+ echo RISC OS: Setting TK path
+ TCLTK="$TCLTK --with-tkconfig=GCCSDK_ENV/lib/tk8.4"
+fi
+
+
+# Threading
+# We probably want this on in future. 
+#if grep -q -- "--enable-thread" $tmpoutconfigure ; then
+# echo RISC OS: Disabling threads
+# THREADS=--disable-threads
+#else
+# THREADS=
+#fi
+
+
+# Native compilers
+if grep -q -- "--with-build-cc" $tmpoutconfigure ; then
+ echo RISC OS: Setting native compiler
+ NATIVE="--with-build-cc=$(which cc)"
+else
+ NATIVE=
+fi
+
+
+# Define architecture
+if grep -q -- "--with-arch" $tmpoutconfigure ; then
+ echo RISC OS: Setting architecture
+ # FIXME: right value?
+ ARCHITECTURE="--with-arch=arm-riscos"
+else
+ ARCHITECTURE=
+fi
+
+
+# Remove configure options
+rm $tmpoutconfigure
+
+
+# Set tool chain variables picked up by configure
+export CC="$DISTCC GCCSDK_BIN/arm-unknown-riscos-gcc"
+export CPPFLAGS="-isystem GCCSDK_ENV/include"
+export LDFLAGS="-LGCCSDK_ENV/lib $AB_LDFLAGS"
+export CXX="$DISTCC GCCSDK_BIN/arm-unknown-riscos-g++"
+
+export CC_FOR_BUILD=/usr/bin/cc
+
+export config_BUILD_CC=/usr/bin/cc
+export config_TARGET_CC="$DISTCC GCCSDK_BIN/arm-unknown-riscos-gcc"
+
+export AR=GCCSDK_BIN/arm-unknown-riscos-ar
+export NM=GCCSDK_BIN/arm-unknown-riscos-nm
+export RANLIB=GCCSDK_BIN/arm-unknown-riscos-ranlib
+export INSTALL=GCCSDK_ENV/ro-install
+export STRIP=GCCSDK_BIN/arm-unknown-riscos-strip
+# Used by Mozilla
+export CROSS_COMPILE=1
+export HOST_RANLIB=/usr/bin/ranlib
+export HOST_AR=/usr/bin/ar
+export HOST_CC=/usr/bin/cc
+export HOST_CXX=/usr/bin/c++
+
+# Set autoconf variables to avoid configure scripts complaining about running
+# programs during cross compile
+
+export ac_cv_prog_system=riscos
+
+export ac_cv_gnu_library_version=2.3.2
+
+export ac_cv_sizeof_char=1
+export ac_cv_sizeof_unsigned_char=1
+export ac_cv_sizeof_short=2
+export ac_cv_sizeof_short_int=2
+export ac_cv_sizeof_unsigned_short_int=2
+export ac_cv_sizeof_int=4
+export ac_cv_sizeof_unsigned_int=4
+export ac_cv_sizeof_unsigned_long_int=4
+export ac_cv_sizeof_long=4
+export ac_cv_sizeof_long_int=4
+export ac_cv_sizeof_long_long=8
+export ac_cv_sizeof_long_long_int=8
+export ac_cv_sizeof_unsigned_long_long=8
+export ac_cv_sizeof_void_p=4
+export ac_cv_sizeof_char_p=4
+export ac_cv_sizeof_unsigned_char_p=4
+export ac_cv_sizeof_off_t=4
+export ac_cv_sizeof_pid_t=4
+export ac_cv_sizeof_size_t=4
+export ac_cv_sizeof_ssize_t=4
+
+export ac_cv_type_long_long=yes
+export ac_cv_type_unsigned_long_long=yes
+
+export ac_cv_have_int64_t=yes
+export ac_cv_have_accrights_in_msghdr=no
+export ac_cv_have_control_in_msghdr=no
+export ac_cv_have_uname_domainname_field=no
+export ac_cv_have_uname_us_domainname_field=no
+
+export ac_exeext=$exeext
+export ac_cv_exeext=$exeext
+
+export ac_cv_file___dev_ptmx_=no
+export ac_cv_file___dev_ptc_=no
+export ac_cv_file___etc_default_login_=no
+export ac_cv_file___dev_urandom_=yes
+export ac_cv_file__etc_environment=no
+export ac_cv_file__etc_TIMEZONE=no
+
+export ac_cv_need_trio=no
+
+export ac_cv_prog_cc_works=yes
+export ac_cv_prog_cc_cross=yes
+export ac_cv_prog_cc_g=no
+
+export lt_cv_prog_cc_can_build_shared=no
+export lt_cv_prog_cc_pic_works=no
+
+export ac_cv_func_atexit=yes
+export ac_cv_func_bcopy=yes
+export ac_cv_func_bsd_getpgrp=yes
+export ac_cv_func_bsd_setpgrp=yes
+export ac_cv_func_dtoa=yes
+export ac_cv_func_dtoa_r=yes
+export ac_cv_func_ecvt=no
+export ac_cv_func_fcvt=no
+export ac_cv_func_fork=yes
+export ac_cv_func_fork_works=yes
+export ac_cv_func_gcvt=no
+export ac_cv_func_getloadavg=no
+export ac_cv_func_getpgrp_void=yes
+export ac_cv_func_getpgrp_void=yes
+export ac_cv_func_getpwuid_r=yes
+export ac_cv_func_gnu_get_libc_version=no
+export ac_cv_func_log=yes
+export ac_cv_func_malloc_works=yes
+export ac_cv_func_memchr=yes
+export ac_cv_func_memcmp_clean=yes
+export ac_cv_func_memcpy=yes
+export ac_cv_func_memset=yes
+export ac_cv_func_memmove=yes
+export ac_cv_func_mlock=no
+export ac_cv_func_mlockall=no
+export ac_cv_func_nl_langinfo=no
+export ac_cv_func_posix_getpwuid_r=no
+export ac_cv_func_realloc_works=yes
+export ac_cv_func_setenv=yes
+export ac_cv_func_setpgrp_void=yes
+export ac_cv_func_setvbuf_reversed=no
+export ac_cv_func_snprintf=yes
+export ac_cv_func_strcasecmp=yes
+export ac_cv_func_strdup=yes
+export ac_cv_func_strerror=yes
+export ac_cv_func_strerror_r=yes
+export ac_cv_func_strsignal=yes
+export ac_cv_func_strstr=yes
+export ac_cv_func_strtod=yes
+export ac_cv_func_strtoul=yes
+export ac_cv_func_sys_siglist=yes
+export ac_cv_have_decl_sys_siglist=yes
+export ac_cv_func_realloc_0_nonnull=yes
+export ac_cv_func_malloc_0_nonnull=yes
+export ac_cv_func_unsetenv=yes
+export ac_cv_func_vprintf=yes
+export ac_cv_func_vfork=yes
+export ac_cv_func_vfork_works=yes
+
+export ac_cv_no_user_malloc=no
+
+export ac_cv_c_char_unsigned=yes
+export ac_cv_c_bitfields_htol=no
+export ac_cv_c_const=yes
+
+export ac_cv_conv_longlong_to_float=yes
+
+export ac_cv_dev_minor_bits=0
+export ac_cv_dev_minor_noncontig=no
+
+export ac_cv_type_prototypes=yes
+
+export ac_cv_sctp=no
+
+export bash_cv_have_mbstate_t=no
+export bash_cv_getenv_redef=no
+export bash_cv_getcwd_malloc=yes
+
+export kde_cv_shortsetgroups=no
+export kde_cv_prog_uic_nounload=yes
+export kde_cv_defines_imake=""
+
+export glib_cv_hasinline=yes
+export glib_cv_has__inline=yes
+export glib_cv_has__inline__=yes
+export glib_cv_sane_realloc=yes
+export glib_cv_va_copy=""
+export glib_cv___va_copy=""
+export glib_cv_va_val_copy=""
+export glib_cv_sizeof_gmutex=24
+export glib_cv_stack_grows=yes
+
+export ac_cv_alignof_CORBA_char=1
+export ac_cv_alignof_CORBA_boolean=1
+export ac_cv_alignof_CORBA_octet=1
+export ac_cv_alignof_CORBA_short=2
+export ac_cv_alignof_CORBA_long=4
+export ac_cv_alignof_CORBA_unsigned_short=2
+export ac_cv_alignof_CORBA_unsigned_long=4
+export ac_cv_alignof_CORBA_float=4
+export ac_cv_alignof_CORBA_double=4
+export ac_cv_alignof_CORBA_long_double=4
+export ac_cv_alignof_CORBA_wchar=2
+export ac_cv_alignof_CORBA_long_long=4
+export ac_cv_alignof_CORBA_unsigned_long_long=4
+export ac_cv_alignof_CORBA_struct=4
+export ac_cv_alignof_CORBA_pointer=4
+
+export lftp_cv_va_copy=no
+export lftp_cv___va_copy=yes
+export lftp_cv_precompiled_readline=yes
+
+export rsync_cv_HAVE_GETTIMEOFDAY_TZ=yes
+export rsync_cv_HAVE_C99_VSNPRINTF=yes
+export rsync_cv_HAVE_LONGLONG=yes
+export rsync_cv_HAVE_OFF64_T=yes
+export rsync_cv_HAVE_UNSIGNED_CHAR=yes
+
+export ac_cv_path_db_cv_path_ar=ar
+export ac_cv_path_db_cv_path_ranlib=:
+export ac_cv_path_db_cv_path_cp=$INSTALL
+export ac_cv_path_db_cv_path_chmod=/bin/echo
+export ac_cv_path_db_cv_path_rm=GCCSDK_ENV/rm
+export ac_cv_path_db_cv_path_strip=:
+
+export ac_cv_lib_db_4___db185_open=yes
+export ac_cv_lib_cposix_strerror=no
+export ac_cv_lib_z_gzopen=yes
+
+export ac_cv_path_install=$INSTALL
+
+export db_cv_alignp_t=int
+export db_cv_fcntl_f_setfd=yes
+export db_cv_sprintf_count=yes
+export db_cv_path_cp=$INSTALL
+export db_cv_path_rm=echo
+
+export tcl_cv_strtod_buggy=1
+
+export ac_cv_header_wctype_h=no
+export ac_cv_header_dlfcn_h=no
+export ac_cv_header_mcheck=no
+export ac_cv_header_tcl_h=yes 
+export ac_cv_header_readline_h=yes
+export ac_cv_header_nl_types_h=no
+export ac_cv_header_sys_vfs_h=no
+export ac_cv_header_sys_statfs_h=no
+export ac_cv_header_sys_statvfs_h=no
+
+export ac_cv_lib_z_deflate=yes
+
+export ac_cv_lib_SDL_ttf_TTF_RenderUNICODE_Blended_Shaded=yes
+export ac_cv_lib_SDL_ttf_TTF_Init=yes
+export ac_cv_lib_SDL_mixer_Mix_OpenAudio=yes
+
+export ac_cv_header_X11_X_h=yes
+export ac_cv_header_X11_Xatom_h=yes
+export ac_cv_header_X11_Xlib_h=yes
+export ac_cv_header_X11_Xmd_h=yes
+export ac_cv_header_X11_Xos_h=yes
+export ac_cv_header_X11_Xutil_h=yes
+export ac_cv_header_X11_extensions_XShm_h=no
+export ac_cv_header_X11_keysym_h=yes
+# Because we're replacing libX11 by libCX11 and the latter needs libDesk
+export X_EXTRA_LIBS="-lDesk"
+
+export ac_cv_kaffe_pathsep=:
+
+export fu_cv_sys_mounted_fread=yes
+
+export libc_cv_asm_global_directive=EXPORT
+
+export libltdl_cv_sys_dlopen_deplibs=no
+export lt_cv_sys_global_symbol_pipe="cut -d ' ' -f 1"
+export lt_cv_global_symbol_to_cdecl="sed -n -e 's/\\(.*\\)\$/extern char \\1;/p'"
+export lt_cv_global_symbol_to_c_name_address="sed -n -e 's/^: \\([^ ]*\\) \$/  {\\\"\\1\\\", (lt_ptr) 0},/p' -e 's/^\\([^ ]*\\)\$/  {\"\\1\", (lt_ptr) \\&\\1},/p'"
+
+
+
+GCCSDK_ENV/ro-path $RO_CPATH/configure \
+  $HOST $BUILD $TARGET $PREFIX $WITHLIBS $X $SHARED $STATIC $GLIB $GTK \
+  $TCLTK $THREADS $NATIVE $ARCHITECTURE $SSL $NLS $RO_CPARAMS 
