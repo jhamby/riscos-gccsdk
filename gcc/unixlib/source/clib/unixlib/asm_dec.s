@@ -324,6 +324,7 @@ XSharedUnixLibrary_SetValue		EQU	&55c82 + X_Bit
 XSharedUnixLibrary_Count		EQU	&55c83 + X_Bit
 XSharedUnixLibrary_Initialise		EQU	&55c84 + X_Bit
 
+XSOM_GOTFromAddr			EQU	&5858a + X_Bit
 
 	; Entries into the __ul_global structure as defined at the
 	; end of sys/_syslib.s.  Change this, then make sure you change

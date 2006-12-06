@@ -1,3 +1,7 @@
+Wed Dec 06 19:35:42 2006  Lee Noar  <leenoar@ntlworld.com>
+
+	* source/clib/unixlib/asm_dec.s: Add XSOM_GOTFromAddr to list of SWIs.
+
 Wed Dec 06 19:19:42 2006  Lee Noar  <leenoar@ntlworld.com>
 
 	* source/incl-local/internal/aof-macros.s: Define macro UL_MEMORY_LAYOUT
