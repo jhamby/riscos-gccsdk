@@ -1,6 +1,8 @@
 ; _swi, _swix
 ; Copyright (c) 2002-2006 UnixLib Developers
 
+	GET	clib/unixlib/asm_dec.s
+
 	AREA |C$$code|, CODE, READONLY
 
 	EXPORT _swi
@@ -229,5 +231,7 @@ swi_end
 	LDMFD	sp!, {a2-a4, v1-v6, r10-r11, lr}
 	LDMFD	sp!, {a2, a3}
 	MOV	pc, lr
+	DECLARE_FUNCTION _swix
+	DECLARE_FUNCTION _swi
 
 	END

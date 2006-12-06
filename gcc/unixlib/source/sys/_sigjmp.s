@@ -19,6 +19,7 @@ sigsetjmp
 	BL	|__sigsetjmp_helper|
 	LDMFD	sp!, {a1, lr}
 	B	setjmp
+	DECLARE_FUNCTION sigsetjmp
 
 	; siglongjmp (sigjmp_buf state, int value)
 	EXPORT	siglongjmp
@@ -32,5 +33,6 @@ siglongjmp
 	BL	|__siglongjmp_helper|
 	LDMFD	sp!, {a1, a2}
 	B	longjmp
+	DECLARE_FUNCTION siglongjmp
 
 	END

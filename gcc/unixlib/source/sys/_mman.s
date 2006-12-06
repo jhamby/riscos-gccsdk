@@ -28,5 +28,6 @@
 	SUBS	a3,a3,#8*4*4
 	BNE	|__mmap_page_copy_l1|
 	LDMFD	sp!, {v1-v6, pc}
+	DECLARE_FUNCTION __mmap_page_copy
 
 	END

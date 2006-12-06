@@ -1,3 +1,10 @@
+Wed Dec 06 20:19:15 2006  Lee Noar  <leenoar@ntlworld.com>
+
+	* source/sys/_os.s: Declare functions for ELF DSO.
+	* source/sys/_mman.s: Likewise.
+	* source/sys/_sigjmp.s: Likewise.
+	* source/sys/_swi.s: Likewise.
+
 Wed Dec 06 19:50:16 2006  Lee Noar  <leenoar@ntlworld.com>
 
 	* source/signal/_demangle.s: Add PIC instructions and declare

@@ -15,6 +15,7 @@
 	MOVVC	a1, #0
 	MVNVS	a1, #0
 	MOV	pc, lr
+	DECLARE_FUNCTION __os_console
 
 	EXPORT	|__os_vdu|
 	EXPORT	|_kernel_oswrch|
@@ -25,6 +26,8 @@
 	MOVVC	a1, #0
 	MVNVS	a1, #0
 	MOV	pc, lr
+	DECLARE_FUNCTION __os_vdu
+	DECLARE_FUNCTION _kernel_oswrch
 
 	EXPORT	|__os_get|
 	NAME	__os_get
@@ -32,6 +35,7 @@
 	SWI	XOS_ReadC
 	MVNVS	a1, #0
 	MOV	pc, lr
+	DECLARE_FUNCTION __os_get
 
 	EXPORT	|__os_inkey|
 	NAME	__os_inkey
@@ -48,6 +52,7 @@
 	MOVEQ	a1, a2
 	MVNNE	a1, #0
 	MOV	pc, lr
+	DECLARE_FUNCTION __os_inkey
 
 	EXPORT	|__os_keyflush|
 	NAME	__os_keyflush
@@ -59,6 +64,7 @@
 	MOVVC	a1, #0
 	MVNVS	a1, #0
 	MOV	pc, lr
+	DECLARE_FUNCTION __os_keyflush
 
 	EXPORT	|__os_423|
 	NAME	__os_423
@@ -74,6 +80,7 @@
 	MOVVC	a1, #0
 	MVNVS	a1, #0
 	MOV	pc, lr
+	DECLARE_FUNCTION __os_423
 
 	EXPORT	|__os_423vdu|
 	NAME	__os_423vdu
@@ -85,6 +92,7 @@
 	MVNCS	a1, #0	; buffer full
 	MVNVS	a1, #0
 	MOV	pc, lr
+	DECLARE_FUNCTION __os_423vdu
 
 	EXPORT	|__os_423get|
 	NAME	__os_423get
@@ -96,6 +104,7 @@ os_423get_l1
 	MOVVC	a1, a2
 	MVNVS	a1, #0
 	MOV	pc, lr
+	DECLARE_FUNCTION __os_423get
 
 	EXPORT	|__os_423inkey|
 	NAME	__os_423inkey
@@ -116,6 +125,7 @@ os_423inkey_l2
 	MOVVC	a1, a2
 	MVNVS	a1, #0
 	MOV	pc, lr
+	DECLARE_FUNCTION __os_423inkey
 
 	EXPORT	|__os_423flush|
 	NAME	__os_423flush
@@ -127,6 +137,7 @@ os_423inkey_l2
 	MOVVC	a1, #0
 	MVNVS	a1, #0
 	MOV	pc, lr
+	DECLARE_FUNCTION __os_423flush
 
 	EXPORT	|__os_423break|
 	NAME	__os_423break
@@ -137,6 +148,7 @@ os_423inkey_l2
 	MOVVC	a1, #0
 	MVNVS	a1, #0
 	MOV	pc, lr
+	DECLARE_FUNCTION __os_423break
 
 	EXPORT	|__os_byte|
 	NAME	__os_byte
@@ -148,6 +160,7 @@ os_423inkey_l2
 	STMNEIA ip, {a1, a2, a3}
 	MOV	a1, #0
 	MOV	pc, lr
+	DECLARE_FUNCTION __os_byte
 
 	EXPORT	|__os_word|
 	EXPORT	|_kernel_osword|
@@ -158,6 +171,8 @@ os_423inkey_l2
 	MOVVC	a1, #0
 	MVNVS	a1, #0
 	MOV	pc, lr
+	DECLARE_FUNCTION __os_word
+	DECLARE_FUNCTION _kernel_osword
 
 	EXPORT	|__os_prhex|
 	NAME	__os_prhex
@@ -184,6 +199,7 @@ os_prhex_l1
 	MOVVC	a1, #0
 	ADD	sp, sp, #8
 	MOV	pc, lr
+	DECLARE_FUNCTION __os_prhex
 
 	; Print out a 32-bit number (passed in a1) as a signed
 	; decimal quantity
@@ -198,6 +214,7 @@ os_prhex_l1
 	ADD	sp, sp, #16
 	MOVVC	a1, #0
 	MOV	pc, lr
+	DECLARE_FUNCTION __os_prdec
 
 	EXPORT	|__os_print|
 	NAME	__os_print
@@ -205,6 +222,7 @@ os_prhex_l1
 	SWI	XOS_Write0
 	MOVVC	a1, #0
 	MOV	pc, lr
+	DECLARE_FUNCTION __os_print
 
 	EXPORT	|__os_nl|
 	NAME	__os_nl
@@ -212,6 +230,7 @@ os_prhex_l1
 	SWI	XOS_NewLine
 	MOVVC	a1, #0
 	MOV	pc, lr
+	DECLARE_FUNCTION __os_nl
 
 	EXPORT	|__os_cli|
 	NAME	__os_cli
@@ -219,6 +238,7 @@ os_prhex_l1
 	SWI	XOS_CLI
 	MOVVC	a1, #0
 	MOV	pc, lr
+	DECLARE_FUNCTION __os_cli
 
 	EXPORT	|__os_file|
 	NAME	__os_file
@@ -233,6 +253,7 @@ os_prhex_l1
 	STMNEIA ip, {a1, a2, a3, a4, v1, v2}
 	MOV	a1, #0
 	LDMFD	sp!, {v1, v2, pc}
+	DECLARE_FUNCTION __os_file
 
 	EXPORT	|__os_fopen|
 	NAME	__os_fopen
@@ -242,6 +263,7 @@ os_prhex_l1
 	STR	a1, [ip]
 	MOVVC	a1, #0
 	MOV	pc, lr
+	DECLARE_FUNCTION __os_fopen
 
 	EXPORT	|__os_fclose|
 	NAME	__os_fclose
@@ -251,6 +273,7 @@ os_prhex_l1
 	SWI	XOS_Find
 	MOVVC	a1, #0
 	MOV	pc, lr
+	DECLARE_FUNCTION __os_fclose
 
 	EXPORT	|__os_fread|
 	NAME	__os_fread
@@ -267,6 +290,7 @@ os_prhex_l1
 	STMNEIA	ip, {a1, a2, a3, a4, v1}
 	MOV	a1, #0
 	LDMFD	sp!, {v1, pc}
+	DECLARE_FUNCTION __os_fread
 
 	EXPORT	|__os_fwrite|
 	NAME	__os_fwrite
@@ -283,6 +307,7 @@ os_prhex_l1
 	STMNEIA	ip, {a1, a2, a3, a4, v1}
 	MOV	a1, #0
 	LDMFD	sp!, {v1, pc}
+	DECLARE_FUNCTION __os_fwrite
 
 	EXPORT	|__os_args|
 	NAME	__os_args
@@ -294,6 +319,7 @@ os_prhex_l1
 	STMNEIA	ip, {a1, a2, a3}
 	MOV	a1, #0
 	MOV	pc, lr
+	DECLARE_FUNCTION __os_args
 
 	EXPORT	|__os_fsctrl|
 	NAME	__os_fsctrl
@@ -301,6 +327,7 @@ os_prhex_l1
 	SWI	XOS_FSControl
 	MOVVC	a1, #0
 	MOV	pc, lr
+	DECLARE_FUNCTION __os_fsctrl
 
 	EXPORT	|__os_setfiletype|
 	; _kernel_oserror *__os_setfiletype (const char *fname, int filetype)
@@ -311,6 +338,7 @@ os_prhex_l1
 	SWI	XOS_File
 	MOVVC	a1, #0
 	MOV	pc, lr
+	DECLARE_FUNCTION __os_setfiletype
 
 	EXPORT	|__os_swi|
 	NAME	__os_swi
@@ -325,5 +353,6 @@ os_prhex_l1
 	STMNEIA lr, {a1, a2, a3, a4, v1, v2, v3, v4, v5, v6}
 	MOVVC	a1, #0
 	LDMFD	sp!, {v1, v2, v3, v4, v5, v6, pc}
+	DECLARE_FUNCTION __os_swi
 
 	END
