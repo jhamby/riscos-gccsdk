@@ -10,5 +10,6 @@
 |__backtrace_getfp|
 	MOV	a1, fp
 	MOV	pc, lr
+	DECLARE_FUNCTION __backtrace_getfp
 
 	END

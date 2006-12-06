@@ -31,6 +31,7 @@
 ;
 ; On entry:
 ;	a1 = signal number
+;	v4 set to GOT pointer by caller if compiled for shared library
 ; On exit:
 ;	All registers preserved
 ; Use:
@@ -66,7 +67,8 @@
 
 	BL	|__pthread_enable_ints|
 
-	LDR	a2, =|__ul_global|
+	LDR	a2, |.L0|	;=__ul_global
+ PICEQ "LDR	a2, [v4, a2]"
 	LDR	a1, [a2, #GBL_EXECUTING_SIGNALHANDLER]
 	SUB	a1, a1, #1
 	STR	a1, [a2, #GBL_EXECUTING_SIGNALHANDLER]
@@ -76,7 +78,9 @@
 	MOV	a1, a1
 	ADD	sp, sp, #15*4
 	LDMIA	sp!, {pc}
-
+|.L0|
+	WORD	|__ul_global|
+	DECLARE_FUNCTION __raise
 
 ;-----------------------------------------------------------------------
 ; int __ul_seterr (const _kernel_oserror *err, int seterrno)
@@ -100,13 +104,15 @@
 	MOVEQ	pc, lr
 
 	STMFD	sp!, {v1-v5, lr}	; Stack working registers
+ PICEQ "BL	__rt_load_pic"
 	CMP	a2, #0
 	BEQ	|seterr01|		; user requested not to set errno
 	MOV	a3, #EOPSYS
 	__set_errno	a3, a2		; Set errno = EOPSYS
 
 |seterr01|
-	LDR	a2, =|__pthread_running_thread|
+	LDR	a2, |.L1|	;=__pthread_running_thread
+ PICEQ "LDR	a2, [v4, a2]"
 	LDR	a2, [a2]
         ; If __pthread_running_thread == NULL then something has gone
         ; wrong during initialisation, or we have an inconsistent build,
@@ -145,6 +151,9 @@
 |seterr_fatal|
 	DCB	"UnixLib inconsistency found: __pthread_running_thread == NULL.  Exiting", 0
 	ALIGN
+|.L1|
+	WORD	|__pthread_running_thread|
+	DECLARE_FUNCTION __ul_seterr
 
 ;-----------------------------------------------------------------------
 ; _kernel_oserror *_kernel_last_oserror (void)
@@ -163,12 +172,17 @@
 	EXPORT	|_kernel_last_oserror|
 	NAME	_kernel_last_oserror
 |_kernel_last_oserror|
-	LDR	a1, =|__pthread_running_thread|
+ PICEQ "STMFD	sp!, {v4, lr}"
+ PICEQ "BL	__rt_load_pic"
+	LDR	a1, |.L1|	;=__pthread_running_thread
+ PICEQ "LDR	a1, [v4, a1]"
 	LDR	a1, [a1, #0]
 	LDR	a2, [a1, #__PTHREAD_ERRBUF_OFFSET]!
 	TEQ	a2, #0
 	MOVEQ	a1, #0
+ PICEQ "LDMFD	sp!, {v4, lr}"
 	MOV	pc, lr
+	DECLARE_FUNCTION _kernel_last_oserror
 
 	; The following code is in a writable area because we need access to
 	; the callback register save area without corrupting any registers
@@ -207,8 +221,24 @@
 	NAME	__h_sigill
 |__h_sigill|
 	SUB	lr, lr, #4
-	STR	lr, |__cbreg| + 15*4
-	ADRL	lr, |__cbreg|
+
+ PICEQ "STMFD	sp!, {r0-r2}"		; Store work registers
+ PICEQ "MOV	r2, lr"			; Save lr somewhere else so we can call SWI
+ PICEQ "ADR	r0, __h_sigill"		; Use routine address for GOT ID
+ PICEQ "SWI	XSOM_GOTFromAddr"	; Find the GOT pointer (returned in r0)
+ PICEQ "LDR	r1, |.L2|+4"		;__cba1
+ PICEQ "LDR	r1, [r0, r1]"
+ PICEQ "MOV	lr, #SIGILL"
+ PICEQ "STR	lr, [r1, #0]"
+ PICEQ "LDR	r1, |.L2|"		;__cbreg
+ PICEQ "LDR	r1, [r0, r1]"
+ PICEQ "STR	r2, [r1, #(15 * 4)]"	; Store original lr
+ PICEQ "MOV	lr, r1"			; lr = __cbreg
+ PICEQ "LDMFD	sp!, {r0-r2}"		; Restore work registers
+
+ PICNE "STR	lr, |__cbreg| + 15*4"
+ PICNE "ADRL	lr, |__cbreg|"
+
 	STMIA	lr!, {a1-ip}		; store non-banked registers
 	STMIA	lr, {sp, lr}^		; store banked registers
 
@@ -217,9 +247,15 @@
 	MRSEQ	a1, SPSR
 	STR	a1, [lr, #4*3]
 
-	MOV	a1, #SIGILL
-	STR	a1, |__cba1|
+	; In the shared library, this has to be done further up where we have
+	; access to the GOT pointer.
+ PICNE "MOV	a1, #SIGILL"
+ PICNE "STR	a1, |__cba1|"
 	B	|__h_cback_common|
+|.L2|
+ PICEQ "WORD	|__cbreg|"
+ PICEQ "WORD	|__cba1|"
+	DECLARE_FUNCTION __h_sigill
 
 ;-----------------------------------------------------------------------
 ; Address exception handler
@@ -231,16 +267,36 @@
 	NAME	__h_sigbus
 |__h_sigbus|
 	SUB	lr, lr, #4
-	STR	lr, |__cbreg| + 15*4
-	ADRL	lr, |__cbreg|
+
+ PICEQ "STMFD	sp!, {r0-r2}"		; Store work registers
+ PICEQ "MOV	r2, lr"			; Save lr somewhere else so we can call SWI
+ PICEQ "ADR	r0, __h_sigbus"		; Use routine address for GOT ID
+ PICEQ "SWI	XSOM_GOTFromAddr"	; Find the GOT pointer (returned in r0)
+ PICEQ "LDR	r1, |.L2|+4"		;__cba1
+ PICEQ "LDR	r1, [r0, r1]"
+ PICEQ "MOV	lr, #SIGBUS"
+ PICEQ "STR	lr, [r1, #0]"
+ PICEQ "LDR	r1, |.L2|"		;__cbreg
+ PICEQ "LDR	r1, [r0, r1]"
+ PICEQ "STR	r2, [r1, #(15 * 4)]"	; Store original lr
+ PICEQ "MOV	lr, r1"			; lr = __cbreg
+ PICEQ "LDMFD	sp!, {r0-r2}"		; Restore work registers
+
+ PICNE "STR	lr, |__cbreg| + 15*4"
+ PICNE "ADRL	lr, |__cbreg|"
+
 	STMIA	lr!, {a1-ip}		; store non-banked registers
 	STMIA	lr, {sp, lr}^		; store banked registers
 	; No need to save CPSR because an address exception can only
 	; happen in 26 bit mode and then CPSR is nothing more than
 	; flags from pc.
-	MOV	a1, #SIGBUS
-	STR	a1, |__cba1|
+
+	; In the shared library, this has to be done further up where we have
+	; access to the GOT pointer.
+ PICNE "MOV	a1, #SIGBUS"
+ PICNE "STR	a1, |__cba1|"
 	B	|__h_cback_common|
+	DECLARE_FUNCTION __h_sigbus
 
 ;-----------------------------------------------------------------------
 ; Prefetch abort handler
@@ -252,8 +308,24 @@
 	NAME	__h_sigsegv0
 |__h_sigsegv0|
 	SUB	lr, lr, #4
-	STR	lr, |__cbreg| + 15*4
-	ADR	lr, |__cbreg|
+
+ PICEQ "STMFD	sp!, {r0-r2}"		; Store work registers
+ PICEQ "MOV	r2, lr"			; Save lr somewhere else so we can call SWI
+ PICEQ "ADR	r0, __h_sigsegv0"		; Use routine address for GOT ID
+ PICEQ "SWI	XSOM_GOTFromAddr"	; Find the GOT pointer (returned in r0)
+ PICEQ "LDR	r1, |.L2|+4"		;__cba1
+ PICEQ "LDR	r1, [r0, r1]"
+ PICEQ "MOV	lr, #SIGBUS"
+ PICEQ "STR	lr, [r1, #0]"
+ PICEQ "LDR	r1, |.L2|"		;__cbreg
+ PICEQ "LDR	r1, [r0, r1]"
+ PICEQ "STR	r2, [r1, #(15 * 4)]"	; Store original lr
+ PICEQ "MOV	lr, r1"			; lr = __cbreg
+ PICEQ "LDMFD	sp!, {r0-r2}"		; Restore work registers
+
+ PICNE "STR	lr, |__cbreg| + 15*4"
+ PICNE "ADR	lr, |__cbreg|"
+
 	STMIA	lr!, {a1-ip}		; store non-banked registers
 	STMIA	lr, {sp, lr}^		; store banked registers
 
@@ -262,9 +334,12 @@
 	MRSEQ	a1, SPSR
 	STR	a1, [lr, #4*3]
 
-	MOV	a1, #SIGSEGV
-	STR	a1, |__cba1|
+	; In the shared library, this has to be done further up where we have
+	; access to the GOT pointer.
+ PICNE "MOV	a1, #SIGSEGV"
+ PICNE "STR	a1, |__cba1|"
 	B	|__h_cback_common|
+	DECLARE_FUNCTION __h_sigsegv0
 
 ;-----------------------------------------------------------------------
 ; Data abort handler
@@ -303,8 +378,24 @@
 	NAME	__h_sigsegv1
 |__h_sigsegv1|
 	SUB	lr, lr, #8
-	STR	lr, |__cbreg| + 15*4
-	ADR	lr, |__cbreg|
+
+ PICEQ "STMFD	sp!, {r0-r2}"		; Store work registers
+ PICEQ "MOV	r2, lr"			; Save lr somewhere else so we can call SWI
+ PICEQ "ADR	r0, __h_sigsegv1"		; Use routine address for GOT ID
+ PICEQ "SWI	XSOM_GOTFromAddr"	; Find the GOT pointer (returned in r0)
+ PICEQ "LDR	r1, |.L3|+4"		;__cba1
+ PICEQ "LDR	r1, [r0, r1]"
+ PICEQ "MOV	lr, #SIGBUS"
+ PICEQ "STR	lr, [r1, #0]"
+ PICEQ "LDR	r1, |.L3|"		;__cbreg
+ PICEQ "LDR	r1, [r0, r1]"
+ PICEQ "STR	r2, [r1, #(15 * 4)]"	; Store original lr
+ PICEQ "MOV	lr, r1"			; lr = __cbreg
+ PICEQ "LDMFD	sp!, {r0-r2}"		; Restore work registers
+
+ PICNE "STR	lr, |__cbreg| + 15*4"
+ PICNE "ADR	lr, |__cbreg|"
+
 	STMIA	lr!, {a1-ip}		; store non-banked registers
 	STMIA	lr, {sp, lr}^		; store banked registers
 
@@ -313,10 +404,15 @@
 	MRSEQ	a1, SPSR
 	STR	a1, [lr, #4*3]
 
-	MOV	a1, #SIGSEGV
-	STR	a1, |__cba1|
+	; In the shared library, this has to be done further up where we have
+	; access to the GOT pointer.
+ PICNE "MOV	a1, #SIGSEGV"
+ PICNE "STR	a1, |__cba1|"
 	B	|__h_cback_common|
-
+|.L3|
+ PICEQ "WORD	|__cbreg|"
+ PICEQ "WORD	|__cba1|"
+	DECLARE_FUNCTION __h_sigsegv1
 
 ;-----------------------------------------------------------------------
 ; The software handlers (PRM 1-288).
@@ -341,7 +437,8 @@
 ; Error handler (1-289).
 ; Entered in USR26 mode (26 bit system) or USR32 (32 bit system).
 ; On entry:
-;	a1 = pointer to [pc, error number, zero terminated error string]
+;	__ul_errbuf = pointer to [pc, error number, zero terminated error string]
+;	a1 = UnixLib GOT pointer in shared library, otherwise 0
 ; On exit:
 ;	Undefined.
 ;
@@ -370,11 +467,14 @@
 	MOV	v2, sp	; contain anything of use, but they seem to be the USR
 	MOV	v3, lr	; regs at the time of the error.
 
+ PICEQ "MOV	v4, a1"	; Set up the PIC register
+
 	; Change to SVC26/SVC32 mode so we don't get any
 	; callbacks while we are setting up the stack
 	SWI	XOS_EnterOS
 
-	LDR	a1, =|__ul_global|
+	LDR	a1, |.L4|	;=__ul_global
+ PICEQ "LDR	a1, [v4, a1]"
 	LDR	a1, [a1, #GBL_PTH_SYSTEM_RUNNING]
 	TEQ	a1, #0
 	BLNE	|__pthread_disable_ints|
@@ -382,12 +482,15 @@
 	BL	|__setup_signalhandler_stack|
 	CHGMODE	a1, USR_Mode	; Back to USR mode now we have a stack
 
+ PICEQ "MOV	ip, v4"		; Save PIC register
 	ADR	v4, |__h_error| + 4*3	; Point at handler name for backtrace
 	STMFD	sp!, {v1, v2, v3, v4}	; Setup an APCS-32 stack frame so we
 	ADD	fp, sp, #4*3		; can get a proper stack backtrace in
 					; case anything goes horribly wrong.
+ PICEQ "MOV	v4, ip"		; Restore PIC register
 
-	LDR	v1, =|__ul_callbackfp|	; We don't have a r0-r15, CPSR
+	LDR	v1, |.L4|+4	;=__ul_callbackfp
+ PICEQ "LDR	v1, [v4, v1]"		; We don't have a r0-r15, CPSR
 	MOV	a1, #0			; snapshot on our sp stack.
 	STR	a1, [v1]
 
@@ -397,21 +500,25 @@
 
 	IMPORT	|memcpy|
 	; Copy error buffer into thread specific storage
-	LDR	a1, =|__pthread_running_thread|
+	LDR	a1, |.L4|+20	;=__pthread_running_thread
+ PICEQ "LDR	a1, [v4, a1]"
 	LDR	a1, [a1]
 	ADD	a1, a1, #__PTHREAD_ERRBUF_OFFSET
-	LDR	a2, =|__ul_errbuf_errblock|
+	LDR	a2, |.L4|+8	;=__ul_errbuf_errblock
+ PICEQ "LDR	a2, [v4, a2]"
 	MOV	a3, #|__ul_errbuf__size|
 	BL	|memcpy|
 
 	; Mark the error buffer as valid.
-	LDR	a1, =|__ul_errbuf_valid|
+	LDR	a1, |.L4|+12	;=__ul_errbuf_valid
+ PICEQ "LDR	a1, [v4, a1]"
 	MOV	a2, #1
 	STR	a2, [a1]
 
 	; Check the error number. Its value will determine the
 	; appropriate signal to call.
-	LDR	a2, =|__ul_errbuf_errblock|
+	LDR	a2, |.L4|+8	;=__ul_errbuf_errblock
+ PICEQ "LDR	a2, [v4, a2]"
 	LDR	a3, [a2, #0]
 
 	; Check bit 31 of the error number.  If it is set, then it
@@ -426,6 +533,13 @@
 
 	MOV	a1, #EXIT_FAILURE
 	B	exit	; There is nowhere to go if the signal handler returns
+|.L4|
+	WORD	|__ul_global|
+	WORD	|__ul_callbackfp|
+	WORD	|__ul_errbuf_errblock|
+	WORD	|__ul_errbuf_valid|
+	WORD	|__ul_fp_registers|
+	WORD	|__pthread_running_thread|
 
 unrecoverable_error
 	; Bit 31-was set, therefore it was a hardware error.
@@ -443,7 +557,8 @@ unrecoverable_error
 	BNE	|non_fp_exception|
 
 	; Store FP registers.
-	LDR	a1, =|__ul_fp_registers|
+	LDR	a1, |.L4|+16	;=__ul_fp_registers
+ PICEQ "LDR	a1, [v4, a1]"
 	RFS	a2		; Read FP status register
 	STR	a2, [a1], #4
 	BIC	a3, a3, #&FF<<16; Disable all exceptions to prevent the
@@ -471,6 +586,7 @@ non_fp_exception
 
 	MOV	a1, #EXIT_FAILURE
 	B	exit	; There is nowhere to go if the signal handler returns
+	DECLARE_FUNCTION __h_error
 
 ;-----------------------------------------------------------------------
 ; Escape handler (1-290).
@@ -490,23 +606,41 @@ non_fp_exception
 ; FIXME. What action must we take to guard against recursive escapes and
 ; race conditions ?
 ;
+; In the shared library, r12 = UnixLib GOT pointer
 	EXPORT	|__h_sigint|
 	NAME	__h_sigint
 |__h_sigint|
+ PICEQ "STR	r0, [sp, #-4]!"
 	; Entered in IRQ mode. Be quick by just clearing the escape
 	; flag and setting a callback.
 	TST	r11, #64		; bit 6
 	MOVNE	ip, #SIGINT
-	STRNE	ip, |__cba1|
+
+ PICEQ "LDRNE	r0, |.L5|"		;__cba1
+ PICEQ "LDRNE	r0, [r12, r0]"
+ PICEQ "STRNE	ip, [r0, #0]"		; store __cba1 (shared library)
+
+ PICNE "STRNE	ip, |__cba1|"		; store __cba1 (static library)
+
 	; Set the escape condition flag
-	LDR	ip, |__cbflg|
+ PICEQ "LDR	r0, |.L5|+4"		;__cbflg
+ PICEQ "LDR	r0, [r12, r0]"
+ PICEQ "LDR	ip, [r0, #0]"
+ PICNE "LDR	ip, |__cbflg|"
 	ORRNE	ip, ip, #1		; set CallBack
 	BICEQ	ip, ip, #1		; clear CallBack
-	STR	ip, |__cbflg|		; set/clear __cbflg bit 0
+ PICEQ "STR	ip, [r0, #0]"		; set/clear __cbflg bit 0 (shared library)
+
+ PICNE "STR	ip, |__cbflg|"		; set/clear __cbflg bit 0 (static library)
 
 	MOVEQ	ip, #0
 	MOVNE	ip, #1
+ PICEQ "LDR	r0, [sp], #4"
 	MOV	pc, lr
+|.L5|
+ PICEQ "WORD	|__cba1|"
+ PICEQ "WORD	|__cbflg|"
+	DECLARE_FUNCTION __h_sigint
 
 ;-----------------------------------------------------------------------
 ; Event handler (1-290).
@@ -525,6 +659,7 @@ non_fp_exception
 ; is raised via a callback to the user program.
 ; All other events are ignored.
 ;
+; In the shared library, r12 = UnixLib GOT pointer
 
 Internet_Event	EQU	19
 
@@ -539,15 +674,28 @@ Internet_Event	EQU	19
 	TEQ	a2, #1		; Out-of-band data has arrived
 	MOVNE	pc, lr
 
+ PICEQ "MOV	a2, ip"		; Move GOT pointer away from ip
 	; Set the internet event flag
-	LDR	ip, |__cbflg|
+ PICEQ "LDR	a1, |.L5|+4"	;__cbflg
+ PICEQ "LDR	a1, [a2, a1]"
+ PICEQ "LDR	ip, [a1, #0]"
+
+ PICNE "LDR	ip, |__cbflg|"
+
 	ORR	ip, ip, #2
-	STR	ip, |__cbflg|
+
+ PICEQ "STR	ip, [a1, #0]"	; store __cbflg (shared library)
+ PICNE "STR	ip, |__cbflg|"	; store __cbflg (static library)
 
 	MOV	ip, #SIGURG
-	STR	ip, |__cba1|
+ PICEQ "LDR	a1, |.L5|"	;__cba1
+ PICEQ "LDR	a1, [a2, a1]"
+ PICEQ "STR	ip, [a1, #0]"	; store __cba1 (shared library)
+ PICNE "STR	ip, |__cba1|"	; store __cba1 (static library)
+
 	MOV	ip, #1		; CallBack set if R12 = 1
 	MOV	pc, lr
+	DECLARE_FUNCTION __h_event
 
 ;-----------------------------------------------------------------------
 ; Unused SWI handler (1-291).
@@ -555,6 +703,7 @@ Internet_Event	EQU	19
 ; Called from UKSWIV (1-95).
 ; On entry:
 ;	r11/fp = SWI number (Bit 17 (the X bit) clear)
+;	r12/ip = UnixLib GOT pointer in the shared library
 ;	r13/sp = SVC stack pointer
 ;	r14/lr = return address in the kernel with NZCVIF flags the
 ;                same as the callers (except V clear) (26 bit system) or
@@ -570,15 +719,31 @@ Internet_Event	EQU	19
 	EXPORT	|__h_sigsys|
 	NAME	__h_sigsys
 |__h_sigsys|
-	STR	lr, |__cbreg|+15*4
-	ADR	lr, |__cbreg|
+ PICEQ "LDR	a1, |.L6|+4"		;__cbreg
+ PICEQ "LDR	a1, [ip, a1]"
+ PICEQ "STR	lr, [a1, #15*4]"
+ PICEQ "MOV	lr, a1"			; lr = __cbreg
+
+ PICNE "STR	lr, |__cbreg|+15*4"
+ PICNE "ADR	lr, |__cbreg|"
+
 	STMIA	lr!, {a1-ip}		; store non-banked registers
 	STMIA	lr, {sp, lr}^		; store banked registers
 	MOV	a1, #0			; No meaningful CPSR so null it.
 	STR	a1, [lr, #4*3]
+
 	MOV	a1, #SIGSYS
-	STR	a1, |__cba1|
+ PICEQ "LDR	lr, |.L6|"		;__cba1
+ PICEQ "LDR	lr, [ip, lr]"
+ PICEQ "STR	a1, [lr, #0]"		; store __cba1 (shared library)
+
+ PICNE "STR	a1, |__cba1|"		; store __cba1 (static library)
+
 	B	|__h_cback_common|
+|.L6|
+ PICEQ "WORD	|__cbreg|"
+ PICEQ "WORD	|__cba1|"
+	DECLARE_FUNCTION __h_sigsys
 
 ;-----------------------------------------------------------------------
 ; Upcall handler (1-291).
@@ -600,10 +765,11 @@ Internet_Event	EQU	19
 ; IRQs disabled.
 ; __h_cback_commom is called directly from other handlers.
 ; On entry:
+;	r12/ip = UnixLib GOT pointer in the shared library
 ;
 ; On exit:
 ;	All registers should be loaded from the register save area
-
+;
 	IMPORT	|__pthread_callback|
 	EXPORT	|__h_cback|
 	NAME	__h_cback
@@ -611,42 +777,66 @@ Internet_Event	EQU	19
 	; Check that the return PC value is within our wimpslot.
 	; If it isn't, then we don't want to do a context switch
 	; so return straight away.
-	LDR	a1, |__cbreg| + 15*4
+ PICEQ "LDR	a1, |.L7|+12"		;__cbreg
+ PICEQ "LDR	a1, [ip, a1]"
+ PICEQ "LDR	a1, [a1, #15*4]"	; retrieve PC (shared library)
+ PICNE "LDR	a1, |__cbreg| + 15*4"	; retrieve PC (static library)
 	TEQ	pc, pc
 	BICNE	a1, a1, #&fc000003
 
-	LDR	a3, =|__ul_memory|
+	LDR	a3, |.L7|		;=__ul_memory
+ PICEQ "LDR	a3, [ip, a3]"
 	LDR	a2, [a3, #MEM_ROBASE]
 	CMP	a1, a2
 	BLO	return_quickly
 
-	LDR	a2, [a3, #MEM_APPSPACE_LIMIT]
-	CMP	a1, a2
-	BHI	return_quickly
+	; When using shared libraries, the PC can be higher than the
+	; application limit.
+ PICNE "LDR	a2, [a3, #MEM_APPSPACE_LIMIT]"
+ PICNE "CMP	a1, a2"
+ PICNE "BHI	return_quickly"
 
-	LDR	a1, |__cbflg|
+ PICEQ "LDR	a1, |.L7|+16"		; __cbflg
+ PICEQ "LDR	a1, [ip, a1]"
+ PICEQ "LDR	a1, [a1, #0]"
+ PICNE "LDR	a1, |__cbflg|"
 	TST	a1, #3			; Check escape and internet flags
 	BNE	|__h_cback_common|
 
-	LDR	a3, =|__ul_global|
+	LDR	a3, |.L7|+4		; __ul_global
+ PICEQ "LDR	a3, [ip, a3]"
 	LDR	a1, [a3, #GBL_PTH_SYSTEM_RUNNING]
 	TEQ	a1, #0
 	BNE	|__pthread_callback|
 	B	|__h_cback_common|
 
 return_quickly
-	ADR	lr, |__cbreg|
+ PICEQ "LDR	lr, |.L7|+12"		; __cbreg
+ PICEQ "LDR	lr, [ip, lr]"
+ PICNE "ADR	lr, |__cbreg|"
 	LDR	a1, [lr, #16*4]
 	MSR	SPSR_cxsf, a1
 	LDMIA	lr, {a1-lr}^
 	MOV	a1, a1
 	LDR	lr, [lr, #15*4]
 	MOVS	pc, lr
+|.L7|
+	WORD	|__ul_memory|
+	WORD	|__ul_global|
+	WORD	|__ul_callbackfp|
+ PICEQ "WORD	|__cbreg|"
+ PICEQ "WORD	|__cbflg|"
+ PICEQ "WORD	|__cba1|"
 
 	; This is the common entry point for many of the RISC OS exception
 	; handlers.  On entry, assume that all registers are corrupted.
 |__h_cback_common|
-	LDR	a3, =|__ul_global|
+ PICEQ "ADR	r0, __h_cback_common"	; Use routine address for GOT ID
+ PICEQ "SWI	XSOM_GOTFromAddr"	; Find UnixLib GOT pointer
+ PICEQ "MOV	v4, r0"			; Set up PIC register
+
+	LDR	a3, |.L7|+4		;=__ul_global
+ PICEQ "LDR	a3, [v4, a3]"
 	LDR	a1, [a3, #GBL_PTH_WORKSEMAPHORE]
 	ADD	a1, a1, #1
 	STR	a1, [a3, #GBL_PTH_WORKSEMAPHORE]
@@ -659,19 +849,28 @@ return_quickly
 	; The USR mode registers r0-r15 and CPSR are extracted from the
 	; callback register block while IRQs are disabled. The registers
 	; are then saved on the USR mode signal handler stack.
-	ADR	a1, |__cbreg| + 8*4	; Copy R8-R15, R0-R7
+ PICEQ "LDR	a1, |.L7|+12"		; __cbreg
+ PICEQ "LDR	a1, [v4, a1]"
+ PICNE "ADR	a1, |__cbreg| + 8*4"	; Copy R8-R15, R0-R7
+ PICEQ "MOV	v6, v4"			; Save PIC register
 	LDMIA	a1, {a2, a3, a4, v1, v2, v3, v4, v5}
 	STMFD	sp!, {a2, a3, a4, v1, v2, v3, v4, v5}
 	LDMDB	a1, {a2, a3, a4, v1, v2, v3, v4, v5}
 	STMFD	sp!, {a2, a3, a4, v1, v2, v3, v4, v5}
+ PICEQ "MOV	v4, v6"			; Restore PIC register
 	LDR	a2, [a1, #8*4]		; Copy CPSR
 	STMFD	sp!, {a2}
 
 	; Check for an escape condition
-	LDR	a1, |__cbflg|		; check __cbflg bit 0
+ PICEQ "LDR	a1, |.L7|+16"		; __cbflg
+ PICEQ "LDR	a2, [v4, a1]"
+ PICEQ "LDR	a1, [a2, #0]"
+
+ PICNE "LDR	a1, |__cbflg|"		; check __cbflg bit 0
 	TST	a1, #1
 	BIC	a1, a1, #2		; clear the internet event flag bit
-	STR	a1, |__cbflg|
+ PICEQ "STR	a1, [a2, #0]"		; Save __cbflg (shared library)
+ PICNE "STR	a1, |__cbflg|"		; Save __cbflg (static library)
 	; There was an escape condition.  Clear it.
 	MOVNE	a1, #&7e
 	SWINE	XOS_Byte		; This calls our escape handler
@@ -684,18 +883,23 @@ return_quickly
 	STMFD	sp!, {a1, a2, a3, a4}	; create signal frame
 	ADD	fp, sp, #4*3
 
-	LDR	v1, =|__ul_callbackfp|	; Save callback FP backtrace
+	LDR	v1, |.L7|+8	;=__ul_callbackfp	; Save callback FP backtrace
+ PICEQ "LDR	v1, [v4, v1]"
 	STR	a1, [v1]
 
 	MOV	a1, #0
-	LDR	a2, |__cba1|
+ PICEQ "LDR	a2, |.L7|+20"		; __cba1
+ PICEQ "LDR	a2, [v4, a2]"
+ PICEQ "LDR	a2, [a2, #0]"
+ PICNE "LDR	a2, |__cba1|"
 	; Raise the signal in USR mode with IRQs enabled
 	SWI	XOS_IntOn
 	BL	|__unixlib_raise_signal|
 	; Disable IRQs again while updating semaphores
 	SWI	XOS_IntOff
 
-	LDR	a3, =|__ul_global|
+	LDR	a3, |.L7|+4	;=__ul_global
+ PICEQ "LDR	a3, [v4, a3]"
 	LDR	a1, [a3, #GBL_PTH_WORKSEMAPHORE]
 	SUB	a1, a1, #1
 	STR	a1, [a3, #GBL_PTH_WORKSEMAPHORE]
@@ -717,15 +921,19 @@ return_quickly
 	MOV	a1, a1
 	LDR	lr, [lr, #15*4]	; Load the old PC value
 	MOVS	pc, lr		; Return (Valid for 26 and 32bit modes)
+	DECLARE_FUNCTION __h_cback
 
 
 	; Setup a USR mode stack for the signal handler and pthread
 	; context switcher. Should be called in USR, SVC or IRQ mode.
 	; We cope with recursive signals by only setting up the stack
 	; if we're not already in a signal handler
+	; On entry:
+	;  v4 = UnixLib GOT pointer in shared library
 	EXPORT	|__setup_signalhandler_stack|
 |__setup_signalhandler_stack|
-	LDR	a3, =|__ul_global|
+	LDR	a3, |.L8|	;=__ul_global
+ PICEQ "LDR	a3, [v4, a3]"
 	LDR	a1, [a3, #GBL_EXECUTING_SIGNALHANDLER]
 	TEQ	a1, #0
 	ADD	a1, a1, #1
@@ -747,6 +955,15 @@ return_quickly
 	LDMNEIA	a1, {sp}^	; Not USR mode, set USR sp
 	LDREQ	sp, [a1, #0]	; USR mode
 	MOV	pc, lr
+|.L8|
+	WORD	|__ul_global|
+	DECLARE_FUNCTION __setup_signalhandler_stack
+
+	[ __UNIXLIB_ELF > 0
+	[ PIC > 0
+	AREA	|C$$data|, DATA
+	]
+	]
 
 	; User registers are preserved in here for the callback execution.
 	; User registers = R0-R15 and CPSR in 32-bit mode
@@ -755,18 +972,28 @@ return_quickly
 	EXPORT	|__cbreg|
 |__cbreg|
 	%	68	; 4 * 17
+	DECLARE_OBJECT __cbreg
 
 	; bit 0 Escape condition flag
 	; bit 1 Internet event flag
 |__cbflg|
 	DCD	0
+	DECLARE_OBJECT __cbflg
 
 	; Signal number to use for __unixlib_raise_signal().
 |__cba1|
 	DCD	0
+	DECLARE_OBJECT __cba1
+
+	[ __UNIXLIB_ELF > 0
+	[ PIC > 0
+	AREA	|C$$code|, CODE, READONLY
+	]
+	]
 
 ; Exit handler
 ; Called in USR mode
+; In the shared library, r12 contains the UnixLib GOT pointer
 	EXPORT	|__h_exit|
 	NAME	__h_exit
 |__h_exit|
@@ -774,10 +1001,13 @@ return_quickly
 	; can not be trusted as we come here when OS_Exit is called
 	; and this can be from anywhere (including the <Alt><Break>
 	; TaskManager implementation).
+ PICEQ "MOV	v4, r12"
+
 	BL	|__setup_signalhandler_stack|
 
 	MOV	a1, #EXIT_FAILURE
 	B	|exit|
+	DECLARE_FUNCTION __h_exit
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
@@ -795,19 +1025,30 @@ return_quickly
 	EXPORT	|__h_sigalrm|
 	NAME	__h_sigalrm
 |__h_sigalrm|
-	STMFD	sp!, {a1, a2, a3, lr}
+ PICEQ "STMFD	sp!, {a1, a2, a3, v4, lr}"
+ PICNE "STMFD	sp!, {a1, a2, a3, lr}"
+
+ PICEQ "ADR	r0, __h_sigalrm"	; Use routine name for GOT ID
+ PICEQ "SWI	XSOM_GOTFromAddr"	; Find UnixLib GOT pointer
+ PICEQ "MOV	v4, r0"			; Set up PIC register
+
 	; Raise the SIGALRM signal
 	MOV	a1, #SIGALRM
 	BL	|__raise|
 	; Have we previously setup a CallEvery handler
-	LDR	a1, |__h_sigalrm_sema|
+ PICEQ "LDR	a1, |.L9|"		;__h_sigalrm_sema
+ PICEQ "LDR	v4, [v4, a1]"
+ PICEQ "LDR	a1, [v4, #0]"
+ PICNE "LDR	a1, |__h_sigalrm_sema|"
 	TEQ	a1, #1
-	LDMEQFD	sp!, {a1, a2, a3, pc}
+ PICEQ "LDMEQFD	sp!, {a1, a2, a3, v4, pc}"
+ PICNE "LDMEQFD	sp!, {a1, a2, a3, pc}"
 	; r12->it_interval = 0 secs and 0 usecs then exit
 	LDMIA	ip, {a1, a2}
 	TEQ	a1, #0
 	TEQEQ	a2, #0
-	LDMEQFD	sp!, {a1, a2, a3, pc}
+ PICEQ "LDMEQFD	sp!, {a1, a2, a3, v4, pc}"
+ PICNE "LDMEQFD	sp!, {a1, a2, a3, pc}"
 	; Calculate delay in csecs between successive calls
 	MOV	a3, #100
 	MLA	a1, a3, a1, a2
@@ -818,8 +1059,14 @@ return_quickly
 	SWI	XOS_CallEvery
 	; Set semaphore to say we have a CallEvery already set up
 	MOV	a1, #1
-	STR	a1, |__h_sigalrm_sema|
-	LDMFD	sp!, {a1, a2, a3, pc}
+ PICEQ "STR	a1, [v4, #0]"
+ PICNE "STR	a1, |__h_sigalrm_sema|"
+
+ PICEQ "LDMFD	sp!, {a1, a2, a3, v4, pc}"
+ PICNE "LDMFD	sp!, {a1, a2, a3, pc}"
+|.L9|
+ PICEQ "WORD	|__h_sigalrm_sema|"
+	DECLARE_FUNCTION __h_sigalrm
 
 ; Called in SVC mode with IRQs disabled.
 	EXPORT	|__h_sigalrm_init|
@@ -830,11 +1077,25 @@ return_quickly
 	MOV	a2, r12
 	SWI	XOS_AddCallBack
 	LDMFD	sp!, {a1, a2, pc} ;  return without restoring PSR
+	DECLARE_FUNCTION __h_sigalrm_init
+
+	[ __UNIXLIB_ELF > 0
+	[ PIC > 0
+	AREA	|C$$data|, DATA
+	]
+	]
 
 	; Set to one to prevent multiple CallEverys being set up.
 	EXPORT	|__h_sigalrm_sema|
 |__h_sigalrm_sema|
 	DCD	0
+	DECLARE_OBJECT __h_sigalrm_sema
+
+	[ __UNIXLIB_ELF > 0
+	[ PIC > 0
+	AREA	|C$$code|, CODE, READONLY
+	]
+	]
 
 ; Interval timer handler for ITIMER_VIRTUAL
 ; On entry R12 = pointer to interval timerval
@@ -843,16 +1104,27 @@ return_quickly
 	EXPORT	|__h_sigvtalrm|
 	NAME	__h_sigvtalrm
 |__h_sigvtalrm|
-	STMFD	sp!, {a1, a2, a3, lr}
+ PICEQ "STMFD	sp!, {a1, a2, a3, v4, lr}"
+ PICNE "STMFD	sp!, {a1, a2, a3, lr}"
+
+ PICEQ "ADR	r0, __h_sigvtalrm"	; Use routine name for GOT ID
+ PICEQ "SWI	XSOM_GOTFromAddr"	; Find UnixLib GOT pointer
+ PICEQ "MOV	v4, r0"			; Set up PIC register
+
 	MOV	a1, #SIGVTALRM	;  No access to banked registers
 	BL	|__raise|
-	LDR	a1, |__h_sigvtalrm_sema|
+ PICEQ "LDR	a1, |.L10|"		;__h_sigvtalrm_sema
+ PICEQ "LDR	v4, [v4, a1]"
+ PICEQ "LDR	a1, [v4, #0]"
+ PICNE "LDR	a1, |__h_sigvtalrm_sema|"
 	TEQ	a1, #1
-	LDMEQFD	sp!, {a1, a2, a3, pc}
+ PICEQ "LDMEQFD	sp!, {a1, a2, a3, v4, pc}"
+ PICNE "LDMEQFD	sp!, {a1, a2, a3, pc}"
 	LDMIA	ip, {a1, a2}
 	TEQ	a1, #0
 	TEQEQ	a2, #0
-	LDMEQFD	sp!, {a1, a2, a3, pc}
+ PICEQ "LDMEQFD	sp!, {a1, a2, a3, v4, pc}"
+ PICNE "LDMEQFD	sp!, {a1, a2, a3, pc}"
 	MOV	a3, #100
 	MLA	a1, a3, a1, a2
 	ADD	a1, a1, #1
@@ -860,8 +1132,14 @@ return_quickly
 	MOV	a3, ip
 	SWI	XOS_CallEvery
 	MOV	a1, #1
-	STR	a1, |__h_sigvtalrm_sema|
-	LDMFD	sp!, {a1, a2, a3, pc}
+ PICEQ "STR	a1, [v4, #0]"
+ PICNE "STR	a1, |__h_sigvtalrm_sema|"
+
+ PICEQ "LDMFD	sp!, {a1, a2, a3, v4, pc}"
+ PICNE "LDMFD	sp!, {a1, a2, a3, pc}"
+|.L10|
+ PICEQ "WORD	|__h_sigvtalrm_sema|"
+	DECLARE_FUNCTION __h_sigvtalrm
 
 ; Called in SVC mode with IRQs disabled.
 	EXPORT	|__h_sigvtalrm_init|
@@ -872,12 +1150,26 @@ return_quickly
 	MOV	a2, r12
 	SWI	XOS_AddCallBack
 	LDMFD	sp!, {a1, a2, pc} ;  return without restoring PSR
+	DECLARE_FUNCTION __h_sigvtalrm_init
+
+	[ __UNIXLIB_ELF > 0
+	[ PIC > 0
+	AREA	|C$$data|, DATA
+	]
+	]
 
 	; Set to one to prevent multiple CallEverys being set up.
 	EXPORT	|__h_sigvtalrm_sema|
 	NAME	__h_sigvtalrm_sema
 |__h_sigvtalrm_sema|
 	DCD	0
+	DECLARE_OBJECT __h_sigvtalrm_sema
+
+	[ __UNIXLIB_ELF > 0
+	[ PIC > 0
+	AREA	|C$$code|, CODE, READONLY
+	]
+	]
 
 ; Interval timer handler for ITIMER_PROF
 ; On entry R12 = pointer to interval timerval
@@ -886,16 +1178,27 @@ return_quickly
 	EXPORT	|__h_sigprof|
 	NAME	__h_sigprof
 |__h_sigprof|
-	STMFD	sp!, {a1, a2, a3, lr}
+ PICEQ "STMFD	sp!, {a1, a2, a3, v4, lr}"
+ PICNE "STMFD	sp!, {a1, a2, a3, lr}"
+
+ PICEQ "ADR	r0, __h_sigvtalrm"	; Use routine name for GOT ID
+ PICEQ "SWI	XSOM_GOTFromAddr"	; Find UnixLib GOT pointer
+ PICEQ "MOV	v4, r0"			; Set up PIC register
+
 	MOV	a1, #SIGPROF	; No access to banked registers
 	BL	|__raise|
-	LDR	a1, |__h_sigprof_sema|
+ PICEQ "LDR	a1, |.L11|"		;__h_sigprof_sema
+ PICEQ "LDR	v4, [v4, a1]"
+ PICEQ "LDR	a1, [v4, #0]"
+ PICNE "LDR	a1, |__h_sigprof_sema|"
 	TEQ	a1, #1
-	LDMEQFD	sp!, {a1, a2, a3, pc}
+ PICEQ "LDMEQFD	sp!, {a1, a2, a3, v4, pc}"
+ PICNE "LDMEQFD	sp!, {a1, a2, a3, pc}"
 	LDMIA	ip, {a1, a2}
 	TEQ	a1, #0
 	TEQEQ	a2, #0
-	LDMEQFD	sp!, {a1, a2, a3, pc}
+ PICEQ "LDMEQFD	sp!, {a1, a2, a3, v4, pc}"
+ PICNE "LDMEQFD	sp!, {a1, a2, a3, pc}"
 	MOV	a3, #100
 	MLA	a1, a3, a1, a2
 	ADD	a1, a1, #1
@@ -903,8 +1206,14 @@ return_quickly
 	MOV	a3, ip
 	SWI	XOS_CallEvery
 	MOV	a1, #1
-	STR	a1, |__h_sigprof_sema|
-	LDMFD	sp!, {a1, a2, a3, pc}
+ PICEQ "STR	a1, [v4, #0]"
+ PICNE "STR	a1, |__h_sigprof_sema|"
+
+ PICEQ "LDMFD	sp!, {a1, a2, a3, v4, pc}"
+ PICNE "LDMFD	sp!, {a1, a2, a3, pc}"
+|.L11|
+ PICEQ "WORD	|__h_sigprof_sema|"
+	DECLARE_FUNCTION __h_sigprof
 
 ; Called in SVC mode with IRQs disabled.
 	EXPORT	|__h_sigprof_init|
@@ -915,11 +1224,19 @@ return_quickly
 	MOV	a2, r12
 	SWI	XOS_AddCallBack
 	LDMFD	sp!, {a1, a2, pc} ;  return without restoring PSR
+	DECLARE_FUNCTION __h_sigprof_init
+
+	[ __UNIXLIB_ELF > 0
+	[ PIC > 0
+	AREA	|C$$data|, DATA
+	]
+	]
 
 	; Set to one to prevent multiple CallEverys being set up.
 	EXPORT	|__h_sigprof_sema|
 |__h_sigprof_sema|
 	DCD	0
+	DECLARE_OBJECT __h_sigprof_sema
 
 	AREA	|C$$data|, DATA
 
@@ -929,6 +1246,7 @@ return_quickly
 	EXPORT  |__ul_callbackfp|
 |__ul_callbackfp|
 	DCD	0
+	DECLARE_OBJECT __ul_callbackfp
 
 ;-----------------------------------------------------------------------
 ; UnixLib's error buffer.
@@ -946,12 +1264,17 @@ return_quickly
 |__ul_errbuf_errblock|
 	%	4	; Error number provided with the error
 	%	252	; Error string, zero terminated
+	DECLARE_OBJECT __ul_errbuf
+	DECLARE_OBJECT __ul_errbuf_errblock
+
 |__ul_errbuf__size|	EQU	{PC} - |__ul_errbuf_errblock|
 |__ul_errbuf_valid|
 	DCD	0	; Valid flag for errbuf
+	DECLARE_OBJECT __ul_errbuf_valid
 
 	EXPORT |__ul_fp_registers|
 |__ul_fp_registers|
 	%	68	; (4 + 8*8)  FPSR and 8 double-precision registers
+	DECLARE_OBJECT __ul_fp_registers
 
 	END

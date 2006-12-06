@@ -1,3 +1,11 @@
+Wed Dec 06 19:50:16 2006  Lee Noar  <leenoar@ntlworld.com>
+
+	* source/signal/_demangle.s: Add PIC instructions and declare
+	function for ELF DSO.
+	* source/signal/_signal.s: Add PIC instructions and declare
+	functions and objects for ELF DSO.
+	* source/signal/_coredump.s: Declare function for ELF DSO.
+
 Wed Dec 06 19:35:42 2006  Lee Noar  <leenoar@ntlworld.com>
 
 	* source/clib/unixlib/asm_dec.s: Add XSOM_GOTFromAddr to list of SWIs.
