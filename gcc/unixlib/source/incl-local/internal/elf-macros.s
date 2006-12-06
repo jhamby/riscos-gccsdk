@@ -25,32 +25,53 @@
 	@ #define __set_errno(val) (errno = (val), -1)
 	@ Entry condition
 	@   val = new error code
+	@   v4 must be valid as the PIC register when compiling
+	@   for the shared library
 	@ Exit condition
 	@   val = -1
 	@   Rerrno destroyed
 
 	.macro	__set_errno	val, Rerrno
 	.if __UNIXLIB_ERRNO_THREADED > 0
-	ldr	\Rerrno, =__pthread_running_thread
+	ldr	\Rerrno, 0f	@=__pthread_running_thread
+ PICEQ "ldr	\Rerrno, [v4, \Rerrno]"
 	ldr	\Rerrno, [\Rerrno]
 	str	\val, [\Rerrno, #__PTHREAD_ERRNO_OFFSET]
+	B	1f
+0:
+	WORD	__pthread_running_thread
 	.else
-	ldr	\Rerrno, =errno
+	ldr	\Rerrno, 0f	@=errno
+ PICEQ "ldr	\Rerrno, [v4, \Rerrno]"
 	str	\val, [\Rerrno]
+	B	1f
+0:
+	WORD	errno
 	.endif
+1:
 	mov	\val, #-1
 	.endm
 
 
+	@ if compiling for shared library, v4 must be valid as the PIC register
 	.macro	__get_errno	val, Rerrno
 	.if __UNIXLIB_ERRNO_THREADED > 0
-	ldr	\Rerrno, =__pthread_running_thread
+	ldr	\Rerrno, 0f	@=__pthread_running_thread
+ PICEQ "ldr	\Rerrno, [v4, \Rerrno]"
 	ldr	\Rerrno, [\Rerrno]
 	ldr	\val, [\Rerrno, #__PTHREAD_ERRNO_OFFSET]
+	B	1f
+0:
+	WORD	__pthread_running_thread
 	.else
-	ldr	\Rerrno, =errno
+	ldr	\Rerrno, 0f	@=errno
+ PICEQ "ldr	\Rerrno, [v4, \Rerrno]"
 	ldr	\val, [\Rerrno]
+	B	1f
+0:
+	WORD	errno
 	.endif
+1:
 	.endm
 
 	@ NetSWI, NetSWIsimple, NetSWI0 and NetSWIsimple0 are macros to call
@@ -105,6 +126,31 @@
 	.endif
 	msreq	CPSR_c, \scratch
 	mov	a1, a1	@ Avoid StrongARM MSR bug
+	.endm
+
+	@ In the shared library, these values cannot refer to any absolute
+	@ addresses. They are set to zero at compile time and initialised
+	@ at runtime where required.
+	.macro UL_MEMORY_LAYOUT
+	.word	0			@ mutex			offset = 0
+	.word	0			@ appspace_himem	offset = 4
+	.word	0			@ unixlib_stack		offset = 8
+#if PIC
+	.word	0			@ robase		offset = 12
+	.word	0			@ rwlomem		offset = 16
+	.word	0			@ rwbase		offset = 20
+#else
+	.word	Image$$RO$$Base		@ robase		offset = 12
+	.word	Image$$RW$$Limit	@ rwlomem		offset = 16
+	.word	Image$$RW$$Base		@ rwbase		offset = 20
+#endif
+	.word	0			@ rwbreak		offset = 24
+	.word	0			@ unixlib_stack_limit	offset = 28
+	.word	0			@ dalomem		offset = 32
+	.word	0			@ dabreak		offset = 36
+	.word	0			@ dalimit		offset = 40
+	.word	0			@ appspace_limit	offset = 44
+	.word	0			@ old_himem		offset = 48
 	.endm
 
 	@ Macro for declaring the type and size of a function defined in ARM code.

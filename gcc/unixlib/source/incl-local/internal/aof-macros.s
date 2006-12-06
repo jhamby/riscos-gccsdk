@@ -111,6 +111,23 @@
 
 	MEND
 
+	MACRO
+	UL_MEMORY_LAYOUT
+	DCD	0	; mutex			offset = 0
+	DCD	0	; appspace_himem	offset = 4
+	DCD	0	; unixlib_stack		offset = 8
+	DCD	|Image$$$RO$$$Base|	; robase		offset = 12
+	DCD	|Image$$$RW$$$Limit|	; rwlomem		offset = 16
+	DCD	|Image$$$RW$$$Base|	; rwbase		offset = 20
+	DCD	0	; rwbreak		offset = 24
+	DCD	0	; unixlib_stack_limit	offset = 28
+	DCD	0	; dalomem		offset = 32
+	DCD	0	; dabreak		offset = 36
+	DCD	0	; dalimit		offset = 40
+	DCD	0	; appspace_limit	offset = 44
+	DCD	0	; old_himem		offset = 48
+	MEND
+
 	; Macros to mirror ELF versions.
 	MACRO
 	WORD $name
