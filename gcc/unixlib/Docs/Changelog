@@ -1,3 +1,9 @@
+Thur Dec 07 19:42:15 2006  Lee Noar  <leenoar@ntlworld.com>
+
+	* source/clib/errno.h: Ensure C linkage when used with C++
+	compiler, otherwise there's a linkage disagreement with
+	sys_errlist and sys_nerr in stdio.h.
+
 Wed Dec 06 20:19:15 2006  Lee Noar  <leenoar@ntlworld.com>
 
 	* source/sys/_os.s: Declare functions for ELF DSO.

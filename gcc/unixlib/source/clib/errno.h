@@ -111,6 +111,8 @@
 
 #undef errno
 
+__BEGIN_DECLS
+
 #if __UNIXLIB_ERRNO_THREADED
 /* Errno is thread local.  */
 
@@ -158,5 +160,7 @@ extern struct
 } __ul_fp_registers;
 
 #endif /* __UNIXLIB_INTERNALS */
+
+__END_DECLS
 
 #endif
