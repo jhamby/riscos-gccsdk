@@ -1,3 +1,8 @@
+Sat Dec 09 14:47:59 2006  Lee Noar  <leenoar@ntlworld.com>
+
+	* source/sys/_syslib.s(__rt_stkovf_split_big): Make sure that the frame size
+	calculation takes into account the PIC register.
+
 Sat Dec 09 14:26:02 2006  Lee Noar  <leenoar@ntlworld.com>
 
 	* source/sys/_jmp.s: Add PIC instructions and declare functions

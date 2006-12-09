@@ -761,7 +761,8 @@ handlers
 	; calculation below
 
 	SUB	v1, sp, ip	; Get required frame size
-	ADD	v1, v1, #8*4	; Take account of the earlier STMFD
+ PICNE "ADD	v1, v1, #8*4"	; Take account of the earlier STMFD (static library)
+ PICEQ "ADD	v1, v1, #9*4"	; Take account of the earlier STMFD (shared library)
 
 	; Size of chunk header and space for stack extension procedures
 	ADD	v1, v1, #512+CHUNK_OVERHEAD
