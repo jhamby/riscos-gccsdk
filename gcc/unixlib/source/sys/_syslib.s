@@ -93,6 +93,19 @@ SUL_MIN_VERSION	EQU	107
 
 	ENTRY
 |__main|
+	; The dynamic loader passes, in r0, the address where free memory starts
+	; after it has grabbed what it needs. r1 & r2 come from crt1.o which is
+	; linked into the executable. They contain MEM_ROBASE and MEM_RWBASE
+	; respectively.
+ PICEQ "MOV	v1, r0"
+ PICEQ "MOV	v2, r1"
+ PICEQ "MOV	v3, r2"
+
+ PICEQ "MOV	r0, lr"	; Preserve the return address
+ PICEQ "BL	__rt_load_pic"
+	; v4 is already in use below, so use v6 as the PIC register
+ PICEQ "MOV	v6, v4"
+
 	; Read environment parameters
 	; On exit:
 	;   a1 = pointer to environment string
@@ -103,13 +116,21 @@ SUL_MIN_VERSION	EQU	107
 	; struct_base is the start of our memory environment variables
 	; See the end of this file.  For the initialisation here, we
 	; will always use ip as the base register.
-	LDR	ip, =|__ul_global|
-	LDR	fp, =|__ul_memory|
+	LDR	ip, |.L0|	;=__ul_global
+ PICEQ "LDR	ip, [v6, ip]"
+	LDR	fp, |.L0|+4	;=__ul_memory
+ PICEQ "LDR	fp, [v6, fp]"
 
 	; __unixlib_cli = pointer to command line
 	STR	a1, [ip, #GBL_UNIXLIB_CLI]
 	; __image_rw_himem = permitted RAM limit
 	STR	a2, [fp, #MEM_APPSPACE_HIMEM]
+
+	; For the shared library, fill in the linker generated values that
+	; are passed in by crt1.o. These are only known at runtime.
+ PICEQ "STR	v2, [fp, #MEM_ROBASE]"
+ PICEQ "STR	v1, [fp, #MEM_RWLOMEM]"
+ PICEQ "STR	v3, [fp, #MEM_RWBASE]"
 
 	LDMIA	a3, {a1, a2}			; Get time
 	STR	a1, [ip, #GBL_TIME_LOW]		; __time (low word)
@@ -189,17 +210,21 @@ SUL_MIN_VERSION	EQU	107
 
 	MOV	ip, v1		; Restore ip.
 
-	LDR	a1, =|rmensure1|	; If no SUL or not recent enough, ...
+	LDR	a1, |.L0|+12	;=rmensure1	; If no SUL or not recent enough, ...
+ PICEQ "LDR	a1, [v4, a1]"
 	SWI	XOS_CLI			; load it.
-	LDR	a1, =|rmensure2|	; Try a second location.
+	LDR	a1, |.L0|+16	;=rmensure2	; Try a second location.
+ PICEQ "LDR	a1, [v4, a1]"
 	SWI	XOS_CLI			;
-	LDRVC	a1, =|rmensure3|	; If still not recent enough, ...
+	LDRVC	a1, |.L0|+20	;=rmensure3	; If still not recent enough, ...
+ PICEQ "LDRVC	a1, [v4, a1]"
 	SWIVC	XOS_CLI			; complain.
 	MOVVS	a1, #ERR_NO_SUL
 	BVS	|__exit_with_error_num|
 
 	; Use of DAs explicitly overridden if __dynamic_no_da is declared
 	LDR	a1, |___dynamic_no_da|
+ PICEQ "LDR	a1, [v6, a1]"
 	TEQ	a1, #0
 	BNE	no_dynamic_area
 
@@ -238,6 +263,7 @@ SUL_MIN_VERSION	EQU	107
 	; Area name is <program name> + "$Heap".  Figure now out what
 	; <program name> is.
 	LDR	a1, |___program_name|
+ PICEQ "LDR	a1, [v6, a1]"
 	TEQ	a1, #0
 	LDREQ	a1, [ip, #GBL_UNIXLIB_CLI]	; __cli
 	LDRNE	a1, [a1, #0]	; __program_name
@@ -255,7 +281,8 @@ t01
 
 	; Use a maximum of (dynamic_area_name_end - dynamic_area_name_begin)
 	; characters from the program name
-	LDR	v1, =dynamic_area_name_end
+	LDR	v1, |.L0|+8	;=dynamic_area_name_end
+ PICEQ "LDR	v1, [v6, v1]"
 	MOV	a3, #0
 	STRB	a3, [v1, #5]	; Terminate the $Heap
 
@@ -282,6 +309,7 @@ t02
 	; e.g.:  const char * const __dynamic_da_name = "Nettle Heap";
 
 	LDR	v5, |___dynamic_da_name|
+ PICEQ "LDR	v5, [v6, v5]"
 	TEQ	v5, #0
 	LDRNE	v5, [v5, #0]	; get the actual string referred to
 	BNE	t07
@@ -302,10 +330,12 @@ t07
 	MOV	v2, #32*1024*1024
 	; If __dynamic_da_max_size is defined, use its value as the max size
 	LDR	v1, |___dynamic_da_max_size|
+ PICEQ "LDR	v1, [v6, v1]"
 	TEQ	v1, #0
 	LDRNE	v2, [v1]
 
-	LDR	a1, =dynamic_area_name_end
+	LDR	a1, |.L0|+8	;=dynamic_area_name_end
+ PICEQ "LDR	a1, [v6, a1]"
 	MOV	a3, #"M"
 	STRB	a3, [a1, #5]	; Change back to $HeapMax
 
@@ -322,7 +352,8 @@ t07
 
 	; v2 = size of DA area
 t08
-	LDR	a1, =dynamic_area_name_end
+	LDR	a1, |.L0|+8	;=dynamic_area_name_end
+ PICEQ "LDR	a1, [v6, a1]"
 	MOV	a3, #0
 	STRB	a3, [a1, #5]	; Change back to $Heap
 
@@ -408,10 +439,17 @@ no_dynamic_area
 	; calling this function.
 	BL	|__unixinit|
 
-	; Run the user's program.
 	BL	|_main|
 	; C programs always terminate by calling exit.
 	B	exit
+|.L0|
+	WORD	|__ul_global|
+	WORD	|__ul_memory|
+	WORD	|dynamic_area_name_end|
+	WORD	|rmensure1|
+	WORD	|rmensure2|
+	WORD	|rmensure3|
+	DECLARE_FUNCTION __main
 
 	; Weak symbols.  We need only export these symbols for AOF/GCC
 	; compatibility.  For ELF, we don't need to export at all.
@@ -421,10 +459,18 @@ no_dynamic_area
 	EXPORT	|___dynamic_da_max_size|
 	EXPORT	|___dynamic_no_da|
 	]
-|___program_name|		DCD	|__program_name|
-|___dynamic_da_name|		DCD	|__dynamic_da_name|
-|___dynamic_da_max_size|	DCD	|__dynamic_da_max_size|
-|___dynamic_no_da|		DCD	|__dynamic_no_da|
+|___program_name|
+	WORD	|__program_name|
+	DECLARE_OBJECT ___program_name
+|___dynamic_da_name|
+	WORD	|__dynamic_da_name|
+	DECLARE_OBJECT ___dynamic_da_name
+|___dynamic_da_max_size|
+	WORD	|__dynamic_da_max_size|
+	DECLARE_OBJECT ___dynamic_da_max_size
+|___dynamic_no_da|
+	WORD	|__dynamic_no_da|
+	DECLARE_OBJECT ___dynamic_no_da
 
 	; Can only be used to report fatal errors under certain conditions.
 	; Be sure that at this point the UnixLib environment handlers
@@ -434,14 +480,30 @@ no_dynamic_area
 	; a1 contains an index to the error to print.
 	NAME	__exit_with_error_num
 |__exit_with_error_num|
-	ADR	a2, error_table
+ PICEQ "BL	__rt_load_pic"
+ PICEQ "LDR	a2, |.L7|"		; error_table
+ PICEQ "LDR	a2, [v4, a2]"
+
+ PICNE "ADR	a2, error_table"
 	CMP	a1, #(error_table_end - error_table) >> 2
 	MOVCS	a1, #ERR_UNRECOVERABLE
 	LDR	a1, [a2, a1, LSL #2]
 
 __exit_with_error_block
 	SWI	OS_GenerateError
+|.L7|
+	WORD	error_table
+	DECLARE_FUNCTION __exit_with_error_num
+	DECLARE_FUNCTION __exit_with_error_block
 
+	[ __UNIXLIB_ELF > 0
+	[ PIC > 0
+	AREA	|C$$data|, DATA
+	]
+	]
+
+	; Make sure there are no absolute addresses in shared library by placing error_table
+	; in read/write segment and addressing via GOT.
 error_table
 	DCD	error_no_memory
 	DCD	error_no_callaswi
@@ -454,6 +516,13 @@ error_table
 ;	DCD	error_no_xscale
 ;	]
 error_table_end
+	DECLARE_OBJECT error_table
+
+	[ __UNIXLIB_ELF > 0
+	[ PIC > 0
+	AREA	|C$$code|, CODE, READONLY
+	]
+	]
 
 error_no_callaswi
 	DCD	SharedUnixLibrary_Error_NoCallASWI
@@ -490,30 +559,45 @@ error_unrecoverable_loop
 	EXPORT	|__dynamic_area_exit|
 	NAME	__dynamic_area_exit
 |__dynamic_area_exit|
-	STMFD	sp!, {lr}
-	LDR	a1, =|__dynamic_area_refcount|
+ PICNE "STMFD	sp!, {lr}"
+ PICEQ "STMFD	sp!, {v4, lr}"
+ PICEQ "BL	__rt_load_pic"
+
+	LDR	a1, |.L1|	;=__dynamic_area_refcount
+ PICEQ "LDR	a1, [v4, a1]"
 	LDR	a2, [a1]
 	SUBS	a2, a2, #1		; Decrement __dynamic_area_refcount,
 	STR	a2, [a1]		; and only remove the areas when the
-	LDMNEFD	sp!, {pc}		; count reaches zero
+ PICNE "LDMNEFD	sp!, {pc}"		; count reaches zero
+ PICEQ "LDMNEFD	sp!, {v4, pc}"
 
 	BL	|__munmap_all|
 
-	LDR	a2, =|__ul_global|
+	LDR	a2, |.L1|+4	;=__ul_global
+ PICEQ "LDR	a2, [v4, a2]"
 	LDR	a2, [a2, #GBL_DYNAMIC_NUM]
 	MOV	a1, #1
 	CMP	a2, #-1
 	SWINE	XOS_DynamicArea
-	LDMFD	sp!, {pc}
+ PICEQ "LDMFD	sp!, {v4, pc}"
+ PICNE "LDMFD	sp!, {pc}"
+|.L1|
+	WORD	|__dynamic_area_refcount|
+	WORD	|__ul_global|
+	DECLARE_FUNCTION __dynamic_area_exit
 
 	; Restore original RISC OS environment handlers
 	EXPORT	|__env_riscos|
 	NAME __env_riscos
 |__env_riscos|
-	STMFD	sp!, {v1, v2, lr}
+ PICNE "STMFD	sp!, {v1, v2, lr}"
+ PICEQ "STMFD	sp!, {v1, v2, v4, lr}"
+ PICEQ "BL	__rt_load_pic"
+
 	SWI	XOS_IntOff
 	MOV	v1, #0
-	LDR	v2, =|__calling_environment|
+	LDR	v2, |.L2|	;=__calling_environment
+ PICEQ "LDR	v2, [v4, v2]"
 t04
 	MOV	a1, v1
 	LDMIA	v2!, {a2, a3, a4}
@@ -524,14 +608,22 @@ t04
 	CMP	v1, #17		;  __ENVIRONMENT_HANDLERS
 	BCC	t04
 	SWI	XOS_IntOn
-	LDMFD	sp!, {v1, v2, pc}
+ PICNE "LDMFD	sp!, {v1, v2, pc}"
+ PICEQ "LDMFD	sp!, {v1, v2, v4, pc}"
+|.L2|
+	WORD	|__calling_environment|
+	DECLARE_FUNCTION __env_riscos
 
 	; Get current environment handler setup
 	NAME	__env_read
 |__env_read|
-	STMFD	sp!, {a1, a2, a3, a4, v1, v2, lr}
+ PICNE "STMFD	sp!, {a1, a2, a3, a4, v1, v2, lr}"
+ PICEQ "STMFD	sp!, {a1, a2, a3, a4, v1, v2, v4, lr}"
+ PICEQ "BL	__rt_load_pic"
+
 	MOV	v1, #0
-	LDR	v2, =|__calling_environment|
+	LDR	v2, |.L2|	;=__calling_environment
+ PICEQ "LDR	v2, [v4, v2]"
 t05
 	MOV	a1, v1
 	MOV	a2, #0
@@ -542,33 +634,51 @@ t05
 	ADD	v1, v1, #1
 	CMP	v1, #17
 	BCC	t05
-	LDMFD	sp!, {a1, a2, a3, a4, v1, v2, pc}
+ PICEQ "LDMFD	sp!, {a1, a2, a3, a4, v1, v2, v4, pc}"
+ PICNE "LDMFD	sp!, {a1, a2, a3, a4, v1, v2, pc}"
+	DECLARE_FUNCTION __env_read
 
 	IMPORT	|__ul_errbuf|
 	; Install the UnixLib environment handlers
 	EXPORT	|__env_unixlib|
 	NAME	__env_unixlib
 |__env_unixlib|
-	STMFD	sp!, {a1, a2, a3, a4, v1, v2, lr}
+ PICEQ "STMFD	sp!, {a1, a2, a3, a4, v1, v2, v4, lr}"
+ PICNE "STMFD	sp!, {a1, a2, a3, a4, v1, v2, lr}"
+ PICEQ "BL	__rt_load_pic"
+
 	SWI	XOS_IntOff
 
 	MOV	v1, #0
-	ADR	v2, handlers
+ PICNE "ADR	v2, handlers"
+
+ PICEQ "LDR	v2, |.L3|+12"		; handlers
+ PICEQ "LDR	v2, [v4, v2]"
 t06
 	MOV	a1, v1
 	LDR	a2, [v2], #4
-	MOV	a3, #0
+
+	; For the shared library, pass the GOT pointer to the handlers
+	; that are used by UnixLib.
+ PICEQ "CMP	a2, #0"
+ PICEQ "MOVEQ	a3, #0"
+ PICEQ "MOVNE	a3, v4"
+ PICNE "MOV	a3, #0"
+
 	MOV	a4, #0
 	TEQ	v1, #6		; Error handler ?
-	LDREQ	a4, =|__ul_errbuf|
+	LDREQ	a4, |.L3|	;=__ul_errbuf
+ PICEQ "LDREQ	a4, [v4, a4]"
 	TEQ	v1, #7		; CallBack handler ?
-	LDREQ	a4, =|__cbreg|
+	LDREQ	a4, |.L3|+4	;=__cbreg
+ PICEQ "LDREQ	a4, [v4, a4]"
 	SWI	XOS_ChangeEnvironment
 	ADD	v1, v1, #1
 	CMP	v1, #16
 	BCC	t06
 
-	LDR	a4, =|__ul_global|
+	LDR	a4, |.L3|+8	;=__ul_global
+ PICEQ "LDR	a4, [v4, a4]"
 	MOV	a1, #16
 	LDR	a2, [a4, #GBL_UPCALL_HANDLER_ADDR]
 	LDR	a3, [a4, #GBL_UPCALL_HANDLER_R12]
@@ -576,8 +686,24 @@ t06
 	SWI	XOS_ChangeEnvironment
 
 	SWI	XOS_IntOn
-	LDMFD	sp!, {a1, a2, a3, a4, v1, v2, pc}
+ PICEQ "LDMFD	sp!, {a1, a2, a3, a4, v1, v2, v4, pc}"
+ PICNE "LDMFD	sp!, {a1, a2, a3, a4, v1, v2, pc}"
+|.L3|
+	WORD	|__ul_errbuf|
+	WORD	|__cbreg|
+	WORD	|__ul_global|
+ PICEQ "WORD	|handlers|"
+	DECLARE_FUNCTION __env_unixlib
 
+	[ __UNIXLIB_ELF > 0
+	[ PIC > 0
+	AREA	|C$$data|, DATA
+	]
+	]
+
+	; In the shared library, we can't have absolute addresses in the read only
+	; segment or else we'll end up with text relocations, therefore handlers
+	; has to go in the read/write segment.
 handlers
 	DCD	0		; Memory limit
 	DCD	|__h_sigill|	; Undefined instruction
@@ -597,6 +723,12 @@ handlers
 	DCD	0		; Currently active object
 	DCD	0		; UpCall
 
+	[ __UNIXLIB_ELF > 0
+	[ PIC > 0
+	AREA	|C$$code|, CODE, READONLY
+	]
+	]
+
 	; Same as the SCL's magic number, for compatibility in libgcc
 	EXPORT	|__stackchunk_magic_number|
 |__stackchunk_magic_number|
@@ -609,7 +741,8 @@ handlers
 	NAME	__rt_stkovf_split_small
 |__rt_stkovf_split_small|
 	; This must store the same regs as for __rt_stkovf_split_big
-	STMFD	sp!, {a1, a2, a3, a4, v1, v2, v3, lr}
+ PICNE "STMFD	sp!, {a1, a2, a3, a4, v1, v2, v3, lr}"
+ PICEQ "STMFD	sp!, {a1, a2, a3, a4, v1, v2, v3, v4, lr}"
 
 	MOV	v1, #4096
 	B	stack_overflow_common
@@ -621,7 +754,8 @@ handlers
 |__rt_stkovf_split_big|
 	CMP	ip, sl		; sanity check
 	MOVPL	pc, lr
-	STMFD	sp!, {a1, a2, a3, a4, v1, v2, v3, lr}
+ PICNE "STMFD	sp!, {a1, a2, a3, a4, v1, v2, v3, lr}"
+ PICEQ "STMFD	sp!, {a1, a2, a3, a4, v1, v2, v3, v4, lr}"
 	; This must store the same regs as for __rt_stkovf_split_small
 	; and if changed, also update the 8*4 in the frame size
 	; calculation below
@@ -641,8 +775,11 @@ handlers
 	; Thread-safe, other than the __stackalloc/free calls
 	; v1 = extra size needed.
 stack_overflow_common
+ PICEQ "BL	__rt_load_pic"
+
 	; The signal handler stack chunk can't be extended.
-	LDR	a1, =|__ul_global|
+	LDR	a1, |.L4|	;=__ul_global
+ PICEQ "LDR	a1, [v4, a1]"
 	LDR	a1, [a1, #GBL_EXECUTING_SIGNALHANDLER]
 	TEQ	a1, #0
 	BNE	signalhandler_overflow
@@ -707,7 +844,8 @@ use_existing_chunk
 	ADD	sp, a1, v1	; New sp is the top of the new chunk
 	ADD	sl, a1, #512+CHUNK_OVERHEAD
 
-	LDR	a2, =|__stackfree|
+	LDR	a2, |.L4|+4	;=__stackfree
+ PICEQ "LDR	a2, [v4, a2]"
 	STR	a2, [a1, #CHUNK_DEALLOC] ; For compatibility with scl, in libgcc
 
 	LDR	a2, [fp, #-4]	; Load the return address
@@ -721,8 +859,11 @@ use_existing_chunk
 	ORRNE	a3, a2, a3
 	STR	a3, [fp, #-4]	; Replace it with our chunk free procedure
 
-	LDMFD	v3, {a1, a2, a3, a4, v1, v2, v3, pc}
-
+ PICNE "LDMFD	v3, {a1, a2, a3, a4, v1, v2, v3, pc}"
+ PICEQ "LDMFD	v3, {a1, a2, a3, a4, v1, v2, v3, v4, pc}"
+|.L4|
+	WORD	|__ul_global|
+	WORD	|__stackfree|
 raise_sigstak
 	; The 256 bytes left on the stack aren't enough for the signal
 	; handler so setup a larger stack
@@ -757,10 +898,13 @@ signalhandler_overflow_msg
 signalhandler_overflow
 	ADR	a1, signalhandler_overflow_msg
 	B	__unixlib_fatal
+	DECLARE_FUNCTION __rt_stkovf_split_small
+	DECLARE_FUNCTION __rt_stkovf_split_big
 
 	[ __UNIXLIB_EXTREMELY_PARANOID > 0
 	; Check every stack chunk in the chain to ensure it contains
 	; sensible values.
+	; v4 set by caller to UnixLib GOT pointer
 	EXPORT	|__check_stack|
 	NAME	__check_stack
 |__check_stack|
@@ -768,11 +912,13 @@ signalhandler_overflow
 	STMFD	sp!, {a1, a2, a3, a4, v1, v2, fp, ip, lr, pc}
 	SUB	fp, ip, #4
 
-	LDR	a1, =|__ul_global|
+	LDR	a1, |.L5|	;=__ul_global
+ PICEQ "LDR	a1, [v4, a1]"
 	LDR	a1, [a1, #GBL_PTH_SYSTEM_RUNNING]
 	TEQ	a1, #0
 	BLNE	|__pthread_disable_ints|
-	LDR	a1, =|__ul_memory|
+	LDR	a1, |.L5|+4	;=__ul_memory
+ PICEQ "LDR	a1, [v4, a1]"
 	LDR	a2, [a1, #MEM_UNIXLIB_STACK]
 	LDR	a3, [a1, #MEM_APPSPACE_HIMEM]
 	LDR	a4, [a1, #MEM_ROBASE]
@@ -790,12 +936,15 @@ __check_stack_l2
 __check_stack_l3
 	CMP	a1, #0
 	BNE	__check_stack_l4
-	LDR	a1, =|__ul_global|
+	LDR	a1, |.L5|	;=__ul_global
+ PICEQ "LDR	a1, [v4, a1]"
 	LDR	a1, [a1, #GBL_PTH_SYSTEM_RUNNING]
 	CMP	a1, #0
 	BLNE	|__pthread_enable_ints|
 	LDMEA	fp, {a1, a2, a3, a4, v1, v2, fp, sp, pc}
-
+|.L5|
+	WORD	|__ul_global|
+	WORD	|__ul_memory|
 __check_stack_l4
 	BL	__check_chunk
 	LDR	a1, [a1, #CHUNK_PREV]
@@ -859,6 +1008,7 @@ __check_chunk_l1
 	BCS	stack_corrupt
 __check_chunk_l2
 	MOV	pc, lr
+	DECLARE_FUNCTION __check_stack
 	] ; __UNIXLIB_EXTREMELY_PARANOID > 0
 
 
@@ -870,6 +1020,7 @@ __check_chunk_l2
 	MOVNE	a3, #0
 	STRNE	a3, [a2, #CHUNK_NEXT]
 	MOVEQ	pc, lr	; Falls through to __free_stack_chain if required
+	DECLARE_FUNCTION __trim_stack
 
 	EXPORT	|__free_stack_chain|
 |__free_stack_chain| ; free a chain of stack chunks pointer to by a1
@@ -885,6 +1036,7 @@ __free_stack_chain_l1
 	MOVS	a1, v1
 	BNE	__free_stack_chain_l1
 	LDMFD	sp!, {v1, pc}
+	DECLARE_FUNCTION __free_stack_chain
 
 
 free_stack_chunk
@@ -934,6 +1086,7 @@ no_chunk_to_free
 	LDR	sl, [sl, #CHUNK_PREV]
 	ADD	sl, sl, #512+CHUNK_OVERHEAD
 	MOV	pc, lr
+	DECLARE_FUNCTION free_stack_chunk
 
 
 	; void * __builtin_return_adress (unsigned int level)
@@ -942,7 +1095,7 @@ no_chunk_to_free
 	; here because we need to cope with the function return address
 	; being modified in the frame by calls to stack extension code
 	; or calls to alloca.
-	
+
 	; Return the return address of the current function (level == 0)
 	; or of one of its callers.  Return 0 if at the top of the stack
 	; or the address is unobtainable
@@ -973,6 +1126,7 @@ no_chunk_to_free
 
 	; XXX FIXME: Implement alloca() return address check.
 	MOV	pc, lr
+	DECLARE_FUNCTION __builtin_return_address
 
 
 	; Globally used panic button.
@@ -985,13 +1139,25 @@ no_chunk_to_free
 	; We don't want to assume anything about the stack as the stack
 	; corruption detection routines will call this routine in case
 	; something is wrong.
-	LDR	a4, =|__ul_global|
+
+	; For shared library, preserve v4 & lr without using stack
+ PICEQ "MOV	fp, v4"
+ PICEQ "MOV	ip, lr"
+ PICEQ "BL	__rt_load_pic"
+ PICEQ "MOV	lr, ip"
+
+	LDR	a4, |.L6|	;=__ul_global
+ PICEQ "LDR	a4, [v4, a4]"
+ PICEQ "MOV	v4, fp"
 	LDR	sp, [a4, #GBL_SIGNALHANDLER_SP]
 	MOV	fp, #0
 	LDR	sl, [a4, #GBL_SIGNALHANDLER_SL]
 
 	MOV	ip, sp
-	STMDB	sp!, {v1, fp, ip, lr, pc}
+ PICNE "STMDB	sp!, {v1, fp, ip, lr, pc}"
+ PICEQ "STMDB	sp!, {v1, v4, fp, ip, lr, pc}"
+ PICEQ "BL	__rt_load_pic"
+
 	SUB	fp, ip, #4
 
 	; We've been here before ? If so, we're looping in our fatal
@@ -1025,7 +1191,11 @@ __unixlib_fatal_got_msg
 	MOV	a1, #1
 	BL	_exit
 	; Should never return
-	LDMDB	fp, {v1, fp, sp, pc}
+ PICNE "LDMDB	fp, {v1, fp, sp, pc}"
+ PICEQ "LDMDB	fp, {v1, v4, fp, sp, pc}"
+|.L6|
+	WORD	|__ul_global|
+	DECLARE_FUNCTION __unixlib_fatal
 
 	; int _kernel_fpavailable (void)
 	; Return non-zero if the floating point instruction set is available
@@ -1034,6 +1204,7 @@ __unixlib_fatal_got_msg
 |_kernel_fpavailable|
 	MOV	a1, #1
 	MOV	pc, lr
+	DECLARE_FUNCTION _kernel_fpavailable
 
 	EXPORT	|__unixlib_get_fpstatus|
 |__unixlib_get_fpstatus|
@@ -1043,6 +1214,7 @@ __unixlib_fatal_got_msg
 	mov	r0, #0
 	]
 	mov	pc, lr
+	DECLARE_FUNCTION __unixlib_get_fpstatus
 
 	EXPORT	|__unixlib_set_fpstatus|
 |__unixlib_set_fpstatus|
@@ -1050,6 +1222,7 @@ __unixlib_fatal_got_msg
 	wfs	r0
 	]
 	mov	pc, lr
+	DECLARE_FUNCTION __unixlib_set_fpstatus
 
 	; int __valid_address (const void *lower, const void *upper)
 	; Return non-zero value when address range <lower> - <upper> (excl)
@@ -1062,6 +1235,7 @@ __unixlib_fatal_got_msg
 	MOVCC	a1, #1
 	MOVCS	a1, #0
 	MOV	pc, lr
+	DECLARE_FUNCTION __valid_address
 
 	AREA	|C$$zidata|, DATA, NOINIT
 
@@ -1071,18 +1245,20 @@ __unixlib_fatal_got_msg
 	EXPORT	|__calling_environment|
 |__calling_environment|
 	% 204
+	DECLARE_OBJECT __calling_environment
 
 	AREA	|C$$data|, DATA
 
 	EXPORT	|__dynamic_area_refcount|
 |__dynamic_area_refcount|
 	DCD	1
+	DECLARE_OBJECT __dynamic_area_refcount
 dynamic_area_name_begin
 	%	MAX_DA_NAME_SIZE
 dynamic_area_name_end
 	DCB	"$HeapMax", 0
 	ALIGN
-
+	DECLARE_OBJECT dynamic_area_name_begin
 
 
 
@@ -1153,65 +1329,63 @@ dynamic_area_name_end
 
 |__pthread_return_address|
 	DCD	0						; offset = 56
+	DECLARE_OBJECT __pthread_return_address
 
 |__pthread_worksemaphore|
 	DCD	0						; offset = 60
+	DECLARE_OBJECT __pthread_worksemaphore
 
 	; Prevent a callback being set whilst servicing another callback
 |__pthread_callback_semaphore|
 	DCD	0						; offset = 64
+	DECLARE_OBJECT __pthread_callback_semaphore
 
 	; Global initialisation flag.  UnixLib internally uses this to
 	; test whether or not to use mutexes for locking critical structures.
 |__pthread_system_running|
 	DCD	0						; offset = 68
+	DECLARE_OBJECT __pthread_system_running
 
 	; Non zero if a callback occured when context switching was
 	; temporarily disabled
 |__pthread_callback_missed|
 	DCD	0						; offset = 72
+	DECLARE_OBJECT __pthread_callback_missed
 
 	; Number of running threads.
 |__pthread_num_running_threads|
 	DCD	1						; offset = 76
+	DECLARE_OBJECT __pthread_num_running_threads
 
 	; Non-zero if we are currently executing a signal handler
 |__executing_signalhandler|
 	DCD	0						; offset = 80
+	DECLARE_OBJECT __executing_signalhandler
 
 	; Stack limit for signal handlers
 |__signalhandler_sl|
 	DCD	0						; offset = 84
+	DECLARE_OBJECT __signalhandler_sl
 
 	; Stack pointer for signal handlers
 |__signalhandler_sp|
 	DCD	0						; offset = 88
+	DECLARE_OBJECT __signalhandler_sp
 
 	DCD	0	; __mutex		offset = 92
 	DCD	0	; malloc_state		offset = 96
+	DECLARE_OBJECT __ul_global
 
 
-
+	; In the shared library, these values cannot refer to any absolute
+	; addresses. They are set to zero at compile time and initialised
+	; at runtime where required.
+	; Because of the different permutations (ie, static AOF, static ELF,
+	; dynamic ELF), it's neater to use a macro to define the layout of
+	; __ul_memory. See incl-local/internal/ *-macros.s.
 	EXPORT	|__ul_memory|
 |__ul_memory|
-	DCD	0	; mutex			offset = 0
-	DCD	0	; appspace_himem	offset = 4
-	DCD	0	; unixlib_stack		offset = 8
-	[ __UNIXLIB_ELF > 0
-	DCD	|__executable_start|	; robase		offset = 12
-	DCD	|__end__|		; rwlomem		offset = 16
-	DCD	|__data_start|		; rwbase		offset = 20
-	|
-	DCD	|Image$$RO$$Base|	; robase		offset = 12
-	DCD	|Image$$RW$$Limit|	; rwlomem		offset = 16
-	DCD	|Image$$RW$$Base|	; rwbase		offset = 20
-	]
-	DCD	0	; rwbreak		offset = 24
-	DCD	0	; unixlib_stack_limit	offset = 28
-	DCD	0	; dalomem		offset = 32
-	DCD	0	; dabreak		offset = 36
-	DCD	0	; dalimit		offset = 40
-	DCD	0	; appspace_limit	offset = 44
-	DCD	0	; old_himem		offset = 48
+	UL_MEMORY_LAYOUT
+	DECLARE_OBJECT __ul_memory
 
 	END

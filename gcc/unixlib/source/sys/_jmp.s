@@ -27,19 +27,25 @@
 	EXPORT	setjmp
 	NAME	setjmp
 setjmp
+ PICEQ "STMFD	sp!, {v4, lr}"
+ PICEQ "BL	__rt_load_pic"
+
 	; record the current allocation pointer for use with longjmp
 	; Note, alloca_list is a weak symbol so may not be set
 	IMPORT	|__pthread_running_thread|
-	LDR	a4, =|__pthread_running_thread|
+	LDR	a4, |.L0|	;=__pthread_running_thread
+ PICEQ "LDR	a4, [v4, a4]"
 	LDR	a4, [a4]
 	LDR	a4, [a4, #|__PTHREAD_ALLOCA_OFFSET| + 8]
 	STR	a4, [a1], #4
 
-	LDR	a4, =|__executing_signalhandler|
+	LDR	a4, |.L0|+4	;=__executing_signalhandler
+ PICEQ "LDR	a4, [v4, a4]"
 	LDR	a4, [a4]
 	STR	a4, [a1], #4
 
-	LDR	a4, =|__pthread_worksemaphore|
+	LDR	a4, |.L0|+8	;=__pthread_worksemaphore
+ PICEQ "LDR	a4, [v4, a4]"
 	LDR	a4, [a4]
 	STR	a4, [a1], #4
 
@@ -48,14 +54,27 @@ setjmp
 	|
 	ADD	a1, a1, #4*12
 	]
+ PICEQ "LDMFD	sp!, {v4, lr}"
+
 	STMIA	a1, {v1, v2, v3, v4, v5, v6, sl, fp, sp, lr}
 
 	MOV	a1, #0
 	MOV	pc, lr
+|.L0|
+	WORD	|__pthread_running_thread|
+	WORD	|__executing_signalhandler|
+	WORD	|__pthread_worksemaphore|
+	DECLARE_FUNCTION setjmp
 
 	EXPORT	longjmp
 	NAME	longjmp
 longjmp
+	; No need to save lr or PIC register as they are overwritten
+	; later on anyway. v4 is already used below, so use v6 as the PIC
+	; register.
+ PICEQ "BL	__rt_load_pic"
+ PICEQ "MOV	v6, v4"
+
 	; Free allocations that occurred after the setjmp. This must be
 	; done before any registers, including the fp registers, are
 	; restored from the jmp_buf, because free() could do anything.
@@ -64,7 +83,8 @@ longjmp
 	; call to longjmp does occur, then the v1-v6 are going to be
 	; safely restored to their current values.
 
-	LDR	v5, =|__pthread_running_thread|
+	LDR	v5, |.L0|	;=__pthread_running_thread
+ PICEQ "LDR	v5, [v6, v5]"
 	LDR	v5, [v5]
 	ADD	v5, v5, #|__PTHREAD_ALLOCA_OFFSET| + 8
 	LDR	v4, [a1], #4
@@ -93,11 +113,13 @@ longjmp
 	LDR	sp, [v1, #92 - 4]
 	BL	|__trim_stack|
 
-	LDR	a1, =|__executing_signalhandler|
+	LDR	a1, |.L0|+4	;=__executing_signalhandler
+ PICEQ "LDR	a1, [v6, a1]"
 	LDR	lr, [v1], #4
 	STR	lr, [a1]
 
-	LDR	a1, =|__pthread_worksemaphore|
+	LDR	a1, |.L0|+8	;=__pthread_worksemaphore
+ PICEQ "LDR	a1, [v6, a1]"
 	LDR	lr, [v1], #4
 	STR	lr, [a1]
 
@@ -144,5 +166,6 @@ longjmp
 	DCB	13, 10
 	DCB	"   i.e. the scope of the setjmp has exited."
 	DCB	13, 10, 0
+	DECLARE_FUNCTION longjmp
 
 	END

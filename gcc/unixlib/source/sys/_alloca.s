@@ -10,7 +10,7 @@
 	IMPORT  |__ul_memory|
 	IMPORT  abort
 
-	; void *__rt_allocauto(unsigned int __size)
+	; void *__alloc(unsigned int __size)
 	EXPORT  |__alloca|
 	EXPORT  |alloca|
 	NAME	__alloca
@@ -20,12 +20,14 @@
 	MOVEQ	pc, lr
 
 	ADD	a1, a1, #8
-	STMFD	sp!, {lr}
+ PICEQ "STMFD	sp!, {v4, lr}"
+ PICNE "STMFD	sp!, {lr}"
 	BL	malloc
 	TEQ	a1, #0
 	TEQNE	fp, #0			;FIXME: if fp = NULL, we have a memory leak
 	[ __UNIXLIB_ALLOCA_FATAL = 0
-	LDMEQFD	sp!, {pc}
+ PICEQ "LDMEQFD	sp!, {v4, pc}"
+ PICNE "LDMEQFD	sp!, {pc}"
 	|
 	; If we could not malloc any space then print an error message
 	; and force an abort - just like a true alloca function should.
@@ -42,9 +44,11 @@ noabort
 	; + 0 : original __alloca_list value
 	; + 4 : return link value of caller (i.e. [fp, #-4])
 	; + 8 : start contents block returned from alloca()
+ PICEQ "BL	__rt_load_pic"
 
 	IMPORT  |__pthread_running_thread|
-	LDR	a3, =|__pthread_running_thread|
+	LDR	a3, |.L0|	;=__pthread_running_thread
+ PICEQ "LDR	a3, [v4, a3]"
 	LDR	a3, [a3]
 	ADD	a3, a3, #|__PTHREAD_ALLOCA_OFFSET| + 8
 	LDR	a2, [fp, #-4]
@@ -61,18 +65,29 @@ noabort
 	ORRNE	a3, a2, a3
 	STR	a3, [fp, #-4]
 	ADD	a1, a1, #8
-	LDMFD	sp!, {pc}
+ PICEQ "LDMFD	sp!, {v4, pc}"
+ PICNE "LDMFD	sp!, {pc}"
+|.L0|
+	WORD	|__pthread_running_thread|
+	DECLARE_FUNCTION alloca
+	DECLARE_FUNCTION __alloca
 
 |__alloca_free|
-	LDR	a3, =|__pthread_running_thread|
+ PICEQ "STMFD	sp!, {a1, a2, v1, v4}"
+ PICNE "STMFD	sp!, {a1, a2, v1}"
+
+ PICEQ "BL	__rt_load_pic"
+
+	LDR	a3, |.L1|	;=__pthread_running_thread
+ PICEQ "LDR	a3, [v4, a3]"
 	LDR	a3, [a3]
 	ADD	a3, a3, #|__PTHREAD_ALLOCA_OFFSET| + 8
-	STMFD	sp!, {a1, a2, v1}
 	LDR	a1, [a3]
 	LDMIA	a1, {a4, v1}
 	STR	a4, [a3]
 	BL	free
-	LDR	a2, =|__ul_memory|
+	LDR	a2, |.L1|+4	;=__ul_memory
+ PICEQ "LDR	a2, [v4, a2]"
 	MOV	a3, v1
 	LDR	a2, [a2, #MEM_ROBASE]
 	CMP	a3, a2
@@ -80,7 +95,8 @@ noabort
 	BIC	a2, a3, #3
 	CMP	a3, a2
 	BNE	|__alloca_rtn_corrupt|
-	LDMFD	sp!, {a1, a2, v1}
+ PICEQ "LDMFD	sp!, {a1, a2, v1, v4}"
+ PICNE "LDMFD	sp!, {a1, a2, v1}"
 	MOV	pc, a3
 
 	[ __UNIXLIB_ALLOCA_FATAL = 1
@@ -98,12 +114,19 @@ noabort
 	ADR	a1, |__alloca_rtn_msg|
 	SWI	XOS_Write0
 	B	abort		; never returns
+|.L1|
+	WORD	|__pthread_running_thread|
+	WORD	|__ul_memory|
+	DECLARE_FUNCTION __alloca_free
 
 ; Free all alloca blocks for the current thread
+; In the shared library, v4 is set to the UnixLib GOT pointer by
+; the caller (__pthread_exit).
 	EXPORT	|__alloca_thread_free_all|
 |__alloca_thread_free_all|
 	STMFD	sp!, {v1, lr}
-	LDR	a1, =|__pthread_running_thread|
+	LDR	a1, |.L1|	;=__pthread_running_thread
+ PICEQ "LDR	a1, [v4, a1]"
 	LDR	a1, [a1]
 	LDR	v1, [a1, #|__PTHREAD_ALLOCA_OFFSET| + 8]
 	MOV	a2, #0
@@ -115,5 +138,6 @@ __alloca_thread_free_all_l1
 	LDR	v1, [v1]
 	BL	free
 	B	__alloca_thread_free_all_l1
+	DECLARE_FUNCTION __alloca_thread_free_all
 
 	END

@@ -1,3 +1,16 @@
+Sat Dec 09 14:26:02 2006  Lee Noar  <leenoar@ntlworld.com>
+
+	* source/sys/_jmp.s: Add PIC instructions and declare functions
+	for ELF DSO.
+	* source/sys/_alloca.s: Likewise.
+	* source/sys/_vfork.s: Add PIC instructions and declare functions
+	and objects for ELF DSO.
+	* source/sys/_syslib.s: As above, also use a macro to define the layout of
+	__ul_memory to support AOF/static ELF/shared ELF at the same time without
+	unsightly nested conditional assembler.
+	* source/sys/_syslib.s(__env_unixlib): Pass GOT pointer to exception
+	handlers where possible.
+
 Thur Dec 07 19:42:15 2006  Lee Noar  <leenoar@ntlworld.com>
 
 	* source/clib/errno.h: Ensure C linkage when used with C++
