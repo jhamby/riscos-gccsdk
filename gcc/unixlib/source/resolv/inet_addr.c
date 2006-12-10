@@ -1,7 +1,6 @@
 /*
  * File taken from glibc 2.2.5.
  * Following changes were made:
- *  - Added #ifdef weak_alias around the weak_alias() call.
  *  - #define'd _LIBC
  */
 
@@ -115,7 +114,7 @@ inet_addr(const char *cp) {
  * cannot distinguish between failure and a local broadcast address.
  */
 in_addr_t
-inet_aton(const char *cp, struct in_addr *addr) {
+__inet_aton(const char *cp, struct in_addr *addr) {
 	static const in_addr_t max[4] = { 0xffffffff, 0xffffff, 0xffff, 0xff };
 	in_addr_t val;
 #ifndef _LIBC
@@ -230,6 +229,4 @@ ret_0:
 	return (0);
 }
 
-#ifdef weak_alias
-weak_alias (inet_aton, __inet_aton)
-#endif
+weak_alias (__inet_aton, inet_aton)

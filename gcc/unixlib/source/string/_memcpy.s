@@ -1,8 +1,10 @@
 ; Fast memcpy and memmove
-; Copyright (c) 2005 UnixLib Devlopers
+; Copyright (c) 2005-2006 UnixLib Devlopers
 ; Written by Adrian Lees
 
 	AREA	|C$$code|, CODE, READONLY
+
+	GET	clib/unixlib/asm_dec.s
 
 	EXPORT	|memcpy|
 	EXPORT	|memmove|
@@ -703,5 +705,10 @@
 	LDR	v1,[sp],#4
 	LDR	pc,[sp],#4
 
-	END
+	[  __UNIXLIB_ELF > 0
+	.weak	memcpy
+	.weak	memmove
+.	.weak	bcopy
+	]
 
+	END

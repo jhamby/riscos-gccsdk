@@ -1,8 +1,7 @@
 /*
  * File taken from glibc 2.2.5.
  * Following changes were made:
- *  - Renamed __encrypt_r() to encrypt_r(), __setkey_r() to setkey_r()
- *  - Disabled the weak_alias lines.
+ *  - None
  */
 
 /*
@@ -735,7 +734,7 @@ _ufc_output_conversion_r(ufc_long v1, ufc_long v2,
  */
 
 void
-encrypt_r(char *__block, int __edflag, struct crypt_data *__restrict __data)
+__encrypt_r(char *__block, int __edflag, struct crypt_data *__restrict __data)
 {
   ufc_long l1, l2, r1, r2, res[4];
   int i;
@@ -825,8 +824,8 @@ encrypt_r(char *__block, int __edflag, struct crypt_data *__restrict __data)
     *__block++ = (r1 & longmask[i]) != 0;
   }
 }
-/* weak_alias (__encrypt_r, encrypt_r)
- */
+weak_alias (__encrypt_r, encrypt_r)
+
 
 void
 encrypt(char *__block, int __edflag)
@@ -841,7 +840,7 @@ encrypt(char *__block, int __edflag)
  */
 
 void
-setkey_r(const char *__key, struct crypt_data *__restrict __data)
+__setkey_r(const char *__key, struct crypt_data *__restrict __data)
 {
   int i,j;
   unsigned char c;
@@ -856,8 +855,8 @@ setkey_r(const char *__key, struct crypt_data *__restrict __data)
   }
   _ufc_mk_keytab_r((const char *) ktab, __data);
 }
-/* weak_alias (__setkey_r, setkey_r)
- */
+weak_alias (__setkey_r, setkey_r)
+
 
 void
 setkey(const char *__key)

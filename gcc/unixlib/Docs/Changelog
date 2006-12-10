@@ -1,3 +1,22 @@
+Sun Dec 10 15:29:31 CET 2006  John Tytgat  <John.Tytgat@aaug.net>
+
+	* source/stdio/_printf.s(_printf,_fprintf,_sprintf,_vfprintf,_vprintf,
+	_snprintf,_vsprintf,_vsnprintf): Removed.
+	* source/stdio/printf.c(vsnprintf,vsprintf,snprintf,sprintf,vprintf,
+	fprintf,printf): Prefixed the exported routines with '__' and created
+	weak symbols to those routines.
+	* source/stdio/vasprintf.c(vasprintf): Likewise.
+	* source/stdio/asprintf.c(asprintf): Likewise.
+	* source/crypt/crypt_util.c(encrypt_r,setkey_r): Likewise.
+	* source/crypt/crypt-entry.c(crypt_r,fcrypt): Likewise.
+	* source/string/strndup.c(strndup): Cleanup, weak_alias is always
+	defined (even for AOF case).
+	* source/string/strnlen.c(strnlen): Likewise.
+	* source/resolv/inet_addr.c(inet_aton): Likewise.
+	* source/string/_memcpy.s(memcpy,memmove,bcopy): Made exported routines
+	weakly defined.
+	This all improves the GCC/G++ testsuite results.
+
 Sat Dec 09 14:47:59 2006  Lee Noar  <leenoar@ntlworld.com>
 
 	* source/sys/_syslib.s(__rt_stkovf_split_big): Make sure that the frame size

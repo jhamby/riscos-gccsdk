@@ -14,7 +14,7 @@
 
 
 
-int vsnprintf (char *buf, size_t limit, const char *format, va_list ap)
+int __vsnprintf (char *buf, size_t limit, const char *format, va_list ap)
 {
   FILE f[1];
   int ret;
@@ -53,13 +53,13 @@ int vsnprintf (char *buf, size_t limit, const char *format, va_list ap)
 }
 
 
-int vsprintf(char *buf, const char *format, va_list ap)
+int __vsprintf(char *buf, const char *format, va_list ap)
 {
   return vsnprintf (buf, INT_MAX, format, ap);
 }
 
 
-int snprintf(char *buf, size_t limit, const char *format, ...)
+int __snprintf(char *buf, size_t limit, const char *format, ...)
 {
   va_list ap;
   int r;
@@ -72,7 +72,7 @@ int snprintf(char *buf, size_t limit, const char *format, ...)
 }
 
 
-int sprintf (char *buf, const char *format, ...)
+int __sprintf (char *buf, const char *format, ...)
 {
   va_list ap;
   int r;
@@ -84,12 +84,12 @@ int sprintf (char *buf, const char *format, ...)
   return r;
 }
 
-int vprintf (const char *format, va_list ap)
+int __vprintf (const char *format, va_list ap)
 {
   return vfprintf (stdout, format, ap);
 }
 
-int fprintf (FILE * stream, const char *format, ...)
+int __fprintf (FILE * stream, const char *format, ...)
 {
   va_list ap;
   int r;
@@ -101,7 +101,7 @@ int fprintf (FILE * stream, const char *format, ...)
   return r;
 }
 
-int printf (const char *format, ...)
+int __printf (const char *format, ...)
 {
   va_list ap;
   int r;
@@ -113,10 +113,10 @@ int printf (const char *format, ...)
   return r;
 }
 
-/* weak_alias (__vsnprintf, vsnprintf)
-   weak_alias (__vsprintf, vsprintf)
-   weak_alias (__snprintf, snprintf)
-   weak_alias (__sprintf, sprintf)
-   weak_alias (__vprintf, vprintf)
-   weak_alias (__fprintf, fprintf)
-   weak_alias (__printf, printf) */
+weak_alias (__vsnprintf, vsnprintf)
+weak_alias (__vsprintf, vsprintf)
+weak_alias (__snprintf, snprintf)
+weak_alias (__sprintf, sprintf)
+weak_alias (__vprintf, vprintf)
+weak_alias (__fprintf, fprintf)
+weak_alias (__printf, printf)

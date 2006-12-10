@@ -1,8 +1,7 @@
 /*
  * File taken from glibc 2.2.5.
  * Following changes were made:
- *  - Renamed __crypt_r() to crypt_r(), __fcrypt() to fcrypt()
- *  - Disabled the weak_alias lines.
+ *  - None
  */
 
 /*
@@ -77,7 +76,7 @@ extern struct crypt_data _ufc_foobar;
  */
 
 char *
-crypt_r (const char *key, const char *salt,
+__crypt_r (const char *key, const char *salt,
 	 struct crypt_data * __restrict data)
 {
   ufc_long res[4];
@@ -120,8 +119,8 @@ crypt_r (const char *key, const char *salt,
   _ufc_output_conversion_r (res[0], res[1], salt, data);
   return data->crypt_3_buf;
 }
-/* weak_alias (__crypt_r, crypt_r)
- */
+weak_alias (__crypt_r, crypt_r)
+
 
 char *
 crypt (const char *key, const char *salt)

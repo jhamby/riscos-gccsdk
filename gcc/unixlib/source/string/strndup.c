@@ -1,9 +1,7 @@
 /*
  * File taken from glibc 2.2.5.
  * Following changes were made:
- *  - Renamed __strnlen() into strnlen()
- *  - Defined __strndup() & __strnlen() as strndup() and strnlen()
- *  - Defined _LIBC
+ *  - None
  */
 
 /* Copyright (C) 1996, 1997, 1998, 2001 Free Software Foundation, Inc.
@@ -30,20 +28,8 @@
 
 #include <stdio.h>
 #include <sys/types.h>
-
-#define _LIBC
-#define __strndup strndup
-#define __strnlen strnlen
-
-#if defined _LIBC || defined STDC_HEADERS
-# include <stdlib.h>
-# include <string.h>
-#else
-char *malloc ();
-#endif
-
-#undef __strndup
-#undef strndup
+#include <stdlib.h>
+#include <string.h>
 
 char *
 __strndup (s, n)
@@ -59,6 +45,4 @@ __strndup (s, n)
   new[len] = '\0';
   return (char *) memcpy (new, s, len);
 }
-#ifdef weak_alias
 weak_alias (__strndup, strndup)
-#endif

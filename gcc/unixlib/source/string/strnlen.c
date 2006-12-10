@@ -1,8 +1,7 @@
 /*
  * File taken from glibc 2.2.5.
  * Following changes were made:
- *  - When weak_alias is not #define'd, #define __strnlen as strnlen.
- *  - Surrounded weak_alias() with #ifdef weak_alias
+ *  - None
  */
 
 /* Find the length of STRING, but scan at most MAXLEN characters.
@@ -165,6 +164,4 @@ __strnlen (const char *str, size_t maxlen)
   return char_ptr - str;
 }
 
-#ifdef weak_alias
 weak_alias (__strnlen, strnlen)
-#endif

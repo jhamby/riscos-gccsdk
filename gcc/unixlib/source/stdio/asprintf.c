@@ -1,11 +1,11 @@
 /* Print to allocated string.
-   Copyright (c) 2005 UnixLib Developers.  */
+   Copyright (c) 2005-2006 UnixLib Developers.  */
 
 #include <stdarg.h>
 #include <stdio.h>
 #include <sys/cdefs.h>
 
-int asprintf (char **buf, const char *fmt, ...)
+int __asprintf (char **buf, const char *fmt, ...)
 {
   va_list ap;
   int r;
@@ -16,5 +16,4 @@ int asprintf (char **buf, const char *fmt, ...)
 
   return r;
 }
-/* weak_alias (__asprintf, asprintf) */
-
+weak_alias (__asprintf, asprintf)
