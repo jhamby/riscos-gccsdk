@@ -1,3 +1,11 @@
+Sun Dec 10 21:03:51 CET 2006  John Tytgat  <John.Tytgat@aaug.net>
+
+	* source/clib/stdarg.h: Removed.
+	* source/string/_memcpy.s: Previous change got a build breaking typo.
+	* source/string/_memset.s(memset,bzero): Made exported routines
+	weakly defined.
+	This improves the GCC/G++ testsuite results.
+
 Sun Dec 10 15:29:31 CET 2006  John Tytgat  <John.Tytgat@aaug.net>
 
 	* source/stdio/_printf.s(_printf,_fprintf,_sprintf,_vfprintf,_vprintf,

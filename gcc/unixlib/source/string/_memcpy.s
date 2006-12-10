@@ -708,7 +708,7 @@
 	[  __UNIXLIB_ELF > 0
 	.weak	memcpy
 	.weak	memmove
-.	.weak	bcopy
+	.weak	bcopy
 	]
 
 	END

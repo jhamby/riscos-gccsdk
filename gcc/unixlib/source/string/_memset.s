@@ -103,5 +103,9 @@
 	MOVEQ	pc,lr
 	B	mset_aligned
 
-        END
+	[  __UNIXLIB_ELF > 0
+	.weak	memset
+	.weak	bzero
+	]
 
+        END
