@@ -170,8 +170,8 @@ sub convert_s {
 	    my ($var, $comp, $val) = $i =~ /(\w+)\s+(<|>|=)\s+(\d+)/;
 	    #printf ("if: i='%s', var='%s', comp='%s', val='%s'\n", $i, $var, $comp, $val);
 	    if ($i =~ /SOFTFLOAT/) {
-		printf OUT "#ifdef __SOFTFP__\n" if ($i =~ /TRUE/);
-		printf OUT "#ifndef __SOFTFP__\n" if ($i =~ /FALSE/);
+		printf OUT "#if __SOFTFP__ == 1\n" if ($i =~ /TRUE/);
+		printf OUT "#if __SOFTFP__ == 0\n" if ($i =~ /FALSE/);
 		next;
 	    }
 	    if ($var =~ /_ELF/) {
