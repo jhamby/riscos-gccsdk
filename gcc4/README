@@ -58,7 +58,7 @@ Prerequisites for building GCC can be found at
 
 The setup-gccsdk-params file contains several definitions as environment
 variables which you can change if really desired.  Like with GCCSDK 3.4.6, we
-recomment setting up $GCCSDK_INSTALL_CROSSBIN which then can be used by
+recommend setting up $GCCSDK_INSTALL_CROSSBIN which then can be used by
 setup-gccsdk-params files to determine where the cross-compiler will be
 installed during 'make install' (note: $GCCSDK_INSTALL_CROSSBIN actually
 specifies the pathname 'bin' subdirectory of the directory where the complete
