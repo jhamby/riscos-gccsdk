@@ -284,15 +284,18 @@ __END_NAMESPACE_C99
 /* Define inline functions which call the internal entry points.  */
 
 __BEGIN_NAMESPACE_STD
-extern __inline double atof (const char *__nptr)
+extern __inline double
+__NTH (atof (__const char *__nptr))
 {
   return strtod (__nptr, (char **) NULL);
 }
-extern __inline int atoi (const char *__nptr)
+extern __inline int
+__NTH (atoi (__const char *__nptr))
 {
   return (int) strtol (__nptr, (char **) NULL, 10);
 }
-extern __inline long int atol (const char *__nptr)
+extern __inline long int
+__NTH (atol (__const char *__nptr))
 {
   return strtol (__nptr, (char **) NULL, 10);
 }
@@ -300,7 +303,8 @@ __END_NAMESPACE_STD
 
 # if defined __USE_MISC || defined __USE_ISOC99
 __BEGIN_NAMESPACE_C99
-__extension__ extern __inline long long int atoll (const char *__nptr)
+__extension__ extern __inline long long int
+__NTH (atoll (__const char *__nptr))
 {
   return strtoll (__nptr, (char **) NULL, 10);
 }

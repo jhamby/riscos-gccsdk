@@ -1,3 +1,9 @@
+Fri Dec 15 04:34:46 CET 2006  John Tytgat  <John.Tytgat@aaug.net>
+
+	* source/clib/stdlib.h(atof,atoi,atol,atoll): consistent declaration o
+	exported and inline variants.
+	This improves the G++ testsuite results.
+
 Sun Dec 10 21:03:51 CET 2006  John Tytgat  <John.Tytgat@aaug.net>
 
 	* source/clib/stdarg.h: Removed.
