@@ -1,8 +1,15 @@
+Sat Dec 16 14:41:51 CET 2006  John Tytgat  <John.Tytgat@aaug.net>
+
+	* source/clib/stddef.h: Removed.
+	* source/clib/bits/mathdef.h(INFINITY): Removed duplicate definition,
+	was also defined in source/clib/bits/inf.h.
+	This improves the gcc/g++ testsuite results.
+
 Fri Dec 15 04:34:46 CET 2006  John Tytgat  <John.Tytgat@aaug.net>
 
-	* source/clib/stdlib.h(atof,atoi,atol,atoll): consistent declaration o
+	* source/clib/stdlib.h(atof,atoi,atol,atoll): consistent declaration of
 	exported and inline variants.
-	This improves the G++ testsuite results.
+	This improves the g++ testsuite results.
 
 Sun Dec 10 21:03:51 CET 2006  John Tytgat  <John.Tytgat@aaug.net>
 
@@ -10,7 +17,7 @@ Sun Dec 10 21:03:51 CET 2006  John Tytgat  <John.Tytgat@aaug.net>
 	* source/string/_memcpy.s: Previous change got a build breaking typo.
 	* source/string/_memset.s(memset,bzero): Made exported routines
 	weakly defined.
-	This improves the GCC/G++ testsuite results.
+	This improves the gcc/g++ testsuite results.
 
 Sun Dec 10 15:29:31 CET 2006  John Tytgat  <John.Tytgat@aaug.net>
 
@@ -29,7 +36,7 @@ Sun Dec 10 15:29:31 CET 2006  John Tytgat  <John.Tytgat@aaug.net>
 	* source/resolv/inet_addr.c(inet_aton): Likewise.
 	* source/string/_memcpy.s(memcpy,memmove,bcopy): Made exported routines
 	weakly defined.
-	This all improves the GCC/G++ testsuite results.
+	This all improves the gcc/g++ testsuite results.
 
 Sat Dec 09 14:47:59 2006  Lee Noar  <leenoar@ntlworld.com>
 
