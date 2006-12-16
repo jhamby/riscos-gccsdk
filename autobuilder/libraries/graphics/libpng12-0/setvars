@@ -2,8 +2,8 @@ AB_CATEGORY=libraries/graphics
 
 AB_INSTALL=yes
 
-AB_MAKE="$AB_MAKE libpng.a"
+#AB_MAKE="$AB_MAKE libpng.a"
 
-cp scripts/makefile.linux Makefile
+#cp scripts/makefile.linux Makefile
 
 mkdir -p $D/include/libpng12
