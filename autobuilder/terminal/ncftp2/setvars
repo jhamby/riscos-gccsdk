@@ -4,6 +4,6 @@ AB_CATEGORY=terminal
 AB_CONFLAGS=--disable-readline
 export CFLAGS=-O2
 
-AB_FILESNOPATH="ncftp,ff8 COPYING"
+AB_FILESNOPATH="ncftp$AB_EXEEXT COPYING"
 AB_MANPAGE=ncftp.1
 

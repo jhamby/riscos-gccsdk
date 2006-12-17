@@ -3,6 +3,6 @@ AB_CATEGORY=games
 
 ab_package() {
   cp -av $H/\!AirStrike $D
-  cp -av $S/src/airstrike,ff8 $S/data $D/\!AirStrike
+  cp -av $S/src/airstrike$AB_EXEEXT $S/data $D/\!AirStrike
   sed s#datapath.*\$#"datapath \"<AirStrike\$Dir>/data/\""# < $S/airstrikerc > $D/\!AirStrike/airstrikerc
 }

@@ -4,6 +4,6 @@ AB_CATEGORY=cli
 AB_MANPAGE="ed.1"
 
 ab_package() {
-  cp -av $S/ed,ff8 $S/COPYING $D
+  cp -av $S/ed$AB_EXEEXT $S/COPYING $D
 }
 

@@ -2,7 +2,7 @@
 AB_CATEGORY=audio
 
 ab_package() {
-  cp -av $S/toolame,ff8 $D
+  cp -av $S/toolame$AB_EXEEXT $D
   cp -av $S/COPYING $S/README $D
 }
 

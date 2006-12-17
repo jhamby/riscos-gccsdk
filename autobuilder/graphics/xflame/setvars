@@ -5,5 +5,5 @@ AB_CATEGORY=graphics
 
 ab_package() {
   cp -av $H/!Run,feb $D
-  cp -av $S/xflame,ff8 $D
+  cp -av $S/xflame$AB_EXEEXT $D
 }

@@ -4,5 +4,5 @@ AB_CATEGORY=cli
 AB_MANPAGE="man/cmp.1 man/diff.1 man/diff3.1 man/sdiff.1"
 
 ab_package() {
-  cp $S/src/*,ff8 $S/COPYING $D
+  cp $S/src/*$AB_EXEEXT $S/COPYING $D
 }

@@ -7,7 +7,7 @@ AB_CONFLAGS="--disable-sdl-client --disable-replay --disable-xp-mapedit --datadi
 
 ab_package () {
  cp -av $H/\!Xpilot-ng $D
- cp -av $S/src/client/x11/xpilot-ng-x11,ff8 $D/\!Xpilot-ng
+ cp -av $S/src/client/x11/xpilot-ng-x11$AB_EXEEXT $D/\!Xpilot-ng
 
  mkdir -p $D/\!Xpilot-ng/docs
  cp -av $S/COPYING $S/README $D/\!Xpilot-ng/docs

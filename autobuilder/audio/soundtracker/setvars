@@ -16,7 +16,7 @@ ab_make() {
 
 ab_package() {
   cp -av $H/\!Soundtracker $D
-  cp -av $S/app/soundtracker,ff8 $D/\!Soundtracker
+  cp -av $S/app/soundtracker$AB_EXEEXT $D/\!Soundtracker
   mkdir -p $D/\!Soundtracker/share/soundtracker
   cp -av $S/*.xpm $S/*.png $D/\!Soundtracker/share/soundtracker 
 }

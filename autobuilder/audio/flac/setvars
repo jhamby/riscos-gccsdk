@@ -8,5 +8,5 @@ mkdir -p $D/include/OggFLAC
 mkdir -p $D/include/OggFLAC++
 
 ab_package () {
-	cp $S/src/flac/flac,ff8 COPYING.* $D
+	cp $S/src/flac/flac$AB_EXEEXT COPYING.* $D
 }

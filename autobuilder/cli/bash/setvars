@@ -5,14 +5,14 @@ AB_CATEGORY=cli/test
 AB_CONFLAGS="--without-bash-malloc --disable-process-substitution"
 AB_MAKE=make
 
-ln -s mksignames,ff8 mksignames
-ln -s mksyntax,ff8 mksyntax
+ln -s mksignames$AB_EXEEXT mksignames
+ln -s mksyntax$AB_EXEEXT mksyntax
 
 AB_MANPAGE=doc/bash.1
 
 touch configure.in aclocal.m4 stamp-h.in Makefile.in config.status
 
 ab_package () {
-  cp -av $S/bash,ff8 $S/COPYING $D
+  cp -av $S/bash$AB_EXEEXT $S/COPYING $D
 }
 

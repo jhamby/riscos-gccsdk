@@ -7,5 +7,5 @@ AB_MAKE="$AB_MAKE riscos"
 
 AB_MANPAGE=debian/nc.1
 
-AB_FILESNOPATH="nc,ff8 README netcat.blurb"
+AB_FILESNOPATH="nc$AB_EXEEXT README netcat.blurb"
 

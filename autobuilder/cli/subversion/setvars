@@ -8,6 +8,6 @@ AB_CONFLAGS="--with-apr=$GCCSDK_INSTALL_ENV \
 AB_CATEGORY=cli
 
 ab_package() {
-  cp $S/subversion/clients/cmdline/svn,ff8 $S/COPYING $D
+  cp $S/subversion/clients/cmdline/svn$AB_EXEEXT $S/COPYING $D
 }
 

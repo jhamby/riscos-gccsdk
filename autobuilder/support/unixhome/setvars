@@ -11,5 +11,5 @@ AB_MAKE="$GCCSDK_INSTALL_CROSSBIN/gcc SetHome.c -O2 -o SetHome"
 
 ab_package() {
   cp -av $H/\!UnixHome $D
-  cp -av $S/SetHome,ff8 $D/\!UnixHome
+  cp -av $S/SetHome$AB_EXEEXT $D/\!UnixHome
 }

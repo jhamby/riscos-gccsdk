@@ -7,6 +7,6 @@ cp -av $H/lua-config $S/lua-config
 
 ab_package() {
   cp -av $H/\!Stratagus $D
-  cp -av $S/doc $S/stratagus,ff8 \
+  cp -av $S/doc $S/stratagus$AB_EXEEXT \
          $D/\!Stratagus
 }

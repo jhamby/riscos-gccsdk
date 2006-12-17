@@ -4,7 +4,7 @@ AB_CATEGORY=graphics
 ab_package() {
   cp -av $H/\!Tgif/ $D
   mkdir -p $D/\!Tgif/Docs
-  cp -av $S/tgif,ff8 $D/\!Tgif/
+  cp -av $S/tgif$AB_EXEEXT $D/\!Tgif/
   cp -av -L $S/Copyright $S/License $S/README $D/\!Tgif/Docs
 
   mkdir -p $D/\!Tgif/data

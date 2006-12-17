@@ -53,7 +53,7 @@ mozilla_patch () {
 ab_package () {
   cp -pr $H/\!Firefox $D
   for f in \
-      firefox-bin,ff8 bloaturls.txt browserconfig.properties dependentlibs.list \
+      firefox-bin$AB_EXEEXT bloaturls.txt browserconfig.properties dependentlibs.list \
       LICENSE README.txt updater.ini chrome components defaults extensions \
       greprefs plugins res searchplugins \
     ; do

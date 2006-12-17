@@ -6,5 +6,5 @@ AB_MAKE=make
 
 AB_PREZIP="mkdir -p \!UnixHome/home; cp lynx.cfg \!UnixHome/home/"
 
-AB_FILESPATH="lynx,ff8 !UnixHome COPYING" 
+AB_FILESPATH="lynx$AB_EXEEXT !UnixHome COPYING" 
 AB_MANPAGE=lynx.man

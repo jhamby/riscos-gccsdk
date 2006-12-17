@@ -5,7 +5,7 @@ AB_CONFLAGS=--without-ssl
 AB_MANPAGE=doc/wget.1
 
 ab_package() {
- cp -av $S/src/wget,ff8 COPYING $D 
+ cp -av $S/src/wget$AB_EXEEXT COPYING $D 
 }
 
 

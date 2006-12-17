@@ -1,7 +1,7 @@
 
 AB_CATEGORY=terminal/test
 
-AB_FILESNOPATH="src/minicom,ff8 Copyright"
+AB_FILESNOPATH="src/minicom$AB_EXEEXT Copyright"
 AB_MANPAGE=man/minicom.1
 
 AB_CONFLAGS=--disable-nls

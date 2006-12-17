@@ -10,6 +10,6 @@ AB_MANPAGE="$SETVARS_BOGODIR/bogomips.1 $SETVARS_MEMDIR/memtester.8"
 AB_MAKE="$AB_MAKE -C $SETVARS_BOGODIR ; ( cd $SETVARS_MEMDIR ; $GCCSDK_INSTALL_CROSSBIN/gcc -O3 -o memtester memtester.c tests.c )"
 
 ab_package() {
-  cp $SETVARS_BOGODIR/bogoport,ff8 $D
-  cp $SETVARS_MEMDIR/memtester,ff8 $D
+  cp $SETVARS_BOGODIR/bogoport$AB_EXEEXT $D
+  cp $SETVARS_MEMDIR/memtester$AB_EXEEXT $D
 }

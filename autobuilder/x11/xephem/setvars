@@ -13,6 +13,6 @@ AB_MAKE=""
 
 AB_MANPAGE="xephem.1"
 
-AB_FILESNOPATH="xephem,ff8"
+AB_FILESNOPATH="xephem$AB_EXEEXT"
 
 AB_CATEGORY=x11/test

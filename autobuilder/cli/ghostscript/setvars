@@ -24,7 +24,7 @@ autoconf
 
 ab_package () {
   cp -r $H/\!GhostScr $D
-  cp $S/bin/gs,ff8 $D/\!GhostScr/gs,ff8
+  cp $S/bin/gs$AB_EXEEXT $D/\!GhostScr/gs,ff8
   cp $S/LICENSE $D/\!GhostScr/LICENSE
   cp -r $S/doc $D/\!GhostScr/8_50
   cp -r $S/Resource $D/\!GhostScr/8_50

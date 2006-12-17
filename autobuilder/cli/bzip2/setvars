@@ -7,5 +7,5 @@ AB_PRECONF=:
 ab_package() {
   mkdir -p $D/manual
   cp -av $S/*.html $S/README $D/manual/
-  cp $S/bzip2,ff8 $S/LICENSE $D
+  cp $S/bzip2$AB_EXEEXT $S/LICENSE $D
 }

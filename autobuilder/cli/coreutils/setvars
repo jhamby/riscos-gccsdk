@@ -4,7 +4,7 @@ AB_CATEGORY=cli
 #AB_MANPAGE=
 
 ab_package() {
-  cp $S/src/*,ff8 $S/COPYING $D
+  cp $S/src/*$AB_EXEEXT $S/COPYING $D
 }
 
 

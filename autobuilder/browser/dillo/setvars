@@ -8,6 +8,6 @@ AB_MANPAGE=debian/dillo.1
 
 ab_package() {
   cp -av $H/\!Dillo $D
-  cp -av $S/src/dillo,ff8 $D/\!Dillo
+  cp -av $S/src/dillo$AB_EXEEXT $D/\!Dillo
   cp -av $S/COPYING $D/\!Dillo
 }

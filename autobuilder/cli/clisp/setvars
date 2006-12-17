@@ -22,26 +22,26 @@ ab_package() {
 	test -d $D/obey || mkdir -p $D/obey
 	gcc $H/txt_dummy.c -o txt
 	make README
-	mv $S/src/txt,ff8 $D/obey/README.x,ff8
+	mv $S/src/txt$AB_EXEEXT $D/obey/README.x,ff8
 	gcc $H/txt_dummy.c -o txt
 	make README.de
-	mv $S/src/txt,ff8 $D/obey/README.de.x,ff8
+	mv $S/src/txt$AB_EXEEXT $D/obey/README.de.x,ff8
 	gcc $H/txt_dummy.c -o txt
 	make README.es
-	mv $S/src/txt,ff8 $D/obey/README.es.x,ff8
+	mv $S/src/txt$AB_EXEEXT $D/obey/README.es.x,ff8
 	gcc $H/txt_dummy.c -o txt
 	make clisp.1
-	mv $S/src/txt,ff8 $D/obey/clisp.1.x,ff8
+	mv $S/src/txt$AB_EXEEXT $D/obey/clisp.1.x,ff8
 	gcc $H/txt_dummy.c -o txt
 	make clisp.html
-	mv $S/src/txt,ff8 $D/obey/clisp.html.x,ff8
+	mv $S/src/txt$AB_EXEEXT $D/obey/clisp.html.x,ff8
 	make manual
 	rm README
 	rm README.de
 	rm README.es
 	rm clisp.1
 	rm clisp.html
-	cp $S/src/lisp.run,ff8 $D/!CLISP-SWI/base/
+	cp $S/src/lisp.run$AB_EXEEXT $D/!CLISP-SWI/base/
 	cp $S/src/*.lisp $D/!CLISP-SWI/src/
 	cp $S/src/impnotes.html $S/src/impnotes.css $S/src/clisp.png $D/!CLISP-SWI/doc
 	cp $S/src/LISP-tutorial.txt $S/src/CLOS-guide.txt $S/src/editors.txt $D/!CLISP-SWI/doc

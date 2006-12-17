@@ -1,9 +1,9 @@
 AB_CATEGORY=cli/test
 
-AB_FILESNOPATH="rsync,ff8 COPYING"
+AB_FILESNOPATH="rsync$AB_EXEEXT COPYING"
 
 AB_MANPAGE=rsync.1
 
 ab_package () {
-  cp -av $S/rsync,ff8 $S/COPYING $D
+  cp -av $S/rsync$AB_EXEEXT $S/COPYING $D
 }

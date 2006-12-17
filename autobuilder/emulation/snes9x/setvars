@@ -4,7 +4,7 @@ AB_CATEGORY=emulation
 AB_MANPAGE=../../debian/snes9x.1
 
 ab_package() {
-  cp -av $S/snes9x,ff8 $D
+  cp -av $S/snes9x$AB_EXEEXT $D
 
   cp -av $S/../license.txt $D
 }

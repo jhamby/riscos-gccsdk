@@ -6,5 +6,5 @@ AB_ZIPNAME=digger-20020314
 AB_MAKE="$AB_MAKE -f Makefile.sdl"
 
 ab_package() {
-  cp -av $S/digger,ff8 $D
+  cp -av $S/digger$AB_EXEEXT $D
 }

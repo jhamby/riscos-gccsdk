@@ -9,7 +9,7 @@ ab_make() {
   # Build native convertrgb
   make -C tools/convertrgb loadpng.o convertrgb.o
   /usr/bin/cc -lglib -lpng12 -o tools/convertrgb/convertrgb tools/convertrgb/*.o
-  touch tools/convertrgb/convertrgb,ff8
+  touch tools/convertrgb/convertrgb$AB_EXEEXT
   eval $AB_MAKE
 }
 

@@ -6,5 +6,5 @@ AB_CONFLAGS="--disable-libutil --without-lastlog --disable-utmp --disable-wtmp"
 #AB_MANPAGE="scp.1 sftp.1 ssh.1 ssh-keygen.1 ssh-keyscan.1"
 
 ab_package () {
-  cp -av $S/scp,ff8 $S/sftp,ff8 $S/ssh-keygen,ff8 $S/ssh-keyscan,ff8 $S/ssh,ff8 $S/LICENCE $D
+  cp -av $S/scp$AB_EXEEXT $S/sftp,ff8 $S/ssh-keygen,ff8 $S/ssh-keyscan,ff8 $S/ssh,ff8 $S/LICENCE $D
 }

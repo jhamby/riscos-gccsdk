@@ -6,5 +6,5 @@ AB_CONFLAGS="--disable-nls --without-start-stop-daemon --srcdir=$PWD"
 cp /usr/include/ar.h include
 
 ab_package () {
-  cp -av $S/dpkg-deb/*,ff8 $S/dselect/*,ff8 $S/main/*,ff8 $S/split/*,ff8 utils/*,ff8 $S/COPYING $D
+  cp -av $S/dpkg-deb/*$AB_EXEEXT $S/dselect/*,ff8 $S/main/*,ff8 $S/split/*,ff8 utils/*,ff8 $S/COPYING $D
 }

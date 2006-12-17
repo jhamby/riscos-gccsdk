@@ -4,6 +4,6 @@ AB_CATEGORY=graphics
 ab_package() {
   cp -av $S/COPYING $D
   
-  cp -av $S/frontends/cli/*,ff8 $D
-  cp -av $S/frontends/xml/*,ff8 $D
+  cp -av $S/frontends/cli/*$AB_EXEEXT $D
+  cp -av $S/frontends/xml/*$AB_EXEEXT $D
 }

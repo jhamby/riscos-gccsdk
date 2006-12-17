@@ -7,5 +7,5 @@ AB_ZIPNAME="bitchx"
 
 
 ab_package() {
-  cp -av $S/source/BitchX,ff8 $S/debian/copyright $D
+  cp -av $S/source/BitchX$AB_EXEEXT $S/debian/copyright $D
 }

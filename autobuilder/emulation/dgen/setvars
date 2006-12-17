@@ -4,7 +4,7 @@ AB_CATEGORY=emulation
 AB_MANPAGE=dgen.1
 
 ab_package() {
-  cp -av $S/dgen,ff8 $D
+  cp -av $S/dgen$AB_EXEEXT $D
   cp -av $S/COPYING $D
 }
 

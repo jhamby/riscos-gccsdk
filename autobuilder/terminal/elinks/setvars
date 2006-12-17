@@ -3,7 +3,7 @@ AB_CATEGORY=browser
 
 AB_CONFLAGS=--without-lua
 
-AB_FILESNOPATH="src/elinks,ff8 COPYING"
+AB_FILESNOPATH="src/elinks$AB_EXEEXT COPYING"
 AB_MANPAGE=elinks.1
 
 # We require this nonsense, otherwise the Makefile goes and regenerates

@@ -8,7 +8,7 @@ AB_PRECONF=:
 
 ab_package() {
   cp -av $H/\!Wargus $D
-  cp -av $S/campaigns $S/contrib $S/maps $S/scripts $S/wartool,ff8 \
+  cp -av $S/campaigns $S/contrib $S/maps $S/scripts $S/wartool$AB_EXEEXT \
          $D/\!Wargus
   cp -av $H/ReadMe $D/ReadMe
 }

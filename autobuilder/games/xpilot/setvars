@@ -17,7 +17,7 @@ ab_make () {
 
 ab_package () {
  cp -av $H/\!Xpilot $D
- cp -av $S/src/client/xpilot,ff8 $D/\!Xpilot
+ cp -av $S/src/client/xpilot$AB_EXEEXT $D/\!Xpilot
 
  mkdir -p $D/\!Xpilot/docs
  cp -av $S/LICENSE $S/README.txt $S/doc/FAQ $S/doc/README* $D/\!Xpilot/docs
