@@ -97,6 +97,13 @@ if [ -e build-setvars ] ; then
  . build-setvars
 fi
 
+# File extension
+if [ "$AB_ELFBUILD" == "yes" ] ; then
+  AB_EXEEXT=,e1f
+else
+  AB_EXEEXT=,ff8
+fi
+
 # GCCSDK Scripts
 if [ -z "$GCCSDK_INSTALL_ENV" ] ; then
   GCCSDK_INSTALL_ENV=/home/riscos/env
