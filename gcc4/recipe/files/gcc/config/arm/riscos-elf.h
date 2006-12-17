@@ -173,10 +173,11 @@
 
 /* Default RISC OS options
    - APCS
-   - explicit stack checks */
+   - function name poking
+   - explicit stack checks
+   - UnixLib as runtime library */
 #undef  TARGET_DEFAULT
-/* ARM_FLAG_APCS_STACK */
-#define TARGET_DEFAULT (MASK_APCS_FRAME + MASK_POKE_FUNCTION_NAME + MASK_APCS_STACK)
+#define TARGET_DEFAULT (MASK_APCS_FRAME | MASK_POKE_FUNCTION_NAME | MASK_APCS_STACK | MASK_UNIXLIB)
 
 /* Prevent FRAME_POINTER_REGNUM being clobbered in functions that call
    alloca.  */
@@ -204,6 +205,8 @@
                     : "0" (_beg), "r" (_end), "r" (_flg));              \
 }
 
+/* When UnixLib is used, we claim to support all C99 functions.  */
+#define TARGET_C99_FUNCTIONS TARGET_UNIXLIB
 
 #ifndef CROSS_COMPILE
 /* This section defines all the specific features for GCC when running
