@@ -11,3 +11,18 @@ mv src/Makefile.in.new src/Makefile.in
 if [ ! -d man/man3 ] ; then
   ln -s . man/man3
 fi
+
+
+# Use this to perform post-processing
+ab_package() {
+  AB_NOPACKAGE=yes
+
+  X11_la=$GCCSDK_INSTALL_ENV/lib/libX11.la
+   
+  if [ -e $X11_la ] ; then
+    sed s#libX11\.a#libCX11.a# < $X11_la > $X11_la.new
+    mv $X11_la.new $X11_la
+  fi
+}
+
+
