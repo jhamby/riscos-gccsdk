@@ -1,9 +1,13 @@
 
 AB_CATEGORY=games
 
+AB_CONFLAGS=--with-x
+
+AB_MAKE="$AB_MAKE all xlincity$AB_EXEEXT"
+
 ab_package() {
   cp -av $H/\!LinCity $D
-  cp -av $S/help $S/icons $S/messages $S/opening $S/colour.pal $S/xlincity,ff8 \
+  cp -av $S/help $S/icons $S/messages $S/opening $S/colour.pal $S/xlincity$AB_EXEEXT \
          $D/\!LinCity
   cp -av $S/README $D/\!LinCity/\!Help
 }
