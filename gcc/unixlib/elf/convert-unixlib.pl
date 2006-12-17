@@ -370,7 +370,9 @@ AM_CPPFLAGS = -isystem \$(top_srcdir)/include -I \$(top_srcdir)/incl-local
 # a lot of C99 features.
 # The __UNIXLIB_INTERNALS definition will disappear when the system headers
 # have moved all private data into private header files.
-AM_CFLAGS = -D__UNIXLIB_INTERNALS -D_GNU_SOURCE=1 -std=c99 \$(LIBM_FLAGS)
+# The NO_LONG_DOUBLE definition results in having the 'long double' math
+# routines aliased as the normal 'double' onces.
+AM_CFLAGS = -D__UNIXLIB_INTERNALS -DNO_LONG_DOUBLE -D_GNU_SOURCE=1 -std=c99 \$(LIBM_FLAGS)
 
 # Assembler files rely heavily on the C preprocessor to keep structures
 # referred to by both languages in sync.

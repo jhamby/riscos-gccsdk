@@ -1,6 +1,26 @@
+Sun Dec 17 15:31:56 CET 2006  John Tytgat  <John.Tytgat@aaug.net>
+
+	* source/{libm-dbl64/s_finite.c,libm-flt32/s_finitef.c}: enable
+	call to (currently empty) hidden_def(). This will be needed when we're
+	going to hide symbols from shared UnixLib version.
+	* source/clib/{complex.h,math.h}: don't declare 'long double' math
+	variants here when building UnixLib as they are	declared in the source
+	code as aliases to the 'double' variants.
+	* source/clib/mathdef.h(__NO_LONG_DOUBLE_MATH): no longer define it so
+	this means we're supporting 'long double' math calls but they are in
+	reality the same as 'double' ones.
+	* source/clib/varargs.h: Removed (falling back on the gcc version).
+	* source/clib/bits/mathcalls.h: Using an up-to-date version.
+	* source/libm-complex/{creall.c,conjl.c,cabsl.c,cargl.c,cimagl.c}:
+	Removed as they are elsewhere declared as aliases to their 'double'
+	equivalents.
+	* elf/convert-unixlib.pl(NO_LONG_DOUBLE): Defined, meaning we're going
+	to alias the 'long double' math routines to the 'double' versions.
+	This improves the gcc testsuite results.
+
 Sat Dec 16 14:41:51 CET 2006  John Tytgat  <John.Tytgat@aaug.net>
 
-	* source/clib/stddef.h: Removed.
+	* source/clib/stddef.h: Removed (falling back on the gcc version).
 	* source/clib/bits/mathdef.h(INFINITY): Removed duplicate definition,
 	was also defined in source/clib/bits/inf.h.
 	This improves the gcc/g++ testsuite results.
@@ -13,7 +33,7 @@ Fri Dec 15 04:34:46 CET 2006  John Tytgat  <John.Tytgat@aaug.net>
 
 Sun Dec 10 21:03:51 CET 2006  John Tytgat  <John.Tytgat@aaug.net>
 
-	* source/clib/stdarg.h: Removed.
+	* source/clib/stdarg.h: Removed (falling back on the gcc version).
 	* source/string/_memcpy.s: Previous change got a build breaking typo.
 	* source/string/_memset.s(memset,bzero): Made exported routines
 	weakly defined.
