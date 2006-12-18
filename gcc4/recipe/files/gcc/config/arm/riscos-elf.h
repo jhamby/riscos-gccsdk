@@ -31,7 +31,7 @@
 #define NO_IMPLICIT_EXTERN_C
 
 #undef  TARGET_DEFAULT_FLOAT_ABI
-#define TARGET_DEFAULT_FLOAT_ABI ARM_FLOAT_ABI_HARD
+#define TARGET_DEFAULT_FLOAT_ABI ARM_FLOAT_ABI_SOFT
 
 #define SUBTARGET_CPU_DEFAULT TARGET_CPU_arm6
 
@@ -46,7 +46,7 @@
 #define SUBTARGET_EXTRA_LINK_SPEC " -m armelf_riscos -p %{!static:%{!fpic:-fPIC}} -L/DSOLib:lib %{fpic:-fpic}"
 
 #undef  MULTILIB_DEFAULTS
-#define MULTILIB_DEFAULTS { "mhard-float" }
+#define MULTILIB_DEFAULTS { "msoft-float" }
 
 #undef SUBTARGET_CPP_SPEC
 #define SUBTARGET_CPP_SPEC "%{mlibscl:-D__TARGET_SCL__}%{!mlibscl:-D__TARGET_UNIXLIB__}"
