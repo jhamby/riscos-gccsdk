@@ -3905,7 +3905,7 @@ void *malloc_trim_unlocked (void *state, size_t pad)
    for pthread structures.  There is a race condition between the pthread
    context switcher and malloc, if a context switch occurs during a
    malloc call.  */
-void *malloc (size_t bytes)
+void *__malloc (size_t bytes)
 {
   void *ptr;
   if (__pthread_system_running)
@@ -3915,8 +3915,9 @@ void *malloc (size_t bytes)
     __pthread_enable_ints ();
   return ptr;
 }
+weak_alias (__malloc, malloc)
 
-void free (void *ptr)
+void __free (void *ptr)
 {
   if (__pthread_system_running)
     __pthread_disable_ints ();
@@ -3924,8 +3925,9 @@ void free (void *ptr)
   if (__pthread_system_running)
     __pthread_enable_ints ();
 }
+weak_alias (__free, free)
 
-void *realloc (void *ptr, size_t bytes)
+void *__realloc (void *ptr, size_t bytes)
 {
   if (__pthread_system_running)
     __pthread_disable_ints ();
@@ -3934,8 +3936,10 @@ void *realloc (void *ptr, size_t bytes)
     __pthread_enable_ints ();
   return ptr;
 }
+weak_alias (__realloc, realloc)
 
-void *memalign (size_t alignment, size_t bytes)
+
+void *__memalign (size_t alignment, size_t bytes)
 {
   void *ptr;
   if (__pthread_system_running)
@@ -3945,8 +3949,9 @@ void *memalign (size_t alignment, size_t bytes)
     __pthread_enable_ints ();
   return ptr;
 }
+weak_alias (__memalign, memalign)
 
-void *valloc (size_t bytes)
+void *__valloc (size_t bytes)
 {
   void *ptr;
   if (__pthread_system_running)
@@ -3956,8 +3961,9 @@ void *valloc (size_t bytes)
     __pthread_enable_ints ();
   return ptr;
 }
+weak_alias (__valloc, valloc)
 
-void *pvalloc (size_t bytes)
+void *__pvalloc (size_t bytes)
 {
   void *ptr;
   if (__pthread_system_running)
@@ -3967,8 +3973,9 @@ void *pvalloc (size_t bytes)
     __pthread_enable_ints ();
   return ptr;
 }
+weak_alias (__pvalloc, pvalloc)
 
-void *calloc (size_t n, size_t elem_size)
+void *__calloc (size_t n, size_t elem_size)
 {
   void *ptr;
   if (__pthread_system_running)
@@ -3978,8 +3985,9 @@ void *calloc (size_t n, size_t elem_size)
     __pthread_enable_ints ();
   return ptr;
 }
+weak_alias (__calloc, calloc)
 
-void cfree (void *ptr)
+void __cfree (void *ptr)
 {
   if (__pthread_system_running)
     __pthread_disable_ints ();
@@ -3987,8 +3995,9 @@ void cfree (void *ptr)
   if (__pthread_system_running)
     __pthread_enable_ints ();
 }
+weak_alias (__cfree, cfree)
 
-int malloc_trim (size_t bytes)
+int __malloc_trim (size_t bytes)
 {
   int result;
   if (__pthread_system_running)
@@ -3998,6 +4007,7 @@ int malloc_trim (size_t bytes)
     __pthread_enable_ints ();
   return result;
 }
+weak_alias (__malloc_trim, malloc_trim)
 
 
 /*

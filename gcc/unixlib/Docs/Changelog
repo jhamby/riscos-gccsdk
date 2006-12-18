@@ -1,3 +1,13 @@
+Mon Dec 18 03:28:56 CET 2006  John Tytgat  <John.Tytgat@aaug.net>
+
+	* source/stdlib/alloc(malloc,free,realloc,memalign,valloc,pvalloc,
+	calloc,cfree,malloc_trim): prefixed routine names with '__' and made
+	weak aliases for the original routine names to those implementations.
+	* source/clib/limits.h(SHRT_MIN,INT_MIN,LONG_MIN,LONG_LONG_MIN): don't
+	use C casting as these values should be evaluatable by the preprocessor
+	too.
+	This improves the g++ testsuite results.
+
 Sun Dec 17 15:31:56 CET 2006  John Tytgat  <John.Tytgat@aaug.net>
 
 	* source/{libm-dbl64/s_finite.c,libm-flt32/s_finitef.c}: enable

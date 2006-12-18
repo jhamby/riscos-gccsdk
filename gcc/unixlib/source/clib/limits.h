@@ -26,14 +26,14 @@
 #define MB_LEN_MAX	1
 
 /* Minimum value that can be represented by a 'signed short int'.  */
-#define SHRT_MIN	(short)(0x8000U)
+#define SHRT_MIN	(-32768)
 /* Maximum values that can be represented by a 'signed short int'
    and 'unsigned short int', respectively.  */
 #define SHRT_MAX	0x7fff
 #define USHRT_MAX	0xffffU
 
 /* Minimum value that can be represented by a 'signed int'.  */
-#define INT_MIN 	(int)(0x80000000U)
+#define INT_MIN 	(-INT_MAX - 1)
 /* Maximum values that can be represented by a 'signed int'
    and 'unsigned int'.  */
 #define INT_MAX 	0x7fffffff
@@ -42,7 +42,7 @@
 /* The number of bits in a 'long int'.  */
 #define LONGBITS 32
 /* Minimum value that can be represented by a 'signed long int'.  */
-#define LONG_MIN	(long)(0x80000000UL)
+#define LONG_MIN	(-LONG_MAX - 1L)
 /* Maximum values that can be represented by a 'signed long int'
    and 'unsigned long int'.  */
 #define LONG_MAX	0x7fffffffL
@@ -50,7 +50,7 @@
 
 /* The minimum value that can be represented by a
    'signed long long int'.  */
-#define LONG_LONG_MIN 0x8000000000000000LL
+#define LONG_LONG_MIN (-LONG_LONG_MAX - 1LL)
 
 /* The maximum values that can be represented by a
    'signed long long int' and 'unsigned long long int'.  */
