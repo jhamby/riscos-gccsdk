@@ -210,10 +210,6 @@ static long rand_deg = DEG_3;
 static long rand_sep = SEP_3;
 static long *end_ptr = &randtbl[DEG_3 + 1];
 
-#ifndef __GNUC__
-#define inline /**/
-#endif
-
 static inline long good_rand (long);
 
 static inline long

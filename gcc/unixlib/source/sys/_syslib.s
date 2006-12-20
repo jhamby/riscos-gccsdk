@@ -33,16 +33,6 @@ ERR_NO_XSCALE		* 5
 ; |	 |
 ; |______|
 ;	  +4096 * n  <- sp (initially)
-;
-; First 20 bytes equals SCL's _kernel_stack_chunk structure :
-CHUNK_MAGIC	*	0	; Magic number to help detect if someone overwrites the stack
-CHUNK_NEXT	*	4	; Ptr to next chunk
-CHUNK_PREV	*	8	; Ptr to previous chunk
-CHUNK_SIZE	*	12	; Size of chunk, including header
-CHUNK_DEALLOC	*	16	; Function to call to free the chunk
-CHUNK_RETURN	*	20	; Return address after freeing this chunk
-
-CHUNK_OVERHEAD	*	24	; Size of chunk header
 
 MAX_DA_NAME_SIZE	* 32
 
@@ -404,14 +394,17 @@ no_dynamic_area
 	SWI	XOS_ReadMemMapInfo
 	STR	a1, [ip, #GBL_UL_PAGESIZE]	; __ul_pagesize
 
+	[ {SOFTFLOAT}={FALSE}
 	; Recognise the Floating Point facility by determining whether
 	; the SWI FPEmulator_Version actually exists (and works).
 	; We insist on having at least version 4.00.
+	; We don't care about this in soft-float builds
 	SWI	XFPEmulator_Version
 	MOVVS	a1, #0
 	CMP	a1, #400	; We want 4.00 or above so we can use SFM/LFM
 	MOVCC	a1, #ERR_NO_FPE
 	BCC	|__exit_with_error_num|
+	]
 
 	; Now we'll initialise the C library, then call the user program.
 
@@ -538,10 +531,12 @@ error_no_sharedunixlib
 	DCB	"1.07 of the SharedUnixLibrary module", 0
 	ALIGN
 error_no_fpe
+	[ {SOFTFLOAT}={FALSE}
 	DCD	SharedUnixLibrary_Error_NoFPE
 	DCB	"This application requires version 4.00 "
 	DCB	"or later of the FPEmulator module", 0
 	ALIGN
+	]
 error_unrecoverable_loop
 	DCD	SharedUnixLibrary_Error_FatalError
 	DCB	"Unrecoverable fatal error detected", 0
@@ -730,7 +725,6 @@ handlers
 	]
 
 	; Same as the SCL's magic number, for compatibility in libgcc
-	EXPORT	|__stackchunk_magic_number|
 |__stackchunk_magic_number|
 	DCD	&F60690FF
 
@@ -852,7 +846,7 @@ use_existing_chunk
 	LDR	a2, [fp, #-4]	; Load the return address
 	STR	a2, [a1, #CHUNK_RETURN]	; Remember it
 
-	ADR	a3, free_stack_chunk
+	ADR	a3, __free_stack_chunk
 	TEQ	a1, a1
 	TEQ	pc, pc
 	ANDNE	a2, a2, #&fc000003	; Preserve flags if in 26bit mode
@@ -884,8 +878,7 @@ raise_sigstak
 
 	[ (__UNIXLIB_EXTREMELY_PARANOID > 0) :LOR: (__UNIXLIB_STACK_CHECK_MAGIC > 0)
 stack_corrupt_msg
-	DCB	"***Fatal error: Stack corruption detected***"
-	DCB	13, 10, 0
+	DCB	"***Fatal error: Stack corruption detected***", 0
 	ALIGN
 stack_corrupt
 	ADR	a1, stack_corrupt_msg
@@ -893,8 +886,7 @@ stack_corrupt
 	]
 
 signalhandler_overflow_msg
-	DCB	"***Fatal error: Stack overflow in signal handler***"
-	DCB	13, 10, 0
+	DCB	"***Fatal error: Stack overflow in signal handler***", 0
 	ALIGN
 signalhandler_overflow
 	ADR	a1, signalhandler_overflow_msg
@@ -1021,6 +1013,7 @@ __check_chunk_l2
 	MOVNE	a3, #0
 	STRNE	a3, [a2, #CHUNK_NEXT]
 	MOVEQ	pc, lr	; Falls through to __free_stack_chain if required
+	; FIXME: VVVV !!!
 	DECLARE_FUNCTION __trim_stack
 
 	EXPORT	|__free_stack_chain|
@@ -1040,7 +1033,8 @@ __free_stack_chain_l1
 	DECLARE_FUNCTION __free_stack_chain
 
 
-free_stack_chunk
+	EXPORT	|__free_stack_chunk|
+|__free_stack_chunk|
 	; Called on exit from a function that caused stack extension
 	; a3-a4, ip, sl and lr can be corrupted, all others (including sp)
 	; must be preserved. GCC uses a1 & a2 to return 64bit results.
@@ -1087,51 +1081,10 @@ no_chunk_to_free
 	LDR	sl, [sl, #CHUNK_PREV]
 	ADD	sl, sl, #512+CHUNK_OVERHEAD
 	MOV	pc, lr
-	DECLARE_FUNCTION free_stack_chunk
-
-
-	; void * __builtin_return_adress (unsigned int level)
-
-	; This is an implementation of a GCC internal function.  It appears
-	; here because we need to cope with the function return address
-	; being modified in the frame by calls to stack extension code
-	; or calls to alloca.
-
-	; Return the return address of the current function (level == 0)
-	; or of one of its callers.  Return 0 if at the top of the stack
-	; or the address is unobtainable
-	EXPORT	|__builtin_return_address|
-	; FIXME: not sure if this is needed for ELF build: .type	__builtin_return_address, %function
-|__builtin_return_address|
-	; A non-zero level is only required for debugging.  For the time
-	; being, do not support it. FIXME
-	CMP	a1, #0
-	MOVNE	a1, #0
-	MOVNE	pc, lr
-
-	; Traditionally the return address is held at fp[-4], but this
-	; may change if a stack extension has occurred.
-	LDR	a1, [fp, #-4]
-	TEQ	pc, pc
-	BICNE	a1, a1, #0xfc000003	; Drop flags in 26-bit mode
-	ADR	a2, free_stack_chunk
-
-	; If the return address in the frame points to the 'free_stack_chunk'
-	; function, then the real return address can be found
-	; at sl[CHUNK_RETURN]
-	CMP	a1, a2
-	LDREQ	a1, [sl, #CHUNK_RETURN]
-
-	TEQ	pc, pc
-	BICNE	a1, a1, #0xfc000003	; Drop flags in 26-bit mode
-
-	; XXX FIXME: Implement alloca() return address check.
-	MOV	pc, lr
-	DECLARE_FUNCTION __builtin_return_address
-
+	DECLARE_FUNCTION __free_stack_chunk
 
 	; Globally used panic button.
-	; void __unixlib_fatal(const char *message)
+	; void __unixlib_fatal(const char *message) __attribute__ ((__noreturn__))
 	; Protects itself from recursive calling.
 	IMPORT	|strerror|
 	EXPORT	|__unixlib_fatal|
@@ -1185,6 +1138,9 @@ __unixlib_fatal_cont1
 
 	; a1 => NUL terminated message to print
 __unixlib_fatal_got_msg
+	; FIXME: in Wimp environment but not when in TaskWindow environment, we could pop
+	; up a Wimp_ReportError box.  Might help the "my program vanishes from the screen
+	; without any trace" case.
 	SWI	XOS_NewLine
 	MOV	a1, v1
 	SWI	XOS_Write0
@@ -1197,15 +1153,6 @@ __unixlib_fatal_got_msg
 |.L6|
 	WORD	|__ul_global|
 	DECLARE_FUNCTION __unixlib_fatal
-
-	; int _kernel_fpavailable (void)
-	; Return non-zero if the floating point instruction set is available
-	EXPORT	|_kernel_fpavailable|
-	NAME	_kernel_fpavailable
-|_kernel_fpavailable|
-	MOV	a1, #1
-	MOV	pc, lr
-	DECLARE_FUNCTION _kernel_fpavailable
 
 	EXPORT	|__unixlib_get_fpstatus|
 |__unixlib_get_fpstatus|
@@ -1383,7 +1330,7 @@ dynamic_area_name_end
 	; at runtime where required.
 	; Because of the different permutations (ie, static AOF, static ELF,
 	; dynamic ELF), it's neater to use a macro to define the layout of
-	; __ul_memory. See incl-local/internal/ *-macros.s.
+	; __ul_memory. See incl-local/internal/{aof,elf}-macros.s.
 	EXPORT	|__ul_memory|
 |__ul_memory|
 	UL_MEMORY_LAYOUT

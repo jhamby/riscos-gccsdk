@@ -5,6 +5,10 @@
 
 	AREA	|C$$code|, CODE, READONLY
 
+	; FIXME: I don't think we need anything from this file for our ELF
+	; builds as all alloca support is in _galloca.c and _galloca.s.
+	[ __UNIXLIB_ELF = 0
+
 	IMPORT  malloc
 	IMPORT  free
 	IMPORT  |__ul_memory|
@@ -139,5 +143,7 @@ __alloca_thread_free_all_l1
 	BL	free
 	B	__alloca_thread_free_all_l1
 	DECLARE_FUNCTION __alloca_thread_free_all
+
+	]
 
 	END

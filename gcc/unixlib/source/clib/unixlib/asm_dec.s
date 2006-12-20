@@ -326,9 +326,8 @@ XSharedUnixLibrary_Initialise		EQU	&55c84 + X_Bit
 
 XSOM_GOTFromAddr			EQU	&5858a + X_Bit
 
-	; Entries into the __ul_global structure as defined at the
-	; end of sys/_syslib.s.  Change this, then make sure you change
-	; that.
+	; Entries into the __ul_global structure.  Must be kept in sync with
+	; sys/_syslib.s and incl-local/internal/{aof,elf}-macros.s.
 GBL_UNIXLIB_CLI				EQU	0
 
 GBL_TIME_LOW				EQU	4
@@ -361,7 +360,7 @@ GBL_MUTEX				EQU	92
 GBL_MALLOC_GBL				EQU	96
 
 	; Entries in the __ul_memory table.  Must be kept in sync with
-	; sys/_syslib.s and unixlib/unix.h.
+	; sys/_syslib.s and incl-local/internal/{aof,elf}-macros.s
 MEM_APPSPACE_HIMEM			EQU	4
 MEM_UNIXLIB_STACK			EQU	8
 
@@ -379,5 +378,16 @@ MEM_DALIMIT				EQU	40
 MEM_APPSPACE_LIMIT			EQU	44
 MEM_OLD_HIMEM				EQU	48
 
+	; Entries in the struct __stack_chunk.  Must be kept in sync with
+	; unix.h definition.
+	; First 20 bytes equals SCL's _kernel_stack_chunk structure :
+CHUNK_MAGIC				EQU	0	; Magic number to help detect if someone overwrites the stack
+CHUNK_NEXT				EQU	4	; Ptr to next chunk
+CHUNK_PREV				EQU	8	; Ptr to previous chunk
+CHUNK_SIZE				EQU	12	; Size of chunk, including header
+CHUNK_DEALLOC				EQU	16	; Function to call to free the chunk
+CHUNK_RETURN				EQU	20	; Return address after freeing this chunk
+
+CHUNK_OVERHEAD				EQU	24	; Size of chunk header
 
 	END

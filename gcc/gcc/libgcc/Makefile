@@ -1,6 +1,6 @@
 # Makefile for the GNU Compiler Collection for ARM/RISC OS
 # Copyright (c) 1997, 1998, 1999, 2000, 2003 Nick Burrett
-# Copyright (c) 2005 GCCSDK Developers
+# Copyright (c) 2005, 2006 GCCSDK Developers
 # Written by Nick Burrett <nick@sqrt.co.uk>
 
 CC_S = $(CROSS_CC) -xassembler-with-cpp
@@ -21,9 +21,13 @@ DPFLAGS=-DFLOAT_BIT_ORDER_MISMATCH -DFLOAT_WORD_ORDER_MISMATCH $(FPBIT_FLAGS)
 libobjdir=$(objdir)/gcc-$(VERSION)/libgcc/$(STAGE)/$(TRG)
 
 COMMON = $(libobjdir)/divsi3.o \
-        $(libobjdir)/modsi3.o \
-        $(libobjdir)/umodsi3.o \
-        $(libobjdir)/udivsi3.o \
+	$(libobjdir)/modsi3.o \
+	$(libobjdir)/umodsi3.o \
+	$(libobjdir)/udivsi3.o \
+	$(libobjdir)/moddi3.o \
+	$(libobjdir)/umoddi3.o \
+	$(libobjdir)/divdi3.o \
+	$(libobjdir)/udivdi3.o \
 	$(libobjdir)/div0.o
 
 LIB2ADDEH = $(libobjdir)/unwind-dw2.o \

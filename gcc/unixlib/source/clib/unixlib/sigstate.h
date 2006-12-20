@@ -83,9 +83,6 @@ extern void __h_sigprof_init (void);
 /* Alarm semaphores.  */
 extern int __h_sigprof_sema, __h_sigvtalrm_sema, __h_sigalrm_sema;
 
-/* Get the fp at the moment of calling.  */
-extern void *__backtrace_getfp (void);
-
 /* When non-NULL, the fp at the moment __h_cback_common is executed.  */
 extern unsigned int * __ul_callbackfp;
 

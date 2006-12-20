@@ -1,8 +1,7 @@
 /*
  * File taken from glibc 2.2.5.
  * Following changes were made:
- *  - For the non __GNUC__ case : declare __bswap_16() and __bswap_32() as
- *    non inline functions.
+ *  None.
  */
 
 /* Macros to swap the order of bytes in integer values.
@@ -32,25 +31,17 @@
 #define __BITS_BYTESWAP_H 1
 
 /* Swap bytes in 16 bit value.  */
-#ifdef __GNUC__
 # define __bswap_16(x) \
     (__extension__							      \
      ({ unsigned short int __bsx = (x);					      \
         ((((__bsx) >> 8) & 0xff) | (((__bsx) & 0xff) << 8)); }))
-#else
-extern unsigned short int __bswap_16 (unsigned short int __bsx);
-#endif
 
 /* Swap bytes in 32 bit value.  */
-#ifdef __GNUC__
 # define __bswap_32(x) \
     (__extension__							      \
      ({ unsigned int __bsx = (x);					      \
         ((((__bsx) & 0xff000000) >> 24) | (((__bsx) & 0x00ff0000) >>  8) |    \
 	 (((__bsx) & 0x0000ff00) <<  8) | (((__bsx) & 0x000000ff) << 24)); }))
-#else
-extern unsigned int __bswap_32 (unsigned int __bsx);
-#endif
 
 #ifdef __GNUC__
 /* Swap bytes in 64 bit value.  */

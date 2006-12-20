@@ -357,10 +357,6 @@ extern int sprintf (char *__restrict __s,
 
 __END_NAMESPACE_STD
 
-#ifndef __GNUC__
-#pragma -v1
-#endif
-     
 #if defined __USE_BSD || defined __USE_ISOC99 || defined __USE_UNIX98
 __BEGIN_NAMESPACE_C99
 /* Write formatted output to s.  limit is the maximum number of characters
@@ -400,10 +396,6 @@ extern int fprintf (FILE *__restrict __stream,
    point.  */
 extern int printf (const char *__restrict __format, ...);
 
-#ifndef __GNUC__
-#pragma -v2
-#endif
-
 /* Read formatted input from s.  */
 extern int sscanf (const char *__restrict __s,
 		   const char *__restrict __format, ...) __THROW;
@@ -418,10 +410,6 @@ extern int fscanf (FILE *__restrict __stream,
 extern int scanf (const char *__restrict __format, ...);
 
 __END_NAMESPACE_STD
-
-#ifndef __GNUC__
-#pragma -v0
-#endif
 
 #ifdef __USE_ISOC99
 __BEGIN_NAMESPACE_C99

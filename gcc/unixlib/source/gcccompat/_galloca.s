@@ -14,6 +14,8 @@
 	; We must save any call-clobbered registers that are likely to be
 	; corrupted by the following function.  Otherwise we risk corrupting
 	; the return values from functions.
+	; FIXME: I *think* we can leave out a2-a3 because they are not used
+	; to return any values.
 	stmfd	sp!, {a1, a2, a3, a4, lr}
 	; If we pass the frame pointer in here, then we don't need to
 	; provide specific code.
@@ -23,11 +25,17 @@
 	; __gcc_alloca_restore has occurred before function exit.
 	bl	__gcc_alloca_free_1
 	movs	ip, a1
+	; FIXME: is the following not possible (and better) ?
+	; entry:
+	;  teq fp, #0
+	;  stmeqfd sp!, {a1-a4, lr}
+	;  stmnefd sp!, {a1-a4, fp}
+	; (instead of stmfd sp!, {a1, a2, a3, a4, lr} / mov a1, fp)
+	; exit:
+	;  ldmfd sp!, {a1-a4, pc}
+	; (instead of movs ip, a1 / ldmfd sp!, {a1, a2, a3, a4, lr} / movne lr, ip / mov pc, lr)
 	ldmfd	sp!, {a1, a2, a3, a4, lr}
 	movne	lr, ip		; if non-zero, then it is real return address
-
-	teq	pc, pc
-	movnes	pc, lr		; 26-bit mode, restore flags
 	mov	pc, lr		; 32-bit mode, scrap flags
 
 	END

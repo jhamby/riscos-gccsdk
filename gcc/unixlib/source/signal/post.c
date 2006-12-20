@@ -374,12 +374,14 @@ __write_backtrace_thread (unsigned int *fp)
 void
 __write_backtrace (int signo)
 {
+  register unsigned long *fp __asm ("fp");
   pthread_t th;
+
   fprintf (stderr, "\nFatal signal received: %s\n\nStack backtrace:\n\n",
 	   strsignal (signo));
 
   fprintf (stderr, "Running thread %p\n", __pthread_running_thread);
-  __write_backtrace_thread (__backtrace_getfp());
+  __write_backtrace_thread (fp);
 
   for (th = __pthread_thread_list; th != NULL; th = th->next)
     {

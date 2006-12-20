@@ -1,3 +1,49 @@
+Wed Dec 20 20:47:17 CET 2006  John Tytgat  <John.Tytgat@aaug.net>
+
+	Small bit of code reschuffling and cleanup before addressing the
+	remaining source/gcccompat alloca work.
+	* source/stdlib/random.c: GCC has inline.
+	* source/stdlib/div.c: Remove __GNUC__ check.
+	* source/unix/unix.c: Uppercase start char of __unixlib_fatal() calls.
+	* source/pthread/_exit.s(___arm_alloca_thread_free_all,
+	__alloca_thread_free_all): disabled for ELF builds.  These should go
+	for good when UnixLib build is ELF only.
+	* source/signal/post.c: No longer make use of __backtrace_getfp() by
+	using inline assembler.
+	* source/clib/unixlib/sigstate.h(__backtrace_getfp): Removed
+	declaration.
+	* source/signal/_coredump.s(__backtrace_getfp()): Removed file.
+	* source/clib/unixlib/asm_dec.s(GBL_,MEM_): Updated comments.
+	* source/clib/unixlib/asm_dec.s(CHUNK_): Added CHUNK_ definitions from
+	_syslib.s.
+	* source/clib/bits/byteswap.h(__bswap_16,__bswap_32): Removed
+	declaration.
+	* source/netlib/{_bswap_16.s,_bswap_32.s}(__bswap_32,htonl,ntohl,
+	__bswap_16,htons,ntohs): Removed files.
+	* source/clib/stdio.h: Removed Nocroft specific pragmas.
+	* source/scl/_kfpavailable.s(_kernel_fpavailable): Code moved from
+	_syslib.s.
+	* source/gcccompat/{_moddi3.s,_divdi3.s,_umoddi3.s,_udivdi3.s}
+	(__moddi3.s,__divdi3.s,__umoddi3.s,__udivdi3.s): Removed (we've enabled
+	those routines in gcc/libgcc/Makefile).
+	* source/sys/_alloca.s(alloca,__alloca,__alloca_thread_free_all):
+	Disabled code for ELF builds as it is not used.  This file should go
+	for good when UnixLib build is ELF only.
+	* source/sys/_syslib.s: Moved CHUNK_ definitions to asm_dec.s; Don't
+	check for FPEmulator in soft-float builds; Don't export
+	__stackchunk_magic_number; Changed termination CR/NL + NUL to NUL for
+	fatal error messages; Renamed free_stack_chunk to __free_stack_chunk
+	and exported it; Moved __builtin_return_address implementation to
+	gcccompat/_b_return.s.; Moved _kernel_fpavailable implementation to
+	scl/_kfpavailable.s.; Added important FIXME for __trim_stack; Added
+	suggestion for __unixlib_fatal_got_msg improvement.
+	* source/gcccompat/_b_return.s(__builtin_return_address): Code moved
+	from _syslib.s and added some comments on necessary improvements.
+	* source/gcccompat/_galloca.s: Added a couple of FIXMEs.
+	* source/gcccompat/galloca.c: Removed __backtrace_getfp() call; Added
+	FIXMEs and a couple of small changes (like do not access data from a
+	free'd memory block).
+
 Mon Dec 18 03:28:56 CET 2006  John Tytgat  <John.Tytgat@aaug.net>
 
 	* source/stdlib/alloc(malloc,free,realloc,memalign,valloc,pvalloc,

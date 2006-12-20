@@ -34,6 +34,8 @@ struct alloca_chunk
   struct alloca_chunk *next;
 };
 
+/* FIXME: when thread context switching is happening during these routines, we have a big problem.  We need some synchronisation code. */
+
 /* Return head node.  Multi-threaded applications store the head node
    in a private structure.  */
 static inline struct alloca_chunk *chunk_head (void)
@@ -142,12 +144,10 @@ static void alloca_restore (unsigned int fp, unsigned int block, int fix_lr)
     {
       /* Re-scan list, if we have deleted all blocks for this function,
 	 then we must fix the return address in the stack frame.  */
-      chunk = chunk_head ();
-      while (chunk)
+      for (chunk = chunk_head (); chunk != NULL; chunk = chunk->next)
 	{
 	  if (chunk->fp == fp)
 	    return;
-	  chunk = chunk->next;
 	}
 
       if (return_address)
@@ -182,7 +182,7 @@ unsigned long __gcc_alloca_free_1 (unsigned long fp)
   struct alloca_chunk *list = chunk_head ();
 
 #ifdef DEBUG
-  printf ("__gcc_alloca_free: fp=%08x\n", fp);
+  printf ("__gcc_alloca_free_1: fp=%08x\n", fp);
 #endif
 
   /* Make two passes over the chunk list.  */
@@ -191,8 +191,7 @@ unsigned long __gcc_alloca_free_1 (unsigned long fp)
      have jumped to a different part of the program, then we need
      to ensure that any calls to alloca further down the call frame
      have been freed.  */
-  chunk = list;
-  while (chunk)
+  for (chunk = list; chunk != NULL; chunk = chunk->next)
     {
       if (chunk->fp == fp)
 	{
@@ -201,12 +200,11 @@ unsigned long __gcc_alloca_free_1 (unsigned long fp)
 	  if (chunk->lr)
 	    return_address = chunk->lr;
 	}
-      chunk = chunk->next;
     }
   if (block != 0xffffffff)
     {
 #ifdef DEBUG
-      printf ("__gcc_alloca_free: fp=%08x, block=%u, lr=%08x\n",
+      printf ("__gcc_alloca_free_1: fp=%08x, block=%u, lr=%08x\n",
 	      fp, block, return_address);
 #endif
       alloca_restore (fp, block, false);
@@ -222,11 +220,8 @@ void *__gcc_alloca (size_t size)
 {
   /* Here, 'fp' points to the frame pointer of the current function
      i.e. that of __gcc_alloca.  */
-#ifdef __GNUC__
   register unsigned long *fp __asm ("fp");
-#else
-  unsigned long *fp = __backtrace_getfp ();
-#endif
+
   /* This is the frame pointer of the function that called __gcc_alloca.  */
   unsigned long *callee_fp = (unsigned long *) fp[-3];
   struct alloca_chunk *chunk;
@@ -247,6 +242,7 @@ void *__gcc_alloca (size_t size)
   chunk->fp = callee_fp[-3];
   chunk->block = (list == NULL) ? 0 : list->block + 1;
   chunk->ptr = (void *) malloc (size); /* Real allocation of memory.  */
+  /* FIXME: need to check for chunk->pr == NULL like we did in the AOF case and panic ? */
 
   {
     /* This is the return address of the function that called
@@ -291,16 +287,16 @@ void *__gcc_alloca (size_t size)
 
 
 /* Called exclusively by __pthread_exit, this function frees all
-   alloca chunks.  */
+   alloca chunks for that thread.  */
 void __gcc_alloca_thread_free_all (void)
 {
   struct alloca_chunk *list = chunk_head ();
   while (list)
     {
-      struct alloca_chunk *chunk = list;
-      free (chunk->ptr);
-      free (chunk);
-      list = list->next;
+      struct alloca_chunk *next_list = list->next;
+      free (list->ptr);
+      free (list);
+      list = next_list;
     }
 }
 

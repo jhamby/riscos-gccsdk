@@ -1086,13 +1086,13 @@ convert_command_line (struct proc *process, const char *cli, int cli_size)
       if ((err = __os_swi(OS_FSControl, regs)) != NULL)
        {
          __ul_seterr (err, 0);
-         __unixlib_fatal ("cannot convert process filename");
+         __unixlib_fatal ("Cannot convert process filename");
        }
       if (regs[5] > 0)
-       __unixlib_fatal ("cannot convert process filename");
+       __unixlib_fatal ("Cannot convert process filename");
 
       if ((new_argv0 = malloc(1 - regs[5])) == NULL)
-       __unixlib_fatal ("cannot allocate memory to convert process filename");
+       __unixlib_fatal ("Cannot allocate memory to convert process filename");
 
       regs[0] = 37;
       regs[1] = (int)argv[0];
@@ -1102,14 +1102,14 @@ convert_command_line (struct proc *process, const char *cli, int cli_size)
       if ((err = __os_swi(OS_FSControl, regs)) != NULL)
        {
          __ul_seterr (err, 0);
-         __unixlib_fatal ("cannot convert process filename");
+         __unixlib_fatal ("Cannot convert process filename");
        }
 
       if (__os_file (OSFILE_READCATINFO, new_argv0, regs) != NULL
          || regs[0] != 1)
        {
 #ifdef DEBUG
-         __os_print ("WARNING: cannot stat() process filename\r\nDid you use a temporary FS used to startup? If so, better use '*run' instead.\r\n");
+         __os_print ("WARNING: cannot stat() process filename\r\nDid you use a temporary FS used to startup? If so, better use '*run' instead.");
          __os_nl ();
 #endif
          filetype = __RISCOSIFY_FILETYPE_NOTFOUND;
@@ -1119,7 +1119,7 @@ convert_command_line (struct proc *process, const char *cli, int cli_size)
 
       /* Convert to Unix full path, if needed.  */
       if ((new_uargv0 = __unixify_std (new_argv0, NULL, 0, filetype)) == NULL)
-       __unixlib_fatal ("cannot allocate memory to convert process filename");
+       __unixlib_fatal ("Cannot allocate memory to convert process filename");
 
       free(new_argv0);
       free(argv[0]);
