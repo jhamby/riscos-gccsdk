@@ -1,5 +1,5 @@
---- ../orig.binutils/ld/ldlang.c	2006-06-12 06:05:04.000000000 -0700
-+++ ld/ldlang.c	2006-12-17 15:06:26.000000000 -0800
+--- ld/ldlang.c.orig	2006-12-23 16:22:48.000000000 -0800
++++ ld/ldlang.c	2006-12-23 15:54:33.000000000 -0800
 @@ -5234,6 +5234,17 @@
    /* Make -o on command line override OUTPUT in script.  */
    if (!had_output_filename || !from_script)
@@ -8,7 +8,7 @@
 +#ifndef __riscos__
 +      int len = strlen (name);
 +
-+      if (!getenv("GCCSDK_NOE1F") && (len < 4 || (strcmp (name + len - 4, ",e1f") != 0))) {
++      if (!getenv("GCCSDK_NOE1F") && strchr(name, '.') == NULL && (len < 4 || (strcmp (name + len - 4, ",e1f") != 0))) {
 +         char *new_name = xmalloc (len + 5);
 +
 +         snprintf(new_name, len + 5, "%s,e1f", name);
