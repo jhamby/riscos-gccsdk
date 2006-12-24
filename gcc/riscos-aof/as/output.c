@@ -386,6 +386,8 @@ outputElf (void)
   elf_head.e_flags = EF_ARM_CURRENT & ~EF_ARM_EABIMASK;
   if (areaEntry)
     elf_head.e_flags |= EF_ARM_HASENTRY;
+  if (apcs_softfloat)
+    elf_head.e_flags |= EF_ARM_SOFTFLOAT;  
   elf_head.e_ehsize = sizeof(elf_head);
   elf_head.e_phentsize = 0;
   elf_head.e_phnum = 0;
