@@ -1,3 +1,8 @@
+Mon Dec 25 17:03:19 2006  Lee Noar  <leenoar@ntlworld.com>
+
+	* elf/convert-unixlib.pl: Link libpic.a into libunixlib.so and add
+	version info to libunixlib.so and libm.so.
+
 Sun Dec 24 15:01:25 PST 2006  Peter Naulls <peter@chocky.org>
 
 	* source/sys/exec.c: Add to the hack that checks whether we use

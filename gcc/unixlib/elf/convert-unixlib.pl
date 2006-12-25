@@ -467,9 +467,9 @@ foreach $m (@makevars) {
 
 print MAKE "\n\n";
 
-print MAKE "libunixlib_la_LDFLAGS = -Wc,-nostdlib\n\n";
+print MAKE "libunixlib_la_LDFLAGS = -Wc,-lpic -Wc,-nostdlib -version-info 5:0:0\n\n";
 
-print MAKE "libm_la_LDFLAGS = -Wc,-nostdlib\n\n";
+print MAKE "libm_la_LDFLAGS = -Wc,-nostdlib -version-info 1:0:0\n\n";
 
 print MAKE "# Build the SharedUnixLibrary module\n";
 print MAKE "bin_PROGRAMS = sul\n\n";
