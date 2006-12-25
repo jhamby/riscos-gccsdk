@@ -370,7 +370,7 @@ execve (const char *execname, char *const argv[], char *const envp[])
   __stop_itimers ();
 #endif
 
-  if (__proc->ppid == 1 && 0)
+  if (__proc->ppid == 1)
     {
       /* This process doesn't have a parent. Technically, all file descriptors
          that don't have FD_CLOEXEC set should remain open, but if we are
