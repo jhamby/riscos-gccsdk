@@ -111,6 +111,7 @@ execve (const char *execname, char *const argv[], char *const envp[])
 
       /* If the first argument is the same as the execname then make sure we
          don't end up with it twice on the command line */
+
       if (argv[0] && strcmp(argv[0], execname) == 0)
         scenario = 1;
 
@@ -118,9 +119,43 @@ execve (const char *execname, char *const argv[], char *const envp[])
       program_name = __riscosify_std (execname, 0, pathname,
 				      sizeof (pathname), NULL);
       if (program_name == NULL)
-	return __set_errno (E2BIG);
+        return __set_errno (E2BIG);
 
       program_name = pathname;		/* This is copied into cli + 1 */
+
+      if (!scenario)
+        {
+          char canon_exec[MAXPATHLEN];
+          char ro_arg[MAXPATHLEN];
+          char canon_arg[MAXPATHLEN];
+          int regs[10];
+          _kernel_oserror *err;
+
+          /* Canonicalise the program name  */
+          regs[0] = 37;
+          regs[1] = (int)program_name;
+          regs[2] = (int)canon_exec;
+          regs[3] = 0;
+          regs[4] = 0;
+          regs[5] = sizeof(canon_exec);
+          err = __os_swi (OS_FSControl, regs);
+
+          if (!err)
+            {
+              __riscosify_std(argv[0], 0, ro_arg, sizeof(ro_arg), NULL);
+
+              /* Canonicalise argv[0]  */
+              regs[0] = 37;
+              regs[1] = (int)ro_arg;
+              regs[2] = (int)canon_arg;
+              regs[3] = 0;
+              regs[4] = 0;
+              regs[5] = sizeof(canon_arg);
+              err = __os_swi (OS_FSControl, regs);
+
+              if (!err && strcmp(canon_exec, canon_arg) == 0) scenario = 1;
+            }
+        }
     }
   else
     {
@@ -335,7 +370,7 @@ execve (const char *execname, char *const argv[], char *const envp[])
   __stop_itimers ();
 #endif
 
-  if (__proc->ppid == 1)
+  if (__proc->ppid == 1 && 0)
     {
       /* This process doesn't have a parent. Technically, all file descriptors
          that don't have FD_CLOEXEC set should remain open, but if we are

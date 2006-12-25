@@ -1,6 +1,12 @@
+Sun Dec 24 15:01:25 PST 2006  Peter Naulls <peter@chocky.org>
+
+	* source/sys/exec.c: Add to the hack that checks whether we use
+	 argv[0] or not - canonicalise RISC OS versions of the filenames before
+	 comparing.
+
 Wed Dec 20 20:47:17 CET 2006  John Tytgat  <John.Tytgat@aaug.net>
 
-	Small bit of code reschuffling and cleanup before addressing the
+	Small bit of code reshuffling and cleanup before addressing the
 	remaining source/gcccompat alloca work.
 	* source/stdlib/random.c: GCC has inline.
 	* source/stdlib/div.c: Remove __GNUC__ check.
