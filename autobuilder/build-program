@@ -211,7 +211,7 @@ else
  fi
 
  # Ensure links in man pages work when creating HTML with rman 
- if ! [ -e man3 ] ; then
+ if ! [ -e $S/man3 ] ; then
    ln -s . $S/man3
  fi
 
