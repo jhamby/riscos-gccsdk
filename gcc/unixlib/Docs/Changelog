@@ -1,3 +1,9 @@
+Mon Dec 26 16:26:23 2006  Lee Noar  <leenoar@ntlworld.com>
+
+	* source/pthread/_exit.s: Fix FIXMEs, ie, don't use
+	__alloca_thread_free_all or ___arm_alloca_thread_free_all in
+	ELF build.
+
 Mon Dec 26 14:59:48 2006  Lee Noar  <leenoar@ntlworld.com>
 
 	* source/sys/_syslib.s: Move DECLARE_FUNCTION of __trim_stack to the

@@ -19,20 +19,20 @@
 	ADR	a2, funcs
 
 	[ __UNIXLIB_ELF = 0
-	LDR	a1, [a2, #0]	;funcs + 0
+	LDR	a1, [a2], #4	;funcs + 0
  PICEQ "LDR	a1, [v4, a1]"
 	TEQ	a1, #0
 	MOVNE	lr, pc
 	MOVNE	pc, a1
 
-	LDR	a1, [a2, #4]	;funcs + 4
+	LDR	a1, [a2], #4	;funcs + 4
  PICEQ "LDR	a1, [v4, a1]"
 	TEQ	a1, #0
 	MOVNE	lr, pc
 	MOVNE	pc, a1
 	]
 
-	LDR	a1, [a2, #8]	;funcs + 8
+	LDR	a1, [a2]	;funcs + 8
  PICEQ "LDR	a1, [v4, a1]"
 	TEQ	a1, #0
 	MOVNE	lr, pc
@@ -41,8 +41,10 @@
 	LDMFD	sp!, {pc}
 
 |funcs|
-	WORD	|__alloca_thread_free_all|	; FIXME: not needed in ELF builds
-	WORD	|___arm_alloca_thread_free_all|	; FIXME: not needed in ELF builds
+	[ __UNIXLIB_ELF = 0
+	WORD	|__alloca_thread_free_all|	; Not needed in ELF builds
+	WORD	|___arm_alloca_thread_free_all|	; Not needed in ELF builds
+	]
 	WORD	|__gcc_alloca_thread_free_all|
 	DECLARE_FUNCTION __pthread_exit
 
