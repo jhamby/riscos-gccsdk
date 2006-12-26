@@ -1,6 +1,6 @@
 if [ -z "$GCCSDK_ROOT" ] || [ ! -d $GCCSDK_ROOT ] ; then
   echo \$GCCSDK_ROOT is wrongly defined \(being \'$GCCSDK_ROOT\'\)
-  test "$SHELL" != "$0" && exit 1
+  return 1
 fi
 
 # $GCCSDK_SRCDIR is the directory where we will placed the copied & patched
@@ -19,7 +19,7 @@ fi
 export GCCSDK_AOFUNIXLIB=$GCCSDK_ROOT/../gcc/unixlib
 if [ ! -d $GCCSDK_AOFUNIXLIB ] ; then
   echo \$GCCSDK_AOFUNIXLIB is wrongly defined \(being \'$GCCSDK_AOFUNIXLIB\'\)
-  test "$SHELL" != "$0" && exit 1
+  return 1
 fi
 
 # GCCSDK_GCCORIG : directory containing the original & unchanged gcc sources
