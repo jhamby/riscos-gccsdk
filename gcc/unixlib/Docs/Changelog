@@ -1,3 +1,10 @@
+Mon Dec 26 14:59:48 2006  Lee Noar  <leenoar@ntlworld.com>
+
+	* source/sys/_syslib.s: Move DECLARE_FUNCTION of __trim_stack to the
+	end of __free_stack_chain as technically they are part of the same
+	function and also there's a possibility that the compiler may
+	separate them in the resulting object file.
+
 Mon Dec 25 17:03:19 2006  Lee Noar  <leenoar@ntlworld.com>
 
 	* elf/convert-unixlib.pl: Link libpic.a into libunixlib.so and add

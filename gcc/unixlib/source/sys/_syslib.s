@@ -1013,8 +1013,6 @@ __check_chunk_l2
 	MOVNE	a3, #0
 	STRNE	a3, [a2, #CHUNK_NEXT]
 	MOVEQ	pc, lr	; Falls through to __free_stack_chain if required
-	; FIXME: VVVV !!!
-	DECLARE_FUNCTION __trim_stack
 
 	EXPORT	|__free_stack_chain|
 |__free_stack_chain| ; free a chain of stack chunks pointer to by a1
@@ -1031,6 +1029,7 @@ __free_stack_chain_l1
 	BNE	__free_stack_chain_l1
 	LDMFD	sp!, {v1, pc}
 	DECLARE_FUNCTION __free_stack_chain
+	DECLARE_FUNCTION __trim_stack
 
 
 	EXPORT	|__free_stack_chunk|
