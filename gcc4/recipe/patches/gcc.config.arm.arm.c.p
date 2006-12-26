@@ -1,5 +1,5 @@
---- gcc/config/arm/arm.c.orig	2006-10-15 19:54:18.000000000 +0100
-+++ gcc/config/arm/arm.c	2006-10-16 20:56:40.000000000 +0100
+--- gcc/config/arm/arm.c.orig	2006-12-26 16:48:46.000000000 +0100
++++ gcc/config/arm/arm.c	2006-12-26 16:48:39.000000000 +0100
 @@ -52,6 +52,7 @@
  #include "target-def.h"
  #include "debug.h"
@@ -1045,7 +1045,7 @@
  	{
  	  delta = offsets->soft_frame - offsets->saved_args;
  	  reg = THUMB_HARD_FRAME_POINTER_REGNUM;
-@@ -15157,13 +15513,92 @@
+@@ -15157,13 +15513,91 @@
    return mode == SImode ? 255 : 0;
  }
  
@@ -1080,9 +1080,8 @@
 +{
 +  emit_library_call_value (gen_rtx_SYMBOL_REF (Pmode, "__gcc_alloca"),
 +                           memptr, LCT_NORMAL, GET_MODE (memptr),
-+                      	   2,
-+			   size, SImode,
-+			   gen_rtx_REG (SImode, FP_REGNUM), SImode);
++                      	   1,
++			   size, SImode);
 +
 +}
 +
@@ -1139,7 +1138,7 @@
      return regno;
  
    /* TODO: Legacy targets output FPA regs as registers 16-23 for backwards
-@@ -15171,9 +15606,12 @@
+@@ -15171,9 +15605,12 @@
    if (IS_FPA_REGNUM (regno))
      return (TARGET_AAPCS_BASED ? 96 : 16) + regno - FIRST_FPA_REGNUM;
  

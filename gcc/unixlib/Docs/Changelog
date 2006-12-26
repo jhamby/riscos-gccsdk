@@ -1,3 +1,10 @@
+Tue Dec 26 21:12:06 CET 2006  John Tytgat  <John.Tytgat@aaug.net>
+
+	* source/gcccompat/{_b_return.s,_b_frame.s,_galloca.s,galloca.c}:
+	finished and reworked the alloca, __builtin_return_address and
+	__builtin_frame_address implementations for GCC 4
+	This improves the gcc/g++ testsuite results.
+
 Mon Dec 26 16:26:23 2006  Lee Noar  <leenoar@ntlworld.com>
 
 	* source/pthread/_exit.s: Fix FIXMEs, ie, don't use
@@ -323,6 +330,7 @@ Sun Nov 19 16:05:12 2006  Lee Noar  <leenoar@ntlworld.com>
 	are used for the ELF shared library.
 
 Sun Nov 19 14:58:12 2006  Lee Noar  <leenoar@ntlworld.com>
+
 	* source/incl-local/internal/elf-macros.s:
 	Disable macro extension to allow quoted macro arguments.
 	Change label names in NAME macro to allow multiple use.

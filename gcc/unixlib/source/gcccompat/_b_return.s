@@ -3,53 +3,60 @@
 
 	GET	clib/unixlib/asm_dec.s
 
-	; The AOF version of this routine lives in gcc/gcc/libgcc/lib1aof.s
-
-	AREA	|C$$code|, CODE, READONLY
-
 	[ __UNIXLIB_ELF > 0
+	@ BEWARE: this looks like GAS syntax but isn't, the labels don't
+	@ have a colon.
 
-	IMPORT	|__free_stack_chunk|
+	.text
 
-	; void * __builtin_return_adress (unsigned int level)
+	@ void * __builtin_return_adress (unsigned int level)
+	@
+	@ Return the return address of the current function (level == 0)
+	@ or of one of its callers.  Return 0 if at the top of the stack
+	@ or the address is unobtainable
+	@
+	@ This is an implementation of a GCC internal function.  It appears
+	@ here because we need to cope with the function return address
+	@ being modified in the frame by calls to stack extension code
+	@ or calls to alloca.
+	.global	__builtin_return_address
+__builtin_return_address
+	STMFD	sp!, {lr}
+	BL	__builtin_frame_address
 
-	; This is an implementation of a GCC internal function.  It appears
-	; here because we need to cope with the function return address
-	; being modified in the frame by calls to stack extension code
-	; or calls to alloca.
+	MOVS	a2, a1
+	LDMEQFD	sp!, {pc}
 
-	; Return the return address of the current function (level == 0)
-	; or of one of its callers.  Return 0 if at the top of the stack
-	; or the address is unobtainable
-	EXPORT	|__builtin_return_address|
-|__builtin_return_address|
-	; A non-zero level is only required for debugging.  For the time
-	; being, do not support it. FIXME
-	CMP	a1, #0
-	MOVNE	a1, #0
-	MOVNE	pc, lr
+	LDR	a1, [a2, #-4]		@ Load return address from the stack frame.
+	TEQ	a1, a1			@ 32bit mode check
+	TEQ	pc, pc
+	BICNE	a1, a1, #0xfc000003	@ If running 26bit, clear PSR bits.
 
-	; Traditionally the return address is held at fp[-4], but this
-	; may change if a stack extension has occurred.
-	LDR	a1, [fp, #-4]
-	TEQ	pc, pc	; <= FIXME: only works when we know that there is at least one non-zero processor flag bit. Is that the case?
-	BICNE	a1, a1, #0xfc000003	; Drop flags in 26-bit mode
-	LDR	a2, |.L1|
-	; If the return address in the frame points to the '__free_stack_chunk'
-	; function, then the real return address can be found
-	; at sl[CHUNK_RETURN]
-	CMP	a1, a2
-	LDREQ	a1, [sl, #CHUNK_RETURN]
+	@ If the return address in the frame points to the '__gcc_alloca_free'
+	@ function, then we have outstanding alloca blocks so the return
+	@ address needs to be found in one of the 'struct alloca_chunk' blocks.
+	LDR	lr, .L1
+	TEQ	a1, lr
+	BNE	__builtin_return_address_alloca_resolved
 
-	TEQ	pc, pc	; <= FIXME: only works when we know that there is at least one non-zero processor flag bit. Is that the case?
-	BICNE	a1, a1, #0xfc000003	; Drop flags in 26-bit mode
+	MOV	a1, a2
+	BL	__gcc_alloca_return_address
 
-	; XXX FIXME: Implement alloca() return address check.
-	MOV	pc, lr
+__builtin_return_address_alloca_resolved
+	@ If the return address in the frame points to the '__free_stack_chunk'
+	@ function, then the real return address has to be found
+	@ at sl[CHUNK_RETURN].
+	LDR	lr, .L2
+	TEQ	a1, lr
+	LDREQ	a1, [a2, #CHUNK_RETURN]
+
+	LDMFD	sp!, {pc}
+.L1:
+	WORD	__gcc_alloca_free
+.L2:
+	WORD	__free_stack_chunk
 	DECLARE_FUNCTION __builtin_return_address
 
-|.L1|
-	WORD	__free_stack_chunk
 	]
 
 	END

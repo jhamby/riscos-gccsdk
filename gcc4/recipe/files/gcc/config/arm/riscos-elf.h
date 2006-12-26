@@ -183,6 +183,12 @@
    alloca.  */
 #define PREVENT_FP_CLOBBER (TARGET_APCS_STACK)
 
+/* If we're targeting explicit APCS stack checks, then force calls to
+   __builtin_return_address and __builtin_frame_address as library
+   function calls.  */
+#define HAVE_BUILTIN_RETURN_ADDR_FUNC (TARGET_APCS_STACK)
+#define HAVE_BUILTIN_FRAME_ADDR_FUNC (TARGET_APCS_STACK)
+
 #define TARGET_RISCOSELF
 #define TARGET_RISCOSAOF
 
