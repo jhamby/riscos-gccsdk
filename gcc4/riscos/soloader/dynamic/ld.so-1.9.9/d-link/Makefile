@@ -19,7 +19,7 @@ OBJS += $(OBJDIR)/resolve.o $(OBJDIR)/elfinterp.o $(OBJDIR)/stkovf.o $(OBJDIR)/d
 
 DLINKER = $(OBJDIR)/ld-1.9.9.so,e1f
 
-ELF_LDFLAGS=--shared -fPIC --no-undefined -L$(LIBS) -lpic # using GNU ld
+ELF_LDFLAGS=--shared -fPIC -Wl,--no-undefined -lpic -nostdlib # using GNU ld
 
 .PHONY: $(DIRS)
 .PHONY: libdl
@@ -39,7 +39,7 @@ $(DIRS) libdl:
 	$(MAKE) -C $@
 
 $(DLINKER): $(OBJS)
-	$(LD) $(OBJS) -e _dl_boot $(ELF_LDFLAGS) -o $(DLINKER) -soname ld-riscos/so/$(VMAJOR)
+	$(CC) $(OBJS) -Wl,-e -Wl,_dl_boot $(ELF_LDFLAGS) -o $(DLINKER) -Wl,-soname -Wl,ld-riscos/so/$(VMAJOR)
 
 
 
