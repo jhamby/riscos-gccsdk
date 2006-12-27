@@ -17,7 +17,7 @@ $(OBJDIR)/%.o: %.c
 	$(CC) $(CFLAGS) -o $@ -c $<
 
 $(LIBDL): $(OBJS)
-	$(CC) $(OBJS) $(ELF_LDFLAGS) -o $(LIBDL) -Wl,-soname -Wl,libdl.so.$(VMAJOR) -lpic -lUnixLib
+	$(CC) $(OBJS) $(ELF_LDFLAGS) -o $(LIBDL) -Wl,-soname -Wl,libdl.so.$(VMAJOR) -lpic -lunixlib
 #	ln -s system.libdl/1/9/9/so DSOLib:lib.libdl/so
 #	ln -s system.libdl/1/9/9/so DSOLib:lib.libdl/so/$(VMAJOR)
 
