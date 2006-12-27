@@ -380,7 +380,7 @@ void _dl_boot(int args)
 	switch (ELF32_R_TYPE(rpnt->r_info))
 	{
         case R_ARM_GLOB_DAT:
-	case R_ARM_JMP_SLOT:
+	case R_ARM_JUMP_SLOT:
           {
           unsigned int *client_reloc_addr,symbol_offset;
 
