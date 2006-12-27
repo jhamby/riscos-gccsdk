@@ -405,7 +405,7 @@ typedef struct {
 #define	R_ARM_THM_XPC22		16
 #define	R_ARM_COPY		20
 #define	R_ARM_GLOB_DAT		21
-#define	R_ARM_JMP_SLOT		22
+#define	R_ARM_JUMP_SLOT		22
 #define	R_ARM_RELATIVE		23
 #define	R_ARM_GOTOFF		24
 #define	R_ARM_GOTPC		25
