@@ -13,10 +13,10 @@ TARGET=arm-unknown-riscos
 GCCSDK_BUILDDIR=$GCCSDK_ROOT/$TARGET
 
 if [ ! -d $GCCSDK_BUILDDIR ] ; then
-  mkdir $GCCSDK_BUILDDIR
+  mkdir -p $GCCSDK_BUILDDIR
 fi
 if [ ! -d $PREFIX ] ; then
-  mkdir $PREFIX
+  mkdir -p $PREFIX
 fi
 
 cd $GCCSDK_BUILDDIR
