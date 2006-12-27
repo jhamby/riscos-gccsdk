@@ -1,3 +1,11 @@
+Wed Dec 27 03:08:02 CET 2006  John Tytgat  <John.Tytgat@aaug.net>
+
+	* source/clib/{stdarg.h,stddef.h,varargs.h}: Restored as clean build
+	of GCC 3.4.6 did not work anymore (got obfuscated by a copy in
+	$GCCSDK_INSTALL_ENV/include/unixlib).
+	* source/gcccompat/_b_frame.s: Previous change broke the ELF shared
+	build.
+
 Tue Dec 26 21:12:06 CET 2006  John Tytgat  <John.Tytgat@aaug.net>
 
 	* source/gcccompat/{_b_return.s,_b_frame.s,_galloca.s,galloca.c}:
@@ -51,7 +59,7 @@ Wed Dec 20 20:47:17 CET 2006  John Tytgat  <John.Tytgat@aaug.net>
 	declaration.
 	* source/netlib/{_bswap_16.s,_bswap_32.s}(__bswap_32,htonl,ntohl,
 	__bswap_16,htons,ntohs): Removed files.
-	* source/clib/stdio.h: Removed Nocroft specific pragmas.
+	* source/clib/stdio.h: Removed Norcroft specific pragmas.
 	* source/scl/_kfpavailable.s(_kernel_fpavailable): Code moved from
 	_syslib.s.
 	* source/gcccompat/{_moddi3.s,_divdi3.s,_umoddi3.s,_udivdi3.s}

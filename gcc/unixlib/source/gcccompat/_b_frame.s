@@ -10,7 +10,7 @@
 	.text
 
 __stackchunk_magic_number
-	WORD	0xF60690FF
+	.word	0xF60690FF
 
 	@ unsigned int __builtin_frame_address (unsigned int level)
 	@
