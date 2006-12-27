@@ -17,3 +17,9 @@ if [ ! -d $GCCSDK_AOFUNIXLIB ] ; then
 fi
 
 $GCCSDK_AOFUNIXLIB/elf/convert-unixlib.pl $GCCSDK_AOFUNIXLIB $GCCSDK_SRCDIR/libunixlib
+
+# We don't want these headers in our GCC4 build (already provided by GCC itself):
+test -f $GCCSDK_SRCDIR/libunixlib/include/float.h && rm  $GCCSDK_SRCDIR/libunixlib/include/float.h
+test -f $GCCSDK_SRCDIR/libunixlib/include/stdarg.h && rm  $GCCSDK_SRCDIR/libunixlib/include/stdarg.h
+test -f $GCCSDK_SRCDIR/libunixlib/include/stddef.h && rm  $GCCSDK_SRCDIR/libunixlib/include/stddef.h
+test -f $GCCSDK_SRCDIR/libunixlib/include/varargs.h && rm  $GCCSDK_SRCDIR/libunixlib/include/varargs.h
