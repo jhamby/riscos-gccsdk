@@ -51,6 +51,98 @@ for param in $@ ; do
   esac
 done
 
+# Attempt to guess the host platform's path separator
+# Will set AB_PATH_SEPARATOR appropriately, if not already set.
+guess_path_separator() {
+  # Gratuitously borrowed from autoconf
+  if test "${AB_PATH_SEPARATOR+set}" != "set"; then
+    echo "#! /bin/sh" > conf$$.sh
+    echo "exit 0"    >> conf$$.sh
+    chmod +x conf$$.sh
+    if (PATH="/nonexistent;."; conf$$.sh) >/dev/null 2>&1; then
+      AB_PATH_SEPARATOR=';'
+    else
+      AB_PATH_SEPARATOR=:
+    fi
+    rm -f conf$$.sh
+  fi
+}
+
+# Find a program in the current path
+# Pass program name in as $1
+# Returns 0 iff found, 1 otherwise.
+find_program() {
+  local PROG_NAME=$1
+
+  fp_old_IFS=$IFS
+  IFS=$AB_PATH_SEPARATOR
+  for fp_dir in $PATH
+  do
+    IFS=$fp_old_IFS
+    test -z "$fp_dir" && fp_dir=.
+    if test -f "$fp_dir/$PROG_NAME"; then
+      return 0
+    fi
+  done
+
+  return 1
+}
+
+# Check for presence of required dependencies on the host system.
+# Exits with a user-friendly error message if not satisfied.
+check_dependencies() {
+  find_program "cvs"
+  if [ $? -ne 0 ]; then
+    echo "Autobuilder: cvs not found; is it installed on your path?"
+    exit 1;
+  fi
+
+  find_program "svn"
+  if [ $? -ne 0 ]; then
+    echo "Autobuilder: svn not found; is it installed on your path?"
+    exit 1;
+  fi
+
+  find_program "autoconf"
+  if [ $? -ne 0 ]; then
+    echo "Autobuilder: autoconf not found; is it installed on your path?"
+    exit 1;
+  fi
+
+  find_program "automake"
+  if [ $? -ne 0 ]; then
+    echo "Autobuilder: automake not found; is it installed on your path?"
+    exit 1;
+  fi
+
+  find_program "wget"
+  if [ $? -ne 0 ]; then
+    echo "Autobuilder: wget not found; is it installed on your path?"
+    exit 1;
+  fi
+
+  find_program "rman"
+  if [ $? -ne 0 ]; then
+    echo "Autobuilder: rman not found; is it installed on your path?"
+    exit 1;
+  fi
+
+  find_program "realpath"
+  if [ $? -ne 0 ]; then
+    echo "Autobuilder: realpath not found; is it installed on your path?"
+    exit 1;
+  fi
+
+  find_program "pkg-config"
+  if [ $? -ne 0 ]; then
+    echo "Autobuilder: pkg-config not found; is it installed on your path?"
+    exit 1;
+  fi
+}
+
+guess_path_separator
+check_dependencies
+
 export AB_PACKONLY
 export AB_DEBUG
 export AB_NOFETCH
