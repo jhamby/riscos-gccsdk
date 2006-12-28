@@ -201,14 +201,14 @@
 /* Clear the instruction cache from `beg' to `end'.  This makes an
    inline system call to XOS_SynchroniseCodeAreas.  */
 #undef CLEAR_INSN_CACHE
-#define CLEAR_INSN_CACHE(BEG, END)                                      \
-{                                                                       \
-  register unsigned long _beg __asm ("r1") = (unsigned long) (BEG);     \
-  register unsigned long _end __asm ("r2") = (unsigned long) (END);     \
-  register unsigned long _flg __asm ("r0") = 1;                         \
-  __asm __volatile ("swi 0x2006e  @ XOS_SynchroniseCodeAreas"           \
-                    : "=r" (_beg)                                       \
-                    : "0" (_beg), "r" (_end), "r" (_flg));              \
+#define CLEAR_INSN_CACHE(BEG, END)                                             \
+{                                                                              \
+  register unsigned long _beg __asm ("r1") = ((unsigned long) (BEG) + 0) & -4; \
+  register unsigned long _end __asm ("r2") = ((unsigned long) (END) - 1) & -4; \
+  register unsigned long _flg __asm ("r0") = 1;                                \
+  __asm __volatile ("swi 0x2006e  @ XOS_SynchroniseCodeAreas"                  \
+                    : "=r" (_beg)                                              \
+                    : "0" (_beg), "r" (_end), "r" (_flg));                     \
 }
 
 /* When UnixLib is used, we claim to support all C99 functions.  */
