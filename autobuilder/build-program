@@ -118,7 +118,7 @@ else
    AB_PATCHES=
  
    if [ -d upstream/patches ] ; then
-     AB_PATCHES=$(find upstream/patches/ | grep "\.patch$" || true)
+     AB_PATCHES=$(find upstream/patches/ | grep "\.patch$" | sort -n || true)
    fi
  
    # Apply any Debian/Upstream patches
@@ -142,7 +142,7 @@ else
  
  # Apply any Debian patches
  if [ -d debian/patches ] ; then
-   for AB_PATCH in $(find debian/patches/ -type f || true) ; do
+   for AB_PATCH in $(find debian/patches/ -type f | sort -n || true) ; do
      echo "Autobuilder: Debian patch: $AB_PATCH"
      # Not all patches are at the same level. Do some heuristic (see simple-patchsys.mk).
      AB_PATCH_SUCCESS=""
