@@ -124,57 +124,6 @@ Index: unix/uxcons.c
   * Uniquely among these functions, this one does _not_ expect a
   * frontend handle. This means that if PuTTY is ported to a
   * platform which requires frontend handles, this function will be
-Index: unix/uxpty.c
-===================================================================
---- unix/uxpty.c	(revision 5808)
-+++ unix/uxpty.c	(working copy)
-@@ -257,7 +257,8 @@
- 
- static void sigchld_handler(int signum)
- {
--    write(pty_signal_pipe[1], "x", 1);
-+    int count;
-+    count = write(pty_signal_pipe[1], "x", 1);
- }
- 
- #ifndef OMIT_UTMP
-@@ -286,6 +287,7 @@
-     const char *p1, *p2;
-     char master_name[20];
-     struct group *gp;
-+    int success;
- 
-     for (p1 = chars1; *p1; p1++)
- 	for (p2 = chars2; *p2; p2++) {
-@@ -323,7 +325,7 @@
- 
-     /* We need to chown/chmod the /dev/ttyXX device. */
-     gp = getgrnam("tty");
--    chown(pty->name, getuid(), gp ? gp->gr_gid : -1);
-+    success = chown(pty->name, getuid(), gp ? gp->gr_gid : -1);
-     chmod(pty->name, 0600);
- #else
-     pty->master_fd = open("/dev/ptmx", O_RDWR);
-@@ -605,8 +607,9 @@
- 	int ipid;
- 	int status;
- 	char c[1];
-+	int count;
- 
--	read(pty_signal_pipe[0], c, 1); /* ignore its value; it'll be `x' */
-+	count = read(pty_signal_pipe[0], c, 1); /* ignore its value; it'll be `x' */
- 
- 	do {
- 	    pid = waitpid(-1, &status, WNOHANG);
-@@ -744,7 +747,7 @@
- 	dup2(slavefd, 1);
- 	dup2(slavefd, 2);
- 	setsid();
--	ioctl(slavefd, TIOCSCTTY, 1);
-+	ioctl(slavefd, TIOCSCTTY, (void *) 1);
- 	pgrp = getpid();
- 	tcsetpgrp(slavefd, pgrp);
- 	setpgid(pgrp, pgrp);
 Index: unix/uxplink.c
 ===================================================================
 --- unix/uxplink.c	(revision 5808)
