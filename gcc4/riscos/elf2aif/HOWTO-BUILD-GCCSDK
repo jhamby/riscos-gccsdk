@@ -1,0 +1,9 @@
+Short build procedure for GCCSDK (this is temporary and be part of the overall
+build procedure):
+
+  $ autoreconf --install
+  $ ./configure --prefix $GCCSDK_INSTALL_CROSSBIN/..
+  $ make
+  $ make install
+
+-EOF-
