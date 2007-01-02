@@ -4,6 +4,6 @@
  Name: libagg
  Description: Anti Grain Geometry - A High Quality Rendering Engine for C++
  Version: @VERSION@
--Libs: -L${libdir} -Wl,-rpath,${exec_prefix}/lib -lagg_pic
+-Libs: -L${libdir} -lagg_pic
 +Libs: -L${libdir} -lagg
  Cflags: -I${includedir}
