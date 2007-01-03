@@ -40,11 +40,20 @@ class DSOEXPORT RiscosGui : public Gui
  private:
     bool create_window();
     int valid_coord(int coord, int max);
+    bool poll_mouse_state();
+    void renderBufferInternal(bool full, wimp_draw &draw);
 
     wimp_t _task;
     wimp_w _window;
     bool _quit;
     os_t _timeout;
+
+    bool _mouse_track;
+    unsigned int _mouse_state;
+    int _mouse_x;
+    int _mouse_y;
+
+    os_box _window_vis;
 
     int m_draw_minx;
     int m_draw_miny;

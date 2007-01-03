@@ -2,7 +2,7 @@ AB_CATEGORY=browser/plugin
 
 AB_URL=ftp://ftp.gnu.org/pub/gnu/gnash/0.7.2/gnash-0.7.2.tar.bz2
 
-AB_CONFLAGS="--enable-gui=RISCOS --enable-renderer=Agg --disable-sound --disable-plugin --disable-threading --disable-glext --with-agg-incl=$GCCSDK_INSTALL_ENV/include/agg2 --without-mad --without-gst"
+AB_CONFLAGS="--enable-gui=RISCOS --enable-renderer=Agg --disable-sound --disable-plugin --disable-glext --with-agg-incl=$GCCSDK_INSTALL_ENV/include/agg2 --without-mad --without-gst"
 
 # We've patched parts of the build system, so recreate it
 autoconf

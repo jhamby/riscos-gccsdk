@@ -29,7 +29,24 @@
 #include "render_handler.h"
 #include "log.h"
 
-//#include <iostream>
+#include "oslib/wimpspriteop.h"
+
+/**
+ * A note on coordinate systems:
+ *
+ * The RISC OS Wimp uses a coordinate system whose origin lies at the bottom
+ * left of the screen, with positive X running from left to right and
+ * positive Y running from bottom to top.
+ *
+ * Gnash (and the AGG glue code) use a coordinate system with an origin at
+ * the top left of the window's visible area, with positive X running from
+ * left to right and positive Y running from top to bottom.
+ *
+ * Therefore, to convert between the two, the Y coordinate must be flipped:
+ *
+ * RO -> Gnash: y' = window_top - y
+ * Gnash -> RO: y' = (window_top - window_bottom) - y
+ */
 
 namespace gnash
 {
@@ -38,12 +55,15 @@ RiscosGui::~RiscosGui()
 {
     if (_task)
       wimp_close_down(_task);
+    _task = (wimp_t) 0;
 }
 
 RiscosGui::RiscosGui(unsigned long xid, float scale, bool loop, unsigned int depth)
  : Gui(xid, scale, loop, depth), _task((wimp_t)0), _window((wimp_w)0),
-   _quit(false), _timeout(0), m_draw_minx(0), m_draw_miny(0),
-   m_draw_maxx(0), m_draw_maxy(0), _screen_height(480), _screen_width(640)
+   _quit(false), _timeout(0), _mouse_track(false), _mouse_state(0),
+   _mouse_x(0), _mouse_y(0),
+   m_draw_minx(0), m_draw_miny(0), m_draw_maxx(0), m_draw_maxy(0),
+   _screen_height(480), _screen_width(640)
 {
 }
 
@@ -137,6 +157,8 @@ RiscosGui::createWindow(const char *title, int width, int height)
     state.visible.x1 = state.visible.x0 + (width * 2);
     state.visible.y1 = state.visible.y0 + (height * 2);
 
+    _window_vis = state.visible;
+
     error = xwimp_open_window((wimp_open *)&state);
     if (error) {
       log_msg("%s\n", error->errmess);
@@ -162,18 +184,17 @@ void
 RiscosGui::renderBuffer()
 {
     // bounding box is window-relative
-    wimp_window_state state;
-    os_error *error;
+    wimp_draw draw;
 
-    state.w = _window;
-    error = xwimp_get_window_state(&state);
-    if (error) {
-      log_msg("%s\n", error->errmess);
-    }
+    /* Fake up a redraw block, flipping Y coordinates for RO wimp */
+    draw.w = _window;
+    draw.box.x0 = m_draw_minx * 2;
+    draw.box.y0 = (_window_vis.y1 - _window_vis.y0) - (m_draw_maxy * 2);
+    draw.box.x1 = m_draw_maxx * 2;
+    draw.box.y1 = (_window_vis.y1 - _window_vis.y0) - (m_draw_miny * 2);
 
-    glue.render(state.visible.x0 / 2,
-                _screen_height - (state.visible.y1 / 2),
-                m_draw_minx, m_draw_miny, m_draw_maxx, m_draw_maxy);
+    /* and render it */
+    renderBufferInternal(false, draw);
 }
 
 void
@@ -247,45 +268,34 @@ RiscosGui::run()
       switch (event) {
       case wimp_NULL_REASON_CODE:
         now = os_read_monotonic_time();
-        if (now > t) {
-          if (_timeout > now) {
-            _quit = true;
-          } else {
-            // TODO: pay attention to interval
-//            if ((os_t)_interval <= (now - t) * 10) {
-              advance_movie(this);
-//            }
-            now = os_read_monotonic_time();
-            t = now + 10;
-          }
+        if (_timeout && _timeout <= now) {
+          _quit = true;
+        } else {
+          // Query mouse state
+          if (!poll_mouse_state())
+            return false;
+
+          // TODO: pay attention to interval
+//          if ((os_t)_interval <= (now - t) * 10) {
+            advance_movie(this);
+//          }
+          now = os_read_monotonic_time();
+          t = now + 10;
         }
         break;
       case wimp_REDRAW_WINDOW_REQUEST:
-        error = xwimp_redraw_window(&block.redraw, &more);
-        if (error) {
-          log_msg("%s\n", error->errmess);
-          return false;
-        }
-        while (more) {
-//          rect bounds(block.redraw.clip.x0 / 2, block.redraw.clip.y0 / 2,
-//                      block.redraw.clip.x1 / 2, block.redraw.clip.y1 / 2);
-//          log_msg("Clip rect: (%d, %d)(%d, %d)\n",
-//                  block.redraw.clip.x0 / 2, block.redraw.clip.y0 / 2,
-//                  block.redraw.clip.x1 / 2, block.redraw.clip.y1 / 2);
-          // TODO: Make this use the clipping rectangle (convert to TWIPS)
+        {
+          /* Invalidate the entire window area */
           rect bounds(-1e10f, -1e10f, 1e10f, 1e10f);
-#ifdef RENDERER_AGG
           set_invalidated_region(bounds);
-#endif
-          renderBuffer();
-          error = xwimp_get_rectangle(&block.redraw, &more);
-          if (error) {
-            log_msg("%s\n", error->errmess);
-            return false;
-          }
+
+          /* and draw it */
+          renderBufferInternal(true, block.redraw);
         }
         break;
       case wimp_OPEN_WINDOW_REQUEST:
+        _window_vis = block.open.visible;
+
         error = xwimp_open_window(&block.open);
         if (error)
           log_msg("%s\n", error->errmess);
@@ -294,10 +304,26 @@ RiscosGui::run()
         _quit = true;
         break;
       case wimp_POINTER_LEAVING_WINDOW:
+        _mouse_track = false;
         break;
       case wimp_POINTER_ENTERING_WINDOW:
+        _mouse_track = true;
         break;
       case wimp_MOUSE_CLICK:
+        if ((block.pointer.buttons & 0xf) != _mouse_state) {
+          int mask = block.pointer.buttons & 0xf; // don't care about drags
+          /* Flip select and adjust -
+           * Gnash internals expect the opposite to what RISC OS provides */
+          if ((mask & 0x1) && !(mask & 0x4))
+            mask = 0x4 | (mask & 0x2);
+          else if (!(mask & 0x1) && (mask & 0x4))
+            mask = 0x1 | (mask & 0x2);
+          notify_mouse_clicked(true, mask);
+
+          _mouse_state = block.pointer.buttons & 0xf;
+        }
+        break;
+      case wimp_KEY_PRESSED:
         break;
       case wimp_USER_DRAG_BOX:
         break;
@@ -358,16 +384,17 @@ bool RiscosGui::create_window()
                 wimp_TOP,
                 wimp_WINDOW_MOVEABLE | wimp_WINDOW_BACK_ICON |
                 wimp_WINDOW_CLOSE_ICON | wimp_WINDOW_TITLE_ICON |
-                wimp_WINDOW_NEW_FORMAT,
+                wimp_WINDOW_NEW_FORMAT | wimp_WINDOW_IGNORE_XEXTENT |
+                wimp_WINDOW_IGNORE_YEXTENT,
                 wimp_COLOUR_BLACK, wimp_COLOUR_LIGHT_GREY,
                 wimp_COLOUR_BLACK, wimp_COLOUR_WHITE,
                 wimp_COLOUR_DARK_GREY, wimp_COLOUR_DARK_GREY,
                 wimp_COLOUR_CREAM,
                 0,
-                { 0, -81928, 1300, 0 },
+                { 0, 0, 65535, 65535 },
                 wimp_ICON_TEXT | wimp_ICON_HCENTRED,
-                0,
-                0,
+                wimp_BUTTON_CLICK << wimp_ICON_BUTTON_TYPE_SHIFT,
+                wimpspriteop_AREA,
                 2, 1,
                 { "Gnash" },
                 0
@@ -389,6 +416,93 @@ RiscosGui::valid_coord(int coord, int max)
 	if (coord<0) return 0;
 	else if (coord>=max) return max;
 	return coord;
+}
+
+/**
+ * Poll the mouse state, checking for movement or button releases
+ *
+ * \return true on success, false on error
+ */
+bool
+RiscosGui::poll_mouse_state()
+{
+  wimp_pointer ptr;
+  os_error *error;
+
+  error = xwimp_get_pointer_info(&ptr);
+  if (error) {
+    log_msg("%s\n", error->errmess);
+    return false;
+  }
+
+  if (_mouse_state) {
+    // Any buttons released?
+    if ((ptr.buttons & 0xf) != _mouse_state) {
+      int mask = (ptr.buttons & 0xf) ^ _mouse_state;
+      /* Flip select and adjust */
+      if ((mask & 0x1) && !(mask & 0x4))
+        mask = 0x4 | (mask & 0x2);
+      else if (!(mask & 0x1) && (mask & 0x4))
+        mask = 0x1 | (mask & 0x2);
+      notify_mouse_clicked(false, mask);
+
+      _mouse_state = ptr.buttons & 0xf;
+    }
+  }
+
+  if (_mouse_track) {
+    if (ptr.pos.x != _mouse_x && ptr.pos.y != _mouse_y) {
+      _mouse_x = ptr.pos.x;
+      _mouse_y = ptr.pos.y;
+
+      notify_mouse_moved((_mouse_x - _window_vis.x0) / 2,
+                   (_window_vis.y1 - _mouse_y) / 2);
+    }
+  }
+
+  return true;
+}
+
+/**
+ * Internal buffer rendering routine
+ *
+ * \param full True iff full redraw (i.e wimp_redraw_window)
+ * \param draw Redraw block
+ */
+void
+RiscosGui::renderBufferInternal(bool full, wimp_draw &draw)
+{
+    os_error *error;
+    osbool more;
+    int clip_x0, clip_y0, clip_x1, clip_y1;
+
+    if (full)
+      error = xwimp_redraw_window(&draw, &more);
+    else
+      error = xwimp_update_window(&draw, &more);
+
+    if (error) {
+      log_msg("%s\n", error->errmess);
+      return;
+    }
+
+    while (more) {
+      /* Calculate clip rectangle, flipping Y coordinates for Gnash */
+      clip_x0 = (draw.clip.x0 - draw.box.x0) / 2;
+      clip_y0 = (draw.box.y1 - draw.clip.y1) / 2;
+      clip_x1 = (draw.clip.x1 - draw.box.x0) / 2;
+      clip_y1 = (draw.box.y1 - draw.clip.y0) / 2;
+
+      glue.render(_window_vis.x0 / 2,
+                _screen_height - (_window_vis.y1 / 2),
+                clip_x0, clip_y0, clip_x1, clip_y1);
+
+      error = xwimp_get_rectangle(&draw, &more);
+      if (error) {
+        log_msg("%s\n", error->errmess);
+        return;
+      }
+    }
 }
 
 // end of namespace gnash
