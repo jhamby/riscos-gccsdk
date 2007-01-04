@@ -188,8 +188,4 @@ __rawmemchr (s, c_in)
 	}
     }
 }
-#if 0
-libc_hidden_def (__rawmemchr)
 weak_alias (__rawmemchr, rawmemchr)
-#endif
-

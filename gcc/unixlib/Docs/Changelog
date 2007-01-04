@@ -1,3 +1,8 @@
+Thu Jan 04 18:17:23 2006  Lee Noar  <leenoar@ntlworld.com>
+
+	* source/string/rawmemchr.c: Declare rawmemchr as alias for __rawmemchr
+	otherwise rawmemchr is undefined.
+
 Wed Dec 27 12:22:23 2006  Lee Noar  <leenoar@ntlworld.com>
 
 	* source/clib/sys/elf.h: Correct spelling of R_ARM_JUMP_SLOT.
