@@ -201,13 +201,13 @@ SUL_MIN_VERSION	EQU	107
 	MOV	ip, v1		; Restore ip.
 
 	LDR	a1, |.L0|+12	;=rmensure1	; If no SUL or not recent enough, ...
- PICEQ "LDR	a1, [v4, a1]"
+ PICEQ "LDR	a1, [v6, a1]"
 	SWI	XOS_CLI			; load it.
 	LDR	a1, |.L0|+16	;=rmensure2	; Try a second location.
- PICEQ "LDR	a1, [v4, a1]"
+ PICEQ "LDR	a1, [v6, a1]"
 	SWI	XOS_CLI			;
 	LDRVC	a1, |.L0|+20	;=rmensure3	; If still not recent enough, ...
- PICEQ "LDRVC	a1, [v4, a1]"
+ PICEQ "LDRVC	a1, [v6, a1]"
 	SWIVC	XOS_CLI			; complain.
 	MOVVS	a1, #ERR_NO_SUL
 	BVS	|__exit_with_error_num|
@@ -359,11 +359,11 @@ t08
 	; v5 is already set from above
 	SWI	XOS_DynamicArea
 	BVS	|__exit_with_error_block|	; no DA, report and exit
-	MOV	v6, a3				; setup for deletion at exit
+	MOV	v1, a3				; setup for deletion at exit
 	STR	a2, [ip, #GBL_DYNAMIC_NUM]	; __dynamic_num
 
-	; v6 is size left in area, a4 is start offset
-	ADD	a1, v6, a4
+	; v1 is size left in area, a4 is start offset
+	ADD	a1, v1, a4
 	; __lomem = start of dynamic area
 	STR	a4, [fp, #MEM_DALOMEM]
 	; __break = end of used part of DA

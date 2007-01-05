@@ -1,4 +1,11 @@
-Thu Jan 04 18:17:23 2006  Lee Noar  <leenoar@ntlworld.com>
+Fri Jan 05 17:13:54 2007  Lee Noar  <leenoar@ntlworld.com>
+
+	* source/sys/_syslib.s (__main):
+	Use correct PIC register which is v6 in this case, not v4.
+	Make sure v6 (PIC register) is not used for anything else so that
+	it is valid throughout the routine (anticipating future changes).
+
+Thu Jan 04 18:17:23 2007  Lee Noar  <leenoar@ntlworld.com>
 
 	* source/string/rawmemchr.c: Declare rawmemchr as alias for __rawmemchr
 	otherwise rawmemchr is undefined.
