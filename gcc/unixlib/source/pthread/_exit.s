@@ -15,30 +15,30 @@
 	; called by pthread_exit() and that v4 already contains the GOT pointer.
 	NAME	__pthread_exit
 |__pthread_exit|
-	STMFD	sp!, {lr}
-	ADR	a2, funcs
+	STMFD	sp!, {v1,lr}
+	ADR	v1, funcs
 
 	[ __UNIXLIB_ELF = 0
-	LDR	a1, [a2], #4	;funcs + 0
+	LDR	a1, [v1], #4	;funcs + 0
  PICEQ "LDR	a1, [v4, a1]"
 	TEQ	a1, #0
 	MOVNE	lr, pc
 	MOVNE	pc, a1
 
-	LDR	a1, [a2], #4	;funcs + 4
+	LDR	a1, [v1], #4	;funcs + 4
  PICEQ "LDR	a1, [v4, a1]"
 	TEQ	a1, #0
 	MOVNE	lr, pc
 	MOVNE	pc, a1
 	]
 
-	LDR	a1, [a2]	;funcs + 8
+	LDR	a1, [v1]	;funcs + 8
  PICEQ "LDR	a1, [v4, a1]"
 	TEQ	a1, #0
 	MOVNE	lr, pc
 	MOVNE	pc, a1
 
-	LDMFD	sp!, {pc}
+	LDMFD	sp!, {v1,pc}
 
 |funcs|
 	[ __UNIXLIB_ELF = 0

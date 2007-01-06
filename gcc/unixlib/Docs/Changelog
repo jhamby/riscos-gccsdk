@@ -1,3 +1,8 @@
+Sat Jan 06 01:25:35 2007  John-Mark Bell  <jmb202@ecs.soton.ac.uk>
+
+	* source/pthread/_exit.s: Use v1 for function table pointer; 
+	a2 need not be preserved by callees under APCS
+
 Fri Jan 05 17:13:54 2007  Lee Noar  <leenoar@ntlworld.com>
 
 	* source/sys/_syslib.s (__main):
