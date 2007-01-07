@@ -1,0 +1,10 @@
+#!/bin/bash
+# Auto-generate 'libstdc++' as we've patched it.
+# Copyright (c) 2007 GCCSDK Developers
+
+if [ -z "$GCCSDK_SRCDIR" ] ; then
+  echo "\$GCCSDK_SRCDIR needs to be defined"
+  exit 1
+fi
+
+( cd $GCCSDK_SRCDIR/libstdc++-v3 && autoconf )

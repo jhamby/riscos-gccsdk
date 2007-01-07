@@ -1,0 +1,2 @@
+/* pragmas.h.
+   Unused with the GNU compilers.  */

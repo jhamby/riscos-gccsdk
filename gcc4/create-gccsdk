@@ -1,6 +1,6 @@
 #!/bin/bash
 # Written by John Tytgat <John.Tytgat@aaug.net>
-# Copyright (c) 2006 GCCSDK Developers
+# Copyright (c) 2006, 2007 GCCSDK Developers
 
 set -e
 
@@ -37,8 +37,3 @@ popd > /dev/null
 for s in `ls $GCCSDK_RECIPE_SCRIPTS/*` ; do
   . $s
 done
-
-# 4. Re-configure for patched configurations not belonging to GCC or UnixLib, i.e. binutils only ATM:
-# GCC's configure option --enable-maintainer-mode will take care of GCC/UnixLib configuration changes.
-( cd $GCCSDK_SRCDIR/ld && automake-1.9 )
-( cd $GCCSDK_SRCDIR/libstdc++-v3 && autoconf )

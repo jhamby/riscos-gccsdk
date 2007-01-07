@@ -1,0 +1,6 @@
+Sun Jan  7 20:20:55 CET 2007  John Tytgat  <John.Tytgat@aaug.net>
+
+	* Start of v2.0 development for GCCSDK 4: made copy of GCCSDK 3.4.6
+	and converted stubs.s from AOF to ELF.  Other C and asm sources files
+	have not been enabled nor updated yet.  Integrated it in GCCSDK 4
+	build.
