@@ -11,6 +11,11 @@ export GCCSDK_SRCDIR=$GCCSDK_ROOT/srcdir
 # we use it.
 if [ ! -z "$GCCSDK_INSTALL_CROSSBIN" ] ; then
   PREFIX=$GCCSDK_INSTALL_CROSSBIN/..
+  # Shorten path:
+  test ! -d $PREFIX && mkdir -p $PREFIX
+  pushd $PREFIX > /dev/null
+  PREFIX=`pwd`
+  popd > /dev/null
 else
   PREFIX=$GCCSDK_ROOT/cross
 fi
