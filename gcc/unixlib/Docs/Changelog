@@ -407,6 +407,11 @@ Sun Oct 01 01:02:06 CEST 2006  John Tytgat  <John.Tytgat@aaug.net>
 -----------------------------------------------------------------------
 [ vvv Here ends UnixLib 4.5/4.6 vvv ]
 
+Thu Jan 11 21:48:46 CET 2007  Martin Wuerthner  <martin@mw-software.com>
+
+	* source/common/riscosify.c (__riscosify_scl): Incorrect program name
+	  determination for programs run as "*Run MyLibrary:myprog".
+
 Sat Oct 21 22:38:13 CEST 2006  John Tytgat  <John.Tytgat@aaug.net>
 
 	* source/clib/regex.h: Made it usable for C++ programs.

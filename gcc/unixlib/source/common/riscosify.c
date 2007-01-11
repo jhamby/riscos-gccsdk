@@ -1531,11 +1531,11 @@ __riscosify_scl(const char *name, int create_dir)
         cmd++;
 
       /* Take the program name, and find the last segment of it
-       * (using . as the directory separator) */
+         (using '.' and ':' as the directory separator).  */
       start = cmd;
       while (*cmd && *cmd != ' ')
         {
-          if (*cmd == '.')
+          if (*cmd == '.' || *cmd == ':')
             start = cmd + 1;
           cmd++;
         }
