@@ -63,7 +63,7 @@
 /* Now we define the strings used to build the spec file.  */
 #undef  LIB_SPEC
 #define LIB_SPEC \
-  "%{!nostdlib:%{!mlibscl:-lunixlib}%{mlibscl:-lscl}}"
+  "%{!nostdlib:%{!mlibscl:-lunixlib}%{mlibscl:-lscl} %{shared:-lpic}}"
 
 #define LIBGCC_SPEC "-lgcc"
 
