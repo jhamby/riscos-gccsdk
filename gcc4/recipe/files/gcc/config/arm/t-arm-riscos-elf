@@ -62,6 +62,29 @@ STANDARD_INCLUDE_DIR = $(srcdir)/../libunixlib/include
 
 TARGET_LIBGCC2_CFLAGS = -Dinhibit_libc
 
+# Build a shared libgcc library.
+SHLIB_EXT = .so
+SHLIB_NAME = @shlib_base_name@.so
+SHLIB_SONAME = @shlib_base_name@.so.1
+SHLIB_OBJS = @shlib_objs@
+
+SHLIB_LINK = $(GCC_FOR_TARGET) $(LIBGCC2_CFLAGS) -fPIC -shared -nostdlib \
+	-Wl,-soname,$(SHLIB_SONAME) \
+	-o @multilib_dir@/$(SHLIB_NAME).tmp @multilib_flags@ $(SHLIB_OBJS) -lpic && \
+	rm -f @multilib_dir@/$(SHLIB_SONAME) && \
+	if [ -f @multilib_dir@/$(SHLIB_NAME) ]; then \
+	  mv -f @multilib_dir@/$(SHLIB_NAME) @multilib_dir@/$(SHLIB_NAME).backup; \
+	else true; fi && \
+	mv @multilib_dir@/$(SHLIB_NAME).tmp @multilib_dir@/$(SHLIB_NAME) && \
+	$(LN_S) $(SHLIB_NAME) @multilib_dir@/$(SHLIB_SONAME)
+# $(slibdir) double quoted to protect it from expansion while building
+# libgcc.mk.  We want this delayed until actual install time.
+SHLIB_INSTALL = \
+	$$(mkinstalldirs) $$(DESTDIR)$$(slibdir)/@multilib_dir@; \
+	$(INSTALL_DATA) $(SHLIB_NAME) $$(DESTDIR)$$(slibdir)/@multilib_dir@/$(SHLIB_SONAME); \
+	rm -f $$(DESTDIR)$$(slibdir)/@multilib_dir@/$(SHLIB_NAME); \
+	$(LN_S) $(SHLIB_SONAME) $$(DESTDIR)$$(slibdir)/@multilib_dir@/$(SHLIB_NAME)
+
 # Assemble startup files.
 $(T)crti-riscos.o: $(srcdir)/config/arm/crti-riscos.asm $(GCC_PASSES)
 	$(GCC_FOR_TARGET) $(GCC_CFLAGS) $(MULTILIB_CFLAGS) $(INCLUDES) \
