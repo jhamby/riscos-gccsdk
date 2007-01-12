@@ -1,3 +1,7 @@
+Fri Jan 12 21:29:54 2007  Lee Noar  <leenoar@ntlworld.com>
+
+	* elf/convert-unixlib.pl: Link libunixlib.so with shared libgcc.
+
 Sat Jan 06 01:25:35 2007  John-Mark Bell  <jmb202@ecs.soton.ac.uk>
 
 	* source/pthread/_exit.s: Use v1 for function table pointer; 
