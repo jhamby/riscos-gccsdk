@@ -612,8 +612,8 @@ uts4*)
 
 *riscos)
   version_type=linux
-  library_names_spec='${libname}${release}${shared_ext}$versuffix ${libname}${release}${shared_ext}$major $libname${shared_ext}'
-  soname_spec='${libname}${release}.so$major'
+  library_names_spec='${libname}$versuffix.so ${libname}.so$major $libname.so'
+  soname_spec='${libname}.so$major'
   dynamic_linker='RISC OS ld-riscos.so'
   lt_cv_dlopen="dlopen"
   ;;
@@ -1216,7 +1216,7 @@ else
     ])
    ;;
 
-  riscos*)
+  *riscos)
     lt_cv_dlopen="dlopen"
     lt_cv_dlopen_libs="-ldl"
     lt_cv_dlopen_self=yes
