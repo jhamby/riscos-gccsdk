@@ -1,3 +1,8 @@
+Sun Jan 14 16:38:22 2007  Alex Waugh  <alex@alexwaugh.com>
+
+	* source/clib/errno.h: Change EAGAIN value to the same as
+	EWOULDBLOCK, to match TCPIPLibs and Linux.
+
 Sat Jan 13 19:06:23 2007  Lee Noar  <leenoar@ntlworld.com>
 
 	* elf/libtool.m4: Change names of shared library and symlinks to
@@ -11,7 +16,7 @@ Fri Jan 12 21:29:54 2007  Lee Noar  <leenoar@ntlworld.com>
 
 Sat Jan 06 01:25:35 2007  John-Mark Bell  <jmb202@ecs.soton.ac.uk>
 
-	* source/pthread/_exit.s: Use v1 for function table pointer; 
+	* source/pthread/_exit.s: Use v1 for function table pointer;
 	a2 need not be preserved by callees under APCS
 
 Fri Jan 05 17:13:54 2007  Lee Noar  <leenoar@ntlworld.com>

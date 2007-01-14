@@ -20,7 +20,7 @@
 #define ENOEXEC		8 /* Invalid executable file format (exec format error). */
 #define EBADF		9 /* Bad file descriptor.  */
 #define ECHILD		10 /* There are no child processes.  */
-#define EAGAIN		11 /* Resource temporarily unavailable.  */
+                           /* 11 was EAGAIN, but this is now the same as EWOULDBLOCK */
 #define ENOMEM		12 /* Cannot allocate memory.  */
 
 /* Permission denied.
@@ -50,7 +50,8 @@
 #define EPIPE		32 /* Broken pipe.  */
 #define EDOM		33 /* Domain error.  */
 #define ERANGE		34 /* Range error.  */
-#define EWOULDBLOCK	35 /* Operation would block.  */
+#define EAGAIN		35 /* Resource temporarily unavailable.  */
+#define EWOULDBLOCK	EAGAIN /* Operation would block.  */
 #define EINPROGRESS	36 /* Operation now in progress.  */
 #define EALREADY	37 /* Operation already in progress.  */
 #define ENOTSOCK	38 /* Socket operation on non-socket.  */
