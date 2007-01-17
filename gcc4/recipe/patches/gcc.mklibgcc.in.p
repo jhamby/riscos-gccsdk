@@ -1,6 +1,6 @@
---- gcc/mklibgcc.in.orig	2006-12-28 21:34:29.000000000 +0000
-+++ gcc/mklibgcc.in	2006-12-28 21:34:00.000000000 +0000
-@@ -104,7 +104,7 @@
+--- gcc/mklibgcc.in.orig	2007-01-16 23:44:01.000000000 +0100
++++ gcc/mklibgcc.in	2007-01-16 23:45:06.000000000 +0100
+@@ -73,7 +73,7 @@
  # Build lines.
  
  gcc_compile='$(GCC_FOR_TARGET) $(LIBGCC2_CFLAGS) $(INCLUDES)'
