@@ -29,49 +29,48 @@ AM_CCASFLAGS = -xassembler-with-cpp -isystem $(top_srcdir)/include
 includedir = $(prefix)
 riscos_src = 	riscos/stubs.s
 
+# All files in the 'include' directory.
 libc_headers = 	\
-	include/assert.h \
-	include/endian.h \
-	include/fcntl.h \
-	include/kernel.h \
-	include/locale.h \
-	include/memory.h \
-	include/setjmp.h \
-	include/stdarg.h \
-	include/stdint.h \
-	include/stdlib.h \
-	include/strings.h \
+	assert.h \
+	endian.h \
+	fcntl.h \
+	kernel.h \
+	locale.h \
+	memory.h \
+	setjmp.h \
+	stdarg.h \
+	stdint.h \
+	stdlib.h \
+	strings.h \
  \
-	include/sys/os.h \
-	include/sys/stat.h \
-	include/sys/times.h \
-	include/sys/types.h \
+	sys/os.h \
+	sys/stat.h \
+	sys/times.h \
+	sys/types.h \
  \
-	include/unistd.h \
-	include/ctype.h \
-	include/errno.h \
-	include/float.h \
-	include/limits.h \
-	include/math.h \
-	include/pragmas.h \
-	include/signal.h \
-	include/stddef.h \
-	include/stdio.h \
-	include/string.h \
-	include/swis.h \
-	include/time.h \
-	include/varargs.h
+	unistd.h \
+	ctype.h \
+	errno.h \
+	float.h \
+	limits.h \
+	math.h \
+	pragmas.h \
+	signal.h \
+	stddef.h \
+	stdio.h \
+	string.h \
+	swis.h \
+	time.h \
+	varargs.h
 
-toolexeclib_LTLIBRARIES = libscl.la
-libscl_la_SOURCES = $(riscos_src)
-
-libscl_la_LDFLAGS = -Wc,-nostdlib -version-info 2:0:0
+toolexeclib_LIBRARIES = libscl.a
+libscl_a_SOURCES = $(riscos_src)
 
 install-data-local: install-headers
 
 install-headers:
-	$(mkinstalldirs) $(DESTDIR)${tooldir}/include
+	$(mkinstalldirs) $(DESTDIR)${tooldir}/include/libscl
 	for dir in sys; do \
-	  $(mkinstalldirs) $(DESTDIR)${tooldir}/include/$${dir} ; done
+	  $(mkinstalldirs) $(DESTDIR)${tooldir}/include/libscl/$${dir} ; done
 	for file in ${libc_headers}; do \
-	  $(INSTALL_DATA) $(srcdir)/$${file} $(DESTDIR)${tooldir}/$${file} ; done
+	  $(INSTALL_DATA) $(srcdir)/include/$${file} $(DESTDIR)${tooldir}/include/libscl/$${file} ; done

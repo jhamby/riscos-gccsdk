@@ -442,8 +442,8 @@ closedir (ROOT);
 @inst_headers = convert_headers ("$aofsourcetree/source/clib", "$elfsourcetree/include");
 @noinst_headers = convert_headers ("$aofsourcetree/source/incl-local", "$elfsourcetree/incl-local");
 
-output_make_var ("libc_headers", \@inst_headers, "include");
-print MAKE "libc_headers += include/unixlib/stubs.h\n";
+output_make_var ("libc_headers", \@inst_headers, "");
+print MAKE "libc_headers += unixlib/stubs.h\n";
 
 print MAKE "\n";
 output_make_var ("nobase_noinst_HEADERS", \@noinst_headers, "incl-local");
@@ -502,11 +502,11 @@ foreach $f (@nostackfiles) {
 
 print MAKE "install-data-local: install-headers\n\n";
 print MAKE "install-headers:\n";
-print MAKE "\t\$(mkinstalldirs) \$(DESTDIR)\${tooldir}/include\n";
+print MAKE "\t\$(mkinstalldirs) \$(DESTDIR)\${tooldir}/include/libunixlib\n";
 print MAKE "\tfor dir in arpa bits net netinet resolv rpc string sys unixlib; do \\\n";
-print MAKE "\t  \$(mkinstalldirs) \$(DESTDIR)\${tooldir}/include/\$\${dir} ; done\n";
+print MAKE "\t  \$(mkinstalldirs) \$(DESTDIR)\${tooldir}/include/libunixlib/\$\${dir} ; done\n";
 print MAKE "\tfor file in \${libc_headers}; do \\\n";
-print MAKE "\t  \$(INSTALL_DATA) \$(srcdir)/\$\${file} \$(DESTDIR)\${tooldir}/\$\${file} ; done\n";
+print MAKE "\t  \$(INSTALL_DATA) \$(srcdir)/include/\$\${file} \$(DESTDIR)\${tooldir}/include/libunixlib/\$\${file} ; done\n";
 
 print MAKE "\n";
 close MAKE;
@@ -516,11 +516,7 @@ copy_file ("Docs/Changelog", "ChangeLog");
 copy_file ("Docs/Copyright", "COPYING");
 copy_file ("Docs/ReadMe", "README");
 mkdir "$elfsourcetree/contrib" if (! -d "$elfsourcetree/contrib");
-copy_file ("Boot,feb", "contrib/Boot,feb");
 copy_file ("!Help", "contrib/Help");
-copy_file ("Run,feb", "contrib/Run,feb");
-copy_file ("Sprites,ff9", "contrib/Sprites,ff9");
-copy_file ("Sprites22,ff9", "contrib/Sprites22,ff9");
 copy_file ("elf/configure.ac", "configure.ac");
 copy_file ("elf/libtool.m4", "libtool.m4");
 

@@ -49,12 +49,8 @@
 #define MULTILIB_DEFAULTS { "msoft-float" }
 
 #undef SUBTARGET_CPP_SPEC
-#define SUBTARGET_CPP_SPEC "%{mlibscl:-D__TARGET_SCL__}%{!mlibscl:-D__TARGET_UNIXLIB__}"
-
-/* #define SUBTARGET_CPP_SPEC \
-	"%{mlibscl:-D__TARGET_SCL__} \
-	%{mlibscl:-icrossdirafter /libscl} \
-	%{!mlibscl:-icrossdirafter /unixlib}" */
+#define SUBTARGET_CPP_SPEC "%{mlibscl:-D__TARGET_SCL__}%{!mlibscl:-D__TARGET_UNIXLIB__}" \
+			   " %{mlibscl:-icrossdirafter /libscl}%{!mlibscl:-icrossdirafter /libunixlib}"
 
 /* The GNU C++ standard library requires that these macros be defined.  */
 #undef CPLUSPLUS_CPP_SPEC

@@ -1,17 +1,10 @@
-Index: gcc/cppdefault.h
-===================================================================
-RCS file: gcc/cppdefault.h,v
-retrieving revision 1.10
-diff -u -r1.10 cppdefault.h
---- gcc/cppdefault.h	3 Nov 2004 03:23:49 -0000	1.10
-+++ gcc/cppdefault.h	17 May 2006 21:58:21 -0000
-@@ -49,4 +49,9 @@
+--- gcc/cppdefault.h.orig	2007-01-18 00:25:15.000000000 +0100
++++ gcc/cppdefault.h	2007-01-17 03:33:47.000000000 +0100
+@@ -49,4 +49,7 @@
  extern const char cpp_GCC_INCLUDE_DIR[];
  extern const size_t cpp_GCC_INCLUDE_DIR_len;
  
-+/* NAB++ */
 +extern const char cpp_CROSS_INCLUDE_DIR[];
 +extern const size_t cpp_CROSS_INCLUDE_DIR_len;
-+/* NAB-- */
 +
  #endif /* ! GCC_CPPDEFAULT_H */

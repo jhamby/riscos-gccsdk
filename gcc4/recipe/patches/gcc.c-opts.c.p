@@ -1,18 +1,17 @@
---- gcc/c-opts.c.orig	2006-09-24 23:20:22.000000000 +0200
-+++ gcc/c-opts.c	2006-09-24 23:20:31.000000000 +0200
+--- gcc/c-opts.c.orig	2007-01-18 00:24:42.000000000 +0100
++++ gcc/c-opts.c	2007-01-17 23:22:57.000000000 +0100
 @@ -158,6 +158,7 @@
  
      case OPT_F:
      case OPT_I:
-+    case OPT_icrossdirafter: /* NAB */
++    case OPT_icrossdirafter:
      case OPT_idirafter:
      case OPT_isysroot:
      case OPT_isystem:
-@@ -811,6 +812,26 @@
+@@ -811,6 +812,24 @@
        add_path (xstrdup (arg), AFTER, 0, true);
        break;
  
-+      /* NAB++ */
 +    case OPT_icrossdirafter:
 +      {
 +	char *path;
@@ -30,7 +29,6 @@
 +	add_path (path, AFTER, 0, true);
 +      }
 +      break;
-+      /* NAB-- */
 +
      case OPT_imacros:
      case OPT_include:
