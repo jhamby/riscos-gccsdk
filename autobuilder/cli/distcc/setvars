@@ -1,0 +1,8 @@
+
+AB_CATEGORY=cli
+
+ab_package() {
+  cp $S/distcc$AB_EXEEXT $S/COPYING $D
+}
+
+
