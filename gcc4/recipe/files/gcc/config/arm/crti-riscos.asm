@@ -48,17 +48,42 @@
 	.global	_start
 	.type	_start, %function
 _start:
-	@ On RISC OS the main entry point to the run-time library is
-	@ always called __main.
-	B	__main
+	@ UnixLib must be initialised before any constructors can be called.
+	@ a1 is set by the dynamic loader. In a static executable, a2 & a3, as
+	@ set below, are ignored.
+	LDR	a2, =__executable_start
+	LDR	a3, =__data_start
+	BL	__unixlib_main
 
-	@ This never gets executed, but it tells the linker to
-	@ pull in a definition of 'main' from somewhere, so that if an
-	@ application is linking when 'main' is in a static library,
-	@ it ensures that 'main' actually gets pulled in.
-	.type	main, %function
-	B	main
+	@ Run global object constructors in shared libraries
+@	BL	__unixlib_call_ctors
+
+	@ Run global object constructors in executable
+@	BL	_init
+
+	@; Run the users program.
+	BL	_main
+	@; C programs always terminate by calling exit.
+	B	exit
+	.type	_start, %function
 	.size	_start, . - _start
+
+	@ _main used to be in unix.c, however, as it calls main() in the executable,
+	@ it can't remain in the shared library. This is the ARM code equivalent as
+	@ produced by GCC 4. To make things easier, this applies to static executables
+	@ as well. Note that if the positions of the argc or argv members of __u change
+	@ then this code will have to be updated.
+_main:
+	LDR	a4, =__u
+	LDR	ip, [a4, #0]
+	LDR	a4, =environ
+	LDR	a2, [ip, #4]
+	LDR	a3, [a4, #0]
+	LDR	a1, [ip, #0]
+	B	main
+	.type	_main, %function
+	.size	_main, . - _main
+
 
 	.section ".ctors","aw",%progbits
 	.global	__CTOR_LIST__
@@ -71,7 +96,7 @@ __CTOR_LIST__:
 	.type	__DTOR_LIST__, %object
 __DTOR_LIST__:
 	.word	-1
-	
+
 	.section ".eh_frame","aw",%progbits
 	.global	__EH_FRAME_BEGIN__
 	.type	__EH_FRAME_BEGIN__, %object
