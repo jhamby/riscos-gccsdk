@@ -20,7 +20,7 @@
 #define ENOEXEC		8 /* Invalid executable file format (exec format error). */
 #define EBADF		9 /* Bad file descriptor.  */
 #define ECHILD		10 /* There are no child processes.  */
-                           /* 11 was EAGAIN, but this is now the same as EWOULDBLOCK */
+#define EDEADLK		11 /* Deadlock situation detected/avoided.  */
 #define ENOMEM		12 /* Cannot allocate memory.  */
 
 /* Permission denied.
@@ -95,7 +95,7 @@
 #define ENOMSG		75 /* No message of desired type.  */
 #define EBADMSG		76 /* Not a data message.  */
 #define EIDRM		77 /* Identifier removed.  */
-#define EDEADLK		78 /* Deadlock situation detected/avoided.  */
+#define ENOTSUP		78 /* Not supported. */
 #define ENOLCK		79 /* No record locks available.  */
 #define ELIBVER		82 /* Wrong version of shared library.  */
 #define ELIBACC		83 /* Permission denied (shared library).  */

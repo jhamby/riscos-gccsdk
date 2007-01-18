@@ -1,3 +1,8 @@
+Thu Jan 18 21:59:26 2007  Alex Waugh  <alex@alexwaugh.com>
+
+	* source/clib/errno.h: Change EDEADLK value for TCPIPLibs
+	compatibility and add ENOTSUP.
+
 Thu Jan 18 19:39:06 2007  Lee Noar  <leenoar@ntlworld.com>
 
 	* source/sys/_syslib.s: For the ELF build, convert __main into
