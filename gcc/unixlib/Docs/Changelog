@@ -1,3 +1,13 @@
+Thu Jan 18 19:39:06 2007  Lee Noar  <leenoar@ntlworld.com>
+
+	* source/sys/_syslib.s: For the ELF build, convert __main into
+	an initialisation function called __unixlib_main that returns
+	to its caller. This allows the call to _main (and ultimately
+	main()) to be moved to the executable.
+	* source/unix/unix.c: Don't compile _main() for the ELF build.
+	It is moved to crti-riscos.asm so that it can call main() in the
+	executable.
+
 Sun Jan 14 16:38:22 2007  Alex Waugh  <alex@alexwaugh.com>
 
 	* source/clib/errno.h: Change EAGAIN value to the same as

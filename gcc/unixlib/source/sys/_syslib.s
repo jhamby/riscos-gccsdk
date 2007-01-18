@@ -78,11 +78,25 @@ SUL_MIN_VERSION	EQU	107
 	DCB	"RMEnsure SharedUnixLibrary 1.07 Error XYZ", 0
 	ALIGN
 
+	[ __UNIXLIB_ELF > 0
+
+	@ For the shared library, __main is converted to an initialisation
+	@ routine for UnixLib and the code to call the user code entry point
+	@ is moved into riscos-crti.asm which is linked into the executable.
+	@ To make things simpler, this also applies to static binaries.
+	EXPORT	|__unixlib_main|
+	NAME	__unixlib_main
+
+|__unixlib_main|
+
+	|
+
 	EXPORT	|__main|
 	NAME	__main
 
 	ENTRY
 |__main|
+	]
 	; The dynamic loader passes, in r0, the address where free memory starts
 	; after it has grabbed what it needs. r1 & r2 come from crt1.o which is
 	; linked into the executable. They contain MEM_ROBASE and MEM_RWBASE
@@ -95,6 +109,16 @@ SUL_MIN_VERSION	EQU	107
  PICEQ "BL	__rt_load_pic"
 	; v4 is already in use below, so use v6 as the PIC register
  PICEQ "MOV	v6, v4"
+
+ 	[ __UNIXLIB_ELF > 0
+
+	; Save return address without using stack
+	LDR	ip, |.L0|+24	; __saved_lr
+ PICNE "STR	lr, [ip, #0]"
+ PICEQ "LDR	ip, [v6, ip]"
+ PICEQ "STR	r0, [ip, #0]"
+
+	]
 
 	; Read environment parameters
 	; On exit:
@@ -432,9 +456,20 @@ no_dynamic_area
 	; calling this function.
 	BL	|__unixinit|
 
-	BL	|_main|
+	[ __UNIXLIB_ELF > 0
+
+	LDR	a1, |.L0|+24	; __saved_lr
+ PICEQ "LDR	a1, [v6, a1]"
+	LDR	lr, [a1, #0]
+	MOV	pc, lr
+
+	|
+
+	BL	_main
 	; C programs always terminate by calling exit.
 	B	exit
+
+	]
 |.L0|
 	WORD	|__ul_global|
 	WORD	|__ul_memory|
@@ -442,7 +477,10 @@ no_dynamic_area
 	WORD	|rmensure1|
 	WORD	|rmensure2|
 	WORD	|rmensure3|
-	DECLARE_FUNCTION __main
+	[ __UNIXLIB_ELF > 0
+	WORD	|__saved_lr|
+	]
+	DECLARE_FUNCTION __unixlib_main
 
 	; Weak symbols.  We need only export these symbols for AOF/GCC
 	; compatibility.  For ELF, we don't need to export at all.
@@ -1207,7 +1245,11 @@ dynamic_area_name_end
 	ALIGN
 	DECLARE_OBJECT dynamic_area_name_begin
 
-
+	[ __UNIXLIB_ELF > 0
+|__saved_lr|
+	DCD	0
+	DECLARE_OBJECT __saved_lr
+	]
 
 ; Various data section variables can be grouped together under one
 ; large structure.  The advantage of this is that functions
